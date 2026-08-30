@@ -395,3 +395,63 @@ tr:focus-within .sirada-gizli, .satir:focus-within .sirada-gizli { opacity: 1; t
 .durum-degerlendirilmedi .dot { background: var(--kapsamdisi-dot); }
 .seg-degerlendirilmedi { background: var(--kapsamdisi-dot); opacity: .55; }
 .serit-degerlendirilmedi { background: var(--kapsamdisi-dot); }
+
+/* ===== Gerçek fotoğraf kapakları ===== */
+.kapak { position: relative; display: block; width: 100%; aspect-ratio: 2.4 / 1;
+  overflow: hidden; border-bottom: 1px solid var(--border); background: var(--surface-2); }
+.kapak > img { position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; display: block; }
+.kapak-cizim { color: var(--text-2); }
+.kapak-cizim > svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+/* Perde: koyu temada fotoğrafı kimliğe çeker, açık temada yumuşatır.
+   Kart metni perdenin üstünde kaldığı için kontrast her iki temada korunur. */
+.kapak-perde { position: absolute; inset: 0; pointer-events: none;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--bg) 20%, transparent) 0%,
+      color-mix(in srgb, var(--bg) 62%, transparent) 68%,
+      color-mix(in srgb, var(--bg) 92%, transparent) 100%),
+    linear-gradient(90deg, color-mix(in srgb, var(--bg) 45%, transparent), transparent 55%); }
+:root:not([data-theme="light"]) .kapak > img { filter: saturate(.82) brightness(.82) contrast(1.04); }
+:root[data-theme="light"] .kapak > img { filter: saturate(.92) brightness(1.02); }
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) .kapak > img { filter: saturate(.92) brightness(1.02); }
+}
+
+/* Hero fotoğrafı: geniş bant, güçlü perde — üstündeki metrikler okunur kalır */
+.hero-foto { position: absolute; inset: 0; display: block; overflow: hidden; }
+.hero-foto > img { position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; display: block; }
+.hero-perde { position: absolute; inset: 0; pointer-events: none;
+  background:
+    linear-gradient(90deg, var(--bg) 0%, color-mix(in srgb, var(--bg) 88%, transparent) 34%,
+      color-mix(in srgb, var(--bg) 55%, transparent) 62%,
+      color-mix(in srgb, var(--bg) 72%, transparent) 100%),
+    linear-gradient(180deg, color-mix(in srgb, var(--bg) 55%, transparent), transparent 45%,
+      color-mix(in srgb, var(--bg) 80%, transparent)); }
+:root:not([data-theme="light"]) .hero-foto > img { filter: saturate(.78) brightness(.7) contrast(1.06); }
+:root[data-theme="light"] .hero-foto > img { filter: saturate(.9) brightness(1.04); }
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) .hero-foto > img { filter: saturate(.9) brightness(1.04); }
+}
+
+/* ===== Okunabilirlik: fotoğraf/görsel üstündeki metinler =====
+   Metnin altına her zaman bir taban konur; kontrast fotoğrafa bırakılmaz. */
+.kart:has(.hero-foto) .band { position: relative; z-index: 1;
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--bg) 78%, transparent),
+    color-mix(in srgb, var(--bg) 58%, transparent) 55%,
+    color-mix(in srgb, var(--bg) 84%, transparent)); }
+.kart:has(.hero-foto) .band-hucre { backdrop-filter: blur(2px); }
+.kapak + .kart-icerik, .kapak ~ .kart-icerik { position: relative; z-index: 1; }
+
+/* Mikro etiket: yalnız süs değil, okunması gereken bilgi taşır — kontrast artırıldı */
+.mikro-etiket { color: var(--text-2); letter-spacing: .1em; }
+.mikro-etiket.sessiz { color: var(--text-3); }
+.band-hucre .mikro-etiket { color: var(--text-2); }
+
+/* Görsel üstündeki metrik ve etiketlerde hafif gölge — düşük kontrastlı
+   fotoğraf bölgelerinde bile kenarlar ayrışır (koyu temada) */
+:root:not([data-theme="light"]) .kart:has(.hero-foto) .band-hucre,
+:root:not([data-theme="light"]) .kapak ~ .kart-icerik .mikro-etiket {
+  text-shadow: 0 1px 3px color-mix(in srgb, var(--bg) 85%, transparent); }

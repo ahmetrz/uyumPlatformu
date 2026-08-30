@@ -25,7 +25,9 @@ export default function UyumTrendi({ anlikler }: {
         <span className="metrik-buyuk" style={{ fontSize: 'var(--fs-h2)' }}>
           {seri[0] ? `%${seri[0].yuzde}` : '—'}
         </span>
-        <div className="mikro-etiket">TREND İÇİN EN AZ 2 GÜNLÜK ANLIK GEREKİR</div>
+        <div style={{ color: 'var(--text-2)', fontSize: 'var(--fs-xs)' }}>
+          Trend için en az iki günlük anlık görüntü gerekir
+        </div>
       </div>
     );
   }

@@ -2,6 +2,7 @@
 import { useRef, useState } from 'react';
 import Kip from '@/components/Kip';
 import { Pill, Bos } from '@/components/ui';
+import { BosKuyruk } from '@/components/sahneler';
 import { useEylem } from '@/components/useEylem';
 import { aktarimYukle, aktarimOnayla, aktarimReddet } from '@/lib/eylemler';
 import { AKTARIM_ETIKET, AKTARIM_DURUM_RENGI, zamanTR } from '@/lib/sabitler';
@@ -140,7 +141,7 @@ export default function IceAktarimIstemci({ aktarimlar, regulasyonlar, alanKodla
               ))}
             </tbody>
           </table>
-          {aktarimlar.length === 0 && <Bos baslik="Aktarım yok" />}
+          {aktarimlar.length === 0 && <Bos gorsel={<BosKuyruk />} baslik="Aktarım yok" />}
           </div>
         </div>
       </section>

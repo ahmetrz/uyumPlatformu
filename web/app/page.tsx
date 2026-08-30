@@ -5,7 +5,7 @@ import { uyumYuzdesi, uyumOzeti, tarihTR, ONEM_ETIKET, ONEM_DURUM_RENGI, DURUM_E
   SUREC_DURUM_ETIKET, SUREC_DURUM_RENGI, type Durum, type Onem, type SurecDurum } from '@/lib/sabitler';
 import { Pill, SegBar, Halka, Bos, type DurumSayilari } from '@/components/ui';
 import UstCubuk from '@/components/UstCubuk';
-import { CizimSebeke, TipCizimi } from '@/components/cizimler';
+import { Panorama, KapakSec } from '@/components/sahneler';
 import UyumTrendi from '@/components/UyumTrendi';
 
 
@@ -82,9 +82,9 @@ export default async function GenelBakis() {
         <div className="belir gorunur">
           <div className="mikro-etiket">GENEL UYUM DURUMU · <span className="vurgu">{bugun.toLocaleUpperCase('tr-TR')}</span></div>
           <div className="kart" style={{ marginTop: 'var(--sp-3)', position: 'relative', overflow: 'hidden' }}>
-            <div style={{ position: 'absolute', right: 0, bottom: 0, left: 0, display: 'flex',
-              justifyContent: 'flex-end', color: 'var(--text-3)', opacity: .28, pointerEvents: 'none' }}>
-              <CizimSebeke boy={720} />
+            <div className="hero-sahne" style={{ position: 'absolute', inset: 'auto 0 0 0',
+              color: 'var(--text-3)', opacity: .5, pointerEvents: 'none', border: 'none' }}>
+              <Panorama />
             </div>
             <div className="band" style={{ position: 'relative' }}>
               <div className="band-hucre">
@@ -232,9 +232,10 @@ export default async function GenelBakis() {
                       etiket={SUREC_DURUM_ETIKET[s.durum as SurecDurum]} />
                   </div>
                   <div className="kart-icerik" style={{ display: 'flex', gap: 'var(--sp-5)', alignItems: 'center', position: 'relative', overflow: 'hidden' }}>
-                    <div style={{ position: 'absolute', right: -6, bottom: -10, color: 'var(--text-3)',
-                      opacity: .16, pointerEvents: 'none' }}>
-                      <TipCizimi kod={tesisler[0]?.tip?.kod} boy={150} />
+                    <div style={{ position: 'absolute', inset: '0 0 0 auto', width: '58%',
+                      color: 'var(--text-2)', opacity: .22, pointerEvents: 'none',
+                      maskImage: 'linear-gradient(90deg, transparent, #000 40%)' }}>
+                      <KapakSec tipKod={tesisler[0]?.tip?.kod} />
                     </div>
                     <Halka yuzde={yuzde} />
                     <div className="mini-cubuklar" style={{ flex: 1, minWidth: 0 }}>

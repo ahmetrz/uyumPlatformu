@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { Pill, Bos } from '@/components/ui';
-import { TipCizimi } from '@/components/cizimler';
+import { KapakSec } from '@/components/sahneler';
 import { useEylem } from '@/components/useEylem';
 import { bulguGuncelle, aksiyonEkle, aksiyonDurumDegistir } from '@/lib/eylemler';
 import {
@@ -49,9 +49,10 @@ export default function BulguDetayIstemci({ veri }: { veri: Veri }) {
       </div>
 
       <div className="kart belir gorunur" style={{ position: 'relative', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', right: 0, bottom: -6, color: 'var(--text-3)',
-          opacity: .14, pointerEvents: 'none' }}>
-          <TipCizimi kod={veri.tesis.tip} boy={180} />
+        <div style={{ position: 'absolute', inset: '0 0 0 auto', width: 'min(42%, 460px)',
+          color: 'var(--text-2)', opacity: .3, pointerEvents: 'none',
+          maskImage: 'linear-gradient(90deg, transparent, #000 35%)' }}>
+          <KapakSec tipKod={veri.tesis.tip} />
         </div>
         <div className="kart-baslik">
           <div style={{ flex: 1, minWidth: 0 }}>

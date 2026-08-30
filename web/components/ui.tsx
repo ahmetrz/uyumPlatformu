@@ -55,10 +55,17 @@ export function Halka({ yuzde, cap = 84, kalinlik = 8 }: { yuzde: number | null;
   );
 }
 
-/** Boş durum. */
-export function Bos({ baslik, altMetin, eylem }: { baslik: string; altMetin?: string; eylem?: React.ReactNode }) {
+/** Boş durum — isteğe bağlı illüstrasyonla. */
+export function Bos({ baslik, altMetin, eylem, gorsel }: {
+  baslik: string; altMetin?: string; eylem?: React.ReactNode; gorsel?: React.ReactNode;
+}) {
   return (
     <div className="bos">
+      {gorsel && (
+        <span style={{ width: 'min(300px, 70%)', color: 'var(--text-3)', display: 'block' }}>
+          {gorsel}
+        </span>
+      )}
       <span className="buyuk">{baslik}</span>
       {altMetin && <span>{altMetin}</span>}
       {eylem}

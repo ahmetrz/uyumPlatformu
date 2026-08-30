@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { Pill, SegBar, Bos, type DurumSayilari } from '@/components/ui';
 import Kip from '@/components/Kip';
-import { TipCizimi } from '@/components/cizimler';
+import { KapakSec } from '@/components/sahneler';
 import { useEylem } from '@/components/useEylem';
 import { exceleAktar, pdfYazdir } from '@/components/disaAktar';
 import { profilKaydet, kapsamYenidenHesapla, uygulanabilirlikOverride } from '@/lib/eylemler2/tesis360';
@@ -86,10 +86,9 @@ export function TesisKartlari({ tesisler }: { tesisler: TesisKart[] }) {
         {gorunen.map((t) => (
           <Link key={t.id} href={`/tesisler/${t.id}`} className="kart tikla belir gorunur"
             style={{ display: 'block', position: 'relative', overflow: 'hidden' }}>
-            <div style={{ position: 'absolute', right: -4, bottom: -8, color: 'var(--text-3)',
-              opacity: .13, pointerEvents: 'none' }}>
-              <TipCizimi kod={t.tipKod} boy={170} />
-            </div>
+            <span className="kapak kapak-dar" style={{ color: 'var(--text-2)' }}>
+              <KapakSec tipKod={t.tipKod} />
+            </span>
             <div className="kart-icerik" style={{ position: 'relative', display: 'flex',
               flexDirection: 'column', gap: 'var(--sp-3)' }}>
               <div className="mikro-etiket">
@@ -386,9 +385,10 @@ export default function Tesis360Istemci({ veri }: { veri: Veri }) {
           {veri.tuzelKisi && ` · ${veri.tuzelKisi.toLocaleUpperCase('tr-TR')}`}
         </div>
         <div className="kart" style={{ marginTop: 'var(--sp-3)', position: 'relative', overflow: 'hidden' }}>
-          <div style={{ position: 'absolute', right: 0, bottom: -8, color: 'var(--text-3)',
-            opacity: .14, pointerEvents: 'none' }}>
-            <TipCizimi kod={veri.tipKod} boy={230} />
+          <div style={{ position: 'absolute', inset: '0 0 0 auto', width: 'min(46%, 560px)',
+            color: 'var(--text-2)', opacity: .34, pointerEvents: 'none',
+            maskImage: 'linear-gradient(90deg, transparent, #000 32%)' }}>
+            <KapakSec tipKod={veri.tipKod} />
           </div>
           <div className="kart-baslik" style={{ position: 'relative' }}>
             <div style={{ flex: 1, minWidth: 0 }}>

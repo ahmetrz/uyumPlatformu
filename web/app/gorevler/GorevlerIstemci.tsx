@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { Pill, Bos } from '@/components/ui';
+import { BosTemiz } from '@/components/sahneler';
 import Kip from '@/components/Kip';
 import { useEylem } from '@/components/useEylem';
 import { exceleAktar, pdfYazdir } from '@/components/disaAktar';
@@ -226,7 +227,7 @@ export default function GorevlerIstemci({
               })}
             </tbody>
           </table>
-          {gorunen.length === 0 && <Bos baslik="Eşleşen görev yok"
+          {gorunen.length === 0 && <Bos gorsel={<BosTemiz />} baslik="Eşleşen görev yok"
             altMetin="Filtreleri genişletin veya yeni görev açın." />}
         </div>
       </div>

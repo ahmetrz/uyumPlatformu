@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import Kip from '@/components/Kip';
 import { Pill, Bos } from '@/components/ui';
+import { BosGenel } from '@/components/sahneler';
 import { useEylem } from '@/components/useEylem';
 import { exceleAktar, pdfYazdir } from '@/components/disaAktar';
 import { tumIsleriCalistir, tekIsCalistir } from '@/lib/eylemler2/isler';
@@ -79,7 +80,7 @@ export default function SaglikIstemci({ isler, gecmis, kalite, yazabilir }: {
 
       {hicKosuYok ? (
         <div className="kart">
-          <Bos baslik="Henüz koşu yok"
+          <Bos gorsel={<BosGenel />} baslik="Henüz koşu yok"
             altMetin="Otomasyon motorları hiç çalışmamış — görev, bildirim ve öneriler üretilmedi."
             eylem={yazabilir && (
               <button className="btn birincil" disabled={bekliyor} onClick={tumunuCalistir}>

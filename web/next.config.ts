@@ -20,6 +20,8 @@ const nextConfig: NextConfig = {
         path.resolve(__dirname, 'lib/eylemler.demo.ts');
       config.resolve.alias['@/lib/girisEylemleri'] =
         path.resolve(__dirname, 'lib/girisEylemleri.demo.ts');
+      config.resolve.alias['@/lib/eylemler2/arama'] =
+        path.resolve(__dirname, 'lib/eylemler2/arama.demo.ts');
       config.resolve.alias['@/lib/eylemler2/bildirim'] =
         path.resolve(__dirname, 'lib/eylemler2/bildirim.demo.ts');
       config.resolve.alias['@/lib/eylemler2/denetim'] =
@@ -44,6 +46,7 @@ const nextConfig: NextConfig = {
       ? {
           '@/lib/eylemler': './lib/eylemler.demo.ts',
           '@/lib/girisEylemleri': './lib/girisEylemleri.demo.ts',
+          '@/lib/eylemler2/arama': './lib/eylemler2/arama.demo.ts',
           '@/lib/eylemler2/bildirim': './lib/eylemler2/bildirim.demo.ts',
           '@/lib/eylemler2/denetim': './lib/eylemler2/denetim.demo.ts',
           '@/lib/eylemler2/envanter': './lib/eylemler2/envanter.demo.ts',

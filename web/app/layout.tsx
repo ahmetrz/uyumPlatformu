@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import Ray from '@/components/Ray';
 import Canlandir from '@/components/Canlandir';
+import KomutPaleti from '@/components/KomutPaleti';
 
 export const metadata: Metadata = {
   title: 'Şebeke Uyum Konsolu',
@@ -30,6 +31,7 @@ export default function KokYerlesim({ children }: { children: React.ReactNode })
           <div className="govde">{children}</div>
         </div>
         <Canlandir />
+        <KomutPaleti />
       </body>
     </html>
   );

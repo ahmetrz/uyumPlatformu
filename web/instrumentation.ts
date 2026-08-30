@@ -12,12 +12,14 @@ export async function register() {
   const { sonTarihleriIsle } = await import('./lib/motorlar/sonTarih');
   const { gapAksiyonIsle } = await import('./lib/motorlar/gapAksiyon');
   const { veriKalitesiniIsle } = await import('./lib/motorlar/veriKalitesi');
+  const { anlikGoruntuAl } = await import('./lib/motorlar/anlik');
 
   const hepsi = async () => {
     await isKos('kanit_tazelik', kanitTazeligiIsle);
-    await isKos('son_tarih', sonTarihleriIsle);
+    await isKos('deadline_motoru', sonTarihleriIsle);
     await isKos('gap_to_action', gapAksiyonIsle);
     await isKos('veri_kalitesi', veriKalitesiniIsle);
+    await isKos('uyum_anlik', anlikGoruntuAl);
   };
 
   // açılıştan 30 sn sonra ilk koşu, ardından saatlik

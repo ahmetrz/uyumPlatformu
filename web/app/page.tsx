@@ -6,6 +6,7 @@ import { uyumYuzdesi, uyumOzeti, tarihTR, ONEM_ETIKET, ONEM_DURUM_RENGI, DURUM_E
 import { Pill, SegBar, Halka, Bos, type DurumSayilari } from '@/components/ui';
 import UstCubuk from '@/components/UstCubuk';
 import { CizimSebeke, TipCizimi } from '@/components/cizimler';
+import UyumTrendi from '@/components/UyumTrendi';
 
 
 export default async function GenelBakis() {
@@ -39,6 +40,8 @@ export default async function GenelBakis() {
       db.risk.count({ where: { durum: { in: ['acik', 'islemde'] }, silindi: null } }),
       db.tesis.findMany({ where: { durum: 'aktif' }, include: { tip: true }, orderBy: { kod: 'asc' } }),
     ]);
+  const anlikler = await db.uyumAnlik.findMany({
+    where: { tesisId: null }, orderBy: { tarih: 'asc' }, take: 60 });
 
   // süreç → durum sayıları / tesis kırılımı
   const surecSayilari = new Map<string, DurumSayilari>();
@@ -90,6 +93,11 @@ export default async function GenelBakis() {
                   {genelYuzde === null ? '—' : <><span data-sayac={genelYuzde}>0</span><span className="birim">%</span></>}
                 </span>
                 <SegBar sayilar={genelSayilar} />
+              </div>
+              <div className="band-hucre">
+                <span className="mikro-etiket">Uyum trendi</span>
+                <UyumTrendi anlikler={anlikler.map((a) => ({
+                  tarih: a.tarih.toISOString(), ozetJson: a.ozetJson }))} />
               </div>
               <div className="band-hucre">
                 <span className="mikro-etiket">Açık bulgu</span>

@@ -12,6 +12,7 @@ import { kanitTazeligiIsle } from '../motorlar/kanitTazelik';
 import { sonTarihleriIsle } from '../motorlar/sonTarih';
 import { gapAksiyonIsle } from '../motorlar/gapAksiyon';
 import { veriKalitesiniIsle } from '../motorlar/veriKalitesi';
+import { anlikGoruntuAl } from '../motorlar/anlik';
 import { tamam, hata, type Sonuc } from './ortak';
 
 const ISLER = {
@@ -19,6 +20,7 @@ const ISLER = {
   deadline_motoru: sonTarihleriIsle,
   gap_to_action: gapAksiyonIsle,
   veri_kalitesi: veriKalitesiniIsle,
+  uyum_anlik: anlikGoruntuAl,
 } as const;
 
 const IsAdiSemasi = z.enum(

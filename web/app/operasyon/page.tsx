@@ -5,7 +5,7 @@ import OperasyonIstemci from './OperasyonIstemci';
 
 export default async function Operasyon() {
   await girisZorunlu();
-  const [degisiklikler, olaylar, politikalar, tedarikciler, sertifikalar, tesisler] =
+  const [degisiklikler, olaylar, politikalar, tedarikciler, sertifikalar, tesisler, hesaplar] =
     await Promise.all([
       db.degisiklik.findMany({ include: { tesis: true, talepEden: true, onaylayan: true },
         orderBy: { olusturuldu: 'desc' } }),
@@ -17,6 +17,12 @@ export default async function Operasyon() {
         include: { sozlesmeler: true, _count: { select: { varliklar: true } } } }),
       db.sertifika.findMany({ include: { varlik: true }, orderBy: { bitis: 'asc' } }),
       db.tesis.findMany({ where: { durum: 'aktif' }, orderBy: { kod: 'asc' } }),
+      db.kimlikHesabi.findMany({ include: {
+        tesis: true,
+        atamalar: { include: { varlik: true,
+          incelemeler: { orderBy: { zaman: 'desc' }, take: 1,
+            include: { inceleyen: true } } } } },
+        orderBy: [{ ayricalikli: 'desc' }, { hesapAdi: 'asc' }] }),
     ]);
 
   return (
@@ -58,7 +64,22 @@ export default async function Operasyon() {
             id: s.id, ad: s.ad, veren: s.veren, varlikEtiketi: s.varlik?.etiket ?? null,
             bitis: s.bitis.toISOString(),
           }))}
-          tesisler={tesisler.map((t) => ({ id: t.id, kod: t.kod }))} />
+          tesisler={tesisler.map((t) => ({ id: t.id, kod: t.kod }))}
+          hesaplar={hesaplar.map((h) => ({
+            id: h.id, hesapAdi: h.hesapAdi, tip: h.tip, ayricalikli: h.ayricalikli,
+            tesisKod: h.tesis?.kod ?? null, tesisId: h.tesisId,
+            kaynakSistem: h.kaynakSistem, durum: h.durum,
+            parolaRotasyon: h.parolaRotasyon?.toISOString() ?? null,
+            atamalar: h.atamalar.map((a) => ({
+              id: a.id, kapsam: a.kapsam, yetkiSeviyesi: a.yetkiSeviyesi,
+              varlikEtiketi: a.varlik?.etiket ?? null,
+              bitis: a.bitis?.toISOString() ?? null,
+              sonInceleme: a.incelemeler[0] ? {
+                sonuc: a.incelemeler[0].sonuc,
+                inceleyen: a.incelemeler[0].inceleyen?.adSoyad ?? null,
+                zaman: a.incelemeler[0].zaman.toISOString() } : null,
+            })),
+          }))} />
       </main>
     </>
   );

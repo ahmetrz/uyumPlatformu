@@ -8,6 +8,7 @@ import {
   yedeklemePolitikasiKaydet, yedeklemeKosusuKaydet, restoreTestiKaydet,
   tedarikciKaydet, sertifikaKaydet,
 } from '@/lib/eylemler2/operasyon';
+import { hesapKaydet, erisimIncele } from '@/lib/eylemler2/kimlik';
 import { tarihTR, zamanTR, gecenGun, type Durum } from '@/lib/sabitler';
 
 function sertifikaDurumu(bitis: string): { etiket: string; durum: Durum } {
@@ -37,6 +38,14 @@ type Tedarikci = { id: string; ad: string; tip: string | null; uzaktanErisimVar:
   kritiklik: string; sozlesmeSayisi: number; varlikSayisi: number };
 type Sertifika = { id: string; ad: string; veren: string | null;
   varlikEtiketi: string | null; bitis: string };
+type Hesap = {
+  id: string; hesapAdi: string; tip: string; ayricalikli: boolean;
+  tesisKod: string | null; tesisId: string | null; kaynakSistem: string | null;
+  durum: string; parolaRotasyon: string | null;
+  atamalar: { id: string; kapsam: string | null; yetkiSeviyesi: string | null;
+    varlikEtiketi: string | null; bitis: string | null;
+    sonInceleme: { sonuc: string; inceleyen: string | null; zaman: string } | null }[];
+};
 
 const DEGISIKLIK_ETIKET: Record<string, { ad: string; renk: Durum }> = {
   talep: { ad: 'Talep', renk: 'incelemede' }, onay: { ad: 'Onaylandı', renk: 'incelemede' },
@@ -49,18 +58,19 @@ const OLAY_DURUM: Record<string, { ad: string; renk: Durum }> = {
   acik: { ad: 'Açık', renk: 'uyumsuz' }, mudahale: { ad: 'Müdahale', renk: 'kismi' },
   cozuldu: { ad: 'Çözüldü', renk: 'uyumlu' }, kapali: { ad: 'Kapalı', renk: 'kapsamdisi' } };
 
-export default function OperasyonIstemci({ degisiklikler, olaylar, politikalar, tedarikciler, sertifikalar, tesisler }: {
+export default function OperasyonIstemci({ degisiklikler, olaylar, politikalar, tedarikciler, sertifikalar, tesisler, hesaplar }: {
   degisiklikler: Degisiklik[]; olaylar: Olay[]; politikalar: Politika[];
   tedarikciler: Tedarikci[]; sertifikalar: Sertifika[];
-  tesisler: { id: string; kod: string }[];
+  tesisler: { id: string; kod: string }[]; hesaplar: Hesap[];
 }) {
-  const [sekme, setSekme] = useState<'degisiklik' | 'olay' | 'yedek' | 'tedarikci'>('degisiklik');
+  const [sekme, setSekme] = useState<'degisiklik' | 'olay' | 'yedek' | 'tedarikci' | 'kimlik'>('degisiklik');
   return (
     <>
       <div className="filtreler">
         {([['degisiklik', `Değişiklikler (${degisiklikler.filter((d) => d.durum !== 'dogrulandi' && d.durum !== 'geri_alindi').length})`],
           ['olay', `Olaylar (${olaylar.filter((o) => o.durum === 'acik' || o.durum === 'mudahale').length})`],
-          ['yedek', 'Yedekleme & DR'], ['tedarikci', 'Tedarikçi & sertifika']] as const)
+          ['yedek', 'Yedekleme & DR'], ['tedarikci', 'Tedarikçi & sertifika'],
+          ['kimlik', `Kimlik & erişim (${hesaplar.filter((h) => h.ayricalikli && h.durum === 'aktif').length}⚿)`]] as const)
           .map(([kod, ad]) => (
             <button key={kod} className={`btn${sekme === kod ? ' birincil' : ''}`}
               onClick={() => setSekme(kod)}>{ad}</button>
@@ -70,6 +80,105 @@ export default function OperasyonIstemci({ degisiklikler, olaylar, politikalar, 
       {sekme === 'olay' && <OlayPaneli olaylar={olaylar} tesisler={tesisler} />}
       {sekme === 'yedek' && <YedekPaneli politikalar={politikalar} />}
       {sekme === 'tedarikci' && <TedarikciPaneli tedarikciler={tedarikciler} sertifikalar={sertifikalar} />}
+      {sekme === 'kimlik' && <KimlikPaneli hesaplar={hesaplar} tesisler={tesisler} />}
+    </>
+  );
+}
+
+/* ------------------------------------------------------ kimlik / erişim */
+
+const HESAP_TIP_ETIKET: Record<string, string> = {
+  kisi: 'Kişi', servis: 'Servis', paylasimli: 'Paylaşımlı', acil_durum: 'Acil durum' };
+
+function KimlikPaneli({ hesaplar, tesisler }: {
+  hesaplar: Hesap[]; tesisler: { id: string; kod: string }[];
+}) {
+  const { bekliyor, hata, calistir } = useEylem();
+  const [yeni, setYeni] = useState({ hesapAdi: '', tip: 'servis', tesisId: '',
+    kaynakSistem: '', ayricalikli: false });
+
+  const rotasyonYasi = (t: string | null) => t === null ? null : gecenGun(t);
+
+  return (
+    <>
+      <div className="filtreler">
+        <span className="mikro-etiket">
+          SERVİS HESAPLARI PAROLA ROTASYONUYLA İZLENİR · ATAMALAR DÖNEMSEL İNCELEMEDEN GEÇER (§9)
+        </span>
+      </div>
+      <div className="kart"><div className="kart-icerik sifir">
+        {hesaplar.map((h) => {
+          const yas = rotasyonYasi(h.parolaRotasyon);
+          const rotasyonDurumu: Durum = yas === null ? 'degerlendirilmedi'
+            : yas > 180 ? 'uyumsuz' : yas > 90 ? 'kismi' : 'uyumlu';
+          return (
+            <div key={h.id} className="satir" style={{ alignItems: 'flex-start' }}>
+              <span className="chip mono">{h.hesapAdi}</span>
+              <span className="chip">{HESAP_TIP_ETIKET[h.tip] ?? h.tip}</span>
+              {h.ayricalikli && <Pill durum="uyumsuz" etiket="Ayrıcalıklı" hollow />}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div className="mikro-etiket">
+                  {h.tesisKod ?? 'grup'} · {h.kaynakSistem ?? '?'}
+                  {h.durum !== 'aktif' && ` · ${h.durum}`}
+                </div>
+                <div className="filtreler" style={{ marginTop: 4 }}>
+                  {h.atamalar.map((a) => (
+                    <span key={a.id} className="filtreler" style={{ gap: 4 }}>
+                      <span className="chip" style={a.bitis ? { textDecoration: 'line-through', opacity: .6 } : undefined}
+                        title={a.sonInceleme
+                          ? `Son inceleme: ${a.sonInceleme.sonuc} (${a.sonInceleme.inceleyen ?? '?'}, ${tarihTR(a.sonInceleme.zaman)})`
+                          : 'Hiç incelenmedi'}>
+                        {a.varlikEtiketi ?? a.kapsam ?? '?'} · {a.yetkiSeviyesi ?? '?'}
+                        {!a.sonInceleme && !a.bitis && ' · incelenmedi'}
+                      </span>
+                      {!a.bitis && (
+                        <span className="filtreler sirada-gizli" style={{ gap: 2 }}>
+                          <button className="btn kucuk" disabled={bekliyor} title="İnceleme: onayla"
+                            onClick={() => calistir(() => erisimIncele({ atamaId: a.id, sonuc: 'onaylandi' }))}>✓</button>
+                          <button className="btn kucuk tehlike" disabled={bekliyor} title="İnceleme: kaldırılsın"
+                            onClick={() => calistir(() => erisimIncele({ atamaId: a.id, sonuc: 'kaldirilsin' }))}>✕</button>
+                        </span>
+                      )}
+                    </span>
+                  ))}
+                  {h.atamalar.length === 0 && <span className="mikro-etiket">ATAMA YOK</span>}
+                </div>
+              </div>
+              <Pill durum={rotasyonDurumu}
+                etiket={yas === null ? 'Rotasyon bilinmiyor' : `Rotasyon ${yas} gün önce`} />
+            </div>
+          );
+        })}
+        {hesaplar.length === 0 && <Bos baslik="Hesap kaydı yok" />}
+        <div className="satir" style={{ gap: 'var(--sp-2)', flexWrap: 'wrap' }}>
+          <input className="inp" placeholder="hesap adı (svc_scada...)" value={yeni.hesapAdi}
+            style={{ flex: 1, minWidth: 150 }}
+            onChange={(e) => setYeni({ ...yeni, hesapAdi: e.target.value })} />
+          <select className="sec" value={yeni.tip}
+            onChange={(e) => setYeni({ ...yeni, tip: e.target.value })}>
+            {Object.entries(HESAP_TIP_ETIKET).map(([kod, ad]) => <option key={kod} value={kod}>{ad}</option>)}
+          </select>
+          <select className="sec" value={yeni.tesisId}
+            onChange={(e) => setYeni({ ...yeni, tesisId: e.target.value })}>
+            <option value="">grup</option>
+            {tesisler.map((t) => <option key={t.id} value={t.id}>{t.kod}</option>)}
+          </select>
+          <input className="inp" placeholder="kaynak (AD/SCADA...)" value={yeni.kaynakSistem}
+            style={{ width: 130 }}
+            onChange={(e) => setYeni({ ...yeni, kaynakSistem: e.target.value })} />
+          <label style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 'var(--fs-xs)' }}>
+            <input type="checkbox" checked={yeni.ayricalikli}
+              onChange={(e) => setYeni({ ...yeni, ayricalikli: e.target.checked })} /> ayrıcalıklı
+          </label>
+          <button className="btn birincil kucuk" disabled={bekliyor}
+            onClick={() => calistir(() => hesapKaydet({
+              hesapAdi: yeni.hesapAdi, tip: yeni.tip, tesisId: yeni.tesisId || null,
+              kaynakSistem: yeni.kaynakSistem || null, ayricalikli: yeni.ayricalikli,
+            }), () => setYeni({ hesapAdi: '', tip: 'servis', tesisId: '', kaynakSistem: '', ayricalikli: false }))}>
+            + Hesap</button>
+        </div>
+      </div></div>
+      {hata && <p className="pill durum-uyumsuz" role="alert">{hata}</p>}
     </>
   );
 }

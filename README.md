@@ -1,21 +1,28 @@
-# Uyum Platformu — Tasarım Çıktısı
+# Şebeke Uyum Konsolu
 
-Canlı site: **https://ahmetrz.github.io/uyumPlatformu/**
+Enerji üretimi şirketinin BT/OT uyum platformu: regülasyonlar, uyum süreçleri (denetim dönemleri),
+madde bazında durum, bulgu → aksiyon takibi, kanıt kütüphanesi, regülasyonlar arası eşleştirme
+matrisi ve değişmez denetim izi — tesis bazlı kapsamla.
 
-| Sayfa | Bağlantı |
-| --- | --- |
-| Öncelikli ekranlar | [index.html](https://ahmetrz.github.io/uyumPlatformu/) |
-| Mockup seti | [mockups.html](https://ahmetrz.github.io/uyumPlatformu/mockups.html) |
+**Canlı demo:** https://ahmetrz.github.io/uyumPlatformu/
+(statik yayın; yazma işlemleri demo uyarısı verir, gerçek dağıtımda tümü aktiftir)
 
 ## Depo yapısı
 
-- `docs/` — yayınlanan sitenin kaynağı (tasarım çıktısı, `tokens.css`, tasarım notları). **Değişiklikler burada yapılır.**
-- `.github/workflows/publish.yml` — `main`'e her push'ta `docs/` içeriğini `gh-pages` dalına aktarır.
+- `web/` — ürün: Next.js 16 + Prisma 7 (SQLite) + server actions. Tüm tanımlar
+  (sektör, tesis kırılımı, tesis, regülasyon, kapsam alanı, süreç) panelden yönetilir.
+- `docs/` — tasarım ve model dokümanları: [TASARIM_PLANI](docs/TASARIM_PLANI.md) ·
+  [TASARIM_TOKENLARI](docs/TASARIM_TOKENLARI.md) · [ICERIK_MODELI](docs/ICERIK_MODELI.md) · `tokens.css`
+- `.github/workflows/publish.yml` — `main`'e push'ta ürünü derleyip (`NEXT_PUBLIC_DEMO=1`
+  statik dışa aktarım) `gh-pages` dalına yayınlar. `gh-pages` elle düzenlenmez.
 
-## Yayın akışı
+## Geliştirme
 
-Çalışma dalı yalnızca `main`'dir. `gh-pages` dalı elle düzenlenmez; workflow tarafından
-üretilir ve GitHub Pages'in yayın kaynağı olarak kullanılır.
+```bash
+cd web
+npm install
+npm run db:hazirla   # migrasyon + prisma generate + örnek veri
+npm run dev          # http://localhost:3000
+```
 
-Yayın kaynağını ileride "GitHub Actions"a çevirmek isterseniz: Settings → Pages → Source →
-GitHub Actions. Bu durumda `gh-pages` dalı ve bu workflow gereksiz kalır.
+Doğrulama: `npx tsc --noEmit && npx eslint app components lib` · Demo derlemesi: `NEXT_PUBLIC_DEMO=1 npm run demo:build`

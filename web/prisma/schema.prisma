@@ -1,0 +1,367 @@
+// Uyum Platformu veri şeması — docs/ICERIK_MODELI.md'yi birebir izler.
+//
+// Temel ilke (kullanıcı kararı): hiçbir tanım koda gömülü değildir.
+// Sektörler, tesis tipleri (doğalgaz, jeotermal, HES, RES...), tesisler,
+// regülasyonlar, kapsam alanları (BT/OT...) ve uyum süreçleri (denetimler)
+// panelden tanımlanır, eşleştirilir ve yaşam döngüsü yönetilir
+// (santral kapanır/satılır, süreç pasifleşir, kapsam değişir).
+//
+// Sağlayıcı SQLite (kurulumsuz); Postgres'e geçişte yalnızca datasource değişir.
+// Enum kullanılmaz: değerler String + web/lib/sabitler.ts'te zod ile doğrulanır.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/prisma-client"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// ------------------------------------------------------- tanımlar (panelden)
+
+model Sektor {
+  id    String  @id @default(cuid())
+  kod   String  @unique // ELEKTRIK-URETIM ...
+  ad    String
+  aktif Boolean @default(true)
+
+  tipler TesisTipi[]
+}
+
+model TesisTipi {
+  id       String  @id @default(cuid())
+  kod      String  @unique // DGKC | JEO | HES | RES | GES | TERMIK | MERKEZ ...
+  ad       String
+  sektorId String?
+  sira     Int     @default(0)
+  aktif    Boolean @default(true)
+
+  sektor   Sektor? @relation(fields: [sektorId], references: [id])
+  tesisler Tesis[]
+}
+
+/// Santral / lokasyon. Yaşam döngüsü: aktif → kapali (satış, kapanış).
+model Tesis {
+  id            String    @id @default(cuid())
+  kod           String    @unique
+  ad            String
+  tipId         String?
+  kuruluGucMw   Float?
+  konum         String?
+  durum         String    @default("aktif") // aktif | kapali
+  devreyeGiris  DateTime?
+  kapanisTarihi DateTime?
+  kapanisNedeni String? // satis | kapanis | birlesme ...
+  olusturuldu   DateTime  @default(now())
+
+  tip TesisTipi? @relation(fields: [tipId], references: [id])
+
+  surecKapsamlari SurecKapsami[]
+  maddeDurumlari  MaddeDurumu[]
+  yetkiler        Yetki[]
+}
+
+model Regulasyon {
+  id            String    @id @default(cuid())
+  kod           String    @unique // EPDK-SYM, CBDDO, ISO-27001, SPK-BS ... (panelden eklenir)
+  ad            String
+  surum         String?
+  yururlukTarih DateTime?
+  kaynakUrl     String?
+  aktif         Boolean   @default(true)
+
+  maddeler      Madde[]
+  surecler      UyumSureci[]
+  iceAktarimlar IceAktarim[]
+}
+
+/// Kapsam alanı (BT, OT ...). Panelden tanımlanır; maddelerle çoktan-çoğa eşleştirilir.
+model KapsamAlani {
+  id       String  @id @default(cuid())
+  kod      String  @unique
+  ad       String
+  aciklama String?
+  aktif    Boolean @default(true)
+
+  maddeAlanlari MaddeAlan[]
+}
+
+// ---------------------------------------------------------------- çekirdek
+
+model Madde {
+  id           String  @id @default(cuid())
+  regulasyonId String
+  ustMaddeId   String?
+  kod          String // EPDK-SYM-4.2.1
+  baslik       String
+  metin        String
+  kanitTipi    String?
+  sira         Int     @default(0)
+
+  regulasyon  Regulasyon @relation(fields: [regulasyonId], references: [id], onDelete: Cascade)
+  ustMadde    Madde?     @relation("MaddeHiyerarsi", fields: [ustMaddeId], references: [id])
+  altMaddeler Madde[]    @relation("MaddeHiyerarsi")
+
+  alanlar           MaddeAlan[]
+  durumlar          MaddeDurumu[]
+  eslestirmeKaynak  MaddeEslestirmesi[] @relation("EslestirmeKaynak")
+  eslestirmeHedef   MaddeEslestirmesi[] @relation("EslestirmeHedef")
+  projeBaglantilari ProjeBaglantisi[]
+
+  @@unique([regulasyonId, kod])
+}
+
+/// Madde ↔ kapsam alanı eşleştirmesi (panelden yönetilir).
+model MaddeAlan {
+  id      String @id @default(cuid())
+  maddeId String
+  alanId  String
+
+  madde Madde       @relation(fields: [maddeId], references: [id], onDelete: Cascade)
+  alan  KapsamAlani @relation(fields: [alanId], references: [id], onDelete: Cascade)
+
+  @@unique([maddeId, alanId])
+}
+
+/// Uyum süreci (denetim dönemi): bir regülasyonun belirli tesis kapsamında
+/// yürütülen çalışması. Kapsam değişebilir; süreç pasifleşebilir/tamamlanır.
+model UyumSureci {
+  id           String    @id @default(cuid())
+  kod          String    @unique // EPDK-SYM-2026 ...
+  ad           String
+  regulasyonId String
+  durum        String    @default("planlandi") // planlandi | aktif | pasif | tamamlandi
+  baslangic    DateTime?
+  bitis        DateTime?
+  aciklama     String?
+  olusturuldu  DateTime  @default(now())
+
+  regulasyon Regulasyon @relation(fields: [regulasyonId], references: [id], onDelete: Cascade)
+
+  kapsam   SurecKapsami[]
+  durumlar MaddeDurumu[]
+  yetkiler Yetki[]
+}
+
+/// Süreç ↔ tesis kapsamı. Tesis kapsamdan çıkarılabilir (kayıt silinir),
+/// geçmiş MaddeDurumu kayıtları tarihçe olarak kalır.
+model SurecKapsami {
+  id      String   @id @default(cuid())
+  surecId String
+  tesisId String
+  eklendi DateTime @default(now())
+
+  surec UyumSureci @relation(fields: [surecId], references: [id], onDelete: Cascade)
+  tesis Tesis      @relation(fields: [tesisId], references: [id], onDelete: Cascade)
+
+  @@unique([surecId, tesisId])
+}
+
+/// (Süreç × madde × tesis) kesişimi — sistemin en sık okunan tablosu.
+model MaddeDurumu {
+  id               String    @id @default(cuid())
+  surecId          String
+  maddeId          String
+  tesisId          String
+  durum            String    @default("incelemede") // uyumlu | kismi | uyumsuz | incelemede | kapsamdisi
+  sorumluId        String?
+  not              String?
+  sonDegerlendirme DateTime?
+  guncellendi      DateTime  @updatedAt
+
+  surec   UyumSureci @relation(fields: [surecId], references: [id], onDelete: Cascade)
+  madde   Madde      @relation(fields: [maddeId], references: [id], onDelete: Cascade)
+  tesis   Tesis      @relation(fields: [tesisId], references: [id], onDelete: Cascade)
+  sorumlu Kullanici? @relation("DurumSorumlusu", fields: [sorumluId], references: [id])
+
+  bulgular          Bulgu[]
+  kanitBaglantilari KanitBaglantisi[]
+
+  @@unique([surecId, maddeId, tesisId])
+  @@index([surecId, tesisId, durum])
+}
+
+// ------------------------------------------------------------ bulgu/aksiyon
+
+model Bulgu {
+  id            String    @id @default(cuid())
+  maddeDurumuId String
+  baslik        String
+  aciklama      String
+  onemDerecesi  String // kritik | yuksek | orta | dusuk
+  durum         String    @default("acik") // acik | aksiyonda | kapali | kabul_edildi
+  kaynak        String? // ic_denetim | dis_denetim | oz_degerlendirme
+  tespitTarihi  DateTime  @default(now())
+  hedefTarih    DateTime?
+  kapanmaTarihi DateTime?
+  sorumluId     String?
+
+  maddeDurumu MaddeDurumu @relation(fields: [maddeDurumuId], references: [id], onDelete: Cascade)
+  sorumlu     Kullanici?  @relation("BulguSorumlusu", fields: [sorumluId], references: [id])
+
+  aksiyonlar        Aksiyon[]
+  projeBaglantilari ProjeBaglantisi[]
+
+  @@index([durum, onemDerecesi])
+}
+
+model Aksiyon {
+  id         String    @id @default(cuid())
+  bulguId    String
+  baslik     String
+  aciklama   String?
+  sorumluId  String?
+  durum      String    @default("planlandi") // planlandi | devam | tamamlandi | iptal
+  baslangic  DateTime?
+  hedef      DateTime?
+  tamamlanma DateTime?
+
+  bulgu   Bulgu      @relation(fields: [bulguId], references: [id], onDelete: Cascade)
+  sorumlu Kullanici? @relation("AksiyonSorumlusu", fields: [sorumluId], references: [id])
+}
+
+// ------------------------------------------------------------------- kanıt
+
+model Kanit {
+  id                  String   @id @default(cuid())
+  ad                  String
+  tip                 String // politika | kayit | konfigurasyon | ekran_goruntusu | rapor
+  dosyaYolu           String?
+  gecerlilikBaslangic DateTime @default(now())
+  yukleyenId          String?
+  olusturuldu         DateTime @default(now())
+
+  yukleyen    Kullanici?        @relation("KanitYukleyen", fields: [yukleyenId], references: [id])
+  baglantilar KanitBaglantisi[]
+}
+
+/// Kanıt ↔ MaddeDurumu çoktan-çoğa: tek kanıt birden çok sürecin/regülasyonun
+/// maddesini karşılayabilir (crosswalk).
+model KanitBaglantisi {
+  id            String   @id @default(cuid())
+  kanitId       String
+  maddeDurumuId String
+  eklendi       DateTime @default(now())
+
+  kanit       Kanit       @relation(fields: [kanitId], references: [id], onDelete: Cascade)
+  maddeDurumu MaddeDurumu @relation(fields: [maddeDurumuId], references: [id], onDelete: Cascade)
+
+  @@unique([kanitId, maddeDurumuId])
+}
+
+// -------------------------------------------------------------- eşleştirme
+
+model MaddeEslestirmesi {
+  id       String  @id @default(cuid())
+  kaynakId String
+  hedefId  String
+  denklik  String // tam | kismi | ilgili
+  aciklama String?
+
+  kaynak Madde @relation("EslestirmeKaynak", fields: [kaynakId], references: [id], onDelete: Cascade)
+  hedef  Madde @relation("EslestirmeHedef", fields: [hedefId], references: [id], onDelete: Cascade)
+
+  @@unique([kaynakId, hedefId])
+}
+
+model Proje {
+  id        String    @id @default(cuid())
+  kod       String    @unique
+  ad        String
+  aciklama  String?
+  durum     String    @default("planlandi") // planlandi | devam | tamamlandi | beklemede
+  baslangic DateTime?
+  hedef     DateTime?
+  sahipId   String?
+
+  sahip       Kullanici?        @relation("ProjeSahibi", fields: [sahipId], references: [id])
+  baglantilar ProjeBaglantisi[]
+}
+
+model ProjeBaglantisi {
+  id      String  @id @default(cuid())
+  projeId String
+  maddeId String?
+  bulguId String?
+
+  proje Proje  @relation(fields: [projeId], references: [id], onDelete: Cascade)
+  madde Madde? @relation(fields: [maddeId], references: [id], onDelete: Cascade)
+  bulgu Bulgu? @relation(fields: [bulguId], references: [id], onDelete: Cascade)
+
+  @@unique([projeId, maddeId, bulguId])
+}
+
+// --------------------------------------------------------------- yetki/iz
+
+model Kullanici {
+  id          String   @id @default(cuid())
+  eposta      String   @unique
+  adSoyad     String
+  unvan       String?
+  aktif       Boolean  @default(true)
+  olusturuldu DateTime @default(now())
+
+  yetkiler          Yetki[]
+  durumSorumluluk   MaddeDurumu[]   @relation("DurumSorumlusu")
+  bulguSorumluluk   Bulgu[]         @relation("BulguSorumlusu")
+  aksiyonSorumluluk Aksiyon[]       @relation("AksiyonSorumlusu")
+  yuklenenKanitlar  Kanit[]         @relation("KanitYukleyen")
+  sahipProjeler     Proje[]         @relation("ProjeSahibi")
+  aktiviteler       AktiviteKaydi[]
+  iceAktarimlar     IceAktarim[]
+}
+
+/// Yetki kapsamı (kullanıcı × uyum süreci × tesis). Alan null ise "tümü".
+/// "Denetim bazında yetkilendirme": süreç, denetimin kendisidir.
+model Yetki {
+  id          String  @id @default(cuid())
+  kullaniciId String
+  surecId     String?
+  tesisId     String?
+  rol         String // okuyucu | katkici | denetim_sorumlusu | yonetici
+
+  kullanici Kullanici   @relation(fields: [kullaniciId], references: [id], onDelete: Cascade)
+  surec     UyumSureci? @relation(fields: [surecId], references: [id], onDelete: Cascade)
+  tesis     Tesis?      @relation(fields: [tesisId], references: [id], onDelete: Cascade)
+
+  @@unique([kullaniciId, surecId, tesisId])
+}
+
+/// Değişmez iz kaydı — bulgu zaman çizelgesinin kaynağı. Güncellenmez, yalnızca eklenir.
+model AktiviteKaydi {
+  id          String   @id @default(cuid())
+  aktorId     String?
+  varlikTipi  String // Madde | MaddeDurumu | Bulgu | Aksiyon | Kanit | Proje | Yetki | Tesis | UyumSureci | Regulasyon
+  varlikId    String
+  eylem       String // olusturma | guncelleme | silme | dosya_ekleme | durum_degisimi | kapsam_degisimi
+  alan        String?
+  oncekiDeger String?
+  yeniDeger   String?
+  dosyaAdi    String?
+  zaman       DateTime @default(now())
+
+  aktor Kullanici? @relation(fields: [aktorId], references: [id])
+
+  @@index([varlikTipi, varlikId, zaman])
+}
+
+// ---------------------------------------------------------- içe aktarım
+
+model IceAktarim {
+  id           String   @id @default(cuid())
+  regulasyonId String
+  kaynakTipi   String // excel | otomatik
+  kaynakAdi    String // dosya adı veya adaptör kimliği
+  durum        String   @default("dogrulama_bekliyor") // dogrulama_bekliyor | onaylandi | reddedildi | hata
+  okunan       Int      @default(0)
+  eklenen      Int      @default(0)
+  guncellenen  Int      @default(0)
+  elenen       Int      @default(0)
+  raporJson    String? // satır önizlemesi, elenenler ve sebepleri
+  yukleyenId   String?
+  olusturuldu  DateTime @default(now())
+
+  regulasyon Regulasyon @relation(fields: [regulasyonId], references: [id], onDelete: Cascade)
+  yukleyen   Kullanici? @relation(fields: [yukleyenId], references: [id])
+}

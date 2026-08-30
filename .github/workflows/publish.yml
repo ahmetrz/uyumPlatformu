@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'docs/**'
+      - 'web/**'
       - '.github/workflows/publish.yml'
   workflow_dispatch:
 
@@ -24,7 +24,31 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: docs/ içeriğini gh-pages dalına aktar
+      - name: Node kur
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Bağımlılıkları kur
+        working-directory: web
+        run: npm ci
+
+      - name: Veritabanını hazırla (migrasyon + seed)
+        working-directory: web
+        run: |
+          npx prisma migrate deploy
+          npx prisma generate
+          npx tsx prisma/seed.ts
+
+      - name: Statik demo derle
+        working-directory: web
+        env:
+          NEXT_PUBLIC_DEMO: '1'
+        run: npx next build
+
+      - name: Çıktıyı gh-pages dalına aktar
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
@@ -32,7 +56,8 @@ jobs:
           git fetch origin gh-pages
           git worktree add .site gh-pages
           find .site -mindepth 1 -maxdepth 1 ! -name '.git' -exec rm -rf {} +
-          cp -a docs/. .site/
+          cp -a web/out/. .site/
+          touch .site/.nojekyll
           cd .site
           git add -A
           if git diff --staged --quiet; then

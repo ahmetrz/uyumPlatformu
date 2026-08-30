@@ -91,9 +91,9 @@ Doğrulanmış boşluk: Matris/eşleştirme ekranı için doğrudan Awwwards ör
 8. **Genel bakış / boş durumlar:** 11sight + Catalyze AI'ın yumuşak gölgeli, cömert boşluklu kart sistemi; HOBRO DIGITAL'in navigasyon cilası.
 
 ## Sonraki Adımlar (bu plan onaylanınca)
-1. Bu kararlardan tasarım token'ları (renk, tip ölçeği, spacing, radius, hareket süreleri) çıkarılması — açık + koyu mod.
-2. Öncelikli 3 ekranın (Ana Dashboard, Madde Listesi, Bulgu Detayı/Timeline) yüksek doğruluklu mockup'ları.
-3. Kullanıcının ileteceği şirket/santral/regülasyon detaylarıyla içerik modelinin netleştirilmesi; ardından kalan ekranlar ve eşleştirme UI prototipi.
+1. ~~Bu kararlardan tasarım token'ları (renk, tip ölçeği, spacing, radius, hareket süreleri) çıkarılması — açık + koyu mod.~~ **Tamamlandı** → [TASARIM_TOKENLARI.md](TASARIM_TOKENLARI.md) (doküman) + [tokens.css](tokens.css) (uygulanabilir tanımlar).
+2. ~~Öncelikli 3 ekranın (Ana Dashboard, Madde Listesi, Bulgu Detayı/Timeline) yüksek doğruluklu mockup'ları.~~ **Tamamlandı** → [mockups.html](mockups.html); token setiyle birlikte tek sayfada, açık/koyu mod geçişli.
+3. Kullanıcının ileteceği şirket/santral/regülasyon detaylarıyla içerik modelinin netleştirilmesi; ardından kalan ekranlar ve eşleştirme UI prototipi. **Bekliyor** — mockup'lardaki madde kodları, tesis adları ve kişiler örnek veridir.
 
 ## Doğrulama
 

@@ -1,10 +1,11 @@
+import { girisZorunlu } from '@/lib/erisim';
 import { db } from '@/lib/db';
 import UstCubuk from '@/components/UstCubuk';
 import EslestirmeIstemci from './EslestirmeIstemci';
 
-export const dynamic = 'force-static';
 
 export default async function Eslestirme() {
+  await girisZorunlu();
   const [regulasyonlar, maddeler, esler] = await Promise.all([
     db.regulasyon.findMany({ where: { aktif: true }, orderBy: { kod: 'asc' } }),
     db.madde.findMany({

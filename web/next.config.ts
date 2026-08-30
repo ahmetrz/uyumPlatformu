@@ -18,11 +18,18 @@ const nextConfig: NextConfig = {
     if (demo) {
       config.resolve.alias['@/lib/eylemler'] =
         path.resolve(__dirname, 'lib/eylemler.demo.ts');
+      config.resolve.alias['@/lib/girisEylemleri'] =
+        path.resolve(__dirname, 'lib/girisEylemleri.demo.ts');
     }
     return config;
   },
   turbopack: {
-    resolveAlias: demo ? { '@/lib/eylemler': './lib/eylemler.demo.ts' } : {},
+    resolveAlias: demo
+      ? {
+          '@/lib/eylemler': './lib/eylemler.demo.ts',
+          '@/lib/girisEylemleri': './lib/girisEylemleri.demo.ts',
+        }
+      : {},
   },
 };
 

@@ -3,6 +3,13 @@
 import { PrismaClient } from '../lib/prisma-client/client';
 import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
 import path from 'node:path';
+import { randomBytes, scryptSync } from 'node:crypto';
+
+const parolaUret = (parola: string) => {
+  const tuz = randomBytes(16).toString('hex');
+  return `s1$${tuz}$${scryptSync(parola, tuz, 64, { N: 2 ** 15, r: 8, p: 1, maxmem: 128 * 1024 * 1024 }).toString('hex')}`;
+};
+const GELISTIRME_PAROLASI = 'Enerji!2026';
 
 const db = new PrismaClient({
   adapter: new PrismaBetterSqlite3({ url: `file:${path.join(__dirname, 'dev.db')}` }),
@@ -12,8 +19,11 @@ const G = 86_400_000;
 const gun = (n: number) => new Date(Date.now() + n * G);
 
 async function main() {
-  // ---- temizle (seed tekrar çalıştırılabilir)
-  await db.aktiviteKaydi.deleteMany();
+  // Denetim izi değişmezdir: dolu veritabanına seed atılmaz.
+  if (await db.aktiviteKaydi.count() > 0) {
+    console.error('Veritabanı dolu. Yeniden seed için önce prisma/dev.db dosyasını silin.');
+    process.exit(1);
+  }
   await db.kanitBaglantisi.deleteMany();
   await db.kanit.deleteMany();
   await db.aksiyon.deleteMany();
@@ -71,7 +81,8 @@ async function main() {
     ['mehmet.kaya', 'Mehmet Kaya', 'Sistem Yöneticisi'],
     ['zeynep.arslan', 'Zeynep Arslan', 'İç Denetçi'],
   ] as const).map(async ([e, ad, unvan]) => [e, await db.kullanici.create({
-    data: { eposta: `${e}@enerji.example`, adSoyad: ad, unvan } })]))) as Record<string, { id: string }>;
+    data: { eposta: `${e}@enerji.example`, adSoyad: ad, unvan,
+      parolaHash: parolaUret(GELISTIRME_PAROLASI) } })]))) as Record<string, { id: string }>;
 
   // ---- regülasyonlar (başlangıç seti; panelden eklenir)
   const reg = Object.fromEntries(await Promise.all(([
@@ -370,7 +381,193 @@ async function main() {
     ] }),
     yukleyenId: k['selin.aydin'].id } });
 
-  console.log('Seed tamam.');
+  // ================= hedef mimari genişlemesi =================
+
+  // Organizasyon hiyerarşisi: Grup → Tüzel Kişi → Tesis
+  const grup = await db.grup.create({ data: { kod: 'ENERJI-GRUP', ad: 'Enerji Üretim Grubu' } });
+  const tuzelUretim = await db.tuzelKisi.create({ data: {
+    grupId: grup.id, kod: 'URETIM-AS', ad: 'Enerji Üretim A.Ş.' } });
+  const tuzelYenilenebilir = await db.tuzelKisi.create({ data: {
+    grupId: grup.id, kod: 'YENILENEBILIR-AS', ad: 'Yenilenebilir Enerji A.Ş.' } });
+  await db.tesis.updateMany({ where: { kod: { in: ['ADANA-DGKC', 'SEYHAN-HES', 'MERKEZ', 'VAN-HES'] } },
+    data: { tuzelKisiId: tuzelUretim.id } });
+  await db.tesis.updateMany({ where: { kod: { in: ['BELEN-RES', 'AYDIN-JEO', 'KONYA-GES'] } },
+    data: { tuzelKisiId: tuzelYenilenebilir.id } });
+
+  // Santral profilleri (§5.1) — uygulanabilirlik motorunun girdisi
+  const profiller: [string, object][] = [
+    ['ADANA-DGKC', { lisansTipi: 'uretim', kabulDurumu: 'kesin_kabul', blackStart: true,
+      teiasScadaEms: true, seriHaberlesme: false, kritiklikSinifi: 'yuksek',
+      kritikAltyapiStatusu: true, otMimariTipi: 'dcs', dcsSaglayici: 'Siemens',
+      uzaktanErisim: true, internetMaruziyeti: 'sinirli', yerelAdVar: true,
+      grupOrtakServisler: 'merkezi_ad;soc;edr' }],
+    ['SEYHAN-HES', { lisansTipi: 'uretim', kabulDurumu: 'kesin_kabul', blackStart: false,
+      teiasScadaEms: true, kritiklikSinifi: 'orta', otMimariTipi: 'scada',
+      scadaSaglayici: 'ABB', uzaktanErisim: true, internetMaruziyeti: 'yok',
+      grupOrtakServisler: 'merkezi_ad;soc' }],
+    ['BELEN-RES', { lisansTipi: 'uretim', kabulDurumu: 'kesin_kabul', blackStart: false,
+      teiasScadaEms: false, seriHaberlesme: true, kritiklikSinifi: 'dusuk',
+      otMimariTipi: 'plc_scada', plcAileleri: 'Siemens S7', iotVar: true }],
+    ['AYDIN-JEO', { lisansTipi: 'uretim', kabulDurumu: 'kesin_kabul', blackStart: false,
+      teiasScadaEms: false, kritiklikSinifi: 'dusuk', otMimariTipi: 'plc_scada' }],
+    ['KONYA-GES', { lisansTipi: 'uretim', kabulDurumu: 'gecici_kabul', blackStart: false,
+      teiasScadaEms: false, kritiklikSinifi: 'dusuk', iotVar: true, akilliSayacVar: true }],
+    ['MERKEZ', { kritiklikSinifi: 'yuksek', yerelVeriMerkeziVar: true, yerelAdVar: true,
+      internetMaruziyeti: 'var', grupOrtakServisler: 'merkezi_ad;soc;edr;siem' }],
+  ];
+  for (const [kod, profil] of profiller)
+    await db.tesisProfili.create({ data: { tesisId: t[kod].id, ...profil } });
+
+  // Framework sürümleri: mevcut maddeler aktif sürüme bağlanır (backfill)
+  for (const [kod, r] of Object.entries(reg)) {
+    const surum = await db.frameworkSurumu.create({ data: {
+      regulasyonId: r.id, surumEtiketi: kod === 'EPDK-SYM' ? '2024' : 'mevcut',
+      durum: 'aktif', yururlukTarih: gun(-720) } });
+    await db.madde.updateMany({ where: { regulasyonId: r.id }, data: { surumId: surum.id } });
+  }
+
+  // Uygulanabilirlik kuralı (§5.2) + kararlar
+  const epdkKural = await db.uygulanabilirlikKurali.create({ data: {
+    regulasyonId: reg['EPDK-SYM'].id, ad: 'EPDK SYM kapsam kuralı',
+    aciklama: 'Kurulu güç ≥100 MWe VEYA Black-Start VEYA TEİAŞ SCADA/EMS (seri olmayan) → kapsamda',
+    kosulJson: JSON.stringify({ herhangi: [
+      { alan: 'kuruluGucMw', islec: '>=', deger: 100 },
+      { alan: 'blackStart', islec: '=', deger: true },
+      { alan: 'teiasScadaEmsSeriOlmayan', islec: '=', deger: true },
+    ] }) } });
+  const kapsamda = [['ADANA-DGKC', true, 'kuruluGucMw=790 ≥ 100 VE blackStart VE TEİAŞ SCADA/EMS'],
+    ['SEYHAN-HES', true, 'kuruluGucMw=138 ≥ 100 VE TEİAŞ SCADA/EMS (seri değil)'],
+    ['BELEN-RES', false, 'güç 96 < 100; TEİAŞ haberleşmesi seri tabanlı; Black-Start yok'],
+    ['AYDIN-JEO', false, 'güç 47 < 100; kapsam koşulları sağlanmıyor'],
+    ['KONYA-GES', false, 'güç 63 < 100; geçici kabul; kapsam koşulları sağlanmıyor']] as const;
+  for (const [kod, uygulanabilir, gerekce] of kapsamda)
+    await db.uygulanabilirlikKarari.create({ data: {
+      tesisId: t[kod].id, regulasyonId: reg['EPDK-SYM'].id,
+      uygulanabilir, gerekce, kuralId: epdkKural.id, kuralSurumu: 1 } });
+  // Örnek onaylı override: BELEN-RES sözleşme gereği gönüllü kapsamda
+  await db.uygulanabilirlikKarari.update({
+    where: { tesisId_regulasyonId: { tesisId: t['BELEN-RES'].id, regulasyonId: reg['EPDK-SYM'].id } },
+    data: { uygulanabilir: true, elIleDegistirildi: true,
+      degistirmeGerekcesi: 'TEİAŞ bağlantı anlaşması gereği gönüllü uyum taahhüdü',
+      onaylayanId: k['ayse.demir'].id } });
+
+  // CMDB çekirdeği: varlık türleri + örnek varlıklar + ağ bölgeleri
+  const tur = Object.fromEntries(await Promise.all(([
+    ['FSUNUCU', 'Fiziksel Sunucu', 'BT'], ['SSUNUCU', 'Sanal Sunucu', 'BT'],
+    ['UYGULAMA', 'Uygulama', 'BT'], ['AGCIHAZ', 'Ağ Cihazı', 'BT'],
+    ['OTFW', 'OT Güvenlik Duvarı', 'BT_OT_KOPRU'], ['PLC', 'PLC', 'OT'],
+    ['HMI', 'HMI', 'OT'], ['SCADA-SRV', 'SCADA Sunucusu', 'OT'],
+    ['DCS', 'DCS Denetleyici', 'OT'], ['EWS', 'Mühendislik İstasyonu', 'OT'],
+    ['SRVHESAP', 'Servis Hesabı', 'BT'],
+  ] as const).map(async ([kod, ad, sinif]) => [kod, await db.varlikTuru.create({
+    data: { kod, ad, sinif } })]))) as Record<string, { id: string }>;
+
+  const zonKurumsal = await db.agBolgesi.create({ data: {
+    kod: 'ADANA-KURUMSAL', ad: 'Adana Kurumsal Ağ', tip: 'kurumsal',
+    tesisId: t['ADANA-DGKC'].id, guvenlikSeviyesi: 4 } });
+  const zonOtDmz = await db.agBolgesi.create({ data: {
+    kod: 'ADANA-OT-DMZ', ad: 'Adana OT DMZ', tip: 'ot_dmz',
+    tesisId: t['ADANA-DGKC'].id, guvenlikSeviyesi: 3 } });
+  const zonOt = await db.agBolgesi.create({ data: {
+    kod: 'ADANA-OT', ad: 'Adana SCADA/DCS Ağı', tip: 'ot',
+    tesisId: t['ADANA-DGKC'].id, guvenlikSeviyesi: 2 } });
+  await db.agGeciti.create({ data: {
+    kaynakBolgeId: zonKurumsal.id, hedefBolgeId: zonOtDmz.id,
+    kontrolVarligi: 'ADANA-OTFW-01', protokoller: 'https;opc-ua', onaylandi: true } });
+  await db.agGeciti.create({ data: {
+    kaynakBolgeId: zonOtDmz.id, hedefBolgeId: zonOt.id,
+    kontrolVarligi: 'ADANA-OTFW-01', protokoller: 'modbus-tcp;iec104', onaylandi: true } });
+
+  const sistemScada = await db.sistemServis.create({ data: {
+    kod: 'ADANA-SCADA', ad: 'Adana DGKÇ SCADA/DCS', tip: 'sistem',
+    tesisId: t['ADANA-DGKC'].id, kritiklik: 'kritik', sahipId: k['burak.sahin'].id } });
+  const surecUretim = await db.isSureci.create({ data: {
+    kod: 'ADANA-URETIM', ad: 'Adana elektrik üretimi', tesisId: t['ADANA-DGKC'].id,
+    uretimEtkisi: 'uretim_durur' } });
+  await db.isSureciSistemi.create({ data: { surecId: surecUretim.id, sistemId: sistemScada.id } });
+
+  const varlikOtfw = await db.varlik.create({ data: {
+    etiket: 'ADANA-OTFW-01', ad: 'OT Güvenlik Duvarı (Adana)', turId: tur['OTFW'].id,
+    tesisId: t['ADANA-DGKC'].id, sistemId: sistemScada.id, uretici: 'Fortinet',
+    model: 'FG-200F', kritiklik: 'kritik', uretimEtkisi: 'yuksek',
+    bolgeId: zonOtDmz.id, yasamDongusu: 'aktif', sahipId: k['burak.sahin'].id,
+    eosTarihi: gun(500), yamaDurumu: 'guncel', izlemeDurumu: 'var', logKaynagi: 'var' } });
+  const varlikScada = await db.varlik.create({ data: {
+    etiket: 'ADANA-SCADA-SRV-01', ad: 'SCADA Sunucusu 1', turId: tur['SCADA-SRV'].id,
+    tesisId: t['ADANA-DGKC'].id, sistemId: sistemScada.id, isletimSistemi: 'Windows Server 2012 R2',
+    kritiklik: 'kritik', uretimEtkisi: 'yuksek', bolgeId: zonOt.id,
+    eolTarihi: gun(-800), eosTarihi: gun(-400), yamaDurumu: 'yamasiz',
+    yedekDurumu: 'var', sahipId: k['burak.sahin'].id } });
+  await db.varlik.create({ data: {
+    etiket: 'ADANA-EWS-01', ad: 'Mühendislik İstasyonu', turId: tur['EWS'].id,
+    tesisId: t['ADANA-DGKC'].id, sistemId: sistemScada.id, kritiklik: 'yuksek',
+    bolgeId: zonOt.id, yamaDurumu: 'eksik', uzaktanErisim: true } });
+  await db.varlikIliskisi.create({ data: {
+    kaynakId: varlikScada.id, hedefId: varlikOtfw.id, tip: 'connects_to' } });
+
+  // Risk kaydı: EOS SCADA sunucusu → bulgu b1 ile bağlantılı üretim riski
+  const risk1 = await db.risk.create({ data: {
+    kod: 'RSK-2026-001', baslik: 'Desteksiz SCADA sunucusu üzerinden üretim kesintisi',
+    aciklama: 'Adana SCADA sunucusu EOL/EOS geçmiş Windows 2012 R2 üzerinde; yama alamıyor. Segmentasyon eksikliğiyle (bulgu) birleşince fidye yazılımının üretimi durdurma olasılığı yüksek.',
+    kaynak: 'eol', tesisId: t['ADANA-DGKC'].id, sistemId: sistemScada.id, bulguId: b1.id,
+    tehdit: 'Fidye yazılımı / yetkisiz erişim', zayiflik: 'EOS işletim sistemi + düz ağ',
+    olasilik: 4, etkiUretim: 5, etkiEmniyet: 3, etkiRegulasyon: 4, etkiFinans: 4,
+    etkiSiber: 5, dogalRisk: 20, artikRisk: 16,
+    mevcutKontroller: 'OT DMZ güvenlik duvarı; günlük yedek',
+    sahipId: k['burak.sahin'].id, islemTipi: 'azalt', durum: 'islemde' } });
+  await db.riskVarlik.create({ data: { riskId: risk1.id, varlikId: varlikScada.id } });
+  await db.riskKontrol.create({ data: { riskId: risk1.id, maddeId: maddeIdx['EPDK-SYM-4.2.1'].id } });
+  await db.projeBaglantisi.create({ data: {
+    projeId: p1.id, riskId: risk1.id, tesisId: t['ADANA-DGKC'].id,
+    gerekce: 'Segmentasyon programı bu riskin ana azaltıcısıdır' } });
+  // Süreli risk kabulü örneği
+  await db.risk.create({ data: {
+    kod: 'RSK-2026-002', baslik: 'RES SCADA bağlantısında tekil güzergah',
+    aciklama: 'Belen RES haberleşmesi tek fiber güzergahta; kopmada görünürlük kaybı.',
+    kaynak: 'manuel', tesisId: t['BELEN-RES'].id, olasilik: 2, etkiUretim: 2, etkiSiber: 1,
+    dogalRisk: 4, artikRisk: 4, islemTipi: 'kabul', kabulBitis: gun(180),
+    onaylayanId: k['ayse.demir'].id, sahipId: k['burak.sahin'].id, durum: 'kabul_edildi' } });
+
+  // Denetim yaşam döngüsü: yaklaşan CBDDÖ yerinde denetimi
+  const denetim1 = await db.denetim.create({ data: {
+    kod: 'DEN-2026-CBDDO', ad: 'CBDDÖ Yerinde Denetimi 2026', tip: 'dis_denetim',
+    denetleyen: 'CBDDÖ', surecId: surecCbddo.id, durum: 'kanit_talebi',
+    planBaslangic: gun(35), planBitis: gun(42) } });
+  await db.denetimKapsami.create({ data: { denetimId: denetim1.id, tesisId: t['MERKEZ'].id } });
+  await db.denetimKapsami.create({ data: { denetimId: denetim1.id, tesisId: t['ADANA-DGKC'].id } });
+  await db.kanitTalebi.create({ data: {
+    denetimId: denetim1.id, baslik: 'Ağ topolojisi ve segmentasyon şeması',
+    sorumluId: k['burak.sahin'].id, sonTarih: gun(20), kanitId: k2.id, durum: 'saglandi' } });
+  await db.kanitTalebi.create({ data: {
+    denetimId: denetim1.id, baslik: 'Denetim izi saklama konfigürasyonu',
+    sorumluId: k['mehmet.kaya'].id, sonTarih: gun(25) } });
+
+  // Kanıt geçerlilikleri (tazelik motoru için) + bayat örnek
+  await db.kanit.update({ where: { id: k1.id }, data: {
+    gecerliBitis: gun(140), sahipId: k['mehmet.kaya'].id, toplanmaTarihi: gun(-40) } });
+  await db.kanit.update({ where: { id: k2.id }, data: {
+    gecerliBitis: gun(20), sahipId: k['burak.sahin'].id, toplanmaTarihi: gun(-160) } });
+  await db.kanit.update({ where: { id: k3.id }, data: {
+    gecerliBitis: gun(-20), sahipId: k['selin.aydin'].id, toplanmaTarihi: gun(-200) } });
+
+  // Proje adayı örneği: EOS varlıktan otomatik üretilmiş, onay bekliyor
+  await db.projeAdayi.create({ data: {
+    baslik: 'Adana SCADA sunucu modernizasyonu',
+    gerekce: 'ADANA-SCADA-SRV-01 EOL/EOS geçti (Windows 2012 R2); RSK-2026-001 artık riski 16/25; EPDK-SYM-4.2.1 uyumsuz. Modernizasyon üç kaydı birden kapatır.',
+    kaynak: 'eol_eos', kaynakRef: varlikScada.id, tesisId: t['ADANA-DGKC'].id } });
+
+  // Görev motoru örnekleri
+  await db.gorev.create({ data: {
+    baslik: 'Olay Müdahale Planı kanıtı süresi doldu — yenileyin',
+    tip: 'kanit_yenileme', kaynakTipi: 'Kanit', kaynakId: k3.id,
+    sorumluId: k['selin.aydin'].id, tesisId: t['BELEN-RES'].id,
+    sonTarih: gun(14), otomatikUretildi: true } });
+  await db.gorev.create({ data: {
+    baslik: 'CBDDÖ kanıt talebi: denetim izi konfigürasyonu',
+    tip: 'dogrulama', kaynakTipi: 'KanitTalebi', kaynakId: denetim1.id,
+    sorumluId: k['mehmet.kaya'].id, sonTarih: gun(25), otomatikUretildi: true } });
+
+  console.log('Seed tamam. Geliştirme girişi: ayse.demir@enerji.example / ' + GELISTIRME_PAROLASI);
 }
 
 main().finally(() => db.$disconnect());

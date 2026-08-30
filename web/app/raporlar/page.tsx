@@ -1,12 +1,13 @@
+import { girisZorunlu } from '@/lib/erisim';
 import { db } from '@/lib/db';
 import UstCubuk from '@/components/UstCubuk';
 import RaporlarIstemci from './RaporlarIstemci';
 import { uyumYuzdesi, gecenGun, type Durum } from '@/lib/sabitler';
 import type { DurumSayilari } from '@/components/ui';
 
-export const dynamic = 'force-static';
 
 export default async function Raporlar() {
+  await girisZorunlu();
   const [surecler, gruplar, bulgular, kanitlar] = await Promise.all([
     db.uyumSureci.findMany({
       where: { durum: { in: ['aktif', 'planlandi'] } },

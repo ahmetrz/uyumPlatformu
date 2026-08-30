@@ -4,12 +4,23 @@ import { z } from 'zod';
 // KapsamAlani, UyumSureci); burada yalnızca DURUM makine adları ve Türkçe
 // etiketleri yaşar. Yeni tanım eklemek kod değişikliği gerektirmez.
 
-export const DURUMLAR = ['uyumlu', 'kismi', 'uyumsuz', 'incelemede', 'kapsamdisi'] as const;
+export const DURUMLAR = ['uyumlu', 'kismi', 'uyumsuz', 'incelemede', 'degerlendirilmedi', 'kapsamdisi'] as const;
 export const DurumSemasi = z.enum(DURUMLAR);
 export type Durum = z.infer<typeof DurumSemasi>;
 export const DURUM_ETIKET: Record<Durum, string> = {
   uyumlu: 'Uyumlu', kismi: 'Kısmi', uyumsuz: 'Uyumsuz',
-  incelemede: 'İncelemede', kapsamdisi: 'Kapsam dışı',
+  incelemede: 'İncelemede', degerlendirilmedi: 'Değerlendirilmedi', kapsamdisi: 'Kapsam dışı',
+};
+
+export const GUVEN_SEVIYELERI = ['otomatik_kanit', 'denetci_dogrulamis', 'oz_degerlendirme', 'bayat_kanit', 'kanit_yok'] as const;
+export type Guven = (typeof GUVEN_SEVIYELERI)[number];
+export const GUVEN_ETIKET: Record<Guven, string> = {
+  otomatik_kanit: 'Otomatik kanıt', denetci_dogrulamis: 'Denetçi doğrulamış',
+  oz_degerlendirme: 'Öz değerlendirme', bayat_kanit: 'Kanıt bayat', kanit_yok: 'Kanıt yok',
+};
+export const GUVEN_DURUM_RENGI: Record<Guven, Durum> = {
+  otomatik_kanit: 'uyumlu', denetci_dogrulamis: 'uyumlu',
+  oz_degerlendirme: 'kismi', bayat_kanit: 'kismi', kanit_yok: 'uyumsuz',
 };
 
 export const ONEM_DERECELERI = ['kritik', 'yuksek', 'orta', 'dusuk'] as const;
@@ -93,13 +104,30 @@ export function kanitTazelik(baslangic: Date): { etiket: string; durum: Durum; g
   return { etiket: 'Süresi doldu', durum: 'uyumsuz', gun };
 }
 
-// Uyum yüzdesi: kapsam dışı payda dışıdır; uyumlu=1, kısmi=0.5
+// Uyum semantiği (§25, §55): Unknown asla 0 sayılmaz.
+// - yuzde: yalnız DEĞERLENDİRİLMİŞ kayıtlar üzerinden (uyumlu=1, kısmi=0.5)
+// - bilinmeyen: değerlendirilmemiş + incelemede oranı — ayrı raporlanır
+// - kapsamdisi: her iki paydanın da dışında
+export function uyumOzeti(sayilar: Partial<Record<string, number>>): {
+  yuzde: number | null; bilinmeyenOran: number | null;
+  degerlendirilen: number; bilinmeyen: number; kapsam: number;
+} {
+  const u = sayilar.uyumlu ?? 0, k = sayilar.kismi ?? 0, s = sayilar.uyumsuz ?? 0;
+  const bilinmeyen = (sayilar.incelemede ?? 0) + (sayilar.degerlendirilmedi ?? 0);
+  const degerlendirilen = u + k + s;
+  const kapsam = degerlendirilen + bilinmeyen;
+  return {
+    yuzde: degerlendirilen === 0 ? null : Math.round(((u + k * 0.5) / degerlendirilen) * 100),
+    bilinmeyenOran: kapsam === 0 ? null : Math.round((bilinmeyen / kapsam) * 100),
+    degerlendirilen, bilinmeyen, kapsam,
+  };
+}
+
+// Geriye uyumluluk: mevcut ekranlar tek yüzde bekliyor — DEĞERLENDİRİLMİŞ
+// kayıtların yüzdesi döner (bilinmeyen paydada DEĞİL; ekranlar bilinmeyeni
+// uyumOzeti ile ayrıca gösterir).
 export function uyumYuzdesi(sayilar: Partial<Record<string, number>>): number | null {
-  const u = sayilar.uyumlu ?? 0, k = sayilar.kismi ?? 0,
-    s = sayilar.uyumsuz ?? 0, i = sayilar.incelemede ?? 0;
-  const payda = u + k + s + i;
-  if (payda === 0) return null;
-  return Math.round(((u + k * 0.5) / payda) * 100);
+  return uyumOzeti(sayilar).yuzde;
 }
 
 export function tarihTR(d: Date | string | null | undefined): string {

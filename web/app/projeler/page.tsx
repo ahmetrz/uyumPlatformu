@@ -1,10 +1,11 @@
+import { girisZorunlu } from '@/lib/erisim';
 import { db } from '@/lib/db';
 import UstCubuk from '@/components/UstCubuk';
 import ProjelerIstemci from './ProjelerIstemci';
 
-export const dynamic = 'force-static';
 
 export default async function Projeler() {
+  await girisZorunlu();
   const [projeler, kullanicilar, maddeler, bulgular] = await Promise.all([
     db.proje.findMany({
       include: { sahip: true, baglantilar: { include: {

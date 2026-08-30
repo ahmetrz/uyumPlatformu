@@ -16,7 +16,7 @@ export type DurumSayilari = Partial<Record<Durum, number>>;
 
 /** Durum dağılımı segment çubuğu. */
 export function SegBar({ sayilar, yukseklik }: { sayilar: DurumSayilari; yukseklik?: number }) {
-  const sira: Durum[] = ['uyumlu', 'kismi', 'uyumsuz', 'incelemede', 'kapsamdisi'];
+  const sira: Durum[] = ['uyumlu', 'kismi', 'uyumsuz', 'incelemede', 'degerlendirilmedi', 'kapsamdisi'];
   const toplam = sira.reduce((a, d) => a + (sayilar[d] ?? 0), 0);
   if (toplam === 0) return <div className="seg-bar" style={yukseklik ? { height: yukseklik } : undefined} />;
   return (

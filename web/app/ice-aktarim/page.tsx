@@ -1,10 +1,11 @@
+import { girisZorunlu } from '@/lib/erisim';
 import { db } from '@/lib/db';
 import UstCubuk from '@/components/UstCubuk';
 import IceAktarimIstemci from './IceAktarimIstemci';
 
-export const dynamic = 'force-static';
 
 export default async function IceAktarim() {
+  await girisZorunlu();
   const [aktarimlar, regulasyonlar, alanlar] = await Promise.all([
     db.iceAktarim.findMany({
       include: { regulasyon: true, yukleyen: true },

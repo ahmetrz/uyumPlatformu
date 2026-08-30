@@ -1,10 +1,11 @@
+import { girisZorunlu } from '@/lib/erisim';
 import { db } from '@/lib/db';
 import UstCubuk from '@/components/UstCubuk';
 import TanimlarIstemci from './TanimlarIstemci';
 
-export const dynamic = 'force-static';
 
 export default async function Tanimlar() {
+  await girisZorunlu();
   const [sektorler, tipler, tesisler, regulasyonlar, alanlar] = await Promise.all([
     db.sektor.findMany({ include: { _count: { select: { tipler: true } } }, orderBy: { kod: 'asc' } }),
     db.tesisTipi.findMany({ include: { sektor: true, _count: { select: { tesisler: true } } },

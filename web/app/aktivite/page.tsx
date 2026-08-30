@@ -1,10 +1,11 @@
+import { girisZorunlu } from '@/lib/erisim';
 import { db } from '@/lib/db';
 import UstCubuk from '@/components/UstCubuk';
 import AktiviteIstemci from './AktiviteIstemci';
 
-export const dynamic = 'force-static';
 
 export default async function Aktivite() {
+  await girisZorunlu();
   const kayitlar = await db.aktiviteKaydi.findMany({
     include: { aktor: true }, orderBy: { zaman: 'desc' }, take: 400,
   });

@@ -1,10 +1,10 @@
+import { girisZorunlu } from '@/lib/erisim';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { db } from '@/lib/db';
 import UstCubuk from '@/components/UstCubuk';
 import BulguDetayIstemci from './BulguDetayIstemci';
 
-export const dynamic = 'force-static';
 
 export async function generateStaticParams() {
   const bulgular = await db.bulgu.findMany({ select: { id: true } });
@@ -12,6 +12,7 @@ export async function generateStaticParams() {
 }
 
 export default async function BulguDetay({ params }: { params: Promise<{ id: string }> }) {
+  await girisZorunlu();
   const { id } = await params;
   const bulgu = await db.bulgu.findUnique({
     where: { id },

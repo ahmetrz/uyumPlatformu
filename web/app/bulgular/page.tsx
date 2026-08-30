@@ -1,10 +1,11 @@
+import { girisZorunlu } from '@/lib/erisim';
 import { db } from '@/lib/db';
 import UstCubuk from '@/components/UstCubuk';
 import BulgularIstemci from './BulgularIstemci';
 
-export const dynamic = 'force-static';
 
 export default async function Bulgular() {
+  await girisZorunlu();
   const bulgular = await db.bulgu.findMany({
     include: {
       sorumlu: true,

@@ -6,6 +6,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { db } from './db';
+import { yetkiZorunlu, izinVar } from './erisim';
 import {
   DurumSemasi, OnemSemasi, BulguDurumSemasi, SurecDurumSemasi,
   RolSemasi, DenklikSemasi,
@@ -23,13 +24,16 @@ const hata = (m: unknown): Sonuc => ({
 });
 
 async function iz(veri: {
-  varlikTipi: string; varlikId: string; eylem: string;
-  alan?: string; once?: string | null; sonra?: string | null; dosyaAdi?: string;
+  aktorId?: string | null; varlikTipi: string; varlikId: string; eylem: string;
+  alan?: string; once?: string | null; sonra?: string | null;
+  gerekce?: string | null; dosyaAdi?: string;
 }) {
   await db.aktiviteKaydi.create({ data: {
+    aktorId: veri.aktorId ?? null,
     varlikTipi: veri.varlikTipi, varlikId: veri.varlikId, eylem: veri.eylem,
     alan: veri.alan ?? null, oncekiDeger: veri.once ?? null,
-    yeniDeger: veri.sonra ?? null, dosyaAdi: veri.dosyaAdi ?? null,
+    yeniDeger: veri.sonra ?? null, gerekce: veri.gerekce ?? null,
+    dosyaAdi: veri.dosyaAdi ?? null,
   } });
 }
 
@@ -40,6 +44,7 @@ const bosluksuz = (ad: string) => z.string().trim().min(1, `${ad} boş olamaz`);
 
 export async function sektorKaydet(girdi: { id?: string; kod: string; ad: string }): Promise<Sonuc> {
   try {
+    await yetkiZorunlu('tanimlar', 'yazma');
     const v = z.object({ id: z.string().optional(), kod: bosluksuz('Kod'), ad: bosluksuz('Ad') }).parse(girdi);
     if (v.id) await db.sektor.update({ where: { id: v.id }, data: { kod: v.kod, ad: v.ad } });
     else await db.sektor.create({ data: { kod: v.kod, ad: v.ad } });
@@ -52,6 +57,7 @@ export async function tesisTipiKaydet(girdi: {
   id?: string; kod: string; ad: string; sektorId?: string | null; sira?: number;
 }): Promise<Sonuc> {
   try {
+    await yetkiZorunlu('tanimlar', 'yazma');
     const v = z.object({
       id: z.string().optional(), kod: bosluksuz('Kod'), ad: bosluksuz('Ad'),
       sektorId: z.string().nullable().optional(), sira: z.coerce.number().int().default(0),
@@ -69,6 +75,7 @@ export async function tesisKaydet(girdi: {
   kuruluGucMw?: number | null; konum?: string | null;
 }): Promise<Sonuc> {
   try {
+    const k = await yetkiZorunlu('tanimlar', 'yazma');
     const v = z.object({
       id: z.string().optional(), kod: bosluksuz('Kod'), ad: bosluksuz('Ad'),
       tipId: z.string().nullable().optional(),
@@ -82,7 +89,7 @@ export async function tesisKaydet(girdi: {
     if (v.id) await db.tesis.update({ where: { id: v.id }, data: veri });
     else {
       const yeni = await db.tesis.create({ data: veri });
-      await iz({ varlikTipi: 'Tesis', varlikId: yeni.id, eylem: 'olusturma' });
+      await iz({ aktorId: k.id, varlikTipi: 'Tesis', varlikId: yeni.id, eylem: 'olusturma' });
     }
     revalidatePath('/tanimlar');
     return tamam();
@@ -93,10 +100,11 @@ export async function tesisKaydet(girdi: {
     kayıtları tarihçe olarak kalır. */
 export async function tesisKapat(girdi: { id: string; neden: string }): Promise<Sonuc> {
   try {
+    const k = await yetkiZorunlu('tanimlar', 'onay');
     const v = z.object({ id: z.string(), neden: bosluksuz('Neden') }).parse(girdi);
     await db.tesis.update({ where: { id: v.id }, data: {
       durum: 'kapali', kapanisTarihi: new Date(), kapanisNedeni: v.neden } });
-    await iz({ varlikTipi: 'Tesis', varlikId: v.id, eylem: 'guncelleme',
+    await iz({ aktorId: k.id, varlikTipi: 'Tesis', varlikId: v.id, eylem: 'guncelleme',
       alan: 'durum', once: 'aktif', sonra: `kapali (${v.neden})` });
     revalidatePath('/tanimlar'); revalidatePath('/');
     return tamam();
@@ -105,9 +113,10 @@ export async function tesisKapat(girdi: { id: string; neden: string }): Promise<
 
 export async function tesisAc(girdi: { id: string }): Promise<Sonuc> {
   try {
+    const k = await yetkiZorunlu('tanimlar', 'onay');
     await db.tesis.update({ where: { id: girdi.id }, data: {
       durum: 'aktif', kapanisTarihi: null, kapanisNedeni: null } });
-    await iz({ varlikTipi: 'Tesis', varlikId: girdi.id, eylem: 'guncelleme',
+    await iz({ aktorId: k.id, varlikTipi: 'Tesis', varlikId: girdi.id, eylem: 'guncelleme',
       alan: 'durum', once: 'kapali', sonra: 'aktif' });
     revalidatePath('/tanimlar');
     return tamam();
@@ -118,6 +127,7 @@ export async function regulasyonKaydet(girdi: {
   id?: string; kod: string; ad: string; surum?: string | null; kaynakUrl?: string | null;
 }): Promise<Sonuc> {
   try {
+    const k = await yetkiZorunlu('tanimlar', 'yazma');
     const v = z.object({
       id: z.string().optional(), kod: bosluksuz('Kod'), ad: bosluksuz('Ad'),
       surum: z.string().nullable().optional(), kaynakUrl: z.string().nullable().optional(),
@@ -126,7 +136,7 @@ export async function regulasyonKaydet(girdi: {
     if (v.id) await db.regulasyon.update({ where: { id: v.id }, data: veri });
     else {
       const yeni = await db.regulasyon.create({ data: veri });
-      await iz({ varlikTipi: 'Regulasyon', varlikId: yeni.id, eylem: 'olusturma' });
+      await iz({ aktorId: k.id, varlikTipi: 'Regulasyon', varlikId: yeni.id, eylem: 'olusturma' });
     }
     revalidatePath('/tanimlar'); revalidatePath('/regulasyonlar');
     return tamam();
@@ -137,6 +147,7 @@ export async function alanKaydet(girdi: {
   id?: string; kod: string; ad: string; aciklama?: string | null;
 }): Promise<Sonuc> {
   try {
+    await yetkiZorunlu('tanimlar', 'yazma');
     const v = z.object({
       id: z.string().optional(), kod: bosluksuz('Kod'), ad: bosluksuz('Ad'),
       aciklama: z.string().nullable().optional(),
@@ -152,10 +163,11 @@ export async function alanKaydet(girdi: {
 /** Madde ↔ kapsam alanı eşleştirmesini topluca günceller. */
 export async function maddeAlanAta(girdi: { maddeId: string; alanIdler: string[] }): Promise<Sonuc> {
   try {
+    const k = await yetkiZorunlu('tanimlar', 'yazma');
     await db.maddeAlan.deleteMany({ where: { maddeId: girdi.maddeId } });
     for (const alanId of girdi.alanIdler)
       await db.maddeAlan.create({ data: { maddeId: girdi.maddeId, alanId } });
-    await iz({ varlikTipi: 'Madde', varlikId: girdi.maddeId, eylem: 'guncelleme',
+    await iz({ aktorId: k.id, varlikTipi: 'Madde', varlikId: girdi.maddeId, eylem: 'guncelleme',
       alan: 'alanlar', sonra: `${girdi.alanIdler.length} alan` });
     revalidatePath('/regulasyonlar'); revalidatePath('/maddeler');
     return tamam();
@@ -169,6 +181,7 @@ export async function surecKaydet(girdi: {
   baslangic?: string | null; bitis?: string | null; aciklama?: string | null;
 }): Promise<Sonuc> {
   try {
+    const k = await yetkiZorunlu('uyum', 'yazma');
     const v = z.object({
       id: z.string().optional(), kod: bosluksuz('Kod'), ad: bosluksuz('Ad'),
       regulasyonId: z.string().min(1, 'Regülasyon seçin'),
@@ -181,7 +194,7 @@ export async function surecKaydet(girdi: {
     if (v.id) await db.uyumSureci.update({ where: { id: v.id }, data: veri });
     else {
       const yeni = await db.uyumSureci.create({ data: veri });
-      await iz({ varlikTipi: 'UyumSureci', varlikId: yeni.id, eylem: 'olusturma' });
+      await iz({ aktorId: k.id, varlikTipi: 'UyumSureci', varlikId: yeni.id, eylem: 'olusturma' });
     }
     revalidatePath('/surecler'); revalidatePath('/');
     return tamam();
@@ -190,10 +203,11 @@ export async function surecKaydet(girdi: {
 
 export async function surecDurumDegistir(girdi: { id: string; durum: string }): Promise<Sonuc> {
   try {
+    const k = await yetkiZorunlu('uyum', 'onay');
     const v = z.object({ id: z.string(), durum: SurecDurumSemasi }).parse(girdi);
     const eski = await db.uyumSureci.findUniqueOrThrow({ where: { id: v.id } });
     await db.uyumSureci.update({ where: { id: v.id }, data: { durum: v.durum } });
-    await iz({ varlikTipi: 'UyumSureci', varlikId: v.id, eylem: 'durum_degisimi',
+    await iz({ aktorId: k.id, varlikTipi: 'UyumSureci', varlikId: v.id, eylem: 'durum_degisimi',
       alan: 'durum', once: eski.durum, sonra: v.durum });
     revalidatePath('/surecler'); revalidatePath('/');
     return tamam();
@@ -203,6 +217,7 @@ export async function surecDurumDegistir(girdi: { id: string; durum: string }): 
 /** Kapsama tesis ekler; regülasyonun yaprak maddeleri için durum kayıtlarını açar. */
 export async function surecKapsamEkle(girdi: { surecId: string; tesisId: string }): Promise<Sonuc> {
   try {
+    const k = await yetkiZorunlu('uyum', 'yazma', { tesisId: girdi.tesisId, surecId: girdi.surecId });
     const surec = await db.uyumSureci.findUniqueOrThrow({
       where: { id: girdi.surecId }, include: { regulasyon: true } });
     await db.surecKapsami.create({ data: { surecId: girdi.surecId, tesisId: girdi.tesisId } });
@@ -217,7 +232,7 @@ export async function surecKapsamEkle(girdi: { surecId: string; tesisId: string 
         update: {},
         create: { surecId: girdi.surecId, maddeId: m.id, tesisId: girdi.tesisId },
       });
-    await iz({ varlikTipi: 'UyumSureci', varlikId: girdi.surecId, eylem: 'kapsam_degisimi',
+    await iz({ aktorId: k.id, varlikTipi: 'UyumSureci', varlikId: girdi.surecId, eylem: 'kapsam_degisimi',
       alan: 'kapsam', sonra: `tesis eklendi (${yapraklar.length} madde açıldı)` });
     revalidatePath('/surecler');
     return tamam();
@@ -226,9 +241,10 @@ export async function surecKapsamEkle(girdi: { surecId: string; tesisId: string 
 
 export async function surecKapsamCikar(girdi: { surecId: string; tesisId: string }): Promise<Sonuc> {
   try {
+    const k = await yetkiZorunlu('uyum', 'onay');
     await db.surecKapsami.delete({ where: { surecId_tesisId: {
       surecId: girdi.surecId, tesisId: girdi.tesisId } } });
-    await iz({ varlikTipi: 'UyumSureci', varlikId: girdi.surecId, eylem: 'kapsam_degisimi',
+    await iz({ aktorId: k.id, varlikTipi: 'UyumSureci', varlikId: girdi.surecId, eylem: 'kapsam_degisimi',
       alan: 'kapsam', sonra: 'tesis çıkarıldı (durum kayıtları tarihçede)' });
     revalidatePath('/surecler');
     return tamam();
@@ -238,22 +254,50 @@ export async function surecKapsamCikar(girdi: { surecId: string; tesisId: string
 // ------------------------------------------------------------ durum/bulgu
 
 export async function maddeDurumGuncelle(girdi: {
-  id: string; durum: string; not?: string | null; sorumluId?: string | null;
+  id: string; durum: string; not?: string | null; sorumluId?: string | null; gerekce?: string | null;
 }): Promise<Sonuc> {
   try {
+    const k = await yetkiZorunlu('uyum', 'yazma');
     const v = z.object({
       id: z.string(), durum: DurumSemasi,
       not: z.string().nullable().optional(), sorumluId: z.string().nullable().optional(),
+      gerekce: z.string().nullable().optional(),
     }).parse(girdi);
-    const eski = await db.maddeDurumu.findUniqueOrThrow({ where: { id: v.id } });
+    const eski = await db.maddeDurumu.findUniqueOrThrow({
+      where: { id: v.id },
+      include: { kanitBaglantilari: { include: { kanit: true } } },
+    });
+    // Kapsam: tesise kısıtlı kullanıcı başka tesisin kaydına yazamaz
+    if (!izinVar(k, 'uyum', 'yazma', { tesisId: eski.tesisId, surecId: eski.surecId }))
+      return { ok: false, hata: 'Bu tesis/süreç kapsamında yazma yetkiniz yok' };
+
+    // Kanıt güveni: kanıtsız "uyumlu" kör güvenle gösterilmez (kabul testi 2)
+    const kanitlar = eski.kanitBaglantilari
+      .map((b) => b.kanit)
+      .filter((kn) => !kn.silindi);
+    const simdi = new Date();
+    const gecerliKanitlar = kanitlar.filter((kn) => !kn.gecerliBitis || kn.gecerliBitis > simdi);
+    const bayat = kanitlar.length > 0 && gecerliKanitlar.length === 0;
+    let guven = 'kanit_yok';
+    if (bayat) guven = 'bayat_kanit';
+    else if (gecerliKanitlar.some((kn) => kn.otomatik)) guven = 'otomatik_kanit';
+    else if (gecerliKanitlar.length > 0) guven = 'oz_degerlendirme';
+
     await db.maddeDurumu.update({ where: { id: v.id }, data: {
       durum: v.durum, not: v.not ?? eski.not,
       sorumluId: v.sorumluId === undefined ? eski.sorumluId : v.sorumluId,
-      sonDegerlendirme: new Date(),
+      sonDegerlendirme: simdi, guven, kanitBayat: bayat,
     } });
-    if (eski.durum !== v.durum)
-      await iz({ varlikTipi: 'MaddeDurumu', varlikId: v.id, eylem: 'durum_degisimi',
-        alan: 'durum', once: eski.durum, sonra: v.durum });
+    if (eski.durum !== v.durum) {
+      // Değerlendirme tarihçesi SİLİNMEZ — ayrı, değişmez tabloya yazılır
+      await db.degerlendirmeTarihcesi.create({ data: {
+        maddeDurumuId: v.id, eskiDurum: eski.durum, yeniDurum: v.durum,
+        eskiGuven: eski.guven, yeniGuven: guven,
+        gerekce: v.gerekce ?? null, aktorId: k.id,
+      } });
+      await iz({ aktorId: k.id, varlikTipi: 'MaddeDurumu', varlikId: v.id, eylem: 'durum_degisimi',
+        alan: 'durum', once: eski.durum, sonra: v.durum, gerekce: v.gerekce ?? null });
+    }
     revalidatePath('/surecler'); revalidatePath('/maddeler'); revalidatePath('/');
     return tamam();
   } catch (e) { return hata(e); }
@@ -264,16 +308,20 @@ export async function bulguOlustur(girdi: {
   onemDerecesi: string; hedefTarih?: string | null; sorumluId?: string | null;
 }): Promise<Sonuc> {
   try {
+    const k = await yetkiZorunlu('uyum', 'yazma');
     const v = z.object({
       maddeDurumuId: z.string(), baslik: bosluksuz('Başlık'), aciklama: bosluksuz('Açıklama'),
       onemDerecesi: OnemSemasi, hedefTarih: tarih, sorumluId: z.string().nullable().optional(),
     }).parse(girdi);
+    const hedefDurum = await db.maddeDurumu.findUniqueOrThrow({ where: { id: v.maddeDurumuId } });
+    if (!izinVar(k, 'uyum', 'yazma', { tesisId: hedefDurum.tesisId, surecId: hedefDurum.surecId }))
+      return { ok: false, hata: 'Bu tesis kapsamında bulgu açma yetkiniz yok' };
     const yeni = await db.bulgu.create({ data: {
       maddeDurumuId: v.maddeDurumuId, baslik: v.baslik, aciklama: v.aciklama,
       onemDerecesi: v.onemDerecesi, hedefTarih: v.hedefTarih ?? null,
       sorumluId: v.sorumluId ?? null,
     } });
-    await iz({ varlikTipi: 'Bulgu', varlikId: yeni.id, eylem: 'olusturma' });
+    await iz({ aktorId: k.id, varlikTipi: 'Bulgu', varlikId: yeni.id, eylem: 'olusturma' });
     revalidatePath('/bulgular'); revalidatePath('/');
     return tamam();
   } catch (e) { return hata(e); }
@@ -284,12 +332,29 @@ export async function bulguGuncelle(girdi: {
   hedefTarih?: string | null; sorumluId?: string | null;
 }): Promise<Sonuc> {
   try {
+    const k = await yetkiZorunlu('uyum', 'yazma');
     const v = z.object({
       id: z.string(), durum: BulguDurumSemasi.optional(), onemDerecesi: OnemSemasi.optional(),
       hedefTarih: tarih, sorumluId: z.string().nullable().optional(),
     }).parse(girdi);
-    const eski = await db.bulgu.findUniqueOrThrow({ where: { id: v.id } });
+    const eski = await db.bulgu.findUniqueOrThrow({
+      where: { id: v.id },
+      include: { maddeDurumu: true, aksiyonlar: true },
+    });
+    if (!izinVar(k, 'uyum', 'yazma', { tesisId: eski.maddeDurumu.tesisId, surecId: eski.maddeDurumu.surecId }))
+      return { ok: false, hata: 'Bu tesis kapsamında yazma yetkiniz yok' };
+    // Bulgu yalnız durum değiştirilerek KAPATILAMAZ (§14): doğrulama gerekir
+    let kapanisAlanlari: { kapanisDogrulayanId?: string; kapanisDogrulama?: Date } = {};
+    if (v.durum === 'kapali' && eski.durum !== 'kapali') {
+      if (!izinVar(k, 'uyum', 'onay'))
+        return { ok: false, hata: 'Bulgu kapatma doğrulama yetkisi gerektirir (denetim sorumlusu/yönetici)' };
+      const acikAksiyon = eski.aksiyonlar.filter((a) => a.durum === 'planlandi' || a.durum === 'devam');
+      if (acikAksiyon.length > 0)
+        return { ok: false, hata: `Kapatmadan önce ${acikAksiyon.length} açık aksiyonu sonuçlandırın` };
+      kapanisAlanlari = { kapanisDogrulayanId: k.id, kapanisDogrulama: new Date() };
+    }
     await db.bulgu.update({ where: { id: v.id }, data: {
+      ...kapanisAlanlari,
       durum: v.durum ?? eski.durum,
       onemDerecesi: v.onemDerecesi ?? eski.onemDerecesi,
       hedefTarih: v.hedefTarih === undefined ? eski.hedefTarih : v.hedefTarih,
@@ -297,10 +362,10 @@ export async function bulguGuncelle(girdi: {
       kapanmaTarihi: v.durum === 'kapali' && eski.durum !== 'kapali' ? new Date() : eski.kapanmaTarihi,
     } });
     if (v.durum && v.durum !== eski.durum)
-      await iz({ varlikTipi: 'Bulgu', varlikId: v.id, eylem: 'durum_degisimi',
+      await iz({ aktorId: k.id, varlikTipi: 'Bulgu', varlikId: v.id, eylem: 'durum_degisimi',
         alan: 'durum', once: eski.durum, sonra: v.durum });
     if (v.onemDerecesi && v.onemDerecesi !== eski.onemDerecesi)
-      await iz({ varlikTipi: 'Bulgu', varlikId: v.id, eylem: 'guncelleme',
+      await iz({ aktorId: k.id, varlikTipi: 'Bulgu', varlikId: v.id, eylem: 'guncelleme',
         alan: 'onemDerecesi', once: eski.onemDerecesi, sonra: v.onemDerecesi });
     revalidatePath('/bulgular'); revalidatePath('/');
     return tamam();
@@ -311,6 +376,7 @@ export async function aksiyonEkle(girdi: {
   bulguId: string; baslik: string; sorumluId?: string | null; hedef?: string | null;
 }): Promise<Sonuc> {
   try {
+    const k = await yetkiZorunlu('uyum', 'yazma');
     const v = z.object({
       bulguId: z.string(), baslik: bosluksuz('Başlık'),
       sorumluId: z.string().nullable().optional(), hedef: tarih,
@@ -319,7 +385,7 @@ export async function aksiyonEkle(girdi: {
       bulguId: v.bulguId, baslik: v.baslik, sorumluId: v.sorumluId ?? null,
       baslangic: new Date(), hedef: v.hedef ?? null,
     } });
-    await iz({ varlikTipi: 'Aksiyon', varlikId: yeni.id, eylem: 'olusturma' });
+    await iz({ aktorId: k.id, varlikTipi: 'Aksiyon', varlikId: yeni.id, eylem: 'olusturma' });
     revalidatePath('/bulgular');
     return tamam();
   } catch (e) { return hata(e); }
@@ -327,11 +393,12 @@ export async function aksiyonEkle(girdi: {
 
 export async function aksiyonDurumDegistir(girdi: { id: string; durum: string }): Promise<Sonuc> {
   try {
+    const k = await yetkiZorunlu('uyum', 'yazma');
     const v = z.object({ id: z.string(), durum: z.enum(['planlandi', 'devam', 'tamamlandi', 'iptal']) }).parse(girdi);
     const eski = await db.aksiyon.findUniqueOrThrow({ where: { id: v.id } });
     await db.aksiyon.update({ where: { id: v.id }, data: {
       durum: v.durum, tamamlanma: v.durum === 'tamamlandi' ? new Date() : null } });
-    await iz({ varlikTipi: 'Aksiyon', varlikId: v.id, eylem: 'durum_degisimi',
+    await iz({ aktorId: k.id, varlikTipi: 'Aksiyon', varlikId: v.id, eylem: 'durum_degisimi',
       alan: 'durum', once: eski.durum, sonra: v.durum });
     revalidatePath('/bulgular');
     return tamam();
@@ -342,6 +409,7 @@ export async function kanitEkle(girdi: {
   maddeDurumuId: string; ad: string; tip: string;
 }): Promise<Sonuc> {
   try {
+    const k = await yetkiZorunlu('uyum', 'yazma');
     const v = z.object({
       maddeDurumuId: z.string(), ad: bosluksuz('Ad'),
       tip: z.enum(['politika', 'kayit', 'konfigurasyon', 'ekran_goruntusu', 'rapor']),
@@ -349,7 +417,7 @@ export async function kanitEkle(girdi: {
     const kanit = await db.kanit.create({ data: { ad: v.ad, tip: v.tip } });
     await db.kanitBaglantisi.create({ data: {
       kanitId: kanit.id, maddeDurumuId: v.maddeDurumuId } });
-    await iz({ varlikTipi: 'MaddeDurumu', varlikId: v.maddeDurumuId,
+    await iz({ aktorId: k.id, varlikTipi: 'MaddeDurumu', varlikId: v.maddeDurumuId,
       eylem: 'dosya_ekleme', dosyaAdi: v.ad });
     revalidatePath('/maddeler'); revalidatePath('/surecler');
     return tamam();
@@ -362,6 +430,7 @@ export async function eslestirmeEkle(girdi: {
   kaynakId: string; hedefId: string; denklik: string; aciklama?: string | null;
 }): Promise<Sonuc> {
   try {
+    await yetkiZorunlu('tanimlar', 'yazma');
     const v = z.object({
       kaynakId: z.string().min(1, 'Kaynak madde seçin'),
       hedefId: z.string().min(1, 'Hedef madde seçin'),
@@ -378,6 +447,7 @@ export async function eslestirmeEkle(girdi: {
 
 export async function eslestirmeSil(girdi: { id: string }): Promise<Sonuc> {
   try {
+    await yetkiZorunlu('tanimlar', 'yazma');
     await db.maddeEslestirmesi.delete({ where: { id: girdi.id } });
     revalidatePath('/eslestirme');
     return tamam();
@@ -391,6 +461,7 @@ export async function projeKaydet(girdi: {
   durum?: string; hedef?: string | null; sahipId?: string | null;
 }): Promise<Sonuc> {
   try {
+    const k = await yetkiZorunlu('proje', 'yazma');
     const v = z.object({
       id: z.string().optional(), kod: bosluksuz('Kod'), ad: bosluksuz('Ad'),
       aciklama: z.string().nullable().optional(),
@@ -404,7 +475,7 @@ export async function projeKaydet(girdi: {
     if (v.id) await db.proje.update({ where: { id: v.id }, data: veri });
     else {
       const yeni = await db.proje.create({ data: { ...veri, baslangic: new Date() } });
-      await iz({ varlikTipi: 'Proje', varlikId: yeni.id, eylem: 'olusturma' });
+      await iz({ aktorId: k.id, varlikTipi: 'Proje', varlikId: yeni.id, eylem: 'olusturma' });
     }
     revalidatePath('/projeler');
     return tamam();
@@ -415,6 +486,7 @@ export async function projeBaglantiEkle(girdi: {
   projeId: string; maddeId?: string | null; bulguId?: string | null;
 }): Promise<Sonuc> {
   try {
+    await yetkiZorunlu('proje', 'yazma');
     if (!girdi.maddeId && !girdi.bulguId) return { ok: false, hata: 'Madde veya bulgu seçin' };
     await db.projeBaglantisi.create({ data: {
       projeId: girdi.projeId, maddeId: girdi.maddeId ?? null, bulguId: girdi.bulguId ?? null } });
@@ -425,6 +497,7 @@ export async function projeBaglantiEkle(girdi: {
 
 export async function projeBaglantiSil(girdi: { id: string }): Promise<Sonuc> {
   try {
+    await yetkiZorunlu('proje', 'yazma');
     await db.projeBaglantisi.delete({ where: { id: girdi.id } });
     revalidatePath('/projeler'); revalidatePath('/eslestirme');
     return tamam();
@@ -437,6 +510,7 @@ export async function kullaniciKaydet(girdi: {
   id?: string; eposta: string; adSoyad: string; unvan?: string | null;
 }): Promise<Sonuc> {
   try {
+    await yetkiZorunlu('yonetim', 'yazma');
     const v = z.object({
       id: z.string().optional(), eposta: z.string().email('Geçerli e-posta girin'),
       adSoyad: bosluksuz('Ad soyad'), unvan: z.string().nullable().optional(),
@@ -453,6 +527,7 @@ export async function yetkiVer(girdi: {
   kullaniciId: string; surecId?: string | null; tesisId?: string | null; rol: string;
 }): Promise<Sonuc> {
   try {
+    const k = await yetkiZorunlu('yonetim', 'onay');
     const v = z.object({
       kullaniciId: z.string().min(1, 'Kullanıcı seçin'),
       surecId: z.string().nullable().optional(), tesisId: z.string().nullable().optional(),
@@ -461,7 +536,7 @@ export async function yetkiVer(girdi: {
     const yeni = await db.yetki.create({ data: {
       kullaniciId: v.kullaniciId, surecId: v.surecId ?? null,
       tesisId: v.tesisId ?? null, rol: v.rol } });
-    await iz({ varlikTipi: 'Yetki', varlikId: yeni.id, eylem: 'olusturma',
+    await iz({ aktorId: k.id, varlikTipi: 'Yetki', varlikId: yeni.id, eylem: 'olusturma',
       alan: 'rol', sonra: v.rol });
     revalidatePath('/yetkiler');
     return tamam();
@@ -470,8 +545,9 @@ export async function yetkiVer(girdi: {
 
 export async function yetkiSil(girdi: { id: string }): Promise<Sonuc> {
   try {
+    const k = await yetkiZorunlu('yonetim', 'onay');
     await db.yetki.delete({ where: { id: girdi.id } });
-    await iz({ varlikTipi: 'Yetki', varlikId: girdi.id, eylem: 'silme' });
+    await iz({ aktorId: k.id, varlikTipi: 'Yetki', varlikId: girdi.id, eylem: 'silme' });
     revalidatePath('/yetkiler');
     return tamam();
   } catch (e) { return hata(e); }
@@ -483,6 +559,7 @@ export async function yetkiSil(girdi: { id: string }): Promise<Sonuc> {
     doğrudan yayına girmez (otomasyon-öncelikli akışın insan onayı adımı). */
 export async function aktarimYukle(form: FormData): Promise<Sonuc> {
   try {
+    await yetkiZorunlu('tanimlar', 'yazma');
     const dosya = form.get('dosya') as File | null;
     const regulasyonId = String(form.get('regulasyonId') ?? '');
     if (!dosya || !regulasyonId) return { ok: false, hata: 'Dosya ve regülasyon gerekli' };
@@ -541,6 +618,7 @@ export async function aktarimYukle(form: FormData): Promise<Sonuc> {
 /** Onay: kuyruğa alınmış satırlar maddelere upsert edilir, alanlar eşleştirilir. */
 export async function aktarimOnayla(girdi: { id: string }): Promise<Sonuc> {
   try {
+    const k = await yetkiZorunlu('tanimlar', 'onay');
     const kayit = await db.iceAktarim.findUniqueOrThrow({
       where: { id: girdi.id }, include: { regulasyon: true } });
     if (kayit.durum !== 'dogrulama_bekliyor') return { ok: false, hata: 'Kayıt onay beklemiyor' };
@@ -577,7 +655,7 @@ export async function aktarimOnayla(girdi: { id: string }): Promise<Sonuc> {
     }
     await db.iceAktarim.update({ where: { id: girdi.id }, data: {
       durum: 'onaylandi', eklenen, guncellenen } });
-    await iz({ varlikTipi: 'IceAktarim', varlikId: girdi.id, eylem: 'guncelleme',
+    await iz({ aktorId: k.id, varlikTipi: 'IceAktarim', varlikId: girdi.id, eylem: 'guncelleme',
       alan: 'durum', once: 'dogrulama_bekliyor', sonra: `onaylandi (+${eklenen} / ~${guncellenen})`,
       dosyaAdi: kayit.kaynakAdi });
     revalidatePath('/ice-aktarim'); revalidatePath('/regulasyonlar');
@@ -587,8 +665,9 @@ export async function aktarimOnayla(girdi: { id: string }): Promise<Sonuc> {
 
 export async function aktarimReddet(girdi: { id: string }): Promise<Sonuc> {
   try {
+    const k = await yetkiZorunlu('tanimlar', 'onay');
     await db.iceAktarim.update({ where: { id: girdi.id }, data: { durum: 'reddedildi' } });
-    await iz({ varlikTipi: 'IceAktarim', varlikId: girdi.id, eylem: 'guncelleme',
+    await iz({ aktorId: k.id, varlikTipi: 'IceAktarim', varlikId: girdi.id, eylem: 'guncelleme',
       alan: 'durum', once: 'dogrulama_bekliyor', sonra: 'reddedildi' });
     revalidatePath('/ice-aktarim');
     return tamam();
@@ -603,6 +682,7 @@ export async function maddeKaydet(girdi: {
   ustMaddeId?: string | null; kanitTipi?: string | null; alanIdler?: string[];
 }): Promise<Sonuc> {
   try {
+    const k = await yetkiZorunlu('tanimlar', 'yazma');
     const v = z.object({
       id: z.string().optional(), regulasyonId: z.string().min(1, 'Regülasyon seçin'),
       kod: bosluksuz('Kod'), baslik: bosluksuz('Başlık'), metin: bosluksuz('Metin'),
@@ -620,7 +700,7 @@ export async function maddeKaydet(girdi: {
     } else {
       const yeni = await db.madde.create({ data: veri });
       maddeId = yeni.id;
-      await iz({ varlikTipi: 'Madde', varlikId: maddeId, eylem: 'olusturma' });
+      await iz({ aktorId: k.id, varlikTipi: 'Madde', varlikId: maddeId, eylem: 'olusturma' });
     }
     if (v.alanIdler) {
       await db.maddeAlan.deleteMany({ where: { maddeId } });
@@ -634,10 +714,11 @@ export async function maddeKaydet(girdi: {
 
 export async function maddeSil(girdi: { id: string }): Promise<Sonuc> {
   try {
+    const k = await yetkiZorunlu('tanimlar', 'onay');
     const altSayisi = await db.madde.count({ where: { ustMaddeId: girdi.id } });
     if (altSayisi > 0) return { ok: false, hata: 'Önce alt maddeleri silin veya taşıyın' };
     await db.madde.delete({ where: { id: girdi.id } });
-    await iz({ varlikTipi: 'Madde', varlikId: girdi.id, eylem: 'silme' });
+    await iz({ aktorId: k.id, varlikTipi: 'Madde', varlikId: girdi.id, eylem: 'silme' });
     revalidatePath('/regulasyonlar');
     return tamam();
   } catch (e) { return hata(e); }
@@ -645,8 +726,9 @@ export async function maddeSil(girdi: { id: string }): Promise<Sonuc> {
 
 export async function regulasyonAktifDegistir(girdi: { id: string; aktif: boolean }): Promise<Sonuc> {
   try {
+    const k = await yetkiZorunlu('tanimlar', 'onay');
     await db.regulasyon.update({ where: { id: girdi.id }, data: { aktif: girdi.aktif } });
-    await iz({ varlikTipi: 'Regulasyon', varlikId: girdi.id, eylem: 'guncelleme',
+    await iz({ aktorId: k.id, varlikTipi: 'Regulasyon', varlikId: girdi.id, eylem: 'guncelleme',
       alan: 'aktif', sonra: girdi.aktif ? 'aktif' : 'pasif' });
     revalidatePath('/tanimlar'); revalidatePath('/regulasyonlar');
     return tamam();
@@ -655,6 +737,7 @@ export async function regulasyonAktifDegistir(girdi: { id: string; aktif: boolea
 
 export async function kullaniciAktifDegistir(girdi: { id: string; aktif: boolean }): Promise<Sonuc> {
   try {
+    await yetkiZorunlu('yonetim', 'onay');
     await db.kullanici.update({ where: { id: girdi.id }, data: { aktif: girdi.aktif } });
     revalidatePath('/yetkiler');
     return tamam();
@@ -665,6 +748,7 @@ export async function tanimSil(girdi: {
   tur: 'sektor' | 'tesisTipi' | 'alan'; id: string;
 }): Promise<Sonuc> {
   try {
+    await yetkiZorunlu('tanimlar', 'onay');
     if (girdi.tur === 'sektor') {
       if (await db.tesisTipi.count({ where: { sektorId: girdi.id } }))
         return { ok: false, hata: 'Sektöre bağlı tesis tipleri var' };

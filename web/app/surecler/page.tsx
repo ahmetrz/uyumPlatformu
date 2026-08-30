@@ -1,12 +1,13 @@
+import { girisZorunlu } from '@/lib/erisim';
 import { db } from '@/lib/db';
 import UstCubuk from '@/components/UstCubuk';
 import { uyumYuzdesi, type Durum } from '@/lib/sabitler';
 import type { DurumSayilari } from '@/components/ui';
 import SureclerIstemci from './SureclerIstemci';
 
-export const dynamic = 'force-static';
 
 export default async function Surecler() {
+  await girisZorunlu();
   const [surecler, gruplar, regulasyonlar, tesisler] = await Promise.all([
     db.uyumSureci.findMany({
       include: { regulasyon: true, kapsam: { include: { tesis: { include: { tip: true } } } },

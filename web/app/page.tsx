@@ -1,3 +1,4 @@
+import { girisZorunlu } from '@/lib/erisim';
 import Link from 'next/link';
 import { db } from '@/lib/db';
 import { uyumYuzdesi, tarihTR, ONEM_ETIKET, ONEM_DURUM_RENGI, DURUM_ETIKET,
@@ -6,9 +7,9 @@ import { Pill, SegBar, Halka, Bos, type DurumSayilari } from '@/components/ui';
 import UstCubuk from '@/components/UstCubuk';
 import { CizimSebeke, TipCizimi } from '@/components/cizimler';
 
-export const dynamic = 'force-static';
 
 export default async function GenelBakis() {
+  await girisZorunlu();
   const [surecler, durumGruplari, acikBulgular, gecikenAksiyonlar, onayKuyrugu, aktiviteler] =
     await Promise.all([
       db.uyumSureci.findMany({

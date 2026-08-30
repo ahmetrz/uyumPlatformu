@@ -2,7 +2,7 @@ import { girisZorunlu } from '@/lib/erisim';
 import { db } from '@/lib/db';
 import UstCubuk from '@/components/UstCubuk';
 import RaporlarIstemci from './RaporlarIstemci';
-import { uyumYuzdesi, gecenGun, type Durum } from '@/lib/sabitler';
+import { uyumOzeti, gecenGun, type Durum } from '@/lib/sabitler';
 import type { DurumSayilari } from '@/components/ui';
 
 
@@ -30,8 +30,9 @@ export default async function Raporlar() {
     id: s.id, kod: s.kod, regKod: s.regulasyon.kod, ad: s.ad,
     tesisler: s.kapsam.map((k) => {
       const sy = hucreler[`${s.id}|${k.tesisId}`] ?? {};
+      const ozet = uyumOzeti(sy);
       return { id: k.tesisId, kod: k.tesis.kod, ad: k.tesis.ad,
-        sayilar: sy, yuzde: uyumYuzdesi(sy) };
+        sayilar: sy, yuzde: ozet.yuzde, bilinmeyen: ozet.bilinmeyenOran };
     }),
   }));
 

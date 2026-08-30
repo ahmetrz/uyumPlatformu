@@ -1,7 +1,7 @@
 import { girisZorunlu } from '@/lib/erisim';
 import Link from 'next/link';
 import { db } from '@/lib/db';
-import { uyumYuzdesi, tarihTR, ONEM_ETIKET, ONEM_DURUM_RENGI, DURUM_ETIKET,
+import { uyumYuzdesi, uyumOzeti, tarihTR, ONEM_ETIKET, ONEM_DURUM_RENGI, DURUM_ETIKET,
   SUREC_DURUM_ETIKET, SUREC_DURUM_RENGI, type Durum, type Onem, type SurecDurum } from '@/lib/sabitler';
 import { Pill, SegBar, Halka, Bos, type DurumSayilari } from '@/components/ui';
 import UstCubuk from '@/components/UstCubuk';
@@ -10,7 +10,8 @@ import { CizimSebeke, TipCizimi } from '@/components/cizimler';
 
 export default async function GenelBakis() {
   await girisZorunlu();
-  const [surecler, durumGruplari, acikBulgular, gecikenAksiyonlar, onayKuyrugu, aktiviteler] =
+  const [surecler, durumGruplari, acikBulgular, gecikenAksiyonlar, onayKuyrugu, aktiviteler,
+    acikGorevler, bekleyenOnaylar, projeAdaylari, acikRiskSayisi, tesisler] =
     await Promise.all([
       db.uyumSureci.findMany({
         where: { durum: { in: ['aktif', 'planlandi'] } },
@@ -32,6 +33,11 @@ export default async function GenelBakis() {
         where: { durum: 'dogrulama_bekliyor' }, include: { regulasyon: true } }),
       db.aktiviteKaydi.findMany({
         take: 8, orderBy: { zaman: 'desc' }, include: { aktor: true } }),
+      db.gorev.count({ where: { durum: 'acik' } }),
+      db.onayTalebi.count({ where: { durum: 'bekliyor' } }),
+      db.projeAdayi.count({ where: { durum: 'oneri' } }),
+      db.risk.count({ where: { durum: { in: ['acik', 'islemde'] }, silindi: null } }),
+      db.tesis.findMany({ where: { durum: 'aktif' }, include: { tip: true }, orderBy: { kod: 'asc' } }),
     ]);
 
   // süreç → durum sayıları / tesis kırılımı
@@ -131,6 +137,70 @@ export default async function GenelBakis() {
             </div>
           </Link>
         )}
+
+        {(acikGorevler > 0 || bekleyenOnaylar > 0 || projeAdaylari > 0) && (
+          <div className="filtreler belir gorunur">
+            {acikGorevler > 0 && (
+              <Link href="/gorevler" className="pill durum-kismi">
+                <span className="dot" />{acikGorevler} açık görev
+              </Link>
+            )}
+            {bekleyenOnaylar > 0 && (
+              <Link href="/gorevler" className="pill durum-incelemede">
+                <span className="dot nabiz" />{bekleyenOnaylar} onay bekliyor
+              </Link>
+            )}
+            {projeAdaylari > 0 && (
+              <Link href="/projeler" className="pill durum-incelemede">
+                <span className="dot" />{projeAdaylari} proje adayı öneride
+              </Link>
+            )}
+            <Link href="/riskler" className={`pill durum-${acikRiskSayisi > 0 ? 'uyumsuz' : 'uyumlu'}`}>
+              <span className="dot" />{acikRiskSayisi} açık risk
+            </Link>
+          </div>
+        )}
+
+        <section className="belir">
+          <div className="sahne-baslik">
+            <span className="no">00</span><h2>Santral ısı haritası</h2><span className="cizgi" />
+            <Link className="btn kucuk" href="/tesisler">Santral 360 →</Link>
+          </div>
+          <div className="kart" style={{ marginTop: 'var(--sp-4)' }}>
+            <div className="tablo-sar">
+              <table className="matris" style={{ width: '100%' }}>
+                <thead><tr>
+                  <th style={{ textAlign: 'left' }}>Tesis ↓ · Süreç →</th>
+                  {aktifSurecler.map((s) => <th key={s.id} title={s.ad}>{s.regulasyon.kod}</th>)}
+                </tr></thead>
+                <tbody>
+                  {tesisler.map((tesis) => (
+                    <tr key={tesis.id}>
+                      <th><Link href={`/tesisler/${tesis.id}`}>{tesis.kod}</Link></th>
+                      {aktifSurecler.map((surec) => {
+                        const hucre = tesisSayilari.get(surec.id)?.get(tesis.id);
+                        if (!hucre) return <td key={surec.id}><span style={{ opacity: .25 }}>·</span></td>;
+                        const ozet = uyumOzeti(hucre);
+                        const renk = ozet.yuzde === null ? 'degerlendirilmedi'
+                          : ozet.yuzde >= 85 ? 'uyumlu' : ozet.yuzde >= 60 ? 'kismi' : 'uyumsuz';
+                        return (
+                          <td key={surec.id}>
+                            <Link href={`/surecler/${surec.id}`} className={`hucre durum-${renk}`}
+                              style={{ display: 'grid', placeItems: 'center', minHeight: 26, borderRadius: 4,
+                                fontFamily: 'var(--font-mono)', fontSize: 'var(--fs-micro)' }}
+                              title={`${tesis.kod} × ${surec.kod}: ${ozet.yuzde === null ? 'değerlendirilmedi' : `%${ozet.yuzde}`} · bilinmeyen %${ozet.bilinmeyenOran ?? 0}`}>
+                              {ozet.yuzde === null ? '—' : `%${ozet.yuzde}`}
+                            </Link>
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
 
         <section className="belir">
           <div className="sahne-baslik">

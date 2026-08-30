@@ -7,7 +7,7 @@ import { useEylem } from '@/components/useEylem';
 import { maddeDurumGuncelle, bulguOlustur, kanitEkle } from '@/lib/eylemler';
 import {
   DURUMLAR, DURUM_ETIKET, ONEM_DERECELERI, ONEM_ETIKET, ONEM_DURUM_RENGI,
-  uyumYuzdesi, tarihTR, kanitTazelik,
+  uyumYuzdesi, uyumOzeti, tarihTR, kanitTazelik,
   type Durum, type Onem,
 } from '@/lib/sabitler';
 
@@ -102,6 +102,11 @@ export default function SurecDetayIstemci({ veri }: { veri: Veri }) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-2)', flex: 1 }}>
               <span className="mikro-etiket">Uyum · {tesisF === 'hepsi' ? 'tüm kapsam' : 'seçili tesis'}</span>
               <SegBar sayilar={seciliSayilar} />
+              {(uyumOzeti(seciliSayilar).bilinmeyenOran ?? 0) > 0 && (
+                <span className="mikro-etiket" title="Değerlendirilmemiş + incelemede — yüzdeye dahil değil, ayrı izlenir">
+                  BİLİNMEYEN: %{uyumOzeti(seciliSayilar).bilinmeyenOran} — yüzde yalnız değerlendirilenleri anlatır
+                </span>
+              )}
             </div>
           </div>
           <div className="band-hucre">

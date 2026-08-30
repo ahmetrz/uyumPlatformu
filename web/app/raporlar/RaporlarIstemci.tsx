@@ -4,7 +4,8 @@ import { exceleAktar, pdfYazdir } from '@/components/disaAktar';
 import { ONEM_DURUM_RENGI, type Onem, type Durum } from '@/lib/sabitler';
 
 type Matris = { id: string; kod: string; regKod: string; ad: string;
-  tesisler: { id: string; kod: string; ad: string; sayilar: DurumSayilari; yuzde: number | null }[] }[];
+  tesisler: { id: string; kod: string; ad: string; sayilar: DurumSayilari;
+    yuzde: number | null; bilinmeyen: number | null }[] }[];
 type B = { id: string; baslik: string; durum: string; onem: string;
   tesisKod: string; regKod: string; yasGun: number; acik: boolean };
 type K = { id: string; ad: string; tip: string; gun: number; baglanti: number };
@@ -64,7 +65,10 @@ export default function RaporlarIstemci({ matris, bulgular, kanitlar }: {
                   <div key={t.id} className="mini-cubuk" style={{ gridTemplateColumns: '110px 1fr 40px' }}>
                     <span className="etiket mono" title={t.ad}>{t.kod}</span>
                     <SegBar sayilar={t.sayilar} yukseklik={8} />
-                    <span className="sayi">{t.yuzde === null ? '—' : `%${t.yuzde}`}</span>
+                    <span className="sayi" title={t.bilinmeyen ? `bilinmeyen %${t.bilinmeyen}` : undefined}>
+                      {t.yuzde === null ? '—' : `%${t.yuzde}`}
+                      {(t.bilinmeyen ?? 0) > 0 && <span style={{ color: 'var(--text-3)' }}>?</span>}
+                    </span>
                   </div>
                 ))}
                 {s.tesisler.length === 0 && <Bos baslik="Kapsam boş" />}

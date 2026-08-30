@@ -156,3 +156,57 @@ export function gecenGun(t: Date | string): number {
   const d = typeof t === 'string' ? new Date(t) : t;
   return Math.floor((Date.now() - d.getTime()) / 86_400_000);
 }
+
+// ---- hedef mimari sözlükleri ----
+export const RISK_DURUMLARI = ['acik', 'islemde', 'kabul_edildi', 'kapali'] as const;
+export const RISK_DURUM_ETIKET: Record<(typeof RISK_DURUMLARI)[number], string> = {
+  acik: 'Açık', islemde: 'İşlemde', kabul_edildi: 'Kabul edildi', kapali: 'Kapalı',
+};
+export const RISK_DURUM_RENGI: Record<(typeof RISK_DURUMLARI)[number], Durum> = {
+  acik: 'uyumsuz', islemde: 'kismi', kabul_edildi: 'kapsamdisi', kapali: 'uyumlu',
+};
+export const RISK_ISLEMLERI = ['azalt', 'kacin', 'devret', 'kabul'] as const;
+export const RISK_ISLEM_ETIKET: Record<(typeof RISK_ISLEMLERI)[number], string> = {
+  azalt: 'Azalt', kacin: 'Kaçın', devret: 'Devret', kabul: 'Kabul et',
+};
+export const ETKI_BOYUTLARI = [
+  ['etkiUretim', 'Üretim'], ['etkiEmniyet', 'Emniyet'], ['etkiRegulasyon', 'Regülasyon'],
+  ['etkiFinans', 'Finans'], ['etkiSiber', 'Siber'], ['etkiItibar', 'İtibar'],
+  ['etkiCevre', 'Çevre'], ['etkiVeri', 'Veri/KVKK'],
+] as const;
+export function riskSeviyeRengi(skor: number | null | undefined): Durum {
+  if (skor === null || skor === undefined) return 'degerlendirilmedi';
+  if (skor >= 15) return 'uyumsuz';
+  if (skor >= 8) return 'kismi';
+  return 'uyumlu';
+}
+
+export const DENETIM_ASAMALARI = ['plan', 'kapsam', 'kanit_talebi', 'saha', 'bulgu',
+  'yanit', 'aksiyon', 'dogrulama', 'kapanis'] as const;
+export const DENETIM_ASAMA_ETIKET: Record<(typeof DENETIM_ASAMALARI)[number], string> = {
+  plan: 'Plan', kapsam: 'Kapsam', kanit_talebi: 'Kanıt talebi', saha: 'Saha çalışması',
+  bulgu: 'Bulgular', yanit: 'Yanıt', aksiyon: 'Düzeltici aksiyon',
+  dogrulama: 'Doğrulama', kapanis: 'Kapanış',
+};
+export const DENETIM_TIP_ETIKET: Record<string, string> = {
+  ic_denetim: 'İç denetim', dis_denetim: 'Dış denetim',
+  oz_degerlendirme: 'Öz değerlendirme', regulasyon_denetimi: 'Regülasyon denetimi',
+};
+
+export const GOREV_TIP_ETIKET: Record<string, string> = {
+  kanit_yenileme: 'Kanıt yenileme', son_tarih: 'Son tarih', erisim_incelemesi: 'Erişim incelemesi',
+  dogrulama: 'Doğrulama', veri_kalitesi: 'Veri kalitesi', manuel: 'Manuel',
+};
+
+export const VARLIK_SINIF_ETIKET: Record<string, string> = {
+  BT: 'BT', OT: 'OT', BT_OT_KOPRU: 'BT/OT Köprü',
+  ORTAK_ALTYAPI: 'Ortak Altyapı', FIZIKSEL_EMNIYET: 'Fiziksel/Emniyet',
+};
+export function eolDurumu(eos: Date | string | null | undefined): { etiket: string; durum: Durum } {
+  if (!eos) return { etiket: 'Bilinmiyor', durum: 'degerlendirilmedi' };
+  const t = typeof eos === 'string' ? new Date(eos) : eos;
+  const gunKaldi = Math.ceil((t.getTime() - Date.now()) / 86_400_000);
+  if (gunKaldi < 0) return { etiket: 'Destek bitti', durum: 'uyumsuz' };
+  if (gunKaldi < 365) return { etiket: `${gunKaldi} gün kaldı`, durum: 'kismi' };
+  return { etiket: 'Destekte', durum: 'uyumlu' };
+}

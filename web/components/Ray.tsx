@@ -8,8 +8,19 @@ const GRUPLAR: { baslik: string; linkler: { yol: string; ad: string; ikon: strin
     baslik: 'İzleme',
     linkler: [
       { yol: '/', ad: 'Genel bakış', ikon: '◪' },
+      { yol: '/tesisler', ad: 'Santral 360', ikon: '⚡' },
       { yol: '/surecler', ad: 'Uyum süreçleri', ikon: '◉' },
       { yol: '/bulgular', ad: 'Bulgular', ikon: '▲' },
+      { yol: '/riskler', ad: 'Riskler', ikon: '◬' },
+      { yol: '/gorevler', ad: 'Görevler & onay', ikon: '☑' },
+    ],
+  },
+  {
+    baslik: 'Yönetişim',
+    linkler: [
+      { yol: '/denetimler', ad: 'Denetimler', ikon: '🗹' },
+      { yol: '/envanter', ad: 'IT/OT Envanteri', ikon: '▣' },
+      { yol: '/projeler', ad: 'Projeler', ikon: '▸' },
       { yol: '/raporlar', ad: 'Raporlar', ikon: '≡' },
       { yol: '/aktivite', ad: 'Aktivite', ikon: '↻' },
     ],
@@ -19,7 +30,6 @@ const GRUPLAR: { baslik: string; linkler: { yol: string; ad: string; ikon: strin
     linkler: [
       { yol: '/regulasyonlar', ad: 'Regülasyonlar', ikon: '§' },
       { yol: '/eslestirme', ad: 'Eşleştirme', ikon: '⇄' },
-      { yol: '/projeler', ad: 'Projeler', ikon: '▸' },
       { yol: '/ice-aktarim', ad: 'İçe aktarım', ikon: '⤓' },
     ],
   },
@@ -28,6 +38,7 @@ const GRUPLAR: { baslik: string; linkler: { yol: string; ad: string; ikon: strin
     linkler: [
       { yol: '/tanimlar', ad: 'Tanımlar', ikon: '⚙' },
       { yol: '/yetkiler', ad: 'Kullanıcı & yetki', ikon: '⛨' },
+      { yol: '/saglik', ad: 'Platform sağlığı', ikon: '♥' },
     ],
   },
 ];

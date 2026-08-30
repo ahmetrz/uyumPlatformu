@@ -20,6 +20,18 @@ const nextConfig: NextConfig = {
         path.resolve(__dirname, 'lib/eylemler.demo.ts');
       config.resolve.alias['@/lib/girisEylemleri'] =
         path.resolve(__dirname, 'lib/girisEylemleri.demo.ts');
+      config.resolve.alias['@/lib/eylemler2/denetim'] =
+        path.resolve(__dirname, 'lib/eylemler2/denetim.demo.ts');
+      config.resolve.alias['@/lib/eylemler2/envanter'] =
+        path.resolve(__dirname, 'lib/eylemler2/envanter.demo.ts');
+      config.resolve.alias['@/lib/eylemler2/gorev'] =
+        path.resolve(__dirname, 'lib/eylemler2/gorev.demo.ts');
+      config.resolve.alias['@/lib/eylemler2/isler'] =
+        path.resolve(__dirname, 'lib/eylemler2/isler.demo.ts');
+      config.resolve.alias['@/lib/eylemler2/risk'] =
+        path.resolve(__dirname, 'lib/eylemler2/risk.demo.ts');
+      config.resolve.alias['@/lib/eylemler2/tesis360'] =
+        path.resolve(__dirname, 'lib/eylemler2/tesis360.demo.ts');
     }
     return config;
   },
@@ -28,6 +40,12 @@ const nextConfig: NextConfig = {
       ? {
           '@/lib/eylemler': './lib/eylemler.demo.ts',
           '@/lib/girisEylemleri': './lib/girisEylemleri.demo.ts',
+          '@/lib/eylemler2/denetim': './lib/eylemler2/denetim.demo.ts',
+          '@/lib/eylemler2/envanter': './lib/eylemler2/envanter.demo.ts',
+          '@/lib/eylemler2/gorev': './lib/eylemler2/gorev.demo.ts',
+          '@/lib/eylemler2/isler': './lib/eylemler2/isler.demo.ts',
+          '@/lib/eylemler2/risk': './lib/eylemler2/risk.demo.ts',
+          '@/lib/eylemler2/tesis360': './lib/eylemler2/tesis360.demo.ts',
         }
       : {},
   },

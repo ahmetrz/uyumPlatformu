@@ -90,8 +90,12 @@ export async function tesisKaydet(girdi: {
     else {
       const yeni = await db.tesis.create({ data: veri });
       await iz({ aktorId: k.id, varlikTipi: 'Tesis', varlikId: yeni.id, eylem: 'olusturma' });
+      // Kabul testi 1: yeni santral → uygulanabilirlik kuralları hemen değerlendirilir.
+      // Profil henüz yoksa karar 'bilinmiyor' kalır ve veri kalitesi bulgusu düşer.
+      const { tesisKapsaminiHesapla } = await import('./motorlar/uygulanabilirlik');
+      await tesisKapsaminiHesapla(yeni.id, k.id);
     }
-    revalidatePath('/tanimlar');
+    revalidatePath('/tanimlar'); revalidatePath('/tesisler');
     return tamam();
   } catch (e) { return hata(e); }
 }

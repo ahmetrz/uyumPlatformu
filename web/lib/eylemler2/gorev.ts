@@ -141,7 +141,42 @@ export async function onayKarar(girdi: {
       eylem: v.karar === 'onaylandi' ? 'onay' : 'red',
       alan: 'durum', once: 'bekliyor', sonra: v.karar,
       gerekce: v.gerekce?.trim() || null });
+    await onayYanEtkisi(talep, v.karar, k.id);
     tazele();
     return tamam();
   } catch (e) { return hata(e); }
+}
+
+
+/* Onay kararlarının tip bazlı yan etkileri. Şimdilik: istisna (§50) —
+   onaylanınca istisna aktifleşir ve ilgili madde durumu 'kapsamdisi' olur;
+   süre bitiminde deadline motoru yeniden değerlendirme açar. */
+async function onayYanEtkisi(
+  talep: { tip: string; kaynakTipi: string; kaynakId: string },
+  karar: string, aktorId: string,
+): Promise<void> {
+  if (talep.tip !== 'istisna' || talep.kaynakTipi !== 'Istisna') return;
+  const istisna = await db.istisna.findUnique({ where: { id: talep.kaynakId } });
+  if (!istisna || istisna.durum !== 'onay_bekliyor') return;
+
+  if (karar !== 'onaylandi') {
+    await db.istisna.update({ where: { id: istisna.id },
+      data: { durum: 'reddedildi' } });
+    return;
+  }
+  await db.istisna.update({ where: { id: istisna.id },
+    data: { durum: 'aktif', onaylayanId: aktorId } });
+  const durumlar = await db.maddeDurumu.findMany({ where: {
+    maddeId: istisna.maddeId, tesisId: istisna.tesisId } });
+  for (const d of durumlar) {
+    if (d.durum === 'kapsamdisi') continue;
+    await db.degerlendirmeTarihcesi.create({ data: {
+      maddeDurumuId: d.id, eskiDurum: d.durum, yeniDurum: 'kapsamdisi',
+      gerekce: `İstisna onayı: ${istisna.gerekce}`, aktorId } });
+    await db.maddeDurumu.update({ where: { id: d.id },
+      data: { durum: 'kapsamdisi' } });
+    await iz({ aktorId, varlikTipi: 'MaddeDurumu', varlikId: d.id,
+      eylem: 'durum_degisimi', alan: 'durum', once: d.durum, sonra: 'kapsamdisi',
+      gerekce: `İstisna ${istisna.id} onaylandı (bitiş: ${istisna.bitis.toISOString().slice(0, 10)})` });
+  }
 }

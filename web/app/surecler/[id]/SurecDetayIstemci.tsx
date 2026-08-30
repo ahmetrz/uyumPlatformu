@@ -5,6 +5,7 @@ import { Pill, SegBar, Halka, Bos, type DurumSayilari } from '@/components/ui';
 import { exceleAktar, pdfYazdir } from '@/components/disaAktar';
 import { useEylem } from '@/components/useEylem';
 import { maddeDurumGuncelle, bulguOlustur, kanitEkle } from '@/lib/eylemler';
+import { istisnaTalep } from '@/lib/eylemler2/istisna';
 import {
   DURUMLAR, DURUM_ETIKET, ONEM_DERECELERI, ONEM_ETIKET, ONEM_DURUM_RENGI,
   uyumYuzdesi, uyumOzeti, tarihTR, kanitTazelik,
@@ -272,8 +273,10 @@ function MaddeDetay({ madde, kayitlar, tesisler, kullanicilar }: {
   const { bekliyor, hata, calistir } = useEylem();
   const [bulguFormu, setBulguFormu] = useState<string | null>(null); // durumKaydi id
   const [kanitFormu, setKanitFormu] = useState<string | null>(null);
+  const [istisnaFormu, setIstisnaFormu] = useState<string | null>(null);
   const [yeniBulgu, setYeniBulgu] = useState({ baslik: '', aciklama: '', onem: 'orta', hedef: '' });
   const [yeniKanit, setYeniKanit] = useState({ ad: '', tip: 'kayit' });
+  const [yeniIstisna, setYeniIstisna] = useState({ bitis: '', gerekce: '' });
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-5)' }}>
@@ -347,7 +350,31 @@ function MaddeDetay({ madde, kayitlar, tesisler, kullanicilar }: {
                   <button className="btn kucuk" onClick={() => { setKanitFormu(kanitFormu === d.id ? null : d.id); setBulguFormu(null); }}>
                     + Kanıt
                   </button>
+                  <button className="btn kucuk" title="Süreli, onaylı kapsam dışılık (waiver)"
+                    onClick={() => { setIstisnaFormu(istisnaFormu === d.id ? null : d.id); setBulguFormu(null); setKanitFormu(null); }}>
+                    İstisna talep et
+                  </button>
                 </div>
+
+                {istisnaFormu === d.id && (
+                  <div className="form-izgara" style={{ marginTop: 'var(--sp-2)' }}>
+                    <label className="form-satir"><span>Bitiş (zorunlu — istisna sürelidir)</span>
+                      <input className="inp" type="date" value={yeniIstisna.bitis}
+                        onChange={(e) => setYeniIstisna({ ...yeniIstisna, bitis: e.target.value })} /></label>
+                    <label className="form-satir" style={{ gridColumn: '1/-1' }}><span>Gerekçe (zorunlu)</span>
+                      <textarea className="inp" rows={2} value={yeniIstisna.gerekce}
+                        onChange={(e) => setYeniIstisna({ ...yeniIstisna, gerekce: e.target.value })} /></label>
+                    <button className="btn birincil" disabled={bekliyor}
+                      onClick={() => calistir(() => istisnaTalep({
+                        maddeDurumuId: d.id, bitis: yeniIstisna.bitis, gerekce: yeniIstisna.gerekce,
+                      }), () => { setIstisnaFormu(null); setYeniIstisna({ bitis: '', gerekce: '' }); })}>
+                      Onaya gönder
+                    </button>
+                    <span className="mikro-etiket" style={{ alignSelf: 'center' }}>
+                      ONAY MERKEZİNDEN GEÇMEDEN UYGULANMAZ
+                    </span>
+                  </div>
+                )}
 
                 {bulguFormu === d.id && (
                   <div className="form-izgara" style={{ marginTop: 'var(--sp-2)' }}>

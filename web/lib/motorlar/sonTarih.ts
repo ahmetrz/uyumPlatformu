@@ -134,5 +134,38 @@ export async function sonTarihleriIsle(): Promise<{ islenen: number; uretilen: n
     });
   }
 
+  
+  // (f) süresi dolan AKTİF istisnalar: kapsam dışılık kalkar, yeniden değerlendirme açılır
+  const dolanIstisnalar = await db.istisna.findMany({
+    where: { durum: 'aktif', bitis: { lt: simdi } } });
+  for (const ist of dolanIstisnalar) {
+    islenen++;
+    await db.istisna.update({ where: { id: ist.id }, data: { durum: 'suresi_doldu' } });
+    const durumlar = await db.maddeDurumu.findMany({
+      where: { maddeId: ist.maddeId, tesisId: ist.tesisId, durum: 'kapsamdisi' } });
+    for (const d of durumlar) {
+      await db.degerlendirmeTarihcesi.create({ data: {
+        maddeDurumuId: d.id, eskiDurum: 'kapsamdisi', yeniDurum: 'degerlendirilmedi',
+        gerekce: 'İstisna süresi doldu — yeniden değerlendirme gerekli' } });
+      await db.maddeDurumu.update({ where: { id: d.id },
+        data: { durum: 'degerlendirilmedi' } });
+      const acikGorev = await db.gorev.findFirst({ where: {
+        tip: 'dogrulama', kaynakTipi: 'MaddeDurumu', kaynakId: d.id,
+        durum: { in: ['acik', 'yapiliyor'] } } });
+      if (!acikGorev) {
+        await db.gorev.create({ data: {
+          baslik: 'İstisna süresi doldu — maddeyi yeniden değerlendirin',
+          tip: 'dogrulama', kaynakTipi: 'MaddeDurumu', kaynakId: d.id,
+          tesisId: d.tesisId, sorumluId: d.sorumluId,
+          otomatikUretildi: true } });
+        uretilen++;
+      }
+    }
+    await db.aktiviteKaydi.create({ data: {
+      varlikTipi: 'Istisna', varlikId: ist.id, eylem: 'durum_degisimi',
+      alan: 'durum', oncekiDeger: 'aktif', yeniDeger: 'suresi_doldu',
+      kaynak: 'is_kosusu' } });
+  }
+
   return { islenen, uretilen };
 }

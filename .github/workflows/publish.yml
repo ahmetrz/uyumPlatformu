@@ -1,0 +1,43 @@
+name: Siteyi yayınla
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/**'
+      - '.github/workflows/publish.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: site-publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Depoyu al
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: docs/ içeriğini gh-pages dalına aktar
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin gh-pages
+          git worktree add .site gh-pages
+          find .site -mindepth 1 -maxdepth 1 ! -name '.git' -exec rm -rf {} +
+          cp -a docs/. .site/
+          cd .site
+          git add -A
+          if git diff --staged --quiet; then
+            echo "Değişiklik yok, yayın atlanıyor."
+          else
+            git commit -m "Yayın: ${GITHUB_SHA::7}"
+            git push origin gh-pages
+          fi

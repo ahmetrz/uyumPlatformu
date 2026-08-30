@@ -161,7 +161,7 @@ model Madde {
   istisnalar        Istisna[]
   denetimKapsamlari DenetimKapsami[]
 
-  @@unique([regulasyonId, kod])
+  @@unique([regulasyonId, surumId, kod])
 }
 
 /// Madde ↔ kapsam alanı eşleştirmesi (panelden yönetilir).

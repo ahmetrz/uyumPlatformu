@@ -31,7 +31,8 @@ export default async function SurecDetay({ params }: { params: Promise<{ id: str
 
   const [maddeler, kullanicilar, alanlar] = await Promise.all([
     db.madde.findMany({
-      where: { regulasyonId: surec.regulasyonId },
+      where: { regulasyonId: surec.regulasyonId, silindi: null,
+        OR: [{ surum: { durum: 'aktif' } }, { surumId: null }] },
       include: {
         alanlar: { include: { alan: true } },
         eslestirmeKaynak: { include: { hedef: true } },

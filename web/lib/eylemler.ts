@@ -622,6 +622,12 @@ export async function aktarimOnayla(girdi: { id: string }): Promise<Sonuc> {
     const kayit = await db.iceAktarim.findUniqueOrThrow({
       where: { id: girdi.id }, include: { regulasyon: true } });
     if (kayit.durum !== 'dogrulama_bekliyor') return { ok: false, hata: 'Kayıt onay beklemiyor' };
+    // Hedef sürüm: kayıtta belirtilmişse o; yoksa regülasyonun aktif sürümü (yoksa null=sürümsüz)
+    const hedefSurum = kayit.surumId
+      ? await db.frameworkSurumu.findUnique({ where: { id: kayit.surumId } })
+      : await db.frameworkSurumu.findFirst({
+          where: { regulasyonId: kayit.regulasyonId, durum: 'aktif' } });
+    const surumId = hedefSurum?.id ?? null;
     const rapor = JSON.parse(kayit.raporJson ?? '{}') as {
       satirlar?: { kod: string; baslik: string; metin: string; ustKod: string | null;
         kanitTipi: string | null; alanlar: string[]; islem: string }[];
@@ -635,17 +641,17 @@ export async function aktarimOnayla(girdi: { id: string }): Promise<Sonuc> {
       if (s.ustKod) {
         const ustTam = s.ustKod.startsWith(kayit.regulasyon.kod)
           ? s.ustKod : `${kayit.regulasyon.kod}-${s.ustKod}`;
-        ustId = (await db.madde.findUnique({ where: { regulasyonId_kod: {
-          regulasyonId: kayit.regulasyonId, kod: ustTam } } }))?.id ?? null;
+        ustId = (await db.madde.findFirst({ where: {
+          regulasyonId: kayit.regulasyonId, surumId, kod: ustTam } }))?.id ?? null;
       }
-      const madde = await db.madde.upsert({
-        where: { regulasyonId_kod: { regulasyonId: kayit.regulasyonId, kod: s.kod } },
-        update: { baslik: s.baslik, metin: s.metin, ustMaddeId: ustId, kanitTipi: s.kanitTipi },
-        create: {
-          regulasyonId: kayit.regulasyonId, kod: s.kod, baslik: s.baslik,
-          metin: s.metin, ustMaddeId: ustId, kanitTipi: s.kanitTipi,
-        },
-      });
+      const mevcutMadde = await db.madde.findFirst({ where: {
+        regulasyonId: kayit.regulasyonId, surumId, kod: s.kod } });
+      const madde = mevcutMadde
+        ? await db.madde.update({ where: { id: mevcutMadde.id },
+            data: { baslik: s.baslik, metin: s.metin, ustMaddeId: ustId, kanitTipi: s.kanitTipi } })
+        : await db.madde.create({ data: {
+            regulasyonId: kayit.regulasyonId, surumId, kod: s.kod, baslik: s.baslik,
+            metin: s.metin, ustMaddeId: ustId, kanitTipi: s.kanitTipi } });
       if (s.islem === 'yeni') eklenen++; else guncellenen++;
       await db.maddeAlan.deleteMany({ where: { maddeId: madde.id } });
       for (const a of s.alanlar) {

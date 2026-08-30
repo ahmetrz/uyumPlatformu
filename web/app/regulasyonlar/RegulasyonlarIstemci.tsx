@@ -5,14 +5,18 @@ import Kip from '@/components/Kip';
 import { Bos, Pill } from '@/components/ui';
 import { useEylem } from '@/components/useEylem';
 import { maddeKaydet, maddeSil, maddeAlanAta } from '@/lib/eylemler';
+import { surumOlustur, surumAktiflestir } from '@/lib/eylemler2/surum';
 
 type Madde = {
   id: string; kod: string; baslik: string; metin: string;
   ustMaddeId: string | null; kanitTipi: string | null;
   alanlar: { id: string; kod: string }[]; altSayisi: number; kullanimSayisi: number;
 };
+type Surum = { id: string; etiket: string; durum: string; maddeSayisi: number;
+  yururluk: string | null;
+  farklar: { kod: string; tip: string; ozet: string | null; etki: string | null }[] };
 type Reg = { id: string; kod: string; ad: string; surum: string | null; aktif: boolean;
-  surecSayisi: number; maddeler: Madde[] };
+  surecSayisi: number; maddeler: Madde[]; surumler: Surum[] };
 
 export default function RegulasyonlarIstemci({ regulasyonlar, alanlar }: {
   regulasyonlar: Reg[]; alanlar: { id: string; kod: string; ad: string }[];
@@ -100,6 +104,7 @@ export default function RegulasyonlarIstemci({ regulasyonlar, alanlar }: {
           </div>
         </div>
       )}
+      {reg && <SurumBolumu reg={reg} />}
       {hata && <p className="pill durum-uyumsuz" role="alert">{hata}</p>}
 
       <Kip acik={duzenlenen !== null} kapat={() => setDuzenlenen(null)} genis
@@ -189,5 +194,87 @@ function MaddeFormu({ madde, regId, maddeler, alanlar, kapat }: {
         </button>
       </div>
     </>
+  );
+}
+
+
+const FARK_ETIKET: Record<string, { ad: string; renk: string }> = {
+  yeni: { ad: 'Yeni', renk: 'uyumlu' },
+  degisti: { ad: 'Değişti', renk: 'kismi' },
+  kaldirildi: { ad: 'Kaldırıldı', renk: 'uyumsuz' },
+  ayni: { ad: 'Aynı', renk: 'kapsamdisi' },
+};
+
+function SurumBolumu({ reg }: { reg: Reg }) {
+  const { bekliyor, hata, calistir } = useEylem();
+  const [etiket, setEtiket] = useState('');
+  const [farkAcik, setFarkAcik] = useState<Surum | null>(null);
+
+  return (
+    <div className="kart">
+      <div className="kart-baslik">
+        <div>
+          <span className="mikro-etiket">SÜRÜM YAŞAM DÖNGÜSÜ — YENİ SÜRÜM ESKİYİ EZMEZ, DIFF ÜRETİR (§42)</span>
+          <h3 style={{ marginTop: 2 }}>Sürümler</h3>
+        </div>
+        <input className="inp" placeholder="Yeni sürüm etiketi (örn. 2027)" value={etiket}
+          onChange={(e) => setEtiket(e.target.value)} style={{ maxWidth: 200 }} />
+        <button className="btn birincil kucuk" disabled={bekliyor || !etiket}
+          onClick={() => calistir(() => surumOlustur({ regulasyonId: reg.id, etiket }),
+            () => setEtiket(''))}>
+          + Taslak sürüm
+        </button>
+      </div>
+      <div className="kart-icerik sifir">
+        {reg.surumler.map((sv) => (
+          <div key={sv.id} className="satir">
+            <span className="chip mono">{sv.etiket}</span>
+            <Pill durum={sv.durum === 'aktif' ? 'uyumlu' : sv.durum === 'taslak' ? 'incelemede' : 'kapsamdisi'}
+              etiket={sv.durum === 'aktif' ? 'Aktif' : sv.durum === 'taslak' ? 'Taslak' : 'Arşiv'} />
+            <span className="mikro-etiket">{sv.maddeSayisi} MADDE</span>
+            <span style={{ flex: 1 }} />
+            {sv.farklar.length > 0 && (
+              <button className="btn kucuk" onClick={() => setFarkAcik(sv)}>
+                Δ {sv.farklar.filter((f) => f.tip !== 'ayni').length} fark
+              </button>
+            )}
+            {sv.durum === 'taslak' && (
+              <button className="btn kucuk birincil sirada-gizli" disabled={bekliyor}
+                onClick={() => {
+                  if (confirm(`${sv.etiket} aktifleştirilsin mi? Eski sürüm arşive iner, diff üretilir, değişen maddeler için yeni değerlendirmeler açılır.`))
+                    calistir(() => surumAktiflestir({ surumId: sv.id }));
+                }}>
+                Aktifleştir
+              </button>
+            )}
+          </div>
+        ))}
+        {reg.surumler.length === 0 && (
+          <Bos baslik="Sürüm kaydı yok"
+            altMetin="Maddeler geçiş dönemi (sürümsüz) kayıtlar olarak duruyor. Taslak sürüm açınca kopyalanır." />
+        )}
+      </div>
+      {hata && <p className="pill durum-uyumsuz" role="alert"
+        style={{ margin: 'var(--sp-3) var(--sp-5)' }}>{hata}</p>}
+
+      <Kip acik={!!farkAcik} kapat={() => setFarkAcik(null)} genis
+        baslik={`Sürüm farkları — ${farkAcik?.etiket ?? ''}`}
+        ust={<span className="mikro-etiket">REGÜLASYON DEĞİŞİRSE NE OLUR (§66): eski değerlendirmeler korunur; değişen maddeler yeni değerlendirme ister</span>}>
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          {farkAcik?.farklar.filter((f) => f.tip !== 'ayni').map((f, i) => (
+            <div key={i} className="satir" style={{ padding: 'var(--sp-2) 0' }}>
+              <Pill durum={(FARK_ETIKET[f.tip]?.renk ?? 'incelemede') as Parameters<typeof Pill>[0]['durum']}
+                etiket={FARK_ETIKET[f.tip]?.ad ?? f.tip} />
+              <span className="chip mono">{f.kod}</span>
+              <span style={{ flex: 1, color: 'var(--text-2)', fontSize: 'var(--fs-sm)' }}>{f.ozet}</span>
+              {f.etki && <span className="mikro-etiket">{f.etki}</span>}
+            </div>
+          ))}
+          {farkAcik && farkAcik.farklar.filter((f) => f.tip !== 'ayni').length === 0 && (
+            <Bos baslik="İçerik farkı yok" />
+          )}
+        </div>
+      </Kip>
+    </div>
   );
 }

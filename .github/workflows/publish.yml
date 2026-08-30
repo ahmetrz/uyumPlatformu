@@ -42,6 +42,13 @@ jobs:
           npx prisma generate
           npx tsx prisma/seed.ts
 
+      - name: Kalite kapısı (tip + lint + testler)
+        working-directory: web
+        run: |
+          npx tsc --noEmit
+          npx eslint app lib components --max-warnings=0
+          npm run test
+
       - name: Statik demo derle
         working-directory: web
         env:

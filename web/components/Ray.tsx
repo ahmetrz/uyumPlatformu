@@ -20,6 +20,7 @@ const GRUPLAR: { baslik: string; linkler: { yol: string; ad: string; ikon: strin
     linkler: [
       { yol: '/denetimler', ad: 'Denetimler', ikon: '🗹' },
       { yol: '/envanter', ad: 'IT/OT Envanteri', ikon: '▣' },
+      { yol: '/operasyon', ad: 'Operasyon', ikon: '⚙' },
       { yol: '/projeler', ad: 'Projeler', ikon: '▸' },
       { yol: '/raporlar', ad: 'Raporlar', ikon: '≡' },
       { yol: '/aktivite', ad: 'Aktivite', ikon: '↻' },

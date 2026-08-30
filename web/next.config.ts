@@ -34,6 +34,8 @@ const nextConfig: NextConfig = {
         path.resolve(__dirname, 'lib/eylemler2/istisna.demo.ts');
       config.resolve.alias['@/lib/eylemler2/isler'] =
         path.resolve(__dirname, 'lib/eylemler2/isler.demo.ts');
+      config.resolve.alias['@/lib/eylemler2/operasyon'] =
+        path.resolve(__dirname, 'lib/eylemler2/operasyon.demo.ts');
       config.resolve.alias['@/lib/eylemler2/risk'] =
         path.resolve(__dirname, 'lib/eylemler2/risk.demo.ts');
       config.resolve.alias['@/lib/eylemler2/surum'] =
@@ -55,6 +57,7 @@ const nextConfig: NextConfig = {
           '@/lib/eylemler2/gorev': './lib/eylemler2/gorev.demo.ts',
           '@/lib/eylemler2/istisna': './lib/eylemler2/istisna.demo.ts',
           '@/lib/eylemler2/isler': './lib/eylemler2/isler.demo.ts',
+          '@/lib/eylemler2/operasyon': './lib/eylemler2/operasyon.demo.ts',
           '@/lib/eylemler2/risk': './lib/eylemler2/risk.demo.ts',
           '@/lib/eylemler2/surum': './lib/eylemler2/surum.demo.ts',
           '@/lib/eylemler2/tesis360': './lib/eylemler2/tesis360.demo.ts',

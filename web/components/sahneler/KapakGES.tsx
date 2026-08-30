@@ -1,7 +1,10 @@
-/* GES kapak sahnesi — "Şebeke Uyum Konsolu" ozalit çizgi sanatı.
-   Tek kaçış noktalı perspektifle ufka kaçan panel dizileri, sağda inverter
-   kabini + trafo, ufukta iletim pilonu. Jeneratörle hesaplanmış perspektif;
-   renk yalnız CSS token'larından gelir (currentColor + var(--accent)/var(--glow)). */
+/* GES kapak sahnesi — "Şebeke Uyum Konsolu" ozalit çizgi sanatı (onarım turu).
+   Tek kaçış noktasına (292,84) yakınsayan beş panel sırası; derinlik hiyerarşisi
+   önden arkaya: en yakın sıra en ağır çizgi + odak ışıması, uzak sıralar soluk.
+   Tek pirinç aksan zinciri: parlayan hücre -> arazi kablosu -> inverter -> trafo
+   -> ufuktaki pilon. Işıma halkaları tema-ayarlı token dolgularıyla (--glow-a/b),
+   gök bandı ozalit imzalarıyla (ızgara, ölçü çizgisi, kayıt işaretleri) dolu ama
+   sakin: üst ~%20 rozet/pill bindirmesine uygun. Renk yalnız CSS token'ı. */
 
 export function KapakGES({ className }: { className?: string }) {
   return (
@@ -20,27 +23,59 @@ export function KapakGES({ className }: { className?: string }) {
       style={{ color: 'var(--text-2)' }}
     >
       <defs>
-      <linearGradient id="kapakges-parlak" gradientUnits="userSpaceOnUse" x1="128.7" y1="132.8" x2="158.8" y2="140.5">
-      <stop offset="0" style={{ color: 'var(--glow)' }} stopColor="currentColor" stopOpacity=".5" />
-      <stop offset="1" style={{ color: 'var(--accent)' }} stopColor="currentColor" stopOpacity=".04" />
+      <linearGradient id="kapak-ges-parlak" gradientUnits="userSpaceOnUse" x1="130" y1="121" x2="156" y2="137">
+      <stop offset="0" style={{ color: 'var(--glow)' }} stopColor="currentColor" stopOpacity="0.32" />
+      <stop offset="1" style={{ color: 'var(--accent)' }} stopColor="currentColor" stopOpacity="0.04" />
       </linearGradient>
-      <radialGradient id="kapakges-hale" gradientUnits="userSpaceOnUse" cx="143.7" cy="137.5" r="30">
-      <stop offset="0" style={{ color: 'var(--glow)' }} stopColor="currentColor" stopOpacity=".4" />
-      <stop offset=".55" style={{ color: 'var(--glow)' }} stopColor="currentColor" stopOpacity=".12" />
-      <stop offset="1" style={{ color: 'var(--glow)' }} stopColor="currentColor" stopOpacity="0" />
-      </radialGradient>
       </defs>
-      <g opacity="1">
-      <path d="M30 71 H128" opacity="0.07" strokeDasharray="12 7" strokeWidth="0.8" />
-      <path d="M152 61 H214" opacity="0.05" strokeDasharray="9 6" strokeWidth="0.8" />
-      <path d="M372 56 H448" opacity="0.06" strokeDasharray="12 7" strokeWidth="0.8" />
+
+      {/* OZALİT ZEMİNİ: gök ızgarası + zemin yıkaması */}
+      <g style={{ stroke: 'var(--grid-line)' }} strokeWidth="0.75">
+      <path d="M24 4 V84 M56 4 V84 M88 4 V84 M120 4 V84 M152 4 V84 M184 4 V84 M216 4 V84 M248 4 V84 M280 4 V84 M312 4 V84 M344 4 V84 M376 4 V84 M408 4 V84 M440 4 V84 M472 4 V84" />
+      <path d="M0 28 H480 M0 56 H480" />
       </g>
-      <g opacity="0.13" strokeWidth="0.9">
-      <circle cx="86" cy="62" r="8.5" />
-      <path d="M86 49.5 v-4 M73.5 62 h-4 M98.5 62 h4 M77 53 l-2.8 -2.8 M95 53 l2.8 -2.8" />
+      <path d="M0 84 H480 V200 H0 Z" fill="currentColor" stroke="none" opacity="0.035" />
+
+      {/* Teknik çizim imzaları: kayıt işaretleri + ölçü çizgileri */}
+      <g opacity="0.2" strokeWidth="0.7">
+      <circle cx="18" cy="14" r="3.2" />
+      <path d="M12 14 H24 M18 8 V20" />
+      <circle cx="462" cy="14" r="3.2" />
+      <path d="M456 14 H468 M462 8 V20" />
       </g>
-      <path d="M0 82 H480" opacity="0.16" strokeWidth="0.8" />
-      <g opacity="0.17" strokeWidth="0.8">
+      <g opacity="0.22" strokeWidth="0.8">
+      <path d="M40 22 H206" />
+      <path d="M40 18.5 V25.5 M206 18.5 V25.5" />
+      <path d="M37.5 24.5 L42.5 19.5 M203.5 24.5 L208.5 19.5" />
+      <path d="M123 20 V24" opacity="0.6" />
+      </g>
+      <g opacity="0.2" strokeWidth="0.75">
+      <path d="M471 112 V194" />
+      <path d="M468 112 H474 M468 194 H474" />
+      <path d="M469 114 L473 110 M469 196 L473 192" />
+      </g>
+
+      {/* Gök: bulut taramaları + güneş */}
+      <g strokeWidth="0.9" strokeDasharray="1.5 4.5">
+      <path d="M120 34 h34" opacity="0.13" />
+      <path d="M138 40 h24" opacity="0.1" />
+      <path d="M234 27 h38" opacity="0.11" />
+      <path d="M448 64 h20" opacity="0.1" />
+      </g>
+      <g opacity="0.34" strokeWidth="0.95">
+      <circle cx="398" cy="40" r="13" />
+      <circle cx="398" cy="40" r="19" strokeDasharray="2 5" opacity="0.4" strokeWidth="0.7" />
+      <path d="M415 40 L420 40 M381 40 L376 40 M398 23 L398 18 M398 57 L398 62" opacity="0.8" strokeWidth="0.85" />
+      <path d="M410 28 L413.6 24.4 M386 28 L382.4 24.4 M410 52 L413.6 55.6 M386 52 L382.4 55.6" opacity="0.8" strokeWidth="0.85" />
+      </g>
+
+      {/* Ufuk */}
+      <path d="M0 84 H480" opacity="0.2" strokeWidth="0.8" />
+      <path d="M6 77.5 H96" strokeDasharray="10 8" opacity="0.08" strokeWidth="0.75" />
+      <path d="M118 80.5 H188" strokeDasharray="7 6" opacity="0.07" strokeWidth="0.75" />
+
+      {/* İletim pilonu (ufukta) */}
+      <g opacity="0.24" strokeWidth="0.85">
       <path d="M322 82 L328 50 M338 82 L332 50" />
       <path d="M322 82 L335.8 70 M338 82 L324.2 70" opacity="0.8" />
       <path d="M324.2 70 L333.9 60 M335.8 70 L326.1 60" opacity="0.8" />
@@ -49,140 +84,80 @@ export function KapakGES({ className }: { className?: string }) {
       <path d="M320 54 v2.6 M340 54 v2.6 M317 60.5 v2.6 M343 60.5 v2.6" opacity="0.8" />
       <path d="M328 50 L330 44.5 L332 50" />
       </g>
-      <g opacity="0.11" strokeWidth="0.7">
-      <path d="M356 78 H462" strokeDasharray="6 3.5" />
-      <path d="M362 80.4 H468" strokeDasharray="4.5 3" />
+
+      {/* Uzak çit / arka dizi */}
+      <g strokeWidth="0.7">
+      <path d="M354 79 H472" strokeDasharray="6 3.5" opacity="0.13" />
+      <path d="M362 81.5 H476" strokeDasharray="4 3" opacity="0.1" />
       </g>
-      <g opacity="0.13">
-      <path d="M272 83.5 L122 92.2 L122 96.4 L272 84.1 Z" fill="currentColor" stroke="none" opacity="0.06" />
-      <path d="M272 83.5 L122 92.2" strokeWidth="0.7" />
-      <path d="M272 84.1 L122 96.4" strokeWidth="0.7" />
-      <path d="M122 92.2 L122 96.4" opacity="0.9" strokeWidth="0.595" />
-      <path d="M208.3 87.2 L208.3 89.4" opacity="0.9" strokeWidth="0.595" />
-      <path d="M237.8 85.5 L237.8 86.9" opacity="0.9" strokeWidth="0.595" />
-      <path d="M252.7 84.6 L252.7 85.7" opacity="0.9" strokeWidth="0.595" />
-      <path d="M261.7 84.1 L261.7 85" opacity="0.9" strokeWidth="0.595" />
-      <path d="M267.7 83.8 L267.7 84.5" opacity="0.9" strokeWidth="0.595" />
-      <path d="M272 83.5 L272 84.1" opacity="0.9" strokeWidth="0.595" />
+
+      {/* PANEL SIRALARI: uzak -> yakın */}
+      <g opacity="0.16">
+      <path d="M150 91.5 L272.1 85.1 L272.1 86 L150 94.7 Z" fill="currentColor" stroke="none" opacity="0.03" />
+      <path d="M150 91.5 L272.1 85.1" strokeWidth="0.8" />
+      <path d="M150 94.7 L272.1 86" strokeWidth="0.8" />
+      <path d="M150 91.5 L150 94.7" strokeWidth="0.8" />
+      <path d="M272.1 85.1 L272.1 86" strokeWidth="0.6" opacity="0.85" />
+      <path d="M177.7 90 L177.7 92.7 M201 88.8 L201 91 M220.6 87.8 L220.6 89.6 M237 86.9 L237 88.5 M250.8 86.2 L250.8 87.5 M262.4 85.6 L262.4 86.6" strokeWidth="0.6" opacity="0.8" />
       </g>
-      <g opacity="0.2">
-      <path d="M268 85 L92 102.6 L92 110.8 L268 86.2 Z" fill="currentColor" stroke="none" opacity="0.06" />
-      <path d="M268 85 L92 102.6" strokeWidth="0.8" />
-      <path d="M268 86.2 L92 110.8" strokeWidth="0.8" />
-      <path d="M92 102.6 L92 110.8" opacity="0.9" strokeWidth="0.68" />
-      <path d="M185.9 93.2 L185.9 97.7" opacity="0.9" strokeWidth="0.68" />
-      <path d="M221 89.7 L221 92.8" opacity="0.9" strokeWidth="0.68" />
-      <path d="M239.4 87.9 L239.4 90.2" opacity="0.9" strokeWidth="0.68" />
-      <path d="M250.7 86.7 L250.7 88.6" opacity="0.9" strokeWidth="0.68" />
-      <path d="M258.3 86 L258.3 87.6" opacity="0.9" strokeWidth="0.68" />
-      <path d="M263.8 85.4 L263.8 86.8" opacity="0.9" strokeWidth="0.68" />
-      <path d="M268 85 L268 86.2" opacity="0.9" strokeWidth="0.68" />
+      <g opacity="0.21">
+      <path d="M104 97.5 L268.5 85.7 L268.5 86.9 L104 103 Z" fill="currentColor" stroke="none" opacity="0.04" />
+      <path d="M104 97.5 L268.5 85.7" strokeWidth="0.85" />
+      <path d="M104 103 L268.5 86.9" strokeWidth="0.85" />
+      <path d="M104 97.5 L104 103" strokeWidth="0.85" />
+      <path d="M268.5 85.7 L268.5 86.9" strokeWidth="0.7" opacity="0.85" />
+      <path d="M140.1 94.9 L140.1 99.5 M170.1 92.8 L170.1 96.5 M194.9 91 L194.9 94.1 M215.6 89.5 L215.6 92.1 M232.7 88.3 L232.7 90.4 M246.9 87.2 L246.9 89 M258.7 86.4 L258.7 87.8" strokeWidth="0.6" opacity="0.8" />
       </g>
-      <g opacity="0.32">
-      <path d="M264 87.4 L56 120.7 L56 136.5 L264 89.7 Z" fill="currentColor" stroke="none" opacity="0.06" />
-      <path d="M264 87.4 L56 120.7" strokeWidth="0.9" />
-      <path d="M264 89.7 L56 136.5" strokeWidth="0.9" />
-      <path d="M56 120.7 L56 136.5" opacity="0.9" strokeWidth="0.765" />
-      <path d="M160.9 103.9 L160.9 112.9" opacity="0.9" strokeWidth="0.765" />
-      <path d="M202.3 97.3 L202.3 103.5" opacity="0.9" strokeWidth="0.765" />
-      <path d="M224.5 93.8 L224.5 98.5" opacity="0.9" strokeWidth="0.765" />
-      <path d="M238.4 91.5 L238.4 95.4" opacity="0.9" strokeWidth="0.765" />
-      <path d="M247.8 90 L247.8 93.3" opacity="0.9" strokeWidth="0.765" />
-      <path d="M254.7 88.9 L254.7 91.7" opacity="0.9" strokeWidth="0.765" />
-      <path d="M259.9 88.1 L259.9 90.6" opacity="0.9" strokeWidth="0.765" />
-      <path d="M264 87.4 L264 89.7" opacity="0.9" strokeWidth="0.765" />
+      <g opacity="0.3">
+      <path d="M54 106.5 L263.4 86.7 L263.4 88.3 L54 115.5 Z" fill="currentColor" stroke="none" opacity="0.05" />
+      <path d="M54 106.5 L263.4 86.7" strokeWidth="0.95" />
+      <path d="M54 115.5 L263.4 88.3" strokeWidth="0.95" />
+      <path d="M54 106.5 L54 115.5" strokeWidth="0.95" />
+      <path d="M263.4 86.7 L263.4 88.3" strokeWidth="0.8" opacity="0.85" />
+      <path d="M99.3 102.2 L99.3 109.6 M136.4 98.7 L136.4 104.8 M166.9 95.8 L166.9 100.8 M191.9 93.5 L191.9 97.6 M212.3 91.5 L212.3 94.9 M229.1 89.9 L229.1 92.8 M242.9 88.6 L242.9 91 M254.2 87.6 L254.2 89.5" strokeWidth="0.7" opacity="0.8" />
+      <path d="M99.3 109.6 L99.3 113.8 M166.9 100.8 L166.9 103.9 M212.3 94.9 L212.3 97.2" strokeWidth="0.7" opacity="0.75" />
       </g>
-      <g opacity="0.55">
-      <path d="M260 93.4 L0 171.4 L0 207.2 L260 98 Z" fill="currentColor" stroke="none" opacity="0.06" />
-      <path d="M260 93.4 L0 171.4" strokeWidth="1.05" />
-      <path d="M260 98 L0 207.2" strokeWidth="1.05" />
-      <path d="M254 97.8 L0 189.3" opacity="0.5" strokeWidth="0.756" />
-      <path d="M0 171.4 L0 207.2" opacity="0.9" strokeWidth="0.8925" />
-      <path d="M82.1 146.8 L82.1 172.7" opacity="0.35" strokeWidth="0.5775000000000001" />
-      <path d="M128.7 132.8 L128.7 153.1" opacity="0.9" strokeWidth="0.8925" />
-      <path d="M128.7 153.1 L128.7 162.3" opacity="0.5" strokeWidth="0.6825000000000001" />
-      <path d="M158.8 123.8 L158.8 140.5" opacity="0.35" strokeWidth="0.5775000000000001" />
-      <path d="M179.8 117.5 L179.8 131.7" opacity="0.9" strokeWidth="0.8925" />
-      <path d="M179.8 131.7 L179.8 138.1" opacity="0.5" strokeWidth="0.6825000000000001" />
-      <path d="M195.3 112.8 L195.3 125.1" opacity="0.35" strokeWidth="0.5775000000000001" />
-      <path d="M207.2 109.3 L207.2 120.2" opacity="0.9" strokeWidth="0.8925" />
-      <path d="M207.2 120.2 L207.2 125.1" opacity="0.5" strokeWidth="0.6825000000000001" />
-      <path d="M216.6 106.4 L216.6 116.2" opacity="0.35" strokeWidth="0.5775000000000001" />
-      <path d="M224.3 104.1 L224.3 113" opacity="0.9" strokeWidth="0.8925" />
-      <path d="M224.3 113 L224.3 117" opacity="0.5" strokeWidth="0.6825000000000001" />
-      <path d="M230.6 102.2 L230.6 110.3" opacity="0.35" strokeWidth="0.5775000000000001" />
-      <path d="M235.9 100.6 L235.9 108.1" opacity="0.9" strokeWidth="0.8925" />
-      <path d="M235.9 108.1 L235.9 111.5" opacity="0.5" strokeWidth="0.6825000000000001" />
-      <path d="M240.5 99.3 L240.5 106.2" opacity="0.35" strokeWidth="0.5775000000000001" />
-      <path d="M244.4 98.1 L244.4 104.5" opacity="0.9" strokeWidth="0.8925" />
-      <path d="M244.4 104.5 L244.4 107.4" opacity="0.5" strokeWidth="0.6825000000000001" />
-      <path d="M247.8 97 L247.8 103.1" opacity="0.35" strokeWidth="0.5775000000000001" />
-      <path d="M250.9 96.1 L250.9 101.8" opacity="0.9" strokeWidth="0.8925" />
-      <path d="M250.9 101.8 L250.9 104.4" opacity="0.5" strokeWidth="0.6825000000000001" />
-      <path d="M253.5 95.3 L253.5 100.7" opacity="0.35" strokeWidth="0.5775000000000001" />
-      <path d="M255.9 94.6 L255.9 99.7" opacity="0.9" strokeWidth="0.8925" />
-      <path d="M255.9 99.7 L255.9 102" opacity="0.5" strokeWidth="0.6825000000000001" />
-      <path d="M258.1 94 L258.1 98.8" opacity="0.35" strokeWidth="0.5775000000000001" />
-      <path d="M248 105.7 L24.1 212" opacity="0.28" strokeWidth="0.5775000000000001" />
+      <g opacity="0.46">
+      <path d="M2 123 L258.7 88.5 L258.7 90.7 L2 138 Z" fill="currentColor" stroke="none" opacity="0.05" />
+      <path d="M2 123 L258.7 88.5" strokeWidth="1.05" />
+      <path d="M2 138 L258.7 90.7" strokeWidth="1.05" />
+      <path d="M2 123 L2 138" strokeWidth="1.05" />
+      <path d="M258.7 88.5 L258.7 90.7" strokeWidth="0.8" opacity="0.85" />
+      <path d="M57.5 115.5 L57.5 127.8 M102.5 109.5 L102.5 119.5 M138.9 104.6 L138.9 112.8 M168.4 100.6 L168.4 107.3 M192.3 97.4 L192.3 102.9 M211.7 94.8 L211.7 99.3 M227.3 92.7 L227.3 96.5 M240 91 L240 94.1 M250.3 89.6 L250.3 92.2" strokeWidth="0.8" opacity="0.8" />
+      <path d="M2 130.5 L258.7 89.6" strokeWidth="0.6" opacity="0.55" />
+      <path d="M57.5 127.8 L57.5 134.5 M138.9 112.8 L138.9 117.7 M192.3 102.9 L192.3 106.6 M227.3 96.5 L227.3 99.4" strokeWidth="0.8" opacity="0.75" />
       </g>
       <g opacity="0.8">
-      <path d="M256 103.8 L68 201.6 L68 266 L256 115.6 Z" fill="currentColor" stroke="none" opacity="0.06" />
-      <path d="M256 103.8 L68 201.6" strokeWidth="1.2" />
-      <path d="M256 115.6 L68 266" strokeWidth="1.2" />
-      <path d="M250 111.4 L68 223.1" opacity="0.5" strokeWidth="0.864" />
-      <path d="M250 115.9 L68 244.5" opacity="0.5" strokeWidth="0.864" />
-      <path d="M68 201.6 L68 266" opacity="0.9" strokeWidth="1.02" />
-      <path d="M104.2 182.8 L104.2 237.1" opacity="0.35" strokeWidth="0.66" />
-      <path d="M130.5 169.1 L130.5 216" opacity="0.35" strokeWidth="0.66" />
-      <path d="M150.5 158.7 L150.5 200" opacity="0.9" strokeWidth="1.02" />
-      <path d="M150.5 200 L150.5 216.5" opacity="0.5" strokeWidth="0.78" />
-      <path d="M166.3 150.5 L166.3 187.4" opacity="0.35" strokeWidth="0.66" />
-      <path d="M179 143.9 L179 177.2" opacity="0.35" strokeWidth="0.66" />
-      <path d="M189.5 138.4 L189.5 168.8" opacity="0.9" strokeWidth="1.02" />
-      <path d="M189.5 168.8 L189.5 181" opacity="0.5" strokeWidth="0.78" />
-      <path d="M198.2 133.9 L198.2 161.8" opacity="0.35" strokeWidth="0.66" />
-      <path d="M205.7 130 L205.7 155.8" opacity="0.35" strokeWidth="0.66" />
-      <path d="M212.1 126.7 L212.1 150.7" opacity="0.9" strokeWidth="1.02" />
-      <path d="M212.1 150.7 L212.1 160.3" opacity="0.5" strokeWidth="0.78" />
-      <path d="M217.7 123.7 L217.7 146.2" opacity="0.35" strokeWidth="0.66" />
-      <path d="M222.6 121.2 L222.6 142.3" opacity="0.35" strokeWidth="0.66" />
-      <path d="M227 118.9 L227 138.8" opacity="0.9" strokeWidth="1.02" />
-      <path d="M227 138.8 L227 146.8" opacity="0.5" strokeWidth="0.78" />
-      <path d="M230.8 116.9 L230.8 135.7" opacity="0.35" strokeWidth="0.66" />
-      <path d="M234.3 115.1 L234.3 133" opacity="0.35" strokeWidth="0.66" />
-      <path d="M237.4 113.5 L237.4 130.5" opacity="0.9" strokeWidth="1.02" />
-      <path d="M237.4 130.5 L237.4 137.2" opacity="0.5" strokeWidth="0.78" />
-      <path d="M240.3 112 L240.3 128.2" opacity="0.35" strokeWidth="0.66" />
-      <path d="M242.9 110.7 L242.9 126.1" opacity="0.35" strokeWidth="0.66" />
-      <path d="M245.2 109.4 L245.2 124.2" opacity="0.9" strokeWidth="1.02" />
-      <path d="M245.2 124.2 L245.2 130.1" opacity="0.5" strokeWidth="0.78" />
-      <path d="M247.4 108.3 L247.4 122.5" opacity="0.35" strokeWidth="0.66" />
-      <path d="M251.2 106.3 L251.2 119.4" opacity="0.9" strokeWidth="1.02" />
-      <path d="M251.2 119.4 L251.2 124.7" opacity="0.5" strokeWidth="0.78" />
-      <path d="M254.5 104.6 L254.5 116.8" opacity="0.35" strokeWidth="0.66" />
-      <path d="M244 131.2 L155.5 212" opacity="0.28" strokeWidth="0.66" />
+      <path d="M-14 163 L252.2 94.3 L252.2 98.1 L-14 193 Z" fill="currentColor" stroke="none" opacity="0.06" />
+      <path d="M-14 163 L252.2 94.3" strokeWidth="1.35" />
+      <path d="M-14 193 L252.2 98.1" strokeWidth="1.35" />
+      <path d="M-14 163 L-14 193" strokeWidth="1.35" />
+      <path d="M252.2 94.3 L252.2 98.1" strokeWidth="1.1" opacity="0.85" />
+      <path d="M44.2 148 L44.2 172.2 M90.8 135.9 L90.8 155.6 M128.1 126.3 L128.1 142.3 M157.9 118.6 L157.9 131.7 M181.8 112.4 L181.8 123.2 M200.9 107.5 L200.9 116.4 M216.2 103.6 L216.2 110.9 M228.4 100.4 L228.4 106.6 M238.1 97.9 L238.1 103.1 M246 95.9 L246 100.3" strokeWidth="1" opacity="0.8" />
+      <path d="M-14 173.8 L252.2 95.6" strokeWidth="0.8" opacity="0.55" />
+      <path d="M-14 183.4 L252.2 96.9" strokeWidth="0.8" opacity="0.55" />
+      <path d="M44.2 172.2 L44.2 184.9 M90.8 155.6 L90.8 166.4 M157.9 131.7 L157.9 139.7 M200.9 116.4 L200.9 122.7 M228.4 106.6 L228.4 111.7" strokeWidth="1.1" opacity="0.75" />
       </g>
-      <g opacity="0.12" strokeWidth="0.8">
-      <path d="M310 106 L348 182" />
-      <path d="M306 107.6 L335 200.4" />
-      <path d="M462 164 L480 173" />
+
+      {/* Servis yolu: aynı kaçış noktasına */}
+      <g opacity="0.32">
+      <path d="M262 197 L289.9 92" strokeWidth="0.9" />
+      <path d="M340 197 L295.3 92" strokeWidth="0.9" />
+      <path d="M301 197 L294.8 104" strokeWidth="0.8" strokeDasharray="4 6" opacity="0.5" />
+      <path d="M264.4 188 h7 M336.2 188 h-7" strokeWidth="0.7" opacity="0.55" />
+      <path d="M268.6 172 h6 M329.4 172 h-6" strokeWidth="0.7" opacity="0.55" />
+      <path d="M273.2 155 h5 M322.2 155 h-5" strokeWidth="0.7" opacity="0.55" />
       </g>
-      <g opacity="0.16" strokeWidth="0.8">
-      <path d="M236 158 h7 M262 172 h10 M234 187 h12 M296 178 h8" />
-      <circle cx="254" cy="190" r="1" />
-      <circle cx="318" cy="168" r="1" />
+
+      {/* Ön plan arazi dokusu */}
+      <g strokeWidth="0.8">
+      <path d="M56 190 h5 M116 189 h6 M170 190.5 h5 M204 193 h6 M226 191 h5 M356 194 h5" opacity="0.2" />
+      <circle cx="146" cy="192.6" r="0.9" opacity="0.2" />
+      <circle cx="246" cy="193.4" r="0.9" opacity="0.18" />
       </g>
-      <g opacity="0.18" strokeWidth="0.7">
-      <path d="M334 89.9 V83.6" />
-      <path d="M366 97 V89.1" />
-      <path d="M398 104 V94.5" />
-      <path d="M430 111 V99.9" />
-      <path d="M462 118.1 V105.4" />
-      <path d="M334 83.6 L366 89.1 L398 94.5 L430 99.9 L462 105.4" opacity="0.8" />
-      <path d="M334 86.5 L366 92.6 L398 98.8 L430 104.9 L462 111.1" opacity="0.5" />
-      <path d="M328 88.6 L480 122" opacity="0.6" />
-      </g>
-      <g opacity="0.72" strokeWidth="1.05">
+
+      {/* İnverter kabini */}
+      <g opacity="0.75" strokeWidth="1.05">
       <path d="M352 138 L344 129.7 L344 170.6 L352 186 Z" />
       <path d="M352 138 H390 L382 133.1 L344 129.7" opacity="0.9" />
       <rect x="352" y="138" width="38" height="48" />
@@ -194,7 +169,9 @@ export function KapakGES({ className }: { className?: string }) {
       <path d="M352 181 H390" opacity="0.4" strokeWidth="0.8" />
       <path d="M350 186 H392" strokeWidth="1.15" />
       </g>
-      <g opacity="0.78" strokeWidth="1.05">
+
+      {/* Trafo + portal */}
+      <g opacity="0.8" strokeWidth="1.05">
       <path d="M410 144 L401 139 L401 181.3 L410 190 Z" />
       <path d="M410 144 H464 L455 140.6 L401 139" opacity="0.9" />
       <rect x="410" y="144" width="54" height="46" />
@@ -216,17 +193,26 @@ export function KapakGES({ className }: { className?: string }) {
       <path d="M354 189.5 l6 2.6 M363 190 l6 2.6 M372 190.5 l6 2.6" />
       <path d="M412 193 l7 2.6 M424 193.5 l7 2.6 M436 194 l7 2.6 M448 194 l7 2.6" />
       </g>
-      <path d="M208 191 C258 196 306 193 349 184" className="akis" style={{ stroke: 'var(--accent)' }} opacity="0.5" strokeWidth="1.1" />
-      <path d="M390 182 C394 185 397 185 401 182" style={{ stroke: 'var(--accent)' }} opacity="0.4" strokeWidth="1" />
-      <path d="M436 116 C408 96 366 79 335 62" className="akis" style={{ stroke: 'var(--accent)' }} opacity="0.4" strokeWidth="1" />
+
+      {/* TEK AKSAN ZİNCİRİ: panel -> kablo -> inverter -> trafo -> pilon */}
+      <path d="M157.9 139.5 L158 141 C 178 150, 198 159, 216 166 C 244 172, 272 175.5, 300 178 C 318 179.6, 333 181, 347 182" className="akis" style={{ stroke: 'var(--accent)' }} opacity="0.42" strokeWidth="1.05" />
+      <path d="M216 166 v3 M300 178 v3" opacity="0.3" strokeWidth="0.8" />
+      <path d="M390 181 C 394 184.5, 397 184.5, 401 181" style={{ stroke: 'var(--accent)' }} opacity="0.45" strokeWidth="1" />
+      <path d="M436 116 C 408 96, 374 78, 342 63" className="akis" style={{ stroke: 'var(--accent)' }} opacity="0.38" strokeWidth="1" />
+
+      {/* ODAK: parlayan hücre (E sırası, f3-f4) */}
       <g className="parilti">
-      <circle cx="143.7" cy="137.5" r="30" fill="url(#kapakges-hale)" stroke="none" />
-      <path d="M131.7 133.9 L155.8 126.4 L155.8 140 L131.7 149.8 Z" fill="url(#kapakges-parlak)" stroke="none" />
-      <path d="M135.7 140.5 L151.7 134.5" style={{ stroke: 'var(--glow)' }} opacity="0.95" strokeWidth="1.1" />
-      <path d="M142.3 132.9 L145.1 142.1" style={{ stroke: 'var(--glow)' }} opacity="0.8" strokeWidth="1" />
-      <circle cx="143.7" cy="137.5" r="1.5" style={{ stroke: 'var(--glow)' }} opacity="0.9" />
+      <circle cx="143" cy="129.5" r="26" fill="var(--glow-b)" stroke="none" />
+      <circle cx="143" cy="129.5" r="14" fill="var(--glow-a)" stroke="none" />
+      <path d="M147 115 V123 M147 127.5 V135.5 M138.5 125.2 L145 125.2 M149 125.2 L155.5 125.2" style={{ stroke: 'var(--glow)' }} opacity="0.85" strokeWidth="0.9" />
       </g>
-      <path d="M0 197 H480" opacity="0.6" strokeWidth="1.2" />
+      <path d="M128.1 126.3 L157.9 118.6 L157.9 131.7 L128.1 142.3 Z" fill="url(#kapak-ges-parlak)" stroke="none" />
+      <path d="M128.1 126.3 L157.9 118.6 L157.9 131.7 L128.1 142.3 Z" style={{ stroke: 'var(--glow)' }} opacity="0.8" strokeWidth="1.1" />
+      <path d="M134 134.5 L152 127" style={{ stroke: 'var(--glow)' }} opacity="0.9" strokeWidth="1" />
+
+      {/* Zemin çizgisi + istasyon işaretleri */}
+      <path d="M30 194 V196.5 M90 194 V196.5 M150 194 V196.5 M210 194 V196.5 M370 194 V196.5 M430 194 V196.5" opacity="0.3" strokeWidth="0.8" />
+      <path d="M0 196.5 H480" opacity="0.6" strokeWidth="1.3" />
     </svg>
   );
 }

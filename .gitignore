@@ -1,2 +1,5 @@
 # Claude Code çalışma dosyaları
 .claude/settings.local.json
+
+# Kök dizinde vitest çalıştırılınca oluşan önbellek — derleme artığı
+node_modules/

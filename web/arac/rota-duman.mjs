@@ -4,11 +4,11 @@ import { chromium } from 'playwright-core';
    ve aktif durum referansla eşleşir. Giriş yapıp her rotayı yoklar. */
 
 const KOK = 'http://localhost:3111';
-const ATLAS = ['/sistem', '/uyum', '/portfoy', '/yonetim', '/topoloji', '/omur',
-  '/yedekleme', '/kimlik', '/tedarikciler'];
+const ATLAS = ['/sistem', '/uyum', '/portfoy', '/yonetim', '/yonetim-tezgahi', '/topoloji',
+  '/omur', '/yedekleme', '/kimlik', '/tedarikciler'];
 const OZALIT = ['/', '/tesisler', '/surecler', '/bulgular', '/riskler', '/denetimler',
   '/envanter', '/operasyon', '/projeler', '/raporlar', '/regulasyonlar', '/eslestirme',
-  '/gorevler', '/aktivite', '/saglik', '/tanimlar', '/yetkiler', '/ice-aktarim'];
+  '/aktivite', '/saglik', '/yetkiler', '/ice-aktarim'];
 
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
 const s = await b.newPage({ viewport: { width: 1440, height: 1000 } });

@@ -42,7 +42,7 @@ export async function istisnaTalep(girdi: {
       talepEdenId: k.id } });
     await iz({ aktorId: k.id, varlikTipi: 'Istisna', varlikId: istisna.id,
       eylem: 'olusturma', gerekce: v.gerekce });
-    revalidatePath('/gorevler'); revalidatePath('/surecler');
+    revalidatePath('/yonetim-tezgahi'); revalidatePath('/surecler');
     return tamam();
   } catch (e) { return hata(e); }
 }

@@ -48,7 +48,7 @@ export async function sektorKaydet(girdi: { id?: string; kod: string; ad: string
     const v = z.object({ id: z.string().optional(), kod: bosluksuz('Kod'), ad: bosluksuz('Ad') }).parse(girdi);
     if (v.id) await db.sektor.update({ where: { id: v.id }, data: { kod: v.kod, ad: v.ad } });
     else await db.sektor.create({ data: { kod: v.kod, ad: v.ad } });
-    revalidatePath('/tanimlar');
+    revalidatePath('/yonetim-tezgahi');
     return tamam();
   } catch (e) { return hata(e); }
 }
@@ -65,7 +65,7 @@ export async function tesisTipiKaydet(girdi: {
     const veri = { kod: v.kod, ad: v.ad, sektorId: v.sektorId ?? null, sira: v.sira };
     if (v.id) await db.tesisTipi.update({ where: { id: v.id }, data: veri });
     else await db.tesisTipi.create({ data: veri });
-    revalidatePath('/tanimlar');
+    revalidatePath('/yonetim-tezgahi');
     return tamam();
   } catch (e) { return hata(e); }
 }
@@ -95,7 +95,7 @@ export async function tesisKaydet(girdi: {
       const { tesisKapsaminiHesapla } = await import('./motorlar/uygulanabilirlik');
       await tesisKapsaminiHesapla(yeni.id, k.id);
     }
-    revalidatePath('/tanimlar'); revalidatePath('/tesisler');
+    revalidatePath('/yonetim-tezgahi'); revalidatePath('/tesisler');
     return tamam();
   } catch (e) { return hata(e); }
 }
@@ -110,7 +110,7 @@ export async function tesisKapat(girdi: { id: string; neden: string }): Promise<
       durum: 'kapali', kapanisTarihi: new Date(), kapanisNedeni: v.neden } });
     await iz({ aktorId: k.id, varlikTipi: 'Tesis', varlikId: v.id, eylem: 'guncelleme',
       alan: 'durum', once: 'aktif', sonra: `kapali (${v.neden})` });
-    revalidatePath('/tanimlar'); revalidatePath('/');
+    revalidatePath('/yonetim-tezgahi'); revalidatePath('/');
     return tamam();
   } catch (e) { return hata(e); }
 }
@@ -122,7 +122,7 @@ export async function tesisAc(girdi: { id: string }): Promise<Sonuc> {
       durum: 'aktif', kapanisTarihi: null, kapanisNedeni: null } });
     await iz({ aktorId: k.id, varlikTipi: 'Tesis', varlikId: girdi.id, eylem: 'guncelleme',
       alan: 'durum', once: 'kapali', sonra: 'aktif' });
-    revalidatePath('/tanimlar');
+    revalidatePath('/yonetim-tezgahi');
     return tamam();
   } catch (e) { return hata(e); }
 }
@@ -142,7 +142,7 @@ export async function regulasyonKaydet(girdi: {
       const yeni = await db.regulasyon.create({ data: veri });
       await iz({ aktorId: k.id, varlikTipi: 'Regulasyon', varlikId: yeni.id, eylem: 'olusturma' });
     }
-    revalidatePath('/tanimlar'); revalidatePath('/regulasyonlar');
+    revalidatePath('/yonetim-tezgahi'); revalidatePath('/regulasyonlar');
     return tamam();
   } catch (e) { return hata(e); }
 }
@@ -159,7 +159,7 @@ export async function alanKaydet(girdi: {
     const veri = { kod: v.kod, ad: v.ad, aciklama: v.aciklama ?? null };
     if (v.id) await db.kapsamAlani.update({ where: { id: v.id }, data: veri });
     else await db.kapsamAlani.create({ data: veri });
-    revalidatePath('/tanimlar');
+    revalidatePath('/yonetim-tezgahi');
     return tamam();
   } catch (e) { return hata(e); }
 }
@@ -757,7 +757,7 @@ export async function regulasyonAktifDegistir(girdi: { id: string; aktif: boolea
     await db.regulasyon.update({ where: { id: girdi.id }, data: { aktif: girdi.aktif } });
     await iz({ aktorId: k.id, varlikTipi: 'Regulasyon', varlikId: girdi.id, eylem: 'guncelleme',
       alan: 'aktif', sonra: girdi.aktif ? 'aktif' : 'pasif' });
-    revalidatePath('/tanimlar'); revalidatePath('/regulasyonlar');
+    revalidatePath('/yonetim-tezgahi'); revalidatePath('/regulasyonlar');
     return tamam();
   } catch (e) { return hata(e); }
 }
@@ -787,7 +787,7 @@ export async function tanimSil(girdi: {
     } else {
       await db.kapsamAlani.delete({ where: { id: girdi.id } });
     }
-    revalidatePath('/tanimlar');
+    revalidatePath('/yonetim-tezgahi');
     return tamam();
   } catch (e) { return hata(e); }
 }

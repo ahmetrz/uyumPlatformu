@@ -23,7 +23,7 @@ const ONAY_TIP_MODUL: Record<string, Modul> = {
 };
 
 function tazele() {
-  revalidatePath('/gorevler');
+  revalidatePath('/yonetim-tezgahi');
   revalidatePath('/'); // ana panodaki açık görev / bekleyen onay sayaçları
 }
 

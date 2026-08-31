@@ -1,6 +1,10 @@
 'use client';
 import { useState, useTransition } from 'react';
+import { Alan, Dugme } from '@/components/atlas/temel';
 import { girisYap } from '@/lib/girisEylemleri';
+
+/* Giriş formu — Atlas form grameri (18 §Forms): etiket 9.5px mono, girdi
+   köşeli ve tek kenarlı, hata kırmızı tek satır. Pill yok, snackbar yok. */
 
 export default function GirisFormu() {
   const [v, setV] = useState({ eposta: '', parola: '' });
@@ -8,26 +12,35 @@ export default function GirisFormu() {
   const [bekliyor, baslat] = useTransition();
 
   return (
-    <form style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-3)' }}
+    <form
+      style={{ display: 'grid', gap: 'var(--s16)' }}
       onSubmit={(e) => {
         e.preventDefault();
         baslat(async () => {
           const sonuc = await girisYap(v);
           if (sonuc && !sonuc.ok) setHata(sonuc.hata);
         });
-      }}>
-      <label className="form-satir"><span>E-posta</span>
-        <input className="inp" type="email" autoComplete="username" required
+      }}
+    >
+      <Alan etiket="E-posta" zorunlu>
+        <input className="gr" type="email" autoComplete="username" required
+          style={{ fontFamily: 'var(--mo)' }}
           value={v.eposta} onChange={(e) => setV({ ...v, eposta: e.target.value })} />
-      </label>
-      <label className="form-satir"><span>Parola</span>
-        <input className="inp" type="password" autoComplete="current-password" required
+      </Alan>
+      <Alan etiket="Parola" zorunlu>
+        <input className="gr" type="password" autoComplete="current-password" required
           value={v.parola} onChange={(e) => setV({ ...v, parola: e.target.value })} />
-      </label>
-      {hata && <p className="pill durum-uyumsuz" role="alert">{hata}</p>}
-      <button className="btn birincil" disabled={bekliyor} type="submit">
+      </Alan>
+
+      {hata && <p className="gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
+
+      <Dugme tur="cekmece" type="submit" disabled={bekliyor}>
         {bekliyor ? 'Giriş yapılıyor…' : 'Giriş yap'}
-      </button>
+      </Dugme>
+
+      <p className="cekmece-dip" style={{ margin: 0 }}>
+        Her oturum açılışı denetim izine yazılır.
+      </p>
     </form>
   );
 }

@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import Link from 'next/link';
 import { Bar, Segment, BosIlk, type Durum } from '@/components/atlas/temel';
 import { Matris, type MatrisSatiri } from '@/components/atlas/tablo';
 import { EkranBasligi, KipDegistir } from '@/components/atlas/ekran';
@@ -157,7 +158,11 @@ export default function RaporlarIstemci({
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 'var(--s16)',
             padding: 'var(--s18) 0 0' }}>
             <p className="dip-not" style={{ margin: 0, flex: 1, minWidth: 0 }}>
-              Anlık rapor · dışa aktarım ekrandaki kapsamı taşır
+              Anlık rapor · dışa aktarım ekrandaki kapsamı taşır ·{' '}
+              {/* Ekran dökümü ile KANIT PAKETİ ayrı şeylerdir: buradaki
+                  Excel/PDF ekrandaki satırları taşır, kanıt paketi kökeni,
+                  denetim izini ve bütünlük damgasını taşır. */}
+              <Link href="/raporlar/kanit-paketi">denetim kanıt paketi</Link>
             </p>
             <DisaAktar surecler={surecler} santraller={santraller}
               bulgular={bulgular} kanitlar={kanitlar} />

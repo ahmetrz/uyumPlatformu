@@ -34,7 +34,7 @@ const CONNECTORLAR: Tanim[] = [
     sirReferansi: 'env:ENTRA_ISTEMCI_SIRRI',
     pollAralikDk: 360,
     yapilandirma: {
-      kiraci: 'zorlu.onmicrosoft.com',
+      kiraci: '<<KURULUMDA-DOLDURULACAK>>  ör. <kiraci>.onmicrosoft.com',
       tabanUrl: 'https://graph.microsoft.com/v1.0',
       kapsam: ['users', 'servicePrincipals', 'signInActivity'],
       gerekenIzin: 'Directory.Read.All + AuditLog.Read.All (uygulama izni)',
@@ -65,7 +65,7 @@ const CONNECTORLAR: Tanim[] = [
     sirReferansi: 'env:NESSUS_API_ANAHTARI',
     pollAralikDk: null,
     yapilandirma: {
-      tabanUrl: 'https://nessus.zorlu.local:8834',
+      tabanUrl: '<<KURULUMDA-DOLDURULACAK>>  ör. https://<nessus-sunucusu>:8834',
       not: 'OT segmentinde AKTİF TARAMA YAPILMAZ. Yalnız BT tarafındaki ' +
         'mevcut tarama sonuçları okunur; OT varlıkları için pasif kaynaklar kullanılır.',
       kapsamDisi: 'OT bölgeleri (Purdue 0-2)',
@@ -96,7 +96,7 @@ const CONNECTORLAR: Tanim[] = [
     sirReferansi: 'env:YEDEKLEME_API_ANAHTARI',
     pollAralikDk: 240,
     yapilandirma: {
-      tabanUrl: 'https://yedek.zorlu.local/api/v1',
+      tabanUrl: '<<KURULUMDA-DOLDURULACAK>>  ör. https://<yedekleme-sunucusu>/api/v1',
       kapsam: ['jobs', 'sessions', 'restorePoints'],
       not: 'Yalnız koşu sonucu okunur. Yedek alma/geri yükleme platformdan TETİKLENMEZ.',
     },
@@ -110,7 +110,7 @@ const CONNECTORLAR: Tanim[] = [
     sirReferansi: 'env:FORTIMANAGER_API_ANAHTARI',
     pollAralikDk: 1440,
     yapilandirma: {
-      tabanUrl: 'https://fmg.zorlu.local/jsonrpc',
+      tabanUrl: '<<KURULUMDA-DOLDURULACAK>>  ör. https://<fortimanager>/jsonrpc',
       kapsam: ['policy', 'address', 'interface'],
       not: 'SALT OKUNUR. Kural yazma/değiştirme platformdan YAPILMAZ — ' +
         'topoloji sapması yalnız RAPORLANIR, düzeltme değişiklik sürecinden geçer.',

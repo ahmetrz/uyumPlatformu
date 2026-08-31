@@ -43,3 +43,7 @@ next-env.d.ts
 # veritabanı ve üretilen istemci
 prisma/dev.db
 lib/prisma-client/
+
+# geçici sorgu/inceleme betikleri (ajan çalışması sırasında oluşur)
+*.tmp.mjs
+q-*.mjs

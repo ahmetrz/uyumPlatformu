@@ -67,11 +67,16 @@ Yanıt evet — ama koşulları ve kalan işler aşağıda kanıtlarıyla yazıl
 
 | # | Boşluk | Etki | Nerede |
 |---|---|---|---|
-| A | Oran sınırı deposu tek süreçlidir | N örnekli bir kümede saldırgana N katı deneme hakkı verir. `oranDeposuAyarla()` kancası var, Redis uygulaması yok. | `lib/api/oranSinir.ts` |
-| B | `arama.ts`'teki 11 `contains` koşulu PostgreSQL'de büyük/küçük harfe duyarlı olur | Komut paletinin tamamı sessizce boş döner. Hata vermez. | `lib/eylemler2/arama.ts` |
-| C | `$transaction` içindeki kontrol-sonra-yaz noktaları SQLite'ın tek yazıcısına güveniyor | READ COMMITTED altında eşzamanlı keşif kararı yinelenen varlık üretir. **Göçten önce** düzeltilmeli. | `lib/entegrasyon/kesif.ts:761` ve 6 nokta daha |
-| D | Denetim izi değişmezliği tetikleyicileri SQLite sözdizimidir | PostgreSQL'de karşılığı yazılmazsa değişmezlik iddiası yanlış olur. Yerine geçecek fonksiyon+trigger raporda hazır. | `docs/POSTGRES_READINESS.md` |
-| E | API anahtarı süresiz üretilebiliyor | `gecerlilikGun` isteğe bağlı; `bitis: null` = sonsuz. Rotasyon politikası yok. | `lib/api/kimlik.ts` |
+| A | Oran sınırı deposu tek süreçlidir | N örnekli bir kümede saldırgana N katı deneme hakkı verir. `oranDeposuAyarla()` kancası hazır; Redis uygulaması gerçek bir altyapı bileşeni ister, bu yüzden bağlantı gününe kadar açık. | `lib/api/oranSinir.ts` |
+| D | Denetim izi değişmezliği tetikleyicileri SQLite sözdizimidir | PostgreSQL'de karşılığı yazılmazsa değişmezlik iddiası yanlış olur. Yerine geçecek fonksiyon+trigger raporda hazır ve PostgreSQL olmadan **denenemez**. | `docs/POSTGRES_READINESS.md` |
+
+**Kapananlar** (bu oturumun ikinci yarısı):
+
+| # | Boşluk | Nasıl kapandı |
+|---|---|---|
+| B | Arama koşulu PostgreSQL'de sessizce boşalacaktı | On bir yerdeki ham `contains` tek yardımcıya indi; göç günü değişecek satır bir tane. İçerik tarayan bir bekçi test yeni ham `contains` eklenmesini engelliyor. Bugünkü duyarsız davranışı KAYIT ALTINA alan test, göç günü kırmızıya dönecek — ve dönmesi gerekiyor. |
+| C | Kontrol-sonra-yaz yarışları | Üç nokta (dört göz onayı, içe aktarım onayı, keşif kararı) koşullu `updateMany` ile sahiplenmeye çevrildi. Eşzamanlı iki çağrıdan tam birinin kazandığı, kaybedenin hiçbir yan etki bırakmadığı testle donduruldu; mutasyonla ölçüldü. |
+| E | API anahtarı süresiz üretilebiliyordu | Süresiz anahtar kaldırıldı: tavan 3650 günden (on yıl) 730'a indi, boş bırakılan alan sonsuza değil 365 güne düşer. |
 
 ### 2.3 `NICE_TO_HAVE_BEFORE_INTERNAL_INTEGRATION`
 
@@ -263,6 +268,14 @@ geri yükleme · SIEM playbook tetikleme · dizin yazma.
 
 ## 12. Sonraki tek adım
 
-**§2.2'deki beş açık kalemden C'yi (kontrol-sonra-yaz noktaları) kapatmak.**
-Diğer dördü bağlantı gününü geciktirmez; C ise PostgreSQL'e geçildikten
-sonra düzeltilirse veri bozulmasını geriye dönük düzeltmek gerekir.
+**İlk gerçek sistem için salt okunur hesabı istemek ve kuru koşuyu yapmak.**
+
+Kod tarafında bağlantı gününü geciktiren bir şey kalmadı: §2.2'de yalnız
+iki kalem açık ve ikisi de kod değil altyapı işidir (dağıtık oran sınırı
+deposu; PostgreSQL tetikleyicileri, ki PostgreSQL olmadan denenemez).
+
+İlk bağlanacak sistem olarak **SIEM** önerilir: keşfin en pasif kaynağıdır
+(cihazlar zaten log gönderir, ağa hiçbir paket çıkmaz), OT bölgesinde bile
+emniyetlidir ve `manual_import` dışındaki tüm hattı — kimlik, imleç,
+eşleme profili, köken, dead-letter, zamanlayıcı — ilk kez gerçek veriyle
+sınar. `INTEGRATION_DAY_RUNBOOK.md` §3.4 neyin isteneceğini yazıyor.

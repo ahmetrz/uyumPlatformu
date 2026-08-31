@@ -463,9 +463,13 @@ export function ApiAnahtarFormu({ kullanicilar, aktifId, kapat }: {
           {kullanicilar.map((u) => <option key={u.id} value={u.id}>{u.ad}</option>)}
         </select>
       </Alan>
+      {/* Süresiz anahtar YOK: boş bırakılan alan sunucuda varsayılan ömre
+          (365 gün) düşer, sonsuza değil. Alan metni de bunu söylemeli —
+          "boş bırakılırsa süresiz" yazan eski yer tutucu, üreten kişi
+          işten ayrıldıktan sonra da geçerli anahtarlar bırakıyordu. */}
       <Alan etiket="Geçerlilik · gün">
-        <input className="gr" type="number" min={1} max={3650} value={f.gun}
-          placeholder="boş bırakılırsa süresiz"
+        <input className="gr" type="number" min={1} max={730} value={f.gun}
+          placeholder="boş bırakılırsa 365 gün"
           onChange={(e) => setF({ ...f, gun: e.target.value })} />
       </Alan>
 

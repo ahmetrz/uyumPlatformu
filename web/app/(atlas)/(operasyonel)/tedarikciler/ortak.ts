@@ -54,6 +54,64 @@ export type SertifikaOzeti = {
 
 export type Bag = { id: string; kod: string; alt: string; yol: string };
 
+/* ── Erişim oturumu · ÖLÇÜM katmanı ───────────────────────────────────────
+   `lib/entegrasyon/tedarikciOturum.ts` özetlerinin serileştirilmiş ikizi.
+   Ekran bu soruyu KENDİ SORMAZ: `tedarikciOturumOzeti` ve
+   `uyumsuzOturumlar` yazılmıştı ama hiçbir yerden çağrılmıyordu; ekran
+   yalnız envanter BEYANINI (`oturumKaydiVar`) gösteriyordu. Beyan ile
+   ölçüm iki ayrı sorudur ve ikisi artık yan yana durur.
+
+   ÜÇ KAPSAM, ÜÇ AYRI CÜMLE — "oturum yok" hiçbirinde geçmez:
+     kaynak_bagli_degil → hiç PAM/VPN kaynağı bağlı değil, GÖREMİYORUZ
+     kayit_yok          → kaynak bağlı, bu tedarikçi için kayıt gelmemiş
+     kayit_var          → ölçüm var, uyumsuz/bilinmeyen/uyumlu ayrışır      */
+
+export type OturumSayaclari = {
+  onaysiz: number; mfasiz: number; izlenmeyen: number;
+  onayBilinmiyor: number; mfaBilinmiyor: number; izlemeBilinmiyor: number;
+};
+
+export type OturumKapsami = 'kaynak_bagli_degil' | 'kayit_yok' | 'kayit_var';
+
+export type OturumOzeti = {
+  kapsam: OturumKapsami;
+  gerekce: string;
+  toplam: number;
+  /** Kanıtlı ihlal taşıyan oturum sayısı (alan === false). */
+  uyumsuzSayisi: number;
+  /** İhlali olmayan ama ölçülmemiş alanı olan oturum. ASLA toplanmaz. */
+  bilinmeyenSayisi: number;
+  uyumluSayisi: number;
+  sayaclar: OturumSayaclari;
+  suren: number;
+  kaynakSistemler: string[];
+  /** Beyan ile gerçek kayıt akışının çeliştiği yerler. */
+  tutarsizliklar: string[];
+  sonOturum: {
+    baslangic: string; bitis: string | null; kaynakSistem: string; durum: string;
+  } | null;
+};
+
+/** Ekranda insan kararına sunulan tek oturum satırı — bir ÖNERİdir. */
+export type OturumSatiri = {
+  id: string;
+  tesisId: string | null;
+  tesisKod: string | null;
+  hesapId: string | null;
+  baslangic: string;
+  bitis: string | null;
+  kaynakSistem: string;
+  durum: string;
+  /** Kanıtlı ihlaller (alan === false). Boşsa oturum uyumsuz DEĞİLDİR. */
+  ihlaller: string[];
+  /** Ölçülmemiş alanlar (alan === null). İHLAL DEĞİL. */
+  bilinmeyenler: string[];
+  talepReferansi: string | null;
+  kayitReferansi: string | null;
+  /** Kullanıcı bu oturumun santral kapsamında karar verebilir mi. */
+  kararVerebilir: boolean;
+};
+
 export type T = {
   id: string;
   ad: string;
@@ -70,6 +128,10 @@ export type T = {
   sertifikalar: SertifikaOzeti[];
   riskler: Bag[];
   kontroller: Bag[];
+  /** ÖLÇÜM: `tedarikciOturumOzeti` çıktısı — beyanın karşılığı, yerine geçmez. */
+  oturum: OturumOzeti;
+  /** İnsan kararı bekleyen oturumlar (uyumsuz önce, sonra ölçülmemiş). */
+  oturumlar: OturumSatiri[];
 };
 
 /* ── Türetmeler ───────────────────────────────────────────────────────── */
@@ -102,6 +164,10 @@ export type Bayraklar = {
   sertifikaDoluyor: boolean;
   oturumBilinmiyor: boolean;
   sozlesmeYok: boolean;
+  /** ÖLÇÜLMÜŞ ihlal: kaynak sistem "onaysız / MFA yok / izlenmedi" diyor. */
+  oturumUyumsuz: boolean;
+  /** Uzaktan erişimi açık ama hiçbir oturum kaynağı bağlı değil — kör nokta. */
+  oturumOlculmedi: boolean;
 };
 
 export function bayraklar(t: T): Bayraklar {
@@ -116,6 +182,10 @@ export function bayraklar(t: T): Bayraklar {
     sertifikaDoluyor: yakin !== null && yakin.kalanGun <= UFUK,
     oturumBilinmiyor: t.uzaktanErisimVar && t.oturumKaydiVar === null,
     sozlesmeYok: t.sozlesmeler.length === 0,
+    oturumUyumsuz: t.oturum.uyumsuzSayisi > 0,
+    /* Kaynak bağlı değilken "uyumsuz oturum yok" DEMEK YASAK: ölçüm
+       yapılmadıysa sonuç sıfır değil, boştur. Bu yüzden ayrı bayrak. */
+    oturumOlculmedi: t.uzaktanErisimVar && t.oturum.kapsam === 'kaynak_bagli_degil',
   };
 }
 
@@ -145,6 +215,11 @@ export function degerlendir(t: T): Degerlendirme {
   if (b.destekBitti && soz) {
     nedenler.push(`${soz.kod} sözleşmesi ${gunMetni(soz.kalanGun ?? 0)} önce bitti, yenilenmedi`);
   }
+  if (b.oturumUyumsuz) {
+    nedenler.push(`${t.oturum.uyumsuzSayisi} oturum politikaya uymuyor `
+      + `(${t.oturum.sayaclar.onaysiz} onaysız · ${t.oturum.sayaclar.mfasiz} MFA'sız `
+      + `· ${t.oturum.sayaclar.izlenmeyen} izlenmemiş)`);
+  }
   if (b.izlenmiyor) {
     nedenler.push(`${yontem} uzaktan erişim açık, oturum kaydı alınmıyor`);
   }
@@ -160,14 +235,18 @@ export function degerlendir(t: T): Degerlendirme {
   if (b.oturumBilinmiyor) {
     nedenler.push(`${yontem} uzaktan erişim var, oturum kaydı alınıp alınmadığı kayıtlı değil`);
   }
+  if (b.oturumOlculmedi) {
+    nedenler.push('uzaktan erişimi açık ama hiçbir oturum kaynağı bağlı değil — '
+      + 'erişimleri göremiyoruz (olmadığı anlamına gelmez)');
+  }
   if (b.sozlesmeYok) {
     nedenler.push('bu tedarikçi için sözleşme kaydı yok');
   }
 
   const durum: Durum =
-    b.destekBitti || b.izlenmiyor || b.sertifikaDoldu ? 'bd'
+    b.destekBitti || b.izlenmiyor || b.sertifikaDoldu || b.oturumUyumsuz ? 'bd'
       : b.destekBitiyor || b.sertifikaDoluyor ? 'md'
-        : b.oturumBilinmiyor || b.sozlesmeYok ? 'unk'
+        : b.oturumBilinmiyor || b.sozlesmeYok || b.oturumOlculmedi ? 'unk'
           : 'ok';
 
   const soz_ = durum === 'bd' ? 'Açıkta'
@@ -178,7 +257,9 @@ export function degerlendir(t: T): Degerlendirme {
   /* Satırı yukarı çeken olgu alt satıra iner. Sözleşme hücresi yalnız AY-YIL
      taşıdığı için "bitti" olgusu orada görünmez; bu yüzden en önce o yazılır.
      Sertifika ve sözleşme yokluğunun hiç kolonu yok. */
-  const olgu = b.destekBitti && soz
+  const olgu = b.oturumUyumsuz
+    ? `${t.oturum.uyumsuzSayisi} oturum politikaya uymuyor`
+    : b.destekBitti && soz
     ? `destek ${gunMetni(soz.kalanGun ?? 0)} önce bitti`
     : b.sertifikaDoldu
       ? `sertifika ${gunMetni(dolmus[0].kalanGun)} önce doldu`

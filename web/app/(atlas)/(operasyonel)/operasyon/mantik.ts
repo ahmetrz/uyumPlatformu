@@ -51,6 +51,11 @@ export type Kodlu = { id: string; kod: string; ad: string };
 /** Çekmece zincirinde gösterilen bağlı kayıt. */
 export type Bagli = { id: string; kod: string; alt: string; yol: string };
 
+/** Değişikliğe bağlanabilecek olay — sunucu kapsamla daralttıktan sonra taşınır.
+    Olay KÜTÜĞÜ burada TEKRAR EDİLMEZ (bkz. dosya başındaki not); tek yazma
+    yüzeyi bağın kendisidir: "bu değişiklik hangi olayı doğurdu/kapattı?" */
+export type OlayAdayi = { id: string; kod: string; alt: string };
+
 export type D = {
   id: string;
   kod: string;

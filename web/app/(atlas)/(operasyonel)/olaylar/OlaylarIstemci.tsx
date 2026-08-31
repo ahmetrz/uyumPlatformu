@@ -1,19 +1,22 @@
 'use client';
 import { useMemo, useState } from 'react';
-import { BosIlk, BosFiltre, Im, Ipucu, type Durum } from '@/components/atlas/temel';
+import { BosIlk, BosFiltre, Dugme, Im, Ipucu, type Durum } from '@/components/atlas/temel';
 import { Tablo, type Kolon, type Satir } from '@/components/atlas/tablo';
 import { EkranBasligi, Filtreler } from '@/components/atlas/ekran';
 import {
-  Cekmece, CekmeceKimlik, CekmeceAlanlar, CekmeceBagli,
+  Cekmece, CekmeceKimlik, CekmeceAlanlar, CekmeceBagli, CekmeceEylemler,
 } from '@/components/atlas/cekmece';
 import { tarihTR, zamanTR } from '@/lib/sabitler';
-import { EtkiDogrulama, OneriYenile } from './Eylemler';
+import {
+  EtkiDogrulama, OlayBaglari, OlayDuzenleFormu, OneriYenile, YeniOlayFormu,
+} from './Eylemler';
 import {
   ETKI_ALANLARI, ETKI_ALAN_ETIKET, KADEME, KOPUKLUK_SOZU, TESPIT_SOZU,
   acikMi, bekleyenAlanlar, bildirimBekliyor, dogrulanmisAlanlar, imSozu,
   olayImi, olgu, seviyeDurumu, seviyeSozu, sirala, surukleyici,
   zincirKopuk, zincirOzeti,
-  type EtkiAlani, type HalkaGorunumu, type OlayKaydi,
+  type BagAdayi, type BagTipi, type EtkiAlani, type HalkaGorunumu,
+  type OlayKaydi, type Santral,
 } from './mantik';
 
 /* O · Olaylar — "bu olay üretimi nasıl etkiledi, kim onayladı?"
@@ -43,12 +46,22 @@ const MERCEKLER = [
   { id: 'hepsi', ad: 'Tümü' },
 ];
 
+type Kip = 'ozet' | 'duzenle';
+
 export default function OlaylarIstemci({
-  olaylar, yazabilir, dogrulayabilir,
-}: { olaylar: OlayKaydi[]; yazabilir: boolean; dogrulayabilir: boolean }) {
+  olaylar, santraller, adaylar, yazabilir, dogrulayabilir,
+}: {
+  olaylar: OlayKaydi[];
+  santraller: Santral[];
+  adaylar: Record<BagTipi, BagAdayi[]>;
+  yazabilir: boolean;
+  dogrulayabilir: boolean;
+}) {
   const [mercek, setMercek] = useState('acik');
   const [seciliId, setSeciliId] = useState<string | null>(null);
   const [kuyrukAcik, setKuyrukAcik] = useState(false);
+  const [kip, setKip] = useState<Kip>('ozet');
+  const [yeniAcik, setYeniAcik] = useState(false);
 
   const sayim = useMemo(() => ({
     toplam: olaylar.length,
@@ -78,12 +91,29 @@ export default function OlaylarIstemci({
 
   if (olaylar.length === 0) {
     return (
-      <main style={{ minWidth: 0 }}>
-        <EkranBasligi eyebrow="Operasyonel güvenlik" baslik="Olaylar" />
-        <section className="ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
-          <BosIlk cumle="Kapsamınızda olay kaydı yok. Olay açıldığında etki zinciri motoru öneriyi üretir; etki alanları insan doğrulamasıyla dolar." />
-        </section>
-      </main>
+      <>
+        <main style={{ minWidth: 0 }}>
+          <EkranBasligi eyebrow="Operasyonel güvenlik" baslik="Olaylar" />
+          <section className="ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
+            <BosIlk
+              cumle="Kapsamınızda olay kaydı yok. Olay açıldığında etki zinciri motoru öneriyi üretir; etki alanları insan doğrulamasıyla dolar."
+              eylem={yazabilir
+                ? <Dugme tur="birincil" onClick={() => setYeniAcik(true)}>Olay aç</Dugme>
+                : undefined}
+            />
+          </section>
+        </main>
+        {yeniAcik && (
+          <Cekmece kod="Yeni olay" kapat={() => setYeniAcik(false)}>
+            <div className="cekmece-blok">
+              <p className="t-label" style={{ margin: '0 0 var(--s12)' }}>Olay aç</p>
+            </div>
+            <div className="cekmece-blok">
+              <YeniOlayFormu santraller={santraller} kapat={() => setYeniAcik(false)} />
+            </div>
+          </Cekmece>
+        )}
+      </>
     );
   }
 
@@ -148,9 +178,17 @@ export default function OlaylarIstemci({
         />
 
         <section className="ekran-govde" style={{ paddingTop: 'var(--s20)' }}>
-          <Filtreler secenekler={MERCEKLER} aktif={mercek} sec={(id) => {
-            setMercek(id); setKuyrukAcik(false);
-          }} />
+          <Filtreler
+            secenekler={MERCEKLER}
+            aktif={mercek}
+            sec={(id) => { setMercek(id); setKuyrukAcik(false); }}
+            kapsam={yazabilir ? (
+              <button type="button" className="kapsam-dugme"
+                onClick={() => { setYeniAcik(true); setSeciliId(null); }}>
+                + Yeni olay
+              </button>
+            ) : undefined}
+          />
 
           {sirali.length === 0 ? (
             <BosFiltre temizle={() => setMercek('hepsi')} />
@@ -160,7 +198,11 @@ export default function OlaylarIstemci({
               kolonlar={KOLONLAR}
               satirlar={satirlar}
               secili={seciliId}
-              sec={(id) => setSeciliId(id === seciliId ? null : id)}
+              sec={(id) => {
+                setSeciliId(id === seciliId ? null : id);
+                setKip('ozet');
+                setYeniAcik(false);
+              }}
               kuyruk={toplanan.length > 0
                 ? { metin: `+${toplanan.length} olay · sert olgu taşımıyor`,
                   ac: () => setKuyrukAcik(true) }
@@ -183,8 +225,36 @@ export default function OlaylarIstemci({
       </main>
 
       {secili && (
-        <Cekmece kod={secili.kod} kapat={() => setSeciliId(null)}>
-          <Detay o={secili} yazabilir={yazabilir} dogrulayabilir={dogrulayabilir} />
+        <Cekmece kod={secili.kod} kapat={() => { setSeciliId(null); setKip('ozet'); }}>
+          {kip === 'ozet' ? (
+            <Detay
+              o={secili}
+              adaylar={adaylar}
+              dogrulayabilir={dogrulayabilir}
+              duzenle={() => setKip('duzenle')}
+            />
+          ) : (
+            <>
+              <div className="cekmece-blok">
+                <p className="t-label" style={{ margin: '0 0 var(--s12)' }}>Olayı düzenle</p>
+              </div>
+              <div className="cekmece-blok">
+                <OlayDuzenleFormu olay={secili} santraller={santraller}
+                  kapat={() => setKip('ozet')} />
+              </div>
+            </>
+          )}
+        </Cekmece>
+      )}
+
+      {yeniAcik && !secili && (
+        <Cekmece kod="Yeni olay" kapat={() => setYeniAcik(false)}>
+          <div className="cekmece-blok">
+            <p className="t-label" style={{ margin: '0 0 var(--s12)' }}>Olay aç</p>
+          </div>
+          <div className="cekmece-blok">
+            <YeniOlayFormu santraller={santraller} kapat={() => setYeniAcik(false)} />
+          </div>
         </Cekmece>
       )}
     </>
@@ -238,8 +308,13 @@ function UretimHucresi({ o }: { o: OlayKaydi }) {
 /* ── çekmece ──────────────────────────────────────────────────────────── */
 
 function Detay({
-  o, yazabilir, dogrulayabilir,
-}: { o: OlayKaydi; yazabilir: boolean; dogrulayabilir: boolean }) {
+  o, adaylar, dogrulayabilir, duzenle,
+}: {
+  o: OlayKaydi;
+  adaylar: Record<BagTipi, BagAdayi[]>;
+  dogrulayabilir: boolean;
+  duzenle: () => void;
+}) {
   const im = olayImi(o);
   const bekleyen = bekleyenAlanlar(o);
 
@@ -286,12 +361,22 @@ function Detay({
       {o.degisiklikler.length > 0
         && <CekmeceBagli baslik="Bağlı değişiklik" kayitlar={o.degisiklikler} />}
 
+      <OlayBaglari olay={o} adaylar={adaylar} yazilabilir={o.yazilabilir} />
+
       <EtkiDogrulama
         olay={o}
         bekleyen={bekleyen}
         dogrulayabilir={dogrulayabilir}
       />
-      <OneriYenile olayId={o.id} yazabilir={yazabilir} uretilme={o.oneri?.uretilme ?? null} />
+
+      <CekmeceEylemler
+        ikincil={o.yazilabilir ? <Dugme onClick={duzenle}>Kaydı düzenle</Dugme> : undefined}
+        dipNot={o.yazilabilir
+          ? 'Durum, müdahale ve öğrenme alanları düzenleme formunda; etki alanları orada YOKTUR.'
+          : 'Bu olayın santral kapsamında yazma yetkiniz yok — kayıt okunabilir, değiştirilemez.'}
+      />
+      <OneriYenile olayId={o.id} yazabilir={o.yazilabilir}
+        uretilme={o.oneri?.uretilme ?? null} />
     </>
   );
 }

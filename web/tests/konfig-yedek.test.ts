@@ -1,4 +1,4 @@
-import { beforeAll, describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { copyFileSync, mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -9,6 +9,33 @@ const testDb = path.join(dizin, 'test.db');
 copyFileSync('prisma/dev.db', testDb);
 process.env.TEST_DB = testDb;
 
+/* Yetki kapısı: eylem katmanı `yetkiZorunlu`/`izinVar` üzerinden geçer.
+   Testte HTTP oturumu yok; kapı seed'deki GERÇEK bir kullanıcıyla açılır
+   (denetim izi yabancı anahtarı gerçek kullanıcı ister). Kapının
+   ARKASINDAKİ kurallar — başarısız yedek doğrulanamaz, gerekçesiz bulgu
+   kapanmaz, tek "son bilinen iyi" kalır — sahte değildir, gerçek kodda
+   koşar. `kapsamKisiti` ayarlanınca gerçek kapsam dallanması devreye girer. */
+const sahteKullanici = {
+  id: '', adSoyad: 'Test Yedek Sorumlusu', eposta: 'y@test', unvan: null,
+  yetkiler: [{ rol: 'yonetici', surecId: null, tesisId: null, tuzelKisiId: null,
+    regulasyonId: null, modul: null }],
+};
+let kapsamKisiti: string | null = null;
+
+vi.mock('@/lib/erisim', async (asil) => {
+  const gercek = await asil<typeof import('@/lib/erisim')>();
+  return {
+    ...gercek,
+    yetkiZorunlu: async () => sahteKullanici,
+    izinVar: (
+      _k: unknown, _m: unknown, _i: unknown,
+      kapsam?: { tesisId?: string | null },
+    ) => (kapsamKisiti === null
+      || kapsam?.tesisId == null
+      || kapsam.tesisId === kapsamKisiti),
+  };
+});
+
 const { db } = await import('@/lib/db');
 const {
   yedekVarMi, sonYedekYasi, konfigurasyonDegistiMi, sonBilinenIyi,
@@ -17,6 +44,12 @@ const {
 } = await import('@/lib/entegrasyon/konfigYedek');
 const { yedekDogrulamayiIsle, YEDEK_KURALLARI, KOSU_KAYNAGI } =
   await import('@/lib/motorlar/yedekDogrulama');
+const {
+  yedegiDogrula, sonBilinenIyiIsaretle, yedekBulgusunuIsle, varlikYedekDurumu,
+} = await import('@/lib/eylemler2/konfigYedek');
+const { hazirlik, kritikHucresi, filoOzeti, testHucresi } =
+  await import('@/app/(atlas)/(operasyonel)/yedekleme/mantik');
+import type { Santral } from '@/app/(atlas)/(operasyonel)/yedekleme/mantik';
 
 const GUN = 86_400_000;
 
@@ -49,6 +82,8 @@ async function yedekEkle(varlikId: string, o: {
 
 describe('Konfigürasyon yedeği — üç değerli kontrol', () => {
   beforeAll(async () => {
+    const yonetici = await db.kullanici.findFirstOrThrow({ where: { aktif: true } });
+    sahteKullanici.id = yonetici.id;
     varliklar = await db.varlik.findMany({
       where: { silindi: null, kritiklik: 'kritik' },
       select: { id: true, etiket: true, tesisId: true },
@@ -323,5 +358,275 @@ describe('Konfigürasyon yedeği — üç değerli kontrol', () => {
       koken: { kaynakSistem: 'acme-backup', kaynakKayitId: '', toplanma: new Date(), guven: null },
       varlikId: v(0).id, yedekZamani: new Date(), basarili: true,
     })).rejects.toThrow(/kaynakKayitId/);
+  });
+});
+
+/* ═══════════════════════════════════════════════════════════════════════
+   §18 · YEDEKLEME EKRANININ BAĞLADIĞI İNSAN KARARLARI
+
+   `yedegiDogrula`, `sonBilinenIyiIsaretle` ve `yedekBulgusunuIsle` yazılmış
+   ama hiçbir ekrandan çağrılmıyordu. /yedekleme onları bağladı; buradaki
+   testler bağlanan davranışın sözleşmesini dondurur.
+
+   Ekranın SERT KURALI da burada ölçülür: "hiç yedek doğrulaması yapılmadı"
+   ile "yedek doğrulaması başarısız" AYNI GÖRÜNMEZ — ne renkte, ne metinde,
+   ne de sayaçta.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/** Ekran mantığı için iskelet santral — saf türetme testleri DB'ye dokunmaz. */
+function santral(ozel: Partial<Santral> = {}): Santral {
+  return {
+    id: 't1', kod: 'AAA', ad: 'A Santrali', tip: null,
+    toplam: 10, yedekli: 10, yedeksiz: 0, bilinmeyen: 0, kirilim: [],
+    politika: {
+      id: 'p1', ad: 'A Santrali — yedekleme', kapsam: null, siklik: 'gunluk',
+      saklamaGun: 30, hedef: 'uzak', rpoSaat: 24, rtoSaat: 8, haricTutulan: null,
+    },
+    kosuOzeti: { basarili: 5, kismi: 0, basarisiz: 0 },
+    sonKosuId: 'k1',
+    santralKatmani: {
+      bagli: true, gerekce: '5 koşu, 1 geri yükleme testi.', politikaAdi: 'A Santrali — yedekleme',
+      sonKosu: { zaman: new Date().toISOString(), durum: 'basarili', hata: null },
+      sonRestoreTesti: { zaman: new Date().toISOString(), sonuc: 'basarili', sureDk: 45 },
+    },
+    varlikKatmani: {
+      kaynakBagli: true, yedeksiz: [], bilinmeyen: [], yedegiVar: 4, toplamKritik: 4,
+    },
+    celiskiler: [], bulgular: [],
+    planlanabilir: true, yazabilir: true, bulguIsleyebilir: true,
+    ...ozel,
+  };
+}
+
+const eksik = (etiket: string, gerekce: string, kayitSayisi: number) => ({
+  varlikId: `v-${etiket}`, etiket, ad: `${etiket} cihazı`, kritiklik: 'kritik',
+  beyan: 'bilinmiyor', kayitSayisi, gerekce,
+});
+
+describe('§18 · Ekran mantığı — "ölçülmedi" ile "başarısız" ayrı görünür', () => {
+  it('kanıtlı yedek açığı ile ölçüm boşluğu farklı renk, farklı metin, ayrı sayaç', () => {
+    const acik = santral({
+      varlikKatmani: {
+        kaynakBagli: true,
+        yedeksiz: [eksik('PLC-1', '3 yedek denemesinin tamamı başarısız.', 3)],
+        bilinmeyen: [], yedegiVar: 3, toplamKritik: 4,
+      },
+    });
+    const olculmemis = santral({
+      varlikKatmani: {
+        kaynakBagli: false,
+        yedeksiz: [],
+        bilinmeyen: [eksik('PLC-2', 'Ne otomatik yedek kaydı ne de envanter beyanı var.', 0)],
+        yedegiVar: 3, toplamKritik: 4,
+      },
+    });
+
+    const a = kritikHucresi(acik);
+    const b = kritikHucresi(olculmemis);
+
+    // Renk: biri kanıtlı açık (bd), öteki kör nokta (unk). Asla aynı.
+    expect(a.renk).toBe('bd');
+    expect(b.renk).toBe('unk');
+    expect(a.renk).not.toBe(b.renk);
+
+    // Metin: "yedeksiz" ile "ölçülmedi" aynı sözcüğü kullanmaz.
+    expect(a.yazi).toMatch(/yedeksiz/);
+    expect(b.yazi).toMatch(/ölçülmedi/);
+    expect(b.yazi).not.toMatch(/yedeksiz/);
+
+    // Kaynak bağlı değilken ipucu "yedek yok" İDDİA ETMEZ.
+    expect(b.ipucu).toMatch(/ÖLÇÜLMEDİ|ölçülmedi|değil/);
+
+    // Satır işaretçisi: kanıtlı açık kırmızı, ölçüm boşluğu gri.
+    expect(hazirlik(acik)).toBe('bd');
+    expect(hazirlik(olculmemis)).toBe('unk');
+  });
+
+  it('filo sayaçları toplanmaz: açık ile ölçüm boşluğu iki ayrı metrik', () => {
+    const filo = filoOzeti([
+      santral({ id: 'a', varlikKatmani: {
+        kaynakBagli: true,
+        yedeksiz: [eksik('PLC-1', 'hepsi başarısız', 2)],
+        bilinmeyen: [], yedegiVar: 1, toplamKritik: 2 } }),
+      santral({ id: 'b', varlikKatmani: {
+        kaynakBagli: false, yedeksiz: [],
+        bilinmeyen: [eksik('PLC-2', 'ölçülmedi', 0), eksik('PLC-3', 'ölçülmedi', 0)],
+        yedegiVar: 0, toplamKritik: 2 } }),
+    ]);
+    expect(filo.kritikYedeksiz).toBe(1);
+    expect(filo.kritikBilinmeyen).toBe(2);
+    // Tek sayıya indirgenmiş bir "3 sorunlu varlık" YOK.
+    expect(filo.kritikToplam).toBe(4);
+  });
+
+  it('"test yok" ile "test başarısız" farklı hücre metni ve farklı renk taşır', () => {
+    const testYok = santral({ santralKatmani: {
+      bagli: true, gerekce: 'x', politikaAdi: 'p', sonKosu: null, sonRestoreTesti: null } });
+    const basarisiz = santral({ santralKatmani: {
+      bagli: true, gerekce: 'x', politikaAdi: 'p',
+      sonKosu: null,
+      sonRestoreTesti: { zaman: new Date().toISOString(), sonuc: 'basarisiz', sureDk: 10 } } });
+
+    expect(testHucresi(testYok).yazi).toBe('test yok');
+    expect(testHucresi(testYok).renk).toBe('bd');
+    expect(testHucresi(basarisiz).yazi).toMatch(/başarısız/);
+    expect(testHucresi(basarisiz).renk).toBe('md');
+    expect(testHucresi(testYok).yazi).not.toBe(testHucresi(basarisiz).yazi);
+  });
+});
+
+describe('§18 · Yedek doğrulama ve son bilinen iyi — insan kararı', () => {
+  it('BAŞARISIZ yedek doğrulanmış sayılamaz ve "son bilinen iyi" olamaz', async () => {
+    const hedef = v(4);
+    const kotu = await yedekEkle(hedef.id, { gun: 1, basarili: false, hata: 'FTP bağlantısı reddedildi' });
+
+    const d = await yedegiDogrula({ yedekId: kotu.id, dogrulandi: true });
+    expect(d.ok).toBe(false);
+    if (!d.ok) expect(d.hata).toMatch(/[Bb]aşarısız/);
+
+    const i = await sonBilinenIyiIsaretle({ yedekId: kotu.id });
+    expect(i.ok).toBe(false);
+
+    // Veri GERÇEKTEN değişmedi.
+    const sonra = await db.konfigurasyonYedegi.findUniqueOrThrow({ where: { id: kotu.id } });
+    expect(sonra.dogrulandi).toBe(false);
+    expect(sonra.sonBilinenIyi).toBe(false);
+  });
+
+  it('doğrulama izi kim/ne zaman/ne karar bırakır; geri alma damgayı düşürür', async () => {
+    const hedef = v(4);
+    const iyiYedek = await yedekEkle(hedef.id, { gun: 2, basarili: true });
+
+    expect(await yedegiDogrula({
+      yedekId: iyiYedek.id, dogrulandi: true,
+      gerekce: 'Yedek dosyası açıldı, proje ağacı okundu',
+    })).toEqual({ ok: true });
+
+    const dogrulanmis = await db.konfigurasyonYedegi.findUniqueOrThrow({ where: { id: iyiYedek.id } });
+    expect(dogrulanmis.dogrulandi).toBe(true);
+    expect(dogrulanmis.dogrulamaZamani).not.toBeNull();
+
+    const iz = await db.aktiviteKaydi.findFirst({
+      where: { varlikTipi: 'KonfigurasyonYedegi', varlikId: iyiYedek.id, alan: 'dogrulandi' },
+      orderBy: { zaman: 'desc' },
+    });
+    expect(iz?.aktorId).toBe(sahteKullanici.id);
+    expect(iz?.yeniDeger).toBe('true');
+    expect(iz?.gerekce).toMatch(/proje ağacı/);
+
+    // Geri alındığında damga DÜŞER: doğrulanmamış yedek "doğrulandı" görünmez.
+    expect(await yedegiDogrula({ yedekId: iyiYedek.id, dogrulandi: false })).toEqual({ ok: true });
+    const geri = await db.konfigurasyonYedegi.findUniqueOrThrow({ where: { id: iyiYedek.id } });
+    expect(geri.dogrulandi).toBe(false);
+    expect(geri.dogrulamaZamani).toBeNull();
+  });
+
+  it('"son bilinen iyi" varlıkta TEK kalır — işaret tek işlemde taşınır', async () => {
+    const hedef = v(5);
+    const eski = await yedekEkle(hedef.id, { gun: 30, basarili: true, surum: 'v1' });
+    const yeni = await yedekEkle(hedef.id, { gun: 2, basarili: true, surum: 'v2' });
+
+    expect(await sonBilinenIyiIsaretle({ yedekId: eski.id })).toEqual({ ok: true });
+    expect(await sonBilinenIyiIsaretle({
+      yedekId: yeni.id, gerekce: 'v2 sahada doğrulandı' })).toEqual({ ok: true });
+
+    const isaretliler = await db.konfigurasyonYedegi.findMany({
+      where: { varlikId: hedef.id, sonBilinenIyi: true } });
+    expect(isaretliler).toHaveLength(1);
+    expect(isaretliler[0].id).toBe(yeni.id);
+
+    const iz = await db.aktiviteKaydi.findFirst({
+      where: { varlikTipi: 'KonfigurasyonYedegi', varlikId: yeni.id, alan: 'sonBilinenIyi' },
+    });
+    expect(iz?.oncekiDeger).not.toBeNull();   // taşındığı yer izde yazılı
+    expect(iz?.gerekce).toMatch(/v2 sahada/);
+  });
+});
+
+describe('§18 · Veri kalitesi bulgusu — motor kapatamaz, insan gerekçeyle kapatır', () => {
+  async function bulguAc(kural: string) {
+    return db.veriKalitesiBulgusu.create({ data: {
+      kural, kaynakTipi: 'Varlik', kaynakId: v(0).id,
+      aciklama: 'Test bulgusu', durum: 'acik' } });
+  }
+
+  it('gerekçesiz kapatma reddedilir; bulgu AÇIK kalır', async () => {
+    const b = await bulguAc(YEDEK_KURALLARI.yok);
+    const sonuc = await yedekBulgusunuIsle({
+      bulguId: b.id, karar: 'yok_sayildi', gerekce: '   ' });
+    expect(sonuc.ok).toBe(false);
+    expect((await db.veriKalitesiBulgusu.findUniqueOrThrow({ where: { id: b.id } })).durum)
+      .toBe('acik');
+  });
+
+  it('yedek dışı bir bulgu bu eylemle işlenemez', async () => {
+    const b = await bulguAc('sahipsiz_varlik');
+    const sonuc = await yedekBulgusunuIsle({
+      bulguId: b.id, karar: 'cozuldu', gerekce: 'Sahip atandı' });
+    expect(sonuc.ok).toBe(false);
+    expect((await db.veriKalitesiBulgusu.findUniqueOrThrow({ where: { id: b.id } })).durum)
+      .toBe('acik');
+  });
+
+  it('gerekçeli "yok sayma" kararı kapanışı ve izi birlikte yazar', async () => {
+    const b = await bulguAc(YEDEK_KURALLARI.bilinmiyor);
+    expect(await yedekBulgusunuIsle({
+      bulguId: b.id, karar: 'yok_sayildi',
+      gerekce: 'Varlık hurdaya ayrıldı, envanterden düşecek',
+    })).toEqual({ ok: true });
+
+    const kapali = await db.veriKalitesiBulgusu.findUniqueOrThrow({ where: { id: b.id } });
+    expect(kapali.durum).toBe('yok_sayildi');
+    expect(kapali.kapanis).not.toBeNull();
+
+    const iz = await db.aktiviteKaydi.findFirst({
+      where: { varlikTipi: 'VeriKalitesiBulgusu', varlikId: b.id } });
+    expect(iz?.aktorId).toBe(sahteKullanici.id);
+    expect(iz?.gerekce).toMatch(/hurdaya/);
+
+    // Kapalı bulgu ikinci kez işlenemez.
+    const tekrar = await yedekBulgusunuIsle({
+      bulguId: b.id, karar: 'cozuldu', gerekce: 'yeniden' });
+    expect(tekrar.ok).toBe(false);
+  });
+});
+
+describe('§18 · Çekmece okuma yüzeyi — kapsam ve bilinmeyen', () => {
+  it('kapsam dışı varlığın yedek detayı OKUNAMAZ', async () => {
+    const hedef = await db.varlik.findFirstOrThrow({
+      where: { silindi: null, tesisId: { not: null } },
+      select: { id: true, tesisId: true },
+    });
+    const baskaTesis = await db.tesis.findFirstOrThrow({
+      where: { id: { not: hedef.tesisId as string } }, select: { id: true } });
+
+    kapsamKisiti = baskaTesis.id;
+    try {
+      const sonuc = await varlikYedekDurumu(hedef.id);
+      expect(sonuc.ok).toBe(false);
+      if (!sonuc.ok) expect(sonuc.hata).toMatch(/kapsam/i);
+    } finally {
+      kapsamKisiti = null;
+    }
+
+    // Kapsam içinde AYNI çağrı okunur — test "her şeyi reddet" ölçmüyor.
+    const izinli = await varlikYedekDurumu(hedef.id);
+    expect(izinli.ok).toBe(true);
+  });
+
+  it('hiç kaydı olmayan varlık "yedek yok" değil "ölçülmedi" döner', async () => {
+    const bos = await db.varlik.findFirstOrThrow({
+      where: { silindi: null, konfigYedekleri: { none: {} } },
+      select: { id: true },
+    });
+    const sonuc = await varlikYedekDurumu(bos.id);
+    expect(sonuc.ok).toBe(true);
+    if (sonuc.ok) {
+      expect(sonuc.veri.varlik.sonuc).toBe('bilinmiyor');
+      expect(sonuc.veri.varlik.sonuc).not.toBe('yok');
+      expect(sonuc.veri.iyi.sonuc).toBe('bilinmiyor');
+      expect(sonuc.veri.kayitlar).toHaveLength(0);
+      expect(sonuc.veri.varlik.gerekce).toMatch(/ÖLÇÜLMEDİĞİ|ölçülmedi/i);
+    }
   });
 });

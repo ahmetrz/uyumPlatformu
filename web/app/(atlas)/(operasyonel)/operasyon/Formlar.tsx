@@ -5,8 +5,9 @@ import { useEylem } from '@/components/useEylem';
 import {
   degisiklikKaydet, degisiklikIlerlet, degisiklikGeriAl,
 } from '@/lib/eylemler2/operasyon';
+import { olayBagla, olayBagKaldir } from '@/lib/eylemler2/olay';
 import { ASAMALAR, asamaEtiketi, asamaIndeksi, eksikKapilar, kapandiMi, kapilar,
-  type D, type Kodlu } from './mantik';
+  type D, type Kodlu, type OlayAdayi } from './mantik';
 
 /* Değişiklik yazma yüzeyleri — MODAL YOK (06 §B4), `prompt()` YOK.
    Hepsi 420px çekmecede render edilir. Mutasyonlar
@@ -295,6 +296,99 @@ export function KapiListesi({ d }: { d: D }) {
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+/* ── Olay bağı ──────────────────────────────────────────────────────────
+   Değişiklik ile olay arasındaki halka. Bu ekran olay KÜTÜĞÜ değildir ve
+   öyle olmayacak (bkz. mantik.ts başındaki not): olay açma ve güncelleme
+   /olaylar ekranında yaşar, burada YALNIZ bağ kurulur. Aynı kaydı iki
+   ekranda iki farklı yoğunlukla göstermek, kapatılmış bir yoğunluk
+   borcunu geri getirirdi.
+
+   Bağ `olayBagla`/`olayBagKaldir` ile kurulur ve kapsam denetimi OLAYIN
+   santralinden gelir — değişikliğin değil. Portföy geneli (santralsiz) bir
+   değişikliğe, kullanıcının yetkisi olmayan bir santralin olayı
+   bağlanamaz; sunucu reddeder. */
+
+export function OlayBagi({ d, adaylar }: { d: D; adaylar: OlayAdayi[] }) {
+  const { bekliyor, hata, calistir } = useEylem();
+  const [acik, setAcik] = useState(false);
+  const [hedef, setHedef] = useState('');
+
+  const bagliIdler = new Set(d.olaylar.map((o) => o.id));
+  const secilebilir = adaylar.filter((a) => !bagliIdler.has(a.id));
+
+  if (!d.yazilabilir) {
+    return (
+      <p className="cekmece-dip" style={{ margin: 'var(--s10) 0 0' }}>
+        Olay bağı kurmak envanter yazma yetkisi ister; bu kaydın kapsamında
+        yetkiniz yok.
+      </p>
+    );
+  }
+
+  return (
+    <div className="cekmece-blok" style={{ marginTop: 'var(--s22)' }}>
+      <p className="t-label" style={{ margin: '0 0 var(--s10)' }}>
+        Olay bağı · {d.olaylar.length}
+      </p>
+
+      {d.olaylar.length === 0 ? (
+        <p className="cekmece-dip" style={{ margin: '0 0 var(--s10)' }}>
+          Bu değişikliğe bağlı olay kaydı yok. Bağ yokluğu &quot;bu değişiklik
+          olaysız geçti&quot; demek DEĞİLDİR — kimse bağlamamış olabilir.
+        </p>
+      ) : (
+        <div style={{ display: 'grid', gap: 'var(--s6)', marginBottom: 'var(--s10)' }}>
+          {d.olaylar.map((o) => (
+            <div key={o.id} style={{ display: 'flex', alignItems: 'baseline',
+              gap: 'var(--s10)', fontSize: 'var(--t-cell)' }}>
+              <span className="mono" style={{ fontWeight: 600 }}>{o.kod}</span>
+              <span style={{ color: 'var(--i3)', minWidth: 0, overflow: 'hidden',
+                textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{o.alt}</span>
+              <button type="button" className="dg dg-satir" style={{ marginLeft: 'auto' }}
+                disabled={bekliyor}
+                onClick={() => calistir(() => olayBagKaldir({
+                  olayId: o.id, tip: 'degisiklik', hedefId: d.id }))}>
+                Bağı kaldır
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {acik ? (
+        <div style={{ display: 'grid', gap: 'var(--s10)' }}>
+          <Alan etiket="Bağlanacak olay" zorunlu hata={hata}>
+            <select className="gr" value={hedef} onChange={(e) => setHedef(e.target.value)}>
+              <option value="">Seçiniz…</option>
+              {secilebilir.map((a) => (
+                <option key={a.id} value={a.id}>{a.kod} — {a.alt}</option>
+              ))}
+            </select>
+          </Alan>
+          <div style={{ display: 'flex', gap: 'var(--s10)' }}>
+            <Dugme tur="birincil" disabled={bekliyor || !hedef}
+              onClick={() => calistir(
+                () => olayBagla({ olayId: hedef, tip: 'degisiklik', hedefId: d.id }),
+                () => { setAcik(false); setHedef(''); },
+              )}>
+              {bekliyor ? 'Bağlanıyor…' : 'Bağla'}
+            </Dugme>
+            <Dugme tur="ret" disabled={bekliyor}
+              onClick={() => { setAcik(false); setHedef(''); }}>Vazgeç</Dugme>
+          </div>
+        </div>
+      ) : (
+        <Dugme disabled={secilebilir.length === 0} onClick={() => setAcik(true)}>
+          {secilebilir.length === 0 ? 'Bağlanabilecek olay kalmadı' : 'Olay bağla'}
+        </Dugme>
+      )}
+
+      {hata && !acik && <p className="gr-hata" role="alert"
+        style={{ margin: 'var(--s10) 0 0' }}>{hata}</p>}
     </div>
   );
 }

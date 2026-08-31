@@ -28,11 +28,25 @@ export type AnahtarUretimSonucu =
     }
   | { ok: false; hata: string };
 
+/* ── ANAHTAR ÖMRÜ ─────────────────────────────────────────────────────
+   Süre BOŞ BIRAKILAMAZ ve sonsuz olamaz.
+
+   Eskiden `gecerlilikGun` isteğe bağlıydı ve boş bırakılınca `bitis: null`
+   yazılıyordu: ürettiği anda hiçbir şey olmuyor, ama üreten kişi işten
+   ayrıldıktan yıllar sonra da geçerli olan bir anahtar kalıyordu. Rotasyon
+   politikası, süresiz anahtar varsa bir dilek listesidir; sınır, üretim
+   anında konmalıdır.
+
+   Varsayılan bir yıldır (yenilenebilir), tavan iki yıl. Tavan 3650 gündü —
+   on yıl, yani pratikte süresiz. */
+export const VARSAYILAN_ANAHTAR_GUN = 365;
+export const AZAMI_ANAHTAR_GUN = 730;
+
 export async function apiAnahtariUret(girdi: {
   ad: string;
   /** anahtarin adina calisacagi kullanici; bos ise ureten kisi */
   kullaniciId?: string | null;
-  /** gecerlilik suresi (gun); bos ise suresiz */
+  /** gecerlilik suresi (gun); bos ise VARSAYILAN_ANAHTAR_GUN. Süresiz YOK. */
   gecerlilikGun?: number | null;
 }): Promise<AnahtarUretimSonucu> {
   try {
@@ -41,7 +55,9 @@ export async function apiAnahtariUret(girdi: {
       .object({
         ad: bosluksuz('Anahtar adi').max(120),
         kullaniciId: z.string().nullable().optional(),
-        gecerlilikGun: z.number().int().min(1).max(3650).nullable().optional(),
+        gecerlilikGun: z.number().int().min(1)
+          .max(AZAMI_ANAHTAR_GUN, `Anahtar ömrü en çok ${AZAMI_ANAHTAR_GUN} gün olabilir`)
+          .nullable().optional(),
       })
       .parse(girdi);
 
@@ -54,7 +70,9 @@ export async function apiAnahtariUret(girdi: {
     if (!sahip.aktif) throw new Error('Pasif kullanici icin anahtar uretilemez');
 
     const { token, onEk, tokenHash } = apiTokenUret();
-    const bitis = v.gecerlilikGun ? new Date(Date.now() + v.gecerlilikGun * 86_400_000) : null;
+    // Boş bırakılan süre SÜRESİZ değil, varsayılan ömürdür.
+    const gun = v.gecerlilikGun ?? VARSAYILAN_ANAHTAR_GUN;
+    const bitis = new Date(Date.now() + gun * 86_400_000);
 
     const anahtar = await db.apiAnahtari.create({
       data: { ad: v.ad, kullaniciId: sahip.id, onEk, tokenHash, bitis, olusturanId: k.id },
@@ -64,11 +82,11 @@ export async function apiAnahtariUret(girdi: {
     await iz({
       aktorId: k.id, varlikTipi: 'ApiAnahtari', varlikId: anahtar.id,
       eylem: 'olusturma', sonra: `${v.ad} (${onEk}...)`,
-      gerekce: bitis ? `Gecerlilik: ${bitis.toISOString()}` : 'Suresiz',
+      gerekce: `Gecerlilik: ${bitis.toISOString()} (${gun} gun)`,
     });
 
     revalidatePath('/yonetim-tezgahi');
-    return { ok: true, id: anahtar.id, onEk, token, bitis: bitis?.toISOString() ?? null };
+    return { ok: true, id: anahtar.id, onEk, token, bitis: bitis.toISOString() };
   } catch (e) {
     const h = hata(e);
     return { ok: false, hata: h.ok ? 'Beklenmeyen hata' : h.hata };

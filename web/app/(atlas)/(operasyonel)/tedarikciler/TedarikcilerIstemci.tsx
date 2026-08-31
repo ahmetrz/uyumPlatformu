@@ -7,7 +7,7 @@ import {
   Cekmece, CekmeceKimlik, CekmeceAlanlar, CekmeceBagli,
 } from '@/components/atlas/cekmece';
 import { etiketle, tarihTR } from '@/lib/sabitler';
-import { TedarikciEylemleri, SertifikaYenile } from './Eylemler';
+import { ErisimOturumlari, TedarikciEylemleri, SertifikaYenile } from './Eylemler';
 import {
   asilSozlesme, ayYil, degerlendir, erisimAciklamasi, santralOzeti, sirala,
   GORUNUR_TAVAN, KADEME, UFUK, YONTEM_ETIKET,
@@ -52,6 +52,12 @@ export default function TedarikcilerIstemci({
       sozlesmesiz: tedarikciler.filter((t) => t.sozlesmeler.length === 0).length,
       destekBitiyor: tedarikciler.filter((t) => degerlendir(t).bayrak.destekBitiyor).length,
       destekBitti: tedarikciler.filter((t) => degerlendir(t).bayrak.destekBitti).length,
+      /* ÖLÇÜM sayaçları. `uyumsuzOturum` kanıtlı ihlal, `olculmemisOturum`
+         ölçüm boşluğu — ikisi ayrı sayılır ve asla toplanmaz. */
+      uyumsuzOturum: tedarikciler.reduce((a, t) => a + t.oturum.uyumsuzSayisi, 0),
+      olculmemisOturum: tedarikciler.reduce((a, t) => a + t.oturum.bilinmeyenSayisi, 0),
+      oturumKaynagiYok: uzaktan.filter((t) => t.oturum.kapsam === 'kaynak_bagli_degil').length,
+      olculenOturum: tedarikciler.reduce((a, t) => a + t.oturum.toplam, 0),
     };
   }, [tedarikciler]);
 
@@ -67,7 +73,14 @@ export default function TedarikcilerIstemci({
   const dipNot = [
     `${sayim.toplam} tedarikçi`,
     `${sayim.uzaktan} uzaktan erişimli`,
-    sayim.oturumBilinmeyen > 0 && `${sayim.oturumBilinmeyen} oturum kaydı bilinmeyen`,
+    sayim.oturumBilinmeyen > 0 && `${sayim.oturumBilinmeyen} oturum kaydı beyanı bilinmeyen`,
+    /* Kaynak bağlı değilken sıfır uyumsuzluk bir sonuç DEĞİLDİR; bu cümle
+       olmadan "0 uyumsuz oturum" metriği temiz bir tablo gibi okunurdu. */
+    sayim.oturumKaynagiYok > 0
+      && `${sayim.oturumKaynagiYok} uzaktan erişimli tedarikçide oturum kaynağı bağlı değil `
+        + '— erişimleri göremiyoruz, olmadığı anlamına gelmez',
+    sayim.olculmemisOturum > 0
+      && `${sayim.olculmemisOturum} oturumda en az bir alan ölçülmemiş (ihlal değil)`,
     sayim.sozlesmesiz > 0 && `${sayim.sozlesmesiz} sözleşme kaydı olmayan`,
     sayim.destekBitti > 0 && `${sayim.destekBitti} sözleşme süresi dolmuş`,
     sertifikaUfku.dolmus > 0 && `${sertifikaUfku.dolmus} sertifika süresi dolmuş`,
@@ -105,6 +118,17 @@ export default function TedarikcilerIstemci({
                 ? `İzlenmeyen erişim · ${sayim.oturumBilinmeyen} bilinmiyor`
                 : 'İzlenmeyen erişim',
               durum: sayim.izlenmeyen > 0 ? 'bd' : undefined,
+            },
+            /* ÖLÇÜM metriği. Hiç kayıt akmıyorsa sayı 0'dır ama bu bir
+               sonuç değildir: `unk` işaretiyle ve dip notla söylenir. */
+            {
+              deger: sayim.olculenOturum === 0 ? '—' : sayim.uyumsuzOturum,
+              payda: sayim.olculenOturum === 0 ? undefined : sayim.olculenOturum,
+              yazi: sayim.olculenOturum === 0
+                ? 'Uyumsuz oturum · ölçülmedi'
+                : 'Uyumsuz oturum',
+              durum: sayim.olculenOturum === 0 ? 'unk'
+                : sayim.uyumsuzOturum > 0 ? 'bd' : undefined,
             },
             {
               deger: sertifikaUfku.yakinGun === null ? '—' : `${sertifikaUfku.yakinGun}g`,
@@ -269,16 +293,47 @@ function Satir({ t, secili, sec }: { t: T; secili: boolean; sec: () => void }) {
   );
 }
 
-/** Uzak erişim hücresi — üç değerli alanın üç ayrı yüzü. */
+/** Uzak erişim hücresi — üç değerli BEYANIN üç ayrı yüzü, artı ÖLÇÜM.
+    Ölçüm varsa o konuşur: beyan "kayıtlı" dese bile kaynak "onaysız" diyorsa
+    hücre ihlali yazar. Ölçüm yoksa beyan konuşur ama "ölçüldü" gibi
+    görünmez. */
 function ErisimHucresi({ t }: { t: T }) {
   // Uzaktan erişimi olmayan tedarikçide bu alan HİÇ gösterilmez.
   if (!t.uzaktanErisimVar) return null;
 
   const yontem = YONTEM_ETIKET[t.uzaktanErisimYontemi ?? 'yok'] ?? 'yöntem kayıtsız';
 
+  if (t.oturum.uyumsuzSayisi > 0) {
+    return (
+      <Ipucu genis metin={t.oturum.gerekce}>
+        <button type="button" className="acikla" onClick={(e) => e.stopPropagation()}
+          style={{ fontSize: 'var(--t-cell)', fontWeight: 600, color: 'var(--bd)',
+            whiteSpace: 'nowrap' }}>
+          {yontem} · {t.oturum.uyumsuzSayisi} uyumsuz
+        </button>
+      </Ipucu>
+    );
+  }
+
+  if (t.oturum.kapsam === 'kayit_var') {
+    return (
+      <Ipucu genis metin={t.oturum.gerekce}>
+        <span className="tbl-hucre" style={{ color: 'var(--i2)' }}>
+          {yontem} · {t.oturum.toplam} oturum
+        </span>
+      </Ipucu>
+    );
+  }
+
   if (t.oturumKaydiVar === true) {
     return (
-      <span className="tbl-hucre" style={{ color: 'var(--i2)' }}>{yontem} · kayıtlı</span>
+      <Ipucu genis metin={t.oturum.gerekce}>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--s6)',
+          fontSize: 'var(--t-cell)', color: 'var(--i2)', whiteSpace: 'nowrap' }}>
+          <Im durum="unk" ad="Beyan var, ölçüm yok" />
+          {yontem} · beyan
+        </span>
+      </Ipucu>
     );
   }
 
@@ -431,6 +486,8 @@ function Ozet({ t, yazabilir }: { t: T; yazabilir: boolean }) {
       {t.kontroller.length > 0 && (
         <CekmeceBagli baslik="Kontrol" kayitlar={t.kontroller.slice(0, 4)} />
       )}
+
+      <ErisimOturumlari t={t} />
 
       <TedarikciEylemleri tedarikci={t} yazabilir={yazabilir} />
     </>

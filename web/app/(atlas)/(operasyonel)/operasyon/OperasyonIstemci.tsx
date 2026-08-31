@@ -7,13 +7,13 @@ import {
   Cekmece, CekmeceKimlik, CekmeceAlanlar, CekmeceBagli, CekmeceEylemler,
 } from '@/components/atlas/cekmece';
 import { tarihTR } from '@/lib/sabitler';
-import { AsamaEylemleri, DegisiklikFormu, KapiListesi } from './Formlar';
+import { AsamaEylemleri, DegisiklikFormu, KapiListesi, OlayBagi } from './Formlar';
 import {
   ASAMALAR, GORUNUR_BUTCE, MERCEKLER,
   altSatir, asamaEtiketi, asamaIndeksi, baslikMetni, bolumle, degisiklikImi,
   dipNot, gecikmeGunu, kapiHucresi, kimlikCumlesi, kimlikSozu,
   metrikleriHesapla, mercekten, santralMetni, sirala,
-  type D, type Kodlu, type Mercek,
+  type D, type Kodlu, type Mercek, type OlayAdayi,
 } from './mantik';
 
 /* O · Değişiklik yönetimi — "hangi değişiklik emniyet kanıtını taşımıyor?"
@@ -35,9 +35,10 @@ const KOLONLAR: Kolon[] = [
 type Kip = 'ozet' | 'form';
 
 export default function OperasyonIstemci({
-  degisiklikler, tesisler, simdi, yazabilir,
+  degisiklikler, tesisler, olaylar, simdi, yazabilir,
 }: {
-  degisiklikler: D[]; tesisler: Kodlu[]; simdi: number; yazabilir: boolean;
+  degisiklikler: D[]; tesisler: Kodlu[]; olaylar: OlayAdayi[];
+  simdi: number; yazabilir: boolean;
 }) {
   const [mercek, setMercek] = useState<Mercek>('acik');
   const [tesisF, setTesisF] = useState<string | null>(null);
@@ -173,7 +174,8 @@ export default function OperasyonIstemci({
       {secilen && (
         <Cekmece kod={secilen.kod} kapat={() => { setSecili(null); setKip('ozet'); }}>
           {kip === 'ozet' ? (
-            <Ozet d={secilen} simdi={simdi} duzenle={() => setKip('form')} />
+            <Ozet d={secilen} olaylar={olaylar} simdi={simdi}
+              duzenle={() => setKip('form')} />
           ) : (
             <>
               <div className="cekmece-blok">
@@ -207,7 +209,9 @@ const Bos = () => <span style={{ color: 'var(--i3)' }}>—</span>;
 
 /* ── Çekmece özeti ──────────────────────────────────────────────────── */
 
-function Ozet({ d, simdi, duzenle }: { d: D; simdi: number; duzenle: () => void }) {
+function Ozet({ d, olaylar, simdi, duzenle }: {
+  d: D; olaylar: OlayAdayi[]; simdi: number; duzenle: () => void;
+}) {
   const im = degisiklikImi(d, simdi);
   const ix = asamaIndeksi(d.durum);
 
@@ -242,6 +246,8 @@ function Ozet({ d, simdi, duzenle }: { d: D; simdi: number; duzenle: () => void 
       <KapiListesi d={d} />
 
       {zincir.length > 0 && <CekmeceBagli baslik="Bağlı olaylar" kayitlar={zincir} />}
+
+      <OlayBagi d={d} adaylar={olaylar} />
 
       <AsamaEylemleri d={d} />
 

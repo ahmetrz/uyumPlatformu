@@ -65,6 +65,40 @@ export const TESPIT_SOZU: Record<string, string> = {
   denetim: 'Denetim', musteri: 'Müşteri', otomatik_kural: 'Otomatik kural',
 };
 
+/* ── yazma yüzeyinin sözlükleri ────────────────────────────────────────
+   `lib/eylemler2/olay.ts` ve `operasyon.ts` içindeki enum'ların İSTEMCİ
+   İKİZİ. Sunucu son sözü söyler; buradaki listeler yalnız kullanıcıya
+   geçersiz seçenek sunmamak için var. Bir değeri buradan silmek sunucuda
+   silmez — ikisi birlikte değişir. */
+
+export const SIDDETLER = ['dusuk', 'orta', 'yuksek', 'kritik'] as const;
+export const DURUMLAR = ['acik', 'mudahale', 'cozuldu', 'kapali'] as const;
+export const TESPIT_KAYNAKLARI = [
+  'siem', 'operator', 'tedarikci', 'denetim', 'musteri', 'otomatik_kural',
+] as const;
+export const TIPLER = ['olay', 'problem'] as const;
+export const TIP_SOZU: Record<string, string> = { olay: 'Olay', problem: 'Problem' };
+export const SIDDET_SOZU: Record<string, string> = {
+  dusuk: 'Düşük', orta: 'Orta', yuksek: 'Yüksek', kritik: 'Kritik',
+};
+
+/** Zincir bağ tipleri — `lib/eylemler2/olay.ts` BAG_TIPLERI ikizi. */
+export const BAG_TIPLERI = [
+  'varlik', 'sistem', 'risk', 'bulgu', 'proje', 'degisiklik',
+] as const;
+export type BagTipi = (typeof BAG_TIPLERI)[number];
+
+export const BAG_ETIKET: Record<BagTipi, string> = {
+  varlik: 'Varlık', sistem: 'Sistem', risk: 'Risk',
+  bulgu: 'Bulgu', proje: 'Proje', degisiklik: 'Değişiklik',
+};
+
+/** Bağlanabilecek kayıt — sunucu kapsamla daralttıktan sonra taşınır. */
+export type BagAdayi = { id: string; kod: string; alt: string };
+
+/** Santral seçimi (yeni olay formu). */
+export type Santral = { id: string; kod: string; ad: string };
+
 /* ── serileştirilmiş kayıtlar ─────────────────────────────────────────── */
 
 export type HalkaGorunumu = {
@@ -115,11 +149,33 @@ export type OlayKaydi = {
   ogrenilenler: string | null;
   bildirimGerekli: boolean | null;
   bildirimTarihi: string | null;
+  /* Zincir bağları. `varliklar`/`sistemler` etki önerisini BESLER; öneri
+     zincirinden AYRI taşınır çünkü öneri üretilmemişken de bağ vardır —
+     "öneri yok" ile "bağ yok" karıştırılmamalı. */
+  varliklar: Bag[];
+  sistemler: Bag[];
   riskler: Bag[];
   bulgular: Bag[];
   projeler: Bag[];
   degisiklikler: Bag[];
+  /** Kullanıcı bu olayın santral kapsamında yazabiliyor mu (satır bazlı). */
+  yazilabilir: boolean;
 };
+
+/** Olayın belirli bir tipteki mevcut bağları — çekmece bunu tek yerden okur. */
+export function baglar(o: OlayKaydi, tip: BagTipi): Bag[] {
+  switch (tip) {
+    case 'varlik': return o.varliklar;
+    case 'sistem': return o.sistemler;
+    case 'risk': return o.riskler;
+    case 'bulgu': return o.bulgular;
+    case 'proje': return o.projeler;
+    case 'degisiklik': return o.degisiklikler;
+  }
+}
+
+export const bagSayisi = (o: OlayKaydi) =>
+  BAG_TIPLERI.reduce((a, t) => a + baglar(o, t).length, 0);
 
 /* ── türetme ──────────────────────────────────────────────────────────── */
 
@@ -211,7 +267,12 @@ export function zincirOzeti(o: OlayKaydi): string {
   if (o.oneri === null) return 'öneri üretilmedi';
   const v = varlikSayisi(o);
   const s = sistemSayisi(o);
-  if (v === 0 && s === 0) return 'bağ yok';
+  if (v === 0 && s === 0) {
+    /* Bağ VAR ama öneride görünmüyorsa "bağ yok" yazmak yalan olur —
+       öneri bağdan sonra üretilmemiştir. İki durumu ayırıyoruz. */
+    return o.varliklar.length + o.sistemler.length > 0
+      ? 'öneri bağlardan eski' : 'bağ yok';
+  }
   const p = surecSayisi(o);
   const t = tesisSayisi(o);
   return [

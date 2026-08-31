@@ -27,20 +27,33 @@ const sahteKullanici = {
   yetkiler: [{ rol: 'yonetici', surecId: null, tesisId: null, tuzelKisiId: null,
     regulasyonId: null, modul: null }],
 };
+/* Kapsam kapısı testten AYARLANABİLİR. Varsayılan `null` = sınırsız yetki
+   (mevcut testler bu kapıdan serbestçe geçer); bir santral kimliği
+   verildiğinde `izinVar` YALNIZ o santral için true döner ve eylem
+   katmanının gerçek kapsam dallanması koşar. Sabit `() => true` bırakmak,
+   kapsam kaçağını ölçen bir testi imkânsız kılıyordu. */
+let kapsamKisiti: string | null = null;
+
 vi.mock('@/lib/erisim', async (asil) => {
   const gercek = await asil<typeof import('@/lib/erisim')>();
   return {
     ...gercek,
     yetkiZorunlu: async () => sahteKullanici,
-    izinVar: () => true,
+    izinVar: (
+      _k: unknown, _m: unknown, _i: unknown,
+      kapsam?: { tesisId?: string | null },
+    ) => (kapsamKisiti === null
+      || kapsam?.tesisId == null
+      || kapsam.tesisId === kapsamKisiti),
   };
 });
 
 const { db } = await import('@/lib/db');
 const { etkiOnerisiUret, olayEtkileriniIsle, oneriOku } =
   await import('@/lib/motorlar/olayEtki');
-const { etkiDogrula, etkiDogrulamaGeriAl, olayBagla } =
+const { etkiDogrula, etkiDogrulamaGeriAl, olayBagla, olayBagKaldir, olayGuncelle } =
   await import('@/lib/eylemler2/olay');
+const { olayKaydet } = await import('@/lib/eylemler2/operasyon');
 
 /** Seed'de kurulu zincir: KIZILDERE3-DCS-01 → KIZILDERE3-DCS →
     KIZILDERE3-URETIM (uretim_durur) → Kızıldere III tesisi. */
@@ -351,5 +364,216 @@ describe('etkiDogrula — insan kapısı', () => {
     expect(sonra.uretimEtkisi).toBeNull(); // öneri ≠ etki
     expect(await db.aktiviteKaydi.count({ where: {
       varlikTipi: 'Olay', varlikId: olay.id, eylem: 'baglama' } })).toBe(1);
+  });
+});
+
+/* ═══════════════════════════════════════════════════════════════════════
+   §17 · OLAY YAZMA YÜZEYİ — /olaylar ekranının bağladığı eylemler
+
+   Denetim, `olayKaydet` / `olayGuncelle` / `olayBagla` / `olayBagKaldir`
+   eylemlerinin yazılmış ama HİÇBİR EKRANDAN çağrılmadığını kanıtlamıştı.
+   Ekran onları bağladı; buradaki testler bağlanan davranışın sözleşmesini
+   dondurur:
+
+   1. Olay AÇMAK denetim izi bırakır (kim, ne zaman) — izsiz olay olmaz.
+   2. Durum değişimi ve kök neden ayrı ayrı ize düşer.
+   3. Yazma yüzeyi ETKİ ALANLARINA DOKUNMAZ: bir güncelleme formundan
+      etki yazılabilseydi `etkiDogrula` insan kapısı yan kapıdan atlanırdı.
+   4. Kapsam dışı santralin olayı ne okunur ne yazılır.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+describe('§17 · Olay yazma yüzeyi', () => {
+  it('olay açmak denetim izi bırakır — kod üretilir, etki alanları BOŞ kalır', async () => {
+    const oncekiSayi = await db.olay.count();
+    const sonuc = await olayKaydet({
+      baslik: 'Tedarikçi jump host üzerinden yetkisiz erişim denemesi',
+      tip: 'olay',
+      siddet: 'yuksek',
+      ozet: 'PAM günlüğünde onaysız oturum başlangıcı görüldü.',
+    });
+    expect(sonuc).toEqual({ ok: true });
+    expect(await db.olay.count()).toBe(oncekiSayi + 1);
+
+    const olay = await db.olay.findFirstOrThrow({
+      where: { baslik: { contains: 'jump host' } },
+    });
+    expect(olay.kod).toMatch(/^OLY-/);
+
+    // Etki alanları AÇILIŞTA boştur: "etkisiz" değil, DEĞERLENDİRİLMEMİŞ.
+    expect(olay.uretimEtkisi).toBeNull();
+    expect(olay.emniyetEtkisi).toBeNull();
+    expect(olay.regulasyonEtkisi).toBeNull();
+    expect(olay.siberEtki).toBeNull();
+    expect(olay.etkiDogrulayanId).toBeNull();
+
+    const iz = await db.aktiviteKaydi.findFirst({
+      where: { varlikTipi: 'Olay', varlikId: olay.id, eylem: 'olusturma' },
+    });
+    expect(iz).not.toBeNull();
+    expect(iz?.aktorId).toBe(sahteKullanici.id);
+  });
+
+  it('olayGuncelle durum değişimini ve kök nedeni AYRI iz satırlarına yazar', async () => {
+    const olay = await olayAc({ baslik: 'Tarihçe sunucusu disk dolması' });
+
+    const sonuc = await olayGuncelle({
+      id: olay.id,
+      durum: 'mudahale',
+      tespitKaynagi: 'operator',
+      kokNeden: 'Saklama politikası uygulanmamış, arşiv işi durmuş',
+      sinirlama: 'Yazma geçici olarak yedek diske yönlendirildi',
+    });
+    expect(sonuc).toEqual({ ok: true });
+
+    const guncel = await db.olay.findUniqueOrThrow({ where: { id: olay.id } });
+    expect(guncel.durum).toBe('mudahale');
+    expect(guncel.tespitKaynagi).toBe('operator');
+    expect(guncel.kokNeden).toMatch(/Saklama politikası/);
+
+    const izler = await db.aktiviteKaydi.findMany({
+      where: { varlikTipi: 'Olay', varlikId: olay.id },
+    });
+    expect(izler.some((i) => i.eylem === 'durum_degisimi' && i.yeniDeger === 'mudahale')).toBe(true);
+    expect(izler.some((i) => i.eylem === 'guncelleme' && i.alan === 'kokNeden')).toBe(true);
+    expect(izler.some((i) => i.eylem === 'guncelleme' && i.alan === 'sinirlama')).toBe(true);
+  });
+
+  it('yazma yüzeyi ETKİ ALANLARINA dokunamaz — doğrulanmış etki güncellemeden sağ çıkar',
+    async () => {
+      const olay = await olayAc({ baslik: 'Saha ağı anahtarı arızası' });
+      await etkiDogrula({
+        olayId: olay.id, alan: 'uretimEtkisi', deger: 'orta',
+        gerekce: 'Ünite yedek hatta alındı, üretim düşmedi',
+      });
+      const dogrulanmis = await db.olay.findUniqueOrThrow({ where: { id: olay.id } });
+      expect(dogrulanmis.uretimEtkisi).toBe('orta');
+
+      // olayGuncelle imzasında etki alanı YOKTUR; başlık/durum değişse bile
+      // doğrulanmış değer ve doğrulayan damgası aynen kalmalı.
+      await olayGuncelle({ id: olay.id, durum: 'cozuldu', ogrenilenler: 'Yedek hat tatbikatı işe yaradı' });
+
+      const sonra = await db.olay.findUniqueOrThrow({ where: { id: olay.id } });
+      expect(sonra.uretimEtkisi).toBe('orta');
+      expect(sonra.etkiDogrulayanId).toBe(dogrulanmis.etkiDogrulayanId);
+      expect(sonra.etkiDogrulamaZamani?.getTime())
+        .toBe(dogrulanmis.etkiDogrulamaZamani?.getTime());
+      expect(sonra.durum).toBe('cozuldu');
+    });
+
+  it('bağ kurma ve kaldırma ize düşer; kaldırma öneri zincirini de günceller', async () => {
+    const olay = await olayAc({ baslik: 'DCS istasyonunda beklenmeyen yeniden başlatma' });
+
+    expect(await olayBagla({
+      olayId: olay.id, tip: 'varlik', hedefId: tamZincirVarligi.id, rol: 'etkilenen',
+    })).toEqual({ ok: true });
+    expect(await db.olayVarlik.count({ where: { olayId: olay.id } })).toBe(1);
+
+    const bagIzi = await db.aktiviteKaydi.findFirst({
+      where: { varlikTipi: 'Olay', varlikId: olay.id, eylem: 'baglama', alan: 'varlik' },
+    });
+    expect(bagIzi?.yeniDeger).toBe(tamZincirVarligi.etiket);
+
+    // Bağ varken öneri zinciri dolu.
+    const bagliyken = oneriOku(
+      (await db.olay.findUniqueOrThrow({ where: { id: olay.id } })).etkiOnerisiJson);
+    expect(bagliyken?.zincir.length).toBe(1);
+
+    expect(await olayBagKaldir({
+      olayId: olay.id, tip: 'varlik', hedefId: tamZincirVarligi.id,
+    })).toEqual({ ok: true });
+    expect(await db.olayVarlik.count({ where: { olayId: olay.id } })).toBe(0);
+    expect(await db.aktiviteKaydi.count({
+      where: { varlikTipi: 'Olay', varlikId: olay.id, eylem: 'bag_kaldirma' },
+    })).toBe(1);
+
+    /* Bağ gitti ama öneri kaydı DURUYOR ve zinciri boşaldı. Boş zincir
+       "etki yok" değildir — ekran bunu "bağ yok" diye ayrı gösterir. */
+    const bagsizken = oneriOku(
+      (await db.olay.findUniqueOrThrow({ where: { id: olay.id } })).etkiOnerisiJson);
+    expect(bagsizken?.zincir.length).toBe(0);
+    expect(bagsizken?.uretimEtkisi).toBe('bilinmiyor');
+  });
+
+  it('idempotent bağlama: aynı hedef iki kez bağlanınca satır çoğalmaz', async () => {
+    const olay = await olayAc({ baslik: 'Aynı bağ iki kez' });
+    await olayBagla({ olayId: olay.id, tip: 'varlik', hedefId: tamZincirVarligi.id });
+    await olayBagla({ olayId: olay.id, tip: 'varlik', hedefId: tamZincirVarligi.id, rol: 'kaynak' });
+    expect(await db.olayVarlik.count({ where: { olayId: olay.id } })).toBe(1);
+    const bag = await db.olayVarlik.findFirstOrThrow({ where: { olayId: olay.id } });
+    expect(bag.rol).toBe('kaynak');
+  });
+
+  it('olmayan bağı kaldırmak sessizce başarılı OLMAZ', async () => {
+    const olay = await olayAc({ baslik: 'Olmayan bağ' });
+    const sonuc = await olayBagKaldir({
+      olayId: olay.id, tip: 'risk', hedefId: 'yok-boyle-bir-id' });
+    expect(sonuc.ok).toBe(false);
+  });
+});
+
+describe('§17 · Olay kapsamı — yetkisiz santral verisi yazılamaz', () => {
+  it('kapsam dışı santralin olayı GÜNCELLENEMEZ ve BAĞLANAMAZ', async () => {
+    const [tesisA, tesisB] = await db.tesis.findMany({ take: 2, orderBy: { kod: 'asc' } });
+    expect(tesisB).toBeDefined();
+
+    const yabanci = await olayAc({ baslik: 'B santralinde olay', tesisId: tesisB.id });
+    const kendi = await olayAc({ baslik: 'A santralinde olay', tesisId: tesisA.id });
+
+    kapsamKisiti = tesisA.id;
+    try {
+      const red = await olayGuncelle({ id: yabanci.id, durum: 'mudahale' });
+      expect(red.ok).toBe(false);
+      if (!red.ok) expect(red.hata).toMatch(/kapsam/i);
+
+      const redBag = await olayBagla({
+        olayId: yabanci.id, tip: 'varlik', hedefId: tamZincirVarligi.id });
+      expect(redBag.ok).toBe(false);
+
+      // (b) ayağı: veri GERÇEKTEN değişmedi — "reddedildi" demek yetmez.
+      const sonra = await db.olay.findUniqueOrThrow({ where: { id: yabanci.id } });
+      expect(sonra.durum).toBe('acik');
+      expect(await db.olayVarlik.count({ where: { olayId: yabanci.id } })).toBe(0);
+
+      // Kendi santralinde AYNI çağrı geçer: test "her şeyi reddet" ölçmüyor.
+      expect(await olayGuncelle({ id: kendi.id, durum: 'mudahale' })).toEqual({ ok: true });
+
+      // Olayı kapsam dışı santrale TAŞIMAK da reddedilir (hedef tarafı kapısı).
+      const tasima = await olayGuncelle({ id: kendi.id, tesisId: tesisB.id });
+      expect(tasima.ok).toBe(false);
+      expect((await db.olay.findUniqueOrThrow({ where: { id: kendi.id } })).tesisId)
+        .toBe(tesisA.id);
+    } finally {
+      kapsamKisiti = null;
+    }
+  });
+});
+
+describe('§17 · Değişiklik ↔ olay halkası (/operasyon çekmecesi)', () => {
+  it('olay bir değişikliğe bağlanır, bağ ize düşer, öneri zinciri BOZULMAZ', async () => {
+    const olay = await olayAc({ baslik: 'Firmware sonrası haberleşme kaybı' });
+    await olayBagla({ olayId: olay.id, tip: 'varlik', hedefId: tamZincirVarligi.id });
+    const oncekiOneri = oneriOku(
+      (await db.olay.findUniqueOrThrow({ where: { id: olay.id } })).etkiOnerisiJson);
+
+    const degisiklik = await db.degisiklik.findFirstOrThrow({ select: { id: true, kod: true } });
+    expect(await olayBagla({
+      olayId: olay.id, tip: 'degisiklik', hedefId: degisiklik.id })).toEqual({ ok: true });
+
+    expect(await db.olayDegisiklik.count({
+      where: { olayId: olay.id, degisiklikId: degisiklik.id } })).toBe(1);
+    const iz = await db.aktiviteKaydi.findFirst({
+      where: { varlikTipi: 'Olay', varlikId: olay.id, eylem: 'baglama', alan: 'degisiklik' },
+    });
+    expect(iz?.yeniDeger).toBe(degisiklik.kod);
+
+    /* Değişiklik bağı ETKİ ÖNERİSİNİ BESLEMEZ: zincir varlık ve sistemden
+       yürür. Öneri yeniden üretilmemeli, önceki hâliyle durmalı. */
+    const sonrakiOneri = oneriOku(
+      (await db.olay.findUniqueOrThrow({ where: { id: olay.id } })).etkiOnerisiJson);
+    expect(sonrakiOneri?.uretilme).toBe(oncekiOneri?.uretilme);
+
+    expect(await olayBagKaldir({
+      olayId: olay.id, tip: 'degisiklik', hedefId: degisiklik.id })).toEqual({ ok: true });
+    expect(await db.olayDegisiklik.count({ where: { olayId: olay.id } })).toBe(0);
   });
 });

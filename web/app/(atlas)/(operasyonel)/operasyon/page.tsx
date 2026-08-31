@@ -3,7 +3,7 @@ import { girisZorunlu, izinVar, izinliTesisIdleri } from '@/lib/erisim';
 import { Yetkisiz } from '@/components/atlas/temel';
 import { db } from '@/lib/db';
 import OperasyonIstemci from './OperasyonIstemci';
-import type { Bagli, D } from './mantik';
+import type { Bagli, D, OlayAdayi } from './mantik';
 
 export const metadata: Metadata = { title: 'Değişiklik yönetimi — Atlas' };
 
@@ -32,7 +32,7 @@ export default async function Sayfa() {
   const gorulebilir = izinliTesisIdleri(k, 'envanter');
   const yazmaYetkisi = izinVar(k, 'envanter', 'yazma');
 
-  const [degisiklikler, tesisler] = await Promise.all([
+  const [degisiklikler, tesisler, olaylar] = await Promise.all([
     db.degisiklik.findMany({
       where: kapsamKosulu(gorulebilir),
       orderBy: [{ olusturuldu: 'desc' }],
@@ -49,6 +49,17 @@ export default async function Sayfa() {
       where: { durum: 'aktif' },
       select: { id: true, kod: true, ad: true },
       orderBy: { kod: 'asc' },
+    }),
+    /* Bağlanabilecek olaylar. Kapsam OLAYIN kendi santralinden gelir ve
+       `olayBagla` sunucuda aynı kapıyı ikinci kez uygular — santrali
+       yazılmamış olay kapsamı daraltılmış kullanıcıya GÖSTERİLMEZ
+       (değişiklikteki "santralsiz = portföy geneli" kuralı olayda geçmez;
+       olayda santralsizlik bir kayıt boşluğudur). */
+    db.olay.findMany({
+      where: gorulebilir === null ? {} : { tesisId: { in: gorulebilir } },
+      select: { id: true, kod: true, baslik: true, durum: true, siddet: true },
+      orderBy: { baslangic: 'desc' },
+      take: 200,
     }),
   ]);
 
@@ -86,10 +97,15 @@ export default async function Sayfa() {
       && (!d.tesisId || izinVar(k, 'envanter', 'onay', { tesisId: d.tesisId })),
   }));
 
+  const olayAdaylari: OlayAdayi[] = olaylar.map((o) => ({
+    id: o.id, kod: o.kod, alt: `${o.baslik} · ${o.siddet} · ${o.durum}`,
+  }));
+
   return (
     <OperasyonIstemci
       degisiklikler={kayitlar}
       tesisler={tesisler}
+      olaylar={olayAdaylari}
       simdi={simdi}
       yazabilir={yazmaYetkisi}
     />

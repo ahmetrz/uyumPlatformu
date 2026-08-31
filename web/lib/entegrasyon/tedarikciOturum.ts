@@ -178,6 +178,21 @@ async function eslesenOturumId(
 export type OturumFiltresi = {
   tedarikciId?: string;
   tesisId?: string;
+  /**
+   * SANTRAL KAPSAMI — `lib/erisim.ts → izinliTesisIdleri` sözleşmesiyle
+   * BİREBİR aynı: `null`/verilmemiş = tüm santraller, `[]` = hiçbiri.
+   *
+   * `tesisId` bir FİLTREdir (kullanıcı bir santrale bakmak istiyor);
+   * `tesisIdler` bir SINIRdır (kullanıcı ancak bunları görebilir). İkisi
+   * birlikte verilirse ikisi de uygulanır: kapsam dışı bir `tesisId`
+   * filtresi boş sonuç döndürür, kapsamı GENİŞLETMEZ.
+   *
+   * Santrali `null` olan (BİLİNMEYEN) oturum, ancak kapsamı sınırsız olan
+   * kullanıcıya görünür — `lib/api/yetki.ts → tesisKapsamda` ile aynı
+   * kural: kapsamı daraltılmış birine "hangi santralde olduğu bilinmeyen"
+   * bir erişim kaydını göstermek, kapsam sınırını sessizce delmek olurdu.
+   */
+  tesisIdler?: string[] | null;
   varlikId?: string;
   sistemId?: string;
   kaynakSistem?: string;
@@ -256,10 +271,19 @@ function degerlendir(o: OturumSatiri): OturumDegerlendirmesi {
 export async function uyumsuzOturumlar(filtre: OturumFiltresi = {}): Promise<UyumsuzOturumRaporu> {
   const toplamKayit = await db.tedarikciErisimOturumu.count();
 
+  /* Kapsam sınırı ile santral filtresi TEK koşulda birleşir. Ayrı ayrı
+     yayılsalardı ikinci `tesisId` anahtarı birincisini EZERDİ — yani
+     kapsam dışı bir filtre kapsamı genişletirdi. Kesişim alınır:
+     kapsam dışı bir filtre boş küme verir (`{ in: [] }`), asla geniş küme. */
+  const kapsamIdleri = filtre.tesisIdler;
+  const tesisKosulu = kapsamIdleri != null
+    ? { tesisId: { in: filtre.tesisId ? kapsamIdleri.filter((t) => t === filtre.tesisId) : kapsamIdleri } }
+    : (filtre.tesisId ? { tesisId: filtre.tesisId } : {});
+
   const satirlar = await db.tedarikciErisimOturumu.findMany({
     where: {
       ...(filtre.tedarikciId ? { tedarikciId: filtre.tedarikciId } : {}),
-      ...(filtre.tesisId ? { tesisId: filtre.tesisId } : {}),
+      ...tesisKosulu,
       ...(filtre.varlikId ? { varlikId: filtre.varlikId } : {}),
       ...(filtre.sistemId ? { sistemId: filtre.sistemId } : {}),
       ...(filtre.kaynakSistem ? { kaynakSistem: filtre.kaynakSistem } : {}),
@@ -343,8 +367,18 @@ export type TedarikciOturumOzeti = {
  *
  * Kayıt yoksa `kapsam` 'kaynak_bagli_degil' ya da 'kayit_yok' döner;
  * hiçbir durumda "bu tedarikçi hiç bağlanmadı" iddiası üretilmez.
+ *
+ * `kapsam.tesisIdler` — `izinliTesisIdleri` sözleşmesiyle aynı: null = tümü,
+ * [] = hiçbiri. VERİLMEZSE ÖZET TÜM SANTRALLERİ SAYAR; bu yüzden ekran
+ * katmanı kullanıcının kapsamını GEÇMEK ZORUNDADIR. Parametresiz çağrı
+ * bilerek "sistem geneli" anlamındadır (motor/rapor tarafı), ekran değil:
+ * kapsamı daraltılmış bir kullanıcıya yetkisi olmayan santralin oturum
+ * sayısını göstermek, satırı göstermeden veriyi sızdırmak olurdu.
  */
-export async function tedarikciOturumOzeti(tedarikciId: string): Promise<TedarikciOturumOzeti> {
+export async function tedarikciOturumOzeti(
+  tedarikciId: string,
+  kapsam: { tesisIdler?: string[] | null } = {},
+): Promise<TedarikciOturumOzeti> {
   const tedarikci = await db.tedarikci.findUnique({
     where: { id: tedarikciId },
     select: { id: true, ad: true, oturumKaydiVar: true, uzaktanErisimVar: true,
@@ -352,19 +386,26 @@ export async function tedarikciOturumOzeti(tedarikciId: string): Promise<Tedarik
   });
   if (!tedarikci) throw new Error(`tedarikciOturumOzeti: tedarikçi bulunamadı (${tedarikciId})`);
 
-  const rapor = await uyumsuzOturumlar({ tedarikciId });
+  const rapor = await uyumsuzOturumlar({ tedarikciId, tesisIdler: kapsam.tesisIdler });
+
+  /* "Son oturum", "kaynak sistemler" ve "süren oturum" sayacı da AYNI kapsam
+     süzgecinden geçer. Yalnız `uyumsuzOturumlar`ı daraltıp bu üç sorguyu
+     serbest bırakmak, satırı göstermeden "kapsam dışında bir oturum var"
+     bilgisini sızdırırdı — kapsam sınırı sayaçta da geçerlidir. */
+  const kapsamKosulu = kapsam.tesisIdler != null
+    ? { tesisId: { in: kapsam.tesisIdler } } : {};
   const sonKayit = await db.tedarikciErisimOturumu.findFirst({
-    where: { tedarikciId },
+    where: { tedarikciId, ...kapsamKosulu },
     orderBy: { baslangic: 'desc' },
     select: { baslangic: true, bitis: true, kaynakSistem: true, durum: true },
   });
   const kaynakSistemler = [...new Set(
     (await db.tedarikciErisimOturumu.findMany({
-      where: { tedarikciId }, select: { kaynakSistem: true },
+      where: { tedarikciId, ...kapsamKosulu }, select: { kaynakSistem: true },
     })).map((x) => x.kaynakSistem),
   )].sort();
   const suren = await db.tedarikciErisimOturumu.count({
-    where: { tedarikciId, durum: 'suruyor' } });
+    where: { tedarikciId, durum: 'suruyor', ...kapsamKosulu } });
 
   const tutarsizliklar: string[] = [];
   if (tedarikci.oturumKaydiVar === true && rapor.toplam === 0) {

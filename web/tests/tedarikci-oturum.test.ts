@@ -1,4 +1,4 @@
-import { beforeAll, describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { copyFileSync, mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -9,11 +9,37 @@ const testDb = path.join(dizin, 'test.db');
 copyFileSync('prisma/dev.db', testDb);
 process.env.TEST_DB = testDb;
 
+/* Yalnız OTURUM kapısı sahtelenir (`yetkiZorunlu`); `izinVar` ve
+   `izinliTesisIdleri` GERÇEK kalır. Kapsam testlerinin anlamı buna bağlı:
+   erişim kurallarını sahteleseydik "kapsam dışı veri sızmıyor" testi
+   kendi sahtesini ölçerdi. Eylem katmanı yetkilerini `sahteKullanici`
+   üzerinden değiştiriyoruz — gerçek `izinVar` onları okuyor. */
+const sahteKullanici: import('@/lib/auth').AktifKullanici = {
+  id: '', adSoyad: 'Test Erişim Sorumlusu', eposta: 'e@test', unvan: null,
+  yetkiler: [{ rol: 'yonetici', surecId: null, tesisId: null,
+    tuzelKisiId: null, regulasyonId: null, modul: null }],
+};
+
+vi.mock('@/lib/erisim', async (asil) => {
+  const gercek = await asil<typeof import('@/lib/erisim')>();
+  return { ...gercek, yetkiZorunlu: async () => sahteKullanici };
+});
+
 const { db } = await import('@/lib/db');
 const {
   oturumYaz, uyumsuzOturumlar, tedarikciOturumOzeti, oturumKaynagiBagliMi,
   OTURUM_VARLIK_TIPI,
 } = await import('@/lib/entegrasyon/tedarikciOturum');
+const { oturumKarariKaydet } = await import('@/lib/eylemler2/tedarikciOturum');
+const { tedarikciEkranVerisi } =
+  await import('@/app/(atlas)/(operasyonel)/tedarikciler/veri');
+
+/** Kapsamı tek santrale kısıtlı kullanıcı — gerçek `izinVar` bunu okur. */
+const tekSantralKullanicisi = (tesisId: string, id: string) => ({
+  id, adSoyad: 'A Santral Yöneticisi', eposta: 'a@test', unvan: null,
+  yetkiler: [{ rol: 'tesis_yoneticisi', surecId: null, tesisId,
+    tuzelKisiId: null, regulasyonId: null, modul: null }],
+});
 
 const SAAT = 3_600_000;
 const koken = (id: string) => ({
@@ -26,6 +52,8 @@ let vestas: { id: string };    // oturumKaydiVar = null (bilinmiyor)
 
 describe('Tedarikçi erişim oturumu — üç değerli uyum', () => {
   beforeAll(async () => {
+    const yonetici = await db.kullanici.findFirstOrThrow({ where: { aktif: true } });
+    sahteKullanici.id = yonetici.id;
     await db.tedarikciErisimOturumu.deleteMany();
     [siemens, ormat, vestas] = await Promise.all([
       db.tedarikci.findFirstOrThrow({ where: { ad: 'Siemens Energy' }, select: { id: true } }),
@@ -219,4 +247,199 @@ describe('Tedarikçi erişim oturumu — üç değerli uyum', () => {
     expect(ves.tutarsizliklar.some((t) => /izlenmemiş/.test(t))).toBe(true);
     expect(ves.kaynakSistemler).toEqual(['pam-test', 'vpn-test']);
   });
+});
+
+/* ═══════════════════════════════════════════════════════════════════════
+   §18 · TEDARİKÇİ EKRANI — ÖNERİ, KARAR VE KAPSAM
+
+   Üç sözleşme maddesi burada ölçülür:
+
+   1. UYUMSUZ OTURUM OTOMATİK KAPATILMAZ. Ekran öneriyi sunar; karar
+      insanındır ve karar GÖZLEM SATIRINA DOKUNMAZ. Platform PAM değildir;
+      oturumu kapattığını sanan bir kayıt, kapanmadığını fark etmemekten
+      daha tehlikelidir.
+   2. Karar denetim izine düşer: kim, ne zaman, ne karar, hangi gerekçe.
+   3. Kapsam dışı santralin verisi ekrana SIZMAZ — ne satırda ne metrikte.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+describe('§18 · Uyumsuz oturum bir ÖNERİdir — otomasyon kapatmaz', () => {
+  let uyumsuzId = '';
+
+  beforeAll(async () => {
+    const { id } = await oturumYaz({
+      koken: koken('KARAR-1'), tedarikciId: vestas.id,
+      baslangic: new Date(Date.now() - 2 * SAAT),
+      onayli: false, mfaVar: false, izlendi: null, durum: 'suruyor',
+    });
+    uyumsuzId = id;
+  });
+
+  it('karar kaydı oturum satırını DEĞİŞTİRMEZ — oturum sürüyor kalır', async () => {
+    const once = await db.tedarikciErisimOturumu.findUniqueOrThrow({ where: { id: uyumsuzId } });
+    expect(once.durum).toBe('suruyor');
+
+    const sonuc = await oturumKarariKaydet({
+      oturumId: uyumsuzId, karar: 'kapatma_talebi',
+      gerekce: 'Onaysız ve MFA\'sız erişim; saha ekibi bağlantıyı kesecek',
+    });
+    expect(sonuc).toEqual({ ok: true });
+
+    const sonra = await db.tedarikciErisimOturumu.findUniqueOrThrow({ where: { id: uyumsuzId } });
+    // Gözlem satırının HİÇBİR alanı kararla değişmez: kaynak ne diyorsa o.
+    expect(sonra.durum).toBe('suruyor');
+    expect(sonra.bitis).toBeNull();
+    expect(sonra.onayli).toBe(false);
+    expect(sonra.mfaVar).toBe(false);
+    expect(sonra.izlendi).toBeNull();
+  });
+
+  it('karar denetim izine düşer ve kapatma talebi bir GÖREV açar', async () => {
+    const iz = await db.aktiviteKaydi.findFirst({
+      where: { varlikTipi: 'TedarikciErisimOturumu', varlikId: uyumsuzId,
+        eylem: 'oturum_karari' },
+      orderBy: { zaman: 'desc' },
+    });
+    expect(iz).not.toBeNull();
+    expect(iz?.aktorId).toBe(sahteKullanici.id);
+    expect(iz?.alan).toBe('kapatma_talebi');
+    expect(iz?.gerekce).toMatch(/saha ekibi/);
+    // Kanıtlı ihlaller karara yazılır; ölçülmemiş alan (izlendi=null) YAZILMAZ.
+    expect(iz?.oncekiDeger).toMatch(/onaysız/);
+    expect(iz?.oncekiDeger).toMatch(/MFA yok/);
+    expect(iz?.oncekiDeger).not.toMatch(/izlenmemiş/);
+
+    const gorev = await db.gorev.findFirst({
+      where: { tip: 'erisim_incelemesi', baslik: { contains: 'Vestas' } },
+      orderBy: { olusturuldu: 'desc' },
+    });
+    expect(gorev).not.toBeNull();
+    // Görev insana verilir; platform erişimi kendisi kesmez.
+    expect(gorev?.otomatikUretildi).toBe(false);
+  });
+
+  it('gerekçesiz karar reddedilir ve hiçbir iz/görev yazılmaz', async () => {
+    const izOnce = await db.aktiviteKaydi.count({ where: { eylem: 'oturum_karari' } });
+    const gorevOnce = await db.gorev.count({ where: { tip: 'erisim_incelemesi' } });
+
+    const sonuc = await oturumKarariKaydet({
+      oturumId: uyumsuzId, karar: 'istisna', gerekce: 'kısa' });
+    expect(sonuc.ok).toBe(false);
+
+    expect(await db.aktiviteKaydi.count({ where: { eylem: 'oturum_karari' } })).toBe(izOnce);
+    expect(await db.gorev.count({ where: { tip: 'erisim_incelemesi' } })).toBe(gorevOnce);
+  });
+
+  it('geçersiz karar tipi kabul edilmez — "kapat" diye bir karar YOKTUR', async () => {
+    const sonuc = await oturumKarariKaydet({
+      oturumId: uyumsuzId, karar: 'oturumu_kapat',
+      gerekce: 'Bu eylem platformda bulunmuyor olmalı' });
+    expect(sonuc.ok).toBe(false);
+    const sonra = await db.tedarikciErisimOturumu.findUniqueOrThrow({ where: { id: uyumsuzId } });
+    expect(sonra.durum).toBe('suruyor');
+  });
+});
+
+describe('§18 · Tedarikçi ekranı kapsamı — çapraz santral okuma sızmaz', () => {
+  it('tek santrale yetkili kullanıcıya diğer santralin varlığı, riski, oturumu GÖRÜNMEZ',
+    async () => {
+      const [tesisA, tesisB] = await db.tesis.findMany({
+        where: { durum: 'aktif' }, take: 2, orderBy: { kod: 'asc' } });
+      expect(tesisB).toBeDefined();
+
+      /* (0) Yasak verinin GERÇEKTEN VAR OLDUĞUNU önce doğrula: "dönmedi"
+         ile "zaten yoktu" birbirine karışmasın. */
+      const bVarligi = await db.varlik.findFirst({
+        where: { tesisId: tesisB.id, silindi: null, tedarikciId: { not: null } },
+        select: { id: true, tedarikciId: true, etiket: true },
+      });
+      expect(bVarligi).not.toBeNull();
+
+      // B santralinde, B'nin tedarikçisine ait UYUMSUZ bir oturum kur.
+      await oturumYaz({
+        koken: koken('KAPSAM-B'), tedarikciId: bVarligi!.tedarikciId as string,
+        tesisId: tesisB.id,
+        baslangic: new Date(Date.now() - 3 * SAAT),
+        onayli: false, mfaVar: false, izlendi: false,
+      });
+
+      const yonetici = await db.kullanici.findFirstOrThrow({ where: { aktif: true } });
+      const kisitli = tekSantralKullanicisi(tesisA.id, yonetici.id);
+
+      const { tedarikciler, sertifikaUfku } = await tedarikciEkranVerisi(kisitli);
+
+      /* (a) Hiçbir satır B santralini adıyla, koduyla ya da kimliğiyle
+         taşımıyor — santral bağı, sertifika ve risk dâhil. */
+      const seri = JSON.stringify(tedarikciler);
+      expect(seri).not.toContain(tesisB.id);
+      expect(seri).not.toContain(tesisB.kod);
+      expect(seri).not.toContain(bVarligi!.etiket);
+
+      for (const t of tedarikciler) {
+        for (const s of t.santraller) expect(s.id).toBe(tesisA.id);
+        // (b) Metrikler de daraltılmış veriden: B'nin uyumsuz oturumu sayılmaz.
+        for (const o of t.oturumlar) {
+          expect(o.tesisId === null || o.tesisId === tesisA.id).toBe(true);
+        }
+      }
+
+      const uyumsuzToplam = tedarikciler.reduce((a, t) => a + t.oturum.uyumsuzSayisi, 0);
+      const olculenToplam = tedarikciler.reduce((a, t) => a + t.oturum.toplam, 0);
+      const bTedarikcisi = tedarikciler.find((t) => t.id === bVarligi!.tedarikciId);
+      expect(bTedarikcisi).toBeDefined();
+      // B'deki uyumsuz oturum kısıtlı kullanıcının sayacına GİRMEZ.
+      expect(bTedarikcisi!.oturum.uyumsuzSayisi).toBe(0);
+      expect(bTedarikcisi!.oturum.toplam).toBe(0);
+
+      /* (c) Kapsamsız kullanıcı AYNI çağrıda B'yi görüyor: test "her şeyi
+         gizle" ölçmüyor, sınırın doğru yerden geçtiğini ölçüyor. */
+      const genis = await tedarikciEkranVerisi(sahteKullanici);
+      const genisSeri = JSON.stringify(genis.tedarikciler);
+      expect(genisSeri).toContain(tesisB.id);
+      const genisUyumsuz = genis.tedarikciler.reduce((a, t) => a + t.oturum.uyumsuzSayisi, 0);
+      const genisOlculen = genis.tedarikciler.reduce((a, t) => a + t.oturum.toplam, 0);
+      expect(genisUyumsuz).toBeGreaterThan(uyumsuzToplam);
+      expect(genisOlculen).toBeGreaterThan(olculenToplam);
+      expect(genis.sertifikaUfku.dolmus).toBeGreaterThanOrEqual(sertifikaUfku.dolmus);
+    });
+
+  it('kapsam dışı oturumda karar VERİLEMEZ ve gözlem değişmez', async () => {
+    const [tesisA, tesisB] = await db.tesis.findMany({
+      where: { durum: 'aktif' }, take: 2, orderBy: { kod: 'asc' } });
+    const bOturumu = await db.tedarikciErisimOturumu.findFirstOrThrow({
+      where: { tesisId: tesisB.id } });
+
+    const eskiYetkiler = sahteKullanici.yetkiler;
+    sahteKullanici.yetkiler = [{ rol: 'tesis_yoneticisi', surecId: null,
+      tesisId: tesisA.id, tuzelKisiId: null, regulasyonId: null, modul: null }];
+    try {
+      const sonuc = await oturumKarariKaydet({
+        oturumId: bOturumu.id, karar: 'istisna',
+        gerekce: 'Kapsam dışı olduğu için bu karar yazılmamalı' });
+      expect(sonuc.ok).toBe(false);
+      if (!sonuc.ok) expect(sonuc.hata).toMatch(/kapsam/i);
+
+      expect(await db.aktiviteKaydi.count({
+        where: { varlikTipi: 'TedarikciErisimOturumu', varlikId: bOturumu.id },
+      })).toBe(0);
+    } finally {
+      sahteKullanici.yetkiler = eskiYetkiler;
+    }
+  });
+
+  it('kapsam sınırı özet sayaçlarında da geçerli — satır gizlense bile sayı sızmaz',
+    async () => {
+      const [tesisA] = await db.tesis.findMany({
+        where: { durum: 'aktif' }, take: 1, orderBy: { kod: 'asc' } });
+      const dar = await tedarikciOturumOzeti(vestas.id, { tesisIdler: [tesisA.id] });
+      const genis = await tedarikciOturumOzeti(vestas.id, { tesisIdler: null });
+
+      // Seed oturumlarının tesisId'si null; kapsamı daraltılmış kullanıcı
+      // "santrali bilinmeyen" oturumu GÖRMEZ (lib/api/yetki.ts ile aynı kural).
+      expect(dar.toplam).toBe(0);
+      expect(genis.toplam).toBeGreaterThan(0);
+      expect(dar.kaynakSistemler).toHaveLength(0);
+      expect(dar.suren).toBe(0);
+      // Sıfır bir SONUÇ değil: kapsam cümlesi "oturum yok" demez.
+      expect(dar.gerekce).not.toMatch(/^Oturum yok/);
+    });
 });

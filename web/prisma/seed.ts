@@ -179,9 +179,21 @@ async function main() {
   for (const [regKod, liste] of Object.entries(digerMaddeler))
     for (const [i, m] of liste.entries()) await maddeEkle(regKod, m, null, i);
 
-  // ---- regülasyonlar arası denklikler
+  /* ---- regülasyonlar arası denklikler
+
+     Denklik YAPRAK madde ile kurulur. Bölüm başlığı (çocuğu olan madde)
+     bir kontrole denk sayılamaz: alt maddeleri farklı şeyler ister ve
+     "bölümün tamamı şu kontrole denktir" demek denetimde savunulamaz.
+     Çapraz eşleme matrisi de yaprak olmayan satırı çizemez, yani böyle
+     bir kayıt ekranda sessizce düşerdi.
+
+     Düzeltilen kayıt: EPDK-SYM-4.1 "Varlık Envanteri" bir bölümdür
+     (4.1.1 envanter güncelliği + 4.1.2 kritiklik sınıflandırması) ve
+     ISO-27001 A.5.9'a 'tam' denk yazılmıştı. A.5.9 envanter tutmayı
+     ister; karşılığı 4.1.1'dir ve denklik 'kismi'dir — A.5.9 ayrıca
+     SAHİPLİK ister, onun EPDK karşılığı bu ağaçta yok. */
   const denklikler: [string, string, string][] = [
-    ['EPDK-SYM-4.1', 'ISO-27001-A.5.9', 'tam'],
+    ['EPDK-SYM-4.1.1', 'ISO-27001-A.5.9', 'kismi'],
     ['EPDK-SYM-4.2.1', 'CBDDO-3.1', 'kismi'],
     ['EPDK-SYM-5.1.2', 'CBDDO-4.2', 'kismi'],
     ['EPDK-SYM-5.1.2', 'SPK-BS-14', 'ilgili'],

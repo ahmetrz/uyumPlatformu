@@ -176,12 +176,17 @@ export function Matris({
   secili,
   sec,
   dipNot,
+  konuBasligi = 'Santral',
 }: {
   kolonBasliklari: (string | MatrisKolonu)[];
   satirlar: MatrisSatiri[];
   secili?: string | null;
   sec?: (satirId: string, kolon: number) => void;
   dipNot?: string;
+  /* Konu kolonunun başlığı sabit 'Santral' yazılıydı; matrisin satırları
+     her ekranda santral DEĞİL. Çapraz eşleştirmede satırlar maddedir ve
+     başlık düpedüz yanlış bilgi veriyordu. */
+  konuBasligi?: string;
 }) {
   const stil = { '--kolon-sayisi': kolonBasliklari.length } as CSSProperties;
   // Satırın en kötüsü: kritik > kısmi > bilinmeyen sırasıyla ilk eşleşen.
@@ -198,7 +203,7 @@ export function Matris({
   return (
     <div className="mtx" style={stil} role="table">
       <div className="mtx-bas" role="row">
-        <span className="t-colhead">Santral</span>
+        <span className="t-colhead">{konuBasligi}</span>
         {kolonBasliklari.map((b) => {
           const k = kolon(b);
           return (

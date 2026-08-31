@@ -263,8 +263,16 @@
 .atlas-govde { display: grid; grid-template-columns: minmax(0, 1fr); min-width: 0; }.atlas-govde:has(> .cekmece) { grid-template-columns: minmax(0, 1fr) var(--drawer-w); }
 
 /* ── NavRail ─────────────────────────────────────────────────────────── */
+/* Ray görüntü alanına YAPIŞIR ve asla onu aşmaz. Faz 6'da liste 14'ten
+   24 öğeye çıkınca ray 1094px oldu; 1000px'lik bir ekranda oturum bloğu
+   katlamanın altında kalıyor ve çıkış düğmesine ancak sayfayı kaydırarak
+   ulaşılıyordu. Yükseklik görüntü alanına sabitlenir, taşan kısmı
+   .ray-liste kendi içinde kaydırır — marka ve oturum bloğu sabit kalır. */
 .atlas-ray {
-  position: relative;
+  position: sticky;
+  top: 0;
+  align-self: start;
+  height: 100dvh;
   background: var(--rail-bg);
   border-right: var(--bw-strong) solid var(--hr2);
   padding-top: var(--rail-pad-top);
@@ -273,7 +281,8 @@
 }.atlas-ray::before {                      /* strata dokusu */
   content: ''; position: absolute; inset: 0; background: var(--strata);
   pointer-events: none;
-}.atlas-ray > * { position: relative; }.atlas .ray-marka { padding: 0 var(--rail-inset) var(--s22); display: block; }.atlas .ray-marka .ad { font-size: var(--t-cell); font-weight: 700; color: var(--ink);
+}.atlas-ray > * { position: relative; }.atlas .ray-liste { display: flex; flex-direction: column; min-height: 0; overflow-y: auto;
+  scrollbar-width: thin; }.atlas .ray-marka { padding: 0 var(--rail-inset) var(--s22); display: block; }.atlas .ray-marka .ad { font-size: var(--t-cell); font-weight: 700; color: var(--ink);
   letter-spacing: -0.005em; }.atlas .ray-marka .alt { display: block; margin-top: var(--s4); font-family: var(--mo);
   font-size: var(--t-colhead); letter-spacing: 0.18em; color: var(--jes);
   text-transform: uppercase; }.atlas .ray-link {
@@ -283,6 +292,8 @@
   border-left: var(--bw-edge) solid transparent;
   padding-left: calc(var(--rail-inset) - var(--bw-edge));
   transition: background-color var(--mo-state) var(--ez), color var(--mo-state) var(--ez);
+}.atlas .ray-link.ray-ayrik { margin-top: var(--s14); padding-top: calc(var(--s9) + var(--s14));
+  border-top: var(--bw-hair) solid var(--hr2);
 }.atlas .ray-link:hover { background: var(--row-hover); color: var(--ink); }.atlas .ray-link[aria-current='page'] {
   background: var(--band); color: var(--pp); font-weight: 600;
   border-left-color: var(--jesd);
@@ -290,6 +301,40 @@
   margin-left: auto; font-family: var(--mo); font-size: var(--t-caption);
   color: var(--i3); font-variant-numeric: tabular-nums;
 }.atlas .ray-link .sayi.kritik { color: var(--bd); }.atlas .ray-link[aria-current='page'] .sayi { color: rgba(246, 244, 238, .72); }.atlas .ray-link[aria-current='page'] .sayi.kritik { color: var(--bdp); }
+
+/* Komut paleti (Ctrl+K) — kabuğun üstünde, her Atlas ekranında */
+.atlas-palet-perde, .palet-perde { position: fixed; inset: 0; z-index: 90;
+  background: var(--scrim); display: grid; place-items: start center; padding-top: 14vh;
+}.palet { width: min(640px, calc(100vw - 32px)); background: var(--card);
+  border: var(--bw-strong) solid var(--hr2); border-radius: 0;
+}.palet-giris { padding: var(--s14) var(--s18); border-bottom: var(--bw-hair) solid var(--hr2);
+}.palet-liste { max-height: 420px; overflow-y: auto;
+}.palet-satir { display: grid; grid-template-columns: 96px minmax(0, 1fr) auto;
+  align-items: baseline; gap: var(--s12); width: 100%; text-align: left;
+  padding: var(--s10) var(--s18); background: none; border: 0; font: inherit;
+  color: var(--ink); cursor: pointer;
+  border-left: var(--bw-edge) solid transparent;
+  padding-left: calc(var(--s18) - var(--bw-edge));
+}.palet-satir[aria-selected='true'] { background: var(--row-sel); border-left-color: var(--jesd);
+}.palet-satir .tur { font-family: var(--mo); font-size: var(--t-label);
+  letter-spacing: var(--tr-label); text-transform: uppercase; color: var(--i3);
+}.palet-satir .konu { font-size: var(--t-row); font-weight: 600; overflow: hidden;
+  text-overflow: ellipsis; white-space: nowrap;
+}.palet-satir .alt { font-family: var(--mo); font-size: var(--t-code); color: var(--i3);
+}.palet-not { margin: 0; padding: var(--s18); font-family: var(--mo);
+  font-size: var(--t-label); letter-spacing: var(--tr-label); text-transform: uppercase;
+  color: var(--i3);
+}
+
+/* Oturum bloğu — rayın en altı, her katmanda */
+.atlas .ray-kullanici { padding: var(--s14) var(--rail-inset) var(--s18);
+  border-top: var(--bw-hair) solid var(--hr2);
+}.atlas .ray-kullanici.ust-bosluk { margin-top: auto; }.atlas .ray-kullanici .ad { display: block; font-size: var(--t-cell); font-weight: 600;
+  color: var(--ink);
+}.atlas .ray-kullanici .unvan { display: block; margin-top: var(--s4); margin-bottom: var(--s10);
+  font-family: var(--mo); font-size: var(--t-label); letter-spacing: var(--tr-label);
+  text-transform: uppercase; color: var(--i3);
+}
 
 /* Ray ayağı — yalnız flagship: strata efsanesi veya fotoğraf şeridi */
 .atlas .ray-ayak { margin-top: auto; }.atlas .ray-efsane { padding: var(--s24) var(--rail-inset) var(--s18); }.atlas .ray-efsane .bant { height: 6px; margin-bottom: 2px; }.atlas .ray-serit { position: relative; height: 168px; overflow: hidden; }.atlas .ray-serit img { width: 100%; height: 100%; object-fit: cover; display: block; }.atlas .ray-serit .perde {
@@ -367,7 +412,7 @@
 
 /* ── 3 · MetricRow ───────────────────────────────────────────────────── */
 .atlas .metrikler { display: flex; gap: var(--metric-gap); align-items: flex-start; }.atlas .metrik .deger { font-size: var(--t-metric); line-height: var(--lh-metric); font-weight: 700;
-  font-variant-numeric: tabular-nums; color: var(--ink); white-space: nowrap; }.atlas .metrik .payda { font-size: var(--t-metric-den); font-weight: 400; color: var(--i3); }.atlas .metrik .yazi { display: block; margin-top: var(--s6); }.atlas .metrik.d-ok .deger { color: var(--ok); }.atlas .metrik.d-md .deger { color: var(--md); }.atlas .metrik.d-bd .deger { color: var(--bd); }.atlas .metrik.d-pl .deger { color: var(--pl); }
+  font-variant-numeric: tabular-nums; color: var(--ink); white-space: nowrap; }.atlas .metrik .payda { font-size: var(--t-metric-den); font-weight: 400; color: var(--i3); }.atlas .metrik .yazi { display: block; margin-top: var(--s6); }.atlas .metrik.d-ok .deger { color: var(--ok); }.atlas .metrik.d-md .deger { color: var(--md); }.atlas .metrik.d-bd .deger { color: var(--bd); }.atlas .metrik.d-pl .deger { color: var(--pl); }.atlas .metrik.d-unk .deger { color: var(--unk); }
 
 /* ── 5/6 · DataTable & DenseTable ────────────────────────────────────── */
 .atlas .tbl { display: grid; container-type: inline-size; }.atlas .tbl-bas, .atlas .tbl-satir { display: grid; grid-template-columns: var(--kolonlar); gap: var(--col-gap);
@@ -536,6 +581,16 @@
   font-size: var(--t-label); color: rgba(246, 244, 238, .64); }.atlas .tuval-dip { position: absolute; left: var(--s24); bottom: var(--s16); font-family: var(--mo);
   font-size: var(--t-label); letter-spacing: var(--tr-label); text-transform: uppercase;
   color: rgba(246, 244, 238, .50); }
+
+/* Dosya seçme düğmesi tarayıcının sözde öğesidir; `*` seçicisi ona
+   ulaşmaz ve satır içi stille hedeflenemez. Yarıçap 0 kuralı (Part B1)
+   burada ayrıca yazılmak zorunda. */
+.atlas input[type='file']::file-selector-button {
+  border-radius: 0; border: var(--bw-hair) solid var(--hr2);
+  background: var(--sunken); color: var(--ink);
+  font: inherit; padding: var(--s6) var(--s12); margin-right: var(--s12);
+  cursor: pointer;
+}
 
 /* ── 19 · Loading / Empty / Error / Unauthorised ─────────────────────── */
 .atlas .iskelet { background: #EAE7DE; }.atlas .iskelet.nabiz { background-image: linear-gradient(90deg, #EAE7DE 0%, #F1EEE6 50%, #EAE7DE 100%);

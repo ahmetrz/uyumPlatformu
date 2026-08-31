@@ -34,14 +34,16 @@ export default function KomutPaleti() {
 
   if (!acik) return null;
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 90, background: 'var(--scrim)',
-      display: 'grid', placeItems: 'start center', paddingTop: '14vh' }}
-      onClick={() => setAcik(false)}>
-      <div className="kart" style={{ width: 'min(640px, calc(100vw - 32px))',
-        boxShadow: 'var(--sh-3)' }} onClick={(e) => e.stopPropagation()}>
-        <div style={{ padding: 'var(--sp-3) var(--sp-4)', borderBottom: '1px solid var(--border)' }}>
-          <input autoFocus className="inp" style={{ width: '100%', fontSize: 'var(--fs-h3)' }}
-            placeholder="Ara: tesis, madde, bulgu, risk, varlık, proje, denetim…"
+    /* Atlas gramerinde: yuvarlak köşe yok, chip yok, gölge yerine kenar.
+       Eskiden Özalit sınıflarıyla (.kart, .chip) çiziliyordu ve yalnız
+       (ozalit) kabuğunda monte olduğu için bu hiç göze batmıyordu; artık
+       her Atlas ekranının üstünde açılıyor. */
+    <div className="palet-perde" onClick={() => setAcik(false)}>
+      <div className="palet" onClick={(e) => e.stopPropagation()}
+        role="dialog" aria-modal="true" aria-label="Genel arama">
+        <div className="palet-giris">
+          <input autoFocus className="gr" style={{ width: '100%' }}
+            placeholder="Ara: santral, madde, bulgu, risk, varlık, proje, denetim…"
             value={sorgu} onChange={(e) => arama(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === 'ArrowDown') { e.preventDefault(); setSecili((s) => Math.min(s + 1, sonuclar.length - 1)); }
@@ -51,25 +53,24 @@ export default function KomutPaleti() {
               }
             }} />
         </div>
-        <div style={{ maxHeight: 420, overflowY: 'auto' }}>
+        <div className="palet-liste" role="listbox" aria-label="Sonuçlar">
           {sonuclar.map((s, i) => (
-            <button key={`${s.tip}-${s.id}`} className="satir" style={{
-              width: '100%', textAlign: 'left', background: i === secili ? 'var(--surface-2)' : 'none',
-              border: 'none', cursor: 'pointer', font: 'inherit', color: 'inherit' }}
+            <button key={`${s.tip}-${s.id}`} type="button" role="option"
+              className="palet-satir" aria-selected={i === secili}
               onMouseEnter={() => setSecili(i)}
               onClick={() => { setAcik(false); router.push(s.yol); }}>
-              <span className="chip">{s.tip}</span>
-              <span style={{ flex: 1, fontWeight: 500 }}>{s.baslik}</span>
-              <span className="mikro-etiket">{s.altBilgi}</span>
+              {/* Tür bir DURUM değil, bir sınıflandırma: rozet değil mono
+                  etiket olarak yazılır (Part B3 chip yasağı). */}
+              <span className="tur">{s.tip}</span>
+              <span className="konu">{s.baslik}</span>
+              <span className="alt">{s.altBilgi}</span>
             </button>
           ))}
           {sorgu.trim().length >= 2 && sonuclar.length === 0 && (
-            <div className="bos" style={{ padding: 'var(--sp-6)' }}>Sonuç yok</div>
+            <p className="palet-not">Sonuç yok</p>
           )}
           {sorgu.trim().length < 2 && (
-            <div className="mikro-etiket" style={{ padding: 'var(--sp-4)' }}>
-              EN AZ 2 KARAKTER · ↑↓ GEZ · ENTER AÇ · ESC KAPAT
-            </div>
+            <p className="palet-not">EN AZ 2 KARAKTER · ↑↓ GEZ · ENTER AÇ · ESC KAPAT</p>
           )}
         </div>
       </div>

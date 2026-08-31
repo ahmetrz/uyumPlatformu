@@ -58,7 +58,7 @@ export default function EslestirmeIstemci({
 
   // Açılış çifti eşlemesi en yoğun ikiliye kurulur; ilk render boş matris
   // göstermesin (mantik.acilisCifti).
-  const [acilis] = useState(() => acilisCifti(cerceveler, cizilebilirEsler(esler, maddeler)));
+  const [acilis] = useState(() => acilisCifti(cerceveler, cizilebilir));
   const [solReg, setSolReg] = useState(acilis.sol);
   const [sagReg, setSagReg] = useState(acilis.sag);
   const [secim, setSecim] = useState<Secim | null>(null);
@@ -218,6 +218,7 @@ export default function EslestirmeIstemci({
           ) : (
             <div style={{ marginTop: 'var(--s24)' }}>
               <Matris
+                konuBasligi="Madde"
                 kolonBasliklari={kurulum.kolonlar.map((k) => ({ ad: k.kisaKod }))}
                 satirlar={matrisSatirlari}
                 secili={secilenEs

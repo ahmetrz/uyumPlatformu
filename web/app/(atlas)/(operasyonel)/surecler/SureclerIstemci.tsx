@@ -469,13 +469,16 @@ function Ozet({ kayit, simdi, yazabilir, onaylayabilir, duzenle, kapsam, durum }
             <Dugme tur="cekmece">Kaydı aç · maddeler</Dugme>
           </Link>
         }
-        ikincil={(yazabilir || onaylayabilir) && (
+        ikincil={
+          /* Kapsam listesi salt okunur da olsa görünür: hangi santrallerin
+             kapsamda olduğu okuma yetkisiyle de sorulabilir bir sorudur;
+             panel yazma yetkisi yokken kilitli açılır. */
           <div style={{ display: 'flex', gap: 'var(--s10)', flexWrap: 'wrap' }}>
-            {yazabilir && <Dugme onClick={kapsam}>Kapsam</Dugme>}
+            <Dugme onClick={kapsam}>Kapsam</Dugme>
             {yazabilir && <Dugme onClick={duzenle}>Düzenle</Dugme>}
             {onaylayabilir && <Dugme onClick={durum}>Durum</Dugme>}
           </div>
-        )}
+        }
         dipNot={`${s.regulasyon.kod} · ${s.kod}`
           + (s.baslangic ? ` · başlangıç ${tarihTR(s.baslangic)}` : '')
           + (s.sayim.kapsamDisi > 0 ? ` · ${s.sayim.kapsamDisi} madde kapsam dışı` : '')}

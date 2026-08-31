@@ -16,8 +16,10 @@ export type RayOgesi = {
 /* Flagship katmanı — kısa liste + ayak (efsane veya fotoğraf şeridi) */
 export const RAY_FLAGSHIP: RayOgesi[] = [
   { ad: 'Bugün', yol: '/' },
+  // Tasarımın rayında "Enerji portföyü" ve "Santraller" ayrı öğeler; bu
+  // uygulamada ikisi de aynı ekranı (F2) açtığı için tek öğede birleştirildi.
+  // Kayıtlı sapma: iki aktif öğe göstermemek için (02-components §1).
   { ad: 'Enerji portföyü', yol: '/portfoy' },
-  { ad: 'Santraller', yol: '/tesisler' },
   { ad: 'Uyum', yol: '/uyum' },
   { ad: 'Risk', yol: '/riskler' },
   { ad: 'Denetim', yol: '/denetimler' },

@@ -1,14 +1,7 @@
-import Ray, { RAY_OPERASYONEL } from '@/components/atlas/Ray';
-
-/* Atlas kabuğu — 250px ray | esnek içerik | 420px çekmece (seçim varken).
-   Çekmece kolonu CSS :has() ile açılır: ekran <aside class="cekmece">
-   render ettiğinde grid ikinci kolonu kazanır, JS gerekmez. */
-
+/* Atlas kök yerleşimi GEÇİRGENDİR: ray katmana aittir, burada değil.
+   (flagship) kısa rayı + fotoğrafik ayağı, (operasyonel) 11 öğeli düz
+   listeyi verir. İç içe yerleşimler kompoze olduğu için burada bir ray
+   render edilirse alt katmanınkiyle birlikte İKİSİ birden görünür. */
 export default function AtlasYerlesim({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="atlas atlas-kabuk">
-      <Ray ogeler={RAY_OPERASYONEL} />
-      <div className="atlas-govde">{children}</div>
-    </div>
-  );
+  return <>{children}</>;
 }

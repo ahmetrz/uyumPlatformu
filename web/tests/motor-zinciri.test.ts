@@ -317,3 +317,34 @@ describe('Motor zinciri — sıra, koşul, dayanıklılık, otomasyon sınırı'
     expect(zincirDurumu().bekleyenVar).toBe(false);
   });
 });
+
+/* ─────────────────────────────────────────────────────────────────────
+   Motor defteri TEK kaynak.
+
+   Regresyon: motor listesi iki yerde ayrı ayrı yazılıydı — ekrandaki
+   "hepsini çalıştır" düğmesi (lib/eylemler2/isler.ts) ve saatlik
+   zamanlayıcı (instrumentation.ts). İkisi ayrışmıştı: zamanlayıcı sekiz
+   motorun yalnız BEŞİNİ koşturuyordu. Sonradan eklenen yedek_dogrulama,
+   olay_etki ve topoloji_sapma o kopyaya hiç girmemişti; kimse düğmeye
+   basmazsa o üç motor hiç koşmuyordu ve /saglik ekranında "hiç ölçülmedi"
+   görünüyordu — sebebi veri eksikliği değil, unutulmuş bir satırdı.
+   ──────────────────────────────────────────────────────────────────── */
+describe('Motor kayıt defteri', () => {
+  it('zincirdeki her motor defterde kayıtlıdır', async () => {
+    const { MOTORLAR } = await import('@/lib/motorlar/kayit');
+    const defter = new Set(Object.keys(MOTORLAR));
+    for (const adim of ZINCIR_SIRASI) {
+      // uygulanabilirlik zincire özgüdür: tesis tesis koşar, defterde yok
+      if (adim.ad === 'uygulanabilirlik') continue;
+      expect(defter.has(adim.ad)).toBe(true);
+    }
+  });
+
+  it('defterdeki her motor çağrılabilir bir fonksiyondur', async () => {
+    const { MOTORLAR, MOTOR_ADLARI } = await import('@/lib/motorlar/kayit');
+    expect(MOTOR_ADLARI.length).toBeGreaterThanOrEqual(8);
+    for (const ad of MOTOR_ADLARI) {
+      expect(typeof MOTORLAR[ad]).toBe('function');
+    }
+  });
+});

@@ -8,30 +8,15 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { yetkiZorunlu } from '../erisim';
 import { isKos } from '../motorlar/isKosucu';
-import { kanitTazeligiIsle } from '../motorlar/kanitTazelik';
-import { sonTarihleriIsle } from '../motorlar/sonTarih';
-import { gapAksiyonIsle } from '../motorlar/gapAksiyon';
-import { veriKalitesiniIsle } from '../motorlar/veriKalitesi';
-import { anlikGoruntuAl } from '../motorlar/anlik';
-import { yedekDogrulamayiIsle } from '../motorlar/yedekDogrulama';
-import { topolojiSapmasiniIsle } from '../motorlar/topolojiSapma';
-import { olayEtkileriniIsle } from '../motorlar/olayEtki';
+import { MOTORLAR, MOTOR_ADLARI } from '../motorlar/kayit';
 import { tamam, hata, type Sonuc } from './ortak';
 
-const ISLER = {
-  kanit_tazelik: kanitTazeligiIsle,
-  deadline_motoru: sonTarihleriIsle,
-  gap_to_action: gapAksiyonIsle,
-  veri_kalitesi: veriKalitesiniIsle,
-  uyum_anlik: anlikGoruntuAl,
-  yedek_dogrulama: yedekDogrulamayiIsle,
-  olay_etki: olayEtkileriniIsle,
-  topoloji_sapma: topolojiSapmasiniIsle,
-} as const;
+/* Motor listesi burada DEĞİL, `lib/motorlar/kayit.ts` içinde yaşıyor:
+   zamanlayıcı (instrumentation.ts) da aynı defteri okuyor. İki kopya
+   ayrışmıştı ve zamanlayıcı sekiz motorun beşini koşturuyordu. */
+const ISLER = MOTORLAR;
 
-const IsAdiSemasi = z.enum(
-  Object.keys(ISLER) as [keyof typeof ISLER, ...(keyof typeof ISLER)[]],
-  'Bilinmeyen iş adı');
+const IsAdiSemasi = z.enum(MOTOR_ADLARI, 'Bilinmeyen iş adı');
 
 /** Kayıtlı motorların TAMAMINI sırayla çalıştırır: önce tazelik ve son
     tarihler işlenir, gap-to-action bunların çıktısını görür, veri kalitesi

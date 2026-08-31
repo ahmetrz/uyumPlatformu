@@ -8,18 +8,15 @@ export async function register() {
   if (process.env.ISLER_OTOMATIK === '0') return; // kapatma anahtarı
 
   const { isKos } = await import('./lib/motorlar/isKosucu');
-  const { kanitTazeligiIsle } = await import('./lib/motorlar/kanitTazelik');
-  const { sonTarihleriIsle } = await import('./lib/motorlar/sonTarih');
-  const { gapAksiyonIsle } = await import('./lib/motorlar/gapAksiyon');
-  const { veriKalitesiniIsle } = await import('./lib/motorlar/veriKalitesi');
-  const { anlikGoruntuAl } = await import('./lib/motorlar/anlik');
+  /* Motor listesi kayıt defterinden okunur. Eskiden burada ELLE yazılmış
+     bir kopya vardı ve sekiz motorun yalnız beşini içeriyordu: sonradan
+     eklenen yedek_dogrulama, olay_etki ve topoloji_sapma zamanlayıcıya
+     hiç girmemişti, yani kimse ekrandaki düğmeye basmazsa o üç motor HİÇ
+     koşmuyordu. Defter tek yerde durunca bu bir daha olamaz. */
+  const { MOTORLAR } = await import('./lib/motorlar/kayit');
 
   const hepsi = async () => {
-    await isKos('kanit_tazelik', kanitTazeligiIsle);
-    await isKos('deadline_motoru', sonTarihleriIsle);
-    await isKos('gap_to_action', gapAksiyonIsle);
-    await isKos('veri_kalitesi', veriKalitesiniIsle);
-    await isKos('uyum_anlik', anlikGoruntuAl);
+    for (const [ad, motor] of Object.entries(MOTORLAR)) await isKos(ad, motor);
   };
 
   // açılıştan 30 sn sonra ilk koşu, ardından saatlik

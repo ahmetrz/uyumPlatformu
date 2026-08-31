@@ -3,6 +3,7 @@
 import { db } from '../db';
 import { aktifKullanici } from '../auth';
 import { izinliTesisIdleri } from '../erisim';
+import { aramaKosulu, aramaOr } from '../aramaKosulu';
 
 /* Global arama (§27): tek kutudan tesis, madde, bulgu, risk, varlık, proje,
    denetim. Sonuçlar kullanıcının tesis kapsamıyla DARALTILIR (veri seviyesi). */
@@ -21,29 +22,29 @@ export async function ara(sorgu: string): Promise<AramaSonucu[]> {
   const [tesisler, maddeler, bulgular, riskler, varliklar, projeler, denetimler] =
     await Promise.all([
       db.tesis.findMany({ where: {
-        OR: [{ kod: { contains: q } }, { ad: { contains: q } }],
+        OR: aramaOr(['kod', 'ad'], q),
         ...(tesisKapsami === null ? {} : { id: { in: tesisKapsami } }) }, take: 5 }),
       db.madde.findMany({ where: {
         silindi: null,
         AND: [
-          { OR: [{ kod: { contains: q } }, { baslik: { contains: q } }] },
+          { OR: aramaOr(['kod', 'baslik'], q) },
           { OR: [{ surum: { durum: 'aktif' } }, { surumId: null }] },
         ] },
         take: 6, include: { regulasyon: true } }),
       db.bulgu.findMany({ where: {
-        baslik: { contains: q }, silindi: null,
+        baslik: aramaKosulu(q), silindi: null,
         maddeDurumu: tesisKapsami === null ? {} : { tesisId: { in: tesisKapsami } } },
         take: 5, include: { maddeDurumu: { include: { tesis: true } } } }),
       db.risk.findMany({ where: {
-        OR: [{ kod: { contains: q } }, { baslik: { contains: q } }],
+        OR: aramaOr(['kod', 'baslik'], q),
         silindi: null, ...tesisFiltre }, take: 5 }),
       db.varlik.findMany({ where: {
-        OR: [{ etiket: { contains: q } }, { ad: { contains: q } }],
+        OR: aramaOr(['etiket', 'ad'], q),
         silindi: null, ...tesisFiltre }, take: 5 }),
       db.proje.findMany({ where: {
-        OR: [{ kod: { contains: q } }, { ad: { contains: q } }], silindi: null }, take: 4 }),
+        OR: aramaOr(['kod', 'ad'], q), silindi: null }, take: 4 }),
       db.denetim.findMany({ where: {
-        OR: [{ kod: { contains: q } }, { ad: { contains: q } }], silindi: null }, take: 4 }),
+        OR: aramaOr(['kod', 'ad'], q), silindi: null }, take: 4 }),
     ]);
 
   return [

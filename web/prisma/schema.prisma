@@ -1489,6 +1489,10 @@ model EntegrasyonKosusu {
   kayitSayisi Int     @default(0)
   guvenEtiketi String @default("manuel") // otomatik | manuel | dogrulanmis
   hata      String?
+  /// Hata OLMAYAN açıklama: hangi kimlik eksik, kaç kayıt neden reddedildi,
+  /// kaynak neden yok. `hata` alanı yalnız gerçek başarısızlık taşır;
+  /// ikisini karıştırmak sağlık ekranını yanlış renklendiriyordu.
+  ayrinti   String?
 
   // ── connector çatısı genişletmesi ──────────────────────────────────
   connectorId String?
@@ -1543,7 +1547,10 @@ model Connector {
   /// ad_entra | vuln_scanner | edr | siem | backup | network_firewall |
   /// ot_discovery | manual_import
   tip             String
-  /// taslak | etkin | duraklatildi | hatali
+  /// taslak | etkin | duraklatildi | hatali | kimlik_bekleniyor
+  /// kimlik_bekleniyor: yapılandırma tam ama dış sistem kimlik bilgisi yok.
+  /// Bu bir HATA DEĞİLDİR — bekleyen bir kurulum adımıdır ve sağlık
+  /// ekranında kırmızı değil, bekliyor olarak gösterilir.
   durum           String    @default("taslak")
   kaynakSistem    String
   /// none | api_key | basic | oauth2_client_credentials | certificate

@@ -17,42 +17,42 @@ import { HataDefteri, izleriYaz, kokeniIsle, kosuIcinde, tesisHaritasi, type IzG
 export const POST = apiUcu({ modul: 'envanter', islem: 'yazma' }, async ({ govde, kullanici }) => {
   const { records } = dogrula(zarf(varlikKaydiSemasi), govde);
   const hamlar = hamKayitlar(govde);
-  const defter = new HataDefteri();
-
-  const tesisler = await tesisHaritasi(records.map((r) => r.plantCode ?? ''));
-  const gorulen = new Set<string>();
-  const cozumler: { indeks: number; gozlem: ReturnType<typeof varlikGozlemine>; anahtar: string }[] = [];
-
-  for (const [i, tel] of records.entries()) {
-    const gozlem = varlikGozlemine(tel, hamlar[i] ?? tel);
-    const anahtarlar = varlikAnahtarlari(gozlem);
-    if (anahtarlar.length === 0) {
-      defter.ekle(i, '(kayit)', 'en az bir esleme anahtari gerekli (seri/mac/etiket/hostname/ip)');
-      continue;
-    }
-    const tekil = `${tel.source} ${tel.sourceRecordId}`;
-    if (gorulen.has(tekil)) {
-      defter.ekle(i, 'sourceRecordId', 'ayni istekte tekrarlanan (source, sourceRecordId)');
-      continue;
-    }
-    gorulen.add(tekil);
-
-    let tesisId: string | null = null;
-    if (tel.plantCode) {
-      const tesis = tesisler.get(tel.plantCode);
-      if (!tesis) { defter.ekle(i, 'plantCode', 'bilinmeyen santral kodu'); continue; }
-      tesisId = tesis.id;
-    }
-    // plantCode yoksa KAPSAMSIZ yazma istenir; santrale kisitli anahtar gecemez.
-    yazmaIzniZorunlu(kullanici, 'envanter', tesisId);
-
-    cozumler.push({ indeks: i, gozlem, anahtar: anahtarlar[0].alan });
-  }
-  defter.bitir();
-
   const { sonuc, kosuId } = await kosuIcinde(
     records.map((r) => r.source),
     async (kosuId) => {
+      const defter = new HataDefteri();
+
+      const tesisler = await tesisHaritasi(records.map((r) => r.plantCode ?? ''));
+      const gorulen = new Set<string>();
+      const cozumler: { indeks: number; gozlem: ReturnType<typeof varlikGozlemine>; anahtar: string }[] = [];
+
+      for (const [i, tel] of records.entries()) {
+        const gozlem = varlikGozlemine(tel, hamlar[i] ?? tel);
+        const anahtarlar = varlikAnahtarlari(gozlem);
+        if (anahtarlar.length === 0) {
+          defter.ekle(i, '(kayit)', 'en az bir esleme anahtari gerekli (seri/mac/etiket/hostname/ip)');
+          continue;
+        }
+        const tekil = `${tel.source} ${tel.sourceRecordId}`;
+        if (gorulen.has(tekil)) {
+          defter.ekle(i, 'sourceRecordId', 'ayni istekte tekrarlanan (source, sourceRecordId)');
+          continue;
+        }
+        gorulen.add(tekil);
+
+        let tesisId: string | null = null;
+        if (tel.plantCode) {
+          const tesis = tesisler.get(tel.plantCode);
+          if (!tesis) { defter.ekle(i, 'plantCode', 'bilinmeyen santral kodu'); continue; }
+          tesisId = tesis.id;
+        }
+        // plantCode yoksa KAPSAMSIZ yazma istenir; santrale kisitli anahtar gecemez.
+        yazmaIzniZorunlu(kullanici, 'envanter', tesisId);
+
+        cozumler.push({ indeks: i, gozlem, anahtar: anahtarlar[0].alan });
+      }
+      defter.bitir();
+
       const izler: IzGirdisi[] = [];
       let olusan = 0, tazelenen = 0;
 

@@ -192,9 +192,23 @@ function dkFarki(sonra: Date, once: Date): number {
   return Math.max(0, Math.floor((sonra.getTime() - once.getTime()) / 60_000));
 }
 
-/** Kimlik bilgisi kurulumu tamamlanmış mı? Sır DEĞERİ çözülmez — yalnız
-    referansın varlığı ve biçimi denetlenir. */
+/** Kimlik bilgisi kurulumu tamamlanmış mı? Sır DEĞERİ burada ÇÖZÜLMEZ —
+    yalnız (a) çekirdeğin connector kaydına yazdığı durum ve (b) referansın
+    varlığı/biçimi denetlenir.
+
+    (a) şart: referans biçimsel olarak geçerli olup işaret ettiği ortam
+    değişkeni tanımsız olabilir. Bunu okuma katmanı sırrı çözmeden bilemez;
+    çekirdek `durum='kimlik_bekleniyor'` yazarak bildirir ve o kayıt burada
+    yetkili kabul edilir — aksi hâlde bağlanmamış connector "hiç koşmadı"
+    diye görünür, sebebi kaybolurdu. */
 export function kimlikDurumu(c: ConnectorGirdi): { eksik: boolean; gerekce: string | null } {
+  if (c.durum === 'kimlik_bekleniyor') {
+    return {
+      eksik: true,
+      gerekce: c.sonHata
+        ?? 'Connector kaydı "kimlik bekleniyor" olarak işaretli — dış sistem kimlik bilgisi henüz kurulmadı',
+    };
+  }
   if (c.kimlikTipi === 'none') return { eksik: false, gerekce: null };
   if (!c.sirReferansi) {
     return { eksik: true, gerekce: `Kimlik tipi "${c.kimlikTipi}" ama sır referansı tanımlı değil` };
@@ -312,8 +326,9 @@ export function connectorSagligi(
     // 2) Kimlik kurulumu tamamlanmadıysa bu bir HATA değil, bekleyen adımdır.
     //    Başarısız koşuyu "başarısız" diye göstermek sebebi gizlerdi.
     if (kimlik.eksik) return 'kimlik_bekleniyor';
-    // 3) Koşu kaydı hiç yoksa "sağlıklı" diyemeyiz.
-    if (hicKosmadi) return 'hic_kosmadi';
+    // 3) Koşu kaydı hiç yoksa "sağlıklı" diyemeyiz. Ama connector kaydı
+    //    'hatali' işaretliyse kayıtlı bir başarısızlık var — onu gizlemeyiz.
+    if (hicKosmadi) return c.durum === 'hatali' ? 'basarisiz' : 'hic_kosmadi';
     if (sonHam.durum === 'basarili') return 'basarili';
     if (sonHam.durum === 'basarisiz') return 'basarisiz';
     if (sonHam.durum === 'kimlik_bekleniyor') return 'kimlik_bekleniyor';

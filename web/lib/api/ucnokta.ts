@@ -8,7 +8,7 @@ import {
   ApiHata, apiHatasinaCevir, durumKodu, hataGovdesi, zodAyrintilari,
 } from './hatalar';
 import { apiTokenOzeti, bearerToken, istekKimligi, type ApiKimlik } from './kimlik';
-import { oranAyari, oranSinirla } from './oranSinir';
+import { oranSinirla } from './oranSinir';
 import { modulYazmaZorunlu, okumaKapsami } from './yetki';
 
 /* API uç noktası sarmalayıcısı. Her uç bu çemberden geçer:

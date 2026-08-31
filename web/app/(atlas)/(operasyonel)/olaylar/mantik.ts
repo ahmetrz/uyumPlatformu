@@ -176,6 +176,8 @@ export function imSozu(o: OlayKaydi): string {
   const durum = OLAY_DURUM_SOZU[o.durum] ?? o.durum;
   const bekleyen = bekleyenAlanlar(o).length;
   if (bekleyen > 0) return `${durum} · ${bekleyen} etki önerisi doğrulanmadı`;
+  if (o.oneriBozuk) return `${durum} · öneri kaydı okunamadı`;
+  if (o.oneri === null) return `${durum} · etki önerisi üretilmedi`;
   if (zincirKopuk(o)) return `${durum} · etki zinciri kurulamadı`;
   return durum;
 }
@@ -192,7 +194,9 @@ export function olgu(o: OlayKaydi): string {
     const ilk = o.oneri?.zincir.find((h) => h.kopukluk !== null);
     parcalar.push(ilk
       ? `zincir kopuk · ${KOPUKLUK_SOZU[ilk.kopukluk as string] ?? ilk.kopukluk}`
-      : 'zincir kurulmadı · varlık/sistem bağı yok');
+      : o.oneriBozuk ? 'öneri kaydı okunamadı'
+        : o.oneri === null ? 'etki önerisi üretilmedi'
+          : 'zincir kurulmadı · varlık/sistem bağı yok');
   } else {
     const bekleyen = bekleyenAlanlar(o).length;
     if (bekleyen > 0) parcalar.push(`${bekleyen} öneri doğrulama bekliyor`);
@@ -202,6 +206,9 @@ export function olgu(o: OlayKaydi): string {
 
 /** Zincir hücresi: `3 varlık → 2 sistem → 1 süreç → 1 tesis`. */
 export function zincirOzeti(o: OlayKaydi): string {
+  // Öneri hiç üretilmediyse "bağ yok" DENMEZ — ölçülmemiş ile boş ayrıdır.
+  if (o.oneriBozuk) return 'öneri okunamadı';
+  if (o.oneri === null) return 'öneri üretilmedi';
   const v = varlikSayisi(o);
   const s = sistemSayisi(o);
   if (v === 0 && s === 0) return 'bağ yok';

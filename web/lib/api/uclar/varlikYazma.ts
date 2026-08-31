@@ -32,97 +32,97 @@ type Cozum = {
 export const POST = apiUcu({ modul: 'envanter', islem: 'yazma' }, async ({ govde, kullanici }) => {
   const { records } = dogrula(zarf(varlikKaydiSemasi), govde);
   const hamlar = hamKayitlar(govde);
-  const defter = new HataDefteri();
-
-  const etiketler = records.map((r) => r.assetTag ?? '');
-  const mevcutlar = await db.varlik.findMany({
-    where: { etiket: { in: etiketler.filter(Boolean) } },
-    select: {
-      id: true, etiket: true, tesisId: true, turId: true, ad: true, hostname: true,
-      seriNo: true, macAdresi: true, ipAdresi: true, uretici: true, model: true,
-      isletimSistemi: true, firmware: true, bolgeId: true, silindi: true,
-    },
-  });
-  const mevcutHarita = new Map(mevcutlar.map((v) => [v.etiket, v]));
-  const tesisler = await tesisHaritasi(records.map((r) => r.plantCode ?? ''));
-  const turler = await varlikTuruHaritasi(records.map((r) => r.typeCode ?? ''));
-  const bolgeler = await agBolgesiHaritasi(records.map((r) => r.zoneCode ?? ''));
-
-  const gorulenEtiket = new Set<string>();
-  const cozumler: Cozum[] = [];
-
-  for (const [i, tel] of records.entries()) {
-    const gozlem = varlikGozlemine(tel, hamlar[i] ?? tel);
-    if (!tel.assetTag) {
-      defter.ekle(i, 'assetTag', 'assetTag zorunlu (CMDB birincil anahtari)');
-      continue;
-    }
-    if (gorulenEtiket.has(tel.assetTag)) {
-      defter.ekle(i, 'assetTag', 'ayni istekte tekrarlanan assetTag');
-      continue;
-    }
-    gorulenEtiket.add(tel.assetTag);
-    if (varlikAnahtarlari(gozlem).length === 0) {
-      defter.ekle(i, '(kayit)', 'en az bir esleme anahtari gerekli (seri/mac/etiket/hostname/ip)');
-      continue;
-    }
-
-    const mevcut = mevcutHarita.get(tel.assetTag) ?? null;
-    if (mevcut?.silindi) {
-      defter.ekle(i, 'assetTag', 'bu assetTag silinmis bir varliga ait; once geri alinmali');
-      continue;
-    }
-
-    let hedefTesisId: string | null = mevcut?.tesisId ?? null;
-    if (tel.plantCode) {
-      const tesis = tesisler.get(tel.plantCode);
-      if (!tesis) { defter.ekle(i, 'plantCode', 'bilinmeyen santral kodu'); continue; }
-      hedefTesisId = tesis.id;
-    }
-    if (!mevcut && !hedefTesisId) {
-      defter.ekle(i, 'plantCode', 'yeni varlik icin plantCode zorunlu');
-      continue;
-    }
-
-    let turId: string | null = mevcut?.turId ?? null;
-    if (tel.typeCode) {
-      const bulunan = turler.get(tel.typeCode);
-      if (!bulunan) { defter.ekle(i, 'typeCode', 'bilinmeyen varlik turu kodu'); continue; }
-      turId = bulunan;
-    }
-    if (!mevcut && !turId) {
-      defter.ekle(i, 'typeCode', 'yeni varlik icin typeCode zorunlu');
-      continue;
-    }
-
-    let bolgeId: string | null | undefined;
-    if (tel.zoneCode !== undefined) {
-      if (tel.zoneCode === null) bolgeId = null;
-      else {
-        const bulunan = bolgeler.get(tel.zoneCode);
-        if (!bulunan) { defter.ekle(i, 'zoneCode', 'bilinmeyen ag bolgesi kodu'); continue; }
-        bolgeId = bulunan;
-      }
-    }
-
-    // Santral izolasyonu: hem HEDEF hem (varsa) MEVCUT santral icin yazma
-    // izni sart - kapsam disi bir varlik baska santrale tasinamaz.
-    // 403 doner (404 degil), govdede kayit yoktur.
-    yazmaIzniZorunlu(kullanici, 'envanter', hedefTesisId);
-    if (mevcut && mevcut.tesisId !== hedefTesisId) {
-      yazmaIzniZorunlu(kullanici, 'envanter', mevcut.tesisId);
-    }
-
-    cozumler.push({
-      indeks: i, tel, gozlem, mevcutId: mevcut?.id ?? null,
-      hedefTesisId, turId, bolgeId: bolgeId === undefined ? null : bolgeId,
-    });
-  }
-  defter.bitir();
-
   const { sonuc, kosuId } = await kosuIcinde(
     records.map((r) => r.source),
     async (kosuId) => {
+      const defter = new HataDefteri();
+
+      const etiketler = records.map((r) => r.assetTag ?? '');
+      const mevcutlar = await db.varlik.findMany({
+        where: { etiket: { in: etiketler.filter(Boolean) } },
+        select: {
+          id: true, etiket: true, tesisId: true, turId: true, ad: true, hostname: true,
+          seriNo: true, macAdresi: true, ipAdresi: true, uretici: true, model: true,
+          isletimSistemi: true, firmware: true, bolgeId: true, silindi: true,
+        },
+      });
+      const mevcutHarita = new Map(mevcutlar.map((v) => [v.etiket, v]));
+      const tesisler = await tesisHaritasi(records.map((r) => r.plantCode ?? ''));
+      const turler = await varlikTuruHaritasi(records.map((r) => r.typeCode ?? ''));
+      const bolgeler = await agBolgesiHaritasi(records.map((r) => r.zoneCode ?? ''));
+
+      const gorulenEtiket = new Set<string>();
+      const cozumler: Cozum[] = [];
+
+      for (const [i, tel] of records.entries()) {
+        const gozlem = varlikGozlemine(tel, hamlar[i] ?? tel);
+        if (!tel.assetTag) {
+          defter.ekle(i, 'assetTag', 'assetTag zorunlu (CMDB birincil anahtari)');
+          continue;
+        }
+        if (gorulenEtiket.has(tel.assetTag)) {
+          defter.ekle(i, 'assetTag', 'ayni istekte tekrarlanan assetTag');
+          continue;
+        }
+        gorulenEtiket.add(tel.assetTag);
+        if (varlikAnahtarlari(gozlem).length === 0) {
+          defter.ekle(i, '(kayit)', 'en az bir esleme anahtari gerekli (seri/mac/etiket/hostname/ip)');
+          continue;
+        }
+
+        const mevcut = mevcutHarita.get(tel.assetTag) ?? null;
+        if (mevcut?.silindi) {
+          defter.ekle(i, 'assetTag', 'bu assetTag silinmis bir varliga ait; once geri alinmali');
+          continue;
+        }
+
+        let hedefTesisId: string | null = mevcut?.tesisId ?? null;
+        if (tel.plantCode) {
+          const tesis = tesisler.get(tel.plantCode);
+          if (!tesis) { defter.ekle(i, 'plantCode', 'bilinmeyen santral kodu'); continue; }
+          hedefTesisId = tesis.id;
+        }
+        if (!mevcut && !hedefTesisId) {
+          defter.ekle(i, 'plantCode', 'yeni varlik icin plantCode zorunlu');
+          continue;
+        }
+
+        let turId: string | null = mevcut?.turId ?? null;
+        if (tel.typeCode) {
+          const bulunan = turler.get(tel.typeCode);
+          if (!bulunan) { defter.ekle(i, 'typeCode', 'bilinmeyen varlik turu kodu'); continue; }
+          turId = bulunan;
+        }
+        if (!mevcut && !turId) {
+          defter.ekle(i, 'typeCode', 'yeni varlik icin typeCode zorunlu');
+          continue;
+        }
+
+        let bolgeId: string | null | undefined;
+        if (tel.zoneCode !== undefined) {
+          if (tel.zoneCode === null) bolgeId = null;
+          else {
+            const bulunan = bolgeler.get(tel.zoneCode);
+            if (!bulunan) { defter.ekle(i, 'zoneCode', 'bilinmeyen ag bolgesi kodu'); continue; }
+            bolgeId = bulunan;
+          }
+        }
+
+        // Santral izolasyonu: hem HEDEF hem (varsa) MEVCUT santral icin yazma
+        // izni sart - kapsam disi bir varlik baska santrale tasinamaz.
+        // 403 doner (404 degil), govdede kayit yoktur.
+        yazmaIzniZorunlu(kullanici, 'envanter', hedefTesisId);
+        if (mevcut && mevcut.tesisId !== hedefTesisId) {
+          yazmaIzniZorunlu(kullanici, 'envanter', mevcut.tesisId);
+        }
+
+        cozumler.push({
+          indeks: i, tel, gozlem, mevcutId: mevcut?.id ?? null,
+          hedefTesisId, turId, bolgeId: bolgeId === undefined ? null : bolgeId,
+        });
+      }
+      defter.bitir();
+
       const izler: IzGirdisi[] = [];
       let olusan = 0, guncellenen = 0, degismeyen = 0;
 

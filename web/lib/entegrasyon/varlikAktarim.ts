@@ -167,7 +167,9 @@ export function eslemeDogrula(esleme: Esleme): string[] {
   const sayac = new Map<string, number>();
   for (const hedef of Object.values(esleme)) {
     if (!hedef) continue;
-    if (!ALAN_INDEKSI.has(hedef)) { sorunlar.push(`Bilinmeyen hedef alan: ${hedef}`); continue; }
+    if (!ALAN_INDEKSI.has(hedef as HedefAlan)) {
+      sorunlar.push(`Bilinmeyen hedef alan: ${hedef}`); continue;
+    }
     sayac.set(hedef, (sayac.get(hedef) ?? 0) + 1);
   }
   for (const [hedef, n] of sayac) {

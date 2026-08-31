@@ -9,6 +9,7 @@ import { uyumKatalogu } from './seed-uyum';
 import { denetimVeProje } from './seed-denetim-proje';
 import { riskVeBulgu } from './seed-risk-bulgu';
 import { kanitVerisi } from './seed-kanit';
+import { entegrasyonVerisi } from './seed-entegrasyon';
 
 const parolaUret = (parola: string) => {
   const tuz = randomBytes(16).toString('hex');
@@ -729,6 +730,8 @@ async function main() {
   await denetimVeProje(db);
   // Kanıt katmanı en sonda: durumdan türer, durumları okumak zorunda.
   await kanitVerisi(db);
+  // Connector TANIMLARI — hiçbiri etkin değil, kimlik bilgisi bekliyor.
+  await entegrasyonVerisi(db);
 
   console.log('Seed tamam. Geliştirme girişi: ahmet.terzi@zorlu.com / ' + GELISTIRME_PAROLASI);
 }

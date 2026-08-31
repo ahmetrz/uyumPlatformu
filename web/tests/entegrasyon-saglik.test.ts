@@ -19,6 +19,7 @@ const {
   entegrasyonSagligiOzeti, BAYAT_KOSU_ESIGI_DK,
 } = await import('@/lib/entegrasyon/saglikOzeti');
 const { siriCoz } = await import('@/lib/entegrasyon/sir');
+const { db } = await import('@/lib/db');
 type ConnectorGirdi = Parameters<typeof connectorSagligi>[0];
 type KosuGirdi = Parameters<typeof connectorSagligi>[1][number];
 
@@ -73,6 +74,25 @@ describe('kimlik_bekleniyor ile basarisiz ayrımı', () => {
     expect(s.durum).not.toBe('basarisiz');
     expect(s.kimlikEksik).toBe(true);
     expect(s.kimlikGerekce).toContain('sır referansı tanımlı değil');
+  });
+
+  it('çekirdek connector kaydına "kimlik_bekleniyor" yazdıysa okuma katmanı buna uyar', () => {
+    // Referans biçimsel olarak GEÇERLİ ama işaret ettiği sır çözülemiyor:
+    // bunu okuma katmanı sırrı çözmeden bilemez, çekirdeğin kaydı yetkilidir.
+    const s = connectorSagligi(
+      conn({ durum: 'kimlik_bekleniyor', kimlikTipi: 'api_key',
+        sirReferansi: 'env:TANIMSIZ_ANAHTAR' }), [], { simdi: SIMDI });
+    expect(s.durum).toBe('kimlik_bekleniyor');
+    expect(s.durum).not.toBe('hic_kosmadi');
+    expect(s.hicKosmadi).toBe(true);       // "hiç koşmadı" gerçeği yine de saklanmaz
+    expect(s.kimlikGerekce).toContain('kimlik bekleniyor');
+  });
+
+  it('connector kaydı "hatali" ise koşu kaydı olmasa bile başarısız gizlenmez', () => {
+    const s = connectorSagligi(
+      conn({ durum: 'hatali', sonHata: 'Adaptör başlatılamadı' }), [], { simdi: SIMDI });
+    expect(s.durum).toBe('basarisiz');
+    expect(s.sonHata).toBe('Adaptör başlatılamadı');
   });
 
   it('kimlik referansı biçimsel olarak geçersizse de kimlik bekleniyor sayılır', () => {
@@ -228,14 +248,6 @@ const yetki = (p: Partial<AktifKullanici['yetkiler'][number]>) => ({
 });
 
 describe('entegrasyonSagligiOzeti (izole DB kopyası)', () => {
-  it('connector kaydı yokken boş özet döner — çökmez, "sağlıklı" da demez', async () => {
-    const ozet = await entegrasyonSagligiOzeti(kisi([yetki({})]));
-    expect(ozet.yetkili).toBe(true);
-    expect(ozet.connectorlar).toEqual([]);
-    expect(ozet.sayilar.basarili).toBe(0);
-    expect(ozet.sayilar.hic_kosmadi).toBe(0);
-  });
-
   it('yetkisiz kullanıcı sır referansını BİLE görmez', async () => {
     const ozet = await entegrasyonSagligiOzeti(kisi([yetki({ rol: 'katkici' })]));
     expect(ozet.yetkili).toBe(false);
@@ -243,8 +255,38 @@ describe('entegrasyonSagligiOzeti (izole DB kopyası)', () => {
     expect(JSON.stringify(ozet)).not.toContain('env:');
   });
 
-  it('okuma yetkisi olan connector satırlarını görür, yazma yetkisi gerekmez', async () => {
+  it('okuma yetkisi olan connector satırlarını görür (yazma yetkisi gerekmez)', async () => {
     const ozet = await entegrasyonSagligiOzeti(kisi([yetki({ rol: 'okuyucu' })]));
     expect(ozet.yetkili).toBe(true);
+  });
+
+  it('seed edilmiş bağlanmamış connector\'lar hiçbir koşulda "başarılı" görünmez', async () => {
+    const ozet = await entegrasyonSagligiOzeti(kisi([yetki({})]));
+    // Seed yoksa test anlamsız olur — sessizce geçmesin.
+    expect(ozet.connectorlar.length).toBeGreaterThan(0);
+    expect(ozet.sayilar.basarili).toBe(0);
+    for (const c of ozet.connectorlar) {
+      expect(c.durum).not.toBe('basarili');
+      // Sır referansı yalnız maskeli biçimde taşınır.
+      expect(c).not.toHaveProperty('sirReferansi');
+      expect(c.sirMaskeli.startsWith('env:') === false || c.sirMaskeli.includes(': ')).toBe(true);
+    }
+    // Sayaçların toplamı satır sayısını verir: hiçbir satır kova dışında kalmaz.
+    const toplam = Object.values(ozet.sayilar).reduce((a, b) => a + b, 0);
+    expect(toplam).toBe(ozet.connectorlar.length);
+  });
+
+  it('connector kaydı hiç yokken boş özet döner — çökmez, "sağlıklı" da demez', async () => {
+    // Kopya DB üzerinde çalışıyoruz; gerçek dev.db'ye dokunulmaz.
+    await db.entegrasyonKosusu.deleteMany();
+    await db.kesifKaydi.deleteMany();
+    await db.connector.deleteMany();
+    const ozet = await entegrasyonSagligiOzeti(kisi([yetki({})]));
+    expect(ozet.yetkili).toBe(true);
+    expect(ozet.connectorlar).toEqual([]);
+    expect(ozet.sayilar.basarili).toBe(0);
+    expect(ozet.sayilar.hic_kosmadi).toBe(0);
+    expect(ozet.bagimsizKosular).toEqual([]);
+    expect(ozet.arsivKosuSayisi).toBe(0);
   });
 });

@@ -21,74 +21,74 @@ import {
 export const POST = apiUcu({ modul: 'envanter', islem: 'yazma' }, async ({ govde, kullanici }) => {
   const { records } = dogrula(zarf(erisimKaydiSemasi), govde);
   const hamlar = hamKayitlar(govde);
-  const defter = new HataDefteri();
-
-  const mevcutHesaplar = await db.kimlikHesabi.findMany({
-    where: { hesapAdi: { in: records.map((r) => r.accountName) } },
-    select: { id: true, hesapAdi: true, tesisId: true, tip: true, ayricalikli: true },
-  });
-  const hesapHarita = new Map(mevcutHesaplar.map((h) => [h.hesapAdi, h]));
-  const tesisler = await tesisHaritasi(records.map((r) => r.plantCode ?? ''));
-  const varliklar = await varlikAnahtarlariniCoz(
-    records.map((r) => r.assetKey ?? '').filter((a): a is string => a.length > 0),
-  );
-
-  type Cozum = {
-    indeks: number;
-    tel: (typeof records)[number];
-    gozlem: ReturnType<typeof erisimGozlemine>;
-    mevcutId: string | null;
-    tesisId: string | null;
-    varlik: EslesenVarlik | null;
-  };
-  const cozumler: Cozum[] = [];
-  const gorulen = new Set<string>();
-
-  for (const [i, tel] of records.entries()) {
-    const gozlem = erisimGozlemine(tel, hamlar[i] ?? tel);
-    if (gorulen.has(tel.accountName)) {
-      defter.ekle(i, 'accountName', 'ayni istekte tekrarlanan accountName');
-      continue;
-    }
-    gorulen.add(tel.accountName);
-
-    const mevcut = hesapHarita.get(tel.accountName) ?? null;
-    let tesisId: string | null = mevcut?.tesisId ?? null;
-    if (tel.plantCode) {
-      const tesis = tesisler.get(tel.plantCode);
-      if (!tesis) { defter.ekle(i, 'plantCode', 'bilinmeyen santral kodu'); continue; }
-      tesisId = tesis.id;
-    }
-    if (!mevcut && !tel.accountType) {
-      defter.ekle(i, 'accountType', 'yeni hesap icin zorunlu (kisi|servis|paylasimli|acil_durum)');
-      continue;
-    }
-
-    let varlik: EslesenVarlik | null = null;
-    if (tel.assetKey) {
-      const eslesme = varliklar.get(tel.assetKey);
-      if (!eslesme) { defter.ekle(i, 'assetKey', 'bu anahtarla eslesen varlik yok'); continue; }
-      if (eslesme === 'belirsiz') {
-        defter.ekle(i, 'assetKey', 'birden cok varliga uyuyor; tekil bir anahtar gonderin');
-        continue;
-      }
-      varlik = eslesme;
-      yazmaIzniZorunlu(kullanici, 'envanter', varlik.tesisId);
-    }
-
-    // Hem hedef hem mevcut santral icin yazma izni sart.
-    yazmaIzniZorunlu(kullanici, 'envanter', tesisId);
-    if (mevcut && mevcut.tesisId !== tesisId) {
-      yazmaIzniZorunlu(kullanici, 'envanter', mevcut.tesisId);
-    }
-
-    cozumler.push({ indeks: i, tel, gozlem, mevcutId: mevcut?.id ?? null, tesisId, varlik });
-  }
-  defter.bitir();
-
   const { sonuc, kosuId } = await kosuIcinde(
     records.map((r) => r.source),
     async (kosuId) => {
+      const defter = new HataDefteri();
+
+      const mevcutHesaplar = await db.kimlikHesabi.findMany({
+        where: { hesapAdi: { in: records.map((r) => r.accountName) } },
+        select: { id: true, hesapAdi: true, tesisId: true, tip: true, ayricalikli: true },
+      });
+      const hesapHarita = new Map(mevcutHesaplar.map((h) => [h.hesapAdi, h]));
+      const tesisler = await tesisHaritasi(records.map((r) => r.plantCode ?? ''));
+      const varliklar = await varlikAnahtarlariniCoz(
+        records.map((r) => r.assetKey ?? '').filter((a): a is string => a.length > 0),
+      );
+
+      type Cozum = {
+        indeks: number;
+        tel: (typeof records)[number];
+        gozlem: ReturnType<typeof erisimGozlemine>;
+        mevcutId: string | null;
+        tesisId: string | null;
+        varlik: EslesenVarlik | null;
+      };
+      const cozumler: Cozum[] = [];
+      const gorulen = new Set<string>();
+
+      for (const [i, tel] of records.entries()) {
+        const gozlem = erisimGozlemine(tel, hamlar[i] ?? tel);
+        if (gorulen.has(tel.accountName)) {
+          defter.ekle(i, 'accountName', 'ayni istekte tekrarlanan accountName');
+          continue;
+        }
+        gorulen.add(tel.accountName);
+
+        const mevcut = hesapHarita.get(tel.accountName) ?? null;
+        let tesisId: string | null = mevcut?.tesisId ?? null;
+        if (tel.plantCode) {
+          const tesis = tesisler.get(tel.plantCode);
+          if (!tesis) { defter.ekle(i, 'plantCode', 'bilinmeyen santral kodu'); continue; }
+          tesisId = tesis.id;
+        }
+        if (!mevcut && !tel.accountType) {
+          defter.ekle(i, 'accountType', 'yeni hesap icin zorunlu (kisi|servis|paylasimli|acil_durum)');
+          continue;
+        }
+
+        let varlik: EslesenVarlik | null = null;
+        if (tel.assetKey) {
+          const eslesme = varliklar.get(tel.assetKey);
+          if (!eslesme) { defter.ekle(i, 'assetKey', 'bu anahtarla eslesen varlik yok'); continue; }
+          if (eslesme === 'belirsiz') {
+            defter.ekle(i, 'assetKey', 'birden cok varliga uyuyor; tekil bir anahtar gonderin');
+            continue;
+          }
+          varlik = eslesme;
+          yazmaIzniZorunlu(kullanici, 'envanter', varlik.tesisId);
+        }
+
+        // Hem hedef hem mevcut santral icin yazma izni sart.
+        yazmaIzniZorunlu(kullanici, 'envanter', tesisId);
+        if (mevcut && mevcut.tesisId !== tesisId) {
+          yazmaIzniZorunlu(kullanici, 'envanter', mevcut.tesisId);
+        }
+
+        cozumler.push({ indeks: i, tel, gozlem, mevcutId: mevcut?.id ?? null, tesisId, varlik });
+      }
+      defter.bitir();
+
       const izler: IzGirdisi[] = [];
       let olusan = 0, guncellenen = 0, atama = 0;
 

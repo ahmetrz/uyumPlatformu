@@ -366,18 +366,8 @@ async function yurut(ic: IcTetik): Promise<ZincirSonucu> {
   const basladi = Date.now();
   const baslangic = new Date();
 
-  // Zincirin kendi koşu satırı: /saglik'te orkestrasyon da görünür.
-  // (Bu satır KİLİT DEĞİLDİR — sadece görünürlük. Kilit yukarıdaki kuyruk +
-  //  motor başına isKos'un kendi çakışma koruması.)
   const zincirHatalari: string[] = [];
   const mesaj = (e: unknown) => (e instanceof Error ? e.message : String(e));
-  let zincirKosusu: { id: string } | null = null;
-  try {
-    zincirKosusu = await db.isKosusu.create({ data: { isAdi: 'entegrasyon_zinciri' } });
-  } catch (e) {
-    // Defter tutulamadıysa bu sessizce geçilmez: sonuçta bildirilir.
-    zincirHatalari.push(`zincir koşu satırı açılamadı: ${mesaj(e)}`);
-  }
 
   const guvenlikOnce = await guvenlikAnligiAl();
 
@@ -427,7 +417,13 @@ async function yurut(ic: IcTetik): Promise<ZincirSonucu> {
   const bitis = new Date();
   const sureMs = Date.now() - basladi;
 
-  if (zincirKosusu) {
+  // Zincirin kendi koşu satırı: /saglik'te orkestrasyon da görünür.
+  // BİTMİŞ olarak yazılır ('calisiyor' satırı hiç açılmaz): bu satır KİLİT
+  // DEĞİL, yalnız görünürlük. Kilit = yukarıdaki süreç içi kuyruk + motor
+  // başına isKos'un kendi çakışma koruması/kirası. Açık satır bırakmadığımız
+  // için süreç ortasında ölse bile asılı 'calisiyor' zincir satırı kalmaz.
+  let zincirKosuId: string | null = null;
+  {
     const notlar = [
       basarisiz.length > 0 ? `başarısız motor: ${basarisiz.join(', ')}` : '',
       otomasyonIhlalleri.length > 0 ? `OTOMASYON İHLALİ: ${otomasyonIhlalleri.join(' | ')}` : '',
@@ -435,18 +431,21 @@ async function yurut(ic: IcTetik): Promise<ZincirSonucu> {
         ? `karşılıksız değişiklik: ${kapsanmayanDegisiklikler.join(' | ')}` : '',
     ].filter(Boolean).join(' — ');
     try {
-      await db.isKosusu.update({ where: { id: zincirKosusu.id }, data: {
+      const satir = await db.isKosusu.create({ data: {
+        isAdi: 'entegrasyon_zinciri',
         durum: basarisiz.length > 0 || otomasyonIhlalleri.length > 0 ? 'basarisiz' : 'basarili',
-        bitis, sureMs, islenen: adimlar.length, uretilen: kosan.length,
+        baslangic, bitis, sureMs, islenen: adimlar.length, uretilen: kosan.length,
         hata: notlar || null,
       } });
+      zincirKosuId = satir.id;
     } catch (e) {
-      zincirHatalari.push(`zincir koşu satırı kapatılamadı: ${mesaj(e)}`);
+      // Defter tutulamadıysa sessizce geçilmez: sonuçta bildirilir.
+      zincirHatalari.push(`zincir koşu satırı yazılamadı: ${mesaj(e)}`);
     }
   }
 
   return {
-    zincirKosuId: zincirKosusu?.id ?? null,
+    zincirKosuId,
     entegrasyonKosuIdleri: ic.kosuIdleri,
     birlestirilenTetik: ic.birlesen,
     baslangic: baslangic.toISOString(),

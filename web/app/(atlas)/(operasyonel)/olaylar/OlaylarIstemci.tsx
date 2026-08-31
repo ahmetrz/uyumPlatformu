@@ -220,15 +220,17 @@ function UretimHucresi({ o }: { o: OlayKaydi }) {
   if (onerilen === 'bilinmiyor') {
     return <BilinmeyenHucre ad="Motor üretim etkisini belirleyemedi" />;
   }
+  /* Satırın kendisi <button>; içine ikinci bir düğme konamaz (iç içe
+     interaktif öge = hydration hatası). Dayanak metni ipucunda ve —
+     kritik bilgi hover'da yaşamadığı için — çekmecede tam hâliyle durur. */
   return (
     <Ipucu genis metin={o.oneri?.dayanaklar.uretimEtkisi ?? ''}>
-      <button type="button" className="acikla"
-        onClick={(e) => e.stopPropagation()}
-        style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--s6)',
-          fontSize: 'var(--t-cell)', color: 'var(--i2)', whiteSpace: 'nowrap' }}>
+      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--s6)',
+        fontSize: 'var(--t-cell)', color: 'var(--i2)', whiteSpace: 'nowrap',
+        borderBottom: '1px dashed var(--hr2)' }}>
         <Im durum="unk" ad="Motor önerisi — doğrulanmadı" />
         {seviyeSozu(onerilen)} · öneri
-      </button>
+      </span>
     </Ipucu>
   );
 }

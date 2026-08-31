@@ -33,8 +33,17 @@ const IsAdiSemasi = z.enum(
   Object.keys(ISLER) as [keyof typeof ISLER, ...(keyof typeof ISLER)[]],
   'Bilinmeyen iş adı');
 
-/** Dört motoru SIRAYLA çalıştırır: önce tazelik ve son tarihler işlenir,
-    gap-to-action bunların çıktısını görür, veri kalitesi en sonda tarar. */
+/** Kayıtlı motorların TAMAMINI sırayla çalıştırır: önce tazelik ve son
+    tarihler işlenir, gap-to-action bunların çıktısını görür, veri kalitesi
+    en sonda tarar.
+
+    NOT — iki farklı sıra vardır ve bu bilinçlidir:
+    · Buradaki sıra ELLE tetiklenen "hepsini çalıştır" düğmesinindir ve
+      ürünün özgün tasarımıdır (veri kalitesi en sonda tam tarama yapar).
+    · Entegrasyondan YENİ VERİ geldiğinde koşan sıra farklıdır ve
+      lib/entegrasyon/zincir.ts içinde yaşar: orada veri kalitesi
+      gap-to-action'dan ÖNCE koşar, çünkü yeni aktarılan kaydın
+      kalitesi bilinmeden ondan aksiyon türetmek yanlış olur. */
 export async function tumIsleriCalistir(): Promise<Sonuc> {
   try {
     await yetkiZorunlu('yonetim', 'yazma');

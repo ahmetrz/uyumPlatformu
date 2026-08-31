@@ -86,10 +86,25 @@ export async function tesisKapsaminiHesapla(tesisId: string, aktorId?: string | 
       ? JSON.parse(JSON.stringify(tesis.profil)) as Record<string, unknown> : null;
     const sonuc = kuralDegerlendir(kural.kosulJson, tesis, profilKaydi);
     if (sonuc.uygulanabilir === null && !mevcut) {
-      // karar verilemiyor: kayıt açma; veri kalitesi bulgusu düş
-      await db.veriKalitesiBulgusu.create({ data: {
-        kural: 'eksik_profil', kaynakTipi: 'Tesis', kaynakId: tesisId,
-        aciklama: `Uygulanabilirlik hesaplanamadı (${kural.ad}): ${sonuc.gerekce}` } });
+      /* Karar verilemiyor: uygulanabilirlik kaydı AÇILMAZ (bilinmeyen bir
+         karar uydurulamaz), veri kalitesi bulgusu düşülür.
+
+         Açık aynı bulgu varsa yenisi üretilmez. Bu kontrol yoktu ve motor
+         her koşuda aynı tesis+kural için yeni satır açıyordu: üç ardışık
+         koşuda bulgu sayısı 4 → 6 → 8 ölçüldü, yani koşu başına sabit
+         artış ve sınırsız büyüme. Entegrasyon zinciri motoru her yeni veri
+         geldiğinde tetiklediği için bu, sağlık ekranındaki açık bulgu
+         listesini kalıcı olarak şişiriyordu.
+         veriKalitesi.ts aynı kalıbı zaten uyguluyor (satır 74-78). */
+      const acikVarMi = await db.veriKalitesiBulgusu.findFirst({
+        where: { kural: 'eksik_profil', kaynakTipi: 'Tesis', kaynakId: tesisId,
+          durum: 'acik' },
+      });
+      if (!acikVarMi) {
+        await db.veriKalitesiBulgusu.create({ data: {
+          kural: 'eksik_profil', kaynakTipi: 'Tesis', kaynakId: tesisId,
+          aciklama: `Uygulanabilirlik hesaplanamadı (${kural.ad}): ${sonuc.gerekce}` } });
+      }
       continue;
     }
     if (sonuc.uygulanabilir === null) continue;

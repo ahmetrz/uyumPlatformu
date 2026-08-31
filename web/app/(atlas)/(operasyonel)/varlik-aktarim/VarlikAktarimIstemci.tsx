@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { Dugme, BosIlk, Alan, type Durum } from '@/components/atlas/temel';
 import { Tablo, type Kolon, type Satir } from '@/components/atlas/tablo';
 import { EkranBasligi, KipDegistir } from '@/components/atlas/ekran';
@@ -90,20 +90,10 @@ export default function VarlikAktarimIstemci({
 }) {
   const { bekliyor, hata, setHata, calistir } = useEylem();
   const [secili, setSecili] = useState<string | null>(null);
-  const [kip, setKip] = useState<Kip>('esleme');
   const [kuyrukAcik, setKuyrukAcik] = useState(false);
-  const [taslak, setTaslak] = useState<Record<string, string>>({});
   const dosyaRef = useRef<HTMLInputElement>(null);
 
   const secilen = aktarimlar.find((a) => a.id === secili) ?? null;
-
-  /* Seçim değişince eşleme taslağı sunucudaki kayıtlı eşlemeden tazelenir —
-     yarım kalmış bir düzenleme başka dosyaya sızmaz. */
-  useEffect(() => {
-    if (!secilen) return;
-    setTaslak({ ...secilen.esleme });
-    setKip(secilen.durum === 'eslesme' ? 'esleme' : 'onizleme');
-  }, [secilen?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* ── metrikler · dördü de kayıtlardan gelir (02-components §3: en fazla 4) */
   const bekleyenler = aktarimlar.filter(
@@ -201,10 +191,12 @@ export default function VarlikAktarimIstemci({
             </>
           )}
 
+          {/* Çalışma yüzeyi seçili dosyaya bağlı: `key` değişince eşleme
+              taslağı da sıfırlanır — yarım düzenleme başka dosyaya sızmaz. */}
           {secilen && (
             <CalismaYuzeyi
-              a={secilen} alanlar={alanlar} kip={kip} setKip={setKip}
-              taslak={taslak} setTaslak={setTaslak}
+              key={secilen.id}
+              a={secilen} alanlar={alanlar}
               bekliyor={bekliyor} calistir={calistir}
               onizlemeButcesi={onizlemeButcesi} tanimliKodlar={tanimliKodlar}
             />
@@ -227,15 +219,18 @@ export default function VarlikAktarimIstemci({
    açılmaz (06 §B4) — canvas'ın ikinci modülüdür. */
 
 function CalismaYuzeyi({
-  a, alanlar, kip, setKip, taslak, setTaslak, bekliyor, calistir,
-  onizlemeButcesi, tanimliKodlar,
+  a, alanlar, bekliyor, calistir, onizlemeButcesi, tanimliKodlar,
 }: {
-  a: Aktarim; alanlar: AlanSecenegi[]; kip: Kip; setKip: (k: Kip) => void;
-  taslak: Record<string, string>; setTaslak: (e: Record<string, string>) => void;
+  a: Aktarim; alanlar: AlanSecenegi[];
   bekliyor: boolean; calistir: ReturnType<typeof useEylem>['calistir'];
   onizlemeButcesi: number;
   tanimliKodlar: { tur: string[]; tesis: string[]; sistem: string[]; bolge: string[] };
 }) {
+  // Eşleme taslağı sunucudaki kayıtlı eşlemeden başlar; kullanıcı onaylayana
+  // kadar (kaydet düğmesi) hiçbir satır doğrulanmaz.
+  const [taslak, setTaslak] = useState<Record<string, string>>(() => ({ ...a.esleme }));
+  const [kip, setKip] = useState<Kip>(a.durum === 'eslesme' ? 'esleme' : 'onizleme');
+
   const kipler: { id: Kip; ad: string }[] = [
     { id: 'esleme', ad: 'Kolon eşleme' },
     { id: 'onizleme', ad: `Önizleme ${a.gecerli}` },
@@ -255,6 +250,7 @@ function CalismaYuzeyi({
           <EslemeTablosu
             a={a} alanlar={alanlar} taslak={taslak} setTaslak={setTaslak}
             bekliyor={bekliyor} calistir={calistir} tanimliKodlar={tanimliKodlar}
+            dogrulandi={() => setKip('onizleme')}
           />
         )}
         {kip === 'onizleme' && <Onizleme a={a} butce={onizlemeButcesi} />}
@@ -271,12 +267,13 @@ function CalismaYuzeyi({
    satır doğrulanmaz. */
 
 function EslemeTablosu({
-  a, alanlar, taslak, setTaslak, bekliyor, calistir, tanimliKodlar,
+  a, alanlar, taslak, setTaslak, bekliyor, calistir, tanimliKodlar, dogrulandi,
 }: {
   a: Aktarim; alanlar: AlanSecenegi[];
   taslak: Record<string, string>; setTaslak: (e: Record<string, string>) => void;
   bekliyor: boolean; calistir: ReturnType<typeof useEylem>['calistir'];
   tanimliKodlar: { tur: string[]; tesis: string[]; sistem: string[]; bolge: string[] };
+  dogrulandi: () => void;
 }) {
   const kilitli = a.durum === 'onaylandi' || a.durum === 'reddedildi' || !a.duzenlenebilir;
   const secilenler = Object.values(taslak).filter(Boolean);
@@ -325,7 +322,8 @@ function EslemeTablosu({
       {!kilitli && (
         <div style={{ marginTop: 'var(--s18)' }}>
           <Dugme tur="birincil" disabled={bekliyor || !etiketVar || cift.length > 0}
-            onClick={() => calistir(() => varlikAktarimEsle({ id: a.id, esleme: taslak }))}>
+            onClick={() => calistir(
+              () => varlikAktarimEsle({ id: a.id, esleme: taslak }), dogrulandi)}>
             {bekliyor ? 'Doğrulanıyor…' : 'Eşlemeyi kaydet ve doğrula'}
           </Dugme>
         </div>

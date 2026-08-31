@@ -62,11 +62,12 @@ export function EtkiDogrulama({
     () => { setGeriAlinan(null); setGerekce(''); },
   );
 
-  /* Doğrulanacak alan kalmadıysa da blok görünür: doğrulanmış alanların
-     geri alınabildiği tek yer burasıdır. */
-  const acilabilir: EtkiAlani[] = bekleyen.length > 0
-    ? bekleyen
-    : (Object.keys(SEVIYE_KUMESI) as EtkiAlani[]).filter((a) => olay.etki[a] === null);
+  /* Doldurulmamış HER alan açılabilir: motor "bilinmiyor" dediği için insanın
+     değerlendirme yapamaması saçma olurdu. Motorun bir şey önerdiği alanlar
+     (bekleyen) öne çıkar; kalanlar ikincil kalır. */
+  const acilabilir = (Object.keys(SEVIYE_KUMESI) as EtkiAlani[])
+    .filter((a) => olay.etki[a] === null)
+    .sort((a, b) => Number(bekleyen.includes(b)) - Number(bekleyen.includes(a)));
 
   return (
     <div className="cekmece-blok" style={{ marginTop: 'var(--s26)' }}>
@@ -80,8 +81,9 @@ export function EtkiDogrulama({
             </p>
           ) : (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--s8)' }}>
-              {acilabilir.map((a) => (
-                <Dugme key={a} tur={bekleyen.includes(a) ? 'cekmece' : 'ikincil'}
+              {/* Çekmecede TEK birincil eylem: sırada bekleyen ilk öneri. */}
+              {acilabilir.map((a, i) => (
+                <Dugme key={a} tur={i === 0 && bekleyen.includes(a) ? 'cekmece' : 'ikincil'}
                   onClick={() => ac(a)}>
                   {ETKI_ALAN_ETIKET[a]} doğrula
                 </Dugme>

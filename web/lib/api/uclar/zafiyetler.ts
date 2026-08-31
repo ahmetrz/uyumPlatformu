@@ -18,32 +18,32 @@ import {
 export const POST = apiUcu({ modul: 'envanter', islem: 'yazma' }, async ({ govde, kullanici }) => {
   const { records } = dogrula(zarf(zafiyetKaydiSemasi), govde);
   const hamlar = hamKayitlar(govde);
-  const defter = new HataDefteri();
-
-  const varliklar = await varlikAnahtarlariniCoz(records.map((r) => r.assetKey));
-  const cozumler: {
-    indeks: number; gozlem: ReturnType<typeof zafiyetGozlemine>; varlik: EslesenVarlik;
-  }[] = [];
-
-  for (const [i, tel] of records.entries()) {
-    const gozlem = zafiyetGozlemine(tel, hamlar[i] ?? tel);
-    const eslesme = varliklar.get(tel.assetKey);
-    if (!eslesme) {
-      defter.ekle(i, 'assetKey', 'bu anahtarla eslesen varlik yok (once /assets/upsert)');
-      continue;
-    }
-    if (eslesme === 'belirsiz') {
-      defter.ekle(i, 'assetKey', 'birden cok varliga uyuyor; tekil bir anahtar gonderin');
-      continue;
-    }
-    yazmaIzniZorunlu(kullanici, 'envanter', eslesme.tesisId);
-    cozumler.push({ indeks: i, gozlem, varlik: eslesme });
-  }
-  defter.bitir();
-
   const { sonuc, kosuId } = await kosuIcinde(
     records.map((r) => r.source),
     async (kosuId) => {
+      const defter = new HataDefteri();
+
+      const varliklar = await varlikAnahtarlariniCoz(records.map((r) => r.assetKey));
+      const cozumler: {
+        indeks: number; gozlem: ReturnType<typeof zafiyetGozlemine>; varlik: EslesenVarlik;
+      }[] = [];
+
+      for (const [i, tel] of records.entries()) {
+        const gozlem = zafiyetGozlemine(tel, hamlar[i] ?? tel);
+        const eslesme = varliklar.get(tel.assetKey);
+        if (!eslesme) {
+          defter.ekle(i, 'assetKey', 'bu anahtarla eslesen varlik yok (once /assets/upsert)');
+          continue;
+        }
+        if (eslesme === 'belirsiz') {
+          defter.ekle(i, 'assetKey', 'birden cok varliga uyuyor; tekil bir anahtar gonderin');
+          continue;
+        }
+        yazmaIzniZorunlu(kullanici, 'envanter', eslesme.tesisId);
+        cozumler.push({ indeks: i, gozlem, varlik: eslesme });
+      }
+      defter.bitir();
+
       const izler: IzGirdisi[] = [];
       let olusan = 0, tazelenen = 0;
 

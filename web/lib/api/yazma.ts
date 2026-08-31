@@ -66,21 +66,39 @@ export async function kosuAc(kaynak: string): Promise<string> {
   return kosu.id;
 }
 
+/**
+ * `hata` yalnizca GERCEK basarisizlik tasir (beklenmeyen ic hata). Reddedilen
+ * kayit / kapsam ihlali bir kurulum-veri sorunudur, sistem arizasi degil:
+ * o `ayrinti` alanina yazilir ki saglik ekrani ikisini ayni renge boyamasin.
+ */
 export async function kosuKapat(
   kosuId: string,
   durum: 'basarili' | 'basarisiz',
   ozet: KosuOzeti,
   basla: number,
-  hata?: string | null,
+  not: { hata?: string | null; ayrinti?: string | null } = {},
 ): Promise<void> {
   await db.entegrasyonKosusu.update({
     where: { id: kosuId },
     data: {
       durum, bitis: new Date(), sureMs: Date.now() - basla,
       kayitSayisi: ozet.kabulEdilen, ...ozet,
-      hata: hata ? hata.slice(0, 500) : null,
+      hata: not.hata ? not.hata.slice(0, 500) : null,
+      ayrinti: not.ayrinti ? not.ayrinti.slice(0, 500) : null,
     },
   });
+}
+
+/**
+ * Reddedilen kayit sayisi: alan bazli hatalarda defterdeki kayit sayisi,
+ * kapsam ihlalinde ise TUM parti (ya hep ya hic). Sayaclar ayri tutulur;
+ * "alinan" ile "kabul edilen" ayni sey degildir.
+ */
+function reddedilenSayisi(e: unknown, partiBoyu: number): number {
+  if (!(e instanceof ApiHata)) return 0;
+  const kayitlar = (e.ayrinti as { records?: unknown } | undefined)?.records;
+  if (Array.isArray(kayitlar)) return kayitlar.length;
+  return e.kod === 'gecersiz_istek' || e.kod === 'kapsam_disi' ? partiBoyu : 0;
 }
 
 /**
@@ -98,12 +116,14 @@ export async function kosuIcinde<T>(
     await kosuKapat(kosuId, 'basarili', ozet, basla);
     return { sonuc, ozet, kosuId };
   } catch (e) {
-    const reddedilen = e instanceof ApiHata && e.kod === 'gecersiz_istek' ? kaynaklar.length : 0;
+    const mesaj = e instanceof Error ? e.message : String(e);
+    // 4xx = kaynak verisi/kapsami sorunu (ayrinti); baska her sey gercek hata.
+    const istemciSorunu = e instanceof ApiHata && e.kod !== 'ic_hata';
     await kosuKapat(
       kosuId, 'basarisiz',
-      { alinan: kaynaklar.length, kabulEdilen: 0, reddedilen, yinelenen: 0 },
+      { alinan: kaynaklar.length, kabulEdilen: 0, reddedilen: reddedilenSayisi(e, kaynaklar.length), yinelenen: 0 },
       basla,
-      e instanceof Error ? e.message : String(e),
+      istemciSorunu ? { ayrinti: mesaj } : { hata: mesaj },
     );
     throw e;
   }

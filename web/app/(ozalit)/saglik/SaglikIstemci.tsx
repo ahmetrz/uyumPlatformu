@@ -54,6 +54,10 @@ const CONNECTOR_TIP: Record<string, string> = {
   siem: 'SIEM', backup: 'Yedekleme', network_firewall: 'Güvenlik duvarı',
   ot_discovery: 'OT keşfi', manual_import: 'Elle içe aktarım',
 };
+const KIMLIK_TIP: Record<string, string> = {
+  none: 'Kimlik gerekmiyor', api_key: 'API anahtarı', basic: 'Kullanıcı adı / parola',
+  oauth2_client_credentials: 'OAuth2 (client credentials)', certificate: 'İstemci sertifikası',
+};
 const TETIKLEYEN: Record<string, string> = {
   manuel: 'elle', zamanlanmis: 'zamanlanmış', api: 'API',
 };
@@ -358,7 +362,7 @@ export default function SaglikIstemci({ isler, gecmis, kalite, yazabilir, entegr
                       <td className="sag" style={{ whiteSpace: 'nowrap' }}>
                         {s ? <>{s.alinan} <span className="birim">→ {s.kabulEdilen}</span></> : '—'}
                         {s && (
-                          <div style={{ ...NOT_STIL, textAlign: 'right' }}>
+                          <div style={{ ...NOT_STIL, textAlign: 'right', whiteSpace: 'nowrap' }}>
                             <span style={s.reddedilen > 0
                               ? { color: 'var(--uyumsuz-fg)', fontWeight: 600 } : undefined}>
                               {s.reddedilen} red
@@ -369,7 +373,7 @@ export default function SaglikIstemci({ isler, gecmis, kalite, yazabilir, entegr
                       </td>
                       <td className="sag" style={{ whiteSpace: 'nowrap' }}>
                         <span className="mono" style={{ fontSize: 'var(--fs-xs)' }}>{sureFmt(s?.sureMs ?? null)}</span>
-                        {s && <div style={{ ...NOT_STIL, textAlign: 'right' }}>{s.denemeNo}. deneme</div>}
+                        {s && <div style={{ ...NOT_STIL, textAlign: 'right', whiteSpace: 'nowrap' }}>{s.denemeNo}. deneme</div>}
                       </td>
                       <td><TazelikHucresi t={c.tazelik} /></td>
                       <td className="sag">
@@ -531,8 +535,9 @@ export default function SaglikIstemci({ isler, gecmis, kalite, yazabilir, entegr
               </div>
               <div className="band-hucre">
                 <span className="mikro-etiket">Kayıt durumu</span>
-                <div style={{ fontSize: 'var(--fs-sm)' }}>
-                  {etiketle(secilenC.kayitDurumu)} · {secilenC.etkin ? 'etkin' : 'pasif'}
+                <div style={{ fontSize: 'var(--fs-sm)' }}>{etiketle(secilenC.kayitDurumu)}</div>
+                <div style={{ ...NOT_STIL, maxWidth: 'none' }}>
+                  {secilenC.etkin ? 'otomatik koşuya açık' : 'otomatik koşuya kapalı'}
                 </div>
               </div>
               <div className="band-hucre">
@@ -551,16 +556,19 @@ export default function SaglikIstemci({ isler, gecmis, kalite, yazabilir, entegr
               <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-2)',
                 marginBlockStart: 'var(--sp-2)' }}>
                 <TazelikHucresi t={secilenC.tazelik} />
-                <span className="mikro-etiket">{secilenC.tazelik.aciklama}</span>
+                <span style={{ ...NOT_STIL, maxWidth: 'none', marginBlockStart: 0 }}>
+                  {secilenC.tazelik.aciklama}
+                </span>
               </div>
             </div>
 
             <div>
               <span className="mikro-etiket">Kimlik · sır referansı</span>
               <div className="mono" style={{ fontSize: 'var(--fs-sm)', marginBlockStart: 'var(--sp-1)' }}>
-                {etiketle(secilenC.kimlikTipi)} · {secilenC.sirMaskeli}
+                {KIMLIK_TIP[secilenC.kimlikTipi] ?? etiketle(secilenC.kimlikTipi)}
+                {secilenC.kimlikTipi === 'none' ? '' : ` · ${secilenC.sirMaskeli}`}
               </div>
-              <div className="mikro-etiket" style={{ marginBlockStart: 'var(--sp-1)' }}>
+              <div style={{ ...NOT_STIL, maxWidth: 'none' }}>
                 Yalnız sırra giden adres gösterilir. Kimlik bilgisinin kendisi veritabanında
                 tutulmaz, loglanmaz ve bu ekrana hiçbir koşulda gelmez.
               </div>
@@ -587,13 +595,18 @@ export default function SaglikIstemci({ isler, gecmis, kalite, yazabilir, entegr
                   Son koşuda {secilenC.sonKosu.reddedilen} kayıt reddedildi
                   {secilenC.sonKosu.yinelenen > 0 && `, ${secilenC.sonKosu.yinelenen} kayıt yinelenen olarak atlandı`}.
                 </div>
-                <div className="mikro-etiket" style={{ marginBlockStart: 'var(--sp-1)' }}>
-                  {secilenC.sonKosu.reddSebebi ?? 'Sebep koşu kaydına yazılmamış — bu bir kayıt boşluğudur, kayıtlar sessizce yok sayılmış olabilir.'}
+                <div style={{ ...NOT_STIL, maxWidth: 'none' }}>
+                  {secilenC.sonKosu.reddSebebi
+                    ?? 'Sebep koşu kaydına yazılmamış — bu bir kayıt boşluğudur, reddedilen kayıtlar sessizce yok sayılmış olabilir.'}
                 </div>
               </div>
             ) : null}
 
-            {(secilenC.sonKosu?.hata || secilenC.sonHata) && (
+            {/* Ret sebebi zaten yukarıda gösterildiyse aynı metni ikinci kez basma. */}
+            {(() => {
+              const metin = secilenC.sonKosu?.hata ?? secilenC.sonHata;
+              return metin !== null && metin !== undefined && metin !== secilenC.sonKosu?.reddSebebi;
+            })() && (
               <div>
                 <span className="mikro-etiket">Hata</span>
                 <pre className="mono" style={{ whiteSpace: 'pre-wrap', margin: 'var(--sp-2) 0 0',

@@ -1008,6 +1008,9 @@ model AgGeciti {
   kontrolVarligi String? // firewall/diode varlık etiketi
   protokoller   String?
   onaylandi     Boolean @default(false)
+  /// Geçidin conduit kuralına göre en son ne zaman doğrulandığı (O12).
+  /// null = hiç doğrulanmadı; bu SIFIR değil BİLİNMEYEN olarak gösterilir.
+  sonDogrulama  DateTime?
   aciklama      String?
 
   kaynakBolge AgBolgesi @relation("GecitKaynak", fields: [kaynakBolgeId], references: [id])
@@ -1070,6 +1073,10 @@ model Tedarikci {
   ad          String  @unique
   tip         String? // donanim | yazilim | ot_saglayici | hizmet | mssp
   uzaktanErisimVar Boolean @default(false)
+  /// Uzaktan erişimin nasıl yapıldığı: vpn | jump_host | saticiya_ozel | yok
+  uzaktanErisimYontemi String?
+  /// Oturum kaydı alınıyor mu. null = bilinmiyor (izlenmiyor DEĞİL).
+  oturumKaydiVar Boolean?
   kritiklik   String  @default("bilinmiyor")
   silindi     DateTime?
 
@@ -1175,6 +1182,9 @@ model YedeklemePolitikasi {
   siklik    String? // gunluk | haftalik...
   saklamaGun Int?
   hedef     String? // yerel | uzak | immutable
+  rpoSaat   Int?    // kabul edilen veri kaybı penceresi
+  rtoSaat   Int?    // hedeflenen kurtarma süresi
+  haricTutulan String? // kapsam dışı bırakılan kritik sistemler
 
   kosular YedeklemeKosusu[]
 }

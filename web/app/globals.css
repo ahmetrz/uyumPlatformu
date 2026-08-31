@@ -381,14 +381,6 @@ tr:focus-within .sirada-gizli, .satir:focus-within .sirada-gizli { opacity: 1; t
 .kanat { animation: kanat-donus 9s linear infinite; transform-box: fill-box; transform-origin: center; }
 @media (prefers-reduced-motion: reduce) { .akis, .parilti, .kanat { animation: none; } }
 
-/* ===== Kapak sahneleri (kart üst görseli) ===== */
-.kapak { position: relative; display: block; width: 100%; aspect-ratio: 480/200;
-  overflow: hidden; border-bottom: 1px solid var(--border);
-  background: linear-gradient(180deg, var(--glow-b), transparent 70%); }
-.kapak > svg { position: absolute; inset: 0; width: 100%; height: 100%; }
-.kapak-dar { aspect-ratio: 480/150; }
-.hero-sahne { position: relative; overflow: hidden; }
-.hero-sahne > svg { display: block; width: 100%; height: auto; }
 
 /* "Değerlendirilmedi" birinci sınıf durumdur (§55) — gri, kapsam dışından ayrı sınıf */
 .durum-degerlendirilmedi { color: var(--kapsamdisi-fg); background: var(--kapsamdisi-bg); border-color: var(--kapsamdisi-bd); }
@@ -396,62 +388,163 @@ tr:focus-within .sirada-gizli, .satir:focus-within .sirada-gizli { opacity: 1; t
 .seg-degerlendirilmedi { background: var(--kapsamdisi-dot); opacity: .55; }
 .serit-degerlendirilmedi { background: var(--kapsamdisi-dot); }
 
-/* ===== Gerçek fotoğraf kapakları ===== */
+/* ===== Gerçek fotoğraf kapakları — "kontrast tabanı" =====
+   Atölye 2 kazananı (varyant b) + jüri kusur giderimi.
+
+   İlke: fotoğrafa dokunulmaz; okunabilirlik metnin ALTINDAKİ zeminden gelir.
+   Fotoğrafın üç rolü var ve her rolde metin ile fotoğraf AYRIŞTIRILIR:
+     1) Kart kapağı  — kartın en üstünde, üzerinde hiç metin yok → perde yok.
+     2) Fon kapağı   — kapak mutlak konumlu bir sarmalla kartın arkasına
+        seriliyordu; metin fotoğrafın üstüne düşüyordu. Sarmal, kartın üst
+        FOTOĞRAF ŞERİDİNE sabitlenir; içerik şeridin altından başlar.
+     3) Hero         — metrik bandı fotoğrafın altına iner; kontrastını
+        fotoğraftan değil kendi bulanık cam zemininden alır.
+   Eski %92'lik tam kaplama perde kaldırıldı: kapağın üstünde metin
+   olmadığı için okunabilirliğe hiçbir faydası yoktu, yalnız zararı vardı
+   (merkez.webp açık temada bembeyaza dönüyordu). */
+
+:root {
+  /* Ölçüler (renk değil, yerleşim) — fotoğraf şeritlerinin yüksekliği */
+  --foto-serit: clamp(150px, 19vw, 240px);  /* kart fonu → üst şerit */
+  --foto-hero: clamp(200px, 22vw, 300px);   /* hero kartında metinsiz bölge */
+  --foto-mini: 92px;                        /* dar süreç kartı şeridi */
+  --foto-dikis: 44px;                       /* fotoğraf → panel tonal geçişi */
+}
+
+/* ---- Rol 1: kart kapağı (üstte, üzerinde METİN YOK) ---- */
 .kapak { position: relative; display: block; width: 100%; aspect-ratio: 2.4 / 1;
   overflow: hidden; border-bottom: 1px solid var(--border); background: var(--surface-2); }
 .kapak > img { position: absolute; inset: 0; width: 100%; height: 100%;
-  object-fit: cover; display: block; }
-.kapak-cizim { color: var(--text-2); }
-.kapak-cizim > svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  object-fit: cover; display: block;
+  /* Aynı tip birden çok tesiste tekrarlanıyor (6 HES aynı baraj karesi).
+     Kadraj tesis koduna göre kaydırılır: aynı dosya, farklı çerçeve. */
+  transform: scale(var(--kapak-zum, 1));
+  transform-origin: var(--kapak-odak, 50% 50%); }
 
-/* Perde: koyu temada fotoğrafı kimliğe çeker, açık temada yumuşatır.
-   Kart metni perdenin üstünde kaldığı için kontrast her iki temada korunur. */
-.kapak-perde { position: absolute; inset: 0; pointer-events: none;
-  background:
-    linear-gradient(180deg, color-mix(in srgb, var(--bg) 20%, transparent) 0%,
-      color-mix(in srgb, var(--bg) 62%, transparent) 68%,
-      color-mix(in srgb, var(--bg) 92%, transparent) 100%),
-    linear-gradient(90deg, color-mix(in srgb, var(--bg) 45%, transparent), transparent 55%); }
-:root:not([data-theme="light"]) .kapak > img { filter: saturate(.82) brightness(.82) contrast(1.04); }
-:root[data-theme="light"] .kapak > img { filter: saturate(.92) brightness(1.02); }
+/* Fotoğrafı olmayan tipler çizim setine düşer (KapakSec) */
+.kapak-cizim { color: var(--text-2);
+  background: linear-gradient(180deg, var(--glow-b), transparent 70%); }
+.kapak > svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+/* Perde artık "perde" değil: yalnızca fotoğrafın alt kenarını kart yüzeyine
+   diken ince bir dikiş. Jüri "kart görsellerinin alt şeridinde açık renkli
+   solma bandı" dedi → yükseklik %15→%11, karışım %52→%30'a indi; toprak/su
+   hattı kontrastını kaybetmiyor, fotoğrafın %89'u hiç dokunulmadan görünür. */
+.kapak-perde { position: absolute; inset: auto 0 0 0; height: 11%; pointer-events: none;
+  background: linear-gradient(180deg, transparent,
+    color-mix(in srgb, var(--surface) 30%, transparent)); }
+
+/* Tema başına parlaklık/doygunluk DÜŞÜRME kaldırıldı: "gerçek ve çok kaliteli"
+   görünmesi isteniyordu. Kalan tek işlem, WebP sıkıştırmasının yediği bir tık
+   doygunluğun geri verilmesi. Jüri "tema sistemi görsele hiç dokunmuyor" dedi:
+   hero fotoğrafı koyu temada bir tık dizginlenir, açık temada — sayfa zemini
+   parlak olduğu için — bir tık doygunlaştırılır. İkisi de solduran değil,
+   zenginleştiren yönde. */
+.kapak > img { filter: saturate(1.06) contrast(1.03); }
+.hero-foto > img { filter: saturate(1.04) contrast(1.02) brightness(.94); }
+:root[data-theme="light"] .hero-foto > img { filter: saturate(1.14) contrast(1.07); }
 @media (prefers-color-scheme: light) {
-  :root:not([data-theme="dark"]) .kapak > img { filter: saturate(.92) brightness(1.02); }
+  :root:not([data-theme="dark"]) .hero-foto > img { filter: saturate(1.14) contrast(1.07); }
 }
 
-/* Hero fotoğrafı: geniş bant, güçlü perde — üstündeki metrikler okunur kalır */
+/* ---- Rol 2: fon kapağı → tam genişlikte fotoğraf şeridi ----
+   Kaynak: Santral 360 üst kartı, bulgu detayı kartı. Kapak orada
+   `position:absolute; inset:0` bir sarmalın içinde; başlık ve band onun
+   üstünde kalıyordu. Satır içi stili ezip şeride sabitliyoruz; şeridin
+   altındaki her şey opak kart yüzeyinde durur → yazı ile fotoğraf hiç
+   üst üste gelmez, fotoğraf da %100 güçte görünür. */
+.kart:has(> * > .kapak) { padding-top: var(--foto-serit); }
+.kart > *:has(> .kapak) {
+  inset: 0 0 auto !important;                 /* satır içi inset:0'ı ezer */
+  height: var(--foto-serit) !important;
+  opacity: 1 !important;                      /* fon yıkaması kalkar */
+  z-index: 0; }
+.kart > *:has(> .kapak) > .kapak,
+.kart-icerik > *:has(> .kapak) > .kapak {
+  position: absolute; inset: 0; height: 100%; aspect-ratio: auto; }
+.kart:has(> * > .kapak) > *:not(:has(> .kapak)) {
+  position: relative; z-index: 1; background: var(--surface); }
+
+/* Aynı çözüm, dar süreç kartı (genel bakış §02): kapak orada içeriğin
+   arkasına %55 opaklıkla yıkanmıştı ve halka + mini çubuk etiketleri
+   fotoğrafın üstünde okunmaz haldeydi. Şerit, içerik kutusunun üstünde. */
+.kart-icerik:has(> * > .kapak) { padding-top: calc(var(--foto-mini) + var(--sp-5)); }
+.kart-icerik > *:has(> .kapak) {
+  inset: 0 0 auto !important; height: var(--foto-mini) !important;
+  opacity: 1 !important; z-index: 0; border-bottom: 1px solid var(--border); }
+.kart-icerik:has(> * > .kapak) > *:not(:has(> .kapak)) { position: relative; z-index: 1; }
+
+/* ---- Rol 3: hero fotoğrafı (genel bakış, giriş) ---- */
 .hero-foto { position: absolute; inset: 0; display: block; overflow: hidden; }
 .hero-foto > img { position: absolute; inset: 0; width: 100%; height: 100%;
   object-fit: cover; display: block; }
-.hero-perde { position: absolute; inset: 0; pointer-events: none;
-  background:
-    linear-gradient(90deg, var(--bg) 0%, color-mix(in srgb, var(--bg) 88%, transparent) 34%,
-      color-mix(in srgb, var(--bg) 55%, transparent) 62%,
-      color-mix(in srgb, var(--bg) 72%, transparent) 100%),
-    linear-gradient(180deg, color-mix(in srgb, var(--bg) 55%, transparent), transparent 45%,
-      color-mix(in srgb, var(--bg) 80%, transparent)); }
-:root:not([data-theme="light"]) .hero-foto > img { filter: saturate(.78) brightness(.7) contrast(1.06); }
-:root[data-theme="light"] .hero-foto > img { filter: saturate(.9) brightness(1.04); }
-@media (prefers-color-scheme: light) {
-  :root:not([data-theme="dark"]) .hero-foto > img { filter: saturate(.9) brightness(1.04); }
-}
 
-/* ===== Okunabilirlik: fotoğraf/görsel üstündeki metinler =====
-   Metnin altına her zaman bir taban konur; kontrast fotoğrafa bırakılmaz. */
-.kart:has(.hero-foto) .band { position: relative; z-index: 1;
-  background: linear-gradient(180deg,
-    color-mix(in srgb, var(--bg) 78%, transparent),
-    color-mix(in srgb, var(--bg) 58%, transparent) 55%,
-    color-mix(in srgb, var(--bg) 84%, transparent)); }
-.kart:has(.hero-foto) .band-hucre { backdrop-filter: blur(2px); }
+/* Perde yerine hafif vinyet: fotoğrafın ortası hiç karartılmaz, yalnız kenarlar
+   bir tık koyulaşır — giriş ekranında opak kart, kalabalık fotoğraftan ayrışsın.
+   Karışım tema token'ından DEĞİL sabit mürekkepten gelir: `--bg` kullanıldığında
+   açık temada vinyet fotoğrafı beyaza yıkıyor, gökyüzündeki iletim telleri
+   kayboluyordu (jüri kusuru). Mürekkep her iki temada da derinlik katar. */
+.hero-perde { position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(125% 105% at 50% 42%, transparent 0%, transparent 45%,
+    rgba(3, 12, 19, .30) 100%); }
+
+/* Genel bakış hero kartı: üstte METİNSİZ bir FOTOĞRAF ŞERİDİ, altında metrik
+   bandı. Şerit, kartın tamamına yayılan `inset:0` yerine kendi yüksekliğine
+   sabitlenir. İki kazancı var:
+     · Metrik bandının arkasında fotoğraf KALMAZ — okunabilirlik cam perdeye
+       değil, opak kart yüzeyine dayanır (backdrop-filter'a bağımlılık yok).
+     · Şerit gerçekten 1148x300 bir kadraj olur; object-fit kırpması dikeye
+       döner ve object-position kompozisyonu yönetebilir. Kart yüksekliğine
+       yayılmış hâlde kırpma yataya düşüyor, object-position hiç işlemiyordu. */
+.kart:has(> .hero-foto) { padding-top: var(--foto-hero); }
+.kart:has(> .hero-foto) > .hero-foto { inset: 0 0 auto 0; height: var(--foto-hero); }
+/* Kadraj: ana direğin tepesi başlıkla nefes alsın, alt kenarda ufuk çizgisinin
+   sıcak bandı kalsın — bant, panele giden tonal köprünün de kaynağı olur. */
+.kart:has(> .hero-foto) > .hero-foto > img { object-position: 50% 60%; }
+
+/* ===== Okunabilirlik: metrik bandı =====
+   Arkasında fotoğraf olmadığı için zemin doğrudan kart yüzeyi. */
+.kart:has(> .hero-foto) .band { position: relative; z-index: 1;
+  background: var(--surface); }
+
+/* Jüri: "fotoğraf → panel geçişi tek piksellik sert kesme (L 123 → 32),
+   hiç fade yok". Bandın üstüne, fotoğrafın son 44px'ine oturan tonal köprü.
+   Gradyan ağırlığı son üçte birde: fotoğrafın gövdesi solmaz. */
+.kart:has(> .hero-foto) .band::before {
+  content: ''; position: absolute; left: 0; right: 0; bottom: 100%;
+  height: var(--foto-dikis); pointer-events: none;
+  background: linear-gradient(180deg, transparent 0%,
+    color-mix(in srgb, var(--surface) 6%, transparent) 38%,
+    color-mix(in srgb, var(--surface) 26%, transparent) 64%,
+    color-mix(in srgb, var(--surface) 58%, transparent) 84%,
+    color-mix(in srgb, var(--surface) 92%, transparent) 100%); }
+
+/* Jüri: hero ~620px'e çıkıp ısı haritasını katlanmanın altına itiyordu.
+   Beş metrik hücresi 230px eşiğinde iki satıra sarıyordu; eşik düşürülünce
+   bant tek satıra iner ve hero ~450px'e döner. */
+.kart:has(> .hero-foto) .band { grid-template-columns: repeat(auto-fit, minmax(196px, 1fr)); }
+.kart:has(> .hero-foto) .band > .band-hucre { padding: var(--sp-5); }
+
+/* Jüri: bandın küçük büyük-harf etiketleri (UYUM TRENDİ, AÇIK BULGU,
+   GECİKMİŞ AKSİYON, YAKLAŞAN DENETİM) kazananın en zayıf noktasıydı
+   (5,7:1 / 6,5:1). Varyant a'nın güçlü etiket tonu buraya taşındı. */
+.kart:has(> .hero-foto) .band .mikro-etiket { color: var(--text); }
+
+/* Kapağın altındaki kart metni her zaman kendi katmanında */
 .kapak + .kart-icerik, .kapak ~ .kart-icerik { position: relative; z-index: 1; }
 
-/* Mikro etiket: yalnız süs değil, okunması gereken bilgi taşır — kontrast artırıldı */
+/* Mikro etiket: yalnız süs değil, okunması gereken bilgi taşır */
 .mikro-etiket { color: var(--text-2); letter-spacing: .1em; }
 .mikro-etiket.sessiz { color: var(--text-3); }
 .band-hucre .mikro-etiket { color: var(--text-2); }
+/* Not: eski text-shadow yamaları kaldırıldı — hiçbir yazı doğrudan fotoğrafın
+   üstünde durmadığı için kenar ayrıştırmaya gerek kalmadı. */
 
-/* Görsel üstündeki metrik ve etiketlerde hafif gölge — düşük kontrastlı
-   fotoğraf bölgelerinde bile kenarlar ayrışır (koyu temada) */
-:root:not([data-theme="light"]) .kart:has(.hero-foto) .band-hucre,
-:root:not([data-theme="light"]) .kapak ~ .kart-icerik .mikro-etiket {
-  text-shadow: 0 1px 3px color-mix(in srgb, var(--bg) 85%, transparent); }
+/* ===== Jüri: AA altında kalan devralınmış tonlar =====
+   Fotoğrafla ilgisi yok; kullanıcının "bazı yazılar okunaklı değil"
+   şikâyetinin geri kalanı bu üç yerde ölçüldü. */
+/* Arama kutusu placeholder'ı: açık 2,7:1 / koyu 3,7:1 → --text-2 ile 6:1+ */
+.inp::placeholder { color: var(--text-2); opacity: 1; }
+/* Bölüm sıra işareti ("01"): açık temada 3,6:1 → accent-hover her iki temada
+   da accent'ten daha yüksek kontrast verir (açık 6,7:1 / koyu 9,9:1). */
+.sahne-baslik .no { color: var(--accent-hover); font-weight: 600; }

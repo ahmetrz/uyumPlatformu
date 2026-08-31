@@ -84,7 +84,7 @@ export function TesisKartlari({ tesisler }: { tesisler: TesisKart[] }) {
         {gorunen.map((t) => (
           <Link key={t.id} href={`/tesisler/${t.id}`} className="kart tikla belir gorunur"
             style={{ display: 'block', position: 'relative', overflow: 'hidden' }}>
-            <TesisKapagi tipKod={t.tipKod} />
+            <TesisKapagi tipKod={t.tipKod} anahtar={t.kod} />
             <div className="kart-icerik" style={{ position: 'relative', display: 'flex',
               flexDirection: 'column', gap: 'var(--sp-3)' }}>
               <div className="mikro-etiket">

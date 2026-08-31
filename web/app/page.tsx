@@ -187,7 +187,9 @@ export default async function GenelBakis() {
                           maxWidth: 210, overflow: 'hidden', textOverflow: 'ellipsis',
                           whiteSpace: 'nowrap', fontFamily: 'var(--font-ui)',
                           fontSize: 'var(--fs-sm)', fontWeight: 500 }}>{tesis.ad}</Link>
-                        <span className="mono" style={{ color: 'var(--text-3)',
+                        {/* İkincil kod satırı --text-3 ile AA altındaydı
+                            (açık 4,2:1 / koyu 4,3:1) — bir kademe yukarı. */}
+                        <span className="mono" style={{ color: 'var(--text-2)',
                           fontSize: 'var(--fs-micro)' }}>{tesis.kod}</span>
                       </th>
                       {aktifSurecler.map((surec) => {

@@ -34,11 +34,15 @@
   --grid-line: rgba(150, 200, 240, .09);
   --scrim: rgba(2, 10, 16, .76);
 
-  /* — Durum semantiği — renk = durum — */
+  /* — Durum semantiği — renk = durum —
+     `incelemede` nötr bir durumdur: koyu temada eski #A9C4D8 tonu kartın
+     EN parlak öğesiydi ve metrede yeşil-turuncu-kırmızı dizisinin devamı
+     gibi okunuyordu (atölye jürisi). Nötr tona çekildi; açık temadaki
+     karşılığı (#514D45) zaten doğru davranıyordu. — */
   --uyumlu-fg: #77E0B4;     --uyumlu-bg: #06251C;     --uyumlu-bd: #12483A;     --uyumlu-dot: #3FC98F;
   --kismi-fg: #FFB870;      --kismi-bg: #2A1808;      --kismi-bd: #523114;      --kismi-dot: #F0842B;
   --uyumsuz-fg: #FF8B80;    --uyumsuz-bg: #2A1315;    --uyumsuz-bd: #4E2124;    --uyumsuz-dot: #F0555C;
-  --incelemede-fg: #D7E5EF; --incelemede-bg: #0A2131; --incelemede-bd: #1C4258; --incelemede-dot: #A9C4D8;
+  --incelemede-fg: #D7E5EF; --incelemede-bg: #0A2131; --incelemede-bd: #1C4258; --incelemede-dot: #7E97AA;
   --kapsamdisi-fg: #7C93A4; --kapsamdisi-bg: #08202E; --kapsamdisi-bd: #14364A; --kapsamdisi-dot: #5E7789;
 
   /* — Grafik — durum renklerini çalmaz — */

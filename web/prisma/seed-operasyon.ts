@@ -217,8 +217,14 @@ export async function operasyonVerisi(db: PrismaClient) {
         /* Oranlar iyi işletilen bir tesise göre ayarlıdır: filoyu kırmızıya
            boyamak ekranı okunmaz yapar ve "sağlıklı kayıtlar toplanır"
            sözleşmesini bozar. ~%3,5 desteksiz, ~%7 bir yıl içinde bitiyor. */
-        const eski = r < 0.035;
-        const yasli = r >= 0.035 && r < 0.105;
+        /* Ömür ekranında kritik satırlar ASLA kuyruğa toplanmaz; oran
+           yükseldiğinde tablo 14 satırlık bir kırmızı duvara dönüyor ve
+           5–9 görünür satır bütçesi aşılıyor. İyi işletilen bir filoda
+           destek dışı varlık ~%1,5'tir. */
+        const eski = r < 0.015;
+        const yasli = r >= 0.015 && r < 0.045;
+        // Ömür tarihi hiç kaydedilmemiş varlıklar — gerçek veri kalitesi açığı.
+        const tarihsiz = r >= 0.045 && r < 0.075;
         const izlemeYok = bolgeTipi === 'ot' && r > 0.92;
         const olusan = await db.varlik.create({
           data: {
@@ -237,8 +243,19 @@ export async function operasyonVerisi(db: PrismaClient) {
             kurulumTarihi: gun(-Math.floor(1200 + rnd() * 3200)),
             destekBitis: eski ? gun(-Math.floor(30 + rnd() * 700))
               : yasli ? gun(Math.floor(20 + rnd() * 340)) : gun(Math.floor(400 + rnd() * 1800)),
-            eolTarihi: eski ? gun(-Math.floor(60 + rnd() * 800)) : yasli ? gun(Math.floor(20 + rnd() * 340)) : null,
-            eosTarihi: eski ? gun(-Math.floor(20 + rnd() * 700)) : yasli ? gun(Math.floor(40 + rnd() * 360)) : null,
+            /* Üretici ömür tarihini yayımlar; kayıtta bulunmaması bir VERİ
+               AÇIĞIDIR, normal hâl değil. Bu yüzden tarih varlığın kendi
+               yaşından türetilir ve yalnız birkaç kayıt bilerek boş kalır
+               (yeni devralınan sahalar) — envanterin yarısını "tarih eksik"
+               göstermek ekranı da bulguyu da anlamsız kılıyordu. */
+            eolTarihi: tarihsiz ? null
+              : eski ? gun(-Math.floor(60 + rnd() * 800))
+              : yasli ? gun(Math.floor(20 + rnd() * 340))
+              : gun(Math.floor(500 + rnd() * 2200)),
+            eosTarihi: tarihsiz ? null
+              : eski ? gun(-Math.floor(20 + rnd() * 700))
+              : yasli ? gun(Math.floor(40 + rnd() * 360))
+              : gun(Math.floor(600 + rnd() * 2400)),
             yamaDurumu: eski ? 'yamasiz' : yasli ? 'eksik' : rnd() > 0.94 ? 'bilinmiyor' : 'guncel',
             yedekDurumu: bolgeTipi === 'ot' && rnd() > 0.9 ? 'bilinmiyor' : rnd() > 0.07 ? 'var' : 'yok',
             izlemeDurumu: izlemeYok ? 'bilinmiyor' : rnd() > 0.06 ? 'var' : 'yok',
@@ -290,11 +307,23 @@ export async function operasyonVerisi(db: PrismaClient) {
 
   /* Varlık → yazılım kurulumları. EOL'ü geçmiş yazılım, üstünde çalıştığı
      varlığı da riskli kılar; O13'ün "hangi ürün" sütunu buradan gelir. */
+  /* Süresi dolmuş ürünler kataloğun %37'si; bunu envantere düz dağıtmak
+     varlıkların yarısını desteksiz gösteriyordu. Gerçek bir filoda eski
+     sürüm azınlıktadır ve zaten eskimiş donanımla birlikte gelir. */
+  const gecmisEos = yazilimAnahtarlari.filter((a) => {
+    const t = yazilimTanim.find(([ad, , surum]) => `${ad} ${surum}` === a);
+    return t && t[4] != null && t[4] < 0;
+  });
+  const guncelEos = yazilimAnahtarlari.filter((a) => !gecmisEos.includes(a));
   for (const v of varliklar) {
     const adet = rnd() > 0.55 ? 2 : 1;
     const secilenler = new Set<string>();
+    // Varlıkların ~%8'i eski sürüm taşır; kalanı güncel havuzdan seçilir.
+    const eskiSurum = rnd() < 0.08;
     for (let i = 0; i < adet; i++) {
-      secilenler.add(yazilimAnahtarlari[Math.floor(rnd() * yazilimAnahtarlari.length)]);
+      const havuz = eskiSurum && i === 0 ? gecmisEos : guncelEos;
+      if (!havuz.length) continue;
+      secilenler.add(havuz[Math.floor(rnd() * havuz.length)]);
     }
     for (const anahtar of secilenler) {
       await db.varlikYazilimi.create({

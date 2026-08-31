@@ -223,7 +223,8 @@ export async function denetimVeProje(db: PrismaClient) {
       { madde: 'EPDK-SYM-6.1.2' }, { madde: 'EPDK-SYM-4.2.2' }, { risk: 'RSK-2026-001' },
     ]],
     ['PRJ-EOS-YENILEME', [
-      { madde: 'EPDK-SYM-4.1.1' }, { risk: 'RSK-2026-001' }, { tesis: 'KIZILDERE-3' },
+      { madde: 'EPDK-SYM-4.1.1' }, { madde: 'EPDK-SYM-6.2.1' },
+      { risk: 'RSK-2026-001' }, { risk: 'RSK-2026-007' }, { tesis: 'KIZILDERE-3' },
     ]],
     ['PRJ-ENVANTER', [
       { madde: 'EPDK-SYM-4.1.1' }, { madde: 'EPDK-SYM-4.1.2' }, { risk: 'RSK-2026-004' },

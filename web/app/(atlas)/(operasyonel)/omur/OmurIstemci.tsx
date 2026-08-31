@@ -8,7 +8,6 @@ import {
   Cekmece, CekmeceKimlik, CekmeceAlanlar, CekmeceBagli, CekmeceEylemler,
 } from '@/components/atlas/cekmece';
 import { OmurUfku } from '@/components/atlas/zaman';
-import serit from './serit.module.css';
 import { tarihTR } from '@/lib/sabitler';
 import {
   aciliyetSirasi, ayYil, buyuk, donemler, geriMetni, grupla, GRUPLAR, kisaEtiket,
@@ -26,9 +25,6 @@ const GORUNUR_BUTCE = 9;
 
 /** Zaman çizelgesinde aynı anda en fazla 4 kart (03-screens O13). */
 const KART_BUTCESI = 4;
-
-/** `.omur-serit` ekseninin şerit içindeki konumu (components/atlas/zaman.tsx). */
-const EKSEN_UST = 93;
 
 const KOLONLAR: Kolon[] = [
   { genislik: '150px', ikincil: true },  // santral — çekmece açıkken düşer
@@ -199,23 +195,12 @@ export default function OmurIstemci({
               prefers-reduced-motion altında atlas.css süreyi 1ms'e indirir. */}
           <div
             key={gruplama}
-            className={serit.serit}
             style={{ position: 'relative', animation: 'blok-gir var(--mo-reveal) var(--ez)' }}
           >
-            <OmurUfku kartlar={kartlar} tikla={(id) => setSecili((o) => (o === id ? null : id))} />
-            {/* Dönem tırnakları eksenin ÜSTÜNDE ayrı şerittedir — kartlarla
-                asla aynı laneyi paylaşmaz (02-components §14). */}
-            <div aria-hidden style={{ position: 'absolute', left: 0, right: 0,
-              top: EKSEN_UST - 20, height: 14, pointerEvents: 'none' }}>
-              {eksen.map((d) => (
-                <span key={d.ad} className="t-caption" style={{ position: 'absolute',
-                  left: `min(${d.konum * 100}%, calc(100% - 56px))`, color: 'var(--i3)' }}>
-                  {d.ad}
-                </span>
-              ))}
-              <span style={{ position: 'absolute', left: 0, top: 14, width: 2, height: 13,
-                background: 'var(--jes)' }} />
-            </div>
+            {/* Dönem tırnakları artık primitifin içinde: ekranın eksenin piksel
+                konumuna göre kendi katmanını bindirmesi kırılgandı. */}
+            <OmurUfku kartlar={kartlar} donemler={eksen}
+              tikla={(id) => setSecili((o) => (o === id ? null : id))} />
           </div>
 
           <div style={{ marginTop: 'var(--s26)' }}>

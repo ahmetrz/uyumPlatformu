@@ -1,5 +1,6 @@
 'use client';
 import type { CSSProperties, ReactNode } from 'react';
+import Link from 'next/link';
 import { Im, Ok, type Durum } from './temel';
 
 /* Tablolar — 02-components §5, §6, §7.
@@ -153,12 +154,20 @@ export function Tablo({
    Hücrelerde YALNIZ StatusMarker bulunur — asla metin. Satırın en kötü
    hücresi bir kademe büyük ve haleli. Sakin satırlar %58 opaklıkta. */
 
+/** Sütun başlığı: düz metin ya da bir rotaya açılan başlık (03-screens O1:
+    sütun başlığına tıklayınca çerçeve detayı o ailede açılır). */
+export type MatrisKolonu = { ad: string; yol?: string };
+
 export type MatrisSatiri = {
   id: string;
   ad: string;
   alt: string;
-  hucreler: { durum: Durum; ipucu: string }[];
+  /** durum null → hücre BOŞ kalır: kapsam dışı, "bilinmeyen" DEĞİLDİR. */
+  hucreler: { durum: Durum | null; ipucu: string }[];
   sakin?: boolean;
+  /** satır etiketinin hedefi — verilirse etiket kayıt ekranına götürür,
+      hücre tıklaması çekmeceyi açmaya devam eder (03-screens O1). */
+  yol?: string;
 };
 
 export function Matris({
@@ -168,7 +177,7 @@ export function Matris({
   sec,
   dipNot,
 }: {
-  kolonBasliklari: string[];
+  kolonBasliklari: (string | MatrisKolonu)[];
   satirlar: MatrisSatiri[];
   secili?: string | null;
   sec?: (satirId: string, kolon: number) => void;
@@ -183,14 +192,21 @@ export function Matris({
     }
     return -1;
   };
+  const kolon = (b: string | MatrisKolonu): MatrisKolonu =>
+    (typeof b === 'string' ? { ad: b } : b);
 
   return (
     <div className="mtx" style={stil} role="table">
       <div className="mtx-bas" role="row">
         <span className="t-colhead">Santral</span>
-        {kolonBasliklari.map((b) => (
-          <span key={b} className="t-colhead bslk">{b}</span>
-        ))}
+        {kolonBasliklari.map((b) => {
+          const k = kolon(b);
+          return (
+            <span key={k.ad} className="t-colhead bslk">
+              {k.yol ? <Link href={k.yol}>{k.ad}</Link> : k.ad}
+            </span>
+          );
+        })}
       </div>
 
       {satirlar.map((s) => {
@@ -200,17 +216,27 @@ export function Matris({
             className={`mtx-satir${s.sakin ? ' sakin' : ''}`}
             aria-selected={secili === s.id}
             style={{ display: 'grid' }}>
-            <button type="button" style={{ background: 'none', border: 0, textAlign: 'left',
-              font: 'inherit', color: 'inherit', cursor: 'pointer', padding: 0 }}
-              onClick={() => sec?.(s.id, 0)}>
-              <span className="mtx-ad">{s.ad}</span>
-              <span className="mtx-alt">{s.alt}</span>
-            </button>
+            {s.yol ? (
+              <Link href={s.yol} style={{ minWidth: 0 }}>
+                <span className="mtx-ad">{s.ad}</span>
+                <span className="mtx-alt">{s.alt}</span>
+              </Link>
+            ) : (
+              <button type="button" style={{ background: 'none', border: 0, textAlign: 'left',
+                font: 'inherit', color: 'inherit', cursor: 'pointer', padding: 0 }}
+                onClick={() => sec?.(s.id, 0)}>
+                <span className="mtx-ad">{s.ad}</span>
+                <span className="mtx-alt">{s.alt}</span>
+              </button>
+            )}
             {s.hucreler.map((h, i) => (
               <button key={i} type="button" className="mtx-hucre" title={h.ipucu}
                 onClick={() => sec?.(s.id, i)}
                 style={{ background: 'none', border: 0, cursor: 'pointer', padding: 'var(--s8) 0' }}>
-                <Im durum={h.durum} enKotu={i === kotu} ad={h.ipucu} />
+                {/* Kapsam dışı hücre boş kalır; erişilebilir ad nedeni söyler. */}
+                {h.durum
+                  ? <Im durum={h.durum} enKotu={i === kotu} ad={h.ipucu} />
+                  : <span role="img" aria-label={h.ipucu} />}
               </button>
             ))}
           </div>

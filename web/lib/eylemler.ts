@@ -488,13 +488,19 @@ export async function projeKaydet(girdi: {
 
 export async function projeBaglantiEkle(girdi: {
   projeId: string; maddeId?: string | null; bulguId?: string | null;
+  riskId?: string | null; varlikId?: string | null;
 }): Promise<Sonuc> {
   try {
     await yetkiZorunlu('proje', 'yazma');
-    if (!girdi.maddeId && !girdi.bulguId) return { ok: false, hata: 'Madde veya bulgu seçin' };
+    // Şemada risk ve varlık bağı zaten var; eylem yalnız ikisini yazamıyordu.
+    // Ömür ekranı bir varlığı yenileme projesine bağlayabilmek için buna muhtaç.
+    if (!girdi.maddeId && !girdi.bulguId && !girdi.riskId && !girdi.varlikId)
+      return { ok: false, hata: 'Madde, bulgu, risk ya da varlık seçin' };
     await db.projeBaglantisi.create({ data: {
-      projeId: girdi.projeId, maddeId: girdi.maddeId ?? null, bulguId: girdi.bulguId ?? null } });
-    revalidatePath('/projeler'); revalidatePath('/eslestirme');
+      projeId: girdi.projeId,
+      maddeId: girdi.maddeId ?? null, bulguId: girdi.bulguId ?? null,
+      riskId: girdi.riskId ?? null, varlikId: girdi.varlikId ?? null } });
+    revalidatePath('/projeler'); revalidatePath('/eslestirme'); revalidatePath('/omur');
     return tamam();
   } catch (e) { return hata(e); }
 }

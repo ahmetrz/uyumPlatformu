@@ -423,6 +423,12 @@
   color: var(--i3); }
 
 /* ── 11 · ExpandableRow ──────────────────────────────────────────────── */
+/* op1-04: konu solda; sayaç · işaretçi · şevron sağa yaslı tek grup.
+   Açık aile ▾ ile kapanır (02-components §11). */
+.atlas .gen-satir > summary .adet { margin-left: auto; }
+.atlas .gen-satir > summary .ok { font-size: 0; }
+.atlas .gen-satir > summary .ok::after { content: '▸'; font-size: var(--t-code-lg); }
+.atlas .gen-satir[open] > summary .ok::after { content: '▾'; }
 .atlas .gen-satir > summary { display: flex; align-items: center; gap: var(--s12);
   padding: var(--s18) 0; border-bottom: var(--bw-hair) solid var(--hr);
   cursor: pointer; list-style: none; }.atlas .gen-satir > summary::-webkit-details-marker { display: none; }.atlas .gen-satir > summary .ad { font-size: var(--t-row); font-weight: 600; }.atlas .gen-satir > summary .adet { font-size: var(--t-code-lg); color: var(--i3); }.atlas .gen-satir > summary .ok { margin-left: auto; font-family: var(--mo); color: var(--i3); }.atlas .gen-satir[open] > summary { background: #F8F5EE; }.atlas .gen-satir[open] > summary .ok { color: var(--jes); }.atlas .gen-cocuk { padding-left: 64px; animation: blok-gir var(--mo-reveal) var(--ez); }.atlas .gen-cocuk .satir { display: grid; grid-template-columns: 84px 1fr auto 22px; gap: var(--col-gap);
@@ -511,6 +517,10 @@
   font-variant-numeric: tabular-nums; }.atlas .zaman-kart .kapsam { display: block; margin-top: var(--s6); font-family: var(--mo);
   font-size: var(--t-code); color: var(--i3); }
 /* EOL varyantı: 3px SOL kenar, eksenin altında/üstünde dönüşümlü */
+/* .zaman-kart ve .omur-kart birer <button>: tarayıcının UA stili metni
+   ORTALAR. Tasarımda kart başlığı ve kapsam satırı sola yaslıdır. */
+.atlas .zaman-kart, .atlas .omur-kart { text-align: left; }
+.atlas .zaman-kart .geri, .atlas .omur-kart .geri { margin-left: var(--s10); }
 .atlas .omur-serit { position: relative; height: 186px; }.atlas .omur-kart { position: absolute; width: 196px; background: var(--card);
   border: var(--bw-hair) solid var(--hr2); border-left: var(--bw-edge) solid var(--hr2);
   padding: var(--s12) var(--s14); transition: box-shadow var(--mo-state) var(--ez); }.atlas .omur-kart:hover { box-shadow: var(--sh-lift); }.atlas .omur-kart.gecmis { border-left-color: var(--bd); }.atlas .omur-kart.gelecek { opacity: .8; }

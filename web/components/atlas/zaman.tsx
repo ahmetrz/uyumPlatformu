@@ -58,9 +58,12 @@ export function ZamanCizelgesi({
    geçmiş kartlar kritik renkte, gelecek kartlar %80 opaklıkta. */
 
 export function OmurUfku({
-  kartlar, tikla,
+  kartlar, donemler = [], tikla,
 }: {
   kartlar: (Omit<ZamanKarti, 'durum'> & { gecmis: boolean })[];
+  /* Eksen tırnakları primitifin İÇİNDE yaşar: ekran kendi etiket katmanını
+     eksenin piksel konumuna göre bindirirse yerleşim değişince kayar. */
+  donemler?: { ad: string; konum: number }[];
   tikla?: (id: string) => void;
 }) {
   return (
@@ -87,6 +90,20 @@ export function OmurUfku({
           </span>
         </button>
       ))}
+      {/* Dönem tırnakları eksenin ÜSTÜNDE ayrı şerittedir; kartlarla asla
+          aynı laneyi paylaşmaz (02-components §14). */}
+      {donemler.map((d) => (
+        <span key={d.ad} className="donem"
+          style={{ position: 'absolute', top: 73,
+            left: `min(${d.konum * 100}%, calc(100% - 56px))` }}>
+          {d.ad}
+        </span>
+      ))}
+      {donemler.length > 0 && (
+        <span className="bugun" aria-hidden
+          style={{ position: 'absolute', left: 0, top: 87, width: 2, height: 13,
+            background: 'var(--jes)' }} />
+      )}
     </div>
   );
 }

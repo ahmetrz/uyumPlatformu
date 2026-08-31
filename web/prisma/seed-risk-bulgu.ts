@@ -326,11 +326,14 @@ const BULGULAR: BulguTanim[] = [
     tesisKod: 'SARITEPE-RES', kaynak: 'oz_degerlendirme', tespitGun: -15, hedefGun: 70,
     sorumlu: null, aksiyon: null,
   },
-  /* Doğrulama bekleyenler: aksiyon tamamlandı, etkinliği kanıtlanmadı. */
+  /* Doğrulama bekleyenler: aksiyon TAMAMLANDI, etkinliği kanıtlanmadı.
+     Bunun için ayrı bir Bulgu durumu YOKTUR ve uydurulmaz: bulgu 'aksiyonda'
+     kalır, retestGerekli işaretlenir, doğrulamayı Aksiyon.dogrulamaDurumu
+     taşır. Ekranın "doğrulama bekliyor" metriği bu üçlüden türer. */
   {
     baslik: 'Envanter güncelliği bir aydan eski',
     aciklama: 'Envanter dışa aktarımı otomatikleştirildi; güncellik doğrulanmayı bekliyor.',
-    onem: 'orta', durum: 'dogrulamada', maddeKod: 'EPDK-SYM-4.1.1',
+    onem: 'orta', durum: 'aksiyonda', maddeKod: 'EPDK-SYM-4.1.1',
     tesisKod: 'KIZILDERE-3', kaynak: 'ic_denetim', tespitGun: -120, hedefGun: 8,
     sorumlu: 'ahmet.terzi',
     aksiyon: {
@@ -341,7 +344,7 @@ const BULGULAR: BulguTanim[] = [
   {
     baslik: 'Kritiklik sınıflandırması eksik varlıklar',
     aciklama: 'Sınıflandırma kuralı uygulandı; kalan varlıklar için doğrulama bekleniyor.',
-    onem: 'orta', durum: 'dogrulamada', maddeKod: 'EPDK-SYM-4.1.2',
+    onem: 'orta', durum: 'aksiyonda', maddeKod: 'EPDK-SYM-4.1.2',
     tesisKod: 'KIZILDERE-2', kaynak: 'oz_degerlendirme', tespitGun: -100, hedefGun: 20,
     sorumlu: 'ahmet.terzi',
     aksiyon: {
@@ -352,7 +355,7 @@ const BULGULAR: BulguTanim[] = [
   {
     baslik: 'Uzaktan erişim çok faktörlü doğrulama kapsamı',
     aciklama: 'Kurumsal VPN erişiminde MFA zorunlu hâle getirildi; örnekleme ile doğrulanacak.',
-    onem: 'orta', durum: 'dogrulamada', maddeKod: 'EPDK-SYM-4.2.2',
+    onem: 'orta', durum: 'aksiyonda', maddeKod: 'EPDK-SYM-4.2.2',
     tesisKod: 'MERKEZ-BT', kaynak: 'dis_denetim', tespitGun: -140, hedefGun: 5,
     sorumlu: 'mehmet.kaya',
     aksiyon: {
@@ -393,7 +396,9 @@ export async function riskVeBulgu(db: PrismaClient) {
         maddeDurumuId: durumKaydi.id, baslik: b.baslik, aciklama: b.aciklama,
         onemDerecesi: b.onem, durum: b.durum, kaynak: b.kaynak,
         kokNeden: b.kokNeden ?? null,
-        retestGerekli: b.durum === 'dogrulamada',
+        // Aksiyonu tamamlanmış ama doğrulanmamış bulgu retest bekler.
+        retestGerekli: b.aksiyon?.dogrulama === 'bekliyor'
+          && b.aksiyon?.durum === 'tamamlandi',
         tespitTarihi: gun(b.tespitGun),
         hedefTarih: b.hedefGun == null ? null : gun(b.hedefGun),
         sorumluId: b.sorumlu ? K[b.sorumlu]?.id ?? null : null,
@@ -466,6 +471,31 @@ export async function riskVeBulgu(db: PrismaClient) {
         await db.riskVarlik.create({ data: { riskId: risk.id, varlikId: v.id } })
           .catch(() => undefined);
       }
+    }
+  }
+
+  /* Ömrü dolmuş varlıkları şemsiye riske bağla.
+     Telafi edici kontrol, varlığı kapsayan riskin kontrol maddesinden gelir.
+     Bu bağ olmadan envanterdeki HER eskimiş varlık "telafi yok" görünüyor ve
+     ömür ekranı tümüyle kırmızıya dönüyordu — sert sinyal anlamını yitirir.
+     Üç varlık bilerek bağsız bırakılır: gerçekten telafisi olmayanlar. */
+  const semsiye = await db.risk.findUnique({ where: { kod: 'RSK-2026-007' } });
+  if (semsiye) {
+    const omruDolan = await db.varlik.findMany({
+      where: {
+        silindi: null,
+        OR: [
+          { destekBitis: { lt: new Date() } },
+          { eosTarihi: { lt: gun(365) } },
+        ],
+      },
+      orderBy: { etiket: 'asc' },
+      select: { id: true },
+    });
+    // Son üçü telafisiz kalır (sıralama sabit olduğu için sonuç yeniden üretilebilir).
+    for (const v of omruDolan.slice(0, Math.max(0, omruDolan.length - 3))) {
+      await db.riskVarlik.create({ data: { riskId: semsiye.id, varlikId: v.id } })
+        .catch(() => undefined);
     }
   }
 

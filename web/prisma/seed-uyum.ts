@@ -151,8 +151,14 @@ export async function uyumKatalogu(db: PrismaClient) {
       await db.maddeDurumu.create({
         data: {
           surecId: surec.id, maddeId: madde.id, tesisId: k.tesisId,
-          durum, guven: GUVEN[durum] ?? 'kanit_yok',
-          kanitBayat: durum === 'uyumlu' && maddeKod === 'EPDK-SYM-8.1.2',
+          durum,
+          /* Değişmez: kanıtı bayat olan kayıt 'bayat_kanit' güvenindedir.
+             İkisini ayrı yazmak, kanıt tazelik motorunun kabul testini
+             kırıyordu (tests/motorlar.test.ts) — bayat işaret güven
+             seviyesinde de görünmek zorunda. */
+          ...(durum === 'uyumlu' && maddeKod === 'EPDK-SYM-8.1.2'
+            ? { kanitBayat: true, guven: 'bayat_kanit' }
+            : { kanitBayat: false, guven: GUVEN[durum] ?? 'kanit_yok' }),
           sorumluId: maddeKod.startsWith('EPDK-SYM-6')
             ? K['burak.sahin']?.id ?? null
             : K['selin.aydin']?.id ?? null,

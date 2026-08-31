@@ -1,28 +1,45 @@
+import { Suspense } from 'react';
 import type { Metadata } from 'next';
-import { girisZorunlu } from '@/lib/erisim';
+import { girisZorunlu, izinVar, izinliTesisIdleri } from '@/lib/erisim';
+import { Yetkisiz } from '@/components/atlas/temel';
+import { cerceveleriYukle } from './veri';
+import UyumIstemci from './UyumIstemci';
+import MatrisIskeleti from './MatrisIskeleti';
 
 export const metadata: Metadata = { title: 'Uyum kontrol odası — Atlas' };
 
-/* O1 · Faz 2 iskelesi — içerik Faz 5'te gelecek.
-   Rota şimdiden gezilebilir olmalı (07 §Phase 2 çıkış kriteri). */
+/* O1 · Uyum kontrol odası — "nerede uyumsuzuz?" (03-screens O1)
+
+   Sunucu yalnız veriyi toplar; sunum ve seçim istemcide yaşar. Dört çerçevenin
+   tamamı tek seferde yüklenir (kütük küçük) — böylece çerçeve değiştirici bir
+   rota gidiş-dönüşü değil, anlık bir filtre olur ve statik dışa aktarımda da
+   çalışır.
+
+   `useSearchParams` (derin bağlantı: ?kontrol=…) istemcide okunur; Next bunu
+   en yakın Suspense sınırına kadar istemcide render eder, bu yüzden iskelet
+   GERÇEK santral adlarıyla önden basılır (03-screens O1 · loading). */
 
 export default async function Sayfa() {
-  await girisZorunlu();
+  const kullanici = await girisZorunlu();
+  if (!izinVar(kullanici, 'uyum', 'okuma')) return <Yetkisiz rol="uyum okuma" />;
+
+  const izinli = izinliTesisIdleri(kullanici, 'uyum');
+  const cerceveler = await cerceveleriYukle(izinli);
+  const yazabilir = izinVar(kullanici, 'denetim', 'yazma');
+
+  const ilk = cerceveler.find((c) => c.satirlar.length > 0) ?? cerceveler[0];
+
   return (
-    <main>
-      <header style={{ padding: 'var(--sec-pad-top) var(--gutter-op) 0' }}>
-        <p className="t-eyebrow" style={{ margin: '0 0 var(--s10)' }}>UYUM · TÜM ÇERÇEVELER</p>
-        <h1 className="t-screen" style={{ margin: 0 }}>Uyum kontrol odası</h1>
-      </header>
-      <div style={{ padding: 'var(--s26) var(--gutter-op) var(--sec-pad-bot)' }}>
-        <div style={{ background: 'var(--card)', border: 'var(--bw-strong) solid var(--hr2)',
-          padding: 'var(--s22) var(--s24)', maxWidth: 520 }}>
-          <p className="t-caption" style={{ margin: '0 0 var(--s10)' }}>BOŞ · YAPIM AŞAMASI</p>
-          <p style={{ margin: 0, fontSize: 'var(--t-cell)', color: 'var(--i2)' }}>
-            Bu ekran O1 olarak onaylandı; içeriği Faz 5&apos;te bağlanacak.
-          </p>
-        </div>
-      </div>
-    </main>
+    <Suspense
+      fallback={
+        <MatrisIskeleti
+          eyebrow={ilk ? `${ilk.gorunenAd} · ${ilk.satirlar.length} tesis kapsamda` : 'UYUM'}
+          adlar={ilk?.satirlar.map((s) => ({ ad: s.ad, alt: s.alt })) ?? []}
+          kolonlar={ilk?.aileler.map((a) => a.kisa) ?? []}
+        />
+      }
+    >
+      <UyumIstemci cerceveler={cerceveler} yazabilir={yazabilir} />
+    </Suspense>
   );
 }

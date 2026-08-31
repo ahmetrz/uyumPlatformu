@@ -8,31 +8,40 @@ import {
 } from '@/components/atlas/cekmece';
 import { etiketle, tarihTR, zamanTR } from '@/lib/sabitler';
 import {
+  ApiAnahtarFormu, ApiAnahtarIptal,
   GorevFormu, GorevDurumEylemleri, OnayKarariFormu, TanimEylemleri, TanimFormu,
 } from './Formlar';
 import {
   GORUNUR_BUTCE, KATALOG_ETIKET, UFUK_GUN,
+  anahtarAltSatiri, anahtarBittiMi, anahtarEtkinMi, anahtarImi,
+  anahtarKuyrukEtiketi, anahtarSabit, anahtarSirala, anahtarSozu,
   gecenGun, gecikmisMi, isAcikMi, isAltSatiri, isDurumSozu, isImi, isSabit,
-  isKuyrukEtiketi, isSirala, isTipEtiketi, kalanGun, kaynakYolu, kullanimMetni,
-  silinebilir, tanimAltSatiri, tanimImi, tanimKuyrukEtiketi, tanimSabit,
-  tanimSirala, tanimSozu,
-  type Is, type Katalog, type Kisi, type Kodlu, type Tanim,
+  isKuyrukEtiketi, isSirala, isTipEtiketi, istekMetni, kalanGun, kaynakYolu,
+  kullanimMetni, silinebilir, sonKullanimMetni, tanimAltSatiri, tanimImi,
+  tanimKuyrukEtiketi, tanimSabit, tanimSirala, tanimSozu,
+  type Anahtar, type Is, type Katalog, type Kisi, type Kodlu, type Tanim,
 } from './ortak';
 
-/* M1/M2 · Yönetim tezgâhı — "bugün ne karar bekliyor, katalog doğru mu?"
+/* M1/M2/P1-3 · Yönetim tezgâhı — "bugün ne karar bekliyor, katalog doğru
+   mu, dışarıdan kim girebiliyor?"
 
-   KİP AYRIMI (gerekçe ortak.ts başında ayrıntılı): iki ekran tek canvasta
-   duramazdı, çünkü iş kuyruğu ZAMAN ekseninde, tanım katalogları KULLANIM
-   ekseninde okunur; ortak bir öncelik sayısı yok ve 4 metriklik bütçe tek
-   şeritte ikisini anlatamaz. Kip içinde ise gerçek birleştirme yapıldı:
-   görev + onay talebi tek tabloda, beş katalog tek tabloda.
+   KİP AYRIMI (gerekçe ortak.ts başında ayrıntılı): üç ekran tek canvasta
+   duramazdı, çünkü iş kuyruğu ZAMAN, tanım katalogları KULLANIM, API
+   anahtarları ERİŞİM ekseninde okunur; ortak bir öncelik sayısı yok ve
+   4 metriklik bütçe tek şeritte üçünü anlatamaz. Kip içinde ise gerçek
+   birleştirme yapıldı: görev + onay talebi tek tabloda, beş katalog tek
+   tabloda, anahtarın kimliği/sahipliği/ömrü/trafiği tek tabloda.
+
+   TOKEN SÖZLEŞMESİ: tam API token'ı bu bileşene HİÇ GELMEZ. Yalnız üretim
+   formunun kendi yerel state'inde bir kez yaşar (Formlar.tsx), çekmece
+   kapanınca sökülür. Burada saklanmaz, kip değişiminde taşınmaz.
 
    Yoğunluk sözleşmesi: kip başına 4 metrik, 5–9 görünür satır + toplanan
    kuyruk (kritik satır asla toplanmaz), durum sözcüğü canvasta YAZILMAZ —
    yalnız çekmecenin kimlik bloğunda geçer, kart ızgarası/zebra/pill yok,
    detay modalda değil 420px çekmecede açılır. */
 
-type Kip = 'is' | 'tanim';
+type Kip = 'is' | 'tanim' | 'anahtar';
 
 const IS_KOLONLARI: Kolon[] = [
   { baslik: 'Tür', genislik: '78px' },
@@ -62,39 +71,68 @@ const TANIM_MERCEKLERI = [
   { id: 'devre', ad: 'Devre dışı' },
 ];
 
+/* Anahtar kolonları ERİŞİM sorusunu sırayla yanıtlar: kim adına çalışıyor,
+   ne kadar kullanılmış, en son ne zaman, ne zaman bitiyor. */
+const ANAHTAR_KOLONLARI: Kolon[] = [
+  { baslik: 'Sahip', genislik: '148px' },
+  { baslik: 'İstek', genislik: '78px', sag: true },
+  { baslik: 'Son kullanım', genislik: '112px', sag: true },
+  { baslik: 'Bitiş', genislik: '100px', sag: true, ikincil: true },
+];
+
+const ANAHTAR_MERCEKLERI = [
+  { id: 'etkin', ad: 'Etkin' },
+  { id: 'atil', ad: 'Kullanılmamış' },
+  { id: 'doluyor', ad: 'Süresi doluyor' },
+  { id: 'sonlanmis', ad: 'Sonlanmış' },
+  { id: 'hepsi', ad: 'Tümü' },
+];
+
 export default function TezgahIstemci({
-  aktifId, simdi, isler, tanimlar, kullanicilar, tesisSecenekleri,
+  aktifId, simdi, isler, tanimlar, anahtarlar, kullanicilar, tesisSecenekleri,
   kirilimSecenekleri, sektorSecenekleri,
-  tanimOkuyabilir, isOkuyabilir, tanimYazabilir, tanimOnaylayabilir, gorevAcabilir,
+  tanimOkuyabilir, isOkuyabilir, anahtarOkuyabilir,
+  tanimYazabilir, tanimOnaylayabilir, gorevAcabilir, anahtarYazabilir,
 }: {
   aktifId: string;
   simdi: number;
   isler: Is[];
   tanimlar: Tanim[];
+  anahtarlar: Anahtar[];
   kullanicilar: Kisi[];
   tesisSecenekleri: Kodlu[];
   kirilimSecenekleri: Kodlu[];
   sektorSecenekleri: Kodlu[];
   tanimOkuyabilir: boolean;
   isOkuyabilir: boolean;
+  anahtarOkuyabilir: boolean;
   tanimYazabilir: boolean;
   tanimOnaylayabilir: boolean;
   gorevAcabilir: boolean;
+  anahtarYazabilir: boolean;
 }) {
-  const [kip, setKip] = useState<Kip>(isOkuyabilir ? 'is' : 'tanim');
+  const [kip, setKip] = useState<Kip>(
+    isOkuyabilir ? 'is' : tanimOkuyabilir ? 'tanim' : 'anahtar');
   const [isMercek, setIsMercek] = useState('bekleyen');
   const [tanimMercek, setTanimMercek] = useState('hepsi');
+  const [anahtarMercek, setAnahtarMercek] = useState('etkin');
   const [sorumluF, setSorumluF] = useState<string | null>(null);
   const [tesisF, setTesisF] = useState<string | null>(null);
   const [katalogF, setKatalogF] = useState<string | null>(null);
+  const [sahipF, setSahipF] = useState<string | null>(null);
   const [kuyrukAcik, setKuyrukAcik] = useState(false);
   const [secili, setSecili] = useState<string | null>(null);
   const [duzenleAcik, setDuzenleAcik] = useState(false);
-  const [yeniAcik, setYeniAcik] = useState<null | 'gorev' | 'tanim'>(null);
+  const [yeniAcik, setYeniAcik] = useState<null | 'gorev' | 'tanim' | 'anahtar'>(null);
   const [yeniKatalog, setYeniKatalog] = useState<Katalog>('tesis');
 
   const isKipi = kip === 'is';
+  const tanimKipi = kip === 'tanim';
+  const anahtarKipi = kip === 'anahtar';
 
+  /* Kip değişimi açık çekmeceyi kapatır. Bu yalnız düzen tercihi değil,
+     token sözleşmesinin uygulanmasıdır: üretim formu sökülür ve bir kez
+     gösterilen tam token bellekten gider. */
   function kipeGec(y: Kip) {
     setKip(y);
     setSecili(null);
@@ -119,6 +157,18 @@ export default function TezgahIstemci({
   const bagsizTanim = tanimlar.filter((t) => tanimImi(t) === 'md').length;
   const devreDisiTanim = tanimlar.filter((t) => t.devreDisi).length;
 
+  const etkinAnahtar = useMemo(
+    () => anahtarlar.filter((a) => anahtarEtkinMi(a, simdi)), [anahtarlar, simdi]);
+  const sahibiPasif = etkinAnahtar.filter((a) => !a.sahipAktif).length;
+  const doluyorAnahtar = etkinAnahtar.filter(
+    (a) => anahtarImi(a, simdi) === 'md').length;
+  /* Hiç kullanılmamış etkin anahtar: `sonKullanim` boş. Bu bir BOŞLUK değil
+     ölçülmüş bir olgudur — anahtar duruyor ama kimse kullanmadı, iptal
+     adayıdır. Toplam istek de aynı şekilde gerçek bir COUNT toplamı. */
+  const kullanilmamis = etkinAnahtar.filter((a) => !a.sonKullanim).length;
+  const toplamIstek = anahtarlar.reduce((t, a) => t + a.istekSayisi, 0);
+  const sonlanmisAnahtar = anahtarlar.length - etkinAnahtar.length;
+
   /* ── Mercek + kapsam ───────────────────────────────────────────────── */
 
   const suzulmusIs = useMemo(() => isSirala(isler.filter((i) => {
@@ -139,29 +189,45 @@ export default function TezgahIstemci({
     return true;
   })), [tanimlar, tanimMercek, katalogF]);
 
+  const suzulmusAnahtar = useMemo(() => anahtarSirala(anahtarlar.filter((a) => {
+    const etkin = anahtarEtkinMi(a, simdi);
+    if (anahtarMercek === 'etkin' && !etkin) return false;
+    if (anahtarMercek === 'atil' && !(etkin && !a.sonKullanim)) return false;
+    if (anahtarMercek === 'doluyor' && anahtarImi(a, simdi) !== 'md') return false;
+    if (anahtarMercek === 'sonlanmis' && etkin) return false;
+    if (sahipF && a.sahip.id !== sahipF) return false;
+    return true;
+  }), simdi), [anahtarlar, anahtarMercek, sahipF, simdi]);
+
   /* Sabitlenen satırlar bütçenin DIŞINDADIR ve asla kuyruğa inmez
      (06 §A3); sakin olanlar bütçeyi doldurur, kalanı toplanır. */
+  type Kayit = Is | Tanim | Anahtar;
   const { gorunur, toplanan } = useMemo(() => {
-    const hepsi: (Is | Tanim)[] = isKipi ? suzulmusIs : suzulmusTanim;
-    const sabitMi = (x: Is | Tanim) =>
-      isKipi ? isSabit(x as Is, simdi) : tanimSabit(x as Tanim);
+    const hepsi: Kayit[] = isKipi ? suzulmusIs : tanimKipi ? suzulmusTanim : suzulmusAnahtar;
+    const sabitMi = (x: Kayit) => (isKipi
+      ? isSabit(x as Is, simdi)
+      : tanimKipi ? tanimSabit(x as Tanim) : anahtarSabit(x as Anahtar, simdi));
     const sabit = hepsi.filter(sabitMi);
     const sakin = hepsi.filter((x) => !sabitMi(x));
-    if (kuyrukAcik) return { gorunur: [...sabit, ...sakin], toplanan: [] as (Is | Tanim)[] };
+    if (kuyrukAcik) return { gorunur: [...sabit, ...sakin], toplanan: [] as Kayit[] };
     const slot = Math.max(0, GORUNUR_BUTCE - sabit.length);
     return { gorunur: [...sabit, ...sakin.slice(0, slot)], toplanan: sakin.slice(slot) };
-  }, [isKipi, suzulmusIs, suzulmusTanim, kuyrukAcik, simdi]);
+  }, [isKipi, tanimKipi, suzulmusIs, suzulmusTanim, suzulmusAnahtar, kuyrukAcik, simdi]);
 
   const seciliIs = isKipi ? isler.find((i) => i.id === secili) ?? null : null;
-  const seciliTanim = !isKipi ? tanimlar.find((t) => t.id === secili) ?? null : null;
+  const seciliTanim = tanimKipi ? tanimlar.find((t) => t.id === secili) ?? null : null;
+  const seciliAnahtar = anahtarKipi ? anahtarlar.find((a) => a.id === secili) ?? null : null;
 
   const filtreAktif = isKipi
     ? isMercek !== 'bekleyen' || sorumluF !== null || tesisF !== null
-    : tanimMercek !== 'hepsi' || katalogF !== null;
+    : tanimKipi
+      ? tanimMercek !== 'hepsi' || katalogF !== null
+      : anahtarMercek !== 'etkin' || sahipF !== null;
 
   function temizle() {
     if (isKipi) { setIsMercek('bekleyen'); setSorumluF(null); setTesisF(null); }
-    else { setTanimMercek('hepsi'); setKatalogF(null); }
+    else if (tanimKipi) { setTanimMercek('hepsi'); setKatalogF(null); }
+    else { setAnahtarMercek('etkin'); setSahipF(null); }
     setKuyrukAcik(false);
   }
 
@@ -200,21 +266,51 @@ export default function TezgahIstemci({
         ],
       };
     })
-    : (gorunur as Tanim[]).map((t) => {
-      const im = tanimImi(t);
-      return {
-        id: t.id, durum: im, kenar: im,
-        konu: t.ad,
-        alt: tanimAltSatiri(t),
-        hucreler: [
-          KATALOG_ETIKET[t.katalog],
-          <span key="b" style={t.kullanim === 0 ? { color: 'var(--md)' } : undefined}>
-            {kullanimMetni(t)}
-          </span>,
-          t.not,
-        ],
-      };
-    });
+    : tanimKipi
+      ? (gorunur as Tanim[]).map((t) => {
+        const im = tanimImi(t);
+        return {
+          id: t.id, durum: im, kenar: im,
+          konu: t.ad,
+          alt: tanimAltSatiri(t),
+          hucreler: [
+            KATALOG_ETIKET[t.katalog],
+            <span key="b" style={t.kullanim === 0 ? { color: 'var(--md)' } : undefined}>
+              {kullanimMetni(t)}
+            </span>,
+            t.not,
+          ],
+        };
+      })
+      : (gorunur as Anahtar[]).map((a) => {
+        const im = anahtarImi(a, simdi);
+        const gun = kalanGun(a.bitis, simdi);
+        return {
+          id: a.id, durum: im, kenar: im,
+          konu: a.ad,
+          alt: anahtarAltSatiri(a),
+          hucreler: [
+            <span key="s" style={a.sahipAktif ? undefined : { color: 'var(--bd)' }}>
+              {a.sahip.ad}
+            </span>,
+            /* "0 istek" uydurma değil ölçülmüş sıfırdır (ApiIstegi COUNT'u);
+               yine de sakin bir tonda yazılır, trafiği olan satır öne çıksın. */
+            <span key="i" style={a.istekSayisi === 0 ? { color: 'var(--i3)' } : undefined}>
+              {istekMetni(a)}
+            </span>,
+            <span key="k" style={a.sonKullanim ? undefined : { color: 'var(--i3)' }}>
+              {sonKullanimMetni(a)}
+            </span>,
+            a.bitis
+              ? <span key="b" style={gun !== null && gun <= 0
+                ? { color: 'var(--pl)' }
+                : gun !== null && gun <= UFUK_GUN ? { color: 'var(--md)' } : undefined}>
+                {tarihTR(a.bitis)}
+              </span>
+              : <span key="b" style={{ color: 'var(--i3)' }}>süresiz</span>,
+          ],
+        };
+      });
 
   /* ── Başlık ────────────────────────────────────────────────────────── */
 
@@ -226,15 +322,25 @@ export default function TezgahIstemci({
         : acikIsler.length > 0
           ? { vurgu: `${acikIsler.length} iş`, metin: 'kuyrukta' }
           : { metin: 'Kuyrukta iş yok' }
-    : kirikTanim > 0
-      ? { vurgu: `${kirikTanim} tanım`, metin: 'zinciri kırıyor', durum: 'bd' }
-      : bagsizTanim > 0
-        ? { vurgu: `${bagsizTanim} tanım`, metin: 'hiçbir yere bağlı değil' }
-        : { vurgu: `${tanimlar.length} tanım`, metin: 'katalogda' };
+    : tanimKipi
+      ? kirikTanim > 0
+        ? { vurgu: `${kirikTanim} tanım`, metin: 'zinciri kırıyor', durum: 'bd' }
+        : bagsizTanim > 0
+          ? { vurgu: `${bagsizTanim} tanım`, metin: 'hiçbir yere bağlı değil' }
+          : { vurgu: `${tanimlar.length} tanım`, metin: 'katalogda' }
+      : sahibiPasif > 0
+        ? { vurgu: `${sahibiPasif} anahtar`, metin: 'sahibi pasifken etkin', durum: 'bd' }
+        : doluyorAnahtar > 0
+          ? { vurgu: `${doluyorAnahtar} anahtar`, metin: 'süresi doluyor' }
+          : etkinAnahtar.length > 0
+            ? { vurgu: `${etkinAnahtar.length} anahtar`, metin: 'dış API erişimi taşıyor' }
+            : { metin: 'Etkin API anahtarı yok' };
 
   const kipSecenekleri = [
     ...(isOkuyabilir ? [{ id: 'is', ad: `İş kuyruğu · ${acikIsler.length}` }] : []),
     ...(tanimOkuyabilir ? [{ id: 'tanim', ad: `Tanımlar · ${tanimlar.length}` }] : []),
+    ...(anahtarOkuyabilir
+      ? [{ id: 'anahtar', ad: `API anahtarları · ${etkinAnahtar.length}` }] : []),
   ];
 
   return (
@@ -243,7 +349,9 @@ export default function TezgahIstemci({
         <EkranBasligi
           eyebrow={isKipi
             ? `Yönetim tezgâhı · iş kuyruğu · ${isler.length} kayıt`
-            : `Yönetim tezgâhı · tanım katalogları · ${tanimlar.length} kayıt`}
+            : tanimKipi
+              ? `Yönetim tezgâhı · tanım katalogları · ${tanimlar.length} kayıt`
+              : `Yönetim tezgâhı · API anahtarları · ${anahtarlar.length} kayıt`}
           vurgu={baslik.vurgu}
           vurguDurumu={baslik.durum}
           baslik={baslik.metin}
@@ -253,13 +361,20 @@ export default function TezgahIstemci({
               durum: bekleyenOnay > 0 ? 'md' : undefined },
             { deger: banaAtanan, yazi: 'Bana atanan' },
             { deger: tarihsiz, yazi: 'Son tarihsiz', durum: tarihsiz > 0 ? 'unk' : undefined },
-          ] : [
+          ] : tanimKipi ? [
             { deger: kirikTanim, yazi: 'Zinciri kıran',
               durum: kirikTanim > 0 ? 'bd' : undefined },
             { deger: bagsizTanim, yazi: 'Bağsız', durum: bagsizTanim > 0 ? 'md' : undefined },
             { deger: devreDisiTanim, yazi: 'Devre dışı',
               durum: devreDisiTanim > 0 ? 'pl' : undefined },
             { deger: tanimlar.length, yazi: 'Katalog kaydı' },
+          ] : [
+            { deger: etkinAnahtar.length, yazi: 'Etkin anahtar' },
+            { deger: doluyorAnahtar, yazi: 'Süresi doluyor',
+              durum: doluyorAnahtar > 0 ? 'md' : undefined },
+            { deger: kullanilmamis, yazi: 'Kullanılmamış',
+              durum: kullanilmamis > 0 ? 'pl' : undefined },
+            { deger: toplamIstek, yazi: 'Toplam istek' },
           ]}
         />
 
@@ -272,10 +387,12 @@ export default function TezgahIstemci({
           )}
 
           <Filtreler
-            secenekler={isKipi ? IS_MERCEKLERI : TANIM_MERCEKLERI}
-            aktif={isKipi ? isMercek : tanimMercek}
+            secenekler={isKipi ? IS_MERCEKLERI : tanimKipi ? TANIM_MERCEKLERI : ANAHTAR_MERCEKLERI}
+            aktif={isKipi ? isMercek : tanimKipi ? tanimMercek : anahtarMercek}
             sec={(id) => {
-              if (isKipi) setIsMercek(id); else setTanimMercek(id);
+              if (isKipi) setIsMercek(id);
+              else if (tanimKipi) setTanimMercek(id);
+              else setAnahtarMercek(id);
               setKuyrukAcik(false);
             }}
             kapsam={isKipi ? (
@@ -294,7 +411,7 @@ export default function TezgahIstemci({
                   </button>
                 )}
               </>
-            ) : (
+            ) : tanimKipi ? (
               <>
                 <Kapsam etiket="Katalog" aktif={katalogF}
                   sec={(id) => { setKatalogF(id); setKuyrukAcik(false); }}
@@ -307,6 +424,20 @@ export default function TezgahIstemci({
                   </button>
                 )}
               </>
+            ) : (
+              <>
+                <Kapsam etiket="Sahip" aktif={sahipF}
+                  sec={(id) => { setSahipF(id); setKuyrukAcik(false); }}
+                  secenekler={kullanicilar.map((u) => ({ id: u.id, ad: u.ad }))} />
+                {/* Üretim düğmesi yalnız yonetim/yazma yetkisiyle görünür;
+                    kapı sunucuda da var (yetkiZorunlu('yonetim','yazma')). */}
+                {anahtarYazabilir && (
+                  <button type="button" className="kapsam-dugme"
+                    onClick={() => { setYeniAcik('anahtar'); setSecili(null); }}>
+                    + Yeni anahtar
+                  </button>
+                )}
+              </>
             )}
           />
 
@@ -316,36 +447,45 @@ export default function TezgahIstemci({
                 <BosIlk
                   cumle={isKipi
                     ? 'Kuyrukta bekleyen görev ya da onay talebi yok.'
-                    : 'Tanım kataloglarında kayıt yok.'}
+                    : tanimKipi
+                      ? 'Tanım kataloglarında kayıt yok.'
+                      : 'Dış API için üretilmiş anahtar yok — anahtar seed edilmez, '
+                        + 'bir kişinin bilerek ürettiği kayıttır.'}
                   eylem={isKipi && gorevAcabilir
                     ? <Dugme tur="birincil" onClick={() => setYeniAcik('gorev')}>Görev aç</Dugme>
-                    : !isKipi && tanimYazabilir
+                    : tanimKipi && tanimYazabilir
                       ? <Dugme tur="birincil" onClick={() => setYeniAcik('tanim')}>Tanım ekle</Dugme>
-                      : undefined} />
+                      : anahtarKipi && anahtarYazabilir
+                        ? <Dugme tur="birincil"
+                          onClick={() => setYeniAcik('anahtar')}>Anahtar üret</Dugme>
+                        : undefined} />
               )}
             </div>
           ) : (
             <div style={{ marginTop: 'var(--s22)' }}>
               <Tablo
-                konuBasligi={isKipi ? 'İş' : 'Tanım'}
-                kolonlar={isKipi ? IS_KOLONLARI : TANIM_KOLONLARI}
+                konuBasligi={isKipi ? 'İş' : tanimKipi ? 'Tanım' : 'Anahtar'}
+                kolonlar={isKipi ? IS_KOLONLARI : tanimKipi ? TANIM_KOLONLARI : ANAHTAR_KOLONLARI}
                 satirlar={satirlar}
                 secili={secili}
                 sec={sec}
                 kuyruk={toplanan.length > 0
                   ? { metin: isKipi
                     ? isKuyrukEtiketi(toplanan as Is[])
-                    : tanimKuyrukEtiketi(toplanan as Tanim[]),
+                    : tanimKipi
+                      ? tanimKuyrukEtiketi(toplanan as Tanim[])
+                      : anahtarKuyrukEtiketi(toplanan as Anahtar[], simdi),
                   ac: () => setKuyrukAcik(true) }
                   : null}
                 dipNot={dipNot({
-                  isKipi, gorunur: satirlar.length, tarihsiz,
+                  isKipi, tanimKipi, gorunur: satirlar.length, tarihsiz,
                   kapali: isler.length - acikIsler.length,
                   onayVar: (gorunur as Is[]).some((x) => 'tur' in x && x.tur === 'onay'),
                   devreDisi: devreDisiTanim,
-                  kuyruktaBagsiz: isKipi ? 0
-                    : (toplanan as Tanim[]).filter((t) => tanimImi(t) === 'md').length,
-                  mercek: isKipi ? isMercek : tanimMercek,
+                  kuyruktaBagsiz: tanimKipi
+                    ? (toplanan as Tanim[]).filter((t) => tanimImi(t) === 'md').length : 0,
+                  sahibiPasif, kullanilmamis, sonlanmis: sonlanmisAnahtar,
+                  mercek: isKipi ? isMercek : tanimKipi ? tanimMercek : anahtarMercek,
                 })}
               />
               {kuyrukAcik && (
@@ -388,6 +528,12 @@ export default function TezgahIstemci({
         </Cekmece>
       )}
 
+      {seciliAnahtar && (
+        <Cekmece kod={`${seciliAnahtar.onEk}…`} kapat={() => setSecili(null)}>
+          <AnahtarOzeti anahtar={seciliAnahtar} simdi={simdi} yazabilir={anahtarYazabilir} />
+        </Cekmece>
+      )}
+
       {yeniAcik === 'gorev' && !secili && (
         <Cekmece kod="YENİ GÖREV" kapat={() => setYeniAcik(null)}>
           <div className="cekmece-blok">
@@ -415,6 +561,20 @@ export default function TezgahIstemci({
           </div>
         </Cekmece>
       )}
+
+      {/* Üretim çekmecesi tam token'ı bir kez gösterir ve kapanınca sökülür;
+          token hiçbir üst state'e taşınmaz. */}
+      {yeniAcik === 'anahtar' && !secili && (
+        <Cekmece kod="YENİ ANAHTAR" kapat={() => setYeniAcik(null)}>
+          <div className="cekmece-blok">
+            <p className="t-label" style={{ margin: '0 0 var(--s12)' }}>Yeni API anahtarı</p>
+          </div>
+          <div className="cekmece-blok">
+            <ApiAnahtarFormu kullanicilar={kullanicilar} aktifId={aktifId}
+              kapat={() => setYeniAcik(null)} />
+          </div>
+        </Cekmece>
+      )}
     </>
   );
 }
@@ -424,11 +584,13 @@ export default function TezgahIstemci({
    yazılır, "0 gün gecikme" uydurulmaz (§19). */
 
 function dipNot({
-  isKipi, gorunur, tarihsiz, kapali, onayVar, devreDisi, kuyruktaBagsiz, mercek,
+  isKipi, tanimKipi, gorunur, tarihsiz, kapali, onayVar, devreDisi,
+  kuyruktaBagsiz, sahibiPasif, kullanilmamis, sonlanmis, mercek,
 }: {
-  isKipi: boolean; gorunur: number; tarihsiz: number;
+  isKipi: boolean; tanimKipi: boolean; gorunur: number; tarihsiz: number;
   kapali: number; onayVar: boolean; devreDisi: number;
-  kuyruktaBagsiz: number; mercek: string;
+  kuyruktaBagsiz: number; sahibiPasif: number; kullanilmamis: number;
+  sonlanmis: number; mercek: string;
 }): string {
   const parca = [`${gorunur} satır görünüyor`];
   if (isKipi) {
@@ -438,12 +600,22 @@ function dipNot({
     if (onayVar) parca.push('onay satırında kişi talebi açandır');
     if (tarihsiz > 0) parca.push(`${tarihsiz} görevin son tarihi girilmedi`);
     if (kapali > 0 && mercek === 'bekleyen') parca.push(`${kapali} kapanmış kayıt bu mercekte gizli`);
-  } else {
+  } else if (tanimKipi) {
     parca.push('beş katalog tek listede');
     // Kuyruğa inen bağsız kayıt sayısı canvasta söylenir: bütçe dışında
     // kalan iş, etiketin arkasına saklanmasın.
     if (kuyruktaBagsiz > 0) parca.push(`${kuyruktaBagsiz} bağsız kayıt kuyrukta`);
     if (devreDisi > 0 && mercek !== 'devre') parca.push(`${devreDisi} kayıt devre dışı`);
+  } else {
+    parca.push('sıralama en yeni üretim önce');
+    // Sahibi pasif anahtar canvasta sayıyla söylenir: satırda yalnız
+    // işaretçi var, sayı metrik şeridine sığmıyor.
+    if (sahibiPasif > 0) parca.push(`${sahibiPasif} anahtarın sahibi pasif — istekleri 401 döner`);
+    // "Kullanılmadı" bilinmeyen değil ölçülmüş sıfırdır; sayısı yazılır.
+    if (kullanilmamis > 0) parca.push(`${kullanilmamis} anahtar hiç kullanılmadı`);
+    if (sonlanmis > 0 && mercek === 'etkin') {
+      parca.push(`${sonlanmis} sonlanmış anahtar bu mercekte gizli`);
+    }
   }
   return parca.join(' · ');
 }
@@ -603,7 +775,62 @@ function TanimOzeti({ tanim, yazabilir, onaylayabilir, duzenle }: {
   );
 }
 
-/* ── Kapsam kontrolü (SORUMLU ▾ / SANTRAL ▾ / KATALOG ▾) ─────────────
+/* ── Çekmece · API anahtarı ─────────────────────────────────────────
+   Tam token BURADA DA YOKTUR: kimlik olarak yalnız ön ek yazılır. Anahtar
+   kaybedilirse gösterilecek bir şey kalmaz, yenisi üretilir. */
+
+function AnahtarOzeti({ anahtar, simdi, yazabilir }: {
+  anahtar: Anahtar; simdi: number; yazabilir: boolean;
+}) {
+  const im = anahtarImi(anahtar, simdi);
+  const gun = kalanGun(anahtar.bitis, simdi);
+
+  const cumle = anahtar.iptalZamani
+    ? `${tarihTR(anahtar.iptalZamani)} tarihinde iptal edildi; istekleri 401 döner.`
+    : anahtarBittiMi(anahtar, simdi)
+      ? `Geçerlilik ${tarihTR(anahtar.bitis)} günü doldu; uzatılamaz, yenisi üretilir.`
+      : !anahtar.sahipAktif
+        ? 'Sahibi pasif: anahtar listede etkin görünür ama her istek 401 döner.'
+        : gun !== null
+          ? `Bitişine ${gun} gün kaldı.`
+          : 'Süresiz — bitiş girilmedi, iptal edilene kadar geçerli.';
+
+  return (
+    <>
+      <CekmeceKimlik durum={im} soz={anahtarSozu(anahtar, simdi)}
+        baslik={anahtar.ad} cumle={cumle} />
+
+      <CekmeceAlanlar alanlar={[
+        { etiket: 'Ön ek', deger: `${anahtar.onEk}…` },
+        { etiket: 'Sahip', deger: anahtar.sahip.ad,
+          durum: anahtar.sahipAktif ? undefined : 'bd' },
+        { etiket: 'Üreten', deger: anahtar.olusturan ?? 'kayıtta yok',
+          durum: anahtar.olusturan ? undefined : 'unk' },
+        { etiket: 'Son kullanım', deger: sonKullanimMetni(anahtar),
+          durum: anahtar.sonKullanim ? undefined : 'pl' },
+        { etiket: 'Bitiş', deger: anahtar.bitis ? tarihTR(anahtar.bitis) : 'süresiz' },
+        { etiket: 'İstek', deger: istekMetni(anahtar) },
+      ]} />
+
+      <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
+        <p className="t-label" style={{ margin: '0 0 var(--s10)' }}>Yetki</p>
+        <p className="cekmece-dip" style={{ margin: 0 }}>
+          Anahtar kendi yetkisini taşımaz: {anahtar.sahip.ad} adına çalışır ve
+          onun rol/kapsam yetkileriyle sınırlıdır. Sahibin yetkisi daralınca
+          anahtarınki de daralır; sahip pasifleşirse anahtar 401 döner.
+        </p>
+      </div>
+
+      <CekmeceEylemler
+        birincil={<ApiAnahtarIptal anahtar={anahtar} yazabilir={yazabilir} />}
+        dipNot={`Üretim ${zamanTR(anahtar.olusturuldu)}`
+          + ' · tam token yalnız üretim yanıtında bir kez gösterildi, saklanmadı'}
+      />
+    </>
+  );
+}
+
+/* ── Kapsam kontrolü (SORUMLU ▾ / SANTRAL ▾ / KATALOG ▾ / SAHİP ▾) ────
    Referans ekranlardaki kalıbın aynısı: kutu yok, 9.5px mono açılır liste;
    dışarı tık ve Esc kapatır — açık kalan menü tabloyu örter. */
 

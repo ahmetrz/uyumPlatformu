@@ -1,5 +1,6 @@
 'use client';
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
 import { Alan, Dugme } from '@/components/atlas/temel';
 import { useEylem } from '@/components/useEylem';
 import {
@@ -7,16 +8,17 @@ import {
   regulasyonKaydet, regulasyonAktifDegistir, alanKaydet, tanimSil,
 } from '@/lib/eylemler';
 import { gorevOlustur, gorevDurum, onayKarar } from '@/lib/eylemler2/gorev';
-import { GOREV_TIP_ETIKET, etiketle, tarihTR } from '@/lib/sabitler';
+import { apiAnahtariUret, apiAnahtariIptal } from '@/lib/eylemler2/apiAnahtari';
+import { GOREV_TIP_ETIKET, etiketle, tarihTR, zamanTR } from '@/lib/sabitler';
 import {
   GOREV_DURUMLARI, GOREV_DURUM_ETIKET, KATALOG_ETIKET,
-  type Is, type Katalog, type Kisi, type Kodlu, type Tanim,
+  type Anahtar, type Is, type Katalog, type Kisi, type Kodlu, type Tanim,
 } from './ortak';
 
 /* Yönetim tezgâhının yazma yüzeyleri — MODAL YOK (06 §B4). Eski iki ekranın
    dokuz <dialog> kipi buraya, 420px çekmecenin içine indi. Mutasyonlar
-   lib/eylemler.ts ve lib/eylemler2/gorev.ts'ten AYNEN çağrılır; imza
-   değiştirilmez, doğrulama ve yetki sunucuda kalır. */
+   lib/eylemler.ts, lib/eylemler2/gorev.ts ve lib/eylemler2/apiAnahtari.ts'ten
+   AYNEN çağrılır; imza değiştirilmez, doğrulama ve yetki sunucuda kalır. */
 
 /* ═══ M2 · İş kuyruğu ═══════════════════════════════════════════════════ */
 
@@ -414,6 +416,162 @@ export function TanimEylemleri({ tanim, onaylayabilir }: {
           {etiketle(tanim.kapanisNedeni, 'neden girilmedi')} · {tarihTR(tanim.kapanisTarihi)}
         </p>
       )}
+    </div>
+  );
+}
+
+/* ═══ P1-3 · API anahtarları ════════════════════════════════════════════ */
+
+/* TAM TOKEN YALNIZ ÜRETİM YANITINDA BİR KEZ DÖNER.
+
+   Bu bileşen token'ı tek bir yerel `useState`te tutar. Çekmece kapandığında
+   ya da kip değiştiğinde bileşen sökülür ve token bellekten gider; hiçbir
+   yere kopyalanmaz — localStorage/sessionStorage YOK, URL'de YOK, console'a
+   yazılmıyor. Sunucu da yalnız SHA-256 özetini saklar ve denetim izine
+   token değil ÖN EK yazar (lib/eylemler2/apiAnahtari.ts). Kaybedilen token
+   geri getirilemez: tek çare yenisini üretip eskisini iptal etmektir. */
+
+type Uretilen = { onEk: string; token: string; bitis: string | null };
+
+/** Anahtar sahibi seçilirken bir GÜVENLİK kararı verilir: anahtar kendi
+    yetkisini taşımaz, sahibinin yetkilerini taşır. Bu cümle formda yazılı
+    durur, çünkü seçim geri alınamaz — sahip değiştirmek yeni anahtar
+    üretmek demektir. */
+export function ApiAnahtarFormu({ kullanicilar, aktifId, kapat }: {
+  kullanicilar: Kisi[]; aktifId: string; kapat: () => void;
+}) {
+  const router = useRouter();
+  const [bekliyor, baslat] = useTransition();
+  const [hata, setHata] = useState<string | null>(null);
+  const [f, setF] = useState({ ad: '', kullaniciId: aktifId, gun: '90' });
+  const [uretilen, setUretilen] = useState<Uretilen | null>(null);
+
+  if (uretilen) return <TokenTekSefer uretilen={uretilen} kapat={kapat} />;
+
+  const sahip = kullanicilar.find((u) => u.id === f.kullaniciId);
+
+  return (
+    <div style={{ display: 'grid', gap: 'var(--s16)' }}>
+      <Alan etiket="Anahtar adı" zorunlu>
+        <input className="gr" value={f.ad}
+          placeholder="Örn. SIEM kanıt çekimi"
+          onChange={(e) => setF({ ...f, ad: e.target.value })} />
+      </Alan>
+      <Alan etiket="Sahip" zorunlu>
+        <select className="gr" value={f.kullaniciId}
+          onChange={(e) => setF({ ...f, kullaniciId: e.target.value })}>
+          {kullanicilar.map((u) => <option key={u.id} value={u.id}>{u.ad}</option>)}
+        </select>
+      </Alan>
+      <Alan etiket="Geçerlilik · gün">
+        <input className="gr" type="number" min={1} max={3650} value={f.gun}
+          placeholder="boş bırakılırsa süresiz"
+          onChange={(e) => setF({ ...f, gun: e.target.value })} />
+      </Alan>
+
+      {hata && <p className="gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
+
+      <div style={{ display: 'flex', gap: 'var(--s10)' }}>
+        <Dugme tur="birincil" disabled={bekliyor || !f.ad.trim() || !f.kullaniciId}
+          onClick={() => {
+            setHata(null);
+            baslat(async () => {
+              const sonuc = await apiAnahtariUret({
+                ad: f.ad,
+                kullaniciId: f.kullaniciId,
+                gecerlilikGun: f.gun ? Number(f.gun) : null,
+              });
+              if (!sonuc.ok) { setHata(sonuc.hata); return; }
+              /* Token yanıttan doğrudan ekrana geçer; router.refresh listeyi
+                 tazeler ama sunucu bu token'ı BİR DAHA döndürmez. */
+              setUretilen({ onEk: sonuc.onEk, token: sonuc.token, bitis: sonuc.bitis });
+              router.refresh();
+            });
+          }}>
+          Anahtarı üret
+        </Dugme>
+        <Dugme onClick={kapat} disabled={bekliyor}>Vazgeç</Dugme>
+      </div>
+
+      <p className="cekmece-dip" style={{ margin: 0 }}>
+        Anahtar kendi yetkisini taşımaz: {sahip ? sahip.ad : 'sahibi'} kimin
+        verisini görüyorsa anahtar da onu görür, yetkisi daralınca anahtar da
+        daralır. Tam token yalnız üretim yanıtında bir kez gösterilir.
+      </p>
+    </div>
+  );
+}
+
+/** Token'ın görüldüğü TEK yüzey. Kapanınca bileşenle birlikte gider. */
+function TokenTekSefer({ uretilen, kapat }: { uretilen: Uretilen; kapat: () => void }) {
+  return (
+    <div style={{ display: 'grid', gap: 'var(--s16)' }}>
+      <Alan etiket="Tam token · yalnız şimdi">
+        <span className="gr" style={{ display: 'block', fontFamily: 'var(--mo)',
+          fontSize: 'var(--t-code-lg)', lineHeight: 1.6, wordBreak: 'break-all',
+          userSelect: 'all' }}>
+          {uretilen.token}
+        </span>
+      </Alan>
+      <p className="gr-hata" role="alert" style={{ margin: 0 }}>
+        Bu token bir daha gösterilemez. Şimdi kopyalayın.
+      </p>
+      <Dugme tur="birincil" onClick={kapat}>Kopyaladım, kapat</Dugme>
+      <p className="cekmece-dip" style={{ margin: 0 }}>
+        Veritabanında yalnız SHA-256 özeti duruyor; ekran da denetim izi de
+        yalnız {uretilen.onEk}… ön ekini tanıyor.{' '}
+        {uretilen.bitis
+          ? `Geçerlilik ${tarihTR(uretilen.bitis)} günü biter.`
+          : 'Anahtar süresiz — bitiş girilmedi.'}{' '}
+        Kaybedilirse geri getirilemez: yenisi üretilir, bu anahtar iptal edilir.
+        Kullanım: Authorization: Bearer &lt;token&gt;.
+      </p>
+    </div>
+  );
+}
+
+/** İptal geri alınamaz. Sunucu gerekçesiz iptali de kabul eder ama denetim
+    izi gerekçesiz bir satırla işe yaramaz; düğme gerekçe girilene kadar
+    pasif kalır (06 §B7 kalıbı, OnayKarariFormu ile aynı). */
+export function ApiAnahtarIptal({ anahtar, yazabilir }: {
+  anahtar: Anahtar; yazabilir: boolean;
+}) {
+  const { bekliyor, hata, calistir } = useEylem();
+  const [gerekce, setGerekce] = useState('');
+
+  if (anahtar.iptalZamani) {
+    return (
+      <p className="cekmece-dip" style={{ margin: 0 }}>
+        {zamanTR(anahtar.iptalZamani)} tarihinde iptal edildi; iptal geri
+        alınamaz. Aynı erişim gerekiyorsa yeni anahtar üretilir.
+      </p>
+    );
+  }
+
+  if (!yazabilir) {
+    return (
+      <p className="cekmece-dip" style={{ margin: 0 }}>
+        Anahtar üretmek ve iptal etmek yönetim yazma yetkisi gerektiriyor.
+      </p>
+    );
+  }
+
+  return (
+    <div style={{ display: 'grid', gap: 'var(--s12)' }}>
+      <Alan etiket="Gerekçe" zorunlu>
+        <textarea className="gr" rows={2} value={gerekce}
+          placeholder="Anahtar neden iptal ediliyor?"
+          onChange={(e) => setGerekce(e.target.value)} />
+      </Alan>
+      <Dugme tur="ret" disabled={bekliyor || !gerekce.trim()}
+        onClick={() => calistir(() => apiAnahtariIptal({ id: anahtar.id, gerekce }))}>
+        Anahtarı iptal et
+      </Dugme>
+      {hata && <p className="gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
+      <p className="cekmece-dip" style={{ margin: 0 }}>
+        İptal anında geçerlidir: anahtar bundan sonra her istekte 401 döner.
+        Gerekçe denetim izine yazılır; token izin hiçbir yerine girmez.
+      </p>
     </div>
   );
 }

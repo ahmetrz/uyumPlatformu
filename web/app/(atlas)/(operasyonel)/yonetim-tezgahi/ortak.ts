@@ -27,7 +27,19 @@ import { GOREV_TIP_ETIKET, etiketle, tarihTR } from '@/lib/sabitler';
        sektör) TEK tabloda (eski ekranda 4 sekme + 2 kart ızgarası +
        2 tabloydu).
    Eski ekranların 9 <dialog> kipi ve 25 pill/kart kullanımı kalktı; yazma
-   yüzeyleri 420px çekmeceye indi. */
+   yüzeyleri 420px çekmeceye indi.
+
+   ÜÇÜNCÜ KİP · API ANAHTARLARI (P1-3)
+   ───────────────────────────────────
+   Aynı gerekçe üçüncü kez geçerli: anahtarın ekseni ne ZAMAN ne KULLANIM,
+   ERİŞİM'dir — "kim, hangi anahtarla, ne zamana kadar dışarıdan girebilir?".
+   Bir anahtarı gecikmiş görevle ya da bağsız sektör kaydıyla aynı sıralamaya
+   sokan sayı yok; metrik bütçesi de tek şeritte üç popülasyonu anlatamaz.
+   Kipin kendi içinde birleştirme yine gerçek: anahtarın kimliği, sahipliği,
+   ömrü ve trafiği (ApiIstegi sayacı) TEK tabloda okunur.
+
+   Anahtar yönetimi yönetim tezgâhına ait, çünkü anahtar üretmek bir YETKİ
+   kararıdır: anahtar kendi yetkisini taşımaz, SAHİBİNİN yetkilerini taşır. */
 
 export type Kisi = { id: string; ad: string };
 export type Kodlu = { id: string; kod: string; ad: string };
@@ -295,26 +307,26 @@ export function tanimSabit(t: Tanim): boolean {
   return tanimImi(t) === 'bd';
 }
 
-/* ═══ P1-3 · Dis API anahtarlari ═══════════════════════════════════ */
+/* ═══ P1-3 · Dış API anahtarları ═══════════════════════════════════════ */
 
-/** Anahtar satiri. TAM TOKEN BU TIPTE YOKTUR ve olamaz: veritabaninda
-    yalniz SHA-256 ozeti durur, ozet de ekrana gonderilmez. Listeye giden
-    tek tanitici `onEk` (ilk 8 karakter) — kalani ≈210 bit entropi. */
+/** Anahtar satırı. TAM TOKEN BU TİPTE YOKTUR ve olamaz: veritabanında
+    yalnız SHA-256 özeti durur, özet de ekrana gönderilmez. Listeye giden
+    tek tanıtıcı `onEk` (ilk 8 karakter) — kalanı ≈210 bit entropi. */
 export type Anahtar = {
   id: string;
   ad: string;
-  /** gosterim oneki; token'i ele vermez */
+  /** gösterim öneki; token'ı ele vermez */
   onEk: string;
-  /** anahtar KENDI yetkisini tasimaz, sahibinin yetkilerini tasir */
+  /** anahtar KENDİ yetkisini taşımaz, sahibinin yetkilerini taşır */
   sahip: Kisi;
-  /** sahibi pasifken anahtar listede canli gorunur ama her istekte 401 doner */
+  /** sahibi pasifken anahtar listede canlı görünür ama her istekte 401 döner */
   sahipAktif: boolean;
   olusturan: string | null;
   sonKullanim: string | null;
   bitis: string | null;
   iptalZamani: string | null;
   olusturuldu: string;
-  /** ApiIstegi sayaci — Prisma COUNT'u */
+  /** ApiIstegi sayacı — Prisma COUNT'u */
   istekSayisi: number;
 };
 
@@ -326,16 +338,16 @@ export function anahtarEtkinMi(a: Anahtar, simdi: number): boolean {
   return !a.iptalZamani && !anahtarBittiMi(a, simdi);
 }
 
-/* Isaretci: iptal geri alinamaz bir SONLANDIRMADIR — karara baglanmis is
-   gibi 'tamam'. Suresi dolan anahtar uretimde secilen gecerlilikle
-   KASITLI biter; tanim katalogundaki devre disi kayit gibi 'pl'. Sahibi
-   pasif olan anahtar listede etkin gorunur ama istekte 401 doner: bu
-   sessiz bozukluk kritiktir, 'bd'. Bitisine az kalan anahtar 'md'.
+/* İşaretçi: iptal geri alınamaz bir SONLANDIRMADIR — karara bağlanmış iş
+   gibi 'tamam'. Süresi dolan anahtar üretimde seçilen geçerlilikle KASITLI
+   biter; tanım kataloğundaki devre dışı kayıt gibi 'pl'. Sahibi pasif olan
+   anahtar listede etkin görünür ama her istekte 401 döner: bu sessiz
+   bozukluk kritiktir, 'bd'. Bitişine az kalan anahtar 'md'.
 
-   Hic kullanilmamis anahtar 'unk' DEGILDIR: `sonKullanim` her basarili
-   kimlik dogrulamasinda yazilir, bos olmasi olcumun yapildigini ve
-   degerin sifir oldugunu soyler. Bilinmeyen ≠ sifir kurali burada
-   sifiri gizlemeyi degil, sifiri OLCULMUS olarak yazmayi gerektirir. */
+   Hiç kullanılmamış anahtar 'unk' DEĞİLDİR: `sonKullanim` her başarılı
+   kimlik doğrulamasında yazılır, boş olması ölçümün yapıldığını ve değerin
+   henüz oluşmadığını söyler. Bilinmeyen ≠ sıfır kuralı burada sıfırı
+   gizlemeyi değil, sıfırı ÖLÇÜLMÜŞ olarak yazmayı gerektirir. */
 export function anahtarImi(a: Anahtar, simdi: number): Durum {
   if (a.iptalZamani) return 'tamam';
   if (anahtarBittiMi(a, simdi)) return 'pl';
@@ -344,42 +356,42 @@ export function anahtarImi(a: Anahtar, simdi: number): Durum {
   return g !== null && g <= UFUK_GUN ? 'md' : 'ok';
 }
 
-/** Durum sozcugu — YALNIZ cekmecenin kimlik blogunda kullanilir (06 §A2). */
+/** Durum sözcüğü — YALNIZ çekmecenin kimlik bloğunda kullanılır (06 §A2). */
 export function anahtarSozu(a: Anahtar, simdi: number): string {
-  if (a.iptalZamani) return 'Iptal edildi';
-  if (anahtarBittiMi(a, simdi)) return 'Suresi doldu';
+  if (a.iptalZamani) return 'İptal edildi';
+  if (anahtarBittiMi(a, simdi)) return 'Süresi doldu';
   if (!a.sahipAktif) return 'Sahibi pasif';
   const g = kalanGun(a.bitis, simdi);
-  return g !== null && g <= UFUK_GUN ? 'Suresi doluyor' : 'Etkin';
+  return g !== null && g <= UFUK_GUN ? 'Süresi doluyor' : 'Etkin';
 }
 
-/** Son kullanim hucresi. Null = "kullanilmadi"; "bilinmiyor" DEGIL — alan
-    olculuyor, degeri henuz yok. */
+/** Son kullanım hücresi. Null = "kullanılmadı"; "bilinmiyor" DEĞİL — alan
+    ölçülüyor, değeri henüz oluşmadı. */
 export function sonKullanimMetni(a: Anahtar): string {
-  return a.sonKullanim ? tarihTR(a.sonKullanim) : 'kullanilmadi';
+  return a.sonKullanim ? tarihTR(a.sonKullanim) : 'kullanılmadı';
 }
 
-/** Istek sayaci. 0 burada UYDURMA DEGIL: `_count` gercek bir COUNT'tur,
-    "istek yok" degil "0 istek" yazilir — sayim yapildi, sonuc sifir. */
+/** İstek sayacı. Buradaki 0 UYDURMA DEĞİLDİR: `_count` gerçek bir COUNT'tur,
+    "istek yok" değil "0 istek" yazılır — sayım yapıldı, sonucu sıfır. */
 export function istekMetni(a: Anahtar): string {
   return `${a.istekSayisi} istek`;
 }
 
-/** Alt satir: kayit kimligi (on ek) + EN FAZLA BIR olgu. */
+/** Alt satır: kayıt kimliği (ön ek) + EN FAZLA BİR olgu. */
 export function anahtarAltSatiri(a: Anahtar): string {
-  return `${a.onEk}… · ${a.olusturan ? `${a.olusturan} uretti` : 'ureteni kayitta yok'}`;
+  return `${a.onEk}… · ${a.olusturan ? `${a.olusturan} üretti` : 'üreteni kayıtta yok'}`;
 }
 
-/** Sabitlenen anahtar: sahibi pasif oldugu icin sessizce 401 donduren
-    kayit butcenin disindadir ve ASLA toplanmaz. */
+/** Sabitlenen anahtar: sahibi pasif olduğu için sessizce 401 döndüren kayıt
+    bütçenin dışındadır ve ASLA toplanmaz. */
 export function anahtarSabit(a: Anahtar, simdi: number): boolean {
   return anahtarImi(a, simdi) === 'bd';
 }
 
-/** Kuyruk etiketi kuyrugun GERCEK bilesimini soyler. */
+/** Kuyruk etiketi kuyruğun GERÇEK bileşimini söyler. */
 export function anahtarKuyrukEtiketi(toplanan: Anahtar[], simdi: number): string {
   const etkin = toplanan.filter((a) => anahtarEtkinMi(a, simdi)).length;
-  if (etkin === 0) return `+${toplanan.length} anahtar · sonlanmis`;
+  if (etkin === 0) return `+${toplanan.length} anahtar · sonlanmış`;
   if (etkin === toplanan.length) return `+${toplanan.length} anahtar · etkin`;
   return `+${toplanan.length} anahtar daha`;
 }
@@ -390,7 +402,7 @@ export function anahtarSirala(liste: Anahtar[], simdi: number): Anahtar[] {
     return im === 'bd' ? 0 : im === 'md' ? 1 : im === 'ok' ? 2 : 3;
   };
   return [...liste].sort((a, b) => (agirlik(a) - agirlik(b))
-    // Ayni agirlikta en yeni uretim ustte: taze anahtar dogrulanmayi bekler.
+    // Aynı ağırlıkta en yeni üretim üstte: taze anahtar doğrulanmayı bekler.
     || b.olusturuldu.localeCompare(a.olusturuldu));
 }
 

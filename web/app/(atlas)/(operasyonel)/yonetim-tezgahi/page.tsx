@@ -3,17 +3,20 @@ import { girisZorunlu, izinVar, izinliTesisIdleri, type Modul } from '@/lib/eris
 import { Yetkisiz } from '@/components/atlas/temel';
 import { db } from '@/lib/db';
 import TezgahIstemci from './TezgahIstemci';
-import type { Is, Tanim } from './ortak';
+import type { Anahtar, Is, Tanim } from './ortak';
 
 export const metadata: Metadata = { title: 'Yönetim tezgâhı — Atlas' };
 
-/* M1/M2 · Yönetim tezgâhı — eski /tanimlar + /gorevler ekranlarının
-   birleşimi. Kabuk (ray + çekmece kolonu) (operasyonel)/layout.tsx'ten
-   gelir; burada UstCubuk ya da .icerik sarmalayıcısı YOK.
+/* M1/M2/P1-3 · Yönetim tezgâhı — eski /tanimlar + /gorevler ekranlarının
+   birleşimi, üstüne dış API anahtarı yüzeyi. Kabuk (ray + çekmece kolonu)
+   (operasyonel)/layout.tsx'ten gelir; burada UstCubuk ya da .icerik
+   sarmalayıcısı YOK.
 
    Kapsam VERİ seviyesinde daraltılır (referans: /denetimler):
      · tanım katalogları `tanimlar` modülüne tabidir,
      · görev/onay akışı `uyum` modülüne tabidir,
+     · API anahtarları `yonetim` modülüne tabidir; okuma yetkisi yoksa
+       sorgu HİÇ ÇALIŞMAZ (ekranda gizlemek yetmez),
      · tesise bağlı olmayan kayıt portföy geneli sayılır ve GİZLENMEZ —
        aksi hâlde kapsam eksikliği kaydı görünmez kılardı. */
 
@@ -28,17 +31,39 @@ export default async function Sayfa() {
   const kullanici = await girisZorunlu();
   const tanimOkuyabilir = izinVar(kullanici, 'tanimlar', 'okuma');
   const isOkuyabilir = izinVar(kullanici, 'uyum', 'okuma');
-  if (!tanimOkuyabilir && !isOkuyabilir) return <Yetkisiz rol="tanımlar ya da uyum okuma" />;
+  const anahtarOkuyabilir = izinVar(kullanici, 'yonetim', 'okuma');
+  if (!tanimOkuyabilir && !isOkuyabilir && !anahtarOkuyabilir) {
+    return <Yetkisiz rol="tanımlar, uyum ya da yönetim okuma" />;
+  }
 
   const tanimYazabilir = izinVar(kullanici, 'tanimlar', 'yazma');
   const tanimOnaylayabilir = izinVar(kullanici, 'tanimlar', 'onay');
   const gorevAcabilir = izinVar(kullanici, 'uyum', 'yazma');
+  // Anahtar üretimi/iptali yonetim/yazma ister; eylemin kapısıyla AYNI kural
+  // (lib/eylemler2/apiAnahtari.ts → yetkiZorunlu('yonetim', 'yazma')).
+  const anahtarYazabilir = izinVar(kullanici, 'yonetim', 'yazma');
   const izinliTanim = izinliTesisIdleri(kullanici, 'tanimlar');
   const izinliIs = izinliTesisIdleri(kullanici, 'uyum');
 
   // `Date.now()` istek başına bir kez okunur; metrik ve tablo aynı "bugün"ü
   // paylaşsın (referans: /denetimler).
   const simdi = new Date().getTime();
+
+  /* Anahtar sorgusu Promise.all ile birlikte koşsun diye önce kurulur.
+     `select` bilinçlidir: tokenHash SORGUYA HİÇ GİRMEZ — doğrulama dışında
+     hiçbir işe yaramaz ve istemciye sızma riski taşımasın. */
+  const anahtarSorgusu = anahtarOkuyabilir
+    ? db.apiAnahtari.findMany({
+      select: {
+        id: true, ad: true, onEk: true, sonKullanim: true, bitis: true,
+        iptalZamani: true, olusturuldu: true,
+        kullanici: { select: { id: true, adSoyad: true, aktif: true } },
+        olusturan: { select: { adSoyad: true } },
+        _count: { select: { istekler: true } },
+      },
+      orderBy: { olusturuldu: 'desc' },
+    })
+    : null;
 
   const [sektorler, tipler, tesisler, regulasyonlar, alanlar,
     gorevler, onaylar, kullanicilar] = await Promise.all([
@@ -171,12 +196,38 @@ export default async function Sayfa() {
     })),
   ] : [];
 
+  /* ── P1-3 · API anahtarları ─────────────────────────────────────────
+     Tam token bu haritada YOKTUR ve olamaz: veritabanında yalnız SHA-256
+     özeti var, o da sorgulanmıyor. Ekrana giden tek tanıtıcı `onEk`. */
+
+  const anahtarlar: Anahtar[] = anahtarSorgusu
+    ? (await anahtarSorgusu).map((a): Anahtar => ({
+      id: a.id,
+      ad: a.ad,
+      onEk: a.onEk,
+      sahip: { id: a.kullanici.id, ad: a.kullanici.adSoyad },
+      sahipAktif: a.kullanici.aktif,
+      olusturan: a.olusturan?.adSoyad ?? null,
+      // sonKullanim null = "kullanılmadı"; ölçüm var, değeri henüz oluşmadı.
+      sonKullanim: a.sonKullanim?.toISOString() ?? null,
+      bitis: a.bitis?.toISOString() ?? null,
+      iptalZamani: a.iptalZamani?.toISOString() ?? null,
+      olusturuldu: a.olusturuldu.toISOString(),
+      /* Prisma COUNT'u: burada 0 UYDURMA DEĞİL, ölçülmüş sıfırdır. ApiIstegi
+         tablosu boş olsa bile sayım yapılmıştır — "istek yok" demek yerine
+         "0 istek" yazmak doğrudur. Bilinmeyeni sıfır saymak (§19) ancak
+         ölçümün YAPILMADIĞI yerde yasaktır; burada ölçüm var. */
+      istekSayisi: a._count.istekler,
+    }))
+    : [];
+
   return (
     <TezgahIstemci
       aktifId={kullanici.id}
       simdi={simdi}
       isler={isler}
       tanimlar={tanimlar}
+      anahtarlar={anahtarlar}
       kullanicilar={kullanicilar.map((u) => ({ id: u.id, ad: u.adSoyad }))}
       tesisSecenekleri={tesisler
         .filter((t) => t.durum === 'aktif')
@@ -186,9 +237,11 @@ export default async function Sayfa() {
       sektorSecenekleri={sektorler.map((s) => ({ id: s.id, kod: s.kod, ad: s.ad }))}
       tanimOkuyabilir={tanimOkuyabilir}
       isOkuyabilir={isOkuyabilir}
+      anahtarOkuyabilir={anahtarOkuyabilir}
       tanimYazabilir={tanimYazabilir}
       tanimOnaylayabilir={tanimOnaylayabilir}
       gorevAcabilir={gorevAcabilir}
+      anahtarYazabilir={anahtarYazabilir}
     />
   );
 }

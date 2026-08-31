@@ -1,25 +1,42 @@
 /* Sunucu başlangıcında kayıt olur (Next.js instrumentation).
-   Gerçek dağıtımda motorları saatte bir koşturur; her koşu IsKosusu'na
-   yazılır (sessiz hata yasak). Statik demo derlemesinde devre dışıdır. */
+
+   Burada İŞ MANTIĞI YOKTUR: tek sorumluluğu zamanlayıcı tikini periyodik
+   çağırmaktır. Neyin vadesi geldiğine `lib/is/zamanlayici.ts` karar verir
+   ve kararını veritabanından TÜRETİR.
+
+   ── Neden burada bir motor listesi yok ─────────────────────────────────
+   Bir zamanlar burada ELLE yazılmış bir motor listesi vardı ve sekiz
+   motorun yalnız beşini içeriyordu; sonradan eklenen üçü zamanlayıcıya
+   hiç girmemişti. Sonra o liste kayıt defterine taşındı. Şimdi listenin
+   kendisi de burada değil: ne koşulacağı bir sorgudur, bir kopya değil.
+
+   ── Neden saatlik değil, dakikalık tik ─────────────────────────────────
+   Motorlar saatte bir koşar ama connector'lar kendi `pollAralikDk`
+   değerine göre koşar; 15 dakikalık bir connector saatlik tikte üç periyot
+   kaçırırdı. Tik yalnız ÇÖZÜNÜRLÜKTÜR: vadesi gelmemiş hiçbir şey
+   koşmaz, tik ucuzdur (birkaç indeksli sorgu). */
 
 export async function register() {
   if (process.env.NEXT_RUNTIME !== 'nodejs') return;
   if (process.env.NEXT_PUBLIC_DEMO === '1') return;
   if (process.env.ISLER_OTOMATIK === '0') return; // kapatma anahtarı
 
-  const { isKos } = await import('./lib/motorlar/isKosucu');
-  /* Motor listesi kayıt defterinden okunur. Eskiden burada ELLE yazılmış
-     bir kopya vardı ve sekiz motorun yalnız beşini içeriyordu: sonradan
-     eklenen yedek_dogrulama, olay_etki ve topoloji_sapma zamanlayıcıya
-     hiç girmemişti, yani kimse ekrandaki düğmeye basmazsa o üç motor HİÇ
-     koşmuyordu. Defter tek yerde durunca bu bir daha olamaz. */
-  const { MOTORLAR } = await import('./lib/motorlar/kayit');
+  const { zamanlayiciTiki, TIK_ARALIK_MS } = await import('./lib/is/zamanlayici');
 
-  const hepsi = async () => {
-    for (const [ad, motor] of Object.entries(MOTORLAR)) await isKos(ad, motor);
+  const tik = async () => {
+    try {
+      await zamanlayiciTiki();
+    } catch (e) {
+      /* Tik FIRLATMAMALI. Fırlatırsa yakalanmamış reddedilmiş söz olur ve
+         süreç düşer; bir veritabanı kilidi yüzünden tüm uygulamanın
+         ölmesi, kaçırılan bir tikten çok daha kötüdür. Tikin kendi
+         hatasının kaydı yok (henüz koşu satırı açılmamıştır), bu yüzden
+         tek yer stderr'dir. */
+      console.error('[zamanlayıcı] tik başarısız:', e instanceof Error ? e.message : e);
+    }
   };
 
-  // açılıştan 30 sn sonra ilk koşu, ardından saatlik
-  setTimeout(() => { void hepsi(); }, 30_000);
-  setInterval(() => { void hepsi(); }, 3_600_000);
+  // Açılıştan 30 sn sonra ilk tik (göç ve seed'in oturması için), sonra periyodik.
+  setTimeout(() => { void tik(); }, 30_000);
+  setInterval(() => { void tik(); }, TIK_ARALIK_MS);
 }

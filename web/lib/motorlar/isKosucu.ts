@@ -1,5 +1,6 @@
 import 'server-only';
 import { db } from '../db';
+import { kilidiBirak, kilitAl } from '../is/kilit';
 
 /* İş koşucusu (§68): her otomasyon motoru bu sarmalayıcıdan geçer.
    Koşu kaydı açılır (calisiyor) → iş çalışır → başarıda durum=basarili,
@@ -48,9 +49,37 @@ export async function isKos(
 ): Promise<KosuSonucu> {
   await oluKosulariKapat(isAdi);
 
-  // Aynı iş hâlâ koşuyorsa ikinci koşu başlatılmaz (çakışma önleme).
-  const calisan = await db.isKosusu.findFirst({ where: { isAdi, durum: 'calisiyor' } });
-  if (calisan) return { ok: false, sebep: 'zaten_calisiyor' };
+  /* Çakışma önleme ATOMİK kilitle yapılır.
+
+     Eskiden burada "önce `calisiyor` satırı var mı diye bak, yoksa
+     oluştur" vardı. Bu bir kontrol-sonra-kullan yarışıdır: iki süreç (ya
+     da tek süreçte iki eşzamanlı tik) aynı anda "yok" görüp ikisi de
+     koşuyu açar. Tek örnekli geliştirmede hiç görünmez; iki örnekli bir
+     dağıtımda her motor iki kez koşar. Kilit tek atomik ifadeyle alınır,
+     kaybeden koşmaz. Kira süreç ölse de kilidi serbest bırakır. */
+  const kilitAdi = `motor:${isAdi}`;
+  const kilit = await kilitAl(kilitAdi, KIRA_MS);
+  if (!kilit.alindi) return { ok: false, sebep: 'zaten_calisiyor' };
+
+  /* Kilit alındı; şimdi GÖRÜNÜR duruma da bakılır. İki kapı bilinçlidir ve
+     farklı şeyleri korur:
+
+     · Kilit YARIŞA karşıdır ve atomiktir — iki sürecin aynı anda başlamasını
+       imkânsız kılar.
+     · `calisiyor` satırı GÖZLEMLENEBİLİR durumdur; /saglik ekranının okuduğu
+       şeydir. Kilit tablosu elle temizlense (ya da göç sırasında sıfırlansa)
+       bile hâlâ süren bir koşunun ikizini başlatmamalıyız.
+
+     Bayat satır bu noktaya gelemez: `oluKosulariKapat` yukarıda kirası dolmuş
+     satırları zaten kapatmıştır. Yani burada görülen `calisiyor` GERÇEKTEN
+     sürüyor demektir. */
+  const calisan = await db.isKosusu.findFirst({
+    where: { isAdi, durum: 'calisiyor' }, select: { id: true },
+  });
+  if (calisan) {
+    await kilidiBirak(kilitAdi);
+    return { ok: false, sebep: 'zaten_calisiyor' };
+  }
 
   const kosu = await db.isKosusu.create({ data: { isAdi } });
   const basla = Date.now();
@@ -67,5 +96,7 @@ export async function isKos(
       durum: 'basarisiz', bitis: new Date(), sureMs: Date.now() - basla, hata: mesaj,
     } });
     return { ok: false, sebep: 'hata', hata: mesaj };
+  } finally {
+    await kilidiBirak(kilitAdi);
   }
 }

@@ -2066,3 +2066,30 @@ model VarlikAktarimi {
   yukleyen  Kullanici? @relation("AktarimYukleyen", fields: [yukleyenId], references: [id])
   onaylayan Kullanici? @relation("AktarimOnaylayan", fields: [onaylayanId], references: [id])
 }
+
+/// Adlandırılmış iş kilidi — aynı işin iki süreçte birden koşmasını engeller.
+///
+/// Eskiden çakışma önleme "önce `calisiyor` satırı var mı diye bak, yoksa
+/// oluştur" biçimindeydi. Bu bir KONTROL-SONRA-KULLAN yarışıdır: iki süreç
+/// (ya da tek süreçte iki eşzamanlı tik) aynı anda "yok" görüp ikisi de
+/// koşuyu açabilir. Tek örnekli geliştirmede görünmez, iki örnekli
+/// dağıtımda her motor iki kez koşar ve bulguları çoğaltır.
+///
+/// Burada kilit TEK bir atomik ifadeyle alınır: ya süresi dolmuş satırı
+/// güncelleyerek devralırsın, ya birincil anahtar çakışmasına çarparsın.
+/// İkisi de kaybetmeyi güvenli kılar: kaybeden koşmaz.
+///
+/// `gecerlilik` bir KİRA'dır, sonsuz kilit değil: süreç ölürse kilit
+/// kendiliğinden serbest kalır. Süreci ölen bir işin kilidini elle
+/// temizlemek gerekseydi, ilk çökmede tüm otomasyon kalıcı olarak dururdu.
+model IsKilidi {
+  /// Kilit adı: motor için `motor:<ad>`, connector için `connector:<id>`.
+  ad         String   @id
+  /// Kilidi tutan çalışma örneğinin kimliği (süreç başına üretilir).
+  sahip      String
+  alindi     DateTime @default(now())
+  /// Kira bitişi. Bu anı geçmiş kilit devralınabilir.
+  gecerlilik DateTime
+
+  @@index([gecerlilik])
+}

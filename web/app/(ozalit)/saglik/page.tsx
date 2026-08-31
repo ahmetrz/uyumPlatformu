@@ -1,10 +1,17 @@
 import { girisZorunlu, izinVar } from '@/lib/erisim';
 import { db } from '@/lib/db';
+import { entegrasyonSagligiOzeti } from '@/lib/entegrasyon/saglikOzeti';
 import UstCubuk from '@/components/UstCubuk';
 import SaglikIstemci from './SaglikIstemci';
 
 /* Platform sağlığı (§68): otomasyon motorlarının koşu durumu, veri kalitesi
-   bulguları ve koşu geçmişi tek ekranda — sessiz hata yok, her koşu görünür. */
+   bulguları ve koşu geçmişi tek ekranda — sessiz hata yok, her koşu görünür.
+
+   Entegrasyon bölümü aynı sözü dış sistemler için verir: her connector'ın
+   son koşusu, kabul/ret/yinelenen sayaçları ve veri tazeliği görünür.
+   Bu bölüm `yonetim/okuma` ister — yetkisiz kullanıcıya connector'ın maskeli
+   sır referansı bile gitmez (özet katmanı boş döner). Sır DEĞERİ hiçbir
+   koşulda bu sayfadan geçmez; yalnız `sirMaskesi()` çıktısı taşınır. */
 
 const IS_TANIMLARI = [
   { ad: 'kanit_tazelik', etiket: 'Kanıt tazeliği',
@@ -34,13 +41,14 @@ export default async function Saglik() {
   const k = await girisZorunlu();
   const yazabilir = izinVar(k, 'yonetim', 'yazma');
 
-  const [sonKosular, gecmis, kaliteBulgulari] = await Promise.all([
+  const [sonKosular, gecmis, kaliteBulgulari, entegrasyon] = await Promise.all([
     Promise.all(IS_TANIMLARI.map((t) =>
       db.isKosusu.findFirst({ where: { isAdi: t.ad }, orderBy: { baslangic: 'desc' } }))),
     db.isKosusu.findMany({ orderBy: { baslangic: 'desc' }, take: 20 }),
     db.veriKalitesiBulgusu.findMany({
       where: { durum: 'acik' },
       orderBy: [{ kural: 'asc' }, { olusturuldu: 'desc' }] }),
+    entegrasyonSagligiOzeti(k),
   ]);
 
   // Veri kalitesi bulgularının işaret ettiği kayıtları etiketle/linkle.
@@ -76,7 +84,7 @@ export default async function Saglik() {
       <UstCubuk baslik="Platform sağlığı" />
       <main className="icerik">
         <SaglikIstemci isler={isler} gecmis={gecmis.map(serile)}
-          kalite={kalite} yazabilir={yazabilir} />
+          kalite={kalite} yazabilir={yazabilir} entegrasyon={entegrasyon} />
       </main>
     </>
   );

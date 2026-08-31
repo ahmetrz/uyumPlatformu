@@ -9,6 +9,7 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { db } from '../db';
 import { yetkiZorunlu, izinVar } from '../erisim';
+import { dogrulamayiGeriAl } from '../entegrasyon/koken';
 import { type Sonuc, tamam, hata, iz, tarihAlani, bosluksuz } from './ortak';
 
 /* null = BİLİNMİYOR (§5.1): boş metin null'a çevrilir. */
@@ -46,6 +47,48 @@ const VarlikSemasi = z.object({
   kurulumTarihi: tarihAlani, garantiBitis: tarihAlani,
   destekBitis: tarihAlani, eolTarihi: tarihAlani, eosTarihi: tarihAlani,
 });
+
+/* ── Veri kökeni (lib/entegrasyon/koken.ts) ────────────────────────────
+   Elle kaydedilen varlık köken satırı ALMAZ: kökeni olmayan kayıt zaten
+   manueldir, "elle girildi" diye bir köken yazmak kaynağı olmayan veriye
+   sahte bir kaynak uydurmak olurdu.
+
+   Ama kayıt daha önce otomatik gelmiş ve bir İNSAN onu doğrulamışsa, o
+   doğrulama yalnız o günkü değerleri kapsar. Kullanıcı aşağıdaki kimlik /
+   durum alanlarından birini elle değiştirdiğinde doğrulama artık yeni
+   veriyi kapsamaz ve düşürülür. Kozmetik alan (ad, rafOda, üretici, model,
+   tarihler) doğrulamayı DÜŞÜRMEZ — her düzeltme doğrulama kuyruğunu
+   şişirseydi kimse doğrulama yapmazdı. */
+const DOGRULAMAYI_DUSUREN_ALANLAR = [
+  'seriNo', 'macAdresi', 'ipAdresi', 'hostname',
+  'kritiklik', 'yamaDurumu', 'yedekDurumu', 'izlemeDurumu',
+] as const;
+
+/**
+ * Varlığın doğrulanmış kökenlerini "doğrulanmadı"ya düşürür ve her biri için
+ * ayrı iz bırakır. Kasıtlı olarak yazma işleminden ÖNCE çağrılır: yazma
+ * başarısız olursa insan yeniden doğrular (geri alınabilir zarar), tersi
+ * sırada ise değişmiş veri "doğrulanmış" görünmeye devam ederdi.
+ */
+async function dogrulamalariDusur(
+  varlikId: string, degisenAlanlar: string[], aktorId: string | null,
+) {
+  if (degisenAlanlar.length === 0) return;
+  const dogrulanmislar = await db.veriKokeni.findMany({
+    where: { varlikTipi: 'Varlik', varlikId, dogrulamaDurumu: 'dogrulandi' },
+    select: { id: true, kaynakSistem: true },
+  });
+  for (const kk of dogrulanmislar) {
+    await dogrulamayiGeriAl(kk.id);
+    await iz({
+      aktorId, varlikTipi: 'VeriKokeni', varlikId: kk.id,
+      eylem: 'dogrulama_dusuruldu', alan: degisenAlanlar.join(', '),
+      once: 'dogrulandi', sonra: 'dogrulanmadi',
+      gerekce: `${kk.kaynakSistem} kökeninin doğrulaması düştü: kayıt elle değiştirildi, `
+        + 'eski doğrulama yeni veriyi kapsamıyor',
+    });
+  }
+}
 
 /** Varlık oluştur/güncelle (upsert). Etiket benzersizdir; tesis kapsamı denetlenir. */
 export async function varlikKaydet(girdi: {
@@ -97,6 +140,13 @@ export async function varlikKaydet(girdi: {
       if (!eski || eski.silindi) throw new Error('Varlık bulunamadı');
       if (eski.tesisId && !izinVar(k, 'envanter', 'yazma', { tesisId: eski.tesisId }))
         throw new Error('Bu tesis kapsamında envanter yazma yetkiniz yok');
+      // Elle değişen kimlik/durum alanları varsa önceki insan doğrulaması
+      // artık bu veriyi kapsamıyor (bkz. DOGRULAMAYI_DUSUREN_ALANLAR).
+      await dogrulamalariDusur(
+        v.id,
+        DOGRULAMAYI_DUSUREN_ALANLAR.filter((a) => (eski[a] ?? null) !== (veri[a] ?? null)),
+        k.id,
+      );
       await db.varlik.update({ where: { id: v.id }, data: veri });
       await iz({
         aktorId: k.id, varlikTipi: 'Varlik', varlikId: v.id,
@@ -197,6 +247,10 @@ export async function varlikYasamDongusu(girdi: {
       throw new Error('Bu tesis kapsamında yetkiniz yok');
     if (eski.yasamDongusu === v.yasamDongusu) return tamam();
 
+    // Yaşam döngüsü bir DURUM alanıdır: emekliye ayrılan varlık kaynak
+    // sistemdeki hâliyle artık örtüşmez, dolayısıyla kaynağa dayanan insan
+    // doğrulaması da bu kaydı kapsamaz.
+    await dogrulamalariDusur(v.id, ['yasamDongusu'], k.id);
     await db.varlik.update({ where: { id: v.id }, data: { yasamDongusu: v.yasamDongusu } });
     await iz({
       aktorId: k.id, varlikTipi: 'Varlik', varlikId: v.id,

@@ -644,33 +644,44 @@ export async function aktarimOnayla(girdi: { id: string }): Promise<Sonuc> {
     };
     const alanlar = await db.kapsamAlani.findMany();
     const alanIdx = new Map(alanlar.map((a) => [a.kod.toUpperCase(), a.id]));
-    let eklenen = 0, guncellenen = 0;
 
-    for (const s of rapor.satirlar ?? []) {
-      let ustId: string | null = null;
-      if (s.ustKod) {
-        const ustTam = s.ustKod.startsWith(kayit.regulasyon.kod)
-          ? s.ustKod : `${kayit.regulasyon.kod}-${s.ustKod}`;
-        ustId = (await db.madde.findFirst({ where: {
-          regulasyonId: kayit.regulasyonId, surumId, kod: ustTam } }))?.id ?? null;
+    /* Satırlar TEK transaction içinde yazılır. Döngü daha önce transaction
+       dışındaydı: ortada patlayan bir satır yarım import bırakıyor, üstelik
+       `IceAktarim.durum` hâlâ `dogrulama_bekliyor` göründüğü için aynı dosya
+       yeniden onaylanabiliyordu. Davranış aynı; yalnız atomik.
+       Döngü içindeki okumalar da `tx` üzerinden yapılır — aynı dosyada gelen
+       üst madde henüz commit edilmediği için dış bağlantıdan görünmez. */
+    const { eklenen, guncellenen } = await db.$transaction(async (tx) => {
+      let eklenen = 0, guncellenen = 0;
+      for (const s of rapor.satirlar ?? []) {
+        let ustId: string | null = null;
+        if (s.ustKod) {
+          const ustTam = s.ustKod.startsWith(kayit.regulasyon.kod)
+            ? s.ustKod : `${kayit.regulasyon.kod}-${s.ustKod}`;
+          ustId = (await tx.madde.findFirst({ where: {
+            regulasyonId: kayit.regulasyonId, surumId, kod: ustTam } }))?.id ?? null;
+        }
+        const mevcutMadde = await tx.madde.findFirst({ where: {
+          regulasyonId: kayit.regulasyonId, surumId, kod: s.kod } });
+        const madde = mevcutMadde
+          ? await tx.madde.update({ where: { id: mevcutMadde.id },
+              data: { baslik: s.baslik, metin: s.metin, ustMaddeId: ustId, kanitTipi: s.kanitTipi } })
+          : await tx.madde.create({ data: {
+              regulasyonId: kayit.regulasyonId, surumId, kod: s.kod, baslik: s.baslik,
+              metin: s.metin, ustMaddeId: ustId, kanitTipi: s.kanitTipi } });
+        if (s.islem === 'yeni') eklenen++; else guncellenen++;
+        await tx.maddeAlan.deleteMany({ where: { maddeId: madde.id } });
+        for (const a of s.alanlar) {
+          const alanId = alanIdx.get(a.toUpperCase());
+          if (alanId) await tx.maddeAlan.create({ data: { maddeId: madde.id, alanId } });
+        }
       }
-      const mevcutMadde = await db.madde.findFirst({ where: {
-        regulasyonId: kayit.regulasyonId, surumId, kod: s.kod } });
-      const madde = mevcutMadde
-        ? await db.madde.update({ where: { id: mevcutMadde.id },
-            data: { baslik: s.baslik, metin: s.metin, ustMaddeId: ustId, kanitTipi: s.kanitTipi } })
-        : await db.madde.create({ data: {
-            regulasyonId: kayit.regulasyonId, surumId, kod: s.kod, baslik: s.baslik,
-            metin: s.metin, ustMaddeId: ustId, kanitTipi: s.kanitTipi } });
-      if (s.islem === 'yeni') eklenen++; else guncellenen++;
-      await db.maddeAlan.deleteMany({ where: { maddeId: madde.id } });
-      for (const a of s.alanlar) {
-        const alanId = alanIdx.get(a.toUpperCase());
-        if (alanId) await db.maddeAlan.create({ data: { maddeId: madde.id, alanId } });
-      }
-    }
-    await db.iceAktarim.update({ where: { id: girdi.id }, data: {
-      durum: 'onaylandi', eklenen, guncellenen } });
+      // Durum da aynı transaction içinde: satırlar yazıldıysa `onaylandi`,
+      // yazılmadıysa hiç değişmemiş sayılır.
+      await tx.iceAktarim.update({ where: { id: girdi.id }, data: {
+        durum: 'onaylandi', eklenen, guncellenen } });
+      return { eklenen, guncellenen };
+    }, { timeout: 120_000, maxWait: 15_000 });
     await iz({ aktorId: k.id, varlikTipi: 'IceAktarim', varlikId: girdi.id, eylem: 'guncelleme',
       alan: 'durum', once: 'dogrulama_bekliyor', sonra: `onaylandi (+${eklenen} / ~${guncellenen})`,
       dosyaAdi: kayit.kaynakAdi });

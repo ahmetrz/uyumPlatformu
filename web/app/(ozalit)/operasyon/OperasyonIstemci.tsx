@@ -40,7 +40,7 @@ type Tedarikci = { id: string; ad: string; tip: string | null; uzaktanErisimVar:
 type Sertifika = { id: string; ad: string; veren: string | null;
   varlikEtiketi: string | null; bitis: string };
 type Hesap = {
-  id: string; hesapAdi: string; tip: string; ayricalikli: boolean;
+  id: string; hesapAdi: string; tip: string; ayricalikli: boolean | null;
   tesisKod: string | null; tesisAd: string | null;
   tesisId: string | null; kaynakSistem: string | null;
   durum: string; parolaRotasyon: string | null;
@@ -72,7 +72,7 @@ export default function OperasyonIstemci({ degisiklikler, olaylar, politikalar, 
         {([['degisiklik', `Değişiklikler (${degisiklikler.filter((d) => d.durum !== 'dogrulandi' && d.durum !== 'geri_alindi').length})`],
           ['olay', `Olaylar (${olaylar.filter((o) => o.durum === 'acik' || o.durum === 'mudahale').length})`],
           ['yedek', 'Yedekleme & DR'], ['tedarikci', 'Tedarikçi & sertifika'],
-          ['kimlik', `Kimlik & erişim (${hesaplar.filter((h) => h.ayricalikli && h.durum === 'aktif').length}⚿)`]] as const)
+          ['kimlik', `Kimlik & erişim (${hesaplar.filter((h) => h.ayricalikli === true && h.durum === 'aktif').length}⚿)`]] as const)
           .map(([kod, ad]) => (
             <button key={kod} className={`btn${sekme === kod ? ' birincil' : ''}`}
               onClick={() => setSekme(kod)}>{ad}</button>
@@ -117,7 +117,10 @@ function KimlikPaneli({ hesaplar, tesisler }: {
             <div key={h.id} className="satir" style={{ alignItems: 'flex-start' }}>
               <span className="chip mono">{h.hesapAdi}</span>
               <span className="chip">{HESAP_TIP_ETIKET[h.tip] ?? h.tip}</span>
-              {h.ayricalikli && <Pill durum="uyumsuz" etiket="Ayrıcalıklı" hollow />}
+              {h.ayricalikli === true && <Pill durum="uyumsuz" etiket="Ayrıcalıklı" hollow />}
+              {/* null = kaynak sistem söylemedi; 'ayrıcalıklı değil' diye gösterilmez */}
+              {h.ayricalikli === null
+                && <Pill durum="degerlendirilmedi" etiket="Ayrıcalık bilinmiyor" hollow />}
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div className="mikro-etiket">
                   {h.tesisAd

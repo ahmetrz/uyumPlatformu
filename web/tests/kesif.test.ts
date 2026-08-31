@@ -15,7 +15,8 @@ const {
   varlikIndeksiKur, varlikIndeksiYukle, normalCoz, gozlemeCevir,
 } = await import('@/lib/entegrasyon/kesif');
 const { elleAktarimAdaptoru } = await import('@/lib/entegrasyon/adaptorler/elleAktarim');
-const { adaptorGetir, ADAPTOR_TIPLERI } = await import('@/lib/entegrasyon/adaptorler');
+const { ADAPTOR_TIPLERI } = await import('@/lib/entegrasyon/adaptorler');
+const { adaptorCoz: adaptorGetir } = await import('@/lib/entegrasyon/kayit');
 type VarlikGozlemi = import('@/lib/entegrasyon/sozlesme').VarlikGozlemi;
 
 const KAYNAK = 'test_kesif';
@@ -458,7 +459,7 @@ describe('Bağlanmamış adaptörler "başarılı" numarası yapmaz', () => {
   });
 
   it('bilinmeyen tip sessizce "bağlı değil"e düşmez', () => {
-    expect(() => adaptorGetir('uydurma_tip')).toThrow(/Bilinmeyen connector tipi/);
+    expect(() => adaptorGetir('uydurma_tip')).toThrow(/adaptör kayıtlı değil/);
   });
 });
 

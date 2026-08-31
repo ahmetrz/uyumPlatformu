@@ -575,6 +575,32 @@ export async function kimlikErisim(db: PrismaClient) {
     });
     hesaplar.push({ id: h.id, ayricalikli: ayr });
   }
+  /* SCADA yerel hesapları: ayrıcalık bilgisi ÖLÇÜLMEDİ.
+     Kontrol sistemi kendi hesap deposunu tutar ve dizine ayrıcalık
+     bayrağı vermez — platformun bunu "ayrıcalıklı değil" diye kaydetmesi
+     yanlış olur. Dört hesap yeter: bu bir sinyaldir, gürültü değil. */
+  for (const [ad, sistem] of [
+    ['scada-hmi-01', 'SCADA yerel'],
+    ['scada-eng-01', 'SCADA yerel'],
+    ['historian-svc', 'Historian yerel'],
+    ['rtu-bakim', 'SCADA yerel'],
+  ] as const) {
+    const h = await db.kimlikHesabi.create({
+      data: {
+        hesapAdi: ad, tip: 'servis', kaynakSistem: sistem,
+        ayricalikli: null,                       // ÖLÇÜLMEDİ ≠ ayrıcalıksız
+        tesisId: uretimSantralleri[0].id,
+        /* Rotasyon kaydı VAR: bu dört hesabın tek eksiği ayrıcalık
+           bilgisi. Rotasyonu da boş bıraksaydık ekranda "rotasyonsuz
+           servis" bulgusu olarak kırmızıya düşer, asıl anlatmak
+           istediğimiz "ölçülmedi" durumu görünmez olurdu. */
+        parolaRotasyon: gun(-Math.floor(15 + rnd() * 50)),
+        sonKullanim: gun(-Math.floor(5 + rnd() * 40)),
+        durum: 'aktif',
+      },
+    });
+    hesaplar.push({ id: h.id, ayricalikli: false });   // atama üretimi için
+  }
   // Personel hesapları — incelenmiş kuyruğu bunlar oluşturur
   for (const u of kullanicilar) {
     const h = await db.kimlikHesabi.create({

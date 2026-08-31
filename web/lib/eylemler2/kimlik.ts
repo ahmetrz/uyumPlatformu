@@ -12,7 +12,7 @@ import { tamam, hata, iz, bosluksuz, type Sonuc } from './ortak';
 
 export async function hesapKaydet(girdi: {
   id?: string; hesapAdi: string; tip: string; tesisId?: string | null;
-  kaynakSistem?: string | null; ayricalikli: boolean;
+  kaynakSistem?: string | null; ayricalikli: boolean | null;
   parolaRotasyon?: string | null; durum?: string;
 }): Promise<Sonuc> {
   try {
@@ -22,7 +22,10 @@ export async function hesapKaydet(girdi: {
       tip: z.enum(['kisi', 'servis', 'paylasimli', 'acil_durum']),
       tesisId: z.string().nullable().optional(),
       kaynakSistem: z.string().nullable().optional(),
-      ayricalikli: z.boolean(),
+      /* null = ÖLÇÜLMEDİ. Dizinden gelen hesabın ayrıcalık bilgisi
+         yoksa formu açan kullanıcı da "hayır" demiş sayılmaz; değeri
+         olduğu gibi geri gönderebilsin. */
+      ayricalikli: z.boolean().nullable(),
       parolaRotasyon: z.string().nullable().optional(),
       durum: z.enum(['aktif', 'askida', 'kapatildi']).optional(),
     }).parse(girdi);

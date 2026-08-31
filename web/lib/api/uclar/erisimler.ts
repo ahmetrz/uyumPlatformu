@@ -15,9 +15,10 @@ import { zinciriCalistir } from '../../entegrasyon/zincir';
    Iki sinir:
    - Hesap DURUMU ('aktif' | 'askida' | 'kapatildi') otomatik degistirilmez;
      hesap kapatmak insan kararidir.
-   - `privileged` null gelirse `ayricalikli` alanina DOKUNULMAZ. Semada bu
-     alan Boolean (null tutamiyor), bu yuzden "olculmedi" ile "ayricalikli
-     degil" birbirine karistirilmaz: bilinmiyorsa yazilmaz. */
+   - `privileged` null gelirse `ayricalikli` alanina DOKUNULMAZ. Alan
+     artik uc degerlidir (true | false | null=OLCULMEDI): yeni hesap
+     olculmemis olarak acilir, mevcut hesabin daha once olculmus degeri
+     ise kaynak bildirmeyi biraktı diye SILINMEZ. */
 
 export const POST = apiUcu({ modul: 'envanter', islem: 'yazma' }, async ({ govde, kullanici }) => {
   const { records } = dogrula(zarf(erisimKaydiSemasi), govde);
@@ -102,7 +103,9 @@ export const POST = apiUcu({ modul: 'envanter', islem: 'yazma' }, async ({ govde
             sonKullanim: g.sonKullanim,
             parolaRotasyon: g.parolaRotasyon,
           };
-          // null = olculmedi -> alana dokunma (sema false/true disini tutamaz)
+          /* null = olculmedi -> alana dokunma. Yeni hesapta alan hic
+             yazilmaz ve kolon null kalir (varsayilan yok); mevcut hesapta
+             daha once olculmus deger korunur. */
           if (typeof tel.privileged === 'boolean') veri.ayricalikli = tel.privileged;
           if (tel.accountType) veri.tip = tel.accountType;
 

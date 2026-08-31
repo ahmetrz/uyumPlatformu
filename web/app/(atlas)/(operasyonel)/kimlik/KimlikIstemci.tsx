@@ -237,6 +237,8 @@ export default function KimlikIstemci({ hesaplar, tesisler, kaynaklar }: {
                   ? `İnceleme gecikmesi ${m.bekleyenAtama} incelenmemiş ayrıcalıklı atamadan ölçüldü`
                   : 'Ayrıcalıklı atama yok — inceleme gecikmesi ölçülemiyor'}
                 {' · '}atıl eşiği {ATIL_ESIK} gün
+                {m.ayricalikOlculmedi > 0
+                  && ` · ${m.ayricalikOlculmedi} hesabın ayrıcalık durumu kaynak sistemden gelmedi — ayrıcalıklı değil SAYILMADI`}
               </p>
             </div>
           )}

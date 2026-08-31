@@ -34,20 +34,16 @@ export type AdaptorTipi = keyof typeof ADAPTORLER;
 
 export const ADAPTOR_TIPLERI = Object.keys(ADAPTORLER) as AdaptorTipi[];
 
-/**
- * Tipe göre adaptör verir. Bilinmeyen tip için FIRLATIR — sessizce
- * "bağlı değil" davranışına düşmek, yanlış yapılandırılmış bir connector'ı
- * doğru sanmamıza yol açar.
- */
-export function adaptorGetir(tip: string): Adaptor {
-  const a = (ADAPTORLER as Record<string, Adaptor>)[tip];
-  if (!a) {
-    throw new Error(
-      `Bilinmeyen connector tipi: ${tip} — tanımlı tipler: ${ADAPTOR_TIPLERI.join(', ')}`,
-    );
-  }
-  return a;
-}
+/* Tipten adaptöre çözüm BURADA YAPILMAZ.
+
+   Bir zamanlar burada `adaptorGetir` vardı ve doğrudan yukarıdaki statik
+   haritayı okuyordu; `lib/entegrasyon/kayit.ts` ise aynı işi çalışma
+   zamanı kayıt defteri üzerinden yapıyordu. İki ayrı doğruluk kaynağı:
+   defterle kaydedilen bir adaptörü statik harita göremez, defterden
+   silineni hâlâ döndürürdü. Çözüm tek yerde kaldı — `adaptorCoz`.
+
+   Burası yalnız KATALOG'dur: hangi tipler için adaptör yazılmış.
+   Çalışma zamanında gerçekten kayıtlı olanı `kayitliTipler()` söyler. */
 
 /** `gereken` alanı yalnız bağlanmamış adaptörlerde bulunur. */
 export function adaptorGerekeni(a: Adaptor): string | null {

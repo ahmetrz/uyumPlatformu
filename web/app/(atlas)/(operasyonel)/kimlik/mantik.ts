@@ -40,7 +40,9 @@ export type Hesap = {
   hesapAdi: string;
   tip: string;
   kaynakSistem: string | null;
-  ayricalikli: boolean;
+  /** null = ÖLÇÜLMEDİ: kaynak sistem ayrıcalık bilgisi vermedi.
+      'ayrıcalıklı değil' DEĞİLDİR ve öyle sayılmaz. */
+  ayricalikli: boolean | null;
   parolaRotasyon: string | null;
   sonKullanim: string | null;
   durum: string;
@@ -98,8 +100,14 @@ export const incelenmemisYetkiler = (h: Hesap) =>
 export const rotasyonsuzServis = (h: Hesap) =>
   h.tip === 'servis' && h.parolaRotasyon === null;
 
+/** Ayrıcalık ölçülmemiş hesap: ne ayrıcalıklı ne değil — bilinmiyor. */
+export const ayricalikBilinmiyor = (h: Hesap) => h.ayricalikli === null;
+
 export function atilYonetici(h: Hesap): boolean {
-  if (!h.ayricalikli) return false;
+  /* `=== true`: ölçülmemiş (null) hesap için "atıl yönetici" İDDİA
+     EDİLMEZ. Bulgu uydurmak, bilinmeyeni sıfır saymak kadar yanlıştır;
+     ölçülmemişlik ayrı bir sinyal olarak (unk) yüzeye çıkar. */
+  if (h.ayricalikli !== true) return false;
   const g = gunFarki(h.sonKullanim);
   return g !== null && g > ATIL_ESIK;
 }
@@ -111,12 +119,14 @@ export const paylasimliRotasyonsuz = (h: Hesap) =>
   (h.tip === 'paylasimli' || h.tip === 'acil_durum') && h.parolaRotasyon === null;
 
 export const incelenmemisAyricalikli = (h: Hesap) =>
-  h.ayricalikli && incelenmemisYetkiler(h).length > 0;
+  h.ayricalikli === true && incelenmemisYetkiler(h).length > 0;
 
 export function hesapDurumu(h: Hesap): Durum {
   if (h.durum === 'kapatildi') return 'tamam';
   if (rotasyonsuzServis(h) || atilYonetici(h) || incelenmemisAyricalikli(h)) return 'bd';
   if (sahipsiz(h) || paylasimliRotasyonsuz(h)) return 'md';
+  // ayrıcalık ölçülmemiş: hesap temiz DEĞİL, bilinmiyor
+  if (ayricalikBilinmiyor(h)) return 'unk';
   if (h.sonKullanim === null) return 'unk';   // kullanım verisi yok — sıfır değil
   return 'ok';
 }
@@ -201,8 +211,13 @@ export function gruplandir(hesaplar: Hesap[]): TabloSatiri[] {
 
 /** Ayrıcalıklı → sahipsiz → kalan; içinde şiddet sırası. */
 export function sirala(satirlar: TabloSatiri[]): TabloSatiri[] {
+  /* Ayrıcalıklı → sahipsiz → ayrıcalığı ÖLÇÜLMEMİŞ → kalan. Ölçülmemiş
+     olan en alta değil ortaya girer: bilinmeyen, bilinen temizden daha
+     çok ilgi ister. */
   const oncelik = (s: TabloSatiri) =>
-    s.hesaplar.some((h) => h.ayricalikli) ? 0 : s.hesaplar.some(sahipsiz) ? 1 : 2;
+    s.hesaplar.some((h) => h.ayricalikli === true) ? 0
+      : s.hesaplar.some(sahipsiz) ? 1
+        : s.hesaplar.some(ayricalikBilinmiyor) ? 2 : 3;
   return [...satirlar].sort((a, b) => {
     const d = SIRA[satirDurumu(a)] - SIRA[satirDurumu(b)];
     if (d !== 0) return d;
@@ -279,13 +294,15 @@ export type Metrikler = {
   bekleyenAtama: number;
   /** ayrıcalıklı atama hiç yoksa gecikme ölçülemez — bilinmeyen */
   ayricalikliAtamaVar: boolean;
+  /** ayrıcalık durumu kaynak sistemden gelmemiş hesap sayısı */
+  ayricalikOlculmedi: number;
   mudahale: number;
   toplam: number;
 };
 
 export function metrikleriHesapla(hesaplar: Hesap[]): Metrikler {
   const kapsam = hesaplar.filter(kapsamda);
-  const ayricalikliAtamalar = kapsam.filter((h) => h.ayricalikli).flatMap(acikYetkiler);
+  const ayricalikliAtamalar = kapsam.filter((h) => h.ayricalikli === true).flatMap(acikYetkiler);
   const bekleyen = ayricalikliAtamalar.filter((y) => y.sonInceleme === null);
   const enEski = bekleyen
     .map((y) => new Date(y.verilis).getTime())
@@ -298,6 +315,7 @@ export function metrikleriHesapla(hesaplar: Hesap[]): Metrikler {
       : Math.floor((Date.now() - enEski) / 86_400_000),
     bekleyenAtama: bekleyen.length,
     ayricalikliAtamaVar: ayricalikliAtamalar.length > 0,
+    ayricalikOlculmedi: kapsam.filter(ayricalikBilinmiyor).length,
     mudahale: kapsam.filter((h) => hesapDurumu(h) === 'bd').length,
     toplam: kapsam.length,
   };

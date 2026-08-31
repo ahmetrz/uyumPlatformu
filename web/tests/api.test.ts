@@ -553,8 +553,31 @@ describe('Yedek, erişim ve kanıt uçları', () => {
     expect(g.data.created).toBe(1);
     expect(g.data.assignmentsCreated).toBe(1);
     const hesap = await db.kimlikHesabi.findUniqueOrThrow({ where: { hesapAdi: `${ONEK}-svc-1` } });
-    expect(hesap.ayricalikli).toBe(false); // şema varsayılanı; gözlem "false" İDDİA ETMEDİ
+    /* null = ÖLÇÜLMEDİ. Eskiden şema varsayılanı devreye girip alanı
+       `false` yapıyordu: gözlem "ayrıcalıklı değil" İDDİA ETMEMİŞKEN
+       hesap ayrıcalıksız sayılıyor, ayrıcalıklı hesap sayımı olduğundan
+       düşük görünüyordu. */
+    expect(hesap.ayricalikli).toBeNull();
     expect(hesap.durum).toBe('aktif');     // durum otomatik değiştirilmedi
+  });
+
+  it('ölçülmüş ayrıcalık, kaynak bildirmeyi bırakınca SİLİNMEZ', async () => {
+    const yolla1 = { records: [{
+      source: 'test_ad', sourceRecordId: 'hesap-olc', collectedAt: zaman, confidence: 0.9,
+      accountName: `${ONEK}-svc-olc`, accountType: 'servis', privileged: true,
+      plantCode: `${ONEK}-A`,
+    }] };
+    expect((await erisimYaz(yolla('/api/v1/access-observations', jeton.a, yolla1, 'erisim-olc-1'))).status).toBe(200);
+    expect((await db.kimlikHesabi.findUniqueOrThrow({
+      where: { hesapAdi: `${ONEK}-svc-olc` } })).ayricalikli).toBe(true);
+
+    // aynı hesap, bu kez ayrıcalık bilgisi YOK
+    const yolla2 = { records: [{ ...yolla1.records[0], privileged: null }] };
+    expect((await erisimYaz(yolla('/api/v1/access-observations', jeton.a, yolla2, 'erisim-olc-2'))).status).toBe(200);
+    /* Ölçülmemiş bir gözlem, daha önce ölçülmüş bir gerçeği silmez —
+       "bilmiyorum" ile "hayır" aynı şey değildir. */
+    expect((await db.kimlikHesabi.findUniqueOrThrow({
+      where: { hesapAdi: `${ONEK}-svc-olc` } })).ayricalikli).toBe(true);
   });
 
   it('erişim gözlemi kapsam dışı santrale yazılamaz', async () => {

@@ -1051,7 +1051,10 @@ model KimlikHesabi {
   kullaniciId    String? // kişiyse platform kullanıcısı
   tesisId        String?
   kaynakSistem   String? // AD | Entra | yerel | SCADA...
-  ayricalikli    Boolean   @default(false)
+  /// null = ÖLÇÜLMEDİ. Dizin/PAM gözlemi ayrıcalık bilgisi taşımıyorsa
+  /// hesabı 'ayrıcalıklı değil' saymak, ayrıcalıklı hesap sayımını
+  /// olduğundan düşük gösterir — bilinmeyen sıfır değildir.
+  ayricalikli    Boolean?
   parolaRotasyon DateTime?
   sonKullanim    DateTime?
   durum          String    @default("aktif") // aktif | askida | kapatildi

@@ -47,3 +47,4 @@ lib/prisma-client/
 # geçici sorgu/inceleme betikleri (ajan çalışması sırasında oluşur)
 *.tmp.mjs
 q-*.mjs
+*gecici*

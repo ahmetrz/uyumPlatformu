@@ -51,6 +51,22 @@ const nextConfig: NextConfig = {
         path.resolve(__dirname, 'lib/eylemler2/surum.demo.ts');
       config.resolve.alias['@/lib/eylemler2/tesis360'] =
         path.resolve(__dirname, 'lib/eylemler2/tesis360.demo.ts');
+      config.resolve.alias['@/lib/eylemler2/apiAnahtari'] =
+        path.resolve(__dirname, 'lib/eylemler2/apiAnahtari.demo.ts');
+      config.resolve.alias['@/lib/eylemler2/entegrasyon'] =
+        path.resolve(__dirname, 'lib/eylemler2/entegrasyon.demo.ts');
+      config.resolve.alias['@/lib/eylemler2/kesif'] =
+        path.resolve(__dirname, 'lib/eylemler2/kesif.demo.ts');
+      config.resolve.alias['@/lib/eylemler2/koken'] =
+        path.resolve(__dirname, 'lib/eylemler2/koken.demo.ts');
+      config.resolve.alias['@/lib/eylemler2/konfigYedek'] =
+        path.resolve(__dirname, 'lib/eylemler2/konfigYedek.demo.ts');
+      config.resolve.alias['@/lib/eylemler2/olay'] =
+        path.resolve(__dirname, 'lib/eylemler2/olay.demo.ts');
+      config.resolve.alias['@/lib/eylemler2/topoloji'] =
+        path.resolve(__dirname, 'lib/eylemler2/topoloji.demo.ts');
+      config.resolve.alias['@/lib/eylemler2/varlikAktarim'] =
+        path.resolve(__dirname, 'lib/eylemler2/varlikAktarim.demo.ts');
     }
     return config;
   },
@@ -71,6 +87,14 @@ const nextConfig: NextConfig = {
           '@/lib/eylemler2/risk': './lib/eylemler2/risk.demo.ts',
           '@/lib/eylemler2/surum': './lib/eylemler2/surum.demo.ts',
           '@/lib/eylemler2/tesis360': './lib/eylemler2/tesis360.demo.ts',
+          '@/lib/eylemler2/apiAnahtari': './lib/eylemler2/apiAnahtari.demo.ts',
+          '@/lib/eylemler2/entegrasyon': './lib/eylemler2/entegrasyon.demo.ts',
+          '@/lib/eylemler2/kesif': './lib/eylemler2/kesif.demo.ts',
+          '@/lib/eylemler2/koken': './lib/eylemler2/koken.demo.ts',
+          '@/lib/eylemler2/konfigYedek': './lib/eylemler2/konfigYedek.demo.ts',
+          '@/lib/eylemler2/olay': './lib/eylemler2/olay.demo.ts',
+          '@/lib/eylemler2/topoloji': './lib/eylemler2/topoloji.demo.ts',
+          '@/lib/eylemler2/varlikAktarim': './lib/eylemler2/varlikAktarim.demo.ts',
         }
       : {},
   },

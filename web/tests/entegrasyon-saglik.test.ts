@@ -15,7 +15,7 @@ const SIR_DEGERI = 'ustGizli-P4rola-9x7q';
 process.env.ENTEGRASYON_TEST_SIR = SIR_DEGERI;
 
 const {
-  connectorSagligi, tazelikHesapla, kosuBayatMi, durumSayilari,
+  connectorSagligi, tazelikHesapla, kosuBayatMi, durumSayilari, durumaGoreSirala,
   entegrasyonSagligiOzeti, BAYAT_KOSU_ESIGI_DK,
 } = await import('@/lib/entegrasyon/saglikOzeti');
 const { siriCoz } = await import('@/lib/entegrasyon/sir');
@@ -37,7 +37,7 @@ const kosu = (y: Partial<KosuGirdi> = {}): KosuGirdi => ({
   id: 'k1', durum: 'basarili', tetikleyen: 'zamanlanmis',
   baslangic: dkOnce(10), bitis: dkOnce(9), sureMs: 60_000,
   alinan: 10, kabulEdilen: 10, reddedilen: 0, yinelenen: 0, denemeNo: 1,
-  imlecOnce: null, imlecSonra: null, hata: null, ...y,
+  imlecOnce: null, imlecSonra: null, hata: null, ayrinti: null, ...y,
 });
 
 describe('Entegrasyon sağlığı — sessiz hata yasağı', () => {
@@ -85,7 +85,22 @@ describe('kimlik_bekleniyor ile basarisiz ayrımı', () => {
     expect(s.durum).toBe('kimlik_bekleniyor');
     expect(s.durum).not.toBe('hic_kosmadi');
     expect(s.hicKosmadi).toBe(true);       // "hiç koşmadı" gerçeği yine de saklanmaz
-    expect(s.kimlikGerekce).toContain('kimlik bekleniyor');
+    // Gerekçe eyleme dönük olmalı: hangi adrese sır konacağını söylesin.
+    expect(s.kimlikGerekce).toContain('Kimlik bilgisi kurulmadı');
+    expect(s.kimlikGerekce).toContain('env: TANIMSIZ_ANAHTAR');
+    // …ama sırrın DEĞERİ değil, yalnız adresi.
+    expect(s.sirMaskeli).toBe('env: TANIMSIZ_ANAHTAR');
+  });
+
+  it('sağlık satırları ciddiyete göre sıralanır — başarısız connector listenin dibine gömülmez', () => {
+    const satirlar = [
+      connectorSagligi(conn({ id: 'z', kod: 'ZZ-01' }), [kosu({ durum: 'basarili' })], { simdi: SIMDI }),
+      connectorSagligi(conn({ id: 'a', kod: 'AA-01', kimlikTipi: 'api_key' }), [], { simdi: SIMDI }),
+      connectorSagligi(conn({ id: 'm', kod: 'MM-01' }),
+        [kosu({ durum: 'basarisiz', hata: 'patladı' })], { simdi: SIMDI }),
+    ];
+    expect(durumaGoreSirala(satirlar).map((x) => x.durum))
+      .toEqual(['basarisiz', 'kimlik_bekleniyor', 'basarili']);
   });
 
   it('connector kaydı "hatali" ise koşu kaydı olmasa bile başarısız gizlenmez', () => {
@@ -192,17 +207,27 @@ describe('Veri tazeliği — bilinmeyen ≠ gecikmiş', () => {
 });
 
 describe('Reddedilen kayıtlar sessizce yutulmaz', () => {
-  it('reddedilen > 0 ise sebep okunabilir', () => {
+  it('reddedilen > 0 ise sebep `ayrinti` alanından okunur (koşu başarılı olsa da)', () => {
     const s = connectorSagligi(conn(), [kosu({
-      alinan: 10, kabulEdilen: 7, reddedilen: 3,
+      durum: 'basarili', alinan: 10, kabulEdilen: 7, reddedilen: 3,
+      ayrinti: '3 kayıt reddedildi: kaynakKayitId eksik', hata: null })], { simdi: SIMDI });
+    expect(s.durum).toBe('basarili');       // renk `durum`dan gelir
+    expect(s.sonKosu?.hata).toBeNull();     // ret bir başarısızlık DEĞİL
+    expect(s.sonKosu?.reddSebebi).toContain('kaynakKayitId eksik');
+    expect(s.sonKosu?.reddSebebiEksik).toBe(false);
+  });
+
+  it('eski kayıtlarda sebep `hata` alanına yazılmışsa yine okunur', () => {
+    const s = connectorSagligi(conn(), [kosu({
+      alinan: 10, kabulEdilen: 7, reddedilen: 3, ayrinti: null,
       hata: '3 kayıt reddedildi: kaynakKayitId eksik' })], { simdi: SIMDI });
     expect(s.sonKosu?.reddSebebi).toContain('kaynakKayitId eksik');
     expect(s.sonKosu?.reddSebebiEksik).toBe(false);
   });
 
-  it('reddedilen > 0 ama sebep yazılmamışsa boşluk işaretlenir', () => {
+  it('reddedilen > 0 ama ne ayrıntı ne hata yazılmışsa boşluk işaretlenir', () => {
     const s = connectorSagligi(conn(), [kosu({
-      alinan: 10, kabulEdilen: 7, reddedilen: 3, hata: null })], { simdi: SIMDI });
+      alinan: 10, kabulEdilen: 7, reddedilen: 3, hata: null, ayrinti: null })], { simdi: SIMDI });
     expect(s.sonKosu?.reddSebebiEksik).toBe(true);
   });
 

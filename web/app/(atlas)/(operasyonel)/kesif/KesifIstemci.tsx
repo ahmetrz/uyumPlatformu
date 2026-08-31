@@ -8,7 +8,8 @@ import {
 } from '@/components/atlas/cekmece';
 import { tarihTR, zamanTR } from '@/lib/sabitler';
 import {
-  ElleAktarimFormu, KararEylemleri, TopluKararTepsisi, type Tesis, type Tur,
+  ElleAktarimFormu, EslestirmeDugmesi, KararEylemleri, TopluKararTepsisi,
+  type Tesis, type Tur,
 } from './Karar';
 import {
   ANAHTAR_SOZU, DURUM_SOZU_KESIF, GORUNUR_TAVAN, KAYNAK_SOZU, MERCEKLER,
@@ -66,6 +67,7 @@ export default function KesifIstemci({
   const toplanan = kuyrukAcik ? 0 : sakin.length;
 
   const secili = satirlar.find((s) => s.id === seciliId) ?? null;
+  const eslestirilmemis = satirlar.filter((s) => s.eslestirilmedi && bekliyorMu(s)).length;
   const secilenler = toplu
     .map((id) => satirlar.find((s) => s.id === id))
     .filter((s): s is KesifSatiri => !!s && bekliyorMu(s));
@@ -105,6 +107,7 @@ export default function KesifIstemci({
           vurgu={baslik.vurgu}
           vurguDurumu={baslik.durum}
           baslik={baslik.metin}
+          sag={<EslestirmeDugmesi yazabilir={yazabilir} />}
           metrikler={[
             { deger: m.bekleyen, yazi: 'Karar bekliyor',
               durum: m.bekleyen > 0 ? 'md' : undefined },
@@ -119,6 +122,13 @@ export default function KesifIstemci({
 
         <section className="ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
           <ElleAktarimFormu yazabilir={yazabilir} />
+
+          {eslestirilmemis > 0 && (
+            <p className="dip-not" style={{ marginBottom: 'var(--s12)' }}>
+              {eslestirilmemis} kayıt henüz eşleştirilmedi — eşleştirme öneri
+              üretir, CMDB’ye yazmaz.
+            </p>
+          )}
 
           <TopluKararTepsisi
             secilenler={secilenler}
@@ -192,6 +202,9 @@ export default function KesifIstemci({
               { etiket: 'Güven skoru',
                 deger: guvenYazisi(secili.guvenSkoru),
                 durum: guvenDurumu(secili.guvenSkoru) },
+              ...(secili.kaynakGuveni !== null
+                ? [{ etiket: 'Kaynağın beyanı', deger: guvenYazisi(secili.kaynakGuveni) }]
+                : []),
               { etiket: 'İlk görülme', deger: zamanTR(secili.ilkGorulme) },
               { etiket: 'Son görülme',
                 deger: `${zamanTR(secili.sonGorulme)}`

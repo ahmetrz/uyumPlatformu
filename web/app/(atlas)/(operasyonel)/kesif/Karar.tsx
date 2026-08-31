@@ -4,7 +4,7 @@ import { Alan, Dugme } from '@/components/atlas/temel';
 import { CekmeceEylemler } from '@/components/atlas/cekmece';
 import { useEylem } from '@/components/useEylem';
 import {
-  elleAktarimCalistir, kesifKarariVer, kesifTopluKarar,
+  elleAktarimCalistir, kesifEslestir, kesifKarariVer, kesifTopluKarar,
 } from '@/lib/eylemler2/kesif';
 import { zamanTR } from '@/lib/sabitler';
 import { bekliyorMu, guvenYazisi, type KesifSatiri } from './mantik';
@@ -246,6 +246,23 @@ export function TopluKararTepsisi({
         {hata && <p className="gr-hata" role="alert" style={{ width: '100%' }}>{hata}</p>}
       </div>
     </section>
+  );
+}
+
+/* ═══ Eşleştirme geçişi ═══════════════════════════════════════════════ */
+
+/** Bekleyen kayıtları CMDB ile eşleştirir. ÖNERİ üretir — hiçbir kaydı
+    CMDB'ye yazmaz; yazma yalnız kayıt bazında insan kararıyla olur. */
+export function EslestirmeDugmesi({ yazabilir }: { yazabilir: boolean }) {
+  const { bekliyor, hata, calistir } = useEylem();
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--s10)' }}>
+      <Dugme disabled={!yazabilir || bekliyor} style={pasifStil(!yazabilir || bekliyor)}
+        onClick={() => calistir(() => kesifEslestir({}))}>
+        {bekliyor ? 'Eşleştiriliyor…' : 'Bekleyenleri eşleştir'}
+      </Dugme>
+      {hata && <span className="gr-hata" role="alert">{hata}</span>}
+    </span>
   );
 }
 

@@ -76,6 +76,8 @@ export type KosuGirdi = {
   imlecOnce: string | null;
   imlecSonra: string | null;
   hata: string | null;
+  /** hata OLMAYAN açıklama (hangi kimlik eksik, kaç kayıt neden reddedildi) */
+  ayrinti: string | null;
 };
 
 /* ═══ Çıktı biçimleri (istemciye gönderilir — serileştirilebilir) ═════ */
@@ -130,8 +132,12 @@ export type KosuSatiri = {
   denemeNo: number;
   imlecOnce: string | null;
   imlecSonra: string | null;
+  /** YALNIZ gerçek başarısızlık. Doluluğu ekranın rengini belirlemez —
+      renk `durum`dan gelir. */
   hata: string | null;
-  /** reddedilen > 0 ise sebebi; kaydedilmemişse null */
+  /** hata OLMAYAN açıklama; bilgi notu olarak gösterilir */
+  ayrinti: string | null;
+  /** reddedilen > 0 ise sebebi (önce `ayrinti`, sonra `hata`); yoksa null */
   reddSebebi: string | null;
   /** reddedilen > 0 ama sebep kaydı yok — sessizce yutulmuş kayıtlar */
   reddSebebiEksik: boolean;
@@ -205,8 +211,10 @@ export function kimlikDurumu(c: ConnectorGirdi): { eksik: boolean; gerekce: stri
   if (c.durum === 'kimlik_bekleniyor') {
     return {
       eksik: true,
-      gerekce: c.sonHata
-        ?? 'Connector kaydı "kimlik bekleniyor" olarak işaretli — dış sistem kimlik bilgisi henüz kurulmadı',
+      // Eyleme dönük tek satır: hangi adrese sır konması gerekiyor.
+      gerekce: c.sonHata ?? (c.sirReferansi
+        ? `Kimlik bilgisi kurulmadı — beklenen adres: ${sirMaskesi(c.sirReferansi)}`
+        : 'Kimlik bilgisi kurulmadı — sır referansı da tanımlı değil'),
     };
   }
   if (c.kimlikTipi === 'none') return { eksik: false, gerekce: null };
@@ -261,7 +269,10 @@ export function tazelikHesapla(
 }
 
 function kosuSatiri(k: KosuGirdi, simdi: Date, esikDk: number): KosuSatiri {
-  const reddSebebi = k.reddedilen > 0 ? k.hata : null;
+  /* Ret sebebi öncelikle `ayrinti`dedir: reddedilen kayıt koşuyu başarısız
+     yapmaz, dolayısıyla `hata` alanına yazılmamalıdır. Eski kayıtlar için
+     `hata`ya düşülür. */
+  const reddSebebi = k.reddedilen > 0 ? (k.ayrinti ?? k.hata) : null;
   return {
     id: k.id,
     durum: k.durum,
@@ -278,9 +289,10 @@ function kosuSatiri(k: KosuGirdi, simdi: Date, esikDk: number): KosuSatiri {
     imlecOnce: k.imlecOnce,
     imlecSonra: k.imlecSonra,
     hata: k.hata,
+    ayrinti: k.ayrinti,
     reddSebebi,
     // Reddedilen kayıt var ama sebebi yazılmamışsa bu bir boşluktur, sessizce geçilmez.
-    reddSebebiEksik: k.reddedilen > 0 && !k.hata,
+    reddSebebiEksik: k.reddedilen > 0 && !k.ayrinti && !k.hata,
     sayacTutarsiz: k.durum !== 'calisiyor'
       && k.alinan !== k.kabulEdilen + k.reddedilen + k.yinelenen,
   };
@@ -370,6 +382,18 @@ export function bosSayilar(): Record<SaglikDurumu, number> {
   };
 }
 
+/** Ekran sırası: en çok müdahale isteyen üstte. Alfabetik sıra gerçek
+    başarısızlığı listenin ortasına gömerdi. */
+const DURUM_AGIRLIGI: Record<SaglikDurumu, number> = {
+  basarisiz: 0, bayat_kosu: 1, bilinmiyor: 2, kimlik_bekleniyor: 3,
+  hic_kosmadi: 4, calisiyor: 5, basarili: 6,
+};
+
+export function durumaGoreSirala(satirlar: ConnectorSagligi[]): ConnectorSagligi[] {
+  return [...satirlar].sort((a, b) =>
+    DURUM_AGIRLIGI[a.durum] - DURUM_AGIRLIGI[b.durum] || a.kod.localeCompare(b.kod, 'tr'));
+}
+
 export function durumSayilari(satirlar: ConnectorSagligi[]): Record<SaglikDurumu, number> {
   const s = bosSayilar();
   for (const r of satirlar) s[r.durum] += 1;
@@ -381,7 +405,8 @@ export function durumSayilari(satirlar: ConnectorSagligi[]): Record<SaglikDurumu
 const KOSU_ALANLARI = {
   id: true, durum: true, tetikleyen: true, baslangic: true, bitis: true,
   sureMs: true, alinan: true, kabulEdilen: true, reddedilen: true,
-  yinelenen: true, denemeNo: true, imlecOnce: true, imlecSonra: true, hata: true,
+  yinelenen: true, denemeNo: true, imlecOnce: true, imlecSonra: true,
+  hata: true, ayrinti: true,
 } as const;
 
 function bosOzet(yetkili: boolean, simdi: Date): EntegrasyonOzeti {
@@ -439,8 +464,8 @@ export async function entegrasyonSagligiOzeti(
       : db.entegrasyonKosusu.count({ where: { NOT: { connectorId: null } } }),
   ]);
 
-  const satirlar = connectorlar.map((c, i) =>
-    connectorSagligi(c, kosuListeleri[i], { ...secenek, simdi }));
+  const satirlar = durumaGoreSirala(connectorlar.map((c, i) =>
+    connectorSagligi(c, kosuListeleri[i], { ...secenek, simdi })));
 
   // Connector'a bağlı olmayan koşular (eski/elle içe aktarım) gizlenmez.
   const esikDk = secenek.bayatEsigiDk ?? BAYAT_KOSU_ESIGI_DK;

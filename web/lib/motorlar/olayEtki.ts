@@ -521,14 +521,14 @@ export async function etkiOnerisiUret(
     ekran bunu "öneri okunamadı" diye söyler, sessizce boş göstermez. */
 export function oneriOku(json: string | null | undefined): EtkiOnerisi | null {
   if (!json) return null;
-  let ham: unknown;
+  let cozulen: unknown;
   try {
-    ham = JSON.parse(json);
+    cozulen = JSON.parse(json);
   } catch {
     return null;
   }
-  if (typeof ham !== 'object' || ham === null) return null;
-  const o = ham as Partial<EtkiOnerisi>;
+  if (typeof cozulen !== 'object' || cozulen === null) return null;
+  const o = cozulen as Partial<EtkiOnerisi>;
   if (o.surum !== 1 || o.motor !== 'olay_etki') return null;
   if (!Array.isArray(o.gerekce) || !Array.isArray(o.zincir)) return null;
   for (const alan of ETKI_ALANLARI) {

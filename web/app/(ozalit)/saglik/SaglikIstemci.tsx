@@ -17,7 +17,7 @@ type Kosu = {
   id: string; isAdi: string; durum: string; baslangic: string; bitis: string | null;
   sureMs: number | null; islenen: number; uretilen: number; hata: string | null;
 };
-type Is = { ad: string; etiket: string; aciklama: string; son: Kosu | null };
+type Is = { ad: string; etiket: string; aciklama: string; elleCalisir: boolean; son: Kosu | null };
 type KaliteBulgusu = {
   id: string; kural: string; aciklama: string; kaynakTipi: string;
   olusturuldu: string; kayitEtiket: string | null; href: string | null;
@@ -200,7 +200,8 @@ export default function SaglikIstemci({ isler, gecmis, kalite, yazabilir, entegr
           ...(entegrasyon.yetkili ? [{ ad: 'Entegrasyonlar', satirlar: [
             ['Connector', 'Kod', 'Tip', 'Kaynak sistem', 'Durum', 'Son koşu',
               'Son başarı', 'Alınan', 'Kabul', 'Red', 'Yinelenen', 'Süre',
-              'Deneme', 'Tazelik', 'Gecikme (×)', 'Hata', 'Sır referansı (maskeli)'],
+              'Deneme', 'Tazelik', 'Gecikme (×)', 'Hata', 'Ayrıntı (hata değil)',
+              'Sır referansı (maskeli)'],
             ...entegrasyon.connectorlar.map((c) => [
               c.ad, c.kod, CONNECTOR_TIP[c.tip] ?? etiketle(c.tip), c.kaynakSistem,
               ENTEGRASYON_DURUM[c.durum].etiket,
@@ -210,7 +211,8 @@ export default function SaglikIstemci({ isler, gecmis, kalite, yazabilir, entegr
               c.sonKosu?.reddedilen ?? null, c.sonKosu?.yinelenen ?? null,
               sureFmt(c.sonKosu?.sureMs ?? null), c.sonKosu?.denemeNo ?? null,
               c.tazelik.durum, c.tazelik.gecikmeOrani,
-              c.sonKosu?.hata ?? c.sonHata, c.sirMaskeli]) ] }] : []),
+              c.sonKosu?.hata ?? c.sonHata, c.sonKosu?.ayrinti ?? c.kimlikGerekce,
+              c.sirMaskeli]) ] }] : []),
         ])}>⤓ Excel</button>
       </div>
 
@@ -261,10 +263,15 @@ export default function SaglikIstemci({ isler, gecmis, kalite, yazabilir, entegr
                     {is.son ? `Son: ${zamanTR(is.son.baslangic)}` : is.aciklama}
                   </span>
                   <span style={{ flex: 1 }} />
-                  {yazabilir && (
+                  {yazabilir && is.elleCalisir && (
                     <button className="btn kucuk yazdirmada-gizle"
                       disabled={bekliyor || is.son?.durum === 'calisiyor'}
                       onClick={() => calistir(() => tekIsCalistir(is.ad))}>▸ Çalıştır</button>
+                  )}
+                  {!is.elleCalisir && (
+                    <span className="mikro-etiket" title="Bu motor entegrasyon zincirinden koşar">
+                      zincirden koşar
+                    </span>
                   )}
                 </div>
               </div>
@@ -309,6 +316,9 @@ export default function SaglikIstemci({ isler, gecmis, kalite, yazabilir, entegr
                 {entegrasyon.connectorlar.map((c) => {
                   const s = c.sonKosu;
                   const hataMetni = s?.hata ?? c.sonHata;
+                  /* Renk `durum`dan gelir, `hata` alanının doluluğundan DEĞİL:
+                     başarılı bir koşu da geçmiş bir hata metni taşıyabilir. */
+                  const hataliMi = c.durum === 'basarisiz' || c.durum === 'bayat_kosu';
                   return (
                     <tr key={c.id}>
                       <td style={{ minWidth: 190 }}>
@@ -329,8 +339,10 @@ export default function SaglikIstemci({ isler, gecmis, kalite, yazabilir, entegr
                             <span className="chip" title="Hiç koşu kaydı yok">hiç koşmadı</span>
                           )}
                         </div>
-                        {c.kimlikGerekce && <div style={NOT_STIL}>{c.kimlikGerekce}</div>}
-                        {hataMetni && (
+                        {c.kimlikGerekce && (
+                          <div style={{ ...NOT_STIL, maxWidth: 300 }}>{c.kimlikGerekce}</div>
+                        )}
+                        {hataMetni && (hataliMi ? (
                           <button className="pill durum-uyumsuz" onClick={() => setSecilenC(c)}
                             style={{ cursor: 'pointer', display: 'block', marginBlockStart: 'var(--sp-1)',
                               maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis',
@@ -338,6 +350,14 @@ export default function SaglikIstemci({ isler, gecmis, kalite, yazabilir, entegr
                             title="Hata detayını aç">
                             ⚠ {kisalt(hataMetni, 34)}
                           </button>
+                        ) : (
+                          // Hata metni duruyor ama connector artık hatalı değil:
+                          // kaybolmaz, ama kırmızıya da boyanmaz.
+                          <div style={NOT_STIL}>önceki hata: {kisalt(hataMetni, 60)}</div>
+                        ))}
+                        {/* `ayrinti` bir başarısızlık değildir — bilgi notu. */}
+                        {s?.ayrinti && s.ayrinti !== hataMetni && (
+                          <div style={NOT_STIL}>{kisalt(s.ayrinti, 90)}</div>
                         )}
                         {s?.reddSebebiEksik && (
                           <div style={NOT_STIL}>{s.reddedilen} kayıt reddedildi, sebep kaydedilmemiş</div>
@@ -585,6 +605,14 @@ export default function SaglikIstemci({ isler, gecmis, kalite, yazabilir, entegr
                 <div className="mono" style={{ fontSize: 'var(--fs-xs)', wordBreak: 'break-all' }}>
                   {secilenC.imlec}
                 </div>
+              </div>
+            )}
+
+            {secilenC.sonKosu?.ayrinti
+              && secilenC.sonKosu.ayrinti !== secilenC.sonKosu.reddSebebi && (
+              <div>
+                <span className="mikro-etiket">Ayrıntı (hata değil)</span>
+                <div style={{ ...NOT_STIL, maxWidth: 'none' }}>{secilenC.sonKosu.ayrinti}</div>
               </div>
             )}
 

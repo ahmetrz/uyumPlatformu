@@ -60,7 +60,9 @@ export default async function Sayfa() {
     }),
   ]);
 
-  const simdi = Date.now();
+  /* `new Date()` sunucuda istek başına bir kez okunur; "kaç gündür
+     görülmüyor" eşiği tüm satırlar için bu ana göre hesaplanır. */
+  const simdi = new Date().getTime();
 
   const satirlar: KesifSatiri[] = [];
   for (const kayit of kayitlar) {
@@ -93,6 +95,8 @@ export default async function Sayfa() {
       konu,
       alt: altParcalar.join(' · ') || kayit.kaynakKayitId,
       guvenSkoru: kayit.guvenSkoru,
+      kaynakGuveni: normal?.koken.guven ?? null,
+      eslestirilmedi: eslesme === null,
       eslesmeAnahtari: kayit.eslesmeAnahtari,
       eslesen: kayit.eslesenVarlik
         ? {
@@ -103,7 +107,9 @@ export default async function Sayfa() {
       adaylar: (eslesme?.adaylar ?? []) as Aday[],
       cakisma: eslesme?.cakisma ?? false,
       gerekce: eslesme?.gerekce
-        ?? (normal ? 'Eşleme sonucu kayıtlı değil.' : 'Kayıt normalize edilmemiş.'),
+        ?? (normal
+          ? 'Henüz eşleştirilmedi — eşleştirme geçişi bu kayda uğramadı.'
+          : 'Kayıt normalize edilmemiş; karar verilemez.'),
       gozlemAlanlari: g ? gozlemAlanlari(g) : [],
       ilkGorulme: kayit.ilkGorulme.toISOString(),
       sonGorulme: kayit.sonGorulme.toISOString(),

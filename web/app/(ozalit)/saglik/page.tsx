@@ -1,6 +1,7 @@
 import { girisZorunlu, izinVar } from '@/lib/erisim';
 import { db } from '@/lib/db';
 import { entegrasyonSagligiOzeti } from '@/lib/entegrasyon/saglikOzeti';
+import { etiketle } from '@/lib/sabitler';
 import UstCubuk from '@/components/UstCubuk';
 import SaglikIstemci from './SaglikIstemci';
 
@@ -13,16 +14,35 @@ import SaglikIstemci from './SaglikIstemci';
    sır referansı bile gitmez (özet katmanı boş döner). Sır DEĞERİ hiçbir
    koşulda bu sayfadan geçmez; yalnız `sirMaskesi()` çıktısı taşınır. */
 
-const IS_TANIMLARI = [
-  { ad: 'kanit_tazelik', etiket: 'Kanıt tazeliği',
+/* Motor kataloğu. `elleCalisir` = `lib/eylemler2/isler.ts` içindeki `ISLER`
+   haritasında var, yani ekrandan tetiklenebilir. Zincirin kendi kendine
+   yazdığı koşular (uygulanabilirlik, entegrasyon_zinciri,
+   zincir_guvenlik_ihlali) elle tetiklenmez ama GÖRÜNÜR — koşan bir motorun
+   ekranda karşılığı olmaması sessiz hata olurdu. */
+const IS_TANIMLARI: { ad: string; etiket: string; aciklama: string; elleCalisir: boolean }[] = [
+  { ad: 'kanit_tazelik', etiket: 'Kanıt tazeliği', elleCalisir: true,
     aciklama: 'Geçerliliği biten kanıtları bayatlar, yenileme görevi üretir' },
-  { ad: 'deadline_motoru', etiket: 'Son tarih motoru',
+  { ad: 'deadline_motoru', etiket: 'Son tarih motoru', elleCalisir: true,
     aciklama: 'Yaklaşan/geçen tarihler için görev ve bildirim üretir' },
-  { ad: 'gap_to_action', etiket: 'Gap → Aksiyon',
+  { ad: 'gap_to_action', etiket: 'Gap → Aksiyon', elleCalisir: true,
     aciklama: 'Uyum açıklarından onay bekleyen proje önerisi üretir' },
-  { ad: 'veri_kalitesi', etiket: 'Veri kalitesi',
+  { ad: 'veri_kalitesi', etiket: 'Veri kalitesi', elleCalisir: true,
     aciklama: 'Governance verisindeki boşlukları tarar ve raporlar' },
-] as const;
+  { ad: 'uyum_anlik', etiket: 'Uyum anlık görüntüsü', elleCalisir: true,
+    aciklama: 'Aktif süreçlerin durum ve güven dağılımını günlük olarak saklar' },
+  { ad: 'yedek_dogrulama', etiket: 'Yedek doğrulama', elleCalisir: true,
+    aciklama: 'Kritik varlıkların konfigürasyon yedeği boşluklarını tarar — yedek almaz' },
+  { ad: 'topoloji_sapma', etiket: 'Topoloji sapması', elleCalisir: true,
+    aciklama: 'Topoloji anlıklarını onaylı temelle karşılaştırır — kayıt değiştirmez' },
+  { ad: 'olay_etki', etiket: 'Olay etkisi', elleCalisir: true,
+    aciklama: 'Olayın üretim/emniyet etkisini ÖNERİR; kararı insan doğrular' },
+  { ad: 'uygulanabilirlik', etiket: 'Uygulanabilirlik', elleCalisir: false,
+    aciklama: 'Tesis profili değiştiğinde madde kapsamını yeniden hesaplar (zincirden koşar)' },
+  { ad: 'entegrasyon_zinciri', etiket: 'Entegrasyon zinciri', elleCalisir: false,
+    aciklama: 'Yeni veri aktarıldığında motorları doğru sırada koşturur (zincirden koşar)' },
+  { ad: 'zincir_guvenlik_ihlali', etiket: 'Zincir güvenlik ihlali', elleCalisir: false,
+    aciklama: 'Zincir otomasyon sınırını aştıysa başarısız koşu bırakır — boş olması iyi haberdir' },
+];
 
 type KosuKaydi = {
   id: string; isAdi: string; durum: string; baslangic: Date; bitis: Date | null;
@@ -41,8 +61,23 @@ export default async function Saglik() {
   const k = await girisZorunlu();
   const yazabilir = izinVar(k, 'yonetim', 'yazma');
 
+  /* Katalogda olmayan ama koşu bırakmış bir motor GİZLENMEZ: kayıt varsa
+     ekranda karşılığı da olmalı. */
+  const kosanAdlar = await db.isKosusu.findMany({
+    distinct: ['isAdi'], select: { isAdi: true }, orderBy: { isAdi: 'asc' } });
+  const tanimlar = [
+    ...IS_TANIMLARI,
+    ...kosanAdlar
+      .map((x) => x.isAdi)
+      .filter((ad) => !IS_TANIMLARI.some((t) => t.ad === ad))
+      .map((ad) => ({
+        ad, etiket: etiketle(ad), elleCalisir: false,
+        aciklama: 'Motor kataloğunda tanımlı değil — koşu kaydı bulunduğu için gösteriliyor',
+      })),
+  ];
+
   const [sonKosular, gecmis, kaliteBulgulari, entegrasyon] = await Promise.all([
-    Promise.all(IS_TANIMLARI.map((t) =>
+    Promise.all(tanimlar.map((t) =>
       db.isKosusu.findFirst({ where: { isAdi: t.ad }, orderBy: { baslangic: 'desc' } }))),
     db.isKosusu.findMany({ orderBy: { baslangic: 'desc' }, take: 20 }),
     db.veriKalitesiBulgusu.findMany({
@@ -67,7 +102,7 @@ export default async function Saglik() {
   for (const t of tesisler) kayitBilgisi.set(`Tesis|${t.id}`, { etiket: t.kod, href: `/tesisler/${t.id}` });
   for (const kn of kanitlar) kayitBilgisi.set(`Kanit|${kn.id}`, { etiket: kn.ad, href: null });
 
-  const isler = IS_TANIMLARI.map((t, i) => ({
+  const isler = tanimlar.map((t, i) => ({
     ...t, son: sonKosular[i] ? serile(sonKosular[i]) : null,
   }));
   const kalite = kaliteBulgulari.map((b) => {

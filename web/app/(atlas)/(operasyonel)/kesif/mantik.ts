@@ -21,8 +21,12 @@ export type KesifSatiri = {
   konu: string;
   /** kayıt kimliği + en fazla iki olgu */
   alt: string;
-  /** 0–1; null = ÖLÇÜLMEDİ (sıfır değil) */
+  /** eşleşme güveni · 0–1; null = ÖLÇÜLMEDİ (sıfır değil) */
   guvenSkoru: number | null;
+  /** KAYNAĞIN kendi beyan ettiği güven — eşleşme güveniyle karıştırılmaz */
+  kaynakGuveni: number | null;
+  /** eşleştirme geçişi bu kayda hiç uğramadı mı */
+  eslestirilmedi: boolean;
   eslesmeAnahtari: string | null;
   eslesen: { id: string; etiket: string; ad: string; tesisId: string | null } | null;
   adaylar: Aday[];

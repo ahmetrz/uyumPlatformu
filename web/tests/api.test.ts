@@ -21,6 +21,9 @@ const { POST: varlikYaz } = await import('@/app/api/v1/assets/upsert/route.api')
 const { POST: gozlemYaz } = await import('@/app/api/v1/assets/observations/route.api');
 const { POST: zafiyetYaz } = await import('@/app/api/v1/vulnerabilities/route.api');
 const { GET: kosuGetir } = await import('@/app/api/v1/integration-runs/route.api');
+const { GET: kanitGetir } = await import('@/app/api/v1/evidence/route.api');
+const { POST: yedekYaz } = await import('@/app/api/v1/backup-results/route.api');
+const { POST: erisimYaz } = await import('@/app/api/v1/access-observations/route.api');
 
 /* ═══ sabitler ═══════════════════════════════════════════════════════ */
 
@@ -498,5 +501,80 @@ describe('Köken ve denetim izi', () => {
     }] }, 'zafiyet-2'));
     expect(y.status).toBe(403);
     expect(await db.zafiyet.count({ where: { kaynakRef: 'CVE-2026-0002' } })).toBe(0);
+  });
+});
+
+/* ═══ kalan uçlar ════════════════════════════════════════════════════ */
+
+describe('Yedek, erişim ve kanıt uçları', () => {
+  it('yedek sonucu köken defteriyle idempotenttir (tekillik kısıtı olmadan)', async () => {
+    const govde = { records: [{
+      source: 'test_backup', sourceRecordId: 'yedek-1', collectedAt: zaman, confidence: null,
+      assetKey: `${ONEK}-A-2`, backupAt: zaman, success: true, contentHash: 'abc123',
+    }] };
+    const bir = await yedekYaz(yolla('/api/v1/backup-results', jeton.a, govde, 'yedek-a'));
+    const iki = await yedekYaz(yolla('/api/v1/backup-results', jeton.a, govde, 'yedek-b'));
+    expect(bir.status).toBe(200);
+    expect(iki.status).toBe(200);
+    expect((await bir.json()).data.created).toBe(1);
+    expect((await iki.json()).data.refreshed).toBe(1);
+    const varlik = await db.varlik.findUniqueOrThrow({ where: { etiket: `${ONEK}-A-2` } });
+    const yedekler = await db.konfigurasyonYedegi.findMany({ where: { varlikId: varlik.id } });
+    expect(yedekler).toHaveLength(1);
+    // Yedeğin geri dönebildiği ancak restore testiyle bilinir — otomatik doğrulanmaz.
+    expect(yedekler[0].dogrulandi).toBe(false);
+  });
+
+  it('erişim gözlemi: privileged null ise ayrıcalıklı alanına DOKUNULMAZ', async () => {
+    const y = await erisimYaz(yolla('/api/v1/access-observations', jeton.a, { records: [{
+      source: 'test_ad', sourceRecordId: 'hesap-1', collectedAt: zaman, confidence: 0.5,
+      accountName: `${ONEK}-svc-1`, accountType: 'servis', privileged: null,
+      plantCode: `${ONEK}-A`, assetKey: `${ONEK}-A-3`,
+    }] }, 'erisim-1'));
+    expect(y.status).toBe(200);
+    const g = await y.json();
+    expect(g.data.created).toBe(1);
+    expect(g.data.assignmentsCreated).toBe(1);
+    const hesap = await db.kimlikHesabi.findUniqueOrThrow({ where: { hesapAdi: `${ONEK}-svc-1` } });
+    expect(hesap.ayricalikli).toBe(false); // şema varsayılanı; gözlem "false" İDDİA ETMEDİ
+    expect(hesap.durum).toBe('aktif');     // durum otomatik değiştirilmedi
+  });
+
+  it('erişim gözlemi kapsam dışı santrale yazılamaz', async () => {
+    const y = await erisimYaz(yolla('/api/v1/access-observations', jeton.a, { records: [{
+      source: 'test_ad', sourceRecordId: 'hesap-2', collectedAt: zaman, confidence: null,
+      accountName: `${ONEK}-svc-b`, accountType: 'servis', plantCode: `${ONEK}-B`,
+    }] }, 'erisim-2'));
+    expect(y.status).toBe(403);
+    expect(await db.kimlikHesabi.count({ where: { hesapAdi: `${ONEK}-svc-b` } })).toBe(0);
+  });
+
+  it('kanıt ucu dosya yolunu DÖNMEZ, santral kapsamıyla daraltılır', async () => {
+    const kanit = await db.kanit.create({ data: {
+      ad: `${ONEK} kanıt A`, tip: 'rapor', dosyaYolu: '/gizli/depo/a.pdf',
+      tesisBaglantilari: { create: [{ tesisId: kimlikler.tesisA }] } } });
+    await db.kanit.create({ data: {
+      ad: `${ONEK} kanıt B`, tip: 'rapor', dosyaYolu: '/gizli/depo/b.pdf',
+      tesisBaglantilari: { create: [{ tesisId: kimlikler.tesisB }] } } });
+
+    const y = await kanitGetir(al('/api/v1/evidence?limit=200', jeton.a));
+    expect(y.status).toBe(200);
+    const metin = await y.text();
+    expect(metin).toContain(kanit.id);
+    expect(metin).not.toContain('/gizli/depo');
+    expect(metin).not.toContain(`${ONEK} kanıt B`);
+  });
+
+  it('kurum geneli anahtar entegrasyon koşularını görür ve sayaçlar ayrı döner', async () => {
+    const y = await kosuGetir(al('/api/v1/integration-runs?trigger=api&limit=5', jeton.genel));
+    expect(y.status).toBe(200);
+    const g = await y.json();
+    expect(g.data.length).toBeGreaterThan(0);
+    const kosu = g.data[0];
+    expect(kosu.trigger).toBe('api');
+    expect(kosu).toHaveProperty('received');
+    expect(kosu).toHaveProperty('accepted');
+    expect(kosu).toHaveProperty('rejected');
+    expect(kosu).toHaveProperty('duplicate');
   });
 });

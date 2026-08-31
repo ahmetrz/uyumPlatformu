@@ -114,6 +114,20 @@ export const HEDEF_ALANLAR: readonly AlanTanimi[] = [
 
 const ALAN_INDEKSI = new Map<HedefAlan, AlanTanimi>(HEDEF_ALANLAR.map((a) => [a.anahtar, a]));
 
+/** Hedef alan → Varlik kolonu. Kod alanları id'ye çözüldüğü için ad değişir. */
+const VARLIK_ALANI: Record<HedefAlan, string> = {
+  etiket: 'etiket', ad: 'ad', hostname: 'hostname', seriNo: 'seriNo',
+  uretici: 'uretici', model: 'model',
+  turKodu: 'turId', tesisKodu: 'tesisId', sistemKodu: 'sistemId',
+  sahipEposta: 'sahipId', bolgeKodu: 'bolgeId',
+  kritiklik: 'kritiklik', ipAdresi: 'ipAdresi', macAdresi: 'macAdresi',
+  isletimSistemi: 'isletimSistemi', firmware: 'firmware',
+  eolTarihi: 'eolTarihi', eosTarihi: 'eosTarihi', destekBitis: 'destekBitis',
+  yamaDurumu: 'yamaDurumu', edrDurumu: 'edrDurumu', yedekDurumu: 'yedekDurumu',
+  izlemeDurumu: 'izlemeDurumu', uzaktanErisim: 'uzaktanErisim',
+  yasamDongusu: 'yasamDongusu',
+};
+
 /** Aktarım kaydında saklanabilecek en fazla satır — dosya bunu aşarsa
     sessizce kırpılmaz, açık hatayla reddedilir. */
 export const AZAMI_SATIR = 5000;
@@ -453,16 +467,18 @@ export function satirlariCoz(girdi: {
           else (veri as Record<string, unknown>)[tanim.anahtar] = deger;
           break;
         case 'referans': {
-          const [kaynak, hedefAlan] =
-            tanim.anahtar === 'turKodu' ? [referanslar.turler, 'turId'] as const
-            : tanim.anahtar === 'tesisKodu' ? [referanslar.tesisler, 'tesisId'] as const
-            : tanim.anahtar === 'sistemKodu' ? [referanslar.sistemler, 'sistemId'] as const
-            : tanim.anahtar === 'bolgeKodu' ? [referanslar.bolgeler, 'bolgeId'] as const
-            : [referanslar.kullanicilar, 'sahipId'] as const;
-          const aranan = tanim.anahtar === 'sahipEposta' ? deger.trim().toLowerCase() : anahtarla(deger);
+          const kaynak =
+            tanim.anahtar === 'turKodu' ? referanslar.turler
+            : tanim.anahtar === 'tesisKodu' ? referanslar.tesisler
+            : tanim.anahtar === 'sistemKodu' ? referanslar.sistemler
+            : tanim.anahtar === 'bolgeKodu' ? referanslar.bolgeler
+            : referanslar.kullanicilar;
+          // E-posta olduğu gibi (küçük harfe indirgenmiş) aranır; kodlar sadeleşir.
+          const aranan = tanim.anahtar === 'sahipEposta'
+            ? deger.trim().toLowerCase() : anahtarla(deger);
           const id = kaynak.get(aranan);
           if (!id) { sorunlar.push(`${tanim.etiket}: "${deger}" tanımlı değil`); break; }
-          (veri as Record<string, unknown>)[hedefAlan] = id;
+          (veri as Record<string, unknown>)[VARLIK_ALANI[tanim.anahtar]] = id;
           break;
         }
         case 'tarih': {
@@ -605,54 +621,43 @@ const tarihe = (s: string | null | undefined): Date | null =>
 
 /** Yeni kayıt gövdesi: eşlenmiş ama boş alanlar AÇIKÇA bilinmiyor/null yazılır. */
 function yaratmaVerisi(s: CozulmusSatir) {
-  const v = s.veri;
+  const v = s.veri as Record<string, unknown>;
   const veri: Record<string, unknown> = {
-    etiket: v.etiket,
-    ad: v.ad ?? v.etiket,
-    turId: v.turId,
-    tesisId: v.tesisId ?? null, sistemId: v.sistemId ?? null,
-    sahipId: v.sahipId ?? null, bolgeId: v.bolgeId ?? null,
-    hostname: v.hostname ?? null, seriNo: v.seriNo ?? null,
-    uretici: v.uretici ?? null, model: v.model ?? null,
-    ipAdresi: v.ipAdresi ?? null, macAdresi: v.macAdresi ?? null,
-    isletimSistemi: v.isletimSistemi ?? null, firmware: v.firmware ?? null,
-    // Boş hücre 'bilinmiyor'a düşer — 0/false'a DEĞİL (§ bilinmeyen ≠ sıfır).
-    kritiklik: v.kritiklik ?? 'bilinmiyor',
-    yamaDurumu: v.yamaDurumu ?? 'bilinmiyor',
-    edrDurumu: v.edrDurumu ?? 'bilinmiyor',
-    yedekDurumu: v.yedekDurumu ?? 'bilinmiyor',
-    izlemeDurumu: v.izlemeDurumu ?? 'bilinmiyor',
-    // Üç durumlu: bilinmiyorsa null kalır, false yazılmaz.
-    uzaktanErisim: v.uzaktanErisim ?? null,
-    eolTarihi: tarihe(v.eolTarihi), eosTarihi: tarihe(v.eosTarihi),
-    destekBitis: tarihe(v.destekBitis),
+    etiket: s.etiket,
+    ad: s.veri.ad ?? s.etiket, // Varlik.ad NOT NULL — eşlenmemişse etiket
     silindi: null,
   };
-  // yasamDongusu'nun 'bilinmiyor' karşılığı yok; boşsa şema varsayılanı kalır.
-  if (v.yasamDongusu) veri.yasamDongusu = v.yasamDongusu;
+  for (const t of HEDEF_ALANLAR) {
+    if (t.anahtar === 'etiket' || t.anahtar === 'ad') continue;
+    const alan = VARLIK_ALANI[t.anahtar];
+    const deger = v[alan];
+    if (deger !== undefined) {
+      veri[alan] = t.tip === 'tarih' ? tarihe(deger as string) : deger;
+      continue;
+    }
+    /* Değer yok: alanın BOŞ KARŞILIĞI yazılır. Karşılık tanımda durur ki
+       "bilinmeyen ≠ sıfır" kuralı tek yerden okunsun —
+       sözlük alanları 'bilinmiyor', geri kalanı null, 0/false hiçbir zaman.
+       'atla' olanlarda (ör. yasamDongusu) şema varsayılanı korunur; o
+       alanların 'bilinmiyor' karşılığı yoktur, uydurulmaz. */
+    if (t.bos === 'atla') continue;
+    veri[alan] = t.bos === 'bilinmiyor' ? 'bilinmiyor' : null;
+  }
   return veri;
 }
 
 /** Güncelleme gövdesi: yalnız DOLU hücreler yazılır. Boş hücre "bilgi yok"
-    demektir; bilinen bir değeri 'bilinmiyor' yapıp veri silmez. */
+    demektir; bilinen bir değeri 'bilinmiyor' yapıp veri SİLMEZ. */
 function guncellemeVerisi(s: CozulmusSatir) {
-  const v = s.veri;
+  const v = s.veri as Record<string, unknown>;
   const veri: Record<string, unknown> = {};
-  const koy = (alan: string, deger: unknown) => { if (deger !== undefined) veri[alan] = deger; };
-  koy('ad', v.ad);
-  koy('turId', v.turId); koy('tesisId', v.tesisId); koy('sistemId', v.sistemId);
-  koy('sahipId', v.sahipId); koy('bolgeId', v.bolgeId);
-  koy('hostname', v.hostname); koy('seriNo', v.seriNo);
-  koy('uretici', v.uretici); koy('model', v.model);
-  koy('ipAdresi', v.ipAdresi); koy('macAdresi', v.macAdresi);
-  koy('isletimSistemi', v.isletimSistemi); koy('firmware', v.firmware);
-  koy('kritiklik', v.kritiklik); koy('yamaDurumu', v.yamaDurumu);
-  koy('edrDurumu', v.edrDurumu); koy('yedekDurumu', v.yedekDurumu);
-  koy('izlemeDurumu', v.izlemeDurumu); koy('yasamDongusu', v.yasamDongusu);
-  koy('uzaktanErisim', v.uzaktanErisim);
-  if (v.eolTarihi !== undefined) veri.eolTarihi = tarihe(v.eolTarihi);
-  if (v.eosTarihi !== undefined) veri.eosTarihi = tarihe(v.eosTarihi);
-  if (v.destekBitis !== undefined) veri.destekBitis = tarihe(v.destekBitis);
+  for (const t of HEDEF_ALANLAR) {
+    if (t.anahtar === 'etiket') continue; // eşleşme anahtarı — değiştirilmez
+    const alan = VARLIK_ALANI[t.anahtar];
+    const deger = v[alan];
+    if (deger === undefined) continue;
+    veri[alan] = t.tip === 'tarih' ? tarihe(deger as string) : deger;
+  }
   return veri;
 }
 
@@ -664,9 +669,10 @@ export type CommitSonucu = { eklenen: number; guncellenen: number };
  *   · aktarım kaydı `hata` durumuna düşer ve neden raporJson'a yazılır,
  *   · aynı aktarım ikinci kez onaylanamaz (`durum` kontrolü).
  *
- * Duplicate eşleşmesi ve kapsam commit anında YENİDEN çözülür: yükleme ile
- * onay arasında envanter değişmiş olabilir. Referans id'leri ise önizlemede
- * onaylanan haliyle kullanılır — onaylayan neyi gördüyse o yazılır.
+ * Satırlar commit anında ham veriden YENİDEN çözülür (referanslar, duplicate
+ * eşleşmesi, kapsam): yükleme ile onay arasında envanter değişmiş olabilir ve
+ * onaylayanın kapsamı yükleyeninkinden dardır. Bayat bir eşleşmeye yazmaktansa
+ * satır o an hata listesine düşer.
  */
 export async function aktarimiUygula(girdi: {
   aktarimId: string;

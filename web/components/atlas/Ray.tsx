@@ -39,6 +39,7 @@ export const RAY_OPERASYONEL: RayOgesi[] = [
   { ad: 'Yedek & DR', yol: '/yedekleme' },
   { ad: 'Erişim', yol: '/kimlik' },
   { ad: 'Tedarikçiler', yol: '/tedarikciler' },
+  { ad: 'Olaylar', yol: '/olaylar' },
 ];
 
 export type RayAyagi =

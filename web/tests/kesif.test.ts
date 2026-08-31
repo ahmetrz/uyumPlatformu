@@ -11,8 +11,8 @@ process.env.TEST_DB = testDb;
 
 const { db } = await import('@/lib/db');
 const {
-  esle, kesfiIsle, kesifKararUygula, gorulmeyenKayitlar,
-  varlikIndeksiKur, varlikIndeksiYukle, normalCoz,
+  esle, kesfiIsle, kesifKararUygula, gorulmeyenKayitlar, bekleyenleriEslestir,
+  varlikIndeksiKur, varlikIndeksiYukle, normalCoz, gozlemeCevir,
 } = await import('@/lib/entegrasyon/kesif');
 const { elleAktarimAdaptoru } = await import('@/lib/entegrasyon/adaptorler/elleAktarim');
 const { adaptorGetir, ADAPTOR_TIPLERI } = await import('@/lib/entegrasyon/adaptorler');
@@ -198,7 +198,7 @@ describe('Keşif koşusu: idempotency ve kuyruk', () => {
     expect(kayit.durum).toBe('inceleme_bekliyor');
     expect(kayit.eslesenVarlikId).toBeNull();
     expect(kayit.guvenSkoru).toBeNull();
-    expect(normalCoz(kayit.normalJson)?.eslesme.adaylar).toHaveLength(2);
+    expect(normalCoz(kayit.normalJson)?.eslesme?.adaylar).toHaveLength(2);
   });
 
   it('yüksek güvenli eşleşme bile CMDB\'ye OTOMATİK yazılmaz', async () => {
@@ -473,5 +473,101 @@ describe('Varlık indeksi', () => {
     expect(ix.varliklar.has(silinmis.id)).toBe(false);
     const s = esle(gozlem('sil-1', { seriNo: 'SN-SILINMIS' }), ix);
     expect(s.eslesenVarlikId).toBeNull();
+  });
+});
+
+/* ═══ Çekirdekle ortak sınır ══════════════════════════════════════════ */
+
+describe('Senkronizasyon çekirdeğiyle sınır', () => {
+  /* Çekirdek (lib/entegrasyon/cekirdek.ts) normalJson'u DÜZ gözlem gövdesi
+     olarak yazar ve kaydı `normalize` durumunda bırakır. Eşleştirme geçişi
+     onu okuyup eşleştirebilmeli — yoksa connector'dan gelen hiçbir kayıt
+     kuyruğa düşmez. */
+  it('çekirdeğin düz normalJson biçimi okunur ve eşleştirilir', async () => {
+    const varlik = await db.varlik.create({ data: {
+      etiket: `${ONEK}CEKIRDEK`, ad: 'Çekirdek sınırı', turId, seriNo: 'SN-CEKIRDEK-1' } });
+
+    const g = gozlem('cekirdek-1', { seriNo: 'SN-CEKIRDEK-1', hostname: 'plc-cek' });
+    const duzGovde = { ...g } as Record<string, unknown>;
+    delete duzGovde.ham;
+
+    const kayit = await db.kesifKaydi.create({ data: {
+      kaynak: KAYNAK, kaynakKayitId: 'cekirdek-1',
+      hamJson: JSON.stringify(g.ham),
+      normalJson: JSON.stringify(duzGovde),
+      durum: 'normalize',
+    } });
+
+    const cozulen = normalCoz(kayit.normalJson);
+    expect(cozulen?.gozlem.seriNo).toBe('SN-CEKIRDEK-1');
+    expect(cozulen?.eslesme).toBeNull();       // henüz eşleştirilmedi
+    expect(gozlemeCevir(cozulen!)?.hostname).toBe('plc-cek');
+
+    const ozet = await bekleyenleriEslestir({ kaynak: KAYNAK });
+    expect(ozet.bakilan).toBeGreaterThan(0);
+
+    const sonra = await db.kesifKaydi.findUniqueOrThrow({ where: { id: kayit.id } });
+    expect(sonra.durum).toBe('eslesti');
+    expect(sonra.eslesenVarlikId).toBe(varlik.id);
+    expect(sonra.guvenSkoru!).toBeGreaterThan(0.9);
+    expect(normalCoz(sonra.normalJson)?.eslesme?.gerekce).toMatch(/eşleşti/);
+  });
+
+  it('eşleştirme geçişi karara bağlanmış kayda DOKUNMAZ', async () => {
+    const once = await db.kesifKaydi.findFirstOrThrow({
+      where: { kaynak: KAYNAK, kaynakKayitId: 'onay-1' } });
+    await bekleyenleriEslestir({ kaynak: KAYNAK });
+    const sonra = await db.kesifKaydi.findUniqueOrThrow({ where: { id: once.id } });
+    expect(sonra.durum).toBe('onaylandi');
+    expect(sonra.normalJson).toBe(once.normalJson);
+    expect(sonra.guvenSkoru).toBe(once.guvenSkoru);
+  });
+
+  it('eşleştirme geçişi hiçbir kaydı CMDB\'ye YAZMAZ', async () => {
+    const varlik = await db.varlik.create({ data: {
+      etiket: `${ONEK}GECIS`, ad: 'Geçiş yazmaz', turId, seriNo: 'SN-GECIS-1' } });
+    const g = gozlem('gecis-1', { seriNo: 'SN-GECIS-1', firmware: 'FW-GECIS' });
+    const duz = { ...g } as Record<string, unknown>;
+    delete duz.ham;
+    await db.kesifKaydi.create({ data: {
+      kaynak: KAYNAK, kaynakKayitId: 'gecis-1',
+      hamJson: '{}', normalJson: JSON.stringify(duz), durum: 'normalize' } });
+
+    await bekleyenleriEslestir({ kaynak: KAYNAK });
+
+    const sonra = await db.varlik.findUniqueOrThrow({ where: { id: varlik.id } });
+    expect(sonra.firmware).toBeNull();
+    expect(await db.veriKokeni.count({
+      where: { varlikTipi: 'Varlik', varlikId: varlik.id } })).toBe(0);
+  });
+
+  it('varlık dışı gözlem atlanır ve SEBEBİYLE raporlanır', async () => {
+    await db.kesifKaydi.create({ data: {
+      kaynak: KAYNAK, kaynakKayitId: 'zafiyet-1',
+      hamJson: '{}',
+      normalJson: JSON.stringify({
+        tip: 'zafiyet',
+        koken: { kaynakSistem: KAYNAK_SISTEM, kaynakKayitId: 'zafiyet-1', guven: null },
+      }),
+      durum: 'normalize',
+    } });
+    const ozet = await bekleyenleriEslestir({ kaynak: KAYNAK });
+    const atlanan = ozet.atlanan.find((a) => a.sebep.includes('zafiyet'));
+    expect(atlanan).toBeDefined();
+  });
+
+  it('keşif kaydının kendi kökeni yazılır (kaynağın güveni, eşleşme güveni DEĞİL)', async () => {
+    const g = gozlem('koken-1', { seriNo: 'SN-KOKEN-1' });
+    g.koken.guven = 0.4;                      // kaynağın kendi beyanı
+    await db.varlik.create({ data: {
+      etiket: `${ONEK}KOKEN`, ad: 'Köken testi', turId, seriNo: 'SN-KOKEN-1' } });
+    await kesfiIsle([g], { kaynak: KAYNAK });
+
+    const kayit = await db.kesifKaydi.findFirstOrThrow({
+      where: { kaynak: KAYNAK, kaynakKayitId: 'koken-1' } });
+    const koken = await db.veriKokeni.findFirstOrThrow({
+      where: { varlikTipi: 'KesifKaydi', varlikId: kayit.id } });
+    expect(koken.guven).toBe(0.4);            // kaynağın beyanı
+    expect(kayit.guvenSkoru!).toBeGreaterThan(0.9); // eşleşme güveni AYRI
   });
 });

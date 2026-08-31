@@ -1,60 +1,39 @@
 'use server';
 
-/* Varlık keşfi eylemleri (P2-1) — connector koşusu, elle aktarım ve
+/* Varlık keşfi eylemleri (P2-1) — eşleştirme geçişi, elle aktarım ve
    keşif kuyruğunun insan kararları.
 
+   Bu dosya connector KOŞTURMAZ: senkronizasyon çekirdeği
+   (`lib/entegrasyon/cekirdek.ts`) ve onun eylemi
+   (`lib/eylemler2/entegrasyon.ts → connectorSenkronize`) o işi yapar ve
+   keşif kayıtlarını `normalize` durumunda bırakır. Buradaki
+   `kesifEslestir` o kayıtları CMDB ile eşleştirip `eslesti` /
+   `inceleme_bekliyor` durumuna taşır; karar hâlâ insanındır.
+
    Değişmezler:
-   · Otomasyon ÖNERİR: hiçbir eylem keşif kaydını kendi kendine CMDB'ye
-     yazmaz. Yazma yalnız `kesifKarariVer` / `kesifTopluKarar` üzerinden,
-     `envanter/onay` yetkisiyle ve gerekçeyle olur.
-   · Toplu karar VAR, "hepsini onayla" YOK: id listesi açıkça verilir,
-     her kayıt kendi denetim izi satırını bırakır, ilk hata diğerlerini
-     geri almaz — sonuçlar tek tek raporlanır.
-   · Sessiz hata yok: her koşu bir EntegrasyonKosusu satırı bırakır,
-     bağlanamayan adaptör "başarılı" numarası yapmaz.
-   · Sır istemciye GELMEZ, loglanmaz: yalnız `siriCoz()` ile çözülür ve
-     adaptör bağlamında kalır.
+   · Otomasyon ÖNERİR: eşleştirme hiçbir kaydı CMDB'ye yazmaz. Yazma
+     yalnız `kesifKarariVer` / `kesifTopluKarar` üzerinden, `envanter/onay`
+     yetkisiyle ve gerekçeyle olur.
+   · Toplu karar VAR, "hepsini onayla" YOK: id listesi açıkça verilir, her
+     kayıt kendi denetim izi satırını bırakır, biri başarısız olursa
+     diğerleri geri alınmaz — sonuç kayıt bazında raporlanır.
+   · PASSIVE-FIRST: elle aktarım yalnız verilen metni ayrıştırır; ağa
+     hiçbir paket çıkmaz, tarama başlatılmaz.
    Kalıp: yetkiZorunlu → zod → db → iz → revalidatePath. */
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { db } from '../db';
 import { yetkiZorunlu, izinVar } from '../erisim';
-import { adaptorGetir, adaptorGerekeni } from '../entegrasyon/adaptorler';
 import { elleAktarimAdaptoru } from '../entegrasyon/adaptorler/elleAktarim';
-import { siriCoz } from '../entegrasyon/sir';
 import {
-  kesfiIsle, kesifKararUygula, type KesifKarari, type KesifIsleOzeti,
+  bekleyenleriEslestir, kesfiIsle, kesifKararUygula,
+  type KesifIsleOzeti, type KesifKarari,
 } from '../entegrasyon/kesif';
 import type { AdaptorBaglami } from '../entegrasyon/sozlesme';
 import { type Sonuc, tamam, hata, iz, bosluksuz } from './ortak';
 
 const YOL = '/kesif';
-
-/* `Connector.tip` → `KesifKaydi.kaynak` kategorisi (şemadaki sözlük).
-   Aynı tipte birden çok kurulum varsa (iki ayrı Claroty konsolu gibi)
-   `yapilandirma.kesifKaynagi` ile ayrıştırılır; aksi hâlde iki konsolun
-   aynı varlık kimliği (kaynak, kaynakKayitId) tekilliğinde çakışır. */
-const KAYNAK_KATEGORISI: Record<string, string> = {
-  ad_entra: 'vendor_export',
-  vuln_scanner: 'vendor_export',
-  edr: 'vendor_export',
-  siem: 'siem',
-  backup: 'vendor_export',
-  network_firewall: 'firewall',
-  ot_discovery: 'scada_export',
-  manual_import: 'csv',
-};
-
-function yapilandirmaCoz(json: string | null): Record<string, unknown> {
-  if (!json) return {};
-  try {
-    const n: unknown = JSON.parse(json);
-    return n && typeof n === 'object' && !Array.isArray(n) ? n as Record<string, unknown> : {};
-  } catch {
-    throw new Error('Connector yapılandırması geçerli JSON değil');
-  }
-}
 
 function ozetCumlesi(o: KesifIsleOzeti): string {
   return `alınan ${o.alinan} · kabul ${o.kabulEdilen} · yeni ${o.yeni} · `
@@ -63,138 +42,54 @@ function ozetCumlesi(o: KesifIsleOzeti): string {
     + (o.reddedilen > 0 ? ` · reddedilen ${o.reddedilen}` : '');
 }
 
-/* ═══ 1 · Connector koşusu ════════════════════════════════════════════ */
+/* ═══ 1 · Eşleştirme geçişi ═══════════════════════════════════════════ */
 
 /**
- * Bir connector'ı bir kez çalıştırır (elle tetikleme).
- *
- * Adaptör bağlı değilse koşu `kimlik_bekleniyor` durumuyla kapanır —
- * "başarılı" yazılmaz, boş sonuç "hiç kayıt yok" diye gösterilmez.
+ * Bekleyen keşif kayıtlarını CMDB ile eşleştirir (normalize → eslesti /
+ * inceleme_bekliyor). Hiçbir kayıt CMDB'ye yazılmaz; yalnız aday ve güven
+ * skoru üretilir. Yeniden çalıştırılabilir ve karara bağlanmış kayda
+ * dokunmaz.
  */
-export async function connectorKosusuCalistir(girdi: { kod: string }): Promise<Sonuc> {
-  let kosuId: string | null = null;
-  const basla = Date.now();
+export async function kesifEslestir(girdi: { kaynak?: string } = {}): Promise<Sonuc> {
   try {
-    const k = await yetkiZorunlu('yonetim', 'yazma');
-    const kod = bosluksuz('Connector kodu').parse(girdi.kod);
-
-    const connector = await db.connector.findUnique({ where: { kod } });
-    if (!connector || connector.silindi) throw new Error(`Connector bulunamadı: ${kod}`);
-    if (!connector.etkin) throw new Error(`Connector etkin değil: ${kod}`);
-
-    const adaptor = adaptorGetir(connector.tip);
-    const yapilandirma = yapilandirmaCoz(connector.yapilandirmaJson);
-
-    const kosu = await db.entegrasyonKosusu.create({
-      data: {
-        kaynak: connector.tip, connectorId: connector.id, tetikleyen: 'manuel',
-        guvenEtiketi: 'otomatik', imlecOnce: connector.imlec,
-      },
-      select: { id: true },
-    });
-    kosuId = kosu.id;
-
-    if (!adaptor.baglanabilir) {
-      const gereken = adaptorGerekeni(adaptor) ?? 'gerçek credential/API';
-      const mesaj = `Bağlı değil — gereken: ${gereken}`;
-      await db.entegrasyonKosusu.update({
-        where: { id: kosu.id },
-        data: {
-          durum: 'kimlik_bekleniyor', bitis: new Date(),
-          sureMs: Date.now() - basla, hata: mesaj,
-        },
-      });
-      await db.connector.update({
-        where: { id: connector.id }, data: { sonHata: mesaj },
-      });
-      revalidatePath(YOL); revalidatePath('/saglik');
-      return { ok: false, hata: `${connector.ad}: ${mesaj}` };
-    }
-
-    // Sır yalnız burada çözülür; değeri loglanmaz, yanıta konmaz.
-    let sir: string | null = null;
-    if (connector.sirReferansi) {
-      const cozum = await siriCoz(connector.sirReferansi);
-      if (!cozum.ok) throw new Error(`Sır çözülemedi: ${cozum.hata}`);
-      sir = cozum.deger;
-    }
-
-    const baglam: AdaptorBaglami = {
-      connectorId: connector.id, kod: connector.kod,
-      kaynakSistem: connector.kaynakSistem, yapilandirma, sir, imlec: connector.imlec,
-    };
-
-    const cekme = await adaptor.fetchChanges(baglam);
-    const dogrulama = adaptor.validate(cekme.gozlemler);
-    const kaynak = typeof yapilandirma.kesifKaynagi === 'string' && yapilandirma.kesifKaynagi
-      ? yapilandirma.kesifKaynagi
-      : KAYNAK_KATEGORISI[connector.tip] ?? connector.tip;
-
-    const ozet = await kesfiIsle(dogrulama.gecerli, {
-      kaynak, connectorId: connector.id, kosuId: kosu.id,
-    });
-    const toplamRed = ozet.reddedilen + dogrulama.reddedilen.length;
-
-    await db.entegrasyonKosusu.update({
-      where: { id: kosu.id },
-      data: {
-        durum: 'basarili', bitis: new Date(), sureMs: Date.now() - basla,
-        kayitSayisi: ozet.kabulEdilen, alinan: ozet.alinan,
-        kabulEdilen: ozet.kabulEdilen, reddedilen: toplamRed,
-        yinelenen: ozet.yinelenen, imlecSonra: cekme.yeniImlec,
-      },
-    });
-    await db.connector.update({
-      where: { id: connector.id },
-      data: { sonBasariliKosu: new Date(), imlec: cekme.yeniImlec, sonHata: null },
-    });
+    const k = await yetkiZorunlu('envanter', 'yazma');
+    const kaynak = girdi.kaynak?.trim() || undefined;
+    const ozet = await bekleyenleriEslestir({ kaynak });
     await iz({
-      aktorId: k.id, varlikTipi: 'Connector', varlikId: connector.id,
-      eylem: 'guncelleme', alan: 'kosu', sonra: ozetCumlesi(ozet),
-      gerekce: `Elle tetiklenen keşif koşusu (${connector.kod})`,
+      aktorId: k.id, varlikTipi: 'KesifKaydi', varlikId: kaynak ?? 'tumu',
+      eylem: 'guncelleme', alan: 'eslesme',
+      sonra: `bakılan ${ozet.bakilan} · eşleşen ${ozet.eslesen} · `
+        + `inceleme ${ozet.incelemeBekleyen} · çakışan ${ozet.cakisan}`
+        + (ozet.atlanan.length > 0 ? ` · atlanan ${ozet.atlanan.length}` : ''),
+      gerekce: 'Keşif eşleştirme geçişi (öneri üretir, CMDB\'ye yazmaz)',
     });
-
-    revalidatePath(YOL); revalidatePath('/saglik');
+    revalidatePath(YOL);
     return tamam();
-  } catch (e) {
-    // Sessiz hata yok: koşu satırı açıldıysa başarısız olarak kapanır.
-    if (kosuId) {
-      await db.entegrasyonKosusu.update({
-        where: { id: kosuId },
-        data: {
-          durum: 'basarisiz', bitis: new Date(), sureMs: Date.now() - basla,
-          hata: e instanceof Error ? e.message : String(e),
-        },
-      }).catch(() => undefined);
-    }
-    revalidatePath('/saglik');
-    return hata(e);
-  }
+  } catch (e) { return hata(e); }
 }
 
 /* ═══ 2 · Elle aktarım ════════════════════════════════════════════════ */
 
 const ElleAktarimSemasi = z.object({
   kaynakSistem: bosluksuz('Kaynak sistem'),
-  kaynak: z.string().trim().min(1).default('csv'),
   bicim: z.enum(['csv', 'json']).optional(),
   icerik: z.string().min(1, 'İçerik boş olamaz'),
   kimlikKolonu: z.string().trim().optional(),
 });
 
 /**
- * Yapıştırılan CSV/JSON içeriğini keşif kuyruğuna işler.
+ * Yapıştırılan CSV/JSON içeriğini keşif kuyruğuna işler ve eşleştirir.
  *
- * Bu, dış sistem gerektirmeyen tek keşif yoludur ve pasiftir: ağa hiçbir
+ * Dış sistem gerektirmeyen tek keşif yolu budur ve pasiftir: ağa hiçbir
  * paket çıkmaz, yalnız verilen metin ayrıştırılır.
  *
  * `dosyaYolu` BİLEREK dışarıda bırakıldı: eylem katmanından sunucu dosya
  * yolu kabul etmek, yetkili bir kullanıcıya keyfî dosya okuma yeteneği
  * verirdi. Dosya tabanlı kaynak yalnız `Connector.yapilandirmaJson`
- * üzerinden, kurulum yetkisiyle tanımlanır.
+ * üzerinden, connector kurulum yetkisiyle tanımlanır.
  */
 export async function elleAktarimCalistir(girdi: {
-  kaynakSistem: string; kaynak?: string; bicim?: 'csv' | 'json';
+  kaynakSistem: string; bicim?: 'csv' | 'json';
   icerik: string; kimlikKolonu?: string;
 }): Promise<Sonuc> {
   let kosuId: string | null = null;
@@ -204,9 +99,7 @@ export async function elleAktarimCalistir(girdi: {
     const v = ElleAktarimSemasi.parse(girdi);
 
     const kosu = await db.entegrasyonKosusu.create({
-      data: {
-        kaynak: 'manual_import', tetikleyen: 'manuel', guvenEtiketi: 'otomatik',
-      },
+      data: { kaynak: 'manual_import', tetikleyen: 'manuel', guvenEtiketi: 'otomatik' },
       select: { id: true },
     });
     kosuId = kosu.id;
@@ -222,10 +115,12 @@ export async function elleAktarimCalistir(girdi: {
 
     const cekme = await elleAktarimAdaptoru.fetchChanges(baglam);
     const dogrulama = elleAktarimAdaptoru.validate(cekme.gozlemler);
-    const ozet = await kesfiIsle(dogrulama.gecerli, {
-      kaynak: v.kaynak, kosuId: kosu.id,
-    });
+    // kaynak verilmiyor: `koken.kaynakSistem` tekillik anahtarı olur —
+    // senkronizasyon çekirdeğiyle aynı anahtar, iki yol tek satır açar.
+    const ozet = await kesfiIsle(dogrulama.gecerli, { kosuId: kosu.id });
     const toplamRed = ozet.reddedilen + dogrulama.reddedilen.length;
+    const ilkRedSebebi = ozet.reddedilenler[0]?.sebep
+      ?? dogrulama.reddedilen[0]?.sebep ?? null;
 
     await db.entegrasyonKosusu.update({
       where: { id: kosu.id },
@@ -234,6 +129,9 @@ export async function elleAktarimCalistir(girdi: {
         kayitSayisi: ozet.kabulEdilen, alinan: ozet.alinan,
         kabulEdilen: ozet.kabulEdilen, reddedilen: toplamRed,
         yinelenen: ozet.yinelenen, imlecSonra: cekme.yeniImlec,
+        // Hata DEĞİL, açıklama: kaç kayıt neden reddedildi.
+        ayrinti: ozetCumlesi(ozet)
+          + (ilkRedSebebi ? ` · ilk ret sebebi: ${ilkRedSebebi}` : ''),
       },
     });
     await iz({
@@ -244,11 +142,15 @@ export async function elleAktarimCalistir(girdi: {
 
     revalidatePath(YOL); revalidatePath('/saglik');
     if (ozet.kabulEdilen === 0) {
-      return { ok: false, hata: `Hiçbir satır kabul edilmedi (alınan ${ozet.alinan}). `
-        + (ozet.reddedilenler[0]?.sebep ? `İlk sebep: ${ozet.reddedilenler[0].sebep}` : '') };
+      return {
+        ok: false,
+        hata: `Hiçbir satır kabul edilmedi (alınan ${ozet.alinan}).`
+          + (ilkRedSebebi ? ` İlk sebep: ${ilkRedSebebi}` : ''),
+      };
     }
     return tamam();
   } catch (e) {
+    // Sessiz hata yok: koşu satırı açıldıysa başarısız olarak kapanır.
     if (kosuId) {
       await db.entegrasyonKosusu.update({
         where: { id: kosuId },
@@ -326,7 +228,8 @@ export async function kesifKarariVer(girdi: {
       gerekce: v.not,
     });
     if (sonuc.varlikId) {
-      // CMDB'ye yazılan her alan ayrı iz bırakır; korunan alanlar da yazılır.
+      // CMDB'ye yazılan her alan ayrı iz bırakır; KORUNAN alanlar da yazılır —
+      // "keşif farklı söyledi ama insan değeri kaldı" bilgisi kaybolmasın.
       for (const a of sonuc.yazilanAlanlar) {
         await iz({
           aktorId: k.id, varlikTipi: 'Varlik', varlikId: sonuc.varlikId,

@@ -55,6 +55,12 @@ model Tesis {
   kapanisNedeni String? // satis | kapanis | birlesme ...
   olusturuldu   DateTime  @default(now())
 
+  /// Santral fotoğrafının anahtarı (05-photography §5): eşleme bileşen
+  /// kodunda değil VERİDE tutulur ki yeni bir santral yanlış varsayılanı
+  /// miras almasın. null ise tipografik fallback render edilir — asla
+  /// "yakın" bir başka santralin fotoğrafı kullanılmaz.
+  gorselAnahtari String?
+
   tuzelKisiId   String?
 
   tip       TesisTipi? @relation(fields: [tipId], references: [id])

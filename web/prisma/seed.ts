@@ -56,28 +56,32 @@ async function main() {
 
   // ---- tesisler: Zorlu Enerji üretim portföyü (biri kapalı: devir örneği)
   const t = Object.fromEntries(await Promise.all(([
-    ['KIZILDERE-1', 'Kızıldere I JES', 'JEO', 15, 'Denizli', 'aktif', null, null, -15570],
-    ['KIZILDERE-2', 'Kızıldere II JES', 'JEO', 80, 'Denizli', 'aktif', null, null, -4750],
-    ['KIZILDERE-3', 'Kızıldere III JES', 'JEO', 165, 'Denizli/Aydın', 'aktif', null, null, -3330],
-    ['ALASEHIR-JES', 'Alaşehir JES', 'JEO', 45, 'Manisa', 'aktif', null, null, -4090],
-    ['GOKCEDAG-RES', 'Gökçedağ RES', 'RES', 135, 'Osmaniye', 'aktif', null, null, -6320],
-    ['SARITEPE-RES', 'Sarıtepe RES', 'RES', 57, 'Osmaniye', 'aktif', null, null, -5840],
-    ['DEMIRCILER-RES', 'Demirciler RES', 'RES', 23.3, 'Osmaniye', 'aktif', null, null, -5560],
-    ['IKIZDERE-HES', 'İkizdere HES', 'HES', 24.94, 'Rize', 'aktif', null, null, -5990],
-    ['TERCAN-HES', 'Tercan HES', 'HES', 15, 'Erzincan', 'aktif', null, null, -5660],
-    ['MERCAN-HES', 'Mercan HES', 'HES', 20.4, 'Tunceli', 'aktif', null, null, -5930],
-    ['BEYKOY-HES', 'Beyköy HES', 'HES', 16.8, 'Eskişehir', 'aktif', null, null, -5220],
-    ['KUZGUN-HES', 'Kuzgun HES', 'HES', 20.9, 'Erzurum', 'aktif', null, null, -6200],
-    ['CILDIR-HES', 'Çıldır HES', 'HES', 15.4, 'Kars', 'aktif', null, null, -6510],
-    ['ATAKOY-HES', 'Ataköy HES', 'HES', 5.5, 'Tokat', 'aktif', null, null, -4870],
-    ['ALASEHIR-GES', 'Alaşehir Hibrit GES', 'GES', 3.75, 'Manisa', 'aktif', null, null, -1810],
-    ['MERKEZ-BT', 'Zorlu Center Genel Müdürlük', 'MERKEZ', null, 'İstanbul', 'aktif', null, null, -5000],
-    ['LULEBURGAZ-DGKC', 'Lüleburgaz DGKÇ (devredildi)', 'DGKC', 82, 'Kırklareli', 'kapali', -300, 'satis', -9950],
-  ] as const).map(async ([kod, ad, tipKod, guc, konum, durum, kapanis, neden, giris]) => [kod,
+    ['KIZILDERE-1', 'Kızıldere I JES', 'JEO', 15, 'Denizli', 'aktif', null, null, -15570, 'kizildere1'],
+    ['KIZILDERE-2', 'Kızıldere II JES', 'JEO', 80, 'Denizli', 'aktif', null, null, -4750, 'kizildere2'],
+    ['KIZILDERE-3', 'Kızıldere III JES', 'JEO', 165, 'Denizli/Aydın', 'aktif', null, null, -3330, 'kizildere3'],
+    ['ALASEHIR-JES', 'Alaşehir JES', 'JEO', 45, 'Manisa', 'aktif', null, null, -4090, 'alasehir'],
+    ['GOKCEDAG-RES', 'Gökçedağ RES', 'RES', 135, 'Osmaniye', 'aktif', null, null, -6320, null],
+    ['SARITEPE-RES', 'Sarıtepe RES', 'RES', 57, 'Osmaniye', 'aktif', null, null, -5840, null],
+    ['DEMIRCILER-RES', 'Demirciler RES', 'RES', 23.3, 'Osmaniye', 'aktif', null, null, -5560, null],
+    ['IKIZDERE-HES', 'İkizdere HES', 'HES', 24.94, 'Rize', 'aktif', null, null, -5990, 'ikizdere'],
+    ['TERCAN-HES', 'Tercan HES', 'HES', 15, 'Erzincan', 'aktif', null, null, -5660, 'tercan'],
+    ['MERCAN-HES', 'Mercan HES', 'HES', 20.4, 'Tunceli', 'aktif', null, null, -5930, 'mercan'],
+    ['BEYKOY-HES', 'Beyköy HES', 'HES', 16.8, 'Eskişehir', 'aktif', null, null, -5220, 'beykoy'],
+    ['KUZGUN-HES', 'Kuzgun HES', 'HES', 20.9, 'Erzurum', 'aktif', null, null, -6200, 'kuzgun'],
+    ['CILDIR-HES', 'Çıldır HES', 'HES', 15.4, 'Kars', 'aktif', null, null, -6510, null],
+    ['ATAKOY-HES', 'Ataköy HES', 'HES', 5.5, 'Tokat', 'aktif', null, null, -4870, null],
+    ['ALASEHIR-GES', 'Alaşehir Hibrit GES', 'GES', 3.75, 'Manisa', 'aktif', null, null, -1810, null],
+    ['MERKEZ-BT', 'Zorlu Center Genel Müdürlük', 'MERKEZ', null, 'İstanbul', 'aktif', null, null, -5000, null],
+    ['LULEBURGAZ-DGKC', 'Lüleburgaz DGKÇ (devredildi)', 'DGKC', 82, 'Kırklareli', 'kapali', -300, 'satis', -9950, null],
+  ] as const).map(async ([kod, ad, tipKod, guc, konum, durum, kapanis, neden, giris, gorsel]) => [kod,
     await db.tesis.create({ data: {
       kod, ad, tipId: tip[tipKod].id, kuruluGucMw: guc, konum, durum,
       kapanisTarihi: kapanis === null ? null : gun(kapanis), kapanisNedeni: neden,
       devreyeGiris: gun(giris),
+      // 05-photography §2: yalnız fotoğrafı SAĞLANMIŞ santral anahtar alır.
+      // Karşılığı olmayan null kalır ve tipografik fallback render edilir —
+      // asla "yakın" başka bir santralin fotoğrafı kullanılmaz (§1.3).
+      gorselAnahtari: gorsel,
     } })]))) as Record<string, { id: string }>;
 
   // ---- kapsam alanları (panelden genişletilebilir)

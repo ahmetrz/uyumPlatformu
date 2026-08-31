@@ -359,7 +359,7 @@
 .baglam-yol { display: flex; align-items: center; gap: var(--s8); min-width: 0;
   font-family: var(--mo); font-size: var(--t-code); letter-spacing: var(--tr-label);
   text-transform: uppercase; color: var(--i3); white-space: nowrap; }
-.baglam-yol .ayrac { color: var(--i4); }
+.baglam-yol .ayrac { color: var(--i3); }  /* §9: --i4 asla metin */
 .baglam-yol .son { color: var(--ink); }
 .baglam-yol .kisalt { overflow: hidden; text-overflow: ellipsis; max-width: 210px; }
 .baglam-sag { margin-left: auto; display: flex; align-items: center; gap: var(--s16); }
@@ -777,3 +777,196 @@
 .ekran-govde { padding: 0 var(--gutter-op) var(--sec-pad-bot); }
 .dip-not { margin-top: var(--s14); font-family: var(--mo); font-size: var(--t-label);
   letter-spacing: var(--tr-label); text-transform: uppercase; color: var(--i3); }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   FAZ 4 · Flagship — Plant 360 hero, portföy plakaları, executive şeridi
+   Fotoğraf yalnız 05-photography'nin izin verdiği yerlerde (§B6).
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ── F3 · Plant 360 hero, 560px ──────────────────────────────────────── */
+.hero360 { position: relative; height: 560px; overflow: hidden; background: var(--band2);
+  color: var(--pp); }
+.hero360 > img { position: absolute; inset: -6% 0; width: 100%; height: 112%;
+  object-fit: cover; display: block; will-change: transform;
+  animation: parallaks 26s ease-in-out infinite alternate; }
+@keyframes parallaks { to { transform: translate3d(0, -2.2%, 0) scale(1.04); } }
+/* Yatay okunabilirlik perdesi + 120px alt sönüm + 220px kontur bandı */
+.hero360 .perde { position: absolute; inset: 0; pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(25,23,18,.93) 0 28%, rgba(25,23,18,.34) 62%, rgba(25,23,18,.70)),
+    /* Bağlam çubuğu için üst taban: spesifikasyon altta 120px sönüm koyuyor,
+       aynı gerekçe üstte de geçerli — çubuk fotoğrafın parlak bölgesine
+       denk geldiğinde %66 opaklıklı mürekkep 4.5:1'in altına düşüyordu. */
+    linear-gradient(180deg, rgba(25,23,18,.88) 0, rgba(25,23,18,.62) 56px, transparent 104px),
+    linear-gradient(180deg, transparent calc(100% - 120px), rgba(25,23,18,.86)); }
+.hero360 .kontur { position: absolute; left: 0; right: 0; bottom: 0; height: 220px;
+  background: var(--contour); opacity: .8; pointer-events: none; }
+.buhar { position: absolute; pointer-events: none;
+  /* Şekil radial-gradient + blur'dan gelir; border-radius gereksiz ve
+     "yarıçap 0" kuralını istisnasız tutmak için kullanılmıyor. */
+  background: radial-gradient(closest-side, rgba(246,244,238,.42), transparent 72%);
+  filter: blur(18px); opacity: .34; will-change: transform;
+  animation: buhar-suzul 15s ease-in-out infinite alternate; }
+@keyframes buhar-suzul { to { transform: translate3d(2%, -7%, 0) scale(1.06); opacity: .44; } }
+.hero360 .icerik { position: relative; z-index: 1; height: 100%;
+  display: flex; flex-direction: column; justify-content: center;
+  padding: 0 var(--gutter-fs); max-width: 900px; }
+.hero360 .kimlik { font-family: var(--mo); font-size: var(--t-code);
+  letter-spacing: var(--tr-label); text-transform: uppercase; }
+.hero360 h1 { margin: var(--s14) 0 0; font-family: var(--ar); font-weight: 400;
+  font-size: var(--t-hero); line-height: var(--lh-hero); letter-spacing: var(--tr-hero);
+  font-stretch: 87%; }
+.hero360 h1 b { font-weight: 700; }
+.hero360 .cizgi { display: block; width: 96px; height: 2px; margin: var(--s22) 0;
+  transform-origin: left; animation: cizgi-ac 700ms var(--ez-out) 200ms both; }
+@keyframes cizgi-ac { from { transform: scaleX(0); } }
+.hero360 .cumle { margin: 0; font-size: 15.5px; max-width: 470px;
+  color: rgba(246,244,238,.86); }
+.hero360 .rozet { display: inline-flex; align-items: center; gap: var(--s8);
+  margin-top: var(--s20); padding: var(--s8) var(--s14);
+  border: 1px solid rgba(246,244,238,.28); font-family: var(--mo);
+  font-size: var(--t-label); letter-spacing: var(--tr-label); text-transform: uppercase;
+  width: max-content; }
+.hero360 .alt { position: absolute; left: var(--gutter-fs); right: var(--gutter-fs);
+  bottom: var(--s38); z-index: 1; display: flex; align-items: flex-end; gap: var(--metric-gap); }
+.hero360 .alt .metrikler .deger { color: var(--pp); font-size: 32px; }
+.hero360 .alt .metrikler .yazi { color: rgba(246,244,238,.62); }
+.hero360 .saha { margin-left: auto; text-align: right; font-family: var(--mo);
+  font-size: var(--t-label); letter-spacing: var(--tr-label); text-transform: uppercase;
+  color: rgba(246,244,238,.50); line-height: 1.8; }
+/* Fotoğrafsız santral: koyu yüzey + kimlik tipografisi (§1.6) */
+.hero360.tipografik { background: var(--band2); }
+.hero360.tipografik .perde { background:
+  linear-gradient(90deg, rgba(25,23,18,.55) 0 40%, transparent), var(--strata); }
+
+/* ── Bölüm rayı (sticky index) ───────────────────────────────────────── */
+.bolum-duzen { display: grid; grid-template-columns: 250px minmax(0, 1fr); }
+.bolum-ray { position: sticky; top: 0; align-self: start; padding: var(--s34) var(--s24)
+  var(--s24); border-right: var(--bw-hair) solid var(--hr); }
+.bolum-link { display: flex; align-items: baseline; gap: var(--s10); width: 100%;
+  padding: var(--s10) 0; background: none; border: 0; cursor: pointer; font: inherit;
+  text-align: left; color: var(--i2); border-bottom: var(--bw-hair) solid var(--hr); }
+.bolum-link:last-of-type { border-bottom: 0; }
+.bolum-link:hover { color: var(--ink); }
+.bolum-link[aria-current='true'] { color: var(--jes); font-weight: 600; }
+.bolum-link .ek { margin-left: auto; font-family: var(--mo); font-size: var(--t-code);
+  color: var(--i3); }
+.bolum-kirpim { position: relative; height: 120px; margin-top: var(--s22); overflow: hidden; }
+.bolum-kirpim img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.bolum-kirpim .perde { position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(246,244,238,.12), rgba(25,23,18,.62)); }
+.bolum-kirpim .yazi { position: absolute; left: var(--s12); bottom: var(--s10);
+  font-family: var(--mo); font-size: var(--t-colhead); letter-spacing: var(--tr-colhead);
+  text-transform: uppercase; color: rgba(246,244,238,.86); }
+
+/* ── F2 · Portföy plakaları, 300px ───────────────────────────────────── */
+.portfoy { background: var(--band2); color: var(--pp); min-height: 100dvh; }
+.portfoy-ust { display: flex; align-items: center; gap: var(--s24);
+  padding: var(--s26) var(--gutter-fs);
+  border-bottom: 1px solid rgba(246,244,238,.12); }
+.portfoy-tip { background: none; border: 0; cursor: pointer; font-family: var(--mo);
+  font-size: var(--t-code); letter-spacing: var(--tr-label); text-transform: uppercase;
+  color: rgba(246,244,238,.62); padding: var(--s4) 0;
+  border-bottom: 2px solid transparent; }
+.portfoy-tip:hover { color: var(--pp); }
+.portfoy-tip[aria-pressed='true'] { color: var(--pp); border-bottom-color: var(--jesd); }
+.portfoy-govde { display: grid; grid-template-columns: 430px minmax(0, 1fr); }
+.portfoy-kimlik { position: sticky; top: 0; align-self: start; padding: var(--s44) var(--s40); }
+.portfoy-kimlik .ust { font-family: var(--mo); font-size: var(--t-code);
+  letter-spacing: var(--tr-label); text-transform: uppercase; }
+.portfoy-kimlik h2 { margin: var(--s14) 0 0; font-family: var(--ar); font-weight: 400;
+  font-size: 40px; line-height: 1.06; letter-spacing: -0.026em; font-stretch: 88%; }
+.portfoy-kimlik .cizgi { display: block; width: 80px; height: 2px; margin: var(--s20) 0; }
+.portfoy-kimlik .aciklama { margin: 0; font-size: var(--t-row);
+  color: rgba(246,244,238,.74); max-width: 340px; }
+.portfoy-kimlik .olgular { display: grid; grid-template-columns: 1fr 1fr;
+  gap: var(--s22); margin-top: var(--s34); }
+.portfoy-kimlik .olgular .deger { display: block; margin-top: var(--s6);
+  font-size: var(--t-row); font-weight: 600; }
+.plaka { position: relative; display: block; height: 300px; overflow: hidden;
+  border-left: 4px solid var(--jes); }
+.plaka img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+  transition: transform 900ms var(--ez-out), filter 900ms var(--ez-out); }
+.plaka:hover img { transform: scale(1.03); }
+.plaka .perde { position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(90deg, rgba(25,23,18,.92) 0 34%, rgba(25,23,18,.30) 66%, transparent);
+  transition: opacity var(--mo-state) var(--ez); }
+.plaka:hover .perde { opacity: .86; }
+.plaka .icerik { position: absolute; left: 48px; top: 52px; z-index: 1; }
+.plaka .tip { font-family: var(--mo); font-size: var(--t-code);
+  letter-spacing: var(--tr-label); text-transform: uppercase; }
+.plaka h3 { margin: var(--s10) 0 0; font-family: var(--ar); font-weight: 400;
+  font-size: 38px; line-height: 1.06; letter-spacing: -0.026em; font-stretch: 88%; }
+.plaka .kapsam { margin: var(--s10) 0 0; font-size: 13.5px; max-width: 420px;
+  color: rgba(246,244,238,.72); }
+.plaka .metrik-sag { position: absolute; right: 48px; bottom: 40px; z-index: 1;
+  display: flex; gap: var(--s30); text-align: right; }
+.plaka .metrik-sag .deger { font-size: 32px; font-weight: 700;
+  font-variant-numeric: tabular-nums; }
+/* Fotoğrafsız: tipografik döşeme, 230px — kırık görsel veya vekil sanat YOK */
+.dosem { position: relative; display: block; height: 230px; padding: 52px 48px;
+  border-left: 4px solid var(--i3); background: var(--band2); }
+.dosem::after { content: ''; position: absolute; inset: 0; background: var(--strata);
+  opacity: .5; pointer-events: none; }
+.dosem h3 { margin: var(--s10) 0 0; font-family: var(--ar); font-weight: 400;
+  font-size: 27px; letter-spacing: -0.022em; font-stretch: 90%; position: relative; }
+
+/* ── F1 · Executive bağlam şeridi, 132px ─────────────────────────────── */
+.serit { position: relative; height: 132px; overflow: hidden; background: var(--band2);
+  color: var(--pp); }
+.serit img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.serit .perde { position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(90deg, rgba(21,19,15,.90) 0 34%, rgba(21,19,15,.66) 62%,
+    rgba(21,19,15,.82)); }
+.serit .kontur { position: absolute; left: 0; right: 0; bottom: 0; height: 70px;
+  background: var(--contour); opacity: .7; }
+.serit .icerik { position: relative; z-index: 1; height: 100%; display: flex;
+  align-items: center; gap: var(--s34); padding: 0 var(--gutter-fs); }
+.serit h1 { margin: var(--s8) 0 0; font-family: var(--ar); font-weight: 400;
+  font-size: 24px; letter-spacing: -0.02em; font-stretch: 90%; }
+.serit h1 b { font-weight: 700; }
+.serit .metrikler { margin-left: auto; }
+.serit .metrikler .deger { color: var(--pp); }
+.serit .metrikler .yazi { color: rgba(246,244,238,.60); }
+
+/* ── Öncelik sırası + kuyruk (F1) ────────────────────────────────────── */
+.oncelik-bas { display: flex; align-items: center; gap: var(--s14);
+  padding: var(--s26) var(--gutter-fs) 0; }
+.oncelik-tik { display: flex; gap: 3px; }
+.oncelik-tik span { width: 18px; height: 2px; background: var(--hr2); }
+.oncelik-tik span.dolu { background: var(--ink); }
+.kuyruk-satir { display: grid; grid-template-columns: 26px 1fr 260px 150px 26px;
+  gap: var(--col-gap); align-items: center; width: 100%; text-align: left;
+  background: none; border: 0; border-bottom: var(--bw-hair) solid var(--hr);
+  padding: var(--s16) 0; cursor: pointer; font: inherit;
+  transition: background-color var(--mo-state) var(--ez); }
+.kuyruk-satir:hover { background: var(--row-hover); }
+.kuyruk-satir .sira { font-family: var(--mo); font-size: var(--t-code); color: var(--i3); }
+.kuyruk-satir .konu { font-size: var(--t-row); font-weight: 600; }
+.kuyruk-satir .baglam { font-size: var(--t-cell); color: var(--i2); }
+.kuyruk-satir .deger { font-family: var(--mo); font-size: var(--t-code-lg);
+  text-align: right; }
+
+/* Flagship kırılımları (03-screens F1–F3 responsive) */
+@media (max-width: 1439px) { .hero360 { height: 480px; } }
+@media (max-width: 1199px) {
+  .hero360 { height: 380px; }
+  .hero360 > img { animation: none; inset: 0; height: 100%; }  /* parallaks kapalı */
+  .buhar { display: none; }                                     /* buhar kapalı */
+  .bolum-duzen, .portfoy-govde { grid-template-columns: minmax(0, 1fr); }
+  .bolum-ray { position: static; border-right: 0;
+    border-bottom: var(--bw-hair) solid var(--hr); }
+  .portfoy-kimlik { position: static; }
+}
+@media (max-width: 1023px) {
+  .hero360 { height: 260px; }
+  .hero360 h1 { font-size: 34px; }
+  .hero360 .alt { flex-direction: column; align-items: flex-start; gap: var(--s14); }
+  .plaka { height: 200px; }
+  .plaka .icerik { left: var(--s24); top: var(--s24); }
+  .plaka h3 { font-size: 27px; }
+  .serit { height: 200px; }
+  .serit .icerik { flex-direction: column; align-items: flex-start;
+    justify-content: center; gap: var(--s14); }
+  .serit .metrikler { margin-left: 0; flex-wrap: wrap; }
+}

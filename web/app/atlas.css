@@ -273,3 +273,160 @@
   .atlas .dokulu { background-image: none !important; }
   .atlas .baskida-gizle { display: none !important; }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   FAZ 2 · Kabuk ve navigasyon
+   Grid: 250px ray | esnek içerik | 420px bağlamsal çekmece
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.atlas-kabuk {
+  display: grid;
+  grid-template-columns: var(--rail-w) minmax(0, 1fr);
+  min-height: 100dvh;
+  background: var(--pp);
+}
+
+/* Çekmece yalnız bir kayıt seçiliyken vardır. :has() ile otomatik:
+   ekran <aside class="cekmece"> render ederse kolon açılır. */
+.atlas-govde { display: grid; grid-template-columns: minmax(0, 1fr); min-width: 0; }
+.atlas-govde:has(> .cekmece) { grid-template-columns: minmax(0, 1fr) var(--drawer-w); }
+
+/* ── NavRail ─────────────────────────────────────────────────────────── */
+.atlas-ray {
+  position: relative;
+  background: var(--rail-bg);
+  border-right: var(--bw-strong) solid var(--hr2);
+  padding-top: var(--rail-pad-top);
+  display: flex;
+  flex-direction: column;
+}
+.atlas-ray::before {                      /* strata dokusu */
+  content: ''; position: absolute; inset: 0; background: var(--strata);
+  pointer-events: none;
+}
+.atlas-ray > * { position: relative; }
+
+.ray-marka { padding: 0 var(--rail-inset) var(--s22); display: block; }
+.ray-marka .ad { font-size: var(--t-cell); font-weight: 700; color: var(--ink);
+  letter-spacing: -0.005em; }
+.ray-marka .alt { display: block; margin-top: var(--s4); font-family: var(--mo);
+  font-size: var(--t-colhead); letter-spacing: 0.18em; color: var(--jes);
+  text-transform: uppercase; }
+
+.ray-link {
+  display: flex; align-items: center; gap: var(--s10);
+  padding: var(--s9) var(--rail-inset);
+  font-size: var(--t-cell); color: var(--i2);
+  border-left: var(--bw-edge) solid transparent;
+  padding-left: calc(var(--rail-inset) - var(--bw-edge));
+  transition: background-color var(--mo-state) var(--ez), color var(--mo-state) var(--ez);
+}
+.ray-link:hover { background: var(--row-hover); color: var(--ink); }
+.ray-link[aria-current='page'] {
+  background: var(--band); color: var(--pp); font-weight: 600;
+  border-left-color: var(--jesd);
+}
+.ray-link .sayi {
+  margin-left: auto; font-family: var(--mo); font-size: var(--t-caption);
+  color: var(--i3); font-variant-numeric: tabular-nums;
+}
+.ray-link .sayi.kritik { color: var(--bd); }
+.ray-link[aria-current='page'] .sayi { color: rgba(246, 244, 238, .72); }
+.ray-link[aria-current='page'] .sayi.kritik { color: var(--bdp); }
+
+/* Ray ayağı — yalnız flagship: strata efsanesi veya fotoğraf şeridi */
+.ray-ayak { margin-top: auto; }
+.ray-efsane { padding: var(--s24) var(--rail-inset) var(--s18); }
+.ray-efsane .bant { height: 6px; margin-bottom: 2px; }
+.ray-serit { position: relative; height: 168px; overflow: hidden; }
+.ray-serit img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ray-serit .perde {
+  position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(180deg, rgba(246, 244, 238, .66), rgba(25, 23, 18, .58)), var(--contour);
+}
+.ray-serit .yazi {
+  position: absolute; left: var(--rail-inset); bottom: var(--s14);
+  font-family: var(--mo); font-size: var(--t-colhead); letter-spacing: var(--tr-colhead);
+  text-transform: uppercase; color: rgba(246, 244, 238, .82);
+}
+
+/* ── ContextNav ──────────────────────────────────────────────────────── */
+.baglam {
+  display: flex; align-items: center; gap: var(--s16);
+  padding: var(--s20) var(--gutter-op);
+  border-bottom: var(--bw-hair) solid var(--hr);
+}
+.baglam-yol { display: flex; align-items: center; gap: var(--s8); min-width: 0;
+  font-family: var(--mo); font-size: var(--t-code); letter-spacing: var(--tr-label);
+  text-transform: uppercase; color: var(--i3); white-space: nowrap; }
+.baglam-yol .ayrac { color: var(--i4); }
+.baglam-yol .son { color: var(--ink); }
+.baglam-yol .kisalt { overflow: hidden; text-overflow: ellipsis; max-width: 210px; }
+.baglam-sag { margin-left: auto; display: flex; align-items: center; gap: var(--s16); }
+
+/* Koyu hero üstünde aynı çubuk mutlak konumlanır (03-screens F3) */
+.baglam.koyu { position: absolute; top: var(--s40); left: 0; right: 0; z-index: 2;
+  border-bottom: 0; color: rgba(246, 244, 238, .66); }
+.baglam.koyu .baglam-yol { color: rgba(246, 244, 238, .66); }
+.baglam.koyu .baglam-yol .son { color: rgba(246, 244, 238, .92); }
+
+/* Santral seçici popover — thumbnail'lar üretim tipine göre gruplu */
+.secici { position: relative; }
+.secici-menu {
+  position: absolute; right: 0; top: calc(100% + var(--s8)); z-index: 5;
+  background: var(--card); border: var(--bw-strong) solid var(--hr2);
+  box-shadow: var(--sh-tip); padding: var(--s14); width: 560px;
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--s10);
+}
+.secici-oge { display: block; text-align: left; }
+.secici-oge img { width: 100%; height: 92px; object-fit: cover; display: block; }
+.secici-oge .ad { display: block; margin-top: var(--s6); font-size: var(--t-cell);
+  font-weight: 600; color: var(--ink); }
+.secici-oge .alt { display: block; font-family: var(--mo); font-size: var(--t-code);
+  color: var(--i3); }
+.secici-oge:hover .ad { color: var(--acc); }
+.secici-grup { grid-column: 1 / -1; }
+
+/* ── Kırılımlar (01-tokens §8) ───────────────────────────────────────── */
+
+/* lg 1200–1439: çekmece içeriğin üstünü örter, ray 250 kalır */
+@media (max-width: 1439px) {
+  .atlas-govde:has(> .cekmece) { grid-template-columns: minmax(0, 1fr); }
+  .atlas-govde > .cekmece {
+    position: fixed; top: 0; right: 0; bottom: 0; width: var(--drawer-w);
+    z-index: 20; box-shadow: none;
+  }
+  .atlas-govde:has(> .cekmece)::before {
+    content: ''; position: fixed; inset: 0; z-index: 19;
+    background: rgba(30, 33, 31, .28);
+  }
+}
+
+/* md 1024–1199: ray 72px ikon rayına iner, etiket hover'da */
+@media (max-width: 1199px) {
+  .atlas-kabuk { grid-template-columns: var(--rail-w-icon) minmax(0, 1fr); }
+  .atlas-ray { overflow: visible; }
+  .ray-marka .ad, .ray-marka .alt { display: none; }
+  .ray-link { padding-left: 0; padding-right: 0; justify-content: center; }
+  .ray-link .etiket {
+    position: absolute; left: calc(100% + var(--s8)); white-space: nowrap;
+    background: var(--band); color: var(--pp); padding: var(--s6) var(--s10);
+    font-size: var(--t-cell); opacity: 0; visibility: hidden;
+    transition: opacity var(--mo-instant) var(--ez); box-shadow: var(--sh-tip);
+  }
+  .ray-link:hover .etiket, .ray-link:focus-visible .etiket { opacity: 1; visibility: visible; }
+  .ray-link .sayi { position: absolute; top: var(--s4); right: var(--s10); }
+  .ray-ayak { display: none; }
+}
+
+/* sm <1024: operasyonel katman hedeflenmez; ray yatay şeride iner */
+@media (max-width: 1023px) {
+  .atlas-kabuk { grid-template-columns: minmax(0, 1fr); }
+  .atlas-ray { flex-direction: row; overflow-x: auto; padding-top: 0;
+    border-right: 0; border-bottom: var(--bw-strong) solid var(--hr2); }
+  .ray-marka { display: none; }
+  .ray-link { border-left: 0; border-bottom: var(--bw-edge) solid transparent;
+    padding: var(--s10) var(--s14); }
+  .ray-link[aria-current='page'] { border-left-color: transparent; border-bottom-color: var(--jesd); }
+  .baglam { padding-left: var(--s20); padding-right: var(--s20); }
+}

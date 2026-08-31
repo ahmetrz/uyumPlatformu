@@ -8,6 +8,15 @@ const hata = [];
 s.on('pageerror', (e) => hata.push('pageerror: ' + e.message.slice(0, 160)));
 s.on('console', (m) => { if (m.type() === 'error' && !/fonts\.g/.test(m.text())) hata.push('console: ' + m.text().slice(0, 160)); });
 
+// korumali rotalar icin once giris yap
+await s.goto('http://localhost:3111/giris', { waitUntil: 'domcontentloaded' });
+if (s.url().includes('/giris')) {
+  await s.fill('input[type=email]', 'ahmet.terzi@zorlu.com');
+  await s.fill('input[type=password]', 'Enerji!2026');
+  await s.click('button[type=submit]');
+  await s.waitForURL((u) => !u.pathname.startsWith('/giris'), { timeout: 25000 });
+}
+
 const yollar = (process.env.YOLLAR || '/sistem').split(',');
 for (const yol of yollar) {
   const ad = yol.replace(/^\//, '').replace(/\//g, '-') || 'kok';

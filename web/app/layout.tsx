@@ -1,9 +1,11 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import './atlas.css';
-import Ray from '@/components/Ray';
-import Canlandir from '@/components/Canlandir';
-import KomutPaleti from '@/components/KomutPaleti';
+
+/* Kök yerleşim yalnız belge iskeletini kurar. Kabuk (ray, üst çubuk) rota
+   grubuna aittir: (ozalit) eski kabuğu, (atlas) yeni tasarım kabuğunu verir.
+   Ekranlar Atlas'a taşındıkça klasörleri (ozalit)'ten (atlas)'a geçer;
+   URL'ler değişmez (rota grupları yola yansımaz). */
 
 export const metadata: Metadata = {
   title: 'Zorlu Uyum Konsolu',
@@ -19,14 +21,7 @@ export default function KokYerlesim({ children }: { children: React.ReactNode })
       <head>
         <script dangerouslySetInnerHTML={{ __html: temaBetigi }} />
       </head>
-      <body>
-        <div className="shell">
-          <Ray />
-          <div className="govde">{children}</div>
-        </div>
-        <Canlandir />
-        <KomutPaleti />
-      </body>
+      <body>{children}</body>
     </html>
   );
 }

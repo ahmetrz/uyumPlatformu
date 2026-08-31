@@ -1,5 +1,5 @@
-/* Başlangıç verisi. Tüm sözlükler (sektör, tip, alan, regülasyon, süreç)
-   panelden yönetilebilir — burası yalnızca ilk kurulum örneğidir. */
+/* Başlangıç verisi — Zorlu Enerji portföyü. Tüm sözlükler (sektör, tip, alan,
+   regülasyon, süreç) panelden yönetilebilir; burası yalnızca ilk kurulum setidir. */
 import { PrismaClient } from '../lib/prisma-client/client';
 import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
 import path from 'node:path';
@@ -48,25 +48,36 @@ async function main() {
   const elektrik = await db.sektor.create({ data: { kod: 'ELEKTRIK-URETIM', ad: 'Elektrik Üretimi' } });
   const tip = Object.fromEntries(await Promise.all(
     [
-      ['DGKC', 'Doğal Gaz Kombine Çevrim', 1], ['JEO', 'Jeotermal', 2], ['HES', 'Hidroelektrik', 3],
-      ['RES', 'Rüzgâr', 4], ['GES', 'Güneş', 5], ['MERKEZ', 'Merkez BT', 9],
+      ['JEO', 'Jeotermal', 1], ['RES', 'Rüzgâr', 2], ['HES', 'Hidroelektrik', 3],
+      ['GES', 'Güneş', 4], ['DGKC', 'Doğal Gaz Kombine Çevrim', 5], ['MERKEZ', 'Merkez BT', 9],
     ].map(async ([kod, ad, sira]) => [kod, await db.tesisTipi.create({
       data: { kod: kod as string, ad: ad as string, sira: sira as number, sektorId: elektrik.id } })]),
   )) as Record<string, { id: string }>;
 
-  // ---- tesisler (biri kapalı: satış örneği)
+  // ---- tesisler: Zorlu Enerji üretim portföyü (biri kapalı: devir örneği)
   const t = Object.fromEntries(await Promise.all(([
-    ['ADANA-DGKC', 'Adana DGKÇ Santrali', 'DGKC', 790, 'Adana', 'aktif', null, null],
-    ['SEYHAN-HES', 'Seyhan HES', 'HES', 138, 'Adana', 'aktif', null, null],
-    ['BELEN-RES', 'Belen RES', 'RES', 96, 'Hatay', 'aktif', null, null],
-    ['AYDIN-JEO', 'Germencik Jeotermal', 'JEO', 47, 'Aydın', 'aktif', null, null],
-    ['KONYA-GES', 'Karapınar GES', 'GES', 63, 'Konya', 'aktif', null, null],
-    ['MERKEZ', 'Genel Müdürlük Veri Merkezi', 'MERKEZ', null, 'İstanbul', 'aktif', null, null],
-    ['VAN-HES', 'Engil HES', 'HES', 24, 'Van', 'kapali', gun(-140), 'satis'],
-  ] as const).map(async ([kod, ad, tipKod, guc, konum, durum, kapanis, neden]) => [kod,
+    ['KIZILDERE-1', 'Kızıldere I JES', 'JEO', 15, 'Denizli', 'aktif', null, null, -15570],
+    ['KIZILDERE-2', 'Kızıldere II JES', 'JEO', 80, 'Denizli', 'aktif', null, null, -4750],
+    ['KIZILDERE-3', 'Kızıldere III JES', 'JEO', 165, 'Denizli/Aydın', 'aktif', null, null, -3330],
+    ['ALASEHIR-JES', 'Alaşehir JES', 'JEO', 45, 'Manisa', 'aktif', null, null, -4090],
+    ['GOKCEDAG-RES', 'Gökçedağ RES', 'RES', 135, 'Osmaniye', 'aktif', null, null, -6320],
+    ['SARITEPE-RES', 'Sarıtepe RES', 'RES', 57, 'Osmaniye', 'aktif', null, null, -5840],
+    ['DEMIRCILER-RES', 'Demirciler RES', 'RES', 23.3, 'Osmaniye', 'aktif', null, null, -5560],
+    ['IKIZDERE-HES', 'İkizdere HES', 'HES', 24.94, 'Rize', 'aktif', null, null, -5990],
+    ['TERCAN-HES', 'Tercan HES', 'HES', 15, 'Erzincan', 'aktif', null, null, -5660],
+    ['MERCAN-HES', 'Mercan HES', 'HES', 20.4, 'Tunceli', 'aktif', null, null, -5930],
+    ['BEYKOY-HES', 'Beyköy HES', 'HES', 16.8, 'Eskişehir', 'aktif', null, null, -5220],
+    ['KUZGUN-HES', 'Kuzgun HES', 'HES', 20.9, 'Erzurum', 'aktif', null, null, -6200],
+    ['CILDIR-HES', 'Çıldır HES', 'HES', 15.4, 'Kars', 'aktif', null, null, -6510],
+    ['ATAKOY-HES', 'Ataköy HES', 'HES', 5.5, 'Tokat', 'aktif', null, null, -4870],
+    ['ALASEHIR-GES', 'Alaşehir Hibrit GES', 'GES', 3.75, 'Manisa', 'aktif', null, null, -1810],
+    ['MERKEZ-BT', 'Zorlu Center Genel Müdürlük', 'MERKEZ', null, 'İstanbul', 'aktif', null, null, -5000],
+    ['LULEBURGAZ-DGKC', 'Lüleburgaz DGKÇ (devredildi)', 'DGKC', 82, 'Kırklareli', 'kapali', -300, 'satis', -9950],
+  ] as const).map(async ([kod, ad, tipKod, guc, konum, durum, kapanis, neden, giris]) => [kod,
     await db.tesis.create({ data: {
       kod, ad, tipId: tip[tipKod].id, kuruluGucMw: guc, konum, durum,
-      kapanisTarihi: kapanis, kapanisNedeni: neden, devreyeGiris: gun(-3650),
+      kapanisTarihi: kapanis === null ? null : gun(kapanis), kapanisNedeni: neden,
+      devreyeGiris: gun(giris),
     } })]))) as Record<string, { id: string }>;
 
   // ---- kapsam alanları (panelden genişletilebilir)
@@ -75,13 +86,13 @@ async function main() {
 
   // ---- kullanıcılar
   const k = Object.fromEntries(await Promise.all(([
-    ['ayse.demir', 'Ayşe Demir', 'BT Direktörü'],
-    ['selin.aydin', 'Selin Aydın', 'Uyum Yöneticisi'],
+    ['ahmet.terzi', 'Ahmet Terzi', 'BT Direktörü'],
+    ['selin.aydin', 'Selin Aydın', 'Uyum ve Regülasyon Yöneticisi'],
     ['burak.sahin', 'Burak Şahin', 'OT Güvenlik Mühendisi'],
-    ['mehmet.kaya', 'Mehmet Kaya', 'Sistem Yöneticisi'],
+    ['mehmet.kaya', 'Mehmet Kaya', 'Sistem ve Altyapı Yöneticisi'],
     ['zeynep.arslan', 'Zeynep Arslan', 'İç Denetçi'],
   ] as const).map(async ([e, ad, unvan]) => [e, await db.kullanici.create({
-    data: { eposta: `${e}@enerji.example`, adSoyad: ad, unvan,
+    data: { eposta: `${e}@zorlu.com`, adSoyad: ad, unvan,
       parolaHash: parolaUret(GELISTIRME_PAROLASI) } })]))) as Record<string, { id: string }>;
 
   // ---- regülasyonlar (başlangıç seti; panelden eklenir)
@@ -176,43 +187,44 @@ async function main() {
   const surecEpdk = await db.uyumSureci.create({ data: {
     kod: 'EPDK-SYM-2026', ad: 'EPDK SYM 2026 Dönemi', regulasyonId: reg['EPDK-SYM'].id,
     durum: 'aktif', baslangic: gun(-120), bitis: gun(120),
-    aciklama: 'Yıllık siber yetkinlik öz değerlendirmesi ve saha doğrulaması.' } });
+    aciklama: 'Kızıldere II/III, Gökçedağ, Sarıtepe ve Merkez BT için yıllık siber yetkinlik öz değerlendirmesi ve saha doğrulaması.' } });
   const surecCbddo = await db.uyumSureci.create({ data: {
-    kod: 'CBDDO-2026', ad: 'CBDDÖ Yerinde Denetim Hazırlığı', regulasyonId: reg['CBDDO'].id,
+    kod: 'CBDDO-2026', ad: 'CBDDÖ 2026 Yerinde Denetim Hazırlığı', regulasyonId: reg['CBDDO'].id,
     durum: 'aktif', baslangic: gun(-60), bitis: gun(42),
-    aciklama: 'Kasım ayındaki yerinde denetim öncesi kapanış çalışması.' } });
+    aciklama: 'Genel müdürlük ve Kızıldere III sahasında yerinde denetim öncesi kapanış çalışması.' } });
   const surecIso = await db.uyumSureci.create({ data: {
     kod: 'ISO-27001-2026', ad: 'ISO 27001 Gözetim Denetimi 2026', regulasyonId: reg['ISO-27001'].id,
-    durum: 'aktif', baslangic: gun(-30), bitis: gun(75) } });
+    durum: 'aktif', baslangic: gun(-30), bitis: gun(75),
+    aciklama: 'Belgelendirme kuruluşunun yıllık gözetim denetimi.' } });
   const surecSpk = await db.uyumSureci.create({ data: {
     kod: 'SPK-BS-2025', ad: 'SPK BS 2025 Dönemi', regulasyonId: reg['SPK-BS'].id,
     durum: 'tamamlandi', baslangic: gun(-420), bitis: gun(-40),
     aciklama: 'Tamamlanan dönem; kayıtlar tarihçe olarak saklanıyor.' } });
   await db.uyumSureci.create({ data: {
-    kod: 'VAN-HES-KAPANIS', ad: 'Engil HES Devir Uyum Kapanışı', regulasyonId: reg['EPDK-SYM'].id,
-    durum: 'pasif', baslangic: gun(-300), bitis: gun(-140),
-    aciklama: 'Santral satışı nedeniyle süreç pasifleştirildi.' } });
+    kod: 'LULEBURGAZ-KAPANIS', ad: 'Lüleburgaz DGKÇ Devir Uyum Kapanışı', regulasyonId: reg['EPDK-SYM'].id,
+    durum: 'pasif', baslangic: gun(-430), bitis: gun(-300),
+    aciklama: 'Santral devri (satış) nedeniyle süreç pasifleştirildi.' } });
 
   // ---- süreç kapsamları
-  const epdkTesisler = ['ADANA-DGKC', 'SEYHAN-HES', 'BELEN-RES', 'AYDIN-JEO', 'KONYA-GES'];
+  const epdkTesisler = ['KIZILDERE-3', 'KIZILDERE-2', 'GOKCEDAG-RES', 'SARITEPE-RES', 'MERKEZ-BT'];
   for (const tk of epdkTesisler)
     await db.surecKapsami.create({ data: { surecId: surecEpdk.id, tesisId: t[tk].id } });
-  for (const tk of ['ADANA-DGKC', 'SEYHAN-HES', 'MERKEZ'])
+  for (const tk of ['MERKEZ-BT', 'KIZILDERE-3'])
     await db.surecKapsami.create({ data: { surecId: surecCbddo.id, tesisId: t[tk].id } });
-  for (const tk of ['MERKEZ', 'ADANA-DGKC'])
+  for (const tk of ['MERKEZ-BT', 'KIZILDERE-3'])
     await db.surecKapsami.create({ data: { surecId: surecIso.id, tesisId: t[tk].id } });
-  await db.surecKapsami.create({ data: { surecId: surecSpk.id, tesisId: t['MERKEZ'].id } });
+  await db.surecKapsami.create({ data: { surecId: surecSpk.id, tesisId: t['MERKEZ-BT'].id } });
 
   // ---- madde durumları: EPDK süreci (5 tesis × yaprak maddeler)
   const yapraklar = ['EPDK-SYM-4.1.1', 'EPDK-SYM-4.1.2', 'EPDK-SYM-4.2.1', 'EPDK-SYM-4.2.2',
     'EPDK-SYM-5.1.1', 'EPDK-SYM-5.1.2', 'EPDK-SYM-7.1.4', 'EPDK-SYM-7.2'];
-  // Gerçekçi dağılım: her tesiste farklı zayıflıklar
+  // Gerçekçi dağılım: her sahada farklı zayıflıklar
   const durumMatrisi: Record<string, Record<string, string>> = {
-    'ADANA-DGKC': { 'EPDK-SYM-4.2.1': 'uyumsuz', 'EPDK-SYM-5.1.1': 'uyumsuz', 'EPDK-SYM-7.1.4': 'kismi', 'EPDK-SYM-4.1.1': 'uyumlu', 'EPDK-SYM-4.1.2': 'uyumlu', 'EPDK-SYM-4.2.2': 'kismi', 'EPDK-SYM-5.1.2': 'uyumlu', 'EPDK-SYM-7.2': 'uyumlu' },
-    'SEYHAN-HES': { 'EPDK-SYM-4.2.1': 'kismi', 'EPDK-SYM-7.1.4': 'uyumsuz', 'EPDK-SYM-4.1.1': 'uyumlu', 'EPDK-SYM-4.1.2': 'kismi', 'EPDK-SYM-4.2.2': 'uyumlu', 'EPDK-SYM-5.1.1': 'uyumlu', 'EPDK-SYM-5.1.2': 'incelemede', 'EPDK-SYM-7.2': 'uyumlu' },
-    'BELEN-RES': { 'EPDK-SYM-4.2.1': 'kismi', 'EPDK-SYM-7.1.4': 'kismi', 'EPDK-SYM-4.1.1': 'uyumlu', 'EPDK-SYM-4.1.2': 'uyumlu', 'EPDK-SYM-4.2.2': 'uyumlu', 'EPDK-SYM-5.1.1': 'incelemede', 'EPDK-SYM-5.1.2': 'uyumlu', 'EPDK-SYM-7.2': 'kismi' },
-    'AYDIN-JEO': { 'EPDK-SYM-4.1.1': 'kismi', 'EPDK-SYM-4.1.2': 'incelemede', 'EPDK-SYM-4.2.1': 'uyumlu', 'EPDK-SYM-4.2.2': 'uyumlu', 'EPDK-SYM-5.1.1': 'uyumlu', 'EPDK-SYM-5.1.2': 'uyumlu', 'EPDK-SYM-7.1.4': 'incelemede', 'EPDK-SYM-7.2': 'uyumlu' },
-    'KONYA-GES': { 'EPDK-SYM-4.2.1': 'kapsamdisi', 'EPDK-SYM-4.1.1': 'uyumlu', 'EPDK-SYM-4.1.2': 'uyumlu', 'EPDK-SYM-4.2.2': 'uyumlu', 'EPDK-SYM-5.1.1': 'kismi', 'EPDK-SYM-5.1.2': 'uyumlu', 'EPDK-SYM-7.1.4': 'kapsamdisi', 'EPDK-SYM-7.2': 'uyumlu' },
+    'KIZILDERE-3': { 'EPDK-SYM-4.1.1': 'uyumlu', 'EPDK-SYM-4.1.2': 'uyumlu', 'EPDK-SYM-4.2.1': 'uyumsuz', 'EPDK-SYM-4.2.2': 'kismi', 'EPDK-SYM-5.1.1': 'uyumsuz', 'EPDK-SYM-5.1.2': 'uyumlu', 'EPDK-SYM-7.1.4': 'kismi', 'EPDK-SYM-7.2': 'uyumlu' },
+    'KIZILDERE-2': { 'EPDK-SYM-4.1.1': 'uyumlu', 'EPDK-SYM-4.1.2': 'kismi', 'EPDK-SYM-4.2.1': 'kismi', 'EPDK-SYM-4.2.2': 'uyumlu', 'EPDK-SYM-5.1.1': 'uyumlu', 'EPDK-SYM-5.1.2': 'incelemede', 'EPDK-SYM-7.1.4': 'uyumsuz', 'EPDK-SYM-7.2': 'uyumlu' },
+    'GOKCEDAG-RES': { 'EPDK-SYM-4.1.1': 'uyumlu', 'EPDK-SYM-4.1.2': 'uyumlu', 'EPDK-SYM-4.2.1': 'kismi', 'EPDK-SYM-4.2.2': 'uyumlu', 'EPDK-SYM-5.1.1': 'incelemede', 'EPDK-SYM-5.1.2': 'uyumlu', 'EPDK-SYM-7.1.4': 'uyumsuz', 'EPDK-SYM-7.2': 'kismi' },
+    'SARITEPE-RES': { 'EPDK-SYM-4.1.1': 'kismi', 'EPDK-SYM-4.1.2': 'incelemede', 'EPDK-SYM-4.2.1': 'kismi', 'EPDK-SYM-4.2.2': 'uyumlu', 'EPDK-SYM-5.1.1': 'uyumlu', 'EPDK-SYM-5.1.2': 'uyumlu', 'EPDK-SYM-7.1.4': 'incelemede', 'EPDK-SYM-7.2': 'uyumlu' },
+    'MERKEZ-BT': { 'EPDK-SYM-4.1.1': 'uyumlu', 'EPDK-SYM-4.1.2': 'uyumlu', 'EPDK-SYM-4.2.1': 'kapsamdisi', 'EPDK-SYM-4.2.2': 'uyumlu', 'EPDK-SYM-5.1.1': 'kismi', 'EPDK-SYM-5.1.2': 'uyumlu', 'EPDK-SYM-7.1.4': 'kapsamdisi', 'EPDK-SYM-7.2': 'uyumlu' },
   };
   const sorumluSirasi = [k['selin.aydin'], k['burak.sahin'], k['mehmet.kaya']];
   const durumKaydi: Record<string, { id: string }> = {};
@@ -228,67 +240,67 @@ async function main() {
       durumKaydi[`${tk}|${mk}`] = d;
     }
   }
-  // CBDDO + ISO süreçleri: temsilî durumlar
-  for (const tk of ['ADANA-DGKC', 'SEYHAN-HES', 'MERKEZ']) {
+  // CBDDÖ + ISO süreçleri: temsilî durumlar
+  for (const tk of ['MERKEZ-BT', 'KIZILDERE-3']) {
     for (const m of digerMaddeler['CBDDO']) {
       await db.maddeDurumu.create({ data: {
         surecId: surecCbddo.id, maddeId: maddeIdx[`CBDDO-${m.kod}`].id, tesisId: t[tk].id,
-        durum: tk === 'MERKEZ' ? 'uyumlu' : m.kod.startsWith('3') ? 'kismi' : 'incelemede',
+        durum: tk === 'MERKEZ-BT' ? 'uyumlu' : m.kod.startsWith('3') ? 'kismi' : 'incelemede',
         sorumluId: k['mehmet.kaya'].id, sonDegerlendirme: gun(-12),
       } });
     }
   }
-  for (const tk of ['MERKEZ', 'ADANA-DGKC']) {
+  for (const tk of ['MERKEZ-BT', 'KIZILDERE-3']) {
     for (const m of digerMaddeler['ISO-27001']) {
       await db.maddeDurumu.create({ data: {
         surecId: surecIso.id, maddeId: maddeIdx[`ISO-27001-${m.kod}`].id, tesisId: t[tk].id,
-        durum: tk === 'MERKEZ' ? 'uyumlu' : 'incelemede',
-        sorumluId: k['ayse.demir'].id, sonDegerlendirme: gun(-5),
+        durum: tk === 'MERKEZ-BT' ? 'uyumlu' : 'incelemede',
+        sorumluId: k['ahmet.terzi'].id, sonDegerlendirme: gun(-5),
       } });
     }
   }
 
   // ---- bulgular + aksiyonlar
   const b1 = await db.bulgu.create({ data: {
-    maddeDurumuId: durumKaydi['ADANA-DGKC|EPDK-SYM-4.2.1'].id,
-    baslik: 'DGKÇ SCADA ağı kurumsal ağdan ayrıştırılmamış',
-    aciklama: 'Adana DGKÇ tarafında SCADA VLAN\'ı ile kurumsal ağ arasında erişim kontrol listesi bulunmuyor; düz ağ topolojisi tespit edildi. Zone/conduit modeline geçiş gerekiyor.',
+    maddeDurumuId: durumKaydi['KIZILDERE-3|EPDK-SYM-4.2.1'].id,
+    baslik: 'Kızıldere III DCS ağı kurumsal ağdan ayrıştırılmamış',
+    aciklama: 'Kızıldere III sahasında türbin DCS VLAN\'ı ile kurumsal ağ arasında erişim kontrol listesi bulunmuyor; düz ağ topolojisi tespit edildi. Zone/conduit modeline geçiş gerekiyor.',
     onemDerecesi: 'kritik', durum: 'aksiyonda', kaynak: 'ic_denetim',
     tespitTarihi: gun(-38), hedefTarih: gun(24), sorumluId: k['burak.sahin'].id } });
   const b2 = await db.bulgu.create({ data: {
-    maddeDurumuId: durumKaydi['ADANA-DGKC|EPDK-SYM-5.1.1'].id,
+    maddeDurumuId: durumKaydi['KIZILDERE-3|EPDK-SYM-5.1.1'].id,
     baslik: 'Rotasyona girmeyen servis hesapları',
-    aciklama: 'DGKÇ tarafındaki 14 servis hesabının parolası 2 yıldır değiştirilmemiş; 6\'sı etki alanı yöneticisi grubunda.',
+    aciklama: 'Kızıldere III saha ağındaki 14 servis hesabının parolası 2 yıldır değiştirilmemiş; 6\'sı etki alanı yöneticisi grubunda.',
     onemDerecesi: 'yuksek', durum: 'acik', kaynak: 'ic_denetim',
     tespitTarihi: gun(-21), hedefTarih: gun(9), sorumluId: k['mehmet.kaya'].id } });
   const b3 = await db.bulgu.create({ data: {
-    maddeDurumuId: durumKaydi['SEYHAN-HES|EPDK-SYM-7.1.4'].id,
-    baslik: 'HES OT kayıtları SIEM\'e akmıyor',
-    aciklama: 'Seyhan HES\'te endüstriyel protokol trafiği izlenmiyor; pasif TAP kurulumu için ağ kesintisi planlanmalı.',
+    maddeDurumuId: durumKaydi['GOKCEDAG-RES|EPDK-SYM-7.1.4'].id,
+    baslik: 'Gökçedağ türbin SCADA kayıtları SIEM\'e akmıyor',
+    aciklama: 'Gökçedağ RES\'te türbin SCADA ve endüstriyel protokol trafiği izlenmiyor; pasif TAP kurulumu için türbin duruş penceresi planlanmalı.',
     onemDerecesi: 'yuksek', durum: 'aksiyonda', kaynak: 'oz_degerlendirme',
     tespitTarihi: gun(-60), hedefTarih: gun(35), sorumluId: k['burak.sahin'].id } });
   const b4 = await db.bulgu.create({ data: {
-    maddeDurumuId: durumKaydi['BELEN-RES|EPDK-SYM-7.2'].id,
-    baslik: 'Olay müdahale tatbikatı RES sahasını kapsamıyor',
-    aciklama: 'Yıllık tatbikat senaryosunda Belen RES yer almadı; EPDK bildirim akışı saha ekibince bilinmiyor.',
+    maddeDurumuId: durumKaydi['GOKCEDAG-RES|EPDK-SYM-7.2'].id,
+    baslik: 'Olay müdahale tatbikatı RES sahalarını kapsamıyor',
+    aciklama: 'Yıllık tatbikat senaryosunda Gökçedağ ve Sarıtepe RES yer almadı; EPDK bildirim akışı saha ekibince bilinmiyor.',
     onemDerecesi: 'orta', durum: 'acik', kaynak: 'dis_denetim',
     tespitTarihi: gun(-14), hedefTarih: gun(50), sorumluId: k['selin.aydin'].id } });
   const b5 = await db.bulgu.create({ data: {
-    maddeDurumuId: durumKaydi['AYDIN-JEO|EPDK-SYM-4.1.1'].id,
-    baslik: 'Jeotermal saha envanteri eksik',
-    aciklama: 'Kuyu başı RTU\'ları ve haberleşme modemleri varlık envanterinde yer almıyor.',
+    maddeDurumuId: durumKaydi['KIZILDERE-2|EPDK-SYM-4.1.2'].id,
+    baslik: 'Jeotermal kuyu başı ekipmanları envanterde sınıflandırılmamış',
+    aciklama: 'Kızıldere II kuyu başı RTU\'ları ve reenjeksiyon hattı haberleşme modemleri varlık envanterinde kritiklik sınıfı olmadan duruyordu.',
     onemDerecesi: 'orta', durum: 'kapali', kaynak: 'ic_denetim',
     tespitTarihi: gun(-90), hedefTarih: gun(-20), kapanmaTarihi: gun(-8),
     sorumluId: k['mehmet.kaya'].id } });
 
   const aksiyonlar: [string, { id: string }, string, string, number, number | null][] = [
     ['Zone/conduit tasarımının çıkarılması', b1, 'tamamlandi', 'burak.sahin', -30, -6],
-    ['Güvenlik duvarı tedariki ve kurulumu', b1, 'devam', 'burak.sahin', -20, null],
+    ['OT güvenlik duvarı tedariki ve kurulumu', b1, 'devam', 'burak.sahin', -20, null],
     ['ACL kural setinin devreye alınması', b1, 'planlandi', 'mehmet.kaya', 10, null],
     ['Servis hesap envanterinin çıkarılması', b2, 'devam', 'mehmet.kaya', -14, null],
     ['Parola kasası entegrasyonu', b2, 'planlandi', 'mehmet.kaya', 2, null],
-    ['Pasif TAP için kesinti planı', b3, 'devam', 'burak.sahin', -25, null],
-    ['Tatbikat senaryosuna RES eklenmesi', b4, 'planlandi', 'selin.aydin', 5, null],
+    ['Pasif TAP için türbin duruş planı', b3, 'devam', 'burak.sahin', -25, null],
+    ['Tatbikat senaryosuna RES sahalarının eklenmesi', b4, 'planlandi', 'selin.aydin', 5, null],
   ];
   for (const [baslik, bulgu, durum, sorumlu, bas, bit] of aksiyonlar)
     await db.aksiyon.create({ data: {
@@ -297,27 +309,27 @@ async function main() {
 
   // ---- kanıtlar (crosswalk örneğiyle)
   const k1 = await db.kanit.create({ data: {
-    ad: 'Varlık Envanteri 2026-Q3.xlsx', tip: 'kayit',
+    ad: 'Zorlu Enerji Varlık Envanteri 2026-Q3.xlsx', tip: 'kayit',
     gecerlilikBaslangic: gun(-40), yukleyenId: k['mehmet.kaya'].id } });
   const k2 = await db.kanit.create({ data: {
-    ad: 'Ağ Segmentasyon Şeması v3.pdf', tip: 'konfigurasyon',
+    ad: 'Kızıldere III OT Ağ Segmentasyon Şeması v3.pdf', tip: 'konfigurasyon',
     gecerlilikBaslangic: gun(-160), yukleyenId: k['burak.sahin'].id } });
   const k3 = await db.kanit.create({ data: {
     ad: 'Olay Müdahale Planı 2026.docx', tip: 'politika',
     gecerlilikBaslangic: gun(-200), yukleyenId: k['selin.aydin'].id } });
   // Aynı envanter kanıtı hem EPDK 4.1.1 hem ISO A.5.9'u karşılıyor (crosswalk)
-  await db.kanitBaglantisi.create({ data: { kanitId: k1.id, maddeDurumuId: durumKaydi['ADANA-DGKC|EPDK-SYM-4.1.1'].id } });
-  await db.kanitBaglantisi.create({ data: { kanitId: k1.id, maddeDurumuId: durumKaydi['SEYHAN-HES|EPDK-SYM-4.1.1'].id } });
+  await db.kanitBaglantisi.create({ data: { kanitId: k1.id, maddeDurumuId: durumKaydi['KIZILDERE-3|EPDK-SYM-4.1.1'].id } });
+  await db.kanitBaglantisi.create({ data: { kanitId: k1.id, maddeDurumuId: durumKaydi['KIZILDERE-2|EPDK-SYM-4.1.1'].id } });
   const isoDurum = await db.maddeDurumu.findFirst({ where: {
-    surecId: surecIso.id, maddeId: maddeIdx['ISO-27001-A.5.9'].id, tesisId: t['MERKEZ'].id } });
+    surecId: surecIso.id, maddeId: maddeIdx['ISO-27001-A.5.9'].id, tesisId: t['MERKEZ-BT'].id } });
   if (isoDurum) await db.kanitBaglantisi.create({ data: { kanitId: k1.id, maddeDurumuId: isoDurum.id } });
-  await db.kanitBaglantisi.create({ data: { kanitId: k2.id, maddeDurumuId: durumKaydi['ADANA-DGKC|EPDK-SYM-4.2.1'].id } });
-  await db.kanitBaglantisi.create({ data: { kanitId: k3.id, maddeDurumuId: durumKaydi['BELEN-RES|EPDK-SYM-7.2'].id } });
+  await db.kanitBaglantisi.create({ data: { kanitId: k2.id, maddeDurumuId: durumKaydi['KIZILDERE-3|EPDK-SYM-4.2.1'].id } });
+  await db.kanitBaglantisi.create({ data: { kanitId: k3.id, maddeDurumuId: durumKaydi['GOKCEDAG-RES|EPDK-SYM-7.2'].id } });
 
   // ---- projeler
   const p1 = await db.proje.create({ data: {
     kod: 'PRJ-OT-SEG', ad: 'OT Ağ Segmentasyonu Programı',
-    aciklama: 'Tüm santrallerde zone/conduit modeline geçiş.', durum: 'devam',
+    aciklama: 'Jeotermal ve rüzgâr sahalarında zone/conduit modeline geçiş.', durum: 'devam',
     baslangic: gun(-90), hedef: gun(120), sahipId: k['burak.sahin'].id } });
   const p2 = await db.proje.create({ data: {
     kod: 'PRJ-PAM', ad: 'Ayrıcalıklı Erişim Yönetimi',
@@ -325,8 +337,8 @@ async function main() {
     baslangic: gun(-45), hedef: gun(60), sahipId: k['mehmet.kaya'].id } });
   const p3 = await db.proje.create({ data: {
     kod: 'PRJ-SIEM-OT', ad: 'OT Görünürlük / SIEM Genişletme',
-    aciklama: 'Santral OT kayıtlarının merkezî SIEM\'e alınması.', durum: 'planlandi',
-    baslangic: gun(20), hedef: gun(180), sahipId: k['ayse.demir'].id } });
+    aciklama: 'Saha OT kayıtlarının merkezî SIEM\'e alınması.', durum: 'planlandi',
+    baslangic: gun(20), hedef: gun(180), sahipId: k['ahmet.terzi'].id } });
   await db.projeBaglantisi.create({ data: { projeId: p1.id, maddeId: maddeIdx['EPDK-SYM-4.2.1'].id } });
   await db.projeBaglantisi.create({ data: { projeId: p1.id, bulguId: b1.id } });
   await db.projeBaglantisi.create({ data: { projeId: p2.id, maddeId: maddeIdx['EPDK-SYM-5.1.1'].id } });
@@ -336,10 +348,10 @@ async function main() {
 
   // ---- yetkiler (süreç × tesis kapsamlı)
   const yetkiler: [string, { id: string } | null, string | null, string][] = [
-    ['ayse.demir', null, null, 'yonetici'],
+    ['ahmet.terzi', null, null, 'yonetici'],
     ['selin.aydin', null, null, 'denetim_sorumlusu'],
     ['burak.sahin', surecEpdk, null, 'katkici'],
-    ['mehmet.kaya', surecCbddo, 'MERKEZ', 'katkici'],
+    ['mehmet.kaya', surecCbddo, 'MERKEZ-BT', 'katkici'],
     ['zeynep.arslan', null, null, 'okuyucu'],
   ];
   for (const [e, surec, tesisKod, rol] of yetkiler)
@@ -352,15 +364,15 @@ async function main() {
     [-38, 'zeynep.arslan', 'Bulgu', b1.id, 'olusturma', null, null, null],
     [-36, 'selin.aydin', 'Bulgu', b1.id, 'guncelleme', 'onemDerecesi', 'yuksek', 'kritik'],
     [-30, 'burak.sahin', 'Aksiyon', b1.id, 'olusturma', null, null, null],
-    [-12, 'burak.sahin', 'Bulgu', b1.id, 'dosya_ekleme', null, null, 'Ağ Segmentasyon Şeması v3.pdf'],
+    [-12, 'burak.sahin', 'Bulgu', b1.id, 'dosya_ekleme', null, null, 'Kızıldere III OT Ağ Segmentasyon Şeması v3.pdf'],
     [-6, 'burak.sahin', 'Bulgu', b1.id, 'durum_degisimi', 'durum', 'acik', 'aksiyonda'],
     [-21, 'zeynep.arslan', 'Bulgu', b2.id, 'olusturma', null, null, null],
     [-60, 'burak.sahin', 'Bulgu', b3.id, 'olusturma', null, null, null],
     [-40, 'burak.sahin', 'Bulgu', b3.id, 'durum_degisimi', 'durum', 'acik', 'aksiyonda'],
     [-14, 'zeynep.arslan', 'Bulgu', b4.id, 'olusturma', null, null, null],
     [-8, 'mehmet.kaya', 'Bulgu', b5.id, 'durum_degisimi', 'durum', 'aksiyonda', 'kapali'],
-    [-2, 'mehmet.kaya', 'MaddeDurumu', durumKaydi['ADANA-DGKC|EPDK-SYM-4.1.1'].id, 'durum_degisimi', 'durum', 'kismi', 'uyumlu'],
-    [-140, 'ayse.demir', 'Tesis', t['VAN-HES'].id, 'guncelleme', 'durum', 'aktif', 'kapali'],
+    [-2, 'mehmet.kaya', 'MaddeDurumu', durumKaydi['KIZILDERE-3|EPDK-SYM-4.1.1'].id, 'durum_degisimi', 'durum', 'kismi', 'uyumlu'],
+    [-300, 'ahmet.terzi', 'Tesis', t['LULEBURGAZ-DGKC'].id, 'guncelleme', 'durum', 'aktif', 'kapali'],
   ];
   for (const [g, e, vt, vid, ey, alan, once, sonra] of aktiviteler)
     await db.aktiviteKaydi.create({ data: {
@@ -384,36 +396,78 @@ async function main() {
   // ================= hedef mimari genişlemesi =================
 
   // Organizasyon hiyerarşisi: Grup → Tüzel Kişi → Tesis
-  const grup = await db.grup.create({ data: { kod: 'ENERJI-GRUP', ad: 'Enerji Üretim Grubu' } });
-  const tuzelUretim = await db.tuzelKisi.create({ data: {
-    grupId: grup.id, kod: 'URETIM-AS', ad: 'Enerji Üretim A.Ş.' } });
-  const tuzelYenilenebilir = await db.tuzelKisi.create({ data: {
-    grupId: grup.id, kod: 'YENILENEBILIR-AS', ad: 'Yenilenebilir Enerji A.Ş.' } });
-  await db.tesis.updateMany({ where: { kod: { in: ['ADANA-DGKC', 'SEYHAN-HES', 'MERKEZ', 'VAN-HES'] } },
-    data: { tuzelKisiId: tuzelUretim.id } });
-  await db.tesis.updateMany({ where: { kod: { in: ['BELEN-RES', 'AYDIN-JEO', 'KONYA-GES'] } },
-    data: { tuzelKisiId: tuzelYenilenebilir.id } });
+  const grup = await db.grup.create({ data: { kod: 'ZORLU-ENERJI', ad: 'Zorlu Enerji Grubu' } });
+  const tuzelEnerji = await db.tuzelKisi.create({ data: {
+    grupId: grup.id, kod: 'ZORLU-ENERJI-AS', ad: 'Zorlu Enerji Elektrik Üretim A.Ş.' } });
+  const tuzelJeo = await db.tuzelKisi.create({ data: {
+    grupId: grup.id, kod: 'ZORLU-JEO', ad: 'Zorlu Jeotermal Enerji Elektrik Üretimi A.Ş.' } });
+  const tuzelRotor = await db.tuzelKisi.create({ data: {
+    grupId: grup.id, kod: 'ROTOR-AS', ad: 'Rotor Elektrik Üretim A.Ş.' } });
+  const tuzelDogal = await db.tuzelKisi.create({ data: {
+    grupId: grup.id, kod: 'ZORLU-DOGAL', ad: 'Zorlu Doğal Elektrik Üretimi A.Ş.' } });
+  await db.tesis.updateMany({ where: { kod: { in: [
+    'IKIZDERE-HES', 'TERCAN-HES', 'MERCAN-HES', 'BEYKOY-HES', 'KUZGUN-HES',
+    'CILDIR-HES', 'ATAKOY-HES', 'MERKEZ-BT'] } },
+    data: { tuzelKisiId: tuzelEnerji.id } });
+  await db.tesis.updateMany({ where: { kod: { in: [
+    'KIZILDERE-1', 'KIZILDERE-2', 'KIZILDERE-3', 'ALASEHIR-JES', 'ALASEHIR-GES'] } },
+    data: { tuzelKisiId: tuzelJeo.id } });
+  await db.tesis.updateMany({ where: { kod: { in: [
+    'GOKCEDAG-RES', 'SARITEPE-RES', 'DEMIRCILER-RES'] } },
+    data: { tuzelKisiId: tuzelRotor.id } });
+  await db.tesis.updateMany({ where: { kod: { in: ['LULEBURGAZ-DGKC'] } },
+    data: { tuzelKisiId: tuzelDogal.id } });
 
-  // Santral profilleri (§5.1) — uygulanabilirlik motorunun girdisi
+  // Santral profilleri (§5.1) — uygulanabilirlik motorunun girdisi.
+  // Bazı sahalarda alanlar bilinçli olarak null: "bilinmiyor" birinci sınıf
+  // durumdur ve veri kalitesi motorunu tetikler.
   const profiller: [string, object][] = [
-    ['ADANA-DGKC', { lisansTipi: 'uretim', kabulDurumu: 'kesin_kabul', blackStart: true,
-      teiasScadaEms: true, seriHaberlesme: false, kritiklikSinifi: 'yuksek',
+    ['KIZILDERE-3', { lisansTipi: 'uretim', lisansNo: 'EU/6521-3', kabulDurumu: 'kesin_kabul',
+      blackStart: false, teiasScadaEms: true, seriHaberlesme: false, kritiklikSinifi: 'yuksek',
       kritikAltyapiStatusu: true, otMimariTipi: 'dcs', dcsSaglayici: 'Siemens',
-      uzaktanErisim: true, internetMaruziyeti: 'sinirli', yerelAdVar: true,
+      scadaSaglayici: 'Siemens', uzaktanErisim: true, internetMaruziyeti: 'sinirli',
+      yerelAdVar: true, yerelVeriMerkeziVar: true, veriIslemeProfili: 'uretim_telemetrisi',
       grupOrtakServisler: 'merkezi_ad;soc;edr' }],
-    ['SEYHAN-HES', { lisansTipi: 'uretim', kabulDurumu: 'kesin_kabul', blackStart: false,
-      teiasScadaEms: true, kritiklikSinifi: 'orta', otMimariTipi: 'scada',
-      scadaSaglayici: 'ABB', uzaktanErisim: true, internetMaruziyeti: 'yok',
+    ['KIZILDERE-2', { lisansTipi: 'uretim', kabulDurumu: 'kesin_kabul', blackStart: false,
+      teiasScadaEms: true, seriHaberlesme: false, kritiklikSinifi: 'orta',
+      kritikAltyapiStatusu: false, otMimariTipi: 'scada', scadaSaglayici: 'ABB',
+      uzaktanErisim: true, internetMaruziyeti: 'yok', yerelAdVar: true,
       grupOrtakServisler: 'merkezi_ad;soc' }],
-    ['BELEN-RES', { lisansTipi: 'uretim', kabulDurumu: 'kesin_kabul', blackStart: false,
-      teiasScadaEms: false, seriHaberlesme: true, kritiklikSinifi: 'dusuk',
-      otMimariTipi: 'plc_scada', plcAileleri: 'Siemens S7', iotVar: true }],
-    ['AYDIN-JEO', { lisansTipi: 'uretim', kabulDurumu: 'kesin_kabul', blackStart: false,
+    ['KIZILDERE-1', { lisansTipi: 'uretim', kabulDurumu: 'kesin_kabul', blackStart: false,
       teiasScadaEms: false, kritiklikSinifi: 'dusuk', otMimariTipi: 'plc_scada' }],
-    ['KONYA-GES', { lisansTipi: 'uretim', kabulDurumu: 'gecici_kabul', blackStart: false,
-      teiasScadaEms: false, kritiklikSinifi: 'dusuk', iotVar: true, akilliSayacVar: true }],
-    ['MERKEZ', { kritiklikSinifi: 'yuksek', yerelVeriMerkeziVar: true, yerelAdVar: true,
-      internetMaruziyeti: 'var', grupOrtakServisler: 'merkezi_ad;soc;edr;siem' }],
+    ['ALASEHIR-JES', { lisansTipi: 'uretim', kabulDurumu: 'kesin_kabul', blackStart: false,
+      teiasScadaEms: false, seriHaberlesme: true, kritiklikSinifi: 'dusuk',
+      otMimariTipi: 'plc_scada', plcAileleri: 'Siemens S7', internetMaruziyeti: 'yok' }],
+    ['GOKCEDAG-RES', { lisansTipi: 'uretim', kabulDurumu: 'kesin_kabul', blackStart: false,
+      teiasScadaEms: true, seriHaberlesme: false, kritiklikSinifi: 'yuksek',
+      kritikAltyapiStatusu: true, otMimariTipi: 'scada', scadaSaglayici: 'Vestas',
+      uzaktanErisim: true, internetMaruziyeti: 'sinirli', iotVar: true,
+      grupOrtakServisler: 'merkezi_ad;soc' }],
+    ['SARITEPE-RES', { lisansTipi: 'uretim', kabulDurumu: 'kesin_kabul', blackStart: false,
+      teiasScadaEms: true, seriHaberlesme: true, kritiklikSinifi: 'orta',
+      otMimariTipi: 'scada', scadaSaglayici: 'Vestas', uzaktanErisim: true,
+      internetMaruziyeti: 'sinirli', iotVar: true }],
+    ['DEMIRCILER-RES', { lisansTipi: 'uretim', kabulDurumu: 'kesin_kabul', blackStart: false,
+      teiasScadaEms: false, seriHaberlesme: true, kritiklikSinifi: 'dusuk',
+      otMimariTipi: 'plc_scada' }],
+    ['IKIZDERE-HES', { lisansTipi: 'uretim', kabulDurumu: 'kesin_kabul', blackStart: false,
+      teiasScadaEms: false, kritiklikSinifi: 'dusuk', otMimariTipi: 'plc_scada',
+      plcAileleri: 'Siemens S7', internetMaruziyeti: 'yok' }],
+    ['TERCAN-HES', { lisansTipi: 'uretim', kabulDurumu: 'kesin_kabul', blackStart: false,
+      teiasScadaEms: false, kritiklikSinifi: 'dusuk', otMimariTipi: 'plc_scada' }],
+    ['MERCAN-HES', { lisansTipi: 'uretim', kabulDurumu: 'kesin_kabul', blackStart: false,
+      kritiklikSinifi: 'dusuk', otMimariTipi: 'plc_scada' }],
+    ['BEYKOY-HES', { lisansTipi: 'uretim', kabulDurumu: 'kesin_kabul', blackStart: false,
+      teiasScadaEms: false, otMimariTipi: 'plc_scada' }],
+    ['KUZGUN-HES', { lisansTipi: 'uretim', kabulDurumu: 'kesin_kabul', teiasScadaEms: false,
+      kritiklikSinifi: 'dusuk' }],
+    ['ALASEHIR-GES', { lisansTipi: 'uretim', kabulDurumu: 'gecici_kabul', blackStart: false,
+      teiasScadaEms: false, kritiklikSinifi: 'dusuk', iotVar: true, akilliSayacVar: true,
+      internetMaruziyeti: 'sinirli' }],
+    ['MERKEZ-BT', { kritiklikSinifi: 'yuksek', yerelVeriMerkeziVar: true, yerelAdVar: true,
+      internetMaruziyeti: 'var', uzaktanErisim: true, veriIslemeProfili: 'kurumsal_kvkk',
+      grupOrtakServisler: 'merkezi_ad;soc;edr;siem' }],
+    // CILDIR-HES ve ATAKOY-HES profilsiz: veri kalitesi motoru "eksik_profil" üretir.
   ];
   for (const [kod, profil] of profiller)
     await db.tesisProfili.create({ data: { tesisId: t[kod].id, ...profil } });
@@ -435,21 +489,31 @@ async function main() {
       { alan: 'blackStart', islec: '=', deger: true },
       { alan: 'teiasScadaEmsSeriOlmayan', islec: '=', deger: true },
     ] }) } });
-  const kapsamda = [['ADANA-DGKC', true, 'kuruluGucMw=790 ≥ 100 VE blackStart VE TEİAŞ SCADA/EMS'],
-    ['SEYHAN-HES', true, 'kuruluGucMw=138 ≥ 100 VE TEİAŞ SCADA/EMS (seri değil)'],
-    ['BELEN-RES', false, 'güç 96 < 100; TEİAŞ haberleşmesi seri tabanlı; Black-Start yok'],
-    ['AYDIN-JEO', false, 'güç 47 < 100; kapsam koşulları sağlanmıyor'],
-    ['KONYA-GES', false, 'güç 63 < 100; geçici kabul; kapsam koşulları sağlanmıyor']] as const;
+  const kapsamda = [
+    ['KIZILDERE-3', true, 'kuruluGucMw=165 ≥ 100 VE TEİAŞ SCADA/EMS (seri değil)'],
+    ['KIZILDERE-2', true, 'TEİAŞ SCADA/EMS haberleşmesi seri tabanlı değil'],
+    ['GOKCEDAG-RES', true, 'kuruluGucMw=135 ≥ 100 VE TEİAŞ SCADA/EMS (seri değil); Black-Start yok'],
+    ['SARITEPE-RES', false, 'güç 57 < 100; TEİAŞ haberleşmesi seri tabanlı; Black-Start yok'],
+    ['KIZILDERE-1', false, 'güç 15 < 100; TEİAŞ SCADA/EMS yok; Black-Start yok'],
+    ['ALASEHIR-JES', false, 'güç 45 < 100; kapsam koşulları sağlanmıyor'],
+    ['DEMIRCILER-RES', false, 'güç 23,3 < 100; haberleşme seri tabanlı'],
+    ['IKIZDERE-HES', false, 'güç 24,94 < 100; TEİAŞ SCADA/EMS yok'],
+    ['TERCAN-HES', false, 'güç 15 < 100; kapsam koşulları sağlanmıyor'],
+    ['MERCAN-HES', false, 'güç 20,4 < 100; kapsam koşulları sağlanmıyor'],
+    ['BEYKOY-HES', false, 'güç 16,8 < 100; kapsam koşulları sağlanmıyor'],
+    ['KUZGUN-HES', false, 'güç 20,9 < 100; kapsam koşulları sağlanmıyor'],
+    ['ALASEHIR-GES', false, 'güç 3,75 < 100; geçici kabul; kapsam koşulları sağlanmıyor'],
+  ] as const;
   for (const [kod, uygulanabilir, gerekce] of kapsamda)
     await db.uygulanabilirlikKarari.create({ data: {
       tesisId: t[kod].id, regulasyonId: reg['EPDK-SYM'].id,
       uygulanabilir, gerekce, kuralId: epdkKural.id, kuralSurumu: 1 } });
-  // Örnek onaylı override: BELEN-RES sözleşme gereği gönüllü kapsamda
+  // Örnek onaylı override: Sarıtepe RES sözleşme gereği gönüllü kapsamda
   await db.uygulanabilirlikKarari.update({
-    where: { tesisId_regulasyonId: { tesisId: t['BELEN-RES'].id, regulasyonId: reg['EPDK-SYM'].id } },
+    where: { tesisId_regulasyonId: { tesisId: t['SARITEPE-RES'].id, regulasyonId: reg['EPDK-SYM'].id } },
     data: { uygulanabilir: true, elIleDegistirildi: true,
-      degistirmeGerekcesi: 'TEİAŞ bağlantı anlaşması gereği gönüllü uyum taahhüdü',
-      onaylayanId: k['ayse.demir'].id } });
+      degistirmeGerekcesi: 'Gökçedağ ile ortak şalt sahası ve TEİAŞ bağlantı anlaşması gereği gönüllü uyum taahhüdü',
+      onaylayanId: k['ahmet.terzi'].id } });
 
   // CMDB çekirdeği: varlık türleri + örnek varlıklar + ağ bölgeleri
   const tur = Object.fromEntries(await Promise.all(([
@@ -463,53 +527,106 @@ async function main() {
     data: { kod, ad, sinif } })]))) as Record<string, { id: string }>;
 
   const zonKurumsal = await db.agBolgesi.create({ data: {
-    kod: 'ADANA-KURUMSAL', ad: 'Adana Kurumsal Ağ', tip: 'kurumsal',
-    tesisId: t['ADANA-DGKC'].id, guvenlikSeviyesi: 4 } });
+    kod: 'KIZILDERE3-KURUMSAL', ad: 'Kızıldere III Kurumsal Ağ', tip: 'kurumsal',
+    tesisId: t['KIZILDERE-3'].id, guvenlikSeviyesi: 4 } });
   const zonOtDmz = await db.agBolgesi.create({ data: {
-    kod: 'ADANA-OT-DMZ', ad: 'Adana OT DMZ', tip: 'ot_dmz',
-    tesisId: t['ADANA-DGKC'].id, guvenlikSeviyesi: 3 } });
+    kod: 'KIZILDERE3-OT-DMZ', ad: 'Kızıldere III OT DMZ', tip: 'ot_dmz',
+    tesisId: t['KIZILDERE-3'].id, guvenlikSeviyesi: 3 } });
   const zonOt = await db.agBolgesi.create({ data: {
-    kod: 'ADANA-OT', ad: 'Adana SCADA/DCS Ağı', tip: 'ot',
-    tesisId: t['ADANA-DGKC'].id, guvenlikSeviyesi: 2 } });
+    kod: 'KIZILDERE3-OT', ad: 'Kızıldere III DCS/SCADA Ağı', tip: 'ot',
+    tesisId: t['KIZILDERE-3'].id, guvenlikSeviyesi: 2 } });
+  const zonGokcedagOt = await db.agBolgesi.create({ data: {
+    kod: 'GOKCEDAG-OT', ad: 'Gökçedağ Türbin SCADA Ağı', tip: 'ot',
+    tesisId: t['GOKCEDAG-RES'].id, guvenlikSeviyesi: 2 } });
+  const zonMerkez = await db.agBolgesi.create({ data: {
+    kod: 'MERKEZ-BT-KURUMSAL', ad: 'Zorlu Center Kurumsal Ağ', tip: 'kurumsal',
+    tesisId: t['MERKEZ-BT'].id, guvenlikSeviyesi: 4 } });
   await db.agGeciti.create({ data: {
     kaynakBolgeId: zonKurumsal.id, hedefBolgeId: zonOtDmz.id,
-    kontrolVarligi: 'ADANA-OTFW-01', protokoller: 'https;opc-ua', onaylandi: true } });
+    kontrolVarligi: 'KIZILDERE3-OTFW-01', protokoller: 'https;opc-ua', onaylandi: true } });
   await db.agGeciti.create({ data: {
     kaynakBolgeId: zonOtDmz.id, hedefBolgeId: zonOt.id,
-    kontrolVarligi: 'ADANA-OTFW-01', protokoller: 'modbus-tcp;iec104', onaylandi: true } });
+    kontrolVarligi: 'KIZILDERE3-OTFW-01', protokoller: 'modbus-tcp;iec104', onaylandi: true } });
+  await db.agGeciti.create({ data: {
+    kaynakBolgeId: zonMerkez.id, hedefBolgeId: zonGokcedagOt.id,
+    protokoller: 'opc-ua;iec104', onaylandi: false,
+    aciklama: 'Gökçedağ türbin SCADA verisi merkeze doğrudan akıyor; geçit kontrolü onaylı değil.' } });
 
-  const sistemScada = await db.sistemServis.create({ data: {
-    kod: 'ADANA-SCADA', ad: 'Adana DGKÇ SCADA/DCS', tip: 'sistem',
-    tesisId: t['ADANA-DGKC'].id, kritiklik: 'kritik', sahipId: k['burak.sahin'].id } });
+  const sistemDcs = await db.sistemServis.create({ data: {
+    kod: 'KIZILDERE3-DCS', ad: 'Kızıldere III Türbin DCS/SCADA', tip: 'sistem',
+    aciklama: 'Buhar türbini ve reenjeksiyon kontrolü.',
+    tesisId: t['KIZILDERE-3'].id, kritiklik: 'kritik', sahipId: k['burak.sahin'].id } });
+  const sistemTurbin = await db.sistemServis.create({ data: {
+    kod: 'GOKCEDAG-TURBIN-SCADA', ad: 'Gökçedağ Türbin SCADA', tip: 'sistem',
+    aciklama: '54 türbinin uzaktan izleme ve kontrol platformu.',
+    tesisId: t['GOKCEDAG-RES'].id, kritiklik: 'yuksek', sahipId: k['burak.sahin'].id } });
+  const sistemSanal = await db.sistemServis.create({ data: {
+    kod: 'MERKEZ-SANALLASTIRMA', ad: 'Merkez Sanallaştırma Platformu', tip: 'sistem',
+    aciklama: 'Genel müdürlük veri merkezi sanal sunucu kümesi.',
+    tesisId: t['MERKEZ-BT'].id, kritiklik: 'yuksek', sahipId: k['mehmet.kaya'].id } });
+
   const surecUretim = await db.isSureci.create({ data: {
-    kod: 'ADANA-URETIM', ad: 'Adana elektrik üretimi', tesisId: t['ADANA-DGKC'].id,
-    uretimEtkisi: 'uretim_durur' } });
-  await db.isSureciSistemi.create({ data: { surecId: surecUretim.id, sistemId: sistemScada.id } });
+    kod: 'KIZILDERE3-URETIM', ad: 'Kızıldere III jeotermal elektrik üretimi',
+    tesisId: t['KIZILDERE-3'].id, uretimEtkisi: 'uretim_durur' } });
+  await db.isSureciSistemi.create({ data: { surecId: surecUretim.id, sistemId: sistemDcs.id } });
+  const surecRuzgar = await db.isSureci.create({ data: {
+    kod: 'GOKCEDAG-URETIM', ad: 'Gökçedağ rüzgâr üretimi ve uzaktan izleme',
+    tesisId: t['GOKCEDAG-RES'].id, uretimEtkisi: 'yuksek' } });
+  await db.isSureciSistemi.create({ data: { surecId: surecRuzgar.id, sistemId: sistemTurbin.id } });
 
   const varlikOtfw = await db.varlik.create({ data: {
-    etiket: 'ADANA-OTFW-01', ad: 'OT Güvenlik Duvarı (Adana)', turId: tur['OTFW'].id,
-    tesisId: t['ADANA-DGKC'].id, sistemId: sistemScada.id, uretici: 'Fortinet',
+    etiket: 'KIZILDERE3-OTFW-01', ad: 'OT Güvenlik Duvarı (Kızıldere III)', turId: tur['OTFW'].id,
+    tesisId: t['KIZILDERE-3'].id, sistemId: sistemDcs.id, uretici: 'Fortinet',
     model: 'FG-200F', kritiklik: 'kritik', uretimEtkisi: 'yuksek',
     bolgeId: zonOtDmz.id, yasamDongusu: 'aktif', sahipId: k['burak.sahin'].id,
-    eosTarihi: gun(500), yamaDurumu: 'guncel', izlemeDurumu: 'var', logKaynagi: 'var' } });
+    emanetciId: k['mehmet.kaya'].id, eosTarihi: gun(500), yamaDurumu: 'guncel',
+    izlemeDurumu: 'var', logKaynagi: 'var', internetMaruziyeti: 'yok' } });
+  const varlikDcs = await db.varlik.create({ data: {
+    etiket: 'KIZILDERE3-DCS-01', ad: 'Türbin DCS Denetleyicisi', turId: tur['DCS'].id,
+    tesisId: t['KIZILDERE-3'].id, sistemId: sistemDcs.id, uretici: 'Siemens',
+    model: 'SPPA-T3000', firmware: 'R8.2 SP2', kritiklik: 'kritik',
+    emniyetEtkisi: 'yuksek', uretimEtkisi: 'uretim_durur', bolgeId: zonOt.id,
+    sahipId: k['burak.sahin'].id, yamaDurumu: 'eksik', izlemeDurumu: 'yok',
+    logKaynagi: 'yok', internetMaruziyeti: 'yok', eosTarihi: gun(900) } });
   const varlikScada = await db.varlik.create({ data: {
-    etiket: 'ADANA-SCADA-SRV-01', ad: 'SCADA Sunucusu 1', turId: tur['SCADA-SRV'].id,
-    tesisId: t['ADANA-DGKC'].id, sistemId: sistemScada.id, isletimSistemi: 'Windows Server 2012 R2',
-    kritiklik: 'kritik', uretimEtkisi: 'yuksek', bolgeId: zonOt.id,
-    eolTarihi: gun(-800), eosTarihi: gun(-400), yamaDurumu: 'yamasiz',
-    yedekDurumu: 'var', sahipId: k['burak.sahin'].id } });
+    etiket: 'KIZILDERE3-SCADA-01', ad: 'Kızıldere III SCADA Sunucusu', turId: tur['SCADA-SRV'].id,
+    tesisId: t['KIZILDERE-3'].id, sistemId: sistemDcs.id, isletimSistemi: 'Windows Server 2012 R2',
+    uretici: 'Dell', model: 'PowerEdge R740', kritiklik: 'kritik', uretimEtkisi: 'yuksek',
+    bolgeId: zonOt.id, eolTarihi: gun(-800), eosTarihi: gun(-400), yamaDurumu: 'yamasiz',
+    yedekDurumu: 'var', edrDurumu: 'yok', sahipId: k['burak.sahin'].id } });
   await db.varlik.create({ data: {
-    etiket: 'ADANA-EWS-01', ad: 'Mühendislik İstasyonu', turId: tur['EWS'].id,
-    tesisId: t['ADANA-DGKC'].id, sistemId: sistemScada.id, kritiklik: 'yuksek',
-    bolgeId: zonOt.id, yamaDurumu: 'eksik', uzaktanErisim: true } });
+    etiket: 'KIZILDERE3-EWS-01', ad: 'Mühendislik İstasyonu (Kızıldere III)', turId: tur['EWS'].id,
+    tesisId: t['KIZILDERE-3'].id, sistemId: sistemDcs.id, kritiklik: 'yuksek',
+    isletimSistemi: 'Windows 10 IoT Enterprise', bolgeId: zonOt.id,
+    yamaDurumu: 'eksik', uzaktanErisim: true, sahipId: k['burak.sahin'].id } });
+  const varlikGokcedag = await db.varlik.create({ data: {
+    etiket: 'GOKCEDAG-SCADA-01', ad: 'Gökçedağ Türbin SCADA Sunucusu', turId: tur['SCADA-SRV'].id,
+    tesisId: t['GOKCEDAG-RES'].id, sistemId: sistemTurbin.id, uretici: 'Vestas',
+    isletimSistemi: 'Windows Server 2016', bolgeId: zonGokcedagOt.id,
+    uretimEtkisi: 'yuksek', logKaynagi: 'yok', izlemeDurumu: 'bilinmiyor',
+    yamaDurumu: 'bilinmiyor' } }); // sahipsiz + kritikliği bilinmiyor: veri kalitesi örneği
+  await db.varlik.create({ data: {
+    etiket: 'MERKEZ-SSUNUCU-01', ad: 'Uyum Konsolu Uygulama Sunucusu', turId: tur['SSUNUCU'].id,
+    tesisId: t['MERKEZ-BT'].id, sistemId: sistemSanal.id, isletimSistemi: 'Ubuntu 24.04 LTS',
+    kritiklik: 'yuksek', bolgeId: zonMerkez.id, sahipId: k['mehmet.kaya'].id,
+    yamaDurumu: 'guncel', edrDurumu: 'var', yedekDurumu: 'var', izlemeDurumu: 'var',
+    logKaynagi: 'var', internetMaruziyeti: 'sinirli', eosTarihi: gun(1400) } });
+  await db.varlik.create({ data: {
+    etiket: 'MERKEZ-SSUNUCU-02', ad: 'Etki Alanı Denetleyicisi', turId: tur['SSUNUCU'].id,
+    tesisId: t['MERKEZ-BT'].id, sistemId: sistemSanal.id, isletimSistemi: 'Windows Server 2022',
+    kritiklik: 'kritik', bolgeId: zonMerkez.id, sahipId: k['mehmet.kaya'].id,
+    yamaDurumu: 'guncel', edrDurumu: 'var', yedekDurumu: 'var', izlemeDurumu: 'var',
+    logKaynagi: 'var', internetMaruziyeti: 'yok', eosTarihi: gun(1600) } });
   await db.varlikIliskisi.create({ data: {
     kaynakId: varlikScada.id, hedefId: varlikOtfw.id, tip: 'connects_to' } });
+  await db.varlikIliskisi.create({ data: {
+    kaynakId: varlikDcs.id, hedefId: varlikScada.id, tip: 'depends_on' } });
 
   // Risk kaydı: EOS SCADA sunucusu → bulgu b1 ile bağlantılı üretim riski
   const risk1 = await db.risk.create({ data: {
-    kod: 'RSK-2026-001', baslik: 'Desteksiz SCADA sunucusu üzerinden üretim kesintisi',
-    aciklama: 'Adana SCADA sunucusu EOL/EOS geçmiş Windows 2012 R2 üzerinde; yama alamıyor. Segmentasyon eksikliğiyle (bulgu) birleşince fidye yazılımının üretimi durdurma olasılığı yüksek.',
-    kaynak: 'eol', tesisId: t['ADANA-DGKC'].id, sistemId: sistemScada.id, bulguId: b1.id,
+    kod: 'RSK-2026-001', baslik: 'Desteksiz SCADA sunucusu üzerinden jeotermal üretim kesintisi',
+    aciklama: 'Kızıldere III SCADA sunucusu EOL/EOS geçmiş Windows Server 2012 R2 üzerinde; yama alamıyor. DCS ağının kurumsal ağdan ayrıştırılmamış olmasıyla (bulgu) birleşince fidye yazılımının 165 MW üretimi durdurma olasılığı yüksek.',
+    kaynak: 'eol', tesisId: t['KIZILDERE-3'].id, sistemId: sistemDcs.id, bulguId: b1.id,
     tehdit: 'Fidye yazılımı / yetkisiz erişim', zayiflik: 'EOS işletim sistemi + düz ağ',
     olasilik: 4, etkiUretim: 5, etkiEmniyet: 3, etkiRegulasyon: 4, etkiFinans: 4,
     etkiSiber: 5, dogalRisk: 20, artikRisk: 16,
@@ -518,23 +635,44 @@ async function main() {
   await db.riskVarlik.create({ data: { riskId: risk1.id, varlikId: varlikScada.id } });
   await db.riskKontrol.create({ data: { riskId: risk1.id, maddeId: maddeIdx['EPDK-SYM-4.2.1'].id } });
   await db.projeBaglantisi.create({ data: {
-    projeId: p1.id, riskId: risk1.id, tesisId: t['ADANA-DGKC'].id,
+    projeId: p1.id, riskId: risk1.id, tesisId: t['KIZILDERE-3'].id,
     gerekce: 'Segmentasyon programı bu riskin ana azaltıcısıdır' } });
+  // OT görünürlük riski: Gökçedağ SIEM bulgusuna bağlı
+  const risk2 = await db.risk.create({ data: {
+    kod: 'RSK-2026-002', baslik: 'Gökçedağ türbin SCADA\'sında olay görünürlüğü yok',
+    aciklama: 'Türbin SCADA kayıtları merkezî SIEM\'e akmadığı için yetkisiz erişim tespiti yapılamıyor; EPDK bildirim süresi kaçırılabilir.',
+    kaynak: 'bulgu', tesisId: t['GOKCEDAG-RES'].id, sistemId: sistemTurbin.id, bulguId: b3.id,
+    tehdit: 'Tespit edilemeyen yetkisiz erişim', zayiflik: 'Log toplama ve izleme yok',
+    olasilik: 3, etkiUretim: 3, etkiRegulasyon: 4, etkiSiber: 4, etkiItibar: 3,
+    dogalRisk: 12, artikRisk: 12, mevcutKontroller: 'Saha ekibi manuel kontrol',
+    sahipId: k['burak.sahin'].id, islemTipi: 'azalt', durum: 'islemde' } });
+  await db.riskVarlik.create({ data: { riskId: risk2.id, varlikId: varlikGokcedag.id } });
+  await db.riskKontrol.create({ data: { riskId: risk2.id, maddeId: maddeIdx['EPDK-SYM-7.1.4'].id } });
+  await db.projeBaglantisi.create({ data: {
+    projeId: p3.id, riskId: risk2.id, tesisId: t['GOKCEDAG-RES'].id,
+    gerekce: 'SIEM genişletme projesi bu riskin ana azaltıcısıdır' } });
   // Süreli risk kabulü örneği
   await db.risk.create({ data: {
-    kod: 'RSK-2026-002', baslik: 'RES SCADA bağlantısında tekil güzergah',
-    aciklama: 'Belen RES haberleşmesi tek fiber güzergahta; kopmada görünürlük kaybı.',
-    kaynak: 'manuel', tesisId: t['BELEN-RES'].id, olasilik: 2, etkiUretim: 2, etkiSiber: 1,
+    kod: 'RSK-2026-003', baslik: 'Sarıtepe RES haberleşmesinde tekil güzergah',
+    aciklama: 'Sarıtepe RES haberleşmesi Gökçedağ üzerinden tek fiber güzergahta; kopmada uzaktan görünürlük kaybı yaşanıyor.',
+    kaynak: 'manuel', tesisId: t['SARITEPE-RES'].id, olasilik: 2, etkiUretim: 2, etkiSiber: 1,
     dogalRisk: 4, artikRisk: 4, islemTipi: 'kabul', kabulBitis: gun(180),
-    onaylayanId: k['ayse.demir'].id, sahipId: k['burak.sahin'].id, durum: 'kabul_edildi' } });
+    onaylayanId: k['ahmet.terzi'].id, sahipId: k['burak.sahin'].id, durum: 'kabul_edildi' } });
+  // Veri kalitesi kaynaklı risk: profilsiz sahalar
+  await db.risk.create({ data: {
+    kod: 'RSK-2026-004', baslik: 'Çıldır ve Ataköy HES için santral profili yok',
+    aciklama: 'İki HES sahasında santral profili doldurulmadığı için EPDK kapsam kararı üretilemiyor; kapsam dışı sayılmaları doğrulanamıyor.',
+    kaynak: 'veri_kalitesi', tesisId: t['CILDIR-HES'].id, olasilik: 3, etkiRegulasyon: 3,
+    etkiVeri: 3, dogalRisk: 9, artikRisk: 9, sahipId: k['selin.aydin'].id,
+    islemTipi: 'azalt', durum: 'acik' } });
 
   // Denetim yaşam döngüsü: yaklaşan CBDDÖ yerinde denetimi
   const denetim1 = await db.denetim.create({ data: {
     kod: 'DEN-2026-CBDDO', ad: 'CBDDÖ Yerinde Denetimi 2026', tip: 'dis_denetim',
     denetleyen: 'CBDDÖ', surecId: surecCbddo.id, durum: 'kanit_talebi',
     planBaslangic: gun(35), planBitis: gun(42) } });
-  await db.denetimKapsami.create({ data: { denetimId: denetim1.id, tesisId: t['MERKEZ'].id } });
-  await db.denetimKapsami.create({ data: { denetimId: denetim1.id, tesisId: t['ADANA-DGKC'].id } });
+  await db.denetimKapsami.create({ data: { denetimId: denetim1.id, tesisId: t['MERKEZ-BT'].id } });
+  await db.denetimKapsami.create({ data: { denetimId: denetim1.id, tesisId: t['KIZILDERE-3'].id } });
   await db.kanitTalebi.create({ data: {
     denetimId: denetim1.id, baslik: 'Ağ topolojisi ve segmentasyon şeması',
     sorumluId: k['burak.sahin'].id, sonTarih: gun(20), kanitId: k2.id, durum: 'saglandi' } });
@@ -552,22 +690,27 @@ async function main() {
 
   // Proje adayı örneği: EOS varlıktan otomatik üretilmiş, onay bekliyor
   await db.projeAdayi.create({ data: {
-    baslik: 'Adana SCADA sunucu modernizasyonu',
-    gerekce: 'ADANA-SCADA-SRV-01 EOL/EOS geçti (Windows 2012 R2); RSK-2026-001 artık riski 16/25; EPDK-SYM-4.2.1 uyumsuz. Modernizasyon üç kaydı birden kapatır.',
-    kaynak: 'eol_eos', kaynakRef: varlikScada.id, tesisId: t['ADANA-DGKC'].id } });
+    baslik: 'Kızıldere III SCADA sunucu modernizasyonu',
+    gerekce: 'KIZILDERE3-SCADA-01 EOL/EOS geçti (Windows Server 2012 R2); RSK-2026-001 artık riski 16/25; EPDK-SYM-4.2.1 uyumsuz. Modernizasyon üç kaydı birden kapatır.',
+    kaynak: 'eol_eos', kaynakRef: varlikScada.id, tesisId: t['KIZILDERE-3'].id } });
 
   // Görev motoru örnekleri
   await db.gorev.create({ data: {
     baslik: 'Olay Müdahale Planı kanıtı süresi doldu — yenileyin',
     tip: 'kanit_yenileme', kaynakTipi: 'Kanit', kaynakId: k3.id,
-    sorumluId: k['selin.aydin'].id, tesisId: t['BELEN-RES'].id,
+    sorumluId: k['selin.aydin'].id, tesisId: t['GOKCEDAG-RES'].id,
     sonTarih: gun(14), otomatikUretildi: true } });
   await db.gorev.create({ data: {
     baslik: 'CBDDÖ kanıt talebi: denetim izi konfigürasyonu',
     tip: 'dogrulama', kaynakTipi: 'KanitTalebi', kaynakId: denetim1.id,
     sorumluId: k['mehmet.kaya'].id, sonTarih: gun(25), otomatikUretildi: true } });
+  await db.gorev.create({ data: {
+    baslik: 'Çıldır ve Ataköy HES santral profillerini doldurun',
+    tip: 'veri_kalitesi', kaynakTipi: 'Tesis', kaynakId: t['CILDIR-HES'].id,
+    sorumluId: k['ahmet.terzi'].id, tesisId: t['CILDIR-HES'].id,
+    sonTarih: gun(30), otomatikUretildi: true } });
 
-  console.log('Seed tamam. Geliştirme girişi: ayse.demir@enerji.example / ' + GELISTIRME_PAROLASI);
+  console.log('Seed tamam. Geliştirme girişi: ahmet.terzi@zorlu.com / ' + GELISTIRME_PAROLASI);
 }
 
 main().finally(() => db.$disconnect());

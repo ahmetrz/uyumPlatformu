@@ -210,3 +210,131 @@ export function eolDurumu(eos: Date | string | null | undefined): { etiket: stri
   if (gunKaldi < 365) return { etiket: `${gunKaldi} gün kaldı`, durum: 'kismi' };
   return { etiket: 'Destekte', durum: 'uyumlu' };
 }
+
+// ---------------------------------------------------------------------------
+// Merkezî etiket çözümleyici — ham makine değeri hiçbir ekranda görünmez.
+// ---------------------------------------------------------------------------
+
+/** Aktivite kaydı eylemleri: cümle içinde geçer, küçük harfle başlar. */
+export const EYLEM_ETIKET: Record<string, string> = {
+  olusturma: 'oluşturdu', guncelleme: 'güncelledi', silme: 'sildi',
+  yumusak_silme: 'arşivledi', durum_degisimi: 'durumu değiştirdi',
+  dosya_ekleme: 'dosya ekledi', kapsam_degisimi: 'kapsamı değiştirdi',
+  onay: 'onayladı', red: 'reddetti',
+};
+
+/**
+ * Mevcut sözlüklerin kapsamadığı makine değerleri. Buradaki anahtarlar
+ * şemadaki serbest metin (String) alanların yorum satırlarından gelir.
+ */
+export const EK_ETIKET: Record<string, string> = {
+  // bulgu / denetim kaynağı
+  ic_denetim: 'İç denetim', dis_denetim: 'Dış denetim',
+  oz_degerlendirme: 'Öz değerlendirme', regulasyon_denetimi: 'Regülasyon denetimi',
+  // tesis kapanış nedeni
+  satis: 'Satış/devir', kapanis: 'Kapanış', birlesme: 'Birleşme',
+  // kanıt tipleri
+  politika: 'Politika', kayit: 'Kayıt', konfigurasyon: 'Konfigürasyon',
+  ekran_goruntusu: 'Ekran görüntüsü', rapor: 'Rapor', log: 'Log',
+  bilet: 'Bilet/ticket', onay: 'Onay', test_sonucu: 'Test sonucu',
+  egitim_kaydi: 'Eğitim kaydı', sozlesme: 'Sözleşme', ag_semasi: 'Ağ şeması',
+  // varlık ilişki tipleri (kaynak özne)
+  depends_on: 'şuna bağımlı', runs_on: 'şunun üzerinde çalışır',
+  connects_to: 'şuna bağlanır', hosts: 'şunu barındırır', backs_up: 'şunu yedekler',
+  // iş koşusu durumları
+  calisiyor: 'Çalışıyor', basarili: 'Başarılı', basarisiz: 'Başarısız',
+  // yedek politikası: sıklık ve hedef
+  saatlik: 'Saatlik', gunluk: 'Günlük', haftalik: 'Haftalık', aylik: 'Aylık',
+  yerel: 'Yerel', uzak: 'Uzak', immutable: 'Değiştirilemez',
+  // yetki seviyeleri ve hesap tipleri
+  okuma: 'Okuma', yazma: 'Yazma', yonetici: 'Yönetici',
+  kisi: 'Kişi', servis: 'Servis', paylasimli: 'Paylaşımlı', acil_durum: 'Acil durum',
+  // erişim incelemesi sonuçları
+  onaylandi: 'Onaylandı', kaldirilsin: 'Kaldırılsın', degistirilsin: 'Değiştirilsin',
+  // veri kalitesi kuralları
+  sahipsiz_varlik: 'Sahipsiz varlık', kritikligi_bilinmeyen: 'Kritikliği bilinmeyen',
+  bayat_kayit: 'Bayat kayıt', eksik_profil: 'Eksik santral profili',
+  envanteri_bos_tesis: 'Envanteri boş tesis', sahipsiz_kanit: 'Sahipsiz kanıt',
+  // varlık yaşam döngüsü
+  bakim: 'Bakım', emekli: 'Emekli', imha: 'İmha edildi',
+  // grup ortak servisleri
+  merkezi_ad: 'Merkezi Active Directory', soc: 'SOC', edr: 'EDR', siem: 'SIEM',
+  pam: 'PAM', mfa: 'MFA', vpn: 'VPN', antivirus: 'Antivirüs',
+  guvenlik_duvari: 'Güvenlik duvarı', yedekleme: 'Yedekleme',
+  // koruma / maruziyet durumları
+  guncel: 'Güncel', eksik: 'Eksik', yamasiz: 'Yamasız',
+  var: 'Var', yok: 'Yok', sinirli: 'Sınırlı', bilinmiyor: 'Bilinmiyor',
+  // görev, talep ve onay durumları
+  yapiliyor: 'Yapılıyor', iptal: 'İptal', bekliyor: 'Bekliyor',
+  saglandi: 'Sağlandı', reddedildi: 'Reddedildi',
+  // risk kaynakları
+  zafiyet: 'Zafiyet', eol: 'EOL/EOS', denetim: 'Denetim',
+  // onay talebi tipleri
+  bulgu_kapanis: 'Bulgu kapanışı', risk_kabul: 'Risk kabulü', istisna: 'İstisna',
+  proje_aday: 'Proje adayı', proje_kapanis: 'Proje kapanışı',
+  applicability_override: 'Uygulanabilirlik istisnası',
+  // varlık (kayıt) tipleri — aktivite izi ve görev kaynakları
+  Madde: 'Madde', MaddeDurumu: 'Madde durumu', Bulgu: 'Bulgu', Aksiyon: 'Aksiyon',
+  Kanit: 'Kanıt', KanitTalebi: 'Kanıt talebi', Proje: 'Proje', ProjeAdayi: 'Proje adayı',
+  Yetki: 'Yetki', Tesis: 'Tesis', TesisProfili: 'Santral profili',
+  UyumSureci: 'Uyum süreci', Regulasyon: 'Regülasyon', Risk: 'Risk',
+  Denetim: 'Denetim', Varlik: 'Varlık', VarlikIliskisi: 'Varlık ilişkisi',
+  KimlikHesabi: 'Kimlik hesabı', ErisimAtamasi: 'Erişim ataması',
+  IceAktarim: 'İçe aktarım', GeriYuklemeTesti: 'Geri yükleme testi',
+  YedekPolitikasi: 'Yedek politikası', OnayTalebi: 'Onay talebi',
+  Istisna: 'İstisna', UygulanabilirlikKarari: 'Uygulanabilirlik kararı',
+  Degisiklik: 'Değişiklik', Olay: 'Olay', Gorev: 'Görev', Kullanici: 'Kullanıcı',
+  Sistem: 'Sistem', Unite: 'Ünite', AgBolgesi: 'Ağ bölgesi',
+  VeriKalitesiBulgusu: 'Veri kalitesi bulgusu',
+};
+
+/**
+ * Tüm etiket sözlüklerinin birleşik arama tablosu. Sıra önemlidir: sonraki
+ * yayılım öncekini ezer, en genel anlam en sonda yazılır.
+ */
+const ETIKET_TABLOSU: Record<string, string> = {
+  ...EYLEM_ETIKET,
+  ...DENKLIK_ETIKET,
+  ...GUVEN_ETIKET,
+  ...AKSIYON_ETIKET,
+  ...SUREC_DURUM_ETIKET,
+  ...PROJE_DURUM_ETIKET,
+  ...TESIS_DURUM_ETIKET,
+  ...ROL_ETIKET,
+  ...AKTARIM_ETIKET,
+  ...RISK_DURUM_ETIKET,
+  ...RISK_ISLEM_ETIKET,
+  ...DENETIM_ASAMA_ETIKET,
+  ...DENETIM_TIP_ETIKET,
+  ...GOREV_TIP_ETIKET,
+  ...VARLIK_SINIF_ETIKET,
+  ...BULGU_DURUM_ETIKET,
+  ...ONEM_ETIKET,
+  ...DURUM_ETIKET,
+  ...EK_ETIKET,
+};
+
+/**
+ * Ham makine değerini Türkçe etikete çevirir.
+ * - Sözlükte varsa Türkçe karşılığı döner.
+ * - Yoksa `varsayilan` (verilmişse) döner.
+ * - O da yoksa alt tire/tire boşluğa çevrilir ve ilk harf Türkçe kurallarıyla
+ *   büyütülür — ekranda asla `snake_case` görünmez.
+ */
+export function etiketle(deger: string | null | undefined, varsayilan?: string): string {
+  const ham = typeof deger === 'string' ? deger.trim() : '';
+  if (!ham) return varsayilan ?? '—';
+  const bulunan = ETIKET_TABLOSU[ham];
+  if (bulunan) return bulunan;
+  if (varsayilan !== undefined) return varsayilan;
+  const okunur = ham.replace(/[_-]+/g, ' ').trim();
+  return okunur.charAt(0).toLocaleUpperCase('tr-TR') + okunur.slice(1);
+}
+
+/** Aktivite cümlesi: "<kullanıcı> <varlık> <eylem>" — hepsi Türkçe. */
+export function eylemCumlesi(eylem: string, varlikTipi?: string | null, alan?: string | null): string {
+  const fiil = EYLEM_ETIKET[eylem] ?? etiketle(eylem).toLocaleLowerCase('tr-TR');
+  const ozne = alan ? etiketle(alan) : varlikTipi ? etiketle(varlikTipi) : '';
+  if (eylem === 'durum_degisimi' || eylem === 'dosya_ekleme' || eylem === 'kapsam_degisimi') return fiil;
+  return ozne ? `${ozne.toLocaleLowerCase('tr-TR')} ${fiil}` : fiil;
+}

@@ -26,7 +26,7 @@ export const RAY_FLAGSHIP: RayOgesi[] = [
   { ad: 'Yönetim', yol: '/yonetim' },
 ];
 
-/* Operasyonel katman — 11 tezgâh ekranı */
+/* Operasyonel katman — tezgâh ekranları */
 export const RAY_OPERASYONEL: RayOgesi[] = [
   { ad: 'Uyum', yol: '/uyum' },
   { ad: 'Risk', yol: '/riskler' },
@@ -34,6 +34,8 @@ export const RAY_OPERASYONEL: RayOgesi[] = [
   { ad: 'Bulgu & CAPA', yol: '/bulgular' },
   { ad: 'Projeler', yol: '/projeler' },
   { ad: 'Varlıklar', yol: '/envanter' },
+  { ad: 'Keşif', yol: '/kesif' },
+  { ad: 'İçe aktarım', yol: '/varlik-aktarim' },
   { ad: 'Topoloji', yol: '/topoloji' },
   { ad: 'Ömür', yol: '/omur' },
   { ad: 'Yedek & DR', yol: '/yedekleme' },

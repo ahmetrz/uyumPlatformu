@@ -20,6 +20,8 @@ const { yedekDogrulamayiIsle, YEDEK_KURALLARI, KOSU_KAYNAGI } =
 
 const GUN = 86_400_000;
 
+let yedekSayaci = 0;
+
 /** Testin kullanacağı kritik varlıklar — seed'den gelir, yaratılmaz. */
 let varliklar: { id: string; etiket: string; tesisId: string | null }[] = [];
 const v = (i: number) => varliklar[i];
@@ -28,9 +30,13 @@ async function yedekEkle(varlikId: string, o: {
   gun: number; basarili?: boolean; hash?: string | null;
   surum?: string | null; iyi?: boolean; dogrulandi?: boolean; hata?: string | null;
 }) {
+  /* Her satır kaynak sistemdeki AYRI bir yedek koşusudur; tabloda
+     (kaynakSistem, kaynakKayitId) tekil olduğu için her birine kendi
+     kaynak kayıt kimliği verilir. */
   return db.konfigurasyonYedegi.create({ data: {
     varlikId,
     kaynakSistem: 'test-backup',
+    kaynakKayitId: `test-yedek-${++yedekSayaci}`,
     yedekZamani: new Date(Date.now() - o.gun * GUN),
     basarili: o.basarili ?? true,
     icerikHash: o.hash === undefined ? 'HASH-A' : o.hash,
@@ -277,6 +283,35 @@ describe('Konfigürasyon yedeği — üç değerli kontrol', () => {
     expect(kokenSatiri?.kaynakKayitId).toBe('JOB-42');
     expect(kokenSatiri?.guven).toBeNull();            // ölçülmedi ≠ sıfır güven
     expect(kokenSatiri?.dogrulamaDurumu).toBe('dogrulanmadi'); // motor doğrulayamaz
+  });
+
+  /* Idempotency artık VERİTABANINDA duruyor. Eskiden aynılık VeriKokeni
+     tablosunda arama yaparak kuruluyordu; eşzamanlı iki içe aktarım ikisi
+     de "köken yok" görüp aynı yedeği iki kez yazabilirdi. Bu test o kapıyı
+     kapalı tutar: kısıt kalkarsa aşağıdaki create BAŞARILI OLUR ve test
+     kırmızıya döner. */
+  it('aynı (kaynakSistem, kaynakKayitId) ikinci satır olarak YAZILAMAZ', async () => {
+    await expect(db.konfigurasyonYedegi.create({ data: {
+      varlikId: v(1).id,
+      kaynakSistem: 'acme-backup',
+      kaynakKayitId: 'JOB-42',          // yukarıdaki testte zaten yazıldı
+      yedekZamani: new Date(),
+      basarili: true,
+    } })).rejects.toThrow(/[Uu]nique/);   // FK/başka bir hata değil: TEKİLLİK
+
+    expect(await db.konfigurasyonYedegi.count({
+      where: { kaynakSistem: 'acme-backup', kaynakKayitId: 'JOB-42' } })).toBe(1);
+  });
+
+  it('farklı kaynak sistemler aynı kayıt kimliğini kullanabilir', async () => {
+    /* Tekillik (kaynakSistem, kaynakKayitId) ÇİFTİ üzerinedir: iki ayrı
+       yedekleme ürününün ikisinin de "JOB-42" demesi çakışma değildir. */
+    const yazim = await yedekMetadataYaz({
+      koken: { kaynakSistem: 'diger-backup', kaynakKayitId: 'JOB-42',
+        toplanma: new Date(), guven: null },
+      varlikId: v(1).id, yedekZamani: new Date(), basarili: true });
+    expect(yazim.yeni).toBe(true);
+    expect(await db.konfigurasyonYedegi.count({ where: { kaynakKayitId: 'JOB-42' } })).toBe(2);
   });
 
   it('kökensiz yazım reddedilir — kaynağı bilinmeyen veri otomatik sayılmaz', async () => {

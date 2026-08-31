@@ -63,6 +63,7 @@ export const POST = apiUcu({ modul: 'envanter', islem: 'yazma' }, async ({ govde
           const veri = {
             varlikId: c.varlik.id,
             kaynakSistem: g.koken.kaynakSistem,
+            kaynakKayitId: g.koken.kaynakKayitId,
             yedekZamani: g.yedekZamani,
             surum: g.surum,
             icerikHash: g.icerikHash,

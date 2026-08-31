@@ -142,17 +142,26 @@ const TIP_COZUCU: Record<string, TipCozucu> = {
     })).map((r) => [r.id, r.tesisId])),
   },
   KesifKaydi: {
+    /* Keşif kaydının santrali iki yerden bilinebilir: eşleştiği varlıktan
+       ya da kaynağın beyanından (`tesisId`). Eşleşme önceliklidir —
+       kayıt bir varlığa bağlandıysa artık o varlığın santralindedir. */
     evren: async (t) => ({
       kapsamda: await db.kesifKaydi.count({
-        where: t ? { eslesenVarlik: { tesisId: { in: t } } } : {} }),
-      // henüz varlığa eşlenmemiş keşif kaydının santrali BİLİNMİYOR.
+        where: t ? { OR: [
+          { eslesenVarlik: { tesisId: { in: t } } },
+          { eslesenVarlikId: null, tesisId: { in: t } },
+        ] } : {} }),
+      // ne eşleşmesi ne beyanı santral veren kayıt: santrali BİLİNMİYOR.
       tesisiBilinmeyen: t ? await db.kesifKaydi.count({
-        where: { OR: [{ eslesenVarlikId: null }, { eslesenVarlik: { tesisId: null } }] } }) : 0,
+        where: { OR: [
+          { eslesenVarlikId: null, tesisId: null },
+          { eslesenVarlik: { tesisId: null } },
+        ] } }) : 0,
     }),
     tesisleri: async (idler) => new Map((await db.kesifKaydi.findMany({
       where: { id: { in: idler } },
-      select: { id: true, eslesenVarlik: { select: { tesisId: true } } },
-    })).map((r) => [r.id, r.eslesenVarlik?.tesisId ?? null])),
+      select: { id: true, tesisId: true, eslesenVarlik: { select: { tesisId: true } } },
+    })).map((r) => [r.id, r.eslesenVarlik?.tesisId ?? r.tesisId])),
   },
 };
 

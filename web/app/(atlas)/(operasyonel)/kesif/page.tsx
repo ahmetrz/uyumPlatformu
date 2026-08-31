@@ -32,6 +32,31 @@ function gozlemAlanlari(g: NonNullable<ReturnType<typeof normalCoz>>['gozlem']) 
     .filter((a): a is { etiket: string; deger: string } => !!a.deger);
 }
 
+/**
+ * Keşif kuyruğunun kapsam koşulu.
+ *
+ * Bir keşif kaydı üç yoldan bir santrale bağlanabilir: eşleştiği varlığın
+ * santrali, kaynağın beyan ettiği santral (`tesisId`), ya da hiçbiri.
+ * Kapsamı daraltılmış kullanıcı ilk ikisinden yalnız kendi santrallerini
+ * görür; üçüncüsü — santrali BİLİNMEYEN kayıt — herkese görünür.
+ *
+ * Sonuncusu bilinçli bir karardır: bilinmeyeni gizlemek onu kimsenin
+ * incelemeyeceği anlamına gelir ve keşif kuyruğunun varlık sebebi tam da
+ * o kayıtlardır. "Bilinmiyor" burada "yasak" değil "henüz atanmadı"dır.
+ */
+function kapsamKosulu(gorulebilir: string[] | null) {
+  if (gorulebilir === null) return {};   // kapsam sınırsız
+  return {
+    OR: [
+      { eslesenVarlik: { tesisId: { in: gorulebilir } } },
+      // santralsiz bir varlığa eşleşmiş kayıt da 'bilinmiyor' kümesindedir
+      { eslesenVarlik: { tesisId: null } },
+      { eslesenVarlikId: null, tesisId: { in: gorulebilir } },
+      { eslesenVarlikId: null, tesisId: null },
+    ],
+  };
+}
+
 export default async function Sayfa() {
   const k = await girisZorunlu();
   const gorulebilirTesisler = izinliTesisIdleri(k, 'envanter');
@@ -40,6 +65,12 @@ export default async function Sayfa() {
 
   const [kayitlar, turler, tesisler] = await Promise.all([
     db.kesifKaydi.findMany({
+      /* Kapsam daraltması SORGUDA yapılır: kuyruk tavanı, kullanıcının
+         göremeyeceği kayıtlarla dolup görebileceklerini dışarıda
+         bırakmasın. Santrali BİLİNMEYEN kayıt (tesisId ve eşleşen varlık
+         yoksa) herkese görünür — henüz bir santrale ait değildir ve
+         gizlenmesi onu kimsenin incelemeyeceği anlamına gelirdi. */
+      where: kapsamKosulu(gorulebilirTesisler),
       orderBy: [{ sonGorulme: 'desc' }],
       take: KUYRUK_TAVANI,
       include: {
@@ -70,13 +101,11 @@ export default async function Sayfa() {
     const g = normal?.gozlem ?? null;
     const eslesme = normal?.eslesme ?? null;
 
-    /* Kapsam: eşleşen varlığı olan kayıt o varlığın tesisine tabidir.
-       Eşleşmemiş kayıt hiçbir tesise ait değildir — kapsamı daraltılmış
-       kullanıcıdan gizlenmez, çünkü henüz bir tesise bağlı değildir. */
-    const tesisId = kayit.eslesenVarlik?.tesisId ?? null;
-    if (gorulebilirTesisler !== null && tesisId && !gorulebilirTesisler.includes(tesisId)) {
-      continue;
-    }
+    /* Kapsam: eşleşmiş kayıt eşleştiği varlığın santraline tabidir;
+       eşleşmemiş kayıt, kaynağın BEYAN ETTİĞİ santrale (kayit.tesisId).
+       İkisi de yoksa santral bilinmiyordur. Filtreleme sorguda yapıldı;
+       buradaki değer yalnız satırın karar yetkisini belirler. */
+    const tesisId = kayit.eslesenVarlik?.tesisId ?? kayit.tesisId;
 
     const konu = g?.hostname || g?.etiket || g?.seriNo || g?.macAdresi
       || g?.ipAdresi || kayit.kaynakKayitId;

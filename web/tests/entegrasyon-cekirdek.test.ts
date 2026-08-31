@@ -347,3 +347,109 @@ describe('Connector senkronizasyon çekirdeği (izole DB kopyası)', () => {
     adaptorSil('test_sayfa');
   });
 });
+
+/* ─────────────────────────────────────────────────────────────────────
+   Keşif kaydının SANTRALİ.
+
+   Regresyon: eşleşmemiş keşif kaydının santrali bilinmiyordu, dolayısıyla
+   kapsamı daraltılmış bir kullanıcı başka santralin keşif kuyruğunu
+   görebiliyordu. Kaydın beyan edilen santrali artık satırda durur.
+   ──────────────────────────────────────────────────────────────────── */
+describe('Keşif kaydının santrali', () => {
+  const KOD_A = 'ALASEHIR-JES';
+  const KOD_B = 'ATAKOY-HES';
+  let tesisA = '', tesisB = '';
+
+  beforeAll(async () => {
+    tesisA = (await db.tesis.findUniqueOrThrow({ where: { kod: KOD_A } })).id;
+    tesisB = (await db.tesis.findUniqueOrThrow({ where: { kod: KOD_B } })).id;
+  });
+
+  it('connector bir santrale bağlıysa gelen kayıt o santrale yazılır', async () => {
+    const kaynak = 'TEST-TESIS-VARSAYILAN';
+    adaptorYap('test_tesis_v', async () => ({
+      gozlemler: [gozlem('t1', kaynak)], yeniImlec: null, devamVar: false }));
+    const c = await connectorYap('test_tesis_v', {
+      yapilandirmaJson: JSON.stringify({ tesisKodu: KOD_A }) });
+
+    expect((await senkronizasyonKos(c.id)).durum).toBe('basarili');
+    const k = await db.kesifKaydi.findUniqueOrThrow({
+      where: { kaynak_kaynakKayitId: { kaynak, kaynakKayitId: 't1' } } });
+    expect(k.tesisId).toBe(tesisA);
+    adaptorSil('test_tesis_v');
+  });
+
+  it('gözlemin kendi tesis kodu connector varsayılanını EZER', async () => {
+    const kaynak = 'TEST-TESIS-GOZLEM';
+    adaptorYap('test_tesis_g', async () => ({
+      gozlemler: [
+        gozlem('g1', kaynak),                                 // kod yok → varsayılan
+        gozlem('g2', kaynak, { tesisKodu: KOD_B }),           // kendi kodu
+      ],
+      yeniImlec: null, devamVar: false }));
+    const c = await connectorYap('test_tesis_g', {
+      yapilandirmaJson: JSON.stringify({ tesisKodu: KOD_A }) });
+
+    expect((await senkronizasyonKos(c.id)).durum).toBe('basarili');
+    const g1 = await db.kesifKaydi.findUniqueOrThrow({
+      where: { kaynak_kaynakKayitId: { kaynak, kaynakKayitId: 'g1' } } });
+    const g2 = await db.kesifKaydi.findUniqueOrThrow({
+      where: { kaynak_kaynakKayitId: { kaynak, kaynakKayitId: 'g2' } } });
+    expect(g1.tesisId).toBe(tesisA);
+    expect(g2.tesisId).toBe(tesisB);
+    adaptorSil('test_tesis_g');
+  });
+
+  it('yapılandırmadaki tesis kodu tanımlı değilse koşu SESSİZ GEÇMEZ, başarısız kapanır', async () => {
+    const kaynak = 'TEST-TESIS-YOK';
+    adaptorYap('test_tesis_yok', async () => ({
+      gozlemler: [gozlem('y1', kaynak)], yeniImlec: null, devamVar: false }));
+    const c = await connectorYap('test_tesis_yok', {
+      yapilandirmaJson: JSON.stringify({ tesisKodu: 'BOYLE-BIR-SANTRAL-YOK' }) });
+
+    const sonuc = await senkronizasyonKos(c.id);
+    expect(sonuc.durum).toBe('basarisiz');
+    expect(sonuc.hata).toContain('BOYLE-BIR-SANTRAL-YOK');
+    // yanlış santralin adına tek satır bile yazılmadı
+    expect(await db.kesifKaydi.count({ where: { kaynak } })).toBe(0);
+    adaptorSil('test_tesis_yok');
+  });
+
+  it('gözlemdeki tanımsız kod kaydı DÜŞÜRMEZ; santral bilinmiyor kalır', async () => {
+    const kaynak = 'TEST-TESIS-GOZLEM-YOK';
+    adaptorYap('test_tesis_gy', async () => ({
+      gozlemler: [gozlem('gy1', kaynak, { tesisKodu: 'TANIMSIZ-KOD' })],
+      yeniImlec: null, devamVar: false }));
+    const c = await connectorYap('test_tesis_gy');   // connector varsayılanı yok
+
+    expect((await senkronizasyonKos(c.id)).durum).toBe('basarili');
+    const k = await db.kesifKaydi.findUniqueOrThrow({
+      where: { kaynak_kaynakKayitId: { kaynak, kaynakKayitId: 'gy1' } } });
+    /* null = BİLİNMİYOR. Platformda tanımlı olmayan bir santralde cihaz
+       bulmak görmezden gelinecek değil, GÖRÜLECEK bir durumdur. */
+    expect(k.tesisId).toBeNull();
+    adaptorSil('test_tesis_gy');
+  });
+
+  it('kaynak santral bildirmeyi bırakırsa mevcut santral SİLİNMEZ', async () => {
+    const kaynak = 'TEST-TESIS-KORUMA';
+    let kod: string | undefined = KOD_A;
+    adaptorYap('test_tesis_k', async () => ({
+      gozlemler: [gozlem('k1', kaynak, kod ? { tesisKodu: kod } : {})],
+      yeniImlec: null, devamVar: false }));
+
+    const c1 = await connectorYap('test_tesis_k');
+    expect((await senkronizasyonKos(c1.id)).durum).toBe('basarili');
+    expect((await db.kesifKaydi.findUniqueOrThrow({
+      where: { kaynak_kaynakKayitId: { kaynak, kaynakKayitId: 'k1' } } })).tesisId).toBe(tesisA);
+
+    kod = undefined;                                  // kaynak artık santral bildirmiyor
+    const c2 = await connectorYap('test_tesis_k');
+    expect((await senkronizasyonKos(c2.id)).durum).toBe('basarili');
+    /* Kapsamı silmek kaydı HERKESE görünür yapardı; bilinen son santral
+       korunur. */
+    expect((await db.kesifKaydi.findUniqueOrThrow({
+      where: { kaynak_kaynakKayitId: { kaynak, kaynakKayitId: 'k1' } } })).tesisId).toBe(tesisA);
+    adaptorSil('test_tesis_k');
+  });
+});

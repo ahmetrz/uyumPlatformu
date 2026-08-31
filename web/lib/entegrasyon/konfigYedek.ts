@@ -587,11 +587,11 @@ export type YedekMetadataGozlemi = {
  * Yedek almaz, dosya taşımaz — yalnız "şu varlığın şu zamanda şu sonuçla
  * yedeği alınmış" bilgisini kaydeder ve `kokenYaz()` ile kökenini bırakır.
  *
- * Idempotency: `KonfigurasyonYedegi` tablosunda `kaynakKayitId` kolonu YOK
- * (şema merkezî, kendim ekleyemem). Bu yüzden aynılık `VeriKokeni`
- * üzerinden kuruluyor: (varlikTipi, kaynakSistem, kaynakKayitId) → mevcut
- * satırın id'si. Şemaya `kaynakKayitId` + unique eklenirse bu dolaylı
- * arama düşer (rapordaki şema isteği).
+ * Idempotency: (kaynakSistem, kaynakKayitId) çifti tabloda TEKİL'dir ve
+ * kısıt veritabanında durur. Aynılık doğrudan bu çiftten okunur; daha önce
+ * kullanılan `VeriKokeni` üzerinden dolaylı arama düştü — o yol iki
+ * eşzamanlı içe aktarımın ikisinin de "köken yok" görüp aynı yedeği iki
+ * kez yazmasına açıktı.
  *
  * `dogrulandi` ve `sonBilinenIyi` alanlarına BU FONKSİYON DOKUNMAZ: ikisi
  * de insan kararıdır, kaynak sistem yeniden senkronize edildi diye
@@ -617,6 +617,7 @@ export async function yedekMetadataYaz(
     const veri = {
       varlikId: g.varlikId,
       kaynakSistem: g.koken.kaynakSistem,
+      kaynakKayitId: g.koken.kaynakKayitId,
       yedekZamani: g.yedekZamani,
       basarili: g.basarili,
       surum: g.surum ?? null,
@@ -643,18 +644,16 @@ export async function yedekMetadataYaz(
   });
 }
 
-/** Köken tablosu üzerinden idempotency araması (yukarıdaki nota bakın). */
+/** Idempotency araması: kaydın kaynak sistemdeki kimliği (yukarıdaki nota
+    bakın). Kısıt veritabanında olduğu için burası tek sorgu. */
 async function eslesenKayitId(
   istemci: Istemci, kaynakSistem: string, kaynakKayitId: string,
 ): Promise<string | null> {
-  const koken = await istemci.veriKokeni.findFirst({
-    where: { varlikTipi: YEDEK_VARLIK_TIPI, kaynakSistem, kaynakKayitId },
-    select: { varlikId: true },
-  });
-  if (!koken) return null;
   const kayit = await istemci.konfigurasyonYedegi.findUnique({
-    where: { id: koken.varlikId }, select: { id: true } });
-  return kayit?.id ?? null;   // köken var ama satır silinmişse yeniden yazılır
+    where: { kaynakSistem_kaynakKayitId: { kaynakSistem, kaynakKayitId } },
+    select: { id: true },
+  });
+  return kayit?.id ?? null;
 }
 
 /** Konfigürasyon yedeği kaynağı gerçekten bağlı mı (tek kayıt bile yeter). */

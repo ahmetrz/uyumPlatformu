@@ -115,6 +115,7 @@ export async function oturumYaz(g: OturumGozlemi): Promise<{ id: string; yeni: b
       baslangic: g.baslangic,
       bitis: g.bitis ?? null,
       kaynakSistem: g.koken.kaynakSistem,
+      kaynakKayitId: g.koken.kaynakKayitId,
       // Üç değerli alanlar OLDUĞU GİBİ geçer; undefined → null (bilinmiyor).
       onayli: ucDeger(g.onayli),
       mfaVar: ucDeger(g.mfaVar),
@@ -158,16 +159,17 @@ async function tedarikciCoz(istemci: Istemci, g: OturumGozlemi): Promise<string>
   throw new Error('oturumYaz: tedarikciId ya da tedarikciAdi zorunlu');
 }
 
+/** Idempotency araması. (kaynakSistem, kaynakKayitId) tabloda TEKİL'dir;
+    kısıt veritabanında durduğu için tek sorgu yeter. Önceki dolaylı
+    `VeriKokeni` araması eşzamanlı iki içe aktarımda aynı oturumu iki kez
+    yazmaya açıktı. */
 async function eslesenOturumId(
   istemci: Istemci, kaynakSistem: string, kaynakKayitId: string,
 ): Promise<string | null> {
-  const koken = await istemci.veriKokeni.findFirst({
-    where: { varlikTipi: OTURUM_VARLIK_TIPI, kaynakSistem, kaynakKayitId },
-    select: { varlikId: true },
-  });
-  if (!koken) return null;
   const kayit = await istemci.tedarikciErisimOturumu.findUnique({
-    where: { id: koken.varlikId }, select: { id: true } });
+    where: { kaynakSistem_kaynakKayitId: { kaynakSistem, kaynakKayitId } },
+    select: { id: true },
+  });
   return kayit?.id ?? null;
 }
 

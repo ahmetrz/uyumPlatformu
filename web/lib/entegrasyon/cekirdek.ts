@@ -223,6 +223,33 @@ async function denemeliCek(
   throw new Error('Çekim döngüsü beklenmedik biçimde sonlandı');
 }
 
+/* ═══ Santral çözümü ══════════════════════════════════════════════════ */
+
+/**
+ * Bir tesis KODUNU tesis kimliğine çevirir. Sonuç koşu boyunca
+ * önbelleklenir; çözülemeyen kod da önbelleğe `null` olarak girer ki
+ * her kayıt için tekrar sorgulanmasın.
+ *
+ * Çözülemeyen kod SESSİZ GEÇMEZ ama kaydı da düşürmez: keşif kaydının
+ * santrali `null` (BİLİNMİYOR) kalır ve ham gözlemdeki kod inceleme
+ * ekranında "Tesis kodu" alanı olarak görünür. Platformda tanımlı olmayan
+ * bir santralde cihaz bulmak, görmezden gelinecek değil GÖRÜLECEK bir
+ * durumdur.
+ */
+async function tesisKodunuCoz(
+  kod: string | null | undefined,
+  onbellek: Map<string, string | null>,
+): Promise<string | null> {
+  const k = kod?.trim();
+  if (!k) return null;
+  const onbelleklenmis = onbellek.get(k);
+  if (onbelleklenmis !== undefined) return onbelleklenmis;
+  const tesis = await db.tesis.findUnique({ where: { kod: k }, select: { id: true } });
+  const id = tesis?.id ?? null;
+  onbellek.set(k, id);
+  return id;
+}
+
 /* ═══ Hedef kayıt (idempotent upsert) ═════════════════════════════════ */
 
 /**
@@ -239,6 +266,7 @@ async function gozlemYaz(
   connector: { id: string; kaynakSistem: string },
   kosuId: string,
   sir: string | null,
+  kapsam: { varsayilanTesisId: string | null; onbellek: Map<string, string | null> },
 ): Promise<'yeni' | 'yinelenen'> {
   const kaynak = g.koken?.kaynakSistem?.trim();
   const kaynakKayitId = g.koken?.kaynakKayitId?.trim();
@@ -254,6 +282,13 @@ async function gozlemYaz(
     where: { kaynak_kaynakKayitId: { kaynak, kaynakKayitId } },
     select: { id: true, durum: true },
   });
+  /* Kaydın BEYAN EDİLEN santrali: önce gözlemin kendi tesis kodu, yoksa
+     connector'ın bağlı olduğu santral. Eşleşmemiş kaydın kapsamı buradan
+     bilinir — eşleşmeyi beklemek, kapsamı daraltılmış kullanıcıya başka
+     santralin keşif kuyruğunu göstermek demekti. */
+  const beyanEdilenKod = 'tesisKodu' in g ? g.tesisKodu : null;
+  const tesisId = (await tesisKodunuCoz(beyanEdilenKod, kapsam.onbellek))
+    ?? kapsam.varsayilanTesisId;
   const hamJson = guvenliJson(g.ham, sir);
   const normalJson = guvenliJson(gozlemGovdesi(g), sir);
   const simdi = new Date();
@@ -263,13 +298,17 @@ async function gozlemYaz(
     const kayit = await tx.kesifKaydi.upsert({
       where: { kaynak_kaynakKayitId: { kaynak, kaynakKayitId } },
       create: {
-        kaynak, kaynakKayitId, connectorId: connector.id, kosuId,
+        kaynak, kaynakKayitId, connectorId: connector.id, kosuId, tesisId,
         hamJson, normalJson, durum: 'normalize', guvenSkoru: guven,
         ilkGorulme: simdi, sonGorulme: simdi,
       },
       update: {
         connectorId: connector.id, kosuId, hamJson, normalJson,
         guvenSkoru: guven, sonGorulme: simdi,
+        /* Santral yalnız ÇÖZÜLEBİLDİĞİNDE yazılır, asla silinmez: kaynak
+           bir kez santral bildirip sonra bildirmez olursa kaydı kapsamsız
+           bırakmak onu herkese görünür yapardı. */
+        ...(tesisId ? { tesisId } : {}),
         // karar verilmiş kayıt başa döndürülmez
         ...(kararVerilmis ? {} : { durum: 'normalize' }),
       },
@@ -430,6 +469,24 @@ export async function senkronizasyonKos(
     return kapat('basarisiz', { hata: `Yapılandırma okunamadı: ${mesaj(e)}`, ayrinti: 'Yapılandırma geçersiz' });
   }
 
+  /* Connector bir santrale bağlıysa (OT keşfi gibi) gelen her kayıt o
+     santralindir. Kod tanımlı bir santrale çözülemiyorsa koşu BAŞLAMAZ:
+     yanlış santralin adına veri toplamak, kapsam denetimini sessizce
+     delmek olurdu. */
+  const tesisOnbellegi = new Map<string, string | null>();
+  let varsayilanTesisId: string | null = null;
+  const yapilandirmaTesisKodu = typeof yapilandirma.tesisKodu === 'string'
+    ? yapilandirma.tesisKodu : null;
+  if (yapilandirmaTesisKodu) {
+    varsayilanTesisId = await tesisKodunuCoz(yapilandirmaTesisKodu, tesisOnbellegi);
+    if (!varsayilanTesisId) {
+      return kapat('basarisiz', {
+        hata: `Yapılandırmadaki tesis kodu tanımlı değil: ${yapilandirmaTesisKodu}`,
+        ayrinti: 'Santral çözülemedi',
+      });
+    }
+  }
+
   // 4) Bağlanamayan adaptör: koşu BAŞLATILMAZ, satır 'kimlik_bekleniyor' kapanır.
   if (adaptor.baglanabilir === false) {
     const saglik = await adaptor.health({
@@ -508,7 +565,9 @@ export async function senkronizasyonKos(
 
       for (const g of gecerli) {
         try {
-          const sonuclanan = await gozlemYaz(g, connector, kosu.id, sir);
+          const sonuclanan = await gozlemYaz(g, connector, kosu.id, sir, {
+            varsayilanTesisId, onbellek: tesisOnbellegi,
+          });
           sayac.kabulEdilen++;
           if (sonuclanan === 'yinelenen') sayac.yinelenen++;
         } catch (e) {

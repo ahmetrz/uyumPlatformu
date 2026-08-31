@@ -24,7 +24,10 @@ export const POST = apiUcu({ modul: 'envanter', islem: 'yazma' }, async ({ govde
 
       const tesisler = await tesisHaritasi(records.map((r) => r.plantCode ?? ''));
       const gorulen = new Set<string>();
-      const cozumler: { indeks: number; gozlem: ReturnType<typeof varlikGozlemine>; anahtar: string }[] = [];
+      const cozumler: {
+        indeks: number; gozlem: ReturnType<typeof varlikGozlemine>;
+        anahtar: string; tesisId: string | null;
+      }[] = [];
 
       for (const [i, tel] of records.entries()) {
         const gozlem = varlikGozlemine(tel, hamlar[i] ?? tel);
@@ -49,7 +52,10 @@ export const POST = apiUcu({ modul: 'envanter', islem: 'yazma' }, async ({ govde
         // plantCode yoksa KAPSAMSIZ yazma istenir; santrale kisitli anahtar gecemez.
         yazmaIzniZorunlu(kullanici, 'envanter', tesisId);
 
-        cozumler.push({ indeks: i, gozlem, anahtar: anahtarlar[0].alan });
+        /* Cozulen santral kayda YAZILIR, yalnizca izin kontrolunde
+           kullanilip atilmaz: eslesmemis keşif kaydinin kapsami baska
+           turlu bilinemez. */
+        cozumler.push({ indeks: i, gozlem, anahtar: anahtarlar[0].alan, tesisId });
       }
       defter.bitir();
 
@@ -78,7 +84,11 @@ export const POST = apiUcu({ modul: 'envanter', islem: 'yazma' }, async ({ govde
           };
           let kayitId: string;
           if (mevcut) {
-            await tx.kesifKaydi.update({ where: { id: mevcut.id }, data: ortak });
+            await tx.kesifKaydi.update({
+              where: { id: mevcut.id },
+              // santral yalniz cozulebildiginde yazilir, asla silinmez
+              data: c.tesisId ? { ...ortak, tesisId: c.tesisId } : ortak,
+            });
             kayitId = mevcut.id;
             tazelenen += 1;
           } else {
@@ -86,6 +96,7 @@ export const POST = apiUcu({ modul: 'envanter', islem: 'yazma' }, async ({ govde
               data: {
                 kaynak: g.koken.kaynakSistem,
                 kaynakKayitId: g.koken.kaynakKayitId,
+                tesisId: c.tesisId,
                 // CMDB'ye DOGRUDAN yazilmaz: inceleme bekler.
                 durum: 'kesfedildi',
                 ilkGorulme: g.koken.toplanma,

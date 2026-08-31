@@ -10,6 +10,7 @@ import { denetimVeProje } from './seed-denetim-proje';
 import { riskVeBulgu } from './seed-risk-bulgu';
 import { kanitVerisi } from './seed-kanit';
 import { entegrasyonVerisi } from './seed-entegrasyon';
+import { operasyonKayitlari } from './seed-operasyon-kayitlari';
 
 const parolaUret = (parola: string) => {
   const tuz = randomBytes(16).toString('hex');
@@ -732,6 +733,9 @@ async function main() {
   await kanitVerisi(db);
   // Connector TANIMLARI — hiçbiri etkin değil, kimlik bilgisi bekliyor.
   await entegrasyonVerisi(db);
+  /* Operasyonel kayıtlar EN SONDA: değişiklik, olay ve istisna kayıtları
+     tesis, varlık, madde ve kullanıcı verisine dayanıyor. */
+  await operasyonKayitlari(db);
 
   console.log('Seed tamam. Geliştirme girişi: ahmet.terzi@zorlu.com / ' + GELISTIRME_PAROLASI);
 }

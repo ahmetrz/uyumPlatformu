@@ -249,6 +249,11 @@ export const EK_ETIKET: Record<string, string> = {
   // yetki seviyeleri ve hesap tipleri
   okuma: 'Okuma', yazma: 'Yazma', yonetici: 'Yönetici',
   kisi: 'Kişi', servis: 'Servis', paylasimli: 'Paylaşımlı', acil_durum: 'Acil durum',
+  // tedarikçi tipi (Tedarikci.tip)
+  donanim: 'Donanım', yazilim: 'Yazılım', ot_saglayici: 'OT sağlayıcı',
+  hizmet: 'Hizmet', mssp: 'MSSP',
+  // uzaktan erişim yöntemi (Tedarikci.uzaktanErisimYontemi)
+  jump_host: 'Aracılı (jump host)', saticiya_ozel: 'Satıcıya özel',
   // erişim incelemesi sonuçları
   onaylandi: 'Onaylandı', kaldirilsin: 'Kaldırılsın', degistirilsin: 'Değiştirilsin',
   // veri kalitesi kuralları

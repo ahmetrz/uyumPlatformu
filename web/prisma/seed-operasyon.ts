@@ -193,6 +193,20 @@ export async function operasyonVerisi(db: PrismaClient) {
 
   for (const s of uretimSantralleri) {
     const jes = s.kod.includes('JES') || s.kod.startsWith('KIZILDERE');
+    const res = s.kod.includes('RES');
+    const hes = s.kod.includes('HES');
+    /* Tedarikçi santralin teknolojisinden gelir: jeotermal ünitede Ormat,
+       rüzgârda Vestas/Enercon, hidroda Andritz/Voith. Rastgele atama
+       tedarikçi ekranını anlamsız kılıyordu — zincir gerçek olmalı. */
+    const havuz = jes
+      ? ['Ormat Technologies', 'Siemens Energy', 'Schneider Electric', 'Cisco Systems', 'Honeywell']
+      : res
+        ? ['Vestas', 'Enercon', 'GE Vernova', 'Schneider Electric', 'Cisco Systems']
+        : hes
+          ? ['Andritz Hydro', 'Voith Hydro', 'ABB', 'Schneider Electric', 'Cisco Systems']
+          : ['Siemens Energy', 'GE Vernova', 'Schneider Electric', 'ABB', 'Cisco Systems'];
+    // Ağ cihazı her sahada aynı sağlayıcıdan gelir, üretim ekipmanından bağımsız.
+    const saglayici = (r: () => number) => havuz[Math.floor(r() * havuz.length)];
     for (const [turKod, ek, adKalibi, kritiklik, bolgeTipi, sayi] of SABLON) {
       // HES/RES'te ikinci SCADA ve DCS yok; şablon santral tipine uyarlanır.
       const adet = !jes && (ek === 'SCADA' || ek === 'DCS') ? 1 : sayi;
@@ -219,7 +233,7 @@ export async function operasyonVerisi(db: PrismaClient) {
             gizlilik: kritiklik === 'kritik' ? 3 : 2,
             butunluk: kritiklik === 'kritik' ? 5 : 3,
             erisilebilirlik: kritiklik === 'kritik' ? 5 : 3,
-            uretici: ['Siemens Energy', 'GE Vernova', 'Schneider Electric', 'ABB', 'Cisco Systems'][Math.floor(rnd() * 5)],
+            uretici: saglayici(rnd),
             kurulumTarihi: gun(-Math.floor(1200 + rnd() * 3200)),
             destekBitis: eski ? gun(-Math.floor(30 + rnd() * 700))
               : yasli ? gun(Math.floor(20 + rnd() * 340)) : gun(Math.floor(400 + rnd() * 1800)),
@@ -233,7 +247,7 @@ export async function operasyonVerisi(db: PrismaClient) {
             uzaktanErisim: bolgeTipi !== 'ot' ? true : rnd() > 0.8,
             // Sahipsiz varlık O11'in "atanmadı" durumunu besler.
             sahipId: rnd() > 0.02 ? K[sahipDagitim[Math.floor(rnd() * 5)]].id : null,
-            tedarikciId: TD[['Siemens Energy', 'GE Vernova', 'Schneider Electric', 'ABB', 'Cisco Systems'][Math.floor(rnd() * 5)]].id,
+            tedarikciId: TD[saglayici(rnd)].id,
             yasamDongusu: eski && rnd() > 0.75 ? 'bakim' : 'aktif',
           },
         });

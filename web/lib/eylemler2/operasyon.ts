@@ -214,19 +214,44 @@ export async function restoreTestiKaydet(girdi: {
 export async function tedarikciKaydet(girdi: {
   id?: string; ad: string; tip?: string | null;
   uzaktanErisimVar: boolean; kritiklik?: string;
+  uzaktanErisimYontemi?: string | null;
+  /** üç değerli: true kayıt var · false kayıt alınmıyor · null bilinmiyor */
+  oturumKaydiVar?: boolean | null;
 }): Promise<Sonuc> {
   try {
-    await yetkiZorunlu('envanter', 'yazma');
+    const k = await yetkiZorunlu('envanter', 'yazma');
     const v = z.object({
       id: z.string().optional(), ad: bosluksuz('Ad'),
       tip: z.string().nullable().optional(), uzaktanErisimVar: z.boolean(),
       kritiklik: z.string().default('bilinmiyor'),
+      uzaktanErisimYontemi: z.string().nullable().optional(),
+      oturumKaydiVar: z.boolean().nullable().optional(),
     }).parse(girdi);
-    const veri = { ad: v.ad, tip: v.tip ?? null,
-      uzaktanErisimVar: v.uzaktanErisimVar, kritiklik: v.kritiklik };
-    if (v.id) await db.tedarikci.update({ where: { id: v.id }, data: veri });
-    else await db.tedarikci.create({ data: veri });
+    const veri = {
+      ad: v.ad, tip: v.tip ?? null,
+      uzaktanErisimVar: v.uzaktanErisimVar, kritiklik: v.kritiklik,
+      // undefined geçilirse alan hiç yazılmaz; null bilerek "bilinmiyor" demektir.
+      ...(v.uzaktanErisimYontemi !== undefined
+        ? { uzaktanErisimYontemi: v.uzaktanErisimYontemi } : {}),
+      ...(v.oturumKaydiVar !== undefined ? { oturumKaydiVar: v.oturumKaydiVar } : {}),
+    };
+    const onceki = v.id ? await db.tedarikci.findUnique({ where: { id: v.id } }) : null;
+    const kayit = v.id
+      ? await db.tedarikci.update({ where: { id: v.id }, data: veri })
+      : await db.tedarikci.create({ data: veri });
+    // Uzaktan erişim ve oturum kaydı bir uyum kontrolünün kanıtıdır;
+    // değişimi denetim izine yazılmadan kabul edilemez.
+    await iz({
+      aktorId: k.id, varlikTipi: 'Tedarikci', varlikId: kayit.id,
+      eylem: v.id ? 'guncelleme' : 'olusturma',
+      alan: 'uzaktanErisim',
+      once: onceki
+        ? `${onceki.uzaktanErisimVar ? 'var' : 'yok'} · ${onceki.uzaktanErisimYontemi ?? 'yöntem yok'} · oturum kaydı ${onceki.oturumKaydiVar === null ? 'bilinmiyor' : onceki.oturumKaydiVar ? 'var' : 'yok'}`
+        : null,
+      sonra: `${kayit.uzaktanErisimVar ? 'var' : 'yok'} · ${kayit.uzaktanErisimYontemi ?? 'yöntem yok'} · oturum kaydı ${kayit.oturumKaydiVar === null ? 'bilinmiyor' : kayit.oturumKaydiVar ? 'var' : 'yok'}`,
+    });
     revalidatePath('/operasyon');
+    revalidatePath('/tedarikciler');
     return tamam();
   } catch (e) { return hata(e); }
 }
@@ -242,11 +267,17 @@ export async function sertifikaKaydet(girdi: {
       veren: z.string().nullable().optional(),
       bitis: z.string().min(1, 'Bitiş tarihi zorunlu'),
     }).parse(girdi);
+    const bitis = new Date(v.bitis);
+    /* durum bitiş tarihinden TÜRETİLİR; elle girilmez. Aksi hâlde yenilenen
+       bir sertifika kayıtta 'suresi_doldu' kalıyordu. */
+    const kalanGun = Math.floor((bitis.getTime() - Date.now()) / 86_400_000);
+    const durum = kalanGun < 0 ? 'suresi_doldu' : kalanGun <= 30 ? 'yaklasiyor' : 'gecerli';
     const veri = { ad: v.ad, varlikId: v.varlikId ?? null,
-      veren: v.veren ?? null, bitis: new Date(v.bitis) };
+      veren: v.veren ?? null, bitis, durum };
     if (v.id) await db.sertifika.update({ where: { id: v.id }, data: veri });
     else await db.sertifika.create({ data: veri });
     revalidatePath('/operasyon');
+    revalidatePath('/tedarikciler');
     return tamam();
   } catch (e) { return hata(e); }
 }

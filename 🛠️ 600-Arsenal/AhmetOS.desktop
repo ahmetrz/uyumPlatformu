@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=AhmetOS
+Comment=Ikinci beyin vault (uyumPlatformu)
+Exec=xdg-open "obsidian://open?path=%2Fhome%2Fuser%2FuyumPlatformu"
+Icon=obsidian
+Terminal=false
+Categories=Utility;

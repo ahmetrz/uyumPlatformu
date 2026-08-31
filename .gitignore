@@ -1,2 +1,10 @@
 # Claude Code çalışma dosyaları
 .claude/settings.local.json
+
+# İkinci beyin (beyin.md v2.1) çalışma durumu
+.claude/hooks/.state/
+.claude/scripts/.state/*
+!.claude/scripts/.state/.gitkeep
+.DS_Store
+.obsidian/workspace*
+.obsidian/cache

@@ -15,7 +15,7 @@ export default async function Giris() {
       <div className="kart" style={{ width: 'min(400px, 100%)', position: 'relative' }}>
         <div className="kart-icerik" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-4)' }}>
           <div className="rail-marka" style={{ padding: 0 }}>
-            <span className="isaret">ŞU</span><span>Şebeke Uyum Konsolu</span>
+            <span className="isaret">ZU</span><span>Zorlu Uyum Konsolu</span>
           </div>
           <p className="mikro-etiket">IT/OT GOVERNANCE · COMPLIANCE · TRANSFORMATION</p>
           <GirisFormu />

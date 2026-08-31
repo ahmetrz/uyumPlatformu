@@ -56,7 +56,7 @@ export default function Ray() {
           <span style={{ color: 'var(--accent)', display: 'inline-flex' }}>
             <MarkaIsareti boy={26} />
           </span>
-          <span>Şebeke Uyum</span>
+          <span>Zorlu Uyum</span>
         </Link>
         {GRUPLAR.map((g) => (
           <div key={g.baslik}>

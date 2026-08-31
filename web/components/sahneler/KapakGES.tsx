@@ -1,4 +1,4 @@
-/* GES kapak sahnesi — "Şebeke Uyum Konsolu" ozalit çizgi sanatı (onarım turu).
+/* GES kapak sahnesi — "Zorlu Uyum Konsolu" ozalit çizgi sanatı (onarım turu).
    Tek kaçış noktasına (292,84) yakınsayan beş panel sırası; derinlik hiyerarşisi
    önden arkaya: en yakın sıra en ağır çizgi + odak ışıması, uzak sıralar soluk.
    Tek pirinç aksan zinciri: parlayan hücre -> arazi kablosu -> inverter -> trafo

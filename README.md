@@ -1,4 +1,4 @@
-# Şebeke Uyum Konsolu
+# Zorlu Uyum Konsolu
 
 Türkiye'de elektrik üretimi yapan bir şirketler grubu için **IT/OT Governance,
 Compliance & Transformation platformu**. Hedef mimari: `ENERJI_IT_OT_PLATFORM_HEDEF_MIMARI`

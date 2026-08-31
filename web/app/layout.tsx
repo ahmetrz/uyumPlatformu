@@ -5,7 +5,7 @@ import Canlandir from '@/components/Canlandir';
 import KomutPaleti from '@/components/KomutPaleti';
 
 export const metadata: Metadata = {
-  title: 'Şebeke Uyum Konsolu',
+  title: 'Zorlu Uyum Konsolu',
   description:
     'Enerji üretimi BT/OT uyum platformu: regülasyonlar, uyum süreçleri, bulgular, kanıtlar ve tam denetim izi.',
 };

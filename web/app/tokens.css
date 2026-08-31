@@ -58,8 +58,8 @@
 
   /* — Tipografi — üç rol — */
   --font-display: "Archivo", ui-sans-serif, system-ui, "Segoe UI", sans-serif;
-  --font-ui: "Instrument Sans", ui-sans-serif, system-ui, "Segoe UI", Roboto, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Consolas, monospace;
+  --font-ui: "Manrope", ui-sans-serif, system-ui, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "Azeret Mono", ui-monospace, "SFMono-Regular", Consolas, monospace;
 
   --fs-hero: clamp(3.4rem, 9vw, 6rem);
   --fs-scene: clamp(1.9rem, 3.4vw, 3rem);

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { girisZorunlu, izinVar, izinliTesisIdleri } from '@/lib/erisim';
 import { db } from '@/lib/db';
+import { ilkiniEsle } from '@/lib/sorguParcala';
 import EnvanterIstemci from './EnvanterIstemci';
 import type { Bolge, Iliski, Kodlu, Tur, Unite, V } from './mantik';
 
@@ -35,13 +36,19 @@ export default async function Sayfa() {
      satırlar için bu ana göre hesaplanır (istemcide saat kayması olmasın). */
   const simdi = new Date().getTime();
   const gorulebilir = izinliTesisIdleri(k, 'envanter');
+  /* Varlık kapsamı TEK yerde tanımlanır: hem ana sorgu hem de ona bağlı
+     alt sorgular (son yedek / son keşif) aynı koşulu kullanır. İkisi
+     ayrışırsa ekran, göremediği bir varlığın yedek kaydını gösterirdi. */
+  const varlikKapsami = { silindi: null, ...kapsamKosulu(gorulebilir) };
   const yazmaYetkisi = izinVar(k, 'envanter', 'yazma');
   const onayYetkisi = izinVar(k, 'envanter', 'onay');
 
-  const [varliklar, turler, tesisler, uniteler, sistemler, bolgeler, kullanicilar] =
-    await Promise.all([
+  const [
+    varliklar, tumTurler, tumTesisler, uniteler, sistemler, bolgeler,
+    tumKullanicilar, tedarikciler, sozlesmeler,
+  ] = await Promise.all([
       db.varlik.findMany({
-        where: { silindi: null, ...kapsamKosulu(gorulebilir) },
+        where: varlikKapsami,
         orderBy: { etiket: 'asc' },
         select: {
           id: true, etiket: true, ad: true,
@@ -53,20 +60,16 @@ export default async function Sayfa() {
           uzaktanErisim: true, yasamDongusu: true,
           kurulumTarihi: true, garantiBitis: true, destekBitis: true,
           eolTarihi: true, eosTarihi: true, guncellendi: true,
-          tur: { select: { id: true, kod: true, ad: true, sinif: true } },
-          tesis: { select: { id: true, kod: true, ad: true } },
-          unite: { select: { id: true, kod: true, ad: true } },
-          sistem: { select: { id: true, kod: true, ad: true } },
-          bolge: {
-            select: {
-              id: true, kod: true, ad: true, tip: true,
-              guvenlikSeviyesi: true, tesisId: true,
-            },
-          },
-          sahip: { select: { id: true, adSoyad: true } },
-          emanetci: { select: { id: true, adSoyad: true } },
-          tedarikci: { select: { id: true, ad: true } },
-          sozlesme: { select: { id: true, kod: true, ad: true } },
+          /* Boyut tabloları (tür, santral, ünite, sistem, bölge, kişi,
+             tedarikçi, sözleşme) ilişki olarak DEĞİL, yalnız yabancı
+             anahtar olarak okunur. Nedeni ölçüm: Prisma her ilişkiyi
+             `id IN (…)` ile 999'luk parçalar hâlinde çeker, yani 10.000
+             varlıkta ilişki başına 11 sorgu — dokuz ilişki için 99 sorgu.
+             Bu tabloların TAMAMI zaten aşağıda birer kez okunuyor (filtre
+             açılırları için); satırlar bellekte eşlenir. */
+          turId: true, tesisId: true, uniteId: true, sistemId: true,
+          bolgeId: true, sahipId: true, emanetciId: true,
+          tedarikciId: true, sozlesmeId: true,
           kaynakIliskiler: {
             select: {
               id: true, tip: true,
@@ -90,26 +93,18 @@ export default async function Sayfa() {
             },
           },
           zafiyetler: { select: { durum: true } },
-          // Son yedek ve son keşif: varlığın kanıt zinciri. Kayıt YOKSA null —
-          // "yedek alınmadı" değil, "yedek kaydı görülmedi" demektir.
-          konfigYedekleri: {
-            select: { yedekZamani: true, basarili: true },
-            orderBy: { yedekZamani: 'desc' }, take: 1,
-          },
-          kesifler: {
-            select: { id: true, kaynak: true, sonGorulme: true },
-            orderBy: { sonGorulme: 'desc' }, take: 1,
-          },
         },
       }),
+      /* Açılır listeler AKTİF kayıtları gösterir; satır eşlemesi ise
+         TÜMÜNÜ ister — pasifleştirilmiş bir türe ya da kapatılmış bir
+         santrale bağlı varlığın türü/santrali ekranda kaybolmamalı.
+         Bu yüzden tablo bir kez tam okunur, ayrım JS'te yapılır. */
       db.varlikTuru.findMany({
-        where: { aktif: true },
-        select: { id: true, kod: true, ad: true, sinif: true },
+        select: { id: true, kod: true, ad: true, sinif: true, aktif: true },
         orderBy: [{ sinif: 'asc' }, { ad: 'asc' }],
       }),
       db.tesis.findMany({
-        where: { durum: 'aktif' },
-        select: { id: true, kod: true, ad: true },
+        select: { id: true, kod: true, ad: true, durum: true },
         orderBy: { kod: 'asc' },
       }),
       db.uretimUnitesi.findMany({
@@ -125,11 +120,58 @@ export default async function Sayfa() {
         orderBy: { kod: 'asc' },
       }),
       db.kullanici.findMany({
-        where: { aktif: true },
-        select: { id: true, adSoyad: true },
+        select: { id: true, adSoyad: true, aktif: true },
         orderBy: { adSoyad: 'asc' },
       }),
+      db.tedarikci.findMany({ select: { id: true, ad: true } }),
+      db.sozlesme.findMany({ select: { id: true, kod: true, ad: true } }),
     ]);
+
+  /* Boyut haritaları: satır eşlemesi sözlük araması olur, sorgu değil. */
+  const turHaritasi = new Map(tumTurler.map((t) => [t.id, t]));
+  const tesisHaritasi = new Map(tumTesisler.map((t) => [t.id, t]));
+  const uniteHaritasi = new Map(uniteler.map((u) => [u.id, u]));
+  const sistemHaritasi = new Map(sistemler.map((x) => [x.id, x]));
+  const bolgeHaritasi = new Map(bolgeler.map((b) => [b.id, b]));
+  const kisiHaritasi = new Map(tumKullanicilar.map((u) => [u.id, u]));
+  const tedarikciHaritasi = new Map(tedarikciler.map((t) => [t.id, t]));
+  const sozlesmeHaritasi = new Map(sozlesmeler.map((x) => [x.id, x]));
+
+  const turler = tumTurler.filter((t) => t.aktif)
+    .map((t) => ({ id: t.id, kod: t.kod, ad: t.ad, sinif: t.sinif }));
+  const tesisler = tumTesisler.filter((t) => t.durum === 'aktif')
+    .map((t) => ({ id: t.id, kod: t.kod, ad: t.ad }));
+  const kullanicilar = tumKullanicilar.filter((u) => u.aktif);
+
+  /* Son yedek ve son keşif: varlığın kanıt zinciri. Kayıt YOKSA null —
+     "yedek alınmadı" değil, "yedek kaydı görülmedi" demektir.
+
+     NEDEN ayrı sorgu: bunlar önce ilişki seviyesinde `take: 1` ile
+     okunuyordu. Prisma bu kalıbı ebeveyn başına BİR parametre taşıyan tek
+     bir sorguya çevirir ve parçalayamaz; envanter 998. varlıkta
+     "query parameter limit exceeded" ile TAMAMEN çöküyordu (yavaşlamıyordu,
+     500 dönüyordu). Parçalı okuma sınırı kaldırır ve sorgu sayısını da
+     düşürür.
+
+     Kapsam kimlik listesiyle DEĞİL, ebeveynin kendi koşuluyla (ilişki
+     filtresi) daraltılır: `id IN (10.000 değer)` hem 999 sınırına takılır
+     hem de yalnız parametre bağlamak için ölçülebilir zaman harcar
+     (boş tabloda 12 parçalı sorgu 34ms, ilişki filtresiyle 0ms).
+     Süzülen küme birebir aynıdır — ebeveyn sorgusuyla aynı `where`. */
+  const [yedekSatirlari, kesifSatirlari] = await Promise.all([
+    db.konfigurasyonYedegi.findMany({
+      where: { varlik: varlikKapsami },
+      select: { varlikId: true, yedekZamani: true, basarili: true },
+      orderBy: { yedekZamani: 'desc' },
+    }),
+    db.kesifKaydi.findMany({
+      where: { eslesenVarlik: varlikKapsami },
+      select: { id: true, kaynak: true, sonGorulme: true, eslesenVarlikId: true },
+      orderBy: { sonGorulme: 'desc' },
+    }),
+  ]);
+  const sonYedekler = ilkiniEsle(yedekSatirlari, (y) => y.varlikId);
+  const sonKesifler = ilkiniEsle(kesifSatirlari, (k) => k.eslesenVarlikId);
 
   const veri: V[] = varliklar.map((v) => {
     const iliskiler: Iliski[] = [
@@ -140,25 +182,40 @@ export default async function Sayfa() {
         id: i.id, tip: i.tip, giden: false, diger: i.kaynak,
       })),
     ];
-    const yedek = v.konfigYedekleri[0] ?? null;
-    const kesif = v.kesifler[0] ?? null;
+    const yedek = sonYedekler.get(v.id) ?? null;
+    const kesif = sonKesifler.get(v.id) ?? null;
     /* Yazma kapsamı satır satır: tesise kısıtlı rol yalnız kendi santralinin
        varlığını yazabilir. Kural lib/eylemler2/envanter.ts ile aynıdır —
        ekran yalnız düğmeyi kapatır, sunucu ayrıca reddeder. */
-    const kapsam = { tesisId: v.tesis?.id ?? null };
+    const tur = turHaritasi.get(v.turId);
+    const tesis = v.tesisId === null ? null : tesisHaritasi.get(v.tesisId) ?? null;
+    const unite = v.uniteId === null ? null : uniteHaritasi.get(v.uniteId) ?? null;
+    const sistem = v.sistemId === null ? null : sistemHaritasi.get(v.sistemId) ?? null;
+    const bolge = v.bolgeId === null ? null : bolgeHaritasi.get(v.bolgeId) ?? null;
+    const sahip = v.sahipId === null ? null : kisiHaritasi.get(v.sahipId) ?? null;
+    const emanetci = v.emanetciId === null ? null : kisiHaritasi.get(v.emanetciId) ?? null;
+    const tedarikci = v.tedarikciId === null ? null : tedarikciHaritasi.get(v.tedarikciId) ?? null;
+    const sozlesme = v.sozlesmeId === null ? null : sozlesmeHaritasi.get(v.sozlesmeId) ?? null;
+    const kapsam = { tesisId: tesis?.id ?? null };
     return {
       id: v.id, etiket: v.etiket, ad: v.ad,
-      tur: v.tur,
-      tesis: v.tesis, unite: v.unite, sistem: v.sistem,
-      bolge: v.bolge
+      /* turId zorunlu ve yabancı anahtarla güvence altında; yine de tür
+         satırı bulunamazsa uydurmak yerine BİLİNMİYOR yazılır. */
+      tur: tur
+        ? { id: tur.id, kod: tur.kod, ad: tur.ad, sinif: tur.sinif }
+        : { id: v.turId, kod: '—', ad: 'bilinmiyor', sinif: 'bilinmiyor' },
+      tesis: tesis ? { id: tesis.id, kod: tesis.kod, ad: tesis.ad } : null,
+      unite: unite ? { id: unite.id, kod: unite.kod, ad: unite.ad } : null,
+      sistem: sistem ? { id: sistem.id, kod: sistem.kod, ad: sistem.ad } : null,
+      bolge: bolge
         ? {
-          id: v.bolge.id, kod: v.bolge.kod, ad: v.bolge.ad, tip: v.bolge.tip,
-          seviye: v.bolge.guvenlikSeviyesi, tesisId: v.bolge.tesisId,
+          id: bolge.id, kod: bolge.kod, ad: bolge.ad, tip: bolge.tip,
+          seviye: bolge.guvenlikSeviyesi, tesisId: bolge.tesisId,
         }
         : null,
-      sahip: v.sahip ? { id: v.sahip.id, ad: v.sahip.adSoyad } : null,
-      emanetci: v.emanetci ? { id: v.emanetci.id, ad: v.emanetci.adSoyad } : null,
-      tedarikci: v.tedarikci, sozlesme: v.sozlesme,
+      sahip: sahip ? { id: sahip.id, ad: sahip.adSoyad } : null,
+      emanetci: emanetci ? { id: emanetci.id, ad: emanetci.adSoyad } : null,
+      tedarikci, sozlesme,
       hostname: v.hostname, seriNo: v.seriNo, uretici: v.uretici, model: v.model,
       ipAdresi: v.ipAdresi, macAdresi: v.macAdresi, isletimSistemi: v.isletimSistemi,
       firmware: v.firmware, surum: v.surum, rafOda: v.rafOda,

@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { copyFileSync, mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -235,6 +236,12 @@ describe('Connector senkronizasyon çekirdeği (izole DB kopyası)', () => {
     class BagliDegil extends BaglanmamisAdaptor {
       readonly tip = 'test_baglanmamis';
       readonly gereken = 'AD servis hesabı ve LDAPS sertifikası';
+      /* Bağlanmamış adaptör de beyan eder: hangi ayarlar geçerli, hangi
+         sırlar istenecek. Bunlar bağlantıdan ÖNCE bilinmesi gereken
+         şeylerdir; varsayılan verilseydi "sır gerekmiyor" gibi yanlış bir
+         beyan üretirdi. */
+      readonly yapilandirmaSemasi = z.looseObject({});
+      readonly gerekenSirlar = ['env:TEST_AD_PAROLA'];
     }
     adaptorKaydet(new BagliDegil(), true);
     const c = await connectorYap('test_baglanmamis', { imlec: 'imlec-0' });

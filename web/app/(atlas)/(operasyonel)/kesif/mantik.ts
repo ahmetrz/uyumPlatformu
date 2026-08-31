@@ -162,3 +162,37 @@ export function metrikleriHesapla(satirlar: KesifSatiri[]): Metrikler {
     gorunmeyen: satirlar.filter((s) => s.gunGorulmedi >= GORUNMEZ_ESIK_GUN).length,
   };
 }
+
+/* ═══ Kapsam ══════════════════════════════════════════════════════════ */
+
+/**
+ * Keşif kuyruğunun kapsam koşulu (Prisma `where` parçası).
+ *
+ * Bir keşif kaydı üç yoldan bir santrale bağlanabilir: eşleştiği varlığın
+ * santrali, kaynağın beyan ettiği santral (`tesisId`), ya da hiçbiri.
+ * Kapsamı daraltılmış kullanıcı ilk ikisinden yalnız kendi santrallerini
+ * görür; üçüncüsü — santrali BİLİNMEYEN kayıt — herkese görünür.
+ *
+ * Sonuncusu bilinçli bir karardır: bilinmeyeni gizlemek onu kimsenin
+ * incelemeyeceği anlamına gelir ve keşif kuyruğunun varlık sebebi tam da
+ * o kayıtlardır. "Bilinmiyor" burada "yasak" değil "henüz atanmadı"dır.
+ * Buradaki risk — bilinmeyen kaydın BAŞKA santralin verisini taşıması —
+ * kuyruğun kendisinde değil, ÜRETİM tarafında kapatılır: kapsamı
+ * yapılandırılmış bir connector kapsam dışı ya da santralsiz kayıt
+ * yazamaz (bkz. `lib/entegrasyon/cekirdek.ts → connectorKapsamKodlari`).
+ *
+ * Sayfadan BURAYA taşındı: kapsam kuralı bir sayfa detayı değil, negatif
+ * testi yazılabilmesi gereken bir güvenlik değişmezidir.
+ */
+export function kesifKapsamKosulu(gorulebilir: string[] | null) {
+  if (gorulebilir === null) return {};   // kapsam sınırsız
+  return {
+    OR: [
+      { eslesenVarlik: { tesisId: { in: gorulebilir } } },
+      // santralsiz bir varlığa eşleşmiş kayıt da 'bilinmiyor' kümesindedir
+      { eslesenVarlik: { tesisId: null } },
+      { eslesenVarlikId: null, tesisId: { in: gorulebilir } },
+      { eslesenVarlikId: null, tesisId: null },
+    ],
+  };
+}

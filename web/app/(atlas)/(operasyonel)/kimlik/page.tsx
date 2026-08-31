@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { girisZorunlu } from '@/lib/erisim';
 import { db } from '@/lib/db';
+import { ilkiniEsle } from '@/lib/sorguParcala';
 import KimlikIstemci from './KimlikIstemci';
 import type { Bag, Hesap } from './mantik';
 
@@ -18,16 +19,13 @@ const BAG_BUTCESI = 4;
 export default async function Sayfa() {
   await girisZorunlu();
 
-  const [hesaplar, riskler, bulgular] = await Promise.all([
+  const [hesaplar, riskler, bulgular, incelemeSatirlari] = await Promise.all([
     db.kimlikHesabi.findMany({
       include: {
         kullanici: true,
         tesis: true,
         atamalar: {
-          include: {
-            varlik: true,
-            incelemeler: { include: { inceleyen: true }, orderBy: { zaman: 'desc' }, take: 1 },
-          },
+          include: { varlik: true },
           orderBy: { verilis: 'asc' },
         },
       },
@@ -43,7 +41,19 @@ export default async function Sayfa() {
       include: { maddeDurumu: { include: { madde: true, tesis: true } } },
       orderBy: { onemDerecesi: 'asc' },
     }),
+    /* Atama başına SON inceleme ayrı sorguyla okunur.
+       NEDEN: ilişki seviyesinde `take: 1` Prisma'da ebeveyn başına bir
+       parametre taşıyan TEK, parçalanamayan sorguya çevrilir; atama sayısı
+       997'yi geçtiğinde ekran yavaşlamaz, "query parameter limit exceeded"
+       ile 500 döner. Burada satırlar zamana göre azalan okunur ve her
+       atama için ilki tutulur — sonuç birebir aynıdır. */
+    db.erisimIncelemesi.findMany({
+      include: { inceleyen: true },
+      orderBy: { zaman: 'desc' },
+    }),
   ]);
+
+  const sonIncelemeler = ilkiniEsle(incelemeSatirlari, (i) => i.atamaId);
 
   /* Bağlı kayıt iki yoldan kurulur ve hangisi olduğu satırda YAZILIR:
      (a) atamanın varlığı üzerinden — kesin bağ,
@@ -107,14 +117,14 @@ export default async function Sayfa() {
         bitis: a.bitis?.toISOString() ?? null,
         varlikEtiketi: a.varlik?.etiket ?? null,
         varlikAd: a.varlik?.ad ?? null,
-        sonInceleme: a.incelemeler[0]
+        sonInceleme: ((son) => (son
           ? {
-            sonuc: a.incelemeler[0].sonuc,
-            zaman: a.incelemeler[0].zaman.toISOString(),
-            inceleyen: a.incelemeler[0].inceleyen?.adSoyad ?? null,
-            not: a.incelemeler[0].not,
+            sonuc: son.sonuc,
+            zaman: son.zaman.toISOString(),
+            inceleyen: son.inceleyen?.adSoyad ?? null,
+            not: son.not,
           }
-          : null,
+          : null))(sonIncelemeler.get(a.id)),
       })),
       bagli: [...kesin, ...santralRiski, ...santralBulgusu].slice(0, BAG_BUTCESI),
     };

@@ -3,7 +3,7 @@ import { girisZorunlu, izinVar, izinliTesisIdleri } from '@/lib/erisim';
 import { db } from '@/lib/db';
 import { normalCoz } from '@/lib/entegrasyon/kesif';
 import KesifIstemci from './KesifIstemci';
-import { GORUNMEZ_ESIK_GUN, type Aday, type KesifSatiri } from './mantik';
+import { GORUNMEZ_ESIK_GUN, kesifKapsamKosulu, type Aday, type KesifSatiri } from './mantik';
 
 export const metadata: Metadata = { title: 'Varlık keşfi — Atlas' };
 
@@ -32,31 +32,6 @@ function gozlemAlanlari(g: NonNullable<ReturnType<typeof normalCoz>>['gozlem']) 
     .filter((a): a is { etiket: string; deger: string } => !!a.deger);
 }
 
-/**
- * Keşif kuyruğunun kapsam koşulu.
- *
- * Bir keşif kaydı üç yoldan bir santrale bağlanabilir: eşleştiği varlığın
- * santrali, kaynağın beyan ettiği santral (`tesisId`), ya da hiçbiri.
- * Kapsamı daraltılmış kullanıcı ilk ikisinden yalnız kendi santrallerini
- * görür; üçüncüsü — santrali BİLİNMEYEN kayıt — herkese görünür.
- *
- * Sonuncusu bilinçli bir karardır: bilinmeyeni gizlemek onu kimsenin
- * incelemeyeceği anlamına gelir ve keşif kuyruğunun varlık sebebi tam da
- * o kayıtlardır. "Bilinmiyor" burada "yasak" değil "henüz atanmadı"dır.
- */
-function kapsamKosulu(gorulebilir: string[] | null) {
-  if (gorulebilir === null) return {};   // kapsam sınırsız
-  return {
-    OR: [
-      { eslesenVarlik: { tesisId: { in: gorulebilir } } },
-      // santralsiz bir varlığa eşleşmiş kayıt da 'bilinmiyor' kümesindedir
-      { eslesenVarlik: { tesisId: null } },
-      { eslesenVarlikId: null, tesisId: { in: gorulebilir } },
-      { eslesenVarlikId: null, tesisId: null },
-    ],
-  };
-}
-
 export default async function Sayfa() {
   const k = await girisZorunlu();
   const gorulebilirTesisler = izinliTesisIdleri(k, 'envanter');
@@ -70,7 +45,7 @@ export default async function Sayfa() {
          bırakmasın. Santrali BİLİNMEYEN kayıt (tesisId ve eşleşen varlık
          yoksa) herkese görünür — henüz bir santrale ait değildir ve
          gizlenmesi onu kimsenin incelemeyeceği anlamına gelirdi. */
-      where: kapsamKosulu(gorulebilirTesisler),
+      where: kesifKapsamKosulu(gorulebilirTesisler),
       orderBy: [{ sonGorulme: 'desc' }],
       take: KUYRUK_TAVANI,
       include: {

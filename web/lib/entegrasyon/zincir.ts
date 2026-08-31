@@ -41,13 +41,20 @@ import { olayEtkileriniIsle } from '../motorlar/olayEtki';
    `durum: 'oneri'` olarak üretir; projeye dönüşüm insan kararıdır.
 
    ── OTOMASYON GÜVENLİĞİ ───────────────────────────────────────────────
-   Zincir ÖNERİR, karar vermez. Bu dosya hiçbir yerde:
-     · risk kabul etmez        · bulgu kapatmaz
-     · uygulanabilirlik kararını ezmez (elIleDegistirildi korumasına saygı)
-   Yazma yapan tek şey motorların kendisidir. Zincir ek olarak koşu öncesi/
-   sonrası bir GÜVENLİK ANLIK GÖRÜNTÜSÜ alır; bu sınırlardan biri ihlal
-   edilirse sonuçta bildirir ve `zincir_guvenlik_ihlali` adıyla bir
-   `IsKosusu` satırı bırakır (/saglik ekranında görünür). Sessiz geçilmez.
+   Zincir ÖNERİR, karar vermez. Hiçbir motor şunları OTOMATİK yapamaz:
+     · risk kabulü              · bulgu kapatma
+     · uygulanabilirlik override'ı ezme (elIleDegistirildi korunur)
+     · güvenlik duvarı / ağ değişikliği
+     · PLC/DCS değişikliği      · yama / firmware güncellemesi
+     · varlık silme             · topoloji temeli (baseline) kabulü
+   Ayrıca detect → correlate → propose → HUMAN APPROVE kuralı: keşif kaydı
+   insan onayı olmadan CMDB'ye geçemez, proje adayı 'oneri' durumunda kalır.
+
+   Yazma yapan tek şey motorların kendisidir. Zincir koşu öncesi/sonrası
+   bir GÜVENLİK ANLIK GÖRÜNTÜSÜ alır ve YUKARIDAKİLERİN HEPSİNİ ölçer
+   (bkz. `OLCULER`); biri ihlal edilirse sonuçta bildirir ve
+   `zincir_guvenlik_ihlali` adıyla bir `IsKosusu` satırı bırakır
+   (/saglik ekranında görünür). Sessiz geçilmez.
    ══════════════════════════════════════════════════════════════════════ */
 
 // ── Sözleşme ────────────────────────────────────────────────────────────
@@ -285,39 +292,141 @@ async function motorKos(tanim: AdimTanimi, tetikNedeni: string): Promise<AdimSon
 
 // ── Otomasyon güvenlik ağı ──────────────────────────────────────────────
 
-type GuvenlikAnligi = {
+/* ── Otomasyon sınırının ÖLÇÜLEBİLİR tanımı ─────────────────────────────
+   Bir kural ancak ölçülüyorsa kuraldır. Bu anlık görüntü, motorların
+   OTOMATİK OLARAK YAPAMAYACAĞI sekiz şeyin her biri için bir ölçü taşır.
+
+   Önceki sürüm yalnız ÜÇÜNÜ ölçüyordu (risk kabulü, bulgu kapatma,
+   uygulanabilirlik override'ı). Kalan beşi — güvenlik duvarı/ağ değişikliği,
+   PLC/DCS değişikliği, yama/firmware güncellemesi, varlık silme, topoloji
+   temeli (baseline) kabulü — yorumda "yapılmaz" diye yazılıydı ama HİÇBİR
+   YERDE ölçülmüyordu: bir motor yarın bunlardan birini yapmaya başlasa
+   zincir bunu fark etmeden 'basarili' kapanırdı.
+
+   Ölçüler iki türlüdür:
+     · SAYIM  — yalnız ARTIŞ ihlaldir (azalma meşru olabilir: kabul süresi
+                dolan risk `sonTarih` motorunca 'acik'a çevrilir).
+     · İMZA   — HER DEĞİŞİKLİK ihlaldir (içerik ezilmesini yakalar).      */
+
+export type GuvenlikAnligi = {
+  /* insan kararı gerektiren durum geçişleri */
   kabulEdilenRisk: number;
   kapaliBulgu: number;
+  kabulEdilenSapma: number;
+  onayliTopolojiTemeli: number;
+  onaylanmisKesif: number;
+  oneriDisiProjeAdayi: number;
+  /* CMDB / saha gerçeğine dokunan değişiklikler */
+  varlikSayisi: number;
+  silinmisVarlik: number;
+  /* içerik imzaları */
   elIleKararImzasi: string;
+  agGecidiImzasi: string;
+  otVarlikImzasi: string;
 };
 
-/** Zincirin ASLA yapmaması gereken üç şeyin ölçüsü. Koşu öncesi ve sonrası
+type OlcuTanimi = {
+  alan: keyof GuvenlikAnligi;
+  /** 'artis' = yalnız büyümesi ihlal · 'imza' = her değişiklik ihlal */
+  tur: 'artis' | 'imza';
+  ihlal: string;
+};
+
+/** Ölçü → ihlal cümlesi. Yeni bir yasak eklenince BURAYA satır eklenir;
+    karşılaştırma jenerik olduğu için başka hiçbir yer değişmez. */
+const OLCULER: OlcuTanimi[] = [
+  { alan: 'kabulEdilenRisk', tur: 'artis', ihlal: 'Otomatik RİSK KABULÜ' },
+  { alan: 'kapaliBulgu', tur: 'artis', ihlal: 'Otomatik BULGU KAPATMA' },
+  { alan: 'kabulEdilenSapma', tur: 'artis',
+    ihlal: 'Otomatik TOPOLOJİ SAPMASI KABULÜ (sapma yalnız raporlanır)' },
+  { alan: 'onayliTopolojiTemeli', tur: 'artis',
+    ihlal: 'Otomatik TOPOLOJİ TEMELİ (baseline) KABULÜ' },
+  { alan: 'onaylanmisKesif', tur: 'artis',
+    ihlal: "Otomatik KEŞİF ONAYI — keşif kaydı insan onayı olmadan CMDB'ye geçemez" },
+  { alan: 'oneriDisiProjeAdayi', tur: 'artis',
+    ihlal: "Otomatik ÖNERİ TERFİSİ — proje adayı 'oneri' durumunda kalmalı" },
+  { alan: 'varlikSayisi', tur: 'artis',
+    ihlal: 'Otomatik VARLIK YARATMA — CMDB yazımı insan kararıdır' },
+  { alan: 'silinmisVarlik', tur: 'artis', ihlal: 'Otomatik VARLIK SİLME' },
+  { alan: 'elIleKararImzasi', tur: 'imza',
+    ihlal: 'UYGULANABİLİRLİK OVERRIDE EZİLDİ (elIleDegistirildi=true kayıtlar değişti)' },
+  { alan: 'agGecidiImzasi', tur: 'imza',
+    ihlal: 'AĞ / GÜVENLİK DUVARI YAPILANDIRMASI DEĞİŞTİ (zone-to-zone geçit kaydı) '
+      + '— platform ağ değiştirmez, yalnız sapmayı raporlar' },
+  { alan: 'otVarlikImzasi', tur: 'imza',
+    ihlal: 'VARLIK KONFİGÜRASYONU DEĞİŞTİ (firmware / sürüm / yama durumu / '
+      + 'ağ bölgesi / IP / yaşam döngüsü) — PLC/DCS ve yama değişikliği '
+      + 'platformdan YAPILMAZ, değişiklik sürecinden geçer' },
+];
+
+/** Sayıya sığmayan ölçüler için kararlı içerik imzası. */
+const imza = (satirlar: unknown[]): string => JSON.stringify(satirlar);
+
+/** Zincirin ASLA yapmaması gereken şeylerin ölçüsü. Koşu öncesi ve sonrası
     karşılaştırılır; fark varsa bu bir OTOMASYON SINIRI İHLALİDİR. */
-async function guvenlikAnligiAl(): Promise<GuvenlikAnligi> {
-  const [kabulEdilenRisk, kapaliBulgu, kararlar] = await Promise.all([
+export async function guvenlikAnligiAl(): Promise<GuvenlikAnligi> {
+  const [
+    kabulEdilenRisk, kapaliBulgu, kabulEdilenSapma, onayliTopolojiTemeli,
+    onaylanmisKesif, oneriDisiProjeAdayi, varlikSayisi, silinmisVarlik,
+    kararlar, gecitler, varliklar,
+  ] = await Promise.all([
     db.risk.count({ where: { durum: 'kabul_edildi' } }),
     db.bulgu.count({ where: { durum: { in: ['kapali', 'kabul_edildi'] } } }),
+    db.topolojiSapmasi.count({ where: { durum: 'kabul' } }),
+    db.topolojiAnlik.count({ where: { temelMi: true } }),
+    db.kesifKaydi.count({ where: { durum: 'onaylandi' } }),
+    db.projeAdayi.count({ where: { durum: { not: 'oneri' } } }),
+    db.varlik.count(),
+    db.varlik.count({ where: { silindi: { not: null } } }),
     db.uygulanabilirlikKarari.findMany({
       where: { elIleDegistirildi: true },
       select: { id: true, uygulanabilir: true, gerekce: true, elIleDegistirildi: true },
       orderBy: { id: 'asc' } }),
+    /* Güvenlik duvarı / ağ geçidi: kontrol varlığı, protokoller ve ONAY
+       bayrağı birlikte imzalanır — bir kuralın "onaylandı" olması insan
+       kararıdır, motorun değil. */
+    db.agGeciti.findMany({
+      select: {
+        id: true, kaynakBolgeId: true, hedefBolgeId: true,
+        kontrolVarligi: true, protokoller: true, onaylandi: true,
+      },
+      orderBy: { id: 'asc' } }),
+    /* PLC/DCS + yama/firmware: sahadaki cihazın kimliğini ve bakım
+       durumunu belirleyen alanlar. Bunlardan biri motor koşusunda
+       değiştiyse platform sahaya dokunmuş demektir. */
+    db.varlik.findMany({
+      select: {
+        id: true, firmware: true, surum: true, isletimSistemi: true,
+        yamaDurumu: true, yasamDongusu: true, bolgeId: true,
+        ipAdresi: true, macAdresi: true, silindi: true,
+      },
+      orderBy: { id: 'asc' } }),
   ]);
-  return { kabulEdilenRisk, kapaliBulgu, elIleKararImzasi: JSON.stringify(kararlar) };
+  return {
+    kabulEdilenRisk, kapaliBulgu, kabulEdilenSapma, onayliTopolojiTemeli,
+    onaylanmisKesif, oneriDisiProjeAdayi, varlikSayisi, silinmisVarlik,
+    elIleKararImzasi: imza(kararlar),
+    agGecidiImzasi: imza(gecitler),
+    otVarlikImzasi: imza(varliklar),
+  };
 }
 
-function guvenlikKarsilastir(once: GuvenlikAnligi, sonra: GuvenlikAnligi): string[] {
+export function guvenlikKarsilastir(once: GuvenlikAnligi, sonra: GuvenlikAnligi): string[] {
   const ihlaller: string[] = [];
-  if (sonra.kabulEdilenRisk > once.kabulEdilenRisk)
-    ihlaller.push(`Otomatik risk kabulü: kabul_edildi risk sayısı `
-      + `${once.kabulEdilenRisk} → ${sonra.kabulEdilenRisk}`);
-  if (sonra.kapaliBulgu > once.kapaliBulgu)
-    ihlaller.push(`Otomatik bulgu kapatma: kapali/kabul_edildi bulgu sayısı `
-      + `${once.kapaliBulgu} → ${sonra.kapaliBulgu}`);
-  if (sonra.elIleKararImzasi !== once.elIleKararImzasi)
-    ihlaller.push('El ile değiştirilmiş uygulanabilirlik kararı ezildi '
-      + '(elIleDegistirildi=true kayıtlarda değişiklik)');
+  for (const o of OLCULER) {
+    const a = once[o.alan];
+    const b = sonra[o.alan];
+    if (o.tur === 'artis') {
+      if ((b as number) > (a as number)) ihlaller.push(`${o.ihlal}: ${a} → ${b}`);
+    } else if (a !== b) {
+      ihlaller.push(o.ihlal);
+    }
+  }
   return ihlaller;
 }
+
+/** Testler ve teşhis için: hangi otomasyon sınırının ölçüldüğü, salt okunur. */
+export const GUVENLIK_OLCULERI = OLCULER.map((o) => ({ ...o }));
 
 // ── Yeniden giriş: seri kuyruk + tek slot birleştirme ───────────────────
 /* KARAR: "atlamak" DEĞİL, "beklemek" seçildi — ama kuyruk derinliği 1'de

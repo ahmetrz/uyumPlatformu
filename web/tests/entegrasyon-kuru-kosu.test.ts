@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { copyFileSync, mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -85,6 +86,8 @@ function adaptorYap(tip: string, cek: (b: Baglam) => Promise<CekmeSonucu>): Adap
   const a: Adaptor = {
     tip,
     baglanabilir: true,
+    yapilandirmaSemasi: z.looseObject({}),
+    gerekenSirlar: [],
     async testConnection() { return { ok: true, ayrinti: 'kuru koşu fikstürü' }; },
     async discover() { return { ozet: 'kuru koşu fikstürü', tahminiKayit: null }; },
     fetchChanges: cek,

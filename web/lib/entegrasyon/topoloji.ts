@@ -302,15 +302,34 @@ export async function temelAnlik(tesisId: string | null) {
   });
 }
 
-/** Temel durumu — ekran "temel yok" halini ayrı göstersin diye. */
+/**
+ * Bir kapsamın (tesis ya da tesissiz küme) temel durumu — /topoloji
+ * ekranındaki temel şeridi bunu okur.
+ *
+ * ÜÇ SAYI ÜÇ AYRI ŞEYDİR ve ekran bunları birbirinin yerine kullanamaz:
+ *   · temelVar === false      → sapma HESAPLANMIYOR (bilinmiyor)
+ *   · anlikSayisi === 0       → hiç gözlem yok (yine bilinmiyor, ama başka
+ *                               sebeple: burada onaylanacak bir anlık bile yok)
+ *   · acikSapma === 0         → ölçülmüş sıfır (temel varsa ve karşılaştırma
+ *                               yapıldıysa anlamlıdır)
+ *
+ * `temelOlmayanAnlik` eskiden `onayBekleyen` adını taşıyordu; yanlış
+ * isimdi: temel olmayan bir anlık çoğu zaman onay bekleyen değil, sadece
+ * karşılaştırma girdisidir. İsim ekranda "N onay bekliyor" gibi sahte bir
+ * iş kuyruğu doğuruyordu.
+ */
 export async function temelDurumu(tesisId: string | null): Promise<{
   temelVar: boolean;
   temel: { id: string; alindi: Date; kaynak: string; ozetHash: string; onayZamani: Date | null } | null;
-  onayBekleyen: number;
+  temelOlmayanAnlik: number;
+  anlikSayisi: number;
+  acikSapma: number;
 }> {
-  const [temel, onayBekleyen] = await Promise.all([
+  const [temel, temelOlmayanAnlik, anlikSayisi, acikSapma] = await Promise.all([
     temelAnlik(tesisId),
     db.topolojiAnlik.count({ where: { tesisId, temelMi: false } }),
+    db.topolojiAnlik.count({ where: { tesisId } }),
+    db.topolojiSapmasi.count({ where: { tesisId, durum: { in: ACIK_DURUMLAR } } }),
   ]);
   return {
     temelVar: temel !== null,
@@ -318,7 +337,9 @@ export async function temelDurumu(tesisId: string | null): Promise<{
       ? { id: temel.id, alindi: temel.alindi, kaynak: temel.kaynak,
           ozetHash: temel.ozetHash, onayZamani: temel.onayZamani }
       : null,
-    onayBekleyen,
+    temelOlmayanAnlik,
+    anlikSayisi,
+    acikSapma,
   };
 }
 
@@ -1147,6 +1168,71 @@ export async function sapmaDetay(sapmaId: string) {
     onceki: s.oncekiJson ? (JSON.parse(s.oncekiJson) as unknown) : null,
     sonraki: s.sonrakiJson ? (JSON.parse(s.sonrakiJson) as unknown) : null,
     aday: sapmaAdayi(s),
+  };
+}
+
+/** Motorun koşu kaydında kullandığı kaynak adı — iz sorgusu bunu okur. */
+const MOTOR_KAYNAGI = 'topoloji_sapma';
+
+/**
+ * Karşılaştırma izi: "en son NE ZAMAN karşılaştırıldı?" sorusunun cevabı.
+ *
+ * NEDEN GEREKLİ: sapma listesinin boş olması iki ayrı şey olabilir —
+ * (a) karşılaştırıldı, fark çıkmadı; (b) hiç karşılaştırılmadı. İkisini
+ * aynı boş ekranla göstermek, ölçülmemiş olanı "temiz" diye okutur.
+ * Ekran bu ayrımı gösterebilsin diye kanıt buradan toplanır.
+ *
+ * İki kanıt kaynağı vardır ve ikisi de gerçek olaylardır, tahmin değil:
+ *   · elle karşılaştırma → `AktiviteKaydi` (eylem: 'karsilastirma'),
+ *     `lib/eylemler2/topoloji.ts → anligiKarsilastirEylem` yazar;
+ *   · motor koşusu      → `EntegrasyonKosusu` (kaynak: topoloji_sapma),
+ *     yalnız GERÇEKTEN anlık işlediyse (kabulEdilen > 0) sayılır.
+ * Kaynağı olmayan bir zaman damgası uydurulmaz; ikisi de yoksa null döner.
+ */
+export async function karsilastirmaIzi(anlikIdleri: string[]): Promise<{
+  sonKarsilastirma: Date | null;
+  tetikleyen: 'motor' | 'elle' | null;
+  anligaGore: Map<string, Date>;
+  motorImleci: string | null;
+  motorDurumu: string | null;
+  motorZamani: Date | null;
+}> {
+  const [izler, isleyenKosu, sonKosu] = await Promise.all([
+    anlikIdleri.length
+      ? db.aktiviteKaydi.findMany({
+        where: { varlikTipi: 'TopolojiAnlik', eylem: 'karsilastirma',
+          varlikId: { in: anlikIdleri } },
+        orderBy: { zaman: 'desc' },
+        select: { varlikId: true, zaman: true },
+      })
+      : Promise.resolve([] as { varlikId: string; zaman: Date }[]),
+    db.entegrasyonKosusu.findFirst({
+      where: { kaynak: MOTOR_KAYNAGI, kabulEdilen: { gt: 0 } },
+      orderBy: { baslangic: 'desc' },
+      select: { bitis: true, baslangic: true, imlecSonra: true },
+    }),
+    db.entegrasyonKosusu.findFirst({
+      where: { kaynak: MOTOR_KAYNAGI },
+      orderBy: { baslangic: 'desc' },
+      select: { durum: true, bitis: true, baslangic: true },
+    }),
+  ]);
+
+  // `findMany` zaman'a göre azalan geldiği için ilk yazılan kalır → en yenisi.
+  const anligaGore = new Map<string, Date>();
+  for (const i of izler) if (!anligaGore.has(i.varlikId)) anligaGore.set(i.varlikId, i.zaman);
+
+  const elle = izler[0]?.zaman ?? null;
+  const motor = isleyenKosu ? isleyenKosu.bitis ?? isleyenKosu.baslangic : null;
+  const sonKarsilastirma = elle && motor ? (elle > motor ? elle : motor) : elle ?? motor;
+
+  return {
+    sonKarsilastirma,
+    tetikleyen: sonKarsilastirma === null ? null : sonKarsilastirma === elle ? 'elle' : 'motor',
+    anligaGore,
+    motorImleci: isleyenKosu?.imlecSonra ?? null,
+    motorDurumu: sonKosu?.durum ?? null,
+    motorZamani: sonKosu?.bitis ?? sonKosu?.baslangic ?? null,
   };
 }
 

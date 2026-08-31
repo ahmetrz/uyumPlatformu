@@ -27,9 +27,12 @@ export default async function Sayfa() {
       select: {
         id: true, etiket: true, ad: true, kritiklik: true, yasamDongusu: true,
         destekBitis: true, eolTarihi: true, eosTarihi: true,
-        tur: { select: { ad: true } },
-        tesis: { select: { id: true, ad: true } },
-        tedarikci: { select: { ad: true } },
+        /* Tür / santral / tedarikçi ilişki olarak DEĞİL, yabancı anahtar
+           olarak okunur ve aşağıda bellekte eşlenir. Nedeni ölçüm: Prisma
+           her ilişkiyi `id IN (…)` ile 999'luk parçalar hâlinde çeker —
+           10.000 varlıkta üç ilişki için 33 sorgu ve ~54ms, oysa üç
+           tablonun tamamı 56 satır. */
+        turId: true, tesisId: true, tedarikciId: true,
         yazilimlar: {
           select: {
             yazilim: {
@@ -62,6 +65,17 @@ export default async function Sayfa() {
     }),
     db.varlik.count({ where: { silindi: null } }),
   ]);
+
+  /* Boyut tabloları TAM okunur (filtresiz): pasifleştirilmiş bir türe ya da
+     kapatılmış bir santrale bağlı varlık ömür kuyruğundan düşmemeli. */
+  const [turAdlari, tesisAdlari, tedarikciAdlari] = await Promise.all([
+    db.varlikTuru.findMany({ select: { id: true, ad: true } }),
+    db.tesis.findMany({ select: { id: true, ad: true } }),
+    db.tedarikci.findMany({ select: { id: true, ad: true } }),
+  ]);
+  const turHaritasi = new Map(turAdlari.map((t) => [t.id, t.ad]));
+  const tesisHaritasi = new Map(tesisAdlari.map((t) => [t.id, t.ad]));
+  const tedarikciHaritasi = new Map(tedarikciAdlari.map((t) => [t.id, t.ad]));
 
   const kayitlar: VarlikKaydi[] = varliklar.map((v) => {
     // Desteği bitmiş yazılım kurulumları — en erken EOS önce (satırda ürün adı yazılır).
@@ -98,10 +112,11 @@ export default async function Sayfa() {
       id: v.id,
       etiket: v.etiket,
       ad: v.ad,
-      turAd: v.tur.ad,
-      tesisId: v.tesis?.id ?? null,
-      tesisAd: v.tesis?.ad ?? null,
-      tedarikciAd: v.tedarikci?.ad ?? null,
+      // Tür satırı bulunamazsa uydurulmaz — BİLİNMİYOR yazılır.
+      turAd: turHaritasi.get(v.turId) ?? 'bilinmiyor',
+      tesisId: v.tesisId,
+      tesisAd: v.tesisId === null ? null : tesisHaritasi.get(v.tesisId) ?? null,
+      tedarikciAd: v.tedarikciId === null ? null : tedarikciHaritasi.get(v.tedarikciId) ?? null,
       kritiklik: v.kritiklik,
       yasamDongusu: v.yasamDongusu,
       destekBitis: v.destekBitis?.toISOString() ?? null,

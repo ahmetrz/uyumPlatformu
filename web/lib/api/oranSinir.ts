@@ -18,6 +18,12 @@ export interface OranDeposu {
   /** Anahtarın sayacını artırır; pencere dolmuşsa yeni pencere açar. */
   artir(anahtar: string, pencereMs: number, simdi: number): Promise<{ sayac: number; sifirlanma: number }>;
   sifirla(): Promise<void>;
+  /** Tek bir kovayı düşürür. Giriş ucu bunu BAŞARILI kimlik doğrulamadan
+      sonra çağırır: aksi hâlde bir saldırgan, bildiği bir hesaba art arda
+      yanlış parola göndererek o hesabın sahibini pencere boyunca dışarıda
+      bırakabilirdi (kaba kuvvet koruması, hesap kilitleme silahına döner).
+      Uygulaması isteğe bağlıdır — Redis deposunda DEL, bellekte Map.delete. */
+  unut?(anahtar: string): Promise<void>;
 }
 
 /** Tek süreç içi pencere sayacı. Süresi geçen kayıtlar tembel temizlenir. */
@@ -41,6 +47,8 @@ export class BellekOranDeposu implements OranDeposu {
   }
 
   async sifirla() { this.pencereler.clear(); this.sonSupurme = 0; }
+
+  async unut(anahtar: string) { this.pencereler.delete(anahtar); }
 }
 
 let depo: OranDeposu = new BellekOranDeposu();
@@ -62,13 +70,33 @@ export function oranAyariAyarla(yeni: Partial<typeof ayar>): void {
 }
 export const oranSayaclariniSifirla = (): Promise<void> => depo.sifirla();
 
-export async function oranSinirla(anahtar: string): Promise<OranKarari> {
+/** Tek kovayı düşürür; depo desteklemiyorsa sessizce geçer (sayaç yalnız
+    pencere sonunda düşer — güvenliği gevşetmez, yalnız kilit daha uzun sürer). */
+export const oranKovasiniUnut = async (anahtar: string): Promise<void> => {
+  await depo.unut?.(anahtar);
+};
+
+/**
+ * Bir kovanın sayacını artırır ve karara çevirir.
+ *
+ * `ozelAyar` NEDEN var: API uçlarının sınırı (dakikada 120 istek) ile giriş
+ * ucunun sınırı (kaba kuvvet için dakikalar içinde bir avuç deneme) aynı
+ * sayı OLAMAZ — API sınırını kaba kuvvete uygun daraltmak entegrasyonları
+ * kırar, giriş sınırını API'ye uygun genişletmek parola denemesini bedava
+ * yapar. İki çağıran aynı sayacı paylaşır ama kendi eşiğini getirir; depo
+ * tek yerde kalır, ikinci bir oran sınırı uygulaması doğmaz.
+ */
+export async function oranSinirla(
+  anahtar: string,
+  ozelAyar?: Partial<typeof ayar>,
+): Promise<OranKarari> {
+  const etkin = { ...ayar, ...ozelAyar };
   const simdi = Date.now();
-  const { sayac, sifirlanma } = await depo.artir(anahtar, ayar.pencereMs, simdi);
+  const { sayac, sifirlanma } = await depo.artir(anahtar, etkin.pencereMs, simdi);
   return {
-    izin: sayac <= ayar.sinir,
-    sinir: ayar.sinir,
-    kalan: Math.max(0, ayar.sinir - sayac),
+    izin: sayac <= etkin.sinir,
+    sinir: etkin.sinir,
+    kalan: Math.max(0, etkin.sinir - sayac),
     sifirlanma,
     yenidenDeneSn: Math.max(1, Math.ceil((sifirlanma - simdi) / 1000)),
   };

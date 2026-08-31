@@ -236,6 +236,9 @@ describe('Harness kusurları yakalıyor mu (mutasyon sınaması)', () => {
     return {
       tip: 'manual_import',
       baglanabilir: true,
+      // Vekil gerçek adaptörü taklit eder: beyanları da ondan devralır.
+      yapilandirmaSemasi: gercek.yapilandirmaSemasi,
+      gerekenSirlar: gercek.gerekenSirlar,
       testConnection: (b) => gercek.testConnection(b),
       discover: (b) => gercek.discover(b),
       fetchChanges: (b) => gercek.fetchChanges(b),

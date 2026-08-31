@@ -90,19 +90,39 @@ export async function temelOlarakOnayla(girdi: {
   } catch (e) { return hata(e); }
 }
 
-/** Anlığı yürürlükteki temelle karşılaştırır ve sapmaları yazar. */
+/**
+ * Anlığı yürürlükteki temelle karşılaştırır ve sapmaları yazar.
+ *
+ * Karşılaştırma bir KARAR DEĞİLDİR: yalnız farkı yazar, hiçbir sapmayı
+ * kapatmaz, hiçbir kaydı açmaz. Yazılan her sapma 'gozlendi' doğar.
+ *
+ * Sonuç FARK ÇIKMASA DA denetim izine yazılır. Sebep: /topoloji ekranı
+ * "sapma yok — son karşılaştırma X" diyebilmek için karşılaştırmanın
+ * yapıldığına dair kanıt arar; kanıt yoksa "bilinmiyor" der. İz olmadan
+ * hiç karşılaştırılmamış bir anlık ile farkı çıkmamış bir anlık aynı boş
+ * listeyle görünür ve ölçülmemiş sıfır "temiz" diye okunurdu.
+ */
 export async function anligiKarsilastirEylem(girdi: { anlikId: string }): Promise<
   Sonuc & { durum?: string; yazilan?: number }
 > {
   try {
     const v = z.object({ anlikId: z.string().min(1) }).parse(girdi);
     const anlik = await db.topolojiAnlik.findUniqueOrThrow({ where: { id: v.anlikId } });
-    await yetkiZorunlu('envanter', 'yazma', anlik.tesisId ? { tesisId: anlik.tesisId } : {});
+    const k = await yetkiZorunlu('envanter', 'yazma',
+      anlik.tesisId ? { tesisId: anlik.tesisId } : {});
     const sonuc = await anligiKarsilastir(v.anlikId);
-    yenile();
     if (sonuc.durum === 'temel_yok') {
+      // İz YAZILMAZ: karşılaştırma yapılmadı. Yazılsaydı ekran bunu
+      // "karşılaştırıldı, fark yok" sanardı.
       return { ok: false, hata: 'Onaylı topoloji temeli yok — sapma hesaplanmadı. Önce bir anlığı temel olarak onaylayın.' };
     }
+    await iz({
+      aktorId: k.id, varlikTipi: 'TopolojiAnlik', varlikId: v.anlikId,
+      eylem: 'karsilastirma', alan: 'sapmalar',
+      once: sonuc.temelAnlikId ? `temel: ${sonuc.temelAnlikId}` : null,
+      sonra: `${sonuc.durum} · ${sonuc.yazilan} sapma yazıldı`,
+    });
+    yenile();
     return { ok: true, durum: sonuc.durum, yazilan: sonuc.yazilan };
   } catch (e) { return hata(e); }
 }

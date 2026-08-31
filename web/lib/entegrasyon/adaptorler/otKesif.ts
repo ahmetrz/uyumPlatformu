@@ -1,5 +1,7 @@
 import 'server-only';
+import { z } from 'zod';
 import { BaglanmamisAdaptor } from '../sozlesme';
+import { AKTIF_ISLEM_YASAK, ORTAK_YAPILANDIRMA } from './ortak';
 
 /* ═══════════════════════════════════════════════════════════════════════
    OT varlık keşif ürünü (Claroty CTD · Nozomi Guardian · Dragos ·
@@ -67,6 +69,15 @@ import { BaglanmamisAdaptor } from '../sozlesme';
 
 export class OtKesifAdaptoru extends BaglanmamisAdaptor {
   readonly tip = 'ot_discovery';
+  readonly yapilandirmaSemasi = z.looseObject({
+    ...ORTAK_YAPILANDIRMA,
+    siteKapsami: z.array(z.string().min(1)).min(1).optional(),
+    /* Active Queries / Smart Polling kontrolcüye paket gönderir ve OT
+       sahibinin değişiklik yönetiminden geçer — bir CMDB
+       senkronizasyonundan tetiklenemez. */
+    aktifSorgulama: AKTIF_ISLEM_YASAK,
+  });
+  readonly gerekenSirlar = ['env:OT_KESIF_TOKEN'];
   readonly gereken =
     'Sahada kurulu pasif OT keşif ürünü (Claroty CTD / Nozomi Guardian / ' +
     'Dragos / Tenable.ot) ve konsolunda SALT OKUNUR API kullanıcısı: taban ' +

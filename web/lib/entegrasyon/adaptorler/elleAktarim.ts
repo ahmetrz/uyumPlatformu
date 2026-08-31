@@ -3,8 +3,9 @@ import type {
   Adaptor, AdaptorBaglami, BaglantiSonucu, CekmeSonucu, DogrulamaSonucu,
   Gozlem, SaglikSonucu, VarlikGozlemi,
 } from '../sozlesme';
+import { z } from 'zod';
 import { temelDogrula } from '../sozlesme';
-import { bosNull, icerikOzeti, kararliKimlik } from './ortak';
+import { ORTAK_YAPILANDIRMA, bosNull, icerikOzeti, kararliKimlik } from './ortak';
 
 /* ═══════════════════════════════════════════════════════════════════════
    ELLE AKTARIM — bu klasördeki TEK GERÇEKTEN ÇALIŞAN adaptör.
@@ -53,9 +54,27 @@ const KOLON_ADAYLARI: Record<string, string[]> = {
   kaynakKayitId: ['kaynakkayitid', 'kayitid', 'recordid', 'assetid', 'uuid', 'guid', 'objectid'],
 };
 
-/** "Serial Number" → "serialnumber"; Türkçe küçültme kullanılır. */
+/**
+ * "Serial Number" → "serialnumber", "Bölge Kodu" → "bolgekodu".
+ *
+ * NEDEN iki aşama: yalnız `toLocaleLowerCase('tr-TR')` kullanılıyordu ve
+ * bu, İngilizce başlıklardaki `I` harfini `ı` yapıyordu — "IP Address"
+ * "ıpaddress", "Record ID" "recordıd" oluyordu ve KOLON_ADAYLARI'ndaki
+ * ASCII karşılıklarıyla HİÇ eşleşmiyordu (kolon sessizce tanınmıyor,
+ * alan boş kalıyordu). Aynı sebeple "Üretici"/"Tür" gibi Türkçe başlıklar
+ * da 'uretici'/'tur' adaylarıyla eşleşemiyordu.
+ *
+ * Türkçe küçültme yine şart ('İ' → 'i'); ardından aday listesiyle aynı
+ * alfabeye inmek için Türkçe harfler ASCII karşılıklarına katlanır.
+ * Katlama YALNIZ karşılaştırma anahtarına uygulanır — kolon adının
+ * kendisi ham veride olduğu gibi durur.
+ */
 function kolonAnahtari(ad: string): string {
-  return ad.toLocaleLowerCase('tr-TR').replace(/[\s_\-./()]+/g, '');
+  return ad
+    .toLocaleLowerCase('tr-TR')
+    .replace(/[ıî]/g, 'i').replace(/ş/g, 's').replace(/ğ/g, 'g')
+    .replace(/[üû]/g, 'u').replace(/ö/g, 'o').replace(/ç/g, 'c')
+    .replace(/[\s_\-./()]+/g, '');
 }
 
 /** Ham başlıklardan normalize alan haritası çıkarır. */
@@ -172,6 +191,26 @@ export class ElleAktarimAdaptoru implements Adaptor {
   readonly tip = 'manual_import';
   /** Dış sistem gerektirmiyor: gerçekten bağlanabilir. */
   readonly baglanabilir = true;
+
+  /* Kaynağı olmayan bir elle aktarım connector'ı, ilk koşusunda
+     "kaynağı tanımlı değil" diye patlıyordu — yani yapılandırma hatası
+     kurulumdan saatler sonra, bir başarısız koşu olarak görünüyordu.
+     Şema onu kayıt anına çeker: `dosyaYolu` ya da `icerik`ten en az biri
+     ZORUNLU. */
+  readonly yapilandirmaSemasi = z.looseObject({
+    ...ORTAK_YAPILANDIRMA,
+    bicim: z.enum(['csv', 'json']).optional(),
+    dosyaYolu: z.string().min(1).optional(),
+    icerik: z.string().optional(),
+    kimlikKolonu: z.string().min(1).optional(),
+    esleme: z.record(z.string(), z.string()).optional(),
+  }).refine(
+    (y) => typeof y.dosyaYolu === 'string' || typeof y.icerik === 'string',
+    'Kaynak tanımlı değil: `dosyaYolu` ya da `icerik` gerekli',
+  );
+
+  /** Dosya/metin okur; hiçbir kimlik bilgisi gerektirmez. */
+  readonly gerekenSirlar: string[] = [];
 
   async testConnection(b: AdaptorBaglami): Promise<BaglantiSonucu> {
     try {

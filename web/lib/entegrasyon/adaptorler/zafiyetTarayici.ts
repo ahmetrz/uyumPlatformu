@@ -1,5 +1,7 @@
 import 'server-only';
+import { z } from 'zod';
 import { BaglanmamisAdaptor } from '../sozlesme';
+import { AKTIF_ISLEM_YASAK, ORTAK_YAPILANDIRMA } from './ortak';
 
 /* ═══════════════════════════════════════════════════════════════════════
    Zafiyet tarayıcı (Tenable · Qualys · Rapid7 · Tenable.ot) — BAĞLI DEĞİL.
@@ -52,6 +54,19 @@ import { BaglanmamisAdaptor } from '../sozlesme';
 
 export class ZafiyetTarayiciAdaptoru extends BaglanmamisAdaptor {
   readonly tip = 'vuln_scanner';
+  readonly yapilandirmaSemasi = z.looseObject({
+    ...ORTAK_YAPILANDIRMA,
+    /* OT bölgesinde yalnız pasif/agent tabanlı sonuç okunur; hangi
+       bölgelerin okunacağı LİSTE olmak zorundadır — '*' gibi bir metin
+       "hepsi" demektir ve kapsamı sessizce kaldırır. */
+    izinliBolgeler: z.array(z.string().min(1)).min(1).optional(),
+    sonucKapsami: z.enum(['agent', 'pasif', 'aktif']).optional(),
+    disaAktarimIzni: z.boolean().optional(),
+    /* Tarama BAŞLATMA yapılandırmayla bile açılamaz: OT'de aktif tarama
+       kontrolcü durdurabilir. */
+    taramaBaslat: AKTIF_ISLEM_YASAK,
+  });
+  readonly gerekenSirlar = ['env:VULN_API_ANAHTARI'];
   readonly gereken =
     'Tenable.io/Qualys/Rapid7 salt okunur API anahtarı (access + secret key, ' +
     'env:VULN_API_ANAHTARI) · tarayıcı konsolunun taban URL\'i · sonuçların ' +

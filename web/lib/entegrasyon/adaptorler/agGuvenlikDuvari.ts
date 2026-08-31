@@ -1,5 +1,7 @@
 import 'server-only';
+import { z } from 'zod';
 import { BaglanmamisAdaptor } from '../sozlesme';
+import { AKTIF_ISLEM_YASAK, ORTAK_YAPILANDIRMA } from './ortak';
 
 /* ═══════════════════════════════════════════════════════════════════════
    Ağ / güvenlik duvarı — firewall · switch ARP-MAC tablosu · DHCP ·
@@ -67,6 +69,15 @@ import { BaglanmamisAdaptor } from '../sozlesme';
 
 export class AgGuvenlikDuvariAdaptoru extends BaglanmamisAdaptor {
   readonly tip = 'network_firewall';
+  readonly yapilandirmaSemasi = z.looseObject({
+    ...ORTAK_YAPILANDIRMA,
+    /* Hedefler LİSTE olmak zorunda: '*' gibi bir metin, salt okunur
+       sorguların hangi cihazlara gideceğini belirsiz bırakır. */
+    izinliHedefler: z.array(z.string().min(1)).min(1).optional(),
+    /* Kural/konfigürasyon yazma hiçbir yapılandırmayla açılamaz. */
+    yazmaIzni: AKTIF_ISLEM_YASAK,
+  });
+  readonly gerekenSirlar = ['env:FW_API_ANAHTARI'];
   readonly gereken =
     'Ağ ekipmanında SALT OKUNUR yönetim hesabı ve API erişimi: Palo Alto ' +
     'için XML API anahtarı (env:FW_API_ANAHTARI) + salt okunur yönetici ' +

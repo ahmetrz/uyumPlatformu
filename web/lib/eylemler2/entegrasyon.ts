@@ -216,6 +216,31 @@ export async function connectorSenkronize(
   } catch (e) { return basarisiz(e); }
 }
 
+/**
+ * KURU KOŞU: senkronizasyonun ne yapacağını hesaplar, HİÇBİR ŞEY YAZMAZ.
+ *
+ * Yetki gerçek senkronizasyonla aynıdır ('yonetim/yazma'): kuru koşu dış
+ * sistemden veri ÇEKER ve kaynağın içeriğini raporlar — okuma yetkisiyle
+ * yapılacak bir iş değildir. Denetim izine ayrıca 'kuru' olarak yazılır ki
+ * geçmişte gerçek koşuyla karıştırılmasın.
+ */
+export async function connectorKuruKosu(
+  connectorId: string,
+): Promise<{ ok: true; ozet: KosuOzeti } | { ok: false; hata: string }> {
+  try {
+    const k = await yetkiZorunlu('yonetim', 'yazma');
+    const ozet = await senkronizasyonKos(connectorId, { tetikleyen: 'manuel', kuru: true });
+    await iz({
+      aktorId: k.id, varlikTipi: 'Connector', varlikId: connectorId,
+      eylem: 'kuru_kosu', alan: 'kosu',
+      sonra: `${ozet.durum} · ${ozet.ayrinti}`,
+      gerekce: ozet.hata,
+    });
+    revalidatePath('/saglik');
+    return { ok: true, ozet };
+  } catch (e) { return basarisiz(e); }
+}
+
 /** Connector'ı etkinleştirir/duraklatır. Pasif connector koşturulmaz. */
 export async function connectorEtkinlik(
   connectorId: string,

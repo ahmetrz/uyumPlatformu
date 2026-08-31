@@ -1,5 +1,7 @@
 import 'server-only';
+import { z } from 'zod';
 import { BaglanmamisAdaptor } from '../sozlesme';
+import { AKTIF_ISLEM_YASAK, ORTAK_YAPILANDIRMA } from './ortak';
 
 /* ═══════════════════════════════════════════════════════════════════════
    Yedekleme sistemi (Veeam · Commvault · NetBackup · Acronis) — BAĞLI DEĞİL.
@@ -52,6 +54,13 @@ import { BaglanmamisAdaptor } from '../sozlesme';
 
 export class YedeklemeAdaptoru extends BaglanmamisAdaptor {
   readonly tip = 'backup';
+  readonly yapilandirmaSemasi = z.looseObject({
+    ...ORTAK_YAPILANDIRMA,
+    isKapsami: z.array(z.string().min(1)).min(1).optional(),
+    /* Geri yükleme bir DEĞİŞİKLİK'tir ve insan onayına tabidir. */
+    geriYuklemeIzni: AKTIF_ISLEM_YASAK,
+  });
+  readonly gerekenSirlar = ['env:YEDEK_API_SIRRI'];
   readonly gereken =
     'Yedekleme konsolunda salt okunur (Backup Viewer / Restore Operator ' +
     'DEĞİL) hesap ve API erişimi: Veeam için Enterprise Manager taban URL\'i ' +

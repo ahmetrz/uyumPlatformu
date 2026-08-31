@@ -143,8 +143,17 @@ describe('Connector senkronizasyon çekirdeği (izole DB kopyası)', () => {
     expect(beklemeler).toEqual([1_000, 4_000]);      // üstel geri çekilme
     const sonra = await db.connector.findUniqueOrThrow({ where: { id: c.id } });
     expect(sonra.imlec).toBe('imlec-1');             // İLERLEMEDİ
-    expect(sonra.durum).toBe('hatali');
     expect(sonra.sonHata).toContain('ETIMEDOUT');
+    /* TEK başarısızlık connector'ı DURDURMAZ — yalnız sayacı artırır.
+       Bu satır eskiden `durum === 'hatali'` bekliyordu ve o beklenti bir
+       kusuru donduruyordu: zamanlayıcı `hatali` bir connector'ı bir daha
+       koşturmadığı için tek bir ağ zaman aşımı entegrasyonu KALICI olarak
+       durduruyordu. Devre kesici artık sayar (bkz.
+       tests/entegrasyon-hata-modeli.test.ts). */
+    expect(sonra.durum).not.toBe('hatali');
+    expect(sonra.ardisikHata).toBe(1);
+    expect(ikinci.devreKesildi).toBe(false);
+    expect(ikinci.hataSinifi).toBe('gecici');
     const kosu = await db.entegrasyonKosusu.findUniqueOrThrow({ where: { id: ikinci.kosuId! } });
     expect(kosu.durum).toBe('basarisiz');
     expect(kosu.bitis).not.toBeNull();               // 'calisiyor' kalmadı

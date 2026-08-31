@@ -4,4 +4,5 @@ const uyar = async (): Promise<Sonuc> => ({ ok: false, hata: 'Demo sürümü: de
 export const connectorKaydet = uyar;
 export const connectorTest = uyar;
 export const connectorSenkronize = uyar;
+export const connectorKuruKosu = uyar;
 export const connectorEtkinlik = uyar;

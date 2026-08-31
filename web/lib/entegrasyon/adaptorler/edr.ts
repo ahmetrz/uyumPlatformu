@@ -1,5 +1,7 @@
 import 'server-only';
+import { z } from 'zod';
 import { BaglanmamisAdaptor } from '../sozlesme';
+import { AKTIF_ISLEM_YASAK, ORTAK_YAPILANDIRMA } from './ortak';
 
 /* ═══════════════════════════════════════════════════════════════════════
    EDR / uç nokta koruması (CrowdStrike · Defender for Endpoint ·
@@ -50,6 +52,14 @@ import { BaglanmamisAdaptor } from '../sozlesme';
 
 export class EdrAdaptoru extends BaglanmamisAdaptor {
   readonly tip = 'edr';
+  readonly yapilandirmaSemasi = z.looseObject({
+    ...ORTAK_YAPILANDIRMA,
+    grupKapsami: z.array(z.string().min(1)).min(1).optional(),
+    /* İzolasyon/karantina bu adaptörden tetiklenmez; şema açılmasına
+       izin vermez. */
+    mudahaleIzni: AKTIF_ISLEM_YASAK,
+  });
+  readonly gerekenSirlar = ['env:EDR_ISTEMCI_SIRRI'];
   readonly gereken =
     'EDR konsolunda salt okunur API istemcisi: CrowdStrike için client id + ' +
     'secret ve "Hosts: Read" kapsamı (env:EDR_ISTEMCI_SIRRI); Defender için ' +

@@ -1,5 +1,7 @@
 import 'server-only';
+import { z } from 'zod';
 import { BaglanmamisAdaptor } from '../sozlesme';
+import { AKTIF_ISLEM_YASAK, ORTAK_YAPILANDIRMA } from './ortak';
 
 /* ═══════════════════════════════════════════════════════════════════════
    Active Directory / Microsoft Entra ID — BAĞLI DEĞİL.
@@ -57,6 +59,17 @@ import { BaglanmamisAdaptor } from '../sozlesme';
 
 export class AdEntraAdaptoru extends BaglanmamisAdaptor {
   readonly tip = 'ad_entra';
+  /* Yapılandırma yalnız KAPSAM taşır; uç nokta ve kiracı kimliği sır
+     referansıyla birlikte kurulumda verilir, şemada uydurulmaz. */
+  readonly yapilandirmaSemasi = z.looseObject({
+    ...ORTAK_YAPILANDIRMA,
+    kiraciTakmaAdi: z.string().min(1).optional(),
+    kullaniciKapsami: z.string().min(1).optional(),
+    cihazKapsami: z.string().min(1).optional(),
+    /* Dizinde YAZMA hiçbir yapılandırmayla açılamaz: bu adaptör okur. */
+    yazmaIzni: AKTIF_ISLEM_YASAK,
+  });
+  readonly gerekenSirlar = ['env:ENTRA_ISTEMCI_SIRRI'];
   readonly gereken =
     'Entra ID uygulama kaydı (tenant id + client id) · Directory.Read.All ve ' +
     'Device.Read.All uygulama izinleri (yönetici onayı verilmiş) · istemci sırrı ' +

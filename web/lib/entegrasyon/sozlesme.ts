@@ -1,4 +1,5 @@
 import 'server-only';
+import type { ZodType } from 'zod';
 
 /* Connector sözleşmesi — her adaptörün uyduğu tek arayüz.
 
@@ -140,6 +141,27 @@ export interface Adaptor {
   /** Bu adaptör gerçek bir dış sisteme bağlanabiliyor mu? false ise
       çekirdek onu koşturmaz ve sağlık ekranında "kimlik bekleniyor" yazar. */
   readonly baglanabilir: boolean;
+  /**
+   * Bu adaptörün kabul ettiği yapılandırma şeması.
+   *
+   * NEDEN sözleşmede: yanlış yapılandırma bugün ancak İLK KOŞUDA
+   * anlaşılıyor — kurulum hatası üretimde bir başarısız koşu olarak ortaya
+   * çıkıyor. Şema hatayı kayıt anına çeker. Ayrıca PASSIVE-FIRST kısıtları
+   * (aktif sorgulama/tarama/müdahale izni) şemada durur: adaptör
+   * gövdesindeki bir `if` unutulabilir, şema unutulamaz.
+   *
+   * Şemalar GEVŞEKTİR (`z.looseObject`): çekirdek kendi anahtarlarını
+   * (tesisKodu, kapsamTesisKodlari) aynı nesnede taşır ve kaynak sürüm
+   * atlayınca yeni ayar gelebilir.
+   */
+  readonly yapilandirmaSemasi: ZodType;
+  /**
+   * Bu adaptörün çalışması için gereken sır REFERANSLARI (değerleri değil):
+   * ör. `['env:ENTRA_ISTEMCI_SIRRI']`. Boş dizi = hiç sır gerekmiyor.
+   * Sertifikasyon ve sağlık ekranı, sırrı ÇÖZMEDEN `sirVarMi()` ile
+   * varlığını sorar; `bilinmiyor` yanıtı `yok` ile karıştırılmaz.
+   */
+  readonly gerekenSirlar: string[];
 
   testConnection(b: AdaptorBaglami): Promise<BaglantiSonucu>;
   /** kaynak sistemdeki kapsamı keşfeder (kaç kayıt, hangi alanlar) */
@@ -160,6 +182,12 @@ export interface Adaptor {
 export abstract class BaglanmamisAdaptor implements Adaptor {
   abstract readonly tip: string;
   readonly baglanabilir = false;
+  /* Bağlanmamış adaptör de bunları BEYAN EDER: hangi ayarların geçerli
+     olduğu ve hangi sırların isteneceği, bağlantı gelmeden önce bilinen ve
+     denetlenebilir olması gereken şeylerdir. Varsayılan verilmez —
+     varsayılan, "sır gerekmiyor" gibi yanlış bir beyan üretirdi. */
+  abstract readonly yapilandirmaSemasi: ZodType;
+  abstract readonly gerekenSirlar: string[];
   /** bu tipin gerçekten bağlanması için ne gerekiyor — sağlık ekranı gösterir */
   abstract readonly gereken: string;
 

@@ -35,6 +35,12 @@ export type KokenGirdisi = {
   toplanma?: Date | null;
   /** 0–1. Ölçülmediyse GEÇME — null kalsın. */
   guven?: number | null;
+  /** Kaydın hangi eşleme profili SÜRÜMÜYLE yorumlandığı. Eşleme değişince
+      eski içe aktarımın kuralı kaybolmasın diye kökene yazılır; null =
+      profil yok (adaptörün gömülü eşlemesi). */
+  eslemeProfilSurumu?: number | null;
+  /** Ham kaynak kaydının özeti (SHA-256). null = hesaplanmadı. */
+  kayitOzeti?: string | null;
 };
 
 /**
@@ -74,12 +80,20 @@ export async function kokenYaz(
       kosuId: g.kosuId ?? null,
       toplanma: g.toplanma ?? null,
       guven: g.guven ?? null,
+      eslemeProfilSurumu: g.eslemeProfilSurumu ?? null,
+      kayitOzeti: g.kayitOzeti ?? null,
     },
     update: {
       connectorId: g.connectorId ?? null,
       kosuId: g.kosuId ?? null,
       toplanma: g.toplanma ?? null,
       guven: g.guven ?? null,
+      /* Eşleme sürümü YALNIZ çağıran bildirdiğinde yazılır. `?? null`
+         yazılsaydı, sürüm bilmeyen bir çağıran (elle içe aktarım) kaydı
+         yeniden kökenlediğinde satırın hangi kuralla yorumlandığı SİLİNİRDİ
+         — eşleme geçmişini bozmanın en sessiz yolu buydu. */
+      ...(g.eslemeProfilSurumu !== undefined ? { eslemeProfilSurumu: g.eslemeProfilSurumu } : {}),
+      ...(g.kayitOzeti !== undefined ? { kayitOzeti: g.kayitOzeti } : {}),
       aktarim: new Date(),
     },
   });

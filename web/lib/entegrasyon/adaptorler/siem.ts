@@ -1,5 +1,7 @@
 import 'server-only';
+import { z } from 'zod';
 import { BaglanmamisAdaptor } from '../sozlesme';
+import { AKTIF_ISLEM_YASAK, ORTAK_YAPILANDIRMA } from './ortak';
 
 /* ═══════════════════════════════════════════════════════════════════════
    SIEM / log platformu (Splunk · Microsoft Sentinel · QRadar · Elastic)
@@ -57,6 +59,16 @@ import { BaglanmamisAdaptor } from '../sozlesme';
 
 export class SiemAdaptoru extends BaglanmamisAdaptor {
   readonly tip = 'siem';
+  readonly yapilandirmaSemasi = z.looseObject({
+    ...ORTAK_YAPILANDIRMA,
+    /* Boş liste ile hiç vermemek AYNI ŞEY DEĞİL: boş liste "hiçbir index
+       okunmayacak" demektir ve connector'ı sessizce çalışmaz yapar. */
+    indexKapsami: z.array(z.string().min(1)).min(1).optional(),
+    otSourcetype: z.string().min(1).optional(),
+    /* Playbook/otomasyon tetikleme YASAK. */
+    playbookIzni: AKTIF_ISLEM_YASAK,
+  });
+  readonly gerekenSirlar = ['env:SIEM_TOKEN'];
   readonly gereken =
     'SIEM üzerinde salt okunur arama hesabı ve token: Splunk için ' +
     'HEC/REST token + arama yetkisi olan rol (env:SIEM_TOKEN); Sentinel ' +

@@ -1,5 +1,6 @@
 import 'server-only';
 import { createHash } from 'node:crypto';
+import { z } from 'zod';
 
 /* Adaptörlerin paylaştığı küçük yardımcılar.
 
@@ -46,3 +47,34 @@ export function kararliKimlik(
 export function icerikOzeti(icerik: string): string {
   return createHash('sha256').update(icerik).digest('hex').slice(0, 16);
 }
+
+/* ═══ Yapılandırma şemaları ═══════════════════════════════════════════
+
+   Her adaptör kendi yapılandırma şemasını BEYAN eder (`Adaptor.
+   yapilandirmaSemasi`). Neden: connector kaydı ekrandan ya da API'den
+   geliyor ve yanlış yapılandırma bugün ancak İLK KOŞUDA anlaşılıyor —
+   yani kurulum hatası, üretimde bir başarısız koşu olarak ortaya çıkıyor.
+   Şema, hatayı kayıt anına çeker.
+
+   Şemalar GEVŞEKTİR (`looseObject`): tanınmayan anahtar kaydı düşürmez,
+   çünkü çekirdek kendi anahtarlarını (tesisKodu, kapsamTesisKodlari) aynı
+   nesnede taşır ve kaynak sürüm atlayınca yeni ayar gelebilir. Şemanın işi
+   bilinen alanların TİPİNİ ve güvenlik kısıtlarını tutmaktır. */
+
+/** Çekirdeğin okuduğu ortak yapılandırma anahtarları. */
+export const ORTAK_YAPILANDIRMA = {
+  /** connector'ın varsayılan santrali */
+  tesisKodu: z.string().min(1).optional(),
+  /** connector'ın YAZABİLECEĞİ santraller — kapsam sınırı */
+  kapsamTesisKodlari: z.array(z.string().min(1)).optional(),
+} as const;
+
+/**
+ * PASSIVE-FIRST kısıtı: aktif sorgulama/tarama/müdahale izni yapılandırma
+ * ile bile açılamaz. `false` dışında bir değer şemadan geçmez.
+ *
+ * Bu kısıtın şemada durması bilinçli: adaptör gövdesinde bir `if` olarak
+ * dursaydı, adaptör yazılırken unutulabilirdi. Burada unutulamaz —
+ * yapılandırma kaydedilirken reddedilir.
+ */
+export const AKTIF_ISLEM_YASAK = z.literal(false).optional();

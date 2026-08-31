@@ -5,6 +5,7 @@ import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
 import path from 'node:path';
 import { randomBytes, scryptSync } from 'node:crypto';
 import { operasyonVerisi } from './seed-operasyon';
+import { uyumKatalogu } from './seed-uyum';
 
 const parolaUret = (parola: string) => {
   const tuz = randomBytes(16).toString('hex');
@@ -717,6 +718,8 @@ async function main() {
 
   // Operasyonel katman (CMDB, ömür, yedekleme, erişim, tedarikçi) ayrı dosyada.
   await operasyonVerisi(db);
+  // Uyum matrisi beş kontrol ailesiyle çalışır; katalog genişletmesi ayrı dosyada.
+  await uyumKatalogu(db);
 
   console.log('Seed tamam. Geliştirme girişi: ahmet.terzi@zorlu.com / ' + GELISTIRME_PAROLASI);
 }

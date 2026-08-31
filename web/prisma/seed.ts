@@ -6,6 +6,7 @@ import path from 'node:path';
 import { randomBytes, scryptSync } from 'node:crypto';
 import { operasyonVerisi } from './seed-operasyon';
 import { uyumKatalogu } from './seed-uyum';
+import { denetimVeProje } from './seed-denetim-proje';
 
 const parolaUret = (parola: string) => {
   const tuz = randomBytes(16).toString('hex');
@@ -720,6 +721,8 @@ async function main() {
   await operasyonVerisi(db);
   // Uyum matrisi beş kontrol ailesiyle çalışır; katalog genişletmesi ayrı dosyada.
   await uyumKatalogu(db);
+  // Denetim zaman çizelgesi ve dönüşüm portföyü faz/bütçe/zincir kayıtları.
+  await denetimVeProje(db);
 
   console.log('Seed tamam. Geliştirme girişi: ahmet.terzi@zorlu.com / ' + GELISTIRME_PAROLASI);
 }

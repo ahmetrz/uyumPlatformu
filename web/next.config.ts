@@ -6,6 +6,13 @@ import path from 'node:path';
 const demo = process.env.NEXT_PUBLIC_DEMO === '1';
 
 const nextConfig: NextConfig = {
+  // API route dosyaları `route.api.ts` adını taşır. Demo (statik dışa aktarım)
+  // derlemesinde 'api.ts' uzantısı pageExtensions'ta YOKTUR; böylece Next
+  // bu dosyaları route saymaz ve POST/Request'e bağlı uçlar demo yayınına
+  // hiç girmez (statik dışa aktarım yalnız GET + force-static kaldırır).
+  pageExtensions: demo
+    ? ['tsx', 'ts', 'jsx', 'js']
+    : ['tsx', 'ts', 'jsx', 'js', 'api.ts'],
   ...(demo
     ? {
         output: 'export' as const,

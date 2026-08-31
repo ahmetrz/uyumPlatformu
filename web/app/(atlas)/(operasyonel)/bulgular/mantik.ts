@@ -1,5 +1,5 @@
 import type { Durum } from '@/components/atlas/temel';
-import { BULGU_DURUM_ETIKET, etiketle, zamanTR } from '@/lib/sabitler';
+import { etiketle, zamanTR } from '@/lib/sabitler';
 
 /* O7 · bulgu → aksiyon → doğrulama ilerlemesinin tek türetme yeri.
    Liste ekranı ve kayıt ekranı aynı kuralları kullanır, böylece bir satırın
@@ -28,30 +28,37 @@ export function acikMi(durum: string): boolean {
   return durum !== 'kapali' && durum !== 'kabul_edildi';
 }
 
-/* Şemada olmayan ama veride bulunan durum: `dogrulamada`. Sözlük merkezî
-   olarak genişletilene kadar burada karşılanır (rapora bakınız). */
-const EK_DURUM_SOZU: Record<string, string> = { dogrulamada: 'Doğrulamada' };
-
-/** Kayıt durumunun Türkçe karşılığı — yalnız çekmece/panel metinlerinde. */
-export function bulguDurumSozu(durum: string): string {
-  return EK_DURUM_SOZU[durum]
-    ?? BULGU_DURUM_ETIKET[durum as keyof typeof BULGU_DURUM_ETIKET]
-    ?? etiketle(durum);
-}
-
 const GUN = 86_400_000;
+
+/* Termin matematiği GÜN çözünürlüğündedir ve sunucu ile istemcide AYNI
+   sonucu vermek zorundadır: ham Date.now() sunucu render'ı ile hidrasyon
+   arasında oynadığı için yüzde/gün değerleri uyuşmazlığa düşüyordu.
+   Günün başlangıcına yuvarlamak hem hidrasyonu hem semantiği düzeltir —
+   "bugün teslim" bir kayıt gün bitmeden gecikmiş sayılmaz. */
+export function bugunAn(): number {
+  return Math.floor(Date.now() / GUN) * GUN;
+}
 
 /** Gecikmiş = hedefTarih < bugün ve durum kapalı değil. Değilse null. */
 export function gecikmeGunu(b: { durum: string; hedef: string | null }): number | null {
   if (!b.hedef || !acikMi(b.durum)) return null;
-  const fark = Date.now() - new Date(b.hedef).getTime();
+  const fark = bugunAn() - new Date(b.hedef).getTime();
   return fark > 0 ? Math.max(1, Math.floor(fark / GUN)) : null;
 }
 
 /** Termine kalan gün (geçmişse negatif); hedef yoksa null. */
 export function kalanGun(b: { durum: string; hedef: string | null }): number | null {
   if (!b.hedef || !acikMi(b.durum)) return null;
-  return Math.ceil((new Date(b.hedef).getTime() - Date.now()) / GUN);
+  return Math.ceil((new Date(b.hedef).getTime() - bugunAn()) / GUN);
+}
+
+/* Doğrulama, ürünün modelinde `Aksiyon.dogrulamaDurumu` ile taşınır. Bir
+   bulgu ancak İŞ BİTTİĞİNDE doğrulama bekler: `devam` durumundaki bir
+   aksiyonun `bekliyor` işareti "sonra doğrulanacak" demektir, "şu an
+   takıldı" demek değildir. */
+export function dogrulamaBekleyenAksiyon(b: BulguOzeti): AksiyonOzeti | null {
+  return b.aksiyonlar.find((a) => a.durum === 'tamamlandi' && a.dogrulama === 'bekliyor')
+    ?? null;
 }
 
 export function aksiyonAcikMi(a: AksiyonOzeti): boolean {
@@ -62,7 +69,7 @@ export function aksiyonAcikMi(a: AksiyonOzeti): boolean {
 export function aksiyonImi(a: AksiyonOzeti): Durum {
   if (a.durum === 'tamamlandi') return 'ok';
   if (a.durum === 'iptal') return 'unk';
-  if (a.hedef && new Date(a.hedef).getTime() < Date.now()) return 'bd';
+  if (a.hedef && new Date(a.hedef).getTime() < bugunAn()) return 'bd';
   return a.durum === 'devam' ? 'md' : 'pl';
 }
 
@@ -123,7 +130,7 @@ export function dogrulamaHucresi(b: BulguOzeti): DogrulamaHucresi {
     };
   }
 
-  const bekleyen = b.aksiyonlar.find((a) => a.dogrulama === 'bekliyor');
+  const bekleyen = dogrulamaBekleyenAksiyon(b);
   if (bekleyen) {
     return {
       im: 'unk', ad: 'Doğrulama · retest bekliyor', soz: 'Retest bekliyor',
@@ -152,14 +159,25 @@ export function dogrulamaHucresi(b: BulguOzeti): DogrulamaHucresi {
     };
   }
 
-  if (b.durum === 'dogrulamada') {
-    return {
-      im: 'unk', ad: 'Doğrulama · kayıt doğrulamada', soz: 'Doğrulamada', olgu: '',
-      kanit: 'Kayıt doğrulama aşamasında; retest kanıtı henüz bağlanmadı.',
-    };
-  }
-
   return { im: null, ad: 'Doğrulama · kayıt yok', soz: 'Doğrulama kaydı yok', olgu: '', kanit: null };
+}
+
+/* Aksiyon satırının doğrulama hücresi — bulgu satırıyla aynı kural:
+   işaretçi durumu, metin yalnız kanıt olgusunu taşır. */
+export function aksiyonDogrulamaHucresi(a: AksiyonOzeti): DogrulamaHucresi {
+  if (a.dogrulama === 'gerekmez') {
+    return { im: null, ad: 'Doğrulama · gerekmez', soz: 'Gerekmez', olgu: '', kanit: null };
+  }
+  const im: Durum = a.dogrulama === 'dogrulandi' ? 'ok'
+    : a.dogrulama === 'reddedildi' ? 'bd' : 'unk';
+  const olgu = a.dogrulamaTarihi ? `retest ${kisaTarih(a.dogrulamaTarihi)}`
+    : a.dogrulayan ?? '';
+  return {
+    im, ad: `Doğrulama · ${etiketle(a.dogrulama)}`, soz: etiketle(a.dogrulama), olgu,
+    kanit: [a.dogrulayan && `doğrulayan ${a.dogrulayan}`,
+      a.dogrulamaTarihi && zamanTR(a.dogrulamaTarihi), a.not]
+      .filter(Boolean).join(' · ') || 'Retest kanıtı girilmedi.',
+  };
 }
 
 function retestKaniti(a: AksiyonOzeti, b: BulguOzeti): string {
@@ -172,12 +190,14 @@ function retestKaniti(a: AksiyonOzeti, b: BulguOzeti): string {
   ].filter(Boolean).join(' · ') || 'Retest kanıtı girilmedi.';
 }
 
-/** Doğrulama bekleyen: metriklerde ve satır işaretçisinde aynı tanım. */
+/* Doğrulama bekleyen: metrik, satır işaretçisi ve aşama göstergesi AYNI
+   tanımı kullanır — kayıt etiketinden değil, iş durumundan türer.
+     · tamamlanmış bir aksiyonun doğrulaması bekliyor, ya da
+     · bulgu retest gerektiriyor ve sonucu girilmemiş. */
 export function dogrulamaBekliyorMu(b: BulguOzeti): boolean {
   if (!acikMi(b.durum)) return false;
-  if (b.durum === 'dogrulamada') return true;
-  const h = dogrulamaHucresi(b);
-  return h.im === 'unk' || h.im === 'md';
+  if (dogrulamaBekleyenAksiyon(b)) return true;
+  return b.retestGerekli && !b.retestSonucu;
 }
 
 /** Satır işaretçisi. Gecikme her şeyin önündedir. */

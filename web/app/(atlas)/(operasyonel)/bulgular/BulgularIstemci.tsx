@@ -9,11 +9,11 @@ import {
 } from '@/components/atlas/cekmece';
 import { exceleAktar, pdfYazdir } from '@/components/disaAktar';
 import {
-  ONEM_DERECELERI, ONEM_ETIKET, AKSIYON_ETIKET,
+  ONEM_DERECELERI, ONEM_ETIKET, AKSIYON_ETIKET, BULGU_DURUM_ETIKET,
   etiketle, eylemCumlesi, tarihTR, zamanTR, type Onem,
 } from '@/lib/sabitler';
 import {
-  acikMi, aksiyonAcikMi, aksiyonImi, bulguDurumSozu, bulguImi, dogrulamaBekliyorMu,
+  acikMi, aksiyonAcikMi, aksiyonImi, bulguImi, dogrulamaBekliyorMu,
   dogrulamaHucresi, gecikmeGunu, kalanGun, kisaTarih, surukleyenAksiyon,
   type AksiyonOzeti, type DogrulamaHucresi as DogrulamaVerisi,
 } from './mantik';
@@ -250,7 +250,8 @@ export default function BulgularIstemci({ bulgular }: { bulgular: Bulgu[] }) {
                 <DisaAktar satirlar={suzulmus.map((s) => [
                   s.b.baslik, s.b.maddeKod, s.b.tesisKod, s.b.surecKod,
                   ONEM_ETIKET[s.b.onem as Onem] ?? etiketle(s.b.onem),
-                  bulguDurumSozu(s.b.durum),
+                  BULGU_DURUM_ETIKET[s.b.durum as keyof typeof BULGU_DURUM_ETIKET]
+                    ?? etiketle(s.b.durum),
                   s.aksiyon?.baslik ?? '', s.sahip ?? '',
                   s.b.hedef ? tarihTR(s.b.hedef) : '', s.gecikme ?? '',
                   s.dogrulama.kanit ?? '',
@@ -509,7 +510,8 @@ function BulguCekmecesi({ veri, kapat }: { veri: Secim; kapat: () => void }) {
 
       <CekmeceAlanlar alanlar={[
         { etiket: 'Önem', deger: ONEM_ETIKET[b.onem as Onem] ?? etiketle(b.onem) },
-        { etiket: 'Kayıt durumu', deger: bulguDurumSozu(b.durum) },
+        { etiket: 'Kayıt durumu',
+          deger: BULGU_DURUM_ETIKET[b.durum as keyof typeof BULGU_DURUM_ETIKET] ?? etiketle(b.durum) },
         { etiket: 'Santral', deger: b.tesisAd },
         { etiket: 'Sahip', deger: sahip ?? '—' },
         { etiket: 'Son tarih',

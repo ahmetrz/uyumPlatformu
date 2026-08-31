@@ -2,7 +2,7 @@
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import {
-  Im, Dugme, Alan, BosIlk, Hata, type Durum,
+  Im, Ipucu, Dugme, Alan, BosIlk, Hata, type Durum,
 } from '@/components/atlas/temel';
 import { Tablo, type Satir } from '@/components/atlas/tablo';
 import { EkranBasligi, Asamalar, KipDegistir } from '@/components/atlas/ekran';
@@ -14,11 +14,13 @@ import BaglamCubugu from '@/components/atlas/BaglamCubugu';
 import { useEylem } from '@/components/useEylem';
 import { bulguGuncelle, aksiyonEkle, aksiyonDurumDegistir, kanitEkle } from '@/lib/eylemler';
 import {
-  ONEM_DERECELERI, ONEM_ETIKET, BULGU_DURUMLARI,
+  ONEM_DERECELERI, ONEM_ETIKET, BULGU_DURUMLARI, BULGU_DURUM_ETIKET,
   AKSIYON_DURUMLARI, AKSIYON_ETIKET, kanitTazelik, etiketle, eylemCumlesi, zamanTR,
 } from '@/lib/sabitler';
 import {
-  aksiyonAcikMi, aksiyonImi, bulguDurumSozu, bulguImi, dogrulamaHucresi, gecikmeGunu, kisaTarih,
+  aksiyonAcikMi, aksiyonDogrulamaHucresi, aksiyonImi, bugunAn, bulguImi,
+  dogrulamaBekliyorMu, dogrulamaHucresi, gecikmeGunu,
+  kisaTarih,
   surukleyenAksiyon,
   type AksiyonOzeti,
 } from '../mantik';
@@ -69,16 +71,18 @@ export default function BulguDetayIstemci({ veri }: { veri: Veri }) {
   const acikAksiyon = veri.aksiyonlar.filter(aksiyonAcikMi).length;
   const aksiyon = veri.aksiyonlar.find((a) => a.id === seciliAksiyon) ?? null;
 
-  /* Aşama: bulgu → aksiyon → doğrulama → kapanış. */
+  /* Aşama: bulgu → aksiyon → doğrulama → kapanış. Kayıt etiketinden DEĞİL,
+     iş durumundan türer: aksiyon sürüyorsa "Aksiyon", bittiyse "Doğrulama".
+     Beklemenin kendisi metrikle aynı yerden gelir (dogrulamaBekliyorMu). */
+  const dogrulamaBekliyor = dogrulamaBekliyorMu(veri);
   const asamaIndeksi = veri.durum === 'kapali' ? 3
-    : veri.durum === 'dogrulamada' ? 2
-      : veri.aksiyonlar.length === 0 ? 0
-        : acikAksiyon > 0 ? 1 : 2;
+    : veri.aksiyonlar.length === 0 ? 0
+      : acikAksiyon > 0 ? 1 : 2;
 
   const asamaTarihleri = [
     kisaTarih(veri.tespit),
     veri.aksiyonlar.length ? `${biten}/${veri.aksiyonlar.length}` : undefined,
-    dogrulama.im ? dogrulama.soz : undefined,
+    dogrulamaBekliyor || dogrulama.im ? dogrulama.soz : undefined,
     veri.kapanma ? kisaTarih(veri.kapanma) : veri.hedef ? kisaTarih(veri.hedef) : undefined,
   ];
 
@@ -94,9 +98,7 @@ export default function BulguDetayIstemci({ veri }: { veri: Veri }) {
     hucreler: [
       a.sorumlu ?? <span key="s" style={{ color: 'var(--i3)' }}>—</span>,
       a.hedef ? kisaTarih(a.hedef) : <span key="h" style={{ color: 'var(--i3)' }}>—</span>,
-      a.dogrulama === 'gerekmez'
-        ? <span key="d" style={{ color: 'var(--i3)' }}>—</span>
-        : etiketle(a.dogrulama),
+      <DogrulamaHucresi key="d" hucre={aksiyonDogrulamaHucresi(a)} />,
     ],
   }));
 
@@ -246,14 +248,8 @@ export default function BulguDetayIstemci({ veri }: { veri: Veri }) {
                     <Alan etiket="Durum">
                       <select className="gr" value={veri.durum} disabled={bekliyor}
                         onChange={(e) => guncelle('durum', e.target.value)}>
-                        {/* Kayıt, sözlükte olmayan bir durumdaysa (ör. `dogrulamada`)
-                            seçenek olarak gösterilir ama seçilemez — aksi hâlde
-                            <select> yanlış bir değer gösterir ve tek tıkla değiştirir. */}
-                        {!BULGU_DURUMLARI.includes(veri.durum as (typeof BULGU_DURUMLARI)[number]) && (
-                          <option value={veri.durum} disabled>{bulguDurumSozu(veri.durum)}</option>
-                        )}
                         {BULGU_DURUMLARI.map((d) => (
-                          <option key={d} value={d}>{bulguDurumSozu(d)}</option>
+                          <option key={d} value={d}>{BULGU_DURUM_ETIKET[d]}</option>
                         ))}
                       </select>
                     </Alan>
@@ -417,6 +413,20 @@ export default function BulguDetayIstemci({ veri }: { veri: Veri }) {
   );
 }
 
+/* İşaretçi doğrulamanın durumunu taşır; metin yalnız kanıt olgusunu yazar
+   — durum sözcüğü canvasta tekrarlanmaz (06 §A2). */
+function DogrulamaHucresi({ hucre }: { hucre: ReturnType<typeof aksiyonDogrulamaHucresi> }) {
+  if (!hucre.im) return <span style={{ color: 'var(--i3)' }}>—</span>;
+  const govde = (
+    <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--s10)', minWidth: 0 }}>
+      <Im durum={hucre.im} ad={hucre.ad} />
+      {hucre.olgu && <span style={{ minWidth: 0, flex: '1 1 auto', overflow: 'hidden',
+        textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{hucre.olgu}</span>}
+    </span>
+  );
+  return hucre.kanit ? <Ipucu metin={hucre.kanit} genis>{govde}</Ipucu> : govde;
+}
+
 /* ── Aksiyon paneli ─────────────────────────────────────────────────── */
 
 function AksiyonPaneli({
@@ -537,7 +547,7 @@ function zamanKartlari(veri: Veri): {
   }
 
   ham.sort((x, y) => x.an - y.an);
-  const simdi = Date.now();
+  const simdi = bugunAn();
   const enKucuk = Math.min(ham[0].an, simdi);
   const enBuyuk = Math.max(ham[ham.length - 1].an, simdi);
   const acikGenislik = Math.max(enBuyuk - enKucuk, 86_400_000);

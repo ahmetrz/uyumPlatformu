@@ -509,7 +509,9 @@ export async function cerceveleriYukle(
       gorunenAd: cerceveAdi(reg.kod),
       ad: reg.ad,
       surum: reg.surum,
-      surumEtiketi: reg.surumler[0]?.surumEtiketi ?? reg.surum,
+      // Sürüm gösterimi: önce regülasyonun kendi sürümü (2024, VII-128.9),
+      // sonra aktif FrameworkSurumu etiketi. "mevcut" gibi yer tutucular sona düşer.
+      surumEtiketi: reg.surum ?? reg.surumler[0]?.surumEtiketi ?? null,
       yururluk: reg.yururlukTarih?.toISOString() ?? null,
       aileler,
       satirlar,

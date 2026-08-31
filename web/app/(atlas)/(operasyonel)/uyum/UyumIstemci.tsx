@@ -28,13 +28,6 @@ import {
    `UygulanabilirlikKarari` belirler (veri.ts). Kapsam dışı ve kararsız
    tesisler matrise girmez, altta sessiz bir satırda özetlenir. */
 
-/* Kapsam dışı hücre BOŞ kalır — kapsam dışı, "bilinmeyen" değildir, o yüzden
-   elmas basılmaz. `Matris` bugün boş hücre kabul etmiyor (kolon başına bir
-   `Durum` bekliyor); sınıf karşılığı olmayan bir işaretçi görünmez kalır ve
-   erişilebilir adı hücrenin neden boş olduğunu söyler.
-   Kalıcı çözüm: raporda "PAYLAŞILAN DEĞİŞİKLİK İSTEĞİ" (Matris · durum null). */
-const BOS_HUCRE = 'kapsamdisi' as unknown as Durum;
-
 /* 10px mono affordance satırındaki bağlantılar satırın tipografisini bozmaz;
    ayırt edici olan renk (ink/secondary) ve hover. */
 const BAG_STILI = {
@@ -47,6 +40,19 @@ type Secim = { tesisId: string; kontrol: Kontrol; aileId: string };
     `/uyum?kontrol=EPDK-SYM-4.2.1` → o kontrolün çerçevesi + ailesi açılır
     (O2 alt maddesinden gelen sıçrama). */
 type Odak = { cerceve: string; aile: string | null; madde: string | null };
+
+/* Kapsam URL'de yaşar: çerçeve değiştirici paylaşılabilir bir bağlantı üretmeli
+   ama tarayıcı geçmişini kirletmemeli — `components/atlas/kapsam.ts` sözleşmesi:
+   seçim `push`, kapsam `replace`.
+   Statik dışa aktarımda sunucu `searchParams` okuyamadığı için Next'in native
+   History API köprüsü kullanılır; `useSearchParams` kendiliğinden senkron kalır. */
+function kapsamiYaz(cerceveKodu: string) {
+  if (typeof window === 'undefined') return;
+  const p = new URLSearchParams(window.location.search);
+  p.set('cerceve', cerceveKodu);
+  p.delete('kontrol');   // kırılım çerçeveyle birlikte sıfırlanır
+  window.history.replaceState(null, '', `?${p.toString()}`);
+}
 
 function acilisOdagi(
   cerceveler: CerceveVerisi[], kontrolParam: string | null, cerceveParam: string | null,
@@ -82,19 +88,31 @@ export default function UyumIstemci({
   function cerceveSec(kod: string) {
     setOdak({ cerceve: kod, aile: null, madde: null });
     setSecim(null);
+    kapsamiYaz(kod);
   }
 
   function kirilimiSifirla() {
     setOdak((o) => ({ ...o, aile: null, madde: null }));
     setSecim(null);
+    kapsamiYaz(odak.cerceve);
   }
 
   /* ── kolonlar: aile kırılımı (varsayılan) ya da tek ailenin yaprakları ── */
   const aile = odakAile ? cerceve?.aileler.find((a) => a.id === odakAile) ?? null : null;
   const kolonlar = useMemo(() => {
     if (!cerceve) return [];
-    if (aile) return aile.yapraklar.map((y) => ({ id: y.id, baslik: y.kisaKod, aileId: aile.id }));
-    return cerceve.aileler.map((a) => ({ id: a.id, baslik: a.kisa, aileId: a.id }));
+    /* Sütun başlığı çerçeve detayını o ailede açar (03-screens O1). */
+    if (aile) {
+      return aile.yapraklar.map((y) => ({
+        id: y.id, baslik: y.kisaKod, aileId: aile.id,
+        yol: `/uyum/${cerceve.kod}?aile=${encodeURIComponent(aile.kod)}`
+          + `&kontrol=${encodeURIComponent(y.kod)}`,
+      }));
+    }
+    return cerceve.aileler.map((a) => ({
+      id: a.id, baslik: a.kisa, aileId: a.id,
+      yol: `/uyum/${cerceve.kod}?aile=${encodeURIComponent(a.kod)}`,
+    }));
   }, [cerceve, aile]);
 
   /* ── satırlar: her hücre bir işaretçi + tek satırlık ipucu ─────────── */
@@ -129,8 +147,11 @@ export default function UyumIstemci({
     ad: v.satir.ad,
     alt: v.satir.alt,
     sakin: v.sakin,
+    /* Satır etiketi santralin kendi ekranına gider; hücre çekmeceyi açar. */
+    yol: `/tesisler/${v.satir.id}`,
     hucreler: v.hucreler.map((h) => ({
-      durum: h.durum ?? BOS_HUCRE,
+      /* null → hücre boş kalır: kapsam dışı, bilinmeyen DEĞİLDİR. */
+      durum: h.durum,
       ipucu: h.kontrol
         ? (h.durum === null ? `${h.kontrol.kisaKod} · bu tesiste kapsam dışı` : h.kontrol.ipucu)
         : 'Bu ailede kontrol tanımlı değil',
@@ -235,7 +256,7 @@ export default function UyumIstemci({
               )}
 
               <Matris
-                kolonBasliklari={kolonlar.map((k) => k.baslik)}
+                kolonBasliklari={kolonlar.map((k) => ({ ad: k.baslik, yol: k.yol }))}
                 satirlar={matrisSatirlari}
                 secili={secim?.tesisId ?? null}
                 sec={(satirId, kolon) => {
@@ -246,20 +267,10 @@ export default function UyumIstemci({
                 }}
               />
 
-              {/* 10px mono affordance satırı — sütun başlığı bugün tıklanabilir
-                  değil (primitif sınırı), aile detayı buradan açılır. */}
+              {/* 10px mono affordance satırı */}
               <p className="dip-not">
-                Hücreye gelince özet · tıklayınca çekmece
-                {!aile && ' · aile detayı: '}
-                {!aile && cerceve.aileler.map((a, i) => (
-                  <span key={a.id}>
-                    {i > 0 && ' · '}
-                    <Link className="dg dg-satir" style={BAG_STILI}
-                      href={`/uyum/${cerceve.kod}?aile=${a.kod}`}>
-                      {a.kisa}
-                    </Link>
-                  </span>
-                ))}
+                Hücreye gelince özet · tıklayınca çekmece · santral adı 360&apos;a,
+                sütun başlığı çerçeve detayına gider
               </p>
 
               {/* Kapsam dışı ve kararsız tesisler: ayrı ve sessiz. */}
@@ -404,16 +415,12 @@ function HucreCekmecesi({
           )
         }
         ikincil={
-          <div style={{ display: 'flex', gap: 'var(--s9)' }}>
-            <Link className="dg dg-ikincil" style={{ flex: 1, textAlign: 'center' }}
-              href={`/uyum/${cerceve.kod}?aile=${aile?.kod ?? ''}&kontrol=${kontrol.kod}`}>
-              Kontrol ağacı
-            </Link>
-            <Link className="dg dg-ikincil" style={{ flex: 1, textAlign: 'center' }}
-              href={`/tesisler/${satir.id}`}>
-              Santral 360
-            </Link>
-          </div>
+          <Link className="dg dg-ikincil"
+            style={{ display: 'block', textAlign: 'center' }}
+            href={`/uyum/${cerceve.kod}?aile=${encodeURIComponent(aile?.kod ?? '')}`
+              + `&kontrol=${encodeURIComponent(kontrol.kod)}`}>
+            Kontrol ağacı
+          </Link>
         }
         dipNot={[
           gonderildi && 'Kanıt talebi açıldı; denetim izine yazıldı.',

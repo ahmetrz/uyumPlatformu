@@ -55,8 +55,11 @@ export type AktifKullanici = {
     kullanıcı döner — statik dışa aktarım oturum taşıyamaz. */
 export const aktifKullanici = cache(async (): Promise<AktifKullanici | null> => {
   if (DEMO) {
-    return { id: 'demo', adSoyad: 'Demo Ziyaretçisi', eposta: 'demo@ornek',
-      unvan: 'Salt okunur', yetkiler: [{ rol: 'okuyucu', surecId: null, tesisId: null,
+    // Örnek veriyle aynı kişi görünür; yetki YİNE salt okur ('okuyucu') —
+    // demo hiçbir koşulda yazma yetkisi taşımaz.
+    return { id: 'demo', adSoyad: 'Ahmet Terzi', eposta: 'ahmet.terzi@zorlu.com',
+      unvan: 'BT Direktörü · demo (salt okunur)',
+      yetkiler: [{ rol: 'okuyucu', surecId: null, tesisId: null,
         tuzelKisiId: null, regulasyonId: null, modul: null }] };
   }
   const token = (await cookies()).get(CEREZ_ADI)?.value;

@@ -1,5 +1,5 @@
 import type { Durum } from '@/components/atlas/temel';
-import { GOREV_TIP_ETIKET, etiketle } from '@/lib/sabitler';
+import { GOREV_TIP_ETIKET, etiketle, tarihTR } from '@/lib/sabitler';
 
 /* M1/M2 · Yönetim tezgâhı — sunucu ve istemcinin PAYLAŞTIĞI tipler ve saf
    hesaplar. Eski /gorevler ve /tanimlar ekranlarının iş mantığı buraya
@@ -293,6 +293,105 @@ export function tanimSirala(liste: Tanim[]): Tanim[] {
 /** Sabitlenen tanım: zinciri kıran kayıt bütçeden bağımsız görünür kalır. */
 export function tanimSabit(t: Tanim): boolean {
   return tanimImi(t) === 'bd';
+}
+
+/* ═══ P1-3 · Dis API anahtarlari ═══════════════════════════════════ */
+
+/** Anahtar satiri. TAM TOKEN BU TIPTE YOKTUR ve olamaz: veritabaninda
+    yalniz SHA-256 ozeti durur, ozet de ekrana gonderilmez. Listeye giden
+    tek tanitici `onEk` (ilk 8 karakter) — kalani ≈210 bit entropi. */
+export type Anahtar = {
+  id: string;
+  ad: string;
+  /** gosterim oneki; token'i ele vermez */
+  onEk: string;
+  /** anahtar KENDI yetkisini tasimaz, sahibinin yetkilerini tasir */
+  sahip: Kisi;
+  /** sahibi pasifken anahtar listede canli gorunur ama her istekte 401 doner */
+  sahipAktif: boolean;
+  olusturan: string | null;
+  sonKullanim: string | null;
+  bitis: string | null;
+  iptalZamani: string | null;
+  olusturuldu: string;
+  /** ApiIstegi sayaci — Prisma COUNT'u */
+  istekSayisi: number;
+};
+
+export function anahtarBittiMi(a: Anahtar, simdi: number): boolean {
+  return !!a.bitis && new Date(a.bitis).getTime() <= simdi;
+}
+
+export function anahtarEtkinMi(a: Anahtar, simdi: number): boolean {
+  return !a.iptalZamani && !anahtarBittiMi(a, simdi);
+}
+
+/* Isaretci: iptal geri alinamaz bir SONLANDIRMADIR — karara baglanmis is
+   gibi 'tamam'. Suresi dolan anahtar uretimde secilen gecerlilikle
+   KASITLI biter; tanim katalogundaki devre disi kayit gibi 'pl'. Sahibi
+   pasif olan anahtar listede etkin gorunur ama istekte 401 doner: bu
+   sessiz bozukluk kritiktir, 'bd'. Bitisine az kalan anahtar 'md'.
+
+   Hic kullanilmamis anahtar 'unk' DEGILDIR: `sonKullanim` her basarili
+   kimlik dogrulamasinda yazilir, bos olmasi olcumun yapildigini ve
+   degerin sifir oldugunu soyler. Bilinmeyen ≠ sifir kurali burada
+   sifiri gizlemeyi degil, sifiri OLCULMUS olarak yazmayi gerektirir. */
+export function anahtarImi(a: Anahtar, simdi: number): Durum {
+  if (a.iptalZamani) return 'tamam';
+  if (anahtarBittiMi(a, simdi)) return 'pl';
+  if (!a.sahipAktif) return 'bd';
+  const g = kalanGun(a.bitis, simdi);
+  return g !== null && g <= UFUK_GUN ? 'md' : 'ok';
+}
+
+/** Durum sozcugu — YALNIZ cekmecenin kimlik blogunda kullanilir (06 §A2). */
+export function anahtarSozu(a: Anahtar, simdi: number): string {
+  if (a.iptalZamani) return 'Iptal edildi';
+  if (anahtarBittiMi(a, simdi)) return 'Suresi doldu';
+  if (!a.sahipAktif) return 'Sahibi pasif';
+  const g = kalanGun(a.bitis, simdi);
+  return g !== null && g <= UFUK_GUN ? 'Suresi doluyor' : 'Etkin';
+}
+
+/** Son kullanim hucresi. Null = "kullanilmadi"; "bilinmiyor" DEGIL — alan
+    olculuyor, degeri henuz yok. */
+export function sonKullanimMetni(a: Anahtar): string {
+  return a.sonKullanim ? tarihTR(a.sonKullanim) : 'kullanilmadi';
+}
+
+/** Istek sayaci. 0 burada UYDURMA DEGIL: `_count` gercek bir COUNT'tur,
+    "istek yok" degil "0 istek" yazilir — sayim yapildi, sonuc sifir. */
+export function istekMetni(a: Anahtar): string {
+  return `${a.istekSayisi} istek`;
+}
+
+/** Alt satir: kayit kimligi (on ek) + EN FAZLA BIR olgu. */
+export function anahtarAltSatiri(a: Anahtar): string {
+  return `${a.onEk}… · ${a.olusturan ? `${a.olusturan} uretti` : 'ureteni kayitta yok'}`;
+}
+
+/** Sabitlenen anahtar: sahibi pasif oldugu icin sessizce 401 donduren
+    kayit butcenin disindadir ve ASLA toplanmaz. */
+export function anahtarSabit(a: Anahtar, simdi: number): boolean {
+  return anahtarImi(a, simdi) === 'bd';
+}
+
+/** Kuyruk etiketi kuyrugun GERCEK bilesimini soyler. */
+export function anahtarKuyrukEtiketi(toplanan: Anahtar[], simdi: number): string {
+  const etkin = toplanan.filter((a) => anahtarEtkinMi(a, simdi)).length;
+  if (etkin === 0) return `+${toplanan.length} anahtar · sonlanmis`;
+  if (etkin === toplanan.length) return `+${toplanan.length} anahtar · etkin`;
+  return `+${toplanan.length} anahtar daha`;
+}
+
+export function anahtarSirala(liste: Anahtar[], simdi: number): Anahtar[] {
+  const agirlik = (a: Anahtar) => {
+    const im = anahtarImi(a, simdi);
+    return im === 'bd' ? 0 : im === 'md' ? 1 : im === 'ok' ? 2 : 3;
+  };
+  return [...liste].sort((a, b) => (agirlik(a) - agirlik(b))
+    // Ayni agirlikta en yeni uretim ustte: taze anahtar dogrulanmayi bekler.
+    || b.olusturuldu.localeCompare(a.olusturuldu));
 }
 
 /* ═══ Ortak ═════════════════════════════════════════════════════════════ */

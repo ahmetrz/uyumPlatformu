@@ -67,7 +67,7 @@ export async function apiAnahtariUret(girdi: {
       gerekce: bitis ? `Gecerlilik: ${bitis.toISOString()}` : 'Suresiz',
     });
 
-    revalidatePath('/yonetim');
+    revalidatePath('/yonetim-tezgahi');
     return { ok: true, id: anahtar.id, onEk, token, bitis: bitis?.toISOString() ?? null };
   } catch (e) {
     const h = hata(e);
@@ -97,7 +97,7 @@ export async function apiAnahtariIptal(girdi: { id: string; gerekce?: string | n
       gerekce: v.gerekce ?? null,
     });
 
-    revalidatePath('/yonetim');
+    revalidatePath('/yonetim-tezgahi');
     return tamam();
   } catch (e) { return hata(e); }
 }

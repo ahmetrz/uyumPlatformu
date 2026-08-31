@@ -56,8 +56,9 @@ export default function Genel({
         <div className="icerik">
           <div>
             <p className="t-eyebrow" style={{ margin: 0, color: 'rgba(246,244,238,.62)' }}>
-              {bugun} · Zorlu Enerji üretim portföyü · {ozet.tesisSayisi} santral
-              {' · '}{ozet.toplamGucMw} MWe
+              {bugun} · {ozet.tesisSayisi} santral · {ozet.toplamGucMw} MWe
+              {ozet.yaklasanDenetim
+                && ` · ${ozet.yaklasanDenetim.kod} ${ozet.yaklasanDenetim.kalanGun} gün sonra`}
             </p>
             <h1>
               {dikkat > 0
@@ -72,11 +73,6 @@ export default function Genel({
             },
             { deger: ozet.kritikRisk, yazi: 'Kritik risk',
               durum: ozet.kritikRisk > 0 ? 'bd' : undefined },
-            {
-              deger: ozet.yaklasanDenetim ? `${ozet.yaklasanDenetim.kalanGun}g` : '—',
-              yazi: ozet.yaklasanDenetim ? ozet.yaklasanDenetim.kod : 'Denetim',
-              durum: ozet.yaklasanDenetim && ozet.yaklasanDenetim.kalanGun < 30 ? 'md' : undefined,
-            },
             { deger: ozet.gecikmisAksiyon, yazi: 'Gecikmiş iş',
               durum: ozet.gecikmisAksiyon > 0 ? 'bd' : undefined },
             {

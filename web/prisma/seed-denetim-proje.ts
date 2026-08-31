@@ -168,29 +168,63 @@ export async function denetimVeProje(db: PrismaClient) {
     }).catch(() => undefined);
   }
 
-  /* Faz planı — O9'un beş yığılı kartı. Bloke faz kırmızı kenar ve tek
-     satırlık engel notu alır; "gecikti" durumu bunu taşır. */
-  const fazSablonu: [string, number, string][] = [
-    ['Kapsam ve tasarım', -120, 'tamamlandi'],
-    ['Pilot saha', -40, 'tamamlandi'],
-    ['Yaygınlaştırma dalgası 1', 20, 'planlandi'],
-    ['Yaygınlaştırma dalgası 2', 140, 'planlandi'],
-    ['Doğrulama ve kapanış', 240, 'planlandi'],
+  /* Faz planı — O9'un beş yığılı kartı.
+
+     Fazlar projenin KENDİ penceresine (baslangic → hedef) yayılır, sabit
+     bir takvime değil. Eskiden dokuz projenin dokuzu da aynı beş tarihi ve
+     aynı iki tamamlanmış fazı taşıyordu: portföy ekranında dokuz projenin
+     sekizi tam olarak %40 okuyordu. Bu bir portföy değil, bir şablon
+     dökümüdür — portföyün anlamı projelerin FARKLI aşamalarda olmasıdır.
+
+     İlerleme türetilir, elle yazılmaz: hedef tarihi geçmiş faz tamamlanmış
+     sayılır. Böylece proje penceresi değişirse ilerleme de kendiliğinden
+     doğru kalır. İki istisna açıkça yazılıdır:
+       · henüz başlamamış proje (durum 'planlandi') hiçbir fazı kapatmaz;
+       · `gecikenProjeler` kümesindeki projede SON GEÇMİŞ faz kapanmaz:
+         'gecikti' durumunu taşır ve O9'da engel notu alır. Sabit bir faz
+         indeksi kullanılmıyor — proje penceresine göre o indeks geleceğe
+         düşebilir ve HENÜZ GELMEMİŞ bir fazı "gecikti" işaretlemek yanlış
+         olurdu. */
+  const fazAdlari = [
+    'Kapsam ve tasarım',
+    'Pilot saha',
+    'Yaygınlaştırma dalgası 1',
+    'Yaygınlaştırma dalgası 2',
+    'Doğrulama ve kapanış',
   ];
-  const gecikenFaz: Record<string, number> = {
-    'PRJ-OT-SEG': 2, 'PRJ-UZAK-BAKIM': 1, 'PRJ-LOG-OT': 2,
-  };
-  for (const [kod, p] of Object.entries(tumProjeler)) {
-    const mevcut = await db.kilometreTasi.count({ where: { projeId: p.id } });
+  const gecikenProjeler = new Set(['PRJ-OT-SEG', 'PRJ-UZAK-BAKIM', 'PRJ-LOG-OT']);
+  const projeler = await db.proje.findMany({
+    select: { id: true, kod: true, durum: true, baslangic: true, hedef: true } });
+  const simdi = Date.now();
+  for (const proje of projeler) {
+    const mevcut = await db.kilometreTasi.count({ where: { projeId: proje.id } });
     if (mevcut > 0) continue;
-    for (let i = 0; i < fazSablonu.length; i++) {
-      const [ad, kayma, durum] = fazSablonu[i];
-      const gecikti = gecikenFaz[kod] === i;
+    // Penceresi bilinmeyen projeye faz uydurulmaz.
+    if (!proje.baslangic || !proje.hedef) continue;
+    const bas = proje.baslangic.getTime();
+    const uzunluk = proje.hedef.getTime() - bas;
+    if (uzunluk <= 0) continue;
+
+    // beş faz pencereye eşit aralıklı: ilki başlangıçta, sonuncusu hedefte
+    const tarihler = fazAdlari.map((_, i) =>
+      new Date(bas + (uzunluk * i) / (fazAdlari.length - 1)));
+    const gecmisMi = (t: Date) => t.getTime() < simdi && proje.durum !== 'planlandi';
+    // takılı kalan faz: geçmiş fazların SONUNCUSU (geçmiş faz yoksa hiçbiri)
+    const takiliIndeks = gecikenProjeler.has(proje.kod)
+      ? tarihler.reduce((son, t, i) => (gecmisMi(t) ? i : son), -1)
+      : -1;
+
+    for (let i = 0; i < fazAdlari.length; i++) {
+      const tarih = tarihler[i];
+      const gecikti = i === takiliIndeks;
+      const gecmis = gecmisMi(tarih);
+      const durum = gecikti ? 'gecikti' : gecmis ? 'tamamlandi' : 'planlandi';
       await db.kilometreTasi.create({
         data: {
-          projeId: p.id, ad, hedef: gun(kayma),
-          durum: gecikti ? 'gecikti' : durum,
-          gerceklesen: durum === 'tamamlandi' && !gecikti ? gun(kayma + 4) : null,
+          projeId: proje.id, ad: fazAdlari[i], hedef: tarih, durum,
+          // gerçekleşme hedeften birkaç gün sonra — planın tam üstüne oturmaz
+          gerceklesen: durum === 'tamamlandi'
+            ? new Date(tarih.getTime() + 4 * 86_400_000) : null,
         },
       });
     }

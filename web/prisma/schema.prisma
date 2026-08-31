@@ -432,38 +432,40 @@ model Kullanici {
   iceAktarimlar     IceAktarim[]
 
   // hedef mimari genişlemesi
-  oturumlar              Oturum[]
-  sahipSistemler         SistemServis[]           @relation("SistemSahibi")
-  onayladigiKararlar     UygulanabilirlikKarari[] @relation("KararOnaylayan")
-  onayladigiIstisnalar   Istisna[]                @relation("IstisnaOnaylayan")
-  degerlendirmeleri      DegerlendirmeTarihcesi[]
-  sahipRiskler           Risk[]                   @relation("RiskSahibi")
-  onayladigiRiskler      Risk[]                   @relation("RiskOnaylayan")
-  kanitTalepleri         KanitTalebi[]            @relation("TalepSorumlusu")
-  sahipKanitlar          Kanit[]                  @relation("KanitSahibi")
-  sahipVarliklar         Varlik[]                 @relation("VarlikSahibi")
-  emanetVarliklar        Varlik[]                 @relation("VarlikEmanetcisi")
-  erisimIncelemeleri     ErisimIncelemesi[]       @relation("ErisimInceleyen")
-  kimlikHesaplari        KimlikHesabi[]
-  talepDegisiklikler     Degisiklik[]             @relation("DegisiklikTalep")
-  onayDegisiklikler      Degisiklik[]             @relation("DegisiklikOnay")
-  adayKararlari          ProjeAdayi[]             @relation("AdayKarari")
-  gorevler               Gorev[]                  @relation("GorevSorumlusu")
-  bildirimler            Bildirim[]
-  onayTalepleri          OnayTalebi[]             @relation("OnayTalepEden")
-  verdigiOnaylar         OnayTalebi[]             @relation("OnayVeren")
-  dogruladigiBulgular    Bulgu[]                  @relation("BulguKapanisDogrulayan")
-  dogruladigiAksiyonlar  Aksiyon[]                @relation("AksiyonDogrulayan")
+  oturumlar               Oturum[]
+  sahipSistemler          SistemServis[]           @relation("SistemSahibi")
+  onayladigiKararlar      UygulanabilirlikKarari[] @relation("KararOnaylayan")
+  onayladigiIstisnalar    Istisna[]                @relation("IstisnaOnaylayan")
+  degerlendirmeleri       DegerlendirmeTarihcesi[]
+  sahipRiskler            Risk[]                   @relation("RiskSahibi")
+  onayladigiRiskler       Risk[]                   @relation("RiskOnaylayan")
+  kanitTalepleri          KanitTalebi[]            @relation("TalepSorumlusu")
+  sahipKanitlar           Kanit[]                  @relation("KanitSahibi")
+  sahipVarliklar          Varlik[]                 @relation("VarlikSahibi")
+  emanetVarliklar         Varlik[]                 @relation("VarlikEmanetcisi")
+  erisimIncelemeleri      ErisimIncelemesi[]       @relation("ErisimInceleyen")
+  kimlikHesaplari         KimlikHesabi[]
+  talepDegisiklikler      Degisiklik[]             @relation("DegisiklikTalep")
+  onayDegisiklikler       Degisiklik[]             @relation("DegisiklikOnay")
+  adayKararlari           ProjeAdayi[]             @relation("AdayKarari")
+  gorevler                Gorev[]                  @relation("GorevSorumlusu")
+  bildirimler             Bildirim[]
+  onayTalepleri           OnayTalebi[]             @relation("OnayTalepEden")
+  verdigiOnaylar          OnayTalebi[]             @relation("OnayVeren")
+  dogruladigiBulgular     Bulgu[]                  @relation("BulguKapanisDogrulayan")
+  dogruladigiAksiyonlar   Aksiyon[]                @relation("AksiyonDogrulayan")
   // ── entegrasyon katmanı ────────────────────────────────────────────
-  apiAnahtarlari         ApiAnahtari[]            @relation("AnahtarSahibi")
-  urettigiApiAnahtarlari ApiAnahtari[]            @relation("AnahtarOlusturan")
-  varlikAktarimlari      VarlikAktarimi[]         @relation("AktarimYukleyen")
-  onayladigiAktarimlar   VarlikAktarimi[]         @relation("AktarimOnaylayan")
-  inceledigiKesifler     KesifKaydi[]             @relation("KesifInceleyen")
-  onayladigiAnliklar     TopolojiAnlik[]          @relation("AnlikOnaylayan")
-  kararVerdigiSapmalar   TopolojiSapmasi[]        @relation("SapmaKarari")
-  dogruladigiOlaylar     Olay[]                   @relation("OlayEtkiDogrulayan")
-  dogruladigiKokenler    VeriKokeni[]             @relation("KokenDogrulayan")
+  apiAnahtarlari          ApiAnahtari[]            @relation("AnahtarSahibi")
+  urettigiApiAnahtarlari  ApiAnahtari[]            @relation("AnahtarOlusturan")
+  varlikAktarimlari       VarlikAktarimi[]         @relation("AktarimYukleyen")
+  onayladigiAktarimlar    VarlikAktarimi[]         @relation("AktarimOnaylayan")
+  inceledigiKesifler      KesifKaydi[]             @relation("KesifInceleyen")
+  onayladigiAnliklar      TopolojiAnlik[]          @relation("AnlikOnaylayan")
+  kararVerdigiSapmalar    TopolojiSapmasi[]        @relation("SapmaKarari")
+  dogruladigiOlaylar      Olay[]                   @relation("OlayEtkiDogrulayan")
+  dogruladigiKokenler     VeriKokeni[]             @relation("KokenDogrulayan")
+  yazdigiEslemeProfilleri EslemeProfili[]          @relation("EslemeOlusturan")
+  inceledigiRedler        ReddedilenKayit[]        @relation("RedInceleyen")
 }
 
 /// Yetki kapsamı (kullanıcı × uyum süreci × tesis). Alan null ise "tümü".
@@ -1519,7 +1521,28 @@ model EntegrasyonKosusu {
   imlecOnce   String?
   imlecSonra  String?
 
-  connector Connector? @relation(fields: [connectorId], references: [id])
+  /// KURU KOŞU: kayıt yazılmaz, yalnız ne olacağı hesaplanır. Ayrı bir
+  /// alan olarak durur ki sağlık ekranı kuru koşuyu gerçek koşuyla
+  /// karıştırmasın — "son başarılı koşu" bir kuru koşuysa o entegrasyon
+  /// hâlâ hiç veri getirmemiştir.
+  kuruKosu           Boolean @default(false)
+  /// Kuru koşunun "olsaydı ne olurdu" sayaçları (JSON). Gerçek koşuda null.
+  kuruOzetJson       String?
+  /// Hatanın PARMAK İZİ: aynı hata tekrar mı ediyor, ucuzca anlaşılsın.
+  /// Mesajın kendisi değişken (zaman damgası, id) taşıyabilir; parmak izi
+  /// sınıf + normalize edilmiş metinden türetilir.
+  hataOzeti          String?
+  /// gecici | kalici — ağ/zaman aşımı gibi GEÇİCİ hatalar ile
+  /// yapılandırma/yetki gibi KALICI hatalar ayrı raporlanır; ikisini
+  /// karıştırmak "tekrar dene" düğmesini anlamsız yapar.
+  hataSinifi         String?
+  /// Bu koşuyu tetikleyen dış istek/zincir kimliği — uçtan uca izleme.
+  korelasyonId       String?
+  /// Koşunun kullandığı eşleme profili sürümü (varsa).
+  eslemeProfilSurumu Int?
+
+  connector     Connector?        @relation(fields: [connectorId], references: [id])
+  reddedilenler ReddedilenKayit[]
 
   @@index([connectorId, baslangic])
 }
@@ -1550,8 +1573,8 @@ model VeriKalitesiBulgusu {
 /// Dış sistem bağlayıcısı. Kimlik bilgisi BURADA DURMAZ: `sirReferansi`
 /// yalnız sırra giden adresi taşır (env:ANAHTAR, dosya:/run/secrets/x#alan).
 model Connector {
-  id               String    @id @default(cuid())
-  kod              String    @unique
+  id               String  @id @default(cuid())
+  kod              String  @unique
   ad               String
   /// ad_entra | vuln_scanner | edr | siem | backup | network_firewall |
   /// ot_discovery | manual_import
@@ -1560,26 +1583,57 @@ model Connector {
   /// kimlik_bekleniyor: yapılandırma tam ama dış sistem kimlik bilgisi yok.
   /// Bu bir HATA DEĞİLDİR — bekleyen bir kurulum adımıdır ve sağlık
   /// ekranında kırmızı değil, bekliyor olarak gösterilir.
-  durum            String    @default("taslak")
+  durum            String  @default("taslak")
   kaynakSistem     String
   /// none | api_key | basic | oauth2_client_credentials | certificate
-  kimlikTipi       String    @default("none")
+  kimlikTipi       String  @default("none")
   /// bağlantı ayarları — SIR İÇERMEZ (host, port, taban URL, filtre…)
   yapilandirmaJson String?
   sirReferansi     String?
   /// dakika; null = yalnız elle tetiklenir
   pollAralikDk     Int?
-  sonBasariliKosu  DateTime?
-  sonHata          String?
-  etkin            Boolean   @default(false)
-  /// delta senkronizasyon imleci — adaptör yorumlar
-  imlec            String?
-  silindi          DateTime?
-  olusturuldu      DateTime  @default(now())
-  guncellendi      DateTime  @updatedAt
 
-  kosular  EntegrasyonKosusu[]
-  kesifler KesifKaydi[]
+  /// Hangi ortamın sistemine bakıyor: gelistirme | test | uretim.
+  /// Bir connector'ın hangi ortama baktığı bir GÜVENLİK bilgisidir —
+  /// üretim OT ağına bakan bir kaydı test sanıp etkinleştirmek en kolay
+  /// yapılan hatadır; ekran bunu ayrı gösterir.
+  ortam               String  @default("gelistirme")
+  /// tam | delta — delta imleç kullanır, tam her koşuda hepsini çeker.
+  senkronKipi         String  @default("delta")
+  /// En fazla kaç deneme; null = çekirdek varsayılanı.
+  maksDeneme          Int?
+  /// Geri çekilme taban süresi (ms); null = çekirdek varsayılanı.
+  geriCekilmeMs       Int?
+  /// Ardışık kaç başarısızlıktan sonra connector otomatik duraklatılır.
+  /// null = duraklatma yok. Devre kesici burada YALNIZ SAYILIR; kararı
+  /// çekirdek verir ve durum 'hatali' olur — sessizce koşmaya devam
+  /// etmek, ölü bir entegrasyonu canlı göstermek olurdu.
+  ardisikHataSiniri   Int?
+  /// Şu ana kadarki ardışık başarısızlık sayısı (başarıda sıfırlanır).
+  ardisikHata         Int     @default(0)
+  /// Bu connector'ın YAZABİLECEĞİ santraller. Boş = kapsam sınırı yok.
+  /// Kapsam connector düzeyinde de tutulur, çünkü bir OT keşif ürünü
+  /// yalnız kendi sahasını görür; kaydın beyan ettiği santrale güvenmek
+  /// yanlış yapılandırılmış bir kaynağın başka sahaya yazmasına izin verir.
+  kapsamTesisleriJson String?
+  /// Etkin eşleme profili — null ise adaptörün gömülü eşlemesi kullanılır.
+  eslemeProfilId      String?
+
+  sonBasariliKosu DateTime?
+  sonHata         String?
+  /// Son hatanın parmak izi — aynı hata tekrar ediyor mu, ucuzca anlaşılsın.
+  sonHataOzeti    String?
+  etkin           Boolean   @default(false)
+  /// delta senkronizasyon imleci — adaptör yorumlar
+  imlec           String?
+  silindi         DateTime?
+  olusturuldu     DateTime  @default(now())
+  guncellendi     DateTime  @updatedAt
+
+  kosular       EntegrasyonKosusu[]
+  kesifler      KesifKaydi[]
+  eslemeProfil  EslemeProfili?      @relation(fields: [eslemeProfilId], references: [id])
+  reddedilenler ReddedilenKayit[]
 
   @@index([tip, etkin])
 }
@@ -1587,6 +1641,72 @@ model Connector {
 /// Otomatik gelen kaydın kökeni. Polimorfiktir: on beş tabloyu genişletmek
 /// yerine tek yerde tutulur. Kaynağı gerçekten bilinmeyen kayıt için satır
 /// AÇILMAZ — kökeni olmayan kayıt manueldir.
+/// Eşleme profili — kaynak alanından hedef alana çevirinin SÜRÜMLÜ tanımı.
+///
+/// Neden sürümlü: gerçek sistem bağlandığında en çok vakit alan iş eşleme
+/// olacak ve eşleme DEĞİŞECEK. Eski içe aktarımların hangi kuralla
+/// yorumlandığı kaybolursa bir denetimde "bu alan neden böyle" sorusunun
+/// yanıtı olmaz. Yeni sürüm ESKİSİNİ EZMEZ: yeni satır açılır, eski satır
+/// arşive geçer ve VeriKokeni.eslemeProfilSurumu hangi sürümle
+/// yorumlandığını taşır.
+model EslemeProfili {
+  id            String   @id @default(cuid())
+  kod           String
+  ad            String
+  /// hangi connector tipi için — profil TİPE aittir, tek bir connector'a
+  /// değil; böylece aynı profil birden çok connector'da kullanılabilir
+  connectorTipi String
+  surum         Int      @default(1)
+  /// taslak | etkin | arsiv — yalnız 'etkin' olan koşuda kullanılır
+  durum         String   @default("taslak")
+  /// kural listesi (JSON): [{ kaynakAlan, hedefAlan, donusum, zorunlu,
+  /// varsayilan, enumEsleme, guvenKurali }]
+  kurallarJson  String
+  aciklama      String?
+  olusturanId   String?
+  olusturuldu   DateTime @default(now())
+
+  olusturan    Kullanici?  @relation("EslemeOlusturan", fields: [olusturanId], references: [id])
+  connectorlar Connector[]
+
+  @@unique([kod, surum])
+  @@index([connectorTipi, durum])
+}
+
+/// Reddedilen kayıt (dead-letter / inceleme kuyruğu).
+///
+/// Bir kaydın reddedilmesi bir SAYIDAN ibaret olamaz: hangi kayıt, neden,
+/// hangi aşamada, ham hâli neydi — bunlar olmadan kimse düzeltemez. Sayaç
+/// EntegrasyonKosusu.reddedilen alanında duruyordu ama kaydın kendisi
+/// kayboluyordu; "3 kayıt reddedildi" bir kusur raporu değil, bir kusurun
+/// ilanıdır.
+model ReddedilenKayit {
+  id             String    @id @default(cuid())
+  kosuId         String?
+  connectorId    String?
+  kaynakSistem   String
+  /// kaynak kaydın kimliği — biliniyorsa; bilinmiyorsa null (öyle geldi)
+  kaynakKayitId  String?
+  /// sema | normalize | dogrulama | eslesme | kapsam | yazma
+  asama          String
+  sebep          String
+  /// ham kayıt — SIR İÇERMEZ (çekirdek sırları maskeleyerek yazar)
+  hamJson        String?
+  /// acik | incelendi | duzeltildi | yok_sayildi
+  durum          String    @default("acik")
+  inceleyenId    String?
+  incelemeNotu   String?
+  incelemeZamani DateTime?
+  olusturuldu    DateTime  @default(now())
+
+  kosu      EntegrasyonKosusu? @relation(fields: [kosuId], references: [id], onDelete: Cascade)
+  connector Connector?         @relation(fields: [connectorId], references: [id])
+  inceleyen Kullanici?         @relation("RedInceleyen", fields: [inceleyenId], references: [id])
+
+  @@index([durum, olusturuldu])
+  @@index([connectorId, asama])
+}
+
 model VeriKokeni {
   id              String    @id @default(cuid())
   varlikTipi      String // Varlik | Zafiyet | YedeklemeKosusu | ErisimAtamasi …
@@ -1609,6 +1729,16 @@ model VeriKokeni {
   dogrulamaDurumu String    @default("dogrulanmadi")
   dogrulayanId    String?
   dogrulamaZamani DateTime?
+
+  /// Kaydın hangi eşleme profili SÜRÜMÜYLE yorumlandığı. Eşleme değişince
+  /// eski kayıtların hangi kuralla üretildiği kaybolmamalı — yoksa bir
+  /// denetimde "bu alan neden böyle" sorusunun yanıtı olmaz.
+  eslemeProfilSurumu Int?
+  /// Ham kaydın özeti (SHA-256, onaltılık). Aynı kaynak kaydı içerik
+  /// değişmeden yeniden geldiğinde güncelleme yapılmasına gerek yok;
+  /// ayrıca "kaynak ne gönderdi" sorusu kanıtlanabilir kalır.
+  /// null = özet hesaplanmadı (eski kayıt ya da hesaplanamayan biçim).
+  kayitOzeti         String?
 
   dogrulayan Kullanici? @relation("KokenDogrulayan", fields: [dogrulayanId], references: [id])
 

@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
+import { AZAMI_ANAHTAR_GUN, VARSAYILAN_ANAHTAR_GUN } from '../apiAnahtariKurallari';
 import { db } from '../db';
 import { yetkiZorunlu } from '../erisim';
 import { apiTokenUret } from '../api/kimlik';
@@ -38,9 +39,11 @@ export type AnahtarUretimSonucu =
    anında konmalıdır.
 
    Varsayılan bir yıldır (yenilenebilir), tavan iki yıl. Tavan 3650 gündü —
-   on yıl, yani pratikte süresiz. */
-export const VARSAYILAN_ANAHTAR_GUN = 365;
-export const AZAMI_ANAHTAR_GUN = 730;
+   on yıl, yani pratikte süresiz.
+
+   Sayılar `lib/apiAnahtariKurallari.ts`'te yaşar: bu dosya bir
+   `'use server'` modülüdür ve buradan sabit export etmek derlemeyi kırar
+   (yalnız asenkron fonksiyon dışa aktarılabilir). */
 
 export async function apiAnahtariUret(girdi: {
   ad: string;

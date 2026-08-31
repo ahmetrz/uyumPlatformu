@@ -11,13 +11,28 @@ const YOLLAR = (process.env.YOLLAR || '/sistem/bilesenler').split(',');
 
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
 const s = await b.newPage({ viewport: { width: 1440, height: 1000 } });
-await s.goto(KOK + '/giris', { waitUntil: 'domcontentloaded' });
-if (s.url().includes('/giris')) {
-  await s.fill('input[type=email]', 'ahmet.terzi@zorlu.com');
-  await s.fill('input[type=password]', 'Enerji!2026');
-  await s.click('button[type=submit]');
-  await s.waitForURL((u) => !u.pathname.startsWith('/giris'), { timeout: 25000 });
+/* Giriş: form React ile KONTROLLÜ bir bileşendir. `domcontentloaded`
+   sonrası doldurmak yeterli değil — hidrasyon henüz olmamışsa React
+   alanı kendi (boş) durumuyla geri yazar ve sunucuya BOŞ e-posta gider.
+   Belirtisi kafa karıştırıcıdır: denetim izine "tanımsız e-posta" düşer
+   ve kimlik bilgileri yanlış sanılır. Bu yüzden doldurduktan sonra
+   değerin GERÇEKTEN durduğu doğrulanır. */
+async function girisYap(sayfa, kok) {
+  await sayfa.goto(kok + '/giris', { waitUntil: 'load' });
+  if (!sayfa.url().includes('/giris')) return;
+  for (let deneme = 1; deneme <= 3; deneme += 1) {
+    await sayfa.fill('input[type=email]', 'ahmet.terzi@zorlu.com');
+    await sayfa.fill('input[type=password]', 'Enerji!2026');
+    const yerlesti = await sayfa.inputValue('input[type=email]') === 'ahmet.terzi@zorlu.com'
+      && (await sayfa.inputValue('input[type=password]')).length > 0;
+    if (yerlesti) break;
+    await sayfa.waitForTimeout(300 * deneme);
+  }
+  await sayfa.click('button[type=submit]');
+  await sayfa.waitForURL((u) => !u.pathname.startsWith('/giris'), { timeout: 25000 });
 }
+
+await girisYap(s, KOK);
 
 /* Playwright fareyi son tıklama koordinatında bırakır. O nokta sonraki
    sayfada bir tablo satırının üstüne düşerse satır :hover durumunda

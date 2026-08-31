@@ -1,4 +1,5 @@
 'use client';
+import { AZAMI_ANAHTAR_GUN, VARSAYILAN_ANAHTAR_GUN } from '@/lib/apiAnahtariKurallari';
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { Alan, Dugme } from '@/components/atlas/temel';
@@ -468,8 +469,8 @@ export function ApiAnahtarFormu({ kullanicilar, aktifId, kapat }: {
           "boş bırakılırsa süresiz" yazan eski yer tutucu, üreten kişi
           işten ayrıldıktan sonra da geçerli anahtarlar bırakıyordu. */}
       <Alan etiket="Geçerlilik · gün">
-        <input className="gr" type="number" min={1} max={730} value={f.gun}
-          placeholder="boş bırakılırsa 365 gün"
+        <input className="gr" type="number" min={1} max={AZAMI_ANAHTAR_GUN} value={f.gun}
+          placeholder={`boş bırakılırsa ${VARSAYILAN_ANAHTAR_GUN} gün`}
           onChange={(e) => setF({ ...f, gun: e.target.value })} />
       </Alan>
 

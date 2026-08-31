@@ -1,14 +1,25 @@
 import { chromium } from 'playwright-core';
 
 /* Faz 2 çıkış kriteri: tüm rotalar gezilebilir; ray genişliği/insetleri
-   ve aktif durum referansla eşleşir. Giriş yapıp her rotayı yoklar. */
+   ve aktif durum referansla eşleşir. Giriş yapıp her rotayı yoklar.
 
-const KOK = 'http://localhost:3111';
-const ATLAS = ['/sistem', '/uyum', '/portfoy', '/yonetim', '/yonetim-tezgahi', '/topoloji',
-  '/omur', '/yedekleme', '/kimlik', '/tedarikciler'];
-const OZALIT = ['/', '/tesisler', '/surecler', '/bulgular', '/riskler', '/denetimler',
-  '/envanter', '/operasyon', '/projeler', '/raporlar', '/regulasyonlar', '/eslestirme',
-  '/aktivite', '/saglik', '/yetkiler', '/ice-aktarim'];
+   Faz 6 sonunda ÖZALİT GRUBU KALMADI: bütün ekranlar Atlas kabuğunda.
+   Eski iki listeli ayrım (ATLAS/OZALIT) artık yanlış bilgi veriyordu —
+   her rotayı "OZALIT" diye etiketliyordu. Liste yine ikiye ayrıldı ama
+   bu kez doğru eksende: ray taşıyan ekranlar ve taşımayanlar. */
+
+const KOK = `http://localhost:${process.env.PORT || 3111}`;
+
+/* Ray taşıyan ekranlar — ray genişliği ve aktif öğe de ölçülür. */
+const RAYLI = ['/', '/tesisler', '/portfoy', '/uyum', '/surecler', '/riskler', '/denetimler',
+  '/bulgular', '/projeler', '/envanter', '/kesif', '/topoloji', '/omur', '/yedekleme',
+  '/kimlik', '/tedarikciler', '/olaylar', '/operasyon', '/yonetim-tezgahi',
+  '/regulasyonlar', '/eslestirme', '/varlik-aktarim', '/ice-aktarim', '/yetkiler',
+  '/raporlar', '/aktivite', '/saglik'];
+
+/* Bileşen galerisi: kabuğu paylaşır ama RAYDA ÖĞESİ YOKTUR — geliştirme
+   ekranıdır, gezinme listesine girmez (aktif öğe 0 beklenir). */
+const RAYSIZ = ['/sistem', '/sistem/bilesenler'];
 
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
 const s = await b.newPage({ viewport: { width: 1440, height: 1000 } });
@@ -22,7 +33,7 @@ await s.click('button[type=submit]');
 await s.waitForURL((u) => !u.pathname.startsWith('/giris'), { timeout: 25000 });
 
 let kotu = 0;
-for (const [etiket, yollar] of [['ATLAS', ATLAS], ['OZALIT', OZALIT]]) {
+for (const [etiket, yollar] of [['RAYLI ', RAYLI], ['RAYSIZ', RAYSIZ]]) {
   for (const yol of yollar) {
     const y = await s.goto(KOK + yol, { waitUntil: 'domcontentloaded' });
     await s.waitForTimeout(450);

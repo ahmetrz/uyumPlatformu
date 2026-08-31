@@ -196,16 +196,35 @@ bunlar pastel/parlak varyantlar olarak token katmanına eklendi.
 `07-implementation-order.md` sırası korunur. Paralelleştirme yalnız dosya sahipliği
 ayrık olan işlerde:
 
-| Faz | İçerik | Paralel? |
-|---|---|---|
-| 1 | Token katmanı + font + reset | Hayır (tek sahip) |
-| 2 | AppShell + NavRail + ContextNav + routing | Hayır |
-| 3 | 18 paylaşılan primitif + galeri sayfası | Kısmen (bağımlılık sırası var) |
-| 4 | Flagship 3 ekran (Plant 360 → Portfolio → Executive) | Faz 5g1 ile paralel |
-| 5 | 16 operasyonel ekran (5 grup) | Grup içi paralel |
-| 6 | Management Workbench | Hayır (5g3'ten sonra) |
-| 7 | Motion | Kısmen |
-| 8 | Görsel QA (22 referansla piksel karşılaştırma) | Ekran başına paralel |
+| Faz | İçerik | Paralel? | Durum |
+|---|---|---|---|
+| 1 | Token katmanı + font + reset | Hayır (tek sahip) | ✅ |
+| 2 | AppShell + NavRail + ContextNav + routing | Hayır | ✅ |
+| 3 | 18 paylaşılan primitif + galeri sayfası | Kısmen (bağımlılık sırası var) | ✅ |
+| 4 | Flagship 3 ekran (Plant 360 → Portfolio → Executive) | Faz 5g1 ile paralel | ✅ |
+| 5 | 16 operasyonel ekran (5 grup) | Grup içi paralel | ✅ |
+| 6 | Management Workbench + kalan 11 Özalit ekranı | Grup içi paralel | ✅ |
+| 7 | Motion | Kısmen | ✅ ölçüldü |
+| 8 | Görsel QA | Ekran başına paralel | ✅ araçla |
+
+**Faz 6 kapanışı:** `(ozalit)` rota grubu KALMADI. Yirmi sekiz ekranın
+tamamı Atlas kabuğunda ve tasarım denetiminden (`arac/denetim.mjs`)
+0 kusurla geçiyor. Ray tek: 15 günlük tezgâh + 9 yönetim/kayıt öğesi,
+aralarında ayraç, altında oturum bloğu.
+
+**Faz 7 notu:** hareket katmanı tarayıcıda ölçüldü, okunarak değil.
+`prefers-reduced-motion: reduce` altında bütün animasyon ve geçişler
+1ms'e iniyor; normal koşulda süreler token'larla birebir (çekmece 300ms,
+blok girişi 300ms, ray geçişi 200ms). Bütün giriş animasyonları transform
+üzerinden çalışıyor — hiçbiri yerleşim özelliği canlandırmıyor.
+
+**Faz 8 notu:** piksel karşılaştırma YAPILAMADI ve bu bir eksiktir.
+Referans artboard'ları üreten handoff paketi bu çalışma ortamında yok
+(`arac/referans-yakala.mjs` bir HTTP sunucusunda servis edilen paketi
+bekliyor). Yerine kural tabanlı denetim koşuldu: 06 §A4 + Part B
+kuralları hesaplanmış stiller üzerinden 28 ekranda sınandı, metrik
+bütçesi 26 ekranda tarandı, her ekran ayrıca gözle incelendi. Piksel
+kıyası paket geri geldiğinde koşulmalı.
 
 Her fazın çıkışında `06 §C` kontrol listesi + mevcut kalite kapısı
 (`tsc` · `eslint --max-warnings=0` · `vitest`) çalıştırılır.

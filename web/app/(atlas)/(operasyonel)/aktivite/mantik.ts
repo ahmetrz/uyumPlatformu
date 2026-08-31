@@ -30,10 +30,17 @@ export type Kayit = {
 export const kritikEylem = (k: Kayit) =>
   k.eylem === 'silme' || k.eylem === 'yumusak_silme' || k.eylem === 'red';
 
+/* Mercekler kütüğün İKİ cinsini ayırır: kayıt DEĞİŞİKLİKLERİ (durum,
+   karar, silme, dosya) ve ERİŞİM olayları (oturum açma). Erişim merceği
+   sonradan eklendi: oturum kayıtları hiçbir adlandırılmış mercekle
+   eşleşmiyordu, yani "kim girdi" sorusuna yalnız "Tümü" içinde göz
+   gezdirerek yanıt bulunabiliyordu — oysa erişim kaydı denetimde en sık
+   sorulan şeylerden biridir ve gün içinde en kalabalık satır türüdür. */
 export const MERCEKLER = [
   { id: 'hepsi', ad: 'Tümü' },
   { id: 'durum', ad: 'Durum değişimi' },
   { id: 'karar', ad: 'Onay ve ret' },
+  { id: 'erisim', ad: 'Erişim' },
   { id: 'silme', ad: 'Silme' },
   { id: 'dosya', ad: 'Dosya' },
 ];
@@ -42,6 +49,7 @@ export function mercekUyar(k: Kayit, mercek: string): boolean {
   switch (mercek) {
     case 'durum': return k.eylem === 'durum_degisimi' || k.alan === 'durum';
     case 'karar': return k.eylem === 'onay' || k.eylem === 'red';
+    case 'erisim': return k.varlikTipi === 'Oturum';
     case 'silme': return k.eylem === 'silme' || k.eylem === 'yumusak_silme';
     case 'dosya': return k.eylem === 'dosya_ekleme' || !!k.dosya;
     default: return true;

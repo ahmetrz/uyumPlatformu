@@ -32,7 +32,7 @@ kaynak ağacında 0 referans** — model tamamen ölüydü. Adı bir entegrasyon
 | 2 | OT asset discovery | KISMİ (CMDB var, keşif yok) | INTEGRATION_READY | ✅ çatı | `KesifKaydi` staging (+ `tesisId` kapsamı) · `lib/entegrasyon/kesif.ts` · 8 adaptör iskeleti · passive-first · eşleştirme geçişi senkronizasyondan otomatik koşar | OT keşif ürünü / firewall / SNMP salt-okur erişim |
 | 3 | Topology drift | KISMİ (model var, sapma yok) | INTEGRATION_READY | ✅ çatı | `TopolojiAnlik/Gozlemi/Sapmasi` · **21 test** | Topoloji gözlem kaynağı (ot_discovery / firewall connector) |
 | 4 | CMDB toplu import | **YOK** | CORE_NOW | ✅ | `VarlikAktarimi` · kolon eşleme UI · tek transaction · **26 test** | Yok |
-| 5 | Secure external API | **YOK** | CORE_NOW | ✅ | `app/api/v1/**` · `lib/api/**` · API anahtarı · idempotency | Yok |
+| 5 | Secure external API | **YOK** | CORE_NOW | ✅ | `app/api/v1/**` · `lib/api/**` · API anahtarı + **yönetim yüzeyi** (yönetim tezgâhı 3. kip) · idempotency | Yok |
 | 6 | Vendor remote access | KISMİ (tedarikçi bayrağı var, oturum yok) | INTEGRATION_READY | ✅ çatı | `TedarikciErisimOturumu` · üç değerli alanlar · **8 test** | PAM/VPN oturum kaynağı (CyberArk, BeyondTrust, FortiGate…) |
 | 7 | PLC/DCS/SCADA config backup | KISMİ (santral seviyesi var, varlık yok) | INTEGRATION_READY | ✅ çatı | `KonfigurasyonYedegi` · `yedekDogrulama` motoru · **15 test** | Yedekleme ürünü API'si; **`icerikHash` kritik alan** |
 | 8 | Incident → impact chain | KISMİ (`Olay` ilişkisiz) | CORE_NOW | ✅ | 6 bağ tablosu · `olayEtki` motoru · `/olaylar` · **14 test** | Yok |
@@ -118,6 +118,25 @@ Ayrıca: `vault:` sır sağlayıcısı bağlı değil; şu an yalnız `env:` ve 
 
 ---
 
+## 4b · Faz 6 sonrası bulunan kusurlar
+
+Ekranların tamamı Atlas gramerine taşınınca üç işlev kaybı ve iki
+"iki doğruluk kaynağı" kusuru ortaya çıktı. Hiçbiri yeni özellikten
+kaynaklanmıyordu; göç onları GÖRÜNÜR yaptı.
+
+| # | Kusur | Etki | Kanıt |
+|---|---|---|---|
+| 14 | **Çıkış düğmesi hiç yoktu** | `CikisDugmesi` yalnız `UstCubuk` içinde yaşıyordu ve `UstCubuk` Atlas'a hiç taşınmadı: oturum açmış kullanıcının **oturumu kapatmasının hiçbir yolu kalmamıştı** | Ray oturum bloğu; çıkış düğmesi 1000px ve 800px görüntü alanında ölçüldü |
+| 15 | Komut paleti (Ctrl+K) hiçbir ekranda çalışmıyordu | Yalnız boşalan (ozalit) kabuğunda monte edilmişti | Atlas kök yerleşimine alındı, Özalit sınıflarından Atlas gramerine geçirildi |
+| 16 | `/giris` uygulama kabuğunun içindeydi | Oturum açmamış ziyaretçi 244px'lik rayı, yani bilgi mimarisinin tamamını görüyordu; rayın bağlantıları klavye sırasına giriyordu | Kendi rota grubuna alındı; giriş sayfasında ray ölçüldü: **yok** |
+| 17 | **Zamanlayıcı sekiz motorun beşini koşturuyordu** | Motor listesi iki yerde ayrı yazılıydı; `yedek_dogrulama`, `olay_etki`, `topoloji_sapma` zamanlayıcıya hiç girmemişti — kimse düğmeye basmazsa o üç motor **hiç koşmuyordu** | `lib/motorlar/kayit.ts` tek kaynak · `motor-defteri.test.ts` (mutasyonla doğrulandı) |
+| 18 | İki adaptör çözücüsü (Faz 5) | Defterle kaydedileni statik harita göremez, silineni hâlâ döndürürdü | `adaptorGetir` kaldırıldı |
+| 19 | API anahtarı yönetiminin ekranı yoktu | `apiAnahtariUret`/`apiAnahtariIptal` yazılmıştı ama hiçbir yerden çağrılmıyordu; anahtar çıkarmak için sunucu eylemini elle çağırmak gerekiyordu | Yönetim tezgâhı 3. kip; token'ın DOM/RSC/depo/çerezde ikinci kez görünmediği tarayıcıyla doğrulandı |
+| 20 | Zaman çizelgesi kart matematiği üç ekranda kopyaydı | Üçü de "kaç kart sığar"ı tahmin ediyordu; çekmece açılınca kartlar üst üste biniyordu | Primitif ekseni `ResizeObserver` ile ÖLÇÜYOR |
+| 21 | `EPDK-SYM-4.1` bölüm başlığı bir ISO kontrolüne 'tam' denk yazılmıştı | Bölüm (4.1.1 + 4.1.2) bir kontrole denk sayılamaz; çapraz eşleme matrisi yaprak olmayan satırı çizemediği için kayıt ekranda **sessizce düşüyordu** | Denklik doğru yaprağa taşındı, 'kismi' oldu |
+
+---
+
 ## 5 · Bu çalışmada bulunan ve düzeltilen MEVCUT ürün kusurları
 
 Hiçbiri yeni özellikten kaynaklanmıyordu; hepsi zaten oradaydı.
@@ -145,13 +164,14 @@ Hiçbiri yeni özellikten kaynaklanmıyordu; hepsi zaten oradaydı.
 ```
 npx tsc --noEmit -p tsconfig.json   → 0 hata
 npx eslint                          → temiz
-npx vitest run                      → 19 dosya / 275 test yeşil
+npx vitest run                      → 24 dosya / 428 test yeşil
 NEXT_PUBLIC_DEMO=1 next build       → ÇIKIŞ=0, out/api oluşmadı
 npx next build                      → ƒ /api/v1/* dinamik route olarak listeleniyor
 prisma migrate status               → Database schema is up to date
 prisma migrate diff (db ↔ şema)     → boş (sapma yok)
 dev.db sıfırdan kuruldu             → 12 migration boş şemadan temiz koştu
-arac/denetim.mjs /kimlik,/kesif     → toplam kusur: 0
+arac/denetim.mjs (28 ekran)         → toplam kusur: 0
+arac/rota-duman.mjs                 → 29 rota, başarısız 0, sayfa hatası 0
 ```
 
 Denetim öncesi taban: 7 dosya / 29 test. Mevcut testlerden hiçbiri **sessizce**
@@ -173,7 +193,7 @@ bozulmadı; davranış bilinçli değiştiği için güncellenen üç test şunl
 | build başarılı | ✅ iki modda da |
 | typecheck başarılı | ✅ |
 | lint başarılı | ✅ |
-| testler başarılı | ✅ 275/275 |
+| testler başarılı | ✅ 428/428 |
 | mevcut fonksiyonlar bozulmamış | ✅ 29 taban testi yeşil |
 | mevcut tasarım/density bozulmamış | ✅ yeni ekranlar Atlas sözleşmesinde |
 | RBAC/scope korunmuş | ✅ `izinVar`/`izinliTesisIdleri` yeniden yazılmadı, API'de de aynısı |

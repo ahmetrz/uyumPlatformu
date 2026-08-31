@@ -529,7 +529,7 @@ export default function TezgahIstemci({
       )}
 
       {seciliAnahtar && (
-        <Cekmece kod={`${seciliAnahtar.onEk}…`} kapat={() => setSecili(null)}>
+        <Cekmece kod={anahtarKodu(seciliAnahtar)} kapat={() => setSecili(null)}>
           <AnahtarOzeti anahtar={seciliAnahtar} simdi={simdi} yazabilir={anahtarYazabilir} />
         </Cekmece>
       )}
@@ -624,6 +624,14 @@ function dipNot({
     kararlı bir damga türetilir. */
 function isKodu(i: Is): string {
   return `${i.tur === 'gorev' ? 'GRV' : 'ONY'}-${i.kayitId.slice(-6).toUpperCase()}`;
+}
+
+/** Anahtarın da kodu yok. Ön ek buraya YAZILMAZ: çekmece kimlik satırı
+    tasarım gereği büyük harfe çevrilir, ön ek ise base64url'dür ve harf
+    büyüklüğü anlam taşır — 'aBEX-mJ7' yerine 'ABEX-MJ7' göstermek yanlış
+    bilgi olurdu. Ön ek doğru büyüklüğüyle alan listesinde durur. */
+function anahtarKodu(a: Anahtar): string {
+  return `ANH-${a.id.slice(-6).toUpperCase()}`;
 }
 
 /* ── Çekmece · iş ───────────────────────────────────────────────────── */
@@ -806,8 +814,9 @@ function AnahtarOzeti({ anahtar, simdi, yazabilir }: {
           durum: anahtar.sahipAktif ? undefined : 'bd' },
         { etiket: 'Üreten', deger: anahtar.olusturan ?? 'kayıtta yok',
           durum: anahtar.olusturan ? undefined : 'unk' },
-        { etiket: 'Son kullanım', deger: sonKullanimMetni(anahtar),
-          durum: anahtar.sonKullanim ? undefined : 'pl' },
+        // Renk verilmez: "kullanılmadı" bir alarm değil ölçülmüş bir olgu,
+        // ayrıca --pl mavisi alan listesinde bağlantı gibi okunuyor.
+        { etiket: 'Son kullanım', deger: sonKullanimMetni(anahtar) },
         { etiket: 'Bitiş', deger: anahtar.bitis ? tarihTR(anahtar.bitis) : 'süresiz' },
         { etiket: 'İstek', deger: istekMetni(anahtar) },
       ]} />

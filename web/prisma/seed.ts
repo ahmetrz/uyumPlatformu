@@ -8,6 +8,7 @@ import { operasyonVerisi } from './seed-operasyon';
 import { uyumKatalogu } from './seed-uyum';
 import { denetimVeProje } from './seed-denetim-proje';
 import { riskVeBulgu } from './seed-risk-bulgu';
+import { kanitVerisi } from './seed-kanit';
 
 const parolaUret = (parola: string) => {
   const tuz = randomBytes(16).toString('hex');
@@ -726,6 +727,8 @@ async function main() {
   // Risk kütüğü ve CAPA hattı; kayıtlar operasyonel veriden türer.
   await riskVeBulgu(db);
   await denetimVeProje(db);
+  // Kanıt katmanı en sonda: durumdan türer, durumları okumak zorunda.
+  await kanitVerisi(db);
 
   console.log('Seed tamam. Geliştirme girişi: ahmet.terzi@zorlu.com / ' + GELISTIRME_PAROLASI);
 }

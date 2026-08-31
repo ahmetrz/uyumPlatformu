@@ -3,6 +3,8 @@ import { db } from '../db';
 import { siriCoz, sirSizintisiVarMi } from './sir';
 import { kokenYaz } from './koken';
 import { adaptorCoz } from './kayit';
+import { bekleyenleriEslestir } from './kesif';
+import { isKos } from '../motorlar/isKosucu';
 import type { Adaptor, AdaptorBaglami, CekmeSonucu, Gozlem } from './sozlesme';
 
 /* Connector senkronizasyon çekirdeği.
@@ -266,7 +268,15 @@ async function gozlemYaz(
   connector: { id: string; kaynakSistem: string },
   kosuId: string,
   sir: string | null,
-  kapsam: { varsayilanTesisId: string | null; onbellek: Map<string, string | null> },
+  kapsam: {
+    varsayilanTesisId: string | null;
+    onbellek: Map<string, string | null>;
+    /* Bu koşuda GERÇEKTEN yazılan kaynak sistemler. Kaydın kaynağı
+       connector'ın `kaynakSistem` alanı DEĞİL, gözlemin kendi kökenidir
+       (bir connector birden çok kaynaktan besleniyor olabilir); eşleştirme
+       geçişi doğru kümeyi taramak için buradan okur. */
+    yazilanKaynaklar: Set<string>;
+  },
 ): Promise<'yeni' | 'yinelenen'> {
   const kaynak = g.koken?.kaynakSistem?.trim();
   const kaynakKayitId = g.koken?.kaynakKayitId?.trim();
@@ -326,6 +336,7 @@ async function gozlemYaz(
     }, tx);
   });
 
+  kapsam.yazilanKaynaklar.add(kaynak);
   return mevcut ? 'yinelenen' : 'yeni';
 }
 
@@ -474,6 +485,7 @@ export async function senkronizasyonKos(
      yanlış santralin adına veri toplamak, kapsam denetimini sessizce
      delmek olurdu. */
   const tesisOnbellegi = new Map<string, string | null>();
+  const yazilanKaynaklar = new Set<string>();
   let varsayilanTesisId: string | null = null;
   const yapilandirmaTesisKodu = typeof yapilandirma.tesisKodu === 'string'
     ? yapilandirma.tesisKodu : null;
@@ -566,7 +578,7 @@ export async function senkronizasyonKos(
       for (const g of gecerli) {
         try {
           const sonuclanan = await gozlemYaz(g, connector, kosu.id, sir, {
-            varsayilanTesisId, onbellek: tesisOnbellegi,
+            varsayilanTesisId, onbellek: tesisOnbellegi, yazilanKaynaklar,
           });
           sayac.kabulEdilen++;
           if (sonuclanan === 'yinelenen') sayac.yinelenen++;
@@ -605,5 +617,51 @@ export async function senkronizasyonKos(
       ayrinti: `Kısmî yazma hatası · ${sayim}`,
     });
   }
-  return kapat('basarili', { hata: ozet, imlecSonra: imlec, ayrinti: sayim });
+  const eslestirmeNotu = yazilanKaynaklar.size > 0
+    ? await eslestirmeyiKos([...yazilanKaynaklar]) : null;
+  return kapat('basarili', {
+    hata: ozet,
+    imlecSonra: imlec,
+    ayrinti: eslestirmeNotu ? `${sayim} · ${eslestirmeNotu}` : sayim,
+  });
+}
+
+/**
+ * Başarılı senkronizasyondan sonra eşleştirme geçişini koşturur.
+ *
+ * Neden burada: çekirdek kayıtları `normalize` durumunda bırakıyordu ve
+ * onları CMDB adaylarıyla eşleştiren geçiş YALNIZ "Eşleştir" düğmesinden
+ * çağrılıyordu. Yani connector saatte bir koşsa da kimse düğmeye basmazsa
+ * kuyruk hiç ilerlemiyordu. "detect → correlate" zincirinin correlate
+ * halkası kopuktu.
+ *
+ * Eşleştirme CMDB'ye YAZMAZ; yalnız aday ve güven skoru üretir. Karar
+ * (onayla/reddet/yeni varlık) hâlâ insanındır.
+ *
+ * `isKos` üzerinden geçer: kendi koşu satırını bırakır, çakışma koruması
+ * ve ölü koşu kirası bedava gelir. Eşleştirme HATASI senkronizasyonu
+ * başarısız saymaz — kayıtlar yazıldı, imleç ilerlemeli; ama hata
+ * SESSİZ DE GEÇMEZ: koşu satırına yazılır ve özet cümlesinde görünür.
+ */
+export async function eslestirmeyiKos(kaynaklar: string[]): Promise<string> {
+  const toplam = { bakilan: 0, eslesen: 0, incelemeBekleyen: 0, cakisan: 0 };
+  const sonuc = await isKos('kesif_eslestirme', async () => {
+    for (const kaynak of kaynaklar) {
+      const o = await bekleyenleriEslestir({ kaynak });
+      toplam.bakilan += o.bakilan;
+      toplam.eslesen += o.eslesen;
+      toplam.incelemeBekleyen += o.incelemeBekleyen;
+      toplam.cakisan += o.cakisan;
+    }
+    return { islenen: toplam.bakilan, uretilen: toplam.eslesen + toplam.incelemeBekleyen };
+  });
+
+  if (sonuc.ok) {
+    return `eşleştirme: ${toplam.eslesen} eşleşti · ${toplam.incelemeBekleyen} inceleme`
+      + (toplam.cakisan > 0 ? ` · ${toplam.cakisan} çakışan` : '');
+  }
+  if (sonuc.sebep === 'zaten_calisiyor') {
+    return 'eşleştirme atlandı (başka bir koşuda çalışıyor)';
+  }
+  return `eşleştirme BAŞARISIZ: ${sonuc.hata}`;
 }

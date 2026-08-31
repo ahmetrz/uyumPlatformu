@@ -8,6 +8,7 @@ import {
   HataDefteri, agBolgesiHaritasi, izleriYaz, kokeniIsle, kosuIcinde,
   tesisHaritasi, varlikTuruHaritasi, type IzGirdisi,
 } from '../yazma';
+import { zinciriCalistir } from '../../entegrasyon/zincir';
 
 /* POST /api/v1/assets/upsert - kaynak sistemden (ITAM/CMDB dis kaydi) gelen
    YETKILI toplu guncelleme. Kayit dogrudan Varlik tablosuna yazilir.
@@ -198,6 +199,14 @@ export const POST = apiUcu({ modul: 'envanter', islem: 'yazma' }, async ({ govde
       };
     },
   );
+
+  /* Commit'ten sonra motor zinciri: CMDB'ye varlik yazildi, dolayisiyla ilgili
+     motorlarin girdisi degisti. Zincir FIRLATMAZ — basarisiz motor kendi
+     IsKosusu satirini birakir ve /saglik'te gorunur; bu yuzden basarili
+     bir yazma bu adim yuzunden geri alinmaz. */
+  if (sonuc.olusan + sonuc.guncellenen > 0) {
+    await zinciriCalistir({ kosuId, degisenler: { varlik: true } });
+  }
 
   return {
     govde: {

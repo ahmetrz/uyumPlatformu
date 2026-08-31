@@ -22,6 +22,7 @@ import {
   HEDEF_ALANLAR,
   type Esleme, type HedefAlan, type AktarimRaporu,
 } from '../entegrasyon/varlikAktarim';
+import { zinciriCalistir } from '../entegrasyon/zincir';
 
 export type SonucVeri<T> = { ok: true; veri: T } | { ok: false; hata: string };
 
@@ -144,9 +145,15 @@ export async function varlikAktarimOnayla(girdi: { id: string }): Promise<Sonuc>
     const k = await yetkiZorunlu('envanter', 'onay');
     const v = z.object({ id: bosluksuz('Aktarım') }).parse(girdi);
     await aktarimiUygula({ aktarimId: v.id, onaylayan: k });
+    /* Commit'ten SONRA motor zinciri: toplu aktarım CMDB'ye gerçek varlık
+       yazar, dolayısıyla veri kalitesi, yedek doğrulama, olay etkisi ve
+       gap-to-action girdileri değişti. Zincir fırlatmaz; başarısız motor
+       kendi koşu satırını bırakır ve /saglik'te görünür. */
+    await zinciriCalistir({ degisenler: { varlik: true } });
     revalidatePath('/varlik-aktarim');
     revalidatePath('/envanter');
     revalidatePath('/omur');
+    revalidatePath('/saglik');
     return tamam();
   } catch (e) { return hata(e); }
 }

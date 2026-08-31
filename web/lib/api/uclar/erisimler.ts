@@ -7,6 +7,7 @@ import {
   HataDefteri, izleriYaz, kokeniIsle, kosuIcinde, tesisHaritasi,
   varlikAnahtarlariniCoz, type EslesenVarlik, type IzGirdisi,
 } from '../yazma';
+import { zinciriCalistir } from '../../entegrasyon/zincir';
 
 /* POST /api/v1/access-observations - dizin/PAM gozlemleri -> KimlikHesabi
    (+ opsiyonel ErisimAtamasi).
@@ -154,6 +155,14 @@ export const POST = apiUcu({ modul: 'envanter', islem: 'yazma' }, async ({ govde
       };
     },
   );
+
+  /* Commit'ten sonra motor zinciri: kimlik/erisim kaydi yazildi, dolayisiyla ilgili
+     motorlarin girdisi degisti. Zincir FIRLATMAZ — basarisiz motor kendi
+     IsKosusu satirini birakir ve /saglik'te gorunur; bu yuzden basarili
+     bir yazma bu adim yuzunden geri alinmaz. */
+  if (sonuc.olusan + sonuc.guncellenen > 0) {
+    await zinciriCalistir({ kosuId, degisenler: { erisim: true } });
+  }
 
   return {
     govde: {

@@ -292,9 +292,26 @@ describe('Idempotency', () => {
   it('keşif kaydı CMDB\'ye OTOMATİK geçmez — inceleme bekler', async () => {
     const kesif = await db.kesifKaydi.findFirstOrThrow({
       where: { kaynakKayitId: `kayit-${ONEK}-GOZLEM` } });
-    expect(kesif.durum).toBe('kesfedildi');
+    /* Uç, kaydı yazdıktan sonra eşleştirme geçişini koşturur: kayıt ham
+       'kesfedildi' durumunda ASILI KALMAZ, inceleme kuyruğuna iner.
+       Değişmeyen şey şu: eşleştirme CMDB'ye YAZMAZ. */
+    expect(['eslesti', 'inceleme_bekliyor']).toContain(kesif.durum);
     expect(kesif.eslesenVarlikId).toBeNull();
     expect(await db.varlik.count({ where: { etiket: `${ONEK}-GOZLEM` } })).toBe(0);
+  });
+
+  it('gözlem ucu eşleştirme geçişini koşturur ve sonucunu yanıtta söyler', async () => {
+    const govde = { records: [varlikKaydi({
+      assetTag: `${ONEK}-ESL`, plantCode: `${ONEK}-A`, hostname: 'kesif-esl' })] };
+    const y = await gozlemYaz(yolla('/api/v1/assets/observations', jeton.a, govde, 'esl-1'));
+    const veri = (await y.json()).data;
+    // Sessiz geçmez: geçişin sonucu çağırana da bildirilir.
+    expect(typeof veri.matching).toBe('string');
+    expect(veri.matching).toMatch(/eşleştirme|atlandı/);
+
+    const kesif = await db.kesifKaydi.findFirstOrThrow({
+      where: { kaynakKayitId: `kayit-${ONEK}-ESL` } });
+    expect(kesif.durum).not.toBe('kesfedildi');
   });
 });
 
@@ -576,5 +593,53 @@ describe('Yedek, erişim ve kanıt uçları', () => {
     expect(kosu).toHaveProperty('accepted');
     expect(kosu).toHaveProperty('rejected');
     expect(kosu).toHaveProperty('duplicate');
+  });
+});
+
+/* ═══ yazma ucu → motor zinciri ═══════════════════════════════════════
+   Regresyon: `lib/entegrasyon/zincir.ts` yazıldı ama ÜRETİMDE hiçbir yerden
+   çağrılmıyordu — yalnız testlerden. Yani dış sistemden veri gelse bile
+   veri kalitesi, yedek doğrulama, olay etkisi ve gap-to-action motorları
+   o veriyi görmüyordu; zincir kâğıt üstünde kalıyordu. */
+describe('Yazma uçları motor zincirini tetikler', () => {
+  const zincirSayisi = () =>
+    db.isKosusu.count({ where: { isAdi: 'entegrasyon_zinciri' } });
+
+  it('zafiyet yazımı zinciri koşturur ve koşu satırı bırakır', async () => {
+    const once = await zincirSayisi();
+    const y = await zafiyetYaz(yolla('/api/v1/vulnerabilities', jeton.a, { records: [{
+      source: 'test_scanner', sourceRecordId: 'z-zincir', collectedAt: zaman,
+      confidence: 0.9, sourceRef: 'CVE-2026-9001', title: 'Zincir tetik testi',
+      assetKey: `${ONEK}-A-1`,
+    }] }, 'zafiyet-zincir'));
+    expect(y.status).toBe(200);
+    expect((await y.json()).data.created).toBe(1);
+    expect(await zincirSayisi()).toBe(once + 1);
+  });
+
+  it('istek reddedildiyse zincir KOŞMAZ', async () => {
+    /* Yazma gerçekleşmediyse motorları koşturmak boşuna tam tarama demek.
+       Tanınmayan varlık anahtarı isteği 4xx ile düşürür; zincir bu yolda
+       hiç çağrılmaz. */
+    const once = await zincirSayisi();
+    const y = await zafiyetYaz(yolla('/api/v1/vulnerabilities', jeton.a, { records: [{
+      source: 'test_scanner', sourceRecordId: 'z-yok', collectedAt: zaman,
+      confidence: null, sourceRef: 'CVE-2026-9002', title: 'Bilinmeyen varlık',
+      assetKey: 'BOYLE-BIR-VARLIK-YOK',
+    }] }, 'zafiyet-zincir-red'));
+    expect(y.status).toBeGreaterThanOrEqual(400);
+    expect(await zincirSayisi()).toBe(once);
+  });
+
+  it('zincir koşusu hangi motorların koştuğunu kaydeder', async () => {
+    const kosu = await db.isKosusu.findFirstOrThrow({
+      where: { isAdi: 'entegrasyon_zinciri' }, orderBy: { baslangic: 'desc' } });
+    // islenen = zincirdeki adım sayısı, uretilen = gerçekten koşan motor
+    expect(kosu.islenen).toBeGreaterThan(0);
+    expect(kosu.uretilen).toBeGreaterThan(0);
+    // zafiyet bayrağı deadline_motoru ve gap_to_action'ı tetikler
+    const gap = await db.isKosusu.findFirst({
+      where: { isAdi: 'gap_to_action' }, orderBy: { baslangic: 'desc' } });
+    expect(gap).not.toBeNull();
   });
 });

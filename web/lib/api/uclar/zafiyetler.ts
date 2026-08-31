@@ -7,6 +7,7 @@ import {
   HataDefteri, izleriYaz, kokeniIsle, kosuIcinde, varlikAnahtarlariniCoz,
   type EslesenVarlik, type IzGirdisi,
 } from '../yazma';
+import { zinciriCalistir } from '../../entegrasyon/zincir';
 
 /* POST /api/v1/vulnerabilities - tarayici bulgusu -> Zafiyet + VarlikZafiyeti.
 
@@ -102,6 +103,14 @@ export const POST = apiUcu({ modul: 'envanter', islem: 'yazma' }, async ({ govde
       };
     },
   );
+
+  /* Commit'ten sonra motor zinciri: zafiyet kaydi yazildi, dolayisiyla ilgili
+     motorlarin girdisi degisti. Zincir FIRLATMAZ — basarisiz motor kendi
+     IsKosusu satirini birakir ve /saglik'te gorunur; bu yuzden basarili
+     bir yazma bu adim yuzunden geri alinmaz. */
+  if (sonuc.olusan + sonuc.tazelenen > 0) {
+    await zinciriCalistir({ kosuId, degisenler: { zafiyet: true } });
+  }
 
   return {
     govde: {

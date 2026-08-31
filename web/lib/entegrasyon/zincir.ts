@@ -7,6 +7,9 @@ import { kanitTazeligiIsle } from '../motorlar/kanitTazelik';
 import { anlikGoruntuAl } from '../motorlar/anlik';
 import { sonTarihleriIsle } from '../motorlar/sonTarih';
 import { gapAksiyonIsle } from '../motorlar/gapAksiyon';
+import { yedekDogrulamayiIsle } from '../motorlar/yedekDogrulama';
+import { topolojiSapmasiniIsle } from '../motorlar/topolojiSapma';
+import { olayEtkileriniIsle } from '../motorlar/olayEtki';
 
 /* ════════════════════════════════════════════════════════════════════════
    Motor zinciri (§68 + entegrasyon): entegrasyondan YENİ VERİ geldikten
@@ -25,6 +28,9 @@ import { gapAksiyonIsle } from '../motorlar/gapAksiyon';
      → uyum / kanıt                  ← kanitTazeligiIsle    (kanit_tazelik)
                                        anlikGoruntuAl       (uyum_anlik)
      → risk tespiti                  ← sonTarihleriIsle     (deadline_motoru)
+     → yedek / DR                    ← yedekDogrulamayiIsle (yedek_dogrulama)
+     → topoloji sapması              ← topolojiSapmasiniIsle (topoloji_sapma)
+     → olay etkisi                   ← olayEtkileriniIsle   (olay_etki)
      → gap-to-action → proje adayı   ← gapAksiyonIsle       (gap_to_action)
 
    NOT (mevcut kabiliyet sınırı): ayrı bir "risk tespit motoru" yok. Zamana
@@ -114,12 +120,17 @@ const DEGISIKLIK_ANAHTARLARI = [
 ] as const;
 
 /** Motor karşılığı olmayan değişiklik bayrakları — zincir bunları sessizce
-    yutmaz, sonuçta `kapsanmayanDegisiklikler` olarak bildirir. */
+    yutmaz, sonuçta `kapsanmayanDegisiklikler` olarak bildirir.
+
+    `yedek` ve `topoloji` bu listeden ÇIKTI: karşılıkları artık
+    `yedek_dogrulama` ve `topoloji_sapma` motorları. `erisim` kaldı —
+    tedarikçi erişim oturumu bugün yalnız kayıt olarak durur, ondan kural
+    işleten bir motor yoktur ve olmadığını söylemek onu sessizce yutmaktan
+    iyidir. */
 const MOTORSUZ_DEGISIKLIKLER: Partial<Record<keyof ZincirDegisenleri, string>> = {
-  yedek: 'yedek/DR gözlemi: kayıtlı motor yok '
-    + '(ProjeAdayi.kaynak "yedek_dr" şemada tanımlı ama üreten motor yok)',
-  erisim: 'tedarikçi erişim oturumu: kayıtlı motor yok',
-  topoloji: 'topoloji sapması: kayıtlı motor yok',
+  erisim: 'tedarikçi erişim oturumu: kayıtlı motor yok — oturum kaydı '
+    + 'saklanır ve /tedarikciler ekranında görünür, ama ondan kural işleten '
+    + 'bir motor bulunmuyor',
 };
 
 type AdimTanimi = {
@@ -197,6 +208,36 @@ const ZINCIR: AdimTanimi[] = [
       + 'varlıkla gelen sertifikalar, zafiyet akışından açılan bulgu/aksiyonlar. '
       + 'Kanıt/tesis değişimi yeni son tarih üretmez → tetiklemez.',
     is: () => sonTarihleriIsle(),
+  },
+  {
+    ad: 'yedek_dogrulama',
+    asama: 'yedek / DR',
+    tetikleyenler: ['yedek', 'varlik'],
+    neden: 'Yedek metadata\'sı geldiğinde kritik varlıkta eksik/bayat yedek, '
+      + 'doğrulanmamış yedek ve "son bilinen iyi" boşluğu yeniden ölçülür. '
+      + 'Varlık değişimi de tetikler: yeni kritik varlık, yedeği olmayan bir '
+      + 'varlıktır. Motor yedek ALMAZ, yalnız metadata üzerinden kural işletir.',
+    is: () => yedekDogrulamayiIsle(),
+  },
+  {
+    ad: 'topoloji_sapma',
+    asama: 'topoloji',
+    tetikleyenler: ['topoloji'],
+    neden: 'Yeni topoloji gözlemi onaylı temel (baseline) ile karşılaştırılır. '
+      + 'Sapma yalnız RAPORLANIR — ağ/güvenlik duvarı yapılandırması '
+      + 'platformdan DEĞİŞTİRİLMEZ, düzeltme değişiklik sürecinden geçer.',
+    is: () => topolojiSapmasiniIsle(),
+  },
+  {
+    ad: 'olay_etki',
+    asama: 'olay etkisi',
+    tetikleyenler: ['varlik', 'tesis'],
+    neden: 'Etki önerisi VARLIK → SİSTEM → SÜREÇ → TESİS zincirini yürür; '
+      + 'zincirin girdileri varlık kayıtları ve santral profilidir. Yeni CMDB '
+      + 'verisi geldiğinde "bilinmiyor" kalan etki alanları çözülebilir hâle '
+      + 'gelir. Motor yalnız ÖNERİ yazar; olayın etki alanlarını doldurmak '
+      + 'insanın kararıdır (etkiDogrulayanId).',
+    is: () => olayEtkileriniIsle(),
   },
   {
     ad: 'gap_to_action',

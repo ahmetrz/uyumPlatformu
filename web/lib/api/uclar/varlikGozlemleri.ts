@@ -5,6 +5,7 @@ import { hamKayitlar, varlikGozlemine, varlikKaydiSemasi, zarf } from '../semala
 import { apiUcu, dogrula } from '../ucnokta';
 import { yazmaIzniZorunlu } from '../yetki';
 import { HataDefteri, izleriYaz, kokeniIsle, kosuIcinde, tesisHaritasi, type IzGirdisi } from '../yazma';
+import { eslestirmeyiKos } from '../../entegrasyon/cekirdek';
 
 /* POST /api/v1/assets/observations - PASIF kesif gozlemleri.
 
@@ -128,6 +129,14 @@ export const POST = apiUcu({ modul: 'envanter', islem: 'yazma' }, async ({ govde
     },
   );
 
+  /* Kayit yazildi ama eslestirilmedi: "detect -> correlate" zincirinin
+     correlate halkasi burada kurulur. Connector senkronizasyonu da ayni
+     gecisi kosar (lib/entegrasyon/cekirdek.ts). CMDB'ye YAZMAZ; yalniz
+     aday ve guven skoru uretir, karar hala insanindir. */
+  const eslestirme = sonuc.olusan + sonuc.tazelenen > 0
+    ? await eslestirmeyiKos([...new Set(records.map((r) => r.source))])
+    : null;
+
   return {
     govde: {
       data: {
@@ -138,6 +147,8 @@ export const POST = apiUcu({ modul: 'envanter', islem: 'yazma' }, async ({ govde
         rejected: 0,
         // Kesif kaydi CMDB'ye otomatik gecmez: inceleme kuyrugundadir.
         status: 'inceleme_bekliyor',
+        // Eslestirme gecisinin sonucu — sessiz gecmez, cagirana da soylenir.
+        matching: eslestirme,
       },
     },
   };

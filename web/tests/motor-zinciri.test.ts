@@ -131,12 +131,27 @@ describe('Motor zinciri — sıra, koşul, dayanıklılık, otomasyon sınırı'
   });
 
   it('motorsuz değişiklik bayrağı sessizce yutulmaz', async () => {
+    /* yedek ve topoloji artık MOTORLU: yedek_dogrulama ve topoloji_sapma
+       zincire girdi. Geriye yalnız 'erisim' kaldı — tedarikçi erişim
+       oturumundan kural işleten bir motor yok ve zincir bunu sessizce
+       yutmak yerine sonuçta söylüyor. */
     const sonuc = await zinciriCalistir({
       kosuId: 'ENT-TEST-4', degisenler: { yedek: true, topoloji: true, erisim: true } });
-    expect(sonuc.kosan).toEqual([]);
-    expect(sonuc.kapsanmayanDegisiklikler.length).toBe(3);
-    expect(sonuc.kapsanmayanDegisiklikler.join(' ')).toContain('yedek');
-    expect(sonuc.kapsanmayanDegisiklikler.join(' ')).toContain('topoloji');
+    expect(sonuc.kosan).toEqual(['yedek_dogrulama', 'topoloji_sapma']);
+    expect(sonuc.kapsanmayanDegisiklikler.length).toBe(1);
+    expect(sonuc.kapsanmayanDegisiklikler.join(' ')).toContain('erisim');
+  });
+
+  it('yedek/topoloji/olay motorları zincirde DOĞRU KOŞULLA yer alır', async () => {
+    const ad = (a: string) => ZINCIR_SIRASI.find((z) => z.ad === a);
+    expect(ad('yedek_dogrulama')?.tetikleyenler).toEqual(['yedek', 'varlik']);
+    expect(ad('topoloji_sapma')?.tetikleyenler).toEqual(['topoloji']);
+    expect(ad('olay_etki')?.tetikleyenler).toEqual(['varlik', 'tesis']);
+    // gap_to_action zincirin SONUNDA kalmalı: kararını güncel veriyle verir
+    expect(ZINCIR_SIRASI[ZINCIR_SIRASI.length - 1].ad).toBe('gap_to_action');
+    // veri_kalitesi gap_to_action'dan ÖNCE
+    const i = (a: string) => ZINCIR_SIRASI.findIndex((z) => z.ad === a);
+    expect(i('veri_kalitesi')).toBeLessThan(i('gap_to_action'));
   });
 
   it('bir motor patlarsa zincir DEVAM eder ve sonuç bunu bildirir', async () => {

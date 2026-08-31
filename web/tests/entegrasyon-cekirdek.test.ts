@@ -453,3 +453,52 @@ describe('Keşif kaydının santrali', () => {
     adaptorSil('test_tesis_k');
   });
 });
+
+/* ─────────────────────────────────────────────────────────────────────
+   Senkronizasyon → eşleştirme bağı.
+
+   Regresyon: çekirdek kayıtları `normalize` durumunda bırakıyor, onları
+   CMDB adaylarıyla eşleştiren geçiş ise YALNIZ ekrandaki "Eşleştir"
+   düğmesinden çağrılıyordu. Connector saatte bir koşsa da kimse düğmeye
+   basmazsa kuyruk hiç ilerlemiyordu — "detect → correlate" zincirinin
+   correlate halkası kopuktu.
+   ──────────────────────────────────────────────────────────────────── */
+describe('Senkronizasyon sonrası eşleştirme geçişi', () => {
+  it('başarılı koşu kayıtları normalize\'da BIRAKMAZ, eşleştirme geçişini koşturur', async () => {
+    const kaynak = 'TEST-ESLESTIRME-BAGI';
+    /* Seed'deki gerçek bir varlığın hostname'iyle gelelim ki eşleşme
+       kurulabilsin; eşleşmese bile durum 'inceleme_bekliyor' olmalı —
+       'normalize' KALMAMALI. */
+    adaptorYap('test_esl_bagi', async () => ({
+      gozlemler: [gozlem('eb1', kaynak)], yeniImlec: null, devamVar: false }));
+    const c = await connectorYap('test_esl_bagi');
+
+    const sonuc = await senkronizasyonKos(c.id);
+    expect(sonuc.durum).toBe('basarili');
+    expect(sonuc.ayrinti).toContain('eşleştirme');
+
+    const k = await db.kesifKaydi.findUniqueOrThrow({
+      where: { kaynak_kaynakKayitId: { kaynak, kaynakKayitId: 'eb1' } } });
+    expect(k.durum).not.toBe('normalize');
+    expect(['eslesti', 'inceleme_bekliyor']).toContain(k.durum);
+
+    // Eşleştirme kendi koşu satırını bıraktı: /saglik'te görünür.
+    const kosu = await db.isKosusu.findFirst({
+      where: { isAdi: 'kesif_eslestirme' }, orderBy: { baslangic: 'desc' } });
+    expect(kosu?.durum).toBe('basarili');
+    adaptorSil('test_esl_bagi');
+  });
+
+  it('hiç kayıt kabul edilmediyse eşleştirme boşuna koşmaz', async () => {
+    const kaynak = 'TEST-ESLESTIRME-BOS';
+    adaptorYap('test_esl_bos', async () => ({
+      gozlemler: [], yeniImlec: null, devamVar: false }));
+    const c = await connectorYap('test_esl_bos');
+
+    const sonuc = await senkronizasyonKos(c.id);
+    expect(sonuc.durum).toBe('basarili');
+    expect(sonuc.ayrinti).not.toContain('eşleştirme');
+    expect(await db.kesifKaydi.count({ where: { kaynak } })).toBe(0);
+    adaptorSil('test_esl_bos');
+  });
+});

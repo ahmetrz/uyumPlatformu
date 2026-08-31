@@ -31,6 +31,7 @@ import {
   type KesifIsleOzeti, type KesifKarari,
 } from '../entegrasyon/kesif';
 import type { AdaptorBaglami } from '../entegrasyon/sozlesme';
+import { zinciriCalistir } from '../entegrasyon/zincir';
 import { type Sonuc, tamam, hata, iz, bosluksuz } from './ortak';
 
 const YOL = '/kesif';
@@ -247,7 +248,13 @@ export async function kesifKarariVer(girdi: {
       }
     }
 
-    revalidatePath(YOL); revalidatePath('/envanter');
+    /* CMDB'ye gerçekten yazıldıysa motor zincirini tetikle: yeni varlık
+       veri kalitesi kurallarını, yedek/etki zincirini ve gap-to-action'ı
+       ilgilendirir. Zincir FIRLATMAZ — başarısız motor kendi IsKosusu
+       satırını bırakır ve /saglik'te görünür; onay bu yüzden geri alınmaz. */
+    if (sonuc.varlikId) await zinciriCalistir({ degisenler: { varlik: true } });
+
+    revalidatePath(YOL); revalidatePath('/envanter'); revalidatePath('/saglik');
     return tamam();
   } catch (e) { return hata(e); }
 }
@@ -281,6 +288,7 @@ export async function kesifTopluKarar(girdi: {
 
     const basarisiz: string[] = [];
     let basarili = 0;
+    let cmdbYazildi = false;
     for (const kesifId of benzersiz) {
       try {
         const { kayit, tesisId } = await kararKapsami(kesifId);
@@ -307,13 +315,18 @@ export async function kesifTopluKarar(girdi: {
             });
           }
         }
+        if (sonuc.varlikId) cmdbYazildi = true;
         basarili += 1;
       } catch (e) {
         basarisiz.push(`${kesifId}: ${e instanceof Error ? e.message : 'hata'}`);
       }
     }
 
-    revalidatePath(YOL); revalidatePath('/envanter');
+    // Zincir kayıt başına değil, TOPLU KARARIN SONUNDA bir kez koşar:
+    // motorlar tam tarama yapıyor, 25 kayıt için 25 tarama israf olurdu.
+    if (cmdbYazildi) await zinciriCalistir({ degisenler: { varlik: true } });
+
+    revalidatePath(YOL); revalidatePath('/envanter'); revalidatePath('/saglik');
     if (basarisiz.length > 0) {
       return {
         ok: false,

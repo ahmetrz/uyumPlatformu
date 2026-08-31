@@ -824,13 +824,21 @@ export async function sapmaKarari(girdi: {
   const sapma = await db.topolojiSapmasi.findUniqueOrThrow({
     where: { id: girdi.sapmaId }, include: { anlik: true },
   });
+  // Bu okuma yalnız HIZLI RET içindir; gerçek kapı aşağıdaki koşullu
+  // updateMany'dir. Okuma ile yazma arasında başkası karar verebilir (P6).
   if (!ACIK_DURUMLAR.includes(sapma.durum as SapmaDurumu)) {
     throw new Error(`Bu sapma zaten karara bağlanmış (${sapma.durum})`);
   }
 
   return db.$transaction(async (tx) => {
-    await tx.topolojiSapmasi.update({
-      where: { id: sapma.id },
+    /* Sapmayı KOŞULLU sahiplen (P6 · docs/POSTGRES_READINESS.md §c).
+       Eski kod yukarıdaki okumaya güvenip koşulsuz `update` yapıyordu; motor
+       ile kullanıcı aynı sapmayı aynı anda karara bağladığında ikisi de
+       "açık" görüyor, ikincisi birincinin kararını ve gerekçesini SESSİZCE
+       eziyordu. `durum` hâlâ açık durumlardan biriyken yazıldığı için
+       kaybeden artık hiçbir şey yazmaz ve açık hata alır. */
+    const sahiplenme = await tx.topolojiSapmasi.updateMany({
+      where: { id: sapma.id, durum: { in: [...ACIK_DURUMLAR] } },
       data: {
         durum: girdi.karar,
         kararVerenId: girdi.kararVerenId,
@@ -838,6 +846,9 @@ export async function sapmaKarari(girdi: {
         kararGerekcesi: gerekce,
       },
     });
+    if (sahiplenme.count === 0) {
+      throw new Error('Bu sapma bu sırada başkası tarafından karara bağlandı');
+    }
 
     const kardesler = await tx.topolojiSapmasi.findMany({
       where: { anlikId: sapma.anlikId }, select: { id: true, durum: true },
@@ -863,9 +874,14 @@ export async function sapmaKarari(girdi: {
       where: { tesisId: sapma.anlik.tesisId, temelMi: true },
       orderBy: { onayZamani: 'desc' },
     });
-    if (eski) await tx.topolojiAnlik.update({ where: { id: eski.id }, data: { temelMi: false } });
-    await tx.topolojiAnlik.update({
-      where: { id: sapma.anlikId },
+    // Temel taşıma da koşullu: eski temel hâlâ temelken düşer, yeni anlık
+    // hâlâ temel DEĞİLKEN yükselir. Aynı anlığın iki sapması aynı anda kabul
+    // edilirse ikinci geçiş burada etkisiz kalır — çift "temel oldu" notu ve
+    // iki temelli santral oluşmaz.
+    if (eski) await tx.topolojiAnlik.updateMany({
+      where: { id: eski.id, temelMi: true }, data: { temelMi: false } });
+    await tx.topolojiAnlik.updateMany({
+      where: { id: sapma.anlikId, temelMi: false },
       data: {
         temelMi: true,
         onaylayanId: girdi.kararVerenId,
@@ -932,6 +948,26 @@ export async function bekleyenAdaylar(tesisIdleri?: string[] | null) {
     .filter((x): x is { sapma: (typeof sapmalar)[number]; aday: AdayOnerisi } => x.aday !== null);
 }
 
+/* Türetilmiş kayıt açmada yarış (P6 · docs/POSTGRES_READINESS.md §c).
+
+   Eski kod "bu sapmadan zaten kayıt açılmış mı?" diye OKUYOR, sonra kaydı
+   açıyordu. Motor tetiklemesi ile insan aynı anda çalıştığında ikisi de
+   `uretilenRiskId: null` görüyor ve risk kütüğüne İKİ KOPYA kayıt düşüyordu;
+   sapmanın bağı ise yalnız sonuncusunu gösterdiği için kopya kayıt sahipsiz
+   kalıyordu.
+
+   SEÇİLEN ÇÖZÜM — "kaydı transaction içinde aç, bağı KOŞULLU yaz, kaybeden
+   transaction'ı geri al":
+     · `uretilenRiskId` / `uretilenBulguId` yabancı anahtar değil düz metin
+       alanıdır, ama önce yer tutucu bir değerle "sahiplenip" sonra kaydı
+       açmak, iki adım arasında bir çökme olursa sapmayı KALICI olarak
+       sahte bir kimliğe bağlar ve kayıt hiç açılmamış olur — kurtarılması
+       elle müdahale isteyen yarım bir durum.
+     · Kayıt önce açılıp bağ koşullu yazıldığında ise kaybeden dalda
+       `count === 0` olur ve transaction geri alınır: açılan risk/bulgu da
+       geri alınır. Telafi kodu (elle silme) yazmaya gerek kalmaz; yarım
+       kayıt HİÇBİR dalda kalmaz.
+   `db.$transaction` geri alması bu projede sınanmıştır (tests/yaris-kosullari). */
 /**
  * İNSAN kaydı açtığında çağrılır — motor asla çağırmaz. Risk kütüğüne kayıt
  * yazar ve sapmayı o kayda bağlar. İkinci kez çağrılamaz.
@@ -948,6 +984,7 @@ export async function riskKaydiAc(
   if (!gerekce) throw new Error('riskKaydiAc: gerekçe zorunlu');
 
   const sapma = await db.topolojiSapmasi.findUniqueOrThrow({ where: { id: sapmaId } });
+  // Hızlı ret; gerçek kapı aşağıdaki koşullu updateMany'dir.
   if (sapma.uretilenRiskId) throw new Error('Bu sapma için zaten bir risk kaydı açılmış');
   const aday = sapmaAdayi(sapma);
 
@@ -965,9 +1002,15 @@ export async function riskKaydiAc(
         // sayı uydurmak "bilinmiyor"u "düşük"e çevirir (§Bilinmeyen ≠ sıfır).
       },
     });
-    await tx.topolojiSapmasi.update({
-      where: { id: sapmaId }, data: { uretilenRiskId: risk.id },
+    const sahiplenme = await tx.topolojiSapmasi.updateMany({
+      where: { id: sapmaId, uretilenRiskId: null },
+      data: { uretilenRiskId: risk.id },
     });
+    // Kaybeden dal: bağ zaten dolu → hata at, transaction geri alınsın.
+    // Yukarıda açılan risk kaydı da geri alınır; kopya risk oluşmaz.
+    if (sahiplenme.count === 0) {
+      throw new Error('Bu sapma için zaten bir risk kaydı açılmış');
+    }
     return { riskId: risk.id, kod: risk.kod };
   });
 }
@@ -988,6 +1031,7 @@ export async function bulguKaydiAc(
   if (!gerekce) throw new Error('bulguKaydiAc: gerekçe zorunlu');
 
   const sapma = await db.topolojiSapmasi.findUniqueOrThrow({ where: { id: sapmaId } });
+  // Hızlı ret; gerçek kapı aşağıdaki koşullu updateMany'dir (riskKaydiAc ile aynı).
   if (sapma.uretilenBulguId) throw new Error('Bu sapma için zaten bir bulgu kaydı açılmış');
   const aday = sapmaAdayi(sapma);
 
@@ -1003,9 +1047,13 @@ export async function bulguKaydiAc(
         sorumluId: girdi.sorumluId ?? null,
       },
     });
-    await tx.topolojiSapmasi.update({
-      where: { id: sapmaId }, data: { uretilenBulguId: bulgu.id },
+    const sahiplenme = await tx.topolojiSapmasi.updateMany({
+      where: { id: sapmaId, uretilenBulguId: null },
+      data: { uretilenBulguId: bulgu.id },
     });
+    if (sahiplenme.count === 0) {
+      throw new Error('Bu sapma için zaten bir bulgu kaydı açılmış');
+    }
     return { bulguId: bulgu.id };
   });
 }

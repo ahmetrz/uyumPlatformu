@@ -68,6 +68,24 @@ export async function denetimKaydet(girdi: {
 
 // ------------------------------------------------------ aşama ilerlet / geri
 
+/* Aşama geçişi neden koşullu yazılır (P5 · docs/POSTGRES_READINESS.md §c):
+
+   Eski kod aşamayı OKUYOR, bir sonrakini hesaplıyor ve KOŞULSUZ yazıyordu.
+   İki eşzamanlı çağrı — özellikle "ilerlet" ile "geri al" — aynı başlangıç
+   aşamasını görüyor, ikisi de yazıyor ve KAYBEDEN SESSİZCE YUTULUYORDU:
+   kullanıcıya "tamam" dönüyor, ama denetim izine GERÇEKLEŞMEMİŞ bir geçiş
+   (örn. "saha → bulgu") düşüyordu. İz, olmamış bir olayı anlatıyordu.
+
+   Reçete `lib/eylemler2/konfigYedek.ts:sonBilinenIyiIsaretle` ile aynı:
+   beklenen aşamayı koşullu `updateMany` ile SAHİPLEN; `count === 0` ise
+   başkası önce davranmıştır → açık hata, ve İZE HİÇBİR ŞEY YAZILMAZ.
+
+   `silindi: null` koşulu da yazmaya taşındı: okuma ile yazma arasında
+   denetim yumuşak silinirse silinmiş kayda aşama yazılmasın. */
+const ASAMA_CAKISMASI =
+  'Denetimin aşaması bu sırada başka bir kullanıcı tarafından değiştirildi; '
+  + 'sayfayı yenileyip güncel aşamayla tekrar deneyin.';
+
 /** SIRA ZORUNLU ilerleme: yalnız bir sonraki aşamaya geçilir, atlama yoktur.
     Kapanışa geçiş denetim/onay yetkisi ister; açık kanıt talebi veya bu
     denetime bağlı açık bulgu varsa mesajla reddedilir. */
@@ -82,12 +100,31 @@ export async function asamaIlerlet(girdi: { id: string }): Promise<Sonuc> {
       throw new Error('Denetim zaten kapanış aşamasında');
     const sonraki = DENETIM_ASAMALARI[i + 1];
 
-    if (sonraki === 'kapanis') {
-      if (!izinVar(k, 'denetim', 'onay'))
-        throw new Error('Kapanışa geçiş için denetim onay yetkisi gerekli');
+    if (sonraki === 'kapanis' && !izinVar(k, 'denetim', 'onay'))
+      throw new Error('Kapanışa geçiş için denetim onay yetkisi gerekli');
+
+    /* Kapanış kontrolü ÖNCE-SAY-SONRA-YAZ değil, ÖNCE-YAZ-SONRA-DOĞRULA:
+       eski sırada sayım ile yazma arasında yeni bir bulgu açılabiliyor ve
+       denetim AÇIK BULGUYLA kapanıyordu. Artık aşama önce sahipleniliyor
+       (bu andan sonra `kanitTalebiEkle` gibi "kapanmış denetime eklenmez"
+       kapıları yeni kayıt açılmasını engelliyor), sonra aynı transaction
+       içinde sayım yapılıyor; sayı sıfır değilse transaction geri alınıyor
+       ve aşama hiç değişmemiş oluyor. Yarım durum kalmaz. */
+    await db.$transaction(async (tx) => {
+      const sonuc = await tx.denetim.updateMany({
+        where: { id, durum: d.durum, silindi: null },
+        data: { durum: sonraki },
+      });
+      if (sonuc.count === 0) throw new Error(ASAMA_CAKISMASI);
+      // İz AYNI transaction'da: geçiş geri alınırsa iz de geri alınır ve
+      // eşzamanlı bir geri alma izi yutamaz (bkz. ortak.ts `iz` yorumu).
+      await iz({ aktorId: k.id, varlikTipi: 'Denetim', varlikId: id,
+        eylem: 'durum_degisimi', alan: 'durum', once: d.durum, sonra: sonraki }, tx);
+
+      if (sonraki !== 'kapanis') return;
       const [acikTalep, acikBulgu] = await Promise.all([
-        db.kanitTalebi.count({ where: { denetimId: id, durum: 'acik' } }),
-        db.bulgu.count({ where: {
+        tx.kanitTalebi.count({ where: { denetimId: id, durum: 'acik' } }),
+        tx.bulgu.count({ where: {
           denetimId: id, silindi: null, durum: { in: ['acik', 'aksiyonda'] },
         } }),
       ]);
@@ -96,11 +133,8 @@ export async function asamaIlerlet(girdi: { id: string }): Promise<Sonuc> {
           acikTalep > 0 ? `${acikTalep} açık kanıt talebi` : null,
           acikBulgu > 0 ? `${acikBulgu} açık bulgu` : null,
         ].filter(Boolean).join(' ve ')} var; önce bunlar kapatılmalı.`);
-    }
+    });
 
-    await db.denetim.update({ where: { id }, data: { durum: sonraki } });
-    await iz({ aktorId: k.id, varlikTipi: 'Denetim', varlikId: id,
-      eylem: 'durum_degisimi', alan: 'durum', once: d.durum, sonra: sonraki });
     tazele(id);
     return tamam();
   } catch (e) { return hata(e); }
@@ -118,10 +152,20 @@ export async function asamaGeriAl(girdi: { id: string; gerekce: string }): Promi
     if (i === 0) throw new Error('Denetim zaten ilk aşamada (plan)');
     const onceki = DENETIM_ASAMALARI[i - 1];
 
-    await db.denetim.update({ where: { id: v.id }, data: { durum: onceki } });
-    await iz({ aktorId: k.id, varlikTipi: 'Denetim', varlikId: v.id,
-      eylem: 'durum_degisimi', alan: 'durum', once: d.durum, sonra: onceki,
-      gerekce: v.gerekce });
+    // Aynı sahiplenme: eşzamanlı "ilerlet" kazandıysa burada count === 0 olur
+    // ve geri alma iz bırakmadan reddedilir (bkz. ASAMA_CAKISMASI yorumu).
+    // Geçiş ile iz tek transaction'da yazılır; ikisi birlikte olur ya da
+    // hiç olmaz.
+    await db.$transaction(async (tx) => {
+      const sonuc = await tx.denetim.updateMany({
+        where: { id: v.id, durum: d.durum, silindi: null },
+        data: { durum: onceki },
+      });
+      if (sonuc.count === 0) throw new Error(ASAMA_CAKISMASI);
+      await iz({ aktorId: k.id, varlikTipi: 'Denetim', varlikId: v.id,
+        eylem: 'durum_degisimi', alan: 'durum', once: d.durum, sonra: onceki,
+        gerekce: v.gerekce }, tx);
+    });
     tazele(v.id);
     return tamam();
   } catch (e) { return hata(e); }

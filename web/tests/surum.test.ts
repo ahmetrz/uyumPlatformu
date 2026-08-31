@@ -54,6 +54,11 @@ describe('Kabul testi 6 — regülasyon yeni sürüm', () => {
           yeniSurumId: taslak.id, maddeKodu: m.kod, degisimTipi: 'degisti' } });
       }
     }
+    /* SIRA ÖNEMLİ: önce eskiyi arşivle, sonra yeniyi aktifleştir.
+       `FrameworkSurumu_tekAktif` kısmi tekil indeksi (migration
+       20260901201000) bir regülasyonda ikinci aktif sürümü VERİTABANI
+       seviyesinde reddeder; ters sırada bu satır P2002 ile patlar.
+       Bu, testin kurulumu değil ürünün kuralıdır — bkz. lib/eylemler2/surum.ts */
     await db.frameworkSurumu.update({ where: { id: eskiSurum.id }, data: { durum: 'arsiv' } });
     await db.frameworkSurumu.update({ where: { id: taslak.id }, data: { durum: 'aktif' } });
     const surec = await db.uyumSureci.findFirstOrThrow({

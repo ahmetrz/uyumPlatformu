@@ -69,12 +69,20 @@ function demoEslemesi(): Record<string, string> {
    dışa aktarımda sunucu yoktur. Demo derlemesinde bu yüzden hiç
    tanımlanmaz; başlıklar CDN'de kurulur. Tanımlı bırakmak, korunuyor
    sanılan bir yayın üretirdi. */
+/* Geliştirmede React Refresh (HMR) `eval` kullanır; `'unsafe-eval'`
+   olmadan tarayıcı konsolu "eval() is not supported in this environment"
+   der ve sıcak yenileme çalışmaz. ÜRETİMDE bu izin VERİLMEZ — verilseydi
+   CSP'nin en önemli maddesini geliştirme kolaylığı için feda etmiş
+   olurduk. Ayrım burada tek satırdır ve görünürdür; sessizce her ortama
+   açık bırakmak kolay ama yanlış olurdu. */
+const GELISTIRME = process.env.NODE_ENV !== 'production';
+
 const GUVENLIK_BASLIKLARI = [
   {
     key: 'Content-Security-Policy',
     value: [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline'",
+      `script-src 'self' 'unsafe-inline'${GELISTIRME ? " 'unsafe-eval'" : ''}`,
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob:",
       "font-src 'self'",

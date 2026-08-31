@@ -507,6 +507,13 @@ model AktiviteKaydi {
   aktor Kullanici? @relation(fields: [aktorId], references: [id])
 
   @@index([varlikTipi, varlikId, zaman])
+  /// Aktivite ekranı (app/(atlas)/(operasyonel)/aktivite/page.tsx) filtresiz
+  /// `zaman desc` okur; yukarıdaki indeksin ilk kolonu varlikTipi olduğu için
+  /// o sorguya yaramaz. ÖLÇÜLMEDİ — tablo bugün ~22 satır, ölçülecek bir fark
+  /// yok. Gerekçe BÜYÜMEDİR: denetim izi hiç silinmez (bkz.
+  /// 20260830190000_denetim_izi_degismezligi tetikleyicileri), tablo tek yönlü
+  /// büyür ve ilk darboğaz adayı budur.
+  @@index([zaman])
 }
 
 // ---------------------------------------------------------- içe aktarım
@@ -675,6 +682,16 @@ model FrameworkSurumu {
   eskiFarklar   SurumFarki[] @relation("EskiSurum")
 
   @@unique([regulasyonId, surumEtiketi])
+  /// DİKKAT — bu modelde şemada GÖRÜNMEYEN bir kısıt daha var:
+  /// `FrameworkSurumu_tekAktif`, bir regülasyonda yalnız BİR satırın
+  /// durum = 'aktif' olmasını zorlar. KISMİ (partial) tekil indekstir ve
+  /// Prisma `@@unique` sözdizimi `WHERE` ifadesi taşıyamadığı için ham SQL
+  /// migration ile eklenmiştir:
+  /// prisma/migrations/20260901201000_framework_surumu_tek_aktif/migration.sql
+  /// Prisma bu indeksi introspection'da görmez (`migrate diff` boş döner),
+  /// bu yüzden şemadan silinmiş sanılıp kaybolmaması için burada yazılıdır.
+  /// İhlali `lib/eylemler2/surum.ts` içinde yakalanır ve anlamlı hataya
+  /// çevrilir; çıplak Prisma istisnası kullanıcıya çıkmaz.
 }
 
 /// Sürüm farkı (diff): iki sürüm arasında madde bazında değişim + etki.
@@ -1207,6 +1224,11 @@ model VarlikZafiyeti {
   varlik  Varlik  @relation(fields: [varlikId], references: [id], onDelete: Cascade)
 
   @@unique([zafiyetId, varlikId])
+  /// Varlıktan zafiyete gidiş (envanter ekranı). `varlikId` yukarıdaki tekil
+  /// indeksin İKİNCİ kolonu olduğu için SQLite tüm zafiyetleri dolaşıyordu
+  /// (EXPLAIN: ANY(zafiyetId) AND varlikId=?). ÖLÇÜLDÜ (PERFORMANS_TABANI §6):
+  /// 100.030 satırda 900 varlık için 21,4 ms → 6,6 ms.
+  @@index([varlikId])
 }
 
 model YedeklemePolitikasi {
@@ -1794,6 +1816,16 @@ model KesifKaydi {
   @@unique([kaynak, kaynakKayitId])
   @@index([durum, sonGorulme])
   @@index([tesisId, durum])
+  /// Keşif kuyruğu ekranı (app/(atlas)/(operasyonel)/kesif/page.tsx) durum
+  /// filtresi OLMADAN `sonGorulme desc` sıralar; yukarıdaki [durum, sonGorulme]
+  /// indeksi bu sorguya yaramaz (ilk kolonu durum). ÖLÇÜLDÜ
+  /// (PERFORMANS_TABANI §6): 100.000 satırda tam tarama + geçici B-ağacı
+  /// sıralaması 58,5 ms → 1,9 ms.
+  @@index([sonGorulme])
+  /// Varlığın SON keşif kaydı (envanter ekranı): eşleşen varlık üzerinden
+  /// gidiş bugün tam tarama yapıyor. ÖLÇÜLDÜ (PERFORMANS_TABANI §6):
+  /// 45,1 ms → 3,9 ms.
+  @@index([eslesenVarlikId, sonGorulme])
 }
 
 /// Topoloji anlık görüntüsü. `temelMi` işaretli anlık BASELINE'dır ve

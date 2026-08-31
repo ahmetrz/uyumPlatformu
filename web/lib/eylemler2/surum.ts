@@ -58,6 +58,38 @@ export async function surumOlustur(girdi: { regulasyonId: string; etiket: string
   } catch (e) { return hata(e); }
 }
 
+const CAKISMA =
+  'Bu regülasyonun sürüm durumu bu sırada başka bir kullanıcı tarafından '
+  + 'değiştirildi; sayfayı yenileyip tekrar deneyin.';
+
+/**
+ * `FrameworkSurumu_tekAktif` kısmi tekil indeksinin ihlalini kullanıcı diline
+ * çevirir. Kısıt şemada görünmez (Prisma `@@unique` üzerinde `WHERE` yazamaz;
+ * bkz. migration 20260901201000), bu yüzden Prisma onu tanımaz ve çıplak
+ * istisna ekrana "Invalid `db.frameworkSurumu.updateMany()` invocation …
+ * UNIQUE constraint failed: FrameworkSurumu.regulasyonId" olarak,
+ * kaynak kodu ve dosya yolu ile birlikte düşerdi. Kullanıcıya çıkan mesaj
+ * sorunu ANLATMALI ve iç yapıyı sızdırmamalı.
+ *
+ * Ayırt etme: aynı modelde bir de `@@unique([regulasyonId, surumEtiketi])`
+ * var. İhlal edilen kısıt YALNIZ `regulasyonId` kolonundaysa bu bizim kısmi
+ * indeksimizdir; iki kolonluysa "bu sürüm etiketi zaten var" hatasıdır ve
+ * olduğu gibi bırakılır.
+ */
+function tekAktifIhlaliniCevir(e: unknown): unknown {
+  const h = e as { code?: string; meta?: Record<string, unknown> } | null;
+  if (h?.code !== 'P2002') return e;
+  const meta = JSON.stringify(h.meta ?? {});
+  if (!meta.includes('FrameworkSurumu')) return e;
+  // Kısmi indeks tek kolonludur; iki kolonlu tekillik başka bir hatadır.
+  if (meta.includes('surumEtiketi')) return e;
+  return new Error(
+    'Bu regülasyonda zaten aktif bir sürüm var; aktifleştirme veritabanı '
+    + 'kısıtıyla reddedildi (bir regülasyonda yalnız bir aktif sürüm olabilir). '
+    + 'Sayfayı yenileyip güncel durumla tekrar deneyin.',
+  );
+}
+
 export async function surumAktiflestir(girdi: { surumId: string }): Promise<Sonuc> {
   try {
     const k = await yetkiZorunlu('tanimlar', 'onay');
@@ -104,40 +136,68 @@ export async function surumAktiflestir(girdi: { surumId: string }): Promise<Sonu
       }
     }
 
-    // ---- sürüm durumları
-    if (eski) await db.frameworkSurumu.update({
-      where: { id: eski.id }, data: { durum: 'arsiv' } });
-    await db.frameworkSurumu.update({
-      where: { id: yeni.id }, data: { durum: 'aktif', yururlukTarih: new Date() } });
+    /* ---- sürüm durumları (P7 · docs/POSTGRES_READINESS.md §c)
 
-    // ---- yeni değerlendirme ihtiyacı: değişen/yeni YAPRAK maddeler için
-    // aktif süreçlerin kapsam tesislerine 'degerlendirilmedi' kayıtları
-    const surecler = await db.uyumSureci.findMany({
-      where: { regulasyonId: yeni.regulasyonId, durum: 'aktif' },
-      include: { kapsam: true } });
-    const altSahipler = new Set(yeniMaddeler.map((m) => m.ustMaddeId).filter(Boolean));
-    let acilan = 0;
-    for (const surec of surecler) {
-      for (const maddeId of degisenYeniIdler) {
-        if (altSahipler.has(maddeId)) continue; // yaprak değil
-        for (const kapsamKaydi of surec.kapsam) {
-          await db.maddeDurumu.upsert({
-            where: { surecId_maddeId_tesisId: {
-              surecId: surec.id, maddeId, tesisId: kapsamKaydi.tesisId } },
-            update: {},
-            create: { surecId: surec.id, maddeId, tesisId: kapsamKaydi.tesisId,
-              durum: 'degerlendirilmedi', guven: 'kanit_yok' },
-          });
-          acilan++;
+       Eski kod "eskiyi arşivle, yeniyi aktifleştir" adımlarını koşulsuz ve
+       transaction'sız yazıyordu. Eşzamanlı iki aktifleştirme iki AKTİF sürüm
+       bırakabiliyordu; `lib/arama.ts` ve `app/(atlas)/uyum/veri.ts` gibi
+       "aktif sürüm" filtreleri o anda sonuçları İKİ KAT döndürüyordu.
+
+       İki katmanlı savunma:
+       1) Koşullu `updateMany` — taslak hâlâ taslakken, eski hâlâ aktifken
+          yazılır; kaybeden `count === 0` görür ve açık hata alır.
+       2) ASIL kısıt veritabanındadır: `FrameworkSurumu_tekAktif` kısmi tekil
+          indeksi (migration 20260901201000). Uygulama katmanı atlansa da
+          (seed, ham SQL, ileride başka bir çağrı yolu) ikinci aktif sürüm
+          fiziksel olarak yazılamaz.
+
+       Sürüm durumları, açılan değerlendirmeler ve İZ tek transaction içinde:
+       arşivleme yazılıp aktifleştirme reddedilirse regülasyon aktif sürümsüz
+       kalırdı. İz de içeride, çünkü tek SQLite bağlantısında transaction
+       DIŞINDA yazılan iz, eşzamanlı başarısız bir çağrının geri alınmasıyla
+       SESSİZCE yutuluyor (ölçüldü: tests/yaris-kosullari; bkz. eylemler2/
+       ortak.ts `iz` yorumu). Aktifleştirme izsiz kalamaz. */
+    await db.$transaction(async (tx) => {
+      if (eski) {
+        const arsivlendi = await tx.frameworkSurumu.updateMany({
+          where: { id: eski.id, durum: 'aktif' }, data: { durum: 'arsiv' } });
+        if (arsivlendi.count === 0) throw new Error(CAKISMA);
+      }
+      const aktiflendi = await tx.frameworkSurumu.updateMany({
+        where: { id: yeni.id, durum: 'taslak' },
+        data: { durum: 'aktif', yururlukTarih: new Date() } });
+      if (aktiflendi.count === 0) throw new Error(CAKISMA);
+
+      // ---- yeni değerlendirme ihtiyacı: değişen/yeni YAPRAK maddeler için
+      // aktif süreçlerin kapsam tesislerine 'degerlendirilmedi' kayıtları
+      const surecler = await tx.uyumSureci.findMany({
+        where: { regulasyonId: yeni.regulasyonId, durum: 'aktif' },
+        include: { kapsam: true } });
+      const altSahipler = new Set(yeniMaddeler.map((m) => m.ustMaddeId).filter(Boolean));
+      let acilan = 0;
+      for (const surec of surecler) {
+        for (const maddeId of degisenYeniIdler) {
+          if (altSahipler.has(maddeId)) continue; // yaprak değil
+          for (const kapsamKaydi of surec.kapsam) {
+            await tx.maddeDurumu.upsert({
+              where: { surecId_maddeId_tesisId: {
+                surecId: surec.id, maddeId, tesisId: kapsamKaydi.tesisId } },
+              update: {},
+              create: { surecId: surec.id, maddeId, tesisId: kapsamKaydi.tesisId,
+                durum: 'degerlendirilmedi', guven: 'kanit_yok' },
+            });
+            acilan++;
+          }
         }
       }
-    }
 
-    await iz({ aktorId: k.id, varlikTipi: 'Regulasyon', varlikId: yeni.regulasyonId,
-      eylem: 'durum_degisimi', alan: 'aktif_surum',
-      once: eski?.surumEtiketi ?? 'sürümsüz', sonra: yeni.surumEtiketi,
-      gerekce: `diff: +${yeniSayisi} yeni, ~${degisenSayisi} değişen, -${kaldirilanSayisi} kaldırılan; ${acilan} yeni değerlendirme açıldı` });
+      await iz({ aktorId: k.id, varlikTipi: 'Regulasyon', varlikId: yeni.regulasyonId,
+        eylem: 'durum_degisimi', alan: 'aktif_surum',
+        once: eski?.surumEtiketi ?? 'sürümsüz', sonra: yeni.surumEtiketi,
+        gerekce: `diff: +${yeniSayisi} yeni, ~${degisenSayisi} değişen, -${kaldirilanSayisi} kaldırılan; ${acilan} yeni değerlendirme açıldı` }, tx);
+    });
+
     revalidatePath('/regulasyonlar'); revalidatePath('/surecler'); revalidatePath('/');
     return tamam();
-  } catch (e) { return hata(e); }
+  } catch (e) { return hata(tekAktifIhlaliniCevir(e)); }
 }

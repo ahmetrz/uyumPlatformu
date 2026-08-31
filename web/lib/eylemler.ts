@@ -7,6 +7,7 @@
 import { revalidatePath } from 'next/cache';
 import { db } from './db';
 import { yetkiZorunlu, izinVar } from './erisim';
+import { tumOturumlariKapat } from './auth';
 import {
   DurumSemasi, OnemSemasi, BulguDurumSemasi, SurecDurumSemasi,
   RolSemasi, DenklikSemasi,
@@ -764,8 +765,27 @@ export async function regulasyonAktifDegistir(girdi: { id: string; aktif: boolea
 
 export async function kullaniciAktifDegistir(girdi: { id: string; aktif: boolean }): Promise<Sonuc> {
   try {
-    await yetkiZorunlu('yonetim', 'onay');
+    const k = await yetkiZorunlu('yonetim', 'onay');
     await db.kullanici.update({ where: { id: girdi.id }, data: { aktif: girdi.aktif } });
+
+    /* Pasifleştirme AÇIK OTURUMLARI DA KESER.
+
+       Eskiden yalnız `aktif` bayrağı düşüyordu. Oturum çözümü bayrağa
+       baktığı için kullanıcı bir sonraki istekte dışarı düşüyordu — ama
+       oturum satırı tabloda canlı kalıyordu ve "kaç açık oturum var"
+       sorusunun yanıtı yanlış oluyordu. Bir çalışan işten ayrıldığında
+       sorulan ilk soru budur; yanıtın doğru olması gerekir.
+
+       Ayrıca bu eylem DENETİM İZİ BIRAKMIYORDU: kardeşi
+       `regulasyonAktifDegistir` bırakıyor, bu bırakmıyordu. Bir hesabın ne
+       zaman, kim tarafından kapatıldığı denetimin en çok sorduğu şeydir. */
+    const dusen = girdi.aktif ? 0 : await tumOturumlariKapat(girdi.id);
+
+    await iz({
+      aktorId: k.id, varlikTipi: 'Kullanici', varlikId: girdi.id, eylem: 'guncelleme',
+      alan: 'aktif', sonra: girdi.aktif ? 'aktif' : 'pasif',
+      gerekce: girdi.aktif ? undefined : `${dusen} açık oturum sonlandırıldı`,
+    });
     revalidatePath('/yetkiler');
     return tamam();
   } catch (e) { return hata(e); }

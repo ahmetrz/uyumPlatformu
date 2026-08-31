@@ -6,10 +6,36 @@ import { db } from './db';
 import { DEMO } from './demo';
 
 /* Oturum modeli: rastgele 32B token çerezde taşınır; DB'de yalnız SHA-256
-   özeti durur. Parola: scrypt (N=2^15) + kayıt başına tuz. */
+   özeti durur. Parola: scrypt (N=2^15) + kayıt başına tuz.
+
+   ── İKİ AYRI SÜRE, İKİSİ DE GEREKLİ ────────────────────────────────────
+   Eskiden yalnız MUTLAK süre vardı (12 saat) ve `Oturum.sonKullanim`
+   sütunu şemada duruyor ama HİÇ YAZILMIYORDU. Sonuç: açık bırakılmış bir
+   tarayıcı 12 saat boyunca tam yetkiyle canlı kalıyordu; kilitlenmemiş bir
+   dizüstü ya da paylaşılan bir kontrol odası terminali oturumu kimseye
+   sormadan devrediyordu. Sütunun varlığı bir koruma OLDUĞU izlenimi
+   veriyordu — olmayan bir kontrolün kayıtlı görünmesi, hiç olmamasından
+   kötüdür.
+
+   Şimdi iki eşik birlikte çalışır:
+   · MUTLAK (12 saat) — oturum ne kadar aktif olursa olsun yenilenmez.
+     Kayan bir mutlak süre, çalınmış bir çerezi sonsuza dek geçerli kılardı.
+   · ATIL (2 saat) — son kullanımdan bu yana geçen süre. Kullanıldıkça
+     ilerler, mutlak sınırı AŞMAZ.
+
+   ── NEDEN HER İSTEKTE YAZMIYORUZ ───────────────────────────────────────
+   `sonKullanim` her istekte güncellenseydi, her sayfa görüntülemesi bir
+   yazma işlemi olurdu; SQLite tek yazıcıdır ve bu, okuma yükünü yazma
+   yüküne çevirirdi. Bu yüzden yalnız eşik kadar bayatlamışsa yazılır.
+   Yazma sıklığı atıl eşiğinden çok küçük olduğu sürece davranış aynıdır. */
 
 const CEREZ_ADI = 'oturum';
+/** Oturumun mutlak ömrü. Etkinlikle UZAMAZ. */
 const OTURUM_SURESI_SAAT = 12;
+/** Bu kadar süre hiç kullanılmayan oturum düşer. */
+const ATIL_SURE_MS = 2 * 3_600_000;
+/** `sonKullanim` en fazla bu sıklıkta yazılır (yazma gürültüsünü keser). */
+const KULLANIM_YAZMA_ARALIGI_MS = 5 * 60_000;
 
 export function parolaOzetle(parola: string): string {
   const tuz = randomBytes(16).toString('hex');
@@ -45,6 +71,41 @@ export async function oturumKapat(): Promise<void> {
   depo.delete(CEREZ_ADI);
 }
 
+/**
+ * Bir kullanıcının TÜM oturumlarını sonlandırır.
+ *
+ * Parola değişiminde ve hesap pasifleştirmede çağrılmalıdır: yalnız mevcut
+ * çerezi silmek, parolası çalınmış bir kullanıcının saldırgandaki açık
+ * oturumunu canlı bırakır. Parola değiştirmenin bütün anlamı o oturumu
+ * kesmektir.
+ *
+ * Kaç oturumun düştüğünü döndürür — denetim izine yazılabilsin.
+ */
+export async function tumOturumlariKapat(kullaniciId: string): Promise<number> {
+  const sonuc = await db.oturum.deleteMany({ where: { kullaniciId } });
+  return sonuc.count;
+}
+
+/** Süresi dolmuş oturum satırlarını siler. İşleyişi etkilemez (dolmuş
+    oturum zaten reddedilir), tabloyu şişirmemek içindir. */
+export async function dolmusOturumlariTemizle(simdi: Date = new Date()): Promise<number> {
+  const sonuc = await db.oturum.deleteMany({ where: { bitis: { lt: simdi } } });
+  return sonuc.count;
+}
+
+/** Oturum hâlâ geçerli mi — mutlak VE atıl eşiği birlikte. Saf fonksiyon;
+    testler saat beklemeden ölçebilsin diye `simdi` dışarıdan verilir. */
+export function oturumGecerli(
+  oturum: { bitis: Date; sonKullanim: Date },
+  simdi: Date = new Date(),
+): { gecerli: true } | { gecerli: false; sebep: 'mutlak_sure_doldu' | 'atil_kaldi' } {
+  if (oturum.bitis < simdi) return { gecerli: false, sebep: 'mutlak_sure_doldu' };
+  if (simdi.getTime() - oturum.sonKullanim.getTime() > ATIL_SURE_MS) {
+    return { gecerli: false, sebep: 'atil_kaldi' };
+  }
+  return { gecerli: true };
+}
+
 export type AktifKullanici = {
   id: string; adSoyad: string; eposta: string; unvan: string | null;
   yetkiler: { rol: string; surecId: string | null; tesisId: string | null;
@@ -68,7 +129,26 @@ export const aktifKullanici = cache(async (): Promise<AktifKullanici | null> => 
     where: { tokenHash: tokenOzeti(token) },
     include: { kullanici: { include: { yetkiler: true } } },
   });
-  if (!oturum || oturum.bitis < new Date() || !oturum.kullanici.aktif) return null;
+  if (!oturum) return null;
+
+  const simdi = new Date();
+  const gecerlilik = oturumGecerli(oturum, simdi);
+  if (!gecerlilik.gecerli) {
+    /* Düşen oturum satırı BIRAKILMAZ: aksi hâlde atıl kalmış bir oturum
+       satırı, mutlak süresi dolana kadar tabloda "canlı" görünürdü ve
+       "kaç açık oturum var" sorusunun yanıtı yanlış olurdu. */
+    await db.oturum.deleteMany({ where: { id: oturum.id } });
+    return null;
+  }
+  if (!oturum.kullanici.aktif) return null;
+
+  /* Etkinlik damgası: yalnız yeterince bayatsa yazılır (yukarıdaki
+     gerekçe). `updateMany` kullanılır — satır bu arada silinmişse
+     `update` fırlatırdı ve bir sayfa görüntülemesi hataya dönerdi. */
+  if (simdi.getTime() - oturum.sonKullanim.getTime() > KULLANIM_YAZMA_ARALIGI_MS) {
+    await db.oturum.updateMany({ where: { id: oturum.id }, data: { sonKullanim: simdi } });
+  }
+
   const k = oturum.kullanici;
   return {
     id: k.id, adSoyad: k.adSoyad, eposta: k.eposta, unvan: k.unvan,

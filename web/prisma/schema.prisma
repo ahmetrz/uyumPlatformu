@@ -1687,7 +1687,14 @@ model ReddedilenKayit {
   kaynakSistem   String
   /// kaynak kaydın kimliği — biliniyorsa; bilinmiyorsa null (öyle geldi)
   kaynakKayitId  String?
-  /// sema | normalize | dogrulama | eslesme | kapsam | yazma
+  /// sema | normalize | esleme | dogrulama | eslesme | kapsam | yazma
+  ///
+  /// `esleme` ile `eslesme` AYRI aşamalardır ve karıştırılmaları kaydın
+  /// hangi adımda düştüğünü yanlış gösterir:
+  ///   esleme  = eşleme profili kaynağın alanlarını hedef alanlara çevirir
+  ///             (ör. tanınmayan enum değeri).
+  ///   eslesme = normalleşmiş kayıt CMDB'deki bir varlıkla eşleştirilir
+  ///             (ör. hiçbir anahtar tutmadı).
   asama          String
   sebep          String
   /// ham kayıt — SIR İÇERMEZ (çekirdek sırları maskeleyerek yazar)

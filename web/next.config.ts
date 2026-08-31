@@ -1,9 +1,96 @@
 import type { NextConfig } from 'next';
+import fs from 'node:fs';
 import path from 'node:path';
 
 // DEMO=1: GitHub Pages için statik dışa aktarım. Yazma eylemleri
-// lib/eylemler.demo.ts'e alias'lanır (statik dışa aktarım server action taşıyamaz).
+// *.demo.ts ikizlerine alias'lanır (statik dışa aktarım server action taşıyamaz).
 const demo = process.env.NEXT_PUBLIC_DEMO === '1';
+
+/* ═══════════════════════════════════════════════════════════════════════
+   DEMO İKİZLERİ — ELLE YAZILAN LİSTE YERİNE TÜRETME
+
+   Burada 22 satırlık iki ayrı liste vardı (webpack + turbopack) ve her yeni
+   `'use server'` modülü ikisine de ELLE eklenmek zorundaydı. Unutulan bir
+   satırın bedeli sessiz değildi ama geçti: demo derlemesi gerçek sunucu
+   eylemini paketlemeye çalışır ve `output: 'export'` altında patlar — yani
+   hata, kodu yazan kişiden GÜNLER SONRA, yayın anında ortaya çıkardı.
+
+   Artık liste dosya sisteminden türetiliyor ve eksik ikiz DERLEME BAŞINDA
+   yakalanıyor. Geç patlayan hata, erken patlayan hataya çevrildi. */
+
+const EYLEM_DIZINI = path.join(__dirname, 'lib', 'eylemler2');
+
+/** Kök seviyedeki iki eylem modülü (`lib/eylemler2` dışında). */
+const KOK_EYLEMLER = ['lib/eylemler', 'lib/girisEylemleri'] as const;
+
+function eylemModulleri(): string[] {
+  /* Ölçüt dosya adı DEĞİL, içerikte `'use server'` bulunmasıdır.
+     `ortak.ts` gibi paylaşılan yardımcılar sunucu eylemi tanımlamaz ve
+     ikiz gerektirmez; ada bakan bir kural onları da yanlışlıkla ister. */
+  const dosyalar = fs.readdirSync(EYLEM_DIZINI)
+    .filter((d) => d.endsWith('.ts') && !d.endsWith('.demo.ts'))
+    .filter((d) => /^\s*['"]use server['"]/m.test(
+      fs.readFileSync(path.join(EYLEM_DIZINI, d), 'utf8')))
+    .map((d) => d.slice(0, -3))
+    .sort();
+
+  const eksik = dosyalar.filter(
+    (ad) => !fs.existsSync(path.join(EYLEM_DIZINI, `${ad}.demo.ts`)),
+  );
+  if (eksik.length > 0) {
+    throw new Error(
+      `lib/eylemler2/ altındaki şu modüllerin demo ikizi yok: ${eksik.join(', ')}. `
+      + 'Her sunucu eylemi modülünün bir <ad>.demo.ts ikizi olmalıdır; '
+      + 'yoksa statik demo derlemesi yayın anında patlar.',
+    );
+  }
+  return dosyalar.map((ad) => `lib/eylemler2/${ad}`);
+}
+
+/** `@/<yol>` → `<yol>.demo.ts` eşlemesi. */
+function demoEslemesi(): Record<string, string> {
+  const hepsi = [...KOK_EYLEMLER, ...eylemModulleri()];
+  return Object.fromEntries(hepsi.map((yol) => [`@/${yol}`, `./${yol}.demo.ts`]));
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   GÜVENLİK BAŞLIKLARI
+
+   Hiç yoktu: ne CSP, ne çerçeveleme koruması, ne MIME sniff engeli. Bir
+   uyum platformunun kendi tarayıcı yüzeyini korumaması, denetlediği
+   kontrolleri kendi üzerinde uygulamaması demektir.
+
+   `script-src` içindeki `'unsafe-inline'` BİLİNÇLİDİR ve bir borçtur:
+   Next'in satır içi önyükleme betiği nonce olmadan çalışmaz, nonce ise
+   middleware gerektirir. Karar, sessizce miras alınmak yerine burada
+   yazılıdır (bkz. PRE_INTERNAL_INTEGRATION_READINESS.md).
+
+   `output: 'export'` altında `headers()` HİÇBİR ŞEY YAPMAZ — statik
+   dışa aktarımda sunucu yoktur. Demo derlemesinde bu yüzden hiç
+   tanımlanmaz; başlıklar CDN'de kurulur. Tanımlı bırakmak, korunuyor
+   sanılan bir yayın üretirdi. */
+const GUVENLIK_BASLIKLARI = [
+  {
+    key: 'Content-Security-Policy',
+    value: [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline'",
+      "style-src 'self' 'unsafe-inline'",
+      "img-src 'self' data: blob:",
+      "font-src 'self'",
+      "connect-src 'self'",
+      "frame-ancestors 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
+      "object-src 'none'",
+    ].join('; '),
+  },
+  { key: 'X-Frame-Options', value: 'DENY' },
+  { key: 'X-Content-Type-Options', value: 'nosniff' },
+  { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+  { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+  { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains' },
+];
 
 const nextConfig: NextConfig = {
   // API route dosyaları `route.api.ts` adını taşır. Demo (statik dışa aktarım)
@@ -20,83 +107,21 @@ const nextConfig: NextConfig = {
         trailingSlash: true,
         images: { unoptimized: true },
       }
-    : {}),
+    : {
+        async headers() {
+          return [{ source: '/:path*', headers: GUVENLIK_BASLIKLARI }];
+        },
+      }),
   webpack: (config) => {
     if (demo) {
-      config.resolve.alias['@/lib/eylemler'] =
-        path.resolve(__dirname, 'lib/eylemler.demo.ts');
-      config.resolve.alias['@/lib/girisEylemleri'] =
-        path.resolve(__dirname, 'lib/girisEylemleri.demo.ts');
-      config.resolve.alias['@/lib/eylemler2/arama'] =
-        path.resolve(__dirname, 'lib/eylemler2/arama.demo.ts');
-      config.resolve.alias['@/lib/eylemler2/bildirim'] =
-        path.resolve(__dirname, 'lib/eylemler2/bildirim.demo.ts');
-      config.resolve.alias['@/lib/eylemler2/denetim'] =
-        path.resolve(__dirname, 'lib/eylemler2/denetim.demo.ts');
-      config.resolve.alias['@/lib/eylemler2/envanter'] =
-        path.resolve(__dirname, 'lib/eylemler2/envanter.demo.ts');
-      config.resolve.alias['@/lib/eylemler2/gorev'] =
-        path.resolve(__dirname, 'lib/eylemler2/gorev.demo.ts');
-      config.resolve.alias['@/lib/eylemler2/kimlik'] =
-        path.resolve(__dirname, 'lib/eylemler2/kimlik.demo.ts');
-      config.resolve.alias['@/lib/eylemler2/istisna'] =
-        path.resolve(__dirname, 'lib/eylemler2/istisna.demo.ts');
-      config.resolve.alias['@/lib/eylemler2/isler'] =
-        path.resolve(__dirname, 'lib/eylemler2/isler.demo.ts');
-      config.resolve.alias['@/lib/eylemler2/operasyon'] =
-        path.resolve(__dirname, 'lib/eylemler2/operasyon.demo.ts');
-      config.resolve.alias['@/lib/eylemler2/risk'] =
-        path.resolve(__dirname, 'lib/eylemler2/risk.demo.ts');
-      config.resolve.alias['@/lib/eylemler2/surum'] =
-        path.resolve(__dirname, 'lib/eylemler2/surum.demo.ts');
-      config.resolve.alias['@/lib/eylemler2/tesis360'] =
-        path.resolve(__dirname, 'lib/eylemler2/tesis360.demo.ts');
-      config.resolve.alias['@/lib/eylemler2/apiAnahtari'] =
-        path.resolve(__dirname, 'lib/eylemler2/apiAnahtari.demo.ts');
-      config.resolve.alias['@/lib/eylemler2/entegrasyon'] =
-        path.resolve(__dirname, 'lib/eylemler2/entegrasyon.demo.ts');
-      config.resolve.alias['@/lib/eylemler2/kesif'] =
-        path.resolve(__dirname, 'lib/eylemler2/kesif.demo.ts');
-      config.resolve.alias['@/lib/eylemler2/koken'] =
-        path.resolve(__dirname, 'lib/eylemler2/koken.demo.ts');
-      config.resolve.alias['@/lib/eylemler2/konfigYedek'] =
-        path.resolve(__dirname, 'lib/eylemler2/konfigYedek.demo.ts');
-      config.resolve.alias['@/lib/eylemler2/olay'] =
-        path.resolve(__dirname, 'lib/eylemler2/olay.demo.ts');
-      config.resolve.alias['@/lib/eylemler2/topoloji'] =
-        path.resolve(__dirname, 'lib/eylemler2/topoloji.demo.ts');
-      config.resolve.alias['@/lib/eylemler2/varlikAktarim'] =
-        path.resolve(__dirname, 'lib/eylemler2/varlikAktarim.demo.ts');
+      for (const [istek, hedef] of Object.entries(demoEslemesi())) {
+        config.resolve.alias[istek] = path.resolve(__dirname, hedef);
+      }
     }
     return config;
   },
   turbopack: {
-    resolveAlias: demo
-      ? {
-          '@/lib/eylemler': './lib/eylemler.demo.ts',
-          '@/lib/girisEylemleri': './lib/girisEylemleri.demo.ts',
-          '@/lib/eylemler2/arama': './lib/eylemler2/arama.demo.ts',
-          '@/lib/eylemler2/bildirim': './lib/eylemler2/bildirim.demo.ts',
-          '@/lib/eylemler2/denetim': './lib/eylemler2/denetim.demo.ts',
-          '@/lib/eylemler2/envanter': './lib/eylemler2/envanter.demo.ts',
-          '@/lib/eylemler2/gorev': './lib/eylemler2/gorev.demo.ts',
-          '@/lib/eylemler2/kimlik': './lib/eylemler2/kimlik.demo.ts',
-          '@/lib/eylemler2/istisna': './lib/eylemler2/istisna.demo.ts',
-          '@/lib/eylemler2/isler': './lib/eylemler2/isler.demo.ts',
-          '@/lib/eylemler2/operasyon': './lib/eylemler2/operasyon.demo.ts',
-          '@/lib/eylemler2/risk': './lib/eylemler2/risk.demo.ts',
-          '@/lib/eylemler2/surum': './lib/eylemler2/surum.demo.ts',
-          '@/lib/eylemler2/tesis360': './lib/eylemler2/tesis360.demo.ts',
-          '@/lib/eylemler2/apiAnahtari': './lib/eylemler2/apiAnahtari.demo.ts',
-          '@/lib/eylemler2/entegrasyon': './lib/eylemler2/entegrasyon.demo.ts',
-          '@/lib/eylemler2/kesif': './lib/eylemler2/kesif.demo.ts',
-          '@/lib/eylemler2/koken': './lib/eylemler2/koken.demo.ts',
-          '@/lib/eylemler2/konfigYedek': './lib/eylemler2/konfigYedek.demo.ts',
-          '@/lib/eylemler2/olay': './lib/eylemler2/olay.demo.ts',
-          '@/lib/eylemler2/topoloji': './lib/eylemler2/topoloji.demo.ts',
-          '@/lib/eylemler2/varlikAktarim': './lib/eylemler2/varlikAktarim.demo.ts',
-        }
-      : {},
+    resolveAlias: demo ? demoEslemesi() : {},
   },
 };
 

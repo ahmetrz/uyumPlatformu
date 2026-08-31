@@ -13,7 +13,43 @@ export type Kolon = {
   sag?: boolean;
   /** dar alanda (çekmece açıkken) düşer — kritik bilgi ikincil olamaz */
   ikincil?: boolean;
+  /** verilirse başlık sıralama düğmesine dönüşür */
+  siraAnahtari?: string;
 };
+
+export type Sirala = {
+  anahtar: string;
+  yon: 'artan' | 'azalan';
+  degistir: (anahtar: string) => void;
+};
+
+/* Sıralama durumunu BAŞLIK HÜCRESİ taşır, tetikleyici içindeki düğmedir:
+   düğmeye columnheader rolü verilirse düğme semantiği kaybolur. */
+function TabloBasligi({ ad, anahtar, sag, ikincil, sirala }: {
+  ad: string; anahtar?: string; sag?: boolean; ikincil?: boolean; sirala?: Sirala;
+}) {
+  const sinif = `t-colhead${sag ? ' tbl-sag' : ''}${ikincil ? ' tbl-ikincil' : ''}`;
+  if (!sirala || !anahtar) return <span className={sinif}>{ad}</span>;
+  const etkin = sirala.anahtar === anahtar;
+  const dis = `${sag ? 'tbl-sag ' : ''}${ikincil ? 'tbl-ikincil' : ''}`.trim();
+  return (
+    <span role="columnheader" className={dis || undefined}
+      aria-sort={etkin ? (sirala.yon === 'artan' ? 'ascending' : 'descending') : 'none'}>
+      <button type="button" className="t-colhead"
+        aria-label={`${ad} · ${etkin && sirala.yon === 'azalan' ? 'azalan' : 'artan'} sırala`}
+        onClick={() => sirala.degistir(anahtar)}
+        style={{ background: 'none', border: 0, padding: 0, cursor: 'pointer',
+          width: '100%', textAlign: sag ? 'right' : 'left',
+          color: etkin ? 'var(--ink)' : undefined }}>
+        {ad}
+        <span aria-hidden style={{ marginLeft: 'var(--s6)',
+          color: etkin ? 'var(--jes)' : 'transparent' }}>
+          {etkin && sirala.yon === 'azalan' ? '▾' : '▴'}
+        </span>
+      </button>
+    </span>
+  );
+}
 
 export type Satir = {
   id: string;
@@ -36,6 +72,8 @@ export function Tablo({
   /** sağlıklı kalanı toplayan son satır */
   kuyruk,
   dipNot,
+  konuBasligi = 'Konu',
+  sirala,
 }: {
   kolonlar: Kolon[];
   satirlar: Satir[];
@@ -44,6 +82,10 @@ export function Tablo({
   sik?: boolean;
   kuyruk?: { metin: string; ac?: () => void } | null;
   dipNot?: string;
+  /** konu kolonunun başlığı — ekranın kendi sözcüğü (BULGU, VARLIK, HESAP…) */
+  konuBasligi?: string;
+  /** kolon başlığından sıralama; anahtar 'konu' ya da Kolon.siraAnahtari */
+  sirala?: Sirala;
 }) {
   // marker · konu · …hücreler · chevron
   const sablon = ['22px', '1fr', ...kolonlar.map((k) => k.genislik), '26px'].join(' ');
@@ -57,12 +99,10 @@ export function Tablo({
       {basliklarVar && (
         <div className="tbl-bas" role="row">
           <span />
-          <span className="t-colhead">Konu</span>
+          <TabloBasligi ad={konuBasligi} anahtar="konu" sirala={sirala} />
           {kolonlar.map((k, i) => (
-            <span key={i}
-              className={`t-colhead${k.sag ? ' tbl-sag' : ''}${k.ikincil ? ' tbl-ikincil' : ''}`}>
-              {k.baslik ?? ''}
-            </span>
+            <TabloBasligi key={i} ad={k.baslik ?? ''} anahtar={k.siraAnahtari}
+              sag={k.sag} ikincil={k.ikincil} sirala={sirala} />
           ))}
           <span />
         </div>

@@ -1,18 +1,21 @@
 'use client';
 import type { ReactNode } from 'react';
-import { Metrikler, type Metrik } from './temel';
+import { Metrikler, type Metrik, type Durum } from './temel';
 
 /* Ekran iskeleti, FilterBar ve sekmeler — 02-components §4, §12
    ve 03-screens'in "paylaşılan varsayılanlar" başlığı. */
 
 /** Başlık bloğu: eyebrow → başlık (tek kalın span) → sağa yaslı MetricRow. */
 export function EkranBasligi({
-  eyebrow, baslik, vurgu, metrikler, sag,
+  eyebrow, baslik, vurgu, vurguDurumu, metrikler, sag,
 }: {
   eyebrow: string;
   baslik: string;
   /** başlıktaki tek kalın parça */
   vurgu?: string;
+  /** vurgunun taşıdığı durum — kapatılamayan uyarılarda başlık da renk alır
+      (03-screens O15: "metric and header carry state/critical") */
+  vurguDurumu?: Durum;
   metrikler?: Metrik[];
   sag?: ReactNode;
 }) {
@@ -21,7 +24,9 @@ export function EkranBasligi({
       <div className="sol">
         <p className="t-eyebrow" style={{ margin: '0 0 var(--s10)' }}>{eyebrow}</p>
         <h1 className="t-screen" style={{ margin: 0 }}>
-          {vurgu ? (<><b>{vurgu}</b> {baslik}</>) : baslik}
+          {vurgu ? (
+            <><b style={vurguDurumu ? { color: `var(--${vurguDurumu})` } : undefined}>{vurgu}</b> {baslik}</>
+          ) : baslik}
         </h1>
       </div>
       {metrikler && <Metrikler metrikler={metrikler} />}

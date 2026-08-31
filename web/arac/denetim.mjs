@@ -4,7 +4,9 @@ import { chromium } from 'playwright-core';
    Tarayıcıda hesaplanmış stiller üzerinden çalışır — kaynak kodu gramerine
    değil, gerçekten render olana bakar. Faz 8'de her ekran için koşulur. */
 
-const KOK = 'http://localhost:3111';
+/* Geliştirme sunucusunun portu sabit değil: paralel çalışan işler 3000'i
+   kapmış olabiliyor. PORT ile geç, varsayılan 3000. */
+const KOK = `http://localhost:${process.env.PORT || 3000}`;
 const YOLLAR = (process.env.YOLLAR || '/sistem/bilesenler').split(',');
 
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
@@ -17,10 +19,19 @@ if (s.url().includes('/giris')) {
   await s.waitForURL((u) => !u.pathname.startsWith('/giris'), { timeout: 25000 });
 }
 
+/* Playwright fareyi son tıklama koordinatında bırakır. O nokta sonraki
+   sayfada bir tablo satırının üstüne düşerse satır :hover durumunda
+   yakalanır — ekran görüntüsünde vurgulu görünür ve denetim bunu zebra
+   sanır. Her gezinmeden önce fare tuvalin dışına alınır. */
+const fareyiKenaraAl = () => s.mouse.move(2, 2);
+await fareyiKenaraAl();
+
 let toplamKusur = 0;
 
 for (const yol of YOLLAR) {
+  await fareyiKenaraAl();
   await s.goto(KOK + yol, { waitUntil: 'domcontentloaded' });
+  await fareyiKenaraAl();
   await s.waitForTimeout(1200);
 
   const rapor = await s.evaluate(() => {

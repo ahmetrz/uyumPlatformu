@@ -31,8 +31,14 @@ Tembel yüklenen görseller için sayfayı sonuna kadar kaydırır — aksi hâl
 alt sıradaki kapaklar boş yakalanır.
 
 ```bash
-OUT=/yol/kare YOLLAR=/sistem,/,/tesisler node arac/kare.mjs
+PORT=3111 OUT=/yol/kare YOLLAR=/sistem,/,/tesisler node arac/kare.mjs
 ```
+
+Sunucu portu `PORT` ile verilir (varsayılan 3000). Her gezinmeden önce fare
+tuvalin dışına alınır: Playwright fareyi son tıklama koordinatında bırakıyor
+ve o nokta bir tablo satırının üstüne düşerse satır `:hover` durumunda
+yakalanıyordu — ekran görüntüsünde vurgulu görünüyor, `denetim.mjs` bunu
+zebra sanıyordu.
 
 Giriş gerektiren rotalar için betiğe oturum açma adımı eklenmelidir
 (geliştirme girişi: `ahmet.terzi@zorlu.com`).

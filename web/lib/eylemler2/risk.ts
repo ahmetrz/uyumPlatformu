@@ -107,12 +107,17 @@ export async function riskKaydet(girdi: {
 
 /** İşlem tipi seçimi (azalt / kaçın / devret) → risk işleme alınır.
     Kabul bu eylemden geçmez; riskKabul ayrı ve onay yetkisi ister. */
-export async function riskIslem(girdi: { id: string; islemTipi: string }): Promise<Sonuc> {
+export async function riskIslem(girdi: {
+  id: string; islemTipi: string; gerekce?: string | null;
+}): Promise<Sonuc> {
   try {
     const k = await yetkiZorunlu('risk', 'yazma');
     const v = z.object({
       id: z.string(),
       islemTipi: z.enum(['azalt', 'kacin', 'devret'], 'Geçersiz işlem tipi'),
+      // Gerekçe kabul yolunda zorunlu; azalt/kaçın/devret yolunda isteğe
+      // bağlı ama verilirse denetim izine yazılır — karar kaydı eksik kalmasın.
+      gerekce: z.string().trim().min(1).nullable().optional(),
     }).parse(girdi);
     const risk = await db.risk.findUnique({ where: { id: v.id } });
     if (!risk) throw new Error('Risk bulunamadı');
@@ -126,6 +131,7 @@ export async function riskIslem(girdi: { id: string; islemTipi: string }): Promi
     await iz({
       aktorId: k.id, varlikTipi: 'Risk', varlikId: v.id, eylem: 'durum_degisimi',
       alan: 'islemTipi', once: risk.islemTipi, sonra: v.islemTipi,
+      gerekce: v.gerekce ?? null,
     });
     revalidatePath('/riskler');
     return tamam();

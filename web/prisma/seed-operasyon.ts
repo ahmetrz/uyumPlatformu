@@ -397,6 +397,77 @@ export async function operasyonVerisi(db: PrismaClient) {
     }
   }
 
+  await kimlikErisim(db);
+
+  /* ═══ Varlık ilişkileri — O10 / O12 grafiği için ═══════════════════════ */
+  for (const s of uretimSantralleri) {
+    const sV = varliklar.filter((v) => v.tesisId === s.id);
+    const bul = (ek: string) => sV.filter((v) => v.etiket.includes(`-${ek}-`));
+    const scada = bul('SCADA')[0]; const hist = bul('HIST')[0];
+    const fw = bul('OTFW')[0]; const ews = bul('EWS')[0];
+    const iliski = async (a?: { id: string }, b?: { id: string }, tip = 'connects_to') => {
+      if (!a || !b) return;
+      await db.varlikIliskisi.create({ data: { kaynakId: a.id, hedefId: b.id, tip } })
+        .catch(() => undefined);
+    };
+    await iliski(hist, scada, 'depends_on');
+    await iliski(scada, fw, 'connects_to');
+    await iliski(ews, scada, 'connects_to');
+    for (const plc of bul('PLC')) await iliski(scada, plc, 'connects_to');
+    for (const hmi of bul('HMI')) await iliski(hmi, scada, 'depends_on');
+  }
+
+  /* Ağ geçitleri — kurumsal → OT DMZ → OT zinciri. Doğrulanmamış geçit
+     O12'nin "sapma" sinyalidir. */
+  for (const s of uretimSantralleri) {
+    const kur = bolgeIndeksi.get(`${s.id}|kurumsal`);
+    const dmz = bolgeIndeksi.get(`${s.id}|ot_dmz`);
+    const ot = bolgeIndeksi.get(`${s.id}|ot`);
+    if (!kur || !dmz || !ot) continue;
+    const varMi = await db.agGeciti.count({ where: { kaynakBolgeId: kur, hedefBolgeId: dmz } });
+    if (varMi) continue;
+    await db.agGeciti.create({
+      data: {
+        kaynakBolgeId: kur, hedefBolgeId: dmz,
+        kontrolVarligi: `${s.kod}-OTFW-01`, protokoller: 'HTTPS, OPC UA',
+        onaylandi: true, sonDogrulama: gun(-Math.floor(20 + rnd() * 300)),
+      },
+    }).catch(() => undefined);
+    await db.agGeciti.create({
+      data: {
+        kaynakBolgeId: dmz, hedefBolgeId: ot,
+        kontrolVarligi: `${s.kod}-OTFW-01`, protokoller: 'OPC UA, Modbus/TCP',
+        onaylandi: rnd() > 0.25,
+        sonDogrulama: rnd() > 0.3 ? gun(-Math.floor(30 + rnd() * 400)) : null,
+      },
+    }).catch(() => undefined);
+  }
+
+  const sayim = {
+    varlik: await db.varlik.count(),
+    tedarikci: await db.tedarikci.count(),
+    hesap: await db.kimlikHesabi.count(),
+    politika: await db.yedeklemePolitikasi.count(),
+  };
+  console.log(
+    `Operasyonel veri: ${sayim.varlik} varlık · ${sayim.tedarikci} tedarikçi · ` +
+    `${sayim.hesap} hesap · ${sayim.politika} yedekleme politikası`,
+  );
+}
+
+/* Kimlik & erişim katmanı ayrı fonksiyondur: tanım değiştiğinde tüm
+   operasyonel seti yeniden kurmadan yalnız bu tablolar yenilenebilsin. */
+export async function kimlikErisim(db: PrismaClient) {
+  const rnd = uret(20260901);
+  const kullanicilar = await db.kullanici.findMany();
+  const K = Object.fromEntries(kullanicilar.map((x) => [x.eposta.split('@')[0], x]));
+  const sahipDagitim = ['ahmet.terzi', 'selin.aydin', 'burak.sahin', 'mehmet.kaya', 'zeynep.arslan'];
+  const uretimSantralleri = (await db.tesis.findMany({ where: { durum: 'aktif' } }))
+    .filter((x) => x.kod !== 'MERKEZ-BT' && !x.kod.startsWith('LULEBURGAZ'));
+  const varliklar = (await db.varlik.findMany({
+    where: { silindi: null }, select: { id: true, kritiklik: true },
+  }));
+
   /* ═══ Kimlik & erişim (O15) ═══════════════════════════════════════════
      Servis hesapları grup satırı olarak gösterilebilsin diye aynı önekten
      çok sayıda kayıt üretilir (svc-scada-*). Parola rotasyonu olmayan
@@ -473,11 +544,16 @@ export async function operasyonVerisi(db: PrismaClient) {
     });
     hesaplar.push({ id: h.id, ayricalikli: false });
   }
+  /* Saha hesapları vardiya sorumlusuna bağlıdır. Sahipsiz bırakılan üç
+     hesap gerçek bir bulgudur (görev devri sonrası kalmış), veri artığı
+     değil — bu yüzden sayısı kural ile sabitlenir, rastgele değil. */
   for (let i = 1; i <= 34; i++) {
+    const sahipsiz = i === 7 || i === 19 || i === 28;
     const h = await db.kimlikHesabi.create({
       data: {
         hesapAdi: `saha-op-${String(i).padStart(2, '0')}`,
         tip: 'kisi', kaynakSistem: 'Entra', ayricalikli: false,
+        kullaniciId: sahipsiz ? null : K[sahipDagitim[i % 5]].id,
         tesisId: uretimSantralleri[i % uretimSantralleri.length].id,
         parolaRotasyon: gun(-Math.floor(10 + rnd() * 80)),
         sonKullanim: gun(-Math.floor(rnd() * 20)), durum: 'aktif',
@@ -493,16 +569,20 @@ export async function operasyonVerisi(db: PrismaClient) {
     const adet = h.ayricalikli ? 3 : 1;
     for (let i = 0; i < adet; i++) {
       const v = kritikVeYuksek[Math.floor(rnd() * kritikVeYuksek.length)];
+      const verilisGun = Math.floor(60 + rnd() * 900);
       const atama = await db.erisimAtamasi.create({
         data: {
           hesapId: h.id, varlikId: v?.id ?? null,
           kapsam: ['SCADA HMI', 'Historian', 'Etki alanı', 'Güvenlik duvarı yönetimi', 'Yedekleme konsolu'][Math.floor(rnd() * 5)],
           yetkiSeviyesi: h.ayricalikli ? 'yonetici' : rnd() > 0.5 ? 'yazma' : 'okuma',
-          verilis: gun(-Math.floor(60 + rnd() * 900)),
+          verilis: gun(-verilisGun),
         },
       });
-      // Ayrıcalıklı atamaların bir kısmı bilerek incelenmemiş bırakılır.
-      if (!(h.ayricalikli && rnd() > 0.55)) {
+      /* Eski atamalar en az bir kez incelenmiş olmalı — aksi hâlde gecikme
+         metriği iki buçuk yıl okur ve inceleme döngüsünün hiç işlemediğini
+         söyler. İncelenmemiş bırakılanlar son çeyreğin atamalarıdır. */
+      const incelenmemis = h.ayricalikli && verilisGun < 120 && rnd() > 0.45;
+      if (!incelenmemis) {
         await db.erisimIncelemesi.create({
           data: {
             atamaId: atama.id, inceleyenId: K['mehmet.kaya'].id,
@@ -514,59 +594,4 @@ export async function operasyonVerisi(db: PrismaClient) {
       }
     }
   }
-
-  /* ═══ Varlık ilişkileri — O10 / O12 grafiği için ═══════════════════════ */
-  for (const s of uretimSantralleri) {
-    const sV = varliklar.filter((v) => v.tesisId === s.id);
-    const bul = (ek: string) => sV.filter((v) => v.etiket.includes(`-${ek}-`));
-    const scada = bul('SCADA')[0]; const hist = bul('HIST')[0];
-    const fw = bul('OTFW')[0]; const ews = bul('EWS')[0];
-    const iliski = async (a?: { id: string }, b?: { id: string }, tip = 'connects_to') => {
-      if (!a || !b) return;
-      await db.varlikIliskisi.create({ data: { kaynakId: a.id, hedefId: b.id, tip } })
-        .catch(() => undefined);
-    };
-    await iliski(hist, scada, 'depends_on');
-    await iliski(scada, fw, 'connects_to');
-    await iliski(ews, scada, 'connects_to');
-    for (const plc of bul('PLC')) await iliski(scada, plc, 'connects_to');
-    for (const hmi of bul('HMI')) await iliski(hmi, scada, 'depends_on');
-  }
-
-  /* Ağ geçitleri — kurumsal → OT DMZ → OT zinciri. Doğrulanmamış geçit
-     O12'nin "sapma" sinyalidir. */
-  for (const s of uretimSantralleri) {
-    const kur = bolgeIndeksi.get(`${s.id}|kurumsal`);
-    const dmz = bolgeIndeksi.get(`${s.id}|ot_dmz`);
-    const ot = bolgeIndeksi.get(`${s.id}|ot`);
-    if (!kur || !dmz || !ot) continue;
-    const varMi = await db.agGeciti.count({ where: { kaynakBolgeId: kur, hedefBolgeId: dmz } });
-    if (varMi) continue;
-    await db.agGeciti.create({
-      data: {
-        kaynakBolgeId: kur, hedefBolgeId: dmz,
-        kontrolVarligi: `${s.kod}-OTFW-01`, protokoller: 'HTTPS, OPC UA',
-        onaylandi: true, sonDogrulama: gun(-Math.floor(20 + rnd() * 300)),
-      },
-    }).catch(() => undefined);
-    await db.agGeciti.create({
-      data: {
-        kaynakBolgeId: dmz, hedefBolgeId: ot,
-        kontrolVarligi: `${s.kod}-OTFW-01`, protokoller: 'OPC UA, Modbus/TCP',
-        onaylandi: rnd() > 0.25,
-        sonDogrulama: rnd() > 0.3 ? gun(-Math.floor(30 + rnd() * 400)) : null,
-      },
-    }).catch(() => undefined);
-  }
-
-  const sayim = {
-    varlik: await db.varlik.count(),
-    tedarikci: await db.tedarikci.count(),
-    hesap: await db.kimlikHesabi.count(),
-    politika: await db.yedeklemePolitikasi.count(),
-  };
-  console.log(
-    `Operasyonel veri: ${sayim.varlik} varlık · ${sayim.tedarikci} tedarikçi · ` +
-    `${sayim.hesap} hesap · ${sayim.politika} yedekleme politikası`,
-  );
 }

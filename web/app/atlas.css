@@ -104,6 +104,7 @@
   --t-section: 20px;   --lh-section: 1.28; --tr-section: -0.016em; /* drawer/bölüm */
   --t-metric: 26px;    --lh-metric: 1.0;                        /* metrik değeri */
   --t-metric-den: 15px;                                         /* metrik paydası */
+  --t-lead: 17px;                                               /* lider skor kolonu (O3) */
   --t-row: 15px;                                                /* satır başlığı */
   --t-body: 13px;                                               /* gövde/hücre */
   --t-cell: 12px;
@@ -375,10 +376,14 @@
   padding: var(--row-pad-y) 0; border: 0; border-bottom: var(--bw-hair) solid var(--hr);
   border-left: var(--bw-edge) solid transparent; padding-left: 0; cursor: pointer;
   transition: background-color var(--mo-state) var(--ez);
-}.atlas .tbl-satir:hover { background: var(--row-hover); }.atlas .tbl-satir[aria-selected='true'] { background: var(--row-sel); border-left-color: var(--bd); }.atlas .tbl-satir[aria-selected='true'].s-ok { border-left-color: var(--ok); }.atlas .tbl-satir[aria-selected='true'].s-md { border-left-color: var(--md); }.atlas .tbl-satir[aria-selected='true'].s-pl { border-left-color: var(--pl); }.atlas .tbl-konu { display: block; font-size: var(--t-row); font-weight: 600; color: var(--ink);
+}.atlas .tbl-satir:hover { background: var(--row-hover); }.atlas .tbl-satir[aria-selected='true'] { background: var(--row-sel); border-left-color: var(--bd); }.atlas .tbl-satir[aria-selected='true'].s-ok { border-left-color: var(--ok); }.atlas .tbl-satir[aria-selected='true'].s-md { border-left-color: var(--md); }.atlas .tbl-satir[aria-selected='true'].s-pl { border-left-color: var(--pl); }.atlas .tbl-satir[aria-selected='true'].s-unk { border-left-color: var(--unk); }.atlas .tbl-konu { display: block; font-size: var(--t-row); font-weight: 600; color: var(--ink);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }.atlas .tbl-alt { display: block; margin-top: var(--s3); font-family: var(--mo);
   font-size: var(--t-code); color: var(--i3);
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }.atlas .tbl-ok { font-family: var(--mo); font-size: var(--t-code-lg); color: var(--i3); }.atlas .tbl-satir[aria-selected='true'] .tbl-ok { color: var(--jes); }.atlas .tbl-hucre { font-size: var(--t-cell); color: var(--i2); min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }.atlas .tbl-ok { font-family: var(--mo); font-size: var(--t-code-lg); color: var(--i3); }.atlas .tbl-satir[aria-selected='true'] .tbl-ok { color: var(--jes); }/* Hücre içindeki Tooltip kısaltma kırpmasından muaftır (02-components §13):
+   .tbl-hucre'nin overflow:hidden'ı popover'ı tümüyle gizliyordu. */
+.atlas .tbl-hucre:has(> .ipucu-sar) { overflow: visible; }
+.atlas .tbl-hucre .ipucu { white-space: normal; }
+.atlas .tbl-hucre { font-size: var(--t-cell); color: var(--i2); min-width: 0;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 /* Çekmece açılınca tablo DARALIR (03-screens M2 "narrowed table"): ikincil
    kolonlar düşer, konu genişler. Sıkıştırıp sarmak yerine bilgi çekmeceye
@@ -454,7 +459,9 @@
   font-variant-numeric: tabular-nums; line-height: 1; }
 
 /* ── 16 · ProgressIndicator ──────────────────────────────────────────── */
-.atlas .ilerleme { display: flex; align-items: center; gap: var(--s10); }.atlas .ilerleme .iz { flex: 1; height: 4px; background: #E0DDD3; }.atlas .ilerleme .dolgu { height: 100%; background: var(--ok); }.atlas .ilerleme .deger { font-size: var(--t-cell); font-weight: 600;
+.atlas .ilerleme { display: flex; align-items: center; gap: var(--s10); }.atlas .ilerleme .iz { flex: 1; height: 4px; background: #E0DDD3; }/* .dolgu satır içi span: satır içi kutuda width/height yok sayılır, bu yüzden
+   dolgu HİÇBİR ekranda çizilmiyordu. Bloklaştırılması şart. */
+.atlas .ilerleme .dolgu { display: block; height: 100%; background: var(--ok); }.atlas .ilerleme .deger { font-size: var(--t-cell); font-weight: 600;
   font-variant-numeric: tabular-nums; }.atlas .segment { display: flex; height: 6px; width: 100%; }.atlas .segment > span { height: 100%; }.atlas .segment .s-unk { background: #D6D2C7; }   /* daima sonda */
 .atlas .kesir { font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }.atlas .kesir .payda { font-size: var(--t-code-lg); font-weight: 400; color: var(--i3); }
 
@@ -464,7 +471,11 @@
     border-color var(--mo-state) var(--ez); }.atlas .dg-birincil { background: var(--acc); color: var(--pp); font-size: var(--t-code-lg);
   font-weight: 600; padding: 7px 13px; }.atlas .dg-birincil:hover { background: var(--accd); }.atlas .dg-cekmece { display: block; width: 100%; background: var(--band); color: var(--pp);
   font-size: var(--t-cell); font-weight: 600; padding: 11px 0; text-align: center; }.atlas .dg-cekmece:hover { background: var(--acc); }.atlas .dg-ikincil { border: var(--bw-strong) solid var(--hr2); color: var(--i2);
-  font-size: var(--t-cell); font-weight: 600; padding: 10px var(--s16); background: var(--card); }.atlas .dg-ikincil:hover { border-color: var(--ink); color: var(--ink); }.atlas .dg-ret:hover { border-color: var(--bd); color: var(--bd); }.atlas .dg-satir { font-size: var(--t-code-lg); font-weight: 500; color: var(--i2); padding: 0; }.atlas .dg-satir:hover { color: var(--ink); }
+  font-size: var(--t-cell); font-weight: 600; padding: 10px var(--s16); background: var(--card); }.atlas .dg-ikincil:hover { border-color: var(--ink); color: var(--ink); }.atlas .dg-ret { border: var(--bw-strong) solid var(--hr2); color: var(--i2);
+  font-size: var(--t-cell); font-weight: 600; padding: 10px var(--s16);
+  background: var(--card); }.atlas .dg-ret:hover { border-color: var(--bd); color: var(--bd); }
+/* Zorunlu gerekçe girilene kadar karar düğmeleri pasif kalır (06 §B7). */
+.atlas .dg:disabled { opacity: .45; cursor: not-allowed; }.atlas .dg:disabled:hover { background: var(--card); border-color: var(--hr2); color: var(--i2); }.atlas .dg-cekmece:disabled:hover { background: var(--band); color: var(--pp); }.atlas .dg-satir { font-size: var(--t-code-lg); font-weight: 500; color: var(--i2); padding: 0; }.atlas .dg-satir:hover { color: var(--ink); }
 
 /* ── 18 · Forms ──────────────────────────────────────────────────────── */
 .atlas .gr { background: var(--card); border: var(--bw-strong) solid var(--hr2);

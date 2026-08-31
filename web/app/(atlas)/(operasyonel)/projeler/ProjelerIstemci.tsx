@@ -11,10 +11,9 @@ import { ProjeFormu, DurumFormu, BaglantiFormu } from './Formlar';
 import {
   aktifMi, altSatir, bagMetni, barDurumu, butceAsimi, butceOzeti, buyuk, ceyrek,
   donemler, fazGecikmesi, gecikenFazlar, gunFarki, hedefMetni, ilerleme,
-  kapatilanSayisi, kartDurumu, kisaAd, konumlariAyir, riskteMi, santralMetni,
+  kapatilanSayisi, kartDurumu, kisaAd, riskteMi, santralMetni,
   sapmaMetni, ufkaYay, ufukKonumu, ufukUzunlugu,
-  GORUNUR_BUTCE, KART_ARALIGI, KART_ARALIGI_DAR, KART_BUTCESI, KART_BUTCESI_DAR,
-  KART_TAVANI, KART_TAVANI_DAR,
+  GORUNUR_BUTCE, KART_BUTCESI, KART_BUTCESI_DAR,
   type Faz, type Kisi, type P, type Secenek,
 } from './ortak';
 
@@ -117,12 +116,9 @@ export default function ProjelerIstemci({
     }));
     const secim = ufkaYay(adaylar, simdi, uzunluk,
       dar ? KART_BUTCESI_DAR : KART_BUTCESI);
-    const konumlar = konumlariAyir(
-      secim.map((k) => ufukKonumu(k.an, simdi, uzunluk)),
-      dar ? KART_ARALIGI_DAR : KART_ARALIGI,
-      dar ? KART_TAVANI_DAR : KART_TAVANI,
-    );
-    return secim.map((k, i) => {
+    /* Ayırma ve kaç kartın sığdığı artık ZamanCizelgesi'nin işi: eksen
+       genişliğini ölçüyor, biz tahmin etmiyoruz. Buradan HAM konum gider. */
+    return secim.map((k) => {
       const oran = ilerleme(k.p);
       return {
         id: k.p.id,
@@ -131,7 +127,7 @@ export default function ProjelerIstemci({
         kapsam: buyuk(`${kisaAd(santralMetni(k.p))}`
           + `${oran !== null ? ` · %${oran}` : ' · FAZ YOK'}`),
         durum: kartDurumu(k.p, simdi),
-        konum: konumlar[i],
+        konum: ufukKonumu(k.an, simdi, uzunluk),
       };
     });
   }, [sirali, simdi, uzunluk, dar]);

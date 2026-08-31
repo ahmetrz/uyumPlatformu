@@ -1,4 +1,5 @@
 'use client';
+import { useEffect, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 import type { Durum } from './temel';
 
@@ -9,6 +10,52 @@ import type { Durum } from './temel';
    genişliği bir sonraki dönem tırnağını geçmez.
 
    Konumlar statik yerleşimdir — animasyon edilmez (04 §4). */
+
+/** Kart gövdesinin piksel genişliği — CSS'teki `.zaman-kart { width }`
+    ile aynı sayı. Ayırma matematiği buna dayandığı için TEK yerde durur. */
+export const KART_PX = 208;
+
+/** Kartlar arasında bırakılan en küçük boşluk (px). */
+const KART_BOSLUK = 16;
+
+/**
+ * Tek şeritteki kart konumlarını PİKSEL üzerinden çakışmayacak biçimde
+ * ayırır. Ölçü gerçek eksen genişliğinden gelir; oranla tahmin edilmez.
+ *
+ * Neden ölçüm: üç ekran (denetim, proje, ömür) bu matematiği ayrı ayrı
+ * taşıyordu ve üçü de farklı sabitlerle "kaç kart sığar"ı TAHMİN ediyordu.
+ * Çekmece açılınca eksen ~1100px'den ~680px'e iniyor ve tahmin tutmuyor,
+ * kartlar üst üste biniyordu. Ölçülen genişlikle tahmine gerek kalmıyor.
+ *
+ * İki geçiş de gerekli: ileri geçiş asgari aralığı açar, geri geçiş sağ
+ * kenara yığılmayı engeller. Geri geçiş olmadan ufkun sonuna düşen kartlar
+ * sağ sınıra kırpılırken komşularının üstüne biner — kırpma taşan kartı
+ * geri çeker ama komşusunu bilmez.
+ *
+ * Bu bir YERLEŞİM düzeltmesidir, veri düzeltmesi değil: sıra korunur ve
+ * kartın kendi tarih etiketi gerçek tarihi söylemeye devam eder.
+ * `OmurUfku` iki şeritli olduğu için kendi ayırmasını sürdürür.
+ */
+export function konumlariAyirPx(konumlar: number[], genislik: number): number[] {
+  const adim = KART_PX + KART_BOSLUK;
+  const ust = Math.max(0, genislik - KART_PX);
+  const px = konumlar.map((k) => Math.max(0, Math.min(1, k)) * genislik);
+  for (let i = 1; i < px.length; i += 1) {
+    px[i] = Math.max(px[i], px[i - 1] + adim);
+  }
+  for (let i = px.length - 1; i >= 0; i -= 1) {
+    const tavan = ust - (px.length - 1 - i) * adim;
+    if (px[i] > tavan) px[i] = tavan;
+  }
+  return px.map((x) => Math.max(0, x));
+}
+
+/** Ölçülen eksene kaç kart SIĞAR. Ekran bütçesini buradan okur; sığmayan
+    kart çizilmez, çünkü sığmayan kart komşusunun üstüne biner. */
+export function kacKartSigar(genislik: number): number {
+  if (genislik <= 0) return 1;
+  return Math.max(1, Math.floor((genislik + KART_BOSLUK) / (KART_PX + KART_BOSLUK)));
+}
 
 export type ZamanKarti = {
   id: string;
@@ -30,19 +77,39 @@ export function ZamanCizelgesi({
   bugun?: number;
   tikla?: (id: string) => void;
 }) {
+  /* Eksen genişliği ÖLÇÜLÜR: çekmece açılıp kapandıkça değişiyor ve
+     çağıranın bunu tahmin etmesi gerekmiyor. Ölçüm gelene kadar kartlar
+     ham konumlarında durur; ResizeObserver ilk boyamadan hemen sonra
+     çalıştığı için gözle görülür bir sıçrama olmaz. */
+  const kokRef = useRef<HTMLDivElement | null>(null);
+  const [genislik, setGenislik] = useState(0);
+  useEffect(() => {
+    const el = kokRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(([g]) => setGenislik(g.contentRect.width));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  /* Sığmayan kart ÇİZİLMEZ: sığdırmaya zorlamak onu komşusunun üstüne
+     bindirir ve iki kart da okunamaz hâle gelir. */
+  const sigan = genislik > 0 ? kartlar.slice(0, kacKartSigar(genislik)) : kartlar;
+  const ayrikPx = genislik > 0 ? konumlariAyirPx(sigan.map((k) => k.konum), genislik) : null;
   return (
-    <div className="zaman-atlas">
+    <div className="zaman-atlas" ref={kokRef}>
       {donemler.map((d) => (
         <span key={d.ad} className="donem" style={{ left: `${d.konum * 100}%` }}>{d.ad}</span>
       ))}
       <span className="eksen" />
       {bugun != null && <span className="bugun" style={{ left: `${bugun * 100}%` }} />}
-      {kartlar.map((k) => (
+      {sigan.map((k, i) => (
         <button
           key={k.id}
           type="button"
           className={`zaman-kart s-${k.durum}`}
-          style={{ left: `min(${k.konum * 100}%, calc(100% - 208px))` } as CSSProperties}
+          style={{ left: ayrikPx
+            ? `${ayrikPx[i]}px`
+            : `min(${k.konum * 100}%, calc(100% - ${KART_PX}px))` } as CSSProperties}
           onClick={() => tikla?.(k.id)}
         >
           <span className="geri">{k.geri}</span>

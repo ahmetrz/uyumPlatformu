@@ -13,7 +13,7 @@ import { DENETIM_ASAMALARI, DENETIM_TIP_ETIKET, tarihTR } from '@/lib/sabitler';
 import { DenetimFormu } from './Formlar';
 import {
   altSatir, asamaEtiketi, asamaIndeksi, capa, denetimImi, donemler, geriMetni,
-  kapandiMi, kimlikCumlesi, KART_ORANI, KISA_ASAMA, konum, konumlariAyir, planMetni,
+  kapandiMi, kimlikCumlesi, KISA_ASAMA, konum, planMetni,
   santralMetni, tipEtiketi, ufuk,
   type Asama, type D, type SurecSecenegi,
 } from './ortak';
@@ -138,18 +138,14 @@ export default function DenetimlerIstemci({
      değiştikçe eksenin gerilmesi takvimi okunmaz yapardı. */
   const eksen = useMemo(() => ufuk(kayitlar.map((k) => k.d), simdi), [kayitlar, simdi]);
 
-  const cekmeceAcik = secili !== null || yeniAcik;
-
   const kartlar: ZamanKarti[] = useMemo(() => {
     const adaylar = [...suzulmus]
       .filter((k) => k.capa !== null)
       .sort((x, y) => (x.capa as number) - (y.capa as number))
       .slice(0, KART_BUTCESI);
-    const konumlar = konumlariAyir(
-      adaylar.map((k) => konum(k.capa, eksen)),
-      cekmeceAcik ? KART_ORANI.dar : KART_ORANI.genis,
-    );
-    return adaylar.map((k, i) => ({
+    /* Ayırma ve kaç kartın sığdığı artık ZamanCizelgesi'nin işi: eksen
+       genişliğini ölçüyor, biz tahmin etmiyoruz. Buradan HAM konum gider. */
+    return adaylar.map((k) => ({
       id: k.d.id,
       ad: k.d.ad,
       geri: geriMetni(k.capa, simdi),
@@ -157,9 +153,9 @@ export default function DenetimlerIstemci({
       // sığar — kod da eklenirse satır kırılır ve kart şeridi taşar.
       kapsam: santralMetni(k.d),
       durum: k.im,
-      konum: konumlar[i],
+      konum: konum(k.capa, eksen),
     }));
-  }, [suzulmus, eksen, simdi, cekmeceAcik]);
+  }, [suzulmus, eksen, simdi]);
 
   const secilen = kayitlar.find((k) => k.d.id === secili) ?? null;
   const filtreAktif = mercek !== 'yuruyen' || asamaF !== null || tipF !== null

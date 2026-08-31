@@ -31,13 +31,18 @@ export type Kenar = {
 };
 
 export function Tuval({
-  dugumler, kenarlar, odak, odakla, dipNot,
+  dugumler, kenarlar, odak, odakla, dipNot, yukseklik,
 }: {
   dugumler: Dugum[];
   kenarlar: Kenar[];
   odak?: string | null;
   odakla?: (id: string) => void;
   dipNot?: string;
+  /* Düğümler mutlak konumlu, yani tuval içerikle BÜYÜMEZ: yükseklik
+     CSS'te 388px'e sabitliyken kaç düğüm çizilebileceği de sabitleniyordu
+     (dörtten fazlası üst üste biniyor). Daha kalabalık bir kapsam gösteren
+     ekran kendi yüksekliğini verir; verilmezse CSS varsayılanı kalır. */
+  yukseklik?: number;
 }) {
   const kokRef = useRef<HTMLDivElement | null>(null);
   const [gorunur, setGorunur] = useState(false);
@@ -59,7 +64,8 @@ export function Tuval({
   };
 
   return (
-    <div className="tuval koyu-yuzey" ref={kokRef}>
+    <div className="tuval koyu-yuzey" ref={kokRef}
+      style={yukseklik ? { minHeight: yukseklik } : undefined}>
       <svg aria-hidden preserveAspectRatio="none" viewBox="0 0 100 100">
         {kenarlar.map((k, i) => {
           const a = konum(k.kaynak);

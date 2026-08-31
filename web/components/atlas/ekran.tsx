@@ -101,20 +101,26 @@ export function KipDegistir({
 }
 
 /** Yaşam döngüsü sekmeleri: 5 eşit segment, 3px alt kenar durum renginde. */
+/* Aşama şeridi bir SEKME KÜMESİ DEĞİLDİR: segmentler tıklanmaz, bir
+   görünümü değiştirmez, yalnız kaydın yaşam döngüsünde nerede olduğunu
+   söyler. Eskiden `role="tablist"` + `role="tab"` taşıyordu; aynı ekranda
+   gerçek bir `KipDegistir` tablist'i varken ekran okuyucu iki ayrı sekme
+   kümesi duyuruyor ve klavye ikisini ayıramıyordu. Doğru anlam sıralı bir
+   listedir; bulunulan adım `aria-current="step"` ile işaretlenir. */
 export function Asamalar({
   asamalar, aktifIndeks,
 }: { asamalar: { ad: string; tarih?: string }[]; aktifIndeks: number }) {
   return (
-    <div className="asamalar" role="tablist">
+    <ol className="asamalar">
       {asamalar.map((a, i) => (
-        <button key={a.ad} type="button" role="tab"
-          aria-selected={i === aktifIndeks}
+        <li key={a.ad}
+          {...(i === aktifIndeks ? { 'aria-current': 'step' as const } : {})}
           className={`asama${i < aktifIndeks ? ' tamam' : i === aktifIndeks ? ' simdi' : ''}`}>
           <span className="ad">{a.ad}</span>
           {a.tarih && <span className="tarih">{a.tarih}</span>}
-        </button>
+        </li>
       ))}
-    </div>
+    </ol>
   );
 }
 

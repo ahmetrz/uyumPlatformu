@@ -222,26 +222,6 @@ export function geriMetni(t: number | null, simdi: number): string {
    düzeltilir; sıra korunur ve kartın kendi tarih etiketi gerçek tarihi
    söylemeye devam eder (yerleşim düzeltmesi, veri değil). */
 
-/** 208px kartın eksen üzerindeki oranı. Çekmece kolonu açılınca eksen
-    ~1100px'den ~680px'e iner ve aynı kart neredeyse iki kat yer kaplar;
-    düzeltme bu yüzden çekmecenin açık olup olmadığına bakar (1440px tuval). */
-export const KART_ORANI = { genis: 0.19, dar: 0.31 };
-
-export function konumlariAyir(konumlar: number[], oran = KART_ORANI.dar): number[] {
-  const ust = 1 - oran;
-  const sonuc = [...konumlar];
-  for (let i = 1; i < sonuc.length; i += 1) {
-    sonuc[i] = Math.max(sonuc[i], sonuc[i - 1] + oran);
-  }
-  const son = sonuc.length - 1;
-  if (son >= 0 && sonuc[son] > ust) {
-    sonuc[son] = ust;
-    for (let i = son - 1; i >= 0; i -= 1) {
-      sonuc[i] = Math.min(sonuc[i], sonuc[i + 1] - oran);
-    }
-  }
-  return sonuc.map((x) => Math.max(0, Math.min(1, x)));
-}
 
 /** Eksen tırnakları: BUGÜN + ufka düşen ay başları. Birbirine yapışanlar
     elenir; tasarımda tırnak sayısı dörttür (02-components §14). */

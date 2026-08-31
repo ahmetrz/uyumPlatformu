@@ -29,13 +29,9 @@ export const KART_BUTCESI_DAR = 2;
 
 /** Kart genişliğinin tuvale oranı + nefes payı: ardışık iki kart bu kadar
     ayrılmazsa üst üste biner. */
-export const KART_ARALIGI = 0.24;
-export const KART_ARALIGI_DAR = 0.34;
 
 /** Kartın soldan başlayabileceği en son oran — `left` zaten
     `calc(100% - 208px)` ile kırpılıyor, konumlar da orada durmalı. */
-export const KART_TAVANI = 0.8;
-export const KART_TAVANI_DAR = 0.66;
 
 export type Kisi = { id: string; ad: string };
 export type Secenek = { id: string; ad: string };
@@ -297,25 +293,6 @@ export function ufkaYay<T extends { an: number | null }>(
     (a.an ?? Number.POSITIVE_INFINITY) - (b.an ?? Number.POSITIVE_INFINITY));
 }
 
-/** Kartlar TEK şeritte durur (02-components §14): 208px gövdeler ardışık
-    konumlarda çakışmasın diye en az bir kart genişliği ayrılır. İleri geçiş
-    aralığı açar, geri geçiş sağ kenara yığılmayı engeller — ikisi olmadan
-    ufkun sonuna düşen kartlar `calc(100% - 208px)` kırpmasında üst üste
-    biner. */
-export function konumlariAyir(
-  konumlar: number[], enAzAralik = KART_ARALIGI, enSonKonum = KART_TAVANI,
-): number[] {
-  const sonuc = [...konumlar];
-  for (let i = 1; i < sonuc.length; i += 1) {
-    const onceki = sonuc[i - 1];
-    if (sonuc[i] < onceki + enAzAralik) sonuc[i] = onceki + enAzAralik;
-  }
-  for (let i = sonuc.length - 1; i >= 0; i -= 1) {
-    const tavan = enSonKonum - (sonuc.length - 1 - i) * enAzAralik;
-    if (sonuc[i] > tavan) sonuc[i] = Math.max(0, tavan);
-  }
-  return sonuc;
-}
 
 /** Eksen tırnakları: BUGÜN + ufka sığan çeyrek ya da yıl sınırları.
     En fazla dört tırnak; birbirine yapışanlar elenir. */

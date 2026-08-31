@@ -443,7 +443,8 @@
   font-size: var(--t-label); letter-spacing: var(--tr-label); text-transform: uppercase;
   color: var(--i3); padding: 0; }.atlas .kapsam-dugme:hover { color: var(--ink); }
 /* yaşam döngüsü sekmeleri: 5 eşit segment, 3px alt kenar */
-.atlas .asamalar { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; }.atlas .asama { text-align: left; background: none; border: 0; cursor: pointer; font: inherit;
+.atlas .asamalar { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr;
+  margin: 0; padding: 0; list-style: none; }.atlas .asama { text-align: left; font: inherit;
   padding: var(--s12) var(--s14); border-bottom: var(--bw-edge) solid var(--hr2); }.atlas .asama .ad { display: block; font-size: 12.5px; font-weight: 600; color: var(--ink); }.atlas .asama .tarih { display: block; margin-top: var(--s4); font-family: var(--mo);
   font-size: var(--t-code); color: var(--i3); }.atlas .asama.tamam { border-bottom-color: var(--ok); }.atlas .asama.simdi { border-bottom-color: var(--md); }
 
@@ -513,7 +514,7 @@
   color: var(--i3); }.atlas .zaman-kart { position: absolute; top: 88px; width: 208px; background: var(--card);
   border: var(--bw-hair) solid var(--hr2); border-top: var(--bw-edge) solid var(--hr2);
   padding: var(--s12) var(--s14);
-  transition: box-shadow var(--mo-state) var(--ez); }.atlas .zaman-kart:hover { box-shadow: var(--sh-lift); }.atlas .zaman-kart.s-bd { border-top-color: var(--bd); }.atlas .zaman-kart.s-md { border-top-color: var(--md); }.atlas .zaman-kart.s-ok { border-top-color: var(--ok); }.atlas .zaman-kart .ad { font-size: 13px; font-weight: 600; }.atlas .zaman-kart .geri { float: right; font-size: var(--t-row); font-weight: 700;
+  transition: box-shadow var(--mo-state) var(--ez); }.atlas .zaman-kart:hover { box-shadow: var(--sh-lift); }.atlas .zaman-kart.s-bd { border-top-color: var(--bd); }.atlas .zaman-kart.s-md { border-top-color: var(--md); }.atlas .zaman-kart.s-ok { border-top-color: var(--ok); }.atlas .zaman-kart.s-pl { border-top-color: var(--pl); }.atlas .zaman-kart.s-unk { border-top-color: var(--unk); }.atlas .zaman-kart.s-tamam { border-top-color: var(--ok); opacity: .78; }.atlas .zaman-kart .ad { font-size: 13px; font-weight: 600; }.atlas .zaman-kart .geri { float: right; font-size: var(--t-row); font-weight: 700;
   font-variant-numeric: tabular-nums; }.atlas .zaman-kart .kapsam { display: block; margin-top: var(--s6); font-family: var(--mo);
   font-size: var(--t-code); color: var(--i3); }
 /* EOL varyantı: 3px SOL kenar, eksenin altında/üstünde dönüşümlü */

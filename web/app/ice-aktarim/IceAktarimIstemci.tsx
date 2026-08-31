@@ -5,7 +5,7 @@ import { Pill, Bos } from '@/components/ui';
 import { BosKuyruk } from '@/components/sahneler';
 import { useEylem } from '@/components/useEylem';
 import { aktarimYukle, aktarimOnayla, aktarimReddet } from '@/lib/eylemler';
-import { AKTARIM_ETIKET, AKTARIM_DURUM_RENGI, zamanTR } from '@/lib/sabitler';
+import { AKTARIM_ETIKET, AKTARIM_DURUM_RENGI, etiketle, zamanTR } from '@/lib/sabitler';
 
 type A = {
   id: string; kaynakTipi: string; kaynakAdi: string; durum: string;
@@ -134,7 +134,8 @@ export default function IceAktarimIstemci({ aktarimlar, regulasyonlar, alanKodla
                   <td className="mono">{a.durum === 'onaylandi' ? `~${a.guncellenen}` : '—'}</td>
                   <td className="mono" style={{ color: a.elenen ? 'var(--kismi-fg)' : undefined }}>{a.elenen}</td>
                   <td><Pill durum={AKTARIM_DURUM_RENGI[a.durum as keyof typeof AKTARIM_DURUM_RENGI]}
-                    etiket={AKTARIM_ETIKET[a.durum as keyof typeof AKTARIM_ETIKET]} /></td>
+                    etiket={AKTARIM_ETIKET[a.durum as keyof typeof AKTARIM_ETIKET]
+                      ?? etiketle(a.durum)} /></td>
                   <td className="mono" style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-3)' }}>
                     {zamanTR(a.zaman)}</td>
                 </tr>
@@ -149,7 +150,7 @@ export default function IceAktarimIstemci({ aktarimlar, regulasyonlar, alanKodla
       <Kip acik={!!incelenen} kapat={() => setIncelenen(null)} genis
         baslik={incelenen?.kaynakAdi ?? ''}
         ust={<span className="mikro-etiket">{incelenen?.regKod} ·{' '}
-          {AKTARIM_ETIKET[incelenen?.durum as keyof typeof AKTARIM_ETIKET]}</span>}>
+          {etiketle(incelenen?.durum, '')}</span>}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-4)' }}>
           {(rapor.satirlar?.length ?? 0) > 0 && (
             <div>
@@ -157,7 +158,7 @@ export default function IceAktarimIstemci({ aktarimlar, regulasyonlar, alanKodla
               {rapor.satirlar!.map((s) => (
                 <div key={s.kod} className="satir" style={{ padding: 'var(--sp-2) 0' }}>
                   <Pill durum={s.islem === 'yeni' ? 'uyumlu' : 'incelemede'}
-                    etiket={s.islem === 'yeni' ? 'yeni' : 'güncelleme'} />
+                    etiket={s.islem === 'yeni' ? 'Yeni' : 'Güncelleme'} />
                   <span className="chip mono">{s.kod}</span>
                   <span style={{ flex: 1 }}>{s.baslik}</span>
                   {s.alanlar.map((a) => <span key={a} className="chip">{a}</span>)}

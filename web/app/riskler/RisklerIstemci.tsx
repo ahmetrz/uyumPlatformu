@@ -9,7 +9,7 @@ import { riskKaydet, riskIslem, riskKabul } from '@/lib/eylemler2/risk';
 import {
   RISK_DURUMLARI, RISK_DURUM_ETIKET, RISK_DURUM_RENGI,
   RISK_ISLEMLERI, RISK_ISLEM_ETIKET, ETKI_BOYUTLARI,
-  riskSeviyeRengi, tarihTR, type Durum,
+  etiketle, riskSeviyeRengi, tarihTR, type Durum,
 } from '@/lib/sabitler';
 
 type EtkiAnahtari = (typeof ETKI_BOYUTLARI)[number][0];
@@ -36,11 +36,8 @@ type Kisi = { id: string; ad: string };
 type Kodlu = { id: string; kod: string; ad: string };
 type BulguSecenegi = { id: string; baslik: string };
 
+/** Risk kaynağı seçenekleri — Türkçe etiketleri merkezî sözlükten okunur. */
 const KAYNAKLAR = ['manuel', 'bulgu', 'zafiyet', 'eol', 'denetim', 'veri_kalitesi'] as const;
-const KAYNAK_ETIKET: Record<string, string> = {
-  manuel: 'Manuel', bulgu: 'Bulgu', zafiyet: 'Zafiyet', eol: 'EOL/EOS',
-  denetim: 'Denetim', veri_kalitesi: 'Veri kalitesi',
-};
 
 /** max(etki boyutları) — null boyutlar dışarıda; hepsi null ise null. */
 function maxEtki(etkiler: Record<EtkiAnahtari, number | null>): number | null {
@@ -239,7 +236,7 @@ function RiskFormu({ risk, yeniKod, kullanicilar, tesisler, sistemler, bulgular,
         <label className="form-satir">
           <span>Kaynak</span>
           <select className="sec" value={f.kaynak} onChange={(e) => setF({ ...f, kaynak: e.target.value })}>
-            {KAYNAKLAR.map((s) => <option key={s} value={s}>{KAYNAK_ETIKET[s]}</option>)}
+            {KAYNAKLAR.map((s) => <option key={s} value={s}>{etiketle(s)}</option>)}
           </select>
         </label>
         <label className="form-satir">
@@ -352,7 +349,7 @@ export default function RisklerIstemci({ riskler, yeniKod, kullanicilar, tesisle
     if (durumF !== 'hepsi' && durumF !== 'aktif' && durumF !== 'kabul_doldu'
       && r.durum !== durumF) return false;
     if (tesisF !== 'hepsi' && r.tesis?.id !== tesisF) return false;
-    if (arama && !`${r.kod} ${r.baslik} ${r.tesis?.kod ?? ''} ${r.sahip?.ad ?? ''}`
+    if (arama && !`${r.kod} ${r.baslik} ${r.tesis?.kod ?? ''} ${r.tesis?.ad ?? ''} ${r.sahip?.ad ?? ''}`
       .toLocaleLowerCase('tr-TR').includes(arama.toLocaleLowerCase('tr-TR'))) return false;
     return true;
   }), [riskler, durumF, tesisF, arama]);
@@ -426,7 +423,7 @@ export default function RisklerIstemci({ riskler, yeniKod, kullanicilar, tesisle
         </select>
         <select className="sec" value={tesisF} onChange={(e) => setTesisF(e.target.value)}>
           <option value="hepsi">Tüm tesisler</option>
-          {tesisler.map((t) => <option key={t.id} value={t.id}>{t.kod}</option>)}
+          {tesisler.map((t) => <option key={t.id} value={t.id}>{t.kod} — {t.ad}</option>)}
         </select>
         <span style={{ flex: 1 }} />
         <button className="btn yazdirmada-gizle" onClick={pdfYazdir}>🖨 PDF</button>
@@ -435,10 +432,10 @@ export default function RisklerIstemci({ riskler, yeniKod, kullanicilar, tesisle
             ['Kod', 'Başlık', 'Tesis', 'Sahip', 'Kaynak', 'Olasılık', 'Maks etki',
               'Doğal risk', 'Artık risk', 'İşlem', 'Durum', 'Kabul bitiş'],
             ...gorunen.map((r) => [r.kod, r.baslik, r.tesis?.kod, r.sahip?.ad,
-              r.kaynak ? KAYNAK_ETIKET[r.kaynak] ?? r.kaynak : '',
+              etiketle(r.kaynak, ''),
               r.olasilik, maxEtki(r.etkiler), r.dogalRisk, r.artikRisk,
-              r.islemTipi ? RISK_ISLEM_ETIKET[r.islemTipi as (typeof RISK_ISLEMLERI)[number]] : '',
-              RISK_DURUM_ETIKET[r.durum as RiskDurum],
+              etiketle(r.islemTipi, ''),
+              RISK_DURUM_ETIKET[r.durum as RiskDurum] ?? etiketle(r.durum),
               r.kabulBitis ? tarihTR(r.kabulBitis) : '']),
           ] }])}>⤓ Excel</button>
         <button className="btn birincil yazdirmada-gizle" onClick={() => setYeniAcik(true)}>
@@ -468,20 +465,23 @@ export default function RisklerIstemci({ riskler, yeniKod, kullanicilar, tesisle
                       <div className="mikro-etiket sirada-gizli" style={{ letterSpacing: '.03em' }}>
                         {ETKI_BOYUTLARI.filter(([a]) => (r.etkiler[a] ?? 0) > 0)
                           .map(([a, e]) => `${e} ${r.etkiler[a]}`).join(' · ') || 'etki bilinmiyor'}
-                        {r.kaynak && ` · ${KAYNAK_ETIKET[r.kaynak] ?? r.kaynak}`}
+                        {r.kaynak && ` · ${etiketle(r.kaynak)}`}
                       </div>
                     </td>
-                    <td>{r.tesis ? <span className="chip mono">{r.tesis.kod}</span> : '—'}</td>
+                    <td>{r.tesis
+                      ? <span className="chip mono" title={r.tesis.ad}>{r.tesis.kod}</span>
+                      : '—'}</td>
                     <td style={{ color: 'var(--text-2)' }}>{r.sahip?.ad ?? '—'}</td>
                     <td>{r.islemTipi ? (
                       <Pill durum={r.islemTipi === 'kabul' ? 'kapsamdisi' : 'incelemede'}
-                        etiket={RISK_ISLEM_ETIKET[r.islemTipi as (typeof RISK_ISLEMLERI)[number]] ?? r.islemTipi} />
+                        etiket={RISK_ISLEM_ETIKET[r.islemTipi as (typeof RISK_ISLEMLERI)[number]]
+                          ?? etiketle(r.islemTipi)} />
                     ) : '—'}</td>
                     <td className="sag"><SkorPill skor={r.artikRisk} /></td>
                     <td>{doldu
                       ? <Pill durum="uyumsuz" etiket="Kabul süresi doldu" hollow />
                       : <Pill durum={RISK_DURUM_RENGI[r.durum as RiskDurum]}
-                          etiket={RISK_DURUM_ETIKET[r.durum as RiskDurum]} />}
+                          etiket={RISK_DURUM_ETIKET[r.durum as RiskDurum] ?? etiketle(r.durum)} />}
                     </td>
                   </tr>
                 );
@@ -498,7 +498,7 @@ export default function RisklerIstemci({ riskler, yeniKod, kullanicilar, tesisle
         ust={secili && (
           <span className="mikro-etiket">
             <span className="mono">{secili.kod}</span>
-            {secili.kaynak && ` · ${KAYNAK_ETIKET[secili.kaynak] ?? secili.kaynak}`}
+            {secili.kaynak && ` · ${etiketle(secili.kaynak)}`}
             {` · ${tarihTR(secili.olusturuldu)}`}
           </span>
         )}
@@ -513,10 +513,10 @@ export default function RisklerIstemci({ riskler, yeniKod, kullanicilar, tesisle
               {kabulDoldu(secili)
                 ? <Pill durum="uyumsuz" etiket="Kabul süresi doldu" hollow />
                 : <Pill durum={RISK_DURUM_RENGI[secili.durum as RiskDurum]}
-                    etiket={RISK_DURUM_ETIKET[secili.durum as RiskDurum]} />}
+                    etiket={RISK_DURUM_ETIKET[secili.durum as RiskDurum] ?? etiketle(secili.durum)} />}
               {secili.islemTipi && (
                 <Pill durum={secili.islemTipi === 'kabul' ? 'kapsamdisi' : 'incelemede'}
-                  etiket={`İşlem: ${RISK_ISLEM_ETIKET[secili.islemTipi as (typeof RISK_ISLEMLERI)[number]] ?? secili.islemTipi}`} />
+                  etiket={`İşlem: ${etiketle(secili.islemTipi)}`} />
               )}
               <SkorPill skor={secili.dogalRisk} etiket="Doğal" />
               <SkorPill skor={secili.artikRisk} etiket="Artık" />

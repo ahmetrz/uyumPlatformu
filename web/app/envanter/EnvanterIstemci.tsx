@@ -6,7 +6,7 @@ import Kip from '@/components/Kip';
 import { useEylem } from '@/components/useEylem';
 import { exceleAktar, pdfYazdir } from '@/components/disaAktar';
 import { varlikKaydet, iliskiEkle, iliskiSil, varlikYasamDongusu } from '@/lib/eylemler2/envanter';
-import { VARLIK_SINIF_ETIKET, eolDurumu, tarihTR, type Durum } from '@/lib/sabitler';
+import { VARLIK_SINIF_ETIKET, etiketle, eolDurumu, tarihTR, type Durum } from '@/lib/sabitler';
 
 type Kisi = { id: string; ad: string };
 type Kodlu = { id: string; kod: string; ad: string };
@@ -38,9 +38,6 @@ type V = {
 // ------------------------------------------------------------- sözlükler
 
 const KRITIKLIKLER = ['kritik', 'yuksek', 'orta', 'dusuk', 'bilinmiyor'] as const;
-const KRITIKLIK_ETIKET: Record<string, string> = {
-  kritik: 'Kritik', yuksek: 'Yüksek', orta: 'Orta', dusuk: 'Düşük', bilinmiyor: 'Bilinmiyor',
-};
 const KRITIKLIK_RENGI: Record<string, Durum> = {
   kritik: 'uyumsuz', yuksek: 'uyumsuz', orta: 'kismi',
   dusuk: 'kapsamdisi', bilinmiyor: 'degerlendirilmedi',
@@ -64,10 +61,6 @@ const ILISKI_CUMLE: Record<string, string> = {
 const YAMA_SECENEK = ['guncel', 'eksik', 'yamasiz', 'bilinmiyor'] as const;
 const VAR_YOK_SECENEK = ['var', 'yok', 'bilinmiyor'] as const;
 const MARUZIYET_SECENEK = ['yok', 'sinirli', 'var', 'bilinmiyor'] as const;
-const DURUM_SOZ: Record<string, string> = {
-  guncel: 'Güncel', eksik: 'Eksik', yamasiz: 'Yamasız',
-  var: 'Var', yok: 'Yok', sinirli: 'Sınırlı', bilinmiyor: 'Bilinmiyor',
-};
 
 // -------------------------------------------------------------- yardımcı
 
@@ -109,7 +102,7 @@ function KorumaNoktalari({ v }: { v: V }) {
   return (
     <span style={{ display: 'inline-flex', gap: 4, alignItems: 'center' }}>
       {alanlar.map(([ad, d]) => (
-        <span key={ad} title={`${ad}: ${DURUM_SOZ[d] ?? d}`} style={{
+        <span key={ad} title={`${ad}: ${etiketle(d)}`} style={{
           width: 7, height: 7, borderRadius: '50%', display: 'inline-block',
           background: noktaRenk(d),
         }} />
@@ -199,7 +192,7 @@ function VarlikFormu({ varlik, turler, tesisler, uniteler, sistemler, bolgeler, 
         <span>{etiket}</span>
         <select className="sec" value={f[ad] as string}
           onChange={(e) => setF({ ...f, [ad]: e.target.value })}>
-          {secenekler.map((s) => <option key={s} value={s}>{DURUM_SOZ[s] ?? s}</option>)}
+          {secenekler.map((s) => <option key={s} value={s}>{etiketle(s)}</option>)}
         </select>
       </label>
     );
@@ -248,7 +241,7 @@ function VarlikFormu({ varlik, turler, tesisler, uniteler, sistemler, bolgeler, 
               <option value="">Seçin…</option>
               {turler.map((t) => (
                 <option key={t.id} value={t.id}>
-                  {t.ad} ({VARLIK_SINIF_ETIKET[t.sinif] ?? t.sinif})
+                  {t.ad} ({etiketle(t.sinif)})
                 </option>
               ))}
             </select>
@@ -312,7 +305,7 @@ function VarlikFormu({ varlik, turler, tesisler, uniteler, sistemler, bolgeler, 
             <span>Kritiklik</span>
             <select className="sec" value={f.kritiklik}
               onChange={(e) => setF({ ...f, kritiklik: e.target.value })}>
-              {KRITIKLIKLER.map((s) => <option key={s} value={s}>{KRITIKLIK_ETIKET[s]}</option>)}
+              {KRITIKLIKLER.map((s) => <option key={s} value={s}>{etiketle(s)}</option>)}
             </select>
           </label>
           {durumAlani('internetMaruziyeti', 'İnternet maruziyeti', MARUZIYET_SECENEK)}
@@ -472,11 +465,11 @@ export default function EnvanterIstemci({
           onChange={(e) => setArama(e.target.value)} style={{ minWidth: 200 }} />
         <select className="sec" value={tesisF} onChange={(e) => setTesisF(e.target.value)}>
           <option value="hepsi">Tüm tesisler</option>
-          {tesisler.map((t) => <option key={t.id} value={t.id}>{t.kod}</option>)}
+          {tesisler.map((t) => <option key={t.id} value={t.id}>{t.kod} — {t.ad}</option>)}
         </select>
         <select className="sec" value={sinifF} onChange={(e) => setSinifF(e.target.value)}>
           <option value="hepsi">Tüm sınıflar</option>
-          {Object.entries(VARLIK_SINIF_ETIKET).map(([s, e]) => <option key={s} value={s}>{e}</option>)}
+          {Object.keys(VARLIK_SINIF_ETIKET).map((s) => <option key={s} value={s}>{etiketle(s)}</option>)}
         </select>
         <select className="sec" value={turF} onChange={(e) => setTurF(e.target.value)}>
           <option value="hepsi">Tüm türler</option>
@@ -484,7 +477,7 @@ export default function EnvanterIstemci({
         </select>
         <select className="sec" value={kritiklikF} onChange={(e) => setKritiklikF(e.target.value)}>
           <option value="hepsi">Tüm kritiklikler</option>
-          {KRITIKLIKLER.map((s) => <option key={s} value={s}>{KRITIKLIK_ETIKET[s]}</option>)}
+          {KRITIKLIKLER.map((s) => <option key={s} value={s}>{etiketle(s)}</option>)}
         </select>
         <select className="sec" value={eolF} onChange={(e) => setEolF(e.target.value)}>
           <option value="hepsi">Tüm EOL durumları</option>
@@ -496,7 +489,7 @@ export default function EnvanterIstemci({
         <select className="sec" value={yasamF} onChange={(e) => setYasamF(e.target.value)}>
           <option value="kullanimda">Kullanımda (emekli/imha hariç)</option>
           <option value="hepsi">Tüm yaşam döngüleri</option>
-          {YASAM_DONGULERI.map((s) => <option key={s} value={s}>{YASAM_ETIKET[s]}</option>)}
+          {YASAM_DONGULERI.map((s) => <option key={s} value={s}>{YASAM_ETIKET[s] ?? etiketle(s)}</option>)}
         </select>
         <span style={{ flex: 1 }} />
         <button className="btn yazdirmada-gizle" onClick={pdfYazdir}>🖨 PDF</button>
@@ -506,12 +499,12 @@ export default function EnvanterIstemci({
               'EOS tarihi', 'EOS durumu', 'Yama', 'EDR', 'Yedek', 'İzleme', 'Log',
               'Yaşam döngüsü', 'Bilinmeyen alanlar'],
             ...gorunen.map((v) => [v.etiket, v.ad, v.tur.ad,
-              VARLIK_SINIF_ETIKET[v.tur.sinif] ?? v.tur.sinif, v.tesis?.kod, v.bolge?.kod,
-              KRITIKLIK_ETIKET[v.kritiklik] ?? v.kritiklik, v.isletimSistemi,
+              etiketle(v.tur.sinif), v.tesis?.kod, v.bolge?.kod,
+              etiketle(v.kritiklik), v.isletimSistemi,
               v.eosTarihi ? tarihTR(v.eosTarihi) : '', eolDurumu(v.eosTarihi).etiket,
-              DURUM_SOZ[v.yamaDurumu], DURUM_SOZ[v.edrDurumu], DURUM_SOZ[v.yedekDurumu],
-              DURUM_SOZ[v.izlemeDurumu], DURUM_SOZ[v.logKaynagi],
-              YASAM_ETIKET[v.yasamDongusu] ?? v.yasamDongusu,
+              etiketle(v.yamaDurumu), etiketle(v.edrDurumu), etiketle(v.yedekDurumu),
+              etiketle(v.izlemeDurumu), etiketle(v.logKaynagi),
+              YASAM_ETIKET[v.yasamDongusu] ?? etiketle(v.yasamDongusu),
               bilinmeyenAlanlar(v).join(', ')]),
           ] }])}>⤓ Excel</button>
         <button className="btn birincil yazdirmada-gizle" onClick={() => setYeniAcik(true)}>
@@ -540,21 +533,22 @@ export default function EnvanterIstemci({
                       <span style={{ fontWeight: 500 }}>{v.ad}</span>
                       {v.yasamDongusu !== 'aktif' && (
                         <>{' '}<Pill durum={YASAM_RENGI[v.yasamDongusu] ?? 'kapsamdisi'}
-                          etiket={YASAM_ETIKET[v.yasamDongusu] ?? v.yasamDongusu} hollow /></>
+                          etiket={YASAM_ETIKET[v.yasamDongusu] ?? etiketle(v.yasamDongusu)} hollow /></>
                       )}
                       <div className="mikro-etiket sirada-gizli"
                         style={{ letterSpacing: '.03em', display: 'flex', gap: 'var(--sp-2)', alignItems: 'center' }}>
-                        {v.bolge && <span className="chip mono" style={{ fontSize: 'inherit' }}>{v.bolge.kod}</span>}
+                        {v.bolge && <span className="chip mono" style={{ fontSize: 'inherit' }}
+                          title={`Ağ bölgesi: ${v.bolge.ad}`}>{v.bolge.kod}</span>}
                         {v.isletimSistemi && <span>{v.isletimSistemi}</span>}
                         <KorumaNoktalari v={v} />
                         {v.acikZafiyet > 0 && <span>{v.acikZafiyet} açık zafiyet</span>}
                       </div>
                     </td>
                     <td><span className="chip">{v.tur.ad}</span></td>
-                    <td><span className="chip">{VARLIK_SINIF_ETIKET[v.tur.sinif] ?? v.tur.sinif}</span></td>
+                    <td><span className="chip">{etiketle(v.tur.sinif)}</span></td>
                     <td>{v.tesis ? <span className="chip mono" title={v.tesis.ad}>{v.tesis.kod}</span> : '—'}</td>
                     <td><Pill durum={KRITIKLIK_RENGI[v.kritiklik] ?? 'degerlendirilmedi'}
-                      etiket={KRITIKLIK_ETIKET[v.kritiklik] ?? v.kritiklik}
+                      etiket={etiketle(v.kritiklik)}
                       hollow={v.kritiklik === 'yuksek'} /></td>
                     <td><Pill durum={eol.durum} etiket={eol.etiket} /></td>
                   </tr>
@@ -572,7 +566,7 @@ export default function EnvanterIstemci({
         ust={secili && (
           <span className="mikro-etiket">
             <span className="mono">{secili.etiket}</span>
-            {` · ${secili.tur.ad} · ${VARLIK_SINIF_ETIKET[secili.tur.sinif] ?? secili.tur.sinif}`}
+            {` · ${secili.tur.ad} · ${etiketle(secili.tur.sinif)}`}
             {` · güncellendi ${tarihTR(secili.guncellendi)}`}
           </span>
         )}
@@ -585,12 +579,12 @@ export default function EnvanterIstemci({
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-4)' }}>
             <div className="filtreler">
               <Pill durum={KRITIKLIK_RENGI[secili.kritiklik] ?? 'degerlendirilmedi'}
-                etiket={`Kritiklik: ${KRITIKLIK_ETIKET[secili.kritiklik] ?? secili.kritiklik}`}
+                etiket={`Kritiklik: ${etiketle(secili.kritiklik)}`}
                 hollow={secili.kritiklik === 'yuksek'} />
               <Pill durum={eolDurumu(secili.eosTarihi).durum}
                 etiket={`EOS: ${eolDurumu(secili.eosTarihi).etiket}`} />
               <Pill durum={YASAM_RENGI[secili.yasamDongusu] ?? 'kapsamdisi'}
-                etiket={YASAM_ETIKET[secili.yasamDongusu] ?? secili.yasamDongusu} />
+                etiket={YASAM_ETIKET[secili.yasamDongusu] ?? etiketle(secili.yasamDongusu)} />
               {secili.tesis && <span className="chip mono" title={secili.tesis.ad}>{secili.tesis.kod}</span>}
               {secili.unite && <span className="chip mono" title={secili.unite.ad}>{secili.unite.kod}</span>}
               {secili.bolge && <span className="chip mono" title={`Ağ bölgesi: ${secili.bolge.ad}`}>
@@ -615,7 +609,7 @@ export default function EnvanterIstemci({
                         ? (d === 'bilinmiyor' ? 'var(--kapsamdisi-dot)'
                           : d === 'yok' ? 'var(--uyumlu-dot)' : 'var(--kismi-dot)')
                         : noktaRenk(d) }} />
-                    {ad}: {DURUM_SOZ[d] ?? d}
+                    {ad}: {etiketle(d)}
                   </span>
                 ))}
               </div>
@@ -664,10 +658,9 @@ export default function EnvanterIstemci({
                   <div key={i.id} className="filtreler" style={{ gap: 'var(--sp-2)' }}>
                     <span className="chip mono" title={i.ozne.ad}>{i.ozne.etiket}</span>
                     <span style={{ color: 'var(--text-2)', fontSize: 'var(--fs-sm)' }}>
-                      {ILISKI_CUMLE[i.tip] ?? i.tip}
+                      {ILISKI_CUMLE[i.tip] ?? `${etiketle(i.tip)}:`}
                     </span>
                     <span className="chip mono" title={i.nesne.ad}>{i.nesne.etiket}</span>
-                    <span className="mikro-etiket mono">{i.tip}</span>
                     <button className="chip-sil" title="İlişkiyi kaldır" disabled={bekliyor}
                       onClick={() => calistir(() => iliskiSil({ id: i.id }))}>✕</button>
                   </div>
@@ -678,7 +671,7 @@ export default function EnvanterIstemci({
                 <select className="sec" value={yeniIliski.tip}
                   onChange={(e) => setYeniIliski({ ...yeniIliski, tip: e.target.value })}>
                   {ILISKI_TIPLERI.map((t) => (
-                    <option key={t} value={t}>{ILISKI_CUMLE[t]} ({t})</option>
+                    <option key={t} value={t}>{etiketle(t)}</option>
                   ))}
                 </select>
                 <select className="sec" value={yeniIliski.hedefId} style={{ minWidth: 220 }}
@@ -705,7 +698,7 @@ export default function EnvanterIstemci({
                       ⚠ {r.kod}</Link>
                   ))}
                   {secili.kanitlar.map((ka) => (
-                    <span key={ka.id} className="chip" title={ka.tip}>▤ {ka.ad}</span>
+                    <span key={ka.id} className="chip" title={etiketle(ka.tip)}>▤ {ka.ad}</span>
                   ))}
                   {secili.acikZafiyet > 0 && (
                     <Pill durum="uyumsuz" etiket={`${secili.acikZafiyet} açık zafiyet`} hollow />

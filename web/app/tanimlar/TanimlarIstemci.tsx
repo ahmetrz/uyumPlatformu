@@ -8,7 +8,7 @@ import {
   sektorKaydet, tesisTipiKaydet, tesisKaydet, tesisKapat, tesisAc,
   regulasyonKaydet, regulasyonAktifDegistir, alanKaydet, tanimSil,
 } from '@/lib/eylemler';
-import { tarihTR } from '@/lib/sabitler';
+import { etiketle, tarihTR } from '@/lib/sabitler';
 
 type Sektor = { id: string; kod: string; ad: string; tipSayisi: number };
 type Tip = { id: string; kod: string; ad: string; sektorId: string | null;
@@ -44,6 +44,9 @@ export default function TanimlarIstemci({ sektorler, tipler, tesisler, regulasyo
 
 /* ------------------------------------------------------------- tesisler */
 
+/** Tesis kapanış nedenleri — değer ham kalır, görünen metin merkezî sözlükten. */
+const KAPANIS_NEDENLERI = ['satis', 'kapanis', 'birlesme'] as const;
+
 function TesisPaneli({ tesisler, tipler }: { tesisler: Tesis[]; tipler: Tip[] }) {
   const { bekliyor, hata, calistir } = useEylem();
   const [duzenlenen, setDuzenlenen] = useState<Tesis | 'yeni' | null>(null);
@@ -73,7 +76,8 @@ function TesisPaneli({ tesisler, tipler }: { tesisler: Tesis[]; tipler: Tip[] })
                 <span className="chip mono">{t.kod}</span>
                 {t.tipKod && <span className="chip">{t.tipKod}</span>}
                 {t.durum === 'kapali'
-                  ? <Pill durum="kapsamdisi" etiket={`Kapalı · ${t.kapanisNedeni ?? ''} ${tarihTR(t.kapanisTarihi)}`} />
+                  ? <Pill durum="kapsamdisi"
+                      etiket={`Kapalı · ${etiketle(t.kapanisNedeni, 'neden belirtilmemiş')} · ${tarihTR(t.kapanisTarihi)}`} />
                   : <Pill durum="uyumlu" etiket="Aktif" />}
               </div>
               <h3>{t.ad}</h3>
@@ -108,9 +112,7 @@ function TesisPaneli({ tesisler, tipler }: { tesisler: Tesis[]; tipler: Tip[] })
         <div className="form-izgara">
           <label className="form-satir"><span>Neden</span>
             <select className="sec" value={neden} onChange={(e) => setNeden(e.target.value)}>
-              <option value="satis">Satış / devir</option>
-              <option value="kapanis">Kapanış</option>
-              <option value="birlesme">Birleşme</option>
+              {KAPANIS_NEDENLERI.map((n) => <option key={n} value={n}>{etiketle(n)}</option>)}
             </select></label>
         </div>
         <div style={{ display: 'flex', gap: 'var(--sp-2)', marginTop: 'var(--sp-4)', justifyContent: 'flex-end' }}>
@@ -376,7 +378,7 @@ function KirilimPaneli({ sektorler, tipler }: { sektorler: Sektor[]; tipler: Tip
             <select className="sec" value={tipForm.sektorId}
               onChange={(e) => setTipForm({ ...tipForm, sektorId: e.target.value })}>
               <option value="">Sektör…</option>
-              {sektorler.map((s) => <option key={s.id} value={s.id}>{s.kod}</option>)}
+              {sektorler.map((s) => <option key={s.id} value={s.id}>{s.kod} — {s.ad}</option>)}
             </select>
             <button className="btn birincil kucuk" disabled={bekliyor}
               onClick={() => calistir(() => tesisTipiKaydet({

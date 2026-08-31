@@ -8,7 +8,7 @@ import { exceleAktar, pdfYazdir } from '@/components/disaAktar';
 import { denetimKaydet } from '@/lib/eylemler2/denetim';
 import {
   DENETIM_ASAMALARI, DENETIM_ASAMA_ETIKET, DENETIM_TIP_ETIKET,
-  tarihTR, type Durum,
+  etiketle, tarihTR, type Durum,
 } from '@/lib/sabitler';
 
 type Asama = (typeof DENETIM_ASAMALARI)[number];
@@ -122,8 +122,8 @@ export default function DenetimlerIstemci({ denetimler, yeniKod, surecler }: {
             ['Kod', 'Ad', 'Tip', 'Denetleyen', 'Aşama', 'Plan başlangıç', 'Plan bitiş',
               'Tesisler', 'Açık kanıt talebi', 'Açık bulgu'],
             ...gorunen.map((d) => [d.kod, d.ad,
-              DENETIM_TIP_ETIKET[d.tip] ?? d.tip, d.denetleyen,
-              DENETIM_ASAMA_ETIKET[d.durum as Asama] ?? d.durum,
+              DENETIM_TIP_ETIKET[d.tip] ?? etiketle(d.tip), d.denetleyen,
+              DENETIM_ASAMA_ETIKET[d.durum as Asama] ?? etiketle(d.durum),
               d.planBaslangic ? tarihTR(d.planBaslangic) : '',
               d.planBitis ? tarihTR(d.planBitis) : '',
               d.tesisler.join(', '), d.acikTalep, d.acikBulgu]),
@@ -145,11 +145,11 @@ export default function DenetimlerIstemci({ denetimler, yeniKod, surecler }: {
                   <span className="chip mono">{d.kod}</span>
                   <span style={{ flex: 1 }} />
                   <Pill durum={asamaRengi(d.durum)}
-                    etiket={DENETIM_ASAMA_ETIKET[d.durum as Asama] ?? d.durum} />
+                    etiket={DENETIM_ASAMA_ETIKET[d.durum as Asama] ?? etiketle(d.durum)} />
                 </div>
                 <div>
                   <span className="mikro-etiket">
-                    {DENETIM_TIP_ETIKET[d.tip] ?? d.tip}
+                    {DENETIM_TIP_ETIKET[d.tip] ?? etiketle(d.tip)}
                     {d.denetleyen && ` · ${d.denetleyen}`}
                     {d.surec && ` · ${d.surec.regKod}`}
                   </span>

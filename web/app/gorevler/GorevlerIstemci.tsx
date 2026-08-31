@@ -7,7 +7,7 @@ import Kip from '@/components/Kip';
 import { useEylem } from '@/components/useEylem';
 import { exceleAktar, pdfYazdir } from '@/components/disaAktar';
 import { gorevOlustur, gorevDurum, onayKarar } from '@/lib/eylemler2/gorev';
-import { GOREV_TIP_ETIKET, tarihTR, zamanTR, gecikmisMi, type Durum } from '@/lib/sabitler';
+import { GOREV_TIP_ETIKET, etiketle, tarihTR, zamanTR, gecikmisMi, type Durum } from '@/lib/sabitler';
 
 /* Görev/onay durum sözlükleri bu ekrana özgüdür; renk yalnız durumu anlatır. */
 const GOREV_DURUMLARI = ['acik', 'yapiliyor', 'tamamlandi', 'iptal'] as const;
@@ -32,7 +32,8 @@ const ONAY_DURUM_RENGI: Record<string, Durum> = {
 type G = {
   id: string; baslik: string; tip: string;
   kaynakTipi: string | null; kaynakId: string | null;
-  sorumlu: { id: string; ad: string } | null; tesisKod: string | null;
+  sorumlu: { id: string; ad: string } | null;
+  tesisKod: string | null; tesisAd: string | null;
   sonTarih: string | null; durum: string; otomatik: boolean;
   olusturuldu: string; kapanis: string | null; degistirebilir: boolean;
 };
@@ -150,14 +151,14 @@ export default function GorevlerIstemci({
         <button className="btn yazdirmada-gizle" onClick={() => exceleAktar('gorevler-onaylar', [
           { ad: 'Görevler', satirlar: [
             ['Görev', 'Tip', 'Durum', 'Sorumlu', 'Tesis', 'Kaynak', 'Son tarih', 'Oluşturulma', 'Kapanış', 'Otomatik'],
-            ...gorunen.map((g) => [g.baslik, GOREV_TIP_ETIKET[g.tip] ?? g.tip,
-              GOREV_DURUM_ETIKET[g.durum] ?? g.durum, g.sorumlu?.ad, g.tesisKod,
-              g.kaynakTipi, g.sonTarih ? tarihTR(g.sonTarih) : '', tarihTR(g.olusturuldu),
+            ...gorunen.map((g) => [g.baslik, GOREV_TIP_ETIKET[g.tip] ?? etiketle(g.tip),
+              GOREV_DURUM_ETIKET[g.durum] ?? etiketle(g.durum), g.sorumlu?.ad, g.tesisKod,
+              etiketle(g.kaynakTipi, ''), g.sonTarih ? tarihTR(g.sonTarih) : '', tarihTR(g.olusturuldu),
               g.kapanis ? tarihTR(g.kapanis) : '', g.otomatik ? 'Evet' : 'Hayır']) ] },
           { ad: 'Onay talepleri', satirlar: [
             ['Tip', 'Özet', 'Durum', 'Talep eden', 'Onaylayan', 'Gerekçe', 'Talep', 'Karar'],
-            ...onaylar.map((o) => [ONAY_TIP_ETIKET[o.tip] ?? o.tip, o.ozet,
-              ONAY_DURUM_ETIKET[o.durum] ?? o.durum, o.talepEden, o.onaylayan, o.gerekce,
+            ...onaylar.map((o) => [ONAY_TIP_ETIKET[o.tip] ?? etiketle(o.tip), o.ozet,
+              ONAY_DURUM_ETIKET[o.durum] ?? etiketle(o.durum), o.talepEden, o.onaylayan, o.gerekce,
               tarihTR(o.olusturuldu), o.kapanis ? tarihTR(o.kapanis) : '']) ] },
         ])}>⤓ Excel</button>
       </div>
@@ -185,16 +186,16 @@ export default function GorevlerIstemci({
                         title="Görev motoru tarafından üretildi">⚙ otomatik</span>}
                       <div className="mikro-etiket sirada-gizli" style={{ letterSpacing: '.04em' }}>
                         {tarihTR(g.olusturuldu)}
-                        {g.tesisKod && ` · ${g.tesisKod}`}
+                        {g.tesisAd && <> · <span title={g.tesisKod ?? undefined}>{g.tesisAd}</span></>}
                         {g.kapanis && ` · kapandı ${tarihTR(g.kapanis)}`}
                       </div>
                     </td>
-                    <td><span className="chip">{GOREV_TIP_ETIKET[g.tip] ?? g.tip}</span></td>
+                    <td><span className="chip">{GOREV_TIP_ETIKET[g.tip] ?? etiketle(g.tip)}</span></td>
                     <td>
                       {yol
-                        ? <Link href={yol} className="chip mono">{g.kaynakTipi} ↗</Link>
+                        ? <Link href={yol} className="chip">{etiketle(g.kaynakTipi)} ↗</Link>
                         : g.kaynakTipi
-                          ? <span className="chip mono">{g.kaynakTipi}</span>
+                          ? <span className="chip">{etiketle(g.kaynakTipi)}</span>
                           : <span style={{ color: 'var(--text-3)' }}>—</span>}
                     </td>
                     <td style={{ whiteSpace: 'nowrap' }}>
@@ -219,7 +220,7 @@ export default function GorevlerIstemci({
                         </select>
                       ) : (
                         <Pill durum={GOREV_DURUM_RENGI[g.durum] ?? 'incelemede'}
-                          etiket={GOREV_DURUM_ETIKET[g.durum] ?? g.durum} />
+                          etiket={GOREV_DURUM_ETIKET[g.durum] ?? etiketle(g.durum)} />
                       )}
                     </td>
                   </tr>
@@ -249,13 +250,13 @@ export default function GorevlerIstemci({
             <div key={o.id} className="kart">
               <div className="kart-icerik" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-3)' }}>
                 <div className="filtreler">
-                  <span className="chip">{ONAY_TIP_ETIKET[o.tip] ?? o.tip}</span>
+                  <span className="chip">{ONAY_TIP_ETIKET[o.tip] ?? etiketle(o.tip)}</span>
                   <span style={{ flex: 1 }} />
                   <span className="mikro-etiket">{zamanTR(o.olusturuldu)}</span>
                 </div>
                 <p style={{ margin: 0, fontWeight: 500 }}>{o.ozet}</p>
                 <span className="mikro-etiket">
-                  Talep eden: {o.talepEden ?? 'sistem'} · {o.kaynakTipi}
+                  Talep eden: {o.talepEden ?? 'sistem'} · {etiketle(o.kaynakTipi)}
                 </span>
                 {o.karariVerebilir ? (
                   <>
@@ -301,7 +302,7 @@ export default function GorevlerIstemci({
               <tbody>
                 {kararlilar.map((o) => (
                   <tr key={o.id}>
-                    <td><span className="chip">{ONAY_TIP_ETIKET[o.tip] ?? o.tip}</span></td>
+                    <td><span className="chip">{ONAY_TIP_ETIKET[o.tip] ?? etiketle(o.tip)}</span></td>
                     <td style={{ maxWidth: 420 }}>
                       {o.ozet}
                       {o.gerekce && (
@@ -312,7 +313,7 @@ export default function GorevlerIstemci({
                     </td>
                     <td style={{ whiteSpace: 'nowrap' }}>{o.talepEden ?? 'sistem'}</td>
                     <td><Pill durum={ONAY_DURUM_RENGI[o.durum] ?? 'incelemede'}
-                      etiket={ONAY_DURUM_ETIKET[o.durum] ?? o.durum} /></td>
+                      etiket={ONAY_DURUM_ETIKET[o.durum] ?? etiketle(o.durum)} /></td>
                     <td style={{ whiteSpace: 'nowrap' }}>{o.onaylayan ?? '—'}</td>
                     <td style={{ whiteSpace: 'nowrap', color: 'var(--text-2)' }}>
                       {o.kapanis ? tarihTR(o.kapanis) : '—'}

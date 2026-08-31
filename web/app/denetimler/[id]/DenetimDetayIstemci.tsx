@@ -11,7 +11,7 @@ import {
 import {
   DENETIM_ASAMALARI, DENETIM_ASAMA_ETIKET, DENETIM_TIP_ETIKET,
   ONEM_ETIKET, ONEM_DURUM_RENGI, BULGU_DURUM_ETIKET, BULGU_DURUM_RENGI,
-  tarihTR, gecikmisMi, type Onem, type BulguDurum, type Durum,
+  etiketle, tarihTR, gecikmisMi, type Onem, type BulguDurum, type Durum,
 } from '@/lib/sabitler';
 
 type Asama = (typeof DENETIM_ASAMALARI)[number];
@@ -119,7 +119,7 @@ export default function DenetimDetayIstemci({ veri }: { veri: Veri }) {
         <div className="kart-baslik">
           <div style={{ flex: 1, minWidth: 0 }}>
             <span className="mikro-etiket">
-              {DENETIM_TIP_ETIKET[veri.tip] ?? veri.tip}
+              {DENETIM_TIP_ETIKET[veri.tip] ?? etiketle(veri.tip)}
               {veri.denetleyen && ` · ${veri.denetleyen}`}
               {veri.surec && ` · ${veri.surec.regKod}`}
               {' · plan '}{tarihTR(veri.planBaslangic)} – {tarihTR(veri.planBitis)}
@@ -127,7 +127,7 @@ export default function DenetimDetayIstemci({ veri }: { veri: Veri }) {
             <h1 style={{ marginTop: 4, fontSize: 'var(--fs-h2)' }}>{veri.ad}</h1>
           </div>
           <Pill durum={asamaRengi(veri.durum)}
-            etiket={DENETIM_ASAMA_ETIKET[veri.durum as Asama] ?? veri.durum} />
+            etiket={DENETIM_ASAMA_ETIKET[veri.durum as Asama] ?? etiketle(veri.durum)} />
         </div>
         <div className="kart-icerik" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-5)' }}>
           <YasamDongusuRayi aktif={aktifIx} />
@@ -223,7 +223,7 @@ export default function DenetimDetayIstemci({ veri }: { veri: Veri }) {
                       <td>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-2)' }}>
                           <Pill durum={TALEP_RENGI[t.durum] ?? 'degerlendirilmedi'}
-                            etiket={TALEP_ETIKET[t.durum] ?? t.durum} />
+                            etiket={TALEP_ETIKET[t.durum] ?? etiketle(t.durum)} />
                           <select className="sec sirada-gizli yazdirmada-gizle" value={t.durum}
                             disabled={bekliyor} aria-label="Talep durumu"
                             onChange={(e) => {
@@ -369,7 +369,7 @@ export default function DenetimDetayIstemci({ veri }: { veri: Veri }) {
         ust={<span className="mikro-etiket mono">{veri.kod}</span>}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-4)' }}>
           <p style={{ margin: 0, color: 'var(--text-2)', fontSize: 'var(--fs-sm)' }}>
-            {DENETIM_ASAMA_ETIKET[veri.durum as Asama] ?? veri.durum} aşamasından{' '}
+            {DENETIM_ASAMA_ETIKET[veri.durum as Asama] ?? etiketle(veri.durum)} aşamasından{' '}
             {aktifIx > 0 ? DENETIM_ASAMA_ETIKET[DENETIM_ASAMALARI[aktifIx - 1]] : '—'} aşamasına
             dönülecek. Geri alma onay yetkisi ister; gerekçe iz kaydına yazılır.
           </p>
@@ -406,7 +406,7 @@ export default function DenetimDetayIstemci({ veri }: { veri: Veri }) {
               onChange={(e) => setSaglandi({ kanitId: e.target.value, yeniKanitAd: '' })}>
               <option value="">Yeni kanıt oluşturulacak…</option>
               {veri.kanitlar.map((ka) => (
-                <option key={ka.id} value={ka.id}>{ka.ad} ({ka.tip})</option>
+                <option key={ka.id} value={ka.id}>{ka.ad} ({etiketle(ka.tip)})</option>
               ))}
             </select>
           </label>

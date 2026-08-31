@@ -1,11 +1,12 @@
 import { girisZorunlu } from '@/lib/erisim';
 import Link from 'next/link';
 import { db } from '@/lib/db';
-import { uyumYuzdesi, uyumOzeti, tarihTR, ONEM_ETIKET, ONEM_DURUM_RENGI, DURUM_ETIKET,
-  SUREC_DURUM_ETIKET, SUREC_DURUM_RENGI, type Durum, type Onem, type SurecDurum } from '@/lib/sabitler';
+import { uyumYuzdesi, uyumOzeti, tarihTR, ONEM_ETIKET, ONEM_DURUM_RENGI, etiketle,
+  eylemCumlesi, SUREC_DURUM_ETIKET, SUREC_DURUM_RENGI,
+  type Durum, type Onem, type SurecDurum } from '@/lib/sabitler';
 import { Pill, SegBar, Halka, Bos, type DurumSayilari } from '@/components/ui';
 import UstCubuk from '@/components/UstCubuk';
-import { Panorama, KapakSec } from '@/components/sahneler';
+import { TesisKapagi, HeroFotograf } from '@/components/Fotograf';
 import UyumTrendi from '@/components/UyumTrendi';
 
 
@@ -82,10 +83,7 @@ export default async function GenelBakis() {
         <div className="belir gorunur">
           <div className="mikro-etiket">GENEL UYUM DURUMU · <span className="vurgu">{bugun.toLocaleUpperCase('tr-TR')}</span></div>
           <div className="kart" style={{ marginTop: 'var(--sp-3)', position: 'relative', overflow: 'hidden' }}>
-            <div className="hero-sahne" style={{ position: 'absolute', inset: 'auto 0 0 0',
-              color: 'var(--text-3)', opacity: .5, pointerEvents: 'none', border: 'none' }}>
-              <Panorama />
-            </div>
+            <HeroFotograf dosya="sebeke" alt="Elektrik iletim hattı, gün batımı" />
             <div className="band" style={{ position: 'relative' }}>
               <div className="band-hucre">
                 <span className="mikro-etiket">Genel uyum / aktif süreçler</span>
@@ -171,7 +169,7 @@ export default async function GenelBakis() {
 
         <section className="belir">
           <div className="sahne-baslik">
-            <span className="no">00</span><h2>Santral ısı haritası</h2><span className="cizgi" />
+            <span className="no">01</span><h2>Santral ısı haritası</h2><span className="cizgi" />
             <Link className="btn kucuk" href="/tesisler">Santral 360 →</Link>
           </div>
           <div className="kart" style={{ marginTop: 'var(--sp-4)' }}>
@@ -184,7 +182,14 @@ export default async function GenelBakis() {
                 <tbody>
                   {tesisler.map((tesis) => (
                     <tr key={tesis.id}>
-                      <th><Link href={`/tesisler/${tesis.id}`}>{tesis.kod}</Link></th>
+                      <th title={`${tesis.ad} · ${tesis.kod}`}>
+                        <Link href={`/tesisler/${tesis.id}`} style={{ display: 'block',
+                          maxWidth: 210, overflow: 'hidden', textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap', fontFamily: 'var(--font-ui)',
+                          fontSize: 'var(--fs-sm)', fontWeight: 500 }}>{tesis.ad}</Link>
+                        <span className="mono" style={{ color: 'var(--text-3)',
+                          fontSize: 'var(--fs-micro)' }}>{tesis.kod}</span>
+                      </th>
                       {aktifSurecler.map((surec) => {
                         const hucre = tesisSayilari.get(surec.id)?.get(tesis.id);
                         if (!hucre) return <td key={surec.id}><span style={{ opacity: .25 }}>·</span></td>;
@@ -196,7 +201,7 @@ export default async function GenelBakis() {
                             <Link href={`/surecler/${surec.id}`} className={`hucre durum-${renk}`}
                               style={{ display: 'grid', placeItems: 'center', minHeight: 26, borderRadius: 4,
                                 fontFamily: 'var(--font-mono)', fontSize: 'var(--fs-micro)' }}
-                              title={`${tesis.kod} × ${surec.kod}: ${ozet.yuzde === null ? 'değerlendirilmedi' : `%${ozet.yuzde}`} · bilinmeyen %${ozet.bilinmeyenOran ?? 0}`}>
+                              title={`${tesis.ad} × ${surec.kod}: ${ozet.yuzde === null ? 'değerlendirilmedi' : `%${ozet.yuzde}`} · bilinmeyen %${ozet.bilinmeyenOran ?? 0}`}>
                               {ozet.yuzde === null ? '—' : `%${ozet.yuzde}`}
                             </Link>
                           </td>
@@ -212,7 +217,7 @@ export default async function GenelBakis() {
 
         <section className="belir">
           <div className="sahne-baslik">
-            <span className="no">01</span><h2>Uyum süreçleri</h2><span className="cizgi" />
+            <span className="no">02</span><h2>Uyum süreçleri</h2><span className="cizgi" />
             <Link className="btn kucuk" href="/surecler">Tümü →</Link>
           </div>
           <div className="kpi-grid" style={{ marginTop: 'var(--sp-4)', gridTemplateColumns: 'repeat(auto-fit,minmax(340px,1fr))' }}>
@@ -232,10 +237,8 @@ export default async function GenelBakis() {
                       etiket={SUREC_DURUM_ETIKET[s.durum as SurecDurum]} />
                   </div>
                   <div className="kart-icerik" style={{ display: 'flex', gap: 'var(--sp-5)', alignItems: 'center', position: 'relative', overflow: 'hidden' }}>
-                    <div style={{ position: 'absolute', inset: '0 0 0 auto', width: '58%',
-                      color: 'var(--text-2)', opacity: .22, pointerEvents: 'none',
-                      maskImage: 'linear-gradient(90deg, transparent, #000 40%)' }}>
-                      <KapakSec tipKod={tesisler[0]?.tip?.kod} />
+                    <div style={{ position: 'absolute', inset: 0, opacity: .55, pointerEvents: 'none' }}>
+                      <TesisKapagi tipKod={tesisler[0]?.tip?.kod} genis />
                     </div>
                     <Halka yuzde={yuzde} />
                     <div className="mini-cubuklar" style={{ flex: 1, minWidth: 0 }}>
@@ -270,7 +273,7 @@ export default async function GenelBakis() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(380px,1fr))', gap: 'var(--sp-6)' }}>
           <section className="belir">
             <div className="sahne-baslik">
-              <span className="no">02</span><h2>Açık bulgular</h2><span className="cizgi" />
+              <span className="no">03</span><h2>Açık bulgular</h2><span className="cizgi" />
               <Link className="btn kucuk" href="/bulgular">Tümü →</Link>
             </div>
             <div className="kart" style={{ marginTop: 'var(--sp-4)' }}>
@@ -300,7 +303,7 @@ export default async function GenelBakis() {
 
           <section className="belir">
             <div className="sahne-baslik">
-              <span className="no">03</span><h2>Son aktivite</h2><span className="cizgi" />
+              <span className="no">04</span><h2>Son aktivite</h2><span className="cizgi" />
               <Link className="btn kucuk" href="/aktivite">Tümü →</Link>
             </div>
             <div className="kart" style={{ marginTop: 'var(--sp-4)' }}>
@@ -312,21 +315,16 @@ export default async function GenelBakis() {
                       <div className="zaman-ust">
                         <span className="aktor">{a.aktor?.adSoyad ?? 'Sistem'}</span>
                         <span style={{ color: 'var(--text-2)' }}>
-                          {a.eylem === 'olusturma' && `${a.varlikTipi} oluşturdu`}
-                          {a.eylem === 'durum_degisimi' && 'durum değiştirdi'}
-                          {a.eylem === 'guncelleme' && `${a.alan ?? a.varlikTipi} güncelledi`}
-                          {a.eylem === 'dosya_ekleme' && 'dosya ekledi'}
-                          {a.eylem === 'silme' && `${a.varlikTipi} sildi`}
-                          {a.eylem === 'kapsam_degisimi' && 'kapsamı değiştirdi'}
+                          {eylemCumlesi(a.eylem, a.varlikTipi, a.alan)}
                         </span>
                         <span className="an">{tarihTR(a.zaman)}</span>
                       </div>
                       {(a.oncekiDeger || a.yeniDeger) && (
                         <div className="zaman-govde">
                           <span className="fark">
-                            {a.oncekiDeger && <span className="eski">{DURUM_ETIKET[a.oncekiDeger as Durum] ?? a.oncekiDeger}</span>}
+                            {a.oncekiDeger && <span className="eski">{etiketle(a.oncekiDeger)}</span>}
                             {a.oncekiDeger && a.yeniDeger && '→'}
-                            {a.yeniDeger && <span className="yeni">{DURUM_ETIKET[a.yeniDeger as Durum] ?? a.yeniDeger}</span>}
+                            {a.yeniDeger && <span className="yeni">{etiketle(a.yeniDeger)}</span>}
                           </span>
                         </div>
                       )}

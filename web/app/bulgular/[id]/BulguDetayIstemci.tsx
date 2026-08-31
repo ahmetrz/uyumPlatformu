@@ -2,14 +2,14 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { Pill, Bos } from '@/components/ui';
-import { KapakSec } from '@/components/sahneler';
+import { TesisKapagi } from '@/components/Fotograf';
 import { useEylem } from '@/components/useEylem';
 import { bulguGuncelle, aksiyonEkle, aksiyonDurumDegistir } from '@/lib/eylemler';
 import {
   ONEM_DERECELERI, ONEM_ETIKET, ONEM_DURUM_RENGI, BULGU_DURUMLARI, BULGU_DURUM_ETIKET,
   BULGU_DURUM_RENGI, AKSIYON_ETIKET, AKSIYON_DURUM_RENGI, AKSIYON_DURUMLARI,
-  DURUM_ETIKET, tarihTR, zamanTR, kanitTazelik, gecikmisMi,
-  type Onem, type BulguDurum, type Durum,
+  etiketle, eylemCumlesi, tarihTR, zamanTR, kanitTazelik, gecikmisMi,
+  type Onem, type BulguDurum,
 } from '@/lib/sabitler';
 
 type Veri = {
@@ -29,11 +29,6 @@ type Veri = {
   kullanicilar: { id: string; ad: string }[];
 };
 
-const EYLEM_METNI: Record<string, string> = {
-  olusturma: 'oluşturdu', durum_degisimi: 'durumu değiştirdi', guncelleme: 'güncelledi',
-  dosya_ekleme: 'dosya ekledi', silme: 'sildi', kapsam_degisimi: 'kapsamı değiştirdi',
-};
-
 export default function BulguDetayIstemci({ veri }: { veri: Veri }) {
   const { bekliyor, hata, calistir } = useEylem();
   const [yeniAksiyon, setYeniAksiyon] = useState({ baslik: '', sorumluId: '', hedef: '' });
@@ -49,14 +44,12 @@ export default function BulguDetayIstemci({ veri }: { veri: Veri }) {
       </div>
 
       <div className="kart belir gorunur" style={{ position: 'relative', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', inset: '0 0 0 auto', width: 'min(42%, 460px)',
-          color: 'var(--text-2)', opacity: .3, pointerEvents: 'none',
-          maskImage: 'linear-gradient(90deg, transparent, #000 35%)' }}>
-          <KapakSec tipKod={veri.tesis.tip} />
+        <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
+          <TesisKapagi tipKod={veri.tesis.tip} genis />
         </div>
         <div className="kart-baslik">
           <div style={{ flex: 1, minWidth: 0 }}>
-            <span className="mikro-etiket">{veri.kaynak?.replace('_', ' ') ?? 'bulgu'} ·
+            <span className="mikro-etiket">{etiketle(veri.kaynak, 'Bulgu')} ·
               tespit {tarihTR(veri.tespit)}</span>
             <h1 style={{ marginTop: 4, fontSize: 'var(--fs-h2)' }}>{veri.baslik}</h1>
           </div>
@@ -169,7 +162,7 @@ export default function BulguDetayIstemci({ veri }: { veri: Veri }) {
                     const taze = kanitTazelik(new Date(kn.baslangic));
                     return (
                       <span key={kn.id} className={`pill durum-${taze.durum}`}
-                        title={`${taze.etiket} · ${taze.gun} gün önce`}>
+                        title={`${etiketle(kn.tip)} · ${taze.etiket} · ${taze.gun} gün önce`}>
                         🗎 {kn.ad}
                       </span>
                     );
@@ -194,20 +187,17 @@ export default function BulguDetayIstemci({ veri }: { veri: Veri }) {
                     <div className="zaman-ust">
                       <span className="aktor">{a.aktor}</span>
                       <span style={{ color: 'var(--text-2)' }}>
-                        {a.varlikTipi !== 'Bulgu' && `${a.varlikTipi.toLocaleLowerCase('tr-TR')} `}
-                        {EYLEM_METNI[a.eylem] ?? a.eylem}
+                        {eylemCumlesi(a.eylem, a.varlikTipi === 'Bulgu' ? null : a.varlikTipi)}
                       </span>
                       <span className="an">{zamanTR(a.zaman)}</span>
                     </div>
                     {(a.once || a.sonra) && (
                       <div className="zaman-govde">
-                        {a.alan && <span className="mikro-etiket">{a.alan}: </span>}
+                        {a.alan && <span className="mikro-etiket">{etiketle(a.alan)}: </span>}
                         <span className="fark">
-                          {a.once && <span className="eski">
-                            {DURUM_ETIKET[a.once as Durum] ?? BULGU_DURUM_ETIKET[a.once as BulguDurum] ?? a.once}</span>}
+                          {a.once && <span className="eski">{etiketle(a.once)}</span>}
                           {a.once && a.sonra && '→'}
-                          {a.sonra && <span className="yeni">
-                            {DURUM_ETIKET[a.sonra as Durum] ?? BULGU_DURUM_ETIKET[a.sonra as BulguDurum] ?? a.sonra}</span>}
+                          {a.sonra && <span className="yeni">{etiketle(a.sonra)}</span>}
                         </span>
                       </div>
                     )}

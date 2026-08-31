@@ -65,7 +65,8 @@ export default function SureclerIstemci({ surecler, regulasyonlar, tesisler }: {
               <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 'var(--sp-2)' }}>
                 <SegBar sayilar={s.sayilar} />
                 <div className="filtreler">
-                  {s.tesisler.slice(0, 4).map((t) => <span key={t.id} className="chip mono">{t.kod}</span>)}
+                  {s.tesisler.slice(0, 4).map((t) =>
+                    <span key={t.id} className="chip mono" title={t.ad}>{t.kod}</span>)}
                   {s.tesisler.length > 4 && <span className="chip">+{s.tesisler.length - 4}</span>}
                   {s.tesisler.length === 0 && <span className="chip">kapsam boş</span>}
                 </div>

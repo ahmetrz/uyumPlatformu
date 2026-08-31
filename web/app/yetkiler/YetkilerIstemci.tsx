@@ -9,7 +9,8 @@ import { ROLLER, ROL_ETIKET } from '@/lib/sabitler';
 type K = {
   id: string; ad: string; eposta: string; unvan: string | null; aktif: boolean;
   yetkiler: { id: string; rol: string;
-    surec: { kod: string; regKod: string } | null; tesis: { kod: string } | null }[];
+    surec: { kod: string; regKod: string } | null;
+    tesis: { kod: string; ad: string } | null }[];
 };
 
 const ROL_RENK: Record<string, string> = {
@@ -55,7 +56,7 @@ export default function YetkilerIstemci({ kullanicilar, surecler, tesisler }: {
                     <div className="filtreler">
                       {k.yetkiler.map((y) => (
                         <span key={y.id} className={`pill durum-${ROL_RENK[y.rol] ?? 'incelemede'}`}
-                          title={`${y.surec ? `${y.surec.regKod} · ${y.surec.kod}` : 'Tüm süreçler'} · ${y.tesis?.kod ?? 'tüm tesisler'}`}>
+                          title={`${y.surec ? `${y.surec.regKod} · ${y.surec.kod}` : 'Tüm süreçler'} · ${y.tesis?.ad ?? 'tüm tesisler'}`}>
                           <span className="dot" />
                           {ROL_ETIKET[y.rol as keyof typeof ROL_ETIKET]}
                           {(y.surec || y.tesis) && (
@@ -147,7 +148,7 @@ function YetkiYonetimi({ kisi, surecler, tesisler }: {
         </select>
         <select className="sec" value={v.tesisId} onChange={(e) => setV({ ...v, tesisId: e.target.value })}>
           <option value="">Tüm tesisler</option>
-          {tesisler.map((t) => <option key={t.id} value={t.id}>{t.kod}</option>)}
+          {tesisler.map((t) => <option key={t.id} value={t.id}>{t.kod} — {t.ad}</option>)}
         </select>
         <select className="sec" value={v.rol} onChange={(e) => setV({ ...v, rol: e.target.value })}>
           {ROLLER.map((r) => <option key={r} value={r}>{ROL_ETIKET[r]}</option>)}
@@ -167,7 +168,8 @@ function YetkiYonetimi({ kisi, surecler, tesisler }: {
             </span>
             <span style={{ flex: 1, color: 'var(--text-2)', fontSize: 'var(--fs-sm)' }}>
               {y.surec ? `${y.surec.regKod} · ${y.surec.kod}` : 'Tüm süreçler'}
-              {' · '}{y.tesis?.kod ?? 'tüm tesisler'}
+              {' · '}{y.tesis
+                ? <span title={y.tesis.kod}>{y.tesis.ad}</span> : 'tüm tesisler'}
             </span>
             <button className="btn kucuk tehlike sirada-gizli" disabled={bekliyor}
               onClick={() => calistir(() => yetkiSil({ id: y.id }))}>Kaldır</button>

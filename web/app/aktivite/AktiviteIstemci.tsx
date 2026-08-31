@@ -3,22 +3,12 @@ import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { Bos } from '@/components/ui';
 import { exceleAktar, pdfYazdir } from '@/components/disaAktar';
-import { DURUM_ETIKET, BULGU_DURUM_ETIKET, zamanTR, type Durum, type BulguDurum } from '@/lib/sabitler';
+import { etiketle, eylemCumlesi, zamanTR } from '@/lib/sabitler';
 
 type A = {
   id: string; aktor: string; varlikTipi: string; varlikId: string; eylem: string;
   alan: string | null; once: string | null; sonra: string | null;
   dosya: string | null; zaman: string;
-};
-
-const EYLEM_METNI: Record<string, string> = {
-  olusturma: 'oluşturdu', durum_degisimi: 'durumu değiştirdi', guncelleme: 'güncelledi',
-  dosya_ekleme: 'dosya ekledi', silme: 'sildi', kapsam_degisimi: 'kapsamı değiştirdi',
-};
-const TIP_ETIKET: Record<string, string> = {
-  Bulgu: 'Bulgu', Aksiyon: 'Aksiyon', MaddeDurumu: 'Madde durumu', Madde: 'Madde',
-  Kanit: 'Kanıt', Proje: 'Proje', Yetki: 'Yetki', Tesis: 'Tesis',
-  UyumSureci: 'Uyum süreci', Regulasyon: 'Regülasyon', IceAktarim: 'İçe aktarım',
 };
 
 export default function AktiviteIstemci({ kayitlar }: { kayitlar: A[] }) {
@@ -46,7 +36,7 @@ export default function AktiviteIstemci({ kayitlar }: { kayitlar: A[] }) {
       <div className="filtreler">
         <select className="sec" value={tipF} onChange={(e) => setTipF(e.target.value)}>
           <option value="hepsi">Tüm varlıklar</option>
-          {tipler.map((t) => <option key={t} value={t}>{TIP_ETIKET[t] ?? t}</option>)}
+          {tipler.map((t) => <option key={t} value={t}>{etiketle(t)}</option>)}
         </select>
         <select className="sec" value={aktorF} onChange={(e) => setAktorF(e.target.value)}>
           <option value="hepsi">Tüm kullanıcılar</option>
@@ -59,8 +49,9 @@ export default function AktiviteIstemci({ kayitlar }: { kayitlar: A[] }) {
         <button className="btn yazdirmada-gizle" onClick={() => exceleAktar('denetim-izi', [{
           ad: 'Denetim izi', satirlar: [
             ['Zaman', 'Aktör', 'Varlık', 'Eylem', 'Alan', 'Önceki', 'Yeni', 'Dosya'],
-            ...gorunen.map((a) => [zamanTR(a.zaman), a.aktor, a.varlikTipi, a.eylem,
-              a.alan, a.once, a.sonra, a.dosya]) ] }])}>⤓ Excel</button>
+            ...gorunen.map((a) => [zamanTR(a.zaman), a.aktor, etiketle(a.varlikTipi),
+              etiketle(a.eylem), a.alan ? etiketle(a.alan) : '',
+              etiketle(a.once, ''), etiketle(a.sonra, ''), a.dosya]) ] }])}>⤓ Excel</button>
       </div>
 
       {gunler.map(([gun, liste]) => (
@@ -77,8 +68,7 @@ export default function AktiviteIstemci({ kayitlar }: { kayitlar: A[] }) {
                     <div className="zaman-ust">
                       <span className="aktor">{a.aktor}</span>
                       <span style={{ color: 'var(--text-2)' }}>
-                        {TIP_ETIKET[a.varlikTipi]?.toLocaleLowerCase('tr-TR') ?? a.varlikTipi}{' '}
-                        {EYLEM_METNI[a.eylem] ?? a.eylem}
+                        {eylemCumlesi(a.eylem, a.varlikTipi)}
                       </span>
                       {a.varlikTipi === 'Bulgu' && (
                         <Link className="chip" href={`/bulgular/${a.varlikId}`}>görüntüle →</Link>
@@ -87,13 +77,11 @@ export default function AktiviteIstemci({ kayitlar }: { kayitlar: A[] }) {
                     </div>
                     {(a.once || a.sonra) && (
                       <div className="zaman-govde">
-                        {a.alan && <span className="mikro-etiket">{a.alan}: </span>}
+                        {a.alan && <span className="mikro-etiket">{etiketle(a.alan)}: </span>}
                         <span className="fark">
-                          {a.once && <span className="eski">
-                            {DURUM_ETIKET[a.once as Durum] ?? BULGU_DURUM_ETIKET[a.once as BulguDurum] ?? a.once}</span>}
+                          {a.once && <span className="eski">{etiketle(a.once)}</span>}
                           {a.once && a.sonra && '→'}
-                          {a.sonra && <span className="yeni">
-                            {DURUM_ETIKET[a.sonra as Durum] ?? BULGU_DURUM_ETIKET[a.sonra as BulguDurum] ?? a.sonra}</span>}
+                          {a.sonra && <span className="yeni">{etiketle(a.sonra)}</span>}
                         </span>
                       </div>
                     )}

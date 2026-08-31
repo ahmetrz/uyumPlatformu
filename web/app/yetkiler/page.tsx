@@ -27,7 +27,7 @@ export default async function Yetkiler() {
             yetkiler: k.yetkiler.map((y) => ({
               id: y.id, rol: y.rol,
               surec: y.surec ? { kod: y.surec.kod, regKod: y.surec.regulasyon.kod } : null,
-              tesis: y.tesis ? { kod: y.tesis.kod } : null,
+              tesis: y.tesis ? { kod: y.tesis.kod, ad: y.tesis.ad } : null,
             })),
           }))}
           surecler={surecler.map((s) => ({ id: s.id, kod: s.kod, regKod: s.regulasyon.kod }))}

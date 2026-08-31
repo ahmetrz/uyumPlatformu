@@ -20,7 +20,8 @@ function sertifikaDurumu(bitis: string): { etiket: string; durum: Durum } {
 
 type Degisiklik = {
   id: string; kod: string; baslik: string; aciklama: string | null;
-  tesisKod: string | null; tesisId: string | null; varlikEtiketi: string | null;
+  tesisKod: string | null; tesisAd: string | null;
+  tesisId: string | null; varlikEtiketi: string | null;
   otMu: boolean; durum: string; saglayiciOnayi: boolean | null;
   bakimPenceresi: string | null; geriAlmaPlani: string | null;
   onDegisiklikYedegi: boolean | null; uretimEtkisi: string | null;
@@ -28,7 +29,7 @@ type Degisiklik = {
   planTarihi: string | null;
 };
 type Olay = { id: string; kod: string; baslik: string; tip: string; siddet: string;
-  durum: string; tesisKod: string | null; tesisId: string | null;
+  durum: string; tesisKod: string | null; tesisAd: string | null; tesisId: string | null;
   ozet: string | null; baslangic: string };
 type Politika = { id: string; ad: string; kapsam: string | null; siklik: string | null;
   saklamaGun: number | null; hedef: string | null;
@@ -40,7 +41,8 @@ type Sertifika = { id: string; ad: string; veren: string | null;
   varlikEtiketi: string | null; bitis: string };
 type Hesap = {
   id: string; hesapAdi: string; tip: string; ayricalikli: boolean;
-  tesisKod: string | null; tesisId: string | null; kaynakSistem: string | null;
+  tesisKod: string | null; tesisAd: string | null;
+  tesisId: string | null; kaynakSistem: string | null;
   durum: string; parolaRotasyon: string | null;
   atamalar: { id: string; kapsam: string | null; yetkiSeviyesi: string | null;
     varlikEtiketi: string | null; bitis: string | null;
@@ -61,7 +63,7 @@ const OLAY_DURUM: Record<string, { ad: string; renk: Durum }> = {
 export default function OperasyonIstemci({ degisiklikler, olaylar, politikalar, tedarikciler, sertifikalar, tesisler, hesaplar }: {
   degisiklikler: Degisiklik[]; olaylar: Olay[]; politikalar: Politika[];
   tedarikciler: Tedarikci[]; sertifikalar: Sertifika[];
-  tesisler: { id: string; kod: string }[]; hesaplar: Hesap[];
+  tesisler: { id: string; kod: string; ad: string }[]; hesaplar: Hesap[];
 }) {
   const [sekme, setSekme] = useState<'degisiklik' | 'olay' | 'yedek' | 'tedarikci' | 'kimlik'>('degisiklik');
   return (
@@ -91,7 +93,7 @@ const HESAP_TIP_ETIKET: Record<string, string> = {
   kisi: 'Kişi', servis: 'Servis', paylasimli: 'Paylaşımlı', acil_durum: 'Acil durum' };
 
 function KimlikPaneli({ hesaplar, tesisler }: {
-  hesaplar: Hesap[]; tesisler: { id: string; kod: string }[];
+  hesaplar: Hesap[]; tesisler: { id: string; kod: string; ad: string }[];
 }) {
   const { bekliyor, hata, calistir } = useEylem();
   const [yeni, setYeni] = useState({ hesapAdi: '', tip: 'servis', tesisId: '',
@@ -118,7 +120,9 @@ function KimlikPaneli({ hesaplar, tesisler }: {
               {h.ayricalikli && <Pill durum="uyumsuz" etiket="Ayrıcalıklı" hollow />}
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div className="mikro-etiket">
-                  {h.tesisKod ?? 'grup'} · {h.kaynakSistem ?? '?'}
+                  {h.tesisAd
+                    ? <span title={h.tesisKod ?? undefined}>{h.tesisAd}</span> : 'grup'}
+                  {' · '}{h.kaynakSistem ?? '?'}
                   {h.durum !== 'aktif' && ` · ${h.durum}`}
                 </div>
                 <div className="filtreler" style={{ marginTop: 4 }}>
@@ -161,7 +165,7 @@ function KimlikPaneli({ hesaplar, tesisler }: {
           <select className="sec" value={yeni.tesisId}
             onChange={(e) => setYeni({ ...yeni, tesisId: e.target.value })}>
             <option value="">grup</option>
-            {tesisler.map((t) => <option key={t.id} value={t.id}>{t.kod}</option>)}
+            {tesisler.map((t) => <option key={t.id} value={t.id}>{t.kod} — {t.ad}</option>)}
           </select>
           <input className="inp" placeholder="kaynak (AD/SCADA...)" value={yeni.kaynakSistem}
             style={{ width: 130 }}
@@ -186,7 +190,7 @@ function KimlikPaneli({ hesaplar, tesisler }: {
 /* --------------------------------------------- değişiklik (OT kapılı) */
 
 function DegisiklikPaneli({ degisiklikler, tesisler }: {
-  degisiklikler: Degisiklik[]; tesisler: { id: string; kod: string }[];
+  degisiklikler: Degisiklik[]; tesisler: { id: string; kod: string; ad: string }[];
 }) {
   const { bekliyor, hata, calistir } = useEylem();
   const [acik, setAcik] = useState<Degisiklik | 'yeni' | null>(null);
@@ -219,7 +223,9 @@ function DegisiklikPaneli({ degisiklikler, tesisler }: {
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontWeight: 500 }}>{d.baslik}</div>
                   <div className="mikro-etiket">
-                    {d.tesisKod ?? '—'}{d.varlikEtiketi && ` · ${d.varlikEtiketi}`}
+                    {d.tesisAd
+                      ? <span title={d.tesisKod ?? undefined}>{d.tesisAd}</span> : '—'}
+                    {d.varlikEtiketi && ` · ${d.varlikEtiketi}`}
                     {d.planTarihi && ` · plan ${tarihTR(d.planTarihi)}`}
                   </div>
                 </div>
@@ -257,7 +263,7 @@ function DegisiklikPaneli({ degisiklikler, tesisler }: {
 }
 
 function DegisiklikFormu({ degisiklik, tesisler, kapat, dogrulamaNotu, setDogrulamaNotu, bekliyor, calistir }: {
-  degisiklik: Degisiklik | null; tesisler: { id: string; kod: string }[];
+  degisiklik: Degisiklik | null; tesisler: { id: string; kod: string; ad: string }[];
   kapat: () => void; dogrulamaNotu: string; setDogrulamaNotu: (v: string) => void;
   bekliyor: boolean;
   calistir: (is: () => Promise<{ ok: true } | { ok: false; hata: string }>, sonra?: () => void) => void;
@@ -293,7 +299,7 @@ function DegisiklikFormu({ degisiklik, tesisler, kapat, dogrulamaNotu, setDogrul
           <select className="sec" value={v.tesisId}
             onChange={(e) => setV({ ...v, tesisId: e.target.value })}>
             <option value="">—</option>
-            {tesisler.map((t) => <option key={t.id} value={t.id}>{t.kod}</option>)}
+            {tesisler.map((t) => <option key={t.id} value={t.id}>{t.kod} — {t.ad}</option>)}
           </select></label>
         <label className="form-satir"><span>Varlık etiketi</span>
           <input className="inp" value={v.varlikEtiketi} placeholder="ADANA-OTFW-01"
@@ -373,7 +379,7 @@ function DegisiklikFormu({ degisiklik, tesisler, kapat, dogrulamaNotu, setDogrul
 /* ---------------------------------------------------------------- olay */
 
 function OlayPaneli({ olaylar, tesisler }: {
-  olaylar: Olay[]; tesisler: { id: string; kod: string }[];
+  olaylar: Olay[]; tesisler: { id: string; kod: string; ad: string }[];
 }) {
   const { bekliyor, hata, calistir } = useEylem();
   const [acik, setAcik] = useState<Olay | 'yeni' | null>(null);
@@ -400,7 +406,11 @@ function OlayPaneli({ olaylar, tesisler }: {
               {olay.tip === 'problem' && <span className="chip">Problem</span>}
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontWeight: 500 }}>{olay.baslik}</div>
-                <div className="mikro-etiket">{olay.tesisKod ?? '—'} · {zamanTR(olay.baslangic)}</div>
+                <div className="mikro-etiket">
+                  {olay.tesisAd
+                    ? <span title={olay.tesisKod ?? undefined}>{olay.tesisAd}</span> : '—'}
+                  {' · '}{zamanTR(olay.baslangic)}
+                </div>
               </div>
               <Pill durum={SIDDET_RENK[olay.siddet] ?? 'incelemede'} etiket={olay.siddet}
                 hollow={olay.siddet === 'yuksek'} />
@@ -428,7 +438,7 @@ function OlayPaneli({ olaylar, tesisler }: {
           <label className="form-satir"><span>Tesis</span>
             <select className="sec" value={v.tesisId} onChange={(e) => setV({ ...v, tesisId: e.target.value })}>
               <option value="">—</option>
-              {tesisler.map((t) => <option key={t.id} value={t.id}>{t.kod}</option>)}
+              {tesisler.map((t) => <option key={t.id} value={t.id}>{t.kod} — {t.ad}</option>)}
             </select></label>
           <label className="form-satir"><span>Durum</span>
             <select className="sec" value={v.durum} onChange={(e) => setV({ ...v, durum: e.target.value })}>

@@ -7,7 +7,7 @@ import { BosGenel } from '@/components/sahneler';
 import { useEylem } from '@/components/useEylem';
 import { exceleAktar, pdfYazdir } from '@/components/disaAktar';
 import { tumIsleriCalistir, tekIsCalistir } from '@/lib/eylemler2/isler';
-import { zamanTR, tarihTR, type Durum } from '@/lib/sabitler';
+import { etiketle, zamanTR, tarihTR, type Durum } from '@/lib/sabitler';
 
 type Kosu = {
   id: string; isAdi: string; durum: string; baslangic: string; bitis: string | null;
@@ -25,12 +25,6 @@ const KOSU_DURUM: Record<string, { renk: Durum; etiket: string }> = {
   calisiyor: { renk: 'incelemede', etiket: 'Çalışıyor' },
 };
 
-const KURAL_ETIKET: Record<string, string> = {
-  sahipsiz_varlik: 'Sahipsiz varlık', kritikligi_bilinmeyen: 'Kritikliği bilinmeyen',
-  eksik_profil: 'Eksik profil', envanteri_bos_tesis: 'Boş envanter',
-  sahipsiz_kanit: 'Sahipsiz kanıt', bayat_kayit: 'Bayat kayıt',
-};
-
 function sureFmt(ms: number | null): string {
   if (ms === null) return '—';
   return ms < 1000 ? `${ms} ms` : `${(ms / 1000).toFixed(1)} s`;
@@ -38,7 +32,7 @@ function sureFmt(ms: number | null): string {
 
 /** Koşu durumu pill'i — çalışıyorsa nabız animasyonu. */
 function KosuPill({ durum }: { durum: string }) {
-  const d = KOSU_DURUM[durum] ?? { renk: 'degerlendirilmedi' as Durum, etiket: durum };
+  const d = KOSU_DURUM[durum] ?? { renk: 'degerlendirilmedi' as Durum, etiket: etiketle(durum) };
   const pill = <Pill durum={d.renk} etiket={d.etiket} />;
   return durum === 'calisiyor'
     ? <span className="nabiz" style={{ display: 'inline-flex', borderRadius: 'var(--r-full)' }}>{pill}</span>
@@ -69,11 +63,11 @@ export default function SaglikIstemci({ isler, gecmis, kalite, yazabilir }: {
         <button className="btn yazdirmada-gizle" onClick={() => exceleAktar('platform-sagligi', [
           { ad: 'Motor koşuları', satirlar: [
             ['İş', 'Durum', 'Başlangıç', 'Süre', 'İşlenen', 'Üretilen', 'Hata'],
-            ...gecmis.map((ko) => [etiketi(ko.isAdi), KOSU_DURUM[ko.durum]?.etiket ?? ko.durum,
+            ...gecmis.map((ko) => [etiketi(ko.isAdi), KOSU_DURUM[ko.durum]?.etiket ?? etiketle(ko.durum),
               zamanTR(ko.baslangic), sureFmt(ko.sureMs), ko.islenen, ko.uretilen, ko.hata]) ] },
           { ad: 'Veri kalitesi', satirlar: [
             ['Kural', 'Açıklama', 'İlgili kayıt', 'Tespit'],
-            ...kalite.map((b) => [KURAL_ETIKET[b.kural] ?? b.kural, b.aciklama,
+            ...kalite.map((b) => [etiketle(b.kural), b.aciklama,
               b.kayitEtiket, tarihTR(b.olusturuldu)]) ] },
         ])}>⤓ Excel</button>
       </div>
@@ -155,12 +149,12 @@ export default function SaglikIstemci({ isler, gecmis, kalite, yazabilir }: {
                 {kalite.map((b) => (
                   <tr key={b.id}>
                     <td style={{ whiteSpace: 'nowrap' }}>
-                      <span className="chip">{KURAL_ETIKET[b.kural] ?? b.kural}</span>
+                      <span className="chip">{etiketle(b.kural)}</span>
                     </td>
                     <td>
                       {b.aciklama}
                       <div className="mikro-etiket sirada-gizli">
-                        {b.kaynakTipi} · tespit: {tarihTR(b.olusturuldu)}
+                        {etiketle(b.kaynakTipi)} · tespit: {tarihTR(b.olusturuldu)}
                       </div>
                     </td>
                     <td style={{ whiteSpace: 'nowrap' }}>

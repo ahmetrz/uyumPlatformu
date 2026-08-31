@@ -3,15 +3,15 @@ import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { Pill, SegBar, Bos, type DurumSayilari } from '@/components/ui';
 import Kip from '@/components/Kip';
-import { KapakSec } from '@/components/sahneler';
+import { TesisKapagi } from '@/components/Fotograf';
 import { useEylem } from '@/components/useEylem';
 import { exceleAktar, pdfYazdir } from '@/components/disaAktar';
 import { profilKaydet, kapsamYenidenHesapla, uygulanabilirlikOverride } from '@/lib/eylemler2/tesis360';
 import {
-  DURUM_ETIKET, ONEM_ETIKET, ONEM_DURUM_RENGI, BULGU_DURUM_ETIKET,
+  ONEM_ETIKET, ONEM_DURUM_RENGI, BULGU_DURUM_ETIKET,
   RISK_DURUM_ETIKET, DENETIM_ASAMA_ETIKET, DENETIM_TIP_ETIKET,
-  SUREC_DURUM_ETIKET, SUREC_DURUM_RENGI, VARLIK_SINIF_ETIKET,
-  eolDurumu, riskSeviyeRengi, tarihTR, gecikmisMi,
+  SUREC_DURUM_ETIKET, SUREC_DURUM_RENGI,
+  etiketle, eolDurumu, riskSeviyeRengi, tarihTR, gecikmisMi,
   type Durum, type Onem, type SurecDurum,
 } from '@/lib/sabitler';
 
@@ -24,9 +24,7 @@ const OT_MIMARI_ETIKET: Record<string, string> = {
   dcs: 'DCS', scada: 'SCADA', plc_scada: 'PLC + SCADA', hibrit: 'Hibrit',
 };
 const MARUZIYET_ETIKET: Record<string, string> = { yok: 'Yok', sinirli: 'Sınırlı', var: 'Var' };
-const KRITIKLIK_ETIKET: Record<string, string> = {
-  dusuk: 'Düşük', orta: 'Orta', yuksek: 'Yüksek', kritik: 'Kritik', bilinmiyor: 'Bilinmiyor',
-};
+const KRITIKLIKLER = ['dusuk', 'orta', 'yuksek', 'kritik'] as const;
 const ASAMA_RENK: Record<string, Durum> = {
   plan: 'incelemede', kapsam: 'incelemede', kanit_talebi: 'kismi', saha: 'kismi',
   bulgu: 'kismi', yanit: 'kismi', aksiyon: 'kismi', dogrulama: 'kismi', kapanis: 'uyumlu',
@@ -75,9 +73,9 @@ export function TesisKartlari({ tesisler }: { tesisler: TesisKart[] }) {
           ad: 'Tesisler', satirlar: [
             ['Kod', 'Ad', 'Tip', 'Tüzel kişi', 'Durum', 'Kurulu güç (MW)', 'Kritiklik',
               'Profil', 'Açık bulgu', 'Açık risk'],
-            ...gorunen.map((t) => [t.kod, t.ad, t.tipAd, t.tuzelKisi, t.durum, t.kuruluGucMw,
-              t.kritiklik ? KRITIKLIK_ETIKET[t.kritiklik] ?? t.kritiklik : 'bilinmiyor',
-              t.profilEksik ? 'eksik' : 'tam', t.acikBulgu, t.acikRisk]),
+            ...gorunen.map((t) => [t.kod, t.ad, t.tipAd, t.tuzelKisi, etiketle(t.durum),
+              t.kuruluGucMw, etiketle(t.kritiklik, 'Bilinmiyor'),
+              t.profilEksik ? 'Eksik' : 'Tam', t.acikBulgu, t.acikRisk]),
           ] }])}>⤓ Excel</button>
       </div>
 
@@ -86,9 +84,7 @@ export function TesisKartlari({ tesisler }: { tesisler: TesisKart[] }) {
         {gorunen.map((t) => (
           <Link key={t.id} href={`/tesisler/${t.id}`} className="kart tikla belir gorunur"
             style={{ display: 'block', position: 'relative', overflow: 'hidden' }}>
-            <span className="kapak kapak-dar" style={{ color: 'var(--text-2)' }}>
-              <KapakSec tipKod={t.tipKod} />
-            </span>
+            <TesisKapagi tipKod={t.tipKod} />
             <div className="kart-icerik" style={{ position: 'relative', display: 'flex',
               flexDirection: 'column', gap: 'var(--sp-3)' }}>
               <div className="mikro-etiket">
@@ -103,7 +99,7 @@ export function TesisKartlari({ tesisler }: { tesisler: TesisKart[] }) {
                 {t.tuzelKisi && <span className="chip">{t.tuzelKisi}</span>}
                 {t.kritiklik && (
                   <Pill durum={(ONEM_DURUM_RENGI as Record<string, Durum>)[t.kritiklik] ?? 'degerlendirilmedi'}
-                    etiket={KRITIKLIK_ETIKET[t.kritiklik] ?? t.kritiklik}
+                    etiket={etiketle(t.kritiklik)}
                     hollow={t.kritiklik === 'yuksek'} />
                 )}
                 {t.profilEksik && <Pill durum="kismi" etiket="Profil eksik" />}
@@ -259,7 +255,7 @@ export default function Tesis360Istemci({ veri }: { veri: Veri }) {
         anahtar: `risk-${r.id}`, tip: 'risk', agirlik: kritik ? 0 : 35,
         ikincil: -(r.artikRisk ?? 0), serit: riskSeviyeRengi(r.artikRisk), baslik: r.baslik,
         detay: `${r.kod} · artık risk ${r.artikRisk ?? 'bilinmiyor'} · ${
-          RISK_DURUM_ETIKET[r.durum as keyof typeof RISK_DURUM_ETIKET] ?? r.durum}${
+          RISK_DURUM_ETIKET[r.durum as keyof typeof RISK_DURUM_ETIKET] ?? etiketle(r.durum)}${
           r.sahip ? ` · ${r.sahip}` : ''}`,
         href: '/riskler',
       });
@@ -271,7 +267,7 @@ export default function Tesis360Istemci({ veri }: { veri: Veri }) {
           ikincil: 0, serit: m.durum as Durum,
           baslik: `${m.maddeKod} — ${m.maddeBaslik}`,
           detay: `${m.regKod} · ${m.surecKod} · ${
-            DURUM_ETIKET[m.durum as Durum]}${m.kanitBayat ? ' · kanıt bayat' : ''}`,
+            etiketle(m.durum)}${m.kanitBayat ? ' · kanıt bayat' : ''}`,
           href: `/surecler/${m.surecId}`,
         });
       } else if (m.kanitBayat) {
@@ -288,7 +284,7 @@ export default function Tesis360Istemci({ veri }: { veri: Veri }) {
         anahtar: `eos-${v.id}`, tip: 'eos', agirlik: 20, ikincil: 0, serit: 'uyumsuz',
         baslik: `${v.etiket} — ${v.ad}`,
         detay: `${v.turAd} · destek bitişi ${tarihTR(v.eos)} · kritiklik ${
-          KRITIKLIK_ETIKET[v.kritiklik] ?? v.kritiklik}`,
+          etiketle(v.kritiklik)}`,
         href: '/envanter',
       });
     }
@@ -296,8 +292,8 @@ export default function Tesis360Istemci({ veri }: { veri: Veri }) {
       liste.push({
         anahtar: `bulgu-${b.id}`, tip: 'bulgu', agirlik: 30, ikincil: ONEM_SIRA[b.onem] ?? 9,
         serit: ONEM_DURUM_RENGI[b.onem as Onem] ?? 'kismi', baslik: b.baslik,
-        detay: `${b.maddeKod} · ${ONEM_ETIKET[b.onem as Onem] ?? b.onem} · ${
-          BULGU_DURUM_ETIKET[b.durum as keyof typeof BULGU_DURUM_ETIKET] ?? b.durum}${
+        detay: `${b.maddeKod} · ${ONEM_ETIKET[b.onem as Onem] ?? etiketle(b.onem)} · ${
+          BULGU_DURUM_ETIKET[b.durum as keyof typeof BULGU_DURUM_ETIKET] ?? etiketle(b.durum)}${
           b.hedef ? ` · hedef ${tarihTR(b.hedef)}${gecikmisMi(b.hedef, b.durum) ? ' ⚠' : ''}` : ''}${
           b.sorumlu ? ` · ${b.sorumlu}` : ''}`,
         href: `/bulgular/${b.id}`,
@@ -385,10 +381,8 @@ export default function Tesis360Istemci({ veri }: { veri: Veri }) {
           {veri.tuzelKisi && ` · ${veri.tuzelKisi.toLocaleUpperCase('tr-TR')}`}
         </div>
         <div className="kart" style={{ marginTop: 'var(--sp-3)', position: 'relative', overflow: 'hidden' }}>
-          <div style={{ position: 'absolute', inset: '0 0 0 auto', width: 'min(46%, 560px)',
-            color: 'var(--text-2)', opacity: .34, pointerEvents: 'none',
-            maskImage: 'linear-gradient(90deg, transparent, #000 32%)' }}>
-            <KapakSec tipKod={veri.tipKod} />
+          <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
+            <TesisKapagi tipKod={veri.tipKod} genis oncelik />
           </div>
           <div className="kart-baslik" style={{ position: 'relative' }}>
             <div style={{ flex: 1, minWidth: 0 }}>
@@ -416,7 +410,7 @@ export default function Tesis360Istemci({ veri }: { veri: Veri }) {
             <div className="band-hucre">
               <span className="mikro-etiket">Kritiklik sınıfı</span>
               <span className="metrik-buyuk" style={{ fontSize: 'clamp(1.4rem,2vw,1.9rem)' }}>
-                {p?.kritiklikSinifi ? KRITIKLIK_ETIKET[p.kritiklikSinifi] ?? p.kritiklikSinifi : '—'}
+                {etiketle(p?.kritiklikSinifi, '—')}
               </span>
               {!p?.kritiklikSinifi && <span className="mikro-etiket">profilde tanımsız</span>}
             </div>
@@ -478,19 +472,19 @@ export default function Tesis360Istemci({ veri }: { veri: Veri }) {
                     <Alan etiket="Lisans" deger={p.lisansTipi
                       ? `${p.lisansTipi}${p.lisansNo ? ` · ${p.lisansNo}` : ''}` : null} />
                     <Alan etiket="Kabul" deger={p.kabulDurumu
-                      ? `${KABUL_ETIKET[p.kabulDurumu] ?? p.kabulDurumu}${
+                      ? `${KABUL_ETIKET[p.kabulDurumu] ?? etiketle(p.kabulDurumu)}${
                         p.kabulTarihi ? ` · ${tarihTR(p.kabulTarihi)}` : ''}` : null} />
                     <Alan etiket="Black-Start" deger={evetHayir(p.blackStart)} />
                     <Alan etiket="TEİAŞ SCADA/EMS" deger={evetHayir(p.teiasScadaEms)} />
                     <Alan etiket="Seri haberleşme" deger={evetHayir(p.seriHaberlesme)} />
                     <Alan etiket="Kritiklik sınıfı" deger={p.kritiklikSinifi
-                      ? KRITIKLIK_ETIKET[p.kritiklikSinifi] ?? p.kritiklikSinifi : null} />
+                      ? etiketle(p.kritiklikSinifi) : null} />
                     <Alan etiket="Kritik altyapı" deger={evetHayir(p.kritikAltyapiStatusu)} />
                     <Alan etiket="İnternet maruziyeti" deger={p.internetMaruziyeti
-                      ? MARUZIYET_ETIKET[p.internetMaruziyeti] ?? p.internetMaruziyeti : null} />
+                      ? MARUZIYET_ETIKET[p.internetMaruziyeti] ?? etiketle(p.internetMaruziyeti) : null} />
                     <Alan etiket="Uzaktan erişim" deger={evetHayir(p.uzaktanErisim)} />
                     <Alan etiket="OT mimarisi" deger={p.otMimariTipi
-                      ? OT_MIMARI_ETIKET[p.otMimariTipi] ?? p.otMimariTipi : null} />
+                      ? OT_MIMARI_ETIKET[p.otMimariTipi] ?? etiketle(p.otMimariTipi) : null} />
                     <Alan etiket="DCS sağlayıcı" deger={p.dcsSaglayici} />
                     <Alan etiket="SCADA sağlayıcı" deger={p.scadaSaglayici} />
                     <Alan etiket="PLC aileleri" deger={p.plcAileleri} />
@@ -506,7 +500,7 @@ export default function Tesis360Istemci({ veri }: { veri: Veri }) {
                     <div className="filtreler" style={{ marginTop: 4, gap: 'var(--sp-2)' }}>
                       {p.grupOrtakServisler
                         ? p.grupOrtakServisler.split(';').filter(Boolean).map((s) => (
-                          <span key={s} className="chip mono">{s.trim()}</span>))
+                          <span key={s} className="chip">{etiketle(s.trim())}</span>))
                         : <span style={{ color: 'var(--text-3)', fontStyle: 'italic',
                             fontSize: 'var(--fs-sm)' }}>Bilinmiyor</span>}
                     </div>
@@ -580,7 +574,7 @@ export default function Tesis360Istemci({ veri }: { veri: Veri }) {
           <button className="btn kucuk yazdirmada-gizle" onClick={() => exceleAktar(
             `eksikler-${veri.kod}`, [{ ad: 'Eksikler', satirlar: [
               ['Tip', 'Başlık', 'Detay'],
-              ...gorunenEksikler.map((e) => [EKSIK_TIP_ETIKET[e.tip] ?? e.tip, e.baslik, e.detay]),
+              ...gorunenEksikler.map((e) => [EKSIK_TIP_ETIKET[e.tip] ?? etiketle(e.tip), e.baslik, e.detay]),
             ] }])}>⤓ Excel</button>
         </div>
         <div className="kart" style={{ marginTop: 'var(--sp-4)' }}>
@@ -590,7 +584,7 @@ export default function Tesis360Istemci({ veri }: { veri: Veri }) {
                 <span className={`serit serit-${e.serit}`} />
                 <span className="chip" style={{ flex: 'none', fontFamily: 'var(--font-mono)',
                   fontSize: 'var(--fs-micro)', textTransform: 'uppercase', letterSpacing: '.06em' }}>
-                  {EKSIK_TIP_ETIKET[e.tip] ?? e.tip}
+                  {EKSIK_TIP_ETIKET[e.tip] ?? etiketle(e.tip)}
                 </span>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <Link href={e.href} style={{ fontWeight: 500 }}>{e.baslik}</Link>
@@ -624,7 +618,7 @@ export default function Tesis360Istemci({ veri }: { veri: Veri }) {
                 <div className="mini-cubuklar">
                   {sinifSayilari.map(([sinif, n]) => (
                     <div className="mini-cubuk" key={sinif}>
-                      <span className="etiket">{VARLIK_SINIF_ETIKET[sinif] ?? sinif}</span>
+                      <span className="etiket">{etiketle(sinif)}</span>
                       <span style={{ display: 'block', height: 8, borderRadius: 999,
                         background: 'var(--chart-grid)', overflow: 'hidden' }}>
                         <span style={{ display: 'block', height: '100%',
@@ -652,9 +646,9 @@ export default function Tesis360Istemci({ veri }: { veri: Veri }) {
                             {v.turAd}{v.isletimSistemi && ` · ${v.isletimSistemi}`}
                           </div>
                         </td>
-                        <td><span className="chip">{VARLIK_SINIF_ETIKET[v.sinif] ?? v.sinif}</span></td>
+                        <td><span className="chip">{etiketle(v.sinif)}</span></td>
                         <td><Pill durum={(ONEM_DURUM_RENGI as Record<string, Durum>)[v.kritiklik] ?? 'degerlendirilmedi'}
-                          etiket={KRITIKLIK_ETIKET[v.kritiklik] ?? v.kritiklik}
+                          etiket={etiketle(v.kritiklik)}
                           hollow={v.kritiklik === 'yuksek'} /></td>
                         <td><Pill durum={eol.durum} etiket={eol.etiket} /></td>
                       </tr>
@@ -684,13 +678,14 @@ export default function Tesis360Istemci({ veri }: { veri: Veri }) {
                     <span className="chip mono">{d.kod}</span>{' '}
                     <span style={{ fontWeight: 500 }}>{d.ad}</span>
                     <div className="mikro-etiket sirada-gizli" style={{ letterSpacing: '.04em' }}>
-                      {DENETIM_TIP_ETIKET[d.tip] ?? d.tip}
+                      {DENETIM_TIP_ETIKET[d.tip] ?? etiketle(d.tip)}
                       {d.planBaslangic && ` · ${tarihTR(d.planBaslangic)}`}
                       {d.planBitis && ` – ${tarihTR(d.planBitis)}`}
                     </div>
                   </div>
                   <Pill durum={ASAMA_RENK[d.durum] ?? 'incelemede'}
-                    etiket={DENETIM_ASAMA_ETIKET[d.durum as keyof typeof DENETIM_ASAMA_ETIKET] ?? d.durum} />
+                    etiket={DENETIM_ASAMA_ETIKET[d.durum as keyof typeof DENETIM_ASAMA_ETIKET]
+                      ?? etiketle(d.durum)} />
                 </div>
               ))}
               {veri.denetimler.length === 0 && (
@@ -709,7 +704,7 @@ export default function Tesis360Istemci({ veri }: { veri: Veri }) {
                     </div>
                   </div>
                   <Pill durum={SUREC_DURUM_RENGI[s.durum as SurecDurum] ?? 'incelemede'}
-                    etiket={SUREC_DURUM_ETIKET[s.durum as SurecDurum] ?? s.durum} />
+                    etiket={SUREC_DURUM_ETIKET[s.durum as SurecDurum] ?? etiketle(s.durum)} />
                 </div>
               ))}
               {veri.surecler.length === 0 && (
@@ -728,7 +723,7 @@ export default function Tesis360Istemci({ veri }: { veri: Veri }) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-5)' }}>
           <div className="form-izgara">
             <label className="form-satir"><span>Lisans tipi</span>
-              <input className="inp" value={pf.lisansTipi} placeholder="uretim…"
+              <input className="inp" value={pf.lisansTipi} placeholder="Üretim…"
                 onChange={(e) => setPf({ ...pf, lisansTipi: e.target.value })} /></label>
             <label className="form-satir"><span>Lisans no</span>
               <input className="inp" value={pf.lisansNo}
@@ -746,8 +741,8 @@ export default function Tesis360Istemci({ veri }: { veri: Veri }) {
               <select className="sec" value={pf.kritiklikSinifi}
                 onChange={(e) => setPf({ ...pf, kritiklikSinifi: e.target.value })}>
                 <option value="">Bilinmiyor</option>
-                {(['dusuk', 'orta', 'yuksek', 'kritik'] as const).map((k) => (
-                  <option key={k} value={k}>{KRITIKLIK_ETIKET[k]}</option>))}
+                {KRITIKLIKLER.map((k) => (
+                  <option key={k} value={k}>{etiketle(k)}</option>))}
               </select></label>
             <label className="form-satir"><span>İnternet maruziyeti</span>
               <select className="sec" value={pf.internetMaruziyeti}

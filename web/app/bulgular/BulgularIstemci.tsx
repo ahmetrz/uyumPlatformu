@@ -11,7 +11,8 @@ import {
 type B = {
   id: string; baslik: string; durum: string; onem: string; kaynak: string | null;
   tespit: string; hedef: string | null; sorumlu: string | null;
-  maddeKod: string; tesisKod: string; surecKod: string; regKod: string;
+  maddeKod: string; maddeBaslik: string; tesisKod: string; tesisAd: string;
+  surecKod: string; regKod: string;
   aksiyonToplam: number; aksiyonBiten: number;
 };
 
@@ -24,7 +25,7 @@ export default function BulgularIstemci({ bulgular }: { bulgular: B[] }) {
     if (durumF === 'acik-hepsi' && (b.durum === 'kapali' || b.durum === 'kabul_edildi')) return false;
     if (durumF !== 'hepsi' && durumF !== 'acik-hepsi' && b.durum !== durumF) return false;
     if (onemF !== 'hepsi' && b.onem !== onemF) return false;
-    if (arama && !`${b.baslik} ${b.maddeKod} ${b.tesisKod}`.toLocaleLowerCase('tr-TR')
+    if (arama && !`${b.baslik} ${b.maddeKod} ${b.tesisKod} ${b.tesisAd}`.toLocaleLowerCase('tr-TR')
       .includes(arama.toLocaleLowerCase('tr-TR'))) return false;
     return true;
   }), [bulgular, durumF, onemF, arama]);
@@ -112,8 +113,8 @@ export default function BulgularIstemci({ bulgular }: { bulgular: B[] }) {
                         {b.kaynak && ` · ${b.kaynak.replace('_', ' ')}`}
                       </div>
                     </td>
-                    <td><span className="chip mono">{b.maddeKod}</span>{' '}
-                      <span className="chip mono">{b.tesisKod}</span></td>
+                    <td><span className="chip mono" title={b.maddeBaslik}>{b.maddeKod}</span>{' '}
+                      <span className="chip mono" title={b.tesisAd}>{b.tesisKod}</span></td>
                     <td><Pill durum={ONEM_DURUM_RENGI[b.onem as Onem]}
                       etiket={ONEM_ETIKET[b.onem as Onem]} hollow={b.onem === 'yuksek'} /></td>
                     <td><Pill durum={BULGU_DURUM_RENGI[b.durum as BulguDurum]}

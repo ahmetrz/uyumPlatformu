@@ -143,7 +143,7 @@ function MaddeFormu({ madde, regId, maddeler, alanlar, kapat }: {
             onChange={(e) => setV({ ...v, ustMaddeId: e.target.value })}>
             <option value="">Kök seviye</option>
             {maddeler.filter((m) => m.id !== madde?.id).map((m) =>
-              <option key={m.id} value={m.id}>{m.kod}</option>)}
+              <option key={m.id} value={m.id}>{m.kod} — {m.baslik}</option>)}
           </select></label>
         <label className="form-satir" style={{ gridColumn: '1/-1' }}><span>Başlık</span>
           <input className="inp" value={v.baslik}

@@ -32,7 +32,7 @@ export default async function Operasyon() {
         <OperasyonIstemci
           degisiklikler={degisiklikler.map((d) => ({
             id: d.id, kod: d.kod, baslik: d.baslik, aciklama: d.aciklama,
-            tesisKod: d.tesis?.kod ?? null, tesisId: d.tesisId,
+            tesisKod: d.tesis?.kod ?? null, tesisAd: d.tesis?.ad ?? null, tesisId: d.tesisId,
             varlikEtiketi: d.varlikEtiketi, otMu: d.otMu, durum: d.durum,
             saglayiciOnayi: d.saglayiciOnayi, bakimPenceresi: d.bakimPenceresi,
             geriAlmaPlani: d.geriAlmaPlani, onDegisiklikYedegi: d.onDegisiklikYedegi,
@@ -42,7 +42,8 @@ export default async function Operasyon() {
           }))}
           olaylar={olaylar.map((o) => ({
             id: o.id, kod: o.kod, baslik: o.baslik, tip: o.tip, siddet: o.siddet,
-            durum: o.durum, tesisKod: o.tesis?.kod ?? null, tesisId: o.tesisId,
+            durum: o.durum, tesisKod: o.tesis?.kod ?? null, tesisAd: o.tesis?.ad ?? null,
+            tesisId: o.tesisId,
             ozet: o.ozet, baslangic: o.baslangic.toISOString(),
           }))}
           politikalar={politikalar.map((p) => ({
@@ -64,10 +65,10 @@ export default async function Operasyon() {
             id: s.id, ad: s.ad, veren: s.veren, varlikEtiketi: s.varlik?.etiket ?? null,
             bitis: s.bitis.toISOString(),
           }))}
-          tesisler={tesisler.map((t) => ({ id: t.id, kod: t.kod }))}
+          tesisler={tesisler.map((t) => ({ id: t.id, kod: t.kod, ad: t.ad }))}
           hesaplar={hesaplar.map((h) => ({
             id: h.id, hesapAdi: h.hesapAdi, tip: h.tip, ayricalikli: h.ayricalikli,
-            tesisKod: h.tesis?.kod ?? null, tesisId: h.tesisId,
+            tesisKod: h.tesis?.kod ?? null, tesisAd: h.tesis?.ad ?? null, tesisId: h.tesisId,
             kaynakSistem: h.kaynakSistem, durum: h.durum,
             parolaRotasyon: h.parolaRotasyon?.toISOString() ?? null,
             atamalar: h.atamalar.map((a) => ({

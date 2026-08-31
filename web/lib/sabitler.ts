@@ -269,6 +269,12 @@ export const EK_ETIKET: Record<string, string> = {
   saglandi: 'Sağlandı', reddedildi: 'Reddedildi',
   // risk kaynakları
   zafiyet: 'Zafiyet', eol: 'EOL/EOS', denetim: 'Denetim',
+  // ağ bölgesi tipleri — kısaltmalar büyük harf kalmalı ("ot" → "Ot" otu çağrıştırır)
+  ot: 'OT', ot_dmz: 'OT DMZ', kurumsal: 'Kurumsal BT',
+  // otomatik büyük harfe düşerse Türkçe'si bozulan değerler
+  oneri: 'Öneri', uyari: 'Uyarı', iyilestirme: 'İyileştirme',
+  // görev tipleri
+  son_tarih: 'Son tarih', veri_kalitesi: 'Veri kalitesi', dogrulama: 'Doğrulama',
   // onay talebi tipleri
   bulgu_kapanis: 'Bulgu kapanışı', risk_kabul: 'Risk kabulü', istisna: 'İstisna',
   proje_aday: 'Proje adayı', proje_kapanis: 'Proje kapanışı',

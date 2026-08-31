@@ -36,6 +36,7 @@ export default async function Gorevler() {
     kaynakTipi: g.kaynakTipi, kaynakId: g.kaynakId,
     sorumlu: g.sorumlu ? { id: g.sorumlu.id, ad: g.sorumlu.adSoyad } : null,
     tesisKod: g.tesis?.kod ?? null,
+    tesisAd: g.tesis?.ad ?? null,
     sonTarih: g.sonTarih?.toISOString() ?? null,
     durum: g.durum, otomatik: g.otomatikUretildi,
     olusturuldu: g.olusturuldu.toISOString(),

@@ -653,6 +653,31 @@ export async function aktarimOnayla(girdi: { id: string }): Promise<Sonuc> {
        Döngü içindeki okumalar da `tx` üzerinden yapılır — aynı dosyada gelen
        üst madde henüz commit edilmediği için dış bağlantıdan görünmez. */
     const { eklenen, guncellenen } = await db.$transaction(async (tx) => {
+      /* KAYDI ÖNCE SAHİPLEN.
+
+         Yukarıdaki `durum !== 'dogrulama_bekliyor'` kontrolü transaction'ın
+         DIŞINDAYDI. İki onay aynı anda gelirse ikisi de "bekliyor" görür ve
+         aynı dosya İKİ KEZ içe aktarılır — bu yolda 20.000 madde satırı iki
+         kez yazılır ya da güncellenir.
+
+         Sahiplenme transaction'ın İLK işlemidir ve koşulludur: yalnız hâlâ
+         bekleyen kayıt güncellenir. Kaybeden `count === 0` alır, fırlatır ve
+         transaction geri sarılır — hiçbir satır yazılmamış olur. Kazanan
+         patlarsa sahiplenme de geri sarılır, yani dosya yeniden onaylanabilir
+         kalır; kilit değil, sahiplenmedir.
+
+         Ara bir 'isleniyor' durumu AÇILMADI: transaction dışından hiç
+         görülemeyecek bir durum, şema sözlüğüne yeni bir değer eklemeyi ve
+         onu okuyan her ekranı düşünmeyi hak etmiyor. Nihai durum doğrudan
+         yazılır; sayaçlar transaction sonunda tamamlanır. */
+      const sahiplenme = await tx.iceAktarim.updateMany({
+        where: { id: girdi.id, durum: 'dogrulama_bekliyor' },
+        data: { durum: 'onaylandi' },
+      });
+      if (sahiplenme.count === 0) {
+        throw new Error('Bu içe aktarım başka bir onayla işlenmiş — ikinci kez aktarılamaz');
+      }
+
       let eklenen = 0, guncellenen = 0;
       for (const s of rapor.satirlar ?? []) {
         let ustId: string | null = null;

@@ -1,16 +1,24 @@
 'use client';
-import { Im, type Durum } from '@/components/atlas/temel';
+import { Bar, Im, type Durum } from '@/components/atlas/temel';
 import {
   CekmeceKimlik, CekmeceAlanlar, CekmeceBagli,
 } from '@/components/atlas/cekmece';
 import { etiketle, tarihTR, zamanTR } from '@/lib/sabitler';
-import type { ConnectorSagligi, KosuSatiri } from '@/lib/entegrasyon/saglikOzeti';
+import type {
+  ConnectorSagligi, EntegrasyonOzeti, KosuSatiri,
+} from '@/lib/entegrasyon/saglikOzeti';
 import { MotorCalistir } from './Eylemler';
 import {
+  ConnectorEylemleri, ConnectorYapilandirma, EslemeProfilSecimi, KuruAyrinti,
+} from './Yapilandirma';
+import {
   CONNECTOR_TIP, ENTEGRASYON_ACIKLAMA, ENTEGRASYON_IM, ENTEGRASYON_SOZU,
-  KIMLIK_TIP, TETIKLEYEN,
-  kaliteImi, kisalt, motorCumlesi, motorImi, motorSozu, sonKosu, sureFmt,
-  tazelikDurumu, tazelikYazisi,
+  KIMLIK_TIP, TETIKLEYEN, VADE_IM,
+  devreKesiciIlerlemesi, kaliteImi, kisalt, kuruEslesmeYazisi, kuruImi,
+  hataSinifiYazisi, sirBeyanImi, sirBeyanYazisi,
+  kuruSayacYazisi, maskeSaglayicisi, motorCumlesi, motorImi,
+  motorSozu, ortamRengi, ortamYazisi, saglayiciImi, saglayiciNotu, senkronYazisi,
+  sonKosu, sureFmt, tazelikDurumu, tazelikYazisi, vadeCevabi,
   type KaliteBulgusu, type Kosu, type Motor,
 } from './mantik';
 
@@ -110,13 +118,16 @@ function kosuAdi(durum: string): string {
 
 /* ── Çekmece · connector ────────────────────────────────────────────── */
 
-export function ConnectorOzeti({ c }: { c: ConnectorSagligi }) {
+export function ConnectorOzeti({ c, ozet, yazabilir, kapat }: {
+  c: ConnectorSagligi; ozet: EntegrasyonOzeti; yazabilir: boolean; kapat: () => void;
+}) {
   const im = ENTEGRASYON_IM[c.durum];
   const s = c.sonKosu;
   const hataMetni = s?.hata ?? c.sonHata;
   /* Renk `durum`dan gelir, `hata` alanının doluluğundan DEĞİL: başarılı bir
      koşu da geçmiş bir hata metni taşıyabilir. */
   const hataliMi = c.durum === 'basarisiz' || c.durum === 'bayat_kosu';
+  const devreKesici = devreKesiciIlerlemesi(c);
 
   return (
     <>
@@ -134,7 +145,43 @@ export function ConnectorOzeti({ c }: { c: ConnectorSagligi }) {
           durum: c.sonBasariliKosu ? undefined : 'unk' },
         { etiket: 'Veri tazeliği', deger: tazelikYazisi(c.tazelik),
           durum: tazelikDurumu(c.tazelik) },
+        /* ORTAM bir güvenlik bilgisidir ve kendi satırında yazılır: üretim
+           sistemine bakan bir kaydı test sanmak en kolay yapılan hatadır.
+           Bilinmiyorsa "geliştirme" varsayılmaz. */
+        { etiket: 'Ortam · senkron kipi',
+          deger: (
+            <span>
+              <span style={{ color: ortamRengi(c.ortam) }}>{ortamYazisi(c.ortam)}</span>
+              {' · '}{senkronYazisi(c.senkronKipi)}
+            </span>
+          ),
+          durum: c.ortam === null ? 'unk' : undefined },
+        /* Devre kesici bir DAMGA değil, bir İLERLEMEDİR: kullanıcı
+           devrenin ne zaman keseceğini görmeli ("3/5 ardışık hata"). */
+        { etiket: 'Devre kesici', deger: devreKesici.metin,
+          durum: devreKesici.durum === 'ok' ? undefined : devreKesici.durum },
       ]} />
+
+      {devreKesici.oran !== null && (
+        <div className="cekmece-blok" style={{ marginTop: 'var(--s12)' }}>
+          <Bar oran={devreKesici.oran}
+            durum={devreKesici.durum === 'ok' ? 'ok' : devreKesici.durum === 'md' ? 'md' : 'bd'}
+            deger={devreKesici.metin} />
+        </div>
+      )}
+
+      {c.sonHataOzeti && (
+        <div className="cekmece-blok" style={{ marginTop: 'var(--s16)' }}>
+          <p className="t-label" style={{ margin: '0 0 var(--s8)' }}>Son hatanın izi</p>
+          <p className="mono" style={{ margin: 0, fontSize: 'var(--t-label)',
+            color: 'var(--i2)', wordBreak: 'break-word' }}>{c.sonHataOzeti}</p>
+          <p className="cekmece-dip" style={{ margin: 'var(--s6) 0 0' }}>
+            Aynı iz tekrar ediyorsa hata da tekrar ediyor demektir.
+          </p>
+        </div>
+      )}
+
+      <GerekenSirlar c={c} />
 
       <div className="cekmece-blok" style={{ marginTop: 'var(--s22)' }}>
         <p className="cekmece-dip" style={{ margin: 0 }}>{c.tazelik.aciklama}</p>
@@ -166,7 +213,10 @@ export function ConnectorOzeti({ c }: { c: ConnectorSagligi }) {
             {c.kimlikGerekce}
           </p>
         )}
+        <SaglayiciSatiri sirMaskeli={c.sirMaskeli} ozet={ozet} />
       </div>
+
+      <ZamanlayiciBlogu c={c} ozet={ozet} />
 
       {c.imlec && (
         <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
@@ -176,7 +226,7 @@ export function ConnectorOzeti({ c }: { c: ConnectorSagligi }) {
         </div>
       )}
 
-      {s && (s.reddedilen > 0 || s.sayacTutarsiz || s.ayrinti) && (
+      {s && (s.reddedilen > 0 || s.sayacTutarsiz || s.yinelenenTutarsiz || s.ayrinti) && (
         <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
           <p className="t-label" style={{ margin: '0 0 var(--s10)' }}>Son koşunun sayaçları</p>
           <p style={{ margin: 0, fontSize: 'var(--t-field)', color: 'var(--i2)' }}>
@@ -193,9 +243,18 @@ export function ConnectorOzeti({ c }: { c: ConnectorSagligi }) {
               kayıtlar sessizce yok sayılmış olabilir.
             </p>
           )}
+          {/* Çekirdeğin sözleşmesi: alinan = kabul + red; yinelenen ⊆ kabul.
+              Yinelenen ayrı bir kova DEĞİLDİR — delta koşuda yinelenen
+              normaldir ve tutarsızlık sayılmaz. */}
           {s.sayacTutarsiz && (
             <p style={{ margin: 'var(--s8) 0 0', fontSize: 'var(--t-field)', color: 'var(--md)' }}>
-              Sayaçlar tutmuyor: alınan ≠ kabul + red + yinelenen.
+              Sayaçlar tutmuyor: alınan ≠ kabul + red.
+            </p>
+          )}
+          {s.yinelenenTutarsiz && (
+            <p style={{ margin: 'var(--s8) 0 0', fontSize: 'var(--t-field)', color: 'var(--md)' }}>
+              Yinelenen sayısı kabul edileni aşıyor; yinelenen kabul edilenlerin
+              alt kümesi olmalıydı.
             </p>
           )}
         </div>
@@ -215,7 +274,166 @@ export function ConnectorOzeti({ c }: { c: ConnectorSagligi }) {
         ))}
 
       <ConnectorGecmisi gecmis={c.gecmis} />
+      <KuruGecmisi c={c} />
+
+      <EslemeProfilSecimi c={c} ozet={ozet} yazabilir={yazabilir} />
+      <ConnectorEylemleri c={c} yazabilir={yazabilir} />
+      <ConnectorYapilandirma key={c.id} c={c} yazabilir={yazabilir} kapat={kapat} />
     </>
+  );
+}
+
+/** Adaptörün BEYAN ETTİĞİ sırlar ve varlıkları. Sırrın DEĞERİ okunmaz;
+    `sirVarMi()` yalnız var/yok/bilinmiyor der ve `bilinmiyor` ile `yok`
+    ekranda da karıştırılmaz. */
+function GerekenSirlar({ c }: { c: ConnectorSagligi }) {
+  const sirlar = c.gerekenSirlar;
+  return (
+    <div className="cekmece-blok" style={{ marginTop: 'var(--s20)' }}>
+      <p className="t-label" style={{ margin: '0 0 var(--s10)' }}>
+        Adaptörün istediği sırlar
+      </p>
+      <div style={{ display: 'grid', gridTemplateColumns: '22px 1fr',
+        gap: 'var(--s8)', alignItems: 'start' }}>
+        <span style={{ paddingTop: 3 }}>
+          <Im durum={sirBeyanImi(sirlar)} ad={sirBeyanYazisi(sirlar)} />
+        </span>
+        <span style={{ fontSize: 'var(--t-field)', color: 'var(--i2)' }}>
+          {sirBeyanYazisi(sirlar)}
+        </span>
+      </div>
+      {sirlar && sirlar.length > 0 && (
+        <div style={{ display: 'grid', gap: 'var(--s6)', marginTop: 'var(--s10)' }}>
+          {sirlar.map((x) => (
+            <p key={x.referans} className="mono" style={{ margin: 0,
+              fontSize: 'var(--t-label)',
+              color: x.durum === 'var' ? 'var(--i3)'
+                : x.durum === 'yok' ? 'var(--pl)' : 'var(--unk)' }}>
+              {x.maske}{x.sebep ? ` · ${x.sebep}` : ''}
+            </p>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** Yeni bağlantı çekmecesi — kayıt yokken yalnız form yaşar. */
+export function YeniConnector({ yazabilir, kapat }: {
+  yazabilir: boolean; kapat: () => void;
+}) {
+  return (
+    <>
+      <CekmeceKimlik durum="unk" soz="Kayıt yok" baslik="Yeni bağlantı"
+        cumle={'Bağlantı taslak ve pasif doğar. Kimlik bilgisinin kendisi değil, '
+          + 'sırra giden adres girilir; koşmaya başlaması ayrıca etkinleştirme ister.'} />
+      <ConnectorYapilandirma key="yeni" c={null} yazabilir={yazabilir} kapat={kapat} />
+    </>
+  );
+}
+
+/**
+ * Kuru koşu geçmişi — GERÇEK koşulardan AYRI listede.
+ *
+ * Aynı listede dursalardı sağlık durumu son kuru koşudan okunur ve hiç veri
+ * getirmemiş bir entegrasyon "başarılı" görünürdü. Bu blok bu yüzden kendi
+ * başlığını taşır ve metni daima "yazılmadı" der.
+ */
+function KuruGecmisi({ c }: { c: ConnectorSagligi }) {
+  if (c.kuruGecmis.length === 0) return null;
+  const son = c.sonKuruKosu;
+  return (
+    <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
+      <p className="t-label" style={{ margin: '0 0 var(--s10)' }}>
+        Kuru koşular · {c.kuruGecmis.length}
+      </p>
+      <div style={{ display: 'grid', gap: 'var(--s10)' }}>
+        {c.kuruGecmis.slice(0, 4).map((g) => (
+          <div key={g.id} style={{ display: 'grid', gridTemplateColumns: '22px 1fr',
+            gap: 'var(--s8)', alignItems: 'start' }}>
+            <span style={{ paddingTop: 3 }}>
+              <Im durum={kuruImi(g)} ad="Kuru koşu — hiçbir kayıt yazılmadı" />
+            </span>
+            <span style={{ minWidth: 0 }}>
+              <span style={{ display: 'block', fontSize: 'var(--t-field)' }}>
+                {zamanTR(g.baslangic)} · {TETIKLEYEN[g.tetikleyen] ?? etiketle(g.tetikleyen)}
+              </span>
+              <span className="mono" style={{ display: 'block', marginTop: 2,
+                fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
+                {g.kuruOzet
+                  ? kuruSayacYazisi(g.kuruOzet.sayaclar)
+                  : g.kuruOzetBozuk
+                    ? 'kuru koşu raporu okunamadı — sayaçlar kayıp'
+                    : 'kuru koşu raporu yazılmamış'}
+              </span>
+              {g.kuruOzet && (
+                <span className="mono" style={{ display: 'block', marginTop: 2,
+                  fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
+                  {kuruEslesmeYazisi(g.kuruOzet.sayaclar)}
+                </span>
+              )}
+            </span>
+          </div>
+        ))}
+      </div>
+      {son?.kuruOzet && <KuruAyrinti ozet={son.kuruOzet} />}
+      <p className="cekmece-dip" style={{ margin: 'var(--s12) 0 0' }}>
+        Kuru koşu hiçbir kayıt yazmaz ve imleci ilerletmez; bu yüzden GERÇEK
+        koşu sayılmaz. Yalnız kuru koşmuş bir connector hâlâ &quot;hiç
+        koşmadı&quot; ve verisi &quot;tazeliği bilinmiyor&quot; görünür.
+      </p>
+    </div>
+  );
+}
+
+/** "Bu connector neden senkronize olmuyor?" — cevabı zamanlayıcı verir.
+    Sebep metni `lib/is/zamanlayici.ts` üretir; ekran onu YENİDEN YAZMAZ. */
+function ZamanlayiciBlogu({ c, ozet }: { c: ConnectorSagligi; ozet: EntegrasyonOzeti }) {
+  const cevap = vadeCevabi(ozet.zamanlayici, c.id);
+  const im = VADE_IM[cevap.tur];
+  return (
+    <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
+      <p className="t-label" style={{ margin: '0 0 var(--s10)' }}>Zamanlayıcı</p>
+      <div style={{ display: 'grid', gridTemplateColumns: '22px 1fr',
+        gap: 'var(--s8)', alignItems: 'start' }}>
+        <span style={{ paddingTop: 3 }}>
+          <Im durum={im} ad={cevap.tur === 'vadeli' ? 'Vadesi geldi'
+            : cevap.tur === 'koşmuyor' ? 'Otomatik koşmuyor' : 'Zamanlayıcı durumu bilinmiyor'} />
+        </span>
+        <span style={{ fontSize: 'var(--t-field)', color: 'var(--i2)' }}>{cevap.cumle}</span>
+      </div>
+    </div>
+  );
+}
+
+/** Bu connector'ın sırrının yaşadığı sağlayıcı bağlı mı? Bağlı değilse
+    ne gerektiği YAZILIR — sır çözülemediğinde tek dürüst cevap budur. */
+function SaglayiciSatiri({ sirMaskeli, ozet }: {
+  sirMaskeli: string; ozet: EntegrasyonOzeti;
+}) {
+  const ad = maskeSaglayicisi(sirMaskeli);
+  if (!ad) return null;
+  const s = ozet.saglayicilar.find((x) => x.ad === ad);
+  if (!s) {
+    return (
+      <p style={{ margin: 'var(--s10) 0 0', fontSize: 'var(--t-field)', color: 'var(--bd)' }}>
+        &lsquo;{ad}&rsquo; adında kayıtlı bir sır sağlayıcısı yok — bu referans çözülemez.
+      </p>
+    );
+  }
+  const not = saglayiciNotu(s);
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: '22px 1fr', gap: 'var(--s8)',
+      alignItems: 'start', marginTop: 'var(--s12)' }}>
+      <span style={{ paddingTop: 3 }}>
+        <Im durum={saglayiciImi(s)}
+          ad={s.bagli ? `${s.ad} sağlayıcısı bağlı` : `${s.ad} sağlayıcısı bağlı değil`} />
+      </span>
+      <span style={{ fontSize: 'var(--t-field)', color: 'var(--i2)' }}>
+        <span className="mono">{s.ad}</span>
+        {not && <> · {not}</>}
+      </span>
+    </div>
   );
 }
 
@@ -246,6 +464,19 @@ function ConnectorGecmisi({ gecmis }: { gecmis: KosuSatiri[] }) {
                   {' · '}{sureFmt(g.sureMs)}
                   {g.denemeNo > 1 && ` · ${g.denemeNo}. deneme`}
                 </span>
+                {(g.durum === 'basarisiz' || g.hataSinifi) && (
+                  <span style={{ display: 'block', marginTop: 2,
+                    fontSize: 'var(--t-label)',
+                    color: hataSinifiYazisi(g).eksik ? 'var(--md)' : 'var(--i3)' }}>
+                    {hataSinifiYazisi(g).metin}
+                  </span>
+                )}
+                {g.korelasyonId && (
+                  <span className="mono" style={{ display: 'block', marginTop: 2,
+                    fontSize: 'var(--t-label)', color: 'var(--i3)', wordBreak: 'break-all' }}>
+                    korelasyon · {g.korelasyonId}
+                  </span>
+                )}
               </span>
             </div>
           ))}

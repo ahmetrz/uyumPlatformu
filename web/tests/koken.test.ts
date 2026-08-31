@@ -4,6 +4,11 @@ import { createHash, randomBytes } from 'node:crypto';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import type { ReactElement, ReactNode } from 'react';
+/* Yalnız TİP: `import type` derlemede silinir, dolayısıyla TEST_DB
+   ayarlanmadan önce hiçbir modül yüklenmez (proje kalıbı korunur). */
+import type {
+  KaynakSatiri, KokenSayimSatiri,
+} from '@/app/(atlas)/(operasyonel)/saglik/mantik';
 
 /* Veri kökeni (provenance) sözleşmesi — izole DB kopyası üstünde.
 
@@ -30,7 +35,11 @@ const { kokenSayimlari, dogrulanmamisKayitlar, kaynakSistemDagilimi, bayatKokenl
   await import('@/lib/entegrasyon/kokenRapor');
 const { kokenDogrulaEylem, kokenTopluDogrula } = await import('@/lib/eylemler2/koken');
 const { varlikKaydet } = await import('@/lib/eylemler2/envanter');
-const { KokenRozeti, KokenSatiri, guvenYazisi } = await import('@/components/atlas/Koken');
+const { KokenRozeti, KokenSatiri, guvenYazisi, kokenGorunumu } =
+  await import('@/components/atlas/Koken');
+/* /saglik köken bölümünün SAF mantığı: kökeni olmayan kaydın ekranda nasıl
+   göründüğünü belirleyen yer burasıdır (§12 + §18). */
+const S = await import('@/app/(atlas)/(operasyonel)/saglik/mantik');
 
 /* ── React ağacından düz metin: jsdom yok, bileşenler saf fonksiyon ── */
 function metin(dugum: ReactNode): string {
@@ -383,5 +392,124 @@ describe('Raporlama — kapsam ve bayatlık', () => {
     expect(satir).toBeDefined();
     expect(satir!.gecenGun).toBeGreaterThanOrEqual(89);
     expect((await bayatKokenler(365)).satirlar.find((s) => s.kokenId === kokenId)).toBeUndefined();
+  });
+});
+
+/* ═══════════════════════════════════════════════════════════════════════
+   /saglik KÖKEN BÖLÜMÜ — değişmez: KAYNAK BAĞLAMI OLMAYAN KAYIT
+   'DOĞRULANMIŞ' GÖRÜNEMEZ; kökeni olmayan kayıt GİZLENMEZ.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/** Ekran satırı fabrikası — alanların hepsi açıkça verilir. */
+function sayim(ozel: Partial<KokenSayimSatiri> = {}): KokenSayimSatiri {
+  return {
+    varlikTipi: 'Varlik', manuel: 0, otomatik: 0, dogrulanmis: 0,
+    reddedildi: 0, kokenli: 0, toplam: 0, ...ozel,
+  };
+}
+
+describe('Kökeni olmayan kayıt "doğrulanmış" görünemez', () => {
+  it('köken kaydı olmayan bir kayıt için rozet ASLA "DOĞRULANMIŞ" demez', () => {
+    for (const koken of [null, undefined]) {
+      const g = kokenGorunumu(koken);
+      expect(g.etiket).toBe('ELLE GİRİLDİ');
+      expect(g.etiket).not.toBe('DOĞRULANMIŞ');
+      expect(g.kaynak).toBeNull();
+      expect(metin(KokenRozeti({ koken }))).not.toContain('DOĞRULANMIŞ');
+    }
+  });
+
+  it('kökeni olmayan kayıt taşıyan satır hiçbir koşulda "ok" işaretlenmez', () => {
+    // Kaydın tamamı doğrulanmış olsa BİLE, kökensiz kayıt varsa satır `unk`.
+    const s = sayim({ manuel: 1, dogrulanmis: 99, kokenli: 99, toplam: 100 });
+    expect(S.kokensizVar(s)).toBe(true);
+    expect(S.kokenImi(s)).toBe('unk');
+    expect(S.kokenImi(s)).not.toBe('ok');
+    expect(S.kokenSozu(s)).toMatch(/Kaynak bağlamı olmayan/);
+    expect(S.kokenCumlesi(s)).toMatch(/hiçbir koşulda "doğrulanmış" görünmez/);
+  });
+
+  it('yalnız kökenli ve doğrulanmış satır "ok" olabilir', () => {
+    const temiz = sayim({ manuel: 0, dogrulanmis: 12, kokenli: 12, toplam: 12 });
+    expect(S.kokenImi(temiz)).toBe('ok');
+    // Tek bir kökensiz kayıt eklemek satırı derhal `unk` yapar.
+    expect(S.kokenImi({ ...temiz, manuel: 1, toplam: 13 })).toBe('unk');
+  });
+
+  it('kökeni olmayan kayıt GİZLENMEZ: satırı kuyruğa toplanamaz', () => {
+    const kokensiz = sayim({ manuel: 3, dogrulanmis: 5, kokenli: 5, toplam: 8 });
+    expect(S.kokenToplanabilir(kokensiz)).toBe(false);
+
+    /* Yoğunluk bütçesi doldurulmuş olsa bile kökensiz satır görünür kalır:
+       `bolumle` yalnız toplanabilir satırları kuyruğa indirir. */
+    const doluDoğrulanmis = Array.from({ length: 12 }, (_, i) =>
+      sayim({ varlikTipi: `Temiz${i}`, dogrulanmis: 1, kokenli: 1, toplam: 1 }));
+    const bolum = S.bolumle(
+      S.kokenSirala([...doluDoğrulanmis, kokensiz]), S.kokenToplanabilir, false);
+    expect(bolum.gorunur).toContain(kokensiz);
+    expect(bolum.toplanan).not.toContain(kokensiz);
+  });
+
+  it('kayıt evreni bilinmiyorsa SIFIR yazılmaz', () => {
+    const bilinmeyen = sayim({ manuel: null, toplam: null, otomatik: 2, kokenli: 2 });
+    expect(S.kokensizYazisi(bilinmeyen)).toBe('bilinmiyor');
+    expect(S.kokensizYazisi(bilinmeyen)).not.toBe('0');
+    expect(S.kokensizVar(bilinmeyen)).toBe(true);
+    expect(S.kokensizYazisi(sayim({ manuel: 0 }))).toBe('0');
+  });
+
+  it('reddedilmiş köken "otomatik" gibi gösterilmez ve satırı kritik yapar', () => {
+    const s = sayim({ reddedildi: 2, dogrulanmis: 4, kokenli: 6, toplam: 6 });
+    expect(S.kokenImi(s)).toBe('bd');
+    expect(S.kokenToplanabilir(s)).toBe(false);
+  });
+});
+
+describe('Köken bölümü — gerçek kayıt üstünde (izole DB kopyası)', () => {
+  it('kökensiz açılan varlık ekranda "kökeni yok" olarak sayılır, '
+    + '"doğrulanmış" kovasına GİRMEZ', async () => {
+    const once = (await kokenSayimlari()).satirlar.find((x) => x.varlikTipi === 'Varlik')!;
+    await varlikAc('SAGLIK-KOKENSIZ-1');
+    const sonra = (await kokenSayimlari()).satirlar.find((x) => x.varlikTipi === 'Varlik')!;
+
+    expect(sonra.manuel).toBe(once.manuel! + 1);
+    expect(sonra.dogrulanmis).toBe(once.dogrulanmis);
+    expect(sonra.otomatik).toBe(once.otomatik);
+
+    // Ekran satırı: kökensiz kayıt var → `unk`, kuyruğa inmez, sayısı yazılır.
+    const satir: KokenSayimSatiri = {
+      varlikTipi: sonra.varlikTipi, manuel: sonra.manuel, otomatik: sonra.otomatik,
+      dogrulanmis: sonra.dogrulanmis, reddedildi: sonra.reddedildi,
+      kokenli: sonra.kokenli, toplam: sonra.toplam,
+    };
+    expect(S.kokenImi(satir)).not.toBe('ok');
+    expect(S.kokenToplanabilir(satir)).toBe(false);
+    expect(S.kokensizYazisi(satir)).toBe(String(sonra.manuel));
+  });
+
+  it('doğrulama insanın işidir: seçim ya da gerekçe yoksa düğme açılmaz', () => {
+    expect(S.dogrulamaPasif([], 'gerekçe', true, false)).toBe(true);
+    expect(S.dogrulamaPasif(['k1'], '   ', true, false)).toBe(true);
+    expect(S.dogrulamaPasif(['k1'], 'gerekçe', false, false)).toBe(true);
+    expect(S.dogrulamaPasif(['k1'], 'gerekçe', true, true)).toBe(true);
+    expect(S.dogrulamaPasif(['k1'], 'gerekçe', true, false)).toBe(false);
+  });
+
+  it('ölçülmemiş ortalama güven "%0" yazılmaz', () => {
+    expect(S.ortalamaGuvenYazisi(null)).toBe('ölçülmedi');
+    expect(S.ortalamaGuvenYazisi(0)).toBe('%0');
+    expect(S.ortalamaGuvenYazisi(null)).not.toBe(S.ortalamaGuvenYazisi(0));
+  });
+
+  it('bayat köken kaynağı HATA değil, güncelliği BİLİNMEYEN sayılır', () => {
+    const kaynak: KaynakSatiri = {
+      kaynakSistem: 'k', kayit: 5, dogrulanmis: 5, dogrulanmadi: 0, reddedildi: 0,
+      guveniOlculen: 5, guveniOlculmemis: 0, ortalamaGuven: 0.9,
+      sonAktarim: new Date().toISOString(), bayat: 3,
+    };
+    expect(S.kaynakImi(kaynak)).toBe('unk');
+    expect(S.kaynakImi({ ...kaynak, bayat: 0 })).toBe('ok');
+    expect(S.kaynakImi({ ...kaynak, dogrulanmadi: 1 })).toBe('md');
+    expect(S.kaynakImi({ ...kaynak, reddedildi: 1 })).toBe('bd');
   });
 });

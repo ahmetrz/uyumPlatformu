@@ -706,6 +706,26 @@ export async function aktarimiUygula(girdi: {
 
   try {
     const sonuc = await db.$transaction(async (tx) => {
+      /* AKTARIMI ÖNCE SAHİPLEN.
+
+         Yukarıdaki durum kontrolü (`kayit.durum !== 'dogrulama_bekliyor'`)
+         transaction'ın DIŞINDA. Yorumu "onaylanmış/reddedilmiş aktarım
+         ikinci kez işlenmez" diyor — iddia doğru ama mekanizma yarışa açık:
+         iki onay aynı anda gelirse ikisi de "bekliyor" görür ve 10.000
+         varlık satırı iki kez yazılır ya da güncellenir.
+
+         Sahiplenme transaction'ın ilk işlemidir ve koşulludur. Kaybeden
+         `count === 0` alır, fırlatır ve transaction geri sarılır — hiçbir
+         satır yazılmamış olur. Kazanan patlarsa sahiplenme de geri sarılır,
+         yani dosya yeniden onaylanabilir kalır. */
+      const sahiplenme = await tx.varlikAktarimi.updateMany({
+        where: { id: aktarimId, durum: 'dogrulama_bekliyor' },
+        data: { durum: 'onaylandi' },
+      });
+      if (sahiplenme.count === 0) {
+        throw new Error('Bu aktarım başka bir onayla işlenmiş — aynı dosya ikinci kez aktarılamaz');
+      }
+
       // Commit anındaki gerçekle yeniden çöz: envanter yükleme sonrası değişmiş olabilir.
       const [referanslar, mevcutlar] = await Promise.all([
         referanslariYukle(tx), mevcutVarliklariYukle(tx),

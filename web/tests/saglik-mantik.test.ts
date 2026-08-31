@@ -51,11 +51,16 @@ function connector(ozel: Partial<ConnectorSagligi> = {}): ConnectorSagligi {
   return {
     id: 'c1', kod: 'AD-01', ad: 'Kurumsal dizin', tip: 'ad_entra',
     kaynakSistem: 'entra.zorlu.local', kayitDurumu: 'etkin', etkin: true,
-    kimlikTipi: 'oauth2_client_credentials', sirMaskeli: 'env:AD_***',
+    kimlikTipi: 'oauth2_client_credentials', sirMaskeli: 'env: AD_BIND_PAROLA',
     kimlikEksik: false, kimlikGerekce: null, durum: 'basarili',
-    hicKosmadi: false, bayatKosu: false, sonKosu: null,
+    hicKosmadi: false, bayatKosu: false, sonKosu: null, sonKuruKosu: null,
     sonBasariliKosu: AN, tazelik: tazelik(), sonHata: null, imlec: null,
-    gecmis: [], ...ozel,
+    gecmis: [], kuruGecmis: [],
+    // Yapılandırma tezgâhının alanları (§8): ortam bir GÜVENLİK bilgisidir.
+    ortam: 'gelistirme', senkronKipi: 'delta', ardisikHata: 0,
+    ardisikHataSiniri: null, devreKesiciEsikte: false, eslemeProfilId: null,
+    pollAralikDk: 60, sonHataOzeti: null, gerekenSirlar: [],
+    ...ozel,
   };
 }
 

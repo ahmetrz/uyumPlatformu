@@ -133,10 +133,31 @@ export async function onayKarar(girdi: {
     if (talep.talepEdenId === k.id)
       throw new Error('Dört göz ilkesi: kendi açtığınız talebi siz karara bağlayamazsınız');
 
-    await db.onayTalebi.update({ where: { id: v.id }, data: {
-      durum: v.karar, gerekce: v.gerekce?.trim() || null,
-      onaylayanId: k.id, kapanis: new Date(),
-    } });
+    /* Kararı ATOMİK olarak sahiplen.
+
+       Yukarıdaki `durum !== 'bekliyor'` kontrolü tek başına yetmez: iki
+       onaylayan aynı anda karar verirse İKİSİ DE 'bekliyor' görür, ikisi
+       de yazar ve `onayYanEtkisi` İKİ KEZ uygulanır — istisna iki kez
+       aktifleşir, madde durumu iki kez değişir, denetim izine iki onay
+       satırı düşer. Dört göz kontrolü de yalnız aynı kişiye karşı korur,
+       iki farklı kişiye karşı değil.
+
+       Koşullu `updateMany` bunu tek atomik ifadeye indirir: yalnız hâlâ
+       'bekliyor' olan satır güncellenir. `count === 0` demek "başkası önce
+       davrandı" demektir; kaybeden ne yan etki uygular ne de iz yazar.
+
+       Bugün SQLite tek yazıcı olduğu için bu yarış dar bir pencerededir;
+       PostgreSQL'de (READ COMMITTED) pencere gerçek genişliğine kavuşur.
+       Düzeltmenin göçten ÖNCE yapılması gerekir: sonrasında iki kez
+       uygulanmış bir yan etkiyi geriye dönük ayırt etmek mümkün değildir. */
+    const sahiplenme = await db.onayTalebi.updateMany({
+      where: { id: v.id, durum: 'bekliyor' },
+      data: {
+        durum: v.karar, gerekce: v.gerekce?.trim() || null,
+        onaylayanId: k.id, kapanis: new Date(),
+      },
+    });
+    if (sahiplenme.count === 0) throw new Error('Bu talep zaten karara bağlanmış');
     await iz({ aktorId: k.id, varlikTipi: 'OnayTalebi', varlikId: v.id,
       eylem: v.karar === 'onaylandi' ? 'onay' : 'red',
       alan: 'durum', once: 'bekliyor', sonra: v.karar,

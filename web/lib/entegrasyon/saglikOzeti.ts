@@ -1,8 +1,13 @@
 import 'server-only';
 import { db } from '@/lib/db';
 import { izinVar } from '@/lib/erisim';
-import { referansGecerli, sirMaskesi } from '@/lib/entegrasyon/sir';
+import {
+  referansGecerli, sirMaskesi, sirSaglayicilari, sirVarMi,
+} from '@/lib/entegrasyon/sir';
 import type { AktifKullanici } from '@/lib/auth';
+// YALNIZ TİP: kuru koşu raporunun biçimi. `import type` derlemede silinir,
+// bu okuma katmanı kuru koşu çekirdeğine RUNTIME bağımlılık taşımaz.
+import type { KuruOzet } from '@/lib/entegrasyon/kuru';
 
 /* Entegrasyon gözlemlenebilirliği — SALT OKUMA özet katmanı.
 
@@ -59,6 +64,25 @@ export type ConnectorGirdi = {
   sonHata: string | null;
   etkin: boolean;
   imlec: string | null;
+
+  /* Aşağıdaki dördü OPSİYONELDİR ve bilinçlidir: saf `connectorSagligi()`
+     çağrıları (testler, eski çağıranlar) bu alanları vermeyebilir. Verilmediğinde
+     çıktı `null` olur ve ekran "bilinmiyor" yazar — varsayılan UYDURULMAZ.
+     Özellikle `ortam`: bir connector'ın hangi ortama baktığı güvenlik
+     bilgisidir; okunamadığında "gelistirme" varsaymak, üretim OT ağına bakan
+     bir kaydı zararsız göstermek olurdu. */
+  /** gelistirme | test | uretim */
+  ortam?: string | null;
+  /** tam | delta */
+  senkronKipi?: string | null;
+  /** şu ana kadarki ardışık başarısızlık */
+  ardisikHata?: number | null;
+  /** kaç ardışık hatadan sonra otomatik duraklatılır; null = duraklatma yok */
+  ardisikHataSiniri?: number | null;
+  /** bağlı eşleme profili; null = tipin etkin profili kullanılır */
+  eslemeProfilId?: string | null;
+  /** son hatanın parmak izi (sınıf + deneme no + kısa sebep) */
+  sonHataOzeti?: string | null;
 };
 
 export type KosuGirdi = {
@@ -78,6 +102,21 @@ export type KosuGirdi = {
   hata: string | null;
   /** hata OLMAYAN açıklama (hangi kimlik eksik, kaç kayıt neden reddedildi) */
   ayrinti: string | null;
+  /** KURU KOŞU muydu? Kuru koşu hiçbir kayıt yazmaz — gerçek koşu sayılmaz.
+      Eski satırlarda alan yok; okunamayan satır GERÇEK koşu sayılır (kuru
+      koşu yeni bir yetenektir, geçmişte yoktu). */
+  kuruKosu?: boolean | null;
+  /** kuru koşunun "olsaydı ne olurdu" raporu (JSON metni); yalnız kuru
+      koşularda dolu. Ayrıştırılamazsa SESSİZCE yutulmaz — çıktıda `null`
+      olur ve ekran "rapor okunamadı" der. */
+  kuruOzetJson?: string | null;
+  /** gecici | yetki | yapilandirma | sir | sozlesme | yazma | bilinmeyen.
+      Başarılı ve `kimlik_bekleniyor` koşuda null'dur: "hata sınıfı YOK" ile
+      "hata sınıfı BİLİNMİYOR" ayrı şeylerdir ve ekranda da ayrılır. */
+  hataSinifi?: string | null;
+  /** koşuyu, ürettiği dead-letter satırlarını ve denetim izini bağlayan
+      tek anahtar */
+  korelasyonId?: string | null;
 };
 
 /* ═══ Çıktı biçimleri (istemciye gönderilir — serileştirilebilir) ═════ */
@@ -141,8 +180,34 @@ export type KosuSatiri = {
   reddSebebi: string | null;
   /** reddedilen > 0 ama sebep kaydı yok — sessizce yutulmuş kayıtlar */
   reddSebebiEksik: boolean;
-  /** alinan ≠ kabulEdilen + reddedilen + yinelenen → sayaçlar tutmuyor */
+  /** alinan ≠ kabulEdilen + reddedilen → sayaçlar tutmuyor */
   sayacTutarsiz: boolean;
+  /** yinelenen > kabulEdilen → yinelenen kabul edilenlerin ALT KÜMESİ
+      olmalıydı; büyükse sayaçlar gerçekten tutmuyor */
+  yinelenenTutarsiz: boolean;
+  /** hata sınıfı; null = sınıf yazılmamış (başarılı koşuda beklenen) */
+  hataSinifi: string | null;
+  /** koşu ↔ dead-letter ↔ denetim izi bağlantısı */
+  korelasyonId: string | null;
+  /** KURU koşu: sayaçları "olsaydı" değerleridir, hiçbir kayıt yazılmadı */
+  kuru: boolean;
+  /** kuru koşunun raporu (sayaçlar, örnekler, ret sebepleri, uyarılar).
+      null = gerçek koşu ya da rapor okunamadı; `kuruOzetBozuk` ikisini ayırır. */
+  kuruOzet: KuruOzet | null;
+  /** kuru koşu raporu VARDI ama ayrıştırılamadı — sessizce "rapor yok"
+      demek, hesaplanmış bir etkiyi kaybetmek olurdu */
+  kuruOzetBozuk: boolean;
+};
+
+/** Adaptörün BEYAN ETTİĞİ bir sır referansının varlığı.
+    Sır DEĞERİ okunmaz: `sirVarMi()` yalnız var/yok/bilinmiyor der ve
+    `bilinmiyor` (sağlayıcı bağlı değil) `yok` ile KARIŞTIRILMAZ. */
+export type SirDurumu = {
+  referans: string;
+  /** maskeli gösterim — ham referans ekrana bu biçimde iner */
+  maske: string;
+  durum: 'var' | 'yok' | 'bilinmiyor';
+  sebep: string | null;
 };
 
 export type ConnectorSagligi = {
@@ -153,6 +218,22 @@ export type ConnectorSagligi = {
   kaynakSistem: string;
   /** connector kaydının kendi durumu (taslak/etkin/…) — sağlıkla karıştırılmaz */
   kayitDurumu: string;
+  /** Hangi ortamın sistemine bakıyor. null = KAYITTA OKUNAMADI (bilinmiyor);
+      "gelistirme" varsayılmaz — yanlış varsayım üretim kaydını saklardı. */
+  ortam: string | null;
+  /** tam | delta; null = bilinmiyor */
+  senkronKipi: string | null;
+  /** ardışık başarısızlık sayacı; null = okunmadı (SIFIR DEĞİL) */
+  ardisikHata: number | null;
+  /** otomatik duraklatma eşiği; null = duraklatma yok ya da okunmadı */
+  ardisikHataSiniri: number | null;
+  /** sayaç eşiğe dayandı — bir sonraki hata connector'ı duraklatır */
+  devreKesiciEsikte: boolean;
+  /** bağlı eşleme profili kimliği; null = tipin etkin profili */
+  eslemeProfilId: string | null;
+  /** beklenen poll aralığı (dk); null = yalnız elle tetiklenir.
+      Tazelik hesabının girdisidir ve yapılandırma formunda düzenlenir. */
+  pollAralikDk: number | null;
   etkin: boolean;
   kimlikTipi: string;
   /** YALNIZ maskeli adres. Sır DEĞERİ hiçbir koşulda bu nesneye girmez. */
@@ -163,13 +244,26 @@ export type ConnectorSagligi = {
   /** hiç koşu kaydı yok — durum başka bir sebeple gölgelense de görünür kalır */
   hicKosmadi: boolean;
   bayatKosu: boolean;
+  /** son GERÇEK koşu (kuru koşular buraya girmez) */
   sonKosu: KosuSatiri | null;
+  /** son KURU koşu — ayrı alan: "son koşu başarılı" cümlesini kuru koşu
+      kuramaz; kuru koşudan sonra entegrasyon hâlâ hiç veri getirmemiştir */
+  sonKuruKosu: KosuSatiri | null;
   sonBasariliKosu: string | null;
   tazelik: Tazelik;
   /** Connector.sonHata — son koşunun hatasından ayrı tutulur */
   sonHata: string | null;
+  /** son hatanın parmak izi: "aynı hata mı tekrar ediyor" sorusunun cevabı */
+  sonHataOzeti: string | null;
+  /** Adaptörün beyan ettiği sırlar ve varlıkları.
+      null = ÖLÇÜLMEDİ (adaptör kayıtlı değil ya da beyan okunamadı) —
+      boş dizi "hiç sır gerekmiyor" demektir, ikisi aynı şey DEĞİL. */
+  gerekenSirlar: SirDurumu[] | null;
   imlec: string | null;
+  /** yalnız GERÇEK koşuların geçmişi */
   gecmis: KosuSatiri[];
+  /** kuru koşu geçmişi — ayrı liste, gerçek koşularla karıştırılmaz */
+  kuruGecmis: KosuSatiri[];
 };
 
 export type BagimsizKosuOzeti = {
@@ -180,11 +274,51 @@ export type BagimsizKosuOzeti = {
   sonBaslangic: string;
 };
 
+/** Sır sağlayıcısının bağlılık durumu — `lib/entegrasyon/sir.ts` defterinden.
+    Bağlı OLMAYAN sağlayıcı gizlenmez: `vault` bugün bağlı değildir ve bunu
+    ekranda söylemek, "sır neden çözülmüyor" sorusunun tek dürüst cevabıdır. */
+export type SaglayiciDurumu = { ad: string; bagli: boolean; gereken: string | null };
+
+/** Zamanlayıcı görünürlüğü — "bu connector neden senkronize olmuyor?".
+    Kaynak `lib/is/zamanlayici.ts` → `vadesiGelenler()`; o modül DEĞİŞTİRİLMEDİ,
+    yalnız çağrıldı. Okunamazsa `okundu:false` döner ve ekran bunu boş liste
+    gibi göstermez — "vadesi gelen yok" ile "zamanlayıcıya bakılamadı" ayrı
+    şeylerdir. */
+export type ZamanlayiciGorunumu = {
+  okundu: boolean;
+  hata: string | null;
+  /** vadesi gelmiş connector kimlikleri */
+  connectorVadeli: string[];
+  /** connector kimliği → neden koşmuyor (zamanlayıcının kendi gerekçesi) */
+  connectorSebep: Record<string, string>;
+  /** vadesi gelmiş motor adları */
+  motorVadeli: string[];
+  /** motor adı → neden koşmuyor */
+  motorSebep: Record<string, string>;
+};
+
+/** Eşleme profili sürümü. Sürüm asla güncellenmez; yeni yayın yeni satır
+    açar, eskisi arşive geçer — bu yüzden `surum` ekranda daima yazılır. */
+export type EslemeProfilOzeti = {
+  id: string; kod: string; ad: string; connectorTipi: string;
+  surum: number; durum: string;
+};
+
 export type EntegrasyonOzeti = {
   /** false = kullanıcı yonetim/okuma taşımıyor; hiçbir alan doldurulmaz */
   yetkili: boolean;
   connectorlar: ConnectorSagligi[];
   sayilar: Record<SaglikDurumu, number>;
+  /** kayıtlı sır sağlayıcıları ve bağlı olup olmadıkları */
+  saglayicilar: SaglayiciDurumu[];
+  zamanlayici: ZamanlayiciGorunumu;
+  /** koşuda kullanılabilecek eşleme profilleri (etkin olanlar + bağlı
+      olanlar; arşiv sürüm bağlıysa gizlenmez) */
+  eslemeProfilleri: EslemeProfilOzeti[];
+  /** açık dead-letter (reddedilen kayıt) sayısı — kuyruğun kendisi ayrı
+      rotada yaşar, ama sayısı burada görünür kalır ki kimse fark etmemezlik
+      edemesin */
+  reddedilenAcik: number;
   /** connector'a bağlı OLMAYAN koşular — görünmez kalmamalı */
   bagimsizKosular: BagimsizKosuOzeti[];
   /** silinmiş/kapsam dışı connector'a ait koşu sayısı */
@@ -268,11 +402,28 @@ export function tazelikHesapla(
   };
 }
 
+/** Kuru koşu raporunu ayrıştırır. Bozuk JSON SESSİZCE yutulmaz: rapor
+    yokmuş gibi davranmak, hesaplanmış bir "olsaydı ne olurdu" tablosunu
+    kaybetmek olurdu. */
+function kuruOzetiCoz(ham: string | null | undefined): {
+  ozet: KuruOzet | null; bozuk: boolean;
+} {
+  if (!ham) return { ozet: null, bozuk: false };
+  try {
+    const o = JSON.parse(ham) as KuruOzet;
+    if (!o || typeof o !== 'object' || !o.sayaclar) return { ozet: null, bozuk: true };
+    return { ozet: o, bozuk: false };
+  } catch {
+    return { ozet: null, bozuk: true };
+  }
+}
+
 function kosuSatiri(k: KosuGirdi, simdi: Date, esikDk: number): KosuSatiri {
   /* Ret sebebi öncelikle `ayrinti`dedir: reddedilen kayıt koşuyu başarısız
      yapmaz, dolayısıyla `hata` alanına yazılmamalıdır. Eski kayıtlar için
      `hata`ya düşülür. */
   const reddSebebi = k.reddedilen > 0 ? (k.ayrinti ?? k.hata) : null;
+  const kuru = kuruOzetiCoz(k.kuruOzetJson);
   return {
     id: k.id,
     durum: k.durum,
@@ -290,18 +441,37 @@ function kosuSatiri(k: KosuGirdi, simdi: Date, esikDk: number): KosuSatiri {
     imlecSonra: k.imlecSonra,
     hata: k.hata,
     ayrinti: k.ayrinti,
+    hataSinifi: k.hataSinifi ?? null,
+    korelasyonId: k.korelasyonId ?? null,
     reddSebebi,
+    kuru: k.kuruKosu === true,
+    kuruOzet: kuru.ozet,
+    kuruOzetBozuk: kuru.bozuk,
     // Reddedilen kayıt var ama sebebi yazılmamışsa bu bir boşluktur, sessizce geçilmez.
     reddSebebiEksik: k.reddedilen > 0 && !k.ayrinti && !k.hata,
+    /* ÇEKİRDEĞİN SAYAÇ SÖZLEŞMESİ (lib/entegrasyon/cekirdek.ts başlığı):
+         alinan = kabulEdilen + reddedilen
+         yinelenen ⊆ kabulEdilen   (aynı kaynak kaydı yeniden geldi)
+
+       `yinelenen` AYRI BİR KOVA DEĞİL, kabul edilenlerin alt kümesidir.
+       Buradaki formül eskiden onu ikinci kez topluyordu; sonuç olarak
+       yinelenen içeren HER BAŞARILI DELTA KOŞUSU "sayaçlar tutmuyor" diye
+       işaretleniyordu (alınan 3 / kabul 3 / red 0 / yinelenen 3 → tutarsız).
+       Delta senkronizasyonda yinelenen normaldir; uyarı böylece gerçek
+       tutarsızlıkta kimsenin bakmayacağı bir gürültüye dönüşmüştü. */
     sayacTutarsiz: k.durum !== 'calisiyor'
-      && k.alinan !== k.kabulEdilen + k.reddedilen + k.yinelenen,
+      && k.alinan !== k.kabulEdilen + k.reddedilen,
+    // Alt küme kuralının kendi ölçüsü: yinelenen kabul edileni AŞAMAZ.
+    yinelenenTutarsiz: k.durum !== 'calisiyor' && k.yinelenen > k.kabulEdilen,
   };
 }
 
 /** Koşu geçmişinden türetilen son BAŞARILI zaman — `Connector.sonBasariliKosu`
-    yazılmamışsa yedek kaynak (yoksa "hiç başarılı koşu yok" yalanı olurdu). */
+    yazılmamışsa yedek kaynak (yoksa "hiç başarılı koşu yok" yalanı olurdu).
+    KURU koşu buraya giremez: başarıyla biten bir kuru koşu hiçbir veri
+    getirmemiştir, "veri şu kadar taze" demek yalan olurdu. */
 function gecmistenSonBasari(kosular: KosuGirdi[]): Date | null {
-  const b = kosular.find((k) => k.durum === 'basarili');
+  const b = kosular.find((k) => k.durum === 'basarili' && k.kuruKosu !== true);
   if (!b) return null;
   return b.bitis ?? b.baslangic;
 }
@@ -310,6 +480,11 @@ export type OzetSecenegi = {
   simdi?: Date;
   bayatEsigiDk?: number;
   gecikmeToleransi?: number;
+  /** Adaptörün beyan ettiği sırların varlığı — sorgu katmanı çözer ve
+      buradan enjekte eder. `connectorSagligi` SAF kalsın diye parametredir:
+      sır varlığı sorgusu dosya sistemine/ortama bakar, saf fonksiyon bakmaz.
+      Verilmezse `null` yazılır (ölçülmedi), boş dizi UYDURULMAZ. */
+  gerekenSirlar?: SirDurumu[] | null;
 };
 
 /**
@@ -325,8 +500,14 @@ export function connectorSagligi(
   const esikDk = secenek.bayatEsigiDk ?? BAYAT_KOSU_ESIGI_DK;
   const tolerans = secenek.gecikmeToleransi ?? GECIKME_TOLERANSI;
 
-  const gecmis = kosular.map((k) => kosuSatiri(k, simdi, esikDk));
-  const sonHam = kosular[0] ?? null;
+  /* Kuru koşular AYRI listeye ayrılır. Aynı listede dursalardı sağlık
+     durumu son kuru koşudan hesaplanır ve hiç veri getirmemiş bir
+     entegrasyon "başarılı" görünürdü — §6'nın açıkça yasakladığı şey. */
+  const gercekHam = kosular.filter((k) => k.kuruKosu !== true);
+  const kuruHam = kosular.filter((k) => k.kuruKosu === true);
+  const gecmis = gercekHam.map((k) => kosuSatiri(k, simdi, esikDk));
+  const kuruGecmis = kuruHam.map((k) => kosuSatiri(k, simdi, esikDk));
+  const sonHam = gercekHam[0] ?? null;
   const sonKosu = gecmis[0] ?? null;
   const kimlik = kimlikDurumu(c);
   const hicKosmadi = sonHam === null;
@@ -348,7 +529,7 @@ export function connectorSagligi(
     return 'bilinmiyor';
   })();
 
-  const sonBasari = c.sonBasariliKosu ?? gecmistenSonBasari(kosular);
+  const sonBasari = c.sonBasariliKosu ?? gecmistenSonBasari(gercekHam);
 
   return {
     id: c.id,
@@ -357,6 +538,19 @@ export function connectorSagligi(
     tip: c.tip,
     kaynakSistem: c.kaynakSistem,
     kayitDurumu: c.durum,
+    /* Boş metin de "bilinmiyor"dur: veritabanında '' duran bir ortam alanı
+       ekranda "gelistirme" diye okunamaz. */
+    ortam: c.ortam?.trim() || null,
+    senkronKipi: c.senkronKipi?.trim() || null,
+    ardisikHata: c.ardisikHata ?? null,
+    ardisikHataSiniri: c.ardisikHataSiniri ?? null,
+    /* Devre kesici eşiği YALNIZ iki sayı da biliniyorsa hesaplanır; biri
+       bilinmiyorsa "eşikte değil" demek uydurma olurdu, `false` kalır ve
+       ekran sayaç yerine "bilinmiyor" yazar. */
+    devreKesiciEsikte: c.ardisikHataSiniri != null && c.ardisikHataSiniri > 0
+      && (c.ardisikHata ?? 0) >= c.ardisikHataSiniri,
+    eslemeProfilId: c.eslemeProfilId ?? null,
+    pollAralikDk: c.pollAralikDk,
     etkin: c.etkin,
     kimlikTipi: c.kimlikTipi,
     // Sırra giden ADRES; sırrın kendisi değil. siriCoz() burada çağrılmaz.
@@ -367,11 +561,15 @@ export function connectorSagligi(
     hicKosmadi,
     bayatKosu,
     sonKosu,
+    sonKuruKosu: kuruGecmis[0] ?? null,
     sonBasariliKosu: sonBasari ? sonBasari.toISOString() : null,
     tazelik: tazelikHesapla(sonBasari, c.pollAralikDk, simdi, tolerans),
     sonHata: c.sonHata,
+    sonHataOzeti: c.sonHataOzeti ?? null,
+    gerekenSirlar: secenek.gerekenSirlar ?? null,
     imlec: c.imlec,
     gecmis,
+    kuruGecmis,
   };
 }
 
@@ -406,18 +604,101 @@ const KOSU_ALANLARI = {
   id: true, durum: true, tetikleyen: true, baslangic: true, bitis: true,
   sureMs: true, alinan: true, kabulEdilen: true, reddedilen: true,
   yinelenen: true, denemeNo: true, imlecOnce: true, imlecSonra: true,
-  hata: true, ayrinti: true,
+  hata: true, ayrinti: true, kuruKosu: true, kuruOzetJson: true,
+  hataSinifi: true, korelasyonId: true,
 } as const;
+
+/** Zamanlayıcıya hiç bakılamadığında dönen görünüm. Boş listelerle
+    "vadesi gelen yok" demek YASAK — okunmadığı `okundu:false` ile söylenir. */
+function bosZamanlayici(hata: string | null): ZamanlayiciGorunumu {
+  return {
+    okundu: false, hata,
+    connectorVadeli: [], connectorSebep: {}, motorVadeli: [], motorSebep: {},
+  };
+}
 
 function bosOzet(yetkili: boolean, simdi: Date): EntegrasyonOzeti {
   return {
     yetkili,
     connectorlar: [],
     sayilar: bosSayilar(),
+    /* Yetkisiz kullanıcıya sağlayıcı defteri de gitmez: hangi sır
+       sağlayıcısının bağlı olduğu kurulum bilgisidir. */
+    saglayicilar: [],
+    zamanlayici: bosZamanlayici(null),
+    eslemeProfilleri: [],
+    reddedilenAcik: 0,
     bagimsizKosular: [],
     arsivKosuSayisi: 0,
     uretildi: simdi.toISOString(),
   };
+}
+
+/**
+ * Adaptörün beyan ettiği sırların VARLIĞINI çözer — değerlerini DEĞİL.
+ *
+ * `sirVarMi()` üç yanıt verir ve üçü de farklıdır: `var`, `yok`,
+ * `bilinmiyor`. Sağlayıcı bağlı değilse yanıt `bilinmiyor`dur; onu `yok`a
+ * indirgemek, kurulumu eksik olmayan bir connector'ı eksik göstermek olurdu.
+ *
+ * Adaptör kayıtlı değilse `null` döner: "hiç sır gerekmiyor" (boş dizi) ile
+ * "beyan okunamadı" ayrı şeylerdir.
+ */
+async function gerekenSirlariCoz(tip: string): Promise<SirDurumu[] | null> {
+  try {
+    const { adaptorVarMi, adaptorCoz } = await import('@/lib/entegrasyon/kayit');
+    if (!adaptorVarMi(tip)) return null;
+    const beyan = adaptorCoz(tip).gerekenSirlar;
+    if (!Array.isArray(beyan)) return null;
+    return Promise.all(beyan.map(async (referans) => {
+      const v = await sirVarMi(referans);
+      return {
+        referans,
+        maske: sirMaskesi(referans),
+        durum: v.durum,
+        sebep: v.durum === 'var' ? null : v.sebep,
+      };
+    }));
+  } catch {
+    // Beyan okunamadı: uydurma yerine "ölçülmedi".
+    return null;
+  }
+}
+
+/**
+ * Zamanlayıcının "şu an ne koşardı" görüşü. `lib/is/zamanlayici.ts`
+ * DEĞİŞTİRİLMEDİ; burada yalnız çağrılır ve ekranın anlayacağı biçime
+ * çevrilir.
+ *
+ * Modül GEÇ yüklenir (dynamic import): `saglikOzeti` salt okuma bir özet
+ * katmanıdır ve onu içe aktaran her çağıran (testler dâhil) motor
+ * kayıt defterini + iş kuyruğunu da yüklemek zorunda kalmamalı.
+ *
+ * FIRLATMAZ: zamanlayıcıya bakılamazsa sebebi taşınır. Sessizce boş liste
+ * dönmek, hiçbir şeyin koşmadığı bir kurulumu "her şey zamanında" gibi
+ * gösterirdi.
+ */
+async function zamanlayiciGorunumu(simdi: Date): Promise<ZamanlayiciGorunumu> {
+  try {
+    const { vadesiGelenler } = await import('@/lib/is/zamanlayici');
+    const { kosulacak, atlanan } = await vadesiGelenler(simdi);
+    const gorunum: ZamanlayiciGorunumu = {
+      okundu: true, hata: null,
+      connectorVadeli: [], connectorSebep: {}, motorVadeli: [], motorSebep: {},
+    };
+    for (const h of kosulacak) {
+      if (h.tur === 'connector') gorunum.connectorVadeli.push(h.hedef);
+      else gorunum.motorVadeli.push(h.hedef);
+    }
+    for (const a of atlanan) {
+      if (a.tur === 'connector') gorunum.connectorSebep[a.hedef] = a.sebep;
+      else gorunum.motorSebep[a.hedef] = a.sebep;
+    }
+    return gorunum;
+  } catch (e) {
+    return bosZamanlayici(
+      `Zamanlayıcı durumu okunamadı: ${e instanceof Error ? e.message : 'bilinmeyen hata'}`);
+  }
 }
 
 /**
@@ -442,11 +723,22 @@ export async function entegrasyonSagligiOzeti(
       id: true, kod: true, ad: true, tip: true, durum: true, kaynakSistem: true,
       kimlikTipi: true, sirReferansi: true, pollAralikDk: true,
       sonBasariliKosu: true, sonHata: true, etkin: true, imlec: true,
+      // Yapılandırma tezgâhının gösterdiği alanlar. `sirReferansi` yalnız
+      // maskelenmek için okunur; ham hâli çıktıya GİRMEZ.
+      ortam: true, senkronKipi: true, ardisikHata: true, ardisikHataSiniri: true,
+      eslemeProfilId: true, sonHataOzeti: true,
     },
   });
 
   const idler = connectorlar.map((c) => c.id);
-  const [kosuListeleri, bagimsizHam, arsivKosuSayisi] = await Promise.all([
+  /* Eşleme profilleri: ETKİN olanlar + bir connector'a BAĞLI olanlar.
+     Bağlı bir arşiv sürümü listeden düşerse ekran "profil yok" derdi;
+     oysa koşu hâlâ o sürümle yorumluyor olurdu. */
+  const bagliProfilIdler = connectorlar
+    .map((c) => c.eslemeProfilId).filter((x): x is string => !!x);
+
+  const [kosuListeleri, bagimsizHam, arsivKosuSayisi, zamanlayici,
+    eslemeProfilHam, reddedilenAcik] = await Promise.all([
     Promise.all(idler.map((id) => db.entegrasyonKosusu.findMany({
       where: { connectorId: id },
       orderBy: { baslangic: 'desc' },
@@ -462,10 +754,27 @@ export async function entegrasyonSagligiOzeti(
     idler.length > 0
       ? db.entegrasyonKosusu.count({ where: { NOT: { connectorId: null }, connectorId: { notIn: idler } } })
       : db.entegrasyonKosusu.count({ where: { NOT: { connectorId: null } } }),
+    zamanlayiciGorunumu(simdi),
+    db.eslemeProfili.findMany({
+      where: { OR: [{ durum: 'etkin' }, { id: { in: bagliProfilIdler } }] },
+      orderBy: [{ kod: 'asc' }, { surum: 'desc' }],
+      select: { id: true, kod: true, ad: true, connectorTipi: true,
+        surum: true, durum: true },
+    }),
+    db.reddedilenKayit.count({ where: { durum: 'acik' } }),
   ]);
 
+  // Sır BEYANI adaptörden, VARLIĞI sağlayıcıdan gelir; ikisi de sırrın
+  // değerini okumaz. Tip başına bir kez çözülür.
+  const tipler = [...new Set(connectorlar.map((c) => c.tip))];
+  const tipSirlari = new Map<string, SirDurumu[] | null>(
+    await Promise.all(tipler.map(async (t) =>
+      [t, await gerekenSirlariCoz(t)] as [string, SirDurumu[] | null])));
+
   const satirlar = durumaGoreSirala(connectorlar.map((c, i) =>
-    connectorSagligi(c, kosuListeleri[i], { ...secenek, simdi })));
+    connectorSagligi(c, kosuListeleri[i], {
+      ...secenek, simdi, gerekenSirlar: tipSirlari.get(c.tip) ?? null,
+    })));
 
   // Connector'a bağlı olmayan koşular (eski/elle içe aktarım) gizlenmez.
   const esikDk = secenek.bayatEsigiDk ?? BAYAT_KOSU_ESIGI_DK;
@@ -487,6 +796,13 @@ export async function entegrasyonSagligiOzeti(
     yetkili: true,
     connectorlar: satirlar,
     sayilar: durumSayilari(satirlar),
+    /* Sağlayıcı defteri sırrın DEĞERİNİ değil, sağlayıcının bağlı olup
+       olmadığını taşır. `vault` bağlı değildir ve bu gizlenmez — sır
+       çözülemediğinde sebebin görünmesi gereken tek yer burasıdır. */
+    saglayicilar: sirSaglayicilari(),
+    zamanlayici,
+    eslemeProfilleri: eslemeProfilHam,
+    reddedilenAcik,
     bagimsizKosular: [...kova.values()].sort((a, b) => b.toplam - a.toplam),
     arsivKosuSayisi,
     uretildi: simdi.toISOString(),

@@ -1,8 +1,8 @@
 import 'server-only';
 import { db } from '../db';
 import { izinVar, izinliTesisIdleri } from '../erisim';
+import { parcala } from '../sorguParcala';
 import type { AktifKullanici } from '../auth';
-import { kokenYaz } from './koken';
 import type { Prisma } from '../prisma-client/client';
 
 /* CMDB toplu aktarımı — ayrıştırma, kolon eşleme, doğrulama, commit.
@@ -661,6 +661,99 @@ function guncellemeVerisi(s: CozulmusSatir) {
   return veri;
 }
 
+/* Prisma toplu INSERT'te GÖVDEDE OLMAYAN kolonları da bağlar: `id`,
+   `@default(now())`/`@updatedAt` damgaları ve şema varsayılanı olan
+   sözlük alanları. Ölçüldü (sorgu günlüğünde yer tutucu sayılarak):
+   Varlik 21 alan verildiğinde 27, VeriKokeni 11 → 14, AktiviteKaydi 9 → 11.
+   Fark sırasıyla 6 · 3 · 2. Aşağıdaki pay en büyüğünün üstünde tutuluyor;
+   şemaya varsayılanlı kolon eklenirse parça boyu kendiliğinden küçülür,
+   sessizce parametre sınırına dayanmaz. */
+const VARSAYILAN_KOLON_PAYI = 8;
+
+/** Toplu INSERT'in satır başına bağlayacağı parametre sayısı: satırların
+    anahtar kümelerinin BİRLEŞİMİ (Prisma hepsini tek ifadeye toplar ve
+    eksik kolona şema varsayılanını koyar) + varsayılan kolon payı. */
+function satirParametresi(govdeler: readonly Record<string, unknown>[]): number {
+  const birlesim = new Set<string>();
+  for (const g of govdeler) for (const k of Object.keys(g)) birlesim.add(k);
+  return birlesim.size + VARSAYILAN_KOLON_PAYI;
+}
+
+/**
+ * Köken satırlarını TOPLU yazar — `lib/entegrasyon/koken.ts → kokenYaz`
+ * ile bire bir aynı sonucu üretir, satır başına bir upsert yapmadan.
+ *
+ * NEDEN AYRI BİR YAZICI: `kokenYaz` tek kayıt sözleşmesidir ve tek kayıt
+ * için doğrudur; 10.000 satırlık aktarımda 10.000 upsert demektir. Burada
+ * mevcut satırlar TEK okumayla bulunur, yeniler `createMany` ile açılır,
+ * eskiler `updateMany` ile tazelenir — hepsi çağıranın transaction'ı içinde.
+ *
+ * Sözleşmenin `kokenYaz`'dan devralınan ve BURADA DA korunan maddeleri:
+ *   · `kokenTipi` yalnız YENİ satırda 'otomatik' yazılır; mevcut satırın
+ *     tipine dokunulmaz (bir kez doğrulanmış kayıt 'dogrulanmis' kalır).
+ *   · `dogrulamaDurumu` hiç yazılmaz — yeniden senkronizasyon doğrulamayı
+ *     düşürmez; düşürmek isteyen açıkça `dogrulamayiGeriAl` çağırır.
+ *   · `guven` null = ÖLÇÜLMEDİ (sıfır güven değil).
+ *   · `eslemeProfilSurumu` ve `kayitOzeti` YAZILMAZ: çağıran bunları
+ *     bildirmiyor ve `?? null` yazmak eşleme geçmişini sessizce silerdi.
+ */
+async function kokenleriTopluYaz(
+  tx: Prisma.TransactionClient,
+  kaynakSistem: string,
+  toplanma: Date,
+  ciftler: readonly { varlikId: string; kaynakKayitId: string }[],
+): Promise<void> {
+  if (!kaynakSistem) {
+    throw new Error('kokenleriTopluYaz: kaynakSistem zorunlu — kaynağı bilinmeyen veri otomatik sayılamaz');
+  }
+  if (ciftler.some((c) => !c.kaynakKayitId || !c.varlikId)) {
+    throw new Error('kokenleriTopluYaz: varlikId ve kaynakKayitId zorunlu — idempotency bu alanlara dayanır');
+  }
+  if (ciftler.length === 0) return;
+
+  /* Mevcut satırlar tek okumada bulunur. Filtre `varlikId` üzerindendir
+     (kaynakKayitId ile filtrelemek de olurdu; ikisi de aynı tekil indekse
+     düşer) ve dönen satırlar ÇİFT üzerinden eşleştirilir: aynı varlığın
+     aynı kaynaktan farklı bir kayıt kimliğiyle gelmiş kökeni ayrı satırdır. */
+  const anahtar = (varlikId: string, kaynakKayitId: string) => `${varlikId} ${kaynakKayitId}`;
+  const mevcut = new Map<string, string>(); // anahtar → köken id
+  for (const p of parcala([...new Set(ciftler.map((c) => c.varlikId))], 1)) {
+    const satirlar = await tx.veriKokeni.findMany({
+      where: { varlikTipi: 'Varlik', kaynakSistem, varlikId: { in: p } },
+      select: { id: true, varlikId: true, kaynakKayitId: true },
+    });
+    for (const s of satirlar) mevcut.set(anahtar(s.varlikId, s.kaynakKayitId), s.id);
+  }
+
+  const yeniler: { varlikTipi: string; varlikId: string; kaynakSistem: string;
+    kaynakKayitId: string; kokenTipi: string; connectorId: null; kosuId: null;
+    toplanma: Date; guven: null; eslemeProfilSurumu: null; kayitOzeti: null }[] = [];
+  const tazelenecek: string[] = [];
+  const gorulen = new Set<string>();
+  for (const c of ciftler) {
+    const a = anahtar(c.varlikId, c.kaynakKayitId);
+    if (gorulen.has(a)) continue; // aynı çift iki kez gelirse tekillik ihlali olmasın
+    gorulen.add(a);
+    const id = mevcut.get(a);
+    if (id) tazelenecek.push(id);
+    else yeniler.push({
+      varlikTipi: 'Varlik', varlikId: c.varlikId, kaynakSistem, kaynakKayitId: c.kaynakKayitId,
+      kokenTipi: 'otomatik', connectorId: null, kosuId: null,
+      toplanma, guven: null, eslemeProfilSurumu: null, kayitOzeti: null,
+    });
+  }
+  // Ölçüldü: 11 alan verildiğinde satır başına 14 parametre (bkz. VARSAYILAN_KOLON_PAYI).
+  for (const p of parcala(yeniler, satirParametresi(yeniler))) {
+    await tx.veriKokeni.createMany({ data: p });
+  }
+  if (tazelenecek.length > 0) {
+    const tazeleme = { connectorId: null, kosuId: null, toplanma, guven: null, aktarim: new Date() };
+    for (const p of parcala(tazelenecek, 1)) {
+      await tx.veriKokeni.updateMany({ where: { id: { in: p } }, data: tazeleme });
+    }
+  }
+}
+
 export type CommitSonucu = { eklenen: number; guncellenen: number };
 
 /**
@@ -734,36 +827,77 @@ export async function aktarimiUygula(girdi: {
         satirlar: rapor.ham!, esleme, referanslar, mevcutlar, kapsam,
       });
 
-      let eklenen = 0, guncellenen = 0;
+      /* ── YAZIM PLANI ─────────────────────────────────────────────────
+         Eskiden döngü satır başına ÜÇ gidiş-dönüş yapıyordu (varlık +
+         köken + denetim izi). 10.000 satır = 30.000 sorgu; ölçümde
+         (arac/olcek.mjs) 20,4 saniyenin yalnız 8,1'i SQL yürütmesiydi —
+         geri kalanı çağrı başına Prisma maliyetiydi. Bu yüzden satırlar
+         önce SIRAYLA gezilip planlanır, sonra TOPLU yazılır.
+
+         Atomiklik değişmedi: her şey aynı transaction içinde, tek bir
+         `throw` hepsini geri sarıyor. Aksine yarım-import ihtimali daha
+         da uzaklaştı — arıza kancası (`satirAdimi`) veritabanına HİÇBİR
+         satır gitmeden önce çalışıyor. */
+      const yeniler: CozulmusSatir[] = [];
+      const guncelBasliklar: { id: string; etiket: string; veri: Record<string, unknown> }[] = [];
       for (const [i, s] of cozum.satirlar.entries()) {
         girdi.satirAdimi?.(s, i);
-        let varlikId: string;
-        if (s.hedefId) {
-          await tx.varlik.update({ where: { id: s.hedefId }, data: guncellemeVerisi(s) });
-          varlikId = s.hedefId;
-          guncellenen += 1;
-        } else {
-          const yeni = await tx.varlik.create({ data: yaratmaVerisi(s) as never });
-          varlikId = yeni.id;
-          eklenen += 1;
-        }
+        if (s.hedefId) guncelBasliklar.push({ id: s.hedefId, etiket: s.etiket, veri: guncellemeVerisi(s) });
+        else yeniler.push(s);
+      }
+      const eklenen = yeniler.length;
+      const guncellenen = guncelBasliklar.length;
 
-        /* Köken: kaydı bir süreç getirdiği için kokenTipi 'otomatik'
-           (kokenYaz sabitler), ama guven ÖLÇÜLMEDİ → null ve doğrulama
-           durumu 'dogrulanmadi' kalır. `kaynakKayitId` satırın etiketi:
-           aynı dosya yeniden aktarılırsa köken çoğalmaz, tazelenir. */
-        await kokenYaz({
-          varlikTipi: 'Varlik', varlikId,
-          kaynakSistem, kaynakKayitId: s.etiket,
-          toplanma: simdi, guven: null,
-        }, tx);
+      /* Yeni varlıklar: aralarında bağ yok, tek tek açılmaları için sebep
+         de yok. `createManyAndReturn` parça başına TEK gidiş-dönüş yapar
+         ve açılan id'leri döndürür (köken + denetim izi bunlara yazılacak).
+         Dönen sıraya GÜVENİLMEZ; `Varlik.etiket` benzersiz olduğu için
+         eşleştirme onun üzerinden yapılır.
 
-        await tx.aktiviteKaydi.create({ data: {
-          aktorId: onaylayan.id, varlikTipi: 'Varlik', varlikId,
-          eylem: s.hedefId ? 'guncelleme' : 'olusturma',
-          alan: 'toplu_aktarim', yeniDeger: s.etiket,
-          kaynak: 'entegrasyon', korelasyonId: aktarimId, dosyaAdi: kayit.dosyaAdi,
-        } });
+         Eksik anahtar = şema varsayılanı: `yaratmaVerisi` 'atla' alanlarını
+         hiç yazmaz ve satırdan satıra farklı anahtar kümesi üretebilir.
+         Prisma bunları tek INSERT'e toplarken eksik kolona ŞEMA
+         VARSAYILANINI koyar — satır tek tek açılsaydı ne olacaksa o. */
+      const varlikIdi = new Map<string, string>(); // etiket → id
+      const yeniGovdeler = yeniler.map((s) => yaratmaVerisi(s));
+      for (const p of parcala(yeniGovdeler, satirParametresi(yeniGovdeler))) {
+        const acilanlar = await tx.varlik.createManyAndReturn({
+          data: p as never, select: { id: true, etiket: true } });
+        for (const v of acilanlar) varlikIdi.set(v.etiket, v.id);
+      }
+      if (varlikIdi.size !== yeniler.length) {
+        throw new Error(`Açılan varlık ${varlikIdi.size} ≠ ${yeniler.length} — toplu yazım eksik`);
+      }
+
+      /* Güncellemeler toplanamaz: her satırın gövdesi FARKLI (yalnız dolu
+         hücreler yazılır — sözleşme maddesi 3). Satır başına bir `update`
+         kalıyor; bunu tek ifadeye indirmenin yolu CASE/VALUES üreten ham
+         SQL olurdu ve "bilinmeyen ≠ boş" kuralını tipsiz bir yere taşırdı. */
+      for (const g of guncelBasliklar) {
+        await tx.varlik.update({ where: { id: g.id }, data: g.veri });
+        varlikIdi.set(g.etiket, g.id);
+      }
+
+      /* Köken: kaydı bir süreç getirdiği için kokenTipi 'otomatik', ama
+         guven ÖLÇÜLMEDİ → null ve doğrulama durumu 'dogrulanmadi' kalır.
+         `kaynakKayitId` satırın etiketi: aynı dosya yeniden aktarılırsa
+         köken çoğalmaz, tazelenir. Sözleşme lib/entegrasyon/koken.ts →
+         `kokenYaz`'dadır; buradaki toplu yazıcı onun aynısını satır
+         başına bir upsert yapmadan uygular (bkz. `kokenleriTopluYaz`). */
+      await kokenleriTopluYaz(tx, kaynakSistem, simdi,
+        cozum.satirlar.map((s) => ({ varlikId: varlikIdi.get(s.etiket)!, kaynakKayitId: s.etiket })));
+
+      /* Denetim izi: satır başına bir `create` yerine parça parça
+         `createMany`. Yazılan alanlar birebir aynı; `zaman` yine şema
+         varsayılanıdır (aktarımın tamamı aynı ana düşer, ki zaten öyleydi). */
+      const izSatirlari = cozum.satirlar.map((s) => ({
+        aktorId: onaylayan.id, varlikTipi: 'Varlik', varlikId: varlikIdi.get(s.etiket)!,
+        eylem: s.hedefId ? 'guncelleme' : 'olusturma',
+        alan: 'toplu_aktarim', yeniDeger: s.etiket,
+        kaynak: 'entegrasyon', korelasyonId: aktarimId, dosyaAdi: kayit.dosyaAdi,
+      }));
+      for (const p of parcala(izSatirlari, satirParametresi(izSatirlari))) {
+        await tx.aktiviteKaydi.createMany({ data: p });
       }
 
       await tx.varlikAktarimi.update({ where: { id: aktarimId }, data: {

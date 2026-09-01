@@ -6,6 +6,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { db } from './db';
+import { parcala } from './sorguParcala';
 import { yetkiZorunlu, izinVar } from './erisim';
 import { tumOturumlariKapat } from './auth';
 import {
@@ -165,13 +166,36 @@ export async function alanKaydet(girdi: {
   } catch (e) { return hata(e); }
 }
 
-/** Madde ↔ kapsam alanı eşleştirmesini topluca günceller. */
+/**
+ * Madde ↔ kapsam alanı eşleştirmesini topluca günceller.
+ *
+ * ATOMİK: silme ve yeniden kurma TEK transaction içindedir.
+ *
+ * ── Kapatılan sorun ──────────────────────────────────────────────────
+ * `deleteMany` transaction DIŞINDA koşuyor, bağlar ardından döngüde tek
+ * tek yeniden kuruluyordu. Döngü ortasında patlayan bir `create` —
+ * geçersiz bir alan kimliği yeter — maddeyi KAPSAM ALANI OLMADAN
+ * bırakıyordu. Bu sessiz kalmıyordu ama sebebinden çok uzakta
+ * görünüyordu: sonraki içe aktarımda o maddenin satırları
+ * "alan kolonu tanımlı bir kapsam alanıyla eşleşmiyor" diye elenmeye
+ * başlıyordu. Yarım yazılmış bir eşleştirme, hiç yazılmamış olandan
+ * kötüdür — çünkü doğru görünür.
+ *
+ * Döngü `createMany`ye ÇEVRİLMEDİ: liste `KapsamAlani` tablosuyla sınırlı
+ * (bir avuç satır), tek tek yazmak ölçülebilir bir maliyet değil ve
+ * hangi bağın patladığı sıradan okunabiliyor. Toplu aktarım yolları
+ * (`aktarimOnayla`) binlerce satır yazdığı için orada `createMany` var —
+ * ölçüm oraya işaret ediyordu, buraya değil.
+ */
 export async function maddeAlanAta(girdi: { maddeId: string; alanIdler: string[] }): Promise<Sonuc> {
   try {
     const k = await yetkiZorunlu('tanimlar', 'yazma');
-    await db.maddeAlan.deleteMany({ where: { maddeId: girdi.maddeId } });
-    for (const alanId of girdi.alanIdler)
-      await db.maddeAlan.create({ data: { maddeId: girdi.maddeId, alanId } });
+    await db.$transaction(async (tx) => {
+      await tx.maddeAlan.deleteMany({ where: { maddeId: girdi.maddeId } });
+      for (const alanId of girdi.alanIdler) {
+        await tx.maddeAlan.create({ data: { maddeId: girdi.maddeId, alanId } });
+      }
+    });
     await iz({ aktorId: k.id, varlikTipi: 'Madde', varlikId: girdi.maddeId, eylem: 'guncelleme',
       alan: 'alanlar', sonra: `${girdi.alanIdler.length} alan` });
     revalidatePath('/regulasyonlar'); revalidatePath('/maddeler');
@@ -678,30 +702,69 @@ export async function aktarimOnayla(girdi: { id: string }): Promise<Sonuc> {
         throw new Error('Bu içe aktarım başka bir onayla işlenmiş — ikinci kez aktarılamaz');
       }
 
+      /* KOD İNDEKSİ — döngü ÖNCESİ tek okuma.
+
+         Döngü satır başına iki `findFirst` yapıyordu (üst madde + mevcut
+         madde). 10.000 satırda bu 17.500 gereksiz gidiş-dönüştü ve ölçümde
+         süreye SQL'in kendisinden çok Prisma çağrı başına maliyeti giriyordu
+         (arac/olcek.mjs: 47.511 sorgunun 7,1 s'i SQL, 16,8 s'i toplam).
+
+         Aynı regülasyon+sürüm için maddeler zaten bir avuçtur; hepsi tek
+         sorguyla okunup `kod → id` haritasına indekslenir. Harita döngü
+         İÇİNDE de güncellenir: aynı dosyada gelen üst madde henüz yeni
+         yazıldığı için haritada durur — eski `findFirst` de tam olarak bunu
+         (tx içinde görünen satırı) buluyordu, davranış aynıdır. Dosyada
+         SONRA gelen bir üst maddeye bağ yine kurulmaz; bu da eskisi gibi. */
+      const mevcutMaddeler = await tx.madde.findMany({
+        where: { regulasyonId: kayit.regulasyonId, surumId },
+        select: { id: true, kod: true },
+      });
+      const maddeIdx = new Map(mevcutMaddeler.map((m) => [m.kod, m.id]));
+      const dbdeVardi = new Set(mevcutMaddeler.map((m) => m.id));
+
+      /* Alan planı: madde → yazılacak alan id'leri. Satır başına
+         `deleteMany` + N×`create` yerine döngü sonunda TOPLU uygulanır.
+         Aynı madde iki satırda geçerse plan ÜZERİNE YAZILIR — eski kodun
+         "her satırda önce sil, sonra yaz" davranışının aynısı. Satır içi
+         tekrarlanan alan kodu ise dedupe EDİLMEZ: eskiden ikinci `create`
+         tekillik ihlaliyle aktarımı düşürüyordu, `createMany` de düşürür. */
+      const alanPlani = new Map<string, string[]>();
+
       let eklenen = 0, guncellenen = 0;
       for (const s of rapor.satirlar ?? []) {
         let ustId: string | null = null;
         if (s.ustKod) {
           const ustTam = s.ustKod.startsWith(kayit.regulasyon.kod)
             ? s.ustKod : `${kayit.regulasyon.kod}-${s.ustKod}`;
-          ustId = (await tx.madde.findFirst({ where: {
-            regulasyonId: kayit.regulasyonId, surumId, kod: ustTam } }))?.id ?? null;
+          ustId = maddeIdx.get(ustTam) ?? null;
         }
-        const mevcutMadde = await tx.madde.findFirst({ where: {
-          regulasyonId: kayit.regulasyonId, surumId, kod: s.kod } });
-        const madde = mevcutMadde
-          ? await tx.madde.update({ where: { id: mevcutMadde.id },
-              data: { baslik: s.baslik, metin: s.metin, ustMaddeId: ustId, kanitTipi: s.kanitTipi } })
-          : await tx.madde.create({ data: {
+        const mevcutId = maddeIdx.get(s.kod) ?? null;
+        const maddeId = mevcutId
+          ? (await tx.madde.update({ where: { id: mevcutId },
+              data: { baslik: s.baslik, metin: s.metin, ustMaddeId: ustId, kanitTipi: s.kanitTipi },
+              select: { id: true } })).id
+          : (await tx.madde.create({ data: {
               regulasyonId: kayit.regulasyonId, surumId, kod: s.kod, baslik: s.baslik,
-              metin: s.metin, ustMaddeId: ustId, kanitTipi: s.kanitTipi } });
+              metin: s.metin, ustMaddeId: ustId, kanitTipi: s.kanitTipi },
+              select: { id: true } })).id;
+        maddeIdx.set(s.kod, maddeId);
         if (s.islem === 'yeni') eklenen++; else guncellenen++;
-        await tx.maddeAlan.deleteMany({ where: { maddeId: madde.id } });
-        for (const a of s.alanlar) {
-          const alanId = alanIdx.get(a.toUpperCase());
-          if (alanId) await tx.maddeAlan.create({ data: { maddeId: madde.id, alanId } });
-        }
+        alanPlani.set(maddeId, s.alanlar
+          .map((a) => alanIdx.get(a.toUpperCase()))
+          .filter((id): id is string => id !== undefined));
       }
+
+      /* Alanlar toplu yazılır. Silme YALNIZ veritabanında hâlihazırda var
+         olan maddeler için gerekir; bu koşuda açılan maddenin silinecek
+         alanı yoktur (eski kod onlar için de boşa bir `deleteMany` atıyordu). */
+      const silinecek = [...alanPlani.keys()].filter((id) => dbdeVardi.has(id));
+      for (const p of parcala(silinecek, 1)) {
+        await tx.maddeAlan.deleteMany({ where: { maddeId: { in: p } } });
+      }
+      const ciftler = [...alanPlani].flatMap(([maddeId, alanIdler]) =>
+        alanIdler.map((alanId) => ({ maddeId, alanId })));
+      // createMany satır başına 3 parametre bağlar: id, maddeId, alanId.
+      for (const p of parcala(ciftler, 3)) await tx.maddeAlan.createMany({ data: p });
       // Durum da aynı transaction içinde: satırlar yazıldıysa `onaylandi`,
       // yazılmadıysa hiç değişmemiş sayılır.
       await tx.iceAktarim.update({ where: { id: girdi.id }, data: {
@@ -746,19 +809,28 @@ export async function maddeKaydet(girdi: {
       regulasyonId: v.regulasyonId, kod: v.kod, baslik: v.baslik, metin: v.metin,
       ustMaddeId: v.ustMaddeId ?? null, kanitTipi: v.kanitTipi ?? null,
     };
-    let maddeId: string;
-    if (v.id) {
-      await db.madde.update({ where: { id: v.id }, data: veri });
-      maddeId = v.id;
-    } else {
-      const yeni = await db.madde.create({ data: veri });
-      maddeId = yeni.id;
+    /* Madde yazımı ve alan bağlarının yeniden kurulması AYNI transaction'da.
+       `maddeAlanAta` ile aynı arıza buradaydı ve bir kademe daha kötüydü:
+       alanlar önce siliniyor, sonra döngüde yeniden kuruluyordu — ortada
+       patlarsa madde KAYDEDİLMİŞ ama kapsam alanları SİLİNMİŞ kalıyordu.
+       Kullanıcı "kaydedilemedi" hatası görüp yeniden denerken maddenin
+       alanları çoktan gitmiş oluyordu. */
+    const maddeId = await db.$transaction(async (tx) => {
+      const id = v.id
+        ? (await tx.madde.update({ where: { id: v.id }, data: veri, select: { id: true } })).id
+        : (await tx.madde.create({ data: veri, select: { id: true } })).id;
+      if (v.alanIdler) {
+        await tx.maddeAlan.deleteMany({ where: { maddeId: id } });
+        for (const alanId of v.alanIdler) {
+          await tx.maddeAlan.create({ data: { maddeId: id, alanId } });
+        }
+      }
+      return id;
+    });
+    /* Denetim izi transaction'dan SONRA: geri sarılmış bir maddenin
+       "oluşturuldu" kaydı iz'de durursa denetim izi yalan söyler. */
+    if (!v.id) {
       await iz({ aktorId: k.id, varlikTipi: 'Madde', varlikId: maddeId, eylem: 'olusturma' });
-    }
-    if (v.alanIdler) {
-      await db.maddeAlan.deleteMany({ where: { maddeId } });
-      for (const alanId of v.alanIdler)
-        await db.maddeAlan.create({ data: { maddeId, alanId } });
     }
     revalidatePath('/regulasyonlar'); revalidatePath('/maddeler');
     return tamam();

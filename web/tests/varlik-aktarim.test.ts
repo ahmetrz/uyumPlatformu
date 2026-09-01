@@ -431,11 +431,12 @@ describe('Referans yükleme', () => {
    ortada patlayan satır yarım import bırakıyor, üstelik `IceAktarim.durum`
    `dogrulama_bekliyor` kaldığı için aynı dosya yeniden onaylanabiliyordu. */
 
-describe('aktarimOnayla (regülasyon maddesi) — atomik', () => {
-  let regId = '';
-  let ilkAktarim = '';
-
-  beforeAll(async () => {
+/** Çerez ikizinin döndürdüğü jetona karşılık gelen GERÇEK oturumu kurar.
+    Birden çok describe bloğu server action çağırıyor; `Oturum.tokenHash`
+    tekil olduğu için oturum yalnız bir kez açılabilir. */
+let oturumHazir: Promise<void> | null = null;
+function oturumKur(): Promise<void> {
+  oturumHazir ??= (async () => {
     const k = await db.kullanici.create({
       data: { eposta: 'aktarim.oturum@test.local', adSoyad: 'Oturumlu Onaycı' } });
     await db.yetki.create({ data: { kullaniciId: k.id, rol: 'yonetici' } });
@@ -443,6 +444,16 @@ describe('aktarimOnayla (regülasyon maddesi) — atomik', () => {
       kullaniciId: k.id,
       tokenHash: createHash('sha256').update(OTURUM_TOKENI).digest('hex'),
       bitis: new Date(Date.now() + 3_600_000) } });
+  })();
+  return oturumHazir;
+}
+
+describe('aktarimOnayla (regülasyon maddesi) — atomik', () => {
+  let regId = '';
+  let ilkAktarim = '';
+
+  beforeAll(async () => {
+    await oturumKur();
 
     const reg = await db.regulasyon.create({
       data: { kod: 'TEST-AKT-REG', ad: 'Aktarım test regülasyonu' } });
@@ -507,5 +518,171 @@ describe('aktarimOnayla (regülasyon maddesi) — atomik', () => {
     // Durum `onaylandi` görünmez; dosya yeniden onaylanabilir durumda kalır.
     expect((await db.iceAktarim.findUniqueOrThrow({ where: { id: a.id } })).durum)
       .toBe('dogrulama_bekliyor');
+  });
+});
+
+/* ═══ Toplu yazım — hız için sözleşme gevşetilmedi ═════════════════════
+
+   İki sıcak yol (aktarimOnayla · aktarimiUygula) satır başına 3–5 sorgu
+   yerine toplu `createMany`/`createManyAndReturn` kullanıyor
+   (ölçüm: `node arac/olcek.mjs`). Aşağıdaki testler hızın SONUCU
+   değiştirmediğini donduruyor: parametre sınırı, şema varsayılanları,
+   köken idempotency'si ve doğrulama durumunun korunması. */
+
+describe('Toplu yazım — SQLite parametre sınırı ve şema varsayılanları', () => {
+  it('999 parametreyi aşan aktarım parçalanır; tek satır bile kaybolmaz', async () => {
+    /* Varlik satırı ~27 kolon bağlar: 40 satır tek ifadede 999'u aşar.
+       120 satır hem `Varlik` hem `VeriKokeni` hem `AktiviteKaydi` toplu
+       yazımını birden çok parçaya böler. Parçalama yanlış olsaydı sorgu
+       yavaşlamaz, `parameter limit ... exceeded` ile aktarım DÜŞERDİ. */
+    const n = 120;
+    const satirlar = Array.from({ length: n }, (_, i) =>
+      [`PARCA-${String(i).padStart(3, '0')}`, `Parça varlığı ${i}`, turKod, tesisA.kod]);
+    const a = await aktarimKur('parca.csv', ['tag', 'ad', 'tur', 'tesis'], satirlar,
+      { tag: 'etiket', ad: 'ad', tur: 'turKodu', tesis: 'tesisKodu' });
+
+    expect(await aktarimiUygula({ aktarimId: a.id, onaylayan: global }))
+      .toEqual({ eklenen: n, guncellenen: 0 });
+    expect(await db.varlik.count({ where: { etiket: { startsWith: 'PARCA-' } } })).toBe(n);
+    expect(await db.veriKokeni.count({ where: { kaynakSistem: 'dosya:parca.csv' } })).toBe(n);
+    expect(await db.aktiviteKaydi.count({ where: { korelasyonId: a.id } })).toBe(n);
+  });
+
+  it('eşlenmemiş alan toplu INSERT içinde de ŞEMA VARSAYILANINI alır', async () => {
+    /* Toplu yazımda satırların anahtar kümeleri farklı olabilir
+       (`bos: 'atla'` alanları dolu hücrede yazılır, boşta hiç yazılmaz).
+       Prisma bunları tek INSERT'e toplarken eksik kolona şema
+       varsayılanını koymalı — komşu satırın değerini DEĞİL. */
+    const a = await aktarimKur(
+      'karisik-anahtar.csv', ['tag', 'tur', 'tesis', 'yasam'],
+      [
+        ['KARISIK-1', turKod, tesisA.kod, 'bakim'],
+        ['KARISIK-2', turKod, tesisA.kod, ''],      // boş → şema varsayılanı
+        ['KARISIK-3', turKod, tesisA.kod, 'emekli'],
+      ],
+      { tag: 'etiket', tur: 'turKodu', tesis: 'tesisKodu', yasam: 'yasamDongusu' },
+    );
+    await aktarimiUygula({ aktarimId: a.id, onaylayan: global });
+    const al = async (e: string) =>
+      (await db.varlik.findUniqueOrThrow({ where: { etiket: e } })).yasamDongusu;
+    expect(await al('KARISIK-1')).toBe('bakim');
+    expect(await al('KARISIK-2')).toBe('aktif');   // Varlik.yasamDongusu varsayılanı
+    expect(await al('KARISIK-3')).toBe('emekli');
+  });
+});
+
+describe('Toplu köken yazımı — kokenYaz sözleşmesi korunur', () => {
+  it('yeniden aktarım kökeni tazeler; doğrulamayı DÜŞÜRMEZ, profil sürümünü SİLMEZ', async () => {
+    const kur = () => aktarimKur(
+      'koken-sozlesme.csv', ['tag', 'tur', 'tesis'],
+      [['KOKEN-SOZ-1', turKod, tesisA.kod]],
+      { tag: 'etiket', tur: 'turKodu', tesis: 'tesisKodu' });
+
+    await aktarimiUygula({ aktarimId: (await kur()).id, onaylayan: global });
+    const v = await db.varlik.findUniqueOrThrow({ where: { etiket: 'KOKEN-SOZ-1' } });
+    const ilk = await db.veriKokeni.findFirstOrThrow({
+      where: { varlikId: v.id, kaynakSistem: 'dosya:koken-sozlesme.csv' } });
+    expect(ilk.guven).toBeNull();          // ÖLÇÜLMEDİ — sıfır güven değil
+    expect(ilk.kokenTipi).toBe('otomatik');
+    expect(ilk.dogrulamaDurumu).toBe('dogrulanmadi');
+
+    /* Bir insan kaydı doğrular ve eşleme profili sürümü işaretlenir.
+       Yeniden senkronizasyon bunların İKİSİNİ DE korumalı: doğrulama
+       insanın kararıdır, profil sürümü de kaydın nasıl yorumlandığının
+       tek kanıtıdır. `?? null` yazan bir toplu yazıcı ikisini de silerdi. */
+    await db.veriKokeni.update({ where: { id: ilk.id }, data: {
+      dogrulamaDurumu: 'dogrulandi', kokenTipi: 'dogrulanmis',
+      dogrulayanId: global.id, dogrulamaZamani: new Date(),
+      eslemeProfilSurumu: 7, kayitOzeti: 'ozet-abc' } });
+
+    await aktarimiUygula({ aktarimId: (await kur()).id, onaylayan: global });
+
+    // Köken ÇOĞALMAZ — (varlık, kaynak, kaynak kaydı) tekildir.
+    expect(await db.veriKokeni.count({ where: {
+      varlikId: v.id, kaynakSistem: 'dosya:koken-sozlesme.csv' } })).toBe(1);
+    const sonra = await db.veriKokeni.findUniqueOrThrow({ where: { id: ilk.id } });
+    expect(sonra.dogrulamaDurumu).toBe('dogrulandi');
+    expect(sonra.kokenTipi).toBe('dogrulanmis');
+    expect(sonra.dogrulayanId).toBe(global.id);
+    expect(sonra.eslemeProfilSurumu).toBe(7);
+    expect(sonra.kayitOzeti).toBe('ozet-abc');
+    expect(sonra.guven).toBeNull();
+    // Tazelenen alanlar gerçekten tazelendi (kayıt bayat görünmesin).
+    expect(sonra.aktarim.getTime()).toBeGreaterThanOrEqual(ilk.aktarim.getTime());
+  });
+});
+
+/* ═══ maddeAlanAta / maddeKaydet — yarım eşleştirme yok ════════════════
+   SALDIRGAN_DENETIM #6: `deleteMany` transaction DIŞINDA koşuyor, bağlar
+   ardından döngüde tek tek kuruluyordu. Döngü ortasında patlarsa madde
+   KAPSAM ALANI OLMADAN kalıyordu — ve bu sessiz kalmıyordu, sonraki içe
+   aktarımda o maddenin satırları "alan kolonu tanımlı bir kapsam alanıyla
+   eşleşmiyor" diye elenmeye başlıyordu. Hata sebebinden uzakta görünüyordu.
+
+   Arıza döngünün İÇİNDEN enjekte edilir: alan listesinin ORTASINA var
+   olmayan bir kimlik konur. İlk `create` başarılı olur, ikincisi yabancı
+   anahtarda patlar. Kanıtlanan şey "hata döndü" değil, VERİNİN HİÇ
+   DEĞİŞMEMİŞ olmasıdır. */
+
+describe('maddeAlanAta — silme + yeniden kurma atomiktir', () => {
+  let maddeId = '';
+  let alanA = '';
+  let alanB = '';
+
+  beforeAll(async () => {
+    await oturumKur();
+    const reg = await db.regulasyon.create({
+      data: { kod: 'TEST-ALAN-REG', ad: 'Alan atama testi' } });
+    const m = await db.madde.create({ data: {
+      regulasyonId: reg.id, kod: 'TEST-ALAN-REG-1', baslik: 'Alanlı madde',
+      metin: 'Kapsam alanları bu maddede duruyor' } });
+    maddeId = m.id;
+    const alanlar = await db.kapsamAlani.findMany({ take: 2, orderBy: { kod: 'asc' } });
+    expect(alanlar.length).toBe(2);
+    alanA = alanlar[0].id; alanB = alanlar[1].id;
+    await db.maddeAlan.createMany({ data: [
+      { maddeId, alanId: alanA }, { maddeId, alanId: alanB } ] });
+  });
+
+  const bagliAlanlar = async () => (await db.maddeAlan.findMany({
+    where: { maddeId }, select: { alanId: true }, orderBy: { alanId: 'asc' } }))
+    .map((x) => x.alanId).sort();
+
+  it('döngü ortasında patlayan atama HİÇBİR bağı silmez', async () => {
+    const { maddeAlanAta } = await import('@/lib/eylemler');
+    const once = await bagliAlanlar();
+    expect(once).toHaveLength(2);
+
+    const s = await maddeAlanAta({ maddeId, alanIdler: [alanA, 'OLMAYAN-ALAN-KIMLIGI'] });
+    expect(s.ok).toBe(false);
+
+    // Ne silme uygulandı ne de yarım atama yazıldı — tablo aynen duruyor.
+    expect(await bagliAlanlar()).toEqual(once);
+  });
+
+  it('geçerli atama uygulanır (kapı fazla dar değil)', async () => {
+    const { maddeAlanAta } = await import('@/lib/eylemler');
+    expect(await maddeAlanAta({ maddeId, alanIdler: [alanB] })).toEqual({ ok: true });
+    expect(await bagliAlanlar()).toEqual([alanB]);
+    expect(await db.aktiviteKaydi.count({
+      where: { varlikTipi: 'Madde', varlikId: maddeId, alan: 'alanlar' } })).toBe(1);
+  });
+
+  it('maddeKaydet de yarım bırakmaz: madde yazılmaz, alanlar silinmez', async () => {
+    const { maddeKaydet } = await import('@/lib/eylemler');
+    const oncekiMadde = await db.madde.findUniqueOrThrow({ where: { id: maddeId } });
+    const once = await bagliAlanlar();
+
+    const s = await maddeKaydet({
+      id: maddeId, regulasyonId: oncekiMadde.regulasyonId, kod: oncekiMadde.kod,
+      baslik: 'Değişmemeli', metin: 'Bu metin yazılmamalı',
+      alanIdler: [alanA, 'OLMAYAN-ALAN-KIMLIGI'],
+    });
+    expect(s.ok).toBe(false);
+
+    const sonra = await db.madde.findUniqueOrThrow({ where: { id: maddeId } });
+    expect(sonra.baslik).toBe(oncekiMadde.baslik); // madde güncellemesi de geri sarıldı
+    expect(sonra.metin).toBe(oncekiMadde.metin);
+    expect(await bagliAlanlar()).toEqual(once);
   });
 });

@@ -42,3 +42,39 @@ zebra sanıyordu.
 
 Giriş gerektiren rotalar için betiğe oturum açma adımı eklenmelidir
 (geliştirme girişi: `ahmet.terzi@zorlu.com`).
+
+## `olcek.mjs`
+
+Toplu aktarım yollarının **ölçüm** aracı. Görsel değil, performans kapısıdır:
+optimizasyondan ÖNCE ve SONRA aynı harness ile koşulur, sayılar
+karşılaştırılır.
+
+```bash
+node arac/olcek.mjs                                 # 1.000 + 10.000, üç yol
+node arac/olcek.mjs --yol a --olcek 10000 --tekrar 3
+node arac/olcek.mjs --etiket ONCE  --json /tmp/once.json
+node arac/olcek.mjs --etiket SONRA --json /tmp/sonra.json --karsilastir /tmp/once.json
+```
+
+Ölçülen yollar: **a** `lib/eylemler.ts → aktarimOnayla` (regülasyon maddesi),
+**b** `lib/entegrasyon/varlikAktarim.ts → aktarimiUygula` ilk aktarım,
+**c** aynı yol ikinci kez (hepsi güncelleme — farklı sorgu şekli).
+
+Raporlananlar: süre · SQL sayısı · sorgu/satır · satır/sn · zirve yığın ·
+transaction içi gidiş-dönüş; ayrıca ayrıştırma / eşleme / rapor serileştirme
+maliyeti ve tablo başına sorgu+süre kırılımı (köken ve denetim izinin payı
+buradan okunur).
+
+Değişmezler:
+
+* **Veri SENTETİKTİR**, gerçek sisteme bağlanılmaz. Her senaryo
+  `prisma/dev.db`'nin geçici bir kopyasında koşar; gerçek dosyaya yazmayı
+  araç içindeki koruma engeller.
+* Üretim kaynağına ölçüm kodu girmez: araç `globalThis.prisma`'yı sorgu
+  günlüklü bir istemciyle önceden doldurur, `lib/db.ts` onu alır. Almazsa
+  ölçüm durur.
+* Her senaryo AYRI çocuk süreçte koşar — taze DB kopyası ve komşu senaryodan
+  etkilenmeyen zirve yığın için.
+* **Makine paylaşımlı olabilir.** Her ölçümün yanında yük ortalaması basılır;
+  `--tekrar N` ortanca koşuyu seçer. Sorgu sayısı deterministtir, süre
+  gürültülüdür, zirve yığın (GC zamanlamasına bağlı) en gürültülüsüdür.

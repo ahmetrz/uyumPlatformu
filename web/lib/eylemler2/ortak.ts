@@ -6,11 +6,45 @@ import { z } from 'zod';
 
 export type Sonuc = { ok: true } | { ok: false; hata: string };
 export const tamam = (): Sonuc => ({ ok: true });
+
+/* ── Veritabanı kısıtı → okunabilir cümle ─────────────────────────────
+   Tekillik kısıtı ihlali kullanıcıya Prisma'nın ham metniyle çıkıyordu:
+   "Unique constraint failed on the fields: (`kod`)". Bu, kullanıcının
+   okuyamayacağı bir cümle olduğu gibi ne yapması gerektiğini de
+   söylemiyor.
+
+   Kısıt bir KUSUR DEĞİL, çalışan bir korumadır ve en çok şu senaryoda
+   görünür: kod önerileri (RSK-/DEN-/PRJ-) sayfa render'ında hesaplanıp
+   forma varsayılan olarak veriliyor; iki kullanıcı formu aynı anda açarsa
+   ikisi de aynı kodu görür ve ikincisi kaydederken kısıta çarpar.
+   Veritabanı kopyayı ENGELLİYOR — eksik olan tek şey, insanın ne olduğunu
+   anlamasıydı.
+
+   Çeviri burada tek yerde yapılır; her `eylemler2` eylemi kendiliğinden
+   yararlanır. */
+function kisitCumlesi(m: unknown): string | null {
+  const kod = (m as { code?: unknown } | null)?.code;
+  if (kod !== 'P2002') return null;
+  const hedef = (m as { meta?: { target?: unknown } } | null)?.meta?.target;
+  const alanlar = Array.isArray(hedef)
+    ? hedef.filter((x): x is string => typeof x === 'string')
+    : typeof hedef === 'string' ? [hedef] : [];
+  if (alanlar.includes('kod')) {
+    return 'Bu kod başka bir kayıtta kullanılıyor. Kod önerisi siz formu '
+      + 'açtıktan sonra başkası tarafından alınmış olabilir — formu yenileyip '
+      + 'yeni öneriyi kullanın.';
+  }
+  return alanlar.length > 0
+    ? `Bu değer benzersiz olmalı ve zaten kullanılıyor: ${alanlar.join(', ')}.`
+    : 'Bu kayıt benzersizlik kuralını çiğniyor; aynı kayıt zaten var.';
+}
+
 export const hata = (m: unknown): Sonuc => ({
   ok: false,
   hata: m instanceof z.ZodError
     ? m.issues.map((i) => i.message).join(' · ')
-    : m instanceof Error ? m.message : 'Beklenmeyen hata',
+    : kisitCumlesi(m)
+      ?? (m instanceof Error ? m.message : 'Beklenmeyen hata'),
 });
 
 /* İz yazıcı bir transaction istemcisi de kabul eder.

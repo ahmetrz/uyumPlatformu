@@ -101,6 +101,13 @@ const GUVENLIK_BASLIKLARI = [
 ];
 
 const nextConfig: NextConfig = {
+  /* Next'in geliştirme rozeti VARSAYILAN OLARAK sol altta duruyor ve orada
+     rayın oturum bloğu var: rozet ÇIKIŞ düğmesinin tam üstüne biniyordu.
+     Yalnız `next dev` altında çizilir — üretim derlemesine girmez, yani bu
+     bir ürün kusuru değildi; ama geliştiricinin ve ekran görüntüsü alan QA
+     aracının gördüğü tek oturum kapatma denetimini örtüyordu. Sağ alt köşe
+     bu düzende boş. */
+  devIndicators: { position: 'bottom-right' },
   // API route dosyaları `route.api.ts` adını taşır. Demo (statik dışa aktarım)
   // derlemesinde 'api.ts' uzantısı pageExtensions'ta YOKTUR; böylece Next
   // bu dosyaları route saymaz ve POST/Request'e bağlı uçlar demo yayınına

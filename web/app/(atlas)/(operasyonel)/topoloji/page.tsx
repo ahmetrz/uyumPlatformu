@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { girisZorunlu, izinVar, izinliTesisIdleri } from '@/lib/erisim';
 import { db } from '@/lib/db';
 import {
-  anliklariListele, karsilastirmaIzi, sapmalariListele, temelDurumu, topolojiOzeti,
+  anliklariListele, karsilastirmaIzi, sapmalariListele, temelDurumlari, topolojiOzeti,
 } from '@/lib/entegrasyon/topoloji';
 import TopolojiIstemci from './TopolojiIstemci';
 import {
@@ -52,13 +52,12 @@ export default async function Sayfa() {
   const riskYazabilir = izinVar(k, 'risk', 'yazma');
   const uyumYazabilir = izinVar(k, 'uyum', 'yazma');
 
-  const tesisKosulu = gorulebilir ? { tesisId: { in: gorulebilir } } : {};
 
   /* Sapma ve anlık listeleri EKRANIN KENDİ SORGUSU DEĞİL: ikisi de
      `lib/entegrasyon/topoloji.ts` yardımcılarından gelir (#22). Burada
      ikinci bir `findMany` yazmak, kapsam koşulunun ve şiddet sırasının
      iki ayrı yerde yaşaması demekti. */
-  const [tesisler, hamSapmalar, hamAnliklar, anlikSayimlari, ozet, maddeDurumlari]
+  const [tesisler, hamSapmalar, hamAnliklar, ozet, maddeDurumlari]
     = await Promise.all([
     db.tesis.findMany({
       where: { durum: 'aktif', ...(gorulebilir ? { id: { in: gorulebilir } } : {}) },
@@ -67,9 +66,6 @@ export default async function Sayfa() {
     }),
     sapmalariListele({ tesisIdleri: gorulebilir, limit: SAPMA_TAVANI }),
     anliklariListele(gorulebilir, ANLIK_TAVANI),
-    /* Kapsam başına anlık sayısı tek sorguda: "hiç anlığı yok" ile "temeli
-       yok" ayrı sayılar ve ikisi de sıfır sapmadan farklıdır. */
-    db.topolojiAnlik.groupBy({ by: ['tesisId'], where: tesisKosulu, _count: { _all: true } }),
     /* Metrikler TAVANDAN BAĞIMSIZ sayılır. Liste 200 satırda kesilir;
        "kaç açık sapma var" sorusunun cevabı kesilmiş listeden okunursa
        201. sapma başlıktan da düşer. */
@@ -94,37 +90,33 @@ export default async function Sayfa() {
     ...tesisler.map((t) => ({ tesisId: t.id as string | null, kod: t.kod })),
     ...(gorulebilir === null ? [{ tesisId: null, kod: 'Tesissiz' }] : []),
   ];
-  const anlikSayisiHaritasi = new Map(
-    anlikSayimlari.map((s) => [s.tesisId ?? '__global__', s._count._all]),
-  );
+  /* Temel durumu KAPSAM BAŞINA DEĞİL toplu okunur. Eskiden şerit her
+     kapsam için ayrı bir temel-durumu sorgusu koşuyordu: dört sorgu, biri de temelin
+     BÜTÜN gözlemlerini yükleyen `temelAnlik()`. Şerit bu gözlemlerden tek
+     birini bile çizmez; yirmi santralde bu seksen sorgu ve yirmi tam
+     topoloji okuması ederdi. Örnek veride anlık tablosu boş olduğu için
+     eski kısayol maliyeti gizliyordu — gerçek gözlem akmaya başladığı gün
+     görünür olurdu. */
+  const durumlar = await temelDurumlari(gorulebilir);
 
-  const temeller: TemelSatiri[] = await Promise.all(kapsamlar.map(async (kap) => {
+  const temeller: TemelSatiri[] = kapsamlar.map((kap) => {
     const kapsamId = kap.tesisId ?? '__global__';
-    const anlikSayisi = anlikSayisiHaritasi.get(kapsamId) ?? 0;
-    // Anlığı olmayan kapsam için sorgu açmaya gerek yok: anlık yoksa temel
-    // de yoktur. Boş kapsam yine de LİSTEDE KALIR — görünmemesi onu
-    // "sorunsuz" gösterirdi, oysa hiç ölçülmemiştir.
-    if (anlikSayisi === 0) {
-      return {
-        kapsamId, tesisId: kap.tesisId, tesisKodu: kap.kod, temelVar: false,
-        temelAnlikId: null, temelAlindi: null, temelOnayZamani: null, temelKaynak: null,
-        anlikSayisi: 0, acikSapma: 0,
-      };
-    }
-    const d = await temelDurumu(kap.tesisId);
+    // Hiç ölçülmemiş kapsam LİSTEDE KALIR: görünmemesi onu "sorunsuz"
+    // gösterirdi, oysa hakkında hiçbir gözlem yok.
+    const d = durumlar.get(kapsamId);
     return {
       kapsamId,
       tesisId: kap.tesisId,
       tesisKodu: kap.kod,
-      temelVar: d.temelVar,
-      temelAnlikId: d.temel?.id ?? null,
-      temelAlindi: d.temel?.alindi.toISOString() ?? null,
-      temelOnayZamani: d.temel?.onayZamani?.toISOString() ?? null,
-      temelKaynak: d.temel?.kaynak ?? null,
-      anlikSayisi: d.anlikSayisi,
-      acikSapma: d.acikSapma,
+      temelVar: d?.temelVar ?? false,
+      temelAnlikId: d?.temel?.id ?? null,
+      temelAlindi: d?.temel?.alindi.toISOString() ?? null,
+      temelOnayZamani: d?.temel?.onayZamani?.toISOString() ?? null,
+      temelKaynak: d?.temel?.kaynak ?? null,
+      anlikSayisi: d?.anlikSayisi ?? 0,
+      acikSapma: d?.acikSapma ?? 0,
     };
-  }));
+  });
 
   const temelHaritasi = new Map(temeller.map((t) => [t.kapsamId, t]));
 

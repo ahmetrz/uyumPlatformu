@@ -1,6 +1,6 @@
 import 'server-only';
 import { db } from '../db';
-import { anligiKarsilastir, temelAnlik } from '../entegrasyon/topoloji';
+import { anligiKarsilastir, temelVarMi as temelKaydiVarMi } from '../entegrasyon/topoloji';
 
 /* Topoloji sapma motoru (P2-2).
 
@@ -94,7 +94,10 @@ export async function topolojiSapmasiniIsle(): Promise<{ islenen: number; uretil
     const temelVarMi = new Map<string, boolean>();
     const temelKontrol = async (tesisId: string | null) => {
       const anahtar = tesisId ?? '__global__';
-      if (!temelVarMi.has(anahtar)) temelVarMi.set(anahtar, (await temelAnlik(tesisId)) !== null);
+      /* `temelAnlik()` DEĞİL: o çağrı temelin bütün gözlemlerini belleğe
+         çeker ve burada sorulan tek şey "var mı?"dır. Gerçek bir OT ağında
+         tesis başına binlerce gözlem demek olurdu. */
+      if (!temelVarMi.has(anahtar)) temelVarMi.set(anahtar, await temelKaydiVarMi(tesisId));
       return temelVarMi.get(anahtar)!;
     };
 

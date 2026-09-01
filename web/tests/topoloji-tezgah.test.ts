@@ -548,3 +548,128 @@ describe('Ekran sorguları tek kaynaktan gelir', () => {
     expect(tavansiz.acik).toBeLessThan(ozetli.acik);
   });
 });
+
+/* ═══════════════════════════════════════════════════════════════════════
+   TOPLU TEMEL DURUMU — şeridin okuduğu üç sayı
+
+   /topoloji temel şeridi eskiden kapsam BAŞINA dört sorgu koşuyordu ve
+   biri temelin BÜTÜN gözlemlerini belleğe çeken `temelAnlik()`ti; şerit o
+   gözlemlerin tek birini bile çizmez. Örnek veride anlık tablosu boş
+   olduğu için "anlığı yoksa sorma" kısayolu maliyeti gizliyordu — gerçek
+   gözlem akmaya başladığı gün yirmi santral seksen sorgu ve yirmi tam
+   topoloji okuması ederdi. Toplu okuma sorgu sayısını SANTRAL SAYISINDAN
+   BAĞIMSIZ üçe indirir.
+
+   Hızın bedeli doğruluk olamaz: şeridin ayırdığı ÜÇ SAYI (temel yok /
+   gözlem yok / ölçülmüş sıfır) burada ayrı ayrı sabitlenir.
+   ═══════════════════════════════════════════════════════════════════════ */
+describe('Toplu temel durumu', () => {
+  it('temeli olan kapsamın üç sayısı da doğru okunur', async () => {
+    const { tesisId } = await sapmaliKapsam();
+    const harita = await T.temelDurumlari([tesisId]);
+    const d = harita.get(tesisId);
+    expect(d).toBeDefined();
+    expect(d!.temelVar).toBe(true);
+    expect(d!.temel!.kaynak).toBe('test_kaynak');
+    expect(d!.temel!.onayZamani).not.toBeNull();
+    // İki anlık alındı: biri temel oldu, biri karşılaştırıldı.
+    expect(d!.anlikSayisi).toBe(2);
+    expect(d!.temelOlmayanAnlik).toBe(1);
+    expect(d!.acikSapma).toBeGreaterThan(0);
+  });
+
+  it('temel SEÇİLEN anlıktır — sıralama tekil okumayla aynı', async () => {
+    const tesisId = await tesisAc();
+    const ilk = await T.anlikAl(tesisId, 'test_kaynak', TEMEL_OGELER);
+    await T.temelBelirle(ilk.id, yoneticiId, 'İlk temel onaylandı.');
+    const ikinci = await T.anlikAl(tesisId, 'test_kaynak', SAPMALI_OGELER);
+    await T.temelBelirle(ikinci.id, yoneticiId, 'Temel yenilendi, eskisi düşmeli.');
+
+    const d = (await T.temelDurumlari([tesisId])).get(tesisId)!;
+    // Eski temel düşer; toplu okuma da YENİ temeli göstermeli.
+    expect(d.temel!.id).toBe(ikinci.id);
+    expect((await T.temelAnlik(tesisId))!.id).toBe(ikinci.id);
+  });
+
+  it('gözlemi olmayan kapsam haritada YOKTUR — çağıran sıfır gösterir', async () => {
+    const bos = await tesisAc();
+    expect((await T.temelDurumlari([bos])).has(bos)).toBe(false);
+  });
+
+  it('anlığı olan ama temeli ONAYLANMAMIŞ kapsam: temelVar false, sayı sıfır değil',
+    async () => {
+      const tesisId = await tesisAc();
+      await T.anlikAl(tesisId, 'test_kaynak', TEMEL_OGELER);
+      const d = (await T.temelDurumlari([tesisId])).get(tesisId)!;
+      // "Temel yok" ile "gözlem yok" AYRI şeylerdir; ikisi de sapma
+      // hesaplanmadığını söyler ama sebepleri farklıdır.
+      expect(d.temelVar).toBe(false);
+      expect(d.anlikSayisi).toBe(1);
+      expect(d.temelOlmayanAnlik).toBe(1);
+      expect(d.acikSapma).toBe(0);
+    });
+
+  it('kapsam sınırı uygulanır: listede olmayan santral haritaya GİRMEZ', async () => {
+    const { tesisId: a } = await sapmaliKapsam();
+    const { tesisId: b } = await sapmaliKapsam();
+    const yalnizA = await T.temelDurumlari([a]);
+    expect(yalnizA.has(a)).toBe(true);
+    expect(yalnizA.has(b)).toBe(false);
+    // Boş kapsam hiçbir şey göstermez (sınırsız DEĞİL).
+    expect((await T.temelDurumlari([])).size).toBe(0);
+    // Sınırsız kapsam ikisini de görür.
+    const hepsi = await T.temelDurumlari(null);
+    expect(hepsi.has(a) && hepsi.has(b)).toBe(true);
+  });
+
+  /* Aşağıdaki iki durum `temelBelirle()` ile ÜRETİLEMEZ (o eylem eski
+     temeli düşürür ve onaylayan ister). Satırlar bu yüzden doğrudan
+     yazılıyor: korunan şey eylemin davranışı değil, OKUYUCUNUN bozuk ya da
+     elle değiştirilmiş veriye verdiği cevaptır. Tekil `temelAnlik()` bu
+     iki kuralı taşıyor; toplu okuma ondan sapamaz. */
+  it('onaysız satır temel SAYILMAZ (iki okuma da aynı der)', async () => {
+    const tesisId = await tesisAc();
+    const a = await T.anlikAl(tesisId, 'test_kaynak', TEMEL_OGELER);
+    // Temel işareti var, onay YOK — örneğin yarım kalmış bir düzenleme.
+    await db.topolojiAnlik.update({
+      where: { id: a.id }, data: { temelMi: true, onaylayanId: null } });
+
+    expect(await T.temelAnlik(tesisId)).toBeNull();
+    /* Sapma motoru bu soruyu `temelVarMi` ile sorar. Onaysız satırı temel
+       sayarsa ONAYLANMAMIŞ bir temele göre sapma hesaplar — kural 2'nin
+       ("temelsizken sapma hesaplanmaz") tam ihlali. */
+    expect(await T.temelVarMi(tesisId)).toBe(false);
+    const d = (await T.temelDurumlari([tesisId])).get(tesisId)!;
+    expect(d.temelVar).toBe(false);
+    expect(d.temel).toBeNull();
+    // Anlık yine sayılır: "temel yok" ile "gözlem yok" karışmamalı.
+    expect(d.anlikSayisi).toBe(1);
+  });
+
+  it('birden çok temel işaretliyse EN SON ONAYLANAN seçilir', async () => {
+    const tesisId = await tesisAc();
+    const eski = await T.anlikAl(tesisId, 'test_kaynak', TEMEL_OGELER);
+    const yeni = await T.anlikAl(tesisId, 'test_kaynak', SAPMALI_OGELER);
+    // İki satır da temel işaretli: `temelBelirle` bunu üretmez ama bozuk
+    // veri üretebilir. Sıra tanımlı olmalı, "hangisi gelirse" olmamalı.
+    await db.topolojiAnlik.update({ where: { id: eski.id }, data: {
+      temelMi: true, onaylayanId: yoneticiId,
+      onayZamani: new Date('2026-01-01T00:00:00.000Z') } });
+    await db.topolojiAnlik.update({ where: { id: yeni.id }, data: {
+      temelMi: true, onaylayanId: yoneticiId,
+      onayZamani: new Date('2026-06-01T00:00:00.000Z') } });
+
+    expect((await T.temelAnlik(tesisId))!.id).toBe(yeni.id);
+    expect((await T.temelDurumlari([tesisId])).get(tesisId)!.temel!.id).toBe(yeni.id);
+  });
+
+  it('temelVarMi gözlem yüklemeden aynı cevabı verir', async () => {
+    const { tesisId } = await sapmaliKapsam();
+    const bos = await tesisAc();
+    expect(await T.temelVarMi(tesisId)).toBe(true);
+    expect(await T.temelVarMi(bos)).toBe(false);
+    // Tekil referansla birebir: onaysız satır temel SAYILMAZ.
+    expect((await T.temelAnlik(tesisId)) !== null).toBe(true);
+    expect((await T.temelAnlik(bos)) !== null).toBe(false);
+  });
+});

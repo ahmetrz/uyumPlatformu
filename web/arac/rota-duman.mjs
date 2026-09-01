@@ -20,7 +20,9 @@ const RAYLI = ['/', '/tesisler', '/portfoy', '/uyum', '/surecler', '/riskler', '
      üst rotanınkidir (dead-letter kuyruğu Platform sağlığı'na, kanıt
      paketi Raporlar'a asılı). Ray listesine ayrı öğe eklemek iki aktif
      öğe gösterirdi. */
-  '/saglik/reddedilenler', '/raporlar/kanit-paketi'];
+  '/saglik/reddedilenler', '/raporlar/kanit-paketi',
+  /* Bu oturumda açılan yüzeyler: bildirim kutusu ve eşleme profili tezgâhı. */
+  '/bildirimler', '/esleme'];
 
 /* Bileşen galerisi: kabuğu paylaşır ama RAYDA ÖĞESİ YOKTUR — geliştirme
    ekranıdır, gezinme listesine girmez (aktif öğe 0 beklenir). */

@@ -5,7 +5,7 @@ import { modulOkuyabilir } from '@/app/kapsam';
 import KimlikIstemci from './KimlikIstemci';
 import { kimlikEkranVerisi } from './veri';
 
-export const metadata: Metadata = { title: 'Erişim incelemesi — Abacus' };
+export const metadata: Metadata = { title: 'Erişim incelemesi' };
 
 /* O15 · Identity & Access Review — "kimin fazla yetkisi var?"
    Kabuk (ray + çekmece kolonu) (operasyonel)/layout.tsx'ten gelir; burada

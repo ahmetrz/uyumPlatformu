@@ -424,11 +424,17 @@
   background: var(--zemin); border-bottom: 1px solid var(--hr);
 }
 .ab-b-ust .marka {
-  display: flex; align-items: center; padding: 0 24px;
-  font-family: var(--gorunum); font-size: 19px; font-weight: 700; letter-spacing: .08em;
+  display: flex; flex-direction: column; justify-content: center; align-items: flex-start;
+  gap: 3px; padding: 0 24px; white-space: nowrap;
+  font-family: var(--gorunum); font-size: 17px; font-weight: 700; letter-spacing: .08em;
+  line-height: 1;
   border-right: 1px solid var(--hr);
 }
-.ab-b-ust .marka .ikinci { color: var(--aksan); }
+/* İkinci satır: ürün adının tamamlayıcısı, mono küçük harf-aralıklı aksan. */
+.ab-b-ust .marka .ikinci {
+  font-family: var(--veri); font-size: 9.5px; font-weight: 500;
+  letter-spacing: .16em; text-transform: uppercase; color: var(--aksan);
+}
 .ab-b-ust nav { display: flex; align-items: stretch; }
 .ab-b-ust nav a {
   display: flex; align-items: center; padding: 0 20px;

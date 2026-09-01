@@ -37,7 +37,7 @@ düzeyinde uygulanır (`lib/erisim.ts`).
 
 ## Product Purpose
 
-**Zorlu Uyum Konsolu**, Türkiye'de elektrik üretimi yapan bir şirketler
+**Zorlu Enerji Yönetişim Platformu**, Türkiye'de elektrik üretimi yapan bir şirketler
 grubu için IT/OT governance, uyum ve dönüşüm platformudur. Grubun santral
 portföyünde regülasyon gerekliliklerini (EPDK-SYM, CBDDÖ, ISO 27001, SPK-BS)
 tesis bazında uygulanabilir kontrollere indirger; her kontrol için durum,
@@ -139,14 +139,15 @@ zamanı; mobil/tablet kullanım (hedef değil, reddedilmiş de değil).
 
 ## Brand Commitments
 
-- **Ad:** Zorlu Uyum Konsolu. Kısa ad "Uyum Konsolu". HTML başlığı ve
-  README bu adı taşır.
-- **Açık karar — ürün içi sözcük markası:** Abacus kabuğu (`components/
-  abacus/Kabuk.tsx`) ve giriş ekranı "Voltaj Atlas" sözcük markasını
-  gösterir; bu, taşınan tasarımın kendi adıdır, ürün adı değil. Hangisinin
-  bağlayıcı olduğu (Voltaj Atlas'ın ürün içi marka olarak kalması ya da
-  kabuğun Zorlu Uyum Konsolu'na çevrilmesi) Ahmet'e sorulmadan
-  değiştirilmez; karar verilene kadar iki ad da olduğu gibi kalır.
+- **Ad:** Zorlu Enerji Yönetişim Platformu. Tek ürün adı budur; kısa ad
+  yok. Sekme başlığı (`app/layout.tsx` şablonu), kabuk sözcük markaları
+  (`components/abacus/Kabuk.tsx`: A monogram "ZE", B iki satırlı sözcük
+  markası, C künye) ve giriş ekranı bu adı taşır. Karar: Ahmet, 2026-09-01.
+- **Kod adları kullanıcıya görünmez:** "Voltaj Atlas", "Abacus" ve "Atlas"
+  taşınan tasarımın iç kod adlarıdır; rota grubu `(atlas)`, `atlas-*`
+  sınıfları, `abacus.css` ve kod yorumlarında kalabilir, ancak arayüz
+  metninde, sekme başlığında ve dokümanların ürün adı geçen yerlerinde
+  kullanılmaz.
 - **Ses:** Türkçe, doğrudan, kurumsal ama kuru değil; ürün kendini
   açıklamaz, olguyu gösterir. Metin durum yargısı vermez ("kritik!" değil,
   "12 gün gecikmiş").

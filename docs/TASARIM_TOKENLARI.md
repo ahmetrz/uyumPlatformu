@@ -1,4 +1,4 @@
-# Tasarım Token'ları — Zorlu Uyum Konsolu
+# Tasarım Token'ları — Zorlu Enerji Yönetişim Platformu
 
 Bu doküman [TASARIM_PLANI.md](TASARIM_PLANI.md) kararlarının uygulanabilir token'lara dönüştürülmüş hâlidir.
 Makine tarafı: [`tokens.css`](tokens.css) · Görsel karşılık: [`mockups.html`](mockups.html)

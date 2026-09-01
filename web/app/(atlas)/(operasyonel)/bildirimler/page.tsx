@@ -6,7 +6,7 @@ import { kapsamda } from '@/app/kapsam';
 import BildirimlerIstemci from './BildirimlerIstemci';
 import { kutuKapisiAcik, type BildirimSatiri, type KaynakHali } from './mantik';
 
-export const metadata: Metadata = { title: 'Bildirimler — Abacus' };
+export const metadata: Metadata = { title: 'Bildirimler' };
 
 /* O25 · Bildirim kutusu.
 

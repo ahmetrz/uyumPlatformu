@@ -6,7 +6,7 @@ import { tarihTR } from '@/lib/sabitler';
 import { hucreOzeti } from '../mantik';
 import KanitPaketiIstemci, { type KapsamSatiri } from './KanitPaketiIstemci';
 
-export const metadata: Metadata = { title: 'Kanıt paketi — Abacus' };
+export const metadata: Metadata = { title: 'Kanıt paketi' };
 
 /* Denetim kanıt paketi yüzeyi (§19).
 

@@ -77,7 +77,7 @@ dokunmadan sağlar.
 ### C — künye + serif sekmeler + editoryal dizin sütunu
 ```
 header px-14 pt-7 pb-4  (zemin sayfanın kendisi)
-  marka "Voltaj" (Newsreader 26px) + mono alt başlık │ tarih · arama · avatar
+  marka "Zorlu Enerji Yönetişim Platformu" (Newsreader 26px) + mono alt başlık │ tarih · arama · avatar
 rule   border-top 2px #1A1A18          ← künye kuralı (kalın)
 nav    px-14 py-3 · Newsreader 15px sekmeler · aktif = altı çizili
 rule   1px #D6D2CA

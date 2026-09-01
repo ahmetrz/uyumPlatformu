@@ -5,7 +5,7 @@ import { db } from '@/lib/db';
 import EslestirmeIstemci from './EslestirmeIstemci';
 import { kisaKod, type E, type Kodlu, type M } from './mantik';
 
-export const metadata: Metadata = { title: 'Çapraz eşleme — Abacus' };
+export const metadata: Metadata = { title: 'Çapraz eşleme' };
 
 /* Çapraz eşleme kütüğü — "hangi madde hangi maddeyi karşılıyor?"
    Kabuk (ray + çekmece kolonu) (operasyonel)/layout.tsx'ten gelir.

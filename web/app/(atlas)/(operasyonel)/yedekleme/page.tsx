@@ -7,7 +7,7 @@ import { YEDEK_KURALLARI } from '@/lib/motorlar/yedekDogrulama';
 import YedeklemeIstemci from './YedeklemeIstemci';
 import type { Politika, Santral, TurKirilimi, YedekBulgusu } from './mantik';
 
-export const metadata: Metadata = { title: 'Yedekleme & kurtarma — Abacus' };
+export const metadata: Metadata = { title: 'Yedekleme & kurtarma' };
 
 /* O14 · Yedekleme & DR hazırlığı — "kurtarabilir miyiz?" (03-screens O14).
    Yerleşim kabuğu (.atlas atlas-kabuk + Ray) (operasyonel)/layout.tsx'ten

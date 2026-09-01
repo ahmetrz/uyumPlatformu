@@ -30,7 +30,7 @@ export async function generateStaticParams() {
 export async function generateMetadata(
   { params }: { params: Promise<{ id: string }> },
 ): Promise<Metadata> {
-  const genel: Metadata = { title: 'Denetim — Abacus' };
+  const genel: Metadata = { title: 'Denetim' };
   const k = await aktifKullanici();
   if (!k || !modulOkuyabilir(k, 'denetim')) return genel;
 
@@ -43,7 +43,7 @@ export async function generateMetadata(
   if (!denetimGorunur(izinliTesisIdleri(k, 'denetim'), d.kapsamlar.map((x) => x.tesisId))) {
     return genel;
   }
-  return { title: `${d.kod} — ${d.ad} — Atlas` };
+  return { title: `${d.kod} — ${d.ad}` };
 }
 
 export default async function Sayfa({ params }: { params: Promise<{ id: string }> }) {

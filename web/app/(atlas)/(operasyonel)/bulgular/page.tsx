@@ -5,7 +5,7 @@ import { modulOkuyabilir } from '@/app/kapsam';
 import BulgularIstemci from './BulgularIstemci';
 import { bulguEkranVerisi } from './veri';
 
-export const metadata: Metadata = { title: 'Bulgu & CAPA — Abacus' };
+export const metadata: Metadata = { title: 'Bulgu & CAPA' };
 
 /* O7 · Bulgu & Düzeltici Aksiyon — "nerede takıldı?" (03-screens O7).
    Tek 5 kolonlu tablo soldan sağa bir ilerleme gibi okunur:

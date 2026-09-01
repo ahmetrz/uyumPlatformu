@@ -5,7 +5,7 @@ import { db } from '@/lib/db';
 import YetkilerIstemci from './YetkilerIstemci';
 import type { Hesap } from './mantik';
 
-export const metadata: Metadata = { title: 'Kullanıcı ve yetki — Abacus' };
+export const metadata: Metadata = { title: 'Kullanıcı ve yetki' };
 
 /* Kullanıcı & yetki — "kim neye erişiyor, kimin fazlası var?"
    Kabuk (ray + çekmece kolonu) (operasyonel)/layout.tsx'ten gelir; burada

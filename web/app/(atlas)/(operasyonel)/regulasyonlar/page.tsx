@@ -5,7 +5,7 @@ import { db } from '@/lib/db';
 import RegulasyonlarIstemci from './RegulasyonlarIstemci';
 import { kisaKod, type Reg } from './mantik';
 
-export const metadata: Metadata = { title: 'Regülasyon kütüphanesi — Abacus' };
+export const metadata: Metadata = { title: 'Regülasyon kütüphanesi' };
 
 /* Regülasyon kütüphanesi — "hangi çerçeve hangi sürümde, kataloğu tam mı?"
    Kabuk (ray + çekmece kolonu) (operasyonel)/layout.tsx'ten gelir.

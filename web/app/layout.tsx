@@ -8,9 +8,12 @@ import { an } from '@/lib/an';
    (`components/abacus/yonler.ts`). URL'ler rota gruplarına yansımaz. */
 
 export const metadata: Metadata = {
-  title: 'Zorlu Uyum Konsolu',
+  title: {
+    default: 'Zorlu Enerji Yönetişim Platformu',
+    template: '%s — Zorlu Enerji Yönetişim Platformu',
+  },
   description:
-    'Enerji üretimi BT/OT uyum platformu: regülasyonlar, uyum süreçleri, bulgular, kanıtlar ve tam denetim izi.',
+    'Enerji üretimi BT/OT yönetişim ve uyum platformu: regülasyonlar, uyum süreçleri, bulgular, kanıtlar ve tam denetim izi.',
 };
 
 const temaBetigi = `try{var t=localStorage.getItem('tema');if(t)document.documentElement.dataset.theme=t;}catch(e){}`;

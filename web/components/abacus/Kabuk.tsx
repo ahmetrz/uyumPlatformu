@@ -67,7 +67,7 @@ function KabukA({ veri, patika, children }: {
   return (
     <div className="ab-a">
       <header className="ab-a-ust">
-        <Link href="/" className="marka" aria-label="Enerji Operasyonları — ana ekran">VE</Link>
+        <Link href="/" className="marka" aria-label="Zorlu Enerji Yönetişim Platformu — ana ekran">ZE</Link>
         <div className="grup">
           <span className="etiket">Kapsam</span>
           <span className="deg">{veri.kapsam?.grup ?? 'Grup tanımsız'}</span>
@@ -124,8 +124,8 @@ function KabukB({ veri, patika, children }: {
   return (
     <div className="ab-b">
       <header className="ab-b-ust">
-        <Link href="/" className="marka">
-          VOLTAJ<span className="ikinci">ATLAS</span>
+        <Link href="/" className="marka" aria-label="Zorlu Enerji Yönetişim Platformu — ana ekran">
+          ZORLU ENERJİ<span className="ikinci">Yönetişim Platformu</span>
         </Link>
         <nav aria-label="Saha">
           {B_SEKMELER.map((o) => (
@@ -163,8 +163,8 @@ function KabukC({ veri, patika, children }: {
     <div className="ab-c">
       <header className="ab-c-kunye">
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 16 }}>
-          <Link href="/" className="marka">Voltaj</Link>
-          <span className="etiket">Yönetişim &amp; uyum defteri</span>
+          <Link href="/" className="marka">Zorlu Enerji Yönetişim Platformu</Link>
+          <span className="etiket">Uyum defteri</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
           <span className="mono etiket">

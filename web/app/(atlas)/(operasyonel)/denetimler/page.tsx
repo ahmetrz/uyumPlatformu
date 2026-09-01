@@ -5,7 +5,7 @@ import { db } from '@/lib/db';
 import DenetimlerIstemci from './DenetimlerIstemci';
 import { DENETIM_ICERIK, denetimeCevir } from './ortak';
 
-export const metadata: Metadata = { title: 'Denetim programı — Abacus' };
+export const metadata: Metadata = { title: 'Denetim programı' };
 
 /* O5 · Audit Overview — "hangi denetim takvimini tutmuyor?"
    Kabuk (ray + çekmece kolonu) (operasyonel)/layout.tsx'ten gelir; burada

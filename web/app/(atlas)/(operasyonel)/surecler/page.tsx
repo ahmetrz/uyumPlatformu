@@ -5,7 +5,7 @@ import { db } from '@/lib/db';
 import SureclerIstemci from './SureclerIstemci';
 import { sayimla, type S } from './ortak';
 
-export const metadata: Metadata = { title: 'Uyum süreçleri — Abacus' };
+export const metadata: Metadata = { title: 'Uyum süreçleri' };
 
 /* Uyum süreç kütüğü — "hangi kampanya denetim tarihine yetişmiyor?"
    Kabuk (ray + çekmece kolonu) (operasyonel)/layout.tsx'ten gelir; burada

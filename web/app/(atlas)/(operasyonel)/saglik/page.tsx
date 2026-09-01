@@ -13,7 +13,7 @@ import {
   type KokenOzeti, type KokenSayimSatiri, type Motor,
 } from './mantik';
 
-export const metadata: Metadata = { title: 'Platform sağlığı — Abacus' };
+export const metadata: Metadata = { title: 'Platform sağlığı' };
 
 /* Platform sağlığı (§68): otomasyon motorlarının koşu durumu, veri kalitesi
    bulguları ve entegrasyon sağlığı tek ekranda — sessiz hata yok, her koşu

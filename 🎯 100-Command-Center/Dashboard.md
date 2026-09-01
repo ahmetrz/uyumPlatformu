@@ -19,7 +19,7 @@ Hoş geldin Ahmet. Bu senin ikinci beynin.
 - 📦 [[📦 900-Archive/|Arşiv]] · 📋 [[📋 Templates/Note|Şablon]]
 
 ## Ürün
-Zorlu Uyum Konsolu'nun kodu `web/` altında. Kurulum ve doğrulama komutları: `README.md`.
+Zorlu Enerji Yönetişim Platformu'nun kodu `web/` altında. Kurulum ve doğrulama komutları: `README.md`.
 
 ## Nasıl kullanılır
 Bu klasörde `claude` çalıştır ve konuş. Echo hatırlar, düzenler, üstüne koyar.

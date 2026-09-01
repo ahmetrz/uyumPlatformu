@@ -10,7 +10,7 @@ import {
   type AnlikSatiri, type KarsilastirmaIzi, type SapmaSatiri, type TemelSatiri,
 } from './mantik';
 
-export const metadata: Metadata = { title: 'Ağ / OT topolojisi — Abacus' };
+export const metadata: Metadata = { title: 'Ağ / OT topolojisi' };
 
 /* O12 · Topoloji sapma tezgâhı.
 

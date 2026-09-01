@@ -47,7 +47,7 @@ export default function Galeri() {
     <>
       <main data-yuzey="tezgah" style={{ minWidth: 0 }}>
         <EkranBasligi
-          eyebrow="Abacus · paylaşılan primitif galerisi"
+          eyebrow="Paylaşılan primitif galerisi"
           vurgu="18 primitif"
           baslik="her durumda"
           metrikler={[

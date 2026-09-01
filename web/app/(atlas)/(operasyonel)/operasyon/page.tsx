@@ -5,7 +5,7 @@ import { db } from '@/lib/db';
 import OperasyonIstemci from './OperasyonIstemci';
 import type { Bagli, D, OlayAdayi } from './mantik';
 
-export const metadata: Metadata = { title: 'Değişiklik yönetimi — Abacus' };
+export const metadata: Metadata = { title: 'Değişiklik yönetimi' };
 
 /* O · Değişiklik yönetimi (OT emniyet kapılı).
 

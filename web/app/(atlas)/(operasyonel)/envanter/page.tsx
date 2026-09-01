@@ -5,7 +5,7 @@ import { ilkiniEsle } from '@/lib/sorguParcala';
 import EnvanterIstemci from './EnvanterIstemci';
 import type { Bolge, Iliski, Kodlu, Tur, Unite, V } from './mantik';
 
-export const metadata: Metadata = { title: 'Varlık zekâsı — Abacus' };
+export const metadata: Metadata = { title: 'Varlık zekâsı' };
 
 /* O10 · Asset Intelligence + O11 · Asset Detail.
 

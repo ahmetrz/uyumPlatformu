@@ -38,7 +38,7 @@ export default async function Giris() {
           flexDirection: 'column', justifyContent: 'space-between',
           padding: 'var(--s40) var(--s44)' }}>
           <p className="etiket" style={{ margin: 0, color: 'rgba(246,244,238,.72)' }}>
-            Voltaj Atlas · enerji operasyonları
+            Zorlu Enerji Yönetişim Platformu
           </p>
           <div>
             <h1 className="ab-pano-basligi" style={{ margin: 0, maxWidth: 620 }}>
@@ -51,7 +51,7 @@ export default async function Giris() {
             </p>
           </div>
           <p className="etiket" style={{ margin: 0, color: 'rgba(246,244,238,.52)' }}>
-            IT/OT governance · compliance · transformation
+            BT/OT yönetişim · uyum · dönüşüm
           </p>
         </div>
       </section>
@@ -60,8 +60,8 @@ export default async function Giris() {
         borderLeft: 'var(--bw-strong) solid var(--hr2)',
         display: 'flex', flexDirection: 'column', justifyContent: 'center',
         padding: 'var(--s40) var(--s34)' }}>
-        <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Oturum</p>
-        <h2 className="ab-bolum-basligi" style={{ margin: '0 0 var(--s26)' }}>Zorlu Uyum Konsolu</h2>
+        <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Kurum hesabı</p>
+        <h2 className="ab-bolum-basligi" style={{ margin: '0 0 var(--s26)' }}>Oturum aç</h2>
         <GirisFormu />
       </main>
     </div>

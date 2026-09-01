@@ -6,7 +6,7 @@ import { cerceveleriYukle } from './veri';
 import UyumIstemci from './UyumIstemci';
 import MatrisIskeleti from './MatrisIskeleti';
 
-export const metadata: Metadata = { title: 'Uyum kontrol odası — Abacus' };
+export const metadata: Metadata = { title: 'Uyum kontrol odası' };
 
 /* O1 · Uyum kontrol odası — "nerede uyumsuzuz?" (03-screens O1)
 

@@ -629,7 +629,7 @@ async function main() {
     uretimEtkisi: 'yuksek', logKaynagi: 'yok', izlemeDurumu: 'bilinmiyor',
     yamaDurumu: 'bilinmiyor' } }); // sahipsiz + kritikliği bilinmiyor: veri kalitesi örneği
   await db.varlik.create({ data: {
-    etiket: 'MERKEZ-SSUNUCU-01', ad: 'Uyum Konsolu Uygulama Sunucusu', turId: tur['SSUNUCU'].id,
+    etiket: 'MERKEZ-SSUNUCU-01', ad: 'Yönetişim Platformu Uygulama Sunucusu', turId: tur['SSUNUCU'].id,
     tesisId: t['MERKEZ-BT'].id, sistemId: sistemSanal.id, isletimSistemi: 'Ubuntu 24.04 LTS',
     kritiklik: 'yuksek', bolgeId: zonMerkez.id, sahipId: k['mehmet.kaya'].id,
     yamaDurumu: 'guncel', edrDurumu: 'var', yedekDurumu: 'var', izlemeDurumu: 'var',

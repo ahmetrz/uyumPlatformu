@@ -19,7 +19,7 @@ export async function generateMetadata(
   { params }: { params: Promise<{ cerceve: string }> },
 ): Promise<Metadata> {
   const { cerceve } = await params;
-  return { title: `${decodeURIComponent(cerceve)} — Çerçeve detayı — Atlas` };
+  return { title: `${decodeURIComponent(cerceve)} — Çerçeve detayı` };
 }
 
 export default async function Sayfa({ params }: { params: Promise<{ cerceve: string }> }) {

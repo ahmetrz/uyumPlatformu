@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { kontrast, bicimle, aaGecer } from '@/lib/kontrast';
 
-export const metadata: Metadata = { title: 'Abacus — Tasarım sistemi' };
+export const metadata: Metadata = { title: 'Tasarım sistemi' };
 
 /* ═══════════════════════════════════════════════════════════════════════
    ABACUS TOKEN REFERANSI

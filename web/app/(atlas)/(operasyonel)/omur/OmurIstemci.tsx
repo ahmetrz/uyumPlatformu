@@ -11,7 +11,7 @@ import { OmurUfku } from '@/components/atlas/zaman';
 import { tarihTR } from '@/lib/sabitler';
 import {
   aciliyetSirasi, ayYil, buyuk, donemler, geriMetni, grupla, GRUPLAR, kisaEtiket,
-  konumlariAyir, omruCoz, sureMetni, ufkaYay, ufukKonumu, ufukUzunlugu,
+  konumlariAyir, omruCoz, sureMetni, ufkaYay, ufukBantlari, ufukKonumu, ufukUzunlugu,
   type GrupAnahtari, type Omur, type VarlikKaydi,
 } from './mantik';
 
@@ -215,7 +215,7 @@ export default function OmurIstemci({
           >
             {/* Dönem tırnakları artık primitifin içinde: ekranın eksenin piksel
                 konumuna göre kendi katmanını bindirmesi kırılgandı. */}
-            <OmurUfku kartlar={kartlar} donemler={eksen}
+            <OmurUfku kartlar={kartlar} donemler={eksen} bantlar={ufukBantlari(uzunluk)}
               tikla={(id) => setSecili((o) => (o === id ? null : id))} />
           </div>
 

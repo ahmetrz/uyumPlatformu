@@ -278,6 +278,48 @@ export function ufukKonumu(karar: number | null, simdi: number, uzunluk: number)
   return Math.max(0, Math.min(1, (karar - simdi) / uzunluk));
 }
 
+/* ── ACİLİYET BANTLARI ────────────────────────────────────────────────
+   Ufuk şeridi bugüne kadar aciliyeti YALNIZ KONUMLA anlatıyordu: kart ne
+   kadar solda, o kadar yakın. Ama "sol" ne kadar yakın? Okuyucu her
+   kartta eksenin tırnaklarına bakıp "bu 90 günün içinde mi?" diye zihinden
+   hesap yapmak zorundaydı — ve EOS kararının eşiği tam olarak budur
+   (tedarik süresi, bütçe dönemi, bakım penceresi).
+
+   Dört bant zemine yerleşir: ŞİMDİ (geçmiş — karar gecikmiş), <90 GÜN,
+   <1 YIL, >1 YIL. Bant bir DEĞER değil ÖLÇEKTİR; kartın kendisi zaten
+   tarihi taşır. Bu yüzden bantlar arka planda ve düşük kontrastta durur:
+   okuma sırasını bozmadan ölçeği görünür kılar.
+
+   Ufuk 12 aydan kısa olamadığı için (`ufukUzunlugu` tabanı) <1 YIL bandı
+   daima çizilir; >1 YIL bandı ufuk 12 ayı geçtiğinde belirir. */
+export const BANT_90 = 90 * GUN;
+export const BANT_1Y = 365 * GUN;
+
+export type Bant = { ad: string; bas: number; son: number; sinif: string };
+
+/**
+ * Şeridin arka plan bantları — konumlar 0–1 aralığında.
+ *
+ * "ŞİMDİ" bandı bilerek SIFIR GENİŞLİKTEDİR: geçmiş kararlar ufkun sol
+ * ucuna oturur (`ufukKonumu` negatifi 0'a kırpar) ve onlara ayrı bir alan
+ * vermek, gerçekte olmayan bir zaman aralığı çizmek olurdu. Sol uçtaki
+ * çizgi "buradan öncesi geçmiş" der.
+ */
+export function ufukBantlari(uzunluk: number): Bant[] {
+  const o = (ms: number) => Math.max(0, Math.min(1, ms / uzunluk));
+  const bantlar: Bant[] = [
+    { ad: 'şimdi', bas: 0, son: 0, sinif: 'bant-simdi' },
+    { ad: '<90 gün', bas: 0, son: o(BANT_90), sinif: 'bant-90' },
+  ];
+  if (uzunluk > BANT_90) {
+    bantlar.push({ ad: '<1 yıl', bas: o(BANT_90), son: o(BANT_1Y), sinif: 'bant-1y' });
+  }
+  if (uzunluk > BANT_1Y) {
+    bantlar.push({ ad: '>1 yıl', bas: o(BANT_1Y), son: 1, sinif: 'bant-uzak' });
+  }
+  return bantlar;
+}
+
 /** Kart başlığı: santral öneki kapsam satırında zaten var (`MERKEZ-SRV-14` → `SRV-14`). */
 export function kisaEtiket(etiket: string): string {
   const parcalar = etiket.split('-');

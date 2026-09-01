@@ -64,6 +64,8 @@ jobs:
         #   3. her varlık başvurusunu diskte ara (yayin-kontrol.mjs)
         #   4. yayını gerçek tarayıcıda, ziyaretçi saati +90 gün iken aç
         #      ve konsola düşen her hatayı kusur say (statik-kontrol.mjs)
+        #   5. her kütükte başlık ile satırın aynı ızgara raylarını
+        #      taşıdığını üç genişlikte ölç (kolon-hizasi.mjs)
         # Herhangi biri kırılırsa iş durur; kusurlu yayın gh-pages'e çıkamaz.
         run: npm run demo:build
 

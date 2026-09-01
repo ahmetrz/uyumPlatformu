@@ -9,7 +9,7 @@
     "lint": "eslint",
     "seed": "tsx prisma/seed.ts",
     "db:hazirla": "prisma migrate deploy && prisma generate && tsx prisma/seed.ts",
-    "demo:build": "prisma generate && next build && node arac/demo-yol.mjs && node arac/yayin-kontrol.mjs && node arac/statik-kontrol.mjs",
+    "demo:build": "prisma generate && next build && node arac/demo-yol.mjs && node arac/yayin-kontrol.mjs && node arac/statik-kontrol.mjs && node arac/kolon-hizasi.mjs",
     "test": "vitest run",
     "sayimlar:yenile": "node arac/test-envanteri.mjs --yaz && node arac/sayimlar.mjs --yaz",
     "sayimlar:denetle": "node arac/test-envanteri.mjs --denetle",
@@ -21,7 +21,8 @@
     "tasarim:kapi": "node arac/kontrast.mjs && node arac/font-kontrol.mjs && node arac/iz-tarama.mjs",
     "tasarim:erisim": "node arac/erisim.mjs",
     "yayin:kontrol": "node arac/yayin-kontrol.mjs",
-    "yayin:statik": "node arac/statik-kontrol.mjs"
+    "yayin:statik": "node arac/statik-kontrol.mjs",
+    "tasarim:kolon": "node arac/kolon-hizasi.mjs"
   },
   "dependencies": {
     "@prisma/adapter-better-sqlite3": "^7.10.0",

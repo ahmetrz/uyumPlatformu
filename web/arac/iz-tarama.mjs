@@ -116,6 +116,22 @@ for (const [ad, nerede] of basvurulan) {
   if (!tanimli.has(ad)) kusurlar.push(`TANIMSIZ TOKEN · ${nerede} → var(${ad})`);
 }
 
+/* ── 3b · tanımlı ama okunmayan CSS değişkeni ───────────────────────
+   Tanımsız token'ı zaten yakalıyorduk (kullanılan ama tanımlanmayan).
+   Ters yön de kusurdur: tanımlanmış ama hiçbir yerden `var(...)` ile
+   okunmayan token bir sonraki okuyucuya YALAN söyler — "bu ölçü
+   burada ayarlanıyor" der, oysa hiçbir şeyi ayarlamaz. Bu denetim
+   yokken yedi tane birikmişti (--rail-inset, --rail-pad-top,
+   --rail-alan-w, --rail-bg, --ayak-h, --drawer-pad ve 60px'te donmuş
+   bir --rail-w); ray genişliği elle üç yere kopyalanmıştı.
+
+   Yön paleti bilerek muaf: `--jes/--hes/--res/--ges` gibi token'lar
+   üç yön bloğunda da tanımlanır ama yalnız bazıları okunur; palet
+   eksiksiz olmak zorundadır. */
+const PALET_ONEKI = /^--(jes|hes|res|ges|i[0-9]|ok|md|bd|pl|unk)$/;
+const okunmayan = [...tanimli].filter((t) => !basvurulan.has(t) && !PALET_ONEKI.test(t));
+for (const t of okunmayan) kusurlar.push(`ÖLÜ TOKEN · app/*.css → ${t}`);
+
 /* ── 4 · kullanılmayan CSS sınıfı ──────────────────────────────────── */
 const cssSiniflari = new Set();
 for (const m of stilMetni.matchAll(/\.([a-zA-Z][\w-]*)/g)) cssSiniflari.add(m[1]);

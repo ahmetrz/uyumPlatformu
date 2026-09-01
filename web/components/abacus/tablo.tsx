@@ -48,8 +48,12 @@ function Baslik({ ad, anahtar, sag, ikincil, sirala }: {
   const sinif = `kolonbas${sag ? ' sag' : ''}${ikincil ? ' ikincil-k' : ''}`;
   if (!sirala || !anahtar) return <span className={sinif}>{ad}</span>;
   const etkin = sirala.anahtar === anahtar;
+  /* İşaret DIŞ sarmalayıcıya da gider: sıralanabilir başlık ayrı bir
+     span'a sarılıdır ve dar ekranda gizlenmezse başlık satırı
+     hücrelerden bir kolon kayar (ölçüldü). */
   return (
-    <span role="columnheader" className={sag ? 'sag' : undefined}
+    <span role="columnheader"
+      className={`${sag ? 'sag' : ''}${ikincil ? ' ikincil-k' : ''}`.trim() || undefined}
       aria-sort={etkin ? (sirala.yon === 'artan' ? 'ascending' : 'descending') : 'none'}>
       <button type="button" className={`kolonbas sirali${etkin ? ' etkin' : ''}`}
         aria-label={`${ad} · ${etkin && sirala.yon === 'azalan' ? 'azalan' : 'artan'} sırala`}

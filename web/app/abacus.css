@@ -159,9 +159,19 @@
 /* ═══ Ölçek ══════════════════════════════════════════════════════════
    Boşluk, tipografi boyu ve kenar kalınlığı ÖLÇEKTİR — bir tasarımın
    kimliği değil, ölçüsü. Değerler Abacus prototiplerinden okundu:
-   9.5px mono etiket, 12.5px hücre, 8.5px kolon başlığı, 1px kural,
-   satır dolgusu 9px. Ekranlar bu adları satır içi stilde kullanır;
-   Atlas'ın aynı adlı ölçeği SİLİNDİ, buradaki değerler prototiplerin.
+   9.5px mono etiket, 12.5px hücre, 1px kural, satır dolgusu 9px.
+   Ekranlar bu adları satır içi stilde kullanır; Atlas'ın aynı adlı
+   ölçeği SİLİNDİ, buradaki değerler prototiplerin.
+
+   ── PROTOTİPTEN BİLİNÇLİ SAPMA: 11px zemini ────────────────────────
+   Prototip kolon başlığını 8.5px, ikon rayı etiketini 7.5px çiziyordu.
+   İkisi de üründe kaldırıldı: prototip bir maket, bu konsol uyum
+   ekibinin günde saatlerce baktığı bir tezgâh. İşlevsel metin —
+   gezinme etiketi, kolon başlığı — 11px'in altına inmez; yüksek
+   piksel yoğunluklu ekranda ve küçük görünüm alanında okunmuyor.
+   Ray sütunu 60px'ten 76px'e çıktı ki etiketler tek satırda kalsın.
+   9–10px veri kademesi prototipteki gibi DURUYOR: mono sayı ve kod
+   yoğun tabloda bu boyda okunur, kararı orada vermedik.
 
    Hareket: prototipler `ease` ile 0.45s'e kadar; azaltılmış harekette
    hepsi 0'a iner (aşağıdaki reduced-motion bloğu). */
@@ -169,12 +179,10 @@
   --s2: 2px;  --s3: 3px;  --s4: 4px;  --s6: 6px;  --s8: 8px;  --s9: 9px;
   --s10: 10px; --s12: 12px; --s14: 14px; --s16: 16px; --s18: 18px;
   --s20: 20px; --s22: 22px; --s24: 24px; --s26: 26px; --s28: 28px;
-  --s30: 30px; --s32: 32px; --s34: 34px; --s36: 36px; --s38: 38px;
-  --s40: 40px; --s44: 44px;
+  --s30: 30px; --s32: 32px; --s34: 34px; --s36: 36px; --s40: 40px; --s44: 44px;
 
-  --t-colhead: 8.5px;
+  --t-colhead: 11px;
   --t-label: 9.5px;
-  --t-eyebrow: 9.5px;
   --t-code: 9.5px;
   --t-caption: 10px;
   --t-code-lg: 11px;
@@ -188,57 +196,37 @@
   --t-metric-den: 12px;
   --t-screen: 26px;
   --t-board: 34px;
-  --t-hero: 76px;
 
   --tr-colhead: .18em;
   --tr-label: .14em;
-  --tr-caption: .12em;
-  --tr-eyebrow: .14em;
   --tr-section: -.01em;
   --tr-screen: -.01em;
   --tr-board: -.01em;
-  --tr-hero: .01em;
 
   --lh-section: 1.2;
   --lh-screen: 1.15;
   --lh-board: 1.1;
-  --lh-hero: .9;
   --lh-metric: 1;
 
   --bw-hair: 1px;
   --bw-strong: 1px;
   --bw-edge: 2px;
-  --bw-focus-edge: 2px;
 
   --col-gap: 16px;
-  --filter-gap: 16px;
-  --metric-gap: 30px;
   --gutter-op: 24px;
-  --gutter-fs: 32px;
   --sec-pad-top: 22px;
   --sec-pad-bot: 40px;
-  --row-pad-y: 10px;
-  --row-pad-y-dense: 7px;
   --drawer-w: 400px;
-  --drawer-pad: 20px;
-  --rail-w: 60px;
-  --rail-inset: 0px;
-  --rail-pad-top: 12px;
-  --rail-alan-w: 60px;
-  --rail-bg: var(--panel);
-  --ayak-h: 30px;
-  --matrix-subject: minmax(200px, 1fr);
-  --ar: 16 / 9;
-  --fs-body: 13px;
+  /* A kabuğunun ikon ray sütunu. 60px'ti; etiketler 11px zeminine
+     çıkınca en uzunu ("V.aktarım") tek satıra sığmadı — ölçüldü,
+     7.5px'te 47px sürüyordu. Bkz. ölçek bloğundaki sapma notu.
+     Kardeşleri (--rail-inset, --rail-pad-top, --rail-alan-w,
+     --rail-bg, --ayak-h, --drawer-pad) hiçbir yerden okunmuyordu,
+     kaldırıldı; ölü token bir sonraki okuyucuya yalan söyler. */
+  --rail-w: 76px;
 
   --ez: cubic-bezier(.2, 0, 0, 1);
-  --ez-out: cubic-bezier(0, 0, .2, 1);
-  --mo-instant: 90ms;
-  --mo-state: 140ms;
   --mo-reveal: 320ms;
-  --mo-rise: 450ms;
-  --mo-drawer: 260ms;
-  --mo-topo: 360ms;
 }
 
 /* ═══ Ortak taban ═════════════════════════════════════════════════════ */
@@ -269,7 +257,7 @@
   text-transform: uppercase; color: var(--i3);
 }
 .ab .kolonbas {
-  font-family: var(--veri); font-size: 8.5px; letter-spacing: .18em;
+  font-family: var(--veri); font-size: var(--t-colhead); letter-spacing: var(--tr-colhead);
   text-transform: uppercase; color: var(--i3);
 }
 
@@ -359,16 +347,16 @@
   --aksan-uzeri: #FFFFFF;
 }
 
-/* ═══ Kabuk A — 52px kapsam çubuğu + 60px ikon rayı ═══════════════════ */
+/* ═══ Kabuk A — 52px kapsam çubuğu + ikon rayı (--rail-w) ═════════════ */
 .ab-a { display: grid; grid-template-rows: 52px minmax(0, 1fr) 30px;
   grid-template-columns: minmax(0, 1fr); min-height: 100dvh; }
 .ab-a-ust {
   display: flex; align-items: stretch;
   background: var(--panel); border-bottom: 1px solid var(--hr);
 }
-/* İlk blok rayla HİZALANIR: 60px'lik boşluk ray sütununun devamıdır. */
+/* İlk blok rayla HİZALANIR: bu boşluk ray sütununun devamıdır. */
 .ab-a-ust .marka {
-  width: 60px; flex: none; display: grid; place-items: center;
+  width: var(--rail-w); flex: none; display: grid; place-items: center;
   border-right: 1px solid var(--hr);
   font-family: var(--veri); font-size: 11px; font-weight: 600;
   letter-spacing: .06em; color: var(--zemin); background: var(--aksan);
@@ -381,7 +369,7 @@
 .ab-a-ust .deg { font-size: 13px; color: var(--murekkep); }
 .ab-a-ust .deg.ikincil { color: var(--i2); }
 
-.ab-a-govde { display: grid; grid-template-columns: 60px minmax(0, 1fr); min-height: 0; }
+.ab-a-govde { display: grid; grid-template-columns: var(--rail-w) minmax(0, 1fr); min-height: 0; }
 .ab-a-ray {
   background: var(--panel); border-right: 1px solid var(--hr);
   display: flex; flex-direction: column; padding-top: 12px;
@@ -402,7 +390,10 @@
   letter-spacing: .04em; line-height: 1;
 }
 .ab-a-ray a .ad {
-  font-family: var(--veri); font-size: 7.5px; letter-spacing: .1em;
+  /* 11px zemini (bkz. ölçek bloğu). Harf aralığı .1em'den .06em'e
+     indi: boy büyürken aralık da büyüseydi en uzun etiket rayı
+     taşırdı — ölçüldü, "V.aktarım" 7.5px'te 47px sürüyordu. */
+  font-family: var(--veri); font-size: 11px; letter-spacing: .06em;
   line-height: 1; text-transform: uppercase; white-space: nowrap;
 }
 /* Yönetim ayracı: prototipte 6. öğeden sonra 33px boşluk vardı. Grup
@@ -590,7 +581,7 @@
   background: repeating-linear-gradient(45deg, var(--hr) 0 3px, transparent 3px 6px);
 }
 .ab-b-yigin.bos .mono {
-  font-size: 8.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--i3);
+  font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--i3);
 }
 .ab-b-yigin > span { display: block; }
 .ab-b-yigin .uygun { background: var(--ok); }
@@ -1175,7 +1166,15 @@
   display: grid; grid-template-columns: var(--kolon, var(--kolonlar));
   gap: 16px; align-items: center;
 }
-.ab-tablo .bas { padding: 10px 0; border-bottom: 1px solid var(--murekkep); }
+/* Sol kenar başlıkta da SAYDAM olarak durur. Satır bir <button> ve
+   seçili durumu 2px'lik sol kenarla gösterir; başlıkta o kenar hiç
+   yokken başlığın içerik kutusu 2px daha genişti ve esnek ray başlık
+   ile satır arasında 2px ayrışıyordu — her kütükte, her genişlikte.
+   Ölçüldü; `arac/kolon-hizasi.mjs` artık tam eşitlik arıyor. */
+.ab-tablo .bas {
+  padding: 10px 0; border-bottom: 1px solid var(--murekkep);
+  border-left: 2px solid transparent;
+}
 .ab-tablo .satir {
   width: 100%; text-align: left; background: none; border: 0; font: inherit; color: inherit;
   padding: var(--satir-y, 10px) 0; border-bottom: 1px solid var(--hr);
@@ -1564,7 +1563,16 @@
   font-family: var(--gorunum); font-weight: 500; font-size: var(--t-section);
   line-height: var(--lh-section); letter-spacing: var(--tr-section);
 }
-.ab-dip { font-family: var(--veri); font-size: var(--t-code); line-height: 1.7; color: var(--i3); }
+/* Açıklama notu. `max-width` ŞART: bu notlar 1440px'lik yerleşimde
+   kolonun tamamını kaplıyordu ve 9.5px'te satır başına ~270 karakter
+   düşüyordu (ölçüldü, /topoloji). Göz satır sonundan satır başına
+   dönerken yerini kaybediyor. 78ch yaklaşık 80 karakterlik okuma
+   ölçüsüdür; blok hizası bozulmasın diye genişlik sınırı, ortalama
+   değil. */
+.ab-dip {
+  font-family: var(--veri); font-size: var(--t-code); line-height: 1.7;
+  color: var(--i3); max-width: 78ch;
+}
 .ab .bos { color: var(--i3); }
 
 /* ── Süzgeç düğmesi (ekranların elle çizdiği) ──────────────────────── */
@@ -1727,7 +1735,7 @@ textarea.ab-gr { min-height: 76px; resize: vertical; }
   border-bottom: 1px solid var(--murekkep);
 }
 .ab-mtx .bas .santral { text-align: center; font-size: 10px; color: var(--i2); line-height: 1.25; }
-.ab-mtx .bas .santral .mono { display: block; font-size: 8.5px; color: var(--i3); }
+.ab-mtx .bas .santral .mono { display: block; font-size: 11px; color: var(--i3); }
 .ab-mtx .satir {
   align-items: stretch;
   padding: 9px 0;
@@ -1939,6 +1947,25 @@ textarea.ab-gr { min-height: 76px; resize: vertical; }
    Harita §7 kusur 2: 1366 / 1280 / tablet davranışı burada eklenir.
    HİÇBİR ROTA ERİŞİLEMEZ OLAMAZ. */
 @media (max-width: 1366px) {
+  /* Dar kütük şablonu. `--kolon-dar` / `--kolonlar-dar` beş ekranda
+     HESAPLANIP satır içi stille geçiriliyordu ama hiçbir kural onu
+     okumuyordu: dar ekranda ikincil kolonu düşürme sessizce hiç
+     çalışmamıştı. `iz-tarama.mjs`in yeni ölü token denetimi ortaya
+     çıkardı.
+
+     `ikincil` bütün kütüklerde DÜŞEN kolonu işaretler; başlık
+     tarafında iki ad dolaşır (`ikincil` elle yazılanlarda, `ikincil-k`
+     `tablo.tsx`te), o yüzden ikisi de gizlenir. Doğrudan çocuk
+     seçicisi şart: `ikincil` hücre İÇİNDE de kullanılıyor (satır altı
+     etiketi) ve o gizlenmemeli. Şablondan düşen kolon ile gizlenen
+     hücre AYNI olmazsa başlık bir kolon kayar — ölçüldü, üç ekranda
+     oluyordu. `arac/kolon-hizasi.mjs` bunu her koşuda ölçer. */
+  .ab-tablo .bas, .ab-tablo .satir {
+    grid-template-columns: var(--kolon-dar, var(--kolonlar-dar, var(--kolon, var(--kolonlar))));
+  }
+  .ab-tablo .bas > .ikincil, .ab-tablo .bas > .ikincil-k,
+  .ab-tablo .satir > .ikincil, .ab-tablo .satir > .ikincil-k { display: none; }
+
   .ab-c-govde { grid-template-columns: 188px minmax(0, 1fr); gap: 32px; padding: 32px 36px 56px; }
   .ab-c-kunye, .ab-c-nav { padding-left: 36px; padding-right: 36px; }
   .ab-c-kural, .ab-c-kural-kalin { margin-left: 36px; margin-right: 36px; }

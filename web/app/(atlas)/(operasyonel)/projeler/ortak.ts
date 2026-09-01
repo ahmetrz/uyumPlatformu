@@ -82,6 +82,14 @@ export type P = {
   baglantilar: Baglanti[];
   /** kapsamdaki santraller — doğrudan tesis bağı + bulguların tesisi */
   tesisler: { id: string; kod: string; ad: string }[];
+  /** Bu projenin ÖNKOŞULLARI — tamamlanmadan bu proje bitemez. */
+  onkosullar: Bagimlilik[];
+  /** Bu projeye BAĞLI projeler — bu proje gecikirse onlar da gecikir. */
+  bagimlilar: Bagimlilik[];
+};
+
+export type Bagimlilik = {
+  id: string; kod: string; ad: string; durum: string; hedef: string | null;
 };
 
 /* ── İlerleme ───────────────────────────────────────────────────────────
@@ -201,9 +209,15 @@ export function santralMetni(p: Pick<P, 'tesisler'>): string {
   return `${p.tesisler.length} santral`;
 }
 
-/** Satır alt satırı: kayıt kimliği + kapsam. Durum tekrar edilmez. */
+/** Satır alt satırı: kayıt kimliği + kapsam. Durum tekrar edilmez.
+
+    Kapanmamış önkoşul VARSA sayısı eklenir. Bu, durum imini tekrar etmez:
+    im projenin kendi hâlini söyler, bu sayı ise "kendi hâli ne olursa
+    olsun başkası bitmeden bitemez" der. Sıfırsa hiç yazılmaz — her satıra
+    "0 önkoşul" koymak listeyi okunmaz yapar. */
 export function altSatir(p: P): string {
-  return `${p.kod} · ${santralMetni(p)}`;
+  const engel = engelleyenler(p).length;
+  return `${p.kod} · ${santralMetni(p)}${engel > 0 ? ` · ${engel} önkoşul açık` : ''}`;
 }
 
 /* Sayının ardından Türkçe çokluk eki gelmez: "7 kontrol", "7 kontroller" değil. */
@@ -342,6 +356,12 @@ type HamProje = {
     varlik: { id: string; etiket: string; ad: string } | null;
     tesis: { id: string; kod: string; ad: string } | null;
   }[];
+  bagimliOldugu: { id: string; bagimliProje: HamBagimlilik }[];
+  bagimliOlanlar: { id: string; proje: HamBagimlilik }[];
+};
+
+type HamBagimlilik = {
+  id: string; kod: string; ad: string; durum: string; hedef: Date | null;
 };
 
 /** Prisma satırının P'ye indirgenmiş biçimi. Bağlantılar tek listede
@@ -400,7 +420,37 @@ export function projeyeCevir(p: HamProje): P {
     })),
     baglantilar,
     tesisler: [...tesisler.values()].sort((a, b) => a.kod.localeCompare(b.kod, 'tr')),
+    onkosullar: p.bagimliOldugu.map((b) => bagimlilastir(b.bagimliProje)),
+    bagimlilar: p.bagimliOlanlar.map((b) => bagimlilastir(b.proje)),
   };
+}
+
+function bagimlilastir(
+  x: { id: string; kod: string; ad: string; durum: string; hedef: Date | null },
+): Bagimlilik {
+  return { id: x.id, kod: x.kod, ad: x.ad, durum: x.durum,
+    hedef: x.hedef?.toISOString() ?? null };
+}
+
+/* ── Bağımlılık yüklemleri ────────────────────────────────────────────
+   "Tamamlandı" DIŞINDAKİ her önkoşul engeldir; iptal edilmiş bir önkoşul
+   da engeldir, çünkü bu projenin dayandığı iş artık hiç yapılmayacaktır
+   ve bunu bilen insan planı değiştirmek zorundadır. Sessizce "engel yok"
+   demek en kötü cevaptır. */
+export function engelleyenler(p: Pick<P, 'onkosullar'>): Bagimlilik[] {
+  return p.onkosullar.filter((o) => o.durum !== 'tamamlandi');
+}
+
+/** Engelin kendisi de gecikmiş mi — "geç kalmış bir önkoşul" ayrı bir haberdir. */
+export function gecikmisEngeller(p: Pick<P, 'onkosullar'>, simdi: number): Bagimlilik[] {
+  return engelleyenler(p).filter(
+    (o) => o.hedef !== null && new Date(o.hedef).getTime() < simdi,
+  );
+}
+
+/** Bu proje gecikirse zincirleme etkilenecek, henüz kapanmamış projeler. */
+export function etkilenenler(p: Pick<P, 'bagimlilar'>): Bagimlilik[] {
+  return p.bagimlilar.filter((b) => b.durum !== 'tamamlandi' && b.durum !== 'iptal');
 }
 
 function kisalt(s: string, n = 46): string {
@@ -415,6 +465,24 @@ export const PROJE_ICERIK = {
   },
   butceler: {
     select: { yil: true, tip: true, planlanan: true, harcanan: true, paraBirimi: true },
+  },
+  /* PROJE → PROJE bağımlılığı. `ProjeBagimliligi` şemada vardı, tohum
+     beş gerçekçi zincir yazıyordu (SIEM-OT → OT-SEG, UZAK-BAKIM → PAM,
+     üç proje → ENVANTER) ve HİÇBİR EKRAN okumuyordu: veri duruyor, karar
+     veren insan görmüyordu. Bir projenin "yolunda" sayılması, önkoşulunun
+     durumunu bilmeden yapılamaz.
+
+     İki yön de gerekli ve AYRI sorular:
+       bagimliOldugu  → beni ne engelliyor  (önkoşullarım)
+       bagimliOlanlar → ben kimi engelliyorum (bana bağlı olanlar)
+     İkincisi gecikmiş bir projeyi portföy seviyesinde bir sinyale çevirir. */
+  bagimliOldugu: {
+    select: { id: true,
+      bagimliProje: { select: { id: true, kod: true, ad: true, durum: true, hedef: true } } },
+  },
+  bagimliOlanlar: {
+    select: { id: true,
+      proje: { select: { id: true, kod: true, ad: true, durum: true, hedef: true } } },
   },
   baglantilar: {
     select: {

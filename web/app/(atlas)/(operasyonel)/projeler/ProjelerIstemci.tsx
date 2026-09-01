@@ -10,7 +10,8 @@ import { PROJE_DURUM_ETIKET, etiketle } from '@/lib/sabitler';
 import { ProjeFormu, DurumFormu, BaglantiFormu } from './Formlar';
 import {
   aktifMi, altSatir, bagMetni, barDurumu, butceAsimi, butceOzeti, buyuk, ceyrek,
-  donemler, fazGecikmesi, gecikenFazlar, gunFarki, hedefMetni, ilerleme,
+  donemler, engelleyenler, etkilenenler, fazGecikmesi, gecikenFazlar,
+  gecikmisEngeller, gunFarki, hedefMetni, ilerleme,
   kapatilanSayisi, kartDurumu, kisaAd, riskteMi, santralMetni,
   sapmaMetni, ufkaYay, ufukKonumu, ufukUzunlugu,
   GORUNUR_BUTCE, KART_BUTCESI, KART_BUTCESI_DAR,
@@ -468,6 +469,10 @@ function Ozet({ proje, simdi, yazabilir, duzenle, durumKip, bagla }: {
 
   /* Varoluş gerekçesi: projenin kapattığı kayıtlar. Zincir en fazla dört
      halka gösterir, kalanı dip nota sayı olarak iner. */
+  const engeller = engelleyenler(proje);
+  const gecEngeller = gecikmisEngeller(proje, simdi);
+  const etkilenen = etkilenenler(proje);
+
   const zincir = proje.baglantilar.filter((b) => b.tur !== 'tesis').slice(0, 4);
   const gizliBag = Math.max(0, proje.baglantilar.filter((b) => b.tur !== 'tesis').length - 4);
 
@@ -502,6 +507,45 @@ function Ozet({ proje, simdi, yazabilir, duzenle, durumKip, bagla }: {
       ]} />
 
       <Fazlar fazlar={proje.fazlar} simdi={simdi} />
+
+      {/* BAĞIMLILIK — "beni ne engelliyor" ve "ben kimi engelliyorum".
+          İki yön ayrı sorudur ve tek satırda toplanamaz. Bloğun kendisi
+          bağımlılık YOKKEN de çizilir: sessizlik "önkoşulu yok" ile
+          "bakmadık"ı ayırt ettirmez. */}
+      <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
+        <p className="t-label" style={{ margin: '0 0 var(--s10)' }}>Bağımlılık</p>
+        {proje.onkosullar.length === 0 && proje.bagimlilar.length === 0 ? (
+          <p className="cekmece-dip" style={{ margin: 0 }}>
+            Kayıtlı proje bağımlılığı yok — bu proje tek başına ilerleyebilir
+            sayılıyor.
+          </p>
+        ) : (
+          <>
+            {engeller.length > 0 && (
+              <p className="cekmece-dip" style={{ margin: '0 0 var(--s10)' }}>
+                {engeller.length} önkoşul kapanmadı
+                {gecEngeller.length > 0 ? ` · ${gecEngeller.length} tanesi hedefini geçti` : ''}
+                {' — '}bu proje onlar bitmeden tamamlanamaz.
+              </p>
+            )}
+            {proje.onkosullar.length > 0 && (
+              <CekmeceBagli baslik="Önkoşul" kayitlar={proje.onkosullar.map((o) => ({
+                id: o.id, kod: o.kod, yol: '/projeler',
+                alt: `${PROJE_DURUM_ETIKET[o.durum as keyof typeof PROJE_DURUM_ETIKET]
+                  ?? etiketle(o.durum)} · ${ceyrek(o.hedef) ?? 'tarih yok'}`,
+                suren: o.durum !== 'tamamlandi',
+              }))} />
+            )}
+            {etkilenen.length > 0 && (
+              <CekmeceBagli baslik="Bu projeye bağlı" kayitlar={etkilenen.map((b) => ({
+                id: b.id, kod: b.kod, yol: '/projeler',
+                alt: `${PROJE_DURUM_ETIKET[b.durum as keyof typeof PROJE_DURUM_ETIKET]
+                  ?? etiketle(b.durum)} · ${ceyrek(b.hedef) ?? 'tarih yok'}`,
+              }))} />
+            )}
+          </>
+        )}
+      </div>
 
       {zincir.length > 0 ? (
         <CekmeceBagli baslik="Varoluş gerekçesi" kayitlar={zincir.map((b) => ({
@@ -543,6 +587,12 @@ function dipNot(
   else parcalar.push('Bütçe kaydı yok');
   if (gecikenSayisi > 0) parcalar.push(`${gecikenSayisi} faz taahhüdü aştı`);
   if (gizliBag > 0) parcalar.push(`${gizliBag} bağ daha kayıtta`);
+  /* "Ben kimi engelliyorum" dip nota iner: gecikmiş bir projenin asıl
+     maliyeti çoğu zaman kendi takviminde değil, ona bağlı olanlarda. */
+  const etkilenenSayisi = etkilenenler(proje).length;
+  if (etkilenenSayisi > 0) {
+    parcalar.push(`${etkilenenSayisi} proje bu projenin bitmesini bekliyor`);
+  }
   parcalar.push(`Tip ${etiketle(proje.tip).toLocaleLowerCase('tr-TR')}`);
   if (!yazabilir) parcalar.push('yazma yetkiniz yok');
   return parcalar.join(' · ');

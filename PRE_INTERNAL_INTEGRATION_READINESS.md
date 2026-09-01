@@ -37,8 +37,8 @@ söylemeye başlar ve yalanı kimse fark etmez.
 
 | Ölçü | Değer |
 |---|---|
-| test dosyası | 51 |
-| test vakası | 1011 |
+| test dosyası | 52 |
+| test vakası | 1020 |
 | atlanan test | 1 |
 | ekran (rota) | 40 |
 | API ucu | 9 |
@@ -80,6 +80,8 @@ defterinde (`lib/motorlar/kayit.ts`) yaşar; zamanlayıcı ve "hepsini
 | 16 | Envanter 997 varlığın üzerinde HTTP 500 | Gerçek CMDB bu eşiğin çok üstünde. | `lib/sorguParcala.ts` |
 | 17 | Aktarılan veri kalitesi kuralları yoktu | Kuralı veri geldikten sonra yazmak ilk kötü aktarımı kaçırmaktır. | `lib/motorlar/veriKalitesi.ts` B grubu |
 | 18 | Topoloji sapması erişilemezdi | Motor sapma üretiyor, ekran iskeleydi, yedi eylem çağrılmıyordu. | `/topoloji` tezgâhı |
+| 19 | Dead-letter toplu incelemesi ATOMİK DEĞİLDİ | Eylem transaction dışında kayıt başına bir `update` + bir `iz` yazıyordu. Yüz kayıtlık bir kapatmada elli yedincisi patlarsa ilk elli altısı KALICI olarak kapanıyor, çağıran yalnız hata görüyordu — kuyruğun sayısı düşmüş, sebepleri durmaya devam ediyordu. Modülün kendi "hiçbiri değiştirilmedi" sözü sadece 'kayıt bulunamadı' dalında tutuluyordu. | `redKaydiIncele` tek transaction + koşullu `updateMany`; `tests/saglik-reddedilen.test.ts`, iki mutasyonla ölçüldü |
+| 20 | Proje bağımlılığı yazılıyor, hiç okunmuyordu | `ProjeBagimliligi` şemada vardı, tohum beş gerçekçi zincir yazıyordu ve `db.projeBagimliligi` ifadesi `app/` ile `lib/` altında bir kez bile geçmiyordu. Bir projenin "yolunda" sayılması, önkoşulunun durumu bilinmeden yapılamaz. | `/projeler` çekmecesinde iki yönlü bağımlılık bloğu + satırda "N önkoşul açık"; `tests/proje-bagimliligi.test.ts`, dört mutasyonla ölçüldü |
 
 ### 2.2 `MUST_FIX_BEFORE_INTERNAL_INTEGRATION` — AÇIK
 
@@ -123,6 +125,7 @@ işlerdir. Hiçbirine sahte bir uygulama yazılmadı.
 | OT ağı üzerinde herhangi bir ölçüm | Ürün PASİF-ÖNCEDİR; aktif sorgulama izni istenmez. |
 | Gerçek üretim verisiyle performans | Ölçümler sentetik veriyle yapıldı ve öyle etiketlendi. |
 | Kurum içi hostname ve adresler | `<<KURULUMDA-DOLDURULACAK>>` yer tutucusu. |
+| `Lisans` tablosu (yazılım lisans sicili) | Şemada duruyor; okuyan/yazan tek satır kod ve tek kayıt YOK. Lisans adedi, bitişi ve maliyeti gerçek bir yazılım varlık yönetimi sisteminden gelecek. Uydurma lisans kaydı üretmek, olmayan bir kabiliyeti var göstermek olurdu. Durum şemanın kendisinde de yazılı (`model Lisans` başlığı). |
 
 ### 2.5 `REQUIRES_PRODUCTION_INFRASTRUCTURE`
 
@@ -320,6 +323,16 @@ tek istek ve seri; gerçek üretim verisi kullanılmadı, eşzamanlılık
 | envanter | 10.347 | **HTTP 500** | 1990 ms |
 | ömür | 10.347 | 426 ms · 81 sorgu | 359 ms · 48 sorgu |
 | yedekleme | 10.347 | 106 ms · 17 sorgu | 58 ms · 7 sorgu |
+| tedarikçiler | 18 tedarikçi | **175 sorgu** | **16 sorgu** |
+| topoloji temel şeridi | santral başına | 4 sorgu × santral + temelin TÜM gözlemleri | 3 sorgu, santral sayısından bağımsız, gözlem yüklenmez |
+
+Son iki satırın maliyeti VERİDEN DEĞİL DÖNGÜDEN geliyordu: tedarikçi
+ekranı 175 sorguyu erişim oturumu tablosu BOŞKEN de koşuyordu. Topolojide
+ise örnek veride anlık tablosu boş olduğu için "anlığı yoksa sorma"
+kısayolu maliyeti gizliyordu — gerçek gözlem aktığı gün yirmi santral
+seksen sorgu ve yirmi tam topoloji okuması ederdi. İki yol da tekil
+okumanın kurallarını KOPYALAMIYOR, aynı saf fonksiyonları çağırıyor;
+eşdeğerlik testle donduruldu.
 
 Ölçülüp **düzeltilmeyen** iki şey (düzeltmek atomiklik sözleşmesini
 değiştirir, ayrı bir karar):

@@ -546,6 +546,13 @@ model IceAktarim {
 // ------------------------------------------------ organizasyon hiyerarşisi
 
 /// Grup (organizations) — en üst seviye.
+///
+/// YAZILIR ama HİÇBİR EKRANDA GÖSTERİLMEZ: `TuzelKisi.grupId` zorunlu bir
+/// yabancı anahtardır ve tohum tek bir grup kaydı açar, fakat hiçbir ekran
+/// grup seviyesinde kırılım sunmaz. Tek gruplu bir kurulumda bu doğru
+/// karardır — "1 grup" diye bir satır hiçbir kararı değiştirmez. Birden
+/// çok grup gerçekten oluşursa portföy ve uyum ekranlarının bu seviyeyi
+/// kırılım olarak açması gerekir.
 model Grup {
   id          String   @id @default(cuid())
   kod         String   @unique
@@ -680,8 +687,6 @@ model FrameworkSurumu {
   iceAktarimlar IceAktarim[]
   farklar       SurumFarki[] @relation("YeniSurum")
   eskiFarklar   SurumFarki[] @relation("EskiSurum")
-
-  @@unique([regulasyonId, surumEtiketi])
   /// DİKKAT — bu modelde şemada GÖRÜNMEYEN bir kısıt daha var:
   /// `FrameworkSurumu_tekAktif`, bir regülasyonda yalnız BİR satırın
   /// durum = 'aktif' olmasını zorlar. KISMİ (partial) tekil indekstir ve
@@ -692,6 +697,8 @@ model FrameworkSurumu {
   /// bu yüzden şemadan silinmiş sanılıp kaybolmaması için burada yazılıdır.
   /// İhlali `lib/eylemler2/surum.ts` içinde yakalanır ve anlamlı hataya
   /// çevrilir; çıplak Prisma istisnası kullanıcıya çıkmaz.
+
+  @@unique([regulasyonId, surumEtiketi])
 }
 
 /// Sürüm farkı (diff): iki sürüm arasında madde bazında değişim + etki.
@@ -1184,6 +1191,19 @@ model VarlikYazilimi {
   @@unique([varlikId, yazilimId])
 }
 
+/// YAZILIM LİSANSI — HENÜZ HİÇBİR YERE BAĞLI DEĞİL.
+///
+/// Bu tabloyu okuyan ya da yazan tek satır kod YOKTUR ve tabloda kayıt da
+/// yoktur. Şemada durması bir yetenek iddiası DEĞİLDİR: lisans adedi,
+/// bitişi ve maliyeti hiçbir ekranda görünmez, hiçbir motor okumaz.
+///
+/// Neden silinmedi: `YazilimUrunu` ve `Sozlesme` zincirinin doğal devamı
+/// ve lisans verisi gerçek bir kurum sisteminden (yazılım varlık yönetimi)
+/// gelecek. Neden doldurulmadı: uydurma lisans kaydı üretmek, olmayan bir
+/// kabiliyeti var göstermek olurdu.
+///
+/// Durumu PRE_INTERNAL_INTEGRATION_READINESS.md'de
+/// REQUIRES_REAL_INTERNAL_SYSTEM altında kayıtlıdır.
 model Lisans {
   id         String    @id @default(cuid())
   yazilimId  String

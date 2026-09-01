@@ -1,6 +1,8 @@
 import { notFound } from 'next/navigation';
 import { girisZorunlu } from '@/lib/erisim';
 import { db } from '@/lib/db';
+import { Yetkisiz } from '@/components/atlas/temel';
+import { modulOkuyabilir } from '@/app/kapsam';
 import RiskDetayIstemci from './RiskDetayIstemci';
 import { riskDetayVerisi } from './veri';
 
@@ -21,6 +23,11 @@ export async function generateStaticParams() {
 
 export default async function RiskDetay({ params }: { params: Promise<{ id: string }> }) {
   const k = await girisZorunlu();
+  /* Modül kapısı `modulOkuyabilir` ile sorulur, `izinVar(...,'okuma')` ile
+     DEĞİL: ikincisi kapsamsız (global) bir okuma sorar ve tesise kısıtlı
+     her kullanıcıyı ekrandan tümüyle atardı (bkz. app/kapsam.ts). */
+  if (!modulOkuyabilir(k, 'risk')) return <Yetkisiz rol="risk okuma" />;
+
   const { id } = await params;
 
   const veri = await riskDetayVerisi(k, id);

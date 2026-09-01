@@ -2,7 +2,7 @@ import 'server-only';
 import { db } from '@/lib/db';
 import { izinVar, izinliTesisIdleri } from '@/lib/erisim';
 import type { AktifKullanici } from '@/lib/auth';
-import { kapsamDaraltildi, kapsamda } from '@/app/kapsam';
+import { kapsamDaraltildi, kapsamda, modulOkuyabilir } from '@/app/kapsam';
 import { connectorKapsamKodlari } from '@/lib/entegrasyon/cekirdek';
 import type { RedSatiri } from './mantik';
 
@@ -80,7 +80,15 @@ function yapilandirmaOku(json: string | null): Record<string, unknown> {
 }
 
 export async function reddedilenlerVerisi(k: AktifKullanici): Promise<EkranVerisi> {
-  const okuyabilir = izinVar(k, 'yonetim', 'okuma');
+  /* Okuma kapısı `modulOkuyabilir` ile sorulur, `izinVar(...,'okuma')` ile
+     DEĞİL: ikincisi KAPSAMSIZ (global) bir okuma sorar ve `lib/erisim.ts →
+     kapsamUyar` gereği tesise kısıtlı her yöneticiyi kuyruktan tümüyle
+     atardı. Doğru soru "okuyabildiğin santral var mı"dır (bkz.
+     app/kapsam.ts ve lib/api/yetki.ts → okumaKapsami).
+     YAZMA kapısı ise bilerek `izinVar` ile kalır: `redKaydiIncele` eylemi
+     `yetkiZorunlu('yonetim','yazma')`i kapsamsız çağırır, yani karar
+     gerçekten global bir işlemdir — ekran eylemden farklı söz veremez. */
+  const okuyabilir = modulOkuyabilir(k, 'yonetim');
   const yazabilir = izinVar(k, 'yonetim', 'yazma');
   const izinli = izinliTesisIdleri(k, 'yonetim');
 

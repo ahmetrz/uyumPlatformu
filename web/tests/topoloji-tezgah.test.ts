@@ -473,3 +473,78 @@ describe('Sıralama ve katlama açık sapmayı gizlemez', () => {
     expect(M.sapmaKenari(sapma({ durum: 'gozlendi', siddet: 'kritik' }))).toBe('bd');
   });
 });
+
+/* ═══ 7 · Tek doğruluk kaynağı ve tavandan bağımsız metrik ════════════
+   Denetim bulgusu #22: dört okuma yardımcısı yazılmıştı ama hiçbir yerden
+   çağrılmıyordu; ekran aynı işi kendi ham `db` sorgularıyla yeniden
+   yapıyordu. Ekran yardımcılara taşındı. Bu blok o taşımanın davranışını
+   dondurur — özellikle metriğin TAVANDAN bağımsız olduğunu. */
+
+describe('Ekran sorguları tek kaynaktan gelir', () => {
+  it('sapmalariListele kapsam dışını GETİRMEZ ve şiddete göre sıralar', async () => {
+    const { tesisId, sapmaId } = await sapmaliKapsam();
+    const baskaTesis = await tesisAc();
+
+    const kapsamda = await T.sapmalariListele({ tesisIdleri: [tesisId] });
+    expect(kapsamda.some((s) => s.id === sapmaId)).toBe(true);
+    // Şiddet sırası veritabanının alfabesine bırakılmaz.
+    const siddetler = kapsamda.map((s) => M.SIDDET_SIRASI[s.siddet] ?? 9);
+    expect([...siddetler].sort((a, b) => a - b)).toEqual(siddetler);
+
+    const baskaKapsam = await T.sapmalariListele({ tesisIdleri: [baskaTesis] });
+    expect(baskaKapsam.some((s) => s.id === sapmaId)).toBe(false);
+
+    // [] = hiçbir tesis: boş liste, "hepsi" DEĞİL.
+    expect(await T.sapmalariListele({ tesisIdleri: [] })).toEqual([]);
+  });
+
+  it('anliklariListele ekranın ihtiyaç duyduğu sayaçları taşır', async () => {
+    const { tesisId, anlikId } = await sapmaliKapsam();
+    const anliklar = await T.anliklariListele([tesisId], 20);
+    const bu = anliklar.find((a) => a.id === anlikId);
+    expect(bu).toBeTruthy();
+    // Ekranın "öğe" ve "sapma" kolonları bu sayaçlardan doğar.
+    expect(bu!._count.gozlemler).toBeGreaterThan(0);
+    expect(bu!._count.sapmalar).toBeGreaterThan(0);
+  });
+
+  it('METRİK TAVANDAN BAĞIMSIZDIR: kesilmiş liste sayıyı düşüremez', async () => {
+    const { tesisId } = await sapmaliKapsam();
+    /* Kapsamda BİRDEN ÇOK açık sapma olmalı, yoksa "tavanla kesilmiş liste"
+       ile "tam sayım" aynı sonucu verir ve test kuralı ölçmez. İkinci bir
+       anlık, temelde olmayan yeni bir düğüm getirir. */
+    const ucuncu = await T.anlikAl(tesisId, 'test_kaynak', [
+      ...SAPMALI_OGELER,
+      dugum('SRV-EK-01', '10.10.0.9', 'Z-KURUMSAL', 'kurumsal'),
+    ]);
+    expect((await E.anligiKarsilastirEylem({ anlikId: ucuncu.id })).ok).toBe(true);
+
+    const ozet = await T.topolojiOzeti([tesisId]);
+    expect(ozet.acikSapma).toBeGreaterThan(1);
+
+    // Ekranın gördüğü liste tavanla BİRE indirilse bile metrik değişmez:
+    // sunucunun `count` ile ölçtüğü sayı geçerlidir.
+    const kesilmis = await T.sapmalariListele({ tesisIdleri: [tesisId], limit: 1 });
+    const satirlar = kesilmis.map((s) => ({
+      id: s.id, tip: s.tip, siddet: s.siddet, durum: s.durum, aciklama: s.aciklama,
+      anahtar: null, tesisId: s.tesisId, tesisKodu: null, anlikId: s.anlikId,
+      anlikKaynak: s.anlik.kaynak, anlikAlindi: s.anlik.alindi.toISOString(),
+      olusturuldu: s.olusturuldu.toISOString(), kararVeren: null, kararZamani: null,
+      kararGerekcesi: null, adayVar: s.siddet === 'kritik', uretilenRiskId: null,
+      uretilenRiskKodu: null, uretilenBulguId: null, onceki: null, sonraki: null,
+      kararVerilebilir: true,
+    }));
+
+    const tavansiz = M.sayimHesapla(satirlar, [], []);
+    const ozetli = M.sayimHesapla(satirlar, [], [],
+      { acikSapma: ozet.acikSapma, kritikAcik: ozet.kritikAcik });
+
+    expect(ozetli.acik).toBe(ozet.acikSapma);
+    expect(ozetli.kritikAcik).toBe(ozet.kritikAcik);
+    /* Kesilmiş listeden sayılan metrik gerçeğin ALTINDA kalır; ekranın
+       kullandığı sayı bu DEĞİLDİR. Bu satır, özet parametresi kaldırılıp
+       sayım yeniden listeden yapılırsa kırmızıya döner. */
+    expect(satirlar.length).toBe(1);
+    expect(tavansiz.acik).toBeLessThan(ozetli.acik);
+  });
+});

@@ -32,7 +32,7 @@ import {
 const KOLONLAR: Kolon[] = [
   { baslik: 'Tip', genislik: '110px' },
   { baslik: 'Kaynak', genislik: '150px', ikincil: true },
-  { baslik: 'Bekleyen', genislik: '90px', sag: true },
+  { baslik: 'Bekleyen gün', genislik: '100px', sag: true },
   { baslik: 'Yazıldı', genislik: '120px', sag: true, ikincil: true },
 ];
 
@@ -170,8 +170,10 @@ export default function BildirimlerIstemci({
                       ? undefined : { color: 'var(--unk)' }}>
                       {kaynakHucresi(b)}
                     </span>,
-                    // Okunmuşta bekleme yoktur: "0 gün" yazmak yanlış olurdu.
-                    gun === null ? 'okundu' : `${gun} gün`,
+                    /* Okunmuşta bekleme YOKTUR: "0 gün" yazmak yanlış olurdu.
+                       Hücre "okundu" da yazmaz — o, işaretçinin taşıdığı
+                       durum sözünün tekrarı olurdu (Atlas §A2). */
+                    gun === null ? '—' : gun,
                     tarihTR(b.olusturuldu),
                   ],
                 };

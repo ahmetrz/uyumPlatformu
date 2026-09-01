@@ -1,4 +1,6 @@
 import { girisZorunlu } from '@/lib/erisim';
+import { Yetkisiz } from '@/components/atlas/temel';
+import { modulOkuyabilir } from '@/app/kapsam';
 import RisklerIstemci from './RisklerIstemci';
 import { riskEkranVerisi } from './veri';
 
@@ -12,6 +14,11 @@ import { riskEkranVerisi } from './veri';
 
 export default async function Riskler() {
   const k = await girisZorunlu();
+  /* Modül kapısı `modulOkuyabilir` ile sorulur, `izinVar(...,'okuma')` ile
+     DEĞİL: ikincisi kapsamsız (global) bir okuma sorar ve tesise kısıtlı
+     her kullanıcıyı ekrandan tümüyle atardı (bkz. app/kapsam.ts). */
+  if (!modulOkuyabilir(k, 'risk')) return <Yetkisiz rol="risk okuma" />;
+
   const veri = await riskEkranVerisi(k);
 
   return (

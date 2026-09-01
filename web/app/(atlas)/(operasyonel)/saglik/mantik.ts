@@ -145,6 +145,43 @@ export function motorImi(m: Motor): Durum {
   return 'unk';
 }
 
+/** Koşu geçmişi şeridindeki tik sayısı. */
+export const GECMIS_TIK = 5;
+
+/**
+ * Son N koşunun tik dizisi — ESKİDEN YENİYE.
+ *
+ * Neden listede: motor satırı bugüne kadar YALNIZ son koşuyu gösteriyordu.
+ * "Bir kez patladı" ile "beş koşudur patlıyor" aynı satırdı; ikisi çok
+ * farklı kararlar gerektirir ve fark ancak çekmeceyi açınca görülüyordu.
+ *
+ * Kaydı olmayan sıra `null` döner ve tik BOŞ çizilir: hiç koşmamış bir
+ * motorun şeridi "beş başarısız" gibi görünmemeli — BİLİNMEYEN ≠ YANLIŞ.
+ * Bu yüzden dizi sona hizalanır: son tik daima en yeni koşudur.
+ */
+export function kosuGecmisi(m: Motor, adet = GECMIS_TIK): (Durum | null)[] {
+  const son = m.kosular.slice(0, adet).reverse();
+  const bos = adet - son.length;
+  return [
+    ...Array.from({ length: bos }, () => null),
+    ...son.map((k): Durum => {
+      if (k.durum === 'basarisiz') return 'bd';
+      if (k.durum === 'calisiyor') return 'pl';
+      if (k.durum === 'basarili') return 'ok';
+      return 'unk';
+    }),
+  ];
+}
+
+/** Şeridin ekran okuyucu cümlesi — sayı uydurulmaz, sayılır. */
+export function kosuGecmisiEtiketi(m: Motor, adet = GECMIS_TIK): string {
+  const d = kosuGecmisi(m, adet);
+  const kayit = d.filter((x) => x !== null);
+  if (kayit.length === 0) return 'Koşu kaydı yok';
+  const basarisiz = kayit.filter((x) => x === 'bd').length;
+  return `Son ${kayit.length} koşu · ${basarisiz} başarısız`;
+}
+
 /** Çekmece kimlik sözcüğü — durumun kelimeyle yazıldığı TEK yer. */
 export function motorSozu(m: Motor): string {
   const s = sonKosu(m);

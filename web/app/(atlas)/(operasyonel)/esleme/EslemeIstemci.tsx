@@ -131,7 +131,7 @@ export default function EslemeIstemci({
 
   return (
     <>
-      <main style={{ minWidth: 0 }}>
+      <main data-yuzey="tezgah" style={{ minWidth: 0 }}>
         <EkranBasligi
           eyebrow="Eşleme profili · sürümlü kural tanımı"
           vurgu={hal.vurgu}

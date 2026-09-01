@@ -107,7 +107,7 @@ export default function IceAktarimIstemci({
 
   return (
     <>
-      <main style={{ minWidth: 0 }}>
+      <main data-yuzey="tezgah" style={{ minWidth: 0 }}>
         {/* Yükleme bloğu iki satıra katlanır: tek satırda 470px yer kaplıyor
             ve metrik şeridini sıkıştırıp etiket satırlarını kırıyordu. */}
         <EkranBasligi

@@ -83,7 +83,7 @@ export default function KesifIstemci({
 
   if (satirlar.length === 0) {
     return (
-      <main style={{ minWidth: 0 }}>
+      <main data-yuzey="tezgah" style={{ minWidth: 0 }}>
         <EkranBasligi eyebrow="Varlık keşfi" baslik="İnceleme kuyruğu" />
         <section className="ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
           <ElleAktarimFormu yazabilir={yazabilir} />
@@ -101,7 +101,7 @@ export default function KesifIstemci({
 
   return (
     <>
-      <main style={{ minWidth: 0 }}>
+      <main data-yuzey="tezgah" style={{ minWidth: 0 }}>
         <EkranBasligi
           eyebrow={`Varlık keşfi · pasif kaynaklar · ${satirlar.length} kayıt`}
           vurgu={baslik.vurgu}

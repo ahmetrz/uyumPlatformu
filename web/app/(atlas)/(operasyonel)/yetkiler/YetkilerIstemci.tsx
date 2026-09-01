@@ -153,7 +153,7 @@ export default function YetkilerIstemci({
 
   return (
     <>
-      <main style={{ minWidth: 0 }}>
+      <main data-yuzey="tezgah" style={{ minWidth: 0 }}>
         <EkranBasligi
           eyebrow={`Kullanıcı ve yetki · ${m.hesap} hesap`}
           vurgu={baslik.vurgu}

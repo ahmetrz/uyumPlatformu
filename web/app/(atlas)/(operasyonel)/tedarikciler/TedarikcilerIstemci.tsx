@@ -88,7 +88,7 @@ export default function TedarikcilerIstemci({
 
   if (tedarikciler.length === 0) {
     return (
-      <main style={{ minWidth: 0 }}>
+      <main data-yuzey="tezgah" style={{ minWidth: 0 }}>
         <EkranBasligi eyebrow="Üçüncü taraf" baslik="Tedarikçiler" />
         <section className="ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
           <BosIlk cumle="Tedarikçi kaydı yok" />
@@ -106,7 +106,7 @@ export default function TedarikcilerIstemci({
 
   return (
     <>
-      <main style={{ minWidth: 0 }}>
+      <main data-yuzey="tezgah" style={{ minWidth: 0 }}>
         <EkranBasligi
           eyebrow={`Tedarikçiler · ${sayim.toplam} kayıt`}
           vurgu={baslik.vurgu}

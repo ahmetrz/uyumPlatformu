@@ -345,7 +345,7 @@ export default function TezgahIstemci({
 
   return (
     <>
-      <main style={{ minWidth: 0 }}>
+      <main data-yuzey="tezgah" style={{ minWidth: 0 }}>
         <EkranBasligi
           eyebrow={isKipi
             ? `Yönetim tezgâhı · iş kuyruğu · ${isler.length} kayıt`

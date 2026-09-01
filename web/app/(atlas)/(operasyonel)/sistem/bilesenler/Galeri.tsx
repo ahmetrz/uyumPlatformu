@@ -45,7 +45,7 @@ export default function Galeri() {
 
   return (
     <>
-      <main style={{ minWidth: 0 }}>
+      <main data-yuzey="tezgah" style={{ minWidth: 0 }}>
         <EkranBasligi
           eyebrow="Atlas · Faz 3 · Bileşen galerisi"
           vurgu="18 primitif"

@@ -9,7 +9,7 @@ const KOLONLAR = '22px minmax(0, 1fr) 190px 150px 150px 26px';
 
 export default function Yukleniyor() {
   return (
-    <main style={{ minWidth: 0 }}>
+    <main data-yuzey="tezgah" style={{ minWidth: 0 }}>
       <header className="ekran-bas">
         <div className="sol">
           <p className="t-eyebrow" style={{ margin: '0 0 var(--s10)' }}>Tedarikçiler</p>

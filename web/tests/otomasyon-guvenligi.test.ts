@@ -131,9 +131,11 @@ beforeAll(async () => {
 /* ═══ ölçünün kendisi ════════════════════════════════════════════════ */
 
 describe('Güvenlik anlık görüntüsü sekiz yasağın HEPSİNİ ölçer', () => {
-  it('kayıt defterindeki sekiz motorun tamamı koşturulabilir', () => {
-    // Yeni bir motor eklenirse bu test onu görür ve sayı değişir.
-    expect(MOTOR_ADLARI).toHaveLength(8);
+  it('kayıt defterindeki dokuz motorun tamamı koşturulabilir', () => {
+    /* Yeni bir motor eklenirse bu test onu görür ve sayı değişir.
+       Dokuzuncusu `erisim_degerlendirme` (tedarikçi/uzaktan erişim):
+       aşağıdaki yasak ölçüleri artık onun koşusunu da kapsıyor. */
+    expect(MOTOR_ADLARI).toHaveLength(9);
     expect(Object.keys(MOTORLAR).sort()).toEqual([...MOTOR_ADLARI].sort());
   });
 
@@ -217,7 +219,7 @@ describe('Motorların TAMAMI koşar — sekiz yasağın hiçbiri çiğnenmez', (
 
     once = await guvenlikAnligiAl();
     const kosanlar = await tumMotorlariKostur();
-    expect(kosanlar).toHaveLength(8);
+    expect(kosanlar).toHaveLength(9);
     sonra = await guvenlikAnligiAl();
   });
 

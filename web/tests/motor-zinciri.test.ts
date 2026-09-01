@@ -130,16 +130,23 @@ describe('Motor zinciri — sıra, koşul, dayanıklılık, otomasyon sınırı'
     expect(sonuc.atlanan).toContain('kanit_tazelik');
   });
 
-  it('motorsuz değişiklik bayrağı sessizce yutulmaz', async () => {
-    /* yedek ve topoloji artık MOTORLU: yedek_dogrulama ve topoloji_sapma
-       zincire girdi. Geriye yalnız 'erisim' kaldı — tedarikçi erişim
-       oturumundan kural işleten bir motor yok ve zincir bunu sessizce
-       yutmak yerine sonuçta söylüyor. */
+  it('erişim bayrağının artık MOTORU var — sessiz yutma da yok', async () => {
+    /* yedek, topoloji ve artık erisim MOTORLU: yedek_dogrulama,
+       topoloji_sapma ve erisim_degerlendirme zincire girdi. `erisim`
+       eskiden `kapsanmayanDegisiklikler` içinde raporlanıyordu — tedarikçi
+       erişim oturumu kayıtta duruyor ama ondan kural işleten bir motor
+       yoktu. Artık var: bayrak bir motora bağlı, dolayısıyla kapsanmayan
+       değişiklik KALMADI.
+
+       Test hâlâ "sessiz yutma yok" değişmezini ölçüyor: bugün liste boş
+       olduğu için kapsanmayan bayrak da yok; yarın motoru olmayan bir
+       bayrak eklenirse bu beklenti kırılır ve kimse onu sessizce
+       geçiremez. */
     const sonuc = await zinciriCalistir({
       kosuId: 'ENT-TEST-4', degisenler: { yedek: true, topoloji: true, erisim: true } });
-    expect(sonuc.kosan).toEqual(['yedek_dogrulama', 'topoloji_sapma']);
-    expect(sonuc.kapsanmayanDegisiklikler.length).toBe(1);
-    expect(sonuc.kapsanmayanDegisiklikler.join(' ')).toContain('erisim');
+    expect(sonuc.kosan).toEqual([
+      'yedek_dogrulama', 'topoloji_sapma', 'erisim_degerlendirme']);
+    expect(sonuc.kapsanmayanDegisiklikler).toEqual([]);
   });
 
   it('yedek/topoloji/olay motorları zincirde DOĞRU KOŞULLA yer alır', async () => {
@@ -147,6 +154,13 @@ describe('Motor zinciri — sıra, koşul, dayanıklılık, otomasyon sınırı'
     expect(ad('yedek_dogrulama')?.tetikleyenler).toEqual(['yedek', 'varlik']);
     expect(ad('topoloji_sapma')?.tetikleyenler).toEqual(['topoloji']);
     expect(ad('olay_etki')?.tetikleyenler).toEqual(['varlik', 'tesis']);
+    /* erisim_degerlendirme: birincil tetik yeni erişim gözlemi; varlik/tesis
+       de tetikler çünkü oturumun ŞİDDETİ hedefin kritikliğinden gelir. */
+    expect(ad('erisim_degerlendirme')?.tetikleyenler)
+      .toEqual(['erisim', 'varlik', 'tesis']);
+    // gözlem-karşılaştırma adımları: ağ tarafı önce, erişim tarafı sonra
+    expect(ZINCIR_SIRASI.findIndex((z) => z.ad === 'topoloji_sapma'))
+      .toBeLessThan(ZINCIR_SIRASI.findIndex((z) => z.ad === 'erisim_degerlendirme'));
     // gap_to_action zincirin SONUNDA kalmalı: kararını güncel veriyle verir
     expect(ZINCIR_SIRASI[ZINCIR_SIRASI.length - 1].ad).toBe('gap_to_action');
     // veri_kalitesi gap_to_action'dan ÖNCE

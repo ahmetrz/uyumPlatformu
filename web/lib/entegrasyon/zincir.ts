@@ -10,6 +10,7 @@ import { gapAksiyonIsle } from '../motorlar/gapAksiyon';
 import { yedekDogrulamayiIsle } from '../motorlar/yedekDogrulama';
 import { topolojiSapmasiniIsle } from '../motorlar/topolojiSapma';
 import { olayEtkileriniIsle } from '../motorlar/olayEtki';
+import { erisimleriDegerlendir } from '../motorlar/erisimDegerlendirme';
 
 /* ════════════════════════════════════════════════════════════════════════
    Motor zinciri (§68 + entegrasyon): entegrasyondan YENİ VERİ geldikten
@@ -30,6 +31,7 @@ import { olayEtkileriniIsle } from '../motorlar/olayEtki';
      → risk tespiti                  ← sonTarihleriIsle     (deadline_motoru)
      → yedek / DR                    ← yedekDogrulamayiIsle (yedek_dogrulama)
      → topoloji sapması              ← topolojiSapmasiniIsle (topoloji_sapma)
+     → erişim değerlendirme          ← erisimleriDegerlendir (erisim_degerlendirme)
      → olay etkisi                   ← olayEtkileriniIsle   (olay_etki)
      → gap-to-action → proje adayı   ← gapAksiyonIsle       (gap_to_action)
 
@@ -129,16 +131,13 @@ const DEGISIKLIK_ANAHTARLARI = [
 /** Motor karşılığı olmayan değişiklik bayrakları — zincir bunları sessizce
     yutmaz, sonuçta `kapsanmayanDegisiklikler` olarak bildirir.
 
-    `yedek` ve `topoloji` bu listeden ÇIKTI: karşılıkları artık
-    `yedek_dogrulama` ve `topoloji_sapma` motorları. `erisim` kaldı —
-    tedarikçi erişim oturumu bugün yalnız kayıt olarak durur, ondan kural
-    işleten bir motor yoktur ve olmadığını söylemek onu sessizce yutmaktan
-    iyidir. */
-const MOTORSUZ_DEGISIKLIKLER: Partial<Record<keyof ZincirDegisenleri, string>> = {
-  erisim: 'tedarikçi erişim oturumu: kayıtlı motor yok — oturum kaydı '
-    + 'saklanır ve /tedarikciler ekranında görünür, ama ondan kural işleten '
-    + 'bir motor bulunmuyor',
-};
+    `yedek` ve `topoloji` bu listeden daha önce ÇIKMIŞTI (`yedek_dogrulama`,
+    `topoloji_sapma`). `erisim` de artık ÇIKTI: karşılığı
+    `erisim_degerlendirme` motorudur. Liste bugün BOŞ — ve boş kalması bir
+    hedef değil, bir DURUM tespitidir: `ZincirDegisenleri` alanına yeni bir
+    bayrak eklenir de motoru yazılmazsa buraya satır eklenmeli ki zincir
+    onu sessizce yutmasın. */
+const MOTORSUZ_DEGISIKLIKLER: Partial<Record<keyof ZincirDegisenleri, string>> = {};
 
 type AdimTanimi = {
   ad: string;
@@ -234,6 +233,24 @@ const ZINCIR: AdimTanimi[] = [
       + 'Sapma yalnız RAPORLANIR — ağ/güvenlik duvarı yapılandırması '
       + 'platformdan DEĞİŞTİRİLMEZ, düzeltme değişiklik sürecinden geçer.',
     is: () => topolojiSapmasiniIsle(),
+  },
+  {
+    ad: 'erisim_degerlendirme',
+    asama: 'erişim değerlendirme',
+    tetikleyenler: ['erisim', 'varlik', 'tesis'],
+    neden: 'Birincil tetik `erisim`: yeni bir tedarikçi/uzaktan erişim gözlemi '
+      + 'geldiğinde kurallar HEMEN işlemeli, yoksa tespit bir sonraki saatlik '
+      + 'koşuya kadar iş kuyruğuna girmez. `varlik` ve `tesis` de tetikler, '
+      + 'çünkü bir oturumun ÖNEM DERECESİ eriştiği hedefin kritikliğinden gelir '
+      + '(Varlik.kritiklik → SistemServis.kritiklik → TesisProfili); yeni CMDB '
+      + 'ya da santral profili verisi, HÂLÂ AÇIK bir erişim görevinin şiddetini '
+      + 'değiştirebilir ve "kritikliği bilinmiyor" bulgusunu çözebilir. '
+      + 'SIRA: topoloji_sapma\'dan SONRA, çünkü ikisi de "gözlem ile beklenen '
+      + 'durumu karşılaştıran" adımlardır ve ağ tarafı önce oturur; '
+      + 'gap_to_action\'dan ÖNCE, çünkü zincirin son adımı odur. '
+      + 'Motor oturum kaydına, PAM/VPN\'e ya da erişimin kendisine DOKUNMAZ: '
+      + 'yalnız görev + veri kalitesi bulgusu üretir, Risk/Bulgu AÇMAZ.',
+    is: () => erisimleriDegerlendir(),
   },
   {
     ad: 'olay_etki',

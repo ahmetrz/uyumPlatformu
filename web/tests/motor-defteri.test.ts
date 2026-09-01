@@ -7,10 +7,17 @@ import path from 'node:path';
 
    Motorların tek tek testi var ama hiçbiri "defterdeki her motor
    çalışıyor" sorusunu sormuyordu. Bu boşluk şuna yol açtı: motor listesi
-   iki yerde ayrı ayrı yazılıydı ve saatlik zamanlayıcı sekiz motorun
-   yalnız beşini koşturuyordu — üçü aylarca hiç koşmasa kimse fark
-   etmezdi, çünkü "hiç koşmamış motor" ile "koşup bir şey bulamamış
+   iki yerde ayrı ayrı yazılıydı ve saatlik zamanlayıcı o günkü sekiz
+   motorun yalnız beşini koşturuyordu — üçü aylarca hiç koşmasa kimse
+   fark etmezdi, çünkü "hiç koşmamış motor" ile "koşup bir şey bulamamış
    motor" ekranda ayrı görünse de testte ayrılmıyordu.
+
+   Defter bugün DOKUZ motor taşıyor: dokuzuncusu `erisim_degerlendirme`
+   (tedarikçi/uzaktan erişim). Sayı BİLEREK sabit yazılıyor: koşu döngüsü
+   zaten defterden okuduğu için sayı olmadan da her motoru koşturur, ama
+   o hâlde defterden bir motorun YANLIŞLIKLA DÜŞMESİ testi hiç kırmazdı —
+   sabit sayı, sessiz kaybı yakalayan tek şeydir. Motor eklendiğinde bu
+   satır da bilerek güncellenir.
 
    Bu test defterin TAMAMINI koşturur ve her koşunun IsKosusu satırını
    `basarili` bıraktığını doğrular. Bir motor patlarsa hangisi olduğu
@@ -26,7 +33,11 @@ const { isKos } = await import('@/lib/motorlar/isKosucu');
 const { MOTORLAR, MOTOR_ADLARI } = await import('@/lib/motorlar/kayit');
 
 describe('Motor defteri — uçtan uca koşu', () => {
-  it('defterdeki sekiz motorun her biri seed verisinde HATASIZ koşar', async () => {
+  it('defterdeki dokuz motorun her biri seed verisinde HATASIZ koşar', async () => {
+    // Defterin dolu olduğunu da ölç: boş bir defter bu testi yanlışlıkla geçerdi.
+    expect(MOTOR_ADLARI).toHaveLength(9);
+    expect(MOTOR_ADLARI).toContain('erisim_degerlendirme');
+
     const basarisiz: string[] = [];
     for (const [ad, motor] of Object.entries(MOTORLAR)) {
       const sonuc = await isKos(ad, motor);

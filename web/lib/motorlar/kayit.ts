@@ -7,6 +7,7 @@ import { anlikGoruntuAl } from './anlik';
 import { yedekDogrulamayiIsle } from './yedekDogrulama';
 import { topolojiSapmasiniIsle } from './topolojiSapma';
 import { olayEtkileriniIsle } from './olayEtki';
+import { erisimleriDegerlendir } from './erisimDegerlendirme';
 
 /* Motor kayıt defteri — TEK doğruluk kaynağı.
 
@@ -29,6 +30,12 @@ export const MOTORLAR = {
   yedek_dogrulama: yedekDogrulamayiIsle,
   olay_etki: olayEtkileriniIsle,
   topoloji_sapma: topolojiSapmasiniIsle,
+  /* Tedarikçi/uzaktan erişim değerlendirmesi. Bu motordan önce
+     `TedarikciErisimOturumu` kayıtları yalnız DURUYORDU: uyumsuz bir erişim
+     ekran açıkken görülüyor, kapanınca unutuluyordu — hiçbir tespit bir iş
+     kalemine dönüşmüyordu. Motor tespit → görev/veri kalitesi bulgusu
+     zincirini kurar; oturuma, PAM'e ya da erişime DOKUNMAZ. */
+  erisim_degerlendirme: erisimleriDegerlendir,
 } as const satisfies Record<string, () => Promise<{ islenen: number; uretilen: number }>>;
 
 export type MotorAdi = keyof typeof MOTORLAR;

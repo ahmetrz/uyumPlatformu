@@ -1,4 +1,5 @@
-import { db } from '@/lib/db';
+import { aktifKullanici } from '@/lib/auth';
+import { durumAyagiVerisi } from './durumAyagiVerisi';
 
 /* Durum ayağı — Atlas 2 kabuğunun 28px'lik alt şeridi.
 
@@ -7,6 +8,9 @@ import { db } from '@/lib/db';
    adımıdır ve "bekliyor" olarak yazılır; asla "bağlı" taklidi yapılmaz.
    Hiç connector yoksa şerit bunu da açıkça söyler. BİLİNMEYEN ≠ YANLIŞ:
    son başarılı koşu yoksa tarih uydurulmaz, "—" yazılır.
+
+   Yetki kapısı ve silinen kayıt yüklemi `durumAyagiVerisi.ts`tedir; iki
+   inceleme kusurunun gerekçesi ve testleri orada. Burada yalnız sunum var.
 
    Sunucu bileşenidir; her gezinmede taze sayım okur. Sorgu iki basit
    aggregate'ten ibarettir (groupBy + max), ek yük ihmal edilebilir. */
@@ -17,23 +21,17 @@ const TARIH = new Intl.DateTimeFormat('tr-TR', {
 });
 
 export default async function DurumAyagi() {
-  let gruplar: { durum: string; _count: { _all: number } }[] = [];
-  let sonKosu: Date | null = null;
+  /* Oturum okuması da korunur: kabuk giriş ekranında da yüklenebilir ve
+     orada `aktifKullanici` çerez okumaya çalışırken atabilir. */
+  let veri = null;
   try {
-    [gruplar, sonKosu] = await Promise.all([
-      db.connector.groupBy({ by: ['durum'], _count: { _all: true } }),
-      db.connector
-        .aggregate({ _max: { sonBasariliKosu: true } })
-        .then((a) => a._max.sonBasariliKosu),
-    ]);
+    veri = await durumAyagiVerisi(await aktifKullanici());
   } catch {
-    /* Demo/statik derlemede veritabanı yoksa şerit çizilmez —
-       uydurma sayı göstermekten iyidir. */
     return null;
   }
+  if (!veri) return null;
 
-  const say = (d: string) => gruplar.find((g) => g.durum === d)?._count._all ?? 0;
-  const toplam = gruplar.reduce((t, g) => t + g._count._all, 0);
+  const say = (d: string) => veri.sayimlar[d] ?? 0;
 
   /* etiket + glif sınıfı; sıfır olan kalem hiç çizilmez (gürültü değil) */
   const kalemler: { sinif: string; etiket: string; deger: number }[] = [
@@ -46,16 +44,17 @@ export default async function DurumAyagi() {
 
   return (
     <footer className="durum-ayak baskida-gizle" aria-label="Bağlayıcı durumu">
-      <span className="oge">bağlayıcılar <span className="deger">{toplam}</span></span>
+      <span className="oge">bağlayıcılar <span className="deger">{veri.toplam}</span></span>
       {kalemler.map((k) => (
         <span key={k.sinif} className="oge">
           <span className={`im ${k.sinif}`} aria-hidden />
           {k.etiket} <span className="deger">{k.deger}</span>
         </span>
       ))}
-      {toplam === 0 && <span className="oge">hiç bağlayıcı tanımlı değil</span>}
+      {veri.toplam === 0 && <span className="oge">hiç bağlayıcı tanımlı değil</span>}
       <span className="sag">
-        son başarılı koşu <span className="deger">{sonKosu ? TARIH.format(sonKosu) : '—'}</span>
+        son başarılı koşu{' '}
+        <span className="deger">{veri.sonKosu ? TARIH.format(veri.sonKosu) : '—'}</span>
       </span>
     </footer>
   );

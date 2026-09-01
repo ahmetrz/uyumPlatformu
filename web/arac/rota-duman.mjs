@@ -2,6 +2,7 @@ import { readdirSync, statSync } from 'node:fs';
 import path from 'node:path';
 import Database from 'better-sqlite3';
 import { chromium } from 'playwright-core';
+import { yonlendirmeKarari } from './rota-kurallari.mjs';
 
 /* Rota duman testi — KAPSAM DOSYA SİSTEMİNDEN TÜRER.
 
@@ -130,6 +131,8 @@ function rotaEslestir(patika, envanter) {
    `/`'a atar, yani oturumlu yoklama bu ekranı HİÇ görmez. */
 const GIRIS_ROTASI = '/giris';
 
+
+
 /* ── 4. Tarayıcı ───────────────────────────────────────────────────── */
 
 /* Tarayıcı yolu ortamdan ortama değişiyor; CHROME verilmemişse bilinen
@@ -178,11 +181,15 @@ async function yokla(giris, url, envanter) {
   const y = await s.goto(KOK + url, { waitUntil: 'domcontentloaded' });
   await s.waitForTimeout(450);
   const kod = y?.status() ?? 0;
-  /* Yönlendirme varsa BEKLENTİ VARILAN EKRANINDIR. `/tesisler` kendini
-     `/portfoy`ya atar; `/portfoy` (tam) katmanında ve rayı yoktur — bunu
-     "ray yok" kusuru saymak aracın kendi körlüğü olurdu. */
+  /* BİLİNÇLİ yönlendirmede beklenti VARILAN ekranındır: `/tesisler`
+     kendini `/portfoy`ya atar ve `/portfoy` (tam) katmanındadır, rayı
+     yoktur — bunu "ray yok" kusuru saymak aracın kendi körlüğü olurdu.
+     Beklentiyi devretmek YALNIZ izinli yönlendirmede yapılır; izinsiz bir
+     varış değişiminde beklenti KAYNAĞINKİ kalır ve ayrıca kusur yazılır,
+     yoksa regresyon varışın kontrollerini geçip kaybolurdu. */
   const varilan = new URL(s.url()).pathname;
-  const hedefGirisi = varilan === url ? giris : rotaEslestir(varilan, envanter);
+  const karar = yonlendirmeKarari(url, varilan);
+  const hedefGirisi = karar.beklentiDevret ? rotaEslestir(varilan, envanter) : null;
   const beklenti = hedefGirisi ?? giris;
   const olcu = await s.evaluate(() => {
     const ray = document.querySelector('.atlas-ray');
@@ -204,6 +211,9 @@ async function yokla(giris, url, envanter) {
   if (kod !== 200) kusurlar.push(`HTTP ${kod}`);
   /* Oturumluyken girişe atılmak yetki/oturum kusurudur, yönlendirme değil. */
   if (url !== GIRIS_ROTASI && varilan.startsWith('/giris')) kusurlar.push('girişe atıldı');
+  /* Listede olmayan HER varış değişimi kusurdur — varış bilinen bir rota
+     olsa, hatta 200 dönse bile. İstenen ekran çizilmemiştir. */
+  else if (karar.kusur) kusurlar.push(karar.kusur);
   if (rayBekleniyor(beklenti) && !olcu) kusurlar.push('ray yok');
   if (!rayBekleniyor(beklenti) && olcu) kusurlar.push('beklenmeyen ray');
   if (olcu && olcu.aktifSayi > 1) kusurlar.push(`aktif öğe ${olcu.aktifSayi} (>1)`);

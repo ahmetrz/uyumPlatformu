@@ -1,7 +1,7 @@
 {
-  "imza": "d421380874d375d4bbc5be9fc1919e07",
-  "dosya": 51,
-  "vaka": 1006,
+  "imza": "1560b429ffce572ddf189d5f363266c4",
+  "dosya": 52,
+  "vaka": 1018,
   "atlanan": 1,
   "dosyalar": {
     "tests/api.test.ts": {
@@ -82,6 +82,10 @@
     },
     "tests/istisna.test.ts": {
       "vaka": 5,
+      "atlanan": 0
+    },
+    "tests/kabuk-inceleme.test.ts": {
+      "vaka": 12,
       "atlanan": 0
     },
     "tests/kapsam-ekranlari.test.ts": {

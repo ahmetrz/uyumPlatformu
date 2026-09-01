@@ -406,12 +406,23 @@
   letter-spacing: var(--tr-label); text-transform: uppercase; color: var(--i3);
 }
 
-/* ── Atlas 2 · 1024–1199 bağlamsal açılır liste ─────────────────────── */
-/* Bu bantta 192px'lik ikincil kolon gizlenir. Kardeş ekranlara erişimin
-   tek yolu komut paleti kalmasın diye alan rayının başına klavyeyle
-   çalışan bir açma/kapama düğmesi konur; PANEL, listenin ikinci bir
-   kopyası değil, ikincil kolonun KENDİSİDİR. Düğme varsayılan olarak
-   `display:none` — yalnız kendi bandında var olur, dolayısıyla ≥1200'de
+/* ── Atlas 2 · <1200 bağlamsal açılır liste ─────────────────────────── */
+/* 1200'ün ALTINDAKİ HER BANTTA 192px'lik ikincil kolon gizlenir. Kardeş
+   ekranlara erişimin tek yolu komut paleti kalmasın diye alan rayına
+   klavyeyle çalışan bir açma/kapama düğmesi konur; PANEL, listenin ikinci
+   bir kopyası değil, ikincil kolonun KENDİSİDİR — kopya ikinci bir
+   `aria-current="page"` üretirdi.
+
+   İNCELEME KUSURU (P1): düğme ilk sürümde YALNIZ 1024–1199 bandında
+   çiziliyordu. ≤1023'te ikincil kolon gizli, düğme de yok — yani dokunmatik
+   ve tablet kullanıcısı `/bulgular`, `/projeler`, `/yedekleme` gibi kardeş
+   rotalara HİÇ ulaşamıyordu; geriye kalan tek yol Ctrl/Cmd+K paletiydi ve
+   onun dokunmatik tetikleyicisi yok. Düğme artık `max-width: 1199px`in
+   tamamında var; ≤1023'te ray yatay şeride indiği için panel sağa değil
+   ALTA açılır. Çözüm hover'a bağlı değildir: gerçek bir `<button>`,
+   Enter/Space açar, Esc kapatır ve odağı geri verir.
+
+   ≥1200'de düğme `display:none` kalır: ikincil kolon zaten görünür, düğme
    ne odak sırasına girer ne de ekran okuyucuya duyurulur. */
 .atlas .ray-baglam-ozet { display: none; }
 
@@ -499,11 +510,11 @@
 @media (max-width: 1199px) {.atlas-kabuk { grid-template-columns: var(--rail-alan-w) minmax(0, 1fr); }.atlas-ray { grid-template-columns: var(--rail-alan-w); overflow: visible; }.atlas .ray-ikincil { display: none; }.atlas .ray-alanlar { border-right: 0; }.atlas .durum-ayak { left: var(--rail-alan-w); }
 }
 
-/* md 1024–1199 · bağlamsal açılır liste — gizlenen ikincil kolonun
-   klavyeyle erişilebilir karşılığı. Yalnız bu bantta çizilir: ≥1200'de
-   ikincil kolon zaten görünür, <1024'te ray yatay şeride iner ve açılır
-   panelin tutunacağı dikey bir kenar kalmaz. */
-@media (min-width: 1024px) and (max-width: 1199px) {
+/* <1200 · bağlamsal açılır liste — gizlenen ikincil kolonun klavye ve
+   dokunmatikle erişilebilir karşılığı. ≥1200'de çizilmez; ikincil kolon
+   zaten görünür. ≤1023'te ray yatay şeride iner ve panel aşağı açılır —
+   konumlandırma farkı bir sonraki blokta. */
+@media (max-width: 1199px) {
   /* Düğme alan bağlantılarının altında: DOM sırası = görsel sıra = odak
      sırası. Üstünde kıl payı bir ayraç, alanlardan ayrı bir denetim
      olduğunu söyler; `flex: none` ray kaydırılsa da büzülmesini önler. */
@@ -553,10 +564,38 @@
     border-right: 0; border-bottom: var(--bw-strong) solid var(--hr2); }.atlas .ray-alanlar { flex-direction: row; overflow-x: auto; padding-top: 0;
     border-right: 0; }.atlas .ray-alan { border-left: 0; border-bottom: var(--bw-edge) solid transparent;
     padding: var(--s10) var(--s14); flex: none; }.atlas .ray-alan[aria-current='true'] { border-left-color: transparent; border-bottom-color: var(--bakir); }.atlas .ray-ikincil { display: none; }.atlas .durum-ayak { display: none; }.atlas .baglam { padding-left: var(--s20); padding-right: var(--s20); }
-  /* Panel bu bantta YOKTUR. `data-acik` özniteliği seçici ağırlığını
-     yukarı çektiği için açıkça bastırılır: 1100px'te paneli açıp pencereyi
-     daraltan kullanıcıda ray yatay şeride inerken panel havada kalırdı. */
-  .atlas .ray-ikincil[data-acik='1'] { display: none; }
+  /* Panel bu bantta SAĞA DEĞİL ALTA açılır: ray yatay bir şerittir,
+     tutunacak dikey bir kenar yoktur. `.atlas-ray` yukarıda `static`
+     yapılıyordu; `relative` hem yapışkanlığı aynı şekilde kaldırır hem de
+     panele bir konumlanma bağlamı verir.
+
+     Düğme de yatay şeridin bir öğesidir: dikey sütun yerine satır olur,
+     üstteki ayraç yerine soldaki ayrac çizilir ve `.ray-alan` ile aynı
+     dolguyu alır — şeritte yabancı durmaz. */
+  .atlas-ray { position: relative; }
+  .atlas .ray-baglam-ozet {
+    flex-direction: row; gap: var(--s8);
+    width: auto; margin-top: 0; padding: var(--s10) var(--s14);
+    border-top: 0; border-left: var(--bw-hair) solid var(--hr2);
+    border-bottom: var(--bw-edge) solid transparent;
+  }
+  .atlas .ray-baglam-ozet[aria-expanded='true'] {
+    border-left-color: var(--hr2); border-bottom-color: var(--bakir);
+  }
+  .atlas .ray-ikincil[data-acik='1'] {
+    display: flex; position: absolute; left: 0; top: 100%; z-index: 30;
+    /* Dar ekranda tam genişlik bir menü değil bir duvar olurdu; kolonun
+       kendi genişliği korunur, ama görüntü alanı ondan darsa taşmaz. */
+    width: min(272px, 100%); height: auto; max-height: 70dvh;
+    background: var(--rail-bg);
+    border-right: var(--bw-strong) solid var(--hr2);
+    border-bottom: var(--bw-strong) solid var(--hr2);
+    box-shadow: var(--sh-tip);
+  }
+  /* Marka bu bantta zaten şeridin üstünde değil — panelde tekrar etmesi
+     gereksiz yükseklik yer. Alan başlığı ve liste kalır. */
+  .atlas .ray-ikincil[data-acik='1'] .ray-marka { display: none; }
+  .atlas .ray-ikincil[data-acik='1'] .ray-kullanici { display: none; }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════

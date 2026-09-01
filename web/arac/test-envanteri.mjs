@@ -27,16 +27,38 @@
 
    Keşif bir vitest süreci başlattığı için test İÇİNDEN çağrılamaz
    (vitest içinde vitest). Bu yüzden sonuç `arac/test-envanteri.json`
-   anlık görüntüsüne yazılır ve yanına bir İMZA konur: test dosyalarının
-   yollarının ve içeriklerinin özeti. Test dosyalarında en ufak değişiklik
-   imzayı bozar; `tests/belge-sayimlari.test.ts` imzayı yeniden hesaplayıp
-   karşılaştırır ve bayat anlık görüntüyü KIRMIZI yapar. Böylece sayı ne
-   donar ne de tahmine dayanır.
+   anlık görüntüsüne yazılır.
+
+   ── İNCELEME KUSURU (P2): imza tek başına yetmez ──────────────────────
+   İlk sürümde tazelik YALNIZ bir imzaya bakıyordu ve imza yalnız
+   `tests/**\/*.test.ts` içerikleri ile `vitest.config.ts`ten
+   türetiliyordu. Keşfi etkileyen başka girdiler bu imzanın DIŞINDA
+   kalıyordu:
+     · vitest'in kendi sürümü — keşif davranışını değiştirebilir;
+     · `tests/` altındaki ama `.test.ts` OLMAYAN yardımcılar (fixture,
+       sahte, kurulum) — parametrik test kaydeden bir yardımcı değişince
+       vaka sayısı değişir, imza değişmez.
+   Yani anlık görüntü BAYAT olduğu hâlde "taze" sayılabiliyor ve belgeye
+   yanlış toplam basılmaya devam edebiliyordu.
+
+   İki katmanlı çözüldü ve ikisi de FAIL-LOUD:
+
+   1. İMZA GENİŞLETİLDİ — artık `tests/` altındaki HER dosya (uzantı
+      farketmez), `vitest.config.ts` ve KURULU vitest sürümü
+      (`node_modules/vitest/package.json`) özete girer. Ucuz, hızlı ve
+      test süreci içinden çalışır: `tests/belge-sayimlari.test.ts` bunu
+      her koşuda doğrular.
+
+   2. `--denetle` ARTIK İMZAYA GÜVENMEZ — gerçek keşfi KOŞAR ve çıkan
+      sayıları anlık görüntüyle karşılaştırır. Hangi girdinin imzada
+      olduğu artık doğruluk için önemli değildir: sayı yeniden türetilir,
+      fark varsa çıkış kodu 1 ve fark yazdırılır. Bir imzanın "eksik
+      kalması" bu kapıyı geçemez. Tahmini/sahte sayaç yoktur.
 
    Kullanım:
      node arac/test-envanteri.mjs          → keşfi koş, JSON yaz
      node arac/test-envanteri.mjs --yaz    → anlık görüntüyü tazele
-     node arac/test-envanteri.mjs --denetle→ anlık görüntü taze mi (çıkış kodu)
+     node arac/test-envanteri.mjs --denetle→ GERÇEK keşifle karşılaştır (çıkış kodu)
 */
 
 import { createHash } from 'node:crypto';
@@ -48,29 +70,56 @@ export const ANLIK_YOL = path.join(WEB, 'arac', 'test-envanteri.json');
 
 /** vitest.config.ts'teki glob ile AYNI küme: `tests/**\/*.test.ts`. */
 export function testDosyalari() {
+  return tumTestKaynaklari().filter((f) => f.endsWith('.test.ts'));
+}
+
+/** `tests/` altındaki HER dosya — yardımcılar, fixture'lar, sahteler dâhil.
+    Bunlar `.test.ts` değildir ama parametrik test KAYDEDEBİLİRLER; imzanın
+    dışında bırakılmaları anlık görüntüyü sessizce bayatlatıyordu. */
+export function tumTestKaynaklari() {
   const kok = path.join(WEB, 'tests');
   const cikti = [];
   const gez = (d) => {
     for (const ad of readdirSync(d).sort()) {
       const tam = path.join(d, ad);
       if (statSync(tam).isDirectory()) gez(tam);
-      else if (tam.endsWith('.test.ts')) cikti.push(tam);
+      else cikti.push(tam);
     }
   };
   gez(kok);
   return cikti;
 }
 
-/** Keşfi etkileyen her girdinin özeti: dosya yolları + içerikler + config. */
+/** Keşfi yapan aracın KURULU sürümü. `package.json`daki aralık (`^4.1.11`)
+    değil, gerçekten çözülmüş sürüm okunur: `npm install` aralık içinde
+    sürümü değiştirdiğinde de imza değişsin. Bulunamazsa açıkça 'yok'
+    yazılır — sessizce atlanmaz. */
+export function kesifAraciSurumu() {
+  try {
+    const j = JSON.parse(
+      readFileSync(path.join(WEB, 'node_modules', 'vitest', 'package.json'), 'utf8'),
+    );
+    return `vitest@${j.version}`;
+  } catch {
+    return 'vitest@yok';
+  }
+}
+
+/** Keşfi etkileyen girdilerin özeti: `tests/` altındaki her dosya (yol +
+    içerik), `vitest.config.ts` ve kurulu vitest sürümü. Bu imza HIZLI
+    yoldur; doğruluğun tek dayanağı DEĞİLDİR — `--denetle` gerçek keşfi
+    koşar (bkz. dosya başlığı). */
 export function imza() {
   const h = createHash('sha256');
-  for (const f of testDosyalari()) {
+  for (const f of tumTestKaynaklari()) {
     h.update(path.relative(WEB, f));
     h.update('\0');
     h.update(readFileSync(f));
     h.update('\0');
   }
   h.update(readFileSync(path.join(WEB, 'vitest.config.ts')));
+  h.update('\0');
+  h.update(kesifAraciSurumu());
   return h.digest('hex').slice(0, 32);
 }
 
@@ -136,13 +185,62 @@ export function tazeMi() {
   }
 }
 
+/**
+ * GERÇEK keşfi koşar ve anlık görüntüyle karşılaştırır. İmzaya BAKMAZ:
+ * doğruluk, sayının yeniden türetilmesinden gelir. Bu yüzden imzanın bir
+ * girdiyi kaçırması bu kapıyı geçemez.
+ *
+ * Dönen liste boşsa taze; doluysa her satır bir farktır.
+ */
+export async function farklar() {
+  if (!existsSync(ANLIK_YOL)) {
+    return ['arac/test-envanteri.json yok'];
+  }
+  let kayitli;
+  try {
+    kayitli = JSON.parse(readFileSync(ANLIK_YOL, 'utf8'));
+  } catch (e) {
+    return [`arac/test-envanteri.json okunamadı: ${e.message}`];
+  }
+  const taze = await kesfet();
+  const f = [];
+  for (const alan of ['dosya', 'vaka', 'atlanan']) {
+    if (kayitli[alan] !== taze[alan]) {
+      f.push(`${alan}: kayıtlı ${kayitli[alan]} ≠ gerçek ${taze[alan]}`);
+    }
+  }
+  /* Toplamlar tutup dağılım kaymış olabilir (bir dosyada +2, başkasında
+     −2). Dosya kırılımı da karşılaştırılır; belge yalnız toplamı bassa
+     bile anlık görüntü yanlış kalmamalı. */
+  const adlar = new Set([...Object.keys(kayitli.dosyalar ?? {}), ...Object.keys(taze.dosyalar)]);
+  for (const ad of [...adlar].sort()) {
+    const a = kayitli.dosyalar?.[ad];
+    const b = taze.dosyalar[ad];
+    if (!a) { f.push(`${ad}: anlık görüntüde yok (gerçekte ${b.vaka} vaka)`); continue; }
+    if (!b) { f.push(`${ad}: artık yok (anlık görüntüde ${a.vaka} vaka)`); continue; }
+    if (a.vaka !== b.vaka || a.atlanan !== b.atlanan) {
+      f.push(`${ad}: kayıtlı ${a.vaka}/${a.atlanan} ≠ gerçek ${b.vaka}/${b.atlanan}`);
+    }
+  }
+  /* İmza farkı tek başına KUSUR değildir (yorum değişikliği de imzayı
+     bozar) ama anlık görüntü tazelenmemiş demektir: sayılar tutsa bile
+     bildirilir ki `--yaz` unutulmasın. */
+  if (kayitli.imza !== taze.imza) {
+    f.push(`imza: kayıtlı ${kayitli.imza} ≠ ${taze.imza} (sayılar tutuyor olabilir)`);
+  }
+  return f;
+}
+
 if (process.argv[1] && process.argv[1].endsWith('test-envanteri.mjs')) {
   if (process.argv.includes('--denetle')) {
-    if (tazeMi()) {
+    const f = await farklar();
+    if (f.length === 0) {
       const g = JSON.parse(readFileSync(ANLIK_YOL, 'utf8'));
-      console.log(`taze · ${g.vaka} vaka (${g.atlanan} atlanan) · ${g.dosya} dosya`);
+      console.log(`taze · ${g.vaka} vaka (${g.atlanan} atlanan) · ${g.dosya} dosya · gerçek keşifle doğrulandı`);
     } else {
-      console.error('BAYAT · tazeleyin: npm run sayimlar:yenile');
+      console.error(`BAYAT · ${f.length} fark:`);
+      for (const x of f) console.error(`  · ${x}`);
+      console.error('Tazeleyin: npm run sayimlar:yenile');
       process.exitCode = 1;
     }
   } else {

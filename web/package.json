@@ -12,7 +12,8 @@
     "demo:build": "prisma generate && next build",
     "test": "vitest run",
     "sayimlar:yenile": "node arac/test-envanteri.mjs --yaz && node arac/sayimlar.mjs --yaz",
-    "sayimlar:denetle": "node arac/test-envanteri.mjs --denetle"
+    "sayimlar:denetle": "node arac/test-envanteri.mjs --denetle",
+    "gezinme:test": "node arac/gezinme-testi.mjs"
   },
   "dependencies": {
     "@prisma/adapter-better-sqlite3": "^7.10.0",

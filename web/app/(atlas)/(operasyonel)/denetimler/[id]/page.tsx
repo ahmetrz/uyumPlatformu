@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { girisZorunlu, izinliTesisIdleri } from '@/lib/erisim';
 import { aktifKullanici } from '@/lib/auth';
-import { Yetkisiz } from '@/components/atlas/temel';
+import { Yetkisiz } from '@/components/abacus/temel';
 import { modulOkuyabilir } from '@/app/kapsam';
 import { db } from '@/lib/db';
 import DenetimDetayIstemci from './DenetimDetayIstemci';
@@ -30,7 +30,7 @@ export async function generateStaticParams() {
 export async function generateMetadata(
   { params }: { params: Promise<{ id: string }> },
 ): Promise<Metadata> {
-  const genel: Metadata = { title: 'Denetim — Atlas' };
+  const genel: Metadata = { title: 'Denetim — Abacus' };
   const k = await aktifKullanici();
   if (!k || !modulOkuyabilir(k, 'denetim')) return genel;
 

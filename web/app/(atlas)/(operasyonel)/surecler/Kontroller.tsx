@@ -12,7 +12,7 @@ export function Ara({ deger, degistir, etiket }: {
 }) {
   return (
     <input
-      className="gr"
+      className="ab-gr"
       aria-label={etiket}
       placeholder="Ara"
       value={deger}
@@ -20,7 +20,7 @@ export function Ara({ deger, degistir, etiket }: {
       style={{
         width: 118, background: 'none', border: 0,
         borderBottom: 'var(--bw-hair) solid var(--hr2)',
-        padding: '3px 0', fontFamily: 'var(--mo)', fontSize: 'var(--t-label)',
+        padding: '3px 0', fontFamily: 'var(--veri)', fontSize: 'var(--t-label)',
         letterSpacing: 'var(--tr-label)', textTransform: 'uppercase',
       }}
     />
@@ -58,18 +58,18 @@ export function Kapsam({ etiket, secenekler, aktif, sec }: {
 
   return (
     <details ref={kok} style={{ position: 'relative' }}>
-      <summary className="kapsam-dugme"
+      <summary className="ab-dugme"
         style={{ listStyle: 'none', cursor: 'pointer', display: 'inline-block' }}>
         {etiket}{secim ? ` · ${secim.ad}` : ''} <span aria-hidden>▾</span>
       </summary>
       <div style={{
         position: 'absolute', top: '100%', right: 0, zIndex: 5, minWidth: 200,
-        maxHeight: 300, overflowY: 'auto', background: 'var(--card)',
-        border: 'var(--bw-strong) solid var(--hr2)', boxShadow: 'var(--sh-tip)',
+        maxHeight: 300, overflowY: 'auto', background: 'var(--panel)',
+        border: 'var(--bw-strong) solid var(--hr2)', boxShadow: 'none',
         padding: 'var(--s8)',
       }}>
         {[{ id: '', ad: 'Tümü' }, ...secenekler].map((s) => (
-          <button key={s.id} type="button" className="filtre"
+          <button key={s.id} type="button" className="ab-filtre"
             style={{ display: 'block', width: '100%', textAlign: 'left' }}
             aria-pressed={(aktif ?? '') === s.id}
             onClick={(e) => {
@@ -100,24 +100,24 @@ export function DisaAktar({ dosya, sayfaAdi, basliklar, satirlar }: {
   };
 
   return (
-    <details ref={kok} className="yazdirmada-gizle" style={{ position: 'relative' }}>
-      <summary className="kapsam-dugme"
+    <details ref={kok} className="ab-baskida-gizle" style={{ position: 'relative' }}>
+      <summary className="ab-dugme"
         style={{ listStyle: 'none', cursor: 'pointer', display: 'inline-block' }}>
         ⤓ Dışa aktar <span aria-hidden>▾</span>
       </summary>
       <div style={{
         position: 'absolute', bottom: '100%', right: 0, zIndex: 5, minWidth: 150,
-        background: 'var(--card)', border: 'var(--bw-strong) solid var(--hr2)',
-        boxShadow: 'var(--sh-tip)', padding: 'var(--s8)',
+        background: 'var(--panel)', border: 'var(--bw-strong) solid var(--hr2)',
+        boxShadow: 'none', padding: 'var(--s8)',
       }}>
-        <button type="button" className="filtre"
+        <button type="button" className="ab-filtre"
           style={{ display: 'block', width: '100%', textAlign: 'left' }}
           onClick={(e) => kapatVe(e, () => exceleAktar(dosya, [{
             ad: sayfaAdi, satirlar: [basliklar, ...satirlar],
           }]))}>
           Excel
         </button>
-        <button type="button" className="filtre"
+        <button type="button" className="ab-filtre"
           style={{ display: 'block', width: '100%', textAlign: 'left' }}
           onClick={(e) => kapatVe(e, pdfYazdir)}>
           PDF

@@ -1,14 +1,52 @@
 'use client';
-import { useState } from 'react';
 import Link from 'next/link';
-import { Metrikler, Dugme } from '@/components/atlas/temel';
-import { OdakKarti } from '@/components/atlas/ekran';
-import { NOTR_TRIPTIK } from '@/lib/atlas/gorsel';
-import { etiketle, tarihTR } from '@/lib/sabitler';
+import { NOTR_TRIPTIK, kucukGorsel } from '@/lib/gorsel';
+import { tipAdi, tipRengi, uygunRengi } from '@/components/abacus/tip';
+import type {
+  AkisHaftasi, RiskIzgarasi, SantralKarti, TakvimKalemi, TipKatmani,
+} from './veri';
 
-/* F1 · Executive Overview — 03-screens.md.
-   Bağlam şeridi grup özetini taşır (ayrı modül değil), bir odak kartı baskındır,
-   kuyruk üç satırdır. "Sonraki ▸" öncelik motorunu ilerletir. */
+/* ═══════════════════════════════════════════════════════════════════════
+   SAHA — B · ENERGY INTELLIGENCE
+
+   Görsel source of truth: `b-executive.html`
+   (ORIGINAL_DESIGN_IMPLEMENTATION_MAP.md §2).
+
+   Prototipin grameri: 648px koyu fotoğrafik alan, üzerinde SOLDA 430px
+   dikkat paneli, SAĞDA 320px katman paneli; altında altı kartlık saha
+   şeridi; en altta 430px düzenleyici takvim + akış bandı. Ray YOKTUR;
+   gezinme kabuğun 56px sekme çubuğundadır.
+
+   ── PROTOTİPTEN AYRILAN TEK NOKTA VE NEDENİ ───────────────────────────
+   Prototipin merkezinde Türkiye haritası ve enlem/boylama oturmuş santral
+   işaretçileri var. ŞEMADA KOORDİNAT YOK — `Tesis.konum` serbest metin.
+   İşaretçileri göz kararı yerleştirmek, ekranda GERÇEK OLMAYAN bir coğrafya
+   çizmek olurdu. Bunun yerine aynı işaretçi grameri (45° döndürülmüş kare,
+   kritikte halka, sağında iki satırlık künye) GERÇEK iki eksene oturtuldu:
+   yatay uyum endeksi, dikey kurulu güç. Soru da aynı kalıyor: "hangi büyük
+   santralim zayıf?" Ölçülmemiş santral eksene KONMAZ, altta ayrı listelenir
+   (UNKNOWN ≠ ZERO).
+
+   Diğer bölümler prototipin ölçüleriyle birebir; veriler gerçek:
+   · dikkat listesi = açık/aksiyonda bulgular, öncelik sırasıyla;
+   · katmanlar = `TesisTipi` başına `uyumOzeti`;
+   · risk yoğunluğu = 5×5 olasılık × en büyük etki, ölçülemeyen ayrı;
+   · takvim = 90 gün içindeki denetim ve süreç bitişleri;
+   · akış = 12 haftanın açılan/kapanan bulguları;
+   · eğilim = `UyumAnlik` kayıtları — yoksa ÇİZİLMEZ.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+const KISA_TARIH = new Intl.DateTimeFormat('tr-TR', { day: '2-digit', month: 'short' });
+function kisaTarih(iso: string): string {
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? '—' : KISA_TARIH.format(d).toLocaleUpperCase('tr-TR');
+}
+
+/** Son tarih cümlesi — gecikme SÖZCÜKLE de anlatılır, salt renkle değil. */
+function terminSozu(gecikmisGun: number | null, hedefTarih: string | null): string {
+  if (gecikmisGun !== null) return `son tarih ${gecikmisGun} gün geçti`;
+  return hedefTarih ? `son tarih ${kisaTarih(hedefTarih)}` : 'son tarih yok';
+}
 
 export type Kayit = {
   id: string; baslik: string; aciklama: string | null;
@@ -18,156 +56,368 @@ export type Kayit = {
   aksiyonTamam: number; aksiyonToplam: number;
 };
 
-const ONEM: Record<string, 'bd' | 'md' | 'ok' | 'pl'> = {
+type Ozet = {
+  uyumYuzde: number | null; bilinmeyenOran: number | null;
+  kritikRisk: number; gecikmisAksiyon: number;
+  yaklasanDenetim: { kod: string; kalanGun: number } | null;
+  tesisSayisi: number; toplamGucMw: number;
+};
+
+/** Katman panelinde çizilen tip sayısı — kalanı sayıyla söylenir. */
+const KATMAN_TAVANI = 3;
+
+const ONEM_SINIF: Record<string, string> = {
   kritik: 'bd', yuksek: 'bd', orta: 'md', dusuk: 'pl',
 };
 
 export default function Genel({
-  kullanici, ozet, odak, kuyruk, toplamKayit, kapsamli = false,
+  ozet, odak, kuyruk, toplamKayit, kapsamli = false,
+  santraller, tipler, risk, takvim, akis, egilim,
 }: {
   kullanici: string;
-  ozet: {
-    uyumYuzde: number | null; bilinmeyenOran: number | null;
-    kritikRisk: number; gecikmisAksiyon: number;
-    yaklasanDenetim: { kod: string; kalanGun: number } | null;
-    tesisSayisi: number; toplamGucMw: number;
-  };
+  ozet: Ozet;
   odak: Kayit | null;
   kuyruk: Kayit[];
   toplamKayit: number;
-  /** özet bir santral kapsamıyla daraltıldı mı — boş ekranın SÖZÜ değişir */
   kapsamli?: boolean;
+  santraller: SantralKarti[];
+  tipler: TipKatmani[];
+  risk: RiskIzgarasi;
+  takvim: TakvimKalemi[];
+  akis: AkisHaftasi[];
+  egilim: { etiket: string; yuzde: number }[] | null;
 }) {
-  const tumu = odak ? [odak, ...kuyruk] : kuyruk;
-  const [indeks, setIndeks] = useState(0);
-  const aktif = tumu[indeks] ?? null;
-  const dikkat = tumu.length;
-
+  const dikkat = odak ? [odak, ...kuyruk] : kuyruk;
   const bugun = new Date().toLocaleDateString('tr-TR',
     { day: 'numeric', month: 'long', year: 'numeric' });
 
   return (
-    <main data-yuzey="saha" style={{ minWidth: 0 }}>
-      {/* ── Bağlam şeridi 132px: nötr grup kompozisyonu ─────────────── */}
-      <div className="baglam-serit">
+    <main className="ab-b-saha">
+      {/* ═══ Fotoğrafik alan ═══════════════════════════════════════════ */}
+      <section className="ab-b-alan">
         {/* eslint-disable-next-line @next/next/no-img-element -- statik dışa aktarım */}
-        <img src={NOTR_TRIPTIK} alt="Zorlu Enerji üretim portföyü — jeotermal, hidro, rüzgâr"
-          decoding="async" fetchPriority="high" />
+        <img src={NOTR_TRIPTIK} alt="" aria-hidden decoding="async" fetchPriority="high" />
         <span className="perde" aria-hidden />
-        <span className="kontur" aria-hidden />
-        <div className="icerik">
-          <div>
-            <p className="t-eyebrow" style={{ margin: 0, color: 'rgba(246,244,238,.62)' }}>
-              {bugun} · {ozet.tesisSayisi} santral · {ozet.toplamGucMw} MWe
-              {ozet.yaklasanDenetim
-                && ` · ${ozet.yaklasanDenetim.kod} ${ozet.yaklasanDenetim.kalanGun} gün sonra`}
-            </p>
-            <h1>
-              {dikkat > 0
-                ? <>Bugün <b>{dikkat} konu</b> yönetim dikkati istiyor</>
-                : <>Bugün <b>kritik konu yok</b></>}
-            </h1>
-          </div>
-          <Metrikler metrikler={[
-            {
-              deger: ozet.uyumYuzde === null ? '—' : `%${ozet.uyumYuzde}`,
-              yazi: 'Zorunlu uyum',
-            },
-            { deger: ozet.kritikRisk, yazi: 'Kritik risk',
-              durum: ozet.kritikRisk > 0 ? 'bd' : undefined },
-            { deger: ozet.gecikmisAksiyon, yazi: 'Gecikmiş iş',
-              durum: ozet.gecikmisAksiyon > 0 ? 'bd' : undefined },
-            {
-              deger: ozet.bilinmeyenOran === null ? '—' : `%${ozet.bilinmeyenOran}`,
-              yazi: 'Bilinmeyen',
-            },
-          ]} />
-        </div>
-      </div>
 
-      {/* ── Öncelik sırası ─────────────────────────────────────────── */}
-      {aktif ? (
-        <>
-          <div className="oncelik-bas">
-            <span className="t-label">Öncelik sırası · {indeks + 1} / {dikkat}</span>
-            <span className="oncelik-tik" aria-hidden>
-              {tumu.map((_, i) => (
-                <span key={i} className={i <= indeks ? 'dolu' : undefined} />
-              ))}
+        {/* ── Dikkat paneli · 430px ─────────────────────────────────── */}
+        <aside className="ab-b-dikkat" aria-label="Grup durumu">
+          <p className="etiket">Grup durumu · {bugun}</p>
+          <div className="endeks">
+            <span className="sayi">{ozet.uyumYuzde === null ? '—' : `%${ozet.uyumYuzde}`}</span>
+            <span className="yan">
+              <span className="ad">Uyum endeksi</span>
+              <span className="alt">
+                {ozet.bilinmeyenOran === null
+                  ? 'hiç değerlendirme yok'
+                  : `%${ozet.bilinmeyenOran} bilinmeyen · payda dışı`}
+              </span>
             </span>
-            <button type="button" className="dg dg-satir" style={{ marginLeft: 'auto' }}
-              onClick={() => setIndeks((i) => (i + 1) % dikkat)}>
-              Sonraki ▸
-            </button>
           </div>
 
-          <section style={{ padding: 'var(--s20) var(--gutter-fs) 0' }}>
-            <OdakKarti
-              durum={ONEM[aktif.onem] ?? 'md'}
-              ust={`${etiketle(aktif.onem)} · ${aktif.gecikmisGun ? 'gecikmiş' : etiketle(aktif.durum)}`}
-              vurgu={`${aktif.tesisAd}`}
-              baslik={`’te ${aktif.baslik.charAt(0).toLocaleLowerCase('tr-TR')}${aktif.baslik.slice(1)}`}
-              cumle={aktif.aciklama ?? 'Ayrıntı için kaydı açın.'}
-              hedef={aktif.gecikmisGun
-                ? { sayi: `${aktif.gecikmisGun} gün`, yazi: 'gecikmiş' }
-                : aktif.hedefTarih
-                  ? { sayi: tarihTR(new Date(aktif.hedefTarih)), yazi: aktif.sorumlu ?? '—' }
-                  : undefined}
-              seritler={[
-                { etiket: 'Uyum', deger: `${aktif.kontrolKodu}`, not: aktif.cerceve },
-                { etiket: 'Santral', deger: aktif.tesisAd },
-                { etiket: 'Aksiyon', deger: `${aktif.aksiyonTamam} / ${aktif.aksiyonToplam} tamam` },
-                { etiket: 'Sahip', deger: aktif.sorumlu ?? '—' },
-              ]}
-              eylemler={
-                <>
-                  <Link href={`/bulgular/${aktif.id}`}><Dugme tur="birincil">Kaydı aç</Dugme></Link>
-                  <Link href={`/tesisler/${aktif.tesisId}`}>
-                    <Dugme tur="ikincil">Santral dosyası</Dugme>
-                  </Link>
-                </>
-              }
-            />
-          </section>
+          <Egilim seri={egilim} />
 
-          {/* ── Kuyruk: üç satır ─────────────────────────────────────── */}
-          <section style={{ padding: 'var(--s30) var(--gutter-fs) var(--s46)' }}>
-            <div style={{ display: 'flex', alignItems: 'baseline', marginBottom: 'var(--s10)' }}>
-              <span className="t-label">Sıradaki konular</span>
-              <Link href="/bulgular" className="dg dg-satir" style={{ marginLeft: 'auto' }}>
-                Tüm kayıtlar ({toplamKayit}) ▸
-              </Link>
+          <div className="mudahale">
+            <div className="bas">
+              <span className="etiket">Müdahale gerektirenler</span>
+              <span className="mono adet">{toplamKayit}</span>
             </div>
-            {tumu.map((k, i) => i === indeks ? null : (
-              <button key={k.id} type="button" className="kuyruk-satir"
-                onClick={() => setIndeks(i)}>
-                <span className="sira">{i + 1}</span>
-                <span className="konu">
-                  {k.baslik} <span style={{ color: 'var(--i3)', fontWeight: 400 }}>— {k.tesisAd}</span>
+            {dikkat.length === 0 ? (
+              <p className="bos">
+                {kapsamli
+                  ? 'Kapsamındaki santrallerde açık bulgu yok.'
+                  : 'Açık bulgu yok.'}
+              </p>
+            ) : dikkat.slice(0, 4).map((b, i) => (
+              <Link key={b.id} href={`/bulgular/${b.id}`} className="kalem">
+                <span className={`sap ${ONEM_SINIF[b.onem] ?? 'pl'}`} aria-hidden />
+                <span className="govde">
+                  <span className="konu">{b.baslik}</span>
+                  <span className="mono meta">
+                    {b.tesisAd} · {b.kontrolKodu} ·{' '}
+                    {terminSozu(b.gecikmisGun, b.hedefTarih)}
+                  </span>
                 </span>
-                <span className="baglam">{k.kontrolKodu} · {k.cerceve}</span>
-                <span className="deger"
-                  style={{ color: k.gecikmisGun ? 'var(--bd)' : 'var(--i2)' }}>
-                  {k.gecikmisGun ? `Gecikmiş ${k.gecikmisGun}g`
-                    : k.hedefTarih ? tarihTR(new Date(k.hedefTarih)) : '—'}
-                </span>
-                <span className="tbl-ok" aria-hidden>▸</span>
-              </button>
+                <span className="sira" aria-hidden>{String(i + 1).padStart(2, '0')}</span>
+              </Link>
             ))}
-          </section>
-        </>
-      ) : (
-        /* Boş: kritik konu yok — kart kaldırılır, metrikler kalır (§F1 states).
-           Kapsam yüzünden boşalan ekran "konu yok" DEMEZ: "kapsamınızda
-           kayıt yok" der — ilki iyi haber, ikincisi yetki sınırıdır. */
-        <section style={{ padding: 'var(--s38) var(--gutter-fs) var(--s46)' }}>
-          <p className="t-section" style={{ margin: 0 }}>
-            {kapsamli
-              ? `Kapsamınızda açık kayıt yok, ${kullanici.split(' ')[0]}.`
-              : `Bugün kritik konu yok, ${kullanici.split(' ')[0]}.`}
-          </p>
-        </section>
-      )}
+          </div>
+        </aside>
+
+        {/* ── Takımyıldız — koordinat DEĞİL, endeks × güç ───────────── */}
+        <Takimyildizi santraller={santraller} />
+
+        {/* ── Katman paneli · 320px ─────────────────────────────────── */}
+        <aside className="ab-b-katman" aria-label="Üretim tipine göre uyum">
+          <p className="etiket">Üretim tipine göre uyum katmanları</p>
+          <div className="katmanlar">
+            {tipler.length === 0 && <p className="bos">Kapsamında santral yok.</p>}
+            {tipler.slice(0, KATMAN_TAVANI).map((t) => (
+              <div key={t.kod} className="katman">
+                <div className="bas">
+                  <span className="ad">{tipAdi(t.kod, t.ad)}</span>
+                  <span className="mono deger">{t.endeks === null ? '—' : `%${t.endeks}`}</span>
+                </div>
+                <p className="mono meta">
+                  {t.santralSayisi} santral · {t.gucMw} MWe · {t.kontrolSayisi} kontrol
+                </p>
+                <Yigin uygun={t.uygun} kismi={t.kismi} uygunsuz={t.uygunsuz}
+                  bilinmeyen={t.bilinmeyen} tip={t.kod} />
+              </div>
+            ))}
+            {tipler.length > KATMAN_TAVANI && (
+              <p className="mono kalan">
+                {tipler.slice(KATMAN_TAVANI).map((t) => tipAdi(t.kod, t.ad)).join(' · ')}
+                {' — '}{tipler.slice(KATMAN_TAVANI).reduce((a, t) => a + t.santralSayisi, 0)} santral
+              </p>
+            )}
+          </div>
+
+          <div className="yogunluk">
+            <p className="etiket">Risk yoğunluğu</p>
+            <RiskIzgara izgara={risk} />
+          </div>
+        </aside>
+      </section>
+
+      {/* ═══ Saha şeridi ═══════════════════════════════════════════════ */}
+      <section className="ab-b-serit" aria-label="Saha seçici">
+        <header>
+          <span className="etiket">
+            Saha seçici · {ozet.tesisSayisi} üretim tesisi · {ozet.toplamGucMw} MWe
+          </span>
+          <span className="etiket sag">
+            Tesise geçmek için seçin · kapsam tüm uygulamada korunur
+            {santraller.length > 6 && ' · yatay kaydırın'}
+          </span>
+        </header>
+        <div className="kartlar">
+          {santraller.map((s) => <SahaKarti key={s.id} s={s} />)}
+        </div>
+      </section>
+
+      {/* ═══ Düzenleyici bant ══════════════════════════════════════════ */}
+      <section className="ab-b-bant">
+        <div className="takvim">
+          <p className="etiket">Düzenleyici takvim · 90 gün</p>
+          {takvim.length === 0 ? (
+            <p className="bos">Önümüzdeki 90 günde planlı denetim veya süreç bitişi yok.</p>
+          ) : takvim.slice(0, 6).map((t) => (
+            <Link key={t.id} href={t.yol} className="satir">
+              <span className={`mono gun${t.kalanGun <= 7 ? ' yakin' : ''}`}>
+                {kisaTarih(t.tarih)}
+              </span>
+              <span className="konu">{t.baslik}</span>
+              <span className="mono etiket">{t.etiket}</span>
+              <span className="mono kalan">{t.kalanGun} g</span>
+            </Link>
+          ))}
+        </div>
+        <div className="akis">
+          <div className="bas">
+            <span className="etiket">Uygunsuzluk akışı · açılan / kapanan · 12 hafta</span>
+            <span className="mono net">
+              Net {netIslem(akis) > 0 ? '+' : ''}{netIslem(akis)}
+            </span>
+          </div>
+          <Akis akis={akis} />
+        </div>
+      </section>
     </main>
+  );
+}
+
+/* ── Eğilim ───────────────────────────────────────────────────────────
+   Anlık görüntü yoksa çizgi de yok. Prototipte 12 aylık bir çubuk dizisi
+   vardı; onu sistem saatinden türetmek "iyileşiyoruz" demek olurdu. */
+function Egilim({ seri }: { seri: { etiket: string; yuzde: number }[] | null }) {
+  if (!seri) {
+    return (
+      <p className="ab-b-egilim-yok">
+        Dönemsel anlık görüntü kaydı yok — eğilim çizilemiyor.
+      </p>
+    );
+  }
+  const en = Math.max(...seri.map((s) => s.yuzde), 1);
+  const son = seri[seri.length - 1];
+  const ilk = seri[0];
+  const fark = son.yuzde - ilk.yuzde;
+  return (
+    <div className="ab-b-egilim">
+      <div className="cubuklar" role="img"
+        aria-label={`Uyum endeksi eğilimi: ${seri.map((s) => `${s.etiket} %${s.yuzde}`).join(', ')}`}>
+        {seri.map((s, i) => (
+          <span key={s.etiket} className={i === seri.length - 1 ? 'son' : undefined}
+            style={{ height: `${Math.max(6, (s.yuzde / en) * 100)}%` }} />
+        ))}
+      </div>
+      <div className="mono uc">
+        <span>{ilk.etiket}</span>
+        <span className={fark >= 0 ? 'iyi' : 'kotu'}>
+          {fark >= 0 ? '+' : ''}{fark} puan
+        </span>
+        <span>{son.etiket}</span>
+      </div>
+    </div>
+  );
+}
+
+/* ── Takımyıldız ──────────────────────────────────────────────────────
+   Yatay: uyum endeksi (0–100). Dikey: kurulu güç (karekök ölçek, çünkü
+   1800 MW'lık bir HES ile 15 MW'lık bir GES aynı eksende doğrusal
+   konursa küçükler tek şeride yığılır). */
+function Takimyildizi({ santraller }: { santraller: SantralKarti[] }) {
+  const olculen = santraller.filter((s) => s.endeks !== null);
+  const olculmemis = santraller.filter((s) => s.endeks === null);
+  const enGuc = Math.max(1, ...olculen.map((s) => s.gucMw ?? 0));
+
+  return (
+    <div className="ab-b-takim" aria-label="Santral takımyıldızı">
+      <p className="etiket ust">Santraller · uyum endeksi × kurulu güç</p>
+      {olculen.length === 0 ? (
+        <p className="bos">Hiçbir santralde değerlendirilmiş kontrol yok.</p>
+      ) : (
+        <div className="ab-tuval">
+          {olculen.map((s) => {
+            const x = s.endeks!;
+            const y = Math.sqrt((s.gucMw ?? 0) / enGuc) * 100;
+            const uygunsuz = s.sayim.uyumsuz ?? 0;
+            return (
+              <Link key={s.id} href={`/tesisler/${s.id}`}
+                className={`isaret${x > 58 ? ' sola' : ''}`}
+                style={{ left: `${4 + x * 0.86}%`, bottom: `${8 + y * 0.78}%` }}>
+                {uygunsuz > 0 && <span className="halka" aria-hidden />}
+                <span className="kare" aria-hidden
+                  style={{ background: tipRengi(s.tipKod) }} />
+                <span className="kunye">
+                  <span className="ad">{s.ad}</span>
+                  <span className="mono alt">
+                    {s.gucMw ?? '—'} MW · %{s.endeks}
+                    {uygunsuz > 0 && ` · ${uygunsuz} uygunsuz`}
+                  </span>
+                </span>
+              </Link>
+            );
+          })}
+          <span className="eksen x" aria-hidden />
+          <span className="eksen y" aria-hidden />
+          <span className="mono eksenad x">uyum endeksi →</span>
+          <span className="mono eksenad y">↑ kurulu güç</span>
+        </div>
+      )}
+      {olculmemis.length > 0 && (
+        <p className="mono olculmemis">
+          Eksende yok · hiç değerlendirilmemiş: {olculmemis.map((s) => s.kod).join(' · ')}
+        </p>
+      )}
+    </div>
+  );
+}
+
+/* ── Üç parçalı yığın ────────────────────────────────────────────────
+   Prototipte üç parça vardı (uygun · kısmi · uygunsuz). DÖRDÜNCÜ parça
+   burada eklendi: bilinmeyen. Onu çubuktan düşürmek, değerlendirilmemiş
+   kontrolü sessizce "uygun" saymak olurdu. */
+function Yigin({ uygun, kismi, uygunsuz, bilinmeyen, tip }: {
+  uygun: number; kismi: number; uygunsuz: number; bilinmeyen: number; tip: string;
+}) {
+  const toplam = uygun + kismi + uygunsuz + bilinmeyen;
+  if (toplam === 0) {
+    return <div className="ab-b-yigin bos"><span className="mono">değerlendirilmemiş</span></div>;
+  }
+  const p = (n: number) => `${(n / toplam) * 100}%`;
+  return (
+    <div className="ab-b-yigin" role="img"
+      aria-label={`${uygun} uygun, ${kismi} kısmi, ${uygunsuz} uygunsuz, ${bilinmeyen} değerlendirilmedi`}>
+      {uygun > 0 && <span style={{ width: p(uygun), background: uygunRengi(tip) }} />}
+      {kismi > 0 && <span className="kismi" style={{ width: p(kismi) }} />}
+      {uygunsuz > 0 && <span className="uygunsuz" style={{ width: p(uygunsuz) }} />}
+      {bilinmeyen > 0 && <span className="bilinmeyen" style={{ width: p(bilinmeyen) }} />}
+    </div>
+  );
+}
+
+/* ── 5×5 risk yoğunluğu ───────────────────────────────────────────── */
+function RiskIzgara({ izgara }: { izgara: RiskIzgarasi }) {
+  const { hucreler, enYuksek, kritik, yuksek, olculemeyen } = izgara;
+  return (
+    <>
+      <div className="ab-b-izgara" role="img"
+        aria-label={`Risk yoğunluğu: ${kritik} kritik, ${yuksek} yüksek risk`}>
+        {hucreler.map((satir, i) => satir.map((n, j) => {
+          const etki = 5 - i; const olasilik = j + 1;
+          const yogunluk = enYuksek === 0 ? 0 : n / enYuksek;
+          return (
+            <span key={`${i}-${j}`}
+              className={`hucre${n > 0 && olasilik * etki >= 15 ? ' kritik' : ''}`}
+              style={{ opacity: n === 0 ? 0.34 : 0.4 + yogunluk * 0.6 }}
+              title={`Olasılık ${olasilik} × etki ${etki} · ${n} risk`}
+            >
+              {n > 0 && <span className="mono adet">{n}</span>}
+            </span>
+          );
+        }))}
+      </div>
+      <div className="mono ab-b-izgara-uc">
+        <span>olasılık →</span><span>↑ etki</span>
+      </div>
+      <p className="mono ab-b-izgara-ozet">
+        {kritik} kritik · {yuksek} yüksek
+        {olculemeyen > 0 && <> · <span className="unk">{olculemeyen} ölçülemedi</span></>}
+      </p>
+    </>
+  );
+}
+
+/* ── Saha kartı ─────────────────────────────────────────────────────── */
+function SahaKarti({ s }: { s: SantralKarti }) {
+  const foto = kucukGorsel(s.gorselAnahtari);
+  const uygunsuz = s.sayim.uyumsuz ?? 0;
+  return (
+    <Link href={`/tesisler/${s.id}`} className={`kart${uygunsuz > 0 ? ' uyari' : ''}`}>
+      {foto
+        // eslint-disable-next-line @next/next/no-img-element -- statik dışa aktarım
+        ? <img src={foto} alt="" aria-hidden decoding="async" />
+        : <span className="fotoyok" aria-hidden />}
+      <span className="perde" aria-hidden />
+      <span className="icerik">
+        <span className="mono tip" style={{ color: tipRengi(s.tipKod) }}>
+          {tipAdi(s.tipKod, s.tipAd)}
+        </span>
+        <span className="ad">{s.ad}</span>
+        <span className="olcu">
+          <span className="mono guc">{s.gucMw ?? '—'} MW</span>
+          <span className="mono skor">{s.endeks === null ? '—' : `%${s.endeks}`}</span>
+        </span>
+        <Yigin uygun={s.sayim.uyumlu ?? 0} kismi={s.sayim.kismi ?? 0}
+          uygunsuz={uygunsuz} bilinmeyen={s.bilinmeyen} tip={s.tipKod ?? ''} />
+      </span>
+    </Link>
+  );
+}
+
+/* ── Akış ───────────────────────────────────────────────────────────── */
+function netIslem(akis: AkisHaftasi[]): number {
+  return akis.reduce((t, h) => t + h.acilan - h.kapanan, 0);
+}
+
+function Akis({ akis }: { akis: AkisHaftasi[] }) {
+  const en = Math.max(1, ...akis.flatMap((h) => [h.acilan, h.kapanan]));
+  return (
+    <>
+      <div className="ab-b-akis" role="img"
+        aria-label={akis.map((h) => `${h.etiket}: ${h.acilan} açıldı, ${h.kapanan} kapandı`).join('; ')}>
+        {akis.map((h) => (
+          <span key={h.etiket} className="hafta">
+            <span className="acilan" style={{ height: `${(h.acilan / en) * 46}px` }} />
+            <span className="kapanan" style={{ height: `${(h.kapanan / en) * 46}px` }} />
+          </span>
+        ))}
+      </div>
+      <div className="mono ab-b-akis-uc">
+        <span>{akis[0]?.etiket ?? ''}</span>
+        <span>açılan ▲ · kapanan ▼</span>
+        <span>bu hafta</span>
+      </div>
+    </>
   );
 }

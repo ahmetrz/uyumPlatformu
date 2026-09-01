@@ -1,12 +1,12 @@
 import { Suspense } from 'react';
 import type { Metadata } from 'next';
 import { girisZorunlu, izinVar, izinliTesisIdleri } from '@/lib/erisim';
-import { Yetkisiz } from '@/components/atlas/temel';
+import { Yetkisiz } from '@/components/abacus/temel';
 import { cerceveleriYukle } from './veri';
 import UyumIstemci from './UyumIstemci';
 import MatrisIskeleti from './MatrisIskeleti';
 
-export const metadata: Metadata = { title: 'Uyum kontrol odası — Atlas' };
+export const metadata: Metadata = { title: 'Uyum kontrol odası — Abacus' };
 
 /* O1 · Uyum kontrol odası — "nerede uyumsuzuz?" (03-screens O1)
 

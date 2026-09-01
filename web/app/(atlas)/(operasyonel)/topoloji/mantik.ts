@@ -1,4 +1,4 @@
-import type { Durum } from '@/components/atlas/temel';
+import type { Durum } from '@/components/abacus/temel';
 
 /* O12 · Topoloji sapma tezgâhı — saf türetme katmanı.
 

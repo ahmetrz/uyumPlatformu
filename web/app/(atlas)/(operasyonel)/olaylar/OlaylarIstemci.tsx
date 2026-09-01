@@ -1,11 +1,11 @@
 'use client';
 import { useMemo, useState } from 'react';
-import { BosIlk, BosFiltre, Dugme, Im, Ipucu, type Durum } from '@/components/atlas/temel';
-import { Tablo, type Kolon, type Satir } from '@/components/atlas/tablo';
-import { EkranBasligi, Filtreler } from '@/components/atlas/ekran';
+import { BosIlk, BosFiltre, Dugme, Im, Ipucu, type Durum } from '@/components/abacus/temel';
+import { Tablo, type Kolon, type Satir } from '@/components/abacus/tablo';
+import { EkranBasligi, Filtreler } from '@/components/abacus/ekran';
 import {
   Cekmece, CekmeceKimlik, CekmeceAlanlar, CekmeceBagli, CekmeceEylemler,
-} from '@/components/atlas/cekmece';
+} from '@/components/abacus/panel';
 import { tarihTR, zamanTR } from '@/lib/sabitler';
 import {
   EtkiDogrulama, OlayBaglari, OlayDuzenleFormu, OneriYenile, YeniOlayFormu,
@@ -94,7 +94,7 @@ export default function OlaylarIstemci({
       <>
         <main data-yuzey="tezgah" style={{ minWidth: 0 }}>
           <EkranBasligi eyebrow="Operasyonel güvenlik" baslik="Olaylar" />
-          <section className="ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
+          <section className="ab-ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
             <BosIlk
               cumle="Kapsamınızda olay kaydı yok. Olay açıldığında etki zinciri motoru öneriyi üretir; etki alanları insan doğrulamasıyla dolar."
               eylem={yazabilir
@@ -105,10 +105,10 @@ export default function OlaylarIstemci({
         </main>
         {yeniAcik && (
           <Cekmece kod="Yeni olay" kapat={() => setYeniAcik(false)}>
-            <div className="cekmece-blok">
-              <p className="t-label" style={{ margin: '0 0 var(--s12)' }}>Olay aç</p>
+            <div className="ab-panel-blok">
+              <p className="etiket" style={{ margin: '0 0 var(--s12)' }}>Olay aç</p>
             </div>
-            <div className="cekmece-blok">
+            <div className="ab-panel-blok">
               <YeniOlayFormu santraller={santraller} kapat={() => setYeniAcik(false)} />
             </div>
           </Cekmece>
@@ -177,13 +177,13 @@ export default function OlaylarIstemci({
           ]}
         />
 
-        <section className="ekran-govde" style={{ paddingTop: 'var(--s20)' }}>
+        <section className="ab-ekran-govde" style={{ paddingTop: 'var(--s20)' }}>
           <Filtreler
             secenekler={MERCEKLER}
             aktif={mercek}
             sec={(id) => { setMercek(id); setKuyrukAcik(false); }}
             kapsam={yazabilir ? (
-              <button type="button" className="kapsam-dugme"
+              <button type="button" className="ab-dugme"
                 onClick={() => { setYeniAcik(true); setSeciliId(null); }}>
                 + Yeni olay
               </button>
@@ -212,12 +212,12 @@ export default function OlaylarIstemci({
           )}
 
           {kuyrukAcik && (
-            <p className="dip-not" style={{ marginTop: 'var(--s10)' }}>
-              <button type="button" className="dg dg-satir"
+            <p className="ab-dip" style={{ marginTop: 'var(--s10)' }}>
+              <button type="button" className="ab-dugme satir"
                 onClick={() => setKuyrukAcik(false)}>Kuyruğu topla</button>
             </p>
           )}
-          <p className="dip-not" style={{ marginTop: 'var(--s6)' }}>
+          <p className="ab-dip" style={{ marginTop: 'var(--s6)' }}>
             Şiddet kademesi A→D · A en yüksek · elmas işaretli değerler motor
             ÖNERİSİdir, doğrulanana kadar etki sayılmaz
           </p>
@@ -235,10 +235,10 @@ export default function OlaylarIstemci({
             />
           ) : (
             <>
-              <div className="cekmece-blok">
-                <p className="t-label" style={{ margin: '0 0 var(--s12)' }}>Olayı düzenle</p>
+              <div className="ab-panel-blok">
+                <p className="etiket" style={{ margin: '0 0 var(--s12)' }}>Olayı düzenle</p>
               </div>
-              <div className="cekmece-blok">
+              <div className="ab-panel-blok">
                 <OlayDuzenleFormu olay={secili} santraller={santraller}
                   kapat={() => setKip('ozet')} />
               </div>
@@ -249,10 +249,10 @@ export default function OlaylarIstemci({
 
       {yeniAcik && !secili && (
         <Cekmece kod="Yeni olay" kapat={() => setYeniAcik(false)}>
-          <div className="cekmece-blok">
-            <p className="t-label" style={{ margin: '0 0 var(--s12)' }}>Olay aç</p>
+          <div className="ab-panel-blok">
+            <p className="etiket" style={{ margin: '0 0 var(--s12)' }}>Olay aç</p>
           </div>
-          <div className="cekmece-blok">
+          <div className="ab-panel-blok">
             <YeniOlayFormu santraller={santraller} kapat={() => setYeniAcik(false)} />
           </div>
         </Cekmece>
@@ -384,14 +384,14 @@ function Detay({
 /** Öneri ve doğrulanmış etki AYRI kolonlarda: biri diğerinin yerine geçemez. */
 function EtkiBlogu({ o }: { o: OlayKaydi }) {
   return (
-    <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
-      <p className="t-label" style={{ margin: '0 0 var(--s10)' }}>Etki</p>
+    <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+      <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Etki</p>
 
       <div style={{ display: 'grid', gridTemplateColumns: '86px 1fr 1fr',
         gap: 'var(--s8) var(--s10)', alignItems: 'baseline' }}>
-        <span className="t-caption" />
-        <span className="t-caption">Motor önerisi</span>
-        <span className="t-caption">Doğrulanmış</span>
+        <span className="etiket" />
+        <span className="etiket">Motor önerisi</span>
+        <span className="etiket">Doğrulanmış</span>
 
         {ETKI_ALANLARI.map((alan) => {
           const onerilen = o.oneri?.degerler[alan] ?? 'bilinmiyor';
@@ -404,7 +404,7 @@ function EtkiBlogu({ o }: { o: OlayKaydi }) {
         })}
       </div>
 
-      <p className="cekmece-dip" style={{ margin: 'var(--s14) 0 0' }}>
+      <p className="ab-panel-dip" style={{ margin: 'var(--s14) 0 0' }}>
         {o.dogrulamaZamani
           ? `Son doğrulama ${zamanTR(o.dogrulamaZamani)}`
             + (o.dogrulayan ? ` · ${o.dogrulayan}` : '')
@@ -436,7 +436,7 @@ function EtkiSatiri({
           </span>
         ) : (
           <Ipucu genis metin={dayanak ?? 'dayanak kaydı yok'}>
-            <button type="button" className="acikla"
+            <button type="button" className="ab-dugme satir"
               style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--s6)',
                 fontSize: 'var(--t-cell)', color: 'var(--i2)', textAlign: 'left' }}>
               <Im durum={oneriDurumu} ad="Motor önerisi" />
@@ -460,12 +460,12 @@ function EtkiSatiri({
 function ZincirBlogu({ o }: { o: OlayKaydi }) {
   const zincir = o.oneri?.zincir ?? [];
   return (
-    <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
-      <p className="t-label" style={{ margin: '0 0 var(--s10)' }}>
+    <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+      <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>
         Etki zinciri{zincir.length > 0 ? ` · ${zincir.length} halka` : ''}
       </p>
       {zincir.length === 0 ? (
-        <p className="cekmece-dip" style={{ margin: 0 }}>
+        <p className="ab-panel-dip" style={{ margin: 0 }}>
           {o.oneriBozuk
             ? 'Öneri kaydı okunamadı — motoru yeniden çalıştırın.'
             : o.oneri === null
@@ -494,7 +494,7 @@ function Halka({ h }: { h: HalkaGorunumu }) {
   ].filter((x): x is { ad: string; alt: string } => x !== null);
 
   return (
-    <div style={{ background: 'var(--card)', border: 'var(--bw-hair) solid var(--hr2)',
+    <div style={{ background: 'var(--panel)', border: 'var(--bw-hair) solid var(--hr2)',
       padding: 'var(--s12) var(--s14)' }}>
       <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'baseline',
         gap: 'var(--s6)' }}>
@@ -502,12 +502,12 @@ function Halka({ h }: { h: HalkaGorunumu }) {
           <span key={`${a.ad}-${i}`} style={{ display: 'inline-flex', alignItems: 'baseline',
             gap: 'var(--s6)' }}>
             {i > 0 && <span aria-hidden style={{ color: 'var(--i3)' }}>→</span>}
-            <span title={a.alt} style={{ fontFamily: 'var(--mo)', fontSize: 'var(--t-label)',
+            <span title={a.alt} style={{ fontFamily: 'var(--veri)', fontSize: 'var(--t-label)',
               fontWeight: 600 }}>{a.ad}</span>
           </span>
         ))}
       </div>
-      <p className="cekmece-dip" style={{ margin: 'var(--s6) 0 0' }}>
+      <p className="ab-panel-dip" style={{ margin: 'var(--s6) 0 0' }}>
         {adimlar.map((a) => a.alt).join(' · ')}
       </p>
       {h.kopukluk && (

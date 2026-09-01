@@ -3,8 +3,9 @@ import { zamanTR } from '@/lib/sabitler';
 
 /* Veri kökeni göstergesi — "bu satırı nereden biliyoruz?"
 
-   Atlas sözleşmesi gereği bu bir DURUM rozeti değildir: durum kelimesi
-   canvas'ta tekrarlanmaz, pill/badge kalabalığı yoktur. Buradaki işaret
+   Bu bir DURUM rozeti değildir: durum kelimesi kütükte tekrarlanmaz,
+   hap/rozet kalabalığı yoktur — Abacus prototiplerinin hiçbirinde yok.
+   Buradaki işaret
    kaydın DOĞRULUĞUNU değil KÖKENİNİ söyler; zemini, kenarlığı ve yarıçapı
    yoktur — 9.5px mono etiket + kaynak sistem adından ibarettir.
 
@@ -111,21 +112,9 @@ function dogrulamaYazisi(koken: KokenGorunumu): string {
 export function KokenRozeti({ koken }: { koken?: KokenGorunumu | null }) {
   const g = kokenGorunumu(koken);
   return (
-    <span
-      className="koken-rozet"
-      title={g.baslik}
-      aria-label={g.baslik}
-      style={{
-        display: 'inline-flex', alignItems: 'baseline', gap: 'var(--s6)',
-        fontFamily: 'var(--mo)', fontSize: 'var(--t-label)',
-        letterSpacing: 'var(--tr-label)', whiteSpace: 'nowrap',
-        color: g.renk,
-      }}
-    >
+    <span className="ab-koken" aria-label={g.baslik} style={{ color: g.renk }}>
       <span>{g.etiket}</span>
-      {g.kaynak && (
-        <span style={{ letterSpacing: 0, color: 'var(--i3)' }}>· {g.kaynak}</span>
-      )}
+      {g.kaynak && <span className="kaynak">· {g.kaynak}</span>}
     </span>
   );
 }
@@ -140,10 +129,12 @@ export function KokenSatiri({ koken }: { koken?: KokenGorunumu | null }) {
 
   if (!koken || koken.kokenTipi === 'manuel') {
     return (
-      <div className="cekmece-alan">
-        <span className="etiket">Veri kökeni</span>
-        <span className="deger" style={{ color: 'var(--i3)' }}>Elle girildi</span>
-      </div>
+      <dl className="ab-panel-ciftler">
+        <div>
+          <dt>Veri kökeni</dt>
+          <dd className="d-unk">Elle girildi</dd>
+        </div>
+      </dl>
     );
   }
 
@@ -156,13 +147,13 @@ export function KokenSatiri({ koken }: { koken?: KokenGorunumu | null }) {
   ];
 
   return (
-    <>
+    <dl className="ab-panel-ciftler">
       {alanlar.map((a) => (
-        <div key={a.etiket} className="cekmece-alan">
-          <span className="etiket">{a.etiket}</span>
-          <span className="deger" style={a.renk ? { color: a.renk } : undefined}>{a.deger}</span>
+        <div key={a.etiket}>
+          <dt>{a.etiket}</dt>
+          <dd style={a.renk ? { color: a.renk } : undefined}>{a.deger}</dd>
         </div>
       ))}
-    </>
+    </dl>
   );
 }

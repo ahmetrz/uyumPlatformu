@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import { girisZorunlu } from '@/lib/erisim';
 import { db } from '@/lib/db';
-import { Yetkisiz } from '@/components/atlas/temel';
+import { Yetkisiz } from '@/components/abacus/temel';
 import { modulOkuyabilir } from '@/app/kapsam';
 import RiskDetayIstemci from './RiskDetayIstemci';
 import { riskDetayVerisi } from './veri';

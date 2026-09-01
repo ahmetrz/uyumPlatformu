@@ -3,14 +3,14 @@ import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import {
   Im, Ipucu, Dugme, Alan, BosIlk, Hata, type Durum,
-} from '@/components/atlas/temel';
-import { Tablo, type Satir } from '@/components/atlas/tablo';
-import { EkranBasligi, Asamalar, KipDegistir } from '@/components/atlas/ekran';
+} from '@/components/abacus/temel';
+import { Tablo, type Satir } from '@/components/abacus/tablo';
+import { EkranBasligi, Asamalar, KipDegistir } from '@/components/abacus/ekran';
 import {
   Cekmece, CekmeceKimlik, CekmeceAlanlar, CekmeceBagli, CekmeceEylemler,
-} from '@/components/atlas/cekmece';
-import { ZamanCizelgesi, type ZamanKarti } from '@/components/atlas/zaman';
-import BaglamCubugu from '@/components/atlas/BaglamCubugu';
+} from '@/components/abacus/panel';
+import { ZamanCizelgesi, type ZamanKarti } from '@/components/abacus/zaman';
+import BaglamCubugu from '@/components/abacus/BaglamCubugu';
 import { useEylem } from '@/components/useEylem';
 import { bulguGuncelle, aksiyonEkle, aksiyonDurumDegistir, kanitEkle } from '@/lib/eylemler';
 import {
@@ -120,11 +120,11 @@ export default function BulguDetayIstemci({ veri }: { veri: Veri }) {
           ]}
           sag={
             <>
-              <Link href={`/surecler/${veri.surec.id}`} className="dg dg-satir">
+              <Link href={`/surecler/${veri.surec.id}`} className="ab-dugme satir">
                 {veri.surec.regKod} · {veri.surec.kod} ▸
               </Link>
               {!panel && (
-                <button type="button" className="dg dg-satir" onClick={() => setPanel(true)}>
+                <button type="button" className="ab-dugme satir" onClick={() => setPanel(true)}>
                   Kayıt paneli ▸
                 </button>
               )}
@@ -159,7 +159,7 @@ export default function BulguDetayIstemci({ veri }: { veri: Veri }) {
 
         {/* ── Modül 1 · aksiyon zinciri ─────────────────────────────── */}
         <section style={{ padding: 'var(--s30) var(--gutter-op) 0' }}>
-          <p className="t-label" style={{ margin: '0 0 var(--s12)' }}>Aksiyonlar</p>
+          <p className="etiket" style={{ margin: '0 0 var(--s12)' }}>Aksiyonlar</p>
           {veri.aksiyonlar.length === 0 ? (
             <BosIlk
               cumle="Bu bulgu için aksiyon planlanmadı."
@@ -187,7 +187,7 @@ export default function BulguDetayIstemci({ veri }: { veri: Veri }) {
         {/* ── Modül 2 · bulgu → aksiyon → doğrulama zaman ekseni ────── */}
         {kartlar.kartlar.length > 1 && (
           <section style={{ padding: 'var(--s30) var(--gutter-op) var(--sec-pad-bot)' }}>
-            <p className="t-label" style={{ margin: '0 0 var(--s12)' }}>Zaman ekseni</p>
+            <p className="etiket" style={{ margin: '0 0 var(--s12)' }}>Zaman ekseni</p>
             <ZamanCizelgesi
               donemler={kartlar.donemler}
               kartlar={kartlar.kartlar}
@@ -213,7 +213,7 @@ export default function BulguDetayIstemci({ veri }: { veri: Veri }) {
             />
           ) : (
             <>
-              <div className="cekmece-blok">
+              <div className="ab-panel-blok">
                 <KipDegistir
                   aktif={kip}
                   sec={(id) => setKip(id as 'kayit' | 'iz')}
@@ -242,11 +242,11 @@ export default function BulguDetayIstemci({ veri }: { veri: Veri }) {
                     { etiket: 'Kapanış', deger: veri.kapanma ? kisaTarih(veri.kapanma) : '—' },
                   ]} />
 
-                  <div className="cekmece-blok" style={{ marginTop: 'var(--s24)',
+                  <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)',
                     display: 'grid', gap: 'var(--s14)' }}>
-                    <p className="t-label" style={{ margin: 0 }}>Kaydı güncelle</p>
+                    <p className="etiket" style={{ margin: 0 }}>Kaydı güncelle</p>
                     <Alan etiket="Durum">
-                      <select className="gr" value={veri.durum} disabled={bekliyor}
+                      <select className="ab-gr" value={veri.durum} disabled={bekliyor}
                         onChange={(e) => guncelle('durum', e.target.value)}>
                         {BULGU_DURUMLARI.map((d) => (
                           <option key={d} value={d}>{BULGU_DURUM_ETIKET[d]}</option>
@@ -254,7 +254,7 @@ export default function BulguDetayIstemci({ veri }: { veri: Veri }) {
                       </select>
                     </Alan>
                     <Alan etiket="Önem">
-                      <select className="gr" value={veri.onem} disabled={bekliyor}
+                      <select className="ab-gr" value={veri.onem} disabled={bekliyor}
                         onChange={(e) => guncelle('onemDerecesi', e.target.value)}>
                         {ONEM_DERECELERI.map((o) => (
                           <option key={o} value={o}>{ONEM_ETIKET[o]}</option>
@@ -262,7 +262,7 @@ export default function BulguDetayIstemci({ veri }: { veri: Veri }) {
                       </select>
                     </Alan>
                     <Alan etiket="Sahip">
-                      <select className="gr" value={veri.sorumluId ?? ''} disabled={bekliyor}
+                      <select className="ab-gr" value={veri.sorumluId ?? ''} disabled={bekliyor}
                         onChange={(e) => guncelle('sorumluId', e.target.value)}>
                         <option value="">Atanmadı</option>
                         {veri.kullanicilar.map((u) => (
@@ -271,7 +271,7 @@ export default function BulguDetayIstemci({ veri }: { veri: Veri }) {
                       </select>
                     </Alan>
                     <Alan etiket="Son tarih">
-                      <input className="gr" type="date" disabled={bekliyor}
+                      <input className="ab-gr" type="date" disabled={bekliyor}
                         defaultValue={veri.hedef ? veri.hedef.slice(0, 10) : ''}
                         onChange={(e) => guncelle('hedefTarih', e.target.value)} />
                     </Alan>
@@ -279,19 +279,19 @@ export default function BulguDetayIstemci({ veri }: { veri: Veri }) {
                   </div>
 
                   {/* aksiyonEkle */}
-                  <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
-                    <p className="t-label" style={{ margin: '0 0 var(--s10)' }}>
+                  <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+                    <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>
                       Aksiyon · {biten}/{veri.aksiyonlar.length}
                     </p>
                     {aksiyonFormu ? (
                       <div style={{ display: 'grid', gap: 'var(--s12)' }}>
                         <Alan etiket="Başlık" zorunlu>
-                          <input className="gr" value={yeniAksiyon.baslik} disabled={bekliyor}
+                          <input className="ab-gr" value={yeniAksiyon.baslik} disabled={bekliyor}
                             placeholder="Ne yapılacak?"
                             onChange={(e) => setYeniAksiyon({ ...yeniAksiyon, baslik: e.target.value })} />
                         </Alan>
                         <Alan etiket="Sahip">
-                          <select className="gr" value={yeniAksiyon.sorumluId} disabled={bekliyor}
+                          <select className="ab-gr" value={yeniAksiyon.sorumluId} disabled={bekliyor}
                             onChange={(e) => setYeniAksiyon({ ...yeniAksiyon, sorumluId: e.target.value })}>
                             <option value="">Atanmadı</option>
                             {veri.kullanicilar.map((u) => (
@@ -300,7 +300,7 @@ export default function BulguDetayIstemci({ veri }: { veri: Veri }) {
                           </select>
                         </Alan>
                         <Alan etiket="Hedef">
-                          <input className="gr" type="date" value={yeniAksiyon.hedef} disabled={bekliyor}
+                          <input className="ab-gr" type="date" value={yeniAksiyon.hedef} disabled={bekliyor}
                             onChange={(e) => setYeniAksiyon({ ...yeniAksiyon, hedef: e.target.value })} />
                         </Alan>
                         <div style={{ display: 'flex', gap: 'var(--s12)' }}>
@@ -323,13 +323,13 @@ export default function BulguDetayIstemci({ veri }: { veri: Veri }) {
                         </div>
                       </div>
                     ) : (
-                      <Dugme tur="cekmece" onClick={() => setAksiyonFormu(true)}>Aksiyon planla</Dugme>
+                      <Dugme tur="tam" onClick={() => setAksiyonFormu(true)}>Aksiyon planla</Dugme>
                     )}
                   </div>
 
                   {/* kanitEkle */}
-                  <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
-                    <p className="t-label" style={{ margin: '0 0 var(--s10)' }}>Kanıt</p>
+                  <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+                    <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Kanıt</p>
                     <div style={{ display: 'grid', gap: 'var(--s8)' }}>
                       {veri.kanitlar.length === 0 && (
                         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--s8)',
@@ -347,7 +347,7 @@ export default function BulguDetayIstemci({ veri }: { veri: Veri }) {
                               ad={`${etiketle(k.tip)} · ${taze.gun} gün önce`} />
                             <span style={{ minWidth: 0, overflow: 'hidden',
                               textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{k.ad}</span>
-                            <span style={{ marginLeft: 'auto', fontFamily: 'var(--mo)',
+                            <span style={{ marginLeft: 'auto', fontFamily: 'var(--veri)',
                               fontSize: 'var(--t-label)', color: 'var(--i3)' }}>{taze.gun} g</span>
                           </span>
                         );
@@ -356,11 +356,11 @@ export default function BulguDetayIstemci({ veri }: { veri: Veri }) {
                     {kanitFormu ? (
                       <div style={{ display: 'grid', gap: 'var(--s12)', marginTop: 'var(--s14)' }}>
                         <Alan etiket="Kanıt adı" zorunlu>
-                          <input className="gr" value={yeniKanit.ad} disabled={bekliyor}
+                          <input className="ab-gr" value={yeniKanit.ad} disabled={bekliyor}
                             onChange={(e) => setYeniKanit({ ...yeniKanit, ad: e.target.value })} />
                         </Alan>
                         <Alan etiket="Tip">
-                          <select className="gr" value={yeniKanit.tip} disabled={bekliyor}
+                          <select className="ab-gr" value={yeniKanit.tip} disabled={bekliyor}
                             onChange={(e) => setYeniKanit({ ...yeniKanit, tip: e.target.value })}>
                             {KANIT_TIPLERI.map((t) => (
                               <option key={t} value={t}>{etiketle(t)}</option>
@@ -438,8 +438,8 @@ function AksiyonPaneli({
   const im = aksiyonImi(aksiyon);
   return (
     <>
-      <div className="cekmece-blok">
-        <button type="button" className="dg dg-satir" onClick={geri}>◂ Bulgu kaydı</button>
+      <div className="ab-panel-blok">
+        <button type="button" className="ab-dugme satir" onClick={geri}>◂ Bulgu kaydı</button>
       </div>
       <CekmeceKimlik
         durum={im}
@@ -455,9 +455,9 @@ function AksiyonPaneli({
         { etiket: 'Doğrulama', deger: etiketle(aksiyon.dogrulama) },
         { etiket: 'Doğrulayan', deger: aksiyon.dogrulayan ?? '—' },
       ]} />
-      <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
+      <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
         <Alan etiket="Aksiyon durumu">
-          <select className="gr" value={aksiyon.durum} disabled={bekliyor}
+          <select className="ab-gr" value={aksiyon.durum} disabled={bekliyor}
             onChange={(e) => degistir(e.target.value)}>
             {AKSIYON_DURUMLARI.map((d) => (
               <option key={d} value={d}>{AKSIYON_ETIKET[d]}</option>
@@ -475,14 +475,14 @@ function AksiyonPaneli({
 function DenetimIzi({ kayitlar }: { kayitlar: Veri['aktiviteler'] }) {
   if (kayitlar.length === 0) {
     return (
-      <div className="cekmece-blok">
-        <p style={{ margin: 0, fontFamily: 'var(--mo)', fontSize: 'var(--t-label)',
+      <div className="ab-panel-blok">
+        <p style={{ margin: 0, fontFamily: 'var(--veri)', fontSize: 'var(--t-label)',
           color: 'var(--i3)' }}>Kayıt yok</p>
       </div>
     );
   }
   return (
-    <div className="cekmece-blok" style={{ display: 'grid', gap: 'var(--s14)' }}>
+    <div className="ab-panel-blok" style={{ display: 'grid', gap: 'var(--s14)' }}>
       {kayitlar.map((k) => (
         <div key={k.id} style={{ display: 'grid', gap: 2,
           borderLeft: 'var(--bw-edge) solid var(--hr2)', paddingLeft: 'var(--s12)' }}>
@@ -490,7 +490,7 @@ function DenetimIzi({ kayitlar }: { kayitlar: Veri['aktiviteler'] }) {
             <b style={{ fontWeight: 600 }}>{k.aktor}</b>{' '}
             {eylemCumlesi(k.eylem, k.varlikTipi === 'Bulgu' ? null : k.varlikTipi, k.alan)}
           </span>
-          <span style={{ fontFamily: 'var(--mo)', fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
+          <span style={{ fontFamily: 'var(--veri)', fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
             {zamanTR(k.zaman)}
             {(k.once || k.sonra) && ` · ${etiketle(k.once, '—')} → ${etiketle(k.sonra, '—')}`}
             {k.dosya && ` · ${k.dosya}`}

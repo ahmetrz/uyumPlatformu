@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
-import { Alan, Dugme } from '@/components/atlas/temel';
-import { CekmeceEylemler } from '@/components/atlas/cekmece';
+import { Alan, Dugme } from '@/components/abacus/temel';
+import { CekmeceEylemler } from '@/components/abacus/panel';
 import { useEylem } from '@/components/useEylem';
 import {
   anligiKarsilastirEylem, kayittanAnlikAl, sapmaKararVer, sapmadanBulguAc,
@@ -80,20 +80,20 @@ export function SapmaKararlari({
       {kayitAcik === 'risk' && (
         <div style={{ width: '100%', marginTop: 'var(--s12)', display: 'grid', gap: 'var(--s10)' }}>
           <Alan etiket="Risk kodu" zorunlu>
-            <input className="gr" value={riskKodu} onChange={(e) => setRiskKodu(e.target.value)}
+            <input className="ab-gr" value={riskKodu} onChange={(e) => setRiskKodu(e.target.value)}
               placeholder="ör. RSK-2026-014" />
           </Alan>
           <Alan etiket="Başlık">
-            <input className="gr" value={riskBasligi}
+            <input className="ab-gr" value={riskBasligi}
               onChange={(e) => setRiskBasligi(e.target.value)}
               placeholder="Boş bırakılırsa sapmanın başlığı kullanılır" />
           </Alan>
-          <p className="dip-not" style={{ margin: 0 }}>
+          <p className="ab-dip" style={{ margin: 0 }}>
             Risk kaydı skorsuz açılır: olasılık ve etki ÖLÇÜLMEDİ, otomatik
             sayı uydurulmaz. Skoru risk kütüğünde insan verir.
           </p>
           <div>
-            <Dugme tur="cekmece"
+            <Dugme tur="tam"
               disabled={!riskYazabilir || bekliyor || !riskKodu.trim()
                 || gerekce.trim().length < GEREKCE_ASGARI}
               style={pasifStil(!riskYazabilir || bekliyor || !riskKodu.trim()
@@ -114,7 +114,7 @@ export function SapmaKararlari({
       {kayitAcik === 'bulgu' && (
         <div style={{ width: '100%', marginTop: 'var(--s12)', display: 'grid', gap: 'var(--s10)' }}>
           <Alan etiket="Bağlanacak madde durumu" zorunlu>
-            <select className="gr" value={maddeDurumuId}
+            <select className="ab-gr" value={maddeDurumuId}
               onChange={(e) => setMaddeDurumuId(e.target.value)}>
               <option value="">Seçin…</option>
               {maddeDurumlari
@@ -122,12 +122,12 @@ export function SapmaKararlari({
                 .map((m) => <option key={m.id} value={m.id}>{m.etiket}</option>)}
             </select>
           </Alan>
-          <p className="dip-not" style={{ margin: 0 }}>
+          <p className="ab-dip" style={{ margin: 0 }}>
             Bulgu bir madde durumuna bağlıdır; hangi maddeye bağlanacağını
             motor bilemez — seçimi insan yapar.
           </p>
           <div>
-            <Dugme tur="cekmece"
+            <Dugme tur="tam"
               disabled={!uyumYazabilir || bekliyor || !maddeDurumuId
                 || gerekce.trim().length < GEREKCE_ASGARI}
               style={pasifStil(!uyumYazabilir || bekliyor || !maddeDurumuId
@@ -152,7 +152,7 @@ export function SapmaKararlari({
         <>
           <Alan etiket="Gerekçe" zorunlu>
             <textarea
-              className="gr" rows={3} value={gerekce}
+              className="ab-gr" rows={3} value={gerekce}
               onChange={(e) => setGerekce(e.target.value)}
               placeholder={`Kararın dayanağı — en az ${GEREKCE_ASGARI} karakter,`
                 + ' denetim izine bu metin yazılır'}
@@ -162,7 +162,7 @@ export function SapmaKararlari({
           {acik && (
             <div style={{ marginTop: 'var(--s12)', display: 'flex', gap: 'var(--s10)',
               flexWrap: 'wrap' }}>
-              <Dugme tur="cekmece" disabled={kararPasif} style={pasifStil(kararPasif)}
+              <Dugme tur="tam" disabled={kararPasif} style={pasifStil(kararPasif)}
                 onClick={() => karar('kabul')}>
                 Sapmayı kabul et
               </Dugme>
@@ -180,7 +180,7 @@ export function SapmaKararlari({
             </div>
           )}
           {acik && engel && (
-            <p className="dip-not" style={{ marginTop: 'var(--s10)' }}>{engel}</p>
+            <p className="ab-dip" style={{ marginTop: 'var(--s10)' }}>{engel}</p>
           )}
         </>
       }
@@ -199,19 +199,19 @@ export function SapmaKararlari({
             </Dugme>
           )}
           {satir.adayVar && (satir.uretilenRiskId || satir.uretilenBulguId) && (
-            <p className="dip-not" style={{ width: '100%', margin: 0 }}>
+            <p className="ab-dip" style={{ width: '100%', margin: 0 }}>
               Bu sapmadan kayıt açılmış; ikinci kez açılamaz.
             </p>
           )}
           {!satir.adayVar && (
-            <p className="dip-not" style={{ width: '100%', margin: 0 }}>
+            <p className="ab-dip" style={{ width: '100%', margin: 0 }}>
               Risk/bulgu adayı yalnız KRİTİK sapmada doğar — bu sapmanın
               şiddeti {SIDDET_ETIKETI[satir.siddet] ?? satir.siddet}. Kayıt
               gerekiyorsa risk kütüğünden elle açılır.
             </p>
           )}
           {kayitFormu}
-          {hata && <p className="gr-hata" role="alert" style={{ width: '100%' }}>{hata}</p>}
+          {hata && <p className="ab-gr-hata" role="alert" style={{ width: '100%' }}>{hata}</p>}
         </div>
       }
       dipNot={dipNot}
@@ -246,7 +246,7 @@ export function AnlikEylemleri({ anlik }: { anlik: AnlikSatiri }) {
         anlik.temelMi ? null : (
           <>
             <Alan etiket="Gerekçe" zorunlu>
-              <textarea className="gr" rows={2} value={gerekce}
+              <textarea className="ab-gr" rows={2} value={gerekce}
                 onChange={(e) => setGerekce(e.target.value)}
                 placeholder={'Bu anlığın temel olarak onaylanma dayanağı'
                   + ` — en az ${GEREKCE_ASGARI} karakter`}
@@ -254,7 +254,7 @@ export function AnlikEylemleri({ anlik }: { anlik: AnlikSatiri }) {
             </Alan>
             <div style={{ marginTop: 'var(--s12)', display: 'flex', gap: 'var(--s10)',
               flexWrap: 'wrap' }}>
-              <Dugme tur="cekmece" disabled={onayPasif} style={pasifStil(onayPasif)}
+              <Dugme tur="tam" disabled={onayPasif} style={pasifStil(onayPasif)}
                 onClick={() => calistir(
                   () => temelOlarakOnayla({ anlikId: anlik.id, gerekce: gerekce.trim() }),
                   () => setGerekce(''),
@@ -274,7 +274,7 @@ export function AnlikEylemleri({ anlik }: { anlik: AnlikSatiri }) {
               </Dugme>
             </div>
             {!anlik.temelOnaylanabilir && (
-              <p className="dip-not" style={{ marginTop: 'var(--s10)' }}>
+              <p className="ab-dip" style={{ marginTop: 'var(--s10)' }}>
                 Temel onayı için envanter onay yetkisi gerekiyor.
               </p>
             )}
@@ -283,8 +283,8 @@ export function AnlikEylemleri({ anlik }: { anlik: AnlikSatiri }) {
       }
       ikincil={
         <>
-          {ozet && <p className="dip-not" style={{ margin: 0 }}>{ozet}</p>}
-          {hata && <p className="gr-hata" role="alert">{hata}</p>}
+          {ozet && <p className="ab-dip" style={{ margin: 0 }}>{ozet}</p>}
+          {hata && <p className="ab-gr-hata" role="alert">{hata}</p>}
         </>
       }
       dipNot={dipNot}
@@ -310,23 +310,23 @@ export function AnlikAlmaFormu({
 
   return (
     <details style={{ marginBottom: 'var(--s20)' }}>
-      <summary className="filtre" style={{ listStyle: 'none', cursor: 'pointer' }}>
+      <summary className="ab-filtre" style={{ listStyle: 'none', cursor: 'pointer' }}>
         Kayıttan anlık al ▾
       </summary>
-      <div className="blok" style={{ maxWidth: 'none', marginTop: 'var(--s12)',
+      <div className="ab-blok" style={{ maxWidth: 'none', marginTop: 'var(--s12)',
         display: 'grid', gap: 'var(--s12)' }}>
-        <p className="dip-not" style={{ margin: 0 }}>
+        <p className="ab-dip" style={{ margin: 0 }}>
           Anlık, onaylı ağ kaydından (bölge, geçit, varlık ilişkisi) dondurulur.
           Alınan anlık TEMEL OLMAZ; temel yalnız ayrı bir insan onayıyla kurulur.
         </p>
         <Alan etiket="Kapsam">
-          <select className="gr" value={tesisId} onChange={(e) => setTesisId(e.target.value)}>
+          <select className="ab-gr" value={tesisId} onChange={(e) => setTesisId(e.target.value)}>
             {tesisler.map((t) => <option key={t.id} value={t.id}>{t.kod} · {t.ad}</option>)}
             <option value="">Tesissiz (tüm kayıt)</option>
           </select>
         </Alan>
         <Alan etiket="Not">
-          <input className="gr" value={not} onChange={(e) => setNot(e.target.value)}
+          <input className="ab-gr" value={not} onChange={(e) => setNot(e.target.value)}
             placeholder="ör. bakım duruşu sonrası referans anlık" />
         </Alan>
         <div>
@@ -338,9 +338,9 @@ export function AnlikAlmaFormu({
             {bekliyor ? 'Anlık alınıyor…' : 'Anlığı dondur'}
           </Dugme>
           {!yazabilir && (
-            <p className="dip-not">Anlık almak için envanter yazma yetkisi gerekiyor.</p>
+            <p className="ab-dip">Anlık almak için envanter yazma yetkisi gerekiyor.</p>
           )}
-          {hata && <p className="gr-hata" role="alert">{hata}</p>}
+          {hata && <p className="ab-gr-hata" role="alert">{hata}</p>}
         </div>
       </div>
     </details>

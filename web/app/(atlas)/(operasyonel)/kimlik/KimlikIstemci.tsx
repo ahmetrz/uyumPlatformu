@@ -1,10 +1,10 @@
 'use client';
 import { Fragment, useMemo, useState, type CSSProperties } from 'react';
-import { Im, Metrikler, BosIlk, BosFiltre, Dugme } from '@/components/atlas/temel';
-import { Filtreler } from '@/components/atlas/ekran';
+import { Im, Metrikler, BosIlk, BosFiltre, Dugme } from '@/components/abacus/temel';
+import { Filtreler } from '@/components/abacus/ekran';
 import {
   Cekmece, CekmeceKimlik, CekmeceAlanlar, CekmeceBagli, CekmeceEylemler,
-} from '@/components/atlas/cekmece';
+} from '@/components/abacus/panel';
 import { tarihTR } from '@/lib/sabitler';
 import { IncelemeEylemleri } from './Inceleme';
 import {
@@ -123,12 +123,12 @@ export default function KimlikIstemci({ hesaplar, tesisler, kaynaklar, kapsamli 
       <main data-yuzey="tezgah" style={{ minWidth: 0 }}>
         {/* EkranBasligi vurguya renk vermiyor; O15 sözleşmesi başlığın da
             state/critical taşımasını istiyor — aynı sınıflarla elde kuruldu. */}
-        <header className="ekran-bas">
+        <header className="ab-lede">
           <div className="sol">
-            <p className="t-eyebrow" style={{ margin: '0 0 var(--s10)' }}>
+            <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>
               Erişim incelemesi · {m.toplam} hesap
             </p>
-            <h1 className="t-screen" style={{ margin: 0 }}>
+            <h1 className="ab-ekran-basligi" style={{ margin: 0 }}>
               {m.toplam === 0 ? 'İnceleme kapsamında hesap yok'
                 : m.mudahale > 0 ? (
                   <>
@@ -159,7 +159,7 @@ export default function KimlikIstemci({ hesaplar, tesisler, kaynaklar, kapsamli 
           ]} />
         </header>
 
-        <section className="ekran-govde">
+        <section className="ab-ekran-govde">
           <Filtreler
             secenekler={MERCEKLER}
             aktif={mercek}
@@ -178,19 +178,19 @@ export default function KimlikIstemci({ hesaplar, tesisler, kaynaklar, kapsamli 
             <BosDurum hicKayitYok={m.toplam === 0} kapsamli={kapsamli}
               filtreAktif={filtreAktif} temizle={filtreleriTemizle} />
           ) : (
-            <div className="tbl" role="table"
+            <div className="ab-tablo" role="table"
               style={{
                 '--kolonlar': KOLONLAR,
                 '--kolonlar-dar': KOLONLAR_DAR,
                 marginTop: 'var(--s22)',
                 borderTop: 'var(--bw-strong) solid var(--hr2)',
               } as CSSProperties}>
-              <div className="tbl-bas" role="row">
+              <div className="bas" role="row">
                 <span />
-                <span className="t-colhead">Hesap</span>
-                <span className="t-colhead tbl-ikincil">Kapsam</span>
-                <span className="t-colhead">Son kullanım</span>
-                <span className="t-colhead">Sahip</span>
+                <span className="kolonbas">Hesap</span>
+                <span className="kolonbas ikincil">Kapsam</span>
+                <span className="kolonbas">Son kullanım</span>
+                <span className="kolonbas">Sahip</span>
                 <span />
               </div>
 
@@ -218,23 +218,23 @@ export default function KimlikIstemci({ hesaplar, tesisler, kaynaklar, kapsamli 
               })}
 
               {toplananHesap > 0 && (
-                <button type="button" className="tbl-satir tbl-kuyruk"
+                <button type="button" className="satir kuyruk"
                   style={{ gridTemplateColumns: '22px minmax(0, 1fr) 26px' }}
                   onClick={() => setKuyrukAcik(true)}>
                   <Im durum="ok" ad={`${toplananHesap} hesap incelemeden geçti`} />
-                  <span className="tbl-hucre">+{toplananHesap} hesap · inceleme tamam</span>
-                  <span className="tbl-ok" style={{ justifySelf: 'end' }} aria-hidden>▾</span>
+                  <span className="">+{toplananHesap} hesap · inceleme tamam</span>
+                  <span className="ab-ok" style={{ justifySelf: 'end' }} aria-hidden>▾</span>
                 </button>
               )}
 
               {kuyrukAcik && sakin.length > 0 && (
-                <p className="dip-not tbl-dip">
-                  <button type="button" className="dg dg-satir"
+                <p className="ab-dip dip">
+                  <button type="button" className="ab-dugme satir"
                     onClick={() => setKuyrukAcik(false)}>Kuyruğu topla</button>
                 </p>
               )}
 
-              <p className="dip-not tbl-dip">
+              <p className="ab-dip dip">
                 {m.ayricalikliAtamaVar
                   ? `İnceleme gecikmesi ${m.bekleyenAtama} incelenmemiş ayrıcalıklı atamadan ölçüldü`
                   : 'Ayrıcalıklı atama yok — inceleme gecikmesi ölçülemiyor'}
@@ -279,33 +279,33 @@ function Satir({ satir, secili, acik = false, uye = false, tikla }: {
       role="row"
       aria-selected={secili}
       aria-expanded={grup ? acik : undefined}
-      className="tbl-satir"
+      className="satir"
       onClick={tikla}
       style={{ borderLeftColor: secili ? `var(--${durum})` : 'transparent' }}
     >
       <Im durum={durum} />
       <span role="cell" style={{ minWidth: 0, paddingLeft: uye ? 'var(--s22)' : undefined }}>
-        <span className="tbl-konu">
+        <span className="konu">
           {baslikMetni(satir)}
           {grup && (
             <span style={{
-              fontFamily: 'var(--mo)', fontSize: 'var(--t-code)',
+              fontFamily: 'var(--veri)', fontSize: 'var(--t-code)',
               fontWeight: 400, color: 'var(--i3)',
             }}> · {satir.hesaplar.length} hesap</span>
           )}
         </span>
-        <span className="tbl-alt">{alt}</span>
+        <span className="alt">{alt}</span>
       </span>
-      <span role="cell" className="tbl-hucre tbl-ikincil">{kapsamMetni(satir.hesaplar)}</span>
-      <span role="cell" className="tbl-hucre"
+      <span role="cell" className="ikincil">{kapsamMetni(satir.hesaplar)}</span>
+      <span role="cell" className=""
         style={kullanim.durum ? { color: `var(--${kullanim.durum})` } : undefined}>
         {kullanim.metin}
       </span>
-      <span role="cell" className="tbl-hucre"
+      <span role="cell" className=""
         style={sahip.durum ? { color: `var(--${sahip.durum})` } : undefined}>
         {sahip.metin}
       </span>
-      <span className="tbl-ok" style={{ justifySelf: 'end' }} aria-hidden>
+      <span className="ab-ok" style={{ justifySelf: 'end' }} aria-hidden>
         {grup ? (acik ? '▾' : '▸') : '▸'}
       </span>
     </button>
@@ -323,18 +323,18 @@ function Kapsam({ etiket, secenekler, aktif, sec }: {
   const secim = secenekler.find((s) => s.id === aktif);
   return (
     <details style={{ position: 'relative' }}>
-      <summary className="kapsam-dugme"
+      <summary className="ab-dugme"
         style={{ listStyle: 'none', cursor: 'pointer', display: 'inline-block' }}>
         {etiket}{secim ? ` · ${secim.ad}` : ''} <span aria-hidden>▾</span>
       </summary>
       <div style={{
         position: 'absolute', top: '100%', right: 0, zIndex: 5, minWidth: 210,
-        maxHeight: 300, overflowY: 'auto', background: 'var(--card)',
-        border: 'var(--bw-strong) solid var(--hr2)', boxShadow: 'var(--sh-tip)',
+        maxHeight: 300, overflowY: 'auto', background: 'var(--panel)',
+        border: 'var(--bw-strong) solid var(--hr2)', boxShadow: 'none',
         padding: 'var(--s8)',
       }}>
         {[{ id: '', ad: 'Tümü' }, ...secenekler].map((s) => (
-          <button key={s.id} type="button" className="filtre"
+          <button key={s.id} type="button" className="ab-filtre"
             style={{ display: 'block', width: '100%', textAlign: 'left' }}
             aria-pressed={(aktif ?? '') === s.id}
             onClick={(e) => {
@@ -409,12 +409,12 @@ function HesapOzeti({ hesap, yetki, secYetki }: {
         },
       ]} />
 
-      <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
-        <p className="t-label" style={{ margin: '0 0 var(--s10)' }}>
+      <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+        <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>
           Yetkiler · {acik.length} açık
         </p>
         {hesap.yetkiler.length === 0 ? (
-          <p className="cekmece-dip" style={{ margin: 0 }}>Bu hesaba bağlı erişim ataması yok.</p>
+          <p className="ab-panel-dip" style={{ margin: 0 }}>Bu hesaba bağlı erişim ataması yok.</p>
         ) : (
           <div style={{ display: 'grid', gap: 'var(--s3)' }}>
             {hesap.yetkiler.map((y) => {
@@ -424,9 +424,9 @@ function HesapOzeti({ hesap, yetki, secYetki }: {
                   onClick={() => secYetki(y.id)}
                   style={{
                     display: 'grid', gap: 'var(--s4)', width: '100%', textAlign: 'left',
-                    background: 'var(--card)', font: 'inherit', color: 'inherit',
+                    background: 'var(--panel)', font: 'inherit', color: 'inherit',
                     cursor: 'pointer', padding: 'var(--s12) var(--s14)',
-                    border: `var(--bw-hair) solid ${secili ? 'var(--acc)' : 'var(--hr2)'}`,
+                    border: `var(--bw-hair) solid ${secili ? 'var(--aksan)' : 'var(--hr2)'}`,
                     opacity: y.bitis ? 0.6 : 1,
                   }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--s8)' }}>
@@ -435,14 +435,14 @@ function HesapOzeti({ hesap, yetki, secYetki }: {
                       {y.kapsam ?? 'kapsam yazılmamış'}
                     </span>
                     <span style={{
-                      marginLeft: 'auto', fontFamily: 'var(--mo)',
+                      marginLeft: 'auto', fontFamily: 'var(--veri)',
                       fontSize: 'var(--t-code)', color: 'var(--i3)',
                     }}>
                       {YETKI_ETIKET[y.yetkiSeviyesi ?? ''] ?? '—'}
                     </span>
                   </span>
                   <span style={{
-                    fontFamily: 'var(--mo)', fontSize: 'var(--t-code)',
+                    fontFamily: 'var(--veri)', fontSize: 'var(--t-code)',
                     color: 'var(--i3)', lineHeight: 1.6,
                   }}>
                     {yetkiAltSatiri(y)}
@@ -453,7 +453,7 @@ function HesapOzeti({ hesap, yetki, secYetki }: {
           </div>
         )}
         {yetki && (
-          <p className="cekmece-dip" style={{ margin: 'var(--s12) 0 0' }}>
+          <p className="ab-panel-dip" style={{ margin: 'var(--s12) 0 0' }}>
             Veriliş yolu · {verilisYolu(hesap, yetki)}
           </p>
         )}
@@ -462,9 +462,9 @@ function HesapOzeti({ hesap, yetki, secYetki }: {
       {hesap.bagli.length > 0 ? (
         <CekmeceBagli baslik="Bağlı kayıtlar" kayitlar={hesap.bagli} />
       ) : (
-        <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
-          <p className="t-label" style={{ margin: '0 0 var(--s10)' }}>Bağlı kayıtlar</p>
-          <p className="cekmece-dip" style={{ margin: 0 }}>
+        <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+          <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Bağlı kayıtlar</p>
+          <p className="ab-panel-dip" style={{ margin: 0 }}>
             Bu hesabın varlıkları ve santrali üzerinden açık risk ya da bulgu bağı kurulmadı.
           </p>
         </div>
@@ -505,14 +505,14 @@ function GrupOzeti({ grup, sec }: {
         { etiket: 'Sahip', deger: sahip.metin, durum: sahip.durum },
       ]} />
 
-      <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
-        <p className="t-label" style={{ margin: '0 0 var(--s10)' }}>Üye hesaplar</p>
+      <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+        <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Üye hesaplar</p>
         <div style={{ display: 'grid', gap: 'var(--s3)' }}>
           {gosterilen.map((u) => (
             <button key={u.id} type="button" onClick={() => sec(u.id)}
               style={{
                 display: 'flex', alignItems: 'center', gap: 'var(--s10)', width: '100%',
-                textAlign: 'left', background: 'var(--card)', font: 'inherit', color: 'inherit',
+                textAlign: 'left', background: 'var(--panel)', font: 'inherit', color: 'inherit',
                 cursor: 'pointer', padding: 'var(--s12) var(--s14)',
                 border: 'var(--bw-hair) solid var(--hr2)',
               }}>
@@ -522,18 +522,18 @@ function GrupOzeti({ grup, sec }: {
                   {u.hesapAdi}
                 </span>
                 <span style={{
-                  display: 'block', marginTop: 2, fontFamily: 'var(--mo)',
+                  display: 'block', marginTop: 2, fontFamily: 'var(--veri)',
                   fontSize: 'var(--t-label)', color: 'var(--i3)',
                 }}>
                   {altSatir(u)}
                 </span>
               </span>
-              <span className="tbl-ok" style={{ marginLeft: 'auto' }} aria-hidden>▸</span>
+              <span className="ab-ok" style={{ marginLeft: 'auto' }} aria-hidden>▸</span>
             </button>
           ))}
         </div>
         {uyeler.length > gosterilen.length && (
-          <p className="cekmece-dip" style={{ margin: 'var(--s10) 0 0' }}>
+          <p className="ab-panel-dip" style={{ margin: 'var(--s10) 0 0' }}>
             +{uyeler.length - gosterilen.length} hesap daha — grup satırı açıldığında tabloda görünür.
           </p>
         )}
@@ -562,7 +562,7 @@ function BosDurum({ hicKayitYok, kapsamli, filtreAktif, temizle }: {
   }
   if (filtreAktif) return <BosFiltre temizle={temizle} />;
   return (
-    <div className="blok" style={{ marginTop: 'var(--s26)' }}>
+    <div className="ab-blok" style={{ marginTop: 'var(--s26)' }}>
       <p className="cumle" style={{ marginTop: 0 }}>İnceleme kapsamında hesap yok.</p>
       <div className="eylem">
         <Dugme tur="birincil" onClick={temizle}>Kapsamı sıfırla</Dugme>

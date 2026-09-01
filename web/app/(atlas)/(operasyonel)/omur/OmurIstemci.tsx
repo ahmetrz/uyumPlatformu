@@ -1,13 +1,13 @@
 'use client';
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Im, Dugme, BosIlk } from '@/components/atlas/temel';
-import { Tablo, type Kolon, type Satir } from '@/components/atlas/tablo';
-import { EkranBasligi, Filtreler } from '@/components/atlas/ekran';
+import { Im, Dugme, BosIlk } from '@/components/abacus/temel';
+import { Tablo, type Kolon, type Satir } from '@/components/abacus/tablo';
+import { EkranBasligi, Filtreler } from '@/components/abacus/ekran';
 import {
   Cekmece, CekmeceKimlik, CekmeceAlanlar, CekmeceBagli, CekmeceEylemler,
-} from '@/components/atlas/cekmece';
-import { OmurUfku } from '@/components/atlas/zaman';
+} from '@/components/abacus/panel';
+import { OmurUfku } from '@/components/abacus/zaman';
 import { tarihTR } from '@/lib/sabitler';
 import {
   aciliyetSirasi, ayYil, buyuk, donemler, geriMetni, grupla, GRUPLAR, kisaEtiket,
@@ -149,7 +149,7 @@ export default function OmurIstemci({
       <>
         {o.v.ad}
         {o.v.tedarikciAd && (
-          <span style={{ fontFamily: 'var(--mo)', fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
+          <span style={{ fontFamily: 'var(--veri)', fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
             {' · '}{o.v.tedarikciAd}
           </span>
         )}
@@ -160,8 +160,8 @@ export default function OmurIstemci({
       o.v.tesisAd ?? <Bos key="t" />,
       <TelafiHucresi key="k" o={o} />,
       o.proje
-        ? <span key="p" style={{ fontFamily: 'var(--mo)', fontSize: 'var(--t-code)',
-          color: 'var(--jes)' }}>{o.proje.kod}</span>
+        ? <span key="p" style={{ fontFamily: 'var(--veri)', fontSize: 'var(--t-code)',
+          color: 'var(--aksan)' }}>{o.proje.kod}</span>
         : <Bos key="p" />,
     ],
   }));
@@ -173,7 +173,7 @@ export default function OmurIstemci({
           eyebrow={`Ömür yönetimi · ${toplamVarlik} varlık`}
           baslik="Ömür kuyruğu boş"
         />
-        <div className="ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
+        <div className="ab-ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
           {/* "EOL kaydı yok" ile "kapsamınızda kayıt yok" AYNI ŞEY DEĞİLDİR. */}
           <BosIlk cumle={kapsamli ? 'Kapsamınızda EOL kaydı yok.' : 'EOL kaydı yok.'} />
         </div>
@@ -205,7 +205,7 @@ export default function OmurIstemci({
           />
         </div>
 
-        <div className="ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
+        <div className="ab-ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
           {/* Gruplama değişince şerit yeniden dizilir: key değişimi
               `blok-gir`i (motion/reveal, 300ms) yeniden çalıştırır.
               prefers-reduced-motion altında atlas.css süreyi 1ms'e indirir. */}
@@ -229,7 +229,7 @@ export default function OmurIstemci({
                 ? { metin: kuyrukMetni(toplanan), ac: () => setKuyrukAcik(true) }
                 : null}
             />
-            <p className="dip-not">
+            <p className="ab-dip">
               Satıra ya da karta tıklayınca çekmece açılır
               {eolEksik > 0 && (
                 <>
@@ -261,7 +261,7 @@ function TelafiHucresi({ o }: { o: Omur }) {
   const ilk = o.v.kontroller[0];
   const kalan = o.v.kontroller.length - 1;
   return (
-    <span style={{ fontFamily: 'var(--mo)', fontSize: 'var(--t-code)', overflow: 'hidden',
+    <span style={{ fontFamily: 'var(--veri)', fontSize: 'var(--t-code)', overflow: 'hidden',
       textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>
       {ilk.kod}{kalan > 0 ? ` +${kalan}` : ''}
     </span>
@@ -320,9 +320,9 @@ function OmurCekmecesi({ o, simdi, kapat }: { o: Omur; simdi: number; kapat: () 
       {kayitlar.length > 0 ? (
         <CekmeceBagli kayitlar={kayitlar} />
       ) : (
-        <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
-          <p className="t-label" style={{ margin: '0 0 var(--s10)' }}>Zincir</p>
-          <p style={{ margin: 0, fontFamily: 'var(--mo)', fontSize: 'var(--t-label)',
+        <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+          <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Zincir</p>
+          <p style={{ margin: 0, fontFamily: 'var(--veri)', fontSize: 'var(--t-label)',
             color: 'var(--i3)' }}>
             Bağlı proje, risk ya da telafi edici kontrol yok
           </p>
@@ -331,7 +331,7 @@ function OmurCekmecesi({ o, simdi, kapat }: { o: Omur; simdi: number; kapat: () 
 
       <CekmeceEylemler
         birincil={(
-          <Dugme tur="cekmece" disabled
+          <Dugme tur="tam" disabled
             style={{ opacity: 0.55, cursor: 'not-allowed' }}>
             Projeye bağla
           </Dugme>

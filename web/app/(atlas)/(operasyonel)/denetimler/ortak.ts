@@ -1,4 +1,4 @@
-import type { Durum } from '@/components/atlas/temel';
+import type { Durum } from '@/components/abacus/temel';
 import { DENETIM_ASAMALARI, DENETIM_ASAMA_ETIKET, DENETIM_TIP_ETIKET, etiketle } from '@/lib/sabitler';
 
 /* O5/O6 · Denetim programı — sunucu ve istemcinin PAYLAŞTIĞI tipler ve saf

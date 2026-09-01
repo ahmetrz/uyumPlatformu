@@ -1,4 +1,4 @@
-import type { Durum } from '@/components/atlas/temel';
+import type { Durum } from '@/components/abacus/temel';
 
 /* O10/O11 · Varlık zekâsı — sunucu ve istemcinin PAYLAŞTIĞI tipler ve saf
    hesaplar. Burada veritabanı, React ve server-only bağımlılığı YOKTUR.
@@ -54,7 +54,18 @@ export type V = {
   kurulumTarihi: string | null; garantiBitis: string | null; destekBitis: string | null;
   eolTarihi: string | null; eosTarihi: string | null; guncellendi: string;
   iliskiler: Iliski[];
-  riskler: { id: string; kod: string; baslik: string }[];
+  /* Zincir: risk → kontrol/bulgu bağı prototipin (a-assets) omurgası. */
+  riskler: {
+    id: string; kod: string; baslik: string; artikRisk: number | null;
+    kontrol: { kod: string; baslik: string; durum: string } | null;
+    bulgu: { id: string; baslik: string } | null;
+  }[];
+  /** AÇIK zafiyetler, CVSS'e göre azalan. Kapalı olan listede yoktur. */
+  zafiyetler: {
+    id: string; ref: string | null; baslik: string;
+    cvss: number | null; sonTarih: string | null;
+  }[];
+  projeler: { id: string; kod: string; ad: string; durum: string }[];
   kanitlar: { id: string; ad: string; tip: string }[];
   acikZafiyet: number;
   /** varlığın son konfigürasyon yedeği — kayıt yoksa null (yedek YOK demek değil) */

@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { Alan, Dugme } from '@/components/atlas/temel';
+import { Alan, Dugme } from '@/components/abacus/temel';
 import { useEylem } from '@/components/useEylem';
 import {
   varlikKaydet, iliskiEkle, iliskiSil, varlikYasamDongusu,
@@ -25,7 +25,7 @@ const ikili = {
 function Bolum({ ad, children }: { ad: string; children: React.ReactNode }) {
   return (
     <div style={{ display: 'grid', gap: 'var(--s12)' }}>
-      <p className="t-label" style={{ margin: 0 }}>{ad}</p>
+      <p className="etiket" style={{ margin: 0 }}>{ad}</p>
       {children}
     </div>
   );
@@ -94,8 +94,8 @@ export function VarlikFormu({
   function metin(ad: keyof FormDurumu, etiket: string, mono = false) {
     return (
       <Alan etiket={etiket}>
-        <input className="gr" value={f[ad] as string}
-          style={mono ? { fontFamily: 'var(--mo)' } : undefined}
+        <input className="ab-gr" value={f[ad] as string}
+          style={mono ? { fontFamily: 'var(--veri)' } : undefined}
           onChange={(e) => yaz(ad, e.target.value)} />
       </Alan>
     );
@@ -103,7 +103,7 @@ export function VarlikFormu({
   function secim(ad: keyof FormDurumu, etiket: string, secenekler: readonly string[]) {
     return (
       <Alan etiket={etiket}>
-        <select className="gr" value={f[ad] as string}
+        <select className="ab-gr" value={f[ad] as string}
           onChange={(e) => yaz(ad, e.target.value)}>
           {secenekler.map((s) => <option key={s} value={s}>{etiketle(s)}</option>)}
         </select>
@@ -113,7 +113,7 @@ export function VarlikFormu({
   function tarih(ad: keyof FormDurumu, etiket: string) {
     return (
       <Alan etiket={etiket}>
-        <input className="gr" type="date" value={f[ad] as string}
+        <input className="ab-gr" type="date" value={f[ad] as string}
           onChange={(e) => yaz(ad, e.target.value)} />
       </Alan>
     );
@@ -145,11 +145,11 @@ export function VarlikFormu({
       <Bolum ad="Kimlik ve konum">
         <div style={ikili}>
           <Alan etiket="Etiket" zorunlu>
-            <input className="gr" style={{ fontFamily: 'var(--mo)' }} value={f.etiket}
+            <input className="ab-gr" style={{ fontFamily: 'var(--veri)' }} value={f.etiket}
               onChange={(e) => yaz('etiket', e.target.value)} />
           </Alan>
           <Alan etiket="Tür" zorunlu>
-            <select className="gr" value={f.turId}
+            <select className="ab-gr" value={f.turId}
               onChange={(e) => yaz('turId', e.target.value)}>
               <option value="">seçin</option>
               {turler.map((t) => (
@@ -159,32 +159,32 @@ export function VarlikFormu({
           </Alan>
         </div>
         <Alan etiket="Ad" zorunlu>
-          <input className="gr" value={f.ad} onChange={(e) => yaz('ad', e.target.value)} />
+          <input className="ab-gr" value={f.ad} onChange={(e) => yaz('ad', e.target.value)} />
         </Alan>
         <div style={ikili}>
           <Alan etiket="Santral">
-            <select className="gr" value={f.tesisId}
+            <select className="ab-gr" value={f.tesisId}
               onChange={(e) => setF({ ...f, tesisId: e.target.value, uniteId: '' })}>
               <option value="">—</option>
               {tesisler.map((t) => <option key={t.id} value={t.id}>{t.kod}</option>)}
             </select>
           </Alan>
           <Alan etiket="Ünite">
-            <select className="gr" value={f.uniteId} disabled={!f.tesisId}
+            <select className="ab-gr" value={f.uniteId} disabled={!f.tesisId}
               onChange={(e) => yaz('uniteId', e.target.value)}>
               <option value="">—</option>
               {uygunUniteler.map((u) => <option key={u.id} value={u.id}>{u.kod}</option>)}
             </select>
           </Alan>
           <Alan etiket="Sistem / servis">
-            <select className="gr" value={f.sistemId}
+            <select className="ab-gr" value={f.sistemId}
               onChange={(e) => yaz('sistemId', e.target.value)}>
               <option value="">—</option>
               {sistemler.map((s) => <option key={s.id} value={s.id}>{s.kod}</option>)}
             </select>
           </Alan>
           <Alan etiket="Ağ bölgesi">
-            <select className="gr" value={f.bolgeId}
+            <select className="ab-gr" value={f.bolgeId}
               onChange={(e) => yaz('bolgeId', e.target.value)}>
               <option value="">—</option>
               {bolgeler.map((b) => <option key={b.id} value={b.id}>{b.kod}</option>)}
@@ -214,7 +214,7 @@ export function VarlikFormu({
           {secim('kritiklik', 'Kritiklik', KRITIKLIKLER)}
           {secim('internetMaruziyeti', 'İnternet maruziyeti', MARUZIYET_SECENEK)}
           <Alan etiket="Uzaktan erişim">
-            <select className="gr" value={f.uzaktanErisim}
+            <select className="ab-gr" value={f.uzaktanErisim}
               onChange={(e) => yaz('uzaktanErisim', e.target.value)}>
               <option value="">Bilinmiyor</option>
               <option value="evet">Var</option>
@@ -227,7 +227,7 @@ export function VarlikFormu({
           {secim('izlemeDurumu', 'İzleme', VAR_YOK_SECENEK)}
           {secim('logKaynagi', 'Log kaynağı', VAR_YOK_SECENEK)}
         </div>
-        <p className="cekmece-dip" style={{ margin: 0 }}>
+        <p className="ab-panel-dip" style={{ margin: 0 }}>
           Ölçülmemiş alan boş bırakılmaz, “bilinmiyor” seçilir — sıfır sayılmaz.
         </p>
       </Bolum>
@@ -240,14 +240,14 @@ export function VarlikFormu({
           {tarih('eolTarihi', 'EOL')}
           {tarih('eosTarihi', 'EOS')}
           <Alan etiket="Sahip">
-            <select className="gr" value={f.sahipId}
+            <select className="ab-gr" value={f.sahipId}
               onChange={(e) => yaz('sahipId', e.target.value)}>
               <option value="">atanmadı</option>
               {kullanicilar.map((u) => <option key={u.id} value={u.id}>{u.ad}</option>)}
             </select>
           </Alan>
           <Alan etiket="Emanetçi">
-            <select className="gr" value={f.emanetciId}
+            <select className="ab-gr" value={f.emanetciId}
               onChange={(e) => yaz('emanetciId', e.target.value)}>
               <option value="">atanmadı</option>
               {kullanicilar.map((u) => <option key={u.id} value={u.id}>{u.ad}</option>)}
@@ -256,7 +256,7 @@ export function VarlikFormu({
         </div>
       </Bolum>
 
-      {hata && <p className="gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
+      {hata && <p className="ab-gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
 
       <div style={{ display: 'flex', gap: 'var(--s10)' }}>
         <Dugme tur="birincil" onClick={kaydet} disabled={bekliyor || !gecerli}>
@@ -282,13 +282,13 @@ export function IliskiEditoru({
   return (
     <div style={{ display: 'grid', gap: 'var(--s16)' }}>
       {varlik.iliskiler.length === 0 ? (
-        <p className="cekmece-dip" style={{ margin: 0 }}>Tanımlı ilişki yok.</p>
+        <p className="ab-panel-dip" style={{ margin: 0 }}>Tanımlı ilişki yok.</p>
       ) : (
         <div style={{ display: 'grid', gap: 'var(--s3)' }}>
           {varlik.iliskiler.map((i) => (
             <div key={i.id} style={{
               display: 'flex', alignItems: 'center', gap: 'var(--s10)',
-              background: 'var(--card)', border: 'var(--bw-hair) solid var(--hr2)',
+              background: 'var(--panel)', border: 'var(--bw-hair) solid var(--hr2)',
               padding: 'var(--s10) var(--s14)',
             }}>
               <button type="button"
@@ -298,7 +298,7 @@ export function IliskiEditoru({
                 <span style={{ display: 'block', fontSize: 'var(--t-cell)', fontWeight: 600 }}>
                   {i.diger.etiket}
                 </span>
-                <span style={{ display: 'block', marginTop: 2, fontFamily: 'var(--mo)',
+                <span style={{ display: 'block', marginTop: 2, fontFamily: 'var(--veri)',
                   fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
                   {i.giden
                     ? `${ILISKI_CUMLE[i.tip] ?? etiketle(i.tip)} ${i.diger.etiket}`
@@ -318,7 +318,7 @@ export function IliskiEditoru({
       {varlik.yazilabilir && (
         <div style={{ display: 'grid', gap: 'var(--s12)' }}>
           <Alan etiket="Bağ">
-            <select className="gr" value={yeni.tip}
+            <select className="ab-gr" value={yeni.tip}
               onChange={(e) => setYeni({ ...yeni, tip: e.target.value })}>
               {ILISKI_TIPLERI.map((t) => (
                 <option key={t} value={t}>{etiketle(t)}</option>
@@ -326,7 +326,7 @@ export function IliskiEditoru({
             </select>
           </Alan>
           <Alan etiket="Hedef varlık">
-            <select className="gr" value={yeni.hedefId}
+            <select className="ab-gr" value={yeni.hedefId}
               onChange={(e) => setYeni({ ...yeni, hedefId: e.target.value })}>
               <option value="">seçin</option>
               {varliklar.filter((x) => x.id !== varlik.id).map((x) => (
@@ -334,7 +334,7 @@ export function IliskiEditoru({
               ))}
             </select>
           </Alan>
-          <Dugme tur="cekmece" disabled={bekliyor || !yeni.hedefId}
+          <Dugme tur="tam" disabled={bekliyor || !yeni.hedefId}
             onClick={() => calistir(
               () => iliskiEkle({ kaynakId: varlik.id, hedefId: yeni.hedefId, tip: yeni.tip }),
               () => setYeni({ hedefId: '', tip: yeni.tip }),
@@ -344,7 +344,7 @@ export function IliskiEditoru({
         </div>
       )}
 
-      {hata && <p className="gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
+      {hata && <p className="ab-gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
       <Dugme onClick={kapat} disabled={bekliyor}>Geri</Dugme>
     </div>
   );
@@ -365,7 +365,7 @@ export function YasamFormu({ varlik, kapat }: { varlik: V; kapat: () => void }) 
   return (
     <div style={{ display: 'grid', gap: 'var(--s16)' }}>
       <Alan etiket="Yeni durum">
-        <select className="gr" value={hedef} onChange={(e) => setHedef(e.target.value)}>
+        <select className="ab-gr" value={hedef} onChange={(e) => setHedef(e.target.value)}>
           {YASAM_DONGULERI.map((s) => (
             <option key={s} value={s}>{YASAM_ETIKET[s]}</option>
           ))}
@@ -374,7 +374,7 @@ export function YasamFormu({ varlik, kapat }: { varlik: V; kapat: () => void }) 
 
       {denetimli && (
         <Alan etiket="Gerekçe" zorunlu>
-          <textarea className="gr" rows={3} value={gerekce}
+          <textarea className="ab-gr" rows={3} value={gerekce}
             placeholder={hedef === 'imha'
               ? 'Varlık neden imha ediliyor? Veri imha yöntemini yazın.'
               : 'Varlık neden emekliye ayrılıyor?'}
@@ -382,9 +382,9 @@ export function YasamFormu({ varlik, kapat }: { varlik: V; kapat: () => void }) 
         </Alan>
       )}
 
-      {hata && <p className="gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
+      {hata && <p className="ab-gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
 
-      <Dugme tur="cekmece" disabled={bekliyor || !gecerli}
+      <Dugme tur="tam" disabled={bekliyor || !gecerli}
         onClick={() => calistir(() => varlikYasamDongusu({
           id: varlik.id, yasamDongusu: hedef, gerekce: gerekce.trim() || null,
         }), kapat)}>
@@ -392,7 +392,7 @@ export function YasamFormu({ varlik, kapat }: { varlik: V; kapat: () => void }) 
       </Dugme>
       <Dugme onClick={kapat} disabled={bekliyor}>Geri</Dugme>
 
-      <p className="cekmece-dip" style={{ margin: 0 }}>
+      <p className="ab-panel-dip" style={{ margin: 0 }}>
         {denetimli
           ? 'Varlık listeden silinmez; yaşam döngüsü değişir ve gerekçe denetim izine yazılır.'
           : `Son güncelleme ${tarihTR(varlik.guncellendi)} · geçiş denetim izine yazılır.`}

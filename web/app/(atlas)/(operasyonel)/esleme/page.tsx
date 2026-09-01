@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { girisZorunlu, izinVar } from '@/lib/erisim';
-import { Yetkisiz } from '@/components/atlas/temel';
+import { Yetkisiz } from '@/components/abacus/temel';
 import { db } from '@/lib/db';
 import {
   connectorEslemeProfili, eslemeProfilGecmisi, eslemeSozlugu,
@@ -8,7 +8,7 @@ import {
 import EslemeIstemci from './EslemeIstemci';
 import { aileKur, type ConnectorSatiri, type ProfilAilesi } from './mantik';
 
-export const metadata: Metadata = { title: 'Eşleme profilleri — Atlas' };
+export const metadata: Metadata = { title: 'Eşleme profilleri — Abacus' };
 
 /* O26 · Eşleme profili tezgâhı.
 

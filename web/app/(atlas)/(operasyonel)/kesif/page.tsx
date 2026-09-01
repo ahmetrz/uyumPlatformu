@@ -5,7 +5,7 @@ import { normalCoz } from '@/lib/entegrasyon/kesif';
 import KesifIstemci from './KesifIstemci';
 import { GORUNMEZ_ESIK_GUN, kesifKapsamKosulu, type Aday, type KesifSatiri } from './mantik';
 
-export const metadata: Metadata = { title: 'Varlık keşfi — Atlas' };
+export const metadata: Metadata = { title: 'Varlık keşfi — Abacus' };
 
 /* Varlık keşfi · inceleme kuyruğu.
 

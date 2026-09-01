@@ -3,7 +3,7 @@ import { girisZorunlu } from '@/lib/erisim';
 import ReddedilenlerIstemci from './ReddedilenlerIstemci';
 import { reddedilenlerVerisi } from './veri';
 
-export const metadata: Metadata = { title: 'Reddedilen kayıtlar — Atlas' };
+export const metadata: Metadata = { title: 'Reddedilen kayıtlar — Abacus' };
 
 /* Dead-letter kuyruğu (§ entegrasyon).
 

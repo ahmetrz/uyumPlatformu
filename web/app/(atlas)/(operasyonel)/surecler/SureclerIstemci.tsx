@@ -3,13 +3,13 @@ import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import {
   BosFiltre, BosIlk, Dugme, Kesir, Segment, type Durum,
-} from '@/components/atlas/temel';
-import { Tablo, type Kolon, type Satir } from '@/components/atlas/tablo';
-import { EkranBasligi, Filtreler } from '@/components/atlas/ekran';
+} from '@/components/abacus/temel';
+import { Tablo, type Kolon, type Satir } from '@/components/abacus/tablo';
+import { EkranBasligi, Filtreler } from '@/components/abacus/ekran';
 import {
   Cekmece, CekmeceKimlik, CekmeceAlanlar, CekmeceBagli, CekmeceEylemler,
-} from '@/components/atlas/cekmece';
-import { ZamanCizelgesi, type ZamanKarti } from '@/components/atlas/zaman';
+} from '@/components/abacus/panel';
+import { ZamanCizelgesi, type ZamanKarti } from '@/components/abacus/zaman';
 import { tarihTR } from '@/lib/sabitler';
 import { Ara, DisaAktar, Kapsam } from './Kontroller';
 import { DurumFormu, KapsamPaneli, SurecFormu } from './Formlar';
@@ -220,7 +220,7 @@ export default function SureclerIstemci({
           ]}
         />
 
-        <section className="ekran-govde">
+        <section className="ab-ekran-govde">
           <Filtreler
             secenekler={MERCEKLER}
             aktif={mercek}
@@ -233,7 +233,7 @@ export default function SureclerIstemci({
                   sec={(id) => { setRegF(id); setKuyrukAcik(false); }}
                   secenekler={regulasyonlar.map((r) => ({ id: r.id, ad: r.kod }))} />
                 {yazabilir && (
-                  <button type="button" className="kapsam-dugme"
+                  <button type="button" className="ab-dugme"
                     onClick={() => { setYeniAcik(true); setSecili(null); }}>
                     + Yeni kampanya
                   </button>
@@ -284,7 +284,7 @@ export default function SureclerIstemci({
               />
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 'var(--s16)',
                 padding: 'var(--s14) 0 0' }}>
-                <p className="dip-not" style={{ margin: 0, flex: 1, minWidth: 0 }}>
+                <p className="ab-dip" style={{ margin: 0, flex: 1, minWidth: 0 }}>
                   {dipNot(gorunur.length, takvimsiz, kapanan, mercek)}
                 </p>
                 <DisaAktar
@@ -332,10 +332,10 @@ export default function SureclerIstemci({
           )}
           {kip === 'form' && (
             <>
-              <div className="cekmece-blok">
-                <p className="t-label" style={{ margin: '0 0 var(--s12)' }}>Kampanyayı düzenle</p>
+              <div className="ab-panel-blok">
+                <p className="etiket" style={{ margin: '0 0 var(--s12)' }}>Kampanyayı düzenle</p>
               </div>
-              <div className="cekmece-blok">
+              <div className="ab-panel-blok">
                 <SurecFormu surec={secilen.s} regulasyonlar={regulasyonlar}
                   kapat={() => setKip('ozet')} />
               </div>
@@ -343,26 +343,26 @@ export default function SureclerIstemci({
           )}
           {kip === 'kapsam' && (
             <>
-              <div className="cekmece-blok">
-                <p className="t-label" style={{ margin: '0 0 var(--s12)' }}>
+              <div className="ab-panel-blok">
+                <p className="etiket" style={{ margin: '0 0 var(--s12)' }}>
                   Kapsam · {secilen.s.tesisler.length} santral
                 </p>
               </div>
-              <div className="cekmece-blok">
+              <div className="ab-panel-blok">
                 <KapsamPaneli surec={secilen.s} tesisler={tesisler}
                   kilitli={!yazabilir || kapandiMi(secilen.s)} />
               </div>
-              <div className="cekmece-blok" style={{ marginTop: 'var(--s20)' }}>
+              <div className="ab-panel-blok" style={{ marginTop: 'var(--s20)' }}>
                 <Dugme onClick={() => setKip('ozet')}>Kampanya kaydına dön</Dugme>
               </div>
             </>
           )}
           {kip === 'durum' && (
             <>
-              <div className="cekmece-blok">
-                <p className="t-label" style={{ margin: '0 0 var(--s12)' }}>Yaşam döngüsü</p>
+              <div className="ab-panel-blok">
+                <p className="etiket" style={{ margin: '0 0 var(--s12)' }}>Yaşam döngüsü</p>
               </div>
-              <div className="cekmece-blok">
+              <div className="ab-panel-blok">
                 <DurumFormu surec={secilen.s} kapat={() => setKip('ozet')} />
               </div>
             </>
@@ -372,10 +372,10 @@ export default function SureclerIstemci({
 
       {yeniAcik && !secilen && (
         <Cekmece kod="Yeni kampanya" kapat={() => setYeniAcik(false)}>
-          <div className="cekmece-blok">
-            <p className="t-label" style={{ margin: '0 0 var(--s12)' }}>Yeni uyum kampanyası</p>
+          <div className="ab-panel-blok">
+            <p className="etiket" style={{ margin: '0 0 var(--s12)' }}>Yeni uyum kampanyası</p>
           </div>
-          <div className="cekmece-blok">
+          <div className="ab-panel-blok">
             <SurecFormu surec={null} regulasyonlar={regulasyonlar}
               kapat={() => setYeniAcik(false)} />
           </div>
@@ -466,7 +466,7 @@ function Ozet({ kayit, simdi, yazabilir, onaylayabilir, duzenle, kapsam, durum }
       <CekmeceEylemler
         birincil={
           <Link href={`/surecler/${s.id}`}>
-            <Dugme tur="cekmece">Kaydı aç · maddeler</Dugme>
+            <Dugme tur="tam">Kaydı aç · maddeler</Dugme>
           </Link>
         }
         ikincil={

@@ -1,12 +1,12 @@
 import type { Metadata } from 'next';
 import { girisZorunlu } from '@/lib/erisim';
-import { Yetkisiz } from '@/components/atlas/temel';
+import { Yetkisiz } from '@/components/abacus/temel';
 import { modulOkuyabilir } from '@/app/kapsam';
 import { HEDEF_ALANLAR } from '@/lib/entegrasyon/varlikAktarim';
 import VarlikAktarimIstemci, { type AlanSecenegi } from './VarlikAktarimIstemci';
 import { varlikAktarimVerisi } from './veri';
 
-export const metadata: Metadata = { title: 'Varlık aktarımı — Atlas' };
+export const metadata: Metadata = { title: 'Varlık aktarımı — Abacus' };
 
 /* CMDB toplu aktarımı (P1-2) — "bu dosyayı envantere almak güvenli mi?"
    Yerleşim kabuğu (operasyonel)/layout.tsx'ten gelir; bu sayfa yalnız

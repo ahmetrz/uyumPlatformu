@@ -1,12 +1,12 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { girisZorunlu, izinVar, izinliTesisIdleri } from '@/lib/erisim';
-import { Yetkisiz } from '@/components/atlas/temel';
+import { Yetkisiz } from '@/components/abacus/temel';
 import { db } from '@/lib/db';
 import SurecDetayIstemci, { type DetayVerisi } from './SurecDetayIstemci';
 import { kisaKod, sayimla, type Degerlendirme, type S } from '../ortak';
 
-export const metadata: Metadata = { title: 'Uyum kampanyası — Atlas' };
+export const metadata: Metadata = { title: 'Uyum kampanyası — Abacus' };
 
 /* Kampanya kaydı — "bu kampanyada hangi madde hangi santralde takılı?"
 

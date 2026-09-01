@@ -2,13 +2,13 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
-import { Dugme, BosIlk, type Durum } from '@/components/atlas/temel';
-import { Tablo, type Kolon, type Satir } from '@/components/atlas/tablo';
-import { EkranBasligi, Asamalar, KipDegistir } from '@/components/atlas/ekran';
+import { Dugme, BosIlk, type Durum } from '@/components/abacus/temel';
+import { Tablo, type Kolon, type Satir } from '@/components/abacus/tablo';
+import { EkranBasligi, Asamalar, KipDegistir } from '@/components/abacus/ekran';
 import {
   Cekmece, CekmeceKimlik, CekmeceAlanlar, CekmeceEylemler,
-} from '@/components/atlas/cekmece';
-import BaglamCubugu from '@/components/atlas/BaglamCubugu';
+} from '@/components/abacus/panel';
+import BaglamCubugu from '@/components/abacus/BaglamCubugu';
 import { DENETIM_ASAMALARI, tarihTR } from '@/lib/sabitler';
 import { AsamaEylemleri, KapsamPaneli, TalepFormu, TalepSonucFormu } from '../Formlar';
 import {
@@ -151,12 +151,12 @@ export default function DenetimDetayIstemci({ veri }: { veri: DetayVerisi }) {
           sag={
             <>
               {d.surec && (
-                <Link href={`/uyum/${encodeURIComponent(d.surec.regKod)}`} className="dg dg-satir">
+                <Link href={`/uyum/${encodeURIComponent(d.surec.regKod)}`} className="ab-dugme satir">
                   {d.surec.regKod} · {d.surec.kod} ▸
                 </Link>
               )}
               {!panel && (
-                <button type="button" className="dg dg-satir" onClick={() => setPanel(true)}>
+                <button type="button" className="ab-dugme satir" onClick={() => setPanel(true)}>
                   Kayıt paneli ▸
                 </button>
               )}
@@ -190,7 +190,7 @@ export default function DenetimDetayIstemci({ veri }: { veri: DetayVerisi }) {
           <Asamalar asamalar={asamalar} aktifIndeks={aktifIx} />
         </div>
 
-        <section className="ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
+        <section className="ab-ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--s16)' }}>
             <KipDegistir
               aktif={kip}
@@ -201,7 +201,7 @@ export default function DenetimDetayIstemci({ veri }: { veri: DetayVerisi }) {
               ]}
             />
             {kip === 'talep' && veri.yazabilir && !kapandiMi(d) && (
-              <button type="button" className="kapsam-dugme" style={{ marginLeft: 'auto' }}
+              <button type="button" className="ab-dugme" style={{ marginLeft: 'auto' }}
                 onClick={() => {
                   setSeciliTalep(null); setPanel(true); setPanelKipi('kayit'); setTalepFormu(true);
                 }}>
@@ -262,7 +262,7 @@ export default function DenetimDetayIstemci({ veri }: { veri: DetayVerisi }) {
               yazabilir={veri.yazabilir} geri={() => setSeciliTalep(null)} />
           ) : (
             <>
-              <div className="cekmece-blok">
+              <div className="ab-panel-blok">
                 <KipDegistir
                   aktif={panelKipi}
                   sec={(id) => setPanelKipi(id as PanelKipi)}
@@ -292,8 +292,8 @@ export default function DenetimDetayIstemci({ veri }: { veri: DetayVerisi }) {
                   ]} />
 
                   {veri.yazabilir && (
-                    <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
-                      <p className="t-label" style={{ margin: '0 0 var(--s12)' }}>Yaşam döngüsü</p>
+                    <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+                      <p className="etiket" style={{ margin: '0 0 var(--s12)' }}>Yaşam döngüsü</p>
                       <AsamaEylemleri
                         id={d.id}
                         sonraki={sonraki}
@@ -306,8 +306,8 @@ export default function DenetimDetayIstemci({ veri }: { veri: DetayVerisi }) {
                   )}
 
                   {veri.yazabilir && !kapandiMi(d) && (
-                    <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
-                      <p className="t-label" style={{ margin: '0 0 var(--s12)' }}>Kanıt talebi</p>
+                    <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+                      <p className="etiket" style={{ margin: '0 0 var(--s12)' }}>Kanıt talebi</p>
                       {talepFormu ? (
                         <TalepFormu denetimId={d.id} kullanicilar={veri.kullanicilar}
                           kapat={() => setTalepFormu(false)} />
@@ -323,7 +323,7 @@ export default function DenetimDetayIstemci({ veri }: { veri: DetayVerisi }) {
                   />
                 </>
               ) : (
-                <div className="cekmece-blok" style={{ marginTop: 'var(--s18)' }}>
+                <div className="ab-panel-blok" style={{ marginTop: 'var(--s18)' }}>
                   <KapsamPaneli
                     denetimId={d.id}
                     tesisler={veri.tesisler}
@@ -380,7 +380,7 @@ function TalepPaneli({ talep, simdi, kanitlar, yazabilir, geri }: {
       ]} />
 
       {yazabilir && (
-        <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
+        <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
           <TalepSonucFormu talep={talep} kanitlar={kanitlar} kapat={geri} />
         </div>
       )}

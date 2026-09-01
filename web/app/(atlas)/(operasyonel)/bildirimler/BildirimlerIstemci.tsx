@@ -1,12 +1,12 @@
 'use client';
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { BosFiltre, BosIlk, Dugme } from '@/components/atlas/temel';
-import { EkranBasligi, Filtreler } from '@/components/atlas/ekran';
-import { Tablo, type Kolon } from '@/components/atlas/tablo';
+import { BosFiltre, BosIlk, Dugme } from '@/components/abacus/temel';
+import { EkranBasligi, Filtreler } from '@/components/abacus/ekran';
+import { Tablo, type Kolon } from '@/components/abacus/tablo';
 import {
   Cekmece, CekmeceAlanlar, CekmeceEylemler, CekmeceKimlik,
-} from '@/components/atlas/cekmece';
+} from '@/components/abacus/panel';
 import { useEylem } from '@/components/useEylem';
 import { bildirimOkundu } from '@/lib/eylemler2/bildirim';
 import { tarihTR, zamanTR } from '@/lib/sabitler';
@@ -90,7 +90,7 @@ export default function BildirimlerIstemci({
       <main data-yuzey="tezgah" style={{ minWidth: 0 }}>
         <EkranBasligi eyebrow="Bildirim kutusu · kişisel"
           baslik="Size hiç bildirim yazılmadı" />
-        <section className="ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
+        <section className="ab-ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
           <BosIlk cumle={'Bu kutu yalnız SİZE yazılan bildirimleri gösterir.'
             + ' Boş olması "sistemde uyarı yok" demek değildir: son tarih motoru'
             + ' bildirimi yalnız kaydın SORUMLUSUNA yazar, sorumlusu olmayan'
@@ -130,7 +130,7 @@ export default function BildirimlerIstemci({
           ) : undefined}
         />
 
-        <section className="ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
+        <section className="ab-ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
           {hata && (
             <p role="alert" style={{ margin: '0 0 var(--s14)',
               fontSize: 'var(--t-field)', color: 'var(--bd)' }}>{hata}</p>
@@ -141,7 +141,7 @@ export default function BildirimlerIstemci({
 
           {gosterilen.length === 0 ? (
             mercek === 'okunmamis' ? (
-              <p className="dip-not" style={{ marginTop: 'var(--s18)' }}>
+              <p className="ab-dip" style={{ marginTop: 'var(--s18)' }}>
                 Okunmamış bildirim yok — kutunuzdaki {satirlar.length} bildirimin
                 hepsi okundu. Bu ÖLÇÜLMÜŞ bir sıfırdır.
               </p>
@@ -218,18 +218,18 @@ export default function BildirimlerIstemci({
               bir bağlantı koymuyoruz. */}
           <CekmeceEylemler
             birincil={okunmamisMi(secim) ? (
-              <Dugme tur="cekmece" disabled={bekliyor}
+              <Dugme tur="tam" disabled={bekliyor}
                 style={bekliyor ? { opacity: 0.45, cursor: 'not-allowed' } : undefined}
                 onClick={() => calistir(() => bildirimOkundu({ id: secim.id }))}>
                 {bekliyor ? 'İşaretleniyor…' : 'Okundu işaretle'}
               </Dugme>
             ) : undefined}
             ikincil={secim.kaynakYolu ? (
-              <Link href={secim.kaynakYolu} className="dg dg-ikincil">
+              <Link href={secim.kaynakYolu} className="ab-dugme">
                 Kayda git
               </Link>
             ) : (
-              <p className="dip-not" style={{ margin: 0 }}>
+              <p className="ab-dip" style={{ margin: 0 }}>
                 {KAYNAK_HAL_SOZU[secim.kaynakHali]} — bildirim size yazıldığı için
                 listede kalır, kayda giden bağ verilmez.
               </p>

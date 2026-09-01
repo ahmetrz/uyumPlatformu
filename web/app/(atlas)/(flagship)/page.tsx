@@ -1,11 +1,11 @@
 import type { Metadata } from 'next';
 import { girisZorunlu } from '@/lib/erisim';
-import { Yetkisiz } from '@/components/atlas/temel';
+import { Yetkisiz } from '@/components/abacus/temel';
 import { modulOkuyabilir } from '@/app/kapsam';
 import Genel from './Genel';
 import { genelEkranVerisi } from './veri';
 
-export const metadata: Metadata = { title: 'Bugün — Atlas' };
+export const metadata: Metadata = { title: 'Bugün — Abacus' };
 
 /* F1 · Executive Overview — "bugün neyin yönetim dikkatine ihtiyacı var?"
    Hiyerarşi: bir kart baskındır; şerit bağlamdır; kuyruk kuyruktur.
@@ -31,6 +31,12 @@ export default async function Sayfa() {
       kuyruk={veri.kuyruk}
       toplamKayit={veri.toplamKayit}
       kapsamli={veri.kapsamli}
+      santraller={veri.santraller}
+      tipler={veri.tipler}
+      risk={veri.risk}
+      takvim={veri.takvim}
+      akis={veri.akis}
+      egilim={veri.egilim}
     />
   );
 }

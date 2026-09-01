@@ -1,11 +1,11 @@
 import type { Metadata } from 'next';
 import { girisZorunlu, izinVar, izinliTesisIdleri } from '@/lib/erisim';
-import { Yetkisiz } from '@/components/atlas/temel';
+import { Yetkisiz } from '@/components/abacus/temel';
 import { db } from '@/lib/db';
 import SureclerIstemci from './SureclerIstemci';
 import { sayimla, type S } from './ortak';
 
-export const metadata: Metadata = { title: 'Uyum süreçleri — Atlas' };
+export const metadata: Metadata = { title: 'Uyum süreçleri — Abacus' };
 
 /* Uyum süreç kütüğü — "hangi kampanya denetim tarihine yetişmiyor?"
    Kabuk (ray + çekmece kolonu) (operasyonel)/layout.tsx'ten gelir; burada

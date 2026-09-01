@@ -1,4 +1,4 @@
-import type { Durum } from '@/components/atlas/temel';
+import type { Durum } from '@/components/abacus/temel';
 
 /* O26 · Eşleme profili tezgâhı — saf türetme katmanı.
 

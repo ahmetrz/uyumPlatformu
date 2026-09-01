@@ -2,7 +2,7 @@ import 'server-only';
 import { db } from '@/lib/db';
 import { uyumOzeti } from '@/lib/sabitler';
 import { kuralDegerlendir } from '@/lib/motorlar/uygulanabilirlik';
-import type { Durum } from '@/components/atlas/temel';
+import type { Durum } from '@/components/abacus/temel';
 import {
   DURUM_IM, cerceveAdi, guc, kisaAile, kisaKod, kisaTarih, tekCumle,
 } from './mantik';

@@ -1,10 +1,10 @@
 'use client';
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
-import { BosIlk, Dugme, Im, type Durum } from '@/components/atlas/temel';
-import { GenisleyenSatir } from '@/components/atlas/tablo';
-import { EkranBasligi, Filtreler } from '@/components/atlas/ekran';
-import { CekmeceKimlik } from '@/components/atlas/cekmece';
+import { BosIlk, Dugme, Im, type Durum } from '@/components/abacus/temel';
+import { GenisleyenSatir } from '@/components/abacus/tablo';
+import { EkranBasligi, Filtreler } from '@/components/abacus/ekran';
+import { CekmeceKimlik } from '@/components/abacus/panel';
 import { tarihTR } from '@/lib/sabitler';
 import { AktiflestirmeOnayi, MaddeFormu, TaslakFormu } from './Formlar';
 import {
@@ -63,10 +63,10 @@ export default function RegulasyonlarIstemci({
     return (
       <main data-yuzey="defter" style={{ minWidth: 0 }}>
         <EkranBasligi eyebrow="Regülasyon kütüphanesi" baslik="Çerçeve tanımlı değil" />
-        <section className="ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
+        <section className="ab-ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
           <BosIlk
             cumle="Sistemde regülasyon kaydı yok."
-            eylem={<Link className="dg dg-birincil" href="/ice-aktarim">Katalog içe aktar</Link>}
+            eylem={<Link className="ab-dugme birincil" href="/ice-aktarim">Katalog içe aktar</Link>}
           />
         </section>
       </main>
@@ -119,7 +119,7 @@ export default function RegulasyonlarIstemci({
           ]}
         />
 
-        <section className="ekran-govde">
+        <section className="ab-ekran-govde">
           <Filtreler
             secenekler={regulasyonlar.map((r) => ({ id: r.id, ad: r.kod }))}
             aktif={reg.id}
@@ -128,7 +128,7 @@ export default function RegulasyonlarIstemci({
               <>
                 <Ara deger={arama} degistir={setArama} />
                 {yazabilir && (
-                  <button type="button" className="kapsam-dugme" onClick={() => maddeAc(null)}>
+                  <button type="button" className="ab-dugme" onClick={() => maddeAc(null)}>
                     + Madde
                   </button>
                 )}
@@ -140,13 +140,13 @@ export default function RegulasyonlarIstemci({
             <div style={{ marginTop: 'var(--s26)' }}>
               <BosIlk
                 cumle={`${reg.kod} kataloğu henüz yüklenmedi.`}
-                eylem={<Link className="dg dg-birincil" href="/ice-aktarim">Katalog içe aktar</Link>}
+                eylem={<Link className="ab-dugme birincil" href="/ice-aktarim">Katalog içe aktar</Link>}
               />
             </div>
           ) : kokler.length === 0 ? (
-            <div className="bos-filtre">
+            <div className="ab-blok">
               <span>Bu aramayla madde yok.</span>
-              <button type="button" className="dg dg-satir"
+              <button type="button" className="ab-dugme satir"
                 onClick={() => setArama('')}>Aramayı temizle</button>
             </div>
           ) : (
@@ -158,15 +158,15 @@ export default function RegulasyonlarIstemci({
               ))}
 
               {gorunurKokler.length < kokler.length && (
-                <p className="dip-not">
+                <p className="ab-dip">
                   {kokler.length - gorunurKokler.length} bölüm toplandı ·{' '}
-                  <button type="button" className="dg dg-satir"
+                  <button type="button" className="ab-dugme satir"
                     style={{ fontSize: 'inherit', fontWeight: 400 }}
                     onClick={() => setHepsiAcik(true)}>Tümünü aç</button>
                 </p>
               )}
 
-              <p className="dip-not">
+              <p className="ab-dip">
                 Bölüm başlığı aileyi açar · madde satırı kaydı sağ panelde düzenler
                 {alansiz > 0 && ` · ${alansiz} yaprak maddenin kapsam alanı eşleşmemiş`}
                 {surumsuz > 0 && ` · ${surumsuz} madde sürüme bağlı değil`}
@@ -177,15 +177,15 @@ export default function RegulasyonlarIstemci({
       </main>
 
       {/* Kalıcı yan panel — bu ekranın TEK yan yüzeyi; modal açılmaz. */}
-      <aside className="cekmece" aria-label={PANEL_KODU[kip]}>
-        <div className="cekmece-bas">
+      <aside className="ab-panel" aria-label={PANEL_KODU[kip]}>
+        <div className="ust">
           <span className="kod">{PANEL_KODU[kip]}</span>
           {kip !== 'surum' && (
-            <button type="button" className="cekmece-kapat" onClick={() => panele('surum')}
+            <button type="button" className="ab-dugme" onClick={() => panele('surum')}
               aria-label="Sürüm paneline dön">✕</button>
           )}
         </div>
-        <div className="cekmece-govde">
+        <div className="govde">
           {kip === 'surum' && (
             <SurumPaneli reg={reg} agac={agac} yazabilir={yazabilir}
               onaylayabilir={onaylayabilir}
@@ -194,7 +194,7 @@ export default function RegulasyonlarIstemci({
               aktiflestir={(id) => { setSurumId(id); setKip('aktiflestir'); }} />
           )}
           {kip === 'taslak' && (
-            <div className="cekmece-blok">
+            <div className="ab-panel-blok">
               <TaslakFormu reg={reg} kapat={() => panele('surum')} />
             </div>
           )}
@@ -202,18 +202,18 @@ export default function RegulasyonlarIstemci({
             <FarkPaneli surum={surum} />
           )}
           {kip === 'aktiflestir' && surum && (
-            <div className="cekmece-blok">
+            <div className="ab-panel-blok">
               <AktiflestirmeOnayi surum={surum} kapat={() => panele('surum')} />
             </div>
           )}
           {kip === 'madde' && (
             <>
-              <div className="cekmece-blok">
-                <p className="t-label" style={{ margin: '0 0 var(--s12)' }}>
+              <div className="ab-panel-blok">
+                <p className="etiket" style={{ margin: '0 0 var(--s12)' }}>
                   {madde ? `${madde.kisaKod} · düzenle` : `${reg.kod} · yeni madde`}
                 </p>
               </div>
-              <div className="cekmece-blok">
+              <div className="ab-panel-blok">
                 <MaddeFormu madde={madde} reg={reg} alanlar={alanlar}
                   kapat={() => panele('surum')} />
               </div>
@@ -230,7 +230,7 @@ export default function RegulasyonlarIstemci({
 function Ara({ deger, degistir }: { deger: string; degistir: (v: string) => void }) {
   return (
     <input
-      className="gr"
+      className="ab-gr"
       aria-label="Madde kodu, başlığı ya da metni ara"
       placeholder="Ara"
       value={deger}
@@ -238,7 +238,7 @@ function Ara({ deger, degistir }: { deger: string; degistir: (v: string) => void
       style={{
         width: 118, background: 'none', border: 0,
         borderBottom: 'var(--bw-hair) solid var(--hr2)',
-        padding: '3px 0', fontFamily: 'var(--mo)', fontSize: 'var(--t-label)',
+        padding: '3px 0', fontFamily: 'var(--veri)', fontSize: 'var(--t-label)',
         letterSpacing: 'var(--tr-label)', textTransform: 'uppercase',
       }}
     />
@@ -306,7 +306,7 @@ function MaddeSatiri({ madde, agac, derinlik, secili, ac, kendiKaydi = false }: 
       aria-current={secili === madde.id ? 'true' : undefined}
       onClick={() => ac(madde.id)}
       style={{
-        width: '100%', background: secili === madde.id ? 'var(--row-sel)' : 'none',
+        width: '100%', background: secili === madde.id ? 'var(--secim)' : 'none',
         border: 0, borderBottom: 'var(--bw-hair) solid var(--hr)',
         font: 'inherit', color: 'inherit', textAlign: 'left', cursor: 'pointer',
         paddingLeft: derinlik * 16,
@@ -350,12 +350,12 @@ function SurumPaneli({ reg, agac, yazabilir, onaylayabilir, taslak, fark, aktifl
         cumle={surumCumlesi(reg, agac)}
       />
 
-      <div className="cekmece-blok" style={{ marginTop: 'var(--s22)' }}>
-        <p className="t-label" style={{ margin: '0 0 var(--s10)' }}>
+      <div className="ab-panel-blok" style={{ marginTop: 'var(--s22)' }}>
+        <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>
           Sürüm yaşam döngüsü
         </p>
         {reg.surumler.length === 0 ? (
-          <p className="cekmece-dip" style={{ margin: 0 }}>
+          <p className="ab-panel-dip" style={{ margin: 0 }}>
             Sürüm kaydı yok — maddeler geçiş dönemi kaydı olarak duruyor.
             Taslak açılınca kopyalanır.
           </p>
@@ -366,54 +366,54 @@ function SurumPaneli({ reg, agac, yazabilir, onaylayabilir, taslak, fark, aktifl
       </div>
 
       {yazabilir && (
-        <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
-          <Dugme tur="cekmece" onClick={taslak}>Taslak sürüm aç</Dugme>
+        <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+          <Dugme tur="tam" onClick={taslak}>Taslak sürüm aç</Dugme>
         </div>
       )}
 
-      <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
-        <p className="t-label" style={{ margin: '0 0 var(--s10)' }}>Kütüphane</p>
-        <div className="cekmece-bagli">
+      <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+        <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Kütüphane</p>
+        <div className="ab-panel-zincir">
           <Link href={`/uyum/${encodeURIComponent(reg.kod)}`}>
             <span style={{ minWidth: 0 }}>
               <span style={{ display: 'block', fontSize: 'var(--t-cell)', fontWeight: 600 }}>
                 {reg.kod} çerçevesi
               </span>
-              <span style={{ display: 'block', marginTop: 2, fontFamily: 'var(--mo)',
+              <span style={{ display: 'block', marginTop: 2, fontFamily: 'var(--veri)',
                 fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
                 uyum durumu
               </span>
             </span>
-            <span className="tbl-ok" style={{ marginLeft: 'auto' }} aria-hidden>▸</span>
+            <span className="ab-ok" style={{ marginLeft: 'auto' }} aria-hidden>▸</span>
           </Link>
           <Link href="/eslestirme">
             <span style={{ minWidth: 0 }}>
               <span style={{ display: 'block', fontSize: 'var(--t-cell)', fontWeight: 600 }}>
                 Çapraz eşleme
               </span>
-              <span style={{ display: 'block', marginTop: 2, fontFamily: 'var(--mo)',
+              <span style={{ display: 'block', marginTop: 2, fontFamily: 'var(--veri)',
                 fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
                 madde denklikleri
               </span>
             </span>
-            <span className="tbl-ok" style={{ marginLeft: 'auto' }} aria-hidden>▸</span>
+            <span className="ab-ok" style={{ marginLeft: 'auto' }} aria-hidden>▸</span>
           </Link>
           <Link href="/ice-aktarim">
             <span style={{ minWidth: 0 }}>
               <span style={{ display: 'block', fontSize: 'var(--t-cell)', fontWeight: 600 }}>
                 İçe aktarım
               </span>
-              <span style={{ display: 'block', marginTop: 2, fontFamily: 'var(--mo)',
+              <span style={{ display: 'block', marginTop: 2, fontFamily: 'var(--veri)',
                 fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
                 Excel katalog yükleme
               </span>
             </span>
-            <span className="tbl-ok" style={{ marginLeft: 'auto' }} aria-hidden>▸</span>
+            <span className="ab-ok" style={{ marginLeft: 'auto' }} aria-hidden>▸</span>
           </Link>
         </div>
       </div>
 
-      <p className="cekmece-dip" style={{ marginTop: 'var(--s22)', paddingTop: 'var(--s18)',
+      <p className="ab-panel-dip" style={{ marginTop: 'var(--s22)', paddingTop: 'var(--s18)',
         borderTop: 'var(--bw-strong) solid var(--hr2)' }}>
         {aktif?.yururluk
           ? `Yürürlük ${tarihTR(aktif.yururluk)}`
@@ -437,7 +437,7 @@ function SurumSatiri({ surum, yazabilir, onaylayabilir, fark, aktiflestir }: {
     <div style={{ padding: 'var(--s12) 0',
       borderBottom: 'var(--bw-hair) solid var(--hr)' }}>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 'var(--s10)' }}>
-        <span style={{ fontFamily: 'var(--mo)', fontSize: 'var(--t-code-lg)',
+        <span style={{ fontFamily: 'var(--veri)', fontSize: 'var(--t-code-lg)',
           fontWeight: 600 }}>{surum.etiket}</span>
         <span style={{ marginLeft: 'auto', fontSize: 'var(--t-field)', color: 'var(--i3)' }}>
           {surumOzeti(surum)}
@@ -445,19 +445,19 @@ function SurumSatiri({ surum, yazabilir, onaylayabilir, fark, aktiflestir }: {
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--s12)',
         marginTop: 'var(--s8)' }}>
-        <span className="cekmece-dip">
+        <span className="ab-panel-dip">
           {surum.durum === 'aktif' ? 'yürürlükte'
             : surum.durum === 'taslak' ? 'taslak' : 'arşiv'}
           {surum.yururluk && ` · ${tarihTR(surum.yururluk)}`}
         </span>
         <span style={{ marginLeft: 'auto', display: 'flex', gap: 'var(--s12)' }}>
           {farkSayisi > 0 && (
-            <button type="button" className="dg dg-satir" onClick={() => fark(surum.id)}>
+            <button type="button" className="ab-dugme satir" onClick={() => fark(surum.id)}>
               Δ {farkSayisi} fark
             </button>
           )}
           {surum.durum === 'taslak' && yazabilir && onaylayabilir && (
-            <button type="button" className="dg dg-satir"
+            <button type="button" className="ab-dugme satir"
               onClick={() => aktiflestir(surum.id)}>
               Yürürlüğe al ▸
             </button>
@@ -478,7 +478,7 @@ function FarkPaneli({ surum }: { surum: Surum }) {
 
   return (
     <>
-      <div className="cekmece-blok">
+      <div className="ab-panel-blok">
         <p style={{ margin: 0, fontSize: 'var(--t-field)', color: 'var(--i2)' }}>
           {surum.etiket} sürümü önceki katalogla karşılaştırıldı:
           {' '}{farklar.length} maddede içerik farkı var.
@@ -486,29 +486,29 @@ function FarkPaneli({ surum }: { surum: Surum }) {
       </div>
 
       {farklar.length === 0 ? (
-        <p className="cekmece-dip" style={{ marginTop: 'var(--s18)' }}>
+        <p className="ab-panel-dip" style={{ marginTop: 'var(--s18)' }}>
           İçerik farkı üretilmedi — maddeler birebir aynı.
         </p>
       ) : gruplar.map((tip) => {
         const liste = farklar.filter((f) => f.tip === tip);
         if (liste.length === 0) return null;
         return (
-          <div key={tip} className="cekmece-blok" style={{ marginTop: 'var(--s20)' }}>
-            <p className="t-label" style={{ margin: '0 0 var(--s10)' }}>
+          <div key={tip} className="ab-panel-blok" style={{ marginTop: 'var(--s20)' }}>
+            <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>
               {FARK_ETIKET[tip]} · {liste.length}
             </p>
             {liste.map((f, i) => (
-              <div key={`${f.kod}-${i}`} className="cekmece-alan">
+              <div key={`${f.kod}-${i}`} className="ab-panel-alan">
                 <span className="etiket" style={{ display: 'flex', alignItems: 'center',
                   gap: 'var(--s8)', minWidth: 0 }}>
                   <span><Im durum={FARK_IM[f.tip] ?? 'unk'} ad={FARK_ETIKET[f.tip] ?? f.tip} /></span>
-                  <span style={{ fontFamily: 'var(--mo)' }}>{f.kod}</span>
+                  <span style={{ fontFamily: 'var(--veri)' }}>{f.kod}</span>
                 </span>
                 <span className="deger" style={{ fontWeight: 400, minWidth: 0 }}>
                   {f.ozet ?? '—'}
                   {f.etki && (
                     <span style={{ display: 'block', marginTop: 2,
-                      fontFamily: 'var(--mo)', fontSize: 'var(--t-label)',
+                      fontFamily: 'var(--veri)', fontSize: 'var(--t-label)',
                       color: 'var(--i3)' }}>{f.etki}</span>
                   )}
                 </span>
@@ -518,7 +518,7 @@ function FarkPaneli({ surum }: { surum: Surum }) {
         );
       })}
 
-      <p className="cekmece-dip" style={{ marginTop: 'var(--s22)', paddingTop: 'var(--s18)',
+      <p className="ab-panel-dip" style={{ marginTop: 'var(--s22)', paddingTop: 'var(--s18)',
         borderTop: 'var(--bw-strong) solid var(--hr2)' }}>
         Kaldırılan maddelerin geçmiş değerlendirmeleri tarihçede kalır;
         değişen ve yeni maddeler için aktif kampanyalarda yeni değerlendirme

@@ -1,11 +1,11 @@
 import type { Metadata } from 'next';
 import { girisZorunlu } from '@/lib/erisim';
-import { Yetkisiz } from '@/components/atlas/temel';
+import { Yetkisiz } from '@/components/abacus/temel';
 import { modulOkuyabilir } from '@/app/kapsam';
 import KimlikIstemci from './KimlikIstemci';
 import { kimlikEkranVerisi } from './veri';
 
-export const metadata: Metadata = { title: 'Erişim incelemesi — Atlas' };
+export const metadata: Metadata = { title: 'Erişim incelemesi — Abacus' };
 
 /* O15 · Identity & Access Review — "kimin fazla yetkisi var?"
    Kabuk (ray + çekmece kolonu) (operasyonel)/layout.tsx'ten gelir; burada

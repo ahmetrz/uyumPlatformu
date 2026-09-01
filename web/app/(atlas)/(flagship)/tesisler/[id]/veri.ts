@@ -37,6 +37,9 @@ import type { Plant360Veri, Santral } from './Plant360';
 
 export type EkranVerisi = { veri: Plant360Veri; santraller: Santral[] };
 
+/** Açık bulgu listesinde gösterilen en fazla kayıt (prototipte 6). */
+const BULGU_PENCERESI = 8;
+
 /** Kapsam dışı ya da olmayan santral için `null` — çağıran `notFound()` der. */
 export async function tesis360Verisi(
   k: AktifKullanici,
@@ -55,8 +58,8 @@ export async function tesis360Verisi(
   if (!tesis) return null;
 
   const simdi = new Date();
-  const [durumlar, bulgular, riskler, varliklar, denetimler, surecler, bolgeler, uniteler,
-    tumTesisler] =
+  const [durumlar, bulgular, riskler, varliklar, denetimler, surecler, bolgeler, uniteListesi,
+    tumTesisler, katmanKayitlari, sistemler, bulguSayimi] =
     await Promise.all([
       db.maddeDurumu.groupBy({ by: ['durum'], where: { tesisId: id }, _count: { _all: true } }),
       db.bulgu.findMany({
@@ -65,7 +68,7 @@ export async function tesis360Verisi(
           maddeDurumu: { include: { madde: { select: { kod: true, baslik: true } } } },
           aksiyonlar: { select: { durum: true } } },
         orderBy: [{ onemDerecesi: 'asc' }, { hedefTarih: 'asc' }],
-        take: 6,
+        take: BULGU_PENCERESI,
       }),
       db.risk.findMany({
         where: { tesisId: id, silindi: null, durum: { in: ['acik', 'islemde'] } },
@@ -84,7 +87,14 @@ export async function tesis360Verisi(
         include: { surec: { include: { regulasyon: { select: { kod: true } } } } },
       }),
       db.agBolgesi.count({ where: { tesisId: id } }),
-      db.uretimUnitesi.count({ where: { tesisId: id } }),
+      db.uretimUnitesi.findMany({
+        where: { tesisId: id },
+        select: {
+          id: true, kod: true, ad: true, kuruluGucMw: true, durum: true,
+          _count: { select: { sistemler: true, varliklar: true } },
+        },
+        orderBy: { kod: 'asc' },
+      }),
       /* Alt gezinme şeridi santral kapısıyla AYNI kapsamdan gelir: bu
          ekranda açamayacağın bir santralin adı/kodu/fotoğrafı şeritte de
          anılmaz. */
@@ -94,10 +104,77 @@ export async function tesis360Verisi(
           tip: { select: { kod: true, ad: true } } },
         orderBy: { ad: 'asc' },
       }),
+      /* Katmanlı durum: kontrol AİLESİ başına uyum. `Madde.alanAdi`
+         (domain) çoğu maddede boş — onunla katman kurmak ekranın yarısını
+         "tanımsız" yapardı; aile hiyerarşisi /uyum ile aynı ve doludur. */
+      db.maddeDurumu.findMany({
+        where: { tesisId: id },
+        select: {
+          durum: true,
+          madde: {
+            select: {
+              id: true, kod: true, baslik: true, sira: true,
+              ustMadde: { select: { id: true, kod: true, baslik: true, sira: true } },
+            },
+          },
+        },
+      }),
+      /* Üretim zinciri — prototipteki "kuyudan şebekeye" bandı. Sıra
+         alanı ŞEMADA YOK: kritiklik, sonra kod. Uydurma bir akış sırası
+         çizmek varlık ilişkisi iddia etmek olurdu. */
+      db.sistemServis.findMany({
+        where: { tesisId: id },
+        select: {
+          id: true, kod: true, ad: true, tip: true, kritiklik: true, uniteId: true,
+          _count: { select: { varliklar: true, riskler: true } },
+        },
+      }),
+      db.bulgu.groupBy({
+        by: ['durum'], where: { maddeDurumu: { tesisId: id }, silindi: null },
+        _count: { _all: true },
+      }),
     ]);
 
   const sayim = Object.fromEntries(durumlar.map((d) => [d.durum, d._count._all]));
   const ozet = uyumOzeti(sayim);
+
+  /* Aile başına katman. Yaprağı olmayan madde KENDİ ailesidir. */
+  const katmanHarita = new Map<string, {
+    kod: string; ad: string; sira: number; sayim: Record<string, number>;
+  }>();
+  for (const d of katmanKayitlari) {
+    const aile = d.madde.ustMadde ?? d.madde;
+    const kayit = katmanHarita.get(aile.id) ?? {
+      kod: aile.kod, ad: aile.baslik, sira: aile.sira, sayim: {},
+    };
+    kayit.sayim[d.durum] = (kayit.sayim[d.durum] ?? 0) + 1;
+    katmanHarita.set(aile.id, kayit);
+  }
+  const katmanlar = [...katmanHarita.values()]
+    .map((kt) => {
+      const o = uyumOzeti(kt.sayim);
+      return {
+        kod: kt.kod, ad: kt.ad, sira: kt.sira, endeks: o.yuzde,
+        uygun: kt.sayim.uyumlu ?? 0, kismi: kt.sayim.kismi ?? 0,
+        uygunsuz: kt.sayim.uyumsuz ?? 0, bilinmeyen: o.bilinmeyen,
+      };
+    })
+    .sort((a, b) => a.sira - b.sira || a.kod.localeCompare(b.kod, 'tr'));
+
+  const KRITIKLIK_SIRASI: Record<string, number> = {
+    kritik: 0, yuksek: 1, orta: 2, dusuk: 3, bilinmiyor: 4,
+  };
+  const zincir = [...sistemler]
+    .sort((a, b) => (KRITIKLIK_SIRASI[a.kritiklik] ?? 9) - (KRITIKLIK_SIRASI[b.kritiklik] ?? 9)
+      || a.kod.localeCompare(b.kod, 'tr'))
+    .map((x) => ({
+      id: x.id, kod: x.kod, ad: x.ad, tip: x.tip, kritiklik: x.kritiklik,
+      varlik: x._count.varliklar, risk: x._count.riskler,
+    }));
+
+  const bulguDurumSayimi = Object.fromEntries(
+    bulguSayimi.map((b) => [b.durum, b._count._all]),
+  ) as Record<string, number>;
   const eos = varliklar.filter((v) => v.destekBitis && v.destekBitis < simdi).length;
   const gecikmisBulgu = bulgular.filter((b) => gecikmisMi(b.hedefTarih)).length;
   const yaklasanDenetim = denetimler
@@ -118,7 +195,7 @@ export async function tesis360Verisi(
       gucMw: tesis.kuruluGucMw,
       gorselAnahtari: tesis.gorselAnahtari,
       kritiklik: tesis.profil?.kritiklikSinifi ?? null,
-      uniteSayisi: uniteler || null,
+      uniteSayisi: uniteListesi.length || null,
       // Uyum: bilinmeyen ASLA 0 sayılmaz — yüzde yalnız değerlendirilenden,
       // bilinmeyen oranı ayrıca taşınır (lib/sabitler.ts:uyumOzeti).
       uyumYuzde: ozet.yuzde,
@@ -138,6 +215,25 @@ export async function tesis360Verisi(
       varlikSayisi: varliklar.length,
       bolgeSayisi: bolgeler,
       surecSayisi: surecler.length,
+      katmanlar,
+      zincir,
+      uniteler: uniteListesi.map((u) => ({
+        id: u.id, kod: u.kod, ad: u.ad, gucMw: u.kuruluGucMw, durum: u.durum,
+        sistemSayisi: u._count.sistemler, varlikSayisi: u._count.varliklar,
+      })),
+      sistemSayisi: sistemler.length,
+      bulguSayilari: {
+        acik: bulguDurumSayimi.acik ?? 0,
+        aksiyonda: bulguDurumSayimi.aksiyonda ?? 0,
+        kapali: bulguDurumSayimi.kapali ?? 0,
+        kabulEdildi: bulguDurumSayimi.kabul_edildi ?? 0,
+      },
+      acikBulgular: bulgular.map((b) => ({
+        id: b.id, kod: b.maddeDurumu.madde.kod, baslik: b.baslik,
+        onem: b.onemDerecesi, durum: b.durum,
+        hedefTarih: b.hedefTarih?.toISOString() ?? null,
+        gecikmis: gecikmisMi(b.hedefTarih),
+      })),
       odak: bulgular[0]
         ? {
             id: bulgular[0].id,

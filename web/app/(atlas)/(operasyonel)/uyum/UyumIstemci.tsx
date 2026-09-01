@@ -2,102 +2,64 @@
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import {
-  Alan, BosIlk, Dugme, Hata, Im, Ipucu, Kesir, type Durum,
-} from '@/components/atlas/temel';
-import {
-  Matris, Tablo, type Kolon, type MatrisSatiri, type Satir,
-} from '@/components/atlas/tablo';
-import { EkranBasligi, Filtreler } from '@/components/atlas/ekran';
-import {
-  Cekmece, CekmeceAlanlar, CekmeceBagli, CekmeceEylemler, CekmeceKimlik,
-} from '@/components/atlas/cekmece';
 import { useEylem } from '@/components/useEylem';
 import { kanitTalebiEkle } from '@/lib/eylemler2/denetim';
-import { DURUM_ETIKET, etiketle } from '@/lib/sabitler';
+import { DURUM_ETIKET, etiketle, uyumOzeti } from '@/lib/sabitler';
 import {
-  acikMi, agirlik, aileDurumu, enKotuHam, kisaTarih, sakinMi, satirAgirligi,
+  acikMi, kisaTarih,
   type CerceveVerisi, type Kontrol, type TesisSatiri,
 } from './mantik';
 
-/* O1 · Uyum kontrol odası — "nerede uyumsuzuz?" (03-screens O1)
+/* ═══════════════════════════════════════════════════════════════════════
+   UYUM KONTROL ODASI — C · OPERATIONAL LUXURY
 
-   Canvas'ta tek modül vardır: santral × kontrol ailesi matrisi. Hücrede
-   YALNIZ işaretçi bulunur; durum sözcüğü tüm ekranda yalnız çekmecenin
-   kimlik bloğunda geçer (06 §A2).
+   Görsel source of truth: `c-compliance.html`
+   (ORIGINAL_DESIGN_IMPLEMENTATION_MAP.md §3 ve §4).
 
-   Kapsam kararı ekranda ezilmez: matriste satırı olan santralleri
-   `UygulanabilirlikKarari` belirler (veri.ts). Kapsam dışı ve kararsız
-   tesisler matrise girmez, altta sessiz bir satırda özetlenir. */
+   Bu bir yeniden STİLLENDİRME değil. Orijinal tasarım ürünün eski
+   ekranından üç noktada MADDİ olarak ayrılıyor ve üçü de burada uygulandı:
 
-/* 10px mono affordance satırındaki bağlantılar satırın tipografisini bozmaz;
-   ayırt edici olan renk (ink/secondary) ve hover. */
-const BAG_STILI = {
-  fontSize: 'inherit', fontWeight: 400, letterSpacing: 'inherit',
-} as const;
+   1 · MATRİS DEVRİKTİR. Eskiden satır = santral, sütun = kontrol ailesiydi
+       ve hücre bir AİLEYİ temsil ettiği için "hangi kontrol?" sorusu
+       hücreden okunamıyordu. Prototipte satır = KONTROL, sütun = SANTRAL:
+       defterin sorusu "bu kontrolde kim uygunsuz" hâline gelir.
 
-/* ── Dikkat listesi — matrisin altındaki ikincil yüzey ────────────────
-   PİLOT KUSURU: Atlas 2'de matris 5 satıra düşünce ekranın alt yarısı
-   (≈340px) tamamen boş kalıyordu. Boşluk sadeliğin kanıtı değil; "az
-   gürültü" ile "hiçbir şey yok" aynı şey değildir.
+   2 · DETAY ÇEKMECEDE DEĞİL SATIR İÇİNDE AÇILIR. 420px çekmece defteri
+       terk ettirir; prototip gerekçeyi satırın altında, aynı sayfada dört
+       sütun hâlinde açar: NEDEN · KANIT · YÖNETİŞİM ZİNCİRİ · SORUMLULUK.
+       Okuyucu bağlamı kaybetmez.
 
-   Bu yüzey YENİ VERİ ÇEKMEZ ve YENİ İŞ KURALI TANIMLAMAZ: zaten yüklü
-   olan `cerceve.satirlar[].kontroller` üzerinden, matrisin kendi
-   fonksiyonlarıyla (`acikMi`, `agirlik` — mantik.ts) süzülüp sıralanır.
-   Matris "NEREDE uyumsuzuz" der ama hücre bir aileyi temsil ettiği için
-   "HANGİ kontrol, KİMDE, NE ZAMAN" sorularını yanıtlayamaz; bu liste tam
-   olarak o üç sütunu verir ve satıra basınca matrisin açtığı ÇEKMECENİN
-   AYNISINI açar. KPI kutusu eklenmedi — sarmalayıcı kart yok, aynı
-   `Tablo` primitifi ve aynı işaretçi grameri kullanılır. */
-const DIKKAT_KOLONLARI: Kolon[] = [
-  { baslik: 'Aile', genislik: 'minmax(120px, 0.7fr)', ikincil: true },
-  { baslik: 'Sahip', genislik: '132px', ikincil: true },
-  { baslik: 'Kanıt', genislik: '132px' },
-  { baslik: 'Son tarih', genislik: '150px' },
-];
+   3 · DURUM GLİF AĞIRLIĞIYLA KODLANIR (daire ailesi), renkle değil:
+       ● uygun · ○ kısmi · ⊖ uygunsuz · ◌ değerlendirilmedi · – kapsam dışı.
+       Efsane sol dizin sütununda OKUMA ANAHTARI olarak yaşar — arayüzün
+       parçası, dipnot değil.
 
-/** 06 §A3: tabloda 5–9 satır; kalanı kuyruk satırı toplar. */
-const DIKKAT_BUTCESI = 6;
+   PROTOTİPTE OLMAYAN, BURADA EKLENEN (harita §7):
+   · gerçek klavye gezinmesi (satır bir <button>, Enter/Space açar,
+     Esc kapatır) — prototipte yalnız ipucu metni vardı;
+   · `aria-expanded` / `aria-controls` sözleşmesi;
+   · ölçülmemiş hücre "—" gösterir, SIFIR DEĞİL (UNKNOWN ≠ ZERO);
+   · kapsam dışı ve kararsız santraller matrisin altında sessiz satırda —
+     gizlenmez, çünkü "kapsam dışı" bir KARARDIR.
 
-/** Aynı ağırlıkta olanlarda termini geçmiş olan üste çıkar. */
-const TERMIN_SIRASI: Record<string, number> = { bd: 0, md: 1, unk: 2, ok: 3 };
+   İŞ MANTIĞI DEĞİŞMEDİ: veri sözleşmesi (`CerceveVerisi`), `mantik.ts`
+   yüklemleri, `?cerceve=&kontrol=` derin bağlantısı, kapsam kuralları ve
+   yazma eylemleri aynı.
+   ═══════════════════════════════════════════════════════════════════════ */
 
-type Secim = { tesisId: string; kontrol: Kontrol; aileId: string };
+type Odak = { cerceve: string; madde: string | null };
 
-/** Seçili çerçevenin künyesi — hepsi zaten yüklü alanlar, tek sessiz satır. */
-function cerceveBaglami(cerceve: CerceveVerisi): string {
-  const parcalar: string[] = [];
-  if (cerceve.surumEtiketi) parcalar.push(`sürüm ${cerceve.surumEtiketi}`);
-  if (cerceve.yururluk) parcalar.push(`yürürlük ${kisaTarih(cerceve.yururluk)}`);
-  if (cerceve.surec) {
-    parcalar.push(cerceve.surec.kalanGun != null
-      ? `süreç ${cerceve.surec.kod} · ${cerceve.surec.kalanGun} gün`
-      : `süreç ${cerceve.surec.kod}`);
-  }
-  if (cerceve.denetim) parcalar.push(`denetim ${cerceve.denetim.kod}`);
-  if (cerceve.kural) {
-    parcalar.push(`kapsam kuralı v${cerceve.kural.surum}`
-      + (cerceve.kural.sonHesap ? ` · son hesap ${kisaTarih(cerceve.kural.sonHesap)}` : '')
-      + (cerceve.kural.elIleSayisi > 0 ? ` · ${cerceve.kural.elIleSayisi} el ile` : ''));
-  }
-  return parcalar.join(' · ');
-}
+/** Defterde aynı anda AÇIK tek satır olur — okuma sırası korunur. */
+type Acik = { maddeId: string; tesisId: string } | null;
 
-/** Ekranın açılış konumu: hangi çerçeve, hangi kırılım.
-    `/uyum?kontrol=EPDK-SYM-4.2.1` → o kontrolün çerçevesi + ailesi açılır
-    (O2 alt maddesinden gelen sıçrama). */
-type Odak = { cerceve: string; aile: string | null; madde: string | null };
-
-/* Kapsam URL'de yaşar: çerçeve değiştirici paylaşılabilir bir bağlantı üretmeli
-   ama tarayıcı geçmişini kirletmemeli — `components/atlas/kapsam.ts` sözleşmesi:
-   seçim `push`, kapsam `replace`.
-   Statik dışa aktarımda sunucu `searchParams` okuyamadığı için Next'in native
-   History API köprüsü kullanılır; `useSearchParams` kendiliğinden senkron kalır. */
+/* Kapsam URL'de yaşar: çerçeve değiştirici paylaşılabilir bir bağlantı
+   üretmeli ama tarayıcı geçmişini kirletmemeli. Statik dışa aktarımda
+   sunucu `searchParams` okuyamadığı için History API köprüsü kullanılır. */
 function kapsamiYaz(cerceveKodu: string) {
   if (typeof window === 'undefined') return;
   const p = new URLSearchParams(window.location.search);
   p.set('cerceve', cerceveKodu);
-  p.delete('kontrol');   // kırılım çerçeveyle birlikte sıfırlanır
+  p.delete('kontrol');
   window.history.replaceState(null, '', `?${p.toString()}`);
 }
 
@@ -108,15 +70,82 @@ function acilisOdagi(
     for (const c of cerceveler) {
       for (const a of c.aileler) {
         const y = a.yapraklar.find((x) => x.kod === kontrolParam || x.kisaKod === kontrolParam);
-        if (y) return { cerceve: c.kod, aile: a.id, madde: y.id };
+        if (y) return { cerceve: c.kod, madde: y.id };
       }
     }
   }
   const c = cerceveler.find((x) => x.kod === cerceveParam)
     ?? cerceveler.find((x) => x.satirlar.length > 0)
     ?? cerceveler[0];
-  return { cerceve: c?.kod ?? '', aile: null, madde: null };
+  return { cerceve: c?.kod ?? '', madde: null };
 }
+
+/* ── Devrik matris ────────────────────────────────────────────────────
+   Veri santral başına gelir (`satirlar[].kontroller[]`); defter kontrol
+   başına okur. Çevrim burada, TEK YERDE yapılır ve veri sözleşmesine
+   dokunmaz. */
+type MaddeSatiri = {
+  maddeId: string;
+  kod: string;
+  kisaKod: string;
+  baslik: string;
+  aileId: string;
+  aileKod: string;
+  /** tesisId → o santraldeki kontrol; santral kapsam dışıysa yok. */
+  hucreler: Map<string, Kontrol>;
+  /** kapsam içi hücre sayısı — "6 / 6" kapsam sütunu */
+  kapsamda: number;
+};
+
+function devir(cerceve: CerceveVerisi): MaddeSatiri[] {
+  const harita = new Map<string, MaddeSatiri>();
+  const aileKodu = new Map(cerceve.aileler.map((a) => [a.id, a.kisaKod || a.kod]));
+  for (const t of cerceve.satirlar) {
+    for (const k of t.kontroller) {
+      let m = harita.get(k.maddeId);
+      if (!m) {
+        m = {
+          maddeId: k.maddeId, kod: k.kod, kisaKod: k.kisaKod, baslik: k.baslik,
+          aileId: k.aileId, aileKod: aileKodu.get(k.aileId) ?? '',
+          hucreler: new Map(), kapsamda: 0,
+        };
+        harita.set(k.maddeId, m);
+      }
+      m.hucreler.set(t.id, k);
+      if (k.im !== null) m.kapsamda += 1;
+    }
+  }
+  /* Sıra kontrol koduna göre: defter bir kütüktür, kod sırası okunur. */
+  return [...harita.values()].sort((a, b) => a.kod.localeCompare(b.kod, 'tr'));
+}
+
+/* Glif sınıfı — durum yalnız renkle anlatılmaz (harita §7 kusur 2).
+   Eşleme HAM dizeye değil `mantik.ts`in ürettiği `im` işaretçisine bakar:
+   ham → im çevrimi tek yerde (DURUM_IM) yaşar ve bu ekran onu YENİDEN
+   TANIMLAMAZ; aksi hâlde matris ile çerçeve detayı birbirini yalanlar. */
+const GLIF_SINIF: Record<string, string> = {
+  ok: 'g-uygun', tamam: 'g-uygun', md: 'g-kismi',
+  bd: 'g-uygunsuz', unk: 'g-yok', pl: 'g-yok',
+};
+
+function durumSozu(ham: string): string {
+  return DURUM_ETIKET[ham as keyof typeof DURUM_ETIKET] ?? etiketle(ham);
+}
+
+function glif(k: Kontrol | undefined): { sinif: string; soz: string } {
+  if (!k || k.im === null) return { sinif: 'g-disi', soz: 'Kapsam dışı' };
+  return { sinif: GLIF_SINIF[k.im] ?? 'g-yok', soz: durumSozu(k.ham) };
+}
+
+/* Efsane ürünün SÖZLÜĞÜNDEN türer, elle yazılmaz: durum sözcükleri tek
+   kaynaktan gelir (`DURUM_ETIKET`), efsane ile hücre ipucu ayrışamaz. */
+const OKUMA_ANAHTARI: { sinif: string; yazi: string }[] = [
+  { sinif: 'g-uygun', yazi: DURUM_ETIKET.uyumlu },
+  { sinif: 'g-kismi', yazi: DURUM_ETIKET.kismi },
+  { sinif: 'g-uygunsuz', yazi: DURUM_ETIKET.uyumsuz },
+  { sinif: 'g-yok', yazi: `${DURUM_ETIKET.degerlendirilmedi} · ${DURUM_ETIKET.incelemede}` },
+  { sinif: 'g-disi', yazi: DURUM_ETIKET.kapsamdisi },
+];
 
 export default function UyumIstemci({
   cerceveler, yazabilir,
@@ -127,464 +156,497 @@ export default function UyumIstemci({
 
   const [odak, setOdak] = useState<Odak>(
     () => acilisOdagi(cerceveler, kontrolParam, cerceveParam));
-  const [secim, setSecim] = useState<Secim | null>(null);
-  /* Dikkat listesi bütçeyi aşınca kuyruk satırı açar — salt sunum durumu. */
-  const [dikkatAcik, setDikkatAcik] = useState(false);
+  const [acik, setAcik] = useState<Acik>(null);
+  const [aile, setAile] = useState<string | null>(null);
 
-  const { aile: odakAile, madde: odakMadde } = odak;
   const cerceve = cerceveler.find((c) => c.kod === odak.cerceve) ?? cerceveler[0];
+  const satirlar = useMemo(() => (cerceve ? devir(cerceve) : []), [cerceve]);
+  const gorunur = useMemo(
+    () => (aile ? satirlar.filter((s) => s.aileId === aile) : satirlar),
+    [satirlar, aile],
+  );
 
-  function cerceveSec(kod: string) {
-    setOdak({ cerceve: kod, aile: null, madde: null });
-    setSecim(null);
-    setDikkatAcik(false);
-    kapsamiYaz(kod);
-  }
+  /* Metrikler KESİLMEMİŞ kümeden sayılır: aile süzgeci listeyi daraltır,
+     defterin toplamını değiştirmez (06 §A2 ile aynı kural). */
+  const m = useMemo(() => {
+    const sayilar = sayHam(satirlar);
+    /* Endeks `uyumOzeti` ile hesaplanır — ürünün TEK uyum formülü odur
+       (lib/sabitler.ts): payda değerlendirilmiş kayıtlardır, bilinmeyen
+       ne 0 ne 1 sayılır ve ayrıca raporlanır (UNKNOWN ≠ ZERO). Bu ekran
+       kendi yüzdesini icat ederse defter ile çerçeve detayı çelişir. */
+    const o = uyumOzeti(sayilar);
+    return {
+      uygun: sayilar.uyumlu ?? 0,
+      kismi: sayilar.kismi ?? 0,
+      uygunsuz: sayilar.uyumsuz ?? 0,
+      olculmemis: o.bilinmeyen,
+      toplam: o.kapsam,
+      endeks: o.yuzde,
+    };
+  }, [satirlar]);
 
-  function kirilimiSifirla() {
-    setOdak((o) => ({ ...o, aile: null, madde: null }));
-    setSecim(null);
-    kapsamiYaz(odak.cerceve);
-  }
-
-  /* ── kolonlar: aile kırılımı (varsayılan) ya da tek ailenin yaprakları ── */
-  const aile = odakAile ? cerceve?.aileler.find((a) => a.id === odakAile) ?? null : null;
-  const kolonlar = useMemo(() => {
-    if (!cerceve) return [];
-    /* Sütun başlığı çerçeve detayını o ailede açar (03-screens O1). */
-    if (aile) {
-      return aile.yapraklar.map((y) => ({
-        id: y.id, baslik: y.kisaKod, aileId: aile.id,
-        yol: `/uyum/${cerceve.kod}?aile=${encodeURIComponent(aile.kod)}`
-          + `&kontrol=${encodeURIComponent(y.kod)}`,
-      }));
-    }
-    return cerceve.aileler.map((a) => ({
-      id: a.id, baslik: a.kisa, aileId: a.id,
-      yol: `/uyum/${cerceve.kod}?aile=${encodeURIComponent(a.kod)}`,
-    }));
-  }, [cerceve, aile]);
-
-  /* ── satırlar: her hücre bir işaretçi + tek satırlık ipucu ─────────── */
-  const satirVerisi = useMemo(() => {
-    if (!cerceve) return [];
-    return cerceve.satirlar.map((s) => {
-      const hucreler = kolonlar.map((k) => {
-        const adaylar = aile
-          ? s.kontroller.filter((x) => x.maddeId === k.id)
-          : s.kontroller.filter((x) => x.aileId === k.aileId);
-        const enKotu = enKotuHam(adaylar.map((x) => x.ham));
-        const surukleyen = adaylar.find((x) => x.ham === enKotu) ?? adaylar[0] ?? null;
-        return {
-          durum: aileDurumu(adaylar.map((x) => x.ham)),
-          kontrol: surukleyen,
-          aileId: k.aileId,
-          adet: adaylar.length,
-          acik: adaylar.filter((x) => acikMi(x.ham)).length,
-        };
-      });
-      return {
-        satir: s,
-        hucreler,
-        agirlik: satirAgirligi(hucreler.map((h) => h.durum)),
-        sakin: sakinMi(hucreler.map((h) => h.durum)),
-      };
-    }).sort((a, b) => b.agirlik - a.agirlik);
-  }, [cerceve, kolonlar, aile]);
-
-  /* ── dikkat listesi: takip gerektiren kontroller, en ağırdan hafife ──
-     Kaynak matrisin ta kendisi (`cerceve.satirlar`); kırılım seçiliyse
-     kapsam o aileye daralır, çünkü ekranın odağı da oraya daralmıştır. */
-  const dikkat = useMemo(() => {
-    if (!cerceve) return [] as { satir: TesisSatiri; kontrol: Kontrol }[];
-    const liste: { satir: TesisSatiri; kontrol: Kontrol }[] = [];
-    for (const s of cerceve.satirlar) {
-      for (const k of s.kontroller) {
-        if (!acikMi(k.ham)) continue;
-        if (odakAile && k.aileId !== odakAile) continue;
-        liste.push({ satir: s, kontrol: k });
-      }
-    }
-    return liste.sort((a, b) => {
-      const w = agirlik(b.kontrol.ham) - agirlik(a.kontrol.ham);
-      if (w !== 0) return w;
-      const t = (d: Durum | null) => (d ? TERMIN_SIRASI[d] ?? 4 : 4);
-      const tf = t(a.kontrol.terminIm) - t(b.kontrol.terminIm);
-      if (tf !== 0) return tf;
-      return a.satir.ad.localeCompare(b.satir.ad, 'tr');
-    });
-  }, [cerceve, odakAile]);
-
-  const dikkatGorunur = dikkatAcik ? dikkat : dikkat.slice(0, DIKKAT_BUTCESI);
-  const dikkatSatirlari: Satir[] = dikkatGorunur.map(({ satir, kontrol }) => ({
-    id: kontrol.anahtar,
-    durum: kontrol.im ?? 'unk',
-    kenar: kontrol.im ?? 'unk',
-    /* Durum SÖZCÜĞÜ yok — işaretçi + kod + başlık (06 §A2/§A4-3). */
-    konu: `${kontrol.kisaKod} · ${kontrol.baslik}`,
-    alt: satir.ad,
-    hucreler: [
-      cerceve?.aileler.find((a) => a.id === kontrol.aileId)?.kisa ?? '—',
-      kontrol.sahip ?? '—',
-      /* Kanıt tazeliği: işaretçi taze/eskimiş/yok ayrımını taşır, metin
-         yalnız sayıyı ve nedeni söyler ("3 · süresi doldu"). */
-      <span key="k" style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--s6)' }}>
-        <Im durum={kontrol.kanitIm} ad="Kanıt tazeliği" />
-        {kontrol.kanitYazi}
-      </span>,
-      kontrol.terminIm
-        ? (
-          <span key="t" style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--s6)' }}>
-            <Im durum={kontrol.terminIm} ad="Termin" />
-            {kontrol.termin}
-          </span>
-        )
-        : kontrol.termin,
-    ],
-  }));
-
-  const matrisSatirlari: MatrisSatiri[] = satirVerisi.map((v) => ({
-    id: v.satir.id,
-    ad: v.satir.ad,
-    alt: v.satir.alt,
-    sakin: v.sakin,
-    /* Satır etiketi santralin kendi ekranına gider; hücre çekmeceyi açar. */
-    yol: `/tesisler/${v.satir.id}`,
-    hucreler: v.hucreler.map((h) => ({
-      /* null → hücre boş kalır: kapsam dışı, bilinmeyen DEĞİLDİR. */
-      durum: h.durum,
-      ipucu: h.kontrol
-        ? (h.durum === null ? `${h.kontrol.kisaKod} · bu tesiste kapsam dışı` : h.kontrol.ipucu)
-        : 'Bu ailede kontrol tanımlı değil',
-    })),
-  }));
+  const santraller: TesisSatiri[] = cerceve?.satirlar ?? [];
 
   if (!cerceve) {
     return (
-      <main data-yuzey="defter">
-        <EkranBasligi eyebrow="UYUM" baslik="Uyum kontrol odası" />
-        <section className="ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
-          <BosIlk cumle="Sistemde aktif regülasyon tanımlı değil."
-            eylem={<Link className="dg dg-birincil" href="/regulasyonlar">Regülasyon kütüphanesi</Link>} />
-        </section>
-      </main>
+      <div className="ab-c-ekrandizin" data-dizin="ekran">
+        <aside className="ab-c-dizin" />
+        <div><p style={{ color: 'var(--i3)' }}>Yürürlükte çerçeve yok.</p></div>
+      </div>
     );
   }
 
-  const m = cerceve.metrikler;
-  const kapsamDisi = cerceve.kapsam.filter((k) => k.durum === 'disarida');
-  const kararsiz = cerceve.kapsam.filter((k) => k.durum === 'kararsiz');
-
-  /* Metrik satırı: 4 metrik. Yüzdenin yanında bilinmeyen payı DAİMA görünür. */
-  const metrikler = [
-    {
-      deger: m.uyumYuzde === null ? '—' : `%${m.uyumYuzde}`,
-      yazi: 'Uyum',
-      durum: m.uyumYuzde === null ? ('unk' as Durum) : undefined,
-    },
-    {
-      deger: m.bilinmeyenYuzde === null ? '—' : `%${m.bilinmeyenYuzde}`,
-      yazi: 'Bilinmeyen',
-      durum: (m.bilinmeyen > 0 ? 'unk' : undefined) as Durum | undefined,
-    },
-    {
-      deger: m.kanitYuzde === null ? '—' : `%${m.kanitYuzde}`,
-      yazi: 'Kanıt',
-      durum: (m.kanitYuzde !== null && m.kanitYuzde < 50 ? 'md' : undefined) as Durum | undefined,
-    },
-    {
-      deger: m.kanitDoldu,
-      yazi: 'Kanıt doldu',
-      durum: (m.kanitDoldu > 0 ? 'bd' : undefined) as Durum | undefined,
-    },
-  ];
-
-  const seciliKontrol = secim?.kontrol ?? null;
-  const seciliSatir = secim ? cerceve.satirlar.find((s) => s.id === secim.tesisId) ?? null : null;
-
+  /* Bu ekran KENDİ dizinini verir; kabuğun varsayılan defter dizini
+     `data-dizin="ekran"` görünce gizlenir (bkz. Kabuk.tsx · KabukC). */
   return (
-    <>
-      <main data-yuzey="defter" style={{ minWidth: 0 }}>
-        {/* Başlık cevabı verir: uyumsuz varsa onu, yoksa takipteki yükü söyler. */}
-        <EkranBasligi
-          eyebrow={`${cerceve.gorunenAd} · ${m.kapsamdakiTesis} tesis kapsamda`}
-          vurgu={`${m.uyumsuz > 0 ? m.uyumsuz : m.acik} kontrol`}
-          baslik={m.uyumsuz > 0 ? 'uyumsuz' : m.acik > 0 ? 'takipte' : 'uyumlu'}
-          metrikler={metrikler}
-        />
+    <div className="ab-c-ekrandizin" data-dizin="ekran">
+      {/* ── Dizin sütunu: çerçeve · kontrol ailesi · OKUMA ANAHTARI ──── */}
+      <aside className="ab-c-dizin" aria-label="Defter dizini">
+        <div className="bolum">
+          <span className="etiket">Çerçeve</span>
+          {cerceveler.map((c) => (
+            <button
+              key={c.kod}
+              type="button"
+              className="satir"
+              aria-current={c.kod === cerceve.kod ? 'true' : undefined}
+              onClick={() => { setOdak({ cerceve: c.kod, madde: null }); setAile(null); setAcik(null); kapsamiYaz(c.kod); }}
+            >
+              <span>{c.ad}</span>
+              <span className="sayi">{c.aileler.reduce((t, a) => t + a.yapraklar.length, 0)}</span>
+            </button>
+          ))}
+        </div>
 
-        <section className="ekran-govde">
-          <Filtreler
-            secenekler={cerceveler.map((c) => ({ id: c.kod, ad: c.gorunenAd }))}
-            aktif={cerceve.kod}
-            sec={cerceveSec}
-            kapsam={
-              <Link className="kapsam-dugme" href={`/uyum/${cerceve.kod}`}>
-                Çerçeve detayı ▸
-              </Link>
-            }
+        <div className="bolum">
+          <span className="etiket">Kontrol ailesi</span>
+          <button type="button" className="satir"
+            aria-current={aile === null ? 'true' : undefined}
+            onClick={() => { setAile(null); setAcik(null); }}>
+            <span>Tümü</span>
+            <span className="sayi">{satirlar.length}</span>
+          </button>
+          {cerceve.aileler.map((a) => (
+            <button key={a.id} type="button" className="satir"
+              aria-current={aile === a.id ? 'true' : undefined}
+              onClick={() => { setAile(a.id); setAcik(null); }}>
+              <span>{a.kisa || a.baslik}</span>
+              <span className="sayi">{a.yapraklar.length}</span>
+            </button>
+          ))}
+        </div>
+
+        {/* Efsane ARAYÜZÜN PARÇASI — dipnot değil (prototip sol kolonu). */}
+        <div className="bolum">
+          <span className="etiket">Okuma anahtarı</span>
+          {OKUMA_ANAHTARI.map((o) => (
+            <span key={o.sinif} className="anahtar">
+              <span className={`ab-glif ${o.sinif}`} aria-hidden />
+              {o.yazi}
+            </span>
+          ))}
+        </div>
+      </aside>
+
+      {/* ── Defter gövdesi ───────────────────────────────────────────── */}
+      <div style={{ minWidth: 0 }}>
+        <header style={{ display: 'flex', alignItems: 'flex-end', gap: 32, marginBottom: 30 }}>
+          <div style={{ minWidth: 0 }}>
+            <h1 className="ab-c-baslik" style={{ margin: 0 }}>Nerede uygunsuz, ve neden?</h1>
+            <p className="etiket" style={{ margin: '10px 0 0', textTransform: 'none', letterSpacing: '.02em', fontFamily: 'var(--ui)', fontSize: 12 }}>
+              Satır = kontrol · sütun = santral · satıra tıklayınca gerekçe aynı defterde açılır
+            </p>
+          </div>
+          <div className="ab-c-olcut" style={{ marginLeft: 'auto' }}>
+            <Metrik etiket="Uygun" deger={m.uygun} />
+            <Metrik etiket="Kısmi" deger={m.kismi} />
+            <Metrik etiket="Uygunsuz" deger={m.uygunsuz} vurgu />
+            <Metrik etiket="Endeks" oran
+              deger={m.endeks === null ? '—' : `%${m.endeks}`} />
+          </div>
+        </header>
+
+        {/* Prototipte lede ile matris arasında ince bir kural var — defter
+            "giriş" ile "kütük"ü ayırır. */}
+        <div className="ab-c-kural" style={{ margin: '0 0 20px' }} />
+
+        {gorunur.length === 0 ? (
+          <p style={{ color: 'var(--i3)', fontSize: 13 }}>
+            Bu çerçevede uygulanabilir kontrol bulunmuyor.
+          </p>
+        ) : (
+          <UyumMatrisi
+            cerceve={cerceve}
+            satirlar={gorunur}
+            santraller={santraller}
+            acik={acik}
+            setAcik={setAcik}
+            yazabilir={yazabilir}
           />
+        )}
 
-          {cerceve.aileler.length === 0 ? (
-            <BosIlk
-              cumle={`${cerceve.gorunenAd} kataloğu henüz yüklenmedi.`}
-              eylem={<Link className="dg dg-birincil" href="/ice-aktarim">Katalog içe aktar</Link>}
-            />
-          ) : cerceve.satirlar.length === 0 ? (
-            /* Boş: çerçeve hiçbir tesiste uygulanabilir değil (03-screens O1) */
-            <BosIlk
-              cumle={`${cerceve.gorunenAd} bu portföyde hiçbir tesise uygulanabilir bulunmadı`
-                + `${kapsamDisi.length ? ` — ${kapsamDisi.length} tesis kapsam dışı` : ''}`
-                + `${kararsiz.length ? `, ${kararsiz.length} tesiste karar üretilemedi` : ''}.`}
-              eylem={
-                <Link className="dg dg-birincil" href={`/uyum/${cerceve.kod}`}>
-                  Kapsam kurallarını aç
-                </Link>
-              }
-            />
-          ) : (
-            <div style={{ marginTop: 'var(--s22)' }}>
-              {aile && (
-                <p className="dip-not" style={{ marginTop: 0, marginBottom: 'var(--s10)' }}>
-                  Kırılım · {aile.baslik}
-                  {odakMadde && ` · ${aile.yapraklar.find((y) => y.id === odakMadde)?.kisaKod ?? ''}`}
-                  {' · '}
-                  <button type="button" className="dg dg-satir" style={BAG_STILI}
-                    onClick={kirilimiSifirla}>
-                    Tüm aileler
-                  </button>
-                </p>
-              )}
+        <p className="etiket" style={{ marginTop: 26, display: 'flex', gap: 24, flexWrap: 'wrap' }}>
+          <span>{m.toplam} kapsam içi hücre</span>
+          {m.olculmemis > 0 && <span>{m.olculmemis} hücre değerlendirilmedi — sıfır değil, bilinmeyen</span>}
+          <span>Gösterilen {gorunur.length} kontrol / {satirlar.length}</span>
+          {cerceve.surumEtiketi && <span>Sürüm {cerceve.surumEtiketi}</span>}
+          {cerceve.yururluk && <span>Yürürlük {kisaTarih(cerceve.yururluk)}</span>}
+        </p>
 
-              <Matris
-                kolonBasliklari={kolonlar.map((k) => ({ ad: k.baslik, yol: k.yol }))}
-                satirlar={matrisSatirlari}
-                secili={secim?.tesisId ?? null}
-                sec={(satirId, kolon) => {
-                  const v = satirVerisi.find((x) => x.satir.id === satirId);
-                  const h = v?.hucreler[kolon];
-                  if (!v || !h?.kontrol) return;
-                  setSecim({ tesisId: satirId, kontrol: h.kontrol, aileId: h.aileId });
-                }}
-              />
-
-              {/* 10px mono affordance satırı */}
-              <p className="dip-not">
-                Hücreye gelince özet · tıklayınca çekmece · santral adı 360&apos;a,
-                sütun başlığı çerçeve detayına gider
-              </p>
-
-              {/* Kapsam dışı ve kararsız tesisler: ayrı ve sessiz. */}
-              {(kapsamDisi.length > 0 || kararsiz.length > 0) && (
-                <p className="dip-not" style={{ marginTop: 'var(--s6)' }}>
-                  {kapsamDisi.length > 0 && (
-                    <Ipucu genis
-                      metin={kapsamDisi.slice(0, 6).map((k) => `${k.ad}: ${k.gerekce}`).join(' · ')}>
-                      <span className="acikla">{kapsamDisi.length} tesis kapsam dışı</span>
-                    </Ipucu>
-                  )}
-                  {kapsamDisi.length > 0 && kararsiz.length > 0 && ' · '}
-                  {kararsiz.length > 0 && (
-                    <Ipucu genis
-                      metin={kararsiz.map((k) => `${k.ad}: ${k.gerekce}`).join(' · ')}>
-                      <span className="acikla">
-                        {/* Kural varsa bu bir veri boşluğudur; kural yoksa kapsam
-                            yalnız sürecin tesis listesinden gelir. */}
-                        {cerceve.kural
-                          ? `${kararsiz.length} tesiste kapsam kararı yok`
-                          : `${kararsiz.length} tesis süreç kapsamında değil`}
-                      </span>
-                    </Ipucu>
-                  )}
-                  {' · '}
-                  <Link className="dg dg-satir" style={BAG_STILI} href={`/uyum/${cerceve.kod}`}>
-                    Kapsam kuralı ▸
-                  </Link>
-                </p>
-              )}
-
-              {/* ── İkincil yüzey: dikkat listesi ────────────────────────
-                  Matrisin altındaki boşluk artık matrisin cevaplayamadığı
-                  soruyu taşıyor: hangi kontrol, kimde, ne zaman, kanıtı ne
-                  durumda. Yeni sorgu ya da yeni iş kuralı yok. */}
-              <div className="uyum-ikincil">
-                {dikkat.length > 0 ? (
-                  <>
-                    <p className="t-colhead uyum-ikincil-bas">
-                      Dikkat listesi
-                      <span className="ayrinti">
-                        {dikkat.length} kontrol takipte
-                        {aile ? ` · ${aile.kisa} kırılımı` : ''}
-                      </span>
-                    </p>
-                    <Tablo
-                      sik
-                      konuBasligi="Kontrol"
-                      kolonlar={DIKKAT_KOLONLARI}
-                      satirlar={dikkatSatirlari}
-                      secili={secim
-                        ? `${secim.tesisId}::${secim.kontrol.maddeId}`
-                        : null}
-                      /* Aynı çekmece: liste matrisin kısayolu, ayrı bir
-                         ekran değil. */
-                      sec={(id) => {
-                        const hedef = dikkat.find((d) => d.kontrol.anahtar === id);
-                        if (!hedef) return;
-                        setSecim({
-                          tesisId: hedef.satir.id,
-                          kontrol: hedef.kontrol,
-                          aileId: hedef.kontrol.aileId,
-                        });
-                      }}
-                      kuyruk={!dikkatAcik && dikkat.length > DIKKAT_BUTCESI
-                        ? {
-                          metin: `+${dikkat.length - DIKKAT_BUTCESI} kontrol · daha hafif`,
-                          ac: () => setDikkatAcik(true),
-                        }
-                        : null}
-                    />
-                  </>
-                ) : (
-                  /* Boş olmak da bir cevaptır — ama sessiz bir boşlukla
-                     değil, tek cümleyle söylenir. */
-                  <p className="dip-not" style={{ marginTop: 0 }}>
-                    {cerceve.gorunenAd} kapsamında takip gerektiren kontrol yok.
-                  </p>
-                )}
-
-                {/* Çerçeve künyesi — hangi sürüme, hangi sürece, hangi
-                    denetime bakıyoruz. Tek satır, kutu yok. */}
-                <p className="dip-not">{cerceveBaglami(cerceve)}</p>
-              </div>
-            </div>
-          )}
-        </section>
-      </main>
-
-      {secim && seciliKontrol && seciliSatir && (
-        <HucreCekmecesi
-          cerceve={cerceve}
-          satir={seciliSatir}
-          kontrol={seciliKontrol}
-          aileId={secim.aileId}
-          yazabilir={yazabilir}
-          kapat={() => setSecim(null)}
-        />
-      )}
-    </>
+        <KapsamDisi cerceve={cerceve} />
+      </div>
+    </div>
   );
 }
 
-/* ═══ Çekmece — hücrenin tam hikâyesi ══════════════════════════════════ */
+function Metrik({ etiket, deger, vurgu, oran }: {
+  etiket: string; deger: number | string; vurgu?: boolean; oran?: boolean;
+}) {
+  return (
+    <div>
+      <div className="etiket">{etiket}</div>
+      <div className={`deger${vurgu ? ' vurgu' : ''}${oran ? ' oran' : ''}`}>{deger}</div>
+    </div>
+  );
+}
 
-function HucreCekmecesi({
-  cerceve, satir, kontrol, aileId, yazabilir, kapat,
-}: {
+/* ── Matris + satır içi genişleme ────────────────────────────────────── */
+
+function UyumMatrisi({ cerceve, satirlar, santraller, acik, setAcik, yazabilir }: {
   cerceve: CerceveVerisi;
-  satir: CerceveVerisi['satirlar'][number];
-  kontrol: Kontrol;
-  aileId: string;
+  satirlar: MaddeSatiri[];
+  santraller: TesisSatiri[];
+  acik: Acik;
+  setAcik: (a: Acik) => void;
   yazabilir: boolean;
+}) {
+  const kolonlar = `92px minmax(220px, 1fr) repeat(${santraller.length}, 68px) 78px`;
+  const genel = uyumOzeti(sayHam(satirlar)).yuzde;
+  return (
+    <div
+      className="ab-mtx"
+      style={{ ['--mtx-kolon' as string]: kolonlar }}
+      onKeyDown={(e) => { if (e.key === 'Escape' && acik) { e.stopPropagation(); setAcik(null); } }}
+    >
+      <div className="bas">
+        <span className="kolonbas">Kontrol</span>
+        <span className="kolonbas">Başlık</span>
+        {santraller.map((t) => (
+          <span key={t.id} className="santral">
+            {t.ad}
+            <span className="mono">{t.kod}</span>
+          </span>
+        ))}
+        <span className="kolonbas" style={{ textAlign: 'right' }}>Kapsam</span>
+      </div>
+
+      {satirlar.map((s) => {
+        const satirAcik = acik?.maddeId === s.maddeId;
+        return (
+          <div key={s.maddeId}>
+            <div className={`satir${satirAcik ? ' acik' : ''}`}>
+              <span className="mono kod">{s.kisaKod || s.kod}</span>
+              <span className="baslik">{s.baslik}</span>
+              {santraller.map((t) => {
+                const k = s.hucreler.get(t.id);
+                const g = glif(k);
+                const bu = satirAcik && acik?.tesisId === t.id;
+                return (
+                  <button
+                    key={t.id}
+                    type="button"
+                    className={`hucre${bu ? ' secili' : ''}`}
+                    aria-expanded={bu}
+                    aria-label={`${s.kisaKod || s.kod} · ${t.ad} · ${g.soz}`}
+                    onClick={() => setAcik(bu ? null : (k ? { maddeId: s.maddeId, tesisId: t.id } : null))}
+                    disabled={!k || k.im === null}
+                  >
+                    <span className={`ab-glif ${g.sinif}`} aria-hidden />
+                  </button>
+                );
+              })}
+              <span className="mono kapsam">{s.kapsamda} / {santraller.length}</span>
+            </div>
+
+            {satirAcik && acik && (
+              <Gerekce
+                cerceve={cerceve}
+                satir={s}
+                tesis={santraller.find((t) => t.id === acik.tesisId)!}
+                kontrol={s.hucreler.get(acik.tesisId)!}
+                kapat={() => setAcik(null)}
+                yazabilir={yazabilir}
+              />
+            )}
+          </div>
+        );
+      })}
+
+      {/* Santral endeksi — matrisin altında, prototipteki gibi */}
+      {/* Sütun özeti — prototipteki gibi matrisin ALTINDA, kalın kuralla.
+          Ölçülmemiş sütun "—" gösterir: 0 uyum ile hiç değerlendirilmemiş
+          aynı şey değildir (UNKNOWN ≠ ZERO). */}
+      <div className="satir endeks">
+        <span className="etiket">Endeks</span>
+        <span style={{ fontSize: 11.5, color: 'var(--i3)' }}>
+          Santral bazında ağırlıklı uyum
+        </span>
+        {santraller.map((t) => {
+          const e = santralEndeksi(satirlar, t.id);
+          return (
+            <span key={t.id} className="mono num deger"
+              style={e === null ? { color: 'var(--i3)' } : undefined}>
+              {e === null ? '—' : `%${e}`}
+            </span>
+          );
+        })}
+        <span className="mono num" style={{ textAlign: 'right', fontSize: 12 }}>
+          {genel === null ? '—' : `%${genel}`}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+/** Kapsam içi hücrelerin HAM durum sayımı — `uyumOzeti` girdisi. */
+function sayHam(satirlar: MaddeSatiri[], tesisId?: string): Record<string, number> {
+  const sayilar: Record<string, number> = {};
+  for (const s of satirlar) {
+    const hucreler = tesisId
+      ? [s.hucreler.get(tesisId)].filter(Boolean) as Kontrol[]
+      : [...s.hucreler.values()];
+    for (const k of hucreler) {
+      if (k.im === null) continue;          // kapsam dışı: iki paydanın da dışında
+      sayilar[k.ham] = (sayilar[k.ham] ?? 0) + 1;
+    }
+  }
+  return sayilar;
+}
+
+/** Santral sütununun endeksi. Hiç DEĞERLENDİRİLMEMİŞSE null — sıfır değil. */
+function santralEndeksi(satirlar: MaddeSatiri[], tesisId: string): number | null {
+  return uyumOzeti(sayHam(satirlar, tesisId)).yuzde;
+}
+
+/* ── Satır içi gerekçe — çekmece DEĞİL ───────────────────────────────
+   Prototipin materyal farkı: 420px çekmece defteri terk ettirir, gerekçe
+   SATIRIN ALTINDA dört sütun hâlinde açılır ve okuyucu matrisi görmeye
+   devam eder. Yazma eylemi (kanıt talebi) İÇERİK OLARAK AYNIDIR: aynı
+   sunucu eylemi, aynı denetim bağı, aynı yetki kapısı — yalnız çekmece
+   yerine bu blokta yaşar. */
+
+function Gerekce({ cerceve, satir, tesis, kontrol, kapat, yazabilir }: {
+  cerceve: CerceveVerisi;
+  satir: MaddeSatiri;
+  tesis: TesisSatiri;
+  kontrol: Kontrol;
   kapat: () => void;
+  yazabilir: boolean;
 }) {
   const { bekliyor, hata, calistir } = useEylem();
   const [form, setForm] = useState(false);
   const [gonderildi, setGonderildi] = useState(false);
   const [talep, setTalep] = useState({
-    baslik: `${kontrol.kisaKod} ${kontrol.baslik} — ${satir.ad}`,
+    baslik: `${kontrol.kisaKod} ${kontrol.baslik} — ${tesis.ad}`,
     sonTarih: '',
   });
 
-  const aile = cerceve.aileler.find((a) => a.id === aileId);
-  const aileKontrolleri = satir.kontroller.filter((k) => k.aileId === aileId);
+  /* Aile sayacı çekmeceden devralındı: "bu ailede kaç kontrol takipte".
+     Sayım o SANTRALİN satırından gelir — matris devrildi, veri değil. */
+  const aile = cerceve.aileler.find((a) => a.id === kontrol.aileId);
+  const aileKontrolleri = tesis.kontroller.filter((k) => k.aileId === kontrol.aileId);
   const aileAcik = aileKontrolleri.filter((k) => acikMi(k.ham)).length;
-  const im = kontrol.im ?? 'unk';
+
+  const denetimYok = !cerceve.denetim;
+  const kapali = !yazabilir || denetimYok;
 
   return (
-    <Cekmece kod={`${satir.kod} · ${aile?.kisa ?? cerceve.gorunenAd}`} kapat={kapat}>
-      {/* Durum SÖZCÜĞÜ ürün genelinde yalnız burada geçer (06 §A2). */}
-      <CekmeceKimlik
-        durum={im}
-        soz={DURUM_ETIKET[kontrol.ham as keyof typeof DURUM_ETIKET] ?? 'Değerlendirilmedi'}
-        baslik={`${cerceve.gorunenAd} ${kontrol.kisaKod} — ${kontrol.baslik}`}
-        cumle={kontrol.gerekce}
-      />
+    <section
+      className="ab-mtx-acilan"
+      aria-label={`${satir.kisaKod || satir.kod} · ${tesis.ad} gerekçesi`}
+    >
+      <header>
+        <span className="etiket">Açılan hücre</span>
+        <span className="etiket sag">
+          Son değerlendirme {kisaTarih(kontrol.sonDegerlendirme)}
+        </span>
+        <button type="button" className="ab-dugme" onClick={kapat}>
+          Satırı kapat
+        </button>
+      </header>
 
-      <CekmeceAlanlar
-        alanlar={[
-          { etiket: 'Kanıt', deger: kontrol.kanitYazi, durum: kontrol.kanitIm },
-          { etiket: 'Sahip', deger: kontrol.sahip ?? '—' },
-          { etiket: 'Son tarih', deger: kontrol.termin, durum: kontrol.terminIm ?? undefined },
-          {
-            etiket: `${aile?.baslik ?? 'Aile'} · takipte`,
-            deger: <Kesir pay={aileAcik} payda={aileKontrolleri.length} />,
-          },
-        ]}
-      />
+      <h2 className="ab-c-baslik acilan-baslik">
+        {satir.kisaKod || satir.kod} · {tesis.ad} — {durumSozu(kontrol.ham).toLocaleLowerCase('tr-TR')}
+      </h2>
+      {/* Prototipte kontrol adı yalnız matris satırında vardı; ISO kodu
+          kendini anlatıyordu. Bizim kodlarımız (4.2.1) anlatmıyor, o
+          yüzden başlık burada da yazılır. */}
+      <p className="acilan-ust">
+        {kontrol.kod} · {kontrol.baslik}
+        {aile && ` · ${aile.baslik}`}
+      </p>
 
-      {kontrol.zincir.length > 0 ? (
-        <CekmeceBagli kayitlar={kontrol.zincir} />
-      ) : (
-        <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
-          <p className="t-label" style={{ margin: '0 0 var(--s10)' }}>Zincir</p>
-          <p className="cekmece-dip" style={{ margin: 0 }}>
-            Bu kontrole bağlı risk, bulgu veya proje kaydı yok.
+      <div className="dortlu">
+        {/* 1 · NEDEN */}
+        <div>
+          <span className="etiket">Neden bu durumda</span>
+          <p className="acilan-metin">
+            {kontrol.gerekce || 'Gerekçe kaydı yok — değerlendirme notu girilmemiş.'}
           </p>
+          <dl className="acilan-dl">
+            <Satirci ad="Takipte" deger={acikMi(kontrol.ham) ? 'evet' : 'hayır'} />
+            <Satirci ad={`${aile?.kisa ?? 'Aile'} · takipte`}
+              deger={`${aileAcik} / ${aileKontrolleri.length}`} mono />
+            <Satirci ad="Bu santralde kapsam"
+              deger={`${satir.kapsamda} / ${cerceve.satirlar.length}`} mono />
+          </dl>
         </div>
-      )}
 
-      <CekmeceEylemler
-        birincil={
-          form ? (
-            <div style={{ display: 'grid', gap: 'var(--s12)' }}>
-              <Alan etiket="Talep başlığı" zorunlu>
-                <input className="gr" value={talep.baslik} disabled={bekliyor}
+        {/* 2 · KANIT — ve tek yazma eylemi */}
+        <div>
+          <span className="etiket">Kanıt dosyası</span>
+          <p className="acilan-metin mono kucuk kanit">
+            <span className={`ab-glif ${GLIF_SINIF[kontrol.kanitIm] ?? 'g-yok'}`} aria-hidden />
+            {kanitSozu(kontrol)}
+          </p>
+          <dl className="acilan-dl">
+            <Satirci ad="Güven" deger={etiketle(kontrol.guven)} />
+          </dl>
+
+          {form ? (
+            <div className="acilan-form">
+              <label>
+                <span className="etiket">Talep başlığı</span>
+                <input value={talep.baslik} disabled={bekliyor}
                   onChange={(e) => setTalep({ ...talep, baslik: e.target.value })} />
-              </Alan>
-              <Alan etiket="Son tarih">
-                <input className="gr" type="date" value={talep.sonTarih} disabled={bekliyor}
+              </label>
+              <label>
+                <span className="etiket">Son tarih</span>
+                <input type="date" value={talep.sonTarih} disabled={bekliyor}
                   onChange={(e) => setTalep({ ...talep, sonTarih: e.target.value })} />
-              </Alan>
-              {hata && <Hata cumle={hata} />}
-              <div style={{ display: 'flex', gap: 'var(--s12)' }}>
-                <Dugme tur="birincil" disabled={bekliyor || !cerceve.denetim}
+              </label>
+              {hata && <p className="acilan-hata" role="alert">{hata}</p>}
+              <div className="acilan-dugmeler">
+                <button type="button" className="ab-dugme birincil"
+                  disabled={bekliyor || kapali || !talep.baslik.trim()}
                   onClick={() => calistir(
                     () => kanitTalebiEkle({
                       denetimId: cerceve.denetim!.id,
                       baslik: talep.baslik,
-                      aciklama: `${kontrol.kod} · ${satir.ad} · ${kontrol.gerekce}`,
+                      aciklama: `${kontrol.kod} · ${tesis.ad} · ${kontrol.gerekce}`,
                       sonTarih: talep.sonTarih || null,
                     }),
                     () => { setForm(false); setGonderildi(true); },
                   )}>
-                  Talebi aç
-                </Dugme>
-                <Dugme tur="ikincil" onClick={() => setForm(false)}>Vazgeç</Dugme>
+                  {bekliyor ? 'Açılıyor…' : 'Talebi aç'}
+                </button>
+                <button type="button" className="ab-dugme" onClick={() => setForm(false)}>
+                  Vazgeç
+                </button>
               </div>
             </div>
           ) : (
-            <Dugme tur="cekmece" disabled={!yazabilir || !cerceve.denetim}
+            <button type="button" className="ab-dugme" disabled={kapali}
               onClick={() => setForm(true)}>
               Kanıt talep et
-            </Dugme>
-          )
-        }
-        ikincil={
-          <Link className="dg dg-ikincil"
-            style={{ display: 'block', textAlign: 'center' }}
+            </button>
+          )}
+
+          {/* Kapalı düğmenin NEDENİ yazılır — prototipte gri düğmenin
+              gerekçesi yoktu (harita §7 kusur 1: kritik bilgi salt görsel). */}
+          <p className="acilan-dip">
+            {[
+              gonderildi && 'Kanıt talebi açıldı; denetim izine yazıldı.',
+              denetimYok && 'Bu çerçevede açık denetim yok — talep denetime bağlanır.',
+              !yazabilir && !denetimYok && 'Kanıt talebi için denetim yazma yetkisi gerekir.',
+            ].filter(Boolean).join(' · ')}
+          </p>
+        </div>
+
+        {/* 3 · YÖNETİŞİM ZİNCİRİ */}
+        <div>
+          <span className="etiket">Yönetişim zinciri</span>
+          {kontrol.zincir.length > 0 ? (
+            <div className="acilan-zincir">
+              {kontrol.zincir.map((z) => {
+                const [tur, ...kalan] = z.alt.split(' · ');
+                return (
+                  <Link key={z.id} href={z.yol}>
+                    <span className="ust">
+                      <span className="tur">{tur}</span>
+                      {z.suren && <span className="ab-glif g-kismi" aria-hidden />}
+                    </span>
+                    <span className="mono kod">{z.kod}</span>
+                    {kalan.length > 0 && <span className="alt">{kalan.join(' · ')}</span>}
+                  </Link>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="acilan-metin kucuk">
+              Bu kontrole bağlı risk, bulgu veya proje kaydı yok.
+            </p>
+          )}
+          <Link className="ab-dugme bagli"
             href={`/uyum/${cerceve.kod}?aile=${encodeURIComponent(aile?.kod ?? '')}`
               + `&kontrol=${encodeURIComponent(kontrol.kod)}`}>
-            Kontrol ağacı
+            Kontrol ağacında aç →
           </Link>
-        }
-        dipNot={[
-          gonderildi && 'Kanıt talebi açıldı; denetim izine yazıldı.',
-          !cerceve.denetim && 'Bu çerçevede açık denetim yok — talep denetime bağlanır.',
-          !yazabilir && cerceve.denetim && 'Kanıt talebi için denetim yazma yetkisi gerekir.',
-          `Güven · ${etiketle(kontrol.guven)}`,
-          cerceve.surec?.kod,
-        ].filter(Boolean).join(' · ')}
-      />
-    </Cekmece>
+        </div>
+
+        {/* 4 · SORUMLULUK VE SÜRE */}
+        <div>
+          <span className="etiket">Sorumluluk ve süre</span>
+          <dl className="acilan-dl">
+            <Satirci ad="Kontrol sahibi" deger={kontrol.sahip ?? 'atanmadı'} />
+            <Satirci ad="Son tarih" deger={kontrol.termin || '—'} />
+            <Satirci ad="Santral" deger={tesis.kod} mono />
+          </dl>
+          <p className="acilan-dip">{tesis.ad} · {tesis.alt}</p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/** Kanıt dizesi ham sayaç olabiliyor ("1"); tek başına ne olduğu
+    okunmuyor. Sözcük `veri.ts`teki ipucu kalıbıyla aynıdır. */
+function kanitSozu(k: Kontrol): string {
+  if (!k.kanitYazi || k.kanitYazi === 'yok') return 'kanıt yok';
+  return `kanıt ${k.kanitYazi}`;
+}
+
+function Satirci({ ad, deger, mono, im }: {
+  ad: string; deger: string; mono?: boolean; im?: string;
+}) {
+  return (
+    <div className="cift">
+      <dt>{ad}</dt>
+      <dd className={mono ? 'mono' : undefined}>
+        {im && <span className={`ab-glif ${GLIF_SINIF[im] ?? 'g-yok'}`} aria-hidden />}
+        {deger}
+      </dd>
+    </div>
+  );
+}
+
+/* ── Kapsam dışı ve kararsız santraller ──────────────────────────────
+   GİZLENMEZ: "kapsam dışı" bir karardır ve gerekçesi okunabilir olmalı. */
+function KapsamDisi({ cerceve }: { cerceve: CerceveVerisi }) {
+  const disarida = cerceve.kapsam?.filter((k) => k.durum !== 'kapsamda') ?? [];
+  if (disarida.length === 0) return null;
+  return (
+    <div style={{ marginTop: 30, borderTop: '1px solid var(--hr)', paddingTop: 16 }}>
+      <span className="etiket">Kapsam kararı</span>
+      <ul style={{ margin: '10px 0 0', padding: 0, listStyle: 'none', display: 'grid', gap: 8 }}>
+        {disarida.map((k) => (
+          <li key={k.tesisId} style={{ fontSize: 12, color: 'var(--i2)', display: 'flex', gap: 12 }}>
+            <span className="mono" style={{ color: 'var(--i3)', minWidth: 96 }}>{k.kod}</span>
+            <span style={{ minWidth: 120 }}>{k.durum === 'disarida' ? 'kapsam dışı' : 'karar verilmedi'}</span>
+            <span style={{ color: 'var(--i3)' }}>{k.gerekce}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }

@@ -1,8 +1,8 @@
 'use client';
 import { useState } from 'react';
-import { Alan, Dugme, Im } from '@/components/atlas/temel';
-import { CekmeceAlanlar, CekmeceKimlik } from '@/components/atlas/cekmece';
-import { KokenRozeti, KokenSatiri, guvenYazisi } from '@/components/atlas/Koken';
+import { Alan, Dugme, Im } from '@/components/abacus/temel';
+import { CekmeceAlanlar, CekmeceKimlik } from '@/components/abacus/panel';
+import { KokenRozeti, KokenSatiri, guvenYazisi } from '@/components/abacus/Koken';
 import { useEylem } from '@/components/useEylem';
 import { kokenDogrulaEylem, kokenTopluDogrula } from '@/lib/eylemler2/koken';
 import { etiketle, zamanTR } from '@/lib/sabitler';
@@ -53,14 +53,14 @@ export function KokenTipiOzeti({ s }: { s: KokenSayimSatiri }) {
           durum: s.toplam === null ? 'unk' : undefined },
       ]} />
 
-      <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
-        <p className="t-label" style={{ margin: '0 0 var(--s10)' }}>
+      <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+        <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>
           Kökeni olmayan kayıt nasıl görünür
         </p>
         {/* Kural bir cümle olarak değil, ÖRNEK olarak gösterilir: kökeni
             olmayan kayıt ekranın her yerinde bu işareti taşır. */}
         <KokenRozeti koken={null} />
-        <p className="cekmece-dip" style={{ margin: 'var(--s8) 0 0' }}>
+        <p className="ab-panel-dip" style={{ margin: 'var(--s8) 0 0' }}>
           Kaynak bağlamı olmayan kayıt hiçbir ekranda &quot;doğrulanmış&quot;
           görünmez; elle girilmiş sayılır ve doğrulama kuyruğuna da girmez —
           doğrulanacak bir kaynak yoktur.
@@ -108,8 +108,8 @@ export function KaynakOzeti({
       ]} />
 
       {enUzun && (
-        <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
-          <p className="t-label" style={{ margin: '0 0 var(--s10)' }}>
+        <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+          <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>
             En uzun bekleyen kayıt
           </p>
           {/* Köken satırı bileşeni: kaynak · toplanma · güven · doğrulama. */}
@@ -138,9 +138,9 @@ function DogrulamaKuyrugu({
 
   if (bekleyenler.length === 0) {
     return (
-      <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
-        <p className="t-label" style={{ margin: '0 0 var(--s10)' }}>Doğrulama kuyruğu</p>
-        <p className="cekmece-dip" style={{ margin: 0 }}>
+      <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+        <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Doğrulama kuyruğu</p>
+        <p className="ab-panel-dip" style={{ margin: 0 }}>
           Bu kaynaktan doğrulama bekleyen kayıt yok.
         </p>
       </div>
@@ -165,8 +165,8 @@ function DogrulamaKuyrugu({
   }
 
   return (
-    <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
-      <p className="t-label" style={{ margin: '0 0 var(--s10)' }}>
+    <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+      <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>
         Doğrulama kuyruğu · {bekleyenler.length}
       </p>
 
@@ -198,7 +198,7 @@ function DogrulamaKuyrugu({
       </div>
 
       {bekleyenler.length > 8 && (
-        <p className="cekmece-dip" style={{ margin: 'var(--s10) 0 0' }}>
+        <p className="ab-panel-dip" style={{ margin: 'var(--s10) 0 0' }}>
           +{bekleyenler.length - 8} kayıt daha bekliyor; en uzun bekleyen sekizi
           gösteriliyor. Kuyruk {BEKLEYEN_SINIRI} kayıtta kırpılır.
         </p>
@@ -208,7 +208,7 @@ function DogrulamaKuyrugu({
         <>
           <div style={{ marginTop: 'var(--s14)' }}>
             <Alan etiket="Gerekçe" zorunlu>
-              <textarea className="gr" rows={2} value={gerekce}
+              <textarea className="ab-gr" rows={2} value={gerekce}
                 onChange={(e) => setGerekce(e.target.value)}
                 placeholder="Doğrulamanın dayanağı — denetim izine bu metin yazılır"
                 style={{ resize: 'vertical' }} />
@@ -216,11 +216,11 @@ function DogrulamaKuyrugu({
           </div>
           <div style={{ display: 'flex', gap: 'var(--s10)', flexWrap: 'wrap',
             marginTop: 'var(--s12)' }}>
-            <Dugme tur="cekmece" disabled={pasif} style={pasifStil(pasif)}
+            <Dugme tur="tam" disabled={pasif} style={pasifStil(pasif)}
               onClick={() => karar('dogrulandi')}>
               {bekliyor ? 'Yazılıyor…' : `Doğrula · ${secim.length}`}
             </Dugme>
-            <Dugme className="dg dg-ikincil dg-ret" disabled={pasif} style={pasifStil(pasif)}
+            <Dugme className="ab-dugme ret" disabled={pasif} style={pasifStil(pasif)}
               onClick={() => karar('reddedildi')}>
               Reddet
             </Dugme>
@@ -229,13 +229,13 @@ function DogrulamaKuyrugu({
             <p role="alert" style={{ margin: 'var(--s12) 0 0',
               fontSize: 'var(--t-field)', color: 'var(--bd)' }}>{hata}</p>
           )}
-          <p className="cekmece-dip" style={{ margin: 'var(--s12) 0 0' }}>
+          <p className="ab-panel-dip" style={{ margin: 'var(--s12) 0 0' }}>
             Doğrulama insanın işidir: hiçbir motor bu kuyruğu boşaltamaz.
             Reddedilen kayıt silinmez — reddin kendisi de saklanan bir bilgidir.
           </p>
         </>
       ) : (
-        <p className="cekmece-dip" style={{ margin: 'var(--s14) 0 0' }}>
+        <p className="ab-panel-dip" style={{ margin: 'var(--s14) 0 0' }}>
           Köken doğrulamak envanter onay yetkisi ister. Kuyruğu görebilirsiniz,
           karar veremezsiniz.
         </p>
@@ -249,8 +249,8 @@ function DogrulamaKuyrugu({
 function BayatListesi({ bayatlar, esikGun }: { bayatlar: BayatSatiri[]; esikGun: number }) {
   if (bayatlar.length === 0) return null;
   return (
-    <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
-      <p className="t-label" style={{ margin: '0 0 var(--s10)' }}>
+    <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+      <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>
         Bayat köken · {esikGun} gündür tazelenmedi
       </p>
       <div style={{ display: 'grid', gap: 'var(--s10)' }}>
@@ -273,11 +273,11 @@ function BayatListesi({ bayatlar, esikGun }: { bayatlar: BayatSatiri[]; esikGun:
         ))}
       </div>
       {bayatlar.length > 6 && (
-        <p className="cekmece-dip" style={{ margin: 'var(--s10) 0 0' }}>
+        <p className="ab-panel-dip" style={{ margin: 'var(--s10) 0 0' }}>
           +{bayatlar.length - 6} bayat köken daha.
         </p>
       )}
-      <p className="cekmece-dip" style={{ margin: 'var(--s10) 0 0' }}>
+      <p className="ab-panel-dip" style={{ margin: 'var(--s10) 0 0' }}>
         Bayat köken yanlış veri demek değildir: kaynak bu kaydı artık
         doğrulamıyor, yani güncelliği BİLİNMİYOR.
       </p>

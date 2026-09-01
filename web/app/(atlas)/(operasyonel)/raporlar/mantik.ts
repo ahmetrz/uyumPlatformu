@@ -1,4 +1,4 @@
-import type { Durum } from '@/components/atlas/temel';
+import type { Durum } from '@/components/abacus/temel';
 import { uyumOzeti } from '@/lib/sabitler';
 
 /* Portföy raporu — sunucu ile istemcinin paylaştığı tipler ve saf hesaplar.

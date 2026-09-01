@@ -1,11 +1,11 @@
 import type { Metadata } from 'next';
 import { girisZorunlu, izinVar, izinliTesisIdleri, type Modul } from '@/lib/erisim';
-import { Yetkisiz } from '@/components/atlas/temel';
+import { Yetkisiz } from '@/components/abacus/temel';
 import { db } from '@/lib/db';
 import TezgahIstemci from './TezgahIstemci';
 import type { Anahtar, Is, Tanim } from './ortak';
 
-export const metadata: Metadata = { title: 'Yönetim tezgâhı — Atlas' };
+export const metadata: Metadata = { title: 'Yönetim tezgâhı — Abacus' };
 
 /* M1/M2/P1-3 · Yönetim tezgâhı — eski /tanimlar + /gorevler ekranlarının
    birleşimi, üstüne dış API anahtarı yüzeyi. Kabuk (ray + çekmece kolonu)

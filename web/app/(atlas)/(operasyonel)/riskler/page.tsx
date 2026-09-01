@@ -1,5 +1,5 @@
 import { girisZorunlu } from '@/lib/erisim';
-import { Yetkisiz } from '@/components/atlas/temel';
+import { Yetkisiz } from '@/components/abacus/temel';
 import { modulOkuyabilir } from '@/app/kapsam';
 import RisklerIstemci from './RisklerIstemci';
 import { riskEkranVerisi } from './veri';

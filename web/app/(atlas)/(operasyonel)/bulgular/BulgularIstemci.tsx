@@ -1,12 +1,12 @@
 'use client';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
-import { Im, Ipucu, Dugme, BosIlk, BosFiltre, type Durum } from '@/components/atlas/temel';
-import { Tablo, type Kolon, type Satir } from '@/components/atlas/tablo';
-import { EkranBasligi, Filtreler } from '@/components/atlas/ekran';
+import { Im, Ipucu, Dugme, BosIlk, BosFiltre, type Durum } from '@/components/abacus/temel';
+import { Tablo, type Kolon, type Satir } from '@/components/abacus/tablo';
+import { EkranBasligi, Filtreler } from '@/components/abacus/ekran';
 import {
   Cekmece, CekmeceKimlik, CekmeceAlanlar, CekmeceBagli, CekmeceEylemler,
-} from '@/components/atlas/cekmece';
+} from '@/components/abacus/panel';
 import { exceleAktar, pdfYazdir } from '@/components/disaAktar';
 import {
   ONEM_DERECELERI, ONEM_ETIKET, AKSIYON_ETIKET, BULGU_DURUM_ETIKET,
@@ -225,7 +225,7 @@ export default function BulgularIstemci({
           ]}
         />
 
-        <section className="ekran-govde">
+        <section className="ab-ekran-govde">
           {/* 5 görünür mercek + 2 kapsam kontrolü (02-components §4).
               Kutulu arama alanı ve yerel <select> yok — kapsam grameri. */}
           <Filtreler
@@ -265,7 +265,7 @@ export default function BulgularIstemci({
               />
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 'var(--s16)',
                 padding: 'var(--s14) 0 0' }}>
-                <p className="dip-not" style={{ margin: 0, flex: 1, minWidth: 0 }}>
+                <p className="ab-dip" style={{ margin: 0, flex: 1, minWidth: 0 }}>
                   {dipNot(gorunur.length, aksiyonsuzSayisi, kapaliSayisi)}
                 </p>
                 <DisaAktar satirlar={suzulmus.map((s) => [
@@ -319,7 +319,7 @@ function dipNot(gorunur: number, aksiyonsuz: number, kapali: number): string {
 function Ara({ deger, degistir }: { deger: string; degistir: (v: string) => void }) {
   return (
     <input
-      className="gr"
+      className="ab-gr"
       aria-label="Bulgu, madde veya sahip ara"
       placeholder="Ara"
       value={deger}
@@ -327,7 +327,7 @@ function Ara({ deger, degistir }: { deger: string; degistir: (v: string) => void
       style={{
         width: 132, background: 'none', border: 0,
         borderBottom: 'var(--bw-hair) solid var(--hr2)',
-        padding: '3px 0', fontFamily: 'var(--mo)', fontSize: 'var(--t-label)',
+        padding: '3px 0', fontFamily: 'var(--veri)', fontSize: 'var(--t-label)',
         letterSpacing: 'var(--tr-label)', textTransform: 'uppercase',
       }}
     />
@@ -364,17 +364,17 @@ function Kapsam({ etiket, secenekler, aktif, sec }: {
 
   return (
     <details ref={kok} style={{ position: 'relative' }}>
-      <summary className="kapsam-dugme"
+      <summary className="ab-dugme"
         style={{ listStyle: 'none', cursor: 'pointer', display: 'inline-block' }}>
         {etiket}{secim ? ` · ${secim.ad}` : ''} <span aria-hidden>▾</span>
       </summary>
       <div style={{
         position: 'absolute', top: '100%', right: 0, zIndex: 5, minWidth: 190,
-        background: 'var(--card)', border: 'var(--bw-strong) solid var(--hr2)',
-        boxShadow: 'var(--sh-tip)', padding: 'var(--s8)',
+        background: 'var(--panel)', border: 'var(--bw-strong) solid var(--hr2)',
+        boxShadow: 'none', padding: 'var(--s8)',
       }}>
         {[{ id: '', ad: 'Tümü' }, ...secenekler].map((s) => (
-          <button key={s.id} type="button" className="filtre"
+          <button key={s.id} type="button" className="ab-filtre"
             style={{ display: 'block', width: '100%', textAlign: 'left' }}
             aria-pressed={(aktif ?? '') === s.id}
             onClick={(e) => {
@@ -416,17 +416,17 @@ function DisaAktar({ satirlar }: { satirlar: (string | number)[][] }) {
   };
 
   return (
-    <details ref={kok} className="yazdirmada-gizle" style={{ position: 'relative' }}>
-      <summary className="kapsam-dugme"
+    <details ref={kok} className="ab-baskida-gizle" style={{ position: 'relative' }}>
+      <summary className="ab-dugme"
         style={{ listStyle: 'none', cursor: 'pointer', display: 'inline-block' }}>
         ⤓ Dışa aktar <span aria-hidden>▾</span>
       </summary>
       <div style={{
         position: 'absolute', bottom: '100%', right: 0, zIndex: 5, minWidth: 150,
-        background: 'var(--card)', border: 'var(--bw-strong) solid var(--hr2)',
-        boxShadow: 'var(--sh-tip)', padding: 'var(--s8)',
+        background: 'var(--panel)', border: 'var(--bw-strong) solid var(--hr2)',
+        boxShadow: 'none', padding: 'var(--s8)',
       }}>
-        <button type="button" className="filtre"
+        <button type="button" className="ab-filtre"
           style={{ display: 'block', width: '100%', textAlign: 'left' }}
           onClick={(e) => kapatVe(e, () => exceleAktar('bulgular', [{
             ad: 'Bulgular',
@@ -438,7 +438,7 @@ function DisaAktar({ satirlar }: { satirlar: (string | number)[][] }) {
           }]))}>
           Excel
         </button>
-        <button type="button" className="filtre"
+        <button type="button" className="ab-filtre"
           style={{ display: 'block', width: '100%', textAlign: 'left' }}
           onClick={(e) => kapatVe(e, pdfYazdir)}>
           PDF
@@ -547,8 +547,8 @@ function BulguCekmecesi({ veri, kapat }: { veri: Secim; kapat: () => void }) {
       ]} />
 
       {/* Akış: soldan sağa okunan ilerlemenin dikey karşılığı. */}
-      <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
-        <p className="t-label" style={{ margin: '0 0 var(--s10)' }}>Akış</p>
+      <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+        <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Akış</p>
         <Adim durum="tamam" ad="Bulgu"
           not={`Tespit ${kisaTarih(b.tespit)}${b.kaynak ? ` · ${etiketle(b.kaynak)}` : ''}`} />
         {b.aksiyonlar.length === 0 ? (
@@ -565,10 +565,10 @@ function BulguCekmecesi({ veri, kapat }: { veri: Secim; kapat: () => void }) {
       </div>
 
       {/* Denetim izi — kim, ne zaman, neyi değiştirdi. */}
-      <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
-        <p className="t-label" style={{ margin: '0 0 var(--s10)' }}>Denetim izi</p>
+      <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+        <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Denetim izi</p>
         {b.iz.length === 0 ? (
-          <p style={{ margin: 0, fontFamily: 'var(--mo)', fontSize: 'var(--t-label)',
+          <p style={{ margin: 0, fontFamily: 'var(--veri)', fontSize: 'var(--t-label)',
             color: 'var(--i3)' }}>Kayıt yok</p>
         ) : (
           <div style={{ display: 'grid', gap: 'var(--s10)' }}>
@@ -579,7 +579,7 @@ function BulguCekmecesi({ veri, kapat }: { veri: Secim; kapat: () => void }) {
                   <b style={{ fontWeight: 600 }}>{k.aktor}</b>{' '}
                   {eylemCumlesi(k.eylem, k.varlikTipi === 'Bulgu' ? null : k.varlikTipi, k.alan)}
                 </span>
-                <span style={{ fontFamily: 'var(--mo)', fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
+                <span style={{ fontFamily: 'var(--veri)', fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
                   {zamanTR(k.zaman)}
                   {(k.once || k.sonra) && ` · ${etiketle(k.once, '—')} → ${etiketle(k.sonra, '—')}`}
                   {k.dosya && ` · ${k.dosya}`}
@@ -600,7 +600,7 @@ function BulguCekmecesi({ veri, kapat }: { veri: Secim; kapat: () => void }) {
         birincil={
           /* Bağlantı doğrudan .dg-cekmece taşır: <a> içine <button> koymak
              geçersiz iç içelik ve tıklama gezinmeyi tetiklemiyor. */
-          <Link href={`/bulgular/${b.id}`} className="dg dg-cekmece">Kaydı aç</Link>
+          <Link href={`/bulgular/${b.id}`} className="ab-dugme tam">Kaydı aç</Link>
         }
         dipNot="Aksiyon planlama, durum değişikliği ve kanıt bağlama kayıt ekranında yapılır; her değişiklik denetim izine yazılır."
       />
@@ -616,7 +616,7 @@ function Adim({ durum, ad, not }: { durum: Durum; ad: string; not: string }) {
       <span style={{ paddingTop: 3 }}><Im durum={durum} /></span>
       <span style={{ minWidth: 0 }}>
         <span style={{ display: 'block', fontSize: 'var(--t-field)', fontWeight: 600 }}>{ad}</span>
-        <span style={{ display: 'block', marginTop: 2, fontFamily: 'var(--mo)',
+        <span style={{ display: 'block', marginTop: 2, fontFamily: 'var(--veri)',
           fontSize: 'var(--t-label)', color: 'var(--i3)' }}>{not}</span>
       </span>
     </div>

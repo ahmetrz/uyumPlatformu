@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
-import { Alan, Dugme, Im } from '@/components/atlas/temel';
-import { CekmeceEylemler } from '@/components/atlas/cekmece';
+import { Alan, Dugme, Im } from '@/components/abacus/temel';
+import { CekmeceEylemler } from '@/components/abacus/panel';
 import { useEylem } from '@/components/useEylem';
 import { tedarikciKaydet, sertifikaKaydet } from '@/lib/eylemler2/operasyon';
 import { oturumKarariKaydet } from '@/lib/eylemler2/tedarikciOturum';
@@ -31,9 +31,9 @@ export function TedarikciEylemleri({
      Metin ekranın değil EYLEMİN kapısını anlatır — ekran okunabilir. */
   if (!yazabilir) {
     return (
-      <div className="cekmece-blok" style={{ marginTop: 'var(--s26)' }}>
-        <div className="blok yetkisiz">
-          <p className="t-caption" style={{ margin: 0 }}>Yetkisiz</p>
+      <div className="ab-panel-blok" style={{ marginTop: 'var(--s26)' }}>
+        <div className="ab-blok">
+          <p className="etiket" style={{ margin: 0 }}>Yetkisiz</p>
           <p className="cumle">Erişimi kısıtlamak envanter yazma yetkisi ister.</p>
         </div>
       </div>
@@ -81,7 +81,7 @@ export function TedarikciEylemleri({
           </div>
         </div>
       ) : (
-        <Dugme tur="cekmece" onClick={() => setOnayBekliyor(true)}>Erişimi kısıtla</Dugme>
+        <Dugme tur="tam" onClick={() => setOnayBekliyor(true)}>Erişimi kısıtla</Dugme>
       )}
       dipNot={hata
         ?? 'Kısıtlama tedarikçi kaydını günceller; kayıtlı erişim yöntemi tarihçe olarak korunur.'}
@@ -106,7 +106,7 @@ export function SertifikaYenile({ sertifika }: { sertifika: SertifikaOzeti }) {
   return (
     <div style={{ display: 'grid', gap: 'var(--s10)' }}>
       <Alan etiket="Yeni bitiş" zorunlu hata={hata}>
-        <input type="date" className="gr" value={bitis} min={girdiTarihi(sertifika.bitis)}
+        <input type="date" className="ab-gr" value={bitis} min={girdiTarihi(sertifika.bitis)}
           onChange={(e) => setBitis(e.target.value)} />
       </Alan>
       <div style={{ display: 'flex', gap: 'var(--s10)' }}>
@@ -127,7 +127,7 @@ export function SertifikaYenile({ sertifika }: { sertifika: SertifikaOzeti }) {
         </Dugme>
         <Dugme tur="ret" onClick={() => setAcik(false)} disabled={bekliyor}>Vazgeç</Dugme>
       </div>
-      <p className="cekmece-dip" style={{ margin: 0 }}>
+      <p className="ab-panel-dip" style={{ margin: 0 }}>
         Mevcut bitiş {tarihTR(sertifika.bitis)}
         {sertifika.varlikEtiketi ? ` · ${sertifika.varlikEtiketi}` : ''}
       </p>
@@ -165,7 +165,7 @@ function OturumKarari({ oturum }: { oturum: OturumSatiri }) {
 
   if (!oturum.kararVerebilir) {
     return (
-      <p className="cekmece-dip" style={{ margin: 0 }}>
+      <p className="ab-panel-dip" style={{ margin: 0 }}>
         Bu oturumun santral kapsamında karar yetkiniz yok.
       </p>
     );
@@ -175,7 +175,7 @@ function OturumKarari({ oturum }: { oturum: OturumSatiri }) {
     return (
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--s10)' }}>
         {KARAR_SECENEKLERI.map((s) => (
-          <button key={s.id} type="button" className="dg dg-satir"
+          <button key={s.id} type="button" className="ab-dugme satir"
             onClick={() => { setKarar(s.id); setGerekce(''); }}>
             {s.ad}
           </button>
@@ -187,9 +187,9 @@ function OturumKarari({ oturum }: { oturum: OturumSatiri }) {
   const secim = KARAR_SECENEKLERI.find((s) => s.id === karar);
   return (
     <div style={{ display: 'grid', gap: 'var(--s10)' }}>
-      <p className="cekmece-dip" style={{ margin: 0 }}>{secim?.not}</p>
+      <p className="ab-panel-dip" style={{ margin: 0 }}>{secim?.not}</p>
       <Alan etiket="Karar gerekçesi" zorunlu hata={hata}>
-        <textarea className="gr" rows={2} value={gerekce}
+        <textarea className="ab-gr" rows={2} value={gerekce}
           placeholder="Hangi kanıta dayanıyor, kim onayladı? (en az 10 karakter)"
           onChange={(e) => setGerekce(e.target.value)} />
       </Alan>
@@ -211,8 +211,8 @@ export function ErisimOturumlari({ t }: { t: T }) {
   const o = t.oturum;
 
   return (
-    <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
-      <p className="t-label" style={{ margin: '0 0 var(--s10)' }}>
+    <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+      <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>
         Erişim oturumları · ölçüm
       </p>
 
@@ -260,7 +260,7 @@ export function ErisimOturumlari({ t }: { t: T }) {
       {t.oturumlar.length > 0 && (
         <div style={{ display: 'grid', gap: 'var(--s14)' }}>
           {t.oturumlar.map((s) => (
-            <div key={s.id} style={{ background: 'var(--card)',
+            <div key={s.id} style={{ background: 'var(--panel)',
               border: 'var(--bw-hair) solid var(--hr2)', padding: 'var(--s12) var(--s14)',
               display: 'grid', gap: 'var(--s8)' }}>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 'var(--s8)' }}>
@@ -297,7 +297,7 @@ export function ErisimOturumlari({ t }: { t: T }) {
         </div>
       )}
 
-      <p className="cekmece-dip" style={{ margin: 'var(--s12) 0 0' }}>
+      <p className="ab-panel-dip" style={{ margin: 'var(--s12) 0 0' }}>
         Uyumsuz oturum bir ÖNERİdir. Bu ekran oturumu kapatmaz, erişimi kesmez;
         karar insanındır ve gerekçesiyle birlikte denetim izine yazılır.
       </p>

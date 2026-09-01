@@ -1,12 +1,12 @@
 'use client';
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Alan, BosIlk, Dugme, Yetkisiz } from '@/components/atlas/temel';
-import { Tablo, type Kolon, type Satir } from '@/components/atlas/tablo';
-import { EkranBasligi } from '@/components/atlas/ekran';
+import { Alan, BosIlk, Dugme, Yetkisiz } from '@/components/abacus/temel';
+import { Tablo, type Kolon, type Satir } from '@/components/abacus/tablo';
+import { EkranBasligi } from '@/components/abacus/ekran';
 import {
   Cekmece, CekmeceAlanlar, CekmeceEylemler, CekmeceKimlik,
-} from '@/components/atlas/cekmece';
+} from '@/components/abacus/panel';
 import { useEylem } from '@/components/useEylem';
 import { redKaydiIncele } from '@/lib/eylemler2/reddedilenKayit';
 import { zamanTR } from '@/lib/sabitler';
@@ -123,7 +123,7 @@ export default function ReddedilenlerIstemci({
           vurguDurumu={m.acik > 0 ? 'bd' : undefined}
           baslik={m.acik > 0 ? 'inceleme bekliyor' : 'Bekleyen reddedilen kayıt yok'}
           sag={
-            <Link href="/saglik" className="kapsam-dugme" style={{ alignSelf: 'center' }}>
+            <Link href="/saglik" className="ab-dugme" style={{ alignSelf: 'center' }}>
               ← Platform sağlığı
             </Link>
           }
@@ -137,7 +137,7 @@ export default function ReddedilenlerIstemci({
             { deger: m.duzeltildi, yazi: 'Düzeltildi' },
           ]}
         />
-        <section className="ekran-govde">{govde()}</section>
+        <section className="ab-ekran-govde">{govde()}</section>
       </main>
 
       {secilen && (
@@ -183,30 +183,30 @@ function RedOzeti({ r, yazabilir, kapat }: {
       ]} />
 
       {r.incelemeNotu && (
-        <div className="cekmece-blok" style={{ marginTop: 'var(--s22)' }}>
-          <p className="t-label" style={{ margin: '0 0 var(--s8)' }}>İnceleme notu</p>
+        <div className="ab-panel-blok" style={{ marginTop: 'var(--s22)' }}>
+          <p className="etiket" style={{ margin: '0 0 var(--s8)' }}>İnceleme notu</p>
           <p style={{ margin: 0, fontSize: 'var(--t-field)', color: 'var(--i2)' }}>
             {r.incelemeNotu}
           </p>
         </div>
       )}
 
-      <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
-        <p className="t-label" style={{ margin: '0 0 var(--s10)' }}>Ham kayıt</p>
+      <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+        <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Ham kayıt</p>
         {r.hamJson ? (
           <pre className="mono" style={{ margin: 0, padding: 'var(--s12)',
             whiteSpace: 'pre-wrap', wordBreak: 'break-word', maxHeight: 260,
-            overflow: 'auto', background: 'var(--card)',
+            overflow: 'auto', background: 'var(--panel)',
             border: 'var(--bw-edge) solid var(--hr2)', fontSize: 'var(--t-label)' }}>
             {r.hamJson}
           </pre>
         ) : (
-          <p className="cekmece-dip" style={{ margin: 0 }}>
+          <p className="ab-panel-dip" style={{ margin: 0 }}>
             Ham kayıt saklanmamış — bu bir kayıt boşluğudur, kaydın neden
             düştüğü yalnız sebep metninden okunabilir.
           </p>
         )}
-        <p className="cekmece-dip" style={{ margin: 'var(--s8) 0 0' }}>
+        <p className="ab-panel-dip" style={{ margin: 'var(--s8) 0 0' }}>
           Ham kayıt çekirdek tarafından sırları maskelenerek yazılır.
         </p>
       </div>
@@ -216,7 +216,7 @@ function RedOzeti({ r, yazabilir, kapat }: {
           birincil={
             <>
               <Alan etiket="Karar">
-                <select className="gr" value={durum}
+                <select className="ab-gr" value={durum}
                   onChange={(e) => setDurum(e.target.value)}>
                   {DURUMLAR.map((d) => (
                     <option key={d} value={d}>{RED_DURUM_SOZU[d]}</option>
@@ -225,14 +225,14 @@ function RedOzeti({ r, yazabilir, kapat }: {
               </Alan>
               <div style={{ marginTop: 'var(--s10)' }}>
                 <Alan etiket="İnceleme notu" zorunlu={durum !== 'acik'}>
-                  <textarea className="gr" rows={3} value={not}
+                  <textarea className="ab-gr" rows={3} value={not}
                     onChange={(e) => setNot(e.target.value)}
                     placeholder="Kaydın neden bu karara bağlandığı — denetim izine yazılır"
                     style={{ resize: 'vertical' }} />
                 </Alan>
               </div>
               <div style={{ marginTop: 'var(--s12)' }}>
-                <Dugme tur="cekmece" disabled={pasif}
+                <Dugme tur="tam" disabled={pasif}
                   style={pasif ? { opacity: 0.45, cursor: 'not-allowed' } : undefined}
                   onClick={() => calistir(
                     () => redKaydiIncele({ idler: [r.id], durum, not: not.trim() || null }),

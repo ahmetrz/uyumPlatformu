@@ -1,11 +1,11 @@
 import type { Metadata } from 'next';
 import { girisZorunlu, izinVar, izinliTesisIdleri } from '@/lib/erisim';
-import { Yetkisiz } from '@/components/atlas/temel';
+import { Yetkisiz } from '@/components/abacus/temel';
 import { db } from '@/lib/db';
 import YetkilerIstemci from './YetkilerIstemci';
 import type { Hesap } from './mantik';
 
-export const metadata: Metadata = { title: 'Kullanıcı ve yetki — Atlas' };
+export const metadata: Metadata = { title: 'Kullanıcı ve yetki — Abacus' };
 
 /* Kullanıcı & yetki — "kim neye erişiyor, kimin fazlası var?"
    Kabuk (ray + çekmece kolonu) (operasyonel)/layout.tsx'ten gelir; burada

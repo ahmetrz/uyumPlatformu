@@ -1,13 +1,13 @@
 import type { Metadata } from 'next';
 import { girisZorunlu, izinVar, izinliTesisIdleri } from '@/lib/erisim';
-import { Yetkisiz } from '@/components/atlas/temel';
+import { Yetkisiz } from '@/components/abacus/temel';
 import { db } from '@/lib/db';
 import { tesisYedekGorunumu } from '@/lib/entegrasyon/konfigYedek';
 import { YEDEK_KURALLARI } from '@/lib/motorlar/yedekDogrulama';
 import YedeklemeIstemci from './YedeklemeIstemci';
 import type { Politika, Santral, TurKirilimi, YedekBulgusu } from './mantik';
 
-export const metadata: Metadata = { title: 'Yedekleme & kurtarma — Atlas' };
+export const metadata: Metadata = { title: 'Yedekleme & kurtarma — Abacus' };
 
 /* O14 · Yedekleme & DR hazırlığı — "kurtarabilir miyiz?" (03-screens O14).
    Yerleşim kabuğu (.atlas atlas-kabuk + Ray) (operasyonel)/layout.tsx'ten

@@ -1,4 +1,4 @@
-import type { Durum } from '@/components/atlas/temel';
+import type { Durum } from '@/components/abacus/temel';
 import { DURUM_ETIKET, SUREC_DURUM_ETIKET, uyumYuzdesi, type SurecDurum } from '@/lib/sabitler';
 
 /* Uyum süreci kütüğü — sunucu ve istemcinin PAYLAŞTIĞI tipler ve saf hesaplar.

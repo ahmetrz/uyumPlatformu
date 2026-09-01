@@ -1,11 +1,11 @@
 import type { Metadata } from 'next';
 import { girisZorunlu, izinVar, izinliTesisIdleri } from '@/lib/erisim';
-import { Yetkisiz } from '@/components/atlas/temel';
+import { Yetkisiz } from '@/components/abacus/temel';
 import { db } from '@/lib/db';
 import ProjelerIstemci from './ProjelerIstemci';
 import { PROJE_ICERIK, projeyeCevir } from './ortak';
 
-export const metadata: Metadata = { title: 'Dönüşüm portföyü — Atlas' };
+export const metadata: Metadata = { title: 'Dönüşüm portföyü — Abacus' };
 
 /* O8 · Transformation Portfolio — "hangi proje taahhüdünü tutmuyor?"
    Kabuk (ray + çekmece kolonu) (operasyonel)/layout.tsx tarafından verilir;

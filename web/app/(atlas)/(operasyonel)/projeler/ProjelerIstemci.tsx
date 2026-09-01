@@ -1,11 +1,11 @@
 'use client';
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
-import { Bar, BosIlk, BosFiltre, Dugme, Im, type Durum } from '@/components/atlas/temel';
-import { EkranBasligi, Filtreler } from '@/components/atlas/ekran';
-import { ZamanCizelgesi } from '@/components/atlas/zaman';
+import { Bar, BosIlk, BosFiltre, Dugme, Im, type Durum } from '@/components/abacus/temel';
+import { EkranBasligi, Filtreler } from '@/components/abacus/ekran';
+import { ZamanCizelgesi } from '@/components/abacus/zaman';
 import {
   Cekmece, CekmeceKimlik, CekmeceAlanlar, CekmeceBagli, CekmeceEylemler,
-} from '@/components/atlas/cekmece';
+} from '@/components/abacus/panel';
 import { PROJE_DURUM_ETIKET, etiketle } from '@/lib/sabitler';
 import { ProjeFormu, DurumFormu, BaglantiFormu } from './Formlar';
 import {
@@ -157,7 +157,7 @@ export default function ProjelerIstemci({
       <>
         <main data-yuzey="defter" style={{ minWidth: 0 }}>
           <EkranBasligi eyebrow="Dönüşüm portföyü" baslik="Portföy boş" />
-          <div className="ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
+          <div className="ab-ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
             <BosIlk cumle="Kayıtlı proje yok."
               eylem={yazabilir
                 ? <Dugme tur="birincil" onClick={() => setYeniAcik(true)}>Proje oluştur</Dugme>
@@ -166,10 +166,10 @@ export default function ProjelerIstemci({
         </main>
         {yeniAcik && (
           <Cekmece kod={yeniKod} kapat={() => setYeniAcik(false)}>
-            <div className="cekmece-blok">
-              <p className="t-label" style={{ margin: '0 0 var(--s12)' }}>Yeni proje</p>
+            <div className="ab-panel-blok">
+              <p className="etiket" style={{ margin: '0 0 var(--s12)' }}>Yeni proje</p>
             </div>
-            <div className="cekmece-blok">
+            <div className="ab-panel-blok">
               <ProjeFormu proje={null} yeniKod={yeniKod} kullanicilar={kullanicilar}
                 kapat={() => setYeniAcik(false)} />
             </div>
@@ -214,7 +214,7 @@ export default function ProjelerIstemci({
                 <Kapsam etiket="Santral" aktif={tesisF} sec={setTesisF}
                   secenekler={santraller} />
                 {yazabilir && (
-                  <button type="button" className="kapsam-dugme"
+                  <button type="button" className="ab-dugme"
                     onClick={() => { setYeniAcik(true); setSeciliId(null); }}>
                     + Yeni proje
                   </button>
@@ -224,7 +224,7 @@ export default function ProjelerIstemci({
           />
         </div>
 
-        <section className="ekran-govde" style={{ paddingTop: 'var(--s22)' }}>
+        <section className="ab-ekran-govde" style={{ paddingTop: 'var(--s22)' }}>
           {gosterilen.length === 0 ? (
             <BosFiltre temizle={() => { setFiltre('aktif'); setTesisF(null); }} />
           ) : (
@@ -243,7 +243,7 @@ export default function ProjelerIstemci({
 
               {/* Şerit kartları mutlak konumlu: taşarlarsa akışı itmez,
                   tablonun üstüne biner. Aradaki boşluk o riski kapatır. */}
-              <div className="tbl"
+              <div className="ab-tablo"
                 style={{
                   '--kolonlar': KOLONLAR,
                   '--kolonlar-dar': KOLONLAR_DAR,
@@ -259,25 +259,25 @@ export default function ProjelerIstemci({
                 {/* Kuyruk satırı kolon düşürmeden etkilenmesin diye kendi
                     şablonunu taşır (02-components §6). */}
                 {toplanan.length > 0 && (
-                  <button type="button" className="tbl-satir tbl-kuyruk"
+                  <button type="button" className="satir kuyruk"
                     style={{ gridTemplateColumns: 'minmax(0, 1fr) 26px' }}
                     onClick={() => setKuyrukAcik(true)}>
-                    <span className="tbl-hucre" style={{ paddingLeft: 'var(--s16)' }}>
+                    <span className="" style={{ paddingLeft: 'var(--s16)' }}>
                       +{toplanan.length} proje · {kuyrukOlgusu(toplanan)}
                     </span>
-                    <span className="tbl-ok" style={{ justifySelf: 'end' }} aria-hidden>▾</span>
+                    <span className="ab-ok" style={{ justifySelf: 'end' }} aria-hidden>▾</span>
                   </button>
                 )}
 
                 {kuyrukAcik && kalan.length > slot && (
-                  <p className="dip-not tbl-dip">
-                    <button type="button" className="dg dg-satir"
+                  <p className="ab-dip dip">
+                    <button type="button" className="ab-dugme satir"
                       onClick={() => setKuyrukAcik(false)}>Kuyruğu topla</button>
                   </p>
                 )}
 
                 {butcesiz > 0 && (
-                  <p className="dip-not tbl-dip">{butcesiz} projede bütçe kaydı yok</p>
+                  <p className="ab-dip dip">{butcesiz} projede bütçe kaydı yok</p>
                 )}
               </div>
             </>
@@ -294,10 +294,10 @@ export default function ProjelerIstemci({
           )}
           {kip === 'form' && (
             <>
-              <div className="cekmece-blok">
-                <p className="t-label" style={{ margin: '0 0 var(--s12)' }}>Projeyi düzenle</p>
+              <div className="ab-panel-blok">
+                <p className="etiket" style={{ margin: '0 0 var(--s12)' }}>Projeyi düzenle</p>
               </div>
-              <div className="cekmece-blok">
+              <div className="ab-panel-blok">
                 <ProjeFormu proje={secili} yeniKod={yeniKod} kullanicilar={kullanicilar}
                   kapat={() => setKip('ozet')} />
               </div>
@@ -305,22 +305,22 @@ export default function ProjelerIstemci({
           )}
           {kip === 'durum' && (
             <>
-              <div className="cekmece-blok">
-                <p className="t-label" style={{ margin: '0 0 var(--s12)' }}>Durum güncelle</p>
+              <div className="ab-panel-blok">
+                <p className="etiket" style={{ margin: '0 0 var(--s12)' }}>Durum güncelle</p>
               </div>
-              <div className="cekmece-blok">
+              <div className="ab-panel-blok">
                 <DurumFormu proje={secili} kapat={() => setKip('ozet')} />
               </div>
             </>
           )}
           {kip === 'bag' && (
             <>
-              <div className="cekmece-blok">
-                <p className="t-label" style={{ margin: '0 0 var(--s12)' }}>
+              <div className="ab-panel-blok">
+                <p className="etiket" style={{ margin: '0 0 var(--s12)' }}>
                   Varoluş gerekçesini bağla
                 </p>
               </div>
-              <div className="cekmece-blok">
+              <div className="ab-panel-blok">
                 <BaglantiFormu proje={secili} maddeler={maddeler} bulgular={bulgular}
                   kapat={() => setKip('ozet')} />
               </div>
@@ -331,10 +331,10 @@ export default function ProjelerIstemci({
 
       {yeniAcik && !secili && (
         <Cekmece kod={yeniKod} kapat={() => setYeniAcik(false)}>
-          <div className="cekmece-blok">
-            <p className="t-label" style={{ margin: '0 0 var(--s12)' }}>Yeni proje</p>
+          <div className="ab-panel-blok">
+            <p className="etiket" style={{ margin: '0 0 var(--s12)' }}>Yeni proje</p>
           </div>
-          <div className="cekmece-blok">
+          <div className="ab-panel-blok">
             <ProjeFormu proje={null} yeniKod={yeniKod} kullanicilar={kullanicilar}
               kapat={() => setYeniAcik(false)} />
           </div>
@@ -359,24 +359,24 @@ function Satir({ proje, simdi, secili, sec }: {
       type="button"
       role="row"
       aria-selected={secili}
-      className={`tbl-satir s-${kartDurumu(proje, simdi)}`}
+      className={`satir d-${kartDurumu(proje, simdi)}`}
       onClick={sec}
     >
       <span role="cell" style={{ minWidth: 0, paddingLeft: 'var(--s16)' }}>
-        <span className="tbl-konu">{proje.ad}</span>
-        <span className="tbl-alt">{altSatir(proje)}</span>
+        <span className="konu">{proje.ad}</span>
+        <span className="alt">{altSatir(proje)}</span>
       </span>
-      <span role="cell" className="tbl-hucre tbl-ikincil">{bagMetni(proje)}</span>
-      <span role="cell" className="tbl-hucre">
+      <span role="cell" className="ikincil">{bagMetni(proje)}</span>
+      <span role="cell" className="">
         {oran === null
           ? <span style={{ color: 'var(--i3)' }}>faz kaydı yok</span>
           : <Bar oran={oran} durum={durum} deger={`%${oran}`} />}
       </span>
-      <span role="cell" className="tbl-hucre tbl-sag"
+      <span role="cell" className="sag"
         style={hedef.gecikmis ? { color: 'var(--bd)', fontWeight: 600 } : undefined}>
         {hedef.metin}
       </span>
-      <span className="tbl-ok" style={{ justifySelf: 'end' }} aria-hidden>▸</span>
+      <span className="ab-ok" style={{ justifySelf: 'end' }} aria-hidden>▸</span>
     </button>
   );
 }
@@ -422,18 +422,18 @@ function Kapsam({ etiket, secenekler, aktif, sec }: {
 
   return (
     <details ref={kok} style={{ position: 'relative' }}>
-      <summary className="kapsam-dugme"
+      <summary className="ab-dugme"
         style={{ listStyle: 'none', cursor: 'pointer', display: 'inline-block' }}>
         {etiket}{secim ? ` · ${secim.ad}` : ''} <span aria-hidden>▾</span>
       </summary>
       <div style={{
         position: 'absolute', top: '100%', right: 0, zIndex: 5, minWidth: 210,
-        maxHeight: 300, overflowY: 'auto', background: 'var(--card)',
-        border: 'var(--bw-strong) solid var(--hr2)', boxShadow: 'var(--sh-tip)',
+        maxHeight: 300, overflowY: 'auto', background: 'var(--panel)',
+        border: 'var(--bw-strong) solid var(--hr2)', boxShadow: 'none',
         padding: 'var(--s8)',
       }}>
         {[{ id: '', ad: 'Tümü' }, ...secenekler].map((s) => (
-          <button key={s.id} type="button" className="filtre"
+          <button key={s.id} type="button" className="ab-filtre"
             style={{ display: 'block', width: '100%', textAlign: 'left' }}
             aria-pressed={(aktif ?? '') === s.id}
             onClick={(e) => {
@@ -508,9 +508,9 @@ function Ozet({ proje, simdi, yazabilir, duzenle, durumKip, bagla }: {
           id: b.id, kod: b.kod, alt: b.alt, yol: b.yol, suren: b.tur === 'risk',
         }))} />
       ) : (
-        <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
-          <p className="t-label" style={{ margin: '0 0 var(--s10)' }}>Varoluş gerekçesi</p>
-          <p className="cekmece-dip" style={{ margin: 0 }}>
+        <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+          <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Varoluş gerekçesi</p>
+          <p className="ab-panel-dip" style={{ margin: 0 }}>
             Kontrol, bulgu ya da risk bağı yok — bu projenin neyi kapattığı kayıtlı değil.
           </p>
         </div>
@@ -518,7 +518,7 @@ function Ozet({ proje, simdi, yazabilir, duzenle, durumKip, bagla }: {
 
       <CekmeceEylemler
         birincil={yazabilir
-          ? <Dugme tur="cekmece" onClick={durumKip}>Durum güncelle</Dugme>
+          ? <Dugme tur="tam" onClick={durumKip}>Durum güncelle</Dugme>
           : undefined}
         ikincil={yazabilir ? (
           <div style={{ display: 'flex', gap: 'var(--s10)' }}>
@@ -560,8 +560,8 @@ function para(n: number): string {
 function Fazlar({ fazlar, simdi }: { fazlar: Faz[]; simdi: number }) {
   if (fazlar.length === 0) return null;
   return (
-    <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
-      <p className="t-label" style={{ margin: '0 0 var(--s10)' }}>Fazlar</p>
+    <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+      <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Fazlar</p>
       {fazlar.map((f) => {
         const gecikme = fazGecikmesi(f, simdi);
         const durum: Durum = f.durum === 'tamamlandi' ? 'tamam'
@@ -575,7 +575,7 @@ function Fazlar({ fazlar, simdi }: { fazlar: Faz[]; simdi: number }) {
               overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {f.ad}
             </span>
-            <span style={{ fontFamily: 'var(--mo)', fontSize: 'var(--t-label)',
+            <span style={{ fontFamily: 'var(--veri)', fontSize: 'var(--t-label)',
               color: gecikme !== null ? 'var(--bd)' : 'var(--i3)' }}>
               {gecikme !== null ? `+${gecikme} g` : ceyrek(f.gerceklesen ?? f.hedef)}
             </span>

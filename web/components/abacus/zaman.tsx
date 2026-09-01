@@ -3,13 +3,19 @@ import { useEffect, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 import type { Durum } from './temel';
 
-/* 14 · Timeline — 02-components §14.
-   İki varyant tek iskelet paylaşır: 1px eksen, bakır "bugün" tırnağı,
-   dönem etiketleri eksenin ÜSTÜNDE, kartlar eksenin ALTINDA ayrılmış
-   şeritte. Kural: etiket ve kartlar asla aynı şeridi paylaşmaz; kart
-   genişliği bir sonraki dönem tırnağını geçmez.
+/* ═══════════════════════════════════════════════════════════════════════
+   ABACUS ZAMAN ŞERİDİ
 
-   Konumlar statik yerleşimdir — animasyon edilmez (04 §4). */
+   Abacus prototiplerinde ayrı bir "zaman çizelgesi" bileşeni YOK; en
+   yakın gramer `b-executive`in düzenleyici takvimi ile uygunsuzluk akışı
+   bandıdır: 1px eksen, aksan renginde "bugün" tırnağı, dönem etiketleri
+   eksenin ÜSTÜNDE, kartlar ALTINDA ayrı şeritte.
+
+   YERLEŞİM MATEMATİĞİ Atlas'tan aynen devralındı ve bu bilinçlidir: kart
+   ayırma, ölçülen eksen genişliği ve "sığmayan kart çizilmez" kuralı bir
+   TASARIM tercihi değil, üç ekranda ölçülmüş bir çakışma düzeltmesidir.
+   Değişen malzeme: sınıflar `.ab-zaman*`, kart 208px yerine aynı ölçüde
+   ama Abacus tipografisiyle. */
 
 /** Kart gövdesinin piksel genişliği — CSS'teki `.zaman-kart { width }`
     ile aynı sayı. Ayırma matematiği buna dayandığı için TEK yerde durur. */
@@ -96,9 +102,9 @@ export function ZamanCizelgesi({
   const sigan = genislik > 0 ? kartlar.slice(0, kacKartSigar(genislik)) : kartlar;
   const ayrikPx = genislik > 0 ? konumlariAyirPx(sigan.map((k) => k.konum), genislik) : null;
   return (
-    <div className="zaman-atlas" ref={kokRef}>
+    <div className="ab-zaman" ref={kokRef}>
       {donemler.map((d) => (
-        <span key={d.ad} className="donem" style={{ left: `${d.konum * 100}%` }}>{d.ad}</span>
+        <span key={d.ad} className="mono donem" style={{ left: `${d.konum * 100}%` }}>{d.ad}</span>
       ))}
       <span className="eksen" />
       {bugun != null && <span className="bugun" style={{ left: `${bugun * 100}%` }} />}
@@ -106,15 +112,15 @@ export function ZamanCizelgesi({
         <button
           key={k.id}
           type="button"
-          className={`zaman-kart s-${k.durum}`}
+          className={`ab-zaman-kart d-${k.durum}`}
           style={{ left: ayrikPx
             ? `${ayrikPx[i]}px`
             : `min(${k.konum * 100}%, calc(100% - ${KART_PX}px))` } as CSSProperties}
           onClick={() => tikla?.(k.id)}
         >
-          <span className="geri">{k.geri}</span>
+          <span className="mono geri">{k.geri}</span>
           <span className="ad">{k.ad}</span>
-          <span className="kapsam">{k.kapsam}</span>
+          <span className="mono kapsam">{k.kapsam}</span>
         </button>
       ))}
     </div>
@@ -141,52 +147,42 @@ export function OmurUfku({
   tikla?: (id: string) => void;
 }) {
   return (
-    <div className="omur-serit">
+    <div className="ab-omur">
       {bantlar.map((b) => (
         <span
           key={b.sinif}
-          className={`omur-bant ${b.sinif}`}
+          className={`ab-omur-bant ${b.sinif}`}
           style={{ left: `${b.bas * 100}%`, width: `${(b.son - b.bas) * 100}%` }}
           aria-hidden
         >
           <span className="ad">{b.ad}</span>
         </span>
       ))}
-      <span className="eksen" style={{ position: 'absolute', left: 0, right: 0, top: 93,
-        height: 1, background: 'var(--hr2)' }} />
+      <span className="eksen" />
       {kartlar.map((k, i) => (
         <button
           key={k.id}
           type="button"
-          className={`omur-kart ${k.gecmis ? 'gecmis' : 'gelecek'}`}
+          className={`ab-omur-kart ${k.gecmis ? 'gecmis' : 'gelecek'}`}
           style={{ left: `min(${k.konum * 100}%, calc(100% - 196px))`,
             top: i % 2 === 0 ? 0 : 108 }}
           onClick={() => tikla?.(k.id)}
         >
-          <span className="geri" style={{ float: 'right', fontFamily: 'var(--mo)',
-            fontSize: 'var(--t-code-lg)', color: k.gecmis ? 'var(--bd)' : 'var(--i3)' }}>
-            {k.geri}
-          </span>
-          <span className="ad" style={{ fontSize: 13, fontWeight: 600 }}>{k.ad}</span>
-          <span className="kapsam" style={{ display: 'block', marginTop: 'var(--s6)',
-            fontFamily: 'var(--mo)', fontSize: 'var(--t-code)', color: 'var(--i3)' }}>
-            {k.kapsam}
-          </span>
+          <span className="mono geri">{k.geri}</span>
+          <span className="ad">{k.ad}</span>
+          <span className="mono kapsam">{k.kapsam}</span>
         </button>
       ))}
       {/* Dönem tırnakları eksenin ÜSTÜNDE ayrı şerittedir; kartlarla asla
           aynı laneyi paylaşmaz (02-components §14). */}
       {donemler.map((d) => (
-        <span key={d.ad} className="donem"
-          style={{ position: 'absolute', top: 73,
-            left: `min(${d.konum * 100}%, calc(100% - 56px))` }}>
+        <span key={d.ad} className="mono donem"
+          style={{ left: `min(${d.konum * 100}%, calc(100% - 56px))` }}>
           {d.ad}
         </span>
       ))}
       {donemler.length > 0 && (
-        <span className="bugun" aria-hidden
-          style={{ position: 'absolute', left: 0, top: 87, width: 2, height: 13,
-            background: 'var(--jes)' }} />
+        <span className="bugun" aria-hidden />
       )}
     </div>
   );

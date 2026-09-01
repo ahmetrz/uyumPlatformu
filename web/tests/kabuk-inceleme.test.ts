@@ -22,7 +22,7 @@ copyFileSync('prisma/dev.db', testDb);
 process.env.TEST_DB = testDb;
 
 const { db } = await import('@/lib/db');
-const V = await import('@/components/atlas/durumAyagiVerisi');
+const V = await import('@/components/abacus/durumAyagiVerisi');
 const K = await import('../arac/rota-kurallari.mjs');
 
 type Yetki = {

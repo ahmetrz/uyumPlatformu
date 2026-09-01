@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
-import { Alan, Dugme, Im } from '@/components/atlas/temel';
-import { CekmeceEylemler } from '@/components/atlas/cekmece';
+import { Alan, Dugme, Im } from '@/components/abacus/temel';
+import { CekmeceEylemler } from '@/components/abacus/panel';
 import { useEylem } from '@/components/useEylem';
 import { zamanTR } from '@/lib/sabitler';
 import {
@@ -39,9 +39,9 @@ export function EtkiDogrulama({
 
   if (!dogrulayabilir) {
     return (
-      <div className="cekmece-blok" style={{ marginTop: 'var(--s26)' }}>
-        <div className="blok yetkisiz">
-          <p className="t-caption" style={{ margin: 0 }}>Yetkisiz</p>
+      <div className="ab-panel-blok" style={{ marginTop: 'var(--s26)' }}>
+        <div className="ab-blok">
+          <p className="etiket" style={{ margin: 0 }}>Yetkisiz</p>
           <p className="cumle">
             Etki doğrulama yönetim onay yetkisi ister. Öneri okunabilir,
             etki alanına yazılamaz.
@@ -77,20 +77,20 @@ export function EtkiDogrulama({
     .sort((a, b) => Number(bekleyen.includes(b)) - Number(bekleyen.includes(a)));
 
   return (
-    <div className="cekmece-blok" style={{ marginTop: 'var(--s26)' }}>
-      <p className="t-label" style={{ margin: '0 0 var(--s10)' }}>Etki doğrulama</p>
+    <div className="ab-panel-blok" style={{ marginTop: 'var(--s26)' }}>
+      <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Etki doğrulama</p>
 
       {acikAlan === null && geriAlinan === null && (
         <div style={{ display: 'grid', gap: 'var(--s10)' }}>
           {acilabilir.length === 0 ? (
-            <p className="cekmece-dip" style={{ margin: 0 }}>
+            <p className="ab-panel-dip" style={{ margin: 0 }}>
               Dört etki alanı da doğrulanmış.
             </p>
           ) : (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--s8)' }}>
               {/* Çekmecede TEK birincil eylem: sırada bekleyen ilk öneri. */}
               {acilabilir.map((a, i) => (
-                <Dugme key={a} tur={i === 0 && bekleyen.includes(a) ? 'cekmece' : 'ikincil'}
+                <Dugme key={a} tur={i === 0 && bekleyen.includes(a) ? 'tam' : 'ikincil'}
                   onClick={() => ac(a)}>
                   {ETKI_ALAN_ETIKET[a]} doğrula
                 </Dugme>
@@ -106,7 +106,7 @@ export function EtkiDogrulama({
                   <span style={{ color: 'var(--i2)' }}>
                     {ETKI_ALAN_ETIKET[a]} · {seviyeSozu(olay.etki[a])}
                   </span>
-                  <button type="button" className="dg dg-satir" style={{ marginLeft: 'auto' }}
+                  <button type="button" className="ab-dugme satir" style={{ marginLeft: 'auto' }}
                     onClick={() => { setGeriAlinan(a); setGerekce(''); }}>
                     Doğrulamayı geri al
                   </button>
@@ -115,7 +115,7 @@ export function EtkiDogrulama({
             </div>
           )}
 
-          {hata && <p className="gr-hata" style={{ margin: 0 }}>{hata}</p>}
+          {hata && <p className="ab-gr-hata" style={{ margin: 0 }}>{hata}</p>}
         </div>
       )}
 
@@ -127,12 +127,12 @@ export function EtkiDogrulama({
               Motor önerisi: {seviyeSozu(olay.oneri?.degerler[acikAlan])}
             </span>
           </p>
-          <p className="cekmece-dip" style={{ margin: 0 }}>
+          <p className="ab-panel-dip" style={{ margin: 0 }}>
             {olay.oneri?.dayanaklar[acikAlan] ?? 'Öneri dayanağı yok.'}
           </p>
 
           <Alan etiket={`${ETKI_ALAN_ETIKET[acikAlan]} etkisi`} zorunlu>
-            <select className="gr" value={deger} onChange={(e) => setDeger(e.target.value)}>
+            <select className="ab-gr" value={deger} onChange={(e) => setDeger(e.target.value)}>
               <option value="">Seçiniz…</option>
               {SEVIYE_KUMESI[acikAlan].map((d) => (
                 <option key={d} value={d}>{seviyeSozu(d)}</option>
@@ -141,7 +141,7 @@ export function EtkiDogrulama({
           </Alan>
 
           <Alan etiket="Doğrulama gerekçesi" zorunlu hata={hata}>
-            <textarea className="gr" rows={3} value={gerekce}
+            <textarea className="ab-gr" rows={3} value={gerekce}
               placeholder="Bu kararın dayanağı — hangi kanıt, hangi gözlem?"
               onChange={(e) => setGerekce(e.target.value)} />
           </Alan>
@@ -153,7 +153,7 @@ export function EtkiDogrulama({
             </Dugme>
             <Dugme tur="ret" onClick={() => setAcikAlan(null)} disabled={bekliyor}>Vazgeç</Dugme>
           </div>
-          <p className="cekmece-dip" style={{ margin: 0 }}>
+          <p className="ab-panel-dip" style={{ margin: 0 }}>
             Doğrulama denetim izine düşer; önerinin kabul mü edildiği,
             değiştirildi mi olduğu izde yazılıdır.
           </p>
@@ -167,7 +167,7 @@ export function EtkiDogrulama({
             döner, &quot;yok&quot; olmaz.
           </p>
           <Alan etiket="Geri alma gerekçesi" zorunlu hata={hata}>
-            <textarea className="gr" rows={2} value={gerekce}
+            <textarea className="ab-gr" rows={2} value={gerekce}
               onChange={(e) => setGerekce(e.target.value)} />
           </Alan>
           <div style={{ display: 'flex', gap: 'var(--s10)' }}>
@@ -246,27 +246,27 @@ export function YeniOlayFormu({
   return (
     <div style={{ display: 'grid', gap: 'var(--s16)' }}>
       <Alan etiket="Başlık" zorunlu>
-        <input className="gr" value={v.baslik} autoFocus
+        <input className="ab-gr" value={v.baslik} autoFocus
           placeholder="Örn. Kızıldere III DCS operatör istasyonunda yetkisiz oturum"
           onChange={(e) => setV({ ...v, baslik: e.target.value })} />
       </Alan>
 
       <Alan etiket="Şiddet" zorunlu>
-        <select className="gr" value={v.siddet}
+        <select className="ab-gr" value={v.siddet}
           onChange={(e) => setV({ ...v, siddet: e.target.value })}>
           {SIDDETLER.map((s) => <option key={s} value={s}>{SIDDET_SOZU[s]}</option>)}
         </select>
       </Alan>
 
       <Alan etiket="Tip">
-        <select className="gr" value={v.tip}
+        <select className="ab-gr" value={v.tip}
           onChange={(e) => setV({ ...v, tip: e.target.value })}>
           {TIPLER.map((t) => <option key={t} value={t}>{TIP_SOZU[t]}</option>)}
         </select>
       </Alan>
 
       <Alan etiket="Santral">
-        <select className="gr" value={v.tesisId}
+        <select className="ab-gr" value={v.tesisId}
           onChange={(e) => setV({ ...v, tesisId: e.target.value })}>
           <option value="">santral kaydı yok</option>
           {santraller.map((t) => <option key={t.id} value={t.id}>{t.kod} — {t.ad}</option>)}
@@ -274,11 +274,11 @@ export function YeniOlayFormu({
       </Alan>
 
       <Alan etiket="Özet">
-        <textarea className="gr" rows={3} value={v.ozet} style={{ resize: 'vertical' }}
+        <textarea className="ab-gr" rows={3} value={v.ozet} style={{ resize: 'vertical' }}
           onChange={(e) => setV({ ...v, ozet: e.target.value })} />
       </Alan>
 
-      {hata && <p className="gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
+      {hata && <p className="ab-gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
 
       <div style={{ display: 'flex', gap: 'var(--s10)' }}>
         <Dugme tur="birincil" disabled={bekliyor || !gecerli}
@@ -293,7 +293,7 @@ export function YeniOlayFormu({
         <Dugme tur="ret" onClick={kapat} disabled={bekliyor}>Vazgeç</Dugme>
       </div>
 
-      <p className="cekmece-dip" style={{ margin: 0 }}>
+      <p className="ab-panel-dip" style={{ margin: 0 }}>
         Açılış denetim izine düşer. Etki alanları BOŞ açılır — etki motorun
         önerisiyle değil, insan doğrulamasıyla dolar. Santral seçilmezse
         kayıt &quot;etkisiz&quot; değil, &quot;santrali yazılmamış&quot; sayılır.
@@ -335,26 +335,26 @@ export function OlayDuzenleFormu({ olay, santraller, kapat }: {
   return (
     <div style={{ display: 'grid', gap: 'var(--s16)' }}>
       <Alan etiket="Başlık" zorunlu>
-        <input className="gr" value={v.baslik}
+        <input className="ab-gr" value={v.baslik}
           onChange={(e) => setV({ ...v, baslik: e.target.value })} />
       </Alan>
 
       <Alan etiket="Durum">
-        <select className="gr" value={v.durum}
+        <select className="ab-gr" value={v.durum}
           onChange={(e) => setV({ ...v, durum: e.target.value })}>
           {DURUMLAR.map((d) => <option key={d} value={d}>{OLAY_DURUM_SOZU[d]}</option>)}
         </select>
       </Alan>
 
       <Alan etiket="Şiddet">
-        <select className="gr" value={v.siddet}
+        <select className="ab-gr" value={v.siddet}
           onChange={(e) => setV({ ...v, siddet: e.target.value })}>
           {SIDDETLER.map((s) => <option key={s} value={s}>{SIDDET_SOZU[s]}</option>)}
         </select>
       </Alan>
 
       <Alan etiket="Santral">
-        <select className="gr" value={v.tesisId}
+        <select className="ab-gr" value={v.tesisId}
           onChange={(e) => setV({ ...v, tesisId: e.target.value })}>
           <option value="">santral kaydı yok</option>
           {santraller.map((t) => <option key={t.id} value={t.id}>{t.kod} — {t.ad}</option>)}
@@ -362,7 +362,7 @@ export function OlayDuzenleFormu({ olay, santraller, kapat }: {
       </Alan>
 
       <Alan etiket="Tespit kaynağı">
-        <select className="gr" value={v.tespitKaynagi}
+        <select className="ab-gr" value={v.tespitKaynagi}
           onChange={(e) => setV({ ...v, tespitKaynagi: e.target.value })}>
           <option value="">kaydedilmedi</option>
           {TESPIT_KAYNAKLARI.map((t) => <option key={t} value={t}>{TESPIT_SOZU[t]}</option>)}
@@ -370,37 +370,37 @@ export function OlayDuzenleFormu({ olay, santraller, kapat }: {
       </Alan>
 
       <Alan etiket="Özet">
-        <textarea className="gr" rows={2} value={v.ozet} style={{ resize: 'vertical' }}
+        <textarea className="ab-gr" rows={2} value={v.ozet} style={{ resize: 'vertical' }}
           onChange={(e) => setV({ ...v, ozet: e.target.value })} />
       </Alan>
 
       <div style={{ display: 'grid', gap: 'var(--s14)',
         borderTop: 'var(--bw-edge) solid var(--hr2)', paddingTop: 'var(--s16)' }}>
-        <p className="t-label" style={{ margin: 0 }}>Müdahale ve öğrenme</p>
+        <p className="etiket" style={{ margin: 0 }}>Müdahale ve öğrenme</p>
         <Alan etiket="Kök neden">
-          <textarea className="gr" rows={2} value={v.kokNeden} style={{ resize: 'vertical' }}
+          <textarea className="ab-gr" rows={2} value={v.kokNeden} style={{ resize: 'vertical' }}
             onChange={(e) => setV({ ...v, kokNeden: e.target.value })} />
         </Alan>
         <Alan etiket="Sınırlama">
-          <textarea className="gr" rows={2} value={v.sinirlama} style={{ resize: 'vertical' }}
+          <textarea className="ab-gr" rows={2} value={v.sinirlama} style={{ resize: 'vertical' }}
             onChange={(e) => setV({ ...v, sinirlama: e.target.value })} />
         </Alan>
         <Alan etiket="Kurtarma">
-          <textarea className="gr" rows={2} value={v.kurtarma} style={{ resize: 'vertical' }}
+          <textarea className="ab-gr" rows={2} value={v.kurtarma} style={{ resize: 'vertical' }}
             onChange={(e) => setV({ ...v, kurtarma: e.target.value })} />
         </Alan>
         <Alan etiket="Öğrenilenler">
-          <textarea className="gr" rows={2} value={v.ogrenilenler} style={{ resize: 'vertical' }}
+          <textarea className="ab-gr" rows={2} value={v.ogrenilenler} style={{ resize: 'vertical' }}
             onChange={(e) => setV({ ...v, ogrenilenler: e.target.value })} />
         </Alan>
       </div>
 
       <div style={{ display: 'grid', gap: 'var(--s14)',
         borderTop: 'var(--bw-edge) solid var(--hr2)', paddingTop: 'var(--s16)' }}>
-        <p className="t-label" style={{ margin: 0 }}>Regülasyon bildirimi</p>
+        <p className="etiket" style={{ margin: 0 }}>Regülasyon bildirimi</p>
         <Alan etiket="Bildirim">
           {/* Boş seçenek "gerekmiyor" DEĞİL, "değerlendirilmedi"dir. */}
-          <select className="gr" value={v.bildirimGerekli}
+          <select className="ab-gr" value={v.bildirimGerekli}
             onChange={(e) => setV({ ...v, bildirimGerekli: e.target.value,
               // Değerlendirilmemişe dönerken tarih de düşer: değerlendirilmemiş
               // bir bildirimin tarihi olamaz.
@@ -410,18 +410,18 @@ export function OlayDuzenleFormu({ olay, santraller, kapat }: {
         </Alan>
         {v.bildirimGerekli === 'evet' && (
           <Alan etiket="Bildirim tarihi">
-            <input className="gr" type="date" value={v.bildirimTarihi}
+            <input className="ab-gr" type="date" value={v.bildirimTarihi}
               onChange={(e) => setV({ ...v, bildirimTarihi: e.target.value })} />
           </Alan>
         )}
         {bildirimNull && (
-          <p className="cekmece-dip" style={{ margin: 0 }}>
+          <p className="ab-panel-dip" style={{ margin: 0 }}>
             Değerlendirilmedi &quot;gerekmiyor&quot; demek değildir; raporlarda ölçülmemiş sayılır.
           </p>
         )}
       </div>
 
-      {hata && <p className="gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
+      {hata && <p className="ab-gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
 
       <div style={{ display: 'flex', gap: 'var(--s10)' }}>
         <Dugme tur="birincil" disabled={bekliyor || !gecerli}
@@ -447,7 +447,7 @@ export function OlayDuzenleFormu({ olay, santraller, kapat }: {
         <Dugme tur="ret" onClick={kapat} disabled={bekliyor}>Vazgeç</Dugme>
       </div>
 
-      <p className="cekmece-dip" style={{ margin: 0 }}>
+      <p className="ab-panel-dip" style={{ margin: 0 }}>
         Durum değişimi ve kök neden/sınırlama/kurtarma/öğrenilenler alanları
         ayrı ayrı denetim izine yazılır. Etki alanları bu formdan
         DEĞİŞTİRİLEMEZ — onlar yönetim onayına bağlıdır.
@@ -474,8 +474,8 @@ export function OlayBaglari({ olay, adaylar, yazilabilir }: {
   const toplam = bagSayisi(olay);
 
   return (
-    <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
-      <p className="t-label" style={{ margin: '0 0 var(--s10)' }}>
+    <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+      <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>
         Zincir bağları · {toplam}
       </p>
 
@@ -501,7 +501,7 @@ export function OlayBaglari({ olay, adaylar, yazilabilir }: {
                   <span style={{ color: 'var(--i3)', minWidth: 0, overflow: 'hidden',
                     textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{b.alt}</span>
                   {yazilabilir && (
-                    <button type="button" className="dg dg-satir" style={{ marginLeft: 'auto' }}
+                    <button type="button" className="ab-dugme satir" style={{ marginLeft: 'auto' }}
                       disabled={bekliyor}
                       onClick={() => calistir(() => olayBagKaldir({
                         olayId: olay.id, tip, hedefId: b.id,
@@ -515,7 +515,7 @@ export function OlayBaglari({ olay, adaylar, yazilabilir }: {
               {yazilabilir && acikTip === tip && (
                 <div style={{ display: 'grid', gap: 'var(--s10)', marginTop: 'var(--s4)' }}>
                   <Alan etiket={`Bağlanacak ${BAG_ETIKET[tip].toLocaleLowerCase('tr-TR')}`} zorunlu>
-                    <select className="gr" value={hedef}
+                    <select className="ab-gr" value={hedef}
                       onChange={(e) => setHedef(e.target.value)}>
                       <option value="">Seçiniz…</option>
                       {secilebilir.map((a) => (
@@ -525,7 +525,7 @@ export function OlayBaglari({ olay, adaylar, yazilabilir }: {
                   </Alan>
                   {(tip === 'varlik' || tip === 'sistem') && (
                     <Alan etiket="Rol">
-                      <select className="gr" value={rol} onChange={(e) => setRol(e.target.value)}>
+                      <select className="ab-gr" value={rol} onChange={(e) => setRol(e.target.value)}>
                         <option value="etkilenen">Etkilenen</option>
                         <option value="kaynak">Kaynak</option>
                         <option value="telafi_edici">Telafi edici</option>
@@ -548,7 +548,7 @@ export function OlayBaglari({ olay, adaylar, yazilabilir }: {
 
               {yazilabilir && acikTip !== tip && (
                 <div>
-                  <button type="button" className="dg dg-satir" disabled={secilebilir.length === 0}
+                  <button type="button" className="ab-dugme satir" disabled={secilebilir.length === 0}
                     onClick={() => { setAcikTip(tip); setHedef(''); setRol('etkilenen'); }}>
                     {secilebilir.length === 0
                       ? 'bağlanabilecek kayıt kalmadı'
@@ -561,9 +561,9 @@ export function OlayBaglari({ olay, adaylar, yazilabilir }: {
         })}
       </div>
 
-      {hata && <p className="gr-hata" role="alert" style={{ margin: 'var(--s10) 0 0' }}>{hata}</p>}
+      {hata && <p className="ab-gr-hata" role="alert" style={{ margin: 'var(--s10) 0 0' }}>{hata}</p>}
 
-      <p className="cekmece-dip" style={{ margin: 'var(--s14) 0 0' }}>
+      <p className="ab-panel-dip" style={{ margin: 'var(--s14) 0 0' }}>
         {yazilabilir
           ? 'Varlık ve sistem bağı etki önerisini besler; bağ değişince öneri '
             + 'yeniden üretilir. Öneri etki DEĞİLDİR — alanlar yalnız doğrulamayla dolar.'

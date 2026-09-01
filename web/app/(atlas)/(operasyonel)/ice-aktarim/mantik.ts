@@ -1,4 +1,4 @@
-import type { Durum } from '@/components/atlas/temel';
+import type { Durum } from '@/components/abacus/temel';
 
 /* Regülasyon MADDE aktarımı — sunucu ile istemcinin paylaştığı tipler ve
    saf hesaplar.

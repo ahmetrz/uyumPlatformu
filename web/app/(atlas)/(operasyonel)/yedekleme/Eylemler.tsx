@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { Alan, Dugme, Im } from '@/components/atlas/temel';
+import { Alan, Dugme, Im } from '@/components/abacus/temel';
 import { useEylem } from '@/components/useEylem';
 import {
   yedeklemePolitikasiKaydet, yedeklemeKosusuKaydet, restoreTestiKaydet,
@@ -82,7 +82,7 @@ export function VarlikYedegi({ varlik, kaynakBagli }: {
           ad={varlik.kayitSayisi > 0 ? 'Kullanılabilir yedeği yok' : 'Yedek durumu ölçülmedi'} />
       </span>
       <span style={{ minWidth: 0 }}>
-        <button type="button" className="acikla"
+        <button type="button" className="ab-dugme satir"
           style={{ display: 'block', textAlign: 'left', fontSize: 'var(--t-field)' }}
           onClick={() => (acik ? setAcik(false) : ac())}>
           {varlik.ad}
@@ -104,7 +104,7 @@ export function VarlikYedegi({ varlik, kaynakBagli }: {
                 Yedek kayıtları okunuyor…
               </span>
             )}
-            {okumaHatasi && <p className="gr-hata" style={{ margin: 0 }}>{okumaHatasi}</p>}
+            {okumaHatasi && <p className="ab-gr-hata" style={{ margin: 0 }}>{okumaHatasi}</p>}
 
             {veri && (
               <>
@@ -116,7 +116,7 @@ export function VarlikYedegi({ varlik, kaynakBagli }: {
                   <b style={{ color: `var(--${ucDurum(veri.degisim.sonuc)})` }}>
                     {UC_DEGER_SOZU[veri.degisim.sonuc]}</b>
                 </p>
-                <p className="cekmece-dip" style={{ margin: 0 }}>{veri.iyi.gerekce}</p>
+                <p className="ab-panel-dip" style={{ margin: 0 }}>{veri.iyi.gerekce}</p>
 
                 {veri.kayitlar.length === 0 ? (
                   <p style={{ margin: 0, fontSize: 'var(--t-label)', color: 'var(--unk)' }}>
@@ -146,12 +146,12 @@ export function VarlikYedegi({ varlik, kaynakBagli }: {
                         )}
                         {veri.yazabilir && acikYedek !== y.id && (
                           <span style={{ display: 'flex', gap: 'var(--s10)' }}>
-                            <button type="button" className="dg dg-satir" disabled={bekliyor}
+                            <button type="button" className="ab-dugme satir" disabled={bekliyor}
                               onClick={() => { setAcikYedek(y.id); setGerekce(''); }}>
                               {y.dogrulandi ? 'Doğrulamayı kaldır' : 'Okunabilirliği doğrula'}
                             </button>
                             {!y.sonBilinenIyi && y.basarili && (
-                              <button type="button" className="dg dg-satir" disabled={bekliyor}
+                              <button type="button" className="ab-dugme satir" disabled={bekliyor}
                                 onClick={() => calistir(
                                   () => sonBilinenIyiIsaretle({ yedekId: y.id }), tazele)}>
                                 Son bilinen iyi işaretle
@@ -162,7 +162,7 @@ export function VarlikYedegi({ varlik, kaynakBagli }: {
                         {veri.yazabilir && acikYedek === y.id && (
                           <div style={{ display: 'grid', gap: 'var(--s8)' }}>
                             <Alan etiket="Gerekçe">
-                              <textarea className="gr" rows={2} value={gerekce}
+                              <textarea className="ab-gr" rows={2} value={gerekce}
                                 placeholder="Yedek nasıl açıldı, ne gözlendi?"
                                 onChange={(e) => setGerekce(e.target.value)} />
                             </Alan>
@@ -196,7 +196,7 @@ export function VarlikYedegi({ varlik, kaynakBagli }: {
                           : c.katki === 'zayiflatir' ? 'zayıflatır' : 'kanıt yok'} — {c.oneri}
                       </span>
                     ))}
-                    <span className="cekmece-dip">
+                    <span className="ab-panel-dip">
                       Bu bağ madde durumuna KENDİLİĞİNDEN yazılmaz; kanıt olarak
                       bağlanması ayrı bir insan onayı ister.
                     </span>
@@ -204,7 +204,7 @@ export function VarlikYedegi({ varlik, kaynakBagli }: {
                 )}
               </>
             )}
-            {hata && <p className="gr-hata" style={{ margin: 0 }}>{hata}</p>}
+            {hata && <p className="ab-gr-hata" style={{ margin: 0 }}>{hata}</p>}
           </div>
         )}
       </span>
@@ -237,20 +237,20 @@ export function BulguIsle({ bulgu, yetkili }: { bulgu: YedekBulgusu; yetkili: bo
         </span>
 
         {!yetkili ? (
-          <span className="cekmece-dip">
+          <span className="ab-panel-dip">
             Bulguyu işlemek yönetim yazma yetkisi ister.
           </span>
         ) : karar === null ? (
           <span style={{ display: 'flex', gap: 'var(--s10)', marginTop: 'var(--s4)' }}>
-            <button type="button" className="dg dg-satir"
+            <button type="button" className="ab-dugme satir"
               onClick={() => { setKarar('cozuldu'); setGerekce(''); }}>Çözüldü işaretle</button>
-            <button type="button" className="dg dg-satir"
+            <button type="button" className="ab-dugme satir"
               onClick={() => { setKarar('yok_sayildi'); setGerekce(''); }}>Yok say</button>
           </span>
         ) : (
           <span style={{ display: 'grid', gap: 'var(--s8)', marginTop: 'var(--s4)' }}>
             <Alan etiket="Gerekçe" zorunlu hata={hata}>
-              <textarea className="gr" rows={2} value={gerekce}
+              <textarea className="ab-gr" rows={2} value={gerekce}
                 placeholder={karar === 'yok_sayildi'
                   ? 'Neden yok sayılıyor? Gerekçesiz susturma denetimde savunulamaz.'
                   : 'Hangi kanıtla çözüldü sayılıyor?'}
@@ -300,7 +300,7 @@ export function PolitikaFormu({ santral, kapat }: { santral: Santral; kapat: () 
   return (
     <div style={{ display: 'grid', gap: 'var(--s14)' }}>
       <Alan etiket="Politika adı" zorunlu>
-        <input className="gr" value={v.ad} onChange={(e) => setV({ ...v, ad: e.target.value })} />
+        <input className="ab-gr" value={v.ad} onChange={(e) => setV({ ...v, ad: e.target.value })} />
       </Alan>
       {adUyari && (
         <p style={{ margin: 0, fontSize: 'var(--t-label)', color: 'var(--md)' }}>
@@ -308,26 +308,26 @@ export function PolitikaFormu({ santral, kapat }: { santral: Santral; kapat: () 
         </p>
       )}
       <Alan etiket="Kapsam">
-        <input className="gr" value={v.kapsam} placeholder="PLC/DCS konfigürasyonları, tarihçe sunucusu"
+        <input className="ab-gr" value={v.kapsam} placeholder="PLC/DCS konfigürasyonları, tarihçe sunucusu"
           onChange={(e) => setV({ ...v, kapsam: e.target.value })} />
       </Alan>
       <Alan etiket="Sıklık">
-        <select className="gr" value={v.siklik} onChange={(e) => setV({ ...v, siklik: e.target.value })}>
+        <select className="ab-gr" value={v.siklik} onChange={(e) => setV({ ...v, siklik: e.target.value })}>
           <option value="">girilmedi</option>
           {SIKLIKLAR.map((x) => <option key={x} value={x}>{x}</option>)}
         </select>
       </Alan>
       <Alan etiket="Saklama (gün)">
-        <input className="gr" type="number" min={1} value={v.saklamaGun}
+        <input className="ab-gr" type="number" min={1} value={v.saklamaGun}
           onChange={(e) => setV({ ...v, saklamaGun: e.target.value })} />
       </Alan>
       <Alan etiket="Hedef">
-        <select className="gr" value={v.hedef} onChange={(e) => setV({ ...v, hedef: e.target.value })}>
+        <select className="ab-gr" value={v.hedef} onChange={(e) => setV({ ...v, hedef: e.target.value })}>
           <option value="">girilmedi</option>
           {HEDEFLER.map((x) => <option key={x} value={x}>{x}</option>)}
         </select>
       </Alan>
-      {hata && <p className="gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
+      {hata && <p className="ab-gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
       <div style={{ display: 'flex', gap: 'var(--s10)' }}>
         <Dugme tur="birincil" disabled={bekliyor || !v.ad.trim()}
           onClick={() => calistir(() => yedeklemePolitikasiKaydet({
@@ -342,7 +342,7 @@ export function PolitikaFormu({ santral, kapat }: { santral: Santral; kapat: () 
         </Dugme>
         <Dugme tur="ret" onClick={kapat} disabled={bekliyor}>Vazgeç</Dugme>
       </div>
-      <p className="cekmece-dip" style={{ margin: 0 }}>
+      <p className="ab-panel-dip" style={{ margin: 0 }}>
         Politika kaydı bir yedekleme İŞİ başlatmaz; platform yedek almaz.
         Kayıt yalnız &quot;bu santral için neyi, ne sıklıkta, ne kadar
         saklamayı taahhüt ettik&quot; sorusunu cevaplar.
@@ -366,22 +366,22 @@ export function KosuKaydet({ santral }: { santral: Santral }) {
   return (
     <div style={{ display: 'grid', gap: 'var(--s10)' }}>
       <Alan etiket="Koşu sonucu" zorunlu>
-        <select className="gr" value={v.durum} onChange={(e) => setV({ ...v, durum: e.target.value })}>
+        <select className="ab-gr" value={v.durum} onChange={(e) => setV({ ...v, durum: e.target.value })}>
           <option value="basarili">Başarılı</option>
           <option value="kismi">Kısmi</option>
           <option value="basarisiz">Başarısız</option>
         </select>
       </Alan>
       <Alan etiket="Boyut (MB)">
-        <input className="gr" type="number" min={0} value={v.boyutMb}
+        <input className="ab-gr" type="number" min={0} value={v.boyutMb}
           onChange={(e) => setV({ ...v, boyutMb: e.target.value })} />
       </Alan>
       {v.durum !== 'basarili' && (
         <Alan etiket="Hata">
-          <input className="gr" value={v.hata} onChange={(e) => setV({ ...v, hata: e.target.value })} />
+          <input className="ab-gr" value={v.hata} onChange={(e) => setV({ ...v, hata: e.target.value })} />
         </Alan>
       )}
-      {hata && <p className="gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
+      {hata && <p className="ab-gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
       <div style={{ display: 'flex', gap: 'var(--s10)' }}>
         <Dugme tur="birincil" disabled={bekliyor}
           onClick={() => calistir(() => yedeklemeKosusuKaydet({
@@ -394,7 +394,7 @@ export function KosuKaydet({ santral }: { santral: Santral }) {
         </Dugme>
         <Dugme tur="ret" onClick={() => setAcik(false)} disabled={bekliyor}>Vazgeç</Dugme>
       </div>
-      <p className="cekmece-dip" style={{ margin: 0 }}>
+      <p className="ab-panel-dip" style={{ margin: 0 }}>
         Dışarıda koşmuş bir yedeklemenin SONUCU kaydedilir; bu düğme yedek almaz.
       </p>
     </div>
@@ -411,7 +411,7 @@ export function RestoreTestiKaydet({ santral }: { santral: Santral }) {
      bilinmiyor" kaydı üretmektense yüzeyi kapatıp sebebini yazıyoruz. */
   if (!santral.sonKosuId) {
     return (
-      <p className="cekmece-dip" style={{ margin: 0 }}>
+      <p className="ab-panel-dip" style={{ margin: 0 }}>
         Restore testi bir yedekleme koşusuna bağlanır; bu santralde kayıtlı koşu
         yok. Önce koşu sonucu kaydedin.
       </p>
@@ -419,26 +419,26 @@ export function RestoreTestiKaydet({ santral }: { santral: Santral }) {
   }
 
   if (!acik) {
-    return <Dugme tur="cekmece" onClick={() => setAcik(true)}>Restore testi sonucu kaydet</Dugme>;
+    return <Dugme tur="tam" onClick={() => setAcik(true)}>Restore testi sonucu kaydet</Dugme>;
   }
   return (
     <div style={{ display: 'grid', gap: 'var(--s10)' }}>
       <Alan etiket="Test sonucu" zorunlu>
-        <select className="gr" value={v.sonuc} onChange={(e) => setV({ ...v, sonuc: e.target.value })}>
+        <select className="ab-gr" value={v.sonuc} onChange={(e) => setV({ ...v, sonuc: e.target.value })}>
           <option value="basarili">Başarılı</option>
           <option value="basarisiz">Başarısız</option>
         </select>
       </Alan>
       <Alan etiket="Süre (dk)">
-        <input className="gr" type="number" min={0} value={v.sureDk}
+        <input className="ab-gr" type="number" min={0} value={v.sureDk}
           onChange={(e) => setV({ ...v, sureDk: e.target.value })} />
       </Alan>
       <Alan etiket="Not">
-        <textarea className="gr" rows={2} value={v.not} style={{ resize: 'vertical' }}
+        <textarea className="ab-gr" rows={2} value={v.not} style={{ resize: 'vertical' }}
           placeholder="Ne geri yüklendi, hangi sistemde doğrulandı?"
           onChange={(e) => setV({ ...v, not: e.target.value })} />
       </Alan>
-      {hata && <p className="gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
+      {hata && <p className="ab-gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
       <div style={{ display: 'flex', gap: 'var(--s10)' }}>
         <Dugme tur="birincil" disabled={bekliyor}
           onClick={() => calistir(() => restoreTestiKaydet({
@@ -451,7 +451,7 @@ export function RestoreTestiKaydet({ santral }: { santral: Santral }) {
         </Dugme>
         <Dugme tur="ret" onClick={() => setAcik(false)} disabled={bekliyor}>Vazgeç</Dugme>
       </div>
-      <p className="cekmece-dip" style={{ margin: 0 }}>
+      <p className="ab-panel-dip" style={{ margin: 0 }}>
         Kayıt son koşuya asılır ve denetim izine düşer. Platform geri yükleme
         BAŞLATMAZ — testi saha yapar, sonucunu burası taşır.
       </p>

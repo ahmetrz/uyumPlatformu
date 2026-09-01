@@ -1,11 +1,11 @@
 'use client';
 import { useMemo, useState } from 'react';
-import { BosFiltre, BosIlk } from '@/components/atlas/temel';
-import { EkranBasligi, Filtreler, KipDegistir } from '@/components/atlas/ekran';
-import { Tablo, type Kolon } from '@/components/atlas/tablo';
+import { BosFiltre, BosIlk } from '@/components/abacus/temel';
+import { EkranBasligi, Filtreler, KipDegistir } from '@/components/abacus/ekran';
+import { Tablo, type Kolon } from '@/components/abacus/tablo';
 import {
   Cekmece, CekmeceAlanlar, CekmeceBagli, CekmeceKimlik,
-} from '@/components/atlas/cekmece';
+} from '@/components/abacus/panel';
 import { tarihTR, zamanTR } from '@/lib/sabitler';
 import {
   AnlikAlmaFormu, AnlikEylemleri, SapmaKararlari, kaynakSozu,
@@ -153,7 +153,7 @@ export default function TopolojiIstemci({
       <main data-yuzey="tezgah" style={{ minWidth: 0 }}>
         <EkranBasligi eyebrow="Topoloji sapması · pasif gözlem"
           baslik="Topoloji anlığı alınmadı" />
-        <section className="ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
+        <section className="ab-ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
           <AnlikAlmaFormu tesisler={tesisler} yazabilir={yazabilir} />
           <BosIlk cumle={'Kapsamınızda topoloji anlığı yok — bu "sapma yok" demek'
             + ' değildir, hiç ölçülmedi demektir. Onaylı ağ kaydından bir anlık'
@@ -184,20 +184,20 @@ export default function TopolojiIstemci({
           ]}
         />
 
-        <section className="ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
+        <section className="ab-ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
           <AnlikAlmaFormu tesisler={tesisler} yazabilir={yazabilir} />
 
           {/* Temel şeridi: her kapsamın temeli VAR MI — sapmanın hesaplanıp
               hesaplanmadığı bu satırda okunur, tabloda değil. */}
-          <section className="blok" style={{ maxWidth: 'none', marginBottom: 'var(--s20)' }}>
-            <p className="t-label" style={{ margin: 0 }}>Onaylı temel · kapsam başına</p>
+          <section className="ab-blok" style={{ maxWidth: 'none', marginBottom: 'var(--s20)' }}>
+            <p className="etiket" style={{ margin: 0 }}>Onaylı temel · kapsam başına</p>
             <ul style={{ listStyle: 'none', margin: 'var(--s12) 0 0', padding: 0,
               display: 'grid', gap: 'var(--s6)' }}>
               {temelSeridi.map((t) => (
                 <li key={t.kapsamId} style={{ display: 'flex', gap: 'var(--s10)',
                   alignItems: 'baseline', fontSize: 'var(--t-code-lg)' }}>
                   <span style={{ fontWeight: 600, minWidth: 90 }}>{t.tesisKodu}</span>
-                  <span style={{ fontFamily: 'var(--mo)',
+                  <span style={{ fontFamily: 'var(--veri)',
                     color: t.temelVar ? 'var(--i2)' : 'var(--unk)' }}>
                     {t.anlikSayisi === 0
                       ? 'anlık yok — topoloji hiç ölçülmedi'
@@ -210,12 +210,12 @@ export default function TopolojiIstemci({
               ))}
             </ul>
             {temelSeridi.length < temeller.length && (
-              <p className="dip-not" style={{ marginTop: 'var(--s10)' }}>
+              <p className="ab-dip" style={{ marginTop: 'var(--s10)' }}>
                 Temeli onaylı {temeller.length - temelSeridi.length} kapsam daha var;
                 sapması olan ve temeli eksik olanlar yukarıda listelendi.
               </p>
             )}
-            <p className="dip-not">
+            <p className="ab-dip">
               {izCumlesi}
               {iz.motorDurumu
                 ? ` · motorun son koşusu: ${iz.motorDurumu}`
@@ -239,7 +239,7 @@ export default function TopolojiIstemci({
                 sec={(id) => setMercek(id as Mercek)} />
 
               {sapmalar.length === 0 ? (
-                <p className="dip-not" style={{ marginTop: 'var(--s18)' }}>
+                <p className="ab-dip" style={{ marginTop: 'var(--s18)' }}>
                   {iz.sonKarsilastirma
                     ? `Sapma yok — son karşılaştırma ${zamanTR(iz.sonKarsilastirma)}.`
                       + ' Bu ölçülmüş bir sıfırdır.'
@@ -345,13 +345,13 @@ export default function TopolojiIstemci({
               vermek için kritik olan bu — hover'a saklanmaz. */}
           {sapma.onceki && (
             <>
-              <p className="t-label" style={{ margin: 'var(--s24) 0 0' }}>Temelde</p>
+              <p className="etiket" style={{ margin: 'var(--s24) 0 0' }}>Temelde</p>
               <CekmeceAlanlar alanlar={farkAlanlari(sapma.onceki)} />
             </>
           )}
           {sapma.sonraki && (
             <>
-              <p className="t-label" style={{ margin: 'var(--s24) 0 0' }}>Bu anlıkta</p>
+              <p className="etiket" style={{ margin: 'var(--s24) 0 0' }}>Bu anlıkta</p>
               <CekmeceAlanlar alanlar={farkAlanlari(sapma.sonraki)} />
             </>
           )}

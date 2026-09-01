@@ -42,7 +42,7 @@ export default function KomutPaleti() {
       <div className="palet" onClick={(e) => e.stopPropagation()}
         role="dialog" aria-modal="true" aria-label="Genel arama">
         <div className="palet-giris">
-          <input autoFocus className="gr" style={{ width: '100%' }}
+          <input autoFocus className="ab-gr" style={{ width: '100%' }}
             placeholder="Ara: santral, madde, bulgu, risk, varlık, proje, denetim…"
             value={sorgu} onChange={(e) => arama(e.target.value)}
             onKeyDown={(e) => {

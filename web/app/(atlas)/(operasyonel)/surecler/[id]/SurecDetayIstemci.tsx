@@ -1,13 +1,13 @@
 'use client';
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
-import { BosFiltre, BosIlk, Dugme, type Durum } from '@/components/atlas/temel';
-import { Tablo, type Kolon, type Satir } from '@/components/atlas/tablo';
-import { EkranBasligi, Filtreler } from '@/components/atlas/ekran';
+import { BosFiltre, BosIlk, Dugme, type Durum } from '@/components/abacus/temel';
+import { Tablo, type Kolon, type Satir } from '@/components/abacus/tablo';
+import { EkranBasligi, Filtreler } from '@/components/abacus/ekran';
 import {
   Cekmece, CekmeceKimlik, CekmeceAlanlar, CekmeceBagli, CekmeceEylemler,
-} from '@/components/atlas/cekmece';
-import BaglamCubugu from '@/components/atlas/BaglamCubugu';
+} from '@/components/abacus/panel';
+import BaglamCubugu from '@/components/abacus/BaglamCubugu';
 import { DENKLIK_ETIKET, DURUM_ETIKET, GUVEN_ETIKET, ONEM_ETIKET, tarihTR } from '@/lib/sabitler';
 import { Ara, DisaAktar, Kapsam } from '../Kontroller';
 import {
@@ -166,7 +166,7 @@ export default function SurecDetayIstemci({ veri }: { veri: DetayVerisi }) {
             { ad: s.kod },
           ]}
           sag={
-            <Link href={`/uyum/${encodeURIComponent(s.regulasyon.kod)}`} className="dg dg-satir">
+            <Link href={`/uyum/${encodeURIComponent(s.regulasyon.kod)}`} className="ab-dugme satir">
               {s.regulasyon.kod} çerçevesi ▸
             </Link>
           }
@@ -198,7 +198,7 @@ export default function SurecDetayIstemci({ veri }: { veri: DetayVerisi }) {
           ]}
         />
 
-        <section className="ekran-govde">
+        <section className="ab-ekran-govde">
           <Filtreler
             secenekler={MERCEKLER}
             aktif={mercek}
@@ -247,7 +247,7 @@ export default function SurecDetayIstemci({ veri }: { veri: DetayVerisi }) {
               />
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 'var(--s16)',
                 padding: 'var(--s14) 0 0' }}>
-                <p className="dip-not" style={{ margin: 0, flex: 1, minWidth: 0 }}>
+                <p className="ab-dip" style={{ margin: 0, flex: 1, minWidth: 0 }}>
                   {dipNot({
                     gorunur: gorunur.length,
                     takipte: takipSayisi,
@@ -281,7 +281,7 @@ export default function SurecDetayIstemci({ veri }: { veri: DetayVerisi }) {
                   ? 'Kapsamda santral yok — değerlendirme açılmadı.'
                   : 'Bu kampanyada değerlendirme kaydı yok; regülasyonun yaprak maddesi bulunmuyor.'}
                 eylem={
-                  <Link className="dg dg-birincil" href="/surecler">
+                  <Link className="ab-dugme birincil" href="/surecler">
                     {s.tesisler.length === 0 ? 'Kapsamı düzenle' : 'Kampanya kütüğü'}
                   </Link>
                 }
@@ -302,12 +302,12 @@ export default function SurecDetayIstemci({ veri }: { veri: DetayVerisi }) {
             />
           ) : (
             <>
-              <div className="cekmece-blok">
-                <p className="t-label" style={{ margin: '0 0 var(--s12)' }}>
+              <div className="ab-panel-blok">
+                <p className="etiket" style={{ margin: '0 0 var(--s12)' }}>
                   {KIP_BASLIGI[kip]}
                 </p>
               </div>
-              <div className="cekmece-blok">
+              <div className="ab-panel-blok">
                 {kip === 'degerlendir' && (
                   <DegerlendirmeFormu kayit={secilen} kullanicilar={veri.kullanicilar}
                     kapat={() => setKip('ozet')} />
@@ -392,12 +392,12 @@ function Ozet({ kayit, yazabilir, git }: {
         },
       ]} />
 
-      <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
-        <p className="t-label" style={{ margin: '0 0 var(--s10)' }}>Madde metni</p>
+      <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+        <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Madde metni</p>
         <p style={{ margin: 0, fontSize: 'var(--t-cell)', lineHeight: 1.7, color: 'var(--i2)' }}>
           {kayit.madde.metin}
         </p>
-        <p className="cekmece-dip" style={{ margin: 'var(--s12) 0 0' }}>
+        <p className="ab-panel-dip" style={{ margin: 'var(--s12) 0 0' }}>
           {kayit.madde.bolum}
           {kayit.madde.alanlar.length > 0 && ` · ${kayit.madde.alanlar.join(' · ')}`}
           {kayit.madde.kanitTipi && ` · beklenen kanıt ${kayit.madde.kanitTipi}`}
@@ -412,10 +412,10 @@ function Ozet({ kayit, yazabilir, git }: {
       )}
 
       {kayit.kanitlar.length > 0 && (
-        <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
-          <p className="t-label" style={{ margin: '0 0 var(--s10)' }}>Kanıtlar</p>
+        <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+          <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Kanıtlar</p>
           {kayit.kanitlar.map((k) => (
-            <div key={k.id} className="cekmece-alan">
+            <div key={k.id} className="ab-panel-alan">
               <span className="etiket">{k.tip}</span>
               <span className="deger" style={{ fontWeight: 400 }}>
                 {k.ad} · {tarihTR(k.baslangic)}
@@ -426,19 +426,19 @@ function Ozet({ kayit, yazabilir, git }: {
       )}
 
       {kayit.madde.esler.length > 0 && (
-        <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
-          <p className="t-label" style={{ margin: '0 0 var(--s10)' }}>Çapraz eşleme</p>
+        <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+          <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Çapraz eşleme</p>
           {kayit.madde.esler.slice(0, 5).map((e) => (
-            <div key={e.kod} className="cekmece-alan">
+            <div key={e.kod} className="ab-panel-alan">
               <span className="etiket">{e.kod}</span>
               <span className="deger" style={{ fontWeight: 400 }}>
                 {DENKLIK_ETIKET[e.denklik as keyof typeof DENKLIK_ETIKET] ?? e.denklik}
               </span>
             </div>
           ))}
-          <p className="cekmece-dip" style={{ margin: 'var(--s12) 0 0' }}>
+          <p className="ab-panel-dip" style={{ margin: 'var(--s12) 0 0' }}>
             Aynı kanıt eşleşen maddeleri de karşılayabilir ·{' '}
-            <Link className="dg dg-satir" style={{ fontSize: 'inherit', fontWeight: 400 }}
+            <Link className="ab-dugme satir" style={{ fontSize: 'inherit', fontWeight: 400 }}
               href="/eslestirme">Eşleme kütüğü ▸</Link>
           </p>
         </div>
@@ -446,7 +446,7 @@ function Ozet({ kayit, yazabilir, git }: {
 
       <CekmeceEylemler
         birincil={yazabilir
-          ? <Dugme tur="cekmece" onClick={() => git('degerlendir')}>Değerlendir</Dugme>
+          ? <Dugme tur="tam" onClick={() => git('degerlendir')}>Değerlendir</Dugme>
           : undefined}
         ikincil={yazabilir && (
           <div style={{ display: 'flex', gap: 'var(--s10)', flexWrap: 'wrap' }}>

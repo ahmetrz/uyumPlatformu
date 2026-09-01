@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { Alan, Dugme } from '@/components/atlas/temel';
+import { Alan, Dugme } from '@/components/abacus/temel';
 import { useEylem } from '@/components/useEylem';
 import {
   denetimKaydet, asamaIlerlet, asamaGeriAl,
@@ -33,15 +33,15 @@ export function DenetimFormu({ yeniKod, surecler, kapat }: {
   return (
     <div style={{ display: 'grid', gap: 'var(--s16)' }}>
       <Alan etiket="Kod" zorunlu>
-        <input className="gr" style={{ fontFamily: 'var(--mo)' }} value={f.kod}
+        <input className="ab-gr" style={{ fontFamily: 'var(--veri)' }} value={f.kod}
           onChange={(e) => setF({ ...f, kod: e.target.value })} />
       </Alan>
       <Alan etiket="Ad" zorunlu>
-        <input className="gr" value={f.ad} placeholder="Örn. 2026 EPDK bilgi güvenliği denetimi"
+        <input className="ab-gr" value={f.ad} placeholder="Örn. 2026 EPDK bilgi güvenliği denetimi"
           onChange={(e) => setF({ ...f, ad: e.target.value })} />
       </Alan>
       <Alan etiket="Tip">
-        <select className="gr" value={f.tip}
+        <select className="ab-gr" value={f.tip}
           onChange={(e) => setF({ ...f, tip: e.target.value })}>
           {Object.entries(DENETIM_TIP_ETIKET).map(([t, e]) => (
             <option key={t} value={t}>{e}</option>
@@ -49,11 +49,11 @@ export function DenetimFormu({ yeniKod, surecler, kapat }: {
         </select>
       </Alan>
       <Alan etiket="Denetleyen">
-        <input className="gr" value={f.denetleyen} placeholder="Kurum ya da firma"
+        <input className="ab-gr" value={f.denetleyen} placeholder="Kurum ya da firma"
           onChange={(e) => setF({ ...f, denetleyen: e.target.value })} />
       </Alan>
       <Alan etiket="Uyum süreci">
-        <select className="gr" value={f.surecId}
+        <select className="ab-gr" value={f.surecId}
           onChange={(e) => setF({ ...f, surecId: e.target.value })}>
           <option value="">süreç bağı yok</option>
           {surecler.map((s) => <option key={s.id} value={s.id}>{s.kod} — {s.ad}</option>)}
@@ -62,17 +62,17 @@ export function DenetimFormu({ yeniKod, surecler, kapat }: {
       <div style={{ display: 'grid', gap: 'var(--s12)',
         gridTemplateColumns: 'repeat(2, minmax(0, 1fr))' }}>
         <Alan etiket="Plan başlangıcı">
-          <input className="gr" type="date" value={f.planBaslangic}
+          <input className="ab-gr" type="date" value={f.planBaslangic}
             onChange={(e) => setF({ ...f, planBaslangic: e.target.value })} />
         </Alan>
         <Alan etiket="Plan bitişi"
           hata={tersPencere ? 'Bitiş başlangıçtan önce olamaz' : null}>
-          <input className="gr" type="date" value={f.planBitis}
+          <input className="ab-gr" type="date" value={f.planBitis}
             onChange={(e) => setF({ ...f, planBitis: e.target.value })} />
         </Alan>
       </div>
 
-      {hata && <p className="gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
+      {hata && <p className="ab-gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
 
       <div style={{ display: 'flex', gap: 'var(--s10)' }}>
         <Dugme tur="birincil" disabled={bekliyor || !gecerli}
@@ -85,7 +85,7 @@ export function DenetimFormu({ yeniKod, surecler, kapat }: {
         </Dugme>
         <Dugme onClick={kapat} disabled={bekliyor}>Vazgeç</Dugme>
       </div>
-      <p className="cekmece-dip" style={{ margin: 0 }}>
+      <p className="ab-panel-dip" style={{ margin: 0 }}>
         Yaşam döngüsü plan aşamasından başlar ve atlanamaz; her geçiş denetim izine yazılır.
       </p>
     </div>
@@ -116,13 +116,13 @@ export function AsamaEylemleri({
   return (
     <div style={{ display: 'grid', gap: 'var(--s12)' }}>
       {sonraki && ilerletebilir && (
-        <Dugme tur="cekmece" disabled={bekliyor || !!engel}
+        <Dugme tur="tam" disabled={bekliyor || !!engel}
           onClick={() => calistir(() => asamaIlerlet({ id }))}>
           Sonraki aşama · {asamaEtiketi(sonraki)}
         </Dugme>
       )}
       {engel && sonraki && (
-        <p className="cekmece-dip" style={{ margin: 0, color: 'var(--bd)' }}>
+        <p className="ab-panel-dip" style={{ margin: 0, color: 'var(--bd)' }}>
           Kapanış için önce {engel} kapatılmalı.
         </p>
       )}
@@ -130,7 +130,7 @@ export function AsamaEylemleri({
       {onceki && geriAlabilir && (geriAcik ? (
         <div style={{ display: 'grid', gap: 'var(--s12)' }}>
           <Alan etiket={`Geri alma gerekçesi · ${asamaEtiketi(onceki)}`} zorunlu>
-            <textarea className="gr" rows={3} value={gerekce}
+            <textarea className="ab-gr" rows={3} value={gerekce}
               placeholder="Aşama neden geri alınıyor?"
               onChange={(e) => setGerekce(e.target.value)} />
           </Alan>
@@ -149,7 +149,7 @@ export function AsamaEylemleri({
         </Dugme>
       ))}
 
-      {hata && <p className="gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
+      {hata && <p className="ab-gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
     </div>
   );
 }
@@ -167,26 +167,26 @@ export function TalepFormu({ denetimId, kullanicilar, kapat }: {
   return (
     <div style={{ display: 'grid', gap: 'var(--s16)' }}>
       <Alan etiket="İstenen kanıt" zorunlu>
-        <input className="gr" value={f.baslik} placeholder="Talep başlığı"
+        <input className="ab-gr" value={f.baslik} placeholder="Talep başlığı"
           onChange={(e) => setF({ ...f, baslik: e.target.value })} />
       </Alan>
       <Alan etiket="Açıklama">
-        <textarea className="gr" rows={2} value={f.aciklama}
+        <textarea className="ab-gr" rows={2} value={f.aciklama}
           onChange={(e) => setF({ ...f, aciklama: e.target.value })} />
       </Alan>
       <Alan etiket="Sorumlu">
-        <select className="gr" value={f.sorumluId}
+        <select className="ab-gr" value={f.sorumluId}
           onChange={(e) => setF({ ...f, sorumluId: e.target.value })}>
           <option value="">atanmadı</option>
           {kullanicilar.map((u) => <option key={u.id} value={u.id}>{u.ad}</option>)}
         </select>
       </Alan>
       <Alan etiket="Son tarih">
-        <input className="gr" type="date" value={f.sonTarih}
+        <input className="ab-gr" type="date" value={f.sonTarih}
           onChange={(e) => setF({ ...f, sonTarih: e.target.value })} />
       </Alan>
 
-      {hata && <p className="gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
+      {hata && <p className="ab-gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
 
       <div style={{ display: 'flex', gap: 'var(--s10)' }}>
         <Dugme tur="birincil" disabled={bekliyor || !f.baslik.trim()}
@@ -200,7 +200,7 @@ export function TalepFormu({ denetimId, kullanicilar, kapat }: {
         </Dugme>
         <Dugme onClick={kapat} disabled={bekliyor}>Vazgeç</Dugme>
       </div>
-      <p className="cekmece-dip" style={{ margin: 0 }}>
+      <p className="ab-panel-dip" style={{ margin: 0 }}>
         Son tarihi girilmeyen talebin gecikmesi ölçülemez — kuyrukta bilinmeyen kalır.
       </p>
     </div>
@@ -222,7 +222,7 @@ export function TalepSonucFormu({ talep, kanitlar, kapat }: {
   return (
     <div style={{ display: 'grid', gap: 'var(--s16)' }}>
       <Alan etiket="Mevcut kanıt">
-        <select className="gr" value={kanitId}
+        <select className="ab-gr" value={kanitId}
           onChange={(e) => { setKanitId(e.target.value); setYeniAd(''); }}>
           <option value="">yeni kanıt oluşturulacak</option>
           {kanitlar.map((k) => <option key={k.id} value={k.id}>{k.ad}</option>)}
@@ -230,15 +230,15 @@ export function TalepSonucFormu({ talep, kanitlar, kapat }: {
       </Alan>
       {!kanitId && (
         <Alan etiket="Yeni kanıt adı">
-          <input className="gr" value={yeniAd}
+          <input className="ab-gr" value={yeniAd}
             placeholder="Örn. 2026 güvenlik duvarı kural seti raporu"
             onChange={(e) => setYeniAd(e.target.value)} />
         </Alan>
       )}
 
-      {hata && <p className="gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
+      {hata && <p className="ab-gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
 
-      <Dugme tur="cekmece" disabled={bekliyor || !saglanabilir}
+      <Dugme tur="tam" disabled={bekliyor || !saglanabilir}
         onClick={() => calistir(() => kanitTalebiDurum({
           id: talep.id, durum: 'saglandi',
           kanitId: kanitId || null, yeniKanitAd: yeniAd || null,
@@ -263,7 +263,7 @@ export function TalepSonucFormu({ talep, kanitlar, kapat }: {
           </Dugme>
         )}
       </div>
-      <p className="cekmece-dip" style={{ margin: 0 }}>
+      <p className="ab-panel-dip" style={{ margin: 0 }}>
         Sağlandı dışındaki her geçişte kanıt bağı çözülür; değişim denetim izine yazılır.
       </p>
     </div>
@@ -299,11 +299,11 @@ export function KapsamPaneli({
     <div style={{ display: 'grid', gap: 'var(--s16)' }}>
       <div>
         {kapsamlar.length === 0 ? (
-          <p className="cekmece-dip" style={{ margin: 0 }}>
+          <p className="ab-panel-dip" style={{ margin: 0 }}>
             Kapsam girilmedi — denetim portföyün tamamı sayılır.
           </p>
         ) : kapsamlar.map((k) => (
-          <div key={k.id} className="cekmece-alan">
+          <div key={k.id} className="ab-panel-alan">
             <span className="etiket">{k.tesis?.kod ?? k.madde?.kod}</span>
             <span className="deger" style={{ display: 'flex', alignItems: 'baseline',
               gap: 'var(--s10)', minWidth: 0 }}>
@@ -312,7 +312,7 @@ export function KapsamPaneli({
                 {k.tesis?.ad ?? k.madde?.baslik}
               </span>
               {!kilitli && (
-                <button type="button" className="dg dg-satir" disabled={bekliyor}
+                <button type="button" className="ab-dugme satir" disabled={bekliyor}
                   aria-label={`${k.tesis?.kod ?? k.madde?.kod} kapsamdan çıkar`}
                   onClick={() => calistir(() => kapsamCikar({ id: k.id }))}>✕</button>
               )}
@@ -324,7 +324,7 @@ export function KapsamPaneli({
       {!kilitli && (
         <>
           <Alan etiket="Santral ekle">
-            <select className="gr" value={tesisId}
+            <select className="ab-gr" value={tesisId}
               onChange={(e) => { setTesisId(e.target.value); setMaddeId(''); }}>
               <option value="">—</option>
               {bosTesisler.map((t) => (
@@ -333,7 +333,7 @@ export function KapsamPaneli({
             </select>
           </Alan>
           <Alan etiket="Madde ekle">
-            <select className="gr" value={maddeId}
+            <select className="ab-gr" value={maddeId}
               onChange={(e) => { setMaddeId(e.target.value); setTesisId(''); }}>
               <option value="">—</option>
               {bosMaddeler.map((m) => (
@@ -350,7 +350,7 @@ export function KapsamPaneli({
         </>
       )}
 
-      {hata && <p className="gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
+      {hata && <p className="ab-gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
     </div>
   );
 }

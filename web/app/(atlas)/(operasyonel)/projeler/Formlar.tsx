@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { Alan, Dugme } from '@/components/atlas/temel';
+import { Alan, Dugme } from '@/components/abacus/temel';
 import { useEylem } from '@/components/useEylem';
 import { projeKaydet, projeBaglantiEkle, projeBaglantiSil } from '@/lib/eylemler';
 import { PROJE_DURUMLARI, PROJE_DURUM_ETIKET } from '@/lib/sabitler';
@@ -44,26 +44,26 @@ export function ProjeFormu({ proje, yeniKod, kullanicilar, kapat }: {
   return (
     <div style={{ display: 'grid', gap: 'var(--s16)' }}>
       <Alan etiket="Kod" zorunlu>
-        <input className="gr" style={{ fontFamily: 'var(--mo)' }} value={f.kod}
+        <input className="ab-gr" style={{ fontFamily: 'var(--veri)' }} value={f.kod}
           onChange={(e) => setF({ ...f, kod: e.target.value })} />
       </Alan>
       <Alan etiket="Ad" zorunlu>
-        <input className="gr" value={f.ad} placeholder="Proje adı"
+        <input className="ab-gr" value={f.ad} placeholder="Proje adı"
           onChange={(e) => setF({ ...f, ad: e.target.value })} />
       </Alan>
       <Alan etiket="Açıklama">
-        <textarea className="gr" rows={3} value={f.aciklama}
+        <textarea className="ab-gr" rows={3} value={f.aciklama}
           onChange={(e) => setF({ ...f, aciklama: e.target.value })} />
       </Alan>
       <Alan etiket="Sahip">
-        <select className="gr" value={f.sahipId}
+        <select className="ab-gr" value={f.sahipId}
           onChange={(e) => setF({ ...f, sahipId: e.target.value })}>
           <option value="">atanmadı</option>
           {kullanicilar.map((u) => <option key={u.id} value={u.id}>{u.ad}</option>)}
         </select>
       </Alan>
       <Alan etiket="Durum">
-        <select className="gr" value={f.durum}
+        <select className="ab-gr" value={f.durum}
           onChange={(e) => setF({ ...f, durum: e.target.value })}>
           {PROJE_DURUMLARI.map((d) => (
             <option key={d} value={d}>{PROJE_DURUM_ETIKET[d]}</option>
@@ -71,11 +71,11 @@ export function ProjeFormu({ proje, yeniKod, kullanicilar, kapat }: {
         </select>
       </Alan>
       <Alan etiket="Hedef tarih">
-        <input className="gr" type="date" value={f.hedef}
+        <input className="ab-gr" type="date" value={f.hedef}
           onChange={(e) => setF({ ...f, hedef: e.target.value })} />
       </Alan>
 
-      {hata && <p className="gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
+      {hata && <p className="ab-gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
 
       <div style={{ display: 'flex', gap: 'var(--s10)' }}>
         <Dugme tur="birincil" onClick={kaydet} disabled={bekliyor || !gecerli}>
@@ -84,7 +84,7 @@ export function ProjeFormu({ proje, yeniKod, kullanicilar, kapat }: {
         <Dugme onClick={kapat} disabled={bekliyor}>Vazgeç</Dugme>
       </div>
 
-      <p className="cekmece-dip" style={{ margin: 0 }}>
+      <p className="ab-panel-dip" style={{ margin: 0 }}>
         Faz takvimi ve bütçe satırları bu sürümde yalnız okunur; ikisi de
         planlama sisteminden gelir.
       </p>
@@ -110,21 +110,21 @@ export function DurumFormu({ proje, kapat }: { proje: P; kapat: () => void }) {
   return (
     <div style={{ display: 'grid', gap: 'var(--s16)' }}>
       <Alan etiket="Durum" zorunlu>
-        <select className="gr" value={durum} onChange={(e) => setDurum(e.target.value)}>
+        <select className="ab-gr" value={durum} onChange={(e) => setDurum(e.target.value)}>
           {PROJE_DURUMLARI.map((d) => (
             <option key={d} value={d}>{PROJE_DURUM_ETIKET[d]}</option>
           ))}
         </select>
       </Alan>
 
-      {hata && <p className="gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
+      {hata && <p className="ab-gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
 
-      <Dugme tur="cekmece" onClick={kaydet} disabled={bekliyor || durum === proje.durum}>
+      <Dugme tur="tam" onClick={kaydet} disabled={bekliyor || durum === proje.durum}>
         Durumu kaydet
       </Dugme>
       <Dugme onClick={kapat} disabled={bekliyor}>Vazgeç</Dugme>
 
-      <p className="cekmece-dip" style={{ margin: 0 }}>
+      <p className="ab-panel-dip" style={{ margin: 0 }}>
         Durum değişimi denetim izine yazılır; faz takvimi bundan etkilenmez.
       </p>
     </div>
@@ -148,7 +148,7 @@ export function BaglantiFormu({ proje, maddeler, bulgular, kapat }: {
   return (
     <div style={{ display: 'grid', gap: 'var(--s16)' }}>
       <Alan etiket="Kontrol maddesi">
-        <select className="gr" value={maddeId} onChange={(e) => setMaddeId(e.target.value)}>
+        <select className="ab-gr" value={maddeId} onChange={(e) => setMaddeId(e.target.value)}>
           <option value="">—</option>
           {maddeler.filter((m) => !bagli.has(m.id))
             .map((m) => <option key={m.id} value={m.id}>{m.ad}</option>)}
@@ -161,7 +161,7 @@ export function BaglantiFormu({ proje, maddeler, bulgular, kapat }: {
       </Dugme>
 
       <Alan etiket="Bulgu">
-        <select className="gr" value={bulguId} onChange={(e) => setBulguId(e.target.value)}>
+        <select className="ab-gr" value={bulguId} onChange={(e) => setBulguId(e.target.value)}>
           <option value="">—</option>
           {bulgular.filter((b) => !bagli.has(b.id))
             .map((b) => <option key={b.id} value={b.id}>{b.ad}</option>)}
@@ -184,9 +184,9 @@ export function BaglantiFormu({ proje, maddeler, bulgular, kapat }: {
                 fontSize: 'var(--t-cell)' }}>
                 {b.kod}
               </span>
-              <span style={{ fontFamily: 'var(--mo)', fontSize: 'var(--t-label)',
+              <span style={{ fontFamily: 'var(--veri)', fontSize: 'var(--t-label)',
                 color: 'var(--i3)' }}>{b.tur === 'madde' ? 'kontrol' : b.tur}</span>
-              <button type="button" className="dg dg-satir" disabled={bekliyor}
+              <button type="button" className="ab-dugme satir" disabled={bekliyor}
                 onClick={() => calistir(() => projeBaglantiSil({ id: b.id }))}>
                 Kaldır
               </button>
@@ -195,7 +195,7 @@ export function BaglantiFormu({ proje, maddeler, bulgular, kapat }: {
         </div>
       )}
 
-      {hata && <p className="gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
+      {hata && <p className="ab-gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
 
       <Dugme onClick={kapat} disabled={bekliyor}>Bitti</Dugme>
     </div>

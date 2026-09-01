@@ -1,11 +1,11 @@
 'use client';
 import { useMemo, useState } from 'react';
-import { BosIlk, BosFiltre } from '@/components/atlas/temel';
-import { EkranBasligi, Filtreler } from '@/components/atlas/ekran';
-import { Tablo, type Kolon } from '@/components/atlas/tablo';
+import { BosIlk, BosFiltre } from '@/components/abacus/temel';
+import { EkranBasligi, Filtreler } from '@/components/abacus/ekran';
+import { Tablo, type Kolon } from '@/components/abacus/tablo';
 import {
   Cekmece, CekmeceKimlik, CekmeceAlanlar, CekmeceBagli,
-} from '@/components/atlas/cekmece';
+} from '@/components/abacus/panel';
 import { tarihTR, zamanTR } from '@/lib/sabitler';
 import {
   ElleAktarimFormu, EslestirmeDugmesi, KararEylemleri, TopluKararTepsisi,
@@ -85,7 +85,7 @@ export default function KesifIstemci({
     return (
       <main data-yuzey="tezgah" style={{ minWidth: 0 }}>
         <EkranBasligi eyebrow="Varlık keşfi" baslik="İnceleme kuyruğu" />
-        <section className="ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
+        <section className="ab-ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
           <ElleAktarimFormu yazabilir={yazabilir} />
           <BosIlk cumle="Henüz keşif kaydı yok. Pasif bir kaynağın dışa aktarımını yükleyin ya da bir connector çalıştırın." />
         </section>
@@ -120,11 +120,11 @@ export default function KesifIstemci({
           ]}
         />
 
-        <section className="ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
+        <section className="ab-ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
           <ElleAktarimFormu yazabilir={yazabilir} />
 
           {eslestirilmemis > 0 && (
-            <p className="dip-not" style={{ marginBottom: 'var(--s12)' }}>
+            <p className="ab-dip" style={{ marginBottom: 'var(--s12)' }}>
               {eslestirilmemis} kayıt henüz eşleştirilmedi — eşleştirme öneri
               üretir, CMDB’ye yazmaz.
             </p>

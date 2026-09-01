@@ -13,7 +13,13 @@
     "test": "vitest run",
     "sayimlar:yenile": "node arac/test-envanteri.mjs --yaz && node arac/sayimlar.mjs --yaz",
     "sayimlar:denetle": "node arac/test-envanteri.mjs --denetle",
-    "gezinme:test": "node arac/gezinme-testi.mjs"
+    "gezinme:test": "node arac/gezinme-testi.mjs",
+    "tasarim:kontrast": "node arac/kontrast.mjs",
+    "tasarim:font": "node arac/font-kontrol.mjs",
+    "tasarim:iz": "node arac/iz-tarama.mjs",
+    "tasarim:rota": "node arac/tarama.mjs",
+    "tasarim:kapi": "node arac/kontrast.mjs && node arac/font-kontrol.mjs && node arac/iz-tarama.mjs",
+    "tasarim:erisim": "node arac/erisim.mjs"
   },
   "dependencies": {
     "@prisma/adapter-better-sqlite3": "^7.10.0",

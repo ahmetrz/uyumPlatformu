@@ -1,285 +1,216 @@
 import type { Metadata } from 'next';
-import { kontrast, bicimle, aaGecer } from '@/lib/atlas/kontrast';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
+import { kontrast, bicimle, aaGecer } from '@/lib/kontrast';
 
-export const metadata: Metadata = { title: 'Atlas — Tasarım Sistemi' };
+export const metadata: Metadata = { title: 'Abacus — Tasarım sistemi' };
 
-/* Faz 1 çıkış kriteri (07 §Phase 1):
-   "a token reference page renders every colour with its measured contrast ratio,
-    every type role at its exact size/tracking, and the spacing scale."
-   Oranlar iddia edilmez — lib/atlas/kontrast.ts ile hesaplanır.
+/* ═══════════════════════════════════════════════════════════════════════
+   ABACUS TOKEN REFERANSI
 
-   SANTRAL KAPSAMI: bu ekran BİLEREK kapsamsızdır, çünkü hiç veri okumaz —
-   içeriğinin tamamı bu dosyadaki sabit token tablolarından ve
-   `lib/atlas/kontrast.ts` hesabından gelir; ortada daraltılacak bir kayıt,
-   dolayısıyla sızacak bir santral yoktur. */
+   Bu ekran token değerlerini İDDİA ETMEZ: `app/abacus.css` dosyasını
+   OKUR ve üç yönün (A tezgâh · B saha · C defter) paletini olduğu gibi
+   listeler; kontrast oranları `lib/kontrast.ts` ile HESAPLANIR.
 
-const PP = '#F6F4EE';
+   Eski sürüm değerleri kaynak dosyadan bağımsız, elle yazılmış tablolarda
+   tutuyordu. Bir token değişince referans sessizce yalan söylüyordu —
+   tasarım sistemi belgesinin yapabileceği en kötü şey budur. Şimdi
+   kaynak tek: CSS dosyası.
 
-/** Koyu yüzeyde mürekkep ters döner — kontrast doğru tarafla ölçülsün. */
-const koyuYuzey = (hex: string) => ['#221F1B', '#191713'].includes(hex.toUpperCase());
+   SANTRAL KAPSAMI: bu ekran bilerek kapsamsızdır çünkü hiç KAYIT okumaz;
+   içeriğinin tamamı stil dosyasından gelir, daraltılacak bir veri yok.
+   ═══════════════════════════════════════════════════════════════════════ */
 
-const YUZEYLER = [
-  ['surface/paper', '--pp', '#F6F4EE', 'Birincil uygulama yüzeyi'],
-  ['surface/card', '--card', '#FFFFFF', 'Kayıt kartı, tablo gövdesi'],
-  ['surface/sunken', '--sunken', '#F1EEE6', 'Drawer zemini, tablo başlığı'],
-  ['surface/row-hover', '--row-hover', '#EFECE3', 'Satır hover — tek değer'],
-  ['surface/row-selected', '--row-sel', '#FBF6F0', 'Seçili/kritik satır tonu'],
-  ['surface/band', '--band', '#221F1B', 'Koyu bant, birincil düğme, tooltip'],
-  ['surface/band-deep', '--band2', '#191713', 'Fotoğrafik hero tabanı, grafik tuvali'],
+const KAYNAK = path.join(process.cwd(), 'app', 'abacus.css');
+
+type Palet = Record<string, string>;
+
+/** Bir `.ab[data-yon='x'] { … }` bloğundaki renk token'larını çıkarır. */
+function paletOku(css: string, secici: string): Palet {
+  const i = css.indexOf(secici);
+  if (i === -1) return {};
+  const govde = css.slice(i, css.indexOf('}', i));
+  const harita: Palet = {};
+  for (const m of govde.matchAll(/(--[\w-]+)\s*:\s*(#[0-9a-fA-F]{3,8})\s*;/g)) {
+    harita[m[1]] = m[2];
+  }
+  return harita;
+}
+
+/** `.ab { --s10: 10px; … }` ölçek bloğunu çıkarır. */
+function olcekOku(css: string): Palet {
+  const i = css.indexOf('.ab {\n  --s2:');
+  if (i === -1) return {};
+  const govde = css.slice(i, css.indexOf('\n}', i));
+  const harita: Palet = {};
+  for (const m of govde.matchAll(/(--[\w-]+)\s*:\s*([^;]+);/g)) harita[m[1]] = m[2].trim();
+  return harita;
+}
+
+const YONLER = [
+  { kod: 'a', ad: 'A · Industrial Precision', alt: 'Tezgâh — 52px kapsam çubuğu + 60px ikon rayı' },
+  { kod: 'b', ad: 'B · Energy Intelligence', alt: 'Saha — 56px sekme, ray yok, fotoğrafik alan' },
+  { kod: 'c', ad: 'C · Operational Luxury', alt: 'Defter — künye + serif sekme + 212px dizin' },
 ] as const;
 
-const MUREKKEP = [
-  ['ink/primary', '--ink', '#1E2120', 'Başlık, anahtar değer', true],
-  ['ink/secondary', '--i2', '#585C58', 'Gövde, destekleyici değer', true],
-  ['ink/tertiary', '--i3', '#696D68', 'Etiket, meta, eksen — en düşük yasal işlevsel mürekkep', true],
-  ['ink/decorative', '--i4', '#8D918C', 'Kesikli alt çizgi, saç çizgisi — ASLA metin', false],
-  ['border/hairline', '--hr', '#E5E2D9', 'Satır ayracı', false],
-  ['border/strong', '--hr2', '#D0CCC0', 'Kart kenarı, bölüm çizgisi', false],
-] as const;
+/** Mürekkep token'ı → hangi zeminlerde ve hangi eşikte okunmalı. */
+const MUREKKEPLER: { anahtar: string; rol: string; esik: 'metin' | 'bilesen' }[] = [
+  { anahtar: '--murekkep', rol: 'Başlık, anahtar değer', esik: 'metin' },
+  { anahtar: '--i2', rol: 'Gövde metni', esik: 'metin' },
+  { anahtar: '--i3', rol: 'Etiket, meta, kolon başlığı', esik: 'metin' },
+  { anahtar: '--ok', rol: 'Uyumlu · yolunda · doğrulandı', esik: 'metin' },
+  { anahtar: '--md', rol: 'Kısmi · bayat kanıt · ufuk yaklaşıyor', esik: 'metin' },
+  { anahtar: '--bd', rol: 'Uyumsuz · gecikmiş · kritik risk', esik: 'metin' },
+  { anahtar: '--pl', rol: 'Taslak · aday · süreli', esik: 'metin' },
+  { anahtar: '--unk', rol: 'Değerlendirilmedi — bilinmeyen', esik: 'metin' },
+  { anahtar: '--aksan', rol: 'Aktif kenar, işaret, odak halkası', esik: 'bilesen' },
+  { anahtar: '--jes', rol: 'Jeotermal kimliği', esik: 'bilesen' },
+  { anahtar: '--hes', rol: 'Hidroelektrik kimliği', esik: 'bilesen' },
+  { anahtar: '--res', rol: 'Rüzgâr kimliği', esik: 'bilesen' },
+  { anahtar: '--ges', rol: 'Güneş kimliği', esik: 'bilesen' },
+];
 
-const DURUMLAR = [
-  ['state/ok', '--ok', '#2B7548', 'Uyumlu · yolunda · doğrulandı'],
-  ['state/warn', '--md', '#8A6412', 'Kısmi · bayat kanıt · ufuk yaklaşıyor'],
-  ['state/critical', '--bd', '#AC3F2D', 'Uyumsuz · gecikmiş · bloke · kritik risk'],
-  ['state/planned', '--pl', '#3A6590', 'Taslak · aday · süreli'],
-  ['state/unknown', '--unk', '#696D68', 'Değerlendirilmedi — içi boş 45° elmas'],
-] as const;
-
-const URETIM = [
-  ['gen/jes', '--jes', '#A15B2C', '#C47A3F', 'Jeotermal'],
-  ['gen/hes', '--hes', '#2F5C74', '#5F8FA8', 'Hidro'],
-  ['gen/res', '--res', '#6D8480', '#9DB3A8', 'Rüzgâr'],
-  ['gen/ges', '--ges', '#A2822F', null, 'Güneş (hibrit yardımcı)'],
-] as const;
+const ZEMINLER = ['--zemin', '--panel', '--panel2', '--secim'] as const;
 
 const TIPOGRAFI = [
-  ['Hero başlığı (Plant 360)', 't-hero', '56 / 1.0 · Archivo · −0.032em · 87%', 'Kızıldere 3 JES'],
-  ['Board başlığı (flagship)', 't-board', '30 / 1.12 · Archivo · −0.024em · 90%', 'Enerji portföyü'],
-  ['Ekran başlığı (operasyonel)', 't-screen', '28 / 1.10 · Archivo · −0.022em · 90%', 'Risk kütüğü'],
-  ['Drawer / bölüm başlığı', 't-section', '20 / 1.28 · Archivo · −0.016em · 92%', 'Kuyubaşı RTU güzergâhı'],
+  ['--t-hero', 'Hero başlığı (Santral 360)', 'Kızıldere III JES'],
+  ['--t-board', 'Pano başlığı (portföy)', 'Enerji portföyü'],
+  ['--t-screen', 'Ekran başlığı', 'Risk kütüğü'],
+  ['--t-metric', 'Ölçüt değeri', '78'],
+  ['--t-section', 'Bölüm başlığı', 'Kuyubaşı RTU güzergâhı'],
+  ['--t-lead', 'Giriş cümlesi', 'Nerede uygunsuz, ve neden?'],
+  ['--t-row', 'Kütük satırı', 'Ağ güvenliği ve segmentasyon'],
+  ['--t-cell', 'Hücre metni', 'Kızıldere III JES'],
+  ['--t-code-lg', 'Kod (büyük)', 'RSK-2026-001'],
+  ['--t-caption', 'Alt yazı', 'Bilinmeyen %18'],
+  ['--t-label', 'Bölüm etiketi', 'ŞU AN ÖNEMLİ OLAN'],
+  ['--t-code', 'Kod (küçük)', 'EPDK-SYM-4.2.1'],
+  ['--t-colhead', 'Kolon başlığı', 'SANTRAL · SAHİP · HEDEF'],
 ] as const;
 
-const KUCUK = [
-  ['Eyebrow (bağlam)', 't-eyebrow', '9.5 · Azeret Mono · 0.20em', 'PORTFÖY / ZORLU DOĞAL'],
-  ['Bölüm etiketi', 't-label', '9.5 · Azeret Mono · 0.16em', 'ŞU AN ÖNEMLİ OLAN'],
-  ['Metrik alt yazısı', 't-caption', '9 · Azeret Mono · 0.13em', 'BİLİNMEYEN %18'],
-  ['Kolon başlığı', 't-colhead', '8.5 · Azeret Mono · 0.13em', 'SANTRAL · SAHİP · HEDEF'],
-] as const;
-
-const BOSLUK = [2, 3, 4, 6, 8, 9, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 44, 46, 52, 56];
-
-function Oran({ on, zemin, tur = 'metin' }: { on: string; zemin: string; tur?: 'metin' | 'buyuk' | 'bilesen' }) {
-  const o = kontrast(on, zemin);
-  const gecer = aaGecer(o, tur);
-  return (
-    <span className="mono num" style={{ fontSize: 'var(--t-code)', color: gecer ? 'var(--ok)' : 'var(--bd)' }}>
-      {bicimle(o)}{gecer ? '' : ' ✕'}
-    </span>
-  );
-}
-
-function Bolum({ no, baslik, cocuklar }: { no: string; baslik: string; cocuklar: React.ReactNode }) {
-  return (
-    <section style={{ padding: '0 var(--gutter-op) var(--sec-pad-bot)' }}>
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: 'var(--s12)',
-        padding: 'var(--sec-pad-top) 0 var(--s18)' }}>
-        <span className="t-caption num">{no}</span>
-        <h2 className="t-section" style={{ margin: 0 }}>{baslik}</h2>
-        <span style={{ flex: 1, height: 1, background: 'var(--hr)' }} />
-      </div>
-      {cocuklar}
-    </section>
-  );
-}
+const OLCEK_SIRASI = [
+  '--s2', '--s3', '--s4', '--s6', '--s8', '--s9', '--s10', '--s12', '--s14',
+  '--s16', '--s18', '--s20', '--s22', '--s24', '--s26', '--s28', '--s30',
+  '--s32', '--s34', '--s36', '--s38', '--s40', '--s44',
+];
 
 export default function TasarimSistemi() {
+  const css = readFileSync(KAYNAK, 'utf8');
+  const paletler = YONLER.map((y) => ({
+    ...y, palet: paletOku(css, `.ab[data-yon='${y.kod}'] {`),
+  }));
+  const olcek = olcekOku(css);
+
   return (
-    <main data-yuzey="tezgah" style={{ minHeight: '100dvh' }}>
-      <header style={{ padding: 'var(--s38) var(--gutter-op) var(--s26)',
-        borderBottom: '1px solid var(--hr2)' }}>
-        <p className="t-eyebrow" style={{ margin: '0 0 var(--s10)' }}>
-          ENERGY OPERATIONS ATLAS · FAZ 1 · TOKEN REFERANSI
-        </p>
-        <h1 className="t-screen" style={{ margin: 0 }}>
-          Tasarım <b>token katmanı</b>
-        </h1>
-        <p style={{ margin: 'var(--s12) 0 0', color: 'var(--i2)', maxWidth: 720 }}>
-          Kontrast oranları hesaplanmıştır (WCAG 2.1 göreli parlaklık), iddia edilmemiştir.
+    <main className="ab-ekran-govde ab-sistem">
+      <header className="ab-lede">
+        <div className="sol">
+          <p className="etiket">Tasarım sistemi · abacus.css okunarak üretildi</p>
+          <h1>Üç yön, tek sözleşme</h1>
+        </div>
+        <p className="mono ab-dip" style={{ maxWidth: 420 }}>
+          Değerler bu sayfada yazılı değil: kaynak dosyadan okunuyor, kontrast
+          oranları hesaplanıyor. Bir token değişirse referans da değişir.
         </p>
       </header>
 
-      <Bolum no="01" baslik="Yüzeyler" cocuklar={
-        <div style={{ display: 'grid', gap: 'var(--s3)' }}>
-          {YUZEYLER.map(([ad, degisken, hex, kullanim]) => (
-            <div key={ad} style={{ display: 'grid', gridTemplateColumns: '64px 190px 92px 1fr 74px',
-              alignItems: 'center', gap: 'var(--col-gap)', padding: 'var(--s10) 0',
-              borderBottom: '1px solid var(--hr)' }}>
-              <span style={{ height: 34, background: hex, border: '1px solid var(--hr2)' }} />
-              <span className="mono" style={{ fontSize: 'var(--t-code-lg)' }}>{ad}</span>
-              <span className="mono" style={{ fontSize: 'var(--t-code)', color: 'var(--i3)' }}>
-                {hex}<br /><span style={{ opacity: .72 }}>{degisken}</span>
-              </span>
-              <span style={{ fontSize: 'var(--t-cell)', color: 'var(--i2)' }}>{kullanim}</span>
-              {/* Yüzey kendi başına ölçülmez: üzerine düşen metnin kontrastı ölçülür. */}
-              <Oran on={koyuYuzey(hex) ? '#F6F4EE' : '#1E2120'} zemin={hex} />
-            </div>
-          ))}
-        </div>
-      } />
+      {paletler.map((y) => (
+        <section key={y.kod} className="bolum">
+          <h2 className="ab-bolum-basligi">{y.ad}</h2>
+          <p className="mono ab-dip">{y.alt}</p>
 
-      <Bolum no="02" baslik="Mürekkep ve kenarlıklar" cocuklar={
-        <div style={{ display: 'grid', gap: 'var(--s3)' }}>
-          {MUREKKEP.map(([ad, degisken, hex, kullanim, islevsel]) => (
-            <div key={ad} style={{ display: 'grid', gridTemplateColumns: '64px 190px 92px 1fr 74px',
-              alignItems: 'center', gap: 'var(--col-gap)', padding: 'var(--s10) 0',
-              borderBottom: '1px solid var(--hr)' }}>
-              <span style={{ color: hex, fontSize: 'var(--t-row)', fontWeight: 600 }}>Aa</span>
-              <span className="mono" style={{ fontSize: 'var(--t-code-lg)' }}>{ad}</span>
-              <span className="mono" style={{ fontSize: 'var(--t-code)', color: 'var(--i3)' }}>
-                {hex}<br /><span style={{ opacity: .72 }}>{degisken}</span>
-              </span>
-              <span style={{ fontSize: 'var(--t-cell)', color: 'var(--i2)' }}>{kullanim}</span>
-              {islevsel
-                ? <Oran on={hex} zemin={PP} />
-                : <span className="mono" style={{ fontSize: 'var(--t-code)', color: 'var(--i3)' }}>süs</span>}
-            </div>
-          ))}
-        </div>
-      } />
-
-      <Bolum no="03" baslik="Semantik durumlar" cocuklar={
-        <div style={{ display: 'grid', gap: 'var(--s3)' }}>
-          {DURUMLAR.map(([ad, degisken, hex, anlam]) => (
-            <div key={ad} style={{ display: 'grid', gridTemplateColumns: '64px 190px 92px 1fr 74px',
-              alignItems: 'center', gap: 'var(--col-gap)', padding: 'var(--s10) 0',
-              borderBottom: '1px solid var(--hr)' }}>
-              <span>{ad === 'state/unknown'
-                ? <span style={{ display: 'inline-block', width: 10, height: 10,
-                    border: `1.5px solid ${hex}`, transform: 'rotate(45deg)' }} />
-                : <span className="yuvarlak" style={{ display: 'inline-block', width: 11, height: 11,
-                    background: hex }} />}
-              </span>
-              <span className="mono" style={{ fontSize: 'var(--t-code-lg)' }}>{ad}</span>
-              <span className="mono" style={{ fontSize: 'var(--t-code)', color: 'var(--i3)' }}>
-                {hex}<br /><span style={{ opacity: .72 }}>{degisken}</span>
-              </span>
-              <span style={{ fontSize: 'var(--t-cell)', color: 'var(--i2)' }}>{anlam}</span>
-              <Oran on={hex} zemin={PP} />
-            </div>
-          ))}
-        </div>
-      } />
-
-      <Bolum no="04" baslik="Etkileşim aksanı ve üretim tipi kimliği" cocuklar={
-        <>
-          <div style={{ display: 'grid', gridTemplateColumns: '64px 190px 92px 1fr 74px',
-            alignItems: 'center', gap: 'var(--col-gap)', padding: 'var(--s10) 0',
-            borderBottom: '1px solid var(--hr)' }}>
-            <span style={{ height: 34, background: '#3D4A4E' }} />
-            <span className="mono" style={{ fontSize: 'var(--t-code-lg)' }}>accent/product</span>
-            <span className="mono" style={{ fontSize: 'var(--t-code)', color: 'var(--i3)' }}>#3D4A4E</span>
-            <span style={{ fontSize: 'var(--t-cell)', color: 'var(--i2)' }}>
-              Tüm etkileşim. Üretim tipi rengi DEĞİLDİR — bakır asla etkileşim için kullanılmaz.
-            </span>
-            <Oran on="#3D4A4E" zemin={PP} />
-          </div>
-          {URETIM.map(([ad, degisken, acik, koyu, tip]) => (
-            <div key={ad} style={{ display: 'grid', gridTemplateColumns: '64px 190px 92px 1fr 74px',
-              alignItems: 'center', gap: 'var(--col-gap)', padding: 'var(--s10) 0',
-              borderBottom: '1px solid var(--hr)' }}>
-              <span style={{ display: 'flex', height: 34 }}>
-                <span style={{ flex: 1, background: acik }} />
-                {koyu && <span style={{ flex: 1, background: koyu }} />}
-              </span>
-              <span className="mono" style={{ fontSize: 'var(--t-code-lg)' }}>{ad}</span>
-              <span className="mono" style={{ fontSize: 'var(--t-code)', color: 'var(--i3)' }}>
-                {acik}{koyu ? ` / ${koyu}` : ''}<br /><span style={{ opacity: .72 }}>{degisken}</span>
-              </span>
-              <span style={{ fontSize: 'var(--t-cell)', color: 'var(--i2)' }}>
-                {tip} — yalnız kimlik: santral işareti, hero eyebrow, plaka kenarı, bölüm rayı.
-              </span>
-              <Oran on={acik} zemin={PP} tur="bilesen" />
-            </div>
-          ))}
-        </>
-      } />
-
-      <Bolum no="05" baslik="Tipografi rolleri" cocuklar={
-        <div style={{ display: 'grid', gap: 'var(--s24)' }}>
-          {TIPOGRAFI.map(([rol, sinif, olcu, ornek]) => (
-            <div key={rol} style={{ borderBottom: '1px solid var(--hr)', paddingBottom: 'var(--s18)' }}>
-              <div style={{ display: 'flex', gap: 'var(--s14)', marginBottom: 'var(--s10)' }}>
-                <span className="t-colhead">{rol}</span>
-                <span className="mono" style={{ fontSize: 'var(--t-code)', color: 'var(--i3)' }}>{olcu}</span>
-              </div>
-              <div className={sinif}>{ornek.split(' ').slice(0, -1).join(' ')} <b>{ornek.split(' ').slice(-1)}</b></div>
-            </div>
-          ))}
-          <div style={{ display: 'grid', gap: 'var(--s14)' }}>
-            {KUCUK.map(([rol, sinif, olcu, ornek]) => (
-              <div key={rol} style={{ display: 'grid', gridTemplateColumns: '190px 210px 1fr',
-                alignItems: 'center', gap: 'var(--col-gap)', padding: 'var(--s8) 0',
-                borderBottom: '1px solid var(--hr)' }}>
-                <span style={{ fontSize: 'var(--t-cell)', color: 'var(--i2)' }}>{rol}</span>
-                <span className="mono" style={{ fontSize: 'var(--t-code)', color: 'var(--i3)' }}>{olcu}</span>
-                <span className={sinif}>{ornek}</span>
+          <div className="zeminler">
+            {ZEMINLER.map((z) => (
+              <div key={z} className="zemin">
+                <span className="ornek" style={{ background: y.palet[z] }} />
+                <span className="mono ad">{z}</span>
+                <span className="mono deger">{y.palet[z] ?? '—'}</span>
               </div>
             ))}
           </div>
-          <div>
-            <p className="t-colhead" style={{ margin: '0 0 var(--s10)' }}>VERİ TİPOGRAFİSİ · TABULAR</p>
-            <div className="num" style={{ fontSize: 'var(--t-metric)', fontWeight: 700, lineHeight: 1 }}>
-              165<span style={{ fontSize: 'var(--t-metric-den)', fontWeight: 400, color: 'var(--i3)' }}> / 412</span>
-            </div>
-            <p className="t-caption" style={{ margin: 'var(--s6) 0 0' }}>METRİK DEĞERİ 26 / 700 · PAYDA 15 / 400</p>
-          </div>
-        </div>
-      } />
 
-      <Bolum no="06" baslik="Boşluk ölçeği" cocuklar={
-        <div style={{ display: 'grid', gap: 'var(--s6)' }}>
-          {BOSLUK.map((n) => (
-            <div key={n} style={{ display: 'grid', gridTemplateColumns: '54px 1fr',
-              alignItems: 'center', gap: 'var(--col-gap)' }}>
-              <span className="mono num" style={{ fontSize: 'var(--t-code)', color: 'var(--i3)' }}>{n}px</span>
-              <span style={{ height: 8, width: n, background: 'var(--jes)', opacity: .55 }} />
-            </div>
-          ))}
-        </div>
-      } />
-
-      <Bolum no="07" baslik="Kenarlık, yarıçap, yükseklik" cocuklar={
-        <div style={{ display: 'grid', gap: 'var(--s18)', maxWidth: 760 }}>
-          <p style={{ margin: 0, fontSize: 'var(--t-cell)', color: 'var(--i2)' }}>
-            Yarıçap her yerde <b>0</b>. İstisna yalnız durum noktası ve avatar dairesi.
-            Gölge yalnız üç durumda vardır; tablo, satır, kart, drawer ve düğmede gölge yoktur.
+          <table className="ab-sistem-tablo">
+            <thead>
+              <tr>
+                <th className="kolonbas">Token</th>
+                <th className="kolonbas">Rol</th>
+                <th className="kolonbas">Değer</th>
+                {ZEMINLER.map((z) => (
+                  <th key={z} className="kolonbas sag">{z.replace('--', '')}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {MUREKKEPLER.filter((m) => y.palet[m.anahtar]).map((m) => (
+                <tr key={m.anahtar}>
+                  <td className="mono">{m.anahtar}</td>
+                  <td>{m.rol}</td>
+                  <td className="mono">
+                    <span className="nokta" style={{ background: y.palet[m.anahtar] }} />
+                    {y.palet[m.anahtar]}
+                  </td>
+                  {ZEMINLER.map((z) => {
+                    const zemin = y.palet[z];
+                    if (!zemin) return <td key={z} className="mono sag">—</td>;
+                    const o = kontrast(y.palet[m.anahtar], zemin);
+                    const gecti = aaGecer(o, m.esik);
+                    return (
+                      <td key={z} className={`mono sag${gecti ? '' : ' kaldi'}`}>
+                        {bicimle(o)}
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <p className="mono ab-dip">
+            Eşik: metin 4.5:1 · grafik ve büyük tipografi 3.0:1. Kapı
+            <code> arac/kontrast.mjs</code> ile her derlemede koşar.
           </p>
-          <div style={{ display: 'flex', gap: 'var(--s24)' }}>
-            {([['--sh-lift', 'timeline / EOL hover'], ['--sh-tip', 'tooltip / popover'],
-               ['--sh-node', 'koyu yüzeyde grafik düğümü']] as const).map(([v, n]) => (
-              <div key={v} style={{ flex: 1 }}>
-                <div style={{ height: 62, background: v === '--sh-node' ? 'var(--band2)' : 'var(--card)',
-                  border: '1px solid var(--hr2)', boxShadow: `var(${v})` }} />
-                <p className="t-caption" style={{ margin: 'var(--s10) 0 0' }}>{n}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      } />
+        </section>
+      ))}
 
-      <Bolum no="08" baslik="Materyaller" cocuklar={
-        <div style={{ display: 'flex', gap: 'var(--s24)' }}>
-          {([['--strata', 'strata — ray, odak kartı arkası'],
-             ['--contour', 'contour — hero alt bandı'],
-             ['--graph-glow', 'graph-glow — ilişki/topoloji tuvali']] as const).map(([v, n]) => (
-            <div key={v} style={{ flex: 1 }}>
-              <div className="dokulu" style={{ height: 92, border: '1px solid var(--hr2)',
-                background: v === '--graph-glow' ? `var(${v}), var(--band2)` : `var(${v}), var(--pp)` }} />
-              <p className="t-caption" style={{ margin: 'var(--s10) 0 0' }}>{n}</p>
+      <section className="bolum">
+        <h2 className="ab-bolum-basligi">Tipografi kademeleri</h2>
+        <table className="ab-sistem-tablo">
+          <thead>
+            <tr>
+              <th className="kolonbas">Token</th>
+              <th className="kolonbas">Rol</th>
+              <th className="kolonbas">Boy</th>
+              <th className="kolonbas">Örnek</th>
+            </tr>
+          </thead>
+          <tbody>
+            {TIPOGRAFI.map(([tok, rol, ornek]) => (
+              <tr key={tok}>
+                <td className="mono">{tok}</td>
+                <td>{rol}</td>
+                <td className="mono">{olcek[tok] ?? '—'}</td>
+                <td style={{ fontSize: `var(${tok})` }}>{ornek}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <p className="mono ab-dip">
+          Arayüz Inter/Inter Tight, veri IBM Plex Mono / JetBrains Mono,
+          görünüm Archivo / Barlow Condensed / Newsreader — yön seçer.
+        </p>
+      </section>
+
+      <section className="bolum">
+        <h2 className="ab-bolum-basligi">Boşluk ölçeği</h2>
+        <div className="olcek">
+          {OLCEK_SIRASI.filter((t) => olcek[t]).map((t) => (
+            <div key={t}>
+              <span className="cubuk" style={{ width: `var(${t})` }} />
+              <span className="mono ad">{t}</span>
+              <span className="mono deger">{olcek[t]}</span>
             </div>
           ))}
         </div>
-      } />
+      </section>
     </main>
   );
 }

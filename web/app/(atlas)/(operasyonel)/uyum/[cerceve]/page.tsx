@@ -2,7 +2,7 @@ import { Suspense } from 'react';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { girisZorunlu, izinVar, izinliTesisIdleri } from '@/lib/erisim';
-import { Iskelet, Yetkisiz } from '@/components/atlas/temel';
+import { Iskelet, Yetkisiz } from '@/components/abacus/temel';
 import { cerceveKodlari, cerceveYukle } from '../veri';
 import CerceveIstemci from './CerceveIstemci';
 
@@ -44,8 +44,8 @@ export default async function Sayfa({ params }: { params: Promise<{ cerceve: str
 function Yukleniyor({ ad }: { ad: string }) {
   return (
     <main data-yuzey="defter" style={{ minWidth: 0 }} aria-busy>
-      <div className="baglam">
-        <nav className="baglam-yol" aria-label="Konum"><span className="son">{ad}</span></nav>
+      <div className="ab-baglam">
+        <nav className="yol" aria-label="Konum"><span className="son">{ad}</span></nav>
       </div>
       <div style={{ padding: 'var(--s36) var(--gutter-op) 0', display: 'grid', gap: 'var(--s16)' }}>
         <Iskelet stil={{ width: 180, height: 12 }} />

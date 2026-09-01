@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
-import { Alan, Dugme } from '@/components/atlas/temel';
-import { CekmeceEylemler } from '@/components/atlas/cekmece';
+import { Alan, Dugme } from '@/components/abacus/temel';
+import { CekmeceEylemler } from '@/components/abacus/panel';
 import { useEylem } from '@/components/useEylem';
 import {
   elleAktarimCalistir, kesifEslestir, kesifKarariVer, kesifTopluKarar,
@@ -93,7 +93,7 @@ export function KararEylemleri({
         <>
           <Alan etiket="Gerekçe" zorunlu>
             <textarea
-              className="gr" rows={3} value={gerekce}
+              className="ab-gr" rows={3} value={gerekce}
               onChange={(e) => setGerekce(e.target.value)}
               placeholder="Kararın dayanağı — denetim izine bu metin yazılır"
               style={{ resize: 'vertical' }}
@@ -108,7 +108,7 @@ export function KararEylemleri({
                 Farklı gelen alanlar mevcut değeri ezsin
               </label>
               <div style={{ marginTop: 'var(--s12)' }}>
-                <Dugme tur="cekmece" disabled={kararPasif} style={pasifStil(kararPasif)}
+                <Dugme tur="tam" disabled={kararPasif} style={pasifStil(kararPasif)}
                   onClick={() => karar('onayla')}>
                   Eşleşmeyi onayla · {satir.eslesen.etiket}
                 </Dugme>
@@ -136,7 +136,7 @@ export function KararEylemleri({
             <div style={{ width: '100%', marginTop: 'var(--s12)',
               display: 'grid', gap: 'var(--s10)' }}>
               <Alan etiket="Varlık türü" zorunlu>
-                <select className="gr" value={turId} onChange={(e) => setTurId(e.target.value)}>
+                <select className="ab-gr" value={turId} onChange={(e) => setTurId(e.target.value)}>
                   <option value="">Seçin…</option>
                   {turler.map((t) => (
                     <option key={t.id} value={t.id}>{t.ad} · {t.sinif}</option>
@@ -144,11 +144,11 @@ export function KararEylemleri({
                 </select>
               </Alan>
               <Alan etiket="Etiket (asset tag)" zorunlu={etiketGerekli}>
-                <input className="gr" value={etiket} onChange={(e) => setEtiket(e.target.value)}
+                <input className="ab-gr" value={etiket} onChange={(e) => setEtiket(e.target.value)}
                   placeholder={etiketGerekli ? 'Keşifte etiket yok — elle verin' : 'Keşiften gelen etiket kullanılır'} />
               </Alan>
               <Alan etiket="Tesis">
-                <select className="gr" value={tesisId} onChange={(e) => setTesisId(e.target.value)}>
+                <select className="ab-gr" value={tesisId} onChange={(e) => setTesisId(e.target.value)}>
                   <option value="">Bilinmiyor</option>
                   {tesisler.map((t) => (
                     <option key={t.id} value={t.id}>{t.kod} · {t.ad}</option>
@@ -156,7 +156,7 @@ export function KararEylemleri({
                 </select>
               </Alan>
               <div>
-                <Dugme tur="cekmece" disabled={yeniPasif} style={pasifStil(yeniPasif)}
+                <Dugme tur="tam" disabled={yeniPasif} style={pasifStil(yeniPasif)}
                   onClick={yeniVarlik}>
                   Yeni varlık olarak aç
                 </Dugme>
@@ -165,11 +165,11 @@ export function KararEylemleri({
           )}
 
           {!yetkili && (
-            <p className="dip-not" style={{ width: '100%' }}>
+            <p className="ab-dip" style={{ width: '100%' }}>
               Karar için envanter onay yetkisi gerekiyor.
             </p>
           )}
-          {hata && <p className="gr-hata" role="alert" style={{ width: '100%' }}>{hata}</p>}
+          {hata && <p className="ab-gr-hata" role="alert" style={{ width: '100%' }}>{hata}</p>}
         </div>
       }
       dipNot={dipNot}
@@ -203,11 +203,11 @@ export function TopluKararTepsisi({
   if (secilenler.length === 0) return null;
 
   return (
-    <section className="blok" style={{ maxWidth: 'none', marginBottom: 'var(--s20)' }}>
-      <p className="t-label" style={{ margin: 0 }}>
+    <section className="ab-blok" style={{ maxWidth: 'none', marginBottom: 'var(--s20)' }}>
+      <p className="etiket" style={{ margin: 0 }}>
         Toplu karar · {secilenler.length} kayıt
       </p>
-      <p className="dip-not" style={{ marginTop: 'var(--s6)' }}>
+      <p className="ab-dip" style={{ marginTop: 'var(--s6)' }}>
         Kayıtlar tek tek çekmeceden eklendi. Her biri kendi denetim izi satırını
         bırakır; biri başarısız olursa diğerleri geri alınmaz.
       </p>
@@ -217,17 +217,17 @@ export function TopluKararTepsisi({
           <li key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 'var(--s10)',
             fontSize: 'var(--t-code-lg)' }}>
             <span style={{ fontWeight: 600 }}>{s.konu}</span>
-            <span style={{ fontFamily: 'var(--mo)', color: 'var(--i3)' }}>
+            <span style={{ fontFamily: 'var(--veri)', color: 'var(--i3)' }}>
               {s.eslesen ? s.eslesen.etiket : 'eşleşme yok'} · {guvenYazisi(s.guvenSkoru)}
             </span>
-            <button type="button" className="dg dg-satir" style={{ marginLeft: 'auto' }}
+            <button type="button" className="ab-dugme satir" style={{ marginLeft: 'auto' }}
               onClick={() => cikar(s.id)}>Çıkar</button>
           </li>
         ))}
       </ul>
       <div style={{ marginTop: 'var(--s12)' }}>
         <Alan etiket="Ortak gerekçe" zorunlu>
-          <textarea className="gr" rows={2} value={gerekce}
+          <textarea className="ab-gr" rows={2} value={gerekce}
             onChange={(e) => setGerekce(e.target.value)}
             placeholder="Bu toplu kararın dayanağı" style={{ resize: 'vertical' }} />
         </Alan>
@@ -243,7 +243,7 @@ export function TopluKararTepsisi({
           Seçilenleri reddet
         </Dugme>
         <Dugme onClick={temizle}>Seçimi boşalt</Dugme>
-        {hata && <p className="gr-hata" role="alert" style={{ width: '100%' }}>{hata}</p>}
+        {hata && <p className="ab-gr-hata" role="alert" style={{ width: '100%' }}>{hata}</p>}
       </div>
     </section>
   );
@@ -261,7 +261,7 @@ export function EslestirmeDugmesi({ yazabilir }: { yazabilir: boolean }) {
         onClick={() => calistir(() => kesifEslestir({}))}>
         {bekliyor ? 'Eşleştiriliyor…' : 'Bekleyenleri eşleştir'}
       </Dugme>
-      {hata && <span className="gr-hata" role="alert">{hata}</span>}
+      {hata && <span className="ab-gr-hata" role="alert">{hata}</span>}
     </span>
   );
 }
@@ -281,33 +281,33 @@ export function ElleAktarimFormu({ yazabilir }: { yazabilir: boolean }) {
 
   return (
     <details style={{ marginBottom: 'var(--s20)' }}>
-      <summary className="filtre" style={{ listStyle: 'none', cursor: 'pointer' }}>
+      <summary className="ab-filtre" style={{ listStyle: 'none', cursor: 'pointer' }}>
         Dışa aktarım yükle ▾
       </summary>
-      <div className="blok" style={{ maxWidth: 'none', marginTop: 'var(--s12)',
+      <div className="ab-blok" style={{ maxWidth: 'none', marginTop: 'var(--s12)',
         display: 'grid', gap: 'var(--s12)' }}>
-        <p className="dip-not" style={{ margin: 0 }}>
+        <p className="ab-dip" style={{ margin: 0 }}>
           Yalnız pasif kaynaklar: mevcut keşif ürünü, switch ARP/MAC tablosu,
           DHCP kiraları, SIEM raporu, SCADA envanter ya da tedarikçi dışa
           aktarımı. Buradan tarama başlatılmaz.
         </p>
         <Alan etiket="Kaynak sistem" zorunlu>
-          <input className="gr" value={kaynakSistem}
+          <input className="ab-gr" value={kaynakSistem}
             onChange={(e) => setKaynakSistem(e.target.value)}
             placeholder="ör. SCADA envanter dışa aktarımı — Kızıldere II" />
         </Alan>
         <Alan etiket="Biçim">
-          <select className="gr" value={bicim}
+          <select className="ab-gr" value={bicim}
             onChange={(e) => setBicim(e.target.value === 'json' ? 'json' : 'csv')}>
             <option value="csv">CSV (başlık satırlı)</option>
             <option value="json">JSON (kayıt dizisi)</option>
           </select>
         </Alan>
         <Alan etiket="İçerik" zorunlu>
-          <textarea className="gr" rows={6} value={icerik}
+          <textarea className="ab-gr" rows={6} value={icerik}
             onChange={(e) => setIcerik(e.target.value)}
             placeholder={'hostname,serial_number,mac,ip,vendor,model\nPLC-01,SN-1234,00:11:22:33:44:55,10.20.0.5,Siemens,S7-1500'}
-            style={{ resize: 'vertical', fontFamily: 'var(--mo)' }} />
+            style={{ resize: 'vertical', fontFamily: 'var(--veri)' }} />
         </Alan>
         <div>
           <Dugme tur="birincil" disabled={pasif} style={pasifStil(pasif)}
@@ -318,9 +318,9 @@ export function ElleAktarimFormu({ yazabilir }: { yazabilir: boolean }) {
             Keşif kuyruğuna işle
           </Dugme>
           {!yazabilir && (
-            <p className="dip-not">Aktarım için envanter yazma yetkisi gerekiyor.</p>
+            <p className="ab-dip">Aktarım için envanter yazma yetkisi gerekiyor.</p>
           )}
-          {hata && <p className="gr-hata" role="alert">{hata}</p>}
+          {hata && <p className="ab-gr-hata" role="alert">{hata}</p>}
         </div>
       </div>
     </details>

@@ -1,10 +1,10 @@
 'use client';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
-import { BosIlk, Im, TikSeridi, Yetkisiz } from '@/components/atlas/temel';
-import { Tablo, type Kolon, type Satir } from '@/components/atlas/tablo';
-import { EkranBasligi, KipDegistir } from '@/components/atlas/ekran';
-import { Cekmece } from '@/components/atlas/cekmece';
+import { BosIlk, Im, TikSeridi, Yetkisiz } from '@/components/abacus/temel';
+import { Tablo, type Kolon, type Satir } from '@/components/abacus/tablo';
+import { EkranBasligi, KipDegistir } from '@/components/abacus/ekran';
+import { Cekmece } from '@/components/abacus/panel';
 import { exceleAktar, pdfYazdir } from '@/components/disaAktar';
 import { etiketle, tarihTR, zamanTR } from '@/lib/sabitler';
 import type { ConnectorSagligi, EntegrasyonOzeti } from '@/lib/entegrasyon/saglikOzeti';
@@ -162,7 +162,7 @@ export default function SaglikIstemci({
           ]}
         />
 
-        <section className="ekran-govde">
+        <section className="ab-ekran-govde">
           <KipDegistir
             aktif={kip}
             sec={kipiDegistir}
@@ -312,7 +312,7 @@ function EntegrasyonTablosu({ ozet, bolum, secili, sec, kuyrugaAc, yazabilir, ye
           cumle={'Tanımlı connector yok. Bir dış sistem bağlandığında son '
             + 'koşusu, alınan/kabul/red sayaçları ve veri tazeliği burada görünür.'}
           eylem={yazabilir
-            ? <button type="button" className="dg dg-birincil" onClick={yeniAc}>
+            ? <button type="button" className="ab-dugme birincil" onClick={yeniAc}>
                 Bağlantı tanımla
               </button>
             : undefined}
@@ -392,7 +392,7 @@ function EntegrasyonTablosu({ ozet, bolum, secili, sec, kuyrugaAc, yazabilir, ye
       />
       {yazabilir && (
         <div style={{ marginTop: 'var(--s12)' }}>
-          <button type="button" className="kapsam-dugme yazdirmada-gizle" onClick={yeniAc}>
+          <button type="button" className="ab-dugme ab-baskida-gizle" onClick={yeniAc}>
             ＋ Yeni bağlantı
           </button>
         </div>
@@ -411,7 +411,7 @@ function SaglayiciDurumu({ ozet }: { ozet: EntegrasyonOzeti }) {
   if (ozet.saglayicilar.length === 0) return null;
   return (
     <div style={{ marginTop: 'var(--s22)' }}>
-      <p className="t-label" style={{ margin: '0 0 var(--s10)' }}>Sır sağlayıcıları</p>
+      <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Sır sağlayıcıları</p>
       <div style={{ display: 'grid', gap: 'var(--s8)' }}>
         {ozet.saglayicilar.map((sg) => {
           const not = saglayiciNotu(sg);
@@ -430,7 +430,7 @@ function SaglayiciDurumu({ ozet }: { ozet: EntegrasyonOzeti }) {
           );
         })}
       </div>
-      <p className="t-caption" style={{ margin: 'var(--s10) 0 0' }}>
+      <p className="etiket" style={{ margin: 'var(--s10) 0 0' }}>
         Sırrın DEĞERİ hiçbir sağlayıcıdan bu ekrana inmez; yalnız adresi ve
         sağlayıcının bağlı olup olmadığı görünür.
       </p>
@@ -443,7 +443,7 @@ function SaglayiciDurumu({ ozet }: { ozet: EntegrasyonOzeti }) {
 function ReddedilenBagi({ adet }: { adet: number }) {
   return (
     <p style={{ margin: 'var(--s16) 0 0', fontSize: 'var(--t-field)' }}>
-      <Link href="/saglik/reddedilenler" className="kapsam-dugme">
+      <Link href="/saglik/reddedilenler" className="ab-dugme">
         {adet > 0
           ? `${adet} reddedilen kayıt inceleme bekliyor →`
           : 'Reddedilen kayıt kuyruğu →'}
@@ -600,7 +600,7 @@ function TipKokenleri({ bolum, secili, sec }: {
 
   return (
     <div style={{ marginTop: 'var(--s26)' }}>
-      <p className="t-label" style={{ margin: '0 0 var(--s10)' }}>
+      <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>
         Kayıt tipine göre köken
       </p>
       <div style={{ display: 'grid', gap: 'var(--s8)' }}>
@@ -633,7 +633,7 @@ function TipKokenleri({ bolum, secili, sec }: {
           );
         })}
       </div>
-      <p className="t-caption" style={{ margin: 'var(--s10) 0 0' }}>
+      <p className="etiket" style={{ margin: 'var(--s10) 0 0' }}>
         {kokensiz > 0
           ? `${kokensiz} kayıt tipinde kaynak bağlamı olmayan kayıt var — bu kayıtlar `
             + 'gizlenmez ve hiçbir koşulda “doğrulanmış” görünmez.'
@@ -718,22 +718,22 @@ function DisaAktar({ motorlar, kalite, entegrasyon }: {
   }
 
   return (
-    <details ref={kok} className="yazdirmada-gizle" style={{ position: 'relative' }}>
-      <summary className="kapsam-dugme"
+    <details ref={kok} className="ab-baskida-gizle" style={{ position: 'relative' }}>
+      <summary className="ab-dugme"
         style={{ listStyle: 'none', cursor: 'pointer', display: 'inline-block' }}>
         ⤓ Dışa aktar <span aria-hidden>▾</span>
       </summary>
       <div style={{
         position: 'absolute', bottom: '100%', right: 0, zIndex: 5, minWidth: 150,
-        background: 'var(--card)', border: 'var(--bw-strong) solid var(--hr2)',
-        boxShadow: 'var(--sh-tip)', padding: 'var(--s8)',
+        background: 'var(--panel)', border: 'var(--bw-strong) solid var(--hr2)',
+        boxShadow: 'none', padding: 'var(--s8)',
       }}>
-        <button type="button" className="filtre"
+        <button type="button" className="ab-filtre"
           style={{ display: 'block', width: '100%', textAlign: 'left' }}
           onClick={(e) => kapatVe(e, aktar)}>
           Excel
         </button>
-        <button type="button" className="filtre"
+        <button type="button" className="ab-filtre"
           style={{ display: 'block', width: '100%', textAlign: 'left' }}
           onClick={(e) => kapatVe(e, pdfYazdir)}>
           PDF

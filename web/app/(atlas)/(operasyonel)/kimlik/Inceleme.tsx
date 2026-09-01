@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
-import { Alan, Dugme } from '@/components/atlas/temel';
-import { CekmeceEylemler } from '@/components/atlas/cekmece';
+import { Alan, Dugme } from '@/components/abacus/temel';
+import { CekmeceEylemler } from '@/components/abacus/panel';
 import { useEylem } from '@/components/useEylem';
 import { erisimIncele, hesapKaydet } from '@/lib/eylemler2/kimlik';
 import { tarihTR } from '@/lib/sabitler';
@@ -73,7 +73,7 @@ export function IncelemeEylemleri({ hesap, yetki }: { hesap: Hesap; yetki: Yetki
         <>
           <Alan etiket="Gerekçe" zorunlu>
             <textarea
-              className="gr"
+              className="ab-gr"
               rows={3}
               value={gerekce}
               onChange={(e) => setGerekce(e.target.value)}
@@ -82,7 +82,7 @@ export function IncelemeEylemleri({ hesap, yetki }: { hesap: Hesap; yetki: Yetki
             />
           </Alan>
           <div style={{ marginTop: 'var(--s12)' }}>
-            <Dugme tur="cekmece" disabled={kararPasif} style={pasifStil(kararPasif)}
+            <Dugme tur="tam" disabled={kararPasif} style={pasifStil(kararPasif)}
               onClick={() => karar('onaylandi')}>
               {KARARLAR[0].ad}
             </Dugme>
@@ -102,7 +102,7 @@ export function IncelemeEylemleri({ hesap, yetki }: { hesap: Hesap; yetki: Yetki
           <Dugme disabled={bekliyor} style={pasifStil(bekliyor)} onClick={durumDegistir}>
             {hesap.durum === 'askida' ? 'Hesabı geri aç' : 'Hesabı askıya al'}
           </Dugme>
-          {hata && <p className="gr-hata" role="alert" style={{ width: '100%' }}>{hata}</p>}
+          {hata && <p className="ab-gr-hata" role="alert" style={{ width: '100%' }}>{hata}</p>}
         </div>
       }
       dipNot={dipNot}

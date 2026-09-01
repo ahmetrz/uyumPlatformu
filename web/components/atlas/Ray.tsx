@@ -17,6 +17,13 @@ export type RayOgesi = {
      "buradan sonrası günlük tezgâh değil, yönetim ve kayıt" der; okuyucu
      bunu sözcük olmadan görür. */
   ayrac?: boolean;
+  /* Bu öğeyi AKTİF sayan ek yollar. Bağlantı buraya gitmez; yalnız aktif
+     durum eşleşmesi genişler. Gerekçe: Santral 360 (`/tesisler/<id>`)
+     rayda kendi öğesi olmayan bir DETAY ekranıdır ve `/tesisler` listesi
+     `/portfoy`ya yönlendirildiği için ray hiçbir alanı aktif göstermiyor,
+     ikincil liste "Bugün"e düşüyordu: kullanıcı bir santralin içindeyken
+     ray ona nerede olduğunu söylemiyordu. */
+  esYollar?: string[];
 };
 
 /* Flagship katmanı — kısa liste + ayak (efsane veya fotoğraf şeridi) */
@@ -97,9 +104,14 @@ export type RayAyagi =
   | { tip: 'serit'; gorsel: string; alt: string; yazi: string }
   | null;
 
-function aktifMi(yol: string, patika: string): boolean {
+function yolTutar(yol: string, patika: string): boolean {
   if (yol === '/') return patika === '/';
-  return patika === yol || patika.startsWith(yol + '/');
+  return patika === yol || patika.startsWith(`${yol}/`);
+}
+
+function aktifMi(oge: RayOgesi, patika: string): boolean {
+  if (yolTutar(oge.yol, patika)) return true;
+  return (oge.esYollar ?? []).some((y) => yolTutar(y, patika));
 }
 
 /* ── Atlas 2 · Alan haritası ──────────────────────────────────────────
@@ -122,7 +134,10 @@ export const ALANLAR: RayAlani[] = [
     { ad: 'Bildirimler', yol: '/bildirimler' },
   ]},
   { kod: 'PF', ad: 'Portföy', ekranlar: [
-    { ad: 'Enerji portföyü', yol: '/portfoy' },
+    /* `/tesisler` kanonik listeyi (`/portfoy`) açar; `/tesisler/<id>`
+       Santral 360'tır. İkisi de bu alanın içindedir — es yol olarak
+       eklenmeseydi santralin içindeyken ray "Bugün"e düşerdi. */
+    { ad: 'Enerji portföyü', yol: '/portfoy', esYollar: ['/tesisler'] },
   ]},
   { kod: 'UY', ad: 'Uyum', ekranlar: [
     { ad: 'Uyum matrisi', yol: '/uyum' },
@@ -178,7 +193,7 @@ export default function Ray({
 }) {
   const patika = usePathname() ?? '/';
 
-  const aktifAlan = ALANLAR.find((a) => a.ekranlar.some((e) => aktifMi(e.yol, patika)));
+  const aktifAlan = ALANLAR.find((a) => a.ekranlar.some((e) => aktifMi(e, patika)));
   /* Hiçbir alan eşleşmezse (ör. /sistem) ikincil liste Bugün'ü gösterir;
      alan rayında hiçbir alan aktif işaretlenmez — dürüst durum. */
   const listeAlani = aktifAlan ?? ALANLAR[0];
@@ -225,7 +240,7 @@ export default function Ray({
       {/* Bağlantı listesi KENDİ İÇİNDE kayar; marka ve oturum bloğu sabit. */}
       <div className="ray-liste">
       {listeAlani.ekranlar.map((o) => {
-        const aktif = aktifMi(o.yol, patika);
+        const aktif = aktifMi(o, patika);
         const s = sayilar?.[o.yol] ?? (o.sayi != null ? { sayi: o.sayi, kritik: o.kritik } : null);
         return (
           <Link

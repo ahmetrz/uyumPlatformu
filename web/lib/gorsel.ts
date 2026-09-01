@@ -1,3 +1,5 @@
+import { TEMEL } from './demo';
+
 /* Fotoğraf varlık kataloğu — 05-photography.md.
    Santral→anahtar ilişkisi VERİDE (Tesis.gorselAnahtari) yaşar; burası yalnız
    "o anahtar için hangi boyutlar üretilmiş" sorusunu yanıtlayan manifesttir.
@@ -9,7 +11,7 @@
       santralin fotoğrafı ASLA doldurma amacıyla kullanılmaz.
    6. Fallback tipografiktir, kırık görsel değildir. */
 
-const TEMEL = process.env.NEXT_PUBLIC_DEMO === '1' ? '/uyumPlatformu' : '';
+
 
 /** Tam boy hero kırpımı üretilmiş anahtarlar (560px hero / 300px plaka). */
 const HERO: Record<string, string> = {

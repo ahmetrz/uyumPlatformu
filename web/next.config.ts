@@ -6,6 +6,17 @@ import path from 'node:path';
 // *.demo.ts ikizlerine alias'lanır (statik dışa aktarım server action taşıyamaz).
 const demo = process.env.NEXT_PUBLIC_DEMO === '1';
 
+/* Yayın kökü TEK KAYNAKTAN gelir (`lib/demo.ts`). Buraya elle yazılırsa
+   `basePath` ile varlık ön eki ayrışır ve fark yalnız YAYINDA görünür.
+   `next.config.ts` TypeScript yolu takma adlarını (`@/…`) çözemediği için
+   dosya doğrudan okunup değer çıkarılır — kopyalamak yerine türetilir. */
+const YAYIN_KOKU = (() => {
+  const kaynak = fs.readFileSync(path.join(__dirname, 'lib', 'demo.ts'), 'utf8');
+  const m = /export const YAYIN_KOKU = '([^']+)'/.exec(kaynak);
+  if (!m) throw new Error('lib/demo.ts içinde YAYIN_KOKU bulunamadı');
+  return m[1];
+})();
+
 /* ═══════════════════════════════════════════════════════════════════════
    DEMO İKİZLERİ — ELLE YAZILAN LİSTE YERİNE TÜRETME
 
@@ -111,7 +122,7 @@ const nextConfig: NextConfig = {
   ...(demo
     ? {
         output: 'export' as const,
-        basePath: '/uyumPlatformu',
+        basePath: YAYIN_KOKU,
         trailingSlash: true,
         images: { unoptimized: true },
       }

@@ -53,7 +53,11 @@ jobs:
         working-directory: web
         env:
           NEXT_PUBLIC_DEMO: '1'
-        run: npx next build
+        # `demo:build` üç adımdır: derle → CSS varlık yollarını yayın
+        # köküyle öne ekle (`arac/demo-yol.mjs`) → her başvuruyu diskte
+        # ara (`arac/yayin-kontrol.mjs`). Sonuncusu kırık bir varlık
+        # bulursa iş burada durur; kırık yayın gh-pages'e çıkamaz.
+        run: npm run demo:build
 
       - name: Çıktıyı gh-pages dalına yayınla
         env:

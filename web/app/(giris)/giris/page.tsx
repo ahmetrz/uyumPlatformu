@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { aktifKullanici } from '@/lib/auth';
 import GirisFormu from './GirisFormu';
+import { TEMEL } from '@/lib/demo';
 
 /* Giriş — oturum yok, kayıt yok, karar yok: uygulama kabuğunun dışındaki
    tek ekran. Kabuk çizilmez ama YÜZEY Abacus'tur: `.ab[data-yon='b']`
@@ -11,8 +12,7 @@ import GirisFormu from './GirisFormu';
    form kolonu — detay panelinin genişliğiyle aynı ölçü. Kart yok,
    yuvarlak köşe yok, gölge yok; ayrımı kenar çizgisi ve yüzey tonu yapar. */
 
-// Statik dışa aktarımda basePath elle eklenir (next/image kullanılmıyor).
-const TEMEL = process.env.NEXT_PUBLIC_DEMO === '1' ? '/uyumPlatformu' : '';
+
 
 export default async function Giris() {
   if (await aktifKullanici()) redirect('/');

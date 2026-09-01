@@ -92,7 +92,14 @@ export default async function Sayfa() {
               kanit: { select: { id: true, ad: true, tip: true, silindi: true } },
             },
           },
-          zafiyetler: { select: { durum: true } },
+          /* Zincir görünümü zafiyeti ADIYLA ister; sayaç tek başına
+             "hangi zafiyet" sorusunu yanıtlamıyordu. */
+          zafiyetler: {
+            select: {
+              durum: true, sonTarih: true,
+              zafiyet: { select: { id: true, kaynakRef: true, baslik: true, cvss: true } },
+            },
+          },
         },
       }),
       /* Açılır listeler AKTİF kayıtları gösterir; satır eşlemesi ise
@@ -173,6 +180,58 @@ export default async function Sayfa() {
   const sonYedekler = ilkiniEsle(yedekSatirlari, (y) => y.varlikId);
   const sonKesifler = ilkiniEsle(kesifSatirlari, (k) => k.eslesenVarlikId);
 
+  /* ── Yönetişim zinciri ────────────────────────────────────────────────
+     Prototipin (a-assets) omurgası SANTRAL → SİSTEM → VARLIK → ZAFİYET →
+     RİSK → KONTROL → PROJE. Son iki halka varlıkta yok; risk üzerinden
+     KÜME sorgusuyla çekilir — varlık başına sorgu açmak envanterin
+     boyutunda N+1 olurdu (aynı gerekçe boyut tabloları için de geçerli,
+     yukarıya bakınız). */
+  const riskIdleri = [...new Set(
+    varliklar.flatMap((v) => v.riskler.filter((r) => !r.risk.silindi).map((r) => r.risk.id)),
+  )];
+  const varlikIdleri = varliklar.map((v) => v.id);
+
+  const [riskKontrolleri, projeBaglantilari] = await Promise.all([
+    riskIdleri.length === 0 ? Promise.resolve([]) : db.risk.findMany({
+      where: { id: { in: riskIdleri } },
+      select: {
+        id: true, artikRisk: true, durum: true,
+        bulgu: {
+          select: {
+            id: true, baslik: true,
+            maddeDurumu: {
+              select: {
+                durum: true,
+                madde: { select: { id: true, kod: true, baslik: true } },
+              },
+            },
+          },
+        },
+      },
+    }),
+    db.projeBaglantisi.findMany({
+      where: {
+        OR: [
+          { varlikId: { in: varlikIdleri } },
+          ...(riskIdleri.length ? [{ riskId: { in: riskIdleri } }] : []),
+        ],
+        proje: { silindi: null },
+      },
+      select: {
+        varlikId: true, riskId: true,
+        proje: { select: { id: true, kod: true, ad: true, durum: true } },
+      },
+    }),
+  ]);
+
+  const kontrolHaritasi = new Map(riskKontrolleri.map((r) => [r.id, r]));
+  const projeRiske = new Map<string, typeof projeBaglantilari>();
+  const projeVarliga = new Map<string, typeof projeBaglantilari>();
+  for (const b of projeBaglantilari) {
+    if (b.riskId) projeRiske.set(b.riskId, [...(projeRiske.get(b.riskId) ?? []), b]);
+    if (b.varlikId) projeVarliga.set(b.varlikId, [...(projeVarliga.get(b.varlikId) ?? []), b]);
+  }
+
   const veri: V[] = varliklar.map((v) => {
     const iliskiler: Iliski[] = [
       ...v.kaynakIliskiler.map((i) => ({
@@ -232,7 +291,39 @@ export default async function Sayfa() {
       guncellendi: v.guncellendi.toISOString(),
       iliskiler,
       riskler: v.riskler.filter((r) => !r.risk.silindi)
-        .map((r) => ({ id: r.risk.id, kod: r.risk.kod, baslik: r.risk.baslik })),
+        .map((r) => {
+          const ek = kontrolHaritasi.get(r.risk.id);
+          return {
+            id: r.risk.id, kod: r.risk.kod, baslik: r.risk.baslik,
+            artikRisk: ek?.artikRisk ?? null,
+            kontrol: ek?.bulgu?.maddeDurumu
+              ? {
+                kod: ek.bulgu.maddeDurumu.madde.kod,
+                baslik: ek.bulgu.maddeDurumu.madde.baslik,
+                durum: ek.bulgu.maddeDurumu.durum,
+              }
+              : null,
+            bulgu: ek?.bulgu ? { id: ek.bulgu.id, baslik: ek.bulgu.baslik } : null,
+          };
+        }),
+      zafiyetler: v.zafiyetler
+        .filter((z) => z.durum === 'acik')
+        .map((z) => ({
+          id: z.zafiyet.id,
+          ref: z.zafiyet.kaynakRef,
+          baslik: z.zafiyet.baslik,
+          cvss: z.zafiyet.cvss,
+          sonTarih: z.sonTarih?.toISOString() ?? null,
+        }))
+        .sort((a, b) => (b.cvss ?? -1) - (a.cvss ?? -1)),
+      projeler: [
+        ...(projeVarliga.get(v.id) ?? []),
+        ...v.riskler.flatMap((r) => projeRiske.get(r.risk.id) ?? []),
+      ]
+        .filter((b, i, dizi) => dizi.findIndex((x) => x.proje.id === b.proje.id) === i)
+        .map((b) => ({
+          id: b.proje.id, kod: b.proje.kod, ad: b.proje.ad, durum: b.proje.durum,
+        })),
       kanitlar: v.kanitlar.filter((kb) => !kb.kanit.silindi)
         .map((kb) => ({ id: kb.kanit.id, ad: kb.kanit.ad, tip: kb.kanit.tip })),
       acikZafiyet: v.zafiyetler.filter((z) => z.durum === 'acik').length,

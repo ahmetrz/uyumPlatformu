@@ -50,6 +50,7 @@ function varlik(ek: Partial<V> = {}): V {
     kurulumTarihi: null, garantiBitis: null, destekBitis: null, eolTarihi: null,
     eosTarihi: gunSonra(900), guncellendi: gunSonra(-10),
     iliskiler: [], riskler: [], kanitlar: [], acikZafiyet: 0,
+    zafiyetler: [], projeler: [],
     sonYedek: null, sonKesif: null, yazilabilir: true, onaylanabilir: true,
     ...ek,
   };

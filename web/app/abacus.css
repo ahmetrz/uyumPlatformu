@@ -796,22 +796,216 @@
 .ab-c-olcut .deger.oran { font-family: var(--gorunum); font-size: 26px; line-height: 1; }
 .ab-c-dev { font-family: var(--gorunum); font-weight: 300; font-size: 76px; line-height: .95; font-variant-numeric: tabular-nums; }
 
-/* ═══ Ortak gramer — tablo ════════════════════════════════════════════ */
+/* ═══ A · Varlık zihni — a-assets grameri ════════════════════════════
+   42px kip çubuğu · süzgeç şeridi · (zincir tuvali | tablo) + 400px
+   düğüm paneli · 30px envanter kaynağı ayağı. */
+.ab-a-ekran { display: flex; flex-direction: column; min-height: 0; min-width: 0; }
+
+.ab-a-kip {
+  height: 42px; flex: none; display: flex; align-items: center; gap: 20px;
+  padding: 0 24px; border-bottom: 1px solid var(--hr); background: var(--panel);
+}
+.ab-a-kip .ad {
+  font-family: var(--gorunum); font-size: 15px; font-weight: 600;
+  letter-spacing: -.01em; text-transform: uppercase;
+}
+.ab-a-kip .ikili { display: flex; border: 1px solid var(--hr2); }
+.ab-a-kip .ikili button {
+  height: 26px; padding: 0 14px; background: none; border: 0; cursor: pointer;
+  font-family: var(--veri); font-size: 10px; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--i3);
+}
+.ab-a-kip .ikili button:hover { color: var(--murekkep); }
+.ab-a-kip .ikili button[aria-pressed='true'] {
+  background: var(--aksan); color: var(--aksan-uzeri);
+}
+.ab-a-kip .kunye {
+  margin-left: auto; font-size: 9px; letter-spacing: .08em; color: var(--i3);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.ab-a-kip .aktif { flex: none; font-size: 10px; color: var(--i3); }
+.ab-a-kip .aktif.var { color: var(--aksan); }
+
+/* ── Süzgeç şeridi ─────────────────────────────────────────────────── */
+.ab-a-suzgec {
+  flex: none; display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  padding: 10px 24px; border-bottom: 1px solid var(--hr);
+}
+.ab-a-suzgec .mercekler { display: flex; }
+.ab-a-suzgec .mercekler button {
+  padding: 5px 11px; background: none; cursor: pointer;
+  border: 1px solid var(--hr2); border-right-width: 0;
+  font-family: var(--veri); font-size: 10px; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--i3);
+}
+.ab-a-suzgec .mercekler button:last-child { border-right-width: 1px; }
+.ab-a-suzgec .mercekler button:hover { color: var(--murekkep); }
+.ab-a-suzgec .mercekler button[aria-pressed='true'] {
+  color: var(--murekkep); background: var(--panel2); border-color: var(--i3);
+}
+.ab-a-ara {
+  width: 200px; background: var(--panel); border: 1px solid var(--hr2);
+  color: var(--murekkep); font-family: var(--ui); font-size: 12px; padding: 5px 9px;
+}
+.ab-a-sec { display: inline-flex; align-items: center; gap: 8px; }
+.ab-a-sec select {
+  background: var(--panel); border: 1px solid var(--hr2); color: var(--murekkep);
+  font-family: var(--ui); font-size: 12px; padding: 4px 6px;
+}
+.ab-a-suzgec .sayac { margin-left: auto; font-size: 10px; color: var(--i3); }
+
+/* ── Gövde ─────────────────────────────────────────────────────────── */
+.ab-a-calisma { display: grid; grid-template-columns: minmax(0, 1fr) 400px; min-height: 0; }
+.ab-a-tuval { padding: 18px 24px 24px; min-width: 0; overflow-x: auto; }
+.ab-a-tuval .bos { margin: 24px 0; font-size: 13px; color: var(--i3); }
+.ab-a-tabloayak {
+  display: flex; align-items: center; gap: 16px; flex-wrap: wrap; padding-top: 14px;
+}
+.ab-a-tabloayak p { margin: 0; flex: 1; min-width: 0; font-size: 10px; color: var(--i3); }
+.ab-a-disa { display: inline-flex; gap: 8px; }
+
+/* ── Zincir tuvali ─────────────────────────────────────────────────── */
+.ab-zincir {
+  --zincir-kolon: repeat(7, minmax(116px, 1fr));
+  /* Prototipin nokta ızgarası — yüzeyin "tezgâh" karakterini taşır. */
+  background-image: radial-gradient(var(--hr) 1px, transparent 1px);
+  background-size: 22px 22px;
+  border: 1px solid var(--hr); padding: 12px 14px 10px; min-width: 0;
+}
+.ab-zincir .basliklar, .ab-zincir .sutunlar {
+  display: grid; grid-template-columns: var(--zincir-kolon); gap: 14px;
+}
+.ab-zincir .basliklar { padding-bottom: 8px; }
+.ab-zincir .sutun { display: grid; align-content: start; gap: 10px; }
+.ab-zincir .sutun > .bos {
+  font-family: var(--veri); font-size: 9px; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--i3); padding-top: 6px;
+}
+.ab-zincir .dugum {
+  display: grid; gap: 4px; align-content: center; text-align: left;
+  min-height: 46px; padding: 6px 9px; cursor: default;
+  background: var(--panel2); border: 1px solid var(--hr2); color: inherit;
+  font: inherit;
+}
+.ab-zincir a.dugum, .ab-zincir button.dugum { cursor: pointer; }
+/* Sönümlenen düğüm ERİŞİLEBİLİR kalır: opaklık bir sıralama işareti,
+   erişim kısıtı değil (harita §7 kusur 4). */
+.ab-zincir .dugum.dim { opacity: .52; }
+.ab-zincir .dugum.kirpik {
+  background: none; border-style: dashed; min-height: 34px; opacity: .7;
+}
+.ab-zincir .dugum.dim:hover, .ab-zincir .dugum.dim:focus-visible { opacity: 1; }
+.ab-zincir .dugum.on { border-color: var(--aksan); background: var(--secim); opacity: 1; }
+.ab-zincir .dugum.on-bd { border-color: var(--bd); background: var(--secim); opacity: 1; }
+.ab-zincir .dugum .ad { font-size: 12.5px; line-height: 1.25; overflow-wrap: anywhere; }
+.ab-zincir .dugum .alt { font-size: 9px; color: var(--i3); overflow-wrap: anywhere; }
+.ab-zincir .dip { margin: 12px 0 0; font-size: 9px; color: var(--i3); }
+
+/* ── 400px düğüm paneli ────────────────────────────────────────────── */
+.ab-a-panel {
+  border-left: 1px solid var(--hr); background: var(--panel);
+  display: flex; flex-direction: column; min-width: 0;
+}
+.ab-a-panel > header {
+  height: 42px; flex: none; display: flex; align-items: center; gap: 14px;
+  padding: 0 20px; border-bottom: 1px solid var(--hr);
+}
+.ab-a-panel > header .vurgu { color: var(--aksan); }
+.ab-a-panel > header .sag { margin-left: auto; }
+.ab-a-panel .sekmeler { flex: none; display: flex; border-bottom: 1px solid var(--hr); }
+.ab-a-panel .sekmeler button {
+  flex: 1; padding: 9px 4px; background: none; border: 0; cursor: pointer;
+  border-bottom: 2px solid transparent;
+  font-family: var(--veri); font-size: 10px; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--i3);
+}
+.ab-a-panel .sekmeler button:hover { color: var(--murekkep); }
+.ab-a-panel .sekmeler button[aria-pressed='true'] {
+  color: var(--murekkep); border-bottom-color: var(--aksan);
+}
+.ab-a-panel .govde { padding: 18px 20px 24px; overflow-y: auto; min-height: 0; }
+.ab-a-panel .bos { margin: 0; font-size: 12.5px; line-height: 1.6; color: var(--i3); }
+
+.ab-a-panel .kimlik { padding-bottom: 16px; border-bottom: 1px solid var(--hr); }
+.ab-a-panel .kimlik .soz {
+  margin-left: 8px; font-size: 9.5px; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--i3);
+}
+.ab-a-panel .kimlik h2 {
+  margin: 10px 0 0; font-family: var(--gorunum); font-weight: 600;
+  font-size: 24px; line-height: 1.05; letter-spacing: -.01em;
+}
+.ab-a-panel .kimlik .kod { margin: 8px 0 0; font-size: 10px; color: var(--i3); }
+.ab-a-panel .kimlik .cumle { margin: 12px 0 0; font-size: 12.5px; line-height: 1.6; color: var(--i2); }
+
+.ab-a-panel .ciftler { margin: 14px 0 0; display: grid; gap: 0; }
+.ab-a-panel .ciftler > div {
+  display: flex; justify-content: space-between; gap: 12px;
+  padding: 7px 0; border-bottom: 1px solid var(--hr); font-size: 12px;
+}
+.ab-a-panel .ciftler dt { flex: none; color: var(--i3); }
+.ab-a-panel .ciftler dd { margin: 0; text-align: right; min-width: 0; overflow-wrap: anywhere; }
+.ab-a-panel .ciftler dd.vurgu { color: var(--md); }
+.ab-a-panel .ciftler dd.unk { color: var(--unk); }
+.ab-a-panel .blokbas { display: block; margin: 22px 0 10px; }
+
+.ab-a-panel .zafiyet {
+  display: flex; align-items: center; gap: 12px;
+  padding: 7px 10px; margin-bottom: 1px; background: var(--panel2);
+}
+.ab-a-panel .zafiyet .skor { flex: none; width: 34px; font-size: 10px; }
+.ab-a-panel .zafiyet .skor.vurgu { color: var(--bd); }
+.ab-a-panel .zafiyet .konu { flex: 1; min-width: 0; font-size: 12px; overflow-wrap: anywhere; }
+.ab-a-panel .zafiyet .son { flex: none; font-size: 9.5px; color: var(--i3); }
+
+.ab-a-panel .iz { font-size: 11px; line-height: 1.8; color: var(--i2); }
+.ab-a-panel .iz .tur {
+  display: inline-block; min-width: 54px; font-size: 9px; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--i3);
+}
+.ab-a-panel .iz a { color: var(--murekkep); }
+.ab-a-panel .iz a:hover { color: var(--aksan); }
+.ab-a-panel .iz .kirmizi { color: var(--bd); }
+.ab-a-panel .dipnot {
+  margin: 22px 0 0; padding-top: 12px; border-top: 1px solid var(--hr);
+  font-size: 9.5px; line-height: 1.7; color: var(--i3);
+}
+
+/* ── 30px envanter kaynağı ayağı ───────────────────────────────────── */
+.ab-a-envayak {
+  height: 30px; flex: none; display: flex; align-items: center; gap: 20px;
+  padding: 0 24px; border-top: 1px solid var(--hr); background: var(--panel);
+  font-family: var(--veri); font-size: 10px; color: var(--i3);
+}
+.ab-a-envayak .sag { margin-left: auto; }
+
+/* ═══ Ortak gramer — tablo ════════════════════════════════════════════
+   Satır bir DÜĞMEDİR: seçim `aria-pressed` ile taşınır (`aria-selected`
+   düğme rolünde geçersizdir). Sol kenar durumun ŞİDDETİNİ taşır ve
+   yanında olgunun SÖZCÜĞÜ yazar — renk tek başına anlatmaz. */
 .ab-tablo { width: 100%; display: grid; }
 .ab-tablo .bas, .ab-tablo .satir {
-  display: grid; grid-template-columns: var(--kolonlar); gap: 16px; align-items: center;
+  display: grid; grid-template-columns: var(--kolon, var(--kolonlar));
+  gap: 16px; align-items: center;
 }
-.ab-tablo .bas { padding: 10px 0; border-bottom: 1px solid var(--hr2); }
+.ab-tablo .bas { padding: 10px 0; border-bottom: 1px solid var(--murekkep); }
 .ab-tablo .satir {
   width: 100%; text-align: left; background: none; border: 0; font: inherit; color: inherit;
-  padding: var(--satir-y, 12px) 0; border-bottom: 1px solid var(--hr);
+  padding: var(--satir-y, 10px) 0; border-bottom: 1px solid var(--hr);
   border-left: 2px solid transparent; cursor: pointer;
 }
 .ab-tablo .satir:hover { background: var(--panel2); }
-.ab-tablo .satir[aria-selected='true'] { background: var(--panel2); border-left-color: var(--aksan); }
-.ab-tablo .konu { font-size: 14px; color: var(--murekkep); overflow: hidden; text-overflow: ellipsis; }
+.ab-tablo .satir[aria-pressed='true'] { background: var(--panel2); border-left-color: var(--aksan); }
+.ab-tablo .satir.d-bd { border-left-color: var(--bd); }
+.ab-tablo .satir.d-md { border-left-color: var(--md); }
+.ab-tablo .satir.d-unk { border-left-color: var(--unk); }
+.ab-tablo .kod { font-size: 11px; color: var(--i2); }
+.ab-tablo .konu { font-size: 13.5px; color: var(--murekkep); min-width: 0; overflow-wrap: anywhere; }
+.ab-tablo .ikincil { font-size: 12px; color: var(--i3); min-width: 0; overflow-wrap: anywhere; }
 .ab-tablo .alt { display: block; margin-top: 3px; font-family: var(--veri); font-size: 10px; color: var(--i3); }
 .ab-tablo .sag { text-align: right; font-variant-numeric: tabular-nums; }
+.ab-tablo .vurgu { color: var(--bd); }
+.ab-tablo .uyari { color: var(--md); }
 
 /* ═══ Ortak gramer — durum glifleri ═══════════════════════════════════
    DURUM YALNIZ RENKLE ANLATILMAZ. A kare ailesini, C daire ailesini

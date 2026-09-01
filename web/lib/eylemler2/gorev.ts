@@ -11,6 +11,8 @@ import { z } from 'zod';
 import { db } from '../db';
 import { yetkiZorunlu, izinVar, type Modul } from '../erisim';
 import { GOREV_TIP_ETIKET } from '../sabitler';
+import { parcala } from '../sorguParcala';
+import type { Prisma } from '../prisma-client/client';
 import type { AktifKullanici } from '../auth';
 import { tamam, hata, iz, bosluksuz, tarihAlani, type Sonuc } from './ortak';
 
@@ -149,20 +151,39 @@ export async function onayKarar(girdi: {
        Bugün SQLite tek yazıcı olduğu için bu yarış dar bir pencerededir;
        PostgreSQL'de (READ COMMITTED) pencere gerçek genişliğine kavuşur.
        Düzeltmenin göçten ÖNCE yapılması gerekir: sonrasında iki kez
-       uygulanmış bir yan etkiyi geriye dönük ayırt etmek mümkün değildir. */
-    const sahiplenme = await db.onayTalebi.updateMany({
-      where: { id: v.id, durum: 'bekliyor' },
-      data: {
-        durum: v.karar, gerekce: v.gerekce?.trim() || null,
-        onaylayanId: k.id, kapanis: new Date(),
-      },
-    });
-    if (sahiplenme.count === 0) throw new Error('Bu talep zaten karara bağlanmış');
-    await iz({ aktorId: k.id, varlikTipi: 'OnayTalebi', varlikId: v.id,
-      eylem: v.karar === 'onaylandi' ? 'onay' : 'red',
-      alan: 'durum', once: 'bekliyor', sonra: v.karar,
-      gerekce: v.gerekce?.trim() || null });
-    await onayYanEtkisi(talep, v.karar, k.id);
+       uygulanmış bir yan etkiyi geriye dönük ayırt etmek mümkün değildir.
+
+       SAHİPLENME + YAN ETKİ + İZ TEK TRANSACTION (denetim bulgusu #16).
+       Sahiplenme atomikti ama yan etki transaction DIŞINDAYDI: istisna
+       `aktif` yazıldıktan sonra madde durumları tek tek `kapsamdisi`'ye
+       çekiliyordu ve ortada patlarsa istisna AKTİF görünürken maddelerin
+       bir kısmı kapsam İÇİNDE kalıyordu — uyum yüzdesi (lib/sabitler.ts
+       `uyumOzeti`) o maddeleri paydada saymaya devam ediyor, ekranda
+       "onaylanmış istisna" ile "hâlâ uyumsuz madde" yan yana duruyordu.
+       Geriye dönük ayırt edilemez, çünkü yarım kalmışlık hiçbir yerde
+       yazmıyordu.
+
+       İz de içeride: tek SQLite bağlantısında transaction DIŞINDA yazılan
+       iz, eşzamanlı başarısız bir çağrının geri alınmasıyla SESSİZCE
+       yutulur (bkz. eylemler2/ortak.ts `iz` yorumu).
+
+       Sahiplenme transaction'ın İLK işlemidir: kaybeden `count === 0`
+       görüp fırlatır ve yan etki HİÇ çalışmaz (bugünkü davranış). */
+    await db.$transaction(async (tx) => {
+      const sahiplenme = await tx.onayTalebi.updateMany({
+        where: { id: v.id, durum: 'bekliyor' },
+        data: {
+          durum: v.karar, gerekce: v.gerekce?.trim() || null,
+          onaylayanId: k.id, kapanis: new Date(),
+        },
+      });
+      if (sahiplenme.count === 0) throw new Error('Bu talep zaten karara bağlanmış');
+      await iz({ aktorId: k.id, varlikTipi: 'OnayTalebi', varlikId: v.id,
+        eylem: v.karar === 'onaylandi' ? 'onay' : 'red',
+        alan: 'durum', once: 'bekliyor', sonra: v.karar,
+        gerekce: v.gerekce?.trim() || null }, tx);
+      await onayYanEtkisi(tx, talep, v.karar, k.id);
+    }, { timeout: 120_000, maxWait: 15_000 });
     tazele();
     return tamam();
   } catch (e) { return hata(e); }
@@ -171,33 +192,59 @@ export async function onayKarar(girdi: {
 
 /* Onay kararlarının tip bazlı yan etkileri. Şimdilik: istisna (§50) —
    onaylanınca istisna aktifleşir ve ilgili madde durumu 'kapsamdisi' olur;
-   süre bitiminde deadline motoru yeniden değerlendirme açar. */
+   süre bitiminde deadline motoru yeniden değerlendirme açar.
+
+   ÇAĞIRANIN transaction istemcisini alır ve YALNIZ onu kullanır: `db`
+   üzerinden yazılan tek bir satır bile (tek SQLite bağlantısında) bu
+   transaction geri alındığında sessizce yutulur ya da tersine, geri
+   alınmayan bir yan etki bırakır. Bu yüzden imza `tx` zorunlu. */
 async function onayYanEtkisi(
+  tx: Prisma.TransactionClient,
   talep: { tip: string; kaynakTipi: string; kaynakId: string },
   karar: string, aktorId: string,
 ): Promise<void> {
   if (talep.tip !== 'istisna' || talep.kaynakTipi !== 'Istisna') return;
-  const istisna = await db.istisna.findUnique({ where: { id: talep.kaynakId } });
+  const istisna = await tx.istisna.findUnique({ where: { id: talep.kaynakId } });
   if (!istisna || istisna.durum !== 'onay_bekliyor') return;
 
   if (karar !== 'onaylandi') {
-    await db.istisna.update({ where: { id: istisna.id },
+    await tx.istisna.update({ where: { id: istisna.id },
       data: { durum: 'reddedildi' } });
     return;
   }
-  await db.istisna.update({ where: { id: istisna.id },
+  await tx.istisna.update({ where: { id: istisna.id },
     data: { durum: 'aktif', onaylayanId: aktorId } });
-  const durumlar = await db.maddeDurumu.findMany({ where: {
+  const durumlar = await tx.maddeDurumu.findMany({ where: {
     maddeId: istisna.maddeId, tesisId: istisna.tesisId } });
-  for (const d of durumlar) {
-    if (d.durum === 'kapsamdisi') continue;
-    await db.degerlendirmeTarihcesi.create({ data: {
-      maddeDurumuId: d.id, eskiDurum: d.durum, yeniDurum: 'kapsamdisi',
-      gerekce: `İstisna onayı: ${istisna.gerekce}`, aktorId } });
-    await db.maddeDurumu.update({ where: { id: d.id },
-      data: { durum: 'kapsamdisi' } });
-    await iz({ aktorId, varlikTipi: 'MaddeDurumu', varlikId: d.id,
-      eylem: 'durum_degisimi', alan: 'durum', once: d.durum, sonra: 'kapsamdisi',
-      gerekce: `İstisna ${istisna.id} onaylandı (bitiş: ${istisna.bitis.toISOString().slice(0, 10)})` });
+  const etkilenen = durumlar.filter((d) => d.durum !== 'kapsamdisi');
+  if (etkilenen.length === 0) return;
+
+  /* Satır başına üç gidiş-dönüş (tarihçe + durum + iz) yerine üç TOPLU
+     yazma. Bugün `etkilenen` bir avuçtur (madde+tesis çifti başına aktif
+     süreç sayısı kadar), yani kazanç ÖLÇÜLEBİLİR DEĞİL; değişikliğin
+     gerekçesi transaction'ı kısa tutmaktır — SQLite tek yazıcıdır ve bu
+     transaction açıkken başka hiçbir yazma ilerleyemez. */
+  const bitisMetni = istisna.bitis.toISOString().slice(0, 10);
+  const tarihceler: Prisma.DegerlendirmeTarihcesiCreateManyInput[] = etkilenen.map((d) => ({
+    maddeDurumuId: d.id, eskiDurum: d.durum, yeniDurum: 'kapsamdisi',
+    gerekce: `İstisna onayı: ${istisna.gerekce}`, aktorId }));
+  // createMany satır başına 8 parametre bağlar: id, maddeDurumuId, eskiDurum,
+  // yeniDurum, eskiGuven, yeniGuven, gerekce, aktorId.
+  for (const p of parcala(tarihceler, 8)) await tx.degerlendirmeTarihcesi.createMany({ data: p });
+
+  for (const p of parcala(etkilenen.map((d) => d.id), 1)) {
+    await tx.maddeDurumu.updateMany({ where: { id: { in: p } }, data: { durum: 'kapsamdisi' } });
   }
+
+  /* İz satırları `iz()` yerine doğrudan toplu yazılır: yardımcı tek satır
+     yazar ve burada N satır var. Alan kümesi `ortak.ts` `iz` ile birebir
+     aynıdır — `kaynak` şema varsayılanı ('ui') olarak bırakılır, tıpkı
+     `iz`in bıraktığı gibi. */
+  const izler: Prisma.AktiviteKaydiCreateManyInput[] = etkilenen.map((d) => ({
+    aktorId, varlikTipi: 'MaddeDurumu', varlikId: d.id,
+    eylem: 'durum_degisimi', alan: 'durum', oncekiDeger: d.durum, yeniDeger: 'kapsamdisi',
+    gerekce: `İstisna ${istisna.id} onaylandı (bitiş: ${bitisMetni})` }));
+  // createMany satır başına 9 parametre bağlar: id, aktorId, varlikTipi,
+  // varlikId, eylem, alan, oncekiDeger, yeniDeger, gerekce.
+  for (const p of parcala(izler, 9)) await tx.aktiviteKaydi.createMany({ data: p });
 }

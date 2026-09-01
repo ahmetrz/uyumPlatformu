@@ -71,10 +71,15 @@ const ONEM_SINIF: Record<string, string> = {
 };
 
 export default function Genel({
-  ozet, odak, kuyruk, toplamKayit, kapsamli = false,
+  bugun, ozet, odak, kuyruk, toplamKayit, kapsamli = false,
   santraller, tipler, risk, takvim, akis, egilim,
 }: {
   kullanici: string;
+  /* Sunucuda biçimlendirilmiş tarih. Burada `new Date()` ÇAĞIRMA: bu
+     bileşen istemcide de çalışır, statik dışa aktarımda HTML derleme
+     gününü taşır ve tarayıcı ziyaret gününü yazarsa React hidrasyonu
+     kırılır (#418). Kusur geliştirme kipinde görünmez. */
+  bugun: string;
   ozet: Ozet;
   odak: Kayit | null;
   kuyruk: Kayit[];
@@ -88,8 +93,6 @@ export default function Genel({
   egilim: { etiket: string; yuzde: number }[] | null;
 }) {
   const dikkat = odak ? [odak, ...kuyruk] : kuyruk;
-  const bugun = new Date().toLocaleDateString('tr-TR',
-    { day: 'numeric', month: 'long', year: 'numeric' });
 
   return (
     <main className="ab-b-saha">

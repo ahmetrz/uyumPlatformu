@@ -49,14 +49,22 @@ jobs:
           npx eslint app lib components --max-warnings=0
           npm run test
 
+      - name: Tarayıcı kur (yayın kapıları için)
+        # `arac/statik-kontrol.mjs` yayını gerçek tarayıcıda açar; depo
+        # `playwright-core` kullandığı için tarayıcı ayrı kurulur.
+        run: npx --yes playwright@1.62.1 install --with-deps chromium
+
       - name: Statik demo derle
         working-directory: web
         env:
           NEXT_PUBLIC_DEMO: '1'
-        # `demo:build` üç adımdır: derle → CSS varlık yollarını yayın
-        # köküyle öne ekle (`arac/demo-yol.mjs`) → her başvuruyu diskte
-        # ara (`arac/yayin-kontrol.mjs`). Sonuncusu kırık bir varlık
-        # bulursa iş burada durur; kırık yayın gh-pages'e çıkamaz.
+        # `demo:build` dört adımdır:
+        #   1. derle
+        #   2. CSS varlık yollarını yayın köküyle öne ekle (demo-yol.mjs)
+        #   3. her varlık başvurusunu diskte ara (yayin-kontrol.mjs)
+        #   4. yayını gerçek tarayıcıda, ziyaretçi saati +90 gün iken aç
+        #      ve konsola düşen her hatayı kusur say (statik-kontrol.mjs)
+        # Herhangi biri kırılırsa iş durur; kusurlu yayın gh-pages'e çıkamaz.
         run: npm run demo:build
 
       - name: Çıktıyı gh-pages dalına yayınla

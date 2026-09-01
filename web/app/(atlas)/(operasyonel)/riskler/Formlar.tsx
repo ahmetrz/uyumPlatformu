@@ -1,4 +1,5 @@
 'use client';
+import { an } from '@/lib/an';
 import { useState } from 'react';
 import { Alan, Dugme } from '@/components/abacus/temel';
 import { useEylem } from '@/components/useEylem';
@@ -228,9 +229,10 @@ export function KararFormu({ risk, kapat }: { risk: R; kapat: () => void }) {
   const [bitis, setBitis] = useState(risk.kabulBitis?.slice(0, 10) ?? '');
   const [gerekce, setGerekce] = useState('');
   // Kabul bitişi gelecekte olmak zorunda (§13.2) — alt sınır render'a göre
-  // sabitlenir, her çizimde yeniden hesaplanmaz.
+  // sabitlenir, her çizimde yeniden hesaplanmaz. Anı `an()` verir, ham
+  // saat DEĞİL: sunucu HTML'i ile hidrasyon aynı günü yazsın (lib/an.ts).
   const [enErken] = useState(() =>
-    new Date(Date.now() + 86_400_000).toISOString().slice(0, 10));
+    new Date(an() + 86_400_000).toISOString().slice(0, 10));
   const kabul = tip === 'kabul';
   const gecerli = !!gerekce.trim() && (!kabul || !!bitis);
 

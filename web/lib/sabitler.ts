@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { an } from './an';
 
 // Sözlük değerleri: veri panelden tanımlanır (Sektor, TesisTipi, Regulasyon,
 // KapsamAlani, UyumSureci); burada yalnızca DURUM makine adları ve Türkçe
@@ -98,7 +99,7 @@ export const AKTARIM_DURUM_RENGI: Record<(typeof AKTARIM_DURUMLARI)[number], Dur
 
 // Kanıt tazeliği durum paletine bağlanır (tasarım kararı: yeni renk açılmaz)
 export function kanitTazelik(baslangic: Date): { etiket: string; durum: Durum; gun: number } {
-  const gun = Math.floor((Date.now() - baslangic.getTime()) / 86_400_000);
+  const gun = Math.floor((an() - baslangic.getTime()) / 86_400_000);
   if (gun < 90) return { etiket: 'Taze', durum: 'uyumlu', gun };
   if (gun <= 180) return { etiket: 'Yenilenmeli', durum: 'kismi', gun };
   return { etiket: 'Süresi doldu', durum: 'uyumsuz', gun };
@@ -148,13 +149,13 @@ export function zamanTR(d: Date | string | null | undefined): string {
 export function gecikmisMi(hedef: string | Date | null | undefined, durum?: string): boolean {
   if (!hedef || durum === 'kapali' || durum === 'kabul_edildi') return false;
   const t = typeof hedef === 'string' ? new Date(hedef) : hedef;
-  return t.getTime() < Date.now();
+  return t.getTime() < an();
 }
 
 /** Verilen tarihten bugüne geçen gün sayısı. */
 export function gecenGun(t: Date | string): number {
   const d = typeof t === 'string' ? new Date(t) : t;
-  return Math.floor((Date.now() - d.getTime()) / 86_400_000);
+  return Math.floor((an() - d.getTime()) / 86_400_000);
 }
 
 // ---- hedef mimari sözlükleri ----
@@ -205,7 +206,7 @@ export const VARLIK_SINIF_ETIKET: Record<string, string> = {
 export function eolDurumu(eos: Date | string | null | undefined): { etiket: string; durum: Durum } {
   if (!eos) return { etiket: 'Bilinmiyor', durum: 'degerlendirilmedi' };
   const t = typeof eos === 'string' ? new Date(eos) : eos;
-  const gunKaldi = Math.ceil((t.getTime() - Date.now()) / 86_400_000);
+  const gunKaldi = Math.ceil((t.getTime() - an()) / 86_400_000);
   if (gunKaldi < 0) return { etiket: 'Destek bitti', durum: 'uyumsuz' };
   if (gunKaldi < 365) return { etiket: `${gunKaldi} gün kaldı`, durum: 'kismi' };
   return { etiket: 'Destekte', durum: 'uyumlu' };

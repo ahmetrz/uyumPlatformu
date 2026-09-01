@@ -26,6 +26,7 @@ export default async function Sayfa() {
   return (
     <Genel
       kullanici={veri.kullanici}
+      bugun={veri.bugun}
       ozet={veri.ozet}
       odak={veri.odak}
       kuyruk={veri.kuyruk}

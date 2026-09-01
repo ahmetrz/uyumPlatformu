@@ -1,4 +1,5 @@
 'use client';
+import { an } from '@/lib/an';
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
@@ -95,7 +96,7 @@ export default function CerceveIstemci({
 
         <div style={{ padding: 'var(--s36) var(--gutter-op) var(--sec-pad-bot)' }}>
           <p className="etiket" style={{ margin: 0, color: 'var(--aksan)' }}>
-            {veri.yururluk && new Date(veri.yururluk) <= new Date() ? 'Yürürlükte' : 'Yayımlandı'}
+            {veri.yururluk && new Date(veri.yururluk).getTime() <= an() ? 'Yürürlükte' : 'Yayımlandı'}
             {' · '}
             {veri.surumEtiketi ?? veri.surum ?? 'sürümsüz'}
             {veri.surec?.bitis && ` · ${veri.surec.kod} bitiş ${kisaTarih(veri.surec.bitis)}`}

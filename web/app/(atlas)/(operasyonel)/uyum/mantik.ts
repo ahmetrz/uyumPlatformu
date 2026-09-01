@@ -1,4 +1,5 @@
 import type { Durum } from '@/components/abacus/temel';
+import { an } from '@/lib/an';
 
 /* O1 · O2 ortak türetmeleri.
    Matristeki hücre işaretçisi (O1) ile çerçeve detayındaki aile işaretçisi (O2)
@@ -99,7 +100,8 @@ export function kisaTarih(iso: string | Date | null | undefined): string {
   if (!iso) return '—';
   const d = typeof iso === 'string' ? new Date(iso) : iso;
   if (Number.isNaN(d.getTime())) return '—';
-  return d.getFullYear() === new Date().getFullYear() ? AY_GUN.format(d) : AY_GUN_YIL.format(d);
+  return d.getFullYear() === new Date(an()).getFullYear()
+    ? AY_GUN.format(d) : AY_GUN_YIL.format(d);
 }
 
 /** Ondalık ayracı virgül — 150.6 → "150,6". */

@@ -78,6 +78,13 @@ export type AkisHaftasi = { etiket: string; acilan: number; kapanan: number };
 
 export type EkranVerisi = {
   kullanici: string;
+  /* Ekranın "bugün"ü. SUNUCUDA hesaplanır ve prop olarak iner; istemci
+     bileşeni `new Date()` çağırmaz. Statik dışa aktarımda HTML derleme
+     anında üretilir, tarayıcı ise ziyaret gününü yazardı — React bunu
+     hidrasyon uyuşmazlığı sayıp (#418) o alt ağacı atardı. Geliştirme
+     kipinde HTML her istekte üretildiği için kusur GÖRÜNMEZ; yalnız
+     yayınlanan demoda ortaya çıkar. */
+  bugun: string;
   ozet: {
     uyumYuzde: number | null; bilinmeyenOran: number | null;
     kritikRisk: number; gecikmisAksiyon: number;
@@ -109,6 +116,8 @@ const HAFTA_MS = 7 * 86_400_000;
 export async function genelEkranVerisi(k: AktifKullanici): Promise<EkranVerisi> {
   modulKapisi(k, 'uyum');
   const simdi = new Date();
+  const bugun = simdi.toLocaleDateString('tr-TR',
+    { day: 'numeric', month: 'long', year: 'numeric' });
   const uyumKapsami = izinliTesisIdleri(k, 'uyum');
   const tesisKosulu = uyumKapsami === null ? {} : { id: { in: uyumKapsami } };
 
@@ -399,6 +408,7 @@ export async function genelEkranVerisi(k: AktifKullanici): Promise<EkranVerisi> 
 
   return {
     kullanici: k.adSoyad,
+    bugun,
     ozet: {
       uyumYuzde: ozet.yuzde,
       bilinmeyenOran: ozet.bilinmeyenOran,

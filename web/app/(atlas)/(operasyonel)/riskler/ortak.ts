@@ -1,5 +1,6 @@
 import type { Durum } from '@/components/abacus/temel';
 import { ETKI_BOYUTLARI } from '@/lib/sabitler';
+import { an } from '@/lib/an';
 
 /* O3/O4 · Risk kütüğü — sunucu ve istemcinin PAYLAŞTIĞI tipler ve saf
    hesaplar. Skor kuralı lib/eylemler2/risk.ts ile birebir aynıdır:
@@ -100,13 +101,13 @@ export function skorAgirligi(skor: number | null | undefined): number | null {
 export function gunFarki(t: string | null | undefined): number | null {
   if (!t) return null;
   const z = new Date(t).getTime();
-  return Number.isNaN(z) ? null : Math.floor((Date.now() - z) / 86_400_000);
+  return Number.isNaN(z) ? null : Math.floor((an() - z) / 86_400_000);
 }
 
 /** Süreli kabulün süresi doldu mu (§13.2). */
 export function kabulDoldu(r: Pick<R, 'durum' | 'kabulBitis'>): boolean {
   return r.durum === 'kabul_edildi' && !!r.kabulBitis
-    && new Date(r.kabulBitis).getTime() < Date.now();
+    && new Date(r.kabulBitis).getTime() < an();
 }
 
 /** Taahhüdü aşan risk: süresi dolan kabul VEYA hedefi geçmiş açık bulgu.
@@ -117,7 +118,7 @@ export function gecikmis(r: Pick<R, 'durum' | 'kabulBitis' | 'bulgu'>): boolean 
   const b = r.bulgu;
   if (!b || !b.hedef) return false;
   if (b.durum === 'kapali' || b.durum === 'kabul_edildi') return false;
-  return new Date(b.hedef).getTime() < Date.now();
+  return new Date(b.hedef).getTime() < an();
 }
 
 export function aktifMi(r: Pick<R, 'durum'>): boolean {

@@ -1,5 +1,6 @@
 import type { Durum } from '@/components/abacus/temel';
 import { etiketle, zamanTR } from '@/lib/sabitler';
+import { an } from '@/lib/an';
 
 /* O7 · bulgu → aksiyon → doğrulama ilerlemesinin tek türetme yeri.
    Liste ekranı ve kayıt ekranı aynı kuralları kullanır, böylece bir satırın
@@ -31,12 +32,13 @@ export function acikMi(durum: string): boolean {
 const GUN = 86_400_000;
 
 /* Termin matematiği GÜN çözünürlüğündedir ve sunucu ile istemcide AYNI
-   sonucu vermek zorundadır: ham Date.now() sunucu render'ı ile hidrasyon
-   arasında oynadığı için yüzde/gün değerleri uyuşmazlığa düşüyordu.
-   Günün başlangıcına yuvarlamak hem hidrasyonu hem semantiği düzeltir —
-   "bugün teslim" bir kayıt gün bitmeden gecikmiş sayılmaz. */
+   sonucu vermek zorundadır. İki ayrı önlem var, ikisi de gerekli:
+     · Anı `lib/an.ts` verir — sunucunun belirlediği tek an, tarayıcı
+       kendi saatine bakmaz. Statik yayında HTML ile DOM ayrışmasın diye.
+     · Gün başına yuvarlarız — "bugün teslim" bir kayıt gün bitmeden
+       gecikmiş sayılmasın diye; bu semantik bir karardır. */
 export function bugunAn(): number {
-  return Math.floor(Date.now() / GUN) * GUN;
+  return Math.floor(an() / GUN) * GUN;
 }
 
 /** Gecikmiş = hedefTarih < bugün ve durum kapalı değil. Değilse null. */
@@ -116,7 +118,7 @@ export function dogrulamaHucresi(b: BulguOzeti): DogrulamaHucresi {
 
   if (b.durum === 'kapali') {
     const onaylı = b.aksiyonlar.find((a) => a.dogrulama === 'dogrulandi');
-    const an = b.kapanisDogrulama ?? onaylı?.dogrulamaTarihi ?? null;
+    const dogrulamaAni = b.kapanisDogrulama ?? onaylı?.dogrulamaTarihi ?? null;
     const kanit = [
       b.kapanisDogrulayan && `Doğrulayan ${b.kapanisDogrulayan}`,
       b.kapanisDogrulama && zamanTR(b.kapanisDogrulama),
@@ -125,7 +127,7 @@ export function dogrulamaHucresi(b: BulguOzeti): DogrulamaHucresi {
     ].filter(Boolean).join(' · ');
     return {
       im: 'ok', ad: 'Doğrulama · kapanış doğrulandı', soz: 'Doğrulandı',
-      olgu: an ? `retest ${kisaTarih(an)}` : (b.kapanisDogrulayan ?? ''),
+      olgu: dogrulamaAni ? `retest ${kisaTarih(dogrulamaAni)}` : (b.kapanisDogrulayan ?? ''),
       kanit: kanit || 'Kapanış doğrulaması kaydı yok.',
     };
   }
@@ -219,5 +221,6 @@ const AY_GUN_YIL = new Intl.DateTimeFormat('tr-TR', { day: 'numeric', month: 'sh
 export function kisaTarih(iso: string | null | undefined): string {
   if (!iso) return '—';
   const d = new Date(iso);
-  return d.getFullYear() === new Date().getFullYear() ? AY_GUN.format(d) : AY_GUN_YIL.format(d);
+  return d.getFullYear() === new Date(an()).getFullYear()
+    ? AY_GUN.format(d) : AY_GUN_YIL.format(d);
 }

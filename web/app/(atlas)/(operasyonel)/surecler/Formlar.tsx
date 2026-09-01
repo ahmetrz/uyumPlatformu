@@ -1,4 +1,5 @@
 'use client';
+import { an } from '@/lib/an';
 import { useState } from 'react';
 import { Alan, Dugme } from '@/components/abacus/temel';
 import { useEylem } from '@/components/useEylem';
@@ -377,8 +378,9 @@ export function IstisnaFormu({ kayit, kapat }: { kayit: Degerlendirme; kapat: ()
   const { bekliyor, hata, calistir } = useEylem();
   const [f, setF] = useState({ bitis: '', gerekce: '' });
   // Bitiş gelecekte olmak zorunda; alt sınır ilk çizimde sabitlenir.
+  // Anı `an()` verir, ham saat DEĞİL — sunucu ile istemci ayrışmasın.
   const [enErken] = useState(() =>
-    new Date(Date.now() + 86_400_000).toISOString().slice(0, 10));
+    new Date(an() + 86_400_000).toISOString().slice(0, 10));
   const gecerli = !!f.bitis && f.bitis >= enErken && f.gerekce.trim().length >= 10;
 
   return (

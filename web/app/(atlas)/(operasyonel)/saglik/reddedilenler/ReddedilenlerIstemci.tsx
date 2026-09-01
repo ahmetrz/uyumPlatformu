@@ -116,7 +116,7 @@ export default function ReddedilenlerIstemci({
 
   return (
     <>
-      <main style={{ minWidth: 0 }}>
+      <main data-yuzey="tezgah" style={{ minWidth: 0 }}>
         <EkranBasligi
           eyebrow="Platform sağlığı · reddedilen kayıtlar"
           vurgu={m.acik > 0 ? `${m.acik} kayıt` : undefined}

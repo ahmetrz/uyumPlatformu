@@ -82,7 +82,7 @@ export default function AktiviteIstemci({
 
   return (
     <>
-      <main style={{ minWidth: 0 }}>
+      <main data-yuzey="defter" style={{ minWidth: 0 }}>
         <EkranBasligi
           /* Kesme SESSİZ OLMAZ: pencere tabloyu kırpıyorsa cümle bunu
              söyler. Sessizce kırpılmış bir liste "hepsi bu" der ve bu,

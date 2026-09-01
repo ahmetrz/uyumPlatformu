@@ -55,7 +55,7 @@ export default async function Giris() {
         </div>
       </section>
 
-      <main style={{ background: 'var(--sunken)',
+      <main data-yuzey="saha" style={{ background: 'var(--sunken)',
         borderLeft: 'var(--bw-strong) solid var(--hr2)',
         display: 'flex', flexDirection: 'column', justifyContent: 'center',
         padding: 'var(--s40) var(--s34)' }}>

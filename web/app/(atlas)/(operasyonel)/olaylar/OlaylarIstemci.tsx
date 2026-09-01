@@ -92,7 +92,7 @@ export default function OlaylarIstemci({
   if (olaylar.length === 0) {
     return (
       <>
-        <main style={{ minWidth: 0 }}>
+        <main data-yuzey="tezgah" style={{ minWidth: 0 }}>
           <EkranBasligi eyebrow="Operasyonel güvenlik" baslik="Olaylar" />
           <section className="ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
             <BosIlk
@@ -152,7 +152,7 @@ export default function OlaylarIstemci({
 
   return (
     <>
-      <main style={{ minWidth: 0 }}>
+      <main data-yuzey="tezgah" style={{ minWidth: 0 }}>
         <EkranBasligi
           eyebrow={`Olaylar · ${sayim.toplam} kayıt`}
           vurgu={baslik.vurgu}

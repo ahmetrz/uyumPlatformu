@@ -84,7 +84,7 @@ export default function RaporlarIstemci({
 
   return (
     <>
-      <main style={{ minWidth: 0 }}>
+      <main data-yuzey="defter" style={{ minWidth: 0 }}>
         <EkranBasligi
           eyebrow={`Portföy raporu · ${raporZamani} · ${santraller.length} santral × ${surecler.length} süreç`}
           vurgu={baslik.vurgu}

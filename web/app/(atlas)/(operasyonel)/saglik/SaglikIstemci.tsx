@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
-import { BosIlk, Im, Yetkisiz } from '@/components/atlas/temel';
+import { BosIlk, Im, TikSeridi, Yetkisiz } from '@/components/atlas/temel';
 import { Tablo, type Kolon, type Satir } from '@/components/atlas/tablo';
 import { EkranBasligi, KipDegistir } from '@/components/atlas/ekran';
 import { Cekmece } from '@/components/atlas/cekmece';
@@ -19,6 +19,7 @@ import {
   kaliteSirala, kaliteToplanabilir, kaynakImi, kaynakToplanabilir, kokenImi,
   kokenSirala, kokensizVar, kokensizYazisi, metrikleriHesapla, motorImi,
   motorToplanabilir, motorlariSirala, ortalamaGuvenYazisi, ortamRengi, ortamYazisi,
+  kosuGecmisi, kosuGecmisiEtiketi,
   saglayiciImi, saglayiciNotu, sonKosu, sureFmt,
   tazelikDurumu, tazelikYazisi,
   type KaliteBulgusu, type Kip, type KokenOzeti, type KokenSayimSatiri,
@@ -37,6 +38,9 @@ import {
    açılır (06 §B4) — Ozalit sürümündeki iki <dialog> kalktı. */
 
 const MOTOR_KOLONLARI: Kolon[] = [
+  /* Geçmiş şeridi SON KOŞUDAN ÖNCE gelir: okuyucu önce eğilimi ("beş
+     koşudur patlıyor"), sonra son olayın zamanını görür. */
+  { baslik: 'Son 5 koşu', genislik: '52px' },
   { baslik: 'Son koşu', genislik: '146px' },
   { baslik: 'İşlenen → üretilen', genislik: '134px', sag: true },
   { baslik: 'Süre', genislik: '78px', sag: true, ikincil: true },
@@ -138,7 +142,7 @@ export default function SaglikIstemci({
 
   return (
     <>
-      <main style={{ minWidth: 0 }}>
+      <main data-yuzey="tezgah" style={{ minWidth: 0 }}>
         <EkranBasligi
           eyebrow={`Platform sağlığı · ${m.motorToplam} motor · ${m.connectorToplam} bağlantı`}
           vurgu={bas.vurgu}
@@ -254,6 +258,11 @@ function MotorTablosu({ bolum, secili, sec, kuyrugaAc, olculmedi }: {
       konu: mo.etiket,
       alt: `${mo.ad}${mo.elleCalisir ? '' : ' · zincirden koşar'}`,
       hucreler: [
+        /* Koşu geçmişi şeridi: satır artık "son koşu ne oldu" değil "son
+           beş koşu ne oldu" diyor. "Bir kez patladı" ile "beş koşudur
+           patlıyor" aynı satırdı ve fark ancak çekmece açılınca
+           görülüyordu — ikisi çok farklı kararlar gerektirir. */
+        <TikSeridi key="g" tikler={kosuGecmisi(mo)} etiket={kosuGecmisiEtiketi(mo)} />,
         s ? zamanTR(s.baslangic) : <span key="k" style={{ color: 'var(--i3)' }}>koşu kaydı yok</span>,
         s ? `${s.islenen} → ${s.uretilen}` : <Bos key="i" />,
         s ? sureFmt(s.sureMs) : <Bos key="s" />,
@@ -267,7 +276,7 @@ function MotorTablosu({ bolum, secili, sec, kuyrugaAc, olculmedi }: {
 
   const parcalar = [`${bolum.gorunur.length} motor görünüyor`];
   if (olculmedi > 0) parcalar.push(`${olculmedi} kaynak hiç ölçülmedi — sıfır değil, bilinmeyen`);
-  parcalar.push('koşu geçmişi kaydın çekmecesinde');
+  parcalar.push('şerit son 5 koşu · ayrıntı kaydın çekmecesinde');
 
   return (
     <Tablo

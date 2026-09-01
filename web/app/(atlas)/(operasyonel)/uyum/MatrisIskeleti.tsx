@@ -14,7 +14,7 @@ export default function MatrisIskeleti({
 }) {
   const stil = { '--kolon-sayisi': Math.max(kolonlar.length, 1) } as CSSProperties;
   return (
-    <main style={{ minWidth: 0 }} aria-busy>
+    <main data-yuzey="defter" style={{ minWidth: 0 }} aria-busy>
       <header className="ekran-bas">
         <div className="sol">
           <p className="t-eyebrow" style={{ margin: '0 0 var(--s10)' }}>{eyebrow}</p>

@@ -94,7 +94,7 @@ function Bolum({ no, baslik, cocuklar }: { no: string; baslik: string; cocuklar:
 
 export default function TasarimSistemi() {
   return (
-    <main style={{ minHeight: '100dvh' }}>
+    <main data-yuzey="tezgah" style={{ minHeight: '100dvh' }}>
       <header style={{ padding: 'var(--s38) var(--gutter-op) var(--s26)',
         borderBottom: '1px solid var(--hr2)' }}>
         <p className="t-eyebrow" style={{ margin: '0 0 var(--s10)' }}>

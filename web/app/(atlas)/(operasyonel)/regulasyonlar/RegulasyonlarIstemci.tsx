@@ -61,7 +61,7 @@ export default function RegulasyonlarIstemci({
 
   if (!reg) {
     return (
-      <main style={{ minWidth: 0 }}>
+      <main data-yuzey="defter" style={{ minWidth: 0 }}>
         <EkranBasligi eyebrow="Regülasyon kütüphanesi" baslik="Çerçeve tanımlı değil" />
         <section className="ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
           <BosIlk
@@ -105,7 +105,7 @@ export default function RegulasyonlarIstemci({
 
   return (
     <>
-      <main style={{ minWidth: 0 }}>
+      <main data-yuzey="defter" style={{ minWidth: 0 }}>
         <EkranBasligi
           eyebrow={`${reg.kod} · ${regulasyonlar.length} çerçeve kütüphanede`}
           vurgu={baslik.vurgu}

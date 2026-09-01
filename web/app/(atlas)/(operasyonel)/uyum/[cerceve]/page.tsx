@@ -43,7 +43,7 @@ export default async function Sayfa({ params }: { params: Promise<{ cerceve: str
 
 function Yukleniyor({ ad }: { ad: string }) {
   return (
-    <main style={{ minWidth: 0 }} aria-busy>
+    <main data-yuzey="defter" style={{ minWidth: 0 }} aria-busy>
       <div className="baglam">
         <nav className="baglam-yol" aria-label="Konum"><span className="son">{ad}</span></nav>
       </div>

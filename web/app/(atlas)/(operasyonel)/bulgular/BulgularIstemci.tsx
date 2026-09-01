@@ -208,7 +208,7 @@ export default function BulgularIstemci({
 
   return (
     <>
-      <main style={{ minWidth: 0 }}>
+      <main data-yuzey="defter" style={{ minWidth: 0 }}>
         <EkranBasligi
           /* Kesme SESSİZ OLMAZ: tavana çarpıldıysa cümle kaç satırın elde
              olduğunu ve kütüğün gerçek büyüklüğünü birlikte söyler. */

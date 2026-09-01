@@ -120,7 +120,7 @@ export default function KimlikIstemci({ hesaplar, tesisler, kaynaklar, kapsamli 
 
   return (
     <>
-      <main style={{ minWidth: 0 }}>
+      <main data-yuzey="tezgah" style={{ minWidth: 0 }}>
         {/* EkranBasligi vurguya renk vermiyor; O15 sözleşmesi başlığın da
             state/critical taşımasını istiyor — aynı sınıflarla elde kuruldu. */}
         <header className="ekran-bas">

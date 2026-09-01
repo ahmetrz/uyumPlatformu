@@ -87,7 +87,7 @@ export default function BildirimlerIstemci({
   /* ── kutu hiç dolmadıysa: boş DEĞİL, "size yazılmadı" ─────────────── */
   if (satirlar.length === 0) {
     return (
-      <main style={{ minWidth: 0 }}>
+      <main data-yuzey="tezgah" style={{ minWidth: 0 }}>
         <EkranBasligi eyebrow="Bildirim kutusu · kişisel"
           baslik="Size hiç bildirim yazılmadı" />
         <section className="ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
@@ -102,7 +102,7 @@ export default function BildirimlerIstemci({
 
   return (
     <>
-      <main style={{ minWidth: 0 }}>
+      <main data-yuzey="tezgah" style={{ minWidth: 0 }}>
         <EkranBasligi
           eyebrow={`Bildirim kutusu · kişisel · ${satirlar.length} kayıt`}
           vurgu={hal.vurgu}

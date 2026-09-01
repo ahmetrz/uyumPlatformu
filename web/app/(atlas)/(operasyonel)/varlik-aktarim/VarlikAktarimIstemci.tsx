@@ -142,7 +142,7 @@ export default function VarlikAktarimIstemci({
 
   return (
     <>
-      <main style={{ minWidth: 0 }}>
+      <main data-yuzey="tezgah" style={{ minWidth: 0 }}>
         <EkranBasligi
           eyebrow={`CMDB toplu aktarım · ${aktarimlar.length} dosya`}
           vurgu={`${bekleyenler.length} dosya`}

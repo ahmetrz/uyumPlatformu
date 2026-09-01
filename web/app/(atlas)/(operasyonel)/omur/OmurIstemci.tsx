@@ -168,7 +168,7 @@ export default function OmurIstemci({
 
   if (satirlar.length === 0) {
     return (
-      <main style={{ minWidth: 0 }}>
+      <main data-yuzey="tezgah" style={{ minWidth: 0 }}>
         <EkranBasligi
           eyebrow={`Ömür yönetimi · ${toplamVarlik} varlık`}
           baslik="Ömür kuyruğu boş"
@@ -183,7 +183,7 @@ export default function OmurIstemci({
 
   return (
     <>
-      <main style={{ minWidth: 0 }}>
+      <main data-yuzey="tezgah" style={{ minWidth: 0 }}>
         <EkranBasligi
           eyebrow={kesildi
             ? `Ömür yönetimi · ${toplamVarlik} varlık · gösterilen ${satirlar.length}`

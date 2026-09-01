@@ -71,6 +71,30 @@ export function skorDurumu(skor: number | null | undefined): Durum {
 
 export const SKOR_TAVANI = 25;
 
+/** Tik şeridindeki tik sayısı — 5×5 matrisin bir kenarı. */
+export const SKOR_TIK = 5;
+
+/**
+ * Skorun tik şeridindeki AĞIRLIĞI (0..SKOR_TIK).
+ *
+ * Neden var: kütükte şiddet bugüne kadar YALNIZ skor rakamının rengiyle
+ * taşınıyordu. "Durum yalnız renkle anlatılmaz" sözleşmesi bu satırda
+ * çiğneniyordu: renk göremeyen ya da düşük kontrastlı bir ekranda 22 ile 4
+ * aynı görünüyordu — ikisi de iki haneli olmayan bir rakam. Şerit aynı
+ * bilgiyi UZUNLUKLA da kodlar, "kritik satır bir saniyede ayrışır" hedefi
+ * renge bağlı kalmaz.
+ *
+ * Skorsuz risk `null` döner: ölçülmemiş bir risk SIFIR ağırlıklı değildir,
+ * şerit onu kesikli çizer.
+ */
+export function skorAgirligi(skor: number | null | undefined): number | null {
+  if (skor === null || skor === undefined) return null;
+  const k = Math.max(0, Math.min(SKOR_TAVANI, skor));
+  // Tavana oranla yukarı yuvarlanır: 1 puanlık bir risk bile bir tik alır,
+  // "hiç" ile "az" karışmasın.
+  return Math.max(1, Math.ceil((k / SKOR_TAVANI) * SKOR_TIK));
+}
+
 /* ── Zaman ──────────────────────────────────────────────────────────── */
 
 export function gunFarki(t: string | null | undefined): number | null {

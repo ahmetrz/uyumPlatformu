@@ -143,7 +143,7 @@ export default function YedeklemeIstemci({
 
   if (santraller.length === 0) {
     return (
-      <main style={{ minWidth: 0 }}>
+      <main data-yuzey="tezgah" style={{ minWidth: 0 }}>
         <EkranBasligi eyebrow="Yedekleme & kurtarma" baslik="Yedekleme & kurtarma" />
         <section className="ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
           <BosIlk cumle="Kapsamınızda aktif santral yok." />
@@ -154,7 +154,7 @@ export default function YedeklemeIstemci({
 
   return (
     <>
-      <main style={{ minWidth: 0 }}>
+      <main data-yuzey="tezgah" style={{ minWidth: 0 }}>
         <EkranBasligi
           eyebrow={`Yedekleme & kurtarma · ${santraller.length} santral`}
           vurgu={baslik.vurgu}

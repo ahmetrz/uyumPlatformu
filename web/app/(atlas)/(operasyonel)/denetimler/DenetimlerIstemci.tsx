@@ -187,7 +187,7 @@ export default function DenetimlerIstemci({
 
   return (
     <>
-      <main style={{ minWidth: 0 }}>
+      <main data-yuzey="defter" style={{ minWidth: 0 }}>
         <EkranBasligi
           eyebrow={`Denetim programı · ${kayitlar.length} kayıt`}
           vurgu={baslik.vurgu}

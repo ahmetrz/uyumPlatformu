@@ -58,7 +58,7 @@ export default function Plant360({ veri, santraller }: {
   ];
 
   return (
-    <main style={{ minWidth: 0 }}>
+    <main data-yuzey="saha" style={{ minWidth: 0 }}>
       {/* ── Hero 560px ─────────────────────────────────────────────── */}
       <div className={`hero360${foto ? '' : ' tipografik'}`}>
         {foto && (

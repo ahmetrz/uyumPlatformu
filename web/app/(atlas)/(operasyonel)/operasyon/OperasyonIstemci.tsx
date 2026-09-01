@@ -99,7 +99,7 @@ export default function OperasyonIstemci({
 
   return (
     <>
-      <main style={{ minWidth: 0 }}>
+      <main data-yuzey="tezgah" style={{ minWidth: 0 }}>
         <EkranBasligi
           eyebrow={`Değişiklik yönetimi · ${m.toplam} kayıt · ${m.otAcik} açık OT`}
           vurgu={bas.vurgu}

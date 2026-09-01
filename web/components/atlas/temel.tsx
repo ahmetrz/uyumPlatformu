@@ -105,6 +105,70 @@ export function Segment({
   );
 }
 
+/* ═══ Atlas 2 · TikSeridi ═══════════════════════════════════════════════
+   Tik/nokta dizisi — DOLGU YOK (birleşik tasarım sistemi §4.5).
+
+   Neden dolgulu çubuk değil: `Bar` bir ORANI anlatır ("%62 tamam"). Burada
+   anlatılan oran değil, BİR DİZİ ÖLÇÜM ya da BİR EŞİK ÜZERİNDEKİ AĞIRLIK:
+   risk skorunun kütükteki yeri, koşu geçmişinin son N denemesi. Dolgulu bir
+   çubuk bunları "tamamlanmışlık" gibi okutur.
+
+   ── DURUM YALNIZ RENKLE ANLATILMAZ ───────────────────────────────────
+   Sözleşmenin bu maddesi bu primitifin varlık sebebi. Risk kütüğünde
+   şiddet bugüne kadar YALNIZ skor rakamının rengiyle taşınıyordu; renk
+   göremeyen ya da düşük kontrastlı bir ekranda kritik satır ile düşük
+   satır aynı görünüyordu. Tik dizisi aynı bilgiyi UZUNLUK ve DOLU TİK
+   SAYISI ile de kodlar: kritik satırın şeridi görünür biçimde daha
+   kalabalıktır. Renk ikinci kanaldır, tek kanal değil.
+
+   Ölçü değeri `null` ise şerit boş tiklerle çizilir — "ölçülmedi" ile
+   "sıfır" karıştırılmaz (BİLİNMEYEN ≠ SIFIR). */
+export function TikSeridi({
+  dolu, toplam = 5, durum = 'ok', etiket, olculmedi = false, tikler,
+}: {
+  /** AĞIRLIK kipi: kaç tik dolu. `toplam`a kırpılır. `tikler` verilirse yok sayılır. */
+  dolu?: number;
+  toplam?: number;
+  durum?: Durum;
+  /** Ekran okuyucu için tek cümle; şerit `role="img"` taşır. */
+  etiket: string;
+  /** true ise hiçbir tik dolmaz ve şerit "ölçülmedi" der. */
+  olculmedi?: boolean;
+  /**
+   * DİZİ kipi: her tik KENDİ durumunu taşır — koşu geçmişi gibi
+   * "sonuncusu başarılı ama önceki üçü başarısız" cümlesini ağırlık kipi
+   * söyleyemez. `null` = o sırada kayıt YOK (boş tik); sıfır değil,
+   * bilinmeyen. Sıra ESKİDEN YENİYE'dir: son tik en yeni koşudur.
+   */
+  tikler?: (Durum | null)[];
+}) {
+  if (tikler) {
+    return (
+      <span className="tik-serit" role="img" aria-label={etiket}>
+        {tikler.map((d, i) => (
+          <span
+            key={i}
+            className={d ? 'tik dolu' : 'tik'}
+            style={d ? { background: `var(--${d})` } : undefined}
+          />
+        ))}
+      </span>
+    );
+  }
+  const n = olculmedi ? 0 : Math.max(0, Math.min(toplam, Math.round(dolu ?? 0)));
+  return (
+    <span className={`tik-serit${olculmedi ? ' olculmedi' : ''}`} role="img" aria-label={etiket}>
+      {Array.from({ length: toplam }, (_, i) => (
+        <span
+          key={i}
+          className={i < n ? 'tik dolu' : 'tik'}
+          style={i < n ? { background: `var(--${durum})` } : undefined}
+        />
+      ))}
+    </span>
+  );
+}
+
 export function Kesir({ pay, payda }: { pay: number; payda: number }) {
   return <span className="kesir">{pay}<span className="payda">/{payda}</span></span>;
 }

@@ -150,7 +150,7 @@ export default function TopolojiIstemci({
   /* ── hiç anlık yoksa: boş DEĞİL, "hiç ölçülmedi" ──────────────────── */
   if (anliklar.length === 0 && sapmalar.length === 0) {
     return (
-      <main style={{ minWidth: 0 }}>
+      <main data-yuzey="tezgah" style={{ minWidth: 0 }}>
         <EkranBasligi eyebrow="Topoloji sapması · pasif gözlem"
           baslik="Topoloji anlığı alınmadı" />
         <section className="ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
@@ -165,7 +165,7 @@ export default function TopolojiIstemci({
 
   return (
     <>
-      <main style={{ minWidth: 0 }}>
+      <main data-yuzey="tezgah" style={{ minWidth: 0 }}>
         <EkranBasligi
           eyebrow={`Topoloji sapması · ${anliklar.length} anlık · pasif gözlem`}
           vurgu={hal.vurgu}

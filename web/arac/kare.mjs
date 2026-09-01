@@ -6,7 +6,11 @@ const OUT = process.env.OUT || '/tmp/kare';
 const KOK = `http://localhost:${process.env.PORT || 3000}`;
 mkdirSync(OUT, { recursive: true });
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
-const s = await b.newPage({ viewport: { width: 1440, height: 1000 } });
+/* Genişlik dışarıdan verilebilir: tasarım incelemesi 1440/1366/1280'i ve
+   gerektiğinde dar bantları aynı araçla ister. */
+const EN = Number(process.env.EN || 1440);
+const BOY = Number(process.env.BOY || 1000);
+const s = await b.newPage({ viewport: { width: EN, height: BOY } });
 const hata = [];
 s.on('pageerror', (e) => hata.push('pageerror: ' + e.message.slice(0, 160)));
 s.on('console', (m) => { if (m.type() === 'error' && !/fonts\.g/.test(m.text())) hata.push('console: ' + m.text().slice(0, 160)); });
@@ -47,7 +51,13 @@ for (const yol of yollar) {
     const c = getComputedStyle(el);
     return { aile: c.fontFamily.split(',')[0], boyut: c.fontSize, yuklu: document.fonts.status };
   });
-  await s.screenshot({ path: `${OUT}/${ad}.png`, fullPage: true });
+  /* TAM SAYFA yakalamada `position: fixed` durum ayağı sayfanın ORTASINA
+     basılmış görünür — görüntü alanının altına sabitlendiği yere. Bu bir
+     ÖRTME KUSURU DEĞİL, yakalama artefaktıdır: `.atlas-govde` ayak
+     yüksekliği kadar alt dolgu taşır ve ölçüldüğünde gizlenen içerik
+     0px'tir. Not burada duruyor ki bir sonraki görsel inceleme aynı
+     hayaleti kovalamasın. */
+  await s.screenshot({ path: `${OUT}/${ad}${process.env.EN ? `-${EN}` : ''}.png`, fullPage: true });
   console.log(`${ad}: font=${font.aile} ${font.boyut} fonts=${font.yuklu}`);
 }
 console.log('hatalar:', hata.length ? hata.slice(0, 5) : 'YOK');

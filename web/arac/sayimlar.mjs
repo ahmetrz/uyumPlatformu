@@ -11,22 +11,28 @@
    aracın ürettiği bloğu taşır; `tests/belge-sayimlari.test.ts` blokla
    gerçeği karşılaştırır ve saparsa KIRMIZI olur.
 
-   ── Neden statik sayım ────────────────────────────────────────────────
-   Test vakası sayısı için vitest'i koşturmak gerekirdi; testin içinden
-   test koşturmak kırılgan ve yavaştır. Bunun yerine vitest'in KENDİ
-   glob'u (tests altındaki her `.test.ts`) ile aynı dosyalar taranır ve satır
-   başındaki `it(` / `it.skip(` sayılır. Bu sayım gerçek koşuyla birebir
-   tutuyor; tutmadığı gün testin kendisi bunu yakalar (aracın çıktısı ile
-   `vitest run` çıktısı elle karşılaştırılır ve fark bir kusurdur).
+   ── Test vakası nereden geliyor ───────────────────────────────────────
+   ELLE SATIR SAYMIYORUZ ARTIK. Eski sayım satır başındaki `it(` kalıbını
+   tarıyordu ve iki kalıbı sessizce kaçırıyordu: `it.each([...])` (kalıba
+   hiç uymuyordu → sıfır sayılıyordu) ve döngü içinde üretilen `it(`
+   (bir kez sayılıyordu, vitest iterasyon kadar üretiyordu). Sonuç: belge
+   998 derken gerçek 1003'tü — beş vaka, hiçbir uyarı vermeden kayıptı.
+
+   Sayı şimdi `arac/test-envanteri.mjs` üzerinden VITEST'İN KENDİ
+   KEŞFİNDEN gelir ve `arac/test-envanteri.json` anlık görüntüsünde durur.
+   Anlık görüntü test dosyalarının imzasını taşır; dosyalar değişip imza
+   tazelenmezse bu araç ve `tests/belge-sayimlari.test.ts` AÇIKÇA patlar.
 
    Kullanım:
      node arac/sayimlar.mjs            → JSON yaz
      node arac/sayimlar.mjs --yaz      → belgelerdeki blokları güncelle
      node arac/sayimlar.mjs --tablo    → markdown tablo yaz
+     npm run sayimlar:yenile           → keşfi tazele + blokları güncelle
 */
 
 import { readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
+import { anlik } from './test-envanteri.mjs';
 
 const WEB = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
 const KOK = path.resolve(WEB, '..');
@@ -67,14 +73,9 @@ function nesneAnahtarlari(dosya, degisken) {
 }
 
 export function sayimlar() {
-  const testDosyalari = dosyalar(path.join(WEB, 'tests'), (f) => f.endsWith('.test.ts'));
-  let vaka = 0, atlanan = 0;
-  for (const f of testDosyalari) {
-    for (const satir of readFileSync(f, 'utf8').split('\n')) {
-      if (/^\s*(it|test)\.skip\s*\(/.test(satir)) { vaka += 1; atlanan += 1; }
-      else if (/^\s*(it|test)(\.only)?\s*\(/.test(satir)) vaka += 1;
-    }
-  }
+  /* Vitest keşfinin anlık görüntüsü. Bayatsa `anlik()` patlar — sessiz
+     yanlış sayıya düşmektense gürültülü durmak. */
+  const envanter = anlik();
 
   const sema = readFileSync(path.join(WEB, 'prisma', 'schema.prisma'), 'utf8');
   const eylemModulleri = dosyalar(path.join(WEB, 'lib'), (f) => f.endsWith('.ts'))
@@ -82,9 +83,9 @@ export function sayimlar() {
     .filter((f) => /^\s*['"]use server['"]/m.test(readFileSync(f, 'utf8')));
 
   return {
-    'test dosyası': testDosyalari.length,
-    'test vakası': vaka,
-    'atlanan test': atlanan,
+    'test dosyası': envanter.dosya,
+    'test vakası': envanter.vaka,
+    'atlanan test': envanter.atlanan,
     'ekran (rota)': dosyalar(path.join(WEB, 'app'), (f) => path.basename(f) === 'page.tsx').length,
     'API ucu': dosyalar(path.join(WEB, 'app', 'api'), (f) => path.basename(f) === 'route.api.ts').length,
     'otomasyon motoru': nesneAnahtarlari(path.join(WEB, 'lib', 'motorlar', 'kayit.ts'), 'MOTORLAR'),

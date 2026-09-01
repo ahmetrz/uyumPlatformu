@@ -38,7 +38,7 @@ söylemeye başlar ve yalanı kimse fark etmez.
 | Ölçü | Değer |
 |---|---|
 | test dosyası | 51 |
-| test vakası | 998 |
+| test vakası | 1006 |
 | atlanan test | 1 |
 | ekran (rota) | 40 |
 | API ucu | 9 |

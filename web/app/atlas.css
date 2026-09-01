@@ -791,6 +791,21 @@
   border: var(--bw-hair) solid var(--hr2); border-left: var(--bw-edge) solid var(--hr2);
   padding: var(--s12) var(--s14); transition: box-shadow var(--mo-state) var(--ez); }.atlas .omur-kart:hover { box-shadow: var(--sh-lift); }.atlas .omur-kart.gecmis { border-left-color: var(--bd); }.atlas .omur-kart.gelecek { opacity: .8; }
 
+/* Aciliyet bantları: ölçeği görünür kılar, okuma sırasını bozmaz. Zemin
+   çok düşük kontrastta; ayrım asıl SOL KENAR ÇİZGİSİNDEN gelir — renk
+   göremeyen okuyucu da bandın nerede başladığını görür. Etiket bandın
+   dibinde, eksenin altında; kartların yaşadığı bölgeye girmez. */
+.atlas .omur-bant { position: absolute; top: 0; bottom: 0; pointer-events: none;
+  border-left: var(--bw-hair) solid var(--hr2); }
+.atlas .omur-bant .ad { position: absolute; left: var(--s6); bottom: 0;
+  font-family: var(--mo); font-size: var(--t-label); letter-spacing: var(--tr-label);
+  text-transform: uppercase; color: var(--i3); white-space: nowrap; }
+.atlas .omur-bant.bant-simdi { border-left-color: var(--bd); border-left-width: var(--bw-edge); }
+.atlas .omur-bant.bant-simdi .ad { color: var(--bd); }
+.atlas .omur-bant.bant-90 { background: rgba(172, 63, 45, .045); }
+.atlas .omur-bant.bant-1y { background: rgba(160, 120, 40, .035); }
+.atlas .omur-bant.bant-uzak { background: transparent; }
+
 /* ── 15 · GraphCanvas ────────────────────────────────────────────────── */
 .atlas .tuval { position: relative; min-height: 388px; background: var(--graph-glow), var(--band2);
   overflow: hidden; }.atlas .tuval svg { position: absolute; inset: 0; width: 100%; height: 100%; }.atlas .tuval .kenar { stroke: #6F7A76; stroke-width: 1.1; fill: none; }.atlas .tuval .kenar.aktif { stroke: var(--jesd); stroke-width: 1.6; stroke-dasharray: 5 4; }.atlas .akis-kenar { animation: akis 2.4s linear infinite; }@keyframes akis {to { stroke-dashoffset: -18; } }.atlas .dugum { position: absolute; background: rgba(25, 23, 19, .70);

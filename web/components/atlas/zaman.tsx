@@ -125,16 +125,33 @@ export function ZamanCizelgesi({
    geçmiş kartlar kritik renkte, gelecek kartlar %80 opaklıkta. */
 
 export function OmurUfku({
-  kartlar, donemler = [], tikla,
+  kartlar, donemler = [], bantlar = [], tikla,
 }: {
   kartlar: (Omit<ZamanKarti, 'durum'> & { gecmis: boolean })[];
   /* Eksen tırnakları primitifin İÇİNDE yaşar: ekran kendi etiket katmanını
      eksenin piksel konumuna göre bindirirse yerleşim değişince kayar. */
   donemler?: { ad: string; konum: number }[];
+  /* ACİLİYET BANTLARI (ŞİMDİ / <90g / <1y / >1y). Şerit aciliyeti bugüne
+     kadar yalnız KONUMLA anlatıyordu: kart ne kadar solda o kadar yakın —
+     ama "sol" ne kadar yakın? Okuyucu her kartta eksen tırnaklarına bakıp
+     "bu 90 günün içinde mi?" diye zihinden hesap yapıyordu; EOS kararının
+     eşiği tam olarak budur. Bant bir DEĞER değil ÖLÇEKTİR: arka planda ve
+     düşük kontrastta durur, kartların okunmasını bozmaz. */
+  bantlar?: { ad: string; bas: number; son: number; sinif: string }[];
   tikla?: (id: string) => void;
 }) {
   return (
     <div className="omur-serit">
+      {bantlar.map((b) => (
+        <span
+          key={b.sinif}
+          className={`omur-bant ${b.sinif}`}
+          style={{ left: `${b.bas * 100}%`, width: `${(b.son - b.bas) * 100}%` }}
+          aria-hidden
+        >
+          <span className="ad">{b.ad}</span>
+        </span>
+      ))}
       <span className="eksen" style={{ position: 'absolute', left: 0, right: 0, top: 93,
         height: 1, background: 'var(--hr2)' }} />
       {kartlar.map((k, i) => (

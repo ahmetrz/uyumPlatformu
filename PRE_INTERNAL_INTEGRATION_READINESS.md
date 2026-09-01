@@ -249,11 +249,32 @@ Hiçbir motor ya da ekran otomatik olarak yapamaz: yama · firmware
 güncelleme · ağ/firewall konfigürasyon değişikliği · PLC/DCS değişikliği ·
 agresif aktif tarama · risk kabulü · bulgu kapatma · uygulanabilirlik
 override'ı · varlık silme · temel (baseline) kabulü · keşif kaydını CMDB'ye
-onaylama.
+onaylama · **tedarikçi/uzaktan erişim oturumunu sonlandırma**.
 
-On bir ölçü otomasyon güvenliği anlık görüntüsünde **ölçülüyor** (eskiden
-üçü ölçülüyor, sekizi başlık yorumunda düzyazı olarak duruyordu). Otuz beş
-düzyazı kural değil, çalışan bir regresyon testi.
+Bu kurallar düzyazı değil, çalışan bir regresyon testidir: otomasyon
+güvenliği anlık görüntüsü her yasak eylemi ayrı ayrı ÖLÇER (bir zamanlar
+üçü ölçülüyor, sekizi yalnız başlık yorumunda anlatılıyordu).
+
+### Erişim değerlendirme motoru — sınırın örneği
+
+Dokuzuncu motor (`erisim_degerlendirme`) tedarikçi/uzaktan erişim
+oturumlarını değerlendirir ve tam olarak bu sınırın nasıl çizildiğini
+gösterir:
+
+- **Okur, dokunmaz.** Koşu öncesi ve sonrası `TedarikciErisimOturumu`
+  satırları birebir aynıdır; test bunu donduruyor. Motor oturum
+  kapatmaz, PAM/VPN'e erişmez, erişim kesmez.
+- **Üretebildiği tek şey iş kuyruğudur:** görev, veri kalitesi bulgusu ve
+  saklanmayan bir risk/bulgu ADAYI. Kaydı insan açar.
+- **`null` ihlal değildir.** `onayli`, `mfaVar`, `izlendi` üç değerlidir;
+  `=== false` ihlaldir, `null` "ölçülmedi"dir ve puana hiç katkı vermez —
+  ayrı bir sayaca girer ve kendi veri kalitesi bulgusunu üretir.
+- **Ölçülmemiş kritiklik "düşük" sayılmaz.** Hedefin kritikliği
+  çözülemezse şiddet, `yuksek` ile aynı basamağa yükselir; sıfır vermek
+  onu sessizce önemsizleştirirdi.
+- **Kaynak susarsa açık kayıtlar çözülmez.** Oturum kaynağı bağlı değilse
+  koşu `kaynak_yok` ile kapanır; kaynağın susması ihlalin düzelmesi
+  değildir.
 
 ## 9. PostgreSQL hazırlığı
 

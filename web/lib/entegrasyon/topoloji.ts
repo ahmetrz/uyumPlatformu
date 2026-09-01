@@ -2,6 +2,7 @@ import 'server-only';
 import { createHash } from 'node:crypto';
 import { db } from '../db';
 import type { Prisma } from '../prisma-client/client';
+import { ilkiniEsle } from '../sorguParcala';
 import { kokenYaz } from './koken';
 import type { TopolojiGozlemiGirdi } from './sozlesme';
 
@@ -303,6 +304,31 @@ export async function temelAnlik(tesisId: string | null) {
 }
 
 /**
+ * Temel VAR MI — gözlemleri YÜKLEMEDEN.
+ *
+ * `temelAnlik()` `include: { gozlemler: true }` taşır: temelin bütün
+ * düğüm/bağlantı gözlemlerini belleğe çeker. Bu, karşılaştırma yapan
+ * çağıran için gereklidir — ama "temel var mı?" diye SORAN çağıran için
+ * saf israftır ve maliyeti topolojinin büyüklüğüyle doğru orantılı büyür
+ * (gerçek bir OT ağında tesis başına binlerce gözlem). Sapma motoru bu
+ * soruyu tesis başına bir kez soruyordu ve her seferinde tüm temeli
+ * okuyordu.
+ */
+export async function temelVarMi(tesisId: string | null): Promise<boolean> {
+  return (await db.topolojiAnlik.count({
+    where: { tesisId, temelMi: true, onaylayanId: { not: null } },
+  })) > 0;
+}
+
+export type TemelDurumu = {
+  temelVar: boolean;
+  temel: { id: string; alindi: Date; kaynak: string; onayZamani: Date | null } | null;
+  temelOlmayanAnlik: number;
+  anlikSayisi: number;
+  acikSapma: number;
+};
+
+/**
  * Bir kapsamın (tesis ya da tesissiz küme) temel durumu — /topoloji
  * ekranındaki temel şeridi bunu okur.
  *
@@ -317,30 +343,78 @@ export async function temelAnlik(tesisId: string | null) {
  * isimdi: temel olmayan bir anlık çoğu zaman onay bekleyen değil, sadece
  * karşılaştırma girdisidir. İsim ekranda "N onay bekliyor" gibi sahte bir
  * iş kuyruğu doğuruyordu.
+ *
+ * NEDEN AYRI: şerit kapsam (tesis) başına bir satır çizer ve `temelDurumu()`
+ * kapsam başına DÖRT sorgu koşar; biri de temelin bütün gözlemlerini
+ * yükleyen `temelAnlik()`tır. Şerit bu gözlemlerin tek birini bile
+ * göstermez — yalnız dört skaler okur. Yirmi santralli bir kurulumda bu
+ * seksen sorgu ve yirmi tam topoloji okuması demekti; burada sorgu sayısı
+ * SANTRAL SAYISINDAN BAĞIMSIZ üçe iner ve gözlemler hiç yüklenmez.
+ *
+ * `tesisIdler` — `izinliTesisIdleri` sözleşmesiyle aynı: `null` = sınır yok
+ * (santrali BİLİNMEYEN/global kapsam da dâhil), `[]` = hiçbiri. Kapsamı
+ * daraltılmış kullanıcıya santrali null olan kayıt GÖRÜNMEZ; koşul
+ * `tesisId: { in: [...] }` NULL ile eşleşmediği için bu kendiliğinden olur.
+ *
+ * Anahtar: `tesisId ?? '__global__'`.
  */
-export async function temelDurumu(tesisId: string | null): Promise<{
-  temelVar: boolean;
-  temel: { id: string; alindi: Date; kaynak: string; ozetHash: string; onayZamani: Date | null } | null;
-  temelOlmayanAnlik: number;
-  anlikSayisi: number;
-  acikSapma: number;
-}> {
-  const [temel, temelOlmayanAnlik, anlikSayisi, acikSapma] = await Promise.all([
-    temelAnlik(tesisId),
-    db.topolojiAnlik.count({ where: { tesisId, temelMi: false } }),
-    db.topolojiAnlik.count({ where: { tesisId } }),
-    db.topolojiSapmasi.count({ where: { tesisId, durum: { in: ACIK_DURUMLAR } } }),
+export async function temelDurumlari(
+  tesisIdler: string[] | null,
+): Promise<Map<string, TemelDurumu>> {
+  const kapsam = tesisIdler === null ? {} : { tesisId: { in: tesisIdler } };
+
+  const [temeller, anlikSayimlari, sapmaSayimlari] = await Promise.all([
+    /* Sıra `temelAnlik()` ile BİREBİR aynı; kapsam başına ilk satır o
+       fonksiyonun `findFirst`i ile aynı satırdır. Gözlemler alınmaz. */
+    db.topolojiAnlik.findMany({
+      where: { ...kapsam, temelMi: true, onaylayanId: { not: null } },
+      select: { id: true, tesisId: true, alindi: true, kaynak: true, onayZamani: true },
+      orderBy: [{ onayZamani: 'desc' }, { alindi: 'desc' }],
+    }),
+    db.topolojiAnlik.groupBy({
+      by: ['tesisId', 'temelMi'], where: kapsam, _count: { _all: true } }),
+    db.topolojiSapmasi.groupBy({
+      by: ['tesisId'],
+      where: { ...kapsam, durum: { in: ACIK_DURUMLAR } },
+      _count: { _all: true },
+    }),
   ]);
-  return {
-    temelVar: temel !== null,
-    temel: temel
-      ? { id: temel.id, alindi: temel.alindi, kaynak: temel.kaynak,
-          ozetHash: temel.ozetHash, onayZamani: temel.onayZamani }
-      : null,
-    temelOlmayanAnlik,
-    anlikSayisi,
-    acikSapma,
-  };
+
+  const anahtar = (t: string | null) => t ?? '__global__';
+  const temelHaritasi = ilkiniEsle(temeller, (t) => anahtar(t.tesisId));
+
+  const anlikToplam = new Map<string, number>();
+  const temelsizAnlik = new Map<string, number>();
+  for (const g of anlikSayimlari) {
+    const a = anahtar(g.tesisId);
+    anlikToplam.set(a, (anlikToplam.get(a) ?? 0) + g._count._all);
+    if (!g.temelMi) temelsizAnlik.set(a, (temelsizAnlik.get(a) ?? 0) + g._count._all);
+  }
+  const acikSapmalar = new Map(
+    sapmaSayimlari.map((g) => [anahtar(g.tesisId), g._count._all] as const),
+  );
+
+  /* Sonuç haritası VERİSİ OLAN her kapsamı taşır. Çağıran (şerit) kapsam
+     listesini kendi kurar ve bulunmayan anahtar için sıfır gösterir —
+     "hiç ölçülmemiş" kapsamın listeden düşmesi onu sorunsuz gösterirdi. */
+  const kapsamlar = new Set([
+    ...temelHaritasi.keys(), ...anlikToplam.keys(), ...acikSapmalar.keys(),
+  ]);
+  const sonuc = new Map<string, TemelDurumu>();
+  for (const a of kapsamlar) {
+    const temel = temelHaritasi.get(a) ?? null;
+    sonuc.set(a, {
+      temelVar: temel !== null,
+      temel: temel
+        ? { id: temel.id, alindi: temel.alindi, kaynak: temel.kaynak,
+            onayZamani: temel.onayZamani }
+        : null,
+      temelOlmayanAnlik: temelsizAnlik.get(a) ?? 0,
+      anlikSayisi: anlikToplam.get(a) ?? 0,
+      acikSapma: acikSapmalar.get(a) ?? 0,
+    });
+  }
+  return sonuc;
 }
 
 /**

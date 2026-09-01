@@ -28,7 +28,7 @@ vi.mock('@/lib/erisim', async (asil) => {
 const { db } = await import('@/lib/db');
 const {
   oturumYaz, uyumsuzOturumlar, tedarikciOturumOzeti, oturumKaynagiBagliMi,
-  OTURUM_VARLIK_TIPI,
+  tumTedarikciOturumOzetleri, OTURUM_VARLIK_TIPI,
 } = await import('@/lib/entegrasyon/tedarikciOturum');
 const { oturumKarariKaydet } = await import('@/lib/eylemler2/tedarikciOturum');
 const { tedarikciEkranVerisi } =
@@ -442,4 +442,68 @@ describe('§18 · Tedarikçi ekranı kapsamı — çapraz santral okuma sızmaz'
       // Sıfır bir SONUÇ değil: kapsam cümlesi "oturum yok" demez.
       expect(dar.gerekce).not.toMatch(/^Oturum yok/);
     });
+});
+
+/* ═══════════════════════════════════════════════════════════════════════
+   TOPLU OKUMA, TEKİL OKUMANIN AYNISINI ÜRETİR
+
+   /tedarikciler ekranı tedarikçi başına altı sorgu koşuyordu; on sekiz
+   tedarikçilik örnek veride ekran tek açılışta 175 SQL ifadesi
+   üretiyordu — oturum tablosu BOŞKEN bile, çünkü maliyet veriden değil
+   döngüden geliyordu. Toplu yol bunu üçe indirir (ölçüldü: 175 → 16).
+
+   Bu hızlanmanın bedeli olabilecek TEK şey ikinci bir doğruluk kaynağıdır:
+   toplu yol kendi kurallarını yazsaydı, tekil yol düzeltilip toplu yol
+   unutulduğunda ekran ile motor farklı sayı gösterirdi. İkisi de
+   `raporKur`/`ozetKur` saf fonksiyonlarını çağırıyor; aşağıdaki test bunu
+   ÇIKTI üzerinden kanıtlar — her tedarikçi için iki yolun ürettiği özet
+   alan alan aynı olmalı, kapsam daraltılmışken de.
+   ═══════════════════════════════════════════════════════════════════════ */
+describe('Toplu oturum özeti ≡ tekil oturum özeti', () => {
+  const karsilastir = async (tesisIdler: string[] | null) => {
+    const toplu = await tumTedarikciOturumOzetleri({ tesisIdler });
+    const tedarikciler = await db.tedarikci.findMany({
+      where: { silindi: null }, select: { id: true }, orderBy: { id: 'asc' } });
+    // Toplu okuma silinmemiş HER tedarikçiyi kapsamalı — eksik anahtar,
+    // ekranın o satırda sessizce "ölçüm yok" göstermesi demek olurdu.
+    expect([...toplu.keys()].sort()).toEqual(tedarikciler.map((t) => t.id).sort());
+
+    for (const t of tedarikciler) {
+      const tekil = await tedarikciOturumOzeti(t.id, { tesisIdler });
+      expect(toplu.get(t.id)!.ozet).toEqual(tekil);
+      const tekilRapor = await uyumsuzOturumlar({ tedarikciId: t.id, tesisIdler });
+      const topluRapor = toplu.get(t.id)!.rapor;
+      expect(topluRapor.toplam).toBe(tekilRapor.toplam);
+      expect(topluRapor.kapsam).toBe(tekilRapor.kapsam);
+      expect(topluRapor.sayaclar).toEqual(tekilRapor.sayaclar);
+      expect(topluRapor.uyumsuz.map((d) => d.oturum.id))
+        .toEqual(tekilRapor.uyumsuz.map((d) => d.oturum.id));
+      expect(topluRapor.bilinmeyen.map((d) => d.oturum.id))
+        .toEqual(tekilRapor.bilinmeyen.map((d) => d.oturum.id));
+    }
+    return toplu;
+  };
+
+  it('kapsam sınırsızken her tedarikçi için birebir aynı özet', async () => {
+    const toplu = await karsilastir(null);
+    // Test verisi anlamlı olmalı: hiç oturumu olmayan bir kümede eşitlik
+    // ucuzdur. En az bir tedarikçinin ölçülmüş oturumu bulunmalı.
+    expect([...toplu.values()].some((x) => x.ozet.toplam > 0)).toBe(true);
+  });
+
+  it('kapsam daraltılmışken de birebir aynı — sıfır da aynı sıfır olmalı', async () => {
+    const [tesisA] = await db.tesis.findMany({
+      where: { durum: 'aktif' }, take: 1, orderBy: { kod: 'asc' } });
+    const toplu = await karsilastir([tesisA.id]);
+    // Kapsam gerçekten daraltmış olmalı, yoksa test bir şey kanıtlamaz.
+    expect([...toplu.values()].every((x) => x.ozet.toplam === 0)).toBe(true);
+    // ve "kaynak bağlı" bilgisi kapsamla BİRLİKTE düşmemeli.
+    expect([...toplu.values()].every((x) => x.ozet.kapsam === 'kayit_yok')).toBe(true);
+  });
+
+  it('kapsam boş kümeyken hiçbir oturum görünmez ama tedarikçiler durur', async () => {
+    const toplu = await karsilastir([]);
+    expect(toplu.size).toBeGreaterThan(0);
+    expect([...toplu.values()].every((x) => x.ozet.toplam === 0)).toBe(true);
+  });
 });

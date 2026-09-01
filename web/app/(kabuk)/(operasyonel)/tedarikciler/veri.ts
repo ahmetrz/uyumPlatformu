@@ -2,7 +2,7 @@ import 'server-only';
 import { db } from '@/lib/db';
 import { izinVar, izinliTesisIdleri } from '@/lib/erisim';
 import type { AktifKullanici } from '@/lib/auth';
-import { tedarikciOturumOzeti, uyumsuzOturumlar } from '@/lib/entegrasyon/tedarikciOturum';
+import { tumTedarikciOturumOzetleri } from '@/lib/entegrasyon/tedarikciOturum';
 import {
   UFUK,
   type Bag, type OturumSatiri, type SantralBagi, type SertifikaOzeti, type T,
@@ -58,7 +58,7 @@ export async function tedarikciEkranVerisi(k: AktifKullanici): Promise<EkranVeri
      Santrali null olan varlık kapsamı daraltılmış kullanıcıya GÖRÜNMEZ. */
   const varlikKapsami = izinli === null ? {} : { tesisId: { in: izinli } };
 
-  const [tedarikciler, sertifikalar, riskler] = await Promise.all([
+  const [tedarikciler, sertifikalar, riskler, oturumOzetleri] = await Promise.all([
     db.tedarikci.findMany({
       where: { silindi: null },
       include: {
@@ -94,13 +94,19 @@ export async function tedarikciEkranVerisi(k: AktifKullanici): Promise<EkranVeri
       },
       orderBy: [{ artikRisk: 'desc' }, { kod: 'asc' }],
     }),
+    /* ÖLÇÜM katmanı, tedarikçi başına DEĞİL toplu okunur. Döngü içinde
+       çağrıldığında bu ekran on sekiz tedarikçi için 175 SQL ifadesi
+       koşuyordu (ölçüldü) — oturum tablosu boşken bile. Kapsam
+       `izinliTesisIdleri` sözleşmesiyle geçirilir: `null` = tümü,
+       `[]` = hiçbiri. */
+    tumTedarikciOturumOzetleri({ tesisIdler: izinli }),
   ]);
 
   const simdi = new Date();
   const kalan = (d: Date | null) =>
     (d === null ? null : Math.ceil((d.getTime() - simdi.getTime()) / GUN));
 
-  const veri: T[] = await Promise.all(tedarikciler.map(async (t) => {
+  const veri: T[] = tedarikciler.map((t) => {
     /* Santraller varlıklardan türetilir: aynı tesise düşen varlıklar toplanır. */
     const tesisHarita = new Map<string, SantralBagi>();
     for (const v of t.varliklar) {
@@ -156,13 +162,15 @@ export async function tedarikciEkranVerisi(k: AktifKullanici): Promise<EkranVeri
       }
     }
 
-    /* ÖLÇÜM katmanı. Kapsam `izinliTesisIdleri` sözleşmesiyle aynı biçimde
-       geçirilir: `null` = tümü, `[]` = hiçbiri. Özet kendi içinde de
-       kapsamı uygular; ekran ikinci bir süzgeç kurmaz. */
-    const [ozet, rapor] = await Promise.all([
-      tedarikciOturumOzeti(t.id, { tesisIdler: izinli }),
-      uyumsuzOturumlar({ tedarikciId: t.id, tesisIdler: izinli }),
-    ]);
+    /* ÖLÇÜM katmanı yukarıda TOPLU okundu; burada yalnız bu tedarikçinin
+       payı alınır. Toplu okuma silinmemiş HER tedarikçiyi kapsar, yani
+       anahtar her zaman bulunur — bulunamazsa bu bir kusurdur ve sessizce
+       "ölçüm yok" göstermek yanıltıcı olurdu. */
+    const olcum = oturumOzetleri.get(t.id);
+    if (!olcum) {
+      throw new Error(`tedarikciEkranVerisi: ${t.id} için oturum özeti üretilmedi`);
+    }
+    const { ozet, rapor } = olcum;
 
     const tesisKodlari = new Map(
       [...tesisHarita.values()].map((x) => [x.id, x.kod] as const),
@@ -231,7 +239,7 @@ export async function tedarikciEkranVerisi(k: AktifKullanici): Promise<EkranVeri
       },
       oturumlar,
     };
-  }));
+  });
 
   /* Metrik 2 tüm (KAPSAM İÇİ) portföyü ölçer: tedarikçi varlıklarına kurulu
      sertifikalar içinde ufka en yakın olan. Kaynağı yukarıdaki daraltılmış

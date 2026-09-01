@@ -1096,6 +1096,19 @@ model ErisimAtamasi {
   hesap       KimlikHesabi       @relation(fields: [hesapId], references: [id], onDelete: Cascade)
   varlik      Varlik?            @relation(fields: [varlikId], references: [id])
   incelemeler ErisimIncelemesi[]
+
+  /// Bir hesabın aynı varlık+kapsam ikilisine İKİ atama satırı olamaz.
+  /// Idempotency bugüne kadar yalnız `findFirst` → yoksa `create` kalıbıyla
+  /// sağlanıyordu; eşzamanlı iki PAM aktarımı ikisi de "yok" görüp aynı
+  /// atamayı iki kez yazabiliyor ve ayrıcalıklı erişim sayısı olduğundan
+  /// yüksek çıkıyordu. Kısıt artık veritabanında.
+  ///
+  /// SQLite'ta NULL'lar tekil indekste BİRBİRİNDEN FARKLI sayılır; bu
+  /// kısıt tek başına varlıksız/kapsamsız satırları kapsamaz. Göç dosyası
+  /// bu yüzden aynı üçlü üzerinde COALESCE'li İKİNCİ bir tekil indeks daha
+  /// kurar (`ErisimAtamasi_tekil_coalesce_key`) — Prisma şeması ifade
+  /// indeksi tanımlayamadığı için o indeks yalnız göçte görünür.
+  @@unique([hesapId, varlikId, kapsam])
 }
 
 /// Erişim incelemesi (access review): dönemsel onay.

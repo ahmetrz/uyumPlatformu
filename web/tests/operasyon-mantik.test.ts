@@ -1,8 +1,18 @@
-import { describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it, vi } from 'vitest';
+import { copyFileSync, mkdtempSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
 
-/* O · Değişiklik yönetiminin saf mantığı. Bu modül veritabanına, React'e ve
-   server-only'ye dokunmaz; testi de dokunmaz — izole DB kopyası gerekmez
-   (bkz. tests/semantik.test.ts kalıbı). */
+/* O · Değişiklik yönetimi.
+
+   Dosyanın BÜYÜK KISMI saf mantıktır: ekranın modülü veritabanına, React'e
+   ve server-only'ye dokunmaz ve o testler de dokunmaz.
+
+   SONDAKİ BLOK AYRIDIR ve veritabanına dokunur (izole kopya): aşama
+   makinesinin EŞZAMANLILIK kuralı saf mantıkta ölçülemez — ölçtüğü şey
+   veritabanında kaç satır olduğu ve denetim izine ne düştüğüdür. Bu yüzden
+   TEST_DB, db'ye dokunan her importtan ÖNCE ayarlanır (proje kalıbı) ve o
+   modüller aşağıda dinamik olarak içe aktarılır. */
 
 import {
   ASAMALAR, GORUNUR_BUTCE,
@@ -12,6 +22,28 @@ import {
   sirala, toplanabilir,
   type D,
 } from '@/app/(atlas)/(operasyonel)/operasyon/mantik';
+
+const dizin = mkdtempSync(path.join(tmpdir(), 'uyum-oper-'));
+const testDb = path.join(dizin, 'test.db');
+copyFileSync('prisma/dev.db', testDb);
+process.env.TEST_DB = testDb;
+
+/* Yetki kapısı gerçek kodda koşar; testte HTTP oturumu yoktur. Kapının
+   ARKASINDAKİ sahiplenme kuralı sahte değildir. Aktör gerçek bir
+   kullanıcıdır — iz satırının yabancı anahtarı bunu ister. */
+const sahteKullanici = {
+  id: '', adSoyad: 'Operasyon Testi', eposta: 'operasyon@test', unvan: null,
+  yetkiler: [{ rol: 'yonetici', surecId: null, tesisId: null, tuzelKisiId: null,
+    regulasyonId: null, modul: null }],
+};
+vi.mock('@/lib/erisim', async (asil) => {
+  const gercek = await asil<typeof import('@/lib/erisim')>();
+  return { ...gercek, yetkiZorunlu: async () => sahteKullanici, izinVar: () => true };
+});
+
+const { db } = await import('@/lib/db');
+const { degisiklikIlerlet, degisiklikGeriAl } =
+  await import('@/lib/eylemler2/operasyon');
 
 const SIMDI = Date.parse('2026-06-01T00:00:00.000Z');
 const GUN = 86_400_000;
@@ -273,5 +305,104 @@ describe('Metrikler ve başlık', () => {
     expect(not).toContain('1 kaydın plan tarihi girilmedi');
     expect(not).toContain('1 kayıt geri alınmış');
     expect(not).toContain('1 doğrulanmış kayıt bu mercekte gizli');
+  });
+});
+
+/* ═══ Aşama makinesi — eşzamanlılık (veritabanı) ══════════════════════
+
+   docs/POSTGRES_READINESS.md §c · P5'in OPERASYON yarısı. Denetim yarısı
+   (`asamaIlerlet`/`asamaGeriAl`) koşullu `updateMany` ile kapatılmıştı;
+   bu ikisi atlanmıştı: aşama okunup KOŞULSUZ yazılıyordu. "İlerlet" ile
+   "geri al" eşzamanlı koştuğunda kaybeden sessizce yutuluyor ve denetim
+   izine GERÇEKLEŞMEMİŞ bir geçiş düşüyordu.
+
+   Ölçülen şey mesaj değil SONUÇTUR: kayıttaki durum ve iz satırı sayısı.
+   Tek süreçte yeniden üretilebilmesinin sebebi `await`tir: iki çağrı da
+   YAZMADAN ÖNCE aynı durumu okur (bkz. tests/yaris-kosullari.test.ts). */
+
+let dgsSayac = 0;
+
+async function degisiklikAc(durum: string) {
+  return db.degisiklik.create({ data: {
+    kod: `OPYARIS-${Date.now()}-${dgsSayac++}`, baslik: 'Yarış testi değişikliği',
+    otMu: false, durum } });
+}
+
+async function izSatirlari(id: string) {
+  return db.aktiviteKaydi.findMany({
+    where: { varlikTipi: 'Degisiklik', varlikId: id, eylem: 'durum_degisimi' },
+    orderBy: { zaman: 'asc' },
+  });
+}
+
+type Sonuc = { ok: true } | { ok: false; hata: string };
+const basarili = (s: Sonuc[]) => s.filter((x) => x.ok).length;
+const basarisiz = (s: Sonuc[]) =>
+  s.filter((x): x is { ok: false; hata: string } => !x.ok);
+
+describe('Değişiklik aşaması — eşzamanlı karar', () => {
+  beforeAll(async () => {
+    const kisi = await db.kullanici.findFirstOrThrow({ where: { aktif: true } });
+    sahteKullanici.id = kisi.id;
+  });
+
+  it('aynı ilerletmeyi aynı anda deneyen ikiden yalnız biri yazar; izde TEK satır olur',
+    async () => {
+      const d = await degisiklikAc('talep');
+      const sonuclar = await Promise.all([
+        degisiklikIlerlet({ id: d.id }),
+        degisiklikIlerlet({ id: d.id }),
+      ]) as Sonuc[];
+
+      // Aşama tam BİR adım ilerledi.
+      expect((await db.degisiklik.findUniqueOrThrow({ where: { id: d.id } })).durum)
+        .toBe('onay');
+      expect(basarili(sonuclar)).toBe(1);
+      expect(basarisiz(sonuclar)[0].hata).toMatch(/başka bir kullanıcı tarafından değiştirildi/);
+
+      const iz = await izSatirlari(d.id);
+      expect(iz).toHaveLength(1);
+      expect(iz[0].oncekiDeger).toBe('talep');
+      expect(iz[0].yeniDeger).toBe('onay');
+    });
+
+  it('eşzamanlı "ilerlet" + "geri al": tam biri yazar, KAYBEDEN İZ BIRAKMAZ', async () => {
+    const d = await degisiklikAc('onay');
+    const sonuclar = await Promise.all([
+      degisiklikIlerlet({ id: d.id }),
+      degisiklikGeriAl({ id: d.id, gerekce: 'Bakım penceresi iptal edildi' }),
+    ]) as Sonuc[];
+
+    expect(basarili(sonuclar)).toBe(1);
+    const kayip = basarisiz(sonuclar);
+    expect(kayip).toHaveLength(1);
+    expect(kayip[0].hata).toMatch(/başka bir kullanıcı tarafından değiştirildi/);
+
+    /* Kusurun kalbi: iz GERÇEKLEŞEN geçişi anlatmalı. Kaybedenin satırı
+       ne fazladan düşmeli ne de kazananınkini yutmalı. */
+    const son = await db.degisiklik.findUniqueOrThrow({ where: { id: d.id } });
+    const iz = await izSatirlari(d.id);
+    expect(iz).toHaveLength(1);
+    expect(iz[0].oncekiDeger).toBe('onay');
+    expect(iz[0].yeniDeger).toBe(son.durum);
+    expect(['planlandi', 'geri_alindi']).toContain(son.durum);
+  });
+
+  it('aynı geri almayı aynı anda deneyen ikiden de yalnız biri yazar', async () => {
+    const d = await degisiklikAc('uygulandi');
+    const sonuclar = await Promise.all([
+      degisiklikGeriAl({ id: d.id, gerekce: 'Birinci geri alma' }),
+      degisiklikGeriAl({ id: d.id, gerekce: 'İkinci geri alma' }),
+    ]) as Sonuc[];
+
+    expect(basarili(sonuclar)).toBe(1);
+    expect(basarisiz(sonuclar)[0].hata)
+      .toMatch(/başka bir kullanıcı tarafından değiştirildi/);
+    expect((await db.degisiklik.findUniqueOrThrow({ where: { id: d.id } })).durum)
+      .toBe('geri_alindi');
+    // Tek geçiş, tek iz: "geri_alindi → geri_alindi" satırı düşmez.
+    const iz = await izSatirlari(d.id);
+    expect(iz).toHaveLength(1);
+    expect(iz[0].oncekiDeger).toBe('uygulandi');
   });
 });

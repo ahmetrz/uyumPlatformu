@@ -1,22 +1,24 @@
 'use client';
-import { useState, useTransition } from 'react';
+import { useCallback, useEffect, useState, useTransition } from 'react';
 import { Alan, Dugme, Im } from '@/components/atlas/temel';
 import { CekmeceEylemler } from '@/components/atlas/cekmece';
 import { useEylem } from '@/components/useEylem';
 import {
-  connectorEtkinlik, connectorKaydet, connectorKuruKosu, connectorSenkronize,
-  connectorTest,
+  connectorEtkinlik, connectorKapsamGorunumu, connectorKapsamKaydet,
+  connectorKaydet, connectorKuruKosu, connectorSenkronize, connectorTest,
 } from '@/lib/eylemler2/entegrasyon';
 import { eslemeProfiliBagla } from '@/lib/eylemler2/esleme';
 import { connectorCalismaAyari } from '@/lib/eylemler2/connectorCalisma';
 import type { KuruOzet } from '@/lib/entegrasyon/kuru';
 import type { ConnectorSagligi, EntegrasyonOzeti } from '@/lib/entegrasyon/saglikOzeti';
 import {
-  CONNECTOR_TIP, KIMLIK_TIP, ORTAM_SOZU, SENKRON_SOZU, TEST_IM, TEST_SOZU,
-  etkinEslemeProfili, formSorunlari, formVarsayilani, kuruEslesmeYazisi,
+  CONNECTOR_TIP, KAPSAM_KAYNAK_SOZU, KIMLIK_TIP, ORTAM_SOZU, SENKRON_SOZU,
+  TEST_IM, TEST_SOZU,
+  etkinEslemeProfili, formSorunlari, formVarsayilani, kapsamCumlesi,
+  kapsamDegisti, kapsamUyarilari, kuruEslesmeYazisi,
   kuruSayacYazisi, ortamGerekcesiEksik, ortamRengi, profilYazisi,
   testSonucunuYorumla,
-  type ConnectorFormu, type TestSonucu,
+  type ConnectorFormu, type KapsamGorunumu, type TestSonucu,
 } from './mantik';
 
 /* Connector YAPILANDIRMA TEZGÂHI — §8'in yazma yüzeyi.
@@ -38,6 +40,12 @@ import {
       demek değildir; bağlanmayı yalnız `baglandi` alanı söyler.
    3. ORTAM BİR GÜVENLİK ALANIDIR. Değiştirmek gerekçe ister ve kendi
       denetim izi satırını bırakır (lib/eylemler2/connectorCalisma.ts).
+   4. SANTRAL KAPSAMI DA BİR GÜVENLİK ALANIDIR ve artık BU EKRANDAN
+      yazılabilir. Şemadaki `Connector.kapsamTesisleriJson` kolonunu
+      çekirdek okuyordu ama ona yazan hiçbir yüzey yoktu; kapsamı
+      ayarlamanın tek yolu belgelenmemiş bir yapılandırma anahtarıydı.
+      Kapsam kendi bloğunda, kendi kaydetme düğmesiyle ve kendi iz
+      satırıyla yaşar (`connectorKapsamKaydet`).
 
    Modal YOK, snackbar YOK: her şey 420px çekmecede yaşar, sonuç ekranda
    satır olarak kalır. */
@@ -215,7 +223,171 @@ export function ConnectorYapilandirma({
       <p className="cekmece-dip" style={{ margin: 'var(--s14) 0 0' }}>
         Yeni kayıt taslak ve pasif doğar; koşmaya başlaması için ayrıca
         etkinleştirilmesi gerekir. Her kayıt denetim izine yazılır; sır
-        DEĞERİ hiçbir izde, logda ve yanıtta yer almaz.
+        DEĞERİ hiçbir izde, logda ve yanıtta yer almaz. Adaptör
+        yapılandırması (JSON) bu formdan GEÇMEZ ve bu yüzden kaydederken
+        DOKUNULMADAN kalır — eskiden buradan kaydetmek onu sessizce
+        siliyordu.
+      </p>
+
+      {c && <KapsamAlani c={c} />}
+    </div>
+  );
+}
+
+/* ── Santral kapsamı ───────────────────────────────────────────────────
+
+   Kapsam, connector'ın YAZABİLECEĞİ santrallerin listesidir; bir güvenlik
+   sınırıdır ve yapılandırmanın geri kalanından ayrı kaydedilir. Ayrı
+   olmasının sebebi kayıt sırasının güvenliği: bu blok kaydedilmezse
+   yukarıdaki alanların kaydı da kapsamı DEĞİŞTİRMEZ.
+
+   Blok yalnız KAYITLI connector'da görünür — kapsam bir kimliğe bağlanır,
+   henüz var olmayan kayda değil. */
+function KapsamAlani({ c }: { c: ConnectorSagligi }) {
+  const [gorunum, setGorunum] = useState<KapsamGorunumu | null>(null);
+  const [okumaHatasi, setOkumaHatasi] = useState<string | null>(null);
+  const [secili, setSecili] = useState<string[]>([]);
+  const [gerekce, setGerekce] = useState('');
+  const [yukleniyor, setYukleniyor] = useState(true);
+  const { bekliyor, hata, calistir } = useEylem();
+
+  /* Kapsam SUNUCUDAN okunur, ekranda türetilmez: yürürlükteki listeyi
+     çekirdeğin kendi fonksiyonu hesaplar (bkz. connectorKapsamGorunumu).
+     Ekranın gösterdiği kapsam ile koşuda uygulanan kapsam böylece
+     ayrışamaz. Okunamıyorsa BOŞ LİSTE gösterilmez — "sınır yok" ile
+     "okunamadı" aynı şey değildir. */
+  const uygula = useCallback((y: Awaited<ReturnType<typeof connectorKapsamGorunumu>>) => {
+    if (!y.ok) {
+      setOkumaHatasi(y.hata);
+      setGorunum(null);
+    } else {
+      setOkumaHatasi(null);
+      setGorunum({
+        kodlar: y.kodlar, kaynak: y.kaynak, mirasKodlari: y.mirasKodlari,
+        varsayilanTesisKodu: y.varsayilanTesisKodu, secenekler: y.secenekler,
+      });
+      setSecili(y.kodlar);
+    }
+    setYukleniyor(false);
+  }, []);
+
+  const yenile = useCallback(() => {
+    connectorKapsamGorunumu(c.id).then(uygula, (e: unknown) => {
+      setGorunum(null);
+      setOkumaHatasi(e instanceof Error ? e.message : 'okunamadı');
+      setYukleniyor(false);
+    });
+  }, [c.id, uygula]);
+
+  /* Effect yalnız isteği BAŞLATIR; durum tazelemesi yanıtın geri
+     çağrısındadır. Çekmece kapanırsa gelen yanıt yok sayılır. */
+  useEffect(() => {
+    let iptal = false;
+    connectorKapsamGorunumu(c.id).then(
+      (y) => { if (!iptal) uygula(y); },
+      (e: unknown) => {
+        if (iptal) return;
+        setGorunum(null);
+        setOkumaHatasi(e instanceof Error ? e.message : 'okunamadı');
+        setYukleniyor(false);
+      },
+    );
+    return () => { iptal = true; };
+  }, [c.id, uygula]);
+
+  if (yukleniyor) {
+    return (
+      <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
+        <p className="t-label" style={{ margin: 0 }}>Santral kapsamı</p>
+        <p className="cekmece-dip" style={{ margin: 'var(--s8) 0 0' }}>Okunuyor…</p>
+      </div>
+    );
+  }
+
+  if (!gorunum) {
+    return (
+      <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
+        <p className="t-label" style={{ margin: 0 }}>Santral kapsamı</p>
+        <p role="alert" style={{ margin: 'var(--s8) 0 0',
+          fontSize: 'var(--t-field)', color: 'var(--bd)' }}>
+          Kapsam okunamadı: {okumaHatasi ?? 'bilinmeyen sebep'}
+        </p>
+      </div>
+    );
+  }
+
+  const degisti = kapsamDegisti(gorunum.kodlar, secili);
+  const uyarilar = kapsamUyarilari(secili, gorunum);
+  const pasif = bekliyor || !degisti;
+
+  const cevir = (kod: string) => setSecili((o) =>
+    (o.includes(kod) ? o.filter((x) => x !== kod) : [...o, kod]));
+
+  return (
+    <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
+      <p className="t-label" style={{ margin: '0 0 var(--s8)' }}>Santral kapsamı</p>
+      <p style={{ margin: 0, fontSize: 'var(--t-field)', color: 'var(--md)' }}>
+        Kayıtlı: {kapsamCumlesi(gorunum.kodlar)}
+      </p>
+      <p style={{ margin: 'var(--s4) 0 var(--s12)',
+        fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
+        Kaynak · {KAPSAM_KAYNAK_SOZU[gorunum.kaynak]}
+      </p>
+
+      <div style={{ display: 'grid', gap: 'var(--s6)' }}>
+        {gorunum.secenekler.length === 0 && (
+          <p style={{ margin: 0, fontSize: 'var(--t-field)', color: 'var(--md)' }}>
+            Tanımlı santral yok.
+          </p>
+        )}
+        {gorunum.secenekler.map((t) => (
+          <label key={t.kod} style={{ display: 'flex', gap: 'var(--s8)',
+            alignItems: 'baseline', fontSize: 'var(--t-field)' }}>
+            <input type="checkbox" checked={secili.includes(t.kod)}
+              onChange={() => cevir(t.kod)} />
+            <span className="mono">{t.kod}</span>
+            <span style={{ color: 'var(--md)' }}>{t.ad}</span>
+          </label>
+        ))}
+      </div>
+
+      <div style={{ marginTop: 'var(--s12)' }}>
+        <Alan etiket="Gerekçe">
+          <input className="gr" value={gerekce}
+            onChange={(e) => setGerekce(e.target.value)}
+            placeholder="kapsam değişimi denetim izine yazılır" />
+        </Alan>
+      </div>
+
+      {uyarilar.length > 0 && (
+        <ul style={{ margin: 'var(--s12) 0 0', paddingLeft: 'var(--s16)',
+          fontSize: 'var(--t-field)', color: 'var(--md)' }}>
+          {uyarilar.map((x) => <li key={x}>{x}</li>)}
+        </ul>
+      )}
+
+      <div style={{ marginTop: 'var(--s14)' }}>
+        <Dugme tur="cekmece" disabled={pasif} style={pasifStil(pasif)}
+          onClick={() => calistir(
+            () => connectorKapsamKaydet({
+              connectorId: c.id, tesisKodlari: secili,
+              gerekce: gerekce.trim() || null,
+            }),
+            () => { setGerekce(''); yenile(); },
+          )}>
+          {bekliyor ? 'Kaydediliyor…' : degisti ? 'Kapsamı kaydet' : 'Kapsam değişmedi'}
+        </Dugme>
+      </div>
+
+      {hata && (
+        <p role="alert" style={{ margin: 'var(--s12) 0 0',
+          fontSize: 'var(--t-field)', color: 'var(--bd)' }}>{hata}</p>
+      )}
+
+      <p className="cekmece-dip" style={{ margin: 'var(--s14) 0 0' }}>
+        Kapsam connector&apos;ın YAZABİLECEĞİ santralleri sınırlar: kapsam dışı
+        santral adına gelen kayıt reddedilir, koşu sayacında görünür ve tek
+        satır bile yazılmaz. Hiçbir santral seçmemek sınırı KALDIRIR.
       </p>
     </div>
   );

@@ -50,6 +50,28 @@ export async function hesapKaydet(girdi: {
   } catch (e) { return hata(e); }
 }
 
+/** Tekillik kısıtı ihlali mi? İki indeks de aynı kuralı uygular:
+    Prisma'nın bildiği `@@unique` (P2002) ve göçte elle kurulan
+    COALESCE'li ifade indeksi (sürücüden ham SQLite hatası olarak gelir —
+    Prisma o indeksi tanımaz). İkisi de "bu atama zaten var" demektir. */
+function tekillikIhlali(e: unknown): boolean {
+  const kod = (e as { code?: unknown })?.code;
+  if (kod === 'P2002') return true;
+  const mesaj = e instanceof Error ? e.message : String(e);
+  return /UNIQUE constraint failed:\s*(index\s*'?)?ErisimAtamasi/i.test(mesaj);
+}
+
+/**
+ * Erişim ataması açar.
+ *
+ * TEKİLLİK VERİTABANINDADIR: (hesapId, varlikId, kapsam) üçlüsü tekildir
+ * (bkz. göç 20260901210000). Aşağıdaki ön kontrol bir kapı DEĞİLDİR —
+ * yalnız kullanıcıya anlaşılır bir cümle döndürmek içindir; eşzamanlı iki
+ * çağrıda kapıyı kısıt tutar ve ikincisi aynı mesajla reddedilir. Aynı
+ * üçlüye farklı yetki seviyesi vermek de yeni satır AÇMAZ: bir atamanın
+ * seviyesi değişiyorsa bu yeni bir erişim değil, mevcut erişimin
+ * değişimidir ve dönemsel incelemeden (`erisimIncele`) geçer.
+ */
 export async function erisimAta(girdi: {
   hesapId: string; varlikId?: string | null; kapsam?: string | null; yetkiSeviyesi: string;
 }): Promise<Sonuc> {
@@ -60,9 +82,24 @@ export async function erisimAta(girdi: {
       kapsam: z.string().nullable().optional(),
       yetkiSeviyesi: z.enum(['okuma', 'yazma', 'yonetici']),
     }).parse(girdi);
-    const yeni = await db.erisimAtamasi.create({ data: {
-      hesapId: v.hesapId, varlikId: v.varlikId ?? null,
-      kapsam: v.kapsam ?? null, yetkiSeviyesi: v.yetkiSeviyesi } });
+    const zatenVar = 'Bu hesabın aynı varlık ve kapsam için erişim ataması zaten var; '
+      + 'ikinci satır açılmaz. Seviyeyi değiştirmek için erişim incelemesini kullanın.';
+    const mevcut = await db.erisimAtamasi.findFirst({
+      where: {
+        hesapId: v.hesapId, varlikId: v.varlikId ?? null, kapsam: v.kapsam ?? null,
+      },
+      select: { id: true },
+    });
+    if (mevcut) return { ok: false, hata: zatenVar };
+    let yeni;
+    try {
+      yeni = await db.erisimAtamasi.create({ data: {
+        hesapId: v.hesapId, varlikId: v.varlikId ?? null,
+        kapsam: v.kapsam ?? null, yetkiSeviyesi: v.yetkiSeviyesi } });
+    } catch (e) {
+      if (tekillikIhlali(e)) return { ok: false, hata: zatenVar };
+      throw e;
+    }
     await iz({ aktorId: k.id, varlikTipi: 'ErisimAtamasi', varlikId: yeni.id,
       eylem: 'olusturma', sonra: v.yetkiSeviyesi });
     revalidatePath('/operasyon');

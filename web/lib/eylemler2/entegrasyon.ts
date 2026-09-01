@@ -9,7 +9,18 @@
      biçimi `referansGecerli()` ile doğrulanır; yapılandırma JSON'una gizlice
      parola konmasın diye kimlik bilgisi kokan alanlar reddedilir.
    · ÇIKIŞTA: denetim izine ve dönen değere yalnız referans ADRESİ
-     (`sirMaskesi`) yazılır; değer hiçbir yolda yüzeye çıkmaz. */
+     (`sirMaskesi`) yazılır; değer hiçbir yolda yüzeye çıkmaz.
+
+   KISMİ GÜNCELLEME SÖZLEŞMESİ (bkz. `connectorKaydet` yorumu): bu dosyadaki
+   yazma eylemleri "alan GÖNDERİLMEDİ" ile "alan BOŞ BIRAKILDI" arasında
+   ayrım yapar. Gönderilmeyen alan (undefined) mevcut değeri KORUR;
+   açıkça `null`/boş dize gelen alan SİLER. Tek istisna sır referansıdır ve
+   sebebi orada yazılıdır.
+
+   KAPSAM KAYNAĞI: connector'ın yazabileceği santraller TEK yerde tutulur —
+   `Connector.kapsamTesisleriJson` kolonu. Yapılandırma JSON'undaki eski
+   `kapsamTesisKodlari` anahtarı yalnız MİRAS okumadır (çekirdek göç
+   etmemiş kurulumlar için savunmacı okur) ve bu dosyadan yazılamaz. */
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
@@ -17,7 +28,10 @@ import { db } from '../db';
 import { yetkiZorunlu } from '../erisim';
 import { referansGecerli, sirMaskesi, siriCoz } from '../entegrasyon/sir';
 import { adaptorCoz } from '../entegrasyon/kayit';
-import { senkronizasyonKos, sirsizlastir, type KosuOzeti, type Tetikleyen } from '../entegrasyon/cekirdek';
+import {
+  connectorKapsamKodlari, senkronizasyonKos, sirsizlastir,
+  type KosuOzeti, type Tetikleyen,
+} from '../entegrasyon/cekirdek';
 import { tamam, hata, iz, bosluksuz, type Sonuc } from './ortak';
 
 const TIPLER = ['ad_entra', 'vuln_scanner', 'edr', 'siem', 'backup',
@@ -76,11 +90,36 @@ function sirDegeriAra(deger: unknown, yol: string[] = []): string | null {
 /**
  * Connector oluşturur/günceller. Sır DEĞERİ kabul edilmez: yalnız referans
  * (`env:AD_PAROLA`, `dosya:/run/secrets/ad#parola`) saklanır.
+ *
+ * KISMİ GÜNCELLEME — "alan yok" ile "alan boş" AYRI ŞEYDİR:
+ *
+ *   · `yapilandirmaJson` / `pollAralikDk` GÖNDERİLMEZSE (undefined) kayıttaki
+ *     değer OLDUĞU GİBİ KALIR.
+ *   · Aynı alanlar açıkça `null` (yapılandırmada boş dize de null'a çevrilir)
+ *     gelirse SİLİNİR — bu bilinçli bir temizlemedir.
+ *
+ * NİÇİN: form yapılandırma metnini taşımıyordu ve eylem onu koşulsuz
+ * `?? null` ile yazıyordu; yani bir connector'ın yalnız ADINI düzeltmek
+ * adaptör ayarlarını ve varsayılan tesis kodunu sessizce siliyordu. Sessiz
+ * silme yolu buradan kapatıldı: silmek artık ancak açıkça istenebilir.
+ *
+ * `sirReferansi` BİLİNÇLİ İSTİSNADIR ve koşulsuz yazılır: kayıtlı referans
+ * forma geri doldurulmaz ve form her kayıtta yeniden yazılmasını zorunlu
+ * kılar (`saglik/mantik.ts` · formSorunlari). Orada "boş gelmesi" gerçekten
+ * "sırrı kaldır" demektir; korumak, kaldırma yolunu kapatırdı.
+ *
+ * `etkin` de koşulsuzdur: etkinliğin kendi eylemi vardır
+ * (`connectorEtkinlik`) ve form kayıtlı değeri her çağrıda geri gönderir.
  */
 export async function connectorKaydet(girdi: {
   id?: string; kod: string; ad: string; tip: string; kaynakSistem: string;
-  kimlikTipi?: string; yapilandirmaJson?: string | null;
-  sirReferansi?: string | null; pollAralikDk?: number | null; etkin?: boolean;
+  kimlikTipi?: string;
+  /** GÖNDERİLMEZSE korunur · açıkça null/'' gelirse silinir */
+  yapilandirmaJson?: string | null;
+  sirReferansi?: string | null;
+  /** GÖNDERİLMEZSE korunur · açıkça null gelirse silinir */
+  pollAralikDk?: number | null;
+  etkin?: boolean;
 }): Promise<Sonuc> {
   try {
     const k = await yetkiZorunlu('yonetim', 'yazma');
@@ -110,13 +149,29 @@ export async function connectorKaydet(girdi: {
           `Yapılandırmaya kimlik bilgisi yazılamaz ('${sirli}'). ` +
           'Değeri sır sağlayıcısına koyup sirReferansi alanına adresini girin.');
       }
+      /* KAPSAM İKİ KAYNAKTAN YAZILAMAZ. Çekirdek okurken kolonu üstün
+         tutar (`connectorKapsamKodlari`); yapılandırmadan da yazılabilseydi
+         ekranda görünen kapsam ile uygulanan kapsam ayrışırdı. Yazma
+         yüzeyi tektir: `connectorKapsamKaydet`. */
+      if ('kapsamTesisKodlari' in (ayristirilan as Record<string, unknown>)) {
+        throw new Error(
+          'Santral kapsamı yapılandırma JSON\'una yazılamaz. Kapsam ayrı bir '
+          + 'alandır (Connector.kapsamTesisleriJson) ve "Santral kapsamı" '
+          + 'yüzeyinden ayarlanır; oradan kaydetmek eski anahtarı da devralır.');
+      }
     }
 
+    /* Yalnız GÖNDERİLEN alanlar yazılır (bkz. fonksiyon yorumu):
+       `undefined` = dokunma, `null` = sil. */
     const veri = {
       kod: v.kod, ad: v.ad, tip: v.tip, kaynakSistem: v.kaynakSistem,
-      kimlikTipi: v.kimlikTipi, yapilandirmaJson: v.yapilandirmaJson ?? null,
-      sirReferansi: v.sirReferansi ?? null, pollAralikDk: v.pollAralikDk ?? null,
+      kimlikTipi: v.kimlikTipi,
+      sirReferansi: v.sirReferansi ?? null,
       etkin: v.etkin,
+      ...(v.yapilandirmaJson !== undefined
+        ? { yapilandirmaJson: v.yapilandirmaJson } : {}),
+      ...(v.pollAralikDk !== undefined
+        ? { pollAralikDk: v.pollAralikDk } : {}),
     };
 
     const onceki = v.id
@@ -139,6 +194,185 @@ export async function connectorKaydet(girdi: {
     revalidatePath('/saglik');
     return tamam();
   } catch (e) { return hata(e); }
+}
+
+/* ═══ Santral kapsamı ════════════════════════════════════════════════
+
+   Şemadaki `Connector.kapsamTesisleriJson` bir GÜVENLİK SINIRIDIR ve
+   çekirdek onu okur (`lib/entegrasyon/cekirdek.ts` · connectorKapsamKodlari
+   → senkronizasyonKos); ama repoda ona YAZAN hiçbir yol yoktu: eylem yok,
+   form yok, seed yok. Kapsamı ayarlamanın tek yolu belgelenmemiş
+   `yapilandirmaJson.kapsamTesisKodlari` anahtarıydı — yani şemada denetim
+   kontrolü gibi duran kolon fiilen mevcut değildi. Aşağıdaki iki eylem o
+   boşluğu kapatır.
+
+   İKİ KAYNAK — HANGİSİ KAZANIR (dondurulmuş karar):
+
+     KOLON KAZANIR. Çekirdeğin okuma sırası budur: kolon çözümlenip boş
+     olmayan bir liste veriyorsa yapılandırma anahtarına HİÇ bakılmaz;
+     yalnız kolon boş/okunmazken miras anahtara düşülür. Yazma tarafı buna
+     uydurulmuştur:
+       · kapsam YALNIZ kolona yazılır (`connectorKapsamKaydet`),
+       · `connectorKaydet` yapılandırma içinde `kapsamTesisKodlari`
+         görürse yazmayı REDDEDER,
+       · kapsam kaydedilirken yapılandırmada kalmış miras anahtar aynı
+         transaction'da SİLİNİR ve denetim izine yazılır.
+     Böylece kayıtta aynı anda iki dolu kaynak bırakılmaz; miras anahtar
+     ancak bu ekrandan hiç geçmemiş eski kayıtlarda kalır ve orada da
+     kolon boş olduğu için okuma tektir. */
+
+/** Kapsam kodlarının ortak doğrulaması: boşlar atılır, sıra korunarak
+    tekilleştirilir. Boş liste = "kapsam sınırı yok" (çekirdek boş diziyi ve
+    tanımsızı AYNI sayar; "hiçbir santrale yazamaz" demek için connector
+    pasife alınır, boş kapsam listesi bırakılmaz). */
+const KapsamSemasi = z.object({
+  connectorId: z.string().trim().min(1, 'Connector kimliği zorunlu'),
+  tesisKodlari: z.array(z.string()).default([])
+    .transform((liste) => [...new Set(liste.map((x) => x.trim()).filter(Boolean))]),
+  gerekce: metin,
+});
+
+/** Kapsamın hangi kaynaktan okunduğu — ekranda da bu sözcükler görünür. */
+export type KapsamKaynagi = 'kolon' | 'yapilandirma_mirasi' | 'yok';
+
+/**
+ * Kapsam yüzeyinin okuma tarafı: yürürlükteki kapsam, kaynağı ve
+ * seçilebilecek santraller. Yetki 'yonetim/okuma' — yazmaya girmeden
+ * mevcut sınırın görülebilmesi gerekir.
+ *
+ * Yürürlükteki liste ÇEKİRDEĞİN KENDİ FONKSİYONUYLA hesaplanır; ekranda
+ * gösterilen kapsam ile koşuda uygulanan kapsamın ayrışması böylece
+ * yapısal olarak imkânsızdır.
+ */
+export async function connectorKapsamGorunumu(connectorId: string): Promise<
+  | {
+      ok: true; kodlar: string[]; kaynak: KapsamKaynagi;
+      mirasKodlari: string[]; varsayilanTesisKodu: string | null;
+      secenekler: { kod: string; ad: string }[];
+    }
+  | { ok: false; hata: string }
+> {
+  try {
+    await yetkiZorunlu('yonetim', 'okuma');
+    const c = await db.connector.findUniqueOrThrow({ where: { id: connectorId } });
+    const yapilandirma = yapilandirmayiCoz(c.yapilandirmaJson);
+    const kolonKodlari = connectorKapsamKodlari({}, c.kapsamTesisleriJson) ?? [];
+    const mirasKodlari = connectorKapsamKodlari(yapilandirma, null) ?? [];
+    const kodlar = connectorKapsamKodlari(yapilandirma, c.kapsamTesisleriJson) ?? [];
+    const tesisler = await db.tesis.findMany({
+      select: { kod: true, ad: true }, orderBy: { kod: 'asc' },
+    });
+    return {
+      ok: true,
+      kodlar,
+      kaynak: kolonKodlari.length > 0 ? 'kolon'
+        : mirasKodlari.length > 0 ? 'yapilandirma_mirasi' : 'yok',
+      mirasKodlari,
+      varsayilanTesisKodu: typeof yapilandirma.tesisKodu === 'string'
+        ? yapilandirma.tesisKodu : null,
+      secenekler: tesisler,
+    };
+  } catch (e) { return basarisiz(e); }
+}
+
+/**
+ * Connector'ın YAZABİLECEĞİ santralleri belirler — kolona yazan tek yol.
+ *
+ * Üç kapı:
+ *  1. Çözülemeyen santral kodu REDDEDİLİR. Çekirdek de çözülemeyen kapsam
+ *     kodunda koşuyu hiç başlatmaz; yazarken kabul edip koşarken patlatmak
+ *     kapsamı "var ama işlemiyor" hâline getirirdi.
+ *  2. Yapılandırmadaki varsayılan tesis kodu kapsamın dışındaysa
+ *     REDDEDİLİR — çekirdeğin 'kapsam çelişkisi' hatasının yazma tarafı.
+ *  3. Yapılandırmada kalmış miras `kapsamTesisKodlari` anahtarı aynı
+ *     transaction'da silinir; iki doğruluk kaynağı bırakılmaz.
+ *
+ * Kapsam bir güvenlik sınırıdır: değişimi (genişleme de daralma da) izin
+ * kendi satırıyla denetim izine düşer ve iz durum değişimiyle AYNI
+ * transaction'dadır (bkz. ortak.ts `iz` yorumu).
+ */
+export async function connectorKapsamKaydet(girdi: {
+  connectorId: string; tesisKodlari: string[]; gerekce?: string | null;
+}): Promise<Sonuc> {
+  try {
+    const k = await yetkiZorunlu('yonetim', 'yazma');
+    const v = KapsamSemasi.parse(girdi);
+    const c = await db.connector.findUnique({ where: { id: v.connectorId } });
+    if (!c) throw new Error('Connector bulunamadı');
+    if (c.silindi) throw new Error('Silinmiş connector kapsamı değiştirilemez');
+
+    if (v.tesisKodlari.length > 0) {
+      const tesisler = await db.tesis.findMany({
+        where: { kod: { in: v.tesisKodlari } }, select: { kod: true },
+      });
+      const bulunan = new Set(tesisler.map((t) => t.kod));
+      const eksik = v.tesisKodlari.filter((kod) => !bulunan.has(kod));
+      if (eksik.length > 0) {
+        throw new Error(`Tanımlı olmayan santral kodu: ${eksik.join(', ')}`);
+      }
+    }
+
+    const yapilandirma = yapilandirmayiCoz(c.yapilandirmaJson);
+    const varsayilan = typeof yapilandirma.tesisKodu === 'string'
+      ? yapilandirma.tesisKodu.trim() : null;
+    if (varsayilan && v.tesisKodlari.length > 0 && !v.tesisKodlari.includes(varsayilan)) {
+      throw new Error(
+        `Yapılandırmadaki varsayılan tesis kodu (${varsayilan}) kapsamın dışında — `
+        + 'çelişkili yapılandırma koşuyu hiç başlatmaz. Ya kapsama ekleyin ya '
+        + 'varsayılanı değiştirin.');
+    }
+
+    const oncekiKodlar = connectorKapsamKodlari(yapilandirma, c.kapsamTesisleriJson) ?? [];
+    const mirasVar = 'kapsamTesisKodlari' in yapilandirma;
+    const yeniYapilandirma = { ...yapilandirma };
+    delete yeniYapilandirma.kapsamTesisKodlari;
+
+    await db.$transaction(async (tx) => {
+      await tx.connector.update({
+        where: { id: c.id },
+        data: {
+          // Boş liste = sınır yok; kolon o zaman null kalır (çekirdek boş
+          // diziyi zaten "sınır yok" sayar, iki gösterim bırakmıyoruz).
+          kapsamTesisleriJson: v.tesisKodlari.length > 0
+            ? JSON.stringify(v.tesisKodlari) : null,
+          ...(mirasVar
+            ? { yapilandirmaJson: Object.keys(yeniYapilandirma).length > 0
+              ? JSON.stringify(yeniYapilandirma) : null }
+            : {}),
+        },
+      });
+      await iz({
+        aktorId: k.id, varlikTipi: 'Connector', varlikId: c.id,
+        eylem: 'kapsam_degisimi', alan: 'kapsamTesisleri',
+        once: oncekiKodlar.length > 0 ? oncekiKodlar.join(', ') : 'sınır yok',
+        sonra: v.tesisKodlari.length > 0 ? v.tesisKodlari.join(', ') : 'sınır yok',
+        gerekce: [
+          v.gerekce,
+          mirasVar ? 'yapılandırmadaki miras kapsamTesisKodlari anahtarı kolona taşındı' : null,
+        ].filter(Boolean).join(' · ') || null,
+      }, tx);
+    });
+
+    revalidatePath('/saglik');
+    return tamam();
+  } catch (e) { return hata(e); }
+}
+
+/** Yapılandırma metnini nesneye çevirir; okunamayan yapılandırma SESSİZCE
+    boş sayılmaz — kapsam kararı okunamayan bir metne dayanamaz. */
+function yapilandirmayiCoz(ham: string | null): Record<string, unknown> {
+  if (!ham) return {};
+  let ayristirilan: unknown;
+  try {
+    ayristirilan = JSON.parse(ham);
+  } catch (e) {
+    throw new Error(
+      `Kayıtlı yapılandırma okunamadı: ${e instanceof Error ? e.message : 'geçersiz JSON'}`);
+  }
+  if (!ayristirilan || typeof ayristirilan !== 'object' || Array.isArray(ayristirilan)) {
+    throw new Error('Kayıtlı yapılandırma bir JSON nesnesi değil');
+  }
+  return ayristirilan as Record<string, unknown>;
 }
 
 /**

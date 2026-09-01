@@ -57,8 +57,20 @@ export async function degisiklikKaydet(girdi: {
   } catch (e) { return hata(e); }
 }
 
+/** Eşzamanlı iki aşama kararından KAYBEDENİN mesajı. Kardeş makineyle
+    (lib/eylemler2/denetim.ts) aynı cümle: kaybeden hiçbir şey yazmaz. */
+const ASAMA_CAKISMASI =
+  'Değişikliğin aşaması bu sırada başka bir kullanıcı tarafından değiştirildi; '
+  + 'sayfayı yenileyip güncel aşamayla tekrar deneyin.';
+
 /** Aşama ilerletme: OT değişikliğinde EMNİYET KAPILARI zorunlu —
-    onaysız/plansız OT değişikliği uygulanamaz, doğrulamasız kapanamaz. */
+    onaysız/plansız OT değişikliği uygulanamaz, doğrulamasız kapanamaz.
+
+    SAHİPLENME: geçiş koşullu `updateMany` ile yazılır (`durum` okunduğu
+    gibi duruyorsa) ve iz AYNI transaction'dadır. Eskiden aşama okunup
+    koşulsuz yazılıyordu: "ilerlet" ile "geri al" eşzamanlı koşarsa kaybeden
+    sessizce yutuluyor, denetim izine GERÇEKLEŞMEMİŞ bir geçiş düşüyordu.
+    `count === 0` → açık hata, ize hiçbir şey yazılmaz. */
 export async function degisiklikIlerlet(girdi: { id: string; sonDogrulama?: string | null }): Promise<Sonuc> {
   try {
     const k = await yetkiZorunlu('envanter', 'yazma');
@@ -85,28 +97,45 @@ export async function degisiklikIlerlet(girdi: { id: string; sonDogrulama?: stri
     if (hedef === 'dogrulandi' && !girdi.sonDogrulama?.trim())
       return { ok: false, hata: 'Kapanış için değişiklik-sonrası doğrulama notu zorunlu' };
 
-    await db.degisiklik.update({ where: { id: girdi.id }, data: {
-      durum: hedef,
-      ...(hedef === 'onay' ? { onaylayanId: k.id } : {}),
-      ...(hedef === 'dogrulandi' ? { sonDogrulama: girdi.sonDogrulama } : {}),
-    } });
-    await iz({ aktorId: k.id, varlikTipi: 'Degisiklik', varlikId: d.id,
-      eylem: 'durum_degisimi', alan: 'durum', once: d.durum, sonra: hedef,
-      gerekce: hedef === 'dogrulandi' ? girdi.sonDogrulama : null });
+    await db.$transaction(async (tx) => {
+      const sonuc = await tx.degisiklik.updateMany({
+        where: { id: girdi.id, durum: d.durum },
+        data: {
+          durum: hedef,
+          ...(hedef === 'onay' ? { onaylayanId: k.id } : {}),
+          ...(hedef === 'dogrulandi' ? { sonDogrulama: girdi.sonDogrulama } : {}),
+        },
+      });
+      if (sonuc.count === 0) throw new Error(ASAMA_CAKISMASI);
+      /* İz aynı transaction'da: tek SQLite bağlantısında transaction DIŞINDA
+         yazılan iz, eşzamanlı bir geri sarmada sessizce yutulur (ölçüldü,
+         bkz. ortak.ts). Geçiş ile iz birlikte olur ya da hiç olmaz. */
+      await iz({ aktorId: k.id, varlikTipi: 'Degisiklik', varlikId: d.id,
+        eylem: 'durum_degisimi', alan: 'durum', once: d.durum, sonra: hedef,
+        gerekce: hedef === 'dogrulandi' ? girdi.sonDogrulama : null }, tx);
+    });
     revalidatePath('/operasyon');
     return tamam();
   } catch (e) { return hata(e); }
 }
 
+/** Geri alma: ilerletmeyle AYNI sahiplenme kuralına tabidir — eşzamanlı
+    bir ilerletme kazandıysa burada `count === 0` olur ve geri alma iz
+    BIRAKMADAN reddedilir. */
 export async function degisiklikGeriAl(girdi: { id: string; gerekce: string }): Promise<Sonuc> {
   try {
     const k = await yetkiZorunlu('envanter', 'onay');
     const v = z.object({ id: z.string(), gerekce: bosluksuz('Gerekçe') }).parse(girdi);
     const d = await db.degisiklik.findUniqueOrThrow({ where: { id: v.id } });
-    await db.degisiklik.update({ where: { id: v.id }, data: { durum: 'geri_alindi' } });
-    await iz({ aktorId: k.id, varlikTipi: 'Degisiklik', varlikId: v.id,
-      eylem: 'durum_degisimi', alan: 'durum', once: d.durum, sonra: 'geri_alindi',
-      gerekce: v.gerekce });
+    await db.$transaction(async (tx) => {
+      const sonuc = await tx.degisiklik.updateMany({
+        where: { id: v.id, durum: d.durum }, data: { durum: 'geri_alindi' },
+      });
+      if (sonuc.count === 0) throw new Error(ASAMA_CAKISMASI);
+      await iz({ aktorId: k.id, varlikTipi: 'Degisiklik', varlikId: v.id,
+        eylem: 'durum_degisimi', alan: 'durum', once: d.durum, sonra: 'geri_alindi',
+        gerekce: v.gerekce }, tx);
+    });
     revalidatePath('/operasyon');
     return tamam();
   } catch (e) { return hata(e); }

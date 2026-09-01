@@ -16,7 +16,7 @@
 /** Anahtar: istenen rota · Değer: izin verilen TEK varış. */
 export const BILINCLI_YONLENDIRME = new Map([
   /* `/tesisler` kanonik santral listesi DEĞİLDİR; liste `/portfoy`dur
-     (app/(atlas)/(flagship)/tesisler/page.tsx → redirect('/portfoy')).
+     (app/(kabuk)/(flagship)/tesisler/page.tsx → redirect('/portfoy')).
      Ray tek aktif öğe göstersin diye iki ekran tek öğede birleştirildi. */
   ['/tesisler', '/portfoy'],
 ]);

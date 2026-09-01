@@ -141,11 +141,11 @@ zamanı; mobil/tablet kullanım (hedef değil, reddedilmiş de değil).
 
 - **Ad:** Zorlu Enerji Yönetişim Platformu. Tek ürün adı budur; kısa ad
   yok. Sekme başlığı (`app/layout.tsx` şablonu), kabuk sözcük markaları
-  (`components/abacus/Kabuk.tsx`: A monogram "ZE", B iki satırlı sözcük
+  (`components/kabuk/Kabuk.tsx`: A monogram "ZE", B iki satırlı sözcük
   markası, C künye) ve giriş ekranı bu adı taşır. Karar: Ahmet, 2026-09-01.
-- **Kod adları kullanıcıya görünmez:** "Voltaj Atlas", "Abacus" ve "Atlas"
-  taşınan tasarımın iç kod adlarıdır; rota grubu `(atlas)`, `atlas-*`
-  sınıfları, `abacus.css` ve kod yorumlarında kalabilir, ancak arayüz
+- **Kod adları kullanıcıya görünmez:** "Voltaj Atlas" ve "Atlas"
+  taşınan tasarımın iç kod adlarıdır; rota grubu `(kabuk)`, `atlas-*`
+  sınıfları, `kabuk.css` ve kod yorumlarında kalabilir, ancak arayüz
   metninde, sekme başlığında ve dokümanların ürün adı geçen yerlerinde
   kullanılmaz.
 - **Ses:** Türkçe, doğrudan, kurumsal ama kuru değil; ürün kendini

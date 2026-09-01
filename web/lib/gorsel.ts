@@ -56,6 +56,6 @@ export function gorselAlt(ad: string, tipAdi: string, konum?: string | null): st
 }
 
 /* Üretim tipi kimlik rengi ve adı ARTIK BURADA DEĞİL:
-   `components/abacus/tip.ts`. Nedeni Atlas token'larına (`--jesd`)
-   bağlıydı ve koyu/açık yüzeyi ÇAĞIRANIN bilmesini istiyordu; Abacus'ta
+   `components/kabuk/tip.ts`. Nedeni Atlas token'larına (`--jesd`)
+   bağlıydı ve koyu/açık yüzeyi ÇAĞIRANIN bilmesini istiyordu; yeni kabukta
    yüzeyi YÖN belirler, ekran değil. */

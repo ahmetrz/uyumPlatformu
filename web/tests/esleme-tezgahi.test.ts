@@ -42,11 +42,11 @@ vi.mock('next/headers', () => ({
 
 const { db } = await import('@/lib/db');
 const E = await import('@/lib/eylemler2/esleme');
-const M = await import('@/app/(atlas)/(operasyonel)/esleme/mantik');
+const M = await import('@/app/(kabuk)/(operasyonel)/esleme/mantik');
 
-type SurumSatiri = import('@/app/(atlas)/(operasyonel)/esleme/mantik').SurumSatiri;
+type SurumSatiri = import('@/app/(kabuk)/(operasyonel)/esleme/mantik').SurumSatiri;
 type ConnectorSatiri =
-  import('@/app/(atlas)/(operasyonel)/esleme/mantik').ConnectorSatiri;
+  import('@/app/(kabuk)/(operasyonel)/esleme/mantik').ConnectorSatiri;
 
 /* ═══ Fikstür ═════════════════════════════════════════════════════════ */
 

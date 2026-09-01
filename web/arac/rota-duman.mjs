@@ -106,9 +106,9 @@ function somutlastir(giris) {
 
 /* ── 3. Beklentiler ────────────────────────────────────────────────── */
 
-/* Kabuk: `(atlas)` grubundaki her ekran rayı taşır. `(giris)` ve `(tam)`
+/* Kabuk: `(kabuk)` grubundaki her ekran rayı taşır. `(giris)` ve `(tam)`
    kendi kabuklarını taşır — rayları YOKTUR, bu bir kusur değil karardır. */
-const rayBekleniyor = (g) => g.grup.includes('(atlas)');
+const rayBekleniyor = (g) => g.grup.includes('(kabuk)');
 
 /* Rayda KENDİ ÖĞESİ olmayan ama kabuğu paylaşan ekranlar: aktif öğe ya
    üst rotanınkidir ya da hiç yoktur. Aktif öğe sayısı > 1 her zaman

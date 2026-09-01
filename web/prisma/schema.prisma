@@ -507,7 +507,7 @@ model AktiviteKaydi {
   aktor Kullanici? @relation(fields: [aktorId], references: [id])
 
   @@index([varlikTipi, varlikId, zaman])
-  /// Aktivite ekranı (app/(atlas)/(operasyonel)/aktivite/page.tsx) filtresiz
+  /// Aktivite ekranı (app/(kabuk)/(operasyonel)/aktivite/page.tsx) filtresiz
   /// `zaman desc` okur; yukarıdaki indeksin ilk kolonu varlikTipi olduğu için
   /// o sorguya yaramaz. ÖLÇÜLMEDİ — tablo bugün ~22 satır, ölçülecek bir fark
   /// yok. Gerekçe BÜYÜMEDİR: denetim izi hiç silinmez (bkz.
@@ -1829,7 +1829,7 @@ model KesifKaydi {
   @@unique([kaynak, kaynakKayitId])
   @@index([durum, sonGorulme])
   @@index([tesisId, durum])
-  /// Keşif kuyruğu ekranı (app/(atlas)/(operasyonel)/kesif/page.tsx) durum
+  /// Keşif kuyruğu ekranı (app/(kabuk)/(operasyonel)/kesif/page.tsx) durum
   /// filtresi OLMADAN `sonGorulme desc` sıralar; yukarıdaki [durum, sonGorulme]
   /// indeksi bu sorguya yaramaz (ilk kolonu durum). ÖLÇÜLDÜ
   /// (PERFORMANS_TABANI §6): 100.000 satırda tam tarama + geçici B-ağacı

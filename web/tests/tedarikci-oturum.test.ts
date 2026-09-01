@@ -32,7 +32,7 @@ const {
 } = await import('@/lib/entegrasyon/tedarikciOturum');
 const { oturumKarariKaydet } = await import('@/lib/eylemler2/tedarikciOturum');
 const { tedarikciEkranVerisi } =
-  await import('@/app/(atlas)/(operasyonel)/tedarikciler/veri');
+  await import('@/app/(kabuk)/(operasyonel)/tedarikciler/veri');
 
 /** Kapsamı tek santrale kısıtlı kullanıcı — gerçek `izinVar` bunu okur. */
 const tekSantralKullanicisi = (tesisId: string, id: string) => ({

@@ -45,7 +45,7 @@ const { entegrasyonSagligiOzeti, connectorSagligi } =
 const { connectorTest } = await import('@/lib/eylemler2/entegrasyon');
 const { connectorCalismaAyari } = await import('@/lib/eylemler2/connectorCalisma');
 const { sirSaglayicilari, sirMaskesi } = await import('@/lib/entegrasyon/sir');
-const M = await import('@/app/(atlas)/(operasyonel)/saglik/mantik');
+const M = await import('@/app/(kabuk)/(operasyonel)/saglik/mantik');
 const { aktifKullanici } = await import('@/lib/auth');
 
 type ConnectorGirdi = Parameters<typeof connectorSagligi>[0];

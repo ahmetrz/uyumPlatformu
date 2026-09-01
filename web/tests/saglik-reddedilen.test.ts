@@ -4,7 +4,7 @@ import { createHash, randomBytes } from 'node:crypto';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 // Yalnız TİP: derlemede silinir, TEST_DB kuralını bozmaz.
-import type { RedSatiri } from '@/app/(atlas)/(operasyonel)/saglik/reddedilenler/mantik';
+import type { RedSatiri } from '@/app/(kabuk)/(operasyonel)/saglik/reddedilenler/mantik';
 
 /* Dead-letter (reddedilen kayıt) inceleme kuyruğu.
 
@@ -33,7 +33,7 @@ vi.mock('next/headers', () => ({
 
 const { db } = await import('@/lib/db');
 const { redKaydiIncele } = await import('@/lib/eylemler2/reddedilenKayit');
-const R = await import('@/app/(atlas)/(operasyonel)/saglik/reddedilenler/mantik');
+const R = await import('@/app/(kabuk)/(operasyonel)/saglik/reddedilenler/mantik');
 
 let kayitId = '';
 let kullaniciId = '';

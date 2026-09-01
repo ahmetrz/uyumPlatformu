@@ -10,7 +10,7 @@ import {
   korumaAcigi, kullanimda, kuyrukMetni, mercekten, metrikleriHesapla, olgu,
   omurGunu, sirala, suz, turKapsamindan, varlikDurumu, varsayilanTesis,
   type Bolge, type Kodlu, type V,
-} from '@/app/(atlas)/(operasyonel)/envanter/mantik';
+} from '@/app/(kabuk)/(operasyonel)/envanter/mantik';
 
 const SIMDI = Date.parse('2026-06-01T00:00:00.000Z');
 const GUN = 86_400_000;

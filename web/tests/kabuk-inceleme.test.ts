@@ -22,7 +22,7 @@ copyFileSync('prisma/dev.db', testDb);
 process.env.TEST_DB = testDb;
 
 const { db } = await import('@/lib/db');
-const V = await import('@/components/abacus/durumAyagiVerisi');
+const V = await import('@/components/kabuk/durumAyagiVerisi');
 const K = await import('../arac/rota-kurallari.mjs');
 
 type Yetki = {
@@ -176,7 +176,7 @@ describe('Rota duman · beklenmeyen yönlendirme kusurdur', () => {
     const { readFileSync } = await import('node:fs');
     for (const [kaynak, hedef] of K.BILINCLI_YONLENDIRME) {
       const dosya = kaynak === '/tesisler'
-        ? 'app/(atlas)/(flagship)/tesisler/page.tsx'
+        ? 'app/(kabuk)/(flagship)/tesisler/page.tsx'
         : null;
       expect(dosya, `${kaynak} için kaynak dosya eşlemesi yok`).not.toBeNull();
       const metin = readFileSync(dosya!, 'utf8');

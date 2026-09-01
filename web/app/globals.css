@@ -2,13 +2,13 @@
    BELGE KATMANI
 
    Bu dosyada YALNIZ belge sıfırlaması vardır. Ürünün bütün sunumu
-   `abacus.css` içinde, `.ab` kapsamında yaşar; kabuk her rotayı o
+   `kabuk.css` içinde, `.ab` kapsamında yaşar; kabuk her rotayı o
    kapsamla sarar.
 
    ── NE SİLİNDİ ─────────────────────────────────────────────────────────
    Bu dosya sırasıyla iki tasarımın stil katmanıydı: önce Ozalit kabuğu,
    sonra Atlas token seti (`tokens.css` içe aktarımı) ve
-   `atlas.css` (978 satır). Abacus geçişiyle üçünün de son kullanıcısı
+   `atlas.css` (978 satır). Yeni kabuk geçişiyle üçünün de son kullanıcısı
    kalmadı; `arac/iz-tarama.mjs` bunu her koşuda kanıtlar. Silinenler:
      · `app/atlas.css`   — 978 satır, Atlas kabuğu ve primitifleri
      · `app/tokens.css`  — 397 satır, Ozalit/Atlas token seti
@@ -36,7 +36,7 @@ body {
 }
 
 /* Yazdırma: rapor çıktısı beyaz kâğıda siyah mürekkeple basılır; ekran
-   temasının koyu zemini yazıcıya gitmez. Kabuk kuralları abacus.css'te. */
+   temasının koyu zemini yazıcıya gitmez. Kabuk kuralları kabuk.css'te. */
 @media print {
   body { background: #fff; color: #000; }
 }

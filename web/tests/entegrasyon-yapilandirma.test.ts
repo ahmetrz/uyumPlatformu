@@ -61,10 +61,10 @@ const { connectorKapsamKodlari, senkronizasyonKos } =
   await import('@/lib/entegrasyon/cekirdek');
 const { adaptorKaydet, adaptorSil } = await import('@/lib/entegrasyon/kayit');
 const { temelDogrula } = await import('@/lib/entegrasyon/sozlesme');
-const M = await import('@/app/(atlas)/(operasyonel)/saglik/mantik');
+const M = await import('@/app/(kabuk)/(operasyonel)/saglik/mantik');
 
 import type { Adaptor, CekmeSonucu, Gozlem } from '@/lib/entegrasyon/sozlesme';
-import type { KapsamGorunumu } from '@/app/(atlas)/(operasyonel)/saglik/mantik';
+import type { KapsamGorunumu } from '@/app/(kabuk)/(operasyonel)/saglik/mantik';
 
 const ONEK = 'EYAP';
 const kimlik = { tesisA: '', tesisB: '' };

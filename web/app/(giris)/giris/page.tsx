@@ -4,7 +4,7 @@ import GirisFormu from './GirisFormu';
 import { TEMEL } from '@/lib/demo';
 
 /* Giriş — oturum yok, kayıt yok, karar yok: uygulama kabuğunun dışındaki
-   tek ekran. Kabuk çizilmez ama YÜZEY Abacus'tur: `.ab[data-yon='b']`
+   tek ekran. Kabuk çizilmez ama YÜZEY kabuğundur: `.ab[data-yon='b']`
    sarmalayıcısı saha yönünün paletini ve tipografisini getirir — `yonSec`
    de `/giris`i B'ye düşürüyor, iki karar ayrışmasın.
 

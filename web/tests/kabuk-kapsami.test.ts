@@ -32,7 +32,7 @@ vi.mock('next/headers', () => ({
 }));
 
 const { db } = await import('@/lib/db');
-const { kabukVerisi } = await import('@/components/abacus/kabukVerisi');
+const { kabukVerisi } = await import('@/components/kabuk/kabukVerisi');
 
 let aktifToplam = 0;
 let kizildere3 = '';

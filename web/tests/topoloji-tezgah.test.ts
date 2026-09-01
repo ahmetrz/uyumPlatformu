@@ -42,7 +42,7 @@ vi.mock('next/headers', () => ({
 const { db } = await import('@/lib/db');
 const T = await import('@/lib/entegrasyon/topoloji');
 const E = await import('@/lib/eylemler2/topoloji');
-const M = await import('@/app/(atlas)/(operasyonel)/topoloji/mantik');
+const M = await import('@/app/(kabuk)/(operasyonel)/topoloji/mantik');
 
 type Oge = import('@/lib/entegrasyon/topoloji').TopolojiOgesi;
 
@@ -339,7 +339,7 @@ describe('Karşılaştırma izi: "sapma yok" ile "hiç bakılmadı" aynı değil
     // İz yazılsaydı ekran bunu "karşılaştırıldı, fark yok" sanardı.
     expect(iz.anligaGore.get(anlik.id)).toBeUndefined();
 
-    const gorunum: import('@/app/(atlas)/(operasyonel)/topoloji/mantik').AnlikSatiri = {
+    const gorunum: import('@/app/(kabuk)/(operasyonel)/topoloji/mantik').AnlikSatiri = {
       id: anlik.id, tesisId, tesisKodu: 'TZG', kaynak: 'test_kaynak',
       alindi: new Date().toISOString(), ozetHash: anlik.ozetHash, temelMi: false,
       onaylayan: null, onayZamani: null, not: null, ogeSayisi: anlik.ogeSayisi,
@@ -437,7 +437,7 @@ describe('Karşılaştırma izi: "sapma yok" ile "hiç bakılmadı" aynı değil
 /* ═══ 6 · Liste disiplini ═════════════════════════════════════════════ */
 
 describe('Sıralama ve katlama açık sapmayı gizlemez', () => {
-  const sapma = (ek: Partial<import('@/app/(atlas)/(operasyonel)/topoloji/mantik').SapmaSatiri>) => ({
+  const sapma = (ek: Partial<import('@/app/(kabuk)/(operasyonel)/topoloji/mantik').SapmaSatiri>) => ({
     id: Math.random().toString(36).slice(2), tip: 'yeni_dugum', siddet: 'orta',
     durum: 'gozlendi', aciklama: 'x', anahtar: 'A', tesisId: null, tesisKodu: null,
     anlikId: 'an', anlikKaynak: 'test_kaynak', anlikAlindi: '2026-08-01T00:00:00.000Z',

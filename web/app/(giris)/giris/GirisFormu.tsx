@@ -1,6 +1,6 @@
 'use client';
 import { useState, useTransition } from 'react';
-import { Alan, Dugme } from '@/components/abacus/temel';
+import { Alan, Dugme } from '@/components/kabuk/temel';
 import { girisYap } from '@/lib/girisEylemleri';
 
 /* Giriş formu — Atlas form grameri (18 §Forms): etiket 9.5px mono, girdi

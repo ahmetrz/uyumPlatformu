@@ -1,6 +1,6 @@
-# Abacus Orijinal Tasarımı — Uygulama Haritası
+# Orijinal Tasarım — Uygulama Haritası
 
-**Görsel source of truth:** `ABACUS_ORIGINAL_DESIGN_SOURCE.zip` içindeki on iki
+**Görsel source of truth:** orijinal tasarım kaynağındaki (`ORIGINAL_DESIGN_SOURCE.zip`) on iki
 yüksek sadakatli HTML prototipi. Bu belgedeki her ölçü, o prototipler 1440×1000
 görüntü alanında tarayıcıda **render edilip hesaplanmış** değerlerdir — repo'daki
 mevcut arayüzden, Atlas'tan, Atlas 2'den ya da canlı demodan türetilmemiştir.
@@ -323,5 +323,5 @@ Silinen: `app/atlas.css` (978 satır), `app/tokens.css` (397 satır),
 Taşınan (sunum değil, veri/varlık): `durumAyagiVerisi.ts`,
 `lib/atlas/gorsel.ts → lib/gorsel.ts`, `lib/atlas/kontrast.ts → lib/kontrast.ts`.
 Yeniden yazılan: `app/globals.css` (yalnız belge sıfırlaması), `/giris`
-(`.ab[data-yon='b']`), `/sistem` (Atlas referansıydı; artık `abacus.css`
-dosyasını OKUYAN Abacus referansı — değerleri iddia etmiyor).
+(`.ab[data-yon='b']`), `/sistem` (Atlas referansıydı; artık `kabuk.css`
+dosyasını OKUYAN token referansı — değerleri iddia etmiyor).

@@ -16,7 +16,7 @@ import {
   motorImi, motorSozu, motorToplanabilir, motorlariSirala, sonKosu, sureFmt,
   tazelikDurumu, tazelikYazisi,
   type KaliteBulgusu, type Kosu, type Motor,
-} from '@/app/(atlas)/(operasyonel)/saglik/mantik';
+} from '@/app/(kabuk)/(operasyonel)/saglik/mantik';
 import type {
   ConnectorSagligi, SaglikDurumu, Tazelik,
 } from '@/lib/entegrasyon/saglikOzeti';
@@ -321,7 +321,7 @@ describe('Motor kataloğu defterle tutuyor', () => {
        BOZUK motor gibi görünür. Bu sessiz bir kusurdur: motor çalışır,
        yalnız yanlış anlatılır. */
     const { MOTOR_ADLARI } = await import('@/lib/motorlar/kayit');
-    const { IS_TANIMLARI } = await import('@/app/(atlas)/(operasyonel)/saglik/mantik');
+    const { IS_TANIMLARI } = await import('@/app/(kabuk)/(operasyonel)/saglik/mantik');
     const katalog = new Set(IS_TANIMLARI.map((t) => t.ad));
     const eksik = MOTOR_ADLARI.filter((ad) => !katalog.has(ad));
     expect(
@@ -335,7 +335,7 @@ describe('Motor kataloğu defterle tutuyor', () => {
        olmamalıdır: bulgu üretmezler ya da kendi tetikleyicileri vardır.
        Katalog onları da anlatır, çünkü koşu kaydı bırakırlar. */
     const { MOTOR_ADLARI } = await import('@/lib/motorlar/kayit');
-    const { IS_TANIMLARI } = await import('@/app/(atlas)/(operasyonel)/saglik/mantik');
+    const { IS_TANIMLARI } = await import('@/app/(kabuk)/(operasyonel)/saglik/mantik');
     const motorlar = new Set<string>(MOTOR_ADLARI);
     const motorOlmayan = IS_TANIMLARI.filter((t) => !motorlar.has(t.ad));
     expect(motorOlmayan.length).toBeGreaterThan(0);

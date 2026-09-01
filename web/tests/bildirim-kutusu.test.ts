@@ -41,9 +41,9 @@ vi.mock('next/headers', () => ({
 
 const { db } = await import('@/lib/db');
 const { bildirimOkundu } = await import('@/lib/eylemler2/bildirim');
-const M = await import('@/app/(atlas)/(operasyonel)/bildirimler/mantik');
+const M = await import('@/app/(kabuk)/(operasyonel)/bildirimler/mantik');
 
-type Satir = import('@/app/(atlas)/(operasyonel)/bildirimler/mantik').BildirimSatiri;
+type Satir = import('@/app/(kabuk)/(operasyonel)/bildirimler/mantik').BildirimSatiri;
 
 /* ═══ Fikstür ═════════════════════════════════════════════════════════ */
 

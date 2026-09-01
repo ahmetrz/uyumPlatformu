@@ -1,5 +1,5 @@
-import Kabuk from '@/components/abacus/Kabuk';
-import { kabukVerisi } from '@/components/abacus/kabukVerisi';
+import Kabuk from '@/components/kabuk/Kabuk';
+import { kabukVerisi } from '@/components/kabuk/kabukVerisi';
 
 /* Tam ekran katmanı — kendi üst çubuğunu taşıyan, ray gerektirmeyen
    yüzeyler (enerji portföyü). Kabuk YÖNÜ ROTADAN seçer; `/portfoy` B

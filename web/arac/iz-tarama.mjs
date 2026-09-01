@@ -154,7 +154,7 @@ for (const k of kusurlar) {
 }
 console.log(`kaynak dosya: ${KAYNAK.length} · stil dosyası: ${STIL.length}`);
 console.log(`tanımlı token: ${tanimli.size} · başvurulan: ${basvurulan.size}`);
-console.log(`abacus sınıfı: ${[...cssSiniflari].filter((c) => c.startsWith('ab-')).length}`);
+console.log(`kabuk sınıfı (ab-): ${[...cssSiniflari].filter((c) => c.startsWith('ab-')).length}`);
 if (kusurlar.length === 0) {
   console.log('\nESKİ TASARIM İZİ: 0');
 } else {

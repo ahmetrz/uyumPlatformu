@@ -3,3 +3,11 @@
 
 # Kök dizinde vitest çalıştırılınca oluşan önbellek — derleme artığı
 node_modules/
+
+# İkinci beyin (beyin.md v2.1) çalışma durumu
+.claude/hooks/.state/
+.claude/scripts/.state/*
+!.claude/scripts/.state/.gitkeep
+.DS_Store
+.obsidian/workspace*
+.obsidian/cache

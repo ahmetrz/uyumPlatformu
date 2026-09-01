@@ -122,7 +122,7 @@ export default function EnvanterIstemci({
 
   return (
     <>
-      <main style={{ minWidth: 0 }}>
+      <main data-yuzey="tezgah" style={{ minWidth: 0 }}>
         <EkranBasligi
           eyebrow={`Varlık zekâsı · ${m.kullanimdaki} varlık · ${tesisler.length} santral`}
           vurgu={baslik.vurgu}

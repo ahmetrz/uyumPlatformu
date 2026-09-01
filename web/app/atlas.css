@@ -75,6 +75,10 @@
   --acc: #3D4A4E;         /* accent/product — aktif nav kenarı, odak halkası (8.6:1) */
   --accd: #2B3538;        /* koyu varyant (hover/basılı) */
 
+  /* ── Atlas 2 · Bakır aksan — kabuk kimliği (03-tasarım sistemi) ──── */
+  --bakir: #C2703E;       /* aktif alan kenarı, kabuk vurgusu */
+  --bakird: #9E5830;      /* koyu varyant (hover/basılı) */
+
   /* ── Semantik durumlar ───────────────────────────────────────────── */
   --ok: #2B7548;          /* uyumlu · yolunda · doğrulandı        5.0:1 */
   --md: #8A6412;          /* kısmi · bayat kanıt · ufuk yaklaşıyor 4.9:1 */
@@ -143,8 +147,12 @@
   --col-gap: 16px;          /* tablo kolon aralığı (14–20) */
 
   /* ── 4 · Grid — tasarım genişliği 1440px ─────────────────────────── */
-  --rail-w: 250px;
-  --rail-w-icon: 72px;      /* md kırılımında ikon rayı */
+  /* Atlas 2 kabuğu: 64px alan rayı + 192px bağlamsal ikincil liste */
+  --rail-w: 256px;
+  --rail-alan-w: 64px;      /* birincil alan rayı (7 alan) */
+  --rail-liste-w: 192px;    /* ikincil bağlamsal liste */
+  --rail-w-icon: 72px;      /* (eski md ikon rayı — geriye dönük değişken) */
+  --ayak-h: 28px;           /* durum ayağı yüksekliği */
   --drawer-w: 420px;
   /* Standart operasyonel tablo: marker · konu · santral · sahip · değer · chevron */
   --tbl-std: 22px 1fr 190px 150px 120px 26px;
@@ -198,6 +206,25 @@
 
 /* Yarıçap istisnaları: durum noktası ve avatar dairesi (01-tokens §5) */
 .atlas .yuvarlak { border-radius: 50%; }
+
+/* ═══ Atlas 2 · Yüzey modları (data-yuzey) ═══════════════════════════
+   Üç yüzey aynı gramerle, farklı zemin sıcaklığıyla konuşur:
+   saha (yönetici bakışı — sıcak kâğıt), defter (uyum sicili — nötr,
+   varsayılanın kendisi), tezgah (varlık zekâsı — soğuk/yeşilimsi).
+   Bilinçli sapma: 03-tasarım dokümanındaki koyu defter/tezgah paletleri
+   yerine açık varyantlar — kontrast ve denetim (denetim.mjs) güvenliği
+   için. Tüm bileşenler token üzerinden okuduğundan yüzeyler otomatik uyar. */
+.atlas [data-yuzey] { background: var(--pp); }
+.atlas [data-yuzey='saha'] {
+  --pp: #F2EEE4; --card: #FCFAF4; --sunken: #ECE7DB;
+  --row-hover: #ECE8DC; --hr: #E0DBCE;
+}
+/* defter = varsayılan kâğıt; ayrı değer gerekmez, kanca bilinçli boş. */
+.atlas [data-yuzey='defter'] {}
+.atlas [data-yuzey='tezgah'] {
+  --pp: #F0F2EF; --card: #FAFCF9; --sunken: #E9ECE8;
+  --row-hover: #E9ECE7; --hr: #DDE1DA; --hr2: #C9CEC6;
+}
 
 /* Bağlantılar: alt çizgi yok, renk devralınır. (Ozalit katmanı kendi
    kabuğuna kapsandığı için bu kuralın Atlas'ta kendi karşılığı gerekiyor.) */
@@ -260,7 +287,26 @@
 
 /* Çekmece yalnız bir kayıt seçiliyken vardır. :has() ile otomatik:
    ekran <aside class="cekmece"> render ederse kolon açılır. */
-.atlas-govde { display: grid; grid-template-columns: minmax(0, 1fr); min-width: 0; }.atlas-govde:has(> .cekmece) { grid-template-columns: minmax(0, 1fr) var(--drawer-w); }
+.atlas-govde { display: grid; grid-template-columns: minmax(0, 1fr); min-width: 0;
+  padding-bottom: var(--ayak-h); }.atlas-govde:has(> .cekmece) { grid-template-columns: minmax(0, 1fr) var(--drawer-w); }
+
+/* ── Atlas 2 · Durum ayağı (28px) — bağlayıcı dürüstlüğü ─────────────
+   Konnektör durum sayıları gerçek veritabanı sayımlarıdır; bağlantı
+   kurulmamışsa "bekliyor" denir, asla sağlıklı taklidi yapılmaz. */
+.atlas .durum-ayak {
+  position: fixed; bottom: 0; left: var(--rail-w); right: 0;
+  height: var(--ayak-h); z-index: 8;
+  display: flex; align-items: center; gap: var(--s16);
+  padding: 0 var(--gutter-op);
+  background: var(--sunken); border-top: var(--bw-hair) solid var(--hr2);
+  font-family: var(--mo); font-size: var(--t-label);
+  letter-spacing: var(--tr-label); text-transform: uppercase; color: var(--i3);
+  white-space: nowrap; overflow: hidden;
+}
+.atlas .durum-ayak .oge { display: inline-flex; align-items: center; gap: var(--s6); }
+.atlas .durum-ayak .deger { color: var(--ink); font-variant-numeric: tabular-nums; }
+.atlas .durum-ayak .sag { margin-left: auto; display: inline-flex; align-items: center; gap: var(--s6); }
+@media print { .atlas .durum-ayak { display: none; } }
 
 /* ── NavRail ─────────────────────────────────────────────────────────── */
 /* Ray görüntü alanına YAPIŞIR ve asla onu aşmaz. Faz 6'da liste 14'ten
@@ -275,9 +321,8 @@
   height: 100dvh;
   background: var(--rail-bg);
   border-right: var(--bw-strong) solid var(--hr2);
-  padding-top: var(--rail-pad-top);
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: var(--rail-alan-w) minmax(0, 1fr);
 }.atlas-ray::before {                      /* strata dokusu */
   content: ''; position: absolute; inset: 0; background: var(--strata);
   pointer-events: none;
@@ -301,6 +346,55 @@
   margin-left: auto; font-family: var(--mo); font-size: var(--t-caption);
   color: var(--i3); font-variant-numeric: tabular-nums;
 }.atlas .ray-link .sayi.kritik { color: var(--bd); }.atlas .ray-link[aria-current='page'] .sayi { color: rgba(246, 244, 238, .72); }.atlas .ray-link[aria-current='page'] .sayi.kritik { color: var(--bdp); }
+
+/* ── Atlas 2 · Birincil alan rayı (64px) ────────────────────────────── */
+/* 7 alan: Bugün · Portföy · Uyum · Risk & Denetim · Varlık & OT ·
+   Operasyon · Yönetim. Monogram (2 harf, mono) + 7.5px etiket. */
+.atlas .ray-alanlar {
+  display: flex; flex-direction: column;
+  padding-top: var(--rail-pad-top);
+  border-right: var(--bw-hair) solid var(--hr2);
+  min-height: 0;
+}
+.atlas .ray-alan {
+  display: flex; flex-direction: column; align-items: center; gap: var(--s3);
+  padding: var(--s12) 0 var(--s10);
+  border-left: var(--bw-edge) solid transparent;
+  color: var(--i2); text-align: center;
+  transition: background-color var(--mo-state) var(--ez), color var(--mo-state) var(--ez);
+}
+.atlas .ray-alan .harf {
+  font-family: var(--mo); font-size: var(--t-code-lg); font-weight: 600;
+  letter-spacing: 0.08em; color: inherit;
+}
+.atlas .ray-alan .etiket {
+  font-family: var(--mo); font-size: 7.5px; letter-spacing: 0.10em;
+  text-transform: uppercase; color: var(--i3); max-width: 58px;
+  line-height: 1.25;
+}
+.atlas .ray-alan:hover { background: var(--row-hover); color: var(--ink); }
+.atlas .ray-alan[aria-current='true'] {
+  background: var(--band); color: var(--pp);
+  border-left-color: var(--bakir);
+}
+.atlas .ray-alan[aria-current='true'] .etiket { color: rgba(246, 244, 238, .72); }
+.atlas .ray-alan .sayi {
+  font-family: var(--mo); font-size: var(--t-caption); color: var(--i3);
+  font-variant-numeric: tabular-nums;
+}
+.atlas .ray-alan .sayi.kritik { color: var(--bd); }
+.atlas .ray-alan[aria-current='true'] .sayi { color: rgba(246, 244, 238, .72); }
+.atlas .ray-alan[aria-current='true'] .sayi.kritik { color: var(--bdp); }
+/* İkincil bağlamsal liste (192px): marka + aktif alanın ekranları */
+.atlas .ray-ikincil {
+  display: flex; flex-direction: column; min-height: 0;
+  padding-top: var(--rail-pad-top);
+}
+.atlas .ray-ikincil .ray-baslik {
+  padding: 0 var(--rail-inset) var(--s10);
+  font-family: var(--mo); font-size: var(--t-label);
+  letter-spacing: var(--tr-label); text-transform: uppercase; color: var(--i3);
+}
 
 /* Komut paleti (Ctrl+K) — kabuğun üstünde, her Atlas ekranında */
 .atlas-palet-perde, .palet-perde { position: fixed; inset: 0; z-index: 90;
@@ -382,19 +476,15 @@
   }
 }
 
-/* md 1024–1199: ray 72px ikon rayına iner, etiket hover'da */
-@media (max-width: 1199px) {.atlas-kabuk { grid-template-columns: var(--rail-w-icon) minmax(0, 1fr); }.atlas-ray { overflow: visible; }.atlas .ray-marka .ad, .atlas .ray-marka .alt { display: none; }.atlas .ray-link { padding-left: 0; padding-right: 0; justify-content: center; }.atlas .ray-link .etiket {
-    position: absolute; left: calc(100% + var(--s8)); white-space: nowrap;
-    background: var(--band); color: var(--pp); padding: var(--s6) var(--s10);
-    font-size: var(--t-cell); opacity: 0; visibility: hidden;
-    transition: opacity var(--mo-instant) var(--ez); box-shadow: var(--sh-tip);
-  }.atlas .ray-link:hover .etiket, .atlas .ray-link:focus-visible .etiket { opacity: 1; visibility: visible; }.atlas .ray-link .sayi { position: absolute; top: var(--s4); right: var(--s10); }.atlas .ray-ayak { display: none; }
+/* md 1024–1199: ikincil liste gizlenir, yalnız 64px alan rayı kalır */
+@media (max-width: 1199px) {.atlas-kabuk { grid-template-columns: var(--rail-alan-w) minmax(0, 1fr); }.atlas-ray { grid-template-columns: var(--rail-alan-w); overflow: visible; }.atlas .ray-ikincil { display: none; }.atlas .ray-alanlar { border-right: 0; }.atlas .durum-ayak { left: var(--rail-alan-w); }
 }
 
-/* sm <1024: operasyonel katman hedeflenmez; ray yatay şeride iner */
-@media (max-width: 1023px) {.atlas-kabuk { grid-template-columns: minmax(0, 1fr); }.atlas-ray { flex-direction: row; overflow-x: auto; padding-top: 0;
-    border-right: 0; border-bottom: var(--bw-strong) solid var(--hr2); }.atlas .ray-marka { display: none; }.atlas .ray-link { border-left: 0; border-bottom: var(--bw-edge) solid transparent;
-    padding: var(--s10) var(--s14); }.atlas .ray-link[aria-current='page'] { border-left-color: transparent; border-bottom-color: var(--jesd); }.atlas .baglam { padding-left: var(--s20); padding-right: var(--s20); }
+/* sm <1024: operasyonel katman hedeflenmez; alan rayı yatay şeride iner */
+@media (max-width: 1023px) {.atlas-kabuk { grid-template-columns: minmax(0, 1fr); }.atlas-ray { position: static; height: auto; grid-template-columns: minmax(0, 1fr);
+    border-right: 0; border-bottom: var(--bw-strong) solid var(--hr2); }.atlas .ray-alanlar { flex-direction: row; overflow-x: auto; padding-top: 0;
+    border-right: 0; }.atlas .ray-alan { border-left: 0; border-bottom: var(--bw-edge) solid transparent;
+    padding: var(--s10) var(--s14); flex: none; }.atlas .ray-alan[aria-current='true'] { border-left-color: transparent; border-bottom-color: var(--bakir); }.atlas .ray-ikincil { display: none; }.atlas .durum-ayak { display: none; }.atlas .baglam { padding-left: var(--s20); padding-right: var(--s20); }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -407,6 +497,15 @@
 .atlas .im { display: inline-block; flex: none; vertical-align: middle; }.atlas .im-ok, .atlas .im-md, .atlas .im-bd, .atlas .im-pl, .atlas .im-tamam { border-radius: 50%; }.atlas .im-ok { width: 10px; height: 10px; background: var(--ok); }.atlas .im-md { width: 10px; height: 10px; background: var(--md); }.atlas .im-bd { width: 11px; height: 11px; background: var(--bd); }.atlas .im-pl { width: 10px; height: 10px; background: var(--pl); }.atlas .im-tamam { width: 9px; height: 9px; background: var(--ok); }
 /* bilinmeyen: 45° döndürülmüş içi boş kare — asla dolu nokta değil */
 .atlas .im-unk { width: 10px; height: 10px; border: 1.5px solid var(--unk); transform: rotate(45deg); }
+/* Atlas 2 · Bağlantı durumu glifleri — dürüstlük grameri:
+   bağlı=dolu nokta · kimlik bekliyor=içi boş halka · yapılandırılmamış=
+   kesikli halka · duraklatıldı=yarım ton · hatalı=dolu kırmızı.
+   BİLİNMEYEN ≠ YANLIŞ ≠ SIFIR — asla "sağlıklı" taklidi yapılmaz. */
+.atlas .im-bagli { width: 10px; height: 10px; background: var(--ok); border-radius: 50%; }
+.atlas .im-kimlik { width: 10px; height: 10px; border: 1.5px solid var(--md); border-radius: 50%; background: transparent; }
+.atlas .im-yapilandirilmamis { width: 10px; height: 10px; border: 1.5px dashed var(--i3); border-radius: 50%; background: transparent; }
+.atlas .im-durakladi { width: 10px; height: 10px; background: var(--i3); border-radius: 50%; opacity: .55; }
+.atlas .im-hatali { width: 11px; height: 11px; background: var(--bd); border-radius: 50%; }
 /* satırın en kötüsü: bir kademe büyük + hale */
 .atlas .im-enkotu { width: 15px; height: 15px; box-shadow: 0 0 0 4px rgba(172, 63, 45, .16); }
 

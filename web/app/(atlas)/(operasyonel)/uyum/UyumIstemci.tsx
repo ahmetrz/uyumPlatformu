@@ -160,7 +160,7 @@ export default function UyumIstemci({
 
   if (!cerceve) {
     return (
-      <main>
+      <main data-yuzey="defter">
         <EkranBasligi eyebrow="UYUM" baslik="Uyum kontrol odası" />
         <section className="ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
           <BosIlk cumle="Sistemde aktif regülasyon tanımlı değil."
@@ -203,7 +203,7 @@ export default function UyumIstemci({
 
   return (
     <>
-      <main style={{ minWidth: 0 }}>
+      <main data-yuzey="defter" style={{ minWidth: 0 }}>
         {/* Başlık cevabı verir: uyumsuz varsa onu, yoksa takipteki yükü söyler. */}
         <EkranBasligi
           eyebrow={`${cerceve.gorunenAd} · ${m.kapsamdakiTesis} tesis kapsamda`}

@@ -102,13 +102,72 @@ function aktifMi(yol: string, patika: string): boolean {
   return patika === yol || patika.startsWith(yol + '/');
 }
 
+/* ── Atlas 2 · Alan haritası ──────────────────────────────────────────
+   Kabuk artık iki kademeli: 64px'lik BİRİNCİL ALAN RAYI (7 alan) ve
+   192px'lik BAĞLAMSAL İKİNCİL LİSTE (aktif alanın ekranları).
+   27 öğelik tek düz liste tarama yükü yaratıyordu; alan rayı zihinsel
+   haritayı 7 bölgeye indirir, ikincil liste her alanda ≤8 öğe kalır.
+   URL'ler, RBAC ve kapsam DEĞİŞMEZ — bu salt bir sunum katmanıdır.
+   /tesisler → /portfoy yönlendirmesi ve /sistem (rayda hiç olmayan
+   tanılama ekranı) eski davranışını korur. */
+export type RayAlani = {
+  kod: string;        /* monogram — 2 harf, mono */
+  ad: string;
+  ekranlar: RayOgesi[];
+};
+
+export const ALANLAR: RayAlani[] = [
+  { kod: 'BG', ad: 'Bugün', ekranlar: [
+    { ad: 'Genel bakış', yol: '/' },
+    { ad: 'Bildirimler', yol: '/bildirimler' },
+  ]},
+  { kod: 'PF', ad: 'Portföy', ekranlar: [
+    { ad: 'Enerji portföyü', yol: '/portfoy' },
+  ]},
+  { kod: 'UY', ad: 'Uyum', ekranlar: [
+    { ad: 'Uyum matrisi', yol: '/uyum' },
+    { ad: 'Uyum süreçleri', yol: '/surecler' },
+    { ad: 'Regülasyonlar', yol: '/regulasyonlar', ayrac: true },
+    { ad: 'Eşleştirme', yol: '/eslestirme' },
+    { ad: 'Madde aktarımı', yol: '/ice-aktarim' },
+  ]},
+  { kod: 'RD', ad: 'Risk & denetim', ekranlar: [
+    { ad: 'Risk', yol: '/riskler' },
+    { ad: 'Denetim', yol: '/denetimler' },
+    { ad: 'Bulgu & CAPA', yol: '/bulgular' },
+    { ad: 'Projeler', yol: '/projeler' },
+    { ad: 'Raporlar', yol: '/raporlar', ayrac: true },
+  ]},
+  { kod: 'VO', ad: 'Varlık & OT', ekranlar: [
+    { ad: 'Varlıklar', yol: '/envanter' },
+    { ad: 'Keşif', yol: '/kesif' },
+    { ad: 'Topoloji', yol: '/topoloji' },
+    { ad: 'Ömür', yol: '/omur' },
+    { ad: 'Yedek & DR', yol: '/yedekleme' },
+    { ad: 'Erişim', yol: '/kimlik' },
+    { ad: 'Tedarikçiler', yol: '/tedarikciler' },
+    { ad: 'Varlık aktarımı', yol: '/varlik-aktarim', ayrac: true },
+  ]},
+  { kod: 'OP', ad: 'Operasyon', ekranlar: [
+    { ad: 'Olaylar', yol: '/olaylar' },
+    { ad: 'Değişiklikler', yol: '/operasyon' },
+    { ad: 'Platform sağlığı', yol: '/saglik' },
+  ]},
+  { kod: 'YN', ad: 'Yönetim', ekranlar: [
+    { ad: 'Yönetim tezgâhı', yol: '/yonetim-tezgahi' },
+    { ad: 'Eşleme profilleri', yol: '/esleme' },
+    { ad: 'Kullanıcı & yetki', yol: '/yetkiler' },
+    { ad: 'Denetim izi', yol: '/aktivite' },
+  ]},
+];
+
 export default function Ray({
-  ogeler,
   ayak = null,
   sayilar,
   kullanici = null,
 }: {
-  ogeler: RayOgesi[];
+  /** Geriye dönük: eski düz liste artık kullanılmaz; alan haritası sabittir. */
+  ogeler?: RayOgesi[];
   ayak?: RayAyagi;
   /** Rota → sayaç. Sunucudan gelir; sıfır/undefined ise sayaç gösterilmez. */
   sayilar?: Record<string, { sayi: number; kritik?: boolean }>;
@@ -119,19 +178,53 @@ export default function Ray({
 }) {
   const patika = usePathname() ?? '/';
 
+  const aktifAlan = ALANLAR.find((a) => a.ekranlar.some((e) => aktifMi(e.yol, patika)));
+  /* Hiçbir alan eşleşmezse (ör. /sistem) ikincil liste Bugün'ü gösterir;
+     alan rayında hiçbir alan aktif işaretlenmez — dürüst durum. */
+  const listeAlani = aktifAlan ?? ALANLAR[0];
+
+  const alanSayaci = (a: RayAlani) => {
+    let toplam = 0; let kritik = false;
+    for (const e of a.ekranlar) {
+      const s = sayilar?.[e.yol];
+      if (s && s.sayi > 0) { toplam += s.sayi; if (s.kritik) kritik = true; }
+    }
+    return toplam > 0 ? { sayi: toplam, kritik } : null;
+  };
+
   return (
     <nav className="atlas-ray" aria-label="Ana menü">
+      {/* Birincil alan rayı — 64px */}
+      <div className="ray-alanlar" aria-label="Alanlar">
+        {ALANLAR.map((a) => {
+          const aktif = aktifAlan?.kod === a.kod;
+          const s = alanSayaci(a);
+          return (
+            <Link
+              key={a.kod}
+              href={a.ekranlar[0].yol}
+              className="ray-alan"
+              aria-current={aktif ? 'true' : undefined}
+              title={a.ad}
+            >
+              <span className="harf" aria-hidden>{a.kod}</span>
+              <span className="etiket">{a.ad}</span>
+              {s && <span className={`sayi${s.kritik ? ' kritik' : ''}`}>{s.sayi}</span>}
+            </Link>
+          );
+        })}
+      </div>
+
+      {/* İkincil bağlamsal liste — 192px: marka + aktif alanın ekranları */}
+      <div className="ray-ikincil">
       <Link href="/" className="ray-marka">
         <span className="ad">Energy Operations</span>
         <span className="alt">Atlas</span>
       </Link>
 
-      {/* Bağlantı listesi KENDİ İÇİNDE kayar. Faz 6'da liste 14'ten 24
-          öğeye çıktı ve 1000px'lik bir görüntü alanında oturum bloğunu
-          ekranın altına itiyordu: çıkış düğmesi katlamanın altında
-          kalıyordu. Marka ve oturum bloğu sabit, yalnız liste kayar. */}
+      {/* Bağlantı listesi KENDİ İÇİNDE kayar; marka ve oturum bloğu sabit. */}
       <div className="ray-liste">
-      {ogeler.map((o) => {
+      {listeAlani.ekranlar.map((o) => {
         const aktif = aktifMi(o.yol, patika);
         const s = sayilar?.[o.yol] ?? (o.sayi != null ? { sayi: o.sayi, kritik: o.kritik } : null);
         return (
@@ -182,6 +275,7 @@ export default function Ray({
           {!kullanici.demo && <CikisDugmesi />}
         </div>
       )}
+      </div>
     </nav>
   );
 }

@@ -13,18 +13,25 @@ import { TEMEL } from './demo';
 
 
 
-/** Tam boy hero kırpımı üretilmiş anahtarlar (560px hero / 300px plaka). */
+/** Tam boy hero kırpımı üretilmiş anahtarlar (560px hero / 300px plaka).
+    Set: Ahmet'in sağladığı 10 temsilî santral görseli (2026-09-01), künye
+    `public/atlas/KUNYE.md`. Anahtar → dosya adı `<anahtar>-<tip>.webp`. */
 const HERO: Record<string, string> = {
+  kizildere1: 'kizildere1-jes',
+  kizildere2: 'kizildere2-jes',
   kizildere3: 'kizildere3-jes',
+  alasehir: 'alasehir-jes',
+  gokcedag: 'gokcedag-res',
   ikizdere: 'ikizdere-hes',
-  jhimpir: 'jhimpir-res',
+  kuzgun: 'kuzgun-hes',
+  beykoy: 'beykoy-hes',
+  cildir: 'cildir-hes',
+  mercan: 'mercan-hes',
 };
 
-/** 240×150 seçici küçük görseli üretilmiş anahtarlar. */
-const KUCUK = new Set([
-  'alasehir', 'beykoy', 'ikizdere', 'jhimpir', 'kizildere1',
-  'kizildere2', 'kizildere3', 'kuzgun', 'mercan', 'tercan',
-]);
+/** 240×150 seçici küçük görseli üretilmiş anahtarlar (hero setinden kırpım;
+    `tercan` önceki paketten kalan tek küçük görsel, hero'su yok). */
+const KUCUK = new Set([...Object.keys(HERO), 'tercan']);
 
 export const NOTR_TRIPTIK = `${TEMEL}/atlas/portfolio-triptych.webp`;
 export const RAY_SERIDI = `${TEMEL}/atlas/rail-strip.webp`;

@@ -73,12 +73,21 @@ function bulgu(ozel: Partial<KaliteBulgusu> = {}): KaliteBulgusu {
 }
 
 describe('Motor kataloğu', () => {
-  it('elle koşan ve zincirden koşan motorlar ayrı işaretlidir', () => {
-    const zincirden = IS_TANIMLARI.filter((t) => !t.elleCalisir).map((t) => t.ad);
-    expect(zincirden).toEqual(
-      ['uygulanabilirlik', 'entegrasyon_zinciri', 'zincir_guvenlik_ihlali']);
-    // lib/eylemler2/isler.ts'in ISLER haritasındaki sekiz motor elle koşar.
-    expect(IS_TANIMLARI.filter((t) => t.elleCalisir)).toHaveLength(8);
+  it('elle koşan işler TAM OLARAK motor defteridir', async () => {
+    /* Eskiden burada iki donmuş sabit vardı: zincirden koşanların adları
+       ve "sekiz motor elle koşar". Dokuzuncu motor eklendiğinde bu test,
+       kusuru değil kendi eskimişliğini bildirdi. Sayı artık defterden
+       türetiliyor: elle koşabilen işler kümesi, motor defteriyle BİREBİR
+       aynı olmalıdır — düğmesi olan her iş bir motordur, motor olmayanın
+       düğmesi yoktur. */
+    const { MOTOR_ADLARI } = await import('@/lib/motorlar/kayit');
+    const elle = IS_TANIMLARI.filter((t) => t.elleCalisir).map((t) => t.ad).sort();
+    expect(elle).toEqual([...MOTOR_ADLARI].sort());
+
+    // Kalanlar kendi tetikleyicisi olan işlerdir; hiçbiri boş kalmamalı.
+    const zincirden = IS_TANIMLARI.filter((t) => !t.elleCalisir);
+    expect(zincirden.length).toBeGreaterThan(0);
+    for (const t of zincirden) expect(t.aciklama.length).toBeGreaterThan(10);
   });
 
   it('katalogda motor adı tekrar etmez', () => {
@@ -297,5 +306,40 @@ describe('Biçimlendirme', () => {
   it('kısaltma yalnız taşan metne dokunur', () => {
     expect(kisalt('kısa', 10)).toBe('kısa');
     expect(kisalt('uzunca bir hata metni', 6)).toBe('uzunca…');
+  });
+});
+
+/* ═══ Katalog ile motor defteri ayrışmasın ════════════════════════════ */
+
+describe('Motor kataloğu defterle tutuyor', () => {
+  it('kayıt defterindeki HER motorun katalogda satırı var', async () => {
+    /* İki liste ayrı yaşıyor ve ayrışabilirler: motorların kendisi
+       `lib/motorlar/kayit.ts`'te, insan için etiket/açıklama ise
+       `saglik/mantik.ts`'te. Deftere girip kataloğa girmeyen bir motor
+       ekranda "Motor kataloğunda tanımlı değil" diye görünür ve
+       yanlışlıkla "zincirden koşar" etiketi alır — yani YENİ motor,
+       BOZUK motor gibi görünür. Bu sessiz bir kusurdur: motor çalışır,
+       yalnız yanlış anlatılır. */
+    const { MOTOR_ADLARI } = await import('@/lib/motorlar/kayit');
+    const { IS_TANIMLARI } = await import('@/app/(atlas)/(operasyonel)/saglik/mantik');
+    const katalog = new Set(IS_TANIMLARI.map((t) => t.ad));
+    const eksik = MOTOR_ADLARI.filter((ad) => !katalog.has(ad));
+    expect(
+      eksik,
+      'Motor defterine eklenen her motorun IS_TANIMLARI içinde bir satırı olmalı.',
+    ).toEqual([]);
+  });
+
+  it('katalogdaki fazla satırlar SERBESTTİR — hepsi motor değildir', async () => {
+    /* Zincirden koşan işler ve bakım işi motor defterinde YOKTUR ve
+       olmamalıdır: bulgu üretmezler ya da kendi tetikleyicileri vardır.
+       Katalog onları da anlatır, çünkü koşu kaydı bırakırlar. */
+    const { MOTOR_ADLARI } = await import('@/lib/motorlar/kayit');
+    const { IS_TANIMLARI } = await import('@/app/(atlas)/(operasyonel)/saglik/mantik');
+    const motorlar = new Set<string>(MOTOR_ADLARI);
+    const motorOlmayan = IS_TANIMLARI.filter((t) => !motorlar.has(t.ad));
+    expect(motorOlmayan.length).toBeGreaterThan(0);
+    // Motor olmayan hiçbir iş "elle çalışır" göstermemeli — düğmesi yok.
+    expect(motorOlmayan.filter((t) => t.elleCalisir).map((t) => t.ad)).toEqual([]);
   });
 });

@@ -29,6 +29,19 @@ export type IsTanimi = {
   ad: string; etiket: string; aciklama: string; elleCalisir: boolean;
 };
 
+/* Motor kataloğu — İNSAN İÇİN olan kısım.
+
+   Motorların KENDİSİ `lib/motorlar/kayit.ts`'te yaşar; burası yalnız
+   etiket ve açıklama taşır (kod bunları türetemez). Ama iki liste ayrı
+   olduğu sürece ayrışabilirler: bir motor deftere girip buraya girmezse
+   ekranda "Motor kataloğunda tanımlı değil" diye görünür ve yanlışlıkla
+   "zincirden koşar" etiketi alır — yani yeni motor, bozuk bir motor gibi
+   görünür.
+
+   `tests/saglik-mantik.test.ts` bu ayrışmayı yakalar: defterdeki her
+   motorun burada bir satırı olmak ZORUNDA. Buradaki fazla satırlar
+   serbesttir — zincirden koşan işler (uygulanabilirlik, entegrasyon
+   zinciri) ve bakım işi motor defterinde YOKTUR ve olmamalıdır. */
 export const IS_TANIMLARI: IsTanimi[] = [
   { ad: 'kanit_tazelik', etiket: 'Kanıt tazeliği', elleCalisir: true,
     aciklama: 'Geçerliliği biten kanıtları bayatlar, yenileme görevi üretir' },
@@ -46,6 +59,12 @@ export const IS_TANIMLARI: IsTanimi[] = [
     aciklama: 'Topoloji anlıklarını onaylı temelle karşılaştırır — kayıt değiştirmez' },
   { ad: 'olay_etki', etiket: 'Olay etkisi', elleCalisir: true,
     aciklama: 'Olayın üretim/emniyet etkisini ÖNERİR; kararı insan doğrular' },
+  { ad: 'erisim_degerlendirme', etiket: 'Erişim değerlendirme', elleCalisir: true,
+    aciklama: 'Tedarikçi/uzaktan erişim oturumlarından görev ve veri kalitesi bulgusu '
+      + 'üretir — oturuma DOKUNMAZ, erişim kesmez' },
+  { ad: 'bakim_temizlik', etiket: 'Bakım temizliği', elleCalisir: false,
+    aciklama: 'Süresi dolmuş oturum ve iş kilidi satırlarını siler (saatlik, zamanlayıcıdan) '
+      + '— bulgu üretmez, veri yorumlamaz' },
   { ad: 'uygulanabilirlik', etiket: 'Uygulanabilirlik', elleCalisir: false,
     aciklama: 'Tesis profili değiştiğinde madde kapsamını yeniden hesaplar (zincirden koşar)' },
   { ad: 'entegrasyon_zinciri', etiket: 'Entegrasyon zinciri', elleCalisir: false,

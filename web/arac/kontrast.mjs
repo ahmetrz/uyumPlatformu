@@ -100,6 +100,12 @@ const CIFTLER = [
   { ink: '--pl', esik: METIN, not: 'taslak/süreli' },
   { ink: '--unk', esik: METIN, not: 'değerlendirilmedi' },
   { ink: '--aksan', esik: IRI, not: 'aktif kenar, işaret, odak halkası' },
+  /* Üretim tipi kimlik renkleri GRAFİKTİR (dolgu, işaretçi): 3:1 yeter.
+     Ama görünmez olamazlar — zeminden ayrılmaları gerekir. */
+  { ink: '--jes', esik: IRI, not: 'jeotermal kimliği' },
+  { ink: '--hes', esik: IRI, not: 'hidro kimliği' },
+  { ink: '--res', esik: IRI, not: 'rüzgâr kimliği' },
+  { ink: '--ges', esik: IRI, not: 'güneş kimliği' },
   { ink: '--hr2', esik: 1.25, not: 'kart kenarı — görünür olmalı' },
 ];
 

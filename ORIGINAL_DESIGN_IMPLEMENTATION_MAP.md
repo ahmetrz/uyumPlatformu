@@ -244,3 +244,84 @@ latin-ext alt kümeleriyle indirildi — Türkçe (`ş ğ İ ı`) latin-ext'te:
 `Archivo` zaten depoda. Değişken eksen istendi (`wght@300..700`) ki tasarımın
 kullandığı 400/500/600/700 ağırlıkları tek dosyadan çıksın; değişken sürümü
 olmayan aileler (IBM Plex Mono, Barlow Condensed) ağırlık başına indirildi.
+
+---
+
+## 10 · Uygulama sonucu — ne yapıldı, nasıl ölçüldü
+
+Bu bölüm haritanın PLAN kısmını değil, GERÇEKLEŞENİ kaydeder.
+
+### 10.1 · Dört kanonik ekran (Faz A)
+
+| Rota | Prototip | Yönü belirleyen materyal fark |
+| --- | --- | --- |
+| `/uyum` | `c-compliance.html` | Matris **devrik**: satır = kontrol, sütun = santral. Detay **çekmecede değil satır içinde** açılır (neden · kanıt · yönetişim zinciri · sorumluluk). Durum **glif ağırlığıyla** kodlanır; okuma anahtarı dizin sütununda arayüzün parçası. |
+| `/` | `b-executive.html` | 648px fotoğrafik alan; solda 430px dikkat paneli, sağda 320px katman paneli; 168px kartlı saha şeridi; 430px takvim + akış bandı. |
+| `/tesisler/[id]` | `b-plant360.html` | 560px hero plakası; solda künye + ölçü şeridi, sağda 420px veri paneli; sistem bandı; 560px üniteler + açık bulgular. |
+| `/envanter` | `a-assets.html` | 42px kip çubuğu; **yedi halkalı yönetişim zinciri** (santral → sistem → varlık → zafiyet → risk → kontrol → proje); 400px düğüm paneli; 30px envanter kaynağı ayağı. |
+
+Görsel parity, prototip ve uygulama 1440px ekran görüntülerinin yan yana
+karşılaştırmasıyla doğrulandı: aynı kompozisyon dili, aynı yoğunluk, aynı
+tipografi kademesi, aynı yüzey karakteri, aynı gezinme felsefesi, aynı
+veri görselleştirme grameri.
+
+### 10.2 · Prototipten AYRILAN noktalar ve nedenleri
+
+Hepsi **veri dürüstlüğü** gerekçesiyle; hiçbiri estetik tercih değil.
+
+1. **`b-executive` merkezindeki Türkiye haritası çizilmedi.** Şemada
+   koordinat yok (`Tesis.konum` serbest metin). İşaretçileri göz kararı
+   yerleştirmek, ekranda gerçek olmayan bir coğrafya çizmek olurdu. Aynı
+   işaretçi grameri (45° kare, kritikte halka, iki satırlık künye) gerçek
+   iki eksene oturtuldu: **uyum endeksi × kurulu güç**. Ölçülmemiş
+   santral eksene konmaz, altta adıyla listelenir.
+2. **`b-plant360`'ın "anlık üretim" ve "kullanılabilirlik" ölçüleri
+   uydurulmadı** — gerçek üretim sistemine bağlanmadık. Yerlerine gerçek
+   alanlar kondu: kayıtlı varlık, üretim ünitesi, ağ bölgesi.
+3. **"Katmanlı durum" `Madde.alanAdi`ndan değil kontrol AİLESİNDEN
+   kuruldu**: alan adı maddelerin çoğunda boş; `/uyum` ile aynı kırılım.
+4. **Üretim zinciri kritiklik sırasına kondu**, prototipteki gibi
+   soldan sağa akış olarak değil: şemada sistemler arası sıra yok ve
+   uydurma bir akış, olmayan bir varlık ilişkisi iddia etmek olurdu.
+   Sıralamanın ne olduğu başlıkta yazıyor.
+5. **`a-assets`'in "CMDB SENKRON 04:12 · BAŞARILI" künyesi uydurulmadı**:
+   ayak gerçek keşif kayıtlarının kaynaklarını ve son görülme zamanını
+   yazar; kayıt yoksa "bağlı kaynak yok" der.
+6. **Ünite tik şeridi çizilmedi**: `MaddeDurumu` ünite kırılımı taşımıyor.
+
+### 10.3 · Prototipin ON kusuru — ne yapıldı
+
+| # | Kusur | Çözüm |
+| --- | --- | --- |
+| 1 | Kritik bilgi yalnız hover'da | İpucu sözleşmesi korundu; devre dışı düğmenin NEDENİ yazılıyor, hata detayı açılır blokta, kesilen ad yerine sarma |
+| 2 | Durum yalnız renkte | Glif ailesi (A kare, C daire); `Im` `role="img"` + erişilebilir ad; boş yığın "değerlendirilmemiş" yazar |
+| 3 | Bilinmeyen = yanlış = sıfır | `uyumOzeti` tek formül; ölçülmemiş sütun "—", yığında taramalı dördüncü parça; risk ızgarasına olasılık/etki bilinmeyen risk GİRMEZ, ayrıca sayılır |
+| 4 | Klavye gezinmesi yok | Hücre ve satır gerçek `<button>`; 68×31px hedef; Esc satırı kapatır; `arac/erisim.mjs` kapısı |
+| 5 | `:focus-visible` tanımsız | `.ab :focus-visible { outline: 2px solid var(--aksan) }`; gerçek Tab tuşuyla ölçülüyor |
+| 6 | Azaltılmış hareket yok | `prefers-reduced-motion` bloğu; kapı azaltılmış kipte çalışan animasyon arar |
+| 7 | WCAG kontrastı ölçülmemiş | `arac/kontrast.mjs` — 3 kip × 14 mürekkep × 4 zemin + 1 ters çift; 12 kusur ölçülüp tonaliteyi koruyarak düzeltildi |
+| 8 | Tek genişlik | 1440 · 1366 · 1280 · 1024 px'te 33/33 rota temiz |
+| 9 | Uzun metin taşması | Başlık kesilmez sarar; `overflow-wrap: anywhere`; kırpılan halka "+N kayıt daha" der |
+| 10 | 40+ satır yoğunluğu | `.ab-tablo.sik` satır dolgusunu daraltır, tipografiyi değil; matris yatay kayar |
+
+### 10.4 · Kapılar
+
+| Araç | Ne ölçer | Sonuç |
+| --- | --- | --- |
+| `arac/kontrast.mjs` | WCAG 2.1 oranları, kaynaktan okunan token'larla | 0 kusur |
+| `arac/font-kontrol.mjs` | Her `/fontlar` başvurusu diskte var mı · her token ailesi `@font-face` ile bildirilmiş mi | 0 eksik / 0 bildirilmeyen |
+| `arac/iz-tarama.mjs` | Ölü yol · eski sınıf · tanımsız token · ölü CSS kuralı | **ESKİ TASARIM İZİ: 0** |
+| `arac/tarama.mjs` | 33 rota: HTTP · yatay taşma · kabuk · boş gövde · sayfa hatası · DOM'da eski sınıf | 0 kusurlu rota (4 genişlikte) |
+| `arac/erisim.mjs` | Odak halkası (gerçek Tab) · klavyeyle ulaşılamayan hedef · azaltılmış harekette animasyon · adsız glif | 0 kusur |
+
+`npm run tasarim:kapi` üçünü (kontrast · font · iz) tek komutta koşturur.
+
+### 10.5 · Legacy purge (Faz C)
+
+Silinen: `app/atlas.css` (978 satır), `app/tokens.css` (397 satır),
+`components/atlas/` (12 dosya), Manrope ve Azeret yazı aileleri.
+Taşınan (sunum değil, veri/varlık): `durumAyagiVerisi.ts`,
+`lib/atlas/gorsel.ts → lib/gorsel.ts`, `lib/atlas/kontrast.ts → lib/kontrast.ts`.
+Yeniden yazılan: `app/globals.css` (yalnız belge sıfırlaması), `/giris`
+(`.ab[data-yon='b']`), `/sistem` (Atlas referansıydı; artık `abacus.css`
+dosyasını OKUYAN Abacus referansı — değerleri iddia etmiyor).

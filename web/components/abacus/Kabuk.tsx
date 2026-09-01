@@ -4,7 +4,7 @@ import { usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
 import CikisDugmesi from '@/components/CikisDugmesi';
 import {
-  A_RAY, B_SEKMELER, C_DIZIN, C_SEKMELER, aktifMi, yonSec, type Oge,
+  ALANLAR, A_RAY, B_SEKMELER, C_DIZIN, C_SEKMELER, aktifMi, alanAktif, yonSec, type Oge,
 } from './yonler';
 
 /* Abacus kabuğu — ÜÇ AYRI KABUK, tek gramerin renk varyantı değil.
@@ -59,6 +59,25 @@ export default function Kabuk({ veri, children }: { veri: KabukVerisi; children:
   );
 }
 
+/* ═══ Ortak alan gezinmesi ════════════════════════════════════════════
+   Üç kabukta da AYNI beş alan; gramer kabuğa göre değişir, küme değişmez.
+   B kabuğunda bu sekme çubuğunun kendisidir ve `aria-current="page"`
+   taşır. A ve C'de İKİNCİ bir gezinme katmanıdır (ray / defter sekmeleri
+   asıl "sayfa"yı işaretler); aynı ekranda iki "geçerli sayfa" duyurulmasın
+   diye burada `aria-current="location"` kullanılır — "bulunduğun alan". */
+function Alanlar({ sinif, patika }: { sinif: string; patika: string }) {
+  return (
+    <nav className={sinif} aria-label="Alanlar">
+      {ALANLAR.map((o) => (
+        <Link key={o.yol} href={o.yol}
+          aria-current={alanAktif(o, patika) ? 'location' : undefined}>
+          {o.ad}
+        </Link>
+      ))}
+    </nav>
+  );
+}
+
 /* ═══ A · Industrial Precision ════════════════════════════════════════ */
 
 function KabukA({ veri, patika, children }: {
@@ -68,7 +87,8 @@ function KabukA({ veri, patika, children }: {
     <div className="ab-a">
       <header className="ab-a-ust">
         <Link href="/" className="marka" aria-label="Zorlu Enerji Yönetişim Platformu — ana ekran">ZE</Link>
-        <div className="grup">
+        <Alanlar sinif="ab-a-alanlar" patika={patika} />
+        <div className="grup dar-gizle">
           <span className="etiket">Kapsam</span>
           <span className="deg">{veri.kapsam?.grup ?? 'Grup tanımsız'}</span>
           {veri.kapsam && (
@@ -166,7 +186,10 @@ function KabukC({ veri, patika, children }: {
           <Link href="/" className="marka">Zorlu Enerji Yönetişim Platformu</Link>
           <span className="etiket">Uyum defteri</span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+        {/* Künyenin bölüm dizisi: gazete başlığındaki "Ekonomi · Spor ·
+            Kültür" satırı gibi, defterin dışındaki alanlara açılan kapı. */}
+        <Alanlar sinif="ab-c-alanlar" patika={patika} />
+        <div className="sag" style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
           <span className="mono etiket">
             {veri.kesit ? `Veri kesiti ${damga(veri.kesit)}` : 'Veri kesiti yok'}
           </span>
@@ -249,8 +272,21 @@ const AYAK_KALEMLERI: { anahtar: string; etiket: string; sinif: string }[] = [
   { anahtar: 'hatali', etiket: 'hatalı', sinif: 'g-uygunsuz' },
 ];
 
+/* Ayağın sağ ucu: tasarım sistemi referansı (`/sistem`). Rayda yeri yok —
+   günlük tezgâh ekranı değil — ama gezinmeden ulaşılamayan rota da
+   olamaz; ayak, referans bağlantısının doğal yeridir. */
+function SistemBagi() {
+  return <Link href="/sistem" className="sistem">Tasarım sistemi</Link>;
+}
+
 function Ayak({ veri }: { veri: KabukVerisi }) {
-  if (!veri.ayak) return <footer className="ab-a-ayak ab-baskida-gizle" />;
+  if (!veri.ayak) {
+    return (
+      <footer className="ab-a-ayak ab-baskida-gizle">
+        <span className="sag" /><SistemBagi />
+      </footer>
+    );
+  }
   const a = veri.ayak;
   return (
     <footer className="ab-a-ayak ab-baskida-gizle" aria-label="Bağlayıcı durumu">
@@ -263,6 +299,7 @@ function Ayak({ veri }: { veri: KabukVerisi }) {
       ))}
       {a.toplam === 0 && <span>hiç bağlayıcı tanımlı değil</span>}
       <span className="sag">son başarılı koşu {damga(a.sonKosu)}</span>
+      <SistemBagi />
     </footer>
   );
 }

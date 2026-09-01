@@ -368,6 +368,22 @@
 .ab-a-ust .grup.esnek { flex: 1; border-right: 0; min-width: 0; }
 .ab-a-ust .deg { font-size: 13px; color: var(--murekkep); }
 .ab-a-ust .deg.ikincil { color: var(--i2); }
+/* Alan dizisi — kapsam çubuğunun rayla aynı sesle konuşan üst gezinmesi:
+   mono, büyük harf, 11px. Aktif alan rayla aynı işareti taşır (aksan +
+   alt çizgi) ki "bu kabuk = Varlık alanı" gözle kurulsun. */
+.ab-a-alanlar {
+  display: flex; align-items: stretch; flex: none;
+  border-right: 1px solid var(--hr); padding: 0 6px;
+}
+.ab-a-alanlar a {
+  display: flex; align-items: center; padding: 0 12px;
+  font-family: var(--veri); font-size: 11px; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--i3);
+  border-bottom: 2px solid transparent; border-top: 2px solid transparent;
+  transition: color .15s linear;
+}
+.ab-a-alanlar a:hover { color: var(--murekkep); }
+.ab-a-alanlar a[aria-current='location'] { color: var(--aksan); border-bottom-color: var(--aksan); }
 
 .ab-a-govde { display: grid; grid-template-columns: var(--rail-w) minmax(0, 1fr); min-height: 0; }
 .ab-a-ray {
@@ -415,6 +431,8 @@
   text-transform: uppercase; color: var(--i3); white-space: nowrap; overflow: hidden;
 }
 .ab-a-ayak .sag { margin-left: auto; }
+.ab-a-ayak .sistem { color: var(--i3); border-bottom: 1px solid var(--hr2); }
+.ab-a-ayak .sistem:hover { color: var(--murekkep); border-bottom-color: var(--aksan); }
 
 /* ═══ Kabuk B — 56px yatay sekme, ray YOK ═════════════════════════════ */
 .ab-b { display: grid; grid-template-rows: 56px minmax(0, 1fr);
@@ -614,9 +632,13 @@
    `b-executive` saha şeridinin tam sayfa açılımı: 380px kimlik paneli +
    fotoğrafik plaka listesi. */
 .ab-b-portfoy { min-width: 0; }
+/* `height: 42px` sabitti; 375px'te üretim tipi düğmeleri dört satıra
+   sarınca çubuk taşıyor ve ÜST SEKME ÇUBUĞUNUN ÜZERİNE biniyordu —
+   "Uyum" sekmesine dokunulamıyordu (gezinme testi, B → C adımı).
+   Çubuk artık içeriği kadar uzar. */
 .ab-b-portfoy-ust {
-  height: 42px; display: flex; align-items: center; gap: 24px;
-  padding: 0 32px; border-bottom: 1px solid var(--hr);
+  min-height: 42px; display: flex; align-items: center; flex-wrap: wrap;
+  gap: 8px 24px; padding: 6px 32px; border-bottom: 1px solid var(--hr);
 }
 .ab-b-portfoy-ust nav { margin-left: auto; display: flex; gap: 4px; flex-wrap: wrap; }
 .ab-b-portfoy-ust nav button {
@@ -929,6 +951,18 @@
 .ab-c { min-height: 100dvh; padding: 0; }
 .ab-c-kunye { padding: 28px 56px 16px; display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; }
 .ab-c-kunye .marka { font-family: var(--gorunum); font-size: 26px; font-weight: 400; line-height: 1; }
+/* Künyenin bölüm dizisi — künye ile aynı taban çizgisinde, mono küçük
+   harf-aralıklı; aktif alan mürekkep rengi + aksan alt çizgi. Serif
+   sekmeler DEFTERİN içini, bu dizi defterin DIŞINI gösterir. */
+.ab-c-alanlar { display: flex; align-items: baseline; gap: 22px; margin-left: 24px; margin-right: auto; }
+.ab-c-alanlar a {
+  font-family: var(--veri); font-size: 11px; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--i3);
+  border-bottom: 1px solid transparent; padding-bottom: 2px;
+}
+.ab-c-alanlar a:hover { color: var(--murekkep); }
+.ab-c-alanlar a[aria-current='location'] { color: var(--murekkep); border-bottom-color: var(--aksan); }
+.ab-c-kunye .sag { flex: none; }
 .ab-c-kural-kalin { margin: 0 56px; border-top: 2px solid var(--murekkep); }
 .ab-c-kural { margin: 0 56px; border-top: 1px solid var(--hr2); }
 .ab-c-nav { padding: 12px 56px; display: flex; align-items: center; gap: 32px; }
@@ -1979,6 +2013,9 @@ textarea.ab-gr { min-height: 76px; resize: vertical; }
 @media (max-width: 1100px) {
   /* C dizin sütunu üste iner; içindekiler tablosu kaybolmaz. */
   .ab-c-govde { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+  /* Ekranın kendi dizini de (uyum matrisi) aynı kurala uyar: 212px
+     sütun 375px'te içeriği 160px'e sıkıştırıyordu — ölçüldü. */
+  .ab-c-ekrandizin { grid-template-columns: minmax(0, 1fr); gap: 24px; }
   .ab-c-dizin { display: flex; flex-wrap: wrap; gap: 24px; }
   .ab-c-dizin .bolum { flex: 1 1 200px; margin-bottom: 0; }
   /* A rayı yatay şeride iner — ikonlar ve etiketler kalır. */
@@ -1988,5 +2025,40 @@ textarea.ab-gr { min-height: 76px; resize: vertical; }
   .ab-a-ray a[aria-current='page'] { border-left-color: transparent; border-bottom-color: var(--aksan); }
   .ab-a-ray a.ayrik { margin-top: 0; margin-left: 14px; border-top: 0; border-left: 1px solid var(--hr); padding-top: 0; height: 46px; }
   .ab-a-ust .grup.gizlenebilir { display: none; }
+  .ab-a-alanlar a { padding: 0 9px; }
   .ab-b-ust nav a { padding: 0 12px; font-size: 12px; }
+  /* Portföy: 380px kimlik sütunu + plakalar yan yana sığmaz; kimlik üste
+     çıkar, yapışkanlığını bırakır (aksi hâlde plakaları örter). */
+  .ab-b-portfoy-govde { grid-template-columns: minmax(0, 1fr); }
+  .ab-b-portfoy-govde .kimlik { position: static; border-right: 0; border-bottom: 1px solid var(--hr); padding: 26px 32px; }
+  .ab-b-portfoy-ust { padding-left: 24px; padding-right: 24px; }
+  .ab-b-portfoy-ust nav { margin-left: 0; }
+  /* C künyesi iki satıra kırılır: marka üstte, bölüm dizisi altta. */
+  .ab-c-kunye { flex-wrap: wrap; align-items: center; row-gap: 12px; }
+  .ab-c-alanlar { margin-left: 0; flex-wrap: wrap; row-gap: 8px; order: 3; flex-basis: 100%; }
+  .ab-c-nav { flex-wrap: wrap; gap: 14px 24px; }
+}
+/* ═══ Telefon — HİÇBİR ALAN ERİŞİLEMEZ OLAMAZ ═════════════════════════
+   Kapsam çubuğu 375px'te beş alanı sığdıramaz; bilgi grupları düşer,
+   alan dizisi yatay kaydırılır. Bilgi kaybolur, KAPI kaybolmaz. */
+@media (max-width: 700px) {
+  .ab-a-ust { overflow-x: auto; scrollbar-width: none; }
+  .ab-a-ust .grup.dar-gizle { display: none; }
+  .ab-a-ust .marka { position: sticky; left: 0; z-index: 1; }
+  .ab-a-alanlar { padding: 0 2px; }
+  .ab-a-alanlar a { padding: 0 8px; }
+  .ab-b-ust { overflow-x: auto; scrollbar-width: none; }
+  .ab-b-ust .marka { padding: 0 14px; font-size: 14px; position: sticky; left: 0; z-index: 1; background: var(--zemin); }
+  .ab-b-ust nav a { padding: 0 9px; font-size: 11px; }
+  .ab-b-ust .sag { padding: 0 14px; gap: 12px; }
+  .ab-b-portfoy-ust { padding-left: 16px; padding-right: 16px; }
+  .ab-b-portfoy-govde .kimlik { padding: 22px 16px; }
+  .ab-b-portfoy-govde .plaka { padding: 16px; gap: 14px; min-height: 120px; }
+  .ab-b-portfoy-govde .plaka .ad { font-size: 22px; }
+  .ab-c-kunye { padding: 20px 20px 12px; }
+  .ab-c-kunye .marka { font-size: 20px; }
+  .ab-c-kunye .sag { flex-wrap: wrap; row-gap: 6px; }
+  .ab-c-nav { padding-left: 20px; padding-right: 20px; }
+  .ab-c-kural, .ab-c-kural-kalin { margin-left: 20px; margin-right: 20px; }
+  .ab-c-govde { padding: 24px 20px 48px; }
 }

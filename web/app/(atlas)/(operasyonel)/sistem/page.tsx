@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { kontrast, bicimle, aaGecer } from '@/lib/kontrast';
@@ -108,10 +109,13 @@ export default function TasarimSistemi() {
           <p className="etiket">Tasarım sistemi · abacus.css okunarak üretildi</p>
           <h1>Üç yön, tek sözleşme</h1>
         </div>
-        <p className="mono ab-dip" style={{ maxWidth: 420 }}>
-          Değerler bu sayfada yazılı değil: kaynak dosyadan okunuyor, kontrast
-          oranları hesaplanıyor. Bir token değişirse referans da değişir.
-        </p>
+        <div style={{ display: 'grid', gap: 10, justifyItems: 'end' }}>
+          <p className="mono ab-dip" style={{ maxWidth: 420, margin: 0 }}>
+            Değerler bu sayfada yazılı değil: kaynak dosyadan okunuyor, kontrast
+            oranları hesaplanıyor. Bir token değişirse referans da değişir.
+          </p>
+          <Link href="/sistem/bilesenler" className="ab-dugme">Bileşen galerisi →</Link>
+        </div>
       </header>
 
       {paletler.map((y) => (

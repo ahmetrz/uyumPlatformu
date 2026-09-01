@@ -15,16 +15,38 @@ export type Yon = 'a' | 'b' | 'c';
 
 export type Oge = { ad: string; yol: string; kod?: string; ayrik?: boolean };
 
-/* ── B · saha ─────────────────────────────────────────────────────────
-   Yatay sekme çubuğu. Prototipte beş sekme vardı; ürünün B yüzeyi de beş
-   yüzeye oturuyor. */
-export const B_SEKMELER: Oge[] = [
+/* ── Alanlar — üç kabuğun ORTAK üst gezinmesi ─────────────────────────
+   Ürünün beş alanı; her kabuk bunları kendi gramerinde çizer (B'de sekme,
+   A'da kapsam çubuğundaki bağlantı dizisi, C'de künyedeki bölüm dizisi).
+   Kabuklar birbirinden ayrı kapılar değil, aynı binanın katlarıdır:
+   hangi ekranda olursa olsun kişi diğer alana TEK tıkla geçer. Eskiden
+   A'dan C'ye ya da C'den portföye gitmenin tek yolu ana ekrana dönmekti
+   ("bazı sayfalar arası geçiş yapılamıyor" — ölçüldü, erişim taraması). */
+export const ALANLAR: Oge[] = [
   { ad: 'Saha', yol: '/' },
   { ad: 'Portföy', yol: '/portfoy' },
   { ad: 'Uyum', yol: '/uyum' },
   { ad: 'Varlık', yol: '/envanter' },
   { ad: 'Risk', yol: '/riskler' },
 ];
+
+/* Kabuğun EV alanı: o kabuktaki bir rota hiçbir alanla doğrudan
+   eşleşmiyorsa (ör. `/kesif` A'da, `/denetimler` C'de, `/tesisler/x` B'de)
+   kabuğun ev alanı aktif sayılır — kişi "hangi alandayım" sorusuna her
+   ekranda cevap alır. */
+const EV_ALAN: Record<Yon, string> = { a: '/envanter', b: '/', c: '/uyum' };
+
+export function alanAktif(alan: Oge, patika: string): boolean {
+  if (aktifMi(alan.yol, patika)) return true;
+  const ev = EV_ALAN[yonSec(patika)];
+  return alan.yol === ev
+    && !ALANLAR.some((a) => a.yol !== ev && aktifMi(a.yol, patika));
+}
+
+/* ── B · saha ─────────────────────────────────────────────────────────
+   Yatay sekme çubuğu. Prototipte beş sekme vardı; ürünün B yüzeyi de beş
+   yüzeye oturuyor — ve bu beş, ortak alan listesinin kendisidir. */
+export const B_SEKMELER: Oge[] = ALANLAR;
 
 /* ── A · tezgâh ───────────────────────────────────────────────────────
    İkon rayı: iki harf monogram + 7,5px etiket, öğe 40px. Prototipte

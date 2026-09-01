@@ -1,25 +1,25 @@
 #!/usr/bin/env node
 /* Duyarlı gezinme testi — HİÇBİR ROTA ERİŞİLEMEZ OLMAMALI.
 
-   ── Kapatılan kusur (PR #1 incelemesi, P1) ────────────────────────────
-   Atlas 2 kabuğu iki kademelidir: 64px alan rayı + 192px bağlamsal ikincil
-   liste. İkincil liste 1200px altında gizlenir. İlk sürümde onun klavyeyle
-   çalışan karşılığı (bağlamsal açılır düğme) YALNIZ 1024–1199 bandında
-   çiziliyordu. ≤1023'te ne ikincil liste ne düğme vardı: alan rozetine
-   dokunmak kişiyi alanın İLK ekranına atıyor, `/bulgular`, `/projeler`,
-   `/yedekleme` gibi kardeş rotalara ulaşmanın tek yolu Ctrl/Cmd+K paleti
-   kalıyordu — ve paletin dokunmatik tetikleyicisi yok. Yani tablet/telefon
-   kullanıcısı ürünün büyük kısmına ERİŞEMİYORDU.
+   ── Kapatılan kusur ("bazı sayfalar arası geçiş yapılamıyor") ─────────
+   Ürün üç kabuktan oluşur (A tezgâh · B saha · C defter) ve her kabuk
+   yalnız KENDİ ekranlarını listeliyordu. Erişim taraması üç ayrı ada
+   ölçtü: A'dan C'ye, C'den portföye gitmenin tek yolu ana ekrana dönmekti;
+   `/sistem` hiçbir yerden bağlı değildi. Çözüm: beş alanı (Saha · Portföy
+   · Uyum · Varlık · Risk) taşıyan ORTAK bir alan gezinmesi
+   (`nav[aria-label="Alanlar"]`), her kabuğun kendi gramerinde çizilir.
 
    ── Bu araç ne ölçer ──────────────────────────────────────────────────
-   Dört genişlikte, hem klavye hem dokunmatikle:
-     1. Kardeş rotaya ULAŞILABİLİRLİK — açılan listede bağlantı GÖRÜNÜR mü,
-        tıklanınca gerçekten oraya mı gidiyor.
-     2. `aria-current="page"` TEKİLLİĞİ — panel listenin ikinci bir kopyası
-        olsaydı "geçerli sayfa" iki kez duyurulurdu.
-     3. KLAVYE sözleşmesi — düğme odaklanabilir, Enter açar, Esc kapatır ve
-        odağı düğmeye GERİ VERİR.
-     4. HOVER'A BAĞLI OLMAMA — fare hiç yaklaşmadan, yalnız dokunuşla açılır.
+   Dört genişlikte, dokunmatik + klavyeyle:
+     1. KARDEŞ rota — `/riskler`'den `/bulgular` bağlantısı görünür mü ve
+        dokununca gerçekten oraya mı gidiyor (kabuk İÇİ gezinme).
+     2. KABUKLAR ARASI tur — C → A → B → C: alan bağlantıları her kabukta
+        görünür, dokununca hedef kabuğa geçiyor. Hiçbir adımda ana ekrana
+        dönmek gerekmiyor.
+     3. `aria-current="page"` TEKİLLİĞİ — alan gezinmesi `location`
+        kullanır; "geçerli sayfa" yalnız kabuğun kendi sekmesinde duyurulur.
+     4. KLAVYE — kardeş bağlantı sekmeyle odaklanır, Enter gider.
+     5. Sayfa hatası yok.
 
    Kullanım: PORT=3000 node arac/gezinme-testi.mjs
 */
@@ -32,20 +32,28 @@ function tarayiciYolu() {
   return process.env.CHROME || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
 }
 
-/* Genişlikler bantların HER BİRİNDEN bir örnek taşır:
-   ≥1200 ikincil kolon açık · 1024–1199 panel sağa · ≤1023 panel aşağı. */
+/* Genişlikler kırılma noktalarının HER BİRİNDEN bir örnek taşır:
+   ≥1367 tam · 1101–1366 sıkı · 701–1100 dizin tek kolon, künye sarar
+   · ≤700 üst çubuklar yatay kayar. */
 const BANTLAR = [
-  { ad: '1440 · geniş', en: 1440, boy: 900, kolonGorunur: true },
-  { ad: '1100 · orta', en: 1100, boy: 800, kolonGorunur: false },
-  { ad: '900 · tablet', en: 900, boy: 800, kolonGorunur: false },
-  { ad: '375 · telefon', en: 375, boy: 720, kolonGorunur: false },
+  { ad: '1440 · geniş', en: 1440, boy: 900 },
+  { ad: '1100 · orta', en: 1100, boy: 800 },
+  { ad: '900 · tablet', en: 900, boy: 800 },
+  { ad: '375 · telefon', en: 375, boy: 720 },
 ];
 
-/* Başlangıç ekranı ve ulaşılması gereken KARDEŞ rota. İkisi de "Risk &
-   denetim" alanındadır; kardeşe gitmek için alan değiştirmek gerekmez —
-   kusurun tam senaryosu buydu. */
+/* Kabuk içi kardeş: ikisi de C defterindedir. */
 const BASLANGIC = '/riskler';
 const KARDES = '/bulgular';
+
+/* Kabuklar arası tur: her adım "buradayım → alan bağlantısına dokun →
+   oraya vardım". Hedef kabuğun belirtisi kök `.ab[data-yon]` değeridir. */
+const TUR = [
+  { neredeyim: '/riskler', hedef: '/envanter', yon: 'a', ad: 'C → A (Risk → Varlık)' },
+  { neredeyim: '/envanter', hedef: '/portfoy', yon: 'b', ad: 'A → B (Varlık → Portföy)' },
+  { neredeyim: '/portfoy', hedef: '/uyum', yon: 'c', ad: 'B → C (Portföy → Uyum)' },
+  { neredeyim: '/uyum', hedef: '/', yon: 'b', ad: 'C → B (Uyum → Saha)' },
+];
 
 const kusurlar = [];
 const notlar = [];
@@ -68,9 +76,26 @@ async function girisYap(s) {
   await s.waitForURL((u) => !u.pathname.startsWith('/giris'), { timeout: 25000 });
 }
 
-/** Tek `aria-current="page"` sözleşmesi — panel açıkken de geçerli. */
+/** Tek `aria-current="page"` sözleşmesi. */
 async function aktifSayisi(s) {
   return s.evaluate(() => document.querySelectorAll('[aria-current="page"]').length);
+}
+
+async function yon(s) {
+  return s.evaluate(() => document.querySelector('.ab[data-yon]')?.getAttribute('data-yon') ?? '?');
+}
+
+const patika = (s) => new URL(s.url()).pathname;
+
+/** Bağlantıya dokun, hedefe varıldığını doğrula. */
+async function dokunVeVar(s, bant, bag, hedef, etiket) {
+  if (!(await bag.count())) { bildir(bant, `${etiket}: bağlantı YOK`); return false; }
+  if (!(await bag.first().isVisible())) { bildir(bant, `${etiket}: bağlantı görünmüyor`); return false; }
+  await bag.first().tap();
+  await s.waitForURL((u) => u.pathname === hedef, { timeout: 15000 }).catch(() => {});
+  await s.waitForTimeout(300);
+  if (patika(s) !== hedef) { bildir(bant, `${etiket}: varış ${patika(s)} (${hedef} olmalı)`); return false; }
+  return true;
 }
 
 for (const bant of BANTLAR) {
@@ -87,79 +112,61 @@ for (const bant of BANTLAR) {
   try {
     await girisYap(s);
     await s.setViewportSize({ width: bant.en, height: bant.boy });
+
+    /* ── 1 · KARDEŞ rota, dokunmatik ─────────────────────────────────── */
     await s.goto(KOK + BASLANGIC, { waitUntil: 'load' });
     await s.waitForTimeout(400);
+    const n = await aktifSayisi(s);
+    if (n !== 1) bildir(bant.ad, `${BASLANGIC}: aria-current="page" sayısı ${n} (1 olmalı)`);
+    await dokunVeVar(s, bant.ad, s.locator(`.ab-c-nav a[href="${KARDES}"]`), KARDES, 'kardeş (dokunmatik)');
+    const n2 = await aktifSayisi(s);
+    if (n2 !== 1) bildir(bant.ad, `${KARDES}: aria-current="page" sayısı ${n2} (1 olmalı)`);
 
-    if (await aktifSayisi(s) !== 1) {
-      bildir(bant.ad, `aria-current="page" sayısı ${await aktifSayisi(s)} (1 olmalı)`);
+    /* ── 2 · KARDEŞ rota, klavye ──────────────────────────────────────
+       Sekme tuşuyla bağlantıya varılmalı — odak sırasında görünmez ya da
+       atlanmış bir bağlantı klavye kullanıcısı için yoktur. */
+    await s.goto(KOK + BASLANGIC, { waitUntil: 'load' });
+    await s.waitForTimeout(300);
+    let odaklandi = false;
+    for (let i = 0; i < 80 && !odaklandi; i += 1) {
+      await s.keyboard.press('Tab');
+      odaklandi = await s.evaluate((h) => {
+        const a = document.activeElement;
+        return a instanceof HTMLAnchorElement && a.getAttribute('href') === h
+          && !!a.closest('.ab-c-nav');
+      }, KARDES);
+    }
+    if (!odaklandi) {
+      bildir(bant.ad, `kardeş ${KARDES} 80 sekmede odaklanamadı`);
+    } else {
+      await s.keyboard.press('Enter');
+      await s.waitForURL((u) => u.pathname === KARDES, { timeout: 15000 }).catch(() => {});
+      await s.waitForTimeout(300);
+      if (patika(s) !== KARDES) bildir(bant.ad, `klavye: varış ${patika(s)} (${KARDES} olmalı)`);
     }
 
-    const kolon = s.locator('#ray-ikincil');
-    const dugme = s.locator('.ray-baglam-ozet');
-    const kardesBag = kolon.locator(`a[href="${KARDES}"]`);
-
-    if (bant.kolonGorunur) {
-      /* Geniş bantta kolon zaten açık; düğme HİÇ olmamalı — olsaydı odak
-         sırasına giren ve ekran okuyucuya duyurulan ölü bir denetim olurdu. */
-      if (!(await kolon.isVisible())) bildir(bant.ad, 'ikincil kolon görünmüyor');
-      if (await dugme.isVisible()) bildir(bant.ad, 'geniş bantta bağlamsal düğme görünüyor');
-      if (!(await kardesBag.isVisible())) bildir(bant.ad, `kardeş bağlantı ${KARDES} görünmüyor`);
-    } else {
-      /* Dar bantlar: kolon kapalı başlar, düğme GÖRÜNÜR olmalı. */
-      if (await kolon.isVisible()) bildir(bant.ad, 'dar bantta ikincil kolon açık başlıyor');
-      if (!(await dugme.isVisible())) {
-        bildir(bant.ad, 'bağlamsal düğme YOK — kardeş rotalara erişim yolu kalmıyor');
-      } else {
-        /* ── 1 · DOKUNMATİK ──────────────────────────────────────────
-           Fare hiç yaklaştırılmaz: hover'a bağlı bir çözüm burada
-           kırmızı verir. */
-        await dugme.tap();
-        await s.waitForTimeout(250);
-        if (!(await kolon.isVisible())) bildir(bant.ad, 'dokunuşla panel açılmadı');
-        if (!(await kardesBag.isVisible())) {
-          bildir(bant.ad, `panelde kardeş bağlantı ${KARDES} görünmüyor`);
-        }
-        if (await aktifSayisi(s) !== 1) {
-          bildir(bant.ad, `panel açıkken aria-current sayısı ${await aktifSayisi(s)} (1 olmalı)`);
-        }
-
-        /* Kardeşe gerçekten gidiyor mu — görünürlük yetmez. */
-        if (await kardesBag.isVisible()) {
-          await kardesBag.tap();
-          await s.waitForURL((u) => u.pathname === KARDES, { timeout: 15000 })
-            .catch(() => bildir(bant.ad, `dokunuşla ${KARDES} açılmadı`));
-          await s.waitForTimeout(300);
-          if (new URL(s.url()).pathname !== KARDES) {
-            bildir(bant.ad, `varış ${new URL(s.url()).pathname} (${KARDES} olmalı)`);
-          }
-          if (await kolon.isVisible()) bildir(bant.ad, 'gezindikten sonra panel açık kaldı');
-        }
-
-        /* ── 2 · KLAVYE ──────────────────────────────────────────────
-           Enter açar; Esc kapatır ve odağı düğmeye GERİ VERİR. */
-        await s.goto(KOK + BASLANGIC, { waitUntil: 'load' });
-        await s.waitForTimeout(300);
-        await dugme.focus();
-        if (!(await dugme.evaluate((el) => el === document.activeElement))) {
-          bildir(bant.ad, 'düğme odaklanamıyor');
-        }
-        await s.keyboard.press('Enter');
-        await s.waitForTimeout(250);
-        if (!(await kolon.isVisible())) bildir(bant.ad, 'Enter paneli açmadı');
-        if (await dugme.getAttribute('aria-expanded') !== 'true') {
-          bildir(bant.ad, 'aria-expanded açıkken true değil');
-        }
-        await s.keyboard.press('Escape');
-        await s.waitForTimeout(250);
-        if (await kolon.isVisible()) bildir(bant.ad, 'Escape paneli kapatmadı');
-        if (!(await dugme.evaluate((el) => el === document.activeElement))) {
-          bildir(bant.ad, 'Escape sonrası odak düğmeye dönmedi');
-        }
-      }
+    /* ── 3 · KABUKLAR ARASI tur ──────────────────────────────────────── */
+    for (const adim of TUR) {
+      await s.goto(KOK + adim.neredeyim, { waitUntil: 'load' });
+      await s.waitForTimeout(400);
+      const alanlar = s.locator('nav[aria-label="Alanlar"], nav[aria-label="Saha"]');
+      if (!(await alanlar.count())) { bildir(bant.ad, `${adim.ad}: alan gezinmesi YOK`); continue; }
+      const ok = await dokunVeVar(
+        s, bant.ad, alanlar.locator(`a[href="${adim.hedef}"]`), adim.hedef, adim.ad,
+      );
+      if (!ok) continue;
+      const y = await yon(s);
+      if (y !== adim.yon) bildir(bant.ad, `${adim.ad}: kabuk ${y} (${adim.yon} olmalı)`);
+      const n3 = await aktifSayisi(s);
+      if (n3 !== 1) bildir(bant.ad, `${adim.hedef}: aria-current="page" sayısı ${n3} (1 olmalı)`);
+      /* Alan bağlantılarından TAM BİRİ "buradasın" demeli. */
+      const konum = await s.evaluate(() => document
+        .querySelectorAll('nav[aria-label="Alanlar"] [aria-current="location"]').length);
+      if (y !== 'b' && konum !== 1) bildir(bant.ad, `${adim.hedef}: alan "location" sayısı ${konum} (1 olmalı)`);
     }
 
     if (sayfaHatalari.length) bildir(bant.ad, `sayfa hatası: ${sayfaHatalari[0]}`);
-    notlar.push(`${bant.ad}: kolon=${bant.kolonGorunur ? 'açık' : 'kapalı'} · denetimler koştu`);
+    notlar.push(`${bant.ad}: kardeş + ${TUR.length} adımlı tur · dokunmatik + klavye`);
   } finally {
     await ctx.close();
   }
@@ -173,5 +180,5 @@ if (kusurlar.length) {
   for (const k of kusurlar) console.error(`  · ${k}`);
   process.exitCode = 1;
 } else {
-  console.log(`\ngezinme kusuru: 0 · ${BANTLAR.length} bant · klavye + dokunmatik`);
+  console.log(`\ngezinme kusuru: 0 · ${BANTLAR.length} bant · kabuk içi + kabuklar arası`);
 }

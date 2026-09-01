@@ -1,6 +1,8 @@
 import 'server-only';
 import { db } from '@/lib/db';
 import { aktifKullanici } from '@/lib/auth';
+import { izinliTesisIdleri } from '@/lib/erisim';
+import { birlesikKapsam } from '@/app/kapsam';
 import { durumAyagiVerisi } from '@/components/abacus/durumAyagiVerisi';
 import type { KabukVerisi } from './Kabuk';
 
@@ -18,12 +20,40 @@ import type { KabukVerisi } from './Kabuk';
 export async function kabukVerisi(): Promise<KabukVerisi> {
   const k = await aktifKullanici().catch(() => null);
 
-  const [ayak, grup, tuzelKisi, santral] = await Promise.all([
+  /* ── KAPSAM ÇUBUĞU DA BİR EKRANDIR ────────────────────────────────
+     Sayılar kapsamsız okunuyordu: bir santrale kısıtlı kullanıcı her
+     sayfanın tepesinde "16 santral" görüyordu. Bu, göremediği on üç
+     santralin VARLIĞINI doğrulamak demek — /portfoy ve /tesisler için
+     kapatılan sızıntının aynısı, yalnız kabukta.
+
+     Kapsam BİRLEŞİK alınır (uyum ∪ envanter ∪ risk ∪ denetim): çubuk
+     "bu üründe hangi sahaya girebiliyorum" sorusunu yanıtlar, tek bir
+     modülün penceresini değil. Oturum yoksa kapsam BOŞ kümedir; `null`
+     "sınırsız" demek olurdu ve tam tersi doğru. */
+  const kapsam = k
+    ? birlesikKapsam(
+      izinliTesisIdleri(k, 'uyum'),
+      izinliTesisIdleri(k, 'envanter'),
+      izinliTesisIdleri(k, 'risk'),
+      izinliTesisIdleri(k, 'denetim'),
+    )
+    : [];
+
+  const [ayak, grup, tesisler] = await Promise.all([
     durumAyagiVerisi(k).catch(() => null),
     db.grup.findFirst({ select: { ad: true } }).catch(() => null),
-    db.tuzelKisi.count().catch(() => 0),
-    db.tesis.count({ where: { durum: 'aktif' } }).catch(() => 0),
+    db.tesis.findMany({
+      where: { durum: 'aktif', ...(kapsam === null ? {} : { id: { in: kapsam } }) },
+      select: { tuzelKisiId: true },
+    }).catch(() => []),
   ]);
+  const santral = tesisler.length;
+  /* Tüzel kişi de aynı kapsamdan türer: kapsamdaki santrallerin bağlı
+     olduğu AYRI tüzel kişi sayısı. Kapsamsız `tuzelKisi.count()` aynı
+     sızıntının başka biçimiydi. */
+  const tuzelKisi = new Set(
+    tesisler.map((t) => t.tuzelKisiId).filter((x): x is string => x !== null),
+  ).size;
 
   return {
     kullanici: k ? { ad: k.adSoyad, unvan: k.unvan, demo: k.id === 'demo' } : null,

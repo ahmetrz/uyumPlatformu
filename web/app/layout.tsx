@@ -1,12 +1,10 @@
 import type { Metadata } from 'next';
 import './globals.css';
-import './atlas.css';
 import './abacus.css';
 
-/* Kök yerleşim yalnız belge iskeletini kurar. Kabuk (ray, üst çubuk) rota
-   grubuna aittir: (ozalit) eski kabuğu, (atlas) yeni tasarım kabuğunu verir.
-   Ekranlar Atlas'a taşındıkça klasörleri (ozalit)'ten (atlas)'a geçer;
-   URL'ler değişmez (rota grupları yola yansımaz). */
+/* Kök yerleşim yalnız belge iskeletini kurar. Kabuk (kapsam çubuğu, ray,
+   sekme, künye) rota grubuna aittir ve YÖNÜ ROTADAN seçer
+   (`components/abacus/yonler.ts`). URL'ler rota gruplarına yansımaz. */
 
 export const metadata: Metadata = {
   title: 'Zorlu Uyum Konsolu',

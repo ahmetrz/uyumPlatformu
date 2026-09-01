@@ -1,7 +1,7 @@
 'use client';
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { heroGorseli, kucukGorsel, gorselAlt } from '@/lib/atlas/gorsel';
+import { heroGorseli, kucukGorsel, gorselAlt } from '@/lib/gorsel';
 import { tipAdi, tipRengi } from '@/components/abacus/tip';
 import { etiketle } from '@/lib/sabitler';
 

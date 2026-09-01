@@ -1,7 +1,7 @@
 import 'server-only';
 import { db } from '@/lib/db';
 import { aktifKullanici } from '@/lib/auth';
-import { durumAyagiVerisi } from '@/components/atlas/durumAyagiVerisi';
+import { durumAyagiVerisi } from '@/components/abacus/durumAyagiVerisi';
 import type { KabukVerisi } from './Kabuk';
 
 /* Kabuğun SUNUCU verisi — proje kalıbı: `page.tsx → veri.ts`.

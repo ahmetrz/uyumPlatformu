@@ -48,6 +48,24 @@ console.log(`font dosyası: ${mevcut.length} · başvurulan: ${basvurulan.size} 
 if (kullanilmayan.length) {
   console.log(`  kullanılmayan (${kullanilmayan.length}): ${kullanilmayan.join(', ')}`);
 }
+/* ── Aile bildirimi ─────────────────────────────────────────────────
+   `--ui / --veri / --gorunum` token'larının ilk ailesi @font-face ile
+   BİLDİRİLMİŞ olmalı; değilse tarayıcı sessizce yedeğe düşer ve
+   tipografi gözle fark edilmeden değişir. */
+const abacus = readFileSync(path.join(WEB, 'app', 'abacus.css'), 'utf8');
+const bildirilen = new Set(
+  [...abacus.matchAll(/@font-face\s*\{[^}]*font-family:\s*'([^']+)'/g)].map((m) => m[1]),
+);
+const istenen = new Set(
+  [...abacus.matchAll(/--(?:ui|veri|gorunum):\s*'([^']+)'/g)].map((m) => m[1]),
+);
+const bildirilmeyen = [...istenen].filter((a) => !bildirilen.has(a));
+console.log(`bildirilen aile: ${bildirilen.size} · token ailesi: ${istenen.size}`);
+if (bildirilmeyen.length) {
+  console.error(`\nBİLDİRİLMEYEN AİLE: ${bildirilmeyen.join(', ')}`);
+  process.exitCode = 1;
+}
+
 if (eksik.length) {
   console.error(`\nEKSİK FONT DOSYASI: ${eksik.length}`);
   for (const f of eksik) console.error(`  · /fontlar/${f} — ${basvurulan.get(f).join(', ')}`);

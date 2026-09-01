@@ -1,50 +1,42 @@
-@import "./tokens.css";
-
 /* ═══════════════════════════════════════════════════════════════════════
-   Kök stil katmanı — belge sıfırlaması + token içe aktarımı.
+   BELGE KATMANI
 
-   ── LEGACY TEMİZLİĞİ (Atlas 2 rollout, son faz) ───────────────────────
-   Bu dosya bir zamanlar OZALİT kabuğunun (`.shell`) tüm stil katmanıydı:
-   ray, üst çubuk, kart, chip, tablo, matris, ağaç, halka, zaman çizelgesi,
-   fotoğraf rolleri, hareket kancaları. Atlas kabuğuna geçişle o katmanın
-   TAMAMI ölü kaldı — hiçbir bileşen `.shell` sınıfını render etmiyor
-   (kanıt: `grep -rn "shell" app components lib` yalnız bu dosyayı
-   buluyordu). Ölü stil zararsız değildir: her CSS okumasında tarayıcıya
-   yük, her arama sonucunda insana gürültü ve "bu hâlâ kullanılıyor mu?"
-   diye kaybedilen zamandır.
+   Bu dosyada YALNIZ belge sıfırlaması vardır. Ürünün bütün sunumu
+   `abacus.css` içinde, `.ab` kapsamında yaşar; kabuk her rotayı o
+   kapsamla sarar.
 
-   219 kural silindi (359 satır → bu dosya). Silinenler yalnız SELEKTÖRÜNÜN
-   TAMAMI `.shell` kapsamında olanlardır; ortak seçicili hiçbir kurala
-   dokunulmadı. Birlikte düşen ölü komşular:
-     · `@keyframes belir / nabiz / akis / parilti-anim / kanat-donus` —
-       Atlas kendi `akis` ve `iskelet-nabiz` kareleri tanımlıyor.
-     · `.hero-foto` ve `--foto-serit / --foto-hero / --foto-mini /
-       --foto-dikis` — Ozalit fotoğraf rolleri; Atlas'ın görsel katmanı
-       `lib/atlas/gorsel.ts` + `atlas.css` üzerinden çalışıyor.
+   ── NE SİLİNDİ ─────────────────────────────────────────────────────────
+   Bu dosya sırasıyla iki tasarımın stil katmanıydı: önce Ozalit kabuğu,
+   sonra Atlas token seti (`tokens.css` içe aktarımı) ve
+   `atlas.css` (978 satır). Abacus geçişiyle üçünün de son kullanıcısı
+   kalmadı; `arac/iz-tarama.mjs` bunu her koşuda kanıtlar. Silinenler:
+     · `app/atlas.css`   — 978 satır, Atlas kabuğu ve primitifleri
+     · `app/tokens.css`  — 397 satır, Ozalit/Atlas token seti
+     · `components/atlas/*` — on iki bileşen dosyası
+   Ölü stil zararsız değildir: her okumada tarayıcıya yük, her aramada
+   insana gürültü, her bakışta "bu hâlâ kullanılıyor mu?" sorusu.
 
-   Ürün kodu, iş mantığı ve token seti DEĞİŞMEDİ. Tasarım denetimi, rota
-   duman testi ve ekran görüntüsü karşılaştırması temizlik sonrası yeniden
-   koşturuldu.
+   Zemin `.ab` kapsamında verilir; burada `body` yalnız yüzeyin dışında
+   kalan piksellerin rengini tutar ki koyu yönlerde beyaz bir kenar
+   şeridi görünmesin. Değer sabittir çünkü belge kökü hangi yönün
+   çizileceğini BİLEMEZ — yön rotadan, kabukta seçilir.
    ═══════════════════════════════════════════════════════════════════════ */
 
-/* ===== Belge sıfırlaması ===== */
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
+html { color-scheme: dark; }
+
 body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--font-ui);
-  font-size: var(--fs-body);
+  background: #0D1012;
+  color: #E7EAEA;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 13px;
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
 }
-::selection { background: var(--accent-soft); color: var(--text); }
 
-/* ===== Yazdırma =====
-   Kabuk seviyesindeki yazdırma kuralları Atlas'ın kendi katmanında
-   (`atlas.css` → `.baskida-gizle`, `.atlas` yazdırma bloğu). Burada yalnız
-   BELGE zemini kalır: rapor çıktısı beyaz kâğıda siyah mürekkeple basılır,
-   ekran temasının koyu zemini yazıcıya gitmez. */
+/* Yazdırma: rapor çıktısı beyaz kâğıda siyah mürekkeple basılır; ekran
+   temasının koyu zemini yazıcıya gitmez. Kabuk kuralları abacus.css'te. */
 @media print {
   body { background: #fff; color: #000; }
 }

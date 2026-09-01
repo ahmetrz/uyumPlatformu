@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import { heroGorseli, gorselAlt } from '@/lib/atlas/gorsel';
+import { heroGorseli, gorselAlt } from '@/lib/gorsel';
 import { tipAdi, tipRengi } from '@/components/abacus/tip';
 import { etiketle } from '@/lib/sabitler';
 

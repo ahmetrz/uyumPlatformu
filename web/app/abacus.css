@@ -101,6 +101,30 @@
   src: url('/fontlar/plex-mono-latin-ext-600.woff2') format('woff2');
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
+/* A yönünün GÖRÜNÜM ailesi. `atlas.css` silinince `@font-face` kuralı da
+   gitti ve A'nın dar başlıkları sessizce Inter Tight'a düşüyordu — gözle
+   fark edilmiyordu. `arac/font-kontrol.mjs` artık aile bildirimini de
+   denetliyor. Dosyalar zaten `public/fontlar` içindeydi. */
+@font-face {
+  font-family: 'Archivo'; font-weight: 400 700; font-style: normal; font-display: swap;
+  src: url('/fontlar/archivo-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Archivo'; font-weight: 400 700; font-style: normal; font-display: swap;
+  src: url('/fontlar/archivo-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Barlow Condensed'; font-weight: 500; font-style: normal; font-display: swap;
+  src: url('/fontlar/barlow-condensed-latin-500.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Barlow Condensed'; font-weight: 500; font-style: normal; font-display: swap;
+  src: url('/fontlar/barlow-condensed-latin-ext-500.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
 @font-face {
   font-family: 'Barlow Condensed'; font-weight: 400; font-style: normal; font-display: swap;
   src: url('/fontlar/barlow-condensed-latin-400.woff2') format('woff2');
@@ -336,7 +360,8 @@
 }
 
 /* ═══ Kabuk A — 52px kapsam çubuğu + 60px ikon rayı ═══════════════════ */
-.ab-a { display: grid; grid-template-rows: 52px minmax(0, 1fr) 30px; min-height: 100dvh; }
+.ab-a { display: grid; grid-template-rows: 52px minmax(0, 1fr) 30px;
+  grid-template-columns: minmax(0, 1fr); min-height: 100dvh; }
 .ab-a-ust {
   display: flex; align-items: stretch;
   background: var(--panel); border-bottom: 1px solid var(--hr);
@@ -401,7 +426,8 @@
 .ab-a-ayak .sag { margin-left: auto; }
 
 /* ═══ Kabuk B — 56px yatay sekme, ray YOK ═════════════════════════════ */
-.ab-b { display: grid; grid-template-rows: 56px minmax(0, 1fr); min-height: 100dvh; }
+.ab-b { display: grid; grid-template-rows: 56px minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr); min-height: 100dvh; }
 .ab-b-ust {
   display: flex; align-items: stretch;
   background: var(--zemin); border-bottom: 1px solid var(--hr);
@@ -422,25 +448,6 @@
 .ab-b-ust nav a:hover { color: var(--murekkep); }
 .ab-b-ust nav a[aria-current='page'] { color: var(--murekkep); border-bottom-color: var(--aksan); }
 .ab-b-ust .sag { margin-left: auto; display: flex; align-items: center; gap: 18px; padding: 0 24px; }
-
-/* Hero: fotoğraf + perde + üzerine veri. Fotoğrafa DOKUNULMAZ;
-   okunabilirlik perdeden gelir (prototipteki `.veil` birebir). */
-.ab-b-hero { position: relative; overflow: hidden; border-bottom: 1px solid var(--hr); }
-.ab-b-hero > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-.ab-b-hero .perde {
-  position: absolute; inset: 0; pointer-events: none;
-  background: linear-gradient(90deg, #0A0C0D 0%, rgba(10,12,13,.94) 26%, rgba(10,12,13,.35) 52%, rgba(10,12,13,.8) 100%);
-}
-/* Fotoğrafı olmayan santral: sahte "canlı tesis görseli" UYDURULMAZ
-   (harita §7 kusur 3). Tanımlı fallback — tipografik zemin. */
-.ab-b-hero.fotosuz { background: var(--panel); }
-.ab-b-hero.fotosuz .perde { background: linear-gradient(90deg, #0A0C0D 0%, rgba(10,12,13,.6) 60%, rgba(10,12,13,.85)); }
-.ab-b-hero .icerik { position: relative; z-index: 1; }
-
-.ab-b-dev {
-  font-family: var(--gorunum); font-weight: 700; font-size: 86px; line-height: .9;
-  letter-spacing: .01em; font-variant-numeric: tabular-nums;
-}
 
 /* ═══ B · Saha ekranı — b-executive grameri ═══════════════════════════
    648px fotoğrafik alan (solda 430px dikkat, sağda 320px katman), 168px
@@ -973,7 +980,6 @@
 .ab-c-olcut .deger { font-family: var(--veri); font-size: 19px; font-variant-numeric: tabular-nums; margin-top: 4px; }
 .ab-c-olcut .deger.vurgu { color: var(--bd); }
 .ab-c-olcut .deger.oran { font-family: var(--gorunum); font-size: 26px; line-height: 1; }
-.ab-c-dev { font-family: var(--gorunum); font-weight: 300; font-size: 76px; line-height: .95; font-variant-numeric: tabular-nums; }
 
 /* ═══ A · Varlık zihni — a-assets grameri ════════════════════════════
    42px kip çubuğu · süzgeç şeridi · (zincir tuvali | tablo) + 400px
@@ -1162,7 +1168,9 @@
    Satır bir DÜĞMEDİR: seçim `aria-pressed` ile taşınır (`aria-selected`
    düğme rolünde geçersizdir). Sol kenar durumun ŞİDDETİNİ taşır ve
    yanında olgunun SÖZCÜĞÜ yazar — renk tek başına anlatmaz. */
-.ab-tablo { width: 100%; display: grid; }
+.ab-tablo { width: 100%; display: grid; --satir-y: 10px; }
+/* Sık kip: 40+ satırlı kütükte satır dolgusu daralır, tipografi değil. */
+.ab-tablo.sik { --satir-y: 7px; }
 .ab-tablo .bas, .ab-tablo .satir {
   display: grid; grid-template-columns: var(--kolon, var(--kolonlar));
   gap: 16px; align-items: center;
@@ -1547,15 +1555,10 @@
   font-family: var(--gorunum); font-weight: 500; font-size: var(--t-board);
   line-height: var(--lh-board); letter-spacing: var(--tr-board);
 }
-.ab-hero-basligi {
-  font-family: var(--gorunum); font-weight: 600; font-size: var(--t-hero);
-  line-height: var(--lh-hero); letter-spacing: var(--tr-hero); text-transform: uppercase;
-}
 .ab-bolum-basligi {
   font-family: var(--gorunum); font-weight: 500; font-size: var(--t-section);
   line-height: var(--lh-section); letter-spacing: var(--tr-section);
 }
-.ab-lead { font-size: var(--t-lead); line-height: 1.6; color: var(--i2); }
 .ab-dip { font-family: var(--veri); font-size: var(--t-code); line-height: 1.7; color: var(--i3); }
 .ab .bos { color: var(--i3); }
 
@@ -1869,6 +1872,36 @@ textarea.ab-gr { min-height: 76px; resize: vertical; }
 .ab-tik { display: inline-flex; gap: 2px; align-items: flex-end; }
 .ab-tik i { width: 3px; height: 9px; background: var(--hr2); display: block; }
 .ab-tik i.dolu { height: 13px; }
+
+/* ═══ Tasarım sistemi referansı (/sistem) ════════════════════════════ */
+.ab-sistem .bolum { margin-top: 44px; }
+.ab-sistem .bolum > .ab-dip { margin: 6px 0 18px; }
+.ab-sistem .zeminler { display: flex; gap: 24px; flex-wrap: wrap; margin-bottom: 22px; }
+.ab-sistem .zemin { display: grid; gap: 6px; }
+.ab-sistem .zemin .ornek {
+  display: block; width: 132px; height: 46px; border: 1px solid var(--hr2);
+}
+.ab-sistem .zemin .ad { font-size: 10px; }
+.ab-sistem .zemin .deger { font-size: 9.5px; color: var(--i3); }
+
+.ab-sistem-tablo { width: 100%; border-collapse: collapse; font-size: 12px; }
+.ab-sistem-tablo th { text-align: left; padding: 0 12px 8px 0; border-bottom: 1px solid var(--murekkep); }
+.ab-sistem-tablo th.sag, .ab-sistem-tablo td.sag { text-align: right; padding-right: 0; }
+.ab-sistem-tablo td {
+  padding: 8px 12px 8px 0; border-bottom: 1px solid var(--hr); vertical-align: baseline;
+}
+.ab-sistem-tablo td.kaldi { color: var(--bd); font-weight: 600; }
+.ab-sistem-tablo .nokta {
+  display: inline-block; width: 10px; height: 10px; margin-right: 8px;
+  border: 1px solid var(--hr2); vertical-align: baseline;
+}
+.ab-sistem code { font-family: var(--veri); }
+
+.ab-sistem .olcek { display: grid; gap: 8px; }
+.ab-sistem .olcek > div { display: flex; align-items: center; gap: 14px; }
+.ab-sistem .olcek .cubuk { display: block; height: 10px; background: var(--aksan); flex: none; }
+.ab-sistem .olcek .ad { font-size: 10px; width: 54px; }
+.ab-sistem .olcek .deger { font-size: 10px; color: var(--i3); }
 
 /* ═══ Hareket — reduced-motion sözleşmesi ═════════════════════════════
    Prototiplerde hareket KOŞULSUZDU (`.scan`, `.ring`, `.fadein`).

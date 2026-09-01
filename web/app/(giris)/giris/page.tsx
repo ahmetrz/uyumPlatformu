@@ -3,11 +3,13 @@ import { aktifKullanici } from '@/lib/auth';
 import GirisFormu from './GirisFormu';
 
 /* Giriş — oturum yok, kayıt yok, karar yok: uygulama kabuğunun dışındaki
-   tek ekran. Atlas gramerine giydirildi ama yeri değişmedi (URL sabit).
+   tek ekran. Kabuk çizilmez ama YÜZEY Abacus'tur: `.ab[data-yon='b']`
+   sarmalayıcısı saha yönünün paletini ve tipografisini getirir — `yonSec`
+   de `/giris`i B'ye düşürüyor, iki karar ayrışmasın.
 
-   Yerleşim iki şeritli: solda fotoğrafik kimlik bandı, sağda 420px'lik
-   form kolonu — çekmece genişliğiyle aynı ölçü. Kart yok, yuvarlak köşe
-   yok, gölge yok; ayrımı kenar çizgisi ve yüzey tonu yapar. */
+   Yerleşim iki şeritli: solda fotoğrafik kimlik bandı, sağda 400px'lik
+   form kolonu — detay panelinin genişliğiyle aynı ölçü. Kart yok,
+   yuvarlak köşe yok, gölge yok; ayrımı kenar çizgisi ve yüzey tonu yapar. */
 
 // Statik dışa aktarımda basePath elle eklenir (next/image kullanılmıyor).
 const TEMEL = process.env.NEXT_PUBLIC_DEMO === '1' ? '/uyumPlatformu' : '';
@@ -16,10 +18,9 @@ export default async function Giris() {
   if (await aktifKullanici()) redirect('/');
 
   return (
-    <div className="atlas" style={{
+    <div className="ab" data-yon="b" style={{
       minHeight: '100dvh', display: 'grid',
       gridTemplateColumns: 'minmax(0, 1fr) var(--drawer-w)',
-      background: 'var(--murekkep)',
     }}>
       <section style={{ position: 'relative', overflow: 'hidden',
         background: 'var(--panel2)', color: 'var(--murekkep)' }}>
@@ -37,7 +38,7 @@ export default async function Giris() {
           flexDirection: 'column', justifyContent: 'space-between',
           padding: 'var(--s40) var(--s44)' }}>
           <p className="etiket" style={{ margin: 0, color: 'rgba(246,244,238,.72)' }}>
-            Energy Operations · Atlas
+            Voltaj Atlas · enerji operasyonları
           </p>
           <div>
             <h1 className="ab-pano-basligi" style={{ margin: 0, maxWidth: 620 }}>
@@ -55,7 +56,7 @@ export default async function Giris() {
         </div>
       </section>
 
-      <main data-yuzey="saha" style={{ background: 'var(--panel2)',
+      <main style={{ background: 'var(--panel2)',
         borderLeft: 'var(--bw-strong) solid var(--hr2)',
         display: 'flex', flexDirection: 'column', justifyContent: 'center',
         padding: 'var(--s40) var(--s34)' }}>

@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import { NOTR_TRIPTIK, kucukGorsel } from '@/lib/atlas/gorsel';
+import { NOTR_TRIPTIK, kucukGorsel } from '@/lib/gorsel';
 import { tipAdi, tipRengi, uygunRengi } from '@/components/abacus/tip';
 import type {
   AkisHaftasi, RiskIzgarasi, SantralKarti, TakvimKalemi, TipKatmani,

@@ -46,17 +46,7 @@ export function gorselAlt(ad: string, tipAdi: string, konum?: string | null): st
   return `${ad} — ${tipAdi.toLocaleLowerCase('tr-TR')} santral${konum ? `, ${konum}` : ''}`;
 }
 
-/** Üretim tipi kimlik rengi — YALNIZ kimlik, asla durum veya etkileşim. */
-export function tipRengi(tipKod: string | null | undefined, koyuYuzey = false): string {
-  const t = (tipKod ?? '').toUpperCase();
-  if (t === 'JEO') return koyuYuzey ? 'var(--jesd)' : 'var(--jes)';
-  if (t === 'HES') return koyuYuzey ? 'var(--hesd)' : 'var(--hes)';
-  if (t === 'RES') return koyuYuzey ? 'var(--resd)' : 'var(--res)';
-  if (t === 'GES') return 'var(--ges)';
-  return 'var(--i3)';
-}
-
-export const TIP_ADI: Record<string, string> = {
-  JEO: 'Jeotermal', HES: 'Hidroelektrik', RES: 'Rüzgâr', GES: 'Güneş',
-  DGKC: 'Doğal gaz kombine çevrim', TERMIK: 'Termik', MERKEZ: 'Merkez BT',
-};
+/* Üretim tipi kimlik rengi ve adı ARTIK BURADA DEĞİL:
+   `components/abacus/tip.ts`. Nedeni Atlas token'larına (`--jesd`)
+   bağlıydı ve koyu/açık yüzeyi ÇAĞIRANIN bilmesini istiyordu; Abacus'ta
+   yüzeyi YÖN belirler, ekran değil. */

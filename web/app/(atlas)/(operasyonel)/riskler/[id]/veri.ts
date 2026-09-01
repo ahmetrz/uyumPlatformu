@@ -3,7 +3,7 @@ import { db } from '@/lib/db';
 import { izinliTesisIdleri } from '@/lib/erisim';
 import type { AktifKullanici } from '@/lib/auth';
 import { kapsamKosulu, kapsamda, modulKapisi } from '@/app/kapsam';
-import { kucukGorsel } from '@/lib/atlas/gorsel';
+import { kucukGorsel } from '@/lib/gorsel';
 import { RISK_ICERIK, riskeCevir } from '../ortak';
 import type { DetayVerisi } from './RiskDetayIstemci';
 

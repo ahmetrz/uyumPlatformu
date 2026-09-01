@@ -9,7 +9,7 @@ import { chromium } from 'playwright-core';
 const KOK = `http://localhost:${process.env.PORT || 3000}`;
 const YOLLAR = (process.env.YOLLAR || '/sistem/bilesenler').split(',');
 
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
+const b = await chromium.launch({ executablePath: process.env.CHROME || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
 const s = await b.newPage({ viewport: { width: 1440, height: 1000 } });
 /* Giriş: form React ile KONTROLLÜ bir bileşendir. `domcontentloaded`
    sonrası doldurmak yeterli değil — hidrasyon henüz olmamışsa React

@@ -26,7 +26,7 @@ const RAYLI = ['/', '/tesisler', '/portfoy', '/uyum', '/surecler', '/riskler', '
    ekranıdır, gezinme listesine girmez (aktif öğe 0 beklenir). */
 const RAYSIZ = ['/sistem', '/sistem/bilesenler'];
 
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
+const b = await chromium.launch({ executablePath: process.env.CHROME || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
 const s = await b.newPage({ viewport: { width: 1440, height: 1000 } });
 const hatalar = [];
 s.on('pageerror', (e) => hatalar.push(`${s.url()} :: ${e.message.slice(0, 120)}`));

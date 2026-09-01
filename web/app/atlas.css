@@ -367,10 +367,19 @@
   font-family: var(--mo); font-size: var(--t-code-lg); font-weight: 600;
   letter-spacing: 0.08em; color: inherit;
 }
+/* Etiket TEK SATIRDIR ve kırılamaz. Pilot kusuru: "Risk & denetim" ve
+   "Varlık & OT" 58px'e sığmayıp "RİSK &" / "DENETİM" ve "VARLIK &" / "OT"
+   diye kırılıyor, ikinci satırda asılı kalan "&" ve yalnız "OT" rayı bozuk
+   gösteriyordu. Etiket kaynakta tek sözcüğe indirildi (Ray.tsx `kisa`);
+   burada `nowrap` bunu SÖZLEŞMEYE çevirir — ileride uzun bir etiket
+   eklenirse sessizce iki satıra kırılmaz, görünür biçimde üç noktayla
+   kesilir ve kusur hemen fark edilir. Tam ad monogramda, `aria-label`de,
+   `title`da ve ikincil kolonun başlığındadır; hiçbir bilgi kaybolmaz. */
 .atlas .ray-alan .etiket {
-  font-family: var(--mo); font-size: 7.5px; letter-spacing: 0.10em;
-  text-transform: uppercase; color: var(--i3); max-width: 58px;
+  font-family: var(--mo); font-size: 7.5px; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--i3); max-width: 60px;
   line-height: 1.25;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .atlas .ray-alan:hover { background: var(--row-hover); color: var(--ink); }
 .atlas .ray-alan[aria-current='true'] {
@@ -390,11 +399,21 @@
   display: flex; flex-direction: column; min-height: 0;
   padding-top: var(--rail-pad-top);
 }
-.atlas .ray-ikincil .ray-baslik {
+.atlas .ray-baslik {
+  margin: 0;
   padding: 0 var(--rail-inset) var(--s10);
   font-family: var(--mo); font-size: var(--t-label);
   letter-spacing: var(--tr-label); text-transform: uppercase; color: var(--i3);
 }
+
+/* ── Atlas 2 · 1024–1199 bağlamsal açılır liste ─────────────────────── */
+/* Bu bantta 192px'lik ikincil kolon gizlenir. Kardeş ekranlara erişimin
+   tek yolu komut paleti kalmasın diye alan rayının başına klavyeyle
+   çalışan bir açma/kapama düğmesi konur; PANEL, listenin ikinci bir
+   kopyası değil, ikincil kolonun KENDİSİDİR. Düğme varsayılan olarak
+   `display:none` — yalnız kendi bandında var olur, dolayısıyla ≥1200'de
+   ne odak sırasına girer ne de ekran okuyucuya duyurulur. */
+.atlas .ray-baglam-ozet { display: none; }
 
 /* Komut paleti (Ctrl+K) — kabuğun üstünde, her Atlas ekranında */
 .atlas-palet-perde, .palet-perde { position: fixed; inset: 0; z-index: 90;
@@ -480,11 +499,64 @@
 @media (max-width: 1199px) {.atlas-kabuk { grid-template-columns: var(--rail-alan-w) minmax(0, 1fr); }.atlas-ray { grid-template-columns: var(--rail-alan-w); overflow: visible; }.atlas .ray-ikincil { display: none; }.atlas .ray-alanlar { border-right: 0; }.atlas .durum-ayak { left: var(--rail-alan-w); }
 }
 
+/* md 1024–1199 · bağlamsal açılır liste — gizlenen ikincil kolonun
+   klavyeyle erişilebilir karşılığı. Yalnız bu bantta çizilir: ≥1200'de
+   ikincil kolon zaten görünür, <1024'te ray yatay şeride iner ve açılır
+   panelin tutunacağı dikey bir kenar kalmaz. */
+@media (min-width: 1024px) and (max-width: 1199px) {
+  /* Düğme alan bağlantılarının altında: DOM sırası = görsel sıra = odak
+     sırası. Üstünde kıl payı bir ayraç, alanlardan ayrı bir denetim
+     olduğunu söyler; `flex: none` ray kaydırılsa da büzülmesini önler. */
+  .atlas .ray-baglam-ozet {
+    display: flex; flex-direction: column; align-items: center; gap: var(--s3);
+    width: 100%; flex: none; margin-top: var(--s10); padding: var(--s10) 0;
+    background: none;
+    border: 0;
+    border-left: var(--bw-edge) solid transparent;
+    border-top: var(--bw-hair) solid var(--hr2);
+    color: var(--i2); text-align: center; cursor: pointer;
+  }
+  .atlas .ray-baglam-ozet:hover { background: var(--row-hover); color: var(--ink); }
+  .atlas .ray-baglam-ozet[aria-expanded='true'] {
+    background: var(--band); color: var(--pp); border-left-color: var(--bakir);
+  }
+  .atlas .ray-baglam-ozet .harf {
+    font-family: var(--mo); font-size: var(--t-code-lg); font-weight: 600;
+    letter-spacing: 0.08em; color: inherit;
+  }
+  .atlas .ray-baglam-ozet .etiket {
+    font-family: var(--mo); font-size: 7.5px; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--i3); white-space: nowrap;
+  }
+  .atlas .ray-baglam-ozet[aria-expanded='true'] .etiket { color: rgba(246, 244, 238, .72); }
+  .atlas .ray-baglam-ozet .ok {
+    font-size: 9px; line-height: 1; color: inherit;
+    transition: transform var(--mo-state) var(--ez);
+  }
+  .atlas .ray-baglam-ozet[aria-expanded='true'] .ok { transform: rotate(90deg); }
+
+  /* Panel = ikincil kolonun kendisi. `.atlas-ray > *` konumlanmış olduğu
+     için `left: 100%` rayın dış kenarına oturur; ray bu bantta zaten
+     `overflow: visible`. Kolon burada tam yüksekliktedir: içindeki
+     `.ray-liste` kendi içinde kayar, oturum bloğu altta kalır. */
+  .atlas .ray-ikincil[data-acik='1'] {
+    display: flex; position: absolute; left: 100%; top: 0; z-index: 30;
+    width: 212px; height: 100%;
+    background: var(--rail-bg);
+    border-right: var(--bw-strong) solid var(--hr2);
+    box-shadow: var(--sh-tip);
+  }
+}
+
 /* sm <1024: operasyonel katman hedeflenmez; alan rayı yatay şeride iner */
 @media (max-width: 1023px) {.atlas-kabuk { grid-template-columns: minmax(0, 1fr); }.atlas-ray { position: static; height: auto; grid-template-columns: minmax(0, 1fr);
     border-right: 0; border-bottom: var(--bw-strong) solid var(--hr2); }.atlas .ray-alanlar { flex-direction: row; overflow-x: auto; padding-top: 0;
     border-right: 0; }.atlas .ray-alan { border-left: 0; border-bottom: var(--bw-edge) solid transparent;
     padding: var(--s10) var(--s14); flex: none; }.atlas .ray-alan[aria-current='true'] { border-left-color: transparent; border-bottom-color: var(--bakir); }.atlas .ray-ikincil { display: none; }.atlas .durum-ayak { display: none; }.atlas .baglam { padding-left: var(--s20); padding-right: var(--s20); }
+  /* Panel bu bantta YOKTUR. `data-acik` özniteliği seçici ağırlığını
+     yukarı çektiği için açıkça bastırılır: 1100px'te paneli açıp pencereyi
+     daraltan kullanıcıda ray yatay şeride inerken panel havada kalırdı. */
+  .atlas .ray-ikincil[data-acik='1'] { display: none; }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -701,6 +773,22 @@
 .atlas .ekran-bas { display: flex; align-items: flex-start; gap: var(--s34);
   padding: var(--sec-pad-top) var(--gutter-op) 0; }.atlas .ekran-bas .sol { min-width: 0; }.atlas .ekran-bas .metrikler { margin-left: auto; }.atlas .ekran-govde { padding: 0 var(--gutter-op) var(--sec-pad-bot); }.atlas .dip-not { margin-top: var(--s14); font-family: var(--mo); font-size: var(--t-label);
   letter-spacing: var(--tr-label); text-transform: uppercase; color: var(--i3); }
+
+/* ── O1 · Matris altı ikincil yüzey ──────────────────────────────────────
+   PİLOT KUSURU: Atlas 2'de /uyum matrisi 5 satıra düştüğünde canvas'ın alt
+   ≈340px'i tamamen boştu. "Az gürültü" ile "hiçbir şey yok" aynı şey değil.
+   Çözüm bir KART DEĞİL: sarmalayıcı yok, yarıçap yok, gölge yok, KPI kutusu
+   yok. Yalnız bir kıl payı bölüm çizgisi ile ayrılmış, aynı `Tablo`
+   primitifini kullanan ikinci bir okuma katmanı. Bölüm çizgisi ekranın
+   kendi oluk hizasında kalır ki matrisle aynı sütun sistemine otursun. */
+.atlas .uyum-ikincil { margin-top: var(--s30); padding-top: var(--s22);
+  border-top: var(--bw-hair) solid var(--hr2); }
+/* Başlık + sayaç aynı satırda: sayaç bir metrik plakası değil, başlığın
+   sağına düşen sessiz bir künye. Sözcük değil sayı taşır (§A2). */
+.atlas .uyum-ikincil-bas { display: flex; align-items: baseline;
+  gap: var(--s12); margin: 0 0 var(--s12); color: var(--ink); }
+.atlas .uyum-ikincil-bas .ayrinti { margin-left: auto; letter-spacing: var(--tr-label);
+  text-transform: none; color: var(--i3); }
 
 /* ═══════════════════════════════════════════════════════════════════════
    FAZ 4 · Flagship — Plant 360 hero, portföy plakaları, executive şeridi

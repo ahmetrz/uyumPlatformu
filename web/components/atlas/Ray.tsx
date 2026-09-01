@@ -1,4 +1,5 @@
 'use client';
+import { useCallback, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import CikisDugmesi from '@/components/CikisDugmesi';
@@ -125,35 +126,47 @@ function aktifMi(oge: RayOgesi, patika: string): boolean {
 export type RayAlani = {
   kod: string;        /* monogram — 2 harf, mono */
   ad: string;
+  /* 64px raydaki görünen etiket. KURAL: alan adının İLK SÖZCÜĞÜ, tek parça.
+     Pilot kusuru: etiket doğrudan `ad`dan basılıyordu; "Risk & denetim" ve
+     "Varlık & OT" 58px'lik kolona sığmayıp "RİSK &" / "DENETİM" ve
+     "VARLIK &" / "OT" diye kırılıyordu — ikinci satırda tek başına kalan
+     "OT" ve asılı kalan "&" rayı bir menü değil, bozuk bir tablo gibi
+     gösteriyordu. Rayı genişletmek çözüm değil (iki kademeli kabuğun tüm
+     kazancı 64px'te). Onun yerine etiket tek sözcüğe indirildi, CSS'te
+     `white-space: nowrap` ile kırılma İMKÂNSIZ hâle getirildi ve kaybolan
+     ikinci sözcük üç yerden geri verildi: monogram (RD / VO), bağlantının
+     `aria-label` + `title` değeri ve ikincil kolonun başlığı — böylece
+     tam ad her zaman bir yerde okunur. */
+  kisa: string;
   ekranlar: RayOgesi[];
 };
 
 export const ALANLAR: RayAlani[] = [
-  { kod: 'BG', ad: 'Bugün', ekranlar: [
+  { kod: 'BG', ad: 'Bugün', kisa: 'Bugün', ekranlar: [
     { ad: 'Genel bakış', yol: '/' },
     { ad: 'Bildirimler', yol: '/bildirimler' },
   ]},
-  { kod: 'PF', ad: 'Portföy', ekranlar: [
+  { kod: 'PF', ad: 'Portföy', kisa: 'Portföy', ekranlar: [
     /* `/tesisler` kanonik listeyi (`/portfoy`) açar; `/tesisler/<id>`
        Santral 360'tır. İkisi de bu alanın içindedir — es yol olarak
        eklenmeseydi santralin içindeyken ray "Bugün"e düşerdi. */
     { ad: 'Enerji portföyü', yol: '/portfoy', esYollar: ['/tesisler'] },
   ]},
-  { kod: 'UY', ad: 'Uyum', ekranlar: [
+  { kod: 'UY', ad: 'Uyum', kisa: 'Uyum', ekranlar: [
     { ad: 'Uyum matrisi', yol: '/uyum' },
     { ad: 'Uyum süreçleri', yol: '/surecler' },
     { ad: 'Regülasyonlar', yol: '/regulasyonlar', ayrac: true },
     { ad: 'Eşleştirme', yol: '/eslestirme' },
     { ad: 'Madde aktarımı', yol: '/ice-aktarim' },
   ]},
-  { kod: 'RD', ad: 'Risk & denetim', ekranlar: [
+  { kod: 'RD', ad: 'Risk & denetim', kisa: 'Risk', ekranlar: [
     { ad: 'Risk', yol: '/riskler' },
     { ad: 'Denetim', yol: '/denetimler' },
     { ad: 'Bulgu & CAPA', yol: '/bulgular' },
     { ad: 'Projeler', yol: '/projeler' },
     { ad: 'Raporlar', yol: '/raporlar', ayrac: true },
   ]},
-  { kod: 'VO', ad: 'Varlık & OT', ekranlar: [
+  { kod: 'VO', ad: 'Varlık & OT', kisa: 'Varlık', ekranlar: [
     { ad: 'Varlıklar', yol: '/envanter' },
     { ad: 'Keşif', yol: '/kesif' },
     { ad: 'Topoloji', yol: '/topoloji' },
@@ -163,12 +176,12 @@ export const ALANLAR: RayAlani[] = [
     { ad: 'Tedarikçiler', yol: '/tedarikciler' },
     { ad: 'Varlık aktarımı', yol: '/varlik-aktarim', ayrac: true },
   ]},
-  { kod: 'OP', ad: 'Operasyon', ekranlar: [
+  { kod: 'OP', ad: 'Operasyon', kisa: 'Operasyon', ekranlar: [
     { ad: 'Olaylar', yol: '/olaylar' },
     { ad: 'Değişiklikler', yol: '/operasyon' },
     { ad: 'Platform sağlığı', yol: '/saglik' },
   ]},
-  { kod: 'YN', ad: 'Yönetim', ekranlar: [
+  { kod: 'YN', ad: 'Yönetim', kisa: 'Yönetim', ekranlar: [
     { ad: 'Yönetim tezgâhı', yol: '/yonetim-tezgahi' },
     { ad: 'Eşleme profilleri', yol: '/esleme' },
     { ad: 'Kullanıcı & yetki', yol: '/yetkiler' },
@@ -207,8 +220,49 @@ export default function Ray({
     return toplam > 0 ? { sayi: toplam, kritik } : null;
   };
 
+  /* ── 1024–1199 · bağlamsal açılır liste ────────────────────────────
+     Bu bantta ikincil kolon (192px) gizlenir ve geriye yalnız 64px alan
+     rayı kalır. Pilot kusuru: kardeş ekranlara (aynı alandaki diğer
+     ekranlar) ulaşmanın TEK yolu komut paleti ya da adres çubuğu
+     oluyordu — alan rozetine tıklamak kişiyi alanın İLK ekranına
+     atıyordu, dolayısıyla "Bulgu & CAPA"dan "Projeler"e geçmek için
+     önce "Risk"e uğramak gerekiyordu.
+     Çözüm bir açma/kapama düğmesi (`aria-expanded` + `aria-controls`) ve
+     panel olarak ZATEN VAR OLAN ikincil kolonun kendisi. Liste İKİNCİ KEZ
+     çizilmez: ayrı bir kopya, gizli olsa bile ikinci bir
+     `aria-current="page"` üretir ve ekranda "geçerli sayfa" iki kez
+     duyurulur — rota duman testinin de yakaladığı gerçek bir kusur.
+     HOVER'A BAĞLI DEĞİLDİR: düğme doğal olarak odaklanabilir, Enter/Space
+     açar, Esc kapatır ve odağı düğmeye geri verir, bağlantıya basınca
+     kendiliğinden kapanır. Panel yalnız bu bantta çizilir; ≥1200'de
+     ikincil kolon zaten görünür, <1024'te ray yatay şeride iner. */
+  const [baglamAcik, setBaglamAcik] = useState(false);
+  const [oncekiYol, setOncekiYol] = useState(patika);
+  const ozetRef = useRef<HTMLButtonElement>(null);
+
+  /* Rota değişince panel kapanır. Efekt DEĞİL, render sırasında düzeltme
+     (React'in "prop değişince state'i ayarla" kalıbı): Ray istemci
+     gezinmesinde yeniden bağlanmadığı için komut paletiyle ya da geri
+     tuşuyla gidildiğinde açık panel bir sonraki ekranın üstünde kalırdı. */
+  if (oncekiYol !== patika) {
+    setOncekiYol(patika);
+    setBaglamAcik(false);
+  }
+
+  const baglamKapat = useCallback((odagiGeriVer: boolean) => {
+    setBaglamAcik(false);
+    if (odagiGeriVer) ozetRef.current?.focus();
+  }, []);
+
   return (
-    <nav className="atlas-ray" aria-label="Ana menü">
+    <nav
+      className="atlas-ray"
+      aria-label="Ana menü"
+      /* Esc rayın TAMAMINDA kapatır, yalnız panelin içinde değil: kullanıcı
+         paneli açtıktan sonra odağı alan rayına geri alabilir ve o noktada
+         Esc'in ölü tuş olması kaçış yolunu kapatır. */
+      onKeyDown={(e) => { if (e.key === 'Escape' && baglamAcik) baglamKapat(true); }}
+    >
       {/* Birincil alan rayı — 64px */}
       <div className="ray-alanlar" aria-label="Alanlar">
         {ALANLAR.map((a) => {
@@ -220,22 +274,58 @@ export default function Ray({
               href={a.ekranlar[0].yol}
               className="ray-alan"
               aria-current={aktif ? 'true' : undefined}
+              /* Görünen etiket kısaltılmıştır (`kisa`); erişilebilir ad ve
+                 ipucu TAM adı taşır — "VARLIK" gören ekran okuyucu kullanıcısı
+                 da "Varlık & OT" duyar. */
+              aria-label={a.ad}
               title={a.ad}
             >
               <span className="harf" aria-hidden>{a.kod}</span>
-              <span className="etiket">{a.ad}</span>
+              <span className="etiket">{a.kisa}</span>
               {s && <span className={`sayi${s.kritik ? ' kritik' : ''}`}>{s.sayi}</span>}
             </Link>
           );
         })}
+
+        {/* Açma/kapama düğmesi alan bağlantılarının ARDINDA durur — hem
+            görsel hem DOM sırasında. Böylece odak sırası "7 alan → düğme →
+            panel bağlantıları" olur; açılan panel tetikleyicisinin hemen
+            ardından gelir, arada dolaşılacak yedi öğe kalmaz. */}
+        <button
+          type="button"
+          ref={ozetRef}
+          className="ray-baglam-ozet"
+          aria-expanded={baglamAcik}
+          aria-controls="ray-ikincil"
+          aria-label={`${listeAlani.ad} · alan ekranları`}
+          onClick={() => setBaglamAcik((v) => !v)}
+        >
+          <span className="harf" aria-hidden>{listeAlani.kod}</span>
+          <span className="etiket" aria-hidden>Ekranlar</span>
+          <span className="ok" aria-hidden>▸</span>
+        </button>
       </div>
 
-      {/* İkincil bağlamsal liste — 192px: marka + aktif alanın ekranları */}
-      <div className="ray-ikincil">
+      {/* İkincil bağlamsal liste — 192px: marka + aktif alanın ekranları.
+          1024–1199'da bu kolon açılır panele dönüşür (`data-acik`); başka
+          bantlarda `data-acik` hiçbir şeyi değiştirmez, kolon zaten açıktır
+          ya da zaten yoktur. */}
+      <div
+        id="ray-ikincil"
+        className="ray-ikincil"
+        data-acik={baglamAcik ? '1' : undefined}
+      >
       <Link href="/" className="ray-marka">
         <span className="ad">Energy Operations</span>
         <span className="alt">Atlas</span>
       </Link>
+
+      {/* Alanın TAM adı. 64px raydaki etiket tek sözcüğe indirildiği için
+          ("Risk", "Varlık") ikinci sözcük buradan geri gelir; ayrıca liste
+          hangi alanın ekranlarını gösterdiğini artık söylüyor. Bu bir GRUP
+          başlığı değil (02-components §1 yasağı liste İÇİNDEKİ gruplamaya
+          bakar) — listenin tamamının bağlamıdır. */}
+      <p className="ray-baslik">{listeAlani.ad}</p>
 
       {/* Bağlantı listesi KENDİ İÇİNDE kayar; marka ve oturum bloğu sabit. */}
       <div className="ray-liste">
@@ -248,6 +338,9 @@ export default function Ray({
             href={o.yol}
             className={`ray-link${o.ayrac ? ' ray-ayrik' : ''}`}
             aria-current={aktif ? 'page' : undefined}
+            /* Panel modunda seçim yapıldı, panel kapanır; geniş bantta
+               `baglamAcik` zaten false, çağrı bedelsizdir. */
+            onClick={() => baglamKapat(false)}
           >
             <span className="etiket">{o.ad}</span>
             {s && s.sayi > 0 && (

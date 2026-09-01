@@ -5,7 +5,7 @@ import { modulOkuyabilir } from '@/app/kapsam';
 import Genel from './Genel';
 import { genelEkranVerisi } from './veri';
 
-export const metadata: Metadata = { title: 'Bugün — Atlas' };
+export const metadata: Metadata = { title: 'Bugün — Abacus' };
 
 /* F1 · Executive Overview — "bugün neyin yönetim dikkatine ihtiyacı var?"
    Hiyerarşi: bir kart baskındır; şerit bağlamdır; kuyruk kuyruktur.

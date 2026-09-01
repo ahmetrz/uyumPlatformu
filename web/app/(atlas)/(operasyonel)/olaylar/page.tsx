@@ -8,7 +8,7 @@ import type {
   BagAdayi, BagTipi, EtkiAlani, OlayKaydi, OneriGorunumu, Santral,
 } from './mantik';
 
-export const metadata: Metadata = { title: 'Olaylar — Atlas' };
+export const metadata: Metadata = { title: 'Olaylar — Abacus' };
 
 /* O · Olay → etki zinciri — "bu olay üretimi nasıl etkiledi, kim onayladı?"
 

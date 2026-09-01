@@ -7,7 +7,7 @@ import { db } from '@/lib/db';
 import BulguDetayIstemci from './BulguDetayIstemci';
 import { bulguDetayVerisi } from './veri';
 
-export const metadata: Metadata = { title: 'Bulgu kaydı — Atlas' };
+export const metadata: Metadata = { title: 'Bulgu kaydı — Abacus' };
 
 export async function generateStaticParams() {
   const bulgular = await db.bulgu.findMany({ select: { id: true } });

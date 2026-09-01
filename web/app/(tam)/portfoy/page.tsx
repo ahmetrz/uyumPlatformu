@@ -5,7 +5,7 @@ import { modulOkuyabilir } from '@/app/kapsam';
 import Portfoy from './Portfoy';
 import { portfoyEkranVerisi } from './veri';
 
-export const metadata: Metadata = { title: 'Enerji portföyü — Atlas' };
+export const metadata: Metadata = { title: 'Enerji portföyü — Abacus' };
 
 /* F2 · Enerji Portföyü — "hangi santral beni istiyor ve nasıl bir santral bu?"
    Kapsam yalnız ÜRETİM portföyüdür; ZES / OEDAŞ / OEPSAŞ platform dışıdır ve

@@ -5,7 +5,7 @@ import { Yetkisiz } from '@/components/abacus/temel';
 import IceAktarimIstemci from './IceAktarimIstemci';
 import type { Aktarim, ElenenSatir, OnizlemeSatiri } from './mantik';
 
-export const metadata: Metadata = { title: 'Madde içe aktarımı — Atlas' };
+export const metadata: Metadata = { title: 'Madde içe aktarımı — Abacus' };
 
 /* Regülasyon MADDE aktarımı — "bu dosyayı kütüğe almak güvenli mi?"
    Kabuk (ray + çekmece kolonu) (operasyonel)/layout.tsx'ten gelir; burada

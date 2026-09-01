@@ -6,7 +6,7 @@ import { db } from '@/lib/db';
 import SurecDetayIstemci, { type DetayVerisi } from './SurecDetayIstemci';
 import { kisaKod, sayimla, type Degerlendirme, type S } from '../ortak';
 
-export const metadata: Metadata = { title: 'Uyum kampanyası — Atlas' };
+export const metadata: Metadata = { title: 'Uyum kampanyası — Abacus' };
 
 /* Kampanya kaydı — "bu kampanyada hangi madde hangi santralde takılı?"
 

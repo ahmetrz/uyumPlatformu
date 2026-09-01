@@ -8,7 +8,7 @@ import {
 import EslemeIstemci from './EslemeIstemci';
 import { aileKur, type ConnectorSatiri, type ProfilAilesi } from './mantik';
 
-export const metadata: Metadata = { title: 'Eşleme profilleri — Atlas' };
+export const metadata: Metadata = { title: 'Eşleme profilleri — Abacus' };
 
 /* O26 · Eşleme profili tezgâhı.
 

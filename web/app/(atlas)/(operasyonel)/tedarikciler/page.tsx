@@ -4,7 +4,7 @@ import { Yetkisiz } from '@/components/abacus/temel';
 import TedarikcilerIstemci from './TedarikcilerIstemci';
 import { tedarikciEkranVerisi } from './veri';
 
-export const metadata: Metadata = { title: 'Tedarikçiler — Atlas' };
+export const metadata: Metadata = { title: 'Tedarikçiler — Abacus' };
 
 /* O16 · Tedarikçiler / üçüncü taraf — "hangi tedarikçi bizi açıkta bırakıyor?"
    (03-screens O16).

@@ -5,7 +5,7 @@ import { modulOkuyabilir } from '@/app/kapsam';
 import AktiviteIstemci from './AktiviteIstemci';
 import { aktiviteVerisi } from './veri';
 
-export const metadata: Metadata = { title: 'Denetim izi — Atlas' };
+export const metadata: Metadata = { title: 'Denetim izi — Abacus' };
 
 /* Denetim izi — "kim neyi ne zaman değiştirdi?"
    Kabuk (ray + çekmece kolonu) (operasyonel)/layout.tsx'ten gelir; burada

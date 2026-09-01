@@ -6,7 +6,7 @@ import { gecenGun, tarihTR } from '@/lib/sabitler';
 import RaporlarIstemci from './RaporlarIstemci';
 import { hucreOzeti, kapsamDisiHucre, type Bulgu, type Kanit, type Santral, type Sayilar, type Surec } from './mantik';
 
-export const metadata: Metadata = { title: 'Portföy raporu — Atlas' };
+export const metadata: Metadata = { title: 'Portföy raporu — Abacus' };
 
 /* Portföy raporu — "hangi santral × süreç hücresi zayıf, rapor nereye gidiyor?"
    Kabuk (ray + çekmece kolonu) (operasyonel)/layout.tsx'ten gelir; burada

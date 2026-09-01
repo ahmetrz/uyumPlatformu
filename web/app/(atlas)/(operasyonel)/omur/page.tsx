@@ -5,7 +5,7 @@ import { modulOkuyabilir } from '@/app/kapsam';
 import OmurIstemci from './OmurIstemci';
 import { omurEkranVerisi } from './veri';
 
-export const metadata: Metadata = { title: 'Ömür yönetimi — Atlas' };
+export const metadata: Metadata = { title: 'Ömür yönetimi — Abacus' };
 
 /* O13 · EOL / EOS & Ömür yönetimi — "önce neyi değiştiriyoruz?"
    Yerleşim kabuğu (ray + çekmece kolonu) (operasyonel)/layout.tsx'ten gelir;

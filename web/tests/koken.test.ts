@@ -36,7 +36,7 @@ const { kokenSayimlari, dogrulanmamisKayitlar, kaynakSistemDagilimi, bayatKokenl
 const { kokenDogrulaEylem, kokenTopluDogrula } = await import('@/lib/eylemler2/koken');
 const { varlikKaydet } = await import('@/lib/eylemler2/envanter');
 const { KokenRozeti, KokenSatiri, guvenYazisi, kokenGorunumu } =
-  await import('@/components/atlas/Koken');
+  await import('@/components/abacus/Koken');
 /* /saglik köken bölümünün SAF mantığı: kökeni olmayan kaydın ekranda nasıl
    göründüğünü belirleyen yer burasıdır (§12 + §18). */
 const S = await import('@/app/(atlas)/(operasyonel)/saglik/mantik');

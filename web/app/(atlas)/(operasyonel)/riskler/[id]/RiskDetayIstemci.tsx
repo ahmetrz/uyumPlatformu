@@ -1,9 +1,9 @@
 'use client';
 import Link from 'next/link';
 import { useState, type CSSProperties, type ReactNode } from 'react';
-import { Im, Ipucu, Metrikler, Dugme, type Durum } from '@/components/atlas/temel';
-import BaglamCubugu, { type SeciciOgesi } from '@/components/atlas/BaglamCubugu';
-import { CekmeceAlanlar } from '@/components/atlas/cekmece';
+import { Im, Ipucu, Metrikler, Dugme, type Durum } from '@/components/abacus/temel';
+import BaglamCubugu, { type SeciciOgesi } from '@/components/abacus/BaglamCubugu';
+import { CekmeceAlanlar } from '@/components/abacus/panel';
 import { etiketle, tarihTR } from '@/lib/sabitler';
 import { RiskFormu, KararFormu } from '../Formlar';
 import {
@@ -161,12 +161,12 @@ export default function RiskDetayIstemci({ veri }: { veri: DetayVerisi }) {
         }}>
           <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--s8)' }}>
             <Im durum={durum} ad={`Artık skor ${risk.artikRisk ?? 'bilinmiyor'}`} />
-            <span className="t-label">
+            <span className="etiket">
               {etiketle(risk.kaynak, 'kayıt')} · {tarihTR(risk.olusturuldu)}
             </span>
           </span>
 
-          <h1 className="t-board" style={{ margin: 'var(--s14) 0 0', maxWidth: '26ch' }}>
+          <h1 className="ab-pano-basligi" style={{ margin: 'var(--s14) 0 0', maxWidth: '26ch' }}>
             {risk.baslik}
           </h1>
 
@@ -190,7 +190,7 @@ export default function RiskDetayIstemci({ veri }: { veri: DetayVerisi }) {
                     `Olasılık ${risk.olasilik}/5 · en büyük etki ${etki}/5 · `
                     + `brüt ${risk.dogalRisk ?? '—'} → artık ${risk.artikRisk ?? '—'}`
                   }>
-                    <span className="acikla" style={{ fontWeight: 700 }}>
+                    <span className="ab-dugme satir" style={{ fontWeight: 700 }}>
                       {risk.olasilik}×{etki}
                     </span>
                   </Ipucu>
@@ -198,7 +198,7 @@ export default function RiskDetayIstemci({ veri }: { veri: DetayVerisi }) {
                 yazi: 'Olasılık × etki',
               },
             ]} />
-            <p className="dip-not" style={{ marginTop: 'var(--s12)' }}>
+            <p className="ab-dip" style={{ marginTop: 'var(--s12)' }}>
               Hedef skor tanımlı değil
               {doldu && ` · kabul ${tarihTR(risk.kabulBitis)} tarihinde düştü`}
             </p>
@@ -206,7 +206,7 @@ export default function RiskDetayIstemci({ veri }: { veri: DetayVerisi }) {
 
           {duzenle ? (
             <div style={{ marginTop: 'var(--s34)' }}>
-              <p className="t-label" style={{ margin: '0 0 var(--s16)' }}>Yeniden değerlendir</p>
+              <p className="etiket" style={{ margin: '0 0 var(--s16)' }}>Yeniden değerlendir</p>
               <RiskFormu genis risk={risk} yeniKod={risk.kod}
                 kullanicilar={veri.kullanicilar} tesisler={veri.tesisler}
                 sistemler={veri.sistemler} bulgular={veri.bulgular}
@@ -216,13 +216,13 @@ export default function RiskDetayIstemci({ veri }: { veri: DetayVerisi }) {
             <>
               {/* ── Kapanma zinciri ───────────────────────────────── */}
               <div style={{ marginTop: 'var(--s34)' }}>
-                <p className="t-label" style={{ margin: 0 }}>Kapanma zinciri</p>
+                <p className="etiket" style={{ margin: 0 }}>Kapanma zinciri</p>
                 <div style={{ display: 'flex', alignItems: 'stretch', marginTop: 'var(--s14)' }}>
                   {zincir.map((h, i) => (
                     <span key={h.anahtar} style={{ display: 'contents' }}>
                       {i > 0 && (
                         <span aria-hidden style={{ width: 28, display: 'grid', placeItems: 'center',
-                          fontFamily: 'var(--mo)', fontSize: 'var(--t-code-lg)', color: 'var(--i3)' }}>
+                          fontFamily: 'var(--veri)', fontSize: 'var(--t-code-lg)', color: 'var(--i3)' }}>
                           →
                         </span>
                       )}
@@ -236,12 +236,12 @@ export default function RiskDetayIstemci({ veri }: { veri: DetayVerisi }) {
               <div style={{ marginTop: 'var(--s34)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between',
                   alignItems: 'baseline' }}>
-                  <p className="t-label" style={{ margin: 0 }}>Aksiyonlar</p>
-                  <span className="t-label">{aksiyonlar.length} kayıt</span>
+                  <p className="etiket" style={{ margin: 0 }}>Aksiyonlar</p>
+                  <span className="etiket">{aksiyonlar.length} kayıt</span>
                 </div>
 
                 {aksiyonlar.length === 0 ? (
-                  <div className="blok" style={{ marginTop: 'var(--s14)' }}>
+                  <div className="ab-blok" style={{ marginTop: 'var(--s14)' }}>
                     <p className="cumle" style={{ marginTop: 0 }}>Aksiyon tanımlanmadı</p>
                     <div className="eylem">
                       {risk.bulgu ? (
@@ -263,20 +263,20 @@ export default function RiskDetayIstemci({ veri }: { veri: DetayVerisi }) {
                         gap: 'var(--col-gap)', alignItems: 'center',
                         padding: 'var(--s14) 0',
                         borderBottom: 'var(--bw-hair) solid var(--hr)',
-                        background: a.asti ? 'var(--row-sel)' : undefined,
+                        background: a.asti ? 'var(--secim)' : undefined,
                       }}>
                         <Im durum={a.im} enKotu={a.asti} ad={a.baslik} />
                         <span style={{ minWidth: 0 }}>
                           <span style={{ display: 'block', fontSize: 'var(--t-body)',
                             fontWeight: a.asti ? 600 : 500,
-                            color: a.asti ? 'var(--ink)' : 'var(--i2)',
+                            color: a.asti ? 'var(--murekkep)' : 'var(--i2)',
                             overflow: 'hidden', textOverflow: 'ellipsis',
                             whiteSpace: 'nowrap' }}>
                             {a.baslik}
                           </span>
                           {a.asti && (
                             <span style={{ display: 'block', marginTop: 'var(--s3)',
-                              fontFamily: 'var(--mo)', fontSize: 'var(--t-code)',
+                              fontFamily: 'var(--veri)', fontSize: 'var(--t-code)',
                               color: 'var(--bd)' }}>
                               hedef +{a.asim} gün
                             </span>
@@ -286,7 +286,7 @@ export default function RiskDetayIstemci({ veri }: { veri: DetayVerisi }) {
                           color: a.sorumlu ? 'var(--i2)' : 'var(--md)' }}>
                           {a.sorumlu ?? 'atanmadı'}
                         </span>
-                        <span style={{ justifySelf: 'end', fontFamily: 'var(--mo)',
+                        <span style={{ justifySelf: 'end', fontFamily: 'var(--veri)',
                           fontSize: 'var(--t-code-lg)',
                           color: a.asti ? 'var(--bd)' : 'var(--i3)' }}>
                           {a.hedef ? tarihTR(a.hedef) : '—'}
@@ -302,18 +302,18 @@ export default function RiskDetayIstemci({ veri }: { veri: DetayVerisi }) {
 
         {/* ── Yan panel 420px ───────────────────────────────────────── */}
         <aside style={{
-          minWidth: 0, background: 'var(--sunken)',
+          minWidth: 0, background: 'var(--panel2)',
           padding: 'var(--s36) var(--gutter-op) var(--sec-pad-bot) var(--s32)',
         }}
           aria-label="Risk bağlamı">
           {karar ? (
             <>
-              <p className="t-label" style={{ margin: '0 0 var(--s16)' }}>Karar kaydet</p>
+              <p className="etiket" style={{ margin: '0 0 var(--s16)' }}>Karar kaydet</p>
               <KararFormu risk={risk} kapat={() => setKarar(false)} />
             </>
           ) : (
             <>
-              <p className="t-label" style={{ margin: 0 }}>Skor eğilimi</p>
+              <p className="etiket" style={{ margin: 0 }}>Skor eğilimi</p>
               <Egilim noktalar={veri.trend} />
 
               <div style={{ marginTop: 'var(--s20)' }}>
@@ -333,19 +333,19 @@ export default function RiskDetayIstemci({ veri }: { veri: DetayVerisi }) {
                 borderTop: 'var(--bw-strong) solid var(--hr2)' }}>
                 {telafiSayisi > 0 && risk.mevcutKontroller ? (
                   <Ipucu genis metin={risk.mevcutKontroller}>
-                    <button type="button" className="acikla t-label">
+                    <button type="button" className="ab-dugme satir etiket">
                       Telafi kontrolleri · {telafiSayisi}
                     </button>
                   </Ipucu>
                 ) : (
-                  <p className="cekmece-dip" style={{ margin: 0 }}>
+                  <p className="ab-panel-dip" style={{ margin: 0 }}>
                     Telafi edici kontrol kaydı yok — artık skor brütten düşmüyor.
                   </p>
                 )}
               </div>
 
               {veri.kontrolTarihi && (
-                <p className="cekmece-dip" style={{ margin: 'var(--s16) 0 0' }}>
+                <p className="ab-panel-dip" style={{ margin: 'var(--s16) 0 0' }}>
                   Kontrol değerlendirmesi {tarihTR(veri.kontrolTarihi)}
                 </p>
               )}
@@ -362,8 +362,8 @@ export default function RiskDetayIstemci({ veri }: { veri: DetayVerisi }) {
 function ZincirKarti({ halka }: { halka: Halka }) {
   const stil: CSSProperties = {
     flex: 1, minWidth: 0, display: 'block',
-    background: halka.suren ? 'var(--row-sel)' : 'var(--card)',
-    border: `var(--bw-hair) solid ${halka.suren ? 'var(--jes)' : 'var(--hr2)'}`,
+    background: halka.suren ? 'var(--secim)' : 'var(--panel)',
+    border: `var(--bw-hair) solid ${halka.suren ? 'var(--aksan)' : 'var(--hr2)'}`,
     padding: 'var(--s16)',
   };
   const ic: ReactNode = (
@@ -373,7 +373,7 @@ function ZincirKarti({ halka }: { halka: Halka }) {
         fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
         {halka.kod}
       </span>
-      <span style={{ display: 'block', marginTop: 'var(--s2)', fontFamily: 'var(--mo)',
+      <span style={{ display: 'block', marginTop: 'var(--s2)', fontFamily: 'var(--veri)',
         fontSize: 'var(--t-code)', color: 'var(--i3)' }}>
         {halka.not}
       </span>
@@ -413,7 +413,7 @@ function Egilim({ noktalar }: { noktalar: { zaman: string; deger: number | null 
             </circle>
           )}
         </svg>
-        <p className="cekmece-dip" style={{ margin: 'var(--s8) 0 0' }}>
+        <p className="ab-panel-dip" style={{ margin: 'var(--s8) 0 0' }}>
           {tek
             ? `Tek ölçüm ${tek.deger}/${SKOR_TAVANI} · eğilim için ikinci değerlendirme gerekli`
             : 'Skor geçmişi yok'}
@@ -440,7 +440,7 @@ function Egilim({ noktalar }: { noktalar: { zaman: string; deger: number | null 
           </circle>
         ))}
       </svg>
-      <p className="cekmece-dip" style={{ margin: 'var(--s8) 0 0' }}>
+      <p className="ab-panel-dip" style={{ margin: 'var(--s8) 0 0' }}>
         Artık skor · {bilinen.length} ölçüm · son {son.deger}/{SKOR_TAVANI}
         {bilinmeyen > 0 && ` · ${bilinmeyen} ölçüm skorsuz`}
       </p>

@@ -1,4 +1,4 @@
-import type { Durum } from '@/components/atlas/temel';
+import type { Durum } from '@/components/abacus/temel';
 
 /* O13 · EOL / EOS — saf türetme katmanı.
    Sunucu ham kaydı taşır, karar burada verilir; böylece aynı kurallar

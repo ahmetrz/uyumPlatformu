@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { girisZorunlu } from '@/lib/erisim';
-import { Yetkisiz } from '@/components/atlas/temel';
+import { Yetkisiz } from '@/components/abacus/temel';
 import { modulOkuyabilir } from '@/app/kapsam';
 import { db } from '@/lib/db';
 import BulguDetayIstemci from './BulguDetayIstemci';

@@ -1,11 +1,11 @@
 'use client';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Dugme, Kesir, BosIlk, BosFiltre, type Durum } from '@/components/atlas/temel';
-import { Tablo, type Kolon, type Satir } from '@/components/atlas/tablo';
-import { EkranBasligi, Filtreler } from '@/components/atlas/ekran';
+import { Dugme, Kesir, BosIlk, BosFiltre, type Durum } from '@/components/abacus/temel';
+import { Tablo, type Kolon, type Satir } from '@/components/abacus/tablo';
+import { EkranBasligi, Filtreler } from '@/components/abacus/ekran';
 import {
   Cekmece, CekmeceKimlik, CekmeceAlanlar, CekmeceEylemler,
-} from '@/components/atlas/cekmece';
+} from '@/components/abacus/panel';
 import { useEylem } from '@/components/useEylem';
 import { yetkiSil, kullaniciAktifDegistir } from '@/lib/eylemler';
 import { ROLLER, ROL_ETIKET } from '@/lib/sabitler';
@@ -170,7 +170,7 @@ export default function YetkilerIstemci({
           ]}
         />
 
-        <section className="ekran-govde">
+        <section className="ab-ekran-govde">
           <Filtreler
             secenekler={MERCEKLER}
             aktif={mercek}
@@ -182,7 +182,7 @@ export default function YetkilerIstemci({
                   sec={(id) => { setRolF(id); setKuyrukAcik(false); }}
                   secenekler={ROLLER.map((r) => ({ id: r, ad: ROL_ETIKET[r] }))} />
                 {yazabilir && (
-                  <button type="button" className="kapsam-dugme"
+                  <button type="button" className="ab-dugme"
                     onClick={() => { setYeniAcik(true); setSeciliId(null); }}>
                     + Yeni kullanıcı
                   </button>
@@ -191,7 +191,7 @@ export default function YetkilerIstemci({
             }
           />
 
-          {hata && <p className="gr-hata" role="alert" style={{ marginTop: 'var(--s16)' }}>{hata}</p>}
+          {hata && <p className="ab-gr-hata" role="alert" style={{ marginTop: 'var(--s16)' }}>{hata}</p>}
 
           {gorunur.length > 0 || toplanan.length > 0 ? (
             <div style={{ marginTop: 'var(--s22)' }}>
@@ -246,20 +246,20 @@ export default function YetkilerIstemci({
           )}
           {kip === 'kullanici' && (
             <>
-              <div className="cekmece-blok">
-                <p className="t-label" style={{ margin: '0 0 var(--s12)' }}>Kullanıcıyı düzenle</p>
+              <div className="ab-panel-blok">
+                <p className="etiket" style={{ margin: '0 0 var(--s12)' }}>Kullanıcıyı düzenle</p>
               </div>
-              <div className="cekmece-blok">
+              <div className="ab-panel-blok">
                 <KullaniciFormu hesap={secili} kapat={() => setKip('ozet')} />
               </div>
             </>
           )}
           {kip === 'yetki' && (
             <>
-              <div className="cekmece-blok">
-                <p className="t-label" style={{ margin: '0 0 var(--s12)' }}>Yetki ver</p>
+              <div className="ab-panel-blok">
+                <p className="etiket" style={{ margin: '0 0 var(--s12)' }}>Yetki ver</p>
               </div>
-              <div className="cekmece-blok">
+              <div className="ab-panel-blok">
                 <YetkiFormu hesap={secili} surecler={surecler} tesisler={tesisler}
                   kisitliKapsam={kisitliKapsam} kapat={() => setKip('ozet')} />
               </div>
@@ -270,10 +270,10 @@ export default function YetkilerIstemci({
 
       {yeniAcik && !secili && (
         <Cekmece kod="YENİ HESAP" kapat={() => setYeniAcik(false)}>
-          <div className="cekmece-blok">
-            <p className="t-label" style={{ margin: '0 0 var(--s12)' }}>Yeni kullanıcı</p>
+          <div className="ab-panel-blok">
+            <p className="etiket" style={{ margin: '0 0 var(--s12)' }}>Yeni kullanıcı</p>
           </div>
-          <div className="cekmece-blok">
+          <div className="ab-panel-blok">
             <KullaniciFormu hesap={null} kapat={() => setYeniAcik(false)} />
           </div>
         </Cekmece>
@@ -322,12 +322,12 @@ function Ozet({
         { etiket: 'Yetki', deger: hesap.yetkiler.length },
       ]} />
 
-      <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
-        <p className="t-label" style={{ margin: '0 0 var(--s10)' }}>
+      <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+        <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>
           Yetkiler {hesap.yetkiler.length > 0 && `· ${hesap.yetkiler.length}`}
         </p>
         {hesap.yetkiler.length === 0 ? (
-          <p className="cekmece-dip" style={{ margin: 0 }}>
+          <p className="ab-panel-dip" style={{ margin: 0 }}>
             Tanımlı yetki yok — hesap giriş yapar, hiçbir ekranı açamaz.
           </p>
         ) : (
@@ -335,20 +335,20 @@ function Ozet({
             {hesap.yetkiler.map((y) => (
               <div key={y.id} style={{
                 display: 'flex', alignItems: 'center', gap: 'var(--s10)',
-                background: 'var(--card)', border: 'var(--bw-hair) solid var(--hr2)',
+                background: 'var(--panel)', border: 'var(--bw-hair) solid var(--hr2)',
                 padding: 'var(--s12) var(--s14)',
               }}>
                 <span style={{ minWidth: 0, flex: 1 }}>
                   <span style={{ display: 'block', fontSize: 'var(--t-cell)', fontWeight: 600 }}>
                     {rolEtiketi(y.rol)}
                   </span>
-                  <span style={{ display: 'block', marginTop: 2, fontFamily: 'var(--mo)',
+                  <span style={{ display: 'block', marginTop: 2, fontFamily: 'var(--veri)',
                     fontSize: 'var(--t-label)', color: kapsamsiz(y) ? 'var(--md)' : 'var(--i3)' }}>
                     {yetkiKapsami(y)}
                   </span>
                 </span>
                 {onaylayabilir && (
-                  <button type="button" className="dg dg-satir" disabled={bekliyor}
+                  <button type="button" className="ab-dugme satir" disabled={bekliyor}
                     onClick={() => yetkiKaldir(y.id)}>Kaldır</button>
                 )}
               </div>
@@ -359,7 +359,7 @@ function Ozet({
 
       <CekmeceEylemler
         birincil={onaylayabilir
-          ? <Dugme tur="cekmece" onClick={yetkiEkle} disabled={bekliyor}>Yetki ver</Dugme>
+          ? <Dugme tur="tam" onClick={yetkiEkle} disabled={bekliyor}>Yetki ver</Dugme>
           : undefined}
         ikincil={
           <div style={{ display: 'flex', gap: 'var(--s10)' }}>
@@ -387,7 +387,7 @@ function Ozet({
 function Ara({ deger, degistir }: { deger: string; degistir: (v: string) => void }) {
   return (
     <input
-      className="gr"
+      className="ab-gr"
       aria-label="Kullanıcı, e-posta ya da yetki ara"
       placeholder="Ara"
       value={deger}
@@ -395,7 +395,7 @@ function Ara({ deger, degistir }: { deger: string; degistir: (v: string) => void
       style={{
         width: 118, background: 'none', border: 0,
         borderBottom: 'var(--bw-hair) solid var(--hr2)',
-        padding: '3px 0', fontFamily: 'var(--mo)', fontSize: 'var(--t-label)',
+        padding: '3px 0', fontFamily: 'var(--veri)', fontSize: 'var(--t-label)',
         letterSpacing: 'var(--tr-label)', textTransform: 'uppercase',
       }}
     />
@@ -433,18 +433,18 @@ function Kapsam({ etiket, secenekler, aktif, sec }: {
 
   return (
     <details ref={kok} style={{ position: 'relative' }}>
-      <summary className="kapsam-dugme"
+      <summary className="ab-dugme"
         style={{ listStyle: 'none', cursor: 'pointer', display: 'inline-block' }}>
         {etiket}{secim ? ` · ${secim.ad}` : ''} <span aria-hidden>▾</span>
       </summary>
       <div style={{
         position: 'absolute', top: '100%', right: 0, zIndex: 5, minWidth: 190,
-        maxHeight: 300, overflowY: 'auto', background: 'var(--card)',
-        border: 'var(--bw-strong) solid var(--hr2)', boxShadow: 'var(--sh-tip)',
+        maxHeight: 300, overflowY: 'auto', background: 'var(--panel)',
+        border: 'var(--bw-strong) solid var(--hr2)', boxShadow: 'none',
         padding: 'var(--s8)',
       }}>
         {[{ id: '', ad: 'Tümü' }, ...secenekler].map((s) => (
-          <button key={s.id} type="button" className="filtre"
+          <button key={s.id} type="button" className="ab-filtre"
             style={{ display: 'block', width: '100%', textAlign: 'left' }}
             aria-pressed={(aktif ?? '') === s.id}
             onClick={(e) => {

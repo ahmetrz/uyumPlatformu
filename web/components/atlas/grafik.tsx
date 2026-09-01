@@ -64,7 +64,7 @@ export function Tuval({
   };
 
   return (
-    <div className="tuval koyu-yuzey" ref={kokRef}
+    <div className="ab-tuval" ref={kokRef}
       style={yukseklik ? { minHeight: yukseklik } : undefined}>
       <svg aria-hidden preserveAspectRatio="none" viewBox="0 0 100 100">
         {kenarlar.map((k, i) => {
@@ -92,7 +92,7 @@ export function Tuval({
           aria-current={odak === d.id ? 'true' : undefined}
           style={{
             left: `${d.x}%`, top: `${d.y}%`, transform: 'translate(-50%, -50%)',
-            borderColor: d.kritik ? 'var(--jesd)' : undefined,
+            borderColor: d.kritik ? 'var(--aksan)' : undefined,
             borderWidth: d.kritik ? 1.5 : undefined,
             background: d.kritik ? 'rgba(50,32,18,.90)' : undefined,
             opacity: !odak || odak === d.id ? 1 : 0.55,
@@ -101,9 +101,9 @@ export function Tuval({
         >
           {d.ustEtiket && (
             <span style={{ display: 'flex', alignItems: 'center', gap: 6,
-              marginBottom: 4, fontFamily: 'var(--mo)', fontSize: 'var(--t-caption)',
+              marginBottom: 4, fontFamily: 'var(--veri)', fontSize: 'var(--t-caption)',
               letterSpacing: 'var(--tr-caption)', textTransform: 'uppercase',
-              color: 'var(--jesp)' }}>
+              color: 'var(--aksan)' }}>
               {d.durum && <Im durum={d.durum} />}
               {d.ustEtiket}
             </span>
@@ -113,7 +113,7 @@ export function Tuval({
         </button>
       ))}
 
-      {dipNot && <span className="tuval-dip">{dipNot}</span>}
+      {dipNot && <span className="dip">{dipNot}</span>}
     </div>
   );
 }

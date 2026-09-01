@@ -83,8 +83,8 @@ function Bolum({ no, baslik, cocuklar }: { no: string; baslik: string; cocuklar:
     <section style={{ padding: '0 var(--gutter-op) var(--sec-pad-bot)' }}>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 'var(--s12)',
         padding: 'var(--sec-pad-top) 0 var(--s18)' }}>
-        <span className="t-caption num">{no}</span>
-        <h2 className="t-section" style={{ margin: 0 }}>{baslik}</h2>
+        <span className="etiket num">{no}</span>
+        <h2 className="ab-bolum-basligi" style={{ margin: 0 }}>{baslik}</h2>
         <span style={{ flex: 1, height: 1, background: 'var(--hr)' }} />
       </div>
       {cocuklar}
@@ -97,10 +97,10 @@ export default function TasarimSistemi() {
     <main data-yuzey="tezgah" style={{ minHeight: '100dvh' }}>
       <header style={{ padding: 'var(--s38) var(--gutter-op) var(--s26)',
         borderBottom: '1px solid var(--hr2)' }}>
-        <p className="t-eyebrow" style={{ margin: '0 0 var(--s10)' }}>
+        <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>
           ENERGY OPERATIONS ATLAS · FAZ 1 · TOKEN REFERANSI
         </p>
-        <h1 className="t-screen" style={{ margin: 0 }}>
+        <h1 className="ab-ekran-basligi" style={{ margin: 0 }}>
           Tasarım <b>token katmanı</b>
         </h1>
         <p style={{ margin: 'var(--s12) 0 0', color: 'var(--i2)', maxWidth: 720 }}>
@@ -209,7 +209,7 @@ export default function TasarimSistemi() {
           {TIPOGRAFI.map(([rol, sinif, olcu, ornek]) => (
             <div key={rol} style={{ borderBottom: '1px solid var(--hr)', paddingBottom: 'var(--s18)' }}>
               <div style={{ display: 'flex', gap: 'var(--s14)', marginBottom: 'var(--s10)' }}>
-                <span className="t-colhead">{rol}</span>
+                <span className="kolonbas">{rol}</span>
                 <span className="mono" style={{ fontSize: 'var(--t-code)', color: 'var(--i3)' }}>{olcu}</span>
               </div>
               <div className={sinif}>{ornek.split(' ').slice(0, -1).join(' ')} <b>{ornek.split(' ').slice(-1)}</b></div>
@@ -227,11 +227,11 @@ export default function TasarimSistemi() {
             ))}
           </div>
           <div>
-            <p className="t-colhead" style={{ margin: '0 0 var(--s10)' }}>VERİ TİPOGRAFİSİ · TABULAR</p>
+            <p className="kolonbas" style={{ margin: '0 0 var(--s10)' }}>VERİ TİPOGRAFİSİ · TABULAR</p>
             <div className="num" style={{ fontSize: 'var(--t-metric)', fontWeight: 700, lineHeight: 1 }}>
               165<span style={{ fontSize: 'var(--t-metric-den)', fontWeight: 400, color: 'var(--i3)' }}> / 412</span>
             </div>
-            <p className="t-caption" style={{ margin: 'var(--s6) 0 0' }}>METRİK DEĞERİ 26 / 700 · PAYDA 15 / 400</p>
+            <p className="etiket" style={{ margin: 'var(--s6) 0 0' }}>METRİK DEĞERİ 26 / 700 · PAYDA 15 / 400</p>
           </div>
         </div>
       } />
@@ -242,7 +242,7 @@ export default function TasarimSistemi() {
             <div key={n} style={{ display: 'grid', gridTemplateColumns: '54px 1fr',
               alignItems: 'center', gap: 'var(--col-gap)' }}>
               <span className="mono num" style={{ fontSize: 'var(--t-code)', color: 'var(--i3)' }}>{n}px</span>
-              <span style={{ height: 8, width: n, background: 'var(--jes)', opacity: .55 }} />
+              <span style={{ height: 8, width: n, background: 'var(--aksan)', opacity: .55 }} />
             </div>
           ))}
         </div>
@@ -258,9 +258,9 @@ export default function TasarimSistemi() {
             {([['--sh-lift', 'timeline / EOL hover'], ['--sh-tip', 'tooltip / popover'],
                ['--sh-node', 'koyu yüzeyde grafik düğümü']] as const).map(([v, n]) => (
               <div key={v} style={{ flex: 1 }}>
-                <div style={{ height: 62, background: v === '--sh-node' ? 'var(--band2)' : 'var(--card)',
+                <div style={{ height: 62, background: v === '--sh-node' ? 'var(--panel2)' : 'var(--panel)',
                   border: '1px solid var(--hr2)', boxShadow: `var(${v})` }} />
-                <p className="t-caption" style={{ margin: 'var(--s10) 0 0' }}>{n}</p>
+                <p className="etiket" style={{ margin: 'var(--s10) 0 0' }}>{n}</p>
               </div>
             ))}
           </div>
@@ -274,8 +274,8 @@ export default function TasarimSistemi() {
              ['--graph-glow', 'graph-glow — ilişki/topoloji tuvali']] as const).map(([v, n]) => (
             <div key={v} style={{ flex: 1 }}>
               <div className="dokulu" style={{ height: 92, border: '1px solid var(--hr2)',
-                background: v === '--graph-glow' ? `var(${v}), var(--band2)` : `var(${v}), var(--pp)` }} />
-              <p className="t-caption" style={{ margin: 'var(--s10) 0 0' }}>{n}</p>
+                background: v === '--graph-glow' ? `var(${v}), var(--panel2)` : `var(${v}), var(--murekkep)` }} />
+              <p className="etiket" style={{ margin: 'var(--s10) 0 0' }}>{n}</p>
             </div>
           ))}
         </div>

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { girisZorunlu, izinliTesisIdleri } from '@/lib/erisim';
-import { Yetkisiz } from '@/components/atlas/temel';
+import { Yetkisiz } from '@/components/abacus/temel';
 import { db } from '@/lib/db';
 import { kapsamda } from '@/app/kapsam';
 import BildirimlerIstemci from './BildirimlerIstemci';

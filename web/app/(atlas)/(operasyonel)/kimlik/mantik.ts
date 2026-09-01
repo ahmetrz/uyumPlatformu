@@ -1,4 +1,4 @@
-import type { Durum } from '@/components/atlas/temel';
+import type { Durum } from '@/components/abacus/temel';
 
 /* O15 · Kimlik & Erişim İncelemesi — saf türetme katmanı.
    Sunucu (metrikler) ve istemci (tablo/çekmece) aynı tanımı kullansın diye

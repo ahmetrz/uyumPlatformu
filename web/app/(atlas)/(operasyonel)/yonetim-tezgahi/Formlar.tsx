@@ -2,7 +2,7 @@
 import { AZAMI_ANAHTAR_GUN, VARSAYILAN_ANAHTAR_GUN } from '@/lib/apiAnahtariKurallari';
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { Alan, Dugme } from '@/components/atlas/temel';
+import { Alan, Dugme } from '@/components/abacus/temel';
 import { useEylem } from '@/components/useEylem';
 import {
   sektorKaydet, tesisTipiKaydet, tesisKaydet, tesisKapat, tesisAc,
@@ -34,12 +34,12 @@ export function GorevFormu({ kullanicilar, tesisler, kapat }: {
   return (
     <div style={{ display: 'grid', gap: 'var(--s16)' }}>
       <Alan etiket="Başlık" zorunlu>
-        <input className="gr" value={f.baslik}
+        <input className="ab-gr" value={f.baslik}
           placeholder="Örn. UPS bakım sözleşmesi kanıtı toplansın"
           onChange={(e) => setF({ ...f, baslik: e.target.value })} />
       </Alan>
       <Alan etiket="Tip">
-        <select className="gr" value={f.tip}
+        <select className="ab-gr" value={f.tip}
           onChange={(e) => setF({ ...f, tip: e.target.value })}>
           {Object.entries(GOREV_TIP_ETIKET).map(([t, e]) => (
             <option key={t} value={t}>{e}</option>
@@ -49,26 +49,26 @@ export function GorevFormu({ kullanicilar, tesisler, kapat }: {
       <div style={{ display: 'grid', gap: 'var(--s12)',
         gridTemplateColumns: 'repeat(2, minmax(0, 1fr))' }}>
         <Alan etiket="Sorumlu">
-          <select className="gr" value={f.sorumluId}
+          <select className="ab-gr" value={f.sorumluId}
             onChange={(e) => setF({ ...f, sorumluId: e.target.value })}>
             <option value="">atanmadı</option>
             {kullanicilar.map((u) => <option key={u.id} value={u.id}>{u.ad}</option>)}
           </select>
         </Alan>
         <Alan etiket="Son tarih">
-          <input className="gr" type="date" value={f.sonTarih}
+          <input className="ab-gr" type="date" value={f.sonTarih}
             onChange={(e) => setF({ ...f, sonTarih: e.target.value })} />
         </Alan>
       </div>
       <Alan etiket="Santral">
-        <select className="gr" value={f.tesisId}
+        <select className="ab-gr" value={f.tesisId}
           onChange={(e) => setF({ ...f, tesisId: e.target.value })}>
           <option value="">santral bağı yok</option>
           {tesisler.map((t) => <option key={t.id} value={t.id}>{t.kod} — {t.ad}</option>)}
         </select>
       </Alan>
 
-      {hata && <p className="gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
+      {hata && <p className="ab-gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
 
       <div style={{ display: 'flex', gap: 'var(--s10)' }}>
         <Dugme tur="birincil" disabled={bekliyor || !f.baslik.trim()}
@@ -81,7 +81,7 @@ export function GorevFormu({ kullanicilar, tesisler, kapat }: {
         </Dugme>
         <Dugme onClick={kapat} disabled={bekliyor}>Vazgeç</Dugme>
       </div>
-      <p className="cekmece-dip" style={{ margin: 0 }}>
+      <p className="ab-panel-dip" style={{ margin: 0 }}>
         Elle açılan görev motor görevlerinden ayrışır. Son tarihi girilmeyen
         görevin gecikmesi ölçülemez — kuyrukta bilinmeyen kalır.
       </p>
@@ -102,7 +102,7 @@ export function GorevDurumEylemleri({ is }: { is: Is }) {
 
   if (!is.yetkili) {
     return (
-      <p className="cekmece-dip" style={{ margin: 0 }}>
+      <p className="ab-panel-dip" style={{ margin: 0 }}>
         Bu görevi yalnız sorumlusu ya da uyum onay yetkisi olan değiştirebilir.
       </p>
     );
@@ -111,7 +111,7 @@ export function GorevDurumEylemleri({ is }: { is: Is }) {
   return (
     <div style={{ display: 'grid', gap: 'var(--s12)' }}>
       {ileri && (
-        <Dugme tur="cekmece" disabled={bekliyor}
+        <Dugme tur="tam" disabled={bekliyor}
           onClick={() => calistir(() => gorevDurum({ id: is.kayitId, durum: ileri }))}>
           {GOREV_DURUM_ETIKET[ileri]} olarak işaretle
         </Dugme>
@@ -124,7 +124,7 @@ export function GorevDurumEylemleri({ is }: { is: Is }) {
           </Dugme>
         ))}
       </div>
-      {hata && <p className="gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
+      {hata && <p className="ab-gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
     </div>
   );
 }
@@ -137,7 +137,7 @@ export function OnayKarariFormu({ is }: { is: Is }) {
 
   if (!is.yetkili) {
     return (
-      <p className="cekmece-dip" style={{ margin: 0 }}>
+      <p className="ab-panel-dip" style={{ margin: 0 }}>
         Karar yetkisi sizde değil: ilgili modülde onay yetkisi gerekir ve
         dört göz ilkesi gereği kendi açtığınız talebi siz karara bağlayamazsınız.
       </p>
@@ -147,11 +147,11 @@ export function OnayKarariFormu({ is }: { is: Is }) {
   return (
     <div style={{ display: 'grid', gap: 'var(--s12)' }}>
       <Alan etiket="Gerekçe · red için zorunlu">
-        <textarea className="gr" rows={3} value={gerekce}
+        <textarea className="ab-gr" rows={3} value={gerekce}
           placeholder="Karar neyin üzerine veriliyor?"
           onChange={(e) => setGerekce(e.target.value)} />
       </Alan>
-      <Dugme tur="cekmece" disabled={bekliyor}
+      <Dugme tur="tam" disabled={bekliyor}
         onClick={() => calistir(() => onayKarar({
           id: is.kayitId, karar: 'onaylandi', gerekce: gerekce.trim() || null,
         }))}>
@@ -163,8 +163,8 @@ export function OnayKarariFormu({ is }: { is: Is }) {
         }))}>
         Reddet
       </Dugme>
-      {hata && <p className="gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
-      <p className="cekmece-dip" style={{ margin: 0 }}>
+      {hata && <p className="ab-gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
+      <p className="ab-panel-dip" style={{ margin: 0 }}>
         Karar kaynak kaydı otomatik değiştirmez; uygulama ilgili modülün
         sorumluluğundadır. Her karar denetim izine yazılır.
       </p>
@@ -229,7 +229,7 @@ export function TanimFormu({
     <div style={{ display: 'grid', gap: 'var(--s16)' }}>
       {katalogDegistir && (
         <Alan etiket="Katalog">
-          <select className="gr" value={katalog}
+          <select className="ab-gr" value={katalog}
             onChange={(e) => katalogDegistir(e.target.value as Katalog)}>
             {(Object.keys(KATALOG_ETIKET) as Katalog[]).map((k) => (
               <option key={k} value={k}>{KATALOG_ETIKET[k]}</option>
@@ -239,19 +239,19 @@ export function TanimFormu({
       )}
 
       <Alan etiket="Kod" zorunlu>
-        <input className="gr" style={{ fontFamily: 'var(--mo)' }} value={f.kod}
+        <input className="ab-gr" style={{ fontFamily: 'var(--veri)' }} value={f.kod}
           placeholder={ORNEK_KOD[katalog]}
           onChange={(e) => setF({ ...f, kod: e.target.value })} />
       </Alan>
       <Alan etiket="Ad" zorunlu>
-        <input className="gr" value={f.ad}
+        <input className="ab-gr" value={f.ad}
           onChange={(e) => setF({ ...f, ad: e.target.value })} />
       </Alan>
 
       {katalog === 'tesis' && (
         <>
           <Alan etiket="Kırılım">
-            <select className="gr" value={f.tipId}
+            <select className="ab-gr" value={f.tipId}
               onChange={(e) => setF({ ...f, tipId: e.target.value })}>
               <option value="">seçilmedi</option>
               {kirilimler.map((t) => (
@@ -262,12 +262,12 @@ export function TanimFormu({
           <div style={{ display: 'grid', gap: 'var(--s12)',
             gridTemplateColumns: 'repeat(2, minmax(0, 1fr))' }}>
             <Alan etiket="Kurulu güç · MW">
-              <input className="gr" type="number" value={f.guc}
+              <input className="ab-gr" type="number" value={f.guc}
                 placeholder="bilinmiyor"
                 onChange={(e) => setF({ ...f, guc: e.target.value })} />
             </Alan>
             <Alan etiket="Konum">
-              <input className="gr" value={f.konum}
+              <input className="ab-gr" value={f.konum}
                 onChange={(e) => setF({ ...f, konum: e.target.value })} />
             </Alan>
           </div>
@@ -277,11 +277,11 @@ export function TanimFormu({
       {katalog === 'regulasyon' && (
         <>
           <Alan etiket="Sürüm">
-            <input className="gr" value={f.surum} placeholder="bilinmiyor"
+            <input className="ab-gr" value={f.surum} placeholder="bilinmiyor"
               onChange={(e) => setF({ ...f, surum: e.target.value })} />
           </Alan>
           <Alan etiket="Resmî kaynak · otomatik çekim">
-            <input className="gr" value={f.kaynakUrl} placeholder="https://…"
+            <input className="ab-gr" value={f.kaynakUrl} placeholder="https://…"
               onChange={(e) => setF({ ...f, kaynakUrl: e.target.value })} />
           </Alan>
         </>
@@ -289,14 +289,14 @@ export function TanimFormu({
 
       {katalog === 'alan' && (
         <Alan etiket="Açıklama">
-          <textarea className="gr" rows={2} value={f.aciklama}
+          <textarea className="ab-gr" rows={2} value={f.aciklama}
             onChange={(e) => setF({ ...f, aciklama: e.target.value })} />
         </Alan>
       )}
 
       {katalog === 'kirilim' && (
         <Alan etiket="Sektör">
-          <select className="gr" value={f.sektorId}
+          <select className="ab-gr" value={f.sektorId}
             onChange={(e) => setF({ ...f, sektorId: e.target.value })}>
             <option value="">seçilmedi</option>
             {sektorler.map((s) => <option key={s.id} value={s.id}>{s.kod} — {s.ad}</option>)}
@@ -304,14 +304,14 @@ export function TanimFormu({
         </Alan>
       )}
 
-      {hata && <p className="gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
+      {hata && <p className="ab-gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
 
       <div style={{ display: 'flex', gap: 'var(--s10)' }}>
         <Dugme tur="birincil" disabled={bekliyor || !gecerli}
           onClick={() => calistir(kaydet, kapat)}>Kaydet</Dugme>
         <Dugme onClick={kapat} disabled={bekliyor}>Vazgeç</Dugme>
       </div>
-      <p className="cekmece-dip" style={{ margin: 0 }}>{DIP_NOT[katalog]}</p>
+      <p className="ab-panel-dip" style={{ margin: 0 }}>{DIP_NOT[katalog]}</p>
     </div>
   );
 }
@@ -349,7 +349,7 @@ export function TanimEylemleri({ tanim, onaylayabilir }: {
 
   if (!onaylayabilir) {
     return (
-      <p className="cekmece-dip" style={{ margin: 0 }}>
+      <p className="ab-panel-dip" style={{ margin: 0 }}>
         Katalog durumunu değiştirmek tanımlar onay yetkisi gerektiriyor.
       </p>
     );
@@ -365,7 +365,7 @@ export function TanimEylemleri({ tanim, onaylayabilir }: {
       ) : kapatmaAcik ? (
         <>
           <Alan etiket="Kapanış nedeni" zorunlu>
-            <select className="gr" value={neden} onChange={(e) => setNeden(e.target.value)}>
+            <select className="ab-gr" value={neden} onChange={(e) => setNeden(e.target.value)}>
               {KAPANIS_NEDENLERI.map((n) => (
                 <option key={n} value={n}>{etiketle(n)}</option>
               ))}
@@ -379,7 +379,7 @@ export function TanimEylemleri({ tanim, onaylayabilir }: {
             </Dugme>
             <Dugme onClick={() => setKapatmaAcik(false)} disabled={bekliyor}>Vazgeç</Dugme>
           </div>
-          <p className="cekmece-dip" style={{ margin: 0 }}>
+          <p className="ab-panel-dip" style={{ margin: 0 }}>
             Uyum kayıtları tarihçe olarak saklanır; santral aktif süreç kapsamından düşer.
           </p>
         </>
@@ -403,17 +403,17 @@ export function TanimEylemleri({ tanim, onaylayabilir }: {
             Sil
           </Dugme>
           {tanim.kullanim > 0 && (
-            <p className="cekmece-dip" style={{ margin: 0 }}>
+            <p className="ab-panel-dip" style={{ margin: 0 }}>
               Bağlı kayıt varken silinemez — önce bağları çözün.
             </p>
           )}
         </>
       )}
 
-      {hata && <p className="gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
+      {hata && <p className="ab-gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
 
       {tanim.katalog === 'tesis' && tanim.devreDisi && (
-        <p className="cekmece-dip" style={{ margin: 0 }}>
+        <p className="ab-panel-dip" style={{ margin: 0 }}>
           {etiketle(tanim.kapanisNedeni, 'neden girilmedi')} · {tarihTR(tanim.kapanisTarihi)}
         </p>
       )}
@@ -454,12 +454,12 @@ export function ApiAnahtarFormu({ kullanicilar, aktifId, kapat }: {
   return (
     <div style={{ display: 'grid', gap: 'var(--s16)' }}>
       <Alan etiket="Anahtar adı" zorunlu>
-        <input className="gr" value={f.ad}
+        <input className="ab-gr" value={f.ad}
           placeholder="Örn. SIEM kanıt çekimi"
           onChange={(e) => setF({ ...f, ad: e.target.value })} />
       </Alan>
       <Alan etiket="Sahip" zorunlu>
-        <select className="gr" value={f.kullaniciId}
+        <select className="ab-gr" value={f.kullaniciId}
           onChange={(e) => setF({ ...f, kullaniciId: e.target.value })}>
           {kullanicilar.map((u) => <option key={u.id} value={u.id}>{u.ad}</option>)}
         </select>
@@ -469,12 +469,12 @@ export function ApiAnahtarFormu({ kullanicilar, aktifId, kapat }: {
           "boş bırakılırsa süresiz" yazan eski yer tutucu, üreten kişi
           işten ayrıldıktan sonra da geçerli anahtarlar bırakıyordu. */}
       <Alan etiket="Geçerlilik · gün">
-        <input className="gr" type="number" min={1} max={AZAMI_ANAHTAR_GUN} value={f.gun}
+        <input className="ab-gr" type="number" min={1} max={AZAMI_ANAHTAR_GUN} value={f.gun}
           placeholder={`boş bırakılırsa ${VARSAYILAN_ANAHTAR_GUN} gün`}
           onChange={(e) => setF({ ...f, gun: e.target.value })} />
       </Alan>
 
-      {hata && <p className="gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
+      {hata && <p className="ab-gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
 
       <div style={{ display: 'flex', gap: 'var(--s10)' }}>
         <Dugme tur="birincil" disabled={bekliyor || !f.ad.trim() || !f.kullaniciId}
@@ -498,7 +498,7 @@ export function ApiAnahtarFormu({ kullanicilar, aktifId, kapat }: {
         <Dugme onClick={kapat} disabled={bekliyor}>Vazgeç</Dugme>
       </div>
 
-      <p className="cekmece-dip" style={{ margin: 0 }}>
+      <p className="ab-panel-dip" style={{ margin: 0 }}>
         Anahtar kendi yetkisini taşımaz: {sahip ? sahip.ad : 'sahibi'} kimin
         verisini görüyorsa anahtar da onu görür, yetkisi daralınca anahtar da
         daralır. Tam token yalnız üretim yanıtında bir kez gösterilir.
@@ -512,17 +512,17 @@ function TokenTekSefer({ uretilen, kapat }: { uretilen: Uretilen; kapat: () => v
   return (
     <div style={{ display: 'grid', gap: 'var(--s16)' }}>
       <Alan etiket="Tam token · yalnız şimdi">
-        <span className="gr" style={{ display: 'block', fontFamily: 'var(--mo)',
+        <span className="ab-gr" style={{ display: 'block', fontFamily: 'var(--veri)',
           fontSize: 'var(--t-code-lg)', lineHeight: 1.6, wordBreak: 'break-all',
           userSelect: 'all' }}>
           {uretilen.token}
         </span>
       </Alan>
-      <p className="gr-hata" role="alert" style={{ margin: 0 }}>
+      <p className="ab-gr-hata" role="alert" style={{ margin: 0 }}>
         Bu token bir daha gösterilemez. Şimdi kopyalayın.
       </p>
       <Dugme tur="birincil" onClick={kapat}>Kopyaladım, kapat</Dugme>
-      <p className="cekmece-dip" style={{ margin: 0 }}>
+      <p className="ab-panel-dip" style={{ margin: 0 }}>
         Veritabanında yalnız SHA-256 özeti duruyor; ekran da denetim izi de
         yalnız {uretilen.onEk}… ön ekini tanıyor.{' '}
         {uretilen.bitis
@@ -546,7 +546,7 @@ export function ApiAnahtarIptal({ anahtar, yazabilir }: {
 
   if (anahtar.iptalZamani) {
     return (
-      <p className="cekmece-dip" style={{ margin: 0 }}>
+      <p className="ab-panel-dip" style={{ margin: 0 }}>
         {zamanTR(anahtar.iptalZamani)} tarihinde iptal edildi; iptal geri
         alınamaz. Aynı erişim gerekiyorsa yeni anahtar üretilir.
       </p>
@@ -555,7 +555,7 @@ export function ApiAnahtarIptal({ anahtar, yazabilir }: {
 
   if (!yazabilir) {
     return (
-      <p className="cekmece-dip" style={{ margin: 0 }}>
+      <p className="ab-panel-dip" style={{ margin: 0 }}>
         Anahtar üretmek ve iptal etmek yönetim yazma yetkisi gerektiriyor.
       </p>
     );
@@ -564,7 +564,7 @@ export function ApiAnahtarIptal({ anahtar, yazabilir }: {
   return (
     <div style={{ display: 'grid', gap: 'var(--s12)' }}>
       <Alan etiket="Gerekçe" zorunlu>
-        <textarea className="gr" rows={2} value={gerekce}
+        <textarea className="ab-gr" rows={2} value={gerekce}
           placeholder="Anahtar neden iptal ediliyor?"
           onChange={(e) => setGerekce(e.target.value)} />
       </Alan>
@@ -572,8 +572,8 @@ export function ApiAnahtarIptal({ anahtar, yazabilir }: {
         onClick={() => calistir(() => apiAnahtariIptal({ id: anahtar.id, gerekce }))}>
         Anahtarı iptal et
       </Dugme>
-      {hata && <p className="gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
-      <p className="cekmece-dip" style={{ margin: 0 }}>
+      {hata && <p className="ab-gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
+      <p className="ab-panel-dip" style={{ margin: 0 }}>
         İptal anında geçerlidir: anahtar bundan sonra her istekte 401 döner.
         Gerekçe denetim izine yazılır; token izin hiçbir yerine girmez.
       </p>

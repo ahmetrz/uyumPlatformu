@@ -3,12 +3,12 @@ import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import {
   Im, Bar, Segment, Ipucu, Dugme, Alan, BosIlk, BosFiltre, type Durum,
-} from '@/components/atlas/temel';
-import { Tablo, type Kolon, type Satir } from '@/components/atlas/tablo';
-import { EkranBasligi, Filtreler } from '@/components/atlas/ekran';
+} from '@/components/abacus/temel';
+import { Tablo, type Kolon, type Satir } from '@/components/abacus/tablo';
+import { EkranBasligi, Filtreler } from '@/components/abacus/ekran';
 import {
   Cekmece, CekmeceKimlik, CekmeceAlanlar, CekmeceBagli, CekmeceEylemler,
-} from '@/components/atlas/cekmece';
+} from '@/components/abacus/panel';
 import { gorevOlustur } from '@/lib/eylemler2/gorev';
 import { etiketle, tarihTR } from '@/lib/sabitler';
 import {
@@ -145,7 +145,7 @@ export default function YedeklemeIstemci({
     return (
       <main data-yuzey="tezgah" style={{ minWidth: 0 }}>
         <EkranBasligi eyebrow="Yedekleme & kurtarma" baslik="Yedekleme & kurtarma" />
-        <section className="ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
+        <section className="ab-ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
           <BosIlk cumle="Kapsamınızda aktif santral yok." />
         </section>
       </main>
@@ -184,20 +184,20 @@ export default function YedeklemeIstemci({
             aktif={mercek}
             sec={(id) => { setMercek(id); setKuyrukAcik(false); }}
             kapsam={
-              <span className="t-caption">
+              <span className="etiket">
                 {filo.yedekli} / {filo.toplam} varlık beyanen yedekli
               </span>
             }
           />
         </div>
 
-        <div className="ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
+        <div className="ab-ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
           {politikaSayisi === 0 ? (
             <BosIlk
               cumle="Yedekleme politikası kaydı yok. Kayıtlar dışarıdan aktarılabilir ya da
                 santral çekmecesinden elle tanımlanabilir."
               eylem={
-                <Link href="/ice-aktarim" className="dg dg-birincil"
+                <Link href="/ice-aktarim" className="ab-dugme birincil"
                   style={{ display: 'inline-block' }}>
                   Yedekleme API&apos;sini bağla
                 </Link>
@@ -221,8 +221,8 @@ export default function YedeklemeIstemci({
             />
           )}
           {kuyrukAcik && (
-            <p className="dip-not" style={{ marginTop: 'var(--s10)' }}>
-              <button type="button" className="dg dg-satir"
+            <p className="ab-dip" style={{ marginTop: 'var(--s10)' }}>
+              <button type="button" className="ab-dugme satir"
                 onClick={() => setKuyrukAcik(false)}>Kuyruğu topla</button>
             </p>
           )}
@@ -303,12 +303,12 @@ function SantralCekmecesi({ santral, kapat }: { santral: Santral; kapat: () => v
   if (kip === 'politika') {
     return (
       <Cekmece kod={`${santral.kod} · Yedekleme politikası`} kapat={kapat}>
-        <div className="cekmece-blok">
-          <p className="t-label" style={{ margin: '0 0 var(--s12)' }}>
+        <div className="ab-panel-blok">
+          <p className="etiket" style={{ margin: '0 0 var(--s12)' }}>
             {p ? 'Politikayı düzenle' : 'Politika tanımla'}
           </p>
         </div>
-        <div className="cekmece-blok">
+        <div className="ab-panel-blok">
           <PolitikaFormu santral={santral} kapat={() => setKip('ozet')} />
         </div>
       </Cekmece>
@@ -343,11 +343,11 @@ function SantralCekmecesi({ santral, kapat }: { santral: Santral; kapat: () => v
       ]} />
 
       {/* ── Santral katmanı ── */}
-      <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
-        <p className="t-label" style={{ margin: '0 0 var(--s10)' }}>
+      <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+        <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>
           Santral katmanı · politika → koşu → geri yükleme testi
         </p>
-        <p className="cekmece-dip" style={{ margin: '0 0 var(--s12)' }}>
+        <p className="ab-panel-dip" style={{ margin: '0 0 var(--s12)' }}>
           {santral.santralKatmani.gerekce}
         </p>
 
@@ -355,7 +355,7 @@ function SantralCekmecesi({ santral, kapat }: { santral: Santral; kapat: () => v
           <div style={{ borderLeft: 'var(--bw-edge) solid var(--hr2)', paddingLeft: 'var(--s12)',
             display: 'grid', gap: 'var(--s4)' }}>
             <span style={{ fontSize: 'var(--t-field)', fontWeight: 600,
-              color: gun !== null && gun > TEST_ESIGI ? 'var(--bd)' : 'var(--ink)' }}>
+              color: gun !== null && gun > TEST_ESIGI ? 'var(--bd)' : 'var(--murekkep)' }}>
               {tarihTR(test.zaman)} · {gun} gün önce
             </span>
             <span className="mono" style={{ fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
@@ -399,8 +399,8 @@ function SantralCekmecesi({ santral, kapat }: { santral: Santral; kapat: () => v
       </div>
 
       {/* ── Varlık katmanı ── */}
-      <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
-        <p className="t-label" style={{ margin: '0 0 var(--s10)' }}>
+      <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+        <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>
           Varlık katmanı · kritik varlıkların konfigürasyon yedeği
         </p>
 
@@ -427,7 +427,7 @@ function SantralCekmecesi({ santral, kapat }: { santral: Santral; kapat: () => v
               <VarlikYedegi key={v.varlikId} varlik={v} kaynakBagli={vk.kaynakBagli} />
             ))}
             {vk.yedeksiz.length > 8 && (
-              <p className="cekmece-dip" style={{ margin: 0 }}>
+              <p className="ab-panel-dip" style={{ margin: 0 }}>
                 +{vk.yedeksiz.length - 8} varlık daha
               </p>
             )}
@@ -448,7 +448,7 @@ function SantralCekmecesi({ santral, kapat }: { santral: Santral; kapat: () => v
               <VarlikYedegi key={v.varlikId} varlik={v} kaynakBagli={vk.kaynakBagli} />
             ))}
             {vk.bilinmeyen.length > 8 && (
-              <p className="cekmece-dip" style={{ margin: 0 }}>
+              <p className="ab-panel-dip" style={{ margin: 0 }}>
                 +{vk.bilinmeyen.length - 8} varlık daha
               </p>
             )}
@@ -458,8 +458,8 @@ function SantralCekmecesi({ santral, kapat }: { santral: Santral; kapat: () => v
 
       {/* ── Çelişkiler: iki katman birbirini yalanlıyorsa örtülmez ── */}
       {santral.celiskiler.length > 0 && (
-        <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
-          <p className="t-label" style={{ margin: '0 0 var(--s10)' }}>
+        <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+          <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>
             Katman çelişkisi · {santral.celiskiler.length}
           </p>
           <div style={{ display: 'grid', gap: 'var(--s10)' }}>
@@ -476,8 +476,8 @@ function SantralCekmecesi({ santral, kapat }: { santral: Santral; kapat: () => v
 
       {/* ── Motorun ürettiği, insan kararı bekleyen bulgular ── */}
       {santral.bulgular.length > 0 && (
-        <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
-          <p className="t-label" style={{ margin: '0 0 var(--s10)' }}>
+        <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+          <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>
             Açık yedek bulgusu · {santral.bulgular.length}
           </p>
           <div style={{ display: 'grid', gap: 'var(--s14)' }}>
@@ -485,7 +485,7 @@ function SantralCekmecesi({ santral, kapat }: { santral: Santral; kapat: () => v
               <BulguIsle key={b.id} bulgu={b} yetkili={santral.bulguIsleyebilir} />
             ))}
           </div>
-          <p className="cekmece-dip" style={{ margin: 'var(--s12) 0 0' }}>
+          <p className="ab-panel-dip" style={{ margin: 'var(--s12) 0 0' }}>
             Motor bulguyu kendisi kapatamaz; koşul gerçekten düzelirse bir sonraki
             koşuda çözülür. &quot;Yok sayma&quot; kararı insanındır ve gerekçesi izde durur.
           </p>
@@ -493,8 +493,8 @@ function SantralCekmecesi({ santral, kapat }: { santral: Santral; kapat: () => v
       )}
 
       {/* ── Politikanın kendi beyanı: kapsam dışı sistemler ── */}
-      <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
-        <p className="t-label" style={{ margin: '0 0 var(--s10)' }}>
+      <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+        <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>
           Politikada hariç tutulan sistemler
         </p>
         {haric.length === 0 ? (
@@ -559,10 +559,10 @@ function TestPlanla({ santral }: { santral: Santral }) {
       birincil={
         <div style={{ display: 'grid', gap: 'var(--s12)' }}>
           <Alan etiket="Hedef tarih">
-            <input className="gr" type="date" value={tarih}
+            <input className="ab-gr" type="date" value={tarih}
               onChange={(e) => { setTarih(e.target.value); setSonuc(null); }} />
           </Alan>
-          <Dugme tur="cekmece" disabled={calisiyor} onClick={planla}>
+          <Dugme tur="tam" disabled={calisiyor} onClick={planla}>
             {calisiyor ? 'Planlanıyor…' : 'Test planla'}
           </Dugme>
           {sonuc && (

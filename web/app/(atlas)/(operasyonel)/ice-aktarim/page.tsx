@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { girisZorunlu, izinVar } from '@/lib/erisim';
 import { db } from '@/lib/db';
-import { Yetkisiz } from '@/components/atlas/temel';
+import { Yetkisiz } from '@/components/abacus/temel';
 import IceAktarimIstemci from './IceAktarimIstemci';
 import type { Aktarim, ElenenSatir, OnizlemeSatiri } from './mantik';
 

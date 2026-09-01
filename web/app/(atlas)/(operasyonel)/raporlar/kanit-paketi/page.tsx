@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { girisZorunlu, izinliTesisIdleri } from '@/lib/erisim';
 import { db } from '@/lib/db';
-import { Yetkisiz } from '@/components/atlas/temel';
+import { Yetkisiz } from '@/components/abacus/temel';
 import { tarihTR } from '@/lib/sabitler';
 import { hucreOzeti } from '../mantik';
 import KanitPaketiIstemci, { type KapsamSatiri } from './KanitPaketiIstemci';

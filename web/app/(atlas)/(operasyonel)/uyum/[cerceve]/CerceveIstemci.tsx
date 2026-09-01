@@ -4,9 +4,9 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import {
   BosIlk, Dugme, Hata, Im, Ipucu, Metrikler, type Durum,
-} from '@/components/atlas/temel';
-import { GenisleyenSatir } from '@/components/atlas/tablo';
-import BaglamCubugu from '@/components/atlas/BaglamCubugu';
+} from '@/components/abacus/temel';
+import { GenisleyenSatir } from '@/components/abacus/tablo';
+import BaglamCubugu from '@/components/abacus/BaglamCubugu';
 import { useEylem } from '@/components/useEylem';
 import { kapsamYenidenHesapla } from '@/lib/eylemler2/tesis360';
 import { tarihTR } from '@/lib/sabitler';
@@ -83,7 +83,7 @@ export default function CerceveIstemci({
           sag={
             <>
               <Ipucu genis metin={eslestirmeMetni}>
-                <span className="acikla t-label">Eşleştirme ⓘ</span>
+                <span className="ab-dugme satir etiket">Eşleştirme ⓘ</span>
               </Ipucu>
               <Dugme tur="birincil" onClick={() => setKip(kip === 'kuru' ? 'kapsam' : 'kuru')}
                 aria-pressed={kip === 'kuru'}>
@@ -94,13 +94,13 @@ export default function CerceveIstemci({
         />
 
         <div style={{ padding: 'var(--s36) var(--gutter-op) var(--sec-pad-bot)' }}>
-          <p className="t-eyebrow" style={{ margin: 0, color: 'var(--jes)' }}>
+          <p className="etiket" style={{ margin: 0, color: 'var(--aksan)' }}>
             {veri.yururluk && new Date(veri.yururluk) <= new Date() ? 'Yürürlükte' : 'Yayımlandı'}
             {' · '}
             {veri.surumEtiketi ?? veri.surum ?? 'sürümsüz'}
             {veri.surec?.bitis && ` · ${veri.surec.kod} bitiş ${kisaTarih(veri.surec.bitis)}`}
           </p>
-          <h1 className="t-board" style={{ margin: 'var(--s12) 0 0', maxWidth: 520 }}>
+          <h1 className="ab-pano-basligi" style={{ margin: 'var(--s12) 0 0', maxWidth: 520 }}>
             {veri.ad}
           </h1>
 
@@ -108,7 +108,7 @@ export default function CerceveIstemci({
             <div style={{ marginTop: 'var(--s34)' }}>
               <BosIlk
                 cumle="Bu çerçeve henüz eşleştirilmedi — madde kataloğu boş."
-                eylem={<Link className="dg dg-birincil" href="/ice-aktarim">Katalog içe aktar</Link>}
+                eylem={<Link className="ab-dugme birincil" href="/ice-aktarim">Katalog içe aktar</Link>}
               />
             </div>
           ) : (
@@ -151,7 +151,7 @@ export default function CerceveIstemci({
                           <Link key={y.id} className="satir"
                             href={`/uyum?kontrol=${encodeURIComponent(y.kod)}`}>
                             <span className="kod"
-                              style={y.odak ? { color: 'var(--jes)', fontWeight: 500 } : undefined}>
+                              style={y.odak ? { color: 'var(--aksan)', fontWeight: 500 } : undefined}>
                               {y.kisaKod}
                             </span>
                             <span className="ad"
@@ -170,7 +170,7 @@ export default function CerceveIstemci({
                 ))}
               </div>
 
-              <p className="dip-not">
+              <p className="ab-dip">
                 Alt maddeye tıklayınca kontrol odası o kontrolde açılır
                 {m.bilinmeyen > 0 && ` · ${m.bilinmeyen} değerlendirme yapılmadı`}
                 {m.kanitsiz > 0 && ` · ${m.kanitsiz} değerlendirmede kanıt yok`}
@@ -180,15 +180,15 @@ export default function CerceveIstemci({
         </div>
       </main>
 
-      <aside className="cekmece" aria-label={kip === 'kapsam' ? 'Kapsam paneli' : 'Kuru çalıştırma'}>
-        <div className="cekmece-bas">
+      <aside className="ab-panel" aria-label={kip === 'kapsam' ? 'Kapsam paneli' : 'Kuru çalıştırma'}>
+        <div className="ust">
           <span className="kod">{kip === 'kapsam' ? 'Kapsam' : 'Kuru çalıştırma'}</span>
           {kip === 'kuru' && (
-            <button type="button" className="cekmece-kapat" onClick={() => setKip('kapsam')}
+            <button type="button" className="ab-dugme" onClick={() => setKip('kapsam')}
               aria-label="Kapsama dön">✕</button>
           )}
         </div>
-        <div className="cekmece-govde">
+        <div className="govde">
           {kip === 'kapsam'
             ? <KapsamPaneli veri={veri} kapsamda={kapsamda} disarida={disarida} kararsiz={kararsiz} />
             : <KuruPanel veri={veri} yazabilir={kapsamYazabilir} bitti={() => setKip('kapsam')} />}
@@ -210,13 +210,13 @@ function KapsamPaneli({
 }) {
   return (
     <>
-      <div className="cekmece-blok">
+      <div className="ab-panel-blok">
         {veri.kural ? (
-          <div style={{ background: 'var(--card)', border: 'var(--bw-strong) solid var(--hr2)',
+          <div style={{ background: 'var(--panel)', border: 'var(--bw-strong) solid var(--hr2)',
             padding: 'var(--s12) var(--s14)' }}>
             <Ipucu genis metin={`${veri.kural.tam} — ${veri.kural.aciklama ?? ''}`}>
-              <span className="acikla"
-                style={{ fontFamily: 'var(--mo)', fontSize: 'var(--t-code-lg)', fontWeight: 500 }}>
+              <span className="ab-dugme satir"
+                style={{ fontFamily: 'var(--veri)', fontSize: 'var(--t-code-lg)', fontWeight: 500 }}>
                 {veri.kural.ad} · v{veri.kural.surum} ⓘ
               </span>
             </Ipucu>
@@ -233,13 +233,13 @@ function KapsamPaneli({
         )}
       </div>
 
-      <div className="cekmece-blok" style={{ marginTop: 'var(--s16)' }}>
+      <div className="ab-panel-blok" style={{ marginTop: 'var(--s16)' }}>
         {kapsamda.map((k) => (
-          <Link key={k.tesisId} href={k.yol} className="cekmece-alan">
-            <span className="etiket" style={{ color: 'var(--ink)' }}>
+          <Link key={k.tesisId} href={k.yol} className="ab-panel-alan">
+            <span className="etiket" style={{ color: 'var(--murekkep)' }}>
               {k.ad}
               {k.elIle && (
-                <span style={{ marginLeft: 'var(--s8)', fontFamily: 'var(--mo)',
+                <span style={{ marginLeft: 'var(--s8)', fontFamily: 'var(--veri)',
                   fontSize: 'var(--t-code)', color: 'var(--i3)' }}>el ile</span>
               )}
             </span>
@@ -249,10 +249,10 @@ function KapsamPaneli({
 
         {/* Kapsam dışı ve kararsız: ayrı ve sessiz — ikisi aynı şey DEĞİL. */}
         {disarida.length > 0 && (
-          <div className="cekmece-alan">
+          <div className="ab-panel-alan">
             <Ipucu genis
               metin={disarida.slice(0, 8).map((k) => `${k.ad}: ${k.gerekce}`).join(' · ')}>
-              <span className="etiket acikla">{disarida.length} tesis</span>
+              <span className="etiket ab-dugme satir">{disarida.length} tesis</span>
             </Ipucu>
             <span className="deger" style={{ fontWeight: 400, color: 'var(--i3)' }}>
               kapsam dışı
@@ -260,9 +260,9 @@ function KapsamPaneli({
           </div>
         )}
         {kararsiz.length > 0 && (
-          <div className="cekmece-alan">
+          <div className="ab-panel-alan">
             <Ipucu genis metin={kararsiz.map((k) => `${k.ad}: ${k.gerekce}`).join(' · ')}>
-              <span className="etiket acikla">{kararsiz.length} tesis</span>
+              <span className="etiket ab-dugme satir">{kararsiz.length} tesis</span>
             </Ipucu>
             <span className="deger" style={{ fontWeight: 400, color: 'var(--i3)' }}>
               {veri.kural ? 'karar yok' : 'süreç dışı'}
@@ -271,7 +271,7 @@ function KapsamPaneli({
         )}
       </div>
 
-      <p className="cekmece-dip" style={{ marginTop: 'var(--s22)', paddingTop: 'var(--s18)',
+      <p className="ab-panel-dip" style={{ marginTop: 'var(--s22)', paddingTop: 'var(--s18)',
         borderTop: 'var(--bw-strong) solid var(--hr2)' }}>
         {veri.kural?.sonHesap
           ? `Kapsam kararları ${tarihTR(veri.kural.sonHesap)} tarihinde hesaplandı`
@@ -307,26 +307,26 @@ function KuruPanel({
 
   return (
     <>
-      <div className="cekmece-blok">
+      <div className="ab-panel-blok">
         <p style={{ margin: 0, fontSize: 'var(--t-field)', color: 'var(--i2)' }}>
           {veri.kural?.ad} · {veri.kuru.satirlar.length} aktif tesise karşı
           çalıştırıldı. Bu bir <b>önizleme</b>: hiçbir karar yazılmadı.
         </p>
-        <p className="cekmece-dip" style={{ margin: 'var(--s10) 0 0' }}>{veri.kuru.ozet}</p>
+        <p className="ab-panel-dip" style={{ margin: 'var(--s10) 0 0' }}>{veri.kuru.ozet}</p>
       </div>
 
-      <div className="cekmece-blok" style={{ marginTop: 'var(--s22)' }}>
+      <div className="ab-panel-blok" style={{ marginTop: 'var(--s22)' }}>
         {[
           { baslik: 'Değişir', liste: etkilenen },
           { baslik: 'Karar üretilemez', liste: dikkat },
           { baslik: 'El ile değiştirilmiş — motor dokunmaz', liste: korunan },
         ].filter((g) => g.liste.length > 0).map((g) => (
           <div key={g.baslik} style={{ marginBottom: 'var(--s16)' }}>
-            <p className="t-label" style={{ margin: '0 0 var(--s8)' }}>{g.baslik}</p>
+            <p className="etiket" style={{ margin: '0 0 var(--s8)' }}>{g.baslik}</p>
             {g.liste.map((s) => (
-              <div key={s.tesisId} className="cekmece-alan">
+              <div key={s.tesisId} className="ab-panel-alan">
                 <Ipucu genis metin={s.gerekce}>
-                  <span className="etiket acikla" style={{ color: 'var(--ink)' }}>{s.ad}</span>
+                  <span className="etiket ab-dugme satir" style={{ color: 'var(--murekkep)' }}>{s.ad}</span>
                 </Ipucu>
                 <span className="deger" style={{ fontWeight: 400, color: 'var(--i2)' }}>
                   {s.yazi}
@@ -336,18 +336,18 @@ function KuruPanel({
           </div>
         ))}
         {ayni.length > 0 && (
-          <p className="cekmece-dip" style={{ margin: 0 }}>
+          <p className="ab-panel-dip" style={{ margin: 0 }}>
             {ayni.length} tesisin kararı değişmiyor.
           </p>
         )}
       </div>
 
-      {hata && <div className="cekmece-blok" style={{ marginTop: 'var(--s16)' }}>
+      {hata && <div className="ab-panel-blok" style={{ marginTop: 'var(--s16)' }}>
         <Hata cumle={hata} />
       </div>}
 
-      <div className="cekmece-blok" style={{ marginTop: 'var(--s26)' }}>
-        <Dugme tur="cekmece"
+      <div className="ab-panel-blok" style={{ marginTop: 'var(--s26)' }}>
+        <Dugme tur="tam"
           disabled={!yazabilir || bekliyor || etkilenen.length === 0}
           onClick={() => calistir(async () => {
             for (const s of etkilenen) {
@@ -358,7 +358,7 @@ function KuruPanel({
           }, bitti)}>
           {bekliyor ? 'Hesaplanıyor…' : `Kararları hesapla (${etkilenen.length})`}
         </Dugme>
-        <p className="cekmece-dip" style={{ margin: 'var(--s16) 0 0' }}>
+        <p className="ab-panel-dip" style={{ margin: 'var(--s16) 0 0' }}>
           {etkilenen.length === 0
             ? 'Motor bu çerçevede yeni ya da değişen karar üretmiyor.'
             : 'Hesaplama denetim izine yazılır; el ile değiştirilmiş kararlar korunur.'}

@@ -112,12 +112,12 @@ export function KokenRozeti({ koken }: { koken?: KokenGorunumu | null }) {
   const g = kokenGorunumu(koken);
   return (
     <span
-      className="koken-rozet"
+      className="ab-koken"
       title={g.baslik}
       aria-label={g.baslik}
       style={{
         display: 'inline-flex', alignItems: 'baseline', gap: 'var(--s6)',
-        fontFamily: 'var(--mo)', fontSize: 'var(--t-label)',
+        fontFamily: 'var(--veri)', fontSize: 'var(--t-label)',
         letterSpacing: 'var(--tr-label)', whiteSpace: 'nowrap',
         color: g.renk,
       }}
@@ -140,7 +140,7 @@ export function KokenSatiri({ koken }: { koken?: KokenGorunumu | null }) {
 
   if (!koken || koken.kokenTipi === 'manuel') {
     return (
-      <div className="cekmece-alan">
+      <div className="ab-panel-alan">
         <span className="etiket">Veri kökeni</span>
         <span className="deger" style={{ color: 'var(--i3)' }}>Elle girildi</span>
       </div>
@@ -158,7 +158,7 @@ export function KokenSatiri({ koken }: { koken?: KokenGorunumu | null }) {
   return (
     <>
       {alanlar.map((a) => (
-        <div key={a.etiket} className="cekmece-alan">
+        <div key={a.etiket} className="ab-panel-alan">
           <span className="etiket">{a.etiket}</span>
           <span className="deger" style={a.renk ? { color: a.renk } : undefined}>{a.deger}</span>
         </div>

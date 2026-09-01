@@ -1,11 +1,11 @@
 'use client';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { BosIlk, BosFiltre, Dugme, Kesir } from '@/components/atlas/temel';
-import { Tablo, type Kolon, type Satir } from '@/components/atlas/tablo';
-import { EkranBasligi, Filtreler } from '@/components/atlas/ekran';
+import { BosIlk, BosFiltre, Dugme, Kesir } from '@/components/abacus/temel';
+import { Tablo, type Kolon, type Satir } from '@/components/abacus/tablo';
+import { EkranBasligi, Filtreler } from '@/components/abacus/ekran';
 import {
   Cekmece, CekmeceKimlik, CekmeceAlanlar, CekmeceBagli, CekmeceEylemler,
-} from '@/components/atlas/cekmece';
+} from '@/components/abacus/panel';
 import { tarihTR } from '@/lib/sabitler';
 import { AsamaEylemleri, DegisiklikFormu, KapiListesi, OlayBagi } from './Formlar';
 import {
@@ -116,7 +116,7 @@ export default function OperasyonIstemci({
           ]}
         />
 
-        <section className="ekran-govde">
+        <section className="ab-ekran-govde">
           <Filtreler
             secenekler={MERCEKLER}
             aktif={mercek}
@@ -130,7 +130,7 @@ export default function OperasyonIstemci({
                   sec={(id) => { setTipF(id); setKuyrukAcik(false); }}
                   secenekler={[{ id: 'ot', ad: 'OT' }, { id: 'bt', ad: 'BT' }]} />
                 {yazabilir && (
-                  <button type="button" className="kapsam-dugme"
+                  <button type="button" className="ab-dugme"
                     onClick={() => { setYeniAcik(true); setSecili(null); }}>
                     + Yeni değişiklik
                   </button>
@@ -178,10 +178,10 @@ export default function OperasyonIstemci({
               duzenle={() => setKip('form')} />
           ) : (
             <>
-              <div className="cekmece-blok">
-                <p className="t-label" style={{ margin: '0 0 var(--s12)' }}>Değişikliği düzenle</p>
+              <div className="ab-panel-blok">
+                <p className="etiket" style={{ margin: '0 0 var(--s12)' }}>Değişikliği düzenle</p>
               </div>
-              <div className="cekmece-blok">
+              <div className="ab-panel-blok">
                 <DegisiklikFormu degisiklik={secilen} tesisler={tesisler}
                   kapat={() => setKip('ozet')} />
               </div>
@@ -192,10 +192,10 @@ export default function OperasyonIstemci({
 
       {yeniAcik && !secilen && (
         <Cekmece kod="Yeni değişiklik" kapat={() => setYeniAcik(false)}>
-          <div className="cekmece-blok">
-            <p className="t-label" style={{ margin: '0 0 var(--s12)' }}>Değişiklik talebi</p>
+          <div className="ab-panel-blok">
+            <p className="etiket" style={{ margin: '0 0 var(--s12)' }}>Değişiklik talebi</p>
           </div>
-          <div className="cekmece-blok">
+          <div className="ab-panel-blok">
             <DegisiklikFormu degisiklik={null} tesisler={tesisler}
               kapat={() => setYeniAcik(false)} />
           </div>
@@ -279,8 +279,8 @@ function AsamaSeridi({ d, ix }: { d: D; ix: number }) {
       : a === 'planlandi' && d.planTarihi ? tarihTR(d.planTarihi) : null);
 
   return (
-    <div className="cekmece-blok" style={{ marginTop: 'var(--s22)' }}>
-      <p className="t-label" style={{ margin: '0 0 var(--s10)' }}>
+    <div className="ab-panel-blok" style={{ marginTop: 'var(--s22)' }}>
+      <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>
         Yaşam döngüsü · {ix >= 0 ? `${ix + 1}/${ASAMALAR.length}` : 'döngü dışı'}
       </p>
       <ol style={{ margin: 0, padding: 0, listStyle: 'none',
@@ -295,11 +295,11 @@ function AsamaSeridi({ d, ix }: { d: D; ix: number }) {
               style={{
                 display: 'flex', alignItems: 'baseline', gap: 'var(--s10)',
                 padding: 'var(--s4) 0 var(--s4) var(--s12)',
-                borderLeft: `var(--bw-edge) solid ${simdiki ? 'var(--jes)'
+                borderLeft: `var(--bw-edge) solid ${simdiki ? 'var(--aksan)'
                   : gecti ? 'var(--ok)' : 'var(--hr2)'}`,
                 fontSize: 'var(--t-field)',
                 fontWeight: simdiki ? 600 : 400,
-                color: simdiki ? 'var(--ink)' : gecti ? 'var(--i2)' : 'var(--i3)',
+                color: simdiki ? 'var(--murekkep)' : gecti ? 'var(--i2)' : 'var(--i3)',
               }}>
               <span>{asamaEtiketi(a)}</span>
               {t && (
@@ -311,7 +311,7 @@ function AsamaSeridi({ d, ix }: { d: D; ix: number }) {
         })}
       </ol>
       {d.durum === 'geri_alindi' && (
-        <p className="cekmece-dip" style={{ margin: 'var(--s10) 0 0' }}>
+        <p className="ab-panel-dip" style={{ margin: 'var(--s10) 0 0' }}>
           Kayıt geri alındı; döngüde beklediği bir adım yok.
         </p>
       )}
@@ -352,18 +352,18 @@ function Kapsam({ etiket, secenekler, aktif, sec }: {
 
   return (
     <details ref={kok} style={{ position: 'relative' }}>
-      <summary className="kapsam-dugme"
+      <summary className="ab-dugme"
         style={{ listStyle: 'none', cursor: 'pointer', display: 'inline-block' }}>
         {etiket}{secim ? ` · ${secim.ad}` : ''} <span aria-hidden>▾</span>
       </summary>
       <div style={{
         position: 'absolute', top: '100%', right: 0, zIndex: 5, minWidth: 200,
-        maxHeight: 300, overflowY: 'auto', background: 'var(--card)',
-        border: 'var(--bw-strong) solid var(--hr2)', boxShadow: 'var(--sh-tip)',
+        maxHeight: 300, overflowY: 'auto', background: 'var(--panel)',
+        border: 'var(--bw-strong) solid var(--hr2)', boxShadow: 'none',
         padding: 'var(--s8)',
       }}>
         {[{ id: '', ad: 'Tümü' }, ...secenekler].map((s) => (
-          <button key={s.id} type="button" className="filtre"
+          <button key={s.id} type="button" className="ab-filtre"
             style={{ display: 'block', width: '100%', textAlign: 'left' }}
             aria-pressed={(aktif ?? '') === s.id}
             onClick={(e) => {

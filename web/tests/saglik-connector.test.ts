@@ -277,7 +277,7 @@ describe('Ortam: üretime bakan kayıt ayırt edilir, bilinmeyen uydurulmaz', ()
   it('üretim kaydı kendi rengiyle ayrılır', () => {
     const s = connectorSagligi(conn({ ortam: 'uretim' }), [], { simdi: SIMDI });
     expect(M.uretimMi(s.ortam)).toBe(true);
-    expect(M.ortamRengi(s.ortam)).toBe('var(--jes)');
+    expect(M.ortamRengi(s.ortam)).toBe('var(--aksan)');
     expect(M.ortamYazisi(s.ortam)).toBe('Üretim');
   });
 

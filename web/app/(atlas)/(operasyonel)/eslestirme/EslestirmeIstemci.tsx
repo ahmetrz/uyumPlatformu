@@ -1,12 +1,12 @@
 'use client';
 import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { BosIlk, Dugme, type Durum } from '@/components/atlas/temel';
-import { Matris, Tablo, type Kolon, type MatrisSatiri, type Satir } from '@/components/atlas/tablo';
-import { EkranBasligi, Filtreler } from '@/components/atlas/ekran';
+import { BosIlk, Dugme, type Durum } from '@/components/abacus/temel';
+import { Matris, Tablo, type Kolon, type MatrisSatiri, type Satir } from '@/components/abacus/tablo';
+import { EkranBasligi, Filtreler } from '@/components/abacus/ekran';
 import {
   Cekmece, CekmeceAlanlar, CekmeceEylemler, CekmeceKimlik,
-} from '@/components/atlas/cekmece';
+} from '@/components/abacus/panel';
 import { DENKLIK_ETIKET } from '@/lib/sabitler';
 import { DenklikFormu, DenklikKaldir } from './Formlar';
 import {
@@ -151,10 +151,10 @@ export default function EslestirmeIstemci({
     return (
       <main data-yuzey="defter" style={{ minWidth: 0 }}>
         <EkranBasligi eyebrow="Çapraz eşleme" baslik="Çerçeve tanımlı değil" />
-        <section className="ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
+        <section className="ab-ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
           <BosIlk
             cumle="Eşleme için en az iki aktif regülasyon gerekir."
-            eylem={<Link className="dg dg-birincil" href="/regulasyonlar">Regülasyon kütüphanesi</Link>}
+            eylem={<Link className="ab-dugme birincil" href="/regulasyonlar">Regülasyon kütüphanesi</Link>}
           />
         </section>
       </main>
@@ -182,7 +182,7 @@ export default function EslestirmeIstemci({
           ]}
         />
 
-        <section className="ekran-govde">
+        <section className="ab-ekran-govde">
           <Filtreler
             secenekler={cerceveler.map((c) => ({ id: c.id, ad: c.kod }))}
             aktif={solReg}
@@ -192,7 +192,7 @@ export default function EslestirmeIstemci({
                 <HedefSecici cerceveler={cerceveler.filter((c) => c.id !== solReg)}
                   aktif={sagReg} sec={(id) => { setSagReg(id); setSecim(null); }} />
                 {yazabilir && (
-                  <button type="button" className="kapsam-dugme"
+                  <button type="button" className="ab-dugme"
                     onClick={() => setSecim({ tip: 'yeni', kaynakId: null, hedefId: null })}>
                     + Denklik
                   </button>
@@ -212,7 +212,7 @@ export default function EslestirmeIstemci({
                     onClick={() => setSecim({ tip: 'yeni', kaynakId: null, hedefId: null })}>
                     Denklik ekle
                   </Dugme>
-                  : <Link className="dg dg-birincil" href="/regulasyonlar">Katalogu aç</Link>}
+                  : <Link className="ab-dugme birincil" href="/regulasyonlar">Katalogu aç</Link>}
               />
             </div>
           ) : (
@@ -228,7 +228,7 @@ export default function EslestirmeIstemci({
                 sec={hucreSec}
               />
 
-              <p className="dip-not">
+              <p className="ab-dip">
                 Satırlar {solKod}, sütunlar {sagKod} · hücreye tıklayınca denklik
                 çekmecede açılır, boş hücre yeni denklik formunu açar
                 {kurulum.toplananSatir > 0 && ` · eşlemesi olan ${kurulum.toplananSatir} madde matrise sığmadı`}
@@ -242,7 +242,7 @@ export default function EslestirmeIstemci({
 
           {bosta.length > 0 && (
             <div style={{ marginTop: 'var(--s30)' }}>
-              <p className="t-colhead" style={{ margin: '0 0 var(--s10)' }}>
+              <p className="kolonbas" style={{ margin: '0 0 var(--s10)' }}>
                 {sagKod} çerçevesinde karşılığı olmayan {solKod} maddeleri
               </p>
               <Tablo
@@ -275,14 +275,14 @@ export default function EslestirmeIstemci({
               kapat={() => setSecim(null)} />
           ) : (
             <>
-              <div className="cekmece-blok">
-                <p className="t-label" style={{ margin: '0 0 var(--s12)' }}>
+              <div className="ab-panel-blok">
+                <p className="etiket" style={{ margin: '0 0 var(--s12)' }}>
                   {yeniKaynak && yeniHedef
                     ? `${yeniKaynak.kisaKod} ⇄ ${yeniHedef.kisaKod}`
                     : 'Yeni denklik'}
                 </p>
               </div>
-              <div className="cekmece-blok">
+              <div className="ab-panel-blok">
                 <DenklikFormu kaynak={yeniKaynak} hedef={yeniHedef}
                   maddeler={maddeler} kapat={() => setSecim(null)} />
               </div>
@@ -326,18 +326,18 @@ function HedefSecici({ cerceveler, aktif, sec }: {
 
   return (
     <details ref={kok} style={{ position: 'relative' }}>
-      <summary className="kapsam-dugme"
+      <summary className="ab-dugme"
         style={{ listStyle: 'none', cursor: 'pointer', display: 'inline-block' }}>
         Hedef · {secim?.kod ?? '—'} <span aria-hidden>▾</span>
       </summary>
       <div style={{
         position: 'absolute', top: '100%', right: 0, zIndex: 5, minWidth: 200,
-        maxHeight: 300, overflowY: 'auto', background: 'var(--card)',
-        border: 'var(--bw-strong) solid var(--hr2)', boxShadow: 'var(--sh-tip)',
+        maxHeight: 300, overflowY: 'auto', background: 'var(--panel)',
+        border: 'var(--bw-strong) solid var(--hr2)', boxShadow: 'none',
         padding: 'var(--s8)',
       }}>
         {cerceveler.map((c) => (
-          <button key={c.id} type="button" className="filtre"
+          <button key={c.id} type="button" className="ab-filtre"
             style={{ display: 'block', width: '100%', textAlign: 'left' }}
             aria-pressed={aktif === c.id}
             onClick={(e) => {
@@ -378,14 +378,14 @@ function DenklikOzeti({ es, yazabilir, kapat }: {
         },
       ]} />
 
-      <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
-        <p className="t-label" style={{ margin: '0 0 var(--s10)' }}>Maddeler</p>
-        <div className="cekmece-alan">
-          <span className="etiket" style={{ fontFamily: 'var(--mo)' }}>{es.kaynak.kod}</span>
+      <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+        <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Maddeler</p>
+        <div className="ab-panel-alan">
+          <span className="etiket" style={{ fontFamily: 'var(--veri)' }}>{es.kaynak.kod}</span>
           <span className="deger" style={{ fontWeight: 400 }}>{es.kaynak.baslik}</span>
         </div>
-        <div className="cekmece-alan">
-          <span className="etiket" style={{ fontFamily: 'var(--mo)' }}>{es.hedef.kod}</span>
+        <div className="ab-panel-alan">
+          <span className="etiket" style={{ fontFamily: 'var(--veri)' }}>{es.hedef.kod}</span>
           <span className="deger" style={{ fontWeight: 400 }}>{es.hedef.baslik}</span>
         </div>
       </div>
@@ -393,7 +393,7 @@ function DenklikOzeti({ es, yazabilir, kapat }: {
       <CekmeceEylemler
         birincil={
           <Link href="/regulasyonlar">
-            <Dugme tur="cekmece">Katalogda aç</Dugme>
+            <Dugme tur="tam">Katalogda aç</Dugme>
           </Link>
         }
         ikincil={yazabilir ? <DenklikKaldir es={es} kapat={kapat} /> : undefined}

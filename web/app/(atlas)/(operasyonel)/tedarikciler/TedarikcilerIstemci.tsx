@@ -1,11 +1,11 @@
 'use client';
 import Link from 'next/link';
 import { useMemo, useState, type CSSProperties, type ReactNode } from 'react';
-import { BosIlk, Im, Ipucu, type Durum } from '@/components/atlas/temel';
-import { EkranBasligi } from '@/components/atlas/ekran';
+import { BosIlk, Im, Ipucu, type Durum } from '@/components/abacus/temel';
+import { EkranBasligi } from '@/components/abacus/ekran';
 import {
   Cekmece, CekmeceKimlik, CekmeceAlanlar, CekmeceBagli,
-} from '@/components/atlas/cekmece';
+} from '@/components/abacus/panel';
 import { etiketle, tarihTR } from '@/lib/sabitler';
 import { ErisimOturumlari, TedarikciEylemleri, SertifikaYenile } from './Eylemler';
 import {
@@ -90,7 +90,7 @@ export default function TedarikcilerIstemci({
     return (
       <main data-yuzey="tezgah" style={{ minWidth: 0 }}>
         <EkranBasligi eyebrow="Üçüncü taraf" baslik="Tedarikçiler" />
-        <section className="ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
+        <section className="ab-ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
           <BosIlk cumle="Tedarikçi kaydı yok" />
         </section>
       </main>
@@ -144,15 +144,15 @@ export default function TedarikcilerIstemci({
           ]}
         />
 
-        <section className="ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
-          <div className="tbl" role="table"
+        <section className="ab-ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
+          <div className="ab-tablo" role="table"
             style={{ '--kolonlar': KOLONLAR, '--kolonlar-dar': KOLONLAR_DAR } as CSSProperties}>
-            <div className="tbl-bas" role="row">
+            <div className="bas" role="row">
               <span />
-              <span className="t-colhead">Tedarikçi</span>
-              <span className="t-colhead tbl-ikincil">Santral</span>
-              <span className="t-colhead">Uzak erişim</span>
-              <span className="t-colhead">Sözleşme</span>
+              <span className="kolonbas">Tedarikçi</span>
+              <span className="kolonbas ikincil">Santral</span>
+              <span className="kolonbas">Uzak erişim</span>
+              <span className="kolonbas">Sözleşme</span>
               <span />
             </div>
 
@@ -162,26 +162,26 @@ export default function TedarikcilerIstemci({
             ))}
 
             {toplanan.length > 0 && (
-              <button type="button" className="tbl-satir tbl-kuyruk"
+              <button type="button" className="satir kuyruk"
                 style={{ gridTemplateColumns: '22px minmax(0, 1fr) 26px' }}
                 onClick={() => setKuyrukAcik(true)}>
                 <Im durum="ok" ad={`${toplanan.length} tedarikçide bilinen açık yok`} />
-                <span className="tbl-hucre" style={{ textAlign: 'left' }}>
+                <span className="" style={{ textAlign: 'left' }}>
                   {toplanan.length} düşük riskli tedarikçi
                 </span>
-                <span className="tbl-ok" style={{ justifySelf: 'end' }} aria-hidden>▾</span>
+                <span className="ab-ok" style={{ justifySelf: 'end' }} aria-hidden>▾</span>
               </button>
             )}
 
             {kuyrukAcik && kalan.length > 0 && (
-              <p className="dip-not tbl-dip">
-                <button type="button" className="dg dg-satir"
+              <p className="ab-dip dip">
+                <button type="button" className="ab-dugme satir"
                   onClick={() => setKuyrukAcik(false)}>Kuyruğu topla</button>
               </p>
             )}
 
-            <p className="dip-not tbl-dip">{dipNot}</p>
-            <p className="dip-not" style={{ marginTop: 'var(--s6)' }}>
+            <p className="ab-dip dip">{dipNot}</p>
+            <p className="ab-dip" style={{ marginTop: 'var(--s6)' }}>
               Kritiklik kademesi A→D · A en yüksek
             </p>
           </div>
@@ -223,24 +223,24 @@ function Satir({ t, secili, sec }: { t: T; secili: boolean; sec: () => void }) {
     <div
       role="row"
       aria-selected={secili}
-      className="tbl-satir"
+      className="satir"
       onClick={sec}
       style={{ position: 'relative', borderLeftColor: secili ? `var(--${d.durum})` : undefined }}
     >
       <Im durum={d.durum} ad={d.soz} enKotu={d.sabit} />
 
       <span role="cell" style={{ minWidth: 0 }}>
-        <button type="button" className="tbl-konu"
+        <button type="button" className="konu"
           style={{ background: 'none', border: 0, padding: 0, width: '100%',
             fontFamily: 'inherit', textAlign: 'left', cursor: 'pointer' }}>
           {t.ad}
         </button>
-        <span className="tbl-alt">{alt}</span>
+        <span className="alt">{alt}</span>
       </span>
 
       {/* Kolon dar kipte DÜŞER: `display` satır içi verilirse .tbl-ikincil'in
           display:none kuralını ezer — hizalama iç sarmalayıcıda yapılır. */}
-      <span role="cell" className="tbl-ikincil"
+      <span role="cell" className="ikincil"
         style={{ minWidth: 0, fontSize: 'var(--t-cell)', color: 'var(--i2)' }}>
         <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--s6)', minWidth: 0 }}>
           {santral.gorunen.length === 0 ? (
@@ -258,7 +258,7 @@ function Satir({ t, secili, sec }: { t: T; secili: boolean; sec: () => void }) {
               ))}
               {santral.ekSayi > 0 && (
                 <Ipucu genis metin={santral.tam}>
-                  <button type="button" className="acikla"
+                  <button type="button" className="ab-dugme satir"
                     onClick={(e) => e.stopPropagation()}
                     style={{ fontSize: 'var(--t-cell)', color: 'var(--i2)', whiteSpace: 'nowrap' }}>
                     +{santral.ekSayi}
@@ -274,7 +274,7 @@ function Satir({ t, secili, sec }: { t: T; secili: boolean; sec: () => void }) {
         <ErisimHucresi t={t} />
       </span>
 
-      <span role="cell" className="tbl-hucre"
+      <span role="cell" className=""
         style={{ color: sozRenk, fontWeight: sozRenk === 'var(--i2)' ? 400 : 600 }}
         title={soz
           ? `${soz.kod} · ${soz.ad} · bitiş ${tarihTR(soz.bitis)}`
@@ -288,7 +288,7 @@ function Satir({ t, secili, sec }: { t: T; secili: boolean; sec: () => void }) {
           : ayYil(soz.bitis)}
       </span>
 
-      <span className="tbl-ok" style={{ justifySelf: 'end' }} aria-hidden>▸</span>
+      <span className="ab-ok" style={{ justifySelf: 'end' }} aria-hidden>▸</span>
     </div>
   );
 }
@@ -306,7 +306,7 @@ function ErisimHucresi({ t }: { t: T }) {
   if (t.oturum.uyumsuzSayisi > 0) {
     return (
       <Ipucu genis metin={t.oturum.gerekce}>
-        <button type="button" className="acikla" onClick={(e) => e.stopPropagation()}
+        <button type="button" className="ab-dugme satir" onClick={(e) => e.stopPropagation()}
           style={{ fontSize: 'var(--t-cell)', fontWeight: 600, color: 'var(--bd)',
             whiteSpace: 'nowrap' }}>
           {yontem} · {t.oturum.uyumsuzSayisi} uyumsuz
@@ -318,7 +318,7 @@ function ErisimHucresi({ t }: { t: T }) {
   if (t.oturum.kapsam === 'kayit_var') {
     return (
       <Ipucu genis metin={t.oturum.gerekce}>
-        <span className="tbl-hucre" style={{ color: 'var(--i2)' }}>
+        <span className="" style={{ color: 'var(--i2)' }}>
           {yontem} · {t.oturum.toplam} oturum
         </span>
       </Ipucu>
@@ -340,7 +340,7 @@ function ErisimHucresi({ t }: { t: T }) {
   if (t.oturumKaydiVar === false) {
     return (
       <Ipucu genis metin={erisimAciklamasi(t)}>
-        <button type="button" className="acikla" onClick={(e) => e.stopPropagation()}
+        <button type="button" className="ab-dugme satir" onClick={(e) => e.stopPropagation()}
           style={{ fontSize: 'var(--t-cell)', fontWeight: 600, color: 'var(--bd)' }}>
           izlenmiyor
         </button>
@@ -351,7 +351,7 @@ function ErisimHucresi({ t }: { t: T }) {
   // null → bilinmiyor. Sıfır değil, "alınmıyor" da değil: elmas + —
   return (
     <Ipucu genis metin={erisimAciklamasi(t)}>
-      <button type="button" className="acikla" onClick={(e) => e.stopPropagation()}
+      <button type="button" className="ab-dugme satir" onClick={(e) => e.stopPropagation()}
         style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--s6)',
           fontSize: 'var(--t-cell)', color: 'var(--i2)', whiteSpace: 'nowrap' }}>
         <Im durum="unk" ad="Oturum kaydı bilinmiyor" />
@@ -437,8 +437,8 @@ function Ozet({ t, yazabilir }: { t: T; yazabilir: boolean }) {
       ]} />
 
       {sertifikalar.length > 0 && (
-        <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
-          <p className="t-label" style={{ margin: '0 0 var(--s10)' }}>
+        <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+          <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>
             Sertifika · {sertifikalar.length}
           </p>
           <div style={{ display: 'grid', gap: 'var(--s10)' }}>
@@ -446,7 +446,7 @@ function Ozet({ t, yazabilir }: { t: T; yazabilir: boolean }) {
               .map((s) => <SertifikaSatiri key={s.id} s={s} />)}
           </div>
           {ilgiliSertifikalar.length === 0 && sertifikalar.length > 2 && (
-            <p className="cekmece-dip" style={{ margin: 'var(--s10) 0 0' }}>
+            <p className="ab-panel-dip" style={{ margin: 'var(--s10) 0 0' }}>
               {sertifikalar.length - 2} sertifika daha · hepsi {UFUK} günün ötesinde
             </p>
           )}
@@ -457,15 +457,15 @@ function Ozet({ t, yazabilir }: { t: T; yazabilir: boolean }) {
         <>
           <CekmeceBagli baslik={`Santral · ${t.santraller.length}`} kayitlar={santralBaglari} />
           {t.santraller.length > santralBaglari.length && (
-            <p className="cekmece-dip" style={{ margin: 'var(--s10) 0 0' }}>
+            <p className="ab-panel-dip" style={{ margin: 'var(--s10) 0 0' }}>
               {t.santraller.length - santralBaglari.length} santral daha
             </p>
           )}
         </>
       ) : (
-        <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
-          <p className="t-label" style={{ margin: '0 0 var(--s10)' }}>Santral</p>
-          <p className="cekmece-dip" style={{ margin: 0 }}>
+        <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+          <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Santral</p>
+          <p className="ab-panel-dip" style={{ margin: 0 }}>
             Bu tedarikçiye bağlanmış varlık kaydı yok — hizmet verdiği santral
             envanterden türetilemiyor.
           </p>
@@ -475,9 +475,9 @@ function Ozet({ t, yazabilir }: { t: T; yazabilir: boolean }) {
       {t.riskler.length > 0 ? (
         <CekmeceBagli baslik="Bağlı risk" kayitlar={t.riskler.slice(0, 4)} />
       ) : (
-        <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
-          <p className="t-label" style={{ margin: '0 0 var(--s10)' }}>Bağlı risk</p>
-          <p className="cekmece-dip" style={{ margin: 0 }}>
+        <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+          <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Bağlı risk</p>
+          <p className="ab-panel-dip" style={{ margin: 0 }}>
             Açık risk kaydı bağlanmamış.
           </p>
         </div>
@@ -497,7 +497,7 @@ function Ozet({ t, yazabilir }: { t: T; yazabilir: boolean }) {
 function SertifikaSatiri({ s }: { s: SertifikaOzeti }) {
   const durum: Durum = s.kalanGun < 0 ? 'bd' : s.kalanGun <= UFUK ? 'md' : 'ok';
   return (
-    <div style={{ background: 'var(--card)', border: 'var(--bw-hair) solid var(--hr2)',
+    <div style={{ background: 'var(--panel)', border: 'var(--bw-hair) solid var(--hr2)',
       padding: 'var(--s12) var(--s14)' }}>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 'var(--s10)' }}>
         <span style={{ fontSize: 'var(--t-cell)', fontWeight: 600, minWidth: 0 }}>{s.ad}</span>
@@ -506,7 +506,7 @@ function SertifikaSatiri({ s }: { s: SertifikaOzeti }) {
           {s.kalanGun < 0 ? `${Math.abs(s.kalanGun)}g önce` : `${s.kalanGun}g`}
         </span>
       </div>
-      <p className="cekmece-dip" style={{ margin: 'var(--s6) 0 var(--s10)' }}>
+      <p className="ab-panel-dip" style={{ margin: 'var(--s6) 0 var(--s10)' }}>
         {tarihTR(s.bitis)}{s.veren ? ` · ${s.veren}` : ''}
         {s.varlikEtiketi ? ` · ${s.varlikEtiketi}` : ''}
       </p>

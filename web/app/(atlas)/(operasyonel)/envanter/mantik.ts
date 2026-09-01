@@ -1,4 +1,4 @@
-import type { Durum } from '@/components/atlas/temel';
+import type { Durum } from '@/components/abacus/temel';
 
 /* O10/O11 · Varlık zekâsı — sunucu ve istemcinin PAYLAŞTIĞI tipler ve saf
    hesaplar. Burada veritabanı, React ve server-only bağımlılığı YOKTUR.

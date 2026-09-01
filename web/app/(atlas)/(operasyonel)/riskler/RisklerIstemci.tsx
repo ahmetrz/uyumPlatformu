@@ -1,11 +1,11 @@
 'use client';
 import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
-import { BosIlk, BosFiltre, Dugme, TikSeridi } from '@/components/atlas/temel';
-import { EkranBasligi, Filtreler } from '@/components/atlas/ekran';
+import { BosIlk, BosFiltre, Dugme, TikSeridi } from '@/components/abacus/temel';
+import { EkranBasligi, Filtreler } from '@/components/abacus/ekran';
 import {
   Cekmece, CekmeceKimlik, CekmeceAlanlar, CekmeceBagli, CekmeceEylemler,
-} from '@/components/atlas/cekmece';
+} from '@/components/abacus/panel';
 import { RISK_DURUM_ETIKET, etiketle, tarihTR } from '@/lib/sabitler';
 import { RiskFormu, KararFormu } from './Formlar';
 import {
@@ -146,7 +146,7 @@ export default function RisklerIstemci({
           ]}
         />
 
-        <section className="ekran-govde">
+        <section className="ab-ekran-govde">
           <Filtreler
             secenekler={[
               { id: 'aktif', ad: 'Aktif' },
@@ -166,7 +166,7 @@ export default function RisklerIstemci({
                     ...kullanicilar.map((u) => ({ id: u.id, ad: u.ad })),
                     { id: 'yok', ad: 'atanmadı' },
                   ]} />
-                <button type="button" className="kapsam-dugme"
+                <button type="button" className="ab-dugme"
                   onClick={() => { setYeniAcik(true); setSeciliId(null); }}>
                   + Yeni risk
                 </button>
@@ -184,7 +184,7 @@ export default function RisklerIstemci({
               yeni={() => setYeniAcik(true)}
             />
           ) : (
-            <div className="tbl"
+            <div className="ab-tablo"
               style={{
                 '--kolonlar': KOLONLAR,
                 '--kolonlar-dar': KOLONLAR_DAR,
@@ -197,28 +197,28 @@ export default function RisklerIstemci({
               ))}
 
               {toplanan.length > 0 && (
-                <button type="button" className="tbl-satir tbl-kuyruk"
+                <button type="button" className="satir kuyruk"
                   onClick={() => setKuyrukAcik(true)}>
-                  <span style={{ paddingLeft: 'var(--s16)', fontFamily: 'var(--mn)',
+                  <span style={{ paddingLeft: 'var(--s16)', fontFamily: 'var(--veri)',
                     fontSize: 'var(--t-lead)', fontWeight: 600, color: 'var(--i2)',
                     fontVariantNumeric: 'tabular-nums' }}>
                     {kuyrukSkorlari.length ? `≤${Math.max(...kuyrukSkorlari)}` : '—'}
                   </span>
-                  <span className="tbl-konu" style={{ color: 'var(--i2)' }}>{kuyrukEtiketi}</span>
-                  <span className="tbl-hucre tbl-ikincil">portföy</span>
-                  <span className="tbl-hucre" />
-                  <span className="tbl-ok" style={{ justifySelf: 'end' }} aria-hidden>▾</span>
+                  <span className="konu" style={{ color: 'var(--i2)' }}>{kuyrukEtiketi}</span>
+                  <span className="ikincil">portföy</span>
+                  <span className="" />
+                  <span className="ab-ok" style={{ justifySelf: 'end' }} aria-hidden>▾</span>
                 </button>
               )}
 
               {kuyrukAcik && sakin.length > 0 && (
-                <p className="dip-not tbl-dip">
-                  <button type="button" className="dg dg-satir"
+                <p className="ab-dip dip">
+                  <button type="button" className="ab-dugme satir"
                     onClick={() => setKuyrukAcik(false)}>Kuyruğu topla</button>
                 </p>
               )}
 
-              <p className="dip-not tbl-dip">
+              <p className="ab-dip dip">
                 Sıralama artık skora göre
                 {skorsuzSayisi > 0 && ` · ${skorsuzSayisi} risk skorsuz`}
               </p>
@@ -234,10 +234,10 @@ export default function RisklerIstemci({
           )}
           {kip === 'form' && (
             <>
-              <div className="cekmece-blok">
-                <p className="t-label" style={{ margin: '0 0 var(--s12)' }}>Yeniden değerlendir</p>
+              <div className="ab-panel-blok">
+                <p className="etiket" style={{ margin: '0 0 var(--s12)' }}>Yeniden değerlendir</p>
               </div>
-              <div className="cekmece-blok">
+              <div className="ab-panel-blok">
                 <RiskFormu risk={secili} yeniKod={yeniKod} kullanicilar={kullanicilar}
                   tesisler={tesisler} sistemler={sistemler} bulgular={bulgular}
                   kapat={() => setKip('ozet')} />
@@ -246,10 +246,10 @@ export default function RisklerIstemci({
           )}
           {kip === 'karar' && (
             <>
-              <div className="cekmece-blok">
-                <p className="t-label" style={{ margin: '0 0 var(--s12)' }}>Karar kaydet</p>
+              <div className="ab-panel-blok">
+                <p className="etiket" style={{ margin: '0 0 var(--s12)' }}>Karar kaydet</p>
               </div>
-              <div className="cekmece-blok">
+              <div className="ab-panel-blok">
                 <KararFormu risk={secili} kapat={() => setKip('ozet')} />
               </div>
             </>
@@ -259,10 +259,10 @@ export default function RisklerIstemci({
 
       {yeniAcik && !secili && (
         <Cekmece kod={yeniKod} kapat={() => setYeniAcik(false)}>
-          <div className="cekmece-blok">
-            <p className="t-label" style={{ margin: '0 0 var(--s12)' }}>Yeni risk</p>
+          <div className="ab-panel-blok">
+            <p className="etiket" style={{ margin: '0 0 var(--s12)' }}>Yeni risk</p>
           </div>
-          <div className="cekmece-blok">
+          <div className="ab-panel-blok">
             <RiskFormu risk={null} yeniKod={yeniKod} kullanicilar={kullanicilar}
               tesisler={tesisler} sistemler={sistemler} bulgular={bulgular}
               kapat={() => setYeniAcik(false)} />
@@ -285,7 +285,7 @@ function Satir({ risk, secili, sec }: { risk: R; secili: boolean; sec: () => voi
       type="button"
       role="row"
       aria-selected={secili}
-      className="tbl-satir"
+      className="satir"
       onClick={sec}
       style={{ borderLeftColor: secili ? renk : 'transparent' }}
     >
@@ -299,7 +299,7 @@ function Satir({ risk, secili, sec }: { risk: R; secili: boolean; sec: () => voi
         gap: 'var(--s8)',
       }}>
         <span style={{
-          fontFamily: 'var(--mn)', fontSize: 'var(--t-lead)', fontWeight: 600,
+          fontFamily: 'var(--veri)', fontSize: 'var(--t-lead)', fontWeight: 600,
           color: renk, fontVariantNumeric: 'tabular-nums', minWidth: '2ch',
           textAlign: 'right',
         }}>
@@ -316,15 +316,15 @@ function Satir({ risk, secili, sec }: { risk: R; secili: boolean; sec: () => voi
         />
       </span>
       <span role="cell" style={{ minWidth: 0 }}>
-        <span className="tbl-konu">{risk.baslik}</span>
-        <span className="tbl-alt">{altSatir(risk)}</span>
+        <span className="konu">{risk.baslik}</span>
+        <span className="alt">{altSatir(risk)}</span>
       </span>
-      <span role="cell" className="tbl-hucre tbl-ikincil">{santralMetni(risk)}</span>
-      <span role="cell" className="tbl-hucre"
+      <span role="cell" className="ikincil">{santralMetni(risk)}</span>
+      <span role="cell" className=""
         style={sahipsiz ? { color: 'var(--md)' } : undefined}>
         {risk.sahip?.ad ?? 'atanmadı'}
       </span>
-      <span className="tbl-ok" style={{ justifySelf: 'end' }} aria-hidden>▸</span>
+      <span className="ab-ok" style={{ justifySelf: 'end' }} aria-hidden>▸</span>
     </button>
   );
 }
@@ -362,18 +362,18 @@ function Kapsam({ etiket, secenekler, aktif, sec }: {
 
   return (
     <details ref={kok} style={{ position: 'relative' }}>
-      <summary className="kapsam-dugme"
+      <summary className="ab-dugme"
         style={{ listStyle: 'none', cursor: 'pointer', display: 'inline-block' }}>
         {etiket}{secim ? ` · ${secim.ad}` : ''} <span aria-hidden>▾</span>
       </summary>
       <div style={{
         position: 'absolute', top: '100%', right: 0, zIndex: 5, minWidth: 210,
-        maxHeight: 300, overflowY: 'auto', background: 'var(--card)',
-        border: 'var(--bw-strong) solid var(--hr2)', boxShadow: 'var(--sh-tip)',
+        maxHeight: 300, overflowY: 'auto', background: 'var(--panel)',
+        border: 'var(--bw-strong) solid var(--hr2)', boxShadow: 'none',
         padding: 'var(--s8)',
       }}>
         {[{ id: '', ad: 'Tümü' }, ...secenekler].map((s) => (
-          <button key={s.id} type="button" className="filtre"
+          <button key={s.id} type="button" className="ab-filtre"
             style={{ display: 'block', width: '100%', textAlign: 'left' }}
             aria-pressed={(aktif ?? '') === s.id}
             onClick={(e) => {
@@ -476,9 +476,9 @@ function Ozet({ risk, duzenle, karar }: {
           kayitlar={zincir}
         />
       ) : (
-        <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
-          <p className="t-label" style={{ margin: '0 0 var(--s10)' }}>Zincir</p>
-          <p className="cekmece-dip" style={{ margin: 0 }}>
+        <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+          <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Zincir</p>
+          <p className="ab-panel-dip" style={{ margin: 0 }}>
             Kontrol · bulgu · proje bağı yok — kapanma yolu tanımlı değil.
           </p>
         </div>
@@ -489,7 +489,7 @@ function Ozet({ risk, duzenle, karar }: {
       )}
 
       <CekmeceEylemler
-        birincil={<Dugme tur="cekmece" onClick={karar}>Karar kaydet</Dugme>}
+        birincil={<Dugme tur="tam" onClick={karar}>Karar kaydet</Dugme>}
         ikincil={
           <div style={{ display: 'flex', gap: 'var(--s10)' }}>
             <Dugme onClick={duzenle}>Yeniden değerlendir</Dugme>
@@ -527,7 +527,7 @@ function BosDurum({ hicKayitYok, kapsamli, aktifFiltre, kapaliyaGec, temizle, ye
   }
   if (aktifFiltre === 'aktif') {
     return (
-      <div className="blok" style={{ marginTop: 'var(--s26)' }}>
+      <div className="ab-blok" style={{ marginTop: 'var(--s26)' }}>
         <p className="cumle" style={{ marginTop: 0 }}>Aktif risk yok</p>
         <div className="eylem" style={{ display: 'flex', gap: 'var(--s12)' }}>
           <Dugme tur="birincil" onClick={kapaliyaGec}>Kapalı riskleri gör</Dugme>

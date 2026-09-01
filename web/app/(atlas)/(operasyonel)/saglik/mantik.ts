@@ -1,4 +1,4 @@
-import type { Durum } from '@/components/atlas/temel';
+import type { Durum } from '@/components/abacus/temel';
 // YALNIZ TİP: `saglikOzeti` server-only bir modüldür, `import type` derlemede
 // silinir ve istemci paketine hiçbir sunucu kodu sızmaz.
 import type {
@@ -435,7 +435,7 @@ export function uretimMi(ortam: string | null): boolean {
 }
 
 export function ortamRengi(ortam: string | null): string {
-  if (uretimMi(ortam)) return 'var(--jes)';
+  if (uretimMi(ortam)) return 'var(--aksan)';
   if (!ortam) return 'var(--unk)';
   return 'var(--i3)';
 }

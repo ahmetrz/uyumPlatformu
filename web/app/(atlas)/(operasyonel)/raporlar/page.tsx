@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { girisZorunlu, izinVar, izinliTesisIdleri } from '@/lib/erisim';
 import { db } from '@/lib/db';
-import { Yetkisiz } from '@/components/atlas/temel';
+import { Yetkisiz } from '@/components/abacus/temel';
 import { gecenGun, tarihTR } from '@/lib/sabitler';
 import RaporlarIstemci from './RaporlarIstemci';
 import { hucreOzeti, kapsamDisiHucre, type Bulgu, type Kanit, type Santral, type Sayilar, type Surec } from './mantik';

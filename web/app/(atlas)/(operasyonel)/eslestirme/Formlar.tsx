@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { Alan, Dugme } from '@/components/atlas/temel';
+import { Alan, Dugme } from '@/components/abacus/temel';
 import { useEylem } from '@/components/useEylem';
 import { eslestirmeEkle, eslestirmeSil } from '@/lib/eylemler';
 import { DENKLIKLER, DENKLIK_ETIKET } from '@/lib/sabitler';
@@ -31,7 +31,7 @@ export function DenklikFormu({ kaynak, hedef, maddeler, kapat }: {
   return (
     <div style={{ display: 'grid', gap: 'var(--s16)' }}>
       <Alan etiket="Kaynak madde" zorunlu>
-        <select className="gr" value={f.kaynakId}
+        <select className="ab-gr" value={f.kaynakId}
           onChange={(e) => setF({ ...f, kaynakId: e.target.value })}>
           <option value="">—</option>
           {maddeler.map((m) => <option key={m.id} value={m.id}>{secenek(m)}</option>)}
@@ -40,7 +40,7 @@ export function DenklikFormu({ kaynak, hedef, maddeler, kapat }: {
       <Alan etiket="Hedef madde" zorunlu
         hata={f.kaynakId && f.kaynakId === f.hedefId
           ? 'Madde kendisiyle eşleştirilemez' : null}>
-        <select className="gr" value={f.hedefId}
+        <select className="ab-gr" value={f.hedefId}
           onChange={(e) => setF({ ...f, hedefId: e.target.value })}>
           <option value="">—</option>
           {maddeler.filter((m) => m.id !== f.kaynakId)
@@ -48,18 +48,18 @@ export function DenklikFormu({ kaynak, hedef, maddeler, kapat }: {
         </select>
       </Alan>
       <Alan etiket="Denklik gücü" zorunlu>
-        <select className="gr" value={f.denklik}
+        <select className="ab-gr" value={f.denklik}
           onChange={(e) => setF({ ...f, denklik: e.target.value })}>
           {DENKLIKLER.map((d) => <option key={d} value={d}>{DENKLIK_ETIKET[d]}</option>)}
         </select>
       </Alan>
       <Alan etiket="Açıklama">
-        <textarea className="gr" rows={2} value={f.aciklama}
+        <textarea className="ab-gr" rows={2} value={f.aciklama}
           placeholder="Denklik hangi ölçüde geçerli, nerede ayrışıyor?"
           onChange={(e) => setF({ ...f, aciklama: e.target.value })} />
       </Alan>
 
-      {hata && <p className="gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
+      {hata && <p className="ab-gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
 
       <div style={{ display: 'flex', gap: 'var(--s10)' }}>
         <Dugme tur="birincil" disabled={bekliyor || !gecerli}
@@ -71,7 +71,7 @@ export function DenklikFormu({ kaynak, hedef, maddeler, kapat }: {
         </Dugme>
         <Dugme onClick={kapat} disabled={bekliyor}>Vazgeç</Dugme>
       </div>
-      <p className="cekmece-dip" style={{ margin: 0 }}>
+      <p className="ab-panel-dip" style={{ margin: 0 }}>
         Eşleme yönsüzdür: aynı kayıt iki çerçevede de görünür. Tam denklikte
         bir kanıt her iki maddeyi karşılar; kısmi ve ilgili denklikte kanıt
         yeniden değerlendirilmelidir.
@@ -93,11 +93,11 @@ export function DenklikKaldir({ es, kapat }: { es: E; kapat: () => void }) {
 
   return (
     <div style={{ display: 'grid', gap: 'var(--s10)' }}>
-      <p className="cekmece-dip" style={{ margin: 0, color: 'var(--bd)' }}>
+      <p className="ab-panel-dip" style={{ margin: 0, color: 'var(--bd)' }}>
         {es.kaynak.kisaKod} ⇄ {es.hedef.kisaKod} denkliği kaldırılacak. Bu
         maddeler bundan sonra birbirinin kanıtını karşılamaz.
       </p>
-      {hata && <p className="gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
+      {hata && <p className="ab-gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
       <div style={{ display: 'flex', gap: 'var(--s10)' }}>
         <Dugme tur="ret" disabled={bekliyor}
           onClick={() => calistir(() => eslestirmeSil({ id: es.id }), kapat)}>

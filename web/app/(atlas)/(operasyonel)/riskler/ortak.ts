@@ -1,4 +1,4 @@
-import type { Durum } from '@/components/atlas/temel';
+import type { Durum } from '@/components/abacus/temel';
 import { ETKI_BOYUTLARI } from '@/lib/sabitler';
 
 /* O3/O4 · Risk kütüğü — sunucu ve istemcinin PAYLAŞTIĞI tipler ve saf

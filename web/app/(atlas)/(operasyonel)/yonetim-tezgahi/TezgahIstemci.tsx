@@ -1,11 +1,11 @@
 'use client';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { BosFiltre, BosIlk, Dugme, type Durum } from '@/components/atlas/temel';
-import { EkranBasligi, Filtreler, KipDegistir } from '@/components/atlas/ekran';
-import { Tablo, type Kolon, type Satir } from '@/components/atlas/tablo';
+import { BosFiltre, BosIlk, Dugme, type Durum } from '@/components/abacus/temel';
+import { EkranBasligi, Filtreler, KipDegistir } from '@/components/abacus/ekran';
+import { Tablo, type Kolon, type Satir } from '@/components/abacus/tablo';
 import {
   Cekmece, CekmeceKimlik, CekmeceAlanlar, CekmeceBagli, CekmeceEylemler,
-} from '@/components/atlas/cekmece';
+} from '@/components/abacus/panel';
 import { etiketle, tarihTR, zamanTR } from '@/lib/sabitler';
 import {
   ApiAnahtarFormu, ApiAnahtarIptal,
@@ -378,7 +378,7 @@ export default function TezgahIstemci({
           ]}
         />
 
-        <section className="ekran-govde">
+        <section className="ab-ekran-govde">
           {kipSecenekleri.length > 1 && (
             <div style={{ marginTop: 'var(--s26)' }}>
               <KipDegistir secenekler={kipSecenekleri} aktif={kip}
@@ -405,7 +405,7 @@ export default function TezgahIstemci({
                   sec={(id) => { setTesisF(id); setKuyrukAcik(false); }}
                   secenekler={tesisSecenekleri.map((t) => ({ id: t.id, ad: t.ad }))} />
                 {gorevAcabilir && (
-                  <button type="button" className="kapsam-dugme"
+                  <button type="button" className="ab-dugme"
                     onClick={() => { setYeniAcik('gorev'); setSecili(null); }}>
                     + Yeni görev
                   </button>
@@ -418,7 +418,7 @@ export default function TezgahIstemci({
                   secenekler={(Object.keys(KATALOG_ETIKET) as Katalog[])
                     .map((k) => ({ id: k, ad: KATALOG_ETIKET[k] }))} />
                 {tanimYazabilir && (
-                  <button type="button" className="kapsam-dugme"
+                  <button type="button" className="ab-dugme"
                     onClick={() => { setYeniAcik('tanim'); setSecili(null); }}>
                     + Yeni tanım
                   </button>
@@ -432,7 +432,7 @@ export default function TezgahIstemci({
                 {/* Üretim düğmesi yalnız yonetim/yazma yetkisiyle görünür;
                     kapı sunucuda da var (yetkiZorunlu('yonetim','yazma')). */}
                 {anahtarYazabilir && (
-                  <button type="button" className="kapsam-dugme"
+                  <button type="button" className="ab-dugme"
                     onClick={() => { setYeniAcik('anahtar'); setSecili(null); }}>
                     + Yeni anahtar
                   </button>
@@ -489,8 +489,8 @@ export default function TezgahIstemci({
                 })}
               />
               {kuyrukAcik && (
-                <p className="dip-not tbl-dip">
-                  <button type="button" className="dg dg-satir"
+                <p className="ab-dip dip">
+                  <button type="button" className="ab-dugme satir"
                     onClick={() => setKuyrukAcik(false)}>Kuyruğu topla</button>
                 </p>
               )}
@@ -509,12 +509,12 @@ export default function TezgahIstemci({
         <Cekmece kod={seciliTanim.kod} kapat={() => { setSecili(null); setDuzenleAcik(false); }}>
           {duzenleAcik ? (
             <>
-              <div className="cekmece-blok">
-                <p className="t-label" style={{ margin: '0 0 var(--s12)' }}>
+              <div className="ab-panel-blok">
+                <p className="etiket" style={{ margin: '0 0 var(--s12)' }}>
                   {KATALOG_ETIKET[seciliTanim.katalog]} kaydını düzenle
                 </p>
               </div>
-              <div className="cekmece-blok">
+              <div className="ab-panel-blok">
                 <TanimFormu tanim={seciliTanim} katalog={seciliTanim.katalog}
                   kirilimler={kirilimSecenekleri} sektorler={sektorSecenekleri}
                   kapat={() => setDuzenleAcik(false)} />
@@ -536,10 +536,10 @@ export default function TezgahIstemci({
 
       {yeniAcik === 'gorev' && !secili && (
         <Cekmece kod="YENİ GÖREV" kapat={() => setYeniAcik(null)}>
-          <div className="cekmece-blok">
-            <p className="t-label" style={{ margin: '0 0 var(--s12)' }}>Yeni görev</p>
+          <div className="ab-panel-blok">
+            <p className="etiket" style={{ margin: '0 0 var(--s12)' }}>Yeni görev</p>
           </div>
-          <div className="cekmece-blok">
+          <div className="ab-panel-blok">
             <GorevFormu kullanicilar={kullanicilar} tesisler={tesisSecenekleri}
               kapat={() => setYeniAcik(null)} />
           </div>
@@ -548,12 +548,12 @@ export default function TezgahIstemci({
 
       {yeniAcik === 'tanim' && !secili && (
         <Cekmece kod="YENİ TANIM" kapat={() => setYeniAcik(null)}>
-          <div className="cekmece-blok">
-            <p className="t-label" style={{ margin: '0 0 var(--s12)' }}>
+          <div className="ab-panel-blok">
+            <p className="etiket" style={{ margin: '0 0 var(--s12)' }}>
               Yeni {KATALOG_ETIKET[yeniKatalog].toLocaleLowerCase('tr-TR')}
             </p>
           </div>
-          <div className="cekmece-blok">
+          <div className="ab-panel-blok">
             <TanimFormu key={yeniKatalog} tanim={null} katalog={yeniKatalog}
               katalogDegistir={setYeniKatalog}
               kirilimler={kirilimSecenekleri} sektorler={sektorSecenekleri}
@@ -566,10 +566,10 @@ export default function TezgahIstemci({
           token hiçbir üst state'e taşınmaz. */}
       {yeniAcik === 'anahtar' && !secili && (
         <Cekmece kod="YENİ ANAHTAR" kapat={() => setYeniAcik(null)}>
-          <div className="cekmece-blok">
-            <p className="t-label" style={{ margin: '0 0 var(--s12)' }}>Yeni API anahtarı</p>
+          <div className="ab-panel-blok">
+            <p className="etiket" style={{ margin: '0 0 var(--s12)' }}>Yeni API anahtarı</p>
           </div>
-          <div className="cekmece-blok">
+          <div className="ab-panel-blok">
             <ApiAnahtarFormu kullanicilar={kullanicilar} aktifId={aktifId}
               kapat={() => setYeniAcik(null)} />
           </div>
@@ -693,9 +693,9 @@ function IsOzeti({ is, simdi }: { is: Is; simdi: number }) {
           }]}
         />
       ) : is.kaynakTipi ? (
-        <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
-          <p className="t-label" style={{ margin: '0 0 var(--s10)' }}>Kaynak</p>
-          <p className="cekmece-dip" style={{ margin: 0 }}>
+        <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+          <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Kaynak</p>
+          <p className="ab-panel-dip" style={{ margin: 0 }}>
             {etiketle(is.kaynakTipi)} kaydından doğdu — bu tipin ayrı bir ekranı yok.
           </p>
         </div>
@@ -763,9 +763,9 @@ function TanimOzeti({ tanim, yazabilir, onaylayabilir, duzenle }: {
       ]} />
 
       {tanim.kaynakUrl && (
-        <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
-          <p className="t-label" style={{ margin: '0 0 var(--s10)' }}>Resmî kaynak</p>
-          <p className="cekmece-dip" style={{ margin: 0 }}>
+        <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+          <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Resmî kaynak</p>
+          <p className="ab-panel-dip" style={{ margin: 0 }}>
             <a href={tanim.kaynakUrl} target="_blank" rel="noreferrer">{tanim.kaynakUrl}</a>
           </p>
         </div>
@@ -773,7 +773,7 @@ function TanimOzeti({ tanim, yazabilir, onaylayabilir, duzenle }: {
 
       <CekmeceEylemler
         birincil={yazabilir
-          ? <Dugme tur="cekmece" onClick={duzenle}>Kaydı düzenle</Dugme>
+          ? <Dugme tur="tam" onClick={duzenle}>Kaydı düzenle</Dugme>
           : undefined}
         ikincil={<TanimEylemleri tanim={tanim} onaylayabilir={onaylayabilir} />}
         dipNot={`Kod ${tanim.kod}`
@@ -821,9 +821,9 @@ function AnahtarOzeti({ anahtar, simdi, yazabilir }: {
         { etiket: 'İstek', deger: istekMetni(anahtar) },
       ]} />
 
-      <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
-        <p className="t-label" style={{ margin: '0 0 var(--s10)' }}>Yetki</p>
-        <p className="cekmece-dip" style={{ margin: 0 }}>
+      <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+        <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Yetki</p>
+        <p className="ab-panel-dip" style={{ margin: 0 }}>
           Anahtar kendi yetkisini taşımaz: {anahtar.sahip.ad} adına çalışır ve
           onun rol/kapsam yetkileriyle sınırlıdır. Sahibin yetkisi daralınca
           anahtarınki de daralır; sahip pasifleşirse anahtar 401 döner.
@@ -872,18 +872,18 @@ function Kapsam({ etiket, secenekler, aktif, sec }: {
 
   return (
     <details ref={kok} style={{ position: 'relative' }}>
-      <summary className="kapsam-dugme"
+      <summary className="ab-dugme"
         style={{ listStyle: 'none', cursor: 'pointer', display: 'inline-block' }}>
         {etiket}{secim ? ` · ${secim.ad}` : ''} <span aria-hidden>▾</span>
       </summary>
       <div style={{
         position: 'absolute', top: '100%', right: 0, zIndex: 5, minWidth: 200,
-        maxHeight: 300, overflowY: 'auto', background: 'var(--card)',
-        border: 'var(--bw-strong) solid var(--hr2)', boxShadow: 'var(--sh-tip)',
+        maxHeight: 300, overflowY: 'auto', background: 'var(--panel)',
+        border: 'var(--bw-strong) solid var(--hr2)', boxShadow: 'none',
         padding: 'var(--s8)',
       }}>
         {[{ id: '', ad: 'Tümü' }, ...secenekler].map((s) => (
-          <button key={s.id} type="button" className="filtre"
+          <button key={s.id} type="button" className="ab-filtre"
             style={{ display: 'block', width: '100%', textAlign: 'left' }}
             aria-pressed={(aktif ?? '') === s.id}
             onClick={(e) => {

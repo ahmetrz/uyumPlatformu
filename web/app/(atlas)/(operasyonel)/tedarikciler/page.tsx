@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { girisZorunlu, izinVar } from '@/lib/erisim';
-import { Yetkisiz } from '@/components/atlas/temel';
+import { Yetkisiz } from '@/components/abacus/temel';
 import TedarikcilerIstemci from './TedarikcilerIstemci';
 import { tedarikciEkranVerisi } from './veri';
 

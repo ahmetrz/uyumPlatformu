@@ -1,4 +1,4 @@
-import type { Durum } from '@/components/atlas/temel';
+import type { Durum } from '@/components/abacus/temel';
 
 /* Keşif inceleme kuyruğunun saf mantığı — sunucu ve istemci ortak kullanır.
    Burada veritabanı, React ve server-only bağımlılığı YOKTUR. */

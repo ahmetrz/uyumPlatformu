@@ -1,4 +1,4 @@
-import type { Durum } from '@/components/atlas/temel';
+import type { Durum } from '@/components/abacus/temel';
 import { GOREV_TIP_ETIKET, etiketle, tarihTR } from '@/lib/sabitler';
 
 /* M1/M2 · Yönetim tezgâhı — sunucu ve istemcinin PAYLAŞTIĞI tipler ve saf

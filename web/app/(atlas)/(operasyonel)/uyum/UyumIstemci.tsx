@@ -189,15 +189,17 @@ export default function UyumIstemci({
 
   if (!cerceve) {
     return (
-      <>
+      <div className="ab-c-ekrandizin" data-dizin="ekran">
         <aside className="ab-c-dizin" />
         <div><p style={{ color: 'var(--i3)' }}>Yürürlükte çerçeve yok.</p></div>
-      </>
+      </div>
     );
   }
 
+  /* Bu ekran KENDİ dizinini verir; kabuğun varsayılan defter dizini
+     `data-dizin="ekran"` görünce gizlenir (bkz. Kabuk.tsx · KabukC). */
   return (
-    <>
+    <div className="ab-c-ekrandizin" data-dizin="ekran">
       {/* ── Dizin sütunu: çerçeve · kontrol ailesi · OKUMA ANAHTARI ──── */}
       <aside className="ab-c-dizin" aria-label="Defter dizini">
         <div className="bolum">
@@ -273,7 +275,7 @@ export default function UyumIstemci({
             Bu çerçevede uygulanabilir kontrol bulunmuyor.
           </p>
         ) : (
-          <Matris
+          <UyumMatrisi
             cerceve={cerceve}
             satirlar={gorunur}
             santraller={santraller}
@@ -293,7 +295,7 @@ export default function UyumIstemci({
 
         <KapsamDisi cerceve={cerceve} />
       </div>
-    </>
+    </div>
   );
 }
 
@@ -310,7 +312,7 @@ function Metrik({ etiket, deger, vurgu, oran }: {
 
 /* ── Matris + satır içi genişleme ────────────────────────────────────── */
 
-function Matris({ cerceve, satirlar, santraller, acik, setAcik, yazabilir }: {
+function UyumMatrisi({ cerceve, satirlar, santraller, acik, setAcik, yazabilir }: {
   cerceve: CerceveVerisi;
   satirlar: MaddeSatiri[];
   santraller: TesisSatiri[];

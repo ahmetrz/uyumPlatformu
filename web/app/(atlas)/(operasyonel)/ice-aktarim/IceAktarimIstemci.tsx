@@ -1,12 +1,12 @@
 'use client';
 import Link from 'next/link';
 import { useMemo, useRef, useState, type ReactNode } from 'react';
-import { Dugme, BosIlk } from '@/components/atlas/temel';
-import { Tablo, type Kolon, type Satir } from '@/components/atlas/tablo';
-import { EkranBasligi, KipDegistir } from '@/components/atlas/ekran';
+import { Dugme, BosIlk } from '@/components/abacus/temel';
+import { Tablo, type Kolon, type Satir } from '@/components/abacus/tablo';
+import { EkranBasligi, KipDegistir } from '@/components/abacus/ekran';
 import {
   Cekmece, CekmeceKimlik, CekmeceAlanlar, CekmeceEylemler,
-} from '@/components/atlas/cekmece';
+} from '@/components/abacus/panel';
 import { useEylem } from '@/components/useEylem';
 import { aktarimYukle, aktarimOnayla, aktarimReddet } from '@/lib/eylemler';
 import { zamanTR } from '@/lib/sabitler';
@@ -122,7 +122,7 @@ export default function IceAktarimIstemci({
           ]}
           sag={yukleyebilir ? (
             <div style={{ display: 'grid', gap: 'var(--s8)', width: 268 }}>
-              <select className="gr" value={regId} aria-label="Hedef regülasyon"
+              <select className="ab-gr" value={regId} aria-label="Hedef regülasyon"
                 style={{ padding: '7px 9px' }}
                 onChange={(e) => setRegId(e.target.value)}>
                 <option value="">Regülasyon seçin…</option>
@@ -132,7 +132,7 @@ export default function IceAktarimIstemci({
               </select>
               <div style={{ display: 'flex', gap: 'var(--s10)', alignItems: 'center' }}>
                 <input ref={dosyaRef} type="file" accept=".xlsx,.xls,.csv"
-                  className="gr" style={{ minWidth: 0, flex: 1, padding: '7px 9px' }}
+                  className="ab-gr" style={{ minWidth: 0, flex: 1, padding: '7px 9px' }}
                   aria-label="Madde dosyası (Excel/CSV)" />
                 <Dugme tur="birincil" disabled={bekliyor} onClick={yukle}>
                   {bekliyor ? 'Doğrulanıyor…' : 'Yükle'}
@@ -142,8 +142,8 @@ export default function IceAktarimIstemci({
           ) : undefined}
         />
 
-        <div className="ekran-govde" style={{ paddingTop: 'var(--s22)' }}>
-          {hata && <p className="gr-hata" role="alert" style={{ marginTop: 0 }}>{hata}</p>}
+        <div className="ab-ekran-govde" style={{ paddingTop: 'var(--s22)' }}>
+          {hata && <p className="ab-gr-hata" role="alert" style={{ marginTop: 0 }}>{hata}</p>}
 
           {aktarimlar.length === 0 ? (
             <BosIlk
@@ -168,16 +168,16 @@ export default function IceAktarimIstemci({
               />
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 'var(--s16)',
                 padding: 'var(--s14) 0 0' }}>
-                <p className="dip-not" style={{ margin: 0, flex: 1, minWidth: 0 }}>
+                <p className="ab-dip" style={{ margin: 0, flex: 1, minWidth: 0 }}>
                   {dipNot(gorunur.length, m.raporsuz)}
                 </p>
                 {yukleyebilir && (
-                  <button type="button" className="kapsam-dugme" onClick={sablonIndir}>
+                  <button type="button" className="ab-dugme" onClick={sablonIndir}>
                     ⤓ Excel/CSV şablonu
                   </button>
                 )}
               </div>
-              <p className="dip-not" style={{ marginTop: 'var(--s8)' }}>
+              <p className="ab-dip" style={{ marginTop: 'var(--s8)' }}>
                 Bu hat regülasyon MADDELERİNİ taşır · CMDB varlık aktarımı{' '}
                 <Link href="/varlik-aktarim" style={{ textDecoration: 'underline' }}>
                   /varlik-aktarim
@@ -223,7 +223,7 @@ function CalismaYuzeyi({ a, butce }: { a: Aktarim; butce: number }) {
 
   return (
     <section style={{ marginTop: 'var(--s30)' }}>
-      <p className="t-eyebrow" style={{ margin: '0 0 var(--s10)' }}>
+      <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>
         {a.kaynakAdi} · {a.okunan} satır okundu · {a.regKod}
       </p>
       <KipDegistir
@@ -245,7 +245,7 @@ function CalismaYuzeyi({ a, butce }: { a: Aktarim; butce: number }) {
 function Islenecek({ a, butce }: { a: Aktarim; butce: number }) {
   if (a.raporHatasi) {
     return (
-      <p className="gr-hata" style={{ margin: 0 }}>
+      <p className="ab-gr-hata" style={{ margin: 0 }}>
         Rapor okunamadı: {a.raporHatasi} — satır listesi gösterilemiyor.
       </p>
     );
@@ -269,7 +269,7 @@ function Islenecek({ a, butce }: { a: Aktarim; butce: number }) {
             : <span key="i" style={{ color: 'var(--md)' }}>mevcut maddeyi günceller</span>,
         ])}
       />
-      <p className="dip-not">
+      <p className="ab-dip">
         İlk {Math.min(butce, a.onizleme.length)} satır gösteriliyor · toplam {a.islenecek} satır
         işlenecek ({a.yeni} yeni, {a.guncelleme} güncelleme).
       </p>
@@ -283,7 +283,7 @@ function ElenenListesi({ a }: { a: Aktarim }) {
   }
   if (a.elenenler.length === 0) {
     return (
-      <p className="dip-not" style={{ marginTop: 0 }}>
+      <p className="ab-dip" style={{ marginTop: 0 }}>
         {a.elenen} satır elendi; sebep listesi bu kayıtta tutulmamış.
       </p>
     );
@@ -298,7 +298,7 @@ function ElenenListesi({ a }: { a: Aktarim }) {
           <span key="s" style={{ color: 'var(--bd)' }}>{e.sebep}</span>,
         ])}
       />
-      <p className="dip-not">
+      <p className="ab-dip">
         Bu satırlar yazılmaz; kalan satırlar onayla birlikte yayına girer.
         {a.elenenKalan > 0 && ` +${a.elenenKalan} satır daha (listede gösterilmiyor).`}
       </p>
@@ -347,7 +347,7 @@ function AktarimCekmecesi({
       {karar && onaylayabilir && (
         <CekmeceEylemler
           birincil={
-            <Dugme tur="cekmece" disabled={bekliyor || a.islenecek === 0}
+            <Dugme tur="tam" disabled={bekliyor || a.islenecek === 0}
               onClick={() => calistir(() => aktarimOnayla({ id: a.id }), kapat)}>
               {bekliyor ? 'Yayına alınıyor…' : `Onayla ve yayınla (${a.islenecek} madde)`}
             </Dugme>
@@ -376,7 +376,7 @@ const Bilinmiyor = () => <span style={{ color: 'var(--i3)' }}>bilinmiyor</span>;
 
 function Mono({ children, renk }: { children: ReactNode; renk?: string }) {
   return (
-    <span style={{ fontFamily: 'var(--mo)', fontSize: 'var(--t-code)', color: renk,
+    <span style={{ fontFamily: 'var(--veri)', fontSize: 'var(--t-code)', color: renk,
       overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>
       {children}
     </span>
@@ -394,7 +394,7 @@ function DuzTablo({
         <div style={{ display: 'grid', gridTemplateColumns: genislikler,
           gap: 'var(--s14)', padding: '0 0 var(--s8)',
           borderBottom: 'var(--bw-strong) solid var(--hr2)' }}>
-          {basliklar.map((b) => <span key={b} className="t-colhead">{b}</span>)}
+          {basliklar.map((b) => <span key={b} className="kolonbas">{b}</span>)}
         </div>
         {satirlar.map((s, i) => (
           <div key={i} style={{ display: 'grid', gridTemplateColumns: genislikler,

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { girisZorunlu, izinVar, izinliTesisIdleri } from '@/lib/erisim';
-import { Yetkisiz } from '@/components/atlas/temel';
+import { Yetkisiz } from '@/components/abacus/temel';
 import { db } from '@/lib/db';
 import ProjelerIstemci from './ProjelerIstemci';
 import { PROJE_ICERIK, projeyeCevir } from './ortak';

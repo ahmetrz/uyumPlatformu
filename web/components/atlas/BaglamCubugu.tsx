@@ -60,7 +60,7 @@ export default function BaglamCubugu({
 
   return (
     <div className={`baglam${koyu ? ' koyu' : ''}`}>
-      <nav className="baglam-yol" aria-label="Konum">
+      <nav className="yol" aria-label="Konum">
         {yol.map((k, i) => (
           <span key={`${k.ad}-${i}`} style={{ display: 'contents' }}>
             {i > 0 && <span className="ayrac" aria-hidden>/</span>}
@@ -74,13 +74,13 @@ export default function BaglamCubugu({
         ))}
       </nav>
 
-      <div className="baglam-sag">
+      <div className="sag">
         {sag}
         {secici && secici.length > 0 && (
           <div className="secici" ref={sarmal}>
             <button
               type="button"
-              className="t-label"
+              className="etiket"
               aria-expanded={acik}
               aria-controls={menuId}
               onClick={() => setAcik((v) => !v)}
@@ -90,12 +90,12 @@ export default function BaglamCubugu({
               {seciciEtiketi} <span aria-hidden>▾</span>
             </button>
             {acik && (
-              <div className="secici-menu" id={menuId} role="menu">
+              <div className="menu" id={menuId} role="menu">
                 {tipler.map((tip) => (
                   <div key={tip} style={{ display: 'contents' }}>
-                    <p className="t-colhead secici-grup" style={{ margin: 'var(--s6) 0 0' }}>{tip}</p>
+                    <p className="kolonbas grup" style={{ margin: 'var(--s6) 0 0' }}>{tip}</p>
                     {secici.filter((s) => s.tip === tip).map((s) => (
-                      <Link key={s.id} href={s.yol} className="secici-oge" role="menuitem"
+                      <Link key={s.id} href={s.yol} className="oge" role="menuitem"
                         onClick={() => setAcik(false)}>
                         {s.gorsel ? (
                           // eslint-disable-next-line @next/next/no-img-element -- statik dışa aktarım
@@ -103,8 +103,8 @@ export default function BaglamCubugu({
                         ) : (
                           /* Fotoğrafı olmayan santral tipografik döşeme alır (05 §1.6) */
                           <span style={{ display: 'grid', placeItems: 'center', height: 92,
-                            background: 'var(--band2)', color: 'var(--pp)' }}>
-                            <span className="t-colhead" style={{ color: 'rgba(246,244,238,.72)' }}>{s.tip}</span>
+                            background: 'var(--panel2)', color: 'var(--murekkep)' }}>
+                            <span className="kolonbas" style={{ color: 'rgba(246,244,238,.72)' }}>{s.tip}</span>
                           </span>
                         )}
                         <span className="ad">{s.ad}</span>

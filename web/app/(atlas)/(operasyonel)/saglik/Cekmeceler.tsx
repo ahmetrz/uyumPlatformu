@@ -1,8 +1,8 @@
 'use client';
-import { Bar, Im, type Durum } from '@/components/atlas/temel';
+import { Bar, Im, type Durum } from '@/components/abacus/temel';
 import {
   CekmeceKimlik, CekmeceAlanlar, CekmeceBagli,
-} from '@/components/atlas/cekmece';
+} from '@/components/abacus/panel';
 import { etiketle, tarihTR, zamanTR } from '@/lib/sabitler';
 import type {
   ConnectorSagligi, EntegrasyonOzeti, KosuSatiri,
@@ -64,10 +64,10 @@ export function MotorOzeti({ motor, yazabilir }: { motor: Motor; yazabilir: bool
     modalla açılıyordu; artık kaydın kendi çekmecesinde yaşıyor. */
 function KosuListesi({ kosular }: { kosular: Kosu[] }) {
   return (
-    <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
-      <p className="t-label" style={{ margin: '0 0 var(--s10)' }}>Son koşular</p>
+    <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+      <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Son koşular</p>
       {kosular.length === 0 ? (
-        <p className="cekmece-dip" style={{ margin: 0 }}>
+        <p className="ab-panel-dip" style={{ margin: 0 }}>
           Bu motor hiç koşmadı — sağlıklı olduğu anlamına gelmez.
         </p>
       ) : (
@@ -163,7 +163,7 @@ export function ConnectorOzeti({ c, ozet, yazabilir, kapat }: {
       ]} />
 
       {devreKesici.oran !== null && (
-        <div className="cekmece-blok" style={{ marginTop: 'var(--s12)' }}>
+        <div className="ab-panel-blok" style={{ marginTop: 'var(--s12)' }}>
           <Bar oran={devreKesici.oran}
             durum={devreKesici.durum === 'ok' ? 'ok' : devreKesici.durum === 'md' ? 'md' : 'bd'}
             deger={devreKesici.metin} />
@@ -171,11 +171,11 @@ export function ConnectorOzeti({ c, ozet, yazabilir, kapat }: {
       )}
 
       {c.sonHataOzeti && (
-        <div className="cekmece-blok" style={{ marginTop: 'var(--s16)' }}>
-          <p className="t-label" style={{ margin: '0 0 var(--s8)' }}>Son hatanın izi</p>
+        <div className="ab-panel-blok" style={{ marginTop: 'var(--s16)' }}>
+          <p className="etiket" style={{ margin: '0 0 var(--s8)' }}>Son hatanın izi</p>
           <p className="mono" style={{ margin: 0, fontSize: 'var(--t-label)',
             color: 'var(--i2)', wordBreak: 'break-word' }}>{c.sonHataOzeti}</p>
-          <p className="cekmece-dip" style={{ margin: 'var(--s6) 0 0' }}>
+          <p className="ab-panel-dip" style={{ margin: 'var(--s6) 0 0' }}>
             Aynı iz tekrar ediyorsa hata da tekrar ediyor demektir.
           </p>
         </div>
@@ -183,27 +183,27 @@ export function ConnectorOzeti({ c, ozet, yazabilir, kapat }: {
 
       <GerekenSirlar c={c} />
 
-      <div className="cekmece-blok" style={{ marginTop: 'var(--s22)' }}>
-        <p className="cekmece-dip" style={{ margin: 0 }}>{c.tazelik.aciklama}</p>
+      <div className="ab-panel-blok" style={{ marginTop: 'var(--s22)' }}>
+        <p className="ab-panel-dip" style={{ margin: 0 }}>{c.tazelik.aciklama}</p>
       </div>
 
       {/* Hiç koşmamış connector, durumu başka bir sebeple gölgelense bile
           bunu saklamaz. */}
       {c.hicKosmadi && c.durum !== 'hic_kosmadi' && (
-        <div className="cekmece-blok" style={{ marginTop: 'var(--s16)' }}>
-          <p className="cekmece-dip" style={{ margin: 0 }}>
+        <div className="ab-panel-blok" style={{ marginTop: 'var(--s16)' }}>
+          <p className="ab-panel-dip" style={{ margin: 0 }}>
             Hiç koşu kaydı yok; yukarıdaki durum başka bir kaynaktan geliyor.
           </p>
         </div>
       )}
 
-      <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
-        <p className="t-label" style={{ margin: '0 0 var(--s10)' }}>Kimlik · sır referansı</p>
+      <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+        <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Kimlik · sır referansı</p>
         <p className="mono" style={{ margin: 0, fontSize: 'var(--t-field)' }}>
           {KIMLIK_TIP[c.kimlikTipi] ?? etiketle(c.kimlikTipi)}
           {c.kimlikTipi === 'none' ? '' : ` · ${c.sirMaskeli}`}
         </p>
-        <p className="cekmece-dip" style={{ margin: 'var(--s8) 0 0' }}>
+        <p className="ab-panel-dip" style={{ margin: 'var(--s8) 0 0' }}>
           Yalnız sırra giden adres gösterilir. Kimlik bilgisinin kendisi
           veritabanında tutulmaz, loglanmaz ve bu ekrana hiçbir koşulda gelmez.
         </p>
@@ -219,23 +219,23 @@ export function ConnectorOzeti({ c, ozet, yazabilir, kapat }: {
       <ZamanlayiciBlogu c={c} ozet={ozet} />
 
       {c.imlec && (
-        <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
-          <p className="t-label" style={{ margin: '0 0 var(--s10)' }}>Senkronizasyon imleci</p>
+        <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+          <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Senkronizasyon imleci</p>
           <p className="mono" style={{ margin: 0, fontSize: 'var(--t-label)',
             wordBreak: 'break-all', color: 'var(--i2)' }}>{c.imlec}</p>
         </div>
       )}
 
       {s && (s.reddedilen > 0 || s.sayacTutarsiz || s.yinelenenTutarsiz || s.ayrinti) && (
-        <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
-          <p className="t-label" style={{ margin: '0 0 var(--s10)' }}>Son koşunun sayaçları</p>
+        <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+          <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Son koşunun sayaçları</p>
           <p style={{ margin: 0, fontSize: 'var(--t-field)', color: 'var(--i2)' }}>
             {s.alinan} alındı · {s.kabulEdilen} kabul · {s.reddedilen} red ·
             {' '}{s.yinelenen} yinelenen
           </p>
           {/* `ayrinti` bir başarısızlık DEĞİLDİR — bilgi notudur. */}
           {s.ayrinti && s.ayrinti !== hataMetni && (
-            <p className="cekmece-dip" style={{ margin: 'var(--s8) 0 0' }}>{s.ayrinti}</p>
+            <p className="ab-panel-dip" style={{ margin: 'var(--s8) 0 0' }}>{s.ayrinti}</p>
           )}
           {s.reddSebebiEksik && (
             <p style={{ margin: 'var(--s8) 0 0', fontSize: 'var(--t-field)', color: 'var(--md)' }}>
@@ -263,8 +263,8 @@ export function ConnectorOzeti({ c, ozet, yazabilir, kapat }: {
       {hataMetni && (hataliMi
         ? <HataBlogu metin={hataMetni} />
         : (
-          <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
-            <p className="t-label" style={{ margin: '0 0 var(--s10)' }}>Önceki hata</p>
+          <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+            <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Önceki hata</p>
             {/* Hata metni duruyor ama connector artık hatalı değil: kaybolmaz,
                 ama kritik renge de boyanmaz. */}
             <p style={{ margin: 0, fontSize: 'var(--t-field)', color: 'var(--i2)' }}>
@@ -289,8 +289,8 @@ export function ConnectorOzeti({ c, ozet, yazabilir, kapat }: {
 function GerekenSirlar({ c }: { c: ConnectorSagligi }) {
   const sirlar = c.gerekenSirlar;
   return (
-    <div className="cekmece-blok" style={{ marginTop: 'var(--s20)' }}>
-      <p className="t-label" style={{ margin: '0 0 var(--s10)' }}>
+    <div className="ab-panel-blok" style={{ marginTop: 'var(--s20)' }}>
+      <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>
         Adaptörün istediği sırlar
       </p>
       <div style={{ display: 'grid', gridTemplateColumns: '22px 1fr',
@@ -343,8 +343,8 @@ function KuruGecmisi({ c }: { c: ConnectorSagligi }) {
   if (c.kuruGecmis.length === 0) return null;
   const son = c.sonKuruKosu;
   return (
-    <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
-      <p className="t-label" style={{ margin: '0 0 var(--s10)' }}>
+    <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+      <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>
         Kuru koşular · {c.kuruGecmis.length}
       </p>
       <div style={{ display: 'grid', gap: 'var(--s10)' }}>
@@ -377,7 +377,7 @@ function KuruGecmisi({ c }: { c: ConnectorSagligi }) {
         ))}
       </div>
       {son?.kuruOzet && <KuruAyrinti ozet={son.kuruOzet} />}
-      <p className="cekmece-dip" style={{ margin: 'var(--s12) 0 0' }}>
+      <p className="ab-panel-dip" style={{ margin: 'var(--s12) 0 0' }}>
         Kuru koşu hiçbir kayıt yazmaz ve imleci ilerletmez; bu yüzden GERÇEK
         koşu sayılmaz. Yalnız kuru koşmuş bir connector hâlâ &quot;hiç
         koşmadı&quot; ve verisi &quot;tazeliği bilinmiyor&quot; görünür.
@@ -392,8 +392,8 @@ function ZamanlayiciBlogu({ c, ozet }: { c: ConnectorSagligi; ozet: EntegrasyonO
   const cevap = vadeCevabi(ozet.zamanlayici, c.id);
   const im = VADE_IM[cevap.tur];
   return (
-    <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
-      <p className="t-label" style={{ margin: '0 0 var(--s10)' }}>Zamanlayıcı</p>
+    <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+      <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Zamanlayıcı</p>
       <div style={{ display: 'grid', gridTemplateColumns: '22px 1fr',
         gap: 'var(--s8)', alignItems: 'start' }}>
         <span style={{ paddingTop: 3 }}>
@@ -439,10 +439,10 @@ function SaglayiciSatiri({ sirMaskeli, ozet }: {
 
 function ConnectorGecmisi({ gecmis }: { gecmis: KosuSatiri[] }) {
   return (
-    <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
-      <p className="t-label" style={{ margin: '0 0 var(--s10)' }}>Son koşular</p>
+    <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+      <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Son koşular</p>
       {gecmis.length === 0 ? (
-        <p className="cekmece-dip" style={{ margin: 0 }}>
+        <p className="ab-panel-dip" style={{ margin: 0 }}>
           Bu connector hiç koşmadı — sağlıklı olduğu anlamına gelmez.
         </p>
       ) : (
@@ -513,8 +513,8 @@ export function KaliteOzeti({ b }: { b: KaliteBulgusu }) {
       )}
 
       {!b.href && (
-        <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
-          <p className="cekmece-dip" style={{ margin: 0 }}>
+        <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+          <p className="ab-panel-dip" style={{ margin: 0 }}>
             {b.kayitEtiket
               ? 'Bu kayıt tipinin kendi ekranı yok; bulgu kaydın üstünde durur.'
               : 'Bulgunun işaret ettiği kayıt silinmiş — boşluk doğrulanamıyor.'}
@@ -529,11 +529,11 @@ export function KaliteOzeti({ b }: { b: KaliteBulgusu }) {
 
 function HataBlogu({ metin }: { metin: string }) {
   return (
-    <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
-      <p className="t-label" style={{ margin: '0 0 var(--s10)', color: 'var(--bd)' }}>Hata</p>
+    <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+      <p className="etiket" style={{ margin: '0 0 var(--s10)', color: 'var(--bd)' }}>Hata</p>
       <pre className="mono" style={{ margin: 0, padding: 'var(--s12)',
         whiteSpace: 'pre-wrap', wordBreak: 'break-word',
-        background: 'var(--card)', border: 'var(--bw-edge) solid var(--bd)',
+        background: 'var(--panel)', border: 'var(--bw-edge) solid var(--bd)',
         fontSize: 'var(--t-label)', color: 'var(--bd)' }}>
         {metin}
       </pre>

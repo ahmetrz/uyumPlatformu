@@ -20,10 +20,10 @@ export function EkranBasligi({
   sag?: ReactNode;
 }) {
   return (
-    <header className="ekran-bas">
+    <header className="ab-lede">
       <div className="sol">
-        <p className="t-eyebrow" style={{ margin: '0 0 var(--s10)' }}>{eyebrow}</p>
-        <h1 className="t-screen" style={{ margin: 0 }}>
+        <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>{eyebrow}</p>
+        <h1 className="ab-ekran-basligi" style={{ margin: 0 }}>
           {vurgu ? (
             <><b style={vurguDurumu ? { color: `var(--${vurguDurumu})` } : undefined}>{vurgu}</b> {baslik}</>
           ) : baslik}
@@ -52,23 +52,23 @@ export function Filtreler({
   const gorunur = secenekler.slice(0, 5);
   const kalan = tasma ?? secenekler.slice(5);
   return (
-    <div className="filtreler-atlas">
+    <div className="ab-suzgec">
       {gorunur.map((s) => (
-        <button key={s.id} type="button" className="filtre"
+        <button key={s.id} type="button" className="ab-filtre"
           aria-pressed={aktif === s.id} onClick={() => sec(s.id)}>
           {s.ad}
         </button>
       ))}
       {kalan.length > 0 && (
         <details style={{ position: 'relative' }}>
-          <summary className="filtre" style={{ listStyle: 'none' }}>
+          <summary className="ab-filtre" style={{ listStyle: 'none' }}>
             Diğer {kalan.length} ▾
           </summary>
           <div style={{ position: 'absolute', top: '100%', left: 0, zIndex: 5,
-            background: 'var(--card)', border: 'var(--bw-strong) solid var(--hr2)',
-            boxShadow: 'var(--sh-tip)', padding: 'var(--s8)', minWidth: 180 }}>
+            background: 'var(--panel)', border: 'var(--bw-strong) solid var(--hr2)',
+            boxShadow: 'none', padding: 'var(--s8)', minWidth: 180 }}>
             {kalan.map((s) => (
-              <button key={s.id} type="button" className="filtre"
+              <button key={s.id} type="button" className="ab-filtre"
                 style={{ display: 'block', width: '100%', textAlign: 'left' }}
                 aria-pressed={aktif === s.id} onClick={() => sec(s.id)}>
                 {s.ad}
@@ -77,7 +77,7 @@ export function Filtreler({
           </div>
         </details>
       )}
-      {kapsam && <div className="filtre-sag">{kapsam}</div>}
+      {kapsam && <div className="kapsam">{kapsam}</div>}
     </div>
   );
 }
@@ -89,9 +89,9 @@ export function KipDegistir({
   secenekler, aktif, sec,
 }: { secenekler: { id: string; ad: string }[]; aktif: string; sec: (id: string) => void }) {
   return (
-    <div className="filtreler-atlas" style={{ marginTop: 0 }} role="tablist">
+    <div className="ab-suzgec" style={{ marginTop: 0 }} role="tablist">
       {secenekler.map((s) => (
-        <button key={s.id} type="button" role="tab" className="filtre"
+        <button key={s.id} type="button" role="tab" className="ab-filtre"
           aria-selected={aktif === s.id} onClick={() => sec(s.id)}>
           {s.ad}
         </button>
@@ -111,7 +111,7 @@ export function Asamalar({
   asamalar, aktifIndeks,
 }: { asamalar: { ad: string; tarih?: string }[]; aktifIndeks: number }) {
   return (
-    <ol className="asamalar">
+    <ol className="ab-asamalar">
       {asamalar.map((a, i) => (
         <li key={a.ad}
           {...(i === aktifIndeks ? { 'aria-current': 'step' as const } : {})}
@@ -140,29 +140,29 @@ export function OdakKarti({
   durum?: 'bd' | 'md' | 'ok' | 'pl';
 }) {
   return (
-    <article className={`odak s-${durum}`}>
+    <article className={`ab-odak d-${durum}`}>
       {hedef && (
-        <div className="odak-hedef">
-          <span className="t-caption">Hedef</span>
+        <div className="hedef">
+          <span className="etiket">Hedef</span>
           <div className="sayi">{hedef.sayi}</div>
-          <span className="t-caption">{hedef.yazi}</span>
+          <span className="etiket">{hedef.yazi}</span>
         </div>
       )}
-      <p className="odak-ust" style={{ margin: 0 }}>{ust}</p>
-      <h2 className="odak-baslik">
+      <p className="etiket" style={{ margin: 0 }}>{ust}</p>
+      <h2 className="baslik">
         {vurgu ? (<><b>{vurgu}</b>{baslik}</>) : baslik}
       </h2>
-      <p className="odak-cumle">{cumle}</p>
-      <div className="odak-seritler">
+      <p className="cumle">{cumle}</p>
+      <div className="seritler">
         {seritler.map((s) => (
-          <div key={s.etiket} className="odak-serit">
-            <span className="t-caption">{s.etiket}</span>
+          <div key={s.etiket} className="">
+            <span className="etiket">{s.etiket}</span>
             <span className="deger">{s.deger}</span>
             {s.not && <span className="not">{s.not}</span>}
           </div>
         ))}
       </div>
-      {eylemler && <div className="odak-eylem">{eylemler}</div>}
+      {eylemler && <div className="eylem">{eylemler}</div>}
     </article>
   );
 }

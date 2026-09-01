@@ -276,7 +276,7 @@ function Takimyildizi({ santraller }: { santraller: SantralKarti[] }) {
       {olculen.length === 0 ? (
         <p className="bos">Hiçbir santralde değerlendirilmiş kontrol yok.</p>
       ) : (
-        <div className="tuval">
+        <div className="ab-tuval">
           {olculen.map((s) => {
             const x = s.endeks!;
             const y = Math.sqrt((s.gucMw ?? 0) / enGuc) * 100;

@@ -1,4 +1,4 @@
-import type { Durum } from '@/components/atlas/temel';
+import type { Durum } from '@/components/abacus/temel';
 import { ROL_ETIKET } from '@/lib/sabitler';
 
 /* O · Kullanıcı & yetki — sunucu ile istemcinin PAYLAŞTIĞI tipler ve saf

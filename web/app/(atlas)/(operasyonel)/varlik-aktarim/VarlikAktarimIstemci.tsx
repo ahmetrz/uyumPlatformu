@@ -1,11 +1,11 @@
 'use client';
 import { useMemo, useRef, useState } from 'react';
-import { Dugme, BosIlk, Alan, type Durum } from '@/components/atlas/temel';
-import { Tablo, type Kolon, type Satir } from '@/components/atlas/tablo';
-import { EkranBasligi, KipDegistir } from '@/components/atlas/ekran';
+import { Dugme, BosIlk, Alan, type Durum } from '@/components/abacus/temel';
+import { Tablo, type Kolon, type Satir } from '@/components/abacus/tablo';
+import { EkranBasligi, KipDegistir } from '@/components/abacus/ekran';
 import {
   Cekmece, CekmeceKimlik, CekmeceAlanlar, CekmeceEylemler,
-} from '@/components/atlas/cekmece';
+} from '@/components/abacus/panel';
 import { useEylem } from '@/components/useEylem';
 import { zamanTR } from '@/lib/sabitler';
 import {
@@ -156,7 +156,7 @@ export default function VarlikAktarimIstemci({
           sag={yukleyebilir ? (
             <div style={{ display: 'flex', gap: 'var(--s10)', alignItems: 'center' }}>
               <input ref={dosyaRef} type="file" accept=".csv,.xlsx,.xls"
-                className="gr" style={{ width: 230, padding: '7px 9px' }}
+                className="ab-gr" style={{ width: 230, padding: '7px 9px' }}
                 aria-label="Varlık dosyası (CSV/Excel)" />
               <Dugme tur="birincil" disabled={bekliyor} onClick={yukle}>
                 {bekliyor ? 'Yükleniyor…' : 'Yükle'}
@@ -165,9 +165,9 @@ export default function VarlikAktarimIstemci({
           ) : undefined}
         />
 
-        <div className="ekran-govde" style={{ paddingTop: 'var(--s22)' }}>
+        <div className="ab-ekran-govde" style={{ paddingTop: 'var(--s22)' }}>
           {hata && (
-            <p className="gr-hata" role="alert" style={{ marginTop: 0 }}>{hata}</p>
+            <p className="ab-gr-hata" role="alert" style={{ marginTop: 0 }}>{hata}</p>
           )}
 
           {aktarimlar.length === 0 ? (
@@ -186,7 +186,7 @@ export default function VarlikAktarimIstemci({
                   ? { metin: `+${toplanan.length} tamamlanmış aktarım`, ac: () => setKuyrukAcik(true) }
                   : null}
               />
-              <p className="dip-not">
+              <p className="ab-dip">
                 Onay tek transaction içinde yürür: bir satır patlarsa hiçbir satır yazılmaz
                 ve dosya “geri alındı” durumuna düşer. Yarım aktarım oluşmaz.
               </p>
@@ -244,7 +244,7 @@ function CalismaYuzeyi({
 
   return (
     <section style={{ marginTop: 'var(--s30)' }}>
-      <p className="t-eyebrow" style={{ margin: '0 0 var(--s10)' }}>
+      <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>
         {a.dosyaAdi} · {a.okunan} satır okundu
       </p>
       <KipDegistir secenekler={kipler} aktif={kip} sec={(id) => setKip(id as Kip)} />
@@ -290,7 +290,7 @@ function EslemeTablosu({
         gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))' }}>
         {a.basliklar.map((b) => (
           <Alan key={b} etiket={b}>
-            <select className="gr" value={taslak[b] ?? ''} disabled={kilitli}
+            <select className="ab-gr" value={taslak[b] ?? ''} disabled={kilitli}
               aria-invalid={cift.includes(taslak[b] ?? '') || undefined}
               onChange={(e) => setTaslak({ ...taslak, [b]: e.target.value })}>
               <option value="">— aktarma —</option>
@@ -304,7 +304,7 @@ function EslemeTablosu({
         ))}
       </div>
 
-      <p className="dip-not" style={{ marginTop: 'var(--s18)' }}>
+      <p className="ab-dip" style={{ marginTop: 'var(--s18)' }}>
         Etiket zorunludur (Varlik.etiket benzersiz) · boş hücre <b>bilinmiyor</b> yazar,
         0/hayır yazmaz · mevcut kayıtta boş hücre bilinen değeri silmez.
         <br />
@@ -313,12 +313,12 @@ function EslemeTablosu({
       </p>
 
       {!etiketVar && (
-        <p className="gr-hata" style={{ marginTop: 'var(--s10)' }}>
+        <p className="ab-gr-hata" style={{ marginTop: 'var(--s10)' }}>
           Etiket alanı eşlenmeden doğrulama yapılamaz.
         </p>
       )}
       {cift.length > 0 && (
-        <p className="gr-hata" style={{ marginTop: 'var(--s10)' }}>
+        <p className="ab-gr-hata" style={{ marginTop: 'var(--s10)' }}>
           Aynı hedef alana birden çok kolon eşlenmiş: {[...new Set(cift)].join(', ')}
         </p>
       )}
@@ -373,7 +373,7 @@ function Onizleme({ a, butce, kapsamli }: {
               </span>,
         ])}
       />
-      <p className="dip-not">
+      <p className="ab-dip">
         İlk {Math.min(butce, a.onizleme.length)} satır gösteriliyor · toplam {a.gecerli} geçerli satır.
         {a.onizleme.some((s) => s.bosAlanlar.length > 0) && (
           <> Boş bırakılan hücreler bilinmiyor olarak yazılır.</>
@@ -400,7 +400,7 @@ function HataListesi({ a }: { a: Aktarim }) {
           <span key="s" style={{ color: 'var(--bd)' }}>{h.sebep}</span>,
         ])}
       />
-      <p className="dip-not">
+      <p className="ab-dip">
         Bu satırlar yazılmaz; kalan geçerli satırlar onayla birlikte aktarılır.
         {a.hataKalan > 0 && ` +${a.hataKalan} satır daha (listede gösterilmiyor).`}
       </p>
@@ -428,7 +428,7 @@ function YinelenenListesi({ a, kapsamli }: { a: Aktarim; kapsamli: boolean }) {
           <Mono key="a">{y.eslesmeAlani}</Mono>,
         ])}
       />
-      <p className="dip-not">
+      <p className="ab-dip">
         Eşleşen satırlar yeni kayıt açmaz, mevcut varlığı günceller.
         Farklı alanlar farklı varlıkları gösteriyorsa satır hata listesine düşer.
         {a.yinelenenKalan > 0 && ` +${a.yinelenenKalan} satır daha.`}
@@ -480,8 +480,8 @@ function AktarimCekmecesi({
       <CekmeceAlanlar alanlar={alanlar} />
 
       {a.hataMesaji && (
-        <div className="cekmece-blok" style={{ marginTop: 'var(--s20)' }}>
-          <p className="t-label" style={{ margin: '0 0 var(--s8)' }}>Geri alma nedeni</p>
+        <div className="ab-panel-blok" style={{ marginTop: 'var(--s20)' }}>
+          <p className="etiket" style={{ margin: '0 0 var(--s8)' }}>Geri alma nedeni</p>
           <p style={{ margin: 0, fontSize: 'var(--t-cell)', color: 'var(--bd)' }}>{a.hataMesaji}</p>
         </div>
       )}
@@ -489,14 +489,14 @@ function AktarimCekmecesi({
       {bekliyorOnay && a.onaylanabilir && (
         <CekmeceEylemler
           birincil={
-            <Dugme tur="cekmece" disabled={bekliyor || a.gecerli === 0}
+            <Dugme tur="tam" disabled={bekliyor || a.gecerli === 0}
               onClick={() => calistir(() => varlikAktarimOnayla({ id: a.id }), kapat)}>
               {bekliyor ? 'Aktarılıyor…' : `Onayla ve aktar (${a.gecerli} satır)`}
             </Dugme>
           }
           ikincil={
             <>
-              <input className="gr" placeholder="Ret gerekçesi (isteğe bağlı)"
+              <input className="ab-gr" placeholder="Ret gerekçesi (isteğe bağlı)"
                 value={gerekce} onChange={(e) => setGerekce(e.target.value)}
                 style={{ marginBottom: 'var(--s10)' }} />
               <Dugme tur="ret" disabled={bekliyor}
@@ -522,7 +522,7 @@ const Bos = () => <span style={{ color: 'var(--i3)' }}>—</span>;
 
 function Mono({ children, renk }: { children: React.ReactNode; renk?: string }) {
   return (
-    <span style={{ fontFamily: 'var(--mo)', fontSize: 'var(--t-code)', color: renk,
+    <span style={{ fontFamily: 'var(--veri)', fontSize: 'var(--t-code)', color: renk,
       overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>
       {children}
     </span>
@@ -540,7 +540,7 @@ function DuzTablo({
         <div style={{ display: 'grid', gridTemplateColumns: genislikler,
           gap: 'var(--s14)', padding: '0 0 var(--s8)',
           borderBottom: 'var(--bw-strong) solid var(--hr2)' }}>
-          {basliklar.map((b) => <span key={b} className="t-colhead">{b}</span>)}
+          {basliklar.map((b) => <span key={b} className="kolonbas">{b}</span>)}
         </div>
         {satirlar.map((s, i) => (
           <div key={i} style={{ display: 'grid', gridTemplateColumns: genislikler,

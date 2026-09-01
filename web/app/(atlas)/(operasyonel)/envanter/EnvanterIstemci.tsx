@@ -332,7 +332,7 @@ function zinciriKur(
   const sistemDugumleri: Dugum[] = sistemler
     .filter((sx) => kapsam.some((v) => v.sistem?.id === sx.id))
     .map((sx) => ({
-      id: `s-${sx.id}`, ad: sx.ad, alt: `${sx.kod} · ${kapsam.filter((v) => v.sistem?.id === sx.id).length} varlık`,
+      id: `d-${sx.id}`, ad: sx.ad, alt: `${sx.kod} · ${kapsam.filter((v) => v.sistem?.id === sx.id).length} varlık`,
       durum: secili?.sistem?.id === sx.id ? 'on' : 'dim',
     }));
   if (kapsam.some((v) => !v.sistem)) {
@@ -505,7 +505,7 @@ function Tablo({ satirlar, secili, sec, simdi }: {
               {v.acikZafiyet}
             </span>
             <span className={`mono sag${gun !== null && gun < 0 ? ' vurgu'
-              : gun !== null && gun < 365 ? ' uyari' : ''}`}>
+ : gun !== null && gun < 365 ? ' uyari' : ''}`}>
               {v.eosTarihi ? ayYil(v.eosTarihi) : '—'}
             </span>
           </button>

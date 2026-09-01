@@ -1,7 +1,7 @@
 'use client';
 import { useCallback, useEffect, useState, useTransition } from 'react';
-import { Alan, Dugme, Im } from '@/components/atlas/temel';
-import { CekmeceEylemler } from '@/components/atlas/cekmece';
+import { Alan, Dugme, Im } from '@/components/abacus/temel';
+import { CekmeceEylemler } from '@/components/abacus/panel';
 import { useEylem } from '@/components/useEylem';
 import {
   connectorEtkinlik, connectorKapsamGorunumu, connectorKapsamKaydet,
@@ -127,33 +127,33 @@ export function ConnectorYapilandirma({
   }
 
   return (
-    <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
-      <p className="t-label" style={{ margin: '0 0 var(--s12)' }}>
+    <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+      <p className="etiket" style={{ margin: '0 0 var(--s12)' }}>
         {c ? 'Yapılandırmayı düzenle' : 'Yeni bağlantı'}
       </p>
 
       <div style={{ display: 'grid', gap: 'var(--s12)' }}>
         <Alan etiket="Kod" zorunlu>
-          <input className="gr mono" value={f.kod} onChange={yaz('kod')}
+          <input className="ab-gr mono" value={f.kod} onChange={yaz('kod')}
             placeholder="AD-01" spellCheck={false} />
         </Alan>
         <Alan etiket="Ad" zorunlu>
-          <input className="gr" value={f.ad} onChange={yaz('ad')}
+          <input className="ab-gr" value={f.ad} onChange={yaz('ad')}
             placeholder="Kurumsal dizin" />
         </Alan>
         <Alan etiket="Tip" zorunlu>
-          <select className="gr" value={f.tip} onChange={yaz('tip')}>
+          <select className="ab-gr" value={f.tip} onChange={yaz('tip')}>
             {TIPLER.map((t) => (
               <option key={t} value={t}>{CONNECTOR_TIP[t] ?? t}</option>
             ))}
           </select>
         </Alan>
         <Alan etiket="Kaynak sistem" zorunlu>
-          <input className="gr mono" value={f.kaynakSistem} onChange={yaz('kaynakSistem')}
+          <input className="ab-gr mono" value={f.kaynakSistem} onChange={yaz('kaynakSistem')}
             placeholder="entra.ornek.local" spellCheck={false} />
         </Alan>
         <Alan etiket="Kimlik tipi">
-          <select className="gr" value={f.kimlikTipi} onChange={yaz('kimlikTipi')}>
+          <select className="ab-gr" value={f.kimlikTipi} onChange={yaz('kimlikTipi')}>
             {KIMLIK_TIPLERI.map((t) => (
               <option key={t} value={t}>{KIMLIK_TIP[t] ?? t}</option>
             ))}
@@ -163,11 +163,11 @@ export function ConnectorYapilandirma({
         <SirAlani f={f} yaz={yaz} kayitliMaske={c?.sirMaskeli ?? null} />
 
         <Alan etiket="Poll aralığı (dakika)">
-          <input className="gr mono" value={f.pollAralikDk} onChange={yaz('pollAralikDk')}
+          <input className="ab-gr mono" value={f.pollAralikDk} onChange={yaz('pollAralikDk')}
             inputMode="numeric" placeholder="boş = yalnız elle tetiklenir" />
         </Alan>
         <Alan etiket="Ortam" zorunlu>
-          <select className="gr" value={f.ortam} onChange={yaz('ortam')}
+          <select className="ab-gr" value={f.ortam} onChange={yaz('ortam')}
             style={{ color: ortamRengi(f.ortam) }}>
             {ORTAMLAR.map((o) => (
               <option key={o} value={o}>{ORTAM_SOZU[o]}</option>
@@ -175,19 +175,19 @@ export function ConnectorYapilandirma({
           </select>
         </Alan>
         <Alan etiket="Senkron kipi">
-          <select className="gr" value={f.senkronKipi} onChange={yaz('senkronKipi')}>
+          <select className="ab-gr" value={f.senkronKipi} onChange={yaz('senkronKipi')}>
             {SENKRON_KIPLERI.map((o) => (
               <option key={o} value={o}>{SENKRON_SOZU[o]}</option>
             ))}
           </select>
         </Alan>
         <Alan etiket="Ardışık hata sınırı">
-          <input className="gr mono" value={f.ardisikHataSiniri}
+          <input className="ab-gr mono" value={f.ardisikHataSiniri}
             onChange={yaz('ardisikHataSiniri')} inputMode="numeric"
             placeholder="boş = otomatik duraklatma yok" />
         </Alan>
         <Alan etiket="Gerekçe" zorunlu={gerekceEksik}>
-          <input className="gr" value={f.gerekce} onChange={yaz('gerekce')}
+          <input className="ab-gr" value={f.gerekce} onChange={yaz('gerekce')}
             placeholder={c && f.ortam !== c.ortam
               ? 'Ortam değişiyor — dayanağı denetim izine yazılır'
               : 'ortam değişmiyorsa isteğe bağlı'} />
@@ -208,7 +208,7 @@ export function ConnectorYapilandirma({
       )}
 
       <div style={{ marginTop: 'var(--s14)' }}>
-        <Dugme tur="cekmece" disabled={pasif} style={pasifStil(pasif)} onClick={kaydet}>
+        <Dugme tur="tam" disabled={pasif} style={pasifStil(pasif)} onClick={kaydet}>
           {bekliyor ? 'Kaydediliyor…' : c ? 'Yapılandırmayı kaydet' : 'Bağlantıyı oluştur'}
         </Dugme>
       </div>
@@ -220,7 +220,7 @@ export function ConnectorYapilandirma({
         </p>
       )}
 
-      <p className="cekmece-dip" style={{ margin: 'var(--s14) 0 0' }}>
+      <p className="ab-panel-dip" style={{ margin: 'var(--s14) 0 0' }}>
         Yeni kayıt taslak ve pasif doğar; koşmaya başlaması için ayrıca
         etkinleştirilmesi gerekir. Her kayıt denetim izine yazılır; sır
         DEĞERİ hiçbir izde, logda ve yanıtta yer almaz. Adaptör
@@ -297,17 +297,17 @@ function KapsamAlani({ c }: { c: ConnectorSagligi }) {
 
   if (yukleniyor) {
     return (
-      <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
-        <p className="t-label" style={{ margin: 0 }}>Santral kapsamı</p>
-        <p className="cekmece-dip" style={{ margin: 'var(--s8) 0 0' }}>Okunuyor…</p>
+      <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+        <p className="etiket" style={{ margin: 0 }}>Santral kapsamı</p>
+        <p className="ab-panel-dip" style={{ margin: 'var(--s8) 0 0' }}>Okunuyor…</p>
       </div>
     );
   }
 
   if (!gorunum) {
     return (
-      <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
-        <p className="t-label" style={{ margin: 0 }}>Santral kapsamı</p>
+      <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+        <p className="etiket" style={{ margin: 0 }}>Santral kapsamı</p>
         <p role="alert" style={{ margin: 'var(--s8) 0 0',
           fontSize: 'var(--t-field)', color: 'var(--bd)' }}>
           Kapsam okunamadı: {okumaHatasi ?? 'bilinmeyen sebep'}
@@ -324,8 +324,8 @@ function KapsamAlani({ c }: { c: ConnectorSagligi }) {
     (o.includes(kod) ? o.filter((x) => x !== kod) : [...o, kod]));
 
   return (
-    <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
-      <p className="t-label" style={{ margin: '0 0 var(--s8)' }}>Santral kapsamı</p>
+    <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+      <p className="etiket" style={{ margin: '0 0 var(--s8)' }}>Santral kapsamı</p>
       <p style={{ margin: 0, fontSize: 'var(--t-field)', color: 'var(--md)' }}>
         Kayıtlı: {kapsamCumlesi(gorunum.kodlar)}
       </p>
@@ -353,7 +353,7 @@ function KapsamAlani({ c }: { c: ConnectorSagligi }) {
 
       <div style={{ marginTop: 'var(--s12)' }}>
         <Alan etiket="Gerekçe">
-          <input className="gr" value={gerekce}
+          <input className="ab-gr" value={gerekce}
             onChange={(e) => setGerekce(e.target.value)}
             placeholder="kapsam değişimi denetim izine yazılır" />
         </Alan>
@@ -367,7 +367,7 @@ function KapsamAlani({ c }: { c: ConnectorSagligi }) {
       )}
 
       <div style={{ marginTop: 'var(--s14)' }}>
-        <Dugme tur="cekmece" disabled={pasif} style={pasifStil(pasif)}
+        <Dugme tur="tam" disabled={pasif} style={pasifStil(pasif)}
           onClick={() => calistir(
             () => connectorKapsamKaydet({
               connectorId: c.id, tesisKodlari: secili,
@@ -384,7 +384,7 @@ function KapsamAlani({ c }: { c: ConnectorSagligi }) {
           fontSize: 'var(--t-field)', color: 'var(--bd)' }}>{hata}</p>
       )}
 
-      <p className="cekmece-dip" style={{ margin: 'var(--s14) 0 0' }}>
+      <p className="ab-panel-dip" style={{ margin: 'var(--s14) 0 0' }}>
         Kapsam connector&apos;ın YAZABİLECEĞİ santralleri sınırlar: kapsam dışı
         santral adına gelen kayıt reddedilir, koşu sayacında görünür ve tek
         satır bile yazılmaz. Hiçbir santral seçmemek sınırı KALDIRIR.
@@ -403,7 +403,7 @@ function SirAlani({ f, yaz, kayitliMaske }: {
   return (
     <div>
       <Alan etiket="Sır referansı" zorunlu={f.kimlikTipi !== 'none'}>
-        <input className="gr mono" value={f.sirReferansi} onChange={yaz('sirReferansi')}
+        <input className="ab-gr mono" value={f.sirReferansi} onChange={yaz('sirReferansi')}
           spellCheck={false} autoComplete="off"
           placeholder="env:AD_BIND_PAROLA · dosya:/run/secrets/ad#parola" />
       </Alan>
@@ -413,7 +413,7 @@ function SirAlani({ f, yaz, kayitliMaske }: {
           Kayıtlı adres · {kayitliMaske}
         </p>
       )}
-      <p className="cekmece-dip" style={{ margin: 'var(--s6) 0 0' }}>
+      <p className="ab-panel-dip" style={{ margin: 'var(--s6) 0 0' }}>
         Buraya sırrın KENDİSİ değil, sırra giden adres yazılır. Kayıtlı adres
         forma geri doldurulmaz; kaydederken yeniden yazmanız gerekir.
       </p>
@@ -475,7 +475,7 @@ export function ConnectorEylemleri({
     <CekmeceEylemler
       birincil={
         <div style={{ display: 'flex', gap: 'var(--s10)', flexWrap: 'wrap' }}>
-          <Dugme tur="cekmece" disabled={mesgul} style={pasifStil(mesgul)} onClick={testEt}>
+          <Dugme tur="tam" disabled={mesgul} style={pasifStil(mesgul)} onClick={testEt}>
             {bekliyor ? 'Deneniyor…' : 'Bağlantıyı test et'}
           </Dugme>
           <Dugme disabled={mesgul} style={pasifStil(mesgul)} onClick={kuruKos}>
@@ -601,7 +601,7 @@ export function KuruAyrinti({ ozet }: { ozet: KuruOzet }) {
         </ul>
       )}
       {ozet.ornekler.length > 0 && (
-        <p className="cekmece-dip" style={{ margin: 'var(--s8) 0 0' }}>
+        <p className="ab-panel-dip" style={{ margin: 'var(--s8) 0 0' }}>
           {ozet.ornekler.length} örnek kayıt hesaplandı (sınır {ozet.ornekSiniri}).
         </p>
       )}
@@ -626,8 +626,8 @@ export function EslemeProfilSecimi({
   const etkin = etkinEslemeProfili(c, ozet.eslemeProfilleri);
 
   return (
-    <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
-      <p className="t-label" style={{ margin: '0 0 var(--s10)' }}>Eşleme profili</p>
+    <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+      <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Eşleme profili</p>
       <p className="mono" style={{ margin: 0, fontSize: 'var(--t-field)',
         color: etkin.kaynak === 'bagli' && !etkin.profil ? 'var(--bd)' : 'var(--i2)' }}>
         {profilYazisi(etkin)}
@@ -637,7 +637,7 @@ export function EslemeProfilSecimi({
         <>
           <div style={{ marginTop: 'var(--s12)' }}>
             <Alan etiket="Bağlı profil">
-              <select className="gr" value={secim} disabled={bekliyor}
+              <select className="ab-gr" value={secim} disabled={bekliyor}
                 onChange={(e) => setSecim(e.target.value)}>
                 <option value="">Tipin etkin profili (bağ yok)</option>
                 {uygun.map((p) => (
@@ -662,7 +662,7 @@ export function EslemeProfilSecimi({
         </>
       )}
 
-      <p className="cekmece-dip" style={{ margin: 'var(--s12) 0 0' }}>
+      <p className="ab-panel-dip" style={{ margin: 'var(--s12) 0 0' }}>
         Profil sürümü asla güncellenmez: her yayın yeni bir sürüm açar, eskisi
         arşive geçer. Eski içe aktarımlar hangi sürümle yorumlandıysa öyle kalır.
       </p>

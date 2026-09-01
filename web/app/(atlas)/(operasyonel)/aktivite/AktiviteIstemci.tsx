@@ -1,9 +1,9 @@
 'use client';
 import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
-import { Dugme, BosIlk, BosFiltre } from '@/components/atlas/temel';
-import { EkranBasligi, Filtreler } from '@/components/atlas/ekran';
-import { Cekmece, CekmeceAlanlar, CekmeceEylemler } from '@/components/atlas/cekmece';
+import { Dugme, BosIlk, BosFiltre } from '@/components/abacus/temel';
+import { EkranBasligi, Filtreler } from '@/components/abacus/ekran';
+import { Cekmece, CekmeceAlanlar, CekmeceEylemler } from '@/components/abacus/panel';
 import { exceleAktar, pdfYazdir } from '@/components/disaAktar';
 import { etiketle, eylemCumlesi, tarihTR, zamanTR } from '@/lib/sabitler';
 import {
@@ -101,7 +101,7 @@ export default function AktiviteIstemci({
           ]}
         />
 
-        <section className="ekran-govde">
+        <section className="ab-ekran-govde">
           <Filtreler
             secenekler={MERCEKLER}
             aktif={mercek}
@@ -121,14 +121,14 @@ export default function AktiviteIstemci({
 
           {gorunur.length > 0 || toplanan.length > 0 ? (
             <div style={{ marginTop: 'var(--s22)' }}>
-              <div className="tbl"
+              <div className="ab-tablo"
                 style={{ '--kolonlar': KOLONLAR, '--kolonlar-dar': KOLONLAR_DAR } as CSSProperties}
                 role="table">
-                <div className="tbl-bas" role="row">
-                  <span className="t-colhead">Zaman</span>
-                  <span className="t-colhead">Kayıt</span>
-                  <span className="t-colhead">Değişim</span>
-                  <span className="t-colhead tbl-ikincil">Kaynak</span>
+                <div className="bas" role="row">
+                  <span className="kolonbas">Zaman</span>
+                  <span className="kolonbas">Kayıt</span>
+                  <span className="kolonbas">Değişim</span>
+                  <span className="kolonbas ikincil">Kaynak</span>
                   <span />
                 </div>
 
@@ -138,18 +138,18 @@ export default function AktiviteIstemci({
                 ))}
 
                 {toplanan.length > 0 && (
-                  <button type="button" className="tbl-satir tbl-kuyruk"
+                  <button type="button" className="satir kuyruk"
                     style={{ gridTemplateColumns: '104px minmax(0, 1fr) 26px' }}
                     onClick={() => setKuyrukAcik(true)}>
                     <span />
-                    <span className="tbl-hucre">
+                    <span className="">
                       +{toplanan.length} kayıt · en eskisi {tarihTR(toplanan[toplanan.length - 1].zaman)}
                     </span>
-                    <span className="tbl-ok" style={{ justifySelf: 'end' }} aria-hidden>▾</span>
+                    <span className="ab-ok" style={{ justifySelf: 'end' }} aria-hidden>▾</span>
                   </button>
                 )}
 
-                <p className="dip-not tbl-dip">{dipNot(gorunur.length, m)}</p>
+                <p className="ab-dip dip">{dipNot(gorunur.length, m)}</p>
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end',
@@ -196,34 +196,34 @@ function Satir({ kayit, secili, sec }: { kayit: Kayit; secili: boolean; sec: () 
       type="button"
       role="row"
       aria-selected={secili}
-      className="tbl-satir"
+      className="satir"
       onClick={sec}
-      style={{ borderLeftColor: secili ? (kritik ? 'var(--bd)' : 'var(--acc)') : 'transparent' }}
+      style={{ borderLeftColor: secili ? (kritik ? 'var(--bd)' : 'var(--aksan)') : 'transparent' }}
     >
       <span role="cell" style={{
-        paddingLeft: 'var(--s16)', fontFamily: 'var(--mo)', fontSize: 'var(--t-code)',
+        paddingLeft: 'var(--s16)', fontFamily: 'var(--veri)', fontSize: 'var(--t-code)',
         color: 'var(--i3)', fontVariantNumeric: 'tabular-nums',
       }}>
         {kisaZaman(kayit.zaman)}
       </span>
       <span role="cell" style={{ minWidth: 0 }}>
-        <span className="tbl-konu">
+        <span className="konu">
           <b style={{ fontWeight: 700 }}>{aktorMetni(kayit)}</b>{' '}
           <span style={{ fontWeight: 400, color: 'var(--i2)' }}>
             {eylemCumlesi(kayit.eylem, kayit.varlikTipi, kayit.alan)}
           </span>
         </span>
-        <span className="tbl-alt">{etiketle(kayit.varlikTipi)}</span>
+        <span className="alt">{etiketle(kayit.varlikTipi)}</span>
       </span>
-      <span role="cell" className="tbl-hucre"
+      <span role="cell" className=""
         style={kritik ? { color: 'var(--bd)' } : undefined}>
         {degisim ?? <span style={{ color: 'var(--i3)' }}>—</span>}
       </span>
-      <span role="cell" className="tbl-hucre tbl-ikincil"
-        style={{ fontFamily: 'var(--mo)', fontSize: 'var(--t-code)' }}>
+      <span role="cell" className="ikincil"
+        style={{ fontFamily: 'var(--veri)', fontSize: 'var(--t-code)' }}>
         {kaynakEtiketi(kayit.kaynak)}
       </span>
-      <span className="tbl-ok" style={{ justifySelf: 'end' }} aria-hidden>▸</span>
+      <span className="ab-ok" style={{ justifySelf: 'end' }} aria-hidden>▸</span>
     </button>
   );
 }
@@ -238,9 +238,9 @@ function IzCekmecesi({ kayit, komsular, kapat }: {
   const degisim = degisimMetni(kayit);
   return (
     <Cekmece kod={`${etiketle(kayit.varlikTipi)} · ${kayit.varlikId.slice(-6)}`} kapat={kapat}>
-      <div className="cekmece-blok">
-        <p className="t-label" style={{ margin: '0 0 var(--s10)' }}>Kayıt</p>
-        <p className="t-section" style={{ margin: 0 }}>
+      <div className="ab-panel-blok">
+        <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Kayıt</p>
+        <p className="ab-bolum-basligi" style={{ margin: 0 }}>
           <b style={{ fontWeight: 700 }}>{aktorMetni(kayit)}</b>{' '}
           {eylemCumlesi(kayit.eylem, kayit.varlikTipi, kayit.alan)}
         </p>
@@ -256,34 +256,34 @@ function IzCekmecesi({ kayit, komsular, kapat }: {
         { etiket: 'Kaynak', deger: kaynakEtiketi(kayit.kaynak) },
       ]} />
 
-      <div className="cekmece-blok" style={{ marginTop: 'var(--s22)' }}>
-        <p className="t-label" style={{ margin: '0 0 var(--s10)' }}>Değişim</p>
+      <div className="ab-panel-blok" style={{ marginTop: 'var(--s22)' }}>
+        <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Değişim</p>
         {degisim ? (
-          <p style={{ margin: 0, fontSize: 'var(--t-cell)', fontFamily: 'var(--mo)' }}>
+          <p style={{ margin: 0, fontSize: 'var(--t-cell)', fontFamily: 'var(--veri)' }}>
             {degisim}
           </p>
         ) : (
-          <p className="cekmece-dip" style={{ margin: 0 }}>
+          <p className="ab-panel-dip" style={{ margin: 0 }}>
             Kayıtta önceki/yeni değer tutulmamış — eylem alan bazında değil kayıt geneli.
           </p>
         )}
       </div>
 
-      <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
-        <p className="t-label" style={{ margin: '0 0 var(--s10)' }}>
+      <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+        <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>
           Aynı kayıttaki iz · {komsular.length}
         </p>
         <div style={{ display: 'grid', gap: 'var(--s14)' }}>
           {komsular.slice(0, 8).map((k) => (
             <div key={k.id} style={{ display: 'grid', gap: 2,
               borderLeft: 'var(--bw-edge) solid',
-              borderLeftColor: k.id === kayit.id ? 'var(--jes)' : 'var(--hr2)',
+              borderLeftColor: k.id === kayit.id ? 'var(--aksan)' : 'var(--hr2)',
               paddingLeft: 'var(--s12)' }}>
               <span style={{ fontSize: 'var(--t-field)' }}>
                 <b style={{ fontWeight: 600 }}>{aktorMetni(k)}</b>{' '}
                 {eylemCumlesi(k.eylem, k.varlikTipi === kayit.varlikTipi ? null : k.varlikTipi, k.alan)}
               </span>
-              <span style={{ fontFamily: 'var(--mo)', fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
+              <span style={{ fontFamily: 'var(--veri)', fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
                 {zamanTR(k.zaman)}
                 {degisimMetni(k) && ` · ${degisimMetni(k)}`}
               </span>
@@ -291,7 +291,7 @@ function IzCekmecesi({ kayit, komsular, kapat }: {
           ))}
         </div>
         {komsular.length > 8 && (
-          <p className="cekmece-dip" style={{ margin: 'var(--s12) 0 0' }}>
+          <p className="ab-panel-dip" style={{ margin: 'var(--s12) 0 0' }}>
             +{komsular.length - 8} kayıt daha bu pencerede.
           </p>
         )}
@@ -299,7 +299,7 @@ function IzCekmecesi({ kayit, komsular, kapat }: {
 
       <CekmeceEylemler
         birincil={kayit.varlikTipi === 'Bulgu'
-          ? <Link href={`/bulgular/${kayit.varlikId}`}><Dugme tur="cekmece">Kaydı aç</Dugme></Link>
+          ? <Link href={`/bulgular/${kayit.varlikId}`}><Dugme tur="tam">Kaydı aç</Dugme></Link>
           : undefined}
         dipNot={'Denetim izi salt okunurdur: veritabanı tetikleyicisi bu kütükte '
           + 'güncelleme ve silmeyi reddeder, kayıt yalnız eklenir.'}
@@ -313,7 +313,7 @@ function IzCekmecesi({ kayit, komsular, kapat }: {
 function Ara({ deger, degistir }: { deger: string; degistir: (v: string) => void }) {
   return (
     <input
-      className="gr"
+      className="ab-gr"
       aria-label="Aktör, varlık ya da değişim ara"
       placeholder="Ara"
       value={deger}
@@ -321,7 +321,7 @@ function Ara({ deger, degistir }: { deger: string; degistir: (v: string) => void
       style={{
         width: 118, background: 'none', border: 0,
         borderBottom: 'var(--bw-hair) solid var(--hr2)',
-        padding: '3px 0', fontFamily: 'var(--mo)', fontSize: 'var(--t-label)',
+        padding: '3px 0', fontFamily: 'var(--veri)', fontSize: 'var(--t-label)',
         letterSpacing: 'var(--tr-label)', textTransform: 'uppercase',
       }}
     />
@@ -359,18 +359,18 @@ function Kapsam({ etiket, secenekler, aktif, sec }: {
 
   return (
     <details ref={kok} style={{ position: 'relative' }}>
-      <summary className="kapsam-dugme"
+      <summary className="ab-dugme"
         style={{ listStyle: 'none', cursor: 'pointer', display: 'inline-block' }}>
         {etiket}{secim ? ` · ${secim.ad}` : ''} <span aria-hidden>▾</span>
       </summary>
       <div style={{
         position: 'absolute', top: '100%', right: 0, zIndex: 5, minWidth: 190,
-        maxHeight: 300, overflowY: 'auto', background: 'var(--card)',
-        border: 'var(--bw-strong) solid var(--hr2)', boxShadow: 'var(--sh-tip)',
+        maxHeight: 300, overflowY: 'auto', background: 'var(--panel)',
+        border: 'var(--bw-strong) solid var(--hr2)', boxShadow: 'none',
         padding: 'var(--s8)',
       }}>
         {[{ id: '', ad: 'Tümü' }, ...secenekler].map((s) => (
-          <button key={s.id} type="button" className="filtre"
+          <button key={s.id} type="button" className="ab-filtre"
             style={{ display: 'block', width: '100%', textAlign: 'left' }}
             aria-pressed={(aktif ?? '') === s.id}
             onClick={(e) => {
@@ -396,17 +396,17 @@ function DisaAktar({ kayitlar }: { kayitlar: Kayit[] }) {
   };
 
   return (
-    <details ref={kok} className="yazdirmada-gizle" style={{ position: 'relative' }}>
-      <summary className="kapsam-dugme"
+    <details ref={kok} className="ab-baskida-gizle" style={{ position: 'relative' }}>
+      <summary className="ab-dugme"
         style={{ listStyle: 'none', cursor: 'pointer', display: 'inline-block' }}>
         ⤓ Dışa aktar <span aria-hidden>▾</span>
       </summary>
       <div style={{
         position: 'absolute', bottom: '100%', right: 0, zIndex: 5, minWidth: 150,
-        background: 'var(--card)', border: 'var(--bw-strong) solid var(--hr2)',
-        boxShadow: 'var(--sh-tip)', padding: 'var(--s8)',
+        background: 'var(--panel)', border: 'var(--bw-strong) solid var(--hr2)',
+        boxShadow: 'none', padding: 'var(--s8)',
       }}>
-        <button type="button" className="filtre"
+        <button type="button" className="ab-filtre"
           style={{ display: 'block', width: '100%', textAlign: 'left' }}
           onClick={(e) => kapatVe(e, () => exceleAktar('denetim-izi', [{
             ad: 'Denetim izi',
@@ -421,7 +421,7 @@ function DisaAktar({ kayitlar }: { kayitlar: Kayit[] }) {
           }]))}>
           Excel
         </button>
-        <button type="button" className="filtre"
+        <button type="button" className="ab-filtre"
           style={{ display: 'block', width: '100%', textAlign: 'left' }}
           onClick={(e) => kapatVe(e, pdfYazdir)}>
           PDF

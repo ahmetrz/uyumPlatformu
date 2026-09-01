@@ -19,10 +19,10 @@ export default async function Giris() {
     <div className="atlas" style={{
       minHeight: '100dvh', display: 'grid',
       gridTemplateColumns: 'minmax(0, 1fr) var(--drawer-w)',
-      background: 'var(--pp)',
+      background: 'var(--murekkep)',
     }}>
       <section style={{ position: 'relative', overflow: 'hidden',
-        background: 'var(--band2)', color: 'var(--pp)' }}>
+        background: 'var(--panel2)', color: 'var(--murekkep)' }}>
         {/* eslint-disable-next-line @next/next/no-img-element -- statik dışa aktarım: optimizasyon kapalı */}
         <img
           src={`${TEMEL}/gorseller/jeotermal-genis.webp`}
@@ -36,11 +36,11 @@ export default async function Giris() {
         <div style={{ position: 'relative', height: '100%', display: 'flex',
           flexDirection: 'column', justifyContent: 'space-between',
           padding: 'var(--s40) var(--s44)' }}>
-          <p className="t-eyebrow" style={{ margin: 0, color: 'rgba(246,244,238,.72)' }}>
+          <p className="etiket" style={{ margin: 0, color: 'rgba(246,244,238,.72)' }}>
             Energy Operations · Atlas
           </p>
           <div>
-            <h1 className="t-board" style={{ margin: 0, maxWidth: 620 }}>
+            <h1 className="ab-pano-basligi" style={{ margin: 0, maxWidth: 620 }}>
               Enerji üretiminde <b>BT/OT uyumu</b> tek kütükte
             </h1>
             <p style={{ margin: 'var(--s16) 0 0', maxWidth: 560,
@@ -49,18 +49,18 @@ export default async function Giris() {
               değişmez denetim izi.
             </p>
           </div>
-          <p className="t-label" style={{ margin: 0, color: 'rgba(246,244,238,.52)' }}>
+          <p className="etiket" style={{ margin: 0, color: 'rgba(246,244,238,.52)' }}>
             IT/OT governance · compliance · transformation
           </p>
         </div>
       </section>
 
-      <main data-yuzey="saha" style={{ background: 'var(--sunken)',
+      <main data-yuzey="saha" style={{ background: 'var(--panel2)',
         borderLeft: 'var(--bw-strong) solid var(--hr2)',
         display: 'flex', flexDirection: 'column', justifyContent: 'center',
         padding: 'var(--s40) var(--s34)' }}>
-        <p className="t-eyebrow" style={{ margin: '0 0 var(--s10)' }}>Oturum</p>
-        <h2 className="t-section" style={{ margin: '0 0 var(--s26)' }}>Zorlu Uyum Konsolu</h2>
+        <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Oturum</p>
+        <h2 className="ab-bolum-basligi" style={{ margin: '0 0 var(--s26)' }}>Zorlu Uyum Konsolu</h2>
         <GirisFormu />
       </main>
     </div>

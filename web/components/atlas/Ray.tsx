@@ -294,11 +294,11 @@ export default function Ray({
         <div className="ray-ayak">
           {ayak.tip === 'efsane' ? (
             <div className="ray-efsane">
-              <p className="t-colhead" style={{ margin: '0 0 var(--s10)' }}>Grup kesiti</p>
+              <p className="kolonbas" style={{ margin: '0 0 var(--s10)' }}>Grup kesiti</p>
               {ayak.bantlar.map((renk, i) => (
                 <div key={i} className="bant" style={{ background: renk }} />
               ))}
-              <p className="t-colhead" style={{ margin: 'var(--s10) 0 0', lineHeight: 1.6 }}>
+              <p className="kolonbas" style={{ margin: 'var(--s10) 0 0', lineHeight: 1.6 }}>
                 {ayak.yazi}
               </p>
             </div>

@@ -1,4 +1,4 @@
-import type { Durum } from '@/components/atlas/temel';
+import type { Durum } from '@/components/abacus/temel';
 
 /* O8/O9 · Dönüşüm portföyü — sunucu ve istemcinin PAYLAŞTIĞI tipler ve saf
    hesaplar. Ekranın tek gerçek kaynağı burasıdır: aynı yüklem hem metrikte

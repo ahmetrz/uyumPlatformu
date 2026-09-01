@@ -1,4 +1,4 @@
-import type { Durum } from '@/components/atlas/temel';
+import type { Durum } from '@/components/abacus/temel';
 
 /* O1 · O2 ortak türetmeleri.
    Matristeki hücre işaretçisi (O1) ile çerçeve detayındaki aile işaretçisi (O2)

@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { Alan, Dugme } from '@/components/atlas/temel';
+import { Alan, Dugme } from '@/components/abacus/temel';
 import { useEylem } from '@/components/useEylem';
 import { kullaniciKaydet, yetkiVer } from '@/lib/eylemler';
 import { ROLLER, ROL_ETIKET } from '@/lib/sabitler';
@@ -21,19 +21,19 @@ export function KullaniciFormu({ hesap, kapat }: { hesap: Hesap | null; kapat: (
   return (
     <div style={{ display: 'grid', gap: 'var(--s16)' }}>
       <Alan etiket="Ad soyad" zorunlu>
-        <input className="gr" value={f.adSoyad}
+        <input className="ab-gr" value={f.adSoyad}
           onChange={(e) => setF({ ...f, adSoyad: e.target.value })} />
       </Alan>
       <Alan etiket="E-posta" zorunlu>
-        <input className="gr" type="email" style={{ fontFamily: 'var(--mo)' }}
+        <input className="ab-gr" type="email" style={{ fontFamily: 'var(--veri)' }}
           value={f.eposta} onChange={(e) => setF({ ...f, eposta: e.target.value })} />
       </Alan>
       <Alan etiket="Unvan">
-        <input className="gr" value={f.unvan} placeholder="bilinmiyor"
+        <input className="ab-gr" value={f.unvan} placeholder="bilinmiyor"
           onChange={(e) => setF({ ...f, unvan: e.target.value })} />
       </Alan>
 
-      {hata && <p className="gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
+      {hata && <p className="ab-gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
 
       <div style={{ display: 'flex', gap: 'var(--s10)' }}>
         <Dugme tur="birincil" disabled={bekliyor || !gecerli}
@@ -46,7 +46,7 @@ export function KullaniciFormu({ hesap, kapat }: { hesap: Hesap | null; kapat: (
         <Dugme onClick={kapat} disabled={bekliyor}>Vazgeç</Dugme>
       </div>
 
-      <p className="cekmece-dip" style={{ margin: 0 }}>
+      <p className="ab-panel-dip" style={{ margin: 0 }}>
         Kullanıcı oluşturmak erişim vermez: yetki ayrı verilir ve denetim izine yazılır.
       </p>
     </div>
@@ -72,29 +72,29 @@ export function YetkiFormu({ hesap, surecler, tesisler, kisitliKapsam, kapat }: 
   return (
     <div style={{ display: 'grid', gap: 'var(--s16)' }}>
       <Alan etiket="Rol" zorunlu>
-        <select className="gr" value={f.rol}
+        <select className="ab-gr" value={f.rol}
           onChange={(e) => setF({ ...f, rol: e.target.value })}>
           {ROLLER.map((r) => <option key={r} value={r}>{ROL_ETIKET[r]}</option>)}
         </select>
       </Alan>
       <Alan etiket="Uyum süreci">
-        <select className="gr" value={f.surecId}
+        <select className="ab-gr" value={f.surecId}
           onChange={(e) => setF({ ...f, surecId: e.target.value })}>
           <option value="">tüm süreçler</option>
           {surecler.map((s) => <option key={s.id} value={s.id}>{s.ad}</option>)}
         </select>
       </Alan>
       <Alan etiket="Santral">
-        <select className="gr" value={f.tesisId}
+        <select className="ab-gr" value={f.tesisId}
           onChange={(e) => setF({ ...f, tesisId: e.target.value })}>
           <option value="">tüm santraller</option>
           {tesisler.map((t) => <option key={t.id} value={t.id}>{t.ad}</option>)}
         </select>
       </Alan>
 
-      {hata && <p className="gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
+      {hata && <p className="ab-gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
 
-      <Dugme tur="cekmece" disabled={bekliyor}
+      <Dugme tur="tam" disabled={bekliyor}
         onClick={() => calistir(() => yetkiVer({
           kullaniciId: hesap.id,
           surecId: f.surecId || null,
@@ -105,7 +105,7 @@ export function YetkiFormu({ hesap, surecler, tesisler, kisitliKapsam, kapat }: 
       </Dugme>
       <Dugme onClick={kapat} disabled={bekliyor}>Vazgeç</Dugme>
 
-      <p className="cekmece-dip" style={{ margin: 0 }}>
+      <p className="ab-panel-dip" style={{ margin: 0 }}>
         {`${hesap.ad} · ${ROL_ETIKET[f.rol as keyof typeof ROL_ETIKET]} · ${surecAdi} · ${tesisAdi}`}
         {!f.surecId && !f.tesisId
           && ' — kapsam boş bırakıldı: yetki portföyün tamamına uygulanır.'}

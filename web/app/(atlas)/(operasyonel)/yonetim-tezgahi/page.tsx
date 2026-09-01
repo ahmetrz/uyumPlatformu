@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { girisZorunlu, izinVar, izinliTesisIdleri, type Modul } from '@/lib/erisim';
-import { Yetkisiz } from '@/components/atlas/temel';
+import { Yetkisiz } from '@/components/abacus/temel';
 import { db } from '@/lib/db';
 import TezgahIstemci from './TezgahIstemci';
 import type { Anahtar, Is, Tanim } from './ortak';

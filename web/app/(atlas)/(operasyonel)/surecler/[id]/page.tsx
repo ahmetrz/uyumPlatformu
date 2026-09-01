@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { girisZorunlu, izinVar, izinliTesisIdleri } from '@/lib/erisim';
-import { Yetkisiz } from '@/components/atlas/temel';
+import { Yetkisiz } from '@/components/abacus/temel';
 import { db } from '@/lib/db';
 import SurecDetayIstemci, { type DetayVerisi } from './SurecDetayIstemci';
 import { kisaKod, sayimla, type Degerlendirme, type S } from '../ortak';

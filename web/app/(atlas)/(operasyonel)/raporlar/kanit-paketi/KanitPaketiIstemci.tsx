@@ -1,11 +1,11 @@
 'use client';
 import { useMemo, useState, useTransition } from 'react';
-import { Alan, BosIlk, Dugme, Kesir, type Durum } from '@/components/atlas/temel';
-import { Tablo, type Satir } from '@/components/atlas/tablo';
-import { EkranBasligi } from '@/components/atlas/ekran';
+import { Alan, BosIlk, Dugme, Kesir, type Durum } from '@/components/abacus/temel';
+import { Tablo, type Satir } from '@/components/abacus/tablo';
+import { EkranBasligi } from '@/components/abacus/ekran';
 import {
   Cekmece, CekmeceKimlik, CekmeceAlanlar, CekmeceEylemler,
-} from '@/components/atlas/cekmece';
+} from '@/components/abacus/panel';
 import { kanitPaketiUretEylem } from '@/lib/eylemler2/disaAktarim';
 import { hucreDurumu, hucreSozu, type Hucre } from '../mantik';
 
@@ -102,7 +102,7 @@ export default function KanitPaketiIstemci({
           ]}
         />
 
-        <section className="ekran-govde">
+        <section className="ab-ekran-govde">
           {sirali.length === 0 ? (
             <div style={{ marginTop: 'var(--s26)' }}>
               <BosIlk cumle={kisitliKapsam
@@ -220,34 +220,34 @@ function PaketCekmecesi({ kapsam, bugun, kapat }: {
         { etiket: 'Son değerlendirme', deger: kapsam.sonDegerlendirme ?? 'bilinmiyor' },
       ]} />
 
-      <div className="cekmece-blok" style={{ marginTop: 'var(--s22)', display: 'grid',
+      <div className="ab-panel-blok" style={{ marginTop: 'var(--s22)', display: 'grid',
         gap: 'var(--s12)' }}>
         <Alan etiket="Aralık başlangıcı" zorunlu>
-          <input className="gr" type="date" value={baslangic} max={bitis}
+          <input className="ab-gr" type="date" value={baslangic} max={bitis}
             onChange={(e) => setBaslangic(e.target.value)} />
         </Alan>
         <Alan etiket="Aralık bitişi" zorunlu hata={bitis < baslangic ? 'Bitiş başlangıçtan önce olamaz' : null}>
-          <input className="gr" type="date" value={bitis} min={baslangic}
+          <input className="ab-gr" type="date" value={bitis} min={baslangic}
             onChange={(e) => setBitis(e.target.value)} />
         </Alan>
       </div>
 
-      {hata && <p className="gr-hata" style={{ marginTop: 'var(--s12)' }}>{hata}</p>}
+      {hata && <p className="ab-gr-hata" style={{ marginTop: 'var(--s12)' }}>{hata}</p>}
 
       {uretim && (
-        <div className="cekmece-blok" style={{ marginTop: 'var(--s18)' }}>
-          <p className="t-label" style={{ margin: '0 0 var(--s10)' }}>Üretilen paket</p>
-          <div className="cekmece-alan">
+        <div className="ab-panel-blok" style={{ marginTop: 'var(--s18)' }}>
+          <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Üretilen paket</p>
+          <div className="ab-panel-alan">
             <span className="etiket">Dosya</span>
             <span className="deger">{uretim.dosyaAdi}</span>
           </div>
-          <div className="cekmece-alan">
+          <div className="ab-panel-alan">
             <span className="etiket">SHA-256</span>
-            <span className="deger" style={{ fontFamily: 'var(--mo)', wordBreak: 'break-all' }}>
+            <span className="deger" style={{ fontFamily: 'var(--veri)', wordBreak: 'break-all' }}>
               {uretim.ozet}
             </span>
           </div>
-          <div className="cekmece-alan">
+          <div className="ab-panel-alan">
             <span className="etiket">İçerik</span>
             <span className="deger">
               {`${uretim.madde} madde · ${uretim.bulgu} bulgu · ${uretim.iz} iz satırı`}

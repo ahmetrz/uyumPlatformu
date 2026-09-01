@@ -1,4 +1,4 @@
-import type { Durum } from '@/components/atlas/temel';
+import type { Durum } from '@/components/abacus/temel';
 
 /* Çapraz eşleme (crosswalk) — saf türetmeler. Veritabanına, React'e ve
    `server-only`ye dokunmaz.

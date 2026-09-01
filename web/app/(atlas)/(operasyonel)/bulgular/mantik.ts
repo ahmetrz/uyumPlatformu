@@ -1,4 +1,4 @@
-import type { Durum } from '@/components/atlas/temel';
+import type { Durum } from '@/components/abacus/temel';
 import { etiketle, zamanTR } from '@/lib/sabitler';
 
 /* O7 · bulgu → aksiyon → doğrulama ilerlemesinin tek türetme yeri.

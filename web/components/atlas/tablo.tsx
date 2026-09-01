@@ -36,15 +36,15 @@ function TabloBasligi({ ad, anahtar, sag, ikincil, sirala }: {
   return (
     <span role="columnheader" className={dis || undefined}
       aria-sort={etkin ? (sirala.yon === 'artan' ? 'ascending' : 'descending') : 'none'}>
-      <button type="button" className="t-colhead"
+      <button type="button" className="kolonbas"
         aria-label={`${ad} · ${etkin && sirala.yon === 'azalan' ? 'azalan' : 'artan'} sırala`}
         onClick={() => sirala.degistir(anahtar)}
         style={{ background: 'none', border: 0, padding: 0, cursor: 'pointer',
           width: '100%', textAlign: sag ? 'right' : 'left',
-          color: etkin ? 'var(--ink)' : undefined }}>
+          color: etkin ? 'var(--murekkep)' : undefined }}>
         {ad}
         <span aria-hidden style={{ marginLeft: 'var(--s6)',
-          color: etkin ? 'var(--jes)' : 'transparent' }}>
+          color: etkin ? 'var(--aksan)' : 'transparent' }}>
           {etkin && sirala.yon === 'azalan' ? '▾' : '▴'}
         </span>
       </button>
@@ -98,7 +98,7 @@ export function Tablo({
   return (
     <div className={`tbl${sik ? ' sik' : ''}`} style={stil} role="table">
       {basliklarVar && (
-        <div className="tbl-bas" role="row">
+        <div className="bas" role="row">
           <span />
           <TabloBasligi ad={konuBasligi} anahtar="konu" sirala={sirala} />
           {kolonlar.map((k, i) => (
@@ -117,13 +117,13 @@ export function Tablo({
             type="button"
             role="row"
             aria-selected={secim}
-            className={`tbl-satir${s.kenar ? ` s-${s.kenar}` : ''}`}
+            className={`satir${s.kenar ? ` d-${s.kenar}` : ''}`}
             onClick={() => sec?.(s.id)}
           >
             <Im durum={s.durum} />
             <span role="cell" style={{ minWidth: 0 }}>
-              <span className="tbl-konu">{s.konu}</span>
-              {s.alt && <span className="tbl-alt">{s.alt}</span>}
+              <span className="konu">{s.konu}</span>
+              {s.alt && <span className="alt">{s.alt}</span>}
             </span>
             {s.hucreler.map((h, i) => (
               <span key={i} role="cell"
@@ -137,15 +137,15 @@ export function Tablo({
 
       {/* Kuyruk satırı kolon düşürmeden etkilenmesin diye kendi şablonunu taşır. */}
       {kuyruk && (
-        <button type="button" className="tbl-satir tbl-kuyruk" onClick={kuyruk.ac}
+        <button type="button" className="satir kuyruk" onClick={kuyruk.ac}
           style={{ gridTemplateColumns: '22px 1fr 26px' }}>
           <span />
-          <span className="tbl-hucre">{kuyruk.metin}</span>
-          <span className="tbl-ok" aria-hidden>▾</span>
+          <span className="">{kuyruk.metin}</span>
+          <span className="ab-ok" aria-hidden>▾</span>
         </button>
       )}
 
-      {dipNot && <p className="dip-not tbl-dip">{dipNot}</p>}
+      {dipNot && <p className="ab-dip dip">{dipNot}</p>}
     </div>
   );
 }
@@ -201,13 +201,13 @@ export function Matris({
     (typeof b === 'string' ? { ad: b } : b);
 
   return (
-    <div className="mtx" style={stil} role="table">
-      <div className="mtx-bas" role="row">
-        <span className="t-colhead">{konuBasligi}</span>
+    <div className="ab-matris" style={stil} role="table">
+      <div className="bas" role="row">
+        <span className="kolonbas">{konuBasligi}</span>
         {kolonBasliklari.map((b) => {
           const k = kolon(b);
           return (
-            <span key={k.ad} className="t-colhead bslk">
+            <span key={k.ad} className="kolonbas kesik">
               {k.yol ? <Link href={k.yol}>{k.ad}</Link> : k.ad}
             </span>
           );
@@ -223,19 +223,19 @@ export function Matris({
             style={{ display: 'grid' }}>
             {s.yol ? (
               <Link href={s.yol} style={{ minWidth: 0 }}>
-                <span className="mtx-ad">{s.ad}</span>
-                <span className="mtx-alt">{s.alt}</span>
+                <span className="baslik">{s.ad}</span>
+                <span className="alt">{s.alt}</span>
               </Link>
             ) : (
               <button type="button" style={{ background: 'none', border: 0, textAlign: 'left',
                 font: 'inherit', color: 'inherit', cursor: 'pointer', padding: 0 }}
                 onClick={() => sec?.(s.id, 0)}>
-                <span className="mtx-ad">{s.ad}</span>
-                <span className="mtx-alt">{s.alt}</span>
+                <span className="baslik">{s.ad}</span>
+                <span className="alt">{s.alt}</span>
               </button>
             )}
             {s.hucreler.map((h, i) => (
-              <button key={i} type="button" className="mtx-hucre" title={h.ipucu}
+              <button key={i} type="button" className="hucre" title={h.ipucu}
                 onClick={() => sec?.(s.id, i)}
                 style={{ background: 'none', border: 0, cursor: 'pointer', padding: 'var(--s8) 0' }}>
                 {/* Kapsam dışı hücre boş kalır; erişilebilir ad nedeni söyler. */}
@@ -248,7 +248,7 @@ export function Matris({
         );
       })}
 
-      {dipNot && <p className="dip-not">{dipNot}</p>}
+      {dipNot && <p className="ab-dip">{dipNot}</p>}
     </div>
   );
 }
@@ -269,14 +269,14 @@ export function GenisleyenSatir({
   varsayilanAcik?: boolean;
 }) {
   return (
-    <details className="gen-satir" name={grup} open={varsayilanAcik}>
+    <details className="ab-genisleyen" name={grup} open={varsayilanAcik}>
       <summary>
         <span className="ad">{ad}</span>
         <span className="adet">{adet}</span>
         <Im durum={durum} />
         <span className="ok" aria-hidden>▸</span>
       </summary>
-      <div className="gen-cocuk">{cocuklar}</div>
+      <div className="cocuk">{cocuklar}</div>
     </details>
   );
 }

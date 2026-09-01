@@ -47,7 +47,7 @@ export default async function DurumAyagi() {
       <span className="oge">bağlayıcılar <span className="deger">{veri.toplam}</span></span>
       {kalemler.map((k) => (
         <span key={k.sinif} className="oge">
-          <span className={`im ${k.sinif}`} aria-hidden />
+          <span className={`ab-glif ${k.sinif}`} aria-hidden />
           {k.etiket} <span className="deger">{k.deger}</span>
         </span>
       ))}

@@ -103,7 +103,7 @@ function KabukA({ veri, patika, children }: {
               aria-current={aktifMi(o.yol, patika) ? 'page' : undefined}
               title={o.ad}
             >
-              <span className="im" aria-hidden>{o.kod}</span>
+              <span className="ab-glif" aria-hidden>{o.kod}</span>
               <span className="ad">{o.ad}</span>
             </Link>
           ))}
@@ -194,11 +194,20 @@ function KabukC({ veri, patika, children }: {
       </nav>
       <div className="ab-c-kural" />
       {/* Defter gövdesi İKİ HÜCRELİ bir ızgaradır: dizin sütunu + içerik.
-          Ekran kendi dizinini verebilir (uyum matrisi çerçeve, kontrol
-          ailesi ve OKUMA ANAHTARINI oraya koyar — prototip `c-compliance`
-          sol kolonu); vermezse `CDizin` varsayılanı çizilir. Bu yüzden
-          `children` doğrudan ızgaraya konur. */}
-      <main className="ab-c-govde">{children}</main>
+          Varsayılan dizin BURADA çizilir — on beş C ekranının her birine
+          ayrı ayrı koymak, birinde unutulduğunda o ekranı 212px'lik
+          sütuna sıkıştırıyordu (ölçüldü).
+
+          Kendi dizinini veren ekran (uyum matrisi: çerçeve · kontrol
+          ailesi · OKUMA ANAHTARI — prototip `c-compliance` sol kolonu)
+          kökünde `data-dizin="ekran"` taşır; CSS o durumda varsayılan
+          dizini gizler ve ızgarayı tek sütuna indirir. `:has()`
+          desteklenmeyen bir tarayıcıda iki dizin de görünür — bozulma
+          değil, fazlalık. */}
+      <main className="ab-c-govde">
+        <CDizin />
+        {children}
+      </main>
     </div>
   );
 }

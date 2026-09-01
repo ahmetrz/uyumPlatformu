@@ -1,11 +1,11 @@
 'use client';
 import { useMemo, useState, useTransition } from 'react';
-import { BosFiltre, BosIlk, Dugme } from '@/components/atlas/temel';
-import { EkranBasligi, Filtreler, KipDegistir } from '@/components/atlas/ekran';
-import { Tablo, type Kolon } from '@/components/atlas/tablo';
+import { BosFiltre, BosIlk, Dugme } from '@/components/abacus/temel';
+import { EkranBasligi, Filtreler, KipDegistir } from '@/components/abacus/ekran';
+import { Tablo, type Kolon } from '@/components/abacus/tablo';
 import {
   Cekmece, CekmeceAlanlar, CekmeceEylemler, CekmeceKimlik,
-} from '@/components/atlas/cekmece';
+} from '@/components/abacus/panel';
 import { eslemeProfilKurallari } from '@/lib/eylemler2/esleme';
 import Duzenleyici, { bosKural, type KuralTaslagi, type Sozluk } from './Duzenleyici';
 import {
@@ -161,9 +161,9 @@ export default function EslemeIstemci({
         />
 
         {kip === 'profil' && (
-          <section className="ekran-govde" style={{ paddingTop: 'var(--s22)' }}>
+          <section className="ab-ekran-govde" style={{ paddingTop: 'var(--s22)' }}>
             {okunamayanKodlar.length > 0 && (
-              <p className="dip-not" style={{ marginBottom: 'var(--s14)', color: 'var(--unk)' }}>
+              <p className="ab-dip" style={{ marginBottom: 'var(--s14)', color: 'var(--unk)' }}>
                 Şu profillerin sürüm geçmişi okunamadı ve listede YOK —
                 bu, o profillerin var olmadığı anlamına gelmez:{' '}
                 {okunamayanKodlar.map((o) => `${o.kod} (${o.hata})`).join(' · ')}
@@ -226,7 +226,7 @@ export default function EslemeIstemci({
         )}
 
         {kip === 'connector' && (
-          <section className="ekran-govde" style={{ paddingTop: 'var(--s22)' }}>
+          <section className="ab-ekran-govde" style={{ paddingTop: 'var(--s22)' }}>
             {connectorlar.length === 0 ? (
               <BosIlk cumle={'Tanımlı connector yok. Eşleme profili yine de'
                 + ' yayımlanabilir: connector açıldığında tipinin etkin profili'
@@ -298,15 +298,15 @@ export default function EslemeIstemci({
           {/* Sürüm geçmişi ARŞİV DAHİL gösterilir: yayımlanmış bir sürüm
               değişmediği için "bu alan neden böyle" sorusunun yanıtı
               buradadır. Geçmiş gizlenmez. */}
-          <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
-            <p className="t-label" style={{ margin: '0 0 var(--s10)' }}>
+          <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+            <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>
               Sürüm geçmişi · {secim.surumler.length} sürüm
             </p>
             <ul style={{ listStyle: 'none', margin: 0, padding: 0,
               display: 'grid', gap: 'var(--s8)' }}>
               {secim.surumler.map((s) => (
                 <li key={s.id}>
-                  <button type="button" className="dg dg-satir"
+                  <button type="button" className="ab-dugme satir"
                     style={{ width: '100%', textAlign: 'left' }}
                     onClick={() => surumAc(s.kod, s.surum)}>
                     v{s.surum} · {DURUM_SOZU[s.durum] ?? s.durum} · {s.kuralSayisi} kural
@@ -315,7 +315,7 @@ export default function EslemeIstemci({
               ))}
             </ul>
             {kuralYukleniyor && (
-              <p className="dip-not" style={{ margin: 'var(--s10) 0 0' }}>
+              <p className="ab-dip" style={{ margin: 'var(--s10) 0 0' }}>
                 Kurallar okunuyor…
               </p>
             )}
@@ -325,13 +325,13 @@ export default function EslemeIstemci({
             )}
             {acikSurum && !acikSurum.hata && (
               <div style={{ marginTop: 'var(--s12)' }}>
-                <p className="t-label" style={{ margin: '0 0 var(--s8)' }}>
+                <p className="etiket" style={{ margin: '0 0 var(--s8)' }}>
                   v{acikSurum.surum} kuralları · DEĞİŞTİRİLEMEZ
                 </p>
                 <ul style={{ listStyle: 'none', margin: 0, padding: 0,
                   display: 'grid', gap: 'var(--s6)' }}>
                   {acikSurum.kurallar.map((k, i) => (
-                    <li key={i} style={{ fontFamily: 'var(--mo)',
+                    <li key={i} style={{ fontFamily: 'var(--veri)',
                       fontSize: 'var(--t-label)', color: 'var(--i2)' }}>
                       {k.kaynakAlan} → {k.hedefAlan}
                       {k.donusum && k.donusum !== 'yok' ? ` · ${k.donusum}` : ''}
@@ -346,7 +346,7 @@ export default function EslemeIstemci({
 
           <CekmeceEylemler
             birincil={yazabilir && acikSurum && !acikSurum.hata ? (
-              <Dugme tur="cekmece"
+              <Dugme tur="tam"
                 onClick={() => duzenleyiciyeYukle(
                   secim, acikSurum.surum, acikSurum.kurallar)}>
                 v{acikSurum.surum} kurallarını düzenleyiciye yükle

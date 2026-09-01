@@ -1,4 +1,4 @@
-import type { Durum } from '@/components/atlas/temel';
+import type { Durum } from '@/components/abacus/temel';
 
 /* Regülasyon kütüphanesi — saf türetmeler. Bu modül veritabanına, React'e
    ve `server-only`ye dokunmaz; testi de dokunmaz.

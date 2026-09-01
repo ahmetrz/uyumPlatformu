@@ -1,7 +1,7 @@
 'use client';
 import { useState, useTransition } from 'react';
-import { Alan, Dugme } from '@/components/atlas/temel';
-import { Tablo, type Kolon } from '@/components/atlas/tablo';
+import { Alan, Dugme } from '@/components/abacus/temel';
+import { Tablo, type Kolon } from '@/components/abacus/tablo';
 import { useEylem } from '@/components/useEylem';
 import { eslemeOnizle, eslemeProfilYayinla } from '@/lib/eylemler2/esleme';
 import {
@@ -151,22 +151,22 @@ export default function Duzenleyici({
   const secimAlanlari = secim ? Object.values(secim.uygulama.alanlar) : [];
 
   return (
-    <section className="ekran-govde" style={{ paddingTop: 'var(--s22)' }}>
+    <section className="ab-ekran-govde" style={{ paddingTop: 'var(--s22)' }}>
       {/* ── kimlik ──────────────────────────────────────────────────── */}
-      <div className="blok" style={{ maxWidth: 'none' }}>
-        <p className="t-label" style={{ margin: 0 }}>Profil kimliği</p>
+      <div className="ab-blok" style={{ maxWidth: 'none' }}>
+        <p className="etiket" style={{ margin: 0 }}>Profil kimliği</p>
         <div style={{ display: 'grid', gap: 'var(--s12)', marginTop: 'var(--s12)',
           gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))' }}>
           <Alan etiket="Kod" zorunlu>
-            <input className="gr" value={kod} placeholder="ör. CMDB-VARLIK"
+            <input className="ab-gr" value={kod} placeholder="ör. CMDB-VARLIK"
               onChange={(e) => setKod(e.target.value.toUpperCase())} />
           </Alan>
           <Alan etiket="Ad" zorunlu>
-            <input className="gr" value={ad} placeholder="CMDB varlık eşlemesi"
+            <input className="ab-gr" value={ad} placeholder="CMDB varlık eşlemesi"
               onChange={(e) => setAd(e.target.value)} />
           </Alan>
           <Alan etiket="Connector tipi" zorunlu>
-            <input className="gr" value={tip} list="esleme-tipleri"
+            <input className="ab-gr" value={tip} list="esleme-tipleri"
               placeholder="ör. cmdb_rest"
               onChange={(e) => setTip(e.target.value)} />
             <datalist id="esleme-tipleri">
@@ -174,12 +174,12 @@ export default function Duzenleyici({
             </datalist>
           </Alan>
           <Alan etiket="Açıklama">
-            <input className="gr" value={aciklama}
+            <input className="ab-gr" value={aciklama}
               placeholder="Bu sürümde ne değişti?"
               onChange={(e) => setAciklama(e.target.value)} />
           </Alan>
         </div>
-        <p className="dip-not" style={{ marginTop: 'var(--s10)' }}>
+        <p className="ab-dip" style={{ marginTop: 'var(--s10)' }}>
           {baslangic?.kaynakSurum != null
             ? `${baslangic.kod} v${baslangic.kaynakSurum} kuralları yüklendi.`
               + ' Yayın o sürümü DEĞİŞTİRMEZ; aynı kod için yeni sürüm açar'
@@ -190,13 +190,13 @@ export default function Duzenleyici({
       </div>
 
       {/* ── kural düzenleyici ───────────────────────────────────────── */}
-      <div className="blok" style={{ maxWidth: 'none', marginTop: 'var(--s20)' }}>
-        <p className="t-label" style={{ margin: 0 }}>
+      <div className="ab-blok" style={{ maxWidth: 'none', marginTop: 'var(--s20)' }}>
+        <p className="etiket" style={{ margin: 0 }}>
           Kurallar · {dolu.length} tanımlı
         </p>
 
         {sozlukOkunamadi && (
-          <p className="dip-not" style={{ marginTop: 'var(--s10)', color: 'var(--unk)' }}>
+          <p className="ab-dip" style={{ marginTop: 'var(--s10)', color: 'var(--unk)' }}>
             Hedef alan sözlüğü okunamadı — bu ortamda eşleme tezgâhı çalışmaz.
             Aşağıdaki liste BOŞ olduğu için değil, OKUNAMADIĞI için boştur.
           </p>
@@ -211,12 +211,12 @@ export default function Duzenleyici({
               paddingBottom: 'var(--s10)',
               borderBottom: '1px solid var(--hr2)' }}>
               <Alan etiket="Kaynak alan" zorunlu>
-                <input className="gr" value={kural.kaynakAlan}
+                <input className="ab-gr" value={kural.kaynakAlan}
                   placeholder="device.serial"
                   onChange={(e) => kuralGuncelle(i, { kaynakAlan: e.target.value })} />
               </Alan>
               <Alan etiket="Hedef alan" zorunlu>
-                <select className="gr" value={kural.hedefAlan}
+                <select className="ab-gr" value={kural.hedefAlan}
                   onChange={(e) => kuralGuncelle(i, { hedefAlan: e.target.value })}>
                   <option value="">Seçin…</option>
                   {sozluk.hedefAlanlar.map((a) => (
@@ -227,13 +227,13 @@ export default function Duzenleyici({
                 </select>
               </Alan>
               <Alan etiket="Dönüşüm">
-                <select className="gr" value={kural.donusum}
+                <select className="ab-gr" value={kural.donusum}
                   onChange={(e) => kuralGuncelle(i, { donusum: e.target.value })}>
                   {sozluk.donusumler.map((d) => <option key={d} value={d}>{d}</option>)}
                 </select>
               </Alan>
               <Alan etiket="Varsayılan">
-                <input className="gr" value={kural.varsayilan}
+                <input className="ab-gr" value={kural.varsayilan}
                   placeholder="boş = varsayılan yok"
                   disabled={kural.zorunlu}
                   onChange={(e) => kuralGuncelle(i, { varsayilan: e.target.value })} />
@@ -247,7 +247,7 @@ export default function Duzenleyici({
                     ...(e.target.checked ? { varsayilan: '' } : {}),
                   })} />
               </Alan>
-              <button type="button" className="dg dg-satir" aria-label="Kuralı sil"
+              <button type="button" className="ab-dugme satir" aria-label="Kuralı sil"
                 onClick={() => {
                   setKurallar((eski) => eski.filter((_, j) => j !== i));
                   setOnizleme(null);
@@ -262,7 +262,7 @@ export default function Duzenleyici({
           </Dugme>
         </div>
 
-        <p className="dip-not" style={{ marginTop: 'var(--s10)' }}>
+        <p className="ab-dip" style={{ marginTop: 'var(--s10)' }}>
           Hedef alan sözlüğü varlık aktarımıyla AYNI kaynaktan gelir
           ({sozluk.hedefAlanlar.length} alan): kullanıcı iki ekranda iki
           farklı alan listesi görmez. Kuralların anlam doğrulaması
@@ -272,9 +272,9 @@ export default function Duzenleyici({
       </div>
 
       {/* ── önizleme ────────────────────────────────────────────────── */}
-      <div className="blok" style={{ maxWidth: 'none', marginTop: 'var(--s20)' }}>
-        <p className="t-label" style={{ margin: 0 }}>Önizleme · prova</p>
-        <p className="dip-not" style={{ marginTop: 'var(--s8)' }}>
+      <div className="ab-blok" style={{ maxWidth: 'none', marginTop: 'var(--s20)' }}>
+        <p className="etiket" style={{ margin: 0 }}>Önizleme · prova</p>
+        <p className="ab-dip" style={{ marginTop: 'var(--s8)' }}>
           Bu prova hiçbir şey YAZMAZ ve hiçbir dış sisteme BAĞLANMAZ. Girdi
           sizin yapıştırdığınız örnek kayıttır; çıktı &ldquo;bu kural bu kayda
           ne yapardı&rdquo; raporudur. Tek nesne ya da nesne dizisi (en çok 50)
@@ -282,7 +282,7 @@ export default function Duzenleyici({
         </p>
         <div style={{ marginTop: 'var(--s12)' }}>
           <Alan etiket="Örnek kayıt (JSON)">
-            <textarea className="gr" rows={5} value={ornek}
+            <textarea className="ab-gr" rows={5} value={ornek}
               placeholder={'{"device": {"serial": "SN-1"}, "site": "SNT-A"}'}
               onChange={(e) => { setOrnek(e.target.value); setOnizleme(null); }} />
           </Alan>
@@ -293,7 +293,7 @@ export default function Duzenleyici({
             style={pasifStil(onizlemeEngeli !== '')} onClick={onizlemeCalistir}>
             {onizlemeKosuyor ? 'Önizleniyor…' : 'Önizle'}
           </Dugme>
-          {onizlemeEngeli && <span className="dip-not">{onizlemeEngeli}</span>}
+          {onizlemeEngeli && <span className="ab-dip">{onizlemeEngeli}</span>}
         </div>
 
         {onizlemeHatasi && (
@@ -303,7 +303,7 @@ export default function Duzenleyici({
 
         {onizleme && onizleme.sorunlar.length > 0 && (
           <div style={{ marginTop: 'var(--s14)' }}>
-            <p className="t-label" style={{ margin: 0, color: 'var(--bd)' }}>
+            <p className="etiket" style={{ margin: 0, color: 'var(--bd)' }}>
               Kural sorunları · yayın bunları REDDEDER
             </p>
             <ul style={{ margin: 'var(--s8) 0 0', paddingLeft: 'var(--s18)',
@@ -350,7 +350,7 @@ export default function Duzenleyici({
 
             {secim && (
               <div style={{ marginTop: 'var(--s16)' }}>
-                <p className="t-label" style={{ margin: 0 }}>
+                <p className="etiket" style={{ margin: 0 }}>
                   Kayıt {secim.sira} · alan alan
                 </p>
                 <ul style={{ listStyle: 'none', margin: 'var(--s10) 0 0', padding: 0,
@@ -359,11 +359,11 @@ export default function Duzenleyici({
                     <li key={a.hedefAlan} style={{ display: 'flex', gap: 'var(--s10)',
                       alignItems: 'baseline', fontSize: 'var(--t-code-lg)' }}>
                       <span style={{ fontWeight: 600, minWidth: 140 }}>{a.hedefAlan}</span>
-                      <span style={{ fontFamily: 'var(--mo)',
+                      <span style={{ fontFamily: 'var(--veri)',
                         color: a.kaynagi === 'kaynak' ? 'var(--i2)' : 'var(--unk)' }}>
                         {a.kaynagi === 'yok' ? '—' : String(a.deger)}
                       </span>
-                      <span className="dip-not" style={{ margin: 0 }}>
+                      <span className="ab-dip" style={{ margin: 0 }}>
                         {KAYNAGI_SOZU[a.kaynagi] ?? a.kaynagi}
                         {a.not ? ` · ${a.not}` : ''}
                       </span>
@@ -388,8 +388,8 @@ export default function Duzenleyici({
       </div>
 
       {/* ── yayın ───────────────────────────────────────────────────── */}
-      <div className="blok" style={{ maxWidth: 'none', marginTop: 'var(--s20)' }}>
-        <p className="t-label" style={{ margin: 0 }}>Yayın · yeni sürüm</p>
+      <div className="ab-blok" style={{ maxWidth: 'none', marginTop: 'var(--s20)' }}>
+        <p className="etiket" style={{ margin: 0 }}>Yayın · yeni sürüm</p>
         <div style={{ marginTop: 'var(--s12)', display: 'flex',
           gap: 'var(--s16)', alignItems: 'center', flexWrap: 'wrap' }}>
           <label style={{ display: 'flex', gap: 'var(--s8)', alignItems: 'center',
@@ -402,13 +402,13 @@ export default function Duzenleyici({
             style={pasifStil(yayinEngeli !== '')} onClick={yayinla}>
             {yayinBekliyor ? 'Yayımlanıyor…' : 'Yeni sürüm yayımla'}
           </Dugme>
-          {yayinEngeli && <span className="dip-not">{yayinEngeli}</span>}
+          {yayinEngeli && <span className="ab-dip">{yayinEngeli}</span>}
         </div>
         {yayinHatasi && (
           <p role="alert" style={{ margin: 'var(--s12) 0 0',
             fontSize: 'var(--t-field)', color: 'var(--bd)' }}>{yayinHatasi}</p>
         )}
-        <p className="dip-not" style={{ marginTop: 'var(--s12)' }}>
+        <p className="ab-dip" style={{ marginTop: 'var(--s12)' }}>
           Yayın denetim izine yazılır. Etkinleştirilen sürüm aynı kodun eski
           etkin sürümünü ARŞİVE alır — silmez: o sürümle yorumlanmış içe
           aktarımların kuralı okunabilir kalır.

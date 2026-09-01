@@ -14,7 +14,7 @@ export const TIP_ADI: Record<string, string> = {
 };
 
 const TOKEN: Record<string, string> = {
-  JEO: 'var(--jes)', HES: 'var(--hes)', RES: 'var(--res)', GES: 'var(--ges)',
+  JEO: 'var(--aksan)', HES: 'var(--hes)', RES: 'var(--res)', GES: 'var(--ges)',
 };
 
 /** Kimlik rengi; tanımsız tip için nötr mürekkep. */

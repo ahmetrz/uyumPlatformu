@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { Alan, Dugme } from '@/components/atlas/temel';
+import { Alan, Dugme } from '@/components/abacus/temel';
 import { useEylem } from '@/components/useEylem';
 import {
   surecKaydet, surecDurumDegistir, surecKapsamEkle, surecKapsamCikar,
@@ -41,7 +41,7 @@ export function SurecFormu({ surec, regulasyonlar, kapat }: {
   return (
     <div style={{ display: 'grid', gap: 'var(--s16)' }}>
       <Alan etiket="Regülasyon" zorunlu>
-        <select className="gr" value={f.regulasyonId} disabled={!!surec}
+        <select className="ab-gr" value={f.regulasyonId} disabled={!!surec}
           onChange={(e) => setF({ ...f, regulasyonId: e.target.value })}>
           <option value="">—</option>
           {regulasyonlar.map((r) => (
@@ -50,32 +50,32 @@ export function SurecFormu({ surec, regulasyonlar, kapat }: {
         </select>
       </Alan>
       <Alan etiket="Kod" zorunlu>
-        <input className="gr" style={{ fontFamily: 'var(--mo)' }} value={f.kod}
+        <input className="ab-gr" style={{ fontFamily: 'var(--veri)' }} value={f.kod}
           placeholder="EPDK-SYM-2027"
           onChange={(e) => setF({ ...f, kod: e.target.value })} />
       </Alan>
       <Alan etiket="Ad" zorunlu>
-        <input className="gr" value={f.ad} placeholder="EPDK SYM 2027 dönemi"
+        <input className="ab-gr" value={f.ad} placeholder="EPDK SYM 2027 dönemi"
           onChange={(e) => setF({ ...f, ad: e.target.value })} />
       </Alan>
       <div style={{ display: 'grid', gap: 'var(--s12)',
         gridTemplateColumns: 'repeat(2, minmax(0, 1fr))' }}>
         <Alan etiket="Başlangıç">
-          <input className="gr" type="date" value={f.baslangic}
+          <input className="ab-gr" type="date" value={f.baslangic}
             onChange={(e) => setF({ ...f, baslangic: e.target.value })} />
         </Alan>
         <Alan etiket="Denetim tarihi"
           hata={tersPencere ? 'Denetim tarihi başlangıçtan önce olamaz' : null}>
-          <input className="gr" type="date" value={f.bitis}
+          <input className="ab-gr" type="date" value={f.bitis}
             onChange={(e) => setF({ ...f, bitis: e.target.value })} />
         </Alan>
       </div>
       <Alan etiket="Açıklama">
-        <textarea className="gr" rows={2} value={f.aciklama}
+        <textarea className="ab-gr" rows={2} value={f.aciklama}
           onChange={(e) => setF({ ...f, aciklama: e.target.value })} />
       </Alan>
 
-      {hata && <p className="gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
+      {hata && <p className="ab-gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
 
       <div style={{ display: 'flex', gap: 'var(--s10)' }}>
         <Dugme tur="birincil" disabled={bekliyor || !gecerli}
@@ -88,7 +88,7 @@ export function SurecFormu({ surec, regulasyonlar, kapat }: {
         </Dugme>
         <Dugme onClick={kapat} disabled={bekliyor}>Vazgeç</Dugme>
       </div>
-      <p className="cekmece-dip" style={{ margin: 0 }}>
+      <p className="ab-panel-dip" style={{ margin: 0 }}>
         Denetim tarihi girilmezse gecikme ölçülemez — kampanya kuyrukta
         bilinmeyen kalır. Regülasyon kampanya açıldıktan sonra değiştirilemez:
         değerlendirmeler o çerçevenin maddelerine bağlıdır.
@@ -108,22 +108,22 @@ export function DurumFormu({ surec, kapat }: { surec: S; kapat: () => void }) {
   return (
     <div style={{ display: 'grid', gap: 'var(--s16)' }}>
       <Alan etiket="Kampanya durumu" zorunlu>
-        <select className="gr" value={durum} onChange={(e) => setDurum(e.target.value)}>
+        <select className="ab-gr" value={durum} onChange={(e) => setDurum(e.target.value)}>
           {SUREC_DURUMLARI.map((d) => (
             <option key={d} value={d}>{SUREC_DURUM_ETIKET[d]}</option>
           ))}
         </select>
       </Alan>
 
-      {hata && <p className="gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
+      {hata && <p className="ab-gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
 
-      <Dugme tur="cekmece" disabled={bekliyor || durum === surec.durum}
+      <Dugme tur="tam" disabled={bekliyor || durum === surec.durum}
         onClick={() => calistir(() => surecDurumDegistir({ id: surec.id, durum }), kapat)}>
         Durumu değiştir
       </Dugme>
       <Dugme onClick={kapat} disabled={bekliyor}>Vazgeç</Dugme>
 
-      <p className="cekmece-dip" style={{ margin: 0 }}>
+      <p className="ab-panel-dip" style={{ margin: 0 }}>
         Geçiş denetim izine yazılır. Askıya alınan kampanyada takvim durur;
         tamamlanan kampanya gecikmiş sayılmaz ama değerlendirmeleri silinmez.
       </p>
@@ -150,18 +150,18 @@ export function KapsamPaneli({ surec, tesisler, kilitli }: {
     <div style={{ display: 'grid', gap: 'var(--s16)' }}>
       <div>
         {surec.tesisler.length === 0 ? (
-          <p className="cekmece-dip" style={{ margin: 0 }}>
+          <p className="ab-panel-dip" style={{ margin: 0 }}>
             Kapsamda tesis yok — bu kampanyada hiç değerlendirme açılmadı.
           </p>
         ) : surec.tesisler.map((t) => (
-          <div key={t.id} className="cekmece-alan">
+          <div key={t.id} className="ab-panel-alan">
             <span className="etiket">{t.kod}</span>
             <span className="deger" style={{ display: 'flex', alignItems: 'baseline',
               gap: 'var(--s10)', minWidth: 0 }}>
               <span style={{ flex: 1, minWidth: 0, overflow: 'hidden',
                 textOverflow: 'ellipsis' }}>{t.ad}</span>
               {!kilitli && (
-                <button type="button" className="dg dg-satir" disabled={bekliyor}
+                <button type="button" className="ab-dugme satir" disabled={bekliyor}
                   aria-label={`${t.kod} kapsamdan çıkar`}
                   onClick={() => calistir(() => surecKapsamCikar({
                     surecId: surec.id, tesisId: t.id,
@@ -175,7 +175,7 @@ export function KapsamPaneli({ surec, tesisler, kilitli }: {
       {!kilitli && (
         <>
           <Alan etiket="Santral ekle">
-            <select className="gr" value={tesisId}
+            <select className="ab-gr" value={tesisId}
               onChange={(e) => setTesisId(e.target.value)}>
               <option value="">—</option>
               {disaridakiler.map((t) => (
@@ -192,9 +192,9 @@ export function KapsamPaneli({ surec, tesisler, kilitli }: {
         </>
       )}
 
-      {hata && <p className="gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
+      {hata && <p className="ab-gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
 
-      <p className="cekmece-dip" style={{ margin: 0 }}>
+      <p className="ab-panel-dip" style={{ margin: 0 }}>
         Kapsama alınan tesise regülasyonun tüm yaprak maddeleri
         &quot;değerlendirilmedi&quot; olarak açılır. Kapsamdan çıkarılan tesisin
         geçmiş değerlendirmeleri tarihçede kalır, silinmez.
@@ -226,32 +226,32 @@ export function DegerlendirmeFormu({ kayit, kullanicilar, kapat }: {
   return (
     <div style={{ display: 'grid', gap: 'var(--s16)' }}>
       <Alan etiket="Uyum durumu" zorunlu>
-        <select className="gr" value={f.durum}
+        <select className="ab-gr" value={f.durum}
           onChange={(e) => setF({ ...f, durum: e.target.value })}>
           {DURUMLAR.map((d) => <option key={d} value={d}>{DURUM_ETIKET[d]}</option>)}
         </select>
       </Alan>
       <Alan etiket="Sorumlu">
-        <select className="gr" value={f.sorumluId}
+        <select className="ab-gr" value={f.sorumluId}
           onChange={(e) => setF({ ...f, sorumluId: e.target.value })}>
           <option value="">atanmadı</option>
           {kullanicilar.map((u) => <option key={u.id} value={u.id}>{u.ad}</option>)}
         </select>
       </Alan>
       <Alan etiket="Değerlendirme notu">
-        <textarea className="gr" rows={2} value={f.not}
+        <textarea className="ab-gr" rows={2} value={f.not}
           placeholder="Bu kararı ne destekliyor?"
           onChange={(e) => setF({ ...f, not: e.target.value })} />
       </Alan>
       {durumDegisti && (
         <Alan etiket="Durum değişim gerekçesi" zorunlu>
-          <textarea className="gr" rows={2} value={f.gerekce}
+          <textarea className="ab-gr" rows={2} value={f.gerekce}
             placeholder="Durum neden değişiyor?"
             onChange={(e) => setF({ ...f, gerekce: e.target.value })} />
         </Alan>
       )}
 
-      {hata && <p className="gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
+      {hata && <p className="ab-gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
 
       <div style={{ display: 'flex', gap: 'var(--s10)' }}>
         <Dugme tur="birincil" disabled={bekliyor || !gecerli}
@@ -265,7 +265,7 @@ export function DegerlendirmeFormu({ kayit, kullanicilar, kapat }: {
         </Dugme>
         <Dugme onClick={kapat} disabled={bekliyor}>Vazgeç</Dugme>
       </div>
-      <p className="cekmece-dip" style={{ margin: 0 }}>
+      <p className="ab-panel-dip" style={{ margin: 0 }}>
         Kanıt güveni kayıtta yeniden hesaplanır: kanıtı olmayan ya da süresi
         dolmuş bir &quot;uyumlu&quot; kör güvenle gösterilmez. Durum değişimi
         değişmez değerlendirme tarihçesine yazılır.
@@ -286,30 +286,30 @@ export function BulguFormu({ kayit, kapat }: { kayit: Degerlendirme; kapat: () =
   return (
     <div style={{ display: 'grid', gap: 'var(--s16)' }}>
       <Alan etiket="Bulgu başlığı" zorunlu>
-        <input className="gr" value={f.baslik}
+        <input className="ab-gr" value={f.baslik}
           placeholder={`${kayit.madde.kisaKod} — ${kayit.tesis.kod}`}
           onChange={(e) => setF({ ...f, baslik: e.target.value })} />
       </Alan>
       <Alan etiket="Açıklama" zorunlu>
-        <textarea className="gr" rows={3} value={f.aciklama}
+        <textarea className="ab-gr" rows={3} value={f.aciklama}
           placeholder="Ne eksik, ne bekleniyordu?"
           onChange={(e) => setF({ ...f, aciklama: e.target.value })} />
       </Alan>
       <div style={{ display: 'grid', gap: 'var(--s12)',
         gridTemplateColumns: 'repeat(2, minmax(0, 1fr))' }}>
         <Alan etiket="Önem">
-          <select className="gr" value={f.onem}
+          <select className="ab-gr" value={f.onem}
             onChange={(e) => setF({ ...f, onem: e.target.value })}>
             {ONEM_DERECELERI.map((o) => <option key={o} value={o}>{ONEM_ETIKET[o]}</option>)}
           </select>
         </Alan>
         <Alan etiket="Hedef tarih">
-          <input className="gr" type="date" value={f.hedef}
+          <input className="ab-gr" type="date" value={f.hedef}
             onChange={(e) => setF({ ...f, hedef: e.target.value })} />
         </Alan>
       </div>
 
-      {hata && <p className="gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
+      {hata && <p className="ab-gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
 
       <div style={{ display: 'flex', gap: 'var(--s10)' }}>
         <Dugme tur="birincil" disabled={bekliyor || !gecerli}
@@ -321,7 +321,7 @@ export function BulguFormu({ kayit, kapat }: { kayit: Degerlendirme; kapat: () =
         </Dugme>
         <Dugme onClick={kapat} disabled={bekliyor}>Vazgeç</Dugme>
       </div>
-      <p className="cekmece-dip" style={{ margin: 0 }}>
+      <p className="ab-panel-dip" style={{ margin: 0 }}>
         Hedef tarihi girilmeyen bulgunun gecikmesi ölçülemez. Aksiyon ve
         kapanış doğrulaması bulgu kaydında yaşar.
       </p>
@@ -338,17 +338,17 @@ export function KanitFormu({ kayit, kapat }: { kayit: Degerlendirme; kapat: () =
   return (
     <div style={{ display: 'grid', gap: 'var(--s16)' }}>
       <Alan etiket="Kanıt adı" zorunlu>
-        <input className="gr" value={f.ad} placeholder="Dosya ya da kayıt adı"
+        <input className="ab-gr" value={f.ad} placeholder="Dosya ya da kayıt adı"
           onChange={(e) => setF({ ...f, ad: e.target.value })} />
       </Alan>
       <Alan etiket="Kanıt tipi">
-        <select className="gr" value={f.tip}
+        <select className="ab-gr" value={f.tip}
           onChange={(e) => setF({ ...f, tip: e.target.value })}>
           {KANIT_TIPLERI.map((t) => <option key={t} value={t}>{t}</option>)}
         </select>
       </Alan>
 
-      {hata && <p className="gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
+      {hata && <p className="ab-gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
 
       <div style={{ display: 'flex', gap: 'var(--s10)' }}>
         <Dugme tur="birincil" disabled={bekliyor || !f.ad.trim()}
@@ -359,7 +359,7 @@ export function KanitFormu({ kayit, kapat }: { kayit: Degerlendirme; kapat: () =
         </Dugme>
         <Dugme onClick={kapat} disabled={bekliyor}>Vazgeç</Dugme>
       </div>
-      <p className="cekmece-dip" style={{ margin: 0 }}>
+      <p className="ab-panel-dip" style={{ margin: 0 }}>
         {kayit.madde.kanitTipi
           ? `Bu madde ${kayit.madde.kanitTipi} tipinde kanıt bekliyor.`
           : 'Bu madde için beklenen kanıt tipi tanımlanmamış.'}
@@ -385,18 +385,18 @@ export function IstisnaFormu({ kayit, kapat }: { kayit: Degerlendirme; kapat: ()
     <div style={{ display: 'grid', gap: 'var(--s16)' }}>
       <Alan etiket="İstisna bitişi" zorunlu
         hata={f.bitis && f.bitis < enErken ? 'Bitiş tarihi gelecekte olmalı' : null}>
-        <input className="gr" type="date" min={enErken} value={f.bitis}
+        <input className="ab-gr" type="date" min={enErken} value={f.bitis}
           onChange={(e) => setF({ ...f, bitis: e.target.value })} />
       </Alan>
       <Alan etiket="Gerekçe" zorunlu
         hata={f.gerekce.trim() && f.gerekce.trim().length < 10
           ? 'Gerekçe en az 10 karakter olmalı' : null}>
-        <textarea className="gr" rows={3} value={f.gerekce}
+        <textarea className="ab-gr" rows={3} value={f.gerekce}
           placeholder="Bu madde bu tesiste neden karşılanamıyor?"
           onChange={(e) => setF({ ...f, gerekce: e.target.value })} />
       </Alan>
 
-      {hata && <p className="gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
+      {hata && <p className="ab-gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
 
       <div style={{ display: 'flex', gap: 'var(--s10)' }}>
         <Dugme tur="birincil" disabled={bekliyor || !gecerli}
@@ -407,7 +407,7 @@ export function IstisnaFormu({ kayit, kapat }: { kayit: Degerlendirme; kapat: ()
         </Dugme>
         <Dugme onClick={kapat} disabled={bekliyor}>Vazgeç</Dugme>
       </div>
-      <p className="cekmece-dip" style={{ margin: 0 }}>
+      <p className="ab-panel-dip" style={{ margin: 0 }}>
         İstisna onay merkezinden geçmeden uygulanmaz: talep açıkken madde
         durumu olduğu gibi kalır, bitişte istisna düşer.
       </p>

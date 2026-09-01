@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { Alan, Dugme } from '@/components/atlas/temel';
+import { Alan, Dugme } from '@/components/abacus/temel';
 import { useEylem } from '@/components/useEylem';
 import { riskKaydet, riskIslem, riskKabul } from '@/lib/eylemler2/risk';
 import { ETKI_BOYUTLARI, RISK_DURUMLARI, RISK_DURUM_ETIKET, RISK_ISLEMLERI,
@@ -52,7 +52,7 @@ function Puan({ etiket, deger, sec }: {
 }) {
   return (
     <Alan etiket={etiket}>
-      <select className="gr" value={deger ?? ''}
+      <select className="ab-gr" value={deger ?? ''}
         onChange={(e) => sec(e.target.value === '' ? null : Number(e.target.value))}>
         <option value="">bilinmiyor</option>
         {[1, 2, 3, 4, 5].map((n) => <option key={n} value={n}>{n}</option>)}
@@ -95,18 +95,18 @@ export function RiskFormu({
     <div style={{ display: 'grid', gap: 'var(--s18)' }}>
       <div style={izgara}>
         <Alan etiket="Kod" zorunlu>
-          <input className="gr" style={{ fontFamily: 'var(--mo)' }} value={f.kod}
+          <input className="ab-gr" style={{ fontFamily: 'var(--veri)' }} value={f.kod}
             onChange={(e) => setF({ ...f, kod: e.target.value })} />
         </Alan>
         <Alan etiket="Kaynak">
-          <select className="gr" value={f.kaynak}
+          <select className="ab-gr" value={f.kaynak}
             onChange={(e) => setF({ ...f, kaynak: e.target.value })}>
             {KAYNAKLAR.map((s) => <option key={s} value={s}>{etiketle(s)}</option>)}
           </select>
         </Alan>
         {f.id && (
           <Alan etiket="Durum">
-            <select className="gr" value={f.durum}
+            <select className="ab-gr" value={f.durum}
               onChange={(e) => setF({ ...f, durum: e.target.value })}>
               {RISK_DURUMLARI.map((d) => (
                 <option key={d} value={d}>{RISK_DURUM_ETIKET[d]}</option>
@@ -117,31 +117,31 @@ export function RiskFormu({
       </div>
 
       <Alan etiket="Başlık" zorunlu>
-        <input className="gr" value={f.baslik} placeholder="Risk başlığı"
+        <input className="ab-gr" value={f.baslik} placeholder="Risk başlığı"
           onChange={(e) => setF({ ...f, baslik: e.target.value })} />
       </Alan>
       <Alan etiket="Açıklama" zorunlu>
-        <textarea className="gr" rows={3} value={f.aciklama}
+        <textarea className="ab-gr" rows={3} value={f.aciklama}
           onChange={(e) => setF({ ...f, aciklama: e.target.value })} />
       </Alan>
 
       <div style={izgara}>
         <Alan etiket="Santral">
-          <select className="gr" value={f.tesisId}
+          <select className="ab-gr" value={f.tesisId}
             onChange={(e) => setF({ ...f, tesisId: e.target.value })}>
             <option value="">—</option>
             {tesisler.map((t) => <option key={t.id} value={t.id}>{t.kod} — {t.ad}</option>)}
           </select>
         </Alan>
         <Alan etiket="Sistem">
-          <select className="gr" value={f.sistemId}
+          <select className="ab-gr" value={f.sistemId}
             onChange={(e) => setF({ ...f, sistemId: e.target.value })}>
             <option value="">—</option>
             {sistemler.map((s) => <option key={s.id} value={s.id}>{s.kod} — {s.ad}</option>)}
           </select>
         </Alan>
         <Alan etiket="Sahip">
-          <select className="gr" value={f.sahipId}
+          <select className="ab-gr" value={f.sahipId}
             onChange={(e) => setF({ ...f, sahipId: e.target.value })}>
             <option value="">atanmadı</option>
             {kullanicilar.map((u) => <option key={u.id} value={u.id}>{u.ad}</option>)}
@@ -150,7 +150,7 @@ export function RiskFormu({
       </div>
 
       <Alan etiket="Bağlı bulgu">
-        <select className="gr" value={f.bulguId}
+        <select className="ab-gr" value={f.bulguId}
           onChange={(e) => setF({ ...f, bulguId: e.target.value })}>
           <option value="">—</option>
           {bulgular.map((b) => <option key={b.id} value={b.id}>{b.baslik}</option>)}
@@ -159,23 +159,23 @@ export function RiskFormu({
 
       <div style={izgara}>
         <Alan etiket="Tehdit">
-          <input className="gr" value={f.tehdit}
+          <input className="ab-gr" value={f.tehdit}
             onChange={(e) => setF({ ...f, tehdit: e.target.value })} />
         </Alan>
         <Alan etiket="Zayıflık">
-          <input className="gr" value={f.zayiflik}
+          <input className="ab-gr" value={f.zayiflik}
             onChange={(e) => setF({ ...f, zayiflik: e.target.value })} />
         </Alan>
       </div>
 
       <Alan etiket="Telafi edici kontroller">
-        <textarea className="gr" rows={2} value={f.mevcutKontroller}
+        <textarea className="ab-gr" rows={2} value={f.mevcutKontroller}
           placeholder="Artık skoru düşüren mevcut kontroller"
           onChange={(e) => setF({ ...f, mevcutKontroller: e.target.value })} />
       </Alan>
 
       <div>
-        <p className="t-label" style={{ margin: '0 0 var(--s10)' }}>
+        <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>
           Olasılık ve 8 etki boyutu
         </p>
         <div style={{ display: 'grid', gap: 'var(--s12)',
@@ -198,15 +198,15 @@ export function RiskFormu({
           <span style={{ fontSize: 'var(--t-metric-den)', fontWeight: 400,
             color: 'var(--i3)' }}> / {SKOR_TAVANI}</span>
         </span>
-        <span className="t-caption">hesaplanan skor</span>
+        <span className="etiket">hesaplanan skor</span>
       </div>
-      <p className="cekmece-dip" style={{ margin: 0 }}>
+      <p className="ab-panel-dip" style={{ margin: 0 }}>
         {skor === null
           ? 'Olasılık veya en az bir etki boyutu bilinmeden skor hesaplanmaz — bilinmeyen sıfır sayılmaz.'
           : `olasılık ${f.olasilik} × en büyük etki ${maxEtki(f.etkiler)} · doğal ve artık risk otomatik yazılır`}
       </p>
 
-      {hata && <p className="gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
+      {hata && <p className="ab-gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
 
       <div style={{ display: 'flex', gap: 'var(--s10)' }}>
         <Dugme tur="birincil" onClick={kaydet} disabled={bekliyor || !gecerli}>
@@ -245,7 +245,7 @@ export function KararFormu({ risk, kapat }: { risk: R; kapat: () => void }) {
   return (
     <div style={{ display: 'grid', gap: 'var(--s16)' }}>
       <Alan etiket="İşlem kararı" zorunlu>
-        <select className="gr" value={tip} onChange={(e) => setTip(e.target.value)}>
+        <select className="ab-gr" value={tip} onChange={(e) => setTip(e.target.value)}>
           {RISK_ISLEMLERI.map((i) => (
             <option key={i} value={i}>{RISK_ISLEM_ETIKET[i]}</option>
           ))}
@@ -255,25 +255,25 @@ export function KararFormu({ risk, kapat }: { risk: R; kapat: () => void }) {
       {kabul && (
         <Alan etiket="Kabul bitişi" zorunlu
           hata={bitis && bitis < enErken ? 'Bitiş tarihi gelecekte olmalı' : null}>
-          <input className="gr" type="date" min={enErken} value={bitis}
+          <input className="ab-gr" type="date" min={enErken} value={bitis}
             onChange={(e) => setBitis(e.target.value)} />
         </Alan>
       )}
 
       <Alan etiket="Gerekçe" zorunlu>
-        <textarea className="gr" rows={3} value={gerekce}
+        <textarea className="ab-gr" rows={3} value={gerekce}
           placeholder={kabul ? 'Bu risk neden kabul ediliyor?' : 'Bu karar neden veriliyor?'}
           onChange={(e) => setGerekce(e.target.value)} />
       </Alan>
 
-      {hata && <p className="gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
+      {hata && <p className="ab-gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
 
-      <Dugme tur="cekmece" onClick={kaydet} disabled={bekliyor || !gecerli}>
+      <Dugme tur="tam" onClick={kaydet} disabled={bekliyor || !gecerli}>
         Karar kaydet
       </Dugme>
       <Dugme onClick={kapat} disabled={bekliyor}>Vazgeç</Dugme>
 
-      <p className="cekmece-dip" style={{ margin: 0 }}>
+      <p className="ab-panel-dip" style={{ margin: 0 }}>
         {kabul
           ? 'Kabul süreli ve onaylıdır: bitişte kabul düşer, risk yeniden değerlendirilir. Gerekçe ve onaylayan denetim izine yazılır.'
           : 'İşlem tipi ve tarihi kayda yazılır; denetim izi durum değişimini tutar.'}

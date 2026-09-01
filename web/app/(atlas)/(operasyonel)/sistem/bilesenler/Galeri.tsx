@@ -3,16 +3,16 @@ import { useState } from 'react';
 import {
   Im, Metrikler, Bar, Segment, Kesir, Ipucu, Dugme, Alan,
   Iskelet, BosIlk, BosFiltre, Hata, Yetkisiz, DURUM_SOZU, type Durum,
-} from '@/components/atlas/temel';
-import { Tablo, Matris, GenisleyenSatir } from '@/components/atlas/tablo';
+} from '@/components/abacus/temel';
+import { Tablo, Matris, GenisleyenSatir } from '@/components/abacus/tablo';
 import {
   Cekmece, CekmeceKimlik, CekmeceAlanlar, CekmeceBagli, CekmeceEylemler,
-} from '@/components/atlas/cekmece';
+} from '@/components/abacus/panel';
 import {
   EkranBasligi, Filtreler, KipDegistir, Asamalar, OdakKarti,
-} from '@/components/atlas/ekran';
-import { ZamanCizelgesi, OmurUfku } from '@/components/atlas/zaman';
-import { Tuval } from '@/components/atlas/grafik';
+} from '@/components/abacus/ekran';
+import { ZamanCizelgesi, OmurUfku } from '@/components/abacus/zaman';
+import { Tuval } from '@/components/abacus/grafik';
 
 /* Faz 3 çıkış kriteri (07 §Phase 3): her bileşen her durumda.
    Bu galeri aynı zamanda 06 §A4 anti-regresyon listesinin denendiği yerdir. */
@@ -26,8 +26,8 @@ function B({ no, ad, not, children }: {
     <section style={{ padding: '0 var(--gutter-op) var(--sec-pad-bot)' }}>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 'var(--s12)',
         padding: 'var(--sec-pad-top) 0 var(--s18)' }}>
-        <span className="t-caption num">{no}</span>
-        <h2 className="t-section" style={{ margin: 0 }}>{ad}</h2>
+        <span className="etiket num">{no}</span>
+        <h2 className="ab-bolum-basligi" style={{ margin: 0 }}>{ad}</h2>
         <span style={{ flex: 1, height: 1, background: 'var(--hr)' }} />
       </div>
       {not && <p style={{ margin: '0 0 var(--s18)', fontSize: 'var(--t-cell)',
@@ -68,12 +68,12 @@ export default function Galeri() {
             {DURUMLAR.map((d) => (
               <span key={d} style={{ display: 'grid', justifyItems: 'center', gap: 'var(--s10)' }}>
                 <Im durum={d} />
-                <span className="t-caption">{DURUM_SOZU[d]}</span>
+                <span className="etiket">{DURUM_SOZU[d]}</span>
               </span>
             ))}
             <span style={{ display: 'grid', justifyItems: 'center', gap: 'var(--s10)' }}>
               <Im durum="bd" enKotu />
-              <span className="t-caption">Satırın en kötüsü</span>
+              <span className="etiket">Satırın en kötüsü</span>
             </span>
           </div>
         </B>
@@ -103,13 +103,13 @@ export default function Galeri() {
             <Dugme tur="ret">Reddet</Dugme>
             <Dugme tur="satir">Tüm kayıtlar ▸</Dugme>
             <span style={{ width: 260 }}>
-              <Dugme tur="cekmece">Kanıt talep et</Dugme>
+              <Dugme tur="tam">Kanıt talep et</Dugme>
             </span>
           </div>
           <div style={{ display: 'grid', gap: 'var(--s16)', maxWidth: 420, marginTop: 'var(--s22)' }}>
-            <Alan etiket="Arama"><input className="gr" placeholder="Kontrol veya santral" /></Alan>
+            <Alan etiket="Arama"><input className="ab-gr" placeholder="Kontrol veya santral" /></Alan>
             <Alan etiket="Gerekçe" zorunlu hata="Gerekçe en az 10 karakter olmalı.">
-              <textarea className="gr" rows={2} aria-invalid="true" defaultValue="kısa" />
+              <textarea className="ab-gr" rows={2} aria-invalid="true" defaultValue="kısa" />
             </Alan>
           </div>
         </B>
@@ -120,7 +120,7 @@ export default function Galeri() {
               <span style={{ display: 'inline-flex' }}><Im durum="bd" /></span>
             </Ipucu>
             <Ipucu genis metin="R-EPDK-01 · kurulu güç ≥ 50 MWe ve TEİAŞ SCADA bağlantısı varsa kapsam açılır.">
-              <button type="button" className="acikla">Kapsam kuralı ⓘ</button>
+              <button type="button" className="ab-dugme satir">Kapsam kuralı ⓘ</button>
             </Ipucu>
           </div>
         </B>
@@ -133,7 +133,7 @@ export default function Galeri() {
               { id: 'kvkk', ad: 'KVKK' }, { id: 'nis', ad: 'NIS2' },
             ]}
             aktif={filtre} sec={setFiltre}
-            kapsam={<button type="button" className="kapsam-dugme">Filtre ▾</button>}
+            kapsam={<button type="button" className="ab-dugme">Filtre ▾</button>}
           />
           <div style={{ marginTop: 'var(--s22)' }}>
             <KipDegistir secenekler={[{ id: 'iliski', ad: 'İlişki' }, { id: 'tablo', ad: 'Tablo' }]}
@@ -287,12 +287,12 @@ export default function Galeri() {
         <B no="19" ad="Loading · Empty · Error · Unauthorised" not="Yapı korunur: gerçek etiketler hemen render olur, değerler blok olur. Spinner yok, illüstrasyon yok, cesaretlendirme yok.">
           <div style={{ display: 'grid', gap: 'var(--s24)' }}>
             <div>
-              <p className="t-colhead" style={{ margin: '0 0 var(--s12)' }}>Yükleniyor</p>
-              <div className="metrikler">
+              <p className="kolonbas" style={{ margin: '0 0 var(--s12)' }}>Yükleniyor</p>
+              <div className="ab-olcutler">
                 {['Uyum', 'Bilinmeyen', 'Kanıt', 'Kritik'].map((y) => (
-                  <div key={y} className="metrik">
+                  <div key={y} className="">
                     <Iskelet sinif="iskelet-metrik" stil={{ display: 'block' }} />
-                    <span className="yazi t-caption">{y}</span>
+                    <span className="yazi etiket">{y}</span>
                   </div>
                 ))}
               </div>
@@ -334,7 +334,7 @@ export default function Galeri() {
             { id: '3', kod: 'PRJ-OT-SEG', alt: '%58 · Q2’27', yol: '/projeler', suren: true },
           ]} />
           <CekmeceEylemler
-            birincil={<Dugme tur="cekmece">Kanıt talep et</Dugme>}
+            birincil={<Dugme tur="tam">Kanıt talep et</Dugme>}
             ikincil={<Dugme tur="ikincil">Kontrol ağacı</Dugme>}
             dipNot="Talep, denetim izine kaydedilir ve sahibe bildirim düşer."
           />

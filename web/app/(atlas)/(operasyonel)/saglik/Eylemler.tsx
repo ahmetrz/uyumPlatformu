@@ -1,6 +1,6 @@
 'use client';
-import { Dugme } from '@/components/atlas/temel';
-import { CekmeceEylemler } from '@/components/atlas/cekmece';
+import { Dugme } from '@/components/abacus/temel';
+import { CekmeceEylemler } from '@/components/abacus/panel';
 import { useEylem } from '@/components/useEylem';
 import { tumIsleriCalistir, tekIsCalistir } from '@/lib/eylemler2/isler';
 import { sonKosu, type Motor } from './mantik';
@@ -17,7 +17,7 @@ export function TumunuCalistir({ yazabilir }: { yazabilir: boolean }) {
 
   if (!yazabilir) {
     return (
-      <span className="t-caption" style={{ alignSelf: 'center' }}>
+      <span className="etiket" style={{ alignSelf: 'center' }}>
         Motor çalıştırmak yönetim yazma yetkisi ister
       </span>
     );
@@ -26,11 +26,11 @@ export function TumunuCalistir({ yazabilir }: { yazabilir: boolean }) {
   return (
     <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--s12)' }}>
       {hata && (
-        <span className="t-caption" role="alert" style={{ color: 'var(--bd)', maxWidth: 320 }}>
+        <span className="etiket" role="alert" style={{ color: 'var(--bd)', maxWidth: 320 }}>
           {hata}
         </span>
       )}
-      <button type="button" className="kapsam-dugme yazdirmada-gizle" disabled={bekliyor}
+      <button type="button" className="ab-dugme ab-baskida-gizle" disabled={bekliyor}
         onClick={() => calistir(() => tumIsleriCalistir())}>
         {bekliyor ? '▸ Koşuyor…' : '▸ Tümünü çalıştır'}
       </button>
@@ -60,7 +60,7 @@ export function MotorCalistir({ motor, yazabilir }: { motor: Motor; yazabilir: b
   return (
     <CekmeceEylemler
       birincil={
-        <Dugme tur="cekmece" disabled={bekliyor || kosuyor}
+        <Dugme tur="tam" disabled={bekliyor || kosuyor}
           onClick={() => calistir(() => tekIsCalistir(motor.ad))}>
           {bekliyor ? 'Koşuyor…' : 'Motoru çalıştır'}
         </Dugme>

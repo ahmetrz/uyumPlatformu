@@ -1,12 +1,12 @@
 'use client';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
-import { Bar, Segment, BosIlk, type Durum } from '@/components/atlas/temel';
-import { Matris, type MatrisSatiri } from '@/components/atlas/tablo';
-import { EkranBasligi, KipDegistir } from '@/components/atlas/ekran';
+import { Bar, Segment, BosIlk, type Durum } from '@/components/abacus/temel';
+import { Matris, type MatrisSatiri } from '@/components/abacus/tablo';
+import { EkranBasligi, KipDegistir } from '@/components/abacus/ekran';
 import {
   Cekmece, CekmeceKimlik, CekmeceAlanlar, CekmeceBagli, CekmeceEylemler,
-} from '@/components/atlas/cekmece';
+} from '@/components/abacus/panel';
 import { exceleAktar, pdfYazdir } from '@/components/disaAktar';
 import { DURUM_ETIKET, ONEM_ETIKET, etiketle } from '@/lib/sabitler';
 import {
@@ -109,7 +109,7 @@ export default function RaporlarIstemci({
           ]}
         />
 
-        <section className="ekran-govde">
+        <section className="ab-ekran-govde">
           {/* ── Modül 1 · santral × süreç uyum matrisi ─────────────────── */}
           {satirlar.length === 0 ? (
             <div style={{ marginTop: 'var(--s26)' }}>
@@ -136,7 +136,7 @@ export default function RaporlarIstemci({
 
           {/* ── Modül 2 · dağılım · bulgu yaşı / kanıt tazeliği ────────── */}
           <section style={{ marginTop: 'var(--s30)' }}>
-            <p className="t-eyebrow" style={{ margin: '0 0 var(--s10)' }}>
+            <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>
               Dağılım · {acikBulgu} açık bulgu · {kanitlar.length} kanıt
             </p>
             <KipDegistir
@@ -157,7 +157,7 @@ export default function RaporlarIstemci({
 
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 'var(--s16)',
             padding: 'var(--s18) 0 0' }}>
-            <p className="dip-not" style={{ margin: 0, flex: 1, minWidth: 0 }}>
+            <p className="ab-dip" style={{ margin: 0, flex: 1, minWidth: 0 }}>
               Anlık rapor · dışa aktarım ekrandaki kapsamı taşır ·{' '}
               {/* Ekran dökümü ile KANIT PAKETİ ayrı şeylerdir: buradaki
                   Excel/PDF ekrandaki satırları taşır, kanıt paketi kökeni,
@@ -205,10 +205,10 @@ function DagilimSatiri({ etiket, oran, durum, sag, not }: {
       borderBottom: 'var(--bw-hair) solid var(--hr)' }}>
       <span style={{ fontSize: 'var(--t-cell)', fontWeight: 600 }}>{etiket}</span>
       <Bar oran={oran} durum={durum} />
-      <span style={{ fontFamily: 'var(--mo)', fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
+      <span style={{ fontFamily: 'var(--veri)', fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
         {not ?? ''}
       </span>
-      <span style={{ textAlign: 'right', fontFamily: 'var(--mn)', fontSize: 'var(--t-row)',
+      <span style={{ textAlign: 'right', fontFamily: 'var(--veri)', fontSize: 'var(--t-row)',
         fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
         {sag}
       </span>
@@ -230,17 +230,17 @@ function BulguYasi({ kovalar, toplam, bulgular }: {
       <div style={{ display: 'grid', gridTemplateColumns: '110px minmax(0, 1fr) 150px 58px',
         gap: 'var(--s14)', padding: '0 0 var(--s8)',
         borderBottom: 'var(--bw-strong) solid var(--hr2)' }}>
-        <span className="t-colhead">Yaş</span>
-        <span className="t-colhead">Dağılım</span>
-        <span className="t-colhead">Kritik ve yüksek</span>
-        <span className="t-colhead" style={{ textAlign: 'right' }}>Bulgu</span>
+        <span className="kolonbas">Yaş</span>
+        <span className="kolonbas">Dağılım</span>
+        <span className="kolonbas">Kritik ve yüksek</span>
+        <span className="kolonbas" style={{ textAlign: 'right' }}>Bulgu</span>
       </div>
       {kovalar.map((k) => (
         <DagilimSatiri key={k.etiket} etiket={k.etiket} durum={k.durum}
           oran={(k.sayi / enCok) * 100} sag={String(k.sayi)}
           not={`${k.agir} bulgu`} />
       ))}
-      <p className="dip-not">
+      <p className="ab-dip">
         90 günü aşan açık bulgu denetimde doğrudan bulguya dönüşür ·
         {` ${agirToplam} açık bulgu kritik ya da yüksek`}
         {kapali > 0 && ` · ${kapali} kapanmış bulgu dağılımın dışında`}
@@ -264,16 +264,16 @@ function KanitTazeligi({ kovalar, toplam, baglantisiz }: {
       <div style={{ display: 'grid', gridTemplateColumns: '110px minmax(0, 1fr) 150px 58px',
         gap: 'var(--s14)', padding: '0 0 var(--s8)',
         borderBottom: 'var(--bw-strong) solid var(--hr2)' }}>
-        <span className="t-colhead">Yaş</span>
-        <span className="t-colhead">Dağılım</span>
-        <span className="t-colhead">Karşılığı</span>
-        <span className="t-colhead" style={{ textAlign: 'right' }}>Kanıt</span>
+        <span className="kolonbas">Yaş</span>
+        <span className="kolonbas">Dağılım</span>
+        <span className="kolonbas">Karşılığı</span>
+        <span className="kolonbas" style={{ textAlign: 'right' }}>Kanıt</span>
       </div>
       {kovalar.map((k) => (
         <DagilimSatiri key={k.etiket} etiket={k.etiket} durum={k.durum}
           oran={(k.sayi / toplam) * 100} sag={String(k.sayi)} not={k.aciklama} />
       ))}
-      <p className="dip-not">
+      <p className="ab-dip">
         Kanıt 90 günde yenilenmeli, 180 günü aşan kanıt denetimde kabul edilmez
         {baglantisiz > 0 && ` · ${baglantisiz} kanıt hiçbir maddeye bağlı değil`}
       </p>
@@ -305,7 +305,7 @@ function HucreCekmecesi({ santral, surec, hucre, bulgular, kapat }: {
     <Cekmece kod={`${santral.kod} · ${surec.kod}`} kapat={kapat}>
       <CekmeceKimlik durum={d} soz={hucreSozu(hucre)} baslik={surec.ad} cumle={cumle} />
 
-      <div className="cekmece-blok" style={{ marginTop: 'var(--s18)' }}>
+      <div className="ab-panel-blok" style={{ marginTop: 'var(--s18)' }}>
         <Segment
           ok={hucre.sayilar.uyumlu ?? 0}
           md={hucre.sayilar.kismi ?? 0}
@@ -428,22 +428,22 @@ function DisaAktar({ surecler, santraller, bulgular, kanitlar }: {
   }
 
   return (
-    <details ref={kok} className="yazdirmada-gizle" style={{ position: 'relative' }}>
-      <summary className="kapsam-dugme"
+    <details ref={kok} className="ab-baskida-gizle" style={{ position: 'relative' }}>
+      <summary className="ab-dugme"
         style={{ listStyle: 'none', cursor: 'pointer', display: 'inline-block' }}>
         ⤓ Dışa aktar <span aria-hidden>▾</span>
       </summary>
       <div style={{
         position: 'absolute', bottom: '100%', right: 0, zIndex: 5, minWidth: 150,
-        background: 'var(--card)', border: 'var(--bw-strong) solid var(--hr2)',
-        boxShadow: 'var(--sh-tip)', padding: 'var(--s8)',
+        background: 'var(--panel)', border: 'var(--bw-strong) solid var(--hr2)',
+        boxShadow: 'none', padding: 'var(--s8)',
       }}>
-        <button type="button" className="filtre"
+        <button type="button" className="ab-filtre"
           style={{ display: 'block', width: '100%', textAlign: 'left' }}
           onClick={(e) => kapatVe(e, excel)}>
           Excel
         </button>
-        <button type="button" className="filtre"
+        <button type="button" className="ab-filtre"
           style={{ display: 'block', width: '100%', textAlign: 'left' }}
           onClick={(e) => kapatVe(e, pdfYazdir)}>
           PDF

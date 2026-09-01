@@ -1,4 +1,4 @@
-import type { Durum } from '@/components/atlas/temel';
+import type { Durum } from '@/components/abacus/temel';
 
 /* O14 · "kurtarabilir miyiz?" sorusunun TEK türetme yeri.
    Sunucu (page.tsx) ve istemci (YedeklemeIstemci.tsx) aynı kuralları

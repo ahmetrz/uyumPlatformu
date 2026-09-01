@@ -1,13 +1,13 @@
 'use client';
 import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Dugme, Kesir, BosIlk, BosFiltre, type Durum } from '@/components/atlas/temel';
-import { Tablo, type Kolon, type Satir } from '@/components/atlas/tablo';
-import { EkranBasligi, Filtreler } from '@/components/atlas/ekran';
+import { Dugme, Kesir, BosIlk, BosFiltre, type Durum } from '@/components/abacus/temel';
+import { Tablo, type Kolon, type Satir } from '@/components/abacus/tablo';
+import { EkranBasligi, Filtreler } from '@/components/abacus/ekran';
 import {
   Cekmece, CekmeceKimlik, CekmeceAlanlar, CekmeceBagli, CekmeceEylemler,
-} from '@/components/atlas/cekmece';
-import { ZamanCizelgesi, type ZamanKarti } from '@/components/atlas/zaman';
+} from '@/components/abacus/panel';
+import { ZamanCizelgesi, type ZamanKarti } from '@/components/abacus/zaman';
 import { exceleAktar, pdfYazdir } from '@/components/disaAktar';
 import { DENETIM_ASAMALARI, DENETIM_TIP_ETIKET, tarihTR } from '@/lib/sabitler';
 import { DenetimFormu } from './Formlar';
@@ -202,7 +202,7 @@ export default function DenetimlerIstemci({
           ]}
         />
 
-        <section className="ekran-govde">
+        <section className="ab-ekran-govde">
           <Filtreler
             secenekler={MERCEKLER}
             aktif={mercek}
@@ -218,7 +218,7 @@ export default function DenetimlerIstemci({
                   secenekler={Object.entries(DENETIM_TIP_ETIKET)
                     .map(([id, ad]) => ({ id, ad }))} />
                 {yazabilir && (
-                  <button type="button" className="kapsam-dugme"
+                  <button type="button" className="ab-dugme"
                     onClick={() => { setYeniAcik(true); setSecili(null); }}>
                     + Yeni denetim
                   </button>
@@ -263,7 +263,7 @@ export default function DenetimlerIstemci({
               />
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 'var(--s16)',
                 padding: 'var(--s14) 0 0' }}>
-                <p className="dip-not" style={{ margin: 0, flex: 1, minWidth: 0 }}>
+                <p className="ab-dip" style={{ margin: 0, flex: 1, minWidth: 0 }}>
                   {dipNot(gorunur.length, takvimsiz, kapanan, mercek)}
                 </p>
                 <DisaAktar satirlar={suzulmus.map((k) => [
@@ -299,10 +299,10 @@ export default function DenetimlerIstemci({
 
       {yeniAcik && !secilen && (
         <Cekmece kod={yeniKod} kapat={() => setYeniAcik(false)}>
-          <div className="cekmece-blok">
-            <p className="t-label" style={{ margin: '0 0 var(--s12)' }}>Yeni denetim</p>
+          <div className="ab-panel-blok">
+            <p className="etiket" style={{ margin: '0 0 var(--s12)' }}>Yeni denetim</p>
           </div>
-          <div className="cekmece-blok">
+          <div className="ab-panel-blok">
             <DenetimFormu yeniKod={yeniKod} surecler={surecler}
               kapat={() => setYeniAcik(false)} />
           </div>
@@ -334,7 +334,7 @@ function Ozet({ kayit, simdi }: {
      ve denetimin doğurduğu bulgular. Olmayan halka uydurulmaz. */
   const zincir = [
     ...(d.surec ? [{
-      id: `s-${d.surec.id}`, kod: d.surec.regKod,
+      id: `d-${d.surec.id}`, kod: d.surec.regKod,
       alt: `çerçeve · ${d.surec.kod}`,
       yol: `/uyum/${encodeURIComponent(d.surec.regKod)}`,
     }] : []),
@@ -366,9 +366,9 @@ function Ozet({ kayit, simdi }: {
       {zincir.length > 0 ? (
         <CekmeceBagli kayitlar={zincir} />
       ) : (
-        <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
-          <p className="t-label" style={{ margin: '0 0 var(--s10)' }}>Zincir</p>
-          <p className="cekmece-dip" style={{ margin: 0 }}>
+        <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+          <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Zincir</p>
+          <p className="ab-panel-dip" style={{ margin: 0 }}>
             Çerçeve bağı ve bulgu yok — denetimin uyum kütüğüne dokunuşu kayıtlı değil.
           </p>
         </div>
@@ -377,7 +377,7 @@ function Ozet({ kayit, simdi }: {
       <CekmeceEylemler
         birincil={
           <Link href={`/denetimler/${d.id}`}>
-            <Dugme tur="cekmece">Kaydı aç</Dugme>
+            <Dugme tur="tam">Kaydı aç</Dugme>
           </Link>
         }
         dipNot={`${tipEtiketi(d.tip)} · aşama ${asamaIndeksi(d.durum) + 1}/${DENETIM_ASAMALARI.length}`
@@ -394,7 +394,7 @@ function Ozet({ kayit, simdi }: {
 function Ara({ deger, degistir }: { deger: string; degistir: (v: string) => void }) {
   return (
     <input
-      className="gr"
+      className="ab-gr"
       aria-label="Denetim, denetleyen ya da santral ara"
       placeholder="Ara"
       value={deger}
@@ -402,7 +402,7 @@ function Ara({ deger, degistir }: { deger: string; degistir: (v: string) => void
       style={{
         width: 118, background: 'none', border: 0,
         borderBottom: 'var(--bw-hair) solid var(--hr2)',
-        padding: '3px 0', fontFamily: 'var(--mo)', fontSize: 'var(--t-label)',
+        padding: '3px 0', fontFamily: 'var(--veri)', fontSize: 'var(--t-label)',
         letterSpacing: 'var(--tr-label)', textTransform: 'uppercase',
       }}
     />
@@ -440,18 +440,18 @@ function Kapsam({ etiket, secenekler, aktif, sec }: {
 
   return (
     <details ref={kok} style={{ position: 'relative' }}>
-      <summary className="kapsam-dugme"
+      <summary className="ab-dugme"
         style={{ listStyle: 'none', cursor: 'pointer', display: 'inline-block' }}>
         {etiket}{secim ? ` · ${secim.ad}` : ''} <span aria-hidden>▾</span>
       </summary>
       <div style={{
         position: 'absolute', top: '100%', right: 0, zIndex: 5, minWidth: 190,
-        maxHeight: 300, overflowY: 'auto', background: 'var(--card)',
-        border: 'var(--bw-strong) solid var(--hr2)', boxShadow: 'var(--sh-tip)',
+        maxHeight: 300, overflowY: 'auto', background: 'var(--panel)',
+        border: 'var(--bw-strong) solid var(--hr2)', boxShadow: 'none',
         padding: 'var(--s8)',
       }}>
         {[{ id: '', ad: 'Tümü' }, ...secenekler].map((s) => (
-          <button key={s.id} type="button" className="filtre"
+          <button key={s.id} type="button" className="ab-filtre"
             style={{ display: 'block', width: '100%', textAlign: 'left' }}
             aria-pressed={(aktif ?? '') === s.id}
             onClick={(e) => {
@@ -477,17 +477,17 @@ function DisaAktar({ satirlar }: { satirlar: (string | number)[][] }) {
   };
 
   return (
-    <details ref={kok} className="yazdirmada-gizle" style={{ position: 'relative' }}>
-      <summary className="kapsam-dugme"
+    <details ref={kok} className="ab-baskida-gizle" style={{ position: 'relative' }}>
+      <summary className="ab-dugme"
         style={{ listStyle: 'none', cursor: 'pointer', display: 'inline-block' }}>
         ⤓ Dışa aktar <span aria-hidden>▾</span>
       </summary>
       <div style={{
         position: 'absolute', bottom: '100%', right: 0, zIndex: 5, minWidth: 150,
-        background: 'var(--card)', border: 'var(--bw-strong) solid var(--hr2)',
-        boxShadow: 'var(--sh-tip)', padding: 'var(--s8)',
+        background: 'var(--panel)', border: 'var(--bw-strong) solid var(--hr2)',
+        boxShadow: 'none', padding: 'var(--s8)',
       }}>
-        <button type="button" className="filtre"
+        <button type="button" className="ab-filtre"
           style={{ display: 'block', width: '100%', textAlign: 'left' }}
           onClick={(e) => kapatVe(e, () => exceleAktar('denetimler', [{
             ad: 'Denetimler',
@@ -499,7 +499,7 @@ function DisaAktar({ satirlar }: { satirlar: (string | number)[][] }) {
           }]))}>
           Excel
         </button>
-        <button type="button" className="filtre"
+        <button type="button" className="ab-filtre"
           style={{ display: 'block', width: '100%', textAlign: 'left' }}
           onClick={(e) => kapatVe(e, pdfYazdir)}>
           PDF

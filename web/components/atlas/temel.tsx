@@ -32,7 +32,7 @@ export function Im({
 }) {
   return (
     <span
-      className={`im im-${durum}${enKotu ? ' im-enkotu' : ''}`}
+      className={`ab-glif im-${durum}${enKotu ? ' im-enkotu' : ''}`}
       role="img"
       aria-label={ad ?? DURUM_SOZU[durum]}
     />
@@ -57,14 +57,14 @@ export function Metrikler({ metrikler }: { metrikler: Metrik[] }) {
     console.warn(`Atlas: MetricRow bütçesi aşıldı (${metrikler.length} > 5)`);
   }
   return (
-    <div className="metrikler">
+    <div className="ab-olcutler">
       {metrikler.map((m, i) => (
         <div key={i} className={`metrik${m.durum ? ` d-${m.durum}` : ''}`}>
           <div className="deger">
             {m.deger}
             {m.payda != null && <span className="payda"> / {m.payda}</span>}
           </div>
-          <span className="yazi t-caption">{m.yazi}</span>
+          <span className="yazi etiket">{m.yazi}</span>
         </div>
       ))}
     </div>
@@ -77,7 +77,7 @@ export function Metrikler({ metrikler }: { metrikler: Metrik[] }) {
 export function Bar({ oran, durum = 'ok', deger }: { oran: number; durum?: Durum; deger?: string }) {
   const y = Math.max(0, Math.min(100, oran));
   return (
-    <div className="ilerleme">
+    <div className="ab-bar">
       <span className="iz">
         <span className="dolgu" style={{ width: `${y}%`, background: `var(--${durum})` }} />
       </span>
@@ -92,15 +92,15 @@ export function Segment({
   ok = 0, md = 0, bd = 0, unk = 0,
 }: { ok?: number; md?: number; bd?: number; unk?: number }) {
   const toplam = ok + md + bd + unk;
-  if (toplam <= 0) return <div className="segment"><span className="s-unk" style={{ width: '100%' }} /></div>;
+  if (toplam <= 0) return <div className="ab-b-yigin"><span className="d-unk" style={{ width: '100%' }} /></div>;
   const y = (n: number) => `${(n / toplam) * 100}%`;
   return (
-    <div className="segment" role="img"
+    <div className="ab-b-yigin" role="img"
       aria-label={`Uyumlu ${ok}, kısmi ${md}, uyumsuz ${bd}, değerlendirilmedi ${unk}`}>
       {ok > 0 && <span style={{ width: y(ok), background: 'var(--ok)' }} />}
       {md > 0 && <span style={{ width: y(md), background: 'var(--md)' }} />}
       {bd > 0 && <span style={{ width: y(bd), background: 'var(--bd)' }} />}
-      {unk > 0 && <span className="s-unk" style={{ width: y(unk) }} />}
+      {unk > 0 && <span className="d-unk" style={{ width: y(unk) }} />}
     </div>
   );
 }
@@ -144,7 +144,7 @@ export function TikSeridi({
 }) {
   if (tikler) {
     return (
-      <span className="tik-serit" role="img" aria-label={etiket}>
+      <span className="ab-tik" role="img" aria-label={etiket}>
         {tikler.map((d, i) => (
           <span
             key={i}
@@ -170,7 +170,7 @@ export function TikSeridi({
 }
 
 export function Kesir({ pay, payda }: { pay: number; payda: number }) {
-  return <span className="kesir">{pay}<span className="payda">/{payda}</span></span>;
+  return <span className="ab-kesir">{pay}<span className="payda">/{payda}</span></span>;
 }
 
 /* ═══ 13 · Tooltip & Popover ════════════════════════════════════════════
@@ -182,7 +182,7 @@ export function Ipucu({
   metin, genis = false, children,
 }: { metin: string; genis?: boolean; children: ReactNode }) {
   return (
-    <span className="ipucu-sar">
+    <span className="ab-ipucu-sar">
       {children}
       <span className={`ipucu${genis ? ' genis' : ''}`} role="tooltip">{metin}</span>
     </span>
@@ -196,11 +196,11 @@ type DugmeTuru = 'birincil' | 'cekmece' | 'ikincil' | 'ret' | 'satir';
 export function Dugme({
   tur = 'ikincil', children, ...kalan
 }: { tur?: DugmeTuru; children: ReactNode } & React.ButtonHTMLAttributes<HTMLButtonElement>) {
-  return <button type="button" className={`dg dg-${tur}`} {...kalan}>{children}</button>;
+  return <button type="button" className={`ab-dugme dg-${tur}`} {...kalan}>{children}</button>;
 }
 
 /** Satır sürükleme göstergesi — seçili satırda bakır olur. */
-export const Ok = () => <span className="tbl-ok" aria-hidden>▸</span>;
+export const Ok = () => <span className="ab-ok" aria-hidden>▸</span>;
 
 /* ═══ 18 · Forms ════════════════════════════════════════════════════════ */
 
@@ -209,9 +209,9 @@ export function Alan({
 }: { etiket: string; zorunlu?: boolean; hata?: string | null; children: ReactNode }) {
   return (
     <div>
-      <span className="gr-etiket">{etiket}{zorunlu && ' · zorunlu'}</span>
+      <span className="etiket">{etiket}{zorunlu && ' · zorunlu'}</span>
       {children}
-      {hata && <p className="gr-hata">{hata}</p>}
+      {hata && <p className="ab-gr-hata">{hata}</p>}
     </div>
   );
 }
@@ -221,13 +221,13 @@ export function Alan({
    bir eylem. Kısmi veri asla sıfır uydurmaz (§19). */
 
 export function Iskelet({ sinif = '', stil }: { sinif?: string; stil?: CSSProperties }) {
-  return <span className={`iskelet nabiz ${sinif}`} style={stil} aria-hidden />;
+  return <span className={`ab-iskelet ${sinif}`} style={stil} aria-hidden />;
 }
 
 export function BosIlk({ cumle, eylem }: { cumle: string; eylem?: ReactNode }) {
   return (
-    <div className="blok">
-      <p className="t-caption" style={{ margin: 0 }}>Boş · ilk kurulum</p>
+    <div className="ab-blok">
+      <p className="etiket" style={{ margin: 0 }}>Boş · ilk kurulum</p>
       <p className="cumle">{cumle}</p>
       {eylem && <div className="eylem">{eylem}</div>}
     </div>
@@ -236,9 +236,9 @@ export function BosIlk({ cumle, eylem }: { cumle: string; eylem?: ReactNode }) {
 
 export function BosFiltre({ temizle }: { temizle: () => void }) {
   return (
-    <div className="bos-filtre">
+    <div className="ab-blok">
       <span>Bu filtreyle kayıt yok.</span>
-      <button type="button" className="dg dg-satir" onClick={temizle}>Filtreleri temizle</button>
+      <button type="button" className="ab-dugme satir" onClick={temizle}>Filtreleri temizle</button>
     </div>
   );
 }
@@ -247,14 +247,14 @@ export function Hata({ cumle, teknik, yenidenDene }: {
   cumle: string; teknik?: string; yenidenDene?: () => void;
 }) {
   return (
-    <div className="blok hata" role="alert">
-      <p className="t-caption" style={{ margin: 0, color: 'var(--bd)' }}>Hata</p>
+    <div className="ab-blok hata" role="alert">
+      <p className="etiket" style={{ margin: 0, color: 'var(--bd)' }}>Hata</p>
       <p className="cumle">{cumle}</p>
       <div className="eylem" style={{ display: 'flex', gap: 'var(--s12)', alignItems: 'center' }}>
         {yenidenDene && <Dugme tur="birincil" onClick={yenidenDene}>Yeniden dene</Dugme>}
         {teknik && (
           <Ipucu metin={teknik} genis>
-            <button type="button" className="acikla">Detay</button>
+            <button type="button" className="ab-dugme satir">Detay</button>
           </Ipucu>
         )}
       </div>
@@ -264,8 +264,8 @@ export function Hata({ cumle, teknik, yenidenDene }: {
 
 export function Yetkisiz({ rol }: { rol: string }) {
   return (
-    <div className="blok yetkisiz">
-      <p className="t-caption" style={{ margin: 0 }}>Yetkisiz</p>
+    <div className="ab-blok">
+      <p className="etiket" style={{ margin: 0 }}>Yetkisiz</p>
       <p className="cumle">Bu ekran {rol} rolü gerektiriyor.</p>
     </div>
   );

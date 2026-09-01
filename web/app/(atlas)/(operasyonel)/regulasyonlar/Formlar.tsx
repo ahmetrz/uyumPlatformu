@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { Alan as AlanKutusu, Dugme } from '@/components/atlas/temel';
+import { Alan as AlanKutusu, Dugme } from '@/components/abacus/temel';
 import { useEylem } from '@/components/useEylem';
 import { maddeAlanAta, maddeKaydet, maddeSil } from '@/lib/eylemler';
 import { surumAktiflestir, surumOlustur } from '@/lib/eylemler2/surum';
@@ -39,12 +39,12 @@ export function MaddeFormu({ madde, reg, alanlar, kapat }: {
   return (
     <div style={{ display: 'grid', gap: 'var(--s16)' }}>
       <AlanKutusu etiket="Kod" zorunlu>
-        <input className="gr" style={{ fontFamily: 'var(--mo)' }} value={f.kod}
+        <input className="ab-gr" style={{ fontFamily: 'var(--veri)' }} value={f.kod}
           placeholder={`${reg.kod}-4.3`}
           onChange={(e) => setF({ ...f, kod: e.target.value })} />
       </AlanKutusu>
       <AlanKutusu etiket="Üst madde">
-        <select className="gr" value={f.ustMaddeId}
+        <select className="ab-gr" value={f.ustMaddeId}
           onChange={(e) => setF({ ...f, ustMaddeId: e.target.value })}>
           <option value="">kök seviye</option>
           {reg.maddeler.filter((m) => m.id !== madde?.id).map((m) => (
@@ -53,16 +53,16 @@ export function MaddeFormu({ madde, reg, alanlar, kapat }: {
         </select>
       </AlanKutusu>
       <AlanKutusu etiket="Başlık" zorunlu>
-        <input className="gr" value={f.baslik}
+        <input className="ab-gr" value={f.baslik}
           onChange={(e) => setF({ ...f, baslik: e.target.value })} />
       </AlanKutusu>
       <AlanKutusu etiket="Metin" zorunlu>
-        <textarea className="gr" rows={4} value={f.metin}
+        <textarea className="ab-gr" rows={4} value={f.metin}
           placeholder="Regülasyonun kendi ifadesi"
           onChange={(e) => setF({ ...f, metin: e.target.value })} />
       </AlanKutusu>
       <AlanKutusu etiket="Beklenen kanıt tipi">
-        <select className="gr" value={f.kanitTipi}
+        <select className="ab-gr" value={f.kanitTipi}
           onChange={(e) => setF({ ...f, kanitTipi: e.target.value })}>
           <option value="">—</option>
           {KANIT_TIPLERI.map((t) => <option key={t} value={t}>{t}</option>)}
@@ -70,12 +70,12 @@ export function MaddeFormu({ madde, reg, alanlar, kapat }: {
       </AlanKutusu>
 
       <div>
-        <span className="gr-etiket">Kapsam alanları</span>
+        <span className="etiket">Kapsam alanları</span>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--s6)' }}>
           {alanlar.map((a) => {
             const secildi = f.alanIdler.includes(a.id);
             return (
-              <button key={a.id} type="button" className="filtre"
+              <button key={a.id} type="button" className="ab-filtre"
                 aria-pressed={secildi} title={a.ad}
                 onClick={() => setF({
                   ...f,
@@ -90,9 +90,9 @@ export function MaddeFormu({ madde, reg, alanlar, kapat }: {
         </div>
       </div>
 
-      {hata && <p className="gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
+      {hata && <p className="ab-gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
 
-      <Dugme tur="cekmece" disabled={bekliyor || !gecerli}
+      <Dugme tur="tam" disabled={bekliyor || !gecerli}
         onClick={() => calistir(() => maddeKaydet({
           id: madde?.id, regulasyonId: reg.id, kod: f.kod, baslik: f.baslik,
           metin: f.metin, ustMaddeId: f.ustMaddeId || null,
@@ -117,7 +117,7 @@ export function MaddeFormu({ madde, reg, alanlar, kapat }: {
       {madde && silinebilir(madde) && (
         silOnayi ? (
           <div style={{ display: 'grid', gap: 'var(--s10)' }}>
-            <p className="cekmece-dip" style={{ margin: 0, color: 'var(--bd)' }}>
+            <p className="ab-panel-dip" style={{ margin: 0, color: 'var(--bd)' }}>
               {madde.kisaKod} kalıcı olarak silinecek. Bu madde hiçbir
               değerlendirmede kullanılmıyor.
             </p>
@@ -136,7 +136,7 @@ export function MaddeFormu({ madde, reg, alanlar, kapat }: {
         )
       )}
 
-      <p className="cekmece-dip" style={{ margin: 0 }}>
+      <p className="ab-panel-dip" style={{ margin: 0 }}>
         {madde && !silinebilir(madde)
           ? `Bu madde ${madde.altSayisi} alt madde ve ${madde.kullanimSayisi} değerlendirme taşıyor — silinemez, yerine yeni sürümde kaldırılır.`
           : 'Kapsam alanı eşleşmemiş yaprak madde, hangi ekipten sorulacağı bilinmeyen maddedir.'}
@@ -157,11 +157,11 @@ export function TaslakFormu({ reg, kapat }: { reg: Reg; kapat: () => void }) {
   return (
     <div style={{ display: 'grid', gap: 'var(--s14)' }}>
       <AlanKutusu etiket="Yeni sürüm etiketi" zorunlu>
-        <input className="gr" style={{ fontFamily: 'var(--mo)' }} value={etiket}
+        <input className="ab-gr" style={{ fontFamily: 'var(--veri)' }} value={etiket}
           placeholder="2027" onChange={(e) => setEtiket(e.target.value)} />
       </AlanKutusu>
 
-      {hata && <p className="gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
+      {hata && <p className="ab-gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
 
       <div style={{ display: 'flex', gap: 'var(--s10)' }}>
         <Dugme tur="birincil" disabled={bekliyor || !etiket.trim()}
@@ -172,7 +172,7 @@ export function TaslakFormu({ reg, kapat }: { reg: Reg; kapat: () => void }) {
         </Dugme>
         <Dugme onClick={kapat} disabled={bekliyor}>Vazgeç</Dugme>
       </div>
-      <p className="cekmece-dip" style={{ margin: 0 }}>
+      <p className="ab-panel-dip" style={{ margin: 0 }}>
         Yürürlükteki sürümün maddeleri taslağa kopyalanır; içe aktarım ve elle
         düzenleme taslak üzerinde yapılır. Eski sürüm ve değerlendirmeleri
         silinmez.
@@ -193,15 +193,15 @@ export function AktiflestirmeOnayi({ surum, kapat }: { surum: Surum; kapat: () =
         kapsamındaki santrallere yeni değerlendirme açılır.
       </p>
 
-      {hata && <p className="gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
+      {hata && <p className="ab-gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
 
-      <Dugme tur="cekmece" disabled={bekliyor}
+      <Dugme tur="tam" disabled={bekliyor}
         onClick={() => calistir(() => surumAktiflestir({ surumId: surum.id }), kapat)}>
         {surum.etiket} sürümünü yürürlüğe al
       </Dugme>
       <Dugme onClick={kapat} disabled={bekliyor}>Vazgeç</Dugme>
 
-      <p className="cekmece-dip" style={{ margin: 0 }}>
+      <p className="ab-panel-dip" style={{ margin: 0 }}>
         Eski değerlendirmeler korunur; yalnız değişen ve yeni maddeler
         yeniden değerlendirme ister.
       </p>

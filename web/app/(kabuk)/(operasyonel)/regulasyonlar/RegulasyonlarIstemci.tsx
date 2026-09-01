@@ -178,13 +178,13 @@ export default function RegulasyonlarIstemci({
 
       {/* Kalıcı yan panel — bu ekranın TEK yan yüzeyi; modal açılmaz. */}
       <aside className="ab-panel" aria-label={PANEL_KODU[kip]}>
-        <div className="ust">
-          <span className="kod">{PANEL_KODU[kip]}</span>
+        <header>
+          <span className="etiket vurgu">{PANEL_KODU[kip]}</span>
           {kip !== 'surum' && (
-            <button type="button" className="ab-dugme" onClick={() => panele('surum')}
+            <button type="button" className="ab-dugme sag" onClick={() => panele('surum')}
               aria-label="Sürüm paneline dön">✕</button>
           )}
-        </div>
+        </header>
         <div className="govde">
           {kip === 'surum' && (
             <SurumPaneli reg={reg} agac={agac} yazabilir={yazabilir}

@@ -182,13 +182,13 @@ export default function CerceveIstemci({
       </main>
 
       <aside className="ab-panel" aria-label={kip === 'kapsam' ? 'Kapsam paneli' : 'Kuru çalıştırma'}>
-        <div className="ust">
-          <span className="kod">{kip === 'kapsam' ? 'Kapsam' : 'Kuru çalıştırma'}</span>
+        <header>
+          <span className="etiket vurgu">{kip === 'kapsam' ? 'Kapsam' : 'Kuru çalıştırma'}</span>
           {kip === 'kuru' && (
-            <button type="button" className="ab-dugme" onClick={() => setKip('kapsam')}
+            <button type="button" className="ab-dugme sag" onClick={() => setKip('kapsam')}
               aria-label="Kapsama dön">✕</button>
           )}
-        </div>
+        </header>
         <div className="govde">
           {kip === 'kapsam'
             ? <KapsamPaneli veri={veri} kapsamda={kapsamda} disarida={disarida} kararsiz={kararsiz} />

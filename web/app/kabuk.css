@@ -260,6 +260,12 @@
   font-family: var(--veri); font-size: var(--t-colhead); letter-spacing: var(--tr-colhead);
   text-transform: uppercase; color: var(--i3);
 }
+/* Sıralanabilir başlık bir DÜĞMEDİR ama başlık gibi durur: tarayıcının
+   gri düğme dolgusu açık kâğıtta görünmüyordu, koyu zeminde kutu olup
+   çıktı (ölçüldü, /bulgular). Dolgu ve kenar sıfır; etkin sütun mürekkep. */
+.ab .kolonbas.sirali { background: none; border: 0; padding: 0; cursor: pointer; }
+.ab .kolonbas.sirali:hover, .ab .kolonbas.sirali.etkin { color: var(--murekkep); }
+.ab .kolonbas.sirali .yon { margin-left: 4px; }
 
 /* ═══ A · Industrial Precision ════════════════════════════════════════ */
 .ab[data-yon='a'] {
@@ -319,32 +325,40 @@
 }
 
 /* ═══ C · Operational Luxury ══════════════════════════════════════════ */
-/* AÇIK yüzey — orijinal tasarımın kendi kararı, hata değil. */
+/* Orijinal prototip AÇIK kâğıt zeminliydi (#F7F6F3 / #1A1A18 mürekkep).
+   Ahmet'in kararı: ürün TEK temadır, koyu — açık kabuğa geçmek "bambaşka
+   bir platform" hissi veriyordu. Defter grameri (serif görüntü, künye,
+   dizin, saç çizgisi, oxblood) korunur; yalnız zemin sıcaklığı tersine
+   çevrilir: A/B'nin soğuk çelik grisine değil, mürekkep-kahve SICAK
+   siyaha oturur. Kâğıdın sıcaklığı zeminde, mürekkebin sıcaklığı yazıda
+   kalır — defter hâlâ defterdir, gece baskısıdır. */
 .ab[data-yon='c'] {
-  --zemin: #F7F6F3;
-  --panel: #FFFFFF;
-  --panel2: #F1EFEA;
-  --murekkep: #1A1A18;
-  --i2: #4A4843;
-  --i3: #6B6862;
-  --hr: #E4E1DB;
-  --hr2: #D6D2CA;
-  --aksan: #8A3A2C;   /* oxblood */
-  --jes: #8F5326; --hes: #2F5C74; --res: #55655F; --ges: #8A6A16;
-  --ok: #3D4340;
-  /* Prototipte #A87C2E → 3,27:1; #8A8781 → 3,12:1. Açık zeminde ikisi de
-     koyultuldu (4,96 / 4,62). Ton aynı kaldı. */
-  --md: #856018;
-  --bd: #A83A2C;
-  --pl: #5F6B5E;
-  --unk: #6E6B65;
+  --zemin: #141210;
+  --panel: #1A1815;
+  --panel2: #221F1B;
+  --murekkep: #EDE8DF;
+  --i2: #C2BBAF;
+  --i3: #958E82;      /* 4,5:1 için ölçülerek seçildi */
+  --hr: #2B2823;
+  --hr2: #3A362F;
+  /* Oxblood #8A3A2C koyu zeminde 2,6:1 kalıyordu; ton korunarak en az
+     açıldı: çukurda 3,05:1, sayfada 3,47:1 (kenar/işaret eşiği 3:1).
+     Yazıda kullanılmaz (sözleşme); düğme dolgusu üzerine açık mürekkep. */
+  --aksan: #B24936;
+  --jes: #C97A45; --hes: #6E9FBB; --res: #9BB0A6; --ges: #C9A24C;
+  --ok: #8FB39A;
+  --md: #D4A24A;
+  --bd: #E0644F;
+  --pl: #9AAA98;
+  --unk: #958E82;
   --ui: 'Inter', system-ui, sans-serif;
   --veri: 'IBM Plex Mono', ui-monospace, monospace;
   --gorunum: 'Newsreader', Georgia, serif;
-  /* Açık satırın zemini — prototipte aksanın çok soluk tonu. */
-  --secim: #FBF6F5;
-  /* Aksan dolgusunun ÜZERİNE yazılan mürekkep. */
-  --aksan-uzeri: #FFFFFF;
+  /* Açık satırın zemini — aksanın çok koyu, sıcak tonu. */
+  --secim: #241A17;
+  /* Aksan dolgusunun ÜZERİNE yazılan mürekkep: oxblood koyu kaldığı için
+     kâğıt rengi (4,75:1). A/B'de tersidir (zemin rengi), bilinçli. */
+  --aksan-uzeri: #F5F0E8;
 }
 
 /* ═══ Kabuk A — 52px kapsam çubuğu + ikon rayı (--rail-w) ═════════════ */
@@ -991,7 +1005,9 @@
 .ab-c-dizin .satir:last-child { border-bottom: 1px solid var(--hr); }
 .ab-c-dizin .satir:hover { color: var(--murekkep); }
 .ab-c-dizin .satir[aria-current='true'] { color: var(--murekkep); font-weight: 500; }
-.ab-c-dizin .satir[aria-current='true'] .sayi { color: var(--aksan); }
+/* Aktif satırın sayısı da mürekkep olur — koyu zeminde 10px oxblood 3,5:1
+   kalır, metin eşiği (4,5) altında; aksan bu satırda YALNIZ kenar taşır. */
+.ab-c-dizin .satir[aria-current='true'] .sayi { color: var(--murekkep); }
 .ab-c-dizin .satir .sayi { font-family: var(--veri); font-size: 10px; color: var(--i3); }
 
 /* Okuma anahtarı SATIR DEĞİL: tıklanmaz, kural taşımaz — prototipte

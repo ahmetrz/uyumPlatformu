@@ -148,6 +148,11 @@ zamanı; mobil/tablet kullanım (hedef değil, reddedilmiş de değil).
   sınıfları, `kabuk.css` ve kod yorumlarında kalabilir, ancak arayüz
   metninde, sekme başlığında ve dokümanların ürün adı geçen yerlerinde
   kullanılmaz.
+- **Tek tema, koyu:** Üç kabuk (A tezgâh, B saha, C defter) de koyu zemin
+  taşır; C'nin prototipteki açık kâğıt zemini üründe yoktur. Kabuklar
+  arası geçiş "başka bir platform" hissi vermemelidir — ayrışma zemin
+  sıcaklığı ve tipografiyle kurulur, açık/koyu kontrastıyla değil.
+  Karar: Ahmet, 2026-09-01. Ölçüm kapısı `arac/kontrast.mjs`.
 - **Ses:** Türkçe, doğrudan, kurumsal ama kuru değil; ürün kendini
   açıklamaz, olguyu gösterir. Metin durum yargısı vermez ("kritik!" değil,
   "12 gün gecikmiş").

@@ -20,10 +20,10 @@ aksi hâlde üçü de tamamen stilsiz düşüyor (`ERR_CONNECTION_RESET`).
 | | **A · Industrial Precision** | **B · Energy Intelligence** | **C · Operational Luxury** |
 |---|---|---|---|
 | Prototip | `a-*.html` | `b-*.html` | `c-*.html` |
-| Sayfa zemini | `#0D1012` | `#0A0C0D` | `#F7F6F3` |
-| Gövde mürekkebi | `#E7EAEA` | `#EDEEEC` | `#1A1A18` |
-| Panel / şerit | `#101416` · `#181D1F` | `#0A0C0D` · `rgba(10,12,13,.7)` | `#FFFFFF` |
-| Saç çizgisi | `#262C2E` | `#1C2123` | `#E4E1DB` · `#D6D2CA` (kalın) |
+| Sayfa zemini | `#0D1012` | `#0A0C0D` | `#F7F6F3` → **`#141210`** (ürün kararı, bkz. not) |
+| Gövde mürekkebi | `#E7EAEA` | `#EDEEEC` | `#1A1A18` → **`#EDE8DF`** |
+| Panel / şerit | `#101416` · `#181D1F` | `#0A0C0D` · `rgba(10,12,13,.7)` | `#FFFFFF` → **`#1A1815` · `#221F1B`** |
+| Saç çizgisi | `#262C2E` | `#1C2123` | `#E4E1DB` · `#D6D2CA` → **`#2B2823` · `#3A362F`** |
 | Arayüz ailesi | Inter Tight | Inter | Inter |
 | Veri ailesi | IBM Plex Mono | JetBrains Mono | IBM Plex Mono |
 | Görüntü ailesi | Archivo | **Barlow Condensed** | **Newsreader** (serif) |
@@ -37,6 +37,15 @@ aksi hâlde üçü de tamamen stilsiz düşüyor (`ERR_CONNECTION_RESET`).
 Üçü de **radius 0**, **saç çizgisi ile kompozisyon**, **mono/tabular sayı** ve
 **kart-içinde-kart yok** disiplinini paylaşır. Ayrıştıkları yer zemin sıcaklığı,
 görüntü ailesi, fotoğraf rolü ve **navigasyon felsefesidir**.
+
+> **C koyudur — ürün kararı (2026-09-01).** Prototip C açık kâğıt zeminliydi;
+> üründe A/B'den C'ye geçiş "bambaşka bir platform" hissi verdiği için ürün
+> TEK temadır: koyu. C'nin *defter grameri* (Newsreader serif görüntü, künye,
+> dizin, saç çizgisi kompozisyonu, oxblood aksan) aynen korunur; yalnız zemin
+> sıcaklığı tersine çevrilir — A/B'nin soğuk grisi değil, sıcak mürekkep
+> kahvesi (`#141210`). Oxblood `#8A3A2C` koyu zeminde 2,6:1'de kaldığı için
+> ton korunarak `#B24936`'ya açıldı; ölçüm `arac/kontrast.mjs`. Yukarıdaki
+> ok işaretli hücreler prototip → ürün değerini gösterir.
 
 ---
 

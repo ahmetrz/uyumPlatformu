@@ -2,7 +2,11 @@
 /* Kontrast denetimi — koyu yüzeylerin OKUNABİLİRLİK kapısı.
 
    ── NİÇİN VAR ─────────────────────────────────────────────────────────
-   Kabuğun üç yönü iki koyu (A, B) bir açık (C) zemin taşıyor.
+   Kabuğun üç yönü de koyu zemin taşıyor: A ve B soğuk gri, C sıcak
+   mürekkep kahvesi (prototipte açık kâğıttı; ürün kararıyla koyuya
+   çevrildi, bkz. harita §0 notu). Üç palet de birbirinden bağımsız
+   ölçülür — C'nin oxblood aksanı koyu zeminde bu araç sayesinde
+   yakalandı ve açıldı.
    Prototiplerdeki mürekkep tonları ölçülmemişti (harita §7 kusur 7):
    ör. A'nın üçüncül mürekkebi `#6E777A`, `#0D1012` üzerinde 4,5:1'in
    ALTINDA kalıyor. Rengi gözle seçip "iyi görünüyor" demek, düşük

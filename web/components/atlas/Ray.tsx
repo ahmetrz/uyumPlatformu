@@ -27,78 +27,19 @@ export type RayOgesi = {
   esYollar?: string[];
 };
 
-/* Flagship katmanı — kısa liste + ayak (efsane veya fotoğraf şeridi) */
-export const RAY_FLAGSHIP: RayOgesi[] = [
-  { ad: 'Bugün', yol: '/' },
-  // Tasarımın rayında "Enerji portföyü" ve "Santraller" ayrı öğeler; bu
-  // uygulamada ikisi de aynı ekranı (F2) açtığı için tek öğede birleştirildi.
-  // Kayıtlı sapma: iki aktif öğe göstermemek için (02-components §1).
-  { ad: 'Enerji portföyü', yol: '/portfoy' },
-  { ad: 'Uyum', yol: '/uyum' },
-  { ad: 'Risk', yol: '/riskler' },
-  { ad: 'Denetim', yol: '/denetimler' },
-  { ad: 'Yönetim', yol: '/yonetim-tezgahi' },
-];
+/* ── LEGACY TEMİZLİĞİ (Atlas 2 rollout, son faz) ──────────────────────
+   Burada iki düz liste dururdu: `RAY_FLAGSHIP` (6 öğe) ve
+   `RAY_OPERASYONEL` (27 öğe). Atlas 2 rayı iki kademeli olduğundan
+   (64px alan rayı + bağlamsal ikincil liste) ekran haritası aşağıdaki
+   `ALANLAR`dan türüyor ve iki liste hiçbir yerden çağrılmıyordu —
+   `grep -rn "RAY_FLAGSHIP\|RAY_OPERASYONEL"` yalnız kendi tanımlarını
+   buluyordu. Ölü bir gezinme listesi zararsız değildir: bir sonraki
+   ekran eklendiğinde hangisinin gerçek olduğu belirsizdir ve yanlış
+   olanına eklemek sessizce hiçbir şey yapmaz.
 
-/* Operasyonel katman — tezgâh ekranları.
-
-   Faz 6'da yirmi dört ekran oldu ve hepsini tek düz listeye dökmek rayı
-   okunmaz yapıyordu. Liste iki bloğa ayrıldı: üstte GÜNLÜK TEZGÂH (bir
-   uyum ekibinin her gün açtığı ekranlar), altta YÖNETİM VE KAYIT
-   (kurulum, kütük, denetim izi — haftada bir açılır). Ayrımı ince bir
-   ayraç taşır; grup BAŞLIĞI yoktur, çünkü operasyonel katmanda başlık
-   yasaktır (02-components §1). Sıra iş akışını izler: uyum → risk →
-   denetim → bulgu → proje, sonra varlık zinciri, sonra operasyon. */
-export const RAY_OPERASYONEL: RayOgesi[] = [
-  // ── günlük tezgâh ──
-  /* Bildirim kutusu listenin BAŞINDA duruyor ve rayın sayaç taşıyan tek
-     öğesi. Gerekçe rayın kendi kuralı: "sayaç yalnız bir kararı değiştiren
-     yerde". Son tarih motoru her koşuda bildirim yazıyordu ve hiçbir ekran
-     okumuyordu (bulgu #11); okunmamış sayısı ray dışında hiçbir yerde
-     görünmezse kutu yine sessiz kalırdı. Sayacı `(operasyonel)/layout.tsx`
-     `sayilar` üzerinden verir; sıfırsa hiç çizilmez. */
-  { ad: 'Bildirimler', yol: '/bildirimler' },
-  { ad: 'Uyum', yol: '/uyum' },
-  { ad: 'Uyum süreçleri', yol: '/surecler' },
-  { ad: 'Risk', yol: '/riskler' },
-  { ad: 'Denetim', yol: '/denetimler' },
-  { ad: 'Bulgu & CAPA', yol: '/bulgular' },
-  { ad: 'Projeler', yol: '/projeler' },
-  { ad: 'Varlıklar', yol: '/envanter' },
-  { ad: 'Keşif', yol: '/kesif' },
-  { ad: 'Topoloji', yol: '/topoloji' },
-  { ad: 'Ömür', yol: '/omur' },
-  { ad: 'Yedek & DR', yol: '/yedekleme' },
-  { ad: 'Erişim', yol: '/kimlik' },
-  { ad: 'Tedarikçiler', yol: '/tedarikciler' },
-  { ad: 'Olaylar', yol: '/olaylar' },
-  { ad: 'Değişiklikler', yol: '/operasyon' },
-  // ── yönetim ve kayıt ──
-  /* İki aktarım hattı AYRI ekranlardır ve adları bunu söylemek zorunda:
-     /varlik-aktarim CMDB varlıklarını taşır (envanter yetkisi),
-     /ice-aktarim regülasyon MADDELERİNİ taşır (tanımlar yetkisi).
-     Eskiden ikincisi rayda hiç yoktu ve birincisi "İçe aktarım" adıyla
-     duruyordu — hangi hattın hangisi olduğu ancak açınca anlaşılıyordu. */
-  { ad: 'Yönetim tezgâhı', yol: '/yonetim-tezgahi', ayrac: true },
-  { ad: 'Regülasyonlar', yol: '/regulasyonlar' },
-  /* İKİ AYRI EŞLEME EKRANI VAR ve adları bunu söylemek zorunda:
-     /eslestirme  madde ↔ madde denkliğini kütükler (çapraz eşleme,
-                  tanımlar yetkisi); /esleme dış sistemin ALANINI platform
-                  alanına çeviren sürümlü kural profilini yönetir (yönetim
-                  yetkisi). Rayda ikincisinin etiketi "Eşleme profilleri":
-                  iki öğe "Eşleştirme" ve "Eşleme" diye yan yana dursaydı
-                  hangisinin hangisi olduğu ancak açınca anlaşılırdı.
-                  Bulgu #10'a kadar bu ekran hiç yoktu: profil connector'a
-                  bağlanabiliyor ama hiçbir yerde doğamıyordu. */
-  { ad: 'Eşleştirme', yol: '/eslestirme' },
-  { ad: 'Eşleme profilleri', yol: '/esleme' },
-  { ad: 'Varlık aktarımı', yol: '/varlik-aktarim' },
-  { ad: 'Madde aktarımı', yol: '/ice-aktarim' },
-  { ad: 'Kullanıcı & yetki', yol: '/yetkiler' },
-  { ad: 'Raporlar', yol: '/raporlar' },
-  { ad: 'Denetim izi', yol: '/aktivite' },
-  { ad: 'Platform sağlığı', yol: '/saglik' },
-];
+   `RayOgesi` tipi ve `RayAyagi` DURUYOR: ilki `ALANLAR.ekranlar`ın
+   eleman tipi, ikincisi flagship kabuğunun fotoğraf şeridi (hâlâ
+   çiziliyor). */
 
 export type RayAyagi =
   | { tip: 'efsane'; bantlar: string[]; yazi: string }
@@ -194,8 +135,6 @@ export default function Ray({
   sayilar,
   kullanici = null,
 }: {
-  /** Geriye dönük: eski düz liste artık kullanılmaz; alan haritası sabittir. */
-  ogeler?: RayOgesi[];
   ayak?: RayAyagi;
   /** Rota → sayaç. Sunucudan gelir; sıfır/undefined ise sayaç gösterilmez. */
   sayilar?: Record<string, { sayi: number; kritik?: boolean }>;

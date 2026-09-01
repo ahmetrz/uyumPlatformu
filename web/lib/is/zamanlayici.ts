@@ -2,6 +2,8 @@ import 'server-only';
 import { db } from '../db';
 import { MOTORLAR, type MotorAdi } from '../motorlar/kayit';
 import { isKos } from '../motorlar/isKosucu';
+import { dolmusKilitleriTemizle } from './kilit';
+import { dolmusOturumlariTemizle } from '../auth';
 import { adaptorVarMi, adaptorCoz } from '../entegrasyon/kayit';
 import { adaptorGerekeni } from '../entegrasyon/adaptorler';
 import { kuyrukSec } from './kuyruk';
@@ -48,6 +50,15 @@ export const MOTOR_ARALIK_DK = 60;
 /** Zamanlayıcı tikinin sıklığı. Aralıkların kendisi değil, yalnız
     çözünürlüğüdür: 15 dakikalık bir connector en fazla bir tik gecikir. */
 export const TIK_ARALIK_MS = 60_000;
+
+/** Bakım (süresi dolmuş satırların temizliği) aralığı. */
+export const BAKIM_ARALIK_DK = 60;
+
+/** Bakım işinin koşu kaydındaki adı. Motor defterine GİRMEZ: bulgu
+    üretmez, veriyi yorumlamaz, yalnız süresi dolmuş satırları siler.
+    Defterdeki her şeyin "otomasyon motoru" sayıldığı bir yerde onu da
+    motor saymak, motor sayısını ve anlamını bozardı. */
+export const BAKIM_ISI = 'bakim_temizlik';
 
 export type VadeHedefi =
   | { tur: 'motor'; anahtar: string; hedef: MotorAdi; sonKosu: Date | null }
@@ -176,6 +187,39 @@ async function connectorVadeleri(simdi: Date): Promise<VadeSonucu> {
   return { kosulacak, atlanan };
 }
 
+/* ─── Bakım ──────────────────────────────────────────────────────────── */
+
+/**
+ * Süresi dolmuş oturum ve kilit satırlarını siler.
+ *
+ * ── Neden gerekli ──────────────────────────────────────────────────────
+ * İki temizleyici yazılmış, test edilmiş ve HİÇBİR YERDEN çağrılmıyordu.
+ * Etkisi sessizdi ve iki yönlüydü: süresi dolmuş `Oturum` satırları
+ * birikince "kaç açık oturum var" sorusunun yanıtı yanlış olur — bir
+ * çalışan işten ayrıldığında sorulan ilk soru budur. `IsKilidi` tarafında
+ * ise işleyiş bozulmaz (kirası dolmuş kilit zaten devralınabilir) ama
+ * tablo sonsuza kadar büyür.
+ *
+ * İşleyişi ETKİLEMEDİĞİ için bu iş fırlatmaz; hata koşu kaydına girer.
+ */
+export async function bakimYap(simdi: Date = new Date()):
+Promise<{ islenen: number; uretilen: number }> {
+  const oturum = await dolmusOturumlariTemizle(simdi);
+  const kilit = await dolmusKilitleriTemizle(simdi);
+  // `islenen` silinen toplam satır, `uretilen` yeni kayıt üretilmediği için 0.
+  return { islenen: oturum + kilit, uretilen: 0 };
+}
+
+async function bakimVadesi(simdi: Date): Promise<boolean> {
+  const son = await db.isKosusu.findFirst({
+    where: { isAdi: BAKIM_ISI, durum: 'basarili' },
+    orderBy: { baslangic: 'desc' },
+    select: { baslangic: true },
+  });
+  const gecen = dkGecti(son?.baslangic ?? null, simdi);
+  return gecen === null || gecen >= BAKIM_ARALIK_DK;
+}
+
 /** Şu an vadesi gelmiş her şey + gelmemiş olanların SEBEBİ. */
 export async function vadesiGelenler(
   simdi: Date = new Date(),
@@ -223,6 +267,16 @@ export async function zamanlayiciTiki(secenek: TikSecenegi = {}): Promise<TikOze
     const { senkronizasyonKos } = await import('../entegrasyon/cekirdek');
     return senkronizasyonKos(id, { tetikleyen: 'zamanlanmis' });
   });
+
+  /* Bakım: motorlardan ve connector'lardan ayrı bir iştir ve kendi koşu
+     satırını bırakır — sessiz temizlik yoktur. Vadesi gelmediyse hiç
+     sıraya girmez. */
+  if (await bakimVadesi(simdi)) {
+    await kuyruk.gonder(
+      { anahtar: `motor:${BAKIM_ISI}`, tur: 'bakim', hedef: BAKIM_ISI },
+      async () => { await isKos(BAKIM_ISI, () => bakimYap(simdi)); },
+    );
+  }
 
   for (const hedef of kosulacak) {
     if (hedef.tur === 'motor') {

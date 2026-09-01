@@ -24,7 +24,7 @@ const { db } = await import('@/lib/db');
 const { kilitAl, kilidiBirak, kilidiTazele, kilitAltinda, dolmusKilitleriTemizle } =
   await import('@/lib/is/kilit');
 const { kuyrukSec, kuyrukSaglayicilari, ES_ZAMANLI_SINIR } = await import('@/lib/is/kuyruk');
-const { connectorVadesi, vadesiGelenler, zamanlayiciTiki, MOTOR_ARALIK_DK } =
+const { connectorVadesi, vadesiGelenler, zamanlayiciTiki, bakimYap, MOTOR_ARALIK_DK, BAKIM_ISI } =
   await import('@/lib/is/zamanlayici');
 
 const SIMDI = new Date('2026-09-01T12:00:00Z');
@@ -239,7 +239,8 @@ describe('Zamanlayıcı tiki', () => {
   it('koşmayan HER hedef sebebiyle raporlanır — sessiz atlama yok', async () => {
     const { kosulacak, atlanan } = await vadesiGelenler(SIMDI);
     const toplam = kosulacak.length + atlanan.length;
-    const motorSayisi = 8;
+    // Defterdeki motor sayısı (erisim_degerlendirme ile birlikte dokuz).
+    const motorSayisi = 9;
     const connectorSayisi = await db.connector.count({ where: { silindi: null } });
     expect(toplam).toBe(motorSayisi + connectorSayisi);
     for (const a of atlanan) expect(a.sebep.length).toBeGreaterThan(5);
@@ -301,5 +302,69 @@ describe('Zamanlayıcı tiki', () => {
     // Tik fırlatmaz; her hedef ya sıraya girer ya sebebiyle atlanır.
     expect(ozet.siralanan + ozet.atlanan.length).toBeGreaterThan(0);
     expect(ozet.sonuc.every((s) => s.ok)).toBe(true);
+  });
+});
+
+
+/* ═══ Bakım ═══════════════════════════════════════════════════════════ */
+
+describe('Bakım işi', () => {
+  it('süresi dolmuş oturum ve kilitleri siler, canlıya dokunmaz', async () => {
+    const k = await db.kullanici.findFirstOrThrow();
+    const dolmus = await db.oturum.create({
+      data: { kullaniciId: k.id, tokenHash: `bakim-dolmus-${Date.now()}`, bitis: dkOnce(60) },
+    });
+    const canli = await db.oturum.create({
+      data: {
+        kullaniciId: k.id, tokenHash: `bakim-canli-${Date.now()}`,
+        bitis: new Date(SIMDI.getTime() + 3_600_000),
+      },
+    });
+    await kilitAl('bakim:dolmus', 60_000, 'a', dkOnce(120));
+    await kilitAl('bakim:canli', 60_000, 'a', SIMDI);
+
+    const sonuc = await bakimYap(SIMDI);
+    expect(sonuc.islenen).toBeGreaterThanOrEqual(2);
+    // Yeni kayıt ÜRETMEZ: bakım bir temizliktir, bir motor değil.
+    expect(sonuc.uretilen).toBe(0);
+
+    expect(await db.oturum.findUnique({ where: { id: dolmus.id } })).toBeNull();
+    expect(await db.oturum.findUnique({ where: { id: canli.id } })).not.toBeNull();
+    expect(await db.isKilidi.findUnique({ where: { ad: 'bakim:dolmus' } })).toBeNull();
+    expect(await db.isKilidi.findUnique({ where: { ad: 'bakim:canli' } })).not.toBeNull();
+  });
+
+  it('tik bakımı KOŞU KAYDIYLA çalıştırır — sessiz temizlik yok', async () => {
+    /* Kapatılan kusur: iki temizleyici yazılmış, test edilmiş ve hiçbir
+       yerden çağrılmıyordu. Süresi dolmuş oturum satırları birikince
+       "kaç açık oturum var" sorusunun yanıtı yanlış olurdu. */
+    await db.isKosusu.deleteMany({ where: { isAdi: BAKIM_ISI } });
+    await zamanlayiciTiki({
+      simdi: SIMDI, motorAralikDk: 10_000, connectorKos: async () => {}, bekle: true,
+    });
+    const kosu = await db.isKosusu.findFirst({
+      where: { isAdi: BAKIM_ISI }, orderBy: { baslangic: 'desc' },
+    });
+    expect(kosu, 'bakım koşu kaydı bırakmadı').not.toBeNull();
+    expect(kosu!.durum).toBe('basarili');
+    expect(kosu!.sureMs).not.toBeNull();
+  });
+
+  it('bakım vadesi dolmadan İKİNCİ kez koşmaz', async () => {
+    /* `simdi` burada GERÇEK saattir, sabit SIMDI değil: koşu satırının
+       `baslangic` alanını veritabanı varsayılanı (gerçek şimdi) yazar.
+       Enjekte edilmiş bir gelecek saatle karşılaştırmak, aradaki farkı
+       "vade doldu" diye okur ve testi kendi kurgusuyla yanıltırdı. */
+    await db.isKosusu.deleteMany({ where: { isAdi: BAKIM_ISI } });
+    const simdi = new Date();
+    await zamanlayiciTiki({
+      simdi, motorAralikDk: 10_000, connectorKos: async () => {}, bekle: true,
+    });
+    expect(await db.isKosusu.count({ where: { isAdi: BAKIM_ISI } })).toBe(1);
+
+    await zamanlayiciTiki({
+      simdi, motorAralikDk: 10_000, connectorKos: async () => {}, bekle: true,
+    });
+    expect(await db.isKosusu.count({ where: { isAdi: BAKIM_ISI } })).toBe(1);
   });
 });

@@ -19,6 +19,17 @@ import { ASAMALAR, asamaEtiketi, asamaIndeksi, eksikKapilar, kapandiMi, kapilar,
 
 /* ── Yeni / mevcut değişiklik ───────────────────────────────────────── */
 
+/* Üç değerli alanın (`Boolean?`) form karşılığı. `null` bir SEÇENEKTİR,
+   varsayılan değil: "sorulmadı" ile "hayır" ayrı bilgilerdir ve emniyet
+   kapısı ikisini de geçirmez ama denetim ikisini ayrı okur. */
+function ucDegerMetni(d: boolean | null): 'evet' | 'hayir' | 'bilinmiyor' {
+  return d === true ? 'evet' : d === false ? 'hayir' : 'bilinmiyor';
+}
+
+function ucDegerCoz(m: string): boolean | null {
+  return m === 'evet' ? true : m === 'hayir' ? false : null;
+}
+
 const ONAY_KUTUSU: React.CSSProperties = {
   display: 'flex', gap: 'var(--s8)', alignItems: 'flex-start',
   fontSize: 'var(--t-code-lg)', color: 'var(--i2)',
@@ -35,10 +46,16 @@ export function DegisiklikFormu({ degisiklik, tesisler, kapat }: {
     varlikEtiketi: degisiklik?.varlikEtiketi ?? '',
     otMu: degisiklik?.otMu ?? false,
     planTarihi: degisiklik?.planTarihi?.slice(0, 10) ?? '',
-    saglayiciOnayi: degisiklik?.saglayiciOnayi ?? false,
+    /* ÜÇ DEĞERLİ: null = HENÜZ SORULMADI. `?? false` yazmak, hiç
+       değerlendirilmemiş bir emniyet kapısını "hayır, alınmadı" diye
+       KAYDA GEÇİRİRDİ — sunucu üç değeri doğru saklıyor (operasyon.ts
+       `?? null`), kaybı yapan yer bu formdu. Kapı `=== true` istediği için
+       planlama davranışı değişmiyordu; değişen şey, kimsenin bakmadığı bir
+       alanın "bakıldı ve olumsuz" görünmesiydi. */
+    saglayiciOnayi: degisiklik?.saglayiciOnayi ?? null,
     bakimPenceresi: degisiklik?.bakimPenceresi ?? '',
     geriAlmaPlani: degisiklik?.geriAlmaPlani ?? '',
-    onDegisiklikYedegi: degisiklik?.onDegisiklikYedegi ?? false,
+    onDegisiklikYedegi: degisiklik?.onDegisiklikYedegi ?? null,
     uretimEtkisi: degisiklik?.uretimEtkisi ?? '',
   });
 
@@ -46,12 +63,17 @@ export function DegisiklikFormu({ degisiklik, tesisler, kapat }: {
 
   /* Eksik kapılar formun İÇİNDE önceden söylenir: kullanıcı kaydedip
      sonra "planlanamaz" hatası almasın. Sunucu yine de son sözü söyler. */
+  /* Kapı `=== true` ister: `null` (sorulmadı) ile `false` (hayır) ikisi de
+     kapıyı açmaz ama AYNI ŞEY DEĞİLDİR ve eksik listesinde ayrı okunur. */
+  const kapiEtiketi = (deger: boolean | null, ad: string) =>
+    (deger === true ? null : deger === false ? `${ad} (alınmadı)` : `${ad} (sorulmadı)`);
+
   const eksik = v.otMu
     ? [
-      v.saglayiciOnayi ? null : 'sağlayıcı onayı',
+      kapiEtiketi(v.saglayiciOnayi, 'sağlayıcı onayı'),
       v.bakimPenceresi.trim() ? null : 'bakım penceresi',
       v.geriAlmaPlani.trim() ? null : 'geri alma planı',
-      v.onDegisiklikYedegi ? null : 'ön değişiklik yedeği',
+      kapiEtiketi(v.onDegisiklikYedegi, 'ön değişiklik yedeği'),
       v.uretimEtkisi.trim() ? null : 'üretim etkisi',
     ].filter((x): x is string => x !== null)
     : [];
@@ -94,16 +116,25 @@ export function DegisiklikFormu({ degisiklik, tesisler, kapat }: {
         <div style={{ display: 'grid', gap: 'var(--s14)',
           borderTop: 'var(--bw-edge) solid var(--hr2)', paddingTop: 'var(--s16)' }}>
           <p className="t-label" style={{ margin: 0 }}>OT emniyet kapıları</p>
-          <label style={ONAY_KUTUSU}>
-            <input type="checkbox" checked={v.saglayiciOnayi}
-              onChange={(e) => setV({ ...v, saglayiciOnayi: e.target.checked })} />
-            Sağlayıcı (vendor) onayı alındı
-          </label>
-          <label style={ONAY_KUTUSU}>
-            <input type="checkbox" checked={v.onDegisiklikYedegi}
-              onChange={(e) => setV({ ...v, onDegisiklikYedegi: e.target.checked })} />
-            Değişiklik öncesi yedek alındı
-          </label>
+          {/* Onay kutusu iki değer taşır; bu alanlar ÜÇ değerlidir.
+              Kutuyla gösterilseydi "sorulmadı" diye bir hâl anlatılamaz,
+              her kaydedişte "hayır" yazılırdı. */}
+          <Alan etiket="Sağlayıcı (vendor) onayı">
+            <select className="gr" value={ucDegerMetni(v.saglayiciOnayi)}
+              onChange={(e) => setV({ ...v, saglayiciOnayi: ucDegerCoz(e.target.value) })}>
+              <option value="bilinmiyor">sorulmadı</option>
+              <option value="evet">alındı</option>
+              <option value="hayir">alınmadı</option>
+            </select>
+          </Alan>
+          <Alan etiket="Değişiklik öncesi yedek">
+            <select className="gr" value={ucDegerMetni(v.onDegisiklikYedegi)}
+              onChange={(e) => setV({ ...v, onDegisiklikYedegi: ucDegerCoz(e.target.value) })}>
+              <option value="bilinmiyor">sorulmadı</option>
+              <option value="evet">alındı</option>
+              <option value="hayir">alınmadı</option>
+            </select>
+          </Alan>
           <Alan etiket="Bakım penceresi">
             <input className="gr" value={v.bakimPenceresi} placeholder="12.10 02:00–05:00"
               onChange={(e) => setV({ ...v, bakimPenceresi: e.target.value })} />

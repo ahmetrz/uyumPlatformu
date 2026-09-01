@@ -1,7 +1,15 @@
 import 'server-only';
-import { headers } from 'next/headers';
 import { db } from './db';
 import { oranKovasiniUnut, oranSinirla } from './api/oranSinir';
+import { adresBilinmiyor, adresEtiketi, istemciAdresi } from './istemciAdresi';
+
+/* Kaynak adres çözümü ARTIK BURADA DEĞİL: ham `x-forwarded-for` /
+   `x-real-ip` okuması `lib/istemciAdresi.ts`e taşındı ve orada açık bir
+   güvenilir-vekil sözleşmesine (TRUST_PROXY) bağlandı. Eski kod başlığın
+   taklit edilebilir olduğunu YORUMDA kabul edip yine de kova seçimine
+   sokuyordu; bu, adres sınırını istemcinin isteğine bırakmaktı. Yeniden
+   dışa veriliyor ki çağıranlar (girisEylemleri.ts) tek yerden alsın. */
+export { istemciAdresi };
 
 /* ═══════════════════════════════════════════════════════════════════════
    GİRİŞ UCU SERTLEŞTİRMESİ — kaba kuvvet kancası + başarısız giriş kaydı
@@ -45,10 +53,17 @@ const sayiOku = (ham: string | undefined, varsayilan: number): number => {
                    sekiz kez yanlış yazmaz, saldırgan binlerce kez dener.
      adresSiniri — kaynak adres başına. Geniş: kimlik doldurma saldırısı her
                    denemede BAŞKA hesap dener ve hesap sayacına hiç takılmaz;
-                   adres sayacı onu yakalar ama bir ofisi kilitlememeli. */
+                   adres sayacı onu yakalar ama bir ofisi kilitlememeli.
+     bilinmeyenSiniri — adres ÇÖZÜLEMEDİĞİNDE kullanılan PAYLAŞILAN kovanın
+                   eşiği. Ayrı ve çok daha geniştir, çünkü bu kova bir adresi
+                   değil bir POPÜLASYONU temsil eder: TRUST_PROXY
+                   yapılandırılmadığında (varsayılan) tüm kimliksiz çağıranlar
+                   buradadır. Gerekçenin tamamı `lib/istemciAdresi.ts`
+                   `ADRES_BILINMIYOR` yorumundadır. */
 let ayar = {
   hesapSiniri: sayiOku(process.env.GIRIS_ORAN_SINIRI, 8),
   adresSiniri: sayiOku(process.env.GIRIS_ADRES_SINIRI, 40),
+  bilinmeyenSiniri: sayiOku(process.env.GIRIS_BILINMEYEN_SINIRI, 1000),
   pencereMs: sayiOku(process.env.GIRIS_ORAN_PENCERE_MS, 15 * 60_000),
 };
 
@@ -78,32 +93,20 @@ const SEBEP_SOZU: Record<GirisRedSebebi, string> = {
 export const epostaNormalize = (ham: string): string => ham.trim().toLowerCase();
 
 const hesapKovasi = (eposta: string) => `giris:hesap:${eposta}`;
-const adresKovasi = (adres: string) => `giris:adres:${adres}`;
 
-/**
- * İsteğin kaynak adresi. Ters vekil arkasında `x-forwarded-for`ın İLK
- * girdisi istemcidir; sonrakiler vekil zinciridir.
- *
- * Değer İSTEMCİ TARAFINDAN UYDURULABİLİR (başlık taklit edilebilir) —
- * bu yüzden adres sayacı tek başına bir güvence değil, ikinci katmandır;
- * asıl sınır hesap sayacıdır. Adres okunamıyorsa 'bilinmeyen' döner ve
- * tüm adressiz istekler tek kovada toplanır (sessizce sınırsız kalmaz).
- */
-export async function istemciAdresi(): Promise<string> {
-  try {
-    const b = await headers();
-    const iletilen = b.get('x-forwarded-for');
-    if (iletilen) {
-      const ilk = iletilen.split(',')[0]?.trim();
-      if (ilk) return ilk.slice(0, 64);
-    }
-    const gercek = b.get('x-real-ip')?.trim();
-    if (gercek) return gercek.slice(0, 64);
-  } catch {
-    /* İstek bağlamı yoksa (test, arka plan işi) adres bilinmez. */
-  }
-  return 'bilinmeyen';
-}
+/* Kova anahtarı ADRESTEN türetilir; adres çözülemediyse `adresEtiketi()` TEK
+   paylaşılan etiketi verir. Kritik nokta: taklit edilmiş bir başlık bu
+   anahtara HİÇ GİREMEZ — `istemciAdresi()` güvenilmeyen modda `null` döner,
+   `null` da tek etikete çözülür. Eski kodda saldırgan her istekte başka bir
+   `X-Forwarded-For` göndererek her istek için YENİ BİR KOVA açtırıyor ve
+   adres sınırını hiç doldurmuyordu. */
+const adresKovasi = (adres: string | null) => `giris:adres:${adresEtiketi(adres)}`;
+
+/** Adres bilinmiyorsa paylaşılan kovanın (geniş) eşiği, biliniyorsa adres
+    eşiği. Aynı sayıyı kullanmak, ya paylaşılan kovayı bir ofisin trafiğiyle
+    doldurur ya da adres eşiğini işe yaramaz kadar genişletirdi. */
+const adresEsigi = (adres: string | null): number =>
+  (adresBilinmiyor(adres) ? ayar.bilinmeyenSiniri : ayar.adresSiniri);
 
 export type GirisKotasi =
   | { izin: true }
@@ -114,13 +117,15 @@ export type GirisKotasi =
  * döner. Parola doğrulamasından ÖNCE çağrılmalıdır — scrypt'i sınırsız
  * çağırtmak tek başına bir hizmet dışı bırakma yüzeyidir.
  */
-export async function girisKotasiTuket(eposta: string, adres: string): Promise<GirisKotasi> {
+export async function girisKotasiTuket(
+  eposta: string, adres: string | null,
+): Promise<GirisKotasi> {
   /* İki sayaç da HER denemede artar: birinden geçip diğerine takılan bir
      istek, geçtiği sayaçta da sayılmış olmalı. Kısa devre yapılsaydı
      saldırgan hesap sayacını doldurup adres sayacını bedavaya getirirdi. */
   const [hesap, kaynak] = await Promise.all([
     oranSinirla(hesapKovasi(eposta), { sinir: ayar.hesapSiniri, pencereMs: ayar.pencereMs }),
-    oranSinirla(adresKovasi(adres), { sinir: ayar.adresSiniri, pencereMs: ayar.pencereMs }),
+    oranSinirla(adresKovasi(adres), { sinir: adresEsigi(adres), pencereMs: ayar.pencereMs }),
   ]);
   if (!hesap.izin) return { izin: false, yenidenDeneSn: hesap.yenidenDeneSn, kova: 'hesap' };
   if (!kaynak.izin) return { izin: false, yenidenDeneSn: kaynak.yenidenDeneSn, kova: 'adres' };
@@ -136,6 +141,11 @@ export async function girisKotasiniAkla(eposta: string): Promise<void> {
 
 /* ═══ Denetim izi ═════════════════════════════════════════════════════ */
 
+/** Denetim izine yazılan adres notu. Adres çözülemediyse SAHTE BİR ADRES
+    yazılmaz ('0.0.0.0' bir kaynakmış gibi okunurdu); "adres bilinmiyor"
+    cümlesi, olay müdahalesine "burada IP yoktu" bilgisini dürüstçe verir. */
+const adresNotu = (adres: string | null): string => adres ?? 'adres bilinmiyor';
+
 /**
  * Başarısız giriş denemesini denetim izine yazar.
  *
@@ -146,7 +156,7 @@ export async function basarisizGirisiYaz(v: {
   eposta: string;
   kullaniciId: string | null;
   sebep: GirisRedSebebi;
-  adres: string;
+  adres: string | null;
 }): Promise<void> {
   try {
     await db.aktiviteKaydi.create({
@@ -157,7 +167,7 @@ export async function basarisizGirisiYaz(v: {
         eylem: 'red',
         alan: 'giris',
         // PAROLA YOK. Yalnız denenen kimlik ve kaynak adres.
-        yeniDeger: `${v.eposta} · ${v.adres}`,
+        yeniDeger: `${v.eposta} · ${adresNotu(v.adres)}`,
         gerekce: SEBEP_SOZU[v.sebep],
         kaynak: 'ui',
       },
@@ -171,7 +181,7 @@ export async function basarisizGirisiYaz(v: {
 export async function basariliGirisiYaz(v: {
   kullaniciId: string;
   eposta: string;
-  adres: string;
+  adres: string | null;
 }): Promise<void> {
   await db.aktiviteKaydi.create({
     data: {
@@ -180,7 +190,7 @@ export async function basariliGirisiYaz(v: {
       varlikId: v.kullaniciId,
       eylem: 'olusturma',
       alan: 'giris',
-      yeniDeger: `${v.eposta} · ${v.adres}`,
+      yeniDeger: `${v.eposta} · ${adresNotu(v.adres)}`,
       kaynak: 'ui',
     },
   });

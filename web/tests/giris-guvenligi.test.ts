@@ -9,6 +9,19 @@ const testDb = path.join(dizin, 'test.db');
 copyFileSync('prisma/dev.db', testDb);
 process.env.TEST_DB = testDb;
 
+/* Bu dosya "önünde TEK ters vekil olan" bir dağıtımı taklit eder.
+
+   NİÇİN AÇIKÇA AYARLANIYOR: `lib/istemciAdresi.ts` artık VARSAYILAN OLARAK
+   iletilen adres başlıklarına GÜVENMEZ (bkz. tests/istemci-adresi.test.ts).
+   Yapılandırma olmadan `istemciAdresi()` her istekte `null` döner ve bu
+   dosyanın "kaynak adres denetim izine yazılır / adres kovası ayrışır"
+   iddiaları ölçülemez hâle gelirdi. Ölçülen şey giriş ucunun davranışıdır;
+   vekil sözleşmesinin kendisi ayrı dosyada sınanır. */
+process.env.TRUST_PROXY = '1';
+
+const { vekilPolitikasiniSifirla } = await import('@/lib/istemciAdresi');
+vekilPolitikasiniSifirla();
+
 const { db } = await import('@/lib/db');
 const { parolaOzetle } = await import('@/lib/auth');
 const { girisYap } = await import('@/lib/girisEylemleri');
@@ -70,7 +83,11 @@ const ADRES_SINIRI = 6;
 
 beforeAll(async () => {
   girisOraniAyarla({
-    hesapSiniri: HESAP_SINIRI, adresSiniri: ADRES_SINIRI, pencereMs: 15 * 60_000 });
+    hesapSiniri: HESAP_SINIRI, adresSiniri: ADRES_SINIRI,
+    /* Adres çözülemediğinde kullanılan PAYLAŞILAN kova. Üretimde bu eşik
+       kasten çok geniştir (bir adresi değil bir popülasyonu temsil eder);
+       burada mekanizmayı ölçebilmek için daraltılır. */
+    bilinmeyenSiniri: ADRES_SINIRI, pencereMs: 15 * 60_000 });
   const hash = parolaOzetle(PAROLA);
   kullaniciId = (await db.kullanici.create({ data: {
     eposta: EPOSTA, adSoyad: 'Giriş Kurbanı', parolaHash: hash, aktif: true } })).id;
@@ -80,7 +97,9 @@ beforeAll(async () => {
 
 beforeEach(async () => {
   await oranSayaclariniSifirla();
-  basliklariAyarla({ 'x-forwarded-for': `${ADRES}, 10.0.0.1` });
+  /* Tek vekilli topolojide vekil `xff = [istemci]` yazar; sondan bir atlama
+     bu tek halkayı seçer. */
+  basliklariAyarla({ 'x-forwarded-for': ADRES });
 });
 
 /* ═══ 1 · başarısız giriş denetim izine yazılır ══════════════════════ */
@@ -224,22 +243,49 @@ describe('Kaba kuvvet: giriş ucunda oran sınırı UYGULANIR', () => {
 
 /* ═══ 3 · kaynak adres çözümü ════════════════════════════════════════ */
 
-describe('Kaynak adres okuma', () => {
-  it('x-forwarded-for zincirinin İLK girdisi istemcidir', async () => {
-    basliklariAyarla({ 'x-forwarded-for': '198.51.100.5, 10.0.0.1, 10.0.0.2' });
+/* Sözleşmenin TAMAMI (TRUST_PROXY biçimleri, bozuk zincir, uzun başlık,
+   liste modu, taklit başlıkla sınır atlatma denemesi) tests/istemci-adresi
+   dosyasındadır. Burada yalnız GİRİŞ UCUNUN o sözleşmeyi kullandığı
+   ölçülür — yani "hangi adres denetim izine ve hangi kovaya gider". */
+
+describe('Kaynak adres, giriş ucunda', () => {
+  it('yapılandırılmış vekil topolojisinde gerçek istemci adresi çözülür', async () => {
+    basliklariAyarla({ 'x-forwarded-for': '198.51.100.5' });
     expect(await istemciAdresi()).toBe('198.51.100.5');
   });
 
-  it('x-real-ip yedeği kullanılır', async () => {
-    basliklariAyarla({ 'x-real-ip': '198.51.100.9' });
-    expect(await istemciAdresi()).toBe('198.51.100.9');
+  it('istemcinin YAZDIĞI sahte ön ek denetim izine GEÇMEZ', async () => {
+    /* Saldırgan `XFF: 1.2.3.4` gönderir; vekil kendi gördüğü adresi EKLER.
+       Eski kod ilk girdiyi alıyordu, yani denetim izine SALDIRGANIN yazdığı
+       adres düşüyordu — olay müdahalesini yanlış kaynağa yönlendiren bir iz.
+       Artık taklit edilen ön ek yok sayılır. */
+    basliklariAyarla({ 'x-forwarded-for': `1.2.3.4, ${ADRES}` });
+    expect(await istemciAdresi()).toBe(ADRES);
+
+    const s = await giris(EPOSTA, 'kesinlikle-yanlis');
+    expect(s.ok).toBe(false);
+    const kayit = (await girisKayitlari(kullaniciId, 'red'))[0];
+    expect(kayit.yeniDeger).toContain(ADRES);
+    expect(kayit.yeniDeger).not.toContain('1.2.3.4');
   });
 
-  it('başlık yoksa adres BİLİNMEYENdir — sessizce sınırsız kalmaz', async () => {
+  it('başlık yoksa adres BİLİNMİYORdur — sahte bir adres uydurulmaz', async () => {
     basliklariTemizle();
-    expect(await istemciAdresi()).toBe('bilinmeyen');
-    /* Adressiz istekler tek kovada toplanır: "adres okunamadı" bir muafiyet
-       değildir. Sınır yine işler. */
+    expect(await istemciAdresi()).toBeNull();
+
+    /* `null` denetim izine '0.0.0.0' gibi GERÇEK GÖRÜNEN bir değer olarak
+       yazılmaz; "adres bilinmiyor" cümlesi olay müdahalesine dürüst bilgi
+       verir. */
+    const s = await giris(EPOSTA, 'kesinlikle-yanlis');
+    expect(s.ok).toBe(false);
+    const kayit = (await girisKayitlari(kullaniciId, 'red'))[0];
+    expect(kayit.yeniDeger).toContain('adres bilinmiyor');
+  });
+
+  it('adres BİLİNMESE DE sınır işler — "okunamadı" bir muafiyet değildir', async () => {
+    basliklariTemizle();
+    /* Adressiz istekler TEK paylaşılan kovada toplanır. Alternatifi (kovayı
+       yine de başlıktan seçmek) tam olarak kapatılan kusurdur. */
     for (let i = 0; i < ADRES_SINIRI; i++) await giris(`a-${i}@test.local`, 'x');
     const s = await giris('a-son@test.local', 'x');
     expect((s as { hata: string }).hata).toMatch(/çok fazla başarısız giriş/i);

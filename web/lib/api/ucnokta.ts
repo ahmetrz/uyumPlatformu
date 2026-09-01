@@ -7,6 +7,7 @@ import type { Modul } from '../erisim';
 import {
   ApiHata, apiHatasinaCevir, durumKodu, hataGovdesi, zodAyrintilari,
 } from './hatalar';
+import { adresBilinmiyor, adresEtiketi, istekAdresi } from '../istemciAdresi';
 import { apiTokenOzeti, bearerToken, istekKimligi, type ApiKimlik } from './kimlik';
 import { oranSinirla } from './oranSinir';
 import { modulYazmaZorunlu, okumaKapsami } from './yetki';
@@ -40,6 +41,28 @@ export type UcSecenegi = {
   modul: Modul;
   islem: 'okuma' | 'yazma';
 };
+
+/* Kimliksiz (jetonsuz) isteklerin oran kovası — adres başına.
+
+   Eskiden jetonsuz HER istek tek bir `'anonim'` kovasındaydı: bir çağıran
+   dakikada 120 istekle tüm kimliksiz trafiği 429'a düşürebiliyordu. Kovayı
+   adrese bölmek bunu çözer, AMA adres güvenilir biçimde çözülemiyorsa
+   (varsayılan: TRUST_PROXY tanımsız) kovayı yine de başlıktan seçmek daha
+   kötüsünü yapardı — saldırgan her istekte başka `X-Forwarded-For` gönderip
+   sınırdan tamamen kaçardı. Bu yüzden:
+
+     · adres çözüldüyse  → `anonim:<ip>`, normal API eşiği,
+     · çözülemediyse     → TEK paylaşılan `anonim:bilinmiyor` kovası, AYRI ve
+                           geniş eşik (`API_BILINMEYEN_SINIRI`).
+
+   Jeton taşıyan çağıranlar kendi kovalarındadır; paylaşılan kovanın dolması
+   entegrasyonları etkilemez. Tam gerekçe: `lib/istemciAdresi.ts`
+   `ADRES_BILINMIYOR`. */
+const sayiOku = (ham: string | undefined, varsayilan: number): number => {
+  const n = Number(ham);
+  return Number.isFinite(n) && n > 0 ? n : varsayilan;
+};
+const ANONIM_BILINMEYEN_SINIRI = sayiOku(process.env.API_BILINMEYEN_SINIRI, 2000);
 
 const AZAMI_GOVDE_BAYT = 4 * 1024 * 1024;
 /** Bu boyutu aşan yanıt idempotency defterine sığmaz; tekrar oynatılamaz. */
@@ -115,8 +138,14 @@ export function apiUcu(
     try {
       // 2 · Oran sınırı — kimlik çözülmeden, kimlik başına kova.
       const token = bearerToken(istek);
-      const kova = token ? `anahtar:${apiTokenOzeti(token)}` : 'anonim';
-      const oran = await oranSinirla(kova);
+      const adres = token ? null : istekAdresi(istek);
+      const kova = token
+        ? `anahtar:${apiTokenOzeti(token)}`
+        : `anonim:${adresEtiketi(adres)}`;
+      const oran = await oranSinirla(
+        kova,
+        !token && adresBilinmiyor(adres) ? { sinir: ANONIM_BILINMEYEN_SINIRI } : undefined,
+      );
       oranBasliklari = {
         'X-RateLimit-Limit': String(oran.sinir),
         'X-RateLimit-Remaining': String(oran.kalan),

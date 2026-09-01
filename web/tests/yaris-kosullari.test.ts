@@ -53,6 +53,44 @@ vi.mock('@/lib/erisim', async (asil) => {
   return { ...gercek, yetkiZorunlu: async () => sahteKullanici, izinVar: () => true };
 });
 
+/* ═══ KAYBEDEN YAZICI TEZGÂHI ═════════════════════════════════════════
+
+   Eşzamanlılığın KENDİSİ bu süreçte üretilemiyor (bkz. dosya sonundaki tek
+   `it.skip`) ama yarışın KAYBEDEN TARAFI deterministik olarak KURULABİLİR.
+
+   Koruyucu kalıbın tamamı şudur: eylem durumu OKUR → transaction açar →
+   `updateMany({ where: { id, <okunan durum> } })` ile durumu SAHİPLENİR →
+   `count === 0` ise başkası önce davranmıştır. Kaybeden dalı çalıştırmak
+   için ihtiyacımız olan tek şey, OKUMA ile SAHİPLENME ARASINDA durumu
+   değiştirmektir — iki iş parçacığı değil.
+
+   `db.$transaction` tam olarak o aralıkta çağrılır. Bu sarmalayıcı, teste
+   oraya tek seferlik bir kanca koyma imkânı verir; kanca yoksa çağrı hiç
+   dokunulmadan geçer, dosyadaki diğer testler bundan etkilenmez.
+
+   Bu bir yarış SİMÜLASYONU DEĞİLDİR ve öyle sunulmuyor: ölçtüğü şey
+   "`count === 0` yolu gerçekten koşuyor mu, koşunca yan etki ve iz
+   kalıyor mu" sorusudur — yani korumanın kendisi. */
+let araGirisim: (() => Promise<void>) | null = null;
+
+vi.mock('@/lib/db', async (asil) => {
+  const gercek = await asil<typeof import('@/lib/db')>();
+  const sarmal = new Proxy(gercek.db, {
+    get(hedef, ozellik, alici) {
+      const deger = Reflect.get(hedef, ozellik, alici);
+      if (ozellik !== '$transaction') return deger;
+      const asilTx = deger as (...arg: unknown[]) => Promise<unknown>;
+      return async (...arg: unknown[]) => {
+        const kanca = araGirisim;
+        araGirisim = null;          // kanca TEK SEFERLİKTİR
+        if (kanca) await kanca();
+        return asilTx.call(hedef, ...arg);
+      };
+    },
+  });
+  return { ...gercek, db: sarmal };
+});
+
 const { db } = await import('@/lib/db');
 const { asamaIlerlet, asamaGeriAl } = await import('@/lib/eylemler2/denetim');
 const { surumAktiflestir } = await import('@/lib/eylemler2/surum');
@@ -319,26 +357,253 @@ describe('P7 — regülasyonda tek aktif sürüm', () => {
   });
 });
 
-/* ═══ Yeniden ÜRETİLEMEYEN yarışlar ═══════════════════════════════════ */
+/* ═══ Kaybeden tarafın DETERMİNİSTİK ölçümü ═══════════════════════════
 
-describe('yeniden üretilemeyen yarışlar (belge)', () => {
-  /* `asamaIlerlet` kapanış kontrolü artık "önce yaz, sonra doğrula" olarak
-     tek transaction içindedir. Onu KIRAN senaryo — sayım ile yazma arasında
-     BAŞKA bir bağlantının yeni bulgu açması — bu süreçte üretilemez:
-     Prisma'nın interaktif transaction'ları burada tam serileşiyor (ölçüldü:
-     iki eşzamanlı `$transaction` gövdesi hiç iç içe geçmiyor, biri bitmeden
-     diğeri başlamıyor) ve SQLite zaten tek yazıcıdır. Yani "kapanış anında
-     araya giren bulgu" tek süreçte yapay olarak bile kurulamaz.
+   Bu bölüm, daha önce iki `it.skip` ile "üretilemedi" diye kapatılmış olan
+   alanı kapatır. Gerekçe DOĞRUydu — tek süreçte, tek yazıcılı SQLite'ta iki
+   transaction gövdesi iç içe geçmiyor — ama o gerekçe yalnız EŞZAMANLILIĞIN
+   üretilemediğini söyler; KORUYUCU MANTIĞIN ölçülemediğini değil.
 
-     Bunu yeşil bir testle "geçti" göstermek yanıltıcı olurdu; kapanış
-     kontrolünün doğruluğu yukarıdaki tek iş parçacıklı testle (transaction
-     geri alınıyor mu) sabitlenmiştir. Gerçek çok bağlantılı yarış ancak
-     PostgreSQL üzerinde ölçülebilir. */
-  it.skip('ÜRETİLEMEDİ: kapanış sayımı ile yazma arasına giren yeni bulgu (çok bağlantı gerekir)', () => {});
+   Korumanın tamamı şu üç adımdır ve üçü de deterministik ölçülebilir:
+     1. koşullu sahiplenme, beklenen durum tutmuyorsa `count === 0` döner,
+     2. `count === 0` dalı AÇIK hata atar ve transaction'ı geri alır,
+     3. geri alma sonrası ne durum değişir ne İZ kalır ne yarım kayıt.
+   ═════════════════════════════════════════════════════════════════════ */
 
-  /* Aynı gerekçe: iki `$transaction` gövdesinin İÇ İÇE geçmesiyle oluşan
-     yarışlar (örn. sapma kararı ile temel taşımanın çakışması) bu süreçte
-     üretilemez. Koşullu `updateMany`'ler yine de yazılmıştır — PostgreSQL'de
-     transaction'lar gerçekten paralel koşacaktır. */
-  it.skip('ÜRETİLEMEDİ: iç içe geçen iki transaction gövdesi (SQLite tek yazıcı, Prisma serileştiriyor)', () => {});
+describe('kaybeden taraf — deterministik', () => {
+  it('1 · koşullu sahiplenme: beklenen durum tutmuyorsa count === 0', async () => {
+    /* Korumanın ilkel taşı. Bunu ölçmeden üstündeki hiçbir iddia dayanak
+       bulmaz: `updateMany` gerçekten koşulu uyguluyor mu, yoksa satırı id
+       üzerinden koşulsuz mu yazıyor? */
+    const d = await denetimAc('kapsam');
+
+    const tutan = await db.denetim.updateMany({
+      where: { id: d.id, durum: 'kapsam', silindi: null }, data: { durum: 'kanit_talebi' } });
+    expect(tutan.count).toBe(1);
+
+    // Aynı çağrı BAYAT beklentiyle: satır var, koşul tutmuyor → hiç yazma.
+    const bayat = await db.denetim.updateMany({
+      where: { id: d.id, durum: 'kapsam', silindi: null }, data: { durum: 'saha' } });
+    expect(bayat.count).toBe(0);
+    expect((await db.denetim.findUniqueOrThrow({ where: { id: d.id } })).durum)
+      .toBe('kanit_talebi');
+  });
+
+  it('2 · kaybeden yazıcı: okuma ile sahiplenme arasında aşama değişirse HİÇBİR ŞEY yazılmaz',
+    async () => {
+      /* Yarışın kaybeden tarafı DOĞRUDAN kuruluyor: `asamaIlerlet` denetimi
+         'kapsam' olarak okur, biz transaction açılmadan hemen önce durumu
+         'saha' yaparız (= "başkası önce davrandı"), ve eylem kendi okuduğu
+         duruma göre yazmaya çalışır. `count === 0` dalı burada koşar. */
+      const d = await denetimAc('kapsam');
+      araGirisim = async () => {
+        await db.denetim.update({ where: { id: d.id }, data: { durum: 'saha' } });
+      };
+
+      const sonuc = await asamaIlerlet({ id: d.id }) as Sonuc;
+
+      // AÇIK hata — sessiz "tamam" değil.
+      expect(sonuc.ok).toBe(false);
+      expect(!sonuc.ok && sonuc.hata).toMatch(/başka bir kullanıcı tarafından değiştirildi/);
+
+      /* YAN ETKİ YOK: kaybedenin yazacağı değer 'kanit_talebi' idi (bayat
+         'kapsam' okumasından türetilmişti). Satır kazananın bıraktığı yerde. */
+      expect((await db.denetim.findUniqueOrThrow({ where: { id: d.id } })).durum).toBe('saha');
+
+      // İZ YOK: gerçekleşmemiş bir geçiş denetim izine düşmez.
+      expect(await izSatirlari(d.id)).toHaveLength(0);
+    });
+
+  it('3 · bayat durum reddi (geri alma): kaybeden geri alma da iz bırakmaz', async () => {
+    /* Aynı kalıbın diğer yönü. `asamaGeriAl` gerekçe ALIR ve gerekçeyi ize
+       yazar; koruma çalışmazsa geriye "olmamış bir geri alma"nın gerekçeli
+       kaydı kalırdı — denetim izinin anlatabileceği en kötü yalan. */
+    const d = await denetimAc('saha');
+    araGirisim = async () => {
+      await db.denetim.update({ where: { id: d.id }, data: { durum: 'bulgu' } });
+    };
+
+    const sonuc = await asamaGeriAl({
+      id: d.id, gerekce: 'Saha çalışması eksik kaldı, kapsama dönülüyor' }) as Sonuc;
+
+    expect(sonuc.ok).toBe(false);
+    expect(!sonuc.ok && sonuc.hata).toMatch(/başka bir kullanıcı tarafından değiştirildi/);
+    expect((await db.denetim.findUniqueOrThrow({ where: { id: d.id } })).durum).toBe('bulgu');
+    const iz = await izSatirlari(d.id);
+    expect(iz).toHaveLength(0);
+    expect(JSON.stringify(iz)).not.toContain('Saha çalışması eksik kaldı');
+  });
+
+  it('4 · sapma kararı: kaybeden kararı ve GEREKÇEYİ ezemez', async () => {
+    const sapma = await sapmaAc('yuksek');
+    const aktor = sahteKullanici.id;
+
+    /* Kaybeden dalı kur: `sapmaKarari` sapmayı "gozlendi" okur (hızlı ret
+       kapısından geçer), sonra biz kararı bağlarız. Koşullu sahiplenme
+       `durum in (gozlendi, inceleme)` istediği için count === 0 olur.
+       Hızlı ret kapısı DEĞİL bu kapı konuşuyor: mesajlar farklıdır. */
+    araGirisim = async () => {
+      await db.topolojiSapmasi.update({ where: { id: sapma.id }, data: {
+        durum: 'ret', kararVerenId: aktor, kararZamani: new Date(),
+        kararGerekcesi: 'Önce gelen karar: değişiklik onaysız, reddedildi' } });
+    };
+
+    await expect(T.sapmaKarari({ sapmaId: sapma.id, karar: 'kabul', kararVerenId: aktor,
+      gerekce: 'Sonra gelen karar: değişiklik planlıydı, kabul ediliyor' }))
+      .rejects.toThrow(/bu sırada başkası tarafından karara bağlandı/);
+
+    const son = await db.topolojiSapmasi.findUniqueOrThrow({ where: { id: sapma.id } });
+    expect(son.durum).toBe('ret');
+    expect(son.kararGerekcesi).toMatch(/Önce gelen karar/);
+    expect(son.kararGerekcesi).not.toMatch(/Sonra gelen karar/);
+  });
+
+  it('5 · kaybeden dal YARIM KAYIT bırakmaz: risk açılıp geri alınır', async () => {
+    /* `riskKaydiAc` önce Risk satırını AÇAR, sonra sapmayı koşullu bağlar.
+       Kaybeden dalda bağ tutmaz ve transaction geri alınır — açılan risk de
+       geri alınmalıdır. Aksi hâlde risk kütüğünde hiçbir sapmaya bağlı
+       OLMAYAN, kimsenin sahiplenmediği bir kayıt kalırdı.
+
+       Hızlı ret kapısı bu testte KONUŞAMAZ: sapma okunduğunda
+       `uretilenRiskId` hâlâ null'dı; bağ ondan SONRA doldu. */
+    const sapma = await sapmaAc();
+    const kod = benzersiz('R-KAYBEDEN');
+    araGirisim = async () => {
+      await db.topolojiSapmasi.update({
+        where: { id: sapma.id }, data: { uretilenRiskId: 'onceki-risk-kaydi' } });
+    };
+
+    await expect(T.riskKaydiAc(sapma.id, sahteKullanici.id, {
+      kod, gerekce: 'Kaybeden dalın gerekçesi' }))
+      .rejects.toThrow(/zaten bir risk kaydı açılmış/);
+
+    expect(await db.risk.count({ where: { kod } })).toBe(0);
+    const son = await db.topolojiSapmasi.findUniqueOrThrow({ where: { id: sapma.id } });
+    expect(son.uretilenRiskId).toBe('onceki-risk-kaydi');
+  });
+
+  it('6 · sürüm aktifleştirme: arşivleme sahiplenilemezse regülasyon aktifsiz KALMAZ', async () => {
+    /* En pahalı kaybeden dal: `surumAktiflestir` önce eskiyi arşivler, sonra
+       yeniyi aktifleştirir. Arşivleme koşullu değilse (ya da geri alınmazsa)
+       regülasyon HİÇ AKTİF SÜRÜMSÜZ kalır — "aktif sürüm" filtreleriyle
+       çalışan her ekran o anda boş döner. */
+    const reg = await db.regulasyon.create({ data: {
+      kod: benzersiz('REG-KAYBEDEN'), ad: 'Kaybeden dal regülasyonu' } });
+    const eski = await db.frameworkSurumu.create({ data: {
+      regulasyonId: reg.id, surumEtiketi: benzersiz('E'), durum: 'aktif' } });
+    const taslak = await db.frameworkSurumu.create({ data: {
+      regulasyonId: reg.id, surumEtiketi: benzersiz('T'), durum: 'taslak' } });
+
+    // "Başkası önce davrandı": eski sürüm okuma ile yazma arasında arşive indi.
+    araGirisim = async () => {
+      await db.frameworkSurumu.update({
+        where: { id: eski.id }, data: { durum: 'arsiv' } });
+    };
+
+    const sonuc = await surumAktiflestir({ surumId: taslak.id }) as Sonuc;
+    expect(sonuc.ok).toBe(false);
+    expect(!sonuc.ok && sonuc.hata).toMatch(/değiştirildi/);
+
+    // Taslak taslak kaldı; iz yazılmadı.
+    expect((await db.frameworkSurumu.findUniqueOrThrow({ where: { id: taslak.id } })).durum)
+      .toBe('taslak');
+    expect(await db.aktiviteKaydi.count({ where: {
+      varlikTipi: 'Regulasyon', varlikId: reg.id, alan: 'aktif_surum' } })).toBe(0);
+  });
+
+  it('7 · çift yan etki engeli: aynı işlem ardışık iki kez çağrılınca bir kez uygulanır',
+    async () => {
+      /* Yarış olmadan da olan bir kusur: kullanıcının düğmeye iki kez
+         basması. Koşullu sahiplenme burada da tek savunmadır. */
+      const sapma = await sapmaAc();
+      const aktor = sahteKullanici.id;
+      const kodA = benzersiz('R-CIFT-A');
+      const kodB = benzersiz('R-CIFT-B');
+
+      const ilk = await T.riskKaydiAc(sapma.id, aktor, { kod: kodA, gerekce: 'İlk çağrı' });
+      await expect(T.riskKaydiAc(sapma.id, aktor, { kod: kodB, gerekce: 'İkinci çağrı' }))
+        .rejects.toThrow(/zaten bir risk kaydı açılmış/);
+
+      // Yan etki TEK: bir risk, ve sapma ilk kayda bağlı.
+      expect(await db.risk.count({ where: { kod: { in: [kodA, kodB] } } })).toBe(1);
+      const son = await db.topolojiSapmasi.findUniqueOrThrow({ where: { id: sapma.id } });
+      expect(son.uretilenRiskId).toBe(ilk.riskId);
+    });
+
+  it('8 · çift yan etki engeli: aynı sürüm iki kez aktifleştirilemez, iz TEK satır', async () => {
+    const reg = await db.regulasyon.create({ data: {
+      kod: benzersiz('REG-CIFT'), ad: 'Çift çağrı regülasyonu' } });
+    await db.frameworkSurumu.create({ data: {
+      regulasyonId: reg.id, surumEtiketi: benzersiz('E'), durum: 'aktif' } });
+    const taslak = await db.frameworkSurumu.create({ data: {
+      regulasyonId: reg.id, surumEtiketi: benzersiz('T'), durum: 'taslak' } });
+
+    expect((await surumAktiflestir({ surumId: taslak.id }) as Sonuc).ok).toBe(true);
+    const ikinci = await surumAktiflestir({ surumId: taslak.id }) as Sonuc;
+    expect(ikinci.ok).toBe(false);
+
+    expect(await db.frameworkSurumu.count({ where: { regulasyonId: reg.id, durum: 'aktif' } }))
+      .toBe(1);
+    expect(await db.aktiviteKaydi.count({ where: {
+      varlikTipi: 'Regulasyon', varlikId: reg.id, alan: 'aktif_surum' } })).toBe(1);
+  });
+
+  it('9 · taslak artık taslak değilse aktifleştirme sahiplenilemez; arşivleme de geri alınır',
+    async () => {
+      /* Aktifleştirme adımının KENDİ koşulu. Yukarıdaki 6 numaralı test
+         arşivleme kapısını ölçüyor; bu, ondan sonraki kapıyı ölçer — ve
+         yalnız o kapı vardır: aynı taslağı iki çağrı da aktifleştirmek
+         isterse ortada kopya satır olmadığı için kısmi tekil indeks bunu
+         GÖREMEZ, koşullu `updateMany` tek savunmadır.
+
+         Ayrıca ölçülen ikinci şey: kaybeden dalda ARŞİVLEME DE geri alınır.
+         Alınmasaydı regülasyon aktif sürümsüz kalırdı — "aktif sürüm"
+         filtresiyle çalışan her ekran o anda boş dönerdi. */
+      const reg = await db.regulasyon.create({ data: {
+        kod: benzersiz('REG-AKTIF'), ad: 'Aktifleştirme kapısı regülasyonu' } });
+      const eski = await db.frameworkSurumu.create({ data: {
+        regulasyonId: reg.id, surumEtiketi: benzersiz('E'), durum: 'aktif' } });
+      const taslak = await db.frameworkSurumu.create({ data: {
+        regulasyonId: reg.id, surumEtiketi: benzersiz('T'), durum: 'taslak' } });
+
+      // "Başkası önce davrandı": taslak okuma ile yazma arasında arşive indi.
+      araGirisim = async () => {
+        await db.frameworkSurumu.update({
+          where: { id: taslak.id }, data: { durum: 'arsiv' } });
+      };
+
+      const sonuc = await surumAktiflestir({ surumId: taslak.id }) as Sonuc;
+      expect(sonuc.ok).toBe(false);
+      expect(!sonuc.ok && sonuc.hata).toMatch(/değiştirildi/);
+
+      // Arşiv edilmiş taslak SESSİZCE aktifleştirilmedi…
+      expect((await db.frameworkSurumu.findUniqueOrThrow({ where: { id: taslak.id } })).durum)
+        .toBe('arsiv');
+      // …ve eski sürüm hâlâ aktif: regülasyon aktifsiz kalmadı.
+      expect((await db.frameworkSurumu.findUniqueOrThrow({ where: { id: eski.id } })).durum)
+        .toBe('aktif');
+      expect(await db.aktiviteKaydi.count({ where: {
+        varlikTipi: 'Regulasyon', varlikId: reg.id, alan: 'aktif_surum' } })).toBe(0);
+    });
+});
+
+/* ═══ Yeniden ÜRETİLEMEYEN yarış ══════════════════════════════════════ */
+
+describe('yeniden üretilemeyen yarış (belge)', () => {
+  /* GERİYE KALAN TEK BOŞLUK ve neden burada kaldığı:
+
+     Yukarıdaki tezgâh, durumu transaction'dan ÖNCE değiştirerek kaybeden
+     dalı çalıştırabiliyor. Çalıştıramadığı tek şey, bir transaction GÖVDESİ
+     koşarken BAŞKA bir bağlantının araya girmesidir — örneğin `asamaIlerlet`
+     aşamayı yazdıktan SONRA, aynı transaction içindeki açık-bulgu sayımından
+     ÖNCE yeni bir bulgu açılması, ya da iki `$transaction` gövdesinin iç içe
+     geçmesi. Bu, tek yazıcılı SQLite ve Prisma'nın bu süreçte tam serileşen
+     interaktif transaction'ları altında YAPAY OLARAK BİLE kurulamaz; gerçek
+     ölçüm ancak PostgreSQL üzerinde, ayrı bağlantılarla mümkündür.
+
+     Bunu yeşil bir testle "geçti" göstermek yanıltıcı olurdu. Sayım ile
+     yazmanın tek transaction'da olduğu ve reddin her şeyi geri aldığı
+     yukarıda ölçülüdür; ölçülemeyen yalnız eşzamanlılığın kendisidir. */
+  it.skip('ÜRETİLEMEDİ: transaction GÖVDESİ koşarken araya giren ikinci bağlantı — '
+    + 'gerçekten paralel transaction gerektirir, yani PostgreSQL', () => {});
 });

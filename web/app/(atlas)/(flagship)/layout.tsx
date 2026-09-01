@@ -1,4 +1,5 @@
-import Ray, { RAY_FLAGSHIP } from '@/components/atlas/Ray';
+import Ray from '@/components/atlas/Ray';
+import DurumAyagi from '@/components/atlas/DurumAyagi';
 import { RAY_SERIDI } from '@/lib/atlas/gorsel';
 import { aktifKullanici } from '@/lib/auth';
 
@@ -10,19 +11,22 @@ async function oturumBlogu() {
   return { ad: k.adSoyad, unvan: k.unvan, demo: k.id === 'demo' };
 }
 
-/* Flagship katmanı kendi rayını taşır (02-components §1): kısa liste ve
-   168px fotoğrafik ayak şeridi. Operasyonel katmanın 11 öğeli düz listesi
-   burada görünmez — ray katmana göre değişir. */
+/* Atlas 2 kabuğu: ray artık iki kademeli (64px alan rayı + 192px
+   bağlamsal liste) ve alan haritası Ray'in kendisinde sabittir; katman
+   başına ayrı liste geçirilmez. Flagship'e özgü olan yalnız fotoğrafik
+   ayak şerididir. Durum ayağı .atlas-govde'nin KARDEŞİDİR — içine
+   konursa :has(> .cekmece) çekmece kolonunu bozar. */
 
 export default async function FlagshipYerlesim({ children }: { children: React.ReactNode }) {
   return (
     <div className="atlas atlas-kabuk">
-      <Ray ogeler={RAY_FLAGSHIP}
+      <Ray
         ayak={{ tip: 'serit', gorsel: RAY_SERIDI,
           alt: 'Zorlu Enerji üretim portföyü — jeotermal, hidro, rüzgâr',
           yazi: 'Enerji üretim grubu · saha' }}
         kullanici={await oturumBlogu()} />
       <div className="atlas-govde">{children}</div>
+      <DurumAyagi />
     </div>
   );
 }

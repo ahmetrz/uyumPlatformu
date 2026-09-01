@@ -10,7 +10,10 @@
     "seed": "tsx prisma/seed.ts",
     "db:hazirla": "prisma migrate deploy && prisma generate && tsx prisma/seed.ts",
     "demo:build": "prisma generate && next build",
-    "test": "vitest run"
+    "test": "vitest run",
+    "sayimlar:yenile": "node arac/test-envanteri.mjs --yaz && node arac/sayimlar.mjs --yaz",
+    "sayimlar:denetle": "node arac/test-envanteri.mjs --denetle",
+    "gezinme:test": "node arac/gezinme-testi.mjs"
   },
   "dependencies": {
     "@prisma/adapter-better-sqlite3": "^7.10.0",
@@ -31,6 +34,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.3.3",
     "playwright-core": "^1.62.1",
+    "tsx": "^4.23.13",
     "typescript": "^5",
     "vitest": "^4.1.11"
   }

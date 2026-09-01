@@ -3,9 +3,11 @@ import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import {
-  Alan, BosIlk, Dugme, Hata, Ipucu, Kesir, type Durum,
+  Alan, BosIlk, Dugme, Hata, Im, Ipucu, Kesir, type Durum,
 } from '@/components/atlas/temel';
-import { Matris, type MatrisSatiri } from '@/components/atlas/tablo';
+import {
+  Matris, Tablo, type Kolon, type MatrisSatiri, type Satir,
+} from '@/components/atlas/tablo';
 import { EkranBasligi, Filtreler } from '@/components/atlas/ekran';
 import {
   Cekmece, CekmeceAlanlar, CekmeceBagli, CekmeceEylemler, CekmeceKimlik,
@@ -14,8 +16,8 @@ import { useEylem } from '@/components/useEylem';
 import { kanitTalebiEkle } from '@/lib/eylemler2/denetim';
 import { DURUM_ETIKET, etiketle } from '@/lib/sabitler';
 import {
-  acikMi, aileDurumu, enKotuHam, sakinMi, satirAgirligi,
-  type CerceveVerisi, type Kontrol,
+  acikMi, agirlik, aileDurumu, enKotuHam, kisaTarih, sakinMi, satirAgirligi,
+  type CerceveVerisi, type Kontrol, type TesisSatiri,
 } from './mantik';
 
 /* O1 · Uyum kontrol odası — "nerede uyumsuzuz?" (03-screens O1)
@@ -34,7 +36,52 @@ const BAG_STILI = {
   fontSize: 'inherit', fontWeight: 400, letterSpacing: 'inherit',
 } as const;
 
+/* ── Dikkat listesi — matrisin altındaki ikincil yüzey ────────────────
+   PİLOT KUSURU: Atlas 2'de matris 5 satıra düşünce ekranın alt yarısı
+   (≈340px) tamamen boş kalıyordu. Boşluk sadeliğin kanıtı değil; "az
+   gürültü" ile "hiçbir şey yok" aynı şey değildir.
+
+   Bu yüzey YENİ VERİ ÇEKMEZ ve YENİ İŞ KURALI TANIMLAMAZ: zaten yüklü
+   olan `cerceve.satirlar[].kontroller` üzerinden, matrisin kendi
+   fonksiyonlarıyla (`acikMi`, `agirlik` — mantik.ts) süzülüp sıralanır.
+   Matris "NEREDE uyumsuzuz" der ama hücre bir aileyi temsil ettiği için
+   "HANGİ kontrol, KİMDE, NE ZAMAN" sorularını yanıtlayamaz; bu liste tam
+   olarak o üç sütunu verir ve satıra basınca matrisin açtığı ÇEKMECENİN
+   AYNISINI açar. KPI kutusu eklenmedi — sarmalayıcı kart yok, aynı
+   `Tablo` primitifi ve aynı işaretçi grameri kullanılır. */
+const DIKKAT_KOLONLARI: Kolon[] = [
+  { baslik: 'Aile', genislik: 'minmax(120px, 0.7fr)', ikincil: true },
+  { baslik: 'Sahip', genislik: '132px', ikincil: true },
+  { baslik: 'Kanıt', genislik: '132px' },
+  { baslik: 'Son tarih', genislik: '150px' },
+];
+
+/** 06 §A3: tabloda 5–9 satır; kalanı kuyruk satırı toplar. */
+const DIKKAT_BUTCESI = 6;
+
+/** Aynı ağırlıkta olanlarda termini geçmiş olan üste çıkar. */
+const TERMIN_SIRASI: Record<string, number> = { bd: 0, md: 1, unk: 2, ok: 3 };
+
 type Secim = { tesisId: string; kontrol: Kontrol; aileId: string };
+
+/** Seçili çerçevenin künyesi — hepsi zaten yüklü alanlar, tek sessiz satır. */
+function cerceveBaglami(cerceve: CerceveVerisi): string {
+  const parcalar: string[] = [];
+  if (cerceve.surumEtiketi) parcalar.push(`sürüm ${cerceve.surumEtiketi}`);
+  if (cerceve.yururluk) parcalar.push(`yürürlük ${kisaTarih(cerceve.yururluk)}`);
+  if (cerceve.surec) {
+    parcalar.push(cerceve.surec.kalanGun != null
+      ? `süreç ${cerceve.surec.kod} · ${cerceve.surec.kalanGun} gün`
+      : `süreç ${cerceve.surec.kod}`);
+  }
+  if (cerceve.denetim) parcalar.push(`denetim ${cerceve.denetim.kod}`);
+  if (cerceve.kural) {
+    parcalar.push(`kapsam kuralı v${cerceve.kural.surum}`
+      + (cerceve.kural.sonHesap ? ` · son hesap ${kisaTarih(cerceve.kural.sonHesap)}` : '')
+      + (cerceve.kural.elIleSayisi > 0 ? ` · ${cerceve.kural.elIleSayisi} el ile` : ''));
+  }
+  return parcalar.join(' · ');
+}
 
 /** Ekranın açılış konumu: hangi çerçeve, hangi kırılım.
     `/uyum?kontrol=EPDK-SYM-4.2.1` → o kontrolün çerçevesi + ailesi açılır
@@ -81,6 +128,8 @@ export default function UyumIstemci({
   const [odak, setOdak] = useState<Odak>(
     () => acilisOdagi(cerceveler, kontrolParam, cerceveParam));
   const [secim, setSecim] = useState<Secim | null>(null);
+  /* Dikkat listesi bütçeyi aşınca kuyruk satırı açar — salt sunum durumu. */
+  const [dikkatAcik, setDikkatAcik] = useState(false);
 
   const { aile: odakAile, madde: odakMadde } = odak;
   const cerceve = cerceveler.find((c) => c.kod === odak.cerceve) ?? cerceveler[0];
@@ -88,6 +137,7 @@ export default function UyumIstemci({
   function cerceveSec(kod: string) {
     setOdak({ cerceve: kod, aile: null, madde: null });
     setSecim(null);
+    setDikkatAcik(false);
     kapsamiYaz(kod);
   }
 
@@ -142,6 +192,57 @@ export default function UyumIstemci({
     }).sort((a, b) => b.agirlik - a.agirlik);
   }, [cerceve, kolonlar, aile]);
 
+  /* ── dikkat listesi: takip gerektiren kontroller, en ağırdan hafife ──
+     Kaynak matrisin ta kendisi (`cerceve.satirlar`); kırılım seçiliyse
+     kapsam o aileye daralır, çünkü ekranın odağı da oraya daralmıştır. */
+  const dikkat = useMemo(() => {
+    if (!cerceve) return [] as { satir: TesisSatiri; kontrol: Kontrol }[];
+    const liste: { satir: TesisSatiri; kontrol: Kontrol }[] = [];
+    for (const s of cerceve.satirlar) {
+      for (const k of s.kontroller) {
+        if (!acikMi(k.ham)) continue;
+        if (odakAile && k.aileId !== odakAile) continue;
+        liste.push({ satir: s, kontrol: k });
+      }
+    }
+    return liste.sort((a, b) => {
+      const w = agirlik(b.kontrol.ham) - agirlik(a.kontrol.ham);
+      if (w !== 0) return w;
+      const t = (d: Durum | null) => (d ? TERMIN_SIRASI[d] ?? 4 : 4);
+      const tf = t(a.kontrol.terminIm) - t(b.kontrol.terminIm);
+      if (tf !== 0) return tf;
+      return a.satir.ad.localeCompare(b.satir.ad, 'tr');
+    });
+  }, [cerceve, odakAile]);
+
+  const dikkatGorunur = dikkatAcik ? dikkat : dikkat.slice(0, DIKKAT_BUTCESI);
+  const dikkatSatirlari: Satir[] = dikkatGorunur.map(({ satir, kontrol }) => ({
+    id: kontrol.anahtar,
+    durum: kontrol.im ?? 'unk',
+    kenar: kontrol.im ?? 'unk',
+    /* Durum SÖZCÜĞÜ yok — işaretçi + kod + başlık (06 §A2/§A4-3). */
+    konu: `${kontrol.kisaKod} · ${kontrol.baslik}`,
+    alt: satir.ad,
+    hucreler: [
+      cerceve?.aileler.find((a) => a.id === kontrol.aileId)?.kisa ?? '—',
+      kontrol.sahip ?? '—',
+      /* Kanıt tazeliği: işaretçi taze/eskimiş/yok ayrımını taşır, metin
+         yalnız sayıyı ve nedeni söyler ("3 · süresi doldu"). */
+      <span key="k" style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--s6)' }}>
+        <Im durum={kontrol.kanitIm} ad="Kanıt tazeliği" />
+        {kontrol.kanitYazi}
+      </span>,
+      kontrol.terminIm
+        ? (
+          <span key="t" style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--s6)' }}>
+            <Im durum={kontrol.terminIm} ad="Termin" />
+            {kontrol.termin}
+          </span>
+        )
+        : kontrol.termin,
+    ],
+  }));
+
   const matrisSatirlari: MatrisSatiri[] = satirVerisi.map((v) => ({
     id: v.satir.id,
     ad: v.satir.ad,
@@ -160,7 +261,7 @@ export default function UyumIstemci({
 
   if (!cerceve) {
     return (
-      <main>
+      <main data-yuzey="defter">
         <EkranBasligi eyebrow="UYUM" baslik="Uyum kontrol odası" />
         <section className="ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
           <BosIlk cumle="Sistemde aktif regülasyon tanımlı değil."
@@ -203,7 +304,7 @@ export default function UyumIstemci({
 
   return (
     <>
-      <main style={{ minWidth: 0 }}>
+      <main data-yuzey="defter" style={{ minWidth: 0 }}>
         {/* Başlık cevabı verir: uyumsuz varsa onu, yoksa takipteki yükü söyler. */}
         <EkranBasligi
           eyebrow={`${cerceve.gorunenAd} · ${m.kapsamdakiTesis} tesis kapsamda`}
@@ -301,6 +402,60 @@ export default function UyumIstemci({
                   </Link>
                 </p>
               )}
+
+              {/* ── İkincil yüzey: dikkat listesi ────────────────────────
+                  Matrisin altındaki boşluk artık matrisin cevaplayamadığı
+                  soruyu taşıyor: hangi kontrol, kimde, ne zaman, kanıtı ne
+                  durumda. Yeni sorgu ya da yeni iş kuralı yok. */}
+              <div className="uyum-ikincil">
+                {dikkat.length > 0 ? (
+                  <>
+                    <p className="t-colhead uyum-ikincil-bas">
+                      Dikkat listesi
+                      <span className="ayrinti">
+                        {dikkat.length} kontrol takipte
+                        {aile ? ` · ${aile.kisa} kırılımı` : ''}
+                      </span>
+                    </p>
+                    <Tablo
+                      sik
+                      konuBasligi="Kontrol"
+                      kolonlar={DIKKAT_KOLONLARI}
+                      satirlar={dikkatSatirlari}
+                      secili={secim
+                        ? `${secim.tesisId}::${secim.kontrol.maddeId}`
+                        : null}
+                      /* Aynı çekmece: liste matrisin kısayolu, ayrı bir
+                         ekran değil. */
+                      sec={(id) => {
+                        const hedef = dikkat.find((d) => d.kontrol.anahtar === id);
+                        if (!hedef) return;
+                        setSecim({
+                          tesisId: hedef.satir.id,
+                          kontrol: hedef.kontrol,
+                          aileId: hedef.kontrol.aileId,
+                        });
+                      }}
+                      kuyruk={!dikkatAcik && dikkat.length > DIKKAT_BUTCESI
+                        ? {
+                          metin: `+${dikkat.length - DIKKAT_BUTCESI} kontrol · daha hafif`,
+                          ac: () => setDikkatAcik(true),
+                        }
+                        : null}
+                    />
+                  </>
+                ) : (
+                  /* Boş olmak da bir cevaptır — ama sessiz bir boşlukla
+                     değil, tek cümleyle söylenir. */
+                  <p className="dip-not" style={{ marginTop: 0 }}>
+                    {cerceve.gorunenAd} kapsamında takip gerektiren kontrol yok.
+                  </p>
+                )}
+
+                {/* Çerçeve künyesi — hangi sürüme, hangi sürece, hangi
+                    denetime bakıyoruz. Tek satır, kutu yok. */}
+                <p className="dip-not">{cerceveBaglami(cerceve)}</p>
+              </div>
             </div>
           )}
         </section>

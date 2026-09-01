@@ -47,7 +47,7 @@ export default function Genel({
     { day: 'numeric', month: 'long', year: 'numeric' });
 
   return (
-    <main style={{ minWidth: 0 }}>
+    <main data-yuzey="saha" style={{ minWidth: 0 }}>
       {/* ── Bağlam şeridi 132px: nötr grup kompozisyonu ─────────────── */}
       <div className="baglam-serit">
         {/* eslint-disable-next-line @next/next/no-img-element -- statik dışa aktarım */}

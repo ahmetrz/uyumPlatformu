@@ -1,4 +1,5 @@
-import Ray, { RAY_OPERASYONEL } from '@/components/atlas/Ray';
+import Ray from '@/components/atlas/Ray';
+import DurumAyagi from '@/components/atlas/DurumAyagi';
 import { aktifKullanici } from '@/lib/auth';
 import { db } from '@/lib/db';
 
@@ -36,16 +37,19 @@ async function raySayaclari(): Promise<
   return { '/bildirimler': { sayi: okunmamis, kritik: uyari > 0 } };
 }
 
-/* Atlas kabuğu — 250px ray | esnek içerik | 420px çekmece (seçim varken).
-   Çekmece kolonu CSS :has() ile açılır: ekran <aside class="cekmece">
-   render ettiğinde grid ikinci kolonu kazanır, JS gerekmez. */
+/* Atlas 2 kabuğu — 256px iki kademeli ray (64px alan + 192px liste) |
+   esnek içerik | 420px çekmece (seçim varken). Çekmece kolonu CSS :has()
+   ile açılır: ekran <aside class="cekmece"> render ettiğinde grid ikinci
+   kolonu kazanır, JS gerekmez. Durum ayağı .atlas-govde'nin KARDEŞİDİR —
+   içine konursa :has(> .cekmece) çekmece kolonunu bozar. */
 
 export default async function AtlasYerlesim({ children }: { children: React.ReactNode }) {
   const [kullanici, sayilar] = await Promise.all([oturumBlogu(), raySayaclari()]);
   return (
     <div className="atlas atlas-kabuk">
-      <Ray ogeler={RAY_OPERASYONEL} kullanici={kullanici} sayilar={sayilar} />
+      <Ray kullanici={kullanici} sayilar={sayilar} />
       <div className="atlas-govde">{children}</div>
+      <DurumAyagi />
     </div>
   );
 }

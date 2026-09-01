@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 
 /* Belge sapması bekçisi.
@@ -27,6 +27,10 @@ const KOK = path.resolve('..');
 
 async function araci() {
   return import('../arac/sayimlar.mjs');
+}
+
+async function envanterAraci() {
+  return import('../arac/test-envanteri.mjs');
 }
 
 /** Sayı taşımasına izin verilen tek yer: üretilen blok. */
@@ -77,6 +81,63 @@ describe('Belge sayımları koda karşı doğrulanır', () => {
     expect(s['test dosyası']).toBeGreaterThan(30);
     expect(s['test vakası']).toBeGreaterThan(s['test dosyası']);
     expect(s['atlanan test']).toBeLessThanOrEqual(s['test vakası']);
+  });
+
+  /* ── Vaka sayımı sapması bekçisi ──────────────────────────────────────
+     Kapatılan kusur: sayım satır başındaki `it(` kalıbını tarıyordu ve
+     `it.each([...])` ile döngü içinde üretilen `it(`'leri kaçırıyordu.
+     Belge 998 diyordu, gerçek 1003'tü. Sayı artık vitest'in kendi
+     keşfinden (`arac/test-envanteri.mjs`) geliyor; aşağıdaki üç test o
+     mekanizmanın bozulmadan durduğunu doğrular. */
+
+  it('anlık görüntü TAZE: test dosyaları değişip sayım donmuş değil', async () => {
+    const { anlik, imza, ANLIK_YOL } = await envanterAraci();
+    expect(
+      existsSync(ANLIK_YOL),
+      'arac/test-envanteri.json yok. Üretin: npm run sayimlar:yenile',
+    ).toBe(true);
+    const kayitli = JSON.parse(readFileSync(ANLIK_YOL, 'utf8')).imza;
+    expect(
+      kayitli,
+      'Test dosyaları değişmiş ama vaka sayımı tazelenmemiş. '
+      + 'Düzeltme: cd web && npm run sayimlar:yenile',
+    ).toBe(imza());
+    /* Bayatsa zaten yukarıda kırmızıya döner; burada da patlamamalı. */
+    expect(() => anlik()).not.toThrow();
+  });
+
+  it('anlık görüntü dosya kümesi, vitest glob\'uyla BİREBİR', async () => {
+    const { anlik, testDosyalari } = await envanterAraci();
+    const kesif = Object.keys(anlik().dosyalar).sort();
+    const glob = testDosyalari()
+      .map((f: string) => path.relative(path.resolve('.'), f))
+      .sort();
+    expect(kesif).toEqual(glob);
+  });
+
+  it('vaka sayımı SATIR TARAMASINA düşmez — parametrik ve döngü testleri sayılır', async () => {
+    const { sayimlar } = await araci();
+    const { anlik, testDosyalari } = await envanterAraci();
+    const envanter = anlik();
+
+    /* Eski (kusurlu) yöntem: satır başındaki `it(` / `test(` kalıbı. */
+    let naif = 0;
+    for (const f of testDosyalari()) {
+      for (const satir of readFileSync(f, 'utf8').split('\n')) {
+        if (/^\s*(it|test)(\.skip|\.only)?\s*\(/.test(satir)) naif += 1;
+      }
+    }
+
+    expect(sayimlar()['test vakası']).toBe(envanter.vaka);
+    expect(sayimlar()['atlanan test']).toBe(envanter.atlanan);
+    /* Bu repoda `it.each` ve döngüyle üretilen testler VAR. Naif sayım
+       eşitlenirse ya o testler silinmiştir ya da sayım naife dönmüştür;
+       ikisi de bilinmeye değer. */
+    expect(
+      naif,
+      'Satır taraması ile keşif eşitlendi: parametrik/döngü testleri '
+      + 'kayboldu ya da sayım eski kusurlu yönteme geri döndü.',
+    ).toBeLessThan(envanter.vaka);
   });
 
   it('sayılan her ölçü kaynaktan türetilir ve sıfır değildir', async () => {

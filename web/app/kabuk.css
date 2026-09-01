@@ -1942,6 +1942,103 @@ textarea.ab-gr { min-height: 76px; resize: vertical; }
 .ab-tik i { width: 3px; height: 9px; background: var(--hr2); display: block; }
 .ab-tik i.dolu { height: 13px; }
 
+/* ═══ Komut paleti — genel arama (Ctrl/⌘+K) ═══════════════════════════
+   `KomutPaleti` bu sınıfları çiziyordu ama hiçbir yaprakta TANIMI yoktu:
+   palet tarayıcı varsayılanıyla (beyaz düğmeler, dolgusuz liste) sayfanın
+   akışına düşüyordu — ölçüldü, üç kabukta da. Bileşen kabuğun İÇİNDE
+   monte edilir ki `.ab[data-yon]` paletini alsın; perde çekmece
+   katmanının (30) üstündedir. Gölge yok, yuvarlak köşe yok: ayrımı perde
+   ve kenar yapar. */
+.palet-perde {
+  position: fixed; inset: 0; z-index: 50;
+  background: rgba(6, 8, 9, .74);
+  display: flex; align-items: flex-start; justify-content: center;
+  padding: 12vh 16px 16px;
+}
+.palet {
+  width: min(640px, 100%); max-height: calc(100dvh - 12vh - 16px);
+  display: flex; flex-direction: column;
+  background: var(--panel); border: 1px solid var(--hr2); color: var(--murekkep);
+}
+.palet-giris { flex: none; padding: 12px 14px; border-bottom: 1px solid var(--hr); }
+.palet-giris .ab-gr { background: var(--panel2); font-size: var(--t-lead); padding: 8px 10px; }
+.palet-giris .ab-gr::placeholder { color: var(--i3); }
+.palet-liste { min-height: 0; overflow-y: auto; }
+.palet-satir {
+  display: grid; grid-template-columns: 84px minmax(0, 1fr) auto; gap: 14px;
+  align-items: baseline; width: 100%; padding: 9px 14px;
+  background: none; border: 0; border-top: 1px solid var(--hr);
+  color: var(--murekkep); font-family: var(--ui); text-align: left; cursor: pointer;
+}
+.palet-satir:first-child { border-top: 0; }
+.palet-satir .tur {
+  font-family: var(--veri); font-size: var(--t-label); letter-spacing: .14em;
+  text-transform: uppercase; color: var(--i3); overflow: hidden; text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.palet-satir .konu { font-size: var(--t-cell); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.palet-satir .alt { font-family: var(--veri); font-size: var(--t-code-lg); color: var(--i3); white-space: nowrap; }
+.palet-satir:hover, .palet-satir[aria-selected='true'] { background: var(--secim); }
+.palet-satir[aria-selected='true'] .konu { color: var(--aksan); }
+.palet-satir:focus-visible { outline-offset: -2px; }
+.palet-not {
+  margin: 0; padding: 12px 14px; border-top: 1px solid var(--hr);
+  font-family: var(--veri); font-size: var(--t-label); letter-spacing: .14em;
+  text-transform: uppercase; color: var(--i3);
+}
+.palet-not:first-child { border-top: 0; }
+/* Başlıktaki tetikleyici: kısayolu yanında taşır, telefonda kısayol düşer
+   (dokunmatikte klavye yok) ama düğme kalır. */
+.ab-ara-dugme { display: inline-flex; align-items: baseline; gap: 8px; }
+.ab-ara-dugme .kisayol { color: var(--i3); letter-spacing: .04em; }
+@media (max-width: 700px) {
+  .ab-ara-dugme .kisayol { display: none; }
+  .palet-perde { padding: 8px; }
+  .palet-satir { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+  .palet-satir .konu { white-space: normal; }
+  .palet-satir .alt { white-space: normal; }
+}
+
+/* ═══ Sistem sayfaları — 404 · 500 · bakım ════════════════════════════
+   Kabuğun DIŞINDA da (kök `not-found`, `global-error`) aynı dilde
+   konuşur: `.ab[data-yon='a']` sarmalayıcısı paleti getirir. Sorunu
+   adıyla söyler, çıkış yolunu yanına koyar; süsleme yok. */
+.ab-sistem-sayfa {
+  min-height: 100dvh; display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+}
+.ab-sistem-sayfa > header {
+  height: 52px; display: flex; align-items: center; gap: 18px;
+  padding: 0 var(--s24); border-bottom: 1px solid var(--hr);
+}
+.ab-sistem-sayfa > header .marka {
+  font-family: var(--gorunum); font-weight: 600; font-size: 14px;
+  letter-spacing: .06em; color: var(--murekkep); text-decoration: none;
+}
+.ab-sistem-sayfa > main {
+  display: flex; flex-direction: column; justify-content: center;
+  padding: var(--s44) var(--s24); max-width: 720px;
+}
+.ab-sistem-sayfa .kod {
+  font-family: var(--veri); font-size: var(--t-label); letter-spacing: .14em;
+  text-transform: uppercase; color: var(--i3); margin: 0 0 var(--s12);
+}
+.ab-sistem-sayfa h1 { margin: 0; }
+.ab-sistem-sayfa .cumle {
+  margin: var(--s16) 0 0; font-size: var(--t-lead); line-height: 1.6; color: var(--i2); max-width: 560px;
+}
+.ab-sistem-sayfa .eylem { margin-top: var(--s26); display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+.ab-sistem-sayfa .eylem a { text-decoration: none; }
+.ab-sistem-sayfa .ab-teknik { margin-top: var(--s22); }
+.ab-sistem-sayfa > footer {
+  padding: var(--s12) var(--s24); border-top: 1px solid var(--hr);
+  font-family: var(--veri); font-size: var(--t-label); letter-spacing: .14em;
+  text-transform: uppercase; color: var(--i3);
+}
+@media (max-width: 700px) {
+  .ab-sistem-sayfa > main { padding: var(--s32) var(--s20); }
+}
+
 /* ═══ Tasarım sistemi referansı (/sistem) ════════════════════════════ */
 .ab-sistem .bolum { margin-top: 44px; }
 .ab-sistem .bolum > .ab-dip { margin: 6px 0 18px; }

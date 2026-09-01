@@ -40,7 +40,7 @@ söylemeye başlar ve yalanı kimse fark etmez.
 | test dosyası | 54 |
 | test vakası | 1043 |
 | atlanan test | 1 |
-| ekran (rota) | 40 |
+| ekran (rota) | 41 |
 | API ucu | 9 |
 | otomasyon motoru | 9 |
 | connector adaptörü | 8 |

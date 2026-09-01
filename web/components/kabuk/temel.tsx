@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react';
+import Link from 'next/link';
 
 /* ═══════════════════════════════════════════════════════════════════════
    TEMEL PRİMİTİFLER
@@ -254,11 +255,20 @@ export function Hata({ cumle, teknik, yenidenDene }: {
   );
 }
 
+/* 403 — kabuğun İÇİNDE çizilir, ayrı rota yok: kullanıcı nerede olduğunu
+   ve nereye gidebileceğini görmeye devam eder. Sorunun adı (hangi yetki)
+   ve çıkış yolu (kim verir, nereye dönülür) yan yana. */
 export function Yetkisiz({ rol }: { rol: string }) {
   return (
-    <div className="ab-blok">
-      <span className="etiket">Yetkisiz</span>
-      <p className="cumle">Bu ekran {rol} rolü gerektiriyor.</p>
+    <div className="ab-blok" role="status">
+      <span className="etiket">403 · Yetkisiz</span>
+      <p className="cumle">
+        Bu ekran <b>{rol}</b> yetkisi gerektiriyor; hesabınızda bu yetki tanımlı değil.
+        Yetkiyi kurum yöneticiniz Yetki ekranından tanımlar; talebinizi ona iletin.
+      </p>
+      <div className="eylem">
+        <Link href="/" className="ab-dugme">Ana ekrana dön</Link>
+      </div>
     </div>
   );
 }

@@ -3,6 +3,10 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ara, type AramaSonucu } from '@/lib/eylemler2/arama';
 
+/* Başlıktaki "Ara" düğmesi bu olayı yayar; palet dinler. Kısayolu bilmeyen
+   ya da dokunmatik kullanıcı için tek görünür kapı. */
+export const ARAMA_AC = 'arama:ac';
+
 /* Global arama (Ctrl+K): tek kutudan tüm varlık tipleri; sonuçlar
    sunucuda kullanıcının tesis kapsamına göre daraltılır. */
 export default function KomutPaleti() {
@@ -14,14 +18,20 @@ export default function KomutPaleti() {
   const router = useRouter();
 
   useEffect(() => {
+    const sifirla = () => { setSorgu(''); setSonuclar([]); setSecili(0); };
     const dinle = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
-        e.preventDefault(); setAcik((a) => !a); setSorgu(''); setSonuclar([]);
+        e.preventDefault(); setAcik((a) => !a); sifirla();
       }
       if (e.key === 'Escape') setAcik(false);
     };
+    const ac = () => { setAcik(true); sifirla(); };
     window.addEventListener('keydown', dinle);
-    return () => window.removeEventListener('keydown', dinle);
+    window.addEventListener(ARAMA_AC, ac);
+    return () => {
+      window.removeEventListener('keydown', dinle);
+      window.removeEventListener(ARAMA_AC, ac);
+    };
   }, []);
 
   const arama = useCallback((deger: string) => {
@@ -34,10 +44,9 @@ export default function KomutPaleti() {
 
   if (!acik) return null;
   return (
-    /* Atlas gramerinde: yuvarlak köşe yok, chip yok, gölge yerine kenar.
-       Eskiden Özalit sınıflarıyla (.kart, .chip) çiziliyordu ve yalnız
-       (ozalit) kabuğunda monte olduğu için bu hiç göze batmıyordu; artık
-       her Atlas ekranının üstünde açılıyor. */
+    /* Kabuk gramerinde: yuvarlak köşe yok, chip yok, gölge yerine kenar.
+       Sınıfların tanımı `kabuk.css › Komut paleti` bölümünde; bileşen
+       `Kabuk` içinde monte edildiği için üç yönün paletini de alır. */
     <div className="palet-perde" onClick={() => setAcik(false)}>
       <div className="palet" onClick={(e) => e.stopPropagation()}
         role="dialog" aria-modal="true" aria-label="Genel arama">

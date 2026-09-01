@@ -3,6 +3,8 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
 import CikisDugmesi from '@/components/CikisDugmesi';
+import AramaDugmesi from '@/components/AramaDugmesi';
+import KomutPaleti from '@/components/KomutPaleti';
 import {
   ALANLAR, A_RAY, B_SEKMELER, C_DIZIN, C_SEKMELER, aktifMi, alanAktif, yonSec, type Oge,
 } from './yonler';
@@ -55,6 +57,10 @@ export default function Kabuk({ veri, children }: { veri: KabukVerisi; children:
       {yon === 'a' && <KabukA veri={veri} patika={patika}>{children}</KabukA>}
       {yon === 'b' && <KabukB veri={veri} patika={patika}>{children}</KabukB>}
       {yon === 'c' && <KabukC veri={veri} patika={patika}>{children}</KabukC>}
+      {/* Komut paleti (Ctrl/⌘+K) kabuğun İÇİNDE: token'lar `.ab[data-yon]`
+          üzerinde yaşar, dışarıda monte edilince renksiz kalıyordu. Üç
+          yerleşim de (flagship / operasyonel / tam) buradan alır. */}
+      <KomutPaleti />
     </div>
   );
 }
@@ -102,6 +108,9 @@ function KabukA({ veri, patika, children }: {
           <span className="deg mono">{damga(veri.kesit)}</span>
         </div>
         <div className="grup esnek" />
+        <div className="grup">
+          <AramaDugmesi />
+        </div>
         <div className="grup" style={{ borderRight: 0 }}>
           {veri.kullanici && (
             <>
@@ -159,6 +168,7 @@ function KabukB({ veri, patika, children }: {
           <span className="mono etiket">
             {veri.kesit ? `Veri kesiti ${damga(veri.kesit)}` : 'Veri kesiti yok'}
           </span>
+          <AramaDugmesi />
           {veri.kullanici && (
             <>
               <span style={{ fontSize: 13 }}>{veri.kullanici.ad}</span>
@@ -193,6 +203,7 @@ function KabukC({ veri, patika, children }: {
           <span className="mono etiket">
             {veri.kesit ? `Veri kesiti ${damga(veri.kesit)}` : 'Veri kesiti yok'}
           </span>
+          <AramaDugmesi />
           {veri.kullanici && (
             <>
               <span style={{ fontSize: 13 }}>{veri.kullanici.ad}</span>

@@ -512,17 +512,17 @@ function Ozet({ proje, simdi, yazabilir, duzenle, durumKip, bagla }: {
           İki yön ayrı sorudur ve tek satırda toplanamaz. Bloğun kendisi
           bağımlılık YOKKEN de çizilir: sessizlik "önkoşulu yok" ile
           "bakmadık"ı ayırt ettirmez. */}
-      <div className="cekmece-blok" style={{ marginTop: 'var(--s24)' }}>
-        <p className="t-label" style={{ margin: '0 0 var(--s10)' }}>Bağımlılık</p>
+      <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+        <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Bağımlılık</p>
         {proje.onkosullar.length === 0 && proje.bagimlilar.length === 0 ? (
-          <p className="cekmece-dip" style={{ margin: 0 }}>
+          <p className="ab-panel-dip" style={{ margin: 0 }}>
             Kayıtlı proje bağımlılığı yok — bu proje tek başına ilerleyebilir
             sayılıyor.
           </p>
         ) : (
           <>
             {engeller.length > 0 && (
-              <p className="cekmece-dip" style={{ margin: '0 0 var(--s10)' }}>
+              <p className="ab-panel-dip" style={{ margin: '0 0 var(--s10)' }}>
                 {engeller.length} önkoşul kapanmadı
                 {gecEngeller.length > 0 ? ` · ${gecEngeller.length} tanesi hedefini geçti` : ''}
                 {' — '}bu proje onlar bitmeden tamamlanamaz.

@@ -79,15 +79,24 @@ async function motorVadeleri(simdi: Date, aralikDk: number): Promise<VadeSonucu>
   const kosulacak: VadeHedefi[] = [];
   const atlanan: Atlanan[] = [];
 
+  /* Vade ölçüsü SON BAŞARILI koşudur, son koşu değil. Başarısız koşuyu
+     "koştu" saymak, sürekli patlayan bir motoru bir daha hiç denememek
+     demek olurdu.
+
+     Tüm motorların son başarılı koşusu TEK sorguda alınır. Eskiden motor
+     başına bir `findFirst` vardı; tik dakikada bir koştuğu için bu, hiçbir
+     şey koşmayan bir dakikada bile motor sayısı kadar sorgu demekti ve
+     motor eklendikçe doğrusal büyüyordu. SQLite tek yazıcıdır: boşa giden
+     her sorgu, gerçek işin sırasını uzatır. */
+  const sonKosular = await db.isKosusu.groupBy({
+    by: ['isAdi'],
+    where: { isAdi: { in: Object.keys(MOTORLAR) }, durum: 'basarili' },
+    _max: { baslangic: true },
+  });
+  const sonHarita = new Map(sonKosular.map((k) => [k.isAdi, k._max.baslangic ?? null]));
+
   for (const ad of Object.keys(MOTORLAR) as MotorAdi[]) {
-    /* Vade ölçüsü SON BAŞARILI koşudur, son koşu değil. Başarısız koşuyu
-       "koştu" saymak, sürekli patlayan bir motoru bir daha hiç denememek
-       demek olurdu. */
-    const son = await db.isKosusu.findFirst({
-      where: { isAdi: ad, durum: 'basarili' },
-      orderBy: { baslangic: 'desc' },
-      select: { baslangic: true },
-    });
+    const son = { baslangic: sonHarita.get(ad) ?? null };
     const gecen = dkGecti(son?.baslangic ?? null, simdi);
     if (gecen === null || gecen >= aralikDk) {
       kosulacak.push({ tur: 'motor', anahtar: `motor:${ad}`, hedef: ad, sonKosu: son?.baslangic ?? null });
@@ -165,15 +174,20 @@ async function connectorVadeleri(simdi: Date): Promise<VadeSonucu> {
     orderBy: { kod: 'asc' },
   });
 
+  /* Burada da ölçü SON BAŞARILI koşudur ve yine TEK sorgudur.
+     `kimlik_bekleniyor` ile kapanan bir koşu "çekti" sayılmaz; sayılsaydı
+     kurulumu bekleyen connector taze görünürdü. */
+  const sonKosular = connectorlar.length === 0 ? [] : await db.entegrasyonKosusu.groupBy({
+    by: ['connectorId'],
+    where: { connectorId: { in: connectorlar.map((c) => c.id) }, durum: 'basarili' },
+    _max: { baslangic: true },
+  });
+  const sonHarita = new Map(
+    sonKosular.map((k) => [k.connectorId, k._max.baslangic ?? null]),
+  );
+
   for (const c of connectorlar) {
-    /* Burada da ölçü SON BAŞARILI koşudur. `kimlik_bekleniyor` ile kapanan
-       bir koşu "çekti" sayılmaz; sayılsaydı kurulumu bekleyen connector
-       taze görünürdü. */
-    const son = await db.entegrasyonKosusu.findFirst({
-      where: { connectorId: c.id, durum: 'basarili' },
-      orderBy: { baslangic: 'desc' },
-      select: { baslangic: true },
-    });
+    const son = { baslangic: sonHarita.get(c.id) ?? null };
     const vade = connectorVadesi(c, son?.baslangic ?? null, simdi);
     if (vade.vadeli) {
       kosulacak.push({

@@ -368,3 +368,60 @@ describe('Bakım işi', () => {
     expect(await db.isKosusu.count({ where: { isAdi: BAKIM_ISI } })).toBe(1);
   });
 });
+
+/* ═══ Tik maliyeti connector sayısıyla BÜYÜMEZ ════════════════════════ */
+
+describe('Zamanlayıcı tiki sabit sayıda sorgu açar', () => {
+  it('connector sayısı artınca koşu sorgusu sayısı ARTMAZ', async () => {
+    /* Tik dakikada bir koşar. Eskiden motor başına ve connector başına
+       birer `findFirst` vardı: hiçbir şey koşmayan bir dakikada bile
+       8+N sorgu demekti ve connector eklendikçe doğrusal büyüyordu.
+       SQLite tek yazıcıdır — boşa giden her sorgu gerçek işin sırasını
+       uzatır. Son başarılı koşular artık tek `groupBy` ile alınıyor.
+
+       Ölçüm doğrudan çağrı sayısını sayar. İlk yazımda Prisma'nın
+       `$on('query')` olayı kullanılmıştı ve test YEŞİL görünüyordu —
+       ama olay hiç yayılmıyordu (istemci `log: ['query']` ile kurulmuyor),
+       yani sayaç her zaman sıfırdı ve mutasyon testi kırmızıya döndürmedi.
+       Sahte yeşili bulan şey mutasyonun ta kendisiydi. */
+    const sayaclar = { findFirst: 0, groupBy: 0 };
+    const gercekFindFirst = db.entegrasyonKosusu.findFirst.bind(db.entegrasyonKosusu);
+    const gercekGroupBy = db.entegrasyonKosusu.groupBy.bind(db.entegrasyonKosusu);
+    const casus = db.entegrasyonKosusu as unknown as Record<string, unknown>;
+    casus.findFirst = (...a: unknown[]) => { sayaclar.findFirst += 1; return (gercekFindFirst as (...x: unknown[]) => unknown)(...a); };
+    casus.groupBy = (...a: unknown[]) => { sayaclar.groupBy += 1; return (gercekGroupBy as (...x: unknown[]) => unknown)(...a); };
+
+    const eklenen: string[] = [];
+    try {
+      await vadesiGelenler(SIMDI);
+      const azFindFirst = sayaclar.findFirst;
+      const azGroupBy = sayaclar.groupBy;
+
+      for (let i = 0; i < 6; i += 1) {
+        const c = await db.connector.create({
+          data: {
+            kod: `TIK-OLCUM-${i}-${Date.now()}`, ad: `Tik ölçüm ${i}`,
+            tip: 'manual_import', kaynakSistem: `TIK-${i}`, etkin: true,
+            durum: 'etkin', pollAralikDk: 15,
+          },
+        });
+        eklenen.push(c.id);
+      }
+
+      sayaclar.findFirst = 0; sayaclar.groupBy = 0;
+      await vadesiGelenler(SIMDI);
+
+      /* Altı connector eklendi. Eski yolda `findFirst` sayısı altı
+         ARTARDI; yeni yolda connector başına hiç `findFirst` yok. */
+      expect(sayaclar.findFirst).toBe(0);
+      expect(azFindFirst).toBe(0);
+      // Toplu okuma tek çağrıdır ve connector sayısından bağımsızdır.
+      expect(sayaclar.groupBy).toBe(azGroupBy);
+      expect(sayaclar.groupBy).toBeLessThanOrEqual(1);
+    } finally {
+      casus.findFirst = gercekFindFirst;
+      casus.groupBy = gercekGroupBy;
+      for (const id of eklenen) await db.connector.delete({ where: { id } });
+    }
+  });
+});

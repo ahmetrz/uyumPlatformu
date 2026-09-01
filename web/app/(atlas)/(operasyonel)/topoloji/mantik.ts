@@ -332,13 +332,24 @@ export type Sayim = {
   bekleyenAday: number;
 };
 
+/**
+ * Sunucunun TAVANDAN BAĞIMSIZ saydığı açık/kritik sapma sayısı
+ * (`lib/entegrasyon/topoloji.ts → topolojiOzeti`).
+ *
+ * Sapma listesi 200 satırda kesilir; metriği kesilmiş listeden saymak
+ * 201. sapmayı BAŞLIKTAN da düşürürdü — ekran, gerçekte 30 kritik sapma
+ * olan bir kapsam için "12 kritik" yazardı. Liste kesilir, SAYI KESİLMEZ.
+ */
+export type SunucuOzeti = { acikSapma: number; kritikAcik: number };
+
 export function sayimHesapla(
   sapmalar: SapmaSatiri[], anliklar: AnlikSatiri[], temeller: TemelSatiri[],
+  ozet: SunucuOzeti | null = null,
 ): Sayim {
   const acik = sapmalar.filter(acikMi);
   return {
-    acik: acik.length,
-    kritikAcik: acik.filter((s) => s.siddet === 'kritik').length,
+    acik: ozet ? ozet.acikSapma : acik.length,
+    kritikAcik: ozet ? ozet.kritikAcik : acik.filter((s) => s.siddet === 'kritik').length,
     inceleme: sapmalar.filter((s) => s.durum === 'inceleme').length,
     temelsizKapsam: temeller.filter((t) => !t.temelVar && t.anlikSayisi > 0).length,
     anliksizKapsam: temeller.filter((t) => t.anlikSayisi === 0).length,

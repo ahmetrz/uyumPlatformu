@@ -80,13 +80,15 @@ const KOLONLAR: Kolon[] = [
 type Kip = 'esleme' | 'onizleme' | 'hatalar' | 'yinelenenler';
 
 export default function VarlikAktarimIstemci({
-  aktarimlar, alanlar, yukleyebilir, onizlemeButcesi, tanimliKodlar,
+  aktarimlar, alanlar, yukleyebilir, onizlemeButcesi, tanimliKodlar, kapsamli = false,
 }: {
   aktarimlar: Aktarim[];
   alanlar: AlanSecenegi[];
   yukleyebilir: boolean;
   onizlemeButcesi: number;
   tanimliKodlar: { tur: string[]; tesis: string[]; sistem: string[]; bolge: string[] };
+  /** listeler santral kapsamıyla daraltıldı mı — boş listenin SÖZÜ değişir */
+  kapsamli?: boolean;
 }) {
   const { bekliyor, hata, setHata, calistir } = useEylem();
   const [secili, setSecili] = useState<string | null>(null);
@@ -199,6 +201,7 @@ export default function VarlikAktarimIstemci({
               a={secilen} alanlar={alanlar}
               bekliyor={bekliyor} calistir={calistir}
               onizlemeButcesi={onizlemeButcesi} tanimliKodlar={tanimliKodlar}
+              kapsamli={kapsamli}
             />
           )}
         </div>
@@ -219,12 +222,13 @@ export default function VarlikAktarimIstemci({
    açılmaz (06 §B4) — canvas'ın ikinci modülüdür. */
 
 function CalismaYuzeyi({
-  a, alanlar, bekliyor, calistir, onizlemeButcesi, tanimliKodlar,
+  a, alanlar, bekliyor, calistir, onizlemeButcesi, tanimliKodlar, kapsamli,
 }: {
   a: Aktarim; alanlar: AlanSecenegi[];
   bekliyor: boolean; calistir: ReturnType<typeof useEylem>['calistir'];
   onizlemeButcesi: number;
   tanimliKodlar: { tur: string[]; tesis: string[]; sistem: string[]; bolge: string[] };
+  kapsamli: boolean;
 }) {
   // Eşleme taslağı sunucudaki kayıtlı eşlemeden başlar; kullanıcı onaylayana
   // kadar (kaydet düğmesi) hiçbir satır doğrulanmaz.
@@ -253,9 +257,9 @@ function CalismaYuzeyi({
             dogrulandi={() => setKip('onizleme')}
           />
         )}
-        {kip === 'onizleme' && <Onizleme a={a} butce={onizlemeButcesi} />}
+        {kip === 'onizleme' && <Onizleme a={a} butce={onizlemeButcesi} kapsamli={kapsamli} />}
         {kip === 'hatalar' && <HataListesi a={a} />}
-        {kip === 'yinelenenler' && <YinelenenListesi a={a} />}
+        {kip === 'yinelenenler' && <YinelenenListesi a={a} kapsamli={kapsamli} />}
       </div>
     </section>
   );
@@ -338,7 +342,15 @@ const ozet = (kodlar: string[]) =>
 
 /* ── Önizleme · ilk N satır ─────────────────────────────────────────── */
 
-function Onizleme({ a, butce }: { a: Aktarim; butce: number }) {
+function Onizleme({ a, butce, kapsamli }: {
+  a: Aktarim; butce: number; kapsamli: boolean;
+}) {
+  /* Kapsam yüzünden boşalan önizleme "satır yok" DEMEZ: dosyada satır
+     olabilir, sen göremiyorsundur — ikisi farklı şeydir ve ikincisi
+     kullanıcıyı hata listesine bakmaya göndermez. */
+  if (a.onizleme.length === 0 && kapsamli && a.gecerli > 0) {
+    return <BosIlk cumle="Kapsamınızdaki santrallere yazacak satır yok." />;
+  }
   if (a.gecerli === 0) {
     return <BosIlk cumle="Doğrulamayı geçen satır yok. Hata listesine bakın." />;
   }
@@ -398,9 +410,11 @@ function HataListesi({ a }: { a: Aktarim }) {
 
 /* ── Yinelenen listesi ──────────────────────────────────────────────── */
 
-function YinelenenListesi({ a }: { a: Aktarim }) {
+function YinelenenListesi({ a, kapsamli }: { a: Aktarim; kapsamli: boolean }) {
   if (a.yinelenen === 0) {
-    return <BosIlk cumle="Mevcut envanterle eşleşen satır yok — hepsi yeni kayıt." />;
+    return <BosIlk cumle={kapsamli
+      ? 'Kapsamınızdaki varlıklarla eşleşen satır yok.'
+      : 'Mevcut envanterle eşleşen satır yok — hepsi yeni kayıt.'} />;
   }
   return (
     <>

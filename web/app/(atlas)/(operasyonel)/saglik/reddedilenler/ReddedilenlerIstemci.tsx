@@ -37,10 +37,12 @@ const GORUNUR = 7;
 const DURUMLAR = ['incelendi', 'duzeltildi', 'yok_sayildi', 'acik'] as const;
 
 export default function ReddedilenlerIstemci({
-  satirlar, yetkili, yazabilir, toplam, sinir,
+  satirlar, yetkili, yazabilir, toplam, sinir, kapsamli = false,
 }: {
   satirlar: RedSatiri[]; yetkili: boolean; yazabilir: boolean;
   toplam: number; sinir: number;
+  /** kuyruk bir santral kapsamıyla daraltıldı mı — boş ekranın SÖZÜ değişir */
+  kapsamli?: boolean;
 }) {
   const [secili, setSecili] = useState<string | null>(null);
   const [kuyrukAcik, setKuyrukAcik] = useState(false);
@@ -57,9 +59,12 @@ export default function ReddedilenlerIstemci({
     if (!yetkili) return <Yetkisiz rol="yönetim okuma" />;
     if (satirlar.length === 0) {
       return (
-        <BosIlk cumle={'Reddedilen kayıt yok. Bir connector koşusunda düşen her '
-          + 'kayıt — şemadan, eşlemeden, doğrulamadan ya da kapsamdan — burada '
-          + 'ham hâliyle görünür.'} />
+        /* Kuyruğun boş olması ile kuyruğu görememek AYNI ŞEY DEĞİLDİR. */
+        <BosIlk cumle={kapsamli
+          ? 'Kapsamınızdaki santrallere ait reddedilen kayıt yok.'
+          : 'Reddedilen kayıt yok. Bir connector koşusunda düşen her '
+            + 'kayıt — şemadan, eşlemeden, doğrulamadan ya da kapsamdan — burada '
+            + 'ham hâliyle görünür.'} />
       );
     }
 

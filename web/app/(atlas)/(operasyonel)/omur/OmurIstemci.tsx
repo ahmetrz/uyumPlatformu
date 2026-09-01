@@ -42,8 +42,16 @@ const KRITIKLIK: Record<string, string> = {
 };
 
 export default function OmurIstemci({
-  kayitlar, toplamVarlik, simdi,
-}: { kayitlar: VarlikKaydi[]; toplamVarlik: number; simdi: number }) {
+  kayitlar, toplamVarlik, kuyrukToplami, metrikler, simdi, kapsamli = false,
+}: {
+  kayitlar: VarlikKaydi[]; toplamVarlik: number; simdi: number;
+  /** kuyruğun GERÇEK büyüklüğü — sunucu tavanı satırları kestiyse fark açılır */
+  kuyrukToplami: number;
+  /** kesilmemiş kuyruk üzerinde sayılmış metrikler (sunucuda `count`) */
+  metrikler: { destekBitti: number; yaklasan: number; projeyeBagli: number };
+  /** kuyruk bir santral kapsamıyla daraltıldı mı — boş ekranın SÖZÜ değişir */
+  kapsamli?: boolean;
+}) {
   const [gruplama, setGruplama] = useState<GrupAnahtari>('aciliyet');
   const [secili, setSecili] = useState<string | null>(null);
   const [kuyrukAcik, setKuyrukAcik] = useState(false);
@@ -63,11 +71,16 @@ export default function OmurIstemci({
     [satirlar, gruplar, gruplama],
   );
 
-  /* ── metrikler · üçü de sorgudan gelir ─────────────────────────────── */
-  const destekBitti = satirlar.filter((o) => o.durum === 'bd').length;
-  const yaklasanSayi = satirlar.filter((o) => o.yaklasan).length;
-  const projeyeBagli = satirlar.filter((o) => o.proje !== null).length;
+  /* ── metrikler · üçü de SUNUCUDAN, kesilmemiş kuyruk üzerinde sayılır ──
+     Eskiden bu üç sayı elde duran satırlardan hesaplanıyordu; sunucu
+     satırları bir tavanla kestiği anda o sayılar sessizce küçülürdü.
+     Satır için `take`, sayım için `count` (bkz. veri.ts). */
+  const { destekBitti, yaklasan: yaklasanSayi, projeyeBagli } = metrikler;
+  /* `eolEksik` yalnız elde duran satırların dip notudur ve öyle yazılır —
+     bir metrik değildir, kuyruğun tamamı hakkında iddia taşımaz. */
   const eolEksik = satirlar.filter((o) => o.eolEksik).length;
+  /** Sunucu tavanı kuyruğu kesti mi — kesme SESSİZ kalmaz. */
+  const kesildi = kuyrukToplami > satirlar.length;
 
   /* ── görünür satırlar + toplanan kuyruk ────────────────────────────────
      Sabitlenenler (puan ≤ 2): kendi tarihi geçmiş varlıklar ve ömür tarihi
@@ -161,7 +174,8 @@ export default function OmurIstemci({
           baslik="Ömür kuyruğu boş"
         />
         <div className="ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
-          <BosIlk cumle="EOL kaydı yok." />
+          {/* "EOL kaydı yok" ile "kapsamınızda kayıt yok" AYNI ŞEY DEĞİLDİR. */}
+          <BosIlk cumle={kapsamli ? 'Kapsamınızda EOL kaydı yok.' : 'EOL kaydı yok.'} />
         </div>
       </main>
     );
@@ -171,8 +185,10 @@ export default function OmurIstemci({
     <>
       <main style={{ minWidth: 0 }}>
         <EkranBasligi
-          eyebrow={`Ömür yönetimi · ${toplamVarlik} varlık`}
-          vurgu={`${satirlar.length} varlık`}
+          eyebrow={kesildi
+            ? `Ömür yönetimi · ${toplamVarlik} varlık · gösterilen ${satirlar.length}`
+            : `Ömür yönetimi · ${toplamVarlik} varlık`}
+          vurgu={`${kuyrukToplami} varlık`}
           baslik="ömür kararı bekliyor"
           metrikler={[
             { deger: destekBitti, yazi: 'Destek bitti', durum: destekBitti > 0 ? 'bd' : undefined },

@@ -12,7 +12,13 @@ export const metadata: Metadata = { title: 'Çapraz eşleme — Atlas' };
 
    Eşleme bir TANIM kaydıdır (uyum değerlendirmesi değil), yetki bu yüzden
    `tanimlar` modülünden gelir. Yalnız YAPRAK maddeler eşleştirilir: bir
-   bölüm başlığı kanıt taşımaz, dolayısıyla denkliği de olmaz. */
+   bölüm başlığı kanıt taşımaz, dolayısıyla denkliği de olmaz.
+
+   SANTRAL KAPSAMI: bu ekran BİLEREK kapsamsızdır, çünkü madde–madde denkliği
+   iki regülasyon arasındaki kurum geneli bir iddiadır — `MaddeEslestirmesi`
+   şemada `tesisId` taşımaz ve "ISO 27001 A.8.1 ≙ EPDK 5.2" cümlesi
+   santralden santrale değişmez; santrale bağlanan şey denklik değil, o
+   maddelerin santraldeki değerlendirmesidir. */
 
 export default async function Sayfa() {
   const kullanici = await girisZorunlu();

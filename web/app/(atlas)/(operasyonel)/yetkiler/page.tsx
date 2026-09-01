@@ -16,7 +16,14 @@ export const metadata: Metadata = { title: 'Kullanıcı ve yetki — Atlas' };
    (lib/eylemler.ts aynı kapıları sunucu tarafında da uygular).
 
    Santral seçenekleri VERİ seviyesinde daraltılır: yetkisi tesise kısıtlı
-   bir yönetici, kapsamı dışındaki santral için yetki öneremez. */
+   bir yönetici, kapsamı dışındaki santral için yetki öneremez.
+
+   KULLANICI LİSTESİ ise BİLEREK kapsamsızdır, çünkü `Kullanici` bir santral
+   kaydı değil kurum kaydıdır ve bu ekranın sorusu tam olarak "kimin fazla
+   yetkisi var" — bir kullanıcıyı santraline göre gizlemek, aynı kişinin
+   başka santraldeki yetkisini de gizlerdi ve ekran kendi sorusunu
+   yanıtlayamaz hâle gelirdi. Daraltılan şey ATANABİLİR kapsamdır, görünen
+   kişi kümesi değil. */
 
 export default async function Sayfa() {
   const k = await girisZorunlu();

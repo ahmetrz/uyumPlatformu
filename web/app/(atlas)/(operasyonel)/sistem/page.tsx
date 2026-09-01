@@ -6,7 +6,12 @@ export const metadata: Metadata = { title: 'Atlas — Tasarım Sistemi' };
 /* Faz 1 çıkış kriteri (07 §Phase 1):
    "a token reference page renders every colour with its measured contrast ratio,
     every type role at its exact size/tracking, and the spacing scale."
-   Oranlar iddia edilmez — lib/atlas/kontrast.ts ile hesaplanır. */
+   Oranlar iddia edilmez — lib/atlas/kontrast.ts ile hesaplanır.
+
+   SANTRAL KAPSAMI: bu ekran BİLEREK kapsamsızdır, çünkü hiç veri okumaz —
+   içeriğinin tamamı bu dosyadaki sabit token tablolarından ve
+   `lib/atlas/kontrast.ts` hesabından gelir; ortada daraltılacak bir kayıt,
+   dolayısıyla sızacak bir santral yoktur. */
 
 const PP = '#F6F4EE';
 

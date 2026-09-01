@@ -18,7 +18,15 @@ export const metadata: Metadata = { title: 'Yönetim tezgâhı — Atlas' };
      · API anahtarları `yonetim` modülüne tabidir; okuma yetkisi yoksa
        sorgu HİÇ ÇALIŞMAZ (ekranda gizlemek yetmez),
      · tesise bağlı olmayan kayıt portföy geneli sayılır ve GİZLENMEZ —
-       aksi hâlde kapsam eksikliği kaydı görünmez kılardı. */
+       aksi hâlde kapsam eksikliği kaydı görünmez kılardı.
+
+   TANIM KATALOGLARI ve API ANAHTARLARI bölümleri BİLEREK kapsamsızdır,
+   çünkü ikisi de kurum geneli sicillerdir: `Sektor`, `TesisTipi`,
+   `VarlikTuru`, `Alan`, `Regulasyon` şemada `tesisId` taşımaz (bir varlık
+   TÜRÜ tek bir santralin malı değildir), `ApiAnahtari` ise bir kullanıcıya
+   bağlıdır ve kapsamını zaten o kullanıcının yetkilerinden alır
+   (lib/api/yetki.ts → okumaKapsami). Kapsamla daraltılan yalnız görev/onay
+   akışıdır; o da yukarıdaki `izinliIs` ile. */
 
 /* Onay talebi tipi → kararın dayandığı modül (lib/eylemler2/gorev.ts
    içindeki eşlemenin ekran kopyası; yonetim/onay her tipe yeter). */

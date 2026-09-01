@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
 import { girisZorunlu } from '@/lib/erisim';
-import { db } from '@/lib/db';
-import { ilkiniEsle } from '@/lib/sorguParcala';
+import { Yetkisiz } from '@/components/atlas/temel';
+import { modulOkuyabilir } from '@/app/kapsam';
 import KimlikIstemci from './KimlikIstemci';
-import type { Bag, Hesap } from './mantik';
+import { kimlikEkranVerisi } from './veri';
 
 export const metadata: Metadata = { title: 'Erişim incelemesi — Atlas' };
 
@@ -12,132 +12,29 @@ export const metadata: Metadata = { title: 'Erişim incelemesi — Atlas' };
    UstCubuk ya da .icerik sarmalayıcısı YOK.
 
    Metrikler sabit yazılmaz: hepsi KimlikHesabi / ErisimAtamasi /
-   ErisimIncelemesi üçlüsünden hesaplanır (bkz. mantik.ts). */
+   ErisimIncelemesi üçlüsünden hesaplanır (bkz. mantik.ts) ve kaynağı
+   `veri.ts`teki DARALTILMIŞ sorgudur.
 
-const BAG_BUTCESI = 4;
+   Kapı iki katmanlıdır: modül izni burada (`envanter/okuma`), santral
+   kapsamı `veri.ts`te. Yalnız oturum kontrolü yeterli DEĞİLDİ — envanterde
+   hiç okuma izni olmayan bir rol kurumdaki bütün ayrıcalıklı hesapları
+   görebiliyordu. */
 
 export default async function Sayfa() {
-  await girisZorunlu();
+  const k = await girisZorunlu();
+  /* Modül kapısı `modulOkuyabilir` ile sorulur, `izinVar(...,'okuma')` ile
+     DEĞİL: ikincisi kapsamsız (global) bir okuma sorar ve tesise kısıtlı
+     her kullanıcıyı ekrandan tümüyle atardı (bkz. app/kapsam.ts). */
+  if (!modulOkuyabilir(k, 'envanter')) return <Yetkisiz rol="envanter okuma" />;
 
-  const [hesaplar, riskler, bulgular, incelemeSatirlari] = await Promise.all([
-    db.kimlikHesabi.findMany({
-      include: {
-        kullanici: true,
-        tesis: true,
-        atamalar: {
-          include: { varlik: true },
-          orderBy: { verilis: 'asc' },
-        },
-      },
-      orderBy: { hesapAdi: 'asc' },
-    }),
-    db.risk.findMany({
-      where: { silindi: null, durum: { in: ['acik', 'islemde'] } },
-      include: { varliklar: { select: { varlikId: true } }, tesis: true },
-      orderBy: { artikRisk: 'desc' },
-    }),
-    db.bulgu.findMany({
-      where: { silindi: null, durum: { in: ['acik', 'aksiyonda'] } },
-      include: { maddeDurumu: { include: { madde: true, tesis: true } } },
-      orderBy: { onemDerecesi: 'asc' },
-    }),
-    /* Atama başına SON inceleme ayrı sorguyla okunur.
-       NEDEN: ilişki seviyesinde `take: 1` Prisma'da ebeveyn başına bir
-       parametre taşıyan TEK, parçalanamayan sorguya çevrilir; atama sayısı
-       997'yi geçtiğinde ekran yavaşlamaz, "query parameter limit exceeded"
-       ile 500 döner. Burada satırlar zamana göre azalan okunur ve her
-       atama için ilki tutulur — sonuç birebir aynıdır. */
-    db.erisimIncelemesi.findMany({
-      include: { inceleyen: true },
-      orderBy: { zaman: 'desc' },
-    }),
-  ]);
+  const veri = await kimlikEkranVerisi(k);
 
-  const sonIncelemeler = ilkiniEsle(incelemeSatirlari, (i) => i.atamaId);
-
-  /* Bağlı kayıt iki yoldan kurulur ve hangisi olduğu satırda YAZILIR:
-     (a) atamanın varlığı üzerinden — kesin bağ,
-     (b) hesabın santralindeki açık risk/bulgu — bağlam bağı.
-     Uydurma ilişki kurulmaz; ikisi de yoksa çekmece bunu söyler. */
-  const varlikRiski = new Map<string, typeof riskler>();
-  for (const r of riskler) {
-    for (const v of r.varliklar) {
-      varlikRiski.set(v.varlikId, [...(varlikRiski.get(v.varlikId) ?? []), r]);
-    }
-  }
-
-  const veri: Hesap[] = hesaplar.map((h) => {
-    const varlikIdleri = h.atamalar.map((a) => a.varlikId).filter((v): v is string => !!v);
-
-    const kesin: Bag[] = [...new Set(varlikIdleri.flatMap((v) => varlikRiski.get(v) ?? []))]
-      .map((r) => ({
-        id: `r-${r.id}`, kod: r.kod, alt: 'risk · varlık üzerinden',
-        yol: `/riskler/${r.id}`, suren: r.durum === 'islemde',
-      }));
-
-    const santralRiski: Bag[] = h.tesisId
-      ? riskler
-        .filter((r) => r.tesisId === h.tesisId && !kesin.some((k) => k.id === `r-${r.id}`))
-        .slice(0, 2)
-        .map((r) => ({
-          id: `r-${r.id}`, kod: r.kod, alt: `risk · ${r.tesis?.kod ?? 'portföy'}`,
-          yol: `/riskler/${r.id}`, suren: r.durum === 'islemde',
-        }))
-      : [];
-
-    const santralBulgusu: Bag[] = h.tesisId
-      ? bulgular
-        .filter((b) => b.maddeDurumu.tesisId === h.tesisId)
-        .slice(0, 2)
-        .map((b) => ({
-          id: `b-${b.id}`, kod: b.baslik,
-          alt: `bulgu · ${b.maddeDurumu.madde.kod}`,
-          yol: `/bulgular/${b.id}`,
-        }))
-      : [];
-
-    return {
-      id: h.id,
-      hesapAdi: h.hesapAdi,
-      tip: h.tip,
-      kaynakSistem: h.kaynakSistem,
-      ayricalikli: h.ayricalikli,
-      parolaRotasyon: h.parolaRotasyon?.toISOString() ?? null,
-      sonKullanim: h.sonKullanim?.toISOString() ?? null,
-      durum: h.durum,
-      sahip: h.kullanici?.adSoyad ?? null,
-      tesisId: h.tesisId,
-      tesisKod: h.tesis?.kod ?? null,
-      tesisAd: h.tesis?.ad ?? null,
-      yetkiler: h.atamalar.map((a) => ({
-        id: a.id,
-        kapsam: a.kapsam,
-        yetkiSeviyesi: a.yetkiSeviyesi,
-        verilis: a.verilis.toISOString(),
-        bitis: a.bitis?.toISOString() ?? null,
-        varlikEtiketi: a.varlik?.etiket ?? null,
-        varlikAd: a.varlik?.ad ?? null,
-        sonInceleme: ((son) => (son
-          ? {
-            sonuc: son.sonuc,
-            zaman: son.zaman.toISOString(),
-            inceleyen: son.inceleyen?.adSoyad ?? null,
-            not: son.not,
-          }
-          : null))(sonIncelemeler.get(a.id)),
-      })),
-      bagli: [...kesin, ...santralRiski, ...santralBulgusu].slice(0, BAG_BUTCESI),
-    };
-  });
-
-  const tesisler = [...new Map(
-    hesaplar
-      .filter((h) => h.tesis)
-      .map((h) => [h.tesis!.id, { id: h.tesis!.id, ad: h.tesis!.ad }]),
-  ).values()].sort((a, b) => a.ad.localeCompare(b.ad, 'tr'));
-
-  const kaynaklar = [...new Set(veri.map((h) => h.kaynakSistem).filter((k): k is string => !!k))]
-    .sort((a, b) => a.localeCompare(b, 'tr'));
-
-  return <KimlikIstemci hesaplar={veri} tesisler={tesisler} kaynaklar={kaynaklar} />;
+  return (
+    <KimlikIstemci
+      hesaplar={veri.hesaplar}
+      tesisler={veri.tesisler}
+      kaynaklar={veri.kaynaklar}
+      kapsamli={veri.kapsamli}
+    />
+  );
 }

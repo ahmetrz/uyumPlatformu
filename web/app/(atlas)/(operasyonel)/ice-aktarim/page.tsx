@@ -17,7 +17,13 @@ export const metadata: Metadata = { title: 'Madde içe aktarımı — Atlas' };
 
    Ham satırlar İSTEMCİYE GÖNDERİLMEZ: dosya binlerce satır olabilir ve
    metni ekranda yaşamaz. Yalnız önizleme (ilk 20), elenen listesi ve
-   sayılar taşınır — kalanı raporda durur. */
+   sayılar taşınır — kalanı raporda durur.
+
+   SANTRAL KAPSAMI: bu ekran BİLEREK kapsamsızdır, çünkü aktarılan şey
+   REGÜLASYON MADDESİDİR, santral verisi değil — `IceAktarim` ve hedefi olan
+   `Madde` şemada `tesisId` taşımaz, dosya bir çerçevenin katalogunu kütüğe
+   alır ve o katalog bütün santraller için ortaktır. (Santral verisi taşıyan
+   kardeşi /varlik-aktarim'dır ve O kapsamla daraltılır.) */
 
 /** Önizlemenin ekrana taşınan satır sayısı; kalanı sayıyla anılır. */
 const ONIZLEME = 20;

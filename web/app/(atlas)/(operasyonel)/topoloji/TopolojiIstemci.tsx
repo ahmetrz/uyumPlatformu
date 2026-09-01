@@ -18,7 +18,7 @@ import {
   karsilastirmaHucresi, mercekten, sapmaImi, sapmaKenari, sayimHesapla, sirala,
   toplanabilir,
   type AnlikSatiri, type KarsilastirmaIzi, type Mercek, type SapmaSatiri,
-  type TemelSatiri,
+  type SunucuOzeti, type TemelSatiri,
 } from './mantik';
 
 /* O12 · Topoloji sapma tezgâhı.
@@ -69,12 +69,14 @@ function farkAlanlari(kaynak: Record<string, unknown> | null) {
 }
 
 export default function TopolojiIstemci({
-  sapmalar, anliklar, temeller, iz, tesisler, maddeDurumlari,
+  sapmalar, anliklar, temeller, ozet, iz, tesisler, maddeDurumlari,
   yazabilir, onaylayabilir, riskYazabilir, uyumYazabilir, sapmaTavani, anlikTavani,
 }: {
   sapmalar: SapmaSatiri[];
   anliklar: AnlikSatiri[];
   temeller: TemelSatiri[];
+  /** sunucunun tavandan bağımsız saydığı açık/kritik sapma */
+  ozet: SunucuOzeti;
   iz: KarsilastirmaIzi;
   tesisler: Tesis[];
   maddeDurumlari: MaddeSecenegi[];
@@ -92,9 +94,12 @@ export default function TopolojiIstemci({
   const [kuyrukAcik, setKuyrukAcik] = useState(false);
   const [anlikKuyrugu, setAnlikKuyrugu] = useState(false);
 
-  /* Metrikler filtreden BAĞIMSIZ: kapsamın tamamını anlatır. */
+  /* Metrikler filtreden BAĞIMSIZ: kapsamın tamamını anlatır. Açık ve
+     kritik sayıları TAVANLA KESİLMİŞ listeden değil, sunucunun `count`
+     ile ölçtüğü özetten gelir. */
   const sayim = useMemo(
-    () => sayimHesapla(sapmalar, anliklar, temeller), [sapmalar, anliklar, temeller]);
+    () => sayimHesapla(sapmalar, anliklar, temeller, ozet),
+    [sapmalar, anliklar, temeller, ozet]);
 
   const suzulmus = useMemo(
     () => sirala(sapmalar.filter((s) => mercekten(s, mercek))), [sapmalar, mercek]);
@@ -133,7 +138,7 @@ export default function TopolojiIstemci({
     : 'Karşılaştırma hiç yapılmadı — sapma sayısı ölçülmüş sıfır DEĞİL, bilinmiyor';
 
   const dipNot = [
-    `${sapmalar.length} sapma · ${sayim.acik} karar bekliyor`,
+    `Listede ${sapmalar.length} sapma · kapsamda ${sayim.acik} karar bekliyor`,
     izCumlesi,
     sayim.karsilastirilmamisAnlik > 0
       && `${sayim.karsilastirilmamisAnlik} anlık karşılaştırılmadı`,

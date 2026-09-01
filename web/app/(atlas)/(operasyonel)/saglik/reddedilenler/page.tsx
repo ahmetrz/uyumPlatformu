@@ -1,8 +1,7 @@
 import type { Metadata } from 'next';
-import { girisZorunlu, izinVar } from '@/lib/erisim';
-import { db } from '@/lib/db';
+import { girisZorunlu } from '@/lib/erisim';
 import ReddedilenlerIstemci from './ReddedilenlerIstemci';
-import type { RedSatiri } from './mantik';
+import { reddedilenlerVerisi } from './veri';
 
 export const metadata: Metadata = { title: 'Reddedilen kayıtlar — Atlas' };
 
@@ -16,54 +15,22 @@ export const metadata: Metadata = { title: 'Reddedilen kayıtlar — Atlas' };
 
    Kuyruk `yonetim/okuma` ister; kapatmak `yonetim/yazma`. Ham kayıt
    çekirdek tarafından SIRLARI MASKELENEREK yazılır; bu sayfa ham JSON'a
-   ayrıca dokunmaz. */
-
-/** Kuyruktan çekilen en fazla satır. Sınır bilinçlidir ve ekranda
-    söylenir: sessizce kırpılan bir kuyruk, olmayan bir kuyruktur. */
-const SINIR = 300;
+   ayrıca dokunmaz. Santral kapsamı `veri.ts`te uygulanır (modül: `yonetim`);
+   satırın santrali ham yükün `tesisKodu` beyanından ya da connector'ın
+   yazma kapsamından türetilir. */
 
 export default async function Sayfa() {
   const k = await girisZorunlu();
-  const okuyabilir = izinVar(k, 'yonetim', 'okuma');
-  const yazabilir = izinVar(k, 'yonetim', 'yazma');
-
-  if (!okuyabilir) {
-    return <ReddedilenlerIstemci satirlar={[]} yetkili={false} yazabilir={false}
-      toplam={0} sinir={SINIR} />;
-  }
-
-  const [ham, toplam] = await Promise.all([
-    db.reddedilenKayit.findMany({
-      orderBy: [{ durum: 'asc' }, { olusturuldu: 'desc' }],
-      take: SINIR,
-      select: {
-        id: true, kaynakSistem: true, kaynakKayitId: true, asama: true,
-        sebep: true, durum: true, incelemeNotu: true, incelemeZamani: true,
-        olusturuldu: true, hamJson: true,
-        connector: { select: { ad: true } },
-        inceleyen: { select: { adSoyad: true } },
-      },
-    }),
-    db.reddedilenKayit.count(),
-  ]);
-
-  const satirlar: RedSatiri[] = ham.map((r) => ({
-    id: r.id,
-    kaynakSistem: r.kaynakSistem,
-    kaynakKayitId: r.kaynakKayitId,
-    asama: r.asama,
-    sebep: r.sebep,
-    durum: r.durum,
-    connectorAdi: r.connector?.ad ?? null,
-    inceleyen: r.inceleyen?.adSoyad ?? null,
-    incelemeNotu: r.incelemeNotu,
-    incelemeZamani: r.incelemeZamani?.toISOString() ?? null,
-    olusturuldu: r.olusturuldu.toISOString(),
-    hamJson: r.hamJson,
-  }));
+  const veri = await reddedilenlerVerisi(k);
 
   return (
-    <ReddedilenlerIstemci satirlar={satirlar} yetkili yazabilir={yazabilir}
-      toplam={toplam} sinir={SINIR} />
+    <ReddedilenlerIstemci
+      satirlar={veri.satirlar}
+      yetkili={veri.yetkili}
+      yazabilir={veri.yazabilir}
+      toplam={veri.toplam}
+      sinir={veri.sinir}
+      kapsamli={veri.kapsamli}
+    />
   );
 }

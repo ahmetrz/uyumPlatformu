@@ -26,8 +26,14 @@ const GORUNUR_BUTCE = 8;
 const KOLONLAR = '104px minmax(0, 1fr) 236px 92px 26px';
 const KOLONLAR_DAR = '104px minmax(0, 1fr) 236px 26px';
 
-export default function AktiviteIstemci({ kayitlar, simdi, pencere }: {
+export default function AktiviteIstemci({
+  kayitlar, simdi, pencere, toplam, kapsamli = false,
+}: {
   kayitlar: Kayit[]; simdi: number; pencere: number;
+  /** kütüğün gerçek büyüklüğü — kesme SESSİZ kalmasın diye taşınır */
+  toplam: number;
+  /** kütük bir santral kapsamıyla daraltıldı mı — boş ekranın SÖZÜ değişir */
+  kapsamli?: boolean;
 }) {
   const [mercek, setMercek] = useState('hepsi');
   const [tipF, setTipF] = useState<string | null>(null);
@@ -78,7 +84,13 @@ export default function AktiviteIstemci({ kayitlar, simdi, pencere }: {
     <>
       <main style={{ minWidth: 0 }}>
         <EkranBasligi
-          eyebrow={`Denetim izi · en yeni ${Math.min(pencere, m.toplam)} kayıt`}
+          /* Kesme SESSİZ OLMAZ: pencere tabloyu kırpıyorsa cümle bunu
+             söyler. Sessizce kırpılmış bir liste "hepsi bu" der ve bu,
+             olmayan bir tamlık iddiasıdır. */
+          eyebrow={toplam > m.toplam
+            ? `Denetim izi · en yeni ${m.toplam} kayıt (pencere ${pencere})`
+              + ` · kütükte toplam ${toplam}`
+            : `Denetim izi · ${m.toplam} kayıt`}
           vurgu={baslik.vurgu}
           baslik={baslik.ad}
           metrikler={[
@@ -151,7 +163,9 @@ export default function AktiviteIstemci({ kayitlar, simdi, pencere }: {
             }} />
           ) : (
             <div style={{ marginTop: 'var(--s26)' }}>
-              <BosIlk cumle="Denetim izi kütüğünde kayıt yok." />
+              <BosIlk cumle={kapsamli
+                ? 'Kapsamınızda denetim izi kaydı yok.'
+                : 'Denetim izi kütüğünde kayıt yok.'} />
             </div>
           )}
         </section>

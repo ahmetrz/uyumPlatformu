@@ -63,7 +63,20 @@ const MERCEKLER = [
 
 type SiraYonu = 'artan' | 'azalan';
 
-export default function BulgularIstemci({ bulgular }: { bulgular: Bulgu[] }) {
+export default function BulgularIstemci({
+  bulgular, toplam, metrikler, kapsamli = false,
+}: {
+  bulgular: Bulgu[];
+  /** kütüğün GERÇEK büyüklüğü — sunucu tavanı satırları kestiyse fark açılır */
+  toplam: number;
+  /** kesilmemiş kütük üzerinde sayılmış metrikler (bkz. veri.ts → sayimGecisi) */
+  metrikler: {
+    acik: number; gecikmis: number; dogrulama: number;
+    zamaninda: number; aksiyonsuz: number; kapali: number;
+  };
+  /** liste bir santral kapsamıyla daraltıldı mı — boş ekranın SÖZÜ değişir */
+  kapsamli?: boolean;
+}) {
   const [mercek, setMercek] = useState('acik');
   const [onemF, setOnemF] = useState<string | null>(null);
   const [arama, setArama] = useState('');
@@ -94,13 +107,17 @@ export default function BulgularIstemci({ bulgular }: { bulgular: Bulgu[] }) {
 
   type SatirVerisi = (typeof satirVerisi)[number];
 
-  const acikKayitlar = satirVerisi.filter((s) => acikMi(s.b.durum));
-  const gecikmisSayisi = acikKayitlar.filter((s) => s.gecikme !== null).length;
-  const dogrulamaSayisi = acikKayitlar
-    .filter((s) => s.gecikme === null && dogrulamaBekliyorMu(s.b)).length;
-  const zamanindaSayisi = acikKayitlar.filter((s) => s.im === 'ok').length;
-  const aksiyonsuzSayisi = acikKayitlar.filter((s) => s.b.aksiyonlar.length === 0).length;
-  const kapaliSayisi = satirVerisi.length - acikKayitlar.length;
+  /* ── Metrikler: KESİLMEMİŞ kütükten, sunucudan gelir ─────────────────
+     Bu altı sayı eskiden elde duran satırlardan hesaplanıyordu; sunucu
+     satırları bir tavanla kestiği anda hepsi sessizce küçülürdü. Artık
+     sunucudaki hafif sayım geçişi ölçüyor (veri.ts → sayimGecisi):
+     satır için `take`, sayım için ayrı bir tam geçiş. */
+  const {
+    acik: acikSayisi, gecikmis: gecikmisSayisi, dogrulama: dogrulamaSayisi,
+    zamaninda: zamanindaSayisi, aksiyonsuz: aksiyonsuzSayisi, kapali: kapaliSayisi,
+  } = metrikler;
+  /** Sunucu tavanı kütüğü kesti mi — kesme SESSİZ kalmaz. */
+  const kesildi = toplam > bulgular.length;
 
   /* ── mercek + kapsam ───────────────────────────────────────────────── */
   const suzulmus = useMemo(() => satirVerisi.filter((s) => {
@@ -185,15 +202,19 @@ export default function BulgularIstemci({ bulgular }: { bulgular: Bulgu[] }) {
     ? { vurgu: `${gecikmisSayisi} bulgu`, ad: 'takıldı', durum: 'bd' as Durum }
     : dogrulamaSayisi > 0
       ? { vurgu: `${dogrulamaSayisi} bulgu`, ad: 'doğrulama bekliyor', durum: 'md' as Durum }
-      : acikKayitlar.length > 0
-        ? { vurgu: `${acikKayitlar.length} bulgu`, ad: 'zamanında ilerliyor', durum: undefined }
+      : acikSayisi > 0
+        ? { vurgu: `${acikSayisi} bulgu`, ad: 'zamanında ilerliyor', durum: undefined }
         : { vurgu: undefined, ad: 'Açık bulgu yok', durum: undefined };
 
   return (
     <>
       <main style={{ minWidth: 0 }}>
         <EkranBasligi
-          eyebrow={`Bulgu & düzeltici aksiyon · ${acikKayitlar.length} açık`}
+          /* Kesme SESSİZ OLMAZ: tavana çarpıldıysa cümle kaç satırın elde
+             olduğunu ve kütüğün gerçek büyüklüğünü birlikte söyler. */
+          eyebrow={kesildi
+            ? `Bulgu & düzeltici aksiyon · ${acikSayisi} açık · gösterilen ${bulgular.length} / ${toplam}`
+            : `Bulgu & düzeltici aksiyon · ${acikSayisi} açık`}
           vurgu={baslik.vurgu}
           vurguDurumu={baslik.durum}
           baslik={baslik.ad}
@@ -262,7 +283,11 @@ export default function BulgularIstemci({ bulgular }: { bulgular: Bulgu[] }) {
             <BosFiltre temizle={() => { setMercek('acik'); setOnemF(null); setArama(''); }} />
           ) : (
             <BosIlk
-              cumle="Açık bulgu yok."
+              /* "Açık bulgu yok" ile "kapsamınızda bulgu yok" AYNI ŞEY
+                 DEĞİLDİR: ilki iyi haber, ikincisi yetki sınırıdır. */
+              cumle={kapsamli && bulgular.length === 0
+                ? 'Kapsamınızda bulgu kaydı yok.'
+                : 'Açık bulgu yok.'}
               eylem={kapaliSayisi > 0
                 ? <Dugme tur="ikincil" onClick={() => setMercek('hepsi')}>
                   Kapanmış {kapaliSayisi} kayıt

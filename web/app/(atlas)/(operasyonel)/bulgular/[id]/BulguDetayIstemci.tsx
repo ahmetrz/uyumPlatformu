@@ -25,7 +25,7 @@ import {
   type AksiyonOzeti,
 } from '../mantik';
 
-type Veri = {
+export type Veri = {
   id: string; maddeDurumuId: string; baslik: string; aciklama: string;
   durum: string; onem: string; kaynak: string | null; kokNeden: string | null;
   tespit: string; hedef: string | null; kapanma: string | null;

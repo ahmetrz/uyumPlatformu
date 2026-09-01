@@ -1152,8 +1152,33 @@ export async function mevcutTopolojiOgeleri(tesisId: string | null): Promise<Top
   return ogeler;
 }
 
-/* ═══ 8 · Ekran sorguları ═════════════════════════════════════════════ */
+/* ═══ 8 · Ekran sorguları ═════════════════════════════════════════════
 
+   BURASI /topoloji EKRANININ TEK OKUMA KAYNAĞIDIR.
+
+   Denetim bulgusu #22: bu dört yardımcı yazılmıştı ama hiçbir yerden
+   çağrılmıyordu; `/topoloji` aynı işi kendi ham `db` sorgularıyla ikinci
+   kez yapıyordu. İki tanım bugün aynı sonucu veriyordu, ama biri
+   değişince öteki sessizce ayrışırdı — kapsam koşulu, tavan ya da
+   `include` kümesi bir yerde düzelip diğerinde kalırdı.
+
+   Karar: EKRAN YARDIMCILARA TAŞINDI, yardımcılar silinmedi. Gerekçe,
+   sorgunun kendisinin bir kural taşıması: kapsam daraltması
+   (`tesisIdleri`), şiddet sıralaması ve sayımların TAVANDAN BAĞIMSIZ
+   olması bu ekranın doğruluk sözleşmesinin parçası. Sayfa bileşeninde
+   yaşayan bir `findMany`, o sözleşmeyi test edilemez bir yere koyar;
+   burada duran fonksiyon testten doğrudan çağrılabilir.
+
+   Aynı geçişte iki ölü sarmalayıcı SİLİNDİ (#27):
+   · `anlikOgeleri(anlikId)` — `anligiCoz` üstüne tek satırlık sarmal,
+     hiçbir çağıranı yoktu; anlığın öğeleri hiçbir ekranda listelenmiyor
+     ve listelenecekse kendi sayfalama yüzeyini isterdi.
+   · `sapmaDetay(sapmaId)` — çekmecenin gösterdiği her alan zaten
+     `sapmalariListele` yanıtında var; ikinci bir tekil sorgu, aynı
+     çekmece için İKİNCİ bir tanım demekti (bulgunun kendisi). */
+
+/** Kapsamdaki anlık görüntüler, yeniden eskiye. `tesisIdleri === null`
+    = kapsam sınırı yok; `[]` hiçbir tesis demektir ve boş liste döner. */
 export async function anliklariListele(
   tesisIdleri: string[] | null,
   limit = 20,
@@ -1170,13 +1195,8 @@ export async function anliklariListele(
   });
 }
 
-export async function anlikOgeleri(anlikId: string): Promise<AnlikGorunumu> {
-  const a = await db.topolojiAnlik.findUniqueOrThrow({
-    where: { id: anlikId }, include: { gozlemler: true },
-  });
-  return anligiCoz(a);
-}
-
+/** Kapsamdaki sapmalar. Tavan aşılabilir — bu yüzden EKRAN METRİKLERİ
+    bu listeden değil `topolojiOzeti`den okunur (aşağıdaki gerekçe). */
 export async function sapmalariListele(filtre: {
   tesisIdleri?: string[] | null;
   durumlar?: SapmaDurumu[];
@@ -1201,22 +1221,6 @@ export async function sapmalariListele(filtre: {
     (a, b) => SIDDET_SIRASI[a.siddet as Siddet] - SIDDET_SIRASI[b.siddet as Siddet]
       || b.olusturuldu.getTime() - a.olusturuldu.getTime(),
   );
-}
-
-export async function sapmaDetay(sapmaId: string) {
-  const s = await db.topolojiSapmasi.findUniqueOrThrow({
-    where: { id: sapmaId },
-    include: {
-      anlik: { select: { id: true, kaynak: true, alindi: true, tesisId: true, ozetHash: true } },
-      kararVeren: { select: { id: true, adSoyad: true } },
-    },
-  });
-  return {
-    ...s,
-    onceki: s.oncekiJson ? (JSON.parse(s.oncekiJson) as unknown) : null,
-    sonraki: s.sonrakiJson ? (JSON.parse(s.sonrakiJson) as unknown) : null,
-    aday: sapmaAdayi(s),
-  };
 }
 
 /** Motorun koşu kaydında kullandığı kaynak adı — iz sorgusu bunu okur. */
@@ -1284,7 +1288,15 @@ export async function karsilastirmaIzi(anlikIdleri: string[]): Promise<{
   };
 }
 
-/** Ekran metrikleri — en fazla dört sayı (yoğunluk sözleşmesi). */
+/**
+ * Ekran metrikleri — en fazla dört sayı (yoğunluk sözleşmesi).
+ *
+ * NEDEN AYRI BİR SORGU: `/topoloji` sapmaları tavanla (200) çeker. Metriği
+ * o kesilmiş listeden saymak, iki yüz birinci açık sapmayı METRİKTEN de
+ * düşürürdü — kullanıcı "12 kritik" yazan bir başlıkla gerçekte 30 kritik
+ * sapma olan bir kapsama bakardı. Sayım burada `count` ile, TAVANDAN
+ * BAĞIMSIZ yapılır; liste kesilir, sayı kesilmez.
+ */
 export async function topolojiOzeti(tesisIdleri: string[] | null): Promise<{
   temelVar: boolean;
   sonAnlik: Date | null;

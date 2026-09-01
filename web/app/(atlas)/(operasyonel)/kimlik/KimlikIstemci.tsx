@@ -38,10 +38,12 @@ const MERCEKLER = [
   { id: 'sahipsiz', ad: 'Sahipsiz' },
 ];
 
-export default function KimlikIstemci({ hesaplar, tesisler, kaynaklar }: {
+export default function KimlikIstemci({ hesaplar, tesisler, kaynaklar, kapsamli = false }: {
   hesaplar: Hesap[];
   tesisler: { id: string; ad: string }[];
   kaynaklar: string[];
+  /** liste bir santral kapsamıyla daraltıldı mı — boş ekranın SÖZÜ değişir */
+  kapsamli?: boolean;
 }) {
   const [mercek, setMercek] = useState('hepsi');
   const [tesisF, setTesisF] = useState<string | null>(null);
@@ -173,8 +175,8 @@ export default function KimlikIstemci({ hesaplar, tesisler, kaynaklar }: {
           />
 
           {gosterilen.length === 0 && toplananHesap === 0 ? (
-            <BosDurum hicKayitYok={m.toplam === 0} filtreAktif={filtreAktif}
-              temizle={filtreleriTemizle} />
+            <BosDurum hicKayitYok={m.toplam === 0} kapsamli={kapsamli}
+              filtreAktif={filtreAktif} temizle={filtreleriTemizle} />
           ) : (
             <div className="tbl" role="table"
               style={{
@@ -545,13 +547,16 @@ function GrupOzeti({ grup, sec }: {
 
 /* ── boş durumlar ──────────────────────────────────────────────────────── */
 
-function BosDurum({ hicKayitYok, filtreAktif, temizle }: {
-  hicKayitYok: boolean; filtreAktif: boolean; temizle: () => void;
+function BosDurum({ hicKayitYok, kapsamli, filtreAktif, temizle }: {
+  hicKayitYok: boolean; kapsamli: boolean; filtreAktif: boolean; temizle: () => void;
 }) {
   if (hicKayitYok) {
+    /* "Hesap kaydı yok" ile "kapsamınızda hesap yok" AYNI ŞEY DEĞİLDİR. */
     return (
       <div style={{ marginTop: 'var(--s26)' }}>
-        <BosIlk cumle="İnceleme kapsamında hesap yok." />
+        <BosIlk cumle={kapsamli
+          ? 'Kapsamınızda hesap kaydı yok.'
+          : 'İnceleme kapsamında hesap yok.'} />
       </div>
     );
   }

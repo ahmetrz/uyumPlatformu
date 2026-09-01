@@ -43,6 +43,13 @@ export const RAY_FLAGSHIP: RayOgesi[] = [
    denetim → bulgu → proje, sonra varlık zinciri, sonra operasyon. */
 export const RAY_OPERASYONEL: RayOgesi[] = [
   // ── günlük tezgâh ──
+  /* Bildirim kutusu listenin BAŞINDA duruyor ve rayın sayaç taşıyan tek
+     öğesi. Gerekçe rayın kendi kuralı: "sayaç yalnız bir kararı değiştiren
+     yerde". Son tarih motoru her koşuda bildirim yazıyordu ve hiçbir ekran
+     okumuyordu (bulgu #11); okunmamış sayısı ray dışında hiçbir yerde
+     görünmezse kutu yine sessiz kalırdı. Sayacı `(operasyonel)/layout.tsx`
+     `sayilar` üzerinden verir; sıfırsa hiç çizilmez. */
+  { ad: 'Bildirimler', yol: '/bildirimler' },
   { ad: 'Uyum', yol: '/uyum' },
   { ad: 'Uyum süreçleri', yol: '/surecler' },
   { ad: 'Risk', yol: '/riskler' },
@@ -66,7 +73,17 @@ export const RAY_OPERASYONEL: RayOgesi[] = [
      duruyordu — hangi hattın hangisi olduğu ancak açınca anlaşılıyordu. */
   { ad: 'Yönetim tezgâhı', yol: '/yonetim-tezgahi', ayrac: true },
   { ad: 'Regülasyonlar', yol: '/regulasyonlar' },
+  /* İKİ AYRI EŞLEME EKRANI VAR ve adları bunu söylemek zorunda:
+     /eslestirme  madde ↔ madde denkliğini kütükler (çapraz eşleme,
+                  tanımlar yetkisi); /esleme dış sistemin ALANINI platform
+                  alanına çeviren sürümlü kural profilini yönetir (yönetim
+                  yetkisi). Rayda ikincisinin etiketi "Eşleme profilleri":
+                  iki öğe "Eşleştirme" ve "Eşleme" diye yan yana dursaydı
+                  hangisinin hangisi olduğu ancak açınca anlaşılırdı.
+                  Bulgu #10'a kadar bu ekran hiç yoktu: profil connector'a
+                  bağlanabiliyor ama hiçbir yerde doğamıyordu. */
   { ad: 'Eşleştirme', yol: '/eslestirme' },
+  { ad: 'Eşleme profilleri', yol: '/esleme' },
   { ad: 'Varlık aktarımı', yol: '/varlik-aktarim' },
   { ad: 'Madde aktarımı', yol: '/ice-aktarim' },
   { ad: 'Kullanıcı & yetki', yol: '/yetkiler' },

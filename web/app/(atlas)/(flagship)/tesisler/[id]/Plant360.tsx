@@ -31,7 +31,7 @@ export type Plant360Veri = {
   digerEksikler: { id: string; baslik: string; alt: string }[];
 };
 
-type Santral = { id: string; kod: string; ad: string; alt: string; tip: string;
+export type Santral = { id: string; kod: string; ad: string; alt: string; tip: string;
   gorselAnahtari: string | null };
 
 /* Odak kartının sol kenarı yalnız sürükleyen dört durumu alır — bilinmeyen

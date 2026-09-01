@@ -104,7 +104,7 @@ export function aktifMi(r: Pick<R, 'durum'>): boolean {
 
 /** Prisma satırının R'ye indirgenmiş biçimi — iki rota da bunu kullanır,
     böylece liste ile detay aynı alan adlarını konuşur. */
-type HamRisk = {
+export type HamRisk = {
   id: string; kod: string; baslik: string; aciklama: string; kaynak: string | null;
   tehdit: string | null; zayiflik: string | null; mevcutKontroller: string | null;
   olasilik: number | null;
@@ -128,8 +128,24 @@ type HamRisk = {
 
 const OT_SINIFLARI = new Set(['OT', 'BT_OT_KOPRU']);
 
-export function riskeCevir(r: HamRisk): R {
-  const varliklar = r.varliklar.map((v) => v.varlik);
+/**
+ * Prisma satırını R'ye indirger.
+ *
+ * `gorulebilir` bir SANTRAL KAPSAMI süzgecidir ve riske bağlı varlıklara
+ * uygulanır: kapsam dışı bir varlığın etiketi/adı ekrana çıkmaz. Süzgeç
+ * burada — türetmelerden ÖNCE — çalışır ki `ot` ve `santralSayisi` de
+ * daraltılmış kümeden hesaplansın; satırı gizleyip sayacı bırakmak, sayıyı
+ * sızıntıya çevirirdi.
+ *
+ * Varsayılan "hepsi görünür"dür: kapsam kararı sunucudaki çağıranın
+ * (riskler/veri.ts) işidir, bu saf fonksiyonun değil — ortak.ts istemciyle
+ * paylaşıldığı için `app/kapsam.ts` (server-only) buraya import EDİLEMEZ.
+ */
+export function riskeCevir(
+  r: HamRisk,
+  gorulebilir: (tesisId: string | null) => boolean = () => true,
+): R {
+  const varliklar = r.varliklar.map((v) => v.varlik).filter((v) => gorulebilir(v.tesisId));
   const santraller = new Set(varliklar.map((v) => v.tesisId).filter((x): x is string => !!x));
   return {
     id: r.id, kod: r.kod, baslik: r.baslik, aciklama: r.aciklama, kaynak: r.kaynak,

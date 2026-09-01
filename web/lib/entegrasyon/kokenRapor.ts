@@ -165,10 +165,11 @@ const TIP_COZUCU: Record<string, TipCozucu> = {
   },
 };
 
-/** Bir varlık tipi santral kapsamına daraltılabiliyor mu? */
-export function kapsanabilirTip(varlikTipi: string): boolean {
-  return varlikTipi in TIP_COZUCU;
-}
+/* `kapsanabilirTip(varlikTipi)` yüklemi buradaydı ve hiçbir çağıranı yoktu
+   (#27). Silindi: "bu tip kapsamlanabilir mi?" sorusunun cevabı zaten
+   `kokenleriTopla` içinde `TIP_COZUCU[tip]` okunarak veriliyor ve oradan
+   `kapsanamayanTipler` notuna dönüşüyor. Aynı soruya ikinci bir dışa
+   aktarım, ikinci bir doğruluk kaynağı demekti. */
 
 /* ═══ Çekirdek: kapsam saygılı köken çekimi ═══════════════════════════ */
 

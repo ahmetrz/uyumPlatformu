@@ -1,8 +1,9 @@
 import type { Metadata } from 'next';
 import { girisZorunlu } from '@/lib/erisim';
-import { db } from '@/lib/db';
+import { Yetkisiz } from '@/components/atlas/temel';
+import { modulOkuyabilir } from '@/app/kapsam';
 import OmurIstemci from './OmurIstemci';
-import { omruCoz, type Proje, type VarlikKaydi } from './mantik';
+import { omurEkranVerisi } from './veri';
 
 export const metadata: Metadata = { title: 'Ömür yönetimi — Atlas' };
 
@@ -13,131 +14,29 @@ export const metadata: Metadata = { title: 'Ömür yönetimi — Atlas' };
    Ömür kuyruğu tek sorguda kurulur: varlığın kendi tarihleri + üstündeki
    yazılım ürünlerinin EOS'u + risk→kontrol (telafi edici kontrol) +
    risk→proje / varlık→proje (bağlı proje). Hiçbir eşik sabit yazılmaz;
-   kuyruk seed değiştiğinde kendiliğinden değişir. */
+   kuyruk seed değiştiğinde kendiliğinden değişir.
+
+   Kapı iki katmanlıdır: modül izni burada (`envanter/okuma`), santral
+   kapsamı `veri.ts`te. Kuyruk ölçütü ve satır tavanı da `veri.ts`tedir —
+   ekran artık `Varlik` tablosunun tamamını belleğe almaz. */
 
 export default async function Sayfa() {
-  await girisZorunlu();
+  const k = await girisZorunlu();
+  /* Modül kapısı `modulOkuyabilir` ile sorulur, `izinVar(...,'okuma')` ile
+     DEĞİL: ikincisi kapsamsız (global) bir okuma sorar ve tesise kısıtlı
+     her kullanıcıyı ekrandan tümüyle atardı (bkz. app/kapsam.ts). */
+  if (!modulOkuyabilir(k, 'envanter')) return <Yetkisiz rol="envanter okuma" />;
 
-  // `new Date()` sunucuda istek başına bir kez okunur; tüm eşikler bu ana göre.
-  const simdi = new Date().getTime();
-
-  const [varliklar, toplamVarlik] = await Promise.all([
-    db.varlik.findMany({
-      where: { silindi: null },
-      select: {
-        id: true, etiket: true, ad: true, kritiklik: true, yasamDongusu: true,
-        destekBitis: true, eolTarihi: true, eosTarihi: true,
-        /* Tür / santral / tedarikçi ilişki olarak DEĞİL, yabancı anahtar
-           olarak okunur ve aşağıda bellekte eşlenir. Nedeni ölçüm: Prisma
-           her ilişkiyi `id IN (…)` ile 999'luk parçalar hâlinde çeker —
-           10.000 varlıkta üç ilişki için 33 sorgu ve ~54ms, oysa üç
-           tablonun tamamı 56 satır. */
-        turId: true, tesisId: true, tedarikciId: true,
-        yazilimlar: {
-          select: {
-            yazilim: {
-              select: { ad: true, surum: true, uretici: true, eolTarihi: true, eosTarihi: true },
-            },
-          },
-        },
-        riskler: {
-          select: {
-            risk: {
-              select: {
-                id: true, kod: true, baslik: true, durum: true, silindi: true,
-                kontroller: { select: { madde: { select: { kod: true, baslik: true } } } },
-                projeler: {
-                  select: {
-                    proje: { select: { id: true, kod: true, ad: true, durum: true, silindi: true } },
-                  },
-                },
-              },
-            },
-          },
-        },
-        projeBaglantilari: {
-          select: {
-            proje: { select: { id: true, kod: true, ad: true, durum: true, silindi: true } },
-          },
-        },
-      },
-      orderBy: { etiket: 'asc' },
-    }),
-    db.varlik.count({ where: { silindi: null } }),
-  ]);
-
-  /* Boyut tabloları TAM okunur (filtresiz): pasifleştirilmiş bir türe ya da
-     kapatılmış bir santrale bağlı varlık ömür kuyruğundan düşmemeli. */
-  const [turAdlari, tesisAdlari, tedarikciAdlari] = await Promise.all([
-    db.varlikTuru.findMany({ select: { id: true, ad: true } }),
-    db.tesis.findMany({ select: { id: true, ad: true } }),
-    db.tedarikci.findMany({ select: { id: true, ad: true } }),
-  ]);
-  const turHaritasi = new Map(turAdlari.map((t) => [t.id, t.ad]));
-  const tesisHaritasi = new Map(tesisAdlari.map((t) => [t.id, t.ad]));
-  const tedarikciHaritasi = new Map(tedarikciAdlari.map((t) => [t.id, t.ad]));
-
-  const kayitlar: VarlikKaydi[] = varliklar.map((v) => {
-    // Desteği bitmiş yazılım kurulumları — en erken EOS önce (satırda ürün adı yazılır).
-    const bitenYazilimlar = v.yazilimlar
-      .map((k) => k.yazilim)
-      .filter((y) => y.eosTarihi !== null && y.eosTarihi.getTime() < simdi)
-      .sort((a, b) => (a.eosTarihi as Date).getTime() - (b.eosTarihi as Date).getTime())
-      .map((y) => ({
-        ad: y.ad, surum: y.surum, uretici: y.uretici,
-        eos: (y.eosTarihi as Date).toISOString(),
-      }));
-
-    const riskler = v.riskler.map((r) => r.risk).filter((r) => r.silindi === null);
-
-    // Telafi edici kontrol = varlığa bağlı risklerin RiskKontrol maddeleri.
-    const kontroller = riskler.flatMap((r) =>
-      r.kontroller.map((k) => ({ kod: k.madde.kod, baslik: k.madde.baslik, riskKod: r.kod })));
-
-    /* Bağlı proje: doğrudan varlık bağlantısı ya da varlığın riski üzerinden.
-       Seed'de varlık→proje doğrudan bağı henüz yok; zincir risk üzerinden
-       kuruluyor, ikisi de aynı ProjeBaglantisi kaydından okunur. */
-    const projeHavuzu = [
-      ...v.projeBaglantilari.map((p) => p.proje),
-      ...riskler.flatMap((r) => r.projeler.map((p) => p.proje)),
-    ].filter((p) => p.silindi === null && p.durum !== 'tamamlandi');
-    const projeler: Proje[] = [];
-    for (const p of projeHavuzu) {
-      if (!projeler.some((x) => x.id === p.id)) {
-        projeler.push({ id: p.id, kod: p.kod, ad: p.ad, durum: p.durum });
-      }
-    }
-
-    return {
-      id: v.id,
-      etiket: v.etiket,
-      ad: v.ad,
-      // Tür satırı bulunamazsa uydurulmaz — BİLİNMİYOR yazılır.
-      turAd: turHaritasi.get(v.turId) ?? 'bilinmiyor',
-      tesisId: v.tesisId,
-      tesisAd: v.tesisId === null ? null : tesisHaritasi.get(v.tesisId) ?? null,
-      tedarikciAd: v.tedarikciId === null ? null : tedarikciHaritasi.get(v.tedarikciId) ?? null,
-      kritiklik: v.kritiklik,
-      yasamDongusu: v.yasamDongusu,
-      destekBitis: v.destekBitis?.toISOString() ?? null,
-      eolTarihi: v.eolTarihi?.toISOString() ?? null,
-      eosTarihi: v.eosTarihi?.toISOString() ?? null,
-      bitenYazilimlar,
-      kontroller,
-      riskler: riskler.map((r) => ({ id: r.id, kod: r.kod, baslik: r.baslik })),
-      projeler,
-    };
-  });
-
-  /* Ömür kuyruğu: bir ömür sinyali taşıyan varlıklar. Sağlıklı varlıklar
-     istemciye hiç gitmez — ekranın konusu değiller. */
-  const kuyruk = kayitlar.filter((v) => {
-    const o = omruCoz(v, simdi);
-    return o.durum === 'bd' || o.tarihYok || o.yaklasan
-      || (v.eolTarihi !== null && new Date(v.eolTarihi).getTime() < simdi);
-  });
+  const veri = await omurEkranVerisi(k);
 
   return (
-    <OmurIstemci kayitlar={kuyruk} toplamVarlik={toplamVarlik} simdi={simdi} />
+    <OmurIstemci
+      kayitlar={veri.kayitlar}
+      toplamVarlik={veri.toplamVarlik}
+      kuyrukToplami={veri.kuyrukToplami}
+      metrikler={veri.metrikler}
+      simdi={veri.simdi}
+      kapsamli={veri.kapsamli}
+    />
   );
 }

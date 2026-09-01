@@ -19,8 +19,10 @@ export type PortfoySatiri = {
   acikBulgu: number; acikRisk: number;
 };
 
-export default function Portfoy({ satirlar, toplamGucMw }: {
+export default function Portfoy({ satirlar, toplamGucMw, kapsamli = false }: {
   satirlar: PortfoySatiri[]; toplamGucMw: number;
+  /** portföy bir santral kapsamıyla daraltıldı mı — boş ekranın SÖZÜ değişir */
+  kapsamli?: boolean;
 }) {
   const [tip, setTip] = useState('hepsi');
   const [seciliId, setSeciliId] = useState(satirlar[0]?.id ?? null);
@@ -112,11 +114,17 @@ export default function Portfoy({ satirlar, toplamGucMw }: {
               </p>
             </>
           ) : (
-            <>
-              <h2 style={{ fontSize: 20 }}>Bu filtreyle santral yok</h2>
-              <button type="button" className="portfoy-tip" style={{ marginTop: 'var(--s16)' }}
-                onClick={() => setTip('hepsi')}>Filtreleri temizle</button>
-            </>
+            /* Kapsam yüzünden boşalan portföy "santral yok" DEMEZ:
+               "kapsamınızda santral yok" der — ikisi farklı şeydir. */
+            satirlar.length === 0 && kapsamli ? (
+              <h2 style={{ fontSize: 20 }}>Kapsamınızda santral yok</h2>
+            ) : (
+              <>
+                <h2 style={{ fontSize: 20 }}>Bu filtreyle santral yok</h2>
+                <button type="button" className="portfoy-tip" style={{ marginTop: 'var(--s16)' }}
+                  onClick={() => setTip('hepsi')}>Filtreleri temizle</button>
+              </>
+            )
           )}
           <p className="t-label" style={{ marginTop: 'var(--s24)',
             color: 'rgba(246,244,238,.42)' }}>

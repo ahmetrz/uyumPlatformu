@@ -595,6 +595,74 @@ export function ortamGerekcesiEksik(f: ConnectorFormu, once: string | null): boo
   return once !== null && f.ortam !== once && !f.gerekce.trim();
 }
 
+/* ── Santral kapsamı ────────────────────────────────────────────────────
+
+   Kapsam formun geri kalanından AYRI bir alandır ve ayrı kaydedilir; sebebi
+   `lib/eylemler2/entegrasyon.ts` başındaki kapsam notunda yazılı. Buradaki
+   yardımcılar yalnız sözcük üretir: kararı sunucu verir, ekran onu tekrar
+   hesaplamaz.
+
+   TEK DOĞRULUK KAYNAĞI: kapsam `Connector.kapsamTesisleriJson` kolonundadır.
+   Yapılandırma JSON'undaki `kapsamTesisKodlari` yalnız MİRAS okumadır ve
+   ekranda da böyle adlandırılır — kullanıcı hangi kaynağın yürürlükte
+   olduğunu tahmin etmek zorunda kalmasın. */
+
+export type KapsamKaynagi = 'kolon' | 'yapilandirma_mirasi' | 'yok';
+
+export const KAPSAM_KAYNAK_SOZU: Record<KapsamKaynagi, string> = {
+  kolon: 'Kapsam alanı (kolon)',
+  yapilandirma_mirasi: 'Yapılandırma mirası — kaydettiğinizde kapsam alanına taşınır',
+  yok: 'Kapsam sınırı tanımlı değil',
+};
+
+export type KapsamGorunumu = {
+  kodlar: string[];
+  kaynak: KapsamKaynagi;
+  mirasKodlari: string[];
+  varsayilanTesisKodu: string | null;
+  secenekler: { kod: string; ad: string }[];
+};
+
+/** Yürürlükteki kapsamın tek cümlesi. BOŞ liste "hiçbir santral" DEĞİL,
+    "sınır yok" demektir — çekirdek de öyle okur ve bu ayrım ekranın
+    yanlış okunmaması için sözcükle söylenir. */
+export function kapsamCumlesi(kodlar: string[]): string {
+  return kodlar.length === 0
+    ? 'Sınır yok — bu bağlantı her santral adına kayıt yazabilir'
+    : `${kodlar.length} santral · ${kodlar.join(', ')}`;
+}
+
+/** Kaydetmeden önce gösterilecek uyarılar. Boş liste dönerse kaydetmenin
+    sürprizi yoktur; dolu liste kaydetmeyi ENGELLEMEZ, yalnız sonucu önden
+    söyler (biri hariç: varsayılan tesis çelişkisini sunucu reddeder). */
+export function kapsamUyarilari(secili: string[], g: KapsamGorunumu): string[] {
+  const uyarilar: string[] = [];
+  if (secili.length === 0) {
+    uyarilar.push('Hiçbir santral seçili değil: bu, "hiçbirine yazamaz" değil '
+      + '"SINIR YOK" demektir. Bağlantıyı durdurmak için etkinliği kapatın.');
+  }
+  if (g.varsayilanTesisKodu && secili.length > 0
+    && !secili.includes(g.varsayilanTesisKodu)) {
+    uyarilar.push(`Yapılandırmadaki varsayılan tesis kodu (${g.varsayilanTesisKodu}) `
+      + 'seçili kapsamın dışında — sunucu bu kaydı reddeder.');
+  }
+  if (g.mirasKodlari.length > 0) {
+    uyarilar.push('Yapılandırmada eski kapsam anahtarı var '
+      + `(${g.mirasKodlari.join(', ')}); kaydettiğinizde kapsam alanına taşınır `
+      + 've yapılandırmadan silinir.');
+  }
+  return uyarilar;
+}
+
+/** Seçim kayıtlı kapsamdan farklı mı? Sıra önemsizdir — kapsam bir
+    KÜMEDİR; yalnız sırayı değiştiren bir "kaydet" iz satırı üretmemeli. */
+export function kapsamDegisti(once: string[], sonra: string[]): boolean {
+  if (once.length !== sonra.length) return true;
+  const a = [...once].sort();
+  const b = [...sonra].sort();
+  return a.some((x, i) => x !== b[i]);
+}
+
 /* ═══ Veri kökeni — saf mantık ═══════════════════════════════════════════
    §12 + §18'in ekrana düşen kısmı. Tek bir DEĞİŞMEZ bu bölümün tamamına
    hâkimdir ve testle korunur:

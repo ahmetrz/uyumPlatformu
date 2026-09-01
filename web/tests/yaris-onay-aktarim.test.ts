@@ -175,3 +175,82 @@ describe('Keşif kararı kopya varlık açmaz', () => {
     })).rejects.toThrow(/zaten karara bağlanmış/);
   });
 });
+
+/* ═══ P1 devamı — kararın YAN ETKİSİ (denetim bulgusu #16) ════════════
+
+   Yukarıdaki üç vaka kararın KENDİSİNİN iki kez yazılmadığını ölçüyor.
+   Asıl zarar yan etkideydi: `onayKarar` sahiplenmeyi atomik yapmıştı ama
+   `onayYanEtkisi` transaction DIŞINDA koşuyordu. Kaybeden çağrı
+   sahiplenmede duruyordu, ama KAZANAN çağrı yarım kalabiliyordu —
+   istisna 'aktif', madde durumlarının bir kısmı hâlâ kapsam içinde.
+   Şimdi sahiplenme + yan etki + iz tek transaction. */
+
+describe('İstisna onayının yan etkisi çiftlenmez ve yarım kalmaz', () => {
+  async function istisnaTalebiAc(etiket: string, surecSayisi: number) {
+    const reg = await db.regulasyon.create({
+      data: { kod: `${ONEK}-${etiket}`, ad: `Yarış istisna ${etiket}` } });
+    const madde = await db.madde.create({ data: {
+      regulasyonId: reg.id, kod: `${ONEK}-${etiket}-M`,
+      baslik: 'Yarış maddesi', metin: 'Yarış metni' } });
+    const durumIdler: string[] = [];
+    for (let i = 0; i < surecSayisi; i += 1) {
+      const surec = await db.uyumSureci.create({ data: {
+        kod: `${ONEK}-${etiket}-S${i}`, ad: `Yarış süreci ${i}`,
+        regulasyonId: reg.id, durum: 'aktif' } });
+      const d = await db.maddeDurumu.create({ data: {
+        surecId: surec.id, maddeId: madde.id, tesisId: kimlik.tesisId, durum: 'uyumlu' } });
+      durumIdler.push(d.id);
+    }
+    const istisna = await db.istisna.create({ data: {
+      maddeId: madde.id, tesisId: kimlik.tesisId, durum: 'onay_bekliyor',
+      gerekce: 'Yarış testi için geçici muafiyet.',
+      bitis: new Date(Date.now() + 30 * 86_400_000) } });
+    const talep = await db.onayTalebi.create({ data: {
+      tip: 'istisna', kaynakTipi: 'Istisna', kaynakId: istisna.id,
+      ozet: 'Yarış istisna talebi', talepEdenId: kimlik.talepEden, durum: 'bekliyor' } });
+    return { istisna, talep, durumIdler };
+  }
+
+  it('EŞZAMANLI iki onaydan yan etki TAM BİR KEZ uygulanır', async () => {
+    const { istisna, talep, durumIdler } = await istisnaTalebiAc('Y1', 3);
+    const sonuclar = await Promise.all([
+      onayKarar({ id: talep.id, karar: 'onaylandi', gerekce: 'ilk' }),
+      onayKarar({ id: talep.id, karar: 'onaylandi', gerekce: 'ikinci' }),
+    ]);
+    expect(sonuclar.filter((s) => s.ok)).toHaveLength(1);
+    expect((await db.istisna.findUniqueOrThrow({ where: { id: istisna.id } })).durum).toBe('aktif');
+    // yan etki bir kez: 3 durum, 3 tarihçe, 3 iz — 6 değil
+    expect(await db.maddeDurumu.count({
+      where: { id: { in: durumIdler }, durum: 'kapsamdisi' } })).toBe(3);
+    expect(await db.degerlendirmeTarihcesi.count({
+      where: { maddeDurumuId: { in: durumIdler } } })).toBe(3);
+    expect(await db.aktiviteKaydi.count({
+      where: { varlikTipi: 'MaddeDurumu', varlikId: { in: durumIdler } } })).toBe(3);
+  });
+
+  it('yan etki tamamlanmadan kararın izi düşmez (hepsi ya da hiçbiri)', async () => {
+    /* Kontrollü arıza: tarihçe yazımı reddedilir. Karar izi (`OnayTalebi`)
+       yan etkiden ÖNCE yazılır; aynı transaction'da olmasaydı ortada
+       "onaylandı" izi kalır, karşılığı olan durum değişimi olmazdı. */
+    const { istisna, talep, durumIdler } = await istisnaTalebiAc('Y2', 2);
+    await db.$executeRawUnsafe(
+      'CREATE TRIGGER yaris_tarihce_patlat BEFORE INSERT ON "DegerlendirmeTarihcesi" '
+      + "WHEN NEW.yeniDurum = 'kapsamdisi' BEGIN SELECT RAISE(ABORT, 'disk doldu'); END;");
+    let sonuc;
+    try { sonuc = await onayKarar({ id: talep.id, karar: 'onaylandi', gerekce: 'onay' }); }
+    finally { await db.$executeRawUnsafe('DROP TRIGGER IF EXISTS yaris_tarihce_patlat;'); }
+
+    expect(sonuc.ok).toBe(false);
+    expect((await db.onayTalebi.findUniqueOrThrow({ where: { id: talep.id } })).durum).toBe('bekliyor');
+    expect((await db.istisna.findUniqueOrThrow({ where: { id: istisna.id } })).durum).toBe('onay_bekliyor');
+    expect(await db.aktiviteKaydi.count({
+      where: { varlikTipi: 'OnayTalebi', varlikId: talep.id } })).toBe(0);
+    expect(await db.maddeDurumu.count({
+      where: { id: { in: durumIdler }, durum: 'kapsamdisi' } })).toBe(0);
+
+    // ve karar hâlâ verilebilir durumda: yarım kalmışlık kilitlemedi
+    expect((await onayKarar({ id: talep.id, karar: 'onaylandi', gerekce: 'yeniden' })).ok).toBe(true);
+    expect(await db.maddeDurumu.count({
+      where: { id: { in: durumIdler }, durum: 'kapsamdisi' } })).toBe(2);
+  });
+});

@@ -23,7 +23,7 @@ const ONEM: Record<string, 'bd' | 'md' | 'ok' | 'pl'> = {
 };
 
 export default function Genel({
-  kullanici, ozet, odak, kuyruk, toplamKayit,
+  kullanici, ozet, odak, kuyruk, toplamKayit, kapsamli = false,
 }: {
   kullanici: string;
   ozet: {
@@ -35,6 +35,8 @@ export default function Genel({
   odak: Kayit | null;
   kuyruk: Kayit[];
   toplamKayit: number;
+  /** özet bir santral kapsamıyla daraltıldı mı — boş ekranın SÖZÜ değişir */
+  kapsamli?: boolean;
 }) {
   const tumu = odak ? [odak, ...kuyruk] : kuyruk;
   const [indeks, setIndeks] = useState(0);
@@ -155,10 +157,14 @@ export default function Genel({
           </section>
         </>
       ) : (
-        /* Boş: kritik konu yok — kart kaldırılır, metrikler kalır (§F1 states) */
+        /* Boş: kritik konu yok — kart kaldırılır, metrikler kalır (§F1 states).
+           Kapsam yüzünden boşalan ekran "konu yok" DEMEZ: "kapsamınızda
+           kayıt yok" der — ilki iyi haber, ikincisi yetki sınırıdır. */
         <section style={{ padding: 'var(--s38) var(--gutter-fs) var(--s46)' }}>
           <p className="t-section" style={{ margin: 0 }}>
-            Bugün kritik konu yok, {kullanici.split(' ')[0]}.
+            {kapsamli
+              ? `Kapsamınızda açık kayıt yok, ${kullanici.split(' ')[0]}.`
+              : `Bugün kritik konu yok, ${kullanici.split(' ')[0]}.`}
           </p>
         </section>
       )}

@@ -1,7 +1,9 @@
 import type { Metadata } from 'next';
 import { girisZorunlu, izinVar, izinliTesisIdleri } from '@/lib/erisim';
 import { db } from '@/lib/db';
-import { karsilastirmaIzi, temelDurumu } from '@/lib/entegrasyon/topoloji';
+import {
+  anliklariListele, karsilastirmaIzi, sapmalariListele, temelDurumu, topolojiOzeti,
+} from '@/lib/entegrasyon/topoloji';
 import TopolojiIstemci from './TopolojiIstemci';
 import {
   anlikKarsilastirmaZamani,
@@ -52,34 +54,26 @@ export default async function Sayfa() {
 
   const tesisKosulu = gorulebilir ? { tesisId: { in: gorulebilir } } : {};
 
-  const [tesisler, hamSapmalar, hamAnliklar, anlikSayimlari, maddeDurumlari] = await Promise.all([
+  /* Sapma ve anlık listeleri EKRANIN KENDİ SORGUSU DEĞİL: ikisi de
+     `lib/entegrasyon/topoloji.ts` yardımcılarından gelir (#22). Burada
+     ikinci bir `findMany` yazmak, kapsam koşulunun ve şiddet sırasının
+     iki ayrı yerde yaşaması demekti. */
+  const [tesisler, hamSapmalar, hamAnliklar, anlikSayimlari, ozet, maddeDurumlari]
+    = await Promise.all([
     db.tesis.findMany({
       where: { durum: 'aktif', ...(gorulebilir ? { id: { in: gorulebilir } } : {}) },
       select: { id: true, kod: true, ad: true },
       orderBy: { kod: 'asc' },
     }),
-    db.topolojiSapmasi.findMany({
-      where: tesisKosulu,
-      orderBy: { olusturuldu: 'desc' },
-      take: SAPMA_TAVANI,
-      include: {
-        anlik: { select: { id: true, kaynak: true, alindi: true } },
-        kararVeren: { select: { adSoyad: true } },
-      },
-    }),
-    db.topolojiAnlik.findMany({
-      where: tesisKosulu,
-      orderBy: { alindi: 'desc' },
-      take: ANLIK_TAVANI,
-      include: {
-        onaylayan: { select: { adSoyad: true } },
-        tesis: { select: { kod: true } },
-        _count: { select: { gozlemler: true, sapmalar: true } },
-      },
-    }),
+    sapmalariListele({ tesisIdleri: gorulebilir, limit: SAPMA_TAVANI }),
+    anliklariListele(gorulebilir, ANLIK_TAVANI),
     /* Kapsam başına anlık sayısı tek sorguda: "hiç anlığı yok" ile "temeli
        yok" ayrı sayılar ve ikisi de sıfır sapmadan farklıdır. */
     db.topolojiAnlik.groupBy({ by: ['tesisId'], where: tesisKosulu, _count: { _all: true } }),
+    /* Metrikler TAVANDAN BAĞIMSIZ sayılır. Liste 200 satırda kesilir;
+       "kaç açık sapma var" sorusunun cevabı kesilmiş listeden okunursa
+       201. sapma başlıktan da düşer. */
+    topolojiOzeti(gorulebilir),
     uyumYazabilir
       ? db.maddeDurumu.findMany({
         where: gorulebilir ? { tesisId: { in: gorulebilir } } : {},
@@ -229,6 +223,7 @@ export default async function Sayfa() {
       sapmalar={sapmalar}
       anliklar={anliklar}
       temeller={temeller}
+      ozet={{ acikSapma: ozet.acikSapma, kritikAcik: ozet.kritikAcik }}
       iz={izGorunumu}
       tesisler={tesisler}
       maddeDurumlari={maddeDurumlari.map((m) => ({

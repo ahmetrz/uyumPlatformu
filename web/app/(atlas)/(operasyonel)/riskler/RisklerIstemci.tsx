@@ -28,9 +28,19 @@ type Kip = 'ozet' | 'form' | 'karar';
 
 export default function RisklerIstemci({
   riskler, yeniKod, kullanicilar, tesisler, sistemler, bulgular,
+  toplam, metrikler, kapsamli = false,
 }: {
   riskler: R[]; yeniKod: string; kullanicilar: Kisi[]; tesisler: Kodlu[];
   sistemler: Kodlu[]; bulgular: BulguSecenegi[];
+  /** kütüğün GERÇEK büyüklüğü — sunucu tavanı satırları kestiyse fark açılır */
+  toplam: number;
+  /** kesilmemiş kütük üzerinde sayılmış metrikler (sunucuda count/aggregate) */
+  metrikler: {
+    aktif: number; enYuksek: number | null; kritik: number; gecikmis: number;
+    kabul: number; sahipsiz: number; skorsuz: number;
+  };
+  /** liste bir santral kapsamıyla daraltıldı mı — boş ekranın SÖZÜ değişir */
+  kapsamli?: boolean;
 }) {
   const [filtre, setFiltre] = useState('aktif');
   const [tesisF, setTesisF] = useState<string | null>(null);
@@ -42,15 +52,17 @@ export default function RisklerIstemci({
 
   const secili = riskler.find((r) => r.id === seciliId) ?? null;
 
-  /* ── Metrikler: filtrelerden BAĞIMSIZ, aktif kütüğün tamamı ─────────── */
-  const aktif = useMemo(() => riskler.filter(aktifMi), [riskler]);
-  const skorlu = aktif.filter((r) => r.artikRisk !== null).map((r) => r.artikRisk as number);
-  const enYuksek = skorlu.length ? Math.max(...skorlu) : null;
-  const kritikSayisi = aktif.filter((r) => r.artikRisk !== null && r.artikRisk >= 15).length;
-  const gecikmisSayisi = aktif.filter(gecikmis).length;
-  const kabulSayisi = riskler.filter((r) => r.durum === 'kabul_edildi').length;
-  const sahipsizSayisi = aktif.filter((r) => !r.sahip).length;
-  const skorsuzSayisi = aktif.length - skorlu.length;
+  /* ── Metrikler: filtrelerden BAĞIMSIZ, KESİLMEMİŞ kütüğün tamamı ──────
+     Bu altı sayı eskiden elde duran `riskler` dizisinden hesaplanıyordu;
+     sunucu satırları bir tavanla kestiği anda hepsi sessizce küçülürdü.
+     Artık sunucuda `count`/`aggregate` ile ölçülüyorlar (bkz. veri.ts):
+     satır için `take`, sayım için `count`. */
+  const {
+    aktif: aktifSayisi, enYuksek, kritik: kritikSayisi, gecikmis: gecikmisSayisi,
+    kabul: kabulSayisi, sahipsiz: sahipsizSayisi, skorsuz: skorsuzSayisi,
+  } = metrikler;
+  /** Sunucu tavanı kütüğü kesti mi — kesme SESSİZ kalmaz. */
+  const kesildi = toplam > riskler.length;
 
   /* ── Filtre + kapsam ────────────────────────────────────────────────── */
   const taban = useMemo(() => riskler.filter((r) => {
@@ -102,14 +114,18 @@ export default function RisklerIstemci({
   /* ── Başlık ─────────────────────────────────────────────────────────── */
   const baslik: { vurgu?: string; metin: string } =
     kritikSayisi > 0 ? { vurgu: `${kritikSayisi} kritik`, metin: 'risk açık' }
-      : aktif.length > 0 ? { vurgu: String(aktif.length), metin: 'risk açık' }
+      : aktifSayisi > 0 ? { vurgu: String(aktifSayisi), metin: 'risk açık' }
         : { metin: 'Aktif risk yok' };
 
   return (
     <>
       <main style={{ minWidth: 0 }}>
         <EkranBasligi
-          eyebrow={`Risk defteri · ${aktif.length} aktif`}
+          /* Kesme SESSİZ OLMAZ: tavana çarpıldıysa cümle kaç satırın elde
+             olduğunu ve kütüğün gerçek büyüklüğünü birlikte söyler. */
+          eyebrow={kesildi
+            ? `Risk defteri · ${aktifSayisi} aktif · gösterilen ${riskler.length} / ${toplam}`
+            : `Risk defteri · ${aktifSayisi} aktif`}
           vurgu={baslik.vurgu}
           baslik={baslik.metin}
           metrikler={[
@@ -156,6 +172,7 @@ export default function RisklerIstemci({
           {gosterilen.length === 0 ? (
             <BosDurum
               hicKayitYok={riskler.length === 0}
+              kapsamli={kapsamli}
               aktifFiltre={filtre}
               kapaliyaGec={() => { setFiltre('kapali'); setTesisF(null); setSahipF(null); }}
               temizle={() => { setFiltre('aktif'); setTesisF(null); setSahipF(null); }}
@@ -464,14 +481,20 @@ function Ozet({ risk, duzenle, karar }: {
 
 /* ── Boş durumlar ───────────────────────────────────────────────────── */
 
-function BosDurum({ hicKayitYok, aktifFiltre, kapaliyaGec, temizle, yeni }: {
-  hicKayitYok: boolean; aktifFiltre: string;
+function BosDurum({ hicKayitYok, kapsamli, aktifFiltre, kapaliyaGec, temizle, yeni }: {
+  hicKayitYok: boolean; kapsamli: boolean; aktifFiltre: string;
   kapaliyaGec: () => void; temizle: () => void; yeni: () => void;
 }) {
   if (hicKayitYok) {
+    /* "Kütükte kayıt yok" ile "kapsamınızda kayıt yok" AYNI ŞEY DEĞİLDİR:
+       ilki ilk kurulumu, ikincisi yetki sınırını anlatır. Kapsamı
+       daraltılmış kullanıcıya boş kütük göstermek, kaydın var olmadığını
+       söylemek olurdu. */
     return (
       <div style={{ marginTop: 'var(--s26)' }}>
-        <BosIlk cumle="Risk kütüğünde kayıt yok."
+        <BosIlk cumle={kapsamli
+          ? 'Kapsamınızda risk kaydı yok.'
+          : 'Risk kütüğünde kayıt yok.'}
           eylem={<Dugme tur="birincil" onClick={yeni}>Risk oluştur</Dugme>} />
       </div>
     );

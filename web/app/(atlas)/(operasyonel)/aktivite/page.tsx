@@ -1,8 +1,9 @@
 import type { Metadata } from 'next';
 import { girisZorunlu } from '@/lib/erisim';
-import { db } from '@/lib/db';
+import { Yetkisiz } from '@/components/atlas/temel';
+import { modulOkuyabilir } from '@/app/kapsam';
 import AktiviteIstemci from './AktiviteIstemci';
-import type { Kayit } from './mantik';
+import { aktiviteVerisi } from './veri';
 
 export const metadata: Metadata = { title: 'Denetim izi — Atlas' };
 
@@ -15,38 +16,28 @@ export const metadata: Metadata = { title: 'Denetim izi — Atlas' };
    20260830190000_denetim_izi_degismezligi). Bu yüzden burada hiçbir yazma
    eylemi çağrılmaz.
 
-   Erişim kapısı bilinçli olarak yalnız oturumdur: denetim izi denetçinin,
-   uyum sorumlusunun ve yöneticinin ortak kütüğüdür; bir modül yetkisine
-   bağlanması ekranı bugün görebilen rollerden alırdı. */
-
-/** Kütük penceresi — ekrana taşınan en yeni kayıt sayısı. */
-const PENCERE = 400;
+   ERİŞİM KARARI ve gerekçesi `veri.ts`in başındadır — kısaca: modül kapısı
+   `denetim/okuma` (denetçiyi ve yönetimi içeride tutar, operatör rollerini
+   dışarıda bırakır), santral kapsamı ise kaydın işaret ettiği santral
+   türetilebildiğinde uygulanır. Karar sessizce uygulanmasın diye orada
+   uzun uzun yazılıdır. */
 
 export default async function Sayfa() {
-  await girisZorunlu();
+  const k = await girisZorunlu();
+  /* Modül kapısı `modulOkuyabilir` ile sorulur, `izinVar(...,'okuma')` ile
+     DEĞİL: ikincisi kapsamsız (global) bir okuma sorar ve tesise kısıtlı
+     her kullanıcıyı ekrandan tümüyle atardı (bkz. app/kapsam.ts). */
+  if (!modulOkuyabilir(k, 'denetim')) return <Yetkisiz rol="denetim okuma" />;
 
-  // "Şimdi" istek başına bir kez okunur; metrikler ve tablo aynı anı paylaşsın.
-  const simdi = new Date().getTime();
+  const veri = await aktiviteVerisi(k);
 
-  const kayitlar = await db.aktiviteKaydi.findMany({
-    include: { aktor: { select: { adSoyad: true } } },
-    orderBy: { zaman: 'desc' },
-    take: PENCERE,
-  });
-
-  const veri: Kayit[] = kayitlar.map((a) => ({
-    id: a.id,
-    aktor: a.aktor?.adSoyad ?? null,
-    varlikTipi: a.varlikTipi,
-    varlikId: a.varlikId,
-    eylem: a.eylem,
-    alan: a.alan,
-    once: a.oncekiDeger,
-    sonra: a.yeniDeger,
-    dosya: a.dosyaAdi,
-    kaynak: a.kaynak,
-    zaman: a.zaman.toISOString(),
-  }));
-
-  return <AktiviteIstemci kayitlar={veri} simdi={simdi} pencere={PENCERE} />;
+  return (
+    <AktiviteIstemci
+      kayitlar={veri.kayitlar}
+      simdi={veri.simdi}
+      pencere={veri.pencere}
+      toplam={veri.toplam}
+      kapsamli={veri.kapsamli}
+    />
+  );
 }

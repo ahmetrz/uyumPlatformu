@@ -168,16 +168,11 @@ export async function dogrulamayiGeriAl(kokenId: string): Promise<void> {
   });
 }
 
-/** Bir varlık tipi için köken dağılımı — sağlık ekranı ve raporlar için. */
-export async function kokenDagilimi(varlikTipi: string) {
-  const satirlar = await db.veriKokeni.groupBy({
-    by: ['kokenTipi', 'dogrulamaDurumu'],
-    where: { varlikTipi },
-    _count: { _all: true },
-  });
-  return satirlar.map((s) => ({
-    kokenTipi: s.kokenTipi as KokenTipi,
-    dogrulamaDurumu: s.dogrulamaDurumu as DogrulamaDurumu,
-    adet: s._count._all,
-  }));
-}
+/* `kokenDagilimi(varlikTipi)` buradaydı, hiçbir çağıranı yoktu (#27) ve
+   SİLİNDİ — "belki lazım olur" diye bırakılmadı, çünkü bağlanması ZARARLI
+   olurdu: yorumu "sağlık ekranı ve raporlar için" diyordu ama sorgusunda
+   santral kapsamı YOKTU. `/saglik` köken bölümü aynı dağılımı
+   `lib/entegrasyon/kokenRapor.ts → kokenSayimlari(kapsam)` ile, kapsamı
+   uygulayarak üretiyor. İki tanımdan kapsamsız olanı bir gün ekrana
+   bağlansaydı, santrale kısıtlı bir kullanıcı tüm kurumun köken sayılarını
+   görürdü. */

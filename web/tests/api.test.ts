@@ -589,20 +589,86 @@ describe('Yedek, erişim ve kanıt uçları', () => {
     expect(await db.kimlikHesabi.count({ where: { hesapAdi: `${ONEK}-svc-b` } })).toBe(0);
   });
 
-  it('kanıt ucu dosya yolunu DÖNMEZ, santral kapsamıyla daraltılır', async () => {
-    const kanit = await db.kanit.create({ data: {
+  /* Bulgu #13: kapsam eskiden `KanitTesis` üzerinden uygulanıyordu ve o
+     tabloya ÜRETİMDE hiçbir yer yazmıyordu — santrale kısıtlı anahtar her
+     zaman boş liste alıyor, bu da "kanıt yok" gibi görünüyordu. Fikstür
+     bilerek ÜRÜNÜN GERÇEKTEN YAZDIĞI bağı kurar: Kanıt → KanitBaglantisi
+     → MaddeDurumu → tesisId (`lib/eylemler.ts → kanitEkle` bu bağı yazar).
+     Fikstür `KanitTesis`e yazsaydı test yeşil kalır, ürün kırık kalırdı. */
+  async function kanitFiksturu() {
+    const surec = await db.uyumSureci.findFirstOrThrow();
+    const madde = await db.madde.findFirstOrThrow();
+    const durum = async (tesisId: string) => (await db.maddeDurumu.upsert({
+      where: { surecId_maddeId_tesisId: { surecId: surec.id, maddeId: madde.id, tesisId } },
+      update: {}, create: { surecId: surec.id, maddeId: madde.id, tesisId },
+    })).id;
+    const kanitA = await db.kanit.create({ data: {
       ad: `${ONEK} kanıt A`, tip: 'rapor', dosyaYolu: '/gizli/depo/a.pdf',
-      tesisBaglantilari: { create: [{ tesisId: kimlikler.tesisA }] } } });
+      baglantilar: { create: [{ maddeDurumuId: await durum(kimlikler.tesisA) }] } } });
     await db.kanit.create({ data: {
       ad: `${ONEK} kanıt B`, tip: 'rapor', dosyaYolu: '/gizli/depo/b.pdf',
-      tesisBaglantilari: { create: [{ tesisId: kimlikler.tesisB }] } } });
+      baglantilar: { create: [{ maddeDurumuId: await durum(kimlikler.tesisB) }] } } });
+    // Hiçbir maddeye bağlı olmayan kanıt: santrali BİLİNMİYOR.
+    const baglanmamis = await db.kanit.create({ data: {
+      ad: `${ONEK} kanıt bağsız`, tip: 'rapor' } });
+    return { kanitA, baglanmamis };
+  }
+
+  it('kanıt ucu dosya yolunu DÖNMEZ, santral kapsamıyla daraltılır', async () => {
+    const { kanitA, baglanmamis } = await kanitFiksturu();
 
     const y = await kanitGetir(al('/api/v1/evidence?limit=200', jeton.a));
     expect(y.status).toBe(200);
     const metin = await y.text();
-    expect(metin).toContain(kanit.id);
+    expect(metin).toContain(kanitA.id);
     expect(metin).not.toContain('/gizli/depo');
     expect(metin).not.toContain(`${ONEK} kanıt B`);
+    // Bağsız kanıt kapsamlı anahtara gösterilmez (güvenli varsayılan).
+    expect(metin).not.toContain(baglanmamis.id);
+  });
+
+  it('kapsamlı anahtar artık BOŞ LİSTE almıyor: santral bağı maddeden türüyor', async () => {
+    await kanitFiksturu();
+    const g = await (await kanitGetir(al('/api/v1/evidence?limit=200', jeton.a))).json();
+    const kayit = g.data.find((k: { name: string }) => k.name === `${ONEK} kanıt A`);
+    expect(kayit).toBeTruthy();
+    // Eski davranış: her kayıtta `plantIds: []` — "bağlı değil" değil, "yok" gibi.
+    expect(kayit.plantIds).toEqual([kimlikler.tesisA]);
+    expect(kayit.plantLink).toBe('requirement');
+  });
+
+  it('BOŞ LİSTE SEBEBİNİ SÖYLER: kapsam yüzünden boş olan liste "kanıt yok" demez', async () => {
+    await kanitFiksturu();
+    /* Kapsamdaki hiçbir kanıdın taşımadığı bir tip seçilir: liste boş
+       döner ama yanıt bu boşluğun ölçülmüş mü kapsamlı mı olduğunu söyler. */
+    const y = await kanitGetir(al('/api/v1/evidence?type=egitim_kaydi&limit=200', jeton.a));
+    const g = await y.json();
+    expect(g.data).toEqual([]);
+    expect(g.scope.applied).toBe(true);
+    expect(g.scope.plantIds).toEqual([kimlikler.tesisA]);
+    expect(g.scope.basis).toBe('requirementStatus');
+    // BİLİNMEYEN ≠ SIFIR: bağsız kanıtlar sıfır sayılmaz, ayrıca sayılır.
+    expect(g.scope.unlinkedEvidenceExcluded).toBeGreaterThan(0);
+    expect(g.scope.note).toContain('kapsamınızda bağlı kanıt yok');
+  });
+
+  it('kapsamsız anahtar için scope.applied false ve bağsız kanıt listede', async () => {
+    const { baglanmamis } = await kanitFiksturu();
+    const g = await (await kanitGetir(al('/api/v1/evidence?limit=200', jeton.genel))).json();
+    expect(g.scope.applied).toBe(false);
+    expect(g.scope.plantIds).toBeNull();
+    expect(g.scope.unlinkedEvidenceExcluded).toBe(0);
+    const kayit = g.data.find((k: { id: string }) => k.id === baglanmamis.id);
+    expect(kayit).toBeTruthy();
+    // Bağsız kanıt: sıfır santral DEĞİL, santrali BİLİNMİYOR.
+    expect(kayit.plantLink).toBe('none');
+    expect(kayit.plantIds).toEqual([]);
+  });
+
+  it('kapsam dışı santral istenirse 403 — boş liste ile geçiştirilmez', async () => {
+    const y = await kanitGetir(
+      al(`/api/v1/evidence?plantId=${kimlikler.tesisB}&limit=5`, jeton.a));
+    expect(y.status).toBe(403);
   });
 
   it('kurum geneli anahtar entegrasyon koşularını görür ve sayaçlar ayrı döner', async () => {

@@ -1328,12 +1328,17 @@
 .ab-ipucu-sar { position: relative; display: inline-flex; }
 .ab-ipucu {
   position: absolute; bottom: calc(100% + 6px); left: 0; z-index: 20;
-  min-width: 180px; max-width: 280px; padding: 8px 10px;
+  min-width: 180px; max-width: min(280px, calc(100vw - 48px)); padding: 8px 10px;
   background: var(--panel2); border: 1px solid var(--hr2); color: var(--i2);
   font-size: 11px; line-height: 1.5;
   opacity: 0; visibility: hidden;
 }
-.ab-ipucu.genis { max-width: 380px; }
+.ab-ipucu.genis { max-width: min(380px, calc(100vw - 48px)); }
+/* Sağa yaslı hücrede ipucu da sağa yaslanır: `left: 0` orada görüntü
+   alanını taşıyordu (1366px'te 12px, ölçüldü). */
+.sag .ab-ipucu, .ab-ipucu.sagdan,
+.ab-tablo .satir > *:last-child .ab-ipucu,
+.ab-tablo .bas > *:last-child .ab-ipucu { left: auto; right: 0; }
 .ab-ipucu-sar:hover .ab-ipucu, .ab-ipucu-sar:focus-within .ab-ipucu {
   opacity: 1; visibility: visible;
 }
@@ -1914,9 +1919,8 @@ textarea.ab-gr { min-height: 76px; resize: vertical; }
   transform: translateX(-100%); animation: ab-tara 6s linear infinite;
 }
 @keyframes ab-halka { 0% { transform: scale(.6); opacity: .8; } 100% { transform: scale(2.6); opacity: 0; } }
-.ab-halka { animation: ab-halka 3.6s ease-out infinite; }
 @media (prefers-reduced-motion: reduce) {
-  .ab-tara::after, .ab-halka { animation: none; }
+  .ab-tara::after, .ab-halka, .ab-b-takim .halka { animation: none; }
   .ab-tara::after { display: none; }
 }
 

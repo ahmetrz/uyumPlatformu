@@ -225,7 +225,8 @@ function Satir({ t, secili, sec }: { t: T; secili: boolean; sec: () => void }) {
       aria-selected={secili}
       className="satir"
       onClick={sec}
-      style={{ position: 'relative', borderLeftColor: secili ? `var(--${d.durum})` : undefined }}
+      style={{ position: 'relative', cursor: 'default',
+        borderLeftColor: secili ? `var(--${d.durum})` : undefined }}
     >
       <Im durum={d.durum} ad={d.soz} enKotu={d.sabit} />
 

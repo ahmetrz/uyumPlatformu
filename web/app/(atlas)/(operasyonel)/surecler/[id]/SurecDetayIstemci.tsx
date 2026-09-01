@@ -159,7 +159,7 @@ export default function SurecDetayIstemci({ veri }: { veri: DetayVerisi }) {
 
   return (
     <>
-      <main style={{ minWidth: 0 }}>
+      <main data-yuzey="defter" style={{ minWidth: 0 }}>
         <BaglamCubugu
           kirintiler={[
             { ad: 'Uyum kampanyaları', yol: '/surecler' },

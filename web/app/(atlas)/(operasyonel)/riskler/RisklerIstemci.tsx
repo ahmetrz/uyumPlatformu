@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
-import { BosIlk, BosFiltre, Dugme } from '@/components/atlas/temel';
+import { BosIlk, BosFiltre, Dugme, TikSeridi } from '@/components/atlas/temel';
 import { EkranBasligi, Filtreler } from '@/components/atlas/ekran';
 import {
   Cekmece, CekmeceKimlik, CekmeceAlanlar, CekmeceBagli, CekmeceEylemler,
@@ -10,17 +10,22 @@ import { RISK_DURUM_ETIKET, etiketle, tarihTR } from '@/lib/sabitler';
 import { RiskFormu, KararFormu } from './Formlar';
 import {
   aktifMi, altSatir, gecikmis, gunFarki, kabulDoldu, maxEtki, santralMetni,
-  skorDurumu, SKOR_TAVANI,
+  skorDurumu, skorAgirligi, SKOR_TAVANI, SKOR_TIK,
   type BulguSecenegi, type Kisi, type Kodlu, type R,
 } from './ortak';
 
 /* O3 · Risk Register — "hangi risk önce?"
    Skor LİDER kolondur (03-screens O3): işlem/treatment sözcükleri tablodan
-   kaldırıldı, durum satırda kelimeyle YAZILMAZ, yalnız skorun rengi taşır.
+   kaldırıldı, durum satırda kelimeyle YAZILMAZ.
+
+   Atlas 2: skor artık İKİ KANAL taşır — rakam+renk ve tik şeridi. Eskiden
+   şiddet yalnız rengin içindeydi; "durum yalnız renkle anlatılmaz"
+   sözleşmesi bu satırda çiğneniyordu ve renk göremeyen bir okuyucu için 22
+   ile 4 aynı görünüyordu. Şerit aynı bilgiyi uzunlukla da kodlar.
    Detay modalda değil 420px çekmecede ya da /riskler/[id] rotasında açılır. */
 
-const KOLONLAR = '64px minmax(0, 1fr) 190px 130px 26px';
-const KOLONLAR_DAR = '64px minmax(0, 1fr) 130px 26px';
+const KOLONLAR = '92px minmax(0, 1fr) 190px 130px 26px';
+const KOLONLAR_DAR = '92px minmax(0, 1fr) 130px 26px';
 
 const GORUNUR_SATIR = 7;
 
@@ -119,7 +124,7 @@ export default function RisklerIstemci({
 
   return (
     <>
-      <main style={{ minWidth: 0 }}>
+      <main data-yuzey="defter" style={{ minWidth: 0 }}>
         <EkranBasligi
           /* Kesme SESSİZ OLMAZ: tavana çarpıldıysa cümle kaç satırın elde
              olduğunu ve kütüğün gerçek büyüklüğünü birlikte söyler. */
@@ -272,6 +277,7 @@ export default function RisklerIstemci({
 
 function Satir({ risk, secili, sec }: { risk: R; secili: boolean; sec: () => void }) {
   const durum = skorDurumu(risk.artikRisk);
+  const agirlik = skorAgirligi(risk.artikRisk);
   const renk = `var(--${durum})`;
   const sahipsiz = !risk.sahip;
   return (
@@ -283,11 +289,31 @@ function Satir({ risk, secili, sec }: { risk: R; secili: boolean; sec: () => voi
       onClick={sec}
       style={{ borderLeftColor: secili ? renk : 'transparent' }}
     >
+      {/* Skor hücresi İKİ KANAL taşır: rakam+renk ve tik şeridi. Şerit
+          "durum yalnız renkle anlatılmaz" sözleşmesinin bu satırdaki
+          karşılığıdır — kritik satır rengi görülmese de uzunluğuyla
+          ayrışır. Skorsuz risk kesikli şerit alır: ölçülmemiş bir risk
+          sıfır ağırlıklı DEĞİLDİR. */}
       <span role="cell" style={{
-        paddingLeft: 'var(--s16)', fontFamily: 'var(--mn)', fontSize: 'var(--t-lead)',
-        fontWeight: 600, color: renk, fontVariantNumeric: 'tabular-nums',
+        paddingLeft: 'var(--s16)', display: 'flex', alignItems: 'center',
+        gap: 'var(--s8)',
       }}>
-        {risk.artikRisk ?? '—'}
+        <span style={{
+          fontFamily: 'var(--mn)', fontSize: 'var(--t-lead)', fontWeight: 600,
+          color: renk, fontVariantNumeric: 'tabular-nums', minWidth: '2ch',
+          textAlign: 'right',
+        }}>
+          {risk.artikRisk ?? '—'}
+        </span>
+        <TikSeridi
+          dolu={agirlik ?? 0}
+          toplam={SKOR_TIK}
+          durum={durum}
+          olculmedi={agirlik === null}
+          etiket={agirlik === null
+            ? 'Artık risk skoru ölçülmedi'
+            : `Artık risk ${risk.artikRisk} / ${SKOR_TAVANI}`}
+        />
       </span>
       <span role="cell" style={{ minWidth: 0 }}>
         <span className="tbl-konu">{risk.baslik}</span>

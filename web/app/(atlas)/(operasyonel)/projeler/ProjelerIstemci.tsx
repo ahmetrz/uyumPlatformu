@@ -155,7 +155,7 @@ export default function ProjelerIstemci({
   if (projeler.length === 0) {
     return (
       <>
-        <main style={{ minWidth: 0 }}>
+        <main data-yuzey="defter" style={{ minWidth: 0 }}>
           <EkranBasligi eyebrow="Dönüşüm portföyü" baslik="Portföy boş" />
           <div className="ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
             <BosIlk cumle="Kayıtlı proje yok."
@@ -181,7 +181,7 @@ export default function ProjelerIstemci({
 
   return (
     <>
-      <main style={{ minWidth: 0 }}>
+      <main data-yuzey="defter" style={{ minWidth: 0 }}>
         <EkranBasligi
           eyebrow={`Dönüşüm portföyü · ${projeler.length} proje`}
           vurgu={baslik.vurgu}

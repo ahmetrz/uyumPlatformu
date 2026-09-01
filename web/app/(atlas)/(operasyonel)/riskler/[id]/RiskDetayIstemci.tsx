@@ -133,7 +133,7 @@ export default function RiskDetayIstemci({ veri }: { veri: DetayVerisi }) {
     : 0;
 
   return (
-    <main style={{ minWidth: 0 }}>
+    <main data-yuzey="defter" style={{ minWidth: 0 }}>
       <BaglamCubugu
         kirintiler={[{ ad: 'Risk', yol: '/riskler' }, { ad: risk.kod }]}
         seciciEtiketi="Santral"

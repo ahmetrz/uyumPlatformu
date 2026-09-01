@@ -620,6 +620,16 @@
 /* satırın en kötüsü: bir kademe büyük + hale */
 .atlas .im-enkotu { width: 15px; height: 15px; box-shadow: 0 0 0 4px rgba(172, 63, 45, .16); }
 
+/* ── Atlas 2 · TikSeridi ─────────────────────────────────────────────
+   Dolgusuz tik dizisi. Boş tik GÖRÜNÜR kalır (çizgi olarak): "beş tikten
+   ikisi dolu" ile "iki tik var" farklı cümlelerdir ve ikincisi ölçeği
+   gizler. `olculmedi` şeridi tümüyle kesikli yapar — ölçülmemiş bir dizi
+   sıfır dolu bir diziden AYIRT EDİLEBİLİR olmalı. */
+.atlas .tik-serit { display: inline-flex; gap: 2px; align-items: flex-end; vertical-align: middle; }
+.atlas .tik-serit .tik { width: 3px; height: 10px; background: var(--hr2); flex: none; }
+.atlas .tik-serit .tik.dolu { height: 14px; }
+.atlas .tik-serit.olculmedi .tik { background: transparent; border-left: 1px dashed var(--unk); width: 3px; }
+
 /* ── 3 · MetricRow ───────────────────────────────────────────────────── */
 .atlas .metrikler { display: flex; gap: var(--metric-gap); align-items: flex-start; }.atlas .metrik .deger { font-size: var(--t-metric); line-height: var(--lh-metric); font-weight: 700;
   font-variant-numeric: tabular-nums; color: var(--ink); white-space: nowrap; }.atlas .metrik .payda { font-size: var(--t-metric-den); font-weight: 400; color: var(--i3); }.atlas .metrik .yazi { display: block; margin-top: var(--s6); }.atlas .metrik.d-ok .deger { color: var(--ok); }.atlas .metrik.d-md .deger { color: var(--md); }.atlas .metrik.d-bd .deger { color: var(--bd); }.atlas .metrik.d-pl .deger { color: var(--pl); }.atlas .metrik.d-unk .deger { color: var(--unk); }

@@ -149,7 +149,7 @@ export default function EslestirmeIstemci({
 
   if (cerceveler.length === 0) {
     return (
-      <main style={{ minWidth: 0 }}>
+      <main data-yuzey="defter" style={{ minWidth: 0 }}>
         <EkranBasligi eyebrow="Çapraz eşleme" baslik="Çerçeve tanımlı değil" />
         <section className="ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
           <BosIlk
@@ -163,7 +163,7 @@ export default function EslestirmeIstemci({
 
   return (
     <>
-      <main style={{ minWidth: 0 }}>
+      <main data-yuzey="defter" style={{ minWidth: 0 }}>
         <EkranBasligi
           eyebrow={`Çapraz eşleme · ${solKod} satır × ${sagKod} sütun`}
           vurgu={baslik.vurgu}

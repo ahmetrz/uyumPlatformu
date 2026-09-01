@@ -139,7 +139,14 @@ zamanı; mobil/tablet kullanım (hedef değil, reddedilmiş de değil).
 
 ## Brand Commitments
 
-- **Ad:** Zorlu Uyum Konsolu. Kısa ad "Uyum Konsolu".
+- **Ad:** Zorlu Uyum Konsolu. Kısa ad "Uyum Konsolu". HTML başlığı ve
+  README bu adı taşır.
+- **Açık karar — ürün içi sözcük markası:** Abacus kabuğu (`components/
+  abacus/Kabuk.tsx`) ve giriş ekranı "Voltaj Atlas" sözcük markasını
+  gösterir; bu, taşınan tasarımın kendi adıdır, ürün adı değil. Hangisinin
+  bağlayıcı olduğu (Voltaj Atlas'ın ürün içi marka olarak kalması ya da
+  kabuğun Zorlu Uyum Konsolu'na çevrilmesi) Ahmet'e sorulmadan
+  değiştirilmez; karar verilene kadar iki ad da olduğu gibi kalır.
 - **Ses:** Türkçe, doğrudan, kurumsal ama kuru değil; ürün kendini
   açıklamaz, olguyu gösterir. Metin durum yargısı vermez ("kritik!" değil,
   "12 gün gecikmiş").

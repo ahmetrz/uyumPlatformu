@@ -1,55 +1,12 @@
-import Ray from '@/components/atlas/Ray';
-import DurumAyagi from '@/components/atlas/DurumAyagi';
-import { aktifKullanici } from '@/lib/auth';
-import { db } from '@/lib/db';
+import Kabuk from '@/components/abacus/Kabuk';
+import { kabukVerisi } from '@/components/abacus/kabukVerisi';
 
-/** Rayın oturum bloğu için: ad, unvan ve çıkış düğmesinin görünüp
-    görünmeyeceği. Oturum yoksa blok hiç çizilmez. */
-async function oturumBlogu() {
-  const k = await aktifKullanici();
-  if (!k) return null;
-  return { ad: k.adSoyad, unvan: k.unvan, demo: k.id === 'demo' };
-}
+/* Abacus kabuğu. Yön (A tezgâh / C defter) ROTADAN türetilir — bu grup
+   her ikisini birden barındırıyor ve Next rota grubu onları ayırmıyor.
+   Seçim `components/abacus/yonler.ts → yonSec` içinde, tek yerde.
 
-/**
- * Rayın sayaçları. Şimdilik tek sayaç var: kullanıcının OKUNMAMIŞ bildirim
- * sayısı.
- *
- * Neden rayda: son tarih motoru her koşuda bildirim yazıyordu ve hiçbir
- * ekran okumuyordu (denetim bulgusu #11). Kutu artık var, ama kullanıcı
- * onu açmayı akıl etmezse uyarı yine ulaşmaz — sayaç, kutunun kendisini
- * duyuran şeydir. `eskalasyon` varsa sayaç kritik rengini alır.
- *
- * Sayaç KİŞİSELDİR (`kullaniciId`), santral kapsamıyla genişletilmez:
- * kullanıcı yalnız kendi kutusunu sayar.
- */
-async function raySayaclari(): Promise<
-  Record<string, { sayi: number; kritik?: boolean }> | undefined
-> {
-  const k = await aktifKullanici();
-  if (!k) return undefined;
-  const [okunmamis, uyari] = await Promise.all([
-    db.bildirim.count({ where: { kullaniciId: k.id, okundu: null } }),
-    db.bildirim.count({
-      where: { kullaniciId: k.id, okundu: null, tip: { in: ['uyari', 'eskalasyon'] } } }),
-  ]);
-  // Sıfır sayaç hiç çizilmez (Ray kendisi eler); burada uydurma yapılmaz.
-  return { '/bildirimler': { sayi: okunmamis, kritik: uyari > 0 } };
-}
+   İş mantığına dokunulmadı: veri sözleşmeleri, RBAC ve kapsam aynı. */
 
-/* Atlas 2 kabuğu — 256px iki kademeli ray (64px alan + 192px liste) |
-   esnek içerik | 420px çekmece (seçim varken). Çekmece kolonu CSS :has()
-   ile açılır: ekran <aside class="cekmece"> render ettiğinde grid ikinci
-   kolonu kazanır, JS gerekmez. Durum ayağı .atlas-govde'nin KARDEŞİDİR —
-   içine konursa :has(> .cekmece) çekmece kolonunu bozar. */
-
-export default async function AtlasYerlesim({ children }: { children: React.ReactNode }) {
-  const [kullanici, sayilar] = await Promise.all([oturumBlogu(), raySayaclari()]);
-  return (
-    <div className="atlas atlas-kabuk">
-      <Ray kullanici={kullanici} sayilar={sayilar} />
-      <div className="atlas-govde">{children}</div>
-      <DurumAyagi />
-    </div>
-  );
+export default async function OperasyonelYerlesim({ children }: { children: React.ReactNode }) {
+  return <Kabuk veri={await kabukVerisi()}>{children}</Kabuk>;
 }

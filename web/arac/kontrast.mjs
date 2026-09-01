@@ -2,16 +2,21 @@
 /* Kontrast denetimi — koyu yüzeylerin OKUNABİLİRLİK kapısı.
 
    ── NİÇİN VAR ─────────────────────────────────────────────────────────
-   Atlas 2'nin üç yüzey kipi koyu palete geçti. Açık zemin için ayarlanmış
-   mürekkep ve durum renkleri koyu zeminde okunmaz: `--ok: #2B7548` krem
-   kâğıtta 5,0:1 verirken #0B0D0E üzerinde 2:1'in altına düşer. Rengi gözle
-   seçip "iyi görünüyor" demek, düşük kontrastlı bir ekranda ya da renk
-   görme farkı olan bir okuyucuda ürünü OKUNMAZ yapar — ve bu sessizce
-   olur.
+   Abacus'ın üç yönü iki koyu (A, B) bir açık (C) zemin taşıyor.
+   Prototiplerdeki mürekkep tonları ölçülmemişti (harita §7 kusur 7):
+   ör. A'nın üçüncül mürekkebi `#6E777A`, `#0D1012` üzerinde 4,5:1'in
+   ALTINDA kalıyor. Rengi gözle seçip "iyi görünüyor" demek, düşük
+   kontrastlı bir ekranda ya da renk görme farkı olan bir okuyucuda ürünü
+   OKUNMAZ yapar — ve bu sessizce olur.
 
-   Bu araç token değerlerini KAYNAKTAN okur (`app/atlas.css`), her yüzey
-   kipi için zemin × mürekkep çiftlerini hesaplar ve eşiği geçmeyeni
-   ÇIKIŞ KODU 1 ile bildirir. Tahmin yok: WCAG 2.1 bağıl parlaklık formülü.
+   Bu araç token değerlerini KAYNAKTAN okur (`app/abacus.css`), her yön
+   için zemin × mürekkep çiftlerini hesaplar ve eşiği geçmeyeni ÇIKIŞ
+   KODU 1 ile bildirir. Tahmin yok: WCAG 2.1 bağıl parlaklık formülü.
+
+   Zemin listesi dört yüzeyi kapsar: sayfa · panel · çukur · SEÇİM.
+   `--secim` açılan defter satırının zeminidir; oraya da aynı mürekkepler
+   yazılır, dolayısıyla oranı ölçülmeden geçirilemez. `--aksan-uzeri`
+   ise ters yönde denetlenir: aksan DOLGUSUNUN üzerine yazılan mürekkep.
 
    ── EŞİKLER ───────────────────────────────────────────────────────────
    METIN 4.5:1 — gövde metni, etiket, durum sözcüğü, mono kod.
@@ -28,7 +33,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const WEB = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const KAYNAK = readFileSync(path.join(WEB, 'app', 'atlas.css'), 'utf8');
+const KAYNAK = readFileSync(path.join(WEB, 'app', 'abacus.css'), 'utf8');
 
 export const METIN = 4.5;
 export const IRI = 3.0;
@@ -74,8 +79,7 @@ function tokenlar(blokBaslangici) {
 
 /** Taban `.atlas` bloğu + bir yüzey kipinin üzerine yazdıkları. */
 function kip(secici) {
-  const taban = tokenlar('.atlas {');
-  return secici ? { ...taban, ...tokenlar(secici) } : taban;
+  return tokenlar(secici);
 }
 
 /* ── Denetlenen çiftler ──────────────────────────────────────────────── */
@@ -84,27 +88,34 @@ function kip(secici) {
    Zemin listesi kasıtlı olarak GENİŞ: aynı mürekkep hem sayfa yüzeyinde
    hem kart yüzeyinde hem de çukur (drawer/başlık) yüzeyinde kullanılır ve
    en zayıf halka hangisiyse kapı odur. */
-const ZEMINLER = ['--pp', '--card', '--sunken'];
+const ZEMINLER = ['--zemin', '--panel', '--panel2', '--secim'];
 
 const CIFTLER = [
-  { ink: '--ink', esik: METIN, not: 'başlık, anahtar değer' },
+  { ink: '--murekkep', esik: METIN, not: 'başlık, anahtar değer' },
   { ink: '--i2', esik: METIN, not: 'gövde metni' },
-  { ink: '--i3', esik: METIN, not: 'etiket, meta, eksen' },
-  { ink: '--i4', esik: IRI, not: 'YALNIZ süs — metin olarak yasak (§9)' },
-  { ink: '--ok', esik: METIN, not: 'uyumlu' },
+  { ink: '--i3', esik: METIN, not: 'etiket, meta, kolon başlığı' },
+  { ink: '--ok', esik: METIN, not: 'uygun' },
   { ink: '--md', esik: METIN, not: 'kısmi' },
-  { ink: '--bd', esik: METIN, not: 'uyumsuz/kritik' },
+  { ink: '--bd', esik: METIN, not: 'uygunsuz/kritik' },
   { ink: '--pl', esik: METIN, not: 'taslak/süreli' },
   { ink: '--unk', esik: METIN, not: 'değerlendirilmedi' },
-  { ink: '--bakir', esik: IRI, not: 'kabuk aksanı (kenar/işaret)' },
-  { ink: '--hr2', esik: 1.4, not: 'kart kenarı — görünür olmalı' },
+  { ink: '--aksan', esik: IRI, not: 'aktif kenar, işaret, odak halkası' },
+  { ink: '--hr2', esik: 1.25, not: 'kart kenarı — görünür olmalı' },
 ];
 
+/* Ters çiftler: zemini ZEMINLER'de olmayan, kendi dolgusunu taşıyan
+   mürekkepler. Birincil düğme aksan dolgusu üzerine yazar. */
+const TERS = [
+  { ink: '--aksan-uzeri', zemin: '--aksan', esik: METIN, not: 'birincil düğme yazısı' },
+];
+
+/* Yönler taban token taşımıyor; her biri kendi setini TAM tanımlıyor.
+   Bu bilinçli: bir yönün rengi diğerinden miras alınırsa, birinde yapılan
+   düzeltme diğerini sessizce bozar. */
 const KIPLER = [
-  { ad: 'kabuk (.atlas)', secici: null },
-  { ad: 'saha', secici: ".atlas [data-yuzey='saha'] {" },
-  { ad: 'defter', secici: ".atlas [data-yuzey='defter'] {" },
-  { ad: 'tezgah', secici: ".atlas [data-yuzey='tezgah'] {" },
+  { ad: 'A · Industrial Precision', secici: ".ab[data-yon='a'] {" },
+  { ad: 'B · Energy Intelligence', secici: ".ab[data-yon='b'] {" },
+  { ad: 'C · Operational Luxury', secici: ".ab[data-yon='c'] {" },
 ];
 
 const tam = process.argv.includes('--tam');
@@ -127,6 +138,17 @@ for (const k of KIPLER) {
       }
     }
   }
+  for (const { ink, zemin, esik, not } of TERS) {
+    if (!t[ink] || !t[zemin]) { kusurlar.push(`${k.ad} · ${ink}/${zemin} tanımsız`); continue; }
+    const o = oran(t[ink], t[zemin]);
+    const gecti = o >= esik;
+    if (!gecti) {
+      kusurlar.push(`${k.ad} · ${ink} (${t[ink]}) / ${zemin} (${t[zemin]}) = ${o.toFixed(2)}:1 < ${esik}:1 — ${not}`);
+    }
+    if (tam || !gecti) {
+      console.log(`  ${gecti ? '✓' : '✗'} ${ink.padEnd(8)} / ${zemin.padEnd(9)} ${o.toFixed(2).padStart(6)}:1  (eşik ${esik})  ${not}`);
+    }
+  }
   if (!tam && !kusurlar.some((x) => x.startsWith(k.ad))) console.log('  tüm çiftler eşiğin üstünde');
 }
 
@@ -136,5 +158,6 @@ if (kusurlar.length) {
   for (const x of kusurlar) console.error(`  · ${x}`);
   process.exitCode = 1;
 } else {
-  console.log(`kontrast kusuru: 0 · ${KIPLER.length} kip × ${CIFTLER.length} mürekkep × ${ZEMINLER.length} zemin`);
+  console.log(`kontrast kusuru: 0 · ${KIPLER.length} kip × `
+    + `(${CIFTLER.length} mürekkep × ${ZEMINLER.length} zemin + ${TERS.length} ters çift)`);
 }

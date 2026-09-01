@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import './atlas.css';
+import './abacus.css';
 
 /* Kök yerleşim yalnız belge iskeletini kurar. Kabuk (ray, üst çubuk) rota
    grubuna aittir: (ozalit) eski kabuğu, (atlas) yeni tasarım kabuğunu verir.

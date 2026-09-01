@@ -50,7 +50,7 @@ export default function Portfoy({ satirlar, toplamGucMw }: {
             color: 'var(--jesd)' }}>Atlas</span>
         </span>
         <span className="t-label" style={{ color: 'rgba(246,244,238,.52)' }}>
-          Enerji portföyü · üretim · ZES / OEDAŞ / OEPSAŞ kapsam dışı
+          Enerji portföyü · üretim
         </span>
         <nav style={{ marginLeft: 'auto', display: 'flex', gap: 'var(--s18)' }}
           aria-label="Üretim tipi">

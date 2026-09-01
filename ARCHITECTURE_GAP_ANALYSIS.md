@@ -1,5 +1,20 @@
 # Mimari Gap Analizi — Hedef Mimariye Karşı Mevcut Ürün
 
+<!-- TARİHSEL ANLIK GÖRÜNTÜ -->
+> **TARİHSEL ANLIK GÖRÜNTÜ — GÜNCEL DURUM DEĞİLDİR.**
+>
+> Bu belge, yazıldığı tarihteki ürünü anlatır ve o günkü kanıtlarla
+> dondurulmuştur. O tarihten sonra çok sayıda kayıt kapandı; belgedeki
+> "YOK / KISMEN" yargılarının ve dosya:satır kanıtlarının önemli bir
+> kısmı ARTIK GEÇERLİ DEĞİL (ör. `lib/eylemler2/` burada boş dizin diye
+> geçer, bugün 27 sunucu eylemi modülü barındırır).
+>
+> Belge bilerek güncellenmiyor: bir denetimin o günkü yargısı, sonradan
+> düzeltilirse denetim kaydı olmaktan çıkar. Tarihsel değeri, hangi
+> kusurların hangi kanıtla bulunduğunu göstermesidir.
+>
+> **Güncel durum için tek kaynak:** [`PRE_INTERNAL_INTEGRATION_READINESS.md`](PRE_INTERNAL_INTEGRATION_READINESS.md).
+
 Referans: `ENERJI_IT_OT_PLATFORM_HEDEF_MIMARI.md` (v1.0). Yöntem: 15 paralel yetenek denetçisi hedef dokümanın kendi bölümlerini ve repodaki kanıtı bağımsız inceledi; bütünlük kritiği §62/§60/§72 listelerine karşı kaçakları taradı ve öncelikleri doğruladı. Her kayıt dosya:satır kanıtıyla yazılmıştır.
 
 Öncelik sözlüğü: **P0** güvenlik/veri bütünlüğü/regülasyon doğruluğu · **P1** çekirdek platform fonksiyonu · **P2** otomasyon/operasyonel olgunluk · **P3** ileri optimizasyon.

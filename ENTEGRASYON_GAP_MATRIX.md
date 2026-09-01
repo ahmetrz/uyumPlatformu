@@ -1,5 +1,15 @@
 # Entegrasyon ve Otomasyon — Kabiliyet Boşluk Matrisi
 
+<!-- TARİHSEL ANLIK GÖRÜNTÜ -->
+> **TARİHSEL ANLIK GÖRÜNTÜ — GÜNCEL DURUM DEĞİLDİR.**
+>
+> Bu belge bir denetimin ÖNCE/SONRA kaydıdır ve amacı gereği o anki
+> sayılarla dondurulmuştur (doğrulama çıktıları, test sayıları, o gün
+> kapatılan kusurlar). Sonradan düzeltilirse bir denetim kaydı olmaktan
+> çıkar.
+>
+> **Güncel durum için tek kaynak:** [`PRE_INTERNAL_INTEGRATION_READINESS.md`](PRE_INTERNAL_INTEGRATION_READINESS.md).
+
 **Tarih:** 01.09.2026 · **Kapsam:** `ahmetrz/uyumplatformu` · dal `main`
 
 Bu belge, platformun dış sistemlerle bütünleşme ve otomasyon kabiliyetlerinin

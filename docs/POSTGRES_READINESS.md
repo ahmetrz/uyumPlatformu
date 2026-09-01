@@ -34,8 +34,9 @@ verisi kullanılmamıştır ve `dev.db` değiştirilmemiştir.
 `better-sqlite3` **eşzamanlı (senkron)** bir sürücüdür; `@prisma/adapter-pg`
 asenkron ve havuzludur. Değişim yalnız paket değişimi değildir: test ikizinin
 "her test kendi dosya kopyasını açar" izolasyon modeli (`web/tests/sahte/db.ts:19-45`)
-PostgreSQL'de **çalışmaz** — dosya kopyalanamaz. 26 test dosyasının tamamı
-şema-başına-izolasyon ya da transaction-rollback modeline taşınmalıdır.
+PostgreSQL'de **çalışmaz** — dosya kopyalanamaz. Test dosyalarının tamamı
+şema-başına-izolasyon ya da transaction-rollback modeline taşınmalıdır
+(güncel dosya/vaka sayısı: `PRE_INTERNAL_INTEGRATION_READINESS.md` §1).
 Bu, geçişin en büyük tek iş kalemidir.
 
 ### a.2 Tetikleyiciler — SQLite sözdizimi PostgreSQL'de çalışmaz
@@ -334,16 +335,11 @@ kadar başlayamaz. PostgreSQL varsayılan `READ COMMITTED` seviyesinde iki
 transaction gerçekten eşzamanlı koşar; ikisi de aynı "bekliyor" durumunu
 okur, ikisi de yazar. **Kod değişmez, garanti kaybolur.** Bkz. (c).
 
-**En duyarlı üçü:**
-
-1. `lib/entegrasyon/kesif.ts:761-766` — `kesifKararUygula` transaction İÇİNDE
-   `durum === 'onaylandi' || 'reddedildi'` kontrolü yapıp varlık açar.
-   SQLite'ta güvenli; PostgreSQL'de **iki kez varlık açılabilir**.
-2. `lib/eylemler.ts:632-634` — `aktarimOnayla` durum kontrolünü transaction'ın
-   **DIŞINDA** yapar. SQLite'ta bile yarış vardır (kontrol ile transaction
-   arası pencere), PostgreSQL'de pencere genişler.
-3. `lib/entegrasyon/varlikAktarim.ts:688-693` — `aktarimiUygula` aynı kalıp;
-   satır sayısı 10.000 olduğu için çift işleme maliyeti en yüksek olan bu.
+**En duyarlı üçüydü — ÜÇÜ DE KAPATILDI** (bkz. (c) P1–P3):
+`kesifKararUygula`, `aktarimOnayla` ve `aktarimiUygula` artık kaydı koşullu
+`updateMany` ile sahipleniyor. Bu bölüm, kalıbın NEDEN tehlikeli olduğunu
+anlatmak için duruyor; yeni yazılan her "önce oku, sonra yaz" aynı tuzağa
+düşer.
 
 ---
 
@@ -352,7 +348,13 @@ okur, ikisi de yazar. **Kod değişmez, garanti kaybolur.** Bkz. (c).
 Tarama: `app/` ve `lib/` altındaki tüm fonksiyonlarda "aynı modeli önce oku,
 sonra `update` et" kalıbı arandı; 50 aday bulundu. Aşağıdakiler **gerçek
 sorun** olanlardır — yani iki eşzamanlı çağrının farklı ve yanlış bir sonuç
-ürettiği yerler. **Hiçbiri uygulanmamıştır.**
+ürettiği yerler.
+
+> **DURUM (güncel): P1–P7'nin TAMAMI kapatıldı.** Bu bölüm artık bir yapılacak
+> listesi değil, bir KAYIT'tır: hangi kalıbın neden tehlikeli olduğunu ve
+> nasıl çözüldüğünü anlatır. Her maddenin altında **✅ ÇÖZÜLDÜ** satırı ve
+> çözümün nerede olduğu yazılıdır. Yeni yazılan kod aynı kalıba düşerse
+> buradaki gerekçeler hâlâ geçerlidir.
 
 > Ortak reçete: `@version` alanı eklemek 92 modele dokunan büyük bir şema
 > değişikliğidir ve çoğu yerde gereksizdir. Aşağıdaki vakaların **tamamı
@@ -375,6 +377,8 @@ kişiye karşı korur, iki farklı kişiye karşı değil.
 'bekliyor' } })`; `count === 0` → "bu talep zaten karara bağlanmış" hatası,
 ve yan etki yalnız `count === 1` iken çalışır. **Öncelik: 1 (en yüksek).**
 
+**✅ ÇÖZÜLDÜ.** `onayKarar` kararı `updateMany({ where: { id, durum: 'bekliyor' } })` ile sahipleniyor; `count === 0` ise kaybeden ne yan etki uygular ne iz yazar. Kanıt: `tests/yaris-onay-aktarim.test.ts` — eşzamanlı iki karardan tam biri yazıyor ve denetim izinde TEK satır kalıyor.
+
 ### P2 — İçe aktarım onayı · `lib/eylemler.ts:632-634` ve `lib/entegrasyon/varlikAktarim.ts:688-693`
 
 Durum kontrolü transaction'ın dışında. İki onay → **iki kez içe aktarım**;
@@ -388,6 +392,8 @@ iddia doğru ama mekanizma yarışa açık.
 data: { durum: 'isleniyor' } })` ile kaydı "sahiplen"; `count === 0` ise
 transaction'ı hemen bırak. **Öncelik: 2.**
 
+**✅ ÇÖZÜLDÜ.** Her iki yolda da kayıt, transaction'ın İLK işlemi olarak koşullu `updateMany` ile sahipleniliyor; kaybeden fırlatıyor ve transaction geri sarılıyor, yani hiçbir satır yazılmamış oluyor. Ara bir 'isleniyor' durumu AÇILMADI: transaction dışından hiç görülemeyecek bir durum, şema sözlüğüne yeni değer eklemeyi hak etmiyor.
+
 ### P3 — Keşif kararı · `lib/entegrasyon/kesif.ts:761-766`
 
 Kontrol transaction içinde — **bugün güvenli**, PostgreSQL'de değil. Çift
@@ -397,6 +403,8 @@ kopya varlık, denetim izinde iki "olusturma" satırı.
 **Gerçek mi:** SQLite'ta hayır, PostgreSQL'de evet. Bu tam olarak geçişin
 ürettiği bir hatadır. **Gerek:** aynı koşullu `updateMany` kalıbı.
 **Öncelik: 3 (geçişten ÖNCE yapılmalı, sonra değil).**
+
+**✅ ÇÖZÜLDÜ.** `kesifKararUygula` transaction içinde kaydı `durum: { notIn: ['onaylandi', 'reddedildi'] }` koşuluyla sahipleniyor. Kanıt: `tests/yaris-onay-aktarim.test.ts` — eşzamanlı iki onaydan tam biri geçiyor ve TEK varlık açılıyor.
 
 ### P4 — Motor / connector koşu çakışması · `lib/motorlar/isKosucu.ts`
 
@@ -411,6 +419,8 @@ edin**; yalnız PostgreSQL'de aynı kalıbın `INSERT … ON CONFLICT DO UPDATE
 WHERE gecerlilik < now()` biçimine çevrilmesi gerektiğini not edin.
 **Öncelik: — (başka ajan tarafından ele alındı).**
 
+**✅ ÇÖZÜLDÜ.** `IsKilidi` modeli ve `lib/is/kilit.ts` (birincil anahtar + kira). Kilit tek atomik ifadeyle alınır; kirası dolan kilit devralınabilir, yani süreç çökerse otomasyon kalıcı durmaz. Kanıt: `tests/zamanlayici.test.ts` — beş eşzamanlı istekten tam biri kazanıyor (mutasyonla ölçüldü: eski kontrol-sonra-yaz yolunda beşi de kazanıyordu). PostgreSQL'de aynı kalıp `INSERT … ON CONFLICT DO UPDATE WHERE gecerlilik < now()` biçimine çevrilecek.
+
 ### P5 — Aşama makineleri · `lib/eylemler2/denetim.ts:78-103` (`asamaIlerlet`), `:111` (`asamaGeriAl`), `lib/eylemler2/operasyon.ts:62` (`degisiklikIlerlet`)
 
 Mevcut aşama okunur, bir sonraki hesaplanır, koşulsuz yazılır. İki kez
@@ -423,6 +433,8 @@ açılabilir ve denetim açık bulguyla kapanır.
 **Gerçek mi:** evet ama düşük sıklıklı. **Gerek:** `updateMany({ where: { id,
 durum: d.durum } })`. **Öncelik: 4.**
 
+**✅ ÇÖZÜLDÜ.** `asamaIlerlet`/`asamaGeriAl` beklenen aşamayı koşullu sahipleniyor; kaybeden açık hata alıyor ve **ize hiçbir şey yazmıyor**. Kapanış kontrolü "önce say, sonra yaz" yerine "önce yaz, sonra doğrula" oldu: açık bulgu varsa transaction geri sarılıyor ve aşama hiç değişmemiş oluyor. (`lib/eylemler2/operasyon.ts` → `degisiklikIlerlet` aynı kalıptaydı ve aynı biçimde ele alındı.)
+
 ### P6 — Topoloji sapma kararı ve türetilmiş kayıt açma · `lib/entegrasyon/topoloji.ts:789` (`sapmaKarari`), `:918` (`riskKaydiAc`), `:958` (`bulguKaydiAc`)
 
 `riskKaydiAc` / `bulguKaydiAc` "bu sapmadan zaten risk açılmış mı?"
@@ -431,6 +443,8 @@ kontrolünden sonra kayıt açar. Çift çalıştırma **kopya risk/bulgu** üre
 **Gerçek mi:** evet (özellikle motor ve kullanıcı aynı anda tetiklerse).
 **Gerek:** koşullu `updateMany` ile `uretilenRiskId`/`uretilenBulguId`'yi
 sahiplen. **Öncelik: 5.**
+
+**✅ ÇÖZÜLDÜ.** Karar ve temel taşıma koşullu sahipleniyor; `riskKaydiAc`/`bulguKaydiAc` kaydı transaction içinde açıp bağı koşullu yazıyor, kaybeden transaction'ı geri sarıyor. Yer tutucuyla sahiplenme bilerek SEÇİLMEDİ: iki adım arasındaki bir çökme sapmayı kalıcı olarak sahte bir kimliğe bağlardı.
 
 ### P7 — Sürüm aktifleştirme · `lib/eylemler2/surum.ts:61` (`surumAktiflestir`)
 
@@ -445,6 +459,8 @@ gerektirmez:
 `CREATE UNIQUE INDEX ON "FrameworkSurumu" ("regulasyonId") WHERE "durum" = 'aktif';`
 SQLite kısmi tekil indeksi destekler ama Prisma şeması `@@unique` üzerinden
 `WHERE` yazamaz; ham migration gerekir. **Öncelik: 6.**
+
+**✅ ÇÖZÜLDÜ.** Veritabanı seviyesinde kısmi tekil indeks: `CREATE UNIQUE INDEX "FrameworkSurumu_tekAktif" ON "FrameworkSurumu"("regulasyonId") WHERE "durum" = 'aktif'` (göç: `20260901201000_framework_surumu_tek_aktif`). Prisma şeması `@@unique` üzerinden WHERE yazamadığı için ham SQL göç kullanıldı ve şemaya açıklayıcı yorum kondu. Kod tarafında ayrıca koşullu `updateMany` var — indeksin yakalayamadığı vaka (aynı taslağı iki kez aktifleştirme) onu gerektiriyor; bu, mutasyon ölçümüyle ortaya çıktı.
 
 ### İyi yapılmış olan — örnek alınacak kalıp
 
@@ -498,7 +514,7 @@ aradaki pencerede sessiz veri bozulması olur. *Doğrulama:* iki eşzamanlı
 **e.1 — Test izolasyon modelinin değiştirilmesi.**
 `tests/sahte/db.ts` "dosya kopyala" modelinden çıkarılır; her test dosyası
 kendi PostgreSQL şemasını (`CREATE SCHEMA test_xxx`) alır ya da her test bir
-transaction içinde koşup geri alınır. 26 test dosyası, 485 test.
+transaction içinde koşup geri alınır; kümenin tamamı etkilenir.
 *Doğrulama:* SQLite üzerinde `npx vitest run` hâlâ yeşil (yeni model iki
 motorda da çalışmalı).
 

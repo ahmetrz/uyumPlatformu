@@ -27,16 +27,34 @@ Yanıt evet — ama koşulları ve kalan işler aşağıda kanıtlarıyla yazıl
 
 ## 1. Bugünkü durum — sayılarla
 
+Aşağıdaki blok elle yazılmaz: `web/arac/sayimlar.mjs` onu kaynaktan
+türetir ve `tests/belge-sayimlari.test.ts` sapma olduğu an KIRMIZI olur.
+Elle yazılmış bir sayaç, yazıldığı gün doğru olsa bile ertesi gün yalan
+söylemeye başlar ve yalanı kimse fark etmez.
+
+<!-- SAYIMLAR:BASLA -->
+<!-- Bu blok `node arac/sayimlar.mjs --yaz` ile üretilir. ELLE DÜZENLEME. -->
+
 | Ölçü | Değer |
 |---|---|
+| test dosyası | 44 |
+| test vakası | 785 |
+| atlanan test | 2 |
+| ekran (rota) | 38 |
+| API ucu | 9 |
+| otomasyon motoru | 9 |
+| connector adaptörü | 8 |
+| sunucu eylemi modülü | 27 |
 | Prisma modeli | 95 |
-| Uygulanmış göç | 14 |
-| Connector adaptörü | 8 (1 bağlanabilir, 7 `kimlik_bekleniyor`) |
-| Sunucu eylemi modülü | 27 (`'use server'`), 119 eylem |
-| Makine arayüzü (API ucu) | 9 |
-| Ekran | 36 |
-| Otomasyon motoru | 8, tek kayıt defterinde |
-| Test | **689** (oturum başında 428) |
+| uygulanmış göç | 16 |
+
+<!-- SAYIMLAR:BITIS -->
+
+Sayılara eşlik eden nitel gerçekler: connector adaptörlerinin yalnız BİRİ
+(`manual_import`) bağlanabilir, kalanı `kimlik_bekleniyor` döndürür ve
+çekirdek onları koşturmaz. Otomasyon motorlarının tamamı tek kayıt
+defterinde (`lib/motorlar/kayit.ts`) yaşar; zamanlayıcı ve "hepsini
+çalıştır" düğmesi aynı defteri okur.
 
 ## 2. Kalan boşlukların sınıflandırması
 
@@ -54,7 +72,7 @@ Yanıt evet — ama koşulları ve kalan işler aşağıda kanıtlarıyla yazıl
 | 8 | Oturumda atıl zaman aşımı yoktu | `sonKullanim` şemada vardı, hiç yazılmıyordu — olmayan bir kontrol var görünüyordu. | `oturumGecerli`, `tests/oturum-yasam-dongusu.test.ts` |
 | 9 | Hesap pasifleştirme oturumları kesmiyor, ize yazmıyordu | "Kaç açık oturum var" sorusunun yanıtı yanlıştı. | `tumOturumlariKapat` |
 | 10 | Hiçbir güvenlik başlığı yoktu | CSP, çerçeveleme, MIME sniff — hiçbiri. | `next.config.ts` |
-| 11 | Sır katmanı takılabilir değildi | Bağlanmamış sağlayıcı "yok" diyemez, "bilinmiyor" demeli. | `lib/entegrasyon/sir.ts`, 23 test |
+| 11 | Sır katmanı takılabilir değildi | Bağlanmamış sağlayıcı "yok" diyemez, "bilinmiyor" demeli. | `lib/entegrasyon/sir.ts`, `tests/sir-katmani.test.ts` |
 | 12 | Kuru koşu yoktu | Bağlantı günü ilk yapılacak şey budur: hiçbir şey yazmadan ne olacağını görmek. | `lib/entegrasyon/kuru.ts` |
 | 13 | Eşleme sürümlü değildi | Eşleme değişince eski kayıtların hangi kuralla üretildiği kaybolurdu. | `EslemeProfili`, `tests/esleme.test.ts` |
 | 14 | Adaptörler yapılandırma şeması beyan etmiyordu | Yanlış yapılandırma ancak ilk koşuda anlaşılıyordu. | `Adaptor.yapilandirmaSemasi` |
@@ -65,10 +83,13 @@ Yanıt evet — ama koşulları ve kalan işler aşağıda kanıtlarıyla yazıl
 
 ### 2.2 `MUST_FIX_BEFORE_INTERNAL_INTEGRATION` — AÇIK
 
-| # | Boşluk | Etki | Nerede |
-|---|---|---|---|
-| A | Oran sınırı deposu tek süreçlidir | N örnekli bir kümede saldırgana N katı deneme hakkı verir. `oranDeposuAyarla()` kancası hazır; Redis uygulaması gerçek bir altyapı bileşeni ister, bu yüzden bağlantı gününe kadar açık. | `lib/api/oranSinir.ts` |
-| D | Denetim izi değişmezliği tetikleyicileri SQLite sözdizimidir | PostgreSQL'de karşılığı yazılmazsa değişmezlik iddiası yanlış olur. Yerine geçecek fonksiyon+trigger raporda hazır ve PostgreSQL olmadan **denenemez**. | `docs/POSTGRES_READINESS.md` |
+**Yok.** Yazılım tarafında bağlantı gününü geciktiren açık kalem kalmadı.
+
+Bir zamanlar bu başlıkta duran iki kalem (dağıtık oran sınırı deposu ve
+PostgreSQL denetim tetikleyicileri) §2.6'ya taşındı: ikisi de KOD eksikliği
+değil, **dağıtım altyapısı** bekleyen işlerdir. İkisini "kapatılmamış iş"
+diye burada tutmak, yazılım borcunu altyapı borcuyla karıştırmaktı ve
+"daha yapılacak kod var" izlenimi veriyordu — yoktu.
 
 **Kapananlar** (bu oturumun ikinci yarısı):
 
@@ -103,7 +124,26 @@ işlerdir. Hiçbirine sahte bir uygulama yazılmadı.
 | Gerçek üretim verisiyle performans | Ölçümler sentetik veriyle yapıldı ve öyle etiketlendi. |
 | Kurum içi hostname ve adresler | `<<KURULUMDA-DOLDURULACAK>>` yer tutucusu. |
 
-### 2.5 `DEFERRED_BY_DESIGN`
+### 2.5 `REQUIRES_PRODUCTION_INFRASTRUCTURE`
+
+Bu kalemler ne **kod eksikliğidir** ne de **kurum sistemi** bekler; bir
+üretim dağıtımının getirdiği altyapı bileşenlerini bekler. Ayrı bir başlık
+olmalarının sebebi şudur: aynı listede tutulduklarında "hâlâ yazılacak kod
+var" gibi okunuyorlar ve bağlantı gününün önünde duruyormuş gibi
+görünüyorlardı. Görünmüyorlar — hiçbiri connector bağlamayı geciktirmez.
+
+Hepsinde **dikiş hazır**: kod bir sağlayıcı arayüzü görür, bağlı olmayanı
+`bagli: false` diye bilir ve sessizce başka bir şeye DÜŞMEZ.
+
+| Kalem | Bugün ne var | Bağlandığında ne değişir |
+|---|---|---|
+| Dağıtık oran sınırı deposu (Redis vb.) | `oranDeposuAyarla()` kancası + bellek içi depo. Tek süreçte doğru çalışır; N örnekli kümede saldırgana N katı deneme hakkı verir. | Tek bir depo uygulaması kaydedilir; çağıran kod değişmez. |
+| PostgreSQL denetim izi tetikleyicileri | SQLite tetikleyicileri çalışıyor ve değişmezlik testle kanıtlı. PostgreSQL karşılıkları (TRUNCATE tetikleyicileri dâhil) `docs/POSTGRES_READINESS.md` §a.2'de HAZIR ama **PostgreSQL olmadan denenemez**. | Taban göçe eklenir ve aynı değişmezlik testleri PostgreSQL üzerinde koşar. |
+| Dağıtık iş kuyruğu (Redis/BullMQ, Temporal) | `lib/is/kuyruk.ts` sağlayıcı defteri; `dis` sağlayıcı KAYITLI ama `bagli: false`. İstenip de bağlı olmayan kuyruğa **sessizce süreç-içinden düşülmez**. | Sağlayıcı bağlanır; zamanlayıcı ne koşacağını zaten veritabanından TÜRETTİĞİ için davranış değişmez. |
+| Üretim sır kasası (Vault / KMS) | `lib/entegrasyon/sir.ts` defterinde kayıtlı, `bagli: false`, neyin gerektiğini söylüyor; varlık sorgusu `yok` değil **`bilinmiyor`** döner. | `vault:` referansları çözülmeye başlar; `env`/`dosya` yolları olduğu gibi kalır. |
+| İmzalama anahtarı (HSM / PKI) | Kanıt paketi SHA-256 ile **bütünlük** kanıtlar; inkâr edilemezlik kanıtlamaz ve bunu açıkça söyler. | Paket imzalanır; özet hesabı değişmez. |
+
+### 2.6 `DEFERRED_BY_DESIGN`
 
 | Karar | Gerekçe |
 |---|---|
@@ -219,17 +259,31 @@ düzyazı kural değil, çalışan bir regresyon testi.
 
 **Bugün geçilmedi ve geçilmemeli.** Ayrıntı: `docs/POSTGRES_READINESS.md`.
 
-Engeller önem sırasıyla:
-1. **Sessiz, hata vermez:** `LIKE` büyük/küçük harf duyarlılığı — komut
-   paleti sessizce boş döner.
-2. **Sessiz, hata vermez:** SQLite'ın tek yazıcısı kazara bir kilit görevi
-   görüyor; READ COMMITTED altında görmeyecek. Göçten **önce** düzeltilmeli.
+### Kapatılan iki sessiz engel
+
+Bunlar geçişin ÜRETECEĞİ hatalardı — hata vermeden yanlış davranırlardı ve
+göçten sonra düzeltmek, aradaki pencerede bozulan veriyi geriye dönük
+ayıklamak demek olurdu.
+
+1. **`LIKE` büyük/küçük harf duyarlılığı.** Bugün "kizildere" → "Kızıldere I
+   JES" bulunuyor; PostgreSQL'de aynı arama boş dönerdi. Koşul tek yardımcıya
+   indi (`lib/aramaKosulu.ts`), göç günü değişecek satır bir tane ve bir
+   bekçi test yeni ham `contains` eklenmesini engelliyor.
+2. **Kontrol-sonra-yaz yarışları.** SQLite'ın tek yazıcısı kazara bir kilit
+   görevi görüyordu; READ COMMITTED altında görmeyecekti. `docs/POSTGRES_READINESS.md`
+   §c'deki P1–P7'nin **tamamı** kapatıldı: koşullu sahiplenme, atomik iş
+   kilidi ve bir kısmi tekil indeks.
+
+### Kalan engeller
+
 3. **Sert hata:** denetim izi değişmezliği tetikleyicileri SQLite
-   sözdizimi.
-4. **En büyük iş kalemi:** test izolasyonu dosya kopyasına dayanıyor;
-   37 dosya / 689 test.
-5. **Sert hata:** provider değişimi 14 göçü geçersiz kılar; tek bir
-   PostgreSQL taban göçüyle değiştirilmeli.
+   sözdizimi. Karşılıkları yazılı ama PostgreSQL olmadan denenemez
+   (§2.5).
+4. **En büyük iş kalemi:** test izolasyonu (`tests/sahte/db.ts`) dosya
+   kopyasına dayanıyor; bu model PostgreSQL'de var olamaz ve tüm test
+   kümesini etkiler.
+5. **Sert hata:** provider değişimi mevcut göçlerin tamamını geçersiz
+   kılar; tek bir PostgreSQL taban göçüyle değiştirilmeli.
 6. **Karar:** altı nullable tekillik kısıtı `NULLS NOT DISTINCT` adayı.
 
 ## 10. Performans ve ölçek
@@ -270,9 +324,9 @@ geri yükleme · SIEM playbook tetikleme · dizin yazma.
 
 **İlk gerçek sistem için salt okunur hesabı istemek ve kuru koşuyu yapmak.**
 
-Kod tarafında bağlantı gününü geciktiren bir şey kalmadı: §2.2'de yalnız
-iki kalem açık ve ikisi de kod değil altyapı işidir (dağıtık oran sınırı
-deposu; PostgreSQL tetikleyicileri, ki PostgreSQL olmadan denenemez).
+Kod tarafında bağlantı gününü geciktiren bir şey kalmadı: §2.2 boş.
+Bekleyen her kalem ya gerçek bir kurum sistemi (§2.4) ya bir üretim
+altyapı bileşeni (§2.5) ister; hiçbiri yazılacak kod değildir.
 
 İlk bağlanacak sistem olarak **SIEM** önerilir: keşfin en pasif kaynağıdır
 (cihazlar zaten log gönderir, ağa hiçbir paket çıkmaz), OT bölgesinde bile

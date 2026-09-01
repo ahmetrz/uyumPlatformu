@@ -1,5 +1,15 @@
 # Energy Operations Atlas — Tasarım Handoff Gap Analizi
 
+<!-- TARİHSEL ANLIK GÖRÜNTÜ -->
+> **TARİHSEL ANLIK GÖRÜNTÜ — GÜNCEL DURUM DEĞİLDİR.**
+>
+> Bu belge Atlas tasarım sistemine geçiş kararının alındığı andaki boşluk
+> analizidir. Geçiş o tarihten sonra tamamlandı: "Ozalit" grubu diye bir
+> ekran kümesi kalmadı, rota sayısı değişti ve belgedeki hedef/mevcut
+> karşılaştırması artık geçmişi anlatır.
+>
+> **Güncel durum için tek kaynak:** [`PRE_INTERNAL_INTEGRATION_READINESS.md`](PRE_INTERNAL_INTEGRATION_READINESS.md).
+
 Kaynak: `design_handoff_energy_operations_atlas` (README + 01–07 + 6 tasarım dosyası)
 Hedef: `web/` (Next.js 16 App Router, React 19, Prisma 7/SQLite, 22 rota)
 Tarih: 31.08.2026

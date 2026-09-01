@@ -30,10 +30,10 @@ copyFileSync('prisma/dev.db', testDb);
 process.env.TEST_DB = testDb;
 
 const { db } = await import('@/lib/db');
-const O = await import('@/app/(atlas)/(operasyonel)/projeler/ortak');
+const O = await import('@/app/(kabuk)/(operasyonel)/projeler/ortak');
 
-type P = import('@/app/(atlas)/(operasyonel)/projeler/ortak').P;
-type Bagimlilik = import('@/app/(atlas)/(operasyonel)/projeler/ortak').Bagimlilik;
+type P = import('@/app/(kabuk)/(operasyonel)/projeler/ortak').P;
+type Bagimlilik = import('@/app/(kabuk)/(operasyonel)/projeler/ortak').Bagimlilik;
 
 const SIMDI = new Date('2026-09-01T00:00:00.000Z').getTime();
 

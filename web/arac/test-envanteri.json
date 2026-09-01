@@ -1,7 +1,7 @@
 {
-  "imza": "f607c7fee19ba54f5e76f59e90eaa738",
-  "dosya": 53,
-  "vaka": 1021,
+  "imza": "ae17163905f85e09e106d8ce2d5b2c9d",
+  "dosya": 54,
+  "vaka": 1043,
   "atlanan": 1,
   "dosyalar": {
     "tests/api.test.ts": {
@@ -140,6 +140,10 @@
       "vaka": 7,
       "atlanan": 0
     },
+    "tests/proje-bagimliligi.test.ts": {
+      "vaka": 9,
+      "atlanan": 0
+    },
     "tests/saglik-connector.test.ts": {
       "vaka": 31,
       "atlanan": 0
@@ -149,7 +153,7 @@
       "atlanan": 0
     },
     "tests/saglik-reddedilen.test.ts": {
-      "vaka": 9,
+      "vaka": 11,
       "atlanan": 0
     },
     "tests/semantik.test.ts": {
@@ -165,7 +169,7 @@
       "atlanan": 0
     },
     "tests/tedarikci-oturum.test.ts": {
-      "vaka": 15,
+      "vaka": 18,
       "atlanan": 0
     },
     "tests/topoloji-sapma.test.ts": {
@@ -173,7 +177,7 @@
       "atlanan": 0
     },
     "tests/topoloji-tezgah.test.ts": {
-      "vaka": 28,
+      "vaka": 36,
       "atlanan": 0
     },
     "tests/uc-deger-kurali.test.ts": {

@@ -1,7 +1,7 @@
 {
-  "imza": "672ab5c54eb594c7a6412ae3545c75a1",
-  "dosya": 68,
-  "vaka": 1268,
+  "imza": "d9c881198ac1abb3defe9411bc34e07c",
+  "dosya": 70,
+  "vaka": 1283,
   "atlanan": 1,
   "dosyalar": {
     "tests/api.test.ts": {
@@ -10,6 +10,10 @@
     },
     "tests/arama-kosulu.test.ts": {
       "vaka": 6,
+      "atlanan": 0
+    },
+    "tests/bagimlilik-guvenligi.test.ts": {
+      "vaka": 4,
       "atlanan": 0
     },
     "tests/belge-sayimlari.test.ts": {
@@ -254,6 +258,10 @@
     },
     "tests/veri-kalitesi-aktarim.test.ts": {
       "vaka": 16,
+      "atlanan": 0
+    },
+    "tests/xlsx-ayristirma.test.ts": {
+      "vaka": 11,
       "atlanan": 0
     },
     "tests/yardim.test.ts": {

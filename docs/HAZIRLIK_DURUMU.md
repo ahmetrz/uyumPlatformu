@@ -36,17 +36,50 @@ uydurulmuş tek bir sayı yoktur.
 
 ### P1 — kuruma açılmadan önce
 
-**1. `xlsx` (SheetJS 0.18.5) yüksek önemde açık.**
-`npm audit` üretim bağımlılıklarında 5 yüksek önemde açık buluyor; kritik
-olanı **Prototype Pollution in SheetJS**. Bu kütüphane `lib/eylemler.ts:709`
-ve `lib/entegrasyon/varlikAktarim.ts:222` üzerinden **kullanıcının yüklediği
-dosyayı ayrıştırıyor** — yani saldırı yüzeyi doğrudan açık.
-npm kayıt defterindeki en yeni sürüm de 0.18.5; düzeltme npm'de **yok**,
-SheetJS dağıtımını kendi sitesine taşıdı. Üç seçenek var ve karar Ahmet'in:
-paketi SheetJS'in kendi dağıtımından almak, `exceljs` gibi bir alternatife
-geçmek, ya da xlsx yolunu kapatıp yalnız CSV kabul etmek.
-Diğer dördü (`mysql2`, `deepmerge-ts`, `@prisma/config`, `prisma`) araç
-zincirinde; `mysql2` bu üründe hiç kullanılmıyor (sağlayıcı SQLite).
+**1. ~~`xlsx` (SheetJS 0.18.5) yüksek önemde açık.~~ KAPANDI.**
+Bağımlılık SheetJS'in **kendi dağıtımındaki 0.20.3**'e taşındı
+(`https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz`). İki açık da
+kapalı: prototype pollution 0.19.3'te, ReDoS 0.20.2'de. Kütüphane aynı
+kütüphanedir, yalnız yamalı sürümüdür — üç çağrı yerinin hiçbiri
+değişmedi. Üretim bağımlılıklarındaki yüksek önemli açık 5 → 4'e indi;
+kalan dördü (`mysql2`, `deepmerge-ts`, `@prisma/config`, `prisma`) araç
+zincirinde ve `mysql2` bu üründe hiç kullanılmıyor (sağlayıcı SQLite).
+
+`exceljs` seçilmedi ve gerekçesi ölçüldü: son yayını **2024-12-20**
+(yaklaşık 20 ay sessiz), `.xls` (BIFF8) **okumuyor** — oysa iki yükleme
+ekranı da `.xls` kabul ediyor — CSV'yi ayrı bir okuyucuyla alıyor ve
+hücre modeli farklı (`{richText}`, `{formula,result}`, 1-indeksli satır).
+O farkların düşeceği yer `hucreMetni`dir, yani "bilinmeyen ≠ sıfır"
+kuralının kod karşılığı. Bilinen ve yukarıda kapatılmış bir sorunu,
+bakımı durmuş bir bağımlılığın bilinmeyen geleceğiyle takas etmek
+olurdu.
+
+**Bu kararın iki bedeli vardır ve ikisi de gerçektir:**
+
+· **`npm audit` bu paketi artık göremiyor.** Tarball URL'i kayıt
+  defterinde durmadığı için uyarı kayboldu — ama gelecekteki uyarılar da
+  kaybolacak. Yerine `tests/bagimlilik-guvenligi.test.ts` nöbetçisi
+  geçti: bağımlılığın npm'in yamasız 0.18.x'ine geri düşmediğini, kurulu
+  sürümün 0.20.2 tabanının üstünde olduğunu ve kilit dosyasının bir
+  bütünlük özeti (`sha512-…`) taşıdığını her koşuda ölçüyor. Kayıt
+  defterinin imza zinciri dışında olduğumuz için tedarik zinciri
+  bütünlüğünü artık yalnız o özet taşıyor.
+· **Kurumsal registry.** `package.json` doğrudan `cdn.sheetjs.com`'a
+  işaret ediyor. npm'i Nexus/Artifactory üzerinden proxy'leyen kilitli
+  bir CI'da bu kurulum başarısız olur; çözümü tarball'ı iç registry'ye
+  aynalamaktır. **Bu adım IT tarafına aittir ve henüz yapılmadı.**
+
+**Ayrıştırma dalı artık testli.** Bu göçten önce iki okuyucunun da
+`.xlsx` dalı tamamen kapsamsızdı — `varlik-aktarim` testleri yalnız CSV
+tamponu besliyordu. Depoda donmuş bir `.xlsx` fikstürü
+(`tests/fixture/aktarim-ornek.xlsx`, üreteci `arac/xlsx-fikstur.mjs`) ve
+11 vaka eklendi: boş başlık, tekrarlanan başlık, tarih, sayı, mantıksal,
+BOŞ hücre (`0` uydurulmamalı), gerçek sıfır, boşluk kırpma, Türkçe
+karakter, boş satır düşürme. Fikstür 0.18.5 tarafından yazıldı ve
+0.20.3 tarafından aynı biçimde okundu; tarayıcıdaki Excel dışa aktarımı
+da uçtan uca doğrulandı (indirilen dosya geri okundu: 53 satır, 0 sayfa
+hatası) ve `.xlsx` yükleme ekranından geçirildi (3 satır, boş satır
+düştü).
 
 **2. Test kapsamı %68,91 — hedef ≥%90.**
 Açığın büyük kısmı sunucu eylemleri (`lib/eylemler2/`) ve ekran

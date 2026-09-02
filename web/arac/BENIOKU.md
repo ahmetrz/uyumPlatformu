@@ -149,6 +149,27 @@ PORT=3210 node arac/gorsel-regresyon.mjs --rota=/uyum --bant=375
 Sunucu saatine bağlı metinler (veri kesiti damgası) %0,5'i aşarsa eşiği
 büyütmeyin; damgayı taşıyan öğeyi maskeleyin.
 
+### `xlsx-fikstur.mjs`
+
+İçe aktarım hattının `.xlsx` ayrıştırıcısını sınayan DONMUŞ fikstürü
+üretir (`tests/fixture/aktarim-ornek.xlsx`). Testin kendi ürettiği bir
+tampon işe yaramaz: yazıcı ve okuyucu aynı kütüphaneden gelir, ikisi
+birden yanlış olsa bile kendi içinde tutarlı görünür. Depoda duran ikili
+ne yazıyorsa onu yazar; sonradan gelen her okuyucu onu doğru çözmek
+zorundadır — kütüphane sürümü değişince kapı burada çalar.
+
+Fikstürdeki her satır ölçülmüş bir davranışı taşır: boş başlık, tekrar
+eden başlık, tarih/sayı/mantıksal hücre, BOŞ hücre (`0` uydurulmamalı),
+gerçek sıfır, baştaki-sondaki boşluk, Türkçe karakter, tümü boş satır.
+
+```bash
+node arac/xlsx-fikstur.mjs          # ne yazacağını söyler
+node arac/xlsx-fikstur.mjs --yaz    # ikiliyi yeniden üretir
+```
+
+Tarayıcı istemez; `npm test` içinde `tests/xlsx-ayristirma.test.ts` onu
+okur.
+
 ### `yatay-tasma.mjs`
 
 Dar bantta sayfanın yana kaymasını ölçer ve **taşmayı üreten öğeyi**

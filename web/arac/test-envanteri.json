@@ -1,7 +1,7 @@
 {
-  "imza": "0032856c7528b87e9b91dbd924fb1587",
-  "dosya": 73,
-  "vaka": 1325,
+  "imza": "0670ef060a58edf010ce188167e6322f",
+  "dosya": 74,
+  "vaka": 1351,
   "atlanan": 1,
   "dosyalar": {
     "tests/api.test.ts": {
@@ -70,6 +70,10 @@
     },
     "tests/entegrasyon-yapilandirma.test.ts": {
       "vaka": 18,
+      "atlanan": 0
+    },
+    "tests/envanter-eylem.test.ts": {
+      "vaka": 26,
       "atlanan": 0
     },
     "tests/envanter-mantik.test.ts": {

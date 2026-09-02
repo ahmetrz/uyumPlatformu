@@ -41,10 +41,6 @@ import path from 'node:path';
 const ACIK_BORC = new Set([
   'denetim.ts · kapsamEkle',
   'denetim.ts · kapsamCikar',
-  'envanter.ts · varlikKaydet',
-  'envanter.ts · iliskiEkle',
-  'envanter.ts · iliskiSil',
-  'envanter.ts · varlikYasamDongusu',
   'gorev.ts · gorevOlustur',
   'gorev.ts · gorevDurum',
   'kesif.ts · kesifKarariVer',
@@ -115,6 +111,6 @@ describe('İki aşamalı kapı — uygulanmış mı', () => {
 
   it('borç yalnız küçülür — bugünkü sayı kayıt altındadır', () => {
     // Sayı düşerse bu satır da düşer; yükselirse yukarıdaki ilk test patlar.
-    expect(ACIK_BORC.size).toBeLessThanOrEqual(15);
+    expect(ACIK_BORC.size).toBeLessThanOrEqual(11);
   });
 });

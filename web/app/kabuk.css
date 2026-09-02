@@ -651,9 +651,57 @@
 .ab-b-takim .kunye .ad { font-family: var(--gorunum); font-size: 15px; line-height: 1; }
 .ab-b-takim .kunye .alt { font-size: 10px; color: var(--i2); }
 .ab-b-takim .isaret:hover .kunye .ad { color: var(--aksan); }
-.ab-b-takim .olculmemis {
+.ab-b-takim .olculmemis-not {
   flex: none; margin: 10px 0 0; font-size: var(--t-code); line-height: 1.6; color: var(--i3);
 }
+
+/* ── Değerlendirilmemiş şeridi ──────────────────────────────────────
+   Hiç değerlendirilmemiş santralin uyum endeksi YOKTUR; eksende bir yere
+   konamaz (bkz. Genel.tsx · Takimyildizi). Bu yüzden tuvalin YANINDA
+   kendi sütununda durur — tuvalin İÇİNDE mutlak konumla değil.
+
+   İçeride denendi ve ölçüldü: mutlak konumlu künye, kapsayıcı bloğu 9px
+   işaret olduğu için min-content'e çöküyor, ad harf harf sarıyordu; sabit
+   genişlik verilince de 375px'te tuvalden taşıyordu. Normal akışta bir
+   liste, iki bantta da doğru davranıyor ve piksel aritmetiği gerekmiyor. */
+.ab-b-takim .ab-tuval-sar {
+  position: relative; flex: 1; min-height: 0; margin-top: 14px;
+  display: grid; grid-template-columns: 176px minmax(0, 1fr); gap: 18px;
+}
+.ab-b-takim .ab-tuval-sar > .ab-tuval { margin-top: 0; }
+.ab-b-takim .serit {
+  min-width: 0; padding-right: 16px; border-right: 1px dashed var(--hr2);
+  display: flex; flex-direction: column; gap: 2px; overflow: hidden;
+}
+.ab-b-takim .serit-bas {
+  margin: 0 0 8px; font-size: var(--t-label); letter-spacing: .1em;
+  text-transform: uppercase; color: var(--i3); line-height: 1.2;
+  display: grid; gap: 2px;
+}
+.ab-b-takim .serit-bas .alt { letter-spacing: .02em; opacity: .85; }
+.ab-b-takim .serit .kalem {
+  display: grid; grid-template-columns: 12px minmax(0, 1fr) auto;
+  align-items: baseline; gap: 8px; padding: 3px 0; min-width: 0;
+}
+.ab-b-takim .serit .kalem .ad {
+  font-family: var(--gorunum); font-size: 12.5px; line-height: 1.2;
+  color: var(--i2); min-width: 0; overflow-wrap: anywhere;
+}
+.ab-b-takim .serit .kalem:hover .ad { color: var(--murekkep); }
+.ab-b-takim .serit .kalem .guc {
+  font-size: var(--t-code); color: var(--i3); white-space: nowrap;
+}
+/* Ölçülmemiş işaret DOLU DEĞİL: ürünün "değerlendirilmedi" glifiyle aynı
+   dil — 45° tarama, tipin rengiyle çizilir. Renk tek kanal değildir;
+   ayrımı şerit, kesik çizgi ve başlıktaki sözcük birlikte taşır. */
+.ab-b-takim .serit .kalem .kare {
+  width: 9px; height: 9px; transform: rotate(45deg); align-self: center;
+  background: repeating-linear-gradient(45deg,
+    currentColor 0 1.5px, transparent 1.5px 3.5px);
+  border: 1px solid currentColor;
+}
+/* Yakın komşusu olan işaretin künyesi ALTA açılır (bkz. Genel.tsx). */
+.ab-b-takim .isaret.kunye-asagi .kunye { top: 6px; }
 
 /* ── Katman paneli ─────────────────────────────────────────────────── */
 .ab-b-katman {
@@ -2878,6 +2926,28 @@ details:not([open]) > *:not(summary) { display: none !important; }
   .ab-b-katman { border-left: 0; overflow-y: visible; }
   /* Takımyıldızı tuvali orantısını yükseklikten alır; akışta 0'a çöker. */
   .ab-b-takim { padding: 24px 32px; min-height: 380px; }
+  /* Dar bantta 176px'lik şerit + tuval yan yana sığmaz: şerit tuvalin
+     ALTINA iner ve iki kolonlu bir listeye dönüşür. Bilgi kaybolmaz,
+     yalnız yer değiştirir. */
+  .ab-b-takim .ab-tuval-sar {
+    grid-template-columns: minmax(0, 1fr); gap: 14px;
+  }
+  .ab-b-takim .ab-tuval-sar > .ab-tuval { order: -1; min-height: 300px; }
+  .ab-b-takim .serit {
+    padding-right: 0; padding-top: 12px;
+    border-right: 0; border-top: 1px dashed var(--hr2);
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 20px; align-content: start;
+  }
+  .ab-b-takim .serit-bas { grid-column: 1 / -1; }
+  /* Dar bantta künye TARAFINI ERKEN DEĞİŞTİRİR. Sarmak denendi ve
+     ölçüldü: üç satıra çıkan künyeler birbirine giriyordu. Bunun yerine
+     eşik %58'den %40'a iner — noktanın solunda kalan yer daha çoktur, o
+     yüzden künye erken sola açılır ve tuvalden taşmaz. */
+  .ab-b-takim .isaret.sola-dar .kunye {
+    left: auto; right: 18px; text-align: right;
+  }
+  .ab-b-takim .kunye .ad { font-size: 13px; }
 
   /* Düzenleyici bant: 430px takvim + akış yan yana sığmaz. */
   .ab-b-bant { grid-template-columns: minmax(0, 1fr); }

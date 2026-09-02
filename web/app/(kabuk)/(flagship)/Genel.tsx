@@ -328,49 +328,123 @@ function Egilim({ seri }: { seri: { etiket: string; yuzde: number }[] | null }) 
 /* ── Takımyıldız ──────────────────────────────────────────────────────
    Yatay: uyum endeksi (0–100). Dikey: kurulu güç (karekök ölçek, çünkü
    1800 MW'lık bir HES ile 15 MW'lık bir GES aynı eksende doğrusal
-   konursa küçükler tek şeride yığılır). */
+   konursa küçükler tek şeride yığılır).
+
+   ── DEĞERLENDİRİLMEMİŞ ŞERİDİ ─────────────────────────────────────────
+   Hiç değerlendirilmemiş santralin uyum endeksi YOKTUR. Onu ekseninde
+   bir yere koymak — 0'a, ortalamaya, herhangi bir yere — uydurmaktır ve
+   "bilinmeyen ≠ sıfır" kuralının en pahalı ihlali olurdu: %0 uyumlu
+   görünen bir santral, aslında henüz hiç bakılmamış santraldir.
+
+   Bunlar önceden tuvalin ALTINDA düz bir kod dizisiydi; on bir santral,
+   yani portföyün üçte ikisi, ana ekranda görünmüyordu. Artık tuvalin
+   İÇİNDE, eksenin solunda kendi şeridinde duruyorlar.
+
+   Şerit ÖLÇEKLİ DEĞİL SIRALIDIR ve bu bilinçli bir karardır. Önce güce
+   göre ölçekli denendi ve ölçüldü: değerlendirilmemiş on bir santralin
+   dokuzu 15–25 MW bandında toplanıyor, künyeler üst üste biniyor ve
+   yirmi sekiz çakışma çıkıyordu — yani "gerçek dikey konum" okunabilir
+   hiçbir şey üretmiyordu. Şimdi güce göre sıralı, eşit aralıklı
+   duruyorlar; SIRA gerçektir, büyüklük künyede rakamla yazılıdır.
+   Şerit başlığı da "güce göre sıralı" der, "ölçekli" demez.
+
+   Kalan iki kural:
+     · YATAY konum yoktur; şerit eksenin dışındadır ve kesik çizgiyle
+       ayrılır.
+     · İşaret dolu değil TARALIDIR: ürünün "değerlendirilmedi" glifiyle
+       aynı dil (bkz. DESIGN.md · glif ailesi). Renk tipten gelir ki
+       hangi üretim tipinin bakılmadığı görünsün. */
+
 function Takimyildizi({ santraller }: { santraller: SantralKarti[] }) {
   const olculen = santraller.filter((s) => s.endeks !== null);
   const olculmemis = santraller.filter((s) => s.endeks === null);
-  const enGuc = Math.max(1, ...olculen.map((s) => s.gucMw ?? 0));
+  /* Ölçek TÜM portföyden gelir: şerit ile eksen aynı dikey ölçeği
+     paylaşmazsa iki taraf karşılaştırılamaz hâle gelir. */
+  const enGuc = Math.max(1, ...santraller.map((s) => s.gucMw ?? 0));
+  const dikey = (s: SantralKarti) => 8 + Math.sqrt((s.gucMw ?? 0) / enGuc) * 100 * 0.78;
+  /* Şerit güce göre SIRALI (yukarıdaki nota bakın); gücü bilinmeyen
+     sona düşer — "0 MW" diye sıralanmaz. */
+  const serit = [...olculmemis].sort((a, b) => (b.gucMw ?? -1) - (a.gucMw ?? -1));
+
+  /* Künye çakışması — ÖLÇÜLDÜ, varsayılmadı: Kızıldere III (%56 · 165 MW)
+     ile Gökçedağ (%67 · 135 MW) dikeyde 31px, künye ise 28px yüksek;
+     ikisi birbirinin üstüne biniyordu. Nokta yerini DEĞİŞTİRMEK veriyi
+     bozar, o yüzden yalnız künye kayar: yakın komşusu olan işaret
+     künyesini işaretin altına açar. */
+  const kaydir = olculen.map((s, i) => olculen.some((o, j) => (
+    j < i
+    && Math.abs((o.endeks ?? 0) - (s.endeks ?? 0)) < 20
+    && Math.abs(dikey(o) - dikey(s)) < 11
+  )));
 
   return (
     <div className="ab-b-takim" aria-label="Santral takımyıldızı">
       <p className="etiket ust">Santraller · uyum endeksi × kurulu güç</p>
-      {olculen.length === 0 ? (
-        <p className="bos">Hiçbir santralde değerlendirilmiş kontrol yok.</p>
+      {santraller.length === 0 ? (
+        <p className="bos">Kapsamda santral yok.</p>
       ) : (
-        <div className="ab-tuval">
-          {olculen.map((s) => {
-            const x = s.endeks!;
-            const y = Math.sqrt((s.gucMw ?? 0) / enGuc) * 100;
-            const uygunsuz = s.sayim.uyumsuz ?? 0;
-            return (
-              <Link key={s.id} href={`/tesisler/${s.id}`}
-                className={`isaret${x > 58 ? ' sola' : ''}`}
-                style={{ left: `${4 + x * 0.86}%`, bottom: `${8 + y * 0.78}%` }}>
-                {uygunsuz > 0 && <span className="halka" aria-hidden />}
-                <span className="kare" aria-hidden
-                  style={{ background: tipRengi(s.tipKod) }} />
-                <span className="kunye">
+        <div className="ab-tuval-sar">
+          {olculmemis.length > 0 && (
+            <div className="serit">
+              <p className="mono serit-bas">
+                değerlendirilmemiş
+                <span className="alt">güce göre sıralı</span>
+              </p>
+              {serit.map((s) => (
+                <Link key={s.id} href={`/tesisler/${s.id}`} className="kalem"
+                  /* Durum sözcüğü şeridin BAŞLIĞINDA bir kez yazılır; her
+                     satırda tekrarlamak on bir kez aynı şeyi söylemekti.
+                     Ekran okuyucu için bağın erişilebilir adına giriyor —
+                     görsel kısalık, sözlü eksiklik demek değil. */
+                  aria-label={`${s.ad} · ${s.gucMw ?? 'güç kaydı yok'} MW · değerlendirilmedi`}>
+                  {/* `color` veriyoruz: tarama deseni de kenarlık da
+                      `currentColor` okur, ikisi tek yerden gelsin. */}
+                  <span className="kare" aria-hidden
+                    style={{ color: tipRengi(s.tipKod) }} />
                   <span className="ad">{s.ad}</span>
-                  <span className="mono alt">
-                    {s.gucMw ?? '—'} MW · %{s.endeks}
-                    {uygunsuz > 0 && ` · ${uygunsuz} uygunsuz`}
+                  <span className="mono guc">{s.gucMw ?? '—'} MW</span>
+                </Link>
+              ))}
+            </div>
+          )}
+
+          <div className="ab-tuval">
+            {olculen.map((s, i) => {
+              const x = s.endeks!;
+              const uygunsuz = s.sayim.uyumsuz ?? 0;
+              return (
+                <Link key={s.id} href={`/tesisler/${s.id}`}
+                  className={`isaret${x > 58 ? ' sola' : ''}${x > 40 ? ' sola-dar' : ''}${
+                    kaydir[i] ? ' kunye-asagi' : ''}`}
+                  style={{ left: `${4 + x * 0.86}%`, bottom: `${dikey(s)}%` }}>
+                  {uygunsuz > 0 && <span className="halka" aria-hidden />}
+                  <span className="kare" aria-hidden
+                    style={{ background: tipRengi(s.tipKod) }} />
+                  <span className="kunye">
+                    <span className="ad">{s.ad}</span>
+                    <span className="mono alt">
+                      {s.gucMw ?? '—'} MW · %{s.endeks}
+                      {uygunsuz > 0 && ` · ${uygunsuz} uygunsuz`}
+                    </span>
                   </span>
-                </span>
-              </Link>
-            );
-          })}
-          <span className="eksen x" aria-hidden />
-          <span className="eksen y" aria-hidden />
-          <span className="mono eksenad x">uyum endeksi →</span>
-          <span className="mono eksenad y">↑ kurulu güç</span>
+                </Link>
+              );
+            })}
+            <span className="eksen x" aria-hidden />
+            <span className="eksen y" aria-hidden />
+            <span className="mono eksenad x">uyum endeksi →</span>
+            <span className="mono eksenad y">↑ kurulu güç</span>
+          </div>
         </div>
       )}
       {olculmemis.length > 0 && (
-        <p className="mono olculmemis">
-          Eksende yok · hiç değerlendirilmemiş: {olculmemis.map((s) => s.kod).join(' · ')}
+        <p className="mono olculmemis-not">
+          {/* Yön adı YAZILMAZ: şerit geniş bantta solda, dar bantta
+              tuvalin altındadır. "Soldaki" demek dar bantta yalan olurdu. */}
+          Değerlendirilmemiş şerit · {olculmemis.length} santralde hiç
+          değerlendirilmiş kontrol yok —
+          {` ${olculmemis.reduce((a, s) => a + (s.gucMw ?? 0), 0).toFixed(1)} MWe`}
+          {' · uyum ekseninde yerleri yok: endeks ölçülmedi, sıfır değil'}
         </p>
       )}
     </div>

@@ -1,11 +1,8 @@
-import type { CSSProperties } from 'react';
 import { Iskelet } from '@/components/kabuk/temel';
 
 /* Yükleme: gerçek kolon başlıklarıyla 7 iskelet satır (03-screens "loading:
    skeleton rows with real type labels"). Sayı uydurulmaz — metrik yerinde
    iskelet durur, `0` yazılmaz. */
-
-const KOLONLAR = '22px minmax(0, 1fr) 190px 150px 150px 26px';
 
 export default function Yukleniyor() {
   return (
@@ -26,28 +23,29 @@ export default function Yukleniyor() {
       </header>
 
       <section className="ab-ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
-        <div className="ab-tablo" style={{ '--kolonlar': KOLONLAR } as CSSProperties}>
-          <div className="bas">
-            <span />
-            <span className="kolonbas">Tedarikçi</span>
-            <span className="kolonbas">Santral</span>
-            <span className="kolonbas">Uzak erişim</span>
-            <span className="kolonbas">Sözleşme</span>
-            <span />
-          </div>
-          {Array.from({ length: 7 }, (_, i) => (
-            <div key={i} className="satir" style={{ cursor: 'default' }}>
-              <Iskelet stil={{ width: 10, height: 10 }} />
-              <span>
-                <Iskelet sinif="iskelet-satir" stil={{ display: 'block' }} />
-                <Iskelet sinif="iskelet-alt" stil={{ display: 'block' }} />
-              </span>
-              <Iskelet stil={{ height: 11, width: 120 }} />
-              <Iskelet stil={{ height: 11, width: 84 }} />
-              <Iskelet stil={{ height: 11, width: 66 }} />
-              <span />
-            </div>
-          ))}
+        <div className="ab-vt-sar" aria-busy="true">
+          <table className="ab-vt" aria-label="Tedarikçi kütüğü · yükleniyor">
+            <thead>
+              <tr>
+                {['Tedarikçi', 'Santral', 'Uzak erişim', 'Sözleşme'].map((b) => (
+                  <th key={b} scope="col"><span className="kolonbas">{b}</span></th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {Array.from({ length: 7 }, (_, i) => (
+                <tr key={i} className="iskelet">
+                  <td>
+                    <Iskelet sinif="iskelet-satir" stil={{ display: 'block' }} />
+                    <Iskelet sinif="iskelet-alt" stil={{ display: 'block' }} />
+                  </td>
+                  <td><Iskelet stil={{ height: 11, width: 120 }} /></td>
+                  <td><Iskelet stil={{ height: 11, width: 84 }} /></td>
+                  <td><Iskelet stil={{ height: 11, width: 66 }} /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </section>
     </main>

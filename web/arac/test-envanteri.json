@@ -1,7 +1,7 @@
 {
-  "imza": "5a058e7d3a6cf24cfc91b68d9388da0f",
-  "dosya": 73,
-  "vaka": 1326,
+  "imza": "94ab29b167c21c20944d11fadb95cf40",
+  "dosya": 72,
+  "vaka": 1311,
   "atlanan": 1,
   "dosyalar": {
     "tests/api.test.ts": {
@@ -30,10 +30,6 @@
     },
     "tests/connector-sertifika.test.ts": {
       "vaka": 27,
-      "atlanan": 0
-    },
-    "tests/dar-sablon.test.ts": {
-      "vaka": 15,
       "atlanan": 0
     },
     "tests/disa-aktarim-paketi.test.ts": {

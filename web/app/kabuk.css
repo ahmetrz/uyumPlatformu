@@ -1432,7 +1432,6 @@
    (`.ab-r-yanyana`); 1100px altında üst üste iner. */
 .ab-r-yanyana { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 0 36px; align-items: start; padding-top: 18px; }
 .ab-r-yanyana > .kutuk { min-width: 0; }
-.ab-r-yanyana > .kutuk > .ab-tablo { margin-top: 0; }
 .ab-r-yanyana .ab-isi { margin: 0; padding: 0; border-bottom: 0; position: sticky; top: 0; }
 .ab-r-yanyana .ab-isi .bas { flex-direction: column; align-items: flex-start; gap: 4px; }
 .ab-r-yanyana .ab-isi .bas .eylem { margin-left: 0; margin-top: 6px; }
@@ -1702,40 +1701,6 @@
   min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--i2);
 }
 
-/* ═══ Ortak gramer — tablo ════════════════════════════════════════════
-   Satır bir DÜĞMEDİR: seçim `aria-pressed` ile taşınır (`aria-selected`
-   düğme rolünde geçersizdir). Sol kenar durumun ŞİDDETİNİ taşır ve
-   yanında olgunun SÖZCÜĞÜ yazar — renk tek başına anlatmaz. */
-.ab-tablo { width: 100%; display: grid; --satir-y: 10px; }
-/* Sık kip: 40+ satırlı kütükte satır dolgusu daralır, tipografi değil. */
-.ab-tablo.sik { --satir-y: 7px; }
-.ab-tablo .bas, .ab-tablo .satir {
-  display: grid; grid-template-columns: var(--kolon, var(--kolonlar));
-  gap: 16px; align-items: center;
-}
-/* Sol kenar başlıkta da SAYDAM olarak durur. Satır bir <button> ve
-   seçili durumu 2px'lik sol kenarla gösterir; başlıkta o kenar hiç
-   yokken başlığın içerik kutusu 2px daha genişti ve esnek ray başlık
-   ile satır arasında 2px ayrışıyordu — her kütükte, her genişlikte.
-   Ölçüldü; `arac/kolon-hizasi.mjs` artık tam eşitlik arıyor. */
-.ab-tablo .bas {
-  padding: 10px 0; border-bottom: 1px solid var(--murekkep);
-  border-left: 2px solid transparent;
-}
-.ab-tablo .satir {
-  width: 100%; text-align: left; background: none; border: 0; font: inherit; color: inherit;
-  padding: var(--satir-y, 10px) 0; border-bottom: 1px solid var(--hr);
-  border-left: 2px solid transparent; cursor: pointer;
-  /* Yoğunluk sözleşmesi: satır yüksekliği kabuktan gelir (op 36 / amiral 44 / tezgâh 32). */
-  min-height: var(--satir-h);
-}
-.ab-tablo .satir:hover { background: var(--panel2); }
-.ab-tablo .satir[aria-pressed='true'] { background: var(--panel2); border-left-color: var(--aksan); }
-.ab-tablo .satir.d-bd { border-left-color: var(--bd); }
-.ab-tablo .satir.d-md { border-left-color: var(--md); }
-.ab-tablo .satir.d-unk { border-left-color: var(--unk); }
-.ab-tablo .kod { font-size: 11px; color: var(--i2); }
-
 /* ═══ Vuruş alanı genişletici ═════════════════════════════════════════
    Metin yüksekliğinde duran bir bağ/düğme 24px eşiğinin ALTINDA kalır
    (WCAG 2.2 · 2.5.8 Hedef Boyutu, AA). Kutuyu büyütmek iki bedel öder:
@@ -1761,22 +1726,8 @@
   top: 50%; transform: translateY(-50%);
   height: 24px; min-height: 100%; min-width: 24px;
 }
-/* HER hücre daralabilir. `konu` ve `ikincil` kendi `min-width: 0`ını
-   alıyordu ama sınıfsız hücreler (ne `sag` ne `ikincil` olan kolonlar)
-   ızgara öğesi varsayılanı `min-width: auto` ile içeriğinin min-content
-   genişliğinde kalıyor; içindeki `nowrap` hücre kırpma kuralları da bu
-   yüzden hiç devreye girmiyordu. Ölçüldü: /kanitlar 1440px'te 548px'lik
-   bir hücreyle sayfayı 108px yatay kaydırıyordu. */
-.ab-tablo .satir > *, .ab-tablo .bas > * { min-width: 0; }
-.ab-tablo .konu { font-size: 13.5px; color: var(--murekkep); min-width: 0; overflow-wrap: anywhere; }
-.ab-tablo .ikincil { font-size: 12px; color: var(--i3); min-width: 0; overflow-wrap: anywhere; }
-.ab-tablo .alt { display: block; margin-top: 3px; font-family: var(--veri); font-size: 11px; color: var(--i3); }
-.ab-tablo .sag { text-align: right; font-variant-numeric: tabular-nums; }
-.ab-tablo .vurgu { color: var(--bd); }
-.ab-tablo .uyari { color: var(--md); }
-
 /* ═══ VeriTablosu — semantik kütük (`components/kabuk/tablo.tsx`) ═════
-   `.ab-tablo` ile aynı görsel gramer, gerçek `<table>` ağacında. Kaydırma
+   Eski `.ab-tablo` ızgarasının yerini aldı (Faz 3); gerçek `<table>` ağacı. Kaydırma
    kabı `.ab-vt-sar`: başlık üstte, kod sütunu solda YAPIŞKAN. Yapışkan
    hücre zemini kabuk zeminidir; saydam kalsa altındaki satır metni
    başlığın içinden görünürdü. */
@@ -1817,6 +1768,51 @@
 .ab-vt .vurgu { color: var(--bd); }
 .ab-vt .uyari { color: var(--md); }
 .ab-vt-bos { margin: 24px 0; font-size: 13px; color: var(--i3); }
+/* Kimlik hücresi: durum glifi + konu + olgu alt satırı (Tablo → çekirdek). */
+.ab-vt .kimlik { display: flex; align-items: flex-start; gap: 10px; min-width: 0; }
+.ab-vt .kimlik > .ab-glif { flex: none; margin-top: 5px; }
+.ab-vt .kimlik > .konu, .ab-vt .kimlik-metin { display: block; min-width: 0; }
+.ab-vt tbody th[scope='row'] { font-weight: 400; }
+/* Kimlik metni okunur kalır: dar bantta bile ≥150px, harf harf kırılmaz. */
+.ab-vt .kimlik, .ab-vt .kimlik-metin { min-width: 150px; }
+/* Grup başlığı (kimlik: hesap / grup) — satır değil, bölüm çizgisi. */
+.ab-vt tbody tr.grup > th {
+  position: static; padding-top: 14px; padding-bottom: 6px; cursor: default;
+  font-family: var(--veri); font-size: var(--t-caption); letter-spacing: .08em;
+  text-transform: uppercase; color: var(--i3); border-bottom-color: var(--hr2);
+  background: var(--zemin);
+}
+.ab-vt tbody tr.grup { cursor: default; }
+.ab-vt tbody tr.grup:hover > * { background: var(--zemin); }
+/* Kuyruk satırı (+N kayıt): tek hücre, düğme satırın tamamını kaplar. */
+.ab-vt tbody tr.kuyruk > td { position: static; padding: 0; cursor: default; }
+.ab-vt tbody tr.kuyruk:hover > * { background: var(--panel2); }
+.ab-vt .kuyruk-ac {
+  display: flex; width: 100%; align-items: center; gap: 10px;
+  padding: var(--satir-y) 8px var(--satir-y) 36px; min-height: var(--satir-h);
+  background: none; border: 0; font: inherit; color: var(--i2); text-align: left; cursor: pointer;
+}
+.ab-vt .kuyruk-ac .ok { font-size: 11px; color: var(--i3); margin-left: auto; }
+.ab-vt tbody tr.kuyruk > td > span { display: block; padding: var(--satir-y) 8px var(--satir-y) 36px; color: var(--i2); }
+.ab-vt .kuyruk-ac:focus-visible { outline: 2px solid var(--aksan); outline-offset: -2px; }
+/* Dip not tablonun altında, kaydırma kabının dışında akar. */
+.ab-vt-dip {
+  margin: 10px 0 0; font-size: var(--t-code); line-height: 1.7; color: var(--i3); max-width: 78ch;
+}
+.ab-vt-dip-eylem {
+  background: none; border: 0; padding: 0; font: inherit; color: var(--aksan);
+  text-decoration: underline; cursor: pointer;
+}
+/* İskelet satırı: sahte veri değil, ölçülü boşluk. */
+.ab-vt tbody tr.iskelet { cursor: default; }
+.ab-vt tbody tr.iskelet:hover > * { background: transparent; }
+.ab-vt tbody tr.iskelet .ab-iskelet { display: block; height: 12px; }
+/* Dokunmatik / dar bant: sıralı başlıklar sarar, kırpılmaz. */
+@media (max-width: 1366px) {
+  .ab-vt thead th { white-space: normal; }
+  .ab-vt .kolonbas.sirali { text-align: left; }
+  .ab-vt th.sag .kolonbas.sirali { text-align: right; }
+}
 
 /* ═══ Paylaşılan primitifler ══════════════════════════════════════════
    `components/kabuk/*` bileşenlerinin malzemesi. Tek palet, tek
@@ -1957,9 +1953,7 @@
 .ab-ipucu.genis { max-width: min(380px, calc(100vw - 48px)); }
 /* Sağa yaslı hücrede ipucu da sağa yaslanır: `left: 0` orada görüntü
    alanını taşıyordu (1366px'te 12px, ölçüldü). */
-.sag .ab-ipucu, .ab-ipucu.sagdan,
-.ab-tablo .satir > *:last-child .ab-ipucu,
-.ab-tablo .bas > *:last-child .ab-ipucu { left: auto; right: 0; }
+.sag .ab-ipucu, .ab-ipucu.sagdan { left: auto; right: 0; }
 .ab-ipucu-sar:hover .ab-ipucu, .ab-ipucu-sar:focus-within .ab-ipucu {
   opacity: 1; visibility: visible;
 }
@@ -2247,7 +2241,7 @@
 /* ── Form girdisi ──────────────────────────────────────────────────── */
 /* DOKUNMA/İŞARET HEDEFİ ≥24px (WCAG 2.2 · 2.5.8 AA).
    Ölçüldü: form girdisi 20px, matris hücresi 20px, kolon başlığı 14px,
-   satır bağı 18px kalıyordu. Satır İÇİ metin bağları (`.ab-tablo .kod`
+   satır bağı 18px kalıyordu. Satır İÇİ metin bağları (`.ab-vt .kod`
    gibi) standardın "inline" istisnasındadır ve büyütülmez — cümlenin
    içindeki bir bağı 24px kutuya sokmak satır ritmini bozar. */
 .ab-gr {
@@ -2803,40 +2797,16 @@ details:not([open]) > *:not(summary) { display: none !important; }
   .ab { background: #fff !important; color: #000 !important; }
   .ab-ust, .ab-ikincil, .ab-baskida-gizle { display: none !important; }
   .ab { grid-template-rows: minmax(0, 1fr); }
-  .ab-tablo .satir, .ab-tablo .bas { border-color: #ccc !important; }
 }
 
 /* ═══ Duyarlılık — prototipler tek genişlikte tasarlandı ══════════════
    Harita §7 kusur 2: 1366 / 1280 / tablet davranışı burada eklenir.
    HİÇBİR ROTA ERİŞİLEMEZ OLAMAZ. */
 @media (max-width: 1366px) {
-  /* Dar kütük şablonu. `--kolon-dar` / `--kolonlar-dar` beş ekranda
-     HESAPLANIP satır içi stille geçiriliyordu ama hiçbir kural onu
-     okumuyordu: dar ekranda ikincil kolonu düşürme sessizce hiç
-     çalışmamıştı. `iz-tarama.mjs`in yeni ölü token denetimi ortaya
-     çıkardı.
-
-     `ikincil` bütün kütüklerde DÜŞEN kolonu işaretler; başlık
-     tarafında iki ad dolaşır (`ikincil` elle yazılanlarda, `ikincil-k`
-     `tablo.tsx`te), o yüzden ikisi de gizlenir. Doğrudan çocuk
-     seçicisi şart: `ikincil` hücre İÇİNDE de kullanılıyor (satır altı
-     etiketi) ve o gizlenmemeli. Şablondan düşen kolon ile gizlenen
-     hücre AYNI olmazsa başlık bir kolon kayar — ölçüldü, üç ekranda
-     oluyordu. `arac/kolon-hizasi.mjs` bunu her koşuda ölçer. */
-  .ab-tablo .bas, .ab-tablo .satir {
-    grid-template-columns: var(--kolon-dar, var(--kolonlar-dar, var(--kolon, var(--kolonlar))));
-  }
-  .ab-tablo .bas > .ikincil, .ab-tablo .bas > .ikincil-k,
-  .ab-tablo .satir > .ikincil, .ab-tablo .satir > .ikincil-k,
+  /* ≤1366px: `ikincil-k` sütunu başlıkta ve hücrede birlikte düşer.
+     Hücre İÇİNDEKİ `.ikincil` (satır altı etiketi) gizlenmez.
+     `arac/kolon-hizasi.mjs` başlık/hücre sayısını her koşuda ölçer. */
   .ab-vt th.ikincil-k, .ab-vt td.ikincil-k { display: none; }
-
-  /* Kolon başlığı dar bantta SARAR. Düğme olduğu için `min-content`
-     genişliği sözcüğün kendisidir ve izinden taşar; hangi şablonu
-     yazarsak yazalım "Doğrulama▴" 90px ister ve sayfayı kaydırır.
-     Sarmak hiçbir bilgi kaybettirmez — kırpmak kaybettirir. */
-  .ab-tablo .bas > * { overflow-wrap: anywhere; }
-  .ab-tablo .bas .kolonbas.sirali { text-align: left; white-space: normal; }
-  .ab-tablo .bas .sag .kolonbas.sirali { text-align: right; }
 
   .ab-c-ekrandizin { grid-template-columns: 188px minmax(0, 1fr); gap: 32px; }
 }
@@ -2860,7 +2830,6 @@ details:not([open]) > *:not(summary) { display: none !important; }
   .ab-r-yanyana { grid-template-columns: minmax(0, 1fr); padding-top: 0; }
   .ab-r-yanyana .ab-isi { position: static; margin: 0 0 20px; padding: 12px 0 14px; border-bottom: 1px solid var(--hr2); }
   .ab-r-yanyana .ab-isi .bas { flex-direction: row; align-items: baseline; }
-  .ab-r-yanyana > .kutuk > .ab-tablo { margin-top: var(--s22); }
   .ab-c-dizin { display: flex; flex-wrap: wrap; gap: 24px; }
   .ab-c-dizin .bolum { flex: 1 1 200px; margin-bottom: 0; }
   .ab-ust > nav a { padding: 0 12px; font-size: 12px; }
@@ -2983,10 +2952,7 @@ details:not([open]) > *:not(summary) { display: none !important; }
   }
   .ab-b-serit > header .sag { margin-left: 0; flex-basis: 100%; }
 
-  /* Kütük kolon aralığı telefonda 16'dan 10'a iner. Dört kolonlu bir
-     kütükte aralıklar 64px eder — 335px'lik iç alanın beşte biri boşluk
-     olur ve konu sütunu dört satıra kırılır. 24px geri kazanmak konu
-     sütununu ölçülebilir biçimde genişletir; ritim değişmez, yalnız
-     sıkışır. */
-  .ab-tablo .bas, .ab-tablo .satir { gap: 10px; }
+  /* Kütük hücre dolgusu telefonda daralır: 335px'lik iç alanda dört
+     sütunun yatay dolgusu konu sütununu dört satıra kırıyordu. */
+  .ab-vt th, .ab-vt td { padding-left: 8px; padding-right: 8px; }
 }

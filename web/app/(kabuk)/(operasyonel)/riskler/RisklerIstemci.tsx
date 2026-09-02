@@ -1,9 +1,9 @@
 'use client';
 import Link from 'next/link';
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { BosIlk, BosFiltre, Dugme, TikSeridi } from '@/components/kabuk/temel';
 import { EkranBasligi, Filtreler } from '@/components/kabuk/ekran';
-import { darSablon } from '@/components/kabuk/tablo';
+import { VeriTablosu, type VtKolon } from '@/components/kabuk/tablo';
 import {
   Cekmece, CekmeceKimlik, CekmeceAlanlar, CekmeceBagli, CekmeceEylemler,
 } from '@/components/kabuk/panel';
@@ -25,8 +25,25 @@ import {
    ile 4 aynı görünüyordu. Şerit aynı bilgiyi uzunlukla da kodlar.
    Detay modalda değil 420px çekmecede ya da /riskler/[id] rotasında açılır. */
 
-const KOLONLAR = '92px minmax(0, 1fr) 190px 130px 26px';
-const KOLONLAR_DAR = darSablon('92px minmax(0, 1fr) 130px 26px');
+/* A5 kütük grameri (Faz 3): semantik tablo, skor LİDER kolon. Sıralama
+   skora göredir ve sabittir — başlık düğmesi bu yüzden yok; dip not söyler. */
+const KOLONLAR: VtKolon<R>[] = [
+  { anahtar: 'skor', baslik: 'Skor', genislik: '92px', ad: 'Artık risk skoru',
+    hucre: (r) => <SkorHucresi risk={r} /> },
+  { anahtar: 'risk', baslik: 'Risk',
+    hucre: (r) => (
+      <span className="kimlik-metin">
+        <span className="konu">{r.baslik}</span>
+        <span className="alt">{altSatir(r)}</span>
+      </span>
+    ) },
+  { anahtar: 'santral', baslik: 'Santral', genislik: '190px', ikincil: true,
+    hucre: (r) => <span className="ikincil">{santralMetni(r)}</span> },
+  { anahtar: 'sahip', baslik: 'Sahip', genislik: '130px',
+    hucre: (r) => (
+      <span style={!r.sahip ? { color: 'var(--md)' } : undefined}>{r.sahip?.ad ?? 'atanmadı'}</span>
+    ) },
+];
 
 const GORUNUR_SATIR = 7;
 
@@ -215,44 +232,28 @@ export default function RisklerIstemci({
                 yeni={() => setYeniAcik(true)}
               />
             ) : (
-              <div className="ab-tablo"
-                style={{
-                  '--kolonlar': KOLONLAR,
-                  '--kolonlar-dar': KOLONLAR_DAR,
-                  borderTop: 'var(--bw-strong) solid var(--hr2)',
-                } as CSSProperties}
-               >
-                {gosterilen.map((r) => (
-                  <Satir key={r.id} risk={r} secili={seciliId === r.id} sec={() => sec(r.id)} />
-                ))}
-
-                {toplanan.length > 0 && (
-                  <button type="button" className="satir kuyruk"
-                    onClick={() => setKuyrukAcik(true)}>
-                    <span style={{ paddingLeft: 'var(--s16)', fontFamily: 'var(--veri)',
-                      fontSize: 'var(--t-lead)', fontWeight: 600, color: 'var(--i2)',
-                      fontVariantNumeric: 'tabular-nums' }}>
-                      {kuyrukSkorlari.length ? `≤${Math.max(...kuyrukSkorlari)}` : '—'}
-                    </span>
-                    <span className="konu" style={{ color: 'var(--i2)' }}>{kuyrukEtiketi}</span>
-                    <span className="ikincil">portföy</span>
-                    <span className="" />
-                    <span className="ab-ok" style={{ justifySelf: 'end' }} aria-hidden>▾</span>
-                  </button>
-                )}
-
-                {kuyrukAcik && sakin.length > 0 && (
-                  <p className="ab-dip dip">
-                    <button type="button" className="ab-dugme satir"
-                      onClick={() => setKuyrukAcik(false)}>Kuyruğu topla</button>
-                  </p>
-                )}
-
-                <p className="ab-dip dip">
-                  Sıralama artık skora göre
-                  {skorsuzSayisi > 0 && ` · ${skorsuzSayisi} risk skorsuz`}
-                  {hucre && ` · haritadan süzülü: olasılık ${hucre.olasilik} × etki ${hucre.etki}`}
-                </p>
+              <div style={{ borderTop: 'var(--bw-strong) solid var(--hr2)' }}>
+                <VeriTablosu<R>
+                  etiket="Risk kütüğü"
+                  kolonlar={KOLONLAR}
+                  satirlar={gosterilen}
+                  secili={seciliId}
+                  sec={(id) => { if (id) sec(id); else cekmeceyiKapat(); }}
+                  durum={(r) => skorDurumu(r.artikRisk)}
+                  bosCumle={null}
+                  kuyruk={toplanan.length > 0
+                    ? { metin: `${kuyrukSkorlari.length ? `≤${Math.max(...kuyrukSkorlari)}` : '—'} · ${kuyrukEtiketi} · portföy`,
+                      ac: () => setKuyrukAcik(true) }
+                    : null}
+                  dipNot={<>
+                    Sıralama artık skora göre
+                    {skorsuzSayisi > 0 && ` · ${skorsuzSayisi} risk skorsuz`}
+                    {hucre && ` · haritadan süzülü: olasılık ${hucre.olasilik} × etki ${hucre.etki}`}
+                    {kuyrukAcik && sakin.length > 0 && (
+                      <> · <button type="button" className="ab-vt-dip-eylem" onClick={() => setKuyrukAcik(false)}>Kuyruğu topla</button></>
+                    )}
+                  </>}
+                />
               </div>
             )}
             </div>
@@ -387,59 +388,34 @@ function IsiHaritasiPaneli({ harita, secili, sec, kesildi }: {
   );
 }
 
-/* ── Satır ──────────────────────────────────────────────────────────── */
+/* ── Skor hücresi ────────────────────────────────────────────────────
+   İKİ KANAL taşır: rakam+renk ve tik şeridi. Şerit "durum yalnız renkle
+   anlatılmaz" sözleşmesinin bu satırdaki karşılığıdır — kritik satır
+   rengi görülmese de uzunluğuyla ayrışır. Skorsuz risk kesikli şerit
+   alır: ölçülmemiş bir risk sıfır ağırlıklı DEĞİLDİR. */
 
-function Satir({ risk, secili, sec }: { risk: R; secili: boolean; sec: () => void }) {
+function SkorHucresi({ risk }: { risk: R }) {
   const durum = skorDurumu(risk.artikRisk);
   const agirlik = skorAgirligi(risk.artikRisk);
-  const renk = `var(--${durum})`;
-  const sahipsiz = !risk.sahip;
   return (
-    <button
-      type="button"
-     
-      aria-pressed={secili}
-      className="satir"
-      onClick={sec}
-      style={{ borderLeftColor: secili ? renk : 'transparent' }}
-    >
-      {/* Skor hücresi İKİ KANAL taşır: rakam+renk ve tik şeridi. Şerit
-          "durum yalnız renkle anlatılmaz" sözleşmesinin bu satırdaki
-          karşılığıdır — kritik satır rengi görülmese de uzunluğuyla
-          ayrışır. Skorsuz risk kesikli şerit alır: ölçülmemiş bir risk
-          sıfır ağırlıklı DEĞİLDİR. */}
+    <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--s8)' }}>
       <span style={{
-        paddingLeft: 'var(--s16)', display: 'flex', alignItems: 'center',
-        gap: 'var(--s8)',
+        fontFamily: 'var(--veri)', fontSize: 'var(--t-lead)', fontWeight: 600,
+        color: `var(--${durum})`, fontVariantNumeric: 'tabular-nums', minWidth: '2ch',
+        textAlign: 'right',
       }}>
-        <span style={{
-          fontFamily: 'var(--veri)', fontSize: 'var(--t-lead)', fontWeight: 600,
-          color: renk, fontVariantNumeric: 'tabular-nums', minWidth: '2ch',
-          textAlign: 'right',
-        }}>
-          {risk.artikRisk ?? '—'}
-        </span>
-        <TikSeridi
-          dolu={agirlik ?? 0}
-          toplam={SKOR_TIK}
-          durum={durum}
-          olculmedi={agirlik === null}
-          etiket={agirlik === null
-            ? 'Artık risk skoru ölçülmedi'
-            : `Artık risk ${risk.artikRisk} / ${SKOR_TAVANI}`}
-        />
+        {risk.artikRisk ?? '—'}
       </span>
-      <span style={{ minWidth: 0 }}>
-        <span className="konu">{risk.baslik}</span>
-        <span className="alt">{altSatir(risk)}</span>
-      </span>
-      <span className="ikincil">{santralMetni(risk)}</span>
-      <span className=""
-        style={sahipsiz ? { color: 'var(--md)' } : undefined}>
-        {risk.sahip?.ad ?? 'atanmadı'}
-      </span>
-      <span className="ab-ok" style={{ justifySelf: 'end' }} aria-hidden>▸</span>
-    </button>
+      <TikSeridi
+        dolu={agirlik ?? 0}
+        toplam={SKOR_TIK}
+        durum={durum}
+        olculmedi={agirlik === null}
+        etiket={agirlik === null
+          ? 'Artık risk skoru ölçülmedi'
+          : `Artık risk ${risk.artikRisk} / ${SKOR_TAVANI}`}
+      />
+    </span>
   );
 }
 

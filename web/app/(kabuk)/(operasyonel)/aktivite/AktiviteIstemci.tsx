@@ -1,9 +1,9 @@
 'use client';
 import Link from 'next/link';
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Dugme, BosIlk, BosFiltre } from '@/components/kabuk/temel';
 import { EkranBasligi, Filtreler } from '@/components/kabuk/ekran';
-import { darSablon } from '@/components/kabuk/tablo';
+import { VeriTablosu, type VtKolon } from '@/components/kabuk/tablo';
 import { Cekmece, CekmeceAlanlar, CekmeceEylemler } from '@/components/kabuk/panel';
 import { exceleAktar, pdfYazdir } from '@/components/disaAktar';
 import { etiketle, eylemCumlesi, tarihTR, zamanTR } from '@/lib/sabitler';
@@ -24,12 +24,41 @@ import {
 /** 06 §A3: 5–9 satır görünür; geri alınamaz eylemler bütçenin dışındadır. */
 const GORUNUR_BUTCE = 8;
 
-const KOLONLAR = '104px minmax(0, 1fr) 236px 92px 26px';
-/* Dar bantta "Kaynak" düşer. Değişim kolonu SABİT 236px kalırsa
-   104 + 236 + 26 = 366px sabit genişlik telefonun 335px'lik iç alanına
-   sığmaz ve sayfa 61px yatay kayardı (ölçüldü: 375px). `minmax(0, …)`
-   kolonu tavanında tutar ama daralmasına izin verir. */
-const KOLONLAR_DAR = darSablon('104px minmax(0, 1fr) 236px 26px');
+/* Zaman ilk (satır başlığı) — kütük zaman sıralı bir defterdir. "Kaynak"
+   ikincil: ≤1366px bantta düşer; Değişim sabit genişlikte kalır. */
+const KOLONLAR: VtKolon<Kayit>[] = [
+  {
+    anahtar: 'zaman', baslik: 'Zaman', genislik: '104px',
+    hucre: (k) => <span className="mono" style={{ color: 'var(--i3)' }}>{kisaZaman(k.zaman)}</span>,
+  },
+  {
+    anahtar: 'kayit', baslik: 'Kayıt',
+    hucre: (k) => (
+      <span className="kimlik-metin">
+        <span className="konu">
+          <b style={{ fontWeight: 700 }}>{aktorMetni(k)}</b>{' '}
+          <span style={{ fontWeight: 400, color: 'var(--i2)' }}>
+            {eylemCumlesi(k.eylem, k.varlikTipi, k.alan)}
+          </span>
+        </span>
+        <span className="alt">{etiketle(k.varlikTipi)}</span>
+      </span>
+    ),
+  },
+  {
+    anahtar: 'degisim', baslik: 'Değişim', genislik: '236px',
+    hucre: (k) => {
+      const d = degisimMetni(k);
+      return d
+        ? <span style={kritikEylem(k) ? { color: 'var(--bd)' } : undefined}>{d}</span>
+        : <span style={{ color: 'var(--i3)' }}>—</span>;
+    },
+  },
+  {
+    anahtar: 'kaynak', baslik: 'Kaynak', ikincil: true, genislik: '92px',
+    hucre: (k) => <span className="mono">{kaynakEtiketi(k.kaynak)}</span>,
+  },
+];
 
 export default function AktiviteIstemci({
   kayitlar, simdi, pencere, toplam, kapsamli = false,
@@ -126,36 +155,22 @@ export default function AktiviteIstemci({
 
           {gorunur.length > 0 || toplanan.length > 0 ? (
             <div style={{ marginTop: 'var(--s22)' }}>
-              <div className="ab-tablo"
-                style={{ '--kolonlar': KOLONLAR, '--kolonlar-dar': KOLONLAR_DAR } as CSSProperties}
-               >
-                <div className="bas">
-                  <span className="kolonbas">Zaman</span>
-                  <span className="kolonbas">Kayıt</span>
-                  <span className="kolonbas">Değişim</span>
-                  <span className="kolonbas ikincil">Kaynak</span>
-                  <span />
-                </div>
-
-                {gorunur.map((k) => (
-                  <Satir key={k.id} kayit={k} secili={secili === k.id}
-                    sec={() => setSecili((o) => (o === k.id ? null : k.id))} />
-                ))}
-
-                {toplanan.length > 0 && (
-                  <button type="button" className="satir kuyruk"
-                    style={{ gridTemplateColumns: '104px minmax(0, 1fr) 26px' }}
-                    onClick={() => setKuyrukAcik(true)}>
-                    <span />
-                    <span className="">
-                      +{toplanan.length} kayıt · en eskisi {tarihTR(toplanan[toplanan.length - 1].zaman)}
-                    </span>
-                    <span className="ab-ok" style={{ justifySelf: 'end' }} aria-hidden>▾</span>
-                  </button>
-                )}
-
-                <p className="ab-dip dip">{dipNot(gorunur.length, m)}</p>
-              </div>
+              <VeriTablosu<Kayit>
+                etiket="Denetim izi kütüğü"
+                kolonlar={KOLONLAR}
+                satirlar={gorunur}
+                secili={secili}
+                sec={setSecili}
+                durum={(k) => (kritikEylem(k) ? 'bd' : undefined)}
+                bosCumle={null}
+                kuyruk={toplanan.length > 0
+                  ? {
+                    metin: `+${toplanan.length} kayıt · en eskisi ${tarihTR(toplanan[toplanan.length - 1].zaman)}`,
+                    ac: () => setKuyrukAcik(true),
+                  }
+                  : null}
+                dipNot={dipNot(gorunur.length, m)}
+              />
 
               <div style={{ display: 'flex', justifyContent: 'flex-end',
                 padding: 'var(--s10) 0 0' }}>
@@ -189,48 +204,6 @@ function dipNot(gorunur: number, m: ReturnType<typeof metrikleriHesapla>): strin
   // Aktörü bilinmeyen kayıt "sistem" sayılmaz; ayrıca söylenir.
   if (m.aktorsuz > 0) parcalar.push(`${m.aktorsuz} kaydın aktörü bilinmiyor`);
   return parcalar.join(' · ');
-}
-
-/* ── Satır ──────────────────────────────────────────────────────────── */
-
-function Satir({ kayit, secili, sec }: { kayit: Kayit; secili: boolean; sec: () => void }) {
-  const degisim = degisimMetni(kayit);
-  const kritik = kritikEylem(kayit);
-  return (
-    <button
-      type="button"
-     
-      aria-pressed={secili}
-      className="satir"
-      onClick={sec}
-      style={{ borderLeftColor: secili ? (kritik ? 'var(--bd)' : 'var(--aksan)') : 'transparent' }}
-    >
-      <span style={{
-        paddingLeft: 'var(--s16)', fontFamily: 'var(--veri)', fontSize: 'var(--t-code)',
-        color: 'var(--i3)', fontVariantNumeric: 'tabular-nums',
-      }}>
-        {kisaZaman(kayit.zaman)}
-      </span>
-      <span style={{ minWidth: 0 }}>
-        <span className="konu">
-          <b style={{ fontWeight: 700 }}>{aktorMetni(kayit)}</b>{' '}
-          <span style={{ fontWeight: 400, color: 'var(--i2)' }}>
-            {eylemCumlesi(kayit.eylem, kayit.varlikTipi, kayit.alan)}
-          </span>
-        </span>
-        <span className="alt">{etiketle(kayit.varlikTipi)}</span>
-      </span>
-      <span className=""
-        style={kritik ? { color: 'var(--bd)' } : undefined}>
-        {degisim ?? <span style={{ color: 'var(--i3)' }}>—</span>}
-      </span>
-      <span className="ikincil"
-        style={{ fontFamily: 'var(--veri)', fontSize: 'var(--t-code)' }}>
-        {kaynakEtiketi(kayit.kaynak)}
-      </span>
-      <span className="ab-ok" style={{ justifySelf: 'end' }} aria-hidden>▸</span>
-    </button>
-  );
 }
 
 /* ── Çekmece · salt okunur kayıt ─────────────────────────────────────────

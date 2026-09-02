@@ -453,11 +453,10 @@ function DisaAktar({ satirlar }: { satirlar: (string | number)[][] }) {
 
 const Bos = () => <span style={{ color: 'var(--i3)' }}>—</span>;
 
-/** Kırpma tek satırda ve üç noktayla biter — sert kesim kırık görünür. */
-const KIRP = {
-  minWidth: 0, flex: '1 1 auto',
-  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-} as const;
+/* Semantik tabloda `nowrap` hücre sütunu içeriğine kadar genişletir ve
+   kütüğü yatay kaydırırdı (ölçüldü: 1366px'te 56px). Aksiyon cümlesi
+   sarılır; kırpılmaz — kaybolan sözcük yok. */
+const KIRP = { minWidth: 0, flex: '1 1 auto', overflowWrap: 'anywhere' } as const;
 
 const SATIR_ICI = {
   display: 'flex', alignItems: 'center', gap: 'var(--s10)', minWidth: 0,

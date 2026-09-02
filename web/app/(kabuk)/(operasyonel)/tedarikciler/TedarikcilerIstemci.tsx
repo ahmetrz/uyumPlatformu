@@ -1,9 +1,9 @@
 'use client';
 import Link from 'next/link';
-import { useMemo, useState, type CSSProperties, type ReactNode } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import { BosIlk, Im, Ipucu, type Durum } from '@/components/kabuk/temel';
 import { EkranBasligi } from '@/components/kabuk/ekran';
-import { darSablon } from '@/components/kabuk/tablo';
+import { VeriTablosu, type VtKolon } from '@/components/kabuk/tablo';
 import {
   Cekmece, CekmeceKimlik, CekmeceAlanlar, CekmeceBagli,
 } from '@/components/kabuk/panel';
@@ -26,9 +26,18 @@ import {
    `izlenmiyor` kesikli alt çizgi + popover taşır ama KRİTİK BİLGİ HOVER'DA
    KALMAZ: satır işaretçisi zaten durumu söyler, çekmece boşluğu açar. */
 
-const KOLONLAR = '22px minmax(0, 1fr) 190px 150px 150px 26px';
-/** Çekmece açıkken santral kolonu düşer — bilgi çekmeceye iner, sıkışmaz. */
-const KOLONLAR_DAR = darSablon('22px minmax(0, 1fr) 150px 150px 26px');
+/* A5 kütük grameri (Faz 3): semantik tablo. Santral kolonu dar bantta
+   düşer — bilgi çekmeceye iner, sıkışmaz. Santral bağları satır İÇİ
+   bağdır; tıklanmaları satırı seçmez (çekirdek bunu ayırır). */
+const KOLONLAR: VtKolon<T>[] = [
+  { anahtar: 'tedarikci', baslik: 'Tedarikçi', hucre: (t) => <KimlikHucresi t={t} /> },
+  { anahtar: 'santral', baslik: 'Santral', genislik: '190px', ikincil: true,
+    hucre: (t) => <SantralHucresi t={t} /> },
+  { anahtar: 'erisim', baslik: 'Uzak erişim', genislik: '150px',
+    hucre: (t) => <ErisimHucresi t={t} /> },
+  { anahtar: 'sozlesme', baslik: 'Sözleşme', genislik: '150px',
+    hucre: (t) => <SozlesmeHucresi t={t} /> },
+];
 
 export default function TedarikcilerIstemci({
   tedarikciler, yazabilir, sertifikaUfku,
@@ -146,46 +155,27 @@ export default function TedarikcilerIstemci({
         />
 
         <section className="ab-ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
-          <div className="ab-tablo"
-            style={{ '--kolonlar': KOLONLAR, '--kolonlar-dar': KOLONLAR_DAR } as CSSProperties}>
-            <div className="bas">
-              <span />
-              <span className="kolonbas">Tedarikçi</span>
-              <span className="kolonbas ikincil">Santral</span>
-              <span className="kolonbas">Uzak erişim</span>
-              <span className="kolonbas">Sözleşme</span>
-              <span />
-            </div>
-
-            {gosterilen.map((t) => (
-              <Satir key={t.id} t={t} secili={seciliId === t.id}
-                sec={() => setSeciliId(t.id === seciliId ? null : t.id)} />
-            ))}
-
-            {toplanan.length > 0 && (
-              <button type="button" className="satir kuyruk"
-                style={{ gridTemplateColumns: '22px minmax(0, 1fr) 26px' }}
-                onClick={() => setKuyrukAcik(true)}>
-                <Im durum="ok" ad={`${toplanan.length} tedarikçide bilinen açık yok`} />
-                <span className="" style={{ textAlign: 'left' }}>
-                  {toplanan.length} düşük riskli tedarikçi
-                </span>
-                <span className="ab-ok" style={{ justifySelf: 'end' }} aria-hidden>▾</span>
-              </button>
-            )}
-
-            {kuyrukAcik && kalan.length > 0 && (
-              <p className="ab-dip dip">
-                <button type="button" className="ab-dugme satir"
-                  onClick={() => setKuyrukAcik(false)}>Kuyruğu topla</button>
-              </p>
-            )}
-
-            <p className="ab-dip dip">{dipNot}</p>
-            <p className="ab-dip" style={{ marginTop: 'var(--s6)' }}>
-              Kritiklik kademesi A→D · A en yüksek
-            </p>
-          </div>
+          <VeriTablosu<T>
+            etiket="Tedarikçi kütüğü"
+            kolonlar={KOLONLAR}
+            satirlar={gosterilen}
+            secili={seciliId}
+            sec={setSeciliId}
+            durum={(t) => degerlendir(t).durum}
+            bosCumle={null}
+            kuyruk={toplanan.length > 0
+              ? { metin: `${toplanan.length} düşük riskli tedarikçi · bilinen açık yok`,
+                ac: () => setKuyrukAcik(true) }
+              : null}
+            dipNot={<>
+              {dipNot}
+              {kuyrukAcik && kalan.length > 0 && (
+                <> · <button type="button" className="ab-vt-dip-eylem"
+                  onClick={() => setKuyrukAcik(false)}>Kuyruğu topla</button></>
+              )}
+              <br />Kritiklik kademesi A→D · A en yüksek
+            </>}
+          />
         </section>
       </main>
 
@@ -201,13 +191,10 @@ export default function TedarikcilerIstemci({
   );
 }
 
-/* ── Satır ────────────────────────────────────────────────────────────── */
+/* ── Hücreler ──────────────────────────────────────────────────────────── */
 
-function Satir({ t, secili, sec }: { t: T; secili: boolean; sec: () => void }) {
+function KimlikHucresi({ t }: { t: T }) {
   const d = degerlendir(t);
-  const soz = asilSozlesme(t);
-  const santral = santralOzeti(t.santraller);
-
   /* Alt satır durumu TEKRAR ETMEZ, ne olduğunu yazar (06 §A2). Kritiklik
      kademe harfiyle yazılır; sözcük karşılığı yalnız çekmecede geçer. */
   const alt = [
@@ -215,83 +202,66 @@ function Satir({ t, secili, sec }: { t: T; secili: boolean; sec: () => void }) {
     `kritiklik ${KADEME[t.kritiklik] ?? '—'}`,
     d.olgu,
   ].filter(Boolean).join(' · ');
+  return (
+    <span className="kimlik">
+      <Im durum={d.durum} ad={d.soz} enKotu={d.sabit} />
+      <span className="konu">
+        {t.ad}
+        <span className="alt">{alt}</span>
+      </span>
+    </span>
+  );
+}
 
+function SantralHucresi({ t }: { t: T }) {
+  const santral = santralOzeti(t.santraller);
+  return (
+    <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--s6)', minWidth: 0,
+      fontSize: 'var(--t-cell)', color: 'var(--i2)' }}>
+      {santral.gorunen.length === 0 ? (
+        <span style={{ color: 'var(--i3)' }} title="bağlı varlık kaydı yok">—</span>
+      ) : (
+        <>
+          {santral.gorunen.map((s) => (
+            <Link key={s.id} href={`/tesisler/${s.id}`}
+              title={`${s.ad} · ${s.varlikSayisi} varlık · Plant 360`}
+              style={{ position: 'relative', minWidth: 0, overflow: 'hidden',
+                textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {s.ad}
+            </Link>
+          ))}
+          {santral.ekSayi > 0 && (
+            <Ipucu genis metin={santral.tam}>
+              <button type="button" className="ab-dugme satir"
+                style={{ fontSize: 'var(--t-cell)', color: 'var(--i2)', whiteSpace: 'nowrap' }}>
+                +{santral.ekSayi}
+              </button>
+            </Ipucu>
+          )}
+        </>
+      )}
+    </span>
+  );
+}
+
+function SozlesmeHucresi({ t }: { t: T }) {
+  const soz = asilSozlesme(t);
   const sozRenk = soz === null || soz.kalanGun === null ? 'var(--i2)'
     : soz.kalanGun < 0 ? 'var(--bd)'
       : soz.kalanGun <= UFUK ? 'var(--md)' : 'var(--i2)';
-
   return (
-    <div
-     
-      aria-current={secili ? 'true' : undefined}
-      className="satir"
-      onClick={sec}
-      style={{ position: 'relative', cursor: 'default',
-        borderLeftColor: secili ? `var(--${d.durum})` : undefined }}
-    >
-      <Im durum={d.durum} ad={d.soz} enKotu={d.sabit} />
-
-      <span style={{ minWidth: 0 }}>
-        <button type="button" className="konu ab-genis-hedef"
-          style={{ background: 'none', border: 0, padding: 0, width: '100%',
-            fontFamily: 'inherit', textAlign: 'left', cursor: 'pointer' }}>
-          {t.ad}
-        </button>
-        <span className="alt">{alt}</span>
-      </span>
-
-      {/* Kolon dar kipte DÜŞER: `display` satır içi verilirse .tbl-ikincil'in
-          display:none kuralını ezer — hizalama iç sarmalayıcıda yapılır. */}
-      <span className="ikincil"
-        style={{ minWidth: 0, fontSize: 'var(--t-cell)', color: 'var(--i2)' }}>
-        <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--s6)', minWidth: 0 }}>
-          {santral.gorunen.length === 0 ? (
-            <span style={{ color: 'var(--i3)' }} title="bağlı varlık kaydı yok">—</span>
-          ) : (
-            <>
-              {santral.gorunen.map((s) => (
-                <Link key={s.id} href={`/tesisler/${s.id}`}
-                  onClick={(e) => e.stopPropagation()}
-                  title={`${s.ad} · ${s.varlikSayisi} varlık · Plant 360`}
-                  style={{ position: 'relative', minWidth: 0, overflow: 'hidden',
-                    textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {s.ad}
-                </Link>
-              ))}
-              {santral.ekSayi > 0 && (
-                <Ipucu genis metin={santral.tam}>
-                  <button type="button" className="ab-dugme satir"
-                    onClick={(e) => e.stopPropagation()}
-                    style={{ fontSize: 'var(--t-cell)', color: 'var(--i2)', whiteSpace: 'nowrap' }}>
-                    +{santral.ekSayi}
-                  </button>
-                </Ipucu>
-              )}
-            </>
-          )}
+    <span style={{ color: sozRenk, fontWeight: sozRenk === 'var(--i2)' ? 400 : 600 }}
+      title={soz
+        ? `${soz.kod} · ${soz.ad} · bitiş ${tarihTR(soz.bitis)}`
+        : 'sözleşme kaydı yok'}>
+      {soz === null ? (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--s6)' }}>
+          <Im durum="unk" ad="Sözleşme kaydı yok" /> —
         </span>
-      </span>
-
-      <span style={{ minWidth: 0 }}>
-        <ErisimHucresi t={t} />
-      </span>
-
-      <span className=""
-        style={{ color: sozRenk, fontWeight: sozRenk === 'var(--i2)' ? 400 : 600 }}
-        title={soz
-          ? `${soz.kod} · ${soz.ad} · bitiş ${tarihTR(soz.bitis)}`
-          : 'sözleşme kaydı yok'}>
-        {soz === null ? (
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--s6)' }}>
-            <Im durum="unk" ad="Sözleşme kaydı yok" /> —
-          </span>
-        ) : soz.kalanGun !== null && soz.kalanGun >= 0 && soz.kalanGun <= UFUK
-          ? `${ayYil(soz.bitis)} · ${soz.kalanGun}g`
-          : ayYil(soz.bitis)}
-      </span>
-
-      <span className="ab-ok" style={{ justifySelf: 'end' }} aria-hidden>▸</span>
-    </div>
+      ) : soz.kalanGun !== null && soz.kalanGun >= 0 && soz.kalanGun <= UFUK
+        ? `${ayYil(soz.bitis)} · ${soz.kalanGun}g`
+        : ayYil(soz.bitis)}
+    </span>
   );
 }
 
@@ -308,7 +278,7 @@ function ErisimHucresi({ t }: { t: T }) {
   if (t.oturum.uyumsuzSayisi > 0) {
     return (
       <Ipucu genis metin={t.oturum.gerekce}>
-        <button type="button" className="ab-dugme satir" onClick={(e) => e.stopPropagation()}
+        <button type="button" className="ab-dugme satir"
           style={{ fontSize: 'var(--t-cell)', fontWeight: 600, color: 'var(--bd)',
             whiteSpace: 'nowrap' }}>
           {yontem} · {t.oturum.uyumsuzSayisi} uyumsuz

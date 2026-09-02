@@ -60,7 +60,11 @@ const FARK_DIZINI = process.env.FARK_DIZINI || path.join(os.tmpdir(), 'gorsel-fa
 mkdirSync(ALTIN, { recursive: true });
 mkdirSync(FARK_DIZINI, { recursive: true });
 
+/* Next'in geliştirici rozeti ÜRÜN DEĞİLDİR ama tam sayfa karesine girer:
+   altınlar onu kaydediyordu ve rozet "1 Issue" diye açılınca /envanter
+   375px'te %0,61 fark üretip sahte kusur yazdı. Ölçülen şey ürün olmalı. */
 const DURDUR_CSS = `
+  nextjs-portal, [data-nextjs-toast], #__next-build-watcher { display: none !important; }
   *, *::before, *::after {
     animation: none !important;
     transition: none !important;

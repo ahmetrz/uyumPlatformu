@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { useMemo, useState, type CSSProperties, type ReactNode } from 'react';
 import { BosIlk, Im, Ipucu, type Durum } from '@/components/kabuk/temel';
 import { EkranBasligi } from '@/components/kabuk/ekran';
+import { darSablon } from '@/components/kabuk/tablo';
 import {
   Cekmece, CekmeceKimlik, CekmeceAlanlar, CekmeceBagli,
 } from '@/components/kabuk/panel';
@@ -27,7 +28,7 @@ import {
 
 const KOLONLAR = '22px minmax(0, 1fr) 190px 150px 150px 26px';
 /** Çekmece açıkken santral kolonu düşer — bilgi çekmeceye iner, sıkışmaz. */
-const KOLONLAR_DAR = '22px minmax(0, 1fr) 150px 150px 26px';
+const KOLONLAR_DAR = darSablon('22px minmax(0, 1fr) 150px 150px 26px');
 
 export default function TedarikcilerIstemci({
   tedarikciler, yazabilir, sertifikaUfku,
@@ -231,7 +232,7 @@ function Satir({ t, secili, sec }: { t: T; secili: boolean; sec: () => void }) {
       <Im durum={d.durum} ad={d.soz} enKotu={d.sabit} />
 
       <span style={{ minWidth: 0 }}>
-        <button type="button" className="konu"
+        <button type="button" className="konu ab-genis-hedef"
           style={{ background: 'none', border: 0, padding: 0, width: '100%',
             fontFamily: 'inherit', textAlign: 'left', cursor: 'pointer' }}>
           {t.ad}

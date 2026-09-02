@@ -27,6 +27,7 @@
     "tasarim:kolon": "node arac/kolon-hizasi.mjs",
     "tasarim:gorsel": "node arac/gorsel-regresyon.mjs",
     "tasarim:axe": "node arac/erisim-axe.mjs",
+    "tasarim:tasma": "node arac/yatay-tasma.mjs",
     "kalite:lighthouse": "node arac/lighthouse.mjs"
   },
   "dependencies": {

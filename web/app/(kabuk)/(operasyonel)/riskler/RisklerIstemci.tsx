@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { BosIlk, BosFiltre, Dugme, TikSeridi } from '@/components/kabuk/temel';
 import { EkranBasligi, Filtreler } from '@/components/kabuk/ekran';
+import { darSablon } from '@/components/kabuk/tablo';
 import {
   Cekmece, CekmeceKimlik, CekmeceAlanlar, CekmeceBagli, CekmeceEylemler,
 } from '@/components/kabuk/panel';
@@ -25,7 +26,7 @@ import {
    Detay modalda değil 420px çekmecede ya da /riskler/[id] rotasında açılır. */
 
 const KOLONLAR = '92px minmax(0, 1fr) 190px 130px 26px';
-const KOLONLAR_DAR = '92px minmax(0, 1fr) 130px 26px';
+const KOLONLAR_DAR = darSablon('92px minmax(0, 1fr) 130px 26px');
 
 const GORUNUR_SATIR = 7;
 

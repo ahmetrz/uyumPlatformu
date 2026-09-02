@@ -281,13 +281,16 @@ ve mono ailesi değişir, kademe değişmez.
 
 Masaüstü konsol: doğrulama kapıları 1440 · 1366 · 1280 · 1024 px; 700px
 altında hiçbir alan erişilemez olamaz (kapsam çubuğu bilgi gruplarını düşürür,
-alan dizisi yatay kayar). Mobil hedef değildir.
+alan dizisi yatay kayar). Mobil hedef değildir — ama **sayfa hiçbir bantta
+yana kaymaz**: taşma ya bir kaydırma kabına hapsedilir (üst çubuklar 1100px
+altında yatay kayar) ya da yerleşim tek kolona iner. `arac/yatay-tasma.mjs`
+375 ve 768'de 38 rotayı ölçer ve taşmayı üreten öğeyi adıyla yazar.
 
 - **A · tezgâh**: 52px kapsam çubuğu (`KAPSAM · tüzel kişi · santral` + çerçeve + veri kesiti damgası) + 76px ikon rayı (`--rail-w`; iki harf monogram + 11px etiket, öğe 40px, altıncı öğeden sonra ayraç) + içerik + 30px durum ayağı (bağlayıcı sayımları, yalnız yetkiliye). Ray daralmaz, genişlemez.
 - **B · saha**: 56px yatay sekme çubuğu, ray yok. Ana ekranda 648px fotoğrafik alan (sol 430px dikkat paneli, sağ 320px katman paneli), 168px kartlı saha şeridi, 430px takvim + akış bandı. Gezinme kısmen mekânsaldır (fotoğrafik şerit, düzlem).
 - **C · defter**: künye (`padding: 28px 56px 16px`, Newsreader 26px marka + mono alan dizisi) → 2px mürekkep kuralı → 15px serif sekmeler → 1px kural → gövde `212px + 1fr`, 44px aralık, `36px 56px 64px` dolgu. Sol dizin içindekiler tablosu ve okuma anahtarıdır; kendi dizinini veren ekran (`data-dizin="ekran"`) varsayılanı düşürür.
 - **Ölçek**: boşluk `--s2 … --s44` (2·3·4·6·8·9·10·12·14·16·18·20·22·24·26·28·30·32·34·36·40·44px); kolon aralığı 16px; operasyonel oluk 24px; bölüm üst dolgu 22px, alt 40px; çekmece 400px.
-- **Tablo**: satır dolgusu 10px (`.sik` kipinde 7px — tipografi değil dolgu daralır); 1366px altında `ikincil` kolon düşer (`--kolon-dar`), başlık ve satır aynı şablonu kullanır (`arac/kolon-hizasi.mjs` ölçer).
+- **Tablo**: satır dolgusu 10px (`.sik` kipinde 7px — tipografi değil dolgu daralır); 1366px altında `ikincil` kolon düşer (`--kolon-dar`), başlık ve satır aynı şablonu kullanır (`arac/kolon-hizasi.mjs` ölçer). Dar bant şablonunu `darSablon` üretir: sabit kolon oransal olur (`minmax(0, min(Npx, T%))`, bütçe %58 paydaşlara bölünür), `minmax` tabanı sıfırlanır, 1'in altındaki esneme katsayısı 1'e çıkar. Küçük izler (im · ok, ≤40px) daralmaz. 700px altında kolon aralığı 16 → 10px iner ve kolon başlıkları sarar — kırpmak bilgi kaybettirir, sarmak kaybettirmez.
 - **Detay**: A sağ çekmece 400px (kalıcı), B alt levha, C satır içi genişleme (defteri terk etmeden; beş sütun: neden · kanıt · **karşılayan belge** · yönetişim zinciri · sorumluluk). Sütun sayısı bantla 5 → 3 → 1'e iner.
 - **Yazdırma**: koyu kabuk kâğıda gitmez — beyaz zemin, siyah mürekkep, ray/sekme/künye düşer.
 
@@ -354,6 +357,7 @@ sınıfları (`.etiket .deger .cumle .mono .eylem .kod .konu .alt .sag`).
 - Satır bir `<button>`: seçim `aria-pressed`; 2px sol kenar durumun şiddetini taşır, olgunun sözcüğü kendi kolonunda yazar. Zebra yok, satır içi eylem yok. Kolon başlığı 11px mono `.18em`; sıralanabilir başlık dolgusuz düğme.
 - **Matris**: hücrede yalnız glif (`Im`, `role="img"` + erişilebilir ad), asla metin; satırın en kötüsü büyür; sakin satır %58 opaklık; C defter matrisi devriktir (satır = kontrol, sütun = santral) ve detay satır içinde açılır.
 - **Genişleyen satır**: `<details>`; aynı anda tek aile açık.
+- **Dokunma hedefi (WCAG 2.2 · 2.5.8, 24px)**: metin yüksekliğinde duran bağ ve düğmelerin KUTUSU büyütülmez — vuruş alanı `.ab-genis-hedef` ile mutlak konumlu bir sözde öğeye açılır. Yoğunluk, tipografi ve alt çizgi olduğu gibi kalır; ölçülen şey kutu değil vuruş alanıdır. Cümle içindeki bağlar ölçütün kendi "satır içi" istisnasındadır ve büyütülmez.
 
 ### Drawer (`Cekmece*`, `.ab-panel`)
 400px sabit sağ panel; 42px başlık (kod + kapat), kimlik bloğu (glif + durum SÖZÜ 10px büyük harf — sözcük yalnız burada), alan çiftleri (`dl`), zincir bağlantıları, eylem bloğu + dip not. Esc kapatır, odak panele iner.

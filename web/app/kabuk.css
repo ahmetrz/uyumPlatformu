@@ -291,7 +291,10 @@
 /* Sıralanabilir başlık bir DÜĞMEDİR ama başlık gibi durur: tarayıcının
    gri düğme dolgusu açık kâğıtta görünmüyordu, koyu zeminde kutu olup
    çıktı (ölçüldü, /bulgular). Dolgu ve kenar sıfır; etkin sütun mürekkep. */
-.ab .kolonbas.sirali { background: none; border: 0; padding: 0; cursor: pointer; }
+.ab .kolonbas.sirali {
+  background: none; border: 0; padding: 0; cursor: pointer;
+  min-height: 24px;
+}
 .ab .kolonbas.sirali:hover, .ab .kolonbas.sirali.etkin { color: var(--murekkep); }
 .ab .kolonbas.sirali .yon { margin-left: 4px; }
 
@@ -1632,6 +1635,14 @@
   font-family: var(--veri); font-size: var(--t-code); color: var(--i3);
 }
 
+/* ── Rapor dağılım kütüğü ──────────────────────────────────────────
+   Dört kolon: kova adı · çubuk · not · sayı. Üç ayrı yerde satır içi
+   yazılıydı; tek yerde durunca dar bant kuralı da tek yerde yazılır. */
+.ab-dagilim {
+  display: grid; grid-template-columns: 110px minmax(0, 1fr) 150px 58px;
+  gap: var(--s14);
+}
+
 /* Süzgeç çubuğundaki sırala/tür seçicileri — kapsam alanının grameri. */
 .ab-dok-sira { display: inline-flex; align-items: center; gap: var(--s8); }
 .ab-dok-sira select {
@@ -1698,6 +1709,34 @@
 .ab-tablo .satir.d-md { border-left-color: var(--md); }
 .ab-tablo .satir.d-unk { border-left-color: var(--unk); }
 .ab-tablo .kod { font-size: 11px; color: var(--i2); }
+
+/* ═══ Vuruş alanı genişletici ═════════════════════════════════════════
+   Metin yüksekliğinde duran bir bağ/düğme 24px eşiğinin ALTINDA kalır
+   (WCAG 2.2 · 2.5.8 Hedef Boyutu, AA). Kutuyu büyütmek iki bedel öder:
+   yoğun tablolar seyrelir ve alt çizgiyle çizilen bağlar çizgisini
+   metinden uzaklaştırır. Ölçülen şey kutu değil VURUŞ ALANIDIR; bu yüzden
+   alan mutlak konumlu bir sözde öğeyle 24px'e çıkarılır — yerleşim,
+   tipografi ve alt çizgi olduğu gibi kalır.
+   Dikey taşma en fazla (24 − yükseklik) / 2 ≈ 4px'tir; kullanıldığı her
+   yerde komşu hedeflerin aralığı bundan geniştir, `.ab-dok-liste`de tam
+   24px adımla teğettir. Genişlik zaten 24px'in üstünde olan yerlerde
+   kullanılır; daha darına `min-width` da gerekir. */
+.ab-genis-hedef,
+.ab-a-ayak .sistem,
+.ab-c-alanlar a,
+.ab-dok-liste .kod,
+.ab-yardim-tablo tbody th a,
+.ab-matris .bas > .kolonbas a { position: relative; }
+.ab-genis-hedef::after,
+.ab-a-ayak .sistem::after,
+.ab-c-alanlar a::after,
+.ab-dok-liste .kod::after,
+.ab-yardim-tablo tbody th a::after,
+.ab-matris .bas > .kolonbas a::after {
+  content: ''; position: absolute; left: 0; right: 0;
+  top: 50%; transform: translateY(-50%);
+  height: 24px; min-height: 100%; min-width: 24px;
+}
 /* HER hücre daralabilir. `konu` ve `ikincil` kendi `min-width: 0`ını
    alıyordu ama sınıfsız hücreler (ne `sag` ne `ikincil` olan kolonlar)
    ızgara öğesi varsayılanı `min-width: auto` ile içeriğinin min-content
@@ -2142,8 +2181,13 @@
 }
 
 /* ── Form girdisi ──────────────────────────────────────────────────── */
+/* DOKUNMA/İŞARET HEDEFİ ≥24px (WCAG 2.2 · 2.5.8 AA).
+   Ölçüldü: form girdisi 20px, matris hücresi 20px, kolon başlığı 14px,
+   satır bağı 18px kalıyordu. Satır İÇİ metin bağları (`.ab-tablo .kod`
+   gibi) standardın "inline" istisnasındadır ve büyütülmez — cümlenin
+   içindeki bir bağı 24px kutuya sokmak satır ritmini bozar. */
 .ab-gr {
-  width: 100%; box-sizing: border-box;
+  width: 100%; box-sizing: border-box; min-height: 24px;
   background: var(--panel); border: 1px solid var(--hr2); color: var(--murekkep);
   font-family: var(--ui); font-size: var(--t-field); padding: 6px 8px;
 }
@@ -2371,7 +2415,7 @@ details:not([open]) > *:not(summary) { display: none !important; }
 /* Hücre — düğme, çünkü tıklanır ve klavyeyle odaklanır. */
 .ab-mtx .hucre {
   display: flex; align-items: center; justify-content: center;
-  min-height: 20px; padding: 0; margin: 0;
+  min-height: 24px; padding: 0; margin: 0;
   background: none; border: 0; cursor: pointer; color: inherit;
 }
 .ab-mtx .hucre:disabled { cursor: default; }
@@ -2505,7 +2549,10 @@ details:not([open]) > *:not(summary) { display: none !important; }
 }
 .ab-dugme.ret { border-color: var(--bd); color: var(--bd); }
 .ab-dugme.ret:hover:not(:disabled) { background: var(--bd); color: var(--aksan-uzeri); }
-.ab-dugme.satir { border: 0; padding: 2px 0; background: none; color: var(--aksan); }
+.ab-dugme.satir {
+  border: 0; padding: 2px 0; background: none; color: var(--aksan);
+  min-height: 24px;
+}
 .ab-dugme.bilesen { border-style: dashed; }
 .ab-dugme.bagli {
   margin-top: 14px; background: none; border: 0; padding: 0;
@@ -2748,6 +2795,14 @@ details:not([open]) > *:not(summary) { display: none !important; }
   .ab-tablo .bas > .ikincil, .ab-tablo .bas > .ikincil-k,
   .ab-tablo .satir > .ikincil, .ab-tablo .satir > .ikincil-k { display: none; }
 
+  /* Kolon başlığı dar bantta SARAR. Düğme olduğu için `min-content`
+     genişliği sözcüğün kendisidir ve izinden taşar; hangi şablonu
+     yazarsak yazalım "Doğrulama▴" 90px ister ve sayfayı kaydırır.
+     Sarmak hiçbir bilgi kaybettirmez — kırpmak kaybettirir. */
+  .ab-tablo .bas > * { overflow-wrap: anywhere; }
+  .ab-tablo .bas .kolonbas.sirali { text-align: left; white-space: normal; }
+  .ab-tablo .bas .sag .kolonbas.sirali { text-align: right; }
+
   .ab-c-govde { grid-template-columns: 188px minmax(0, 1fr); gap: 32px; padding: 32px 36px 56px; }
   .ab-c-kunye, .ab-c-nav { padding-left: 36px; padding-right: 36px; }
   .ab-c-kural, .ab-c-kural-kalin { margin-left: 36px; margin-right: 36px; }
@@ -2784,6 +2839,16 @@ details:not([open]) > *:not(summary) { display: none !important; }
   .ab-a-ray a.ayrik { margin-top: 0; margin-left: 14px; border-top: 0; border-left: 1px solid var(--hr); padding-top: 0; height: 46px; }
   .ab-a-alanlar a { padding: 0 9px; }
   .ab-b-ust nav a { padding: 0 12px; font-size: 12px; }
+  /* Üst çubuklar 1100px'in ALTINDA yatay kaydırılır. Bu kural yalnız
+     ≤700'de vardı; 701–1100 arasında künyenin korunan kimlik bloğu
+     (454px) çubuğu taşırıyor ve SAYFANIN tamamını kaydırıyordu —
+     768px'te ölçüldü, 34 rotanın hepsinde. Kaydırma kabı taşmayı
+     çubuğun içine hapseder; marka yapışkan kalır ki çıkış kapısı
+     kaybolmasın. */
+  .ab-a-ust, .ab-b-ust { overflow-x: auto; scrollbar-width: none; }
+  .ab-a-ust .marka, .ab-b-ust .marka {
+    position: sticky; left: 0; z-index: 1; background: var(--zemin);
+  }
   /* Portföy: 380px kimlik sütunu + plakalar yan yana sığmaz; kimlik üste
      çıkar, yapışkanlığını bırakır (aksi hâlde plakaları örter). */
   .ab-b-portfoy-govde { grid-template-columns: minmax(0, 1fr); }
@@ -2798,6 +2863,22 @@ details:not([open]) > *:not(summary) { display: none !important; }
   .ab-ayar-izgara { grid-template-columns: minmax(0, 1fr); }
   .ab-c-alanlar { margin-left: 0; flex-wrap: wrap; row-gap: 8px; order: 3; flex-basis: 100%; }
   .ab-c-nav { flex-wrap: wrap; gap: 14px 24px; }
+
+  /* Saha alanı üç kolondan tek kolona iner. `overflow: hidden` taşmayı
+     kaydırma yerine KIRPIYORDU: 375px'te 430px'lik dikkat panelinin sağ
+     55px'i, katman panelinin tamamı görünmüyordu — bilgi sessizce
+     kayboluyordu, en pahalı duyarlılık kusuru budur. Yükseklik de sabit
+     648px'ten serbeste geçer; üst üste binen üç panel oraya sığmaz. */
+  .ab-b-alan { grid-template-columns: minmax(0, 1fr); height: auto; }
+  .ab-b-alan > aside, .ab-b-alan > .ab-b-takim { border-right: 0; }
+  .ab-b-dikkat, .ab-b-katman { border-bottom: 1px solid var(--hr); }
+  .ab-b-katman { border-left: 0; overflow-y: visible; }
+  /* Takımyıldızı tuvali orantısını yükseklikten alır; akışta 0'a çöker. */
+  .ab-b-takim { padding: 24px 32px; min-height: 380px; }
+
+  /* Düzenleyici bant: 430px takvim + akış yan yana sığmaz. */
+  .ab-b-bant { grid-template-columns: minmax(0, 1fr); }
+  .ab-b-bant .takvim { border-right: 0; border-bottom: 1px solid var(--hr); }
 }
 /* ═══ Telefon — HİÇBİR ALAN ERİŞİLEMEZ OLAMAZ ═════════════════════════
    Kapsam çubuğu 375px'te beş alanı sığdıramaz; bilgi grupları düşer,
@@ -2807,13 +2888,10 @@ details:not([open]) > *:not(summary) { display: none !important; }
   .ab-harita-liste .yer { margin-left: 0; }
   .ab-dok-form-ikili { grid-template-columns: 1fr; }
   .ab-dok-liste .reg { margin-left: 0; }
-  .ab-a-ust { overflow-x: auto; scrollbar-width: none; }
   .ab-a-ust .grup.dar-gizle { display: none; }
-  .ab-a-ust .marka { position: sticky; left: 0; z-index: 1; }
   .ab-a-alanlar { padding: 0 2px; }
   .ab-a-alanlar a { padding: 0 8px; }
-  .ab-b-ust { overflow-x: auto; scrollbar-width: none; }
-  .ab-b-ust .marka { padding: 0 14px; font-size: 14px; position: sticky; left: 0; z-index: 1; background: var(--zemin); }
+  .ab-b-ust .marka { padding: 0 14px; font-size: 14px; }
   .ab-b-ust nav a { padding: 0 9px; font-size: 11px; }
   .ab-b-ust .sag { padding: 0 14px; gap: 12px; }
   .ab-b-portfoy-ust { padding-left: 16px; padding-right: 16px; }
@@ -2844,4 +2922,37 @@ details:not([open]) > *:not(summary) { display: none !important; }
   .ab-isi .hucre .esik { letter-spacing: 0; }
   .ab-c-kural, .ab-c-kural-kalin { margin-left: 20px; margin-right: 20px; }
   .ab-c-govde { padding: 24px 20px 48px; }
+
+  /* Matris: `minmax(200px, 1fr)` + kolon başına 52px taban, üç süreçte
+     bile 356px eder ve 335px'lik telefon içine sığmaz. Dar bantta hem
+     satır adı hem hücreler oransal olur; başlık sözcüğü kırpılmaz,
+     sarar — kesilmiş bir süreç adı okunmaz bir hücreden iyidir. */
+  .ab-matris {
+    grid-template-columns: minmax(0, 1.5fr) repeat(var(--kolon-sayisi), minmax(0, 1fr));
+  }
+  .ab-matris .bas > .kolonbas { min-width: 0; overflow-wrap: anywhere; }
+  .ab-matris .satir > * { min-width: 0; }
+
+  /* Dağılım kütüğü: 110 + 150 + 58 + üç aralık = 360px, telefonun
+     335px'ine sığmaz ve sayfayı 5px kaydırıyordu. Not sütunu düşer —
+     içindeki "N bulgu" ifadesini sağdaki sayı ve çubuk zaten söyler. */
+  .ab-dagilim { grid-template-columns: 84px minmax(0, 1fr) 46px; }
+  .ab-dagilim > :nth-child(3) { display: none; }
+
+  /* Saha seçici başlığı 34px SABİT yükseklikteydi; 375px'te iki etiket
+     de sarıyor, kutudan taşıp kart şeridinin üstüne biniyordu (ölçüldü:
+     iki satır çakışmış hâlde okunmuyordu). Dar bantta yükseklik serbest
+     kalır ve yönerge etiketi alt satıra iner. */
+  .ab-b-serit > header {
+    height: auto; min-height: 34px; padding: 8px 20px;
+    flex-wrap: wrap; align-items: flex-start; gap: 4px 16px;
+  }
+  .ab-b-serit > header .sag { margin-left: 0; flex-basis: 100%; }
+
+  /* Kütük kolon aralığı telefonda 16'dan 10'a iner. Dört kolonlu bir
+     kütükte aralıklar 64px eder — 335px'lik iç alanın beşte biri boşluk
+     olur ve konu sütunu dört satıra kırılır. 24px geri kazanmak konu
+     sütununu ölçülebilir biçimde genişletir; ritim değişmez, yalnız
+     sıkışır. */
+  .ab-tablo .bas, .ab-tablo .satir { gap: 10px; }
 }

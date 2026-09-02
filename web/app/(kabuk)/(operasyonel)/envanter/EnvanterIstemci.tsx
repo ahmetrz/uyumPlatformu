@@ -133,7 +133,8 @@ export default function EnvanterIstemci({
     <main className="ab-a-ekran">
       {/* ── 42px kip çubuğu ──────────────────────────────────────────── */}
       <div className="ab-a-kip">
-        <span className="ad">Varlık zihni</span>
+        {/* `h1`: görsel olarak aynı, semantik olarak sayfanın adı. */}
+        <h1 className="ad">Varlık zihni</h1>
         <div className="ikili" role="group" aria-label="Görünüm">
           <button type="button" aria-pressed={kip === 'zincir'}
             onClick={() => setKip('zincir')}>İlişki görünümü</button>

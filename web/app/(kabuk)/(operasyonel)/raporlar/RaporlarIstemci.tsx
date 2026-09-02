@@ -200,8 +200,7 @@ function DagilimSatiri({ etiket, oran, durum, sag, not }: {
   etiket: string; oran: number; durum: Durum; sag: string; not?: string;
 }) {
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '110px minmax(0, 1fr) 150px 58px',
-      gap: 'var(--s14)', alignItems: 'center', padding: 'var(--s12) 0',
+    <div className="ab-dagilim" style={{ alignItems: 'center', padding: 'var(--s12) 0',
       borderBottom: 'var(--bw-hair) solid var(--hr)' }}>
       <span style={{ fontSize: 'var(--t-cell)', fontWeight: 600 }}>{etiket}</span>
       <Bar oran={oran} durum={durum} />
@@ -227,8 +226,7 @@ function BulguYasi({ kovalar, toplam, bulgular }: {
   const kapali = bulgular.length - toplam;
   return (
     <>
-      <div style={{ display: 'grid', gridTemplateColumns: '110px minmax(0, 1fr) 150px 58px',
-        gap: 'var(--s14)', padding: '0 0 var(--s8)',
+      <div className="ab-dagilim" style={{ padding: '0 0 var(--s8)',
         borderBottom: 'var(--bw-strong) solid var(--hr2)' }}>
         <span className="kolonbas">Yaş</span>
         <span className="kolonbas">Dağılım</span>
@@ -261,8 +259,7 @@ function KanitTazeligi({ kovalar, toplam, baglantisiz }: {
       <div style={{ marginBottom: 'var(--s18)' }}>
         <Segment ok={taze.sayi} md={orta.sayi} bd={eski.sayi} />
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '110px minmax(0, 1fr) 150px 58px',
-        gap: 'var(--s14)', padding: '0 0 var(--s8)',
+      <div className="ab-dagilim" style={{ padding: '0 0 var(--s8)',
         borderBottom: 'var(--bw-strong) solid var(--hr2)' }}>
         <span className="kolonbas">Yaş</span>
         <span className="kolonbas">Dağılım</span>

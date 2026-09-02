@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { Bar, BosIlk, BosFiltre, Dugme, Im, type Durum } from '@/components/kabuk/temel';
 import { EkranBasligi, Filtreler } from '@/components/kabuk/ekran';
+import { darSablon } from '@/components/kabuk/tablo';
 import { ZamanCizelgesi } from '@/components/kabuk/zaman';
 import {
   Cekmece, CekmeceKimlik, CekmeceAlanlar, CekmeceBagli, CekmeceEylemler,
@@ -25,7 +26,7 @@ import {
    Detay modalda değil 420px çekmecede açılır (O9). */
 
 const KOLONLAR = 'minmax(0, 1fr) 200px 176px 68px 26px';
-const KOLONLAR_DAR = 'minmax(0, 1fr) 140px 68px 26px';
+const KOLONLAR_DAR = darSablon('minmax(0, 1fr) 140px 68px 26px');
 
 type Kip = 'ozet' | 'form' | 'durum' | 'bag';
 

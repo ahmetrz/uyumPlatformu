@@ -96,6 +96,11 @@ export default function Genel({
 
   return (
     <main className="ab-b-saha">
+      {/* Kök ekranın görünür bir başlığı yok — fotoğrafik alan doğrudan
+          açılıyor ve bu bilinçli. Ekran okuyucu için sayfanın adı yine de
+          gerekli: başlıksız bir sayfada kullanıcı nerede olduğunu ve
+          başlık atlamayla (H) neye gideceğini bilemez. */}
+      <h1 className="ab-gizli-okuma">Saha · grup durumu ve öncelikler</h1>
       {/* ═══ Fotoğrafik alan ═══════════════════════════════════════════ */}
       <section className="ab-b-alan">
         {/* eslint-disable-next-line @next/next/no-img-element -- statik dışa aktarım */}

@@ -264,7 +264,13 @@ export default function UyumIstemci({
       </aside>
 
       {/* ── Defter gövdesi ───────────────────────────────────────────── */}
-      <div style={{ minWidth: 0 }}>
+      {/* `<main>` — `<div>` DEĞİL: kabuk kendi ana bölgesini açmaz, onu
+          ekran çizer (`Kabuk.tsx` §309) ve `MatrisIskeleti` de öyle yapar.
+          Burada `<div>` kalmıştı: sayfanın hiç ana bölgesi olmuyordu.
+          axe'ın wcag2a/aa kümesi bunu görmez (`landmark-one-main` en iyi
+          uygulama kuralıdır); Lighthouse erişilebilirliği 98'de tutuyordu
+          ve gerekçe hiçbir yerde yazmıyordu. */}
+      <main data-yuzey="defter" style={{ minWidth: 0 }}>
         <header style={{ display: 'flex', alignItems: 'flex-end', gap: 32, marginBottom: 30 }}>
           <div style={{ minWidth: 0 }}>
             <h1 className="ab-c-baslik" style={{ margin: 0 }}>Nerede uygunsuz, ve neden?</h1>
@@ -311,7 +317,7 @@ export default function UyumIstemci({
         </p>
 
         <KapsamDisi cerceve={cerceve} />
-      </div>
+      </main>
     </div>
   );
 }

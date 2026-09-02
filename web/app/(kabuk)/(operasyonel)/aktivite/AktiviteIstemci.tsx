@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { Dugme, BosIlk, BosFiltre } from '@/components/kabuk/temel';
 import { EkranBasligi, Filtreler } from '@/components/kabuk/ekran';
+import { darSablon } from '@/components/kabuk/tablo';
 import { Cekmece, CekmeceAlanlar, CekmeceEylemler } from '@/components/kabuk/panel';
 import { exceleAktar, pdfYazdir } from '@/components/disaAktar';
 import { etiketle, eylemCumlesi, tarihTR, zamanTR } from '@/lib/sabitler';
@@ -24,7 +25,11 @@ import {
 const GORUNUR_BUTCE = 8;
 
 const KOLONLAR = '104px minmax(0, 1fr) 236px 92px 26px';
-const KOLONLAR_DAR = '104px minmax(0, 1fr) 236px 26px';
+/* Dar bantta "Kaynak" düşer. Değişim kolonu SABİT 236px kalırsa
+   104 + 236 + 26 = 366px sabit genişlik telefonun 335px'lik iç alanına
+   sığmaz ve sayfa 61px yatay kayardı (ölçüldü: 375px). `minmax(0, …)`
+   kolonu tavanında tutar ama daralmasına izin verir. */
+const KOLONLAR_DAR = darSablon('104px minmax(0, 1fr) 236px 26px');
 
 export default function AktiviteIstemci({
   kayitlar, simdi, pencere, toplam, kapsamli = false,

@@ -47,6 +47,8 @@ const VARSAYILAN = [GIRIS_ROTASI, '/', '/portfoy', '/uyum', '/bulgular'];
 const ROTALAR = rotaBayragi(VARSAYILAN);
 const ESIK = Number(bayrakDegeri('--esik') ?? process.env.ESIK ?? 90);
 const JSON_YOLU = bayrakDegeri('--json');
+/** Eksik puanın gerekçe satırlarını bastırır — tablo tek satırda kalır. */
+const SESSIZ = process.argv.includes('--sessiz');
 
 const KATEGORILER = {
   performance: 'performans',
@@ -93,10 +95,17 @@ async function olc(rota, port, cookie) {
   );
   const varilan = new URL(lhr.finalDisplayedUrl || lhr.requestedUrl).pathname;
 
-  /* Eşiğin altındaki her kategori için puanı düşüren denetimler — puanı
-     1'in altında ve ağırlığı sıfırdan büyük olanlar, en ağırdan başa. */
+  /* TAM OLMAYAN her kategori için puanı düşüren denetimler — puanı 1'in
+     altında ve ağırlığı sıfırdan büyük olanlar, en ağırdan başa.
+
+     Eşik değil TAM PUAN ölçüt: yalnız eşiğin altını toplamak, 100'den
+     91'e düşen bir kategoriyi sessiz bırakırdı. /uyum erişilebilirlik
+     98'de duruyordu ve neden olduğu hiçbir yerde yazmıyordu; ölçen bir
+     araç "geçti" demekle yetinmemeli, neyin eksik olduğunu söylemeli. */
   const dusurenler = {};
-  for (const { kategori } of esikAltindakiler(puanlar, ESIK)) {
+  for (const kategori of Object.keys(KATEGORILER)) {
+    const puan = puanlar[kategori];
+    if (Number.isFinite(puan) && puan >= 100) continue;
     const k = lhr.categories[kategori];
     if (!k) continue;
     dusurenler[kategori] = k.auditRefs
@@ -149,9 +158,12 @@ for (const r of rapor) {
   const hucreler = Object.keys(KATEGORILER)
     .map((k) => String(r.puanlar[k] ?? 'ölçülemedi').padStart(19));
   console.log(`${r.rota.padEnd(16)} ${hucreler.join('')}${kusur.length ? '  ← ' + kusur.join(' · ') : ''}`);
-  for (const [k, liste] of Object.entries(r.dusurenler ?? {})) {
-    for (const d of liste) {
-      console.log(`    ${KATEGORILER[k]} · ${d.id} (ağırlık ${d.agirlik}, puan ${d.puan}) — ${d.baslik}`);
+  /* Eksik puanın gerekçesi eşiğin ÜSTÜNDE de yazılır; `--sessiz` susturur. */
+  if (!SESSIZ) {
+    for (const [k, liste] of Object.entries(r.dusurenler ?? {})) {
+      for (const d of liste) {
+        console.log(`    ${KATEGORILER[k]} · ${d.id} (ağırlık ${d.agirlik}, puan ${d.puan}) — ${d.baslik}`);
+      }
     }
   }
 }

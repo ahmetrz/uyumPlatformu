@@ -2,6 +2,7 @@
 import { Fragment, useMemo, useState, type CSSProperties } from 'react';
 import { Im, Metrikler, BosIlk, BosFiltre, Dugme } from '@/components/kabuk/temel';
 import { Filtreler } from '@/components/kabuk/ekran';
+import { darSablon } from '@/components/kabuk/tablo';
 import {
   Cekmece, CekmeceKimlik, CekmeceAlanlar, CekmeceBagli, CekmeceEylemler,
 } from '@/components/kabuk/panel';
@@ -27,7 +28,7 @@ import {
    kuyruk satırında toplanır. Kritik satır ASLA toplanmaz. */
 
 const KOLONLAR = '22px minmax(0, 1fr) 170px 160px 140px 26px';
-const KOLONLAR_DAR = '22px minmax(0, 1fr) 160px 140px 26px';
+const KOLONLAR_DAR = darSablon('22px minmax(0, 1fr) 160px 140px 26px');
 const UYE_LISTE_BUTCESI = 10;
 
 const MERCEKLER = [

@@ -14,14 +14,17 @@ uydurulmuş tek bir sayı yoktur.
 | Kapı | Sonuç | Not |
 |---|---|---|
 | Lint / tsc | 0 hata · 0 uyarı | `--max-warnings=0` |
-| Vitest | 67 dosya · 1252 geçti · 1 atlandı | |
-| Kapsam (V8) | **satır %68,91 · deyim %66,23** | hedef ≥%90 — altında |
+| Vitest | 68 dosya · 1267 geçti · 1 atlandı | |
+| Kapsam (V8) | **satır %69,09 · deyim %66,43** | hedef ≥%90 — altında |
 | Tasarım kapısı | kontrast 0 kusur · eski iz 0 | 3 kip × 14 mürekkep × 4 zemin |
 | Gezinme | 7 bant (1920…375) · 0 kusur | kabuk içi + kabuklar arası |
-| Rota duman | 46/46 | kabuk grameri + aktif öğe |
+| Rota duman | 46/46 | kabuk grameri + aktif öğe + **tek ana bölge** |
 | axe (wcag2a/aa) | 39 rota · **0 ciddi/kritik ihlal** | |
+| Yatay taşma | 38 rota × 2 bant (375 · 768) · **0 kusur** | yeni kapı: `tasarim:tasma` |
+| Dokunma hedefi | WCAG 2.5.8 · eşik altı kalan yok | kalanlar satır içi bağ istisnası |
 | Görsel regresyon | 16/16 · eşik %0,5 | altınlar sıfırdan seed ile üretildi |
-| Lighthouse | /giris 99 · / 94 · /uyum 97 · /bulgular 97 · **/portfoy 89** | dev sunucusunda |
+| Lighthouse | /giris 99 · / 98 · /uyum 99 · /bulgular 99 · **/portfoy 91** | **üretim derlemesinde** (`next start`) |
+| Lighthouse (perf dışı) | 5 rotanın 5'inde erişilebilirlik · en iyi uygulama · SEO **100** | |
 | demo:build | başarılı | yayın · statik · kolon kontrolleri temiz |
 | Veri | 98 tablonun **97'si dolu** · 3 649 kayıt | tek boş: `IsKilidi` (çalışma-anı kilidi) |
 | CI | `pr-kapisi.yml` + `publish.yml` var | lint → tsc → test → tasarım → derleme |
@@ -49,10 +52,30 @@ Açığın büyük kısmı sunucu eylemleri (`lib/eylemler2/`) ve ekran
 bileşenleridir. Saf mantık katmanı (`mantik.ts` dosyaları) iyi kapsanmış
 durumda; kapsanmayan yer, yetki kapısı ve form davranışlarının olduğu yer.
 
-**3. `/impeccable critique` (#67) ve `/impeccable audit` (#68) hiç koşulmadı.**
-`init` koştu (`web/PRODUCT.md` üretildi), `DESIGN.md` var. Bugüne kadar
-koşulmamasının teknik bir sebebi vardı: **ekranların yarısı boştu**, boş
-ekranda UX değerlendirmesi yanlış sonuç verir. Bu engel bugün kalktı.
+**3. ~~`/impeccable critique` ve `/impeccable audit` hiç koşulmadı.~~ KOŞTU.**
+İkisi de dolu ekranlarda koştu ve bulguları uygulandı. Denetimin
+çıkardığı ve kapatılan dört kusur:
+
+· **Dar bantta yatay taşma.** Altı rota 375px'te yana kayıyordu, otuz
+  dördü 768px'te. Kök sebepler ayrı ayrıydı (ızgara `fr` dağıtımı, satır
+  içi kutuda çalışmayan `text-overflow`, `overflow: hidden` ile KIRPILAN
+  saha alanı, 34px sabit yükseklikli saha seçici başlığı). Kural tek bir
+  yere toplandı (`components/kabuk/tablo.tsx · darSablon`) ve
+  `arac/yatay-tasma.mjs` kapısı kondu: taşmayı üreten öğeyi adıyla yazar.
+· **`/uyum` ekranının hiç ana bölgesi yoktu** (`<main>` yerine `<div>`).
+  axe'ın wcag2a/aa kümesi bunu görmez — `landmark-one-main` en iyi
+  uygulama kuralıdır — Lighthouse erişilebilirliği 98'de tutuyordu ve
+  gerekçe hiçbir yerde yazmıyordu. Düzeltildi; rota duman kapısı artık
+  her rotada tek ana bölge arar.
+· **24px altında dokunma hedefleri** (WCAG 2.2 · 2.5.8). Kutu büyütmek
+  yoğun kütükleri seyreltir ve alt çizgiyi metinden koparır; alan
+  bunun yerine mutlak konumlu bir sözde öğeyle genişletildi — yerleşim
+  ve tipografi olduğu gibi kaldı. Kalan küçük hedefler cümle içindeki
+  bağlardır ve ölçütün "satır içi" istisnasına girer.
+· **Lighthouse tam puanın altını sessiz geçiyordu.** Araç yalnız EŞİĞİN
+  (90) altındaki kategorilerin gerekçesini topluyordu; 100'den 91'e düşen
+  bir kategori sebepsiz kalıyordu. Artık tam olmayan her kategori
+  gerekçesini yazar — `/uyum`un eksik ana bölgesi böyle bulundu.
 
 ### P2 — üretim öncesi
 
@@ -62,9 +85,14 @@ Postgres'te **sessizce yanlış** davranacağını söylüyor — hata vermeden
 yanlış sonuç. Şemadaki "yalnızca datasource değişir" cümlesi yanlış.
 Çok kullanıcılı üretim için bu geçiş yapılmalı.
 
-**5. `/portfoy` Lighthouse 89 (LCP/CLS).** Ölçüm **geliştirme
-sunucusunda** yapıldı; üretim derlemesinde ölçülmedi. Üretimde 90'ın
-üstüne çıkması beklenir ama bu bir tahmindir, ölçülene kadar öyle kalır.
+**5. ~~`/portfoy` Lighthouse 89.~~ ÜRETİMDE ÖLÇÜLDÜ: 91–93.**
+`next build` + `next start` üzerinde beş rotanın beşi de eşiğin
+üstünde (`/giris` 99 · `/` 98 · `/uyum` 99 · `/bulgular` 99 ·
+`/portfoy` 91–93; koşudan koşuya oynar). `/portfoy` hâlâ en zayıfı:
+LCP 0,78 ve CLS 0,89 puanı düşürüyor. Kaymanın kaynağı kısılmasız
+tarayıcıda yeniden üretilemedi (`layout-shift` gözlemcisi sıfır kayıt
+verdi); Lighthouse'un 4× CPU kısması altında görünüyor. Eşiğin üstünde
+olduğu için kapatılmadı, **açık ve ölçülmüş** bırakıldı.
 
 **6. Yük testi yok.** Eşzamanlı kullanıcı, büyük kütük (10⁵ varlık) ve
 uzun süren iş koşusu altında davranış ölçülmedi.

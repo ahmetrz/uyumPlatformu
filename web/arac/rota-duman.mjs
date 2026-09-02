@@ -32,6 +32,7 @@ import { yonlendirmeKarari } from './rota-kurallari.mjs';
      · kök `.ab[data-yon]`  → hangi kabuk (a tezgâh · b saha · c defter)
      · A: `.ab-a-ray`       · B: `.ab-b-ust nav[aria-label="Saha"]`
      · C: `.ab-c-nav`       · aktif öğe: `[aria-current="page"]` (TEK)
+     · her ekran TEK `<main>` çizer (kabuk çizmez) — atla bağının varışı
      · C dizin sütunu konumu `[aria-current="true"]` ile işaretler.
 
    Kullanım:
@@ -242,6 +243,13 @@ async function yokla(giris, url, envanter) {
       aktifSayi: aktifler.length,
       aktifAd: aktif ? (aktif.getAttribute('aria-label') ?? aktif.textContent).trim().slice(0, 22) : null,
       dizinKonumu: document.querySelectorAll('.ab-c-dizin [aria-current="true"]').length,
+      /* Ana bölge TEK olmalıdır. Kabuk `<main>` basmaz (bkz. Kabuk.tsx
+         §309): ekran kendi ana bölgesini çizer. Bir ekran bunu unutursa
+         sayfanın hiç ana bölgesi olmaz ve atla bağı bir yere varmaz.
+         axe'ın wcag2a/aa kümesi bunu GÖRMEZ (`landmark-one-main` en iyi
+         uygulama kuralıdır); /uyum bu yüzden aylarca ana bölgesiz kaldı,
+         yalnız Lighthouse erişilebilirliği 98'de takılıyordu. */
+      anaSayi: document.querySelectorAll('main, [role="main"]').length,
     };
   });
 
@@ -256,6 +264,7 @@ async function yokla(giris, url, envanter) {
   if (!kabukBekleniyor(beklenti) && olcu) kusurlar.push('beklenmeyen kabuk');
   if (olcu && !olcu.gezinmeVar) kusurlar.push(`${olcu.yon} kabuğunun gezinmesi yok`);
   if (olcu && olcu.aktifSayi > 1) kusurlar.push(`aktif öğe ${olcu.aktifSayi} (>1)`);
+  if (olcu && olcu.anaSayi !== 1) kusurlar.push(`ana bölge ${olcu.anaSayi} (1 olmalı)`);
   if (olcu && olcu.aktifSayi === 0 && olcu.dizinKonumu === 0 && kabukBekleniyor(beklenti)
     && !RAY_OGESI_YOK.has(beklenti.rota)) kusurlar.push('aktif öğe yok');
   return { kod, olcu, kusurlar, varilan: varilan === url ? null : varilan };

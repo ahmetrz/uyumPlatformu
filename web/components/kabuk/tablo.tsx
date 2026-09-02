@@ -67,18 +67,96 @@ function Baslik({ ad, anahtar, sag, ikincil, sirala }: {
   );
 }
 
-/** Sabit uzunluğu daralabilir yapar. Zaten `minmax`/`fr` içeren genişlik
-    OLDUĞU GİBİ kalır: `minmax(0, minmax(…))` geçersiz CSS'tir ve tarayıcı
-    o şablonun tamamını yok sayar — kütük ızgarası tümden dağılır. */
-function daralt(genislik: string): string {
-  const g = genislik.trim();
+/* ═══ Dar bant şablonu ════════════════════════════════════════════════
+   Dar bantta (`≤1366px`) sabit kolon genişlikleri OLDUĞU GİBİ kalırsa
+   üç ayrı yoldan kusur üretirler; üçü de ölçüldü:
+
+   1. `170px` bir iz, `minmax(0, 170px)`e çevrilse bile 375px'te yine
+      170px'i kapar — ızgara algoritması esnek OLMAYAN izleri büyüme
+      sınırlarına kadar doldurur, `fr` izine artakalan ne varsa onu
+      verir. /kanitlar'da `fr` kolonuna 1px kalıyor, başlık düğmesi o
+      izden taşıp sayfayı 35px yana kaydırıyordu.
+   2. Esneme katsayıları TOPLAMI 1'in altındaysa (`0.7fr` tek başına)
+      belirtim `fr` izlerine artakalanın yalnız o kesrini verir; gerisi
+      hiçbir ize gitmez. /dokumanlar'da 12px'lik taşma buydu.
+   3. Taban 150px olan bir `minmax` dar bantta daralmaz; konu sütunu
+      sıfıra ezilir ve başlık harf harf alt alta kırılır.
+
+   Çare, sabit kolonu dar bantta ORANSAL davranmaya zorlamaktır:
+   `minmax(0, min(170px, %T))`. Tavan, kolonların paylaşacağı bütçeden
+   gelir — im sütunu, konu tabanı ve kolon aralıkları satırın ≈%42'sini
+   alır, kalan ≈%58 sabit kolonlar ARASINDA bölüşülür.
+
+   İm ve ok gibi küçük izler (≤40px) daraltılmaz: onlar bir glif kadar
+   yer tutar, oransal yapmak yalnız hizayı bozar. */
+
+/** Bütçe: sabit kolonların dar bantta paylaşacağı satır yüzdesi.
+    Ölçülerek seçildi — bkz. `arac/yatay-tasma.mjs` ve dar bant
+    ekran görüntüleri; konu sütununun 375px'te ≥100px kalması esas. */
+const SABIT_BUTCE = 58;
+/** Bu genişliğin altındaki izler (im · ok) daraltılmaz. */
+const KUCUK_IZ = 40;
+
+/** Şablonu üst düzey boşluklardan izlere ayırır (parantez içi bölünmez). */
+function izlereAyir(sablon: string): string[] {
+  const izler: string[] = [];
+  let derinlik = 0;
+  let parca = '';
+  for (const ch of sablon.trim()) {
+    if (ch === '(') derinlik += 1;
+    if (ch === ')') derinlik -= 1;
+    if (ch === ' ' && derinlik === 0) {
+      if (parca) izler.push(parca);
+      parca = '';
+      continue;
+    }
+    parca += ch;
+  }
+  if (parca) izler.push(parca);
+  return izler;
+}
+
+/** İzin daraltılabilir sabit piksel tavanı; yoksa null. */
+function sabitTavan(iz: string): number | null {
+  const duz = /^([\d.]+)px$/.exec(iz.trim());
+  if (duz) return Number(duz[1]);
+  const ust = /^minmax\([^,]+,\s*([\d.]+)px\s*\)$/.exec(iz.trim());
+  return ust ? Number(ust[1]) : null;
+}
+
+/** Tek bir izi dar bant için daraltır. */
+function daralt(iz: string, tavanYuzde: number): string {
+  const g = iz.trim();
   if (g.includes('auto')) return g;
-  /* `minmax(150px, 0.82fr)` gibi bir tanımın TABANI dar bantta da 150px
-     kalırsa kolon daralmaz ve ızgara kapsayıcıyı aşar; tabanı sıfırlarız,
-     üst sınır (esneme payı) olduğu gibi durur. */
-  if (g.startsWith('minmax(')) return g.replace(/^minmax\(\s*[\d.]+(px|rem|em)\s*,/, 'minmax(0,');
-  if (g.includes('fr')) return g;
-  return `minmax(0, ${g})`;
+
+  const px = sabitTavan(g);
+  if (px !== null) {
+    if (px <= KUCUK_IZ) return g;
+    return `minmax(0, min(${px}px, ${tavanYuzde}%))`;
+  }
+
+  if (g.startsWith('minmax(')) {
+    return g.replace(/^minmax\(\s*[\d.]+(px|rem|em)\s*,/, 'minmax(0,')
+      .replace(/(?<![\d.])0?\.\d+fr/, '1fr');
+  }
+  return g.replace(/(?<![\d.])0?\.\d+fr/, '1fr');
+}
+
+/** Bir ızgara şablonunun dar bant karşılığını üretir.
+    Elle dar şablon yazan ekranlar da (`--kolonlar-dar`) bunu çağırır;
+    kural tek yerde durur. */
+export function darSablon(sablon: string): string {
+  const izler = izlereAyir(sablon);
+  /* Bütçeyi yalnız daraltılan kolonlar değil, ESNEK kolonlar da paylaşır:
+     konu sütunu da bir izdir ve ona pay ayrılmazsa sabit kolonlar tavanı
+     tek başına yer ve konu 40px'e düşer (ölçüldü: /kanitlar'da "Bağlı
+     kayıt" 39px kalıyordu). Küçük izler (im · ok) paydan sayılmaz. */
+  const paydas = izler.filter((iz) => {
+    const px = sabitTavan(iz);
+    return !(px !== null && px <= KUCUK_IZ);
+  }).length;
+  const tavan = Math.max(12, Math.round(SABIT_BUTCE / Math.max(1, paydas)));
+  return izler.map((iz) => daralt(iz, tavan)).join(' ');
 }
 
 export function Tablo({
@@ -102,9 +180,11 @@ export function Tablo({
      ölçüldü: dört kolonlu bir kütükte satır 600px yüksekliğe çıkıyordu.
      Konu sütununun tabanı da burada verilir; taban olmadan aynı ezilme
      bir sonraki geniş kolonda yeniden olur. */
-  const darSablon = ['18px', 'minmax(96px, 1fr)',
-    ...kolonlar.filter((k) => !k.ikincil).map((k) => daralt(k.genislik))].join(' ');
-  const stil = { '--kolon': sablon, '--kolon-dar': darSablon } as CSSProperties;
+  /* Konu sütununun 96px'lik tabanı burada verilir ve DARALTILMAZ: taban
+     olmadan aynı ezilme bir sonraki geniş kolonda yeniden olur. */
+  const dar = ['18px', 'minmax(96px, 1fr)',
+    darSablon(kolonlar.filter((k) => !k.ikincil).map((k) => k.genislik).join(' '))].join(' ');
+  const stil = { '--kolon': sablon, '--kolon-dar': dar } as CSSProperties;
   const basliklarVar = kolonlar.some((k) => k.baslik);
 
   return (

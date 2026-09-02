@@ -44,8 +44,12 @@ const GORUNUR_BUTCE = 8;
 
 const Bos = () => <span style={{ color: 'var(--i3)' }}>—</span>;
 
+/* `display: block` ŞART: `overflow`/`text-overflow` satır içi kutuda
+   YOK SAYILIR. Kontrol hücresi doğrudan ızgara hücresinin çocuğu olarak
+   satır içi kalıyordu, üç nokta hiç çalışmıyor ve "EPDK-SYM-4.2.2 +1"
+   123px'te sabit durup sayfayı 375px'te 74px yatay kaydırıyordu. */
 const KIRP = {
-  minWidth: 0, flex: '1 1 auto',
+  display: 'block', minWidth: 0, flex: '1 1 auto',
   overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
 } as const;
 

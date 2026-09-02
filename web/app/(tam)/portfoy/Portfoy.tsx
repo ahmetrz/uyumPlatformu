@@ -72,9 +72,12 @@ export default function Portfoy({ satirlar, toplamGucMw, endeks, kapsamli = fals
   return (
     <main className="ab-b-portfoy">
       <header className="ab-b-portfoy-ust">
-        <span className="etiket">
+        {/* `h1` — görsel olarak aynı kaş, semantik olarak sayfanın adı.
+            Ekran okuyucu kullanıcısı sayfaya girdiğinde nerede olduğunu
+            buradan öğrenir; başlık atlama (H) bu ekranda çalışmıyordu. */}
+        <h1 className="etiket">
           Enerji portföyü · üretim · {satirlar.length} santral · {toplamGucMw} MWe
-        </span>
+        </h1>
         {/* Portföy endeksi: kök ekranla aynı havuz, aynı formül. Yüzde
             yazılan her yerde bilinmeyen payı da yazılır. */}
         <span className="ab-portfoy-endeks" aria-label="Portföy uyum endeksi">

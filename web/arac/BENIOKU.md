@@ -100,6 +100,7 @@ kurum sistemine giden hiçbir şey yoktur.
 | `lighthouse.mjs` | `kalite:lighthouse` | 4 kategori puanı, `/giris` + 4 kanonik rota | eşik (90) altı |
 | `gorsel-regresyon.mjs` | `tasarim:gorsel` | 8 rota × 2 bant, altın görüntüyle piksel farkı | fark > %0,5 ya da altın yok |
 | `erisim-axe.mjs` | `tasarim:axe` | axe-core WCAG 2 A/AA, rotalar.json'daki tüm rotalar | ciddi/kritik ihlal |
+| `yatay-tasma.mjs` | `tasarim:tasma` | 375 + 768'de her rota yana kayıyor mu, taşmayı üreten öğe kim | taşan rota |
 | — | `test:kapsam` | vitest V8 kapsamı (`lib/**`, ekran `mantik.ts`/`ortak.ts`, `components/**`) | test kırığı |
 
 ### `kosu-ortak.mjs` · `kalite-kurallari.mjs`
@@ -147,6 +148,23 @@ PORT=3210 node arac/gorsel-regresyon.mjs --rota=/uyum --bant=375
 
 Sunucu saatine bağlı metinler (veri kesiti damgası) %0,5'i aşarsa eşiği
 büyütmeyin; damgayı taşıyan öğeyi maskeleyin.
+
+### `yatay-tasma.mjs`
+
+Dar bantta sayfanın yana kaymasını ölçer ve **taşmayı üreten öğeyi**
+adlandırır: taşan ama atası taşmayan, ve yol üstünde kaydırma/kırpma kabı
+bulunmayan öğe. Kaydırma kabı içindeki taşma kusur DEĞİLDİR — üst çubuklar
+dar bantta bilerek yatay kaydırılır.
+
+`tarama.mjs` de taşma ölçer ama tek bir sayı olarak ve varsayılan olarak
+tek bantta (`EN=` verilmezse 1440); dar bant kusurları o yüzden yıllarca
+görünmedi. Bu araç iki dar bandı (375 · 768) tüm rotalarda VARSAYILAN
+koşar ve suçluyu yazar; ikisi birbirinin yerine geçmez.
+
+```bash
+PORT=3210 npm run tasarim:tasma
+PORT=3210 node arac/yatay-tasma.mjs --rota=/uyum,/kanitlar
+```
 
 ### `erisim-axe.mjs`
 

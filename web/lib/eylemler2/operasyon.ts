@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { db } from '../db';
-import { yetkiZorunlu, izinVar } from '../erisim';
+import { yetkiZorunlu, izinVar, kapsamZorunlu, KAPSAM_SONRA } from '../erisim';
 import { tamam, hata, iz, tarihAlani, bosluksuz, type Sonuc } from './ortak';
 
 /* Operasyonel güvenlik eylemleri: OT kapılı değişiklik yönetimi (§19),
@@ -21,7 +21,10 @@ export async function degisiklikKaydet(girdi: {
   uretimEtkisi?: string | null;
 }): Promise<Sonuc> {
   try {
-    const k = await yetkiZorunlu('envanter', 'yazma');
+    /* İKİ AŞAMALI KAPI (`KAPSAM_SONRA`, bkz. erisim.ts): ön kapı kapsamsız
+       çağrılırsa tesise kısıtlı rol kendi santralinin değişikliğini bile
+       kaydedemez. Gerçek denetim aşağıda ve KOŞULSUZ. */
+    const k = await yetkiZorunlu('envanter', 'yazma', KAPSAM_SONRA);
     const v = z.object({
       id: z.string().optional(), baslik: bosluksuz('Başlık'),
       aciklama: z.string().nullable().optional(),
@@ -34,8 +37,18 @@ export async function degisiklikKaydet(girdi: {
       onDegisiklikYedegi: z.boolean().nullable().optional(),
       uretimEtkisi: z.string().nullable().optional(),
     }).parse(girdi);
-    if (v.tesisId && !izinVar(k, 'envanter', 'yazma', { tesisId: v.tesisId }))
-      return { ok: false, hata: 'Bu tesis kapsamında yetkiniz yok' };
+    kapsamZorunlu(k, 'envanter', 'yazma', { tesisId: v.tesisId },
+      'Bu tesis kapsamında yetkiniz yok');
+    if (v.id) {
+      /* KAYDIN KENDİ tesisi de bağlayıcı: girdi tesis taşımadan güncelleme
+         yapılırsa yukarıdaki denetim kapsamsız sorulur ve tesise kısıtlı
+         rol başka santralin değişikliğini düzenleyebilirdi. */
+      const eski = await db.degisiklik.findUnique({
+        where: { id: v.id }, select: { tesisId: true } });
+      if (!eski) throw new Error('Değişiklik bulunamadı');
+      kapsamZorunlu(k, 'envanter', 'yazma', { tesisId: eski.tesisId },
+        'Bu tesis kapsamında yetkiniz yok');
+    }
     const veri = {
       baslik: v.baslik, aciklama: v.aciklama ?? null, tesisId: v.tesisId ?? null,
       varlikEtiketi: v.varlikEtiketi ?? null, otMu: v.otMu,

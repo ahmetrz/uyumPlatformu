@@ -1,7 +1,7 @@
 {
-  "imza": "47e6422302dbcc97e9f8583a8aa2c54b",
-  "dosya": 76,
-  "vaka": 1381,
+  "imza": "7eee02cbb5bb0e5a4afb254529925d0f",
+  "dosya": 78,
+  "vaka": 1421,
   "atlanan": 1,
   "dosyalar": {
     "tests/api.test.ts": {
@@ -104,6 +104,10 @@
       "vaka": 19,
       "atlanan": 0
     },
+    "tests/gorev-eylem.test.ts": {
+      "vaka": 25,
+      "atlanan": 0
+    },
     "tests/guvenlik-negatif.test.ts": {
       "vaka": 38,
       "atlanan": 0
@@ -194,6 +198,10 @@
     },
     "tests/operasyon-mantik.test.ts": {
       "vaka": 36,
+      "atlanan": 0
+    },
+    "tests/operasyon-tedarikci-eylem.test.ts": {
+      "vaka": 15,
       "atlanan": 0
     },
     "tests/otomasyon-guvenligi.test.ts": {

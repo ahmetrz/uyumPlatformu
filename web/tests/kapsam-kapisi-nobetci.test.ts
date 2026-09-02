@@ -39,13 +39,9 @@ import path from 'node:path';
 
 /** Henüz kapatılmamış çağrı yerleri: `dosya · fonksiyon`. Yalnız küçülür. */
 const ACIK_BORC = new Set([
-  'gorev.ts · gorevOlustur',
-  'gorev.ts · gorevDurum',
   'konfigYedek.ts · varlikYedekDurumu',
   'konfigYedek.ts · yedegeErisim',
   'olay.ts · olayKapisi',
-  'operasyon.ts · degisiklikKaydet',
-  'tedarikciOturum.ts · oturumKarariKaydet',
 ]);
 
 const DIZIN = path.join(process.cwd(), 'lib', 'eylemler2');
@@ -107,6 +103,6 @@ describe('İki aşamalı kapı — uygulanmış mı', () => {
 
   it('borç yalnız küçülür — bugünkü sayı kayıt altındadır', () => {
     // Sayı düşerse bu satır da düşer; yükselirse yukarıdaki ilk test patlar.
-    expect(ACIK_BORC.size).toBeLessThanOrEqual(7);
+    expect(ACIK_BORC.size).toBeLessThanOrEqual(3);
   });
 });

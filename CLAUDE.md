@@ -1,38 +1,51 @@
-# AhmetOS: Ahmet'in ikinci beyni
+# Zorlu Enerji Yönetişim Platformu
 
-Sen Echo'sun, Ahmet'in düşünme ortağı. Genel amaçlı bir asistan değil, hatırlayan ve devamlılık
-kuran bir ekip arkadaşısın. Türkçe konuşursun, doğrudan ve sıcak, dolgu cümlesi yok.
-Ahmet hakkında: Zorlu Enerji Yönetişim Platformu'nu geliştiriyor — enerji üretim grubu için IT/OT governance,
-uyum ve dönüşüm platformu. Ürün kodu `web/` altında (Next.js 16 + Prisma 7 + SQLite).
+Enerji üretim grubu için IT/OT yönetişim, uyum ve dönüşüm platformu.
+Ürün kodu `web/` altındadır (Next.js 16 · React 19 · Prisma 7 · SQLite).
 
-## Yükleme sırası
-1. `🔮 850-Companion/Core.md` (kim olduğun)
-2. Son oturum ve aktif konular (kanca otomatik enjekte eder)
-3. `🔮 850-Companion/Kurallar.md` (kanca otomatik enjekte eder)
-4. `knowledge/index.md` (bilgi tabanı indeksi, kanca enjekte eder)
+Bu dosya bir **yönlendiricidir**. Projenin gerçeği için güncel dosyaları
+oku; buradan varsayma.
 
-## Göreve göre yönlendirme
-| Görev | Yer |
+## Nereye bakılır
+
+| Konu | Yer |
 | --- | --- |
-| Hızlı yakalama | `📥 000-Inbox/Dump/` |
-| Ürün / kod işi | `web/` — kuralları `web/CLAUDE.md` ve `web/AGENTS.md` |
-| Proje işi (kod dışı) | `🏰 300-Projects/<proje>/` |
-| Hedefler | `⚔️ 200-Goals/` · Kasa `🔐 400-Vault/` |
-| Kalıcı bilgi (insan eliyle) | `🧠 500-Knowledge/` · Araçlar `🛠️ 600-Arsenal/` |
-| Beden / zihin | `💪 700-Body/` · `🧘 800-Mind/` |
-| Derlenmiş bilgi (makine) | `knowledge/` (elle düzenleme, derleyici yönetir) |
-| Günlük log (makine) | `daily/` (elle düzenleme) |
-| Genel bakış | `🎯 100-Command-Center/Dashboard.md` |
-| Arşiv | `📦 900-Archive/` · Şablonlar `📋 Templates/` |
+| Ürün / kod kuralları | `web/CLAUDE.md` · `web/AGENTS.md` |
+| Ürün bağlamı ve sözlük | `web/PRODUCT.md` |
+| Tasarım sistemi | `web/DESIGN.md` |
+| Kalite araçları ve kapılar | `web/arac/BENIOKU.md` |
+| Güncel durum · yol haritası | `PRE_INTERNAL_INTEGRATION_READINESS.md` |
+| Kuruma açılma öncesi boşluklar | `docs/HAZIRLIK_DURUMU.md` |
+| Bağlantı günü sırası | `INTEGRATION_DAY_RUNBOOK.md` |
+| Tarihsel denetim kayıtları | `ARCHITECTURE_GAP_ANALYSIS.md` · `ENTEGRASYON_GAP_MATRIX.md` · `DESIGN_HANDOFF_GAP.md` (bilerek güncellenmez) |
 
-## Hafıza protokolü
-Makine `daily/` ve `knowledge/` klasörlerini kendi yazar. Sen ilişki katmanını yazarsın: anlamlı
-her oturumun sonunda `🔮 850-Companion/Last-Session.md` üzerine yaz, `Threads.md` içindeki açık
-hatları güncelle, önemli bir şey olduysa `Journal.md` içine kısa bir giriş ekle.
-Ahmet seni düzelttiğinde ("bunu böyle yapma") bunu `Kurallar.md` içine kural olarak ekle.
+## Bağlayıcı kurallar
 
-## Devir kuralı
-Her anlamlı oturum iz bırakır: ya bir not, ya bir karar, ya güncellenmiş bir dosya.
+**Dil.** Ürün metinleri, kod yorumları, commit mesajları ve belgeler
+Türkçedir. Ürünün adı **Zorlu Enerji Yönetişim Platformu**'dur; eski kod
+adları kod, belge ve arayüzde geçmez.
 
-## Doğrulama
-Bu dosya bir yönlendiricidir. Projenin gerçeği için güncel dosyaları oku, buradan varsayma.
+**Gerçek kurum sistemine bağlanılmaz.** AD/Entra, EDR, zafiyet tarayıcı,
+SIEM, yedekleme platformu, firewall ve ağ cihazları, OT keşif ürünü,
+PAM/VPN/tedarikçi oturum sistemi, herhangi bir kurum içi API — hiçbirine
+erişilmez. **Gerçek endpoint, credential, secret veya token uydurulmaz.**
+Şirket içi veri kullanılmaz. Üründeki bütün veri seed'dir.
+
+**Bilinmeyen ≠ sıfır.** Ölçülmemiş bir değer sıfır olarak gösterilmez,
+ortalamaya çekilmez, tahmin edilmez. Ekran "ölçülmedi" der.
+
+**Uydurma veri yok.** Sayılar (kapsam, Lighthouse puanı, kusur sayısı)
+ölçüldüğü gibi yazılır, hedefe uydurulmaz. Ölçülemeyen "ölçülmedi" diye
+yazılır.
+
+**Değişiklikler PR ile gelir.** `main`'e doğrudan push yok, otomatik
+merge yok.
+
+**Dosyayı değiştirmeden önce güncel hâlini oku.**
+
+## Kalite kapıları
+
+CI'da (`.github/workflows/pr-kapisi.yml`): lint → tsc → vitest → tasarım
+kapısı → derleme. Tarayıcı isteyen kapılar canlı sunucu ister ve elle
+koşulur (`PORT=3210 npm run dev` başka bir kabukta); listesi ve
+gerekçeleri `web/arac/BENIOKU.md` içindedir.

@@ -4,24 +4,9 @@
 # Kök dizinde vitest çalıştırılınca oluşan önbellek — derleme artığı
 node_modules/
 
-# İkinci beyin (beyin.md v2.1) çalışma durumu
-.claude/hooks/.state/
-.claude/scripts/.state/*
-!.claude/scripts/.state/.gitkeep
 .DS_Store
-.obsidian/workspace*
-.obsidian/cache
 
-# İkinci beyin: hafıza katmanı YERELDE kalır, depo public olduğu için
-# günlük loglar, derlenmiş bilgi ve ilişki hafızası paylaşılmaz.
-# İskelet ve tohum şablonlar depoda durur: 📋 Templates/beyin-tohum/
-daily/*
-!daily/.gitkeep
-knowledge/index.md
-knowledge/log.md
-knowledge/concepts/*
-!knowledge/concepts/.gitkeep
-knowledge/connections/*
-!knowledge/connections/.gitkeep
-🔮 850-Companion/*
-!🔮 850-Companion/.gitkeep
+# Yerel çalışma notları — depoya girmez.
+daily/
+knowledge/
+🔮 850-Companion/

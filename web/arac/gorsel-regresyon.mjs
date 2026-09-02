@@ -52,6 +52,24 @@ const BANTLAR = bantArg
   : TUM_BANTLAR;
 const YAZ = process.argv.includes('--yaz');
 const ESIK_YUZDE = Number(process.env.ESIK_YUZDE ?? 0.5);
+/* Bir pikselin "değişti" sayılması için gereken renk uzaklığı (pixelmatch,
+   YIQ ölçeği). Kütüphanenin varsayılanı 0.1'dir ve KOYU TEMADA KÖRDÜR:
+   2026-09-02'de /portfoy şeridine beş santral fotoğrafı eklendi, kapı
+   %0,000 fark dedi — fotoğraf bandı öylesine karartılmıştır ki piksel
+   uzaklığı 0.1'in altında kalıyor. Kapı ürünü değil, ürünün parlak
+   yerlerini ölçüyordu.
+
+   Yeni değer ölçülerek seçildi (aynı sunucu, arka arkaya iki yakalama):
+     eşik   kaçırılan değişiklik   değişmemiş sayfada gürültü
+     0.1    %0,000  (KÖR)          %0,004
+     0.06   %0,719                 %0,004
+     0.05   %1,390                 %0,004   ← seçildi
+     0.03   %3,864                 %0,005
+   Aynı sayfanın iki yakalaması 0.03'te bile piksel piksel AYNI çıkıyor,
+   yani gürültü tavanı sıfırdır; 0.05 hem gerçek değişikliği sayfa
+   eşiğinin (%0,5) 2,8 katıyla yakalar hem de kenar yumuşatmasına pay
+   bırakır. Daha da düşürmek kazanç getirmez, kırılganlık getirir. */
+const PIKSEL_ESIGI = Number(process.env.PIKSEL_ESIGI ?? 0.05);
 /* Altın dizini depodadır; ALTIN_DIZINI yalnız aracın kendisini sınarken
    (sahte sunucuya karşı) gerçek altınları kirletmemek için değiştirilir. */
 const ALTIN = process.env.ALTIN_DIZINI || path.join(WEB, 'arac', 'altin');
@@ -109,7 +127,7 @@ function karsilastir(rota, en, yeniPng) {
   }
   const fark = new PNG({ width: altin.width, height: altin.height });
   const farkPiksel = pixelmatch(altin.data, yeni.data, fark.data, altin.width, altin.height, {
-    threshold: 0.1, includeAA: false,
+    threshold: PIKSEL_ESIGI, includeAA: false,
   });
   const karar = gorselFark(farkPiksel, altin.width * altin.height, ESIK_YUZDE);
   if (!karar.kusur) return { rota, en, durum: 'GEÇTİ', not: `fark %${karar.yuzde.toFixed(3)}` };

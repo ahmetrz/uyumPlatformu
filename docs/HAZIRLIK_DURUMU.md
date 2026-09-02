@@ -175,15 +175,14 @@ değişiklik tek dosyada kaldı. Yayın URL'leri değişti: eski
 
 **13. `.abacus.donotdelete`** — şifreli blob, dokunulmadı.
 
-**14. Yedi santralin hero görseli yok.** Fotoğrafı olmayanlar: Tercan HES
-(küçük görseli var, hero'su yok), Sarıtepe RES, Demirciler RES, Ataköy
-HES, Alaşehir Hibrit GES, Lüleburgaz DGKÇ, Zorlu Center. Hepsi tipografik
-fallback alıyor; **başka bir santralin görseli dolgu amacıyla
-kullanılmaz** (`lib/gorsel.ts` §1, `public/santraller/KUNYE.md`).
-Ahmet beş temsilî görsel sağladığında eşleme önerisi hazırdır — büyük
-beton baraj → Tercan, sırt türbinleri → Sarıtepe, doğalgaz kombine çevrim
-→ Lüleburgaz, jeotermal + güneş → Alaşehir Hibrit GES, küçük gövde →
-Ataköy. Demirciler RES ve Zorlu Center o beşle de kapanmaz.
+**14. İki tesisin hero görseli yok.** (Önceki hâli yediydi; Ahmet'in
+2026-09-02'de sağladığı beş temsilî görsel Tercan HES, Sarıtepe RES,
+Ataköy HES, Alaşehir Hibrit GES ve Lüleburgaz DGKÇ'ye bağlandı — künye
+`public/santraller/KUNYE.md`.) Geriye **Demirciler RES** ve **Zorlu
+Center Genel Müdürlük** kaldı; ikisi de tipografik fallback alıyor.
+Demirciler de Osmaniye'de bir RES'tir ama Sarıtepe'nin görseli ona
+verilmez: **başka bir santralin görseli dolgu amacıyla kullanılmaz**
+(`lib/gorsel.ts` §1).
 
 **15. Haritada ülke sınırı çizilmiyor.** Tuval şu an yalnız işaretleri ve
 enlem/boylam çerçevesini çiziyor. Doğrulanmış bir GeoJSON eklenirse tuval

@@ -117,6 +117,15 @@ fark görüntüsü `FARK_DIZINI`'ne (varsayılan `$TMPDIR/gorsel-fark`) yazılı
 **Altın yoksa kusurdur**; `--yaz` altınları yeniler — yalnız bilinçli
 tasarım değişikliğinden sonra, gözle bakarak.
 
+İki eşik vardır ve karıştırılmamalıdır: `ESIK_YUZDE` (%0,5) *sayfanın ne
+kadarı* değişince kusur sayılacağını, `PIKSEL_ESIGI` (0,05) *bir pikselin
+ne kadar değişince* sayılacağını söyler. İkincisi 2026-09-02'de
+pixelmatch varsayılanı olan 0,1'den indirildi: /portfoy şeridine beş
+santral fotoğrafı eklendiğinde kapı %0,000 fark demişti — koyu temada
+karartılmış bir fotoğraf bandının piksel uzaklığı 0,1'in altında kalıyor,
+yani kapı ürünün yalnız parlak yerlerini ölçüyordu. Yeni değer ölçülerek
+seçildi; gerekçe ve ölçüm tablosu aracın kendi içinde yazılıdır.
+
 ```bash
 PORT=3210 node arac/gorsel-regresyon.mjs --yaz            # ilk altınlar
 PORT=3210 node arac/gorsel-regresyon.mjs                  # karşılaştır

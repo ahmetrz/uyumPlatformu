@@ -1,7 +1,7 @@
 {
-  "imza": "c92a303cd2b0a4cdf2ae18dc56c69eec",
-  "dosya": 70,
-  "vaka": 1284,
+  "imza": "0032856c7528b87e9b91dbd924fb1587",
+  "dosya": 73,
+  "vaka": 1325,
   "atlanan": 1,
   "dosyalar": {
     "tests/api.test.ts": {
@@ -112,6 +112,10 @@
       "vaka": 37,
       "atlanan": 0
     },
+    "tests/istisna-eylem.test.ts": {
+      "vaka": 13,
+      "atlanan": 0
+    },
     "tests/istisna.test.ts": {
       "vaka": 5,
       "atlanan": 0
@@ -134,6 +138,10 @@
     },
     "tests/kapsam-ekranlari.test.ts": {
       "vaka": 47,
+      "atlanan": 0
+    },
+    "tests/kapsam-kapisi-nobetci.test.ts": {
+      "vaka": 3,
       "atlanan": 0
     },
     "tests/kapsam-kapisi.test.ts": {
@@ -190,6 +198,10 @@
     },
     "tests/proje-bagimliligi.test.ts": {
       "vaka": 9,
+      "atlanan": 0
+    },
+    "tests/risk-eylem.test.ts": {
+      "vaka": 25,
       "atlanan": 0
     },
     "tests/saglik-connector.test.ts": {

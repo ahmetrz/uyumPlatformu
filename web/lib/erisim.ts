@@ -67,6 +67,31 @@ export async function girisZorunlu(): Promise<AktifKullanici> {
     ZORUNDADIR; bu sabit tek başına bir yetki kapısı değildir. */
 export const KAPSAM_SONRA: Kapsam = { tesisId: null, surecId: null };
 
+/**
+ * İKİ AŞAMALI KAPININ İKİNCİ AŞAMASI. `KAPSAM_SONRA` ile açılan ön kapıyı
+ * kapatan tek yer burasıdır; çağrılmazsa kapı açık kalır.
+ *
+ * Kaydın gerçek kapsamıyla denetler. **Kapsamı olmayan kayıt kapsamsız
+ * sorulur** — yani `{}` ile — ve `kapsamUyar` gereği tesise kısıtlı rol
+ * orada reddedilir. Bu dal olmasaydı ön kapıyı gevşetmek doğrudan bir
+ * YETKİ YÜKSELTMESİ olurdu: tesise kısıtlı bir rol, tesis alanını boş
+ * bırakarak kurumsal kayıt açabilirdi.
+ *
+ * Çağıranların hepsi aynı biçimi kullansın diye buradadır; kalıp dosya
+ * dosya kopyalandığında biri "kayıt kapsamsızsa denetimi atla" diye
+ * yazıyor ve delik oradan açılıyordu.
+ */
+export function kapsamZorunlu(
+  k: AktifKullanici, modul: Modul, islem: Islem,
+  kapsam: Kapsam, mesaj: string,
+): void {
+  const soru: Kapsam = {};
+  if (kapsam.tesisId) soru.tesisId = kapsam.tesisId;
+  if (kapsam.surecId) soru.surecId = kapsam.surecId;
+  if (kapsam.regulasyonId) soru.regulasyonId = kapsam.regulasyonId;
+  if (!izinVar(k, modul, islem, soru)) throw new Error(mesaj);
+}
+
 /** Eylem koruması: yetki yoksa fırlatır — eylem katmanı hata olarak döndürür. */
 export async function yetkiZorunlu(modul: Modul, islem: Islem, kapsam: Kapsam = {}): Promise<AktifKullanici> {
   const k = await aktifKullanici();

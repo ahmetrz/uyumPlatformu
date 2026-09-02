@@ -1,9 +1,8 @@
 # Santral Görselleri Künyesi
 
 `santraller/genis/` (hero, 1672×941) ve `santraller/kucuk/` (seçici, 240×150) altındaki
-santral görselleri Ahmet Terzi tarafından sağlandı — ilk on tanesi 2026-09-01'de,
-kalan beşi 2026-09-02'de; platformda
-**temsilî** santral görselleri olarak kullanılır. Santral → anahtar eşlemesi
+tesis görselleri Ahmet Terzi tarafından sağlandı — ilk onu 2026-09-01'de,
+kalan yedisi 2026-09-02'de; platformda **temsilî** görseller olarak kullanılır. Santral → anahtar eşlemesi
 veride (`Tesis.gorselAnahtari`), anahtar → dosya eşlemesi `lib/gorsel.ts`'de yaşar.
 
 | Anahtar | Santral | Tip | Görsel | Neden bu eşleme |
@@ -23,14 +22,18 @@ veride (`Tesis.gorselAnahtari`), anahtar → dosya eşlemesi `lib/gorsel.ts`'de 
 | `atakoy` | Ataköy HES | Hidroelektrik | yeşil tepeler arasında orta ölçek gövde, savak akışı | Tokat/Yeşilırmak havzası |
 | `alasehirges` | Alaşehir Hibrit GES | Güneş | jeotermal tesisin yanında geniş panel tarlası | hibrit tesis; Alaşehir bağ ovası |
 | `luleburgaz` | Lüleburgaz DGKÇ | Doğal gaz kombine çevrim | bacalı kombine çevrim tesisi, tarım ovası | Kırklareli/Trakya (devredildi) |
+| `demirciler` | Demirciler RES | Rüzgâr | kurak tepeler boyunca seyrek türbin dizisi, uzakta sıra | Osmaniye; Sarıtepe'den küçük ölçek (23,3 MWe) |
+| `merkezbt` | Zorlu Center Genel Müdürlük | Merkez BT | cam ve taş cepheli genel müdürlük binası, kent silueti | üretim tesisi değil; portföydeki tek merkez kaydı |
 
 Alaşehir'de iki tesis vardır ve ayrı anahtar taşırlar: `alasehir` (JES) ve
 `alasehirges` (hibrit GES). `tercan` küçük görseli 2026-09-02'de kendi hero'sundan
 yeniden kırpıldı; önceki paketten kalan eşsiz kopyanın yerini aldı.
 
-Fotoğrafı hâlâ sağlanmayan iki tesis — **Demirciler RES** ve **Zorlu Center Genel
-Müdürlük** — tipografik fallback alır. Demirciler de Osmaniye'de bir RES'tir ama
-Sarıtepe'nin görseli ona verilmez: bir görsel yalnız gösterdiği santrali temsil
-eder, başka bir santralin görseli dolgu amacıyla kullanılmaz.
+Portföydeki 17 tesisin 17'sinin de görseli vardır; şu an tipografik fallback'e
+düşen kayıt yoktur. Kural yine de yürürlüktedir ve fallback yolu SİLİNMEMİŞTİR:
+görseli olmayan yeni bir tesis eklenirse tipografik fallback alır, **başka bir
+tesisin görseli dolgu amacıyla kullanılmaz** — bir görsel yalnız gösterdiği
+tesisi temsil eder. Demirciler ile Sarıtepe'nin ikisi de Osmaniye'de RES olduğu
+hâlde ayrı fotoğraf beklendi; biri ötekinin yerine konmadı.
 
 Tip bazlı genel görseller (giriş ekranı vb.) ayrı settir: `gorseller/KUNYE.md`.

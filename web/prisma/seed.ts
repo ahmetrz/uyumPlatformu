@@ -71,7 +71,7 @@ async function main() {
     ['ALASEHIR-JES', 'Alaşehir JES', 'JEO', 45, 'Manisa', 'aktif', null, null, -4090, 'alasehir'],
     ['GOKCEDAG-RES', 'Gökçedağ RES', 'RES', 135, 'Osmaniye', 'aktif', null, null, -6320, 'gokcedag'],
     ['SARITEPE-RES', 'Sarıtepe RES', 'RES', 57, 'Osmaniye', 'aktif', null, null, -5840, 'saritepe'],
-    ['DEMIRCILER-RES', 'Demirciler RES', 'RES', 23.3, 'Osmaniye', 'aktif', null, null, -5560, null],
+    ['DEMIRCILER-RES', 'Demirciler RES', 'RES', 23.3, 'Osmaniye', 'aktif', null, null, -5560, 'demirciler'],
     ['IKIZDERE-HES', 'İkizdere HES', 'HES', 24.94, 'Rize', 'aktif', null, null, -5990, 'ikizdere'],
     ['TERCAN-HES', 'Tercan HES', 'HES', 15, 'Erzincan', 'aktif', null, null, -5660, 'tercan'],
     ['MERCAN-HES', 'Mercan HES', 'HES', 20.4, 'Tunceli', 'aktif', null, null, -5930, 'mercan'],
@@ -80,7 +80,7 @@ async function main() {
     ['CILDIR-HES', 'Çıldır HES', 'HES', 15.4, 'Kars', 'aktif', null, null, -6510, 'cildir'],
     ['ATAKOY-HES', 'Ataköy HES', 'HES', 5.5, 'Tokat', 'aktif', null, null, -4870, 'atakoy'],
     ['ALASEHIR-GES', 'Alaşehir Hibrit GES', 'GES', 3.75, 'Manisa', 'aktif', null, null, -1810, 'alasehirges'],
-    ['MERKEZ-BT', 'Zorlu Center Genel Müdürlük', 'MERKEZ', null, 'İstanbul', 'aktif', null, null, -5000, null],
+    ['MERKEZ-BT', 'Zorlu Center Genel Müdürlük', 'MERKEZ', null, 'İstanbul', 'aktif', null, null, -5000, 'merkezbt'],
     ['LULEBURGAZ-DGKC', 'Lüleburgaz DGKÇ (devredildi)', 'DGKC', 82, 'Kırklareli', 'kapali', -300, 'satis', -9950, 'luleburgaz'],
   ] as const).map(async ([kod, ad, tipKod, guc, konum, durum, kapanis, neden, giris, gorsel]) => [kod,
     await db.tesis.create({ data: {

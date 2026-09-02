@@ -14,9 +14,9 @@ import { TEMEL } from './demo';
 
 
 /** Tam boy hero kırpımı üretilmiş anahtarlar (560px hero / 300px plaka).
-    Set: Ahmet'in sağladığı 15 temsilî santral görseli (10'u 2026-09-01,
-    5'i 2026-09-02), künye `public/santraller/KUNYE.md`.
-    Anahtar → dosya adı `<anahtar>-<tip>.webp`. */
+    Set: Ahmet'in sağladığı 17 temsilî görsel (10'u 2026-09-01, 7'si
+    2026-09-02), künye `public/santraller/KUNYE.md`. Portföydeki her tesis
+    kendi görselini taşır. Anahtar → dosya adı `<anahtar>-<tip>.webp`. */
 const HERO: Record<string, string> = {
   kizildere1: 'kizildere1-jes',
   kizildere2: 'kizildere2-jes',
@@ -34,11 +34,15 @@ const HERO: Record<string, string> = {
   luleburgaz: 'luleburgaz-dgkc',
   // Alaşehir'de iki tesis var: `alasehir` JES, `alasehirges` hibrit GES.
   alasehirges: 'alasehir-ges',
+  demirciler: 'demirciler-res',
+  // Üretim tesisi değil, genel müdürlük binası — tipi `MERKEZ`.
+  merkezbt: 'merkezbt-merkez',
 };
 
 /** 240×150 seçici küçük görseli üretilmiş anahtarlar (hero setinden kırpım).
-    Fotoğrafı olmayan santral (Demirciler RES, Zorlu Center) hiçbir anahtar
-    almaz ve tipografik fallback'e düşer — §1: dolgu görsel yok. */
+    Şu an portföydeki 17 tesisin 17'sinin de görseli var; anahtarı olmayan
+    bir kayıt eklenirse tipografik fallback'e düşer — §1: başka bir tesisin
+    görseli dolgu amacıyla ASLA kullanılmaz. */
 const KUCUK = new Set(Object.keys(HERO));
 
 export const NOTR_TRIPTIK = `${TEMEL}/santraller/notr-triptik.webp`;

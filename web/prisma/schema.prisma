@@ -43,12 +43,19 @@ model TesisTipi {
 
 /// Santral / lokasyon. Yaşam döngüsü: aktif → kapali (satış, kapanış).
 model Tesis {
-  id            String    @id @default(cuid())
-  kod           String    @unique
-  ad            String
-  tipId         String?
-  kuruluGucMw   Float?
-  konum         String?
+  id          String  @id @default(cuid())
+  kod         String  @unique
+  ad          String
+  tipId       String?
+  kuruluGucMw Float?
+  konum       String?
+
+  /// Kesin coğrafi konum (WGS84). NULL = GİRİLMEDİ; harita bu santrali
+  /// ilinin merkezine YAKLAŞIK olarak koyar ve bunu ekranda söyler.
+  /// Uydurma koordinat yazılmaz: yanlış bir nokta, boş bir noktadan
+  /// daha pahalıdır (saha ekibi oraya gider).
+  enlem         Float?
+  boylam        Float?
   durum         String    @default("aktif") // aktif | kapali
   devreyeGiris  DateTime?
   kapanisTarihi DateTime?
@@ -92,6 +99,7 @@ model Tesis {
   topolojiAnliklari         TopolojiAnlik[]
   erisimOturumlari          TedarikciErisimOturumu[]
   kesifKayitlari            KesifKaydi[]
+  belgeBaglantilari         DokumanTesis[]
 }
 
 model Regulasyon {
@@ -169,6 +177,7 @@ model Madde {
   riskKontrolleri   RiskKontrol[]
   istisnalar        Istisna[]
   denetimKapsamlari DenetimKapsami[]
+  belgeBaglantilari DokumanMadde[]
 
   @@unique([regulasyonId, surumId, kod])
 }
@@ -330,7 +339,10 @@ model Kanit {
   otomatik       Boolean   @default(false)
   gizlilik       String    @default("kurumsal") // acik | kurumsal | gizli | ot_hassas
   silindi        DateTime?
+  /// Bu kanıt bir yönetişim belgesinden üretildiyse kütükteki kaydı (C22/C23).
+  dokumanId      String?
 
+  dokuman            Dokuman?          @relation(fields: [dokumanId], references: [id])
   yukleyen           Kullanici?        @relation("KanitYukleyen", fields: [yukleyenId], references: [id])
   sahip              Kullanici?        @relation("KanitSahibi", fields: [sahipId], references: [id])
   baglantilar        KanitBaglantisi[]
@@ -454,6 +466,8 @@ model Kullanici {
   verdigiOnaylar          OnayTalebi[]             @relation("OnayVeren")
   dogruladigiBulgular     Bulgu[]                  @relation("BulguKapanisDogrulayan")
   dogruladigiAksiyonlar   Aksiyon[]                @relation("AksiyonDogrulayan")
+  sahipBelgeler           Dokuman[]                @relation("DokumanSahibi")
+  onayladigiBelgeler      Dokuman[]                @relation("DokumanOnaylayan")
   // ── entegrasyon katmanı ────────────────────────────────────────────
   apiAnahtarlari          ApiAnahtari[]            @relation("AnahtarSahibi")
   urettigiApiAnahtarlari  ApiAnahtari[]            @relation("AnahtarOlusturan")
@@ -507,7 +521,7 @@ model AktiviteKaydi {
   aktor Kullanici? @relation(fields: [aktorId], references: [id])
 
   @@index([varlikTipi, varlikId, zaman])
-  /// Aktivite ekranı (app/(atlas)/(operasyonel)/aktivite/page.tsx) filtresiz
+  /// Aktivite ekranı (app/(kabuk)/(operasyonel)/aktivite/page.tsx) filtresiz
   /// `zaman desc` okur; yukarıdaki indeksin ilk kolonu varlikTipi olduğu için
   /// o sorguya yaramaz. ÖLÇÜLMEDİ — tablo bugün ~22 satır, ölçülecek bir fark
   /// yok. Gerekçe BÜYÜMEDİR: denetim izi hiç silinmez (bkz.
@@ -546,6 +560,13 @@ model IceAktarim {
 // ------------------------------------------------ organizasyon hiyerarşisi
 
 /// Grup (organizations) — en üst seviye.
+///
+/// YAZILIR ama HİÇBİR EKRANDA GÖSTERİLMEZ: `TuzelKisi.grupId` zorunlu bir
+/// yabancı anahtardır ve tohum tek bir grup kaydı açar, fakat hiçbir ekran
+/// grup seviyesinde kırılım sunmaz. Tek gruplu bir kurulumda bu doğru
+/// karardır — "1 grup" diye bir satır hiçbir kararı değiştirmez. Birden
+/// çok grup gerçekten oluşursa portföy ve uyum ekranlarının bu seviyeyi
+/// kırılım olarak açması gerekir.
 model Grup {
   id          String   @id @default(cuid())
   kod         String   @unique
@@ -680,8 +701,6 @@ model FrameworkSurumu {
   iceAktarimlar IceAktarim[]
   farklar       SurumFarki[] @relation("YeniSurum")
   eskiFarklar   SurumFarki[] @relation("EskiSurum")
-
-  @@unique([regulasyonId, surumEtiketi])
   /// DİKKAT — bu modelde şemada GÖRÜNMEYEN bir kısıt daha var:
   /// `FrameworkSurumu_tekAktif`, bir regülasyonda yalnız BİR satırın
   /// durum = 'aktif' olmasını zorlar. KISMİ (partial) tekil indekstir ve
@@ -692,6 +711,8 @@ model FrameworkSurumu {
   /// bu yüzden şemadan silinmiş sanılıp kaybolmaması için burada yazılıdır.
   /// İhlali `lib/eylemler2/surum.ts` içinde yakalanır ve anlamlı hataya
   /// çevrilir; çıplak Prisma istisnası kullanıcıya çıkmaz.
+
+  @@unique([regulasyonId, surumEtiketi])
 }
 
 /// Sürüm farkı (diff): iki sürüm arasında madde bazında değişim + etki.
@@ -920,6 +941,92 @@ model KanitTalebi {
   denetim Denetim    @relation(fields: [denetimId], references: [id], onDelete: Cascade)
   sorumlu Kullanici? @relation("TalepSorumlusu", fields: [sorumluId], references: [id])
   kanit   Kanit?     @relation(fields: [kanitId], references: [id])
+}
+
+// ------------------------------------------------------- yönetişim belgesi
+
+/// Yönetişim belgesi kütüğü (C22 politika · C23 doküman kütüğü).
+///
+/// KANITTAN FARKI: `Kanit` bir ANIN ispatıdır ("14 Mart'ta bu ayar böyleydi");
+/// `Dokuman` YAŞAYAN bir yönetişim kaydıdır — sahibi, onaylayanı, yürürlük
+/// tarihi, gözden geçirme periyodu vardır ve sürümlenir. Bir politika PDF'i
+/// kanıt olarak sunulduğunda `Kanit.dokumanId` ile buraya bağlanır; böylece
+/// "hangi belgenin hangi sürümü kanıt olarak verilmiş" izlenebilir.
+///
+/// DOSYA BURADA DURMAZ: platform bir doküman yönetim sistemi değildir.
+/// `disKaynak` kurumun DYS/portal yolunu ya da URL'sini taşır; ürün belgenin
+/// KÜTÜĞÜNÜ tutar, içeriğini değil. Bu bilinçli bir sınırdır ve ekranda
+/// açıkça yazılır — "yüklenmiş gibi" gösterip boş bağ vermekten iyidir.
+model Dokuman {
+  id     String @id @default(cuid())
+  kod    String @unique // POL-BG-001
+  baslik String
+  tur    String // politika | prosedur | talimat | plan | standart | form
+  durum  String @default("taslak") // taslak | incelemede | yururlukte | askida | yururlukten_kalkti
+  /// Belge sürümü METİNDİR (1.0, 2.1): kurumlar ondalık sürüm kullanır.
+  surum  String @default("1.0")
+
+  sahipId     String? // belgeyi güncel tutan
+  onaylayanId String? // yürürlüğe alan
+
+  yururlukTarihi       DateTime?
+  /// Gözden geçirme periyodu (ay). null = periyot tanımlanmamış; bu
+  /// "gerek yok" DEĞİL "bilinmiyor" demektir ve ekranda öyle yazılır.
+  gozdenGecirmeAy      Int?
+  sonGozdenGecirme     DateTime?
+  /// Türetilmiş ama SAKLANIR: "gözden geçirmesi geçmiş belgeler" sorgusu
+  /// listeyi belleğe çekmeden çalışsın diye.
+  sonrakiGozdenGecirme DateTime?
+
+  /// Kurumun doküman sisteminde nerede durduğu (yol ya da URL). Ürün bu
+  /// adrese İSTEK ATMAZ; yalnız kaydeder ve gösterir.
+  disKaynak    String?
+  kaynakSistem String?
+  gizlilik     String  @default("kurumsal") // acik | kurumsal | gizli | ot_hassas
+  aciklama     String?
+
+  silindi     DateTime?
+  olusturuldu DateTime  @default(now())
+  guncellendi DateTime  @updatedAt
+
+  sahip     Kullanici? @relation("DokumanSahibi", fields: [sahipId], references: [id])
+  onaylayan Kullanici? @relation("DokumanOnaylayan", fields: [onaylayanId], references: [id])
+
+  maddeBaglantilari DokumanMadde[]
+  tesisBaglantilari DokumanTesis[]
+  kanitlar          Kanit[]
+
+  @@index([durum, sonrakiGozdenGecirme])
+}
+
+/// Belge ↔ Madde: belge hangi KONTROL GEREĞİNİ karşılıyor.
+/// Bağ madde durumuna (santral bazlı) değil MADDEYE kurulur: kurumsal bir
+/// politika gereğin kendisini karşılar, santral santral tekrarlanmaz.
+model DokumanMadde {
+  id        String   @id @default(cuid())
+  dokumanId String
+  maddeId   String
+  eklendi   DateTime @default(now())
+
+  dokuman Dokuman @relation(fields: [dokumanId], references: [id], onDelete: Cascade)
+  madde   Madde   @relation(fields: [maddeId], references: [id], onDelete: Cascade)
+
+  @@unique([dokumanId, maddeId])
+  @@index([maddeId])
+}
+
+/// Belge ↔ Tesis: yalnız BELİRLİ santralleri bağlayan belgeler için.
+/// Bağ yoksa belge KURUMSALDIR (tüm portföy) — boş liste "hiçbir santral"
+/// değil "ayrım yok" demektir; ekran bunu sözcükle yazar.
+model DokumanTesis {
+  id        String @id @default(cuid())
+  dokumanId String
+  tesisId   String
+
+  dokuman Dokuman @relation(fields: [dokumanId], references: [id], onDelete: Cascade)
+  tesis   Tesis   @relation(fields: [tesisId], references: [id], onDelete: Cascade)
+
+  @@unique([dokumanId, tesisId])
 }
 
 // ------------------------------------------------------------------ CMDB
@@ -1184,6 +1291,19 @@ model VarlikYazilimi {
   @@unique([varlikId, yazilimId])
 }
 
+/// YAZILIM LİSANSI — HENÜZ HİÇBİR YERE BAĞLI DEĞİL.
+///
+/// Bu tabloyu okuyan ya da yazan tek satır kod YOKTUR ve tabloda kayıt da
+/// yoktur. Şemada durması bir yetenek iddiası DEĞİLDİR: lisans adedi,
+/// bitişi ve maliyeti hiçbir ekranda görünmez, hiçbir motor okumaz.
+///
+/// Neden silinmedi: `YazilimUrunu` ve `Sozlesme` zincirinin doğal devamı
+/// ve lisans verisi gerçek bir kurum sisteminden (yazılım varlık yönetimi)
+/// gelecek. Neden doldurulmadı: uydurma lisans kaydı üretmek, olmayan bir
+/// kabiliyeti var göstermek olurdu.
+///
+/// Durumu PRE_INTERNAL_INTEGRATION_READINESS.md'de
+/// REQUIRES_REAL_INTERNAL_SYSTEM altında kayıtlıdır.
 model Lisans {
   id         String    @id @default(cuid())
   yazilimId  String
@@ -1829,7 +1949,7 @@ model KesifKaydi {
   @@unique([kaynak, kaynakKayitId])
   @@index([durum, sonGorulme])
   @@index([tesisId, durum])
-  /// Keşif kuyruğu ekranı (app/(atlas)/(operasyonel)/kesif/page.tsx) durum
+  /// Keşif kuyruğu ekranı (app/(kabuk)/(operasyonel)/kesif/page.tsx) durum
   /// filtresi OLMADAN `sonGorulme desc` sıralar; yukarıdaki [durum, sonGorulme]
   /// indeksi bu sorguya yaramaz (ilk kolonu durum). ÖLÇÜLDÜ
   /// (PERFORMANS_TABANI §6): 100.000 satırda tam tarama + geçici B-ağacı

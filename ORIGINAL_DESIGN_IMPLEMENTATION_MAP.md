@@ -1,13 +1,13 @@
-# Abacus Orijinal Tasarımı — Uygulama Haritası
+# Orijinal Tasarım — Uygulama Haritası
 
-**Görsel source of truth:** `ABACUS_ORIGINAL_DESIGN_SOURCE.zip` içindeki on iki
-yüksek sadakatli HTML prototipi. Bu belgedeki her ölçü, o prototipler 1440×1000
-görüntü alanında tarayıcıda **render edilip hesaplanmış** değerlerdir — repo'daki
-mevcut arayüzden, Atlas'tan, Atlas 2'den ya da canlı demodan türetilmemiştir.
+**Görsel source of truth:** on iki yüksek sadakatli HTML prototipi (orijinal
+tasarım kaynağı; depoda tutulmuyor). Bu belgedeki her ölçü, o prototipler
+1440×1000 görüntü alanında tarayıcıda **render edilip hesaplanmış** değerlerdir —
+repo'daki önceki arayüz katmanlarından ya da canlı demodan türetilmemiştir.
 
-> **Atlas 2 (`saha` / `defter` / `tezgah` yüzey kipleri) bu göçte DEPRECATED bir
-> ara tasarımdır.** Görsel referans değildir. `main` dalı şu anda onu taşıyor;
-> Faz C'de presentation izi sıfırlanacak.
+> Göç sırasında `main` dalının taşıdığı ara tasarım (`saha` / `defter` /
+> `tezgah` yüzey kipleri) görsel referans değildi; presentation izi Faz C'de
+> sıfırlandı (§10.5). Güncel tasarım sistemi: `web/DESIGN.md`.
 
 Ölçüm aracı: prototipler `cdn.tailwindcss.com` ve Google Fonts'a çalışma anında
 bağlı geldiği için yerel bir kopyaya Tailwind gömülüp fontlar self-host edildi;
@@ -20,10 +20,10 @@ aksi hâlde üçü de tamamen stilsiz düşüyor (`ERR_CONNECTION_RESET`).
 | | **A · Industrial Precision** | **B · Energy Intelligence** | **C · Operational Luxury** |
 |---|---|---|---|
 | Prototip | `a-*.html` | `b-*.html` | `c-*.html` |
-| Sayfa zemini | `#0D1012` | `#0A0C0D` | `#F7F6F3` |
-| Gövde mürekkebi | `#E7EAEA` | `#EDEEEC` | `#1A1A18` |
-| Panel / şerit | `#101416` · `#181D1F` | `#0A0C0D` · `rgba(10,12,13,.7)` | `#FFFFFF` |
-| Saç çizgisi | `#262C2E` | `#1C2123` | `#E4E1DB` · `#D6D2CA` (kalın) |
+| Sayfa zemini | `#0D1012` | `#0A0C0D` | `#F7F6F3` → **`#141210`** (ürün kararı, bkz. not) |
+| Gövde mürekkebi | `#E7EAEA` | `#EDEEEC` | `#1A1A18` → **`#EDE8DF`** |
+| Panel / şerit | `#101416` · `#181D1F` | `#0A0C0D` · `rgba(10,12,13,.7)` | `#FFFFFF` → **`#1A1815` · `#221F1B`** |
+| Saç çizgisi | `#262C2E` | `#1C2123` | `#E4E1DB` · `#D6D2CA` → **`#2B2823` · `#3A362F`** |
 | Arayüz ailesi | Inter Tight | Inter | Inter |
 | Veri ailesi | IBM Plex Mono | JetBrains Mono | IBM Plex Mono |
 | Görüntü ailesi | Archivo | **Barlow Condensed** | **Newsreader** (serif) |
@@ -37,6 +37,15 @@ aksi hâlde üçü de tamamen stilsiz düşüyor (`ERR_CONNECTION_RESET`).
 Üçü de **radius 0**, **saç çizgisi ile kompozisyon**, **mono/tabular sayı** ve
 **kart-içinde-kart yok** disiplinini paylaşır. Ayrıştıkları yer zemin sıcaklığı,
 görüntü ailesi, fotoğraf rolü ve **navigasyon felsefesidir**.
+
+> **C koyudur — ürün kararı (2026-09-01).** Prototip C açık kâğıt zeminliydi;
+> üründe A/B'den C'ye geçiş "bambaşka bir platform" hissi verdiği için ürün
+> TEK temadır: koyu. C'nin *defter grameri* (Newsreader serif görüntü, künye,
+> dizin, saç çizgisi kompozisyonu, oxblood aksan) aynen korunur; yalnız zemin
+> sıcaklığı tersine çevrilir — A/B'nin soğuk grisi değil, sıcak mürekkep
+> kahvesi (`#141210`). Oxblood `#8A3A2C` koyu zeminde 2,6:1'de kaldığı için
+> ton korunarak `#B24936`'ya açıldı; ölçüm `arac/kontrast.mjs`. Yukarıdaki
+> ok işaretli hücreler prototip → ürün değerini gösterir.
 
 ---
 
@@ -76,11 +85,11 @@ dokunmadan sağlar.
 
 ### C — künye + serif sekmeler + editoryal dizin sütunu
 ```
-header px-14 pt-7 pb-4  (zemin sayfanın kendisi)
+header px-14 pt-7 pb-4  (zemin sayfanın kendisi · üründe #141210)
   marka "Zorlu Enerji Yönetişim Platformu" (Newsreader 26px) + mono alt başlık │ tarih · arama · avatar
-rule   border-top 2px #1A1A18          ← künye kuralı (kalın)
+rule   border-top 2px #EDE8DF          ← künye kuralı (kalın; prototipte #1A1A18, koyu C'de mürekkep)
 nav    px-14 py-3 · Newsreader 15px sekmeler · aktif = altı çizili
-rule   1px #D6D2CA
+rule   1px #3A362F                     ← prototipte #D6D2CA; koyu C'de --hr2
 main   px-14 pt-9 pb-16
   aside w=212  DİZİN: bölüm + sağa hizalı sayaç + ince kural
                 OKUMA ANAHTARI (glif efsanesi) burada yaşar
@@ -98,7 +107,7 @@ kesiti bilgisini de taşır.
 | Satır yüksekliği | ~28px (sıkı) | ~34px | ~38px |
 | Kolon başlığı | 8,5px mono, harf aralığı 0.18em | 9px mono | 9,5px mono `.lbl` |
 | Sayı hizası | sağ, tabular | sağ, tabular | sağ, tabular |
-| Satır ayracı | 1px `#262C2E` | 1px `#1C2123` | 1px `#E4E1DB` |
+| Satır ayracı | 1px `#262C2E` | 1px `#1C2123` | 1px `#2B2823` (prototipte `#E4E1DB`; koyu C, bkz. §0 notu) |
 | Zebra | **yok** | yok | yok |
 | Seçili satır | kehribar sol kenar | bakır sol kenar | oxblood sol kenar |
 
@@ -173,6 +182,11 @@ komşuluk sayıları yatay çubuklarla (4 / 17 / 61).
 ---
 
 ## 6 · Rota → prototip eşlemesi
+
+> Bu bölüm her rotanın hangi PROTOTİPTEN türediğini kaydeder. Güncel ve tam
+> rota listesi (kabuk yönü, oturum gereksinimi, modül, amaç, sistem
+> sayfaları) **`docs/ROTA_HARITASI.md`** belgesindedir; sonradan eklenen
+> rotalar (`/kanitlar`, `/ayarlar`, `/yardim`, `/bakim`, `/sistem`) orada.
 
 ### B — Energy Intelligence
 | Rota | Kanonik prototip |
@@ -323,5 +337,5 @@ Silinen: `app/atlas.css` (978 satır), `app/tokens.css` (397 satır),
 Taşınan (sunum değil, veri/varlık): `durumAyagiVerisi.ts`,
 `lib/atlas/gorsel.ts → lib/gorsel.ts`, `lib/atlas/kontrast.ts → lib/kontrast.ts`.
 Yeniden yazılan: `app/globals.css` (yalnız belge sıfırlaması), `/giris`
-(`.ab[data-yon='b']`), `/sistem` (Atlas referansıydı; artık `abacus.css`
-dosyasını OKUYAN Abacus referansı — değerleri iddia etmiyor).
+(`.ab[data-yon='b']`), `/sistem` (önceki arayüz katmanının referansıydı;
+artık `kabuk.css` dosyasını OKUYAN token referansı — değerleri iddia etmiyor).

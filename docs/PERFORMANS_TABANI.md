@@ -43,12 +43,12 @@ koşturulmuştur.
 
 ## 2. En büyük bulgu: envanter ekranı 998. varlıkta ÇÖKÜYORDU
 
-Bu bir yavaşlama değildi. `app/(atlas)/(operasyonel)/envanter/page.tsx`
+Bu bir yavaşlama değildi. `app/(kabuk)/(operasyonel)/envanter/page.tsx`
 varlık sayısı 997'yi geçtiği anda **500 döndürüyordu**:
 
 ```
 Invalid `db.varlik.findMany()` invocation in
-app/(atlas)/(operasyonel)/envanter/page.tsx:43:17
+app/(kabuk)/(operasyonel)/envanter/page.tsx:43:17
 The query parameter limit supported by your database is exceeded.
 ```
 
@@ -352,7 +352,7 @@ model KesifKaydi {
   @@unique([kaynak, kaynakKayitId])
   @@index([durum, sonGorulme])
   @@index([tesisId, durum])
-  /// Keşif kuyruğu ekranı (app/(atlas)/(operasyonel)/kesif/page.tsx:67)
+  /// Keşif kuyruğu ekranı (app/(kabuk)/(operasyonel)/kesif/page.tsx:67)
   /// durum filtresi OLMADAN `sonGorulme desc` sıralar; yukarıdaki
   /// [durum, sonGorulme] indeksi bu sorguya yaramaz. Ölçüldü: 100.000
   /// satırda tam tarama + geçici B-ağacı sıralaması 58,5 ms → 1,9 ms.
@@ -367,7 +367,7 @@ model KesifKaydi {
 
 ```prisma
 model AktiviteKaydi {
-  /// Aktivite ekranı (app/(atlas)/(operasyonel)/aktivite/page.tsx:31)
+  /// Aktivite ekranı (app/(kabuk)/(operasyonel)/aktivite/page.tsx:31)
   /// filtresiz `zaman desc` okur. Tablo bugün 22 satır — ÖLÇÜLECEK bir şey
   /// yok. Denetim izi asla silinmediği için bu tablo tek yönlü büyür ve
   /// ilk darboğaz adayı budur.

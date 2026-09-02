@@ -130,14 +130,14 @@ Ayrıca: `vault:` sır sağlayıcısı bağlı değil; şu an yalnız `env:` ve 
 
 ## 4b · Faz 6 sonrası bulunan kusurlar
 
-Ekranların tamamı Atlas gramerine taşınınca üç işlev kaybı ve iki
+Ekranların tamamı yeni kabuk gramerine taşınınca üç işlev kaybı ve iki
 "iki doğruluk kaynağı" kusuru ortaya çıktı. Hiçbiri yeni özellikten
 kaynaklanmıyordu; göç onları GÖRÜNÜR yaptı.
 
 | # | Kusur | Etki | Kanıt |
 |---|---|---|---|
-| 14 | **Çıkış düğmesi hiç yoktu** | `CikisDugmesi` yalnız `UstCubuk` içinde yaşıyordu ve `UstCubuk` Atlas'a hiç taşınmadı: oturum açmış kullanıcının **oturumu kapatmasının hiçbir yolu kalmamıştı** | Ray oturum bloğu; çıkış düğmesi 1000px ve 800px görüntü alanında ölçüldü |
-| 15 | Komut paleti (Ctrl+K) hiçbir ekranda çalışmıyordu | Yalnız boşalan (ozalit) kabuğunda monte edilmişti | Atlas kök yerleşimine alındı, Özalit sınıflarından Atlas gramerine geçirildi |
+| 14 | **Çıkış düğmesi hiç yoktu** | `CikisDugmesi` yalnız `UstCubuk` içinde yaşıyordu ve `UstCubuk` yeni kabuğa hiç taşınmadı: oturum açmış kullanıcının **oturumu kapatmasının hiçbir yolu kalmamıştı** | Ray oturum bloğu; çıkış düğmesi 1000px ve 800px görüntü alanında ölçüldü |
+| 15 | Komut paleti (Ctrl+K) hiçbir ekranda çalışmıyordu | Yalnız boşalan (ozalit) kabuğunda monte edilmişti | Kabuk kök yerleşimine alındı, eski sınıflardan kabuk gramerine geçirildi |
 | 16 | `/giris` uygulama kabuğunun içindeydi | Oturum açmamış ziyaretçi 244px'lik rayı, yani bilgi mimarisinin tamamını görüyordu; rayın bağlantıları klavye sırasına giriyordu | Kendi rota grubuna alındı; giriş sayfasında ray ölçüldü: **yok** |
 | 17 | **Zamanlayıcı sekiz motorun beşini koşturuyordu** | Motor listesi iki yerde ayrı yazılıydı; `yedek_dogrulama`, `olay_etki`, `topoloji_sapma` zamanlayıcıya hiç girmemişti — kimse düğmeye basmazsa o üç motor **hiç koşmuyordu** | `lib/motorlar/kayit.ts` tek kaynak · `motor-defteri.test.ts` (mutasyonla doğrulandı) |
 | 18 | İki adaptör çözücüsü (Faz 5) | Defterle kaydedileni statik harita göremez, silineni hâlâ döndürürdü | `adaptorGetir` kaldırıldı |
@@ -205,7 +205,7 @@ bozulmadı; davranış bilinçli değiştiği için güncellenen üç test şunl
 | lint başarılı | ✅ |
 | testler başarılı | ✅ 428/428 |
 | mevcut fonksiyonlar bozulmamış | ✅ 29 taban testi yeşil |
-| mevcut tasarım/density bozulmamış | ✅ yeni ekranlar Atlas sözleşmesinde |
+| mevcut tasarım/density bozulmamış | ✅ yeni ekranlar kabuk sözleşmesinde |
 | RBAC/scope korunmuş | ✅ `izinVar`/`izinliTesisIdleri` yeniden yazılmadı, API'de de aynısı |
 | audit trail korunmuş | ✅ değişmezlik tetikleyicisi yerinde |
 | fake connector yok | ✅ 7 tipin 6'sı `BaglanmamisAdaptor` |

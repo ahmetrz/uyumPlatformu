@@ -32,7 +32,7 @@ vi.mock('next/headers', () => ({
 }));
 
 const { db } = await import('@/lib/db');
-const { kabukVerisi } = await import('@/components/abacus/kabukVerisi');
+const { kabukVerisi } = await import('@/components/kabuk/kabukVerisi');
 
 let aktifToplam = 0;
 let kizildere3 = '';
@@ -79,5 +79,29 @@ describe('Kabuk kapsam çubuğu santral sayısını sızdırmaz', () => {
     const v = await kabukVerisi();
     expect(v.kullanici).toBeNull();
     expect(v.kapsam?.santral ?? 0).toBe(0);
+  });
+});
+
+describe('Kabuk okunmamış bildirim sayacı (D30) — kutu sahipliği', () => {
+  it('YALNIZ aktif kullanıcının okunmamış bildirimlerini sayar', async () => {
+    const benimId = await oturumAc('okuyucu', null);
+    /* Başkasının kutusuna düşen bildirim benim rozetime girmez; okunmuş
+       olan (okundu ≠ null) da girmez. Yalnız ikinci kayıt sayılmalı. */
+    const digeri = await db.kullanici.create({ data: {
+      eposta: `kabuk.baska.${randomBytes(4).toString('hex')}@ornek.local`,
+      adSoyad: 'Başka Kişi', aktif: true } });
+    await db.bildirim.createMany({ data: [
+      { kullaniciId: digeri.id, baslik: 'başkasının' },
+      { kullaniciId: benimId, baslik: 'benim, okunmadı' },
+      { kullaniciId: benimId, baslik: 'benim, okundu', okundu: new Date() },
+    ] });
+    const v = await kabukVerisi();
+    expect(v.okunmamis).toBe(1);
+  });
+
+  it('oturum yoksa sayaç 0 — sorgu yapılmaz, rozet çizilmez', async () => {
+    oturum.token = null;
+    const v = await kabukVerisi();
+    expect(v.okunmamis).toBe(0);
   });
 });

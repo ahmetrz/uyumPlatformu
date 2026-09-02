@@ -175,6 +175,38 @@ describe('Başarısız giriş denetim izine YAZILIR', () => {
   });
 });
 
+/* ═══ 1b · E40 · `next` dönüş hedefi ═════════════════════════════════
+   Başarıda `redirect()` hedefi `next`ten gelir; yalnız site içi göreli yol
+   kabul edilir. Ret dallarında `next` HİÇ okunmaz — yönlendirme yok. */
+
+async function girisHedefi(eposta: string, parola: string, next?: string | null):
+Promise<string | null> {
+  try {
+    await girisYap({ eposta, parola, next });
+    return null;
+  } catch (e) {
+    const m = e instanceof Error ? e.message : String(e);
+    if (m.startsWith('REDIRECT:')) return m.slice('REDIRECT:'.length);
+    throw e;
+  }
+}
+
+describe('Giriş sonrası dönüş hedefi (?next=)', () => {
+  it('site içi göreli yol: giriş başarınca oraya döner', async () => {
+    expect(await girisHedefi(EPOSTA, PAROLA, '/riskler?mercek=kritik')).toBe('/riskler?mercek=kritik');
+  });
+
+  it('dış ya da protokol-göreli adres köke düşer — açık yönlendirme yok', async () => {
+    expect(await girisHedefi(EPOSTA, PAROLA, 'https://sahte.site/giris')).toBe('/');
+    expect(await girisHedefi(EPOSTA, PAROLA, '//sahte.site')).toBe('/');
+  });
+
+  it('next yokken kök; yanlış parolada next okunmaz, yönlendirme olmaz', async () => {
+    expect(await girisHedefi(EPOSTA, PAROLA)).toBe('/');
+    expect(await girisHedefi(EPOSTA, 'yanlis-parola', '/riskler')).toBeNull();
+  });
+});
+
 /* ═══ 2 · kaba kuvvet kancası ════════════════════════════════════════ */
 
 describe('Kaba kuvvet: giriş ucunda oran sınırı UYGULANIR', () => {

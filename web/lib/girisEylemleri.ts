@@ -7,6 +7,7 @@ import {
   basariliGirisiYaz, basarisizGirisiYaz, epostaNormalize,
   girisKotasiTuket, girisKotasiniAkla, istemciAdresi,
 } from './girisKorumasi';
+import { guvenliHedef } from '../app/(giris)/giris/mantik';
 
 /* Giriş ucu.
 
@@ -17,12 +18,16 @@ import {
      karar → denetim izi (başarı DA başarısızlık DA) → oturum
 
    İSTEMCİYE DÖNEN MESAJ TEK: hesabın varlığı, pasifliği ya da parolanın
-   yanlışlığı ayırt edilemez. Gerçek sebep denetim izindedir. */
+   yanlışlığı ayırt edilemez. Gerçek sebep denetim izindedir.
+
+   DÖNÜŞ HEDEFİ (E40): `next` istemciden gelir ve yalnız site içi göreli
+   yolsa kullanılır; kural `app/(giris)/giris/mantik.ts → guvenliHedef`.
+   Ret dallarında `next` hiç okunmaz — yönlendirme yalnız başarıda olur. */
 
 /** Ekranda görünen tek ret cümlesi — hangi sebeple reddedildiği sızmaz. */
 const GENEL_RET = 'E-posta veya parola hatalı';
 
-export async function girisYap(girdi: { eposta: string; parola: string }):
+export async function girisYap(girdi: { eposta: string; parola: string; next?: string | null }):
   Promise<{ ok: false; hata: string } | never> {
   const eposta = epostaNormalize(girdi.eposta);
   const adres = await istemciAdresi();
@@ -54,7 +59,7 @@ export async function girisYap(girdi: { eposta: string; parola: string }):
   // Başarılı giriş hesap sayacını temizler — koruma kilitleme silahı olmasın.
   await girisKotasiniAkla(eposta);
   await basariliGirisiYaz({ kullaniciId: kullanici.id, eposta, adres });
-  redirect('/');
+  redirect(guvenliHedef(girdi.next));
 }
 
 export async function cikisYap(): Promise<never> {

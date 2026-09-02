@@ -9,8 +9,10 @@ import { uyumKatalogu } from './seed-uyum';
 import { denetimVeProje } from './seed-denetim-proje';
 import { riskVeBulgu } from './seed-risk-bulgu';
 import { kanitVerisi } from './seed-kanit';
+import { dokumanKutugu } from './seed-dokuman';
 import { entegrasyonVerisi } from './seed-entegrasyon';
 import { operasyonKayitlari } from './seed-operasyon-kayitlari';
+import { dolulukKatmani } from './seed-doluluk';
 
 const parolaUret = (parola: string) => {
   const tuz = randomBytes(16).toString('hex');
@@ -68,18 +70,18 @@ async function main() {
     ['KIZILDERE-3', 'Kızıldere III JES', 'JEO', 165, 'Denizli/Aydın', 'aktif', null, null, -3330, 'kizildere3'],
     ['ALASEHIR-JES', 'Alaşehir JES', 'JEO', 45, 'Manisa', 'aktif', null, null, -4090, 'alasehir'],
     ['GOKCEDAG-RES', 'Gökçedağ RES', 'RES', 135, 'Osmaniye', 'aktif', null, null, -6320, 'gokcedag'],
-    ['SARITEPE-RES', 'Sarıtepe RES', 'RES', 57, 'Osmaniye', 'aktif', null, null, -5840, null],
-    ['DEMIRCILER-RES', 'Demirciler RES', 'RES', 23.3, 'Osmaniye', 'aktif', null, null, -5560, null],
+    ['SARITEPE-RES', 'Sarıtepe RES', 'RES', 57, 'Osmaniye', 'aktif', null, null, -5840, 'saritepe'],
+    ['DEMIRCILER-RES', 'Demirciler RES', 'RES', 23.3, 'Osmaniye', 'aktif', null, null, -5560, 'demirciler'],
     ['IKIZDERE-HES', 'İkizdere HES', 'HES', 24.94, 'Rize', 'aktif', null, null, -5990, 'ikizdere'],
     ['TERCAN-HES', 'Tercan HES', 'HES', 15, 'Erzincan', 'aktif', null, null, -5660, 'tercan'],
     ['MERCAN-HES', 'Mercan HES', 'HES', 20.4, 'Tunceli', 'aktif', null, null, -5930, 'mercan'],
     ['BEYKOY-HES', 'Beyköy HES', 'HES', 16.8, 'Eskişehir', 'aktif', null, null, -5220, 'beykoy'],
     ['KUZGUN-HES', 'Kuzgun HES', 'HES', 20.9, 'Erzurum', 'aktif', null, null, -6200, 'kuzgun'],
     ['CILDIR-HES', 'Çıldır HES', 'HES', 15.4, 'Kars', 'aktif', null, null, -6510, 'cildir'],
-    ['ATAKOY-HES', 'Ataköy HES', 'HES', 5.5, 'Tokat', 'aktif', null, null, -4870, null],
-    ['ALASEHIR-GES', 'Alaşehir Hibrit GES', 'GES', 3.75, 'Manisa', 'aktif', null, null, -1810, null],
-    ['MERKEZ-BT', 'Zorlu Center Genel Müdürlük', 'MERKEZ', null, 'İstanbul', 'aktif', null, null, -5000, null],
-    ['LULEBURGAZ-DGKC', 'Lüleburgaz DGKÇ (devredildi)', 'DGKC', 82, 'Kırklareli', 'kapali', -300, 'satis', -9950, null],
+    ['ATAKOY-HES', 'Ataköy HES', 'HES', 5.5, 'Tokat', 'aktif', null, null, -4870, 'atakoy'],
+    ['ALASEHIR-GES', 'Alaşehir Hibrit GES', 'GES', 3.75, 'Manisa', 'aktif', null, null, -1810, 'alasehirges'],
+    ['MERKEZ-BT', 'Zorlu Center Genel Müdürlük', 'MERKEZ', null, 'İstanbul', 'aktif', null, null, -5000, 'merkezbt'],
+    ['LULEBURGAZ-DGKC', 'Lüleburgaz DGKÇ (devredildi)', 'DGKC', 82, 'Kırklareli', 'kapali', -300, 'satis', -9950, 'luleburgaz'],
   ] as const).map(async ([kod, ad, tipKod, guc, konum, durum, kapanis, neden, giris, gorsel]) => [kod,
     await db.tesis.create({ data: {
       kod, ad, tipId: tip[tipKod].id, kuruluGucMw: guc, konum, durum,
@@ -743,11 +745,18 @@ async function main() {
   await denetimVeProje(db);
   // Kanıt katmanı en sonda: durumdan türer, durumları okumak zorunda.
   await kanitVerisi(db);
+  /* Yönetişim belgesi kütüğü kanıttan SONRA: mevcut politika kanıtlarını
+     kütükteki karşılıklarına bağlar (C22/C23). */
+  await dokumanKutugu(db);
   // Connector TANIMLARI — hiçbiri etkin değil, kimlik bilgisi bekliyor.
   await entegrasyonVerisi(db);
   /* Operasyonel kayıtlar EN SONDA: değişiklik, olay ve istisna kayıtları
      tesis, varlık, madde ve kullanıcı verisine dayanıyor. */
   await operasyonKayitlari(db);
+  /* Doluluk katmanı EN SONDA: kodun okuduğu ama seed'in yazmadığı
+     tabloları (köken, keşif, red kuyruğu, olay etki zinciri, API kütüğü…)
+     var olan kayıtlardan türetir, o yüzden hepsinden sonra gelir. */
+  await dolulukKatmani(db);
 
   console.log('Seed tamam. Geliştirme girişi: ahmet.terzi@zorlu.com / ' + GELISTIRME_PAROLASI);
 }

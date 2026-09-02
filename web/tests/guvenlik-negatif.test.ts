@@ -17,7 +17,7 @@ const { izinVar, izinliTesisIdleri } = await import('@/lib/erisim');
 const { senkronizasyonKos } = await import('@/lib/entegrasyon/cekirdek');
 const { adaptorKaydet, adaptorSil } = await import('@/lib/entegrasyon/kayit');
 const { temelDogrula } = await import('@/lib/entegrasyon/sozlesme');
-const { kesifKapsamKosulu } = await import('@/app/(atlas)/(operasyonel)/kesif/mantik');
+const { kesifKapsamKosulu } = await import('@/app/(kabuk)/(operasyonel)/kesif/mantik');
 const { uyumsuzOturumlar } = await import('@/lib/entegrasyon/tedarikciOturum');
 const {
   kapsamKur, satirlariCoz, referanslariYukle, mevcutVarliklariYukle, aktarimiUygula,

@@ -4,7 +4,7 @@
    ── NİÇİN VAR ─────────────────────────────────────────────────────────
    GitHub Pages proje sayfası siteyi `/<depo>/` altında sunar ve Next bunu
    `basePath` ile kurar. Ama `basePath` CSS'in İÇİNDEKİ mutlak `url()`
-   başvurularına DOKUNMAZ: `app/abacus.css` içindeki
+   başvurularına DOKUNMAZ: `app/kabuk.css` içindeki
    `url('/fontlar/inter-latin.woff2')` derlenmiş çıktıya olduğu gibi
    geçer ve yayında `https://<kullanıcı>.github.io/fontlar/…` adresini
    ister — yani 404.

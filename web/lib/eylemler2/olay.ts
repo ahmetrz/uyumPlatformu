@@ -37,7 +37,7 @@ const TESPIT_KAYNAKLARI = [
 
 /* Bağ tipleri — her biri kendi bağ tablosuna düşer. `use server` dosyası
    yalnız async fonksiyon dışa vurabildiği için liste burada YEREL kalır;
-   ekranın kullandığı kopya `app/(atlas)/(operasyonel)/olaylar/mantik.ts`. */
+   ekranın kullandığı kopya `app/(kabuk)/(operasyonel)/olaylar/mantik.ts`. */
 const BAG_TIPLERI = [
   'varlik', 'sistem', 'risk', 'bulgu', 'proje', 'degisiklik',
 ] as const;

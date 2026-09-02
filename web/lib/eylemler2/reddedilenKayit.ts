@@ -61,34 +61,61 @@ export async function redKaydiIncele(girdi: {
         + 'dead-letter kaydı, kapatılmamış bir kayıttan daha yanıltıcıdır.');
     }
 
-    const kayitlar = await db.reddedilenKayit.findMany({
-      where: { id: { in: idler } },
-      select: { id: true, durum: true, asama: true, sebep: true, kaynakSistem: true },
-    });
-    // Eksik kayıt sessizce atlanmaz: yarım işlem gizli kalmamalı.
-    if (kayitlar.length !== idler.length) {
-      throw new Error(`${idler.length} kayıt istendi, ${kayitlar.length} tanesi bulundu — `
-        + 'hiçbiri değiştirilmedi');
-    }
+    /* TÜMÜ YA DA HİÇBİRİ.
 
-    const simdi = new Date();
-    for (const r of kayitlar) {
-      await db.reddedilenKayit.update({
-        where: { id: r.id },
-        data: {
-          durum: v.durum,
-          inceleyenId: v.durum === 'acik' ? null : k.id,
-          incelemeNotu: v.not,
-          incelemeZamani: v.durum === 'acik' ? null : simdi,
-        },
+       Bu blok eskiden transaction DIŞINDA dönüyordu: okuma, ardından
+       kayıt başına bir `update` ve bir `iz`. Elliyedinci kayıtta bir şey
+       patlarsa ilk elli altısı KALICI olarak kapanmış, çağıran ise hata
+       görmüş oluyordu — yani modülün hemen üstteki "hiçbiri
+       değiştirilmedi" sözü yalnız 'kayıt bulunamadı' dalında tutuluyordu.
+       Yarım kapatılmış bir dead-letter kuyruğu, hiç kapatılmamış bir
+       kuyruktan daha yanıltıcıdır: sayı düşer, sebep kalır.
+
+       Okuma da transaction'a alındı. Dışarıda okuyup içeride yazmak
+       TOCTOU açıyordu: iki inceleyen aynı kaydı aynı anda kapatırsa
+       ikisi de "önceki durum: acik" diye iz yazar ve biri sessizce
+       ezilir. Artık her satır KOŞULLU güncelleniyor (`where` beklenen
+       durumu taşır) ve `count === 0` — yani başkası bizden önce
+       davranmış — tüm işlemi geri alır.
+
+       `iz()` transaction istemcisiyle çağrılıyor: `lib/db.ts` tek
+       better-sqlite3 bağlantısı kullandığı için transaction dışında
+       yazılan iz, transaction geri alınırsa sessizce yutulur
+       (ölçüldü: tests/yaris-kosullari). */
+    await db.$transaction(async (tx) => {
+      const kayitlar = await tx.reddedilenKayit.findMany({
+        where: { id: { in: idler } },
+        select: { id: true, durum: true, asama: true, sebep: true, kaynakSistem: true },
       });
-      await iz({
-        aktorId: k.id, varlikTipi: 'ReddedilenKayit', varlikId: r.id,
-        eylem: v.durum === 'yok_sayildi' ? 'red' : 'guncelleme', alan: 'durum',
-        once: r.durum, sonra: v.durum,
-        gerekce: `${v.not ?? 'not yok'} · ${r.asama}/${r.sebep} · kaynak: ${r.kaynakSistem}`,
-      });
-    }
+      // Eksik kayıt sessizce atlanmaz: yarım işlem gizli kalmamalı.
+      if (kayitlar.length !== idler.length) {
+        throw new Error(`${idler.length} kayıt istendi, ${kayitlar.length} tanesi bulundu — `
+          + 'hiçbiri değiştirilmedi');
+      }
+
+      const simdi = new Date();
+      for (const r of kayitlar) {
+        const { count } = await tx.reddedilenKayit.updateMany({
+          where: { id: r.id, durum: r.durum },
+          data: {
+            durum: v.durum,
+            inceleyenId: v.durum === 'acik' ? null : k.id,
+            incelemeNotu: v.not,
+            incelemeZamani: v.durum === 'acik' ? null : simdi,
+          },
+        });
+        if (count === 0) {
+          throw new Error(`Kayıt ${r.id} bu sırada başkası tarafından değiştirildi `
+            + '— listeyi yenileyip yeniden deneyin; hiçbiri değiştirilmedi');
+        }
+        await iz({
+          aktorId: k.id, varlikTipi: 'ReddedilenKayit', varlikId: r.id,
+          eylem: v.durum === 'yok_sayildi' ? 'red' : 'guncelleme', alan: 'durum',
+          once: r.durum, sonra: v.durum,
+          gerekce: `${v.not ?? 'not yok'} · ${r.asama}/${r.sebep} · kaynak: ${r.kaynakSistem}`,
+        }, tx);
+      }
+    });
 
     revalidatePath('/saglik/reddedilenler');
     revalidatePath('/saglik');

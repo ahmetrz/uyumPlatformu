@@ -222,7 +222,7 @@ export async function surumAktiflestir(girdi: { surumId: string }): Promise<Sonu
 
        Eski kod "eskiyi arşivle, yeniyi aktifleştir" adımlarını koşulsuz ve
        transaction'sız yazıyordu. Eşzamanlı iki aktifleştirme iki AKTİF sürüm
-       bırakabiliyordu; `lib/arama.ts` ve `app/(atlas)/uyum/veri.ts` gibi
+       bırakabiliyordu; `lib/arama.ts` ve uyum veri katmanı gibi
        "aktif sürüm" filtreleri o anda sonuçları İKİ KAT döndürüyordu.
 
        İki katmanlı savunma:

@@ -1,12 +1,16 @@
 'use client';
 import { useState, useTransition } from 'react';
-import { Alan, Dugme } from '@/components/abacus/temel';
+import { Alan, Dugme } from '@/components/kabuk/temel';
 import { girisYap } from '@/lib/girisEylemleri';
 
-/* Giriş formu — Atlas form grameri (18 §Forms): etiket 9.5px mono, girdi
-   köşeli ve tek kenarlı, hata kırmızı tek satır. Pill yok, snackbar yok. */
+/* Giriş formu — paylaşılan form grameri (`Alan` primitifi): etiket 9.5px mono, girdi
+   köşeli ve tek kenarlı, hata kırmızı tek satır. Pill yok, snackbar yok.
 
-export default function GirisFormu() {
+   `next` sunucudan (page.tsx → searchParams) gelir ve eyleme olduğu gibi
+   iletilir; süzme SUNUCUDA yapılır (`guvenliHedef`). İstemcide süzmek
+   yetmezdi: eylem doğrudan da çağrılabilir. */
+
+export default function GirisFormu({ next = null }: { next?: string | null }) {
   const [v, setV] = useState({ eposta: '', parola: '' });
   const [hata, setHata] = useState<string | null>(null);
   const [bekliyor, baslat] = useTransition();
@@ -17,7 +21,7 @@ export default function GirisFormu() {
       onSubmit={(e) => {
         e.preventDefault();
         baslat(async () => {
-          const sonuc = await girisYap(v);
+          const sonuc = await girisYap({ ...v, next });
           if (sonuc && !sonuc.ok) setHata(sonuc.hata);
         });
       }}
@@ -40,6 +44,7 @@ export default function GirisFormu() {
 
       <p className="ab-panel-dip" style={{ margin: 0 }}>
         Her oturum açılışı denetim izine yazılır.
+        {next ? ` Girişten sonra ${next} ekranına dönülür.` : ''}
       </p>
     </form>
   );

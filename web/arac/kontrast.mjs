@@ -2,14 +2,18 @@
 /* Kontrast denetimi — koyu yüzeylerin OKUNABİLİRLİK kapısı.
 
    ── NİÇİN VAR ─────────────────────────────────────────────────────────
-   Abacus'ın üç yönü iki koyu (A, B) bir açık (C) zemin taşıyor.
+   Kabuğun üç yönü de koyu zemin taşıyor: A ve B soğuk gri, C sıcak
+   mürekkep kahvesi (prototipte açık kâğıttı; ürün kararıyla koyuya
+   çevrildi, bkz. harita §0 notu). Üç palet de birbirinden bağımsız
+   ölçülür — C'nin oxblood aksanı koyu zeminde bu araç sayesinde
+   yakalandı ve açıldı.
    Prototiplerdeki mürekkep tonları ölçülmemişti (harita §7 kusur 7):
    ör. A'nın üçüncül mürekkebi `#6E777A`, `#0D1012` üzerinde 4,5:1'in
    ALTINDA kalıyor. Rengi gözle seçip "iyi görünüyor" demek, düşük
    kontrastlı bir ekranda ya da renk görme farkı olan bir okuyucuda ürünü
    OKUNMAZ yapar — ve bu sessizce olur.
 
-   Bu araç token değerlerini KAYNAKTAN okur (`app/abacus.css`), her yön
+   Bu araç token değerlerini KAYNAKTAN okur (`app/kabuk.css`), her yön
    için zemin × mürekkep çiftlerini hesaplar ve eşiği geçmeyeni ÇIKIŞ
    KODU 1 ile bildirir. Tahmin yok: WCAG 2.1 bağıl parlaklık formülü.
 
@@ -33,7 +37,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const WEB = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const KAYNAK = readFileSync(path.join(WEB, 'app', 'abacus.css'), 'utf8');
+const KAYNAK = readFileSync(path.join(WEB, 'app', 'kabuk.css'), 'utf8');
 
 export const METIN = 4.5;
 export const IRI = 3.0;
@@ -77,7 +81,7 @@ function tokenlar(blokBaslangici) {
   return harita;
 }
 
-/** Taban `.atlas` bloğu + bir yüzey kipinin üzerine yazdıkları. */
+/** Taban `.ab` bloğu + bir yön kipinin (`[data-yon]`) üzerine yazdıkları. */
 function kip(secici) {
   return tokenlar(secici);
 }

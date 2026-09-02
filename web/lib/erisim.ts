@@ -56,6 +56,17 @@ export async function girisZorunlu(): Promise<AktifKullanici> {
   return k;
 }
 
+/** İKİ AŞAMALI KAPI için ön kapsam. Kaydın santrali/süreci okunmadan
+    bilinemeyen eylemlerde (bulgu güncelle, aksiyon ekle/durum/doğrula)
+    `yetkiZorunlu(modul, islem, KAPSAM_SONRA)` yalnız oturum + demo kilidi
+    + "bu modülde bu işlem için BİR rolü var mı" sorusunu yanıtlar; tesise
+    kısıtlı rolü peşinen reddetmez (kapsamsız `{}` çağrı `kapsamUyar`
+    gereği reddederdi — ekran "yazabilirsin" derken sunucu "yetkin yok"
+    diyordu). Çağıran, kaydı okuduktan sonra GERÇEK kapsamla
+    `izinVar(k, modul, islem, { tesisId, surecId })` denetimini yapmak
+    ZORUNDADIR; bu sabit tek başına bir yetki kapısı değildir. */
+export const KAPSAM_SONRA: Kapsam = { tesisId: null, surecId: null };
+
 /** Eylem koruması: yetki yoksa fırlatır — eylem katmanı hata olarak döndürür. */
 export async function yetkiZorunlu(modul: Modul, islem: Islem, kapsam: Kapsam = {}): Promise<AktifKullanici> {
   const k = await aktifKullanici();

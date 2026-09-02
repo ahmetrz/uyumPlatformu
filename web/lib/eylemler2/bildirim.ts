@@ -5,7 +5,7 @@ import { db } from '../db';
 import { aktifKullanici, type AktifKullanici } from '../auth';
 import { izinliTesisIdleri } from '../erisim';
 import { DEMO } from '../demo';
-import { kutuKapisiAcik } from '../../app/(atlas)/(operasyonel)/bildirimler/mantik';
+import { kutuKapisiAcik } from '../../app/(kabuk)/(operasyonel)/bildirimler/mantik';
 import { tamam, hata, type Sonuc } from './ortak';
 
 /* Bildirim kutusunun yazma yüzeyi (§52).
@@ -13,7 +13,7 @@ import { tamam, hata, type Sonuc } from './ortak';
    Bulgu #11'e kadar bu eylem hiçbir yerden çağrılmıyordu ve hiçbir ekran
    `db.bildirim` okumuyordu: son tarih motoru her koşuda uyarı üretiyor,
    uyarı kimseye ulaşmıyordu. Okuma yüzeyi artık
-   `app/(atlas)/(operasyonel)/bildirimler`.
+   `app/(kabuk)/(operasyonel)/bildirimler`.
 
    ─ SAHİPLİK SINIRI ──────────────────────────────────────────────────────
    `kullaniciId` bir filtre değil, SINIRDIR. Güncelleme `updateMany` ile ve

@@ -52,12 +52,12 @@ if (kullanilmayan.length) {
    `--ui / --veri / --gorunum` token'larının ilk ailesi @font-face ile
    BİLDİRİLMİŞ olmalı; değilse tarayıcı sessizce yedeğe düşer ve
    tipografi gözle fark edilmeden değişir. */
-const abacus = readFileSync(path.join(WEB, 'app', 'abacus.css'), 'utf8');
+const kabukCss = readFileSync(path.join(WEB, 'app', 'kabuk.css'), 'utf8');
 const bildirilen = new Set(
-  [...abacus.matchAll(/@font-face\s*\{[^}]*font-family:\s*'([^']+)'/g)].map((m) => m[1]),
+  [...kabukCss.matchAll(/@font-face\s*\{[^}]*font-family:\s*'([^']+)'/g)].map((m) => m[1]),
 );
 const istenen = new Set(
-  [...abacus.matchAll(/--(?:ui|veri|gorunum):\s*'([^']+)'/g)].map((m) => m[1]),
+  [...kabukCss.matchAll(/--(?:ui|veri|gorunum):\s*'([^']+)'/g)].map((m) => m[1]),
 );
 const bildirilmeyen = [...istenen].filter((a) => !bildirilen.has(a));
 console.log(`bildirilen aile: ${bildirilen.size} · token ailesi: ${istenen.size}`);

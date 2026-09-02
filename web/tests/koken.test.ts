@@ -8,7 +8,7 @@ import type { ReactElement, ReactNode } from 'react';
    ayarlanmadan önce hiçbir modül yüklenmez (proje kalıbı korunur). */
 import type {
   KaynakSatiri, KokenSayimSatiri,
-} from '@/app/(atlas)/(operasyonel)/saglik/mantik';
+} from '@/app/(kabuk)/(operasyonel)/saglik/mantik';
 
 /* Veri kökeni (provenance) sözleşmesi — izole DB kopyası üstünde.
 
@@ -36,10 +36,10 @@ const { kokenSayimlari, dogrulanmamisKayitlar, kaynakSistemDagilimi, bayatKokenl
 const { kokenDogrulaEylem, kokenTopluDogrula } = await import('@/lib/eylemler2/koken');
 const { varlikKaydet } = await import('@/lib/eylemler2/envanter');
 const { KokenRozeti, KokenSatiri, guvenYazisi, kokenGorunumu } =
-  await import('@/components/abacus/Koken');
+  await import('@/components/kabuk/Koken');
 /* /saglik köken bölümünün SAF mantığı: kökeni olmayan kaydın ekranda nasıl
    göründüğünü belirleyen yer burasıdır (§12 + §18). */
-const S = await import('@/app/(atlas)/(operasyonel)/saglik/mantik');
+const S = await import('@/app/(kabuk)/(operasyonel)/saglik/mantik');
 
 /* ── React ağacından düz metin: jsdom yok, bileşenler saf fonksiyon ── */
 function metin(dugum: ReactNode): string {

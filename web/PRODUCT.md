@@ -3,7 +3,7 @@
 <!-- impeccable:product-schema 1 -->
 
 <!-- Bu dosya ürün GERÇEĞİNİ kaydeder; görsel dünya burada yazılmaz (o iş
-     DESIGN.md'nindir). Başlıklar impeccable'ın ayrıştırdığı şemadır, İngilizce
+     aynı dizindeki DESIGN.md'nindir). Başlıklar impeccable'ın ayrıştırdığı şemadır, İngilizce
      kalır; içerik Türkçedir. Kaynak: 2026-09-01 init görüşmesi (Ahmet) +
      depo kanıtı (README, PRE_INTERNAL_INTEGRATION_READINESS, şema, seed). -->
 
@@ -141,13 +141,18 @@ zamanı; mobil/tablet kullanım (hedef değil, reddedilmiş de değil).
 
 - **Ad:** Zorlu Enerji Yönetişim Platformu. Tek ürün adı budur; kısa ad
   yok. Sekme başlığı (`app/layout.tsx` şablonu), kabuk sözcük markaları
-  (`components/abacus/Kabuk.tsx`: A monogram "ZE", B iki satırlı sözcük
+  (`components/kabuk/Kabuk.tsx`: A monogram "ZE", B iki satırlı sözcük
   markası, C künye) ve giriş ekranı bu adı taşır. Karar: Ahmet, 2026-09-01.
-- **Kod adları kullanıcıya görünmez:** "Voltaj Atlas", "Abacus" ve "Atlas"
-  taşınan tasarımın iç kod adlarıdır; rota grubu `(atlas)`, `atlas-*`
-  sınıfları, `abacus.css` ve kod yorumlarında kalabilir, ancak arayüz
+- **Kod adları kullanıcıya görünmez:** "Voltaj Atlas" ve "Atlas"
+  taşınan tasarımın iç kod adlarıdır; rota grubu `(kabuk)`, `atlas-*`
+  sınıfları, `kabuk.css` ve kod yorumlarında kalabilir, ancak arayüz
   metninde, sekme başlığında ve dokümanların ürün adı geçen yerlerinde
   kullanılmaz.
+- **Tek tema, koyu:** Üç kabuk (A tezgâh, B saha, C defter) de koyu zemin
+  taşır; C'nin prototipteki açık kâğıt zemini üründe yoktur. Kabuklar
+  arası geçiş "başka bir platform" hissi vermemelidir — ayrışma zemin
+  sıcaklığı ve tipografiyle kurulur, açık/koyu kontrastıyla değil.
+  Karar: Ahmet, 2026-09-01. Ölçüm kapısı `arac/kontrast.mjs`.
 - **Ses:** Türkçe, doğrudan, kurumsal ama kuru değil; ürün kendini
   açıklamaz, olguyu gösterir. Metin durum yargısı vermez ("kritik!" değil,
   "12 gün gecikmiş").

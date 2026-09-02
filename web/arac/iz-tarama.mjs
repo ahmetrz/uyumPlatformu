@@ -48,7 +48,9 @@ const stilMetni = STIL.map((f) => readFileSync(f, 'utf8')).join('\n');
 
 const kusurlar = [];
 
-/* ── 1 · silinmiş katmanlara giden yollar ──────────────────────────── */
+/* ── 1 · silinmiş katmanlara giden yollar ────────────────────────────
+   Eski kod adları burada da bilerek yazılıdır; yasak listesi olmadan
+   yasak uygulanamaz. */
 const OLU_YOLLAR = [
   '@/components/atlas', '@/lib/atlas', './atlas.css', './tokens.css',
   'components/ozalit', 'app/(ozalit)',
@@ -60,7 +62,11 @@ for (const f of KAYNAK.concat(STIL)) {
   }
 }
 
-/* ── 2 · eski sınıf adları ─────────────────────────────────────────── */
+/* ── 2 · eski sınıf adları ───────────────────────────────────────────
+   Bu listedeki eski KOD ADLARI (`atlas`, `ozalit`, `shell`) bilerek
+   duruyor: kapının işi tam olarak onların geri sızmasını yakalamak.
+   Listeden çıkarılırlarsa kapı körleşir — depoda geçtikleri TEK meşru
+   yer burasıdır. */
 const ESKI_SINIFLAR = [
   'shell', 'atlas', 'ozalit',
   'tbl-satir', 'tbl-konu', 'tbl-alt', 'tbl-hucre', 'tbl-ok', 'tbl-bas',
@@ -154,7 +160,7 @@ for (const k of kusurlar) {
 }
 console.log(`kaynak dosya: ${KAYNAK.length} · stil dosyası: ${STIL.length}`);
 console.log(`tanımlı token: ${tanimli.size} · başvurulan: ${basvurulan.size}`);
-console.log(`abacus sınıfı: ${[...cssSiniflari].filter((c) => c.startsWith('ab-')).length}`);
+console.log(`kabuk sınıfı (ab-): ${[...cssSiniflari].filter((c) => c.startsWith('ab-')).length}`);
 if (kusurlar.length === 0) {
   console.log('\nESKİ TASARIM İZİ: 0');
 } else {

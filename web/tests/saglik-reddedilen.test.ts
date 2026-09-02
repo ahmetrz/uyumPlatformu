@@ -4,7 +4,7 @@ import { createHash, randomBytes } from 'node:crypto';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 // Yalnız TİP: derlemede silinir, TEST_DB kuralını bozmaz.
-import type { RedSatiri } from '@/app/(atlas)/(operasyonel)/saglik/reddedilenler/mantik';
+import type { RedSatiri } from '@/app/(kabuk)/(operasyonel)/saglik/reddedilenler/mantik';
 
 /* Dead-letter (reddedilen kayıt) inceleme kuyruğu.
 
@@ -31,9 +31,36 @@ vi.mock('next/headers', () => ({
   }),
 }));
 
+/* İZ ENJEKSİYON KAPANI.
+
+   Toplu incelemenin TÜMÜ-YA-DA-HİÇBİRİ olduğunu kanıtlamak için döngünün
+   ORTASINDA gerçek bir hata gerekiyor. Kapan, `iz()` çağrılarını sayar ve
+   istenen sıradakini patlatır; `patlaSira = 0` iken hiçbir şeye dokunmaz,
+   yani dosyadaki diğer testler gerçek `iz`'i kullanmaya devam eder.
+   `araya` kancası ise "biz okurken başkası yazdı" durumunu deterministik
+   kurar — eşzamanlılığın kendisi tek süreçte üretilemediği için
+   (bkz. tests/yaris-kosullari) yarışın KAYBEDEN tarafı elle kurulur. */
+const izKapani = vi.hoisted(() => ({
+  sayac: 0, patlaSira: 0, araya: null as null | (() => Promise<void>),
+}));
+vi.mock('@/lib/eylemler2/ortak', async (asil) => {
+  const gercek = await asil<typeof import('@/lib/eylemler2/ortak')>();
+  return {
+    ...gercek,
+    iz: async (...a: Parameters<typeof gercek.iz>) => {
+      izKapani.sayac += 1;
+      if (izKapani.araya) { const f = izKapani.araya; izKapani.araya = null; await f(); }
+      if (izKapani.sayac === izKapani.patlaSira) {
+        throw new Error('denetim izi yazılamadı (enjekte edilen hata)');
+      }
+      return gercek.iz(...a);
+    },
+  };
+});
+
 const { db } = await import('@/lib/db');
 const { redKaydiIncele } = await import('@/lib/eylemler2/reddedilenKayit');
-const R = await import('@/app/(atlas)/(operasyonel)/saglik/reddedilenler/mantik');
+const R = await import('@/app/(kabuk)/(operasyonel)/saglik/reddedilenler/mantik');
 
 let kayitId = '';
 let kullaniciId = '';
@@ -163,5 +190,74 @@ describe('Notsuz kapatma yok', () => {
     if (!y.ok) expect(y.hata).toMatch(/hiçbiri değiştirilmedi/);
     const r = await db.reddedilenKayit.findUniqueOrThrow({ where: { id: kayitId } });
     expect(r.durum).toBe('yok_sayildi');
+  });
+});
+
+/* ═══════════════════════════════════════════════════════════════════════
+   TOPLU İNCELEME ATOMİKTİR
+
+   Eylem eskiden transaction DIŞINDA dönüyordu: kayıt başına bir `update`,
+   bir `iz`. Yüz kayıtlık bir kapatmada elli yedincisi patlarsa ilk elli
+   altısı KALICI olarak kapanıyor, çağıran ise yalnız hata görüyordu —
+   kuyruğun sayısı düşmüş, sebepleri durmaya devam ediyordu. Aşağıdaki iki
+   test bunun artık olamayacağını ÖLÇER: hata sonrası veritabanında hiçbir
+   satırın durumu değişmemiş ve hiçbir iz düşmemiş olmalı.
+   ═══════════════════════════════════════════════════════════════════════ */
+describe('Toplu inceleme yarım kalmaz', () => {
+  const acikKayit = (n: string) => db.reddedilenKayit.create({ data: {
+    kaynakSistem: 'atomik.ornek.local', kaynakKayitId: n,
+    asama: 'dogrulama', sebep: 'zorunlu alan boş',
+    hamJson: '{}', durum: 'acik' } });
+
+  it('ikinci kayıtta hata ilk kaydı da GERİ ALIR', async () => {
+    const a = await acikKayit('AT-1');
+    const b = await acikKayit('AT-2');
+
+    izKapani.sayac = 0;
+    izKapani.patlaSira = 2;          // ikinci kaydın iz yazımı patlar
+    const y = await redKaydiIncele({
+      idler: [a.id, b.id], durum: 'duzeltildi', not: 'kaynakta düzeltildi' });
+    izKapani.patlaSira = 0;
+
+    expect(y.ok).toBe(false);
+    // İlk kaydın güncellemesi BAŞARILIydı; transaction olmasa kalıcı olurdu.
+    for (const id of [a.id, b.id]) {
+      const r = await db.reddedilenKayit.findUniqueOrThrow({ where: { id } });
+      expect(r.durum).toBe('acik');
+      expect(r.inceleyenId).toBeNull();
+      expect(r.incelemeNotu).toBeNull();
+    }
+    // Yarım iz de kalmaz: "kapatıldı" diyen bir denetim satırı olmamalı.
+    expect(await db.aktiviteKaydi.count({
+      where: { varlikTipi: 'ReddedilenKayit', varlikId: { in: [a.id, b.id] } } })).toBe(0);
+  });
+
+  it('biz okurken başkası yazdıysa KAYBEDEN taraf hiçbir şey değiştirmez', async () => {
+    const a = await acikKayit('AT-3');
+    const b = await acikKayit('AT-4');
+
+    izKapani.sayac = 0;
+    izKapani.patlaSira = 0;
+    /* İlk kaydın izi yazılırken ikinci kaydın durumunu DEĞİŞTİR: eylem onu
+       'acik' sanarak okudu, koşullu güncelleme artık eşleşmeyecek. */
+    izKapani.araya = async () => {
+      await db.reddedilenKayit.update({
+        where: { id: b.id }, data: { durum: 'incelendi' } });
+    };
+
+    const y = await redKaydiIncele({
+      idler: [a.id, b.id], durum: 'duzeltildi', not: 'kaynakta düzeltildi' });
+    izKapani.araya = null;
+
+    expect(y.ok).toBe(false);
+    if (!y.ok) expect(y.hata).toMatch(/başkası tarafından değiştirildi/);
+    // Kendi yazdığımız hiçbir şey kalmadı; araya giren yazma da aynı
+    // bağlantıda olduğu için onunla birlikte geri alındı.
+    for (const id of [a.id, b.id]) {
+      const r = await db.reddedilenKayit.findUniqueOrThrow({ where: { id } });
+      expect(r.durum).toBe('acik');
+    }
+    expect(await db.aktiviteKaydi.count({
+      where: { varlikTipi: 'ReddedilenKayit', varlikId: { in: [a.id, b.id] } } })).toBe(0);
   });
 });

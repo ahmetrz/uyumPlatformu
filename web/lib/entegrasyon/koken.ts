@@ -17,12 +17,6 @@ import type { Prisma } from '../prisma-client/client';
 export type KokenTipi = 'manuel' | 'otomatik' | 'dogrulanmis';
 export type DogrulamaDurumu = 'dogrulanmadi' | 'dogrulandi' | 'reddedildi';
 
-export const KOKEN_SOZU: Record<KokenTipi, string> = {
-  manuel: 'Elle girildi',
-  otomatik: 'Otomatik toplandı',
-  dogrulanmis: 'Doğrulandı',
-};
-
 export type KokenGirdisi = {
   varlikTipi: string;
   varlikId: string;

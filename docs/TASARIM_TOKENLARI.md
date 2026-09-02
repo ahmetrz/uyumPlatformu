@@ -1,5 +1,9 @@
 # Tasarım Token'ları — Zorlu Enerji Yönetişim Platformu
 
+> **Tarihsel belge.** Buradaki token'lar ve `tokens.css` üründe artık
+> kullanılmıyor; güncel token'lar `web/app/kabuk.css`, tasarım sistemi
+> `web/DESIGN.md`.
+
 Bu doküman [TASARIM_PLANI.md](TASARIM_PLANI.md) kararlarının uygulanabilir token'lara dönüştürülmüş hâlidir.
 Makine tarafı: [`tokens.css`](tokens.css) · Görsel karşılık: [`mockups.html`](mockups.html)
 

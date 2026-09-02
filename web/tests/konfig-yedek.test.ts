@@ -48,8 +48,8 @@ const {
   yedegiDogrula, sonBilinenIyiIsaretle, yedekBulgusunuIsle, varlikYedekDurumu,
 } = await import('@/lib/eylemler2/konfigYedek');
 const { hazirlik, kritikHucresi, filoOzeti, testHucresi } =
-  await import('@/app/(atlas)/(operasyonel)/yedekleme/mantik');
-import type { Santral } from '@/app/(atlas)/(operasyonel)/yedekleme/mantik';
+  await import('@/app/(kabuk)/(operasyonel)/yedekleme/mantik');
+import type { Santral } from '@/app/(kabuk)/(operasyonel)/yedekleme/mantik';
 
 const GUN = 86_400_000;
 

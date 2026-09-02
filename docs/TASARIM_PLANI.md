@@ -1,5 +1,9 @@
 # Enerji Sektörü BT Uyum Platformu — Tasarım Planı (Awwwards Araştırmalı)
 
+> **Tarihsel belge.** İlk tasarım araştırmasının kaydıdır; ürünün güncel görsel
+> sözleşmesi `web/DESIGN.md`, prototip → uygulama kararları
+> `ORIGINAL_DESIGN_IMPLEMENTATION_MAP.md`, token'lar `web/app/kabuk.css`.
+
 ## Bağlam
 
 Şirket içi kullanılacak (ileride ürünleşebilecek) bir platform: enerji üretimi sektöründe BT departmanının uyum sağlaması gereken tüm regülasyonları (EPDK Siber Yetkinlik Modeli, SPK, CBDDÖ denetimi, ISO 27001 vb.) madde bazında barındıracak; her madde için bulgular, aksiyonlar, güncel durum ve tam değişiklik geçmişi (kim, ne, hangi dosya) izlenecek. Anlık durum dashboard'ları, rapor ekranları, denetim bazında kullanıcı yetkilendirme ve regülasyon/uyum projeleri ↔ bulgu eşleştirme ekranları olacak.

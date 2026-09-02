@@ -22,6 +22,7 @@ export const bulguOlustur = uyar;
 export const bulguGuncelle = uyar;
 export const aksiyonEkle = uyar;
 export const aksiyonDurumDegistir = uyar;
+export const aksiyonDogrula = uyar;
 export const kanitEkle = uyar;
 export const eslestirmeEkle = uyar;
 export const eslestirmeSil = uyar;

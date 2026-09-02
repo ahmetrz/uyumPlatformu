@@ -4,7 +4,7 @@
 -- üzerinden `WHERE` yazamaz. Kısıt uygulama katmanında değil VERİTABANINDA
 -- durur, çünkü `surumAktiflestir` "eskiyi arşivle + yeniyi aktifleştir"
 -- kalıbıyla çalışır ve eşzamanlı iki aktifleştirme iki aktif sürüm bırakabilir;
--- o durumda `lib/arama.ts` ve `app/(atlas)/uyum/veri.ts` gibi "aktif sürüm"
+-- o durumda `lib/arama.ts` ve `app/(kabuk)/uyum/veri.ts` gibi "aktif sürüm"
 -- filtreleri sonuçları İKİ KAT döndürür.
 --
 -- Arşiv/taslak sürümler indekse girmez: bir regülasyonun geçmişinde istenildiği

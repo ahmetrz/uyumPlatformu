@@ -1,11 +1,20 @@
 import type { Metadata } from 'next';
 import './globals.css';
-import './abacus.css';
+import './kabuk.css';
 import { an } from '@/lib/an';
+import BakimEkrani from '@/components/kabuk/BakimEkrani';
 
 /* Kök yerleşim yalnız belge iskeletini kurar. Kabuk (kapsam çubuğu, ray,
    sekme, künye) rota grubuna aittir ve YÖNÜ ROTADAN seçer
-   (`components/abacus/yonler.ts`). URL'ler rota gruplarına yansımaz. */
+   (`components/kabuk/yonler.ts`). URL'ler rota gruplarına yansımaz.
+
+   Tema anahtarı YOK: ürün tek temadır (koyu), `localStorage`tan tema
+   okuyan eski betik hiçbir şey tarafından okunmadığı için kaldırıldı.
+
+   Bakım anahtarı: `BAKIM_MODU=1` ile sunucu HER ekranın yerine bakım
+   ekranını çizer (API rotaları etkilenmez — entegrasyonlar kendi
+   sözleşmesiyle durdurulur). Statik yayında ortam değişkeni yoktur. */
+const BAKIM = process.env.BAKIM_MODU === '1';
 
 export const metadata: Metadata = {
   title: {
@@ -15,8 +24,6 @@ export const metadata: Metadata = {
   description:
     'Enerji üretimi BT/OT yönetişim ve uyum platformu: regülasyonlar, uyum süreçleri, bulgular, kanıtlar ve tam denetim izi.',
 };
-
-const temaBetigi = `try{var t=localStorage.getItem('tema');if(t)document.documentElement.dataset.theme=t;}catch(e){}`;
 
 export default function KokYerlesim({ children }: { children: React.ReactNode }) {
   /* Ekranın "şimdi"si burada, SUNUCUDA belirlenir ve belgeye yazılır;
@@ -32,10 +39,7 @@ export default function KokYerlesim({ children }: { children: React.ReactNode })
 
   return (
     <html lang="tr" suppressHydrationWarning data-an={String(belgeAni)}>
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: temaBetigi }} />
-      </head>
-      <body>{children}</body>
+      <body>{BAKIM ? <BakimEkrani /> : children}</body>
     </html>
   );
 }

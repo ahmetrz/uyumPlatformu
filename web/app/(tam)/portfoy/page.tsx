@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { girisZorunlu } from '@/lib/erisim';
-import { Yetkisiz } from '@/components/abacus/temel';
+import { Yetkisiz } from '@/components/kabuk/temel';
 import { modulOkuyabilir } from '@/app/kapsam';
 import Portfoy from './Portfoy';
 import { portfoyEkranVerisi } from './veri';
@@ -25,6 +25,7 @@ export default async function Sayfa() {
     <Portfoy
       satirlar={veri.satirlar}
       toplamGucMw={veri.toplamGucMw}
+      endeks={veri.endeks}
       kapsamli={veri.kapsamli}
     />
   );

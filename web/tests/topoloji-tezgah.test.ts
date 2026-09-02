@@ -42,7 +42,7 @@ vi.mock('next/headers', () => ({
 const { db } = await import('@/lib/db');
 const T = await import('@/lib/entegrasyon/topoloji');
 const E = await import('@/lib/eylemler2/topoloji');
-const M = await import('@/app/(atlas)/(operasyonel)/topoloji/mantik');
+const M = await import('@/app/(kabuk)/(operasyonel)/topoloji/mantik');
 
 type Oge = import('@/lib/entegrasyon/topoloji').TopolojiOgesi;
 
@@ -339,7 +339,7 @@ describe('Karşılaştırma izi: "sapma yok" ile "hiç bakılmadı" aynı değil
     // İz yazılsaydı ekran bunu "karşılaştırıldı, fark yok" sanardı.
     expect(iz.anligaGore.get(anlik.id)).toBeUndefined();
 
-    const gorunum: import('@/app/(atlas)/(operasyonel)/topoloji/mantik').AnlikSatiri = {
+    const gorunum: import('@/app/(kabuk)/(operasyonel)/topoloji/mantik').AnlikSatiri = {
       id: anlik.id, tesisId, tesisKodu: 'TZG', kaynak: 'test_kaynak',
       alindi: new Date().toISOString(), ozetHash: anlik.ozetHash, temelMi: false,
       onaylayan: null, onayZamani: null, not: null, ogeSayisi: anlik.ogeSayisi,
@@ -437,7 +437,7 @@ describe('Karşılaştırma izi: "sapma yok" ile "hiç bakılmadı" aynı değil
 /* ═══ 6 · Liste disiplini ═════════════════════════════════════════════ */
 
 describe('Sıralama ve katlama açık sapmayı gizlemez', () => {
-  const sapma = (ek: Partial<import('@/app/(atlas)/(operasyonel)/topoloji/mantik').SapmaSatiri>) => ({
+  const sapma = (ek: Partial<import('@/app/(kabuk)/(operasyonel)/topoloji/mantik').SapmaSatiri>) => ({
     id: Math.random().toString(36).slice(2), tip: 'yeni_dugum', siddet: 'orta',
     durum: 'gozlendi', aciklama: 'x', anahtar: 'A', tesisId: null, tesisKodu: null,
     anlikId: 'an', anlikKaynak: 'test_kaynak', anlikAlindi: '2026-08-01T00:00:00.000Z',
@@ -546,5 +546,253 @@ describe('Ekran sorguları tek kaynaktan gelir', () => {
        sayım yeniden listeden yapılırsa kırmızıya döner. */
     expect(satirlar.length).toBe(1);
     expect(tavansiz.acik).toBeLessThan(ozetli.acik);
+  });
+});
+
+/* ═══════════════════════════════════════════════════════════════════════
+   TOPLU TEMEL DURUMU — şeridin okuduğu üç sayı
+
+   /topoloji temel şeridi eskiden kapsam BAŞINA dört sorgu koşuyordu ve
+   biri temelin BÜTÜN gözlemlerini belleğe çeken `temelAnlik()`ti; şerit o
+   gözlemlerin tek birini bile çizmez. Örnek veride anlık tablosu boş
+   olduğu için "anlığı yoksa sorma" kısayolu maliyeti gizliyordu — gerçek
+   gözlem akmaya başladığı gün yirmi santral seksen sorgu ve yirmi tam
+   topoloji okuması ederdi. Toplu okuma sorgu sayısını SANTRAL SAYISINDAN
+   BAĞIMSIZ üçe indirir.
+
+   Hızın bedeli doğruluk olamaz: şeridin ayırdığı ÜÇ SAYI (temel yok /
+   gözlem yok / ölçülmüş sıfır) burada ayrı ayrı sabitlenir.
+   ═══════════════════════════════════════════════════════════════════════ */
+describe('Toplu temel durumu', () => {
+  it('temeli olan kapsamın üç sayısı da doğru okunur', async () => {
+    const { tesisId } = await sapmaliKapsam();
+    const harita = await T.temelDurumlari([tesisId]);
+    const d = harita.get(tesisId);
+    expect(d).toBeDefined();
+    expect(d!.temelVar).toBe(true);
+    expect(d!.temel!.kaynak).toBe('test_kaynak');
+    expect(d!.temel!.onayZamani).not.toBeNull();
+    // İki anlık alındı: biri temel oldu, biri karşılaştırıldı.
+    expect(d!.anlikSayisi).toBe(2);
+    expect(d!.temelOlmayanAnlik).toBe(1);
+    expect(d!.acikSapma).toBeGreaterThan(0);
+  });
+
+  it('temel SEÇİLEN anlıktır — sıralama tekil okumayla aynı', async () => {
+    const tesisId = await tesisAc();
+    const ilk = await T.anlikAl(tesisId, 'test_kaynak', TEMEL_OGELER);
+    await T.temelBelirle(ilk.id, yoneticiId, 'İlk temel onaylandı.');
+    const ikinci = await T.anlikAl(tesisId, 'test_kaynak', SAPMALI_OGELER);
+    await T.temelBelirle(ikinci.id, yoneticiId, 'Temel yenilendi, eskisi düşmeli.');
+
+    const d = (await T.temelDurumlari([tesisId])).get(tesisId)!;
+    // Eski temel düşer; toplu okuma da YENİ temeli göstermeli.
+    expect(d.temel!.id).toBe(ikinci.id);
+    expect((await T.temelAnlik(tesisId))!.id).toBe(ikinci.id);
+  });
+
+  it('gözlemi olmayan kapsam haritada YOKTUR — çağıran sıfır gösterir', async () => {
+    const bos = await tesisAc();
+    expect((await T.temelDurumlari([bos])).has(bos)).toBe(false);
+  });
+
+  it('anlığı olan ama temeli ONAYLANMAMIŞ kapsam: temelVar false, sayı sıfır değil',
+    async () => {
+      const tesisId = await tesisAc();
+      await T.anlikAl(tesisId, 'test_kaynak', TEMEL_OGELER);
+      const d = (await T.temelDurumlari([tesisId])).get(tesisId)!;
+      // "Temel yok" ile "gözlem yok" AYRI şeylerdir; ikisi de sapma
+      // hesaplanmadığını söyler ama sebepleri farklıdır.
+      expect(d.temelVar).toBe(false);
+      expect(d.anlikSayisi).toBe(1);
+      expect(d.temelOlmayanAnlik).toBe(1);
+      expect(d.acikSapma).toBe(0);
+    });
+
+  it('kapsam sınırı uygulanır: listede olmayan santral haritaya GİRMEZ', async () => {
+    const { tesisId: a } = await sapmaliKapsam();
+    const { tesisId: b } = await sapmaliKapsam();
+    const yalnizA = await T.temelDurumlari([a]);
+    expect(yalnizA.has(a)).toBe(true);
+    expect(yalnizA.has(b)).toBe(false);
+    // Boş kapsam hiçbir şey göstermez (sınırsız DEĞİL).
+    expect((await T.temelDurumlari([])).size).toBe(0);
+    // Sınırsız kapsam ikisini de görür.
+    const hepsi = await T.temelDurumlari(null);
+    expect(hepsi.has(a) && hepsi.has(b)).toBe(true);
+  });
+
+  /* Aşağıdaki iki durum `temelBelirle()` ile ÜRETİLEMEZ (o eylem eski
+     temeli düşürür ve onaylayan ister). Satırlar bu yüzden doğrudan
+     yazılıyor: korunan şey eylemin davranışı değil, OKUYUCUNUN bozuk ya da
+     elle değiştirilmiş veriye verdiği cevaptır. Tekil `temelAnlik()` bu
+     iki kuralı taşıyor; toplu okuma ondan sapamaz. */
+  it('onaysız satır temel SAYILMAZ (iki okuma da aynı der)', async () => {
+    const tesisId = await tesisAc();
+    const a = await T.anlikAl(tesisId, 'test_kaynak', TEMEL_OGELER);
+    // Temel işareti var, onay YOK — örneğin yarım kalmış bir düzenleme.
+    await db.topolojiAnlik.update({
+      where: { id: a.id }, data: { temelMi: true, onaylayanId: null } });
+
+    expect(await T.temelAnlik(tesisId)).toBeNull();
+    /* Sapma motoru bu soruyu `temelVarMi` ile sorar. Onaysız satırı temel
+       sayarsa ONAYLANMAMIŞ bir temele göre sapma hesaplar — kural 2'nin
+       ("temelsizken sapma hesaplanmaz") tam ihlali. */
+    expect(await T.temelVarMi(tesisId)).toBe(false);
+    const d = (await T.temelDurumlari([tesisId])).get(tesisId)!;
+    expect(d.temelVar).toBe(false);
+    expect(d.temel).toBeNull();
+    // Anlık yine sayılır: "temel yok" ile "gözlem yok" karışmamalı.
+    expect(d.anlikSayisi).toBe(1);
+  });
+
+  it('birden çok temel işaretliyse EN SON ONAYLANAN seçilir', async () => {
+    const tesisId = await tesisAc();
+    const eski = await T.anlikAl(tesisId, 'test_kaynak', TEMEL_OGELER);
+    const yeni = await T.anlikAl(tesisId, 'test_kaynak', SAPMALI_OGELER);
+    // İki satır da temel işaretli: `temelBelirle` bunu üretmez ama bozuk
+    // veri üretebilir. Sıra tanımlı olmalı, "hangisi gelirse" olmamalı.
+    await db.topolojiAnlik.update({ where: { id: eski.id }, data: {
+      temelMi: true, onaylayanId: yoneticiId,
+      onayZamani: new Date('2026-01-01T00:00:00.000Z') } });
+    await db.topolojiAnlik.update({ where: { id: yeni.id }, data: {
+      temelMi: true, onaylayanId: yoneticiId,
+      onayZamani: new Date('2026-06-01T00:00:00.000Z') } });
+
+    expect((await T.temelAnlik(tesisId))!.id).toBe(yeni.id);
+    expect((await T.temelDurumlari([tesisId])).get(tesisId)!.temel!.id).toBe(yeni.id);
+  });
+
+  it('temelVarMi gözlem yüklemeden aynı cevabı verir', async () => {
+    const { tesisId } = await sapmaliKapsam();
+    const bos = await tesisAc();
+    expect(await T.temelVarMi(tesisId)).toBe(true);
+    expect(await T.temelVarMi(bos)).toBe(false);
+    // Tekil referansla birebir: onaysız satır temel SAYILMAZ.
+    expect((await T.temelAnlik(tesisId)) !== null).toBe(true);
+    expect((await T.temelAnlik(bos)) !== null).toBe(false);
+  });
+});
+
+/* ═══ B8/B10 · Bölge–geçit diyagramı (saf yerleşim) ══════════════════
+   Veritabanına dokunmaz: `mantik.ts → bolgeGrafigiKur` deterministik
+   yüzde konum üretir; testin sabitlediği sözler:
+     · SL4 üstte (küçük y), SL0 altta; tanımsız seviye ayrı ve EN ALTTA,
+       0 SAYILMAZ ve unk işareti taşır;
+     · geçit yalnız iki ucu çizilmişse kenar olur, düşen geçit SAYILIR;
+     · daraltılmış kapsamda tesissiz bölge yalnız bağlıysa kalır;
+     · protokol etiketi kenarın orta noktasına düşer, protokolsüz geçit
+       etiket üretmez (çekmece "protokol kaydı yok" der). */
+
+type BolgeSatiri = import('@/app/(kabuk)/(operasyonel)/topoloji/mantik').BolgeSatiri;
+type GecitSatiri = import('@/app/(kabuk)/(operasyonel)/topoloji/mantik').GecitSatiri;
+
+const bolge = (id: string, seviye: number | null, tesisId: string | null, varlik = 0): BolgeSatiri => ({
+  id, kod: id.toUpperCase(), ad: `Bölge ${id}`, tip: 'ot', seviye,
+  tesisId, tesisKodu: tesisId ? tesisId.toUpperCase() : null, varlikSayisi: varlik,
+});
+const gecit = (id: string, kaynak: string, hedef: string, protokoller: string | null = null,
+  onaylandi = false): GecitSatiri => ({
+  id, kaynakBolgeId: kaynak, hedefBolgeId: hedef, protokoller, onaylandi,
+  kontrolVarligi: null, sonDogrulama: null, aciklama: null,
+});
+
+describe('bölge–geçit diyagramı · yerleşim', () => {
+  it('Purdue bantları: SL4 üstte, SL0 altta, tanımsız en altta ve unk işaretli', () => {
+    const g = M.bolgeGrafigiKur({
+      bolgeler: [bolge('l0', 0, 't1'), bolge('l4', 4, 't1'), bolge('l2', 2, 't1'), bolge('lx', null, 't1')],
+      gecitler: [],
+    });
+    const y = (id: string) => g.dugumler.find((d) => d.id === id)!.y;
+    expect(y('l4')).toBeLessThan(y('l2'));
+    expect(y('l2')).toBeLessThan(y('l0'));
+    expect(y('l0')).toBeLessThan(y('lx'));
+    expect(g.katmanlar.map((k) => k.ad)).toEqual(['SL4', 'SL2', 'SL0', 'SL tanımsız']);
+    const lx = g.dugumler.find((d) => d.id === 'lx')!;
+    expect(lx.durum).toBe('unk');
+    expect(lx.ustEtiket).toContain('SL tanımsız');
+    expect(g.dugumler.find((d) => d.id === 'l0')!.durum).toBeUndefined();
+    // Yüzde konumlar ekran içinde kalır.
+    for (const d of g.dugumler) {
+      expect(d.x).toBeGreaterThanOrEqual(10); expect(d.x).toBeLessThanOrEqual(90);
+      expect(d.y).toBeGreaterThanOrEqual(10); expect(d.y).toBeLessThanOrEqual(90);
+    }
+  });
+
+  it('aynı banttaki bölgeler yatayda ayrışır; alt etiket santral · varlık', () => {
+    const g = M.bolgeGrafigiKur({
+      bolgeler: [bolge('a', 1, 't1', 3), bolge('b', 1, 't1', 0), bolge('c', 1, null, 0)],
+      gecitler: [],
+    });
+    const xler = g.dugumler.map((d) => d.x);
+    expect(new Set(xler).size).toBe(3);
+    expect(new Set(g.dugumler.map((d) => d.y)).size).toBe(1);
+    expect(g.dugumler.find((d) => d.id === 'a')!.alt).toBe('T1 · 3 varlık');
+    expect(g.dugumler.find((d) => d.id === 'c')!.alt).toBe('tesissiz · 0 varlık');
+  });
+
+  it('geçit yalnız iki ucu çizilmişse kenar olur; düşen geçit sayılır; etiket orta noktada', () => {
+    const g = M.bolgeGrafigiKur({
+      bolgeler: [bolge('a', 3, 't1'), bolge('b', 1, 't1')],
+      gecitler: [
+        gecit('g1', 'a', 'b', 'OPC UA 4840'),
+        gecit('g2', 'a', 'yok'),
+        gecit('g3', 'b', 'a', null),
+      ],
+    });
+    expect(g.kenarlar).toHaveLength(2);
+    expect(g.dusenGecit).toBe(1);
+    expect(g.etiketler).toHaveLength(1);
+    const a = g.dugumler.find((d) => d.id === 'a')!;
+    const b = g.dugumler.find((d) => d.id === 'b')!;
+    expect(g.etiketler[0]).toMatchObject({
+      id: 'g1', metin: 'OPC UA 4840',
+      x: Math.round((a.x + b.x) / 2), y: Math.round((a.y + b.y) / 2),
+    });
+  });
+
+  it('tavan deterministik: çok varlıklı bölge önce, gerisi sayılır', () => {
+    const g = M.bolgeGrafigiKur({
+      bolgeler: [bolge('az', 1, 't1', 1), bolge('cok', 1, 't1', 9), bolge('orta', 2, 't1', 5)],
+      gecitler: [gecit('g', 'az', 'cok')],
+      tavan: 2,
+    });
+    expect(g.cizilen).toBe(2);
+    expect(g.toplam).toBe(3);
+    expect(g.dugumler.map((d) => d.id).sort()).toEqual(['cok', 'orta']);
+    // 'az' çizilmedi → geçidi düştü, kenar yok ama sayı var.
+    expect(g.kenarlar).toHaveLength(0);
+    expect(g.dusenGecit).toBe(1);
+  });
+
+  it('kapsam budaması: daraltılmış kapsamda tesissiz bölge yalnız bağlıysa kalır', () => {
+    const bolgeler = [bolge('ot', 1, 't1'), bolge('kurumsal', 4, null), bolge('internet', 4, null)];
+    const gecitler = [gecit('g1', 'kurumsal', 'ot'), gecit('g2', 'internet', 'kurumsal')];
+    const dar = M.kapsamBolgeleri(bolgeler, gecitler, true);
+    expect(dar.bolgeler.map((b) => b.id)).toEqual(['ot', 'kurumsal']);
+    expect(dar.gecitler.map((g) => g.id)).toEqual(['g1']);
+    // Sınırsız kapsamda budama yok.
+    const genis = M.kapsamBolgeleri(bolgeler, gecitler, false);
+    expect(genis.bolgeler).toHaveLength(3);
+    expect(genis.gecitler).toHaveLength(2);
+  });
+
+  it('bölge geçitleri yönlüdür; kimlik işareti onay hâlini kodlar, geçitsiz bölge bilinmeyendir', () => {
+    const bolgeler = [bolge('a', 2, 't1'), bolge('b', 1, 't1'), bolge('c', 0, 't1')];
+    const gecitler = [gecit('g1', 'a', 'b', 'Modbus', true), gecit('g2', 'c', 'a', null, false)];
+    const aninkiler = M.bolgeninGecitleri('a', gecitler, bolgeler);
+    expect(aninkiler.map((g) => [g.id, g.yon, g.diger?.id])).toEqual([
+      ['g2', 'gelen', 'c'], // onaysız önce
+      ['g1', 'giden', 'b'],
+    ]);
+    expect(M.bolgeImi(aninkiler)).toEqual({ durum: 'md', soz: '1 geçit onaysız' });
+    expect(M.bolgeImi(M.bolgeninGecitleri('b', gecitler, bolgeler)).durum).toBe('unk'); // onaylı ama doğrulanmamış
+    expect(M.bolgeImi([])).toEqual({ durum: 'unk', soz: 'Geçit kaydı yok' });
+    expect(M.bolgeImi([{ ...gecit('g', 'a', 'b', null, true), sonDogrulama: '2026-01-01T00:00:00.000Z',
+      yon: 'giden', diger: null }]).durum).toBe('ok');
+  });
+
+  it('envanter bağı bölge koduyla süzer', () => {
+    expect(M.envanterBagi('OT-DMZ 1')).toBe('/envanter?bolge=OT-DMZ%201');
   });
 });

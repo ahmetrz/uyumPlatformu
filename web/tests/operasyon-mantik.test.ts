@@ -21,7 +21,7 @@ import {
   kimlikCumlesi, kimlikSozu, mercekten, metrikleriHesapla, santralMetni,
   sirala, toplanabilir,
   type D,
-} from '@/app/(atlas)/(operasyonel)/operasyon/mantik';
+} from '@/app/(kabuk)/(operasyonel)/operasyon/mantik';
 
 const dizin = mkdtempSync(path.join(tmpdir(), 'uyum-oper-'));
 const testDb = path.join(dizin, 'test.db');

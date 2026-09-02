@@ -47,12 +47,6 @@ export type UcDegerAlan = boolean | null;
 
 const ucDeger = (v: boolean | null | undefined): UcDegerAlan => (v === undefined ? null : v);
 
-export const OTURUM_ALAN_SOZU = {
-  onayli: { evet: 'onaylı', hayir: 'onaysız', bilinmiyor: 'onay durumu bilinmiyor' },
-  mfaVar: { evet: 'MFA var', hayir: 'MFA yok', bilinmiyor: 'MFA durumu bilinmiyor' },
-  izlendi: { evet: 'izlendi', hayir: 'izlenmedi', bilinmiyor: 'izlenip izlenmediği bilinmiyor' },
-} as const;
-
 /* ═══ 1 · Dış kaynaktan oturum yazımı ═════════════════════════════════ */
 
 export type OturumGozlemi = {
@@ -298,13 +292,39 @@ export async function uyumsuzOturumlar(filtre: OturumFiltresi = {}): Promise<Uyu
     include: { tedarikci: { select: { ad: true } } },
   });
 
-  const degerlendirmeler = satirlar.map((s) => degerlendir({
+  return raporKur(satirlar.map(satirlastir), toplamKayit);
+}
+
+/** Veritabanı satırı → değerlendirme girdisi. Tek yerde durur ki toplu ve
+    tekil yollar AYNI alanları okusun. */
+function satirlastir(s: OturumKaydi): OturumSatiri {
+  return {
     id: s.id, tedarikciId: s.tedarikciId, tedarikciAdi: s.tedarikci.ad,
     hesapId: s.hesapId, tesisId: s.tesisId, varlikId: s.varlikId, sistemId: s.sistemId,
     baslangic: s.baslangic, bitis: s.bitis, kaynakSistem: s.kaynakSistem,
     onayli: s.onayli, mfaVar: s.mfaVar, izlendi: s.izlendi,
     talepReferansi: s.talepReferansi, kayitReferansi: s.kayitReferansi, durum: s.durum,
-  }));
+  };
+}
+
+type OturumKaydi = {
+  id: string; tedarikciId: string; tedarikci: { ad: string };
+  hesapId: string | null; tesisId: string | null; varlikId: string | null;
+  sistemId: string | null; baslangic: Date; bitis: Date | null; kaynakSistem: string;
+  onayli: UcDegerAlan; mfaVar: UcDegerAlan; izlendi: UcDegerAlan;
+  talepReferansi: string | null; kayitReferansi: string | null; durum: string;
+};
+
+/* SAF rapor kurucusu — veritabanına DOKUNMAZ.
+
+   Ayrı durmasının sebebi tek: tekil (`uyumsuzOturumlar`) ve toplu
+   (`tedarikciOturumOzetleri`) yollar aynı kuralları çalıştırmak zorunda.
+   İki ayrı yerde yazılsalardı biri düzeltilip diğeri unutulurdu ve ekran
+   ile motor farklı sayılar gösterirdi. `toplamKayit` DIŞARIDAN gelir:
+   "kaynak bağlı mı" sorusu tüm sisteme aittir, süzgeçten bağımsızdır —
+   filtreye uyan kayıt olmaması "kaynak yok" DEMEK DEĞİLDİR. */
+function raporKur(satirlar: OturumSatiri[], toplamKayit: number): UyumsuzOturumRaporu {
+  const degerlendirmeler = satirlar.map(degerlendir);
 
   const kapsam: OturumKapsami = toplamKayit === 0 ? 'kaynak_bagli_degil'
     : satirlar.length === 0 ? 'kayit_yok' : 'kayit_var';
@@ -407,6 +427,22 @@ export async function tedarikciOturumOzeti(
   const suren = await db.tedarikciErisimOturumu.count({
     where: { tedarikciId, durum: 'suruyor', ...kapsamKosulu } });
 
+  return ozetKur(tedarikci, rapor, sonKayit, kaynakSistemler, suren);
+}
+
+/* SAF özet kurucusu — veritabanına DOKUNMAZ. Gerekçe `raporKur` ile aynı:
+   tekil ve toplu yollar tutarsızlık cümlelerini de aynı yerden almalı. */
+type TedarikciBasligi = {
+  id: string; ad: string; oturumKaydiVar: UcDegerAlan; uzaktanErisimVar: boolean;
+};
+
+function ozetKur(
+  tedarikci: TedarikciBasligi,
+  rapor: UyumsuzOturumRaporu,
+  sonKayit: TedarikciOturumOzeti['sonOturum'],
+  kaynakSistemler: string[],
+  suren: number,
+): TedarikciOturumOzeti {
   const tutarsizliklar: string[] = [];
   if (tedarikci.oturumKaydiVar === true && rapor.toplam === 0) {
     tutarsizliklar.push('Envanterde "oturum kaydı alınıyor" beyan edilmiş, ama hiçbir kaynaktan '
@@ -455,6 +491,80 @@ export async function tedarikciOturumOzeti(
     kaynakSistemler,
     tutarsizliklar,
   };
+}
+
+/* ═══ 4 · TOPLU özet — ekranın N+1'ini kapatan yol ════════════════════
+
+   ÖLÇÜLEN KUSUR: /tedarikciler ekranı tedarikçi BAŞINA `tedarikciOturumOzeti`
+   (6 sorgu) + `uyumsuzOturumlar` (2 sorgu) çağırıyordu. On sekiz tedarikçilik
+   örnek veriyle ekran tek açılışta 175 SQL ifadesi koşuyordu — ve bu sayı
+   oturum tablosu BOŞKEN bile aynıydı; maliyet veriden değil, döngüden
+   geliyordu. Aynı iş burada ÜÇ sorguya iner (ölçüldü: 175 → 6, aşağıdaki
+   `tedarikciEkranVerisi` ölçümü).
+
+   NEDEN KİMLİK LİSTESİ YOK: `id IN (…)` hem SQLite'ın 999 parametre
+   sınırına takılır (bkz. lib/sorguParcala.ts) hem de yalnız parametre
+   bağlamak için zaman harcar. Ekran zaten SİLİNMEMİŞ tedarikçilerin
+   tümünü çiziyor; bu yüzden süzgeç ilişki üzerinden kurulur.
+
+   KURALLAR DEĞİŞMEZ: hesaplama `raporKur`/`ozetKur` ile — yani tekil yolun
+   kullandığı AYNI saf fonksiyonlarla — yapılır. Kapsam sınırı (`tesisIdler`)
+   burada da tek koşulda uygulanır: santrali `null` olan oturum, kapsamı
+   daraltılmış kullanıcıya GÖRÜNMEZ. */
+export type TedarikciOturumSatiri = {
+  ozet: TedarikciOturumOzeti;
+  rapor: UyumsuzOturumRaporu;
+};
+
+export async function tumTedarikciOturumOzetleri(
+  kapsam: { tesisIdler?: string[] | null } = {},
+): Promise<Map<string, TedarikciOturumSatiri>> {
+  const kapsamKosulu = kapsam.tesisIdler != null
+    ? { tesisId: { in: kapsam.tesisIdler } } : {};
+
+  const [toplamKayit, tedarikciler, satirlar] = await Promise.all([
+    /* "Kaynak bağlı mı" sorusu SÜZGEÇSİZDİR: filtreye uyan kayıt olmaması
+       "hiçbir kaynak bağlı değil" demek değildir. Tekil yol da böyle sorar. */
+    db.tedarikciErisimOturumu.count(),
+    db.tedarikci.findMany({
+      where: { silindi: null },
+      select: { id: true, ad: true, oturumKaydiVar: true, uzaktanErisimVar: true },
+    }),
+    db.tedarikciErisimOturumu.findMany({
+      where: { tedarikci: { silindi: null }, ...kapsamKosulu },
+      orderBy: { baslangic: 'desc' },
+      include: { tedarikci: { select: { ad: true } } },
+    }),
+  ]);
+
+  /* Sıra korunur: sorgu `baslangic desc` döndüğü için her tedarikçinin
+     ilk satırı SON oturumudur — tekil yoldaki ayrı `findFirst` ile aynı
+     sonuç, ayrı sorgu olmadan. */
+  const grup = new Map<string, OturumSatiri[]>();
+  for (const s of satirlar) {
+    const dizi = grup.get(s.tedarikciId);
+    if (dizi) dizi.push(satirlastir(s));
+    else grup.set(s.tedarikciId, [satirlastir(s)]);
+  }
+
+  const sonuc = new Map<string, TedarikciOturumSatiri>();
+  for (const t of tedarikciler) {
+    const kendi = grup.get(t.id) ?? [];
+    const rapor = raporKur(kendi, toplamKayit);
+    const ilk = kendi[0] ?? null;
+    sonuc.set(t.id, {
+      rapor,
+      ozet: ozetKur(
+        t,
+        rapor,
+        ilk && { baslangic: ilk.baslangic, bitis: ilk.bitis,
+          kaynakSistem: ilk.kaynakSistem, durum: ilk.durum },
+        [...new Set(kendi.map((o) => o.kaynakSistem))].sort(),
+        kendi.filter((o) => o.durum === 'suruyor').length,
+      ),
+    });
+  }
+  return sonuc;
 }
 
 /** Herhangi bir oturum kaynağı gerçekten bağlı mı (tek kayıt bile yeter). */

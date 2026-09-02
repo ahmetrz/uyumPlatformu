@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /* Erişilebilirlik kapısı — prototiplerin kusurlarına karşı.
 
-   Abacus prototipleri statik HTML'di ve dört şeyi hiç tanımlamıyordu
+   Orijinal prototipler statik HTML'di ve dört şeyi hiç tanımlamıyordu
    (ORIGINAL_DESIGN_IMPLEMENTATION_MAP.md §7): klavye gezinmesi, odak
    halkası, azaltılmış hareket ve durum bilgisinin renk dışı kanalı.
    Bu araç dördünü de GERÇEK TARAYICIDA ölçer.

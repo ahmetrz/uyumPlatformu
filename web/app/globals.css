@@ -2,17 +2,18 @@
    BELGE KATMANI
 
    Bu dosyada YALNIZ belge sıfırlaması vardır. Ürünün bütün sunumu
-   `abacus.css` içinde, `.ab` kapsamında yaşar; kabuk her rotayı o
+   `kabuk.css` içinde, `.ab` kapsamında yaşar; kabuk her rotayı o
    kapsamla sarar.
 
    ── NE SİLİNDİ ─────────────────────────────────────────────────────────
-   Bu dosya sırasıyla iki tasarımın stil katmanıydı: önce Ozalit kabuğu,
-   sonra Atlas token seti (`tokens.css` içe aktarımı) ve
-   `atlas.css` (978 satır). Abacus geçişiyle üçünün de son kullanıcısı
-   kalmadı; `arac/iz-tarama.mjs` bunu her koşuda kanıtlar. Silinenler:
-     · `app/atlas.css`   — 978 satır, Atlas kabuğu ve primitifleri
-     · `app/tokens.css`  — 397 satır, Ozalit/Atlas token seti
-     · `components/atlas/*` — on iki bileşen dosyası
+   Bu dosya sırasıyla iki önceki arayüz katmanının stil katmanıydı: önce
+   ilk kabuk, sonra ikinci kabuğun token seti (`tokens.css` içe aktarımı)
+   ve 978 satırlık kabuk stili. Yeni kabuk geçişiyle üçünün de son
+   kullanıcısı kalmadı; `arac/iz-tarama.mjs` bunu her koşuda kanıtlar.
+   Silinenler:
+     · eski kabuk stil dosyası — 978 satır, kabuk ve primitifleri
+     · `app/tokens.css`        — 397 satır, önceki katmanların token seti
+     · eski bileşen klasörü     — on iki bileşen dosyası
    Ölü stil zararsız değildir: her okumada tarayıcıya yük, her aramada
    insana gürültü, her bakışta "bu hâlâ kullanılıyor mu?" sorusu.
 
@@ -36,7 +37,7 @@ body {
 }
 
 /* Yazdırma: rapor çıktısı beyaz kâğıda siyah mürekkeple basılır; ekran
-   temasının koyu zemini yazıcıya gitmez. Kabuk kuralları abacus.css'te. */
+   temasının koyu zemini yazıcıya gitmez. Kabuk kuralları kabuk.css'te. */
 @media print {
   body { background: #fff; color: #000; }
 }

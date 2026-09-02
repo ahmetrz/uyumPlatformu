@@ -53,7 +53,7 @@ for (const yol of yollar) {
   });
   /* TAM SAYFA yakalamada `position: fixed` durum ayağı sayfanın ORTASINA
      basılmış görünür — görüntü alanının altına sabitlendiği yere. Bu bir
-     ÖRTME KUSURU DEĞİL, yakalama artefaktıdır: `.atlas-govde` ayak
+     ÖRTME KUSURU DEĞİL, yakalama artefaktıdır: `.ab-c-govde` ayak
      yüksekliği kadar alt dolgu taşır ve ölçüldüğünde gizlenen içerik
      0px'tir. Not burada duruyor ki bir sonraki görsel inceleme aynı
      hayaleti kovalamasın. */

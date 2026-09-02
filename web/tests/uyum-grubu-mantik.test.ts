@@ -14,20 +14,20 @@ import {
   kisaKod as surecKisaKod,
   santralMetni, sayimla, sayimTopla, surecImi, takipte,
   type Degerlendirme, type S,
-} from '@/app/(atlas)/(operasyonel)/surecler/ortak';
+} from '@/app/(kabuk)/(operasyonel)/surecler/ortak';
 
 import {
   acilisCercevesi, agaciKur, alansizSayisi, dallar, eslesiyor, maddeImi, regImi, silinebilir,
   surumImi, surumOzeti, surumsuzSayisi, yapraklar,
   type Madde, type Reg,
-} from '@/app/(atlas)/(operasyonel)/regulasyonlar/mantik';
+} from '@/app/(kabuk)/(operasyonel)/regulasyonlar/mantik';
 
 import {
   acilisCifti, anahtar, ciftinEsleri, cizilebilirEsler, DENKLIK_IM,
   digerCerceveEsleri, hucreleriKur,
   karsiliksizlar, kisaBaslik, matrisKur,
   type E, type M,
-} from '@/app/(atlas)/(operasyonel)/eslestirme/mantik';
+} from '@/app/(kabuk)/(operasyonel)/eslestirme/mantik';
 
 const SIMDI = Date.parse('2026-06-01T00:00:00.000Z');
 const GUN = 86_400_000;

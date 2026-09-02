@@ -78,14 +78,14 @@ describe('Üç değerli alan iki değere indirgenmez', () => {
       suclular,
       '`null` = HİÇ ÖLÇÜLMEDİ. `?? false` yazmak, kimsenin bakmadığı bir kontrolü '
       + '"bakıldı ve olumsuz" diye kayda geçirir. Üç hâli de taşıyın (ör. '
-      + "app/(atlas)/(operasyonel)/operasyon/Formlar.tsx içindeki ucDegerMetni/ucDegerCoz).",
+      + "app/(kabuk)/(operasyonel)/operasyon/Formlar.tsx içindeki ucDegerMetni/ucDegerCoz).",
     ).toEqual([]);
   });
 
   it('OT emniyet kapıları `null` ile `false` arasını AYIRIYOR', async () => {
     /* Kuralın davranışsal ayağı: gösterim katmanı üç hâli ayrı okumalı.
        İkisi de kapıyı geçmez ama ekranda ve denetimde ayrı görünür. */
-    const { kapilar } = await import('@/app/(atlas)/(operasyonel)/operasyon/mantik');
+    const { kapilar } = await import('@/app/(kabuk)/(operasyonel)/operasyon/mantik');
     const temel = {
       id: 'x', kod: 'DEG-1', baslik: 'test', durum: 'taslak', otMu: true,
       bakimPenceresi: null, geriAlmaPlani: null, uretimEtkisi: null,

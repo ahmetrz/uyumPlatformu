@@ -13,20 +13,20 @@ const { db } = await import('@/lib/db');
 const { izinliTesisIdleri } = await import('@/lib/erisim');
 const { modulOkuyabilir } = await import('@/app/kapsam');
 
-const { riskEkranVerisi } = await import('@/app/(atlas)/(operasyonel)/riskler/veri');
-const { riskDetayVerisi } = await import('@/app/(atlas)/(operasyonel)/riskler/[id]/veri');
-const { bulguEkranVerisi } = await import('@/app/(atlas)/(operasyonel)/bulgular/veri');
-const { bulguDetayVerisi } = await import('@/app/(atlas)/(operasyonel)/bulgular/[id]/veri');
-const { kimlikEkranVerisi } = await import('@/app/(atlas)/(operasyonel)/kimlik/veri');
-const { omurEkranVerisi } = await import('@/app/(atlas)/(operasyonel)/omur/veri');
-const { aktiviteVerisi } = await import('@/app/(atlas)/(operasyonel)/aktivite/veri');
-const { varlikAktarimVerisi } = await import('@/app/(atlas)/(operasyonel)/varlik-aktarim/veri');
-const { denetimDetayVerisi } = await import('@/app/(atlas)/(operasyonel)/denetimler/[id]/veri');
+const { riskEkranVerisi } = await import('@/app/(kabuk)/(operasyonel)/riskler/veri');
+const { riskDetayVerisi } = await import('@/app/(kabuk)/(operasyonel)/riskler/[id]/veri');
+const { bulguEkranVerisi } = await import('@/app/(kabuk)/(operasyonel)/bulgular/veri');
+const { bulguDetayVerisi } = await import('@/app/(kabuk)/(operasyonel)/bulgular/[id]/veri');
+const { kimlikEkranVerisi } = await import('@/app/(kabuk)/(operasyonel)/kimlik/veri');
+const { omurEkranVerisi } = await import('@/app/(kabuk)/(operasyonel)/omur/veri');
+const { aktiviteVerisi } = await import('@/app/(kabuk)/(operasyonel)/aktivite/veri');
+const { varlikAktarimVerisi } = await import('@/app/(kabuk)/(operasyonel)/varlik-aktarim/veri');
+const { denetimDetayVerisi } = await import('@/app/(kabuk)/(operasyonel)/denetimler/[id]/veri');
 const { reddedilenlerVerisi } =
-  await import('@/app/(atlas)/(operasyonel)/saglik/reddedilenler/veri');
+  await import('@/app/(kabuk)/(operasyonel)/saglik/reddedilenler/veri');
 const { portfoyEkranVerisi } = await import('@/app/(tam)/portfoy/veri');
-const { genelEkranVerisi } = await import('@/app/(atlas)/(flagship)/veri');
-const { tesis360Verisi } = await import('@/app/(atlas)/(flagship)/tesisler/[id]/veri');
+const { genelEkranVerisi } = await import('@/app/(kabuk)/(flagship)/veri');
+const { tesis360Verisi } = await import('@/app/(kabuk)/(flagship)/tesisler/[id]/veri');
 
 import type { AktifKullanici } from '@/lib/auth';
 

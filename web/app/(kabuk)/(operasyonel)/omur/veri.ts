@@ -59,7 +59,7 @@ import { omruCoz, type Proje, type VarlikKaydi } from './mantik';
 /**
  * Sunucudan çekilen en fazla kuyruk satırı.
  *
- * Atlas sözleşmesi 5–9 GÖRÜNÜR satır + katlanmış kuyruk der; istemci
+ * Yoğunluk sözleşmesi 5–9 GÖRÜNÜR satır + katlanmış kuyruk der; istemci
  * gruplama, ufuk çizelgesi ve çekmece için kuyruğun tamamını ister. 500,
  * "bir insanın tek oturumda karara bağlayabileceğinden fazlası" ile
  * "tabloyu belleğe almak" arasındaki sınırdır: bugünkü seed'de kuyruk

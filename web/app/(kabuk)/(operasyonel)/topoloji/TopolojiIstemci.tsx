@@ -7,6 +7,7 @@ import {
   Cekmece, CekmeceAlanlar, CekmeceBagli, CekmeceKimlik,
 } from '@/components/kabuk/panel';
 import { tarihTR, zamanTR } from '@/lib/sabitler';
+import { BolgeCekmecesi, BolgeTuvali } from './Bolgeler';
 import {
   AnlikAlmaFormu, AnlikEylemleri, SapmaKararlari, kaynakSozu,
   type MaddeSecenegi, type Tesis,
@@ -14,11 +15,12 @@ import {
 import {
   GORUNUR_TAVAN, KARSILASTIRMA_SOZU, MERCEKLER, SAPMA_DURUM_SOZU,
   SAPMA_TIP_ETIKETI, SIDDET_ETIKETI,
-  acikMi, anlikImi, anlikKarsilastirmasi, anliklariSirala, ekranHali,
+  acikMi, anlikImi, anlikKarsilastirmasi, anliklariSirala, bolgeGrafigiKur,
+  bolgeninGecitleri, ekranHali,
   karsilastirmaHucresi, mercekten, sapmaImi, sapmaKenari, sayimHesapla, sirala,
   toplanabilir,
-  type AnlikSatiri, type KarsilastirmaIzi, type Mercek, type SapmaSatiri,
-  type SunucuOzeti, type TemelSatiri,
+  type AnlikSatiri, type BolgeSatiri, type GecitSatiri, type KarsilastirmaIzi,
+  type Mercek, type SapmaSatiri, type SunucuOzeti, type TemelSatiri,
 } from './mantik';
 
 /* O12 · Topoloji sapma tezgâhı.
@@ -31,9 +33,14 @@ import {
      · anlık yok            → hiç ölçülmedi
      · temel yok            → ölçüldü ama karşılaştırılamıyor
      · karşılaştırılmadı    → temel var, karşılaştırma çalışmadı
-     · sapma yok            → ÖLÇÜLMÜŞ sıfır, zamanıyla birlikte yazılır */
+     · sapma yok            → ÖLÇÜLMÜŞ sıfır, zamanıyla birlikte yazılır
 
-type Kip = 'sapma' | 'anlik';
+   ÜÇÜNCÜ KİP (B8/B10): "Bölgeler" — AgBolgesi/AgGeciti tanımının Purdue
+   bantlarına yerleşmiş diyagramı. Anlıktan BAĞIMSIZDIR: tanım varlık
+   aktarımıyla gelir, anlık alınmadan da vardır; bu yüzden anlıksız boş
+   ekranda da gösterilir. Sapma görünümüne dokunmaz. */
+
+type Kip = 'sapma' | 'anlik' | 'bolge';
 
 /** Temel şeridinde gösterilen kapsam satırı tavanı (yoğunluk sözleşmesi). */
 const SERIT_TAVANI = 6;
@@ -69,12 +76,15 @@ function farkAlanlari(kaynak: Record<string, unknown> | null) {
 }
 
 export default function TopolojiIstemci({
-  sapmalar, anliklar, temeller, ozet, iz, tesisler, maddeDurumlari,
+  sapmalar, anliklar, temeller, ozet, iz, tesisler, bolgeler, gecitler, maddeDurumlari,
   yazabilir, onaylayabilir, riskYazabilir, uyumYazabilir, sapmaTavani, anlikTavani,
 }: {
   sapmalar: SapmaSatiri[];
   anliklar: AnlikSatiri[];
   temeller: TemelSatiri[];
+  /** kapsamdaki ağ bölgeleri ve aralarındaki geçitler (kapsam budaması sunucuda) */
+  bolgeler: BolgeSatiri[];
+  gecitler: GecitSatiri[];
   /** sunucunun tavandan bağımsız saydığı açık/kritik sapma */
   ozet: SunucuOzeti;
   iz: KarsilastirmaIzi;
@@ -91,6 +101,7 @@ export default function TopolojiIstemci({
   const [mercek, setMercek] = useState<Mercek>('acik');
   const [seciliSapma, setSeciliSapma] = useState<string | null>(null);
   const [seciliAnlik, setSeciliAnlik] = useState<string | null>(null);
+  const [seciliBolge, setSeciliBolge] = useState<string | null>(null);
   const [kuyrukAcik, setKuyrukAcik] = useState(false);
   const [anlikKuyrugu, setAnlikKuyrugu] = useState(false);
 
@@ -132,6 +143,32 @@ export default function TopolojiIstemci({
 
   const hal = ekranHali(sayim, iz, anliklar.length > 0);
 
+  /* Bölge grafiği tanımdan kurulur, anlıktan değil; yerleşim statik ve
+     deterministiktir (mantik.ts → bolgeGrafigiKur, testte sabit). */
+  const bolgeGrafigi = useMemo(
+    () => bolgeGrafigiKur({ bolgeler, gecitler }), [bolgeler, gecitler]);
+  const bolge = bolgeler.find((b) => b.id === seciliBolge) ?? null;
+  const bolgeGecitleri = useMemo(
+    () => (bolge ? bolgeninGecitleri(bolge.id, gecitler, bolgeler) : []),
+    [bolge, gecitler, bolgeler]);
+  // Tuval odak sözleşmesi: aynı düğüme ikinci tıklama odağı bırakır.
+  const bolgeOdakla = (id: string) => setSeciliBolge(id === seciliBolge ? null : id);
+
+  const bolgeGorunumu = bolgeler.length === 0 ? (
+    <BosIlk cumle={'Kapsamınızda ağ bölgesi tanımı yok — bölge ve geçit tanımı'
+      + ' varlık aktarımı (CMDB kaydı) ile gelir; bu ekran ağı taramaz.'} />
+  ) : (
+    <>
+      <BolgeTuvali grafik={bolgeGrafigi} odak={seciliBolge} odakla={bolgeOdakla} />
+      <p className="ab-dip" style={{ marginTop: 'var(--s10)' }}>
+        Düğüm = bölge, kenar = geçit (conduit). Bantlar Purdue / IEC 62443
+        seviyesidir: SL0 altta, SL4 üstte; seviyesi tanımsız bölge ayrı bantta
+        durur. Bir bölgeye tıklayınca komşuları öne çıkar, künyesi ve geçitleri
+        sağda açılır. Geçit onayı bu ekranda verilmez.
+      </p>
+    </>
+  );
+
   const izCumlesi = iz.sonKarsilastirma
     ? `Son karşılaştırma ${zamanTR(iz.sonKarsilastirma)}`
       + (iz.tetikleyen === 'motor' ? ' · motor koşusu' : ' · elle')
@@ -150,6 +187,7 @@ export default function TopolojiIstemci({
   /* ── hiç anlık yoksa: boş DEĞİL, "hiç ölçülmedi" ──────────────────── */
   if (anliklar.length === 0 && sapmalar.length === 0) {
     return (
+      <>
       <main data-yuzey="tezgah" style={{ minWidth: 0 }}>
         <EkranBasligi eyebrow="Topoloji sapması · pasif gözlem"
           baslik="Topoloji anlığı alınmadı" />
@@ -158,8 +196,24 @@ export default function TopolojiIstemci({
           <BosIlk cumle={'Kapsamınızda topoloji anlığı yok — bu "sapma yok" demek'
             + ' değildir, hiç ölçülmedi demektir. Onaylı ağ kaydından bir anlık'
             + ' dondurun, sonra onu temel olarak onaylayın.'} />
+
+          {/* Bölge tanımı anlıktan bağımsızdır: anlık yokken de çizilir,
+              çünkü tanım varlık aktarımıyla gelir ve okunabilir olmalıdır. */}
+          {bolgeler.length > 0 && (
+            <section className="ab-blok" style={{ maxWidth: 'none', marginTop: 'var(--s20)' }}>
+              <p className="etiket" style={{ margin: '0 0 var(--s12)' }}>
+                Bölgeler · {bolgeler.length} · geçit {gecitler.length} · anlıktan bağımsız tanım
+              </p>
+              {bolgeGorunumu}
+            </section>
+          )}
         </section>
       </main>
+      {bolge && (
+        <BolgeCekmecesi bolge={bolge} gecitler={bolgeGecitleri}
+          kapat={() => setSeciliBolge(null)} />
+      )}
+      </>
     );
   }
 
@@ -228,9 +282,12 @@ export default function TopolojiIstemci({
             secenekler={[
               { id: 'sapma', ad: `Sapmalar · ${sapmalar.length}` },
               { id: 'anlik', ad: `Anlık görüntüler · ${anliklar.length}` },
+              { id: 'bolge', ad: `Bölgeler · ${bolgeler.length}` },
             ]}
             aktif={kip}
-            sec={(id) => { setKip(id as Kip); setSeciliSapma(null); setSeciliAnlik(null); }}
+            sec={(id) => {
+              setKip(id as Kip); setSeciliSapma(null); setSeciliAnlik(null); setSeciliBolge(null);
+            }}
           />
 
           {kip === 'sapma' ? (
@@ -279,6 +336,8 @@ export default function TopolojiIstemci({
                 />
               )}
             </>
+          ) : kip === 'bolge' ? (
+            <div style={{ marginTop: 'var(--s18)' }}>{bolgeGorunumu}</div>
           ) : (
             <Tablo
               konuBasligi="Anlık görüntü"
@@ -419,6 +478,11 @@ export default function TopolojiIstemci({
 
           <AnlikEylemleri anlik={anlik} />
         </Cekmece>
+      )}
+
+      {kip === 'bolge' && bolge && (
+        <BolgeCekmecesi bolge={bolge} gecitler={bolgeGecitleri}
+          kapat={() => setSeciliBolge(null)} />
       )}
     </>
   );

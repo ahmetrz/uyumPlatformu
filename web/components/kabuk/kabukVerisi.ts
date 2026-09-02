@@ -39,13 +39,22 @@ export async function kabukVerisi(): Promise<KabukVerisi> {
     )
     : [];
 
-  const [ayak, grup, tesisler] = await Promise.all([
+  const [ayak, grup, tesisler, okunmamis] = await Promise.all([
     durumAyagiVerisi(k).catch(() => null),
     db.grup.findFirst({ select: { ad: true } }).catch(() => null),
     db.tesis.findMany({
       where: { durum: 'aktif', ...(kapsam === null ? {} : { id: { in: kapsam } }) },
       select: { tuzelKisiId: true },
     }).catch(() => []),
+    /* ── OKUNMAMIŞ BİLDİRİM SAYACI (D30) ─────────────────────────────
+       Kutu sahipliği sınırı burada da aynen geçerlidir: sayı YALNIZ
+       aktif kullanıcının kendi bildirimlerinden türer (`kullaniciId`),
+       başkasının kutusu hiç sayılmaz. `okundu: null` = okunmadı;
+       bildirimler/mantik.ts `okunmamisMi` ile aynı yüklem. Oturum yoksa
+       sorgu bile yapılmaz: 0, "kutu boş" değil "kutu yok" demektir ve
+       kabuk 0'da rozet çizmediği için ikisi aynı görünür — bilerek. */
+    k ? db.bildirim.count({ where: { kullaniciId: k.id, okundu: null } }).catch(() => 0)
+      : Promise.resolve(0),
   ]);
   const santral = tesisler.length;
   /* Tüzel kişi de aynı kapsamdan türer: kapsamdaki santrallerin bağlı
@@ -68,5 +77,6 @@ export async function kabukVerisi(): Promise<KabukVerisi> {
        kaynak bağlı değilken hiçbir şey tazelenmemiştir. Yetkisiz
        kullanıcıda da null: damga da bir sağlık bilgisidir. */
     kesit: ayak?.sonKosu ? ayak.sonKosu.toISOString() : null,
+    okunmamis,
   };
 }

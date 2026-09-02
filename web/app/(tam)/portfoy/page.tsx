@@ -25,6 +25,7 @@ export default async function Sayfa() {
     <Portfoy
       satirlar={veri.satirlar}
       toplamGucMw={veri.toplamGucMw}
+      endeks={veri.endeks}
       kapsamli={veri.kapsamli}
     />
   );

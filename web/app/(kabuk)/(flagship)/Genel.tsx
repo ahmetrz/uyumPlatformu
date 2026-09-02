@@ -59,7 +59,7 @@ export type Kayit = {
 type Ozet = {
   uyumYuzde: number | null; bilinmeyenOran: number | null;
   kritikRisk: number; gecikmisAksiyon: number;
-  yaklasanDenetim: { kod: string; kalanGun: number } | null;
+  yaklasanDenetim: { kod: string; ad: string; tarih: string; kalanGun: number } | null;
   tesisSayisi: number; toplamGucMw: number;
 };
 
@@ -182,6 +182,9 @@ export default function Genel({
         </aside>
       </section>
 
+      {/* ═══ Öncelik göstergeleri ══════════════════════════════════════ */}
+      <OncelikSeridi ozet={ozet} olculemeyenRisk={risk.olculemeyen} />
+
       {/* ═══ Saha şeridi ═══════════════════════════════════════════════ */}
       <section className="ab-b-serit" aria-label="Saha seçici">
         <header>
@@ -226,6 +229,59 @@ export default function Genel({
         </div>
       </section>
     </main>
+  );
+}
+
+/* ── Öncelik göstergeleri ─────────────────────────────────────────────
+   `ozet` bu üç sayıyı sunucuda zaten hesaplıyordu; ekranda yazılmıyordu.
+   Üçü de birer BAĞDIR: sayı bir soru, hedef ekran onun cevabı. Sıfır ile
+   "ölçülemedi" karışmasın diye kritik riskin yanına olasılık/etki
+   girilmemiş risk sayısı ayrıca yazılır — 0 kritik risk, hiçbir riskin
+   puanlanmadığı bir portföyde güven vermez. */
+function OncelikSeridi({ ozet, olculemeyenRisk }: { ozet: Ozet; olculemeyenRisk: number }) {
+  const yaklasan = ozet.yaklasanDenetim;
+  /* Yakınlık sözcükle: "≤ 7 gün" alarmı renkten önce metinde durur. */
+  const denetimDurumu = yaklasan === null ? 'unk' : yaklasan.kalanGun <= 7 ? 'md' : 'pl';
+  return (
+    <section className="ab-kpi" aria-label="Öncelik göstergeleri">
+      <Link href="/riskler"
+        className={`kalem d-${ozet.kritikRisk > 0 ? 'bd' : olculemeyenRisk > 0 ? 'unk' : 'ok'}`}>
+        <span className="etiket">Kritik risk</span>
+        <span className="mono deger">{ozet.kritikRisk}</span>
+        <span className="cumle">
+          artık skor ≥ 15 · açık veya işlemde
+          {olculemeyenRisk > 0 && (
+            <> · <span className="unk">{olculemeyenRisk} risk ölçülemedi</span></>
+          )}
+        </span>
+      </Link>
+      <Link href="/bulgular" className={`kalem d-${ozet.gecikmisAksiyon > 0 ? 'bd' : 'ok'}`}>
+        <span className="etiket">Gecikmiş aksiyon</span>
+        <span className="mono deger">{ozet.gecikmisAksiyon}</span>
+        <span className="cumle">
+          {ozet.gecikmisAksiyon > 0
+            ? 'hedef tarihi geçmiş, hâlâ planlı veya devam eden'
+            : 'hedef tarihi geçmiş aksiyon yok'}
+        </span>
+      </Link>
+      <Link href="/denetimler" className={`kalem d-${denetimDurumu}`}>
+        <span className="etiket">Yaklaşan denetim</span>
+        {yaklasan === null ? (
+          <>
+            <span className="mono deger">—</span>
+            <span className="cumle">planlı denetim yok</span>
+          </>
+        ) : (
+          <>
+            <span className="deger ad">{yaklasan.ad}</span>
+            <span className="mono cumle">
+              {yaklasan.kod} · {kisaTarih(yaklasan.tarih)} · {yaklasan.kalanGun} gün kaldı
+              {yaklasan.kalanGun <= 7 && ' · yakın'}
+            </span>
+          </>
+        )}
+      </Link>
+    </section>
   );
 }
 
@@ -377,9 +433,11 @@ function SahaKarti({ s }: { s: SantralKarti }) {
   const uygunsuz = s.sayim.uyumsuz ?? 0;
   return (
     <Link href={`/tesisler/${s.id}`} className={`kart${uygunsuz > 0 ? ' uyari' : ''}`}>
+      {/* Şerit hero'nun altındadır; kartlar ilk boyamayı beklemesin diye
+          tembel yüklenir. Hero (`ab-b-alan`) `fetchPriority="high"` ile kalır. */}
       {foto
         // eslint-disable-next-line @next/next/no-img-element -- statik dışa aktarım
-        ? <img src={foto} alt="" aria-hidden decoding="async" />
+        ? <img src={foto} alt="" aria-hidden loading="lazy" decoding="async" />
         : <span className="fotoyok" aria-hidden />}
       <span className="perde" aria-hidden />
       <span className="icerik">

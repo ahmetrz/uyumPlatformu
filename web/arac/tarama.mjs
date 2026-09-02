@@ -7,12 +7,13 @@
    KALMIŞ sınıf adı gözle kaçar. Bu araç her rotayı açar ve şunları ölçer:
 
    · yatay taşma  — `scrollWidth > clientWidth` (dar bantta okunmaz ekran)
-   · eski sınıf   — DOM'da hâlâ Atlas sınıfı taşıyan düğüm sayısı
+   · eski sınıf   — DOM'da hâlâ önceki arayüz katmanının sınıfını taşıyan düğüm sayısı
    · çıplak metin — `.ab` kabuğu DIŞINDA kalan içerik (kabuk uygulanmamış)
    · sayfa hatası — pageerror ve console.error
    · boş ekran    — ana içerik yüksekliği 200px'in altında
 
    Kullanım: PORT=3210 node arac/tarama.mjs [--rota=/uyum,/riskler]
+             EN=1440,1024,768,375 PORT=3210 node arac/tarama.mjs   → çok bant
 */
 import { chromium } from 'playwright-core';
 import { readFileSync, writeFileSync } from 'node:fs';
@@ -38,8 +39,11 @@ const ROTALAR = argRota
 const b = await chromium.launch({
   executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
 });
-const EN = Number(process.env.EN || 1440);
-const s = await b.newPage({ viewport: { width: EN, height: 900 } });
+/* EN tek genişlik ya da virgüllü liste alır (`EN=1440,1024,768,375`).
+   Yatay taşma dar bantta çıkar; tek genişlikte "taşma yok" demek geniş
+   ekranda bakıp dar ekranı geçmiş saymaktır. */
+const BANTLAR = String(process.env.EN || '1440').split(',').map(Number).filter((n) => n > 0);
+const s = await b.newPage({ viewport: { width: BANTLAR[0], height: 900 } });
 
 await s.goto(`${KOK}/giris`, { waitUntil: 'domcontentloaded' });
 if (s.url().includes('/giris')) {
@@ -50,6 +54,8 @@ if (s.url().includes('/giris')) {
 }
 
 const rapor = [];
+for (const en of BANTLAR) {
+await s.setViewportSize({ width: en, height: 900 });
 for (const yol of ROTALAR) {
   const hatalar = [];
   const dinle = (m) => { if (m.type() === 'error') hatalar.push(m.text().slice(0, 140)); };
@@ -77,19 +83,21 @@ for (const yol of ROTALAR) {
         eski: sayim,
       };
     }, ESKI_SINIFLAR);
-    rapor.push({ yol, durum: y?.status() ?? 0, ...olcum, hatalar });
+    rapor.push({ yol, en, durum: y?.status() ?? 0, ...olcum, hatalar });
   } catch (e) {
-    rapor.push({ yol, durum: -1, hata: String(e).slice(0, 160), hatalar });
+    rapor.push({ yol, en, durum: -1, hata: String(e).slice(0, 160), hatalar });
   }
   s.off('console', dinle);
   s.off('pageerror', sayfaHata);
+}
 }
 await b.close();
 
 writeFileSync(process.env.CIKTI || '/tmp/tarama.json', JSON.stringify(rapor, null, 1));
 
 let kusur = 0;
-console.log(`${'ROTA'.padEnd(30)} YÖN  DURUM  TAŞMA  YÜKS   ESKİ SINIF / HATA`);
+const cokBant = BANTLAR.length > 1;
+console.log(`${'ROTA'.padEnd(30)} ${cokBant ? 'EN    ' : ''}YÖN  DURUM  TAŞMA  YÜKS   ESKİ SINIF / HATA`);
 for (const r of rapor) {
   const eskiOzet = Object.entries(r.eski ?? {}).map(([k, v]) => `${k}×${v}`).join(' ');
   const sorun = [
@@ -102,10 +110,10 @@ for (const r of rapor) {
   ].filter(Boolean);
   if (sorun.length) kusur += 1;
   console.log(
-    `${r.yol.padEnd(30)} ${(r.yon ?? '-').padEnd(4)} ${String(r.durum).padEnd(6)} `
+    `${r.yol.padEnd(30)} ${cokBant ? String(r.en).padEnd(6) : ''}${(r.yon ?? '-').padEnd(4)} ${String(r.durum).padEnd(6)} `
     + `${String(r.tasma ?? '-').padEnd(6)} ${String(r.yukseklik ?? '-').padEnd(6)} `
     + sorun.join(' · '),
   );
 }
-console.log(`\nkusurlu rota: ${kusur} / ${rapor.length}`);
+console.log(`\nkusurlu rota: ${kusur} / ${rapor.length}${cokBant ? ` (${BANTLAR.length} bant)` : ''}`);
 process.exitCode = kusur > 0 ? 1 : 0;

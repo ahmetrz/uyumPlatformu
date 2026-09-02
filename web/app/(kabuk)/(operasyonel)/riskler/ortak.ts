@@ -96,6 +96,64 @@ export function skorAgirligi(skor: number | null | undefined): number | null {
   return Math.max(1, Math.ceil((k / SKOR_TAVANI) * SKOR_TIK));
 }
 
+/* ── C18 · Isı haritası (olasılık × etki) ───────────────────────────
+   Kök ekranın 5×5 ızgarasıyla AYNI yerleşim kuralı: satır 0 = en yüksek
+   etki (5), sütun 0 = en düşük olasılık (1); `hucreler[5 - etki][olasilik - 1]`.
+   Etki = boyutların EN BÜYÜĞÜ (`maxEtki`); artık skor ayrı bir alandır ve
+   burada KULLANILMAZ — harita "nerede duruyor" sorusunu doğal konumla
+   yanıtlar, işlem sonrası skor satırda zaten yazılıdır.
+
+   Olasılık VEYA etki bilinmiyorsa risk haritaya GİRMEZ ve ayrıca sayılır:
+   bilinmeyeni (1,1)'e koymak "düşük" demek olurdu. Sınır dışı değer (0, 6)
+   kenara kırpılır — seed dışı el girişi haritayı patlatmasın. */
+
+export type IsiHucresi = { olasilik: number; etki: number };
+
+export type IsiHaritasi = {
+  /** hucreler[5 - etki][olasilik - 1] */
+  hucreler: number[][];
+  enYuksek: number;
+  /** haritaya giremeyen (olasılık ya da etki bilinmeyen) risk */
+  olculemeyen: number;
+  /** haritada sayılan risk */
+  yerlesen: number;
+};
+
+/** Riskin haritadaki hücresi; ölçülemiyorsa null. */
+export function isiKonumu(r: Pick<R, 'olasilik' | 'etkiler'>): IsiHucresi | null {
+  const e = maxEtki(r.etkiler);
+  if (r.olasilik === null || e === null) return null;
+  return {
+    olasilik: Math.min(5, Math.max(1, r.olasilik)),
+    etki: Math.min(5, Math.max(1, e)),
+  };
+}
+
+export function isiHaritasi(riskler: Pick<R, 'olasilik' | 'etkiler'>[]): IsiHaritasi {
+  const hucreler = Array.from({ length: 5 }, () => Array.from({ length: 5 }, () => 0));
+  let olculemeyen = 0; let yerlesen = 0;
+  for (const r of riskler) {
+    const k = isiKonumu(r);
+    if (!k) { olculemeyen += 1; continue; }
+    hucreler[5 - k.etki][k.olasilik - 1] += 1;
+    yerlesen += 1;
+  }
+  return { hucreler, enYuksek: Math.max(0, ...hucreler.flat()), olculemeyen, yerlesen };
+}
+
+/** Hücrenin eşik sözcüğü — renk ikinci kanaldır, sözcük birincisi.
+    Aynı eşikler `skorDurumu` ile: ≥15 son (kritik) · 8–14 orta · 1–7 ilk. */
+export function hucreEsigi(olasilik: number, etki: number): 'ilk' | 'orta' | 'son' {
+  const d = skorDurumu(olasilik * etki);
+  return d === 'bd' ? 'son' : d === 'md' ? 'orta' : 'ilk';
+}
+
+/** Risk verilen hücrede mi — liste süzgeci bunu sorar. */
+export function hucredeMi(r: Pick<R, 'olasilik' | 'etkiler'>, h: IsiHucresi): boolean {
+  const k = isiKonumu(r);
+  return k !== null && k.olasilik === h.olasilik && k.etki === h.etki;
+}
+
 /* ── Zaman ──────────────────────────────────────────────────────────── */
 
 export function gunFarki(t: string | null | undefined): number | null {

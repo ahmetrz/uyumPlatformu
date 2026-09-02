@@ -47,12 +47,6 @@ export type UcDegerAlan = boolean | null;
 
 const ucDeger = (v: boolean | null | undefined): UcDegerAlan => (v === undefined ? null : v);
 
-export const OTURUM_ALAN_SOZU = {
-  onayli: { evet: 'onaylı', hayir: 'onaysız', bilinmiyor: 'onay durumu bilinmiyor' },
-  mfaVar: { evet: 'MFA var', hayir: 'MFA yok', bilinmiyor: 'MFA durumu bilinmiyor' },
-  izlendi: { evet: 'izlendi', hayir: 'izlenmedi', bilinmiyor: 'izlenip izlenmediği bilinmiyor' },
-} as const;
-
 /* ═══ 1 · Dış kaynaktan oturum yazımı ═════════════════════════════════ */
 
 export type OturumGozlemi = {

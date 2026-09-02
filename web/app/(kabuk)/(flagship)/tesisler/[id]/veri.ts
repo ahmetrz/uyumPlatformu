@@ -1,10 +1,11 @@
 import 'server-only';
 import { db } from '@/lib/db';
-import { izinliTesisIdleri } from '@/lib/erisim';
+import { izinVar, izinliTesisIdleri } from '@/lib/erisim';
 import type { AktifKullanici } from '@/lib/auth';
 import { kapsamda, modulKapisi } from '@/app/kapsam';
 import { uyumOzeti, gecikmisMi, gecenGun } from '@/lib/sabitler';
 import type { Plant360Veri, Santral } from './Plant360';
+import type { OtProfili } from './mantik';
 
 /* F3 · Plant 360 — SUNUCU VERİSİ.
 
@@ -36,6 +37,35 @@ import type { Plant360Veri, Santral } from './Plant360';
    OLDUĞUNU doğrulamak olurdu. */
 
 export type EkranVerisi = { veri: Plant360Veri; santraller: Santral[] };
+
+/* OT mimari profili (B6/B9). `profil: true` include'u zaten vardı ama
+   yalnız kritiklik sınıfı okunuyordu; alanların tamamı serileştirilir.
+   Kayıt hiç açılmamışsa null döner — ekran her alanı "tanımsız" yazar,
+   sıfır ya da "yok" uydurmaz. */
+function profilSerisi(p: {
+  lisansTipi: string | null; lisansNo: string | null; kabulDurumu: string | null;
+  kabulTarihi: Date | null; blackStart: boolean | null; teiasScadaEms: boolean | null;
+  seriHaberlesme: boolean | null; kritiklikSinifi: string | null;
+  kritikAltyapiStatusu: boolean | null; internetMaruziyeti: string | null;
+  uzaktanErisim: boolean | null; otMimariTipi: string | null; dcsSaglayici: string | null;
+  scadaSaglayici: string | null; plcAileleri: string | null; iotVar: boolean | null;
+  akilliSayacVar: boolean | null; yerelAdVar: boolean | null;
+  yerelVeriMerkeziVar: boolean | null; grupOrtakServisler: string | null; guncellendi: Date;
+} | null): OtProfili | null {
+  if (!p) return null;
+  return {
+    lisansTipi: p.lisansTipi, lisansNo: p.lisansNo, kabulDurumu: p.kabulDurumu,
+    kabulTarihi: p.kabulTarihi?.toISOString() ?? null,
+    blackStart: p.blackStart, teiasScadaEms: p.teiasScadaEms, seriHaberlesme: p.seriHaberlesme,
+    kritiklikSinifi: p.kritiklikSinifi, kritikAltyapiStatusu: p.kritikAltyapiStatusu,
+    internetMaruziyeti: p.internetMaruziyeti, uzaktanErisim: p.uzaktanErisim,
+    otMimariTipi: p.otMimariTipi, dcsSaglayici: p.dcsSaglayici, scadaSaglayici: p.scadaSaglayici,
+    plcAileleri: p.plcAileleri, iotVar: p.iotVar, akilliSayacVar: p.akilliSayacVar,
+    yerelAdVar: p.yerelAdVar, yerelVeriMerkeziVar: p.yerelVeriMerkeziVar,
+    grupOrtakServisler: p.grupOrtakServisler,
+    guncellendi: p.guncellendi.toISOString(),
+  };
+}
 
 /** Açık bulgu listesinde gösterilen en fazla kayıt (prototipte 6). */
 const BULGU_PENCERESI = 8;
@@ -195,6 +225,10 @@ export async function tesis360Verisi(
       gucMw: tesis.kuruluGucMw,
       gorselAnahtari: tesis.gorselAnahtari,
       kritiklik: tesis.profil?.kritiklikSinifi ?? null,
+      profil: profilSerisi(tesis.profil),
+      /* Düzenleme kapısı sunucu eylemiyle AYNI soru: tanimlar/yazma, bu
+         santral kapsamında (lib/eylemler2/tesis360.ts → profilKaydet). */
+      profilDuzenlenebilir: izinVar(k, 'tanimlar', 'yazma', { tesisId: id }),
       uniteSayisi: uniteListesi.length || null,
       // Uyum: bilinmeyen ASLA 0 sayılmaz — yüzde yalnız değerlendirilenden,
       // bilinmeyen oranı ayrıca taşınır (lib/sabitler.ts:uyumOzeti).

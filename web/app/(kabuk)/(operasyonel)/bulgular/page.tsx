@@ -10,7 +10,7 @@ export const metadata: Metadata = { title: 'Bulgu & CAPA' };
 /* O7 · Bulgu & Düzeltici Aksiyon — "nerede takıldı?" (03-screens O7).
    Tek 5 kolonlu tablo soldan sağa bir ilerleme gibi okunur:
    bulgu · aksiyon · sahip · son tarih · doğrulama.
-   Yerleşim kabuğu (.atlas atlas-kabuk + Ray) üst katmandan gelir; bu sayfa
+   Yerleşim kabuğu (ray + çekmece kolonu) üst katmandan gelir; bu sayfa
    yalnız <main> ve seçim varsa <aside class="cekmece"> render eder.
 
    Santral kapsamı, satır tavanı ve metrik sayımları `veri.ts`tedir

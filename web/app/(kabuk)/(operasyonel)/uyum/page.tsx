@@ -2,7 +2,7 @@ import { Suspense } from 'react';
 import type { Metadata } from 'next';
 import { girisZorunlu, izinVar, izinliTesisIdleri } from '@/lib/erisim';
 import { Yetkisiz } from '@/components/kabuk/temel';
-import { cerceveleriYukle } from './veri';
+import { cerceveleriYukle, uyumTrendiYukle } from './veri';
 import UyumIstemci from './UyumIstemci';
 import MatrisIskeleti from './MatrisIskeleti';
 
@@ -24,7 +24,11 @@ export default async function Sayfa() {
   if (!izinVar(kullanici, 'uyum', 'okuma')) return <Yetkisiz rol="uyum okuma" />;
 
   const izinli = izinliTesisIdleri(kullanici, 'uyum');
-  const cerceveler = await cerceveleriYukle(izinli);
+  /* C15 · Eğilim ayrı sorgudur: `CerceveVerisi` sözleşmesine dokunulmaz
+     (O2 aynı tipi okur), anlıklar yalnız bu ekranın şeridine gider. */
+  const [cerceveler, trend] = await Promise.all([
+    cerceveleriYukle(izinli), uyumTrendiYukle(izinli),
+  ]);
   const yazabilir = izinVar(kullanici, 'denetim', 'yazma');
 
   const ilk = cerceveler.find((c) => c.satirlar.length > 0) ?? cerceveler[0];
@@ -39,7 +43,7 @@ export default async function Sayfa() {
         />
       }
     >
-      <UyumIstemci cerceveler={cerceveler} yazabilir={yazabilir} />
+      <UyumIstemci cerceveler={cerceveler} trend={trend} yazabilir={yazabilir} />
     </Suspense>
   );
 }

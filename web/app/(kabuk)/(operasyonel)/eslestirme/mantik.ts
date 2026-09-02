@@ -29,7 +29,7 @@ export type E = {
   hedef: M;
 };
 
-/** Denklik gücü → Atlas işaretçisi.
+/** Denklik gücü → durum işaretçisi.
     `ilgili` bir BİLİNMEYEN DEĞİLDİR: zayıf ama kayıtlı bir karardır, bu
     yüzden elmas değil planlı işaretçisini alır. Eşleşmenin hiç olmaması
     ise hücreyi BOŞ bırakır (kapsam dışı gibi okunur, satır sayacında
@@ -141,10 +141,6 @@ export function matrisKur(
 /** Seçili hedef çerçevede karşılığı olmayan kaynak maddeler. */
 export function karsiliksizlar(sol: M[], sag: M[], hucre: Map<string, E>): M[] {
   return sol.filter((m) => !sag.some((k) => hucre.has(anahtar(m.id, k.id))));
-}
-
-export function kapsanan(sol: M[], sag: M[], hucre: Map<string, E>): number {
-  return sol.length - karsiliksizlar(sol, sag, hucre).length;
 }
 
 /** Açılış çifti: eşlemesi EN ÇOK olan iki çerçeve. Alfabetik ilk çifte

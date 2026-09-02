@@ -178,14 +178,14 @@ export default function KimlikIstemci({ hesaplar, tesisler, kaynaklar, kapsamli 
             <BosDurum hicKayitYok={m.toplam === 0} kapsamli={kapsamli}
               filtreAktif={filtreAktif} temizle={filtreleriTemizle} />
           ) : (
-            <div className="ab-tablo" role="table"
+            <div className="ab-tablo"
               style={{
                 '--kolonlar': KOLONLAR,
                 '--kolonlar-dar': KOLONLAR_DAR,
                 marginTop: 'var(--s22)',
                 borderTop: 'var(--bw-strong) solid var(--hr2)',
               } as CSSProperties}>
-              <div className="bas" role="row">
+              <div className="bas">
                 <span />
                 <span className="kolonbas">Hesap</span>
                 <span className="kolonbas ikincil">Kapsam</span>
@@ -276,15 +276,14 @@ function Satir({ satir, secili, acik = false, uye = false, tikla }: {
   return (
     <button
       type="button"
-      role="row"
-      aria-selected={secili}
+      aria-pressed={secili}
       aria-expanded={grup ? acik : undefined}
       className="satir"
       onClick={tikla}
       style={{ borderLeftColor: secili ? `var(--${durum})` : 'transparent' }}
     >
       <Im durum={durum} />
-      <span role="cell" style={{ minWidth: 0, paddingLeft: uye ? 'var(--s22)' : undefined }}>
+      <span style={{ minWidth: 0, paddingLeft: uye ? 'var(--s22)' : undefined }}>
         <span className="konu">
           {baslikMetni(satir)}
           {grup && (
@@ -296,12 +295,12 @@ function Satir({ satir, secili, acik = false, uye = false, tikla }: {
         </span>
         <span className="alt">{alt}</span>
       </span>
-      <span role="cell" className="ikincil">{kapsamMetni(satir.hesaplar)}</span>
-      <span role="cell" className=""
+      <span className="ikincil">{kapsamMetni(satir.hesaplar)}</span>
+      <span className=""
         style={kullanim.durum ? { color: `var(--${kullanim.durum})` } : undefined}>
         {kullanim.metin}
       </span>
-      <span role="cell" className=""
+      <span className=""
         style={sahip.durum ? { color: `var(--${sahip.durum})` } : undefined}>
         {sahip.metin}
       </span>

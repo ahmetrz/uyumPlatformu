@@ -12,7 +12,9 @@ import {
 import { ZamanCizelgesi, type ZamanKarti } from '@/components/kabuk/zaman';
 import BaglamCubugu from '@/components/kabuk/BaglamCubugu';
 import { useEylem } from '@/components/useEylem';
-import { bulguGuncelle, aksiyonEkle, aksiyonDurumDegistir, kanitEkle } from '@/lib/eylemler';
+import {
+  bulguGuncelle, aksiyonEkle, aksiyonDurumDegistir, aksiyonDogrula, kanitEkle,
+} from '@/lib/eylemler';
 import {
   ONEM_DERECELERI, ONEM_ETIKET, BULGU_DURUMLARI, BULGU_DURUM_ETIKET,
   AKSIYON_DURUMLARI, AKSIYON_ETIKET, kanitTazelik, etiketle, eylemCumlesi, zamanTR,
@@ -25,6 +27,9 @@ import {
   type AksiyonOzeti,
 } from '../mantik';
 
+/** Kayıt ekranındaki aksiyon: özet + görev ayrılığı için sorumlu kimliği. */
+export type AksiyonKaydi = AksiyonOzeti & { sorumluId: string | null };
+
 export type Veri = {
   id: string; maddeDurumuId: string; baslik: string; aciklama: string;
   durum: string; onem: string; kaynak: string | null; kokNeden: string | null;
@@ -32,10 +37,12 @@ export type Veri = {
   retestGerekli: boolean; retestSonucu: string | null;
   kapanisDogrulama: string | null; kapanisDogrulayan: string | null;
   sorumluId: string | null; sorumlu: string | null;
+  /* C20 · sunucuda hesaplanan yetki bayrakları (bkz. veri.ts) */
+  aktifKullaniciId: string; yazabilir: boolean; dogrulayabilir: boolean;
   madde: { kod: string; baslik: string; metin: string };
   tesis: { id: string; kod: string; ad: string; tip: string | null };
   surec: { id: string; kod: string; regKod: string };
-  aksiyonlar: AksiyonOzeti[];
+  aksiyonlar: AksiyonKaydi[];
   projeler: { id: string; kod: string; ad: string }[];
   riskler: { id: string; kod: string; baslik: string }[];
   kanitlar: { id: string; ad: string; tip: string; baslangic: string }[];
@@ -107,6 +114,13 @@ export default function BulguDetayIstemci({ veri }: { veri: Veri }) {
       id: veri.id,
       ...(alan === 'sorumluId' ? { sorumluId: deger || null } : { [alan]: deger }),
     }));
+  }
+
+  /* C20 · Kök neden ve retest, her tuşta değil kaydet düğmesiyle yazılır:
+     serbest metin denetim izine satır satır düşmesin. Boş metin sunucuda
+     null olur — "kayıt yok" ile "boş dize" ayrımı ekrana sızmaz. */
+  function capaKaydet(alan: 'kokNeden' | 'retestSonucu', deger: string) {
+    calistir(() => bulguGuncelle({ id: veri.id, [alan]: deger }));
   }
 
   return (
@@ -208,8 +222,17 @@ export default function BulguDetayIstemci({ veri }: { veri: Veri }) {
             <AksiyonPaneli
               aksiyon={aksiyon}
               bekliyor={bekliyor}
+              hata={hata}
+              yazabilir={veri.yazabilir}
+              /* Görev ayrılığı satır bazlı: yetkisi olsa da sorumlu kendi
+                 aksiyonunu doğrulayamaz. Sunucu aynı kuralı yeniden denetler. */
+              dogrulayabilir={veri.dogrulayabilir && aksiyon.sorumluId !== veri.aktifKullaniciId}
+              kendiAksiyonu={aksiyon.sorumluId === veri.aktifKullaniciId}
               geri={() => setSeciliAksiyon(null)}
-              degistir={(durum) => calistir(() => aksiyonDurumDegistir({ id: aksiyon.id, durum }))}
+              degistir={(durum, not) => calistir(
+                () => aksiyonDurumDegistir({ id: aksiyon.id, durum, not }))}
+              dogrula={(sonuc, not) => calistir(
+                () => aksiyonDogrula({ id: aksiyon.id, sonuc, not }))}
             />
           ) : (
             <>
@@ -236,11 +259,28 @@ export default function BulguDetayIstemci({ veri }: { veri: Veri }) {
                   <CekmeceAlanlar alanlar={[
                     { etiket: 'Madde', deger: veri.madde.kod },
                     { etiket: 'Santral', deger: veri.tesis.ad },
-                    { etiket: 'Kök neden', deger: veri.kokNeden ?? '—' },
+                    { etiket: 'Kök neden', deger: veri.kokNeden ?? 'kayıt yok' },
+                    { etiket: 'Retest', deger: veri.retestGerekli
+                      ? (veri.retestSonucu ? 'Gerekli · sonuç girildi' : 'Gerekli · sonuç bekliyor')
+                      : 'Gerekmiyor' },
                     { etiket: 'Doğrulama', deger: dogrulama.soz,
                       durum: dogrulama.im ?? undefined },
                     { etiket: 'Kapanış', deger: veri.kapanma ? kisaTarih(veri.kapanma) : '—' },
                   ]} />
+
+                  {/* C20 · CAPA: kök neden + retest — yazma yetkisi olana */}
+                  {veri.yazabilir && (
+                    <CapaAlanlari
+                      key={`${veri.kokNeden ?? ''}|${veri.retestSonucu ?? ''}`}
+                      kokNeden={veri.kokNeden}
+                      retestGerekli={veri.retestGerekli}
+                      retestSonucu={veri.retestSonucu}
+                      bekliyor={bekliyor}
+                      kaydet={capaKaydet}
+                      retestDegistir={(g) => calistir(
+                        () => bulguGuncelle({ id: veri.id, retestGerekli: g }))}
+                    />
+                  )}
 
                   <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)',
                     display: 'grid', gap: 'var(--s14)' }}>
@@ -427,15 +467,84 @@ function DogrulamaHucresi({ hucre }: { hucre: ReturnType<typeof aksiyonDogrulama
   return hucre.kanit ? <Ipucu metin={hucre.kanit} genis>{govde}</Ipucu> : govde;
 }
 
+/* ── CAPA alanları: kök neden + retest ──────────────────────────────── */
+
+function CapaAlanlari({
+  kokNeden, retestGerekli, retestSonucu, bekliyor, kaydet, retestDegistir,
+}: {
+  kokNeden: string | null; retestGerekli: boolean; retestSonucu: string | null;
+  bekliyor: boolean;
+  kaydet: (alan: 'kokNeden' | 'retestSonucu', deger: string) => void;
+  retestDegistir: (gerekli: boolean) => void;
+}) {
+  const [neden, setNeden] = useState(kokNeden ?? '');
+  const [sonuc, setSonuc] = useState(retestSonucu ?? '');
+  const nedenDegisti = neden.trim() !== (kokNeden ?? '');
+  const sonucDegisti = sonuc.trim() !== (retestSonucu ?? '');
+  return (
+    <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)', display: 'grid', gap: 'var(--s14)' }}>
+      <p className="etiket" style={{ margin: 0 }}>Kök neden analizi</p>
+      <Alan etiket="Kök neden">
+        <textarea className="ab-gr" value={neden} disabled={bekliyor}
+          placeholder="Bulgu neden oluştu? (5 neden / balık kılçığı özeti)"
+          onChange={(e) => setNeden(e.target.value)} />
+      </Alan>
+      <div style={{ display: 'flex', gap: 'var(--s12)' }}>
+        <Dugme tur="birincil" disabled={bekliyor || !nedenDegisti}
+          onClick={() => kaydet('kokNeden', neden)}>
+          Kök nedeni kaydet
+        </Dugme>
+      </div>
+
+      <p className="etiket" style={{ margin: 'var(--s8) 0 0' }}>Retest</p>
+      <label style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--s8)',
+        fontSize: 'var(--t-field)' }}>
+        <input className="ab-gr" type="checkbox" checked={retestGerekli} disabled={bekliyor}
+          onChange={(e) => retestDegistir(e.target.checked)} />
+        Retest gerekli
+      </label>
+      {retestGerekli && (
+        <>
+          <Alan etiket="Retest sonucu">
+            <textarea className="ab-gr" value={sonuc} disabled={bekliyor}
+              placeholder="Yeniden test edildi mi, ne bulundu?"
+              onChange={(e) => setSonuc(e.target.value)} />
+          </Alan>
+          <div style={{ display: 'flex', gap: 'var(--s12)' }}>
+            <Dugme tur="birincil" disabled={bekliyor || !sonucDegisti}
+              onClick={() => kaydet('retestSonucu', sonuc)}>
+              Retest sonucunu kaydet
+            </Dugme>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 /* ── Aksiyon paneli ─────────────────────────────────────────────────── */
 
 function AksiyonPaneli({
-  aksiyon, bekliyor, geri, degistir,
+  aksiyon, bekliyor, hata, yazabilir, dogrulayabilir, kendiAksiyonu, geri, degistir, dogrula,
 }: {
-  aksiyon: AksiyonOzeti; bekliyor: boolean; geri: () => void;
-  degistir: (durum: string) => void;
+  aksiyon: AksiyonKaydi; bekliyor: boolean; hata: string | null;
+  yazabilir: boolean; dogrulayabilir: boolean; kendiAksiyonu: boolean;
+  geri: () => void;
+  degistir: (durum: string, not?: string) => void;
+  dogrula: (sonuc: 'etkin' | 'etkisiz', not: string | null) => void;
 }) {
   const im = aksiyonImi(aksiyon);
+  const dogrulamaH = aksiyonDogrulamaHucresi(aksiyon);
+  /* 'tamamlandi' seçimi hemen yazılmaz: önce tamamlama notu istenir.
+     Diğer geçişler eskisi gibi anında gider. */
+  const [tamamlamaFormu, setTamamlamaFormu] = useState(false);
+  const [tamamlamaNotu, setTamamlamaNotu] = useState('');
+  const [dogrulamaFormu, setDogrulamaFormu] = useState<'etkin' | 'etkisiz' | null>(null);
+  const [dogrulamaNotu, setDogrulamaNotu] = useState('');
+
+  const dogrulanabilir = aksiyon.durum === 'tamamlandi'
+    && aksiyon.dogrulama !== 'dogrulandi';
+
   return (
     <>
       <div className="ab-panel-blok">
@@ -452,20 +561,105 @@ function AksiyonPaneli({
         { etiket: 'Hedef', deger: aksiyon.hedef ? kisaTarih(aksiyon.hedef) : '—',
           durum: im === 'bd' ? 'bd' : undefined },
         { etiket: 'Tamamlanma', deger: aksiyon.tamamlanma ? kisaTarih(aksiyon.tamamlanma) : '—' },
-        { etiket: 'Doğrulama', deger: etiketle(aksiyon.dogrulama) },
-        { etiket: 'Doğrulayan', deger: aksiyon.dogrulayan ?? '—' },
+        /* Durum sözcük + işaretçi birlikte: renk tek başına anlam taşımaz. */
+        { etiket: 'Doğrulama', deger: dogrulamaH.soz, durum: dogrulamaH.im ?? undefined },
+        { etiket: 'Doğrulayan', deger: aksiyon.dogrulayan
+          ? `${aksiyon.dogrulayan}${aksiyon.dogrulamaTarihi ? ` · ${kisaTarih(aksiyon.dogrulamaTarihi)}` : ''}`
+          : '—' },
       ]} />
-      <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
-        <Alan etiket="Aksiyon durumu">
-          <select className="ab-gr" value={aksiyon.durum} disabled={bekliyor}
-            onChange={(e) => degistir(e.target.value)}>
-            {AKSIYON_DURUMLARI.map((d) => (
-              <option key={d} value={d}>{AKSIYON_ETIKET[d]}</option>
-            ))}
-          </select>
-        </Alan>
+
+      {yazabilir && (
+        <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)', display: 'grid', gap: 'var(--s12)' }}>
+          <Alan etiket="Aksiyon durumu">
+            <select className="ab-gr" value={tamamlamaFormu ? 'tamamlandi' : aksiyon.durum}
+              disabled={bekliyor}
+              onChange={(e) => {
+                const d = e.target.value;
+                if (d === 'tamamlandi' && aksiyon.durum !== 'tamamlandi') {
+                  setTamamlamaFormu(true);
+                  return;
+                }
+                setTamamlamaFormu(false);
+                // Not verilmez: sunucu eski tamamlama/doğrulama notunu korur.
+                degistir(d);
+              }}>
+              {AKSIYON_DURUMLARI.map((d) => (
+                <option key={d} value={d}>{AKSIYON_ETIKET[d]}</option>
+              ))}
+            </select>
+          </Alan>
+          {tamamlamaFormu && (
+            <>
+              <Alan etiket="Tamamlama notu" zorunlu>
+                <textarea className="ab-gr" value={tamamlamaNotu} disabled={bekliyor}
+                  placeholder="Ne yapıldı? Doğrulayan bu nota bakacak."
+                  onChange={(e) => setTamamlamaNotu(e.target.value)} />
+              </Alan>
+              <div style={{ display: 'flex', gap: 'var(--s12)' }}>
+                <Dugme tur="birincil" disabled={bekliyor || !tamamlamaNotu.trim()}
+                  onClick={() => degistir('tamamlandi', tamamlamaNotu)}>
+                  Tamamlandı olarak kaydet
+                </Dugme>
+                <Dugme tur="ikincil" onClick={() => { setTamamlamaFormu(false); setTamamlamaNotu(''); }}>
+                  Vazgeç
+                </Dugme>
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* C20 · Doğrulama — yalnız tamamlanmış aksiyon, yalnız yetkili, sorumlu hariç */}
+      <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)', display: 'grid', gap: 'var(--s12)' }}>
+        <p className="etiket" style={{ margin: 0 }}>Doğrulama</p>
+        {!dogrulanabilir ? (
+          <span style={{ fontSize: 'var(--t-field)', color: 'var(--i3)' }}>
+            {aksiyon.dogrulama === 'dogrulandi'
+              ? 'Doğrulandı; yeniden doğrulama gerekmez.'
+              : 'Doğrulama, aksiyon tamamlandığında yapılır.'}
+          </span>
+        ) : !dogrulayabilir ? (
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--s8)',
+            fontSize: 'var(--t-field)', color: 'var(--i3)' }}>
+            <Im durum="unk" ad="Doğrulama yetkisi yok" />
+            {kendiAksiyonu
+              ? 'Görev ayrılığı: kendi aksiyonunuzu doğrulayamazsınız.'
+              : 'Doğrulama için uyum onay yetkisi gerekir.'}
+          </span>
+        ) : dogrulamaFormu ? (
+          <>
+            <Alan etiket={dogrulamaFormu === 'etkin' ? 'Doğrulama notu' : 'Gerekçe'}
+              zorunlu={dogrulamaFormu === 'etkisiz'}>
+              <textarea className="ab-gr" value={dogrulamaNotu} disabled={bekliyor}
+                placeholder={dogrulamaFormu === 'etkin'
+                  ? 'Nasıl doğrulandı? (retest, kanıt, gözlem)'
+                  : 'Neden etkisiz? Sorumluya geri dönecek.'}
+                onChange={(e) => setDogrulamaNotu(e.target.value)} />
+            </Alan>
+            <div style={{ display: 'flex', gap: 'var(--s12)' }}>
+              <Dugme tur="birincil"
+                disabled={bekliyor || (dogrulamaFormu === 'etkisiz' && !dogrulamaNotu.trim())}
+                onClick={() => dogrula(dogrulamaFormu, dogrulamaNotu || null)}>
+                {dogrulamaFormu === 'etkin' ? 'Etkin · doğrula' : 'Etkisiz · reddet'}
+              </Dugme>
+              <Dugme tur="ikincil" onClick={() => { setDogrulamaFormu(null); setDogrulamaNotu(''); }}>
+                Vazgeç
+              </Dugme>
+            </div>
+          </>
+        ) : (
+          <div style={{ display: 'flex', gap: 'var(--s12)' }}>
+            <Dugme tur="birincil" disabled={bekliyor} onClick={() => setDogrulamaFormu('etkin')}>
+              Doğrula · etkin
+            </Dugme>
+            <Dugme tur="ikincil" disabled={bekliyor} onClick={() => setDogrulamaFormu('etkisiz')}>
+              Etkisiz
+            </Dugme>
+          </div>
+        )}
+        {hata && <Hata cumle={hata} />}
       </div>
-      <CekmeceEylemler dipNot="Durum değişikliği aktör ve zaman damgasıyla denetim izine yazılır." />
+      <CekmeceEylemler dipNot="Durum değişikliği ve doğrulama aktör ve zaman damgasıyla denetim izine yazılır. Sorumlu kendi aksiyonunu doğrulayamaz." />
     </>
   );
 }

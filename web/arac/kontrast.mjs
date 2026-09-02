@@ -81,7 +81,7 @@ function tokenlar(blokBaslangici) {
   return harita;
 }
 
-/** Taban `.atlas` bloğu + bir yüzey kipinin üzerine yazdıkları. */
+/** Taban `.ab` bloğu + bir yön kipinin (`[data-yon]`) üzerine yazdıkları. */
 function kip(secici) {
   return tokenlar(secici);
 }

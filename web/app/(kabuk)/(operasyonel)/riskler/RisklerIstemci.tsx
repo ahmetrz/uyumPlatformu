@@ -9,16 +9,16 @@ import {
 import { RISK_DURUM_ETIKET, etiketle, tarihTR } from '@/lib/sabitler';
 import { RiskFormu, KararFormu } from './Formlar';
 import {
-  aktifMi, altSatir, gecikmis, gunFarki, kabulDoldu, maxEtki, santralMetni,
-  skorDurumu, skorAgirligi, SKOR_TAVANI, SKOR_TIK,
-  type BulguSecenegi, type Kisi, type Kodlu, type R,
+  aktifMi, altSatir, gecikmis, gunFarki, hucreEsigi, hucredeMi, isiHaritasi, kabulDoldu,
+  maxEtki, santralMetni, skorDurumu, skorAgirligi, SKOR_TAVANI, SKOR_TIK,
+  type BulguSecenegi, type IsiHucresi, type Kisi, type Kodlu, type R,
 } from './ortak';
 
 /* O3 · Risk Register — "hangi risk önce?"
    Skor LİDER kolondur (03-screens O3): işlem/treatment sözcükleri tablodan
    kaldırıldı, durum satırda kelimeyle YAZILMAZ.
 
-   Atlas 2: skor artık İKİ KANAL taşır — rakam+renk ve tik şeridi. Eskiden
+   Skor İKİ KANAL taşır — rakam+renk ve tik şeridi. Eskiden
    şiddet yalnız rengin içindeydi; "durum yalnız renkle anlatılmaz"
    sözleşmesi bu satırda çiğneniyordu ve renk göremeyen bir okuyucu için 22
    ile 4 aynı görünüyordu. Şerit aynı bilgiyi uzunlukla da kodlar.
@@ -54,6 +54,8 @@ export default function RisklerIstemci({
   const [seciliId, setSeciliId] = useState<string | null>(null);
   const [kip, setKip] = useState<Kip>('ozet');
   const [yeniAcik, setYeniAcik] = useState(false);
+  /** C18 · ısı haritasında seçili hücre — liste bu hücreye daralır */
+  const [hucre, setHucre] = useState<IsiHucresi | null>(null);
 
   const secili = riskler.find((r) => r.id === seciliId) ?? null;
 
@@ -70,7 +72,11 @@ export default function RisklerIstemci({
   const kesildi = toplam > riskler.length;
 
   /* ── Filtre + kapsam ────────────────────────────────────────────────── */
-  const taban = useMemo(() => riskler.filter((r) => {
+  /* Harita tabanı: sekme + santral + sahip süzgeçleri uygulanmış, HÜCRE
+     süzgeci uygulanmamış küme. Harita bu kümeden sayılır ki bir hücreye
+     tıklayınca diğer hücrelerin sayıları sıfırlanmasın — okuyucu haritada
+     gezinirken bağlamı kaybetmez. */
+  const haritaTabani = useMemo(() => riskler.filter((r) => {
     if (filtre === 'aktif' && !aktifMi(r)) return false;
     if (filtre === 'kritik' && !(aktifMi(r) && r.artikRisk !== null && r.artikRisk >= 15)) return false;
     if (filtre === 'ot' && !(aktifMi(r) && r.ot)) return false;
@@ -80,6 +86,11 @@ export default function RisklerIstemci({
     if (sahipF === 'yok' ? !!r.sahip : sahipF !== null && r.sahip?.id !== sahipF) return false;
     return true;
   }), [riskler, filtre, tesisF, sahipF]);
+  const harita = useMemo(() => isiHaritasi(haritaTabani), [haritaTabani]);
+  const taban = useMemo(
+    () => (hucre ? haritaTabani.filter((r) => hucredeMi(r, hucre)) : haritaTabani),
+    [haritaTabani, hucre],
+  );
 
   /* Varsayılan sıralama SKOR. Gecikmiş satırlar sıralamadan bağımsız üstte
      (06 §A2) ve asla toplanmaz; skoru bilinmeyen satır en alta iner ama
@@ -174,13 +185,24 @@ export default function RisklerIstemci({
             }
           />
 
+          <IsiHaritasiPaneli
+            harita={harita}
+            secili={hucre}
+            sec={(h) => {
+              setHucre((onceki) =>
+                onceki && h && onceki.olasilik === h.olasilik && onceki.etki === h.etki ? null : h);
+              setKuyrukAcik(false);
+            }}
+            kesildi={kesildi}
+          />
+
           {gosterilen.length === 0 ? (
             <BosDurum
               hicKayitYok={riskler.length === 0}
               kapsamli={kapsamli}
               aktifFiltre={filtre}
-              kapaliyaGec={() => { setFiltre('kapali'); setTesisF(null); setSahipF(null); }}
-              temizle={() => { setFiltre('aktif'); setTesisF(null); setSahipF(null); }}
+              kapaliyaGec={() => { setFiltre('kapali'); setTesisF(null); setSahipF(null); setHucre(null); }}
+              temizle={() => { setFiltre('aktif'); setTesisF(null); setSahipF(null); setHucre(null); }}
               yeni={() => setYeniAcik(true)}
             />
           ) : (
@@ -191,7 +213,7 @@ export default function RisklerIstemci({
                 marginTop: 'var(--s22)',
                 borderTop: 'var(--bw-strong) solid var(--hr2)',
               } as CSSProperties}
-              role="table">
+             >
               {gosterilen.map((r) => (
                 <Satir key={r.id} risk={r} secili={seciliId === r.id} sec={() => sec(r.id)} />
               ))}
@@ -221,6 +243,7 @@ export default function RisklerIstemci({
               <p className="ab-dip dip">
                 Sıralama artık skora göre
                 {skorsuzSayisi > 0 && ` · ${skorsuzSayisi} risk skorsuz`}
+                {hucre && ` · haritadan süzülü: olasılık ${hucre.olasilik} × etki ${hucre.etki}`}
               </p>
             </div>
           )}
@@ -273,6 +296,78 @@ export default function RisklerIstemci({
   );
 }
 
+/* ── C18 · Isı haritası (olasılık × etki) ───────────────────────────
+   5×5; satır 0 = etki 5 (üst), sütun 0 = olasılık 1 (sol). Her hücre bir
+   <button aria-pressed>: adet + eşik sözcüğü (ilk / orta / son) yazılıdır,
+   renk yalnız ikinci kanaldır. Boş hücre "0" yazar — burada sıfır GERÇEK
+   sıfırdır (sayım), bilinmeyen ayrı satırda sayılır ("ölçülemedi").
+
+   Harita ELDEKİ satırlardan sayılır; sunucu tavanı kütüğü kestiyse dipnot
+   bunu söyler — harita "kütüğün tamamı" diye yalan söylemez. */
+
+const ESIK_SOZU: Record<'ilk' | 'orta' | 'son', string> = {
+  ilk: 'düşük', orta: 'orta', son: 'kritik',
+};
+
+function IsiHaritasiPaneli({ harita, secili, sec, kesildi }: {
+  harita: ReturnType<typeof isiHaritasi>;
+  secili: IsiHucresi | null;
+  sec: (h: IsiHucresi | null) => void;
+  kesildi: boolean;
+}) {
+  const hicYok = harita.yerlesen === 0;
+  return (
+    <section className="ab-isi" aria-label="Risk ısı haritası: olasılık × etki">
+      <div className="bas">
+        <span className="etiket">Isı haritası · olasılık × etki</span>
+        <span className="mono cumle">
+          {harita.yerlesen} risk yerleşti
+          {harita.olculemeyen > 0 && <> · <span className="unk">{harita.olculemeyen} ölçülemedi</span></>}
+          {kesildi && ' · yalnız yüklü satırlar'}
+        </span>
+        {secili && (
+          <button type="button" className="ab-dugme eylem" onClick={() => sec(null)}>
+            Hücre süzgecini kaldır
+          </button>
+        )}
+      </div>
+
+      {hicYok ? (
+        <p className="cumle bos">
+          Bu süzgeçte olasılığı ve etkisi bilinen risk yok — harita çizilmedi.
+        </p>
+      ) : (
+        <div className="izgara" role="group" aria-label="Hücreler; tıklayınca liste o hücreye daralır">
+          <span className="eksen dikey" aria-hidden>etki ↑</span>
+          {harita.hucreler.map((satir, si) => {
+            const etki = 5 - si;
+            return satir.map((adet, oi) => {
+              const olasilik = oi + 1;
+              const esik = hucreEsigi(olasilik, etki);
+              const basili = !!secili && secili.olasilik === olasilik && secili.etki === etki;
+              return (
+                <button
+                  key={`${olasilik}-${etki}`}
+                  type="button"
+                  className={`hucre e-${esik}${adet === 0 ? ' bos' : ''}`}
+                  style={{ gridColumn: oi + 2, gridRow: si + 1 }}
+                  aria-pressed={basili}
+                  aria-label={`Olasılık ${olasilik}, etki ${etki}: ${adet} risk, ${ESIK_SOZU[esik]} bölge`}
+                  onClick={() => sec({ olasilik, etki })}
+                >
+                  <span className="mono adet">{adet}</span>
+                  <span className="esik">{ESIK_SOZU[esik]}</span>
+                </button>
+              );
+            });
+          })}
+          <span className="eksen yatay" aria-hidden>olasılık →</span>
+        </div>
+      )}
+    </section>
+  );
+}
+
 /* ── Satır ──────────────────────────────────────────────────────────── */
 
 function Satir({ risk, secili, sec }: { risk: R; secili: boolean; sec: () => void }) {
@@ -283,8 +378,8 @@ function Satir({ risk, secili, sec }: { risk: R; secili: boolean; sec: () => voi
   return (
     <button
       type="button"
-      role="row"
-      aria-selected={secili}
+     
+      aria-pressed={secili}
       className="satir"
       onClick={sec}
       style={{ borderLeftColor: secili ? renk : 'transparent' }}
@@ -294,7 +389,7 @@ function Satir({ risk, secili, sec }: { risk: R; secili: boolean; sec: () => voi
           karşılığıdır — kritik satır rengi görülmese de uzunluğuyla
           ayrışır. Skorsuz risk kesikli şerit alır: ölçülmemiş bir risk
           sıfır ağırlıklı DEĞİLDİR. */}
-      <span role="cell" style={{
+      <span style={{
         paddingLeft: 'var(--s16)', display: 'flex', alignItems: 'center',
         gap: 'var(--s8)',
       }}>
@@ -315,12 +410,12 @@ function Satir({ risk, secili, sec }: { risk: R; secili: boolean; sec: () => voi
             : `Artık risk ${risk.artikRisk} / ${SKOR_TAVANI}`}
         />
       </span>
-      <span role="cell" style={{ minWidth: 0 }}>
+      <span style={{ minWidth: 0 }}>
         <span className="konu">{risk.baslik}</span>
         <span className="alt">{altSatir(risk)}</span>
       </span>
-      <span role="cell" className="ikincil">{santralMetni(risk)}</span>
-      <span role="cell" className=""
+      <span className="ikincil">{santralMetni(risk)}</span>
+      <span className=""
         style={sahipsiz ? { color: 'var(--md)' } : undefined}>
         {risk.sahip?.ad ?? 'atanmadı'}
       </span>

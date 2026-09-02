@@ -4,7 +4,7 @@ import { modulOkuyabilir } from '@/app/kapsam';
 import RisklerIstemci from './RisklerIstemci';
 import { riskEkranVerisi } from './veri';
 
-/* O3 · Risk Register — Atlas yerleşimi. Kabuk (ray + çekmece kolonu)
+/* O3 · Risk Register — defter yerleşimi. Kabuk (ray + çekmece kolonu)
    (operasyonel)/layout.tsx tarafından verilir; burada UstCubuk ya da
    .icerik sarmalayıcısı YOK.
 

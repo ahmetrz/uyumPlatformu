@@ -9,7 +9,7 @@ import { an } from '@/lib/an';
    Sunucu yükleyicisi (veri.ts) ve iki istemci de bu dosyayı kullanır — bu
    nedenle burada 'server-only' YOKTUR ve Prisma'ya dokunulmaz. */
 
-/** MaddeDurumu.durum → Atlas işaretçisi.
+/** MaddeDurumu.durum → durum işaretçisi.
     `kapsamdisi` işaretçi ÜRETMEZ (null): kapsam dışı, bilinmeyen değildir. */
 export const DURUM_IM: Record<string, Durum | null> = {
   uyumlu: 'ok',
@@ -227,3 +227,67 @@ export type CerceveVerisi = {
   eslestirme: { hedef: string; sayi: number; denklik: string }[];
   kuru: { satirlar: KuruSatir[]; ozet: string } | null;
 };
+
+/* ── C15 · Uyum eğilimi (UyumAnlik) ─────────────────────────────────
+   `UyumAnlik.ozetJson` durum SAYILARINI taşır; yüzde ekranda yeniden
+   hesaplanır (`uyumOzeti`), kayıtta saklı bir yüzdeye güvenilmez — formül
+   değişirse tarihçe ile bugün ayrışırdı. Kayıt üç biçimde gelebilir:
+   motor (`lib/motorlar/anlik.ts`) `{ durumlar, guvenler }` yazar; eski
+   tohum `{ sayilar }` ya da düz `{ uyumlu: n, … }` bırakmış olabilir.
+   Üçü de tek noktadan okunur; okunamayan kayıt SESSİZCE atlanır — yanlış
+   bir sıfır çizmekten iyidir. */
+
+/** Eğilim şeridinin bir noktası. `yuzde: null` = o anlıkta hiç
+    değerlendirilmiş kontrol yoktu (ölçülmedi, sıfır değil). */
+export type TrendNoktasi = {
+  surecId: string;
+  tarih: string;                // ISO
+  etiket: string;               // "24 Eyl"
+  yuzde: number | null;
+  degerlendirilen: number;
+  bilinmeyen: number;
+};
+
+/** `ozetJson` → durum sayımı. Biçim tanınmazsa null. */
+export function anlikSayimi(ozetJson: string): Record<string, number> | null {
+  let cozulen: unknown;
+  try { cozulen = JSON.parse(ozetJson); } catch { return null; }
+  if (!cozulen || typeof cozulen !== 'object') return null;
+  const kok = cozulen as { durumlar?: unknown; sayilar?: unknown };
+  const kaynak = kok.durumlar ?? kok.sayilar ?? cozulen;
+  if (!kaynak || typeof kaynak !== 'object') return null;
+  const sayim = Object.fromEntries(
+    Object.entries(kaynak as Record<string, unknown>)
+      .filter((g): g is [string, number] => typeof g[1] === 'number'),
+  );
+  return Object.keys(sayim).length === 0 ? null : sayim;
+}
+
+/** Eğilim şeridinin geometrisi — 320×48 SVG'ye yerleşim.
+    Yalnız ÖLÇÜLMÜŞ noktalar çizgiye girer; ölçülmemiş nokta eksende boş
+    tik olarak kalır (sıfıra çekilmez). Tek noktada çizgi yok, nokta var. */
+export const TREND_EN = 320;
+export const TREND_BOY = 48;
+const TREND_KENAR = 4;
+
+export function trendGeometrisi(noktalar: TrendNoktasi[]): {
+  x: number; y: number | null; nokta: TrendNoktasi;
+}[] {
+  const n = noktalar.length;
+  if (n === 0) return [];
+  const adim = n === 1 ? 0 : (TREND_EN - TREND_KENAR * 2) / (n - 1);
+  return noktalar.map((nokta, i) => ({
+    nokta,
+    x: n === 1 ? TREND_EN / 2 : TREND_KENAR + i * adim,
+    y: nokta.yuzde === null
+      ? null
+      : TREND_KENAR + (1 - nokta.yuzde / 100) * (TREND_BOY - TREND_KENAR * 2),
+  }));
+}
+
+/** İlk ve son ölçülmüş nokta arasındaki fark (puan). İki ölçüm yoksa null. */
+export function trendFarki(noktalar: TrendNoktasi[]): number | null {
+  const olculen = noktalar.filter((p) => p.yuzde !== null);
+  if (olculen.length < 2) return null;
+  return (olculen[olculen.length - 1].yuzde ?? 0) - (olculen[0].yuzde ?? 0);
+}

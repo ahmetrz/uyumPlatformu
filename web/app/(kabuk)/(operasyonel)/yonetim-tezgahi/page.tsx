@@ -3,7 +3,7 @@ import { girisZorunlu, izinVar, izinliTesisIdleri, type Modul } from '@/lib/eris
 import { Yetkisiz } from '@/components/kabuk/temel';
 import { db } from '@/lib/db';
 import TezgahIstemci from './TezgahIstemci';
-import type { Anahtar, Is, Tanim } from './ortak';
+import { SON_ISTEK_TAVANI, type Anahtar, type Is, type SonIstek, type Tanim } from './ortak';
 
 export const metadata: Metadata = { title: 'Yönetim tezgâhı' };
 
@@ -70,6 +70,22 @@ export default async function Sayfa() {
         _count: { select: { istekler: true } },
       },
       orderBy: { olusturuldu: 'desc' },
+    })
+    : null;
+
+  /* D32 · Son istekler aynı kapıya tabidir (yonetim/okuma): anahtarı
+     göremeyen, trafiğini de görmez. `select` yine bilinçli: `yanitOzeti`
+     (yanıt gövdesi kopyası) ve `idempotencyAnahtari` (istemci sırrı)
+     sorguya HİÇ GİRMEZ. */
+  const istekSorgusu = anahtarOkuyabilir
+    ? db.apiIstegi.findMany({
+      select: {
+        id: true, zaman: true, yontem: true, yol: true, durumKodu: true,
+        sureMs: true, hataKodu: true,
+        anahtar: { select: { id: true, ad: true } },
+      },
+      orderBy: { zaman: 'desc' },
+      take: SON_ISTEK_TAVANI,
     })
     : null;
 
@@ -229,6 +245,20 @@ export default async function Sayfa() {
     }))
     : [];
 
+  const sonIstekler: SonIstek[] = istekSorgusu
+    ? (await istekSorgusu).map((i): SonIstek => ({
+      id: i.id,
+      zaman: i.zaman.toISOString(),
+      yontem: i.yontem,
+      yol: i.yol,
+      durumKodu: i.durumKodu,
+      // null = ölçülmedi; 0'a indirgenmez (§19).
+      sureMs: i.sureMs,
+      hataKodu: i.hataKodu,
+      anahtar: i.anahtar ? { id: i.anahtar.id, ad: i.anahtar.ad } : null,
+    }))
+    : [];
+
   return (
     <TezgahIstemci
       aktifId={kullanici.id}
@@ -236,6 +266,7 @@ export default async function Sayfa() {
       isler={isler}
       tanimlar={tanimlar}
       anahtarlar={anahtarlar}
+      sonIstekler={sonIstekler}
       kullanicilar={kullanicilar.map((u) => ({ id: u.id, ad: u.adSoyad }))}
       tesisSecenekleri={tesisler
         .filter((t) => t.durum === 'aktif')

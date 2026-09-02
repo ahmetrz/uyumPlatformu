@@ -11,7 +11,7 @@ import type { Durum } from './temel';
    bandıdır: 1px eksen, aksan renginde "bugün" tırnağı, dönem etiketleri
    eksenin ÜSTÜNDE, kartlar ALTINDA ayrı şeritte.
 
-   YERLEŞİM MATEMATİĞİ Atlas'tan aynen devralındı ve bu bilinçlidir: kart
+   YERLEŞİM MATEMATİĞİ önceki arayüz katmanından aynen devralındı ve bu bilinçlidir: kart
    ayırma, ölçülen eksen genişliği ve "sığmayan kart çizilmez" kuralı bir
    TASARIM tercihi değil, üç ekranda ölçülmüş bir çakışma düzeltmesidir.
    Değişen malzeme: sınıflar `.ab-zaman*`, kart 208px yerine aynı ölçüde

@@ -37,14 +37,14 @@ söylemeye başlar ve yalanı kimse fark etmez.
 
 | Ölçü | Değer |
 |---|---|
-| test dosyası | 54 |
-| test vakası | 1043 |
+| test dosyası | 63 |
+| test vakası | 1187 |
 | atlanan test | 1 |
-| ekran (rota) | 41 |
+| ekran (rota) | 44 |
 | API ucu | 9 |
 | otomasyon motoru | 9 |
 | connector adaptörü | 8 |
-| sunucu eylemi modülü | 27 |
+| sunucu eylemi modülü | 28 |
 | Prisma modeli | 95 |
 | uygulanmış göç | 17 |
 

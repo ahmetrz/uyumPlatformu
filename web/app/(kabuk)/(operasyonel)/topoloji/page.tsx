@@ -6,8 +6,9 @@ import {
 } from '@/lib/entegrasyon/topoloji';
 import TopolojiIstemci from './TopolojiIstemci';
 import {
-  anlikKarsilastirmaZamani,
-  type AnlikSatiri, type KarsilastirmaIzi, type SapmaSatiri, type TemelSatiri,
+  anlikKarsilastirmaZamani, kapsamBolgeleri,
+  type AnlikSatiri, type BolgeSatiri, type GecitSatiri, type KarsilastirmaIzi,
+  type SapmaSatiri, type TemelSatiri,
 } from './mantik';
 
 export const metadata: Metadata = { title: 'Ağ / OT topolojisi' };
@@ -57,7 +58,7 @@ export default async function Sayfa() {
      `lib/entegrasyon/topoloji.ts` yardımcılarından gelir (#22). Burada
      ikinci bir `findMany` yazmak, kapsam koşulunun ve şiddet sırasının
      iki ayrı yerde yaşaması demekti. */
-  const [tesisler, hamSapmalar, hamAnliklar, ozet, maddeDurumlari]
+  const [tesisler, hamSapmalar, hamAnliklar, ozet, maddeDurumlari, hamBolgeler]
     = await Promise.all([
     db.tesis.findMany({
       where: { durum: 'aktif', ...(gorulebilir ? { id: { in: gorulebilir } } : {}) },
@@ -78,9 +79,51 @@ export default async function Sayfa() {
         orderBy: { guncellendi: 'desc' },
       })
       : Promise.resolve([]),
+    /* B8/B10 · Bölge–geçit diyagramı. Tesissiz (grup düzeyi) bölgeler
+       daraltılmış kapsamda da OKUNUR — "kurumsal ağ → OT DMZ" geçidinin
+       bir ucu tesissizdir ve düğümü olmayan kenar çizilemez. Kapsamdaki
+       hiçbir bölgeye bağlanmayanlar aşağıda `kapsamBolgeleri` ile budanır. */
+    db.agBolgesi.findMany({
+      where: gorulebilir
+        ? { OR: [{ tesisId: { in: gorulebilir } }, { tesisId: null }] }
+        : {},
+      select: {
+        id: true, kod: true, ad: true, tip: true, guvenlikSeviyesi: true, tesisId: true,
+        tesis: { select: { kod: true } },
+        // Silinmiş varlık bölge sayacına girmez; envanter de onu göstermez.
+        _count: { select: { varliklar: { where: { silindi: null } } } },
+      },
+      orderBy: { kod: 'asc' },
+    }),
   ]);
 
   const tesisKodu = new Map(tesisler.map((t) => [t.id, t.kod]));
+
+  /* Geçit yalnız iki ucu da okunmuş bölgeler arasında sorulur; kapsam
+     dışı bir bölgeye giden geçit varlığıyla bile o bölgeyi doğrulardı. */
+  const bolgeIdleri = hamBolgeler.map((b) => b.id);
+  const hamGecitler = bolgeIdleri.length
+    ? await db.agGeciti.findMany({
+      where: { kaynakBolgeId: { in: bolgeIdleri }, hedefBolgeId: { in: bolgeIdleri } },
+      orderBy: { id: 'asc' },
+    })
+    : [];
+  const { bolgeler, gecitler } = kapsamBolgeleri(
+    hamBolgeler.map((b): BolgeSatiri => ({
+      id: b.id, kod: b.kod, ad: b.ad, tip: b.tip,
+      seviye: b.guvenlikSeviyesi,
+      tesisId: b.tesisId, tesisKodu: b.tesis?.kod ?? null,
+      varlikSayisi: b._count.varliklar,
+    })),
+    hamGecitler.map((g): GecitSatiri => ({
+      id: g.id, kaynakBolgeId: g.kaynakBolgeId, hedefBolgeId: g.hedefBolgeId,
+      kontrolVarligi: g.kontrolVarligi, protokoller: g.protokoller,
+      onaylandi: g.onaylandi,
+      sonDogrulama: g.sonDogrulama?.toISOString() ?? null,
+      aciklama: g.aciklama,
+    })),
+    gorulebilir !== null,
+  );
 
   /* ── kapsam satırları (temel şeridi) ─────────────────────────────────
      Tesissiz (global) anlıklar yalnız kapsamı sınırsız kullanıcıya
@@ -218,6 +261,8 @@ export default async function Sayfa() {
       ozet={{ acikSapma: ozet.acikSapma, kritikAcik: ozet.kritikAcik }}
       iz={izGorunumu}
       tesisler={tesisler}
+      bolgeler={bolgeler}
+      gecitler={gecitler}
       maddeDurumlari={maddeDurumlari.map((m) => ({
         id: m.id, tesisId: m.tesisId,
         etiket: `${m.madde.kod} · ${m.madde.baslik}`,

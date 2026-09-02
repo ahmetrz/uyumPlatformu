@@ -38,7 +38,7 @@ export type DetayVerisi = {
   santraller: SeciciOgesi[];
 };
 
-/** Uyum durumu → Atlas işaretçisi. Değerlendirilmemiş madde BİLİNMEYEN kalır. */
+/** Uyum durumu → durum işaretçisi. Değerlendirilmemiş madde BİLİNMEYEN kalır. */
 const UYUM_DURUMU: Record<string, Durum> = {
   uyumlu: 'ok', kismi: 'md', uyumsuz: 'bd', incelemede: 'pl',
   kapsamdisi: 'unk', degerlendirilmedi: 'unk',

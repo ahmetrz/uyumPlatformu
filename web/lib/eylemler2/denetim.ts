@@ -122,17 +122,36 @@ export async function asamaIlerlet(girdi: { id: string }): Promise<Sonuc> {
         eylem: 'durum_degisimi', alan: 'durum', once: d.durum, sonra: sonraki }, tx);
 
       if (sonraki !== 'kapanis') return;
-      const [acikTalep, acikBulgu] = await Promise.all([
+      /* C24 · Doğrulama kapısı. 'dogrulama' → 'kapanis' geçişinde, denetime
+         bağlı bulguların TAMAMLANMIŞ aksiyonlarından doğrulanmamış olan
+         varsa kapanış reddedilir. "Doğrulanmamış" = `dogrulamaDurumu`
+         'dogrulandi' ya da 'reddedildi' DEĞİL: şemada alan hiç boş kalmaz
+         (varsayılan 'gerekmez'), yani "boş" burada "bağımsız bir gözün
+         henüz bakmadığı" demektir — 'gerekmez' ve 'bekliyor' ikisi de bu
+         sınıfa girer. Reddedilen aksiyon da kapanışı durdurur: etkisiz
+         bulunan bir düzeltmeyle denetim kapanamaz. Sayım aynı transaction
+         içindedir; sayı sıfır değilse aşama geçişi geri alınır. */
+      const [acikTalep, acikBulgu, dogrulanmamisAksiyon, reddedilenAksiyon] = await Promise.all([
         tx.kanitTalebi.count({ where: { denetimId: id, durum: 'acik' } }),
         tx.bulgu.count({ where: {
           denetimId: id, silindi: null, durum: { in: ['acik', 'aksiyonda'] },
         } }),
+        tx.aksiyon.count({ where: {
+          bulgu: { denetimId: id, silindi: null }, durum: 'tamamlandi',
+          dogrulamaDurumu: { notIn: ['dogrulandi', 'reddedildi'] },
+        } }),
+        tx.aksiyon.count({ where: {
+          bulgu: { denetimId: id, silindi: null }, durum: 'tamamlandi',
+          dogrulamaDurumu: 'reddedildi',
+        } }),
       ]);
-      if (acikTalep > 0 || acikBulgu > 0)
+      if (acikTalep > 0 || acikBulgu > 0 || dogrulanmamisAksiyon > 0 || reddedilenAksiyon > 0)
         throw new Error(`Kapanış reddedildi: ${[
-          acikTalep > 0 ? `${acikTalep} açık kanıt talebi` : null,
-          acikBulgu > 0 ? `${acikBulgu} açık bulgu` : null,
-        ].filter(Boolean).join(' ve ')} var; önce bunlar kapatılmalı.`);
+          acikTalep > 0 ? `${acikTalep} açık kanıt talebi var` : null,
+          acikBulgu > 0 ? `${acikBulgu} açık bulgu var` : null,
+          dogrulanmamisAksiyon > 0 ? `doğrulanmamış aksiyon var: ${dogrulanmamisAksiyon}` : null,
+          reddedilenAksiyon > 0 ? `etkisiz bulunan aksiyon var: ${reddedilenAksiyon}` : null,
+        ].filter(Boolean).join('; ')}; önce bunlar sonuçlandırılmalı.`);
     });
 
     tazele(id);

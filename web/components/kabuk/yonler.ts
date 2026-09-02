@@ -99,10 +99,39 @@ export const C_DIZIN: { baslik: string; ogeler: Oge[] }[] = [
   ]},
   { baslik: 'Kayıt', ogeler: [
     { ad: 'Raporlar', yol: '/raporlar' },
+    { ad: 'Kanıt kütüphanesi', yol: '/kanitlar' },
     { ad: 'Kanıt paketi', yol: '/raporlar/kanit-paketi' },
     { ad: 'Denetim izi', yol: '/aktivite' },
   ]},
 ];
+
+/* ── Kabuk üst çubuğu bağları ─────────────────────────────────────────
+   Rayda ve sekmede YERİ OLMAYAN ama her ekrandan ulaşılması gereken iki
+   rota: `/ayarlar` (hesap) ve `/yardim` (okuma anahtarı + kısayollar).
+   İkisi de A'ya düşer (varsayılan yön) — tezgâh ekranı değildirler, o
+   yüzden rayda değil, üç kabuğun üst çubuğunda Çıkış'ın yanında dururlar. */
+export const UST_BAGLAR: Oge[] = [
+  { ad: 'Ayarlar', yol: '/ayarlar' },
+  { ad: 'Yardım', yol: '/yardim' },
+];
+
+/* ── Okunmamış bildirim rozeti ────────────────────────────────────────
+   Rozet bir SAYIDIR, sınıflandırma değil: kaç kaydın okunmadığını yazar.
+   Sıfırda rozet YOKTUR — "0" yazmak boş kutuyu bir uyarıymış gibi
+   gösterirdi. 99'dan sonrası kırpılır: ray hücresi üç haneyi taşımaz ve
+   "300 okunmamış" ile "99+" aynı kararı verdirir — kutuya git. */
+export const SAYAC_TAVANI = 99;
+
+/** Rozet metni; sıfır ya da geçersiz sayıda `null` = rozet çizilmez. */
+export function sayacMetni(n: number): string | null {
+  if (!Number.isFinite(n) || n <= 0) return null;
+  return n > SAYAC_TAVANI ? `${SAYAC_TAVANI}+` : String(Math.floor(n));
+}
+
+/** Ekran okuyucu etiketi — sayı kırpılmaz, gerçek değer okunur. */
+export function sayacEtiketi(n: number): string {
+  return `${Math.max(0, Math.floor(n))} okunmamış bildirim`;
+}
 
 /* ── Rota → yön ───────────────────────────────────────────────────────
    Uygulama haritası §6 ile birebir. Eşleşmeyen rota A'ya düşer: tezgâh
@@ -112,6 +141,9 @@ const B_YOLLAR = ['/', '/tesisler', '/portfoy', '/giris'];
 const C_YOLLAR = [
   '/uyum', '/regulasyonlar', '/riskler', '/denetimler', '/bulgular',
   '/projeler', '/surecler', '/raporlar', '/eslestirme', '/aktivite',
+  /* Kanıt kütüphanesi defterin "Kayıt" bölümüdür: kanıt, uyum kaydının
+     dayanağıdır; tezgâhta değil defterde okunur. */
+  '/kanitlar',
 ];
 
 export function yonSec(patika: string): Yon {

@@ -152,7 +152,7 @@ export default function ProjelerIstemci({
         : { metin: 'Açık proje yok' };
 
   /* Çekmece <main>'in KARDEŞİdir: kabuk gridinin ikinci kolonu
-     `.atlas-govde:has(> .cekmece)` ile açılıyor, iç içe girerse açılmaz. */
+     `.ab-c-govde:has(> .cekmece)` ile açılıyor, iç içe girerse açılmaz. */
   if (projeler.length === 0) {
     return (
       <>
@@ -251,7 +251,7 @@ export default function ProjelerIstemci({
                   marginTop: 'var(--s26)',
                   borderTop: 'var(--bw-strong) solid var(--hr2)',
                 } as CSSProperties}
-                role="table">
+               >
                 {gosterilen.map((p) => (
                   <Satir key={p.id} proje={p} simdi={simdi}
                     secili={seciliId === p.id} sec={() => sec(p.id)} />
@@ -358,22 +358,22 @@ function Satir({ proje, simdi, secili, sec }: {
   return (
     <button
       type="button"
-      role="row"
-      aria-selected={secili}
+     
+      aria-pressed={secili}
       className={`satir d-${kartDurumu(proje, simdi)}`}
       onClick={sec}
     >
-      <span role="cell" style={{ minWidth: 0, paddingLeft: 'var(--s16)' }}>
+      <span style={{ minWidth: 0, paddingLeft: 'var(--s16)' }}>
         <span className="konu">{proje.ad}</span>
         <span className="alt">{altSatir(proje)}</span>
       </span>
-      <span role="cell" className="ikincil">{bagMetni(proje)}</span>
-      <span role="cell" className="">
+      <span className="ikincil">{bagMetni(proje)}</span>
+      <span className="">
         {oran === null
           ? <span style={{ color: 'var(--i3)' }}>faz kaydı yok</span>
           : <Bar oran={oran} durum={durum} deger={`%${oran}`} />}
       </span>
-      <span role="cell" className="sag"
+      <span className="sag"
         style={hedef.gecikmis ? { color: 'var(--bd)', fontWeight: 600 } : undefined}>
         {hedef.metin}
       </span>

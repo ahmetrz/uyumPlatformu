@@ -34,8 +34,6 @@ const HERO: Record<string, string> = {
 const KUCUK = new Set([...Object.keys(HERO), 'tercan']);
 
 export const NOTR_TRIPTIK = `${TEMEL}/atlas/portfolio-triptych.webp`;
-export const RAY_SERIDI = `${TEMEL}/atlas/rail-strip.webp`;
-export const BOLUM_KIRPIMI = `${TEMEL}/atlas/kizildere3-mini.webp`;
 
 /** Hero/plaka fotoğrafı — yoksa null (çağıran tipografik fallback render eder). */
 export function heroGorseli(anahtar: string | null | undefined): string | null {
@@ -56,6 +54,6 @@ export function gorselAlt(ad: string, tipAdi: string, konum?: string | null): st
 }
 
 /* Üretim tipi kimlik rengi ve adı ARTIK BURADA DEĞİL:
-   `components/kabuk/tip.ts`. Nedeni Atlas token'larına (`--jesd`)
+   `components/kabuk/tip.ts`. Nedeni eski token'lara (`--jesd`)
    bağlıydı ve koyu/açık yüzeyi ÇAĞIRANIN bilmesini istiyordu; yeni kabukta
    yüzeyi YÖN belirler, ekran değil. */

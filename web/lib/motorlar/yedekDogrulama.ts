@@ -45,14 +45,6 @@ export const YEDEK_KURALLARI = {
 
 export const KOSU_KAYNAGI = 'backup';
 
-/** EntegrasyonKosusu.durum değerleri — 'kaynak_bagli_degil' hata DEĞİLDİR. */
-export const KOSU_DURUM_SOZU: Record<string, string> = {
-  basarili: 'Tarama tamamlandı',
-  kaynak_bagli_degil: 'Konfigürasyon yedeği kaynağı bağlı değil — tarama yapılmadı '
-    + '(bu bir hata değil; hiçbir varlığın yedek durumu ölçülmemiş demektir)',
-  basarisiz: 'Tarama başarısız',
-};
-
 type Ihlal = { kural: string; kaynakTipi: string; kaynakId: string; aciklama: string };
 const anahtar = (x: { kural: string; kaynakTipi: string; kaynakId: string }) =>
   `${x.kural}|${x.kaynakTipi}|${x.kaynakId}`;
@@ -154,18 +146,4 @@ async function tara(kosuId: string, basla: number): Promise<{ islenen: number; u
   });
 
   return { islenen: rapor.toplamKritik, uretilen };
-}
-
-/** /saglik ve yedekleme ekranının okuyacağı son koşu özeti. */
-export async function yedekDogrulamaSonKosu() {
-  const kosu = await db.entegrasyonKosusu.findFirst({
-    where: { kaynak: KOSU_KAYNAGI },
-    orderBy: { baslangic: 'desc' },
-  });
-  if (!kosu) return null;
-  return {
-    id: kosu.id, durum: kosu.durum, baslangic: kosu.baslangic, bitis: kosu.bitis,
-    sureMs: kosu.sureMs, taranan: kosu.kayitSayisi, hata: kosu.hata,
-    soz: KOSU_DURUM_SOZU[kosu.durum] ?? kosu.durum,
-  };
 }

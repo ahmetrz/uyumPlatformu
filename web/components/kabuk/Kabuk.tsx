@@ -5,8 +5,10 @@ import type { ReactNode } from 'react';
 import CikisDugmesi from '@/components/CikisDugmesi';
 import AramaDugmesi from '@/components/AramaDugmesi';
 import KomutPaleti from '@/components/KomutPaleti';
+import YardimKatmani from '@/components/YardimKatmani';
 import {
-  ALANLAR, A_RAY, B_SEKMELER, C_DIZIN, C_SEKMELER, aktifMi, alanAktif, yonSec, type Oge,
+  ALANLAR, A_RAY, B_SEKMELER, C_DIZIN, C_SEKMELER, UST_BAGLAR,
+  aktifMi, alanAktif, sayacEtiketi, sayacMetni, yonSec, type Oge,
 } from './yonler';
 
 /* Uygulama kabuğu — ÜÇ AYRI KABUK, tek gramerin renk varyantı değil.
@@ -36,6 +38,8 @@ export type KabukVerisi = {
   ayak: { toplam: number; sayimlar: Record<string, number>; sonKosu: string | null } | null;
   /** Veri kesiti damgası (ISO). Uydurulmaz; yoksa `null`. */
   kesit: string | null;
+  /** Aktif kullanıcının okunmamış bildirim sayısı; oturum yoksa 0. */
+  okunmamis: number;
 };
 
 const TARIH = new Intl.DateTimeFormat('tr-TR', {
@@ -54,14 +58,63 @@ export default function Kabuk({ veri, children }: { veri: KabukVerisi; children:
   const yon = yonSec(patika);
   return (
     <div className="ab" data-yon={yon}>
+      {/* İÇERİĞE ATLA — belgenin İLK odaklanabilir öğesi, üç kabukta da.
+          Görünmez; klavye odağı gelince görünür (`.ab-atla`). Hedef,
+          ekran gövdesini saran `#icerik` sarmalayıcısı (bir `<div>`: `<main>`
+          her ekranın KENDİ kökündedir, kabuk ikinci bir main açmaz): kabuk başına
+          on altı ray öğesi + beş alan + arama + hesap bağları var, klavye
+          kullanıcısı her sayfada bunların hepsini geçmek zorunda değil. */}
+      <a href="#icerik" className="ab-atla">İçeriğe atla</a>
       {yon === 'a' && <KabukA veri={veri} patika={patika}>{children}</KabukA>}
       {yon === 'b' && <KabukB veri={veri} patika={patika}>{children}</KabukB>}
       {yon === 'c' && <KabukC veri={veri} patika={patika}>{children}</KabukC>}
-      {/* Komut paleti (Ctrl/⌘+K) kabuğun İÇİNDE: token'lar `.ab[data-yon]`
-          üzerinde yaşar, dışarıda monte edilince renksiz kalıyordu. Üç
-          yerleşim de (flagship / operasyonel / tam) buradan alır. */}
+      {/* Komut paleti (Ctrl/⌘+K) ve kısayol katmanı (?) kabuğun İÇİNDE:
+          token'lar `.ab[data-yon]` üzerinde yaşar, dışarıda monte edilince
+          renksiz kalıyordu. Üç yerleşim de (flagship / operasyonel / tam)
+          buradan alır. */}
       <KomutPaleti />
+      <YardimKatmani />
     </div>
+  );
+}
+
+/* ═══ Okunmamış bildirim rozeti (D30) ═════════════════════════════════
+   Sıfırda HİÇ çizilmez (`sayacMetni` null döner). Görünen metin 99'da
+   kırpılır, ekran okuyucuya gerçek sayı okunur; rozetin kendisi
+   `aria-hidden` çünkü bağın erişilebilir adı zaten sayıyı taşır. */
+function Sayac({ n }: { n: number }) {
+  const metin = sayacMetni(n);
+  if (metin === null) return null;
+  return <span className="ab-sayac mono" aria-hidden>{metin}</span>;
+}
+
+/* ═══ Hesap bağları — Ayarlar · Yardım (· Bildirim) ═══════════════════
+   Üç kabukta Çıkış'ın yanında aynı küme. Rayda yeri olmayan iki rota
+   buradan ulaşılır; B ve C'de bildirim kutusuna giden başka bağ olmadığı
+   için bildirim bağı DA burada durur ve sayacı taşır — A'da ray öğesi
+   zaten taşıdığından yinelenmez. Düğme grameri (`ab-dugme`) ortaktır. */
+function HesapBaglari({ veri, patika, bildirim }: {
+  veri: KabukVerisi; patika: string; bildirim: boolean;
+}) {
+  const n = veri.okunmamis;
+  return (
+    <nav aria-label="Hesap" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+      {bildirim && veri.kullanici && (
+        <Link href="/bildirimler" className="ab-dugme"
+          aria-current={aktifMi('/bildirimler', patika) ? 'page' : undefined}
+          aria-label={n > 0 ? `Bildirimler — ${sayacEtiketi(n)}` : 'Bildirimler'}>
+          Bildirim<Sayac n={n} />
+        </Link>
+      )}
+      {/* Hesap bağları yalnız oturumla: /ayarlar ve /yardim ikisi de oturum
+          kapılı; oturumsuz ziyaretçiye (giriş ekranı dışı 404 vb.) bağ yok. */}
+      {veri.kullanici && UST_BAGLAR.map((o) => (
+        <Link key={o.yol} href={o.yol} className="ab-dugme"
+          aria-current={aktifMi(o.yol, patika) ? 'page' : undefined}>
+          {o.ad}
+        </Link>
+      ))}
+    </nav>
   );
 }
 
@@ -116,28 +169,42 @@ function KabukA({ veri, patika, children }: {
             <>
               <span className="deg">{veri.kullanici.ad}</span>
               <span className="etiket">{veri.kullanici.unvan ?? ''}</span>
-              {!veri.kullanici.demo && <CikisDugmesi />}
             </>
           )}
+          <HesapBaglari veri={veri} patika={patika} bildirim={false} />
+          {veri.kullanici && !veri.kullanici.demo && <CikisDugmesi />}
         </div>
       </header>
 
       <div className="ab-a-govde">
         <nav className="ab-a-ray" aria-label="Tezgâh ekranları">
-          {A_RAY.map((o) => (
-            <Link
-              key={o.yol}
-              href={o.yol}
-              className={o.ayrik ? 'ayrik' : undefined}
-              aria-current={aktifMi(o.yol, patika) ? 'page' : undefined}
-              title={o.ad}
-            >
-              <span className="ab-glif" aria-hidden>{o.kod}</span>
-              <span className="ad">{o.ad}</span>
-            </Link>
-          ))}
+          {A_RAY.map((o) => {
+            /* Bildirim öğesi okunmamış sayısını taşır: rozet görsel,
+               sayı bağın erişilebilir adında ("Bildirim — 3 okunmamış
+               bildirim"). Sıfırda ne rozet ne ek ad. */
+            const bildirim = o.yol === '/bildirimler';
+            const n = bildirim ? veri.okunmamis : 0;
+            return (
+              <Link
+                key={o.yol}
+                href={o.yol}
+                className={o.ayrik ? 'ayrik' : undefined}
+                aria-current={aktifMi(o.yol, patika) ? 'page' : undefined}
+                aria-label={n > 0 ? `${o.ad} — ${sayacEtiketi(n)}` : undefined}
+                title={o.ad}
+              >
+                <span className="ab-glif" aria-hidden>{o.kod}</span>
+                <span className="ad">{o.ad}</span>
+                {bildirim && <Sayac n={n} />}
+              </Link>
+            );
+          })}
         </nav>
-        <div className="ab-a-icerik">{children}</div>
+        {/* Ekran gövdesini saran TEK ana bölge; atla bağının hedefi.
+            `tabIndex={-1}`: bağ tıklanınca odak buraya iner, sonraki Tab
+            içerikten devam eder (Safari/Firefox'ta `href="#…"` tek
+            başına odağı taşımıyordu). */}
+        <div id="icerik" tabIndex={-1} className="ab-a-icerik">{children}</div>
       </div>
 
       <Ayak veri={veri} />
@@ -169,15 +236,13 @@ function KabukB({ veri, patika, children }: {
             {veri.kesit ? `Veri kesiti ${damga(veri.kesit)}` : 'Veri kesiti yok'}
           </span>
           <AramaDugmesi />
-          {veri.kullanici && (
-            <>
-              <span style={{ fontSize: 13 }}>{veri.kullanici.ad}</span>
-              {!veri.kullanici.demo && <CikisDugmesi />}
-            </>
-          )}
+          {veri.kullanici && <span style={{ fontSize: 13 }}>{veri.kullanici.ad}</span>}
+          <HesapBaglari veri={veri} patika={patika} bildirim />
+          {veri.kullanici && !veri.kullanici.demo && <CikisDugmesi />}
         </div>
       </header>
-      <div style={{ minWidth: 0 }}>{children}</div>
+      {/* Atla bağının hedefi — bkz. KabukA'daki not. */}
+      <div id="icerik" tabIndex={-1} style={{ minWidth: 0 }}>{children}</div>
     </div>
   );
 }
@@ -204,12 +269,9 @@ function KabukC({ veri, patika, children }: {
             {veri.kesit ? `Veri kesiti ${damga(veri.kesit)}` : 'Veri kesiti yok'}
           </span>
           <AramaDugmesi />
-          {veri.kullanici && (
-            <>
-              <span style={{ fontSize: 13 }}>{veri.kullanici.ad}</span>
-              {!veri.kullanici.demo && <CikisDugmesi />}
-            </>
-          )}
+          {veri.kullanici && <span style={{ fontSize: 13 }}>{veri.kullanici.ad}</span>}
+          <HesapBaglari veri={veri} patika={patika} bildirim />
+          {veri.kullanici && !veri.kullanici.demo && <CikisDugmesi />}
         </div>
       </header>
       <div className="ab-c-kural-kalin" />
@@ -237,11 +299,15 @@ function KabukC({ veri, patika, children }: {
           kökünde `data-dizin="ekran"` taşır; CSS o durumda varsayılan
           dizini gizler ve ızgarayı tek sütuna indirir. `:has()`
           desteklenmeyen bir tarayıcıda iki dizin de görünür — bozulma
-          değil, fazlalık. */}
-      <main className="ab-c-govde">
+          değil, fazlalık.
+
+          Atla bağının hedefi (`#icerik`) bu sarmalayıcıdır; `<main>` değil,
+          `<div>`: ekranlar kendi `<main>`'ini çizer, kabuk ikincisini açarsa
+          belgede iki ana bölge olur (axe: landmark-no-duplicate-main). */}
+      <div id="icerik" tabIndex={-1} className="ab-c-govde">
         <CDizin />
         {children}
-      </main>
+      </div>
     </div>
   );
 }

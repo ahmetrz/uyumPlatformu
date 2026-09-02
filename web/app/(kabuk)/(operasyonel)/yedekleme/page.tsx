@@ -10,7 +10,7 @@ import type { Politika, Santral, TurKirilimi, YedekBulgusu } from './mantik';
 export const metadata: Metadata = { title: 'Yedekleme & kurtarma' };
 
 /* O14 · Yedekleme & DR hazırlığı — "kurtarabilir miyiz?" (03-screens O14).
-   Yerleşim kabuğu (.atlas atlas-kabuk + Ray) (operasyonel)/layout.tsx'ten
+   Yerleşim kabuğu (ray + çekmece kolonu) (operasyonel)/layout.tsx'ten
    gelir; bu sayfa yalnız <main> ve seçim varsa <aside class="cekmece">
    render eder — UstCubuk ya da .icerik sarmalayıcısı YOK.
 

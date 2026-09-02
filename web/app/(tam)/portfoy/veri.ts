@@ -4,7 +4,7 @@ import { izinliTesisIdleri } from '@/lib/erisim';
 import type { AktifKullanici } from '@/lib/auth';
 import { kapsamDaraltildi, kapsamKosulu, modulKapisi } from '@/app/kapsam';
 import { uyumOzeti } from '@/lib/sabitler';
-import type { PortfoySatiri } from './Portfoy';
+import type { PortfoyEndeksi, PortfoySatiri } from './mantik';
 
 /* F2 · Enerji Portföyü — SUNUCU VERİSİ.
 
@@ -38,6 +38,9 @@ import type { PortfoySatiri } from './Portfoy';
 export type EkranVerisi = {
   satirlar: PortfoySatiri[];
   toplamGucMw: number;
+  /** Portföy geneli uyum endeksi — kök ekranla AYNI formül (`uyumOzeti`),
+      aynı kapsam. Değerlendirilmiş kontrol yoksa `yuzde: null`. */
+  endeks: PortfoyEndeksi;
   /** true = portföy bir santral kapsamıyla daraltıldı */
   kapsamli: boolean;
 };
@@ -114,9 +117,23 @@ export async function portfoyEkranVerisi(k: AktifKullanici): Promise<EkranVerisi
      sayıdan okunabilirdi. */
   const toplamGuc = satirlar.reduce((a, s) => a + (s.gucMw ?? 0), 0);
 
+  /* Portföy endeksi santral yüzdelerinin ORTALAMASI değildir: 900 kontrollü
+     HES ile 40 kontrollü GES'i eşit ağırlıkta toplamak yanlış olurdu.
+     Kapsamdaki tüm madde durumları tek havuzda sayılır — kök ekran (/)
+     aynı havuzdan aynı formülle hesaplar, iki ekran birbirini tutar. */
+  const genelSayim: Record<string, number> = {};
+  for (const d of durumSayimlari) genelSayim[d.durum] = (genelSayim[d.durum] ?? 0) + d._count._all;
+  const genel = uyumOzeti(genelSayim);
+
   return {
     satirlar,
     toplamGucMw: Math.round(toplamGuc * 10) / 10,
+    endeks: {
+      yuzde: genel.yuzde,
+      bilinmeyenOran: genel.bilinmeyenOran,
+      degerlendirilen: genel.degerlendirilen,
+      kapsam: genel.kapsam,
+    },
     kapsamli: kapsamDaraltildi(izinli),
   };
 }

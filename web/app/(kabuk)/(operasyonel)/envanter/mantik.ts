@@ -9,7 +9,6 @@ import type { Durum } from '@/components/kabuk/temel';
    girilmemiş varlık "kritik değil" değildir. */
 
 export const GUN = 86_400_000;
-export const YIL = 365 * GUN;
 
 /** 06 §A3: tabloda 5–9 satır görünür. Sabitlenen satırlar bunun dışındadır. */
 export const GORUNUR_TAVAN = 9;

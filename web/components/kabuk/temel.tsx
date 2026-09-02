@@ -4,7 +4,7 @@ import Link from 'next/link';
 /* ═══════════════════════════════════════════════════════════════════════
    TEMEL PRİMİTİFLER
 
-   Bu dosya Atlas'ın `components/atlas/temel.tsx` dosyasının YENİDEN
+   Bu dosya önceki arayüz katmanının temel primitiflerinin YENİDEN
    RENKLENDİRİLMİŞ hâli DEĞİLDİR: işaretleme, yoğunluk, tipografi ve
    etkileşim modeli on iki orijinal tasarım prototipinden gelir
    (ORIGINAL_DESIGN_IMPLEMENTATION_MAP.md §2–§5).
@@ -190,16 +190,20 @@ export function Dugme({ tur = 'ikincil', children, className, ...kalan }: {
 
 export const Ok = () => <span className="ab-ok" aria-hidden>→</span>;
 
-/* ── Form alanı ───────────────────────────────────────────────────── */
+/* ── Form alanı ───────────────────────────────────────────────────────
+   Kök `<label>`: içindeki TEK kontrol (input · select · textarea) etiketi
+   örtük olarak alır — `htmlFor`/`id` eşlemesi gerekmez, axe `label`
+   kuralı geçer. Sözleşme: bir Alan en fazla BİR kontrol sarar (label
+   birden çok etiketlenebilir öğe içeremez). */
 export function Alan({ etiket, zorunlu = false, hata, children }: {
   etiket: string; zorunlu?: boolean; hata?: string | null; children: ReactNode;
 }) {
   return (
-    <div className="ab-alan">
+    <label className="ab-alan">
       <span className="etiket">{etiket}{zorunlu && ' · zorunlu'}</span>
       {children}
       {hata && <p className="hata" role="alert">{hata}</p>}
-    </div>
+    </label>
   );
 }
 

@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { kontrast, bicimle, aaGecer } from '@/lib/kontrast';
+import { girisZorunlu } from '@/lib/erisim';
 
 export const metadata: Metadata = { title: 'Tasarım sistemi' };
 
@@ -20,6 +21,11 @@ export const metadata: Metadata = { title: 'Tasarım sistemi' };
 
    SANTRAL KAPSAMI: bu ekran bilerek kapsamsızdır çünkü hiç KAYIT okumaz;
    içeriğinin tamamı stil dosyasından gelir, daraltılacak bir veri yok.
+
+   OTURUM KAPISI: kapsamsız olması oturumsuz olması demek değildir. Ekran
+   kabuğun içinde çizilir ve kabuk, kurumun bilgi mimarisini (ray, kapsam
+   çubuğu, grup adı) gösterir; oturumsuz bir ziyaretçi bunu görmemeli.
+   Kardeş ekranların kalıbı aynen: `girisZorunlu()` — oturum yoksa /giris.
    ═══════════════════════════════════════════════════════════════════════ */
 
 const KAYNAK = path.join(process.cwd(), 'app', 'kabuk.css');
@@ -95,7 +101,8 @@ const OLCEK_SIRASI = [
   '--s32', '--s34', '--s36', '--s38', '--s40', '--s44',
 ];
 
-export default function TasarimSistemi() {
+export default async function TasarimSistemi() {
+  await girisZorunlu();
   const css = readFileSync(KAYNAK, 'utf8');
   const paletler = YONLER.map((y) => ({
     ...y, palet: paletOku(css, `.ab[data-yon='${y.kod}'] {`),

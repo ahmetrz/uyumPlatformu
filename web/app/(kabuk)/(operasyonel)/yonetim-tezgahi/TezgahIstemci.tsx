@@ -12,14 +12,15 @@ import {
   GorevFormu, GorevDurumEylemleri, OnayKarariFormu, TanimEylemleri, TanimFormu,
 } from './Formlar';
 import {
-  GORUNUR_BUTCE, KATALOG_ETIKET, UFUK_GUN,
+  GORUNUR_BUTCE, KATALOG_ETIKET, SON_ISTEK_TAVANI, UFUK_GUN,
   anahtarAltSatiri, anahtarBittiMi, anahtarEtkinMi, anahtarImi,
   anahtarKuyrukEtiketi, anahtarSabit, anahtarSirala, anahtarSozu,
   gecenGun, gecikmisMi, isAcikMi, isAltSatiri, isDurumSozu, isImi, isSabit,
-  isKuyrukEtiketi, isSirala, isTipEtiketi, istekMetni, kalanGun, kaynakYolu,
-  kullanimMetni, silinebilir, sonKullanimMetni, tanimAltSatiri, tanimImi,
-  tanimKuyrukEtiketi, tanimSabit, tanimSirala, tanimSozu,
-  type Anahtar, type Is, type Katalog, type Kisi, type Kodlu, type Tanim,
+  isKuyrukEtiketi, isSirala, isTipEtiketi, istekDurumMetni, istekImi, istekMetni,
+  kalanGun, kaynakYolu, kullanimMetni, silinebilir, sonIstekDipNotu, sonKullanimMetni,
+  sureMetni, tanimAltSatiri, tanimImi, tanimKuyrukEtiketi, tanimSabit, tanimSirala,
+  tanimSozu,
+  type Anahtar, type Is, type Katalog, type Kisi, type Kodlu, type SonIstek, type Tanim,
 } from './ortak';
 
 /* M1/M2/P1-3 · Yönetim tezgâhı — "bugün ne karar bekliyor, katalog doğru
@@ -80,6 +81,17 @@ const ANAHTAR_KOLONLARI: Kolon[] = [
   { baslik: 'Bitiş', genislik: '100px', sag: true, ikincil: true },
 ];
 
+/* D32 · Son istek kolonları: ne (yöntem), sonuç (durum kodu + hata kodu),
+   kim (anahtar adı), ne kadar (süre). Yol konu sütunudur — en uzun ve en
+   ayırt edici alan; zaman alt satırda. Bu tablo SEÇİLMEZ: istek satırının
+   açılacak bir çekmecesi yok, yanıt gövdesi ekrana bilerek inmiyor. */
+const ISTEK_KOLONLARI: Kolon[] = [
+  { baslik: 'Yöntem', genislik: '78px' },
+  { baslik: 'Durum', genislik: '150px' },
+  { baslik: 'Anahtar', genislik: '148px' },
+  { baslik: 'Süre', genislik: '84px', sag: true, ikincil: true },
+];
+
 const ANAHTAR_MERCEKLERI = [
   { id: 'etkin', ad: 'Etkin' },
   { id: 'atil', ad: 'Kullanılmamış' },
@@ -89,7 +101,7 @@ const ANAHTAR_MERCEKLERI = [
 ];
 
 export default function TezgahIstemci({
-  aktifId, simdi, isler, tanimlar, anahtarlar, kullanicilar, tesisSecenekleri,
+  aktifId, simdi, isler, tanimlar, anahtarlar, sonIstekler, kullanicilar, tesisSecenekleri,
   kirilimSecenekleri, sektorSecenekleri,
   tanimOkuyabilir, isOkuyabilir, anahtarOkuyabilir,
   tanimYazabilir, tanimOnaylayabilir, gorevAcabilir, anahtarYazabilir,
@@ -99,6 +111,8 @@ export default function TezgahIstemci({
   isler: Is[];
   tanimlar: Tanim[];
   anahtarlar: Anahtar[];
+  /** D32 · son N API isteği (yanıt gövdesi ve idempotency değeri yok) */
+  sonIstekler: SonIstek[];
   kullanicilar: Kisi[];
   tesisSecenekleri: Kodlu[];
   kirilimSecenekleri: Kodlu[];
@@ -217,6 +231,43 @@ export default function TezgahIstemci({
   const seciliIs = isKipi ? isler.find((i) => i.id === secili) ?? null : null;
   const seciliTanim = tanimKipi ? tanimlar.find((t) => t.id === secili) ?? null : null;
   const seciliAnahtar = anahtarKipi ? anahtarlar.find((a) => a.id === secili) ?? null : null;
+
+  /* D32 · Son istekler anahtar seçimine ve sahip süzgecine uyar: çekmecede
+     bir anahtar açıkken listede yalnız onun trafiği kalır; sahip süzgeci
+     de o sahibin anahtarlarına iner. Mercek (etkin/sonlanmış) uygulanmaz —
+     iptal edilmiş anahtarın SON istekleri tam da görülmesi gereken şeydir. */
+  const gorunurIstekler = useMemo(() => sonIstekler.filter((i) => {
+    if (seciliAnahtar) return i.anahtar?.id === seciliAnahtar.id;
+    if (sahipF) {
+      const sahipAnahtarlari = new Set(anahtarlar.filter((a) => a.sahip.id === sahipF).map((a) => a.id));
+      return !!i.anahtar && sahipAnahtarlari.has(i.anahtar.id);
+    }
+    return true;
+  }), [sonIstekler, seciliAnahtar, sahipF, anahtarlar]);
+
+  const istekSatirlari: Satir[] = gorunurIstekler.map((i) => {
+    const im = istekImi(i.durumKodu);
+    return {
+      id: i.id, durum: im, kenar: im === 'bd' ? 'bd' : undefined,
+      konu: <span className="mono">{i.yol}</span>,
+      alt: zamanTR(i.zaman),
+      hucreler: [
+        <span key="y" className="mono">{i.yontem}</span>,
+        <span key="d" className="mono" style={im === 'bd'
+          ? { color: 'var(--bd)' } : im === 'md' ? { color: 'var(--md)' }
+            : im === 'unk' ? { color: 'var(--unk)' } : undefined}>
+          {istekDurumMetni(i)}
+        </span>,
+        // Anahtarsız istek gizlenmez: kimlik doğrulanamayan trafik de trafiktir.
+        <span key="a" style={i.anahtar ? undefined : { color: 'var(--i3)' }}>
+          {i.anahtar?.ad ?? 'anahtarsız'}
+        </span>,
+        <span key="s" style={i.sureMs === null ? { color: 'var(--i3)' } : undefined}>
+          {sureMetni(i.sureMs)}
+        </span>,
+      ],
+    };
+  });
 
   const filtreAktif = isKipi
     ? isMercek !== 'bekleyen' || sorumluF !== null || tesisF !== null
@@ -493,6 +544,35 @@ export default function TezgahIstemci({
                   <button type="button" className="ab-dugme satir"
                     onClick={() => setKuyrukAcik(false)}>Kuyruğu topla</button>
                 </p>
+              )}
+            </div>
+          )}
+
+          {/* D32 · Son istekler — anahtar tablosunun altında ikinci kütük.
+              Anahtar yokken de çizilir: anahtarsız (401) istekler tam o
+              durumda görülmek ister. Tablo seçimsizdir; çekmecesi yok. */}
+          {anahtarKipi && (
+            <div style={{ marginTop: 'var(--s30)' }}>
+              <h2 className="ab-bolum-basligi" style={{ margin: '0 0 var(--s12)' }}>
+                Son istekler
+                {seciliAnahtar ? ` · ${seciliAnahtar.ad}` : ''}
+              </h2>
+              {istekSatirlari.length === 0 ? (
+                <p className="ab-dip" style={{ margin: 0 }}>
+                  {seciliAnahtar
+                    ? `${seciliAnahtar.ad} için son ${SON_ISTEK_TAVANI} istek penceresinde kayıt yok; `
+                      + `tüm zamanlar: ${istekMetni(seciliAnahtar)}.`
+                    : sonIstekDipNotu(gorunurIstekler, SON_ISTEK_TAVANI)}
+                </p>
+              ) : (
+                <Tablo
+                  konuBasligi="Yol"
+                  kolonlar={ISTEK_KOLONLARI}
+                  satirlar={istekSatirlari}
+                  sik
+                  dipNot={sonIstekDipNotu(gorunurIstekler, SON_ISTEK_TAVANI)
+                    + ' · yanıt gövdesi ve Idempotency-Key ekrana inmez'}
+                />
               )}
             </div>
           )}

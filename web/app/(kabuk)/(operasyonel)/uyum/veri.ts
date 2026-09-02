@@ -4,10 +4,10 @@ import { uyumOzeti } from '@/lib/sabitler';
 import { kuralDegerlendir } from '@/lib/motorlar/uygulanabilirlik';
 import type { Durum } from '@/components/kabuk/temel';
 import {
-  DURUM_IM, cerceveAdi, guc, kisaAile, kisaKod, kisaTarih, tekCumle,
+  DURUM_IM, anlikSayimi, cerceveAdi, guc, kisaAile, kisaKod, kisaTarih, tekCumle,
 } from './mantik';
 import type {
-  Aile, CerceveVerisi, KapsamKaydi, Kontrol, KuruSatir, TesisSatiri, Zincir,
+  Aile, CerceveVerisi, KapsamKaydi, Kontrol, KuruSatir, TesisSatiri, TrendNoktasi, Zincir,
 } from './mantik';
 
 /* O1 · O2 sunucu yükleyicisi.
@@ -571,6 +571,80 @@ export async function cerceveYukle(
 ): Promise<CerceveVerisi | null> {
   const hepsi = await cerceveleriYukle(izinliTesisler);
   return hepsi.find((c) => c.kod === kod) ?? null;
+}
+
+/* ── C15 · Eğilim şeridi ────────────────────────────────────────────
+   Her süreç için son TREND_ADET anlık görüntü, eskiden yeniye. Eğilim
+   UYDURULMAZ: kayıt yoksa istemci "henüz anlık görüntü yok" satırı basar,
+   boş bir grafik değil.
+
+   KAPSAM: süreç geneli anlıklar (`tesisId: null`) ile izinli santralin
+   kendi anlıkları okunur; kapsam daraltılmış kullanıcı için süreç geneli
+   nokta yine de gösterilir — o bir toplamdır, başka bir santralin satırı
+   değil (kök ekran da aynı kuralı uygular). Süreç + gün başına birden çok
+   kayıt varsa (santral başına anlık) sayımlar TOPLANIR; böylece nokta
+   "o günün kapsamı" olur, keyfi bir santralinki değil. */
+const TREND_ADET = 12;
+
+export async function uyumTrendiYukle(
+  izinliTesisler: string[] | null,
+): Promise<TrendNoktasi[]> {
+  /* Pencere SÜREÇ BAŞINA açılır: tek ortak `take` olsaydı her gün çok
+     santral yazan bir süreç ötekilerin eski noktalarını pencereden düşürür,
+     şerit sessizce kısalırdı. Süreç başına gereken satır sayısı en çok
+     TREND_ADET gün × (1 genel + izinli santral) kayıttır; aynı gün yinelenen
+     koşular için iki kat pay bırakılır. */
+  const kapsam = izinliTesisler === null ? {} : {
+    OR: [{ tesisId: null }, { tesisId: { in: izinliTesisler } }],
+  };
+  const [surecler, tesisSayisi] = await Promise.all([
+    db.uyumSureci.findMany({ select: { id: true } }),
+    izinliTesisler === null ? db.tesis.count() : Promise.resolve(izinliTesisler.length),
+  ]);
+  const pencere = TREND_ADET * (1 + tesisSayisi) * 2;
+  const kayitlar = (await Promise.all(surecler.map((s) => db.uyumAnlik.findMany({
+    where: { surecId: s.id, ...kapsam },
+    select: { surecId: true, tesisId: true, tarih: true, ozetJson: true },
+    orderBy: { tarih: 'desc' },
+    take: pencere,
+  })))).flat();
+
+  /* Süreç geneli kayıt (tesisId null) varsa o gün için santral kayıtları
+     çift sayım olur — geneli olan günde yalnız genel alınır. */
+  const gunler = new Map<string, { surecId: string; zaman: number; genel: boolean; sayim: Record<string, number> }>();
+  for (const k of kayitlar) {
+    const sayim = anlikSayimi(k.ozetJson);
+    if (!sayim) continue;
+    const gun = k.tarih.toISOString().slice(0, 10);
+    const anahtar = `${k.surecId}|${gun}`;
+    const genel = k.tesisId === null;
+    const onceki = gunler.get(anahtar);
+    if (!onceki) { gunler.set(anahtar, { surecId: k.surecId, zaman: k.tarih.getTime(), genel, sayim: { ...sayim } }); continue; }
+    if (onceki.genel && !genel) continue;
+    if (genel && !onceki.genel) { onceki.genel = true; onceki.sayim = { ...sayim }; onceki.zaman = k.tarih.getTime(); continue; }
+    for (const [d, n] of Object.entries(sayim)) onceki.sayim[d] = (onceki.sayim[d] ?? 0) + n;
+    onceki.zaman = Math.max(onceki.zaman, k.tarih.getTime());
+  }
+
+  const surecBasina = new Map<string, TrendNoktasi[]>();
+  const sirali = [...gunler.values()].sort((a, b) => b.zaman - a.zaman);
+  for (const g of sirali) {
+    const liste = surecBasina.get(g.surecId) ?? [];
+    if (liste.length >= TREND_ADET) continue;
+    const ozet = uyumOzeti(g.sayim);
+    const tarih = new Date(g.zaman);
+    liste.push({
+      surecId: g.surecId,
+      tarih: tarih.toISOString(),
+      etiket: kisaTarih(tarih),
+      yuzde: ozet.yuzde,
+      degerlendirilen: ozet.degerlendirilen,
+      bilinmeyen: ozet.bilinmeyen,
+    });
+    surecBasina.set(g.surecId, liste);
+  }
+  // Eskiden yeniye: şerit soldan sağa zaman okur.
+  return [...surecBasina.values()].flatMap((l) => l.reverse());
 }
 
 /** Sadece kod listesi — generateStaticParams için. */

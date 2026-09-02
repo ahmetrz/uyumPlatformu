@@ -4,7 +4,7 @@
    "iyi" ya da "kötü" demez. Ton kararı CSS'e bırakılır (`--jes` üç yönde
    üç değer taşır); bu dosya yalnız "hangi token" sorusunu yanıtlar.
 
-   `lib/atlas/gorsel.ts`teki eşdeğeri Atlas token'larına (`--jesd`)
+   Önceki arayüz katmanındaki eşdeğeri eski token'lara (`--jesd`)
    bağlıydı ve koyu/açık yüzeyi çağıranın bilmesini istiyordu. Yeni kabukta
    yüzeyi YÖN belirler, ekran değil. */
 

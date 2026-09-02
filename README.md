@@ -34,9 +34,13 @@ entegrasyon" üretilmez. Bağlantı günü sırası:
 
 - `web/` — ürün: Next.js 16 + Prisma 7 (SQLite) + server actions. Tüm tanımlar
   (sektör, tesis kırılımı, tesis, regülasyon, kapsam alanı, süreç) panelden yönetilir.
-- `docs/` — tasarım, model ve hazırlık dokümanları: [TASARIM_PLANI](docs/TASARIM_PLANI.md) ·
-  [TASARIM_TOKENLARI](docs/TASARIM_TOKENLARI.md) · [ICERIK_MODELI](docs/ICERIK_MODELI.md) ·
-  [POSTGRES_READINESS](docs/POSTGRES_READINESS.md) · [PERFORMANS_TABANI](docs/PERFORMANS_TABANI.md) · `tokens.css`
+- `docs/` — mimari, model ve hazırlık dokümanları: [MIMARI](docs/MIMARI.md) (katman şeması) ·
+  [ROTA_HARITASI](docs/ROTA_HARITASI.md) (rota · kabuk yönü · oturum · amaç) ·
+  [ICERIK_MODELI](docs/ICERIK_MODELI.md) · [POSTGRES_READINESS](docs/POSTGRES_READINESS.md) ·
+  [PERFORMANS_TABANI](docs/PERFORMANS_TABANI.md)
+- Tasarım: [ORIGINAL_DESIGN_IMPLEMENTATION_MAP](ORIGINAL_DESIGN_IMPLEMENTATION_MAP.md) (prototip →
+  uygulama haritası) · [web/DESIGN.md](web/DESIGN.md) (tasarım sistemi: kabuklar, token'lar, primitifler) ·
+  `web/app/kabuk.css` (token'ların tek kaynağı; `/sistem` ekranı bu dosyayı okur)
 - `web/arac/` — doğrulama araçları: rota duman testi, tasarım denetimi, ekran
   görüntüsü, belge sayımları (`node arac/sayimlar.mjs`)
 - `.github/workflows/publish.yml` — `main`'e push'ta ürünü derleyip (`NEXT_PUBLIC_DEMO=1`

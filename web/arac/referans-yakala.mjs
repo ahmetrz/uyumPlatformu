@@ -1,3 +1,8 @@
+/* TARİHSEL ARAÇ — önceki tasarım teslim paketinin (handoff) artboard'larını
+   yakalar. Paket depoda değildir; ürünün güncel görsel referansı on iki HTML
+   prototipidir (ORIGINAL_DESIGN_IMPLEMENTATION_MAP.md) ve tasarım sistemi
+   web/DESIGN.md'dir. Aşağıdaki dosya adları paketin kendi adlarıdır, ürün adı
+   değildir. Ayrıntı: arac/BENIOKU.md. */
 import { chromium } from 'playwright-core';
 import { mkdirSync, writeFileSync } from 'node:fs';
 

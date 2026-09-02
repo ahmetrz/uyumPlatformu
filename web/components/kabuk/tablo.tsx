@@ -51,10 +51,13 @@ function Baslik({ ad, anahtar, sag, ikincil, sirala }: {
   /* İşaret DIŞ sarmalayıcıya da gider: sıralanabilir başlık ayrı bir
      span'a sarılıdır ve dar ekranda gizlenmezse başlık satırı
      hücrelerden bir kolon kayar (ölçüldü). */
+  /* `role="columnheader"` + `aria-sort` YOK: bu tablo div/button gramerinde
+     çizilir, ARIA satır/tablo ağacı kurulmaz; bağlamsız columnheader axe'de
+     kritik ihlaldir (aria-required-parent). Sıralama yönü düğmenin
+     erişilebilir adında söylenir — ekran okuyucu yine duyar. */
   return (
-    <span role="columnheader"
-      className={`${sag ? 'sag' : ''}${ikincil ? ' ikincil-k' : ''}`.trim() || undefined}
-      aria-sort={etkin ? (sirala.yon === 'artan' ? 'ascending' : 'descending') : 'none'}>
+    <span
+      className={`${sag ? 'sag' : ''}${ikincil ? ' ikincil-k' : ''}`.trim() || undefined}>
       <button type="button" className={`kolonbas sirali${etkin ? ' etkin' : ''}`}
         aria-label={`${ad} · ${etkin && sirala.yon === 'azalan' ? 'azalan' : 'artan'} sırala`}
         onClick={() => sirala.degistir(anahtar)}>

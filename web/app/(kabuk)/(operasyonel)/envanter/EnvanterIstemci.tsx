@@ -63,18 +63,20 @@ type Dugum = {
 
 export default function EnvanterIstemci({
   varliklar, turler, tesisler, uniteler, sistemler, bolgeler, kullanicilar,
-  yazabilir, simdi,
+  yazabilir, simdi, baslangicArama = '',
 }: {
   varliklar: V[]; turler: Tur[]; tesisler: Kodlu[]; uniteler: Unite[];
   sistemler: Kodlu[]; bolgeler: Bolge[]; kullanicilar: Kisi[];
   yazabilir: boolean; simdi: number;
+  /** `?bolge=KOD` bağından gelen başlangıç arama metni (topoloji çekmecesi). */
+  baslangicArama?: string;
 }) {
   const [kip, setKip] = useState<Kip>('zincir');
   const [mercek, setMercek] = useState<Mercek>('sinyal');
   const [tesisF, setTesisF] = useState<string | null>(null);
   const [turF, setTurF] = useState<string | null>(null);
   const [kritiklikF, setKritiklikF] = useState<string | null>(null);
-  const [arama, setArama] = useState('');
+  const [arama, setArama] = useState(baslangicArama);
   const [kuyrukAcik, setKuyrukAcik] = useState(false);
   const [seciliId, setSeciliId] = useState<string | null>(null);
   const [panelKipi, setPanelKipi] = useState<PanelKipi>('ozet');
@@ -128,7 +130,7 @@ export default function EnvanterIstemci({
   const santralsiz = varliklar.filter((v) => kullanimda(v) && !v.tesis).length;
 
   return (
-    <div className="ab-a-ekran">
+    <main className="ab-a-ekran">
       {/* ── 42px kip çubuğu ──────────────────────────────────────────── */}
       <div className="ab-a-kip">
         <span className="ad">Varlık zihni</span>
@@ -299,7 +301,7 @@ export default function EnvanterIstemci({
           {m.emekli > 0 && ` · ${m.emekli} emekli kayıt`}
         </span>
       </footer>
-    </div>
+    </main>
   );
 }
 

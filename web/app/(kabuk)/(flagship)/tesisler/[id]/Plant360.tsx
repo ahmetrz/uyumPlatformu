@@ -3,6 +3,8 @@ import Link from 'next/link';
 import { heroGorseli, gorselAlt } from '@/lib/gorsel';
 import { tipAdi, tipRengi } from '@/components/kabuk/tip';
 import { etiketle } from '@/lib/sabitler';
+import OtProfili from './OtProfili';
+import type { OtProfili as OtProfilKaydi } from './mantik';
 
 /* ═══════════════════════════════════════════════════════════════════════
    SANTRAL 360 — B · ENERGY INTELLIGENCE
@@ -32,6 +34,11 @@ import { etiketle } from '@/lib/sabitler';
    4 · Ünite satırının tik şeridi prototipte uyum durumuydu; `MaddeDurumu`
        ünite kırılımı TAŞIMIYOR. Şerit üniteye bağlı SİSTEMLERİN risk
        durumundan çizilir; sistemi olmayan ünitede şerit yok, "—" var.
+   5 · Prototipte olmayan "OT MİMARİ PROFİLİ" bloğu (B6/B9) eklendi:
+       `TesisProfili` uygulanabilirlik motorunun girdisidir ve /uyum
+       "profil Plant 360'tan tamamlanır" der; tamamlanacağı yer burasıdır.
+       Blok zincir bandının altında, üniteler/bulgular ikilisinin üstünde
+       durur (OtProfili.tsx).
    ═══════════════════════════════════════════════════════════════════════ */
 
 export type Katman = {
@@ -59,6 +66,9 @@ export type Plant360Veri = {
   tipKod: string | null; tipAdi: string; tuzelKisi: string | null;
   konum: string | null; gucMw: number | null; gorselAnahtari: string | null;
   kritiklik: string | null; uniteSayisi: number | null;
+  /** OT mimari profili — null: kayıt hiç açılmamış (her alan tanımsız) */
+  profil: OtProfilKaydi | null;
+  profilDuzenlenebilir: boolean;
   uyumYuzde: number | null; bilinmeyenOran: number | null; cerceveKodu: string | null;
   enYuksekRisk: { kod: string; baslik: string; skor: number | null } | null;
   acikBulgu: number; gecikmisBulgu: number;
@@ -248,6 +258,10 @@ export default function Plant360({ veri, santraller }: {
           </div>
         )}
       </section>
+
+      {/* ═══ OT mimari profili ═════════════════════════════════════════ */}
+      <OtProfili tesisId={veri.id} profil={veri.profil}
+        duzenlenebilir={veri.profilDuzenlenebilir} />
 
       {/* ═══ Üniteler + açık bulgular ══════════════════════════════════ */}
       <section className="ab-b-ikili">

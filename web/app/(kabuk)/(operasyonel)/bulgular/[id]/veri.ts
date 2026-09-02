@@ -1,6 +1,6 @@
 import 'server-only';
 import { db } from '@/lib/db';
-import { izinliTesisIdleri } from '@/lib/erisim';
+import { izinliTesisIdleri, izinVar } from '@/lib/erisim';
 import type { AktifKullanici } from '@/lib/auth';
 import { kapsamda, modulKapisi } from '@/app/kapsam';
 import type { Veri } from './BulguDetayIstemci';
@@ -70,9 +70,21 @@ export async function bulguDetayVerisi(
     db.kullanici.findMany({ where: { aktif: true }, orderBy: { adSoyad: 'asc' } }),
   ]);
 
+  /* C20 · Yetki bayrakları sunucuda hesaplanır; istemci düğmeyi buna göre
+     gösterir ya da gizler. Bu bir GÖRÜNÜM kararıdır — asıl kapı sunucu
+     eyleminin içindedir (`aksiyonDogrula` yeniden denetler). Görev
+     ayrılığı satır bazlıdır (sorumlu ≠ doğrulayan), o yüzden aktif
+     kullanıcının kimliği ve her aksiyonun sorumlusu da taşınır. */
+  const kapsam = { tesisId: bulgu.maddeDurumu.tesisId, surecId: bulgu.maddeDurumu.surecId };
+  const yazabilir = izinVar(k, 'uyum', 'yazma', kapsam);
+  const dogrulayabilir = izinVar(k, 'uyum', 'onay', kapsam);
+
   return {
     id: bulgu.id,
     maddeDurumuId: bulgu.maddeDurumuId,
+    aktifKullaniciId: k.id,
+    yazabilir,
+    dogrulayabilir,
     baslik: bulgu.baslik,
     aciklama: bulgu.aciklama,
     durum: bulgu.durum,
@@ -106,6 +118,7 @@ export async function bulguDetayVerisi(
     },
     aksiyonlar: bulgu.aksiyonlar.map((a) => ({
       id: a.id, baslik: a.baslik, durum: a.durum,
+      sorumluId: a.sorumluId,
       sorumlu: a.sorumlu?.adSoyad ?? null,
       hedef: a.hedef?.toISOString() ?? null,
       tamamlanma: a.tamamlanma?.toISOString() ?? null,

@@ -3,7 +3,7 @@
 <!-- impeccable:product-schema 1 -->
 
 <!-- Bu dosya ürün GERÇEĞİNİ kaydeder; görsel dünya burada yazılmaz (o iş
-     DESIGN.md'nindir). Başlıklar impeccable'ın ayrıştırdığı şemadır, İngilizce
+     aynı dizindeki DESIGN.md'nindir). Başlıklar impeccable'ın ayrıştırdığı şemadır, İngilizce
      kalır; içerik Türkçedir. Kaynak: 2026-09-01 init görüşmesi (Ahmet) +
      depo kanıtı (README, PRE_INTERNAL_INTEGRATION_READINESS, şema, seed). -->
 

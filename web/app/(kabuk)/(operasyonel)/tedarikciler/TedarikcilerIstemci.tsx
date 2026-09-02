@@ -17,7 +17,7 @@ import {
 /* O16 · Tedarikçiler / üçüncü taraf — "hangi tedarikçi bizi açıkta bırakıyor?"
    Tek tablo, üç metrik, 420px çekmece (03-screens O16).
 
-   Satır <button> değil <div role="row">: santral hücresi Plant 360'a giden
+   Satır <button> değil <div>: santral hücresi Plant 360'a giden
    GERÇEK bağlantı taşır, düğme içine bağlantı yerleştirilemez. Klavye için
    satırın etkinleştirme hedefi konu hücresindeki düğmedir; tıklama satırın
    tamamında çalışır, hücre içi bağlantılar yayılımı durdurur.
@@ -145,9 +145,9 @@ export default function TedarikcilerIstemci({
         />
 
         <section className="ab-ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
-          <div className="ab-tablo" role="table"
+          <div className="ab-tablo"
             style={{ '--kolonlar': KOLONLAR, '--kolonlar-dar': KOLONLAR_DAR } as CSSProperties}>
-            <div className="bas" role="row">
+            <div className="bas">
               <span />
               <span className="kolonbas">Tedarikçi</span>
               <span className="kolonbas ikincil">Santral</span>
@@ -221,8 +221,8 @@ function Satir({ t, secili, sec }: { t: T; secili: boolean; sec: () => void }) {
 
   return (
     <div
-      role="row"
-      aria-selected={secili}
+     
+      aria-current={secili ? 'true' : undefined}
       className="satir"
       onClick={sec}
       style={{ position: 'relative', cursor: 'default',
@@ -230,7 +230,7 @@ function Satir({ t, secili, sec }: { t: T; secili: boolean; sec: () => void }) {
     >
       <Im durum={d.durum} ad={d.soz} enKotu={d.sabit} />
 
-      <span role="cell" style={{ minWidth: 0 }}>
+      <span style={{ minWidth: 0 }}>
         <button type="button" className="konu"
           style={{ background: 'none', border: 0, padding: 0, width: '100%',
             fontFamily: 'inherit', textAlign: 'left', cursor: 'pointer' }}>
@@ -241,7 +241,7 @@ function Satir({ t, secili, sec }: { t: T; secili: boolean; sec: () => void }) {
 
       {/* Kolon dar kipte DÜŞER: `display` satır içi verilirse .tbl-ikincil'in
           display:none kuralını ezer — hizalama iç sarmalayıcıda yapılır. */}
-      <span role="cell" className="ikincil"
+      <span className="ikincil"
         style={{ minWidth: 0, fontSize: 'var(--t-cell)', color: 'var(--i2)' }}>
         <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--s6)', minWidth: 0 }}>
           {santral.gorunen.length === 0 ? (
@@ -271,11 +271,11 @@ function Satir({ t, secili, sec }: { t: T; secili: boolean; sec: () => void }) {
         </span>
       </span>
 
-      <span role="cell" style={{ minWidth: 0 }}>
+      <span style={{ minWidth: 0 }}>
         <ErisimHucresi t={t} />
       </span>
 
-      <span role="cell" className=""
+      <span className=""
         style={{ color: sozRenk, fontWeight: sozRenk === 'var(--i2)' ? 400 : 600 }}
         title={soz
           ? `${soz.kod} · ${soz.ad} · bitiş ${tarihTR(soz.bitis)}`

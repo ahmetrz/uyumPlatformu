@@ -3,10 +3,10 @@ import type { Durum } from '@/components/kabuk/temel';
 /* O · Değişiklik yönetimi — saf mantık.
 
    NEDEN BU EKRAN YALNIZ DEĞİŞİKLİK TAŞIYOR
-   Ozalit'teki /operasyon tek ekranda BEŞ sekme tutuyordu (değişiklik, olay,
+   Önceki arayüz katmanında /operasyon tek ekranda BEŞ sekme tutuyordu (değişiklik, olay,
    yedekleme, tedarikçi, kimlik). DESIGN_HANDOFF_GAP §3 bu borcu kapatıyor:
    O14 yedekleme → /yedekleme, O15 kimlik → /kimlik, O16 tedarikçi →
-   /tedarikciler kendi rotalarına ayrıldı ve üçü de Atlas'ta hazır; olay
+   /tedarikciler kendi rotalarına ayrıldı ve üçü de kendi ekranında hazır; olay
    yönetimi ise /olaylar ekranında (etki zinciriyle birlikte) yaşıyor.
    Geriye DEĞİŞİKLİK YÖNETİMİ kalıyor ve /operasyon rotası onun için
    korunuyor. Taşınmış sekmeler burada TEKRAR EDİLMEZ — aynı kaydı iki
@@ -107,10 +107,6 @@ export function kapilar(d: D): Kapi[] {
 
 export function eksikKapilar(d: D): string[] {
   return kapilar(d).filter((k) => !k.tamam).map((k) => k.ad);
-}
-
-export function tamamKapiSayisi(d: D): number {
-  return kapilar(d).filter((k) => k.tamam).length;
 }
 
 /* ── Yaşam döngüsü durumu ───────────────────────────────────────────── */

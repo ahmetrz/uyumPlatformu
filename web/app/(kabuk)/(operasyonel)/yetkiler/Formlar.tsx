@@ -3,7 +3,9 @@ import { useState } from 'react';
 import { Alan, Dugme } from '@/components/kabuk/temel';
 import { useEylem } from '@/components/useEylem';
 import { kullaniciKaydet, yetkiVer } from '@/lib/eylemler';
+import { parolaBelirle } from '@/lib/eylemler2/hesap';
 import { ROLLER, ROL_ETIKET } from '@/lib/sabitler';
+import { PAROLA_EN_AZ, parolaKusuru } from '../ayarlar/mantik';
 import type { Hesap, Secenek } from './mantik';
 
 /* Yetki yazma yüzeyleri — MODAL YOK (06 §B4): ikisi de 420px çekmecede
@@ -110,6 +112,56 @@ export function YetkiFormu({ hesap, surecler, tesisler, kisitliKapsam, kapat }: 
         {!f.surecId && !f.tesisId
           && ' — kapsam boş bırakıldı: yetki portföyün tamamına uygulanır.'}
         {kisitliKapsam && ' Santral listesi kendi kapsamınızla sınırlıdır.'}
+      </p>
+    </div>
+  );
+}
+
+/* Parola tanımlama (D26): yönetici bir hesaba ilk parolayı verir ya da
+   sıfırlar. Parola ekrandan sunucuya bir kez gider; tarayıcıda tutulmaz,
+   izde görünmez. Onaylanınca o hesabın TÜM açık oturumları düşer — form
+   bunu saklamaz, altına yazar. */
+
+export function ParolaFormu({ hesap, kapat }: { hesap: Hesap; kapat: () => void }) {
+  const { bekliyor, hata, calistir } = useEylem();
+  const [parola, setParola] = useState('');
+  const [tekrar, setTekrar] = useState('');
+  const kusur = parolaKusuru(parola);
+  const uyusmuyor = tekrar.length > 0 && tekrar !== parola;
+  const gecerli = parola.length >= PAROLA_EN_AZ && tekrar === parola;
+
+  return (
+    <div style={{ display: 'grid', gap: 'var(--s16)' }}>
+      <Alan etiket={hesap.parolaVar ? 'Yeni parola' : 'İlk parola'} zorunlu hata={kusur ?? undefined}>
+        <input className="ab-gr" type="password" autoComplete="new-password"
+          style={{ fontFamily: 'var(--veri)' }} value={parola}
+          onChange={(e) => setParola(e.target.value)} />
+      </Alan>
+      <Alan etiket="Parola (tekrar)" zorunlu hata={uyusmuyor ? 'İki parola aynı değil' : undefined}>
+        <input className="ab-gr" type="password" autoComplete="new-password"
+          style={{ fontFamily: 'var(--veri)' }} value={tekrar}
+          onChange={(e) => setTekrar(e.target.value)} />
+      </Alan>
+
+      {hata && <p className="ab-gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
+
+      <div style={{ display: 'flex', gap: 'var(--s10)' }}>
+        <Dugme tur="birincil" disabled={bekliyor || !gecerli}
+          onClick={() => calistir(
+            () => parolaBelirle({ kullaniciId: hesap.id, parola }),
+            () => { setParola(''); setTekrar(''); kapat(); },
+          )}>
+          {bekliyor ? 'Kaydediliyor…' : (hesap.parolaVar ? 'Parolayı sıfırla' : 'Parolayı tanımla')}
+        </Dugme>
+        <Dugme onClick={kapat} disabled={bekliyor}>Vazgeç</Dugme>
+      </div>
+
+      <p className="ab-panel-dip" style={{ margin: 0 }}>
+        {`${hesap.ad} · en az ${PAROLA_EN_AZ} karakter. `}
+        {hesap.parolaVar
+          ? 'Kaydedilince bu hesabın açık oturumlarının tamamı kapanır; kişi yeni parolayla girer. '
+          : 'Bu hesap şu an giriş yapamaz; parola tanımlanınca yapar. '}
+        {'Parola denetim izine yazılmaz, yalnız "kim, kime, ne zaman" yazılır.'}
       </p>
     </div>
   );

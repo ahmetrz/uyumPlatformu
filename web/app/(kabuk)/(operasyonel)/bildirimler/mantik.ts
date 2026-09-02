@@ -80,7 +80,7 @@ export const okunmamisMi = (b: BildirimSatiri): boolean => b.okundu === null;
 
 /**
  * Satır işaretçisi OKUNMA HÂLİNİ kodlar, tipi değil: tip kendi kolonunda
- * kelimeyle durur ve işaretçinin yanında tekrar edilmez (Atlas §A2).
+ * kelimeyle durur ve işaretçinin yanında tekrar edilmez (durum sözleşmesi).
  * Okunmamış bir bildirim "değerlendirilmedi"dir — tam olarak `unk`.
  */
 export function bildirimImi(b: BildirimSatiri): Durum {

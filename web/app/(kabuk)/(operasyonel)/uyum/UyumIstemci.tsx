@@ -6,8 +6,8 @@ import { useEylem } from '@/components/useEylem';
 import { kanitTalebiEkle } from '@/lib/eylemler2/denetim';
 import { DURUM_ETIKET, etiketle, uyumOzeti } from '@/lib/sabitler';
 import {
-  acikMi, kisaTarih,
-  type CerceveVerisi, type Kontrol, type TesisSatiri,
+  TREND_BOY, TREND_EN, acikMi, kisaTarih, trendFarki, trendGeometrisi,
+  type CerceveVerisi, type Kontrol, type TesisSatiri, type TrendNoktasi,
 } from './mantik';
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -148,8 +148,8 @@ const OKUMA_ANAHTARI: { sinif: string; yazi: string }[] = [
 ];
 
 export default function UyumIstemci({
-  cerceveler, yazabilir,
-}: { cerceveler: CerceveVerisi[]; yazabilir: boolean }) {
+  cerceveler, trend, yazabilir,
+}: { cerceveler: CerceveVerisi[]; trend: TrendNoktasi[]; yazabilir: boolean }) {
   const parametreler = useSearchParams();
   const kontrolParam = parametreler.get('kontrol');
   const cerceveParam = parametreler.get('cerceve');
@@ -186,6 +186,16 @@ export default function UyumIstemci({
   }, [satirlar]);
 
   const santraller: TesisSatiri[] = cerceve?.satirlar ?? [];
+
+  /* C15 · Eğilim çerçevenin YÜRÜYEN sürecine bağlıdır: anlık görüntü
+     sürecin kaydıdır, çerçevenin değil. Süreci olmayan çerçevede şerit
+     "süreç yok" der; süreci olup anlığı olmayan çerçevede "henüz anlık
+     görüntü yok". İkisi de boş grafik değildir. */
+  const surecId = cerceve?.surec?.id ?? null;
+  const egilim = useMemo(
+    () => (surecId ? trend.filter((p) => p.surecId === surecId) : []),
+    [trend, surecId],
+  );
 
   if (!cerceve) {
     return (
@@ -270,6 +280,8 @@ export default function UyumIstemci({
             "giriş" ile "kütük"ü ayırır. */}
         <div className="ab-c-kural" style={{ margin: '0 0 20px' }} />
 
+        <EgilimSeridi noktalar={egilim} surecVar={surecId !== null} bugun={m.endeks} />
+
         {gorunur.length === 0 ? (
           <p style={{ color: 'var(--i3)', fontSize: 13 }}>
             Bu çerçevede uygulanabilir kontrol bulunmuyor.
@@ -307,6 +319,83 @@ function Metrik({ etiket, deger, vurgu, oran }: {
       <div className="etiket">{etiket}</div>
       <div className={`deger${vurgu ? ' vurgu' : ''}${oran ? ' oran' : ''}`}>{deger}</div>
     </div>
+  );
+}
+
+/* ── C15 · Eğilim şeridi ──────────────────────────────────────────────
+   Son 12 anlık görüntünün endeksi, 320×48 çizgi. Donut yok, alan dolgusu
+   yok: defter bir çizgi ve tarih eksenidir. Yüzde her noktada ekranda
+   yazılmaz — ilk, son ve fark sözcükle yazılır; ara noktalar `<title>`
+   ile okunur ama kritik bilgi (fark) ipucuna hapsedilmez.
+
+   Ölçülmemiş nokta (o gün değerlendirilmiş kontrol yok) çizgiye girmez;
+   eksende boş bir tik olarak kalır. Sıfıra çekmek "düştük" yalanı olurdu. */
+function EgilimSeridi({ noktalar, surecVar, bugun }: {
+  noktalar: TrendNoktasi[]; surecVar: boolean; bugun: number | null;
+}) {
+  const geometri = trendGeometrisi(noktalar);
+  const fark = trendFarki(noktalar);
+  const olculen = geometri.filter((g) => g.y !== null);
+  const cizgi = olculen.map((g) => `${g.x.toFixed(1)},${(g.y as number).toFixed(1)}`).join(' ');
+  const ilk = noktalar.find((p) => p.yuzde !== null) ?? null;
+  const son = [...noktalar].reverse().find((p) => p.yuzde !== null) ?? null;
+
+  const farkYazisi = fark === null
+    ? 'fark ölçülmedi'
+    : fark === 0 ? 'değişim yok' : `${fark > 0 ? '+' : '−'}${Math.abs(fark)} puan`;
+  const farkDurumu = fark === null ? 'unk' : fark > 0 ? 'ok' : fark < 0 ? 'bd' : 'pl';
+
+  return (
+    <section className="ab-trend" aria-label="Uyum eğilimi">
+      <div className="bas">
+        <span className="etiket">
+          Eğilim{noktalar.length > 0 && <> · son {noktalar.length} anlık görüntü</>}
+        </span>
+        {noktalar.length > 0 && (
+          <span className={`mono cumle d-${farkDurumu}`}>
+            {ilk && son && ilk !== son
+              ? <>{ilk.etiket} %{ilk.yuzde} → {son.etiket} %{son.yuzde} · {farkYazisi}</>
+              : son ? <>{son.etiket} %{son.yuzde} · tek ölçüm</> : 'anlıklarda değerlendirilmiş kontrol yok'}
+            {bugun !== null && <> · bugün %{bugun}</>}
+          </span>
+        )}
+      </div>
+
+      {!surecVar ? (
+        <p className="cumle bos">Bu çerçevenin yürüyen uyum süreci yok — eğilim tutulmuyor.</p>
+      ) : noktalar.length === 0 ? (
+        <p className="cumle bos">Henüz anlık görüntü yok — ilk anlık motor çalışınca düşer.</p>
+      ) : (
+        <figure className="cizim">
+          <svg
+            viewBox={`0 0 ${TREND_EN} ${TREND_BOY}`}
+            width={TREND_EN} height={TREND_BOY}
+            role="img"
+            aria-label={`Uyum endeksi eğilimi, ${noktalar.length} nokta, ${farkYazisi}`}
+          >
+            {/* %50 ve %100 kılavuzları — eksen sözcükle okunur, renkle değil. */}
+            <line className="kilavuz" x1={0} x2={TREND_EN} y1={TREND_BOY / 2} y2={TREND_BOY / 2} />
+            {olculen.length > 1 && <polyline className="cizgi" points={cizgi} />}
+            {geometri.map((g) => g.y === null ? (
+              <line key={g.nokta.tarih} className="tik bos"
+                x1={g.x} x2={g.x} y1={TREND_BOY - 6} y2={TREND_BOY}>
+                {/* <title> çocuğu TEK dize: birden çok JSX ifadesi React 19'da
+                    hidrasyon uyuşmazlığı verir (sunucu tek düğüm yazar). */}
+                <title>{`${g.nokta.etiket} · ölçülmedi`}</title>
+              </line>
+            ) : (
+              <circle key={g.nokta.tarih} className="nokta" cx={g.x} cy={g.y} r={2.5}>
+                <title>{`${g.nokta.etiket} · %${g.nokta.yuzde} · ${g.nokta.degerlendirilen} değerlendirilen`}</title>
+              </circle>
+            ))}
+          </svg>
+          <figcaption className="mono eksen">
+            <span>{noktalar[0].etiket}</span>
+            <span>{noktalar[noktalar.length - 1].etiket}</span>
+          </figcaption>
+        </figure>
+      )}
+    </section>
   );
 }
 

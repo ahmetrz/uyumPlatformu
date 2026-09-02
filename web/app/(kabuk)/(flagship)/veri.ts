@@ -5,6 +5,7 @@ import type { AktifKullanici } from '@/lib/auth';
 import { kapsamDaraltildi, kapsamKosulu, modulKapisi } from '@/app/kapsam';
 import { uyumOzeti, gecikmisMi, gecenGun } from '@/lib/sabitler';
 import { maxEtki } from '@/app/(kabuk)/(operasyonel)/riskler/ortak';
+import { anlikSayimi } from '@/app/(kabuk)/(operasyonel)/uyum/mantik';
 import type { Kayit } from './Genel';
 
 /* F1 · Executive Overview — SUNUCU VERİSİ.
@@ -88,7 +89,8 @@ export type EkranVerisi = {
   ozet: {
     uyumYuzde: number | null; bilinmeyenOran: number | null;
     kritikRisk: number; gecikmisAksiyon: number;
-    yaklasanDenetim: { kod: string; kalanGun: number } | null;
+    /** En yakın planlı denetim: ad ve tarih ekranda YAZILIR, yalnız kod değil. */
+    yaklasanDenetim: { kod: string; ad: string; tarih: string; kalanGun: number } | null;
     tesisSayisi: number; toplamGucMw: number;
   };
   odak: Kayit | null;
@@ -415,7 +417,11 @@ export async function genelEkranVerisi(k: AktifKullanici): Promise<EkranVerisi> 
       kritikRisk: riskler,
       gecikmisAksiyon: aksiyonlar,
       yaklasanDenetim: yaklasan
-        ? { kod: yaklasan.kod, kalanGun: -gecenGun(yaklasan.planBitis!) }
+        ? {
+          kod: yaklasan.kod, ad: yaklasan.ad,
+          tarih: yaklasan.planBitis!.toISOString(),
+          kalanGun: -gecenGun(yaklasan.planBitis!),
+        }
         : null,
       tesisSayisi,
       toplamGucMw: Math.round((gucToplami._sum.kuruluGucMw ?? 0) * 10) / 10,
@@ -441,16 +447,11 @@ function anlikEgilimi(
   const aylar = new Map<string, { zaman: number; sayim: Record<string, number> }>();
   for (const a of kayitlar) {
     const anahtar = `${a.tarih.getUTCFullYear()}-${a.tarih.getUTCMonth()}`;
-    let sayim: Record<string, number>;
-    try {
-      const cozulen: unknown = JSON.parse(a.ozetJson);
-      if (!cozulen || typeof cozulen !== 'object') continue;
-      const kaynak = (cozulen as { sayilar?: unknown }).sayilar ?? cozulen;
-      sayim = Object.fromEntries(
-        Object.entries(kaynak as Record<string, unknown>)
-          .filter(([, v]) => typeof v === 'number'),
-      ) as Record<string, number>;
-    } catch { continue; }
+    /* Kayıt biçimi TEK yerden çözülür (uyum/mantik.ts): motorun yazdığı
+       `{ durumlar }` burada da okunur, /uyum şeridi ile kök eğilim aynı
+       kaydı aynı sayıyla okur. */
+    const sayim = anlikSayimi(a.ozetJson);
+    if (!sayim) continue;
     const onceki = aylar.get(anahtar);
     if (!onceki) { aylar.set(anahtar, { zaman: a.tarih.getTime(), sayim }); continue; }
     if (a.tarih.getTime() > onceki.zaman) { onceki.zaman = a.tarih.getTime(); onceki.sayim = sayim; }

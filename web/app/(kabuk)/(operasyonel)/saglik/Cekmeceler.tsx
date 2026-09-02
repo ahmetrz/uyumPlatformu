@@ -60,7 +60,7 @@ export function MotorOzeti({ motor, yazabilir }: { motor: Motor; yazabilir: bool
   );
 }
 
-/** Motorun son koşuları — Ozalit'te bu liste tek bir global tabloydu ve
+/** Motorun son koşuları — önceki arayüz katmanında bu liste tek bir global tabloydu ve
     modalla açılıyordu; artık kaydın kendi çekmecesinde yaşıyor. */
 function KosuListesi({ kosular }: { kosular: Kosu[] }) {
   return (

@@ -5,7 +5,7 @@ import type { Durum } from '@/components/kabuk/temel';
 
    Bu kuyruk /saglik'ın içine SIĞMADIĞI için ayrı bir rotada yaşıyor:
    /saglik zaten dört metrik ve dört kayıt ailesi taşıyor; beşincisini
-   eklemek Atlas'ın yoğunluk sözleşmesini (en fazla 4 metrik, 5–9 görünür
+   eklemek kabuğun yoğunluk sözleşmesini (en fazla 4 metrik, 5–9 görünür
    satır) kırardı. Kuyruğun VARLIĞI /saglik'ta bir satırla görünür,
    kendisi burada incelenir. */
 

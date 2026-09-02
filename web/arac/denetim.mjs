@@ -50,7 +50,7 @@ for (const yol of YOLLAR) {
   await s.waitForTimeout(1200);
 
   const rapor = await s.evaluate(() => {
-    const kok = document.querySelector('.atlas') || document.body;
+    const kok = document.querySelector('.ab[data-yon]') || document.body;
     const hepsi = [...kok.querySelectorAll('*')];
     const gorunur = (e) => {
       const r = e.getBoundingClientRect();
@@ -99,7 +99,7 @@ for (const yol of YOLLAR) {
       if (gorunur(e)) bulgular.push({ kural: 'B3 pill/chip', sec: e.className, deger: e.textContent.slice(0, 40) });
     }
 
-    // B9 · renk kayması: eski Ozalit altını etkileşimde kullanılmamalı
+    // B9 · renk kayması: önceki arayüz katmanının altını etkileşimde kullanılmamalı
     for (const e of hepsi) {
       if (!gorunur(e)) continue;
       const c = getComputedStyle(e);

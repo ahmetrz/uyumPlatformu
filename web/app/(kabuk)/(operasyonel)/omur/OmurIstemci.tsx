@@ -208,7 +208,7 @@ export default function OmurIstemci({
         <div className="ab-ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
           {/* Gruplama değişince şerit yeniden dizilir: key değişimi
               `blok-gir`i (motion/reveal, 300ms) yeniden çalıştırır.
-              prefers-reduced-motion altında atlas.css süreyi 1ms'e indirir. */}
+              prefers-reduced-motion altında kabuk.css süreyi 1ms'e indirir. */}
           <div
             key={gruplama}
             style={{ position: 'relative', animation: 'blok-gir var(--mo-reveal) var(--ez)' }}

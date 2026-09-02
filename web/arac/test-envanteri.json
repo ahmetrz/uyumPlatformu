@@ -1,7 +1,7 @@
 {
-  "imza": "ae17163905f85e09e106d8ce2d5b2c9d",
-  "dosya": 54,
-  "vaka": 1043,
+  "imza": "762c8cfdd9c8fd28db06d2f758a3129c",
+  "dosya": 63,
+  "vaka": 1187,
   "atlanan": 1,
   "dosyalar": {
     "tests/api.test.ts": {
@@ -20,12 +20,20 @@
       "vaka": 17,
       "atlanan": 0
     },
+    "tests/capa-dogrulama.test.ts": {
+      "vaka": 16,
+      "atlanan": 0
+    },
     "tests/connector-sertifika.test.ts": {
       "vaka": 27,
       "atlanan": 0
     },
     "tests/disa-aktarim-paketi.test.ts": {
       "vaka": 18,
+      "atlanan": 0
+    },
+    "tests/ekran-mantik-72.test.ts": {
+      "vaka": 22,
       "atlanan": 0
     },
     "tests/entegrasyon-cekirdek.test.ts": {
@@ -69,11 +77,15 @@
       "atlanan": 0
     },
     "tests/giris-guvenligi.test.ts": {
-      "vaka": 16,
+      "vaka": 19,
       "atlanan": 0
     },
     "tests/guvenlik-negatif.test.ts": {
       "vaka": 38,
+      "atlanan": 0
+    },
+    "tests/hesap.test.ts": {
+      "vaka": 25,
       "atlanan": 0
     },
     "tests/istemci-adresi.test.ts": {
@@ -89,11 +101,23 @@
       "atlanan": 0
     },
     "tests/kabuk-kapsami.test.ts": {
-      "vaka": 3,
+      "vaka": 5,
+      "atlanan": 0
+    },
+    "tests/kalite-kapilari.test.ts": {
+      "vaka": 11,
+      "atlanan": 0
+    },
+    "tests/kanitlar-mantik.test.ts": {
+      "vaka": 23,
       "atlanan": 0
     },
     "tests/kapsam-ekranlari.test.ts": {
       "vaka": 47,
+      "atlanan": 0
+    },
+    "tests/kapsam-kapisi.test.ts": {
+      "vaka": 4,
       "atlanan": 0
     },
     "tests/kesif.test.ts": {
@@ -140,6 +164,10 @@
       "vaka": 7,
       "atlanan": 0
     },
+    "tests/plant360-profil.test.ts": {
+      "vaka": 12,
+      "atlanan": 0
+    },
     "tests/proje-bagimliligi.test.ts": {
       "vaka": 9,
       "atlanan": 0
@@ -177,7 +205,7 @@
       "atlanan": 0
     },
     "tests/topoloji-tezgah.test.ts": {
-      "vaka": 36,
+      "vaka": 43,
       "atlanan": 0
     },
     "tests/uc-deger-kurali.test.ts": {
@@ -196,11 +224,19 @@
       "vaka": 47,
       "atlanan": 0
     },
+    "tests/uyum-trend.test.ts": {
+      "vaka": 3,
+      "atlanan": 0
+    },
     "tests/varlik-aktarim.test.ts": {
       "vaka": 32,
       "atlanan": 0
     },
     "tests/veri-kalitesi-aktarim.test.ts": {
+      "vaka": 16,
+      "atlanan": 0
+    },
+    "tests/yardim.test.ts": {
       "vaka": 16,
       "atlanan": 0
     },

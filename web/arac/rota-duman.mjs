@@ -24,9 +24,20 @@ import { yonlendirmeKarari } from './rota-kurallari.mjs';
    Tohum kaydı yoksa rota "TEST EDİLEMEDİ · tohumda kayıt yok" diye
    raporlanır ve kapsam sayısına GEÇTİ olarak yazılmaz.
 
+   ── Kabuk grameri ─────────────────────────────────────────────────────
+   Araç bir dönem önceki arayüz katmanının ray seçicilerine
+   bakıyordu; kabuk üç yöne bölününce o seçiciler DOM'dan kalktı ve
+   otuz yedi rota "ray yok" diye yanlış kusurlandı. Ölçüm artık güncel
+   gramerle yapılır (bkz. components/kabuk/Kabuk.tsx · app/kabuk.css):
+     · kök `.ab[data-yon]`  → hangi kabuk (a tezgâh · b saha · c defter)
+     · A: `.ab-a-ray`       · B: `.ab-b-ust nav[aria-label="Saha"]`
+     · C: `.ab-c-nav`       · aktif öğe: `[aria-current="page"]` (TEK)
+     · C dizin sütunu konumu `[aria-current="true"]` ile işaretler.
+
    Kullanım:
      PORT=3111 node arac/rota-duman.mjs
      PORT=3111 node arac/rota-duman.mjs --json    → makine okunur özet
+     npm run rota:duman
 */
 
 const WEB = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
@@ -106,14 +117,22 @@ function somutlastir(giris) {
 
 /* ── 3. Beklentiler ────────────────────────────────────────────────── */
 
-/* Kabuk: `(kabuk)` grubundaki her ekran rayı taşır. `(giris)` ve `(tam)`
-   kendi kabuklarını taşır — rayları YOKTUR, bu bir kusur değil karardır. */
-const rayBekleniyor = (g) => g.grup.includes('(kabuk)');
+/* Kabuk: `(kabuk)` ve `(tam)` gruplarındaki her ekran `.ab[data-yon]`
+   kabuğunu taşır (`app/(tam)/layout.tsx` de Kabuk'u sarar; `/portfoy` B
+   yüzeyine düşer ve saha sekme çubuğunu alır). `(giris)` kendi kabuğunu
+   taşır — gezinmesi YOKTUR, bu bir kusur değil karardır. */
+const kabukBekleniyor = (g) => g.grup.includes('(kabuk)') || g.grup.includes('(tam)');
 
-/* Rayda KENDİ ÖĞESİ olmayan ama kabuğu paylaşan ekranlar: aktif öğe ya
-   üst rotanınkidir ya da hiç yoktur. Aktif öğe sayısı > 1 her zaman
-   kusurdur (iki yerde birden duruyormuş gibi görünür). */
-const RAY_OGESI_YOK = new Set(['/sistem', '/sistem/bilesenler']);
+/* Kabuk gezinmesinde KENDİ ÖĞESİ olmayan ekranlar: aktif öğe ya üst
+   rotanınkidir ya da hiç yoktur. Aktif öğe sayısı > 1 her zaman kusurdur
+   (iki yerde birden duruyormuş gibi görünür). C defterinde sekmede yeri
+   olmayan bölümler (`/surecler`, `/raporlar`, `/kanitlar`…) dizin
+   sütununda `aria-current="true"` ile işaretlenir; o yüzden "aktif öğe
+   yok" kusuru yalnız dizin konumu da YOKSA yazılır. Buradaki liste,
+   her iki kanalı da taşımayan rotalardır (bkz. components/kabuk/yonler.ts):
+   `/sistem*` A ayağındaki referans bağından ulaşılır, rayda değildir;
+   `/tesisler/[id]` B sekmelerinden hiçbiriyle eşleşmez (santral detayı). */
+const RAY_OGESI_YOK = new Set(['/sistem', '/sistem/bilesenler', '/tesisler/[id]']);
 
 /** Bir URL yolunu envanterdeki rota kalıbına eşler (dinamik segment dahil). */
 function rotaEslestir(patika, envanter) {
@@ -192,18 +211,37 @@ async function yokla(giris, url, envanter) {
   const hedefGirisi = karar.beklentiDevret ? rotaEslestir(varilan, envanter) : null;
   const beklenti = hedefGirisi ?? giris;
   const olcu = await s.evaluate(() => {
-    const ray = document.querySelector('.atlas-ray');
-    if (!ray) return null;
-    const r = ray.getBoundingClientRect();
-    const aktif = document.querySelector('.ray-link[aria-current="page"]');
-    const marka = document.querySelector('.ray-marka');
-    const ms = marka ? getComputedStyle(marka) : null;
+    /* `.ab[data-yon]` tek başına KABUK değil, belirteç köküdür: giriş,
+       bakım, 404 ve kök hata ekranı da paleti almak için onu taşır ama
+       gezinme çizmez. Kabuğu ayıran şey atla bağıdır (`.ab-atla`) — yalnız
+       components/kabuk/Kabuk.tsx onu basar. */
+    const kabuk = document.querySelector('.ab[data-yon]:has(> .ab-atla)');
+    if (!kabuk) return null;
+    const yon = kabuk.getAttribute('data-yon');
+    /* Her kabuğun KENDİ birincil gezinmesi — aktif "sayfa" orada duyurulur. */
+    const GEZINME = {
+      a: '.ab-a-ray',
+      b: '.ab-b-ust nav[aria-label="Saha"]',
+      c: '.ab-c-nav',
+    };
+    const gezinme = document.querySelector(GEZINME[yon] ?? '');
+    /* Aktif öğe TÜM belgede sayılır: hesap bağları (`/ayarlar`, `/yardim`,
+       `/bildirimler`) gezinmenin dışında durur ama `aria-current="page"`
+       taşır; "tek geçerli sayfa" sözleşmesi belgeye aittir, çubuğa değil. */
+    /* Yol çubuğunun (ekmek kırıntısı, `.yol`) son öğesi de `aria-current="page"`
+       taşır — WAI-ARIA'nın kendi kalıbı, ayrı bir "küme": gezinme "hangi
+       bölüm", yol "bu bölümde hangi kayıt" der. O yüzden sayıma girmez;
+       tek-sayfa sözleşmesi gezinme + hesap bağları belgesine aittir. */
+    const aktifler = [...document.querySelectorAll('[aria-current="page"]')]
+      .filter((e) => !e.closest('.yol'));
+    const aktif = aktifler[0] ?? null;
     return {
-      genislik: Math.round(r.width),
-      aktifSayi: document.querySelectorAll('.ray-link[aria-current="page"]').length,
-      aktifAd: aktif ? aktif.textContent.trim().slice(0, 22) : null,
-      inset: ms ? ms.paddingLeft : null,
-      ustPad: getComputedStyle(ray).paddingTop,
+      yon,
+      gezinmeVar: Boolean(gezinme),
+      genislik: gezinme ? Math.round(gezinme.getBoundingClientRect().width) : null,
+      aktifSayi: aktifler.length,
+      aktifAd: aktif ? (aktif.getAttribute('aria-label') ?? aktif.textContent).trim().slice(0, 22) : null,
+      dizinKonumu: document.querySelectorAll('.ab-c-dizin [aria-current="true"]').length,
     };
   });
 
@@ -214,10 +252,11 @@ async function yokla(giris, url, envanter) {
   /* Listede olmayan HER varış değişimi kusurdur — varış bilinen bir rota
      olsa, hatta 200 dönse bile. İstenen ekran çizilmemiştir. */
   else if (karar.kusur) kusurlar.push(karar.kusur);
-  if (rayBekleniyor(beklenti) && !olcu) kusurlar.push('ray yok');
-  if (!rayBekleniyor(beklenti) && olcu) kusurlar.push('beklenmeyen ray');
+  if (kabukBekleniyor(beklenti) && !olcu) kusurlar.push('kabuk yok');
+  if (!kabukBekleniyor(beklenti) && olcu) kusurlar.push('beklenmeyen kabuk');
+  if (olcu && !olcu.gezinmeVar) kusurlar.push(`${olcu.yon} kabuğunun gezinmesi yok`);
   if (olcu && olcu.aktifSayi > 1) kusurlar.push(`aktif öğe ${olcu.aktifSayi} (>1)`);
-  if (olcu && olcu.aktifSayi === 0 && rayBekleniyor(beklenti)
+  if (olcu && olcu.aktifSayi === 0 && olcu.dizinKonumu === 0 && kabukBekleniyor(beklenti)
     && !RAY_OGESI_YOK.has(beklenti.rota)) kusurlar.push('aktif öğe yok');
   return { kod, olcu, kusurlar, varilan: varilan === url ? null : varilan };
 }
@@ -263,8 +302,10 @@ if (JSON_CIKTI) {
   for (const r of sonuclar) {
     const im = r.durum === 'GEÇTİ' ? 'OK  ' : r.durum === 'KUSURLU' ? 'KUSUR' : 'YOK ';
     const ray = r.olcu
-      ? `ray=${r.olcu.genislik}px inset=${r.olcu.inset} üst=${r.olcu.ustPad} aktif=${r.olcu.aktifSayi}:${r.olcu.aktifAd}`
-      : (r.durum === 'GEÇTİ' ? 'ray yok (kabuk dışı)' : '');
+      ? `kabuk=${r.olcu.yon} gezinme=${r.olcu.gezinmeVar ? `${r.olcu.genislik}px` : 'YOK'}`
+        + ` aktif=${r.olcu.aktifSayi}:${r.olcu.aktifAd ?? '—'}`
+        + (r.olcu.dizinKonumu ? ` dizin=${r.olcu.dizinKonumu}` : '')
+      : (r.durum === 'GEÇTİ' ? 'kabuk yok (giriş katmanı)' : '');
     const kuyruk = r.durum === 'TEST EDİLEMEDİ'
       ? `TEST EDİLEMEDİ · ${r.sebep}`
       : `${r.kod ?? ''} ${ray}${r.kusurlar.length ? `  ← ${r.kusurlar.join(', ')}` : ''}${r.not ? `  (${r.not})` : ''}`;

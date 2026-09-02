@@ -136,7 +136,7 @@ export default async function Sayfa() {
   ];
 
   const [kosuListeleri, kaliteBulgulari, entegrasyon, koken] = await Promise.all([
-    /* Her motorun kendi son koşuları çekilir. Ozalit sürümü "son koşu" +
+    /* Her motorun kendi son koşuları çekilir. Önceki sürüm "son koşu" +
        "genel son 20 koşu" diye iki ayrı sorgu kullanıyordu; çok koşan bir
        motor az koşanı o listeden düşürebiliyordu. Geçmiş artık kaydın
        çekmecesinde yaşadığı için hiçbir motor listeden düşmüyor. */

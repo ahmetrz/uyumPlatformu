@@ -406,6 +406,89 @@ export function anahtarSirala(liste: Anahtar[], simdi: number): Anahtar[] {
     || b.olusturuldu.localeCompare(a.olusturuldu));
 }
 
+/* ═══ D32 · Son API istekleri ═══════════════════════════════════════════
+   `ApiIstegi` hem idempotency defteri hem API denetim izidir; şimdiye
+   dek yalnız SAYILIYORDU (anahtar başına `_count`), hiç LİSTELENMİYORDU.
+   Anahtar tablosunun altında son N istek okunur: kim (anahtar adı), ne
+   (yöntem · yol), sonuç (durum kodu), ne kadar sürdü.
+
+   Satıra `yanitOzeti` ve `idempotencyAnahtari` HİÇ GELMEZ: ilki yanıt
+   gövdesinin kopyasıdır (kapsamlı veri taşıyabilir), ikincisi istemcinin
+   ürettiği gizli bir değerdir. Ekrana yalnız üst veri iner. */
+
+export type SonIstek = {
+  id: string;
+  zaman: string;
+  yontem: string;
+  yol: string;
+  /** 0 = ilk istek hâlâ işleniyor (idempotency rezervasyonu) */
+  durumKodu: number;
+  /** null = süre ölçülmedi (rezervasyon satırı ya da kesilen istek) */
+  sureMs: number | null;
+  hataKodu: string | null;
+  /** anahtarsız istek (kimlik doğrulanamadı) null gelir */
+  anahtar: { id: string; ad: string } | null;
+};
+
+/** Ekrana inen istek tavanı; sayaçlar bu pencerenin içindir, "tüm zamanlar"
+    sayısı anahtar tablosundaki `istekSayisi`dir (COUNT). */
+export const SON_ISTEK_TAVANI = 50;
+
+/* İşaretçi: 2xx uyumlu; 4xx istemci hatası — kısmi (anahtar çalışıyor,
+   istek kusurlu); 5xx sunucu hatası — kritik; 0 hâlâ işleniyor —
+   sonucu BİLİNMİYOR, başarı ya da hata sayılmaz. */
+export function istekImi(durumKodu: number): Durum {
+  if (durumKodu === 0) return 'unk';
+  if (durumKodu >= 500) return 'bd';
+  if (durumKodu >= 400) return 'md';
+  return 'ok';
+}
+
+/** Durum hücresi: kod + (varsa) hata kodu sözcüğü — renk tek kanal değil. */
+export function istekDurumMetni(i: SonIstek): string {
+  if (i.durumKodu === 0) return 'işleniyor';
+  return i.hataKodu ? `${i.durumKodu} · ${i.hataKodu}` : String(i.durumKodu);
+}
+
+/** Süre hücresi. null "0 ms" DEĞİLDİR: ölçüm yapılmadı. */
+export function sureMetni(ms: number | null): string {
+  if (ms === null || !Number.isFinite(ms) || ms < 0) return 'ölçülmedi';
+  return ms >= 1000 ? `${(ms / 1000).toFixed(1)} sn` : `${ms} ms`;
+}
+
+/** Pencere içinde anahtar başına sayım — çoktan aza; eşitlikte adlı
+    anahtarlar önce, "anahtarsız" kalemi en sonda. Anahtarsız istek
+    gizlenmez: kimlik doğrulanamayan istek de trafiktir ve tam olarak
+    görülmesi gereken şeydir. */
+export function anahtarBasinaSayim(istekler: SonIstek[]): { ad: string; sayi: number }[] {
+  const sayac = new Map<string, { ad: string; sayi: number; anahtarsiz: boolean }>();
+  for (const i of istekler) {
+    const k = i.anahtar?.id ?? '';
+    const o = sayac.get(k);
+    if (o) o.sayi += 1;
+    else sayac.set(k, { ad: i.anahtar?.ad ?? 'anahtarsız', sayi: 1, anahtarsiz: !i.anahtar });
+  }
+  return [...sayac.values()]
+    .sort((a, b) => b.sayi - a.sayi
+      || Number(a.anahtarsiz) - Number(b.anahtarsiz)
+      || a.ad.localeCompare(b.ad, 'tr'))
+    .map(({ ad, sayi }) => ({ ad, sayi }));
+}
+
+/** Son istekler dip notu: pencere, anahtar başına dağılım, hata sayısı. */
+export function sonIstekDipNotu(istekler: SonIstek[], tavan: number): string {
+  if (istekler.length === 0) return 'Kayıtlı API isteği yok — sayım yapıldı, sonuç sıfır.';
+  const parca = [istekler.length >= tavan
+    ? `son ${tavan} istek görünüyor, öncekiler bu listede değil`
+    : `${istekler.length} istek · kayıtların tamamı`];
+  parca.push(anahtarBasinaSayim(istekler).map((k) => `${k.ad} ${k.sayi}`).join(', '));
+  const hatali = istekler.filter((i) => istekImi(i.durumKodu) !== 'ok' && i.durumKodu !== 0).length;
+  if (hatali > 0) parca.push(`${hatali} istek hata döndü`);
+  const isleniyor = istekler.filter((i) => i.durumKodu === 0).length;
+  if (isleniyor > 0) parca.push(`${isleniyor} isteğin sonucu henüz yazılmadı`);
+  return parca.join(' · ');
+}
+
 /* ═══ Ortak ═════════════════════════════════════════════════════════════ */
 
 /** 06 §A3: tabloda 5–9 satır görünür; sabitlenenler bütçenin dışındadır. */

@@ -13,7 +13,7 @@ import { Metrikler, type Metrik, type Durum } from './temel';
    başlıklı versal, C'de 34px serif soru cümlesi. Bu dosya yapıyı kurar,
    malzemeyi `[data-yon]` seçer.
 
-   Atlas'ın `ekran.tsx`inden devralınan tek şey SÖZLEŞMEDİR: en fazla beş
+   Önceki arayüz katmanından devralınan tek şey SÖZLEŞMEDİR: en fazla beş
    ölçüt, en fazla beş görünür süzgeç + taşma, aşama şeridi sekme DEĞİLDİR
    (sıralı liste + `aria-current="step"`). */
 

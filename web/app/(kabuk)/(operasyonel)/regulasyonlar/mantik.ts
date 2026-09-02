@@ -196,7 +196,7 @@ export function surumOzeti(s: Surum): string {
   return parcalar.join(' · ');
 }
 
-/** Fark tipini Atlas işaretçisine çevirir. `ayni` fark DEĞİLDİR, elenir. */
+/** Fark tipini durum işaretçisine çevirir. `ayni` fark DEĞİLDİR, elenir. */
 export const FARK_IM: Record<string, Durum> = {
   yeni: 'ok', degisti: 'md', kaldirildi: 'bd',
 };

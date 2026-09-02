@@ -1,7 +1,11 @@
+import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { aktifKullanici } from '@/lib/auth';
 import GirisFormu from './GirisFormu';
 import { TEMEL } from '@/lib/demo';
+import { guvenliHedef, VARSAYILAN_HEDEF } from './mantik';
+
+export const metadata: Metadata = { title: 'Giriş' };
 
 /* Giriş — oturum yok, kayıt yok, karar yok: uygulama kabuğunun dışındaki
    tek ekran. Kabuk çizilmez ama YÜZEY kabuğundur: `.ab[data-yon='b']`
@@ -10,12 +14,21 @@ import { TEMEL } from '@/lib/demo';
 
    Yerleşim iki şeritli: solda fotoğrafik kimlik bandı, sağda 400px'lik
    form kolonu — detay panelinin genişliğiyle aynı ölçü. Kart yok,
-   yuvarlak köşe yok, gölge yok; ayrımı kenar çizgisi ve yüzey tonu yapar. */
+   yuvarlak köşe yok, gölge yok; ayrımı kenar çizgisi ve yüzey tonu yapar.
 
+   `?next=/yol` (E40): giriş başarınca `next` hedefine dönülür. BUGÜN bu
+   parametreyi üreten bir yönlendirme YOK — `girisZorunlu()` çıplak /giris'e
+   atar (sunucu bileşeni isteğin yolunu bilmez; middleware/proxy kurulmadı).
+   Kapı, elle yazılan ya da ileride bir proxy'nin üreteceği bağ için hazır. Hedef hem burada (zaten oturumu olan
+   ziyaretçi için) hem eylemde (`girisYap`) aynı kuralla süzülür —
+   yalnız site içi göreli yol, aksi '/'. Süzülmüş hâli forma verilir ki
+   dip nottaki "girişten sonra … dönülür" cümlesi yalan söylemesin. */
 
-
-export default async function Giris() {
-  if (await aktifKullanici()) redirect('/');
+export default async function Giris({ searchParams }: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const hedef = guvenliHedef((await searchParams).next);
+  if (await aktifKullanici()) redirect(hedef);
 
   return (
     <div className="ab" data-yon="b" style={{
@@ -29,6 +42,7 @@ export default async function Giris() {
           src={`${TEMEL}/gorseller/jeotermal-genis.webp`}
           alt="Kızıldere jeotermal santrali"
           decoding="async"
+          fetchPriority="high"
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%',
             objectFit: 'cover', opacity: 0.62 }}
         />
@@ -62,7 +76,7 @@ export default async function Giris() {
         padding: 'var(--s40) var(--s34)' }}>
         <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Kurum hesabı</p>
         <h2 className="ab-bolum-basligi" style={{ margin: '0 0 var(--s26)' }}>Oturum aç</h2>
-        <GirisFormu />
+        <GirisFormu next={hedef === VARSAYILAN_HEDEF ? null : hedef} />
       </main>
     </div>
   );

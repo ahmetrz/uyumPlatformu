@@ -74,7 +74,7 @@ export const IS_TANIMLARI: IsTanimi[] = [
 ];
 
 /** Her motorun çekmecede gösterilen koşu geçmişi derinliği.
-    Ozalit'te "son 20 koşu" TEK bir listede duruyordu ve çok koşan bir motor
+    Önceki arayüz katmanında "son 20 koşu" TEK bir listede duruyordu ve çok koşan bir motor
     az koşanı listeden düşürebiliyordu. Geçmiş artık kaydın kendi
     çekmecesinde yaşıyor: hiçbir motor listeden düşmez. */
 export const GECMIS_DERINLIGI = 8;
@@ -222,7 +222,7 @@ export function motorToplanabilir(m: Motor): boolean {
 
 /* ═══ Entegrasyon ═══════════════════════════════════════════════════════ */
 
-/** Sağlık durumu → Atlas işaretçisi.
+/** Sağlık durumu → durum işaretçisi.
     `kimlik_bekleniyor` ve `calisiyor` PLANLI'dır: ikisi de hata değildir ve
     ikisi de "kanıtlanmış sağlık" değildir. `hic_kosmadi` ve `bilinmiyor`
     BİLİNMEYEN'dir — sıfır değil. */
@@ -400,7 +400,7 @@ export function baslikMetni(m: Metrikler): { vurgu?: string; ad: string; durum?:
 /* ═══ Connector yapılandırma tezgâhı — saf mantık ════════════════════════
    §8'in ekrana düşen kısmı. Buradaki hiçbir fonksiyon dış sisteme
    bağlanmaz, sır çözmez ve "başarılı" uydurmaz; yalnız sunucudan gelen
-   sonucu Atlas işaretçisine çevirir. */
+   sonucu durum işaretçisine çevirir. */
 
 /** Ortam sözcükleri — `prisma/schema.prisma` → `Connector.ortam` ile birebir. */
 export const ORTAM_SOZU: Record<string, string> = {

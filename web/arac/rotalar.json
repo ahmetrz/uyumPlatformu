@@ -1,6 +1,7 @@
 [
  "",
  "/aktivite",
+ "/ayarlar",
  "/bildirimler",
  "/bulgular",
  "/denetimler",
@@ -8,6 +9,7 @@
  "/esleme",
  "/eslestirme",
  "/ice-aktarim",
+ "/kanitlar",
  "/kesif",
  "/kimlik",
  "/olaylar",
@@ -29,6 +31,7 @@
  "/topoloji",
  "/uyum",
  "/varlik-aktarim",
+ "/yardim",
  "/yedekleme",
  "/yetkiler",
  "/yonetim-tezgahi"

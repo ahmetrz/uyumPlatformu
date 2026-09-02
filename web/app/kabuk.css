@@ -1,11 +1,11 @@
 /* ═══════════════════════════════════════════════════════════════════════
    KABUK — presentation katmanı (orijinal tasarım prototiplerinden)
 
-   Görsel source of truth: orijinal tasarım kaynağındaki (`ORIGINAL_DESIGN_SOURCE.zip`) on
-   iki yüksek sadakatli HTML prototipi. Buradaki her değer o prototipler
-   1440×1000'de render edilip HESAPLANARAK çıkarılmıştır; mevcut arayüzden,
-   Atlas'tan, Atlas 2'den ya da canlı demodan türetilmemiştir. Ölçüm ve
-   gerekçeler: ORIGINAL_DESIGN_IMPLEMENTATION_MAP.md.
+   Görsel source of truth: on iki orijinal HTML prototipi
+   (ORIGINAL_DESIGN_IMPLEMENTATION_MAP.md §2). Buradaki her değer o
+   prototipler 1440×1000'de render edilip HESAPLANARAK çıkarılmıştır;
+   mevcut arayüzden, önceki arayüz katmanlarından ya da canlı demodan
+   türetilmemiştir. Ölçüm ve gerekçeler: ORIGINAL_DESIGN_IMPLEMENTATION_MAP.md.
 
    Üç yön = üç KABUK, tek gramer değil. Ayrıştıkları yer zemin sıcaklığı,
    görüntü ailesi, fotoğraf rolü ve NAVİGASYON FELSEFESİDİR:
@@ -101,7 +101,7 @@
   src: url('/fontlar/plex-mono-latin-ext-600.woff2') format('woff2');
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
-/* A yönünün GÖRÜNÜM ailesi. `atlas.css` silinince `@font-face` kuralı da
+/* A yönünün GÖRÜNÜM ailesi. Önceki arayüz katmanının stil dosyası silinince `@font-face` kuralı da
    gitti ve A'nın dar başlıkları sessizce Inter Tight'a düşüyordu — gözle
    fark edilmiyordu. `arac/font-kontrol.mjs` artık aile bildirimini de
    denetliyor. Dosyalar zaten `public/fontlar` içindeydi. */
@@ -160,8 +160,8 @@
    Boşluk, tipografi boyu ve kenar kalınlığı ÖLÇEKTİR — bir tasarımın
    kimliği değil, ölçüsü. Değerler orijinal prototiplerden okundu:
    9.5px mono etiket, 12.5px hücre, 1px kural, satır dolgusu 9px.
-   Ekranlar bu adları satır içi stilde kullanır; Atlas'ın aynı adlı
-   ölçeği SİLİNDİ, buradaki değerler prototiplerin.
+   Ekranlar bu adları satır içi stilde kullanır; önceki arayüz katmanının
+   aynı adlı ölçeği SİLİNDİ, buradaki değerler prototiplerin.
 
    ── PROTOTİPTEN BİLİNÇLİ SAPMA: 11px zemini ────────────────────────
    Prototip kolon başlığını 8.5px, ikon rayı etiketini 7.5px çiziyordu.
@@ -250,6 +250,27 @@
 /* Odak: prototiplerde tanımsızdı (harita §7 kusur 5). Klavye kullanıcısı
    nerede olduğunu GÖRMELİ; kontrast aksandan gelir. */
 .ab :focus-visible { outline: 2px solid var(--aksan); outline-offset: 2px; }
+
+/* Atla bağı — görünmez; klavye odağı gelince kabuğun üstünde belirir.
+   `z-index` paletin perdesinden (50) yüksek: perde açıkken de ilk Tab
+   onu bulur. Ekran okuyucu için gizlenmez — `clip` ile görsel olarak
+   kaldırılır, `display:none` odağı da yok ederdi. */
+.ab-atla {
+  position: absolute; left: 0; top: 0; z-index: 60;
+  width: 1px; height: 1px; overflow: hidden;
+  clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
+  font-family: var(--veri); font-size: 11px; letter-spacing: .1em;
+  text-transform: uppercase; text-decoration: none;
+}
+.ab-atla:focus, .ab-atla:focus-visible {
+  width: auto; height: auto; clip: auto; clip-path: none;
+  padding: 10px 16px; margin: 8px;
+  background: var(--aksan); color: var(--aksan-uzeri);
+  outline: 2px solid var(--murekkep); outline-offset: 2px;
+}
+/* Atla bağının hedefi programatik odak alır (`tabIndex=-1`); odak
+   halkası burada gürültü — main'in tamamını çerçevelerdi. */
+#icerik:focus { outline: none; }
 
 /* Etiket — üç yönde de aynı rol, farklı ton */
 .ab .etiket {
@@ -406,6 +427,9 @@
   overflow-y: auto; scrollbar-width: thin;
 }
 .ab-a-ray a {
+  /* `position: relative`: okunmamış sayaç rozeti (`.ab-sayac`) öğenin
+     sağ üstüne mutlak konumlanır. */
+  position: relative;
   min-height: 48px; flex: none; display: flex; flex-direction: column;
   align-items: center; justify-content: center; gap: 5px; padding: 5px 2px;
   color: var(--i3); border-left: 2px solid transparent;
@@ -429,6 +453,19 @@
 /* Yönetim ayracı: prototipte 6. öğeden sonra 33px boşluk vardı. Grup
    BAŞLIĞI değil — "buradan sonrası günlük tezgâh değil" der. */
 .ab-a-ray a.ayrik { margin-top: 22px; border-top: 1px solid var(--hr); padding-top: 12px; }
+
+/* Okunmamış sayaç rozeti (D30). Rozet bir SAYIDIR, uyarı ışığı değil:
+   mono, tabular, köşesiz. 11px zemini (tipografi kararı); `min-width`
+   "9" ile "99+"ı aynı yükseklikte tutar. Rayda etiketin sağ üstüne
+   oturur, üst çubukta (B/C) düğme metninin yanına. */
+.ab-sayac {
+  display: inline-block; min-width: 18px; padding: 1px 5px;
+  font-family: var(--veri); font-size: 11px; line-height: 14px;
+  font-variant-numeric: tabular-nums; letter-spacing: 0; text-align: center;
+  background: var(--aksan); color: var(--aksan-uzeri);
+}
+.ab-a-ray a .ab-sayac { position: absolute; top: 4px; right: 4px; }
+.ab-dugme .ab-sayac { margin-left: 6px; vertical-align: 1px; }
 
 .ab-a-icerik {
   min-width: 0; overflow-x: hidden; overflow-y: auto;
@@ -642,6 +679,44 @@
 .ab-b-izgara-ozet { margin: 10px 0 0; font-size: 11px; color: var(--i2); }
 .ab-b-izgara-ozet .unk { color: var(--unk); }
 
+/* ── Öncelik şeridi (kök ekran) ────────────────────────────────────
+   Kritik risk · gecikmiş aksiyon · yaklaşan denetim. Her kalem bir
+   <Link>: hedef ekrana götürür. Sol kenar durumun şiddetini taşır,
+   yanındaki cümle sözcükle söyler. */
+.ab-kpi {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-top: 1px solid var(--hr); border-bottom: 1px solid var(--hr);
+}
+.ab-kpi .kalem {
+  display: flex; flex-direction: column; gap: 4px; min-width: 0;
+  padding: 14px 32px; border-left: 3px solid var(--hr2);
+  color: inherit; text-decoration: none; background: var(--zemin);
+}
+.ab-kpi .kalem:hover { background: var(--panel); }
+.ab-kpi .kalem .deger {
+  font-size: var(--t-metric); line-height: 1.1; color: var(--murekkep);
+  font-variant-numeric: tabular-nums;
+}
+/* Yaklaşan denetim: değer sayı değil AD — görünüm ailesiyle, mono değil. */
+.ab-kpi .kalem .deger.ad {
+  font-family: var(--gorunum); font-size: 17px; line-height: 1.2;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.ab-kpi .kalem .cumle { margin: 0; font-size: 11px; line-height: 1.5; color: var(--i2); }
+.ab-kpi .kalem .cumle .unk { color: var(--unk); }
+/* Şiddet sol kenarda: `d-bd` kritik/gecikmiş, `d-md` yakın, `d-ok`
+   temiz, `d-pl` planlı, `d-unk` ölçülmedi. Sınıf sıfırdan büyükse
+   verilir; sıfır ve "değerlendirilmedi" ayrı ayrı yazılır (unknown ≠ 0).
+   Üç kalemin de sol kenarı 3px: şiddet kenarı kalemler arası ayraç
+   görevini de görür, ayrıca ince ayraç çizilmez. */
+.ab-kpi .kalem.d-bd { border-left-color: var(--bd); }
+.ab-kpi .kalem.d-bd .deger { color: var(--bd); }
+.ab-kpi .kalem.d-md { border-left-color: var(--md); }
+.ab-kpi .kalem.d-ok { border-left-color: var(--ok); }
+.ab-kpi .kalem.d-pl { border-left-color: var(--pl); }
+.ab-kpi .kalem.d-unk { border-left-color: var(--unk); }
+.ab-kpi .kalem.d-unk .deger { color: var(--i3); }
+
 /* ═══ B · Enerji portföyü ═════════════════════════════════════════════
    `b-executive` saha şeridinin tam sayfa açılımı: 380px kimlik paneli +
    fotoğrafik plaka listesi. */
@@ -665,6 +740,31 @@
 .ab-b-portfoy-ust nav button[aria-pressed='true'] {
   color: var(--murekkep); border-color: var(--aksan);
 }
+/* Üst çubukta portföy uyum endeksi (gerçek durumSayimlari → uyumOzeti).
+   `null` ise "—" ve "ölçülmedi" yazılır. */
+.ab-portfoy-endeks {
+  display: inline-flex; align-items: baseline; gap: 10px; min-width: 0;
+  padding-left: 24px; border-left: 1px solid var(--hr);
+}
+.ab-portfoy-endeks .deger {
+  font-size: var(--t-metric); line-height: 1; color: var(--murekkep);
+  font-variant-numeric: tabular-nums;
+}
+.ab-portfoy-endeks .cumle { font-size: 11px; color: var(--i3); white-space: nowrap; }
+.ab-portfoy-endeks .cumle .unk { color: var(--unk); }
+/* Sıralama + tüzel kişi süzgeci şeridi. Üst çubuğun altında ikinci,
+   daha sessiz bir sıra; aynı yatay dolgu (32px). `select` malzemesi
+   genel kuraldan gelir; burada yalnız yerleşim ve etiket dizilir. */
+.ab-portfoy-denetim {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 8px 24px;
+  padding: 8px 32px; border-bottom: 1px solid var(--hr); background: var(--panel);
+}
+.ab-portfoy-denetim .secim { display: inline-flex; align-items: center; gap: 10px; }
+.ab-portfoy-denetim .secim select { min-width: 160px; font-size: 12.5px; }
+/* Sonuç cümlesi (`aria-live`): "N santral · en zayıf: …" — sağa yaslı,
+   telefonda kendi satırına düşer. */
+.ab-portfoy-denetim .cumle { margin: 0 0 0 auto; font-size: 11px; color: var(--i2); }
+.ab-portfoy-denetim .cumle .unk { color: var(--unk); }
 
 .ab-b-portfoy-govde { display: grid; grid-template-columns: 380px minmax(0, 1fr); }
 .ab-b-portfoy-govde .kimlik {
@@ -726,6 +826,18 @@
 }
 .ab-b-portfoy-govde .plaka .sayilar .deger.vurgu { color: var(--bd); }
 .ab-b-portfoy-govde .plaka .sayilar .etiket { display: block; margin-top: 4px; }
+/* Seçili ölçüte göre EN ZAYIF plaka. Sol kenar uygunsuz rengini alır,
+   plakanın içinde "en zayıf · <neden>" sözcüğü yazılır (renk tek başına
+   anlatmaz). Seçili plakanın aksan kenarı ile çakışmasın diye zayıflık
+   kenar rengi değil, kenar deseni: ince çift çizgi. */
+.ab-b-portfoy-govde .plaka.ab-portfoy-zayif {
+  border-left-color: var(--bd); box-shadow: inset 4px 0 0 var(--zemin), inset 5px 0 0 var(--bd);
+}
+.ab-b-portfoy-govde .plaka .zayif {
+  display: inline-block; margin-left: 10px; padding: 1px 6px;
+  font-size: 11px; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--bd); border: 1px solid var(--bd);
+}
 
 /* ═══ B · Santral 360 — b-plant360 grameri ═══════════════════════════
    560px hero plakası: solda künye + 92px dar başlık, altta ölçü şeridi,
@@ -849,6 +961,48 @@
 .ab-b-zincir .durak .sayilar dt { color: var(--i3); }
 .ab-b-zincir .durak .sayilar dd { margin: 0; }
 .ab-b-zincir .durak .sayilar .kirmizi { color: var(--bd); }
+
+/* ── OT mimari profili ─────────────────────────────────────────────
+   Aynı 26px/32px iç boşluk ve `.etiket` başlık ritmi. Beş grup yan
+   yana; dar ekranda alt alta iner. Kart içinde kart YOK: grup yalnız
+   ince bir üst çizgiyle ayrılır. */
+.ab-otprofil-blok { padding: 26px 32px; border-bottom: 1px solid var(--hr); }
+.ab-otprofil-blok > header { display: flex; align-items: baseline; gap: 20px; margin-bottom: 18px; }
+.ab-otprofil-blok > header .sag { margin-left: auto; }
+.ab-otprofil-gruplar {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 0 26px;
+}
+.ab-otprofil-grup { margin: 0; padding: 12px 0 4px; border: 0; border-top: 1px solid var(--hr2); min-width: 0; }
+.ab-otprofil-grup .grupad {
+  display: block; margin: 0 0 8px; padding: 0;
+  font-family: var(--veri); font-size: var(--t-code-lg); letter-spacing: .12em;
+  text-transform: uppercase; color: var(--i3);
+}
+.ab-otprofil-grup .satir {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
+  padding: 6px 0; border-bottom: 1px solid var(--hr);
+}
+.ab-otprofil-grup .satir dt { font-size: var(--t-cell); color: var(--i2); }
+.ab-otprofil-grup .satir dd {
+  margin: 0; display: inline-flex; align-items: center; gap: 6px;
+  font-size: var(--t-code-lg); text-align: right; overflow-wrap: anywhere;
+  font-variant-numeric: tabular-nums;
+}
+/* Tanımsız satır: sözcük + unk glifi; yalnız renk DEĞİL. */
+.ab-otprofil-grup .satir.tanimsiz dd { color: var(--unk); }
+.ab-otprofil-dip {
+  margin: 16px 0 0; display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;
+  font-family: var(--veri); font-size: var(--t-code-lg); line-height: 1.7; color: var(--i3);
+  max-width: 96ch;
+}
+/* Form aynı grup ızgarasını kullanır; alanlar Alan primitifidir (.ab-alan). */
+.ab-otprofil-form .ab-otprofil-grup { padding-bottom: 8px; }
+.ab-otprofil-eylem {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--hr2);
+}
+.ab-otprofil-eylem .dip { font-size: var(--t-code-lg); color: var(--i3); }
 
 /* ── Üniteler + açık bulgular ──────────────────────────────────────── */
 .ab-b-ikili { display: grid; grid-template-columns: 560px minmax(0, 1fr); border-bottom: 1px solid var(--hr); }
@@ -1027,6 +1181,36 @@
 .ab-c-olcut .deger { font-family: var(--veri); font-size: 19px; font-variant-numeric: tabular-nums; margin-top: 4px; }
 .ab-c-olcut .deger.vurgu { color: var(--bd); }
 .ab-c-olcut .deger.oran { font-family: var(--gorunum); font-size: 26px; line-height: 1; }
+
+/* Eğilim şeridi — son ≤12 UyumAnlik anlık görüntüsünün çizgi şeridi;
+   uyum defteri başlığı ile matris arasına girer. Donut/radyal YOK; SVG
+   viewBox 320×48, genişliğe yayılır. Ölçülemeyen nokta SIFIR ÇİZİLMEZ:
+   `.tik.bos` çizgisi ve <title> ile ayrı işaretlenir. */
+.ab-trend { margin: 0 0 24px; padding: 12px 0 14px; border-bottom: 1px solid var(--hr2); }
+.ab-trend .bas {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 12px 24px; flex-wrap: wrap; margin-bottom: 8px;
+}
+.ab-trend .bas .cumle { margin: 0; font-size: 11px; color: var(--i2); }
+/* Fark rengi ikinci kanal: sözcük ("+4 puan", "−3 puan", "değişim yok",
+   "fark ölçülmedi") her zaman yazılıdır. */
+.ab-trend .bas .cumle.d-ok { color: var(--ok); }
+.ab-trend .bas .cumle.d-bd { color: var(--bd); }
+.ab-trend .bas .cumle.d-pl { color: var(--i2); }
+.ab-trend .bas .cumle.d-unk { color: var(--unk); }
+/* Boş satır: "henüz anlık görüntü yok" / "süreç yok" — grafik yerine cümle. */
+.ab-trend .cumle.bos { margin: 0; font-size: 12.5px; line-height: 1.6; color: var(--i3); }
+.ab-trend .cizim { margin: 0; max-width: 320px; } /* eksen etiketleri çizimle aynı genişlikte: svg 320×48 birebir */
+.ab-trend .cizim svg { display: block; width: 100%; height: 48px; overflow: visible; }
+.ab-trend .cizim .kilavuz { stroke: var(--hr2); stroke-width: 1; stroke-dasharray: 2 3; }
+.ab-trend .cizim .cizgi { fill: none; stroke: var(--aksan); stroke-width: 1.5; stroke-linejoin: round; }
+.ab-trend .cizim .nokta { fill: var(--zemin); stroke: var(--aksan); stroke-width: 1.5; }
+.ab-trend .cizim .nokta:last-of-type { fill: var(--aksan); }
+.ab-trend .cizim .tik.bos { stroke: var(--unk); stroke-width: 1; stroke-dasharray: 1 2; }
+.ab-trend .cizim .eksen {
+  display: flex; justify-content: space-between; margin-top: 4px;
+  font-family: var(--veri); font-size: var(--t-code-lg); color: var(--i3);
+}
 
 /* ═══ A · Varlık zihni — a-assets grameri ════════════════════════════
    42px kip çubuğu · süzgeç şeridi · (zincir tuvali | tablo) + 400px
@@ -1210,6 +1394,61 @@
   font-family: var(--veri); font-size: 10px; color: var(--i3);
 }
 .ab-a-envayak .sag { margin-left: auto; }
+
+/* ═══ Ortak gramer — 5×5 ısı haritası (risk kütüğü) ═════════════════
+   Olasılık × etki. Süzgeç şeridi ile tablo arasına giren panel. Hücre
+   bir DÜĞMEDİR: tıklanır, `aria-pressed` ile seçim taşır, liste o
+   hücreye daralır. Renk İKİNCİ kanal: her hücrede adet (mono) + eşik
+   sözcüğü (düşük/orta/kritik) yazılıdır. Izgara: 1 eksen sütunu + 5
+   hücre; satırlar etki 5→1 (üst→alt), sütunlar olasılık 1→5 (sol→sağ). */
+.ab-isi { margin: 0 0 20px; padding: 12px 0 14px; border-bottom: 1px solid var(--hr2); }
+.ab-isi .bas {
+  display: flex; align-items: baseline; gap: 12px 24px; flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+.ab-isi .bas .cumle { margin: 0; font-size: 11px; color: var(--i2); }
+.ab-isi .bas .cumle .unk { color: var(--unk); }
+.ab-isi .bas .eylem { margin-left: auto; }
+.ab-isi .cumle.bos { margin: 0; font-size: 12.5px; line-height: 1.6; color: var(--i3); }
+.ab-isi .izgara {
+  display: grid; grid-template-columns: auto repeat(5, minmax(56px, 1fr));
+  grid-template-rows: repeat(5, 40px) auto; gap: 3px; max-width: 520px;
+}
+/* Eksen adı `.etiket` gramerinin kendisidir (9.5px mono, büyük harf). */
+.ab-isi .eksen {
+  font-family: var(--veri); font-size: var(--t-label); letter-spacing: var(--tr-label);
+  text-transform: uppercase; color: var(--i3);
+}
+.ab-isi .eksen.dikey {
+  grid-column: 1; grid-row: 1 / span 5; align-self: center;
+  writing-mode: vertical-rl; transform: rotate(180deg); padding: 0 6px;
+}
+.ab-isi .eksen.yatay { grid-column: 2 / span 5; grid-row: 6; text-align: center; padding-top: 4px; }
+.ab-isi .hucre {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 1px; padding: 0; background: var(--hr2); border: 1px solid transparent;
+  cursor: pointer; color: var(--murekkep); font-family: var(--ui);
+}
+.ab-isi .hucre .adet { font-size: 13px; line-height: 1; font-variant-numeric: tabular-nums; }
+/* Eşik sözcüğü rengin yanındaki ikinci kanaldır — 11px zemini (veri
+   kademesi değil); hücre 56px, "KRİTİK" .04em aralıkla sığar. */
+.ab-isi .hucre .esik { font-size: 11px; letter-spacing: .04em; text-transform: uppercase; color: var(--i2); }
+/* Eşik bölgesi: skor ≥15 kritik (uygunsuz rengi), ≥8 orta (kısmi), altı
+   düşük (zemin). Boş hücre (0 risk) bölgesini soluk tutar; sıfır olmak
+   bölgeyi silmez, sözcük yine yazılır. */
+.ab-isi .hucre.e-orta { background: color-mix(in srgb, var(--md) 38%, var(--panel)); }
+.ab-isi .hucre.e-son { background: color-mix(in srgb, var(--bd) 55%, var(--panel)); }
+.ab-isi .hucre.e-orta .esik, .ab-isi .hucre.e-son .esik { color: var(--murekkep); }
+/* Boş hücre OPAKLIKLA soldurulmaz (eşik sözcüğü AA'nın altına düşerdi):
+   yalnız sayı ve zemin sakinleşir, sözcük okunur kalır. */
+.ab-isi .hucre.bos { background: var(--panel); }
+.ab-isi .hucre.bos .adet { color: var(--i3); }
+.ab-isi .hucre.bos .esik { color: var(--i2); }
+.ab-isi .hucre:hover { border-color: var(--hr); opacity: 1; }
+.ab-isi .hucre[aria-pressed='true'] {
+  border-color: var(--aksan); box-shadow: inset 0 0 0 1px var(--aksan); opacity: 1;
+}
+.ab-isi .hucre:focus-visible { outline: 2px solid var(--aksan); outline-offset: 1px; }
 
 /* ═══ Ortak gramer — tablo ════════════════════════════════════════════
    Satır bir DÜĞMEDİR: seçim `aria-pressed` ile taşınır (`aria-selected`
@@ -1443,6 +1682,11 @@
   padding: 0 20px; border-bottom: 1px solid var(--hr);
 }
 .ab-panel > header .vurgu { color: var(--aksan); }
+/* C defterinde aksan (#B24936) 9.5px etiket üzerinde AA'nın altında kalır
+   (3.9:1); küçük vurgu metni mürekkeple açılmış aksan alır (≈6:1). */
+.ab[data-yon='c'] .ab-panel > header .etiket.vurgu {
+  color: color-mix(in srgb, var(--aksan) 68%, var(--murekkep));
+}
 .ab-panel > header .kod { font-size: 10px; color: var(--i3); }
 .ab-panel > header .sag { margin-left: auto; }
 .ab-panel > .govde { padding: 18px 20px 28px; overflow-y: auto; min-height: 0; }
@@ -1518,6 +1762,36 @@
 .ab-tuval .dip {
   position: absolute; left: 14px; bottom: 10px; font-size: 9px; color: var(--i3);
 }
+/* Bölge–geçit tuvali (topoloji · Bölgeler kipi): tuvalin üstüne
+   bindirilen katman/etiket katmanı, aynı ızgara ritmini paylaşır. */
+.ab-graf-sar { position: relative; min-width: 0; }
+/* Purdue bant adı sol kenarda; düğümün üst etiketi aynı sözü tekrar eder. */
+.ab-graf-katmanlar { position: absolute; inset: 0; pointer-events: none; }
+.ab-graf-katman {
+  position: absolute; left: 10px; transform: translateY(-50%);
+  font-family: var(--veri); font-size: var(--t-code-lg); letter-spacing: .12em;
+  text-transform: uppercase; color: var(--i3);
+  padding: 2px 6px; background: var(--panel);
+  border-left: 2px solid var(--hr2);
+}
+/* Geçit protokolü kenarın ortasında, zemin plakalı — çizgiyle karışmasın.
+   Odak dışı etiket sönümlenir ama KALIR (tuval kenar opaklığıyla aynı). */
+.ab-graf-etiketler { position: absolute; inset: 0; margin: 0; padding: 0; list-style: none; pointer-events: none; }
+.ab-graf-etiket {
+  position: absolute; transform: translate(-50%, -50%);
+  max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  padding: 1px 6px; background: var(--panel2); border: 1px solid var(--hr2);
+  font-family: var(--veri); font-size: var(--t-code-lg); color: var(--i2);
+}
+/* Çekmecedeki geçit listesi: satır başına yön · karşı bölge, altında
+   protokol / kontrol / onay / doğrulama sözcükleri. */
+.ab-graf-gecitler { margin: 0; padding: 0; list-style: none; }
+.ab-graf-gecit { display: grid; gap: 4px; padding: 9px 0; border-bottom: 1px solid var(--hr); }
+.ab-graf-gecit .ust { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.ab-graf-gecit .yon { flex: none; font-size: var(--t-code-lg); color: var(--i3); }
+.ab-graf-gecit .ad { font-size: var(--t-cell); overflow-wrap: anywhere; }
+.ab-graf-gecit .alt { font-size: var(--t-code-lg); line-height: 1.6; color: var(--i3); }
+.ab-graf-gecit .aciklama { font-size: var(--t-code-lg); color: var(--i2); }
 
 /* ── Zaman şeridi ──────────────────────────────────────────────────── */
 .ab-zaman { position: relative; height: 150px; margin-top: 20px; }
@@ -1561,7 +1835,7 @@
   background: var(--panel); border: 1px solid var(--hr2); border-left-width: 3px;
 }
 .ab-omur-kart.gecmis { border-left-color: var(--bd); }
-.ab-omur-kart.gelecek { border-left-color: var(--hr2); opacity: .82; }
+.ab-omur-kart.gelecek { border-left-color: var(--hr2); } /* opaklık yok: küçük mono metin AA'yı kaybederdi */
 .ab-omur-kart .geri { float: right; font-size: 11px; color: var(--i3); }
 .ab-omur-kart.gecmis .geri { color: var(--bd); }
 .ab-omur-kart .ad { font-size: 13px; font-weight: 600; }
@@ -1666,6 +1940,37 @@ textarea.ab-gr { min-height: 76px; resize: vertical; }
   font-family: var(--veri); font-size: var(--t-code); line-height: 1.7; color: var(--i3);
 }
 
+/* ── Hesap ekranı (/ayarlar) ───────────────────────────────────────
+   Yalnız yerleşim ve bölüm ayrımı: renk, tipografi ve form malzemesi
+   mevcut kurallardan gelir (.ab-bolum-basligi, .ab-alan, .ab-gr,
+   .ab-dugme, .ab-panel-ciftler, .ab-panel-dip). İki kolon: solda yazan
+   bölümler (profil · parola · oturum), sağda salt okunur olanlar (yetki ·
+   bildirim). Dar bantta tek kolona iner (duyarlılık bloğu). */
+.ab-ayar-izgara {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 0 var(--s44); align-items: start;
+}
+/* Bölüm: başlık + bir cümle + gövde; kart YOK, ayrımı alt kenar yapar. */
+.ab-ayar-bolum { padding: var(--s24) 0; border-bottom: 1px solid var(--hr); }
+.ab-ayar-bolum > h2 { margin: 0 0 var(--s6); }
+.ab-ayar-bolum > .cumle {
+  margin: 0 0 var(--s16); font-size: var(--t-cell); line-height: 1.6;
+  color: var(--i2); max-width: 62ch;
+}
+/* Form gövdesi: alanlar alt alta, eylem satırı düğme + tek satır not. */
+.ab-ayar-form { display: grid; gap: var(--s12); max-width: 440px; }
+.ab-ayar-form .ab-alan { margin-bottom: 0; }
+.ab-ayar-form .eylem {
+  display: flex; align-items: center; gap: var(--s12); flex-wrap: wrap;
+}
+/* Yetki listesi: rol solda, kapsam sağda mono; satırları ince çizgi ayırır. */
+.ab-ayar-yetki { list-style: none; margin: var(--s12) 0 0; padding: 0; }
+.ab-ayar-yetki li {
+  display: flex; justify-content: space-between; gap: var(--s12);
+  padding: 6px 0; border-bottom: 1px solid var(--hr); font-size: var(--t-cell);
+}
+.ab-ayar-yetki li > .mono { text-align: right; min-width: 0; overflow-wrap: anywhere; }
+
 /* ── Kesişim matrisi (paylaşılan) ──────────────────────────────────── */
 .ab-matris {
   --kolon-sayisi: 6;
@@ -1681,7 +1986,7 @@ textarea.ab-gr { min-height: 76px; resize: vertical; }
 .ab-matris .bas > .kolonbas.kesik { text-align: center; }
 .ab-matris .satir { display: contents; }
 .ab-matris .satir > * { border-bottom: 1px solid var(--hr); }
-.ab-matris .satir.sakin > * { opacity: .58; }
+.ab-matris .satir.sakin > * { color: var(--i3); } /* opaklık değil renk: mono alt yazı AA'da kalsın */
 .ab-matris .satir.secili > * { background: var(--secim); }
 .ab-matris .ad {
   display: block; min-width: 0; padding: 9px 12px 9px 0; text-align: left;
@@ -1999,6 +2304,60 @@ textarea.ab-gr { min-height: 76px; resize: vertical; }
   .palet-satir .alt { white-space: normal; }
 }
 
+/* ═══ Yardım — kısayol katmanı (?) + /yardim ekranı (E35) ═════════════
+   Katman `.palet` zeminini alır (perde, kenar, genişlik); burada yalnız
+   iç ölçüler. Tanım listesi iki sütun: solda tuşlar/işaret, sağda ne
+   yaptığı. CSS yüklenmeden de anlamlı: dl/kbd listesi. */
+.ab-yardim-katman { width: min(560px, 100%); }
+.ab-yardim-ust {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 12px 14px; border-bottom: 1px solid var(--hr);
+}
+.ab-yardim-baslik {
+  margin: 0; font-family: var(--gorunum); font-weight: 500;
+  font-size: var(--t-lead); line-height: 1.2;
+}
+.ab-yardim-liste { margin: 0; padding: 4px 0; }
+.ab-yardim-satir {
+  display: grid; grid-template-columns: 152px minmax(0, 1fr); gap: 14px;
+  align-items: baseline; padding: 8px 14px; border-top: 1px solid var(--hr);
+}
+.ab-yardim-satir:first-child { border-top: 0; }
+.ab-yardim-satir dt { margin: 0; white-space: nowrap; }
+.ab-yardim-satir dd { margin: 0; font-size: var(--t-cell); line-height: 1.5; color: var(--i2); }
+.ab-yardim-tus {
+  display: inline-block; min-width: 20px; padding: 2px 6px;
+  font-family: var(--veri); font-size: 11px; line-height: 1.2; text-align: center;
+  background: var(--panel2); border: 1px solid var(--hr2); color: var(--murekkep);
+}
+.ab-yardim-arti { margin: 0 4px; color: var(--i3); font-family: var(--veri); font-size: 11px; }
+.ab-yardim-baglam { color: var(--i3); font-size: var(--t-code-lg); }
+/* /yardim ekranı: bölümler /sistem ile aynı ritimde. Kök `<div>`; main
+   kabuktadır. Tablo kendi kabında yatay kayar, sayfa kaymaz. */
+.ab-yardim-ekran .bolum { margin-top: 44px; }
+.ab-yardim-ekran .bolum > .ab-dip { margin: 6px 0 18px; }
+.ab-yardim-ekran .ab-yardim-liste { border: 1px solid var(--hr); }
+.ab-yardim-ekran .ab-yardim-satir { padding: 10px 14px; }
+.ab-yardim-tablo-sar { overflow-x: auto; margin-bottom: 18px; }
+.ab-yardim-tablo { width: 100%; border-collapse: collapse; font-size: var(--t-cell); }
+.ab-yardim-tablo th {
+  text-align: left; padding: 0 12px 8px 0; border-bottom: 1px solid var(--murekkep);
+  font-family: var(--veri); font-size: var(--t-colhead); letter-spacing: .1em;
+  text-transform: uppercase; font-weight: 500; color: var(--i3);
+}
+.ab-yardim-tablo tbody th { text-transform: none; letter-spacing: 0; font-family: var(--ui); font-size: var(--t-cell); color: var(--murekkep); }
+.ab-yardim-tablo td, .ab-yardim-tablo tbody th { padding: 8px 12px 8px 0; border-bottom: 1px solid var(--hr); vertical-align: top; }
+.ab-yardim-tablo td.mono { font-size: var(--t-code-lg); color: var(--i3); white-space: nowrap; }
+.ab-yardim-sss { margin: 0; display: grid; gap: 22px; max-width: 78ch; }
+.ab-yardim-soru dt { font-family: var(--gorunum); font-weight: 500; font-size: var(--t-lead); margin: 0 0 6px; }
+.ab-yardim-soru dd { margin: 0; }
+.ab-yardim-soru .cumle { margin: 0; font-size: var(--t-cell); line-height: 1.6; color: var(--i2); }
+.ab-yardim-kaynak { margin: 6px 0 0; }
+@media (max-width: 700px) {
+  .ab-yardim-satir { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+  .ab-yardim-satir dt { white-space: normal; }
+}
+
 /* ═══ Sistem sayfaları — 404 · 500 · bakım ════════════════════════════
    Kabuğun DIŞINDA da (kök `not-found`, `global-error`) aynı dilde
    konuşur: `.ab[data-yon='a']` sarmalayıcısı paleti getirir. Sorunu
@@ -2148,6 +2507,10 @@ textarea.ab-gr { min-height: 76px; resize: vertical; }
   .ab-b-portfoy-ust nav { margin-left: 0; }
   /* C künyesi iki satıra kırılır: marka üstte, bölüm dizisi altta. */
   .ab-c-kunye { flex-wrap: wrap; align-items: center; row-gap: 12px; }
+  /* Kök ekran öncelik şeridi ve /ayarlar iki kolonu: dolgu daralır,
+     ayarlar tek kolona iner. */
+  .ab-kpi .kalem { padding: 12px 24px; }
+  .ab-ayar-izgara { grid-template-columns: minmax(0, 1fr); }
   .ab-c-alanlar { margin-left: 0; flex-wrap: wrap; row-gap: 8px; order: 3; flex-basis: 100%; }
   .ab-c-nav { flex-wrap: wrap; gap: 14px 24px; }
 }
@@ -2172,6 +2535,16 @@ textarea.ab-gr { min-height: 76px; resize: vertical; }
   .ab-c-kunye .marka { font-size: 20px; }
   .ab-c-kunye .sag { flex-wrap: wrap; row-gap: 6px; }
   .ab-c-nav { padding-left: 20px; padding-right: 20px; }
+  /* Öncelik şeridi alt alta; portföy endeksi ve süzgeç şeridi daralır;
+     ısı haritası hücreleri küçülür ama eşik sözcüğü kalır. */
+  .ab-kpi { grid-template-columns: 1fr; }
+  .ab-kpi .kalem + .kalem { border-top: 1px solid var(--hr); }
+  .ab-kpi .kalem { padding: 12px 20px; }
+  .ab-portfoy-endeks { padding-left: 0; border-left: 0; }
+  .ab-portfoy-denetim { padding: 8px 20px; }
+  .ab-portfoy-denetim .cumle { margin-left: 0; flex-basis: 100%; }
+  .ab-isi .izgara { grid-template-columns: auto repeat(5, minmax(48px, 1fr)); grid-template-rows: repeat(5, 36px) auto; }
+  .ab-isi .hucre .esik { letter-spacing: 0; }
   .ab-c-kural, .ab-c-kural-kalin { margin-left: 20px; margin-right: 20px; }
   .ab-c-govde { padding: 24px 20px 48px; }
 }

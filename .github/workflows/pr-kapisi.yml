@@ -1,0 +1,74 @@
+name: PR kapısı
+
+# main'e açılan her çekme isteği bu kapıdan geçer. Kurulum adımları
+# publish.yml ile AYNIDIR (Node 22, npm önbelleği, migrasyon + seed);
+# yayın işiyle aynı ortamda geçmeyen bir PR, main'de de geçmez.
+#
+# Sıra bilinçlidir — ucuzdan pahalıya:
+#   lint → tip → birim testleri → tasarım kapısı (kontrast · font · iz)
+#   → derleme. İlk kırılan adım işi durdurur; derlemeyi görmek için
+#   lint hatasını düzeltmek gerekir, tersini değil.
+#
+# Tarayıcı gerektiren kapılar (rota duman · gezinme · lighthouse ·
+# görsel regresyon · axe) BURADA KOŞMAZ: canlı sunucu ister ve
+# paylaşımlı koşucuda gürültülüdür; port 3210'da elle koşulur
+# (bkz. web/arac/BENIOKU.md).
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-kapisi-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  kapi:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Depoyu al
+        uses: actions/checkout@v4
+
+      - name: Node kur
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Bağımlılıkları kur
+        working-directory: web
+        run: npm ci
+
+      - name: Veritabanını hazırla (migrasyon + istemci + seed)
+        # Veritabanı yolu prisma.config.ts'ten türer (prisma/dev.db);
+        # DATABASE_URL gerekmez. Seed, testlerin değil derlemenin ve
+        # rota araçlarının dayanağıdır — publish.yml ile aynı üçlü.
+        working-directory: web
+        run: |
+          npx prisma migrate deploy
+          npx prisma generate
+          npx tsx prisma/seed.ts
+
+      - name: Lint (uyarı da kusur)
+        working-directory: web
+        run: npm run lint
+
+      - name: Tip denetimi
+        working-directory: web
+        run: npx tsc --noEmit
+
+      - name: Birim testleri
+        working-directory: web
+        run: npm test
+
+      - name: Tasarım kapısı (kontrast · font · eski iz)
+        working-directory: web
+        run: npm run tasarim:kapi
+
+      - name: Derleme
+        working-directory: web
+        run: npm run build

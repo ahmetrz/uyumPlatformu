@@ -29,8 +29,15 @@ function kapsamKosulu(gorulebilir: string[] | null) {
   return { OR: [{ tesisId: { in: gorulebilir } }, { tesisId: null }] };
 }
 
-export default async function Sayfa() {
+export default async function Sayfa({ searchParams }: {
+  searchParams: Promise<{ bolge?: string | string[] }>;
+}) {
   const k = await girisZorunlu();
+  /* Topoloji › Bölgeler çekmecesinden gelen `?bolge=KOD` bağı: liste bu
+     kodla ARANMIŞ açılır (bölge kodu arama havuzundadır). Süzgeç durumunun
+     kendisi URL'ye yazılmaz; yalnız başlangıç değeri buradan gelir. */
+  const { bolge } = await searchParams;
+  const baslangicArama = (Array.isArray(bolge) ? bolge[0] : bolge)?.trim().slice(0, 64) ?? '';
 
   /* `new Date()` sunucuda istek başına bir kez okunur; ömür eşikleri tüm
      satırlar için bu ana göre hesaplanır (istemcide saat kayması olmasın). */
@@ -352,6 +359,7 @@ export default async function Sayfa() {
       kullanicilar={kullanicilar.map((u) => ({ id: u.id, ad: u.adSoyad }))}
       yazabilir={yazmaYetkisi}
       simdi={simdi}
+      baslangicArama={baslangicArama}
     />
   );
 }

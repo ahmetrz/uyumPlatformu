@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* Ekran performansı ölçümü — Atlas 2 rollout ÖNCE/SONRA karşılaştırması.
+/* Ekran performansı ölçümü — kabuk geçişi ÖNCE/SONRA karşılaştırması.
 
    NE ÖLÇER
      · gezinme süresi (istemci tarafı yönlendirme, medyan/N koşu)
@@ -67,11 +67,12 @@ for (const { yol, ad } of YOLLAR) {
     await s.waitForTimeout(250);
     yerlesim.push(await s.evaluate(() => {
       /* Yerleşimi ZORLA ve ölç: `getBoundingClientRect` okuması bekleyen
-         style+layout işini senkron yaptırır. */
+         style+layout işini senkron yaptırır. Eskiden yanına bir de
+         `offsetHeight` okuması vardı; aynı yerleşimi ikinci kez
+         zorlamıyordu (ilk okuma zaten tetikler) ve "kullanılmayan
+         ifade" uyarısıyla lint kapısını tutuyordu — kaldırıldı. */
       const t = performance.now();
       document.body.getBoundingClientRect();
-      // eslint-disable-next-line no-unused-expressions
-      document.body.offsetHeight;
       return performance.now() - t;
     }));
   }

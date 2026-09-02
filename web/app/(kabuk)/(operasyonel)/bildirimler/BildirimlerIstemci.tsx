@@ -172,7 +172,7 @@ export default function BildirimlerIstemci({
                     </span>,
                     /* Okunmuşta bekleme YOKTUR: "0 gün" yazmak yanlış olurdu.
                        Hücre "okundu" da yazmaz — o, işaretçinin taşıdığı
-                       durum sözünün tekrarı olurdu (Atlas §A2). */
+                       durum sözünün tekrarı olurdu (durum sözleşmesi). */
                     gun === null ? '—' : gun,
                     tarihTR(b.olusturuldu),
                   ],

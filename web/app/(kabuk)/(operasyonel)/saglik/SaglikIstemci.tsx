@@ -35,7 +35,7 @@ import {
    Durum sözcüğü canvasta YAZILMAZ: işaretçi koşunun tamamlanıp
    tamamlanmadığını söyler, sayı kolonları ne işlendiğini. Sözcük yalnız
    çekmecenin kimlik bloğunda geçer. Detay modalda değil 420px çekmecede
-   açılır (06 §B4) — Ozalit sürümündeki iki <dialog> kalktı. */
+   açılır — önceki sürümdeki iki <dialog> kalktı. */
 
 const MOTOR_KOLONLARI: Kolon[] = [
   /* Geçmiş şeridi SON KOŞUDAN ÖNCE gelir: okuyucu önce eğilimi ("beş

@@ -12,7 +12,7 @@ import { ASAMALAR, asamaEtiketi, asamaIndeksi, eksikKapilar, kapandiMi, kapilar,
 /* Değişiklik yazma yüzeyleri — MODAL YOK (06 §B4), `prompt()` YOK.
    Hepsi 420px çekmecede render edilir. Mutasyonlar
    lib/eylemler2/operasyon.ts'ten AYNEN çağrılır; imza değiştirilmez,
-   doğrulama ve yetki sunucuda kalır. Ozalit sürümünde geri alma gerekçesi
+   doğrulama ve yetki sunucuda kalır. Önceki sürümde geri alma gerekçesi
    tarayıcının `prompt()` kutusundan alınıyordu — o kutu ne çekmecede
    yaşayabilir ne de klavye/ekran okuyucu sözleşmesine uyar; yerini
    çekmecenin içinde açılan bir gerekçe alanı aldı. */

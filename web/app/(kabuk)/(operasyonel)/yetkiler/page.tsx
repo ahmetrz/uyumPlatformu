@@ -54,6 +54,8 @@ export default async function Sayfa() {
     eposta: u.eposta,
     unvan: u.unvan,
     aktif: u.aktif,
+    // Özet istemciye İNMEZ; yalnız "tanımlı mı" bilgisi gider.
+    parolaVar: u.parolaHash !== null,
     yetkiler: u.yetkiler.map((y) => ({
       id: y.id,
       rol: y.rol,

@@ -673,3 +673,126 @@ describe('Toplu temel durumu', () => {
     expect((await T.temelAnlik(bos)) !== null).toBe(false);
   });
 });
+
+/* ═══ B8/B10 · Bölge–geçit diyagramı (saf yerleşim) ══════════════════
+   Veritabanına dokunmaz: `mantik.ts → bolgeGrafigiKur` deterministik
+   yüzde konum üretir; testin sabitlediği sözler:
+     · SL4 üstte (küçük y), SL0 altta; tanımsız seviye ayrı ve EN ALTTA,
+       0 SAYILMAZ ve unk işareti taşır;
+     · geçit yalnız iki ucu çizilmişse kenar olur, düşen geçit SAYILIR;
+     · daraltılmış kapsamda tesissiz bölge yalnız bağlıysa kalır;
+     · protokol etiketi kenarın orta noktasına düşer, protokolsüz geçit
+       etiket üretmez (çekmece "protokol kaydı yok" der). */
+
+type BolgeSatiri = import('@/app/(kabuk)/(operasyonel)/topoloji/mantik').BolgeSatiri;
+type GecitSatiri = import('@/app/(kabuk)/(operasyonel)/topoloji/mantik').GecitSatiri;
+
+const bolge = (id: string, seviye: number | null, tesisId: string | null, varlik = 0): BolgeSatiri => ({
+  id, kod: id.toUpperCase(), ad: `Bölge ${id}`, tip: 'ot', seviye,
+  tesisId, tesisKodu: tesisId ? tesisId.toUpperCase() : null, varlikSayisi: varlik,
+});
+const gecit = (id: string, kaynak: string, hedef: string, protokoller: string | null = null,
+  onaylandi = false): GecitSatiri => ({
+  id, kaynakBolgeId: kaynak, hedefBolgeId: hedef, protokoller, onaylandi,
+  kontrolVarligi: null, sonDogrulama: null, aciklama: null,
+});
+
+describe('bölge–geçit diyagramı · yerleşim', () => {
+  it('Purdue bantları: SL4 üstte, SL0 altta, tanımsız en altta ve unk işaretli', () => {
+    const g = M.bolgeGrafigiKur({
+      bolgeler: [bolge('l0', 0, 't1'), bolge('l4', 4, 't1'), bolge('l2', 2, 't1'), bolge('lx', null, 't1')],
+      gecitler: [],
+    });
+    const y = (id: string) => g.dugumler.find((d) => d.id === id)!.y;
+    expect(y('l4')).toBeLessThan(y('l2'));
+    expect(y('l2')).toBeLessThan(y('l0'));
+    expect(y('l0')).toBeLessThan(y('lx'));
+    expect(g.katmanlar.map((k) => k.ad)).toEqual(['SL4', 'SL2', 'SL0', 'SL tanımsız']);
+    const lx = g.dugumler.find((d) => d.id === 'lx')!;
+    expect(lx.durum).toBe('unk');
+    expect(lx.ustEtiket).toContain('SL tanımsız');
+    expect(g.dugumler.find((d) => d.id === 'l0')!.durum).toBeUndefined();
+    // Yüzde konumlar ekran içinde kalır.
+    for (const d of g.dugumler) {
+      expect(d.x).toBeGreaterThanOrEqual(10); expect(d.x).toBeLessThanOrEqual(90);
+      expect(d.y).toBeGreaterThanOrEqual(10); expect(d.y).toBeLessThanOrEqual(90);
+    }
+  });
+
+  it('aynı banttaki bölgeler yatayda ayrışır; alt etiket santral · varlık', () => {
+    const g = M.bolgeGrafigiKur({
+      bolgeler: [bolge('a', 1, 't1', 3), bolge('b', 1, 't1', 0), bolge('c', 1, null, 0)],
+      gecitler: [],
+    });
+    const xler = g.dugumler.map((d) => d.x);
+    expect(new Set(xler).size).toBe(3);
+    expect(new Set(g.dugumler.map((d) => d.y)).size).toBe(1);
+    expect(g.dugumler.find((d) => d.id === 'a')!.alt).toBe('T1 · 3 varlık');
+    expect(g.dugumler.find((d) => d.id === 'c')!.alt).toBe('tesissiz · 0 varlık');
+  });
+
+  it('geçit yalnız iki ucu çizilmişse kenar olur; düşen geçit sayılır; etiket orta noktada', () => {
+    const g = M.bolgeGrafigiKur({
+      bolgeler: [bolge('a', 3, 't1'), bolge('b', 1, 't1')],
+      gecitler: [
+        gecit('g1', 'a', 'b', 'OPC UA 4840'),
+        gecit('g2', 'a', 'yok'),
+        gecit('g3', 'b', 'a', null),
+      ],
+    });
+    expect(g.kenarlar).toHaveLength(2);
+    expect(g.dusenGecit).toBe(1);
+    expect(g.etiketler).toHaveLength(1);
+    const a = g.dugumler.find((d) => d.id === 'a')!;
+    const b = g.dugumler.find((d) => d.id === 'b')!;
+    expect(g.etiketler[0]).toMatchObject({
+      id: 'g1', metin: 'OPC UA 4840',
+      x: Math.round((a.x + b.x) / 2), y: Math.round((a.y + b.y) / 2),
+    });
+  });
+
+  it('tavan deterministik: çok varlıklı bölge önce, gerisi sayılır', () => {
+    const g = M.bolgeGrafigiKur({
+      bolgeler: [bolge('az', 1, 't1', 1), bolge('cok', 1, 't1', 9), bolge('orta', 2, 't1', 5)],
+      gecitler: [gecit('g', 'az', 'cok')],
+      tavan: 2,
+    });
+    expect(g.cizilen).toBe(2);
+    expect(g.toplam).toBe(3);
+    expect(g.dugumler.map((d) => d.id).sort()).toEqual(['cok', 'orta']);
+    // 'az' çizilmedi → geçidi düştü, kenar yok ama sayı var.
+    expect(g.kenarlar).toHaveLength(0);
+    expect(g.dusenGecit).toBe(1);
+  });
+
+  it('kapsam budaması: daraltılmış kapsamda tesissiz bölge yalnız bağlıysa kalır', () => {
+    const bolgeler = [bolge('ot', 1, 't1'), bolge('kurumsal', 4, null), bolge('internet', 4, null)];
+    const gecitler = [gecit('g1', 'kurumsal', 'ot'), gecit('g2', 'internet', 'kurumsal')];
+    const dar = M.kapsamBolgeleri(bolgeler, gecitler, true);
+    expect(dar.bolgeler.map((b) => b.id)).toEqual(['ot', 'kurumsal']);
+    expect(dar.gecitler.map((g) => g.id)).toEqual(['g1']);
+    // Sınırsız kapsamda budama yok.
+    const genis = M.kapsamBolgeleri(bolgeler, gecitler, false);
+    expect(genis.bolgeler).toHaveLength(3);
+    expect(genis.gecitler).toHaveLength(2);
+  });
+
+  it('bölge geçitleri yönlüdür; kimlik işareti onay hâlini kodlar, geçitsiz bölge bilinmeyendir', () => {
+    const bolgeler = [bolge('a', 2, 't1'), bolge('b', 1, 't1'), bolge('c', 0, 't1')];
+    const gecitler = [gecit('g1', 'a', 'b', 'Modbus', true), gecit('g2', 'c', 'a', null, false)];
+    const aninkiler = M.bolgeninGecitleri('a', gecitler, bolgeler);
+    expect(aninkiler.map((g) => [g.id, g.yon, g.diger?.id])).toEqual([
+      ['g2', 'gelen', 'c'], // onaysız önce
+      ['g1', 'giden', 'b'],
+    ]);
+    expect(M.bolgeImi(aninkiler)).toEqual({ durum: 'md', soz: '1 geçit onaysız' });
+    expect(M.bolgeImi(M.bolgeninGecitleri('b', gecitler, bolgeler)).durum).toBe('unk'); // onaylı ama doğrulanmamış
+    expect(M.bolgeImi([])).toEqual({ durum: 'unk', soz: 'Geçit kaydı yok' });
+    expect(M.bolgeImi([{ ...gecit('g', 'a', 'b', null, true), sonDogrulama: '2026-01-01T00:00:00.000Z',
+      yon: 'giden', diger: null }]).durum).toBe('ok');
+  });
+
+  it('envanter bağı bölge koduyla süzer', () => {
+    expect(M.envanterBagi('OT-DMZ 1')).toBe('/envanter?bolge=OT-DMZ%201');
+  });
+});

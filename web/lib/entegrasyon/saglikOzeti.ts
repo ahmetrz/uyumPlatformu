@@ -137,11 +137,6 @@ export type SaglikDurumu =
   /** koşu kaydı yorumlanamayan bir durum taşıyor */
   | 'bilinmiyor';
 
-export const SAGLIK_DURUMLARI: SaglikDurumu[] = [
-  'basarili', 'basarisiz', 'kimlik_bekleniyor',
-  'calisiyor', 'bayat_kosu', 'hic_kosmadi', 'bilinmiyor',
-];
-
 export type TazelikDurumu = 'taze' | 'gecikmis' | 'bilinmiyor';
 
 export type Tazelik = {

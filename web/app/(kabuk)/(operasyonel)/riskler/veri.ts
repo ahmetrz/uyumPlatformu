@@ -54,7 +54,7 @@ import {
 /**
  * Sunucudan çekilen en fazla risk satırı.
  *
- * Atlas sözleşmesi 7 görünür satır + katlanmış kuyruk der; istemci filtre,
+ * Yoğunluk sözleşmesi 7 görünür satır + katlanmış kuyruk der; istemci filtre,
  * kapsam açılırı ve çekmece için kütüğün geri kalanını da ister. 400,
  * "bir kurumun aynı anda yönettiği risk sayısı"nın üstünde, "tabloyu
  * belleğe almak"ın altında bir sınırdır. Aşıldığında ekran SÖYLER.

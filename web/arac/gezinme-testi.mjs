@@ -21,7 +21,8 @@
      4. KLAVYE — kardeş bağlantı sekmeyle odaklanır, Enter gider.
      5. Sayfa hatası yok.
 
-   Kullanım: PORT=3000 node arac/gezinme-testi.mjs
+   Kullanım: PORT=3000 node arac/gezinme-testi.mjs           → yedi bant
+             PORT=3000 node arac/gezinme-testi.mjs --hizli   → dört bant
 */
 
 import { chromium } from 'playwright-core';
@@ -34,13 +35,26 @@ function tarayiciYolu() {
 
 /* Genişlikler kırılma noktalarının HER BİRİNDEN bir örnek taşır:
    ≥1367 tam · 1101–1366 sıkı · 701–1100 dizin tek kolon, künye sarar
-   · ≤700 üst çubuklar yatay kayar. */
-const BANTLAR = [
+   · ≤700 üst çubuklar yatay kayar.
+
+   Yedi bant: kırılma noktalarının yanına yaygın cihaz genişlikleri de
+   girdi (1920 masaüstü · 1024 yatay tablet · 768 dikey tablet) — kırılma
+   noktasının hemen üstü ve altı farklı davranır, aynı aralıkta iki
+   örnek olması "aralık içinde de sağlam mı" sorusuna cevaptır.
+   `--hizli` eski dörtlüyü koşar: yerel döngüde süre için. */
+const TUM_BANTLAR = [
+  { ad: '1920 · masaüstü', en: 1920, boy: 1080 },
   { ad: '1440 · geniş', en: 1440, boy: 900 },
   { ad: '1100 · orta', en: 1100, boy: 800 },
+  { ad: '1024 · yatay tablet', en: 1024, boy: 768 },
   { ad: '900 · tablet', en: 900, boy: 800 },
+  { ad: '768 · dikey tablet', en: 768, boy: 1024 },
   { ad: '375 · telefon', en: 375, boy: 720 },
 ];
+const HIZLI = new Set([1440, 1100, 900, 375]);
+const BANTLAR = process.argv.includes('--hizli')
+  ? TUM_BANTLAR.filter((b) => HIZLI.has(b.en))
+  : TUM_BANTLAR;
 
 /* Kabuk içi kardeş: ikisi de C defterindedir. */
 const BASLANGIC = '/riskler';

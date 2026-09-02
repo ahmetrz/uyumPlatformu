@@ -9,9 +9,9 @@ import {
 import { useEylem } from '@/components/useEylem';
 import { yetkiSil, kullaniciAktifDegistir } from '@/lib/eylemler';
 import { ROLLER, ROL_ETIKET } from '@/lib/sabitler';
-import { KullaniciFormu, YetkiFormu } from './Formlar';
+import { KullaniciFormu, ParolaFormu, YetkiFormu } from './Formlar';
 import {
-  artikYetki, durumCumlesi, durumSozu, enGenisRol, erisimsiz, hesapDurumu,
+  artikYetki, durumCumlesi, durumSozu, enGenisRol, erisimsiz, girisNotu, hesapDurumu,
   kapsamMetni, kapsamsiz, kapsamsizYonetici, metrikleriHesapla, rolEtiketi,
   sirala, toplanabilir, yetkiKapsami,
   type Hesap, type Secenek,
@@ -46,7 +46,7 @@ const MERCEKLER = [
 
 type Anahtar = 'konu' | 'rol' | 'yetki';
 type SiraYonu = 'artan' | 'azalan';
-type Kip = 'ozet' | 'kullanici' | 'yetki';
+type Kip = 'ozet' | 'kullanici' | 'yetki' | 'parola';
 
 export default function YetkilerIstemci({
   hesaplar, surecler, tesisler, yazabilir, onaylayabilir, kisitliKapsam,
@@ -119,12 +119,15 @@ export default function YetkilerIstemci({
 
   const satirlar: Satir[] = gorunur.map((h) => {
     const d = hesapDurumu(h);
+    // Giriş notu satır altında SÖZCÜKLE durur: "parola tanımlı değil" bir
+    // ipucuna ya da renge saklanmaz; yönetici satıra bakınca görür.
+    const not = girisNotu(h);
     return {
       id: h.id,
       durum: d,
       kenar: d,
       konu: h.ad,
-      alt: `${h.eposta}${h.aktif ? '' : ' · hesap kapalı'}`,
+      alt: `${h.eposta}${h.aktif ? '' : ' · hesap kapalı'}${not ? ` · ${not}` : ''}`,
       hucreler: [
         rolEtiketi(enGenisRol(h)),
         kapsamMetni(h),
@@ -213,7 +216,7 @@ export default function YetkilerIstemci({
                   ? { metin: `+${toplanan.length} hesap · kapsamıyla sınırlı`,
                     ac: () => setKuyrukAcik(true) }
                   : null}
-                dipNot={dipNot(gorunur.length, m.unvansiz, m.hesap - m.aktif)}
+                dipNot={dipNot(gorunur.length, m.unvansiz, m.hesap - m.aktif, m.parolasiz)}
               />
             </div>
           ) : filtreAktif ? (
@@ -239,6 +242,7 @@ export default function YetkilerIstemci({
               bekliyor={bekliyor}
               duzenle={() => setKip('kullanici')}
               yetkiEkle={() => setKip('yetki')}
+              parolaTanimla={() => setKip('parola')}
               yetkiKaldir={(id) => calistir(() => yetkiSil({ id }))}
               aktifDegistir={() => calistir(
                 () => kullaniciAktifDegistir({ id: secili.id, aktif: !secili.aktif }))}
@@ -265,6 +269,18 @@ export default function YetkilerIstemci({
               </div>
             </>
           )}
+          {kip === 'parola' && (
+            <>
+              <div className="ab-panel-blok">
+                <p className="etiket" style={{ margin: '0 0 var(--s12)' }}>
+                  {secili.parolaVar ? 'Parolayı sıfırla' : 'Parola tanımla'}
+                </p>
+              </div>
+              <div className="ab-panel-blok">
+                <ParolaFormu hesap={secili} kapat={() => setKip('ozet')} />
+              </div>
+            </>
+          )}
         </Cekmece>
       )}
 
@@ -282,11 +298,12 @@ export default function YetkilerIstemci({
   );
 }
 
-function dipNot(gorunur: number, unvansiz: number, kapali: number): string {
+function dipNot(gorunur: number, unvansiz: number, kapali: number, parolasiz: number): string {
   const parcalar = [`${gorunur} satır görünüyor`, 'kolon başlığından sıralama'];
   // Bilinmeyen unvan sıfır sayılmaz: kaç hesabın unvanı hiç girilmediğini söyler.
   if (unvansiz > 0) parcalar.push(`${unvansiz} hesabın unvanı girilmedi`);
   if (kapali > 0) parcalar.push(`${kapali} hesap kapalı`);
+  if (parolasiz > 0) parcalar.push(`${parolasiz} açık hesabın parolası tanımlı değil`);
   return parcalar.join(' · ');
 }
 
@@ -297,7 +314,7 @@ const Bilinmiyor = () => <span style={{ color: 'var(--i3)' }}>bilinmiyor</span>;
 
 function Ozet({
   hesap, yazabilir, onaylayabilir, bekliyor,
-  duzenle, yetkiEkle, yetkiKaldir, aktifDegistir,
+  duzenle, yetkiEkle, parolaTanimla, yetkiKaldir, aktifDegistir,
 }: {
   hesap: Hesap;
   yazabilir: boolean;
@@ -305,21 +322,26 @@ function Ozet({
   bekliyor: boolean;
   duzenle: () => void;
   yetkiEkle: () => void;
+  parolaTanimla: () => void;
   yetkiKaldir: (id: string) => void;
   aktifDegistir: () => void;
 }) {
   const d = hesapDurumu(hesap);
+  const not = girisNotu(hesap);
 
   return (
     <>
       <CekmeceKimlik durum={d} soz={durumSozu(hesap)} baslik={hesap.ad}
-        cumle={durumCumlesi(hesap)} />
+        cumle={not ? `${durumCumlesi(hesap)} Hesap ${not}.` : durumCumlesi(hesap)} />
 
       <CekmeceAlanlar alanlar={[
         { etiket: 'Unvan', deger: hesap.unvan ?? 'bilinmiyor', durum: hesap.unvan ? undefined : 'unk' },
         { etiket: 'En geniş rol', deger: rolEtiketi(enGenisRol(hesap)) },
         { etiket: 'Kapsam', deger: kapsamMetni(hesap) },
         { etiket: 'Yetki', deger: hesap.yetkiler.length },
+        /* Yalnız "tanımlı / tanımlı değil" — özet istemciye hiç inmez. */
+        { etiket: 'Parola', deger: hesap.parolaVar ? 'tanımlı' : 'tanımlı değil',
+          durum: hesap.parolaVar || !hesap.aktif ? undefined : 'md' },
       ]} />
 
       <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
@@ -362,8 +384,13 @@ function Ozet({
           ? <Dugme tur="tam" onClick={yetkiEkle} disabled={bekliyor}>Yetki ver</Dugme>
           : undefined}
         ikincil={
-          <div style={{ display: 'flex', gap: 'var(--s10)' }}>
+          <div style={{ display: 'flex', gap: 'var(--s10)', flexWrap: 'wrap' }}>
             {yazabilir && <Dugme onClick={duzenle} disabled={bekliyor}>Düzenle</Dugme>}
+            {onaylayabilir && (
+              <Dugme onClick={parolaTanimla} disabled={bekliyor}>
+                {hesap.parolaVar ? 'Parolayı sıfırla' : 'Parola tanımla'}
+              </Dugme>
+            )}
             {onaylayabilir && (
               <Dugme tur={hesap.aktif ? 'ret' : 'ikincil'} onClick={aktifDegistir} disabled={bekliyor}>
                 {hesap.aktif ? 'Hesabı kapat' : 'Hesabı aç'}
@@ -372,9 +399,9 @@ function Ozet({
           </div>
         }
         dipNot={!onaylayabilir
-          ? 'Yetki vermek ve kaldırmak için yönetim/onay yetkisi gerekir.'
+          ? 'Yetki vermek, kaldırmak ve parola tanımlamak için yönetim/onay yetkisi gerekir.'
           : 'Kapsam boş bırakılan yetki tüm süreçlere ve tüm santrallere uygulanır. '
-            + 'Yetki verme ve kaldırma denetim izine yazılır.'}
+            + 'Yetki verme, kaldırma ve parola tanımlama denetim izine yazılır.'}
       />
     </>
   );

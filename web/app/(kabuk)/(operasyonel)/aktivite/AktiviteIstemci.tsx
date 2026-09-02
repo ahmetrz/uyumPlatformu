@@ -123,8 +123,8 @@ export default function AktiviteIstemci({
             <div style={{ marginTop: 'var(--s22)' }}>
               <div className="ab-tablo"
                 style={{ '--kolonlar': KOLONLAR, '--kolonlar-dar': KOLONLAR_DAR } as CSSProperties}
-                role="table">
-                <div className="bas" role="row">
+               >
+                <div className="bas">
                   <span className="kolonbas">Zaman</span>
                   <span className="kolonbas">Kayıt</span>
                   <span className="kolonbas">Değişim</span>
@@ -194,19 +194,19 @@ function Satir({ kayit, secili, sec }: { kayit: Kayit; secili: boolean; sec: () 
   return (
     <button
       type="button"
-      role="row"
-      aria-selected={secili}
+     
+      aria-pressed={secili}
       className="satir"
       onClick={sec}
       style={{ borderLeftColor: secili ? (kritik ? 'var(--bd)' : 'var(--aksan)') : 'transparent' }}
     >
-      <span role="cell" style={{
+      <span style={{
         paddingLeft: 'var(--s16)', fontFamily: 'var(--veri)', fontSize: 'var(--t-code)',
         color: 'var(--i3)', fontVariantNumeric: 'tabular-nums',
       }}>
         {kisaZaman(kayit.zaman)}
       </span>
-      <span role="cell" style={{ minWidth: 0 }}>
+      <span style={{ minWidth: 0 }}>
         <span className="konu">
           <b style={{ fontWeight: 700 }}>{aktorMetni(kayit)}</b>{' '}
           <span style={{ fontWeight: 400, color: 'var(--i2)' }}>
@@ -215,11 +215,11 @@ function Satir({ kayit, secili, sec }: { kayit: Kayit; secili: boolean; sec: () 
         </span>
         <span className="alt">{etiketle(kayit.varlikTipi)}</span>
       </span>
-      <span role="cell" className=""
+      <span className=""
         style={kritik ? { color: 'var(--bd)' } : undefined}>
         {degisim ?? <span style={{ color: 'var(--i3)' }}>—</span>}
       </span>
-      <span role="cell" className="ikincil"
+      <span className="ikincil"
         style={{ fontFamily: 'var(--veri)', fontSize: 'var(--t-code)' }}>
         {kaynakEtiketi(kayit.kaynak)}
       </span>

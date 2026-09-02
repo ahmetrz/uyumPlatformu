@@ -9,7 +9,7 @@ export const metadata: Metadata = { title: 'Reddedilen kayıtlar' };
 
    Neden /saglik'ın içinde DEĞİL: /saglik zaten dört metrik ve dört kayıt
    ailesi (motor · connector · veri kalitesi · veri kökeni) taşıyor.
-   Beşinci bir aile eklemek Atlas'ın yoğunluk sözleşmesini kırardı —
+   Beşinci bir aile eklemek kabuğun yoğunluk sözleşmesini kırardı —
    metrik bütçesi dörttür ve görünür satır bütçesi 5–9'dur. Kuyruğun
    VARLIĞI /saglik'ta tek satırla görünür, incelemesi burada yapılır.
 

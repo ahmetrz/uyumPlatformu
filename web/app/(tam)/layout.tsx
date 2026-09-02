@@ -5,7 +5,7 @@ import { kabukVerisi } from '@/components/kabuk/kabukVerisi';
    yüzeyler (enerji portföyü). Kabuk YÖNÜ ROTADAN seçer; `/portfoy` B
    yüzeyine düşer ve saha sekme çubuğunu alır.
 
-   Eskiden burada `.atlas` token kapsamı vardı ve bu rota kabuğun tümüyle
+   Eskiden burada önceki arayüz katmanının token kapsamı vardı ve bu rota kabuğun tümüyle
    DIŞINDA kalıyordu: gezinme yoktu, kapsam çubuğu yoktu, ekran tek
    başına duruyordu (rota taraması yakaladı). */
 export default async function TamYerlesim({ children }: { children: React.ReactNode }) {

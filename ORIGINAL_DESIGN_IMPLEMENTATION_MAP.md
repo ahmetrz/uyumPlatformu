@@ -1,13 +1,13 @@
 # Orijinal Tasarım — Uygulama Haritası
 
-**Görsel source of truth:** orijinal tasarım kaynağındaki (`ORIGINAL_DESIGN_SOURCE.zip`) on iki
-yüksek sadakatli HTML prototipi. Bu belgedeki her ölçü, o prototipler 1440×1000
-görüntü alanında tarayıcıda **render edilip hesaplanmış** değerlerdir — repo'daki
-mevcut arayüzden, Atlas'tan, Atlas 2'den ya da canlı demodan türetilmemiştir.
+**Görsel source of truth:** on iki yüksek sadakatli HTML prototipi (orijinal
+tasarım kaynağı; depoda tutulmuyor). Bu belgedeki her ölçü, o prototipler
+1440×1000 görüntü alanında tarayıcıda **render edilip hesaplanmış** değerlerdir —
+repo'daki önceki arayüz katmanlarından ya da canlı demodan türetilmemiştir.
 
-> **Atlas 2 (`saha` / `defter` / `tezgah` yüzey kipleri) bu göçte DEPRECATED bir
-> ara tasarımdır.** Görsel referans değildir. `main` dalı şu anda onu taşıyor;
-> Faz C'de presentation izi sıfırlanacak.
+> Göç sırasında `main` dalının taşıdığı ara tasarım (`saha` / `defter` /
+> `tezgah` yüzey kipleri) görsel referans değildi; presentation izi Faz C'de
+> sıfırlandı (§10.5). Güncel tasarım sistemi: `web/DESIGN.md`.
 
 Ölçüm aracı: prototipler `cdn.tailwindcss.com` ve Google Fonts'a çalışma anında
 bağlı geldiği için yerel bir kopyaya Tailwind gömülüp fontlar self-host edildi;
@@ -85,11 +85,11 @@ dokunmadan sağlar.
 
 ### C — künye + serif sekmeler + editoryal dizin sütunu
 ```
-header px-14 pt-7 pb-4  (zemin sayfanın kendisi)
+header px-14 pt-7 pb-4  (zemin sayfanın kendisi · üründe #141210)
   marka "Zorlu Enerji Yönetişim Platformu" (Newsreader 26px) + mono alt başlık │ tarih · arama · avatar
-rule   border-top 2px #1A1A18          ← künye kuralı (kalın)
+rule   border-top 2px #EDE8DF          ← künye kuralı (kalın; prototipte #1A1A18, koyu C'de mürekkep)
 nav    px-14 py-3 · Newsreader 15px sekmeler · aktif = altı çizili
-rule   1px #D6D2CA
+rule   1px #3A362F                     ← prototipte #D6D2CA; koyu C'de --hr2
 main   px-14 pt-9 pb-16
   aside w=212  DİZİN: bölüm + sağa hizalı sayaç + ince kural
                 OKUMA ANAHTARI (glif efsanesi) burada yaşar
@@ -107,7 +107,7 @@ kesiti bilgisini de taşır.
 | Satır yüksekliği | ~28px (sıkı) | ~34px | ~38px |
 | Kolon başlığı | 8,5px mono, harf aralığı 0.18em | 9px mono | 9,5px mono `.lbl` |
 | Sayı hizası | sağ, tabular | sağ, tabular | sağ, tabular |
-| Satır ayracı | 1px `#262C2E` | 1px `#1C2123` | 1px `#E4E1DB` |
+| Satır ayracı | 1px `#262C2E` | 1px `#1C2123` | 1px `#2B2823` (prototipte `#E4E1DB`; koyu C, bkz. §0 notu) |
 | Zebra | **yok** | yok | yok |
 | Seçili satır | kehribar sol kenar | bakır sol kenar | oxblood sol kenar |
 
@@ -182,6 +182,11 @@ komşuluk sayıları yatay çubuklarla (4 / 17 / 61).
 ---
 
 ## 6 · Rota → prototip eşlemesi
+
+> Bu bölüm her rotanın hangi PROTOTİPTEN türediğini kaydeder. Güncel ve tam
+> rota listesi (kabuk yönü, oturum gereksinimi, modül, amaç, sistem
+> sayfaları) **`docs/ROTA_HARITASI.md`** belgesindedir; sonradan eklenen
+> rotalar (`/kanitlar`, `/ayarlar`, `/yardim`, `/bakim`, `/sistem`) orada.
 
 ### B — Energy Intelligence
 | Rota | Kanonik prototip |
@@ -332,5 +337,5 @@ Silinen: `app/atlas.css` (978 satır), `app/tokens.css` (397 satır),
 Taşınan (sunum değil, veri/varlık): `durumAyagiVerisi.ts`,
 `lib/atlas/gorsel.ts → lib/gorsel.ts`, `lib/atlas/kontrast.ts → lib/kontrast.ts`.
 Yeniden yazılan: `app/globals.css` (yalnız belge sıfırlaması), `/giris`
-(`.ab[data-yon='b']`), `/sistem` (Atlas referansıydı; artık `kabuk.css`
-dosyasını OKUYAN token referansı — değerleri iddia etmiyor).
+(`.ab[data-yon='b']`), `/sistem` (önceki arayüz katmanının referansıydı;
+artık `kabuk.css` dosyasını OKUYAN token referansı — değerleri iddia etmiyor).

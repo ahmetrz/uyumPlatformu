@@ -19,20 +19,12 @@ export const GUVEN_ETIKET: Record<Guven, string> = {
   otomatik_kanit: 'Otomatik kanıt', denetci_dogrulamis: 'Denetçi doğrulamış',
   oz_degerlendirme: 'Öz değerlendirme', bayat_kanit: 'Kanıt bayat', kanit_yok: 'Kanıt yok',
 };
-export const GUVEN_DURUM_RENGI: Record<Guven, Durum> = {
-  otomatik_kanit: 'uyumlu', denetci_dogrulamis: 'uyumlu',
-  oz_degerlendirme: 'kismi', bayat_kanit: 'kismi', kanit_yok: 'uyumsuz',
-};
 
 export const ONEM_DERECELERI = ['kritik', 'yuksek', 'orta', 'dusuk'] as const;
 export const OnemSemasi = z.enum(ONEM_DERECELERI);
 export type Onem = z.infer<typeof OnemSemasi>;
 export const ONEM_ETIKET: Record<Onem, string> = {
   kritik: 'Kritik', yuksek: 'Yüksek', orta: 'Orta', dusuk: 'Düşük',
-};
-// Önem, durum paletinden türetilir — yeni renk açılmaz (tasarım kararı).
-export const ONEM_DURUM_RENGI: Record<Onem, Durum> = {
-  kritik: 'uyumsuz', yuksek: 'uyumsuz', orta: 'kismi', dusuk: 'kapsamdisi',
 };
 
 export const BULGU_DURUMLARI = ['acik', 'aksiyonda', 'kapali', 'kabul_edildi'] as const;
@@ -41,16 +33,10 @@ export type BulguDurum = z.infer<typeof BulguDurumSemasi>;
 export const BULGU_DURUM_ETIKET: Record<BulguDurum, string> = {
   acik: 'Açık', aksiyonda: 'Aksiyonda', kapali: 'Kapalı', kabul_edildi: 'Riski kabul edildi',
 };
-export const BULGU_DURUM_RENGI: Record<BulguDurum, Durum> = {
-  acik: 'uyumsuz', aksiyonda: 'kismi', kapali: 'uyumlu', kabul_edildi: 'kapsamdisi',
-};
 
 export const AKSIYON_DURUMLARI = ['planlandi', 'devam', 'tamamlandi', 'iptal'] as const;
 export const AKSIYON_ETIKET: Record<(typeof AKSIYON_DURUMLARI)[number], string> = {
   planlandi: 'Planlandı', devam: 'Devam ediyor', tamamlandi: 'Tamamlandı', iptal: 'İptal',
-};
-export const AKSIYON_DURUM_RENGI: Record<(typeof AKSIYON_DURUMLARI)[number], Durum> = {
-  planlandi: 'incelemede', devam: 'kismi', tamamlandi: 'uyumlu', iptal: 'kapsamdisi',
 };
 
 export const SUREC_DURUMLARI = ['planlandi', 'aktif', 'pasif', 'tamamlandi'] as const;
@@ -58,9 +44,6 @@ export const SurecDurumSemasi = z.enum(SUREC_DURUMLARI);
 export type SurecDurum = z.infer<typeof SurecDurumSemasi>;
 export const SUREC_DURUM_ETIKET: Record<SurecDurum, string> = {
   planlandi: 'Planlandı', aktif: 'Aktif', pasif: 'Pasif', tamamlandi: 'Tamamlandı',
-};
-export const SUREC_DURUM_RENGI: Record<SurecDurum, Durum> = {
-  planlandi: 'incelemede', aktif: 'uyumlu', pasif: 'kapsamdisi', tamamlandi: 'incelemede',
 };
 
 export const TESIS_DURUMLARI = ['aktif', 'kapali'] as const;
@@ -85,16 +68,10 @@ export const PROJE_DURUMLARI = ['planlandi', 'devam', 'tamamlandi', 'beklemede']
 export const PROJE_DURUM_ETIKET: Record<(typeof PROJE_DURUMLARI)[number], string> = {
   planlandi: 'Planlandı', devam: 'Devam ediyor', tamamlandi: 'Tamamlandı', beklemede: 'Beklemede',
 };
-export const PROJE_DURUM_RENGI: Record<(typeof PROJE_DURUMLARI)[number], Durum> = {
-  planlandi: 'incelemede', devam: 'kismi', tamamlandi: 'uyumlu', beklemede: 'kapsamdisi',
-};
 
 export const AKTARIM_DURUMLARI = ['dogrulama_bekliyor', 'onaylandi', 'reddedildi', 'hata'] as const;
 export const AKTARIM_ETIKET: Record<(typeof AKTARIM_DURUMLARI)[number], string> = {
   dogrulama_bekliyor: 'Onay bekliyor', onaylandi: 'Onaylandı', reddedildi: 'Reddedildi', hata: 'Hata',
-};
-export const AKTARIM_DURUM_RENGI: Record<(typeof AKTARIM_DURUMLARI)[number], Durum> = {
-  dogrulama_bekliyor: 'kismi', onaylandi: 'uyumlu', reddedildi: 'kapsamdisi', hata: 'uyumsuz',
 };
 
 // Kanıt tazeliği durum paletine bağlanır (tasarım kararı: yeni renk açılmaz)
@@ -163,9 +140,6 @@ export const RISK_DURUMLARI = ['acik', 'islemde', 'kabul_edildi', 'kapali'] as c
 export const RISK_DURUM_ETIKET: Record<(typeof RISK_DURUMLARI)[number], string> = {
   acik: 'Açık', islemde: 'İşlemde', kabul_edildi: 'Kabul edildi', kapali: 'Kapalı',
 };
-export const RISK_DURUM_RENGI: Record<(typeof RISK_DURUMLARI)[number], Durum> = {
-  acik: 'uyumsuz', islemde: 'kismi', kabul_edildi: 'kapsamdisi', kapali: 'uyumlu',
-};
 export const RISK_ISLEMLERI = ['azalt', 'kacin', 'devret', 'kabul'] as const;
 export const RISK_ISLEM_ETIKET: Record<(typeof RISK_ISLEMLERI)[number], string> = {
   azalt: 'Azalt', kacin: 'Kaçın', devret: 'Devret', kabul: 'Kabul et',
@@ -175,12 +149,6 @@ export const ETKI_BOYUTLARI = [
   ['etkiFinans', 'Finans'], ['etkiSiber', 'Siber'], ['etkiItibar', 'İtibar'],
   ['etkiCevre', 'Çevre'], ['etkiVeri', 'Veri/KVKK'],
 ] as const;
-export function riskSeviyeRengi(skor: number | null | undefined): Durum {
-  if (skor === null || skor === undefined) return 'degerlendirilmedi';
-  if (skor >= 15) return 'uyumsuz';
-  if (skor >= 8) return 'kismi';
-  return 'uyumlu';
-}
 
 export const DENETIM_ASAMALARI = ['plan', 'kapsam', 'kanit_talebi', 'saha', 'bulgu',
   'yanit', 'aksiyon', 'dogrulama', 'kapanis'] as const;

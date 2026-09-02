@@ -20,6 +20,9 @@ export type Hesap = {
   /** null = unvan girilmemiş; "bilinmiyor" yazılır, boş sayılmaz */
   unvan: string | null;
   aktif: boolean;
+  /** Parola özeti var mı — YALNIZ boolean; özetin kendisi istemciye inmez.
+      false = hesap giriş yapamaz (kaydı var, parolası tanımlanmamış). */
+  parolaVar: boolean;
   yetkiler: Yetki[];
 };
 
@@ -59,6 +62,11 @@ export const erisimsiz = (h: Hesap) => h.aktif && h.yetkiler.length === 0;
 
 /** Pasifleştirilmiş hesabın yetkileri kütükte duruyor — artık yetki. */
 export const artikYetki = (h: Hesap) => !h.aktif && h.yetkiler.length > 0;
+
+/** Açık hesap ama parolası hiç tanımlanmadı: kaydı var, giriş yapamaz.
+    Erişim KUSURU değil (fazla değil eksik erişim), ama yöneticinin
+    görmesi gereken bir olgu — satırda ve çekmecede sözcükle yazılır. */
+export const girisYapamaz = (h: Hesap) => h.aktif && !h.parolaVar;
 
 /** Kapsam metni: "Tüm portföy" ya da "2 süreç · 1 santral". */
 export function kapsamMetni(h: Hesap): string {
@@ -116,6 +124,11 @@ export function durumCumlesi(h: Hesap): string {
   return `Yetki ${kapsamMetni(h).toLocaleLowerCase('tr-TR')} kapsamıyla sınırlı.`;
 }
 
+/** Satır altı ve çekmece için giriş notu; null = söylenecek bir şey yok. */
+export function girisNotu(h: Hesap): string | null {
+  return girisYapamaz(h) ? 'giriş yapamaz · parola tanımlı değil' : null;
+}
+
 /** Sağlıklı ve kapalı hesaplar toplanabilir; erişim kusurları toplanmaz. */
 export const toplanabilir = (h: Hesap) => {
   const d = hesapDurumu(h);
@@ -135,6 +148,7 @@ export function metrikleriHesapla(hesaplar: Hesap[]) {
     yetkiToplam: yetkiler.length,
     yetkiKapsamli: yetkiler.filter((y) => !kapsamsiz(y)).length,
     unvansiz: hesaplar.filter((h) => !h.unvan).length,
+    parolasiz: hesaplar.filter(girisYapamaz).length,
   };
 }
 

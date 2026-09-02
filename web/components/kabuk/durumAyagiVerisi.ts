@@ -8,7 +8,7 @@ import type { AktifKullanici } from '@/lib/auth';
 
    ═══ İKİ İNCELEME KUSURU BURADA KAPANIR ════════════════════════════════
 
-   1 · YETKİ (P2). Şerit Atlas kabuğunun içindedir, yani HER operasyonel ve
+   1 · YETKİ (P2). Şerit uygulama kabuğunun içindedir, yani HER operasyonel ve
    flagship ekranda çizilir, ve entegrasyon sağlığını yetki sormadan
    okuyordu. Kanonik özet (`lib/entegrasyon/saglikOzeti.ts →
    entegrasyonSagligiOzeti`) aynı veriyi `yonetim/okuma` olmadan VERMEZ;

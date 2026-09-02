@@ -156,8 +156,8 @@ export const acikMi = (s: SapmaSatiri): boolean => ACIK_DURUMLAR.includes(s.duru
 
 /**
  * Satır işaretçisi KARAR HÂLİNİ kodlar, şiddeti değil: şiddet kendi
- * kolonunda kelimeyle durur, işaretçinin yanında tekrar edilmez (Atlas
- * §A2). "gozlendi" → `unk`, çünkü o sapmaya henüz kimse bakmadı;
+ * kolonunda kelimeyle durur, işaretçinin yanında tekrar edilmez (durum
+ * sözleşmesi). "gozlendi" → `unk`, çünkü o sapmaya henüz kimse bakmadı;
  * "değerlendirilmedi" tam da budur.
  */
 export function sapmaImi(s: SapmaSatiri): Durum {
@@ -387,3 +387,236 @@ export function ekranHali(sayim: Sayim, iz: KarsilastirmaIzi, anlikVar: boolean)
   }
   return { metin: 'Sapma yok', durum: 'ok' };
 }
+
+/* ═══ B8/B10 · Bölge–geçit diyagramı ═════════════════════════════════
+
+   AgBolgesi / AgGeciti tanımları bugüne dek hiçbir ekranda ÇİZİLMİYORDU:
+   sapma tezgâhı "bölge değişti / yeni geçit" diyordu ama kullanıcı o
+   bölgenin nerede durduğunu, hangi geçitten geçtiğini göremiyordu.
+
+   Bu bölüm tanımı Purdue katmanlarına yerleştirir. Yerleşim STATİKTİR
+   (yüzde konum, animasyon yok) ve saf fonksiyondur: aynı girdi aynı
+   resmi verir, test bunu sabitler.
+
+   Sözleşme:
+     · seviye 0 ALTTA, 4 ÜSTTE — akış yönü değil, Purdue hiyerarşisi;
+     · seviyesi TANIMSIZ bölge ayrı bir bantta durur, 0 sayılmaz;
+     · geçit yalnız iki ucu da çizilmişse kenar olur — düğümsüz kenar
+       yoktur; düşen geçit SAYILIR ve dip notta yazılır;
+     · kapsamı daraltılmış kullanıcıda tesissiz (grup) bölge yalnız
+       kapsamdaki bir bölgeye geçidi varsa görünür. */
+
+export const BOLGE_TIP_SOZU: Record<string, string> = {
+  bt: 'BT ağı', ot: 'OT ağı', dmz: 'DMZ', ot_dmz: 'OT DMZ',
+  kurumsal: 'Kurumsal ağ', internet: 'İnternet',
+};
+
+/** Tuvalde aynı anda çizilen bölge tavanı (168px kutu, 5 bant). */
+export const BOLGE_TAVANI = 30;
+
+export type BolgeSatiri = {
+  id: string;
+  kod: string;
+  ad: string;
+  tip: string;
+  /** Purdue / IEC 62443 seviyesi — null TANIMSIZ demektir, sıfır değil */
+  seviye: number | null;
+  tesisId: string | null;
+  tesisKodu: string | null;
+  /** bölgeye bağlı, silinmemiş varlık sayısı */
+  varlikSayisi: number;
+};
+
+export type GecitSatiri = {
+  id: string;
+  kaynakBolgeId: string;
+  hedefBolgeId: string;
+  /** güvenlik duvarı / diyot varlık etiketi — null: kontrol kaydı yok */
+  kontrolVarligi: string | null;
+  protokoller: string | null;
+  onaylandi: boolean;
+  /** null = hiç doğrulanmadı (BİLİNMEYEN) */
+  sonDogrulama: string | null;
+  aciklama: string | null;
+};
+
+/* Tuval sözleşmesiyle yapısal olarak aynı; grafik bileşeni 'use client'
+   olduğu için saf mantık ondan tip almaz (test React yüklemesin). */
+export type BolgeDugumu = {
+  id: string; ad: string; alt: string; x: number; y: number;
+  durum?: Durum; ustEtiket?: string;
+};
+export type BolgeKenari = { kaynak: string; hedef: string; etiket?: string };
+
+/** Kenarın ortasına yazılan protokol etiketi — Tuval kenar etiketi çizmez,
+    ekran bunu üstüne bindirir. */
+export type KenarEtiketi = {
+  id: string; kaynak: string; hedef: string; x: number; y: number; metin: string;
+};
+
+export type BolgeKatmani = { seviye: number | null; ad: string; y: number };
+
+export type BolgeGrafigi = {
+  dugumler: BolgeDugumu[];
+  kenarlar: BolgeKenari[];
+  etiketler: KenarEtiketi[];
+  katmanlar: BolgeKatmani[];
+  /** çizilen bölge / verilen bölge */
+  cizilen: number;
+  toplam: number;
+  /** bir ucu çizilmediği için düşen geçit sayısı */
+  dusenGecit: number;
+};
+
+/**
+ * Kapsam budaması. Kapsamı daraltılmış kullanıcının sorgusu tesissiz
+ * (grup düzeyi) bölgeleri de getirir — çünkü "kurumsal ağ → OT DMZ"
+ * geçidinin bir ucu tesissizdir ve düğümü olmayan kenar çizilemez. Ama
+ * hiçbir kapsam bölgesine bağlanmayan tesissiz bölge o kullanıcıya
+ * yabancıdır; listede durması kapsamı genişletmiş görünürdü.
+ * Kapsamı sınırsız kullanıcıda budama yapılmaz.
+ */
+export function kapsamBolgeleri(
+  bolgeler: BolgeSatiri[], gecitler: GecitSatiri[], daraltildi: boolean,
+): { bolgeler: BolgeSatiri[]; gecitler: GecitSatiri[] } {
+  if (!daraltildi) return { bolgeler, gecitler };
+  const kapsamdaki = new Set(bolgeler.filter((b) => b.tesisId !== null).map((b) => b.id));
+  const bagli = new Set<string>();
+  for (const g of gecitler) {
+    if (kapsamdaki.has(g.kaynakBolgeId)) bagli.add(g.hedefBolgeId);
+    if (kapsamdaki.has(g.hedefBolgeId)) bagli.add(g.kaynakBolgeId);
+  }
+  const kalan = bolgeler.filter((b) => b.tesisId !== null || bagli.has(b.id));
+  const kalanId = new Set(kalan.map((b) => b.id));
+  return {
+    bolgeler: kalan,
+    gecitler: gecitler.filter((g) => kalanId.has(g.kaynakBolgeId) && kalanId.has(g.hedefBolgeId)),
+  };
+}
+
+/** Bant içi yatay dağılım: uçlarda 168px kutuya pay bırakır. */
+function yatayDagit(n: number): number[] {
+  if (n <= 1) return [50];
+  return Array.from({ length: n }, (_, i) => Math.round(14 + (i * 72) / (n - 1)));
+}
+
+/** Bantların dikey dağılımı: üstte SL4, altta SL0, en altta tanımsız. */
+function dikeyDagit(n: number): number[] {
+  if (n <= 1) return [50];
+  return Array.from({ length: n }, (_, i) => Math.round(14 + (i * 72) / (n - 1)));
+}
+
+const seviyeSozu = (s: number | null) => (s === null ? 'SL tanımsız' : `SL${s}`);
+
+/**
+ * Bölge–geçit grafiği. Düğüm = bölge, kenar = geçit; bantlar Purdue
+ * seviyesine göre dikey sıralanır. Sıralama ve tavan deterministiktir:
+ * çok varlıklı bölge önce, sonra kod.
+ */
+export function bolgeGrafigiKur(girdi: {
+  bolgeler: BolgeSatiri[];
+  gecitler: GecitSatiri[];
+  tavan?: number;
+}): BolgeGrafigi {
+  const tavan = girdi.tavan ?? BOLGE_TAVANI;
+  const sirali = [...girdi.bolgeler].sort((a, b) =>
+    b.varlikSayisi - a.varlikSayisi || a.kod.localeCompare(b.kod, 'tr'));
+  const secilen = sirali.slice(0, tavan);
+
+  /* Bantlar: tanımlı seviyeler büyükten küçüğe, tanımsız en altta ve
+     AYRI — tanımsız bölgeyi SL0'a koymak, ölçülmemişi sıfır saymaktır. */
+  const seviyeler = [...new Set(secilen.map((b) => b.seviye).filter((s): s is number => s !== null))]
+    .sort((a, b) => b - a);
+  const tanimsizVar = secilen.some((b) => b.seviye === null);
+  const bantSeviyeleri: (number | null)[] = [...seviyeler, ...(tanimsizVar ? [null] : [])];
+  const bantY = dikeyDagit(bantSeviyeleri.length);
+  const katmanlar: BolgeKatmani[] = bantSeviyeleri.map((s, i) => ({
+    seviye: s, ad: seviyeSozu(s), y: bantY[i],
+  }));
+
+  const dugumler: BolgeDugumu[] = [];
+  bantSeviyeleri.forEach((s, i) => {
+    const banttakiler = secilen
+      .filter((b) => b.seviye === s)
+      .sort((a, b) => a.kod.localeCompare(b.kod, 'tr'));
+    const x = yatayDagit(banttakiler.length);
+    banttakiler.forEach((b, j) => {
+      dugumler.push({
+        id: b.id,
+        ad: b.ad,
+        alt: `${b.tesisKodu ?? 'tesissiz'} · ${b.varlikSayisi} varlık`,
+        x: x[j], y: bantY[i],
+        ustEtiket: `${seviyeSozu(b.seviye)} · ${BOLGE_TIP_SOZU[b.tip] ?? b.tip}`,
+        // Seviyesi bilinmeyen bölge işaretlenir: eksik tanım, düşük seviye değil.
+        durum: b.seviye === null ? 'unk' : undefined,
+      });
+    });
+  });
+
+  const konum = new Map(dugumler.map((d) => [d.id, d]));
+  const kenarlar: BolgeKenari[] = [];
+  const etiketler: KenarEtiketi[] = [];
+  let dusenGecit = 0;
+  for (const g of girdi.gecitler) {
+    const a = konum.get(g.kaynakBolgeId);
+    const b = konum.get(g.hedefBolgeId);
+    if (!a || !b) { dusenGecit += 1; continue; }
+    const etiket = g.protokoller?.trim() || undefined;
+    kenarlar.push({ kaynak: a.id, hedef: b.id, etiket });
+    if (etiket) {
+      etiketler.push({
+        id: g.id, kaynak: a.id, hedef: b.id,
+        x: Math.round((a.x + b.x) / 2), y: Math.round((a.y + b.y) / 2), metin: etiket,
+      });
+    }
+  }
+
+  return {
+    dugumler, kenarlar, etiketler, katmanlar,
+    cizilen: secilen.length, toplam: girdi.bolgeler.length, dusenGecit,
+  };
+}
+
+/** Bir bölgenin geçitleri, yönüyle. Çekmecedeki liste bundan çizilir. */
+export type BolgeGeciti = GecitSatiri & {
+  yon: 'giden' | 'gelen';
+  diger: BolgeSatiri | null;
+};
+
+export function bolgeninGecitleri(
+  bolgeId: string, gecitler: GecitSatiri[], bolgeler: BolgeSatiri[],
+): BolgeGeciti[] {
+  const harita = new Map(bolgeler.map((b) => [b.id, b]));
+  return gecitler
+    .filter((g) => g.kaynakBolgeId === bolgeId || g.hedefBolgeId === bolgeId)
+    .map((g) => {
+      const giden = g.kaynakBolgeId === bolgeId;
+      return {
+        ...g,
+        yon: giden ? 'giden' as const : 'gelen' as const,
+        diger: harita.get(giden ? g.hedefBolgeId : g.kaynakBolgeId) ?? null,
+      };
+    })
+    .sort((a, b) => Number(a.onaylandi) - Number(b.onaylandi)
+      || (a.diger?.kod ?? '').localeCompare(b.diger?.kod ?? '', 'tr'));
+}
+
+/**
+ * Bölgenin kimlik işareti — geçit ONAY hâlini kodlar. Geçidi olmayan
+ * bölge "temiz" DEĞİL, bilinmeyendir: geçitsiz bir OT bölgesi ya
+ * gerçekten yalıtılmıştır ya da geçidi henüz kayda girmemiştir; ekran
+ * ikisini ayırt edemez ve öyle der.
+ */
+export function bolgeImi(gecitler: BolgeGeciti[]): { durum: Durum; soz: string } {
+  if (gecitler.length === 0) return { durum: 'unk', soz: 'Geçit kaydı yok' };
+  const onaysiz = gecitler.filter((g) => !g.onaylandi).length;
+  if (onaysiz > 0) return { durum: 'md', soz: `${onaysiz} geçit onaysız` };
+  const dogrulanmamis = gecitler.filter((g) => !g.sonDogrulama).length;
+  if (dogrulanmamis > 0) {
+    return { durum: 'unk', soz: `Onaylı · ${dogrulanmamis} geçit hiç doğrulanmadı` };
+  }
+  return { durum: 'ok', soz: 'Geçitleri onaylı ve doğrulanmış' };
+}
+
+/** Bölgeye daraltılmış envanter bağı. Süzgeç anahtarı bölge KODUdur. */
+export const envanterBagi = (kod: string): string => `/envanter?bolge=${encodeURIComponent(kod)}`;

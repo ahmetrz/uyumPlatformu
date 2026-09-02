@@ -51,7 +51,7 @@ const IZ_PENCERESI = 600;
 /**
  * Sunucudan çekilen en fazla bulgu satırı.
  *
- * Atlas sözleşmesi 5–9 GÖRÜNÜR satır + katlanmış kuyruk der; istemci mercek,
+ * Yoğunluk sözleşmesi 5–9 GÖRÜNÜR satır + katlanmış kuyruk der; istemci mercek,
  * arama ve çekmece için kütüğün geri kalanını da ister. 400, "bir kurumun
  * aynı anda takip ettiği açık bulgu sayısı"nın üstünde, "tabloyu belleğe
  * almak"ın altında bir sınırdır. Aşıldığında ekran SÖYLER.

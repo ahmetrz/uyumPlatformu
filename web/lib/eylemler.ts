@@ -7,7 +7,7 @@
 import { revalidatePath } from 'next/cache';
 import { db } from './db';
 import { parcala } from './sorguParcala';
-import { yetkiZorunlu, izinVar } from './erisim';
+import { yetkiZorunlu, izinVar, KAPSAM_SONRA } from './erisim';
 import { tumOturumlariKapat } from './auth';
 import {
   DurumSemasi, OnemSemasi, BulguDurumSemasi, SurecDurumSemasi,
@@ -41,6 +41,9 @@ async function iz(veri: {
 
 const tarih = z.string().transform((s) => (s ? new Date(s) : null)).nullable().optional();
 const bosluksuz = (ad: string) => z.string().trim().min(1, `${ad} boş olamaz`);
+/* İsteğe bağlı serbest metin: kırpılır, boş kalırsa null olur. `undefined`
+   "dokunma", `null` "sil" demektir — ikisi farklı işlenir. */
+const serbestMetin = z.string().trim().transform((s) => (s ? s : null)).nullable().optional();
 
 // ---------------------------------------------------------------- tanımlar
 
@@ -286,7 +289,7 @@ export async function maddeDurumGuncelle(girdi: {
   id: string; durum: string; not?: string | null; sorumluId?: string | null; gerekce?: string | null;
 }): Promise<Sonuc> {
   try {
-    const k = await yetkiZorunlu('uyum', 'yazma');
+    const k = await yetkiZorunlu('uyum', 'yazma', KAPSAM_SONRA);
     const v = z.object({
       id: z.string(), durum: DurumSemasi,
       not: z.string().nullable().optional(), sorumluId: z.string().nullable().optional(),
@@ -337,7 +340,7 @@ export async function bulguOlustur(girdi: {
   onemDerecesi: string; hedefTarih?: string | null; sorumluId?: string | null;
 }): Promise<Sonuc> {
   try {
-    const k = await yetkiZorunlu('uyum', 'yazma');
+    const k = await yetkiZorunlu('uyum', 'yazma', KAPSAM_SONRA);
     const v = z.object({
       maddeDurumuId: z.string(), baslik: bosluksuz('Başlık'), aciklama: bosluksuz('Açıklama'),
       onemDerecesi: OnemSemasi, hedefTarih: tarih, sorumluId: z.string().nullable().optional(),
@@ -359,12 +362,17 @@ export async function bulguOlustur(girdi: {
 export async function bulguGuncelle(girdi: {
   id: string; durum?: string; onemDerecesi?: string;
   hedefTarih?: string | null; sorumluId?: string | null;
+  /* C20 · CAPA yazma yüzeyi: kök neden ve retest alanları. Boş dize null'a
+     çevrilir — "kök neden girildi ama boş" diye bir durum yoktur; ya
+     yazılmıştır ya da 'kayıt yok'tur. */
+  kokNeden?: string | null; retestGerekli?: boolean; retestSonucu?: string | null;
 }): Promise<Sonuc> {
   try {
-    const k = await yetkiZorunlu('uyum', 'yazma');
+    const k = await yetkiZorunlu('uyum', 'yazma', KAPSAM_SONRA);
     const v = z.object({
       id: z.string(), durum: BulguDurumSemasi.optional(), onemDerecesi: OnemSemasi.optional(),
       hedefTarih: tarih, sorumluId: z.string().nullable().optional(),
+      kokNeden: serbestMetin, retestGerekli: z.boolean().optional(), retestSonucu: serbestMetin,
     }).parse(girdi);
     const eski = await db.bulgu.findUniqueOrThrow({
       where: { id: v.id },
@@ -375,7 +383,7 @@ export async function bulguGuncelle(girdi: {
     // Bulgu yalnız durum değiştirilerek KAPATILAMAZ (§14): doğrulama gerekir
     let kapanisAlanlari: { kapanisDogrulayanId?: string; kapanisDogrulama?: Date } = {};
     if (v.durum === 'kapali' && eski.durum !== 'kapali') {
-      if (!izinVar(k, 'uyum', 'onay'))
+      if (!izinVar(k, 'uyum', 'onay', { tesisId: eski.maddeDurumu.tesisId, surecId: eski.maddeDurumu.surecId }))
         return { ok: false, hata: 'Bulgu kapatma doğrulama yetkisi gerektirir (denetim sorumlusu/yönetici)' };
       const acikAksiyon = eski.aksiyonlar.filter((a) => a.durum === 'planlandi' || a.durum === 'devam');
       if (acikAksiyon.length > 0)
@@ -389,6 +397,9 @@ export async function bulguGuncelle(girdi: {
       hedefTarih: v.hedefTarih === undefined ? eski.hedefTarih : v.hedefTarih,
       sorumluId: v.sorumluId === undefined ? eski.sorumluId : v.sorumluId,
       kapanmaTarihi: v.durum === 'kapali' && eski.durum !== 'kapali' ? new Date() : eski.kapanmaTarihi,
+      kokNeden: v.kokNeden === undefined ? eski.kokNeden : v.kokNeden,
+      retestGerekli: v.retestGerekli ?? eski.retestGerekli,
+      retestSonucu: v.retestSonucu === undefined ? eski.retestSonucu : v.retestSonucu,
     } });
     if (v.durum && v.durum !== eski.durum)
       await iz({ aktorId: k.id, varlikTipi: 'Bulgu', varlikId: v.id, eylem: 'durum_degisimi',
@@ -396,6 +407,18 @@ export async function bulguGuncelle(girdi: {
     if (v.onemDerecesi && v.onemDerecesi !== eski.onemDerecesi)
       await iz({ aktorId: k.id, varlikTipi: 'Bulgu', varlikId: v.id, eylem: 'guncelleme',
         alan: 'onemDerecesi', once: eski.onemDerecesi, sonra: v.onemDerecesi });
+    /* Kök neden ve retest, denetim izinde ayrı satırlarla görünür: CAPA'nın
+       "neden oldu / düzeldi mi" sorularının cevabı kimin ne zaman yazdığı
+       bilinmeden kanıt sayılmaz. */
+    if (v.kokNeden !== undefined && v.kokNeden !== eski.kokNeden)
+      await iz({ aktorId: k.id, varlikTipi: 'Bulgu', varlikId: v.id, eylem: 'guncelleme',
+        alan: 'kokNeden', once: eski.kokNeden, sonra: v.kokNeden });
+    if (v.retestGerekli !== undefined && v.retestGerekli !== eski.retestGerekli)
+      await iz({ aktorId: k.id, varlikTipi: 'Bulgu', varlikId: v.id, eylem: 'guncelleme',
+        alan: 'retestGerekli', once: String(eski.retestGerekli), sonra: String(v.retestGerekli) });
+    if (v.retestSonucu !== undefined && v.retestSonucu !== eski.retestSonucu)
+      await iz({ aktorId: k.id, varlikTipi: 'Bulgu', varlikId: v.id, eylem: 'guncelleme',
+        alan: 'retestSonucu', once: eski.retestSonucu, sonra: v.retestSonucu });
     revalidatePath('/bulgular'); revalidatePath('/');
     return tamam();
   } catch (e) { return hata(e); }
@@ -405,11 +428,16 @@ export async function aksiyonEkle(girdi: {
   bulguId: string; baslik: string; sorumluId?: string | null; hedef?: string | null;
 }): Promise<Sonuc> {
   try {
-    const k = await yetkiZorunlu('uyum', 'yazma');
+    const k = await yetkiZorunlu('uyum', 'yazma', KAPSAM_SONRA);
     const v = z.object({
       bulguId: z.string(), baslik: bosluksuz('Başlık'),
       sorumluId: z.string().nullable().optional(), hedef: tarih,
     }).parse(girdi);
+    const bulgu = await db.bulgu.findUniqueOrThrow({
+      where: { id: v.bulguId }, include: { maddeDurumu: true },
+    });
+    if (!izinVar(k, 'uyum', 'yazma', { tesisId: bulgu.maddeDurumu.tesisId, surecId: bulgu.maddeDurumu.surecId }))
+      return { ok: false, hata: 'Bu tesis kapsamında aksiyon açma yetkiniz yok' };
     const yeni = await db.aksiyon.create({ data: {
       bulguId: v.bulguId, baslik: v.baslik, sorumluId: v.sorumluId ?? null,
       baslangic: new Date(), hedef: v.hedef ?? null,
@@ -420,16 +448,95 @@ export async function aksiyonEkle(girdi: {
   } catch (e) { return hata(e); }
 }
 
-export async function aksiyonDurumDegistir(girdi: { id: string; durum: string }): Promise<Sonuc> {
+/* C20 · Tamamlama notu. "Tamamlandı" sözcüğü tek başına bir CAPA kaydı
+   değildir; ne yapıldığı yazılmadan kapanan aksiyon doğrulayana bakacak
+   bir şey bırakmaz. Bu yüzden 'tamamlandi' geçişi KISA BİR NOT ister ve
+   aksiyonu doğrulama kuyruğuna ('bekliyor') koyar. Not, şemadaki mevcut
+   `etkinlikNotu` alanına yazılır — yeni alan/migrasyon açılmaz. Diğer
+   geçişlerde not isteğe bağlıdır; verilmediyse (undefined YA DA null)
+   eski değer korunur — sıradan bir durum değişikliği tamamlama ya da
+   doğrulama notunu silemez. Boş dize de `serbestMetin` ile null'a düşer,
+   yani "notu sil" diye bir yol yoktur; iz kaydı bunun için yeterlidir. */
+export async function aksiyonDurumDegistir(girdi: {
+  id: string; durum: string; not?: string | null;
+}): Promise<Sonuc> {
   try {
-    const k = await yetkiZorunlu('uyum', 'yazma');
-    const v = z.object({ id: z.string(), durum: z.enum(['planlandi', 'devam', 'tamamlandi', 'iptal']) }).parse(girdi);
-    const eski = await db.aksiyon.findUniqueOrThrow({ where: { id: v.id } });
+    const k = await yetkiZorunlu('uyum', 'yazma', KAPSAM_SONRA);
+    const v = z.object({
+      id: z.string(), durum: z.enum(['planlandi', 'devam', 'tamamlandi', 'iptal']),
+      not: serbestMetin,
+    }).parse(girdi);
+    const eski = await db.aksiyon.findUniqueOrThrow({
+      where: { id: v.id }, include: { bulgu: { include: { maddeDurumu: true } } },
+    });
+    const md = eski.bulgu.maddeDurumu;
+    if (!izinVar(k, 'uyum', 'yazma', { tesisId: md.tesisId, surecId: md.surecId }))
+      return { ok: false, hata: 'Bu tesis kapsamında yazma yetkiniz yok' };
+    const tamamlaniyor = v.durum === 'tamamlandi' && eski.durum !== 'tamamlandi';
+    if (tamamlaniyor && !v.not)
+      return { ok: false, hata: 'Tamamlama notu boş olamaz: ne yapıldığı kısaca yazılmalı' };
     await db.aksiyon.update({ where: { id: v.id }, data: {
-      durum: v.durum, tamamlanma: v.durum === 'tamamlandi' ? new Date() : null } });
+      durum: v.durum,
+      tamamlanma: v.durum === 'tamamlandi' ? (eski.tamamlanma ?? new Date()) : null,
+      etkinlikNotu: v.not ?? eski.etkinlikNotu,
+      /* Tamamlanan iş doğrulanmayı bekler; tamamlanmışlıktan geri alınan
+         aksiyonun eski doğrulaması geçersizdir — doğrulanmış bir aksiyon
+         yeniden 'devam'a çekilip doğrulanmış kalamaz. */
+      ...(tamamlaniyor ? { dogrulamaDurumu: 'bekliyor' } : {}),
+      ...(v.durum !== 'tamamlandi' && eski.durum === 'tamamlandi'
+        ? { dogrulamaDurumu: 'gerekmez', dogrulayanId: null, dogrulamaTarihi: null }
+        : {}),
+    } });
     await iz({ aktorId: k.id, varlikTipi: 'Aksiyon', varlikId: v.id, eylem: 'durum_degisimi',
-      alan: 'durum', once: eski.durum, sonra: v.durum });
+      alan: 'durum', once: eski.durum, sonra: v.durum, gerekce: v.not ?? null });
     revalidatePath('/bulgular');
+    return tamam();
+  } catch (e) { return hata(e); }
+}
+
+/* C20 · Aksiyon doğrulama (görev ayrılığı).
+   Doğrulama, aksiyonun sonucunun BAĞIMSIZ bir gözle incelenmesidir:
+     · yalnız 'tamamlandi' aksiyon doğrulanır — bitmemiş işin etkinliği yoktur;
+     · aksiyonun sorumlusu kendi işini doğrulayamaz (segregation of duties);
+     · doğrulayan aktif kullanıcıdır, elle seçilemez;
+     · yetki: `uyum · onay` (denetim sorumlusu / yönetici) — bulgu kapatmayla
+       aynı seviye, çünkü doğrulama kapanışın ön koşuludur (C24).
+   'etkin' → dogrulandi, 'etkisiz' → reddedildi. Reddedilen aksiyon
+   sorumlusuna geri döner; durum değişmez, doğrulama hücresi kırmızı yanar. */
+export async function aksiyonDogrula(girdi: {
+  id: string; sonuc: 'etkin' | 'etkisiz'; not?: string | null;
+}): Promise<Sonuc> {
+  try {
+    const k = await yetkiZorunlu('uyum', 'onay', KAPSAM_SONRA);
+    const v = z.object({
+      id: z.string(), sonuc: z.enum(['etkin', 'etkisiz']), not: serbestMetin,
+    }).parse(girdi);
+    const eski = await db.aksiyon.findUniqueOrThrow({
+      where: { id: v.id }, include: { bulgu: { include: { maddeDurumu: true } } },
+    });
+    const md = eski.bulgu.maddeDurumu;
+    if (!izinVar(k, 'uyum', 'onay', { tesisId: md.tesisId, surecId: md.surecId }))
+      return { ok: false, hata: 'Bu tesis kapsamında doğrulama yetkiniz yok' };
+    if (eski.durum !== 'tamamlandi')
+      return { ok: false, hata: 'Yalnız tamamlanmış aksiyon doğrulanabilir' };
+    if (eski.sorumluId === k.id)
+      return { ok: false, hata: 'Görev ayrılığı: aksiyonun sorumlusu kendi aksiyonunu doğrulayamaz' };
+    if (v.sonuc === 'etkisiz' && !v.not)
+      return { ok: false, hata: 'Etkisiz bulunan aksiyon için gerekçe yazılmalı' };
+    const yeniDurum = v.sonuc === 'etkin' ? 'dogrulandi' : 'reddedildi';
+    await db.aksiyon.update({ where: { id: v.id }, data: {
+      dogrulamaDurumu: yeniDurum, dogrulayanId: k.id, dogrulamaTarihi: new Date(),
+      // Doğrulayanın notu tamamlama notunun üstüne yazılmaz; ikisi birlikte tutulur.
+      etkinlikNotu: v.not
+        ? (eski.etkinlikNotu ? `${eski.etkinlikNotu}\nDoğrulama: ${v.not}` : `Doğrulama: ${v.not}`)
+        : eski.etkinlikNotu,
+    } });
+    // İz eylemi mevcut sözlükten ('onay' / 'red') — denetim izi cümlesi
+    // "doğrulama onayladı / reddetti" diye okunur, yeni etiket gerekmez.
+    await iz({ aktorId: k.id, varlikTipi: 'Aksiyon', varlikId: v.id,
+      eylem: v.sonuc === 'etkin' ? 'onay' : 'red', alan: 'dogrulama',
+      once: eski.dogrulamaDurumu, sonra: yeniDurum, gerekce: v.not ?? null });
+    revalidatePath('/bulgular'); revalidatePath('/');
     return tamam();
   } catch (e) { return hata(e); }
 }

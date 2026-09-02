@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { aktifKullanici } from '@/lib/auth';
 import GirisFormu from './GirisFormu';
-import { TEMEL } from '@/lib/demo';
+import { DEMO, TEMEL } from '@/lib/demo';
 import { guvenliHedef, VARSAYILAN_HEDEF } from './mantik';
 
 export const metadata: Metadata = { title: 'Giriş' };
@@ -27,7 +27,21 @@ export const metadata: Metadata = { title: 'Giriş' };
 export default async function Giris({ searchParams }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const hedef = guvenliHedef((await searchParams).next);
+  /* STATİK DEMODA `searchParams` OKUNMAZ. Demo `output: 'export'` ile
+     derlenir: HTML bir kez üretilir, arkasında istek gören bir sunucu
+     yoktur. Böyle bir sayfada `await searchParams` yalnız boş dönmez —
+     `dynamic = "error"` altında DERLEMEYİ KIRAR:
+       Route /giris ... couldn't be rendered statically because it used
+       `await searchParams`
+     2026-09-02'de yayın koşusu tam buradan düştü ve canlı demo bir gün
+     önceki derlemede dondu (yeni santral görselleri görünmedi). Kusur
+     üründe değil, ürünün demo ikizindeydi; ama kütüğe girmesi PR
+     kapısının demo derlemesini hiç koşmamasıydı — kapı düzeltildi.
+
+     Demoda kaybedilen bir davranış yok: `aktifKullanici()` demo kimliğini
+     hep döndürür, yani bu ekran zaten koşulsuz `redirect` eder ve
+     yazma yolları kapalıdır. Üründe okuma aynen sürer. */
+  const hedef = DEMO ? VARSAYILAN_HEDEF : guvenliHedef((await searchParams).next);
   if (await aktifKullanici()) redirect(hedef);
 
   return (

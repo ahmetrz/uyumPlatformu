@@ -72,3 +72,19 @@ jobs:
       - name: Derleme
         working-directory: web
         run: npm run build
+
+      # Demo ikizi ÜRÜNDEN BAŞKA derlenir: `output: 'export'` altında her
+      # rota statik üretilir ve `dynamic = "error"` yürürlüktedir. Bu kapı
+      # 2026-09-02'ye kadar yoktu; sonuç: `?next=` ve `?bolge=` kapıları
+      # `await searchParams` ile geldi, PR kapısı yeşil verdi, yayın koşusu
+      # merge'den SONRA patladı ve canlı demo bir gün eski derlemede dondu.
+      # Kusuru merge'den önce görecek tek yer burasıdır.
+      #
+      # Tam `demo:build` değil, yalnız DERLEMESİ koşulur: sonraki üç adım
+      # (yayın-kontrol · statik-kontrol · kolon-hizasi) tarayıcı ister ve
+      # bu kapıya playwright kurulmaz. Kırılan şey derlemedir; ölçülen de o.
+      - name: Demo derlemesi (statik dışa aktarım)
+        working-directory: web
+        env:
+          NEXT_PUBLIC_DEMO: '1'
+        run: npx next build

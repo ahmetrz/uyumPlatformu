@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 
 /* ═══════════════════════════════════════════════════════════════════════
-   `xlsx` SÜRÜM NÖBETÇİSİ — `npm audit`in artık göremediği yerin bekçisi
+   `xlsx` NÖBETÇİSİ — `npm audit`in artık göremediği yerin bekçisi
 
    ── Durum ─────────────────────────────────────────────────────────────
    SheetJS npm'e yayın yapmayı 0.18.5'te bıraktı ve dağıtımını kendi
@@ -14,22 +15,27 @@ import path from 'node:path';
    `npm audit` bu paket için "No fix available" diyordu; doğruydu —
    NPM'DE düzeltme yok. SheetJS'in kendi dağıtımında var.
 
-   Bu yüzden bağımlılık `https://cdn.sheetjs.com/...` tarball'ına
-   bağlandı. Kütüphane aynı kütüphanedir, yalnız yamalı sürümüdür;
-   çağrı yerlerinin hiçbiri değişmedi.
+   Yamalı tarball `web/vendor/` altında DEPODA DURUR ve bağımlılık ona
+   `file:` ile bağlanır. Kütüphane aynı kütüphanedir, yalnız yamalı
+   sürümüdür; çağrı yerlerinin hiçbiri değişmedi.
+
+   Depoya konmasının sebebi kurumsal ağdır: `cdn.sheetjs.com`a çıkışı
+   olmayan (Nexus/Artifactory arkasındaki) bir koşucuda uzak tarball
+   kurulamaz. Depodaki dosya her yerde kurulur, IT'den izin istemez.
 
    ── Bu testin VAR OLMA SEBEBİ ─────────────────────────────────────────
-   Bedeli şudur: bir tarball URL'i kayıt defterinde durmadığı için
-   `npm audit` o paket hakkında ARTIK HİÇBİR ŞEY BİLMEZ. Uyarı kayboldu
-   — ama gelecekteki uyarılar da kaybolacak. Kaybolan sinyalin yerine
-   bu nöbetçi geçer:
+   Bedeli şudur: paket kayıt defterinde durmadığı için `npm audit` onun
+   hakkında ARTIK HİÇBİR ŞEY BİLMEZ. Uyarı kayboldu — ama gelecekteki
+   uyarılar da kaybolacak. Kaybolan sinyalin yerine bu nöbetçi geçer:
 
      1. Bağımlılık npm'in yamasız 0.18.x'ine GERİ DÜŞMESİN (birinin
         "audit temiz olsun" diye `npm install xlsx` yazması yeter).
-     2. Kurulu sürüm iki açığın da kapandığı tabanın altına inmesin.
-     3. Kilit dosyası bir bütünlük özeti tutsun — tarball URL'i kayıt
-        defterinin imza zincirinin dışındadır, tedarik zinciri
-        bütünlüğünü artık YALNIZ bu özet taşır.
+     2. Sürüm iki açığın da kapandığı tabanın altına inmesin.
+     3. Depodaki ikili DEĞİŞMESİN. Kayıt defterinin imza zincirinin
+        dışındayız; tedarik zinciri bütünlüğünü artık yalnız kilit
+        dosyasındaki özet taşıyor. Bu test o özeti dosyanın kendisinden
+        yeniden hesaplar — yani "kilitte yazan" ile "diskte duran"
+        birbirini doğrular. Biri sessizce takas edilirse burada patlar.
 
    Sürüm yükseltilirken TABAN da yükseltilir; düşürülürken bu test
    düşmeyi görür ve gerekçe yazmaya zorlar.
@@ -57,18 +63,23 @@ function enAz(a: readonly number[], b: readonly number[]): boolean {
   return true;
 }
 
-describe('xlsx — SheetJS kendi dağıtımına bağlı kalır', () => {
-  it('bağımlılık npm kayıt defterine değil SheetJS dağıtımına işaret eder', () => {
-    const spec: string = paket.dependencies.xlsx;
-    expect(spec, 'npm sürümü yamasızdır; bağımlılık cdn.sheetjs.com tarball\'ı olmalı')
-      .toMatch(/^https:\/\/cdn\.sheetjs\.com\/xlsx-\d+\.\d+\.\d+\/xlsx-\d+\.\d+\.\d+\.tgz$/);
+const SPEC: string = paket.dependencies.xlsx;
+
+describe('xlsx — depodaki yamalı tarball', () => {
+  it('bağımlılık npm kayıt defterine değil DEPODAKİ dosyaya bağlıdır', () => {
+    expect(SPEC, 'npm sürümü yamasızdır; bağımlılık `file:vendor/…` olmalı')
+      .toMatch(/^file:vendor\/xlsx-\d+\.\d+\.\d+\.tgz$/);
   });
 
-  it('bağımlılıkta yazan sürüm yamalı tabanın üstündedir', () => {
-    const spec: string = paket.dependencies.xlsx;
-    const m = /xlsx-(\d+\.\d+\.\d+)\.tgz$/.exec(spec);
+  it('dosya adındaki sürüm yamalı tabanın üstündedir', () => {
+    const m = /xlsx-(\d+\.\d+\.\d+)\.tgz$/.exec(SPEC);
     expect(m, 'tarball adından sürüm okunamadı').not.toBeNull();
     expect(enAz(surumParcala(m![1]), TABAN), `${m![1]} < ${TABAN.join('.')}`).toBe(true);
+  });
+
+  it('tarball gerçekten depoda durur', () => {
+    const yol = path.join(KOK, SPEC.replace(/^file:/, ''));
+    expect(existsSync(yol), `depoda yok: ${SPEC}`).toBe(true);
   });
 
   it('KURULU sürüm de tabanın üstündedir', () => {
@@ -80,12 +91,18 @@ describe('xlsx — SheetJS kendi dağıtımına bağlı kalır', () => {
     expect(enAz(surumParcala(kurulu), TABAN), `kurulu ${kurulu} < ${TABAN.join('.')}`).toBe(true);
   });
 
-  it('kilit dosyası bütünlük özeti taşır', () => {
-    // Kayıt defterinin imza zinciri dışında olduğumuz için tedarik
-    // zinciri bütünlüğünü artık yalnız bu özet taşıyor.
+  it('depodaki ikilinin ÖZETİ kilit dosyasındakiyle birebir aynıdır', () => {
+    /* Zincirin son halkası. Kilitteki özet, tarball SheetJS'in kendi
+       dağıtımından indirilirken npm tarafından hesaplandı; buradaki özet
+       depodaki dosyadan yeniden hesaplanıyor. İkisi tutuyorsa depodaki
+       dosya, üreticinin yayımladığı dosyanın aynısıdır. */
     const giris = kilit.packages?.['node_modules/xlsx'];
     expect(giris, 'kilit dosyasında xlsx girdisi yok').toBeTruthy();
-    expect(giris.resolved).toContain('cdn.sheetjs.com');
-    expect(giris.integrity, 'tarball için bütünlük özeti yok').toMatch(/^sha(256|512)-/);
+    expect(giris.resolved).toBe(SPEC.replace(/^file:/, 'file:'));
+    expect(giris.integrity, 'kilit dosyasında bütünlük özeti yok').toMatch(/^sha512-/);
+
+    const bayt = readFileSync(path.join(KOK, SPEC.replace(/^file:/, '')));
+    const ozet = `sha512-${createHash('sha512').update(bayt).digest('base64')}`;
+    expect(ozet, 'depodaki tarball kilitte yazan dosya DEĞİL').toBe(giris.integrity);
   });
 });

@@ -56,18 +56,25 @@ olurdu.
 
 **Bu kararın iki bedeli vardır ve ikisi de gerçektir:**
 
-· **`npm audit` bu paketi artık göremiyor.** Tarball URL'i kayıt
-  defterinde durmadığı için uyarı kayboldu — ama gelecekteki uyarılar da
-  kaybolacak. Yerine `tests/bagimlilik-guvenligi.test.ts` nöbetçisi
-  geçti: bağımlılığın npm'in yamasız 0.18.x'ine geri düşmediğini, kurulu
-  sürümün 0.20.2 tabanının üstünde olduğunu ve kilit dosyasının bir
-  bütünlük özeti (`sha512-…`) taşıdığını her koşuda ölçüyor. Kayıt
-  defterinin imza zinciri dışında olduğumuz için tedarik zinciri
-  bütünlüğünü artık yalnız o özet taşıyor.
-· **Kurumsal registry.** `package.json` doğrudan `cdn.sheetjs.com`'a
-  işaret ediyor. npm'i Nexus/Artifactory üzerinden proxy'leyen kilitli
-  bir CI'da bu kurulum başarısız olur; çözümü tarball'ı iç registry'ye
-  aynalamaktır. **Bu adım IT tarafına aittir ve henüz yapılmadı.**
+· **`npm audit` bu paketi artık göremiyor.** Paket kayıt defterinde
+  durmadığı için uyarı kayboldu — ama gelecekteki uyarılar da kaybolacak.
+  Yerine `tests/bagimlilik-guvenligi.test.ts` nöbetçisi geçti:
+  bağımlılığın npm'in yamasız 0.18.x'ine geri düşmediğini, sürümün 0.20.2
+  tabanının üstünde olduğunu, tarball'ın gerçekten depoda durduğunu ve
+  **diskteki dosyanın özetinin kilit dosyasındakiyle birebir aynı**
+  olduğunu her koşuda ölçüyor. O özet, dosya henüz cdn.sheetjs.com'dan
+  inerken npm tarafından yazıldı; depodaki kopya sonradan konuldu ve aynı
+  çıktı — zincir kanıtlı. Dosya sessizce takas edilirse test patlar.
+· **Sürüm yükseltmesi elle yapılır.** Depodaki dosyayı npm tazelemez;
+  yeni sürüm gelince tarball indirilip `vendor/` içindeki değiştirilir ve
+  nöbetçideki `TABAN` sabiti yükseltilir. Yordam `web/vendor/BENIOKU.md`
+  içinde yazılıdır.
+
+**Kurumsal registry sorunu YOKTUR.** Tarball bir süre doğrudan
+`cdn.sheetjs.com`a bağlıydı; bu, npm'i Nexus/Artifactory üzerinden
+proxy'leyen kısıtlı bir koşucuda kurulumu kırardı. Dosya depoya alınınca
+o bağımlılık tamamen kalktı: kurulum hiçbir dış adrese çıkmıyor, IT'den
+izin gerekmiyor.
 
 **Ayrıştırma dalı artık testli.** Bu göçten önce iki okuyucunun da
 `.xlsx` dalı tamamen kapsamsızdı — `varlik-aktarim` testleri yalnız CSV

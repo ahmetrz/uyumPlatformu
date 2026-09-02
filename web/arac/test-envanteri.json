@@ -1,7 +1,7 @@
 {
-  "imza": "d9c881198ac1abb3defe9411bc34e07c",
+  "imza": "11987c59e153e0d5cb839c0454ca4911",
   "dosya": 70,
-  "vaka": 1283,
+  "vaka": 1284,
   "atlanan": 1,
   "dosyalar": {
     "tests/api.test.ts": {
@@ -13,7 +13,7 @@
       "atlanan": 0
     },
     "tests/bagimlilik-guvenligi.test.ts": {
-      "vaka": 4,
+      "vaka": 5,
       "atlanan": 0
     },
     "tests/belge-sayimlari.test.ts": {

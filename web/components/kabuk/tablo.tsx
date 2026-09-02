@@ -67,6 +67,20 @@ function Baslik({ ad, anahtar, sag, ikincil, sirala }: {
   );
 }
 
+/** Sabit uzunluğu daralabilir yapar. Zaten `minmax`/`fr` içeren genişlik
+    OLDUĞU GİBİ kalır: `minmax(0, minmax(…))` geçersiz CSS'tir ve tarayıcı
+    o şablonun tamamını yok sayar — kütük ızgarası tümden dağılır. */
+function daralt(genislik: string): string {
+  const g = genislik.trim();
+  if (g.includes('auto')) return g;
+  /* `minmax(150px, 0.82fr)` gibi bir tanımın TABANI dar bantta da 150px
+     kalırsa kolon daralmaz ve ızgara kapsayıcıyı aşar; tabanı sıfırlarız,
+     üst sınır (esneme payı) olduğu gibi durur. */
+  if (g.startsWith('minmax(')) return g.replace(/^minmax\(\s*[\d.]+(px|rem|em)\s*,/, 'minmax(0,');
+  if (g.includes('fr')) return g;
+  return `minmax(0, ${g})`;
+}
+
 export function Tablo({
   kolonlar, satirlar, secili, sec, sik = false, kuyruk, dipNot,
   konuBasligi = 'Konu', sirala,
@@ -82,8 +96,14 @@ export function Tablo({
   sirala?: Sirala;
 }) {
   const sablon = ['18px', 'minmax(0, 1fr)', ...kolonlar.map((k) => k.genislik)].join(' ');
-  const darSablon = ['18px', 'minmax(0, 1fr)',
-    ...kolonlar.filter((k) => !k.ikincil).map((k) => k.genislik)].join(' ');
+  /* Dar bantta sabit genişlikler DARALABİLİR olmalı (`minmax(0, X)`).
+     Sabit kalırlarsa toplamları kapsayıcıyı aşar, `1fr` olan konu sütunu
+     sıfıra ezilir ve başlık harf harf alt alta kırılır — 375px'te
+     ölçüldü: dört kolonlu bir kütükte satır 600px yüksekliğe çıkıyordu.
+     Konu sütununun tabanı da burada verilir; taban olmadan aynı ezilme
+     bir sonraki geniş kolonda yeniden olur. */
+  const darSablon = ['18px', 'minmax(96px, 1fr)',
+    ...kolonlar.filter((k) => !k.ikincil).map((k) => daralt(k.genislik))].join(' ');
   const stil = { '--kolon': sablon, '--kolon-dar': darSablon } as CSSProperties;
   const basliklarVar = kolonlar.some((k) => k.baslik);
 

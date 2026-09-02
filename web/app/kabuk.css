@@ -2752,7 +2752,15 @@ textarea.ab-gr { min-height: 76px; resize: vertical; }
   .ab-b-portfoy-govde .plaka .ad { font-size: 22px; }
   .ab-c-kunye { padding: 20px 20px 12px; }
   .ab-c-kunye .marka { font-size: 20px; }
-  .ab-c-kunye .sag { flex-wrap: wrap; row-gap: 6px; }
+  /* `flex: none` künyenin sağ bloğunu 375px'te 628px genişlikte tutuyor
+     ve sayfa yatay kayıyordu (ölçüldü: /bulgular'da 273px taşma). Dar
+     bantta blok tam satıra iner ve İÇİ de sarar; `min-width: 0` olmadan
+     flex öğesi min-content'in altına inmez ve sarma işe yaramaz. */
+  .ab-c-kunye .sag {
+    flex: 1 1 100%; min-width: 0;
+    display: flex; flex-wrap: wrap; row-gap: 6px; justify-content: flex-start;
+  }
+  .ab-c-kunye .sag > nav { flex-wrap: wrap; row-gap: 6px; min-width: 0; }
   .ab-c-nav { padding-left: 20px; padding-right: 20px; }
   /* Öncelik şeridi alt alta; portföy endeksi ve süzgeç şeridi daralır;
      ısı haritası hücreleri küçülür ama eşik sözcüğü kalır. */

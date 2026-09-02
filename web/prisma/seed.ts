@@ -12,6 +12,7 @@ import { kanitVerisi } from './seed-kanit';
 import { dokumanKutugu } from './seed-dokuman';
 import { entegrasyonVerisi } from './seed-entegrasyon';
 import { operasyonKayitlari } from './seed-operasyon-kayitlari';
+import { dolulukKatmani } from './seed-doluluk';
 
 const parolaUret = (parola: string) => {
   const tuz = randomBytes(16).toString('hex');
@@ -752,6 +753,10 @@ async function main() {
   /* Operasyonel kayıtlar EN SONDA: değişiklik, olay ve istisna kayıtları
      tesis, varlık, madde ve kullanıcı verisine dayanıyor. */
   await operasyonKayitlari(db);
+  /* Doluluk katmanı EN SONDA: kodun okuduğu ama seed'in yazmadığı
+     tabloları (köken, keşif, red kuyruğu, olay etki zinciri, API kütüğü…)
+     var olan kayıtlardan türetir, o yüzden hepsinden sonra gelir. */
+  await dolulukKatmani(db);
 
   console.log('Seed tamam. Geliştirme girişi: ahmet.terzi@zorlu.com / ' + GELISTIRME_PAROLASI);
 }

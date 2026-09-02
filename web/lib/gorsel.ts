@@ -45,8 +45,6 @@ const HERO: Record<string, string> = {
     görseli dolgu amacıyla ASLA kullanılmaz. */
 const KUCUK = new Set(Object.keys(HERO));
 
-export const NOTR_TRIPTIK = `${TEMEL}/santraller/notr-triptik.webp`;
-
 /** Hero/plaka fotoğrafı — yoksa null (çağıran tipografik fallback render eder). */
 export function heroGorseli(anahtar: string | null | undefined): string | null {
   if (!anahtar) return null;

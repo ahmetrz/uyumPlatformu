@@ -482,16 +482,37 @@
   border-bottom: 1px solid var(--hr);
   display: grid; grid-template-columns: 400px minmax(0, 1fr) 300px;
 }
-.ab-b-alan > img {
-  position: absolute; inset: 0; width: 100%; height: 100%;
-  object-fit: cover; opacity: .5; filter: grayscale(.7) contrast(1.15);
+/* Fon katmanı: 5 görsellik havuz (`lib/sahaArkaPlan.ts`). Kap `inset: 0`
+   ile alanı doldurur; görselin en-boyu ne olursa olsun alan geometrisi
+   değişmez (`object-fit: cover`, odak `object-position` ile görsel
+   başına). Dekoratif: işaretçi almaz, okuyucuya sunulmaz. Üst görsel
+   yalnız opaklıkla gelir — konum/boyut değişmez, yerleşim kaymaz. */
+.ab-b-fon { position: absolute; inset: 0; pointer-events: none; overflow: hidden; background: var(--zemin); }
+.ab-b-fon > img {
+  position: absolute; inset: 0; width: 100%; height: 100%; display: block;
+  object-fit: cover; object-position: center;
+  /* Sinematik ama veri önde: doygunluk kısılır, gri değil; kontrast hafif. */
+  filter: saturate(.72) contrast(1.08) brightness(.92);
 }
+.ab-b-fon > img.ust { opacity: 0; transition: opacity 400ms ease; }
+.ab-b-fon > img.ust.hazir { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .ab-b-fon > img.ust { transition: none; } }
+/* Karanlık/kontrast katmanı — görselden AYRI, veriden ÖNCE. Üç parça:
+   1) yatay: sol panel zemine oturur, merkez açılır, sağ panel yarı örtülür;
+   2) dikey vinyet: üst başlık ve alt eksen etiketleri zemine yaklaşır;
+   3) genel perde: görselin tamamı %38 zeminle yumuşar (fazla karartma yok). */
 .ab-b-alan > .perde {
   position: absolute; inset: 0; pointer-events: none;
-  background: linear-gradient(90deg,
-    var(--zemin) 0%, color-mix(in srgb, var(--zemin) 94%, transparent) 26%,
-    color-mix(in srgb, var(--zemin) 35%, transparent) 52%,
-    color-mix(in srgb, var(--zemin) 80%, transparent) 100%);
+  background:
+    linear-gradient(90deg,
+      var(--zemin) 0%, color-mix(in srgb, var(--zemin) 92%, transparent) 27%,
+      color-mix(in srgb, var(--zemin) 22%, transparent) 50%,
+      color-mix(in srgb, var(--zemin) 30%, transparent) 72%,
+      color-mix(in srgb, var(--zemin) 78%, transparent) 100%),
+    linear-gradient(180deg,
+      color-mix(in srgb, var(--zemin) 55%, transparent) 0%, transparent 28%,
+      transparent 68%, color-mix(in srgb, var(--zemin) 62%, transparent) 100%),
+    color-mix(in srgb, var(--zemin) 38%, transparent);
 }
 .ab-b-alan > aside, .ab-b-alan > .ab-b-takim { position: relative; z-index: 1; min-width: 0; }
 
@@ -1712,12 +1733,10 @@
    yerde komşu hedeflerin aralığı bundan geniştir, `.ab-dok-liste`de tam
    24px adımla teğettir. Genişlik zaten 24px'in üstünde olan yerlerde
    kullanılır; daha darına `min-width` da gerekir. */
-.ab-genis-hedef,
 .ab-alt nav a,
 .ab-dok-liste .kod,
 .ab-yardim-tablo tbody th a,
 .ab-matris .bas > .kolonbas a { position: relative; }
-.ab-genis-hedef::after,
 .ab-alt nav a::after,
 .ab-dok-liste .kod::after,
 .ab-yardim-tablo tbody th a::after,
@@ -1727,7 +1746,7 @@
   height: 24px; min-height: 100%; min-width: 24px;
 }
 /* ═══ VeriTablosu — semantik kütük (`components/kabuk/tablo.tsx`) ═════
-   Eski `.ab-tablo` ızgarasının yerini aldı (Faz 3); gerçek `<table>` ağacı. Kaydırma
+   Eski div ızgarası tablonun yerini aldı (Faz 3); gerçek `<table>` ağacı. Kaydırma
    kabı `.ab-vt-sar`: başlık üstte, kod sütunu solda YAPIŞKAN. Yapışkan
    hücre zemini kabuk zeminidir; saydam kalsa altındaki satır metni
    başlığın içinden görünürdü. */

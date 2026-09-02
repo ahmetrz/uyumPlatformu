@@ -1,7 +1,8 @@
 'use client';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
-import { NOTR_TRIPTIK, kucukGorsel } from '@/lib/gorsel';
+import { kucukGorsel } from '@/lib/gorsel';
+import { SahaArkaPlani } from './SahaArkaPlani';
 import { tipAdi, tipRengi, uygunRengi } from '@/components/kabuk/tip';
 import type {
   AkisHaftasi, RiskIzgarasi, SantralKarti, TakvimKalemi, TipKatmani,
@@ -122,8 +123,9 @@ export default function Genel({
       <h1 className="ab-gizli-okuma">Saha · grup durumu ve öncelikler</h1>
       {/* ═══ Fotoğrafik alan ═══════════════════════════════════════════ */}
       <section className="ab-b-alan">
-        {/* eslint-disable-next-line @next/next/no-img-element -- statik dışa aktarım */}
-        <img src={NOTR_TRIPTIK} alt="" aria-hidden decoding="async" fetchPriority="high" />
+        {/* Fon: 5 görsellik havuz, oturum içinde sırayla döner; dekoratif,
+            işaretçi almaz. Karanlık/kontrast katmanı `.perde` ayrı durur. */}
+        <SahaArkaPlani />
         <span className="perde" aria-hidden />
 
         {/* ── Dikkat paneli · 430px ─────────────────────────────────── */}
@@ -581,7 +583,7 @@ function SahaKarti({ s }: { s: SantralKarti }) {
   return (
     <Link href={`/tesisler/${s.id}`} className={`kart${uygunsuz > 0 ? ' uyari' : ''}`}>
       {/* Şerit hero'nun altındadır; kartlar ilk boyamayı beklemesin diye
-          tembel yüklenir. Hero (`ab-b-alan`) `fetchPriority="high"` ile kalır. */}
+          tembel yüklenir. Hero fonu (`SahaArkaPlani`) `fetchPriority="high"` ile kalır. */}
       {foto
         // eslint-disable-next-line @next/next/no-img-element -- statik dışa aktarım
         ? <img src={foto} alt="" aria-hidden loading="lazy" decoding="async" />

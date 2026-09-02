@@ -102,7 +102,7 @@ typography:
     letterSpacing: "0.18em"
   label:
     fontFamily: "var(--veri)"
-    fontSize: "9.5px"
+    fontSize: "10px"
     fontWeight: 400
     letterSpacing: "0.14em"
 rounded:
@@ -270,10 +270,10 @@ ve mono ailesi değişir, kademe değişmez.
 - **Body** (400, 12.5px, 1.6): hücre, form, düzyazı `--t-cell / --t-body / --t-field`; tablo konusu 13.5px; çekmece cümlesi 12.5px. Düzyazı en fazla bir cümle, 560–620px.
 - **Metric** (mono, 19px, tabular; C'de görüntü ailesi 24px): ölçüt satırı değeri; payda 12px `--i3`.
 - **Colhead** (mono, 11px, `.18em`, büyük harf): kolon başlığı `.kolonbas` — 11px zemini buradadır.
-- **Label** (mono, 9.5px, `.14em`, büyük harf): etiket `.etiket`, kod, köken işareti. Yalnız veri kademesi; gezinme ve başlık etiketi bu boya inmez.
+- **Label** (mono, 10px, `.14em`, büyük harf): YAPISAL KAŞ etiketi `.etiket` — bölüm adı, kolon kaşı; kendi başına bilgi taşımaz. Veri, sayı ve olgu bu kademeye inmez, 11px `--t-code`ta durur.
 
 ### Named Rules
-**The 11px Tabanı Rule.** Prototip kolon başlığını 8.5px, ray etiketini 7.5px çiziyordu; üründe işlevsel metin 11px'in altına inmez (ray sütunu bu yüzden 60px'ten 76px'e çıktı). 9.5–10px yalnız mono veri etiketi ve kod içindir.
+**The İki Taban Rule.** Prototip kolon başlığını 8.5px, ray etiketini 7.5px çiziyordu. Üründe İKİ taban vardır ve ikisi ayrı iş yapar: İÇERİK taşıyan her şey — eylem (düğme), sayı, olgu, ölçüm — en az **11px** (`--t-code`); yalnız yapısal KAŞ etiketi **10px**'e (`--t-label`) inebilir. Ölçüldü (2026-09-02): tek kademedeyken `Çıkış` düğmesi 10px, risk matrisinin hücre sayıları ve portföy künyeleri 9px kalıyordu — hiçbiri dekoratif değil. 9px ve altı üründe yoktur.
 
 **The Sayı Mono Rule.** Her sayı `--veri` ailesinde ve `tabular-nums` ile yazılır (`.mono`, `.num`); sağa hizalanır. Serif ya da UI ailesinde sayı yalnız C'nin endeks ölçütünde (oran, adet değil).
 
@@ -288,7 +288,7 @@ alan dizisi yatay kayar). Mobil hedef değildir.
 - **C · defter**: künye (`padding: 28px 56px 16px`, Newsreader 26px marka + mono alan dizisi) → 2px mürekkep kuralı → 15px serif sekmeler → 1px kural → gövde `212px + 1fr`, 44px aralık, `36px 56px 64px` dolgu. Sol dizin içindekiler tablosu ve okuma anahtarıdır; kendi dizinini veren ekran (`data-dizin="ekran"`) varsayılanı düşürür.
 - **Ölçek**: boşluk `--s2 … --s44` (2·3·4·6·8·9·10·12·14·16·18·20·22·24·26·28·30·32·34·36·40·44px); kolon aralığı 16px; operasyonel oluk 24px; bölüm üst dolgu 22px, alt 40px; çekmece 400px.
 - **Tablo**: satır dolgusu 10px (`.sik` kipinde 7px — tipografi değil dolgu daralır); 1366px altında `ikincil` kolon düşer (`--kolon-dar`), başlık ve satır aynı şablonu kullanır (`arac/kolon-hizasi.mjs` ölçer).
-- **Detay**: A sağ çekmece 400px (kalıcı), B alt levha, C satır içi genişleme (defteri terk etmeden; dört sütun: neden · kanıt · yönetişim zinciri · sorumluluk).
+- **Detay**: A sağ çekmece 400px (kalıcı), B alt levha, C satır içi genişleme (defteri terk etmeden; beş sütun: neden · kanıt · **karşılayan belge** · yönetişim zinciri · sorumluluk). Sütun sayısı bantla 5 → 3 → 1'e iner.
 - **Yazdırma**: koyu kabuk kâğıda gitmez — beyaz zemin, siyah mürekkep, ray/sekme/künye düşer.
 
 ## Elevation & Depth
@@ -308,10 +308,10 @@ Köşe yarıçapı her yerde `0` (`.ab, .ab *, ::before, ::after`). Tek istisna
 `.daire` (`50%`): durum daireleri ve avatar — yarıçap süs değil şekil
 kodlamasının parçasıdır; dolu daire ile dolu kare farklı şey söyler.
 
-- **Glif ailesi**: A/B 10px kare (dolu = uygun, içi boş = kısmi, dolu kırmızı = uygunsuz, noktalı = değerlendirilmedi, çizgi = kapsam dışı); C 13px daire ailesi (● ○ ⊖ ◌ –). Satırın en kötüsü `scale(1.35)`.
-- **Bilinmeyen**: içi boş / noktalı — asla dolu nokta.
+- **Glif ailesi**: A/B 10px kare (dolu = uygun, içi boş = kısmi, dolu kırmızı = uygunsuz, **45° taralı = değerlendirilmedi**, çizgi = kapsam dışı); C 13px daire ailesi, aynı beş rol. Satırın en kötüsü `scale(1.35)`.
+- **Bilinmeyen**: 45° TARAMA — asla dolu nokta, asla noktalı çerçeve. Noktalı çerçeve denenip bırakıldı: 10px kutuda `kısmi`nin düz çerçevesinden bir cihaz pikseliyle ayrılıyordu ve 1× ölçekte ayırt edilemiyordu, yani "bilinmeyen görünür kalır" ilkesi tam da bilinmeyeni gösteren işarette çöküyordu. Tarama ödünç değil: yığın çubuğunun `bilinmeyen` dilimi de aynı deseni taşır.
 - **Kenar**: 1px `--bw-hair`, 2px `--bw-edge` (seçili satırın sol kenarı, aşama şeridinin 3px alt çizgisi).
-- **Pill, hap, rozet yok**: köken işareti bile zemin/kenarlık taşımaz; 9.5px mono etiket + kaynak adı.
+- **Pill, hap, rozet yok**: köken işareti bile zemin/kenarlık taşımaz; 10px mono kaş etiketi + kaynak adı.
 
 ## Components
 
@@ -339,7 +339,7 @@ sınıfları (`.etiket .deger .cumle .mono .eylem .kod .konu .alt .sag`).
 - **Kart-içinde-kart yok**; internal dolgu 22px 24px.
 
 ### Inputs / Fields (`Alan`, `.ab-alan`, `.ab-gr`)
-- **Style:** panel zemin, 1px `--hr2` kenar, 12.5px UI ailesi, `6px 8px`; etiket 9.5px mono üstte; zorunlu alan mono etiketle işaretlenir.
+- **Style:** panel zemin, 1px `--hr2` kenar, 12.5px UI ailesi, `6px 8px`; etiket 10px mono üstte; zorunlu alan mono etiketle işaretlenir.
 - **Focus:** aksan odak halkası (global kural).
 - **Error:** `.hata` 11px `--bd` tek satır, `aria-invalid`; snackbar ve toast yok.
 
@@ -356,7 +356,7 @@ sınıfları (`.etiket .deger .cumle .mono .eylem .kod .konu .alt .sag`).
 - **Genişleyen satır**: `<details>`; aynı anda tek aile açık.
 
 ### Drawer (`Cekmece*`, `.ab-panel`)
-400px sabit sağ panel; 42px başlık (kod + kapat), kimlik bloğu (glif + durum SÖZÜ 9.5px büyük harf — sözcük yalnız burada), alan çiftleri (`dl`), zincir bağlantıları, eylem bloğu + dip not. Esc kapatır, odak panele iner.
+400px sabit sağ panel; 42px başlık (kod + kapat), kimlik bloğu (glif + durum SÖZÜ 10px büyük harf — sözcük yalnız burada), alan çiftleri (`dl`), zincir bağlantıları, eylem bloğu + dip not. Esc kapatır, odak panele iner.
 
 ### Signature: durum işaretçisi ve göstergeler
 - **`Im`** — `Durum` kümesi `ok · md · bd · pl · unk · tamam`; sözcükleri `DURUM_SOZU` (uyumlu · kısmi · uyumsuz · planlı · değerlendirilmedi · kapanmış). Kütük satırında sözcük yazılmaz, işaretçi taşır.

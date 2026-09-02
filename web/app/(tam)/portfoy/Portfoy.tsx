@@ -161,8 +161,10 @@ export default function Portfoy({ satirlar, toplamGucMw, endeks, kapsamli = fals
                 <Olgu ad="Açık risk" deger={String(secili.acikRisk)}
                   vurgu={secili.acikRisk > 0} />
               </dl>
+              {/* Bağ KENDİ HEDEFİNİ adlandırır: "santral dosyasını aç"
+                  hangi santral olduğunu söylemiyordu. */}
               <Link href={`/tesisler/${secili.id}`} className="ab-dugme tam">
-                Santral dosyasını aç →
+                {secili.ad} dosyasını aç →
               </Link>
             </>
           ) : satirlar.length === 0 && kapsamli ? (
@@ -202,7 +204,13 @@ export default function Portfoy({ satirlar, toplamGucMw, endeks, kapsamli = fals
               <Link key={s.id} href={`/tesisler/${s.id}`}
                 className={`plaka${s.id === secili?.id ? ' secili' : ''}${enZayifMi ? ' ab-portfoy-zayif' : ''}`}
                 style={{ borderLeftColor: renk }}
-                onMouseEnter={() => setSeciliId(s.id)}
+                /* İMLEÇLE SEÇİM YOK — bilinçli. Seçim sol paneli ve oradaki
+                   birincil bağın hedefini belirliyor; imleç panele giderken
+                   aradaki plakaların üzerinden geçtiği için hedef tek tık
+                   olmadan değişiyordu (ölçüldü: Kızıldere III → Sarıtepe RES).
+                   Klavye odağı kalır: orada odak görünür ve kullanıcı nereye
+                   gittiğini bilir. Plakanın kendisi zaten santral dosyasına
+                   giden bağdır; keşif oradan yürür. */
                 onFocus={() => setSeciliId(s.id)}>
                 {foto ? (
                   // eslint-disable-next-line @next/next/no-img-element -- statik dışa aktarım

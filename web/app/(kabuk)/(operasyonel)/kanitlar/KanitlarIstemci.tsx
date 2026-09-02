@@ -351,8 +351,14 @@ function Kapsam({ etiket, secenekler, aktif, sec }: {
 
 const Bos = () => <span style={{ color: 'var(--i3)' }}>—</span>;
 
+/* `display: block` ŞART: `overflow: hidden` ve `text-overflow` satır içi
+   (inline) bir kutuda yok sayılır. Bu stil bazen flex bir ebeveynin
+   (`SATIR_ICI`) çocuğu, bazen doğrudan ızgara hücresinin çocuğu oluyor;
+   ikinci durumda kutu inline kalıyor, kırpma hiç çalışmıyor ve hücre
+   içeriği kadar uzuyordu — /kanitlar 1440px'te 548px'lik bir hücreyle
+   sayfayı 108px yatay kaydırıyordu. */
 const KIRP = {
-  minWidth: 0, flex: '1 1 auto',
+  display: 'block', minWidth: 0, flex: '1 1 auto',
   overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
 } as const;
 

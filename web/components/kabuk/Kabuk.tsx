@@ -161,10 +161,12 @@ function KabukA({ veri, patika, children }: {
           <span className="deg mono">{damga(veri.kesit)}</span>
         </div>
         <div className="grup esnek" />
-        <div className="grup">
+        {/* `korunan`: bu iki blok hiçbir genişlikte daralmaz ya da düşmez —
+            arama ve oturum eylemleri her zaman erişilebilir kalır. */}
+        <div className="grup korunan">
           <AramaDugmesi />
         </div>
-        <div className="grup" style={{ borderRight: 0 }}>
+        <div className="grup korunan" style={{ borderRight: 0 }}>
           {veri.kullanici && (
             <>
               <span className="deg">{veri.kullanici.ad}</span>

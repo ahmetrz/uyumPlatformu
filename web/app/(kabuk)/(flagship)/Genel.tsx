@@ -382,10 +382,20 @@ function Takimyildizi({ santraller }: { santraller: SantralKarti[] }) {
     && Math.abs((o.endeks ?? 0) - (s.endeks ?? 0)) < 20
     && Math.abs(dikey(o) - dikey(s)) < 11
   )));
+  /* Eksene yakın işaretin künyesi YUKARI açılır: "Zorlu Center" (0 MW)
+     künyesi x ekseninin adıyla üst üste biniyordu (ölçüldü, 1366×768).
+     Eşik %14 = künye yüksekliği (28px) / tuval yüksekliği (~300px) payı. */
+  const yukari = (s: SantralKarti) => dikey(s) < 14;
 
   return (
     <div className="ab-b-takim" aria-label="Santral takımyıldızı">
-      <p className="etiket ust">Santraller · uyum endeksi × kurulu güç</p>
+      {/* Okuma anahtarı başlığın içinde, tek satır: eksen adları tek başına
+          "ne iyi" sorusunu yanıtlamıyordu (ürün sahibi kabulü 2026-09,
+          madde 5). Yeni modül değil, başlığın kuyruğu. */}
+      <p className="etiket ust">
+        Santraller · uyum endeksi × kurulu güç
+        <span className="okuma">sağa → daha uyumlu · yukarı ↑ daha büyük güç</span>
+      </p>
       {santraller.length === 0 ? (
         <p className="bos">Kapsamda santral yok.</p>
       ) : (
@@ -420,8 +430,14 @@ function Takimyildizi({ santraller }: { santraller: SantralKarti[] }) {
               const uygunsuz = s.sayim.uyumsuz ?? 0;
               return (
                 <Link key={s.id} href={`/tesisler/${s.id}`}
+                  /* Odak sırası: uygunsuzu olan santral öne (`oncelik`, tam
+                     mürekkep + halka), temiz olan arkaya (ikincil mürekkep).
+                     Künye yönü: %58'in sağında sola, komşusu varsa alta,
+                     eksene yakınsa üste; `sola-dar` dar bantta erken sola
+                     (kabuk.css, medya). */
                   className={`isaret${x > 58 ? ' sola' : ''}${x > 40 ? ' sola-dar' : ''}${
-                    kaydir[i] ? ' kunye-asagi' : ''}`}
+                    uygunsuz > 0 ? ' oncelik' : ''}${
+                    yukari(s) ? ' kunye-yukari' : kaydir[i] ? ' kunye-asagi' : ''}`}
                   style={{ left: `${4 + x * 0.86}%`, bottom: `${dikey(s)}%` }}>
                   {uygunsuz > 0 && <span className="halka" aria-hidden />}
                   <span className="kare" aria-hidden
@@ -438,8 +454,14 @@ function Takimyildizi({ santraller }: { santraller: SantralKarti[] }) {
             })}
             <span className="eksen x" aria-hidden />
             <span className="eksen y" aria-hidden />
+            {/* Eksen adı ORTADA, uçlarda %0 / %100 çentikleri: eksenin
+                ne ölçtüğü ilk bakışta; sağ üst köşe hedef bölgeyi adlandırır.
+                Hepsi mevcut tuvalin içinde, yükseklik bütçesi değişmez. */}
+            <span className="mono centik c0" aria-hidden>%0</span>
+            <span className="mono centik c100" aria-hidden>%100</span>
             <span className="mono eksenad x">uyum endeksi →</span>
             <span className="mono eksenad y">↑ kurulu güç</span>
+            <span className="mono hedef" aria-hidden>↗ güçlü ve uyumlu</span>
           </div>
         </div>
       )}

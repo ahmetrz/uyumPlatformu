@@ -2,12 +2,12 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
-import CikisDugmesi from '@/components/CikisDugmesi';
+import HesapMenusu from '@/components/kabuk/HesapMenusu';
 import AramaDugmesi from '@/components/AramaDugmesi';
 import KomutPaleti from '@/components/KomutPaleti';
 import YardimKatmani from '@/components/YardimKatmani';
 import {
-  ALANLAR, UST_BAGLAR, aktifMi, alanAktif, ikincilSec, sayacEtiketi, sayacMetni,
+  ALANLAR, aktifMi, alanAktif, ikincilSec, ogeAktif, sayacEtiketi, sayacMetni, ucunculSec,
   yogunlukSec,
 } from './yonler';
 
@@ -19,14 +19,17 @@ import {
    (52 / 56 / 207px). Onaylanan yön: Saha'nın dili master, tek kabuk.
 
    Dikey yapı (yukarıdan aşağıya, hepsi kabuğun malı):
-     56px  `.ab-ust`     marka · beş alan · arama · hesap · çıkış
+     56px  `.ab-ust`     marka · beş alan · arama · bildirim · hesap menüsü
      36px  `.ab-ikincil` alanın kendi ekranları (Saha ve yardımcı rotalarda YOK)
+     30px  `.ab-ucuncul` aktif grubun alt ekranları (yalnız Varlık)
      1fr   `#icerik`     ekranın kendi <main>'i
      32px  `.ab-durum`   sistem durumu: veri kesiti · bağlayıcı sayımları
      32px  `.ab-alt`     ayak: ürün · sürüm · yardım · destek · telif
-   Amiral yoğunlukta (Saha, Portföy, Harita, Santral 360) durum ve ayak
-   TEK 28px satırda birleşir: tek ekrana sığma bütçesi (denetim §7) başka
-   türlü tutmuyordu.
+   Amiral yoğunlukta (Saha, Portföy, Harita, Santral 360) iki satır
+   sıkışır (durum 26 + ayak 22) ama BİRLEŞMEZ: ürün sahibi kabulü
+   (2026-09) "footer ≠ sistem durumu" kuralının her ekranda iki ayrı
+   semantik bölge olmasını ister; Saha'nın yükseklik bütçesi 48px'e
+   göre kurulur (`.ab-b-genel`).
 
    Kabuk yoğunluğu ve alanı ROTADAN türetir; ekranlar bir şey geçirmez.
    URL'ler, RBAC ve kapsam DEĞİŞMEZ — bu salt sunum katmanıdır.
@@ -36,7 +39,7 @@ import {
    halkası `:focus-visible`; atla bağı belgenin ilk odaklanabilir öğesi;
    durum satırının sayıları YETKİ kapısından geçer (`veri.ayak`). */
 
-export type KabukKullanicisi = { ad: string; unvan: string | null; demo?: boolean } | null;
+export type KabukKullanicisi = { ad: string; unvan: string | null; demo?: boolean; yonetim?: boolean } | null;
 
 export type KabukVerisi = {
   kullanici: KabukKullanicisi;
@@ -68,6 +71,7 @@ export default function Kabuk({ veri, children }: { veri: KabukVerisi; children:
   const patika = usePathname() ?? '/';
   const yogunluk = yogunlukSec(patika);
   const ikincil = ikincilSec(patika);
+  const ucuncul = ucunculSec(patika);
   return (
     <div className="ab" data-yogunluk={yogunluk}>
       {/* İÇERİĞE ATLA — belgenin İLK odaklanabilir öğesi. Görünmez; klavye
@@ -89,14 +93,8 @@ export default function Kabuk({ veri, children }: { veri: KabukVerisi; children:
         </nav>
         <div className="sag">
           <AramaDugmesi />
-          {veri.kullanici && (
-            <span className="kisi dar-gizle">
-              <span className="ad">{veri.kullanici.ad}</span>
-              {veri.kullanici.unvan && <span className="etiket">{veri.kullanici.unvan}</span>}
-            </span>
-          )}
-          <HesapBaglari veri={veri} patika={patika} />
-          {veri.kullanici && !veri.kullanici.demo && <CikisDugmesi />}
+          {veri.kullanici && <BildirimBagi n={veri.okunmamis} patika={patika} />}
+          {veri.kullanici && <HesapMenusu kullanici={veri.kullanici} patika={patika} />}
         </div>
       </header>
 
@@ -107,7 +105,7 @@ export default function Kabuk({ veri, children }: { veri: KabukVerisi; children:
               {grup.baslik && <span className="etiket" aria-hidden>{grup.baslik}</span>}
               {grup.ogeler.map((o) => (
                 <Link key={o.yol} href={o.yol}
-                  aria-current={aktifMi(o.yol, patika) ? 'true' : undefined}>
+                  aria-current={ogeAktif(o, patika) ? 'true' : undefined}>
                   {o.ad}
                 </Link>
               ))}
@@ -118,6 +116,22 @@ export default function Kabuk({ veri, children }: { veri: KabukVerisi; children:
               {veri.kapsam.grup} · {veri.kapsam.santral} santral
             </span>
           )}
+        </nav>
+      )}
+
+      {/* Üçüncül sıra — aktif grubun alt ekranları (yalnız Varlık'ta var).
+          Grup adı satırın başında durur ki "Keşif" tek başına değil
+          "Envanter › Keşif" olarak okunsun; alt ekranın aktifliği
+          `aria-current="true"` (belgede tek "page" alan sekmesidir). */}
+      {ucuncul && (
+        <nav className="ab-ucuncul" aria-label={`${ucuncul.grup.ad} ekranları`}>
+          <span className="grupad">{ucuncul.grup.ad}</span>
+          {ucuncul.ogeler.map((o) => (
+            <Link key={o.yol} href={o.yol}
+              aria-current={aktifMi(o.yol, patika) ? 'true' : undefined}>
+              {o.ad}
+            </Link>
+          ))}
         </nav>
       )}
 
@@ -148,29 +162,20 @@ function Sayac({ n }: { n: number }) {
   return <span className="ab-sayac mono" aria-hidden>{metin}</span>;
 }
 
-/* ═══ Hesap bağları — Bildirim · Ayarlar · Yardım ═════════════════════
-   Çıkış'ın yanında tek küme. Bildirim bağı sayacı taşır; rayda ikinci
-   bir bildirim öğesi kalmadığı için yinelenme yok. Yalnız oturumla:
-   üç rota da oturum kapılı. Hesap bağları da `aria-current="page"`
-   taşır — belgede tek geçerli sayfa sözleşmesi buraya da uzanır
-   (yardımcı rotalarda alan sekmesi yanmaz, bu bağ yanar). */
-function HesapBaglari({ veri, patika }: { veri: KabukVerisi; patika: string }) {
-  if (!veri.kullanici) return null;
-  const n = veri.okunmamis;
+/* ═══ Bildirim bağı — tek sayaçlı eylem ═══════════════════════════════
+   Eskiden Bildirim · Ayarlar · Yardım · Çıkış dört eş çerçeveli düğmeydi
+   ve birincil gezinmeyle ağırlık yarıştırıyordu (ürün sahibi, 2026-09).
+   Şimdi üst çubukta iki yardımcı eylem kalır: bu bağ (çerçevesiz, yalnız
+   sayaç rozeti dikkat çeker) ve hesap menüsü (Ayarlar · Yardım · Yönetim
+   · Çıkış, `HesapMenusu`). `aria-current="page"` /bildirimler'de burada
+   yanar — belgede tek geçerli sayfa sözleşmesi korunur. */
+function BildirimBagi({ n, patika }: { n: number; patika: string }) {
   return (
-    <nav aria-label="Hesap" className="hesap">
-      <Link href="/bildirimler" className="ab-dugme"
-        aria-current={aktifMi('/bildirimler', patika) ? 'page' : undefined}
-        aria-label={n > 0 ? `Bildirimler — ${sayacEtiketi(n)}` : 'Bildirimler'}>
-        Bildirim<Sayac n={n} />
-      </Link>
-      {UST_BAGLAR.map((o) => (
-        <Link key={o.yol} href={o.yol} className="ab-dugme"
-          aria-current={aktifMi(o.yol, patika) ? 'page' : undefined}>
-          {o.ad}
-        </Link>
-      ))}
-    </nav>
+    <Link href="/bildirimler" className="bildirim"
+      aria-current={aktifMi('/bildirimler', patika) ? 'page' : undefined}
+      aria-label={n > 0 ? `Bildirimler — ${sayacEtiketi(n)}` : 'Bildirimler'}>
+      Bildirim<Sayac n={n} />
+    </Link>
   );
 }
 

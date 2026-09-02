@@ -19,7 +19,10 @@
 
 export type Yogunluk = 'amiral' | 'operasyonel' | 'tezgah';
 
-export type Oge = { ad: string; yol: string; kod?: string; ayrik?: boolean };
+/* `alt`: öğenin ÜÇÜNCÜL ekranları (yalnız Varlık'ta). Grubun kendi yolu
+   ilk alt ekranıdır; grup bağı oraya gider, alt ekranlar üçüncül sırada
+   (`.ab-ucuncul`) listelenir. */
+export type Oge = { ad: string; yol: string; kod?: string; ayrik?: boolean; alt?: Oge[] };
 
 /* ── Alanlar — beş birincil alan ──────────────────────────────────────
    Risk artık KENDİ alanıdır (eskiden defterin bir sekmesi + varlık
@@ -71,9 +74,9 @@ export function alanAktif(alan: Oge, patika: string): boolean {
 
 /* ── İkincil sıra — alanın kendi ekranları ────────────────────────────
    Denetim §4: Uyum 3 grup · Varlık 5 operasyon grubu (iki harfli 16'lık
-   ray KALDIRILDI) · Risk 2 · Portföy 2 · Saha yok (Saha'nın tek ekranı
-   kendisidir; santral detayı şeritten açılır). Gruplar saç çizgisiyle
-   ayrılır; grup başlığı yalnız Varlık'ta (beş grup adsız okunmaz). */
+   ray KALDIRILDI; alt ekranlar üçüncül sırada) · Risk 2 · Portföy 2 ·
+   Saha yok (Saha'nın tek ekranı kendisidir; santral detayı şeritten
+   açılır). Gruplar saç çizgisiyle ayrılır. */
 export const IKINCIL: Record<string, { baslik?: string; ogeler: Oge[] }[]> = {
   '/uyum': [
     { ogeler: [
@@ -100,30 +103,37 @@ export const IKINCIL: Record<string, { baslik?: string; ogeler: Oge[] }[]> = {
       { ad: 'Bulgular & CAPA', yol: '/bulgular' },
     ]},
   ],
+  /* Varlık: ikincil sırada YALNIZ beş operasyon grubu görünür (ürün
+     sahibi, benchmark kabulü 2026-09: 14 bağ ekrana sığsa da okunmuyordu).
+     Alt ekranlar grubun üçüncül sırasında; depo rota yapısı gezinmeye
+     dökülmez — `/ice-aktarim` (katalog/model içe aktarımı) gezinmede yer
+     almaz, Regülasyonlar ve Yedekleme ekranlarındaki eylemden açılır,
+     alanı Varlık kalır. */
   '/envanter': [
-    { baslik: 'Envanter', ogeler: [
-      { ad: 'Kayıt', yol: '/envanter' },
-      { ad: 'Keşif', yol: '/kesif' },
-      { ad: 'Varlık aktarımı', yol: '/varlik-aktarim' },
-      { ad: 'Model aktarımı', yol: '/ice-aktarim' },
-    ]},
-    { baslik: 'Ağ & bağımlılık', ogeler: [
-      { ad: 'Topoloji', yol: '/topoloji' },
-      { ad: 'Eşleme', yol: '/esleme' },
-    ]},
-    { baslik: 'Yaşam döngüsü', ogeler: [
-      { ad: 'Ömür', yol: '/omur' },
-      { ad: 'Yedekleme', yol: '/yedekleme' },
-      { ad: 'Tedarikçiler', yol: '/tedarikciler' },
-    ]},
-    { baslik: 'Erişim', ogeler: [
-      { ad: 'Kimlik', yol: '/kimlik' },
-      { ad: 'Yetkiler', yol: '/yetkiler' },
-    ]},
-    { baslik: 'Olay & değişiklik', ogeler: [
-      { ad: 'Olaylar', yol: '/olaylar' },
-      { ad: 'Değişim', yol: '/operasyon' },
-      { ad: 'Sağlık', yol: '/saglik' },
+    { ogeler: [
+      { ad: 'Envanter', yol: '/envanter', alt: [
+        { ad: 'Varlık', yol: '/envanter' },
+        { ad: 'Keşif', yol: '/kesif' },
+        { ad: 'Aktarım', yol: '/varlik-aktarim' },
+      ]},
+      { ad: 'Ağ & bağımlılık', yol: '/topoloji', alt: [
+        { ad: 'Topoloji', yol: '/topoloji' },
+        { ad: 'Eşleme', yol: '/esleme' },
+      ]},
+      { ad: 'Yaşam döngüsü', yol: '/omur', alt: [
+        { ad: 'Ömür', yol: '/omur' },
+        { ad: 'Yedekleme', yol: '/yedekleme' },
+        { ad: 'Tedarikçiler', yol: '/tedarikciler' },
+      ]},
+      { ad: 'Erişim', yol: '/kimlik', alt: [
+        { ad: 'Kimlik', yol: '/kimlik' },
+        { ad: 'Yetkiler', yol: '/yetkiler' },
+      ]},
+      { ad: 'Olay & değişiklik', yol: '/olaylar', alt: [
+        { ad: 'Olaylar', yol: '/olaylar' },
+        { ad: 'Değişim', yol: '/operasyon' },
+        { ad: 'Sağlık', yol: '/saglik' },
+      ]},
     ]},
   ],
   '/portfoy': [
@@ -138,6 +148,20 @@ export const IKINCIL: Record<string, { baslik?: string; ogeler: Oge[] }[]> = {
 export function ikincilSec(patika: string): { baslik?: string; ogeler: Oge[] }[] {
   const alan = alanSec(patika);
   return alan ? (IKINCIL[alan] ?? []) : [];
+}
+
+/** İkincil öğe aktif mi — kendi yolu ya da alt ekranlarından biri. */
+export function ogeAktif(o: Oge, patika: string): boolean {
+  return aktifMi(o.yol, patika) || (o.alt ?? []).some((a) => aktifMi(a.yol, patika));
+}
+
+/** Patikanın üçüncül sırası: aktif ikincil öğenin alt ekranları (yoksa null). */
+export function ucunculSec(patika: string): { grup: Oge; ogeler: Oge[] } | null {
+  for (const g of ikincilSec(patika)) {
+    const o = g.ogeler.find((x) => x.alt && x.alt.length > 0 && ogeAktif(x, patika));
+    if (o && o.alt) return { grup: o, ogeler: o.alt };
+  }
+  return null;
 }
 
 /* Risk alanı `/bulgular`ı Uyum'la PAYLAŞIR (CAPA iki alanın da kaydıdır)

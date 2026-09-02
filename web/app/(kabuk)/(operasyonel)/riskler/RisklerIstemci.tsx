@@ -308,9 +308,14 @@ export default function RisklerIstemci({
 
 /* ── C18 · Isı haritası (olasılık × etki) ───────────────────────────
    5×5; satır 0 = etki 5 (üst), sütun 0 = olasılık 1 (sol). Her hücre bir
-   <button aria-pressed>: adet + eşik sözcüğü (ilk / orta / son) yazılıdır,
-   renk yalnız ikinci kanaldır. Boş hücre "0" yazar — burada sıfır GERÇEK
-   sıfırdır (sayım), bilinmeyen ayrı satırda sayılır ("ölçülemedi").
+   <button aria-pressed>: adet yazılıdır; eşik bölgesi (düşük / orta /
+   kritik) eksen konumu + zemin rengi + kritikte kalın rakam ve iç çizgi
+   ile anlatılır, sözcük ekran okuyucuya `aria-label`da okunur ve göze
+   ızgara altındaki tek lejantta yazılır. Her hücrede sözcüğü yinelemek
+   (25 × 10px "DÜŞÜK/ORTA/KRİTİK") <11px sayacını 26→51 çıkarmıştı ve
+   haritayı gürültülü kılıyordu (ürün sahibi kabulü 2026-09). Boş hücre
+   "0" yazar — burada sıfır GERÇEK sıfırdır (sayım), bilinmeyen ayrı
+   satırda sayılır ("ölçülemedi").
 
    Harita ELDEKİ satırlardan sayılır; sunucu tavanı kütüğü kestiyse dipnot
    bunu söyler — harita "kütüğün tamamı" diye yalan söylemez. */
@@ -366,12 +371,16 @@ function IsiHaritasiPaneli({ harita, secili, sec, kesildi }: {
                   onClick={() => sec({ olasilik, etki })}
                 >
                   <span className="mono adet">{adet}</span>
-                  <span className="esik">{ESIK_SOZU[esik]}</span>
                 </button>
               );
             });
           })}
           <span className="eksen yatay" aria-hidden>olasılık →</span>
+          <ul className="lejant" aria-label="Eşik bölgeleri">
+            {(['ilk', 'orta', 'son'] as const).map((e) => (
+              <li key={e}><span className={`renk e-${e}`} aria-hidden />{ESIK_SOZU[e]}</li>
+            ))}
+          </ul>
         </div>
       )}
     </section>

@@ -1,5 +1,5 @@
 'use client';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useEylem } from '@/components/useEylem';
@@ -412,11 +412,40 @@ function UyumMatrisi({ cerceve, satirlar, santraller, acik, setAcik, yazabilir }
   setAcik: (a: Acik) => void;
   yazabilir: boolean;
 }) {
-  const kolonlar = `92px minmax(220px, 1fr) repeat(${santraller.length}, 68px) 78px`;
+  /* Santral sütunu 68→88px: "Kızıldere III JES" ve "Zorlu Center Genel
+     Müdürlük" 68px'te 3–4 satıra kırılıyor, altındaki kod da sarıyordu
+     (ölçüldü, 1366×768: başlık satırı 5 satır/64px). Başlıkta yalnız
+     kısa ad kalır, EN FAZLA 2 satır (`line-clamp`); kod ve künye `title`a
+     ve hücrenin `aria-label`ına gider — bilgi kaybolmaz, satır sayısı
+     denetim altına girer (ürün sahibi kabulü 2026-09, madde 2). */
+  const kolonlar = `92px minmax(220px, 1fr) repeat(${santraller.length}, 88px) 78px`;
   const genel = uyumOzeti(sayHam(satirlar)).yuzde;
+  /* Yapışkan başlık ↔ yatay kaydırma çelişkisi: `overflow-x:auto` olan
+     bir kap içinde `position:sticky` sayfaya değil kaba yapışır (etkisiz).
+     Bu yüzden kaydırma yalnız GEREKİNCE açılır: içerik sığıyorsa kap
+     taşmasız kalır ve başlık sayfa kaydırılırken üstte durur; sığmıyorsa
+     (çok santralli çerçeve) kap yatay kayar, başlık akışta kalır. Ölçüm
+     ResizeObserver ile; sunum kararı, veri akışına dokunmaz. */
+  const kap = useRef<HTMLDivElement>(null);
+  const [tasar, setTasar] = useState(false);
+  useEffect(() => {
+    const el = kap.current;
+    if (!el) return;
+    const olc = () => {
+      // kaydırma kapalıyken ölç: ızgaranın gerçek genişliği ilk satırdan okunur
+      const bas = el.querySelector<HTMLElement>('.bas');
+      const gerek = bas ? bas.scrollWidth : el.scrollWidth;
+      setTasar(gerek > el.clientWidth + 1);
+    };
+    olc();
+    const ro = new ResizeObserver(olc);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [santraller.length]);
   return (
     <div
-      className="ab-mtx"
+      ref={kap}
+      className={`ab-mtx${tasar ? ' kayar' : ''}`}
       style={{ ['--mtx-kolon' as string]: kolonlar }}
       onKeyDown={(e) => { if (e.key === 'Escape' && acik) { e.stopPropagation(); setAcik(null); } }}
     >
@@ -424,9 +453,8 @@ function UyumMatrisi({ cerceve, satirlar, santraller, acik, setAcik, yazabilir }
         <span className="kolonbas">Kontrol</span>
         <span className="kolonbas">Başlık</span>
         {santraller.map((t) => (
-          <span key={t.id} className="santral">
-            {t.ad}
-            <span className="mono">{t.kod}</span>
+          <span key={t.id} className="santral" title={`${t.ad} · ${t.kod} · ${t.alt}`}>
+            <span className="ad">{t.ad}</span>
           </span>
         ))}
         <span className="kolonbas" style={{ textAlign: 'right' }}>Kapsam</span>

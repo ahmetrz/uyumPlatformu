@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import { useEffect, useRef, useState } from 'react';
 import { NOTR_TRIPTIK, kucukGorsel } from '@/lib/gorsel';
 import { tipAdi, tipRengi, uygunRengi } from '@/components/kabuk/tip';
 import type {
@@ -72,9 +73,14 @@ type Ozet = {
 
 /** Katman panelinde çizilen tip sayısı — kalanı sayıyla söylenir. */
 const KATMAN_TAVANI = 3;
-/** Müdahale listesinde çizilen bulgu sayısı; toplam başlıkta sayıyla durur.
-    1280×800'de dikkat paneline 4 kalem sığar (ölçüldü: kalem 56px). */
+/** Müdahale listesinde çizilebilecek EN ÇOK bulgu; kaçının çizileceğini
+    yükseklik bütçesi belirler (aşağıda `Mudahale`). Toplam başlıkta
+    sayıyla durur, sığmayanlar "+N diğer" ile söylenir. */
 const MUDAHALE_TAVANI = 4;
+/** "+N diğer" satırının sabit yüksekliği (kabuk.css `.mudahale .kalan`:
+    16px satır + 4px üst boşluk). Ölçülmez, sabit tutulur ki bütçe hesabı
+    satır çizilmeden önce de doğru olsun. */
+const KALAN_SATIR_PX = 20;
 
 const ONEM_SINIF: Record<string, string> = {
   kritik: 'bd', yuksek: 'bd', orta: 'md', dusuk: 'pl',
@@ -137,31 +143,7 @@ export default function Genel({
 
           <Egilim seri={egilim} />
 
-          <div className="mudahale">
-            <div className="bas">
-              <span className="etiket">Müdahale gerektirenler</span>
-              <span className="mono adet">{toplamKayit}</span>
-            </div>
-            {dikkat.length === 0 ? (
-              <p className="bos">
-                {kapsamli
-                  ? 'Kapsamındaki santrallerde açık bulgu yok.'
-                  : 'Açık bulgu yok.'}
-              </p>
-            ) : dikkat.slice(0, MUDAHALE_TAVANI).map((b, i) => (
-              <Link key={b.id} href={`/bulgular/${b.id}`} className="kalem">
-                <span className={`sap ${ONEM_SINIF[b.onem] ?? 'pl'}`} aria-hidden />
-                <span className="govde">
-                  <span className="konu">{b.baslik}</span>
-                  <span className="mono meta">
-                    {b.tesisAd} · {b.kontrolKodu} ·{' '}
-                    {terminSozu(b.gecikmisGun, b.hedefTarih)}
-                  </span>
-                </span>
-                <span className="sira" aria-hidden>{String(i + 1).padStart(2, '0')}</span>
-              </Link>
-            ))}
-          </div>
+          <Mudahale dikkat={dikkat} toplamKayit={toplamKayit} kapsamli={kapsamli} />
         </aside>
 
         {/* ── Takımyıldız — koordinat DEĞİL, endeks × güç ───────────── */}
@@ -360,6 +342,96 @@ function Egilim({ seri }: { seri: { etiket: string; yuzde: number }[] | null }) 
      · İşaret dolu değil TARALIDIR: ürünün "değerlendirilmedi" glifiyle
        aynı dil (bkz. DESIGN.md · glif ailesi). Renk tipten gelir ki
        hangi üretim tipinin bakılmadığı görünsün. */
+
+/* ═══ Müdahale gerektirenler — yükseklik bütçesine göre kalem sayısı ═══
+   Dikkat paneli tek ekran sözleşmesiyle sabit yüksekliktedir; liste
+   artan yeri alır. Eskiden tavan (4) her çözünürlükte çiziliyor, sığmayan
+   kalem kutunun altında KIRPILIYORDU (1366×768'de 3. kalemin meta satırı
+   43px dışarıdaydı — Eylül 2026 kabul turu). Kural: içerik kesilmez;
+   sığmayan kalem çizilmez, "+N diğer" ile söylenir.
+
+   Yöntem: kalemler çizilir, ResizeObserver kutunun yüksekliğini ve
+   kalemlerin alt kenarını ölçer; alt kenarı (gerekirse "+N diğer" satırı
+   da hesaba katılarak) kutuya sığan EN ÇOK kalem kalır. Sığmayan kalem
+   `display:none` DEĞİL, akıştan çıkarılıp görünmez tutulur (`.gizli`):
+   yüksekliği ölçülebilir kalır, alan büyüyünce (1440×900) ya da yazı
+   tipi geç yüklenip satır sayısı değişince hesap güncel kalır. Yazı tipi
+   yüklenmesi de yeniden hesap tetikler. En az bir kalem her zaman
+   çizilir. Durum yalnız geri çağrılarda değişir (render/etkide setState
+   yok). */
+function Mudahale({ dikkat, toplamKayit, kapsamli }: {
+  dikkat: Kayit[]; toplamKayit: number; kapsamli: boolean;
+}) {
+  const kutu = useRef<HTMLDivElement>(null);
+  const [gorunen, setGorunen] = useState(MUDAHALE_TAVANI);
+  const cizilecek = Math.min(dikkat.length, MUDAHALE_TAVANI);
+
+  useEffect(() => {
+    const el = kutu.current;
+    if (!el || cizilecek === 0) return;
+    const hesapla = () => {
+      const kutuR = el.getBoundingClientRect();
+      const kalemler = [...el.querySelectorAll<HTMLElement>('.kalem')];
+      /* Alt kenar, kutu üstüne göre. Görünen kalemde doğrudan ölçülür;
+         gizli kalem akış dışıdır, bir öncekinin altına kendi yüksekliği
+         eklenir (üst kenarlık dahil, offsetHeight). */
+      let alt = 0;
+      let sigan = 1;
+      kalemler.forEach((k, i) => {
+        alt = k.classList.contains('gizli')
+          ? alt + k.offsetHeight
+          : k.getBoundingClientRect().bottom - kutuR.top;
+        if (i === 0) return;
+        const kalanPay = toplamKayit > i + 1 ? KALAN_SATIR_PX : 0;
+        if (sigan === i && alt + kalanPay <= kutuR.height) sigan = i + 1;
+      });
+      setGorunen((eski) => (eski === sigan ? eski : sigan));
+    };
+    const gozle = new ResizeObserver(hesapla);
+    gozle.observe(el);
+    let gecerli = true;
+    document.fonts?.ready.then(() => { if (gecerli) hesapla(); });
+    return () => { gecerli = false; gozle.disconnect(); };
+  }, [cizilecek, toplamKayit]);
+
+  const kalan = toplamKayit - Math.min(gorunen, cizilecek);
+  return (
+    <div className="mudahale" ref={kutu}>
+      <div className="bas">
+        <span className="etiket">Müdahale gerektirenler</span>
+        <span className="mono adet">{toplamKayit}</span>
+      </div>
+      {cizilecek === 0 ? (
+        <p className="bos">
+          {kapsamli
+            ? 'Kapsamındaki santrallerde açık bulgu yok.'
+            : 'Açık bulgu yok.'}
+        </p>
+      ) : dikkat.slice(0, cizilecek).map((b, i) => (
+        <Link key={b.id} href={`/bulgular/${b.id}`}
+          className={`kalem${i >= gorunen ? ' gizli' : ''}`}
+          aria-hidden={i >= gorunen || undefined} tabIndex={i >= gorunen ? -1 : undefined}>
+          <span className={`sap ${ONEM_SINIF[b.onem] ?? 'pl'}`} aria-hidden />
+          <span className="govde">
+            <span className="konu">{b.baslik}</span>
+            {/* Tek satır, uzunu üç noktayla biter (kabuk.css). Sıra:
+                tesis · termin · kontrol kodu — kesilen parça en az karar
+                taşıyan kod olur; termin (gecikme sözcükle) görünür kalır.
+                Tamamı `title`ta. */}
+            <span className="mono meta"
+              title={`${b.tesisAd} · ${terminSozu(b.gecikmisGun, b.hedefTarih)} · ${b.kontrolKodu}`}>
+              {b.tesisAd} · {terminSozu(b.gecikmisGun, b.hedefTarih)} · {b.kontrolKodu}
+            </span>
+          </span>
+          <span className="sira" aria-hidden>{String(i + 1).padStart(2, '0')}</span>
+        </Link>
+      ))}
+      {cizilecek > 0 && kalan > 0 && (
+        <Link href="/bulgular" className="mono kalan">+{kalan} diğer · bulgular</Link>
+      )}
+    </div>
+  );
+}
 
 function Takimyildizi({ santraller }: { santraller: SantralKarti[] }) {
   const olculen = santraller.filter((s) => s.endeks !== null);

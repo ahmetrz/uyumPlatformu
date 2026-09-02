@@ -512,19 +512,26 @@
 }
 .ab-b-dikkat .endeks .alt { font-family: var(--veri); font-size: 11px; color: var(--i3); } /* ölçüm taşır: 11px */
 
-/* Liste yükseklik bütçesinden artanı alır; sığmayan kalem KIRPILMAZ,
-   tavan (MUDAHALE_TAVANI) zaten 4'tür ve toplam başlıkta sayıyla durur. */
+/* Liste yükseklik bütçesinden artanı alır; sığmayan kalem KIRPILMAZ:
+   `Mudahale` (Genel.tsx) kutuyu ölçer, sığan kadar kalem çizer, kalanı
+   "+N diğer" der. `overflow:hidden` yalnız emniyet kemeridir. */
 /* Amiral ayak 22px + durum 26px (iki ayrı bölge) alanı 20px kısaltınca
    üçüncü kalem 1366×768'de yarım kalıyordu (ölçüldü); dikey boşluklar
    18/12/10 → 12/8/8 çekildi, kalem sayısı ve metin ölçüleri aynı. */
-.ab-b-dikkat .mudahale { margin-top: 12px; border-top: 1px solid var(--hr2); padding-top: 8px; min-height: 0; overflow: hidden; flex: 1; }
+.ab-b-dikkat .mudahale { margin-top: 10px; border-top: 1px solid var(--hr2); padding-top: 6px; min-height: 0; overflow: hidden; flex: 1; }
 .ab-b-dikkat .mudahale .bas { display: flex; align-items: baseline; justify-content: space-between; }
 .ab-b-dikkat .mudahale .adet { font-size: 11px; color: var(--bd); }
 .ab-b-dikkat .mudahale .bos { margin: 14px 0 0; font-size: 12.5px; color: var(--i3); }
 .ab-b-dikkat .kalem {
-  display: flex; gap: 14px; padding: 8px 0; border-top: 1px solid var(--hr);
+  display: flex; gap: 14px; padding: 7px 0; border-top: 1px solid var(--hr);
 }
-.ab-b-dikkat .kalem:first-of-type { border-top: 0; margin-top: 6px; }
+/* 1366×768 bütçesi: 3 kalem + "+N diğer" = 234px, kutu 229px idi (ölçüldü,
+   2 satırlık başlıkla). Dikey boşluklar 12/8 → 10/7 çekildi: 226px. */
+.ab-b-dikkat .kalem:first-of-type { border-top: 0; margin-top: 4px; }
+/* Bütçeye sığmayan kalem: akış dışı ve görünmez, ama ölçülebilir
+   (Genel.tsx `Mudahale`). Genişlik kutununki, ki satır sayısı aynı kalsın. */
+.ab-b-dikkat .mudahale { position: relative; }
+.ab-b-dikkat .kalem.gizli { position: absolute; left: 0; right: 0; top: 0; visibility: hidden; pointer-events: none; }
 .ab-b-dikkat .kalem .sap { width: 3px; flex: none; align-self: stretch; }
 .ab-b-dikkat .kalem .sap.bd { background: var(--bd); }
 .ab-b-dikkat .kalem .sap.md { background: var(--md); }
@@ -535,7 +542,20 @@
   /* Bütçe: kalem başlığı iki satırı geçmez; kalan bulgu ekranında okunur. */
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
 }
-.ab-b-dikkat .kalem .meta { font-size: 11px; color: var(--i3); }
+.ab-b-dikkat .kalem .meta {
+  font-size: 11px; line-height: 16px; color: var(--i3);
+  /* Tek satır: tesis · kod · termin. Uzunu üç nokta ile kısalır, tamamı
+     `title`ta; iki satıra sarması kalemi 15px büyütüp bütçeyi bozuyordu. */
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+/* Bütçeye sığmayan kalemler (JS: `Mudahale`) çizilmez; sayısı burada.
+   Yükseklik SABİT 20px (16 satır + 4 üst): bileşen bunu hesaba katar.
+   1366×768'de 3. kalem birkaç px'le düşüyordu; 8/6/22 → 6/4/20 çekildi. */
+.ab-b-dikkat .mudahale .kalan {
+  display: block; box-sizing: border-box; height: 20px; line-height: 16px; padding-top: 4px;
+  font-size: 11px; color: var(--i3); border-top: 1px solid var(--hr);
+}
+.ab-b-dikkat .mudahale .kalan:hover { color: var(--aksan); }
 .ab-b-dikkat .kalem .sira {
   font-family: var(--gorunum); font-size: 26px; line-height: 1; color: var(--hr2); flex: none;
 }

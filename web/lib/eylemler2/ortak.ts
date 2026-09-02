@@ -7,6 +7,32 @@ import { z } from 'zod';
 export type Sonuc = { ok: true } | { ok: false; hata: string };
 export const tamam = (): Sonuc => ({ ok: true });
 
+/* Hangi alan(lar) kopya — İKİ BİÇİM okunur.
+
+   Prisma 7 sürücü adaptörüyle (better-sqlite3) çalışırken P2002 hatası
+   alan adını `meta.target` altına KOYMAZ; onu sürücünün kendi hatasına
+   sarar:
+     meta.driverAdapterError.cause.constraint.fields = ['kod']
+   Yalnız `meta.target` okunduğu sürece aşağıdaki alan-özel cümleler HİÇ
+   kurulmuyordu ve her kopya kayıt genel cümleye düşüyordu (ölçüldü:
+   tests/dokuman-eylem "aynı kod iki kez açılamaz"). Klasik biçim de
+   okunmaya devam eder: PostgreSQL'e geçişte ya da adaptörsüz kurulumda
+   `meta.target` geri gelir. */
+function ihlalAlanlari(m: unknown): string[] {
+  const meta = (m as { meta?: Record<string, unknown> } | null)?.meta;
+  if (!meta) return [];
+
+  const hedef = meta.target;
+  if (Array.isArray(hedef)) return hedef.filter((x): x is string => typeof x === 'string');
+  if (typeof hedef === 'string') return [hedef];
+
+  const surucu = (meta.driverAdapterError as { cause?: { constraint?: unknown } } | undefined)?.cause;
+  const kisit = surucu?.constraint as { fields?: unknown } | undefined;
+  return Array.isArray(kisit?.fields)
+    ? kisit.fields.filter((x): x is string => typeof x === 'string')
+    : [];
+}
+
 /* ── Veritabanı kısıtı → okunabilir cümle ─────────────────────────────
    Tekillik kısıtı ihlali kullanıcıya Prisma'nın ham metniyle çıkıyordu:
    "Unique constraint failed on the fields: (`kod`)". Bu, kullanıcının
@@ -25,10 +51,7 @@ export const tamam = (): Sonuc => ({ ok: true });
 function kisitCumlesi(m: unknown): string | null {
   const kod = (m as { code?: unknown } | null)?.code;
   if (kod !== 'P2002') return null;
-  const hedef = (m as { meta?: { target?: unknown } } | null)?.meta?.target;
-  const alanlar = Array.isArray(hedef)
-    ? hedef.filter((x): x is string => typeof x === 'string')
-    : typeof hedef === 'string' ? [hedef] : [];
+  const alanlar = ihlalAlanlari(m);
   if (alanlar.includes('kod')) {
     return 'Bu kod başka bir kayıtta kullanılıyor. Kod önerisi siz formu '
       + 'açtıktan sonra başkası tarafından alınmış olabilir — formu yenileyip '

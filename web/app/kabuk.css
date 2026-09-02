@@ -1450,6 +1450,203 @@
 }
 .ab-isi .hucre:focus-visible { outline: 2px solid var(--aksan); outline-offset: 1px; }
 
+/* ═══ A4 · Santral haritası ═══════════════════════════════════════════
+   Tuval bir ÖLÇÜM YÜZEYİDİR, dekoratif bir harita değil: kılavuz saç
+   teli inceliğinde, eksen etiketleri mono, işaret dolgusu durumu taşır.
+   Yaklaşık konum KESİK ÇİZGİYLE ve boş içle ayrılır — renk tek kanal
+   değildir, işaretin dokusu da konuşur. */
+.ab-b-harita {
+  min-width: 0;
+  /* (tam) yerleşimi kabuk oluğu vermez: başlık ölçüleri sağ kenardan
+     kırpılıyordu (ölçüldü, 1440px). Oluk operasyonel ekranlarla aynı. */
+  padding: 0 var(--gutter-op);
+}
+.ab-harita-tuval { margin: 0 0 var(--s24); }
+.ab-harita-tuval svg {
+  display: block; width: 100%; height: auto;
+  background: var(--panel); border: var(--bw-hair) solid var(--hr2);
+}
+.ab-harita-tuval .kilavuz line { stroke: var(--hr2); stroke-width: 1; stroke-dasharray: 2 4; }
+.ab-harita-tuval .eksen text {
+  font-family: var(--veri); font-size: var(--t-code); fill: var(--i3);
+}
+.ab-harita-tuval .isaret .halka {
+  fill: color-mix(in srgb, var(--unk) 45%, transparent);
+  stroke: var(--unk); stroke-width: 1.5;
+}
+.ab-harita-tuval .isaret.d-ok .halka { fill: color-mix(in srgb, var(--ok) 45%, transparent); stroke: var(--ok); }
+.ab-harita-tuval .isaret.d-md .halka { fill: color-mix(in srgb, var(--md) 45%, transparent); stroke: var(--md); }
+.ab-harita-tuval .isaret.d-bd .halka { fill: color-mix(in srgb, var(--bd) 50%, transparent); stroke: var(--bd); }
+/* Yaklaşık konum: içi boş, kenarı kesik. */
+.ab-harita-tuval .isaret.k-il .halka { fill: none; stroke-dasharray: 3 2; }
+.ab-harita-tuval .isaret.secili .halka { stroke-width: 2.5; }
+.ab-harita-tuval .isaret .vurus { fill: transparent; cursor: pointer; }
+.ab-harita-tuval .isaret .vurus:focus-visible { outline: 2px solid var(--aksan); outline-offset: 2px; }
+.ab-harita-tuval .isaret:hover .halka { stroke-width: 2.5; }
+.ab-harita-not { margin: var(--s12) 0 0; max-width: 78ch; }
+/* Yalnız ekran okuyucuya: tuvalin özeti. `display:none` OLMAZ — o,
+   yardımcı teknolojiden de gizler. */
+.ab-gizli-okuma {
+  position: absolute; width: 1px; height: 1px; margin: -1px;
+  padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap;
+}
+
+/* İki kolon: tuval solda, seçim künyesi sağda. Tek kolonda künye ekranın
+   altına düşüyordu ve tıklamanın geri bildirimi görünmüyordu (ölçüldü). */
+.ab-harita-govde { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: var(--s24); }
+.ab-harita-govde > .ab-harita-eksik,
+.ab-harita-govde > .ab-harita-form { grid-column: 1 / -1; }
+.ab-harita-yan { min-width: 0; }
+.ab-harita-bos {
+  padding: var(--s14) var(--s16);
+  background: var(--panel); border-left: 2px solid var(--hr2);
+}
+.ab-harita-bos > .etiket { display: block; margin: 0 0 var(--s10); }
+.ab-harita-bos .cumle { margin: 0; font-size: var(--t-field); line-height: 1.6; color: var(--i3); }
+
+/* İşaret etiketi — ad ipucunda yaşayamaz. */
+.ab-harita-tuval .etiketler text {
+  font-family: var(--veri); font-size: 9.5px; letter-spacing: .04em;
+  fill: var(--i2); paint-order: stroke; stroke: var(--panel); stroke-width: 3px;
+}
+.ab-harita-tuval .etiketler text.secili { fill: var(--murekkep); font-weight: 600; }
+.ab-harita-gosterge .sayi { color: var(--i2); }
+
+.ab-harita-gosterge {
+  display: flex; flex-wrap: wrap; gap: var(--s16);
+  margin: var(--s12) 0 0; padding: 0; list-style: none;
+  font-size: var(--t-label); letter-spacing: var(--tr-label);
+  text-transform: uppercase; color: var(--i3);
+}
+.ab-harita-gosterge li { display: inline-flex; align-items: center; gap: var(--s8); }
+.ab-harita-gosterge .ornek {
+  width: 11px; height: 11px; border-radius: 50%;
+  border: 1.5px solid var(--unk); background: color-mix(in srgb, var(--unk) 45%, transparent);
+}
+.ab-harita-gosterge .ornek.d-ok { border-color: var(--ok); background: color-mix(in srgb, var(--ok) 45%, transparent); }
+.ab-harita-gosterge .ornek.d-md { border-color: var(--md); background: color-mix(in srgb, var(--md) 45%, transparent); }
+.ab-harita-gosterge .ornek.d-bd { border-color: var(--bd); background: color-mix(in srgb, var(--bd) 50%, transparent); }
+.ab-harita-gosterge .ornek.k-il { background: none; border-style: dashed; border-color: var(--i2); }
+
+/* Seçili santral künyesi — çekmece değil, tuvalin altında duran şerit. */
+.ab-harita-kunye {
+  margin: 0 0 var(--s24); padding: var(--s14) var(--s16);
+  background: var(--panel); border-left: 2px solid var(--aksan);
+}
+.ab-harita-kunye .bas { display: flex; align-items: baseline; gap: var(--s12); }
+.ab-harita-kunye .bas .etiket { flex: 1 1 auto; }
+.ab-harita-kunye .ad {
+  display: flex; align-items: baseline; gap: var(--s10); flex-wrap: wrap;
+  margin: var(--s10) 0 var(--s12); font-size: 15px;
+}
+.ab-harita-kunye .ad a { color: var(--murekkep); text-decoration: none; border-bottom: 1px solid var(--hr2); }
+.ab-harita-kunye .ad a:hover { border-bottom-color: var(--aksan); }
+.ab-harita-kunye .ad .kod { font-size: var(--t-code-lg); color: var(--i3); }
+.ab-harita-kunye .olgular {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: var(--s8) var(--s16); margin: 0 0 var(--s12);
+}
+.ab-harita-kunye .olgular > div { display: flex; justify-content: space-between; gap: var(--s10);
+  border-bottom: var(--bw-hair) solid var(--hr2); padding-bottom: 3px; }
+.ab-harita-kunye dt { font-size: var(--t-label); letter-spacing: var(--tr-label);
+  text-transform: uppercase; color: var(--i3); }
+.ab-harita-kunye dd { margin: 0; font-size: var(--t-field); text-align: right; }
+.ab-harita-kunye dd.unk { color: var(--i3); }
+
+/* Yerleştirilemeyenler — haritada yok, ekranda VAR. */
+.ab-harita-eksik {
+  margin: 0 0 var(--s24); padding: var(--s14) var(--s16);
+  background: var(--panel); border-left: 2px solid var(--unk);
+}
+.ab-harita-eksik > .etiket { display: block; margin: 0 0 var(--s10); }
+.ab-harita-eksik .cumle {
+  margin: 0 0 var(--s12); font-size: var(--t-field); line-height: 1.6;
+  color: var(--i2); max-width: 78ch;
+}
+.ab-harita-liste { margin: 0; padding: 0; list-style: none; }
+.ab-harita-liste li {
+  display: flex; align-items: baseline; gap: var(--s10);
+  padding: 4px 0; font-size: var(--t-field); min-width: 0;
+  border-bottom: var(--bw-hair) solid var(--hr2);
+}
+.ab-harita-liste .ad { color: var(--murekkep); text-decoration: none;
+  border-bottom: 1px solid var(--hr2); }
+.ab-harita-liste .ad:hover { border-bottom-color: var(--aksan); }
+.ab-harita-liste .kod { font-size: var(--t-code-lg); color: var(--i3); }
+.ab-harita-liste .yer { margin-left: auto; font-size: var(--t-code); color: var(--i3); }
+
+.ab-harita-form { display: grid; gap: var(--s12); max-width: 520px; }
+.ab-harita-form .ikili { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s12); }
+
+/* ═══ C22/C23 · Belge kütüğü ══════════════════════════════════════════
+   Boşluk paneli tablonun üstünde durur ve KAPATILAMAZ: ekranın cevabı
+   listenin kendisi değil, listede OLMAYANDIR. Kenar rengi durumu taşır,
+   sözcük her satırda yazılıdır (renk ikinci kanal). */
+.ab-dok-bosluk {
+  margin: 0 0 var(--s22); padding: var(--s14) var(--s16);
+  background: var(--panel); border-left: 2px solid var(--hr2);
+}
+.ab-dok-bosluk.d-bd { border-left-color: var(--bd); }
+.ab-dok-bosluk.d-ok { border-left-color: var(--ok); }
+.ab-dok-bosluk > .etiket { display: block; margin: 0 0 var(--s10); }
+.ab-dok-bosluk .cumle {
+  margin: 0 0 var(--s10); font-size: var(--t-field); line-height: 1.6; color: var(--i2);
+}
+.ab-dok-bosluk .cumle.uyari { margin-top: var(--s16); }
+.ab-dok-bosluk .cumle b { color: var(--murekkep); font-weight: 600; }
+.ab-dok-liste { margin: 0 0 var(--s10); padding: 0; list-style: none; }
+.ab-dok-liste li {
+  display: flex; align-items: baseline; gap: var(--s10);
+  padding: 3px 0; font-size: var(--t-field); min-width: 0;
+}
+.ab-dok-liste .kod {
+  font-family: var(--veri); font-size: var(--t-code-lg); color: var(--murekkep);
+  text-decoration: none; border-bottom: 1px solid var(--hr2); flex: none;
+}
+.ab-dok-liste .kod:hover { border-bottom-color: var(--aksan); }
+.ab-dok-liste .ad {
+  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.ab-dok-liste .reg {
+  margin-left: auto; flex: none;
+  font-family: var(--veri); font-size: var(--t-code); color: var(--i3);
+}
+
+/* Süzgeç çubuğundaki sırala/tür seçicileri — kapsam alanının grameri. */
+.ab-dok-sira { display: inline-flex; align-items: center; gap: var(--s8); }
+.ab-dok-sira select {
+  background: none; border: 0; border-bottom: var(--bw-hair) solid var(--hr2);
+  padding: 2px 0; font-family: var(--veri); font-size: var(--t-label);
+  letter-spacing: var(--tr-label); text-transform: uppercase; color: var(--murekkep);
+}
+
+/* Künye formu: iki kolonlu alan çiftleri + kaydırılan seçim kutuları. */
+.ab-dok-form { display: grid; gap: var(--s12); max-width: 620px; }
+.ab-dok-form-ikili { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s12); }
+.ab-dok-secim { margin: 0; padding: 0; border: 0; }
+.ab-dok-secim > legend { padding: 0 0 var(--s8); }
+.ab-dok-secim .kutu {
+  max-height: 220px; overflow-y: auto;
+  border: var(--bw-hair) solid var(--hr2); background: var(--panel2);
+  padding: var(--s8);
+}
+.ab-dok-secim .kutu.kisa { max-height: 156px; }
+.ab-dok-secim .grup + .grup { margin-top: var(--s10); }
+.ab-dok-secim .grup > .baslik {
+  margin: 0 0 3px; font-size: var(--t-code); color: var(--i3);
+  letter-spacing: .1em; text-transform: uppercase;
+}
+.ab-dok-secim .satir {
+  display: flex; align-items: baseline; gap: var(--s8);
+  padding: 2px 0; font-size: var(--t-field); cursor: pointer; min-width: 0;
+}
+.ab-dok-secim .satir:hover { color: var(--murekkep); }
+.ab-dok-secim .satir input { flex: none; }
+.ab-dok-secim .satir .kod { font-size: var(--t-code-lg); color: var(--i2); flex: none; }
+.ab-dok-secim .satir .ad {
+  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--i2);
+}
+
 /* ═══ Ortak gramer — tablo ════════════════════════════════════════════
    Satır bir DÜĞMEDİR: seçim `aria-pressed` ile taşınır (`aria-selected`
    düğme rolünde geçersizdir). Sol kenar durumun ŞİDDETİNİ taşır ve
@@ -2483,6 +2680,9 @@ textarea.ab-gr { min-height: 76px; resize: vertical; }
   .ab-c-kural, .ab-c-kural-kalin { margin-left: 36px; margin-right: 36px; }
 }
 @media (max-width: 1100px) {
+  /* Dar bantta tek kolon; etiket yığını okunmaz olurdu, künye adı yazar. */
+  .ab-harita-govde { grid-template-columns: 1fr; }
+  .ab-harita-tuval .etiketler { display: none; }
   /* C dizin sütunu üste iner; içindekiler tablosu kaybolmaz. */
   .ab-c-govde { grid-template-columns: minmax(0, 1fr); gap: 24px; }
   /* Ekranın kendi dizini de (uyum matrisi) aynı kurala uyar: 212px
@@ -2518,6 +2718,10 @@ textarea.ab-gr { min-height: 76px; resize: vertical; }
    Kapsam çubuğu 375px'te beş alanı sığdıramaz; bilgi grupları düşer,
    alan dizisi yatay kaydırılır. Bilgi kaybolur, KAPI kaybolmaz. */
 @media (max-width: 700px) {
+  .ab-harita-form .ikili { grid-template-columns: 1fr; }
+  .ab-harita-liste .yer { margin-left: 0; }
+  .ab-dok-form-ikili { grid-template-columns: 1fr; }
+  .ab-dok-liste .reg { margin-left: 0; }
   .ab-a-ust { overflow-x: auto; scrollbar-width: none; }
   .ab-a-ust .grup.dar-gizle { display: none; }
   .ab-a-ust .marka { position: sticky; left: 0; z-index: 1; }

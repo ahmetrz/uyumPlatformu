@@ -8,7 +8,7 @@ import KomutPaleti from '@/components/KomutPaleti';
 import YardimKatmani from '@/components/YardimKatmani';
 import {
   ALANLAR, A_RAY, B_SEKMELER, C_DIZIN, C_SEKMELER, UST_BAGLAR,
-  aktifMi, alanAktif, sayacEtiketi, sayacMetni, yonSec, type Oge,
+  aktifMi, alanAktif, sayacEtiketi, sayacMetni, sekmeAktif, yonSec, type Oge,
 } from './yonler';
 
 /* Uygulama kabuğu — ÜÇ AYRI KABUK, tek gramerin renk varyantı değil.
@@ -226,7 +226,7 @@ function KabukB({ veri, patika, children }: {
         <nav aria-label="Saha">
           {B_SEKMELER.map((o) => (
             <Link key={o.yol} href={o.yol}
-              aria-current={aktifMi(o.yol, patika) ? 'page' : undefined}>
+              aria-current={sekmeAktif(o.yol, patika) ? 'page' : undefined}>
               {o.ad}
             </Link>
           ))}

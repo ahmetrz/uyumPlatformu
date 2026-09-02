@@ -1,7 +1,7 @@
 {
-  "imza": "762c8cfdd9c8fd28db06d2f758a3129c",
-  "dosya": 63,
-  "vaka": 1187,
+  "imza": "1a66120ca6d074cbbf7550fc079be80e",
+  "dosya": 66,
+  "vaka": 1242,
   "atlanan": 1,
   "dosyalar": {
     "tests/api.test.ts": {
@@ -30,6 +30,14 @@
     },
     "tests/disa-aktarim-paketi.test.ts": {
       "vaka": 18,
+      "atlanan": 0
+    },
+    "tests/dokuman-eylem.test.ts": {
+      "vaka": 14,
+      "atlanan": 0
+    },
+    "tests/dokuman-mantik.test.ts": {
+      "vaka": 20,
       "atlanan": 0
     },
     "tests/ekran-mantik-72.test.ts": {
@@ -82,6 +90,10 @@
     },
     "tests/guvenlik-negatif.test.ts": {
       "vaka": 38,
+      "atlanan": 0
+    },
+    "tests/harita-mantik.test.ts": {
+      "vaka": 21,
       "atlanan": 0
     },
     "tests/hesap.test.ts": {

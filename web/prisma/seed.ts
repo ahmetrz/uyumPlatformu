@@ -9,6 +9,7 @@ import { uyumKatalogu } from './seed-uyum';
 import { denetimVeProje } from './seed-denetim-proje';
 import { riskVeBulgu } from './seed-risk-bulgu';
 import { kanitVerisi } from './seed-kanit';
+import { dokumanKutugu } from './seed-dokuman';
 import { entegrasyonVerisi } from './seed-entegrasyon';
 import { operasyonKayitlari } from './seed-operasyon-kayitlari';
 
@@ -743,6 +744,9 @@ async function main() {
   await denetimVeProje(db);
   // Kanıt katmanı en sonda: durumdan türer, durumları okumak zorunda.
   await kanitVerisi(db);
+  /* Yönetişim belgesi kütüğü kanıttan SONRA: mevcut politika kanıtlarını
+     kütükteki karşılıklarına bağlar (C22/C23). */
+  await dokumanKutugu(db);
   // Connector TANIMLARI — hiçbiri etkin değil, kimlik bilgisi bekliyor.
   await entegrasyonVerisi(db);
   /* Operasyonel kayıtlar EN SONDA: değişiklik, olay ve istisna kayıtları

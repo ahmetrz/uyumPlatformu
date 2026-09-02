@@ -21,6 +21,7 @@ function santral(kismi: Partial<PortfoySatiri> & { id: string }): PortfoySatiri 
     kod: kismi.id.toUpperCase(), ad: kismi.id,
     tipKod: 'HES', tipAdi: 'Hidroelektrik', tuzelKisi: 'Zorlu Doğal',
     konum: null, gucMw: 100, gorselAnahtari: null, kritiklik: null,
+    enlem: null, boylam: null,
     uyumYuzde: 80, bilinmeyenOran: 0, acikBulgu: 0, acikRisk: 0,
     ...kismi,
   };

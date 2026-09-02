@@ -7,7 +7,8 @@
 **Kabuk yönü** `components/kabuk/yonler.ts → yonSec(patika)` ile rotadan
 seçilir: `/`, `/tesisler/*`, `/portfoy`, `/giris` → **B · saha**; `/uyum`,
 `/regulasyonlar`, `/riskler`, `/denetimler`, `/bulgular`, `/projeler`,
-`/surecler`, `/raporlar`, `/eslestirme`, `/aktivite`, `/kanitlar` (ve alt
+`/surecler`, `/raporlar`, `/eslestirme`, `/aktivite`, `/dokumanlar`,
+`/kanitlar` (ve alt
 rotaları) → **C · defter**; eşleşmeyen her rota → **A · tezgâh**. Üç kabuk
 da koyu temadır; ayrım zemin sıcaklığı ve tipografidir (`web/DESIGN.md`).
 
@@ -73,6 +74,7 @@ veri katmanında kapsam daralttığı modül(ler)dir (`izinliTesisIdleri`,
 | `/raporlar/kanit-paketi` | zorunlu | uyum · denetim | Kanıt paketi — paketlenebilir kapsamlar; üretim sunucu eylemine devredilir |
 | `/eslestirme` | zorunlu | tanımlar | Çapraz eşleme — hangi madde hangi maddeyi karşılıyor; yalnız yaprak maddeler |
 | `/aktivite` | zorunlu | denetim | Denetim izi — kim neyi ne zaman değiştirdi; salt okunur |
+| `/dokumanlar` | zorunlu | uyum | Belge kütüğü — politika · prosedür · plan künyesi, yaşam döngüsü, gözden geçirme takvimi ve karşılıksız kontrol paneli; dosya kurumun doküman sisteminde kalır |
 | `/kanitlar` | zorunlu | uyum | Kanıt kütüphanesi — kanıt · tip · tarih · bağlı kayıt · yükleyen; dosya yükleme bu sürümde yok |
 
 ## Sistem sayfaları

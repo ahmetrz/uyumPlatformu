@@ -119,6 +119,9 @@ export default function Portfoy({ satirlar, toplamGucMw, endeks, kapsamli = fals
             ))}
           </select>
         </label>
+        {/* Harita portföyün ikinci okumasıdır: aynı kapsam, aynı sayılar,
+            coğrafi düzen. Bağ burada durur ki iki ekran kardeş okunsun. */}
+        <Link href="/harita" className="ab-dugme">Haritada göster</Link>
         <p className="mono cumle" aria-live="polite">
           {zayif
             ? <>En zayıf · {siralamaAdi.toLocaleLowerCase('tr-TR')}: <b>{gorunen.find((s) => s.id === zayif.id)?.ad}</b> · {zayif.neden}</>

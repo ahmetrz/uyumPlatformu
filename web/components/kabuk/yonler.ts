@@ -36,11 +36,23 @@ export const ALANLAR: Oge[] = [
    ekranda cevap alır. */
 const EV_ALAN: Record<Yon, string> = { a: '/envanter', b: '/', c: '/uyum' };
 
+/* Bir alanın KARDEŞ rotaları: alanın kanonik yolu değildir ama o alanın
+   okumasıdır. `/harita` portföyün coğrafi okumasıdır — sekme çubuğunda
+   "Portföy" yanmazsa kişi hangi alanda olduğunu bilemez (rota duman:
+   "aktif öğe yok"). Kardeşlik TEK YÖNLÜDÜR: /portfoy açıkken harita
+   yanmaz, tersi yanar. */
+const KARDES_ALAN: Record<string, string> = { '/harita': '/portfoy' };
+
+/** Sekme/alan aktifliği — kanonik eşleşme ya da kardeş rota. */
+export function sekmeAktif(yol: string, patika: string): boolean {
+  return aktifMi(yol, patika) || KARDES_ALAN[patika] === yol;
+}
+
 export function alanAktif(alan: Oge, patika: string): boolean {
-  if (aktifMi(alan.yol, patika)) return true;
+  if (sekmeAktif(alan.yol, patika)) return true;
   const ev = EV_ALAN[yonSec(patika)];
   return alan.yol === ev
-    && !ALANLAR.some((a) => a.yol !== ev && aktifMi(a.yol, patika));
+    && !ALANLAR.some((a) => a.yol !== ev && sekmeAktif(a.yol, patika));
 }
 
 /* ── B · saha ─────────────────────────────────────────────────────────
@@ -99,6 +111,7 @@ export const C_DIZIN: { baslik: string; ogeler: Oge[] }[] = [
   ]},
   { baslik: 'Kayıt', ogeler: [
     { ad: 'Raporlar', yol: '/raporlar' },
+    { ad: 'Belge kütüğü', yol: '/dokumanlar' },
     { ad: 'Kanıt kütüphanesi', yol: '/kanitlar' },
     { ad: 'Kanıt paketi', yol: '/raporlar/kanit-paketi' },
     { ad: 'Denetim izi', yol: '/aktivite' },
@@ -137,12 +150,15 @@ export function sayacEtiketi(n: number): string {
    Uygulama haritası §6 ile birebir. Eşleşmeyen rota A'ya düşer: tezgâh
    yönü en nötr olanıdır ve yeni bir yönetim ekranı eklendiğinde sessizce
    yanlış KABUĞA değil, en yakın kabuğa oturur. */
-const B_YOLLAR = ['/', '/tesisler', '/portfoy', '/giris'];
+/* Harita portföyün bir GÖRÜNÜMÜDÜR: aynı veri, aynı kapsam, farklı
+   okuma. Bu yüzden B saha yüzeyine düşer, kendi alanını açmaz. */
+const B_YOLLAR = ['/', '/tesisler', '/portfoy', '/harita', '/giris'];
 const C_YOLLAR = [
   '/uyum', '/regulasyonlar', '/riskler', '/denetimler', '/bulgular',
   '/projeler', '/surecler', '/raporlar', '/eslestirme', '/aktivite',
   /* Kanıt kütüphanesi defterin "Kayıt" bölümüdür: kanıt, uyum kaydının
      dayanağıdır; tezgâhta değil defterde okunur. */
+  '/dokumanlar',
   '/kanitlar',
 ];
 

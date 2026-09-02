@@ -1,0 +1,940 @@
+{
+  "saha 1440x900": {
+    "scrollH": 1340,
+    "vpH": 900,
+    "vpW": 1440,
+    "yon": "b",
+    "header": {
+      "top": 0,
+      "h": 56
+    },
+    "nav": {
+      "top": 0,
+      "h": 55
+    },
+    "main": {
+      "top": 56,
+      "h": 1284
+    },
+    "footer": null,
+    "alan": {
+      "top": 56,
+      "h": 648
+    },
+    "dikkat": {
+      "top": 56,
+      "h": 647
+    },
+    "katman": {
+      "top": 56,
+      "h": 647
+    },
+    "serit": {
+      "top": 795,
+      "h": 203
+    },
+    "bant": {
+      "top": 998,
+      "h": 342
+    },
+    "kpi": {
+      "top": 704,
+      "h": 91
+    },
+    "egilim": null,
+    "takim": {
+      "top": 56,
+      "h": 647
+    },
+    "h1": "Saha · grup durumu ve öncelikler",
+    "h2ler": [],
+    "fonts": [
+      "JetBrains Mono",
+      "Barlow Condensed",
+      "Inter"
+    ],
+    "ariaCurrent": 1,
+    "tablolar": 0,
+    "svg": 0,
+    "dugmeler": 56,
+    "metin11alti": 61
+  },
+  "saha 1440x1080": {
+    "scrollH": 1340,
+    "vpH": 1080,
+    "vpW": 1440,
+    "yon": "b",
+    "header": {
+      "top": 0,
+      "h": 56
+    },
+    "nav": {
+      "top": 0,
+      "h": 55
+    },
+    "main": {
+      "top": 56,
+      "h": 1284
+    },
+    "footer": null,
+    "alan": {
+      "top": 56,
+      "h": 648
+    },
+    "dikkat": {
+      "top": 56,
+      "h": 647
+    },
+    "katman": {
+      "top": 56,
+      "h": 647
+    },
+    "serit": {
+      "top": 795,
+      "h": 203
+    },
+    "bant": {
+      "top": 998,
+      "h": 342
+    },
+    "kpi": {
+      "top": 704,
+      "h": 91
+    },
+    "egilim": null,
+    "takim": {
+      "top": 56,
+      "h": 647
+    },
+    "h1": "Saha · grup durumu ve öncelikler",
+    "h2ler": [],
+    "fonts": [
+      "JetBrains Mono",
+      "Barlow Condensed",
+      "Inter"
+    ],
+    "ariaCurrent": 1,
+    "tablolar": 0,
+    "svg": 0,
+    "dugmeler": 56,
+    "metin11alti": 61
+  },
+  "saha 1366x768": {
+    "scrollH": 1340,
+    "vpH": 768,
+    "vpW": 1366,
+    "yon": "b",
+    "header": {
+      "top": 0,
+      "h": 56
+    },
+    "nav": {
+      "top": 0,
+      "h": 55
+    },
+    "main": {
+      "top": 56,
+      "h": 1284
+    },
+    "footer": null,
+    "alan": {
+      "top": 56,
+      "h": 648
+    },
+    "dikkat": {
+      "top": 56,
+      "h": 647
+    },
+    "katman": {
+      "top": 56,
+      "h": 647
+    },
+    "serit": {
+      "top": 795,
+      "h": 203
+    },
+    "bant": {
+      "top": 998,
+      "h": 342
+    },
+    "kpi": {
+      "top": 704,
+      "h": 91
+    },
+    "egilim": null,
+    "takim": {
+      "top": 56,
+      "h": 647
+    },
+    "h1": "Saha · grup durumu ve öncelikler",
+    "h2ler": [],
+    "fonts": [
+      "JetBrains Mono",
+      "Barlow Condensed",
+      "Inter"
+    ],
+    "ariaCurrent": 1,
+    "tablolar": 0,
+    "svg": 0,
+    "dugmeler": 56,
+    "metin11alti": 61
+  },
+  "saha 1280x800": {
+    "scrollH": 1340,
+    "vpH": 800,
+    "vpW": 1280,
+    "yon": "b",
+    "header": {
+      "top": 0,
+      "h": 56
+    },
+    "nav": {
+      "top": 0,
+      "h": 55
+    },
+    "main": {
+      "top": 56,
+      "h": 1284
+    },
+    "footer": null,
+    "alan": {
+      "top": 56,
+      "h": 648
+    },
+    "dikkat": {
+      "top": 56,
+      "h": 647
+    },
+    "katman": {
+      "top": 56,
+      "h": 647
+    },
+    "serit": {
+      "top": 795,
+      "h": 203
+    },
+    "bant": {
+      "top": 998,
+      "h": 342
+    },
+    "kpi": {
+      "top": 704,
+      "h": 91
+    },
+    "egilim": null,
+    "takim": {
+      "top": 56,
+      "h": 647
+    },
+    "h1": "Saha · grup durumu ve öncelikler",
+    "h2ler": [],
+    "fonts": [
+      "JetBrains Mono",
+      "Barlow Condensed",
+      "Inter"
+    ],
+    "ariaCurrent": 1,
+    "tablolar": 0,
+    "svg": 0,
+    "dugmeler": 56,
+    "metin11alti": 61
+  },
+  "saha 1024x768": {
+    "scrollH": 2687,
+    "vpH": 768,
+    "vpW": 1024,
+    "yon": "b",
+    "header": {
+      "top": 0,
+      "h": 56
+    },
+    "nav": {
+      "top": 0,
+      "h": 55
+    },
+    "main": {
+      "top": 56,
+      "h": 2631
+    },
+    "footer": null,
+    "alan": {
+      "top": 56,
+      "h": 1844
+    },
+    "dikkat": {
+      "top": 56,
+      "h": 535
+    },
+    "katman": {
+      "top": 1228,
+      "h": 672
+    },
+    "serit": {
+      "top": 2003,
+      "h": 203
+    },
+    "bant": {
+      "top": 2206,
+      "h": 481
+    },
+    "kpi": {
+      "top": 1900,
+      "h": 103
+    },
+    "egilim": null,
+    "takim": {
+      "top": 591,
+      "h": 636
+    },
+    "h1": "Saha · grup durumu ve öncelikler",
+    "h2ler": [],
+    "fonts": [
+      "JetBrains Mono",
+      "Barlow Condensed",
+      "Inter"
+    ],
+    "ariaCurrent": 1,
+    "tablolar": 0,
+    "svg": 0,
+    "dugmeler": 56,
+    "metin11alti": 61
+  },
+  "/portfoy": {
+    "scrollH": 2667,
+    "vpH": 768,
+    "vpW": 1366,
+    "yon": "b",
+    "header": {
+      "top": 0,
+      "h": 56
+    },
+    "nav": {
+      "top": 0,
+      "h": 55
+    },
+    "main": {
+      "top": 56,
+      "h": 2611
+    },
+    "footer": null,
+    "alan": null,
+    "dikkat": null,
+    "katman": null,
+    "serit": null,
+    "bant": null,
+    "kpi": null,
+    "egilim": null,
+    "takim": null,
+    "h1": "Enerji portföyü · üretim · 16 santral · 643 MWe",
+    "h2ler": [
+      "Kızıldere III JES"
+    ],
+    "fonts": [
+      "JetBrains Mono",
+      "Barlow Condensed",
+      "Inter"
+    ],
+    "ariaCurrent": 1,
+    "tablolar": 0,
+    "svg": 0,
+    "dugmeler": 36,
+    "metin11alti": 81,
+    "status": 200
+  },
+  "/tesisler/cmtkftdpj0007qksiq8mpslu4": {
+    "scrollH": 1389,
+    "vpH": 768,
+    "vpW": 1366,
+    "yon": "b",
+    "header": {
+      "top": 0,
+      "h": 56
+    },
+    "nav": {
+      "top": 0,
+      "h": 55
+    },
+    "main": {
+      "top": 56,
+      "h": 1333
+    },
+    "footer": null,
+    "alan": null,
+    "dikkat": null,
+    "katman": null,
+    "serit": {
+      "top": 1250,
+      "h": 139
+    },
+    "bant": null,
+    "kpi": null,
+    "egilim": null,
+    "takim": null,
+    "h1": "KIZILDEREI JES",
+    "h2ler": [],
+    "fonts": [
+      "JetBrains Mono",
+      "Barlow Condensed",
+      "Inter"
+    ],
+    "ariaCurrent": 1,
+    "tablolar": 0,
+    "svg": 0,
+    "dugmeler": 29,
+    "metin11alti": 44,
+    "status": 200
+  },
+  "/uyum": {
+    "scrollH": 1572,
+    "vpH": 768,
+    "vpW": 1366,
+    "yon": "c",
+    "header": {
+      "top": 0,
+      "h": 122
+    },
+    "nav": {
+      "top": 86,
+      "h": 20
+    },
+    "main": {
+      "top": 207,
+      "h": 1308
+    },
+    "footer": null,
+    "alan": null,
+    "dikkat": null,
+    "katman": null,
+    "serit": null,
+    "bant": null,
+    "kpi": null,
+    "egilim": null,
+    "takim": null,
+    "h1": "Nerede uygunsuz, ve neden?",
+    "h2ler": [],
+    "fonts": [
+      "IBM Plex Mono",
+      "Newsreader",
+      "Inter",
+      "Arial"
+    ],
+    "ariaCurrent": 5,
+    "tablolar": 0,
+    "svg": 0,
+    "dugmeler": 111,
+    "metin11alti": 45,
+    "status": 200
+  },
+  "/envanter": {
+    "scrollH": 1138,
+    "vpH": 768,
+    "vpW": 1366,
+    "yon": "a",
+    "header": {
+      "top": 0,
+      "h": 52
+    },
+    "nav": {
+      "top": 0,
+      "h": 51
+    },
+    "main": {
+      "top": 52,
+      "h": 1056
+    },
+    "footer": {
+      "top": 1078,
+      "h": 30
+    },
+    "alan": null,
+    "dikkat": null,
+    "katman": null,
+    "serit": null,
+    "bant": null,
+    "kpi": null,
+    "egilim": null,
+    "takim": null,
+    "h1": "Varlık zihni",
+    "h2ler": [],
+    "fonts": [
+      "IBM Plex Mono",
+      "Inter Tight",
+      "Archivo"
+    ],
+    "ariaCurrent": 2,
+    "tablolar": 0,
+    "svg": 0,
+    "dugmeler": 47,
+    "metin11alti": 27,
+    "status": 200
+  },
+  "/riskler": {
+    "scrollH": 1283,
+    "vpH": 768,
+    "vpW": 1366,
+    "yon": "c",
+    "header": {
+      "top": 0,
+      "h": 122
+    },
+    "nav": {
+      "top": 86,
+      "h": 20
+    },
+    "main": {
+      "top": 207,
+      "h": 1020
+    },
+    "footer": null,
+    "alan": null,
+    "dikkat": null,
+    "katman": null,
+    "serit": null,
+    "bant": null,
+    "kpi": null,
+    "egilim": null,
+    "takim": null,
+    "h1": "5 kritik risk açık",
+    "h2ler": [],
+    "fonts": [
+      "IBM Plex Mono",
+      "Newsreader",
+      "Inter"
+    ],
+    "ariaCurrent": 3,
+    "tablolar": 0,
+    "svg": 0,
+    "dugmeler": 94,
+    "metin11alti": 26,
+    "status": 200
+  },
+  "/bulgular": {
+    "scrollH": 1114,
+    "vpH": 768,
+    "vpW": 1366,
+    "yon": "c",
+    "header": {
+      "top": 0,
+      "h": 122
+    },
+    "nav": {
+      "top": 86,
+      "h": 20
+    },
+    "main": {
+      "top": 207,
+      "h": 851
+    },
+    "footer": null,
+    "alan": null,
+    "dikkat": null,
+    "katman": null,
+    "serit": null,
+    "bant": null,
+    "kpi": null,
+    "egilim": null,
+    "takim": null,
+    "h1": "2 bulgu takıldı",
+    "h2ler": [],
+    "fonts": [
+      "IBM Plex Mono",
+      "Newsreader",
+      "Inter"
+    ],
+    "ariaCurrent": 3,
+    "tablolar": 0,
+    "svg": 0,
+    "dugmeler": 57,
+    "metin11alti": 23,
+    "status": 200
+  },
+  "/denetimler": {
+    "scrollH": 935,
+    "vpH": 768,
+    "vpW": 1366,
+    "yon": "c",
+    "header": {
+      "top": 0,
+      "h": 122
+    },
+    "nav": {
+      "top": 86,
+      "h": 20
+    },
+    "main": {
+      "top": 207,
+      "h": 671
+    },
+    "footer": null,
+    "alan": null,
+    "dikkat": null,
+    "katman": null,
+    "serit": null,
+    "bant": null,
+    "kpi": null,
+    "egilim": null,
+    "takim": null,
+    "h1": "1 denetim takvimini tutmuyor",
+    "h2ler": [],
+    "fonts": [
+      "IBM Plex Mono",
+      "Newsreader",
+      "Inter"
+    ],
+    "ariaCurrent": 3,
+    "tablolar": 0,
+    "svg": 0,
+    "dugmeler": 64,
+    "metin11alti": 27,
+    "status": 200
+  },
+  "/topoloji": {
+    "scrollH": 1336,
+    "vpH": 768,
+    "vpW": 1366,
+    "yon": "a",
+    "header": {
+      "top": 0,
+      "h": 52
+    },
+    "nav": {
+      "top": 0,
+      "h": 51
+    },
+    "main": {
+      "top": 52,
+      "h": 1254
+    },
+    "footer": {
+      "top": 1306,
+      "h": 30
+    },
+    "alan": null,
+    "dikkat": null,
+    "katman": null,
+    "serit": null,
+    "bant": null,
+    "kpi": null,
+    "egilim": null,
+    "takim": null,
+    "h1": "2 kritik sapma karar bekliyor",
+    "h2ler": [],
+    "fonts": [
+      "IBM Plex Mono",
+      "Inter Tight",
+      "Archivo"
+    ],
+    "ariaCurrent": 2,
+    "tablolar": 0,
+    "svg": 0,
+    "dugmeler": 43,
+    "metin11alti": 25,
+    "status": 200
+  },
+  "/saglik": {
+    "scrollH": 1202,
+    "vpH": 768,
+    "vpW": 1366,
+    "yon": "a",
+    "header": {
+      "top": 0,
+      "h": 52
+    },
+    "nav": {
+      "top": 0,
+      "h": 51
+    },
+    "main": {
+      "top": 52,
+      "h": 1120
+    },
+    "footer": {
+      "top": 1172,
+      "h": 30
+    },
+    "alan": null,
+    "dikkat": null,
+    "katman": null,
+    "serit": null,
+    "bant": null,
+    "kpi": null,
+    "egilim": null,
+    "takim": null,
+    "h1": "14 kaynak hiç ölçülmedi",
+    "h2ler": [],
+    "fonts": [
+      "IBM Plex Mono",
+      "Inter Tight",
+      "Archivo"
+    ],
+    "ariaCurrent": 2,
+    "tablolar": 0,
+    "svg": 0,
+    "dugmeler": 48,
+    "metin11alti": 25,
+    "status": 200
+  },
+  "/projeler": {
+    "scrollH": 1027,
+    "vpH": 768,
+    "vpW": 1366,
+    "yon": "c",
+    "header": {
+      "top": 0,
+      "h": 122
+    },
+    "nav": {
+      "top": 86,
+      "h": 20
+    },
+    "main": {
+      "top": 207,
+      "h": 764
+    },
+    "footer": null,
+    "alan": null,
+    "dikkat": null,
+    "katman": null,
+    "serit": null,
+    "bant": null,
+    "kpi": null,
+    "egilim": null,
+    "takim": null,
+    "h1": "3 proje riskte",
+    "h2ler": [],
+    "fonts": [
+      "IBM Plex Mono",
+      "Newsreader",
+      "Inter"
+    ],
+    "ariaCurrent": 3,
+    "tablolar": 0,
+    "svg": 0,
+    "dugmeler": 47,
+    "metin11alti": 28,
+    "status": 200
+  },
+  "/kesif": {
+    "scrollH": 1048,
+    "vpH": 768,
+    "vpW": 1366,
+    "yon": "a",
+    "header": {
+      "top": 0,
+      "h": 52
+    },
+    "nav": {
+      "top": 0,
+      "h": 51
+    },
+    "main": {
+      "top": 52,
+      "h": 966
+    },
+    "footer": {
+      "top": 1018,
+      "h": 30
+    },
+    "alan": null,
+    "dikkat": null,
+    "katman": null,
+    "serit": null,
+    "bant": null,
+    "kpi": null,
+    "egilim": null,
+    "takim": null,
+    "h1": "3 kayıt çakışan eşleşmede",
+    "h2ler": [],
+    "fonts": [
+      "IBM Plex Mono",
+      "Inter Tight",
+      "Archivo"
+    ],
+    "ariaCurrent": 2,
+    "tablolar": 0,
+    "svg": 0,
+    "dugmeler": 45,
+    "metin11alti": 25,
+    "status": 200
+  },
+  "/ayarlar": {
+    "scrollH": 1448,
+    "vpH": 768,
+    "vpW": 1366,
+    "yon": "a",
+    "header": {
+      "top": 0,
+      "h": 52
+    },
+    "nav": {
+      "top": 0,
+      "h": 51
+    },
+    "main": {
+      "top": 52,
+      "h": 1366
+    },
+    "footer": {
+      "top": 1418,
+      "h": 30
+    },
+    "alan": null,
+    "dikkat": null,
+    "katman": null,
+    "serit": null,
+    "bant": null,
+    "kpi": null,
+    "egilim": null,
+    "takim": null,
+    "h1": "Ahmet Terzi hesabı",
+    "h2ler": [
+      "Profil",
+      "Parola",
+      "Oturum",
+      "Yetki",
+      "Bildirim ve görünüm"
+    ],
+    "fonts": [
+      "IBM Plex Mono",
+      "Inter Tight",
+      "Archivo"
+    ],
+    "ariaCurrent": 2,
+    "tablolar": 0,
+    "svg": 0,
+    "dugmeler": 33,
+    "metin11alti": 14,
+    "status": 200
+  },
+  "/yardim": {
+    "scrollH": 3005,
+    "vpH": 768,
+    "vpW": 1366,
+    "yon": "a",
+    "header": {
+      "top": 0,
+      "h": 52
+    },
+    "nav": {
+      "top": 0,
+      "h": 51
+    },
+    "main": {
+      "top": 52,
+      "h": 2923
+    },
+    "footer": {
+      "top": 2975,
+      "h": 30
+    },
+    "alan": null,
+    "dikkat": null,
+    "katman": null,
+    "serit": null,
+    "bant": null,
+    "kpi": null,
+    "egilim": null,
+    "takim": null,
+    "h1": "Bu ekranlar nasıl okunur?",
+    "h2ler": [
+      "Platform nedir",
+      "Okuma anahtarı",
+      "Klavye kısayolları",
+      "Sık sorulanlar",
+      "Destek"
+    ],
+    "fonts": [
+      "IBM Plex Mono",
+      "Inter Tight",
+      "Archivo"
+    ],
+    "ariaCurrent": 2,
+    "tablolar": 1,
+    "svg": 0,
+    "dugmeler": 35,
+    "metin11alti": 4,
+    "status": 200
+  },
+  "/uyum 900": {
+    "scrollH": 1887,
+    "vpH": 700,
+    "vpW": 900,
+    "yon": "c",
+    "header": {
+      "top": 0,
+      "h": 143
+    },
+    "nav": {
+      "top": 107,
+      "h": 20
+    },
+    "main": {
+      "top": 483,
+      "h": 1348
+    },
+    "footer": null,
+    "alan": null,
+    "dikkat": null,
+    "katman": null,
+    "serit": null,
+    "bant": null,
+    "kpi": null,
+    "egilim": null,
+    "takim": null,
+    "h1": "Nerede uygunsuz, ve neden?",
+    "h2ler": [],
+    "fonts": [
+      "IBM Plex Mono",
+      "Newsreader",
+      "Inter",
+      "Arial"
+    ],
+    "ariaCurrent": 5,
+    "tablolar": 0,
+    "svg": 0,
+    "dugmeler": 111,
+    "metin11alti": 45
+  },
+  "/envanter 900": {
+    "scrollH": 1242,
+    "vpH": 700,
+    "vpW": 900,
+    "yon": "a",
+    "header": {
+      "top": 0,
+      "h": 52
+    },
+    "nav": {
+      "top": 0,
+      "h": 51
+    },
+    "main": {
+      "top": 101,
+      "h": 1111
+    },
+    "footer": {
+      "top": 1182,
+      "h": 30
+    },
+    "alan": null,
+    "dikkat": null,
+    "katman": null,
+    "serit": null,
+    "bant": null,
+    "kpi": null,
+    "egilim": null,
+    "takim": null,
+    "h1": "Varlık zihni",
+    "h2ler": [],
+    "fonts": [
+      "IBM Plex Mono",
+      "Inter Tight",
+      "Archivo"
+    ],
+    "ariaCurrent": 2,
+    "tablolar": 0,
+    "svg": 0,
+    "dugmeler": 47,
+    "metin11alti": 27
+  }
+}

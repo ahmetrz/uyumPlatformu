@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { db } from '../db';
-import { yetkiZorunlu, izinVar } from '../erisim';
+import { yetkiZorunlu, izinVar, KAPSAM_SONRA } from '../erisim';
 import { tamam, hata, iz, bosluksuz, type Sonuc } from './ortak';
 
 /* İstisna / waiver (§50): süreli, gerekçeli, ONAYLI. Talep onay merkezine
@@ -14,7 +14,12 @@ export async function istisnaTalep(girdi: {
   maddeDurumuId: string; bitis: string; gerekce: string;
 }): Promise<Sonuc> {
   try {
-    const k = await yetkiZorunlu('uyum', 'yazma');
+    /* İKİ AŞAMALI KAPI (`KAPSAM_SONRA`, bkz. erisim.ts). Kapsam madde
+       durumundan gelir ve okunmadan bilinemez; ön kapı kapsamsız
+       çağrılırsa tesise kısıtlı rol daha ilk adımda reddedilirdi —
+       santral yöneticisi KENDİ santrali için istisna talep edemezdi.
+       Gerçek denetim aşağıda, kayıt okunduktan sonra ve KOŞULSUZ. */
+    const k = await yetkiZorunlu('uyum', 'yazma', KAPSAM_SONRA);
     const v = z.object({
       maddeDurumuId: z.string().min(1),
       bitis: z.string().min(1, 'Bitiş tarihi zorunlu'),

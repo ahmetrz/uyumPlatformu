@@ -8,7 +8,7 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { db } from '../db';
-import { yetkiZorunlu, izinVar } from '../erisim';
+import { yetkiZorunlu, kapsamZorunlu, KAPSAM_SONRA } from '../erisim';
 import { RISK_DURUMLARI } from '../sabitler';
 import { tamam, hata, iz, bosluksuz, type Sonuc } from './ortak';
 
@@ -45,6 +45,16 @@ function skorHesapla(
   return olasilik * Math.max(...bilinen);
 }
 
+/* İKİ AŞAMALI KAPI (`KAPSAM_SONRA`, bkz. erisim.ts). Ön kapı kapsamsız
+   çağrılırsa `kapsamUyar` tesise kısıtlı rolü daha ilk adımda reddeder:
+   ekran "yazabilirsin" derken sunucu "yetkiniz yok" der ve santral
+   yöneticisi KENDİ santralinin riskini bile açamaz. Ölçüldü; `risk.ts`
+   test görmediği için görünmüyordu.
+
+   Ön kapı yalnız "bu modülde bu işlem için bir rolü var mı" sorusunu
+   yanıtlar; gerçek kapsam denetimi kayıt/girdi okunduktan sonra
+   `kapsamZorunlu` ile yapılır ve ATLANAMAZ. */
+
 /** Risk oluştur/güncelle. Doğal ve artık risk skoru otomatik hesaplanır. */
 export async function riskKaydet(girdi: {
   id?: string; kod: string; baslik: string; aciklama: string;
@@ -58,10 +68,9 @@ export async function riskKaydet(girdi: {
   durum?: string;
 }): Promise<Sonuc> {
   try {
-    const k = await yetkiZorunlu('risk', 'yazma');
+    const k = await yetkiZorunlu('risk', 'yazma', KAPSAM_SONRA);
     const v = RiskGirdisi.parse(girdi);
-    if (v.tesisId && !izinVar(k, 'risk', 'yazma', { tesisId: v.tesisId }))
-      throw new Error('Bu tesis kapsamında risk yazma yetkiniz yok');
+    kapsamZorunlu(k, 'risk', 'yazma', { tesisId: v.tesisId }, 'Bu tesis kapsamında risk yazma yetkiniz yok');
 
     const skor = skorHesapla(v.olasilik, [
       v.etkiUretim, v.etkiEmniyet, v.etkiRegulasyon, v.etkiFinans,
@@ -84,8 +93,7 @@ export async function riskKaydet(girdi: {
     if (v.id) {
       const eski = await db.risk.findUnique({ where: { id: v.id } });
       if (!eski) throw new Error('Risk bulunamadı');
-      if (eski.tesisId && !izinVar(k, 'risk', 'yazma', { tesisId: eski.tesisId }))
-        throw new Error('Bu tesis kapsamında risk yazma yetkiniz yok');
+      kapsamZorunlu(k, 'risk', 'yazma', { tesisId: eski.tesisId }, 'Bu tesis kapsamında risk yazma yetkiniz yok');
       await db.risk.update({ where: { id: v.id }, data: { ...veri, durum: v.durum ?? eski.durum } });
       await iz({
         aktorId: k.id, varlikTipi: 'Risk', varlikId: v.id, eylem: 'guncelleme',
@@ -111,7 +119,7 @@ export async function riskIslem(girdi: {
   id: string; islemTipi: string; gerekce?: string | null;
 }): Promise<Sonuc> {
   try {
-    const k = await yetkiZorunlu('risk', 'yazma');
+    const k = await yetkiZorunlu('risk', 'yazma', KAPSAM_SONRA);
     const v = z.object({
       id: z.string(),
       islemTipi: z.enum(['azalt', 'kacin', 'devret'], 'Geçersiz işlem tipi'),
@@ -121,8 +129,7 @@ export async function riskIslem(girdi: {
     }).parse(girdi);
     const risk = await db.risk.findUnique({ where: { id: v.id } });
     if (!risk) throw new Error('Risk bulunamadı');
-    if (risk.tesisId && !izinVar(k, 'risk', 'yazma', { tesisId: risk.tesisId }))
-      throw new Error('Bu tesis kapsamında risk yazma yetkiniz yok');
+    kapsamZorunlu(k, 'risk', 'yazma', { tesisId: risk.tesisId }, 'Bu tesis kapsamında risk yazma yetkiniz yok');
 
     await db.risk.update({ where: { id: v.id }, data: {
       islemTipi: v.islemTipi, islemTarihi: new Date(),
@@ -144,7 +151,7 @@ export async function riskKabul(girdi: {
   id: string; kabulBitis: string; gerekce: string;
 }): Promise<Sonuc> {
   try {
-    const k = await yetkiZorunlu('risk', 'onay');
+    const k = await yetkiZorunlu('risk', 'onay', KAPSAM_SONRA);
     const v = z.object({
       id: z.string(),
       kabulBitis: z.string().min(1, 'Kabul bitiş tarihi zorunlu')
@@ -155,8 +162,7 @@ export async function riskKabul(girdi: {
     }).parse(girdi);
     const risk = await db.risk.findUnique({ where: { id: v.id } });
     if (!risk) throw new Error('Risk bulunamadı');
-    if (risk.tesisId && !izinVar(k, 'risk', 'onay', { tesisId: risk.tesisId }))
-      throw new Error('Bu tesis kapsamında risk kabul onayı yetkiniz yok');
+    kapsamZorunlu(k, 'risk', 'onay', { tesisId: risk.tesisId }, 'Bu tesis kapsamında risk kabul onayı yetkiniz yok');
 
     await db.risk.update({ where: { id: v.id }, data: {
       islemTipi: 'kabul', islemTarihi: new Date(), kabulBitis: v.kabulBitis,

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { girisZorunlu, izinVar, izinliTesisIdleri } from '@/lib/erisim';
 import { db } from '@/lib/db';
+import { DEMO } from '@/lib/demo';
 import { ilkiniEsle } from '@/lib/sorguParcala';
 import EnvanterIstemci from './EnvanterIstemci';
 import type { Bolge, Iliski, Kodlu, Tur, Unite, V } from './mantik';
@@ -35,8 +36,14 @@ export default async function Sayfa({ searchParams }: {
   const k = await girisZorunlu();
   /* Topoloji › Bölgeler çekmecesinden gelen `?bolge=KOD` bağı: liste bu
      kodla ARANMIŞ açılır (bölge kodu arama havuzundadır). Süzgeç durumunun
-     kendisi URL'ye yazılmaz; yalnız başlangıç değeri buradan gelir. */
-  const { bolge } = await searchParams;
+     kendisi URL'ye yazılmaz; yalnız başlangıç değeri buradan gelir.
+
+     STATİK DEMODA OKUNMAZ — demo `output: 'export'` ile derlenir, HTML bir
+     kez üretilir ve arkasında istek gören sunucu yoktur; `dynamic = "error"`
+     altında `await searchParams` derlemeyi KIRAR (bkz. giris/page.tsx'teki
+     aynı not). Demoda bağ yine çalışır, yalnız liste aranmış değil boş
+     süzgeçle açılır. */
+  const { bolge } = DEMO ? { bolge: undefined } : await searchParams;
   const baslangicArama = (Array.isArray(bolge) ? bolge[0] : bolge)?.trim().slice(0, 64) ?? '';
 
   /* `new Date()` sunucuda istek başına bir kez okunur; ömür eşikleri tüm

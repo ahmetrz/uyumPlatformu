@@ -27,22 +27,25 @@ import path from 'node:path';
    YÜKSELTMESİDİR. Bu yüzden ikinci aşama `kapsamZorunlu` ile yapılır;
    o yardımcı kapsamsız kaydı `{}` ile sorar ve kısıtlı rolü reddeder.
 
-   ── AÇIK BORÇ ─────────────────────────────────────────────────────────
-   Kusur ilk ölçüldüğünde 17 çağrı yerindeydi. Hepsini tek seferde
-   düzeltmek, davranış testi olmayan yetki yollarına kör dokunmak olurdu;
-   bu yüzden her biri KENDİ testiyle birlikte kapanıyor. `ACIK_BORC`
-   kapanmamışların kütüğüdür ve bu test onu iki yönden kilitler:
+   ── AÇIK BORÇ: KAPANDI ────────────────────────────────────────────────
+   Kusur ilk ölçüldüğünde 17 çağrı yerindeydi (2026-09-02). Hepsini tek
+   seferde düzeltmek, davranış testi olmayan yetki yollarına kör dokunmak
+   olurdu; bu yüzden her biri KENDİ davranış testiyle birlikte kapandı —
+   risk · istisna · envanter · keşif · denetim · görev · operasyon ·
+   tedarikçi oturumu · olay · konfigürasyon yedeği.
+
+   `ACIK_BORC` bugün BOŞTUR ve bu test iki yönden kilitli kalır:
      · listede olmayan yeni bir kusur eklenemez,
-     · listede duran bir satır düzeltilince listeden ÇIKARILMAK zorundadır.
-   Yani borç yalnız küçülebilir; sessizce büyüyemez, sessizce unutulamaz.
+     · listeye bir satır konur da düzeltilirse çıkarılmak ZORUNDADIR.
+   Yani liste yalnız küçülebilir. Boş olması, kuralın artık kendiliğinden
+   uygulandığı anlamına GELMEZ: kapı yeni bir eylemde yine unutulabilir,
+   ilk test o gün adıyla söyleyerek düşer.
    ═══════════════════════════════════════════════════════════════════════ */
 
-/** Henüz kapatılmamış çağrı yerleri: `dosya · fonksiyon`. Yalnız küçülür. */
-const ACIK_BORC = new Set([
-  'konfigYedek.ts · varlikYedekDurumu',
-  'konfigYedek.ts · yedegeErisim',
-  'olay.ts · olayKapisi',
-]);
+/** Kapatılmamış çağrı yerleri: `dosya · fonksiyon`. **BUGÜN BOŞ.**
+    Boş kalması bir başarı değil, bir SÖZDÜR: yeni bir kapsamsız ön kapı
+    eklenirse aşağıdaki ilk test onu adıyla söyleyerek düşer. */
+const ACIK_BORC = new Set<string>([]);
 
 const DIZIN = path.join(process.cwd(), 'lib', 'eylemler2');
 
@@ -101,8 +104,9 @@ describe('İki aşamalı kapı — uygulanmış mı', () => {
       .toEqual([]);
   });
 
-  it('borç yalnız küçülür — bugünkü sayı kayıt altındadır', () => {
-    // Sayı düşerse bu satır da düşer; yükselirse yukarıdaki ilk test patlar.
-    expect(ACIK_BORC.size).toBeLessThanOrEqual(3);
+  it('borç KAPANDI ve kapalı kalır', () => {
+    // Bir gün yeniden borç yazmak gerekirse bu satır bilinçli olarak
+    // değiştirilir; kazayla büyümesi mümkün değildir.
+    expect([...ACIK_BORC]).toEqual([]);
   });
 });

@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { db } from '../db';
-import { yetkiZorunlu, izinVar } from '../erisim';
+import { yetkiZorunlu, izinVar, kapsamZorunlu, KAPSAM_SONRA } from '../erisim';
 import {
   etkiOnerisiUret, oneriOku, dayanak,
   ETKI_ALANLARI, ETKI_ALAN_ETIKET, SEVIYE_ETIKET, SEVIYE_KUMESI,
@@ -51,7 +51,10 @@ const BAG_ETIKET: Record<BagTipi, string> = {
 /** Olayı ve kapsam yetkisini birlikte çözer. Olayın tesisi varsa kapsam
     kontrolü ZORUNLU: başka santralin olayına yazılamaz. */
 async function olayKapisi(olayId: string, modul: 'envanter' | 'yonetim', islem: 'yazma' | 'onay') {
-  const k = await yetkiZorunlu(modul, islem);
+  /* İKİ AŞAMALI KAPI (`KAPSAM_SONRA`, bkz. erisim.ts): olayın santrali
+     kayıt okunmadan bilinemez. Ön kapı kapsamsız çağrılırsa tesise kısıtlı
+     rol daha ilk adımda reddedilir ve kendi sahasının olayına dokunamaz. */
+  const k = await yetkiZorunlu(modul, islem, KAPSAM_SONRA);
   const olay = await db.olay.findUnique({
     where: { id: olayId },
     select: {
@@ -61,8 +64,11 @@ async function olayKapisi(olayId: string, modul: 'envanter' | 'yonetim', islem: 
     },
   });
   if (!olay) throw new Error('Olay bulunamadı');
-  if (olay.tesisId && !izinVar(k, modul, islem, { tesisId: olay.tesisId }))
-    throw new Error('Bu santral kapsamında yetkiniz yok');
+  /* KOŞULSUZ: santrali olmayan olay kurumsaldır ve kapsamsız yetki ister.
+     "Santral yoksa atla" yazılsaydı, tesise kısıtlı rol kurumun bütün
+     santralsiz olaylarını düzenleyebilirdi. */
+  kapsamZorunlu(k, modul, islem, { tesisId: olay.tesisId },
+    'Bu santral kapsamında yetkiniz yok');
   return { k, olay };
 }
 

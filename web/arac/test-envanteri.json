@@ -1,7 +1,7 @@
 {
-  "imza": "7eee02cbb5bb0e5a4afb254529925d0f",
-  "dosya": 78,
-  "vaka": 1421,
+  "imza": "4c2d452674d73a299ee149b05ba31d73",
+  "dosya": 79,
+  "vaka": 1440,
   "atlanan": 1,
   "dosyalar": {
     "tests/api.test.ts": {
@@ -194,6 +194,10 @@
     },
     "tests/olay-etki.test.ts": {
       "vaka": 22,
+      "atlanan": 0
+    },
+    "tests/olay-konfigyedek-eylem.test.ts": {
+      "vaka": 19,
       "atlanan": 0
     },
     "tests/operasyon-mantik.test.ts": {

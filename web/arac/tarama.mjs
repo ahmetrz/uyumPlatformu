@@ -19,6 +19,8 @@ import { chromium } from 'playwright-core';
 import { readFileSync, writeFileSync } from 'node:fs';
 
 const KOK = `http://localhost:${process.env.PORT || 3000}`;
+/* Eski KOD ADLARI (`atlas`, `shell`) bilerek listede: kapının işi onların
+   geri sızmasını yakalamak. Çıkarılırlarsa kapı körleşir. */
 const ESKI_SINIFLAR = [
   'tbl', 'tbl-satir', 'tbl-bas', 'tbl-konu', 'tbl-alt', 'tbl-hucre', 'tbl-ok',
   'cekmece', 'cekmece-blok', 'cekmece-alan', 'cekmece-dip', 'cekmece-bagli',

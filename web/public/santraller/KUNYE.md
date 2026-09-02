@@ -1,6 +1,6 @@
 # Santral Görselleri Künyesi
 
-`atlas/santral/` (hero, 1672×941) ve `atlas/kucuk/` (seçici, 240×150) altındaki
+`santraller/genis/` (hero, 1672×941) ve `santraller/kucuk/` (seçici, 240×150) altındaki
 santral görselleri Ahmet Terzi tarafından 2026-09-01'de sağlandı; platformda
 **temsilî** santral görselleri olarak kullanılır. Santral → anahtar eşlemesi
 veride (`Tesis.gorselAnahtari`), anahtar → dosya eşlemesi `lib/gorsel.ts`'de yaşar.

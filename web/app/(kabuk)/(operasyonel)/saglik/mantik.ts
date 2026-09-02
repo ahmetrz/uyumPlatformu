@@ -873,7 +873,7 @@ export function kaynakToplanabilir(k: KaynakSatiri): boolean {
 }
 
 /** Ortalama güven metni. `null` ölçülmedi demektir; "%0" YAZILMAZ.
-    Tek kaydın güveni için `components/atlas/Koken.tsx` → `guvenYazisi`
+    Tek kaydın güveni için eski köken bileşenindeki `guvenYazisi`
     kullanılır; bu ad çakışmasın diye ayrıdır. */
 export function ortalamaGuvenYazisi(guven: number | null): string {
   if (guven === null) return 'ölçülmedi';

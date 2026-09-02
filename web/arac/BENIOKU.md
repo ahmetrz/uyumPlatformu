@@ -4,29 +4,6 @@ Zorlu Enerji Yönetişim Platformu arayüzünün görsel kalite kapısı (tasar�
 sistemi: `../DESIGN.md`, prototip → uygulama haritası:
 `../../ORIGINAL_DESIGN_IMPLEMENTATION_MAP.md`). Üretim kodu değildir; derlemeye girmez.
 
-## `referans-yakala.mjs`
-
-**Tarihsel araç.** Önceki tasarım teslim paketinin (handoff) dosyalarından
-**referans artboard'larını** yakalamak için yazıldı; o paket depoda değildir ve
-ürünün güncel görsel referansı on iki HTML prototipidir (depoda tutulmuyor,
-bkz. `../../ORIGINAL_DESIGN_IMPLEMENTATION_MAP.md`). Betikteki dosya adları
-paketin kendi adlarıdır; ürün adıyla ilgisi yoktur.
-
-Tasarım dosyaları `<x-dc>` + `support.js` runtime'ı kullanır ve ham işaretlemeyi
-`x-dc{display:none}` ile gizler. README zaten "support.js'i tamamen at" dediği için
-dosyalar önce düz HTML'e çevrilir (`design/duz/`), sonra her 1440px'lik artboard
-ayrı PNG olarak alınır.
-
-```bash
-# 1) handoff paketini bir HTTP sunucusunda ver (fontlar da yanında olmalı)
-cd <handoff>/design_handoff_energy_operations_atlas && python3 -m http.server 3400
-# 2) yakala
-OUT=/yol/referans node arac/referans-yakala.mjs
-```
-
-Google Fonts sanal makineden erişilemediği için yerel `public/fontlar/*.woff2`
-enjekte edilir — referanslar doğru tipografiyle çıkar.
-
 ## `kare.mjs`
 
 Çalışan uygulamadan ekran görüntüsü alır; her karede kullanılan font ailesini,

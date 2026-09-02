@@ -7,7 +7,7 @@
    boş kalır. Kimse hata görmez; tasarım yanlış görünür ve bunu ancak
    birisi gözüyle fark ederse öğreniriz.
 
-   Tam olarak bu oldu: `app/kabuk.css` (öncesinde `atlas.css`) mutlak
+   Tam olarak bu oldu: `app/kabuk.css` (öncesinde ayrı bir stil dosyası) mutlak
    `url('/fontlar/…')` yazıyordu, site ise `/uyumPlatformu/` altında
    sunuluyordu. Ölçüldü — `…github.io/fontlar/archivo-latin.woff2` 404,
    `…github.io/uyumPlatformu/fontlar/archivo-latin.woff2` 200. Yayınlanan

@@ -31,6 +31,13 @@ PAM/VPN/tedarikçi oturum sistemi, herhangi bir kurum içi API — hiçbirine
 erişilmez. **Gerçek endpoint, credential, secret veya token uydurulmaz.**
 Şirket içi veri kullanılmaz. Üründeki bütün veri seed'dir.
 
+**Koyu tema.** Bütün ekranlar koyu temadır; açık temaya geçiş yoktur.
+
+**Santral görselleri temsilîdir ve ödünç alınmaz.** Görsel seti Ahmet'in
+sağladığı fotoğraflardır (`public/santraller/KUNYE.md`). Fotoğrafı olmayan
+santrale **başka bir santralin görseli konmaz**; tipografik fallback alır.
+Üretim tipleri de birbirinin yerine geçmez.
+
 **Bilinmeyen ≠ sıfır.** Ölçülmemiş bir değer sıfır olarak gösterilmez,
 ortalamaya çekilmez, tahmin edilmez. Ekran "ölçülmedi" der.
 

@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 
 /* ═══════════════════════════════════════════════════════════════════════
-   ATLAS 2 KABUĞU · PR #1 İNCELEME KUSURLARI
+   KABUK · PR #1 İNCELEME KUSURLARI
 
    Üç bulgu burada donduruldu. Hepsi "kabuk her ekranda çizilir" olgusundan
    doğuyor: kabukta yapılan bir hata tek ekranın değil, ÜRÜNÜN hatasıdır.

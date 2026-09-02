@@ -16,7 +16,7 @@ import {
 /* Veri kökeni çekmeceleri — "bu kaydı nereden biliyoruz?" (§12 + §18)
 
    Köken katmanı yazılmıştı ama hiçbir ekrana monte edilmemişti:
-   `components/atlas/Koken.tsx` bileşenlerini kimse import etmiyordu,
+   Silinmiş köken rozeti bileşenlerini kimse import etmiyordu,
    `lib/entegrasyon/kokenRapor.ts` yalnız testlerde koşuyordu ve
    `lib/eylemler2/koken.ts` eylemlerinin çağıranı yoktu. Burası o üç
    katmanın buluştuğu yer.

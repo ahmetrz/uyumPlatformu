@@ -167,10 +167,28 @@ güvenlik sınırının öbür tarafındadır.
 **11. `?next=` üreticisi** — giriş sayfasındaki kapı güvenli ve çalışıyor,
 ama parametreyi üreten taraf yok; middleware/proxy kararı ayrı bir iş.
 
-**12. `public/atlas/` dizin adı** — eski kod adının son kalıntısı. Yayın
-URL'lerini değiştireceği için ayrı bir PR'a bırakıldı.
+**12. ~~`public/atlas/` dizin adı~~ KALKTI.** Dizin `public/santraller/`
+oldu (`santral/` → `genis/`, `portfolio-triptych.webp` →
+`notr-triptik.webp`); yollar yalnız `lib/gorsel.ts` içinde üretildiği için
+değişiklik tek dosyada kaldı. Yayın URL'leri değişti: eski
+`/atlas/santral/*.webp` bağları artık 404 döner.
 
 **13. `.abacus.donotdelete`** — şifreli blob, dokunulmadı.
+
+**14. Yedi santralin hero görseli yok.** Fotoğrafı olmayanlar: Tercan HES
+(küçük görseli var, hero'su yok), Sarıtepe RES, Demirciler RES, Ataköy
+HES, Alaşehir Hibrit GES, Lüleburgaz DGKÇ, Zorlu Center. Hepsi tipografik
+fallback alıyor; **başka bir santralin görseli dolgu amacıyla
+kullanılmaz** (`lib/gorsel.ts` §1, `public/santraller/KUNYE.md`).
+Ahmet beş temsilî görsel sağladığında eşleme önerisi hazırdır — büyük
+beton baraj → Tercan, sırt türbinleri → Sarıtepe, doğalgaz kombine çevrim
+→ Lüleburgaz, jeotermal + güneş → Alaşehir Hibrit GES, küçük gövde →
+Ataköy. Demirciler RES ve Zorlu Center o beşle de kapanmaz.
+
+**15. Haritada ülke sınırı çizilmiyor.** Tuval şu an yalnız işaretleri ve
+enlem/boylam çerçevesini çiziyor. Doğrulanmış bir GeoJSON eklenirse tuval
+onu okur ve yerleşim değişmez; veri dosyası kararı verilmedi. Uydurma
+sınır çizilmedi.
 
 ---
 

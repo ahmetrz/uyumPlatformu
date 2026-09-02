@@ -7,32 +7,39 @@ import type {
 } from './veri';
 
 /* ═══════════════════════════════════════════════════════════════════════
-   SAHA — B · ENERGY INTELLIGENCE
+   SAHA — ANA EKRAN · ENERGY INTELLIGENCE
 
-   Görsel source of truth: `b-executive.html`
-   (ORIGINAL_DESIGN_IMPLEMENTATION_MAP.md §2).
+   Görsel kök: `b-executive.html` (ORIGINAL_DESIGN_IMPLEMENTATION_MAP.md §2);
+   Eylül 2026 UX denetimi (docs/UX_DENETIM_2026-09.md §6–§8) ölçüsünü
+   yeniden kurdu.
 
-   Prototipin grameri: 648px koyu fotoğrafik alan, üzerinde SOLDA 430px
-   dikkat paneli, SAĞDA 320px katman paneli; altında altı kartlık saha
-   şeridi; en altta 430px düzenleyici takvim + akış bandı. Ray YOKTUR;
-   gezinme kabuğun 56px sekme çubuğundadır.
+   ── TEK EKRAN SÖZLEŞMESİ ──────────────────────────────────────────────
+   1366×768 / 1440×900 / 1280×800'de `scrollHeight === innerHeight`:
+   kritik içerik VE santral şeridi aynı anda görünür. Denetim ölçtü:
+   eski ekran 1340px'ti, şerit 795px'te başlıyordu — üç çözünürlükte de
+   santral görselleri ilk ekranın altındaydı. Yükseklik bütçesi CSS'te
+   (`.ab-b-saha.ab-b-genel` ızgarası: `minmax(0,1fr) auto auto`), içerik ondan taşmaz.
 
-   ── PROTOTİPTEN AYRILAN TEK NOKTA VE NEDENİ ───────────────────────────
+   Bunun için EKRANDAN ÇIKANLAR (uzman ekranlarında yaşamaya devam eder):
+   · 5×5 risk ısı haritası → /riskler (Risk artık kendi alanı);
+     yerinde tek satırlık özet kaldı: "N kritik · M yüksek · K ölçülemedi".
+   · 90 günlük düzenleyici takvim → /denetimler (yaklaşan denetim KPI'da).
+   · 12 haftalık uygunsuzluk akışı → /bulgular.
+   `veri.ts` bu üçünü hesaplamaya devam eder (iş mantığı değişmedi);
+   bileşen yalnız çizmez.
+
+   ── PROTOTİPTEN AYRILAN NOKTA VE NEDENİ ───────────────────────────────
    Prototipin merkezinde Türkiye haritası ve enlem/boylama oturmuş santral
    işaretçileri var. ŞEMADA KOORDİNAT YOK — `Tesis.konum` serbest metin.
    İşaretçileri göz kararı yerleştirmek, ekranda GERÇEK OLMAYAN bir coğrafya
    çizmek olurdu. Bunun yerine aynı işaretçi grameri (45° döndürülmüş kare,
    kritikte halka, sağında iki satırlık künye) GERÇEK iki eksene oturtuldu:
-   yatay uyum endeksi, dikey kurulu güç. Soru da aynı kalıyor: "hangi büyük
-   santralim zayıf?" Ölçülmemiş santral eksene KONMAZ, altta ayrı listelenir
-   (UNKNOWN ≠ ZERO).
+   yatay uyum endeksi, dikey kurulu güç. Ölçülmemiş santral eksene KONMAZ,
+   yanında kendi şeridinde listelenir (UNKNOWN ≠ ZERO).
 
-   Diğer bölümler prototipin ölçüleriyle birebir; veriler gerçek:
+   Kalan bölümler gerçek veriyle:
    · dikkat listesi = açık/aksiyonda bulgular, öncelik sırasıyla;
    · katmanlar = `TesisTipi` başına `uyumOzeti`;
-   · risk yoğunluğu = 5×5 olasılık × en büyük etki, ölçülemeyen ayrı;
-   · takvim = 90 gün içindeki denetim ve süreç bitişleri;
-   · akış = 12 haftanın açılan/kapanan bulguları;
    · eğilim = `UyumAnlik` kayıtları — yoksa ÇİZİLMEZ.
    ═══════════════════════════════════════════════════════════════════════ */
 
@@ -65,6 +72,9 @@ type Ozet = {
 
 /** Katman panelinde çizilen tip sayısı — kalanı sayıyla söylenir. */
 const KATMAN_TAVANI = 3;
+/** Müdahale listesinde çizilen bulgu sayısı; toplam başlıkta sayıyla durur.
+    1280×800'de dikkat paneline 4 kalem sığar (ölçüldü: kalem 56px). */
+const MUDAHALE_TAVANI = 4;
 
 const ONEM_SINIF: Record<string, string> = {
   kritik: 'bd', yuksek: 'bd', orta: 'md', dusuk: 'pl',
@@ -72,7 +82,7 @@ const ONEM_SINIF: Record<string, string> = {
 
 export default function Genel({
   bugun, ozet, odak, kuyruk, toplamKayit, kapsamli = false,
-  santraller, tipler, risk, takvim, akis, egilim,
+  santraller, tipler, risk, egilim,
 }: {
   kullanici: string;
   /* Sunucuda biçimlendirilmiş tarih. Burada `new Date()` ÇAĞIRMA: bu
@@ -88,14 +98,17 @@ export default function Genel({
   santraller: SantralKarti[];
   tipler: TipKatmani[];
   risk: RiskIzgarasi;
-  takvim: TakvimKalemi[];
-  akis: AkisHaftasi[];
+  /* Sunucu hesaplar, ana ekran ÇİZMEZ (tek ekran sözleşmesi, yukarıda).
+     Prop imzasında kalır: `page.tsx` veriyi olduğu gibi geçer, veri
+     akışı değişmez. */
+  takvim?: TakvimKalemi[];
+  akis?: AkisHaftasi[];
   egilim: { etiket: string; yuzde: number }[] | null;
 }) {
   const dikkat = odak ? [odak, ...kuyruk] : kuyruk;
 
   return (
-    <main className="ab-b-saha">
+    <main className="ab-b-saha ab-b-genel">
       {/* Kök ekranın görünür bir başlığı yok — fotoğrafik alan doğrudan
           açılıyor ve bu bilinçli. Ekran okuyucu için sayfanın adı yine de
           gerekli: başlıksız bir sayfada kullanıcı nerede olduğunu ve
@@ -135,7 +148,7 @@ export default function Genel({
                   ? 'Kapsamındaki santrallerde açık bulgu yok.'
                   : 'Açık bulgu yok.'}
               </p>
-            ) : dikkat.slice(0, 4).map((b, i) => (
+            ) : dikkat.slice(0, MUDAHALE_TAVANI).map((b, i) => (
               <Link key={b.id} href={`/bulgular/${b.id}`} className="kalem">
                 <span className={`sap ${ONEM_SINIF[b.onem] ?? 'pl'}`} aria-hidden />
                 <span className="govde">
@@ -179,16 +192,11 @@ export default function Genel({
               </p>
             )}
           </div>
-
-          <div className="yogunluk">
-            <p className="etiket">Risk yoğunluğu</p>
-            <RiskIzgara izgara={risk} />
-          </div>
         </aside>
       </section>
 
       {/* ═══ Öncelik göstergeleri ══════════════════════════════════════ */}
-      <OncelikSeridi ozet={ozet} olculemeyenRisk={risk.olculemeyen} />
+      <OncelikSeridi ozet={ozet} risk={risk} />
 
       {/* ═══ Saha şeridi ═══════════════════════════════════════════════ */}
       <section className="ab-b-serit" aria-label="Saha seçici">
@@ -197,7 +205,7 @@ export default function Genel({
             Saha seçici · {ozet.tesisSayisi} üretim tesisi · {ozet.toplamGucMw} MWe
           </span>
           <span className="etiket sag">
-            Tesise geçmek için seçin · kapsam tüm uygulamada korunur
+            Tesise geçmek için seçin
             {santraller.length > 6 && ' · yatay kaydırın'}
           </span>
         </header>
@@ -206,47 +214,28 @@ export default function Genel({
         </div>
       </section>
 
-      {/* ═══ Düzenleyici bant ══════════════════════════════════════════ */}
-      <section className="ab-b-bant">
-        <div className="takvim">
-          <p className="etiket">Düzenleyici takvim · 90 gün</p>
-          {takvim.length === 0 ? (
-            <p className="bos">Önümüzdeki 90 günde planlı denetim veya süreç bitişi yok.</p>
-          ) : takvim.slice(0, 6).map((t) => (
-            <Link key={t.id} href={t.yol} className="satir">
-              <span className={`mono gun${t.kalanGun <= 7 ? ' yakin' : ''}`}>
-                {kisaTarih(t.tarih)}
-              </span>
-              <span className="konu">{t.baslik}</span>
-              <span className="mono etiket">{t.etiket}</span>
-              <span className="mono kalan">{t.kalanGun} g</span>
-            </Link>
-          ))}
-        </div>
-        <div className="akis">
-          <div className="bas">
-            <span className="etiket">Uygunsuzluk akışı · açılan / kapanan · 12 hafta</span>
-            <span className="mono net">
-              Net {netIslem(akis) > 0 ? '+' : ''}{netIslem(akis)}
-            </span>
-          </div>
-          <Akis akis={akis} />
-        </div>
-      </section>
     </main>
   );
 }
 
 /* ── Öncelik göstergeleri ─────────────────────────────────────────────
-   `ozet` bu üç sayıyı sunucuda zaten hesaplıyordu; ekranda yazılmıyordu.
-   Üçü de birer BAĞDIR: sayı bir soru, hedef ekran onun cevabı. Sıfır ile
-   "ölçülemedi" karışmasın diye kritik riskin yanına olasılık/etki
+   Kritik risk · gecikmiş aksiyon · yaklaşan denetim · risk yoğunluğu.
+   Dördü de birer BAĞDIR: sayı bir soru, hedef ekran onun cevabı. Sıfır
+   ile "ölçülemedi" karışmasın diye kritik riskin yanına olasılık/etki
    girilmemiş risk sayısı ayrıca yazılır — 0 kritik risk, hiçbir riskin
-   puanlanmadığı bir portföyde güven vermez. */
-function OncelikSeridi({ ozet, olculemeyenRisk }: { ozet: Ozet; olculemeyenRisk: number }) {
+   puanlanmadığı bir portföyde güven vermez.
+
+   Dördüncü kalem eski 5×5 ısı haritasının yerini tutar: matrisin kendisi
+   /riskler'de; burada yalnız üç sayısı (kritik · yüksek · ölçülemedi).
+   Not: "Kritik risk" artık skor ≥ 15 sayar, ısı haritası kritiği
+   olasılık × en büyük etki ≥ 15 sayar — iki farklı tanım, iki farklı
+   kalem; birleştirilmez. */
+function OncelikSeridi({ ozet, risk }: { ozet: Ozet; risk: RiskIzgarasi }) {
   const yaklasan = ozet.yaklasanDenetim;
+  const olculemeyenRisk = risk.olculemeyen;
   /* Yakınlık sözcükle: "≤ 7 gün" alarmı renkten önce metinde durur. */
   const denetimDurumu = yaklasan === null ? 'unk' : yaklasan.kalanGun <= 7 ? 'md' : 'pl';
+  const yogunlukDurumu = risk.kritik > 0 ? 'bd' : risk.yuksek > 0 ? 'md' : olculemeyenRisk > 0 ? 'unk' : 'ok';
   return (
     <section className="ab-kpi" aria-label="Öncelik göstergeleri">
       <Link href="/riskler"
@@ -278,13 +267,30 @@ function OncelikSeridi({ ozet, olculemeyenRisk }: { ozet: Ozet; olculemeyenRisk:
           </>
         ) : (
           <>
-            <span className="deger ad">{yaklasan.ad}</span>
-            <span className="mono cumle">
-              {yaklasan.kod} · {kisaTarih(yaklasan.tarih)} · {yaklasan.kalanGun} gün kaldı
+            {/* Değer gün sayısı (sayı kanalı), ad ve kod cümlede: tek ekran
+                bütçesinde 62px'lik kalemde uzun denetim adı kırpılıyordu
+                (ölçüldü: "ISO 27001 Gö…" 1366'da). Ad tam yazılır, gerekirse
+                cümle sonu kırpılır — sayı hiç kırpılmaz. */}
+            <span className="mono deger">
+              {yaklasan.kalanGun}<span className="birim"> gün</span>
+            </span>
+            <span className="cumle">
+              {yaklasan.ad} · <span className="mono">{yaklasan.kod} · {kisaTarih(yaklasan.tarih)}</span>
               {yaklasan.kalanGun <= 7 && ' · yakın'}
             </span>
           </>
         )}
+      </Link>
+      <Link href="/riskler" className={`kalem d-${yogunlukDurumu}`}>
+        <span className="etiket">Risk yoğunluğu</span>
+        <span className="mono deger">
+          {risk.kritik}<span className="birim"> kritik</span>
+          {' · '}{risk.yuksek}<span className="birim"> yüksek</span>
+        </span>
+        <span className="cumle">
+          olasılık × etki matrisi Risk alanında
+          {olculemeyenRisk > 0 && <> · <span className="unk">{olculemeyenRisk} ölçülemedi</span></>}
+        </span>
       </Link>
     </section>
   );
@@ -440,11 +446,11 @@ function Takimyildizi({ santraller }: { santraller: SantralKarti[] }) {
       {olculmemis.length > 0 && (
         <p className="mono olculmemis-not">
           {/* Yön adı YAZILMAZ: şerit geniş bantta solda, dar bantta
-              tuvalin altındadır. "Soldaki" demek dar bantta yalan olurdu. */}
-          Değerlendirilmemiş şerit · {olculmemis.length} santralde hiç
-          değerlendirilmiş kontrol yok —
+              tuvalin altındadır. TEK satır: yükseklik bütçesi (tek ekran
+              sözleşmesi) ikinci satırı karşılamaz. */}
+          Değerlendirilmemiş · {olculmemis.length} santral ·
           {` ${olculmemis.reduce((a, s) => a + (s.gucMw ?? 0), 0).toFixed(1)} MWe`}
-          {' · uyum ekseninde yerleri yok: endeks ölçülmedi, sıfır değil'}
+          {' · endeks ölçülmedi, sıfır değil'}
         </p>
       )}
     </div>
@@ -474,38 +480,6 @@ function Yigin({ uygun, kismi, uygunsuz, bilinmeyen, tip }: {
   );
 }
 
-/* ── 5×5 risk yoğunluğu ───────────────────────────────────────────── */
-function RiskIzgara({ izgara }: { izgara: RiskIzgarasi }) {
-  const { hucreler, enYuksek, kritik, yuksek, olculemeyen } = izgara;
-  return (
-    <>
-      <div className="ab-b-izgara" role="img"
-        aria-label={`Risk yoğunluğu: ${kritik} kritik, ${yuksek} yüksek risk`}>
-        {hucreler.map((satir, i) => satir.map((n, j) => {
-          const etki = 5 - i; const olasilik = j + 1;
-          const yogunluk = enYuksek === 0 ? 0 : n / enYuksek;
-          return (
-            <span key={`${i}-${j}`}
-              className={`hucre${n > 0 && olasilik * etki >= 15 ? ' kritik' : ''}`}
-              style={{ opacity: n === 0 ? 0.34 : 0.4 + yogunluk * 0.6 }}
-              title={`Olasılık ${olasilik} × etki ${etki} · ${n} risk`}
-            >
-              {n > 0 && <span className="mono adet">{n}</span>}
-            </span>
-          );
-        }))}
-      </div>
-      <div className="mono ab-b-izgara-uc">
-        <span>olasılık →</span><span>↑ etki</span>
-      </div>
-      <p className="mono ab-b-izgara-ozet">
-        {kritik} kritik · {yuksek} yüksek
-        {olculemeyen > 0 && <> · <span className="unk">{olculemeyen} ölçülemedi</span></>}
-      </p>
-    </>
-  );
-}
-
 /* ── Saha kartı ─────────────────────────────────────────────────────── */
 function SahaKarti({ s }: { s: SantralKarti }) {
   const foto = kucukGorsel(s.gorselAnahtari);
@@ -532,32 +506,5 @@ function SahaKarti({ s }: { s: SantralKarti }) {
           uygunsuz={uygunsuz} bilinmeyen={s.bilinmeyen} tip={s.tipKod ?? ''} />
       </span>
     </Link>
-  );
-}
-
-/* ── Akış ───────────────────────────────────────────────────────────── */
-function netIslem(akis: AkisHaftasi[]): number {
-  return akis.reduce((t, h) => t + h.acilan - h.kapanan, 0);
-}
-
-function Akis({ akis }: { akis: AkisHaftasi[] }) {
-  const en = Math.max(1, ...akis.flatMap((h) => [h.acilan, h.kapanan]));
-  return (
-    <>
-      <div className="ab-b-akis" role="img"
-        aria-label={akis.map((h) => `${h.etiket}: ${h.acilan} açıldı, ${h.kapanan} kapandı`).join('; ')}>
-        {akis.map((h) => (
-          <span key={h.etiket} className="hafta">
-            <span className="acilan" style={{ height: `${(h.acilan / en) * 46}px` }} />
-            <span className="kapanan" style={{ height: `${(h.kapanan / en) * 46}px` }} />
-          </span>
-        ))}
-      </div>
-      <div className="mono ab-b-akis-uc">
-        <span>{akis[0]?.etiket ?? ''}</span>
-        <span>açılan ▲ · kapanan ▼</span>
-        <span>bu hafta</span>
-      </div>
-    </>
   );
 }

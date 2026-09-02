@@ -186,6 +186,13 @@ export default function RisklerIstemci({
             }
           />
 
+          {/* Isı haritası ile kütük YAN YANA (≥1101px): harita 300px'lik
+              sol okuma sütunudur — Uyum ekranındaki dizin gibi bağlam
+              verir, kütük sağda ilk ekranda başlar. Eylül 2026 denetimi
+              haritayı tam genişlik bir bant olarak ölçtü: 5×5 ızgara 300px
+              yükseklik alıyor, sağında ~800px boş kalıyor ve kütük
+              1366×768'de 557px'te başlıyordu. */}
+          <div className="ab-r-yanyana">
           <IsiHaritasiPaneli
             harita={harita}
             secili={hucre}
@@ -197,57 +204,59 @@ export default function RisklerIstemci({
             kesildi={kesildi}
           />
 
-          {gosterilen.length === 0 ? (
-            <BosDurum
-              hicKayitYok={riskler.length === 0}
-              kapsamli={kapsamli}
-              aktifFiltre={filtre}
-              kapaliyaGec={() => { setFiltre('kapali'); setTesisF(null); setSahipF(null); setHucre(null); }}
-              temizle={() => { setFiltre('aktif'); setTesisF(null); setSahipF(null); setHucre(null); }}
-              yeni={() => setYeniAcik(true)}
-            />
-          ) : (
-            <div className="ab-tablo"
-              style={{
-                '--kolonlar': KOLONLAR,
-                '--kolonlar-dar': KOLONLAR_DAR,
-                marginTop: 'var(--s22)',
-                borderTop: 'var(--bw-strong) solid var(--hr2)',
-              } as CSSProperties}
-             >
-              {gosterilen.map((r) => (
-                <Satir key={r.id} risk={r} secili={seciliId === r.id} sec={() => sec(r.id)} />
-              ))}
+            <div className="kutuk">
+            {gosterilen.length === 0 ? (
+              <BosDurum
+                hicKayitYok={riskler.length === 0}
+                kapsamli={kapsamli}
+                aktifFiltre={filtre}
+                kapaliyaGec={() => { setFiltre('kapali'); setTesisF(null); setSahipF(null); setHucre(null); }}
+                temizle={() => { setFiltre('aktif'); setTesisF(null); setSahipF(null); setHucre(null); }}
+                yeni={() => setYeniAcik(true)}
+              />
+            ) : (
+              <div className="ab-tablo"
+                style={{
+                  '--kolonlar': KOLONLAR,
+                  '--kolonlar-dar': KOLONLAR_DAR,
+                  borderTop: 'var(--bw-strong) solid var(--hr2)',
+                } as CSSProperties}
+               >
+                {gosterilen.map((r) => (
+                  <Satir key={r.id} risk={r} secili={seciliId === r.id} sec={() => sec(r.id)} />
+                ))}
 
-              {toplanan.length > 0 && (
-                <button type="button" className="satir kuyruk"
-                  onClick={() => setKuyrukAcik(true)}>
-                  <span style={{ paddingLeft: 'var(--s16)', fontFamily: 'var(--veri)',
-                    fontSize: 'var(--t-lead)', fontWeight: 600, color: 'var(--i2)',
-                    fontVariantNumeric: 'tabular-nums' }}>
-                    {kuyrukSkorlari.length ? `≤${Math.max(...kuyrukSkorlari)}` : '—'}
-                  </span>
-                  <span className="konu" style={{ color: 'var(--i2)' }}>{kuyrukEtiketi}</span>
-                  <span className="ikincil">portföy</span>
-                  <span className="" />
-                  <span className="ab-ok" style={{ justifySelf: 'end' }} aria-hidden>▾</span>
-                </button>
-              )}
+                {toplanan.length > 0 && (
+                  <button type="button" className="satir kuyruk"
+                    onClick={() => setKuyrukAcik(true)}>
+                    <span style={{ paddingLeft: 'var(--s16)', fontFamily: 'var(--veri)',
+                      fontSize: 'var(--t-lead)', fontWeight: 600, color: 'var(--i2)',
+                      fontVariantNumeric: 'tabular-nums' }}>
+                      {kuyrukSkorlari.length ? `≤${Math.max(...kuyrukSkorlari)}` : '—'}
+                    </span>
+                    <span className="konu" style={{ color: 'var(--i2)' }}>{kuyrukEtiketi}</span>
+                    <span className="ikincil">portföy</span>
+                    <span className="" />
+                    <span className="ab-ok" style={{ justifySelf: 'end' }} aria-hidden>▾</span>
+                  </button>
+                )}
 
-              {kuyrukAcik && sakin.length > 0 && (
+                {kuyrukAcik && sakin.length > 0 && (
+                  <p className="ab-dip dip">
+                    <button type="button" className="ab-dugme satir"
+                      onClick={() => setKuyrukAcik(false)}>Kuyruğu topla</button>
+                  </p>
+                )}
+
                 <p className="ab-dip dip">
-                  <button type="button" className="ab-dugme satir"
-                    onClick={() => setKuyrukAcik(false)}>Kuyruğu topla</button>
+                  Sıralama artık skora göre
+                  {skorsuzSayisi > 0 && ` · ${skorsuzSayisi} risk skorsuz`}
+                  {hucre && ` · haritadan süzülü: olasılık ${hucre.olasilik} × etki ${hucre.etki}`}
                 </p>
-              )}
-
-              <p className="ab-dip dip">
-                Sıralama artık skora göre
-                {skorsuzSayisi > 0 && ` · ${skorsuzSayisi} risk skorsuz`}
-                {hucre && ` · haritadan süzülü: olasılık ${hucre.olasilik} × etki ${hucre.etki}`}
-              </p>
+              </div>
+            )}
             </div>
-          )}
+          </div>
         </section>
       </main>
 

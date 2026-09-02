@@ -1,5 +1,5 @@
 'use client';
-import type { CSSProperties, ReactNode } from 'react';
+import type { CSSProperties, KeyboardEvent, ReactNode } from 'react';
 import Link from 'next/link';
 import { Im, type Durum } from './temel';
 
@@ -345,5 +345,152 @@ export function GenisleyenSatir({
       </summary>
       <div className="cocuk">{cocuklar}</div>
     </details>
+  );
+}
+
+/* ═══ VeriTablosu — SEMANTİK kütük ══════════════════════════════════════
+   Eylül 2026 denetimi: platformda hiç `<table>` yoktu; kütükler div/button
+   ızgarasıyla çiziliyordu — ekran okuyucu satır/sütun ilişkisini
+   duymuyor, sütun başlığı `aria-sort` taşıyamıyor, başlık kaydırmada
+   kayboluyordu. Bu bileşen aynı GÖRSEL grameri (sol kenar durum çubuğu,
+   mono kod, olgu alt satırı) gerçek tablo ağacıyla verir:
+
+   · `<table role="grid">` — satır seçilebilir olduğu için grid; `<tr>`
+     `aria-selected` ve dolaşan odak (`tabIndex` 0 / −1) taşır.
+   · Ok tuşları satırlar arasında gezer (↑ ↓ Home End), Enter/Boşluk
+     seçer; fare tıklaması aynı `sec`i çağırır.
+   · Başlık YAPIŞKAN (`position: sticky; top: 0`), ilk sütun (kod) da
+     yatay kaydırmada yapışkan kalır — `.ab-vt-sar` kaydırma kabıdır.
+   · Sıralama sütun başlığındaki DÜĞMEDEDİR ve `<th aria-sort>` ile
+     duyurulur; `sirala` verilmeyen sütun sıralanmaz.
+   · Boş küme cümleyle söylenir; hiç satır yoksa tablo çizilmez.
+   Satır yüksekliği yoğunluk sözleşmesinden gelir (`--satir-h`). */
+
+export type VtKolon<T> = {
+  anahtar: string;
+  baslik: string;
+  hucre: (satir: T) => ReactNode;
+  /** verilirse başlık düğmedir ve `aria-sort` taşır */
+  sirala?: (a: T, b: T) => number;
+  sag?: boolean;
+  /** dar bantta düşer — kritik bilgi ikincil OLAMAZ */
+  ikincil?: boolean;
+  genislik?: string;
+  /** sütun başlığının erişilebilir adı başlıktan farklıysa */
+  ad?: string;
+};
+
+export type VtSira = { anahtar: string; yon: 'artan' | 'azalan' };
+
+export function VeriTablosu<T extends { id: string }>({
+  etiket, kolonlar, satirlar, secili, sec, durum, sira, siraDegistir, bosCumle, sik, yukseklik,
+}: {
+  etiket: string;
+  kolonlar: VtKolon<T>[];
+  satirlar: T[];
+  secili?: string | null;
+  sec?: (id: string | null) => void;
+  /** satırın sol kenar durumu */
+  durum?: (satir: T) => Durum;
+  sira?: VtSira | null;
+  siraDegistir?: (sira: VtSira | null) => void;
+  bosCumle?: string;
+  sik?: boolean;
+  /** kaydırma kabı yüksekliği (CSS uzunluğu); verilmezse tablo akar */
+  yukseklik?: string;
+}) {
+  const sirali = (() => {
+    if (!sira) return satirlar;
+    const k = kolonlar.find((x) => x.anahtar === sira.anahtar);
+    if (!k?.sirala) return satirlar;
+    const kopya = [...satirlar].sort(k.sirala);
+    return sira.yon === 'azalan' ? kopya.reverse() : kopya;
+  })();
+
+  const odakIndeksi = Math.max(0, sirali.findIndex((s) => s.id === secili));
+
+  const tusla = (e: KeyboardEvent<HTMLTableRowElement>, i: number) => {
+    const satirlarDom = e.currentTarget.parentElement?.querySelectorAll<HTMLTableRowElement>('tr');
+    if (!satirlarDom) return;
+    let hedef: number | null = null;
+    if (e.key === 'ArrowDown') hedef = Math.min(sirali.length - 1, i + 1);
+    else if (e.key === 'ArrowUp') hedef = Math.max(0, i - 1);
+    else if (e.key === 'Home') hedef = 0;
+    else if (e.key === 'End') hedef = sirali.length - 1;
+    else if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      sec?.(sirali[i].id === secili ? null : sirali[i].id);
+      return;
+    }
+    if (hedef === null) return;
+    e.preventDefault();
+    satirlarDom[hedef]?.focus();
+  };
+
+  const basTikla = (k: VtKolon<T>) => {
+    if (!k.sirala || !siraDegistir) return;
+    if (!sira || sira.anahtar !== k.anahtar) siraDegistir({ anahtar: k.anahtar, yon: 'artan' });
+    else if (sira.yon === 'artan') siraDegistir({ anahtar: k.anahtar, yon: 'azalan' });
+    else siraDegistir(null);
+  };
+
+  if (satirlar.length === 0) {
+    return <p className="ab-vt-bos">{bosCumle ?? 'Bu süzgeçte kayıt yok.'}</p>;
+  }
+
+  return (
+    <div className="ab-vt-sar" style={yukseklik ? ({ '--vt-h': yukseklik } as CSSProperties) : undefined}>
+      <table className={`ab-vt${sik ? ' sik' : ''}`} role="grid" aria-label={etiket}
+        aria-rowcount={sirali.length + 1}>
+        <thead>
+          <tr>
+            {kolonlar.map((k) => {
+              const etkin = sira?.anahtar === k.anahtar;
+              const ariaSort = !k.sirala ? undefined
+                : etkin ? (sira!.yon === 'artan' ? 'ascending' : 'descending') : 'none';
+              const sinif = `${k.sag ? 'sag' : ''}${k.ikincil ? ' ikincil-k' : ''}`.trim() || undefined;
+              /* Genişlik `<col>` yerine başlıktadır: dar bantta gizlenen
+                 ikincil sütunun `<col>`u yerinde kalıyor ve tablo o genişliği
+                 boş bırakıyordu (ölçüldü: 918px tablo, 730px hücre). */
+              return (
+                <th key={k.anahtar} scope="col" className={sinif} aria-sort={ariaSort}
+                  style={k.genislik ? { width: k.genislik } : undefined}>
+                  {k.sirala ? (
+                    <button type="button" className={`kolonbas sirali${etkin ? ' etkin' : ''}`}
+                      onClick={() => basTikla(k)}
+                      aria-label={`${k.ad ?? k.baslik}${etkin ? (sira!.yon === 'artan' ? ' · artan, azalana çevir' : ' · azalan, sıralamayı kaldır') : ' · sırala'}`}>
+                      {k.baslik}
+                      <span className="ok" aria-hidden>{etkin ? (sira!.yon === 'artan' ? '↑' : '↓') : '↕'}</span>
+                    </button>
+                  ) : <span className="kolonbas">{k.baslik}</span>}
+                </th>
+              );
+            })}
+          </tr>
+        </thead>
+        <tbody>
+          {sirali.map((s, i) => {
+            const d = durum?.(s);
+            const seciliMi = s.id === secili;
+            return (
+              <tr key={s.id}
+                className={d ? `d-${d}` : undefined}
+                aria-selected={sec ? seciliMi : undefined}
+                aria-rowindex={i + 2}
+                tabIndex={sec ? (i === odakIndeksi ? 0 : -1) : undefined}
+                onClick={sec ? () => sec(seciliMi ? null : s.id) : undefined}
+                onKeyDown={sec ? (e) => tusla(e, i) : undefined}>
+                {kolonlar.map((k, ki) => {
+                  const sinif = `${k.sag ? 'sag' : ''}${k.ikincil ? ' ikincil-k' : ''}`.trim() || undefined;
+                  return ki === 0
+                    ? <th key={k.anahtar} scope="row" className={sinif}>{k.hucre(s)}</th>
+                    : <td key={k.anahtar} className={sinif}>{k.hucre(s)}</td>;
+                })}
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
   );
 }

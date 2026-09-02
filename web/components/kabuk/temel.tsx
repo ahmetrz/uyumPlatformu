@@ -304,7 +304,7 @@ export function KismiVeri({ olculen, toplam, birim = 'kayıt', eylem }: {
     <div className="ab-blok taramali" role="status">
       <span className="etiket">Kısmi veri · {olculen}/{toplam}</span>
       <p className="cumle">
-        {toplam} {birim}ın {olculen}'i ölçüldü; <b>{eksik}</b> {birim} ölçülmedi ve toplama katılmaz.
+        {toplam} {birim}ın {olculen}&apos;i ölçüldü; <b>{eksik}</b> {birim} ölçülmedi ve toplama katılmaz.
         Oranlar yalnız ölçülen kümeye aittir.
       </p>
       {eylem && <div className="eylem">{eylem}</div>}

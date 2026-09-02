@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useEylem } from '@/components/useEylem';
+import { EkranBasligi } from '@/components/kabuk/ekran';
 import { kanitTalebiEkle } from '@/lib/eylemler2/denetim';
 import { DURUM_ETIKET, etiketle, uyumOzeti } from '@/lib/sabitler';
 import {
@@ -271,27 +272,29 @@ export default function UyumIstemci({
           uygulama kuralıdır); Lighthouse erişilebilirliği 98'de tutuyordu
           ve gerekçe hiçbir yerde yazmıyordu. */}
       <main data-yuzey="defter" style={{ minWidth: 0 }}>
-        <header style={{ display: 'flex', alignItems: 'flex-end', gap: 32, marginBottom: 30 }}>
-          <div style={{ minWidth: 0 }}>
-            <h1 className="ab-c-baslik" style={{ margin: 0 }}>Nerede uygunsuz, ve neden?</h1>
-            <p className="etiket" style={{ margin: '10px 0 0', textTransform: 'none', letterSpacing: '.02em', fontFamily: 'var(--ui)', fontSize: 12 }}>
-              Satır = kontrol · sütun = santral · satıra tıklayınca gerekçe aynı defterde açılır
-            </p>
-          </div>
-          <div className="ab-c-olcut" style={{ marginLeft: 'auto' }}>
-            <Metrik etiket="Uygun" deger={m.uygun} />
-            <Metrik etiket="Kısmi" deger={m.kismi} />
-            <Metrik etiket="Uygunsuz" deger={m.uygunsuz} vurgu />
-            <Metrik etiket="Endeks" oran
-              deger={m.endeks === null ? '—' : `%${m.endeks}`} />
-          </div>
-        </header>
-
-        {/* Prototipte lede ile matris arasında ince bir kural var — defter
-            "giriş" ile "kütük"ü ayırır. */}
-        <div className="ab-c-kural" style={{ margin: '0 0 20px' }} />
-
-        <EgilimSeridi noktalar={egilim} surecVar={surecId !== null} bugun={m.endeks} />
+        {/* Lede paylaşılan gramerdir (`EkranBasligi`): Risk ve Varlık ile
+            aynı Barlow 26px başlık, aynı ölçüt satırı. Eylül 2026 denetimi
+            bu ekranda 34px ayrı bir başlık + ayrı kural ölçtü; gövde
+            (matris) 1366×768'de 283px'te başlıyordu. Endeks ölçülemediyse
+            "—" ve `unk` durumu: sıfır değil, bilinmeyen. */}
+        <EkranBasligi
+          eyebrow={`Uyum · ${cerceve.ad}`}
+          baslik="Nerede uygunsuz, ve neden?"
+          metrikler={[
+            { deger: m.uygun, yazi: 'Uygun', durum: 'ok' },
+            { deger: m.kismi, yazi: 'Kısmi', durum: m.kismi > 0 ? 'md' : undefined },
+            { deger: m.uygunsuz, yazi: 'Uygunsuz', durum: m.uygunsuz > 0 ? 'bd' : undefined },
+            { deger: m.endeks === null ? '—' : `%${m.endeks}`, yazi: 'Endeks', durum: m.endeks === null ? 'unk' : undefined },
+          ]}
+        />
+        {/* Giriş satırı: solda okuma cümlesi, sağda eğilim şeridi — iki
+            ayrı bant değil tek satır; matris 1366×768'de ~260px'te başlar. */}
+        <div className="ab-c-giris">
+          <p className="cumle">
+            Satır = kontrol · sütun = santral · satıra tıklayınca gerekçe aynı defterde açılır
+          </p>
+          <EgilimSeridi noktalar={egilim} surecVar={surecId !== null} bugun={m.endeks} />
+        </div>
 
         {gorunur.length === 0 ? (
           <p style={{ color: 'var(--i3)', fontSize: 13 }}>
@@ -318,17 +321,6 @@ export default function UyumIstemci({
 
         <KapsamDisi cerceve={cerceve} />
       </main>
-    </div>
-  );
-}
-
-function Metrik({ etiket, deger, vurgu, oran }: {
-  etiket: string; deger: number | string; vurgu?: boolean; oran?: boolean;
-}) {
-  return (
-    <div>
-      <div className="etiket">{etiket}</div>
-      <div className={`deger${vurgu ? ' vurgu' : ''}${oran ? ' oran' : ''}`}>{deger}</div>
     </div>
   );
 }

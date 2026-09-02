@@ -24,7 +24,7 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { db } from '../db';
-import { yetkiZorunlu, izinVar } from '../erisim';
+import { yetkiZorunlu, kapsamZorunlu, KAPSAM_SONRA } from '../erisim';
 import { elleAktarimAdaptoru } from '../entegrasyon/adaptorler/elleAktarim';
 import {
   bekleyenleriEslestir, kesfiIsle, kesifKararUygula,
@@ -198,12 +198,17 @@ export async function kesifKarariVer(girdi: {
   uzerineYaz?: boolean;
 }): Promise<Sonuc> {
   try {
-    const k = await yetkiZorunlu('envanter', 'onay');
+    /* İKİ AŞAMALI KAPI (`KAPSAM_SONRA`, bkz. erisim.ts): kararın kapsamı
+       eşleşen varlıktan gelir ve kayıt okunmadan bilinemez. Ön kapı
+       kapsamsız çağrılırsa tesise kısıtlı rol daha ilk adımda reddedilir
+       ve kendi sahasının keşif kuyruğunu inceleyemez. Gerçek denetim
+       aşağıda ve KOŞULSUZ: eşleşmemiş (tesissiz) kayıt da denetlenir,
+       yoksa kısıtlı rol kurumun bütün eşleşmemiş kuyruğuna karar verirdi. */
+    const k = await yetkiZorunlu('envanter', 'onay', KAPSAM_SONRA);
     const v = KararSemasi.parse(girdi);
     const { kayit, tesisId } = await kararKapsami(v.kesifId, v.tesisId);
-    if (tesisId && !izinVar(k, 'envanter', 'onay', { tesisId })) {
-      throw new Error('Bu tesis kapsamında envanter onay yetkiniz yok');
-    }
+    kapsamZorunlu(k, 'envanter', 'onay', { tesisId },
+      'Bu tesis kapsamında envanter onay yetkiniz yok');
 
     const sonuc = await kesifKararUygula({
       kesifId: v.kesifId,
@@ -282,7 +287,7 @@ export async function kesifTopluKarar(girdi: {
   kesifIdleri: string[]; karar: 'onayla' | 'reddet'; not: string; uzerineYaz?: boolean;
 }): Promise<Sonuc> {
   try {
-    const k = await yetkiZorunlu('envanter', 'onay');
+    const k = await yetkiZorunlu('envanter', 'onay', KAPSAM_SONRA);
     const v = TopluSemasi.parse(girdi);
     const benzersiz = [...new Set(v.kesifIdleri)];
 
@@ -292,9 +297,9 @@ export async function kesifTopluKarar(girdi: {
     for (const kesifId of benzersiz) {
       try {
         const { kayit, tesisId } = await kararKapsami(kesifId);
-        if (tesisId && !izinVar(k, 'envanter', 'onay', { tesisId })) {
-          throw new Error('tesis kapsamı dışında');
-        }
+        // Kapsam KAYIT KAYIT denetlenir: karışık bir partide yalnız
+        // kapsam dışı olanlar düşer, ötekiler işlenir.
+        kapsamZorunlu(k, 'envanter', 'onay', { tesisId }, 'tesis kapsamı dışında');
         const sonuc = await kesifKararUygula({
           kesifId, karar: v.karar, inceleyenId: k.id, not: v.not,
           uzerineYaz: v.uzerineYaz ?? false,

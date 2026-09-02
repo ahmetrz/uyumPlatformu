@@ -1,7 +1,7 @@
 {
-  "imza": "0670ef060a58edf010ce188167e6322f",
-  "dosya": 74,
-  "vaka": 1351,
+  "imza": "47e6422302dbcc97e9f8583a8aa2c54b",
+  "dosya": 76,
+  "vaka": 1381,
   "atlanan": 1,
   "dosyalar": {
     "tests/api.test.ts": {
@@ -34,6 +34,10 @@
     },
     "tests/dar-sablon.test.ts": {
       "vaka": 15,
+      "atlanan": 0
+    },
+    "tests/denetim-kapsam.test.ts": {
+      "vaka": 14,
       "atlanan": 0
     },
     "tests/disa-aktarim-paketi.test.ts": {
@@ -150,6 +154,10 @@
     },
     "tests/kapsam-kapisi.test.ts": {
       "vaka": 4,
+      "atlanan": 0
+    },
+    "tests/kesif-karar.test.ts": {
+      "vaka": 16,
       "atlanan": 0
     },
     "tests/kesif.test.ts": {

@@ -7,7 +7,7 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { db } from '../db';
-import { yetkiZorunlu, izinVar } from '../erisim';
+import { yetkiZorunlu, izinVar, kapsamZorunlu, KAPSAM_SONRA } from '../erisim';
 import { DENETIM_ASAMALARI } from '../sabitler';
 import { tamam, hata, iz, bosluksuz, tarihAlani, type Sonuc } from './ortak';
 
@@ -285,13 +285,18 @@ export async function kapsamEkle(girdi: {
   denetimId: string; tesisId?: string | null; maddeId?: string | null;
 }): Promise<Sonuc> {
   try {
-    const k = await yetkiZorunlu('denetim', 'yazma');
+    /* İKİ AŞAMALI KAPI (`KAPSAM_SONRA`, bkz. erisim.ts): ön kapı kapsamsız
+       çağrılırsa tesise kısıtlı rol daha ilk adımda reddedilir ve kendi
+       santralini denetim kapsamına ekleyemez. Gerçek denetim aşağıda ve
+       KOŞULSUZ: madde eklemek tesissiz (kurumsal) bir işlemdir, bütün
+       denetimi etkiler, tesise kısıtlı rol onu da yapamaz. */
+    const k = await yetkiZorunlu('denetim', 'yazma', KAPSAM_SONRA);
     const v = KapsamGirdisi.parse(girdi);
     const d = await db.denetim.findUnique({ where: { id: v.denetimId } });
     if (!d || d.silindi) throw new Error('Denetim bulunamadı');
     if (d.durum === 'kapanis') throw new Error('Kapanmış denetimin kapsamı değiştirilemez');
-    if (v.tesisId && !izinVar(k, 'denetim', 'yazma', { tesisId: v.tesisId }))
-      throw new Error('Bu tesis kapsamında denetim yazma yetkiniz yok');
+    kapsamZorunlu(k, 'denetim', 'yazma', { tesisId: v.tesisId },
+      'Bu tesis kapsamında denetim yazma yetkiniz yok');
 
     let etiket = '';
     if (v.tesisId) {
@@ -323,7 +328,7 @@ export async function kapsamEkle(girdi: {
 /** Kapsam kaydını çıkarır (geçmiş, iz kaydında kalır). */
 export async function kapsamCikar(girdi: { id: string }): Promise<Sonuc> {
   try {
-    const k = await yetkiZorunlu('denetim', 'yazma');
+    const k = await yetkiZorunlu('denetim', 'yazma', KAPSAM_SONRA);
     const { id } = z.object({ id: z.string() }).parse(girdi);
     const kapsam = await db.denetimKapsami.findUnique({
       where: { id }, include: { tesis: true, madde: true, denetim: true },
@@ -331,8 +336,8 @@ export async function kapsamCikar(girdi: { id: string }): Promise<Sonuc> {
     if (!kapsam) throw new Error('Kapsam kaydı bulunamadı');
     if (kapsam.denetim.durum === 'kapanis')
       throw new Error('Kapanmış denetimin kapsamı değiştirilemez');
-    if (kapsam.tesisId && !izinVar(k, 'denetim', 'yazma', { tesisId: kapsam.tesisId }))
-      throw new Error('Bu tesis kapsamında denetim yazma yetkiniz yok');
+    kapsamZorunlu(k, 'denetim', 'yazma', { tesisId: kapsam.tesisId },
+      'Bu tesis kapsamında denetim yazma yetkiniz yok');
 
     await db.denetimKapsami.delete({ where: { id } });
     await iz({ aktorId: k.id, varlikTipi: 'Denetim', varlikId: kapsam.denetimId,

@@ -1,5 +1,5 @@
 'use client';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useSyncExternalStore } from 'react';
 import Link from 'next/link';
 import { Alan, BosFiltre, BosIlk, Dugme, Hata, Im, type Durum } from '@/components/kabuk/temel';
 import { Tablo, type Kolon, type Satir } from '@/components/kabuk/tablo';
@@ -53,6 +53,18 @@ const SATIR_ICI = {
   display: 'flex', alignItems: 'center', gap: 'var(--s10)', minWidth: 0,
 } as const;
 
+/* Çengel aboneliği modül düzeyindedir: her renderda yeni bir işlev
+   üretilirse `useSyncExternalStore` her seferinde yeniden abone olur. */
+const CENGEL_ONEKI = '#belge=';
+const cengelOku = () => window.location.hash;
+function cengeleAbone(bildir: () => void) {
+  window.addEventListener('hashchange', bildir);
+  return () => window.removeEventListener('hashchange', bildir);
+}
+
+/** Çekmece seçimi: çengelden mi geliyor, kullanıcının elinden mi. */
+type Secim = { kaynak: 'cengel' } | { kaynak: 'el'; id: string | null };
+
 type Secenek = { id: string; kod: string; baslik: string; regulasyon: string };
 type TesisSecenegi = { id: string; kod: string; ad: string };
 
@@ -76,7 +88,7 @@ export default function DokumanlarIstemci({
   const [turF, setTurF] = useState<string | null>(null);
   const [arama, setArama] = useState('');
   const [siralama, setSiralama] = useState<Siralama>('acil');
-  const [secili, setSecili] = useState<string | null>(null);
+  const [secim, setSecim] = useState<Secim>({ kaynak: 'cengel' });
   const [kuyrukAcik, setKuyrukAcik] = useState(false);
   const [formAcik, setFormAcik] = useState(false);
   const [duzenlenen, setDuzenlenen] = useState<BelgeSatiri | null>(null);
@@ -84,6 +96,30 @@ export default function DokumanlarIstemci({
   /* Anı BİR KEZ okuruz: sunucu ile tarayıcı aynı "şimdi"yi görsün, gecikme
      kararı satır satır kaymasın (lib/an.ts). */
   const simdi = useMemo(() => an(), []);
+
+  /* ── Derin bağ · #belge=KOD ─────────────────────────────────────────
+     Uyum matrisi bir hücrede "bu kontrolü karşılayan belge"yi gösterir ve
+     oradan buraya KODLA bağlanır. Adres SORGU değil ÇENGEL taşır: sorgu
+     `useSearchParams` demek, o da Suspense sınırı demek, o da statik dışa
+     aktarımda bu ekranın önden basılmış HTML'ini kaybetmek demektir. Çengel
+     yalnız tarayıcıda okunur, sunucu çıktısı bozulmaz.
+
+     Çengel React'in değil ADRES ÇUBUĞUNUN durumudur; efektle state'e
+     kopyalanmaz (cascading render), `useSyncExternalStore` ile abone
+     olunur. Kullanıcı çekmeceyi kapattığı an seçim ELE geçer ve çengel
+     artık konuşmaz — yoksa kapanan çekmece yeniden açılırdı.
+
+     Kod eşleşmezse ya da belge kullanıcının kapsamı dışındaysa çekmece
+     kapalı kalır: hata verilmez, belgenin varlığı da yokluğu da sızmaz. */
+  const cengel = useSyncExternalStore(cengeleAbone, cengelOku, () => '');
+  const cengelKodu = cengel.startsWith(CENGEL_ONEKI)
+    ? decodeURIComponent(cengel.slice(CENGEL_ONEKI.length))
+    : '';
+  const cengelBelgesi = cengelKodu
+    ? belgeler.find((b) => b.kod === cengelKodu)?.id ?? null
+    : null;
+  const secili = secim.kaynak === 'cengel' ? cengelBelgesi : secim.id;
+  const secBelge = (id: string | null) => setSecim({ kaynak: 'el', id });
 
   const olculer = useMemo(() => olcu(belgeler, simdi), [belgeler, simdi]);
   const karsiliksiz = useMemo(() => karsiliksizKontroller(kontroller), [kontroller]);
@@ -218,7 +254,7 @@ export default function DokumanlarIstemci({
                 kolonlar={KOLONLAR}
                 satirlar={satirlar}
                 secili={secili}
-                sec={(id) => setSecili((o) => (o === id ? null : id))}
+                sec={(id) => secBelge(secili === id ? null : id)}
                 kuyruk={toplanan.length > 0
                   ? { metin: `+${toplanan.length} belge · güncel ve takvimli`, ac: () => setKuyrukAcik(true) }
                   : null}
@@ -249,8 +285,8 @@ export default function DokumanlarIstemci({
           simdi={simdi}
           yazabilir={yazabilir}
           onaylayabilir={onaylayabilir}
-          duzenle={() => { setDuzenlenen(secilen); setFormAcik(true); setSecili(null); }}
-          kapat={() => setSecili(null)}
+          duzenle={() => { setDuzenlenen(secilen); setFormAcik(true); secBelge(null); }}
+          kapat={() => secBelge(null)}
         />
       )}
     </>
@@ -291,7 +327,9 @@ function BoslukPaneli({ karsiliksiz, yarim, toplam }: {
             {gosterilen.map((k) => (
               <li key={k.maddeId}>
                 <Im durum="bd" ad="Belge yok" />
-                <Link href={`/uyum/${encodeURIComponent(k.regulasyon)}`} className="kod">{k.kod}</Link>
+                <Link className="kod"
+                  href={`/uyum/${encodeURIComponent(k.regulasyon)}`
+                    + `?kontrol=${encodeURIComponent(k.kod)}`}>{k.kod}</Link>
                 <span className="ad">{k.baslik}</span>
                 <span className="reg">{k.regulasyon}</span>
               </li>
@@ -314,7 +352,9 @@ function BoslukPaneli({ karsiliksiz, yarim, toplam }: {
             {yarim.map((k) => (
               <li key={k.maddeId}>
                 <Im durum="md" ad="Yalnız taslak/askıda belge" />
-                <Link href={`/uyum/${encodeURIComponent(k.regulasyon)}`} className="kod">{k.kod}</Link>
+                <Link className="kod"
+                  href={`/uyum/${encodeURIComponent(k.regulasyon)}`
+                    + `?kontrol=${encodeURIComponent(k.kod)}`}>{k.kod}</Link>
                 <span className="ad">{k.baslik}</span>
                 <span className="reg">
                   {k.belgeler.map((b) => `${b.kod} · ${DURUM_SOZU[b.durum as BelgeDurumu] ?? b.durum}`).join(' · ')}

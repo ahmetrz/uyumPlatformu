@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 import {
   GECISLER, KARSILAYAN, MERCEKLER, YAKLASMA_GUNU,
   aramaUygula, baslikMetni, dipNot, gecisGecerli, gozdenGecirmeHali, gozdenGecirmeYazisi,
-  kapsamYazisi, karsiliksizKontroller, kodOner, mercekUygula, olcu, sirala,
+  ORTU_IM, ORTU_KISA, ORTU_SOZU,
+  belgeOrtusu, kapsamYazisi, karsiliksizKontroller, kodOner, mercekUygula, olcu, sirala,
   sonrakiGozdenGecirme, yarimKarsilananlar,
   type BelgeSatiri, type KontrolSatiri,
 } from '@/app/(kabuk)/(operasyonel)/dokumanlar/mantik';
@@ -230,5 +231,61 @@ describe('Kod önerisi ve dip not', () => {
       .toContain('kütükte 40 belge var, 30 tanesi yüklendi');
     expect(dipNot({ gorunur: 3, toplam: 3, yuklenen: 3 }))
       .toBe('3 belge görünüyor · kolon başlığından sıralama');
+  });
+});
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Belge örtüsü — kütük ile uyum matrisinin ORTAK kuralı
+
+   Aynı üçlü iki ekranda okunur: kütük "hangi kontrolün karşılığı yok" der,
+   matris "bu kontrolü hangi belge karşılıyor" der. Kural ayrışırsa denetimde
+   iki ekran birbirini yalanlar; bu blok ayrışmayı yakalar.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+describe('Belge örtüsü', () => {
+  it('yalnız yürürlükteki belge karşılar', () => {
+    expect(belgeOrtusu(['yururlukte'])).toBe('karsilandi');
+    expect(belgeOrtusu(['taslak', 'yururlukte'])).toBe('karsilandi');
+    expect(belgeOrtusu(['taslak'])).toBe('yalniz_taslak');
+    expect(belgeOrtusu(['incelemede', 'askida'])).toBe('yalniz_taslak');
+    expect(belgeOrtusu(['yururlukten_kalkti'])).toBe('yalniz_taslak');
+    expect(belgeOrtusu([])).toBe('belgesiz');
+  });
+
+  it('BAĞLI OLMAK karşılamak değildir: taslak "bilinmeyen" değil KÖTÜ hâldir', () => {
+    // Belgesiz kontrolde belge hiç aranmamış olabilir → bilinmeyen.
+    expect(ORTU_IM.belgesiz).toBe('unk');
+    // Taslak belgeli kontrolde kütükte ad vardır, denetimde karşılık yoktur.
+    expect(ORTU_IM.yalniz_taslak).toBe('bd');
+    expect(ORTU_IM.karsilandi).toBe('ok');
+    // Üç hâlin üçü de SÖZCÜKLE de yazılır — durum renkle taşınmaz.
+    for (const soz of Object.values(ORTU_SOZU)) expect(soz.length).toBeGreaterThan(0);
+  });
+
+  it('hücre ipucuna yalnız EKSİK hâller yazılır; iyi haber ipucunu şişirmez', () => {
+    expect(ORTU_KISA.karsilandi).toBeNull();
+    expect(ORTU_KISA.belgesiz).toBe('belgesiz');
+    expect(ORTU_KISA.yalniz_taslak).toBe('belge yürürlükte değil');
+  });
+
+  it('kütüğün iki paneli örtü kuralından türer, kendi eşiğini icat etmez', () => {
+    const k = (kod: string, durumlar: string[]): KontrolSatiri => ({
+      maddeId: kod, kod, baslik: kod, regulasyon: 'EPDK-SYM', zorunlulukTipi: 'zorunlu',
+      belgeler: durumlar.map((d, i) => ({ id: `${kod}-${i}`, kod: `B${i}`, durum: d })),
+    });
+    const liste = [k('bos', []), k('taslak', ['taslak']), k('tam', ['yururlukte', 'taslak'])];
+
+    // Karşılıksız = karşılanmayan HER hâl (belgesiz + yalnız taslak).
+    expect(karsiliksizKontroller(liste).map((x) => x.kod)).toEqual(['bos', 'taslak']);
+    // Yarım = yalnızca sinsi hâl.
+    expect(yarimKarsilananlar(liste).map((x) => x.kod)).toEqual(['taslak']);
+    // Yarım kümesi karşılıksızın alt kümesidir; ikisi ayrışamaz.
+    const karsiliksizKodlar = new Set(karsiliksizKontroller(liste).map((x) => x.kod));
+    for (const y of yarimKarsilananlar(liste)) expect(karsiliksizKodlar.has(y.kod)).toBe(true);
+  });
+
+  it('KARSILAYAN listesi genişletilirse örtü de genişler — tek kaynak', () => {
+    expect([...KARSILAYAN]).toEqual(['yururlukte']);
+    for (const d of KARSILAYAN) expect(belgeOrtusu([d])).toBe('karsilandi');
   });
 });

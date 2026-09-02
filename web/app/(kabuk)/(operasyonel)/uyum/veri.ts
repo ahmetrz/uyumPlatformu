@@ -7,8 +7,10 @@ import {
   DURUM_IM, anlikSayimi, cerceveAdi, guc, kisaAile, kisaKod, kisaTarih, tekCumle,
 } from './mantik';
 import type {
-  Aile, CerceveVerisi, KapsamKaydi, Kontrol, KuruSatir, TesisSatiri, TrendNoktasi, Zincir,
+  Aile, CerceveVerisi, KapsamKaydi, Kontrol, KontrolBelgesi, KuruSatir, TesisSatiri,
+  TrendNoktasi, Zincir,
 } from './mantik';
+import { ORTU_KISA, belgeOrtusu } from '../dokumanlar/mantik';
 
 /* O1 · O2 sunucu yükleyicisi.
 
@@ -105,7 +107,8 @@ export async function cerceveleriYukle(
 ): Promise<CerceveVerisi[]> {
   const simdi = Date.now();
 
-  const [regulasyonlar, tesisler, riskler, projeBaglantilari, eslestirmeler, denetimler] =
+  const [regulasyonlar, tesisler, riskler, projeBaglantilari, eslestirmeler, denetimler,
+    belgeKayitlari] =
     await Promise.all([
       db.regulasyon.findMany({
         where: { aktif: true },
@@ -150,6 +153,18 @@ export async function cerceveleriYukle(
         where: { silindi: null, durum: { not: 'kapanis' } },
         orderBy: { olusturuldu: 'desc' },
         select: { id: true, kod: true, ad: true, durum: true, surecId: true },
+      }),
+      /* C22/C23 ters bağı: kontrole bağlanmış yönetişim belgeleri. Kütükte
+         hiçbir maddeye bağlanmamış belge bu ekranı ilgilendirmez, sorgudan
+         DIŞARIDA bırakılır. */
+      db.dokuman.findMany({
+        where: { silindi: null, maddeBaglantilari: { some: {} } },
+        orderBy: { kod: 'asc' },
+        select: {
+          id: true, kod: true, baslik: true, durum: true,
+          maddeBaglantilari: { select: { maddeId: true } },
+          tesisBaglantilari: { select: { tesisId: true } },
+        },
       }),
     ]);
 
@@ -213,6 +228,28 @@ export async function cerceveleriYukle(
     if (b.maddeId) projeMaddeye.set(b.maddeId, [...(projeMaddeye.get(b.maddeId) ?? []), b.proje]);
     if (b.bulguId) projeBulguya.set(b.bulguId, [...(projeBulguya.get(b.bulguId) ?? []), b.proje]);
     if (b.riskId) projeRiske.set(b.riskId, [...(projeRiske.get(b.riskId) ?? []), b.proje]);
+  }
+
+  /* ── belge indeksi: madde → aday belgeler ─────────────────────────
+     Kurumsal belge (santral bağı YOK) tüm santrallere düşer; santrale
+     bağlı belge yalnız kendi santralinin hücresine. Bu, kütüğün kapsam
+     kuralının aynısıdır (`dokumanlar/veri.ts`) — kurumsal belge gizlenmez,
+     çünkü kendi santralinin uyacağı kuralı görmeyen kimse uyamaz.
+
+     Kapsam sızıntısı yoktur: hücre yalnız kullanıcının okuyabildiği
+     santraller için kurulur, dolayısıyla burada görünen santral bağı zaten
+     kapsamdadır. */
+  type BelgeKaydi = KontrolBelgesi & { tesisler: Set<string> };
+  const belgeMaddeye = new Map<string, BelgeKaydi[]>();
+  for (const d of belgeKayitlari) {
+    const kayit: BelgeKaydi = {
+      id: d.id, kod: d.kod, baslik: d.baslik, durum: d.durum,
+      kurumsal: d.tesisBaglantilari.length === 0,
+      tesisler: new Set(d.tesisBaglantilari.map((t) => t.tesisId)),
+    };
+    for (const m of d.maddeBaglantilari) {
+      belgeMaddeye.set(m.maddeId, [...(belgeMaddeye.get(m.maddeId) ?? []), kayit]);
+    }
   }
 
   const sonuc = regulasyonlar.map((reg) => {
@@ -380,6 +417,16 @@ export async function cerceveleriYukle(
             || acikBulgu?.baslik
             || (madde?.metin ? tekCumle(madde.metin) : 'Bu kontrol için değerlendirme kaydı yok.');
 
+          /* belge örtüsü: "bu kontrolü hangi belge karşılıyor" (C22/C23).
+             Bağlı olmak karşılamak DEĞİLDİR; hangi durumun karşıladığına
+             `belgeOrtusu` karar verir ve o kural kütükle ortaktır. */
+          const belgeler: KontrolBelgesi[] = (belgeMaddeye.get(y.id) ?? [])
+            .filter((b) => b.kurumsal || b.tesisler.has(t.id))
+            .map((b) => ({
+              id: b.id, kod: b.kod, baslik: b.baslik, durum: b.durum, kurumsal: b.kurumsal,
+            }));
+          const belgeNotu = ORTU_KISA[belgeOrtusu(belgeler.map((b) => b.durum))];
+
           /* tek satırlık hücre ipucu — durum SÖZCÜĞÜ geçmez, olgu geçer */
           const olgu = acikBulgu ? tekCumle(acikBulgu.baslik, 42)
             : d?.not ? tekCumle(d.not, 42)
@@ -391,6 +438,10 @@ export async function cerceveleriYukle(
             : [
                 kisa(y.kod), olgu,
                 kanitlar.length === 0 ? 'kanıt yok' : `kanıt ${kanitYazi}`,
+                /* Belge yalnız EKSİKSE ipucuna girer: "yürürlükte belge
+                   var" iyi haberdir ve her hücrede tekrar edip ipucunu
+                   uzatmasının bir bedeli, kazancı yoktur. */
+                belgeNotu,
                 ilkProje?.kod,
               ].filter(Boolean).join(' · ');
 
@@ -413,6 +464,7 @@ export async function cerceveleriYukle(
             guven: d?.guven ?? 'kanit_yok',
             sonDegerlendirme: d?.sonDegerlendirme?.toISOString() ?? null,
             zincir,
+            belgeler,
             ipucu,
           });
         }

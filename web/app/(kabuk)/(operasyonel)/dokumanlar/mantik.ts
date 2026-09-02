@@ -59,6 +59,40 @@ export const DURUM_IM: Record<BelgeDurumu, Durum> = {
 /** Yalnız bu durumlar bir kontrolü karşılamış sayılır (değişmez 2). */
 export const KARSILAYAN: readonly BelgeDurumu[] = ['yururlukte'];
 
+/* ── Belge örtüsü: bir kontrolün üç hâli ──────────────────────────────
+   Bu üçlü İKİ ekranda okunur: kütüğün boşluk paneli ("hangi kontrolün
+   karşılığı yok") ve uyum matrisinin açılan gerekçesi ("bu kontrolü hangi
+   belge karşılıyor"). Aynı sorunun iki yönü olduğu için kural TEK yerde
+   durur; iki ekran ayrışırsa denetimde hangisinin doğru olduğunu kimse
+   bilemez. */
+export type Ortu = 'karsilandi' | 'yalniz_taslak' | 'belgesiz';
+
+export function belgeOrtusu(durumlar: readonly string[]): Ortu {
+  if (durumlar.some((d) => KARSILAYAN.includes(d as BelgeDurumu))) return 'karsilandi';
+  return durumlar.length > 0 ? 'yalniz_taslak' : 'belgesiz';
+}
+
+/* `yalniz_taslak` KÖTÜ hâldir, bilinmeyen değil: kütükte adı geçen ama
+   yürürlükte olmayan belge, denetime "var" sanılarak girilen belgedir.
+   `belgesiz` bilinmeyendir — belki belge vardır ve bağı kurulmamıştır;
+   ikisini aynı işaretle göstermek yöneticiye yanlış iş sırası verir. */
+export const ORTU_IM: Record<Ortu, Durum> = {
+  karsilandi: 'ok', yalniz_taslak: 'bd', belgesiz: 'unk',
+};
+
+export const ORTU_SOZU: Record<Ortu, string> = {
+  karsilandi: 'yürürlükte belge var',
+  yalniz_taslak: 'belge var ama yürürlükte değil',
+  belgesiz: 'bağlı belge yok',
+};
+
+/** Hücre ipucuna sığan iki sözcük; karşılanan hâl ipucuna hiç yazılmaz. */
+export const ORTU_KISA: Record<Ortu, string | null> = {
+  karsilandi: null,
+  yalniz_taslak: 'belge yürürlükte değil',
+  belgesiz: 'belgesiz',
+};
+
 /* ── İzinli geçişler ──────────────────────────────────────────────────
    Yaşam döngüsü tek yönlü bir hat değil; ama her geçiş de serbest
    değildir. Taslaktan doğrudan yürürlüğe atlanamaz: inceleme adımı
@@ -318,15 +352,14 @@ export type KontrolSatiri = {
 };
 
 export function karsiliksizKontroller(kontroller: KontrolSatiri[]): KontrolSatiri[] {
-  return kontroller.filter((k) =>
-    !k.belgeler.some((b) => KARSILAYAN.includes(b.durum as BelgeDurumu)));
+  return kontroller.filter(
+    (k) => belgeOrtusu(k.belgeler.map((b) => b.durum)) !== 'karsilandi');
 }
 
 /** Yalnız taslak/askıda belgeyle "karşılanıyor" görünen kontroller — en sinsi hâl. */
 export function yarimKarsilananlar(kontroller: KontrolSatiri[]): KontrolSatiri[] {
-  return kontroller.filter((k) =>
-    k.belgeler.length > 0
-    && !k.belgeler.some((b) => KARSILAYAN.includes(b.durum as BelgeDurumu)));
+  return kontroller.filter(
+    (k) => belgeOrtusu(k.belgeler.map((b) => b.durum)) === 'yalniz_taslak');
 }
 
 /** Tablo dip notu — kesme ve kapsam sessiz kalmaz. */

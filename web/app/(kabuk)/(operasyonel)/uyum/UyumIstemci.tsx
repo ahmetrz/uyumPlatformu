@@ -9,6 +9,11 @@ import {
   TREND_BOY, TREND_EN, acikMi, kisaTarih, trendFarki, trendGeometrisi,
   type CerceveVerisi, type Kontrol, type TesisSatiri, type TrendNoktasi,
 } from './mantik';
+/* C22/C23 ters bağı — belge kuralı kütükte yaşar, burada YENİDEN YAZILMAZ. */
+import {
+  ORTU_IM, ORTU_SOZU, belgeOrtusu,
+  DURUM_IM as BELGE_IM, DURUM_SOZU as BELGE_SOZU, type BelgeDurumu,
+} from '../dokumanlar/mantik';
 
 /* ═══════════════════════════════════════════════════════════════════════
    UYUM KONTROL ODASI — C · OPERATIONAL LUXURY
@@ -25,9 +30,9 @@ import {
        defterin sorusu "bu kontrolde kim uygunsuz" hâline gelir.
 
    2 · DETAY ÇEKMECEDE DEĞİL SATIR İÇİNDE AÇILIR. 420px çekmece defteri
-       terk ettirir; prototip gerekçeyi satırın altında, aynı sayfada dört
-       sütun hâlinde açar: NEDEN · KANIT · YÖNETİŞİM ZİNCİRİ · SORUMLULUK.
-       Okuyucu bağlamı kaybetmez.
+       terk ettirir; prototip gerekçeyi satırın altında, aynı sayfada
+       sütunlar hâlinde açar: NEDEN · KANIT · BELGE · YÖNETİŞİM ZİNCİRİ ·
+       SORUMLULUK. Okuyucu bağlamı kaybetmez.
 
    3 · DURUM GLİF AĞIRLIĞIYLA KODLANIR (daire ailesi), renkle değil:
        ● uygun · ○ kısmi · ⊖ uygunsuz · ◌ değerlendirilmedi · – kapsam dışı.
@@ -519,7 +524,7 @@ function santralEndeksi(satirlar: MaddeSatiri[], tesisId: string): number | null
 
 /* ── Satır içi gerekçe — çekmece DEĞİL ───────────────────────────────
    Prototipin materyal farkı: 420px çekmece defteri terk ettirir, gerekçe
-   SATIRIN ALTINDA dört sütun hâlinde açılır ve okuyucu matrisi görmeye
+   SATIRIN ALTINDA sütunlar hâlinde açılır ve okuyucu matrisi görmeye
    devam eder. Yazma eylemi (kanıt talebi) İÇERİK OLARAK AYNIDIR: aynı
    sunucu eylemi, aynı denetim bağı, aynı yetki kapısı — yalnız çekmece
    yerine bu blokta yaşar. */
@@ -549,6 +554,10 @@ function Gerekce({ cerceve, satir, tesis, kontrol, kapat, yazabilir }: {
   const denetimYok = !cerceve.denetim;
   const kapali = !yazabilir || denetimYok;
 
+  /* Örtü kararı kütüğün kuralıyla alınır (`belgeOrtusu`); matris kendi
+     "karşılandı" tanımını icat ederse iki ekran birbirini yalanlar. */
+  const ortu = belgeOrtusu(kontrol.belgeler.map((b) => b.durum));
+
   return (
     <section
       className="ab-mtx-acilan"
@@ -575,7 +584,7 @@ function Gerekce({ cerceve, satir, tesis, kontrol, kapat, yazabilir }: {
         {aile && ` · ${aile.baslik}`}
       </p>
 
-      <div className="dortlu">
+      <div className="sutunlar">
         {/* 1 · NEDEN */}
         <div>
           <span className="etiket">Neden bu durumda</span>
@@ -652,7 +661,58 @@ function Gerekce({ cerceve, satir, tesis, kontrol, kapat, yazabilir }: {
           </p>
         </div>
 
-        {/* 3 · YÖNETİŞİM ZİNCİRİ */}
+        {/* 3 · BELGE ÖRTÜSÜ — C22/C23 ters bağı
+            Kütük "hangi kontrolün karşılığı yok" diye sorar; burası aynı
+            sorunun öbür yönüdür: bu kontrolü hangi belge karşılıyor. Kanıtın
+            YANINDA durur çünkü ikisi karıştırılan iki şeydir — kanıt bir anın
+            ispatıdır, belge yaşam döngüsü olan yönetişim kaydıdır. */}
+        <div>
+          <span className="etiket">Karşılayan belge</span>
+          <p className="acilan-metin mono kucuk kanit">
+            <span className={`ab-glif ${GLIF_SINIF[ORTU_IM[ortu]] ?? 'g-yok'}`} aria-hidden />
+            {ORTU_SOZU[ortu]}
+          </p>
+
+          {kontrol.belgeler.length > 0 ? (
+            <div className="acilan-zincir">
+              {kontrol.belgeler.map((b) => (
+                <Link key={b.id} href={`/dokumanlar#belge=${encodeURIComponent(b.kod)}`}>
+                  <span className="ust">
+                    <span className={`ab-glif ${GLIF_SINIF[BELGE_IM[b.durum as BelgeDurumu]] ?? 'g-yok'}`}
+                      aria-hidden />
+                    <span className="tur">
+                      {BELGE_SOZU[b.durum as BelgeDurumu] ?? b.durum}
+                      {b.kurumsal && ' · kurumsal'}
+                    </span>
+                  </span>
+                  <span className="mono kod">{b.kod}</span>
+                  <span className="alt">{b.baslik}</span>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <p className="acilan-metin kucuk">
+              Bu kontrole bağlanmış yönetişim belgesi yok. Kütükte karşılığı
+              olmayan bir kontrol, denetimde sözlü savunmayla karşılanır.
+            </p>
+          )}
+
+          <Link className="ab-dugme bagli" href="/dokumanlar">
+            Belge kütüğünde aç →
+          </Link>
+
+          {/* Kritik bilgi ipucunda DEĞİL, burada yazılı: taslak belge
+              "karşıladı" demek denetimde en pahalı yalandır. */}
+          <p className="acilan-dip">
+            {ortu === 'yalniz_taslak'
+              ? 'Bağlı belge yürürlükte değil — denetimde karşılığı yoktur.'
+              : ortu === 'belgesiz'
+                ? 'Belge bağı hiç kurulmamış olabilir; kütük bunu bilmez.'
+                : 'Yalnız yürürlükteki belge karşılar; taslak ve askıdakiler sayılmaz.'}
+          </p>
+        </div>
+
+        {/* 4 · YÖNETİŞİM ZİNCİRİ */}
         <div>
           <span className="etiket">Yönetişim zinciri</span>
           {kontrol.zincir.length > 0 ? (
@@ -683,7 +743,7 @@ function Gerekce({ cerceve, satir, tesis, kontrol, kapat, yazabilir }: {
           </Link>
         </div>
 
-        {/* 4 · SORUMLULUK VE SÜRE */}
+        {/* 5 · SORUMLULUK VE SÜRE */}
         <div>
           <span className="etiket">Sorumluluk ve süre</span>
           <dl className="acilan-dl">

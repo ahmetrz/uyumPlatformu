@@ -128,6 +128,19 @@ export type Zincir = {
   id: string; kod: string; alt: string; yol: string; suren?: boolean;
 };
 
+/* Bu kontrolü karşılamaya ADAY belge (C22/C23 kütüğünden). "Aday" çünkü
+   bağlı olmak karşılamak değildir: yalnız yürürlükteki belge karşılar ve
+   o kural `dokumanlar/mantik.ts` içindeki `belgeOrtusu`dur — burada ikinci
+   kez yazılmaz. */
+export type KontrolBelgesi = {
+  id: string;
+  kod: string;
+  baslik: string;
+  durum: string;                // BelgeDurumu (ham)
+  /** Santral bağı yok → kurumsal, tüm portföyü bağlar. */
+  kurumsal: boolean;
+};
+
 /** (Santral × yaprak kontrol) kesişimi — matrisin ve çekmecenin atomu. */
 export type Kontrol = {
   anahtar: string;              // tesisId::maddeId
@@ -148,6 +161,8 @@ export type Kontrol = {
   guven: string;
   sonDegerlendirme: string | null;
   zincir: Zincir[];
+  /** Bu santral × kontrol kesişimine düşen yönetişim belgeleri. */
+  belgeler: KontrolBelgesi[];
   ipucu: string;                // tek satırlık hücre ipucu
 };
 

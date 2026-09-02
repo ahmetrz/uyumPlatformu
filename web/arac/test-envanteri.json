@@ -1,7 +1,7 @@
 {
-  "imza": "1a66120ca6d074cbbf7550fc079be80e",
-  "dosya": 66,
-  "vaka": 1242,
+  "imza": "d85710108fe18ad6736a9534dba03c52",
+  "dosya": 67,
+  "vaka": 1253,
   "atlanan": 1,
   "dosyalar": {
     "tests/api.test.ts": {
@@ -37,7 +37,7 @@
       "atlanan": 0
     },
     "tests/dokuman-mantik.test.ts": {
-      "vaka": 20,
+      "vaka": 25,
       "atlanan": 0
     },
     "tests/ekran-mantik-72.test.ts": {
@@ -230,6 +230,10 @@
     },
     "tests/uygulanabilirlik.test.ts": {
       "vaka": 5,
+      "atlanan": 0
+    },
+    "tests/uyum-belge-bagi.test.ts": {
+      "vaka": 6,
       "atlanan": 0
     },
     "tests/uyum-grubu-mantik.test.ts": {

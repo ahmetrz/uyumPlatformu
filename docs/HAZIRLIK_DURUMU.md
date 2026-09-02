@@ -25,6 +25,7 @@ uydurulmuş tek bir sayı yoktur.
 | Görsel regresyon | 16/16 · eşik %0,5 | altınlar sıfırdan seed ile üretildi |
 | Lighthouse | /giris 99 · / 98 · /uyum 99 · /bulgular 99 · **/portfoy 91** | **üretim derlemesinde** (`next start`) |
 | Lighthouse (perf dışı) | 5 rotanın 5'inde erişilebilirlik · en iyi uygulama · SEO **100** | |
+| Polish turu | 6 ekran × 2 bant · 3 kusur bulundu ve kapatıldı | tek tur + tek doğrulama |
 | demo:build | başarılı | yayın · statik · kolon kontrolleri temiz |
 | Veri | 98 tablonun **97'si dolu** · 3 649 kayıt | tek boş: `IsKilidi` (çalışma-anı kilidi) |
 | CI | `pr-kapisi.yml` + `publish.yml` var | lint → tsc → test → tasarım → derleme |
@@ -76,6 +77,13 @@ durumda; kapsanmayan yer, yetki kapısı ve form davranışlarının olduğu yer
   (90) altındaki kategorilerin gerekçesini topluyordu; 100'den 91'e düşen
   bir kategori sebepsiz kalıyordu. Artık tam olmayan her kategori
   gerekçesini yazar — `/uyum`un eksik ana bölgesi böyle bulundu.
+
+`/impeccable polish` tek turda üç kusur buldu ve üçü de kapatıldı:
+telefon dizini tek kolonda 626px sürüyor ve defter ekranlarının içeriği
+1035px'te — yani ikinci ekranda — başlıyordu (iki kolona indi, 378px);
+portföy süzgecindeki `select` 160px tabanıyla sağ oluğu yiyordu; saha
+takımyıldızındaki nabız halkası 2,4× yarıçapla komşu santralin künyesini
+süpürüyordu.
 
 ### P2 — üretim öncesi
 

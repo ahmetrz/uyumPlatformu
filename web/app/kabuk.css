@@ -637,9 +637,12 @@
   position: absolute; inset: -8px; border: 1px solid var(--bd); border-radius: 50%;
   animation: ab-halka 3.6s ease-out infinite;
 }
+/* Süpürme yarıçapı 2,4 idi: halka 38px'e çıkıp KOMŞU işaretin künyesini
+   siliyordu (ölçüldü: 1440px'te "Gökçedağ RES" satırı Kızıldere III'ün
+   halkası altında okunmuyordu). 1,6 aynı sinyali verir, komşuya girmez. */
 @keyframes ab-halka {
   0% { transform: scale(.6); opacity: .8; }
-  100% { transform: scale(2.4); opacity: 0; }
+  100% { transform: scale(1.6); opacity: 0; }
 }
 .ab-b-takim .kunye {
   position: absolute; left: 18px; top: -9px; white-space: nowrap; display: grid; gap: 2px;
@@ -2918,6 +2921,21 @@ details:not([open]) > *:not(summary) { display: none !important; }
   .ab-portfoy-endeks { padding-left: 0; border-left: 0; }
   .ab-portfoy-denetim { padding: 8px 20px; }
   .ab-portfoy-denetim .cumle { margin-left: 0; flex-basis: 100%; }
+  /* Süzgeç etiketi telefonda iki satıra kırılıyor, `select` de 160px
+     tabanıyla sağ oluğu YİYORDU: kutunun sağ kenarı 374px'te, oysa
+     şeridin dolgusu 20px (ölçüldü). Etiket üste geçer, kutu satırı
+     paylaşır ve oluk geri gelir. */
+  .ab-portfoy-denetim .secim {
+    flex: 1 1 100%; flex-wrap: wrap; align-items: flex-start; gap: 4px;
+  }
+  .ab-portfoy-denetim .secim select { flex: 1 1 100%; min-width: 0; }
+
+  /* Defter dizini telefonda İKİ KOLON. Tek kolonda 626px sürüyor ve
+     ekranın kendi içeriği 1035px'te, yani ikinci ekranda başlıyordu
+     (ölçüldü, 375×812). Dizin kaybolmaz — sıkışır. */
+  .ab-c-dizin .bolum { flex: 1 1 140px; }
+  .ab-c-dizin .satir { padding: 7px 0; }
+  .ab-c-dizin .bolum > .etiket { margin-bottom: 6px; }
   .ab-isi .izgara { grid-template-columns: auto repeat(5, minmax(48px, 1fr)); grid-template-rows: repeat(5, 36px) auto; }
   .ab-isi .hucre .esik { letter-spacing: 0; }
   .ab-c-kural, .ab-c-kural-kalin { margin-left: 20px; margin-right: 20px; }

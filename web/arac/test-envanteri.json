@@ -1,7 +1,7 @@
 {
-  "imza": "0032856c7528b87e9b91dbd924fb1587",
+  "imza": "5a058e7d3a6cf24cfc91b68d9388da0f",
   "dosya": 73,
-  "vaka": 1325,
+  "vaka": 1326,
   "atlanan": 1,
   "dosyalar": {
     "tests/api.test.ts": {
@@ -277,7 +277,7 @@
       "atlanan": 0
     },
     "tests/yardim.test.ts": {
-      "vaka": 16,
+      "vaka": 17,
       "atlanan": 0
     },
     "tests/yaris-kosullari.test.ts": {

@@ -4,7 +4,7 @@ import {
   KISAYOLLAR, YARDIM_AC, yardimTusuMu, yazmaAlanindaMi,
 } from '@/app/(kabuk)/(operasyonel)/yardim/mantik';
 import {
-  C_DIZIN, SAYAC_TAVANI, UST_BAGLAR, sayacEtiketi, sayacMetni, yonSec,
+  IKINCIL, SAYAC_TAVANI, UST_BAGLAR, alanSec, sayacEtiketi, sayacMetni, yogunlukSec,
 } from '@/components/kabuk/yonler';
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -124,14 +124,15 @@ describe('Yardım katmanı · erişilebilirlik sözleşmesi (kaynak metni)', () 
 
 describe('Atla bağı + tek main', () => {
   const kabuk = readFileSync('components/kabuk/Kabuk.tsx', 'utf8');
-  it('atla bağı kabuğun ilk çocuğu; üç kabuğun her birinde `#icerik` sarmalayıcısı var, kabuk main AÇMAZ', () => {
-    // Bağ, kabuk seçiminden (KabukA/B/C) ÖNCE gelmeli ki ilk Tab onu bulsun.
+  it('atla bağı kabuğun ilk çocuğu; tek kabukta TEK `#icerik` sarmalayıcısı var, kabuk main AÇMAZ', () => {
+    // Bağ, üst çubuktan ÖNCE gelmeli ki ilk Tab onu bulsun.
     const bag = kabuk.indexOf('href="#icerik"');
-    const ilkKabuk = kabuk.indexOf("yon === 'a' &&");
+    const ust = kabuk.indexOf('<header className="ab-ust"');
     expect(bag).toBeGreaterThan(-1);
-    expect(bag).toBeLessThan(ilkKabuk);
+    expect(ust).toBeGreaterThan(-1);
+    expect(bag).toBeLessThan(ust);
     // Yorum satırlarındaki `<main` sayılmaz: yalnız JSX satırı (satır başı).
-    expect(kabuk.match(/^\s*<div id="icerik" tabIndex=\{-1\}/gm)?.length).toBe(3);
+    expect(kabuk.match(/^\s*<div id="icerik" tabIndex=\{-1\}/gm)?.length).toBe(1);
     // Kabuk HİÇ main taşımaz: ekranlar kendi main'ini çizer; kabukta bir
     // main daha olsa her belgede iki ana bölge olurdu (iç içe main).
     expect(kabuk.match(/^\s*<main\b/gm)).toBeNull();
@@ -146,17 +147,32 @@ describe('Atla bağı + tek main', () => {
 });
 
 describe('Gezinme kayıtları · /kanitlar, /ayarlar, /yardim', () => {
-  it('/kanitlar C defterine düşer ve dizinin "Kayıt" grubunda durur', () => {
-    expect(yonSec('/kanitlar')).toBe('c');
-    expect(yonSec('/kanitlar/abc')).toBe('c');
-    const kayit = C_DIZIN.find((g) => g.baslik === 'Kayıt');
-    expect(kayit?.ogeler).toContainEqual({ ad: 'Kanıt kütüphanesi', yol: '/kanitlar' });
+  it('/kanitlar Uyum alanına düşer ve ikincil sıranın üçüncü (kayıt) grubunda durur', () => {
+    expect(alanSec('/kanitlar')).toBe('/uyum');
+    expect(alanSec('/kanitlar/abc')).toBe('/uyum');
+    const kayit = IKINCIL['/uyum'][2];
+    expect(kayit.ogeler).toContainEqual({ ad: 'Kanıt', yol: '/kanitlar' });
   });
 
-  it('/ayarlar ve /yardim A tezgâhına düşer (varsayılan) ve ÜST ÇUBUK bağıdır', () => {
-    expect(yonSec('/ayarlar')).toBe('a');
-    expect(yonSec('/yardim')).toBe('a');
+  it('/ayarlar ve /yardim alansız yardımcı rotadır (operasyonel yoğunluk) ve ÜST ÇUBUK bağıdır', () => {
+    expect(alanSec('/ayarlar')).toBeNull();
+    expect(alanSec('/yardim')).toBeNull();
+    expect(yogunlukSec('/ayarlar')).toBe('operasyonel');
+    expect(yogunlukSec('/')).toBe('amiral');
     expect(UST_BAGLAR.map((o) => o.yol)).toEqual(['/ayarlar', '/yardim']);
+  });
+
+  it('her ikincil öğe bir alana bağlıdır ve Risk kendi alanıdır', () => {
+    for (const [alan, gruplar] of Object.entries(IKINCIL)) {
+      for (const g of gruplar) for (const o of g.ogeler) {
+        // /bulgular Risk altında da listelenir ama rota sahibi Uyum'dur.
+        const beklenen = alan === '/riskler' && o.yol === '/bulgular' ? '/uyum' : alan;
+        expect(alanSec(o.yol)).toBe(beklenen);
+      }
+    }
+    expect(alanSec('/riskler/x')).toBe('/riskler');
+    expect(alanSec('/tesisler/abc')).toBe('/');
+    expect(alanSec('/harita')).toBe('/portfoy');
   });
 
   it('üç rota da rota envanterinde (arac/rotalar.json) kayıtlı', () => {

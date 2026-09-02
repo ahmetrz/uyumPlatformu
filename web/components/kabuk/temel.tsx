@@ -14,8 +14,8 @@ import Link from 'next/link';
    yaşayamaz". Bunlar tasarım tercihi değil, ürünün doğruluk kuralları;
    yeni sunum katmanı onları devralır.
 
-   Üç yön (A tezgâh · B saha · C defter) aynı bileşeni farklı MALZEMEYLE
-   çizer; ayrım CSS'te `[data-yon]` ile yapılır, burada değil. */
+   Tek kabuk, tek palet (UX denetimi 2026-09): yoğunluk farkı
+   (`[data-yogunluk]`) CSS'te ölçüyü ayarlar, malzemeyi değil. */
 
 export type Durum = 'ok' | 'md' | 'bd' | 'pl' | 'unk' | 'tamam';
 
@@ -262,6 +262,56 @@ export function Hata({ cumle, teknik, yenidenDene }: {
 /* 403 — kabuğun İÇİNDE çizilir, ayrı rota yok: kullanıcı nerede olduğunu
    ve nereye gidebileceğini görmeye devam eder. Sorunun adı (hangi yetki)
    ve çıkış yolu (kim verir, nereye dönülür) yan yana. */
+/* ── Bilinmeyen ≠ sıfır ≠ sağlıklı ≠ ölçülmedi ─────────────────────────
+   Dört ayrı hâl, dört ayrı cümle. "Veri yok" tek kutuya toplanınca
+   okuyucu sıfır sanır (Eylül 2026 denetimi, §5). Üçü de `role="status"`
+   taşır; `.taramali` sol kenar 45° tarama = bilinmeyen dilimiyle aynı
+   şekil kodu. */
+
+/** Kaynak var, ölçüm hiç YAPILMAMIŞ (denetlenmemiş santral, sorgulanmamış cihaz). */
+export function Olculmedi({ ne, neden, eylem }: { ne: string; neden?: string; eylem?: ReactNode }) {
+  return (
+    <div className="ab-blok taramali" role="status">
+      <span className="etiket">Ölçülmedi</span>
+      <p className="cumle"><b>{ne}</b> için henüz ölçüm yok{neden ? ` — ${neden}` : ''}. Bu sıfır değildir.</p>
+      {eylem && <div className="eylem">{eylem}</div>}
+    </div>
+  );
+}
+
+/** Ölçüm yapılacaktı, bağlayıcı ULAŞAMADI; son bilinen değer varsa yaşı yazılır. */
+export function BaglantiYok({ kaynak, sonBasarili, eylem }: {
+  kaynak: string; sonBasarili?: string; eylem?: ReactNode;
+}) {
+  return (
+    <div className="ab-blok taramali" role="status">
+      <span className="etiket">Bağlantı yok</span>
+      <p className="cumle">
+        <b>{kaynak}</b> bağlayıcısına ulaşılamadı.
+        {sonBasarili ? <> Son başarılı okuma: <span className="mono">{sonBasarili}</span>; gösterilen değer o kesittir.</> : ' Daha önce başarılı okuma yok; değer gösterilmez.'}
+      </p>
+      {eylem && <div className="eylem">{eylem}</div>}
+    </div>
+  );
+}
+
+/** Kümenin bir kısmı ölçüldü; toplam, ölçülmeyenleri SAYMAZ ve bunu söyler. */
+export function KismiVeri({ olculen, toplam, birim = 'kayıt', eylem }: {
+  olculen: number; toplam: number; birim?: string; eylem?: ReactNode;
+}) {
+  const eksik = Math.max(0, toplam - olculen);
+  return (
+    <div className="ab-blok taramali" role="status">
+      <span className="etiket">Kısmi veri · {olculen}/{toplam}</span>
+      <p className="cumle">
+        {toplam} {birim}ın {olculen}'i ölçüldü; <b>{eksik}</b> {birim} ölçülmedi ve toplama katılmaz.
+        Oranlar yalnız ölçülen kümeye aittir.
+      </p>
+      {eylem && <div className="eylem">{eylem}</div>}
+    </div>
+  );
+}
+
 export function Yetkisiz({ rol }: { rol: string }) {
   return (
     <div className="ab-blok" role="status">

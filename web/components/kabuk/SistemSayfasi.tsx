@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 
 /* Sistem sayfası — 404 · 500 · bakım. Kabuğun DIŞINDA yaşar (kök
    `not-found`, `global-error`) ama kabukla aynı dilde konuşur:
-   `.ab[data-yon='a']` sarmalayıcısı tezgâh paletini getirir. Sorunu
+   `.ab` sarmalayıcısı paleti getirir. Sorunu
    adıyla söyler, çıkış yolunu yanına koyar; süsleme yok, resim yok.
 
    Sunucu ya da istemci bileşeninden çağrılabilir (server-only import yok):
@@ -20,7 +20,7 @@ export default function SistemSayfasi({ kod, baslik, cumle, eylemler, teknik, di
   dip?: string;
 }) {
   return (
-    <div className="ab" data-yon="a">
+    <div className="ab" data-yogunluk="operasyonel">
       <div className="ab-sistem-sayfa">
         <header>
           <Link href="/" className="marka" aria-label="Zorlu Enerji Yönetişim Platformu — ana ekran">

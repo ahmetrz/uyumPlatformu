@@ -29,7 +29,7 @@ import { yonlendirmeKarari } from './rota-kurallari.mjs';
    bakıyordu; kabuk üç yöne bölününce o seçiciler DOM'dan kalktı ve
    otuz yedi rota "ray yok" diye yanlış kusurlandı. Ölçüm artık güncel
    gramerle yapılır (bkz. components/kabuk/Kabuk.tsx · app/kabuk.css):
-     · kök `.ab[data-yon]`  → hangi kabuk (a tezgâh · b saha · c defter)
+     · kök `.ab[data-yogunluk]`  → hangi kabuk (a tezgâh · b saha · c defter)
      · A: `.ab-a-ray`       · B: `.ab-b-ust nav[aria-label="Saha"]`
      · C: `.ab-c-nav`       · aktif öğe: `[aria-current="page"]` (TEK)
      · her ekran TEK `<main>` çizer (kabuk çizmez) — atla bağının varışı
@@ -118,7 +118,7 @@ function somutlastir(giris) {
 
 /* ── 3. Beklentiler ────────────────────────────────────────────────── */
 
-/* Kabuk: `(kabuk)` ve `(tam)` gruplarındaki her ekran `.ab[data-yon]`
+/* Kabuk: `(kabuk)` ve `(tam)` gruplarındaki her ekran `.ab[data-yogunluk]`
    kabuğunu taşır (`app/(tam)/layout.tsx` de Kabuk'u sarar; `/portfoy` B
    yüzeyine düşer ve saha sekme çubuğunu alır). `(giris)` kendi kabuğunu
    taşır — gezinmesi YOKTUR, bu bir kusur değil karardır. */
@@ -130,10 +130,11 @@ const kabukBekleniyor = (g) => g.grup.includes('(kabuk)') || g.grup.includes('(t
    olmayan bölümler (`/surecler`, `/raporlar`, `/kanitlar`…) dizin
    sütununda `aria-current="true"` ile işaretlenir; o yüzden "aktif öğe
    yok" kusuru yalnız dizin konumu da YOKSA yazılır. Buradaki liste,
-   her iki kanalı da taşımayan rotalardır (bkz. components/kabuk/yonler.ts):
-   `/sistem*` A ayağındaki referans bağından ulaşılır, rayda değildir;
-   `/tesisler/[id]` B sekmelerinden hiçbiriyle eşleşmez (santral detayı). */
-const RAY_OGESI_YOK = new Set(['/sistem', '/sistem/bilesenler', '/tesisler/[id]']);
+   her iki kanalı da taşımayan YARDIMCI rotalardır (bkz. yonler.ts
+   ALAN_ROTALARI): `/sistem*` ayaktaki "Tasarım sistemi" bağından ulaşılır;
+   `/yonetim-tezgahi` yalnız yetkiliye açık yönetim tezgâhıdır, beş alandan
+   birine ait değildir — üstte alan yanmaz, ikincil sıra çizilmez. */
+const RAY_OGESI_YOK = new Set(['/sistem', '/sistem/bilesenler', '/yonetim-tezgahi']);
 
 /** Bir URL yolunu envanterdeki rota kalıbına eşler (dinamik segment dahil). */
 function rotaEslestir(patika, envanter) {
@@ -212,20 +213,16 @@ async function yokla(giris, url, envanter) {
   const hedefGirisi = karar.beklentiDevret ? rotaEslestir(varilan, envanter) : null;
   const beklenti = hedefGirisi ?? giris;
   const olcu = await s.evaluate(() => {
-    /* `.ab[data-yon]` tek başına KABUK değil, belirteç köküdür: giriş,
+    /* `.ab[data-yogunluk]` tek başına KABUK değil, belirteç köküdür: giriş,
        bakım, 404 ve kök hata ekranı da paleti almak için onu taşır ama
        gezinme çizmez. Kabuğu ayıran şey atla bağıdır (`.ab-atla`) — yalnız
        components/kabuk/Kabuk.tsx onu basar. */
-    const kabuk = document.querySelector('.ab[data-yon]:has(> .ab-atla)');
+    const kabuk = document.querySelector('.ab[data-yogunluk]:has(> .ab-atla)');
     if (!kabuk) return null;
-    const yon = kabuk.getAttribute('data-yon');
-    /* Her kabuğun KENDİ birincil gezinmesi — aktif "sayfa" orada duyurulur. */
-    const GEZINME = {
-      a: '.ab-a-ray',
-      b: '.ab-b-ust nav[aria-label="Saha"]',
-      c: '.ab-c-nav',
-    };
-    const gezinme = document.querySelector(GEZINME[yon] ?? '');
+    const yon = kabuk.getAttribute('data-yogunluk');
+    /* Tek kabuk: birincil gezinme beş alan sekmesidir — aktif "sayfa"
+       orada duyurulur; ikincil sıra `aria-current="true"` taşır. */
+    const gezinme = document.querySelector('.ab-ust nav[aria-label="Alanlar"]');
     /* Aktif öğe TÜM belgede sayılır: hesap bağları (`/ayarlar`, `/yardim`,
        `/bildirimler`) gezinmenin dışında durur ama `aria-current="page"`
        taşır; "tek geçerli sayfa" sözleşmesi belgeye aittir, çubuğa değil. */
@@ -242,7 +239,7 @@ async function yokla(giris, url, envanter) {
       genislik: gezinme ? Math.round(gezinme.getBoundingClientRect().width) : null,
       aktifSayi: aktifler.length,
       aktifAd: aktif ? (aktif.getAttribute('aria-label') ?? aktif.textContent).trim().slice(0, 22) : null,
-      dizinKonumu: document.querySelectorAll('.ab-c-dizin [aria-current="true"]').length,
+      dizinKonumu: document.querySelectorAll('.ab-ikincil [aria-current="true"], .ab-c-ekrandizin [aria-current="true"]').length,
       /* Ana bölge TEK olmalıdır. Kabuk `<main>` basmaz (bkz. Kabuk.tsx
          §309): ekran kendi ana bölgesini çizer. Bir ekran bunu unutursa
          sayfanın hiç ana bölgesi olmaz ve atla bağı bir yere varmaz.

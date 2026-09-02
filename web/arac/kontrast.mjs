@@ -81,7 +81,7 @@ function tokenlar(blokBaslangici) {
   return harita;
 }
 
-/** Taban `.ab` bloğu + bir yön kipinin (`[data-yon]`) üzerine yazdıkları. */
+/** Palet bloğunun token'ları. */
 function kip(secici) {
   return tokenlar(secici);
 }
@@ -119,13 +119,10 @@ const TERS = [
   { ink: '--aksan-uzeri', zemin: '--aksan', esik: METIN, not: 'birincil düğme yazısı' },
 ];
 
-/* Yönler taban token taşımıyor; her biri kendi setini TAM tanımlıyor.
-   Bu bilinçli: bir yönün rengi diğerinden miras alınırsa, birinde yapılan
-   düzeltme diğerini sessizce bozar. */
+/* TEK PALET (UX denetimi 2026-09): üç yön kipi birleştirildi; palet
+   `.ab {\n  --zemin:` ile başlayan blokta yaşar (ölçek bloğundan ayrı). */
 const KIPLER = [
-  { ad: 'A · Industrial Precision', secici: ".ab[data-yon='a'] {" },
-  { ad: 'B · Energy Intelligence', secici: ".ab[data-yon='b'] {" },
-  { ad: 'C · Operational Luxury', secici: ".ab[data-yon='c'] {" },
+  { ad: 'Tek palet · Saha dili', secici: '.ab {\n  --zemin:' },
 ];
 
 const tam = process.argv.includes('--tam');

@@ -4,6 +4,8 @@ import { aktifKullanici } from '@/lib/auth';
 import { izinliTesisIdleri } from '@/lib/erisim';
 import { birlesikKapsam } from '@/app/kapsam';
 import { durumAyagiVerisi } from '@/components/kabuk/durumAyagiVerisi';
+import { DEMO } from '@/lib/demo';
+import paket from '../../package.json';
 import type { KabukVerisi } from './Kabuk';
 
 /* Kabuğun SUNUCU verisi — proje kalıbı: `page.tsx → veri.ts`.
@@ -78,5 +80,9 @@ export async function kabukVerisi(): Promise<KabukVerisi> {
        kullanıcıda da null: damga da bir sağlık bilgisidir. */
     kesit: ayak?.sonKosu ? ayak.sonKosu.toISOString() : null,
     okunmamis,
+    /* Ayak künyesi: sürüm package.json'dan OKUNUR (elle yazılmış sürüm
+       ilk yayında yalan söylerdi); ortam demo bayrağı + NODE_ENV'den. */
+    surum: paket.version,
+    ortam: DEMO ? 'demo' : process.env.NODE_ENV === 'production' ? 'uretim' : 'gelistirme',
   };
 }

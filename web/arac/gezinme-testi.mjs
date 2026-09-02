@@ -61,7 +61,7 @@ const BASLANGIC = '/riskler';
 const KARDES = '/bulgular';
 
 /* Kabuklar arası tur: her adım "buradayım → alan bağlantısına dokun →
-   oraya vardım". Hedef kabuğun belirtisi kök `.ab[data-yon]` değeridir. */
+   oraya vardım". Hedef kabuğun belirtisi kök `.ab[data-yogunluk]` değeridir. */
 const TUR = [
   { neredeyim: '/riskler', hedef: '/envanter', yon: 'a', ad: 'C → A (Risk → Varlık)' },
   { neredeyim: '/envanter', hedef: '/portfoy', yon: 'b', ad: 'A → B (Varlık → Portföy)' },
@@ -96,7 +96,7 @@ async function aktifSayisi(s) {
 }
 
 async function yon(s) {
-  return s.evaluate(() => document.querySelector('.ab[data-yon]')?.getAttribute('data-yon') ?? '?');
+  return s.evaluate(() => document.querySelector('.ab[data-yogunluk]')?.getAttribute('data-yogunluk') ?? '?');
 }
 
 const patika = (s) => new URL(s.url()).pathname;

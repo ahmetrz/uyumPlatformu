@@ -1,5 +1,5 @@
 import type { Durum } from '@/components/kabuk/temel';
-import { uyumOzeti } from '@/lib/sabitler';
+import { KANIT_ESIK_VARSAYILAN, kanitKovasi, uyumOzeti, type KanitEsik } from '@/lib/sabitler';
 
 /* Portföy raporu — sunucu ile istemcinin paylaştığı tipler ve saf hesaplar.
 
@@ -168,13 +168,16 @@ export function yasKovalari(bulgular: Bulgu[]): YasKovasi[] {
 
 export type TazelikKovasi = { etiket: string; sayi: number; durum: Durum; aciklama: string };
 
-export function tazelikKovalari(kanitlar: Kanit[]): TazelikKovasi[] {
+export function tazelikKovalari(kanitlar: Kanit[], esik: KanitEsik = KANIT_ESIK_VARSAYILAN): TazelikKovasi[] {
+  /* Eşik Kanıt kütüphanesiyle aynı kaynaktan (konsol `kanit.tazelik.*`);
+     kovalar `kanitKovasi` ile aynı sınırları kullanır. */
+  const kova = (k: Kanit) => kanitKovasi(k.gun, esik);
   return [
-    { etiket: '0–90 gün', sayi: kanitlar.filter((k) => k.gun < 90).length,
+    { etiket: `0–${esik.taze} gün`, sayi: kanitlar.filter((k) => kova(k) === 'taze').length,
       durum: 'ok', aciklama: 'geçerli' },
-    { etiket: '90–180 gün', sayi: kanitlar.filter((k) => k.gun >= 90 && k.gun <= 180).length,
+    { etiket: `${esik.taze}–${esik.dolmus} gün`, sayi: kanitlar.filter((k) => kova(k) === 'yenilenmeli').length,
       durum: 'md', aciklama: 'yenilenmeli' },
-    { etiket: '180+ gün', sayi: kanitlar.filter((k) => k.gun > 180).length,
+    { etiket: `${esik.dolmus}+ gün`, sayi: kanitlar.filter((k) => kova(k) === 'dolmus').length,
       durum: 'bd', aciklama: 'süresi dolmuş' },
   ];
 }

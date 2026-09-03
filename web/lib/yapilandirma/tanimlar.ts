@@ -1,4 +1,6 @@
 import { z } from 'zod';
+import { KANIT_ESIK_VARSAYILAN } from '../sabitler';
+import { SAHA_YERLESIM_VARSAYILAN, yerlesimDogrula, yerlesimMetni, type SahaYerlesimi } from '../yonetim/sahaModulleri';
 
 /* ═══ Yapılandırma anahtar sözlüğü — TEK doğruluk kaynağı ═══════════════
 
@@ -39,6 +41,20 @@ const tamSayi = (min: number, max: number) => z.number().int().min(min).max(max)
 
 const T: AyarTanimi[] = [
   /* ── Uyum & regülasyon ─────────────────────────────────────────────── */
+  {
+    anahtar: 'kanit.tazelik.taze_gun', grup: 'uyum', sinif: 'B',
+    etiket: 'Kanıt taze eşiği', birim: 'gün',
+    aciklama: 'Yaşı bu günden küçük kanıt "taze" sayılır; bu değerden "süresi doldu" eşiğine kadar "yenilenmeli".',
+    etki: ['Kanıt kütüphanesi', 'Bulgu detayı · bağlı kanıtlar', 'Raporlar · kanıt tazeliği'],
+    varsayilan: KANIT_ESIK_VARSAYILAN.taze, sema: tamSayi(7, 365),
+  },
+  {
+    anahtar: 'kanit.tazelik.dolmus_gun', grup: 'uyum', sinif: 'B',
+    etiket: 'Kanıt süresi doldu eşiği', birim: 'gün',
+    aciklama: 'Yaşı bu günü aşan kanıt "süresi doldu" sayılır. Taze eşiğinden büyük olmalı.',
+    etki: ['Kanıt kütüphanesi', 'Bulgu detayı · bağlı kanıtlar', 'Raporlar · kanıt tazeliği'],
+    varsayilan: KANIT_ESIK_VARSAYILAN.dolmus, sema: tamSayi(14, 730),
+  },
   /* ── Risk & denetim ────────────────────────────────────────────────── */
   {
     anahtar: 'motor.son_tarih.bulgu_gun', grup: 'risk', sinif: 'B',
@@ -135,6 +151,19 @@ const T: AyarTanimi[] = [
     varsayilan: 12, sema: tamSayi(4, 52),
   },
   {
+    anahtar: 'saha.yerlesim', grup: 'gorunum', sinif: 'A',
+    etiket: 'Saha · modül görünürlüğü ve KPI sırası',
+    aciklama: 'İzinli sunum bloklarının açık/kapalı durumu ve KPI kalemlerinin sırası. Zorunlu modüller gizlenemez; tek ekran sözleşmesini bozan yerleşim kaydedilmez.',
+    etki: ['Saha ekranı'],
+    varsayilan: SAHA_YERLESIM_VARSAYILAN,
+    /* Şema kütükle doğrular: bilinmeyen kimlik, zorunlu modülün gizlenmesi,
+       izinsiz konum ve sözleşme bütçesi aşımı aynı yerde reddedilir. */
+    sema: z.unknown().superRefine((v, ctx) => {
+      const d = yerlesimDogrula(v);
+      if (!d.ok) ctx.addIssue({ code: 'custom', message: d.hata });
+    }).transform((v) => { const d = yerlesimDogrula(v); return d.ok ? d.deger : (v as SahaYerlesimi); }),
+  },
+  {
     anahtar: 'kabuk.kunye', grup: 'gorunum', sinif: 'A',
     etiket: 'Ayak künye metni',
     aciklama: 'Her ekranın ayağında görünen kurum/platform adı. Sürüm ve ortam koddan gelir.',
@@ -190,12 +219,28 @@ export function ayarDogrula(anahtar: string, deger: unknown):
   return { ok: true, deger: s.data };
 }
 
-/** Birbirine bağlı eşikler: kritik > yüksek. */
+/* Birbirine bağlı eşik çiftleri: [büyük olmalı, küçük olmalı, hata cümlesi].
+   Öneri açılırken yeni değer diğerinin bugünkü değeriyle birlikte sınanır. */
+export const AYAR_CIFTLERI: readonly { buyuk: string; kucuk: string; hata: string }[] = [
+  { buyuk: 'risk.esik.kritik', kucuk: 'risk.esik.yuksek', hata: 'Yüksek risk eşiği kritik eşiğinden küçük olmalı.' },
+  { buyuk: 'kanit.tazelik.dolmus_gun', kucuk: 'kanit.tazelik.taze_gun', hata: 'Kanıt taze eşiği, süresi doldu eşiğinden küçük olmalı.' },
+];
+
+/** Anahtarın bağlı olduğu çiftin öteki anahtarları (yoksa boş). */
+export function ayarEsleri(anahtar: string): string[] {
+  const es: string[] = [];
+  for (const c of AYAR_CIFTLERI) {
+    if (c.buyuk === anahtar) es.push(c.kucuk);
+    if (c.kucuk === anahtar) es.push(c.buyuk);
+  }
+  return es;
+}
+
+/** Birbirine bağlı eşikler: kritik > yüksek · dolmuş > taze. */
 export function ayarCiftDogrula(degerler: Record<string, unknown>): string | null {
-  const kritik = degerler['risk.esik.kritik'];
-  const yuksek = degerler['risk.esik.yuksek'];
-  if (typeof kritik === 'number' && typeof yuksek === 'number' && yuksek >= kritik) {
-    return 'Yüksek risk eşiği kritik eşiğinden küçük olmalı.';
+  for (const c of AYAR_CIFTLERI) {
+    const b = degerler[c.buyuk], k = degerler[c.kucuk];
+    if (typeof b === 'number' && typeof k === 'number' && k >= b) return c.hata;
   }
   return null;
 }
@@ -219,5 +264,7 @@ export const GRUP_SIRASI: AyarGrubu[] = [
 export function degerMetni(t: AyarTanimi, deger: unknown): string {
   if (typeof deger === 'boolean') return deger ? 'açık' : 'kapalı';
   if (deger === null || deger === undefined) return 'bilinmiyor';
+  if (t.anahtar === 'saha.yerlesim' && typeof deger === 'object') return yerlesimMetni(deger as SahaYerlesimi);
+  if (typeof deger === 'object') return JSON.stringify(deger);
   return `${String(deger)}${t.birim ? ` ${t.birim}` : ''}`;
 }

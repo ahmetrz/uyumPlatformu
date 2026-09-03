@@ -5,8 +5,11 @@ import { z } from 'zod';
 import { db } from '../db';
 import { yetkiZorunlu } from '../erisim';
 import { tamam, hata, iz, bosluksuz, type Sonuc } from './ortak';
-import { ayarTanimi, ayarDogrula, ayarCiftDogrula } from '../yapilandirma/tanimlar';
+import { ayarTanimi, ayarDogrula, ayarCiftDogrula, ayarEsleri } from '../yapilandirma/tanimlar';
 import { ayarOku } from '../yapilandirma/oku';
+import { kanitEsikleri } from '../yapilandirma/kanitEsik';
+import { kanitKovasi, type KanitEsik } from '../sabitler';
+import { SAHA_MODUL_SOZLUGU, sozlesmeKontrol, yerlesimDogrula, yerlesimFarki, yerlesimNormalle } from '../yonetim/sahaModulleri';
 import { GORSEL_ANAHTARLARI } from '../gorsel';
 import { kuralDegerlendir, tesisKapsaminiHesapla } from '../motorlar/uygulanabilirlik';
 import { MODUL_SOZLUGU, ayarinModulu, type HedefTipi } from '../yonetim/moduller';
@@ -282,6 +285,10 @@ function sayiyaCevir(t: { varsayilan: unknown }, deger: unknown): unknown {
   if (typeof t.varsayilan === 'boolean' && typeof deger === 'string') {
     return deger === 'true' ? true : deger === 'false' ? false : deger;
   }
+  /* Nesne ayar (saha.yerlesim) JSON metni olarak da gelebilir. */
+  if (typeof t.varsayilan === 'object' && t.varsayilan !== null && typeof deger === 'string') {
+    try { return JSON.parse(deger); } catch { return deger; }
+  }
   return deger;
 }
 
@@ -336,6 +343,8 @@ async function etkiSatirlari(hedefTipi: HedefTipi, hedefId: string | null, sonra
       const t = ayarTanimi(anahtar);
       if (!t) return [{ baslik: 'Etki', deger: null, not: 'Bilinmeyen anahtar' }];
       const satirlar: EtkiSatiri[] = t.etki.map((e) => ({ baslik: e, deger: null, not: 'yeniden hesaplanır' }));
+      if (anahtar.startsWith('kanit.tazelik.')) satirlar.push(...await kanitTazelikEtkisi(anahtar, sonra?.deger));
+      if (anahtar === 'saha.yerlesim') satirlar.push(...await sahaYerlesimEtkisi(sonra?.deger));
       const motor = anahtar.match(/^motor\.([a-z_]+)\.etkin$/)?.[1];
       const adaylar = motor ? [motor] : t.etki.filter((e) => /^[a-z_]+$/.test(e));
       for (const isAdi of adaylar) {
@@ -382,6 +391,67 @@ async function etkiSatirlari(hedefTipi: HedefTipi, hedefId: string | null, sonra
   }
 }
 
+/* Kanıt tazelik eşiği değişince: kaç kanıt, kaç bağlı bulgu etkilenir ve kaç
+   kanıt kovası değişir? Yaş = toplanma tarihi (yoksa geçerlilik başlangıcı);
+   `gecerliBitis` geçmiş kanıt her iki eşikte de "dolmuş"tur, yeniden sınıflanmaz.
+   Sayılar bugünkü kütükten; bilinmiyor 0 değil null. */
+async function kanitTazelikEtkisi(anahtar: string, yeniDeger: unknown): Promise<EtkiSatiri[]> {
+  const mevcut = await kanitEsikleri();
+  const yeni: KanitEsik = { ...mevcut.esik };
+  if (typeof yeniDeger === 'number') {
+    if (anahtar === 'kanit.tazelik.taze_gun') yeni.taze = yeniDeger; else yeni.dolmus = yeniDeger;
+  }
+  const kanitlar = await db.kanit.findMany({ where: { silindi: null },
+    select: { id: true, gecerlilikBaslangic: true, toplanmaTarihi: true, gecerliBitis: true,
+      baglantilar: { select: { maddeDurumu: { select: { bulgular: { select: { id: true } } } } } } } });
+  const simdi = Date.now();
+  let yenidenSiniflanan = 0;
+  const etkilenenBulgu = new Set<string>();
+  for (const k of kanitlar) {
+    if (k.gecerliBitis && k.gecerliBitis.getTime() <= simdi) continue;
+    const gun = Math.floor((simdi - (k.toplanmaTarihi ?? k.gecerlilikBaslangic).getTime()) / 86_400_000);
+    if (kanitKovasi(gun, mevcut.esik) !== kanitKovasi(gun, yeni)) {
+      yenidenSiniflanan++;
+      for (const b of k.baglantilar) for (const bulgu of b.maddeDurumu.bulgular) etkilenenBulgu.add(bulgu.id);
+    }
+  }
+  const bagliBulgu = new Set<string>();
+  for (const k of kanitlar) for (const b of k.baglantilar) for (const bulgu of b.maddeDurumu.bulgular) bagliBulgu.add(bulgu.id);
+  return [
+    { baslik: 'Kanıt (aktif kütük)', deger: kanitlar.length, not: `yürürlükte ${mevcut.esik.taze}/${mevcut.esik.dolmus} → önerilen ${yeni.taze}/${yeni.dolmus} gün` },
+    { baslik: 'Bağlı bulgu', deger: bagliBulgu.size, not: 'kanıt zinciri üzerinden' },
+    { baslik: 'Yeniden sınıflanacak kanıt', deger: yenidenSiniflanan, not: yeni.taze >= yeni.dolmus ? 'ÇİFT TUTARSIZ — kaydedilemez' : 'kovası değişir (taze ↔ yenilenmeli ↔ dolmuş)' },
+    { baslik: 'Kovası değişen kanıta bağlı bulgu', deger: etkilenenBulgu.size },
+  ];
+}
+
+/* Saha yerleşimi değişince: gizlenen / gösterilen modül, KPI sırası ve tek
+   ekran sözleşmesi. Sözleşme İHLAL ise kayıt zaten şemada reddedilir; burada
+   onaylayana neden gösterilir. */
+async function sahaYerlesimEtkisi(yeniDeger: unknown): Promise<EtkiSatiri[]> {
+  const once = yerlesimNormalle((await ayarOku('saha.yerlesim')).deger);
+  const d = yerlesimDogrula(yeniDeger);
+  const ad = (id: string) => SAHA_MODUL_SOZLUGU[id]?.ad ?? id;
+  if (!d.ok) {
+    const ham = (yeniDeger && typeof yeniDeger === 'object') ? yeniDeger as { gizli?: unknown; kpiSira?: unknown } : null;
+    const s = ham && Array.isArray(ham.gizli) && Array.isArray(ham.kpiSira)
+      ? sozlesmeKontrol({ gizli: ham.gizli as string[], kpiSira: ham.kpiSira as string[] }) : null;
+    return [
+      { baslik: 'Etkilenen ekran', deger: 1, not: 'Saha' },
+      { baslik: 'Tek ekran sözleşmesi', deger: null, not: s?.ihlal ? `İHLAL — ${s.nedenler[0]}` : `reddedildi — ${d.hata}` },
+    ];
+  }
+  const f = yerlesimFarki(once, d.deger);
+  const s = sozlesmeKontrol(d.deger);
+  return [
+    { baslik: 'Etkilenen ekran', deger: 1, not: 'Saha' },
+    { baslik: 'Gizlenen modül', deger: f.gizlenen.length, not: f.gizlenen.length ? f.gizlenen.map(ad).join(' · ') : '—' },
+    { baslik: 'Yeniden gösterilen modül', deger: f.gosterilen.length, not: f.gosterilen.length ? f.gosterilen.map(ad).join(' · ') : '—' },
+    { baslik: 'KPI sırası', deger: f.kpiSayisi, not: f.siraDegisti ? 'değişir' : 'aynı' },
+    { baslik: 'Tek ekran sözleşmesi (1280×800 bütçesi)', deger: s.alanYukseklik, not: s.ihlal ? `İHLAL — ${s.nedenler[0]}` : 'korunur · fotoğrafik alana kalan px' },
+  ];
+}
+
 /* ── B · Değişiklik önerisi (Kaydet + İncelemeye gönder) ───────────────── */
 const KURAL_SEMASI = z.object({
   regulasyonId: bosluksuz('Regülasyon'), ad: bosluksuz('Kural adı'),
@@ -412,7 +482,7 @@ export async function degisiklikOner(girdi: {
       const once = await ayarOku(anahtar);
       /* Bağlı eşik: yeni değer ile diğerinin bugünkü değeri birlikte doğrulanır. */
       const cift: Record<string, unknown> = { [anahtar]: d.deger };
-      for (const es of ['risk.esik.kritik', 'risk.esik.yuksek']) if (es !== anahtar) cift[es] = (await ayarOku(es)).deger;
+      for (const es of ayarEsleri(anahtar)) cift[es] = (await ayarOku(es)).deger;
       const ciftHata = ayarCiftDogrula(cift);
       if (ciftHata) return { ok: false, hata: ciftHata };
       if (JSON.stringify(once.deger) === JSON.stringify(d.deger)) return { ok: false, hata: 'Yeni değer bugünkü değerle aynı.' };

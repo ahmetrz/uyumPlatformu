@@ -4,6 +4,7 @@ import { db } from '@/lib/db';
 import { Yetkisiz } from '@/components/kabuk/temel';
 import { gecenGun, tarihTR } from '@/lib/sabitler';
 import RaporlarIstemci from './RaporlarIstemci';
+import { kanitEsikleri } from '@/lib/yapilandirma/kanitEsik';
 import { hucreOzeti, kapsamDisiHucre, type Bulgu, type Kanit, type Santral, type Sayilar, type Surec } from './mantik';
 
 export const metadata: Metadata = { title: 'Portföy raporu' };
@@ -83,6 +84,7 @@ export default async function Sayfa() {
       acik: b.durum !== 'kapali' && b.durum !== 'kabul_edildi',
     }));
 
+  const kanitEsik = await kanitEsikleri();
   const kanitVeri: Kanit[] = kanitlar.map((x) => ({
     id: x.id, ad: x.ad, tip: x.tip,
     gun: gecenGun(x.gecerlilikBaslangic),
@@ -91,6 +93,7 @@ export default async function Sayfa() {
 
   return (
     <RaporlarIstemci
+      kanitEsik={kanitEsik.esik}
       surecler={surecListesi}
       santraller={santraller}
       bulgular={bulguVeri}

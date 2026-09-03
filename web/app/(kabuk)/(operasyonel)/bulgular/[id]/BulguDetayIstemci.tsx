@@ -17,7 +17,7 @@ import {
 } from '@/lib/eylemler';
 import {
   ONEM_DERECELERI, ONEM_ETIKET, BULGU_DURUMLARI, BULGU_DURUM_ETIKET,
-  AKSIYON_DURUMLARI, AKSIYON_ETIKET, kanitTazelik, etiketle, eylemCumlesi, zamanTR,
+  AKSIYON_DURUMLARI, AKSIYON_ETIKET, KANIT_ESIK_VARSAYILAN, kanitTazelik, etiketle, eylemCumlesi, zamanTR, type KanitEsik,
 } from '@/lib/sabitler';
 import {
   aksiyonAcikMi, aksiyonDogrulamaHucresi, aksiyonImi, bugunAn, bulguImi,
@@ -61,7 +61,11 @@ const SOZ: Record<Durum, string> = {
 const ASAMALAR = ['Tespit', 'Aksiyon', 'Doğrulama', 'Kapanış'];
 const KANIT_TIPLERI = ['politika', 'kayit', 'konfigurasyon', 'ekran_goruntusu', 'rapor'];
 
-export default function BulguDetayIstemci({ veri }: { veri: Veri }) {
+export default function BulguDetayIstemci({ veri, esik = KANIT_ESIK_VARSAYILAN }: {
+  veri: Veri;
+  /** kanıt tazelik eşiği — sunucudan (`kanitEsikleri()`), Kanıt kütüphanesiyle aynı kaynak */
+  esik?: KanitEsik;
+}) {
   const { bekliyor, hata, calistir } = useEylem();
   const [panel, setPanel] = useState(true);
   const [kip, setKip] = useState<'kayit' | 'iz'>('kayit');
@@ -378,7 +382,7 @@ export default function BulguDetayIstemci({ veri }: { veri: Veri }) {
                         </span>
                       )}
                       {veri.kanitlar.map((k) => {
-                        const taze = kanitTazelik(new Date(k.baslangic));
+                        const taze = kanitTazelik(new Date(k.baslangic), esik);
                         return (
                           <span key={k.id} style={{ display: 'flex', alignItems: 'center',
                             gap: 'var(--s8)', fontSize: 'var(--t-field)' }}>

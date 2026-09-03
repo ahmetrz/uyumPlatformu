@@ -1,12 +1,13 @@
 'use client';
 import Link from 'next/link';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type JSX } from 'react';
 import { kucukGorsel } from '@/lib/gorsel';
 import { SahaArkaPlani } from './SahaArkaPlani';
 import { tipAdi, tipRengi, uygunRengi } from '@/components/kabuk/tip';
 import type {
   AkisHaftasi, RiskIzgarasi, SantralKarti, TakvimKalemi, TipKatmani,
 } from './veri';
+import { SAHA_YERLESIM_VARSAYILAN, gorunur, kpiSirasi, type SahaYerlesimi } from '@/lib/yonetim/sahaModulleri';
 
 /* ═══════════════════════════════════════════════════════════════════════
    SAHA — ANA EKRAN · ENERGY INTELLIGENCE
@@ -104,8 +105,13 @@ const ONEM_SINIF: Record<string, string> = {
 
 export default function Genel({
   bugun, ozet, odak, kuyruk, toplamKayit, kapsamli = false,
-  santraller, tipler, risk, egilim,
+  santraller, tipler, risk, egilim, yerlesim = SAHA_YERLESIM_VARSAYILAN,
 }: {
+  /* Sunum katmanı yerleşimi — yönetim konsolu `saha.yerlesim` (A sınıfı).
+     Yalnız `lib/yonetim/sahaModulleri.ts` beyaz listesindeki bloklar
+     gizlenir/sıralanır; zorunlu yüzeyler her yerleşimde çizilir. Bölge
+     düzeni (dikkat · takımyıldız · katman / KPI / şerit) SABİTTİR. */
+  yerlesim?: SahaYerlesimi;
   kullanici: string;
   /* Sunucuda biçimlendirilmiş tarih. Burada `new Date()` ÇAĞIRMA: bu
      bileşen istemcide de çalışır, statik dışa aktarımda HTML derleme
@@ -128,6 +134,7 @@ export default function Genel({
   egilim: { etiket: string; yuzde: number }[] | null;
 }) {
   const dikkat = odak ? [odak, ...kuyruk] : kuyruk;
+  const katmanVar = gorunur(yerlesim, 'katman');
 
   return (
     <main className="ab-b-saha ab-b-genel">
@@ -137,7 +144,7 @@ export default function Genel({
           başlık atlamayla (H) neye gideceğini bilemez. */}
       <h1 className="ab-gizli-okuma">Saha · grup durumu ve öncelikler</h1>
       {/* ═══ Fotoğrafik alan ═══════════════════════════════════════════ */}
-      <section className="ab-b-alan">
+      <section className={`ab-b-alan${katmanVar ? '' : ' katmansiz'}`}>
         {/* Fon: 5 görsellik havuz, oturum içinde sırayla döner; dekoratif,
             işaretçi almaz. Karanlık/kontrast katmanı `.perde` ayrı durur. */}
         <SahaArkaPlani />
@@ -161,7 +168,7 @@ export default function Genel({
             </span>
           </div>
 
-          <Egilim seri={egilim} />
+          {gorunur(yerlesim, 'egilim') && <Egilim seri={egilim} />}
 
           <Mudahale dikkat={dikkat} toplamKayit={toplamKayit} kapsamli={kapsamli} />
         </aside>
@@ -169,36 +176,38 @@ export default function Genel({
         {/* ── Takımyıldız — koordinat DEĞİL, endeks × güç ───────────── */}
         <Takimyildizi santraller={santraller} />
 
-        {/* ── Katman paneli · 320px ─────────────────────────────────── */}
-        <aside className="ab-b-katman" aria-label="Üretim tipine göre uyum">
-          <p className="etiket" title="Üretim tipine göre uyum katmanları">Üretim tipi · uyum</p>
-          <div className="katmanlar">
-            {tipler.length === 0 && <p className="bos">Kapsamında santral yok.</p>}
-            {tipler.slice(0, KATMAN_TAVANI).map((t) => (
-              <div key={t.kod} className="katman">
-                <div className="bas">
-                  <span className="ad">{tipAdi(t.kod, t.ad)}</span>
-                  <span className="mono deger">{t.endeks === null ? '—' : `%${t.endeks}`}</span>
+        {/* ── Katman paneli · 320px — gizlenebilir (saha.yerlesim) ────── */}
+        {katmanVar && (
+          <aside className="ab-b-katman" aria-label="Üretim tipine göre uyum">
+            <p className="etiket" title="Üretim tipine göre uyum katmanları">Üretim tipi · uyum</p>
+            <div className="katmanlar">
+              {tipler.length === 0 && <p className="bos">Kapsamında santral yok.</p>}
+              {tipler.slice(0, KATMAN_TAVANI).map((t) => (
+                <div key={t.kod} className="katman">
+                  <div className="bas">
+                    <span className="ad">{tipAdi(t.kod, t.ad)}</span>
+                    <span className="mono deger">{t.endeks === null ? '—' : `%${t.endeks}`}</span>
+                  </div>
+                  <p className="mono meta" title={`${t.santralSayisi} santral · ${t.gucMw} MWe · ${t.kontrolSayisi} kontrol`}>
+                    {t.santralSayisi} santral · {t.gucMw} MWe
+                  </p>
+                  <Yigin uygun={t.uygun} kismi={t.kismi} uygunsuz={t.uygunsuz}
+                    bilinmeyen={t.bilinmeyen} tip={t.kod} kontrol={t.kontrolSayisi} />
                 </div>
-                <p className="mono meta" title={`${t.santralSayisi} santral · ${t.gucMw} MWe · ${t.kontrolSayisi} kontrol`}>
-                  {t.santralSayisi} santral · {t.gucMw} MWe
+              ))}
+              {tipler.length > KATMAN_TAVANI && (
+                <p className="mono kalan">
+                  {tipler.slice(KATMAN_TAVANI).map((t) => tipAdi(t.kod, t.ad)).join(' · ')}
+                  {' — '}{tipler.slice(KATMAN_TAVANI).reduce((a, t) => a + t.santralSayisi, 0)} santral
                 </p>
-                <Yigin uygun={t.uygun} kismi={t.kismi} uygunsuz={t.uygunsuz}
-                  bilinmeyen={t.bilinmeyen} tip={t.kod} kontrol={t.kontrolSayisi} />
-              </div>
-            ))}
-            {tipler.length > KATMAN_TAVANI && (
-              <p className="mono kalan">
-                {tipler.slice(KATMAN_TAVANI).map((t) => tipAdi(t.kod, t.ad)).join(' · ')}
-                {' — '}{tipler.slice(KATMAN_TAVANI).reduce((a, t) => a + t.santralSayisi, 0)} santral
-              </p>
-            )}
-          </div>
-        </aside>
+              )}
+            </div>
+          </aside>
+        )}
       </section>
 
       {/* ═══ Öncelik göstergeleri ══════════════════════════════════════ */}
-      <OncelikSeridi ozet={ozet} risk={risk} />
+      <OncelikSeridi ozet={ozet} risk={risk} sira={kpiSirasi(yerlesim)} />
 
       {/* ═══ Saha şeridi ═══════════════════════════════════════════════ */}
       <section className="ab-b-serit" aria-label="Saha seçici">
@@ -232,19 +241,20 @@ export default function Genel({
    Not: "Kritik risk" artık skor ≥ 15 sayar, ısı haritası kritiği
    olasılık × en büyük etki ≥ 15 sayar — iki farklı tanım, iki farklı
    kalem; birleştirilmez. */
-function OncelikSeridi({ ozet, risk }: { ozet: Ozet; risk: RiskIzgarasi }) {
+function OncelikSeridi({ ozet, risk, sira }: { ozet: Ozet; risk: RiskIzgarasi; sira: string[] }) {
   const yaklasan = ozet.yaklasanDenetim;
   const olculemeyenRisk = risk.olculemeyen;
   /* Yakınlık sözcükle: "≤ 7 gün" alarmı renkten önce metinde durur. */
   const denetimDurumu = yaklasan === null ? 'unk' : yaklasan.kalanGun <= 7 ? 'md' : 'pl';
   const yogunlukDurumu = risk.kritik > 0 ? 'bd' : risk.yuksek > 0 ? 'md' : olculemeyenRisk > 0 ? 'unk' : 'ok';
-  return (
-    <section className="ab-kpi" aria-label="Öncelik göstergeleri">
-      {/* Cümle satırı yalnız KARAR taşıyan parçayı yazar: "ölçülemedi"
-          (bilinmeyen ≠ sıfır) ve denetimin adı/tarihi. Tanım cümleleri
-          ("artık skor ≥ 15", "hedef tarihi geçmiş…", "olasılık × etki")
-          `title`a taşındı — ilk bakışta karar verdirmiyordu. */}
-      <Link href="/riskler"
+
+  /* Kalemler kimlikle tanımlı (`lib/yonetim/sahaModulleri.ts` KPI kütüğü);
+     sıra ve görünürlük `sira` ile gelir — konsol yalnız bu iki şeyi yönetir,
+     kalemin durum semantiği ve hedefi burada kalır. Kalem sayısı sütun
+     sayısını verir (`k3`, `k2`): şerit tek satırda kalır. */
+  const kalemler: Record<string, JSX.Element> = {
+    kpiKritikRisk: (
+      <Link key="kpiKritikRisk" href="/riskler"
         className={`kalem d-${ozet.kritikRisk > 0 ? 'bd' : olculemeyenRisk > 0 ? 'unk' : 'ok'}`}
         title={`Artık skor ≥ 15 · açık veya işlemde${olculemeyenRisk > 0 ? ` · ${olculemeyenRisk} risk ölçülemedi (olasılık/etki girilmemiş)` : ''}`}>
         <span className="etiket">Kritik risk</span>
@@ -253,14 +263,18 @@ function OncelikSeridi({ ozet, risk }: { ozet: Ozet; risk: RiskIzgarasi }) {
           <span className="cumle"><span className="unk">{olculemeyenRisk} ölçülemedi</span></span>
         )}
       </Link>
-      <Link href="/bulgular" className={`kalem d-${ozet.gecikmisAksiyon > 0 ? 'bd' : 'ok'}`}
+    ),
+    kpiGecikmisAksiyon: (
+      <Link key="kpiGecikmisAksiyon" href="/bulgular" className={`kalem d-${ozet.gecikmisAksiyon > 0 ? 'bd' : 'ok'}`}
         title={ozet.gecikmisAksiyon > 0
           ? 'Hedef tarihi geçmiş, hâlâ planlı veya devam eden aksiyonlar'
           : 'Hedef tarihi geçmiş aksiyon yok'}>
         <span className="etiket">Gecikmiş aksiyon</span>
         <span className="mono deger">{ozet.gecikmisAksiyon}</span>
       </Link>
-      <Link href="/denetimler" className={`kalem d-${denetimDurumu}`}
+    ),
+    kpiYaklasanDenetim: (
+      <Link key="kpiYaklasanDenetim" href="/denetimler" className={`kalem d-${denetimDurumu}`}
         title={yaklasan === null
           ? 'Planlı denetim yok'
           : `${yaklasan.ad} · ${yaklasan.kod} · ${kisaTarih(yaklasan.tarih)} · ${yaklasan.kalanGun} gün kaldı`}>
@@ -283,7 +297,9 @@ function OncelikSeridi({ ozet, risk }: { ozet: Ozet; risk: RiskIzgarasi }) {
           </>
         )}
       </Link>
-      <Link href="/riskler" className={`kalem d-${yogunlukDurumu}`}
+    ),
+    kpiRiskYogunlugu: (
+      <Link key="kpiRiskYogunlugu" href="/riskler" className={`kalem d-${yogunlukDurumu}`}
         title={`Olasılık × etki matrisi Risk alanında${olculemeyenRisk > 0 ? ` · ${olculemeyenRisk} risk ölçülemedi` : ''}`}>
         <span className="etiket">Risk yoğunluğu</span>
         <span className="mono deger">
@@ -294,6 +310,17 @@ function OncelikSeridi({ ozet, risk }: { ozet: Ozet; risk: RiskIzgarasi }) {
           <span className="cumle"><span className="unk">{olculemeyenRisk} ölçülemedi</span></span>
         )}
       </Link>
+    ),
+  };
+  const gorunen = sira.filter((id) => id in kalemler);
+  if (gorunen.length === 0) return null;
+  return (
+    <section className={`ab-kpi${gorunen.length < 4 ? ` k${gorunen.length}` : ''}`} aria-label="Öncelik göstergeleri">
+      {/* Cümle satırı yalnız KARAR taşıyan parçayı yazar: "ölçülemedi"
+          (bilinmeyen ≠ sıfır) ve denetimin adı/tarihi. Tanım cümleleri
+          ("artık skor ≥ 15", "hedef tarihi geçmiş...", "olasılık × etki")
+          `title`a taşındı — ilk bakışta karar verdirmiyordu. */}
+      {gorunen.map((id) => kalemler[id])}
     </section>
   );
 }

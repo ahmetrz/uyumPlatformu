@@ -482,6 +482,9 @@
   border-bottom: 1px solid var(--hr);
   display: grid; grid-template-columns: 400px minmax(0, 1fr) 300px;
 }
+/* Katman paneli konsoldan gizlendiyse (`saha.yerlesim`) alan iki kolona
+   iner; takımyıldız genişler, yükseklik bütçesi değişmez. */
+.ab-b-alan.katmansiz { grid-template-columns: 400px minmax(0, 1fr); }
 /* Fon katmanı: 5 görsellik havuz (`lib/sahaArkaPlan.ts`). Kap `inset: 0`
    ile alanı doldurur; görselin en-boyu ne olursa olsun alan geometrisi
    değişmez (`object-fit: cover`, odak `object-position` ile görsel
@@ -756,6 +759,11 @@
   display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
   border-bottom: 1px solid var(--hr);
 }
+/* Görünür kalem sayısı sütun sayısıdır (konsol `saha.yerlesim`); şerit
+   tek satırda kalır, tek ekran sözleşmesi bozulmaz. */
+.ab-kpi.k3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.ab-kpi.k2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.ab-kpi.k1 { grid-template-columns: minmax(0, 1fr); }
 .ab-kpi .kalem {
   display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 12px; row-gap: 2px;
   align-items: baseline; min-width: 0; min-height: 62px;
@@ -3063,6 +3071,23 @@ details:not([open]) > *:not(summary) { display: none !important; }
 .ab-fark td { font-family: var(--veri); }
 .ab-fark td.once { color: var(--i3); text-decoration: line-through; text-decoration-color: var(--hr2); }
 .ab-fark td.sonra { color: var(--murekkep); }
+
+/* Saha yerleşim tablosu (saha.yerlesim): kütük satırları, görünürlük anahtarı, sıra düğmeleri */
+.ab-yerlesim { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--hr); }
+.ab-yerlesim > li {
+  display: grid; gap: var(--s4); padding: var(--s8) 0; border-bottom: 1px solid var(--hr);
+}
+.ab-yerlesim > li.gizli .ad, .ab-yerlesim > li.gizli .meta { color: var(--i3); }
+.ab-yerlesim .bas { display: flex; justify-content: space-between; gap: var(--s10); align-items: baseline; }
+.ab-yerlesim .bas .ad { font-size: 13px; color: var(--murekkep); }
+.ab-yerlesim .bas .kunye, .ab-yerlesim .meta, .ab-yerlesim .not { font-size: 11px; color: var(--i3); white-space: nowrap; }
+.ab-yerlesim .meta { margin: 0; }
+.ab-yerlesim .denetim { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s6) var(--s12); font-size: 12px; }
+.ab-yerlesim .d-unk { color: var(--i3); }
+.ab-yerlesim-anahtar { display: inline-flex; align-items: center; gap: var(--s6); cursor: pointer; }
+.ab-yerlesim-anahtar input { accent-color: var(--aksan); margin: 0; }
+.ab-yerlesim-sira { display: inline-flex; align-items: center; gap: var(--s6); }
+.ab-yerlesim-sira .ab-dugme.kucuk { padding: 0 var(--s6); min-height: 22px; line-height: 20px; }
 
 /* etki listesi */
 .ab-konsol-etki-sar { display: grid; gap: var(--s10); }

@@ -7,6 +7,10 @@ import { zamanTR } from '@/lib/sabitler';
 import type { FormAlani, Modul } from '@/lib/yonetim/moduller';
 import { degerMetni, type AyarTanimi } from '@/lib/yapilandirma/tanimlar';
 import {
+  SAHA_MODULLERI, SAHA_MODUL_SOZLUGU, gorunur, kpiSirasi, sozlesmeKontrol, yerlesimDogrula, yerlesimFarki,
+  yerlesimMetni, yerlesimNormalle, type SahaYerlesimi,
+} from '@/lib/yonetim/sahaModulleri';
+import {
   ayarKaydet, degisiklikIptal, degisiklikOnayla, degisiklikOner, degisiklikReddet, degisiklikUygula,
   etkiHesapla, katalogArsivle, katalogKaydet, tesisGorselAta, type EtkiSatiri,
 } from '@/lib/eylemler2/yonetim';
@@ -484,6 +488,7 @@ export function AyarCekmecesi({ tanim, okuma, veri, kapat, tazele, gecmis, acikT
           ]} />
           <p className="etiket ab-panel-blokbas">Değişiklik nereyi etkiler</p>
           <p className="ab-dip">{tanim.etki.length ? tanim.etki.join(' · ') : 'Kayıtlı etki bilgisi yok.'}</p>
+          {tanim.anahtar === 'saha.yerlesim' && <YerlesimTablosu yerlesim={yerlesimNormalle(bugun)} />}
           <AcikTalepUyarisi talepler={acikTalepler} />
           <CekmeceEylemler
             birincil={veri.izin.yazma ? <Dugme tur="birincil" onClick={() => setSekme('duzenle')}>Düzenle</Dugme> : undefined}
@@ -493,7 +498,12 @@ export function AyarCekmecesi({ tanim, okuma, veri, kapat, tazele, gecmis, acikT
         </>
       )}
 
-      {sekme === 'duzenle' && veri.izin.yazma && (
+      {sekme === 'duzenle' && veri.izin.yazma && tanim.anahtar === 'saha.yerlesim' && (
+        <YerlesimDuzenleyici tanim={tanim} bugun={yerlesimNormalle(bugun)} vazgec={() => { setSekme('deger'); setHata(null); }}
+          bitti={() => { setSekme('deger'); tazele(); }} />
+      )}
+
+      {sekme === 'duzenle' && veri.izin.yazma && tanim.anahtar !== 'saha.yerlesim' && (
         <form className="ab-konsol-form" onSubmit={(e) => { e.preventDefault(); kaydet(); }}>
           <Alan etiket={`Yeni değer${tanim.birim ? ` (${tanim.birim})` : ''}`} zorunlu>
             {tip === 'boolean' ? (
@@ -535,6 +545,145 @@ export function AyarCekmecesi({ tanim, okuma, veri, kapat, tazele, gecmis, acikT
         </>
       )}
     </Cekmece>
+  );
+}
+
+/* ═══ Saha yerleşimi düzenleyicisi (A · saha.yerlesim) ═══════════════════
+
+   Serbest sürükle-bırak YOK. Kütük (`lib/yonetim/sahaModulleri.ts`) satır
+   satır listelenir: görünür/gizli anahtarı yalnız `hideable` ve zorunlu
+   olmayan modülde açılır; sıra düğmeleri yalnız KPI kalemlerinde ve izinli
+   konum kümesi içinde çalışır. Kaydetmeden önce fark, etkilenen ekran ve
+   tek ekran sözleşmesi hesaplanır; ihlal varsa Kaydet KAPALI kalır ve sunucu
+   da aynı doğrulamayı yapar (istemcinin hesabı yetki değildir). */
+const ALAN_ADI: Record<string, string> = { dikkat: 'Dikkat paneli', alan: 'Fotoğrafik alan', kpi: 'KPI şeridi', serit: 'Santral şeridi' };
+
+function YerlesimTablosu({ yerlesim, taslak, degistir }: {
+  yerlesim: SahaYerlesimi; taslak?: SahaYerlesimi; degistir?: (y: SahaYerlesimi) => void;
+}) {
+  const y = taslak ?? yerlesim;
+  const sira = kpiSirasi(y);
+  const duzenlenir = Boolean(degistir);
+  const gorunurlukDegistir = (id: string, acik: boolean) => {
+    if (!degistir) return;
+    const gizli = acik ? y.gizli.filter((g) => g !== id) : [...y.gizli, id];
+    const gorunen = SAHA_MODULLERI.filter((m) => m.alan === 'kpi' && !gizli.includes(m.id)).map((m) => m.id);
+    const kpiSira = [...y.kpiSira.filter((k) => gorunen.includes(k)), ...gorunen.filter((k) => !y.kpiSira.includes(k))];
+    degistir({ gizli, kpiSira });
+  };
+  const kaydir = (id: string, yon: -1 | 1) => {
+    if (!degistir) return;
+    const i = sira.indexOf(id); const j = i + yon;
+    if (i < 0 || j < 0 || j >= sira.length) return;
+    const yeni = [...sira]; [yeni[i], yeni[j]] = [yeni[j], yeni[i]];
+    degistir({ gizli: y.gizli, kpiSira: yeni });
+  };
+  /* 400px çekmeceye 7 sütunlu tablo sığmaz; her modül tek satır blok:
+     ad + alan/ekran · görünürlük denetimi · sıra denetimi · zorunlu/varsayılan. */
+  return (
+    <ul className="ab-yerlesim" aria-label="Saha modülleri">
+      {SAHA_MODULLERI.map((m) => {
+        const acik = gorunur(y, m.id);
+        const konum = m.alan === 'kpi' && acik ? sira.indexOf(m.id) : -1;
+        const kilitli = m.required || !m.hideable;
+        return (
+          <li key={m.id} className={acik ? undefined : 'gizli'}>
+            <div className="bas">
+              <span className="ad" title={m.aciklama}>{m.ad}</span>
+              <span className="mono kunye">{ALAN_ADI[m.alan]} · {m.etkilenenEkran}</span>
+            </div>
+            <div className="denetim">
+              {duzenlenir && !kilitli ? (
+                <label className="ab-yerlesim-anahtar">
+                  <input type="checkbox" checked={acik} onChange={(e) => gorunurlukDegistir(m.id, e.target.checked)}
+                    aria-label={`${m.ad} görünür`} />
+                  <span>{acik ? 'görünür' : 'gizli'}</span>
+                </label>
+              ) : (
+                <span className={acik ? undefined : 'd-unk'}>{acik ? 'görünür' : 'gizli'}{kilitli ? ' · kilitli' : ''}</span>
+              )}
+              {konum >= 0 && (
+                <span className="ab-yerlesim-sira">
+                  <span className="mono">sıra {konum + 1}</span>
+                  {duzenlenir && m.orderable && (
+                    <>
+                      <Dugme className="kucuk" aria-label={`${m.ad} yukarı`} disabled={konum === 0} onClick={() => kaydir(m.id, -1)}>↑</Dugme>
+                      <Dugme className="kucuk" aria-label={`${m.ad} aşağı`} disabled={konum === sira.length - 1} onClick={() => kaydir(m.id, 1)}>↓</Dugme>
+                    </>
+                  )}
+                  {m.allowedPositions && m.allowedPositions.length < 4 && (
+                    <span className="not">izinli konum {m.allowedPositions.map((p) => p + 1).join('/')}</span>
+                  )}
+                </span>
+              )}
+              {konum < 0 && <span className="mono not">{m.orderable ? 'sıra —' : 'sıra sabit'}</span>}
+            </div>
+            <p className="mono meta">zorunlu {m.required ? 'evet' : 'hayır'} · varsayılan {m.defaultVisible ? 'görünür' : 'gizli'}</p>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+function YerlesimDuzenleyici({ tanim, bugun, vazgec, bitti }: {
+  tanim: AyarTanimi; bugun: SahaYerlesimi; vazgec: () => void; bitti: () => void;
+}) {
+  const [taslak, setTaslak] = useState<SahaYerlesimi>(bugun);
+  const [gerekce, setGerekce] = useState('');
+  const { bekliyor, hata, setHata, calistir } = useEylem();
+  const dogrulama = useMemo(() => yerlesimDogrula(taslak), [taslak]);
+  const sozlesme = useMemo(() => sozlesmeKontrol(taslak), [taslak]);
+  const f = useMemo(() => yerlesimFarki(bugun, taslak), [bugun, taslak]);
+  const farkVar = JSON.stringify({ gizli: [...bugun.gizli].sort(), sira: kpiSirasi(bugun) })
+    !== JSON.stringify({ gizli: [...taslak.gizli].sort(), sira: kpiSirasi(taslak) });
+  const ad = (id: string) => SAHA_MODUL_SOZLUGU[id]?.ad ?? id;
+
+  const kaydet = () => {
+    if (!dogrulama.ok) { setHata(dogrulama.hata); return; }
+    if (sozlesme.ihlal) { setHata(`Tek ekran sözleşmesi ihlali — ${sozlesme.nedenler[0]}`); return; }
+    if (gerekce.trim().length < GEREKCE_ASGARI) { setHata(`Gerekçe en az ${GEREKCE_ASGARI} karakter olmalı.`); return; }
+    calistir(() => ayarKaydet({ anahtar: tanim.anahtar, deger: taslak, gerekce }), () => { setGerekce(''); bitti(); });
+  };
+
+  return (
+    <form className="ab-konsol-form" onSubmit={(e) => { e.preventDefault(); kaydet(); }}>
+      <p className="etiket ab-panel-blokbas">Modüller · görünürlük ve sıra</p>
+      <YerlesimTablosu yerlesim={bugun} taslak={taslak} degistir={setTaslak} />
+      <p className="ab-dip">Zorunlu ve kilitli modüller gizlenemez; bölgeler arası taşıma yok. KPI kalemleri yalnız izinli konumlara yerleşir.</p>
+
+      <p className="etiket ab-panel-blokbas">Ön izleme · önce → sonra</p>
+      <FarkTablosu once={{ yerlesim: yerlesimMetni(bugun) }} sonra={{ yerlesim: yerlesimMetni(taslak) }}
+        etiketler={{ yerlesim: 'Saha yerleşimi' }} />
+
+      <p className="etiket ab-panel-blokbas">Etki</p>
+      <ul className="ab-konsol-etki">
+        <li><span className="ad">Etkilenen ekran</span><span className="sayi mono">1</span><span className="not">Saha</span></li>
+        <li><span className="ad">Gizlenen modül</span><span className="sayi mono">{f.gizlenen.length}</span>
+          <span className="not">{f.gizlenen.length ? f.gizlenen.map(ad).join(' · ') : '—'}</span></li>
+        <li><span className="ad">Yeniden gösterilen modül</span><span className="sayi mono">{f.gosterilen.length}</span>
+          <span className="not">{f.gosterilen.length ? f.gosterilen.map(ad).join(' · ') : '—'}</span></li>
+        <li><span className="ad">KPI sırası</span><span className="sayi mono">{f.kpiSayisi}</span>
+          <span className="not">{f.siraDegisti ? 'değişir' : 'aynı'} · {kpiSirasi(taslak).map((id) => ad(id).replace('KPI · ', '')).join(' → ')}</span></li>
+        <li>
+          <span className="ad">Tek ekran sözleşmesi (1280×800)</span>
+          <span className={`sayi mono${sozlesme.ihlal ? ' d-bd' : ''}`}>{sozlesme.ihlal ? 'İHLAL' : 'korunur'}</span>
+          <span className="not">{sozlesme.ihlal ? sozlesme.nedenler.join(' ') : `fotoğrafik alana ${sozlesme.alanYukseklik}px kalır · scrollHeight === innerHeight`}</span>
+        </li>
+      </ul>
+      {!dogrulama.ok && <p className="ab-gr-hata" role="alert">{dogrulama.hata}</p>}
+
+      <GerekceAlani deger={gerekce} degistir={setGerekce} zorunlu />
+      {hata && <p className="ab-gr-hata" role="alert">{hata}</p>}
+      <CekmeceEylemler
+        birincil={<Dugme tur="birincil" type="submit" disabled={bekliyor || !farkVar || !dogrulama.ok || sozlesme.ihlal}>
+          {bekliyor ? 'Kaydediliyor...' : 'Kaydet'}
+        </Dugme>}
+        ikincil={<Dugme onClick={vazgec} disabled={bekliyor}>Vazgeç</Dugme>}
+        dipNot={sozlesme.ihlal
+          ? 'Sözleşmeyi bozan yerleşim KAYDEDİLMEZ; sunucu da aynı kuralı uygular.'
+          : 'A sınıfı: doğrudan yazılır, iz düşer. Görünürlük sunum katmanıdır; yetki ya da veri erişimi değiştirmez.'} />
+    </form>
   );
 }
 

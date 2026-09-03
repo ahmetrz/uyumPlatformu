@@ -9,7 +9,7 @@ import {
   Cekmece, CekmeceKimlik, CekmeceAlanlar, CekmeceBagli, CekmeceEylemler,
 } from '@/components/kabuk/panel';
 import { exceleAktar, pdfYazdir } from '@/components/disaAktar';
-import { DURUM_ETIKET, ONEM_ETIKET, etiketle } from '@/lib/sabitler';
+import { DURUM_ETIKET, KANIT_ESIK_VARSAYILAN, ONEM_ETIKET, etiketle, type KanitEsik } from '@/lib/sabitler';
 import {
   ALT_ESIK, HEDEF_ESIK, baglantisizKanit, hucreDurumu, hucreIpucu, hucreSozu,
   portfoyOzeti, sakin, siralaSantraller, tazelikKovalari, yasKovalari, zayifHucreSayisi,
@@ -31,9 +31,11 @@ import {
 type Kip = 'bulgu' | 'kanit';
 
 export default function RaporlarIstemci({
-  surecler, santraller, bulgular, kanitlar, kisitliKapsam, raporZamani,
+  surecler, santraller, bulgular, kanitlar, kisitliKapsam, raporZamani, kanitEsik = KANIT_ESIK_VARSAYILAN,
 }: {
   surecler: Surec[];
+  /** kanıt tazelik eşiği — sunucudan (`kanitEsikleri()`), Kanıt kütüphanesiyle aynı kaynak */
+  kanitEsik?: KanitEsik;
   santraller: Santral[];
   bulgular: Bulgu[];
   kanitlar: Kanit[];
@@ -48,7 +50,7 @@ export default function RaporlarIstemci({
   const portfoy = useMemo(() => portfoyOzeti(santraller), [santraller]);
   const zayif = useMemo(() => zayifHucreSayisi(santraller), [santraller]);
   const kovalar = useMemo(() => yasKovalari(bulgular), [bulgular]);
-  const tazelik = useMemo(() => tazelikKovalari(kanitlar), [kanitlar]);
+  const tazelik = useMemo(() => tazelikKovalari(kanitlar, kanitEsik), [kanitlar, kanitEsik]);
 
   const acikBulgu = bulgular.filter((b) => b.acik).length;
   const eskiBulgu = kovalar[3]?.sayi ?? 0;
@@ -152,7 +154,7 @@ export default function RaporlarIstemci({
               {kip === 'bulgu'
                 ? <BulguYasi kovalar={kovalar} toplam={acikBulgu} bulgular={bulgular} />
                 : <KanitTazeligi kovalar={tazelik} toplam={kanitlar.length}
-                    baglantisiz={baglantisizKanit(kanitlar)} />}
+                    baglantisiz={baglantisizKanit(kanitlar)} esik={kanitEsik} />}
             </div>
           </section>
 
@@ -248,8 +250,8 @@ function BulguYasi({ kovalar, toplam, bulgular }: {
   );
 }
 
-function KanitTazeligi({ kovalar, toplam, baglantisiz }: {
-  kovalar: ReturnType<typeof tazelikKovalari>; toplam: number; baglantisiz: number;
+function KanitTazeligi({ kovalar, toplam, baglantisiz, esik }: {
+  kovalar: ReturnType<typeof tazelikKovalari>; toplam: number; baglantisiz: number; esik: KanitEsik;
 }) {
   if (toplam === 0) {
     return <BosIlk cumle="Kanıt kütüğünde kayıt yok — tazelik ölçülemiyor." />;
@@ -272,7 +274,7 @@ function KanitTazeligi({ kovalar, toplam, baglantisiz }: {
           oran={(k.sayi / toplam) * 100} sag={String(k.sayi)} not={k.aciklama} />
       ))}
       <p className="ab-dip">
-        Kanıt 90 günde yenilenmeli, 180 günü aşan kanıt denetimde kabul edilmez
+        Kanıt {esik.taze} günde yenilenmeli, {esik.dolmus} günü aşan kanıt denetimde kabul edilmez
         {baglantisiz > 0 && ` · ${baglantisiz} kanıt hiçbir maddeye bağlı değil`}
       </p>
     </>

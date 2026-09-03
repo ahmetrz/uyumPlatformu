@@ -1,7 +1,7 @@
 {
-  "imza": "02ec72ab337489021d2a6dc286788914",
-  "dosya": 75,
-  "vaka": 1354,
+  "imza": "23b20e7967546c58fd9ee89ab7d0263d",
+  "dosya": 77,
+  "vaka": 1400,
   "atlanan": 1,
   "dosyalar": {
     "tests/api.test.ts": {
@@ -128,6 +128,10 @@
       "vaka": 11,
       "atlanan": 0
     },
+    "tests/kanit-tazelik-ayar.test.ts": {
+      "vaka": 19,
+      "atlanan": 0
+    },
     "tests/kanitlar-mantik.test.ts": {
       "vaka": 23,
       "atlanan": 0
@@ -214,6 +218,10 @@
     },
     "tests/saha-arka-plan.test.ts": {
       "vaka": 3,
+      "atlanan": 0
+    },
+    "tests/saha-yerlesim.test.ts": {
+      "vaka": 27,
       "atlanan": 0
     },
     "tests/semantik.test.ts": {

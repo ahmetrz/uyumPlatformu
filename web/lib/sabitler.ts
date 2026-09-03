@@ -74,12 +74,29 @@ export const AKTARIM_ETIKET: Record<(typeof AKTARIM_DURUMLARI)[number], string> 
   dogrulama_bekliyor: 'Onay bekliyor', onaylandi: 'Onaylandı', reddedildi: 'Reddedildi', hata: 'Hata',
 };
 
+/* Kanıt tazelik eşikleri — KOD VARSAYILANI (fallback).
+   Yürürlükteki değer yönetim konsolundan gelir (`lib/yapilandirma/tanimlar.ts`
+   · `kanit.tazelik.taze_gun` / `kanit.tazelik.dolmus_gun`, B sınıfı); sunucu
+   `lib/yapilandirma/kanitEsik.ts → kanitEsikleri()` ile tek noktadan okur ve
+   ekranlara prop olarak indirir. Kayıt yoksa ya da geçersizse buradaki
+   sayılar geçerlidir — bozuk ayar kanıtı "bilinmiyor"a düşürmez. */
+export type KanitEsik = { taze: number; dolmus: number };
+export const KANIT_ESIK_VARSAYILAN: KanitEsik = { taze: 90, dolmus: 180 };
+
 // Kanıt tazeliği durum paletine bağlanır (tasarım kararı: yeni renk açılmaz)
-export function kanitTazelik(baslangic: Date): { etiket: string; durum: Durum; gun: number } {
+export function kanitTazelik(baslangic: Date, esik: KanitEsik = KANIT_ESIK_VARSAYILAN):
+  { etiket: string; durum: Durum; gun: number } {
   const gun = Math.floor((an() - baslangic.getTime()) / 86_400_000);
-  if (gun < 90) return { etiket: 'Taze', durum: 'uyumlu', gun };
-  if (gun <= 180) return { etiket: 'Yenilenmeli', durum: 'kismi', gun };
+  if (gun < esik.taze) return { etiket: 'Taze', durum: 'uyumlu', gun };
+  if (gun <= esik.dolmus) return { etiket: 'Yenilenmeli', durum: 'kismi', gun };
   return { etiket: 'Süresi doldu', durum: 'uyumsuz', gun };
+}
+
+/** Yaş (gün) → kova; eşik aynı sözleşme. Sunucu etki hesabı da bunu kullanır. */
+export function kanitKovasi(gun: number, esik: KanitEsik = KANIT_ESIK_VARSAYILAN): 'taze' | 'yenilenmeli' | 'dolmus' {
+  if (gun < esik.taze) return 'taze';
+  if (gun <= esik.dolmus) return 'yenilenmeli';
+  return 'dolmus';
 }
 
 // Uyum semantiği (§25, §55): Unknown asla 0 sayılmaz.

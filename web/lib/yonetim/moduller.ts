@@ -133,10 +133,9 @@ export const MODULLER: Modul[] = [
       { ad: 'aciklama', etiket: 'Açıklama', tip: 'metin' },
       { ad: 'aktif', etiket: 'Aktif', tip: 'mantik' },
     ], etki: ['santral kapsam kararı', 'uyum matrisi', 'madde durumu'] },
-  { kod: 'kanitTazelik', grup: 'uyum', ad: 'Kanıt tazelik eşiği (90/180 gün)', sinif: 'B', yer: 'eksik',
-    kodYeri: 'lib/sabitler.ts → kanitTazelik()',
-    aciklama: 'Kanıtın taze / yenilenmeli / süresi dolmuş kovası.',
-    neden: 'Eşik istemci tarafında (Kanıt ve Bulgu ekranları) hesaplanıyor; sunucu ayarı istemciye taşınmadan konsola alınamaz. Bu turda kodda kaldı.' },
+  { kod: 'kanitTazelik', grup: 'uyum', ad: 'Kanıt tazelik eşiği', sinif: 'B', yer: 'konsol', hedefTipi: 'ayar',
+    aciklama: 'Taze / yenilenmeli / süresi dolmuş kovası; kod varsayılanı 90/180 gün, sunucu tek kaynaktan okur.',
+    etki: ['Kanıt kütüphanesi', 'Bulgu detayı', 'Raporlar'] },
   { kod: 'uyumAgirlik', grup: 'uyum', ad: 'Uyum puanlama yöntemi (kısmi = 0,5)', sinif: 'C', yer: 'kod',
     kodYeri: 'lib/sabitler.ts → uyumOzeti()',
     aciklama: 'Uyumlu = 1, kısmi = 0,5, bilinmeyen paydaya girmez.',
@@ -259,10 +258,9 @@ export const MODULLER: Modul[] = [
     aciklama: 'Her ekranın ayağındaki platform adı.', etki: ['Kabuk'] },
   { kod: 'gorselEsleme', grup: 'gorunum', ad: 'Santral görsel eşlemesi', sinif: 'A', yer: 'mevcut_ekran', rota: '/yonetim-tezgahi?bolum=organizasyon&modul=tesisGorsel',
     aciklama: 'Organizasyon grubunda yönetilir (aynı kayıt, iki giriş).' },
-  { kod: 'moduleGorunurluk', grup: 'gorunum', ad: 'Dashboard modül görünürlüğü / KPI sırası', sinif: 'A', yer: 'eksik',
-    kodYeri: 'app/(kabuk)/(flagship)/Genel.tsx',
-    aciklama: 'Saha bölümlerinin açık/kapalı ve KPI şeridi sırası.',
-    neden: 'Saha tek ekran sözleşmesiyle (Faz 3 kapanışı) ölçülüp kilitlendi; bölüm kapatma yerleşimi bozar. Bayrak altyapısı hazır (Yapilandirma), ekran bağlaması bu turda yapılmadı.' },
+  { kod: 'moduleGorunurluk', grup: 'gorunum', ad: 'Dashboard modül görünürlüğü / KPI sırası', sinif: 'A', yer: 'konsol', hedefTipi: 'ayar',
+    aciklama: 'Saha sunum bloklarının açık/kapalı durumu ve KPI sırası; güvenli beyaz liste (lib/yonetim/sahaModulleri.ts), zorunlu modül gizlenemez, tek ekran sözleşmesi hesaplanır.',
+    etki: ['Saha'] },
   { kod: 'yardim', grup: 'gorunum', ad: 'Yardım içeriği', sinif: 'C', yer: 'kod',
     kodYeri: 'app/(kabuk)/(operasyonel)/yardim · tests/yardim.test.ts',
     aciklama: 'Okuma anahtarı, kısayollar, ekran açıklamaları.',
@@ -304,6 +302,8 @@ export function ayarinModulu(anahtar: string): Modul | null {
   if (anahtar.startsWith('motor.son_tarih.')) return MODUL_SOZLUGU.sonTarihUfku;
   if (anahtar.startsWith('motor.erisim.')) return MODUL_SOZLUGU.erisimEsik;
   if (anahtar.startsWith('motor.veri_kalitesi.')) return MODUL_SOZLUGU.veriKalitesiEsik;
+  if (anahtar.startsWith('kanit.tazelik.')) return MODUL_SOZLUGU.kanitTazelik;
+  if (anahtar === 'saha.yerlesim') return MODUL_SOZLUGU.moduleGorunurluk;
   if (anahtar.startsWith('saha.')) return MODUL_SOZLUGU.sahaPencere;
   if (anahtar === 'kabuk.kunye') return MODUL_SOZLUGU.kunye;
   if (anahtar === 'zamanlayici.motor_aralik_dk') return MODUL_SOZLUGU.motorAralik;

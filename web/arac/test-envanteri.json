@@ -1,7 +1,7 @@
 {
-  "imza": "c1b243b654654662d4581887d14e116f",
-  "dosya": 85,
-  "vaka": 1499,
+  "imza": "a9ade246952fe783b68d2005fd5ab82d",
+  "dosya": 89,
+  "vaka": 1553,
   "atlanan": 1,
   "dosyalar": {
     "tests/api.test.ts": {
@@ -34,6 +34,10 @@
     },
     "tests/dar-sablon.test.ts": {
       "vaka": 15,
+      "atlanan": 0
+    },
+    "tests/denetim-asama-kanit.test.ts": {
+      "vaka": 18,
       "atlanan": 0
     },
     "tests/denetim-kapsam.test.ts": {
@@ -165,7 +169,7 @@
       "atlanan": 0
     },
     "tests/kapsam-kapisi-nobetci.test.ts": {
-      "vaka": 4,
+      "vaka": 7,
       "atlanan": 0
     },
     "tests/kapsam-kapisi.test.ts": {
@@ -178,6 +182,10 @@
     },
     "tests/kesif.test.ts": {
       "vaka": 31,
+      "atlanan": 0
+    },
+    "tests/kimlik-eylem.test.ts": {
+      "vaka": 14,
       "atlanan": 0
     },
     "tests/kisit-mesaji.test.ts": {
@@ -228,6 +236,10 @@
       "vaka": 15,
       "atlanan": 0
     },
+    "tests/operasyon-yedekleme-sertifika.test.ts": {
+      "vaka": 14,
+      "atlanan": 0
+    },
     "tests/otomasyon-guvenligi.test.ts": {
       "vaka": 21,
       "atlanan": 0
@@ -266,6 +278,10 @@
     },
     "tests/sir-katmani.test.ts": {
       "vaka": 23,
+      "atlanan": 0
+    },
+    "tests/surec-kapsam-eylem.test.ts": {
+      "vaka": 5,
       "atlanan": 0
     },
     "tests/surum.test.ts": {

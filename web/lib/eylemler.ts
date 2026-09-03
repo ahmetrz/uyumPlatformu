@@ -273,7 +273,13 @@ export async function surecKapsamEkle(girdi: { surecId: string; tesisId: string 
 
 export async function surecKapsamCikar(girdi: { surecId: string; tesisId: string }): Promise<Sonuc> {
   try {
-    const k = await yetkiZorunlu('uyum', 'onay');
+    /* Kapsam ön kapıya GERÇEK değerlerle verilir — `surecKapsamEkle` ile
+       birebir aynı biçim. Kapsamsız çağrılıyordu ve sonuç asimetrikti:
+       tesise kısıtlı yönetici kendi santralini kapsama EKLEYEBİLİYOR ama
+       ÇIKARAMIYORDU. Onay yetkisi şartı burada da duruyor; değişen tek
+       şey sorunun kapsamlı sorulması. Ölçüldü 2026-09-03. */
+    const k = await yetkiZorunlu('uyum', 'onay',
+      { tesisId: girdi.tesisId, surecId: girdi.surecId });
     await db.surecKapsami.delete({ where: { surecId_tesisId: {
       surecId: girdi.surecId, tesisId: girdi.tesisId } } });
     await iz({ aktorId: k.id, varlikTipi: 'UyumSureci', varlikId: girdi.surecId, eylem: 'kapsam_degisimi',

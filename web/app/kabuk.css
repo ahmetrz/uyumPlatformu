@@ -1587,6 +1587,15 @@
   display: block; width: 100%; height: auto;
   background: var(--panel); border: var(--bw-hair) solid var(--hr2);
 }
+/* Ülke sınırı: zeminden bir tık ayrışan çok sessiz bir dolgu ve ince bir
+   kontur. Silüet BAĞLAMDIR, veri değil — işaretlerle yarışmaz. Kılavuz
+   sınırın içinden geçmeye devam eder (çerçeve okunur kalır), işaretler
+   de üstünde durur. Kaynak: Natural Earth 1:50m, kamu malı
+   (lib/cografya/turkiyeSiniri.ts). */
+.ab-harita-tuval .sinir path {
+  fill: color-mix(in srgb, var(--i3) 9%, transparent);
+  stroke: var(--hr); stroke-width: 1; stroke-linejoin: round;
+}
 .ab-harita-tuval .kilavuz line { stroke: var(--hr2); stroke-width: 1; stroke-dasharray: 2 4; }
 .ab-harita-tuval .eksen text {
   font-family: var(--veri); font-size: var(--t-code); fill: var(--i3);

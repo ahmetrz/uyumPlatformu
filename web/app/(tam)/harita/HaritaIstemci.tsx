@@ -7,6 +7,7 @@ import { useEylem } from '@/components/useEylem';
 import { tesisKonumKaydet } from '@/lib/eylemler2/konum';
 import type { PortfoySatiri } from '../portfoy/mantik';
 import {
+  SINIR_YOLLARI,
   TUVAL, baslikMetni, cerceveUyarisi, kaynakYazisi, kilavuz, koordinatGecerli,
   olcu, yerlesimKur, yiginKaydir, type Isaret,
 } from './mantik';
@@ -90,6 +91,15 @@ export default function HaritaIstemci({
           <svg viewBox={`0 0 ${TUVAL.en} ${TUVAL.boy}`} role="group"
             aria-label="Santral konumları · enlem/boylam çerçevesi">
 
+            {/* Ülke sınırı — kılavuzun ÜSTÜNDE, işaretlerin ALTINDA.
+                Sırası bilinçli: kılavuz sınırın içinden geçmeye devam
+                eder (çerçeve hâlâ okunur), sınır ise hiçbir santral
+                işaretini örtmez. Dekoratiftir; okuyucuya sunulmaz —
+                taşıdığı bilgi işaretlerin koordinatında zaten var. */}
+            <g className="sinir" aria-hidden>
+              {SINIR_YOLLARI.map((d, i) => <path key={i} d={d} />)}
+            </g>
+
             {/* Kılavuz: tam dereceli meridyen ve paraleller. */}
             <g className="kilavuz" aria-hidden>
               {izgara.dikey.map((d) => (
@@ -134,10 +144,11 @@ export default function HaritaIstemci({
           </svg>
 
           <p className="ab-dip ab-harita-not">
-            Tuval bir enlem/boylam çerçevesidir; ülke sınırı çizilmez, çünkü
-            doğrulanmamış bir kıyı çizgisi haritadaki her şeyi şüpheli yapar.
-            İçi dolu işaret kesin koordinat, içi boş işaret il merkezine
-            yaklaştırılmış konumdur. Halka büyüklüğü kurulu güçtür.
+            Tuval bir enlem/boylam çerçevesidir. Ülke silüeti Natural Earth
+            1:50m verisinden üretilir (kamu malı) ve bağlam içindir; kıyı
+            çizgisi olarak okunmaz. İçi dolu işaret kesin koordinat, içi boş
+            işaret il merkezine yaklaştırılmış konumdur. Halka büyüklüğü
+            kurulu güçtür.
           </p>
 
           <Gosterge olculmeyen={olculer.olculmeyenUyum} />

@@ -93,6 +93,7 @@ kurum sistemine giden hiçbir şey yoktur.
 | `erisim-axe.mjs` | `tasarim:axe` | axe-core WCAG 2 A/AA, rotalar.json'daki tüm rotalar | ciddi/kritik ihlal |
 | `yatay-tasma.mjs` | `tasarim:tasma` | 375 + 768'de her rota yana kayıyor mu, taşmayı üreten öğe kim | taşan rota |
 | `dizustu.mjs` | `tasarim:dizustu` | 1366×768'de kaydırılamayan (kırpılan) içerik var mı | kırpılan öğe |
+| `turkiye-siniri.mjs` | `harita:sinir` | üretir (kapı değil): Natural Earth'ten Türkiye silüeti | kaynak/öznitelik bulunamadı |
 | — | `test:kapsam` | vitest V8 kapsamı (`lib/**`, ekran `mantik.ts`/`ortak.ts`, `components/**`) | test kırığı |
 
 ### `kosu-ortak.mjs` · `kalite-kurallari.mjs`
@@ -187,6 +188,45 @@ koşar ve suçluyu yazar; ikisi birbirinin yerine geçmez.
 PORT=3210 npm run tasarim:tasma
 PORT=3210 node arac/yatay-tasma.mjs --rota=/uyum,/kanitlar
 ```
+
+### `turkiye-siniri.mjs`
+
+Haritadaki (`/harita`) ülke silüetini **Natural Earth 1:50m Admin 0**
+verisinden üretir; çıktı `lib/cografya/turkiyeSiniri.ts`, **elle
+düzenlenmez**.
+
+```bash
+curl -sL -o /tmp/ne50.geojson \
+  https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson
+npm run harita:sinir -- --kaynak /tmp/ne50.geojson
+```
+
+**Lisans kararı.** Natural Earth **kamu malıdır**: izin gerekmez, atıf
+zorunlu değil, ticari kullanım serbest. Elenenler: **GADM** ticari
+kullanımı izne bağlar; **OSM türevleri** ODbL ile türev veritabanında
+paylaş-benzer yükümlülüğü doğurur — kurumsal bir uyum ürününde açılmaması
+gereken bir hukuk sorusu.
+
+**Yalnız Türkiye çizilir**, dünya altlığı değil. Komşu ya da ihtilaflı
+sınır çizilmediği için o konu ekranda hiç doğmaz.
+
+**Tolerans ölçüyle seçilir.** Tuval 960×420, iç alan 904×364px; 1px ≈
+0,0216° boylam · 0,0187° enlem. Tolerans `0,008°` — sapma ekranda bir
+pikselin altında. Sınır bir **kıyı çizgisi değil**, o ölçekte okunabilir
+bir silüettir; not ekranda da böyle yazar.
+
+Ölçüldü: ham 562 nokta → **457 nokta · 3 halka**, elenen halka yok, iç
+halka yok. Araç deterministiktir (aynı girdi → bayt bayt aynı çıktı).
+
+**Nöbetçisi `tests/turkiye-siniri.test.ts`.** Üretilmiş dosyanın tehlikesi
+bayatlamasıdır; test dört şeyi bağlar: kırpma çerçevesi `CERCEVE` ile
+aynı mı, tolerans bir pikselin altında mı, izdüşürülen her nokta tuvalin
+içinde mi, ve **bu poligon gerçekten Türkiye mi**.
+
+> Sonuncusu şema testiyle yakalanamaz. Denendi: araç yanlışlıkla
+> Yunanistan'a yönlendirildiğinde şema ve geometri testlerinin **sekizi de
+> geçiyor** — yalnız "Ankara karada olmalı" kırmızıya düşüyor. Yanlış
+> ülkeyi çıkaran bir araç, o test olmasa sessizce yayına giderdi.
 
 ### `dizustu.mjs`
 

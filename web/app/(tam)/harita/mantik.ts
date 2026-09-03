@@ -1,13 +1,24 @@
 /* ═══════════════════════════════════════════════════════════════════════
    A4 · SANTRAL HARİTASI — saf kurallar
 
-   ═══ NEDEN ÜLKE SINIRI ÇİZİLMİYOR ═════════════════════════════════════
-   Bu tuval bir enlem/boylam ÇERÇEVESİDİR: paraleller, meridyenler ve
-   üzerine oturan santral işaretleri. Türkiye'nin kıyı çizgisi elle
-   yaklaştırılmadı — hafızadan çizilmiş bir sınır, ekrandaki her şeyi
-   şüpheli hâle getirir; yanlış bir kıyı, olmayan bir kıyıdan pahalıdır.
-   Doğrulanmış bir sınır verisi (GeoJSON) eklendiğinde tuval onu alır,
-   işaret yerleşimi değişmez: projeksiyon zaten coğrafi.
+   ═══ ÜLKE SINIRI ═══════════════════════════════════════════════════════
+   Tuval önce yalnız bir enlem/boylam çerçevesiydi (paraleller, meridyenler
+   ve işaretler); sınır çizilmiyordu çünkü ELLE yaklaştırılmış bir kıyı
+   ekrandaki her şeyi şüpheli hâle getirirdi. O kural değişmedi — değişen,
+   artık elle çizilmeyen bir kaynağın olmasıdır.
+
+   Sınır Natural Earth 1:50m Admin 0'dan ÜRETİLİR (`arac/turkiye-siniri.mjs`
+   → `lib/cografya/turkiyeSiniri.ts`), elle düzenlenmez ve kaynağı,
+   ölçeği, kırpma çerçevesi, sadeleştirme toleransı üretilen dosyada
+   yazılıdır. Natural Earth kamu malıdır (izin/atıf gerekmez, ticari
+   kullanım serbest); GADM ticari kullanımı izne bağladığı, OSM türevleri
+   ODbL paylaş-benzer doğurduğu için elendi.
+
+   YALNIZ TÜRKİYE çizilir — dünya altlığı değil. Komşu ya da ihtilaflı
+   sınır çizilmediği için o konu ekranda hiç doğmaz.
+
+   İşaret yerleşimi bundan ETKİLENMEZ: projeksiyon zaten coğrafiydi,
+   sınır aynı `yerlestir()` ile aynı çerçeveye oturur.
 
    ═══ İKİ TÜR KONUM, ASLA KARIŞMAZ ═════════════════════════════════════
    · KESİN     — `Tesis.enlem/boylam` girilmiş; işaret dolu.
@@ -21,6 +32,7 @@
    ═══════════════════════════════════════════════════════════════════════ */
 
 import type { Durum } from '@/components/kabuk/temel';
+import { TURKIYE_SINIRI } from '@/lib/cografya/turkiyeSiniri';
 import type { PortfoySatiri } from '../portfoy/mantik';
 
 /* ── İl merkezleri ────────────────────────────────────────────────────
@@ -82,6 +94,22 @@ export function yerlestir(enlem: number, boylam: number): { x: number; y: number
   const y = TUVAL.kenar + ((CERCEVE.kuzey - enlem) / yukseklik) * ic.boy;
   return { x, y };
 }
+
+/* ── Ülke sınırı · SVG yolları ────────────────────────────────────────
+   Halkalar aynı `yerlestir()` ile çizilir; işaretlerle sınır arasında
+   ikinci bir projeksiyon YOKTUR. İki ayrı dönüşüm olsaydı sınır ile
+   üzerindeki nokta bir gün sessizce ayrışırdı.
+
+   Modül yüklenirken bir kez hesaplanır: 457 nokta, her çizimde yeniden
+   üretilecek kadar pahalı değil ama her karede yeniden üretilecek kadar
+   da ucuz değil. */
+export const SINIR_YOLLARI: readonly string[] = TURKIYE_SINIRI.map((halka) => {
+  const parcalar = halka.map(([boylam, enlem], i) => {
+    const { x, y } = yerlestir(enlem, boylam);
+    return `${i === 0 ? 'M' : 'L'}${x.toFixed(1)} ${y.toFixed(1)}`;
+  });
+  return `${parcalar.join('')}Z`;
+});
 
 /** Çerçevenin dışında kalan bir koordinat haritaya ZORLANMAZ. */
 export function cercevede(enlem: number, boylam: number): boolean {

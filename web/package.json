@@ -18,6 +18,7 @@
     "rota:duman": "node arac/rota-duman.mjs",
     "konsol:olcum": "node arac/konsol-olcum.mjs",
     "tasarim:dizustu": "node arac/dizustu.mjs",
+    "harita:sinir": "node arac/turkiye-siniri.mjs",
     "tasarim:kontrast": "node arac/kontrast.mjs",
     "tasarim:font": "node arac/font-kontrol.mjs",
     "tasarim:iz": "node arac/iz-tarama.mjs",

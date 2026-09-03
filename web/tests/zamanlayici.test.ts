@@ -240,7 +240,9 @@ describe('Zamanlayıcı tiki', () => {
     const { kosulacak, atlanan } = await vadesiGelenler(SIMDI);
     const toplam = kosulacak.length + atlanan.length;
     // Defterdeki motor sayısı (erisim_degerlendirme ile birlikte dokuz).
-    const motorSayisi = 9;
+    /* Defterdeki motor sayısı — `lib/motorlar/kayit.ts` ile aynı olmalı.
+       Sabit yazılıyor ki defterden bir motor sessizce düşerse yakalansın. */
+    const motorSayisi = 12;
     const connectorSayisi = await db.connector.count({ where: { silindi: null } });
     expect(toplam).toBe(motorSayisi + connectorSayisi);
     for (const a of atlanan) expect(a.sebep.length).toBeGreaterThan(5);

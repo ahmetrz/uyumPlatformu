@@ -8,6 +8,9 @@ import { yedekDogrulamayiIsle } from './yedekDogrulama';
 import { topolojiSapmasiniIsle } from './topolojiSapma';
 import { olayEtkileriniIsle } from './olayEtki';
 import { erisimleriDegerlendir } from './erisimDegerlendirme';
+import {
+  agTutarliliginiIsle, firmwareUyumunuIsle, zafiyetKorelasyonunuIsle,
+} from './varlikDurusu';
 
 /* Motor kayıt defteri — TEK doğruluk kaynağı.
 
@@ -36,6 +39,13 @@ export const MOTORLAR = {
      kalemine dönüşmüyordu. Motor tespit → görev/veri kalitesi bulgusu
      zincirini kurar; oturuma, PAM'e ya da erişime DOKUNMAZ. */
   erisim_degerlendirme: erisimleriDegerlendir,
+  /* Varlık güvenlik duruşu üçlüsü (OT-11 · OT-22 · OT-25). Üçü de
+     ÖNERİR: kendi tablolarına yazar, `Varlik` satırına ya da zafiyet
+     durumuna dokunmaz. Korelasyon motoru elle verilmiş kararı (`elleSonuc`)
+     korur — her koşuda silinseydi yanlış pozitif bastırma işe yaramazdı. */
+  firmware_uyumu: firmwareUyumunuIsle,
+  zafiyet_korelasyonu: zafiyetKorelasyonunuIsle,
+  ag_tutarliligi: agTutarliliginiIsle,
 } as const satisfies Record<string, () => Promise<{ islenen: number; uretilen: number }>>;
 
 export type MotorAdi = keyof typeof MOTORLAR;

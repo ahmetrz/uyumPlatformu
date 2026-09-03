@@ -204,6 +204,11 @@ const T: AyarTanimi[] = [
 export const MOTOR_ADLARI_SOZLUK = [
   'kanit_tazelik', 'deadline_motoru', 'gap_to_action', 'veri_kalitesi', 'uyum_anlik',
   'yedek_dogrulama', 'olay_etki', 'topoloji_sapma', 'erisim_degerlendirme',
+  /* Varlık güvenlik duruşu üçlüsü (OT-11 · OT-22 · OT-25). Bu liste
+     `lib/motorlar/kayit.ts` defteriyle AYNI olmak zorundadır: eksik bir
+     ad zamanlayıcıyı "Bilinmeyen yapılandırma anahtarı" ile durdurur ve
+     o motor hiç koşmaz. `tests/zamanlayici.test.ts` bunu ölçüyor. */
+  'firmware_uyumu', 'zafiyet_korelasyonu', 'ag_tutarliligi',
 ] as const;
 
 for (const ad of MOTOR_ADLARI_SOZLUK) {

@@ -62,6 +62,18 @@ export const IS_TANIMLARI: IsTanimi[] = [
   { ad: 'erisim_degerlendirme', etiket: 'Erişim değerlendirme', elleCalisir: true,
     aciklama: 'Tedarikçi/uzaktan erişim oturumlarından görev ve veri kalitesi bulgusu '
       + 'üretir — oturuma DOKUNMAZ, erişim kesmez' },
+  /* Varlık güvenlik duruşu üçlüsü (OT-11 · OT-22 · OT-25). Üçünün de
+     açıklaması NE YAPMADIKLARINI da söyler: bu ekran "motor bir şeyi
+     kendiliğinden kapattı mı" sorusunun sorulduğu yerdir. */
+  { ad: 'firmware_uyumu', etiket: 'Firmware uyumu', elleCalisir: true,
+    aciklama: 'Kurulu firmware\'i onaylı tabana karşı ölçer — sürüm okunamazsa '
+      + 'UYUMLU SAYMAZ; cihaza ya da varlık kaydına dokunmaz' },
+  { ad: 'zafiyet_korelasyonu', etiket: 'Zafiyet korelasyonu', elleCalisir: true,
+    aciklama: 'Üretici duyurusu ile kurulu sürümü eşleştirir; elle verilmiş '
+      + 'kararı EZMEZ, zafiyet durumunu değiştirmez' },
+  { ad: 'ag_tutarliligi', etiket: 'Ağ tutarlılığı', elleCalisir: true,
+    aciklama: 'Zone dışı IP, çakışan subnet ve çift IP arar; ölçülemeyeni '
+      + 'bulguya çevirmez, ayrı bir ölçüm borcu olarak açar' },
   { ad: 'bakim_temizlik', etiket: 'Bakım temizliği', elleCalisir: false,
     aciklama: 'Süresi dolmuş oturum ve iş kilidi satırlarını siler (saatlik, zamanlayıcıdan) '
       + '— bulgu üretmez, veri yorumlamaz' },

@@ -1750,11 +1750,18 @@
    hücre zemini kabuk zeminidir; saydam kalsa altındaki satır metni
    başlığın içinden görünürdü. */
 .ab-vt-sar { overflow: auto; max-height: var(--vt-h, none); min-width: 0; }
-.ab-vt { width: 100%; border-collapse: separate; border-spacing: 0; --satir-y: 10px; }
+/* table-layout: fixed — eski grid kütüğünden semantik tabloya geçişte eklendi.
+   Grid sütun genişliklerini kesin kılar; <table width="100%"> ise içerik
+   iticidir ve hücre minimum genişliklerinin toplamı kabı aştığında tablo
+   taşar. `fixed`, bildirilen genişlikleri kesinleştirir ve genişliksiz
+   sütunları kalan alanı EŞİT paylaştırır; tablo kabını asla aşmaz.
+   kolon-hizasi.mjs §3 ("tablo kabını aşmıyor") bu kuralı varsayar. */
+.ab-vt { width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 0; --satir-y: 10px; }
 .ab-vt.sik { --satir-y: 7px; }
 .ab-vt th, .ab-vt td {
   padding: var(--satir-y) 8px; text-align: left; vertical-align: middle;
   border-bottom: 1px solid var(--hr); font-weight: 400;
+  overflow: hidden;
 }
 .ab-vt thead th { white-space: nowrap;
   position: sticky; top: 0; z-index: 2; background: var(--zemin);
@@ -1779,7 +1786,7 @@
 .ab-vt tbody tr.d-md > :first-child { box-shadow: inset 2px 0 0 var(--md); }
 .ab-vt tbody tr.d-unk > :first-child { box-shadow: inset 2px 0 0 var(--unk); }
 .ab-vt tbody tr:focus-visible { outline: 2px solid var(--aksan); outline-offset: -2px; }
-.ab-vt .kod { font-size: 11px; color: var(--i2); white-space: nowrap; }
+.ab-vt .kod { font-size: 11px; color: var(--i2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ab-vt .konu { font-size: 13.5px; color: var(--murekkep); overflow-wrap: anywhere; }
 .ab-vt .ikincil { font-size: 12px; color: var(--i3); overflow-wrap: anywhere; }
 .ab-vt .alt { display: block; margin-top: 3px; font-family: var(--veri); font-size: 11px; color: var(--i3); }

@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useUrlDurumu, useUrlDurumuBos } from '@/components/kabuk/urlDurumu';
 import Link from 'next/link';
 import { BosIlk, Im, TikSeridi, Yetkisiz } from '@/components/kabuk/temel';
 import { Tablo, type Kolon, type Satir } from '@/components/kabuk/tablo';
@@ -79,8 +80,8 @@ export default function SaglikIstemci({
   motorlar: Motor[]; kalite: KaliteBulgusu[];
   entegrasyon: EntegrasyonOzeti; koken: KokenOzeti; yazabilir: boolean;
 }) {
-  const [kip, setKip] = useState<Kip>('motor');
-  const [secili, setSecili] = useState<string | null>(null);
+  const [kip, setKip] = useUrlDurumu<Kip>('kip', 'motor');
+  const [secili, setSecili] = useUrlDurumuBos('sec');
   const [kuyrukAcik, setKuyrukAcik] = useState(false);
   const [yeniAcik, setYeniAcik] = useState(false);
 

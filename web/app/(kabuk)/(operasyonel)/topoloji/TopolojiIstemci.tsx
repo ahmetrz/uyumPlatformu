@@ -1,5 +1,6 @@
 'use client';
 import { useMemo, useState } from 'react';
+import { useUrlDurumu } from '@/components/kabuk/urlDurumu';
 import { BosFiltre, BosIlk } from '@/components/kabuk/temel';
 import { EkranBasligi, Filtreler, KipDegistir } from '@/components/kabuk/ekran';
 import { Tablo, type Kolon } from '@/components/kabuk/tablo';
@@ -97,8 +98,8 @@ export default function TopolojiIstemci({
   sapmaTavani: number;
   anlikTavani: number;
 }) {
-  const [kip, setKip] = useState<Kip>('sapma');
-  const [mercek, setMercek] = useState<Mercek>('acik');
+  const [kip, setKip] = useUrlDurumu<Kip>('kip', 'sapma');
+  const [mercek, setMercek] = useUrlDurumu<Mercek>('mercek', 'acik');
   const [seciliSapma, setSeciliSapma] = useState<string | null>(null);
   const [seciliAnlik, setSeciliAnlik] = useState<string | null>(null);
   const [seciliBolge, setSeciliBolge] = useState<string | null>(null);

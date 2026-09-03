@@ -1,6 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { useMemo, useState, type ReactNode } from 'react';
+import { useUrlDurumuBos } from '@/components/kabuk/urlDurumu';
 import { BosIlk, Im, Ipucu, type Durum } from '@/components/kabuk/temel';
 import { EkranBasligi } from '@/components/kabuk/ekran';
 import { VeriTablosu, type VtKolon } from '@/components/kabuk/tablo';
@@ -46,7 +47,7 @@ export default function TedarikcilerIstemci({
   yazabilir: boolean;
   sertifikaUfku: { yakinGun: number | null; dolmus: number; ufuk: number };
 }) {
-  const [seciliId, setSeciliId] = useState<string | null>(null);
+  const [seciliId, setSeciliId] = useUrlDurumuBos('sec');
   const [kuyrukAcik, setKuyrukAcik] = useState(false);
 
   const secili = tedarikciler.find((t) => t.id === seciliId) ?? null;

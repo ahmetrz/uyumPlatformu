@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useUrlDurumu, useUrlDurumuBos, useUrlSira } from '@/components/kabuk/urlDurumu';
 import { Dugme, Kesir, BosIlk, BosFiltre, type Durum } from '@/components/kabuk/temel';
 import { Tablo, type Kolon, type Satir } from '@/components/kabuk/tablo';
 import { EkranBasligi, Filtreler } from '@/components/kabuk/ekran';
@@ -45,7 +46,6 @@ const MERCEKLER = [
 ];
 
 type Anahtar = 'konu' | 'rol' | 'yetki';
-type SiraYonu = 'artan' | 'azalan';
 type Kip = 'ozet' | 'kullanici' | 'yetki' | 'parola';
 
 export default function YetkilerIstemci({
@@ -59,13 +59,12 @@ export default function YetkilerIstemci({
   kisitliKapsam: boolean;
 }) {
   const { bekliyor, hata, calistir } = useEylem();
-  const [mercek, setMercek] = useState('hepsi');
-  const [rolF, setRolF] = useState<string | null>(null);
+  const [mercek, setMercek] = useUrlDurumu<string>('mercek', 'hepsi');
+  const [rolF, setRolF] = useUrlDurumuBos('rol');
   const [arama, setArama] = useState('');
-  const [sira, setSira] = useState<{ anahtar: Anahtar; yon: SiraYonu }>(
-    { anahtar: 'konu', yon: 'artan' });
-  const [seciliId, setSeciliId] = useState<string | null>(null);
-  const [kip, setKip] = useState<Kip>('ozet');
+  const [sira, setSira] = useUrlSira<Anahtar>({ anahtar: 'konu', yon: 'artan' });
+  const [seciliId, setSeciliId] = useUrlDurumuBos('sec');
+  const [kip, setKip] = useUrlDurumu<Kip>('kip', 'ozet');
   const [yeniAcik, setYeniAcik] = useState(false);
   const [kuyrukAcik, setKuyrukAcik] = useState(false);
 

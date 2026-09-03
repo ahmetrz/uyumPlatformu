@@ -1,6 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useUrlDurumu, useUrlDurumuBos } from '@/components/kabuk/urlDurumu';
 import { BosIlk, BosFiltre, Dugme, TikSeridi } from '@/components/kabuk/temel';
 import { EkranBasligi, Filtreler } from '@/components/kabuk/ekran';
 import { VeriTablosu, type VtKolon } from '@/components/kabuk/tablo';
@@ -65,12 +66,12 @@ export default function RisklerIstemci({
   /** liste bir santral kapsamıyla daraltıldı mı — boş ekranın SÖZÜ değişir */
   kapsamli?: boolean;
 }) {
-  const [filtre, setFiltre] = useState('aktif');
-  const [tesisF, setTesisF] = useState<string | null>(null);
-  const [sahipF, setSahipF] = useState<string | null>(null);
+  const [filtre, setFiltre] = useUrlDurumu<string>('mercek', 'aktif');
+  const [tesisF, setTesisF] = useUrlDurumuBos('tesis');
+  const [sahipF, setSahipF] = useUrlDurumuBos('sahip');
   const [kuyrukAcik, setKuyrukAcik] = useState(false);
-  const [seciliId, setSeciliId] = useState<string | null>(null);
-  const [kip, setKip] = useState<Kip>('ozet');
+  const [seciliId, setSeciliId] = useUrlDurumuBos('sec');
+  const [kip, setKip] = useUrlDurumu<Kip>('kip', 'ozet');
   const [yeniAcik, setYeniAcik] = useState(false);
   /** C18 · ısı haritasında seçili hücre — liste bu hücreye daralır */
   const [hucre, setHucre] = useState<IsiHucresi | null>(null);

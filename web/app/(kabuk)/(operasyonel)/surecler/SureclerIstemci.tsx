@@ -1,6 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
+import { useUrlDurumu, useUrlDurumuBos, useUrlSira } from '@/components/kabuk/urlDurumu';
 import {
   BosFiltre, BosIlk, Dugme, Kesir, Segment, type Durum,
 } from '@/components/kabuk/temel';
@@ -54,7 +55,6 @@ const MERCEKLER = [
 ];
 
 type Anahtar = 'konu' | 'uyum' | 'bilinmeyen' | 'denetim';
-type SiraYonu = 'artan' | 'azalan';
 type Kip = 'ozet' | 'form' | 'kapsam' | 'durum';
 
 const Bos = () => <span style={{ color: 'var(--i3)' }}>—</span>;
@@ -69,13 +69,12 @@ export default function SureclerIstemci({
   yazabilir: boolean;
   onaylayabilir: boolean;
 }) {
-  const [mercek, setMercek] = useState('yuruyen');
+  const [mercek, setMercek] = useUrlDurumu<string>('mercek', 'yuruyen');
   const [regF, setRegF] = useState<string | null>(null);
   const [arama, setArama] = useState('');
-  const [sira, setSira] = useState<{ anahtar: Anahtar; yon: SiraYonu }>(
-    { anahtar: 'denetim', yon: 'artan' });
-  const [secili, setSecili] = useState<string | null>(null);
-  const [kip, setKip] = useState<Kip>('ozet');
+  const [sira, setSira] = useUrlSira<Anahtar>({ anahtar: 'denetim', yon: 'artan' });
+  const [secili, setSecili] = useUrlDurumuBos('sec');
+  const [kip, setKip] = useUrlDurumu<Kip>('kip', 'ozet');
   const [yeniAcik, setYeniAcik] = useState(false);
   const [kuyrukAcik, setKuyrukAcik] = useState(false);
 

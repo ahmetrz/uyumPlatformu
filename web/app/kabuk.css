@@ -2007,6 +2007,11 @@
 }
 .ab-blok .cumle { margin: 10px 0 0; font-size: 13.5px; line-height: 1.6; color: var(--i2); }
 .ab-blok .eylem { margin-top: 16px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.ab-blok .eylem .not { font-size: 12px; color: var(--i3); }
+/* Kısmi yükleme: kutunun altında tek iskelet satırı — "hâlâ geliyor" imi. */
+.ab-blok > .ab-iskelet { margin-top: 14px; width: 60%; }
+/* Çekmece içinde blok panel genişliğine oturur, kenar aralığı sıkılır. */
+.ab-panel .ab-blok { max-width: none; padding: 14px 16px; margin: 0 0 var(--s16); }
 .ab-teknik summary {
   cursor: pointer; font-family: var(--veri); font-size: 10px;
   letter-spacing: .1em; text-transform: uppercase; color: var(--i3);

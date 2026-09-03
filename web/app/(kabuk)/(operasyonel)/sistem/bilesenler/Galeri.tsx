@@ -3,7 +3,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import {
   Im, Metrikler, Bar, Segment, Kesir, TikSeridi, Ipucu, Dugme, Alan,
-  Iskelet, BosIlk, BosFiltre, Hata, Yetkisiz, Olculmedi, BaglantiYok, KismiVeri, DURUM_SOZU, type Durum,
+  Iskelet, BosIlk, BosFiltre, Hata, Yetkisiz, Olculmedi, BaglantiYok, KismiVeri, EntegrasyonYok, Bakimda, KismiYukleniyor, DURUM_SOZU, type Durum,
 } from '@/components/kabuk/temel';
 import { Tablo, Matris, GenisleyenSatir } from '@/components/kabuk/tablo';
 import {
@@ -31,7 +31,7 @@ const PRIMITIFLER = [
   'Im', 'Metrikler', 'Bar', 'Segment', 'Kesir', 'TikSeridi', 'Ipucu', 'Dugme', 'Alan',
   'Filtreler', 'KipDegistir', 'Asamalar', 'Tablo', 'Matris', 'GenisleyenSatir',
   'OdakKarti', 'ZamanCizelgesi', 'OmurUfku', 'Tuval', 'Iskelet', 'BosIlk', 'BosFiltre',
-  'Hata', 'Yetkisiz', 'Olculmedi', 'BaglantiYok', 'KismiVeri', 'Cekmece', 'KokenRozeti', 'KokenSatiri', 'BaglamCubugu', 'IkincilSira',
+  'Hata', 'Yetkisiz', 'Olculmedi', 'BaglantiYok', 'KismiVeri', 'EntegrasyonYok', 'Bakimda', 'KismiYukleniyor', 'Cekmece', 'KokenRozeti', 'KokenSatiri', 'BaglamCubugu', 'IkincilSira',
 ] as const;
 
 /* Köken örnekleri — dört görünümün dördü de gerçek `KokenGorunumu` şekliyle
@@ -439,6 +439,13 @@ export default function Galeri() {
               <Olculmedi ne="Alaşehir JES · OT segmenti" neden="tarama kapsamı dışında" />
               <BaglantiYok kaynak="EPDK-SYM bağlayıcısı" sonBasarili="02 Eyl 03:10" />
               <KismiVeri olculen={7} toplam={11} birim="santral" />
+            </div>
+            {/* Üç ayrı hâl daha: yapılandırılmamış ≠ ulaşılamıyor; bakım
+                planlı; kısmi yükleme toplam yazmaz. */}
+            <div style={{ display: 'flex', gap: 'var(--s24)', flexWrap: 'wrap' }}>
+              <EntegrasyonYok kaynak="SCADA tarihçe" ne="OT olay akışı" />
+              <Bakimda ne="Kızıldere III · DCS ağ geçidi" bitis="04 Eyl 06:00" />
+              <KismiYukleniyor gelen={9} toplam={17} birim="santral" />
             </div>
           </div>
         </B>

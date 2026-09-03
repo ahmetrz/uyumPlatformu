@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useUrlDurumu, useUrlDurumuBos, useUrlSira } from '@/components/kabuk/urlDurumu';
 import Link from 'next/link';
 import { Im, Ipucu, Dugme, BosIlk, BosFiltre, type Durum } from '@/components/kabuk/temel';
 import { Tablo, type Kolon, type Satir } from '@/components/kabuk/tablo';
@@ -61,7 +62,6 @@ const MERCEKLER = [
   { id: 'hepsi', ad: 'Tümü' },
 ];
 
-type SiraYonu = 'artan' | 'azalan';
 
 export default function BulgularIstemci({
   bulgular, toplam, metrikler, kapsamli = false,
@@ -77,12 +77,11 @@ export default function BulgularIstemci({
   /** liste bir santral kapsamıyla daraltıldı mı — boş ekranın SÖZÜ değişir */
   kapsamli?: boolean;
 }) {
-  const [mercek, setMercek] = useState('acik');
-  const [onemF, setOnemF] = useState<string | null>(null);
+  const [mercek, setMercek] = useUrlDurumu<string>('mercek', 'acik');
+  const [onemF, setOnemF] = useUrlDurumuBos('onem');
   const [arama, setArama] = useState('');
-  const [sira, setSira] = useState<{ anahtar: Anahtar; yon: SiraYonu }>(
-    { anahtar: 'termin', yon: 'artan' });
-  const [secili, setSecili] = useState<string | null>(null);
+  const [sira, setSira] = useUrlSira<Anahtar>({ anahtar: 'termin', yon: 'artan' });
+  const [secili, setSecili] = useUrlDurumuBos('sec');
   const [kuyrukAcik, setKuyrukAcik] = useState(false);
 
   /* ── türetme: her bulgu bir ilerleme satırına indirgenir ───────────── */

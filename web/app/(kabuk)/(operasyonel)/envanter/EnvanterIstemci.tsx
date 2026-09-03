@@ -1,5 +1,6 @@
 'use client';
 import { useMemo, useState } from 'react';
+import { useUrlDurumu, useUrlDurumuBos } from '@/components/kabuk/urlDurumu';
 import Link from 'next/link';
 import { exceleAktar, pdfYazdir } from '@/components/disaAktar';
 import { VARLIK_SINIF_ETIKET, etiketle, tarihTR, zamanTR } from '@/lib/sabitler';
@@ -72,14 +73,14 @@ export default function EnvanterIstemci({
   /** `?bolge=KOD` bağından gelen başlangıç arama metni (topoloji çekmecesi). */
   baslangicArama?: string;
 }) {
-  const [kip, setKip] = useState<Kip>('zincir');
-  const [mercek, setMercek] = useState<Mercek>('sinyal');
-  const [tesisF, setTesisF] = useState<string | null>(null);
-  const [turF, setTurF] = useState<string | null>(null);
+  const [kip, setKip] = useUrlDurumu<Kip>('kip', 'zincir');
+  const [mercek, setMercek] = useUrlDurumu<Mercek>('mercek', 'sinyal');
+  const [tesisF, setTesisF] = useUrlDurumuBos('tesis');
+  const [turF, setTurF] = useUrlDurumuBos('tur');
   const [kritiklikF, setKritiklikF] = useState<string | null>(null);
   const [arama, setArama] = useState(baslangicArama);
   const [kuyrukAcik, setKuyrukAcik] = useState(false);
-  const [seciliId, setSeciliId] = useState<string | null>(null);
+  const [seciliId, setSeciliId] = useUrlDurumuBos('sec');
   const [panelKipi, setPanelKipi] = useState<PanelKipi>('ozet');
   const [yeniAcik, setYeniAcik] = useState(false);
 

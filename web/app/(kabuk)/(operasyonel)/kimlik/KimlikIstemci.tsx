@@ -1,5 +1,6 @@
 'use client';
 import { useMemo, useState } from 'react';
+import { useUrlDurumu, useUrlDurumuBos } from '@/components/kabuk/urlDurumu';
 import { Im, Metrikler, BosIlk, BosFiltre, Dugme, type Durum } from '@/components/kabuk/temel';
 import { Filtreler } from '@/components/kabuk/ekran';
 import { VeriTablosu, type VtKolon } from '@/components/kabuk/tablo';
@@ -80,10 +81,10 @@ export default function KimlikIstemci({ hesaplar, tesisler, kaynaklar, kapsamli 
   /** liste bir santral kapsamıyla daraltıldı mı — boş ekranın SÖZÜ değişir */
   kapsamli?: boolean;
 }) {
-  const [mercek, setMercek] = useState('hepsi');
-  const [tesisF, setTesisF] = useState<string | null>(null);
-  const [kaynakF, setKaynakF] = useState<string | null>(null);
-  const [seciliId, setSeciliId] = useState<string | null>(null);
+  const [mercek, setMercek] = useUrlDurumu<string>('mercek', 'hepsi');
+  const [tesisF, setTesisF] = useUrlDurumuBos('tesis');
+  const [kaynakF, setKaynakF] = useUrlDurumuBos('kaynak');
+  const [seciliId, setSeciliId] = useUrlDurumuBos('sec');
   const [acikGruplar, setAcikGruplar] = useState<string[]>([]);
   const [kuyrukAcik, setKuyrukAcik] = useState(false);
   const [yetkiSecimi, setYetkiSecimi] = useState<string | null>(null);

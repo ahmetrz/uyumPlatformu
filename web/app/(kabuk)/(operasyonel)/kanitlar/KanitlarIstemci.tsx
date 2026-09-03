@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useUrlDurumu, useUrlDurumuBos, useUrlSira } from '@/components/kabuk/urlDurumu';
 import { Alan, BosFiltre, BosIlk, Dugme, Hata, Im, type Durum } from '@/components/kabuk/temel';
 import { Tablo, type Kolon, type Satir } from '@/components/kabuk/tablo';
 import { EkranBasligi, Filtreler } from '@/components/kabuk/ekran';
@@ -14,7 +15,7 @@ import { kisaTarih } from '../bulgular/mantik';
 import {
   MERCEKLER, baglantiOzeti, bagliMi, baslikMetni, dipNot, dosyaCumlesi, kanitImi,
   kimlikSozu, metrikleriHesapla, sirala, suz, tazelik, tipEtiketi,
-  type KanitSatiri, type Mercek, type SiraAnahtari, type SiraYonu,
+  type KanitSatiri, type Mercek, type SiraAnahtari,
 } from './mantik';
 import type { MaddeDurumuSecenegi } from './veri';
 
@@ -53,12 +54,11 @@ export default function KanitlarIstemci({
   yazabilir: boolean;
   kapsamli?: boolean;
 }) {
-  const [mercek, setMercek] = useState<Mercek>('hepsi');
-  const [tipF, setTipF] = useState<string | null>(null);
+  const [mercek, setMercek] = useUrlDurumu<Mercek>('mercek', 'hepsi');
+  const [tipF, setTipF] = useUrlDurumuBos('tip');
   const [arama, setArama] = useState('');
-  const [sira, setSira] = useState<{ anahtar: SiraAnahtari; yon: SiraYonu }>(
-    { anahtar: 'tarih', yon: 'artan' });
-  const [secili, setSecili] = useState<string | null>(null);
+  const [sira, setSira] = useUrlSira<SiraAnahtari>({ anahtar: 'tarih', yon: 'artan' });
+  const [secili, setSecili] = useUrlDurumuBos('sec');
   const [kuyrukAcik, setKuyrukAcik] = useState(false);
   const [formAcik, setFormAcik] = useState(false);
 

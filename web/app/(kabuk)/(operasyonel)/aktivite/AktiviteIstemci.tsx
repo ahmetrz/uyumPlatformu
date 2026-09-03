@@ -1,6 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useUrlDurumu, useUrlDurumuBos } from '@/components/kabuk/urlDurumu';
 import { Dugme, BosIlk, BosFiltre } from '@/components/kabuk/temel';
 import { EkranBasligi, Filtreler } from '@/components/kabuk/ekran';
 import { VeriTablosu, type VtKolon } from '@/components/kabuk/tablo';
@@ -69,11 +70,11 @@ export default function AktiviteIstemci({
   /** kütük bir santral kapsamıyla daraltıldı mı — boş ekranın SÖZÜ değişir */
   kapsamli?: boolean;
 }) {
-  const [mercek, setMercek] = useState('hepsi');
-  const [tipF, setTipF] = useState<string | null>(null);
+  const [mercek, setMercek] = useUrlDurumu<string>('mercek', 'hepsi');
+  const [tipF, setTipF] = useUrlDurumuBos('tip');
   const [aktorF, setAktorF] = useState<string | null>(null);
   const [arama, setArama] = useState('');
-  const [secili, setSecili] = useState<string | null>(null);
+  const [secili, setSecili] = useUrlDurumuBos('sec');
   const [kuyrukAcik, setKuyrukAcik] = useState(false);
 
   const m = useMemo(() => metrikleriHesapla(kayitlar, simdi), [kayitlar, simdi]);

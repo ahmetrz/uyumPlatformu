@@ -1,5 +1,6 @@
 'use client';
 import { useMemo, useState } from 'react';
+import { useUrlDurumu, useUrlDurumuBos } from '@/components/kabuk/urlDurumu';
 import { BosIlk, BosFiltre } from '@/components/kabuk/temel';
 import { EkranBasligi, Filtreler } from '@/components/kabuk/ekran';
 import { Tablo, type Kolon } from '@/components/kabuk/tablo';
@@ -46,8 +47,8 @@ export default function KesifIstemci({
   gorunmezEsikGun: number;
   kuyrukTavani: number;
 }) {
-  const [mercek, setMercek] = useState<Mercek>('hepsi');
-  const [seciliId, setSeciliId] = useState<string | null>(null);
+  const [mercek, setMercek] = useUrlDurumu<Mercek>('mercek', 'hepsi');
+  const [seciliId, setSeciliId] = useUrlDurumuBos('sec');
   const [kuyrukAcik, setKuyrukAcik] = useState(false);
   const [toplu, setToplu] = useState<string[]>([]);
 

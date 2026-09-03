@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useUrlDurumu } from '@/components/kabuk/urlDurumu';
 import Link from 'next/link';
 import { Bar, Segment, BosIlk, type Durum } from '@/components/kabuk/temel';
 import { Matris, type MatrisSatiri } from '@/components/kabuk/tablo';
@@ -40,7 +41,7 @@ export default function RaporlarIstemci({
   /** Rapor anı SUNUCUDA damgalanır: istemcide üretilse hidrasyonda kayardı. */
   raporZamani: string;
 }) {
-  const [kip, setKip] = useState<Kip>('bulgu');
+  const [kip, setKip] = useUrlDurumu<Kip>('kip', 'bulgu');
   const [secim, setSecim] = useState<{ santralId: string; kolon: number } | null>(null);
 
   const sirali = useMemo(() => siralaSantraller(santraller), [santraller]);

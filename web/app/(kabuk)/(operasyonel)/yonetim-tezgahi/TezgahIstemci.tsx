@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useUrlDurumuBos } from '@/components/kabuk/urlDurumu';
 import { BosFiltre, BosIlk, Dugme, type Durum } from '@/components/kabuk/temel';
 import { EkranBasligi, Filtreler, KipDegistir } from '@/components/kabuk/ekran';
 import { Tablo, type Kolon, type Satir } from '@/components/kabuk/tablo';
@@ -131,11 +132,11 @@ export default function TezgahIstemci({
   const [tanimMercek, setTanimMercek] = useState('hepsi');
   const [anahtarMercek, setAnahtarMercek] = useState('etkin');
   const [sorumluF, setSorumluF] = useState<string | null>(null);
-  const [tesisF, setTesisF] = useState<string | null>(null);
+  const [tesisF, setTesisF] = useUrlDurumuBos('tesis');
   const [katalogF, setKatalogF] = useState<string | null>(null);
-  const [sahipF, setSahipF] = useState<string | null>(null);
+  const [sahipF, setSahipF] = useUrlDurumuBos('sahip');
   const [kuyrukAcik, setKuyrukAcik] = useState(false);
-  const [secili, setSecili] = useState<string | null>(null);
+  const [secili, setSecili] = useUrlDurumuBos('sec');
   const [duzenleAcik, setDuzenleAcik] = useState(false);
   const [yeniAcik, setYeniAcik] = useState<null | 'gorev' | 'tanim' | 'anahtar'>(null);
   const [yeniKatalog, setYeniKatalog] = useState<Katalog>('tesis');

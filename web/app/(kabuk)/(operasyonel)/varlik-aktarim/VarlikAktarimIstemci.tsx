@@ -1,5 +1,6 @@
 'use client';
 import { useMemo, useRef, useState } from 'react';
+import { useUrlDurumuBos } from '@/components/kabuk/urlDurumu';
 import { Dugme, BosIlk, Alan, type Durum } from '@/components/kabuk/temel';
 import { Tablo, type Kolon, type Satir } from '@/components/kabuk/tablo';
 import { EkranBasligi, KipDegistir } from '@/components/kabuk/ekran';
@@ -91,7 +92,7 @@ export default function VarlikAktarimIstemci({
   kapsamli?: boolean;
 }) {
   const { bekliyor, hata, setHata, calistir } = useEylem();
-  const [secili, setSecili] = useState<string | null>(null);
+  const [secili, setSecili] = useUrlDurumuBos('sec');
   const [kuyrukAcik, setKuyrukAcik] = useState(false);
   const dosyaRef = useRef<HTMLInputElement>(null);
 

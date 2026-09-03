@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useUrlDurumu, useUrlDurumuBos } from '@/components/kabuk/urlDurumu';
 import { Bar, BosIlk, BosFiltre, Dugme, Im, type Durum } from '@/components/kabuk/temel';
 import { EkranBasligi, Filtreler } from '@/components/kabuk/ekran';
 import { VeriTablosu, type VtKolon } from '@/components/kabuk/tablo';
@@ -71,11 +72,11 @@ export default function ProjelerIstemci({
   projeler: P[]; simdi: number; yeniKod: string; yazabilir: boolean;
   kullanicilar: Kisi[]; maddeler: Secenek[]; bulgular: Secenek[];
 }) {
-  const [filtre, setFiltre] = useState('aktif');
-  const [tesisF, setTesisF] = useState<string | null>(null);
+  const [filtre, setFiltre] = useUrlDurumu<string>('mercek', 'aktif');
+  const [tesisF, setTesisF] = useUrlDurumuBos('tesis');
   const [kuyrukAcik, setKuyrukAcik] = useState(false);
-  const [seciliId, setSeciliId] = useState<string | null>(null);
-  const [kip, setKip] = useState<Kip>('ozet');
+  const [seciliId, setSeciliId] = useUrlDurumuBos('sec');
+  const [kip, setKip] = useUrlDurumu<Kip>('kip', 'ozet');
   const [yeniAcik, setYeniAcik] = useState(false);
 
   const secili = projeler.find((p) => p.id === seciliId) ?? null;

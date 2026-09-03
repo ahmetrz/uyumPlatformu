@@ -74,6 +74,12 @@ export const IS_TANIMLARI: IsTanimi[] = [
   { ad: 'ag_tutarliligi', etiket: 'Ağ tutarlılığı', elleCalisir: true,
     aciklama: 'Zone dışı IP, çakışan subnet ve çift IP arar; ölçülemeyeni '
       + 'bulguya çevirmez, ayrı bir ölçüm borcu olarak açar' },
+  { ad: 'konfig_drift', etiket: 'Konfigürasyon drift', elleCalisir: true,
+    aciklama: 'Onaylı tabanla son yedeği karşılaştırır; özeti olmayan yedeği '
+      + '"değişmiş" SAYMAZ, elle karara bağlanmış sapmaya dokunmaz' },
+  { ad: 'envanter_gorunurlugu', etiket: 'Envanter görünürlüğü', elleCalisir: true,
+    aciklama: 'Envanterde olup keşifte görülmeyen varlığı bulguya çevirir — '
+      + 'hiç görülmeyeni kaybolandan AYIRIR, varlığı envanterden düşürmez' },
   { ad: 'bakim_temizlik', etiket: 'Bakım temizliği', elleCalisir: false,
     aciklama: 'Süresi dolmuş oturum ve iş kilidi satırlarını siler (saatlik, zamanlayıcıdan) '
       + '— bulgu üretmez, veri yorumlamaz' },

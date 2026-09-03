@@ -5,7 +5,7 @@ import { db } from '@/lib/db';
 import { DEMO } from '@/lib/demo';
 import { ilkiniEsle } from '@/lib/sorguParcala';
 import EnvanterIstemci from './EnvanterIstemci';
-import type { Bolge, Durus, Iliski, Kodlu, Tur, Unite, V } from './mantik';
+import type { Bolge, Durus, Iliski, Kodlu, Tur, Unite, V, Yonetisim } from './mantik';
 
 export const metadata: Metadata = { title: 'Varlık zekâsı' };
 
@@ -63,6 +63,7 @@ export default async function Sayfa({ searchParams }: {
     tumKullanicilar, tedarikciler, sozlesmeler,
     firmwareSatirlari, yamaSatirlari, kapsamSatirlari, korelasyonSatirlari,
     uygulanamazSatirlari, sbomSatirlari, segmentler, yazilimSatirlari,
+    adimSatirlari, etkiSatirlari, ekipler, konfigTemelleri, sapmaSayaci,
   ] = await Promise.all([
       db.varlik.findMany({
         where: varlikKapsami,
@@ -75,8 +76,11 @@ export default async function Sayfa({ searchParams }: {
           /* OT-03 · kimlik envanterinin ayrı ölçülen dört alanı. */
           ipv6Adresi: true, isletimSistemiSurumu: true,
           firmwareYapisi: true, donanimRevizyonu: true,
-          segmentId: true,
-          kritiklik: true, yamaDurumu: true, edrDurumu: true, yedekDurumu: true,
+          segmentId: true, ekipId: true,
+          /* OT-20 · Garanti sağlayıcı ve bakım takvimi. */
+          garantiSaglayici: true, bakimBitis: true, sonBakim: true, sonrakiBakim: true,
+          kritiklik: true, uretimEtkisi: true,
+          yamaDurumu: true, edrDurumu: true, yedekDurumu: true,
           izlemeDurumu: true, logKaynagi: true, internetMaruziyeti: true,
           uzaktanErisim: true, yasamDongusu: true,
           kurulumTarihi: true, garantiBitis: true, destekBitis: true,
@@ -206,6 +210,47 @@ export default async function Sayfa({ searchParams }: {
           yazilim: { select: { id: true, ad: true, surum: true } },
         },
       }),
+      /* ── Yönetişim (OT-05 · OT-08 · OT-09 · OT-28) ──────────────────
+         Aynı gerekçe: ilişki olarak değil ayrı findMany. */
+      db.adimVarligi.findMany({
+        select: {
+          id: true, varlikId: true, rol: true, tekNokta: true, yedekli: true,
+          adim: {
+            select: {
+              id: true, ad: true, sira: true, uretimEtkisi: true,
+              rtoSaat: true, rpoSaat: true,
+              surec: { select: { kod: true, ad: true } },
+            },
+          },
+        },
+      }),
+      db.etkiDegerlendirmesi.findMany({
+        select: {
+          varlikId: true, uretimKaybiMw: true, kayipTipi: true,
+          rtoSaat: true, rpoSaat: true, emniyetEtkisi: true, cevreEtkisi: true,
+          gerekce: true, zaman: true,
+          degerlendiren: { select: { adSoyad: true } },
+        },
+      }),
+      db.ekip.findMany({
+        select: {
+          id: true, kod: true, ad: true, tip: true, aktif: true, tesisId: true,
+          /* Aktif ÜYE sayısı sahiplik zincirinin can damarıdır: aktif üyesi
+             olmayan bir ekip, atanmış görünüp kimsenin bakmadığı bir
+             kutudur. */
+          _count: { select: { uyeler: { where: { kullanici: { aktif: true } } } } },
+        },
+        orderBy: { kod: 'asc' },
+      }),
+      db.konfigTemeli.findMany({
+        select: {
+          varlikId: true, ozetHash: true, onayZamani: true,
+          onaylayan: { select: { adSoyad: true } },
+        },
+      }),
+      db.konfigSapmasi.groupBy({
+        by: ['varlikId'], where: { durum: 'acik' }, _count: { _all: true },
+      }),
     ]);
 
   /* Boyut haritaları: satır eşlemesi sözlük araması olur, sorgu değil. */
@@ -236,7 +281,12 @@ export default async function Sayfa({ searchParams }: {
   const korelasyonHaritasi = grupla(korelasyonSatirlari);
   const uygulanamazHaritasi = grupla(uygulanamazSatirlari);
   const yazilimHaritasi = grupla(yazilimSatirlari);
+  const adimHaritasi = grupla(adimSatirlari);
   const segmentHaritasi = new Map(segmentler.map((s) => [s.id, s]));
+  const etkiHaritasi = new Map(etkiSatirlari.map((e) => [e.varlikId, e]));
+  const ekipHaritasi = new Map(ekipler.map((e) => [e.id, e]));
+  const konfigHaritasi = new Map(konfigTemelleri.map((t) => [t.varlikId, t]));
+  const sapmaHaritasi = new Map(sapmaSayaci.map((g) => [g.varlikId, g._count._all]));
   /* SBOM birden çok olabilir; ekranda EN YENİSİ gösterilir. Eskisini de
      göstermek "hangisi geçerli" sorusunu belirsizleştirirdi. */
   const sbomHaritasi = new Map<string, (typeof sbomSatirlari)[number]>();
@@ -268,9 +318,15 @@ export default async function Sayfa({ searchParams }: {
      (boş tabloda 12 parçalı sorgu 34ms, ilişki filtresiyle 0ms).
      Süzülen küme birebir aynıdır — ebeveyn sorgusuyla aynı `where`. */
   const [yedekSatirlari, kesifSatirlari] = await Promise.all([
+    /* `id` ve `icerikHash` OT-28 için okunur: konfigürasyon tabanı bir
+       YEDEĞE dayanır ve sapma özet karşılaştırmasıyla bulunur. Ayrı bir
+       sorgu açmak, aynı tabloyu iki kez taramak olurdu. */
     db.konfigurasyonYedegi.findMany({
       where: { varlik: varlikKapsami },
-      select: { varlikId: true, yedekZamani: true, basarili: true },
+      select: {
+        id: true, varlikId: true, yedekZamani: true,
+        basarili: true, icerikHash: true,
+      },
       orderBy: { yedekZamani: 'desc' },
     }),
     db.kesifKaydi.findMany({
@@ -281,6 +337,13 @@ export default async function Sayfa({ searchParams }: {
   ]);
   const sonYedekler = ilkiniEsle(yedekSatirlari, (y) => y.varlikId);
   const sonKesifler = ilkiniEsle(kesifSatirlari, (k) => k.eslesenVarlikId);
+  /* OT-28 · Son BAŞARILI yedek ayrı tutulur: başarısız bir yedeğin özeti
+     eksik olabilir ve eksik özet "konfigürasyon değişmiş" gibi
+     görünürdü. Liste `yedekZamani desc` sıralı, `ilkiniEsle` en yeniyi
+     tutar. */
+  const sonBasariliYedek = ilkiniEsle(
+    yedekSatirlari.filter((y) => y.basarili), (y) => y.varlikId,
+  );
 
   /* ── Yönetişim zinciri ────────────────────────────────────────────────
      Prototipin (a-assets) omurgası SANTRAL → SİSTEM → VARLIK → ZAFİYET →
@@ -386,6 +449,51 @@ export default async function Sayfa({ searchParams }: {
     };
   }
 
+  /* OT-05/08/09/28 · Yönetişim kaydı satır başına kurulur. Boş gelen her
+     alan "yok" değil "ölçülmedi"dir ve ekran bunu ayrı yazar. */
+  function yonetisimKur(varlikId: string, ekipId: string | null): Yonetisim {
+    const e = etkiHaritasi.get(varlikId);
+    const ekip = ekipId === null ? null : ekipHaritasi.get(ekipId) ?? null;
+    const temel = konfigHaritasi.get(varlikId);
+    const yedek = sonBasariliYedek.get(varlikId);
+    return {
+      adimlar: (adimHaritasi.get(varlikId) ?? [])
+        .map((b) => ({
+          bagId: b.id, adimId: b.adim.id, adimAd: b.adim.ad, sira: b.adim.sira,
+          surecKod: b.adim.surec.kod, surecAd: b.adim.surec.ad,
+          rol: b.rol, tekNokta: b.tekNokta, yedekli: b.yedekli,
+          adimEtkisi: b.adim.uretimEtkisi,
+          rtoSaat: b.adim.rtoSaat, rpoSaat: b.adim.rpoSaat,
+        }))
+        .sort((a, b) => a.sira - b.sira),
+      etki: e
+        ? {
+          uretimKaybiMw: e.uretimKaybiMw, kayipTipi: e.kayipTipi,
+          rtoSaat: e.rtoSaat, rpoSaat: e.rpoSaat,
+          emniyetEtkisi: e.emniyetEtkisi, cevreEtkisi: e.cevreEtkisi,
+          gerekce: e.gerekce,
+          degerlendiren: e.degerlendiren?.adSoyad ?? null,
+          zaman: e.zaman.toISOString(),
+        }
+        : null,
+      ekip: ekip
+        ? {
+          id: ekip.id, kod: ekip.kod, ad: ekip.ad,
+          aktif: ekip.aktif, aktifUye: ekip._count.uyeler,
+        }
+        : null,
+      konfig: {
+        temelHash: temel?.ozetHash ?? null,
+        temelOnayZamani: temel?.onayZamani.toISOString() ?? null,
+        temelOnaylayan: temel?.onaylayan?.adSoyad ?? null,
+        sonYedekId: yedek?.id ?? null,
+        sonYedekHash: yedek?.icerikHash ?? null,
+        sonYedekZamani: yedek?.yedekZamani.toISOString() ?? null,
+        acikSapma: sapmaHaritasi.get(varlikId) ?? 0,
+      },
+    };
+  }
+
   const veri: V[] = varliklar.map((v) => {
     const iliskiler: Iliski[] = [
       ...v.kaynakIliskiler.map((i) => ({
@@ -439,7 +547,16 @@ export default async function Sayfa({ searchParams }: {
         .map((y) => ({ id: y.yazilim.id, ad: y.yazilim.ad, surum: y.yazilim.surum }))
         .sort((a, b) => a.ad.localeCompare(b.ad, 'tr')),
       durus: durusKur(v.id, v.segmentId),
-      kritiklik: v.kritiklik, yamaDurumu: v.yamaDurumu, edrDurumu: v.edrDurumu,
+      yonetisim: yonetisimKur(v.id, v.ekipId),
+      garantiSaglayici: v.garantiSaglayici,
+      bakimBitis: v.bakimBitis?.toISOString() ?? null,
+      sonBakim: v.sonBakim?.toISOString() ?? null,
+      sonrakiBakim: v.sonrakiBakim?.toISOString() ?? null,
+      kritiklik: v.kritiklik,
+      /* Şemada nullable; ekranda üç değerli mantık `bilinmiyor` etiketiyle
+         yürür ve `null` ile `'bilinmiyor'` aynı anlama gelir. */
+      uretimEtkisi: v.uretimEtkisi ?? 'bilinmiyor',
+      yamaDurumu: v.yamaDurumu, edrDurumu: v.edrDurumu,
       yedekDurumu: v.yedekDurumu, izlemeDurumu: v.izlemeDurumu, logKaynagi: v.logKaynagi,
       internetMaruziyeti: v.internetMaruziyeti, uzaktanErisim: v.uzaktanErisim,
       yasamDongusu: v.yasamDongusu,
@@ -513,6 +630,10 @@ export default async function Sayfa({ searchParams }: {
       segmentler={segmentler.map((s) => ({
         id: s.id, kod: s.kod, ad: s.ad, cidr: s.cidr, vlanId: s.vlanId,
       }))}
+      ekipler={ekipler.filter((e) => e.aktif).map((e) => ({
+        id: e.id, kod: e.kod, ad: e.ad, tip: e.tip, aktifUye: e._count.uyeler,
+      }))}
+      onaylayabilir={onayYetkisi}
       yazabilir={yazmaYetkisi}
       simdi={simdi}
       baslangicArama={baslangicArama}

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  BOS_DURUS, KIMLIK_ALANLARI, kimlikEnvanteri, kimlikTamligi,
+  BOS_DURUS, BOS_YONETISIM, KIMLIK_ALANLARI, kimlikEnvanteri, kimlikTamligi,
   type Durus, type V,
 } from '../app/(kabuk)/(operasyonel)/envanter/mantik';
 
@@ -25,7 +25,8 @@ function varlik(ek: Partial<V> = {}, durus: Partial<Durus> = {}): V {
     rafOda: null, kimlikDogrulama: null,
     ipv6Adresi: null, isletimSistemiSurumu: null,
     firmwareYapisi: null, donanimRevizyonu: null, yazilimlar: [],
-    kritiklik: 'orta', yamaDurumu: 'guncel', edrDurumu: 'var', yedekDurumu: 'var',
+    garantiSaglayici: null, bakimBitis: null, sonBakim: null, sonrakiBakim: null,
+    kritiklik: 'orta', uretimEtkisi: 'bilinmiyor', yamaDurumu: 'guncel', edrDurumu: 'var', yedekDurumu: 'var',
     izlemeDurumu: 'var', logKaynagi: 'var', internetMaruziyeti: 'yok',
     uzaktanErisim: false, yasamDongusu: 'aktif',
     kurulumTarihi: null, garantiBitis: null, destekBitis: null,
@@ -33,7 +34,7 @@ function varlik(ek: Partial<V> = {}, durus: Partial<Durus> = {}): V {
     iliskiler: [], riskler: [], zafiyetler: [], projeler: [], kanitlar: [],
     acikZafiyet: 0, sonYedek: null, sonKesif: null,
     yazilabilir: true, onaylanabilir: true,
-    durus: { ...BOS_DURUS, ...durus },
+    durus: { ...BOS_DURUS, ...durus }, yonetisim: BOS_YONETISIM,
     ...ek,
   };
 }

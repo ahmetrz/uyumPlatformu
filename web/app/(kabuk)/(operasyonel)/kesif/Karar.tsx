@@ -6,6 +6,12 @@ import { useEylem } from '@/components/useEylem';
 import {
   elleAktarimCalistir, kesifEslestir, kesifKarariVer, kesifTopluKarar,
 } from '@/lib/eylemler2/kesif';
+import { kesifYetkiKarari, ouiKutuguYukle, pasifGozlemYukle } from '@/lib/eylemler2/varlikYonetisim';
+import {
+  GEREKCE_ASGARI, YETKI_DURUMLARI, YETKI_ETIKETI, YETKI_SINIFI,
+  gerekceIster, type YetkiDurumu,
+} from '@/lib/varlik/kesifYetkisi';
+import { protokolAdi } from '@/lib/varlik/otGozlem';
 import { zamanTR } from '@/lib/sabitler';
 import { bekliyorMu, guvenYazisi, type KesifSatiri } from './mantik';
 
@@ -324,5 +330,207 @@ export function ElleAktarimFormu({ yazabilir }: { yazabilir: boolean }) {
         </div>
       </div>
     </details>
+  );
+}
+
+/* ═══ OT-16 · Yetki kararı ════════════════════════════════════════════
+
+   `durum` iş akışının nerede olduğunu söyler; YETKİ DURUMU cihazın ağda
+   OLMASI GEREKİP GEREKMEDİĞİNİ. İkisi ayrı satırlarda ve ayrı
+   kelimelerle durur, çünkü karıştırılmaları en tehlikeli hâli üretir:
+   "eşleşti" durumundaki bir kayıt, envanterde karşılığı var diye
+   yetkili SANILIR — oysa envanterde olması onu yetkili yapmaz.
+
+   Gerekçe kuralı EKRANDA DEĞİL alan mantığında durur (`gerekceIster`);
+   sunucu aynı kaynağı okur ve kararı orada yeniden dayatır. */
+
+export function YetkiKarari({ satir }: { satir: KesifSatiri }) {
+  const { bekliyor, hata, calistir } = useEylem();
+  const [acik, setAcik] = useState(false);
+  const [durum, setDurum] = useState<YetkiDurumu>('bilinen');
+  const [gerekce, setGerekce] = useState('');
+
+  const gecerli = !gerekceIster(durum) || gerekce.trim().length >= GEREKCE_ASGARI;
+  const simdiki = (YETKI_DURUMLARI as readonly string[]).includes(satir.yetkiDurumu)
+    ? satir.yetkiDurumu as YetkiDurumu : 'karar_verilmedi';
+
+  return (
+    <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+      <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Yetki durumu (OT-16)</p>
+      <p className="mono" style={{ margin: 0 }}>
+        <span className={`d-${YETKI_SINIFI[simdiki]}`}>{YETKI_ETIKETI[simdiki]}</span>
+        {satir.yetkiKararVeren && satir.yetkiKararZamani
+          ? ` · ${satir.yetkiKararVeren} · ${zamanTR(satir.yetkiKararZamani)}` : ''}
+      </p>
+      {satir.yetkiGerekcesi && (
+        <p className="ab-panel-dip" style={{ margin: 'var(--s8) 0 0' }}>{satir.yetkiGerekcesi}</p>
+      )}
+      {simdiki === 'karar_verilmedi' && (
+        <p className="ab-panel-dip" style={{ margin: 'var(--s8) 0 0' }}>
+          Bu cihazın envanterde olması gerekip gerekmediğine henüz kimse
+          bakmadı. Eşleşmiş olması onu yetkili yapmaz.
+        </p>
+      )}
+
+      {(satir.ouiOnEki || satir.otProtokolu) && (
+        <p className="mono ab-panel-dip" style={{ margin: 'var(--s10) 0 0' }}>
+          {satir.ouiOnEki
+            ? `OUI ${satir.ouiOnEki} · ${satir.ouiUretici ?? 'kütükte yok'}`
+            : null}
+          {satir.ouiOnEki && satir.otProtokolu ? ' · ' : null}
+          {satir.otProtokolu
+            ? `${protokolAdi(satir.otProtokolu) ?? satir.otProtokolu} imzası`
+            : null}
+        </p>
+      )}
+
+      {!satir.kararVerilebilir ? (
+        <p className="ab-panel-dip" style={{ margin: 'var(--s10) 0 0' }}>
+          Yetki kararı envanter onay yetkisi ve kaydın santral kapsamı ister.
+        </p>
+      ) : !acik ? (
+        <Dugme className="ab-baskida-gizle" onClick={() => setAcik(true)}
+          style={{ marginTop: 'var(--s12)' }}>
+          Yetki kararı ver
+        </Dugme>
+      ) : (
+        <div style={{ display: 'grid', gap: 'var(--s12)', marginTop: 'var(--s12)' }}>
+          <Alan etiket="Karar">
+            <select className="ab-gr" value={durum}
+              onChange={(e) => setDurum(e.target.value as YetkiDurumu)}>
+              <option value="bilinen">Bilinen cihaz — envantere ait, yetkili</option>
+              <option value="yetkisiz">YETKİSİZ — ağda olmaması gerekiyor</option>
+              <option value="gerekceyle_yoksayildi">
+                Gerekçeyle yok say — yetkisiz ama kabul edildi
+              </option>
+            </select>
+          </Alan>
+          <Alan etiket={gerekceIster(durum)
+            ? `Gerekçe (zorunlu, en az ${GEREKCE_ASGARI} karakter)`
+            : 'Gerekçe (isteğe bağlı)'}>
+            <textarea className="ab-gr" rows={2} value={gerekce}
+              onChange={(e) => setGerekce(e.target.value)} />
+          </Alan>
+          {hata && <p className="ab-gr-hata" role="alert">{hata}</p>}
+          <div style={{ display: 'flex', gap: 'var(--s12)' }}>
+            <Dugme tur="birincil" disabled={bekliyor || !gecerli}
+              onClick={() => calistir(
+                () => kesifYetkiKarari({
+                  kesifId: satir.id, yetkiDurumu: durum, gerekce: gerekce || null,
+                }),
+                () => { setAcik(false); setGerekce(''); },
+              )}>
+              Kararı kaydet
+            </Dugme>
+            <Dugme onClick={() => setAcik(false)} disabled={bekliyor}>Vazgeç</Dugme>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ═══ OT-17 · Pasif gözlem ve OUI kütüğü ══════════════════════════════
+
+   Ürün OT ağında AKTİF TARAMA YAPMAZ. Buradan yüklenen, başka bir yerde
+   toplanmış (firewall oturumu, span port dışa aktarımı, switch ARP
+   tablosu) ve insanın getirdiği gözlemdir. Ekran bunu açıkça yazar ki
+   ürünün ne yapıp ne yapmadığı hakkında yanlış bir izlenim kalmasın. */
+
+export function PasifGozlemFormu({ yazabilir, tesisler }: {
+  yazabilir: boolean; tesisler: Tesis[];
+}) {
+  const { bekliyor, hata, calistir } = useEylem();
+  const [acik, setAcik] = useState<'gozlem' | 'oui' | null>(null);
+  const [icerik, setIcerik] = useState('');
+  const [kaynak, setKaynak] = useState('');
+  const [tesisId, setTesisId] = useState('');
+  const [ozet, setOzet] = useState<string | null>(null);
+
+  if (!yazabilir) return null;
+  const gecerli = icerik.trim() !== '' && kaynak.trim() !== '';
+
+  async function dosyadanOku(d: File) { setIcerik(await d.text()); }
+
+  return (
+    <div style={{ display: 'grid', gap: 'var(--s12)' }}>
+      <div style={{ display: 'flex', gap: 'var(--s12)', flexWrap: 'wrap' }}>
+        <Dugme onClick={() => { setAcik(acik === 'gozlem' ? null : 'gozlem'); setOzet(null); }}>
+          {acik === 'gozlem' ? 'Formu kapat' : 'Pasif gözlem yükle'}
+        </Dugme>
+        <Dugme onClick={() => { setAcik(acik === 'oui' ? null : 'oui'); setOzet(null); }}>
+          {acik === 'oui' ? 'Formu kapat' : 'OUI kütüğü yükle'}
+        </Dugme>
+      </div>
+
+      {acik !== null && (
+        <div className="ab-blok" style={{ display: 'grid', gap: 'var(--s12)' }}>
+          <p className="ab-dip" style={{ margin: 0 }}>
+            {acik === 'gozlem'
+              ? 'Bu ürün OT ağında aktif tarama YAPMAZ. Buraya, başka bir yerde '
+                + 'toplanmış gözlem (firewall oturumu, span port dışa aktarımı, '
+                + 'switch ARP tablosu) yüklenir. MAC ön eki ve tanınan port '
+                + 'imzası türetilir; tanınmayan trafik boş bırakılır.'
+              : 'IEEE OUI kütüğü ÜRÜNLE GELMEZ: uydurma bir üretici eşlemesi, '
+                + 'MAC\'ten yanlış üretici okuyan bir envanter üretirdi. Kütük '
+                + 'yüklenmezse üretici alanı "kütükte yok" kalır. '
+                + 'Biçim: her satır ÖNEK<sekme|;|,>Üretici.'}
+          </p>
+          <Alan etiket="Kaynak">
+            <input className="ab-gr" value={kaynak}
+              onChange={(e) => setKaynak(e.target.value)} />
+          </Alan>
+          {acik === 'gozlem' && (
+            <Alan etiket="Santral (boş = santral bilinmiyor)">
+              <select className="ab-gr" value={tesisId}
+                onChange={(e) => setTesisId(e.target.value)}>
+                <option value="">—</option>
+                {tesisler.map((t) => <option key={t.id} value={t.id}>{t.kod}</option>)}
+              </select>
+            </Alan>
+          )}
+          <Alan etiket="Dosya">
+            <input className="ab-gr" type="file"
+              accept={acik === 'gozlem' ? '.json,application/json' : '.txt,.csv,text/plain'}
+              onChange={(e) => {
+                const d = e.target.files?.[0];
+                if (d) void dosyadanOku(d);
+              }} />
+          </Alan>
+          <Alan etiket="İçerik">
+            <textarea className="ab-gr" rows={4} value={icerik}
+              style={{ fontFamily: 'var(--veri)' }}
+              onChange={(e) => setIcerik(e.target.value)} />
+          </Alan>
+          {hata && <p className="ab-gr-hata" role="alert">{hata}</p>}
+          {ozet && <p className="ab-dip" style={{ margin: 0 }}>{ozet}</p>}
+          <Dugme tur="birincil" disabled={bekliyor || !gecerli}
+            onClick={() => calistir(async () => {
+              if (acik === 'oui') {
+                const s = await ouiKutuguYukle({ icerik, kaynak });
+                if (s.ok && s.ozet) {
+                  setOzet(`${s.ozet.alinan} OUI kaydı alındı · `
+                    + `${s.ozet.reddedilen} satır okunamadı.`);
+                }
+                return s;
+              }
+              const s = await pasifGozlemYukle({
+                icerik, kaynak, tesisId: tesisId || null,
+              });
+              if (s.ok && s.ozet) {
+                /* Reddedilen ve protokolü çözülemeyen SESSİZCE düşmez:
+                   yükleme "başarılı" görünürken kaç kaydın alınamadığı
+                   gizli kalırdı. */
+                setOzet(`${s.ozet.alinan} yeni · ${s.ozet.guncellenen} güncellendi · `
+                  + `${s.ozet.protokollu} kayıtta protokol çözüldü · `
+                  + `${s.ozet.reddedilen} kayıt okunamadı.`);
+              }
+              return s;
+            }, () => setIcerik(''))}>
+            Yükle
+          </Dugme>
+        </div>
+      )}
+    </div>
   );
 }

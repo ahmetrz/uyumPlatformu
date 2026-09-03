@@ -98,6 +98,63 @@ export type Durus = {
   segment: { id: string; kod: string; ad: string; cidr: string; vlanId: number | null } | null;
 };
 
+/* ── Yönetişim (OT-05 · OT-08 · OT-09 · OT-20 · OT-28) ────────────────
+   Duruş "bu cihaz güvenli mi" sorusunu, yönetişim "bu cihazın sahibi kim,
+   durursa ne kaybederiz, konfigürasyonu onaylı mı" sorusunu cevaplar.
+   İkisi ayrı sekmelerdir çünkü ayrı kişiler bakar. */
+
+export type YonetisimAdim = {
+  bagId: string;
+  adimId: string; adimAd: string; sira: number;
+  surecKod: string; surecAd: string;
+  rol: string;
+  /** null = DEĞERLENDİRİLMEDİ ("tek nokta değil" DEĞİL) */
+  tekNokta: boolean | null;
+  yedekli: boolean | null;
+  adimEtkisi: string;
+  rtoSaat: number | null;
+  rpoSaat: number | null;
+};
+
+export type YonetisimEtki = {
+  /** null = HESAPLANMADI (sıfır bir ölçümdür, ondan farklıdır) */
+  uretimKaybiMw: number | null;
+  kayipTipi: string;
+  rtoSaat: number | null;
+  rpoSaat: number | null;
+  emniyetEtkisi: string;
+  cevreEtkisi: string;
+  gerekce: string | null;
+  degerlendiren: string | null;
+  zaman: string;
+};
+
+export type YonetisimKonfig = {
+  temelHash: string | null;
+  temelOnayZamani: string | null;
+  temelOnaylayan: string | null;
+  /** en yeni başarılı yedeğin özeti; null = özet yok/yedek yok */
+  sonYedekId: string | null;
+  sonYedekHash: string | null;
+  sonYedekZamani: string | null;
+  acikSapma: number;
+};
+
+export type Yonetisim = {
+  adimlar: YonetisimAdim[];
+  etki: YonetisimEtki | null;
+  ekip: { id: string; kod: string; ad: string; aktif: boolean; aktifUye: number } | null;
+  konfig: YonetisimKonfig;
+};
+
+export const BOS_YONETISIM: Yonetisim = {
+  adimlar: [], etki: null, ekip: null,
+  konfig: {
+    temelHash: null, temelOnayZamani: null, temelOnaylayan: null,
+    sonYedekId: null, sonYedekHash: null, sonYedekZamani: null, acikSapma: 0,
+  },
+};
+
 export const BOS_DURUS: Durus = {
   firmware: null, yamalar: [], kapsamlar: [], korelasyonlar: [],
   uygulanamaz: {}, sbom: null, segment: null,
@@ -118,11 +175,19 @@ export type V = {
   firmwareYapisi: string | null; donanimRevizyonu: string | null;
   /** Kurulu yazılım — ad + sürüm (OT-03 "software/version"). */
   yazilimlar: { id: string; ad: string; surum: string | null }[];
-  kritiklik: string; yamaDurumu: string; edrDurumu: string; yedekDurumu: string;
+  kritiklik: string;
+  /** OT-08 · Varlığın KENDİ üretim etkisi etiketi; `bilinmiyor` ise
+      geçerli etki proses adımından miras alınır. */
+  uretimEtkisi: string;
+  yamaDurumu: string; edrDurumu: string; yedekDurumu: string;
   izlemeDurumu: string; logKaynagi: string; internetMaruziyeti: string;
   uzaktanErisim: boolean | null; yasamDongusu: string;
   kurulumTarihi: string | null; garantiBitis: string | null; destekBitis: string | null;
   eolTarihi: string | null; eosTarihi: string | null; guncellendi: string;
+  /* OT-20 · Garanti sağlayıcı ve bakım takvimi — `destekBitis` üreticinin
+     ürün desteği, `bakimBitis` kurumun bakım anlaşmasıdır. */
+  garantiSaglayici: string | null; bakimBitis: string | null;
+  sonBakim: string | null; sonrakiBakim: string | null;
   iliskiler: Iliski[];
   /* Zincir: risk → kontrol/bulgu bağı prototipin (a-assets) omurgası. */
   riskler: {
@@ -148,6 +213,8 @@ export type V = {
   onaylanabilir: boolean;
   /** OT-03/11/21/22/25/26/27 · varlığın dışındaki duruş kayıtları */
   durus: Durus;
+  /** OT-05/08/09/20/28 · sahiplik, etki, proses ve konfigürasyon yönetişimi */
+  yonetisim: Yonetisim;
 };
 
 /* ── Sözlükler ──────────────────────────────────────────────────────── */

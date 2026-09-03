@@ -42,6 +42,21 @@ export type KesifSatiri = {
   incelemeNotu: string | null;
   /** kullanıcı bu kayıt için karar verebilir mi (tesis kapsamı dâhil) */
   kararVerilebilir: boolean;
+  /* ── OT-16 · Yetki durumu ───────────────────────────────────────────
+     `durum` iş akışının NEREDE olduğunu söyler; bu, cihazın envanterde
+     OLMASI GEREKİP GEREKMEDİĞİNİ. İkisi ayrıdır ve karıştırılırsa en
+     tehlikeli hâl doğar: "eşleşti" durumundaki bir kayıt, envanterde
+     karşılığı var diye yetkili SANILIR. */
+  yetkiDurumu: string;
+  yetkiGerekcesi: string | null;
+  yetkiKararVeren: string | null;
+  yetkiKararZamani: string | null;
+  /* ── OT-17 · Pasif gözlemden türetilenler ──────────────────────────
+     Üretici, kurumun yüklediği IEEE OUI kütüğünde varsa bilinir; kütük
+     boşsa `null` kalır ve bu "üreticisi yok" DEĞİL "kütükte yok"tur. */
+  ouiOnEki: string | null;
+  ouiUretici: string | null;
+  otProtokolu: string | null;
 };
 
 export const DURUM_SOZU_KESIF: Record<string, string> = {

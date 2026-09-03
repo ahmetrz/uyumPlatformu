@@ -9,7 +9,8 @@ import {
 } from '@/components/kabuk/panel';
 import { tarihTR, zamanTR } from '@/lib/sabitler';
 import {
-  ElleAktarimFormu, EslestirmeDugmesi, KararEylemleri, TopluKararTepsisi,
+  ElleAktarimFormu, EslestirmeDugmesi, KararEylemleri, PasifGozlemFormu,
+  TopluKararTepsisi, YetkiKarari,
   type Tesis, type Tur,
 } from './Karar';
 import {
@@ -93,6 +94,7 @@ export default function KesifIstemci({
             not="Pasif kaynaklardan gelen kayıt CMDB'ye yazılmaz; eşleştirme öneri üretir, karar burada verilir"
           />
           <ElleAktarimFormu yazabilir={yazabilir} />
+          <PasifGozlemFormu yazabilir={yazabilir} tesisler={tesisler} />
           <BosIlk cumle="Henüz keşif kaydı yok. Pasif bir kaynağın dışa aktarımını yükleyin ya da bir connector çalıştırın." />
         </section>
       </main>
@@ -133,6 +135,7 @@ export default function KesifIstemci({
             not="Pasif kaynaklardan gelen kayıt CMDB'ye yazılmaz; eşleştirme öneri üretir, karar burada verilir"
           />
           <ElleAktarimFormu yazabilir={yazabilir} />
+          <PasifGozlemFormu yazabilir={yazabilir} tesisler={tesisler} />
 
           {eslestirilmemis > 0 && (
             <p className="ab-dip" style={{ marginBottom: 'var(--s12)' }}>
@@ -245,6 +248,8 @@ export default function KesifIstemci({
               }))}
             />
           )}
+
+          <YetkiKarari satir={secili} />
 
           <KararEylemleri
             satir={secili}

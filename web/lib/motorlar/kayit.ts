@@ -11,6 +11,7 @@ import { erisimleriDegerlendir } from './erisimDegerlendirme';
 import {
   agTutarliliginiIsle, firmwareUyumunuIsle, zafiyetKorelasyonunuIsle,
 } from './varlikDurusu';
+import { konfigDriftiniIsle, envanterGorunurluguIsle } from './varlikYonetisim';
 
 /* Motor kayıt defteri — TEK doğruluk kaynağı.
 
@@ -46,6 +47,12 @@ export const MOTORLAR = {
   firmware_uyumu: firmwareUyumunuIsle,
   zafiyet_korelasyonu: zafiyetKorelasyonunuIsle,
   ag_tutarliligi: agTutarliliginiIsle,
+  /* Varlık yönetişimi ikilisi (OT-28 · OT-16). İkisi de ÖNERİR: drift
+     motoru sapma açar ama hangisinin onaylı bir değişiklikten geldiğini
+     insan söyler; görünürlük motoru "ağda görünmüyor" der ama varlığı
+     envanterden DÜŞÜRMEZ — silme kararı asla bir motorun işi değildir. */
+  konfig_drift: konfigDriftiniIsle,
+  envanter_gorunurlugu: envanterGorunurluguIsle,
 } as const satisfies Record<string, () => Promise<{ islenen: number; uretilen: number }>>;
 
 export type MotorAdi = keyof typeof MOTORLAR;

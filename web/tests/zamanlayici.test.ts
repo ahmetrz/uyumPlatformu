@@ -239,10 +239,12 @@ describe('Zamanlayıcı tiki', () => {
   it('koşmayan HER hedef sebebiyle raporlanır — sessiz atlama yok', async () => {
     const { kosulacak, atlanan } = await vadesiGelenler(SIMDI);
     const toplam = kosulacak.length + atlanan.length;
-    // Defterdeki motor sayısı (erisim_degerlendirme ile birlikte dokuz).
     /* Defterdeki motor sayısı — `lib/motorlar/kayit.ts` ile aynı olmalı.
-       Sabit yazılıyor ki defterden bir motor sessizce düşerse yakalansın. */
-    const motorSayisi = 12;
+       Sabit yazılıyor ki defterden bir motor sessizce düşerse yakalansın.
+       Sayıyı büyütmek YETMEZ: yeni motorun `MOTOR_ADLARI_SOZLUK`ta da
+       olması gerekir, yoksa zamanlayıcı onu "Bilinmeyen yapılandırma
+       anahtarı" ile atlar ve motor hiç koşmaz. */
+    const motorSayisi = 14;
     const connectorSayisi = await db.connector.count({ where: { silindi: null } });
     expect(toplam).toBe(motorSayisi + connectorSayisi);
     for (const a of atlanan) expect(a.sebep.length).toBeGreaterThan(5);

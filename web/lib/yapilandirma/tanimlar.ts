@@ -209,6 +209,8 @@ export const MOTOR_ADLARI_SOZLUK = [
      ad zamanlayıcıyı "Bilinmeyen yapılandırma anahtarı" ile durdurur ve
      o motor hiç koşmaz. `tests/zamanlayici.test.ts` bunu ölçüyor. */
   'firmware_uyumu', 'zafiyet_korelasyonu', 'ag_tutarliligi',
+  /* Varlık yönetişimi ikilisi (OT-28 · OT-16) — aynı kural. */
+  'konfig_drift', 'envanter_gorunurlugu',
 ] as const;
 
 for (const ad of MOTOR_ADLARI_SOZLUK) {

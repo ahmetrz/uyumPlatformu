@@ -57,6 +57,7 @@ export default async function Sayfa() {
         connector: { select: { ad: true } },
         eslesenVarlik: { select: { id: true, etiket: true, ad: true, tesisId: true } },
         inceleyen: { select: { adSoyad: true } },
+        yetkiKararVeren: { select: { adSoyad: true } },
       },
     }),
     db.varlikTuru.findMany({
@@ -70,6 +71,20 @@ export default async function Sayfa() {
       orderBy: { kod: 'asc' },
     }),
   ]);
+
+  /* OT-17 · OUI kütüğü — YALNIZ görünen kayıtların ön ekleri okunur.
+     Kütüğün tamamını çekmek 50.000 satır demekti; burada gerekli olan
+     en çok `KUYRUK_TAVANI` kadar farklı ön ektir. Kütük BOŞ olabilir ve
+     bu bir kusur değildir: IEEE kaydı kurumun yüklediği veridir. */
+  const onEkler = [...new Set(
+    kayitlar.map((x) => x.ouiOnEki).filter((x): x is string => x !== null),
+  )];
+  const ouiKutugu = new Map(
+    onEkler.length === 0 ? [] : (await db.ouiKaydi.findMany({
+      where: { onEk: { in: onEkler } },
+      select: { onEk: true, uretici: true },
+    })).map((o) => [o.onEk, o.uretici] as const),
+  );
 
   /* `new Date()` sunucuda istek başına bir kez okunur; "kaç gündür
      görülmüyor" eşiği tüm satırlar için bu ana göre hesaplanır. */
@@ -127,6 +142,15 @@ export default async function Sayfa() {
       incelemeZamani: kayit.incelemeZamani?.toISOString() ?? null,
       incelemeNotu: kayit.incelemeNotu,
       kararVerilebilir: onayYetkisi && kapsamdaYetkili(k, 'envanter', 'onay', tesisId),
+      yetkiDurumu: kayit.yetkiDurumu,
+      yetkiGerekcesi: kayit.yetkiGerekcesi,
+      yetkiKararVeren: kayit.yetkiKararVeren?.adSoyad ?? null,
+      yetkiKararZamani: kayit.yetkiKararZamani?.toISOString() ?? null,
+      ouiOnEki: kayit.ouiOnEki,
+      /* Üretici KÜTÜKTEN gelir; kütük boşsa null kalır ve ekran
+         "kütükte yok" der — "üreticisi yok" demez. */
+      ouiUretici: kayit.ouiOnEki ? ouiKutugu.get(kayit.ouiOnEki) ?? null : null,
+      otProtokolu: kayit.otProtokolu,
     });
   }
 

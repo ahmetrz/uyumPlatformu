@@ -116,6 +116,7 @@ model Tesis {
   denetimKapsamlari         DenetimKapsami[]
   varliklar                 Varlik[]
   agBolgeleri               AgBolgesi[]
+  ekipler                   Ekip[]
   kimlikHesaplari           KimlikHesabi[]
   degisiklikler             Degisiklik[]
   olaylar                   Olay[]
@@ -483,6 +484,11 @@ model Kullanici {
   sahipKanitlar           Kanit[]                  @relation("KanitSahibi")
   sahipVarliklar          Varlik[]                 @relation("VarlikSahibi")
   emanetVarliklar         Varlik[]                 @relation("VarlikEmanetcisi")
+  ekipUyelikleri          EkipUyeligi[]            @relation("EkipUyesi")
+  etkiDegerlendirmeleri   EtkiDegerlendirmesi[]    @relation("EtkiDegerlendiren")
+  konfigTemelOnaylari     KonfigTemeli[]           @relation("KonfigTemeliOnaylayan")
+  konfigSapmaKararlari    KonfigSapmasi[]          @relation("KonfigSapmasiKarari")
+  kesifYetkiKararlari     KesifKaydi[]             @relation("KesifYetkiKarari")
   erisimIncelemeleri      ErisimIncelemesi[]       @relation("ErisimInceleyen")
   kimlikHesaplari         KimlikHesabi[]
   talepDegisiklikler      Degisiklik[]             @relation("DegisiklikTalep")
@@ -648,10 +654,13 @@ model SistemServis {
   aciklama  String?
   kritiklik String  @default("bilinmiyor") // dusuk | orta | yuksek | kritik | bilinmiyor
   sahipId   String?
+  /// OT-09 · Sahip ekip; kişi sahipliğinin yerine geçmez, tamamlar.
+  ekipId    String?
 
   tesis            Tesis?                   @relation(fields: [tesisId], references: [id])
   unite            UretimUnitesi?           @relation(fields: [uniteId], references: [id])
   sahip            Kullanici?               @relation("SistemSahibi", fields: [sahipId], references: [id])
+  ekip             Ekip?                    @relation("SistemEkibi", fields: [ekipId], references: [id])
   surecler         IsSureciSistemi[]
   varliklar        Varlik[]
   riskler          Risk[]
@@ -669,6 +678,7 @@ model IsSureci {
 
   tesis     Tesis?            @relation(fields: [tesisId], references: [id])
   sistemler IsSureciSistemi[]
+  adimlar   ProsesAdimi[]
 }
 
 model IsSureciSistemi {
@@ -1117,7 +1127,18 @@ model Varlik {
   surum              String?
   kurulumTarihi      DateTime?
   garantiBitis       DateTime?
+  /// OT-20 · Garantiyi VEREN. Garanti bitişi bir tarih, garantiyi kimin
+  /// verdiği bir sözleşme sorusudur; ikisi ayrı alanlardır.
+  garantiSaglayici   String?
   destekBitis        DateTime? // support_end
+  /// OT-20 · Bakım sözleşmesinin bitişi. `destekBitis` üreticinin ürün
+  /// desteği, bu ise kurumun bakım anlaşmasıdır — biri bitip öteki
+  /// sürebilir.
+  bakimBitis         DateTime?
+  /// OT-20 · Son ve planlanan bakım. null = KAYIT YOK, "bakım yapılmadı"
+  /// demek değil.
+  sonBakim           DateTime?
+  sonrakiBakim       DateTime?
   eolTarihi          DateTime?
   eosTarihi          DateTime?
   yamaDurumu         String    @default("bilinmiyor") // guncel | eksik | yamasiz | bilinmiyor
@@ -1132,6 +1153,9 @@ model Varlik {
   /// OT-11 · Adresleme segmenti (VLAN + CIDR). Bölgeden AYRIDIR: bir
   /// bölge birden çok segment taşır. null = segment bilinmiyor.
   segmentId          String?
+  /// OT-09 · Sahip EKİBİ. Kişi sahipliği (`sahipId`) yerine geçmez, onu
+  /// tamamlar: kişi ayrıldığında varlık öksüz kalmasın.
+  ekipId             String?
   rafOda             String?
   tedarikciId        String?
   sozlesmeId         String?
@@ -1148,6 +1172,7 @@ model Varlik {
   emanetci  Kullanici?     @relation("VarlikEmanetcisi", fields: [emanetciId], references: [id])
   bolge     AgBolgesi?     @relation(fields: [bolgeId], references: [id])
   segment   AgSegmenti?    @relation(fields: [segmentId], references: [id])
+  ekip      Ekip?          @relation("VarlikEkibi", fields: [ekipId], references: [id])
   tedarikci Tedarikci?     @relation(fields: [tedarikciId], references: [id])
   sozlesme  Sozlesme?      @relation(fields: [sozlesmeId], references: [id])
 
@@ -1169,6 +1194,10 @@ model Varlik {
   zafiyetKorelasyonlari ZafiyetKorelasyonu[]
   sbomBelgeleri     SbomBelgesi[]
   guvenlikKapsamlari GuvenlikKapsami[]
+  adimBaglari       AdimVarligi[]
+  etkiDegerlendirmesi EtkiDegerlendirmesi?
+  konfigTemeli      KonfigTemeli?
+  konfigSapmalari   KonfigSapmasi[]
 
   @@index([tesisId, kritiklik])
   @@index([eosTarihi])
@@ -1237,6 +1266,21 @@ model KimlikHesabi {
   /// hesabı 'ayrıcalıklı değil' saymak, ayrıcalıklı hesap sayımını
   /// olduğundan düşük gösterir — bilinmeyen sıfır değildir.
   ayricalikli    Boolean?
+  /// OT-33 · Hesabın KAYNAK TİPİ — `tip` hesabın kime ait olduğunu
+  /// (kişi/servis/paylaşımlı), bu ise NEREDE yaşadığını söyler. İkisi
+  /// ayrı eksendir: bir dizin hesabı da servis hesabı olabilir.
+  /// yerel | dizin | uygulama | tedarikci | bilinmiyor
+  kaynakTipi     String    @default("bilinmiyor")
+  /// OT-33 · Çok faktörlü doğrulama. null = ÖLÇÜLMEDİ — "MFA yok"
+  /// demek DEĞİLDİR ve o ayrım ayrıcalıklı hesap raporunun tamamını
+  /// değiştirir.
+  mfaVar         Boolean?
+  /// OT-33 · Hesabın sona erme tarihi (geçici/tedarikçi hesapları).
+  /// null = süresiz ya da belirlenmemiş; ikisini ayırt etmek için
+  /// `sonaErmeBilinmiyor` değil, gerekçe alanı kullanılır.
+  sonaErme       DateTime?
+  /// OT-33 · Parola politikası referansı (kurum politika kodu).
+  parolaPolitikasi String?
   parolaRotasyon DateTime?
   sonKullanim    DateTime?
   durum          String    @default("aktif") // aktif | askida | kapatildi
@@ -2010,6 +2054,22 @@ model KesifKaydi {
   eslesmeAnahtari String?
   /// 0–1; null = hesaplanamadı
   guvenSkoru      Float?
+  /// OT-16 · Kaydın YETKİ durumu — `durum` iş akışının nerede olduğunu,
+  /// bu ise cihazın envanterde OLMASI GEREKİP GEREKMEDİĞİNİ söyler.
+  /// İkisi ayrıdır: "eşleşti" bir cihazın yetkili olduğunu kanıtlamaz.
+  /// karar_verilmedi | bilinen | yetkisiz | gerekceyle_yoksayildi
+  yetkiDurumu     String    @default("karar_verilmedi")
+  /// Yetkisizlik / yok sayma kararının gerekçesi. Gerekçesiz yok sayma,
+  /// kapatılmış bir kusurdan ayırt edilemezdi.
+  yetkiGerekcesi  String?
+  yetkiKararVerenId String?
+  yetkiKararZamani  DateTime?
+  /// OT-17 · Gözlemden okunan MAC ön eki (OUI). Üretici eşlemesi ayrı
+  /// tablodadır ve BOŞ gelebilir — o zaman üretici `null`'dır.
+  ouiOnEki        String?
+  /// OT-17 · Gözlenen OT protokolü (modbus, dnp3, s7comm …). Port/protokol
+  /// imzasından türetilir; tanınmayan trafik `null` bırakılır.
+  otProtokolu     String?
   inceleyenId     String?
   incelemeZamani  DateTime?
   incelemeNotu    String?
@@ -2020,8 +2080,10 @@ model KesifKaydi {
   tesis         Tesis?     @relation(fields: [tesisId], references: [id])
   eslesenVarlik Varlik?    @relation(fields: [eslesenVarlikId], references: [id])
   inceleyen     Kullanici? @relation("KesifInceleyen", fields: [inceleyenId], references: [id])
+  yetkiKararVeren Kullanici? @relation("KesifYetkiKarari", fields: [yetkiKararVerenId], references: [id])
 
   @@unique([kaynak, kaynakKayitId])
+  @@index([yetkiDurumu])
   @@index([durum, sonGorulme])
   @@index([tesisId, durum])
   /// Keşif kuyruğu ekranı (app/(kabuk)/(operasyonel)/kesif/page.tsx) durum
@@ -2129,6 +2191,8 @@ model KonfigurasyonYedegi {
   hata            String?
 
   varlik Varlik @relation(fields: [varlikId], references: [id], onDelete: Cascade)
+  temelOlduklari KonfigTemeli[]
+  sapmalar       KonfigSapmasi[]
 
   @@unique([kaynakSistem, kaynakKayitId])
   @@index([varlikId, yedekZamani])
@@ -2713,4 +2777,205 @@ model GuvenlikKapsami {
 
   @@unique([varlikId, tip])
   @@index([tip, durum])
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// FAZ B · OT-05 · OT-08 · OT-09 · OT-16 · OT-17 · OT-20 · OT-28 · OT-33
+// ═══════════════════════════════════════════════════════════════════════
+
+/// OT-05 · Proses ADIMI — iş sürecinin kırılımı.
+///
+/// `IsSureci` bugün yalnız SİSTEME bağlanıyor ("Türbin kontrolü → DCS").
+/// Bu, "hangi adımda hangi cihaz devrede" sorusunu cevaplayamıyor ve
+/// etki analizi sistem tanesinde kalıyor. Adım, sürecin sıralı
+/// parçasıdır; varlıklar adıma bağlanır.
+model ProsesAdimi {
+  id      String @id @default(cuid())
+  surecId String
+  kod     String
+  ad      String
+  /// Süreç içindeki sıra; aynı süreçte tekildir.
+  sira    Int
+  aciklama String?
+  /// Kurtarma hedefi (saat). null = BELİRLENMEDİ — sıfır değil.
+  rtoSaat Float?
+  /// Kabul edilebilir veri kaybı (saat). null = belirlenmedi.
+  rpoSaat Float?
+  /// yok | dusuk | orta | yuksek | uretim_durur | bilinmiyor
+  uretimEtkisi String @default("bilinmiyor")
+  olusturuldu DateTime @default(now())
+  guncellendi DateTime @updatedAt
+
+  surec     IsSureci      @relation(fields: [surecId], references: [id], onDelete: Cascade)
+  varliklar AdimVarligi[]
+
+  @@unique([surecId, kod])
+  @@unique([surecId, sira])
+  @@index([surecId])
+}
+
+/// OT-05 · Adım ↔ varlık bağı. Bağın KENDİSİ bilgi taşır: bir cihaz aynı
+/// adımda hem ölçüm hem kayıt rolü üstlenebilir ve bunların yedeklilik
+/// durumu farklıdır.
+model AdimVarligi {
+  id       String @id @default(cuid())
+  adimId   String
+  varlikId String
+  /// kontrol | olcum | iletisim | kayit | emniyet | diger
+  rol      String @default("diger")
+  /// Bu varlık bu adım için TEK NOKTA mı? null = değerlendirilmedi.
+  tekNokta Boolean?
+  /// Yedeği var mı? null = değerlendirilmedi ("yedeği yok" DEĞİL).
+  yedekli  Boolean?
+  aciklama String?
+
+  adim   ProsesAdimi @relation(fields: [adimId], references: [id], onDelete: Cascade)
+  varlik Varlik      @relation(fields: [varlikId], references: [id], onDelete: Cascade)
+
+  @@unique([adimId, varlikId, rol])
+  @@index([varlikId])
+}
+
+/// OT-08 · Varlığın üretim / iş sürekliliği ETKİSİ — ölçülmüş değer.
+///
+/// `Varlik.uretimEtkisi` üç kelimelik bir etikettir ("yuksek"); bu tablo
+/// SAYIYI ve gerekçesini taşır. İkisi ayrı durur çünkü etiket bir
+/// sınıflandırma, bu kayıt bir DEĞERLENDİRMEDİR: kim, ne zaman, neye
+/// dayanarak.
+model EtkiDegerlendirmesi {
+  id       String @id @default(cuid())
+  varlikId String @unique
+  /// Kaybedilen üretim (MW). null = HESAPLANMADI, sıfır değil.
+  uretimKaybiMw Float?
+  /// tam | kismi | yok | bilinmiyor — kaybın niteliği.
+  kayipTipi     String  @default("bilinmiyor")
+  /// Kurtarma hedefi (saat); null = belirlenmedi.
+  rtoSaat       Float?
+  rpoSaat       Float?
+  /// yok | dusuk | orta | yuksek | bilinmiyor
+  emniyetEtkisi String  @default("bilinmiyor")
+  cevreEtkisi   String  @default("bilinmiyor")
+  /// Değerlendirmenin dayanağı — denetimde sayının savunmasıdır.
+  gerekce       String?
+  degerlendirenId String?
+  zaman         DateTime @default(now())
+  guncellendi   DateTime @updatedAt
+
+  varlik        Varlik     @relation(fields: [varlikId], references: [id], onDelete: Cascade)
+  degerlendiren Kullanici? @relation("EtkiDegerlendiren", fields: [degerlendirenId], references: [id])
+
+  @@index([kayipTipi])
+}
+
+/// OT-09 · Ekip — sahipliğin KİŞİ ötesindeki hâli.
+///
+/// Bugün sahiplik yalnız bir kullanıcıya bağlanıyor; kişi ayrıldığında
+/// varlık öksüz kalıyor ve bunu fark eden bir mekanizma yok. Ekip,
+/// sahipliğin devredilebilir ve denetlenebilir birimidir.
+model Ekip {
+  id      String  @id @default(cuid())
+  kod     String  @unique
+  ad      String
+  /// ot | bt | guvenlik | bakim | isletme | diger
+  tip     String  @default("diger")
+  tesisId String?
+  eposta  String?
+  aktif   Boolean @default(true)
+  olusturuldu DateTime @default(now())
+  guncellendi DateTime @updatedAt
+
+  tesis     Tesis?         @relation(fields: [tesisId], references: [id])
+  uyeler    EkipUyeligi[]
+  varliklar Varlik[]       @relation("VarlikEkibi")
+  sistemler SistemServis[] @relation("SistemEkibi")
+
+  @@index([tesisId, aktif])
+}
+
+/// OT-09 · Ekip üyeliği. Rol, sahiplik zincirindeki YERİ söyler.
+model EkipUyeligi {
+  id          String @id @default(cuid())
+  ekipId      String
+  kullaniciId String
+  /// sahip | emanetci | uye — `sahip` ekibin karar merciidir.
+  rol         String @default("uye")
+  olusturuldu DateTime @default(now())
+
+  ekip      Ekip      @relation(fields: [ekipId], references: [id], onDelete: Cascade)
+  kullanici Kullanici @relation("EkipUyesi", fields: [kullaniciId], references: [id], onDelete: Cascade)
+
+  @@unique([ekipId, kullaniciId])
+  @@index([kullaniciId])
+}
+
+/// OT-28 · Konfigürasyon TABANI — onaylanmış beklenen yapılandırma.
+///
+/// `KonfigurasyonYedegi` cihazın o günkü konfigürasyonunu SAKLAR; bu
+/// tablo hangisinin ONAYLI olduğunu söyler. İkisi ayrı olmasaydı "drift"
+/// diye bir kavram kurulamazdı: her yeni yedek yeni gerçek olurdu.
+model KonfigTemeli {
+  id       String @id @default(cuid())
+  varlikId String @unique
+  /// Onaylı yedeğin kimliği — taban bir YEDEĞE dayanır, elle yazılmaz.
+  yedekId  String?
+  /// Onaylı içeriğin SHA-256 özeti; karşılaştırma bunun üzerinden.
+  ozetHash String
+  onaylayanId String?
+  onayZamani  DateTime @default(now())
+  not         String?
+  guncellendi DateTime @updatedAt
+
+  varlik    Varlik               @relation(fields: [varlikId], references: [id], onDelete: Cascade)
+  yedek     KonfigurasyonYedegi? @relation(fields: [yedekId], references: [id])
+  onaylayan Kullanici?           @relation("KonfigTemeliOnaylayan", fields: [onaylayanId], references: [id])
+  sapmalar  KonfigSapmasi[]
+}
+
+/// OT-28 · Konfigürasyon SAPMASI — beklenen ile gözlenen arasındaki fark.
+///
+/// ONAYLI ile ONAYSIZ drift ayrı durumlardır: planlı bir değişiklikten
+/// doğan fark bir kusur değildir, ama izlenmeden geçmemelidir.
+model KonfigSapmasi {
+  id       String @id @default(cuid())
+  temelId  String
+  varlikId String
+  /// Sapmayı gösteren gözlem (yedek) kimliği.
+  yedekId  String?
+  /// Gözlenen içeriğin özeti — tabanın özetiyle karşılaştırılır.
+  gozlenenHash String
+  /// acik | onayli | giderildi | kabul_edildi
+  durum        String   @default("acik")
+  /// Sapmanın hangi değişiklik talebine bağlandığı (varsa).
+  degisiklikRef String?
+  /// kritik | yuksek | orta | dusuk | bilinmiyor
+  siddet       String   @default("bilinmiyor")
+  aciklama     String?
+  kararVerenId String?
+  kararZamani  DateTime?
+  kararGerekcesi String?
+  olusturuldu  DateTime @default(now())
+
+  temel      KonfigTemeli         @relation(fields: [temelId], references: [id], onDelete: Cascade)
+  varlik     Varlik               @relation(fields: [varlikId], references: [id], onDelete: Cascade)
+  yedek      KonfigurasyonYedegi? @relation(fields: [yedekId], references: [id])
+  kararVeren Kullanici?           @relation("KonfigSapmasiKarari", fields: [kararVerenId], references: [id])
+
+  @@index([durum, siddet])
+  @@index([varlikId])
+}
+
+/// OT-17 · IEEE OUI kaydı — MAC ön ekinden üretici.
+///
+/// **TABLO BOŞ GELİR VE BU BİLEREK BÖYLEDİR.** IEEE OUI kütüğü kurumun
+/// indirip yüklediği bir veridir; uydurma bir üretici eşlemesi, MAC'ten
+/// yanlış üretici okuyan bir envanter üretirdi. Yükleme yolu vardır;
+/// eşleşme bulunamazsa üretici `null` döner — "bilinmiyor" demektir.
+model OuiKaydi {
+  /// Normalleştirilmiş ön ek: büyük harf, ayraçsız (ör. `00:1B:1B` → `001B1B`).
+  onEk        String @id
+  uretici     String
+  kaynak      String?
+  yuklendi    DateTime @default(now())
+
+  @@index([uretici])
 }

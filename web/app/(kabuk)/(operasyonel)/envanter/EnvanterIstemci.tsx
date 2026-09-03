@@ -6,6 +6,7 @@ import { exceleAktar, pdfYazdir } from '@/components/disaAktar';
 import { VARLIK_SINIF_ETIKET, etiketle, tarihTR, zamanTR } from '@/lib/sabitler';
 import { IliskiEditoru, VarlikFormu, YasamFormu } from './Formlar';
 import { DurusPaneli } from './Durus';
+import { YonetisimPaneli } from './Yonetisim';
 import { VeriTablosu, type VtKolon, type VtSira } from '@/components/kabuk/tablo';
 import {
   ILISKI_CUMLE, KRITIKLIKLER, MERCEKLER, MERCEK_TASMA, YASAM_ETIKET,
@@ -53,7 +54,7 @@ import {
    ═══════════════════════════════════════════════════════════════════════ */
 
 type Kip = 'zincir' | 'tablo';
-type PanelKipi = 'ozet' | 'durus' | 'form' | 'iliski' | 'yasam';
+type PanelKipi = 'ozet' | 'durus' | 'yonetisim' | 'form' | 'iliski' | 'yasam';
 
 /** Zincirin halkaları — prototipin sütun başlıkları. */
 const HALKALAR = [
@@ -67,13 +68,18 @@ type Dugum = {
 
 export default function EnvanterIstemci({
   varliklar, turler, tesisler, uniteler, sistemler, bolgeler, kullanicilar,
-  segmentler, yazabilir, simdi, baslangicArama = '',
+  segmentler, ekipler, yazabilir, onaylayabilir, simdi, baslangicArama = '',
 }: {
   varliklar: V[]; turler: Tur[]; tesisler: Kodlu[]; uniteler: Unite[];
   sistemler: Kodlu[]; bolgeler: Bolge[]; kullanicilar: Kisi[];
   /** OT-11 · varlığa atanabilecek adresleme segmentleri */
   segmentler: Segment[];
-  yazabilir: boolean; simdi: number;
+  /** OT-09 · varlığa atanabilecek AKTİF ekipler */
+  ekipler: { id: string; kod: string; ad: string; tip: string; aktifUye: number }[];
+  yazabilir: boolean;
+  /** OT-28 · konfigürasyon tabanı onayı `envanter/onay` ister */
+  onaylayabilir: boolean;
+  simdi: number;
   /** `?bolge=KOD` bağından gelen başlangıç arama metni (topoloji çekmecesi). */
   baslangicArama?: string;
 }) {
@@ -285,6 +291,7 @@ export default function EnvanterIstemci({
                 {([
                   ['ozet', 'Özet'],
                   ['durus', 'Duruş'],
+                  ['yonetisim', 'Yönetişim'],
                   ['form', 'Kayıt'],
                   ['iliski', 'İlişki'],
                   ['yasam', 'Yaşam'],
@@ -297,6 +304,10 @@ export default function EnvanterIstemci({
                 {panelKipi === 'ozet' && <Ozet v={secili} simdi={simdi} />}
                 {panelKipi === 'durus' && (
                   <DurusPaneli v={secili} segmentler={segmentler} />
+                )}
+                {panelKipi === 'yonetisim' && (
+                  <YonetisimPaneli v={secili} ekipler={ekipler}
+                    onaylanabilir={secili.onaylanabilir && onaylayabilir} simdi={simdi} />
                 )}
                 {panelKipi === 'form' && (
                   <VarlikFormu varlik={secili} turler={turler} tesisler={tesisler}

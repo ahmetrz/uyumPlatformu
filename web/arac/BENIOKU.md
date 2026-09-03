@@ -4,6 +4,20 @@ Zorlu Enerji Yönetişim Platformu arayüzünün görsel kalite kapısı (tasar�
 sistemi: `../DESIGN.md`, prototip → uygulama haritası:
 `../../ORIGINAL_DESIGN_IMPLEMENTATION_MAP.md`). Üretim kodu değildir; derlemeye girmez.
 
+## `yedek.mjs` — görsel değil, İŞLETİM aracı
+
+Bu dizindeki tek görsel olmayan araç; burada durmasının sebebi "üretim
+kodu değil, derlemeye girmez" tarifine uymasıdır.
+
+Ürünün KENDİ veritabanını yedekler ve doğrular (`npm run yedek`). Prosedür
+`../../docs/URUN_YEDEKLEME.md`, testi `../tests/yedek-araci.test.ts`.
+
+Kısaca: `cp` kullanılmaz — canlı SQLite dosyasını kopyalamak, kopyanın
+ortasında bir yazma commit'lenirse tutarsız dosya üretir ve bu ancak geri
+yüklerken anlaşılır. `VACUUM INTO` tutarlı anlık görüntü yazar; yan etkisi
+olarak yedek canlıdan bayt bayt farklı olur, bu yüzden araç ayrıca
+MANTIKSAL (tablo satır sayılarından türeyen) bir özet raporlar.
+
 ## `kare.mjs`
 
 Çalışan uygulamadan ekran görüntüsü alır; her karede kullanılan font ailesini,

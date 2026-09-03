@@ -88,10 +88,29 @@ da uçtan uca doğrulandı (indirilen dosya geri okundu: 53 satır, 0 sayfa
 hatası) ve `.xlsx` yükleme ekranından geçirildi (3 satır, boş satır
 düştü).
 
-**2. Test kapsamı %68,91 — hedef ≥%90.**
-Açığın büyük kısmı sunucu eylemleri (`lib/eylemler2/`) ve ekran
-bileşenleridir. Saf mantık katmanı (`mantik.ts` dosyaları) iyi kapsanmış
-durumda; kapsanmayan yer, yetki kapısı ve form davranışlarının olduğu yer.
+**2. Test kapsamı satır %74,51 · deyim %71,34 — hedef ≥%90.**
+(2026-09-03 ölçümü. Önceki kayıt deyim %68,91 idi.)
+
+Sunucu eylemleri artık açığın büyük kısmı DEĞİL: `lib/eylemler2` satır
+%84,06'ya çıktı (bu oturumda %70,28 idi, ondan önce %53,96). Sıfır
+kapsamlı dört dosya kapandı (`konum` · `apiAnahtari` · `tesis360` ·
+`isler`); `kimlik` %27,9'dan, `operasyon` %45,2'den, `denetim`
+%61,1'den yukarı taşındı.
+
+**Hedefin kendisi gözden geçirilmelidir ve sebebi ölçülmüştür.** Kalan
+açığın ağırlık merkezi iki yerde:
+
+· `lib/` kökü **%58,72** — `db.ts`, `disaAktar.ts`, `kontrast.ts` gibi
+  altyapı dosyaları,
+· ekran bileşenleri **%0** — `*Istemci.tsx`, `Kabuk.tsx`,
+  `KomutPaleti.tsx` ve altı ayrı `mantik.ts`.
+
+Yani %90, bileşen testi (React Testing Library ya da eşdeğeri) yazmadan
+**matematiksel olarak tutmaz**; bugün depoda o katman hiç yok. Karar iki
+şıktan biridir ve ürün sahibinindir: bileşen test katmanı kurulur, ya da
+hedef "davranış kritik katmanlarda ≥%85" diye yeniden yazılır. Sayıyı
+hedefe uydurmak yerine hedefi ölçüme göre tartışmak, bu belgenin kendi
+kuralıdır.
 
 **3. ~~`/impeccable critique` ve `/impeccable audit` hiç koşulmadı.~~ KOŞTU.**
 İkisi de dolu ekranlarda koştu ve bulguları uygulandı. Denetimin
@@ -125,36 +144,54 @@ portföy süzgecindeki `select` 160px tabanıyla sağ oluğu yiyordu; saha
 takımyıldızındaki nabız halkası 2,4× yarıçapla komşu santralin künyesini
 süpürüyordu.
 
-**3b. Kurumsal olmayan üç eylem kapsamsız korunuyor — santral rolü
-hiç giremiyor.** 2026-09-03'te iki aşamalı kapı ekran katmanına
-taşınırken, sunucu tarafında ÜÇÜNCÜ bir kusur biçimi ölçüldü ve
-`tests/kapsam-kapisi-nobetci.test.ts` bunu yapısı gereği göremez:
-nöbetçi "kaydın tesisini denetleyip ön kapıyı kapsamsız çağıran"
-eylemleri arar; hiç denetim YAPMAYAN bir eylem o taramaya takılmaz.
+**3b. ~~Kapsamsız korunan eylemler.~~ KAPANDI — ve asıl ders,
+sınıflandırmanın ELLE YAPILAMAYACAĞI oldu.**
 
-Kapsamsız ön kapılı 26 eylem tarandı. 23'ünde kayıt gerçekten
-kurumsaldır — `Tedarikci`, `Denetim`, `Proje`, `Surec`, aktarım
-partisi ve yedekleme politikası şemada `tesisId` **taşımaz**, çok
-santrale birden bağlanır — yani kapsamsız kapı doğru kapıdır ve
-ekranları da bilerek kapsamsız bırakıldı
-(`tests/ekran-yazma-kapisi.test.ts · KURUMSAL_KAYITLAR`, her satır
-gerekçesiyle).
+2026-09-03'te iki aşamalı kapı ekran katmanına taşınırken sunucuda
+ÜÇÜNCÜ bir kusur biçimi ölçüldü: hiç kapsam denetimi YAPMAYAN kapsamsız
+ön kapılar. `tests/kapsam-kapisi-nobetci.test.ts` bunu yapısı gereği
+göremiyordu — nöbetçi "kaydın tesisini denetleyip ön kapıyı kapsamsız
+çağıran" eylemleri arar; hiç denetlemeyen ona takılmaz.
 
-Kalan üçü gerçek borçtur:
+Kapsamsız ön kapılı 26 eylem önce ELLE tarandı. **O tarama iki yönden de
+yanıldı ve bu, düzeltmenin kendisinden daha önemli bir bulgudur:**
 
-| eylem | kaydın santrali | bugünkü davranış |
+· **Kaçırdı.** Şemada model adları elle arandı ve yanlış arandı: `Hesap`
+  diye bir model yok, adı `KimlikHesabi` ve `tesisId` **taşıyor**. Aynı
+  şekilde `Erisim` değil `ErisimAtamasi`. Dört gerçek kusur böyle
+  "kurumsal" sayılıp listeden düştü.
+· **Fazladan suçladı.** `kesifEslestir` ve `elleAktarimCalistir` "gerçek
+  borç" diye yazıldı. İkisi de kuyruk işidir, CMDB'ye yazmaz ve kapsama
+  çekilseler ürün **bozulurdu**: `KesifKaydi.tesisId` nullable ve şema
+  "null = santral BİLİNMİYOR" diyor; kapsamlı bir toplu geçiş, santrali
+  henüz çözülememiş kayıtları sistematik olarak atlardı — oysa triyaja en
+  muhtaç olanlar tam da onlardır.
+
+Bu yüzden ölçüt mekanikleştirildi ve nöbetçiye eklendi: **bir eylem
+`tesisId` ile iş görüyorsa kapsamı sormak zorundadır; görmüyorsa
+kurumsaldır.** Nöbetçi kurulur kurulmaz elle taramanın bulamadığı bir
+tanesini daha buldu (`surum.ts · surumAktiflestir`); incelendi, kurumsal
+çıktı — santral SEÇMEZ, kapsamda zaten olan santrallere satır yayar — ve
+muafiyet defterine gerekçesiyle yazıldı.
+
+**Kapatılan beş kusur, her biri kendi davranış testiyle:**
+
+| eylem | kaydın santrali | önceki davranış |
 | --- | --- | --- |
-| `eylemler.ts · kanitEkle` | `MaddeDurumu.tesisId` | santral rolü kanıt ekleyemiyor |
-| `kesif.ts · kesifEslestir` | eşleşen varlığın tesisi | santral rolü eşleştiremiyor |
-| `kesif.ts · elleAktarimCalistir` | kuyruk santral kapsamlı | santral rolü çalıştıramıyor |
+| `eylemler.ts · kanitEkle` | `MaddeDurumu.tesisId` (zorunlu) | santral rolü kendi maddesine kanıt ekleyemiyordu |
+| `kimlik.ts · hesapKaydet` | `KimlikHesabi.tesisId` | kendi santralinin servis hesabını düzenleyemiyordu |
+| `kimlik.ts · erisimAta` | hesabın santrali | kendi hesabına erişim atayamıyordu |
+| `kimlik.ts · erisimIncele` | atama → hesap → santral | kendi atamasını inceleyemiyordu |
+| `eylemler.ts · surecKapsamCikar` | girdideki `tesisId` | kendi santralini kapsama EKLEYEBİLİYOR ama ÇIKARAMIYORDU |
 
-Bunlar bir SIZINTI değildir — kapsamsız kapı fazladan yetki vermez,
-aksine tesise kısıtlı rolü tümüyle dışarıda bırakır. Kusur şudur:
-santral yöneticisi KENDİ santralinin kanıtını ekleyemiyor. Düzeltme
-kalıbı bellidir (`yetkiZorunlu(..., KAPSAM_SONRA)` + kayıt okunduktan
-sonra `kapsamZorunlu`), ama her biri kendi davranış testiyle kapanmalı;
-körlemesine dokunulmadı. Ekranlar sunucudan ÖNCE gevşetilmedi: bugün
-düğme gösterilip sunucuda reddedilmesi, gizlenmesinden daha kötüdür.
+Hiçbiri sızıntı değildi — kapsamsız kapı fazladan yetki vermez, tersine
+tesise kısıtlı rolü tümüyle dışarıda bırakır. Kusur aşırı katılıktı ve
+sonucu şuydu: santral ekibi kendi santralinde çalışamıyordu. Kapılar
+gevşetilirken kaydın KENDİ santrali de sorulmasaydı ters kusur açılırdı
+(yabancı bir hesabı "kendi santralime al" diyerek ele geçirmek); bu
+yüzden hem hedef hem kayıt denetleniyor.
+
+Kalan kusur sayısı: **0.** Üç nöbetçi bu üç biçimi de arıyor.
 
 ### P2 — üretim öncesi
 
@@ -177,9 +214,31 @@ olduğu için kapatılmadı, **açık ve ölçülmüş** bırakıldı.
 uzun süren iş koşusu altında davranış ölçülmedi.
 `docs/PERFORMANS_TABANI.md` tek kullanıcılı sentetik ölçümdür.
 
-**7. Ürünün kendi verisinin yedekleme/geri yükleme prosedürü yazılmadı.**
-Ürün müşterinin yedeklemesini izliyor; kendi yedeği için yazılı bir
-prosedür yok.
+**7. ~~Ürünün kendi verisinin yedekleme/geri yükleme prosedürü
+yazılmadı.~~ YAZILDI ve KOŞULUR.** `docs/URUN_YEDEKLEME.md` +
+`web/arac/yedek.mjs` (`npm run yedek`), testi
+`web/tests/yedek-araci.test.ts`.
+
+Prosedür düz metin bırakılmadı çünkü koşulmayan prosedür bayatlar ve
+bayatlığı — yokluğunun aksine — fark edilmez. Ürünün kendi kuralı
+(`restoreTestiKaydet`: geri yüklenebildiği kanıtlanmamış yedek, yedek
+değildir) kendisine de uygulandı: araç yedeği alır ve AYNI komutta
+doğrular, `--karsilastir` ile canlıyla mantıksal farkı sayıyla söyler.
+
+`cp` kullanılmıyor: canlı SQLite dosyasını kopyalamak, kopyanın ortasında
+bir yazma commit'lenirse tutarsız dosya üretir ve bu ancak geri
+yüklerken — yani ihtiyaç anında — anlaşılır. `VACUUM INTO` tutarlı anlık
+görüntü yazar; yan etkisi olarak yedek canlıdan bayt bayt farklı olur, bu
+yüzden araç ayrıca MANTIKSAL (tablo satır sayılarından türeyen) bir özet
+raporlar.
+
+**Kapsanmayanlar belgede açıkça yazılıdır:** `.env` bilerek dışarıdadır
+(sır, veriyle aynı yerde durmamalı); kanıt DOSYALARI bugün yoktur —
+`Kanit.dosyaYolu` kolonu var ama hiçbir kod ona yazmıyor, dosya yükleme
+geldiği gün araç eksik kalır. Saklama süresi, saklama yeri ve tatbikat
+takvimi YAZILMADI: bunlar kurumun kararıdır ve buraya bir sayı yazmak,
+kimsenin taahhüt etmediği bir politikayı belgelenmiş gibi göstermek
+olurdu.
 
 ### P3 — bilinen ve bilinçli eksikler
 

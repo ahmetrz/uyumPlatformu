@@ -167,3 +167,87 @@ describe('İki aşamalı kapı — uygulanmış mı', () => {
     expect([...ACIK_BORC]).toEqual([]);
   });
 });
+
+/* ═══ ÜÇÜNCÜ KUSUR BİÇİMİ — HİÇ DENETLEMEYEN KAPSAMSIZ KAPI ════════════
+   Yukarıdaki nöbetçi, "kaydın tesisini denetleyip ön kapıyı kapsamsız
+   çağıran" eylemleri arar. Hiç denetim YAPMAYAN bir eylem ona takılmaz —
+   yapısı gereği. O boşluk 2026-09-03'te elle tarandı ve tarama İKİ
+   YÖNDEN de yanıldı:
+
+     · Gerçek kusurlar KAÇIRILDI. Şemada model adları elle arandı ve
+       yanlış arandı (`Hesap` diye bir model yok; adı `KimlikHesabi`).
+       `hesapKaydet`, `erisimAta`, `erisimIncele` ve `surecKapsamCikar`
+       böyle gözden kaçtı.
+     · Kusur OLMAYANLAR kusur sayıldı. `kesifEslestir` ve
+       `elleAktarimCalistir` "borç" diye yazıldı; oysa ikisi de kuyruk
+       işidir, CMDB'ye yazmaz ve kapsama çekilmeleri ürünü bozardı
+       (santrali bilinmeyen kayıtlar sistematik olarak atlanırdı).
+
+   Ders: bu sınıflandırma ELLE yapılamaz. Ölçüt basit ve mekaniktir —
+   **bir eylem `tesisId`'ye dokunuyorsa kapsamı sormak ZORUNDADIR.**
+   Dokunmuyorsa kurumsaldır ve kapsamsız kapı doğru kapıdır.
+
+   Yorumlar taranmaz: gerekçe yazısında geçen "tesisId" kelimesi kusur
+   değildir. Gövde sütun-0 kapanışında kesilir; kesilmezse bir sonraki
+   bildirimin şeması gövdeye karışıp yanlış alarm üretir (ölçüldü). */
+
+/** `tesisId`'ye dokunduğu hâlde kapsam sormayan eylemler. **BUGÜN BOŞ.** */
+const KAPSAMSIZ_TESIS_DOKUNANI = new Set<string>([]);
+
+/* Dokunmak her zaman KARAR VERMEK değildir. Bir eylem santral seçmiyor,
+   yalnız KAPSAMDA ZATEN OLAN santrallere satır yayıyorsa kurumsaldır ve
+   kapsamsız kapı doğru kapıdır. Muafiyet defteri: her satır gerekçesiyle
+   yazılır, aşağıdaki ikinci test bayatlayanı yakalar. */
+const KURUMSAL_YAYILIM = new Map<string, string>([
+  ['surum.ts · surumAktiflestir',
+    'Regülasyon sürümü aktifleştirmek kurumsal karardır (tanimlar/onay); '
+    + 'eylem santral SEÇMEZ, sürecin kapsamında ZATEN olan santrallere '
+    + 'madde durumu satırı açar. Kapsama çekmek "bu regülasyon yalnız '
+    + 'bir santralde yürürlüğe girsin" demek olurdu.'],
+]);
+
+/** Yorumları düşürür — gerekçedeki kelime kusur sayılmasın. */
+function yorumsuz(metin: string): string {
+  return metin.replace(/\/\*[^]*?\*\//g, '').replace(/\/\/[^\n]*/g, '');
+}
+
+const tesisDokunani = new Set<string>();
+const yayilimlar = new Set<string>();
+for (const ad of KAYNAKLAR) {
+  const metin = readFileSync(path.join(KOK, ad), 'utf8');
+  const yardimcilar = denetleyenYardimcilar(metin);
+  for (const { ad: fn, govde } of govdeler(metin)) {
+    // Gövde sütun-0 kapanışında biter; sonrası başka bir bildirimdir.
+    const kes = govde.indexOf('\n}');
+    const g = yorumsuz(kes < 0 ? govde : govde.slice(0, kes));
+    if (onKapiKapsamli(g) !== false) continue;      // kapı yok ya da kapsamlı
+    if (ikinciAsamaVar(g, yardimcilar)) continue;   // zaten denetliyor
+    if (!g.includes('tesisId')) continue;
+    const etiketi = `${path.basename(ad)} · ${fn}`;
+    if (KURUMSAL_YAYILIM.has(etiketi)) { yayilimlar.add(etiketi); continue; }
+    tesisDokunani.add(etiketi);
+  }
+}
+
+describe('Üçüncü biçim — tesisId\'ye dokunan kapsamsız kapı yoktur', () => {
+  it('LİSTEDE OLMAYAN yeni bir dokunan eklenemez', () => {
+    const yeni = [...tesisDokunani].filter((y) => !KAPSAMSIZ_TESIS_DOKUNANI.has(y)).sort();
+    expect(yeni, [
+      'Bu eylem `tesisId` ile iş görüyor ama kapsamı HİÇ sormuyor.',
+      'Sızıntı olmayabilir (kapsamsız kapı kısıtlı rolü tümden reddeder)',
+      'ama santral ekibi kendi santralinde çalışamaz.',
+      'Düzeltme: `yetkiZorunlu(modul, islem, KAPSAM_SONRA)` + `kapsamZorunlu(...)`,',
+      'ya da ön kapıya gerçek kapsamı vermek.',
+    ].join('\n')).toEqual([]);
+  });
+
+  it('bu borç da KAPALI kalır', () => {
+    expect([...KAPSAMSIZ_TESIS_DOKUNANI]).toEqual([]);
+  });
+
+  it('KURUMSAL YAYILIM defteri bayat değildir', () => {
+    const bayat = [...KURUMSAL_YAYILIM.keys()].filter((a) => !yayilimlar.has(a)).sort();
+    expect(bayat, 'bu eylem artık böyle çalışmıyor; KURUMSAL_YAYILIM listesinden silin')
+      .toEqual([]);
+  });
+});

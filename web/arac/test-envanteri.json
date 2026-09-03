@@ -1,7 +1,7 @@
 {
-  "imza": "08f1bf31a7d667bfdc8e707d08e4b1d4",
-  "dosya": 81,
-  "vaka": 1459,
+  "imza": "2b03a153ce0bd089c20470bfb7f5a57d",
+  "dosya": 90,
+  "vaka": 1560,
   "atlanan": 1,
   "dosyalar": {
     "tests/api.test.ts": {
@@ -34,6 +34,10 @@
     },
     "tests/dar-sablon.test.ts": {
       "vaka": 15,
+      "atlanan": 0
+    },
+    "tests/denetim-asama-kanit.test.ts": {
+      "vaka": 18,
       "atlanan": 0
     },
     "tests/denetim-kapsam.test.ts": {
@@ -124,6 +128,10 @@
       "vaka": 25,
       "atlanan": 0
     },
+    "tests/isler-eylem.test.ts": {
+      "vaka": 10,
+      "atlanan": 0
+    },
     "tests/istemci-adresi.test.ts": {
       "vaka": 37,
       "atlanan": 0
@@ -148,6 +156,10 @@
       "vaka": 11,
       "atlanan": 0
     },
+    "tests/kanit-kapsam.test.ts": {
+      "vaka": 5,
+      "atlanan": 0
+    },
     "tests/kanitlar-mantik.test.ts": {
       "vaka": 23,
       "atlanan": 0
@@ -157,7 +169,7 @@
       "atlanan": 0
     },
     "tests/kapsam-kapisi-nobetci.test.ts": {
-      "vaka": 4,
+      "vaka": 7,
       "atlanan": 0
     },
     "tests/kapsam-kapisi.test.ts": {
@@ -170,6 +182,10 @@
     },
     "tests/kesif.test.ts": {
       "vaka": 31,
+      "atlanan": 0
+    },
+    "tests/kimlik-eylem.test.ts": {
+      "vaka": 14,
       "atlanan": 0
     },
     "tests/kisit-mesaji.test.ts": {
@@ -186,6 +202,10 @@
     },
     "tests/konfig-yedek.test.ts": {
       "vaka": 28,
+      "atlanan": 0
+    },
+    "tests/konum-apianahtar-eylem.test.ts": {
+      "vaka": 13,
       "atlanan": 0
     },
     "tests/motor-defteri.test.ts": {
@@ -214,6 +234,10 @@
     },
     "tests/operasyon-tedarikci-eylem.test.ts": {
       "vaka": 15,
+      "atlanan": 0
+    },
+    "tests/operasyon-yedekleme-sertifika.test.ts": {
+      "vaka": 14,
       "atlanan": 0
     },
     "tests/otomasyon-guvenligi.test.ts": {
@@ -256,12 +280,20 @@
       "vaka": 23,
       "atlanan": 0
     },
+    "tests/surec-kapsam-eylem.test.ts": {
+      "vaka": 5,
+      "atlanan": 0
+    },
     "tests/surum.test.ts": {
       "vaka": 7,
       "atlanan": 0
     },
     "tests/tedarikci-oturum.test.ts": {
       "vaka": 18,
+      "atlanan": 0
+    },
+    "tests/tesis360-eylem.test.ts": {
+      "vaka": 12,
       "atlanan": 0
     },
     "tests/topoloji-sapma.test.ts": {
@@ -317,6 +349,10 @@
       "atlanan": 1
     },
     "tests/yaris-onay-aktarim.test.ts": {
+      "vaka": 7,
+      "atlanan": 0
+    },
+    "tests/yedek-araci.test.ts": {
       "vaka": 7,
       "atlanan": 0
     },

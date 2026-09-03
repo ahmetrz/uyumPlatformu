@@ -48,3 +48,4 @@ lib/prisma-client/
 *.tmp.mjs
 q-*.mjs
 *gecici*
+yedek/

@@ -5,6 +5,7 @@ import { db } from '../db';
 import { yetkiZorunlu } from '../erisim';
 import { PARAMETRE_SINIRI, parcala } from '../sorguParcala';
 import type { Prisma } from '../prisma-client/client';
+import { surumFarki } from '../uyum/degisiklikEtkisi';
 import { tamam, hata, iz, bosluksuz, type Sonuc } from './ortak';
 import { z } from 'zod';
 
@@ -179,26 +180,25 @@ export async function surumAktiflestir(girdi: { surumId: string }): Promise<Sonu
 
        Şimdi diff yalnız bellekte kurulur; yazma aşağıda, durum değişimiyle
        AYNI transaction içinde ve toplu yapılır. */
-    const eskiIdx = new Map(eskiMaddeler.map((m) => [m.kod, m]));
+    /* UY-39 · Fark hesabı `lib/uyum/degisiklikEtkisi.ts` içindeki SAF
+       fonksiyondan gelir ve ÖNİZLEME de aynı fonksiyonu çağırır
+       (`surumEtkisiOnizle`). İki ayrı hesap, önizlemenin gösterdiği ile
+       aktifleştirmenin yaptığı şeyin ayrışmasını üretirdi; o gün
+       önizleme bir süse dönerdi. */
+    const farklar = surumFarki({ eski: eskiMaddeler, yeni: yeniMaddeler });
     const yeniIdx = new Map(yeniMaddeler.map((m) => [m.kod, m]));
-    const degisenYeniIdler: string[] = [];
-    const farkSatirlari: Prisma.SurumFarkiCreateManyInput[] = [];
-    let yeniSayisi = 0, degisenSayisi = 0, kaldirilanSayisi = 0;
-    for (const m of yeniMaddeler) {
-      const e = eskiIdx.get(m.kod);
-      if (!e) {
-        farkSatirlari.push({
-          eskiSurumId: eski?.id ?? null, yeniSurumId: yeni.id, maddeKodu: m.kod,
-          degisimTipi: 'yeni', ozet: m.baslik });
-        degisenYeniIdler.push(m.id); yeniSayisi++;
-      } else if (e.metin !== m.metin || e.baslik !== m.baslik) {
-        farkSatirlari.push({
-          eskiSurumId: eski?.id ?? null, yeniSurumId: yeni.id, maddeKodu: m.kod,
-          degisimTipi: 'degisti',
-          ozet: e.baslik !== m.baslik ? `${e.baslik} → ${m.baslik}` : 'Metin güncellendi' });
-        degisenYeniIdler.push(m.id); degisenSayisi++;
-      }
-    }
+    const degisenYeniIdler = farklar
+      .filter((f) => f.degisimTipi === 'yeni' || f.degisimTipi === 'degisti')
+      .map((f) => f.maddeId);
+    const farkSatirlari: Prisma.SurumFarkiCreateManyInput[] = farklar
+      .filter((f) => f.degisimTipi !== 'kaldirildi')
+      .map((f) => ({
+        eskiSurumId: eski?.id ?? null, yeniSurumId: yeni.id, maddeKodu: f.maddeKodu,
+        degisimTipi: f.degisimTipi, ozet: f.ozet,
+      }));
+    const yeniSayisi = farklar.filter((f) => f.degisimTipi === 'yeni').length;
+    const degisenSayisi = farklar.filter((f) => f.degisimTipi === 'degisti').length;
+    let kaldirilanSayisi = 0;
     const kaldirilanlar = eskiMaddeler.filter((e) => !yeniIdx.has(e.kod));
     /* Etki notu sayımı: kaldırılan madde başına bir `count` yerine tek
        `groupBy`. Sorgu sayısı kaldırılan madde sayısıyla değil parametre

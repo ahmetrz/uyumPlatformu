@@ -3,6 +3,7 @@ import { db } from '@/lib/db';
 import { izinliTesisIdleri, izinVar } from '@/lib/erisim';
 import type { AktifKullanici } from '@/lib/auth';
 import { kapsamda, modulKapisi } from '@/app/kapsam';
+import { tekrarZinciri } from '@/lib/uyum/tekrarBulgu';
 import type { Veri } from './BulguDetayIstemci';
 
 /* O7 · Bulgu kayıt ekranı — SUNUCU VERİSİ.
@@ -34,6 +35,7 @@ export async function bulguDetayVerisi(
     include: {
       sorumlu: true,
       kapanisDogrulayan: true,
+      kokNedenAnalizEden: true,
       aksiyonlar: {
         include: { sorumlu: true, dogrulayan: true },
         orderBy: [{ baslangic: 'asc' }],
@@ -70,6 +72,38 @@ export async function bulguDetayVerisi(
     db.kullanici.findMany({ where: { aktif: true }, orderBy: { adSoyad: 'asc' } }),
   ]);
 
+  /* UY-28 · Tekrar zinciri: AYNI kontrolün bütün bulguları okunur ve saf
+     `tekrarZinciri()` ile sıralanır. Zincir bulgunun kendi tekrar bağını
+     yukarı yürüyerek değil, aynı `maddeDurumuId` üzerinden kurulur:
+     motorun ya da insanın bağ kurmayı atladığı bir halka da görünsün. */
+  const kontroldekiler = await db.bulgu.findMany({
+    where: { maddeDurumuId: bulgu.maddeDurumuId, silindi: null },
+    select: {
+      id: true, tespitTarihi: true, kapanmaTarihi: true, durum: true,
+      onemDerecesi: true, baslik: true,
+    },
+  });
+  const zincirHesabi = tekrarZinciri(kontroldekiler.map((b) => ({
+    id: b.id, tespit: b.tespitTarihi.getTime(),
+    kapanma: b.kapanmaTarihi?.getTime() ?? null,
+    durum: b.durum, onemDerecesi: b.onemDerecesi,
+  })));
+  const baslikIdx = new Map(kontroldekiler.map((b) => [b.id, b.baslik]));
+  const zincir = {
+    uzunluk: zincirHesabi.uzunluk,
+    kronik: zincirHesabi.kronik,
+    ortalamaAralikGun: zincirHesabi.ortalamaAralikGun,
+    halkalar: zincirHesabi.halkalar.map((h) => ({
+      id: h.id,
+      baslik: baslikIdx.get(h.id) ?? '',
+      tespit: new Date(h.tespit).toISOString(),
+      kapanma: h.kapanma === null ? null : new Date(h.kapanma).toISOString(),
+      durum: h.durum,
+      onem: h.onemDerecesi,
+      buMu: h.id === bulgu.id,
+    })),
+  };
+
   /* C20 · Yetki bayrakları sunucuda hesaplanır; istemci düğmeyi buna göre
      gösterir ya da gizler. Bu bir GÖRÜNÜM kararıdır — asıl kapı sunucu
      eyleminin içindedir (`aksiyonDogrula` yeniden denetler). Görev
@@ -91,6 +125,16 @@ export async function bulguDetayVerisi(
     onem: bulgu.onemDerecesi,
     kaynak: bulgu.kaynak,
     kokNeden: bulgu.kokNeden,
+    /* UY-26 · Kategori ve analiz damgası; serbest metnin YANINDA durur ve
+       onun yerine geçmez (kategori sayılır, metin anlatır). */
+    kokNedenKategori: bulgu.kokNedenKategori,
+    kokNedenAnalizEden: bulgu.kokNedenAnalizEden?.adSoyad ?? null,
+    kokNedenAnalizZamani: bulgu.kokNedenAnalizZamani?.toISOString() ?? null,
+    /* UY-28 · Tekrar bağı ve zinciri. */
+    tekrarBulguId: bulgu.tekrarBulguId,
+    tekrarKaynagi: bulgu.tekrarKaynagi,
+    tekrarPenceresiGun: bulgu.tekrarPenceresiGun,
+    zincir,
     tespit: bulgu.tespitTarihi.toISOString(),
     hedef: bulgu.hedefTarih?.toISOString() ?? null,
     kapanma: bulgu.kapanmaTarihi?.toISOString() ?? null,

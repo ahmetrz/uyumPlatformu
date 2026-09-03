@@ -118,6 +118,7 @@ model Tesis {
   agBolgeleri               AgBolgesi[]
   ekipler                   Ekip[]
   kimlikHesaplari           KimlikHesabi[]
+  degerlendirmeAktarimlari  DegerlendirmeAktarimi[]
   degisiklikler             Degisiklik[]
   olaylar                   Olay[]
   projeAdaylari             ProjeAdayi[]
@@ -147,6 +148,8 @@ model Regulasyon {
   surumler FrameworkSurumu[]
   kurallar UygulanabilirlikKurali[]
   kararlar UygulanabilirlikKarari[]
+  kaynaklar RegulasyonKaynagi[]
+  degerlendirmeAktarimlari DegerlendirmeAktarimi[]
 }
 
 /// Kapsam alanı (BT, OT ...). Panelden tanımlanır; maddelerle çoktan-çoğa eşleştirilir.
@@ -242,6 +245,7 @@ model UyumSureci {
   yetkiler   Yetki[]
   anlikler   UyumAnlik[]
   denetimler Denetim[]
+  degerlendirmeAktarimlari DegerlendirmeAktarimi[]
 }
 
 /// Süreç ↔ tesis kapsamı. Tesis kapsamdan çıkarılabilir (kayıt silinir),
@@ -302,7 +306,21 @@ model Bulgu {
   maddeDurumuId       String
   denetimId           String?
   kokNeden            String?
+  /// UY-26 · Kök neden KATEGORİSİ — serbest metin `kokNeden` ile birlikte
+  /// yaşar ve onun yerine geçmez: kategori sayılabilir, metin anlatır.
+  /// Sözlük `lib/uyum/kokNeden.ts` → KOK_NEDEN_KATEGORILERI ile birebir.
+  kokNedenKategori    String?
+  /// UY-26 · Analizi KİM yaptı ve NE ZAMAN. Kök neden alanı doluyken bu
+  /// ikisi boşsa, analiz bir kayıt değil bir not demektir; ekran ayırır.
+  kokNedenAnalizEdenId String?
+  kokNedenAnalizZamani DateTime?
   tekrarBulguId       String? // repeat_of — tekrar eden bulgu
+  /// UY-28 · Tekrar bağı NASIL kuruldu: `motor` | `elle`. Motorun kurduğu
+  /// bağ ile insanın kurduğu bağ aynı güvende değildir ve ekran ayırır.
+  tekrarKaynagi       String?
+  /// UY-28 · Motor bağı kurarken hangi pencereyi kullandı (gün). Eşik
+  /// sonradan değişirse, eski bağın hangi eşikle kurulduğu kaybolmasın.
+  tekrarPenceresiGun  Int?
   retestGerekli       Boolean   @default(false)
   retestSonucu        String?
   kapanisDogrulayanId String?
@@ -324,6 +342,7 @@ model Bulgu {
   tekrarBulgu       Bulgu?      @relation("TekrarBulgu", fields: [tekrarBulguId], references: [id])
   tekrarlar         Bulgu[]     @relation("TekrarBulgu")
   kapanisDogrulayan Kullanici?  @relation("BulguKapanisDogrulayan", fields: [kapanisDogrulayanId], references: [id])
+  kokNedenAnalizEden Kullanici? @relation("BulguKokNedenAnalisti", fields: [kokNedenAnalizEdenId], references: [id])
 
   aksiyonlar        Aksiyon[]
   projeBaglantilari ProjeBaglantisi[]
@@ -562,6 +581,9 @@ model Kullanici {
   onayTalepleri           OnayTalebi[]             @relation("OnayTalepEden")
   verdigiOnaylar          OnayTalebi[]             @relation("OnayVeren")
   dogruladigiBulgular     Bulgu[]                  @relation("BulguKapanisDogrulayan")
+  kokNedenAnalizleri      Bulgu[]                  @relation("BulguKokNedenAnalisti")
+  kontrolEttigiKaynaklar  RegulasyonKaynagi[]      @relation("KaynakKontrolEden")
+  degerlendirmeAktarimlari DegerlendirmeAktarimi[] @relation("AktarimYukleyen")
   dogruladigiAksiyonlar   Aksiyon[]                @relation("AksiyonDogrulayan")
   sahipBelgeler           Dokuman[]                @relation("DokumanSahibi")
   onayladigiBelgeler      Dokuman[]                @relation("DokumanOnaylayan")
@@ -831,6 +853,153 @@ model SurumFarki {
 
   eskiSurum FrameworkSurumu? @relation("EskiSurum", fields: [eskiSurumId], references: [id])
   yeniSurum FrameworkSurumu  @relation("YeniSurum", fields: [yeniSurumId], references: [id])
+}
+
+
+// ------------------------------------------------------ UY-36 · eskalasyon
+
+/// Eskalasyon kuralı (UY-36).
+///
+/// ÖLÇÜLMÜŞ KUSUR: `Bildirim.tip` sözlüğünde 'eskalasyon' değeri VARDI ve
+/// hiçbir kod onu YAZMIYORDU. Bildirim ekranının "Eskalasyon & uyarı"
+/// merceği bu yüzden yalnız 'uyari' satırlarını gösteriyordu; kurumun
+/// eskalasyon matrisi ürün içinde YOKTU.
+///
+/// Kural bir KADEMEDİR: gecikme büyüdükçe daha yukarı haber verilir.
+/// Kademeler ayrı satırlardır çünkü her kademenin kendi gecikmesi, kendi
+/// hedefi ve kendi metni vardır.
+model EskalasyonKurali {
+  id           String   @id @default(cuid())
+  /// Neyin gecikmesi: `bulgu` | `aksiyon` | `gorev`.
+  kaynakTipi   String
+  /// Hangi önem derecesine uygulanır; boşsa HEPSİNE uygulanır.
+  onemDerecesi String?
+  /// Kademe numarası (1 en alt). Aynı kaynak+önem içinde tekildir.
+  kademe       Int
+  /// Hedef tarihten kaç gün SONRA bu kademe tetiklenir.
+  gecikmeGun   Int
+  /// Kime haber verilir: `sorumlu` | `rol` | `kullanici`.
+  hedefTuru    String
+  /// `rol` hedefinde rol adı, `kullanici` hedefinde kullanıcı kimliği.
+  hedefDeger   String?
+  aciklama     String?
+  aktif        Boolean  @default(true)
+  olusturuldu  DateTime @default(now())
+
+  kayitlar EskalasyonKaydi[]
+
+  @@unique([kaynakTipi, onemDerecesi, kademe])
+}
+
+/// Eskalasyon kaydı — bir kademenin BİR KEZ tetiklendiğinin kanıtı.
+///
+/// Tekil kısıt bilinçlidir: aynı kaynak için aynı kademe iki kez
+/// tetiklenmez. Motor her koşuda yeniden bildirim yazsaydı, gecikmiş tek
+/// bir bulgu her tikte bir bildirim üretir ve kullanıcı bildirim
+/// ekranını kapatırdı — eskalasyon o gün ölürdü.
+model EskalasyonKaydi {
+  id               String   @id @default(cuid())
+  kuralId          String
+  kaynakTipi       String
+  kaynakId         String
+  kademe           Int
+  /// Bildirim yazıldıysa kimliği; hedef bulunamadıysa `null` ve `sebep`
+  /// bunu YAZAR — sessiz düşürme yok.
+  bildirimId       String?
+  hedefKullaniciId String?
+  /// Hedef bulunamadıysa NEDEN bulunamadı. "Kimseye haber verilemedi"
+  /// bir başarı değildir ve ekranda görünür.
+  sebep            String?
+  zaman            DateTime @default(now())
+
+  kural EskalasyonKurali @relation(fields: [kuralId], references: [id], onDelete: Cascade)
+
+  @@unique([kaynakTipi, kaynakId, kademe])
+  @@index([zaman])
+}
+
+// ------------------------------------------------ UY-41 · resmî kaynak
+
+/// Resmî mevzuat kaynağı (UY-41).
+///
+/// Bu kayıt bir ADRES TUTABİLİR ama ürün HİÇBİR ADRESLE GELMEZ: `adres`
+/// alanı tohumda boştur ve kurum doldurana kadar boş kalır. Sağlayıcı
+/// `lib/uyum/mevzuatKaynagi.ts` kütüğünde BAĞLI DEĞİL yazar; ürün hiçbir
+/// resmî siteye kendiliğinden bağlanmaz.
+///
+/// Kayıt bağlantıdan ÖNCE de işe yarar: hangi regülasyonun hangi resmî
+/// kaynaktan izleneceği bir kurum kararıdır ve yazılı olması gerekir.
+model RegulasyonKaynagi {
+  id                String    @id @default(cuid())
+  regulasyonId      String
+  ad                String
+  /// Kurumun vereceği adres. ÜRÜNLE GELMEZ.
+  adres             String?
+  /// `elle` | `saglayici`. Bugün daima `elle`: bağlı sağlayıcı yok.
+  izlemeTuru        String    @default("elle")
+  /// Kaç günde bir bakılması bekleniyor (kurum kararı).
+  kontrolAraligiGun Int       @default(90)
+  /// EN SON ne zaman bakıldı. `null` = HİÇ BAKILMADI (sıfır değil).
+  sonKontrol        DateTime?
+  sonKontrolEdenId  String?
+  /// Son bakışta ne bulundu; boşsa "bakıldı ama not düşülmedi".
+  sonNot            String?
+  aktif             Boolean   @default(true)
+  olusturuldu       DateTime  @default(now())
+
+  regulasyon     Regulasyon @relation(fields: [regulasyonId], references: [id], onDelete: Cascade)
+  sonKontrolEden Kullanici? @relation("KaynakKontrolEden", fields: [sonKontrolEdenId], references: [id])
+
+  @@unique([regulasyonId, ad])
+}
+
+// ------------------------------- UY-43 · değerlendirme içe aktarımı
+
+/// Değerlendirme içe aktarımı (UY-43).
+///
+/// `IceAktarim` MADDE metnini aktarır; bu model DEĞERLENDİRME SONUCUNU
+/// (hangi santralde hangi madde ne durumda) aktarır. İkisi ayrı
+/// modellerdir çünkü ayrı şeylerdir: biri regülasyonun kendisi, öteki
+/// kurumun o regülasyona verdiği cevap.
+///
+/// KURU KOŞU ZORUNLUDUR: `durum` daima `kuru_kosu` ile başlar. Bir
+/// değerlendirme aktarımı yüzlerce kontrolün durumunu bir anda
+/// değiştirebilir; önizlemesiz uygulamak, denetim kararlarını körlemesine
+/// toptan yazmak olurdu.
+model DegerlendirmeAktarimi {
+  id           String    @id @default(cuid())
+  regulasyonId String
+  /// Hangi santrale aktarılıyor. Kapsam kapısı bu alandan sorulur.
+  tesisId      String
+  surecId      String?
+  kaynakAdi    String
+  /// `kuru_kosu` | `uygulandi` | `reddedildi`. `uygulandi` yalnız bir
+  /// kuru koşudan SONRA yazılabilir.
+  durum        String    @default("kuru_kosu")
+  okunan       Int       @default(0)
+  eslesen      Int       @default(0)
+  /// Kod eşleşmedi ya da doğrulama düştü — UYGULANMAZ ve sayılır.
+  elenen       Int       @default(0)
+  /// Uygulandığında gerçekten DEĞİŞEN satır sayısı. Eşleşen değişen
+  /// demek değildir: aynı durumu yeniden yazmak bir değişiklik değildir.
+  degisen      Int       @default(0)
+  /// Satır satır önizleme ve eleme sebepleri.
+  raporJson    String?
+  /// KÖKEN: bu uygulamanın hangi kuru koşudan geldiği. Uygulama kaydı
+  /// kendi kuru koşusuna bağlıdır ve bağsız uygulama YAZILAMAZ.
+  kuruKosuId   String?
+  yukleyenId   String?
+  uygulandi    DateTime?
+  olusturuldu  DateTime  @default(now())
+
+  regulasyon  Regulasyon             @relation(fields: [regulasyonId], references: [id], onDelete: Cascade)
+  tesis       Tesis                  @relation(fields: [tesisId], references: [id], onDelete: Cascade)
+  surec       UyumSureci?            @relation(fields: [surecId], references: [id])
+  kuruKosu    DegerlendirmeAktarimi? @relation("AktarimKokeni", fields: [kuruKosuId], references: [id])
+  uygulamalar DegerlendirmeAktarimi[] @relation("AktarimKokeni")
+  yukleyen    Kullanici?             @relation("AktarimYukleyen", fields: [yukleyenId], references: [id])
+
+  @@index([regulasyonId, tesisId, durum])
 }
 
 // ---------------------------------------------------- uygulanabilirlik

@@ -80,6 +80,15 @@ export const IS_TANIMLARI: IsTanimi[] = [
   { ad: 'envanter_gorunurlugu', etiket: 'Envanter görünürlüğü', elleCalisir: true,
     aciklama: 'Envanterde olup keşifte görülmeyen varlığı bulguya çevirir — '
       + 'hiç görülmeyeni kaybolandan AYIRIR, varlığı envanterden düşürmez' },
+  /* Uyum yönetişimi ikilisi (UY-28 · UY-36). İkisinin de açıklaması ne
+     YAPMADIKLARINI da söyler: tekrar motoru bulgu açmaz, eskalasyon
+     motoru kimseyi kapatmaz — ikisi de yalnız bağ kurar ve haber verir. */
+  { ad: 'tekrar_bulgu', etiket: 'Tekrarlayan bulgu', elleCalisir: true,
+    aciklama: 'Aynı kontrolde kapanıp yeniden açılan bulguları birbirine bağlar '
+      + '— yeni bulgu AÇMAZ, durum değiştirmez, elle kurulmuş bağı ezmez' },
+  { ad: 'eskalasyon', etiket: 'Eskalasyon', elleCalisir: true,
+    aciklama: 'Gecikmiş bulgu/aksiyon/görev için kademeli bildirim yazar; her '
+      + 'kademe BİR KEZ tetiklenir, haber verilecek kimse yoksa sebebi kaydeder' },
   { ad: 'bakim_temizlik', etiket: 'Bakım temizliği', elleCalisir: false,
     aciklama: 'Süresi dolmuş oturum ve iş kilidi satırlarını siler (saatlik, zamanlayıcıdan) '
       + '— bulgu üretmez, veri yorumlamaz' },

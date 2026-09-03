@@ -244,7 +244,7 @@ describe('Zamanlayıcı tiki', () => {
        Sayıyı büyütmek YETMEZ: yeni motorun `MOTOR_ADLARI_SOZLUK`ta da
        olması gerekir, yoksa zamanlayıcı onu "Bilinmeyen yapılandırma
        anahtarı" ile atlar ve motor hiç koşmaz. */
-    const motorSayisi = 14;
+    const motorSayisi = 16;
     const connectorSayisi = await db.connector.count({ where: { silindi: null } });
     expect(toplam).toBe(motorSayisi + connectorSayisi);
     for (const a of atlanan) expect(a.sebep.length).toBeGreaterThan(5);

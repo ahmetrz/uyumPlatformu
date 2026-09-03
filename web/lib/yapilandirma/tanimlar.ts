@@ -211,6 +211,8 @@ export const MOTOR_ADLARI_SOZLUK = [
   'firmware_uyumu', 'zafiyet_korelasyonu', 'ag_tutarliligi',
   /* Varlık yönetişimi ikilisi (OT-28 · OT-16) — aynı kural. */
   'konfig_drift', 'envanter_gorunurlugu',
+  /* Uyum yönetişimi ikilisi (UY-28 · UY-36) — aynı kural. */
+  'tekrar_bulgu', 'eskalasyon',
 ] as const;
 
 for (const ad of MOTOR_ADLARI_SOZLUK) {

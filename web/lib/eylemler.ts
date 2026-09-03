@@ -9,6 +9,7 @@ import { db } from './db';
 import { parcala } from './sorguParcala';
 import { yetkiZorunlu, izinVar, kapsamZorunlu, KAPSAM_SONRA } from './erisim';
 import { tumOturumlariKapat } from './auth';
+import { kapanisKapisi } from './uyum/kokNeden';
 import {
   DurumSemasi, OnemSemasi, BulguDurumSemasi, SurecDurumSemasi,
   RolSemasi, DenklikSemasi,
@@ -423,9 +424,31 @@ export async function bulguGuncelle(girdi: {
     if (v.durum === 'kapali' && eski.durum !== 'kapali') {
       if (!izinVar(k, 'uyum', 'onay', { tesisId: eski.maddeDurumu.tesisId, surecId: eski.maddeDurumu.surecId }))
         return { ok: false, hata: 'Bulgu kapatma doğrulama yetkisi gerektirir (denetim sorumlusu/yönetici)' };
-      const acikAksiyon = eski.aksiyonlar.filter((a) => a.durum === 'planlandi' || a.durum === 'devam');
-      if (acikAksiyon.length > 0)
-        return { ok: false, hata: `Kapatmadan önce ${acikAksiyon.length} açık aksiyonu sonuçlandırın` };
+      /* UY-26 · ÖLÇÜLMÜŞ KUSUR: kapanış kapısı KÖK NEDEN SORMUYORDU.
+         Bir bulgu, kök nedeni hiç yazılmadan "kapalı" yapılabiliyordu ve
+         kök nedeni bilinmeyen bir bulgunun kapatılması, aynı bulgunun geri
+         gelmesini garanti eder.
+
+         Karar `lib/uyum/kokNeden.ts` içindeki SAF kapıdan gelir; açık
+         aksiyon denetimi de oraya taşındı ki kapanışın tek bir kuralı
+         olsun. Ekran aynı kapıyı çağırıp düğmeyi baştan kapatır, ama
+         asıl kapı buradadır. */
+      const acikAksiyon = eski.aksiyonlar.filter(
+        (a) => a.durum === 'planlandi' || a.durum === 'devam').length;
+      const kapi = kapanisKapisi({
+        onemDerecesi: eski.onemDerecesi,
+        tekrarMi: eski.tekrarBulguId !== null,
+        analiz: {
+          kategori: eski.kokNedenKategori,
+          /* Kapıya, bu çağrıda GELEN kök neden verilir: kullanıcı kök
+             nedeni ve kapanışı aynı formda gönderebilmeli. */
+          metin: v.kokNeden === undefined ? eski.kokNeden : v.kokNeden,
+          analizEdenId: eski.kokNedenAnalizEdenId,
+          analizZamani: eski.kokNedenAnalizZamani?.getTime() ?? null,
+        },
+        acikAksiyon,
+      });
+      if (!kapi.ok) return { ok: false, hata: kapi.sebep };
       kapanisAlanlari = { kapanisDogrulayanId: k.id, kapanisDogrulama: new Date() };
     }
     await db.bulgu.update({ where: { id: v.id }, data: {

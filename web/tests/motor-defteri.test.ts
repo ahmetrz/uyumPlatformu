@@ -35,13 +35,19 @@ const { isKos } = await import('@/lib/motorlar/isKosucu');
 const { MOTORLAR, MOTOR_ADLARI } = await import('@/lib/motorlar/kayit');
 
 describe('Motor defteri — uçtan uca koşu', () => {
-  it('defterdeki on dört motorun her biri seed verisinde HATASIZ koşar', async () => {
+  it('defterdeki on altı motorun her biri seed verisinde HATASIZ koşar', async () => {
     // Defterin dolu olduğunu da ölç: boş bir defter bu testi yanlışlıkla geçerdi.
-    expect(MOTOR_ADLARI).toHaveLength(14);
+    expect(MOTOR_ADLARI).toHaveLength(16);
     expect(MOTOR_ADLARI).toContain('erisim_degerlendirme');
     /* Duruş üçlüsü ADIYLA aranır: sayıyı 12'ye çıkarıp üçünden birini
        düşürmek testi geçirirdi. */
     for (const ad of ['firmware_uyumu', 'zafiyet_korelasyonu', 'ag_tutarliligi']) {
+      expect(MOTOR_ADLARI, `${ad} defterden düşmüş`).toContain(ad);
+    }
+    /* Uyum yönetişimi ikilisi de ADIYLA aranır (UY-28 · UY-36): ikisi de
+       ölü şema alanlarını YAZAN motorlardır ve defterden sessizce
+       düşerlerse o alanlar yeniden ölür. */
+    for (const ad of ['tekrar_bulgu', 'eskalasyon']) {
       expect(MOTOR_ADLARI, `${ad} defterden düşmüş`).toContain(ad);
     }
 

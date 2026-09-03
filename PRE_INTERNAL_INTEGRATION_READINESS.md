@@ -42,11 +42,11 @@ söylemeye başlar ve yalanı kimse fark etmez.
 | atlanan test | 1 |
 | ekran (rota) | 48 |
 | API ucu | 9 |
-| otomasyon motoru | 14 |
+| otomasyon motoru | 16 |
 | connector adaptörü | 8 |
-| sunucu eylemi modülü | 35 |
-| Prisma modeli | 122 |
-| uygulanmış göç | 26 |
+| sunucu eylemi modülü | 39 |
+| Prisma modeli | 126 |
+| uygulanmış göç | 27 |
 
 <!-- SAYIMLAR:BITIS -->
 

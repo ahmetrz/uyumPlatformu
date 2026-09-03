@@ -12,6 +12,8 @@ import {
   agTutarliliginiIsle, firmwareUyumunuIsle, zafiyetKorelasyonunuIsle,
 } from './varlikDurusu';
 import { konfigDriftiniIsle, envanterGorunurluguIsle } from './varlikYonetisim';
+import { tekrarlariIsle } from './tekrarBulgu';
+import { eskalasyonlariIsle } from './eskalasyon';
 
 /* Motor kayıt defteri — TEK doğruluk kaynağı.
 
@@ -53,6 +55,13 @@ export const MOTORLAR = {
      envanterden DÜŞÜRMEZ — silme kararı asla bir motorun işi değildir. */
   konfig_drift: konfigDriftiniIsle,
   envanter_gorunurlugu: envanterGorunurluguIsle,
+  /* Uyum yönetişimi ikilisi (UY-28 · UY-36). Tekrar motoru mevcut
+     bulguları birbirine BAĞLAR; yeni bulgu açmaz, durum değiştirmez ve
+     insanın elle kurduğu bağı EZMEZ. Eskalasyon motoru ürünün
+     `Bildirim.tip = 'eskalasyon'` yazan tek yeridir: o değer sözlükte
+     vardı ve hiçbir kod onu yazmıyordu (ölçülmüş kusur). */
+  tekrar_bulgu: tekrarlariIsle,
+  eskalasyon: eskalasyonlariIsle,
 } as const satisfies Record<string, () => Promise<{ islenen: number; uretilen: number }>>;
 
 export type MotorAdi = keyof typeof MOTORLAR;

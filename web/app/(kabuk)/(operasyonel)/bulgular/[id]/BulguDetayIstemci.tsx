@@ -12,6 +12,16 @@ import {
 import { ZamanCizelgesi, type ZamanKarti } from '@/components/kabuk/zaman';
 import BaglamCubugu from '@/components/kabuk/BaglamCubugu';
 import { useEylem } from '@/components/useEylem';
+
+/** `useEylem.calistir` sözleşmesi — sunucu eylemlerinin ortak dönüşü. */
+type Sonuc = { ok: true } | { ok: false; hata: string };
+import { kokNedenKaydet, tekrarBagiKur } from '@/lib/eylemler2/kokNedenTekrar';
+import {
+  ANALIZ_ASGARI, ANALIZ_SINIFI, ANALIZ_SOZU, KOK_NEDEN_ETIKETI,
+  KOK_NEDEN_KATEGORILERI, analizDurumu, analizZorunluMu, kapanisKapisi,
+  type KokNedenKategorisi,
+} from '@/lib/uyum/kokNeden';
+import { KRONIK_ESIK, TEKRAR_KAYNAK_SOZU } from '@/lib/uyum/tekrarBulgu';
 import {
   bulguGuncelle, aksiyonEkle, aksiyonDurumDegistir, aksiyonDogrula, kanitEkle,
 } from '@/lib/eylemler';
@@ -33,6 +43,21 @@ export type AksiyonKaydi = AksiyonOzeti & { sorumluId: string | null };
 export type Veri = {
   id: string; maddeDurumuId: string; baslik: string; aciklama: string;
   durum: string; onem: string; kaynak: string | null; kokNeden: string | null;
+  /* UY-26 · kategori ve analiz damgası — serbest metnin YANINDA. */
+  kokNedenKategori: string | null;
+  kokNedenAnalizEden: string | null;
+  kokNedenAnalizZamani: string | null;
+  /* UY-28 · tekrar bağı ve zincir. */
+  tekrarBulguId: string | null;
+  tekrarKaynagi: string | null;
+  tekrarPenceresiGun: number | null;
+  zincir: {
+    uzunluk: number; kronik: boolean; ortalamaAralikGun: number | null;
+    halkalar: {
+      id: string; baslik: string; tespit: string; kapanma: string | null;
+      durum: string; onem: string; buMu: boolean;
+    }[];
+  };
   tespit: string; hedef: string | null; kapanma: string | null;
   retestGerekli: boolean; retestSonucu: string | null;
   kapanisDogrulama: string | null; kapanisDogrulayan: string | null;
@@ -271,6 +296,14 @@ export default function BulguDetayIstemci({ veri, esik = KANIT_ESIK_VARSAYILAN }
                       durum: dogrulama.im ?? undefined },
                     { etiket: 'Kapanış', deger: veri.kapanma ? kisaTarih(veri.kapanma) : '—' },
                   ]} />
+
+                  {/* UY-26 · Kök neden analizi ve KAPANIŞ KAPISI. Kapı
+                      ekranda da gösterilir ama asıl kapı sunucudadır
+                      (`bulguGuncelle` aynı saf fonksiyonu çağırır). */}
+                  <KokNedenBlogu veri={veri} bekliyor={bekliyor} calistir={calistir} />
+
+                  {/* UY-28 · Tekrar zinciri. */}
+                  <TekrarBlogu veri={veri} bekliyor={bekliyor} calistir={calistir} />
 
                   {/* C20 · CAPA: kök neden + retest — yazma yetkisi olana */}
                   {veri.yazabilir && (
@@ -782,4 +815,220 @@ function gunEtiketi(an: number, simdi: number): string {
   const gun = Math.round((an - simdi) / 86_400_000);
   if (gun === 0) return 'bugün';
   return gun > 0 ? `${gun}g` : `−${Math.abs(gun)}g`;
+}
+
+/* ═══ UY-26 · Kök neden analizi ══════════════════════════════════════
+
+   Serbest metin (`kokNeden`) ile KATEGORİ birlikte yaşar ve biri
+   ötekinin yerine geçmez: kategori sayılır ("aynı kök neden kaç
+   bulguda tekrarlıyor"), metin anlatır.
+
+   Analizi KİMİN, NE ZAMAN yaptığı ekranda görünür. Damgasız bir analiz
+   `imzasiz` sayılır ve bu bir kusurdur — "bunu kim yazdı" sorusuna
+   cevap veremeyen bir analiz denetimde bir görüştür.
+
+   KAPANIŞ KAPISI burada da gösterilir. Bu bir GÖRÜNÜM kararıdır: asıl
+   kapı `lib/eylemler.ts → bulguGuncelle` içindedir ve AYNI saf
+   fonksiyonu (`kapanisKapisi`) çağırır. Ekranın kapıyı önceden
+   göstermesi, kullanıcının reddedilecek bir düğmeye basmasını önler. */
+
+function KokNedenBlogu({ veri, bekliyor, calistir }: {
+  veri: Veri;
+  bekliyor: boolean;
+  calistir: (is: () => Promise<Sonuc>) => void;
+}) {
+  const [kategori, setKategori] = useState(veri.kokNedenKategori ?? '');
+  const [metin, setMetin] = useState(veri.kokNeden ?? '');
+
+  const tekrarMi = veri.tekrarBulguId !== null;
+  const analiz = {
+    kategori: veri.kokNedenKategori,
+    metin: veri.kokNeden,
+    analizEdenId: veri.kokNedenAnalizEden === null ? null : 'var',
+    analizZamani: veri.kokNedenAnalizZamani === null
+      ? null : Date.parse(veri.kokNedenAnalizZamani),
+  };
+  const durum = analizDurumu(analiz);
+  const zorunlu = analizZorunluMu({ onemDerecesi: veri.onem, tekrarMi });
+  const acikAksiyon = veri.aksiyonlar.filter(
+    (a) => a.durum === 'planlandi' || a.durum === 'devam').length;
+  const kapi = kapanisKapisi({
+    onemDerecesi: veri.onem, tekrarMi, analiz, acikAksiyon,
+  });
+
+  return (
+    <section className="ab-panel-blok" style={{ marginTop: 'var(--s24)',
+      display: 'grid', gap: 'var(--s12)' }}>
+      <p className="etiket" style={{ margin: 0 }}>Kök neden analizi</p>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '22px 1fr',
+        alignItems: 'start', gap: 'var(--s8)' }}>
+        <span style={{ paddingTop: 3 }}>
+          <Im durum={ANALIZ_SINIFI[durum]} ad={ANALIZ_SOZU[durum]} />
+        </span>
+        <div style={{ display: 'grid', gap: 'var(--s4)' }}>
+          <span style={{ fontSize: 'var(--t-field)' }}>{ANALIZ_SOZU[durum]}</span>
+          {veri.kokNedenKategori && (
+            <span style={{ fontSize: 'var(--t-label)', color: 'var(--i2)' }}>
+              {KOK_NEDEN_ETIKETI[veri.kokNedenKategori as KokNedenKategorisi]
+                ?? veri.kokNedenKategori}
+            </span>
+          )}
+          <span className="mono" style={{ fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
+            {veri.kokNedenAnalizEden && veri.kokNedenAnalizZamani
+              ? `${veri.kokNedenAnalizEden} · ${kisaTarih(veri.kokNedenAnalizZamani)}`
+              : 'analizi kimin, ne zaman yaptığı kayıtlı değil'}
+          </span>
+          <span style={{ fontSize: 'var(--t-label)',
+            color: zorunlu ? 'var(--md)' : 'var(--i3)' }}>
+            {zorunlu
+              ? (tekrarMi
+                ? 'Bu bulgu TEKRAR ediyor — önem derecesinden bağımsız olarak analiz zorunlu.'
+                : `"${veri.onem}" önem derecesi kök neden analizi ister.`)
+              : 'Bu önem derecesinde analiz zorunlu değil; yine de yazılabilir.'}
+          </span>
+        </div>
+      </div>
+
+      {/* Kapanış kapısının bugünkü cevabı — düğmeye basmadan görünür. */}
+      <p className="ab-dip" style={{ margin: 0,
+        color: kapi.ok ? 'var(--ok)' : 'var(--bd)' }}>
+        {kapi.ok
+          ? 'Kapanış kapısı açık: bu bulgu kapatılabilir.'
+          : `Kapanış kapısı KAPALI — ${kapi.ok === false ? kapi.sebep : ''}`}
+      </p>
+
+      {veri.yazabilir && (
+        <>
+          <Alan etiket="Kök neden kategorisi">
+            <select className="ab-gr" value={kategori} disabled={bekliyor}
+              onChange={(e) => setKategori(e.target.value)}>
+              <option value="">— seçilmedi —</option>
+              {KOK_NEDEN_KATEGORILERI.map((kk) => (
+                <option key={kk} value={kk}>{KOK_NEDEN_ETIKETI[kk]}</option>
+              ))}
+            </select>
+          </Alan>
+          <Alan etiket={`Analiz (en az ${ANALIZ_ASGARI} karakter)`}>
+            <textarea className="ab-gr" rows={4} value={metin} disabled={bekliyor}
+              onChange={(e) => setMetin(e.target.value)}
+              placeholder="Bu bulgunun kökeninde ne var? Kategori seçmek analiz değildir." />
+          </Alan>
+          <div style={{ display: 'flex', gap: 'var(--s8)', alignItems: 'center' }}>
+            <Dugme tur="ikincil"
+              disabled={bekliyor || !kategori || metin.trim().length < ANALIZ_ASGARI}
+              onClick={() => calistir(() => kokNedenKaydet({
+                bulguId: veri.id, kategori, metin,
+              }))}>
+              Analizi kaydet
+            </Dugme>
+            <span className="mono" style={{ fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
+              {metin.trim().length}/{ANALIZ_ASGARI}
+            </span>
+          </div>
+        </>
+      )}
+    </section>
+  );
+}
+
+/* ═══ UY-28 · Tekrar zinciri ═════════════════════════════════════════
+
+   Zincir aynı KONTROL (madde × santral) üzerindeki bütün bulgulardan
+   kurulur, bulgunun kendi bağını yukarı yürüyerek DEĞİL: motorun ya da
+   insanın bağ kurmayı atladığı bir halka da görünsün.
+
+   Bağı KİMİN kurduğu (motor / elle) ayrı yazılır: insanın gördüğü bir
+   örüntü ile motorun bulduğu bir eşleşme aynı güvende değildir. */
+
+function TekrarBlogu({ veri, bekliyor, calistir }: {
+  veri: Veri;
+  bekliyor: boolean;
+  calistir: (is: () => Promise<Sonuc>) => void;
+}) {
+  const z = veri.zincir;
+  if (z.uzunluk <= 1 && veri.tekrarBulguId === null) {
+    return (
+      <section className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+        <p className="etiket" style={{ margin: '0 0 var(--s8)' }}>Tekrar</p>
+        <p className="ab-dip" style={{ margin: 0 }}>
+          Bu kontrolde başka bulgu yok — tekrar değil.
+        </p>
+      </section>
+    );
+  }
+
+  return (
+    <section className="ab-panel-blok" style={{ marginTop: 'var(--s24)',
+      display: 'grid', gap: 'var(--s12)' }}>
+      <p className="etiket" style={{ margin: 0 }}>Tekrar zinciri</p>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '22px 1fr',
+        alignItems: 'start', gap: 'var(--s8)' }}>
+        <span style={{ paddingTop: 3 }}>
+          <Im durum={z.kronik ? 'bd' : z.uzunluk > 1 ? 'md' : 'ok'}
+            ad={z.kronik ? 'kronik' : 'tekrar'} />
+        </span>
+        <div style={{ display: 'grid', gap: 'var(--s4)' }}>
+          <span style={{ fontSize: 'var(--t-field)' }}>
+            {z.kronik
+              ? `KRONİK: bu kontrolde ${z.uzunluk} bulgu açıldı (eşik ${KRONIK_ESIK}). `
+                + 'Kapanışlar sorunu gidermiyor.'
+              : `Bu kontrolde ${z.uzunluk} bulgu var.`}
+          </span>
+          <span className="mono" style={{ fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
+            {z.ortalamaAralikGun === null
+              ? 'kapanışlar arası ortalama ölçülmedi'
+              : `kapanıştan yeniden açılışa ortalama ${z.ortalamaAralikGun} gün`}
+          </span>
+          {veri.tekrarBulguId !== null && (
+            <span style={{ fontSize: 'var(--t-label)', color: 'var(--i2)' }}>
+              Bağ: {TEKRAR_KAYNAK_SOZU[
+                veri.tekrarKaynagi === 'motor' ? 'motor' : 'elle']}
+              {veri.tekrarPenceresiGun !== null
+                && ` · pencere ${veri.tekrarPenceresiGun} gün`}
+            </span>
+          )}
+        </div>
+      </div>
+
+      <div style={{ display: 'grid', gap: 'var(--s8)' }}>
+        {z.halkalar.map((h, i) => (
+          <div key={h.id} style={{ display: 'grid',
+            gridTemplateColumns: '28px 1fr', gap: 'var(--s8)',
+            padding: 'var(--s8)',
+            background: h.buMu ? 'var(--panel2)' : 'transparent',
+            borderRadius: 4 }}>
+            <span className="mono" style={{ fontSize: 'var(--t-label)',
+              color: 'var(--i3)' }}>
+              #{i + 1}
+            </span>
+            <div style={{ display: 'grid', gap: 2 }}>
+              <span style={{ fontSize: 'var(--t-label)',
+                fontWeight: h.buMu ? 600 : 400 }}>
+                {h.buMu
+                  ? <>{h.baslik} <span style={{ color: 'var(--aksan)' }}>· bu kayıt</span></>
+                  : <Link href={`/bulgular/${h.id}`}>{h.baslik}</Link>}
+              </span>
+              <span className="mono" style={{ fontSize: 'var(--t-label)',
+                color: 'var(--i3)' }}>
+                {kisaTarih(h.tespit)}
+                {h.kapanma ? ` → ${kisaTarih(h.kapanma)}` : ' → açık'}
+                {' · '}{h.onem}
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {veri.yazabilir && veri.tekrarBulguId !== null && (
+        <Dugme tur="ikincil" disabled={bekliyor}
+          onClick={() => calistir(() => tekrarBagiKur({
+            bulguId: veri.id, oncekiBulguId: null,
+          }))}>
+          Tekrar bağını kaldır
+        </Dugme>
+      )}
+    </section>
+  );
 }

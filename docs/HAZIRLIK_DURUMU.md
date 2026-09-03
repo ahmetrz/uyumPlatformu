@@ -214,9 +214,31 @@ olduğu için kapatılmadı, **açık ve ölçülmüş** bırakıldı.
 uzun süren iş koşusu altında davranış ölçülmedi.
 `docs/PERFORMANS_TABANI.md` tek kullanıcılı sentetik ölçümdür.
 
-**7. Ürünün kendi verisinin yedekleme/geri yükleme prosedürü yazılmadı.**
-Ürün müşterinin yedeklemesini izliyor; kendi yedeği için yazılı bir
-prosedür yok.
+**7. ~~Ürünün kendi verisinin yedekleme/geri yükleme prosedürü
+yazılmadı.~~ YAZILDI ve KOŞULUR.** `docs/URUN_YEDEKLEME.md` +
+`web/arac/yedek.mjs` (`npm run yedek`), testi
+`web/tests/yedek-araci.test.ts`.
+
+Prosedür düz metin bırakılmadı çünkü koşulmayan prosedür bayatlar ve
+bayatlığı — yokluğunun aksine — fark edilmez. Ürünün kendi kuralı
+(`restoreTestiKaydet`: geri yüklenebildiği kanıtlanmamış yedek, yedek
+değildir) kendisine de uygulandı: araç yedeği alır ve AYNI komutta
+doğrular, `--karsilastir` ile canlıyla mantıksal farkı sayıyla söyler.
+
+`cp` kullanılmıyor: canlı SQLite dosyasını kopyalamak, kopyanın ortasında
+bir yazma commit'lenirse tutarsız dosya üretir ve bu ancak geri
+yüklerken — yani ihtiyaç anında — anlaşılır. `VACUUM INTO` tutarlı anlık
+görüntü yazar; yan etkisi olarak yedek canlıdan bayt bayt farklı olur, bu
+yüzden araç ayrıca MANTIKSAL (tablo satır sayılarından türeyen) bir özet
+raporlar.
+
+**Kapsanmayanlar belgede açıkça yazılıdır:** `.env` bilerek dışarıdadır
+(sır, veriyle aynı yerde durmamalı); kanıt DOSYALARI bugün yoktur —
+`Kanit.dosyaYolu` kolonu var ama hiçbir kod ona yazmıyor, dosya yükleme
+geldiği gün araç eksik kalır. Saklama süresi, saklama yeri ve tatbikat
+takvimi YAZILMADI: bunlar kurumun kararıdır ve buraya bir sayı yazmak,
+kimsenin taahhüt etmediği bir politikayı belgelenmiş gibi göstermek
+olurdu.
 
 ### P3 — bilinen ve bilinçli eksikler
 

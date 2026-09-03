@@ -1,7 +1,7 @@
 {
-  "imza": "a9ade246952fe783b68d2005fd5ab82d",
-  "dosya": 89,
-  "vaka": 1553,
+  "imza": "2b03a153ce0bd089c20470bfb7f5a57d",
+  "dosya": 90,
+  "vaka": 1560,
   "atlanan": 1,
   "dosyalar": {
     "tests/api.test.ts": {
@@ -349,6 +349,10 @@
       "atlanan": 1
     },
     "tests/yaris-onay-aktarim.test.ts": {
+      "vaka": 7,
+      "atlanan": 0
+    },
+    "tests/yedek-araci.test.ts": {
       "vaka": 7,
       "atlanan": 0
     },

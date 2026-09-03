@@ -1,7 +1,7 @@
 {
-  "imza": "4559b6d3d943b145b9730e5acabc4290",
-  "dosya": 101,
-  "vaka": 1777,
+  "imza": "577aff63fd1a5d3cafd38de1212bb624",
+  "dosya": 103,
+  "vaka": 1821,
   "atlanan": 1,
   "dosyalar": {
     "tests/alan-ag.test.ts": {
@@ -196,6 +196,10 @@
       "vaka": 31,
       "atlanan": 0
     },
+    "tests/kimlik-envanteri.test.ts": {
+      "vaka": 12,
+      "atlanan": 0
+    },
     "tests/kimlik-eylem.test.ts": {
       "vaka": 14,
       "atlanan": 0
@@ -362,6 +366,10 @@
     },
     "tests/varlik-durus.test.ts": {
       "vaka": 26,
+      "atlanan": 0
+    },
+    "tests/varlik-durusu-eylem.test.ts": {
+      "vaka": 32,
       "atlanan": 0
     },
     "tests/varlik-sbom-kapsam-ag.test.ts": {

@@ -28,6 +28,8 @@ export type Tur = Kodlu & { sinif: string };
 export type Unite = Kodlu & { tesisId: string };
 export type Bolge = Kodlu & { tip: string; seviye: number | null; tesisId: string | null };
 export type Sistem = Kodlu & { tesisId: string | null };
+/** OT-11 · adresleme segmenti — bölgeden AYRIDIR (bir bölge N segment). */
+export type Segment = Kodlu & { cidr: string; vlanId: number | null };
 
 export type Iliski = {
   id: string;
@@ -35,6 +37,70 @@ export type Iliski = {
   /** ilişkinin öteki ucu — yön `giden` alanında taşınır */
   diger: { id: string; etiket: string; ad: string };
   giden: boolean;
+};
+
+/* ── Güvenlik duruşu (OT-03 · OT-11 · OT-21 · OT-22 · OT-25 · OT-26 ·
+   OT-27) ─────────────────────────────────────────────────────────────
+
+   Duruş, `Varlik` satırının DIŞINDA yaşayan yedi ayrı kaydın çekmecede
+   birleşmiş hâlidir. Hepsi aynı doktrini taşır: ölçülmemiş olan sıfır
+   değildir, uygulanamaz olan kusur değildir ve motorun kararı insanın
+   kararını ezmez. */
+
+export type DurusFirmware = {
+  durum: string;
+  kuruluSurum: string | null;
+  /** null = motor gerekçe yazmadı (eski kayıt); ekran boş bırakır. */
+  gerekce: string | null;
+  /** Onaylı istisna — `durum`u DEĞİŞTİRMEZ, yanına yazılır. */
+  istisnaGerekcesi: string | null;
+  sonDogrulama: string | null;
+};
+
+export type DurusYama = {
+  durum: string;
+  mevcutSeviye: string | null;
+  temelSeviye: string | null;
+  eksikYama: string | null;
+  siddet: string;
+  yenidenBaslatmaGerekli: boolean | null;
+  yamalanamaz: boolean;
+  istisnaGerekcesi: string | null;
+  kaynakSistem: string;
+  sonDogrulama: string | null;
+};
+
+export type DurusKapsam = {
+  tip: string; durum: string; sonDogrulama: string | null; gerekce: string | null;
+};
+
+export type DurusKorelasyon = {
+  id: string;
+  ref: string | null; baslik: string; cvss: number | null;
+  /** Motorun hesabı. */
+  sonuc: string;
+  /** 0–1 arası güven; null = ölçülmedi (sıfır DEĞİL). */
+  guven: number | null;
+  gerekce: string;
+  /** İnsanın kararı — doluysa ekranda motorun hesabını BASTIRIR. */
+  elleSonuc: string | null; elleGerekce: string | null;
+};
+
+export type Durus = {
+  firmware: DurusFirmware | null;
+  /** Bir varlığın birden çok kaynak sistemden yama kaydı olabilir. */
+  yamalar: DurusYama[];
+  kapsamlar: DurusKapsam[];
+  korelasyonlar: DurusKorelasyon[];
+  /** OT-03 · alan adı → uygulanamazlık gerekçesi. */
+  uygulanamaz: Record<string, string>;
+  sbom: { bicim: string; bilesenSayisi: number; yuklendi: string } | null;
+  segment: { id: string; kod: string; ad: string; cidr: string; vlanId: number | null } | null;
+};
+
+export const BOS_DURUS: Durus = {
+  firmware: null, yamalar: [], kapsamlar: [], korelasyonlar: [],
+  uygulanamaz: {}, sbom: null, segment: null,
 };
 
 export type V = {
@@ -47,6 +113,11 @@ export type V = {
   model: string | null; ipAdresi: string | null; macAdresi: string | null;
   isletimSistemi: string | null; firmware: string | null; surum: string | null;
   rafOda: string | null; kimlikDogrulama: string | null;
+  /* OT-03 · kimlik envanterinin ayrı ölçülen dört alanı. */
+  ipv6Adresi: string | null; isletimSistemiSurumu: string | null;
+  firmwareYapisi: string | null; donanimRevizyonu: string | null;
+  /** Kurulu yazılım — ad + sürüm (OT-03 "software/version"). */
+  yazilimlar: { id: string; ad: string; surum: string | null }[];
   kritiklik: string; yamaDurumu: string; edrDurumu: string; yedekDurumu: string;
   izlemeDurumu: string; logKaynagi: string; internetMaruziyeti: string;
   uzaktanErisim: boolean | null; yasamDongusu: string;
@@ -75,6 +146,8 @@ export type V = {
   yazilabilir: boolean;
   /** emekli/imha geçişi denetimlidir: envanter/onay ister */
   onaylanabilir: boolean;
+  /** OT-03/11/21/22/25/26/27 · varlığın dışındaki duruş kayıtları */
+  durus: Durus;
 };
 
 /* ── Sözlükler ──────────────────────────────────────────────────────── */
@@ -169,6 +242,98 @@ export function bilinmeyenAlanlar(v: V): string[] {
   if (v.internetMaruziyeti === 'bilinmiyor') b.push('internet maruziyeti');
   if (v.uzaktanErisim === null) b.push('uzaktan erişim');
   return b;
+}
+
+/* ── OT-03 · Kimlik alanı envanteri ───────────────────────────────────
+
+   Envanterin "eksik alan" sayacı bugüne kadar tek bir soru soruyordu:
+   dolu mu, boş mu. Bu iki gerçeği bir araya sıkıştırıyordu:
+
+     ÖLÇÜLMEDİ      — alan var, değeri toplanmadı. Bu bir borçtur.
+     UYGULANAMAZ    — alanın bu cihazda karşılığı yoktur. Bir seri hat
+                      dönüştürücüsünün hostname'i olmaz; bir PLC'de
+                      işletim sistemi sürümü yoktur.
+
+   İkisini aynı sayaçta toplamak, kapatılması imkânsız bir borç üretir ve
+   sayaç hiçbir zaman sıfırlanamayacağı için kimse ona bakmaz. Bu yüzden
+   `uygulanamaz` PAYDADAN DÜŞER (aynı doktrin lib/varlik/kapsam.ts'te
+   kapsama oranı için de geçerlidir) ve gerekçesiyle saklanır. */
+
+export const KIMLIK_ALANLARI = [
+  { anahtar: 'uretici', ad: 'Üretici' },
+  { anahtar: 'model', ad: 'Model' },
+  { anahtar: 'donanimRevizyonu', ad: 'Donanım revizyonu' },
+  { anahtar: 'seriNo', ad: 'Seri no' },
+  { anahtar: 'etiket', ad: 'Varlık etiketi' },
+  { anahtar: 'hostname', ad: 'Hostname' },
+  { anahtar: 'ipAdresi', ad: 'IPv4' },
+  { anahtar: 'ipv6Adresi', ad: 'IPv6' },
+  { anahtar: 'macAdresi', ad: 'MAC' },
+  { anahtar: 'isletimSistemi', ad: 'İşletim sistemi' },
+  { anahtar: 'isletimSistemiSurumu', ad: 'İS sürümü / derlemesi' },
+  { anahtar: 'firmware', ad: 'Firmware' },
+  { anahtar: 'firmwareYapisi', ad: 'Firmware yapısı' },
+  { anahtar: 'yazilim', ad: 'Kurulu yazılım / sürüm' },
+] as const;
+
+export type KimlikAlanAnahtari = (typeof KIMLIK_ALANLARI)[number]['anahtar'];
+
+export type KimlikAlanDurumu = {
+  anahtar: string; ad: string;
+  /** null = ölçülmedi. Boş metin de ölçülmemiş sayılır. */
+  deger: string | null;
+  /** Uygulanamazlık gerekçesi; null = alan bu cihaz için geçerli. */
+  uygulanamaz: string | null;
+};
+
+/** Alanın ham değeri. `yazilim` tek sütun değildir; listeden türetilir. */
+function kimlikDegeri(v: V, anahtar: string): string | null {
+  if (anahtar === 'yazilim') {
+    if (v.yazilimlar.length === 0) return null;
+    return v.yazilimlar
+      .map((y) => (y.surum ? `${y.ad} ${y.surum}` : y.ad))
+      .join(' · ');
+  }
+  const ham = (v as unknown as Record<string, unknown>)[anahtar];
+  if (typeof ham !== 'string') return null;
+  const kirpik = ham.trim();
+  return kirpik === '' ? null : kirpik;
+}
+
+/** On dört kimlik alanının tamamı — dolu olmayanlar da listede kalır. */
+export function kimlikEnvanteri(v: V): KimlikAlanDurumu[] {
+  return KIMLIK_ALANLARI.map((a) => ({
+    anahtar: a.anahtar,
+    ad: a.ad,
+    deger: kimlikDegeri(v, a.anahtar),
+    uygulanamaz: v.durus.uygulanamaz[a.anahtar] ?? null,
+  }));
+}
+
+export type KimlikTamligi = {
+  dolu: number;
+  /** Ölçüm borcu — uygulanamaz olanlar BURAYA GİRMEZ. */
+  olculmedi: number;
+  uygulanamaz: number;
+  /**
+   * Doluluk oranı; payda `uygulanamaz` alanları DIŞLAR. Payda sıfırsa
+   * (her alan uygulanamaz işaretlenmişse) oran `null`'dır — `%0` yazmak
+   * yalan, `%100` yazmak daha büyük yalan olurdu.
+   */
+  oran: number | null;
+};
+
+export function kimlikTamligi(v: V): KimlikTamligi {
+  const alanlar = kimlikEnvanteri(v);
+  const uygulanamaz = alanlar.filter((a) => a.uygulanamaz !== null).length;
+  const gecerli = alanlar.filter((a) => a.uygulanamaz === null);
+  const dolu = gecerli.filter((a) => a.deger !== null).length;
+  return {
+    dolu,
+    olculmedi: gecerli.length - dolu,
+    uygulanamaz,
+    oran: gecerli.length === 0 ? null : Math.round((dolu / gecerli.length) * 100),
+  };
 }
 
 /**

@@ -38,6 +38,9 @@ const VarlikSemasi = z.object({
   hostname: metin, seriNo: metin, uretici: metin, model: metin,
   ipAdresi: metin, macAdresi: metin, isletimSistemi: metin,
   firmware: metin, surum: metin, rafOda: metin, kimlikDogrulama: metin,
+  /* OT-03 · kimlik envanterinin ayrı ölçülen dört alanı. */
+  ipv6Adresi: metin, isletimSistemiSurumu: metin,
+  firmwareYapisi: metin, donanimRevizyonu: metin,
   kritiklik: z.enum(KRITIKLIKLER, 'Geçersiz kritiklik').default('bilinmiyor'),
   yamaDurumu: z.enum(YAMA_DURUMLARI, 'Geçersiz yama durumu').default('bilinmiyor'),
   edrDurumu: z.enum(VAR_YOK, 'Geçersiz EDR durumu').default('bilinmiyor'),
@@ -62,7 +65,7 @@ const VarlikSemasi = z.object({
    tarihler) doğrulamayı DÜŞÜRMEZ — her düzeltme doğrulama kuyruğunu
    şişirseydi kimse doğrulama yapmazdı. */
 const DOGRULAMAYI_DUSUREN_ALANLAR = [
-  'seriNo', 'macAdresi', 'ipAdresi', 'hostname',
+  'seriNo', 'macAdresi', 'ipAdresi', 'ipv6Adresi', 'hostname',
   'kritiklik', 'yamaDurumu', 'yedekDurumu', 'izlemeDurumu',
 ] as const;
 
@@ -101,6 +104,8 @@ export async function varlikKaydet(girdi: {
   model?: string | null; ipAdresi?: string | null; macAdresi?: string | null;
   isletimSistemi?: string | null; firmware?: string | null; surum?: string | null;
   rafOda?: string | null; kimlikDogrulama?: string | null;
+  ipv6Adresi?: string | null; isletimSistemiSurumu?: string | null;
+  firmwareYapisi?: string | null; donanimRevizyonu?: string | null;
   kritiklik?: string; yamaDurumu?: string; edrDurumu?: string; yedekDurumu?: string;
   izlemeDurumu?: string; logKaynagi?: string; internetMaruziyeti?: string;
   uzaktanErisim?: boolean | null;
@@ -132,6 +137,10 @@ export async function varlikKaydet(girdi: {
       isletimSistemi: v.isletimSistemi ?? null, firmware: v.firmware ?? null,
       surum: v.surum ?? null, rafOda: v.rafOda ?? null,
       kimlikDogrulama: v.kimlikDogrulama ?? null,
+      ipv6Adresi: v.ipv6Adresi ?? null,
+      isletimSistemiSurumu: v.isletimSistemiSurumu ?? null,
+      firmwareYapisi: v.firmwareYapisi ?? null,
+      donanimRevizyonu: v.donanimRevizyonu ?? null,
       kritiklik: v.kritiklik, yamaDurumu: v.yamaDurumu, edrDurumu: v.edrDurumu,
       yedekDurumu: v.yedekDurumu, izlemeDurumu: v.izlemeDurumu,
       logKaynagi: v.logKaynagi, internetMaruziyeti: v.internetMaruziyeti,

@@ -9,7 +9,7 @@ import {
   bilinmeyenAlanlar, bolumle, grafigiKur, karariBloklayanBilinmeyen, kisaEtiket,
   korumaAcigi, kullanimda, kuyrukMetni, mercekten, metrikleriHesapla, olgu,
   omurGunu, sirala, suz, turKapsamindan, varlikDurumu, varsayilanTesis,
-  type Bolge, type Kodlu, type V,
+  BOS_DURUS, type Bolge, type Kodlu, type V,
 } from '@/app/(kabuk)/(operasyonel)/envanter/mantik';
 
 const SIMDI = Date.parse('2026-06-01T00:00:00.000Z');
@@ -44,6 +44,8 @@ function varlik(ek: Partial<V> = {}): V {
     hostname: null, seriNo: null, uretici: null, model: null, ipAdresi: null,
     macAdresi: null, isletimSistemi: null, firmware: null, surum: null,
     rafOda: null, kimlikDogrulama: null,
+    ipv6Adresi: null, isletimSistemiSurumu: null,
+    firmwareYapisi: null, donanimRevizyonu: null, yazilimlar: [],
     kritiklik: 'orta', yamaDurumu: 'guncel', edrDurumu: 'var', yedekDurumu: 'var',
     izlemeDurumu: 'var', logKaynagi: 'var', internetMaruziyeti: 'yok',
     uzaktanErisim: false, yasamDongusu: 'aktif',
@@ -52,6 +54,7 @@ function varlik(ek: Partial<V> = {}): V {
     iliskiler: [], riskler: [], kanitlar: [], acikZafiyet: 0,
     zafiyetler: [], projeler: [],
     sonYedek: null, sonKesif: null, yazilabilir: true, onaylanabilir: true,
+    durus: BOS_DURUS,
     ...ek,
   };
 }

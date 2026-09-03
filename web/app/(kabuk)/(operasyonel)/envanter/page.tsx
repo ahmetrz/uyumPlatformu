@@ -5,7 +5,7 @@ import { db } from '@/lib/db';
 import { DEMO } from '@/lib/demo';
 import { ilkiniEsle } from '@/lib/sorguParcala';
 import EnvanterIstemci from './EnvanterIstemci';
-import type { Bolge, Iliski, Kodlu, Tur, Unite, V } from './mantik';
+import type { Bolge, Durus, Iliski, Kodlu, Tur, Unite, V } from './mantik';
 
 export const metadata: Metadata = { title: 'Varlık zekâsı' };
 
@@ -61,6 +61,8 @@ export default async function Sayfa({ searchParams }: {
   const [
     varliklar, tumTurler, tumTesisler, uniteler, sistemler, bolgeler,
     tumKullanicilar, tedarikciler, sozlesmeler,
+    firmwareSatirlari, yamaSatirlari, kapsamSatirlari, korelasyonSatirlari,
+    uygulanamazSatirlari, sbomSatirlari, segmentler, yazilimSatirlari,
   ] = await Promise.all([
       db.varlik.findMany({
         where: varlikKapsami,
@@ -70,6 +72,10 @@ export default async function Sayfa({ searchParams }: {
           hostname: true, seriNo: true, uretici: true, model: true,
           ipAdresi: true, macAdresi: true, isletimSistemi: true,
           firmware: true, surum: true, rafOda: true, kimlikDogrulama: true,
+          /* OT-03 · kimlik envanterinin ayrı ölçülen dört alanı. */
+          ipv6Adresi: true, isletimSistemiSurumu: true,
+          firmwareYapisi: true, donanimRevizyonu: true,
+          segmentId: true,
           kritiklik: true, yamaDurumu: true, edrDurumu: true, yedekDurumu: true,
           izlemeDurumu: true, logKaynagi: true, internetMaruziyeti: true,
           uzaktanErisim: true, yasamDongusu: true,
@@ -147,6 +153,59 @@ export default async function Sayfa({ searchParams }: {
       }),
       db.tedarikci.findMany({ select: { id: true, ad: true } }),
       db.sozlesme.findMany({ select: { id: true, kod: true, ad: true } }),
+      /* ── Güvenlik duruşu (OT-03 · OT-11 · OT-21 · OT-22 · OT-25 · OT-26 ·
+         OT-27) ────────────────────────────────────────────────────────
+         İlişki olarak DEĞİL, ayrı birer findMany ile okunur — yukarıdaki
+         boyut tabloları için yazılmış gerekçenin aynısı: Prisma her
+         ilişkiyi parçalı `id IN (…)` ile çeker; yedi ilişki daha onlarca
+         sorgu açardı. Satırlar bellekte varlık kimliğine eşlenir.
+
+         Kapsam süzgeci burada YOK, çünkü satırlar aşağıda yalnız görünür
+         varlıkların kimliğine eşleniyor; kapsam dışı varlığın duruş satırı
+         hiçbir haritaya girmiyor ve ekrana çıkmıyor. */
+      db.firmwareUyumu.findMany({
+        select: {
+          varlikId: true, durum: true, kuruluSurum: true, gerekce: true,
+          istisnaGerekcesi: true, sonDogrulama: true,
+        },
+      }),
+      db.yamaKaydi.findMany({
+        select: {
+          varlikId: true, durum: true, mevcutSeviye: true, temelSeviye: true,
+          eksikYama: true, siddet: true, yenidenBaslatmaGerekli: true,
+          yamalanamaz: true, istisnaGerekcesi: true, kaynakSistem: true, sonDogrulama: true,
+        },
+      }),
+      db.guvenlikKapsami.findMany({
+        select: { varlikId: true, tip: true, durum: true, sonDogrulama: true, gerekce: true },
+      }),
+      db.zafiyetKorelasyonu.findMany({
+        select: {
+          id: true, varlikId: true, sonuc: true, guven: true, gerekce: true,
+          elleSonuc: true, elleGerekce: true,
+          zafiyet: { select: { kaynakRef: true, baslik: true, cvss: true } },
+        },
+      }),
+      db.alanUygulanabilirligi.findMany({
+        where: { varlikTipi: 'Varlik' },
+        select: { varlikId: true, alan: true, gerekce: true },
+      }),
+      /* SBOM bir yazılım ürününe de bağlanabilir (`varlikId` null);
+         çekmece yalnız varlığa bağlı olanları gösterir. */
+      db.sbomBelgesi.findMany({
+        where: { varlikId: { not: null } },
+        select: { varlikId: true, bicim: true, bilesenSayisi: true, yuklendi: true },
+      }),
+      db.agSegmenti.findMany({
+        select: { id: true, kod: true, ad: true, cidr: true, vlanId: true, bolgeId: true },
+        orderBy: { kod: 'asc' },
+      }),
+      db.varlikYazilimi.findMany({
+        select: {
+          varlikId: true,
+          yazilim: { select: { id: true, ad: true, surum: true } },
+        },
+      }),
     ]);
 
   /* Boyut haritaları: satır eşlemesi sözlük araması olur, sorgu değil. */
@@ -158,6 +217,34 @@ export default async function Sayfa({ searchParams }: {
   const kisiHaritasi = new Map(tumKullanicilar.map((u) => [u.id, u]));
   const tedarikciHaritasi = new Map(tedarikciler.map((t) => [t.id, t]));
   const sozlesmeHaritasi = new Map(sozlesmeler.map((x) => [x.id, x]));
+
+  /* ── Duruş haritaları ────────────────────────────────────────────────
+     Yedi tablo tek geçişte varlık kimliğine indekslenir. `çokluEsle`
+     yerine döngü kullanılıyor çünkü satır sayısı varlık sayısının
+     katıdır ve ara dizi üretmek boşuna kopya çıkarırdı. */
+  function grupla<T extends { varlikId: string }>(satirlar: T[]): Map<string, T[]> {
+    const harita = new Map<string, T[]>();
+    for (const s of satirlar) {
+      const mevcut = harita.get(s.varlikId);
+      if (mevcut) mevcut.push(s); else harita.set(s.varlikId, [s]);
+    }
+    return harita;
+  }
+  const firmwareHaritasi = new Map(firmwareSatirlari.map((f) => [f.varlikId, f]));
+  const yamaHaritasi = grupla(yamaSatirlari);
+  const kapsamHaritasi = grupla(kapsamSatirlari);
+  const korelasyonHaritasi = grupla(korelasyonSatirlari);
+  const uygulanamazHaritasi = grupla(uygulanamazSatirlari);
+  const yazilimHaritasi = grupla(yazilimSatirlari);
+  const segmentHaritasi = new Map(segmentler.map((s) => [s.id, s]));
+  /* SBOM birden çok olabilir; ekranda EN YENİSİ gösterilir. Eskisini de
+     göstermek "hangisi geçerli" sorusunu belirsizleştirirdi. */
+  const sbomHaritasi = new Map<string, (typeof sbomSatirlari)[number]>();
+  for (const s of sbomSatirlari) {
+    if (s.varlikId === null) continue;              // sorgu süzer; tip de dayatır
+    const onceki = sbomHaritasi.get(s.varlikId);
+    if (!onceki || s.yuklendi > onceki.yuklendi) sbomHaritasi.set(s.varlikId, s);
+  }
 
   const turler = tumTurler.filter((t) => t.aktif)
     .map((t) => ({ id: t.id, kod: t.kod, ad: t.ad, sinif: t.sinif }));
@@ -247,6 +334,58 @@ export default async function Sayfa({ searchParams }: {
     if (b.varlikId) projeVarliga.set(b.varlikId, [...(projeVarliga.get(b.varlikId) ?? []), b]);
   }
 
+  /* Duruş kaydı SATIR BAŞINA kurulur; hiç kaydı olmayan varlık `null` ve
+     boş dizilerle gelir — "kayıt yok" ile "sorun yok" ekranda ayrı okunur
+     ve bu ayrımı yapan tek yer istemcideki Duruş sekmesidir. */
+  function durusKur(varlikId: string, segmentId: string | null): Durus {
+    const f = firmwareHaritasi.get(varlikId) ?? null;
+    const sbom = sbomHaritasi.get(varlikId) ?? null;
+    const segment = segmentId === null ? null : segmentHaritasi.get(segmentId) ?? null;
+    return {
+      firmware: f
+        ? {
+          durum: f.durum, kuruluSurum: f.kuruluSurum, gerekce: f.gerekce,
+          istisnaGerekcesi: f.istisnaGerekcesi,
+          sonDogrulama: f.sonDogrulama?.toISOString() ?? null,
+        }
+        : null,
+      yamalar: (yamaHaritasi.get(varlikId) ?? []).map((y) => ({
+        durum: y.durum, mevcutSeviye: y.mevcutSeviye, temelSeviye: y.temelSeviye,
+        eksikYama: y.eksikYama, siddet: y.siddet,
+        yenidenBaslatmaGerekli: y.yenidenBaslatmaGerekli,
+        yamalanamaz: y.yamalanamaz, istisnaGerekcesi: y.istisnaGerekcesi,
+        kaynakSistem: y.kaynakSistem,
+        sonDogrulama: y.sonDogrulama?.toISOString() ?? null,
+      })),
+      kapsamlar: (kapsamHaritasi.get(varlikId) ?? []).map((c) => ({
+        tip: c.tip, durum: c.durum, gerekce: c.gerekce,
+        sonDogrulama: c.sonDogrulama?.toISOString() ?? null,
+      })),
+      korelasyonlar: (korelasyonHaritasi.get(varlikId) ?? [])
+        .map((c) => ({
+          id: c.id, ref: c.zafiyet.kaynakRef, baslik: c.zafiyet.baslik,
+          cvss: c.zafiyet.cvss, sonuc: c.sonuc, guven: c.guven, gerekce: c.gerekce,
+          elleSonuc: c.elleSonuc, elleGerekce: c.elleGerekce,
+        }))
+        .sort((a, b) => (b.cvss ?? -1) - (a.cvss ?? -1)),
+      uygulanamaz: Object.fromEntries(
+        (uygulanamazHaritasi.get(varlikId) ?? []).map((u) => [u.alan, u.gerekce]),
+      ),
+      sbom: sbom
+        ? {
+          bicim: sbom.bicim, bilesenSayisi: sbom.bilesenSayisi,
+          yuklendi: sbom.yuklendi.toISOString(),
+        }
+        : null,
+      segment: segment
+        ? {
+          id: segment.id, kod: segment.kod, ad: segment.ad,
+          cidr: segment.cidr, vlanId: segment.vlanId,
+        }
+        : null,
+    };
+  }
+
   const veri: V[] = varliklar.map((v) => {
     const iliskiler: Iliski[] = [
       ...v.kaynakIliskiler.map((i) => ({
@@ -294,6 +433,12 @@ export default async function Sayfa({ searchParams }: {
       ipAdresi: v.ipAdresi, macAdresi: v.macAdresi, isletimSistemi: v.isletimSistemi,
       firmware: v.firmware, surum: v.surum, rafOda: v.rafOda,
       kimlikDogrulama: v.kimlikDogrulama,
+      ipv6Adresi: v.ipv6Adresi, isletimSistemiSurumu: v.isletimSistemiSurumu,
+      firmwareYapisi: v.firmwareYapisi, donanimRevizyonu: v.donanimRevizyonu,
+      yazilimlar: (yazilimHaritasi.get(v.id) ?? [])
+        .map((y) => ({ id: y.yazilim.id, ad: y.yazilim.ad, surum: y.yazilim.surum }))
+        .sort((a, b) => a.ad.localeCompare(b.ad, 'tr')),
+      durus: durusKur(v.id, v.segmentId),
       kritiklik: v.kritiklik, yamaDurumu: v.yamaDurumu, edrDurumu: v.edrDurumu,
       yedekDurumu: v.yedekDurumu, izlemeDurumu: v.izlemeDurumu, logKaynagi: v.logKaynagi,
       internetMaruziyeti: v.internetMaruziyeti, uzaktanErisim: v.uzaktanErisim,
@@ -365,6 +510,9 @@ export default async function Sayfa({ searchParams }: {
         seviye: b.guvenlikSeviyesi, tesisId: b.tesisId,
       }))}
       kullanicilar={kullanicilar.map((u) => ({ id: u.id, ad: u.adSoyad }))}
+      segmentler={segmentler.map((s) => ({
+        id: s.id, kod: s.kod, ad: s.ad, cidr: s.cidr, vlanId: s.vlanId,
+      }))}
       yazabilir={yazmaYetkisi}
       simdi={simdi}
       baslangicArama={baslangicArama}

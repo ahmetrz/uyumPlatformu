@@ -1096,9 +1096,24 @@ model Varlik {
   butunluk           Int?
   erisilebilirlik    Int?
   ipAdresi           String?
+  /// OT-03 · IPv6 adresi AYRI sütundur. `ipAdresi` içine yazılsaydı hem
+  /// `lib/alan/ag.ts` ailesi (v4 mü v6 mı) her okumada yeniden tahmin
+  /// etmek zorunda kalırdı hem de "IPv6 ölçülmedi" ile "IPv6 yok" ayırt
+  /// edilemezdi. null = ölçülmedi.
+  ipv6Adresi         String?
   macAdresi          String?
   isletimSistemi     String?
+  /// OT-03 · İşletim sistemi sürümü/derlemesi (ör. "22H2 · 19045.4291").
+  /// `isletimSistemi` ürün adıdır; yama kararı derlemeye bakar.
+  isletimSistemiSurumu String?
   firmware           String?
+  /// OT-03 · Firmware derleme/yapı damgası. Üretici aynı sürüm etiketiyle
+  /// farklı yapılar dağıtabilir; taban karşılaştırması sürüme, kanıt
+  /// zinciri yapıya bakar.
+  firmwareYapisi     String?
+  /// OT-03 · Donanım revizyonu (ör. "Rev. C"). Aynı model farklı
+  /// revizyonlarda farklı firmware kabul eder.
+  donanimRevizyonu   String?
   surum              String?
   kurulumTarihi      DateTime?
   garantiBitis       DateTime?
@@ -2637,6 +2652,12 @@ model SbomBelgesi {
 /// OT-26 · Yazılım bileşeni — SBOM'un satırı. `purl` varsa kanonik kimliktir.
 model YazilimBileseni {
   id          String   @id @default(cuid())
+  /// KANONİK KİMLİK — `purl` varsa o, yoksa `ad@surum`. ZORUNLUDUR ve
+  /// tekildir; nullable kolonlardan kurulu bir bileşik kısıt SQLite'ta
+  /// iş görmez (NULL'lar birbirinden farklı sayılır) ve sürümü olmayan
+  /// her bileşen her yüklemede yeni satır açardı. Aynı gerekçe
+  /// `VeriKokeni.kaynakKayitId` yorumunda da yazılı.
+  kimlik      String   @unique
   ad          String
   surum       String?
   /// package-url (pkg:npm/lodash@4.17.21) — varsa tekilliğin kaynağı.
@@ -2650,7 +2671,6 @@ model YazilimBileseni {
 
   girdiler SbomGirdisi[]
 
-  @@unique([ad, surum, purl])
   @@index([purl])
   @@index([ad])
 }

@@ -251,10 +251,22 @@ export function sbomAyristir(metin: string): SbomAyristirmaSonucu {
  * Bileşenleri kanonik kimliğe göre tekilleştirir.
  * purl varsa purl, yoksa (ad, sürüm) çifti kimliktir.
  */
+/**
+ * Bileşenin KANONİK KİMLİĞİ — `purl` varsa o, yoksa `ad@surum`.
+ *
+ * Veritabanındaki `YazilimBileseni.kimlik` kolonu da budur. Tekilliği
+ * nullable kolonlardan kurulu bileşik bir kısıta bırakmak SQLite'ta iş
+ * görmez: NULL'lar birbirinden farklı sayılır ve sürümü olmayan her
+ * bileşen her yüklemede yeni satır açardı.
+ */
+export function bilesenKimligi(b: Pick<SbomBileseni, 'ad' | 'surum' | 'purl'>): string {
+  return b.purl ?? `${b.ad}@${b.surum ?? ''}`;
+}
+
 export function bilesenleriTekillestir(bilesenler: readonly SbomBileseni[]): SbomBileseni[] {
   const harita = new Map<string, SbomBileseni>();
   for (const b of bilesenler) {
-    const anahtar = b.purl ?? `${b.ad}@${b.surum ?? ''}`;
+    const anahtar = bilesenKimligi(b);
     const mevcut = harita.get(anahtar);
     /* Aynı bileşen iki kez geldiyse DAHA DOLU olanı tutulur: bir kaynak
        lisansı, öbürü özeti taşıyor olabilir. */

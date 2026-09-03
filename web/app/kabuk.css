@@ -1492,6 +1492,56 @@
   font-size: 11px; line-height: 1.7; color: var(--i3);
 }
 
+/* ── Duruş sekmesi (OT-03 · 11 · 21 · 22 · 25 · 26 · 27) ──────────────
+   Çekmece 400px; blok başına tek sütun, satır içi düğme sağa yaslı.
+   `.na` (uygulanamaz) KUSUR RENGİ ALMAZ — sönük çizilir, çünkü bu bir
+   eksik değil bir karardır. Ölçülmemiş değer `.unk` ile ayrı renktedir:
+   üç durum ekranda da üç ayrı görünür. */
+.ab-durus { display: grid; gap: 4px; }
+.ab-durus-blok + .ab-durus-blok { border-top: 1px solid var(--hr); }
+.ab-durus-blok .blokbas { display: flex; align-items: baseline; gap: 10px; }
+.ab-durus-rozet {
+  margin-left: auto; font-family: var(--veri); font-size: 11px;
+  letter-spacing: 0; text-transform: none; color: var(--i3);
+}
+.ab-durus-blok .cumle { margin: 10px 0 0; font-size: 12.5px; line-height: 1.6; color: var(--i2); }
+.ab-durus-blok .dipnot { margin: 10px 0 0; padding-top: 0; border-top: 0; }
+
+.ab-durus-alanlar { list-style: none; margin: 10px 0 0; padding: 0; }
+.ab-durus-alanlar > li {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: baseline; gap: 8px 12px;
+  padding: 7px 0; border-bottom: 1px solid var(--hr); font-size: 12px;
+}
+.ab-durus-alanlar > li.na { color: var(--i3); }
+.ab-durus-alanlar .ad { color: var(--i3); }
+.ab-durus-alanlar .deger { text-align: right; min-width: 0; overflow-wrap: anywhere; }
+.ab-durus-alanlar .deger.unk { color: var(--unk); }
+.ab-durus-alanlar .gerekce {
+  grid-column: 1 / -1; margin: 0; font-size: 11px; line-height: 1.6; color: var(--i3);
+}
+.ab-durus-alanlar .ab-durus-form { grid-column: 1 / -1; }
+
+.ab-durus-satir {
+  padding: 10px; margin-bottom: 1px; background: var(--panel2);
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 4px 10px;
+  align-items: center;
+}
+.ab-durus-satir .konu { font-size: 12px; min-width: 0; overflow-wrap: anywhere; }
+.ab-durus-satir .son { font-family: var(--veri); font-size: 11px; color: var(--i3); }
+.ab-durus-satir .ciftler,
+.ab-durus-satir .cumle,
+.ab-durus-satir .dipnot,
+.ab-durus-satir .ab-durus-form,
+.ab-durus-satir > button { grid-column: 1 / -1; }
+.ab-durus-satir > button { justify-self: start; }
+
+.ab-durus-form { display: grid; gap: 10px; margin: 10px 0 4px; }
+.ab-dugme.mini {
+  justify-self: end; padding: 3px 8px; min-height: 24px;
+  font-size: 11px; letter-spacing: .06em;
+}
+
 /* Envanter kaynağı ayağı KALDIRILDI (denetim §9: kabuğun sistem durumu
    satırıyla çift ayak). Kaynak künyesi kip çubuğuna, sahipsiz/santralsiz
    sayımı süzgeç sayacına taşındı. */

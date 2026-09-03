@@ -5,13 +5,15 @@ import Link from 'next/link';
 import { exceleAktar, pdfYazdir } from '@/components/disaAktar';
 import { VARLIK_SINIF_ETIKET, etiketle, tarihTR, zamanTR } from '@/lib/sabitler';
 import { IliskiEditoru, VarlikFormu, YasamFormu } from './Formlar';
+import { DurusPaneli } from './Durus';
 import { VeriTablosu, type VtKolon, type VtSira } from '@/components/kabuk/tablo';
 import {
   ILISKI_CUMLE, KRITIKLIKLER, MERCEKLER, MERCEK_TASMA, YASAM_ETIKET,
   ayYil, bilinmeyenAlanlar, bolumle, karariBloklayanBilinmeyen,
   korumaAcigi, kullanimda, kuyrukMetni, metrikleriHesapla, olgu, omurGunu,
   sirala, suz, varlikDurumu,
-  type Bolge, type Kisi, type Kodlu, type Mercek, type Tur, type Unite, type V,
+  type Bolge, type Kisi, type Kodlu, type Mercek, type Segment, type Tur,
+  type Unite, type V,
 } from './mantik';
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -51,7 +53,7 @@ import {
    ═══════════════════════════════════════════════════════════════════════ */
 
 type Kip = 'zincir' | 'tablo';
-type PanelKipi = 'ozet' | 'form' | 'iliski' | 'yasam';
+type PanelKipi = 'ozet' | 'durus' | 'form' | 'iliski' | 'yasam';
 
 /** Zincirin halkaları — prototipin sütun başlıkları. */
 const HALKALAR = [
@@ -65,10 +67,12 @@ type Dugum = {
 
 export default function EnvanterIstemci({
   varliklar, turler, tesisler, uniteler, sistemler, bolgeler, kullanicilar,
-  yazabilir, simdi, baslangicArama = '',
+  segmentler, yazabilir, simdi, baslangicArama = '',
 }: {
   varliklar: V[]; turler: Tur[]; tesisler: Kodlu[]; uniteler: Unite[];
   sistemler: Kodlu[]; bolgeler: Bolge[]; kullanicilar: Kisi[];
+  /** OT-11 · varlığa atanabilecek adresleme segmentleri */
+  segmentler: Segment[];
   yazabilir: boolean; simdi: number;
   /** `?bolge=KOD` bağından gelen başlangıç arama metni (topoloji çekmecesi). */
   baslangicArama?: string;
@@ -280,6 +284,7 @@ export default function EnvanterIstemci({
               <nav className="sekmeler" aria-label="Düğüm paneli">
                 {([
                   ['ozet', 'Özet'],
+                  ['durus', 'Duruş'],
                   ['form', 'Kayıt'],
                   ['iliski', 'İlişki'],
                   ['yasam', 'Yaşam'],
@@ -290,6 +295,9 @@ export default function EnvanterIstemci({
               </nav>
               <div className="govde">
                 {panelKipi === 'ozet' && <Ozet v={secili} simdi={simdi} />}
+                {panelKipi === 'durus' && (
+                  <DurusPaneli v={secili} segmentler={segmentler} />
+                )}
                 {panelKipi === 'form' && (
                   <VarlikFormu varlik={secili} turler={turler} tesisler={tesisler}
                     uniteler={uniteler} sistemler={sistemler} bolgeler={bolgeler}

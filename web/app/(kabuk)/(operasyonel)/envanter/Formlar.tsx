@@ -40,6 +40,9 @@ type FormDurumu = {
   hostname: string; seriNo: string; uretici: string; model: string;
   ipAdresi: string; macAdresi: string; isletimSistemi: string;
   firmware: string; surum: string; rafOda: string; kimlikDogrulama: string;
+  /* OT-03 · kimlik envanterinin ayrı ölçülen dört alanı. */
+  ipv6Adresi: string; isletimSistemiSurumu: string;
+  firmwareYapisi: string; donanimRevizyonu: string;
   kritiklik: string; yamaDurumu: string; edrDurumu: string; yedekDurumu: string;
   izlemeDurumu: string; logKaynagi: string; internetMaruziyeti: string;
   /** üç durumlu: '' = bilinmiyor | evet | hayir */
@@ -55,7 +58,9 @@ function formBaslat(v: V | null): FormDurumu {
     etiket: '', ad: '', turId: '', tesisId: '', uniteId: '', sistemId: '', bolgeId: '',
     sahipId: '', emanetciId: '', hostname: '', seriNo: '', uretici: '', model: '',
     ipAdresi: '', macAdresi: '', isletimSistemi: '', firmware: '', surum: '',
-    rafOda: '', kimlikDogrulama: '', kritiklik: 'bilinmiyor', yamaDurumu: 'bilinmiyor',
+    rafOda: '', kimlikDogrulama: '',
+    ipv6Adresi: '', isletimSistemiSurumu: '', firmwareYapisi: '', donanimRevizyonu: '',
+    kritiklik: 'bilinmiyor', yamaDurumu: 'bilinmiyor',
     edrDurumu: 'bilinmiyor', yedekDurumu: 'bilinmiyor', izlemeDurumu: 'bilinmiyor',
     logKaynagi: 'bilinmiyor', internetMaruziyeti: 'bilinmiyor', uzaktanErisim: '',
     kurulumTarihi: '', garantiBitis: '', destekBitis: '', eolTarihi: '', eosTarihi: '',
@@ -68,6 +73,10 @@ function formBaslat(v: V | null): FormDurumu {
     model: v.model ?? '', ipAdresi: v.ipAdresi ?? '', macAdresi: v.macAdresi ?? '',
     isletimSistemi: v.isletimSistemi ?? '', firmware: v.firmware ?? '', surum: v.surum ?? '',
     rafOda: v.rafOda ?? '', kimlikDogrulama: v.kimlikDogrulama ?? '',
+    ipv6Adresi: v.ipv6Adresi ?? '',
+    isletimSistemiSurumu: v.isletimSistemiSurumu ?? '',
+    firmwareYapisi: v.firmwareYapisi ?? '',
+    donanimRevizyonu: v.donanimRevizyonu ?? '',
     kritiklik: v.kritiklik, yamaDurumu: v.yamaDurumu, edrDurumu: v.edrDurumu,
     yedekDurumu: v.yedekDurumu, izlemeDurumu: v.izlemeDurumu, logKaynagi: v.logKaynagi,
     internetMaruziyeti: v.internetMaruziyeti,
@@ -129,6 +138,8 @@ export function VarlikFormu({
       ipAdresi: f.ipAdresi, macAdresi: f.macAdresi, isletimSistemi: f.isletimSistemi,
       firmware: f.firmware, surum: f.surum, rafOda: f.rafOda,
       kimlikDogrulama: f.kimlikDogrulama,
+      ipv6Adresi: f.ipv6Adresi, isletimSistemiSurumu: f.isletimSistemiSurumu,
+      firmwareYapisi: f.firmwareYapisi, donanimRevizyonu: f.donanimRevizyonu,
       kritiklik: f.kritiklik, yamaDurumu: f.yamaDurumu, edrDurumu: f.edrDurumu,
       yedekDurumu: f.yedekDurumu, izlemeDurumu: f.izlemeDurumu, logKaynagi: f.logKaynagi,
       internetMaruziyeti: f.internetMaruziyeti,
@@ -198,12 +209,16 @@ export function VarlikFormu({
         <div style={ikili}>
           {metin('uretici', 'Üretici')}
           {metin('model', 'Model')}
+          {metin('donanimRevizyonu', 'Donanım revizyonu', true)}
           {metin('seriNo', 'Seri no', true)}
           {metin('hostname', 'Hostname', true)}
-          {metin('ipAdresi', 'IP adresi', true)}
+          {metin('ipAdresi', 'IPv4 adresi', true)}
+          {metin('ipv6Adresi', 'IPv6 adresi', true)}
           {metin('macAdresi', 'MAC adresi', true)}
           {metin('isletimSistemi', 'İşletim sistemi')}
+          {metin('isletimSistemiSurumu', 'İS sürümü / derlemesi', true)}
           {metin('firmware', 'Firmware', true)}
+          {metin('firmwareYapisi', 'Firmware yapısı', true)}
           {metin('surum', 'Sürüm', true)}
           {metin('kimlikDogrulama', 'Kimlik doğrulama')}
         </div>

@@ -92,6 +92,7 @@ kurum sistemine giden hiçbir şey yoktur.
 | `gorsel-regresyon.mjs` | `tasarim:gorsel` | 8 rota × 2 bant, altın görüntüyle piksel farkı | fark > %0,5 ya da altın yok |
 | `erisim-axe.mjs` | `tasarim:axe` | axe-core WCAG 2 A/AA, rotalar.json'daki tüm rotalar | ciddi/kritik ihlal |
 | `yatay-tasma.mjs` | `tasarim:tasma` | 375 + 768'de her rota yana kayıyor mu, taşmayı üreten öğe kim | taşan rota |
+| `dizustu.mjs` | `tasarim:dizustu` | 1366×768'de kaydırılamayan (kırpılan) içerik var mı | kırpılan öğe |
 | — | `test:kapsam` | vitest V8 kapsamı (`lib/**`, ekran `mantik.ts`/`ortak.ts`, `components/**`) | test kırığı |
 
 ### `kosu-ortak.mjs` · `kalite-kurallari.mjs`
@@ -185,6 +186,58 @@ koşar ve suçluyu yazar; ikisi birbirinin yerine geçmez.
 ```bash
 PORT=3210 npm run tasarim:tasma
 PORT=3210 node arac/yatay-tasma.mjs --rota=/uyum,/kanitlar
+```
+
+### `dizustu.mjs`
+
+**Sahada ekranlar dizüstünde açılıyor** (Ahmet, 03.09.2026). Bu cevap bir
+genişlik sorusu değil, bir **yükseklik** sorusudur:
+
+- 1366px genişlik kabuktaki her kırılma noktasının üstündedir; yatay
+  tarafı `yatay-tasma.mjs` (375 · 768) ve `kolon-hizasi.mjs`
+  (1440 · 1366 · 1280) zaten ölçüyor.
+- 768px yükseklik yeni bir gerçekliktir: `kabuk.css`'teki yükseklik
+  sözleşmesi `@media (min-width: 1025px) and (min-height: 680px)` ile
+  açılır, yani 768'de **açıktır**. Saha ekranı orada
+  `height: calc(100dvh - 56px - ...)` alır, `.ab-b-alan` `overflow: hidden`
+  taşır.
+
+Sözleşme + `overflow: hidden` ürünün en sinsi kusur sınıfını üretir:
+**kap içeriğinden kısa kalır ve fazlası kaydırılamaz.** Kullanıcı eksik
+olduğunu bilmez, ekran dolu görünür.
+
+İki ayrı kayıp biçimi ölçülür ve ikisi de gerekir:
+
+1. **Kap kendi içeriğini kırpıyor** — `scrollHeight > clientHeight` ve
+   `overflow-y: hidden`.
+2. **Çocuk, kırpan atasının alt kenarının altında kalıyor** — kap taşmaz,
+   çünkü çocuk kendi içeriğine sığar; yalnız görünmez. `kabuk.css`'te
+   yazılı Santral 360 kusuru (hero plakası `minmax(0,1fr)` satırında 0'a
+   ezilip zincir/şerit üst üste binmesi) tam olarak budur ve birinci ölçü
+   onu yakalayamaz.
+
+Kusur **olmayan** taşma: kaydırılabilen kap (`auto`/`scroll`) ve bilerek
+kısaltma (`text-overflow: ellipsis`, `-webkit-line-clamp`).
+
+> **Ölçülen ve elenen ilk yanlış alarm.** İlk koşu 40 "kırpılma" bildirdi
+> ve **kırkı da yanlıştı**: 38 rotada `a.ab-atla`, ikisinde
+> `.ab-gizli-okuma`. İkisi de ekran okuyucuya konuşan görünmez metnin
+> standart kalıbıdır (`width/height: 1px; clip-path: inset(50%)`); orada
+> kırpma öğenin kendisidir ve kimseden bilgi saklamaz — okuyucu metni tam
+> okur. Ders `gezinme:cekmece`'nin `/varlık/i` kusuruyla aynı: ölçüm
+> yanlışsa hükmü de yanlıştır. Artık görünür kutusu 1px'ten ince olan öğe
+> elenir.
+
+**Kapının ısırdığı denenerek doğrulandı:** `.ab-b-alan { height: 120px }`
+geçici olarak eklendi, kapı dört kusurla kırmızıya düştü ve dördüncüsü
+(`div.katmanlar ⊄ section.ab-b-alan`) yalnız ikinci ölçüyle görünüyordu —
+ikinci ölçü yerini böyle hak etti. Kural geri alındı.
+
+Bugünkü ölçüm: **38 rota · kırpılan öğe 0 · yatay taşan rota 0.**
+
+```bash
+PORT=3210 npm run tasarim:dizustu
+PORT=3210 node arac/dizustu.mjs --rota=/,/portfoy
 ```
 
 ### `erisim-axe.mjs`

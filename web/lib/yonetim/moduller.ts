@@ -303,7 +303,9 @@ export function ayarinModulu(anahtar: string): Modul | null {
   if (anahtar.startsWith('motor.erisim.')) return MODUL_SOZLUGU.erisimEsik;
   if (anahtar.startsWith('motor.veri_kalitesi.')) return MODUL_SOZLUGU.veriKalitesiEsik;
   if (anahtar.startsWith('kanit.tazelik.')) return MODUL_SOZLUGU.kanitTazelik;
-  if (anahtar === 'saha.yerlesim') return MODUL_SOZLUGU.moduleGorunurluk;
+  /* İkisi de SUNUM ayarıdır ve aynı modülde durur; `sahaPencere` sayısal
+     pencerelerin (kuyruk / takvim / akış) yeridir, görünürlüğün değil. */
+  if (anahtar === 'saha.yerlesim' || anahtar === 'saha.olculmemis') return MODUL_SOZLUGU.moduleGorunurluk;
   if (anahtar.startsWith('saha.')) return MODUL_SOZLUGU.sahaPencere;
   if (anahtar === 'kabuk.kunye') return MODUL_SOZLUGU.kunye;
   if (anahtar === 'zamanlayici.motor_aralik_dk') return MODUL_SOZLUGU.motorAralik;

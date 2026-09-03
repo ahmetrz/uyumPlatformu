@@ -22,8 +22,12 @@ import { Im, DURUM_SOZU, type Durum } from './temel';
    Ad `Cekmece` olarak korundu: elli küsur ekran bu adı çağırıyor ve ad
    bir VERİ SÖZLEŞMESİDİR; değişen şey sunumdur. */
 
-export function Cekmece({ kod, kapat, children }: {
+/* `etiket`/`ad` verilmezse bugünkü "Seçili kayıt · <kod>" başlığı çıkar;
+   elli küsur çağrı yeri değişmez. Kayıt DIŞI bir detay (örneğin bir liste)
+   açıldığında başlık ona göre yazılır — panel "seçili kayıt" demez. */
+export function Cekmece({ kod, kapat, children, etiket, ad }: {
   kod: string; kapat: () => void; children: ReactNode;
+  etiket?: string; ad?: string;
 }) {
   const kokRef = useRef<HTMLElement | null>(null);
   const oncekiOdak = useRef<Element | null>(null);
@@ -40,9 +44,10 @@ export function Cekmece({ kod, kapat, children }: {
   }, [kapat]);
 
   return (
-    <aside className="ab-panel" ref={kokRef} tabIndex={-1} aria-label={`Kayıt detayı ${kod}`}>
+    <aside className="ab-panel" ref={kokRef} tabIndex={-1}
+      aria-label={ad ? `${ad} · ${kod}` : `Kayıt detayı ${kod}`}>
       <header>
-        <span className="etiket vurgu">Seçili kayıt</span>
+        <span className="etiket vurgu">{etiket ?? 'Seçili kayıt'}</span>
         <span className="mono kod">{kod}</span>
         <button type="button" className="ab-dugme sag" onClick={kapat}>Kapat</button>
       </header>

@@ -39,6 +39,7 @@ export default async function Sayfa() {
       akis={veri.akis}
       egilim={veri.egilim}
       yerlesim={veri.yerlesim}
+      olculmemisGosterimi={veri.olculmemisGosterimi}
     />
   );
 }

@@ -1,6 +1,9 @@
 import { z } from 'zod';
 import { KANIT_ESIK_VARSAYILAN } from '../sabitler';
 import { SAHA_YERLESIM_VARSAYILAN, yerlesimDogrula, yerlesimMetni, type SahaYerlesimi } from '../yonetim/sahaModulleri';
+import {
+  OLCULMEMIS_VARSAYILAN, olculmemisDogrula, olculmemisMetni, type OlculmemisGosterimi,
+} from '../yonetim/olculmemisGosterimi';
 
 /* ═══ Yapılandırma anahtar sözlüğü — TEK doğruluk kaynağı ═══════════════
 
@@ -164,6 +167,20 @@ const T: AyarTanimi[] = [
     }).transform((v) => { const d = yerlesimDogrula(v); return d.ok ? d.deger : (v as SahaYerlesimi); }),
   },
   {
+    anahtar: 'saha.olculmemis', grup: 'gorunum', sinif: 'A',
+    etiket: 'Saha · değerlendirilmemiş özeti',
+    aciklama: 'Değerlendirilmemiş santral özetinin ayrıntı düzeyi: yalnız sayı mı, sayı + ilk adlar mı; detay listesi panelde açılabilsin mi. Sayının KENDİSİ kapatılamaz — "bilinmeyen ≠ sıfır" kuralı ayara bağlanmaz.',
+    etki: ['Saha ekranı'],
+    varsayilan: OLCULMEMIS_VARSAYILAN,
+    sema: z.unknown().superRefine((v, ctx) => {
+      const d = olculmemisDogrula(v);
+      if (!d.ok) ctx.addIssue({ code: 'custom', message: d.hata });
+    }).transform((v) => {
+      const d = olculmemisDogrula(v);
+      return d.ok ? d.deger : (v as OlculmemisGosterimi);
+    }),
+  },
+  {
     anahtar: 'kabuk.kunye', grup: 'gorunum', sinif: 'A',
     etiket: 'Ayak künye metni',
     aciklama: 'Her ekranın ayağında görünen kurum/platform adı. Sürüm ve ortam koddan gelir.',
@@ -265,6 +282,7 @@ export function degerMetni(t: AyarTanimi, deger: unknown): string {
   if (typeof deger === 'boolean') return deger ? 'açık' : 'kapalı';
   if (deger === null || deger === undefined) return 'bilinmiyor';
   if (t.anahtar === 'saha.yerlesim' && typeof deger === 'object') return yerlesimMetni(deger as SahaYerlesimi);
+  if (t.anahtar === 'saha.olculmemis' && typeof deger === 'object') return olculmemisMetni(deger as OlculmemisGosterimi);
   if (typeof deger === 'object') return JSON.stringify(deger);
   return `${String(deger)}${t.birim ? ` ${t.birim}` : ''}`;
 }

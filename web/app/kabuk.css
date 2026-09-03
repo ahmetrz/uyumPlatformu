@@ -670,46 +670,101 @@
    işaret olduğu için min-content'e çöküyor, ad harf harf sarıyordu; sabit
    genişlik verilince de 375px'te tuvalden taşıyordu. Normal akışta bir
    liste, iki bantta da doğru davranıyor ve piksel aritmetiği gerekmiyor. */
+/* Tuval sarmalayıcı TEK KOLONDUR. Önce 176px'lik bir liste kolonu daha
+   vardı: değerlendirilmemiş on bir santral orada eşit ağırlıkta satırlar
+   hâlinde diziliyordu. Kolon, ekranın asıl karar yüzeyi olan takımyıldızın
+   genişliğinin altıda birini alıyordu — üstelik o satırların hiçbirinin
+   endeksi YOK, yani sıralanacak/karşılaştırılacak bir şey taşımıyorlardı;
+   liste bir yoklamaydı ve aynı santraller alttaki plaka şeridinde ikinci
+   kez görünüyordu. Yerine başlık satırındaki özet geçti (`.ab-olculmemis`),
+   ayrıntı doklu panelde açılır. */
 .ab-b-takim .ab-tuval-sar {
   position: relative; flex: 1; min-height: 0; margin-top: 14px;
-  display: grid; grid-template-columns: 176px minmax(0, 1fr); gap: 18px;
+  display: flex; flex-direction: column;
 }
 /* Genel tuvalin 420px tabanı burada KALKAR: takımyıldızı yüksekliğini tek
    ekran bütçesinden alır (1366×768'de ≈ 300px). Ölçüldü: taban dururken
    tuval 492/447 taşıyor, x ekseni adı notun altında kalıyordu. */
-.ab-b-takim .ab-tuval-sar > .ab-tuval { margin-top: 0; min-height: 0; }
-.ab-b-takim .serit {
-  min-width: 0; padding-right: 16px; border-right: 1px dashed var(--hr2);
-  display: flex; flex-direction: column; gap: 2px; overflow: hidden;
+.ab-b-takim .ab-tuval-sar > .ab-tuval { margin-top: 0; min-height: 0; flex: 1; }
+
+/* ── Başlık satırı: bölüm adı + değerlendirilmemiş özeti ───────────────
+   Özet ayrı bir satıra inseydi tuvalden ~42px yükseklik alırdı; 768px'te
+   künye çakışması ölçülen bir risktir. Aynı satırda taban hizasında
+   durunca yükseklik maliyeti yok denecek kadar azdır. */
+.ab-b-takim .ab-takim-bas {
+  flex: none; display: flex; flex-direction: column; gap: 8px; min-width: 0;
 }
-.ab-b-takim .serit-bas {
-  margin: 0 0 8px; font-size: var(--t-label); letter-spacing: .1em;
-  text-transform: uppercase; color: var(--i3); line-height: 1.2;
-  display: flex; align-items: baseline; justify-content: space-between; gap: 8px;
+.ab-b-takim .ab-takim-bas > .ust { flex: none; }
+
+/* ── Değerlendirilmemiş özeti ──────────────────────────────────────────
+   Hiyerarşi bilinçli: SAYI en güçlü, oran onun hemen yanında daha sessiz,
+   MWe ve adlar üçüncül. Sayı kendi başına "11" der; oran "11/16" onun
+   söylemediğini söyler — portföyün üçte ikisi hiç ölçülmemiş. */
+.ab-olculmemis {
+  display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 10px;
+  min-width: 0; padding: 6px 0 0; border-top: 1px solid var(--hr2);
 }
-/* Sayı başlığın sağında, 11px: sözcük bir kez, sayı yanında (yöntem notu `title`ta). */
-.ab-b-takim .serit-bas .adet { font-size: 11px; letter-spacing: 0; color: var(--i2); }
-.ab-b-takim .serit .kalem {
+/* Ölçülmemiş glifi: 45° taralı kare — kartlardaki ve panel listesindeki
+   işaretle AYNI dil (bkz. DESIGN.md · glif ailesi). */
+.ab-olculmemis .im {
+  flex: none; width: 8px; height: 8px; transform: rotate(45deg);
+  align-self: center;
+  background: repeating-linear-gradient(45deg,
+    currentColor 0 1.5px, transparent 1.5px 3.5px);
+  border: 1px solid currentColor;
+}
+.ab-olculmemis .ad {
+  flex: none; font-size: var(--t-label); letter-spacing: .1em;
+  text-transform: uppercase; color: var(--i3); white-space: nowrap;
+}
+.ab-olculmemis .sayi {
+  flex: none; font-size: 17px; line-height: 1; color: var(--murekkep);
+  font-variant-numeric: tabular-nums; cursor: help;
+}
+.ab-olculmemis .sayi .bolu { font-size: 12px; color: var(--i3); }
+.ab-olculmemis .mwe { flex: none; font-size: 11px; color: var(--i3); white-space: nowrap; }
+/* Adlar KESİLMEZ ve bu bir doğruluk kuralıdır, estetik tercih değil:
+   "+8 diğer" sayısı "3 ad yazıldı" varsayımıyla hesaplanır. CSS adlardan
+   birini üç noktayla yutarsa ekranda 1 ad görünür ama yanında hâlâ "+8"
+   yazar — 11 - 1 = 10 iken. Ölçüldü (1366×768, özet başlıkla aynı
+   satırdayken): "Alaşehir ..." diye kesiliyor ve sayı yalan söylüyordu.
+   Bu yüzden özet kendi satırına alındı ve adlar sarar, kesilmez. */
+.ab-olculmemis .adlar {
+  min-width: 0; font-size: 12px; color: var(--i2); line-height: 1.4;
+}
+.ab-olculmemis .kalan { flex: none; font-size: 11px; color: var(--i3); white-space: nowrap; }
+.ab-olculmemis-ac {
+  flex: none; background: none; border: 0; padding: 2px 0; cursor: pointer;
+  font-family: var(--veri); font-size: 11px; letter-spacing: .06em;
+  color: var(--aksan); border-bottom: 1px solid transparent;
+}
+.ab-olculmemis-ac:hover { border-bottom-color: var(--aksan); }
+.ab-olculmemis-ac:focus-visible { outline: 2px solid var(--aksan); outline-offset: 3px; }
+
+/* ── Panel içeriği ─────────────────────────────────────────────────── */
+.ab-olculmemis-not {
+  margin: 0 0 14px; font-size: 12.5px; line-height: 1.5; color: var(--i2);
+}
+.ab-olculmemis-not strong { color: var(--murekkep); font-weight: 400; }
+.ab-olculmemis-liste { margin: 0; padding: 0; list-style: none; }
+.ab-olculmemis-liste > li + li { border-top: 1px solid var(--hr2); }
+.ab-olculmemis-liste a {
   display: grid; grid-template-columns: 12px minmax(0, 1fr) auto;
-  align-items: baseline; gap: 8px; padding: 3px 0; min-width: 0;
+  align-items: baseline; gap: 10px; padding: 8px 0; text-decoration: none;
 }
-.ab-b-takim .serit .kalem .ad {
-  font-family: var(--gorunum); font-size: 12.5px; line-height: 1.2;
-  color: var(--i2); min-width: 0; overflow-wrap: anywhere;
-}
-.ab-b-takim .serit .kalem:hover .ad { color: var(--murekkep); }
-.ab-b-takim .serit .kalem .guc {
-  font-size: var(--t-code); color: var(--i3); white-space: nowrap;
-}
-/* Ölçülmemiş işaret DOLU DEĞİL: ürünün "değerlendirilmedi" glifiyle aynı
-   dil — 45° tarama, tipin rengiyle çizilir. Renk tek kanal değildir;
-   ayrımı şerit, kesik çizgi ve başlıktaki sözcük birlikte taşır. */
-.ab-b-takim .serit .kalem .kare {
+.ab-olculmemis-liste .kare {
   width: 9px; height: 9px; transform: rotate(45deg); align-self: center;
   background: repeating-linear-gradient(45deg,
     currentColor 0 1.5px, transparent 1.5px 3.5px);
   border: 1px solid currentColor;
 }
+.ab-olculmemis-liste .ad {
+  font-family: var(--gorunum); font-size: 13.5px; line-height: 1.25;
+  color: var(--i2); min-width: 0; overflow-wrap: anywhere;
+}
+.ab-olculmemis-liste a:hover .ad { color: var(--aksan); }
+.ab-olculmemis-liste .guc { font-size: var(--t-code); color: var(--i3); white-space: nowrap; }
+
 /* Yakın komşusu olan işaretin künyesi ALTA, eksene yakın olanın ÜSTE
    açılır (bkz. Genel.tsx). Bağ çizgisi künyenin üst satırında kalır. */
 .ab-b-takim .isaret.kunye-asagi .kunye { top: 6px; }
@@ -2921,20 +2976,12 @@ details:not([open]) > *:not(summary) { display: none !important; }
   .ab-b-katman { border-left: 0; overflow-y: visible; }
   /* Takımyıldızı tuvali orantısını yükseklikten alır; akışta 0'a çöker. */
   .ab-b-takim { padding: 24px 32px; min-height: 380px; }
-  /* Dar bantta 176px'lik şerit + tuval yan yana sığmaz: şerit tuvalin
-     ALTINA iner ve iki kolonlu bir listeye dönüşür. Bilgi kaybolmaz,
-     yalnız yer değiştirir. */
-  .ab-b-takim .ab-tuval-sar {
-    grid-template-columns: minmax(0, 1fr); gap: 14px;
-  }
-  .ab-b-takim .ab-tuval-sar > .ab-tuval { order: -1; min-height: 300px; }
-  .ab-b-takim .serit {
-    padding-right: 0; padding-top: 12px;
-    border-right: 0; border-top: 1px dashed var(--hr2);
-    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
-    column-gap: 20px; align-content: start;
-  }
-  .ab-b-takim .serit-bas { grid-column: 1 / -1; }
+  /* Şerit kalktı (yukarı bakın); dar bantta tuval yalnız asgari yükseklik
+     ister. Özet başlık satırındadır ve dar bantta ALT SATIRA sarar:
+     `justify-content: space-between` iki öğeyi yan yana zorlar, sığmadığı
+     yerde ad üç noktaya iner ve sayı okunamaz hâle gelirdi. */
+  .ab-b-takim .ab-tuval-sar > .ab-tuval { min-height: 300px; }
+  /* Özet zaten kendi satırında ve sarıyor; dar bantta ek kural gerekmez. */
   /* Dar bantta künye TARAFINI ERKEN DEĞİŞTİRİR. Sarmak denendi ve
      ölçüldü: üç satıra çıkan künyeler birbirine giriyordu. Bunun yerine
      eşik %58'den %40'a iner — noktanın solunda kalan yer daha çoktur, o

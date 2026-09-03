@@ -11,6 +11,10 @@ import {
   yerlesimMetni, yerlesimNormalle, type SahaYerlesimi,
 } from '@/lib/yonetim/sahaModulleri';
 import {
+  OLCULMEMIS_ILK_KAC_TAVAN, olculmemisDogrula, olculmemisMetni, olculmemisNormalle,
+  type OlculmemisGosterimi,
+} from '@/lib/yonetim/olculmemisGosterimi';
+import {
   ayarKaydet, degisiklikIptal, degisiklikOnayla, degisiklikOner, degisiklikReddet, degisiklikUygula,
   etkiHesapla, katalogArsivle, katalogKaydet, tesisGorselAta, type EtkiSatiri,
 } from '@/lib/eylemler2/yonetim';
@@ -489,6 +493,9 @@ export function AyarCekmecesi({ tanim, okuma, veri, kapat, tazele, gecmis, acikT
           <p className="etiket ab-panel-blokbas">Değişiklik nereyi etkiler</p>
           <p className="ab-dip">{tanim.etki.length ? tanim.etki.join(' · ') : 'Kayıtlı etki bilgisi yok.'}</p>
           {tanim.anahtar === 'saha.yerlesim' && <YerlesimTablosu yerlesim={yerlesimNormalle(bugun)} />}
+          {tanim.anahtar === 'saha.olculmemis' && (
+            <p className="ab-dip">{olculmemisMetni(olculmemisNormalle(bugun))}</p>
+          )}
           <AcikTalepUyarisi talepler={acikTalepler} />
           <CekmeceEylemler
             birincil={veri.izin.yazma ? <Dugme tur="birincil" onClick={() => setSekme('duzenle')}>Düzenle</Dugme> : undefined}
@@ -503,7 +510,14 @@ export function AyarCekmecesi({ tanim, okuma, veri, kapat, tazele, gecmis, acikT
           bitti={() => { setSekme('deger'); tazele(); }} />
       )}
 
-      {sekme === 'duzenle' && veri.izin.yazma && tanim.anahtar !== 'saha.yerlesim' && (
+      {sekme === 'duzenle' && veri.izin.yazma && tanim.anahtar === 'saha.olculmemis' && (
+        <OlculmemisDuzenleyici tanim={tanim} bugun={olculmemisNormalle(bugun)}
+          vazgec={() => { setSekme('deger'); setHata(null); }}
+          bitti={() => { setSekme('deger'); tazele(); }} />
+      )}
+
+      {sekme === 'duzenle' && veri.izin.yazma
+        && tanim.anahtar !== 'saha.yerlesim' && tanim.anahtar !== 'saha.olculmemis' && (
         <form className="ab-konsol-form" onSubmit={(e) => { e.preventDefault(); kaydet(); }}>
           <Alan etiket={`Yeni değer${tanim.birim ? ` (${tanim.birim})` : ''}`} zorunlu>
             {tip === 'boolean' ? (
@@ -683,6 +697,89 @@ function YerlesimDuzenleyici({ tanim, bugun, vazgec, bitti }: {
         dipNot={sozlesme.ihlal
           ? 'Sözleşmeyi bozan yerleşim KAYDEDİLMEZ; sunucu da aynı kuralı uygular.'
           : 'A sınıfı: doğrudan yazılır, iz düşer. Görünürlük sunum katmanıdır; yetki ya da veri erişimi değiştirmez.'} />
+    </form>
+  );
+}
+
+/* ── Değerlendirilmemiş özeti düzenleyicisi ───────────────────────────
+   Nesne değerli ayarlar genel düzenleyiciden geçemez: `tip` orada
+   `typeof varsayilan` ile bulunur ve nesne için ham METİN gönderilir,
+   şema da haklı olarak reddeder. `saha.yerlesim` bu yüzden kendi
+   düzenleyicisini taşıyor; bu ayar da taşımak zorunda — aksi hâlde
+   "konsoldan yönetilebilir" yazıp yönetilemez bırakmış olurduk.
+
+   "Tamamen gizle" seçeneği YOKTUR ve bu bir eksik değil, karardır:
+   değerlendirilmemiş sayısı "bilinmeyen ≠ sıfır" kuralının ekrandaki
+   karşılığıdır (bkz. lib/yonetim/olculmemisGosterimi.ts). */
+function OlculmemisDuzenleyici({ tanim, bugun, vazgec, bitti }: {
+  tanim: AyarTanimi; bugun: OlculmemisGosterimi; vazgec: () => void; bitti: () => void;
+}) {
+  const [taslak, setTaslak] = useState<OlculmemisGosterimi>(bugun);
+  const [gerekce, setGerekce] = useState('');
+  const { bekliyor, hata, setHata, calistir } = useEylem();
+  const dogrulama = useMemo(() => olculmemisDogrula(taslak), [taslak]);
+  const farkVar = JSON.stringify(taslak) !== JSON.stringify(bugun);
+  /* `sayi` kipinde ad yazılmaz; `ilkKac` alanı o zaman etkisizdir ve
+     etkisiz bir alanı etkin göstermek yalan olurdu. */
+  const adYazilir = taslak.gosterim === 'ozet';
+
+  const kaydet = () => {
+    if (!dogrulama.ok) { setHata(dogrulama.hata); return; }
+    if (gerekce.trim().length < GEREKCE_ASGARI) { setHata(`Gerekçe en az ${GEREKCE_ASGARI} karakter olmalı.`); return; }
+    calistir(() => ayarKaydet({ anahtar: tanim.anahtar, deger: taslak, gerekce }), () => { setGerekce(''); bitti(); });
+  };
+
+  return (
+    <form className="ab-konsol-form" onSubmit={(e) => { e.preventDefault(); kaydet(); }}>
+      <Alan etiket="Gösterim" zorunlu>
+        <select className="ab-gr" value={taslak.gosterim}
+          onChange={(e) => setTaslak({ ...taslak, gosterim: e.target.value as 'ozet' | 'sayi' })}>
+          <option value="ozet">Özet — sayı, oran, MWe ve ilk santral adları</option>
+          <option value="sayi">Yalnız sayı — sayı, oran ve MWe</option>
+        </select>
+      </Alan>
+      <Alan etiket={`İlk görünümde yazılan santral adı (0–${OLCULMEMIS_ILK_KAC_TAVAN})`}>
+        <input className="ab-gr" type="number" min={0} max={OLCULMEMIS_ILK_KAC_TAVAN} step={1}
+          disabled={!adYazilir} value={taslak.ilkKac}
+          onChange={(e) => setTaslak({ ...taslak, ilkKac: Number(e.target.value) })} />
+      </Alan>
+      <Alan etiket="Detay listesi" zorunlu>
+        <select className="ab-gr" value={taslak.detay}
+          onChange={(e) => setTaslak({ ...taslak, detay: e.target.value as 'panel' | 'kapali' })}>
+          <option value="panel">Doklu panelde açılabilir</option>
+          <option value="kapali">Açılamaz — yalnız özet</option>
+        </select>
+      </Alan>
+      <p className="ab-dip">
+        &quot;+N diğer&quot; eşiği AYRI bir ayar değildir: N, toplam eksi yazılan
+        addır. İkinci bir eşik kaydı aynı sayının ikinci kaynağı olur ve ikisi
+        çeliştiğinde ekran hangisine uyacağını bilemezdi.
+      </p>
+
+      <p className="etiket ab-panel-blokbas">Ön izleme · önce → sonra</p>
+      <FarkTablosu once={{ g: olculmemisMetni(bugun) }} sonra={{ g: olculmemisMetni(taslak) }}
+        etiketler={{ g: 'Değerlendirilmemiş özeti' }} />
+
+      <p className="etiket ab-panel-blokbas">Etki</p>
+      <ul className="ab-konsol-etki">
+        <li><span className="ad">Etkilenen ekran</span><span className="sayi mono">1</span><span className="not">Saha</span></li>
+        <li><span className="ad">Sayı ve oran</span><span className="sayi mono">her zaman</span>
+          <span className="not">Kapatılamaz — &quot;bilinmeyen ≠ sıfır&quot; kuralı ayara bağlanmaz.</span></li>
+        <li><span className="ad">Yazılan ad</span><span className="sayi mono">{adYazilir ? taslak.ilkKac : 0}</span>
+          <span className="not">{adYazilir ? 'güce göre sıralı ilk santraller' : 'yalnız sayı kipinde ad yazılmaz'}</span></li>
+        <li><span className="ad">Tek ekran sözleşmesi</span><span className="sayi mono">korunur</span>
+          <span className="not">Özet başlık bloğundadır, detay `position: fixed` paneldedir; ızgara itilmez.</span></li>
+      </ul>
+      {!dogrulama.ok && <p className="ab-gr-hata" role="alert">{dogrulama.hata}</p>}
+
+      <GerekceAlani deger={gerekce} degistir={setGerekce} zorunlu />
+      {hata && <p className="ab-gr-hata" role="alert">{hata}</p>}
+      <CekmeceEylemler
+        birincil={<Dugme tur="birincil" type="submit" disabled={bekliyor || !farkVar || !dogrulama.ok}>
+          {bekliyor ? 'Kaydediliyor...' : 'Kaydet'}
+        </Dugme>}
+        ikincil={<Dugme onClick={vazgec} disabled={bekliyor}>Vazgeç</Dugme>}
+        dipNot="A sınıfı: doğrudan yazılır, iz düşer. Sunum katmanıdır; yetki ya da veri erişimi değiştirmez." />
     </form>
   );
 }

@@ -8,6 +8,10 @@ import type {
   AkisHaftasi, RiskIzgarasi, SantralKarti, TakvimKalemi, TipKatmani,
 } from './veri';
 import { SAHA_YERLESIM_VARSAYILAN, gorunur, kpiSirasi, type SahaYerlesimi } from '@/lib/yonetim/sahaModulleri';
+import {
+  OLCULMEMIS_VARSAYILAN, ozetKur, type OlculmemisGosterimi,
+} from '@/lib/yonetim/olculmemisGosterimi';
+import { Cekmece } from '@/components/kabuk/panel';
 
 /* ═══════════════════════════════════════════════════════════════════════
    SAHA — ANA EKRAN · ENERGY INTELLIGENCE
@@ -99,6 +103,14 @@ const MUDAHALE_TAVANI = 4;
     satır çizilmeden önce de doğru olsun. */
 const KALAN_SATIR_PX = 20;
 
+/* Değerlendirilmemişler GÜCE göre sıralı; gücü bilinmeyen sona düşer —
+   "0 MW" diye sıralanmaz. Sıra hem özetteki ilk adlarda hem panelde
+   aynıdır: kullanıcı özette gördüğü üç adı panelin başında yeniden bulur. */
+function olculmemisSirali(santraller: SantralKarti[]): SantralKarti[] {
+  return santraller.filter((s) => s.endeks === null)
+    .sort((a, b) => (b.gucMw ?? -1) - (a.gucMw ?? -1));
+}
+
 const ONEM_SINIF: Record<string, string> = {
   kritik: 'bd', yuksek: 'bd', orta: 'md', dusuk: 'pl',
 };
@@ -106,12 +118,17 @@ const ONEM_SINIF: Record<string, string> = {
 export default function Genel({
   bugun, ozet, odak, kuyruk, toplamKayit, kapsamli = false,
   santraller, tipler, risk, egilim, yerlesim = SAHA_YERLESIM_VARSAYILAN,
+  olculmemisGosterimi = OLCULMEMIS_VARSAYILAN,
 }: {
   /* Sunum katmanı yerleşimi — yönetim konsolu `saha.yerlesim` (A sınıfı).
      Yalnız `lib/yonetim/sahaModulleri.ts` beyaz listesindeki bloklar
      gizlenir/sıralanır; zorunlu yüzeyler her yerleşimde çizilir. Bölge
      düzeni (dikkat · takımyıldız · katman / KPI / şerit) SABİTTİR. */
   yerlesim?: SahaYerlesimi;
+  /* Değerlendirilmemiş özetinin ayrıntı düzeyi — konsol `saha.olculmemis`
+     (A sınıfı). SAYININ KENDİSİ ayara bağlı değildir; yönetilen yalnız
+     ona ne kadar ayrıntı eşlik ettiğidir. */
+  olculmemisGosterimi?: OlculmemisGosterimi;
   kullanici: string;
   /* Sunucuda biçimlendirilmiş tarih. Burada `new Date()` ÇAĞIRMA: bu
      bileşen istemcide de çalışır, statik dışa aktarımda HTML derleme
@@ -135,6 +152,8 @@ export default function Genel({
 }) {
   const dikkat = odak ? [odak, ...kuyruk] : kuyruk;
   const katmanVar = gorunur(yerlesim, 'katman');
+  const olculmemisSerit = olculmemisSirali(santraller);
+  const [olculmemisAcik, setOlculmemisAcik] = useState(false);
 
   return (
     <main className="ab-b-saha ab-b-genel">
@@ -174,7 +193,8 @@ export default function Genel({
         </aside>
 
         {/* ── Takımyıldız — koordinat DEĞİL, endeks × güç ───────────── */}
-        <Takimyildizi santraller={santraller} />
+        <Takimyildizi santraller={santraller} gosterim={olculmemisGosterimi}
+          serit={olculmemisSerit} panelAcik={olculmemisAcik} setPanelAcik={setOlculmemisAcik} />
 
         {/* ── Katman paneli · 320px — gizlenebilir (saha.yerlesim) ────── */}
         {katmanVar && (
@@ -225,6 +245,45 @@ export default function Genel({
         </div>
       </section>
 
+      {/* ── Değerlendirilmemiş detayı ─────────────────────────────────
+          Panel BURADA, `.ab-b-alan`ın DIŞINDA çizilir ve bu zorunluluk
+          ölçümle bulundu: takımyıldızın içinde çizilirken görünmüyordu.
+          `.ab-b-alan > .ab-b-takim` `z-index: 1` ile kendi yığınlama
+          bağlamını kurar; `position: fixed` panel o bağlamın içinde
+          hapsolur ve DOM'da sonra gelen kardeş `.ab-b-katman` (aynı
+          z-index) üstüne boyanır. z-index'i büyütmek çare değildir —
+          çocuk, atasının bağlamından dışarı çıkamaz.
+
+          Doklu panel, satır arası açılan bir bloğa yeğlendi: 768px'te
+          genişleyen blok ızgarayı iter ve tek ekran sözleşmesini
+          (`scrollHeight === innerHeight`) kırardı. Panel `fixed`tir,
+          yerleşimi hiç etkilemez; arkadaki takımyıldız okunur kalır. */}
+      {olculmemisAcik && olculmemisSerit.length > 0 && (
+        <div id="olculmemis-panel">
+          <Cekmece kod={`${olculmemisSerit.length} santral`} etiket="Değerlendirilmemiş"
+            ad="Değerlendirilmemiş santraller" kapat={() => setOlculmemisAcik(false)}>
+            <p className="ab-olculmemis-not">
+              Bu santrallerin uyum endeksi <strong>ölçülmedi</strong> — sıfır değil.
+              Güce göre sıralı; toplam{' '}
+              {olculmemisSerit.reduce((a, s) => a + (s.gucMw ?? 0), 0).toFixed(1)} MWe.
+            </p>
+            <ul className="ab-olculmemis-liste">
+              {olculmemisSerit.map((s) => (
+                <li key={s.id}>
+                  <Link href={`/tesisler/${s.id}`}
+                    aria-label={`${s.ad} · ${s.gucMw ?? 'güç kaydı yok'} MW · değerlendirilmedi`}>
+                    {/* `color` veriyoruz: tarama deseni de kenarlık da
+                        `currentColor` okur, ikisi tek yerden gelsin. */}
+                    <span className="kare" aria-hidden style={{ color: tipRengi(s.tipKod) }} />
+                    <span className="ad">{s.ad}</span>
+                    <span className="mono guc">{s.gucMw ?? '—'} MW</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </Cekmece>
+        </div>
+      )}
     </main>
   );
 }
@@ -480,16 +539,28 @@ function Mudahale({ dikkat, toplamKayit, kapsamli }: {
   );
 }
 
-function Takimyildizi({ santraller }: { santraller: SantralKarti[] }) {
+function Takimyildizi({ santraller, gosterim = OLCULMEMIS_VARSAYILAN, serit, panelAcik, setPanelAcik }: {
+  santraller: SantralKarti[];
+  /** Değerlendirilmemiş özetinin ayrıntı düzeyi — konsol `saha.olculmemis`. */
+  gosterim?: OlculmemisGosterimi;
+  /* Liste ve panelin AÇIKLIĞI yukarıda tutulur. Sebep ölçüldü: panel bu
+     bileşenin içinde çizilirken görünmüyordu — `.ab-b-takim` `z-index: 1`
+     ile kendi YIĞINLAMA BAĞLAMINI kurar ve `position: fixed` panel o
+     bağlamın içinde kalır; DOM'da sonra gelen kardeş `.ab-b-katman` (aynı
+     z-index) onun üstüne boyanır. Panel `.ab-b-alan`ın DIŞINDA, `Genel`in
+     kökünde çizilerek bağlamdan çıkarıldı. */
+  serit: SantralKarti[];
+  panelAcik: boolean;
+  setPanelAcik: (a: boolean) => void;
+}) {
   const olculen = santraller.filter((s) => s.endeks !== null);
   const olculmemis = santraller.filter((s) => s.endeks === null);
-  /* Ölçek TÜM portföyden gelir: şerit ile eksen aynı dikey ölçeği
+  /* Ölçek TÜM portföyden gelir: eksen ve panel aynı dikey ölçeği
      paylaşmazsa iki taraf karşılaştırılamaz hâle gelir. */
   const enGuc = Math.max(1, ...santraller.map((s) => s.gucMw ?? 0));
   const dikey = (s: SantralKarti) => 8 + Math.sqrt((s.gucMw ?? 0) / enGuc) * 100 * 0.78;
-  /* Şerit güce göre SIRALI (yukarıdaki nota bakın); gücü bilinmeyen
-     sona düşer — "0 MW" diye sıralanmaz. */
-  const serit = [...olculmemis].sort((a, b) => (b.gucMw ?? -1) - (a.gucMw ?? -1));
+  const mweToplam = olculmemis.reduce((a, s) => a + (s.gucMw ?? 0), 0).toFixed(1);
+  const { gosterilen: ilkAdlar, kalan } = ozetKur(serit.map((s) => s.ad), gosterim);
 
   /* Künye çakışması — ÖLÇÜLDÜ, varsayılmadı: Kızıldere III (%56 · 165 MW)
      ile Gökçedağ (%67 · 135 MW) dikeyde 31px, künye ise 28px yüksek;
@@ -512,41 +583,48 @@ function Takimyildizi({ santraller }: { santraller: SantralKarti[] }) {
           adları, hedef köşesi); ikisi kaldı: eksen okları ("uyum endeksi →",
           "↑ kurulu güç") ve "↗ güçlü ve uyumlu" köşesi. Başlık kuyruğu
           `title`a taşındı — aynı bilgi, bir kez. */}
-      <p className="etiket ust" title="Yatay: uyum endeksi (sağa → daha uyumlu) · Dikey: kurulu güç (yukarı ↑ daha büyük)">
-        Santraller · uyum × güç
-      </p>
+      {/* Başlık ve değerlendirilmemiş özeti AYNI satırda: özet ayrı bir
+          satıra inseydi tuvalden ~42px yükseklik alırdı ve 768px'te künye
+          çakışması ölçülen bir risk. Burada yükseklik maliyeti yok, tuval
+          hem enine (eski 176px kolon kalktı) hem boyuna kazanıyor. */}
+      <div className="ab-takim-bas">
+        <p className="etiket ust" title="Yatay: uyum endeksi (sağa → daha uyumlu) · Dikey: kurulu güç (yukarı ↑ daha büyük)">
+          Santraller · uyum × güç
+        </p>
+        {olculmemis.length > 0 && (
+          /* Özet satırı: sayı ÖNCE ve tek başına okunur; oran ("11/16")
+             sayının söylemediğini söyler — portföyün üçte ikisi hiç
+             ölçülmemiş. Adlar ikincil mürekkeple, tek satırda, sığdığı
+             kadar. Uzun yöntem notu `title`ta kalır, ekranda değil. */
+          <div className="ab-olculmemis">
+            <span className="im" aria-hidden style={{ color: 'var(--i3)' }} />
+            <span className="ad">Değerlendirilmemiş</span>
+            <span className="sayi mono"
+              title={`${olculmemis.length} santralin uyum endeksi ölçülmedi — sıfır değil. Toplam ${mweToplam} MWe.`}>
+              {olculmemis.length}<span className="bolu">/{santraller.length}</span>
+            </span>
+            <span className="mwe mono">{mweToplam} MWe</span>
+            {ilkAdlar.length > 0 && (
+              <span className="adlar">{ilkAdlar.join(' · ')}</span>
+            )}
+            {gosterim.detay === 'panel' ? (
+              <button type="button" className="ab-olculmemis-ac"
+                aria-expanded={panelAcik} aria-controls="olculmemis-panel"
+                onClick={() => setPanelAcik(!panelAcik)}>
+                {kalan > 0 ? `+${kalan} diğer` : 'listeyi aç'}
+              </button>
+            ) : (
+              /* Detay kapalıyken "+N diğer" bir DÜĞME olamaz: açacağı
+                 yer yok. Sayı yine de söylenir, sessizce düşmez. */
+              kalan > 0 && <span className="kalan mono">+{kalan} diğer</span>
+            )}
+          </div>
+        )}
+      </div>
       {santraller.length === 0 ? (
         <p className="bos">Kapsamda santral yok.</p>
       ) : (
         <div className="ab-tuval-sar">
-          {olculmemis.length > 0 && (
-            <div className="serit">
-              {/* Sayı ve yöntem tek satırda: "güce göre sıralı", toplam
-                  MWe ve "endeks ölçülmedi, sıfır değil" `title`ta. Eski
-                  tuval-altı özet notu buraya katlandı (aynı bilgi iki yerde
-                  yazılıyordu). */}
-              <p className="mono serit-bas"
-                title={`Güce göre sıralı (ölçekli değil) · ${olculmemis.length} santral · ${olculmemis.reduce((a, s) => a + (s.gucMw ?? 0), 0).toFixed(1)} MWe · endeks ölçülmedi, sıfır değil`}>
-                değerlendirilmemiş<span className="adet">{olculmemis.length}</span>
-              </p>
-              {serit.map((s) => (
-                <Link key={s.id} href={`/tesisler/${s.id}`} className="kalem"
-                  /* Durum sözcüğü şeridin BAŞLIĞINDA bir kez yazılır; her
-                     satırda tekrarlamak on bir kez aynı şeyi söylemekti.
-                     Ekran okuyucu için bağın erişilebilir adına giriyor —
-                     görsel kısalık, sözlü eksiklik demek değil. */
-                  aria-label={`${s.ad} · ${s.gucMw ?? 'güç kaydı yok'} MW · değerlendirilmedi`}>
-                  {/* `color` veriyoruz: tarama deseni de kenarlık da
-                      `currentColor` okur, ikisi tek yerden gelsin. */}
-                  <span className="kare" aria-hidden
-                    style={{ color: tipRengi(s.tipKod) }} />
-                  <span className="ad">{s.ad}</span>
-                  <span className="mono guc">{s.gucMw ?? '—'} MW</span>
-                </Link>
-              ))}
-            </div>
-          )}
-
           <div className="ab-tuval">
             {olculen.map((s, i) => {
               const x = s.endeks!;
@@ -591,6 +669,7 @@ function Takimyildizi({ santraller }: { santraller: SantralKarti[] }) {
           </div>
         </div>
       )}
+
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import 'server-only';
 import { ayarlar } from '@/lib/yapilandirma/oku';
 import { yerlesimNormalle, type SahaYerlesimi } from '@/lib/yonetim/sahaModulleri';
+import { olculmemisNormalle, type OlculmemisGosterimi } from '@/lib/yonetim/olculmemisGosterimi';
 import { db } from '@/lib/db';
 import { izinliTesisIdleri } from '@/lib/erisim';
 import type { AktifKullanici } from '@/lib/auth';
@@ -109,6 +110,8 @@ export type EkranVerisi = {
   egilim: { etiket: string; yuzde: number }[] | null;
   /** Sunum katmanı yerleşimi (konsol `saha.yerlesim`); geçersiz kayıt → kod varsayılanı. */
   yerlesim: SahaYerlesimi;
+  /** Değerlendirilmemiş özetinin ayrıntı düzeyi (konsol `saha.olculmemis`). */
+  olculmemisGosterimi: OlculmemisGosterimi;
 };
 
 /* Pencereler ve risk eşikleri yönetim konsolundan ayarlanır
@@ -119,8 +122,10 @@ const HAFTA_MS = 7 * 86_400_000;
 export async function genelEkranVerisi(k: AktifKullanici): Promise<EkranVerisi> {
   const ayarDegerleri = await ayarlar([
     'saha.kuyruk_penceresi', 'saha.takvim_gun', 'saha.akis_hafta', 'saha.yerlesim',
+    'saha.olculmemis',
     'risk.esik.kritik', 'risk.esik.yuksek'] as const);
   const yerlesim = yerlesimNormalle(ayarDegerleri['saha.yerlesim']);
+  const olculmemisGosterimi = olculmemisNormalle(ayarDegerleri['saha.olculmemis']);
   const KUYRUK_PENCERESI = Number(ayarDegerleri['saha.kuyruk_penceresi']);
   const TAKVIM_GUN = Number(ayarDegerleri['saha.takvim_gun']);
   const AKIS_HAFTA = Number(ayarDegerleri['saha.akis_hafta']);
@@ -441,6 +446,7 @@ export async function genelEkranVerisi(k: AktifKullanici): Promise<EkranVerisi> 
     toplamKayit: sirali.length,
     kapsamli: kapsamDaraltildi(uyumKapsami),
     yerlesim,
+    olculmemisGosterimi,
     ...kapsamOzeti,
   };
 }

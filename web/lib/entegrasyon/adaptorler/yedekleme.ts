@@ -1,6 +1,6 @@
 import 'server-only';
 import { z } from 'zod';
-import { BaglanmamisAdaptor } from '../sozlesme';
+import { BaglanmamisAdaptor, type IhtiyacKalemi } from '../sozlesme';
 import { AKTIF_ISLEM_YASAK, ORTAK_YAPILANDIRMA } from './ortak';
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -68,6 +68,18 @@ export class YedeklemeAdaptoru extends BaglanmamisAdaptor {
     'Commvault için webconsole URL + token; NetBackup için API key. Ayrıca ' +
     'hangi iş/politika kapsamının okunacağı. Yedek başlatma ve geri yükleme ' +
     'izni İSTENMEZ.';
+
+  readonly ihtiyaclar: IhtiyacKalemi[] = [
+    { kod: 'taban_url', ad: 'Yedekleme konsolu taban URL\'i', tur: 'adres', sir: false,
+      aciklama: 'Veeam Enterprise Manager · Commvault webconsole · NetBackup API adresi.' },
+    { kod: 'kimlik', ad: 'Salt okunur konsol hesabı / API anahtarı', tur: 'kimlik', sir: true,
+      aciklama: 'Sır katmanından çözülür. "Restore Operator" DEĞİL, yalnız '
+        + 'okuma rolü — bu adaptör geri yükleme başlatmaz.' },
+    { kod: 'kapsam', ad: 'Okunacak iş / politika kapsamı', tur: 'kapsam', sir: false,
+      aciklama: 'Hangi yedekleme işlerinin sonuçları okunacak.' },
+    { kod: 'izinler', ad: 'Yedek başlatma ve geri yükleme izni YOK', tur: 'izin', sir: false,
+      aciklama: 'Bu izinler İSTENMEZ; verilirse de adaptör kullanmaz.' },
+  ];
 }
 
 export const yedeklemeAdaptoru = new YedeklemeAdaptoru();

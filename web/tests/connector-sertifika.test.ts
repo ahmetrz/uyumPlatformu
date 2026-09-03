@@ -83,7 +83,7 @@ describe('Sertifikasyon kapsamı', () => {
     for (const tip of ADAPTOR_TIPLERI) expect(FIKSTURLER[tip].tip).toBe(tip);
   });
 
-  it('her adaptörde 14 kontrolün 14ü de sonuçlanır ve gerekçelidir', () => {
+  it('her adaptörde 15 kontrolün 15i de sonuçlanır ve gerekçelidir', () => {
     for (const tip of ADAPTOR_TIPLERI) {
       const r = raporlar.get(tip)!;
       expect(r.kontroller.map((k) => k.kod)).toEqual([...KONTROL_KODLARI]);
@@ -91,7 +91,8 @@ describe('Sertifikasyon kapsamı', () => {
         // `uygulanamaz` da gerekçe taşır: "koşmadı" bilgisi sessiz kalmaz.
         expect(k.gerekce.trim().length).toBeGreaterThan(10);
       }
-      expect(r.ozet.gecti + r.ozet.kaldi + r.ozet.uygulanamaz + r.ozet.bilinmiyor).toBe(14);
+      expect(r.ozet.gecti + r.ozet.kaldi + r.ozet.uygulanamaz + r.ozet.bilinmiyor)
+        .toBe(KONTROL_KODLARI.length);
     }
   });
 

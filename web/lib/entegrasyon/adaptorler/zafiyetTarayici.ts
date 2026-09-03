@@ -1,6 +1,6 @@
 import 'server-only';
 import { z } from 'zod';
-import { BaglanmamisAdaptor } from '../sozlesme';
+import { BaglanmamisAdaptor, type IhtiyacKalemi } from '../sozlesme';
 import { AKTIF_ISLEM_YASAK, ORTAK_YAPILANDIRMA } from './ortak';
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -73,6 +73,19 @@ export class ZafiyetTarayiciAdaptoru extends BaglanmamisAdaptor {
     'okunacağı tarama/varlık grubu kimlikleri. OT bölgesi için ek şart: ' +
     'yalnız pasif ya da agent tabanlı sonuç kaynağı ve OT sahibinin yazılı ' +
     'onayı — bu adaptör tarama BAŞLATMAZ, yalnız sonuç okur.';
+
+  readonly ihtiyaclar: IhtiyacKalemi[] = [
+    { kod: 'taban_url', ad: 'Tarayıcı konsolunun taban URL\'i', tur: 'adres', sir: false,
+      aciklama: 'Tenable.io · Qualys · Rapid7 konsol adresi.' },
+    { kod: 'api_anahtari', ad: 'Salt okunur API anahtarı çifti', tur: 'kimlik', sir: true,
+      aciklama: 'Access + secret key; sır katmanından referansla çözülür.' },
+    { kod: 'kapsam', ad: 'Okunacak tarama / varlık grubu kimlikleri', tur: 'kapsam', sir: false,
+      aciklama: 'Sonuçların hangi taramadan okunacağı.' },
+    { kod: 'ot_onayi', ad: 'OT bölgesi için yazılı sahip onayı', tur: 'izin', sir: false,
+      aciklama: 'OT bölgesinde YALNIZ pasif ya da agent tabanlı sonuç kaynağı '
+        + 'kullanılır ve OT sahibinin yazılı onayı aranır. Bu adaptör tarama '
+        + 'BAŞLATMAZ, yalnız sonuç okur.' },
+  ];
 }
 
 export const zafiyetTarayiciAdaptoru = new ZafiyetTarayiciAdaptoru();

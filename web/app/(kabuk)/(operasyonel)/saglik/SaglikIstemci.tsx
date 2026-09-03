@@ -9,6 +9,10 @@ import { Cekmece } from '@/components/kabuk/panel';
 import { exceleAktar, pdfYazdir } from '@/components/disaAktar';
 import { etiketle, tarihTR, zamanTR } from '@/lib/sabitler';
 import type { ConnectorSagligi, EntegrasyonOzeti } from '@/lib/entegrasyon/saglikOzeti';
+import {
+  DURUM_SINIFI, DURUM_SOZU, hazirlikCumlesi, hazirlikOzeti, type Kontrol,
+} from '@/lib/altyapi/hazirlikKarari';
+import { AILE_ETIKETI, type AltyapiSaglayici } from '@/lib/altyapi/saglayicilar';
 import { KaliteKarari, TumunuCalistir } from './Eylemler';
 import {
   ConnectorOzeti, KaliteOzeti, MotorOzeti, YeniConnector,
@@ -75,10 +79,18 @@ const KALITE_KOLONLARI: Kolon[] = [
 const Bos = () => <span style={{ color: 'var(--i3)' }}>—</span>;
 
 export default function SaglikIstemci({
-  motorlar, kalite, entegrasyon, koken, yazabilir,
+  motorlar, kalite, entegrasyon, koken, hazirlik, saglayicilar,
+  baglantiIhtiyaci, yazabilir,
 }: {
   motorlar: Motor[]; kalite: KaliteBulgusu[];
-  entegrasyon: EntegrasyonOzeti; koken: KokenOzeti; yazabilir: boolean;
+  entegrasyon: EntegrasyonOzeti; koken: KokenOzeti;
+  /** OT-48 · kurulum hazırlığı kontrolleri (en kötü durum önde sıralı). */
+  hazirlik: Kontrol[];
+  /** OT-48 · sağlayıcı kütüğü; bağlı OLMAYANLAR da listede. */
+  saglayicilar: AltyapiSaglayici[];
+  /** OT-50 · adaptör başına bağlantı ihtiyacı — kurumdan istenecek kalemler. */
+  baglantiIhtiyaci: AdaptorIhtiyaci[];
+  yazabilir: boolean;
 }) {
   const [kip, setKip] = useUrlDurumu<Kip>('kip', 'motor');
   const [secili, setSecili] = useUrlDurumuBos('sec');
@@ -138,6 +150,10 @@ export default function SaglikIstemci({
       Metrik satırı DÖRTTE kalsın diye sayı burada yaşar (06 §A2). */
   const bekleyenSayisi = koken.bekleyenler.length;
 
+  /* Hazırlık kipinin sayısı GEÇEN değil, GEÇMEYEN kontroldür: "5/7" gibi
+     bir kesir düğmede yeşil görünür ve iki eksik kontrol kaybolur. */
+  const hazirlikSayisi = hazirlik.filter((x) => x.durum !== 'hazir').length;
+
   const bas = baslikMetni(m);
   const sec = (id: string) => setSecili((o) => (o === id ? null : id));
 
@@ -172,6 +188,7 @@ export default function SaglikIstemci({
               { id: 'entegrasyon', ad: `Entegrasyonlar ${m.connectorToplam}` },
               { id: 'kalite', ad: `Veri kalitesi ${m.kaliteAcik}` },
               { id: 'koken', ad: `Veri kökeni ${bekleyenSayisi}` },
+              { id: 'hazirlik', ad: `Kurulum hazırlığı ${hazirlikSayisi}` },
             ]}
           />
 
@@ -192,6 +209,10 @@ export default function SaglikIstemci({
             {kip === 'koken' && (
               <KokenBolumu ozet={koken} kaynakBolum={kaynakBolum} tipBolum={tipBolum}
                 secili={secili} sec={sec} kuyrugaAc={() => setKuyrukAcik(true)} />
+            )}
+            {kip === 'hazirlik' && (
+              <HazirlikBolumu kontroller={hazirlik} saglayicilar={saglayicilar}
+                baglantiIhtiyaci={baglantiIhtiyaci} />
             )}
           </div>
 
@@ -742,5 +763,195 @@ function DisaAktar({ motorlar, kalite, entegrasyon }: {
         </button>
       </div>
     </details>
+  );
+}
+
+/* ═══ OT-48 · Kurulum hazırlığı ════════════════════════════════════════
+
+   Öteki kipler VERİNİN ve entegrasyonların durumunu izler; bu kip
+   KURULUMUN kendisini sorar. İkisi karıştırılmaz: veri bayat olabilir ve
+   kurulum kusursuz olabilir, ya da tersi.
+
+   ── DÖRT DURUM, ÜÇE İNMEZ ────────────────────────────────────────────
+   hazır · kurulum eksik · arızalı · ÖLÇÜLEMEDİ. Sonuncusu gridir ve
+   kırmızı değildir: ölçülemeyen bir kontrol kusur DA olabilir, olmayabilir
+   de — ve zorunlu bir kontrol ölçülemediyse "hazır" cümlesi hiç kurulmaz.
+
+   ── BAĞLI OLMAYAN SAĞLAYICI LİSTEDEN ÇIKARILMAZ ──────────────────────
+   Asıl bilgi hangi yeteneğin HENÜZ OLMADIĞIDIR; bağlı olmayanı gizlemek
+   ekranı "her şey yolunda" gösterirdi. */
+
+export type AdaptorIhtiyaci = {
+  tip: string;
+  baglanabilir: boolean;
+  gerekenSirlar: string[];
+  kalemler: { kod: string; ad: string; tur: string; sir: boolean; aciklama: string }[];
+};
+
+function HazirlikBolumu({ kontroller, saglayicilar, baglantiIhtiyaci }: {
+  kontroller: Kontrol[];
+  saglayicilar: AltyapiSaglayici[];
+  baglantiIhtiyaci: AdaptorIhtiyaci[];
+}) {
+  const o = hazirlikOzeti(kontroller);
+
+  return (
+    <div style={{ display: 'grid', gap: 'var(--s26)' }}>
+      <section className="ab-blok">
+        <p className="etiket">Kurulum hazırlığı</p>
+        <p style={{ margin: '0 0 var(--s14)', fontSize: 'var(--t-field)',
+          color: o.bozuk > 0 ? 'var(--bd)'
+            : o.olculemeyenZorunlu > 0 ? 'var(--unk)'
+              : o.calismayaHazir ? 'var(--ok)' : 'var(--md)' }}>
+          {hazirlikCumlesi(o)}
+        </p>
+
+        <div style={{ display: 'grid', gap: 'var(--s14)' }}>
+          {kontroller.map((k) => (
+            <div key={k.kod} style={{ display: 'grid', gridTemplateColumns: '22px 1fr',
+              alignItems: 'start', gap: 'var(--s8)' }}>
+              <span style={{ paddingTop: 3 }}>
+                <Im durum={DURUM_SINIFI[k.durum]} ad={DURUM_SOZU[k.durum]} />
+              </span>
+              <div style={{ display: 'grid', gap: 'var(--s4)' }}>
+                <span style={{ fontSize: 'var(--t-field)', fontWeight: 600 }}>
+                  {k.ad}
+                  {!k.zorunlu && (
+                    <span className="mono" style={{ marginLeft: 'var(--s8)',
+                      fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
+                      bilgi · zorunlu değil
+                    </span>
+                  )}
+                </span>
+                <span style={{ fontSize: 'var(--t-label)',
+                  color: k.durum === 'bilinmiyor' ? 'var(--unk)' : 'var(--i2)' }}>
+                  {k.ayrinti}
+                </span>
+                {k.yapilacak && (
+                  <span className="mono" style={{ fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
+                    Yapılacak: {k.yapilacak}
+                  </span>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="ab-blok">
+        <p className="etiket">Altyapı sağlayıcıları</p>
+        <p className="ab-dip" style={{ marginTop: 0 }}>
+          Bağlı olmayan sağlayıcı listeden çıkarılmaz: asıl bilgi hangi
+          yeteneğin HENÜZ olmadığıdır. Hiçbiri &quot;çalışıyor&quot; numarası
+          yapmaz — bağlı değilse neyin eksik olduğunu yazar.
+        </p>
+        <div style={{ display: 'grid', gap: 'var(--s16)' }}>
+          {saglayicilar.map((sg) => (
+            <div key={`${sg.aile}:${sg.ad}`} style={{ display: 'grid',
+              gridTemplateColumns: '22px 1fr', alignItems: 'start', gap: 'var(--s8)' }}>
+              <span style={{ paddingTop: 3 }}>
+                <Im durum={sg.bagli ? 'ok' : 'unk'}
+                  ad={sg.bagli ? 'bağlı' : 'bağlı değil'} />
+              </span>
+              <div style={{ display: 'grid', gap: 'var(--s4)' }}>
+                <span style={{ fontSize: 'var(--t-field)', fontWeight: 600 }}>
+                  {AILE_ETIKETI[sg.aile]} · {sg.ad}
+                </span>
+                <span className="mono" style={{ fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
+                  {sg.bagli ? 'bağlı' : 'BAĞLI DEĞİL'}
+                  {' · '}çok örnek {sg.yetenek.cokOrnek ? 'evet' : 'HAYIR'}
+                  {' · '}kalıcı {sg.yetenek.kalici ? 'evet' : 'hayır'}
+                </span>
+                <span style={{ fontSize: 'var(--t-label)', color: 'var(--i2)' }}>
+                  {sg.ozet}
+                </span>
+                {sg.gereken && (
+                  <span style={{ fontSize: 'var(--t-label)', color: 'var(--unk)' }}>
+                    Gereken: {sg.gereken}
+                  </span>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <IhtiyacBolumu liste={baglantiIhtiyaci} />
+    </div>
+  );
+}
+
+/* ═══ OT-50 · Bağlantı ihtiyacı kütüğü ═════════════════════════════════
+
+   Bağlanmamış bir adaptörün en değerli çıktısı çalışan kodu değil,
+   "kurumdan ne isteyeceğiz" listesidir. Burada hiçbir gerçek adres,
+   kimlik ya da örnek kurum verisi YOKTUR: liste bilgiyi İSTER, bilginin
+   kendisini taşımaz.
+
+   SIR kalemi ayrı işaretlenir çünkü onun akıbeti farklıdır: değeri
+   veritabanına hiç yazılmaz, yalnız sır katmanından referansla çözülür. */
+
+const IHTIYAC_TUR_SOZU: Record<string, string> = {
+  adres: 'adres', kimlik: 'kimlik', kapsam: 'kapsam',
+  sertifika: 'sertifika', izin: 'izin',
+};
+
+function IhtiyacBolumu({ liste }: { liste: AdaptorIhtiyaci[] }) {
+  const bagliOlmayan = liste.filter((x) => !x.baglanabilir);
+  const toplamKalem = bagliOlmayan.reduce((t, x) => t + x.kalemler.length, 0);
+
+  return (
+    <section className="ab-blok">
+      <p className="etiket">
+        Bağlantı ihtiyacı · {bagliOlmayan.length} adaptör · {toplamKalem} kalem
+      </p>
+      <p className="ab-dip" style={{ marginTop: 0 }}>
+        Bu liste kurumdan İSTENECEK bilgileri sayar; hiçbir gerçek adres,
+        kimlik ya da örnek kurum verisi içermez ve ürünle gelmez.
+        &quot;Sır&quot; işaretli kalemin değeri veritabanına hiç yazılmaz.
+      </p>
+
+      {liste.filter((x) => x.baglanabilir).map((x) => (
+        <p key={x.tip} className="ab-dip" style={{ margin: 'var(--s10) 0 0' }}>
+          <strong>{x.tip}</strong> bağlı — kurumdan istenecek bilgi yok.
+        </p>
+      ))}
+
+      <div style={{ display: 'grid', gap: 'var(--s20)', marginTop: 'var(--s16)' }}>
+        {bagliOlmayan.map((x) => (
+          <div key={x.tip}>
+            <p className="mono" style={{ margin: '0 0 var(--s8)',
+              fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
+              {x.tip} · {x.kalemler.length} kalem ·
+              {' '}sır referansı {x.gerekenSirlar.length > 0
+                ? x.gerekenSirlar.join(', ') : 'bildirilmedi'}
+            </p>
+            <div style={{ display: 'grid', gap: 'var(--s10)' }}>
+              {x.kalemler.map((k) => (
+                <div key={k.kod} style={{ display: 'grid', gridTemplateColumns: '22px 1fr',
+                  alignItems: 'start', gap: 'var(--s8)' }}>
+                  <span style={{ paddingTop: 3 }}>
+                    <Im durum={k.sir ? 'md' : 'unk'}
+                      ad={k.sir ? 'sır — değeri saklanmaz' : 'bilgi bekleniyor'} />
+                  </span>
+                  <div style={{ display: 'grid', gap: 'var(--s3)' }}>
+                    <span style={{ fontSize: 'var(--t-field)', fontWeight: 600 }}>
+                      {k.ad}
+                      <span className="mono" style={{ marginLeft: 'var(--s8)',
+                        fontSize: 'var(--t-label)', color: k.sir ? 'var(--md)' : 'var(--i3)' }}>
+                        {IHTIYAC_TUR_SOZU[k.tur] ?? k.tur}{k.sir ? ' · SIR' : ''}
+                      </span>
+                    </span>
+                    <span style={{ fontSize: 'var(--t-label)', color: 'var(--i2)' }}>
+                      {k.aciklama}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
   );
 }

@@ -49,22 +49,22 @@ yazılmadı. Böyle maddeler için repo içi hazırlık ayrı ölçülür ve
 | Ölçü | Değer |
 | --- | --- |
 | Madde | 38 |
-| **COMPLETE** | **16** |
-| CODE_READY_EXTERNAL_DEPENDENCY | 0 |
+| **COMPLETE** | **17** |
+| CODE_READY_EXTERNAL_DEPENDENCY | 3 |
 | IN_PROGRESS | 0 |
-| NOT_STARTED | 22 |
+| NOT_STARTED | 18 |
 | Yeni Prisma modeli | 21 (FAZ A 13 · FAZ B 8) |
 | Yeni göç | 4 (dördü de veri kaybı 0 · ölçülerek doğrulandı) |
 | Yeni motor | 5 (9 → 14) |
 | Yeni rota | 2 (`/tabanlar` · `/prosesler`) |
-| Yeni konsol modülü | 16 |
-| Toplam test | 2001 geçti · 1 atlandı |
+| Yeni konsol modülü | 22 |
+| Toplam test | 2072 geçti · 1 atlandı |
 
 ### Kapı sonuçları (03.09.2026 · FAZ B sonu)
 
 | Kapı | Sonuç |
 | --- | --- |
-| `npm run test` | **2001 geçti · 1 atlandı · 0 kusur** (108 dosya) |
+| `npm run test` | **2072 geçti · 1 atlandı · 0 kusur** (110 dosya) |
 | `npm run lint` · `npx tsc --noEmit` | temiz |
 | `tasarim:kapi` | kontrast kusuru 0 · eksik font 0 · eski tasarım izi 0 |
 | `rota:duman` | **48/48 rota** · kusurlu 0 · test edilemedi 0 · sayfa hatası 0 |
@@ -101,11 +101,11 @@ token tablosudur ve ikisi de ayrı bir işin konusudur.
 | OT-27 | Güvenlik kapsaması | **COMPLETE** | Şema: `GuvenlikKapsami` · Mantık: `lib/varlik/kapsam.ts` (11 tip × 5 durum) · Eylem: `kapsamKaydet` · UI: Envanter › Duruş › Güvenlik kapsaması · Konsol: `guvenlikKapsami` · Test: 9 + 4 | — |
 | OT-28 | Konfigürasyon drift | **COMPLETE** | Şema: `KonfigTemeli` · `KonfigSapmasi` · Mantık: `lib/varlik/konfigDrift.ts` (eksik özet `sapma` DEĞİL `karar_verilemedi` · tabansız cihaz oranın PAYDASINA girmez) · Motor: `konfig_drift` (düzelen sapmayı kapatır, elle kararlı satıra dokunmaz) · Eylem: `konfigTemeliOnayla` (özetsiz yedek taban olamaz) · `konfigSapmasiKarari` (onaylı karar değişiklik referansı ister) · UI: `/yedekleme` › Konfigürasyon tabanı ve sapması + Envanter › Yönetişim › Konfigürasyon · Konsol: `konfigTemeli` · Test: 16 + 9 | — |
 | OT-33 | Hesap tipleri | **COMPLETE** | Şema: `KimlikHesabi.kaynakTipi · mfaVar · sonaErme · parolaPolitikasi` · Mantık: `lib/varlik/hesapTipi.ts` (5 kaynak tipi · `merkezdenKapatilabilir` üç değerli · MFA bulgusu yalnız ayrıcalık ÖLÇÜLMÜŞSE açılır) · Eylem: `hesapTipiKaydet` · UI: `/kimlik` › Kaynak ve kimlik bloğu (üç değerli MFA seçicisi) · Konsol: `hesapTipi` · Test: 20 + 6 | — |
-| OT-40 | Otomatik veri toplama | `NOT_STARTED` | — | Auth soyutlaması, HTTP istemcisi, timeout, tombstone; `maksDeneme`/`geriCekilmeMs`in sessizce yok sayılması (ölçülmüş kusur) |
+| OT-40 | Otomatik veri toplama | **CODE_READY_EXTERNAL_DEPENDENCY** | Mantık: `lib/entegrasyon/http.ts` (zaman aşımı · gövde sınırı · yönlendirme İZLENMEZ · SSRF/metadata engeli · TLS zorunluluğu) · `kimlikDogrulama.ts` (api_key · basic · OAuth2 client_credentials + token önbelleği; `certificate` UYGULANMADI der) · `mezarTasi.ts` + `mezarTasiIsle.ts` (kaynakta kaybolan kayıt → bulgu, SİLME YOK) · Çekirdek: `maksDeneme`/`geriCekilmeMs` artık connector kaydından OKUNUR · UI: `/saglik` › Yapılandırma (deneme + geri çekilme alanları) · Konsol: `connectorDeneme` · `mezarTasi` · Test: 46 (yerel sunucuya karşı; sabotajla doğrulandı) | **Kalan tek eksik dış bağımlılık:** kurumun gerçek uç noktası, kimlik bilgisi ve ağ erişimi. Repo içinde yapılabilecek her şey bitti; hiçbir adres ürünle GELMEZ. |
 | OT-44 | Veri kalitesi kuralları | **COMPLETE** | Şema: `VeriKalitesiBulgusu` (mevcut) · Mantık: `agTutarliligi.ts` 6 kural + ölçüm borcu kuralları · Motor: açar VE kapatır · Eylem: `veriKalitesiBulgusuKapat` (giderildi ≠ kabul edildi) · UI: Sağlık › Veri kalitesi kipi + karar formu · Konsol: `veriKalitesiKarari` · Test: 12 + 3 | — |
-| OT-48 | Üretim ölçeği altyapısı | `NOT_STARTED` | — | DB/nesne deposu/leader election soyutlamaları, startup readiness · sonunda **dış bağımlılık** |
-| OT-49 | Performans testi | `NOT_STARTED` | — | p50/p95/p99, API yük üretici, taban dosyası |
-| OT-50 | Gerçek entegrasyonlar | `NOT_STARTED` | — | 7 adaptör şablonu · sonunda **dış bağımlılık** |
+| OT-48 | Üretim ölçeği altyapısı | **CODE_READY_EXTERNAL_DEPENDENCY** | Mantık: `lib/altyapi/saglayicilar.ts` (üç aile × bağlı/bağlı değil; PostgreSQL · S3 uyumlu depo · dağıtık kilit KAYITLI DEĞİL ve neyin gerektiğini yazar) · `hazirlikKarari.ts` (dört durum: hazır · eksik · arızalı · ÖLÇÜLEMEDİ) · `hazirlik.ts` (yazma yoklaması · göç kütüğü · zamanlayıcı · sağlayıcı · çok örnek engeli) · UI: `/saglik` › Kurulum hazırlığı kipi · Konsol: `kurulumHazirligi` · `altyapiSaglayici` · Test: 15 | **Kalan tek eksik dış bağımlılık:** PostgreSQL, nesne deposu ve (gerekirse) dağıtık koordinasyon uç noktaları. Kilit/önderlik zaten `IsKilidi` kira modeliyle çok örnekli çalışır. |
+| OT-49 | Performans testi | **COMPLETE** | Araç: `arac/yuk.mjs` (`npm run olcum:yuk`) + saf matematik `arac/yuzdelik.mjs` (nearest-rank; ölçülmeyen yüzdelik `null`, `0 ms` DEĞİL) · Taban: `arac/performans-tabani.json` — ÜRETİM YAPISINA karşı ölçüldü ve kip dosyaya yazıldı · Gerileme için hem oran hem ÖLÇÜLMÜŞ gürültü bandı (50 ms) aşılmalı · Konsol: `performansTabani` · Test: 10 | — |
+| OT-50 | Gerçek entegrasyonlar | **CODE_READY_EXTERNAL_DEPENDENCY** | Şablon: 8 adaptör (7'si `BaglanmamisAdaptor` ve bunu AÇIKÇA söyler) · Sözleşme: `IhtiyacKalemi` — bağlanmamış her adaptör kurumdan isteyeceği kalemleri YAPISAL beyan eder (`abstract`, unutulamaz) · Sertifikasyon: 15. kontrol `baglanti_ihtiyaci` boş/yinelenen listeyi ve sırsız beyanı KUSUR sayar · UI: `/saglik` › Kurulum hazırlığı › Bağlantı ihtiyacı · Konsol: `baglantiIhtiyaci` · Test: 27 | **Kalan tek eksik dış bağımlılık:** her adaptör için kurumun uç noktası, salt okunur kimlik bilgisi ve ağ erişimi. Ürün hiçbir gerçek adres ya da kimlik İÇERMEZ. |
 
 ### UY — Regülasyon ve uyum
 
@@ -303,26 +303,123 @@ FAZ B sekiz maddeyi birden kapattı: **OT-05 · 08 · 09 · 16 · 17 · 20 ·
 
 ---
 
-## 5. Sıradaki iş — bağımlılık sırası
+## 5. FAZ C'de ne yapıldı — kanıtla
 
-1. **OT-40 / OT-48 / OT-49 / OT-50 (FAZ C)** — sağlayıcı mimarisi ve
-   ölçüm; dördü de tek bir soyutlama katmanına dayanır ve sonunda dış
-   bağımlılığa çıkar (`CODE_READY_EXTERNAL_DEPENDENCY`).
-2. **UY-07 / UY-12 / UY-13 / UY-16 / UY-18 / UY-20 (FAZ D)** — kanıt
-   katmanı; `StorageProvider` soyutlaması UY-13 ile UY-18'i birlikte
-   taşır.
-3. **UY-26 / UY-28 / UY-36 / UY-39 / UY-41 / UY-43 (FAZ E)** — altısı da
-   `Bulgu` ve değişiklik çevresinde; birlikte yapılmalı.
-4. **UY-52 … UY-57 (FAZ F)** — dış erişim, SSO, saklama ve denetçi
-   erişimi.
+FAZ C dört maddeye dokundu: **OT-40 · 48 · 49 · 50**. Üçü
+`CODE_READY_EXTERNAL_DEPENDENCY` ile kapandı, biri (OT-49) `COMPLETE`.
+Bu ayrım bu belgenin en önemli ayrımıdır ve gevşetilmedi: bir madde
+ancak repo içinde yapılabilecek her şey bittiğinde ve kalan tek eksik
+GERÇEK bir kurum sistemi olduğunda o duruma yazılır.
+
+### 5.1 Bu fazda hiçbir uç nokta, kimlik ya da örnek kurum verisi yazılmadı
+
+`lib/entegrasyon/http.ts` bir HTTP istemcisidir ve **tek bir adres
+içermez**: taban URL her zaman connector yapılandırmasından gelir.
+Adaptörlerin ihtiyaç listeleri "bize şu bilgiyi verin" der; bilginin
+kendisini taşımaz. Ölçüm aracı yalnız 127.0.0.1'e, kendi kurduğu
+sunucuya gider.
+
+### 5.2 OT-40 · üç sessiz kusur kapatıldı
+
+Çıplak `fetch` üç kusur taşır ve üçü de OT ağında pahalıdır. İstemci
+üçünü de kapatır ve **kapalılığı sabotajla ölçüldü** (kural kaldırıldı,
+testler kırıldı, geri alındı):
+
+| Kusur | Sonucu | Kapatılışı |
+| --- | --- | --- |
+| Zaman aşımı yok | Yanıt vermeyen uç koşuyu `calisiyor`da asar; connector 15 dk kilitlenir | `AbortSignal.timeout` · aşan istek `gecici` hata |
+| Yönlendirme sessizce izlenir | `Authorization` başlığı BAŞKA bir origin'e gider — sessiz sır sızıntısı | `redirect: 'manual'` · 3xx bir hatadır ve hedefi yazılır |
+| Gövde sınırsız | Yanlış filtreyle açılan uç süreç belleğini tüketir | Akış sınırla okunur; kırpılan gövde AYRIŞTIRILMAZ |
+
+Buna üç kural daha eklendi: bulut metadata adresi her koşulda reddedilir
+(SSRF), düz http yalnız ÖZEL AĞDA ve açık izinle kabul edilir, OAuth2
+token ucu **özel ağda bile** https ister (gövdesinde istemci sırrı taşır).
+
+### 5.3 OT-40 · ölçülmüş kusur: yazılıp okunmayan ayar
+
+`Connector.maksDeneme` ve `geriCekilmeMs` şemada vardı, ekranda
+düzenlenebiliyordu ve **hiçbir yerde okunmuyordu**. Kullanıcı ayarı
+değiştiriyor, çekirdek sabit varsayılanı kullanmaya devam ediyordu:
+ayarı yazan bir ekran, okumayan bir çekirdek. Artık çekirdek koşu
+başlarken connector kaydından okur; sıra çağıranın açık isteği →
+connector kaydı → ürün varsayılanıdır.
+
+### 5.4 OT-40 · mezar taşı — silmeyen silme tespiti
+
+Yalnız "yeni ve değişen" çeken bir entegrasyon, hurdaya çıkmış bir cihazı
+sonsuza kadar envanterde canlı gösterir. Mezar taşı bunu kapatır ama
+**hiçbir kaydı silmez**: bir veri kalitesi bulgusu açar. Üç koşul
+birden sağlanmadan tek bir mezar taşı üretilmez — koşu TAM olmalı
+(delta'da gelmemek "değişmedi" demektir), koşu EKSİKSİZ bitmiş olmalı
+(sayfa sınırına takılan koşu okunmamış sayfayı yok gösterirdi) ve kayıp
+oranı eşiği aşmamalı ("filonun %90'ı silinmiş" bir gözlem değil, kaynak
+sorgusunun daraldığının belirtisidir).
+
+### 5.5 OT-48 · bağlı olmayan sağlayıcı gizlenmez
+
+Üç aile (veritabanı · nesne deposu · koordinasyon) ve altı sağlayıcı;
+üçü bağlı, üçü değil. Bağlı olmayan **listeden çıkarılmaz** — ekranı
+"her şey yolunda" gösterirdi; asıl bilgi hangi yeteneğin HENÜZ
+olmadığıdır. Hazırlık kontrolü dört durumludur ve `bilinmiyor` griye
+çizilir: **zorunlu bir kontrol ölçülemediyse "hazır" cümlesi hiç
+kurulmaz.**
+
+Çok örnekli dağıtım engeli ayrı bir BİLGİ kalemidir, kusur değil: tek
+örnekli kurulum geçerlidir, ama "yatay ölçekleyelim" denince engelin adı
+(sqlite · yerel_dosya) tek bakışta görünür.
+
+### 5.6 OT-49 · taban gerçekten ölçüldü
+
+`arac/performans-tabani.json` uydurulmadı: **üretim yapısına** karşı, 10
+rota × 30 istek, eşzamanlılık 4 ile ölçüldü ve dosyaya kip, makine,
+Node sürümü ve ayarlar yazıldı. Aracın dürüst sınırı da yazılı: ölçüm
+TOHUM VERİSİYLEDİR ve kurumun gerçek veri hacmini temsil etmez — o
+UY-55'in konusudur ve gerçek veri gelmeden ölçülemez.
+
+Gerileme eşiği ölçülerek konuldu: aynı koda arka arkaya koşulan
+ölçümlerde p95 32–80 ms bandında gezdi, yani gürültü bandı ~50 ms.
+Yalnız orana bakan bir kapı her koşuda rastgele bağırır ve üç koşu sonra
+kimse ona bakmaz; bu yüzden gerileme sayılmak için **hem oran hem
+ölçülmüş band** aşılmalıdır.
+
+### 5.7 OT-50 · ihtiyaç listesi paragraftan çıktı
+
+Bağlanmamış her adaptörün "neye ihtiyacım var" cevabı bir paragraftaydı.
+Paragraf insan için iyidir ama kontrol listesine dönüşemez, hangi
+kalemin SIR olduğu makinece bilinemez ve eksik bırakılan kalem testle
+yakalanamaz. Artık ihtiyaç **yapısal** olarak da beyan edilir ve alan
+`abstract`tır — yeni bir adaptör onu doldurmayı unutamaz, derleyici
+durdurur. Sertifikasyonun 15. kontrolü boş listeyi, yinelenen kodu ve
+"sır lazım ama referans bildirilmemiş" hâlini KUSUR sayar.
 
 ---
 
-## 6. Gerçek bağlantı için gereken dış bilgiler
+## 6. Sıradaki iş — bağımlılık sırası
+
+1. **UY-07 / UY-12 / UY-13 / UY-16 / UY-18 / UY-20 (FAZ D)** — kanıt
+   katmanı; nesne deposu sağlayıcısı (OT-48) UY-13 ile UY-18'i birlikte
+   taşır.
+2. **UY-26 / UY-28 / UY-36 / UY-39 / UY-41 / UY-43 (FAZ E)** — altısı da
+   `Bulgu` ve değişiklik çevresinde; birlikte yapılmalı.
+3. **UY-52 … UY-57 (FAZ F)** — dış erişim, SSO, saklama ve denetçi
+   erişimi. UY-54 OT-48'in sağlayıcı kütüğünü kullanır; UY-55 OT-49'un
+   aracını gerçek veriyle koşturur.
+
+---
+
+## 7. Gerçek bağlantı için gereken dış bilgiler
 
 Yalnız gerçekten gerekenler. Bu bilgiler gelmeden de **repo içi hazırlık
-tamamlanabilir**; aşağıdaki maddeler o hazırlık henüz yapılmadığı için
-`NOT_STARTED`tır, "bilgi bekliyor" değil.
+tamamlanabilir**.
+
+**OT-40 · OT-48 · OT-50 artık gerçekten "bilgi bekliyor" durumundadır**
+(`CODE_READY_EXTERNAL_DEPENDENCY`): repo içinde yapılabilecek her şey
+bitti. Kalan maddeler ise o hazırlık henüz yapılmadığı için
+`NOT_STARTED`tır — ikisi karıştırılmaz.
+
+Adaptör başına ihtiyaç listesinin YAPISAL hâli üründedir:
+`/saglik` › Kurulum hazırlığı › Bağlantı ihtiyacı. Aşağıdaki tablo onun
+özetidir.
 
 | Madde | Gereken |
 | --- | --- |

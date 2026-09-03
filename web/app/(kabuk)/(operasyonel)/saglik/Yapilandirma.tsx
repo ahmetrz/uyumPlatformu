@@ -114,6 +114,8 @@ export function ConnectorYapilandirma({
           senkronKipi: f.senkronKipi,
           ardisikHataSiniri: f.ardisikHataSiniri.trim()
             ? Number(f.ardisikHataSiniri) : null,
+          maksDeneme: f.maksDeneme.trim() ? Number(f.maksDeneme) : null,
+          geriCekilmeMs: f.geriCekilmeMs.trim() ? Number(f.geriCekilmeMs) : null,
           gerekce: f.gerekce.trim() || null,
         });
         if (!ikinci.ok) {
@@ -185,6 +187,18 @@ export function ConnectorYapilandirma({
           <input className="ab-gr mono" value={f.ardisikHataSiniri}
             onChange={yaz('ardisikHataSiniri')} inputMode="numeric"
             placeholder="boş = otomatik duraklatma yok" />
+        </Alan>
+        {/* OT-40 · Bu iki ayar bir zamanlar yazılıp HİÇ OKUNMUYORDU;
+            artık çekirdek koşu başlarken connector kaydından okuyor. */}
+        <Alan etiket="Geçici hatada deneme sayısı">
+          <input className="ab-gr mono" value={f.maksDeneme}
+            onChange={yaz('maksDeneme')} inputMode="numeric"
+            placeholder="boş = ürün varsayılanı (3) · en çok 10" />
+        </Alan>
+        <Alan etiket="Geri çekilme tabanı (ms)">
+          <input className="ab-gr mono" value={f.geriCekilmeMs}
+            onChange={yaz('geriCekilmeMs')} inputMode="numeric"
+            placeholder="boş = ürün varsayılanı (1000 · 4000 · 16000)" />
         </Alan>
         <Alan etiket="Gerekçe" zorunlu={gerekceEksik}>
           <input className="ab-gr" value={f.gerekce} onChange={yaz('gerekce')}

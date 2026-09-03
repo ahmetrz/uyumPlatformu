@@ -355,7 +355,7 @@ export function kaliteSirala(bulgular: KaliteBulgusu[]): KaliteBulgusu[] {
    kipten bağımsızdır. Köken kipi kendi sayısını metriğe eklemez — bütçeyi
    beşe çıkarmak yerine sayı kip düğmesinde ve tablo dip notunda yaşar. */
 
-export type Kip = 'motor' | 'entegrasyon' | 'kalite' | 'koken';
+export type Kip = 'motor' | 'entegrasyon' | 'kalite' | 'koken' | 'hazirlik';
 
 /** Yoğunluk sözleşmesi: 5–9 görünür satır, gerisi kuyruğa iner. */
 export const GORUNUR_BUTCE = 7;
@@ -580,6 +580,10 @@ export type ConnectorFormu = {
   ortam: string;
   senkronKipi: string;
   ardisikHataSiniri: string;
+  /** Boş = ürün varsayılanı (3). ÇEKİRDEK BUNU OKUR. */
+  maksDeneme: string;
+  /** Boş = ürün varsayılanı (1s·4s·16s). ÇEKİRDEK BUNU OKUR. */
+  geriCekilmeMs: string;
   gerekce: string;
 };
 
@@ -598,7 +602,8 @@ export function formVarsayilani(c: ConnectorSagligi | null): ConnectorFormu {
       kimlikTipi: 'none', sirReferansi: '', pollAralikDk: '',
       // Yeni kayıt DAİMA geliştirme ortamında başlar: üretim bilinçli bir
       // seçimdir, varsayılan olamaz.
-      ortam: 'gelistirme', senkronKipi: 'delta', ardisikHataSiniri: '', gerekce: '',
+      ortam: 'gelistirme', senkronKipi: 'delta', ardisikHataSiniri: '',
+      maksDeneme: '', geriCekilmeMs: '', gerekce: '',
     };
   }
   return {
@@ -608,6 +613,9 @@ export function formVarsayilani(c: ConnectorSagligi | null): ConnectorFormu {
     ortam: c.ortam ?? 'gelistirme',
     senkronKipi: c.senkronKipi ?? 'delta',
     ardisikHataSiniri: c.ardisikHataSiniri === null ? '' : String(c.ardisikHataSiniri),
+    maksDeneme: c.maksDeneme === null || c.maksDeneme === undefined ? '' : String(c.maksDeneme),
+    geriCekilmeMs: c.geriCekilmeMs === null || c.geriCekilmeMs === undefined
+      ? '' : String(c.geriCekilmeMs),
     gerekce: '',
   };
 }
@@ -649,6 +657,17 @@ export function formSorunlari(f: ConnectorFormu): string[] {
   }
   if (f.ardisikHataSiniri.trim() && !(Number(f.ardisikHataSiniri) > 0)) {
     sorunlar.push('Ardışık hata sınırı pozitif olmalı');
+  }
+  /* Üst sınırlar sunucudakiyle AYNI: 10 denemeden fazlası kimlik
+     hatasında hesap kilitleme sayacını doldurur, 60 sn'den uzun taban
+     geri çekilme koşuyu bayat eşiğine taşır. */
+  const deneme = Number(f.maksDeneme);
+  if (f.maksDeneme.trim() && !(Number.isInteger(deneme) && deneme >= 1 && deneme <= 10)) {
+    sorunlar.push('Deneme sayısı 1 ile 10 arasında bir tam sayı olmalı');
+  }
+  const geri = Number(f.geriCekilmeMs);
+  if (f.geriCekilmeMs.trim() && !(Number.isInteger(geri) && geri >= 100 && geri <= 60_000)) {
+    sorunlar.push('Geri çekilme 100 ile 60.000 ms arasında olmalı');
   }
   return sorunlar;
 }

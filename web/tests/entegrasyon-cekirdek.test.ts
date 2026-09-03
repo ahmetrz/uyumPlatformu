@@ -242,6 +242,15 @@ describe('Connector senkronizasyon çekirdeği (izole DB kopyası)', () => {
          beyan üretirdi. */
       readonly yapilandirmaSemasi = z.looseObject({});
       readonly gerekenSirlar = ['env:TEST_AD_PAROLA'];
+      /* OT-50 · İhtiyaç listesi de zorunludur ve `abstract`tır: varsayılan
+         boş liste verilseydi yeni bir adaptör onu doldurmayı unutur ve
+         ekranda "hiçbir şey gerekmiyor" yazardı — bağlanmamış bir
+         adaptörde mümkün olan en yanlış cümle. */
+      readonly ihtiyaclar = [{
+        kod: 'bind_hesabi', ad: 'Salt okunur bind hesabı',
+        tur: 'kimlik' as const, sir: true,
+        aciklama: 'Sır katmanından referansla çözülür.',
+      }];
     }
     adaptorKaydet(new BagliDegil(), true);
     const c = await connectorYap('test_baglanmamis', { imlec: 'imlec-0' });

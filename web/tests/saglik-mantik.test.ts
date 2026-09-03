@@ -59,6 +59,7 @@ function connector(ozel: Partial<ConnectorSagligi> = {}): ConnectorSagligi {
     // Yapılandırma tezgâhının alanları (§8): ortam bir GÜVENLİK bilgisidir.
     ortam: 'gelistirme', senkronKipi: 'delta', ardisikHata: 0,
     ardisikHataSiniri: null, devreKesiciEsikte: false, eslemeProfilId: null,
+    maksDeneme: null, geriCekilmeMs: null,
     pollAralikDk: 60, sonHataOzeti: null, gerekenSirlar: [],
     ...ozel,
   };

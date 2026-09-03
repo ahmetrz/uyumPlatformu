@@ -1,6 +1,6 @@
 import 'server-only';
 import { z } from 'zod';
-import { BaglanmamisAdaptor } from '../sozlesme';
+import { BaglanmamisAdaptor, type IhtiyacKalemi } from '../sozlesme';
 import { AKTIF_ISLEM_YASAK, ORTAK_YAPILANDIRMA } from './ortak';
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -86,6 +86,24 @@ export class OtKesifAdaptoru extends BaglanmamisAdaptor {
     'okunacağı ve platform sunucusundan konsola ağ erişimi (genellikle ' +
     'OT-DMZ üzerinden). Aktif sorgulama (Active Queries / Smart Polling) ' +
     'izni İSTENMEZ — bu adaptör yalnız mevcut envanteri okur.';
+
+  readonly ihtiyaclar: IhtiyacKalemi[] = [
+    { kod: 'taban_url', ad: 'OT keşif konsolunun taban URL\'i', tur: 'adres', sir: false,
+      aciklama: 'Sahada kurulu pasif keşif ürününün konsol adresi.' },
+    { kod: 'token', ad: 'SALT OKUNUR API kullanıcısı / token', tur: 'kimlik', sir: true,
+      aciklama: 'Sır katmanından referansla çözülür.' },
+    { kod: 'kurum_ca', ad: 'Kurum kök sertifikası', tur: 'sertifika', sir: false,
+      aciklama: 'Konsolun sertifikasının doğrulanabilmesi için kurum CA\'sı. '
+        + 'Doğrulamayı kapatmak bir seçenek değildir.' },
+    { kod: 'ag_erisimi', ad: 'Konsola ağ erişimi (genellikle OT-DMZ üzerinden)',
+      tur: 'izin', sir: false,
+      aciklama: 'Platform sunucusundan konsola erişim açılmadan okuma yapılamaz.' },
+    { kod: 'kapsam', ad: 'Okunacak site / zone kapsamı', tur: 'kapsam', sir: false,
+      aciklama: 'Hangi sahanın envanteri okunacak.' },
+    { kod: 'aktif_yok', ad: 'Aktif sorgulama izni YOK', tur: 'izin', sir: false,
+      aciklama: 'Active Queries / Smart Polling izni İSTENMEZ — bu adaptör '
+        + 'yalnız mevcut envanteri okur.' },
+  ];
 }
 
 export const otKesifAdaptoru = new OtKesifAdaptoru();

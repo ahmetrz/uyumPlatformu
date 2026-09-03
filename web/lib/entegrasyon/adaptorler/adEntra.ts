@@ -1,6 +1,6 @@
 import 'server-only';
 import { z } from 'zod';
-import { BaglanmamisAdaptor } from '../sozlesme';
+import { BaglanmamisAdaptor, type IhtiyacKalemi } from '../sozlesme';
 import { AKTIF_ISLEM_YASAK, ORTAK_YAPILANDIRMA } from './ortak';
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -75,6 +75,23 @@ export class AdEntraAdaptoru extends BaglanmamisAdaptor {
     'Device.Read.All uygulama izinleri (yönetici onayı verilmiş) · istemci sırrı ' +
     'ya da sertifika (env:ENTRA_ISTEMCI_SIRRI). Şirket içi AD için ayrıca ' +
     'salt okunur LDAP bind hesabı ve alan denetleyicisine 636/TCP erişimi.';
+
+  readonly ihtiyaclar: IhtiyacKalemi[] = [
+    { kod: 'tenant_id', ad: 'Entra tenant kimliği', tur: 'adres', sir: false,
+      aciklama: 'Uygulama kaydının bulunduğu dizinin kimliği. Şirket içi AD için '
+        + 'bunun yerine alan denetleyicisinin LDAPS adresi ve 636/TCP erişimi.' },
+    { kod: 'istemci_id', ad: 'Uygulama (client) kimliği', tur: 'kimlik', sir: false,
+      aciklama: 'Kurumun açtığı uygulama kaydının kimliği. Sır DEĞİLDİR; '
+        + 'veritabanına yazılabilir.' },
+    { kod: 'istemci_sirri', ad: 'İstemci sırrı ya da sertifika', tur: 'kimlik', sir: true,
+      aciklama: 'Sır katmanından referansla çözülür (örn. bir ortam değişkeni). '
+        + 'Değeri hiçbir zaman veritabanına yazılmaz.' },
+    { kod: 'izinler', ad: 'Directory.Read.All ve Device.Read.All', tur: 'izin', sir: false,
+      aciklama: 'YÖNETİCİ ONAYI VERİLMİŞ salt okunur uygulama izinleri. Yazma izni '
+        + 'istenmez ve verilmemelidir.' },
+    { kod: 'kapsam', ad: 'Okunacak OU / grup kapsamı', tur: 'kapsam', sir: false,
+      aciklama: 'Bütün dizini okumak yerine hangi birimlerin okunacağı.' },
+  ];
 }
 
 export const adEntraAdaptoru = new AdEntraAdaptoru();

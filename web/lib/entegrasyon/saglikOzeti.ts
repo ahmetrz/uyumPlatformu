@@ -79,6 +79,8 @@ export type ConnectorGirdi = {
   ardisikHata?: number | null;
   /** kaç ardışık hatadan sonra otomatik duraklatılır; null = duraklatma yok */
   ardisikHataSiniri?: number | null;
+  maksDeneme?: number | null;
+  geriCekilmeMs?: number | null;
   /** bağlı eşleme profili; null = tipin etkin profili kullanılır */
   eslemeProfilId?: string | null;
   /** son hatanın parmak izi (sınıf + deneme no + kısa sebep) */
@@ -224,6 +226,10 @@ export type ConnectorSagligi = {
   ardisikHataSiniri: number | null;
   /** sayaç eşiğe dayandı — bir sonraki hata connector'ı duraklatır */
   devreKesiciEsikte: boolean;
+  /** geçici hatada en çok kaç deneme; null = ÜRÜN VARSAYILANI (3) */
+  maksDeneme: number | null;
+  /** üstel geri çekilme tabanı (ms); null = ÜRÜN VARSAYILANI (1s·4s·16s) */
+  geriCekilmeMs: number | null;
   /** bağlı eşleme profili kimliği; null = tipin etkin profili */
   eslemeProfilId: string | null;
   /** beklenen poll aralığı (dk); null = yalnız elle tetiklenir.
@@ -539,6 +545,8 @@ export function connectorSagligi(
     senkronKipi: c.senkronKipi?.trim() || null,
     ardisikHata: c.ardisikHata ?? null,
     ardisikHataSiniri: c.ardisikHataSiniri ?? null,
+    maksDeneme: c.maksDeneme ?? null,
+    geriCekilmeMs: c.geriCekilmeMs ?? null,
     /* Devre kesici eşiği YALNIZ iki sayı da biliniyorsa hesaplanır; biri
        bilinmiyorsa "eşikte değil" demek uydurma olurdu, `false` kalır ve
        ekran sayaç yerine "bilinmiyor" yazar. */
@@ -721,6 +729,7 @@ export async function entegrasyonSagligiOzeti(
       // Yapılandırma tezgâhının gösterdiği alanlar. `sirReferansi` yalnız
       // maskelenmek için okunur; ham hâli çıktıya GİRMEZ.
       ortam: true, senkronKipi: true, ardisikHata: true, ardisikHataSiniri: true,
+      maksDeneme: true, geriCekilmeMs: true,
       eslemeProfilId: true, sonHataOzeti: true,
     },
   });

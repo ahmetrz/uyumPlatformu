@@ -6,6 +6,10 @@ import { entegrasyonSagligiOzeti } from '@/lib/entegrasyon/saglikOzeti';
 import {
   bayatKokenler, dogrulanmamisKayitlar, kaynakSistemDagilimi, kokenSayimlari,
 } from '@/lib/entegrasyon/kokenRapor';
+import { hazirligiOlc } from '@/lib/altyapi/hazirlik';
+import { kontrolleriSirala } from '@/lib/altyapi/hazirlikKarari';
+import { SAGLAYICILAR } from '@/lib/altyapi/saglayicilar';
+import { ADAPTORLER, ADAPTOR_TIPLERI } from '@/lib/entegrasyon/adaptorler';
 import { etiketle } from '@/lib/sabitler';
 import SaglikIstemci from './SaglikIstemci';
 import {
@@ -140,7 +144,7 @@ export default async function Sayfa() {
       })),
   ];
 
-  const [kosuListeleri, kaliteBulgulari, entegrasyon, koken] = await Promise.all([
+  const [kosuListeleri, kaliteBulgulari, entegrasyon, koken, hazirlik] = await Promise.all([
     /* Her motorun kendi son koşuları çekilir. Önceki sürüm "son koşu" +
        "genel son 20 koşu" diye iki ayrı sorgu kullanıyordu; çok koşan bir
        motor az koşanı o listeden düşürebiliyordu. Geçmiş artık kaydın
@@ -156,6 +160,11 @@ export default async function Sayfa() {
     }),
     entegrasyonSagligiOzeti(k),
     kokenOzetiGetir(k),
+    /* OT-48 · Kurulum hazırlığı. `/saglik`in öteki kipleri VERİNİN ve
+       entegrasyonların durumunu izler; bu kip KURULUMUN kendisini sorar
+       (yazma yoklaması, göç kütüğü, zamanlayıcı, sağlayıcılar). İkisi
+       ayrı sorulardır ve ayrı kiplerde durur. */
+    hazirligiOlc(),
   ]);
 
   // Veri kalitesi bulgularının işaret ettiği kayıtları etiketle/linkle.
@@ -217,12 +226,32 @@ export default async function Sayfa() {
     };
   });
 
+  /* OT-50 · Bağlantı ihtiyacı kütüğü. Bağlanmamış her adaptörün kurumdan
+     isteyeceği kalemler YAPISAL olarak beyan edilir (sozlesme.ts →
+     `ihtiyaclar`); ekran onları yalnız serileştirir. Hiçbir gerçek adres,
+     kimlik ya da örnek kurum verisi yoktur — liste "bize şu bilgiyi
+     verin" der, bilginin kendisini taşımaz. */
+  const baglantiIhtiyaci = ADAPTOR_TIPLERI.map((tip) => {
+    const a = ADAPTORLER[tip] as (typeof ADAPTORLER)[typeof tip] & {
+      ihtiyaclar?: { kod: string; ad: string; tur: string; sir: boolean; aciklama: string }[];
+    };
+    return {
+      tip,
+      baglanabilir: a.baglanabilir,
+      gerekenSirlar: [...a.gerekenSirlar],
+      kalemler: (a.ihtiyaclar ?? []).map((x) => ({ ...x })),
+    };
+  });
+
   return (
     <SaglikIstemci
       motorlar={motorlar}
       kalite={kalite}
       entegrasyon={entegrasyon}
       koken={koken}
+      hazirlik={kontrolleriSirala(hazirlik)}
+      saglayicilar={[...SAGLAYICILAR]}
+      baglantiIhtiyaci={baglantiIhtiyaci}
       yazabilir={yazabilir}
     />
   );

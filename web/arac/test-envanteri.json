@@ -1,7 +1,7 @@
 {
-  "imza": "f5a9897e27964304a01d8e55b15afaa2",
-  "dosya": 108,
-  "vaka": 2002,
+  "imza": "f730079940f8805b932382f08c0d330d",
+  "dosya": 110,
+  "vaka": 2073,
   "atlanan": 1,
   "dosyalar": {
     "tests/advisory.test.ts": {
@@ -274,6 +274,14 @@
     },
     "tests/operasyon-yedekleme-sertifika.test.ts": {
       "vaka": 14,
+      "atlanan": 0
+    },
+    "tests/ot40-toplama.test.ts": {
+      "vaka": 46,
+      "atlanan": 0
+    },
+    "tests/ot48-49-altyapi.test.ts": {
+      "vaka": 25,
       "atlanan": 0
     },
     "tests/otomasyon-guvenligi.test.ts": {

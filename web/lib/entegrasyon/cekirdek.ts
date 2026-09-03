@@ -12,6 +12,7 @@ import {
 } from './kuru';
 import { isKos } from '../motorlar/isKosucu';
 import type { Adaptor, AdaptorBaglami, CekmeSonucu, Gozlem } from './sozlesme';
+import { kayitAnahtari, mezarTaslariniIsle } from './mezarTasiIsle';
 
 /* Connector senkronizasyon çekirdeği.
 
@@ -285,11 +286,31 @@ export async function bayatKosulariKapat(
 
 /* ═══ Çekim + tekrar deneme ═══════════════════════════════════════════ */
 
+/**
+ * Üstel geri çekilme merdiveni.
+ *
+ * `tabanMs` verilmezse ürün varsayılanı (1s · 4s · 16s) kullanılır;
+ * verilirse taban · 4× · 16× olarak ölçeklenir. Connector başına ayar
+ * gerçek bir ihtiyaçtır: hız sınırı sıkı bir dizin uca 1 saniye sonra
+ * ikinci kez vurmak, sınırı bir daha tetiklemek demektir.
+ */
+export function geriCekilmeMerdiveni(tabanMs: number | null | undefined): number[] {
+  if (tabanMs === null || tabanMs === undefined || !Number.isFinite(tabanMs) || tabanMs <= 0) {
+    return [...GERI_CEKILME_MS];
+  }
+  const taban = Math.min(Math.max(Math.round(tabanMs), 100), 60_000);
+  return [taban, taban * 4, taban * 16];
+}
+
 async function denemeliCek(
   adaptor: Adaptor,
   baglam: AdaptorBaglami,
-  o: { maksDeneme: number; bekle: (ms: number) => Promise<void>; denemeBildir: (n: number) => Promise<void> },
+  o: {
+    maksDeneme: number; bekle: (ms: number) => Promise<void>;
+    denemeBildir: (n: number) => Promise<void>; merdiven?: number[];
+  },
 ): Promise<{ sonuc: CekmeSonucu; deneme: number }> {
+  const merdiven = o.merdiven && o.merdiven.length > 0 ? o.merdiven : [...GERI_CEKILME_MS];
   for (let deneme = 1; deneme <= o.maksDeneme; deneme++) {
     await o.denemeBildir(deneme);
     try {
@@ -302,7 +323,7 @@ async function denemeliCek(
           : 'kalıcı hata — tekrar denenmedi';
         throw new Error(`${mesaj(e)} [${etiket}]`, { cause: e });
       }
-      await o.bekle(GERI_CEKILME_MS[Math.min(deneme - 1, GERI_CEKILME_MS.length - 1)]);
+      await o.bekle(merdiven[Math.min(deneme - 1, merdiven.length - 1)]);
     }
   }
   /* Döngü ya döner ya fırlatır; buraya düşmek imkânsızdır ama sessiz
@@ -437,6 +458,10 @@ async function gozlemYaz(
        (bir connector birden çok kaynaktan besleniyor olabilir); eşleştirme
        geçişi doğru kümeyi taramak için buradan okur. */
     yazilanKaynaklar: Set<string>;
+    /* OT-40 · Bu koşuda GÖRÜLEN kaynak kayıt kimlikleri. Mezar taşı
+       (kaynakta artık olmayan kayıt) yalnız TAM koşuda bu kümeyle
+       önceki kümenin farkından çıkar. */
+    gorulenKayitlar: Set<string>;
     /** Kaydın hangi eşleme profili SÜRÜMÜYLE yorumlandığı; null = gömülü
         eşleme. Eşleme değişince eski kaydın kuralı kaybolmasın diye
         kökene yazılır. */
@@ -505,6 +530,7 @@ async function gozlemYaz(
   });
 
   kapsam.yazilanKaynaklar.add(kaynak);
+  kapsam.gorulenKayitlar.add(kayitAnahtari(kaynak, kaynakKayitId));
   return mevcut ? 'yinelenen' : 'yeni';
 }
 
@@ -523,7 +549,6 @@ export async function senkronizasyonKos(
 ): Promise<KosuOzeti> {
   const t0 = Date.now();
   const tetikleyen: Tetikleyen = secenek.tetikleyen ?? 'manuel';
-  const maksDeneme = Math.max(1, secenek.maksDeneme ?? VARSAYILAN_MAKS_DENEME);
   const maksSayfa = Math.max(1, secenek.maksSayfa ?? VARSAYILAN_MAKS_SAYFA);
   const bekle = secenek.bekle ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
   const kuru = secenek.kuru === true;
@@ -535,6 +560,20 @@ export async function senkronizasyonKos(
 
   const connector = await db.connector.findUnique({ where: { id: connectorId } });
   if (!connector) throw new Error(`Connector bulunamadı: ${connectorId}`);
+
+  /* Deneme sayısı ve geri çekilme CONNECTOR KAYDINDAN okunur.
+     ÖLÇÜLMÜŞ KUSUR: `Connector.maksDeneme` ve `geriCekilmeMs` şemada
+     vardı, ekranda düzenlenebiliyordu ve HİÇBİR YERDE OKUNMUYORDU —
+     kullanıcı ayarı değiştiriyor, çekirdek sabit varsayılanı kullanmaya
+     devam ediyordu. Ayarı yazan bir ekran, okumayan bir çekirdek: sessiz
+     bir yalan. Sıra: çağıranın açık isteği > connector kaydı > ürün
+     varsayılanı. Çağıran önce gelir çünkü testler ve kuru koşu tek
+     denemeyi bilerek ister. */
+  const maksDeneme = Math.max(
+    1,
+    secenek.maksDeneme ?? connector.maksDeneme ?? VARSAYILAN_MAKS_DENEME,
+  );
+  const merdiven = geriCekilmeMerdiveni(connector.geriCekilmeMs);
 
   const atlandi = (sebep: string): KosuOzeti => ({
     connectorId, kosuId: null, durum: 'atlandi',
@@ -826,6 +865,8 @@ export async function senkronizasyonKos(
      delmek olurdu. */
   const tesisOnbellegi = new Map<string, string | null>();
   const yazilanKaynaklar = new Set<string>();
+  const gorulenKayitlar = new Set<string>();
+  let sonSayfaDevamVar = false;
   let varsayilanTesisId: string | null = null;
   const yapilandirmaTesisKodu = typeof yapilandirma.tesisKodu === 'string'
     ? yapilandirma.tesisKodu : null;
@@ -921,7 +962,7 @@ export async function senkronizasyonKos(
         yapilandirma, sir, imlec,
       };
       const { sonuc, deneme } = await denemeliCek(adaptor, baglam, {
-        maksDeneme, bekle,
+        maksDeneme, bekle, merdiven,
         denemeBildir: async (n) => {
           // Süreç deneme ortasında ölse bile kaçıncı denemede olduğu kayıtta durur.
           if (n <= denemeNo) return;
@@ -1031,6 +1072,7 @@ export async function senkronizasyonKos(
         try {
           const sonuclanan = await gozlemYaz(g, connector, kosu.id, sir, {
             varsayilanTesisId, onbellek: tesisOnbellegi, yazilanKaynaklar,
+            gorulenKayitlar,
             eslemeProfilSurumu: profilSurumu,
           });
           sayac.kabulEdilen++;
@@ -1052,6 +1094,10 @@ export async function senkronizasyonKos(
 
       const yeni = sonuc?.yeniImlec ?? null;
       devam = Boolean(sonuc?.devamVar);
+      /* Son sayfanın `devamVar` bayrağı mezar taşı için KRİTİKTİR: koşu
+         sayfa sınırına takılıp yarıda kaldıysa okunmamış sayfadaki her
+         kayıt "kaynakta yok" görünürdü. */
+      sonSayfaDevamVar = devam;
       if (devam && yeni === imlec) {
         throw new Error('Adaptör devamVar=true dedi ama imleci ilerletmedi — sonsuz döngü önlendi');
       }
@@ -1091,10 +1137,22 @@ export async function senkronizasyonKos(
 
   const eslestirmeNotu = yazilanKaynaklar.size > 0
     ? await eslestirmeyiKos([...yazilanKaynaklar]) : null;
+
+  /* OT-40 · Mezar taşı geçişi. YALNIZ tam koşuda, yalnız koşu eksiksiz
+     bittiyse ve yalnız kuru DEĞİLSE. Kararın kendisi saf modüldedir
+     (`mezarTasi.ts`); burada yapılan tek şey kümeleri vermek ve sonucu
+     bulguya çevirmektir — silme YOKTUR. */
+  const mezarNotu = await mezarTaslariniIsle({
+    connectorId,
+    senkronKipi: connector.senkronKipi,
+    devamVar: sonSayfaDevamVar,
+    gorulenKayitlar,
+  });
+
   return kapat('basarili', {
     hata: ozet,
     imlecSonra: imlec,
-    ayrinti: eslestirmeNotu ? `${sayim} · ${eslestirmeNotu}` : sayim,
+    ayrinti: [sayim, eslestirmeNotu, mezarNotu].filter(Boolean).join(' · '),
   });
 }
 

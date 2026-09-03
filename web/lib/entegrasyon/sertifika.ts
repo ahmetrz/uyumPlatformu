@@ -50,6 +50,7 @@ export const KONTROL_KODLARI = [
   'bayat_connector',
   'koken_eksiksiz',
   'kuru_kosu',
+  'baglanti_ihtiyaci',
 ] as const;
 
 export type KontrolKodu = (typeof KONTROL_KODLARI)[number];
@@ -69,6 +70,7 @@ export const KONTROL_BASLIKLARI: Record<KontrolKodu, string> = {
   bayat_connector: 'Bayat connector doğru raporlanıyor',
   koken_eksiksiz: 'Köken (provenance) eksiksiz',
   kuru_kosu: 'Kuru koşu (dry-run)',
+  baglanti_ihtiyaci: 'Bağlantı ihtiyacı yapısal olarak beyan edildi',
 };
 
 export type KontrolDurumu = 'gecti' | 'kaldi' | 'uygulanamaz' | 'bilinmiyor';
@@ -947,6 +949,63 @@ async function kontrolKuruKosu(
  * durur. Rapor "geçerli" ise adaptör sözleşmeyi ihlal etmiyor demektir —
  * "bağlı ve çalışıyor" demek DEĞİLDİR.
  */
+/* ── OT-50 · Bağlantı ihtiyacı kontrolü ─────────────────────────────────
+
+   Bağlanmamış bir adaptörün en değerli çıktısı ÇALIŞAN KODU değil,
+   "kurumdan ne isteyeceğiz" listesidir. O liste bir paragrafta kaldığı
+   sürece ne kontrol listesine dönüşür ne de denetlenebilir. Bu kontrol
+   üç şeyi arar:
+
+     1. Liste BOŞ DEĞİL — bağlanmamış bir adaptörün hiçbir şeye ihtiyacı
+        olmaması mümkün değildir; boş liste bir beyan değil, bir unutmadır.
+     2. Kod TEKİL — aynı kodun iki kalemi listeyi sessizce çakıştırır.
+     3. SIR kalemi varsa `gerekenSirlar` da BOŞ DEĞİL — "bir sır lazım"
+        deyip hangi referansın aranacağını söylememek, sağlık ekranının
+        sır varlığını hiç sorgulayamaması demektir.
+
+   Bağlı adaptörde kontrol `uygulanamaz`dır: bağlıysa istenecek bir şey
+   kalmamıştır ve boş listesi doğru davranıştır. */
+function kontrolIhtiyac(a: Adaptor, yaz: Yazici): void {
+  const liste = (a as Adaptor & { ihtiyaclar?: unknown }).ihtiyaclar;
+  if (a.baglanabilir) {
+    yaz('baglanti_ihtiyaci', 'uygulanamaz',
+      'Adaptör bağlı — kurumdan istenecek bağlantı bilgisi yok.');
+    return;
+  }
+  if (!Array.isArray(liste)) {
+    yaz('baglanti_ihtiyaci', 'kaldi',
+      'Bağlanmamış adaptör `ihtiyaclar` listesini beyan etmiyor; bağlantı günü '
+      + 'kontrol listesi üretilemez.');
+    return;
+  }
+  const kalemler = liste as { kod?: unknown; sir?: unknown }[];
+  if (kalemler.length === 0) {
+    yaz('baglanti_ihtiyaci', 'kaldi',
+      'İhtiyaç listesi BOŞ. Bağlanmamış bir adaptörün hiçbir şeye ihtiyacı '
+      + 'olmaması mümkün değildir; boş liste bir beyan değil bir unutmadır.');
+    return;
+  }
+  const kodlar = kalemler.map((k) => String(k.kod ?? ''));
+  const yinelenen = kodlar.filter((k, i) => kodlar.indexOf(k) !== i);
+  if (yinelenen.length > 0) {
+    yaz('baglanti_ihtiyaci', 'kaldi',
+      `İhtiyaç kodu yinelenmiş: ${[...new Set(yinelenen)].join(', ')}.`);
+    return;
+  }
+  const sirliVar = kalemler.some((k) => k.sir === true);
+  if (sirliVar && (!Array.isArray(a.gerekenSirlar) || a.gerekenSirlar.length === 0)) {
+    yaz('baglanti_ihtiyaci', 'kaldi',
+      'Listede SIR kalemi var ama `gerekenSirlar` boş: hangi referansın '
+      + 'aranacağı makine tarafından bilinemez, sağlık ekranı sır varlığını '
+      + 'sorgulayamaz.');
+    return;
+  }
+  yaz('baglanti_ihtiyaci', 'gecti',
+    `${kalemler.length} kalem beyan edildi${sirliVar
+      ? `; sır kalemi var ve ${a.gerekenSirlar.length} referans bildirilmiş.`
+      : '; sır gerektiren kalem yok.'}`);
+}
+
 export async function sertifikaKos(
   adaptor: Adaptor,
   ortam: SertifikaOrtami,
@@ -980,6 +1039,7 @@ export async function sertifikaKos(
   await kontrolBayat(adaptor, f, ortam, yaz);
   kontrolKoken(adaptor, f, gecerliCikti, yaz);
   await kontrolKuruKosu(f, ortam, yaz);
+  kontrolIhtiyac(adaptor, yaz);
 
   const sirali = KONTROL_KODLARI.map((kod) => {
     const s = kontroller.get(kod);

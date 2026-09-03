@@ -1,6 +1,6 @@
 import 'server-only';
 import { z } from 'zod';
-import { BaglanmamisAdaptor } from '../sozlesme';
+import { BaglanmamisAdaptor, type IhtiyacKalemi } from '../sozlesme';
 import { AKTIF_ISLEM_YASAK, ORTAK_YAPILANDIRMA } from './ortak';
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -66,6 +66,21 @@ export class EdrAdaptoru extends BaglanmamisAdaptor {
     'Entra uygulama kaydı + Machine.Read.All; SentinelOne için salt okunur ' +
     'API token. Ayrıca konsolun bölge taban URL\'i ve hangi site/grupların ' +
     'okunacağı. Müdahale (izolasyon/karantina) izni İSTENMEZ ve verilmemelidir.';
+
+  readonly ihtiyaclar: IhtiyacKalemi[] = [
+    { kod: 'taban_url', ad: 'Konsolun bölge taban URL\'i', tur: 'adres', sir: false,
+      aciklama: 'EDR konsolunun kurum için geçerli bölgesel adresi.' },
+    { kod: 'istemci_kimligi', ad: 'API istemci kimliği', tur: 'kimlik', sir: false,
+      aciklama: 'CrowdStrike client id · Defender için Entra uygulama kaydı · '
+        + 'SentinelOne için API kullanıcısı.' },
+    { kod: 'istemci_sirri', ad: 'API sırrı / token', tur: 'kimlik', sir: true,
+      aciklama: 'Sır katmanından referansla çözülür; değeri hiçbir yere yazılmaz.' },
+    { kod: 'izinler', ad: 'Yalnız "Hosts: Read" sınıfı izin', tur: 'izin', sir: false,
+      aciklama: 'İzolasyon/karantina, süreç sonlandırma ve RTR izni İSTENMEZ — '
+        + 'bu adaptör müdahale etmez.' },
+    { kod: 'kapsam', ad: 'Okunacak site / grup listesi', tur: 'kapsam', sir: false,
+      aciklama: 'Hangi site ya da cihaz grubunun envanteri okunacak.' },
+  ];
 }
 
 export const edrAdaptoru = new EdrAdaptoru();

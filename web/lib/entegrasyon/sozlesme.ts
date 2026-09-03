@@ -175,6 +175,50 @@ export interface Adaptor {
   health(b: AdaptorBaglami): Promise<SaglikSonucu>;
 }
 
+/* ═══ OT-50 · Bağlantı ihtiyacı ═══════════════════════════════════════
+
+   Bağlanmamış her adaptör "neye ihtiyacım var" sorusunu bir PARAGRAFLA
+   cevaplıyordu. Paragraf insan için iyidir ama üç şeyi yapamaz:
+
+     · bağlantı günü kontrol listesine dönüşemez,
+     · hangi kalemin SIR olduğu makinece bilinemez,
+     · eksik bırakılan kalem testle yakalanamaz.
+
+   Bu yüzden ihtiyaç ayrıca YAPISAL olarak beyan edilir. Paragraf
+   (`gereken`) kalır — ikisi birbirinin yerine geçmez: biri bağlamı,
+   öteki kontrol listesini taşır.
+
+   ── DEĞER DEĞİL, İHTİYAÇ ─────────────────────────────────────────────
+   Bu listede hiçbir gerçek adres, kimlik ya da örnek kurum verisi
+   BULUNMAZ. Liste "bize şu bilgiyi verin" der; bilginin kendisini
+   ürün taşımaz ve uydurmaz. */
+
+export const IHTIYAC_TURLERI = [
+  'adres', 'kimlik', 'kapsam', 'sertifika', 'izin',
+] as const;
+export type IhtiyacTuru = (typeof IHTIYAC_TURLERI)[number];
+
+export const IHTIYAC_TUR_ETIKETI: Record<IhtiyacTuru, string> = {
+  adres: 'Adres / uç nokta',
+  kimlik: 'Kimlik bilgisi',
+  kapsam: 'Kapsam / filtre',
+  sertifika: 'Sertifika',
+  izin: 'Yetki / izin',
+};
+
+export type IhtiyacKalemi = {
+  kod: string;
+  ad: string;
+  tur: IhtiyacTuru;
+  /**
+   * Bu kalem SIR mıdır? true ise değeri veritabanına yazılmaz, ekrana
+   * inmez ve yalnız sır katmanından referansla çözülür.
+   */
+  sir: boolean;
+  /** Neden gerekiyor ve hangi biçimde bekleniyor. */
+  aciklama: string;
+};
+
 /* ═══ Bağlanmamış adaptör temeli ══════════════════════════════════════
    Gerçek credential/API olmadan tamamlanamayan tipler bunu genişletir.
    Uydurma veri döndürmek yerine açıkça "bağlı değil" der. */
@@ -190,6 +234,14 @@ export abstract class BaglanmamisAdaptor implements Adaptor {
   abstract readonly gerekenSirlar: string[];
   /** bu tipin gerçekten bağlanması için ne gerekiyor — sağlık ekranı gösterir */
   abstract readonly gereken: string;
+  /**
+   * Aynı bilginin YAPISAL hâli — bağlantı günü kontrol listesi.
+   *
+   * `abstract` olması bilinçlidir: varsayılan boş liste verilseydi, yeni
+   * bir adaptör onu doldurmayı unutur ve ekranda "hiçbir şey gerekmiyor"
+   * yazardı. Bağlanmamış bir adaptörde bu, mümkün olan en yanlış cümledir.
+   */
+  abstract readonly ihtiyaclar: IhtiyacKalemi[];
 
   async testConnection(): Promise<BaglantiSonucu> {
     return { ok: false, kimlikEksik: true, hata: `Bağlı değil — gereken: ${this.gereken}` };

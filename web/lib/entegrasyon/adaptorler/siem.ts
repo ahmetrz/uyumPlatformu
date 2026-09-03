@@ -1,6 +1,6 @@
 import 'server-only';
 import { z } from 'zod';
-import { BaglanmamisAdaptor } from '../sozlesme';
+import { BaglanmamisAdaptor, type IhtiyacKalemi } from '../sozlesme';
 import { AKTIF_ISLEM_YASAK, ORTAK_YAPILANDIRMA } from './ortak';
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -75,6 +75,20 @@ export class SiemAdaptoru extends BaglanmamisAdaptor {
     'için Log Analytics workspace id + Entra uygulama kaydı (Log Analytics ' +
     'Reader); QRadar için SEC token. Ayrıca hangi index/workspace/domain ' +
     'okunacağı ve OT loglarının hangi sourcetype altında toplandığı bilgisi.';
+
+  readonly ihtiyaclar: IhtiyacKalemi[] = [
+    { kod: 'taban_url', ad: 'SIEM taban URL / workspace', tur: 'adres', sir: false,
+      aciklama: 'Splunk arama başlığı · Sentinel Log Analytics workspace kimliği · '
+        + 'QRadar konsol adresi.' },
+    { kod: 'token', ad: 'Salt okunur arama tokeni', tur: 'kimlik', sir: true,
+      aciklama: 'Sır katmanından çözülür. Arama yetkisi olan salt okunur bir rol '
+        + 'yeterlidir; yönetim yetkisi istenmez.' },
+    { kod: 'kapsam', ad: 'Okunacak index / workspace / domain', tur: 'kapsam', sir: false,
+      aciklama: 'Bütün SIEM\'i taramak yerine hangi kaynağın okunacağı.' },
+    { kod: 'sourcetype', ad: 'OT loglarının sourcetype/tablo adı', tur: 'kapsam', sir: false,
+      aciklama: 'OT günlüklerinin hangi ad altında toplandığı bilinmeden sorgu '
+        + 'yazılamaz; bu bilgi kurumdan gelir ve tahmin edilmez.' },
+  ];
 }
 
 export const siemAdaptoru = new SiemAdaptoru();

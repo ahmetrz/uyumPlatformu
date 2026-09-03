@@ -42,6 +42,17 @@ const Sema = z.object({
       "bilinmiyor" değildir; ekran ikisini ayrı yazar. */
   ardisikHataSiniri: z.number().int()
     .positive('Ardışık hata sınırı pozitif olmalı').nullable().optional(),
+  /* Deneme sayısı ve geri çekilme: ikisi de ÇEKİRDEK TARAFINDAN OKUNUR
+     (lib/entegrasyon/cekirdek.ts). Bir zamanlar yazılıp hiç okunmuyorlardı;
+     ekran ayarı kabul ediyor, koşu sabit varsayılanı kullanıyordu. Üst
+     sınırlar keyfî değil: 10 denemeden fazlası kimlik hatası durumunda
+     hesap kilitleme sayacını doldurur, 60 saniyeden uzun taban geri
+     çekilme koşuyu bayat eşiğine (15 dk) taşır. */
+  maksDeneme: z.number().int()
+    .min(1, 'En az 1 deneme').max(10, 'En çok 10 deneme').nullable().optional(),
+  geriCekilmeMs: z.number().int()
+    .min(100, 'Geri çekilme en az 100 ms').max(60_000, 'Geri çekilme en çok 60.000 ms')
+    .nullable().optional(),
   gerekce: z.string().trim().transform((s) => s || null).nullable().optional(),
 });
 
@@ -54,7 +65,8 @@ const Sema = z.object({
  */
 export async function connectorCalismaAyari(girdi: {
   kod: string; ortam: string; senkronKipi: string;
-  ardisikHataSiniri?: number | null; gerekce?: string | null;
+  ardisikHataSiniri?: number | null; maksDeneme?: number | null;
+  geriCekilmeMs?: number | null; gerekce?: string | null;
 }): Promise<Sonuc> {
   try {
     const k = await yetkiZorunlu('yonetim', 'yazma');
@@ -78,6 +90,8 @@ export async function connectorCalismaAyari(girdi: {
         ortam: v.ortam,
         senkronKipi: v.senkronKipi,
         ardisikHataSiniri: v.ardisikHataSiniri ?? null,
+        maksDeneme: v.maksDeneme ?? null,
+        geriCekilmeMs: v.geriCekilmeMs ?? null,
       },
     });
 
@@ -93,12 +107,26 @@ export async function connectorCalismaAyari(girdi: {
     await iz({
       aktorId: k.id, varlikTipi: 'Connector', varlikId: c.id,
       eylem: 'guncelleme', alan: 'calisma',
-      once: `${c.senkronKipi} · sınır ${c.ardisikHataSiniri ?? 'yok'}`,
-      sonra: `${v.senkronKipi} · sınır ${v.ardisikHataSiniri ?? 'yok'}`,
+      once: calismaOzeti(c),
+      sonra: calismaOzeti(v),
       gerekce: v.gerekce,
     });
 
     revalidatePath('/saglik');
     return tamam();
   } catch (e) { return hata(e); }
+}
+
+/** İz satırındaki tek satırlık çalışma özeti — `null` "varsayılan" yazar. */
+function calismaOzeti(c: {
+  senkronKipi: string; ardisikHataSiniri?: number | null;
+  maksDeneme?: number | null; geriCekilmeMs?: number | null;
+}): string {
+  return [
+    c.senkronKipi,
+    `sınır ${c.ardisikHataSiniri ?? 'yok'}`,
+    `deneme ${c.maksDeneme ?? 'varsayılan'}`,
+    `geri çekilme ${c.geriCekilmeMs === null || c.geriCekilmeMs === undefined
+      ? 'varsayılan' : `${c.geriCekilmeMs} ms`}`,
+  ].join(' · ');
 }

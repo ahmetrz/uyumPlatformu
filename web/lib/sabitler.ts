@@ -246,6 +246,8 @@ export const EK_ETIKET: Record<string, string> = {
   sahipsiz_varlik: 'Sahipsiz varlık', kritikligi_bilinmeyen: 'Kritikliği bilinmeyen',
   bayat_kayit: 'Bayat kayıt', eksik_profil: 'Eksik santral profili',
   envanteri_bos_tesis: 'Envanteri boş tesis', sahipsiz_kanit: 'Sahipsiz kanıt',
+  // OT-40 · kaynakta artık görünmeyen kayıt (SİLME DEĞİL, bulgu)
+  kaynakta_kayboldu: 'Kaynakta kayboldu',
   // varlık yaşam döngüsü
   bakim: 'Bakım', emekli: 'Emekli', imha: 'İmha edildi',
   // grup ortak servisleri

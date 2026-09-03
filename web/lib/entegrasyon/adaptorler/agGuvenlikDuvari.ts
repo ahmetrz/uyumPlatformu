@@ -1,6 +1,6 @@
 import 'server-only';
 import { z } from 'zod';
-import { BaglanmamisAdaptor } from '../sozlesme';
+import { BaglanmamisAdaptor, type IhtiyacKalemi } from '../sozlesme';
 import { AKTIF_ISLEM_YASAK, ORTAK_YAPILANDIRMA } from './ortak';
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -87,6 +87,22 @@ export class AgGuvenlikDuvariAdaptoru extends BaglanmamisAdaptor {
     'salt okunur erişim. Ayrıca yönetim ağından hedeflere erişim izni ve ' +
     'okunacak cihaz/VLAN listesi. Yazma (kural/konfigürasyon) izni ' +
     'İSTENMEZ ve verilmemelidir.';
+
+  readonly ihtiyaclar: IhtiyacKalemi[] = [
+    { kod: 'yonetim_adresi', ad: 'Ağ ekipmanı yönetim adresi', tur: 'adres', sir: false,
+      aciklama: 'Okunacak güvenlik duvarı / anahtar yönetim arayüzünün adresi.' },
+    { kod: 'api_kimligi', ad: 'SALT OKUNUR yönetim hesabı / API anahtarı', tur: 'kimlik', sir: true,
+      aciklama: 'Palo Alto XML API anahtarı · Fortinet read-only REST kullanıcısı · '
+        + 'Cisco RESTCONF salt okunur kullanıcı ya da SNMPv3 authPriv. '
+        + 'Sır katmanından çözülür.' },
+    { kod: 'ag_erisimi', ad: 'Yönetim ağından hedeflere erişim izni', tur: 'izin', sir: false,
+      aciklama: 'Platform sunucusundan ağ ekipmanına erişim açılmadan hiçbir '
+        + 'okuma yapılamaz.' },
+    { kod: 'kapsam', ad: 'Okunacak cihaz / VLAN listesi', tur: 'kapsam', sir: false,
+      aciklama: 'Hangi cihazların ARP/DHCP tablolarının okunacağı.' },
+    { kod: 'yazma_yok', ad: 'Kural / konfigürasyon yazma izni YOK', tur: 'izin', sir: false,
+      aciklama: 'Yazma izni İSTENMEZ ve verilmemelidir.' },
+  ];
 }
 
 export const agGuvenlikDuvariAdaptoru = new AgGuvenlikDuvariAdaptoru();

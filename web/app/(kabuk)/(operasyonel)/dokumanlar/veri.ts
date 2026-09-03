@@ -1,8 +1,8 @@
 import 'server-only';
 import { db } from '@/lib/db';
-import { izinVar, izinliTesisIdleri } from '@/lib/erisim';
+import { izinliTesisIdleri } from '@/lib/erisim';
 import type { AktifKullanici } from '@/lib/auth';
-import { kapsamDaraltildi, modulKapisi, type TesisKapsami } from '@/app/kapsam';
+import { kapsamDaraltildi, modulKapisi, modulYazabilir, type TesisKapsami } from '@/app/kapsam';
 import type { BelgeSatiri, KontrolSatiri } from './mantik';
 
 /* C22 · C23 — Yönetişim belgesi kütüğü, SUNUCU VERİSİ.
@@ -166,10 +166,8 @@ export async function dokumanEkranVerisi(k: AktifKullanici): Promise<EkranVerisi
     mevcutKodlar: kodlar.map((x) => x.kod),
     /* Yazma bayrağı kapsamsız sorulur; asıl kapı eylemin içindedir
        (`lib/eylemler2/dokuman.ts` — kurumsal belge kapsamsız yetki ister). */
-    yazabilir: izinVar(k, 'uyum', 'yazma')
-      || (izinli !== null && izinli.some((t) => izinVar(k, 'uyum', 'yazma', { tesisId: t }))),
-    onaylayabilir: izinVar(k, 'uyum', 'onay')
-      || (izinli !== null && izinli.some((t) => izinVar(k, 'uyum', 'onay', { tesisId: t }))),
+    yazabilir: modulYazabilir(k, 'uyum', 'yazma'),
+    onaylayabilir: modulYazabilir(k, 'uyum', 'onay'),
     kapsamli: kapsamDaraltildi(izinli),
   };
 }

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
-import { girisZorunlu, izinVar, izinliTesisIdleri } from '@/lib/erisim';
+import { girisZorunlu, izinliTesisIdleri } from '@/lib/erisim';
+import { kapsamdaYetkili, modulYazabilir } from '@/app/kapsam';
 import { db } from '@/lib/db';
 import {
   anliklariListele, karsilastirmaIzi, sapmalariListele, temelDurumlari, topolojiOzeti,
@@ -48,10 +49,10 @@ const metin = (v: unknown): string | null =>
 export default async function Sayfa() {
   const k = await girisZorunlu();
   const gorulebilir = izinliTesisIdleri(k, 'envanter');
-  const yazabilir = izinVar(k, 'envanter', 'yazma');
-  const onaylayabilir = izinVar(k, 'envanter', 'onay');
-  const riskYazabilir = izinVar(k, 'risk', 'yazma');
-  const uyumYazabilir = izinVar(k, 'uyum', 'yazma');
+  const yazabilir = modulYazabilir(k, 'envanter', 'yazma');
+  const onaylayabilir = modulYazabilir(k, 'envanter', 'onay');
+  const riskYazabilir = modulYazabilir(k, 'risk', 'yazma');
+  const uyumYazabilir = modulYazabilir(k, 'uyum', 'yazma');
 
 
   /* Sapma ve anlık listeleri EKRANIN KENDİ SORGUSU DEĞİL: ikisi de
@@ -212,15 +213,14 @@ export default async function Sayfa() {
       uretilenBulguId: s.uretilenBulguId,
       onceki,
       sonraki,
-      kararVerilebilir: onaylayabilir
-        && (!s.tesisId || izinVar(k, 'envanter', 'onay', { tesisId: s.tesisId })),
+      kararVerilebilir: onaylayabilir && kapsamdaYetkili(k, 'envanter', 'onay', s.tesisId),
     };
   });
 
   const anliklar: AnlikSatiri[] = hamAnliklar.map((a) => {
     const kapsam = temelHaritasi.get(a.tesisId ?? '__global__');
     const sapmalariBu = sapmalar.filter((s) => s.anlikId === a.id);
-    const yetkili = !a.tesisId || izinVar(k, 'envanter', 'onay', { tesisId: a.tesisId });
+    const yetkili = kapsamdaYetkili(k, 'envanter', 'onay', a.tesisId);
     return {
       id: a.id,
       tesisId: a.tesisId,
@@ -248,8 +248,7 @@ export default async function Sayfa() {
       }),
       temelVar: kapsam?.temelVar ?? false,
       temelOnaylanabilir: onaylayabilir && yetkili && !a.temelMi,
-      karsilastirilabilir: yazabilir
-        && (!a.tesisId || izinVar(k, 'envanter', 'yazma', { tesisId: a.tesisId })),
+      karsilastirilabilir: yazabilir && kapsamdaYetkili(k, 'envanter', 'yazma', a.tesisId),
     };
   });
 

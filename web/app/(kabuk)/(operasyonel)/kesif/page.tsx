@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { girisZorunlu, izinVar, izinliTesisIdleri } from '@/lib/erisim';
+import { kapsamdaYetkili, modulYazabilir } from '@/app/kapsam';
 import { db } from '@/lib/db';
 import { normalCoz } from '@/lib/entegrasyon/kesif';
 import KesifIstemci from './KesifIstemci';
@@ -35,7 +36,11 @@ function gozlemAlanlari(g: NonNullable<ReturnType<typeof normalCoz>>['gozlem']) 
 export default async function Sayfa() {
   const k = await girisZorunlu();
   const gorulebilirTesisler = izinliTesisIdleri(k, 'envanter');
-  const onayYetkisi = izinVar(k, 'envanter', 'onay');
+  const onayYetkisi = modulYazabilir(k, 'envanter', 'onay');
+  /* Karar kapısı kayıttan sonra sorulur (`kesifKarariVer` iki aşamalı),
+     ama YAZMA bayrağı elle aktarım ve eşleştirme düğmelerini açar;
+     `elleAktarimCalistir` ve `kesifEslestir` kurumsal kuyruk işleridir
+     ve kapsamsız korunur. İkisi ayrı sorudur, ayrı sorulur. */
   const yazmaYetkisi = izinVar(k, 'envanter', 'yazma');
 
   const [kayitlar, turler, tesisler] = await Promise.all([
@@ -121,8 +126,7 @@ export default async function Sayfa() {
       inceleyen: kayit.inceleyen?.adSoyad ?? null,
       incelemeZamani: kayit.incelemeZamani?.toISOString() ?? null,
       incelemeNotu: kayit.incelemeNotu,
-      kararVerilebilir: onayYetkisi
-        && (!tesisId || izinVar(k, 'envanter', 'onay', { tesisId })),
+      kararVerilebilir: onayYetkisi && kapsamdaYetkili(k, 'envanter', 'onay', tesisId),
     });
   }
 

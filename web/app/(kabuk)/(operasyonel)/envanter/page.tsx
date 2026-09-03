@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
-import { girisZorunlu, izinVar, izinliTesisIdleri } from '@/lib/erisim';
+import { girisZorunlu, izinliTesisIdleri } from '@/lib/erisim';
+import { kapsamdaYetkili, modulYazabilir } from '@/app/kapsam';
 import { db } from '@/lib/db';
 import { DEMO } from '@/lib/demo';
 import { ilkiniEsle } from '@/lib/sorguParcala';
@@ -54,8 +55,8 @@ export default async function Sayfa({ searchParams }: {
      alt sorgular (son yedek / son keşif) aynı koşulu kullanır. İkisi
      ayrışırsa ekran, göremediği bir varlığın yedek kaydını gösterirdi. */
   const varlikKapsami = { silindi: null, ...kapsamKosulu(gorulebilir) };
-  const yazmaYetkisi = izinVar(k, 'envanter', 'yazma');
-  const onayYetkisi = izinVar(k, 'envanter', 'onay');
+  const yazmaYetkisi = modulYazabilir(k, 'envanter', 'yazma');
+  const onayYetkisi = modulYazabilir(k, 'envanter', 'onay');
 
   const [
     varliklar, tumTurler, tumTesisler, uniteler, sistemler, bolgeler,
@@ -347,8 +348,8 @@ export default async function Sayfa({ searchParams }: {
       sonKesif: kesif
         ? { id: kesif.id, kaynak: kesif.kaynak, sonGorulme: kesif.sonGorulme.toISOString() }
         : null,
-      yazilabilir: yazmaYetkisi && izinVar(k, 'envanter', 'yazma', kapsam),
-      onaylanabilir: onayYetkisi && izinVar(k, 'envanter', 'onay', kapsam),
+      yazilabilir: yazmaYetkisi && kapsamdaYetkili(k, 'envanter', 'yazma', kapsam.tesisId),
+      onaylanabilir: onayYetkisi && kapsamdaYetkili(k, 'envanter', 'onay', kapsam.tesisId),
     };
   });
 

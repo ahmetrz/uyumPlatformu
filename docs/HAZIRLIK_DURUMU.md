@@ -125,6 +125,37 @@ portföy süzgecindeki `select` 160px tabanıyla sağ oluğu yiyordu; saha
 takımyıldızındaki nabız halkası 2,4× yarıçapla komşu santralin künyesini
 süpürüyordu.
 
+**3b. Kurumsal olmayan üç eylem kapsamsız korunuyor — santral rolü
+hiç giremiyor.** 2026-09-03'te iki aşamalı kapı ekran katmanına
+taşınırken, sunucu tarafında ÜÇÜNCÜ bir kusur biçimi ölçüldü ve
+`tests/kapsam-kapisi-nobetci.test.ts` bunu yapısı gereği göremez:
+nöbetçi "kaydın tesisini denetleyip ön kapıyı kapsamsız çağıran"
+eylemleri arar; hiç denetim YAPMAYAN bir eylem o taramaya takılmaz.
+
+Kapsamsız ön kapılı 26 eylem tarandı. 23'ünde kayıt gerçekten
+kurumsaldır — `Tedarikci`, `Denetim`, `Proje`, `Surec`, aktarım
+partisi ve yedekleme politikası şemada `tesisId` **taşımaz**, çok
+santrale birden bağlanır — yani kapsamsız kapı doğru kapıdır ve
+ekranları da bilerek kapsamsız bırakıldı
+(`tests/ekran-yazma-kapisi.test.ts · KURUMSAL_KAYITLAR`, her satır
+gerekçesiyle).
+
+Kalan üçü gerçek borçtur:
+
+| eylem | kaydın santrali | bugünkü davranış |
+| --- | --- | --- |
+| `eylemler.ts · kanitEkle` | `MaddeDurumu.tesisId` | santral rolü kanıt ekleyemiyor |
+| `kesif.ts · kesifEslestir` | eşleşen varlığın tesisi | santral rolü eşleştiremiyor |
+| `kesif.ts · elleAktarimCalistir` | kuyruk santral kapsamlı | santral rolü çalıştıramıyor |
+
+Bunlar bir SIZINTI değildir — kapsamsız kapı fazladan yetki vermez,
+aksine tesise kısıtlı rolü tümüyle dışarıda bırakır. Kusur şudur:
+santral yöneticisi KENDİ santralinin kanıtını ekleyemiyor. Düzeltme
+kalıbı bellidir (`yetkiZorunlu(..., KAPSAM_SONRA)` + kayıt okunduktan
+sonra `kapsamZorunlu`), ama her biri kendi davranış testiyle kapanmalı;
+körlemesine dokunulmadı. Ekranlar sunucudan ÖNCE gevşetilmedi: bugün
+düğme gösterilip sunucuda reddedilmesi, gizlenmesinden daha kötüdür.
+
 ### P2 — üretim öncesi
 
 **4. Veritabanı SQLite.** `docs/POSTGRES_READINESS.md` on bir SQLite

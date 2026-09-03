@@ -22,11 +22,12 @@ export default async function Sayfa() {
 
   const izinli = izinliTesisIdleri(kullanici, 'uyum');
   /* Tesise kısıtlı rol kapsamsız (global) yazma yapamaz ama KENDİ
-     santralinde yazabilir — kapsam düğmesi bu yüzden global yetkiye değil,
-     "en az bir izinli tesiste yazabiliyor mu"ya bakar. Sunucu her çağrıda
-     tesis kapsamını yeniden doğrular. */
-  const yazabilir = izinVar(kullanici, 'uyum', 'yazma')
-    || (izinli ?? []).some((t) => izinVar(kullanici, 'uyum', 'yazma', { tesisId: t }));
+     santralinde yazabilir — kapsam düğmesi bu yüzden `modulYazabilir` ile
+     sorulur ("yazabildiğin santral var mı"), `izinVar` ile değil.
+     Bu ekran o soruyu üç dosyada ayrı ayrı elle yazıyordu; yüklem
+     `app/kapsam.ts` içinde tek yere indi. Sunucu her çağrıda tesis
+     kapsamını yeniden doğrular. */
+  const yazabilir = izinVar(kullanici, 'uyum', 'yazma');
   const onaylayabilir = izinVar(kullanici, 'uyum', 'onay');
 
   // `Date.now()` istek başına bir kez okunur; metrik, çizelge ve tablo

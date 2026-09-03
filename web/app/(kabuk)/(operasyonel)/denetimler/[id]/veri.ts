@@ -170,6 +170,10 @@ export async function denetimDetayVerisi(
       .map((t) => ({ id: t.id, kod: t.kod, ad: t.ad })),
     maddeler,
     kanitlar,
+    /* Kapsamsız: `Denetim` tesisId taşımaz (kapsam `DenetimKapsami`
+       ilişkisiyle kurulur) ve aşama eylemleri de kapsamsız korunur.
+       Yukarıdaki tesis listesi AYRI bir sorudur: denetimin kapsamına
+       hangi santrallerin eklenebileceğini santral santral sorar. */
     yazabilir: izinVar(k, 'denetim', 'yazma'),
     onaylayabilir: izinVar(k, 'denetim', 'onay'),
   };

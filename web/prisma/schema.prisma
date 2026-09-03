@@ -508,6 +508,8 @@ model Kullanici {
   dogruladigiKokenler     VeriKokeni[]             @relation("KokenDogrulayan")
   yazdigiEslemeProfilleri EslemeProfili[]          @relation("EslemeOlusturan")
   inceledigiRedler        ReddedilenKayit[]        @relation("RedInceleyen")
+  uygulanamazKayitlari    AlanUygulanabilirligi[]  @relation("UygulanamazKaydeden")
+  yukledigiSbomlar        SbomBelgesi[]            @relation("SbomYukleyen")
 }
 
 /// Yetki kapsamı (kullanıcı × uyum süreci × tesis). Alan null ise "tümü".
@@ -1068,7 +1070,8 @@ model VarlikTuru {
   sinif String  @default("BT") // BT | OT | BT_OT_KOPRU | ORTAK_ALTYAPI | FIZIKSEL_EMNIYET
   aktif Boolean @default(true)
 
-  varliklar Varlik[]
+  varliklar        Varlik[]
+  firmwareTemelleri FirmwareTemeli[]
 }
 
 /// Varlık (assets, §7.2) — CMDB çekirdeği.
@@ -1111,6 +1114,9 @@ model Varlik {
   internetMaruziyeti String    @default("bilinmiyor") // yok | sinirli | var | bilinmiyor
   uzaktanErisim      Boolean?
   bolgeId            String? // network zone
+  /// OT-11 · Adresleme segmenti (VLAN + CIDR). Bölgeden AYRIDIR: bir
+  /// bölge birden çok segment taşır. null = segment bilinmiyor.
+  segmentId          String?
   rafOda             String?
   tedarikciId        String?
   sozlesmeId         String?
@@ -1126,6 +1132,7 @@ model Varlik {
   sahip     Kullanici?     @relation("VarlikSahibi", fields: [sahipId], references: [id])
   emanetci  Kullanici?     @relation("VarlikEmanetcisi", fields: [emanetciId], references: [id])
   bolge     AgBolgesi?     @relation(fields: [bolgeId], references: [id])
+  segment   AgSegmenti?    @relation(fields: [segmentId], references: [id])
   tedarikci Tedarikci?     @relation(fields: [tedarikciId], references: [id])
   sozlesme  Sozlesme?      @relation(fields: [sozlesmeId], references: [id])
 
@@ -1142,6 +1149,11 @@ model Varlik {
   konfigYedekleri   KonfigurasyonYedegi[]
   erisimOturumlari  TedarikciErisimOturumu[]
   olaylar           OlayVarlik[]
+  yamaKayitlari     YamaKaydi[]
+  firmwareUyumu     FirmwareUyumu?
+  zafiyetKorelasyonlari ZafiyetKorelasyonu[]
+  sbomBelgeleri     SbomBelgesi[]
+  guvenlikKapsamlari GuvenlikKapsami[]
 
   @@index([tesisId, kritiklik])
   @@index([eosTarihi])
@@ -1170,9 +1182,10 @@ model AgBolgesi {
   tip              String  @default("bt") // bt | ot | dmz | ot_dmz | kurumsal | internet
   guvenlikSeviyesi Int? // Purdue/IEC62443 seviyesi
 
-  tesis          Tesis?     @relation(fields: [tesisId], references: [id])
+  tesis          Tesis?       @relation(fields: [tesisId], references: [id])
   varliklar      Varlik[]
-  kaynakGecitler AgGeciti[] @relation("GecitKaynak")
+  segmentler     AgSegmenti[]
+  kaynakGecitler AgGeciti[]   @relation("GecitKaynak")
   hedefGecitler  AgGeciti[] @relation("GecitHedef")
 }
 
@@ -1304,6 +1317,7 @@ model YazilimUrunu {
 
   kurulumlar VarlikYazilimi[]
   lisanslar  Lisans[]
+  sbomlar    SbomBelgesi[]
 
   @@unique([ad, surum])
 }
@@ -1367,10 +1381,28 @@ model Zafiyet {
   kaynakRef  String?  @unique
   baslik     String
   cvss       Float?
+  /// CVSS vektör dizesi (`AV:N/AC:L/...`). null = kaydedilmedi.
+  cvssVektor String?
+  /// Vektörün sürümü (`2.0` | `3.0` | `3.1` | `4.0`). Sürüm bilinmeden
+  /// bir CVSS sayısı karşılaştırılamaz: 3.1'in 7.5'i ile 2.0'ın 7.5'i
+  /// aynı şey değildir.
+  cvssSurumu String?
+  /// Common Platform Enumeration — korelasyonun ikinci yolu.
+  cpe        String?
+  /// bilinmiyor | kanit_yok | kanit_var | istismar_ediliyor
+  /// Varsayılan BİLİNMİYOR: istismar kanıtı yokluğu, istismar edilmediği
+  /// anlamına gelmez.
+  istismarDurumu String @default("bilinmiyor")
+  /// CISA KEV kütüğünde mi? null = bakılmadı.
+  kevMi      Boolean?
+  /// EPSS olasılığı 0–1; null = ölçülmedi.
+  epss       Float?
   aciklama   String?
   kesfedildi DateTime @default(now())
 
-  varliklar VarlikZafiyeti[]
+  varliklar     VarlikZafiyeti[]
+  advisoryler   AdvisoryZafiyeti[]
+  korelasyonlar ZafiyetKorelasyonu[]
 }
 
 model VarlikZafiyeti {
@@ -2332,4 +2364,333 @@ model DegisiklikTalebi {
   uygulandi   DateTime?
 
   @@index([durum, hedefTipi])
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   VARLIK GÜVENLİK DURUŞU — OT-11 · OT-21 · OT-22 · OT-25 · OT-26 · OT-27
+
+   Denetim (2026-09-03) bu altı maddenin TEK bir eksik yapı taşına
+   dayandığını ölçtü: yapısal sürüm karşılaştırması ve ağ adresleme
+   matematiği repoda hiç yoktu. İkisi de `lib/alan/surum.ts` ve
+   `lib/alan/ag.ts` içinde saf mantık olarak kondu; aşağıdaki modeller
+   o mantığın veri karşılığıdır.
+
+   Üç kural bu bloğun tamamında geçerlidir ve tek tek uygulanmıştır:
+   · BİLİNMEYEN ≠ YOK ≠ UYGULANAMAZ — üçü ayrı değerlerdir.
+   · Sürüm karşılaştırması KARAR VERİLEMEDİ döndürebilir; o durumda
+     kayıt "uyumlu" sayılmaz, `karar_verilemedi` olarak saklanır.
+   · Her ölçüm kaynağını ve doğrulanma zamanını taşır; taşımayan ölçüm
+     "bir kez yazılıp sonsuza kadar doğru sanılan" ölçümdür.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/// OT-11 · Ağ segmenti — bir bölge birden çok subnet taşıyabilir.
+/// `AgBolgesi` güvenlik/Purdue katmanıdır; ADRESLEME buradadır. İkisini
+/// tek tabloda birleştirmek, "bir bölge = bir subnet" varsayımını şemaya
+/// gömmek olurdu ve OT ağlarında bu varsayım yanlıştır.
+model AgSegmenti {
+  id          String   @id @default(cuid())
+  bolgeId     String
+  kod         String   @unique
+  ad          String
+  /// 802.1Q VLAN kimliği; null = VLAN bilinmiyor (VLAN yok DEĞİL).
+  vlanId      Int?
+  /// CIDR gösterimi (`10.0.0.0/22`). `lib/alan/ag.ts` ile doğrulanır.
+  cidr        String
+  gatewayIp   String?
+  /// Bant dışı yönetim ağı mı? null = bilinmiyor.
+  yonetimAgi  Boolean?
+  aciklama    String?
+  olusturuldu DateTime @default(now())
+  guncellendi DateTime @updatedAt
+
+  bolge     AgBolgesi @relation(fields: [bolgeId], references: [id])
+  varliklar Varlik[]
+
+  @@unique([bolgeId, cidr])
+  @@index([vlanId])
+}
+
+/// OT-03 · OT-27 · Bir alanın bu varlık için UYGULANAMAZ olduğunun kaydı.
+/// "Bilinmiyor" ile "uygulanamaz" aynı şey değildir: OT cihazına EDR
+/// kurulamıyorsa `kapsanmayan` yazmak kalıcı kırmızı, `bilinmiyor` yazmak
+/// ölçülmemiş gösterir — ikisi de yanlıştır. Uygulanamazlık bir KARARDIR
+/// ve gerekçesiyle, kim verdiğiyle birlikte saklanır.
+model AlanUygulanabilirligi {
+  id         String   @id @default(cuid())
+  varlikTipi String
+  varlikId   String
+  /// Alan adı ya da kapsam tipi (`firmware`, `edr`, `macAdresi` …).
+  alan       String
+  gerekce    String
+  kaydedenId String
+  zaman      DateTime @default(now())
+
+  kaydeden Kullanici @relation("UygulanamazKaydeden", fields: [kaydedenId], references: [id])
+
+  @@unique([varlikTipi, varlikId, alan])
+  @@index([varlikTipi, varlikId])
+}
+
+/// OT-21 · Yama uyumu. "Yama eksik" ile "zafiyet var" AYRI kayıtlardır ve
+/// bu ayrım bilinçlidir: eksik bir yama istismar edilebilir bir açık
+/// olmayabilir, istismar edilen bir açığın yaması hiç çıkmamış olabilir.
+model YamaKaydi {
+  id                     String    @id @default(cuid())
+  varlikId               String
+  kaynakSistem           String
+  kaynakKayitId          String
+  /// Kurulu yama seviyesi (serbest biçim; `lib/alan/surum.ts` çözümler).
+  mevcutSeviye           String?
+  /// Gereken taban seviye. null = taban TANIMLANMADI (uyumlu demek değil).
+  temelSeviye            String?
+  yamaTarihi             DateTime?
+  /// Eksik yamanın kütük numarası (KB, bülten, advisory kimliği).
+  eksikYama              String?
+  /// kritik | yuksek | orta | dusuk | bilinmiyor
+  siddet                 String    @default("bilinmiyor")
+  /// null = ölçülmedi.
+  yenidenBaslatmaGerekli Boolean?
+  bakimPenceresi         String?
+  /// Onaylı istisna; varsa uyumsuzluk kabul edilmiş demektir.
+  istisnaGerekcesi       String?
+  telafiEdiciKontrol     String?
+  /// Cihaz yamalanamaz (EOL/üretici desteği bitti). Uyumsuzluktan AYRI.
+  yamalanamaz            Boolean   @default(false)
+  /// uyumlu | eksik | yamalanamaz | karar_verilemedi
+  /// `karar_verilemedi` = sürüm ya da taban çözümlenemedi.
+  durum                  String    @default("karar_verilemedi")
+  sonDogrulama           DateTime?
+  olusturuldu            DateTime  @default(now())
+  guncellendi            DateTime  @updatedAt
+
+  varlik Varlik @relation(fields: [varlikId], references: [id], onDelete: Cascade)
+
+  @@unique([varlikId, kaynakSistem, kaynakKayitId])
+  @@index([durum])
+  @@index([varlikId])
+}
+
+/// OT-22 · Firmware tabanı — varlık TÜRÜ + üretici + model üçlüsüne bağlı.
+/// Taban varlığa değil sınıfa bağlanır; yoksa her cihaz için ayrı taban
+/// girilmesi gerekirdi ve taban pratikte hiç dolmazdı.
+model FirmwareTemeli {
+  id                 String    @id @default(cuid())
+  turId              String?
+  uretici            String?
+  model              String?
+  /// Onaylı sürüm — uyumun hedefi.
+  onayliSurum        String
+  /// Kabul edilebilir en düşük sürüm; null = yalnız onaylı sürüm kabul.
+  asgariSurum        String?
+  /// Planlanan yükseltme hedefi (bilgi; uyum kararına girmez).
+  hedefSurum         String?
+  /// Bilinen kötü sürümler, virgülle ayrılmış.
+  bilinenKotuSurumler String?
+  advisoryReferansi  String?
+  gecerlilikBaslangic DateTime @default(now())
+  aciklama           String?
+  aktif              Boolean   @default(true)
+  olusturuldu        DateTime  @default(now())
+  guncellendi        DateTime  @updatedAt
+
+  tur      VarlikTuru?      @relation(fields: [turId], references: [id])
+  uyumlar  FirmwareUyumu[]
+
+  @@unique([turId, uretici, model])
+}
+
+/// OT-22 · Firmware uyum SONUCU — motorun yazdığı, ekranın okuduğu satır.
+/// Sonuç saklanır çünkü "neden uyumsuz" sorusunun cevabı hesaplandığı anın
+/// tabanına bağlıdır; taban değişince eski karar açıklanamaz hâle gelirdi.
+model FirmwareUyumu {
+  id           String    @id @default(cuid())
+  varlikId     String    @unique
+  temelId      String?
+  kuruluSurum  String?
+  /// uyumlu | eski | bilinen_kotu | taban_yok | karar_verilemedi
+  durum        String    @default("karar_verilemedi")
+  /// Kararın insan tarafından okunabilir gerekçesi.
+  gerekce      String?
+  istisnaGerekcesi String?
+  yukseltmePlani   String?
+  sonDogrulama DateTime?
+  kaynakSistem String?
+  hesaplanma   DateTime  @default(now())
+
+  varlik Varlik          @relation(fields: [varlikId], references: [id], onDelete: Cascade)
+  temel  FirmwareTemeli? @relation(fields: [temelId], references: [id])
+
+  @@index([durum])
+}
+
+/// OT-25 · Üretici / ICS-CERT güvenlik duyurusu.
+model Advisory {
+  id          String   @id @default(cuid())
+  /// icscert | uretici | nvd | diger
+  kaynak      String
+  referans    String   @unique
+  baslik      String
+  yayim       DateTime?
+  guncelleme  DateTime?
+  url         String?
+  ozet        String?
+  olusturuldu DateTime @default(now())
+
+  urunler   AdvisoryUrunu[]
+  zafiyetler AdvisoryZafiyeti[]
+}
+
+/// OT-25 · Duyurunun etkilediği ürün ve SÜRÜM ARALIĞI.
+/// Aralık uç noktalıdır: her uç ayrı ayrı dahil/hariç olabilir. Tek bir
+/// "etkilenen sürüm" metni tutmak, `>=2.0 <2.4.5` gibi gerçek advisory
+/// ifadelerini temsil edemezdi.
+model AdvisoryUrunu {
+  id                String  @id @default(cuid())
+  advisoryId        String
+  uretici           String?
+  urunAdi           String?
+  /// Common Platform Enumeration (cpe:2.3:…), varsa.
+  cpe               String?
+  etkilenenAlt      String?
+  etkilenenAltDahil Boolean @default(true)
+  etkilenenUst      String?
+  etkilenenUstDahil Boolean @default(false)
+  duzeltilenSurum   String?
+
+  advisory Advisory @relation(fields: [advisoryId], references: [id], onDelete: Cascade)
+
+  @@index([advisoryId])
+  @@index([uretici, urunAdi])
+}
+
+model AdvisoryZafiyeti {
+  id         String @id @default(cuid())
+  advisoryId String
+  zafiyetId  String
+
+  advisory Advisory @relation(fields: [advisoryId], references: [id], onDelete: Cascade)
+  zafiyet  Zafiyet  @relation(fields: [zafiyetId], references: [id], onDelete: Cascade)
+
+  @@unique([advisoryId, zafiyetId])
+}
+
+/// OT-25 · Korelasyon SONUCU — hangi varlık hangi zafiyetten, NEDEN etkilenir.
+/// `karar_verilemedi` birinci sınıf sonuçtur: sürüm çözümlenemediğinde
+/// "etkilenmiyor" yazmak, ekranda hiç görünmeyen bir zafiyet üretirdi.
+model ZafiyetKorelasyonu {
+  id              String   @id @default(cuid())
+  varlikId        String
+  zafiyetId       String
+  advisoryUrunId  String?
+  /// surum_araligi | cpe | tarayici
+  yontem          String
+  /// etkilenen | etkilenmeyen | karar_verilemedi
+  sonuc           String
+  /// 0–1; null = ölçülmedi.
+  guven           Float?
+  gerekce         String
+  /// Karşılaştırılan değerler — denetimde "neye bakıldı" sorusunun cevabı.
+  kanitJson       String?
+  /// İnsan kararı korelasyonu ezer; yanlış pozitif bastırma yolu budur.
+  elleSonuc       String?
+  elleGerekce     String?
+  elleKararVerenId String?
+  elleKararZamani DateTime?
+  hesaplanma      DateTime @default(now())
+
+  varlik  Varlik  @relation(fields: [varlikId], references: [id], onDelete: Cascade)
+  zafiyet Zafiyet @relation(fields: [zafiyetId], references: [id], onDelete: Cascade)
+
+  @@unique([varlikId, zafiyetId, yontem])
+  @@index([sonuc])
+  @@index([varlikId])
+}
+
+/// OT-26 · SBOM belgesi — bir varlığa ya da yazılım ürününe ait bileşen listesi.
+model SbomBelgesi {
+  id            String   @id @default(cuid())
+  varlikId      String?
+  yazilimId     String?
+  /// cyclonedx | spdx
+  bicim         String
+  bicimSurumu   String?
+  seriNo        String?
+  belgeSurumu   Int      @default(1)
+  uretimZamani  DateTime?
+  kaynakSistem  String
+  kaynakKayitId String
+  bilesenSayisi Int      @default(0)
+  /// Ham belgenin SHA-256 özeti — aynı belge iki kez işlenmesin.
+  hamOzeti      String?
+  yukleyenId    String?
+  yuklendi      DateTime @default(now())
+
+  varlik   Varlik?          @relation(fields: [varlikId], references: [id], onDelete: Cascade)
+  yazilim  YazilimUrunu?    @relation(fields: [yazilimId], references: [id])
+  yukleyen Kullanici?       @relation("SbomYukleyen", fields: [yukleyenId], references: [id])
+  girdiler SbomGirdisi[]
+
+  @@unique([kaynakSistem, kaynakKayitId])
+  @@index([varlikId])
+}
+
+/// OT-26 · Yazılım bileşeni — SBOM'un satırı. `purl` varsa kanonik kimliktir.
+model YazilimBileseni {
+  id          String   @id @default(cuid())
+  ad          String
+  surum       String?
+  /// package-url (pkg:npm/lodash@4.17.21) — varsa tekilliğin kaynağı.
+  purl        String?
+  cpe         String?
+  tedarikci   String?
+  lisans      String?
+  /// Bileşen dosyasının özeti (algoritma öneki ile: `sha256:…`).
+  ozet        String?
+  olusturuldu DateTime @default(now())
+
+  girdiler SbomGirdisi[]
+
+  @@unique([ad, surum, purl])
+  @@index([purl])
+  @@index([ad])
+}
+
+/// OT-26 · Belge ↔ bileşen bağı; kapsam (required/optional/excluded) burada.
+model SbomGirdisi {
+  id        String @id @default(cuid())
+  sbomId    String
+  bilesenId String
+  /// gerekli | istege_bagli | haric | bilinmiyor
+  kapsam    String @default("bilinmiyor")
+
+  sbom    SbomBelgesi     @relation(fields: [sbomId], references: [id], onDelete: Cascade)
+  bilesen YazilimBileseni @relation(fields: [bilesenId], references: [id], onDelete: Cascade)
+
+  @@unique([sbomId, bilesenId])
+}
+
+/// OT-27 · Güvenlik kapsaması — beş durumlu, kaynaklı ve TARİHLİ.
+/// Bugünkü `Varlik.edrDurumu` üç değerlidir (`var|yok|bilinmiyor`) ve
+/// kaynağı da doğrulanma zamanı da yoktur: bir kez `var` yazılan alan
+/// sonsuza kadar `var` kalır. Bu model o üçünü de kapatır.
+model GuvenlikKapsami {
+  id            String    @id @default(cuid())
+  varlikId      String
+  /// edr | antivirus | siem | izleme | yedekleme | pam | mfa |
+  /// zafiyet_yonetimi | konfig_yedek | ntp | syslog
+  tip           String
+  /// kapsanan | kismi | kapsanmayan | uygulanamaz | bilinmiyor
+  durum         String    @default("bilinmiyor")
+  kaynakSistem  String?
+  kaynakKayitId String?
+  /// Kapsamın en son NE ZAMAN doğrulandığı. null = hiç doğrulanmadı.
+  sonDogrulama  DateTime?
+  gerekce       String?
+  olusturuldu   DateTime  @default(now())
+  guncellendi   DateTime  @updatedAt
+
+  varlik Varlik @relation(fields: [varlikId], references: [id], onDelete: Cascade)
+
+  @@unique([varlikId, tip])
+  @@index([tip, durum])
 }

@@ -20,6 +20,8 @@
    `01.02.0003`, `1.2.3-rc1`, `2.9.0b`. Bu yüzden çözümleyici hoşgörülü
    ama SESSİZ DEĞİL: çözemediğini null'la söyler. */
 
+import { ayniKimlikMi } from './metin';
+
 /** Çözümlenmiş sürüm: sayısal parçalar + önsürüm etiketi. */
 export type Surum = {
   /** Sayısal parçalar, soldan sağa. Uzunluk serbesttir (2, 3, 4 ya da daha çok). */
@@ -104,7 +106,10 @@ export function karsilastir(
   if (sa.onsurum === null) return 1;   // yayın > önsürüm
   if (sb.onsurum === null) return -1;
   /* İki önsürüm: birebir aynıysa eşit, değilse SIRALANAMAZ. */
-  return sa.onsurum.toLocaleLowerCase('tr') === sb.onsurum.toLocaleLowerCase('tr') ? 0 : null;
+  /* Önsürüm etiketi (`rc1`, `SP3`, `beta`) bir KİMLİKTİR, Türkçe metin
+     değildir; Türkçe katlama `I`yı `ı`ya çevirip `RC1` ile `rc1`i
+     ayırırdı (bkz. lib/alan/metin.ts). */
+  return ayniKimlikMi(sa.onsurum, sb.onsurum) ? 0 : null;
 }
 
 /* ── Sürüm aralığı ─────────────────────────────────────────────────────

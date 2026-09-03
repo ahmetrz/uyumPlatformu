@@ -16,6 +16,7 @@
     "sayimlar:denetle": "node arac/test-envanteri.mjs --denetle",
     "gezinme:test": "node arac/gezinme-testi.mjs",
     "rota:duman": "node arac/rota-duman.mjs",
+    "konsol:olcum": "node arac/konsol-olcum.mjs",
     "tasarim:kontrast": "node arac/kontrast.mjs",
     "tasarim:font": "node arac/font-kontrol.mjs",
     "tasarim:iz": "node arac/iz-tarama.mjs",

@@ -187,18 +187,6 @@ PORT=3210 npm run tasarim:tasma
 PORT=3210 node arac/yatay-tasma.mjs --rota=/uyum,/kanitlar
 ```
 
-### `cekmece-testi.mjs`
-
-Dar bant gezinme çekmecesi (P3-10). `npm run gezinme:cekmece`, canlı
-sunucu ister. Yedi ölçüm: 980px'te düğme var / ray kapalı · düğme AKTİF
-EKRANIN ADINI yazıyor · açılışta odak ilk bağa iniyor · odak tuzağı
-(Shift+Tab kaçmıyor) · Esc kapatıp odağı düğmeye veriyor · gezinince
-kapanıp ad güncelleniyor · 1440px'te düğme yok, ray dikey.
-
-Üçüncüsü ötekiler kadar önemli: çekmecenin bilinen bedeli kapalıyken
-"hangi ekrandayım" sorusunun cevapsız kalmasıdır. Düğme adı yazmazsa
-çekmece bir kusuru düzeltirken yenisini açmış olur.
-
 ### `erisim-axe.mjs`
 
 `erisim.mjs`'in dört kusur ölçümünü tamamlar: axe-core (`node_modules`

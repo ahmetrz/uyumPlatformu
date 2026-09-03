@@ -1,6 +1,7 @@
 'use client';
 import { an } from '@/lib/an';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
+import { useUrlDurumu } from '@/components/kabuk/urlDurumu';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import {
@@ -29,7 +30,7 @@ export default function CerceveIstemci({
   const parametreler = useSearchParams();
   const aileParam = parametreler.get('aile');
   const kontrolParam = parametreler.get('kontrol');
-  const [kip, setKip] = useState<Kip>('kapsam');
+  const [kip, setKip] = useUrlDurumu<Kip>('kip', 'kapsam');
 
   /* ── aile ve alt madde durumları: matrisle AYNI kuraldan türer ────── */
   const aileler = useMemo(() => veri.aileler.map((a) => {

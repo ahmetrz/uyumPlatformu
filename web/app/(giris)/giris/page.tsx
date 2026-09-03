@@ -8,9 +8,9 @@ import { guvenliHedef, VARSAYILAN_HEDEF } from './mantik';
 export const metadata: Metadata = { title: 'Giriş' };
 
 /* Giriş — oturum yok, kayıt yok, karar yok: uygulama kabuğunun dışındaki
-   tek ekran. Kabuk çizilmez ama YÜZEY kabuğundur: `.ab[data-yon='b']`
-   sarmalayıcısı saha yönünün paletini ve tipografisini getirir — `yonSec`
-   de `/giris`i B'ye düşürüyor, iki karar ayrışmasın.
+   tek ekran. Kabuk çizilmez ama YÜZEY kabuğundur: `.ab[data-yogunluk='amiral']`
+   sarmalayıcısı tek paleti ve tipografiyi getirir — `yogunlukSec` de
+   `/giris`i amiral yoğunluğa düşürüyor, iki karar ayrışmasın.
 
    Yerleşim iki şeritli: solda fotoğrafik kimlik bandı, sağda 400px'lik
    form kolonu — detay panelinin genişliğiyle aynı ölçü. Kart yok,
@@ -45,7 +45,7 @@ export default async function Giris({ searchParams }: {
   if (await aktifKullanici()) redirect(hedef);
 
   return (
-    <div className="ab" data-yon="b" style={{
+    <div className="ab" data-yogunluk="amiral" style={{
       minHeight: '100dvh', display: 'grid',
       gridTemplateColumns: 'minmax(0, 1fr) var(--drawer-w)',
     }}>

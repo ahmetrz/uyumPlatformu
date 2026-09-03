@@ -1,11 +1,13 @@
 import type { Durum } from '@/components/kabuk/temel';
-import { etiketle, kanitTazelik } from '@/lib/sabitler';
+import { etiketle, kanitTazelik, KANIT_ESIK_VARSAYILAN, type KanitEsik } from '@/lib/sabitler';
 import { an } from '@/lib/an';
 
 /* C21 · Kanıt kütüphanesi — SAF MANTIK (veritabanı ve React yok).
 
    Liste ekranı üç soruyu yanıtlar ve hepsinin kuralı buradadır:
-     · kanıt TAZE mi? — 90 / 180 gün eşiği `lib/sabitler → kanitTazelik`
+     · kanıt TAZE mi? — eşik yönetim konsolundan (`kanit.tazelik.*`, B sınıfı);
+       sunucu `kanitEsikleri()` ile okur, ekran `esik` prop'uyla alır; kod
+       varsayılanı 90 / 180 (`lib/sabitler → KANIT_ESIK_VARSAYILAN`)
        ile aynıdır (tazelik motoru da onu izler); burada yalnız referans
        tarihi seçilir ve `gecerliBitis` aşıldıysa sonuç "süresi doldu"ya
        çekilir. İki yerde iki farklı "taze" tanımı doğmasın.
@@ -79,8 +81,8 @@ export function tazelikTarihi(k: Pick<KanitSatiri, 'baslangic' | 'toplanma'>): {
 }
 
 /**
- * Tazelik kovası. Eşikler `kanitTazelik`ten gelir (90 gün taze, 180 güne
- * kadar yenilenmeli, sonrası doldu). `gecerliBitis` geçtiyse kova doğrudan
+ * Tazelik kovası. Karar `kanitTazelik`te alınır; eşik (`esik`) sunucudan
+ * gelir, verilmezse kod varsayılanı (90 taze / 180 dolmuş). `gecerliBitis` geçtiyse kova doğrudan
  * "dolmus"tur — belge takvimde tazeyken bile yürürlükten çıkmış olabilir.
  *
  * `simdi` yalnız test için dışarıdan verilir; ekran `lib/an → an()` kullanır
@@ -89,6 +91,7 @@ export function tazelikTarihi(k: Pick<KanitSatiri, 'baslangic' | 'toplanma'>): {
 export function tazelik(
   k: Pick<KanitSatiri, 'baslangic' | 'toplanma' | 'bitis'>,
   simdi: number = an(),
+  esik: KanitEsik = KANIT_ESIK_VARSAYILAN,
 ): Tazelik {
   if (k.bitis) {
     const bitisMs = new Date(k.bitis).getTime();
@@ -105,7 +108,7 @@ export function tazelik(
      Eşik sayıları oradan kopyalanmaz: `kanitTazelik`e "simdi - gun" ile
      kaydırılmış bir tarih verilir, karar yine tek yerde alınır. */
   const gun = Math.floor((simdi - new Date(ref.iso).getTime()) / GUN);
-  const karar = kanitTazelik(new Date(an() - gun * GUN));
+  const karar = kanitTazelik(new Date(an() - gun * GUN), esik);
   const kova: TazelikKovasi = karar.durum === 'uyumlu' ? 'taze'
     : karar.durum === 'kismi' ? 'yenilenmeli' : 'dolmus';
   const durum: Durum = kova === 'taze' ? 'ok' : kova === 'yenilenmeli' ? 'md' : 'bd';
@@ -121,15 +124,15 @@ export function bagliMi(
 }
 
 /** Satır işaretçisi: bağlantısız kanıt bilinmeyen elması taşır; bağlıysa tazelik konuşur. */
-export function kanitImi(k: KanitSatiri, simdi: number = an()): Durum {
+export function kanitImi(k: KanitSatiri, simdi: number = an(), esik: KanitEsik = KANIT_ESIK_VARSAYILAN): Durum {
   if (!bagliMi(k)) return 'unk';
-  return tazelik(k, simdi).durum;
+  return tazelik(k, simdi, esik).durum;
 }
 
 /** Çekmece kimlik bloğundaki tek durum sözcüğü (06 §A2). */
-export function kimlikSozu(k: KanitSatiri, simdi: number = an()): string {
+export function kimlikSozu(k: KanitSatiri, simdi: number = an(), esik: KanitEsik = KANIT_ESIK_VARSAYILAN): string {
   if (!bagliMi(k)) return 'Bağlantısız';
-  const t = tazelik(k, simdi);
+  const t = tazelik(k, simdi, esik);
   return `${t.etiket} · ${t.gun} gün`;
 }
 
@@ -175,12 +178,12 @@ export const MERCEKLER: { id: Mercek; ad: string }[] = [
   { id: 'bagsiz', ad: 'Bağlantısız' },
 ];
 
-export function mercekten(k: KanitSatiri, mercek: Mercek, simdi: number = an()): boolean {
+export function mercekten(k: KanitSatiri, mercek: Mercek, simdi: number = an(), esik: KanitEsik = KANIT_ESIK_VARSAYILAN): boolean {
   switch (mercek) {
     case 'hepsi': return true;
     case 'bagli': return bagliMi(k);
     case 'bagsiz': return !bagliMi(k);
-    default: return tazelik(k, simdi).kova === mercek;
+    default: return tazelik(k, simdi, esik).kova === mercek;
   }
 }
 
@@ -204,9 +207,10 @@ export function suz(
   satirlar: KanitSatiri[],
   secim: { mercek: Mercek; tip: string | null; arama: string },
   simdi: number = an(),
+  esik: KanitEsik = KANIT_ESIK_VARSAYILAN,
 ): KanitSatiri[] {
   return satirlar.filter((k) =>
-    mercekten(k, secim.mercek, simdi)
+    mercekten(k, secim.mercek, simdi, esik)
     && (secim.tip === null || k.tip === secim.tip)
     && aramadan(k, secim.arama));
 }
@@ -255,10 +259,10 @@ export type KanitMetrikleri = {
 };
 
 /** Metrikler tam liste üzerinden; bağlantısız kanıt tazelik kovalarına da girer (tarihi vardır). */
-export function metrikleriHesapla(satirlar: KanitSatiri[], simdi: number = an()): KanitMetrikleri {
+export function metrikleriHesapla(satirlar: KanitSatiri[], simdi: number = an(), esik: KanitEsik = KANIT_ESIK_VARSAYILAN): KanitMetrikleri {
   const m: KanitMetrikleri = { toplam: satirlar.length, taze: 0, yenilenmeli: 0, dolmus: 0, bagsiz: 0 };
   for (const k of satirlar) {
-    m[tazelik(k, simdi).kova] += 1;
+    m[tazelik(k, simdi, esik).kova] += 1;
     if (!bagliMi(k)) m.bagsiz += 1;
   }
   return m;

@@ -14,3 +14,19 @@ Kızıldere fotoğrafı Zorlu Enerji'nin işlettiği santrale aittir (Wikimedia 
 Bu dizinde kalan tek türetilmiş dosya giriş ekranının geniş hero görseli `jeotermal-genis.webp`
 (2400×800); kırpım özneye göre hizalanmıştır, içerik değiştirilmemiştir. Santral görsel seti
 `public/santraller/genis/` altındadır, künyesi `public/santraller/KUNYE.md`.
+
+## Saha arka plan havuzu (`saha/`)
+
+Saha ana ekranının merkezi fotoğrafik alanı için iki görsellik TEK havuz; kaynak
+kodda `lib/sahaArkaPlan.ts` (`SAHA_ARKA_PLANLARI`), yalnız `.ab-b-fon` katmanında
+kullanılır (dekoratif, `alt=""`, `aria-hidden`). Görseller ürün sahibi tarafından
+sağlanmış üretilmiş (AI) görsellerdir; fotoğraf değildir, üçüncü taraf atıf
+yükümlülüğü yoktur. Kaynak 1672×941 PNG → 16:9 merkez kırpım → 1600×900 WebP (q70).
+
+| Dosya | Konu | object-position |
+|---|---|---|
+| `saha-03-res-sirt.webp` | RES · sırtta türbinler, gün batımı | `78% 42%` |
+| `saha-04-baraj-gol-plume.webp` | Baraj gölü ve uzak santral buharı | `50% 52%` |
+
+Havuz ürün sahibi onayıyla 5'ten 2'ye indirildi (2026-09-03); onaylanmayan üç
+görsel repodan silindi. Önceki nötr triptik de kaldırılmıştır.

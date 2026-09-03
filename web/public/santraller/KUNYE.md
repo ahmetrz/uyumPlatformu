@@ -23,7 +23,7 @@ veride (`Tesis.gorselAnahtari`), anahtar → dosya eşlemesi `lib/gorsel.ts`'de 
 | `alasehirges` | Alaşehir Hibrit GES | Güneş | jeotermal tesisin yanında geniş panel tarlası | hibrit tesis; Alaşehir bağ ovası |
 | `luleburgaz` | Lüleburgaz DGKÇ | Doğal gaz kombine çevrim | bacalı kombine çevrim tesisi, tarım ovası | Kırklareli/Trakya (devredildi) |
 | `demirciler` | Demirciler RES | Rüzgâr | kurak tepeler boyunca seyrek türbin dizisi, uzakta sıra | Osmaniye; Sarıtepe'den küçük ölçek (23,3 MWe) |
-| `merkezbt` | Zorlu Center Genel Müdürlük | Merkez BT | cam ve taş cepheli genel müdürlük binası, kent silueti | üretim tesisi değil; portföydeki tek merkez kaydı |
+| `merkezbt` | Zorlu Enerji Genel Müdürlük | Merkez BT | cam ve taş cepheli genel müdürlük binası, kent silueti | üretim tesisi değil; portföydeki tek merkez kaydı |
 
 Alaşehir'de iki tesis vardır ve ayrı anahtar taşırlar: `alasehir` (JES) ve
 `alasehirges` (hibrit GES). `tercan` küçük görseli 2026-09-02'de kendi hero'sundan

@@ -1,8 +1,9 @@
 'use client';
 import { useMemo, useRef, useState } from 'react';
+import { useUrlDurumuBos } from '@/components/kabuk/urlDurumu';
 import { Dugme, BosIlk, Alan, type Durum } from '@/components/kabuk/temel';
 import { Tablo, type Kolon, type Satir } from '@/components/kabuk/tablo';
-import { EkranBasligi, KipDegistir } from '@/components/kabuk/ekran';
+import { EkranBasligi, KipDegistir, TezgahHatti } from '@/components/kabuk/ekran';
 import {
   Cekmece, CekmeceKimlik, CekmeceAlanlar, CekmeceEylemler,
 } from '@/components/kabuk/panel';
@@ -91,7 +92,7 @@ export default function VarlikAktarimIstemci({
   kapsamli?: boolean;
 }) {
   const { bekliyor, hata, setHata, calistir } = useEylem();
-  const [secili, setSecili] = useState<string | null>(null);
+  const [secili, setSecili] = useUrlDurumuBos('sec');
   const [kuyrukAcik, setKuyrukAcik] = useState(false);
   const dosyaRef = useRef<HTMLInputElement>(null);
 
@@ -166,6 +167,11 @@ export default function VarlikAktarimIstemci({
         />
 
         <div className="ab-ekran-govde" style={{ paddingTop: 'var(--s22)' }}>
+          <TezgahHatti
+            asamalar={[{ ad: 'Dosya' }, { ad: 'Kolon eşleme' }, { ad: 'Doğrulama' }, { ad: 'Karar' }, { ad: 'CMDB' }]}
+            aktifIndeks={aktarimlar.length === 0 ? 0 : bekleyenler.length > 0 ? 3 : 4}
+            not="CSV/Excel kolonları varlık alanlarına eşlenir, önizleme doğrulanır, onay tek transaction içinde CMDB'ye yazar"
+          />
           {hata && (
             <p className="ab-gr-hata" role="alert" style={{ marginTop: 0 }}>{hata}</p>
           )}

@@ -6,6 +6,7 @@ import { modulOkuyabilir } from '@/app/kapsam';
 import { db } from '@/lib/db';
 import BulguDetayIstemci from './BulguDetayIstemci';
 import { bulguDetayVerisi } from './veri';
+import { kanitEsikleri } from '@/lib/yapilandirma/kanitEsik';
 
 export const metadata: Metadata = { title: 'Bulgu kaydı' };
 
@@ -32,5 +33,6 @@ export default async function Sayfa({ params }: { params: Promise<{ id: string }
   const veri = await bulguDetayVerisi(k, id);
   if (!veri) notFound();
 
-  return <BulguDetayIstemci veri={veri} />;
+  const esik = await kanitEsikleri();
+  return <BulguDetayIstemci veri={veri} esik={esik.esik} />;
 }

@@ -1,7 +1,8 @@
 'use client';
 import { useMemo, useState } from 'react';
+import { useUrlDurumu, useUrlDurumuBos } from '@/components/kabuk/urlDurumu';
 import { BosIlk, BosFiltre } from '@/components/kabuk/temel';
-import { EkranBasligi, Filtreler } from '@/components/kabuk/ekran';
+import { EkranBasligi, Filtreler, TezgahHatti } from '@/components/kabuk/ekran';
 import { Tablo, type Kolon } from '@/components/kabuk/tablo';
 import {
   Cekmece, CekmeceKimlik, CekmeceAlanlar, CekmeceBagli,
@@ -46,8 +47,8 @@ export default function KesifIstemci({
   gorunmezEsikGun: number;
   kuyrukTavani: number;
 }) {
-  const [mercek, setMercek] = useState<Mercek>('hepsi');
-  const [seciliId, setSeciliId] = useState<string | null>(null);
+  const [mercek, setMercek] = useUrlDurumu<Mercek>('mercek', 'hepsi');
+  const [seciliId, setSeciliId] = useUrlDurumuBos('sec');
   const [kuyrukAcik, setKuyrukAcik] = useState(false);
   const [toplu, setToplu] = useState<string[]>([]);
 
@@ -86,6 +87,11 @@ export default function KesifIstemci({
       <main data-yuzey="tezgah" style={{ minWidth: 0 }}>
         <EkranBasligi eyebrow="Varlık keşfi" baslik="İnceleme kuyruğu" />
         <section className="ab-ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
+          <TezgahHatti
+            asamalar={[{ ad: 'Kaynak' }, { ad: 'Eşleştirme' }, { ad: 'Karar' }, { ad: 'CMDB' }]}
+            aktifIndeks={0}
+            not="Pasif kaynaklardan gelen kayıt CMDB'ye yazılmaz; eşleştirme öneri üretir, karar burada verilir"
+          />
           <ElleAktarimFormu yazabilir={yazabilir} />
           <BosIlk cumle="Henüz keşif kaydı yok. Pasif bir kaynağın dışa aktarımını yükleyin ya da bir connector çalıştırın." />
         </section>
@@ -121,6 +127,11 @@ export default function KesifIstemci({
         />
 
         <section className="ab-ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
+          <TezgahHatti
+            asamalar={[{ ad: 'Kaynak' }, { ad: 'Eşleştirme' }, { ad: 'Karar' }, { ad: 'CMDB' }]}
+            aktifIndeks={m.bekleyen > 0 ? 2 : eslestirilmemis > 0 ? 1 : 3}
+            not="Pasif kaynaklardan gelen kayıt CMDB'ye yazılmaz; eşleştirme öneri üretir, karar burada verilir"
+          />
           <ElleAktarimFormu yazabilir={yazabilir} />
 
           {eslestirilmemis > 0 && (

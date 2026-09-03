@@ -55,20 +55,24 @@ export default function OtProfili({ tesisId, profil, duzenlenebilir }: {
         <ProfilFormu tesisId={tesisId} profil={profil} kapat={() => setAcik(false)} />
       ) : (
         <>
+          {/* Grup adı <dl>'nin DIŞINDA: dl yalnız dt/dd grupları içerir
+              (axe definition-list, 5 ihlal ölçüldü 2026-09). */}
           <div className="ab-otprofil-gruplar">
             {gruplar.map((g) => (
-              <dl key={g.ad} className="ab-otprofil-grup">
-                <span className="mono grupad">{g.ad}</span>
-                {g.satirlar.map((s) => (
-                  <div key={s.anahtar} className={`satir${s.tanimsiz ? ' tanimsiz' : ''}`}>
-                    <dt>{s.etiket}</dt>
-                    <dd className="mono">
-                      {s.tanimsiz && <Im durum="unk" ad="Tanımsız" />}
-                      {s.deger}
-                    </dd>
-                  </div>
-                ))}
-              </dl>
+              <section key={g.ad} className="ab-otprofil-grup" aria-label={g.ad}>
+                <span className="mono grupad" aria-hidden>{g.ad}</span>
+                <dl className="liste">
+                  {g.satirlar.map((s) => (
+                    <div key={s.anahtar} className={`satir${s.tanimsiz ? ' tanimsiz' : ''}`}>
+                      <dt>{s.etiket}</dt>
+                      <dd className="mono">
+                        {s.tanimsiz && <Im durum="unk" ad="Tanımsız" />}
+                        {s.deger}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+              </section>
             ))}
           </div>
           <p className="ab-otprofil-dip">

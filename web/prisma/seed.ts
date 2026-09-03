@@ -80,7 +80,7 @@ async function main() {
     ['CILDIR-HES', 'Çıldır HES', 'HES', 15.4, 'Kars', 'aktif', null, null, -6510, 'cildir'],
     ['ATAKOY-HES', 'Ataköy HES', 'HES', 5.5, 'Tokat', 'aktif', null, null, -4870, 'atakoy'],
     ['ALASEHIR-GES', 'Alaşehir Hibrit GES', 'GES', 3.75, 'Manisa', 'aktif', null, null, -1810, 'alasehirges'],
-    ['MERKEZ-BT', 'Zorlu Center Genel Müdürlük', 'MERKEZ', null, 'İstanbul', 'aktif', null, null, -5000, 'merkezbt'],
+    ['MERKEZ-BT', 'Zorlu Enerji Genel Müdürlük', 'MERKEZ', null, 'İstanbul', 'aktif', null, null, -5000, 'merkezbt'],
     ['LULEBURGAZ-DGKC', 'Lüleburgaz DGKÇ (devredildi)', 'DGKC', 82, 'Kırklareli', 'kapali', -300, 'satis', -9950, 'luleburgaz'],
   ] as const).map(async ([kod, ad, tipKod, guc, konum, durum, kapanis, neden, giris, gorsel]) => [kod,
     await db.tesis.create({ data: {

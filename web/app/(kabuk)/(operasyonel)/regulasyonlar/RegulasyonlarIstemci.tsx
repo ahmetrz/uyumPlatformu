@@ -1,6 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
+import { useUrlDurumu } from '@/components/kabuk/urlDurumu';
 import { BosIlk, Dugme, Im, type Durum } from '@/components/kabuk/temel';
 import { GenisleyenSatir } from '@/components/kabuk/tablo';
 import { EkranBasligi, Filtreler } from '@/components/kabuk/ekran';
@@ -45,7 +46,7 @@ export default function RegulasyonlarIstemci({
 }) {
   const [seciliReg, setSeciliReg] = useState(() => acilisCercevesi(regulasyonlar)?.id ?? '');
   const [arama, setArama] = useState('');
-  const [kip, setKip] = useState<Kip>('surum');
+  const [kip, setKip] = useUrlDurumu<Kip>('kip', 'surum');
   const [maddeId, setMaddeId] = useState<string | null>(null);
   const [surumId, setSurumId] = useState<string | null>(null);
   const [hepsiAcik, setHepsiAcik] = useState(false);

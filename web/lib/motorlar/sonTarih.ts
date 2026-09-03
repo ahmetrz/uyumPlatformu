@@ -1,6 +1,7 @@
 import 'server-only';
 import { db } from '../db';
 import { tarihTR } from '../sabitler';
+import { ayarlar } from '../yapilandirma/oku';
 
 /* Son tarih (deadline) motoru (§52): yaklaşan/geçen tarihleri tarar,
    her kaynak için açık bir 'son_tarih' görevi güvence altına alır ve ilgili
@@ -43,8 +44,11 @@ async function gorevGuvenceyeAl(aday: GorevAdayi): Promise<number> {
 
 export async function sonTarihleriIsle(): Promise<{ islenen: number; uretilen: number }> {
   const simdi = new Date();
-  const gun14 = new Date(simdi.getTime() + 14 * GUN);
-  const gun30 = new Date(simdi.getTime() + 30 * GUN);
+  /* Ufuklar yönetim konsolundan (B sınıfı, onaylı) ayarlanır; kayıt yoksa
+     kod varsayılanı 14 / 30 gün geçer. */
+  const esik = await ayarlar(['motor.son_tarih.bulgu_gun', 'motor.son_tarih.denetim_gun'] as const);
+  const gun14 = new Date(simdi.getTime() + Number(esik['motor.son_tarih.bulgu_gun']) * GUN);
+  const gun30 = new Date(simdi.getTime() + Number(esik['motor.son_tarih.denetim_gun']) * GUN);
   let islenen = 0, uretilen = 0;
 
   // (a) hedef tarihi 14 gün içinde ya da geçmiş açık bulgular

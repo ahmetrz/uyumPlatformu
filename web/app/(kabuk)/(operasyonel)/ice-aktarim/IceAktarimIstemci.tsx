@@ -1,9 +1,10 @@
 'use client';
 import Link from 'next/link';
 import { useMemo, useRef, useState, type ReactNode } from 'react';
+import { useUrlDurumuBos } from '@/components/kabuk/urlDurumu';
 import { Dugme, BosIlk } from '@/components/kabuk/temel';
 import { Tablo, type Kolon, type Satir } from '@/components/kabuk/tablo';
-import { EkranBasligi, KipDegistir } from '@/components/kabuk/ekran';
+import { EkranBasligi, KipDegistir, TezgahHatti } from '@/components/kabuk/ekran';
 import {
   Cekmece, CekmeceKimlik, CekmeceAlanlar, CekmeceEylemler,
 } from '@/components/kabuk/panel';
@@ -49,7 +50,7 @@ export default function IceAktarimIstemci({
 }) {
   const { bekliyor, hata, setHata, calistir } = useEylem();
   const [regId, setRegId] = useState('');
-  const [secili, setSecili] = useState<string | null>(null);
+  const [secili, setSecili] = useUrlDurumuBos('sec');
   const [kuyrukAcik, setKuyrukAcik] = useState(false);
   const dosyaRef = useRef<HTMLInputElement>(null);
 
@@ -143,6 +144,11 @@ export default function IceAktarimIstemci({
         />
 
         <div className="ab-ekran-govde" style={{ paddingTop: 'var(--s22)' }}>
+          <TezgahHatti
+            asamalar={[{ ad: 'Dosya' }, { ad: 'Doğrulama' }, { ad: 'Karar' }, { ad: 'Kütük' }]}
+            aktifIndeks={aktarimlar.length === 0 ? 0 : m.bekleyen > 0 ? 2 : 3}
+            not="Excel/CSV satırları doğrulanır, onaydan sonra maddeler regülasyon kütüğüne yazılır"
+          />
           {hata && <p className="ab-gr-hata" role="alert" style={{ marginTop: 0 }}>{hata}</p>}
 
           {aktarimlar.length === 0 ? (

@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useUrlDurumu, useUrlDurumuBos } from '@/components/kabuk/urlDurumu';
 import { BosIlk, BosFiltre, Dugme, Kesir } from '@/components/kabuk/temel';
 import { Tablo, type Kolon, type Satir } from '@/components/kabuk/tablo';
 import { EkranBasligi, Filtreler } from '@/components/kabuk/ekran';
@@ -40,11 +41,11 @@ export default function OperasyonIstemci({
   degisiklikler: D[]; tesisler: Kodlu[]; olaylar: OlayAdayi[];
   simdi: number; yazabilir: boolean;
 }) {
-  const [mercek, setMercek] = useState<Mercek>('acik');
-  const [tesisF, setTesisF] = useState<string | null>(null);
-  const [tipF, setTipF] = useState<string | null>(null);
-  const [secili, setSecili] = useState<string | null>(null);
-  const [kip, setKip] = useState<Kip>('ozet');
+  const [mercek, setMercek] = useUrlDurumu<Mercek>('mercek', 'acik');
+  const [tesisF, setTesisF] = useUrlDurumuBos('tesis');
+  const [tipF, setTipF] = useUrlDurumuBos('tip');
+  const [secili, setSecili] = useUrlDurumuBos('sec');
+  const [kip, setKip] = useUrlDurumu<Kip>('kip', 'ozet');
   const [yeniAcik, setYeniAcik] = useState(false);
   const [kuyrukAcik, setKuyrukAcik] = useState(false);
 

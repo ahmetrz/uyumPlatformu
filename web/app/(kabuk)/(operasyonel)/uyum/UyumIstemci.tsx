@@ -1,8 +1,9 @@
 'use client';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useEylem } from '@/components/useEylem';
+import { EkranBasligi } from '@/components/kabuk/ekran';
 import { kanitTalebiEkle } from '@/lib/eylemler2/denetim';
 import { DURUM_ETIKET, etiketle, uyumOzeti } from '@/lib/sabitler';
 import {
@@ -271,27 +272,29 @@ export default function UyumIstemci({
           uygulama kuralıdır); Lighthouse erişilebilirliği 98'de tutuyordu
           ve gerekçe hiçbir yerde yazmıyordu. */}
       <main data-yuzey="defter" style={{ minWidth: 0 }}>
-        <header style={{ display: 'flex', alignItems: 'flex-end', gap: 32, marginBottom: 30 }}>
-          <div style={{ minWidth: 0 }}>
-            <h1 className="ab-c-baslik" style={{ margin: 0 }}>Nerede uygunsuz, ve neden?</h1>
-            <p className="etiket" style={{ margin: '10px 0 0', textTransform: 'none', letterSpacing: '.02em', fontFamily: 'var(--ui)', fontSize: 12 }}>
-              Satır = kontrol · sütun = santral · satıra tıklayınca gerekçe aynı defterde açılır
-            </p>
-          </div>
-          <div className="ab-c-olcut" style={{ marginLeft: 'auto' }}>
-            <Metrik etiket="Uygun" deger={m.uygun} />
-            <Metrik etiket="Kısmi" deger={m.kismi} />
-            <Metrik etiket="Uygunsuz" deger={m.uygunsuz} vurgu />
-            <Metrik etiket="Endeks" oran
-              deger={m.endeks === null ? '—' : `%${m.endeks}`} />
-          </div>
-        </header>
-
-        {/* Prototipte lede ile matris arasında ince bir kural var — defter
-            "giriş" ile "kütük"ü ayırır. */}
-        <div className="ab-c-kural" style={{ margin: '0 0 20px' }} />
-
-        <EgilimSeridi noktalar={egilim} surecVar={surecId !== null} bugun={m.endeks} />
+        {/* Lede paylaşılan gramerdir (`EkranBasligi`): Risk ve Varlık ile
+            aynı Barlow 26px başlık, aynı ölçüt satırı. Eylül 2026 denetimi
+            bu ekranda 34px ayrı bir başlık + ayrı kural ölçtü; gövde
+            (matris) 1366×768'de 283px'te başlıyordu. Endeks ölçülemediyse
+            "—" ve `unk` durumu: sıfır değil, bilinmeyen. */}
+        <EkranBasligi
+          eyebrow={`Uyum · ${cerceve.ad}`}
+          baslik="Nerede uygunsuz, ve neden?"
+          metrikler={[
+            { deger: m.uygun, yazi: 'Uygun', durum: 'ok' },
+            { deger: m.kismi, yazi: 'Kısmi', durum: m.kismi > 0 ? 'md' : undefined },
+            { deger: m.uygunsuz, yazi: 'Uygunsuz', durum: m.uygunsuz > 0 ? 'bd' : undefined },
+            { deger: m.endeks === null ? '—' : `%${m.endeks}`, yazi: 'Endeks', durum: m.endeks === null ? 'unk' : undefined },
+          ]}
+        />
+        {/* Giriş satırı: solda okuma cümlesi, sağda eğilim şeridi — iki
+            ayrı bant değil tek satır; matris 1366×768'de ~260px'te başlar. */}
+        <div className="ab-c-giris">
+          <p className="cumle">
+            Satır = kontrol · sütun = santral · satıra tıklayınca gerekçe aynı defterde açılır
+          </p>
+          <EgilimSeridi noktalar={egilim} surecVar={surecId !== null} bugun={m.endeks} />
+        </div>
 
         {gorunur.length === 0 ? (
           <p style={{ color: 'var(--i3)', fontSize: 13 }}>
@@ -318,17 +321,6 @@ export default function UyumIstemci({
 
         <KapsamDisi cerceve={cerceve} />
       </main>
-    </div>
-  );
-}
-
-function Metrik({ etiket, deger, vurgu, oran }: {
-  etiket: string; deger: number | string; vurgu?: boolean; oran?: boolean;
-}) {
-  return (
-    <div>
-      <div className="etiket">{etiket}</div>
-      <div className={`deger${vurgu ? ' vurgu' : ''}${oran ? ' oran' : ''}`}>{deger}</div>
     </div>
   );
 }
@@ -420,63 +412,99 @@ function UyumMatrisi({ cerceve, satirlar, santraller, acik, setAcik, yazabilir }
   setAcik: (a: Acik) => void;
   yazabilir: boolean;
 }) {
-  const kolonlar = `92px minmax(220px, 1fr) repeat(${santraller.length}, 68px) 78px`;
+  /* Santral sütunu 68→88px: "Kızıldere III JES" ve "Zorlu Enerji Genel
+     Müdürlük" 68px'te 3–4 satıra kırılıyor, altındaki kod da sarıyordu
+     (ölçüldü, 1366×768: başlık satırı 5 satır/64px). Başlıkta yalnız
+     kısa ad kalır, EN FAZLA 2 satır (`line-clamp`); kod ve künye `title`a
+     ve hücrenin `aria-label`ına gider — bilgi kaybolmaz, satır sayısı
+     denetim altına girer (ürün sahibi kabulü 2026-09, madde 2). */
+  const kolonlar = `92px minmax(220px, 1fr) repeat(${santraller.length}, 88px) 78px`;
   const genel = uyumOzeti(sayHam(satirlar)).yuzde;
+  /* Yapışkan başlık ↔ yatay kaydırma çelişkisi: `overflow-x:auto` olan
+     bir kap içinde `position:sticky` sayfaya değil kaba yapışır (etkisiz).
+     Bu yüzden kaydırma yalnız GEREKİNCE açılır: içerik sığıyorsa kap
+     taşmasız kalır ve başlık sayfa kaydırılırken üstte durur; sığmıyorsa
+     (çok santralli çerçeve) kap yatay kayar, başlık akışta kalır. Ölçüm
+     ResizeObserver ile; sunum kararı, veri akışına dokunmaz. */
+  const kap = useRef<HTMLDivElement>(null);
+  const [tasar, setTasar] = useState(false);
+  useEffect(() => {
+    const el = kap.current;
+    if (!el) return;
+    const olc = () => {
+      // kaydırma kapalıyken ölç: ızgaranın gerçek genişliği ilk satırdan okunur
+      const bas = el.querySelector<HTMLElement>('.bas');
+      const gerek = bas ? bas.scrollWidth : el.scrollWidth;
+      setTasar(gerek > el.clientWidth + 1);
+    };
+    olc();
+    const ro = new ResizeObserver(olc);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [santraller.length]);
   return (
     <div
-      className="ab-mtx"
+      ref={kap}
+      className={`ab-mtx${tasar ? ' kayar' : ''}`}
+      role="table"
+      aria-label={`${cerceve.gorunenAd} uyum matrisi: kontrol × santral`}
+      aria-rowcount={satirlar.length + 2}
       style={{ ['--mtx-kolon' as string]: kolonlar }}
       onKeyDown={(e) => { if (e.key === 'Escape' && acik) { e.stopPropagation(); setAcik(null); } }}
     >
-      <div className="bas">
-        <span className="kolonbas">Kontrol</span>
-        <span className="kolonbas">Başlık</span>
+      <div className="bas" role="row">
+        <span className="kolonbas" role="columnheader">Kontrol</span>
+        <span className="kolonbas" role="columnheader">Başlık</span>
         {santraller.map((t) => (
-          <span key={t.id} className="santral">
-            {t.ad}
-            <span className="mono">{t.kod}</span>
+          <span key={t.id} className="santral" role="columnheader" title={`${t.ad} · ${t.kod} · ${t.alt}`}>
+            <span className="ad">{t.ad}</span>
           </span>
         ))}
-        <span className="kolonbas" style={{ textAlign: 'right' }}>Kapsam</span>
+        <span className="kolonbas" role="columnheader" style={{ textAlign: 'right' }}>Kapsam</span>
       </div>
 
       {satirlar.map((s) => {
         const satirAcik = acik?.maddeId === s.maddeId;
         return (
           <div key={s.maddeId}>
-            <div className={`satir${satirAcik ? ' acik' : ''}`}>
-              <span className="mono kod">{s.kisaKod || s.kod}</span>
-              <span className="baslik">{s.baslik}</span>
+            <div className={`satir${satirAcik ? ' acik' : ''}`} role="row">
+              <span className="mono kod" role="rowheader">{s.kisaKod || s.kod}</span>
+              <span className="baslik" role="cell">{s.baslik}</span>
               {santraller.map((t) => {
                 const k = s.hucreler.get(t.id);
                 const g = glif(k);
                 const bu = satirAcik && acik?.tesisId === t.id;
                 return (
-                  <button
-                    key={t.id}
-                    type="button"
-                    className={`hucre${bu ? ' secili' : ''}`}
-                    aria-expanded={bu}
-                    aria-label={`${s.kisaKod || s.kod} · ${t.ad} · ${g.soz}`}
-                    onClick={() => setAcik(bu ? null : (k ? { maddeId: s.maddeId, tesisId: t.id } : null))}
-                    disabled={!k || k.im === null}
-                  >
-                    <span className={`ab-glif ${g.sinif}`} aria-hidden />
-                  </button>
+                  <span key={t.id} role="cell" className="hucrekap">
+                    <button
+                      type="button"
+                      className={`hucre${bu ? ' secili' : ''}`}
+                      aria-expanded={bu}
+                      aria-label={`${s.kisaKod || s.kod} · ${t.ad} · ${g.soz}`}
+                      onClick={() => setAcik(bu ? null : (k ? { maddeId: s.maddeId, tesisId: t.id } : null))}
+                      disabled={!k || k.im === null}
+                    >
+                      <span className={`ab-glif ${g.sinif}`} aria-hidden />
+                    </button>
+                  </span>
                 );
               })}
-              <span className="mono kapsam">{s.kapsamda} / {santraller.length}</span>
+              <span className="mono kapsam" role="cell">{s.kapsamda} / {santraller.length}</span>
             </div>
 
             {satirAcik && acik && (
-              <Gerekce
-                cerceve={cerceve}
-                satir={s}
-                tesis={santraller.find((t) => t.id === acik.tesisId)!}
-                kontrol={s.hucreler.get(acik.tesisId)!}
-                kapat={() => setAcik(null)}
-                yazabilir={yazabilir}
-              />
+              <div role="row">
+                <div role="cell" aria-colspan={santraller.length + 3}>
+                  <Gerekce
+                    cerceve={cerceve}
+                    satir={s}
+                    tesis={santraller.find((t) => t.id === acik.tesisId)!}
+                    kontrol={s.hucreler.get(acik.tesisId)!}
+                    kapat={() => setAcik(null)}
+                    yazabilir={yazabilir}
+                  />
+                </div>
+              </div>
             )}
           </div>
         );
@@ -486,21 +514,21 @@ function UyumMatrisi({ cerceve, satirlar, santraller, acik, setAcik, yazabilir }
       {/* Sütun özeti — prototipteki gibi matrisin ALTINDA, kalın kuralla.
           Ölçülmemiş sütun "—" gösterir: 0 uyum ile hiç değerlendirilmemiş
           aynı şey değildir (UNKNOWN ≠ ZERO). */}
-      <div className="satir endeks">
-        <span className="etiket">Endeks</span>
-        <span style={{ fontSize: 11.5, color: 'var(--i3)' }}>
+      <div className="satir endeks" role="row">
+        <span className="etiket" role="rowheader">Endeks</span>
+        <span role="cell" style={{ fontSize: 11.5, color: 'var(--i3)' }}>
           Santral bazında ağırlıklı uyum
         </span>
         {santraller.map((t) => {
           const e = santralEndeksi(satirlar, t.id);
           return (
-            <span key={t.id} className="mono num deger"
+            <span key={t.id} className="mono num deger" role="cell"
               style={e === null ? { color: 'var(--i3)' } : undefined}>
               {e === null ? '—' : `%${e}`}
             </span>
           );
         })}
-        <span className="mono num" style={{ textAlign: 'right', fontSize: 12 }}>
+        <span className="mono num" role="cell" style={{ textAlign: 'right', fontSize: 12 }}>
           {genel === null ? '—' : `%${genel}`}
         </span>
       </div>

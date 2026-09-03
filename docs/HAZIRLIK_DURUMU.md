@@ -271,30 +271,34 @@ ekrandan ya da seed'den girilir, kod değişmez.
 İlki ve üçüncüsü yeni şema ister; ikincisi canlı izleme verisi ister ve
 güvenlik sınırının öbür tarafındadır.
 
-**10. ~~Hamburger / 64px ray varyantı~~ KARARA BAĞLANDI: hamburger +
-çekmece.** Üç seçenek gerçek ekran görüntüleriyle karşılaştırıldı
-(bugünkü yatay şerit · 64px dikey ikon rayı · hamburger çekmece);
-Ahmet **çekmeceyi** seçti.
+**10. ~~Hamburger / 64px ray varyantı~~ KONUSUZ KALDI — yeniden tasarım
+sorunu başka yoldan çözdü.**
 
-Ölçülen kusur şuydu: ≤1100px'te on altı ray öğesi yatay şeride iniyor,
-şerit taşıyor ve **kaydırılabildiğini gösteren bir işaret olmuyordu**.
-Erişilebilirlik kusuru değildi — sekmeyle ulaşılıyordu — keşfedilebilirlik
-kusuruydu: son öğelerin var olduğu bilinmiyordu.
+Karar verilmişti ve uygulanmıştı: üç seçenek gerçek ekran görüntüleriyle
+karşılaştırıldı (yatay şerit · 64px dikey ikon rayı · hamburger çekmece),
+Ahmet **çekmeceyi** seçti, çekmece odak tuzağı/Esc/geri dönüş ve kendi
+canlı kapısıyla birlikte yazıldı.
 
-**Çekmecenin bilinen bedeli tasarımda kapatıldı.** Kapalıyken "hangi
-ekrandayım" sorusunun cevapsız kalması bu seçeneğin başlıca zayıflığıydı;
-düğme bu yüzden yalnız bir hamburger değil, **yanında aktif ekranın adı
-duruyor** ve gezinince güncelleniyor. `arac/cekmece-testi.mjs` bunu ayrı
-bir ölçüm olarak sınıyor — yazmazsa kapı kırmızıya düşer.
+**Sonra PR #8 (tek kabuk) main'e girdi ve A/B/C kabuklarını kaldırdı.**
+Çekmecenin düzelttiği yapı — on altı öğeli dikey `.ab-a-ray` — artık
+yok; `A_RAY` sözlüğü ve `ab-a-ray` sınıfı depoda hiç geçmiyor. Kod
+olduğu gibi taşınsaydı var olmayan bir sözlüğe başvurur ve derlemeyi
+kırardı; CSS'i de hiçbir şeyin render etmediği ölü kural olurdu.
 
-**JS'siz hâl bozulmadı.** Çekmece bir iyileştirmedir: bileşen bağlanana
-kadar (ve JS hiç koşmazsa) bugünkü yatay şerit geçerli kalır. Aksi hâlde
-JS'i koşmayan bir tarayıcıda gezinme tümüyle gizlenir, düğme de olmadığı
-için ulaşılamazdı — kusuru düzeltirken ürünü kırmak olurdu.
+**Sorunun kendisi de kalktı.** Ölçülen kusur, on altı ray öğesinin dar
+bantta yatay şeride inip işaretsizce taşmasıydı. Tek kabukta üst çubuk
+**beş alan** taşıyor; on altı öğelik taşma diye bir şey kalmadı.
 
-Kırılma noktası 1100px'te bırakıldı. Sahadaki gerçek çözünürlük (1366×768
-dizüstü mü, daha dar bir panel mi) sorulmuştu, cevap gelmedi; gelirse
-tek sayı değişir.
+Bu yüzden çekmece kodu ve `arac/cekmece-testi.mjs` kapısı birleştirme
+sırasında DÜŞÜRÜLDÜ. Var olmayan bir rayı sınayan bir kapı, yeşil
+yandığında yalan söyler.
+
+**Kaydedilen karar boşa gitmedi, konusu değişti:** dar bantta gezinmenin
+görünürlüğü bir üründe tekrar sorulacak bir sorudur. Tek kabuğun dar
+bantta nasıl davrandığı HENÜZ ÖLÇÜLMEDİ; ölçüldüğünde sorun çıkarsa,
+bu maddedeki karşılaştırma yöntemi ve çekmecenin bilinen bedeli
+("kapalıyken hangi ekrandayım sorusu cevapsız kalır", düğmede aktif
+ekran adıyla kapatılmıştı) hazır durumdadır.
 
 **11. `?next=` üreticisi** — giriş sayfasındaki kapı güvenli ve çalışıyor,
 ama parametreyi üreten taraf yok; middleware/proxy kararı ayrı bir iş.
@@ -309,7 +313,7 @@ değişiklik tek dosyada kaldı. Yayın URL'leri değişti: eski
 
 **14. ~~Yedi tesisin hero görseli yok.~~ KAPANDI.** Ahmet'in 2026-09-02'de
 sağladığı yedi temsilî görsel bağlandı (Tercan HES · Sarıtepe RES · Ataköy
-HES · Alaşehir Hibrit GES · Lüleburgaz DGKÇ · Demirciler RES · Zorlu Center
+HES · Alaşehir Hibrit GES · Lüleburgaz DGKÇ · Demirciler RES · Zorlu Enerji
 Genel Müdürlük); künye `public/santraller/KUNYE.md`. **Portföydeki 17
 tesisin 17'sinin de görseli var.** Tipografik fallback yolu silinmedi:
 görseli olmayan yeni bir tesis eklenirse yine fallback alır, **başka bir

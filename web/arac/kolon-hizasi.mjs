@@ -2,27 +2,20 @@
 /* Kütük kolon hizası kapısı — statik çıktı üzerinde, üç genişlikte.
 
    ── NİÇİN VAR ─────────────────────────────────────────────────────────
-   Kütük ızgarası iki ayrı kararla çizilir: `grid-template-columns` kaç
-   kolon olduğunu, `display: none` hangi hücrenin çizilmediğini söyler.
-   İkisi AYNI kolonu göstermek zorundadır. Ayrışırsa hiçbir şey hata
-   vermez — başlıklar hücrelerden bir kolon kayar ve tablo sessizce
-   yalan söyler: "Sahip" yazan kolonda son kullanım tarihi görünür.
+   Faz 3'te kütük `<table class="ab-vt">` semantik tablodur; başlık ve
+   hücre aynı sütun modelinden geçer, ray ayrışması yapısal olarak
+   mümkün değildir. Geriye tek karar kalır: ≤1366px bantta gizlenen
+   İKİNCİL sütun (`.ikincil-k`) başlıkta ve hücrede AYNI anda gizlenmeli.
+   Ayrışırsa hiçbir şey hata vermez — "Sahip" yazan sütunun altında son
+   kullanım tarihi görünür ve tablo sessizce yalan söyler.
 
-   Ölçüldü: dar şablon (`--kolon-dar` / `--kolonlar-dar`) beş ekranda
-   hesaplanıyor ama hiçbir kural okumuyordu — dar ekranda kolon
-   azaltma hiç çalışmamıştı. Bağlandığında üç ekranda başlık kaydı,
-   çünkü başlık işareti iki farklı ad taşıyordu.
-
-   Kapı iki şeyi ölçer:
-     1. Başlık ve satır satırının ÇÖZÜLMÜŞ ızgara rayları (piksel
-        listesi) birebir aynı mı — şablonlar ayrışmışsa burada çıkar.
-     2. Görünen hücre sayıları eşit mi — `display: none` kararı iki
-        tarafta ayrışmışsa burada çıkar.
-
-   Hücrenin KENDİ kutusu ölçülmez: bir hücre `justify-self: end` ile
-   rayının sağına yaslanabilir (satır sonundaki ok böyle) ve kutu
-   konumu rayla karışırsa kapı 19px'lik sahte kusur üretir — üretti,
-   ölçüldü.
+   Kapı üç şeyi ölçer:
+     1. Başlık satırında görünen `<th>` sayısı = ilk veri satırında
+        görünen hücre sayısı.
+     2. Her görünen başlığın sol kenarı, aynı sıradaki hücrenin sol
+        kenarıyla ±1px hizalı.
+     3. Tablo, kaydırma kabını (`.ab-vt-sar`) yatayda aşmıyor — aşıyorsa
+        yapışkan başlık kayar ve genişlik sözleşmesi bozulmuştur.
 
    Kullanım: node arac/kolon-hizasi.mjs [out dizini]
 */
@@ -103,18 +96,23 @@ for (const gen of GENISLIKLER) {
     const bulgu = await sayfa.evaluate(() => {
       const out = [];
       const gorunur = (e) => [...e.children].filter((c) => getComputedStyle(c).display !== 'none');
-      for (const tab of document.querySelectorAll('.ab-tablo')) {
-        const bas = tab.querySelector('.bas');
-        const satir = tab.querySelector('.satir:not(.kuyruk)');
-        if (!bas || !satir) continue;
-        /* Çözülmüş ray listesi: tarayıcı `grid-template-columns`u
-           piksele indirger, `1fr` ve `minmax()` dâhil. */
-        const bt = getComputedStyle(bas).gridTemplateColumns;
-        const st = getComputedStyle(satir).gridTemplateColumns;
-        if (bt !== st) { out.push(`ray ayrışması · başlık [${bt}] · satır [${st}]`); continue; }
-        const bn = gorunur(bas).length;
-        const sn = gorunur(satir).length;
-        if (bn !== sn) out.push(`başlık ${bn} hücre, satır ${sn} hücre`);
+      for (const tab of document.querySelectorAll('table.ab-vt')) {
+        const basHucreler = gorunur(tab.querySelector('thead tr') ?? tab);
+        const veri = tab.querySelector('tbody tr[aria-rowindex]');
+        if (!veri || basHucreler.length === 0) continue;
+        const satirHucreleri = gorunur(veri);
+        if (basHucreler.length !== satirHucreleri.length) {
+          out.push(`başlık ${basHucreler.length} hücre, satır ${satirHucreleri.length} hücre`);
+          continue;
+        }
+        basHucreler.forEach((b, i) => {
+          const fark = Math.abs(b.getBoundingClientRect().left - satirHucreleri[i].getBoundingClientRect().left);
+          if (fark > 1) out.push(`${i + 1}. sütun · başlık/hücre sol kenarı ${fark.toFixed(1)}px ayrık`);
+        });
+        const sar = tab.closest('.ab-vt-sar');
+        if (sar && tab.scrollWidth > sar.clientWidth + 1) {
+          out.push(`tablo ${tab.scrollWidth}px, kap ${sar.clientWidth}px · yatay taşma`);
+        }
       }
       return out;
     });
@@ -131,7 +129,7 @@ sunucu.close();
 if (kusurlar.length) {
   console.error(`\nkolon-hizasi: ${kusurlar.length} kusur\n`);
   for (const k of kusurlar) console.error(`  ${k}`);
-  console.error('\nBaşlık ile satır aynı rayları ve aynı sayıda görünen hücreyi taşımalı.\n');
+  console.error('\nBaşlık ile satır aynı sayıda görünen hücreyi, aynı sol kenarlarda taşımalı; tablo kabını aşmamalı.\n');
   process.exit(1);
 }
 console.log(`kolon-hizasi: ${olculen} sayfa ölçüldü (${GENISLIKLER.join('/')}px), kolonlar hizalı.`);

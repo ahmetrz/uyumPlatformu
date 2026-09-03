@@ -1,5 +1,6 @@
 import 'server-only';
 import { db } from '../db';
+import { ayarlar } from '../yapilandirma/oku';
 import { zamanTR } from '../sabitler';
 import { OTURUM_VARLIK_TIPI, oturumKaynagiBagliMi, type UcDegerAlan }
   from '../entegrasyon/tedarikciOturum';
@@ -251,7 +252,14 @@ const saat = (ms: number) => ms / 3_600_000;
  * `simdi` dışarıdan verilir ki zamana bağlı kurallar (bayat `suruyor`,
  * anormal uzun oturum) testte deterministik olsun.
  */
-export function oturumuDegerlendir(o: OturumGirdisi, simdi: Date = new Date()): ErisimSonucu {
+export type ErisimEsikleri = { surenBayatSaat: number; anormalUzunSaat: number };
+export const VARSAYILAN_ERISIM_ESIKLERI: ErisimEsikleri = {
+  surenBayatSaat: SUREN_BAYAT_SAAT, anormalUzunSaat: ANORMAL_UZUN_SAAT,
+};
+
+export function oturumuDegerlendir(
+  o: OturumGirdisi, simdi: Date = new Date(), esik: ErisimEsikleri = VARSAYILAN_ERISIM_ESIKLERI,
+): ErisimSonucu {
   const ihlaller: ErisimIhlali[] = [];
   const bilinmeyenler: string[] = [];
   const veriKalitesi: ErisimKaliteBulgusu[] = [];
@@ -318,16 +326,16 @@ export function oturumuDegerlendir(o: OturumGirdisi, simdi: Date = new Date()): 
      açık görünen, diğeri kapanmış ama uzun süren oturumu ölçer. */
   if (o.durum === 'suruyor') {
     const gecen = saat(simdi.getTime() - o.baslangic.getTime());
-    if (gecen > SUREN_BAYAT_SAAT)
+    if (gecen > esik.surenBayatSaat)
       ihlaller.push({ kural: 'bayat_suruyor', puan: PUANLAR.bayat_suruyor,
         aciklama: `Oturum ${Math.round(gecen)} saattir hâlâ "sürüyor" görünüyor `
-          + `(eşik ${SUREN_BAYAT_SAAT} saat). Kaynak kapanışı raporlamamış ya da `
+          + `(eşik ${esik.surenBayatSaat} saat). Kaynak kapanışı raporlamamış ya da `
           + 'erişim gerçekten açık kalmış olabilir.' });
   } else if (o.bitis) {
     const sure = saat(o.bitis.getTime() - o.baslangic.getTime());
-    if (sure > ANORMAL_UZUN_SAAT)
+    if (sure > esik.anormalUzunSaat)
       ihlaller.push({ kural: 'anormal_uzun', puan: PUANLAR.anormal_uzun,
-        aciklama: `Oturum ${Math.round(sure)} saat sürmüş (eşik ${ANORMAL_UZUN_SAAT} `
+        aciklama: `Oturum ${Math.round(sure)} saat sürmüş (eşik ${esik.anormalUzunSaat} `
           + 'saat) — tipik bakım penceresinin dışında.' });
   }
 
@@ -419,10 +427,10 @@ function sozlesmeKapsamiCoz(
   return gecerli ? 'kapsamda' : 'suresi_gecmis';
 }
 
-async function girdileriTopla(simdi: Date): Promise<OturumGirdisi[]> {
+async function girdileriTopla(simdi: Date, kosuBasina: number = KOSU_BASINA_OTURUM): Promise<OturumGirdisi[]> {
   const satirlar = await db.tedarikciErisimOturumu.findMany({
     orderBy: { baslangic: 'desc' },
-    take: KOSU_BASINA_OTURUM,
+    take: kosuBasina,
     include: {
       tedarikci: { select: {
         ad: true,
@@ -523,7 +531,16 @@ export async function erisimleriDegerlendir(): Promise<{ islenen: number; uretil
       return { islenen: 0, uretilen: 0 };
     }
 
-    const girdiler = await girdileriTopla(simdi);
+    /* Eşikler yönetim konsolundan (B sınıfı, onaylı); kayıt yoksa kod
+       varsayılanları (1000 / 24 / 12). */
+    const ayarDegerleri = await ayarlar([
+      'motor.erisim.kosu_basina_oturum', 'motor.erisim.suren_bayat_saat',
+      'motor.erisim.anormal_uzun_saat'] as const);
+    const esik: ErisimEsikleri = {
+      surenBayatSaat: Number(ayarDegerleri['motor.erisim.suren_bayat_saat']),
+      anormalUzunSaat: Number(ayarDegerleri['motor.erisim.anormal_uzun_saat']),
+    };
+    const girdiler = await girdileriTopla(simdi, Number(ayarDegerleri['motor.erisim.kosu_basina_oturum']));
     const degerlendirilenIdler = girdiler.map((g) => g.id);
 
     /* Mevcut açık kayıtlar — YALNIZ bu motorun ürettikleri.
@@ -558,7 +575,7 @@ export async function erisimleriDegerlendir(): Promise<{ islenen: number; uretil
     let kritikAday = 0;
 
     for (const g of girdiler) {
-      const s = oturumuDegerlendir(g, simdi);
+      const s = oturumuDegerlendir(g, simdi, esik);
       olculmeyenAlan += s.bilinmeyenler.length;
 
       if (s.ihlaller.length > 0 && s.siddet) {

@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useUrlDurumu, useUrlDurumuBos, useUrlSira } from '@/components/kabuk/urlDurumu';
 import { Alan, BosFiltre, BosIlk, Dugme, Hata, Im, type Durum } from '@/components/kabuk/temel';
 import { Tablo, type Kolon, type Satir } from '@/components/kabuk/tablo';
 import { EkranBasligi, Filtreler } from '@/components/kabuk/ekran';
@@ -8,13 +9,13 @@ import {
 } from '@/components/kabuk/panel';
 import { useEylem } from '@/components/useEylem';
 import { kanitEkle } from '@/lib/eylemler';
-import { BULGU_DURUM_ETIKET, etiketle, tarihTR } from '@/lib/sabitler';
+import { BULGU_DURUM_ETIKET, KANIT_ESIK_VARSAYILAN, etiketle, tarihTR, type KanitEsik } from '@/lib/sabitler';
 import { an } from '@/lib/an';
 import { kisaTarih } from '../bulgular/mantik';
 import {
   MERCEKLER, baglantiOzeti, bagliMi, baslikMetni, dipNot, dosyaCumlesi, kanitImi,
   kimlikSozu, metrikleriHesapla, sirala, suz, tazelik, tipEtiketi,
-  type KanitSatiri, type Mercek, type SiraAnahtari, type SiraYonu,
+  type KanitSatiri, type Mercek, type SiraAnahtari,
 } from './mantik';
 import type { MaddeDurumuSecenegi } from './veri';
 
@@ -42,9 +43,11 @@ const KOLONLAR: Kolon[] = [
 const GORUNUR_BUTCE = 8;
 
 export default function KanitlarIstemci({
-  kanitlar, toplam, kapsamDisi, maddeDurumlari, yazabilir, kapsamli = false,
+  kanitlar, toplam, kapsamDisi, maddeDurumlari, yazabilir, kapsamli = false, esik = KANIT_ESIK_VARSAYILAN,
 }: {
   kanitlar: KanitSatiri[];
+  /** tazelik eşiği — sunucu `kanitEsikleri()`ndan; istemci 90/180 bilmez */
+  esik?: KanitEsik;
   /** kütüğün GERÇEK büyüklüğü — sunucu tavanı satırları kestiyse fark açılır */
   toplam: number;
   /** kapsam daraltıldığı için listelenmeyen bağlantısız kanıt sayısı */
@@ -53,12 +56,11 @@ export default function KanitlarIstemci({
   yazabilir: boolean;
   kapsamli?: boolean;
 }) {
-  const [mercek, setMercek] = useState<Mercek>('hepsi');
-  const [tipF, setTipF] = useState<string | null>(null);
+  const [mercek, setMercek] = useUrlDurumu<Mercek>('mercek', 'hepsi');
+  const [tipF, setTipF] = useUrlDurumuBos('tip');
   const [arama, setArama] = useState('');
-  const [sira, setSira] = useState<{ anahtar: SiraAnahtari; yon: SiraYonu }>(
-    { anahtar: 'tarih', yon: 'artan' });
-  const [secili, setSecili] = useState<string | null>(null);
+  const [sira, setSira] = useUrlSira<SiraAnahtari>({ anahtar: 'tarih', yon: 'artan' });
+  const [secili, setSecili] = useUrlDurumuBos('sec');
   const [kuyrukAcik, setKuyrukAcik] = useState(false);
   const [formAcik, setFormAcik] = useState(false);
 
@@ -66,7 +68,7 @@ export default function KanitlarIstemci({
      (lib/an.ts). Tazelik kararı bu ana göre verilir. */
   const simdi = useMemo(() => an(), []);
 
-  const metrikler = useMemo(() => metrikleriHesapla(kanitlar, simdi), [kanitlar, simdi]);
+  const metrikler = useMemo(() => metrikleriHesapla(kanitlar, simdi, esik), [kanitlar, simdi, esik]);
   const kesildi = toplam > kanitlar.length;
 
   /* Tip seçenekleri elde duran kütükten türetilir — olmayan tip listeye girmez. */
@@ -75,25 +77,25 @@ export default function KanitlarIstemci({
     .map((t) => ({ id: t, ad: tipEtiketi(t) })), [kanitlar]);
 
   const suzulmus = useMemo(
-    () => sirala(suz(kanitlar, { mercek, tip: tipF, arama }, simdi), sira.anahtar, sira.yon),
-    [kanitlar, mercek, tipF, arama, sira, simdi],
+    () => sirala(suz(kanitlar, { mercek, tip: tipF, arama }, simdi, esik), sira.anahtar, sira.yon),
+    [kanitlar, mercek, tipF, arama, sira, simdi, esik],
   );
 
   /* Sürükleyici satır asla toplanmaz: süresi dolmuş · yenilenmeli · bağlantısız.
      Taze ve bağlı kanıtlar kuyruğa iner. */
   const { gorunur, toplanan } = useMemo(() => {
-    const sabit = suzulmus.filter((k) => kanitImi(k, simdi) !== 'ok');
-    const kalan = suzulmus.filter((k) => kanitImi(k, simdi) === 'ok');
+    const sabit = suzulmus.filter((k) => kanitImi(k, simdi, esik) !== 'ok');
+    const kalan = suzulmus.filter((k) => kanitImi(k, simdi, esik) === 'ok');
     if (kuyrukAcik) return { gorunur: [...sabit, ...kalan], toplanan: [] as KanitSatiri[] };
     const slot = Math.max(0, GORUNUR_BUTCE - sabit.length);
     return { gorunur: [...sabit, ...kalan.slice(0, slot)], toplanan: kalan.slice(slot) };
-  }, [suzulmus, kuyrukAcik, simdi]);
+  }, [suzulmus, kuyrukAcik, simdi, esik]);
 
   const secilen = kanitlar.find((k) => k.id === secili) ?? null;
   const filtreAktif = mercek !== 'hepsi' || tipF !== null || arama.trim() !== '';
 
   const satirlar: Satir[] = gorunur.map((k) => {
-    const im = kanitImi(k, simdi);
+    const im = kanitImi(k, simdi, esik);
     return {
       id: k.id,
       durum: im,
@@ -102,7 +104,7 @@ export default function KanitlarIstemci({
       alt: k.dosyaYolu ? `sürüm ${k.surum} · dosya yolu kayıtlı` : `sürüm ${k.surum} · dosya yolu kayıtlı değil`,
       hucreler: [
         tipEtiketi(k.tip),
-        <TarihHucresi key="t" kanit={k} simdi={simdi} />,
+        <TarihHucresi key="t" kanit={k} simdi={simdi} esik={esik} />,
         <BagHucresi key="b" kanit={k} />,
         k.yukleyen ?? <Bos key="y" />,
       ],
@@ -196,7 +198,7 @@ export default function KanitlarIstemci({
       </main>
 
       {secilen && (
-        <KanitCekmecesi kanit={secilen} simdi={simdi} kapat={() => setSecili(null)} />
+        <KanitCekmecesi kanit={secilen} simdi={simdi} esik={esik} kapat={() => setSecili(null)} />
       )}
     </>
   );
@@ -367,8 +369,8 @@ const SATIR_ICI = {
 } as const;
 
 /** Tarih olgusu: toplanma (ya da başlangıç) + varsa geçerlilik bitişi. */
-function TarihHucresi({ kanit, simdi }: { kanit: KanitSatiri; simdi: number }) {
-  const t = tazelik(kanit, simdi);
+function TarihHucresi({ kanit, simdi, esik }: { kanit: KanitSatiri; simdi: number; esik: KanitEsik }) {
+  const t = tazelik(kanit, simdi, esik);
   const ref = kanit.toplanma ?? kanit.baslangic;
   const govde = kanit.bitis
     ? `${kisaTarih(ref)} → ${kisaTarih(kanit.bitis)}`
@@ -407,11 +409,11 @@ function BagHucresi({ kanit }: { kanit: KanitSatiri }) {
 
 /* ── Çekmece · künye + bağlı kayıtlara zincir ────────────────────────── */
 
-function KanitCekmecesi({ kanit, simdi, kapat }: {
-  kanit: KanitSatiri; simdi: number; kapat: () => void;
+function KanitCekmecesi({ kanit, simdi, esik, kapat }: {
+  kanit: KanitSatiri; simdi: number; esik: KanitEsik; kapat: () => void;
 }) {
-  const im: Durum = kanitImi(kanit, simdi);
-  const t = tazelik(kanit, simdi);
+  const im: Durum = kanitImi(kanit, simdi, esik);
+  const t = tazelik(kanit, simdi, esik);
   const kayitlar = [
     ...kanit.bulgular.map((b) => ({
       id: `bulgu-${b.id}`, kod: b.baslik,
@@ -432,7 +434,7 @@ function KanitCekmecesi({ kanit, simdi, kapat }: {
     <Cekmece kod={`${tipEtiketi(kanit.tip)} · v${kanit.surum}`} kapat={kapat}>
       <CekmeceKimlik
         durum={im}
-        soz={kimlikSozu(kanit, simdi)}
+        soz={kimlikSozu(kanit, simdi, esik)}
         baslik={kanit.ad}
         cumle={dosyaCumlesi(kanit)}
       />

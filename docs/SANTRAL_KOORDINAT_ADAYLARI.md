@@ -18,7 +18,7 @@ Derleme tarihi: 03.09.2026.
 | Kod | Santral | Enlem | Boylam | Kaynak | Güven |
 | --- | --- | --- | --- | --- | --- |
 | `GOKCEDAG-RES` | Gökçedağ RES | 37.179881 | 36.609711 | [tr.wikipedia · Bahçe Rüzgâr Enerji Santrali](https://tr.wikipedia.org/wiki/Bah%C3%A7e_R%C3%BCzg%C3%A2r_Enerji_Santrali) | **yüksek** |
-| `MERKEZ-BT` | Zorlu Center Genel Müdürlük | 41.067982 | 29.015300 | [en.wikipedia · Raffles Istanbul](https://en.wikipedia.org/wiki/Raffles_Istanbul) | **yüksek** |
+| `MERKEZ-BT` | Zorlu Enerji Genel Müdürlük | 41.067982 | 29.015300 | [en.wikipedia · Raffles Istanbul](https://en.wikipedia.org/wiki/Raffles_Istanbul) | **yüksek** |
 | `KIZILDERE-1` | Kızıldere I JES | 37.950000 | 28.843060 | [tr.wikipedia · Kızıldere Jeotermal Enerji Santrali](https://tr.wikipedia.org/wiki/K%C4%B1z%C4%B1ldere_Jeotermal_Enerji_Santrali) | orta-yüksek |
 | `KUZGUN-HES` | Kuzgun HES | 40.185830 | 41.064170 | [tr.wikipedia · Kuzgun Barajı ve HES](https://tr.wikipedia.org/wiki/Kuzgun_Baraj%C4%B1_ve_Hidroelektrik_Santrali) | orta |
 | `TERCAN-HES` | Tercan HES | 39.751670 | 40.400280 | [tr.wikipedia · Tercan Barajı ve HES](https://tr.wikipedia.org/wiki/Tercan_Baraj%C4%B1_ve_Hidroelektrik_Santrali) | orta |
@@ -28,9 +28,11 @@ Derleme tarihi: 03.09.2026.
 - **Gökçedağ** — kaynak santrali Zorlu iştiraki Rotor'un işlettiği tesis
   olarak adlandırıyor ve 135 MW kurulu gücü kütüğümüzle birebir tutuyor.
   Ada güveni yükselten şey bu eşleşmedir, adın benzerliği değil.
-- **Zorlu Center** — koordinat, Zorlu Center içindeki otelin maddesinden
-  geliyor. Bina kompleksi tek yapı olduğu için nokta genel müdürlüğü
-  temsil eder.
+- **Zorlu Enerji Genel Müdürlük** — koordinat, genel müdürlüğün
+  bulunduğu **Zorlu Center** binasındaki otelin maddesinden geliyor.
+  Bina adı burada bilerek korundu: koordinatın gerekçesi o binadır,
+  kaydın adı değil. Kompleks tek yapı olduğu için nokta genel
+  müdürlüğü temsil eder.
 - **Kızıldere I** — kaynak 1984'te kurulan 15 MW'lık ilk santrali
   anlatıyor; kütükteki `KIZILDERE-1` (15 MW) ile örtüşüyor. II ve III
   aynı sahada **ayrı tesislerdir** ve bu koordinat onlara kopyalanmadı

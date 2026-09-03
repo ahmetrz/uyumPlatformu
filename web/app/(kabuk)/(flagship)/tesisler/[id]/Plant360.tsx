@@ -322,7 +322,9 @@ export default function Plant360({ veri, santraller }: {
           {santraller.map((s) => (
             <Link key={s.id} href={`/tesisler/${s.id}`}
               className={`kart yalin${s.id === veri.id ? ' secili' : ''}`}
-              aria-current={s.id === veri.id ? 'page' : undefined}>
+              /* Kümedeki geçerli öğe "true"; "page" üst çubuktaki Saha'da
+                 zaten yanıyor, iki "page" ekranı iki yerde gösterirdi. */
+              aria-current={s.id === veri.id ? 'true' : undefined}>
               <span className="icerik">
                 <span className="mono tip">{s.tip}</span>
                 <span className="ad">{s.ad}</span>

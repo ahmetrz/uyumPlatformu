@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import Link from 'next/link';
-import { Alan, Dugme } from '@/components/kabuk/temel';
+import { Alan, Dugme, EntegrasyonYok } from '@/components/kabuk/temel';
 import { EkranBasligi } from '@/components/kabuk/ekran';
 import { CekmeceAlanlar } from '@/components/kabuk/panel';
 import { useEylem } from '@/components/useEylem';
@@ -295,17 +295,14 @@ function Kanallar() {
   return (
     <section className="ab-ayar-bolum" aria-labelledby="ayar-kanal">
       <h2 id="ayar-kanal" className="ab-bolum-basligi">Bildirim ve görünüm</h2>
-      <div className="ab-blok" role="note" style={{ maxWidth: 'none' }}>
-        <span className="etiket">Bildirim kanalı</span>
-        <p className="cumle">
-          Bildirimler yalnız uygulama içi kutuya düşer; e-posta/webhook kanalı
-          bağlı değil. Kanal ve tercih modeli olmadığı için burada seçilecek
-          bir şey yok — bir tercih formu çizip sessizce yok saymak yerine
-          bunu açıkça yazıyoruz.
-        </p>
-        <div className="eylem">
-          <Link href="/bildirimler" className="ab-dugme">Bildirim kutusu →</Link>
-        </div>
+      {/* Ortak "entegrasyon yapılandırılmamış" hâli: bir tercih formu
+          çizip sessizce yok saymak yerine kanalın bağlı olmadığı yazılır. */}
+      <div className="ab-ayar-hal">
+        <EntegrasyonYok
+          kaynak="E-posta / webhook bildirim kanalı"
+          ne="kanal tercihleri"
+          eylem={<Link href="/bildirimler" className="ab-dugme">Uygulama içi bildirim kutusu →</Link>}
+        />
       </div>
       <p className="ab-panel-dip" style={{ margin: 'var(--s12) 0 0' }}>
         Görünüm: platform tek koyu temadır (tezgâh, saha, defter — üçü de);

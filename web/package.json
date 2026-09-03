@@ -16,6 +16,7 @@
     "sayimlar:denetle": "node arac/test-envanteri.mjs --denetle",
     "gezinme:test": "node arac/gezinme-testi.mjs",
     "rota:duman": "node arac/rota-duman.mjs",
+    "konsol:olcum": "node arac/konsol-olcum.mjs",
     "tasarim:kontrast": "node arac/kontrast.mjs",
     "tasarim:font": "node arac/font-kontrol.mjs",
     "tasarim:iz": "node arac/iz-tarama.mjs",
@@ -29,8 +30,7 @@
     "tasarim:axe": "node arac/erisim-axe.mjs",
     "tasarim:tasma": "node arac/yatay-tasma.mjs",
     "kalite:lighthouse": "node arac/lighthouse.mjs",
-    "yedek": "node arac/yedek.mjs --al",
-    "gezinme:cekmece": "node arac/cekmece-testi.mjs"
+    "yedek": "node arac/yedek.mjs --al"
   },
   "dependencies": {
     "@prisma/adapter-better-sqlite3": "^7.10.0",

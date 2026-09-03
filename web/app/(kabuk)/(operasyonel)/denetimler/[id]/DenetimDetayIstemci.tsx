@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
+import { useUrlDurumu } from '@/components/kabuk/urlDurumu';
 import { Dugme, BosIlk, type Durum } from '@/components/kabuk/temel';
 import { Tablo, type Kolon, type Satir } from '@/components/kabuk/tablo';
 import { EkranBasligi, Asamalar, KipDegistir } from '@/components/kabuk/ekran';
@@ -61,7 +62,7 @@ type PanelKipi = 'kayit' | 'kapsam';
 export default function DenetimDetayIstemci({ veri }: { veri: DetayVerisi }) {
   const yonlendirici = useRouter();
   const { denetim: d, simdi } = veri;
-  const [kip, setKip] = useState<Kip>('talep');
+  const [kip, setKip] = useUrlDurumu<Kip>('kip', 'talep');
   const [panelKipi, setPanelKipi] = useState<PanelKipi>('kayit');
   const [panel, setPanel] = useState(true);
   const [seciliTalep, setSeciliTalep] = useState<string | null>(null);

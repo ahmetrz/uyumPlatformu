@@ -1,5 +1,6 @@
 'use client';
 import { useMemo, useState } from 'react';
+import { useUrlDurumuBos } from '@/components/kabuk/urlDurumu';
 import Link from 'next/link';
 import { Im, Dugme, BosIlk } from '@/components/kabuk/temel';
 import { Tablo, type Kolon, type Satir } from '@/components/kabuk/tablo';
@@ -53,7 +54,7 @@ export default function OmurIstemci({
   kapsamli?: boolean;
 }) {
   const [gruplama, setGruplama] = useState<GrupAnahtari>('aciliyet');
-  const [secili, setSecili] = useState<string | null>(null);
+  const [secili, setSecili] = useUrlDurumuBos('sec');
   const [kuyrukAcik, setKuyrukAcik] = useState(false);
 
   const satirlar = useMemo(

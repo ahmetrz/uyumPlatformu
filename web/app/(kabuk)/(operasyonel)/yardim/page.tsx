@@ -108,6 +108,20 @@ export default async function YardimEkrani() {
         </p>
       </header>
 
+      {/* İçindekiler: 5 bölüm, çapa bağlantıları. Uzun sayfa tek akış
+          kalır (ayrı rotalara bölünmez) ama başlıklar adreslenebilir —
+          Ayak bağlantıları ve Kısayollar katmanı buraya çapa ile gelir. */}
+      <nav className="ab-icindekiler" aria-label="İçindekiler">
+        <p className="etiket">İçindekiler</p>
+        <ol>
+          <li><a href="#yardim-platform">Platform nedir</a></li>
+          <li><a href="#yardim-anahtar">Okuma anahtarı</a></li>
+          <li><a href="#yardim-kisayol">Klavye kısayolları</a></li>
+          <li><a href="#yardim-sss">Sık sorulanlar</a></li>
+          <li><a href="#yardim-destek">Destek</a></li>
+        </ol>
+      </nav>
+
       {/* ── 1 · Platform nedir ─────────────────────────────────────── */}
       <section className="bolum" aria-labelledby="yardim-platform">
         <h2 id="yardim-platform" className="ab-bolum-basligi">Platform nedir</h2>

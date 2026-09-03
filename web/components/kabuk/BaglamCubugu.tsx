@@ -75,7 +75,7 @@ export default function BaglamCubugu({
               <Link href={k.yol} className={i === 1 ? 'kisalt' : undefined}>{k.ad}</Link>
             ) : (
               <span className={i === yol.length - 1 ? 'son' : 'kisalt'}
-                aria-current={i === yol.length - 1 ? 'page' : undefined}>{k.ad}</span>
+                aria-current={i === yol.length - 1 ? 'location' : undefined}>{k.ad}</span>
             )}
           </span>
         ))}

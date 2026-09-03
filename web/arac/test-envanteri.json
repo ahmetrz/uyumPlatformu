@@ -1,7 +1,7 @@
 {
-  "imza": "817cd920fd18b24f383504591ede3019",
-  "dosya": 90,
-  "vaka": 1568,
+  "imza": "5710ffb5cccefb753a254415a1772f29",
+  "dosya": 94,
+  "vaka": 1643,
   "atlanan": 1,
   "dosyalar": {
     "tests/api.test.ts": {
@@ -30,10 +30,6 @@
     },
     "tests/connector-sertifika.test.ts": {
       "vaka": 27,
-      "atlanan": 0
-    },
-    "tests/dar-sablon.test.ts": {
-      "vaka": 15,
       "atlanan": 0
     },
     "tests/denetim-asama-kanit.test.ts": {
@@ -160,6 +156,10 @@
       "vaka": 5,
       "atlanan": 0
     },
+    "tests/kanit-tazelik-ayar.test.ts": {
+      "vaka": 19,
+      "atlanan": 0
+    },
     "tests/kanitlar-mantik.test.ts": {
       "vaka": 23,
       "atlanan": 0
@@ -272,6 +272,14 @@
       "vaka": 11,
       "atlanan": 0
     },
+    "tests/saha-arka-plan.test.ts": {
+      "vaka": 3,
+      "atlanan": 0
+    },
+    "tests/saha-yerlesim.test.ts": {
+      "vaka": 27,
+      "atlanan": 0
+    },
     "tests/semantik.test.ts": {
       "vaka": 8,
       "atlanan": 0
@@ -340,8 +348,12 @@
       "vaka": 11,
       "atlanan": 0
     },
+    "tests/yapilandirma.test.ts": {
+      "vaka": 12,
+      "atlanan": 0
+    },
     "tests/yardim.test.ts": {
-      "vaka": 16,
+      "vaka": 17,
       "atlanan": 0
     },
     "tests/yaris-kosullari.test.ts": {
@@ -358,6 +370,10 @@
     },
     "tests/yeniTesis.test.ts": {
       "vaka": 1,
+      "atlanan": 0
+    },
+    "tests/yonetim-konsolu-eylem.test.ts": {
+      "vaka": 28,
       "atlanan": 0
     },
     "tests/zamanlayici.test.ts": {

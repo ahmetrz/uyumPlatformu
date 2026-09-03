@@ -3,6 +3,7 @@ import { girisZorunlu, izinVar, izinliTesisIdleri, type Modul } from '@/lib/eris
 import { modulYazabilir } from '@/app/kapsam';
 import { Yetkisiz } from '@/components/kabuk/temel';
 import { db } from '@/lib/db';
+import { DEMO } from '@/lib/demo';
 import TezgahIstemci from './TezgahIstemci';
 import KonsolIstemci from './KonsolIstemci';
 import { konsolVerisi } from './konsolVerisi';
@@ -45,7 +46,13 @@ type TezgahKipi = (typeof TEZGAH_KIPLERI)[number];
 
 export default async function Sayfa({ searchParams }: { searchParams: Promise<{ bolum?: string }> }) {
   const kullanici = await girisZorunlu();
-  const { bolum } = await searchParams;
+  /* STATİK DEMODA `searchParams` OKUNMAZ (aynı kural: giris/page.tsx,
+     envanter/page.tsx). Demo `output: 'export'` ile derlenir; `dynamic =
+     "error"` altında `await searchParams` derlemeyi KIRAR — PR kapısının
+     demo derlemesi 2026-09-03'te tam buradan düştü. Demoda adres her zaman
+     Yönetim konsoluna düşer; eski kipler (?bolum=is|tanim|anahtar) yalnız
+     üründe (istek gören sunucuda) çözülür. Üründe davranış değişmez. */
+  const { bolum } = DEMO ? { bolum: undefined } : await searchParams;
   const konsolOkuyabilir = izinVar(kullanici, 'yonetim', 'okuma');
   const tezgahKipi = (TEZGAH_KIPLERI as readonly string[]).includes(bolum ?? '')
     ? (bolum as TezgahKipi) : null;

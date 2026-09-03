@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { db } from '../db';
-import { yetkiZorunlu, izinVar } from '../erisim';
+import { yetkiZorunlu, kapsamZorunlu, KAPSAM_SONRA } from '../erisim';
 import { tamam, hata, bosluksuz, type Sonuc } from './ortak';
 
 /* Tedarikçi erişim oturumu — İNSAN KARARI YÜZEYİ.
@@ -55,7 +55,8 @@ export async function oturumKarariKaydet(girdi: {
       gerekce: z.string().trim().min(10, 'Gerekçe en az 10 karakter olmalı'),
     }).parse(girdi);
 
-    const k = await yetkiZorunlu('envanter', 'yazma');
+    // İKİ AŞAMALI KAPI: gerçek denetim oturum okunduktan sonra, aşağıda.
+    const k = await yetkiZorunlu('envanter', 'yazma', KAPSAM_SONRA);
     const oturum = await db.tedarikciErisimOturumu.findUnique({
       where: { id: v.oturumId },
       select: {
@@ -66,10 +67,18 @@ export async function oturumKarariKaydet(girdi: {
       },
     });
     if (!oturum) return { ok: false, hata: 'Oturum kaydı bulunamadı' };
-    if (!izinVar(k, 'envanter', 'yazma', { tesisId: oturum.tesisId })) {
-      return { ok: false, hata: oturum.tesisId
-        ? 'Bu santral kapsamında yetkiniz yok'
-        : 'Santrali bilinmeyen oturumda karar vermek kapsamsız yetki ister' };
+    /* Kapsamsız kayıt `{}` ile SORULMALI. `{ tesisId: null }` ile sorulan
+       `izinVar`, `kapsamUyar` gereği tesise kısıtlı rolü reddetmez
+       (`null` ile `undefined` farkı) — yani aşağıdaki mesaj bir kural vaat
+       ederken kapı onu uygulamıyordu. `kapsamZorunlu` normalleştirmeyi
+       kendi yapar; mesaj iki durumda ayrı kalsın diye önden seçiliyor. */
+    try {
+      kapsamZorunlu(k, 'envanter', 'yazma', { tesisId: oturum.tesisId },
+        oturum.tesisId
+          ? 'Bu santral kapsamında yetkiniz yok'
+          : 'Santrali bilinmeyen oturumda karar vermek kapsamsız yetki ister');
+    } catch (e) {
+      return { ok: false, hata: e instanceof Error ? e.message : 'Yetkiniz yok' };
     }
 
     /* Kanıtlı ihlaller karara YAZILIR: kararın neyi kapsadığı altı ay sonra

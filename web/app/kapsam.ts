@@ -1,6 +1,6 @@
 import 'server-only';
 import { tesisKapsamda } from '@/lib/api/yetki';
-import { izinliTesisIdleri, type Modul } from '@/lib/erisim';
+import { izinVar, izinliTesisIdleri, KAPSAM_SONRA, type Islem, type Modul } from '@/lib/erisim';
 import type { AktifKullanici } from '@/lib/auth';
 
 /* ═══ EKRAN KAPSAMI — santral sınırının TEK yeri ══════════════════════════
@@ -99,4 +99,46 @@ export function modulKapisi(k: AktifKullanici, modul: Modul): void {
   if (!modulOkuyabilir(k, modul)) {
     throw new Error(`Bu ekran ${modul} modülünde okuma izni ister`);
   }
+}
+
+/* ═══ YAZMA KAPISI — ekran ile sunucu aynı soruyu sorar ═══════════════════
+   `modulOkuyabilir` okuma ekseninde çözülen sorun, yazma ekseninde
+   çözülmemişti ve ekranlar kusuru üç kez ayrı ayrı elle yamamıştı
+   (`dokumanlar/veri.ts`, `surecler/page.tsx`, `surecler/[id]/page.tsx`);
+   geri kalan ekranlar yamamamıştı. Aşağıdaki iki yüklem o yamayı adlandırır
+   ve sunucudaki İKİ AŞAMALI KAPI ile birebir aynı iki soruyu sorar. */
+
+/**
+ * Kaba kapı — "bu modülde bu işlemi HERHANGİ bir kapsamda yapabilir misin?"
+ * Sunucudaki `yetkiZorunlu(modul, islem, KAPSAM_SONRA)` ön kapısının ekran
+ * karşılığıdır; aynı sabiti kullanır, yani ikisi ayrışamaz.
+ *
+ * NEDEN `izinVar(k, modul, islem)` DEĞİL: kapsamsız `{}` çağrı GLOBAL bir
+ * işlem sorar ve `kapsamUyar` gereği tesise KISITLI her rolü reddeder.
+ * Ekran o yanıtı "yazamazsın" diye okuyup düğmeyi gizliyordu; oysa santral
+ * yöneticisi KENDİ santralinde pekâlâ yazabilir. Soru yanlıştı: ekran "tüm
+ * santrallerde yazabilir misin" diye sormamalı, "yazabildiğin santral var
+ * mı" diye sormalıdır.
+ *
+ * Tek başına bir yetki kapısı DEĞİLDİR — satır kararı `kapsamdaYetkili`
+ * ile verilir, gerçek sınır ise her zaman sunucu eylemindedir.
+ */
+export function modulYazabilir(k: AktifKullanici, modul: Modul, islem: Islem): boolean {
+  return izinVar(k, modul, islem, KAPSAM_SONRA);
+}
+
+/**
+ * Satır kararı — sunucudaki `kapsamZorunlu` ile AYNI normalleştirme.
+ * Kapsamı olmayan kayıt (`tesisId === null`) kapsamsız `{}` sorulur, yani
+ * tesise kısıtlı rol kurumsal kayda uzanamaz.
+ *
+ * Ekranlar bunu `!kayit.tesisId || izinVar(...)` diye yazıyordu; o biçim
+ * santralsiz kaydı HERKESE yazılabilir gösteriyor, sunucu ise reddediyordu.
+ * Ekranın sunucudan GEVŞEK olması, kullanıcıya kaydedilmeyecek bir düğme
+ * göstermek demektir.
+ */
+export function kapsamdaYetkili(
+  k: AktifKullanici, modul: Modul, islem: Islem, tesisId: string | null | undefined,
+): boolean {
+  return izinVar(k, modul, islem, tesisId ? { tesisId } : {});
 }

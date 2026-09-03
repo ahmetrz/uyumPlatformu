@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { db } from '../db';
-import { yetkiZorunlu, izinVar } from '../erisim';
+import { yetkiZorunlu, izinVar, kapsamZorunlu, KAPSAM_SONRA } from '../erisim';
 import {
   yedekVarMi, sonBilinenIyi, konfigurasyonDegistiMi, yedekKontrolBagi,
 } from '../entegrasyon/konfigYedek';
@@ -27,7 +27,8 @@ const YEDEK_BULGU_KURALLARI: string[] = Object.values(YEDEK_KURALLARI);
 
 /** Yedeğin bağlı olduğu varlığın tesisinde yazma yetkisi var mı. */
 async function yedegeErisim(yedekId: string) {
-  const k = await yetkiZorunlu('envanter', 'yazma');
+  // İKİ AŞAMALI KAPI: gerçek denetim yedek okunduktan sonra, aşağıda.
+  const k = await yetkiZorunlu('envanter', 'yazma', KAPSAM_SONRA);
   const yedek = await db.konfigurasyonYedegi.findUnique({
     where: { id: yedekId },
     select: {
@@ -37,10 +38,8 @@ async function yedegeErisim(yedekId: string) {
     },
   });
   if (!yedek) throw new Error('Yedek kaydı bulunamadı');
-  if (yedek.varlik.tesisId
-    && !izinVar(k, 'envanter', 'yazma', { tesisId: yedek.varlik.tesisId })) {
-    throw new Error('Bu tesis kapsamında yetkiniz yok');
-  }
+  kapsamZorunlu(k, 'envanter', 'yazma', { tesisId: yedek.varlik.tesisId },
+    'Bu tesis kapsamında yetkiniz yok');
   return { k, yedek };
 }
 
@@ -234,13 +233,17 @@ export async function varlikYedekDurumu(
   varlikId: string,
 ): Promise<{ ok: true; veri: VarlikYedekDetayi } | { ok: false; hata: string }> {
   try {
-    const k = await yetkiZorunlu('envanter', 'okuma');
+    // OKUMA da kapıdır: çekmece bir yetki kaçağı yüzeyi olamaz.
+    const k = await yetkiZorunlu('envanter', 'okuma', KAPSAM_SONRA);
     const varlik = await db.varlik.findUnique({
       where: { id: varlikId },
       select: { id: true, etiket: true, ad: true, tesisId: true, silindi: true },
     });
     if (!varlik || varlik.silindi) return { ok: false, hata: 'Varlık bulunamadı' };
-    if (!izinVar(k, 'envanter', 'okuma', { tesisId: varlik.tesisId })) {
+    try {
+      kapsamZorunlu(k, 'envanter', 'okuma', { tesisId: varlik.tesisId },
+        'Bu tesis kapsamında yetkiniz yok');
+    } catch {
       return { ok: false, hata: 'Bu tesis kapsamında yetkiniz yok' };
     }
 

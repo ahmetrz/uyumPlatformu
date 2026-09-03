@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { girisZorunlu, izinVar, izinliTesisIdleri, type Modul } from '@/lib/erisim';
+import { modulYazabilir } from '@/app/kapsam';
 import { Yetkisiz } from '@/components/kabuk/temel';
 import { db } from '@/lib/db';
 import TezgahIstemci from './TezgahIstemci';
@@ -67,7 +68,7 @@ export default async function Sayfa({ searchParams }: { searchParams: Promise<{ 
 
   const tanimYazabilir = izinVar(kullanici, 'tanimlar', 'yazma');
   const tanimOnaylayabilir = izinVar(kullanici, 'tanimlar', 'onay');
-  const gorevAcabilir = izinVar(kullanici, 'uyum', 'yazma');
+  const gorevAcabilir = modulYazabilir(kullanici, 'uyum', 'yazma');
   // Anahtar üretimi/iptali yonetim/yazma ister; eylemin kapısıyla AYNI kural
   // (lib/eylemler2/apiAnahtari.ts → yetkiZorunlu('yonetim', 'yazma')).
   const anahtarYazabilir = izinVar(kullanici, 'yonetim', 'yazma');

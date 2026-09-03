@@ -21,6 +21,9 @@ export default async function Sayfa() {
   if (!izinVar(kullanici, 'denetim', 'okuma')) return <Yetkisiz rol="denetim okuma" />;
 
   const izinli = izinliTesisIdleri(kullanici, 'denetim');
+  /* KAPSAMSIZ sorulur ve bilinçlidir: `Denetim` şemada `tesisId` TAŞIMAZ,
+     `denetimKaydet` kapısı da kapsamsızdır. Ekranı gevşetmek santral
+     yöneticisine kaydedilmeyecek düğme göstermek olurdu. */
   const yazabilir = izinVar(kullanici, 'denetim', 'yazma');
 
   // `Date.now()` istek başına bir kez okunur; metrik, çizelge ve tablo

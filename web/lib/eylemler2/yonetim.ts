@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { db } from '../db';
-import { yetkiZorunlu } from '../erisim';
+import { yetkiZorunlu, kapsamZorunlu, KAPSAM_SONRA } from '../erisim';
 import { tamam, hata, iz, bosluksuz, type Sonuc } from './ortak';
 import { ayarTanimi, ayarDogrula, ayarCiftDogrula, ayarEsleri } from '../yapilandirma/tanimlar';
 import { ayarOku } from '../yapilandirma/oku';
@@ -232,13 +232,19 @@ export async function katalogArsivle(girdi: { tip: string; id: string; gerekce: 
 /* ── A · Santral görsel eşlemesi ───────────────────────────────────────── */
 export async function tesisGorselAta(girdi: { tesisId: string; gorselAnahtari: string | null; gerekce: string }): Promise<Sonuc> {
   try {
-    const k = await yetkiZorunlu('yonetim', 'yazma');
+    /* İKİ AŞAMALI KAPI (`KAPSAM_SONRA`, bkz. erisim.ts): görsel ataması tek
+       bir santrala dokunur; ön kapı kapsamsız sorulsaydı santraline kısıtlı
+       yönetici kendi santralinin görselini bile atayamazdı. Gerçek sınır
+       aşağıda `kapsamZorunlu` ile santral bazında sorulur. */
+    const k = await yetkiZorunlu('yonetim', 'yazma', KAPSAM_SONRA);
     const gerekce = gerekceSemasi.parse(girdi.gerekce);
     const anahtar = girdi.gorselAnahtari?.trim() || null;
     if (anahtar && !GORSEL_ANAHTARLARI.includes(anahtar))
       return { ok: false, hata: 'Bilinmeyen görsel anahtarı; katalogda olmayan dosya atanamaz.' };
     const tesis = await db.tesis.findUnique({ where: { id: girdi.tesisId } });
     if (!tesis) return { ok: false, hata: 'Santral bulunamadı' };
+    kapsamZorunlu(k, 'yonetim', 'yazma', { tesisId: tesis.id },
+      'Bu santral kapsamında yönetim yazma yetkiniz yok');
     /* Kural (gorsel.ts §1/3): bir görsel yalnız kendi santralini temsil eder.
        Aynı anahtar başka santralde kullanılıyorsa atama REDDEDİLİR. */
     if (anahtar) {

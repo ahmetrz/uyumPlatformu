@@ -29,6 +29,9 @@ export default async function Sayfa() {
   const [cerceveler, trend] = await Promise.all([
     cerceveleriYukle(izinli), uyumTrendiYukle(izinli),
   ]);
+  /* KAPSAMSIZ sorulur ve bilinçlidir: `Denetim` şemada `tesisId` TAŞIMAZ,
+     `denetimKaydet` kapısı da kapsamsızdır. Ekranı gevşetmek santral
+     yöneticisine kaydedilmeyecek düğme göstermek olurdu. */
   const yazabilir = izinVar(kullanici, 'denetim', 'yazma');
 
   const ilk = cerceveler.find((c) => c.satirlar.length > 0) ?? cerceveler[0];

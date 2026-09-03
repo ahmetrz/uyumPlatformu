@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { db } from '../db';
-import { yetkiZorunlu, izinVar } from '../erisim';
+import { yetkiZorunlu, izinVar, kapsamZorunlu, KAPSAM_SONRA } from '../erisim';
 import { tamam, hata, iz, tarihAlani, bosluksuz, type Sonuc } from './ortak';
 
 /* Operasyonel güvenlik eylemleri: OT kapılı değişiklik yönetimi (§19),
@@ -21,7 +21,10 @@ export async function degisiklikKaydet(girdi: {
   uretimEtkisi?: string | null;
 }): Promise<Sonuc> {
   try {
-    const k = await yetkiZorunlu('envanter', 'yazma');
+    /* İKİ AŞAMALI KAPI (`KAPSAM_SONRA`, bkz. erisim.ts): ön kapı kapsamsız
+       çağrılırsa tesise kısıtlı rol kendi santralinin değişikliğini bile
+       kaydedemez. Gerçek denetim aşağıda ve KOŞULSUZ. */
+    const k = await yetkiZorunlu('envanter', 'yazma', KAPSAM_SONRA);
     const v = z.object({
       id: z.string().optional(), baslik: bosluksuz('Başlık'),
       aciklama: z.string().nullable().optional(),
@@ -34,8 +37,18 @@ export async function degisiklikKaydet(girdi: {
       onDegisiklikYedegi: z.boolean().nullable().optional(),
       uretimEtkisi: z.string().nullable().optional(),
     }).parse(girdi);
-    if (v.tesisId && !izinVar(k, 'envanter', 'yazma', { tesisId: v.tesisId }))
-      return { ok: false, hata: 'Bu tesis kapsamında yetkiniz yok' };
+    kapsamZorunlu(k, 'envanter', 'yazma', { tesisId: v.tesisId },
+      'Bu tesis kapsamında yetkiniz yok');
+    if (v.id) {
+      /* KAYDIN KENDİ tesisi de bağlayıcı: girdi tesis taşımadan güncelleme
+         yapılırsa yukarıdaki denetim kapsamsız sorulur ve tesise kısıtlı
+         rol başka santralin değişikliğini düzenleyebilirdi. */
+      const eski = await db.degisiklik.findUnique({
+        where: { id: v.id }, select: { tesisId: true } });
+      if (!eski) throw new Error('Değişiklik bulunamadı');
+      kapsamZorunlu(k, 'envanter', 'yazma', { tesisId: eski.tesisId },
+        'Bu tesis kapsamında yetkiniz yok');
+    }
     const veri = {
       baslik: v.baslik, aciklama: v.aciklama ?? null, tesisId: v.tesisId ?? null,
       varlikEtiketi: v.varlikEtiketi ?? null, otMu: v.otMu,
@@ -73,8 +86,14 @@ const ASAMA_CAKISMASI =
     `count === 0` → açık hata, ize hiçbir şey yazılmaz. */
 export async function degisiklikIlerlet(girdi: { id: string; sonDogrulama?: string | null }): Promise<Sonuc> {
   try {
-    const k = await yetkiZorunlu('envanter', 'yazma');
+    const k = await yetkiZorunlu('envanter', 'yazma', KAPSAM_SONRA);
     const d = await db.degisiklik.findUniqueOrThrow({ where: { id: girdi.id } });
+    /* Kaydın kendi tesisi bağlayıcı. Ön kapı gevşetildiği için burada
+       sorulmazsa tesise kısıtlı rol başka santralin değişikliğini
+       ilerletir; ayrıca `degisiklikKaydet` ile aynı kapı olmazsa rol
+       açabildiği bir kaydı asla ilerletemezdi. */
+    kapsamZorunlu(k, 'envanter', 'yazma', { tesisId: d.tesisId },
+      'Bu tesis kapsamında yetkiniz yok');
     const su = DEGISIKLIK_SIRASI.indexOf(d.durum as (typeof DEGISIKLIK_SIRASI)[number]);
     if (su < 0 || su === DEGISIKLIK_SIRASI.length - 1)
       return { ok: false, hata: 'Bu durumdan ilerlenemez' };
@@ -124,9 +143,11 @@ export async function degisiklikIlerlet(girdi: { id: string; sonDogrulama?: stri
     BIRAKMADAN reddedilir. */
 export async function degisiklikGeriAl(girdi: { id: string; gerekce: string }): Promise<Sonuc> {
   try {
-    const k = await yetkiZorunlu('envanter', 'onay');
+    const k = await yetkiZorunlu('envanter', 'onay', KAPSAM_SONRA);
     const v = z.object({ id: z.string(), gerekce: bosluksuz('Gerekçe') }).parse(girdi);
     const d = await db.degisiklik.findUniqueOrThrow({ where: { id: v.id } });
+    kapsamZorunlu(k, 'envanter', 'onay', { tesisId: d.tesisId },
+      'Bu tesis kapsamında yetkiniz yok');
     await db.$transaction(async (tx) => {
       const sonuc = await tx.degisiklik.updateMany({
         where: { id: v.id, durum: d.durum }, data: { durum: 'geri_alindi' },
@@ -148,7 +169,7 @@ export async function olayKaydet(girdi: {
   siddet: string; durum?: string; ozet?: string | null;
 }): Promise<Sonuc> {
   try {
-    const k = await yetkiZorunlu('envanter', 'yazma');
+    const k = await yetkiZorunlu('envanter', 'yazma', KAPSAM_SONRA);
     const v = z.object({
       id: z.string().optional(), baslik: bosluksuz('Başlık'),
       tip: z.enum(['olay', 'problem']).default('olay'),
@@ -157,8 +178,15 @@ export async function olayKaydet(girdi: {
       durum: z.enum(['acik', 'mudahale', 'cozuldu', 'kapali']).optional(),
       ozet: z.string().nullable().optional(),
     }).parse(girdi);
+    /* Hem HEDEF hem KAYDIN KENDİ santrali denetlenir. `olay.ts ·
+       olayKapisi` ile aynı kural: olay yetkisiz bir santrale taşınamaz,
+       başka santralin olayı buradan düzenlenemez. */
+    kapsamZorunlu(k, 'envanter', 'yazma', { tesisId: v.tesisId },
+      'Bu santral kapsamında yetkiniz yok');
     if (v.id) {
       const eski = await db.olay.findUniqueOrThrow({ where: { id: v.id } });
+      kapsamZorunlu(k, 'envanter', 'yazma', { tesisId: eski.tesisId },
+        'Bu santral kapsamında yetkiniz yok');
       await db.olay.update({ where: { id: v.id }, data: {
         baslik: v.baslik, tip: v.tip, tesisId: v.tesisId ?? null, siddet: v.siddet,
         durum: v.durum ?? eski.durum, ozet: v.ozet ?? null,

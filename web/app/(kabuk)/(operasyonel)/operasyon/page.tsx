@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { girisZorunlu, izinVar, izinliTesisIdleri } from '@/lib/erisim';
+import { kapsamdaYetkili, modulYazabilir } from '@/app/kapsam';
 import { Yetkisiz } from '@/components/kabuk/temel';
 import { db } from '@/lib/db';
 import OperasyonIstemci from './OperasyonIstemci';
@@ -30,7 +31,7 @@ export default async function Sayfa() {
   if (!izinVar(k, 'envanter', 'okuma')) return <Yetkisiz rol="envanter okuma" />;
 
   const gorulebilir = izinliTesisIdleri(k, 'envanter');
-  const yazmaYetkisi = izinVar(k, 'envanter', 'yazma');
+  const yazmaYetkisi = modulYazabilir(k, 'envanter', 'yazma');
 
   const [degisiklikler, tesisler, olaylar] = await Promise.all([
     db.degisiklik.findMany({
@@ -91,10 +92,8 @@ export default async function Sayfa() {
     })),
     // Satır bazlı yetki: santral kapsamı daraltılmış kullanıcı grup
     // değişikliğini GÖRÜR ama santrali olan kaydı yazamayabilir.
-    yazilabilir: yazmaYetkisi
-      && (!d.tesisId || izinVar(k, 'envanter', 'yazma', { tesisId: d.tesisId })),
-    onaylanabilir: izinVar(k, 'envanter', 'onay')
-      && (!d.tesisId || izinVar(k, 'envanter', 'onay', { tesisId: d.tesisId })),
+    yazilabilir: yazmaYetkisi && kapsamdaYetkili(k, 'envanter', 'yazma', d.tesisId),
+    onaylanabilir: kapsamdaYetkili(k, 'envanter', 'onay', d.tesisId),
   }));
 
   const olayAdaylari: OlayAdayi[] = olaylar.map((o) => ({

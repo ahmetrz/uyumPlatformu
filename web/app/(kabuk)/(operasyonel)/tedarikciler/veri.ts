@@ -50,7 +50,14 @@ export type EkranVerisi = {
 };
 
 export async function tedarikciEkranVerisi(k: AktifKullanici): Promise<EkranVerisi> {
-  // Eylem katmanıyla birebir aynı kapı: tedarikciKaydet → envanter/yazma.
+  /* KAPSAMSIZ sorulur ve bu bilinçlidir — `modulYazabilir` DEĞİL.
+     `Tedarikci` şemada `tesisId` TAŞIMAZ: bir tedarikçi birçok santralin
+     varlığına bağlanır, yani kurumsal bir kayıttır. `tedarikciKaydet` de
+     bu yüzden kapsamsız `yetkiZorunlu` ile korunur. Ekran gevşetilseydi
+     santral yöneticisine kaydedilmeyecek bir düğme gösterilirdi; ekranın
+     sunucudan GEVŞEK olması, dardan daha kötüdür.
+     (Aynı bayrak sertifika formunu da açar; `sertifikaKaydet` kapısı da
+     kapsamsızdır, yani ikisi ayrışmıyor.) */
   const yazabilir = izinVar(k, 'envanter', 'yazma');
   const izinli = izinliTesisIdleri(k, 'envanter');
 

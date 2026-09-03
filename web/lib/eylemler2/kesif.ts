@@ -24,7 +24,7 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { db } from '../db';
-import { yetkiZorunlu, izinVar } from '../erisim';
+import { yetkiZorunlu, kapsamZorunlu, KAPSAM_SONRA } from '../erisim';
 import { elleAktarimAdaptoru } from '../entegrasyon/adaptorler/elleAktarim';
 import {
   bekleyenleriEslestir, kesfiIsle, kesifKararUygula,
@@ -53,6 +53,14 @@ function ozetCumlesi(o: KesifIsleOzeti): string {
  */
 export async function kesifEslestir(girdi: { kaynak?: string } = {}): Promise<Sonuc> {
   try {
+    /* KAPSAMSIZ ve bilinçli — `KAPSAM_SONRA` DEĞİL. İki gerekçe:
+       · Bu geçiş CMDB'ye hiçbir şey YAZMAZ (yukarıdaki başlık); yazan tek
+         yol `kesifKarariVer` ve o zaten iki aşamalı.
+       · Kapsama çekmek ürünü bozardı: `KesifKaydi.tesisId` nullable ve
+         şema "null = santral BİLİNMİYOR" diyor. Santral süzgeçli bir
+         toplu geçiş, santrali henüz çözülememiş kayıtları sistematik
+         olarak atlardı — oysa triyaja en muhtaç olanlar onlardır.
+       2026-09-03'te bir kez "borç" diye sınıflandırılıp geri alındı. */
     const k = await yetkiZorunlu('envanter', 'yazma');
     const kaynak = girdi.kaynak?.trim() || undefined;
     const ozet = await bekleyenleriEslestir({ kaynak });
@@ -96,6 +104,9 @@ export async function elleAktarimCalistir(girdi: {
   let kosuId: string | null = null;
   const basla = Date.now();
   try {
+    /* KAPSAMSIZ ve bilinçli, `kesifEslestir` ile aynı gerekçeyle: içerik
+       keşif KUYRUĞUNA düşer, CMDB'ye değil. Kuyruktaki her satır ayrıca
+       `kesifKarariVer` kapısından geçmek zorundadır. */
     const k = await yetkiZorunlu('envanter', 'yazma');
     const v = ElleAktarimSemasi.parse(girdi);
 
@@ -198,11 +209,27 @@ export async function kesifKarariVer(girdi: {
   uzerineYaz?: boolean;
 }): Promise<Sonuc> {
   try {
-    const k = await yetkiZorunlu('envanter', 'onay');
+    /* İKİ AŞAMALI KAPI (`KAPSAM_SONRA`, bkz. erisim.ts): kararın kapsamı
+       eşleşen varlıktan gelir ve kayıt okunmadan bilinemez. Ön kapı
+       kapsamsız çağrılırsa tesise kısıtlı rol daha ilk adımda reddedilir
+       ve kendi sahasının keşif kuyruğunu inceleyemez. Gerçek denetim
+       aşağıda ve KOŞULSUZ: eşleşmemiş (tesissiz) kayıt da denetlenir,
+       yoksa kısıtlı rol kurumun bütün eşleşmemiş kuyruğuna karar verirdi. */
+    const k = await yetkiZorunlu('envanter', 'onay', KAPSAM_SONRA);
     const v = KararSemasi.parse(girdi);
     const { kayit, tesisId } = await kararKapsami(v.kesifId, v.tesisId);
-    if (tesisId && !izinVar(k, 'envanter', 'onay', { tesisId })) {
-      throw new Error('Bu tesis kapsamında envanter onay yetkiniz yok');
+    kapsamZorunlu(k, 'envanter', 'onay', { tesisId },
+      'Bu tesis kapsamında envanter onay yetkiniz yok');
+
+    /* HEDEF tesis de denetlenir. Kararın kapsamı EŞLEŞEN varlıktan
+       okunur, ama `yeni_varlik` kararı ÇAĞIRANIN verdiği `tesisId`'ye
+       YAZAR. İkisi ayrışabildiği için tek denetim yetmez: A'ya kısıtlı
+       bir rol, A'ya eşleşmiş bir kaydın üstünden B'de varlık açardı.
+       Ölçüldü (2026-09-02, gözden geçirme); testi
+       tests/kesif-karar.test.ts içinde. */
+    if (v.tesisId && v.tesisId !== tesisId) {
+      kapsamZorunlu(k, 'envanter', 'onay', { tesisId: v.tesisId },
+        'Yeni varlığın açılacağı tesis kapsamında yetkiniz yok');
     }
 
     const sonuc = await kesifKararUygula({
@@ -282,7 +309,7 @@ export async function kesifTopluKarar(girdi: {
   kesifIdleri: string[]; karar: 'onayla' | 'reddet'; not: string; uzerineYaz?: boolean;
 }): Promise<Sonuc> {
   try {
-    const k = await yetkiZorunlu('envanter', 'onay');
+    const k = await yetkiZorunlu('envanter', 'onay', KAPSAM_SONRA);
     const v = TopluSemasi.parse(girdi);
     const benzersiz = [...new Set(v.kesifIdleri)];
 
@@ -292,9 +319,9 @@ export async function kesifTopluKarar(girdi: {
     for (const kesifId of benzersiz) {
       try {
         const { kayit, tesisId } = await kararKapsami(kesifId);
-        if (tesisId && !izinVar(k, 'envanter', 'onay', { tesisId })) {
-          throw new Error('tesis kapsamı dışında');
-        }
+        // Kapsam KAYIT KAYIT denetlenir: karışık bir partide yalnız
+        // kapsam dışı olanlar düşer, ötekiler işlenir.
+        kapsamZorunlu(k, 'envanter', 'onay', { tesisId }, 'tesis kapsamı dışında');
         const sonuc = await kesifKararUygula({
           kesifId, karar: v.karar, inceleyenId: k.id, not: v.not,
           uzerineYaz: v.uzerineYaz ?? false,

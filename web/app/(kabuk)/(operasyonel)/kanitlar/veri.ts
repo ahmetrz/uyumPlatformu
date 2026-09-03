@@ -1,8 +1,10 @@
 import 'server-only';
 import { db } from '@/lib/db';
-import { izinVar, izinliTesisIdleri } from '@/lib/erisim';
+import { izinliTesisIdleri } from '@/lib/erisim';
 import type { AktifKullanici } from '@/lib/auth';
-import { kapsamDaraltildi, kapsamKosulu, modulKapisi, type TesisKapsami } from '@/app/kapsam';
+import {
+  kapsamDaraltildi, kapsamKosulu, modulKapisi, modulYazabilir, type TesisKapsami,
+} from '@/app/kapsam';
 import type { KanitSatiri } from './mantik';
 
 /* C21 · Kanıt kütüphanesi — SUNUCU VERİSİ (kapsam kuralı JSX'ten ayrı).
@@ -169,10 +171,12 @@ export async function kanitEkranVerisi(k: AktifKullanici): Promise<EkranVerisi> 
     satirTavani: SATIR_TAVANI,
     kapsamDisi,
     maddeDurumlari,
-    /* Yazma bayrağı kapsamsız sorulur: form kapsam içi madde durumlarını
-       listeler, asıl kapı `kanitEkle` içindedir (yetkiZorunlu). */
-    yazabilir: izinVar(k, 'uyum', 'yazma') || (izinli !== null && izinli.length > 0
-      && izinli.some((t) => izinVar(k, 'uyum', 'yazma', { tesisId: t }))),
+    /* Form kapsam içi madde durumlarını listeler; asıl kapı `kanitEkle`
+       içindedir ve 2026-09-03'te iki aşamalı yazıldı (`KAPSAM_SONRA` +
+       maddenin tesisiyle `kapsamZorunlu`). Bayrak artık "yazabildiğin
+       madde var mı" diye sorabiliyor: sunucu santral yöneticisini kendi
+       santralinde kabul ediyor, ekran da öyle. */
+    yazabilir: modulYazabilir(k, 'uyum', 'yazma'),
     kapsamli: kapsamDaraltildi(izinli),
   };
 }

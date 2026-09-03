@@ -3,12 +3,14 @@
 /* IT/OT varlık envanteri (CMDB, §7.2) eylemleri: varlık upsert, varlık
    ilişkisi ekle/sil ve yaşam döngüsü geçişi. Bilinmeyen birinci sınıftır:
    boş metin null'a, durum alanları 'bilinmiyor'a düşer — asla 0/yok sayılmaz.
-   Kalıp: yetkiZorunlu → zod → (kapsamlıysa izinVar) → db → iz → revalidatePath. */
+   Kalıp: yetkiZorunlu(KAPSAM_SONRA) → zod → kayıt oku → kapsamZorunlu →
+   db → iz → revalidatePath. Kapsam denetimi kaydı okuduktan SONRA yapılır;
+   gerekçesi erisim.ts · KAPSAM_SONRA notundadır. */
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { db } from '../db';
-import { yetkiZorunlu, izinVar } from '../erisim';
+import { yetkiZorunlu, kapsamZorunlu, KAPSAM_SONRA } from '../erisim';
 import { dogrulamayiGeriAl } from '../entegrasyon/koken';
 import { type Sonuc, tamam, hata, iz, tarihAlani, bosluksuz } from './ortak';
 
@@ -106,10 +108,14 @@ export async function varlikKaydet(girdi: {
   destekBitis?: string | null; eolTarihi?: string | null; eosTarihi?: string | null;
 }): Promise<Sonuc> {
   try {
-    const k = await yetkiZorunlu('envanter', 'yazma');
+    /* İKİ AŞAMALI KAPI (`KAPSAM_SONRA`, bkz. erisim.ts): ön kapı kapsamsız
+       çağrılırsa tesise kısıtlı rol daha ilk adımda reddedilir ve santral
+       yöneticisi KENDİ santraline varlık yazamaz. Gerçek kapsam denetimi
+       aşağıda ve `kapsamZorunlu` ile — kapsamsız kayıt da denetlenir. */
+    const k = await yetkiZorunlu('envanter', 'yazma', KAPSAM_SONRA);
     const v = VarlikSemasi.parse(girdi);
-    if (v.tesisId && !izinVar(k, 'envanter', 'yazma', { tesisId: v.tesisId }))
-      throw new Error('Bu tesis kapsamında envanter yazma yetkiniz yok');
+    kapsamZorunlu(k, 'envanter', 'yazma', { tesisId: v.tesisId },
+      'Bu tesis kapsamında envanter yazma yetkiniz yok');
 
     const ayniEtiket = await db.varlik.findUnique({ where: { etiket: v.etiket } });
     if (ayniEtiket && ayniEtiket.id !== v.id)
@@ -138,8 +144,8 @@ export async function varlikKaydet(girdi: {
     if (v.id) {
       const eski = await db.varlik.findUnique({ where: { id: v.id } });
       if (!eski || eski.silindi) throw new Error('Varlık bulunamadı');
-      if (eski.tesisId && !izinVar(k, 'envanter', 'yazma', { tesisId: eski.tesisId }))
-        throw new Error('Bu tesis kapsamında envanter yazma yetkiniz yok');
+      kapsamZorunlu(k, 'envanter', 'yazma', { tesisId: eski.tesisId },
+        'Bu tesis kapsamında envanter yazma yetkiniz yok');
       // Elle değişen kimlik/durum alanları varsa önceki insan doğrulaması
       // artık bu veriyi kapsamıyor (bkz. DOGRULAMAYI_DUSUREN_ALANLAR).
       await dogrulamalariDusur(
@@ -169,7 +175,7 @@ export async function iliskiEkle(girdi: {
   kaynakId: string; hedefId: string; tip: string;
 }): Promise<Sonuc> {
   try {
-    const k = await yetkiZorunlu('envanter', 'yazma');
+    const k = await yetkiZorunlu('envanter', 'yazma', KAPSAM_SONRA);
     const v = z.object({
       kaynakId: bosluksuz('Kaynak varlık'),
       hedefId: bosluksuz('Hedef varlık'),
@@ -183,8 +189,11 @@ export async function iliskiEkle(girdi: {
     ]);
     if (!kaynak || kaynak.silindi) throw new Error('Kaynak varlık bulunamadı');
     if (!hedef || hedef.silindi) throw new Error('Hedef varlık bulunamadı');
-    if (kaynak.tesisId && !izinVar(k, 'envanter', 'yazma', { tesisId: kaynak.tesisId }))
-      throw new Error('Bu tesis kapsamında envanter yazma yetkiniz yok');
+    /* Kapsam KAYNAK varlıktan okunur: ilişki kaynağın satırıdır ve iz
+       kaynağa yazılır. Hedef başka tesiste olabilir; bkz.
+       tests/envanter-eylem.test.ts — davranış ölçülmüş ve çivilenmiştir. */
+    kapsamZorunlu(k, 'envanter', 'yazma', { tesisId: kaynak.tesisId },
+      'Bu tesis kapsamında envanter yazma yetkiniz yok');
 
     const mevcut = await db.varlikIliskisi.findUnique({
       where: { kaynakId_hedefId_tip: { kaynakId: v.kaynakId, hedefId: v.hedefId, tip: v.tip } },
@@ -204,14 +213,14 @@ export async function iliskiEkle(girdi: {
 /** Varlık ilişkisini kaldır. */
 export async function iliskiSil(girdi: { id: string }): Promise<Sonuc> {
   try {
-    const k = await yetkiZorunlu('envanter', 'yazma');
+    const k = await yetkiZorunlu('envanter', 'yazma', KAPSAM_SONRA);
     const v = z.object({ id: bosluksuz('İlişki') }).parse(girdi);
     const iliski = await db.varlikIliskisi.findUnique({
       where: { id: v.id }, include: { kaynak: true, hedef: true },
     });
     if (!iliski) throw new Error('İlişki bulunamadı');
-    if (iliski.kaynak.tesisId && !izinVar(k, 'envanter', 'yazma', { tesisId: iliski.kaynak.tesisId }))
-      throw new Error('Bu tesis kapsamında envanter yazma yetkiniz yok');
+    kapsamZorunlu(k, 'envanter', 'yazma', { tesisId: iliski.kaynak.tesisId },
+      'Bu tesis kapsamında envanter yazma yetkiniz yok');
 
     await db.varlikIliskisi.delete({ where: { id: v.id } });
     await iz({
@@ -237,14 +246,14 @@ export async function varlikYasamDongusu(girdi: {
 
     const denetimli = v.yasamDongusu === 'emekli' || v.yasamDongusu === 'imha';
     const islem = denetimli ? 'onay' : 'yazma';
-    const k = await yetkiZorunlu('envanter', islem);
+    const k = await yetkiZorunlu('envanter', islem, KAPSAM_SONRA);
     if (denetimli && !v.gerekce)
       throw new Error('Emekli/imha geçişi için gerekçe zorunlu');
 
     const eski = await db.varlik.findUnique({ where: { id: v.id } });
     if (!eski || eski.silindi) throw new Error('Varlık bulunamadı');
-    if (eski.tesisId && !izinVar(k, 'envanter', islem, { tesisId: eski.tesisId }))
-      throw new Error('Bu tesis kapsamında yetkiniz yok');
+    kapsamZorunlu(k, 'envanter', islem, { tesisId: eski.tesisId },
+      'Bu tesis kapsamında yetkiniz yok');
     if (eski.yasamDongusu === v.yasamDongusu) return tamam();
 
     // Yaşam döngüsü bir DURUM alanıdır: emekliye ayrılan varlık kaynak

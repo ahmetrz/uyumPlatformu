@@ -88,29 +88,47 @@ da uçtan uca doğrulandı (indirilen dosya geri okundu: 53 satır, 0 sayfa
 hatası) ve `.xlsx` yükleme ekranından geçirildi (3 satır, boş satır
 düştü).
 
-**2. Test kapsamı satır %74,51 · deyim %71,34 — hedef ≥%90.**
-(2026-09-03 ölçümü. Önceki kayıt deyim %68,91 idi.)
+**2. ~~Test kapsamı %68,91 — hedef ≥%90.~~ HEDEF YENİDEN YAZILDI:
+davranış kritik katmanlarda ≥%85, ve MAKİNEYE BAĞLANDI.**
 
-Sunucu eylemleri artık açığın büyük kısmı DEĞİL: `lib/eylemler2` satır
-%84,06'ya çıktı (bu oturumda %70,28 idi, ondan önce %53,96). Sıfır
-kapsamlı dört dosya kapandı (`konum` · `apiAnahtari` · `tesis360` ·
-`isler`); `kimlik` %27,9'dan, `operasyon` %45,2'den, `denetim`
-%61,1'den yukarı taşındı.
+Ölçüm (03.09.2026): satır **%74,16** · deyim %70,96. Sunucu eylemleri
+artık açığın büyük kısmı değil — `lib/eylemler2` %84 (oturum başında
+%53,96), motorlar %94, entegrasyon çekirdeği %90, API uçları %90.
 
-**Hedefin kendisi gözden geçirilmelidir ve sebebi ölçülmüştür.** Kalan
-açığın ağırlık merkezi iki yerde:
+**Neden %90 hedefi bırakıldı.** Kalan açığın ağırlık merkezi ölçüldü ve
+sunucu tarafında değil:
 
-· `lib/` kökü **%58,72** — `db.ts`, `disaAktar.ts`, `kontrast.ts` gibi
-  altyapı dosyaları,
-· ekran bileşenleri **%0** — `*Istemci.tsx`, `Kabuk.tsx`,
-  `KomutPaleti.tsx` ve altı ayrı `mantik.ts`.
+| katman | satır kapsamı |
+| --- | --- |
+| Otomasyon motorları | %93,9 |
+| Entegrasyon çekirdeği | %90,3 |
+| Dış API uçları | %90,0 |
+| Yetki kapısı | %88,4 |
+| Sunucu eylemleri (`eylemler2`) | %84,1 |
+| `eylemler.ts` (eski katman) | %33,0 |
+| Ekran saf mantığı (`mantik.ts`) | %56,5 |
+| **Bileşenler** | **%22,1** |
 
-Yani %90, bileşen testi (React Testing Library ya da eşdeğeri) yazmadan
-**matematiksel olarak tutmaz**; bugün depoda o katman hiç yok. Karar iki
-şıktan biridir ve ürün sahibinindir: bileşen test katmanı kurulur, ya da
-hedef "davranış kritik katmanlarda ≥%85" diye yeniden yazılır. Sayıyı
-hedefe uydurmak yerine hedefi ölçüme göre tartışmak, bu belgenin kendi
-kuralıdır.
+Depoda bileşen test katmanı (React Testing Library ya da eşdeğeri)
+**hiç yok**. Toplam %90, o katman kurulmadan matematiksel olarak
+tutmaz. Sayıyı hedefe uydurmak bu belgenin kendi kuralına aykırı
+olurdu; hedef ölçüme göre yeniden yazıldı.
+
+**Hedef artık yazılı değil, KAPI.** Yazılı bir hedef bayatlar ve
+bayatlığı fark edilmez. Eşikler `web/vitest.config.ts` içinde katman
+katman duruyor; `npm run test:kapsam` eşiğin altına düşen katmanda
+KIRMIZI döner ve hangi katman olduğunu adıyla söyler. Kapının gerçekten
+ısırdığı deneyerek doğrulandı (eşik yapay olarak yükseltildi, koşu
+çıkış kodu 1 verdi).
+
+Eşikler bugünün ölçümünün bir tık ALTINA konuldu: bugün geçsin ama bir
+**gerileme** yakalansın diye. Yukarı çekmek ayrı bir iştir ve ölçümle
+yapılır.
+
+**Kapsam dışında kalan iki şey bilinçlidir:** `eylemler.ts` eski
+katmandır ve yeni iş `eylemler2`'ye gidiyor; bileşenler için önce test
+katmanı kurulmalı. İkisi de eşik listesine KONMADI — koyulsaydı kapı ilk
+günden kırmızı olur, kimse bakmazdı.
 
 **3. ~~`/impeccable critique` ve `/impeccable audit` hiç koşulmadı.~~ KOŞTU.**
 İkisi de dolu ekranlarda koştu ve bulguları uygulandı. Denetimin
@@ -236,9 +254,10 @@ raporlar.
 (sır, veriyle aynı yerde durmamalı); kanıt DOSYALARI bugün yoktur —
 `Kanit.dosyaYolu` kolonu var ama hiçbir kod ona yazmıyor, dosya yükleme
 geldiği gün araç eksik kalır. Saklama süresi, saklama yeri ve tatbikat
-takvimi YAZILMADI: bunlar kurumun kararıdır ve buraya bir sayı yazmak,
-kimsenin taahhüt etmediği bir politikayı belgelenmiş gibi göstermek
-olurdu.
+takvimi 03.09.2026'da karara bağlandı (günlük 14 gün · haftalık 3 ay ·
+aylık 24 ay; en az iki yer, biri makine dışı; üç ayda bir **ve her
+göçten sonra** tatbikat). Gerekçeleriyle `docs/URUN_YEDEKLEME.md §4`.
+Yazılı bir regülasyon asgarisi çıkarsa 24 ayı ezer.
 
 ### P3 — bilinen ve bilinçli eksikler
 

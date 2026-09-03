@@ -91,7 +91,16 @@ export function cercevede(enlem: number, boylam: number): boolean {
 
 /* ── İşaret ───────────────────────────────────────────────────────────── */
 
-export type KonumKaynagi = 'kesin' | 'il';
+/* ÜÇ durum, iki değil (P3-8). Eskiden `'kesin' | 'il'` idi ve
+   koordinatı olan her santral "kesin" sayılıyordu — kamuya açık bir
+   kaynaktan bulunmuş yaklaşık bir nokta da, saha ekibinin GPS'le
+   ölçtüğü nokta da. Ekran ikisini de kesin gösteriyordu; "bilinmeyen ≠
+   sıfır" kuralının koordinattaki ihlali buydu.
+
+   · `dogrulanmis`   — koordinat var, bir İNSAN doğruladı
+   · `dogrulanmamis` — koordinat var, henüz kimse bakmadı (aday)
+   · `il`            — koordinat yok, il merkezine yaklaştırıldı */
+export type KonumKaynagi = 'dogrulanmis' | 'dogrulanmamis' | 'il';
 
 export type Isaret = {
   id: string; kod: string; ad: string;
@@ -101,6 +110,8 @@ export type Isaret = {
   uyumYuzde: number | null;
   acikBulgu: number; acikRisk: number;
   kaynak: KonumKaynagi;
+  /** Koordinatın künyesi; `il` kaynağında anlamsız olduğu için null. */
+  konumKaynagi: string | null;
   enlem: number; boylam: number;
   x: number; y: number;
   durum: Durum;
@@ -119,7 +130,9 @@ export type Yerlesim = {
   isaretler: Isaret[];
   /** Ne koordinatı ne tanınan ili olan santraller — haritada YOK, listede VAR. */
   yerlestirilemeyen: PortfoySatiri[];
-  kesinSayisi: number;
+  dogrulanmisSayisi: number;
+  /** Koordinatı var ama doğrulanmamış — haritada "aday" olarak durur. */
+  dogrulanmamisSayisi: number;
   yaklasikSayisi: number;
 };
 
@@ -141,16 +154,18 @@ export function yaricap(gucMw: number | null): number {
 export function yerlesimKur(satirlar: PortfoySatiri[]): Yerlesim {
   const isaretler: Isaret[] = [];
   const yerlestirilemeyen: PortfoySatiri[] = [];
-  let kesinSayisi = 0;
+  let dogrulanmisSayisi = 0;
+  let dogrulanmamisSayisi = 0;
   let yaklasikSayisi = 0;
 
   for (const s of satirlar) {
     let enlem: number | null = null;
     let boylam: number | null = null;
-    let kaynak: KonumKaynagi = 'kesin';
+    let kaynak: KonumKaynagi = 'il';
 
     if (s.enlem !== null && s.boylam !== null && cercevede(s.enlem, s.boylam)) {
-      enlem = s.enlem; boylam = s.boylam; kaynak = 'kesin';
+      enlem = s.enlem; boylam = s.boylam;
+      kaynak = s.konumDogrulandi ? 'dogrulanmis' : 'dogrulanmamis';
     } else {
       const il = ilAyikla(s.konum);
       const merkez = il ? IL_MERKEZI[il] : null;
@@ -158,7 +173,9 @@ export function yerlesimKur(satirlar: PortfoySatiri[]): Yerlesim {
     }
 
     if (enlem === null || boylam === null) { yerlestirilemeyen.push(s); continue; }
-    if (kaynak === 'kesin') kesinSayisi++; else yaklasikSayisi++;
+    if (kaynak === 'dogrulanmis') dogrulanmisSayisi++;
+    else if (kaynak === 'dogrulanmamis') dogrulanmamisSayisi++;
+    else yaklasikSayisi++;
 
     const { x, y } = yerlestir(enlem, boylam);
     isaretler.push({
@@ -166,7 +183,11 @@ export function yerlesimKur(satirlar: PortfoySatiri[]): Yerlesim {
       konum: s.konum, il: ilAyikla(s.konum),
       gucMw: s.gucMw, uyumYuzde: s.uyumYuzde,
       acikBulgu: s.acikBulgu, acikRisk: s.acikRisk,
-      kaynak, enlem, boylam, x, y,
+      kaynak,
+      // `il` kaynağında nokta santralin kendisi değil il merkezi; künye
+      // orada bir şeye işaret etmez, bu yüzden null.
+      konumKaynagi: kaynak === 'il' ? null : s.konumKaynagi,
+      enlem, boylam, x, y,
       durum: uyumDurumu(s.uyumYuzde),
       r: yaricap(s.gucMw),
       etiketDx: 0, etiketDy: 0, etiketHiza: 'start',
@@ -176,7 +197,10 @@ export function yerlesimKur(satirlar: PortfoySatiri[]): Yerlesim {
   /* Büyük işaret önce çizilir ki küçüğü örtmesin (SVG'de son çizilen
      üstte kalır; sıralama tersten). */
   isaretler.sort((a, b) => b.r - a.r);
-  return { isaretler, yerlestirilemeyen, kesinSayisi, yaklasikSayisi };
+  return {
+    isaretler, yerlestirilemeyen,
+    dogrulanmisSayisi, dogrulanmamisSayisi, yaklasikSayisi,
+  };
 }
 
 /** Aynı noktaya düşen işaretler — il merkezine yığılan santraller. */
@@ -239,22 +263,32 @@ export function koordinatYazisi(enlem: number, boylam: number): string {
 }
 
 export function kaynakYazisi(i: Isaret): string {
-  return i.kaynak === 'kesin'
-    ? koordinatYazisi(i.enlem, i.boylam)
-    : `${i.il} il merkezi · kesin konum girilmedi`;
+  if (i.kaynak === 'il') return `${i.il} il merkezi · konum girilmedi`;
+  const nokta = koordinatYazisi(i.enlem, i.boylam);
+  if (i.kaynak === 'dogrulanmis') {
+    return i.konumKaynagi ? `${nokta} · ${i.konumKaynagi}` : nokta;
+  }
+  /* Doğrulanmamış nokta KENDİNİ SÖYLER. Sessiz kalmak, onu doğrulanmış
+     gibi göstermekle aynı kapıya çıkar. */
+  return `${nokta} · ${i.konumKaynagi ?? 'kaynak belirtilmedi'} · DOĞRULANMADI`;
 }
 
 /* ── Başlık ölçüsü ───────────────────────────────────────────────────── */
 
 export type HaritaOlcusu = {
-  toplam: number; kesin: number; yaklasik: number; yerlestirilemeyen: number;
+  toplam: number;
+  dogrulanmis: number;
+  dogrulanmamis: number;
+  yaklasik: number;
+  yerlestirilemeyen: number;
   olculmeyenUyum: number;
 };
 
 export function olcu(y: Yerlesim): HaritaOlcusu {
   return {
     toplam: y.isaretler.length + y.yerlestirilemeyen.length,
-    kesin: y.kesinSayisi,
+    dogrulanmis: y.dogrulanmisSayisi,
+    dogrulanmamis: y.dogrulanmamisSayisi,
     yaklasik: y.yaklasikSayisi,
     yerlestirilemeyen: y.yerlestirilemeyen.length,
     olculmeyenUyum: y.isaretler.filter((i) => i.uyumYuzde === null).length,
@@ -266,13 +300,19 @@ export function baslikMetni(o: HaritaOlcusu): { vurgu: string; ad: string; durum
   if (o.yerlestirilemeyen > 0) {
     return { vurgu: `${o.yerlestirilemeyen} santral`, ad: 'haritaya yerleştirilemedi', durum: 'unk' };
   }
-  if (o.kesin === 0) {
+  /* Sıra bilinçli: en pahalı belirsizlik önce söylenir. Doğrulanmamış
+     nokta, il merkezine yaklaştırılmış noktadan DAHA yanıltıcıdır —
+     ikincisi zaten "yaklaşık" diyor, birincisi kesin görünüyor. */
+  if (o.dogrulanmamis > 0) {
+    return { vurgu: `${o.dogrulanmamis} santral`, ad: 'koordinatı doğrulanmadı', durum: 'md' };
+  }
+  if (o.dogrulanmis === 0) {
     return { vurgu: `${o.yaklasik} santral`, ad: 'il merkezine yaklaştırıldı', durum: 'md' };
   }
   if (o.yaklasik > 0) {
-    return { vurgu: `${o.yaklasik} santral`, ad: 'kesin konumu girilmemiş', durum: 'md' };
+    return { vurgu: `${o.yaklasik} santral`, ad: 'konumu girilmemiş', durum: 'md' };
   }
-  return { vurgu: `${o.kesin} santral`, ad: 'kesin konumuyla haritada', durum: 'ok' };
+  return { vurgu: `${o.dogrulanmis} santral`, ad: 'doğrulanmış konumuyla haritada', durum: 'ok' };
 }
 
 /* ── Koordinat doğrulaması (form ve eylem aynı kuralı paylaşır) ──────── */

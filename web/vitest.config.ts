@@ -21,6 +21,31 @@ export default defineConfig({
         '**/*.demo.ts',
       ],
       reporter: ['text', 'json-summary'],
+      /* ── HEDEF: DAVRANIŞ KRİTİK KATMANLARDA ≥%85 (P1-2) ─────────────
+         Eski hedef "toplam ≥%90" idi ve ölçüldüğünde tutmayacağı çıktı:
+         açığın ağırlık merkezi sunucu eylemleri DEĞİL, ekran bileşenleri
+         (%0) ve `lib/` kökündeki altyapı. Depoda bileşen test katmanı
+         hiç yok; %90 o katman kurulmadan matematiksel olarak imkânsız.
+         Sayıyı hedefe uydurmak yerine hedef ölçüme göre yeniden yazıldı.
+
+         Eşik artık KATMAN BAZLI ve MAKİNEYE BAĞLI. Yazılı bir hedef
+         bayatlar ve bayatlığı fark edilmez; `npm run test:kapsam` bu
+         eşiklerin altına düşen katmanda KIRMIZI döner.
+
+         Sayılar bugünün ölçümünden bir tık AŞAĞIYA konuldu: kapı bugün
+         geçsin ama bir gerileme yakalansın diye. Yukarı çekmek ayrı bir
+         iştir ve ölçümle yapılır. */
+      thresholds: {
+        // Sunucu eylemleri — yetki kapısının ve iş kurallarının yaşadığı yer.
+        'lib/eylemler2/**': { lines: 82, functions: 84 },
+        // Yetki kapısının kendisi: kural buradan çıkar.
+        'lib/erisim.ts': { lines: 85 },
+        // Otomasyon motorları ve entegrasyon çekirdeği.
+        'lib/motorlar/**': { lines: 90 },
+        'lib/entegrasyon/**': { lines: 88 },
+        // Dış API uçları — kimlik ve oran sınırı burada.
+        'lib/api/**': { lines: 88 },
+      },
       /* Bir test kırıksa da rapor yazılsın: kapsam sayısı testin
          sonucundan bağımsız bir ölçüdür, kırık testin arkasına saklanmaz. */
       reportOnFailure: true,

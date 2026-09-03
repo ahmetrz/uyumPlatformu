@@ -105,6 +105,7 @@ export async function portfoyEkranVerisi(k: AktifKullanici): Promise<EkranVerisi
       gucMw: t.kuruluGucMw,
       gorselAnahtari: t.gorselAnahtari,
       enlem: t.enlem, boylam: t.boylam,
+      konumKaynagi: t.konumKaynagi, konumDogrulandi: t.konumDogrulandi,
       kritiklik: t.profil?.kritiklikSinifi ?? null,
       uyumYuzde: ozet.yuzde,
       bilinmeyenOran: ozet.bilinmeyenOran,

@@ -62,7 +62,11 @@ export default function HaritaIstemci({
         vurguDurumu={baslik.durum}
         baslik={baslik.ad}
         metrikler={[
-          { deger: olculer.kesin, yazi: 'Kesin konum' },
+          { deger: olculer.dogrulanmis, yazi: 'Doğrulanmış konum' },
+          /* Doğrulanmamış nokta AYRI sayılır: eskiden "kesin"e katılıyordu
+             ve ekran onu doğrulanmış gibi gösteriyordu (P3-8). */
+          { deger: olculer.dogrulanmamis, yazi: 'Doğrulanmadı',
+            durum: olculer.dogrulanmamis > 0 ? 'md' : undefined },
           { deger: olculer.yaklasik, yazi: 'İl merkezine yaklaşık',
             durum: olculer.yaklasik > 0 ? 'md' : undefined },
           { deger: olculer.yerlestirilemeyen, yazi: 'Yerleştirilemedi',
@@ -78,7 +82,9 @@ export default function HaritaIstemci({
               paragrafta durur, ekran okuyucu önce onu okur. */}
           <p className="ab-gizli-okuma">
             {`${isaretler.length} santral enlem/boylam çerçevesine yerleştirildi. `
-              + `${olculer.kesin} kesin koordinat, ${olculer.yaklasik} il merkezine yaklaşık. `
+              + `${olculer.dogrulanmis} doğrulanmış koordinat, `
+              + `${olculer.dogrulanmamis} doğrulanmamış, `
+              + `${olculer.yaklasik} il merkezine yaklaşık. `
               + 'Her işaret bir düğmedir; sekme ile gezilir, Enter ile künyesi açılır.'}
           </p>
           <svg viewBox={`0 0 ${TUVAL.en} ${TUVAL.boy}`} role="group"
@@ -197,7 +203,9 @@ function IsaretDugumu({ isaret, secili, sec }: {
   isaret: Isaret; secili: boolean; sec: () => void;
 }) {
   const uyum = isaret.uyumYuzde === null ? 'ölçülmedi' : `%${isaret.uyumYuzde}`;
-  const yer = isaret.kaynak === 'kesin' ? 'kesin konum' : 'il merkezi · yaklaşık';
+  const yer = isaret.kaynak === 'dogrulanmis' ? 'doğrulanmış konum'
+    : isaret.kaynak === 'dogrulanmamis' ? 'koordinat doğrulanmadı'
+      : 'il merkezi · yaklaşık';
   return (
     <g className={`isaret d-${isaret.durum} k-${isaret.kaynak}${secili ? ' secili' : ''}`}>
       <circle cx={isaret.x} cy={isaret.y} r={isaret.r} className="halka" />
@@ -250,7 +258,11 @@ function SeciliKunye({ isaret, yazabilir, duzenle, kapat }: {
         <div><dt>Konum kaydı</dt><dd>{isaret.konum ?? 'yok'}</dd></div>
         <div>
           <dt>Koordinat</dt>
-          <dd className={isaret.kaynak === 'kesin' ? 'mono' : 'mono unk'}>{kaynakYazisi(isaret)}</dd>
+          {/* Doğrulanmamış nokta da belirsiz görünür: `unk` sınıfı
+              "bu sayıya güvenme" demenin görsel karşılığı. */}
+          <dd className={isaret.kaynak === 'dogrulanmis' ? 'mono' : 'mono unk'}>
+            {kaynakYazisi(isaret)}
+          </dd>
         </div>
         <div>
           <dt>Kurulu güç</dt>
@@ -265,7 +277,7 @@ function SeciliKunye({ isaret, yazabilir, duzenle, kapat }: {
       </dl>
       {yazabilir && (
         <Dugme tur="ikincil" onClick={duzenle}>
-          {isaret.kaynak === 'kesin' ? 'Koordinatı düzelt' : 'Kesin koordinat gir'}
+          {isaret.kaynak === 'il' ? 'Koordinat gir' : 'Koordinatı düzelt'}
         </Dugme>
       )}
     </div>

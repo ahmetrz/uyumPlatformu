@@ -1,7 +1,7 @@
 {
-  "imza": "2b03a153ce0bd089c20470bfb7f5a57d",
+  "imza": "817cd920fd18b24f383504591ede3019",
   "dosya": 90,
-  "vaka": 1560,
+  "vaka": 1568,
   "atlanan": 1,
   "dosyalar": {
     "tests/api.test.ts": {
@@ -121,7 +121,7 @@
       "atlanan": 0
     },
     "tests/harita-mantik.test.ts": {
-      "vaka": 21,
+      "vaka": 22,
       "atlanan": 0
     },
     "tests/hesap.test.ts": {
@@ -205,7 +205,7 @@
       "atlanan": 0
     },
     "tests/konum-apianahtar-eylem.test.ts": {
-      "vaka": 13,
+      "vaka": 20,
       "atlanan": 0
     },
     "tests/motor-defteri.test.ts": {

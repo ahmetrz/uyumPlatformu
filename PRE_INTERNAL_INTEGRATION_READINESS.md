@@ -38,7 +38,7 @@ söylemeye başlar ve yalanı kimse fark etmez.
 | Ölçü | Değer |
 |---|---|
 | test dosyası | 90 |
-| test vakası | 1560 |
+| test vakası | 1568 |
 | atlanan test | 1 |
 | ekran (rota) | 46 |
 | API ucu | 9 |
@@ -46,7 +46,7 @@ söylemeye başlar ve yalanı kimse fark etmez.
 | connector adaptörü | 8 |
 | sunucu eylemi modülü | 30 |
 | Prisma modeli | 98 |
-| uygulanmış göç | 19 |
+| uygulanmış göç | 20 |
 
 <!-- SAYIMLAR:BITIS -->
 

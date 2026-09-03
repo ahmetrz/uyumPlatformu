@@ -2809,6 +2809,8 @@ details:not([open]) > *:not(summary) { display: none !important; }
 @keyframes ab-halka { 0% { transform: scale(.6); opacity: .8; } 100% { transform: scale(2.6); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) {
   .ab-tara::after, .ab-halka, .ab-b-takim .halka { animation: none; }
+  /* Çekmece kaymadan, olduğu yerde belirir. */
+  .ab-a-ray[data-cekmece][data-acik] { animation: none; }
   .ab-tara::after { display: none; }
 }
 
@@ -2871,6 +2873,11 @@ details:not([open]) > *:not(summary) { display: none !important; }
   .ab-a-ust .grup.dar-gizle { display: none; }
 }
 
+/* Çekmece düğmesi ve perdesi YALNIZ dar banttadır. Geniş bantta ray
+   zaten dikey ve görünür; düğme orada ikinci bir gezinme katmanı olur,
+   ürünün "iki paralel ray" hatasına geri dönerdi. */
+.ab-a-cekmece-dugme, .ab-a-perde { display: none; }
+
 @media (max-width: 1100px) {
   /* Dar bantta tek kolon; etiket yığını okunmaz olurdu, künye adı yazar. */
   .ab-harita-govde { grid-template-columns: 1fr; }
@@ -2882,6 +2889,57 @@ details:not([open]) > *:not(summary) { display: none !important; }
   .ab-c-ekrandizin { grid-template-columns: minmax(0, 1fr); gap: 24px; }
   .ab-c-dizin { display: flex; flex-wrap: wrap; gap: 24px; }
   .ab-c-dizin .bolum { flex: 1 1 200px; margin-bottom: 0; }
+  /* ── A RAYI: ÇEKMECE (P3-10) ─────────────────────────────────────
+     Aşağıdaki yatay şerit TEMEL hâldir ve JS koşmazsa geçerli kalır.
+     `Kabuk.tsx · ARayi` bağlandığında rayı `data-cekmece` ile
+     işaretler ve çekmece kuralları devreye girer. Sıra önemlidir:
+     temel önce, iyileştirme sonra — tersi olsaydı JS'siz tarayıcıda
+     gezinme gizli kalır, düğme de olmadığı için ulaşılamazdı. */
+  .ab-a-cekmece-dugme {
+    display: inline-flex; align-items: center; gap: 9px;
+    height: 40px; padding: 0 14px;
+    background: var(--panel); color: var(--murekkep);
+    border: 0; border-bottom: 1px solid var(--hr);
+    font-family: var(--veri); font-size: 11px; letter-spacing: .08em;
+    text-transform: uppercase; cursor: pointer; width: 100%;
+    justify-content: flex-start;
+  }
+  .ab-a-cekmece-dugme .glif { font-size: 15px; line-height: 1; color: var(--i2); }
+  /* Kapalıyken bile AKTİF EKRANIN ADI yazar. Çekmecenin bilinen bedeli
+     "hangi ekrandayım" sorusunun cevapsız kalmasıdır; bedel burada
+     kapanır. Ad kehribar değil mürekkep: bu bir durum bildirimi, bir
+     eylem çağrısı değil. */
+  .ab-a-cekmece-dugme .ad { color: var(--murekkep); }
+  .ab-a-cekmece-dugme:hover { background: var(--panel2); }
+  .ab-a-cekmece-dugme:focus-visible { outline: 2px solid var(--aksan); outline-offset: -3px; }
+
+  .ab-a-perde { position: fixed; inset: 0; background: rgba(0, 0, 0, .55); z-index: 50; }
+
+  /* Çekmece kapalı: rayı yerinden tümüyle kaldırır (yalnız JS varken). */
+  .ab-a-ray[data-cekmece] { display: none; }
+  .ab-a-ray[data-cekmece][data-acik] {
+    display: flex; flex-direction: column;
+    position: fixed; top: 0; left: 0; bottom: 0; z-index: 60; width: 232px;
+    border-right: 1px solid var(--hr); border-bottom: 0;
+    padding-top: 12px; overflow-y: auto;
+    box-shadow: 0 0 40px rgba(0, 0, 0, .6);
+    animation: ab-cekmece-gir 140ms ease-out;
+  }
+  .ab-a-ray[data-cekmece][data-acik] a {
+    flex-direction: row; justify-content: flex-start; gap: 12px;
+    padding: 0 16px; height: 44px;
+    border-left: 2px solid transparent; border-bottom: 0;
+  }
+  .ab-a-ray[data-cekmece][data-acik] a[aria-current='page'] {
+    border-left-color: var(--aksan); border-bottom-color: transparent;
+  }
+  .ab-a-ray[data-cekmece][data-acik] a .ab-glif { width: 22px; text-align: left; }
+  .ab-a-ray[data-cekmece][data-acik] a.ayrik {
+    margin-top: 14px; margin-left: 0; padding-top: 0;
+    border-top: 1px solid var(--hr); border-left: 0;
+  }
+  @keyframes ab-cekmece-gir { from { transform: translateX(-100%); } to { transform: none; } }
+
   /* A rayı yatay şeride iner — ikonlar ve etiketler kalır. */
   .ab-a-govde { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
   .ab-a-ray { flex-direction: row; border-right: 0; border-bottom: 1px solid var(--hr); padding: 0; overflow-x: auto; }

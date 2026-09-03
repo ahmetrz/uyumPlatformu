@@ -1,7 +1,9 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import type { ReactNode } from 'react';
+import {
+  useCallback, useEffect, useId, useRef, useState, useSyncExternalStore, type ReactNode,
+} from 'react';
 import CikisDugmesi from '@/components/CikisDugmesi';
 import AramaDugmesi from '@/components/AramaDugmesi';
 import KomutPaleti from '@/components/KomutPaleti';
@@ -52,6 +54,136 @@ function damga(iso: string | null): string {
   const t = new Date(iso);
   return Number.isNaN(t.getTime()) ? '—' : TARIH.format(t);
 }
+
+/** `useSyncExternalStore` için kararlı abone: hiçbir şeye abone olmuyoruz,
+    yalnız sunucu/istemci ayrımını istiyoruz. Modül düzeyinde durur ki her
+    render'da yeni referans üretip aboneliği kurup bozmasın. */
+const aboneOlma = () => () => {};
+
+/* ═══ A RAYI — geniş bantta dikey ray, dar bantta ÇEKMECE ═══════════════
+   ≤1100px'te on altı ray öğesi yatay şeride iniyordu ve şerit taşıyordu:
+   kayıyordu ama kaydırılabildiğini gösteren bir işaret yoktu, yani son
+   öğelerin VAR OLDUĞU bilinmiyordu. Erişilebilirlik kusuru değildi
+   (sekmeyle ulaşılıyordu), keşfedilebilirlik kusuruydu. Ölçüldü
+   03.09.2026, 980 ve 1100 pikselde.
+
+   ── Neden çekmece, ve neyi telafi ederek ──────────────────────────────
+   Çekmecenin bilinen bedeli şudur: kapalıyken "hangi ekrandayım" sorusu
+   cevapsız kalır — seçili öğenin işareti gizlenen rayla birlikte kaybolur.
+   Uyum ve denetim işinde bu soru ucuz olmak zorunda. Bu yüzden düğme
+   yalnız bir hamburger DEĞİL: yanında AKTİF EKRANIN ADI durur. Bedel
+   düğmenin kendisinde kapatılıyor.
+
+   ── JS'siz hâl bozulmaz ───────────────────────────────────────────────
+   Çekmece bir İYİLEŞTİRMEDİR, temel değil. Bileşen bağlanana kadar (ve
+   JS hiç koşmazsa) CSS'in temel hâli geçerlidir: bugünkü yatay şerit.
+   Aksi hâlde JS'i koşmayan bir tarayıcıda gezinme tümüyle gizlenir ve
+   düğme ölü bir ikon olurdu — kusuru düzeltirken ürünü kırmak olurdu. */
+function ARayi({ veri, patika }: { veri: KabukVerisi; patika: string }) {
+  /* Çekmece hangi ROTADA açıldığını tutar, bir boolean değil. Sebep:
+     bir bağa tıklamak gezinmedir ve çekmece açık kalsaydı yeni ekranın
+     üstünü örterdi. Durumu rotaya bağlamak, kapanmayı RENDER SIRASINDA
+     türetir — rota değişince efekt beklemeden kapalıdır. Boolean + efekt
+     kalıbı bunu bir kare geç yapardı ve `setState`i efekt içine sokardı. */
+  const [acikPatika, setAcikPatika] = useState<string | null>(null);
+  const acik = acikPatika === patika;
+  const kimlik = useId();
+  const dugmeRef = useRef<HTMLButtonElement>(null);
+  const rayRef = useRef<HTMLElement>(null);
+
+  /* Bağlanma bayrağı efektle DEĞİL, dış depo aboneliğiyle okunur:
+     sunucuda `false`, istemcide `true`. Efektli kalıp ilk boyamadan
+     sonra ikinci bir render tetikler ve React 19 kuralı da onu yasaklar. */
+  const bagli = useSyncExternalStore(aboneOlma, () => true, () => false);
+
+  const kapat = useCallback(() => {
+    setAcikPatika(null);
+    // Odak açan düğmeye döner; yoksa kullanıcı sayfanın başına düşer.
+    dugmeRef.current?.focus();
+  }, []);
+
+  useEffect(() => {
+    if (!acik) return undefined;
+    /* Odak TUZAĞI: çekmece açıkken Tab arkadaki içeriğe kaçmamalı —
+       kaçarsa kullanıcı göremediği bir şeyi gezer. Esc her zaman kapatır. */
+    const tus = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') { e.preventDefault(); kapat(); return; }
+      if (e.key !== 'Tab') return;
+      const ray = rayRef.current;
+      if (!ray) return;
+      const odaklanabilir = [dugmeRef.current, ...ray.querySelectorAll<HTMLElement>('a[href]')]
+        .filter((el): el is HTMLElement => !!el);
+      if (odaklanabilir.length === 0) return;
+      const ilk = odaklanabilir[0];
+      const sonuncu = odaklanabilir[odaklanabilir.length - 1];
+      if (e.shiftKey && document.activeElement === ilk) { e.preventDefault(); sonuncu.focus(); }
+      else if (!e.shiftKey && document.activeElement === sonuncu) { e.preventDefault(); ilk.focus(); }
+    };
+    document.addEventListener('keydown', tus);
+    // Açılınca odak ilk bağa iner: klavye kullanıcısı listeye doğrudan girer.
+    rayRef.current?.querySelector<HTMLElement>('a[href]')?.focus();
+    return () => document.removeEventListener('keydown', tus);
+  }, [acik, kapat]);
+
+  const aktif = A_RAY.find((o) => aktifMi(o.yol, patika));
+
+  return (
+    <>
+      {bagli && (
+        <button
+          ref={dugmeRef}
+          type="button"
+          className="ab-a-cekmece-dugme"
+          aria-expanded={acik}
+          aria-controls={kimlik}
+          onClick={() => setAcikPatika(acik ? null : patika)}
+        >
+          <span className="glif" aria-hidden>{acik ? '\u2715' : '\u2630'}</span>
+          {/* Kapalıyken bile NEREDE OLDUĞU yazar — çekmecenin bedeli budur
+              ve burada kapatılır. Ekran adı bulunamazsa genel ada düşer. */}
+          <span className="ad">{aktif?.ad ?? 'Ekranlar'}</span>
+          <span className="ab-gizli-okuma">{acik ? ' — menüyü kapat' : ' — ekran menüsünü aç'}</span>
+        </button>
+      )}
+      {bagli && acik && (
+        // Perde tıklanınca kapanır. `aria-hidden`: ekran okuyucu için
+        // anlamı yok, yalnız fare kullanıcısına kapanma alanı.
+        <div className="ab-a-perde" onClick={kapat} aria-hidden />
+      )}
+      <nav
+        ref={rayRef}
+        id={kimlik}
+        className="ab-a-ray"
+        data-cekmece={bagli ? '1' : undefined}
+        data-acik={acik ? '1' : undefined}
+        aria-label="Tezgâh ekranları"
+      >
+          {A_RAY.map((o) => {
+            /* Bildirim öğesi okunmamış sayısını taşır: rozet görsel,
+               sayı bağın erişilebilir adında ("Bildirim — 3 okunmamış
+               bildirim"). Sıfırda ne rozet ne ek ad. */
+            const bildirim = o.yol === '/bildirimler';
+            const n = bildirim ? veri.okunmamis : 0;
+            return (
+              <Link
+                key={o.yol}
+                href={o.yol}
+                className={o.ayrik ? 'ayrik' : undefined}
+                aria-current={aktifMi(o.yol, patika) ? 'page' : undefined}
+                aria-label={n > 0 ? `${o.ad} — ${sayacEtiketi(n)}` : undefined}
+                title={o.ad}
+              >
+                <span className="ab-glif" aria-hidden>{o.kod}</span>
+                <span className="ad">{o.ad}</span>
+                {bildirim && <Sayac n={n} />}
+              </Link>
+            );
+          })}
+      </nav>
+    </>
+  );
+}
+
 
 export default function Kabuk({ veri, children }: { veri: KabukVerisi; children: ReactNode }) {
   const patika = usePathname() ?? '/';
@@ -179,29 +311,7 @@ function KabukA({ veri, patika, children }: {
       </header>
 
       <div className="ab-a-govde">
-        <nav className="ab-a-ray" aria-label="Tezgâh ekranları">
-          {A_RAY.map((o) => {
-            /* Bildirim öğesi okunmamış sayısını taşır: rozet görsel,
-               sayı bağın erişilebilir adında ("Bildirim — 3 okunmamış
-               bildirim"). Sıfırda ne rozet ne ek ad. */
-            const bildirim = o.yol === '/bildirimler';
-            const n = bildirim ? veri.okunmamis : 0;
-            return (
-              <Link
-                key={o.yol}
-                href={o.yol}
-                className={o.ayrik ? 'ayrik' : undefined}
-                aria-current={aktifMi(o.yol, patika) ? 'page' : undefined}
-                aria-label={n > 0 ? `${o.ad} — ${sayacEtiketi(n)}` : undefined}
-                title={o.ad}
-              >
-                <span className="ab-glif" aria-hidden>{o.kod}</span>
-                <span className="ad">{o.ad}</span>
-                {bildirim && <Sayac n={n} />}
-              </Link>
-            );
-          })}
-        </nav>
+        <ARayi veri={veri} patika={patika} />
         {/* Ekran gövdesini saran TEK ana bölge; atla bağının hedefi.
             `tabIndex={-1}`: bağ tıklanınca odak buraya iner, sonraki Tab
             içerikten devam eder (Safari/Firefox'ta `href="#…"` tek

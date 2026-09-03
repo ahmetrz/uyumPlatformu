@@ -29,7 +29,8 @@
     "tasarim:axe": "node arac/erisim-axe.mjs",
     "tasarim:tasma": "node arac/yatay-tasma.mjs",
     "kalite:lighthouse": "node arac/lighthouse.mjs",
-    "yedek": "node arac/yedek.mjs --al"
+    "yedek": "node arac/yedek.mjs --al",
+    "gezinme:cekmece": "node arac/cekmece-testi.mjs"
   },
   "dependencies": {
     "@prisma/adapter-better-sqlite3": "^7.10.0",

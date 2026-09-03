@@ -252,7 +252,30 @@ ekrandan ya da seed'den girilir, kod değişmez.
 İlki ve üçüncüsü yeni şema ister; ikincisi canlı izleme verisi ister ve
 güvenlik sınırının öbür tarafındadır.
 
-**10. Hamburger / 64px ray varyantı** — tasarım kararı bekliyor.
+**10. ~~Hamburger / 64px ray varyantı~~ KARARA BAĞLANDI: hamburger +
+çekmece.** Üç seçenek gerçek ekran görüntüleriyle karşılaştırıldı
+(bugünkü yatay şerit · 64px dikey ikon rayı · hamburger çekmece);
+Ahmet **çekmeceyi** seçti.
+
+Ölçülen kusur şuydu: ≤1100px'te on altı ray öğesi yatay şeride iniyor,
+şerit taşıyor ve **kaydırılabildiğini gösteren bir işaret olmuyordu**.
+Erişilebilirlik kusuru değildi — sekmeyle ulaşılıyordu — keşfedilebilirlik
+kusuruydu: son öğelerin var olduğu bilinmiyordu.
+
+**Çekmecenin bilinen bedeli tasarımda kapatıldı.** Kapalıyken "hangi
+ekrandayım" sorusunun cevapsız kalması bu seçeneğin başlıca zayıflığıydı;
+düğme bu yüzden yalnız bir hamburger değil, **yanında aktif ekranın adı
+duruyor** ve gezinince güncelleniyor. `arac/cekmece-testi.mjs` bunu ayrı
+bir ölçüm olarak sınıyor — yazmazsa kapı kırmızıya düşer.
+
+**JS'siz hâl bozulmadı.** Çekmece bir iyileştirmedir: bileşen bağlanana
+kadar (ve JS hiç koşmazsa) bugünkü yatay şerit geçerli kalır. Aksi hâlde
+JS'i koşmayan bir tarayıcıda gezinme tümüyle gizlenir, düğme de olmadığı
+için ulaşılamazdı — kusuru düzeltirken ürünü kırmak olurdu.
+
+Kırılma noktası 1100px'te bırakıldı. Sahadaki gerçek çözünürlük (1366×768
+dizüstü mü, daha dar bir panel mi) sorulmuştu, cevap gelmedi; gelirse
+tek sayı değişir.
 
 **11. `?next=` üreticisi** — giriş sayfasındaki kapı güvenli ve çalışıyor,
 ama parametreyi üreten taraf yok; middleware/proxy kararı ayrı bir iş.

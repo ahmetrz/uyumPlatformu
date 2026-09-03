@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { girisZorunlu, izinVar, izinliTesisIdleri } from '@/lib/erisim';
+import { modulYazabilir } from '@/app/kapsam';
 import { db } from '@/lib/db';
 import { entegrasyonSagligiOzeti } from '@/lib/entegrasyon/saglikOzeti';
 import {
@@ -111,7 +112,7 @@ async function kokenOzetiGetir(
       ...sayim.not.kapsanamayanTipler, ...dagilim.not.kapsanamayanTipler,
     ])].sort(),
     tesisiBilinmeyen: Math.max(sayim.not.tesisiBilinmeyen, dagilim.not.tesisiBilinmeyen),
-    dogrulayabilir: izinVar(k, 'envanter', 'onay'),
+    dogrulayabilir: modulYazabilir(k, 'envanter', 'onay'),
   };
 }
 

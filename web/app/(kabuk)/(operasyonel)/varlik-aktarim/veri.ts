@@ -2,7 +2,7 @@ import 'server-only';
 import { db } from '@/lib/db';
 import { izinVar, izinliTesisIdleri } from '@/lib/erisim';
 import type { AktifKullanici } from '@/lib/auth';
-import { kapsamDaraltildi, kapsamda, modulKapisi } from '@/app/kapsam';
+import { kapsamda, kapsamDaraltildi, modulKapisi } from '@/app/kapsam';
 import { ONIZLEME, raporCoz, type CozulmusSatir } from '@/lib/entegrasyon/varlikAktarim';
 import type { Aktarim } from './VarlikAktarimIstemci';
 
@@ -163,6 +163,8 @@ export async function varlikAktarimVerisi(k: AktifKullanici): Promise<EkranVeris
 
   return {
     aktarimlar,
+    /* Kapsamsız: aktarım PARTİSİ kurumsal bir kayıttır (tesisId yok);
+       `varlikAktarim*` eylemleri de kapsamsız korunur. */
     yukleyebilir: izinVar(k, 'envanter', 'yazma'),
     onizlemeButcesi: ONIZLEME,
     tanimliKodlar: {

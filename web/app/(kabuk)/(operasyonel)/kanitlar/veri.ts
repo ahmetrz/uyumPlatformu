@@ -169,10 +169,12 @@ export async function kanitEkranVerisi(k: AktifKullanici): Promise<EkranVerisi> 
     satirTavani: SATIR_TAVANI,
     kapsamDisi,
     maddeDurumlari,
-    /* Yazma bayrağı kapsamsız sorulur: form kapsam içi madde durumlarını
-       listeler, asıl kapı `kanitEkle` içindedir (yetkiZorunlu). */
-    yazabilir: izinVar(k, 'uyum', 'yazma') || (izinli !== null && izinli.length > 0
-      && izinli.some((t) => izinVar(k, 'uyum', 'yazma', { tesisId: t }))),
+    /* Kapsamsız sorulur çünkü `kanitEkle` de kapsamsız korunuyor.
+       AÇIK BORÇ: `MaddeDurumu` tesisId TAŞIR, yani kanıt aslında
+       santral kapsamlı bir kayda bağlanır; sunucu kapısı iki aşamalı
+       yazıldığında bu bayrak da `modulYazabilir` olmalıdır. Ekranı
+       sunucudan önce gevşetmek, çalışmayan düğme göstermek olurdu. */
+    yazabilir: izinVar(k, 'uyum', 'yazma'),
     kapsamli: kapsamDaraltildi(izinli),
   };
 }

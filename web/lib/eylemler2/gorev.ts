@@ -9,7 +9,7 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { db } from '../db';
-import { yetkiZorunlu, izinVar, type Modul } from '../erisim';
+import { yetkiZorunlu, izinVar, kapsamZorunlu, KAPSAM_SONRA, type Modul } from '../erisim';
 import { GOREV_TIP_ETIKET } from '../sabitler';
 import { parcala } from '../sorguParcala';
 import type { Prisma } from '../prisma-client/client';
@@ -46,10 +46,14 @@ export async function gorevOlustur(girdi: {
   tesisId?: string | null; sonTarih?: string | null;
 }): Promise<Sonuc> {
   try {
-    const k = await yetkiZorunlu('uyum', 'yazma');
+    /* İKİ AŞAMALI KAPI (`KAPSAM_SONRA`, bkz. erisim.ts): ön kapı kapsamsız
+       çağrılırsa tesise kısıtlı rol daha ilk adımda reddedilir ve kendi
+       santraline görev açamaz. Gerçek denetim KOŞULSUZ: tesissiz görev
+       kurumsaldır, tesise kısıtlı rol onu da açamaz. */
+    const k = await yetkiZorunlu('uyum', 'yazma', KAPSAM_SONRA);
     const v = GorevGirdisi.parse(girdi);
-    if (v.tesisId && !izinVar(k, 'uyum', 'yazma', { tesisId: v.tesisId }))
-      throw new Error('Bu tesis kapsamında görev açma yetkiniz yok');
+    kapsamZorunlu(k, 'uyum', 'yazma', { tesisId: v.tesisId },
+      'Bu tesis kapsamında görev açma yetkiniz yok');
     if (v.sorumluId) {
       const sorumlu = await db.kullanici.findUnique({ where: { id: v.sorumluId } });
       if (!sorumlu || !sorumlu.aktif) throw new Error('Seçilen sorumlu bulunamadı ya da pasif');
@@ -76,13 +80,24 @@ export async function gorevOlustur(girdi: {
     damgası basar; yeniden açılış damgayı siler. */
 export async function gorevDurum(girdi: { id: string; durum: string }): Promise<Sonuc> {
   try {
-    const k = await yetkiZorunlu('uyum', 'yazma');
+    const k = await yetkiZorunlu('uyum', 'yazma', KAPSAM_SONRA);
     const v = z.object({
       id: z.string(),
       durum: z.enum(GOREV_DURUMLARI, 'Geçersiz görev durumu'),
     }).parse(girdi);
     const g = await db.gorev.findUnique({ where: { id: v.id } });
     if (!g) throw new Error('Görev bulunamadı');
+    /* Kapsam denetimi HER ŞEYDEN ÖNCE. İki sebebi var:
+       · Ön kapı `KAPSAM_SONRA` ile gevşetildi; görevin kendi tesisi burada
+         sorulmazsa tesise kısıtlı rol başka santralin görevini kapatır.
+       · "Zaten bu durumda" kısa yolundan da önce gelmeli: sonra gelseydi
+         kapsam dışı bir çağrı, durumu DOĞRU tahmin ettiğinde `tamam()`,
+         yanlış tahmin ettiğinde yetki hatası alırdı — eylem başka
+         santralin görevleri için bir DURUM KEHANETİNE dönerdi.
+         Ölçüldü (2026-09-02, gözden geçirme).
+       Aşağıdaki sahiplik kuralı bundan AYRI bir sorudur, yerine geçmez. */
+    kapsamZorunlu(k, 'uyum', 'yazma', { tesisId: g.tesisId },
+      'Bu tesis kapsamında görev değiştirme yetkiniz yok');
     if (g.durum === v.durum) return tamam();
     if (g.sorumluId && g.sorumluId !== k.id
       && !izinVar(k, 'uyum', 'onay', g.tesisId ? { tesisId: g.tesisId } : {}))

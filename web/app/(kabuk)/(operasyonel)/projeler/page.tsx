@@ -21,6 +21,9 @@ export default async function Sayfa() {
 
   const simdi = new Date().getTime();
   const izinli = izinliTesisIdleri(kullanici, 'proje');
+  /* KAPSAMSIZ sorulur ve bilinçlidir: `Proje` şemada `tesisId` TAŞIMAZ,
+     `projeKaydet` kapısı da kapsamsızdır. Ekranı gevşetmek santral
+     yöneticisine kaydedilmeyecek düğme göstermek olurdu. */
   const yazabilir = izinVar(kullanici, 'proje', 'yazma');
 
   const [projeler, kullanicilar, maddeler, bulgular] = await Promise.all([

@@ -1,8 +1,8 @@
 import 'server-only';
 import { db } from '@/lib/db';
-import { izinVar, izinliTesisIdleri } from '@/lib/erisim';
+import { izinliTesisIdleri } from '@/lib/erisim';
 import type { AktifKullanici } from '@/lib/auth';
-import { kapsamDaraltildi, kapsamKosulu, modulKapisi } from '@/app/kapsam';
+import { kapsamDaraltildi, kapsamKosulu, modulKapisi, modulYazabilir } from '@/app/kapsam';
 import { acikMi, bulguImi, dogrulamaBekliyorMu, gecikmeGunu } from './mantik';
 
 /* O7 · Bulgu & CAPA — SUNUCU VERİSİ (kapsam kuralı JSX'ten ayrı test edilsin).
@@ -241,7 +241,7 @@ export async function bulguEkranVerisi(k: AktifKullanici): Promise<EkranVerisi> 
     toplam,
     satirTavani: SATIR_TAVANI,
     metrikler,
-    yazabilir: izinVar(k, 'uyum', 'yazma'),
+    yazabilir: modulYazabilir(k, 'uyum', 'yazma'),
     kapsamli: kapsamDaraltildi(izinli),
   };
 }

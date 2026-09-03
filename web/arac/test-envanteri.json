@@ -1,7 +1,7 @@
 {
-  "imza": "0032856c7528b87e9b91dbd924fb1587",
-  "dosya": 73,
-  "vaka": 1325,
+  "imza": "08f1bf31a7d667bfdc8e707d08e4b1d4",
+  "dosya": 81,
+  "vaka": 1459,
   "atlanan": 1,
   "dosyalar": {
     "tests/api.test.ts": {
@@ -36,6 +36,10 @@
       "vaka": 15,
       "atlanan": 0
     },
+    "tests/denetim-kapsam.test.ts": {
+      "vaka": 14,
+      "atlanan": 0
+    },
     "tests/disa-aktarim-paketi.test.ts": {
       "vaka": 18,
       "atlanan": 0
@@ -50,6 +54,10 @@
     },
     "tests/ekran-mantik-72.test.ts": {
       "vaka": 22,
+      "atlanan": 0
+    },
+    "tests/ekran-yazma-kapisi.test.ts": {
+      "vaka": 9,
       "atlanan": 0
     },
     "tests/entegrasyon-cekirdek.test.ts": {
@@ -70,6 +78,10 @@
     },
     "tests/entegrasyon-yapilandirma.test.ts": {
       "vaka": 18,
+      "atlanan": 0
+    },
+    "tests/envanter-eylem.test.ts": {
+      "vaka": 26,
       "atlanan": 0
     },
     "tests/envanter-mantik.test.ts": {
@@ -94,6 +106,10 @@
     },
     "tests/giris-guvenligi.test.ts": {
       "vaka": 19,
+      "atlanan": 0
+    },
+    "tests/gorev-eylem.test.ts": {
+      "vaka": 26,
       "atlanan": 0
     },
     "tests/guvenlik-negatif.test.ts": {
@@ -141,11 +157,15 @@
       "atlanan": 0
     },
     "tests/kapsam-kapisi-nobetci.test.ts": {
-      "vaka": 3,
+      "vaka": 4,
       "atlanan": 0
     },
     "tests/kapsam-kapisi.test.ts": {
       "vaka": 4,
+      "atlanan": 0
+    },
+    "tests/kesif-karar.test.ts": {
+      "vaka": 18,
       "atlanan": 0
     },
     "tests/kesif.test.ts": {
@@ -154,6 +174,10 @@
     },
     "tests/kisit-mesaji.test.ts": {
       "vaka": 5,
+      "atlanan": 0
+    },
+    "tests/koken-kapsam.test.ts": {
+      "vaka": 6,
       "atlanan": 0
     },
     "tests/koken.test.ts": {
@@ -180,8 +204,16 @@
       "vaka": 22,
       "atlanan": 0
     },
+    "tests/olay-konfigyedek-eylem.test.ts": {
+      "vaka": 19,
+      "atlanan": 0
+    },
     "tests/operasyon-mantik.test.ts": {
       "vaka": 36,
+      "atlanan": 0
+    },
+    "tests/operasyon-tedarikci-eylem.test.ts": {
+      "vaka": 15,
       "atlanan": 0
     },
     "tests/otomasyon-guvenligi.test.ts": {

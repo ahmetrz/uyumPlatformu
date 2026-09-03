@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { girisZorunlu, izinVar, izinliTesisIdleri } from '@/lib/erisim';
+import { kapsamdaYetkili, modulYazabilir } from '@/app/kapsam';
 import { Yetkisiz } from '@/components/kabuk/temel';
 import { db } from '@/lib/db';
 import { oneriOku, ETKI_ALANLARI } from '@/lib/motorlar/olayEtki';
@@ -37,7 +38,7 @@ export default async function Sayfa() {
   if (!izinVar(kullanici, 'envanter', 'okuma')) return <Yetkisiz rol="envanter okuma" />;
 
   const izinli = izinliTesisIdleri(kullanici, 'envanter');
-  const yazabilir = izinVar(kullanici, 'envanter', 'yazma');
+  const yazabilir = modulYazabilir(kullanici, 'envanter', 'yazma');
   const dogrulayabilir = izinVar(kullanici, 'yonetim', 'onay');
 
   /** Kapsam koşulu: null = tüm santraller; aksi hâlde yalnız izinli küme. */
@@ -215,7 +216,7 @@ export default async function Sayfa() {
       /* Satır bazlı yetki: kapsamı daraltılmış kullanıcı bir olayı GÖRÜP
          yazamayabilir. Sunucu eylemi ayrıca denetler; bu bayrak yalnız
          yüzeyi kapatır ki kullanıcı reddedilecek bir formu doldurmasın. */
-      yazilabilir: yazabilir && izinVar(kullanici, 'envanter', 'yazma', { tesisId: o.tesisId }),
+      yazilabilir: yazabilir && kapsamdaYetkili(kullanici, 'envanter', 'yazma', o.tesisId),
     };
   });
 

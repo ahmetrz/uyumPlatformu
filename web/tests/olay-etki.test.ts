@@ -34,17 +34,27 @@ const sahteKullanici = {
    kapsam kaçağını ölçen bir testi imkânsız kılıyordu. */
 let kapsamKisiti: string | null = null;
 
-vi.mock('@/lib/erisim', async (asil) => {
-  const gercek = await asil<typeof import('@/lib/erisim')>();
+/* Yetki kapısı SAHTELENMEZ; yalnız KİM olduğumuz değişir.
+
+   Eskiden burada `izinVar` taklit ediliyordu. 2026-09-02'de kapsam
+   denetimi `erisim.ts · kapsamZorunlu` yardımcısına taşınınca o taklit
+   SESSİZCE DEVRE DIŞI KALDI: yardımcı modülün KENDİ `izinVar`ını çağırır,
+   dışa aktarılan (taklit edilen) sürümü değil. Test yeşil kalmaya devam
+   ederdi ama hiçbir şey ölçmezdi.
+
+   Bu yüzden artık kapının kendisi gerçek kodda koşuyor; `kapsamKisiti`
+   ayarlanınca oturum o santrale KISITLI bir rol taşır. */
+vi.mock('@/lib/auth', async (asil) => {
+  const gercek = await asil<typeof import('@/lib/auth')>();
   return {
     ...gercek,
-    yetkiZorunlu: async () => sahteKullanici,
-    izinVar: (
-      _k: unknown, _m: unknown, _i: unknown,
-      kapsam?: { tesisId?: string | null },
-    ) => (kapsamKisiti === null
-      || kapsam?.tesisId == null
-      || kapsam.tesisId === kapsamKisiti),
+    aktifKullanici: async () => ({
+      ...sahteKullanici,
+      yetkiler: [{
+        rol: 'yonetici', surecId: null, tesisId: kapsamKisiti,
+        tuzelKisiId: null, regulasyonId: null, modul: null,
+      }],
+    }),
   };
 });
 

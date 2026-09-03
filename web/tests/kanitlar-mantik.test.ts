@@ -23,6 +23,9 @@ function kanit(ek: Partial<KanitSatiri> = {}): KanitSatiri {
     baslangic: gunOnce(10), toplanma: null, bitis: null,
     yukleyen: 'Ayşe Kaya', sahip: null, kaynakSistem: null, otomatik: false,
     gizlilik: 'kurumsal', surum: 1,
+    durum: 'gecerli', kaynakUrl: null, dosyaHash: null,
+    dosyaAdi: null, dosyaTipi: null, dosyaBoyut: null, depoAnahtari: null,
+    surumler: [], duzenlenebilir: true,
     maddeler: [], bulgular: [], tesisler: [], varlikSayisi: 0,
     ...ek,
   };

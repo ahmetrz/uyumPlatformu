@@ -330,9 +330,25 @@ export type Degerlendirme = {
   kanitBayat: boolean;
   not: string | null;
   sorumlu: Kisi | null;
+  /* ── UY-07 · sorumluluk zinciri ve dört göz ────────────────────────
+     Kişi sahipliği tek başına kırılgandır: kişi ayrıldığında kontrol
+     öksüz kalır (OT-09'un varlık tarafında çözdüğü sorunun aynısı).
+     `dogrulayan` ise HAZIRLAYANDAN AYRI olmak zorundadır — aynı kişinin
+     kendi kararını doğrulaması, hiç doğrulanmamış olmakla aynı kapıya
+     çıkar ama ekranda "doğrulandı" yazar. */
+  sorumluAktif: boolean;
+  ekip: { id: string; kod: string; ad: string; aktif: boolean; aktifUye: number } | null;
+  dogrulayan: Kisi | null;
+  dogrulamaZamani: string | null;
+  /** Son değerlendirmeyi YAPAN kişi (değişmez tarihçenin son satırı). */
+  degerlendiren: Kisi | null;
+  /** Bu kullanıcı bu kaydı doğrulayabilir mi (yetki + dört göz). */
+  dogrulayabilir: boolean;
   sonDegerlendirme: string | null;
   bulgular: BulguOzeti[];
   kanitlar: KanitOzeti[];
+  /** UY-16 · bugün GEÇERLİ olan kanıt sayısı (süresi dolmuş sayılmaz). */
+  gecerliKanit: number;
   acikBulgu: number;
 };
 

@@ -73,6 +73,20 @@ function kanitKapsamKosulu(izinli: TesisKapsami) {
   };
 }
 
+/**
+ * Kanıt bu kullanıcı tarafından düzenlenebilir mi?
+ *
+ * Kapsamı sınırsız kullanıcı her kanıdı düzenler. Daraltılmış kullanıcı
+ * yalnız bağlarının TAMAMI kendi kapsamındaysa; tek bağ dışarıdaysa
+ * hayır. Bağı olmayan (öksüz) kanıt daraltılmış kullanıcıya kapalıdır —
+ * kapsamı bilinmeyen kayıt "her kapsamda" demek değildir.
+ */
+function yazabilirMi(tesisIdleri: string[], izinli: TesisKapsami): boolean {
+  if (izinli === null) return true;
+  if (tesisIdleri.length === 0) return false;
+  return tesisIdleri.every((t) => izinli.includes(t));
+}
+
 async function kanitSatirlari(izinli: TesisKapsami): Promise<KanitSatiri[]> {
   const kanitlar = await db.kanit.findMany({
     where: { silindi: null, ...kanitKapsamKosulu(izinli) },
@@ -99,6 +113,12 @@ async function kanitSatirlari(izinli: TesisKapsami): Promise<KanitSatiri[]> {
         where: kapsamKosulu(izinli),
         include: { tesis: true },
       },
+      /* UY-12 · Sürüm geçmişi DEĞİŞMEZDİR ve bu ekranda tam görünür:
+         "geçen sene de böyle miydi" sorusunun cevabı burada durur. */
+      surumler: {
+        orderBy: { surum: 'desc' },
+        include: { yukleyen: { select: { adSoyad: true } } },
+      },
       _count: { select: { varlikBaglantilari: true } },
     },
   });
@@ -117,6 +137,26 @@ async function kanitSatirlari(izinli: TesisKapsami): Promise<KanitSatiri[]> {
     otomatik: k.otomatik,
     gizlilik: k.gizlilik,
     surum: k.surum,
+    durum: k.durum,
+    kaynakUrl: k.kaynakUrl,
+    dosyaHash: k.dosyaHash,
+    dosyaAdi: k.dosyaAdi,
+    dosyaTipi: k.dosyaTipi,
+    dosyaBoyut: k.dosyaBoyut,
+    depoAnahtari: k.depoAnahtari,
+    surumler: k.surumler.map((sv) => ({
+      surum: sv.surum, dosyaAdi: sv.dosyaAdi, dosyaHash: sv.dosyaHash,
+      dosyaBoyut: sv.dosyaBoyut, gerekce: sv.gerekce,
+      yukleyen: sv.yukleyen?.adSoyad ?? null,
+      zaman: sv.olusturuldu.toISOString(),
+    })),
+    /* Düzenleme kapsamı KANITIN BAĞLARINDAN gelir: kullanıcı kanıtın bağlı
+       olduğu santrallerin HEPSİNDE yetkili olmalı (sunucu da aynı kuralı
+       uygular). Tek santralde yetkili olmak yetseydi, iki santrale bağlı
+       bir kanıt A'dan değiştirilir ve B'nin uyum kaydı sessizce
+       etkilenirdi. Bağı olmayan kanıt yalnız kapsamsız yetkiyle
+       düzenlenir. */
+    duzenlenebilir: yazabilirMi(k.baglantilar.map((b) => b.maddeDurumu.tesisId), izinli),
     maddeler: k.baglantilar.map((b) => ({
       maddeDurumuId: b.maddeDurumuId,
       maddeKod: b.maddeDurumu.madde.kod,

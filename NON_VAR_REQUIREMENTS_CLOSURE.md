@@ -49,29 +49,29 @@ yazılmadı. Böyle maddeler için repo içi hazırlık ayrı ölçülür ve
 | Ölçü | Değer |
 | --- | --- |
 | Madde | 38 |
-| **COMPLETE** | **17** |
-| CODE_READY_EXTERNAL_DEPENDENCY | 3 |
+| **COMPLETE** | **21** |
+| CODE_READY_EXTERNAL_DEPENDENCY | 5 |
 | IN_PROGRESS | 0 |
-| NOT_STARTED | 18 |
-| Yeni Prisma modeli | 21 (FAZ A 13 · FAZ B 8) |
-| Yeni göç | 4 (dördü de veri kaybı 0 · ölçülerek doğrulandı) |
+| NOT_STARTED | 12 |
+| Yeni Prisma modeli | 22 (FAZ A 13 · FAZ B 8 · FAZ D 1) |
+| Yeni göç | 5 (beşi de veri kaybı 0 · ölçülerek doğrulandı) |
 | Yeni motor | 5 (9 → 14) |
 | Yeni rota | 2 (`/tabanlar` · `/prosesler`) |
-| Yeni konsol modülü | 22 |
-| Toplam test | 2072 geçti · 1 atlandı |
+| Yeni konsol modülü | 29 |
+| Toplam test | 2173 geçti · 1 atlandı |
 
-### Kapı sonuçları (03.09.2026 · FAZ B sonu)
+### Kapı sonuçları (03.09.2026 · FAZ D sonu)
 
 | Kapı | Sonuç |
 | --- | --- |
-| `npm run test` | **2072 geçti · 1 atlandı · 0 kusur** (110 dosya) |
+| `npm run test` | **2173 geçti · 1 atlandı · 0 kusur** (113 dosya) |
 | `npm run lint` · `npx tsc --noEmit` | temiz |
 | `tasarim:kapi` | kontrast kusuru 0 · eksik font 0 · eski tasarım izi 0 |
 | `rota:duman` | **48/48 rota** · kusurlu 0 · test edilemedi 0 · sayfa hatası 0 |
 | `tasarim:dizustu` (1366×768) | 40 rota · **kırpılan öğe 0** · yatay taşan rota 0 |
 | `tasarim:axe` (WCAG 2 A/AA) | 41 rota · ciddi/kritik ihlal **0** · kırık tarama 0 |
-| `tasarim:tasma` | 80 ölçümde 4 kusur — **hepsi bu programdan ÖNCE de vardı** (`/envanter` ×2, `/sistem`, `/sistem/bilesenler`; 375px ve 768px). FAZ B'nin dokunduğu hiçbir ekran (`/prosesler`, `/yetkiler`, `/yedekleme`, `/kimlik`) listede yok. |
-| `npm run build` | başarılı (`/prosesler` dâhil) |
+| `tasarim:tasma` | 80 ölçümde 4 kusur — **hepsi bu programdan ÖNCE de vardı** (`/envanter` ×2, `/sistem`, `/sistem/bilesenler`; 375px ve 768px). Sayı **ölçülerek** doğrulandı: FAZ D öncesi ağaçta (`git stash`) aynı kapı yine `4 kusur (80 ölçümde)` döndü. FAZ D'nin dokunduğu hiçbir ekran (`/kanitlar`, `/surecler/[id]`, `/saglik`, `/dokumanlar`, `/raporlar/kanit-paketi`) listede yok. |
+| `npm run build` | başarılı |
 
 Kapı çıktıları **olduğu gibi** yazıldı; hedefe uydurulmadı. Taşma
 kapısındaki 4 kusur bu programın ürünü değildir ve bilerek kapatılmamış
@@ -111,12 +111,12 @@ token tablosudur ve ikisi de ayrı bir işin konusudur.
 
 | ID | İster | Durum | Kalan iş |
 | --- | --- | --- | --- |
-| UY-07 | Kontrol sahipliği | `NOT_STARTED` | Rol ayrımı, ekip, **sahip değişikliğinin denetim izine düşmemesi (ölçülmüş kusur)** |
-| UY-12 | Kanıt metadata | `NOT_STARTED` | Sınıflandırma, durum, sürüm artırma, hash üretimi, düzenleme eylemi |
-| UY-13 | Kanıt dosyası | `NOT_STARTED` | Tüm dosya katmanı + `StorageProvider` |
-| UY-16 | Kapsama/tazelik/hazırlık KPI | `NOT_STARTED` | Coverage ve readiness hesabı (tazelik VAR) |
-| UY-18 | Kanıt paketi imzası | `NOT_STARTED` | `SigningProvider` · sonunda **dış bağımlılık** |
-| UY-20 | DMS entegrasyonu | `NOT_STARTED` | `DocumentProvider` · sonunda **dış bağımlılık** |
+| UY-07 | Kontrol sahipliği | **COMPLETE** | — (kanıt: §6.2) |
+| UY-12 | Kanıt metadata | **COMPLETE** | — (kanıt: §6.3) |
+| UY-13 | Kanıt dosyası | **COMPLETE** | — (kanıt: §6.4) · Bugünkü depo `yerel_dosya`dır; S3 uyumlu nesne deposu OT-48 kütüğünde **bağlı değil** yazar |
+| UY-16 | Kapsama/tazelik/hazırlık KPI | **COMPLETE** | — (kanıt: §6.5) |
+| UY-18 | Kanıt paketi imzası | **CODE_READY_EXTERNAL_DEPENDENCY** | **Kalan tek eksik dış bağımlılık:** kurumun HSM/KMS erişimi. Paket bugün bütünlük damgası taşır ve başlığına "İMZASIZDIR" yazar (kanıt: §6.6) |
+| UY-20 | DMS entegrasyonu | **CODE_READY_EXTERNAL_DEPENDENCY** | **Kalan tek eksik dış bağımlılık:** kurumun DYS ürünü ve salt okunur API'si. Belge sürümü elle girilir ve ekran "DYS ile senkron değil" der (kanıt: §6.6) |
 | UY-26 | Kök neden standardı | `NOT_STARTED` | Kategori, zorunluluk politikası, **kapanış kapısında RCA kontrolü yok (ölçülmüş kusur)** |
 | UY-28 | Tekrarlayan bulgu | `NOT_STARTED` | Motor · `tekrarBulguId` **yazıcısı olmayan ölü alan** |
 | UY-36 | Eskalasyon matrisi | `NOT_STARTED` | Kademe, boyut, yönetici eskalasyonu · `Bildirim.tip='eskalasyon'` **hiç yazılmıyor** |
@@ -394,25 +394,177 @@ durdurur. Sertifikasyonun 15. kontrolü boş listeyi, yinelenen kodu ve
 
 ---
 
-## 6. Sıradaki iş — bağımlılık sırası
+## 6. FAZ D'de ne yapıldı — kanıtla
 
-1. **UY-07 / UY-12 / UY-13 / UY-16 / UY-18 / UY-20 (FAZ D)** — kanıt
-   katmanı; nesne deposu sağlayıcısı (OT-48) UY-13 ile UY-18'i birlikte
-   taşır.
-2. **UY-26 / UY-28 / UY-36 / UY-39 / UY-41 / UY-43 (FAZ E)** — altısı da
-   `Bulgu` ve değişiklik çevresinde; birlikte yapılmalı.
-3. **UY-52 … UY-57 (FAZ F)** — dış erişim, SSO, saklama ve denetçi
-   erişimi. UY-54 OT-48'in sağlayıcı kütüğünü kullanır; UY-55 OT-49'un
-   aracını gerçek veriyle koşturur.
+**UY-07 · UY-12 · UY-13 · UY-16 · UY-18 · UY-20.** Uyum kanıt katmanı.
+Dördü kapandı, ikisi (UY-18 · UY-20) repo içinde bitirilip dış
+bağımlılığa dayandı.
+
+### 6.1 Bu fazda hiçbir imza atılmadı, hiçbir anahtar üretilmedi
+
+Bir "yerel imza" sağlayıcısı yazmak teknik olarak kolaydı ve
+`lib/uyum/disSaglayicilar.ts` bunun neden YAPILMADIĞINI dosyanın
+tepesinde yazar: uygulamanın kendi ürettiği bir anahtarla attığı imza,
+imzalayanın kimliğini kanıtlamaz. Denetçi için değeri sıfırdır, ekranda
+ise "imzalandı" yazar — **imzasız olmaktan daha kötüdür.**
+
+Aynı sebeple DYS tarafında sahte bir senkron durumu üretilmedi: belge
+kütüğünün dip notu, sürümün elle girildiğini ve kurumdaki güncel
+sürümün gerisinde kalmış olabileceğini AÇIKÇA yazar.
+
+### 6.2 UY-07 · ölçülmüş kusur: sessizce el değiştiren sorumluluk
+
+`maddeDurumGuncelle` denetim izi satırını **yalnız `durum`
+değiştiğinde** yazıyordu. Sorumlu alanı aynı çağrıda güncelleniyor ama
+ize hiç düşmüyordu: "bu kontrolün sorumlusu ne zaman, kim tarafından
+değişti" sorusunun cevabı üründe YOKTU.
+
+Artık sorumlu ve ekip değişikliği kendi iz satırlarını yazar
+(`alan: 'sorumluId'` / `'ekipId'`, önce–sonra değerleriyle).
+Kusurun geri geldiğini yakalayan test `tests/faz-d-eylem.test.ts` →
+*"SORUMLU DEĞİŞİKLİĞİ kendi iz satırını yazar"*; sabotajla ölçüldü
+(iz bloğu kapatıldı → test kırmızı).
+
+**Dört göz.** `dogrulayabilirMi()` kendi değerlendirmesini doğrulamayı
+reddeder. Karşılaştırma `MaddeDurumu.sorumluId` ile değil,
+**değişmez `DegerlendirmeTarihcesi`nin son satırındaki aktörle**
+yapılır: kontrolün sahibi ile kararı veren aynı kişi olmayabilir.
+Değerlendirmeyi kimin yaptığı kayıtlı değilse dört göz *kanıtlanamaz*
+ve doğrulama yine reddedilir — "muhtemelen başkasıdır" diye geçmek
+doğrulamayı anlamsız kılardı.
+
+`dogrulamaDurumu()`nun en ağır hâli `degerlendirme_sonrasi_degisti`dir:
+doğrulamadan sonra değerlendirme değiştiyse ekrandaki "doğrulandı"
+damgası artık BAŞKA bir kararı işaret eder. Bu, hiç doğrulanmamış
+olmaktan tehlikelidir çünkü yanlış bir güven verir.
+
+### 6.3 UY-12 · tarih bir durum değildir
+
+Kanıt kaydında geçerlilik TARİHİ ile kabul DURUMU tek alana
+sıkışmıştı. Ayrıldılar: `Kanit.durum` (taslak · geçerli · reddedildi ·
+arşivlendi) kabul kararını, `gecerliBitis` tazeliği taşır. Reddedilmiş
+bir kanıt artık süresi dolana kadar "geçerli" görünmez.
+
+`kanitGucu()` bir puan değil bir **sınıflamadır** ve tek sayıya
+indirilmez: taslak, reddedilmiş ve süresi dolmuş kanıt hiç tartılmaz
+(`kanit_degil`); otomatik toplanmış ve özetli kanıt `guclu`; kaynağı
+belli olan `orta`; elle girilmiş, kaynaksız, özetsiz olan `zayif`.
+`otomatik` alanı **kullanıcı beyanı değildir** — elle açılan kayıtta
+daima `false`.
+
+`surumGerekiyorMu()` keskin bir ayrım kurar: **içerik** özeti değişirse
+yeni sürüm, **metadata** değişirse değil. Sahibi değişince sürüm açmak
+geçmişi anlamsızlaştırır; içerik değişince açmamak kanıtı sessizce
+değiştirmektir.
+
+### 6.4 UY-13 · kanıt dosyası: ürünün ilk gerçek deposu
+
+`Kanit.dosyaYolu` alanı vardı ve o alana **hiçbir şey yazılmıyordu**:
+ürün kanıt dosyası tutmuyordu.
+
+`lib/uyum/kanitDeposu.ts` içerik adreslidir. Depo anahtarı içeriğin
+SHA-256 özetinden türetilir (`<ilk2>/<sonraki2>/<özet>`) ve bu üç şeyi
+birden verir: **kullanıcı girdisi dosya yoluna hiç girmez** (yol geçişi
+imkânsız), aynı içerik iki kez saklanmaz, dosyanın bütünlüğü adının
+kendisiyle doğrulanır. Okuma yolunda anahtar biçimi ikinci kez
+denetlenir — anahtar veritabanından gelse bile, çünkü veritabanı da bir
+gün yanlış veri taşıyabilir.
+
+Kabul edilen tipler **izin listesidir**, yasak listesi değil; arşiv
+(zip) kabul edilmez, çünkü içine bakılmayan bir arşiv ne saklandığı
+bilinmeyen bir kutudur. Ürün yüklenen dosyayı **açmaz, ayrıştırmaz,
+önizlemez ve çalıştırmaz** — bir kanıt dosyasını ayrıştırmak saldırı
+yüzeyini kanıt katmanına taşımak olurdu.
+
+`KanitSurumu` tablosu iki veritabanı tetikleyicisiyle **değişmez ve
+silinemez**dir (`kanit_surumu_guncelleme_yasak` ·
+`kanit_surumu_silme_yasak`); testi Prisma üzerinden gerçekten dener ve
+ret alır.
+
+Depo **repoya girmez**: `.gitignore` `/veri/`yi dışarıda tutar ve
+kurulumda `KANIT_DEPO_KOKU` ile ürün dizininin dışına alınması
+beklenir.
+
+### 6.5 UY-16 · tek bir "hazırlık puanı" bilerek YOK
+
+Ürün bir "uyum oranı" hesaplıyordu ve o oran tek başına denetimde
+hiçbir şey söylemez. Denetçinin sorduğu **üç ayrı soru** ayrı ayrı
+cevaplanır: KAPSAMA (kaç kontrol değerlendirildi), TAZELİK (dayanağı
+bugün hâlâ geçerli mi), HAZIRLIK (bugün girsek kaçını savunabiliriz).
+
+Bir kurum %95 uyumlu görünüp %30 kapsamalı olabilir; kalan %70 hiç
+bakılmamıştır ve ekranda yeşil görünür. `kapsamaCumlesi()` bu yüzden
+**önce** kapsamayı söyler: kapsama %50'nin altındaysa cümle diğer
+oranların küçük bir örneklem üzerinden hesaplandığını yazar.
+
+`kontrolHazirligi()` iki yönde de dürüsttür: **kanıtsız "uyumlu"
+savunulamaz**, **kanıtlı "uyumsuz" savunulabilir** — kurum sorunu
+görmüş, kayda geçirmiş ve aksiyona bağlamıştır.
+
+Kapsam dışı kontrol paydaya girmez ama **ayrı raporlanır**: paydayı
+küçülterek oranı yükseltmek, kapsamı daraltarak uyumu "iyileştirmenin"
+en kolay yoludur ve denetçi ilk oraya bakar. Payda sıfırsa oran `null`
+döner — %0 da %100 de yalan olurdu.
+
+### 6.6 UY-18 · UY-20 · imzasız olduğunu söyleyen paket
+
+Kanıt paketi şema sürümü **1 → 2**'ye çıktı ve başlığa `imza` alanı
+eklendi. Sürüm artırılmasaydı 1 numaralı şemayı bekleyen bir okuyucu
+imza alanını hiç görmez ve paketi imzalı sanabilirdi; sessiz şema
+değişikliği tam olarak bu paketin engellemek için var olduğu şeydir.
+
+Paket başlığı bütünlük damgası ile imzayı **ayırır** ve denetçiye şunu
+yazar: *"Paket İMZASIZDIR. SHA-256 bütünlük damgası içeriğin
+değişmediğini kanıtlar; imzalayanın kimliğini kanıtlamaz."* Aynı cümle
+`/raporlar/kanit-paketi` ekranında damganın yanında görünür.
+
+`imzaDurumu()`nun `dogrulanamadi` hâli bugün **ulaşılamazdır** ve bu
+bilinçlidir: kod bağlantı gününe hazır durur, ama bugün ürün imza
+atmadığı için sonuç daima `imzasiz`tır.
+
+İkisi de `/saglik?kip=hazirlik` ekranında **Uyum katmanının dış
+bağımlılıkları** bölümünde listelenir; bağlı olmadıkları gizlenmez ve
+bağlı olmadıklarında ürünün ne YAPTIĞI yazılır ("ne yapamadığı" değil —
+o cümle kurulumu planlayana hiçbir şey söylemez).
+
+### 6.7 Sabotajla doğrulama — yedi kural, yedi kırmızı
+
+Testlerin gerçekten kural koruduğu ölçülerek doğrulandı. Her kural tek
+tek kaldırıldı, hangi testin kırıldığı kaydedildi, kural geri kondu:
+
+| Kaldırılan kural | Kırılan test |
+| --- | --- |
+| Dört göz karşılaştırması | 2 test (saf + eylem) |
+| Depo anahtarı biçim denetimi | *yol geçişi taşıyan anahtar REDDEDİLİR* |
+| Dosya adında kontrol karakteri temizliği | *başlık enjeksiyonu kapalı* |
+| Boş dosya reddi | *boş dosya REDDEDİLİR* |
+| "Aynı özet → sürüm açma" | 2 test (saf + eylem) |
+| Sorumlu değişikliği iz satırı | *ölçülmüş kusur* testi |
+| Kapsam dışı kontrolün paydadan çıkarılması | 2 test |
+
+Yedi sabotajın yedisi de yakalandı; kurallar geri kondu ve 101 FAZ D
+testi yeşil döndü.
 
 ---
 
-## 7. Gerçek bağlantı için gereken dış bilgiler
+## 7. Sıradaki iş — bağımlılık sırası
+
+1. **UY-26 / UY-28 / UY-36 / UY-39 / UY-41 / UY-43 (FAZ E)** — altısı da
+   `Bulgu` ve değişiklik çevresinde; birlikte yapılmalı.
+2. **UY-52 … UY-57 (FAZ F)** — dış erişim, SSO, saklama ve denetçi
+   erişimi. UY-54 OT-48'in sağlayıcı kütüğünü kullanır; UY-55 OT-49'un
+   aracını gerçek veriyle koşturur; UY-56 UY-13'ün kanıt deposuna
+   saklama politikası uygular.
+
+---
+
+## 8. Gerçek bağlantı için gereken dış bilgiler
 
 Yalnız gerçekten gerekenler. Bu bilgiler gelmeden de **repo içi hazırlık
 tamamlanabilir**.
 
-**OT-40 · OT-48 · OT-50 artık gerçekten "bilgi bekliyor" durumundadır**
+**OT-40 · OT-48 · OT-50 · UY-18 · UY-20 artık gerçekten "bilgi
+bekliyor" durumundadır**
 (`CODE_READY_EXTERNAL_DEPENDENCY`): repo içinde yapılabilecek her şey
 bitti. Kalan maddeler ise o hazırlık henüz yapılmadığı için
 `NOT_STARTED`tır — ikisi karıştırılmaz.
@@ -425,8 +577,9 @@ Adaptör başına ihtiyaç listesinin YAPISAL hâli üründedir:
 | --- | --- |
 | OT-40 · OT-50 | Kurum CMDB/EDR/SIEM/OT keşif ürünlerinin adı, API sürümü, kimlik yöntemi |
 | OT-48 · UY-54 | PostgreSQL, Redis/kuyruk, nesne deposu, Vault/KMS uç noktaları |
-| UY-18 | İmzalama için HSM/KMS erişimi ve sertifika politikası |
-| UY-20 | Kurumun DYS ürünü ve API'si |
+| UY-13 | (repo içi hazırlık bitti) Üretimde `KANIT_DEPO_KOKU` ya da S3 uyumlu nesne deposu uç noktası |
+| UY-18 | İmzalama anahtarının tanımlayıcısı, anahtar politikası (kim imzalayabilir), imza algoritması, doğrulama zinciri. **Anahtarın kendisi ürüne verilmez** |
+| UY-20 | Kurumun DYS ürünü ve **salt okunur** API'si: taban URL, kimlik yöntemi, okunacak kütüphane kapsamı, sürüm alanının adı |
 | UY-41 | Takip edilecek resmî mevzuat kaynaklarının adresleri |
 | UY-53 | IdP (Entra/ADFS) tenant, OIDC/SAML metadata, claim eşlemesi |
 | OT-49 · UY-55 | Hedef eşikler: eşzamanlı kullanıcı, kabul edilebilir gecikme |

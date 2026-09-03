@@ -3,6 +3,9 @@ import { createHash } from 'node:crypto';
 import { db } from '../db';
 import { sirMaskesi, sirSizintisiVarMi } from '../entegrasyon/sir';
 import { connectorSagligi, type SaglikDurumu } from '../entegrasyon/saglikOzeti';
+import {
+  disEtkinSaglayici, imzaBeyani, imzaDurumu, type ImzaDurumu,
+} from '../uyum/disSaglayicilar';
 
 /* Denetim kanıt paketi (§19) — denetçiye verilen BÜTÜNLÜKLÜ dosya.
 
@@ -37,8 +40,29 @@ import { connectorSagligi, type SaglikDurumu } from '../entegrasyon/saglikOzeti'
    (`siriCoz` burada çağrılmaz). */
 
 /** Paket şemasının sürümü — biçim değişirse denetçi hangi şemayı
-    okuduğunu bilsin diye başlıkta taşınır. */
-export const PAKET_SEMA_SURUMU = 1;
+    okuduğunu bilsin diye başlıkta taşınır.
+
+    2 · UY-18 imza beyanı başlığa eklendi. Sürüm artırılmasaydı, 1 numaralı
+    şemayı bekleyen bir okuyucu imza alanını görmez ve paketi İMZALI
+    sanabilirdi; sessiz şema değişikliği tam olarak bu paketin engellemek
+    için var olduğu şeydir. */
+export const PAKET_SEMA_SURUMU = 2;
+
+/**
+ * Paketin imza beyanı.
+ *
+ * İmza sağlayıcısı kayıt defterinden okunur ve bugün BAĞLI DEĞİLDİR;
+ * sonuç daima `imzasiz`tır. Bu bir hata değildir ve paketin üretimini
+ * engellemez — paket geçerlidir, damgalıdır ve denetçiye verilebilir.
+ * Eksik olan tek şey imzanın kanıtladığı kimliktir ve beyan bunu yazar.
+ */
+export function paketImzasi(): PaketImzasi {
+  const saglayici = disEtkinSaglayici('imza');
+  /* İmza ATILMADIĞI için `imzaVar` daima false: bağlı bir sağlayıcı
+     olsaydı imza uzakta atılır ve sonucu buraya taşınırdı. */
+  const durum: ImzaDurumu = imzaDurumu({ imzaVar: false, dogrulandi: null });
+  return { durum, beyan: imzaBeyani(durum), saglayici: saglayici?.ad ?? null };
+}
 
 /** Kökeni olmayan satırın taşıdığı işaret. Tek yerde durur; ekran, test ve
     paket aynı sözcüğü kullanır. */
@@ -138,6 +162,24 @@ export type ConnectorSatiri = {
   kimlikAdresi: string;
 };
 
+/* UY-18 · İmza beyanı.
+
+   Paket bütünlük damgası (`ozet`) taşır ve bu damga içeriğin
+   DEĞİŞMEDİĞİNİ kanıtlar. İmzanın kanıtladığı şey farklıdır: paketi KİMİN
+   ürettiği. İkisini aynı şey sanmak denetimde pahalıdır, bu yüzden başlık
+   ikisini ayrı ayrı yazar ve imza yoksa "imzasız" der.
+
+   Ürün kendi ürettiği bir anahtarla imza ATMAZ: imzalayanın kimliğini
+   kanıtlamayan bir imza, ekranda "imzalandı" yazdığı için imzasız
+   olmaktan daha kötüdür (`lib/uyum/disSaglayicilar.ts`). */
+export type PaketImzasi = {
+  durum: ImzaDurumu;
+  /** Denetçinin okuyacağı tam cümle — paket dosyasının İÇİNDE durur. */
+  beyan: string;
+  /** İmzayı atan sağlayıcı; bağlı değilse `null`. */
+  saglayici: string | null;
+};
+
 export type PaketBasligi = {
   uretimZamani: string;
   ureten: { id: string; adSoyad: string };
@@ -153,6 +195,7 @@ export type PaketBasligi = {
        da aralığa ait olduğunu sanar. */
     not: string;
   };
+  imza: PaketImzasi;
 };
 
 export type PaketSayimlari = {
@@ -576,6 +619,7 @@ export async function kanitPaketiUret(girdi: {
       ureten: { id: ureten.id, adSoyad: ureten.adSoyad },
       urunSurumu: girdi.urunSurumu,
       semaSurumu: PAKET_SEMA_SURUMU,
+      imza: paketImzasi(),
       kapsam: {
         regulasyon,
         tesisler,

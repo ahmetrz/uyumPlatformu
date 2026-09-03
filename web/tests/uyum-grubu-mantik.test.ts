@@ -167,6 +167,16 @@ function degerlendirme(ek: Partial<Degerlendirme> = {}): Degerlendirme {
     kanitBayat: false,
     not: null,
     sorumlu: null,
+    /* UY-07 · sorumluluk zinciri ve dört göz alanları. Fikstür varsayılanı
+       "hiç doğrulanmamış": doğrulanmış varsaymak, testleri en iyimser
+       hâlden başlatırdı. */
+    sorumluAktif: false,
+    ekip: null,
+    dogrulayan: null,
+    dogrulamaZamani: null,
+    degerlendiren: null,
+    dogrulayabilir: false,
+    gecerliKanit: 0,
     sonDegerlendirme: gunSonra(-10),
     bulgular: [],
     kanitlar: [{ id: 'k-1', ad: 'Envanter raporu', tip: 'rapor', baslangic: gunSonra(-20) }],

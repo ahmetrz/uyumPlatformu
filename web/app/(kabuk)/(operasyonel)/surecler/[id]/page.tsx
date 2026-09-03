@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { girisZorunlu, izinVar, izinliTesisIdleri } from '@/lib/erisim';
+import { kapsamdaYetkili, modulYazabilir } from '@/app/kapsam';
 import { Yetkisiz } from '@/components/kabuk/temel';
 import { db } from '@/lib/db';
 import SurecDetayIstemci, { type DetayVerisi } from './SurecDetayIstemci';
@@ -34,6 +35,10 @@ export default async function Sayfa({ params }: { params: Promise<{ id: string }
      `app/kapsam.ts` içinde tek yere indi. Sunucu her kayıtta tesis
      kapsamını yeniden doğrular. */
   const yazabilir = izinVar(kullanici, 'uyum', 'yazma');
+  /* UY-07 · Doğrulama `uyum/onay` ister. Kaba kapı `modulYazabilir` ile
+     sorulur ("onay verebildiğin santral var mı"); satır kararı ayrıca
+     `kapsamdaYetkili` ile verilir — ekran sunucudan gevşek olamaz. */
+  const onaylayabilir = modulYazabilir(kullanici, 'uyum', 'onay');
 
   const simdi = new Date().getTime();
   const tesisSuzgeci = izinli === null ? {} : { tesisId: { in: izinli } };
@@ -48,7 +53,7 @@ export default async function Sayfa({ params }: { params: Promise<{ id: string }
   });
   if (!surec) notFound();
 
-  const [durumlar, agac, kullanicilar, alanlar] = await Promise.all([
+  const [durumlar, agac, kullanicilar, alanlar, ekipler] = await Promise.all([
     db.maddeDurumu.findMany({
       where: { surecId: id, ...tesisSuzgeci },
       include: {
@@ -60,7 +65,23 @@ export default async function Sayfa({ params }: { params: Promise<{ id: string }
           },
         },
         tesis: { select: { id: true, kod: true, ad: true } },
-        sorumlu: { select: { id: true, adSoyad: true } },
+        sorumlu: { select: { id: true, adSoyad: true, aktif: true } },
+        /* UY-07 · ekip ve doğrulayan. Ekibin AKTİF ÜYE sayısı da okunur:
+           aktif üyesi olmayan bir ekip "sorumlusu var" göstermemeli. */
+        ekip: {
+          select: {
+            id: true, kod: true, ad: true, aktif: true,
+            uyeler: { where: { kullanici: { aktif: true } }, select: { id: true } },
+          },
+        },
+        dogrulayan: { select: { id: true, adSoyad: true } },
+        /* Değerlendirmeyi KİM yaptı: değişmez tarihçenin son satırı.
+           `MaddeDurumu` üzerinde ayrıca tutulmaz — iki doğruluk kaynağı
+           olurdu. */
+        tarihce: {
+          orderBy: { zaman: 'desc' }, take: 1,
+          select: { aktorId: true, aktor: { select: { id: true, adSoyad: true } } },
+        },
         bulgular: {
           where: { silindi: null },
           select: { id: true, baslik: true, durum: true, onemDerecesi: true },
@@ -81,6 +102,17 @@ export default async function Sayfa({ params }: { params: Promise<{ id: string }
     db.kapsamAlani.findMany({
       where: { aktif: true },
       select: { kod: true, ad: true },
+      orderBy: { kod: 'asc' },
+    }),
+    /* UY-07 · Sorumlu ekip seçenekleri. Yalnız AKTİF ekipler listelenir:
+       pasif ekip kontrol sorumlusu olamaz (sunucu da reddeder) ve
+       seçilebilir göstermek kullanıcıyı kesin bir hataya yürütürdü. */
+    db.ekip.findMany({
+      where: { aktif: true },
+      select: {
+        id: true, kod: true, ad: true,
+        uyeler: { where: { kullanici: { aktif: true } }, select: { id: true } },
+      },
       orderBy: { kod: 'asc' },
     }),
   ]);
@@ -124,6 +156,24 @@ export default async function Sayfa({ params }: { params: Promise<{ id: string }
       kanitBayat: d.kanitBayat,
       not: d.not,
       sorumlu: d.sorumlu ? { id: d.sorumlu.id, ad: d.sorumlu.adSoyad } : null,
+      sorumluAktif: d.sorumlu?.aktif ?? false,
+      ekip: d.ekip ? {
+        id: d.ekip.id, kod: d.ekip.kod, ad: d.ekip.ad, aktif: d.ekip.aktif,
+        aktifUye: d.ekip.uyeler.length,
+      } : null,
+      dogrulayan: d.dogrulayan
+        ? { id: d.dogrulayan.id, ad: d.dogrulayan.adSoyad } : null,
+      dogrulamaZamani: d.dogrulamaZamani?.toISOString() ?? null,
+      degerlendiren: d.tarihce[0]?.aktor
+        ? { id: d.tarihce[0].aktor.id, ad: d.tarihce[0].aktor.adSoyad } : null,
+      /* Dört göz kararı SUNUCUDA verilir; ekran düğmeyi ona göre gösterir.
+         `degerlendirmeDogrula` aynı kuralı yeniden uygular — ekran
+         sunucudan gevşek olamaz. */
+      dogrulayabilir: onaylayabilir
+        && kapsamdaYetkili(kullanici, 'uyum', 'onay', d.tesisId)
+        && d.sonDegerlendirme !== null
+        && d.tarihce[0]?.aktorId != null
+        && d.tarihce[0].aktorId !== kullanici.id,
       sonDegerlendirme: d.sonDegerlendirme?.toISOString() ?? null,
       bulgular: d.bulgular.map((b) => ({
         id: b.id, baslik: b.baslik, durum: b.durum, onem: b.onemDerecesi,
@@ -132,6 +182,13 @@ export default async function Sayfa({ params }: { params: Promise<{ id: string }
         id: k.id, ad: k.ad, tip: k.tip,
         baslangic: k.gecerlilikBaslangic.toISOString(),
       })),
+      /* UY-16 · GEÇERLİ kanıt: kabul durumu `gecerli` VE süresi dolmamış.
+         Reddedilmiş ya da süresi dolmuş bir belgeye dayanarak "uyumlu"
+         denemez; kapsama hesabı bu sayıyı kullanır. */
+      gecerliKanit: kanitlar.filter(
+        (k) => k.durum === 'gecerli'
+          && (k.gecerliBitis === null || k.gecerliBitis > new Date()),
+      ).length,
       acikBulgu: d.bulgular.filter((b) => b.durum === 'acik' || b.durum === 'aksiyonda').length,
     };
   });
@@ -160,6 +217,9 @@ export default async function Sayfa({ params }: { params: Promise<{ id: string }
     kullanicilar: kullanicilar.map((u) => ({ id: u.id, ad: u.adSoyad })),
     alanlar,
     yazabilir,
+    ekipler: ekipler.map((e) => ({
+      id: e.id, kod: e.kod, ad: e.ad, aktifUye: e.uyeler.length,
+    })),
   };
 
   return <SurecDetayIstemci veri={veri} />;

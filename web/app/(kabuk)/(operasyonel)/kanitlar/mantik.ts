@@ -35,6 +35,17 @@ export type KanitBulgusu = {
 
 export type KanitTesisi = { id: string; kod: string; ad: string };
 
+/** UY-12 · Değişmez sürüm satırı — veritabanı tetikleyicisiyle korunur. */
+export type KanitSurumSatiri = {
+  surum: number;
+  dosyaAdi: string | null;
+  dosyaHash: string | null;
+  dosyaBoyut: number | null;
+  gerekce: string;
+  yukleyen: string | null;
+  zaman: string;
+};
+
 export type KanitSatiri = {
   id: string; ad: string; tip: string;
   dosyaYolu: string | null;
@@ -50,6 +61,24 @@ export type KanitSatiri = {
   otomatik: boolean;
   gizlilik: string;
   surum: number;
+  /* ── UY-12 · metadata ────────────────────────────────────────────────
+     `durum` KABUL bilgisidir, `bitis` GEÇERLİLİK bilgisi. Reddedilmiş bir
+     kanıt süresi dolana kadar geçerli görünemez; iki alan ayrı durur. */
+  durum: string;
+  kaynakUrl: string | null;
+  dosyaHash: string | null;
+  /* ── UY-13 · dosya ───────────────────────────────────────────────────
+     `depoAnahtari` null ise DOSYA YOKTUR. Eski `dosyaYolu` metni bir
+     dosyanın VAR OLDUĞUNU kanıtlamaz — yalnız birinin bir yol yazdığını
+     söyler; ekran ikisini ayrı yazar. */
+  dosyaAdi: string | null;
+  dosyaTipi: string | null;
+  dosyaBoyut: number | null;
+  depoAnahtari: string | null;
+  /** UY-12 · sürüm geçmişi (değişmez). En yeni önce. */
+  surumler: KanitSurumSatiri[];
+  /** Bu kullanıcı bu kanıdı düzenleyebilir mi (kapsam + yazma yetkisi). */
+  duzenlenebilir: boolean;
   maddeler: KanitMaddesi[];
   bulgular: KanitBulgusu[];
   tesisler: KanitTesisi[];

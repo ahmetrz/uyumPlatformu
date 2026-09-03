@@ -2,7 +2,9 @@
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { useUrlDurumu, useUrlDurumuBos } from '@/components/kabuk/urlDurumu';
-import { BosFiltre, BosIlk, Dugme, type Durum } from '@/components/kabuk/temel';
+import {
+  Alan, BosFiltre, BosIlk, Dugme, Im, type Durum,
+} from '@/components/kabuk/temel';
 import { Tablo, type Kolon, type Satir } from '@/components/kabuk/tablo';
 import { EkranBasligi, Filtreler } from '@/components/kabuk/ekran';
 import {
@@ -11,6 +13,14 @@ import {
 import BaglamCubugu from '@/components/kabuk/BaglamCubugu';
 import { DENKLIK_ETIKET, DURUM_ETIKET, GUVEN_ETIKET, ONEM_ETIKET, tarihTR } from '@/lib/sabitler';
 import { Ara, DisaAktar, Kapsam } from '../Kontroller';
+import { useEylem } from '@/components/useEylem';
+import { an } from '@/lib/an';
+import { degerlendirmeDogrula, kontrolEkibiAta } from '@/lib/eylemler2/uyumSahiplik';
+import {
+  DOGRULAMA_SINIFI, DOGRULAMA_SOZU, SAHIPLIK_SINIFI, SAHIPLIK_SOZU,
+  dogrulamaDurumu, kontrolSahipligi,
+} from '@/lib/uyum/kontrolSahipligi';
+import { eksikDagilimi, kapsamaCumlesi, kapsamaOzeti } from '@/lib/uyum/kapsama';
 import {
   BulguFormu, DegerlendirmeFormu, IstisnaFormu, KanitFormu,
 } from '../Formlar';
@@ -55,6 +65,8 @@ export type DetayVerisi = {
   kullanicilar: Kisi[];
   alanlar: { kod: string; ad: string }[];
   yazabilir: boolean;
+  /** UY-07 · sorumlu ekip seçenekleri (aktif ekipler). */
+  ekipler: { id: string; kod: string; ad: string; aktifUye: number }[];
 };
 
 type Anahtar = 'konu' | 'santral' | 'zaman';
@@ -199,6 +211,8 @@ export default function SurecDetayIstemci({ veri }: { veri: DetayVerisi }) {
           ]}
         />
 
+        <HazirlikBlogu kayitlar={kayitlar} simdi={simdi} />
+
         <section className="ab-ekran-govde">
           <Filtreler
             secenekler={MERCEKLER}
@@ -298,6 +312,7 @@ export default function SurecDetayIstemci({ veri }: { veri: DetayVerisi }) {
           {kip === 'ozet' ? (
             <Ozet
               kayit={secilen}
+              ekipler={veri.ekipler}
               yazabilir={veri.yazabilir}
               git={setKip}
             />
@@ -352,9 +367,10 @@ function dipNot({ gorunur, takipte: takipSayisi, bilinmeyen, kapsamDisi, elSiral
 
 /* ── Çekmece özeti ──────────────────────────────────────────────────── */
 
-function Ozet({ kayit, yazabilir, git }: {
+function Ozet({ kayit, yazabilir, ekipler, git }: {
   kayit: Degerlendirme;
   yazabilir: boolean;
+  ekipler: { id: string; kod: string; ad: string; aktifUye: number }[];
   git: (k: Kip) => void;
 }) {
   const im = degerlendirmeImi(kayit);
@@ -392,6 +408,8 @@ function Ozet({ kayit, yazabilir, git }: {
           durum: kayit.sonDegerlendirme ? undefined : 'unk',
         },
       ]} />
+
+      <SahiplikBlogu kayit={kayit} ekipler={ekipler} />
 
       <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
         <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Madde metni</p>
@@ -460,5 +478,263 @@ function Ozet({ kayit, yazabilir, git }: {
           + (yazabilir ? '' : ' · yazma yetkiniz yok, kayıt salt okunur')}
       />
     </>
+  );
+}
+
+/* ═══ UY-07 · Sorumluluk zinciri ve dört göz ═══════════════════════════
+
+   Kontrolün "sorumlusu" tek bir kullanıcı kimliğiydi ve üç şeyi birden
+   yapamıyordu: kişi ayrıldığında kontrol öksüz kalıyordu, hazırlayan ile
+   doğrulayan aynı kişi olabiliyordu, ve sorumlu değişikliği denetim
+   izine DÜŞMÜYORDU (ölçülmüş kusur; `maddeDurumGuncelle` içinde
+   düzeltildi).
+
+   ── DOĞRULAMA BİR ONAY DEĞİLDİR ───────────────────────────────────────
+   Onay akışı ayrı bir mekanizmadır. Buradaki doğrulama, kararı verenden
+   BAŞKA birinin dayanağı okuyup "yeterli" demesidir. Kendi kararını
+   doğrulamak hiç doğrulanmamış olmakla aynı kapıya çıkar — ama ekranda
+   "doğrulandı" yazar; bu yüzden düğme hiç görünmez ve sunucu da
+   reddeder. */
+
+function SahiplikBlogu({ kayit, ekipler }: {
+  kayit: Degerlendirme;
+  ekipler: { id: string; kod: string; ad: string; aktifUye: number }[];
+}) {
+  const { bekliyor, hata, calistir } = useEylem();
+  const [ekipAcik, setEkipAcik] = useState(false);
+  const [ekipSecim, setEkipSecim] = useState(kayit.ekip?.id ?? '');
+  const [dogrulamaAcik, setDogrulamaAcik] = useState(false);
+  const [gerekce, setGerekce] = useState('');
+
+  const sahiplik = kontrolSahipligi({
+    sorumlu: kayit.sorumlu
+      ? { id: kayit.sorumlu.id, ad: kayit.sorumlu.ad, aktif: kayit.sorumluAktif }
+      : null,
+    ekip: kayit.ekip
+      ? {
+        id: kayit.ekip.id, kod: kayit.ekip.kod,
+        aktif: kayit.ekip.aktif, aktifUye: kayit.ekip.aktifUye,
+      }
+      : null,
+  });
+
+  const dogrulama = dogrulamaDurumu({
+    dogrulamaZamani: kayit.dogrulamaZamani ? Date.parse(kayit.dogrulamaZamani) : null,
+    sonDegerlendirme: kayit.sonDegerlendirme ? Date.parse(kayit.sonDegerlendirme) : null,
+    simdi: an(),
+  });
+
+  return (
+    <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+      <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>
+        Sorumluluk ve doğrulama (UY-07)
+      </p>
+      <p style={{ margin: '0 0 var(--s12)', display: 'flex', alignItems: 'center',
+        gap: 'var(--s8)', fontSize: 'var(--t-field)' }}>
+        <Im durum={SAHIPLIK_SINIFI[sahiplik]} ad={SAHIPLIK_SOZU[sahiplik]} />
+        {SAHIPLIK_SOZU[sahiplik]}
+      </p>
+
+      <dl className="ab-panel-ciftler">
+        <div>
+          <dt>Sorumlu ekip</dt>
+          <dd className={kayit.ekip ? undefined : 'd-unk'}>
+            {kayit.ekip
+              ? `${kayit.ekip.kod} · ${kayit.ekip.aktifUye} aktif üye`
+              : 'atanmadı'}
+          </dd>
+        </div>
+        <div>
+          <dt>Değerlendiren</dt>
+          <dd className={kayit.degerlendiren ? undefined : 'd-unk'}>
+            {kayit.degerlendiren?.ad ?? 'kayıtlı değil'}
+          </dd>
+        </div>
+        <div>
+          <dt>Doğrulama</dt>
+          <dd className={`d-${DOGRULAMA_SINIFI[dogrulama]}`}>
+            {DOGRULAMA_SOZU[dogrulama]}
+            {kayit.dogrulayan && ` · ${kayit.dogrulayan.ad}`}
+          </dd>
+        </div>
+      </dl>
+
+      {dogrulama === 'degerlendirme_sonrasi_degisti' && (
+        <p style={{ margin: 'var(--s10) 0 0', fontSize: 'var(--t-field)', color: 'var(--bd)' }}>
+          Doğrulamadan SONRA değerlendirme değişti: ekrandaki damga artık
+          başka bir kararı işaret ediyor. Damga silinmedi — silmek, hiç
+          doğrulanmamış izlenimi verirdi; yeniden doğrulanması gerekir.
+        </p>
+      )}
+
+      <div style={{ display: 'flex', gap: 'var(--s10)', flexWrap: 'wrap',
+        marginTop: 'var(--s12)' }}>
+        {ekipler.length > 0 && !ekipAcik && (
+          <Dugme onClick={() => setEkipAcik(true)}>
+            {kayit.ekip ? 'Ekibi değiştir' : 'Ekip ata'}
+          </Dugme>
+        )}
+        {kayit.dogrulayabilir && !dogrulamaAcik && (
+          <Dugme tur="tam" onClick={() => setDogrulamaAcik(true)}>
+            {kayit.dogrulayan ? 'Doğrulamayı geri al' : 'Değerlendirmeyi doğrula'}
+          </Dugme>
+        )}
+      </div>
+
+      {!kayit.dogrulayabilir && (
+        <p className="ab-panel-dip" style={{ margin: 'var(--s10) 0 0' }}>
+          {kayit.sonDegerlendirme === null
+            ? 'Bu kontrol hiç değerlendirilmedi; doğrulanacak bir karar yok.'
+            : kayit.degerlendiren === null
+              ? 'Değerlendirmeyi kimin yaptığı kayıtlı değil; dört göz kanıtlanamaz.'
+              : 'Doğrulama, kararı verenden BAŞKA birinin uyum onay yetkisiyle '
+                + 'yapması gereken bir iştir.'}
+        </p>
+      )}
+
+      {ekipAcik && (
+        <div style={{ display: 'grid', gap: 'var(--s10)', marginTop: 'var(--s12)' }}>
+          <Alan etiket="Sorumlu ekip">
+            <select className="ab-gr" value={ekipSecim}
+              onChange={(e) => setEkipSecim(e.target.value)}>
+              <option value="">— atama yok —</option>
+              {ekipler.map((e) => (
+                <option key={e.id} value={e.id}>
+                  {e.kod} · {e.ad} · {e.aktifUye} aktif üye
+                </option>
+              ))}
+            </select>
+          </Alan>
+          {hata && <p className="ab-gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
+          <div style={{ display: 'flex', gap: 'var(--s10)' }}>
+            <Dugme tur="birincil" disabled={bekliyor}
+              onClick={() => calistir(
+                () => kontrolEkibiAta({
+                  maddeDurumuId: kayit.id, ekipId: ekipSecim || null,
+                }),
+                () => setEkipAcik(false),
+              )}>Kaydet</Dugme>
+            <Dugme tur="ret" onClick={() => setEkipAcik(false)} disabled={bekliyor}>
+              Vazgeç
+            </Dugme>
+          </div>
+          <p className="ab-panel-dip" style={{ margin: 0 }}>
+            Ekip ataması bir DEĞERLENDİRME değildir: kaydın son
+            değerlendirme tarihini ileri almaz ve kanıt tazeliğini
+            etkilemez.
+          </p>
+        </div>
+      )}
+
+      {dogrulamaAcik && (
+        <div style={{ display: 'grid', gap: 'var(--s10)', marginTop: 'var(--s12)' }}>
+          <Alan etiket="Gerekçe" zorunlu>
+            <textarea className="ab-gr" rows={2} value={gerekce} style={{ resize: 'vertical' }}
+              placeholder={kayit.dogrulayan
+                ? 'Doğrulama neden geri alınıyor? (en az 10 karakter)'
+                : 'Dayanağı yeterli kılan ne? (en az 10 karakter)'}
+              onChange={(e) => setGerekce(e.target.value)} />
+          </Alan>
+          {hata && <p className="ab-gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
+          <div style={{ display: 'flex', gap: 'var(--s10)' }}>
+            <Dugme tur="birincil" disabled={bekliyor || gerekce.trim().length < 10}
+              onClick={() => calistir(
+                () => degerlendirmeDogrula({
+                  maddeDurumuId: kayit.id, onay: !kayit.dogrulayan, gerekce,
+                }),
+                () => { setDogrulamaAcik(false); setGerekce(''); },
+              )}>
+              {kayit.dogrulayan ? 'Geri al' : 'Doğrula'}
+            </Dugme>
+            <Dugme tur="ret" onClick={() => setDogrulamaAcik(false)} disabled={bekliyor}>
+              Vazgeç
+            </Dugme>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ═══ UY-16 · Kapsama · tazelik · denetime hazırlık ════════════════════
+
+   Ekranın tepesindeki "%N uyum" tek başına denetimde hiçbir şey söylemez:
+   bir kurum %95 uyumlu görünüp %30 kapsamalı olabilir ve kalan %70 hiç
+   bakılmamıştır. Bu blok üç ayrı soruyu ayrı ayrı sorar ve
+   BİRLEŞTİRMEZ.
+
+   ── TEK PUAN YOK ──────────────────────────────────────────────────────
+   Bilinçli olarak bir "hazırlık puanı" üretilmiyor: tek yüzde, üç farklı
+   işi (değerlendir · kanıt topla · doğrula) tek sayıya gömer ve o sayıyı
+   yükseltmenin en kolay yolu kapsamı daraltmak olur. Onun yerine hangi
+   eksiğin kaç kontrolü etkilediği SAYILIR. */
+
+function HazirlikBlogu({ kayitlar, simdi }: {
+  kayitlar: Degerlendirme[]; simdi: number;
+}) {
+  const satirlar = kayitlar.map((d) => ({
+    durum: d.durum,
+    guven: d.guven,
+    kanitBayat: d.kanitBayat,
+    dogrulandi: dogrulamaDurumu({
+      dogrulamaZamani: d.dogrulamaZamani ? Date.parse(d.dogrulamaZamani) : null,
+      sonDegerlendirme: d.sonDegerlendirme ? Date.parse(d.sonDegerlendirme) : null,
+      simdi,
+    }) === 'dogrulandi',
+    gecerliKanit: d.gecerliKanit,
+  }));
+  const o = kapsamaOzeti(satirlar);
+  const eksik = eksikDagilimi(satirlar);
+  const yuzde = (x: number | null) => (x === null ? 'ölçülmedi' : `%${x}`);
+
+  return (
+    <section className="ab-blok">
+      <p className="etiket">Denetime hazırlık (UY-16)</p>
+      <p style={{ margin: '0 0 var(--s12)', fontSize: 'var(--t-field)',
+        color: o.savunulamaz > 0 ? 'var(--bd)' : o.zayif > 0 ? 'var(--md)' : 'var(--i2)' }}>
+        {kapsamaCumlesi(o)}
+      </p>
+      <dl className="ab-panel-ciftler">
+        <div>
+          <dt>Kapsama</dt>
+          <dd className={o.kapsamaOrani === null ? 'd-unk' : undefined}>
+            {yuzde(o.kapsamaOrani)} · {o.degerlendirilen}/{o.kapsamda}
+          </dd>
+        </div>
+        <div>
+          <dt>Kanıtlı</dt>
+          <dd className={o.kanitOrani === null ? 'd-unk' : undefined}>
+            {yuzde(o.kanitOrani)}
+            {o.bayatKanitli > 0 && ` · ${o.bayatKanitli} bayat`}
+          </dd>
+        </div>
+        <div>
+          <dt>Doğrulanmış</dt>
+          <dd className={o.dogrulamaOrani === null ? 'd-unk' : undefined}>
+            {yuzde(o.dogrulamaOrani)}
+          </dd>
+        </div>
+        <div>
+          <dt>Savunulabilir</dt>
+          <dd className={o.hazirlikOrani === null ? 'd-unk' : undefined}>
+            {yuzde(o.hazirlikOrani)} · {o.savunulabilir}/{o.kapsamda}
+          </dd>
+        </div>
+        <div>
+          <dt>Kapsam dışı</dt>
+          <dd className={o.kapsamDisi > 0 ? 'd-md' : undefined}>{o.kapsamDisi}</dd>
+        </div>
+      </dl>
+      <p className="ab-dip">
+        Eksikler ayrı sayılır — tek bir hazırlık puanı üretilmez:
+        {' '}{eksik.degerlendirilmedi} değerlendirilmedi ·
+        {' '}{eksik.kanitYok} kanıtsız ·
+        {' '}{eksik.kanitBayat} kanıtı bayat ·
+        {' '}{eksik.dogrulanmadi} doğrulanmadı.
+        Kapsam dışı kontrol paydaya girmez ama AYRI raporlanır: paydayı
+        küçülterek oranı yükseltmek, kapsamı daraltarak &quot;iyileşmenin&quot;
+        en kolay yoludur.
+      </p>
+    </section>
   );
 }

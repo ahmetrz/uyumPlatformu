@@ -9,6 +9,13 @@ import {
 } from '@/components/kabuk/panel';
 import { useEylem } from '@/components/useEylem';
 import { kanitEkle } from '@/lib/eylemler';
+import { kanitKaydet, kanitDosyasiYukle } from '@/lib/eylemler2/kanit';
+import {
+  GIZLILIK_DUZEYLERI, GIZLILIK_ETIKETI, KANIT_DURUMLARI, KANIT_DURUM_ETIKETI,
+  KANIT_TIPLERI as TUM_KANIT_TIPLERI, KANIT_TIP_ETIKETI,
+  type KanitDurumu, type KanitTipi,
+} from '@/lib/uyum/kanitMetadata';
+import { DOSYA_SINIRI, IZINLI_TIPLER } from '@/lib/uyum/kanitDosyaKurali';
 import { BULGU_DURUM_ETIKET, KANIT_ESIK_VARSAYILAN, etiketle, tarihTR, type KanitEsik } from '@/lib/sabitler';
 import { an } from '@/lib/an';
 import { kisaTarih } from '../bulgular/mantik';
@@ -26,10 +33,19 @@ import type { MaddeDurumuSecenegi } from './veri';
    elması alır — "0 bağ" bir durum değil, bir bilinmezliktir.
 
    Kanıt ekleme `kanitEkle` eylemine bağlanır: ad · tip · madde durumu.
-   Dosya yükleme YOK; form bunu söyler, kayıt "dosya yolu kayıtlı değil"
-   olarak düşer. Gerçek olmayan bir "yüklendi" durumu üretilmez. */
 
-/** `kanitEkle` şemasının kabul ettiği tipler (lib/eylemler.ts ile aynı küme). */
+   ── UY-12 · UY-13 (bu turda eklendi) ──────────────────────────────────
+   Çekmece artık metadata'yı DÜZENLER ve dosya YÜKLER. İki kural ekranda
+   da geçerlidir:
+     · `durum` (kabul) ile `bitis` (geçerlilik) AYRI alanlardır; reddedilmiş
+       bir kanıt süresi dolana kadar geçerli görünmez.
+     · Dosyası olmayan kanıt "dosya var" demez. `depoAnahtari` yoksa dosya
+       YOKTUR; eski `dosyaYolu` metni yalnız birinin bir yol yazdığını
+       söyler ve ekran ikisini karıştırmaz. */
+
+/** `kanitEkle` şemasının kabul ettiği DAR küme (lib/eylemler.ts ile aynı).
+    Yeni `kanitKaydet` on iki tipin tamamını kabul eder; hızlı ekleme formu
+    bilerek dar kalır, tip sonradan çekmeceden genişletilir. */
 const KANIT_TIPLERI = ['politika', 'kayit', 'konfigurasyon', 'ekran_goruntusu', 'rapor'];
 
 const KOLONLAR: Kolon[] = [
@@ -466,9 +482,342 @@ function KanitCekmecesi({ kanit, simdi, esik, kapat }: {
         </div>
       )}
 
+      <MetadataBlogu kanit={kanit} />
+      <DosyaBlogu kanit={kanit} />
+      <SurumBlogu kanit={kanit} />
+
       <CekmeceEylemler
-        dipNot="Kanıt bağlama bulgu kayıt ekranında ve süreç madde listesinde yapılır; dosya yükleme bu sürümde yoktur. Her değişiklik denetim izine yazılır."
+        dipNot={'Kanıt bağlama bulgu ekranında ve süreç madde listesinde de '
+          + 'yapılabilir. İçerik değişince YENİ SÜRÜM açılır ve gerekçesi '
+          + 'değişmez sürüm kütüğüne yazılır; metadata değişikliği sürüm '
+          + 'açmaz. Her değişiklik denetim izine düşer.'}
       />
     </Cekmece>
+  );
+}
+
+/* ═══ UY-12 · Metadata ═════════════════════════════════════════════════
+
+   Kanıt kaydı bir ad ve bir tipten ibaretti; denetimde sorulan hiçbir
+   soru o kayıttan cevaplanamıyordu. Bu blok beş boşluğu birden kapatır:
+   kabul durumu, sahiplik, kaynak, geçerlilik aralığı, gizlilik.
+
+   ── DURUM İLE TARİH KARIŞTIRILMAZ ─────────────────────────────────────
+   `durum` "kabul edildi mi", `bitis` "ne zamana kadar geçerli" der.
+   Reddedilmiş bir kanıt süresi dolana kadar geçerli görünemez. */
+
+function MetadataBlogu({ kanit }: { kanit: KanitSatiri }) {
+  const { bekliyor, hata, calistir } = useEylem();
+  const [acik, setAcik] = useState(false);
+  const [f, setF] = useState({
+    ad: kanit.ad,
+    tip: kanit.tip,
+    durum: kanit.durum,
+    gizlilik: kanit.gizlilik,
+    kaynakSistem: kanit.kaynakSistem ?? '',
+    kaynakUrl: kanit.kaynakUrl ?? '',
+    baslangic: kanit.baslangic.slice(0, 10),
+    bitis: kanit.bitis?.slice(0, 10) ?? '',
+    toplanma: kanit.toplanma?.slice(0, 10) ?? '',
+  });
+
+  const durum = (KANIT_DURUMLARI as readonly string[]).includes(kanit.durum)
+    ? kanit.durum as KanitDurumu : 'gecerli';
+  return (
+    <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+      <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Künye (UY-12)</p>
+      <dl className="ab-panel-ciftler">
+        <div>
+          <dt>Kabul durumu</dt>
+          <dd className={durum === 'gecerli' ? undefined : durum === 'reddedildi' ? 'd-bd' : 'd-md'}>
+            {KANIT_DURUM_ETIKETI[durum]}
+          </dd>
+        </div>
+        <div>
+          <dt>Kaynak adresi</dt>
+          <dd className={kanit.kaynakUrl ? undefined : 'd-unk'}>
+            {kanit.kaynakUrl ?? 'girilmedi'}
+          </dd>
+        </div>
+        <div>
+          <dt>İçerik özeti</dt>
+          <dd className={kanit.dosyaHash ? 'mono' : 'd-unk'}>
+            {kanit.dosyaHash ? `${kanit.dosyaHash.slice(0, 16)}…` : 'hesaplanmadı'}
+          </dd>
+        </div>
+      </dl>
+
+      {!kanit.duzenlenebilir ? (
+        <p className="ab-panel-dip" style={{ margin: 'var(--s10) 0 0' }}>
+          Bu kanıtı düzenlemek, bağlı olduğu santrallerin HEPSİNDE uyum yazma
+          yetkisi ister. Bağı olmayan kanıt yalnız kapsamsız yetkiyle
+          düzenlenir.
+        </p>
+      ) : !acik ? (
+        <div style={{ marginTop: 'var(--s12)' }}>
+          <Dugme onClick={() => setAcik(true)}>Künyeyi düzenle</Dugme>
+        </div>
+      ) : (
+        <div style={{ display: 'grid', gap: 'var(--s12)', marginTop: 'var(--s12)' }}>
+          <Alan etiket="Ad" zorunlu>
+            <input className="ab-gr" value={f.ad}
+              onChange={(e) => setF({ ...f, ad: e.target.value })} />
+          </Alan>
+          <Alan etiket="Tip">
+            <select className="ab-gr" value={f.tip}
+              onChange={(e) => setF({ ...f, tip: e.target.value })}>
+              {TUM_KANIT_TIPLERI.map((t) => (
+                <option key={t} value={t}>{KANIT_TIP_ETIKETI[t as KanitTipi]}</option>
+              ))}
+            </select>
+          </Alan>
+          <Alan etiket="Kabul durumu">
+            <select className="ab-gr" value={f.durum}
+              onChange={(e) => setF({ ...f, durum: e.target.value })}>
+              {KANIT_DURUMLARI.map((d) => (
+                <option key={d} value={d}>{KANIT_DURUM_ETIKETI[d]}</option>
+              ))}
+            </select>
+          </Alan>
+          <Alan etiket="Gizlilik">
+            <select className="ab-gr" value={f.gizlilik}
+              onChange={(e) => setF({ ...f, gizlilik: e.target.value })}>
+              {GIZLILIK_DUZEYLERI.map((g) => (
+                <option key={g} value={g}>{GIZLILIK_ETIKETI[g]}</option>
+              ))}
+            </select>
+          </Alan>
+          <Alan etiket="Kaynak sistem">
+            <input className="ab-gr" value={f.kaynakSistem}
+              placeholder="elle toplandıysa boş bırakın"
+              onChange={(e) => setF({ ...f, kaynakSistem: e.target.value })} />
+          </Alan>
+          <Alan etiket="Kaynak adresi">
+            <input className="ab-gr" value={f.kaynakUrl}
+              onChange={(e) => setF({ ...f, kaynakUrl: e.target.value })} />
+          </Alan>
+          <Alan etiket="Geçerlilik başlangıcı">
+            <input className="ab-gr" type="date" value={f.baslangic}
+              onChange={(e) => setF({ ...f, baslangic: e.target.value })} />
+          </Alan>
+          <Alan etiket="Geçerlilik bitişi (boş = süresiz)">
+            <input className="ab-gr" type="date" value={f.bitis}
+              onChange={(e) => setF({ ...f, bitis: e.target.value })} />
+          </Alan>
+          <Alan etiket="Toplanma tarihi">
+            <input className="ab-gr" type="date" value={f.toplanma}
+              onChange={(e) => setF({ ...f, toplanma: e.target.value })} />
+          </Alan>
+          {hata && <p className="ab-gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
+          <div style={{ display: 'flex', gap: 'var(--s10)' }}>
+            <Dugme tur="birincil" disabled={bekliyor || !f.ad.trim()}
+              onClick={() => calistir(() => kanitKaydet({
+                id: kanit.id, ad: f.ad, tip: f.tip, durum: f.durum,
+                gizlilik: f.gizlilik,
+                kaynakSistem: f.kaynakSistem || null,
+                kaynakUrl: f.kaynakUrl || null,
+                gecerlilikBaslangic: f.baslangic || null,
+                gecerliBitis: f.bitis || null,
+                toplanmaTarihi: f.toplanma || null,
+              }), () => setAcik(false))}>
+              Kaydet
+            </Dugme>
+            <Dugme tur="ret" onClick={() => setAcik(false)} disabled={bekliyor}>Vazgeç</Dugme>
+          </div>
+          <p className="ab-panel-dip" style={{ margin: 0 }}>
+            Künye değişikliği SÜRÜM AÇMAZ — sürüm yalnız dosya içeriği
+            değişince açılır. Kabul durumu değişikliği kendi denetim izi
+            satırını alır.
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ═══ UY-13 · Dosya ════════════════════════════════════════════════════
+
+   Ürün yüklenen dosyayı AÇMAZ, ayrıştırmaz, önizlemez ve çalıştırmaz;
+   bir bayt dizisi olarak saklar ve SHA-256 özetini alır. Depo içerik
+   adreslidir: kullanıcının verdiği ad hiçbir zaman dosya yoluna geçmez.
+
+   ── "DOSYA YOK" İLE "YOL YAZILMIŞ" AYRI ───────────────────────────────
+   `depoAnahtari` yoksa dosya YOKTUR. Eski `dosyaYolu` metni yalnız
+   birinin bir yol yazdığını söyler; o yolda bir dosya olduğu
+   ÖLÇÜLMEMİŞTİR ve ekran bunu "dosya var" diye okumaz. */
+
+const bayt = (n: number): string =>
+  (n < 1024 ? `${n} B` : n < 1024 * 1024 ? `${Math.round(n / 1024)} KB`
+    : `${(n / 1024 / 1024).toFixed(1)} MB`);
+
+function DosyaBlogu({ kanit }: { kanit: KanitSatiri }) {
+  const { bekliyor, hata, calistir } = useEylem();
+  const [acik, setAcik] = useState(false);
+  const [gerekce, setGerekce] = useState('');
+  const [dosya, setDosya] = useState<{ ad: string; tip: string; boyut: number } | null>(null);
+  const [icerik, setIcerik] = useState<string | null>(null);
+  const [okumaHatasi, setOkumaHatasi] = useState<string | null>(null);
+  const [ozet, setOzet] = useState<string | null>(null);
+
+  async function dosyaSec(d: File) {
+    setOkumaHatasi(null); setOzet(null);
+    if (!(d.type in IZINLI_TIPLER)) {
+      setOkumaHatasi(`İçerik tipi kabul edilmiyor: ${d.type || 'bilinmiyor'}.`);
+      setDosya(null); setIcerik(null);
+      return;
+    }
+    if (d.size > DOSYA_SINIRI) {
+      setOkumaHatasi(`Dosya ${bayt(DOSYA_SINIRI)} sınırını aşıyor (${bayt(d.size)}).`);
+      setDosya(null); setIcerik(null);
+      return;
+    }
+    const tampon = new Uint8Array(await d.arrayBuffer());
+    /* Yığın taşmasın diye parça parça kodlanır: `String.fromCharCode(...)`
+       tek seferde çağrıldığında büyük dosyada argüman sınırını aşar. */
+    let ikili = '';
+    for (let i = 0; i < tampon.length; i += 8192) {
+      ikili += String.fromCharCode(...tampon.subarray(i, i + 8192));
+    }
+    setDosya({ ad: d.name, tip: d.type, boyut: d.size });
+    setIcerik(btoa(ikili));
+  }
+
+  const gecerli = icerik !== null && gerekce.trim().length >= 10;
+
+  return (
+    <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+      <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Dosya (UY-13)</p>
+
+      {kanit.depoAnahtari ? (
+        <dl className="ab-panel-ciftler">
+          <div><dt>Dosya</dt><dd>{kanit.dosyaAdi ?? 'ad kayıtlı değil'}</dd></div>
+          <div>
+            <dt>Boyut</dt>
+            <dd className={kanit.dosyaBoyut === null ? 'd-unk' : undefined}>
+              {kanit.dosyaBoyut === null ? 'ölçülmedi' : bayt(kanit.dosyaBoyut)}
+            </dd>
+          </div>
+          <div><dt>Tip</dt><dd className="mono">{kanit.dosyaTipi ?? 'bilinmiyor'}</dd></div>
+          <div><dt>Sürüm</dt><dd>v{kanit.surum}</dd></div>
+        </dl>
+      ) : (
+        <p style={{ margin: 0, fontSize: 'var(--t-field)', color: 'var(--unk)' }}>
+          Bu kanıta dosya yüklenmedi.
+          {kanit.dosyaYolu && (
+            <> Kütükte bir yol metni var (<span className="mono">{kanit.dosyaYolu}</span>)
+              ama o yolda bir dosya olduğu ÖLÇÜLMEDİ.</>
+          )}
+        </p>
+      )}
+
+      {!kanit.duzenlenebilir ? null : !acik ? (
+        <div style={{ marginTop: 'var(--s12)' }}>
+          <Dugme onClick={() => setAcik(true)}>
+            {kanit.depoAnahtari ? 'Yeni sürüm yükle' : 'Dosya yükle'}
+          </Dugme>
+        </div>
+      ) : (
+        <div style={{ display: 'grid', gap: 'var(--s12)', marginTop: 'var(--s12)' }}>
+          <Alan etiket="Dosya" zorunlu>
+            <input className="ab-gr" type="file"
+              accept={Object.keys(IZINLI_TIPLER).join(',')}
+              onChange={(e) => {
+                const d = e.target.files?.[0];
+                if (d) void dosyaSec(d);
+              }} />
+          </Alan>
+          {dosya && (
+            <p className="mono" style={{ margin: 0, fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
+              {dosya.ad} · {bayt(dosya.boyut)} · {dosya.tip}
+            </p>
+          )}
+          {okumaHatasi && (
+            <p className="ab-gr-hata" role="alert" style={{ margin: 0 }}>{okumaHatasi}</p>
+          )}
+          <Alan etiket="Sürüm gerekçesi" zorunlu>
+            <textarea className="ab-gr" rows={2} value={gerekce} style={{ resize: 'vertical' }}
+              placeholder="Bu sürüm neden yükleniyor? (en az 10 karakter)"
+              onChange={(e) => setGerekce(e.target.value)} />
+          </Alan>
+          {hata && <p className="ab-gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
+          {ozet && (
+            <p style={{ margin: 0, fontSize: 'var(--t-field)' }} role="status">{ozet}</p>
+          )}
+          <div style={{ display: 'flex', gap: 'var(--s10)' }}>
+            <Dugme tur="birincil" disabled={bekliyor || !gecerli}
+              onClick={() => calistir(async () => {
+                const r = await kanitDosyasiYukle({
+                  kanitId: kanit.id, dosyaAdi: dosya!.ad, mimeTipi: dosya!.tip,
+                  icerik: icerik!, gerekce,
+                });
+                if (r.ok) {
+                  /* Aynı içerik yeniden yüklendiğinde sürüm AÇILMAZ ve bu
+                     sessiz geçmez: kullanıcı yeni sürüm açtığını sanmasın. */
+                  setOzet(r.zatenVardi
+                    ? `İçerik birebir aynı — yeni sürüm açılmadı (v${r.surum} kaldı).`
+                    : `Yeni sürüm yazıldı: v${r.surum}.`);
+                }
+                return r;
+              })}>
+              {bekliyor ? 'Yükleniyor…' : 'Yükle'}
+            </Dugme>
+            <Dugme tur="ret" onClick={() => setAcik(false)} disabled={bekliyor}>Vazgeç</Dugme>
+          </div>
+          <p className="ab-panel-dip" style={{ margin: 0 }}>
+            Ürün dosyayı AÇMAZ, ayrıştırmaz ve çalıştırmaz; bayt dizisi olarak
+            saklar ve SHA-256 özetini alır. İzinli tipler:{' '}
+            {Object.values(IZINLI_TIPLER).join(' · ')}. En büyük boyut{' '}
+            {bayt(DOSYA_SINIRI)}. Aynı içerik ikinci kez yüklenirse yeni sürüm
+            AÇILMAZ.
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ═══ UY-12 · Sürüm geçmişi ════════════════════════════════════════════
+
+   Satırlar DEĞİŞMEZDİR ve bu bir yorum değil bir veritabanı kuralıdır:
+   `KanitSurumu` tablosunda güncelleme ve silme tetikleyiciyle yasaktır
+   (`AktiviteKaydi` ve `DegerlendirmeTarihcesi` ile aynı koruma). */
+
+function SurumBlogu({ kanit }: { kanit: KanitSatiri }) {
+  return (
+    <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+      <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>
+        Sürüm geçmişi · {kanit.surumler.length}
+      </p>
+      {kanit.surumler.length === 0 ? (
+        <p style={{ margin: 0, fontSize: 'var(--t-field)', color: 'var(--unk)' }}>
+          Kayıtlı sürüm yok — bu kanıta hiç dosya yüklenmedi. Kütükteki
+          sürüm sayacı (v{kanit.surum}) bir içerik geçmişini temsil ETMEZ.
+        </p>
+      ) : (
+        <div style={{ display: 'grid', gap: 'var(--s12)' }}>
+          {kanit.surumler.map((sv) => (
+            <div key={sv.surum} style={{ borderLeft: 'var(--bw-edge) solid var(--hr2)',
+              paddingLeft: 'var(--s12)', display: 'grid', gap: 'var(--s3)' }}>
+              <span style={{ fontSize: 'var(--t-field)', fontWeight: 600 }}>
+                v{sv.surum} · {sv.dosyaAdi ?? 'dosya adı kayıtlı değil'}
+              </span>
+              <span className="mono" style={{ fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
+                {tarihTR(sv.zaman)}
+                {sv.yukleyen && ` · ${sv.yukleyen}`}
+                {sv.dosyaBoyut !== null && ` · ${bayt(sv.dosyaBoyut)}`}
+                {sv.dosyaHash && ` · ${sv.dosyaHash.slice(0, 12)}…`}
+              </span>
+              <span style={{ fontSize: 'var(--t-label)', color: 'var(--i2)' }}>
+                {sv.gerekce}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+      <p className="ab-panel-dip" style={{ margin: 'var(--s12) 0 0' }}>
+        Sürüm satırları DEĞİŞMEZ: güncelleme ve silme veritabanı
+        tetikleyicisiyle yasaklıdır.
+      </p>
+    </div>
   );
 }

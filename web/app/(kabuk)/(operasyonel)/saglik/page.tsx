@@ -9,6 +9,7 @@ import {
 import { hazirligiOlc } from '@/lib/altyapi/hazirlik';
 import { kontrolleriSirala } from '@/lib/altyapi/hazirlikKarari';
 import { SAGLAYICILAR } from '@/lib/altyapi/saglayicilar';
+import { DIS_SAGLAYICILAR } from '@/lib/uyum/disSaglayicilar';
 import { ADAPTORLER, ADAPTOR_TIPLERI } from '@/lib/entegrasyon/adaptorler';
 import { etiketle } from '@/lib/sabitler';
 import SaglikIstemci from './SaglikIstemci';
@@ -251,6 +252,7 @@ export default async function Sayfa() {
       koken={koken}
       hazirlik={kontrolleriSirala(hazirlik)}
       saglayicilar={[...SAGLAYICILAR]}
+      disSaglayicilar={[...DIS_SAGLAYICILAR]}
       baglantiIhtiyaci={baglantiIhtiyaci}
       yazabilir={yazabilir}
     />

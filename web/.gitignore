@@ -49,3 +49,9 @@ lib/prisma-client/
 q-*.mjs
 *gecici*
 yedek/
+
+# UY-13 · kanıt dosyası deposu (yerel_dosya sağlayıcısı)
+# Depo İÇERİK tutar, kod değil: yüklenen kanıt dosyaları depoya girer ve
+# repoya ASLA girmez. Kurulumda `KANIT_DEPO_KOKU` ile ürün dizininin
+# dışına alınması beklenir; verilmezse burası kullanılır.
+/veri/

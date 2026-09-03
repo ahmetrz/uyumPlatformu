@@ -268,6 +268,14 @@ model MaddeDurumu {
   guven            String    @default("kanit_yok") // otomatik_kanit | denetci_dogrulamis | oz_degerlendirme | bayat_kanit | kanit_yok
   kanitBayat       Boolean   @default(false)
   sorumluId        String?
+  /// UY-07 · Sorumlu EKİP. Kişi sahipliğinin yerine geçmez, tamamlar:
+  /// kişi ayrıldığında kontrol öksüz kalmasın (OT-09 ile aynı gerekçe).
+  ekipId           String?
+  /// UY-07 · Değerlendirmeyi DOĞRULAYAN kişi — hazırlayandan AYRI olmalı.
+  /// Aynı kişinin hem hazırlayıp hem doğruladığı bir değerlendirme, dört
+  /// göz ilkesini kâğıt üstünde bırakır; sunucu bunu reddeder.
+  dogrulayanId     String?
+  dogrulamaZamani  DateTime?
   not              String?
   sonDegerlendirme DateTime?
   guncellendi      DateTime  @updatedAt
@@ -276,6 +284,8 @@ model MaddeDurumu {
   madde   Madde      @relation(fields: [maddeId], references: [id], onDelete: Cascade)
   tesis   Tesis      @relation(fields: [tesisId], references: [id], onDelete: Cascade)
   sorumlu Kullanici? @relation("DurumSorumlusu", fields: [sorumluId], references: [id])
+  ekip       Ekip?      @relation("MaddeDurumuEkibi", fields: [ekipId], references: [id])
+  dogrulayan Kullanici? @relation("DurumDogrulayan", fields: [dogrulayanId], references: [id])
 
   bulgular          Bulgu[]
   kanitBaglantilari KanitBaglantisi[]
@@ -366,6 +376,25 @@ model Kanit {
   toplanmaTarihi DateTime?
   otomatik       Boolean   @default(false)
   gizlilik       String    @default("kurumsal") // acik | kurumsal | gizli | ot_hassas
+  /// UY-12 · Kanıtın YAŞAM DÖNGÜSÜ durumu — geçerlilik tarihinden AYRIDIR.
+  /// taslak | gecerli | reddedildi | arsivlendi
+  /// Tarih "ne zamana kadar geçerli" der; bu alan "kabul edildi mi" der.
+  /// İkisini birleştirmek, reddedilmiş bir kanıtı süresi dolana kadar
+  /// geçerli göstermek olurdu.
+  durum          String    @default("gecerli")
+  /// UY-13 · Yüklenen dosyanın kendi bilgileri. Dosya YOKSA hepsi null
+  /// kalır ve bu "dosyasız kanıt" demektir — bir kusur değil, bir olgu
+  /// (bir ekran görüntüsü dosyadır, bir sözlü teyit değildir).
+  dosyaAdi       String?
+  /// IANA MIME tipi; kullanıcının verdiği ada DEĞİL, izin listesine bakılır.
+  dosyaTipi      String?
+  dosyaBoyut     Int?
+  /// Nesne deposundaki anahtar. İÇERİK ADRESLİDİR (hash tabanlı): kullanıcı
+  /// girdisi hiçbir zaman dosya yoluna geçmez.
+  depoAnahtari   String?
+  /// Hangi sağlayıcı sakladı (lib/altyapi/saglayicilar.ts). Depo değişirse
+  /// eski kaydın nerede olduğu kaybolmasın.
+  depoSaglayici  String?
   silindi        DateTime?
   /// Bu kanıt bir yönetişim belgesinden üretildiyse kütükteki kaydı (C22/C23).
   dokumanId      String?
@@ -377,6 +406,38 @@ model Kanit {
   varlikBaglantilari KanitVarlik[]
   tesisBaglantilari  KanitTesis[]
   talepler           KanitTalebi[]
+  surumler           KanitSurumu[]
+}
+
+/// UY-12 · Kanıt sürüm geçmişi — DEĞİŞMEZ kayıt.
+///
+/// `Kanit.surum` bir sayaçtı ve kimse artırmıyordu; artırılsa bile ESKİ
+/// hâlin ne olduğu hiçbir yerde durmuyordu. Denetimde sorulan soru tam
+/// olarak budur: "bu kanıt geçen sene de böyle miydi?"
+///
+/// Satır ASLA güncellenmez ve silinmez. Yeni sürüm yeni satırdır; eski
+/// satır olduğu gibi kalır ve kendi özetini taşır.
+model KanitSurumu {
+  id       String @id @default(cuid())
+  kanitId  String
+  /// 1'den başlar; her yeni sürüm bir artar.
+  surum    Int
+  /// O sürümdeki dosya özeti; dosyasız sürümde null.
+  dosyaHash String?
+  dosyaAdi  String?
+  dosyaBoyut Int?
+  depoAnahtari String?
+  /// Sürümün NEDEN açıldığı — zorunludur. Gerekçesiz sürüm, sessizce
+  /// değiştirilmiş bir kanıttan ayırt edilemez.
+  gerekce   String
+  yukleyenId String?
+  olusturuldu DateTime @default(now())
+
+  kanit    Kanit      @relation(fields: [kanitId], references: [id], onDelete: Cascade)
+  yukleyen Kullanici? @relation("KanitSurumYukleyen", fields: [yukleyenId], references: [id])
+
+  @@unique([kanitId, surum])
+  @@index([kanitId])
 }
 
 /// Kanıt ↔ MaddeDurumu çoktan-çoğa: tek kanıt birden çok sürecin/regülasyonun
@@ -464,6 +525,8 @@ model Kullanici {
 
   yetkiler          Yetki[]
   durumSorumluluk   MaddeDurumu[]   @relation("DurumSorumlusu")
+  durumDogrulamalari MaddeDurumu[]  @relation("DurumDogrulayan")
+  kanitSurumleri    KanitSurumu[]   @relation("KanitSurumYukleyen")
   konumDogrulamalari Tesis[]        @relation("TesisKonumDogrulayan")
   bulguSorumluluk   Bulgu[]         @relation("BulguSorumlusu")
   aksiyonSorumluluk Aksiyon[]       @relation("AksiyonSorumlusu")
@@ -2888,6 +2951,7 @@ model Ekip {
   uyeler    EkipUyeligi[]
   varliklar Varlik[]       @relation("VarlikEkibi")
   sistemler SistemServis[] @relation("SistemEkibi")
+  maddeDurumlari MaddeDurumu[] @relation("MaddeDurumuEkibi")
 
   @@index([tesisId, aktif])
 }

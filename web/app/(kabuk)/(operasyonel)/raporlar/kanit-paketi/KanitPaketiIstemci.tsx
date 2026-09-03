@@ -7,6 +7,7 @@ import {
   Cekmece, CekmeceKimlik, CekmeceAlanlar, CekmeceEylemler,
 } from '@/components/kabuk/panel';
 import { kanitPaketiUretEylem } from '@/lib/eylemler2/disaAktarim';
+import { IMZA_SINIFI, IMZA_SOZU, type ImzaDurumu } from '@/lib/uyum/disSaglayicilar';
 import { hucreDurumu, hucreSozu, type Hucre } from '../mantik';
 
 /* Kanıt paketi ekranı — tek canvas modülü: paketlenebilir kapsam listesi.
@@ -36,7 +37,11 @@ export type KapsamSatiri = {
   sonDegerlendirme: string | null;
 };
 
-type Uretim = { ozet: string; dosyaAdi: string; madde: number; bulgu: number; iz: number };
+type Uretim = {
+  ozet: string; dosyaAdi: string; madde: number; bulgu: number; iz: number;
+  /** UY-18 · paketin imza durumu ve denetçiye yazılan tam cümle. */
+  imzaDurumu: ImzaDurumu; imzaBeyani: string;
+};
 
 /** Canvasta aynı anda duran satır bütçesi (02-components §5). */
 const GORUNUR_SATIR = 9;
@@ -191,6 +196,8 @@ function PaketCekmecesi({ kapsam, bugun, kapat }: {
         madde: sonuc.sayimlar.madde,
         bulgu: sonuc.sayimlar.bulgu,
         iz: sonuc.sayimlar.izSatiri,
+        imzaDurumu: sonuc.imza.durum,
+        imzaBeyani: sonuc.imza.beyan,
       });
     });
   }
@@ -251,6 +258,20 @@ function PaketCekmecesi({ kapsam, bugun, kapat }: {
             <span className="etiket">İçerik</span>
             <span className="deger">
               {`${uretim.madde} madde · ${uretim.bulgu} bulgu · ${uretim.iz} iz satırı`}
+            </span>
+          </div>
+          {/* UY-18 · İmza durumu damganın YANINDA durur ve onunla
+              karıştırılmaz: damga içeriğin değişmediğini, imza paketi
+              kimin ürettiğini kanıtlar. İmza yoksa ekran "imzasız" der. */}
+          <div className="ab-panel-alan">
+            <span className="etiket">İmza</span>
+            <span className="deger" style={{ display: 'grid', gap: 'var(--s4)' }}>
+              <span style={{ color: `var(--${IMZA_SINIFI[uretim.imzaDurumu]})` }}>
+                {IMZA_SOZU[uretim.imzaDurumu]}
+              </span>
+              <span style={{ fontSize: 'var(--t-label)', color: 'var(--i2)' }}>
+                {uretim.imzaBeyani}
+              </span>
             </span>
           </div>
         </div>

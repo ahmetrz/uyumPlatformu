@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Alan, BosFiltre, BosIlk, Dugme, Hata, Im, type Durum } from '@/components/kabuk/temel';
 import { Tablo, type Kolon, type Satir } from '@/components/kabuk/tablo';
 import { EkranBasligi, Filtreler } from '@/components/kabuk/ekran';
+import { dysSaglayici } from '@/lib/uyum/disSaglayicilar';
 import {
   Cekmece, CekmeceKimlik, CekmeceAlanlar, CekmeceBagli, CekmeceEylemler,
 } from '@/components/kabuk/panel';
@@ -268,6 +269,7 @@ export default function DokumanlarIstemci({
                 {dipNot({ gorunur: gorunur.length, toplam, yuklenen: belgeler.length })}
                 {kapsamDisi > 0 && ` · ${kapsamDisi} belge santral kapsamınız dışında`}
               </p>
+              <DysNotu />
             </div>
           ) : filtreAktif ? (
             <BosFiltre temizle={() => { setMercek('tumu'); setTurF(null); setArama(''); }} />
@@ -742,5 +744,26 @@ function Ara({ deger, degistir }: { deger: string; degistir: (v: string) => void
         letterSpacing: 'var(--tr-label)', textTransform: 'uppercase',
       }}
     />
+  );
+}
+
+/* ═══ UY-20 · Belge yönetim sistemi bağlı değil ═══════════════════════
+
+   Bu kütükteki sürüm numarası ELLE girilir. Kurumun DYS'sindeki belge
+   bu arada güncellenmiş olabilir ve kütük bunu BİLMEZ. Ekranın bunu
+   söylememesi, denetçiye "v2.1" diye gösterilen bir politikanın
+   aslında v3 olduğunu gizlemek olurdu.
+
+   Sağlayıcı bağlandığı gün bu not kendiliğinden kaybolur: metin
+   kayıt defterinden okunur, buraya sabitlenmiş değildir. */
+
+function DysNotu() {
+  if (dysSaglayici.bagli) return null;
+  return (
+    <p className="ab-dip" style={{ margin: 'var(--s8) 0 0', color: 'var(--unk)' }}>
+      Kurumsal belge yönetim sistemi (DYS) BAĞLI DEĞİL: sürüm numarası elle
+      girilir ve DYS ile karşılaştırılmaz. Kütükteki sürüm, kurumdaki güncel
+      sürümün gerisinde kalmış olabilir.
+    </p>
   );
 }

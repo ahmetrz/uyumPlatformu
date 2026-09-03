@@ -24,7 +24,9 @@ import { z } from 'zod';
 import { aktifKullanici } from '../auth';
 import { DEMO } from '../demo';
 import { izinVar, izinliTesisIdleri } from '../erisim';
-import { kanitPaketiUret, type PaketSayimlari } from '../disaAktarim/paket';
+import {
+  kanitPaketiUret, type PaketImzasi, type PaketSayimlari,
+} from '../disaAktarim/paket';
 import { hata, iz } from './ortak';
 import { version as URUN_SURUMU } from '../../package.json';
 
@@ -36,6 +38,8 @@ export type PaketSonucu =
     json: string;
     /** SHA-256 bütünlük damgası — denetim izine de bu yazılır. */
     ozet: string;
+    /** UY-18 · paketin imza beyanı; bugün daima "imzasız". */
+    imza: PaketImzasi;
     sayimlar: PaketSayimlari;
   }
   | { ok: false; hata: string };
@@ -139,6 +143,7 @@ export async function kanitPaketiUretEylem(girdi: {
       dosyaAdi: `kanit-paketi_${reg}_${gun}_${paket.ozet.slice(0, 8)}.json`,
       json,
       ozet: paket.ozet,
+      imza: paket.baslik.imza,
       sayimlar: paket.sayimlar,
     };
   } catch (e) {

@@ -292,13 +292,16 @@ export async function surecKapsamCikar(girdi: { surecId: string; tesisId: string
 // ------------------------------------------------------------ durum/bulgu
 
 export async function maddeDurumGuncelle(girdi: {
-  id: string; durum: string; not?: string | null; sorumluId?: string | null; gerekce?: string | null;
+  id: string; durum: string; not?: string | null; sorumluId?: string | null;
+  ekipId?: string | null; gerekce?: string | null;
 }): Promise<Sonuc> {
   try {
     const k = await yetkiZorunlu('uyum', 'yazma', KAPSAM_SONRA);
     const v = z.object({
       id: z.string(), durum: DurumSemasi,
       not: z.string().nullable().optional(), sorumluId: z.string().nullable().optional(),
+      /* UY-07 · Sorumlu EKİP: kişi sahipliğinin yerine geçmez, tamamlar. */
+      ekipId: z.string().nullable().optional(),
       gerekce: z.string().nullable().optional(),
     }).parse(girdi);
     const eski = await db.maddeDurumu.findUniqueOrThrow({
@@ -321,9 +324,12 @@ export async function maddeDurumGuncelle(girdi: {
     else if (gecerliKanitlar.some((kn) => kn.otomatik)) guven = 'otomatik_kanit';
     else if (gecerliKanitlar.length > 0) guven = 'oz_degerlendirme';
 
+    const yeniSorumlu = v.sorumluId === undefined ? eski.sorumluId : v.sorumluId;
+    const yeniEkip = v.ekipId === undefined ? eski.ekipId : v.ekipId;
+
     await db.maddeDurumu.update({ where: { id: v.id }, data: {
       durum: v.durum, not: v.not ?? eski.not,
-      sorumluId: v.sorumluId === undefined ? eski.sorumluId : v.sorumluId,
+      sorumluId: yeniSorumlu, ekipId: yeniEkip,
       sonDegerlendirme: simdi, guven, kanitBayat: bayat,
     } });
     if (eski.durum !== v.durum) {
@@ -336,6 +342,32 @@ export async function maddeDurumGuncelle(girdi: {
       await iz({ aktorId: k.id, varlikTipi: 'MaddeDurumu', varlikId: v.id, eylem: 'durum_degisimi',
         alan: 'durum', once: eski.durum, sonra: v.durum, gerekce: v.gerekce ?? null });
     }
+
+    /* UY-07 · ÖLÇÜLMÜŞ KUSUR: sorumluluk değişikliği denetim izine
+       DÜŞMÜYORDU. İz satırı yalnız `durum` değiştiğinde yazılıyordu;
+       sorumlu sessizce el değiştirebiliyor ve denetimde "bu kontrolün
+       sorumlusu ne zaman, kim tarafından değişti" sorusunun cevabı
+       kalmıyordu. Sorumluluk devri bir uyum kararıdır ve KENDİ satırını
+       hak eder — durum değişimiyle aynı satıra sıkıştırılırsa da
+       görünmez olur. */
+    if ((eski.sorumluId ?? null) !== (yeniSorumlu ?? null)) {
+      await iz({
+        aktorId: k.id, varlikTipi: 'MaddeDurumu', varlikId: v.id,
+        eylem: 'guncelleme', alan: 'sorumluId',
+        once: eski.sorumluId, sonra: yeniSorumlu, gerekce: v.gerekce ?? null,
+      });
+    }
+    if ((eski.ekipId ?? null) !== (yeniEkip ?? null)) {
+      await iz({
+        aktorId: k.id, varlikTipi: 'MaddeDurumu', varlikId: v.id,
+        eylem: 'guncelleme', alan: 'ekipId',
+        once: eski.ekipId, sonra: yeniEkip, gerekce: v.gerekce ?? null,
+      });
+    }
+    /* Değerlendirme DEĞİŞTİYSE önceki doğrulama artık başka bir kararı
+       işaret eder. Damgayı silmiyoruz — `dogrulamaDurumu()` bunu
+       `degerlendirme_sonrasi_degisti` olarak okur ve ekranda kırmızı
+       yazar; silmek, doğrulamanın hiç yapılmadığı izlenimini verirdi. */
     revalidatePath('/surecler'); revalidatePath('/maddeler'); revalidatePath('/');
     return tamam();
   } catch (e) { return hata(e); }

@@ -13,6 +13,7 @@ import {
   DURUM_SINIFI, DURUM_SOZU, hazirlikCumlesi, hazirlikOzeti, type Kontrol,
 } from '@/lib/altyapi/hazirlikKarari';
 import { AILE_ETIKETI, type AltyapiSaglayici } from '@/lib/altyapi/saglayicilar';
+import { DIS_AILE_ETIKETI, type DisSaglayici } from '@/lib/uyum/disSaglayicilar';
 import { KaliteKarari, TumunuCalistir } from './Eylemler';
 import {
   ConnectorOzeti, KaliteOzeti, MotorOzeti, YeniConnector,
@@ -80,7 +81,7 @@ const Bos = () => <span style={{ color: 'var(--i3)' }}>—</span>;
 
 export default function SaglikIstemci({
   motorlar, kalite, entegrasyon, koken, hazirlik, saglayicilar,
-  baglantiIhtiyaci, yazabilir,
+  disSaglayicilar, baglantiIhtiyaci, yazabilir,
 }: {
   motorlar: Motor[]; kalite: KaliteBulgusu[];
   entegrasyon: EntegrasyonOzeti; koken: KokenOzeti;
@@ -88,6 +89,8 @@ export default function SaglikIstemci({
   hazirlik: Kontrol[];
   /** OT-48 · sağlayıcı kütüğü; bağlı OLMAYANLAR da listede. */
   saglayicilar: AltyapiSaglayici[];
+  /** UY-18 / UY-20 · uyum katmanının dış bağımlılıkları; ikisi de bağlı değil. */
+  disSaglayicilar: DisSaglayici[];
   /** OT-50 · adaptör başına bağlantı ihtiyacı — kurumdan istenecek kalemler. */
   baglantiIhtiyaci: AdaptorIhtiyaci[];
   yazabilir: boolean;
@@ -212,7 +215,7 @@ export default function SaglikIstemci({
             )}
             {kip === 'hazirlik' && (
               <HazirlikBolumu kontroller={hazirlik} saglayicilar={saglayicilar}
-                baglantiIhtiyaci={baglantiIhtiyaci} />
+                disSaglayicilar={disSaglayicilar} baglantiIhtiyaci={baglantiIhtiyaci} />
             )}
           </div>
 
@@ -788,9 +791,10 @@ export type AdaptorIhtiyaci = {
   kalemler: { kod: string; ad: string; tur: string; sir: boolean; aciklama: string }[];
 };
 
-function HazirlikBolumu({ kontroller, saglayicilar, baglantiIhtiyaci }: {
+function HazirlikBolumu({ kontroller, saglayicilar, disSaglayicilar, baglantiIhtiyaci }: {
   kontroller: Kontrol[];
   saglayicilar: AltyapiSaglayici[];
+  disSaglayicilar: DisSaglayici[];
   baglantiIhtiyaci: AdaptorIhtiyaci[];
 }) {
   const o = hazirlikOzeti(kontroller);
@@ -876,8 +880,67 @@ function HazirlikBolumu({ kontroller, saglayicilar, baglantiIhtiyaci }: {
         </div>
       </section>
 
+      <DisBagimlilikBolumu liste={disSaglayicilar} />
+
       <IhtiyacBolumu liste={baglantiIhtiyaci} />
     </div>
+  );
+}
+
+/* ═══ UY-18 · imza  ·  UY-20 · DYS ═════════════════════════════════════
+
+   Uyum katmanının iki dış bağımlılığı altyapı sağlayıcılarından AYRI
+   yazılır çünkü soru farklıdır: OT-48 "ürün hangi altyapıda koşuyor"
+   der, burası "denetçiye verdiğimiz paket neyi kanıtlıyor" der.
+
+   İkisi de bağlı DEĞİLDİR ve bu bölüm bunu gizlemek yerine ekranın
+   ortasına yazar. Bağlı olmadıklarında ürünün NE YAPTIĞI da yazılır:
+   "yapamıyor" cümlesi kurulumu planlayana hiçbir şey söylemez. */
+
+function DisBagimlilikBolumu({ liste }: { liste: DisSaglayici[] }) {
+  const bagliSayisi = liste.filter((s) => s.bagli).length;
+
+  return (
+    <section className="ab-blok">
+      <p className="etiket">Uyum katmanının dış bağımlılıkları</p>
+      <p className="ab-dip" style={{ marginTop: 0 }}>
+        {bagliSayisi === 0
+          ? 'Hiçbiri bağlı değil. Ürün bu yeteneklerin yerine geçen bir '
+            + 'numara YAPMAZ: imzasız paket "imzasız" der, elle girilen '
+            + 'belge sürümü "DYS ile senkron" demez.'
+          : `${bagliSayisi}/${liste.length} bağlı.`}
+      </p>
+      <div style={{ display: 'grid', gap: 'var(--s16)' }}>
+        {liste.map((sg) => (
+          <div key={`${sg.aile}:${sg.ad}`} style={{ display: 'grid',
+            gridTemplateColumns: '22px 1fr', alignItems: 'start', gap: 'var(--s8)' }}>
+            <span style={{ paddingTop: 3 }}>
+              <Im durum={sg.bagli ? 'ok' : 'unk'}
+                ad={sg.bagli ? 'bağlı' : 'bağlı değil'} />
+            </span>
+            <div style={{ display: 'grid', gap: 'var(--s4)' }}>
+              <span style={{ fontSize: 'var(--t-field)', fontWeight: 600 }}>
+                {DIS_AILE_ETIKETI[sg.aile]}
+                <span className="mono" style={{ marginLeft: 'var(--s8)',
+                  fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
+                  {sg.ad}
+                </span>
+              </span>
+              <span className="mono" style={{ fontSize: 'var(--t-label)',
+                color: sg.bagli ? 'var(--i3)' : 'var(--unk)' }}>
+                {sg.bagli ? 'bağlı' : 'BAĞLI DEĞİL'}
+              </span>
+              <span style={{ fontSize: 'var(--t-label)', color: 'var(--i2)' }}>
+                Bağlı değilken ürün: {sg.bagliDegilkenDavranis}
+              </span>
+              <span style={{ fontSize: 'var(--t-label)', color: 'var(--unk)' }}>
+                Gereken: {sg.gereken}
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
   );
 }
 

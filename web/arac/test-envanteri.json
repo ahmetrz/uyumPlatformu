@@ -1,7 +1,7 @@
 {
-  "imza": "096abe7f4ed52e1483cc63faeed4bd88",
-  "dosya": 104,
-  "vaka": 1849,
+  "imza": "1947fa3f1b2bdb4d9f1abbfa42ca53de",
+  "dosya": 105,
+  "vaka": 1857,
   "atlanan": 1,
   "dosyalar": {
     "tests/advisory.test.ts": {
@@ -374,6 +374,10 @@
     },
     "tests/varlik-durusu-eylem.test.ts": {
       "vaka": 39,
+      "atlanan": 0
+    },
+    "tests/varlik-durusu-motor.test.ts": {
+      "vaka": 8,
       "atlanan": 0
     },
     "tests/varlik-sbom-kapsam-ag.test.ts": {

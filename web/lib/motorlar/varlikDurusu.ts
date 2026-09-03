@@ -77,6 +77,35 @@ export async function zafiyetKorelasyonunuIsle(): Promise<{ islenen: number; ure
     select: { id: true, uretici: true, model: true, firmware: true, surum: true },
   });
 
+  /* ── OT-26 · SBOM bileşenleri de korelasyona girer ───────────────────
+     Cihazın kendi üretici/model/firmware üçlüsü yalnız CİHAZI anlatır.
+     Zafiyet çoğu zaman içindeki bir kütüphanededir (OpenSSL, zlib …) ve
+     SBOM tam olarak bunu söyler. Bileşenleri korelasyondan dışarıda
+     bırakmak, SBOM'u yüklenip hiçbir soruya cevap vermeyen bir belge
+     hâline getirirdi.
+
+     Yalnız EN YENİ belge okunur: SBOM bir anlık görüntüdür ve eski
+     belgedeki kaldırılmış bir bileşen bugünkü cihazda yoktur. */
+  const sbomBelgeleri = await db.sbomBelgesi.findMany({
+    where: { varlikId: { not: null } },
+    orderBy: { yuklendi: 'desc' },
+    select: {
+      varlikId: true,
+      girdiler: {
+        select: {
+          bilesen: { select: { ad: true, surum: true, cpe: true, tedarikci: true } },
+        },
+      },
+    },
+  });
+  const bilesenler = new Map<string, {
+    ad: string; surum: string | null; cpe: string | null; tedarikci: string | null;
+  }[]>();
+  for (const b of sbomBelgeleri) {
+    if (b.varlikId === null || bilesenler.has(b.varlikId)) continue;  // en yeni kazanır
+    bilesenler.set(b.varlikId, b.girdiler.map((g) => g.bilesen));
+  }
+
   let islenen = 0; let uretilen = 0;
   for (const v of varliklar) {
     islenen += 1;
@@ -86,40 +115,81 @@ export async function zafiyetKorelasyonunuIsle(): Promise<{ islenen: number; ure
        farklıdır. */
     const surum = v.firmware ?? v.surum;
 
+    /* Cihazın kendisi ve — varsa — SBOM'undaki her bileşen ayrı birer
+       "aday"dır. Bileşen adayının gerekçesi bileşenin adını taşır, çünkü
+       "bu cihaz etkilenen" demek yetmez: hangi kütüphane yüzünden
+       etkilendiği yamalama işinin kendisidir. */
+    const adaylar: { etiket: string | null; girdi: Parameters<typeof korelasyonKarariVer>[1] }[] = [
+      { etiket: null, girdi: { uretici: v.uretici, model: v.model, cpe: null, surum } },
+      ...(bilesenler.get(v.id) ?? []).map((b) => ({
+        etiket: b.surum ? `${b.ad} ${b.surum}` : b.ad,
+        girdi: { uretici: b.tedarikci, model: b.ad, cpe: b.cpe, surum: b.surum },
+      })),
+    ];
+
     /* Zafiyet başına EN AĞIR sonuç: bir advisory birden çok ürün satırı
-       taşıyabilir ve cihaz yalnız birinden etkileniyor olabilir. */
-    const zafiyetSonuclari = new Map<string, { sonuc: KorelasyonSonucu; urunId: string }>();
+       taşıyabilir, cihazda birden çok bileşen olabilir ve bunlardan yalnız
+       biri etkileniyor olabilir. */
+    const zafiyetSonuclari = new Map<string, {
+      sonuc: KorelasyonSonucu; urunId: string; yontem: string;
+    }>();
     for (const u of urunler) {
-      const karar = korelasyonKarariVer(
-        {
-          uretici: u.uretici, urunAdi: u.urunAdi, cpe: u.cpe,
-          etkilenenAlt: u.etkilenenAlt, etkilenenAltDahil: u.etkilenenAltDahil,
-          etkilenenUst: u.etkilenenUst, etkilenenUstDahil: u.etkilenenUstDahil,
-          duzeltilenSurum: u.duzeltilenSurum,
-        },
-        { uretici: v.uretici, model: v.model, cpe: null, surum },
-      );
-      /* Eşleşmeyen ürün satırları için kayıt AÇILMAZ: her varlık × her
-         advisory satırı için satır açmak tabloyu şişirir ve hiçbir şey
-         söylemez. Yalnız etkilenen ve karar verilemeyen saklanır. */
-      if (karar.sonuc === 'etkilenmeyen') continue;
-      for (const az of u.advisory.zafiyetler) {
-        const onceki = zafiyetSonuclari.get(az.zafiyetId);
-        const enAgir = enAgirSonuc([...(onceki ? [onceki.sonuc] : []), karar]);
-        if (enAgir) zafiyetSonuclari.set(az.zafiyetId, { sonuc: enAgir, urunId: u.id });
+      for (const aday of adaylar) {
+        const ham = korelasyonKarariVer(
+          {
+            uretici: u.uretici, urunAdi: u.urunAdi, cpe: u.cpe,
+            etkilenenAlt: u.etkilenenAlt, etkilenenAltDahil: u.etkilenenAltDahil,
+            etkilenenUst: u.etkilenenUst, etkilenenUstDahil: u.etkilenenUstDahil,
+            duzeltilenSurum: u.duzeltilenSurum,
+          },
+          aday.girdi,
+        );
+        /* Eşleşmeyen ürün satırları için kayıt AÇILMAZ: her varlık × her
+           advisory satırı için satır açmak tabloyu şişirir ve hiçbir şey
+           söylemez. Yalnız etkilenen ve karar verilemeyen saklanır. */
+        if (ham.sonuc === 'etkilenmeyen') continue;
+        const karar = aday.etiket === null
+          ? ham
+          : { ...ham, gerekce: `SBOM bileşeni ${aday.etiket}: ${ham.gerekce}` };
+        const yontem = aday.etiket === null ? 'surum_araligi' : 'sbom_bileseni';
+
+        for (const az of u.advisory.zafiyetler) {
+          const onceki = zafiyetSonuclari.get(az.zafiyetId);
+          const enAgir = enAgirSonuc([...(onceki ? [onceki.sonuc] : []), karar]);
+          if (!enAgir) continue;
+          /* Yöntem, KAZANAN kararla birlikte taşınır: cihazın kendi sürümü
+             karar verilemez ama bir bileşeni açıkça etkilenense, satır
+             `sbom_bileseni` olarak yazılır ve gerekçesi bileşeni gösterir. */
+          const kazananBu = enAgir === karar;
+          zafiyetSonuclari.set(az.zafiyetId, {
+            sonuc: enAgir,
+            urunId: u.id,
+            yontem: kazananBu ? yontem : (onceki?.yontem ?? yontem),
+          });
+        }
       }
     }
 
-    for (const [zafiyetId, { sonuc, urunId }] of zafiyetSonuclari) {
+    for (const [zafiyetId, { sonuc, urunId, yontem }] of zafiyetSonuclari) {
+      const anahtar = { varlikId: v.id, zafiyetId, yontem };
       const mevcut = await db.zafiyetKorelasyonu.findUnique({
-        where: { varlikId_zafiyetId_yontem: { varlikId: v.id, zafiyetId, yontem: 'surum_araligi' } },
+        where: { varlikId_zafiyetId_yontem: anahtar },
       });
       if (mevcut && mevcut.sonuc === sonuc.sonuc && mevcut.gerekce === sonuc.gerekce) continue;
 
+      /* Yöntem değiştiyse ESKİ yöntemin satırı kapatılır: aynı zafiyet
+         için iki satır (biri `surum_araligi`, biri `sbom_bileseni`) ekranda
+         aynı bulguyu iki kez gösterirdi. Elle karar verilmiş satır
+         korunur — insan kararı motorun yöntem değişikliğiyle silinmez. */
+      const oteki = yontem === 'surum_araligi' ? 'sbom_bileseni' : 'surum_araligi';
+      await db.zafiyetKorelasyonu.deleteMany({
+        where: { varlikId: v.id, zafiyetId, yontem: oteki, elleSonuc: null },
+      });
+
       await db.zafiyetKorelasyonu.upsert({
-        where: { varlikId_zafiyetId_yontem: { varlikId: v.id, zafiyetId, yontem: 'surum_araligi' } },
+        where: { varlikId_zafiyetId_yontem: anahtar },
         create: {
-          varlikId: v.id, zafiyetId, advisoryUrunId: urunId, yontem: 'surum_araligi',
+          varlikId: v.id, zafiyetId, advisoryUrunId: urunId, yontem,
           sonuc: sonuc.sonuc, guven: sonuc.guven, gerekce: sonuc.gerekce,
           kanitJson: JSON.stringify(sonuc.kanit),
         },

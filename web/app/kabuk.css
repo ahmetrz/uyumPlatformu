@@ -386,14 +386,22 @@
    değil), grup adı başta sabit etiket. Aktif alt ekran bakır alt çizgi.
    Ölçüm gerekçesi: beş grup + 14 alt bağ tek sırada 1366'ya "sığıyordu"
    ama okunmuyordu; hiyerarşi iki satıra ayrıldı. */
+/* Sıra KENDİ İÇİNDE kayar, sayfayı ittirmez. Bağ adları kırpılamaz
+   (gezinme etiketi yarım okunmaz) ve satır sarılamaz (30px sabit); dar
+   ekranda tek çözüm yatay kaydırmadır. `min-width: 0` olmadan flex
+   çocukları kapsayıcıyı taşırır ve `overflow-x` hiçbir işe yaramaz. */
 .ab-ucuncul {
   display: flex; align-items: stretch; height: 30px; padding: 0 20px;
   background: var(--zemin); border-bottom: 1px solid var(--hr);
+  min-width: 0; overflow-x: auto; scrollbar-width: none;
 }
+.ab-ucuncul::-webkit-scrollbar { display: none; }
 .ab-ucuncul .grupad {
   align-self: center; margin-right: 14px; padding-right: 14px; border-right: 1px solid var(--hr2);
   font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--i3); white-space: nowrap;
+  flex: none;
 }
+.ab-ucuncul a { flex: none; }
 .ab-ucuncul a {
   display: flex; align-items: center; padding: 0 10px; white-space: nowrap;
   font-size: 13px; color: var(--i2); border-bottom: 2px solid transparent; border-top: 2px solid transparent;
@@ -2011,11 +2019,19 @@
 }
 
 /* ── Kip ikilisi ───────────────────────────────────────────────────── */
-.ab-ikili { display: inline-flex; border: 1px solid var(--hr2); }
+/* Kip çubuğu KENDİ İÇİNDE kayar, sayfayı ittirmez. Kip adı kırpılamaz
+   (yarım okunan bir kip adı yanlış kipi seçtirir) ve sarılamaz (26px
+   sabit yükseklik); dar ekranda tek çözüm yatay kaydırmadır. Dört kipli
+   ekranlar (Topoloji, Sağlık) 375px'te bu satır yüzünden taşıyordu. */
+.ab-ikili {
+  display: inline-flex; border: 1px solid var(--hr2);
+  max-width: 100%; overflow-x: auto; scrollbar-width: none;
+}
+.ab-ikili::-webkit-scrollbar { display: none; }
 .ab-ikili button {
   height: 26px; padding: 0 14px; background: none; border: 0; cursor: pointer;
   font-family: var(--veri); font-size: 11px; letter-spacing: .14em;
-  text-transform: uppercase; color: var(--i3);
+  text-transform: uppercase; color: var(--i3); white-space: nowrap; flex: none;
 }
 .ab-ikili button:hover { color: var(--murekkep); }
 .ab-ikili button[aria-pressed='true'] { background: var(--aksan); color: var(--aksan-uzeri); }

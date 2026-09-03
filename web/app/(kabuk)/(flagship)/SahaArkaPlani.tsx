@@ -12,8 +12,8 @@ import {
    - Bağlanınca oturumun son indeksinden bir sonraki seçilir; hedef
      görsel arka planda yüklenip DECODE edildikten sonra 400ms çapraz
      geçişle üste biner — yerleşim değişmez (her ikisi `inset: 0`).
-   - Kalan görseller boşta (idle) düşük öncelikle ön yüklenir; beş görsel
-     aynı anda tam çözünürlükte istenmez.
+   - Diğer görsel boşta (idle) düşük öncelikle ön yüklenir; havuz aynı
+     anda tam çözünürlükte istenmez.
    - Zamanlayıcı yok: aynı görünümde görsel kendiliğinden dönmez. */
 
 const GECIS_MS = 400;
@@ -62,7 +62,7 @@ export function SahaArkaPlani() {
       g.decode().then(goster, goster);
     }
 
-    // Kalanlar boşta, düşük öncelikle (sonraki yüklemede hazır olsun).
+    // Kalan(lar) boşta, düşük öncelikle (sonraki yüklemede hazır olsun).
     const kalanlariYukle = () => {
       SAHA_ARKA_PLANLARI.forEach((_, i) => { if (i !== 0 && i !== hedef) onYukle(i, 'low'); });
     };

@@ -1,7 +1,7 @@
 {
-  "imza": "94ab29b167c21c20944d11fadb95cf40",
-  "dosya": 72,
-  "vaka": 1311,
+  "imza": "22c607e45138e8bb1c141cb083398be4",
+  "dosya": 73,
+  "vaka": 1314,
   "atlanan": 1,
   "dosyalar": {
     "tests/api.test.ts": {
@@ -210,6 +210,10 @@
     },
     "tests/saglik-reddedilen.test.ts": {
       "vaka": 11,
+      "atlanan": 0
+    },
+    "tests/saha-arka-plan.test.ts": {
+      "vaka": 3,
       "atlanan": 0
     },
     "tests/semantik.test.ts": {

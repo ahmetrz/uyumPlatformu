@@ -17,7 +17,7 @@ Bu dizinde kalan tek türetilmiş dosya giriş ekranının geniş hero görseli 
 
 ## Saha arka plan havuzu (`saha/`)
 
-Saha ana ekranının merkezi fotoğrafik alanı için beş görsellik TEK havuz; kaynak
+Saha ana ekranının merkezi fotoğrafik alanı için iki görsellik TEK havuz; kaynak
 kodda `lib/sahaArkaPlan.ts` (`SAHA_ARKA_PLANLARI`), yalnız `.ab-b-fon` katmanında
 kullanılır (dekoratif, `alt=""`, `aria-hidden`). Görseller ürün sahibi tarafından
 sağlanmış üretilmiş (AI) görsellerdir; fotoğraf değildir, üçüncü taraf atıf
@@ -25,10 +25,8 @@ yükümlülüğü yoktur. Kaynak 1672×941 PNG → 16:9 merkez kırpım → 1600
 
 | Dosya | Konu | object-position |
 |---|---|---|
-| `saha-01-hes-baraj-aksam.webp` | HES · baraj ve santral, akşam | `60% 58%` |
-| `saha-02-jeotermal-vadi.webp` | Jeotermal · vadi ve buhar sütunları | `66% 46%` |
 | `saha-03-res-sirt.webp` | RES · sırtta türbinler, gün batımı | `78% 42%` |
 | `saha-04-baraj-gol-plume.webp` | Baraj gölü ve uzak santral buharı | `50% 52%` |
-| `saha-05-hes-gece.webp` | HES · gece, şalt sahası | `52% 62%` |
 
-Önceki nötr triptik (`santraller/notr-triptik.webp`) bu havuzla kaldırıldı.
+Havuz ürün sahibi onayıyla 5'ten 2'ye indirildi (2026-09-03); onaylanmayan üç
+görsel repodan silindi. Önceki nötr triptik de kaldırılmıştır.

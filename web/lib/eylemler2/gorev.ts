@@ -87,13 +87,18 @@ export async function gorevDurum(girdi: { id: string; durum: string }): Promise<
     }).parse(girdi);
     const g = await db.gorev.findUnique({ where: { id: v.id } });
     if (!g) throw new Error('Görev bulunamadı');
-    if (g.durum === v.durum) return tamam();
-    /* Kapsam denetimi ÖNCE: ön kapı `KAPSAM_SONRA` ile gevşetildiği için
-       görevin kendi tesisi burada sorulmazsa, tesise kısıtlı rol başka
-       santralin görevini kapatabilirdi. Aşağıdaki sahiplik kuralı bundan
-       AYRI bir sorudur ve onun yerine geçmez. */
+    /* Kapsam denetimi HER ŞEYDEN ÖNCE. İki sebebi var:
+       · Ön kapı `KAPSAM_SONRA` ile gevşetildi; görevin kendi tesisi burada
+         sorulmazsa tesise kısıtlı rol başka santralin görevini kapatır.
+       · "Zaten bu durumda" kısa yolundan da önce gelmeli: sonra gelseydi
+         kapsam dışı bir çağrı, durumu DOĞRU tahmin ettiğinde `tamam()`,
+         yanlış tahmin ettiğinde yetki hatası alırdı — eylem başka
+         santralin görevleri için bir DURUM KEHANETİNE dönerdi.
+         Ölçüldü (2026-09-02, gözden geçirme).
+       Aşağıdaki sahiplik kuralı bundan AYRI bir sorudur, yerine geçmez. */
     kapsamZorunlu(k, 'uyum', 'yazma', { tesisId: g.tesisId },
       'Bu tesis kapsamında görev değiştirme yetkiniz yok');
+    if (g.durum === v.durum) return tamam();
     if (g.sorumluId && g.sorumluId !== k.id
       && !izinVar(k, 'uyum', 'onay', g.tesisId ? { tesisId: g.tesisId } : {}))
       throw new Error('Bu görevi yalnız sorumlusu ya da uyum onay yetkisi olan kapatabilir');

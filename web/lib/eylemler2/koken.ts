@@ -9,13 +9,19 @@
    edilmez. Gerekçe zorunludur: neye dayanarak doğrulandığı yazılmadan bir
    doğrulama denetim izinde hiçbir şey ifade etmez.
 
-   Kalıp: yetkiZorunlu → zod → kapsam (izinVar) → gerçek kullanıcı →
-   db → iz → revalidatePath. */
+   Kalıp: yetkiZorunlu(KAPSAM_SONRA) → zod → gerçek kullanıcı → kayıt +
+   kapsam (kokenGetirVeKapsamDenetle) → db → iz → revalidatePath.
+
+   Ön kapı KAPSAM_SONRA ile açılır çünkü hangi santralin sorulacağı ancak
+   köken kaydı okunduktan sonra bilinir; kapsamsız çağrılsaydı tesise
+   kısıtlı rol KENDİ santralinin kökenini bile doğrulayamazdı. Gerçek
+   denetim `kokenGetirVeKapsamDenetle` içindedir ve kapsamsız kaydı `{}`
+   ile sorar — yani kısıtlı rol kurumsal kayda uzanamaz. */
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { db } from '../db';
-import { yetkiZorunlu, izinVar } from '../erisim';
+import { yetkiZorunlu, izinVar, KAPSAM_SONRA } from '../erisim';
 import { kokenDogrula } from '../entegrasyon/koken';
 import { kokenTesisi } from '../entegrasyon/kokenRapor';
 import type { AktifKullanici } from '../auth';
@@ -111,7 +117,7 @@ export async function kokenDogrulaEylem(girdi: {
   kokenId: string; sonuc: string; gerekce?: string | null;
 }): Promise<Sonuc> {
   try {
-    const k = await yetkiZorunlu('envanter', 'onay');
+    const k = await yetkiZorunlu('envanter', 'onay', KAPSAM_SONRA);
     const v = TekliSema.parse(girdi);
     const kisi = await gercekKullanici(k);
     const koken = await kokenGetirVeKapsamDenetle(k, v.kokenId);
@@ -137,7 +143,7 @@ export async function kokenTopluDogrula(girdi: {
   kokenIdler: string[]; sonuc: string; gerekce?: string | null;
 }): Promise<Sonuc> {
   try {
-    const k = await yetkiZorunlu('envanter', 'onay');
+    const k = await yetkiZorunlu('envanter', 'onay', KAPSAM_SONRA);
     const v = TopluSema.parse(girdi);
     const idler = [...new Set(v.kokenIdler)];
     if (idler.length > TOPLU_SINIR)

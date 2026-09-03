@@ -170,6 +170,20 @@ describe('Kapsam kapısı', () => {
 });
 
 describe('Görev durumu — sahiplik', () => {
+  it('kapsam dışı görev için DURUM KEHANETİ vermez', async () => {
+    /* "Zaten bu durumda" kısa yolu kapsam denetiminden önce koşsaydı,
+       kapsam dışı bir çağrı durumu doğru tahmin edince `tamam()`, yanlış
+       tahmin edince yetki hatası alırdı; ikisinin farkı başka santralin
+       görev durumunu ele verirdi. İKİ tahmin de aynı yanıtı vermeli. */
+    const g = await gorevAc({ tesisId: tesisB });   // durumu 'acik'
+    const dogruTahmin = await kimlikle([yetki('tesis_yoneticisi', tesisA)],
+      () => gorevDurum({ id: g.id, durum: 'acik' }));
+    const yanlisTahmin = await kimlikle([yetki('tesis_yoneticisi', tesisA)],
+      () => gorevDurum({ id: g.id, durum: 'tamamlandi' }));
+    expect(hataMetni(dogruTahmin)).toMatch(/yetki/i);
+    expect(hataMetni(yanlisTahmin)).toMatch(/yetki/i);
+  });
+
   it('sorumlusuz görevi uyum yazma yetkisi olan kapatabilir', async () => {
     const g = await gorevAc();
     expect(hataMetni(await gorevDurum({ id: g.id, durum: 'tamamlandi' }))).toBe('');

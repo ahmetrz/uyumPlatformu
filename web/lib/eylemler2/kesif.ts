@@ -210,6 +210,17 @@ export async function kesifKarariVer(girdi: {
     kapsamZorunlu(k, 'envanter', 'onay', { tesisId },
       'Bu tesis kapsamında envanter onay yetkiniz yok');
 
+    /* HEDEF tesis de denetlenir. Kararın kapsamı EŞLEŞEN varlıktan
+       okunur, ama `yeni_varlik` kararı ÇAĞIRANIN verdiği `tesisId`'ye
+       YAZAR. İkisi ayrışabildiği için tek denetim yetmez: A'ya kısıtlı
+       bir rol, A'ya eşleşmiş bir kaydın üstünden B'de varlık açardı.
+       Ölçüldü (2026-09-02, gözden geçirme); testi
+       tests/kesif-karar.test.ts içinde. */
+    if (v.tesisId && v.tesisId !== tesisId) {
+      kapsamZorunlu(k, 'envanter', 'onay', { tesisId: v.tesisId },
+        'Yeni varlığın açılacağı tesis kapsamında yetkiniz yok');
+    }
+
     const sonuc = await kesifKararUygula({
       kesifId: v.kesifId,
       karar: v.karar,

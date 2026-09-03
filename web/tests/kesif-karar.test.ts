@@ -184,6 +184,32 @@ describe('Kapsam kapısı', () => {
       .toBe('inceleme_bekliyor');
   });
 
+  it('YENİ VARLIK hedefi de denetlenir — kapsam eşleşmeden okunup hedefe yazılamaz', async () => {
+    /* KAPSAM YÜKSELTMESİ (2026-09-02, gözden geçirmede bulundu). Kararın
+       kapsamı eşleşen varlığın tesisinden okunuyor, ama `yeni_varlik`
+       kararı ÇAĞIRANIN verdiği `tesisId`'ye yazıyor. İkisi ayrışırsa
+       A'ya kısıtlı bir rol, A'ya eşleşmiş bir kaydın üstünden B'de varlık
+       açar. Kapı hem OKUNAN hem YAZILAN tesisi denetlemek zorundadır. */
+    const kesif = await kesifAc((await varlikAc(tesisA)).id);
+    const sonuc = await kimlikle([yetki('yonetici', tesisA)], () => kesifKarariVer({
+      kesifId: kesif.id, karar: 'yeni_varlik', not: 'yeni cihaz',
+      turId, etiket: benzersiz('KACAK'), ad: 'Kaçak varlık', tesisId: tesisB,
+    }));
+    expect(hataMetni(sonuc)).toMatch(/yetki/i);
+    expect(await db.varlik.count({ where: { tesisId: tesisB, ad: 'Kaçak varlık' } })).toBe(0);
+  });
+
+  it('yeni varlık KENDİ tesisine açılabilir', async () => {
+    const kesif = await kesifAc(null);
+    const etiket = benzersiz('YENI');
+    const sonuc = await kimlikle([yetki('yonetici', tesisA)], () => kesifKarariVer({
+      kesifId: kesif.id, karar: 'yeni_varlik', not: 'kendi sahamızda yeni cihaz',
+      turId, etiket, ad: 'Yeni cihaz', tesisId: tesisA,
+    }));
+    expect(hataMetni(sonuc)).toBe('');
+    expect(await db.varlik.count({ where: { etiket } })).toBe(1);
+  });
+
   it('tesise kısıtlı rol TESİSSİZ kayda karar veremez', async () => {
     /* Eşleşmemiş keşif kaydının tesisi yoktur. Kapsam denetimi
        "tesis yoksa atla" diye yazılsaydı, tesise kısıtlı rol kurumun

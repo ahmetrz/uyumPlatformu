@@ -120,6 +120,14 @@ export type KaliteBulgusu = {
   /** işaret edilen kayıt silinmişse null — bu bir bilinmeyendir */
   kayitEtiket: string | null;
   href: string | null;
+  /**
+   * OT-44 · Bu kullanıcı bulguyu KARARA BAĞLAYABİLİR mi?
+   *
+   * `envanter/onay` yetkisi ve — kaynağı bir varlıksa — o varlığın tesis
+   * kapsamı ister. Ekran yalnız formu kapatır; `veriKalitesiBulgusuKapat`
+   * aynı kuralı sunucuda yeniden dayatır.
+   */
+  kapatilabilir: boolean;
 };
 
 /* ═══ Biçimlendirme ═════════════════════════════════════════════════════ */

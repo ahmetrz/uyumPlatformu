@@ -9,7 +9,7 @@ import { Cekmece } from '@/components/kabuk/panel';
 import { exceleAktar, pdfYazdir } from '@/components/disaAktar';
 import { etiketle, tarihTR, zamanTR } from '@/lib/sabitler';
 import type { ConnectorSagligi, EntegrasyonOzeti } from '@/lib/entegrasyon/saglikOzeti';
-import { TumunuCalistir } from './Eylemler';
+import { KaliteKarari, TumunuCalistir } from './Eylemler';
 import {
   ConnectorOzeti, KaliteOzeti, MotorOzeti, YeniConnector,
 } from './Cekmeceler';
@@ -236,6 +236,7 @@ export default function SaglikIstemci({
       {secilenBulgu && (
         <Cekmece kod={secilenBulgu.kural} kapat={() => setSecili(null)}>
           <KaliteOzeti b={secilenBulgu} />
+          <KaliteKarari bulgu={secilenBulgu} />
         </Cekmece>
       )}
     </>

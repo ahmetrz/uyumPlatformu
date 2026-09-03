@@ -9,7 +9,7 @@ import TopolojiIstemci from './TopolojiIstemci';
 import {
   anlikKarsilastirmaZamani, kapsamBolgeleri,
   type AnlikSatiri, type BolgeSatiri, type GecitSatiri, type KarsilastirmaIzi,
-  type SapmaSatiri, type TemelSatiri,
+  type SapmaSatiri, type SegmentSatiri, type TemelSatiri,
 } from './mantik';
 
 export const metadata: Metadata = { title: 'Ağ / OT topolojisi' };
@@ -53,6 +53,8 @@ export default async function Sayfa() {
   const onaylayabilir = modulYazabilir(k, 'envanter', 'onay');
   const riskYazabilir = modulYazabilir(k, 'risk', 'yazma');
   const uyumYazabilir = modulYazabilir(k, 'uyum', 'yazma');
+  /* OT-11 · Segment tanımı kütük kaydıdır: `tanimlar/onay`. */
+  const tanimOnaylayabilir = modulYazabilir(k, 'tanimlar', 'onay');
 
 
   /* Sapma ve anlık listeleri EKRANIN KENDİ SORGUSU DEĞİL: ikisi de
@@ -109,6 +111,35 @@ export default async function Sayfa() {
       orderBy: { id: 'asc' },
     })
     : [];
+  /* ── OT-11 · Segmentler ──────────────────────────────────────────────
+     Segment kapsamı BÖLGE üzerinden gelir: bölge kapsam dışıysa onun
+     segmenti de görünmez. Ayrı bir tesis koşulu yazmak, iki kapsam
+     kuralının ayrışması demekti (`AgSegmenti`nin kendi tesisi yok). */
+  const hamSegmentler = bolgeIdleri.length
+    ? await db.agSegmenti.findMany({
+      where: { bolgeId: { in: bolgeIdleri } },
+      select: {
+        id: true, kod: true, ad: true, bolgeId: true, cidr: true, vlanId: true,
+        gatewayIp: true, yonetimAgi: true, aciklama: true,
+        _count: { select: { varliklar: { where: { silindi: null } } } },
+      },
+      orderBy: { kod: 'asc' },
+    })
+    : [];
+  /* Segmentin AÇIK veri kalitesi bulguları (OT-44). `groupBy` tek sorgu;
+     segment başına saymak N+1 olurdu. */
+  const segmentBulgulari = hamSegmentler.length
+    ? await db.veriKalitesiBulgusu.groupBy({
+      by: ['kaynakId'],
+      where: {
+        durum: 'acik', kaynakTipi: 'AgSegmenti',
+        kaynakId: { in: hamSegmentler.map((s) => s.id) },
+      },
+      _count: { _all: true },
+    })
+    : [];
+  const bulguSayaci = new Map(segmentBulgulari.map((b) => [b.kaynakId, b._count._all]));
+
   const { bolgeler, gecitler } = kapsamBolgeleri(
     hamBolgeler.map((b): BolgeSatiri => ({
       id: b.id, kod: b.kod, ad: b.ad, tip: b.tip,
@@ -252,9 +283,32 @@ export default async function Sayfa() {
     };
   });
 
+  /* Segment satırı yalnız KAPSAMDA KALAN bölgelere bağlıysa taşınır:
+     `kapsamBolgeleri` budaması burada da geçerli olmalı, yoksa budanmış
+     bir bölgenin segmenti listede öksüz kalırdı. */
+  const bolgeKodu = new Map(bolgeler.map((b) => [b.id, b]));
+  const segmentler: SegmentSatiri[] = hamSegmentler
+    .filter((s) => bolgeKodu.has(s.bolgeId))
+    .map((s) => {
+      const b = bolgeKodu.get(s.bolgeId)!;
+      return {
+        id: s.id, kod: s.kod, ad: s.ad,
+        bolgeId: s.bolgeId, bolgeKodu: b.kod, tesisKodu: b.tesisKodu,
+        cidr: s.cidr, vlanId: s.vlanId, gatewayIp: s.gatewayIp,
+        yonetimAgi: s.yonetimAgi, aciklama: s.aciklama,
+        varlikSayisi: s._count.varliklar,
+        acikBulgu: bulguSayaci.get(s.id) ?? 0,
+        /* Segment bir KÜTÜK kaydıdır: `tanimlar/onay` ister ve tesise
+           bağlı olmadığı için kapsam kısıtı yoktur (lib/eylemler2/
+           varlikDurusu.ts → agSegmentiKaydet ile aynı kural). */
+        yazilabilir: tanimOnaylayabilir,
+      };
+    });
+
   return (
     <TopolojiIstemci
       sapmalar={sapmalar}
+      segmentler={segmentler}
       anliklar={anliklar}
       temeller={temeller}
       ozet={{ acikSapma: ozet.acikSapma, kritikAcik: ozet.kritikAcik }}
@@ -262,6 +316,7 @@ export default async function Sayfa() {
       tesisler={tesisler}
       bolgeler={bolgeler}
       gecitler={gecitler}
+      segmentYazabilir={tanimOnaylayabilir}
       maddeDurumlari={maddeDurumlari.map((m) => ({
         id: m.id, tesisId: m.tesisId,
         etiket: `${m.madde.kod} · ${m.madde.baslik}`,

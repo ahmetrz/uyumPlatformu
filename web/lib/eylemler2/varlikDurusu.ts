@@ -24,8 +24,12 @@ import { db } from '../db';
 import { yetkiZorunlu, kapsamZorunlu, KAPSAM_SONRA } from '../erisim';
 import { subnetCozumle } from '../alan/ag';
 import { surumCozumle } from '../alan/surum';
-import { sbomAyristir, bilesenleriTekillestir, bilesenKimligi } from '../varlik/sbom';
+import {
+  SBOM_PARTI_BOYU, sbomAyristir, bilesenleriTekillestir, bilesenKimligi,
+} from '../varlik/sbom';
 import { KAPSAM_DURUMLARI, KAPSAM_TIPLERI } from '../varlik/kapsam';
+import { yamaDurumuTuret } from '../varlik/yamaKarari';
+import { ADVISORY_TAVANI, advisoryAyristir } from '../varlik/advisory';
 import { type Sonuc, tamam, hata, iz, tarihAlani, bosluksuz } from './ortak';
 
 const metin = z.string().trim().transform((s) => s || null).nullable().optional();
@@ -246,25 +250,9 @@ export async function yamaKaydiKaydet(girdi: unknown): Promise<Sonuc> {
   } catch (e) { return hata(e); }
 }
 
-/**
- * Yama durumunu alanlardan türetir. Sıra ÖNEMLİ:
- * yamalanamaz → istisna → eksik → uyumlu → karar verilemedi.
- *
- * `karar_verilemedi` son çare değil, ölçülmemişliğin adıdır: taban ya da
- * mevcut seviye yoksa cihazın uyumlu olup olmadığı BİLİNMEZ ve `uyumlu`
- * yazmak ölçülmemiş bir cihazı yeşil göstermek olurdu.
- */
-export function yamaDurumuTuret(v: {
-  yamalanamaz: boolean; istisnaGerekcesi?: string | null;
-  eksikYama?: string | null; mevcutSeviye?: string | null; temelSeviye?: string | null;
-}): 'uyumlu' | 'eksik' | 'yamalanamaz' | 'istisna' | 'karar_verilemedi' {
-  if (v.yamalanamaz) return 'yamalanamaz';
-  if (v.istisnaGerekcesi) return 'istisna';
-  if (v.eksikYama) return 'eksik';
-  if (!v.mevcutSeviye || !v.temelSeviye) return 'karar_verilemedi';
-  if (!surumCozumle(v.mevcutSeviye) || !surumCozumle(v.temelSeviye)) return 'karar_verilemedi';
-  return 'uyumlu';
-}
+/* `yamaDurumuTuret` bu dosyada DEĞİL, `lib/varlik/yamaKarari.ts`tedir:
+   `'use server'` bir modül yalnız async fonksiyon dışa aktarabilir, ve
+   demo ikizi ile testlerin de aynı saf kaynağı okuması gerekiyor. */
 
 /* ══ OT-22 · Firmware tabanı ══════════════════════════════════════════ */
 
@@ -309,6 +297,7 @@ export async function firmwareTemeliKaydet(girdi: unknown): Promise<Sonuc> {
       eylem: v.id ? 'guncelleme' : 'olusturma', alan: 'onayliSurum', sonra: v.onayliSurum,
     });
     revalidatePath('/envanter');
+    revalidatePath('/tabanlar');
     return tamam();
   } catch (e) { return hata(e); }
 }
@@ -385,8 +374,9 @@ export async function korelasyonElleKarar(girdi: {
 
 /* ══ OT-26 · SBOM yükleme ═════════════════════════════════════════════ */
 
-/** Tek yüklemede işlenecek EN ÇOK bileşen — büyük SBOM parça parça gelir. */
-export const SBOM_PARTI_BOYU = 500;
+/* `SBOM_PARTI_BOYU` de bu dosyada DEĞİL: `'use server'` modülü sabit dışa
+   aktaramaz ve sayıyı demo ikizi ile testler de okur — kaynağı
+   `lib/varlik/sbom.ts`tir. */
 
 export async function sbomYukle(girdi: {
   varlikId: string; icerik: string; kaynakSistem: string; kaynakKayitId: string;
@@ -467,6 +457,119 @@ export async function sbomYukle(girdi: {
     });
     revalidatePath('/envanter');
     return { ...tamam(), ozet: { kabul: bilesenler.length, red: cozum.reddedilen.length, bicim: cozum.bicim } };
+  } catch (e) { return hata(e); }
+}
+
+/* ══ OT-25 · Güvenlik duyurusu içe aktarımı ═══════════════════════════
+
+   Duyuru bir KÜTÜK kaydıdır — tek varlığa değil, bir ürün SINIFINA
+   bağlanır — bu yüzden `tanimlar/onay` ister; tesis kapsamı yoktur
+   (Siemens duyurusu bütün santralleri ilgilendirir).
+
+   BU EYLEM HİÇBİR DIŞ KAYNAĞA BAĞLANMAZ. ICS-CERT, üretici PSIRT ya da
+   NVD akışına bağlanmak bir dış bağımlılıktır ve bu ürün onu taklit
+   etmez: insanın indirdiği belge buradan yüklenir, kaynağı da kayda
+   geçer.
+
+   Korelasyonu bu eylem HESAPLAMAZ: duyuru yazılır, `motor.zafiyet_
+   korelasyonu` bir sonraki koşusunda hangi varlığın etkilendiğini
+   hesaplar. Yükleme anında hesaplasaydık, tek bir yüklemenin bütün
+   envanteri taraması gerekirdi ve istek zaman aşımına uğrardı. */
+
+export async function advisoryIceAktar(girdi: {
+  icerik: string; kaynakSistem: string;
+}): Promise<Sonuc & {
+  ozet?: { duyuru: number; urun: number; cve: number; eslesmeyenCve: number; red: number };
+}> {
+  try {
+    const k = await yetkiZorunlu('tanimlar', 'onay');
+    const v = z.object({
+      icerik: bosluksuz('Duyuru belgesi'),
+      kaynakSistem: bosluksuz('Kaynak sistem'),
+    }).parse(girdi);
+
+    const cozum = advisoryAyristir(v.icerik);
+    if (cozum.girdiler.length === 0) {
+      const ilk = cozum.reddedilen[0]?.sebep ?? 'Belgeden hiçbir duyuru okunamadı.';
+      return hata(new Error(ilk));
+    }
+    if (cozum.girdiler.length > ADVISORY_TAVANI) {
+      return hata(new Error(
+        `Belge çok büyük (${cozum.girdiler.length} duyuru). Parça parça yükleyin.`,
+      ));
+    }
+
+    let urunSayisi = 0;
+    let cveBagi = 0;
+    /* Belgede geçen ama envanterde KAYDI OLMAYAN CVE'ler. Bunlar için
+       `Zafiyet` satırı UYDURULMAZ: zafiyet kaydı kendi alanlarıyla
+       (CVSS, istismar durumu, KEV) gelir ve boş bir kabuk yaratmak,
+       ölçülmemiş bir zafiyeti ölçülmüş gibi gösterirdi. Sayısı geri
+       döner ve ekranda yazılır. */
+    const eslesmeyen = new Set<string>();
+
+    for (const g of cozum.girdiler) {
+      const advisory = await db.advisory.upsert({
+        where: { referans: g.referans },
+        create: {
+          kaynak: g.kaynak, referans: g.referans, baslik: g.baslik,
+          yayim: g.yayim ? new Date(g.yayim) : null,
+          guncelleme: g.guncelleme ? new Date(g.guncelleme) : null,
+          url: g.url, ozet: g.ozet,
+        },
+        update: {
+          kaynak: g.kaynak, baslik: g.baslik,
+          guncelleme: g.guncelleme ? new Date(g.guncelleme) : undefined,
+          url: g.url, ozet: g.ozet,
+        },
+      });
+
+      /* Ürün satırları YERİNE GEÇER: güncellenen bir duyuruda etkilenen
+         sürüm aralığı daralabilir ve eski aralık kalırsa motor
+         etkilenmeyen cihazları etkilenen sayardı. */
+      await db.advisoryUrunu.deleteMany({ where: { advisoryId: advisory.id } });
+      for (const u of g.urunler) {
+        await db.advisoryUrunu.create({
+          data: {
+            advisoryId: advisory.id,
+            uretici: u.uretici, urunAdi: u.urunAdi, cpe: u.cpe,
+            etkilenenAlt: u.etkilenenAlt, etkilenenAltDahil: u.etkilenenAltDahil,
+            etkilenenUst: u.etkilenenUst, etkilenenUstDahil: u.etkilenenUstDahil,
+            duzeltilenSurum: u.duzeltilenSurum,
+          },
+        });
+        urunSayisi += 1;
+      }
+
+      for (const cve of g.cveler) {
+        const z = await db.zafiyet.findFirst({
+          where: { kaynakRef: cve }, select: { id: true },
+        });
+        if (!z) { eslesmeyen.add(cve); continue; }
+        await db.advisoryZafiyeti.upsert({
+          where: { advisoryId_zafiyetId: { advisoryId: advisory.id, zafiyetId: z.id } },
+          create: { advisoryId: advisory.id, zafiyetId: z.id },
+          update: {},
+        });
+        cveBagi += 1;
+      }
+
+      await iz({
+        aktorId: k.id, varlikTipi: 'Advisory', varlikId: advisory.id,
+        eylem: 'olusturma', alan: 'referans', sonra: g.referans,
+        gerekce: `kaynak ${v.kaynakSistem}`,
+      });
+    }
+
+    revalidatePath('/tabanlar');
+    revalidatePath('/envanter');
+    return {
+      ...tamam(),
+      ozet: {
+        duyuru: cozum.girdiler.length, urun: urunSayisi, cve: cveBagi,
+        eslesmeyenCve: eslesmeyen.size, red: cozum.reddedilen.length,
+      },
+    };
   } catch (e) { return hata(e); }
 }
 

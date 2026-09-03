@@ -427,6 +427,33 @@ export type BolgeSatiri = {
   varlikSayisi: number;
 };
 
+/* ── OT-11 · Adresleme segmenti ───────────────────────────────────────
+   Bölge bir GÜVENLİK sınırıdır (Purdue seviyesi, geçit kuralı); segment
+   bir ADRESLEME birimidir (VLAN + CIDR). İkisini aynı kayda sıkıştırmak,
+   tek bölgede yaşayan beş VLAN'ı tek satıra indirir ve "bu IP hangi
+   segmentte" sorusu cevapsız kalırdı. */
+export type SegmentSatiri = {
+  id: string;
+  kod: string;
+  ad: string;
+  bolgeId: string;
+  bolgeKodu: string;
+  tesisKodu: string | null;
+  cidr: string;
+  /** null = VLAN BİLİNMİYOR (VLAN yok değil). */
+  vlanId: number | null;
+  gatewayIp: string | null;
+  /** null = bant dışı yönetim ağı olup olmadığı ölçülmedi. */
+  yonetimAgi: boolean | null;
+  aciklama: string | null;
+  /** segmente atanmış, silinmemiş varlık sayısı */
+  varlikSayisi: number;
+  /** bu segment hakkında AÇIK veri kalitesi bulgusu sayısı (OT-44) */
+  acikBulgu: number;
+  /** bu kullanıcı segmenti düzenleyebilir mi (tanimlar/onay) */
+  yazilabilir: boolean;
+};
+
 export type GecitSatiri = {
   id: string;
   kaynakBolgeId: string;

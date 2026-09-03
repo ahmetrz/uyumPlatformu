@@ -49,9 +49,12 @@ vi.mock('@/lib/auth', async (asil) => {
 const { db } = await import('@/lib/db');
 const {
   agSegmentiKaydet, alanUygulanamazIsaretle, firmwareTemeliKaydet,
-  kapsamKaydet, korelasyonElleKarar, sbomYukle, varligaSegmentAta,
-  veriKalitesiBulgusuKapat, yamaKaydiKaydet, yamaDurumuTuret,
+  advisoryIceAktar, kapsamKaydet, korelasyonElleKarar, sbomYukle,
+  varligaSegmentAta, veriKalitesiBulgusuKapat, yamaKaydiKaydet,
 } = await import('@/lib/eylemler2/varlikDurusu');
+/* Durum türetimi `'use server'` modülünde DURAMAZ (yalnız async dışa
+   aktarım kabul edilir) ve demo ikizi de aynı kaynağı okur. */
+const { yamaDurumuTuret } = await import('@/lib/varlik/yamaKarari');
 
 type Sonuc = { ok: true } | { ok: false; hata: string };
 const hataMetni = (s: Sonuc) => (s.ok ? '' : s.hata);
@@ -316,6 +319,84 @@ describe('OT-25 · elle karar izlenebilir ve kapsamlıdır', () => {
     const s = await kimlikle([yetki('tesis_yoneticisi', tesisB)], () => korelasyonElleKarar({
       korelasyonId, sonuc: 'etkilenmeyen', gerekce: 'Kapsam dışı deneme yapılıyor burada.',
     }));
+    expect(s.ok).toBe(false);
+  });
+});
+
+/* ══ OT-25 · Duyuru içe aktarımı ═════════════════════════════════════ */
+
+describe('OT-25 · duyuru içe aktarımı kütük yetkisi ister ve dürüst sayar', () => {
+  const duyuru = (referans: string, cveler: string[] = []) => JSON.stringify([{
+    kaynak: 'icscert', referans, baslik: 'Test duyurusu', cveler,
+    urunler: [{
+      uretici: 'Test Otomasyon', urunAdi: 'PLC-X',
+      etkilenenAlt: '1.0.0', etkilenenUst: '1.4.0',
+    }],
+  }]);
+
+  it('envanter yazma yetkisi YETMEZ: duyuru kütük kaydıdır (tanimlar/onay)', async () => {
+    const s = await kimlikle([yetki('okuyucu')], () => advisoryIceAktar({
+      icerik: duyuru(benzersiz('ADV')), kaynakSistem: 'Elle yükleme',
+    }));
+    expect(s.ok).toBe(false);
+    expect(hataMetni(s)).toMatch(REDDEDILDI);
+  });
+
+  it('duyuru ve ürün satırı yazılır, İZE düşer', async () => {
+    const ref = benzersiz('ADV');
+    const s = await advisoryIceAktar({ icerik: duyuru(ref), kaynakSistem: 'Elle yükleme' });
+    expect(hataMetni(s)).toBe('');
+    expect(s.ozet?.duyuru).toBe(1);
+    expect(s.ozet?.urun).toBe(1);
+    const a = await db.advisory.findUnique({ where: { referans: ref } });
+    expect(a).not.toBeNull();
+    expect(await izVarMi('Advisory', a!.id, 'referans')).not.toBeNull();
+  });
+
+  it('aynı duyuru yeniden yüklenince ürün satırı YERİNE GEÇER, çoğalmaz', async () => {
+    const ref = benzersiz('ADV');
+    await advisoryIceAktar({ icerik: duyuru(ref), kaynakSistem: 'Elle yükleme' });
+    await advisoryIceAktar({ icerik: duyuru(ref), kaynakSistem: 'Elle yükleme' });
+    const a = await db.advisory.findUnique({
+      where: { referans: ref }, include: { urunler: true },
+    });
+    /* Eski aralık kalsaydı, daraltılmış bir duyuruda motor etkilenmeyen
+       cihazları etkilenen saymaya devam ederdi. */
+    expect(a?.urunler).toHaveLength(1);
+  });
+
+  it('envanterde OLMAYAN CVE için zafiyet kaydı UYDURULMAZ, sayılır', async () => {
+    const yokCve = 'CVE-2099-9999';
+    const oncekiSayi = await db.zafiyet.count({ where: { kaynakRef: yokCve } });
+    const s = await advisoryIceAktar({
+      icerik: duyuru(benzersiz('ADV'), [yokCve]), kaynakSistem: 'Elle yükleme',
+    });
+    expect(s.ozet?.eslesmeyenCve).toBe(1);
+    expect(s.ozet?.cve).toBe(0);
+    expect(await db.zafiyet.count({ where: { kaynakRef: yokCve } })).toBe(oncekiSayi);
+  });
+
+  it('envanterde OLAN CVE duyuruya bağlanır', async () => {
+    const ref = benzersiz('CVE-BAGLI');
+    const z = await db.zafiyet.create({
+      data: { kaynakRef: 'CVE-2024-4242', baslik: 'Bağlanacak zafiyet' },
+    }).catch(() => db.zafiyet.findFirst({ where: { kaynakRef: 'CVE-2024-4242' } }));
+    expect(z).not.toBeNull();
+    const s = await advisoryIceAktar({
+      icerik: duyuru(ref, ['CVE-2024-4242']), kaynakSistem: 'Elle yükleme',
+    });
+    expect(s.ozet?.cve).toBe(1);
+    expect(s.ozet?.eslesmeyenCve).toBe(0);
+  });
+
+  it('hiçbir duyuru okunamayan belge REDDEDİLİR, sessizce boş geçmez', async () => {
+    const s = await advisoryIceAktar({ icerik: '{ bozuk', kaynakSistem: 'Elle yükleme' });
+    expect(s.ok).toBe(false);
+    expect(hataMetni(s)).toMatch(/JSON/);
+  });
+
+  it('kaynak sistemi boş belge reddedilir', async () => {
+    const s = await advisoryIceAktar({ icerik: duyuru(benzersiz('ADV')), kaynakSistem: '  ' });
     expect(s.ok).toBe(false);
   });
 });

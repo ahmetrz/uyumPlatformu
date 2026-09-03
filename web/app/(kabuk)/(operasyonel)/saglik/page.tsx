@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { girisZorunlu, izinVar, izinliTesisIdleri } from '@/lib/erisim';
-import { modulYazabilir } from '@/app/kapsam';
+import { kapsamdaYetkili, modulYazabilir } from '@/app/kapsam';
 import { db } from '@/lib/db';
 import { entegrasyonSagligiOzeti } from '@/lib/entegrasyon/saglikOzeti';
 import {
@@ -119,6 +119,10 @@ async function kokenOzetiGetir(
 export default async function Sayfa() {
   const k = await girisZorunlu();
   const yazabilir = izinVar(k, 'yonetim', 'yazma');
+  /* OT-44 · Veri kalitesi bulgusunu KARARA BAĞLAMAK motor çalıştırmakla
+     aynı yetki değildir: bulgu envanterin gerçeğine dokunur, o yüzden
+     `envanter/onay` ister. */
+  const bulguOnaylanabilir = modulYazabilir(k, 'envanter', 'onay');
 
   /* Katalogda olmayan ama koşu bırakmış bir motor GİZLENMEZ: kayıt varsa
      ekranda karşılığı da olmalı. */
@@ -157,18 +161,33 @@ export default async function Sayfa() {
   // Veri kalitesi bulgularının işaret ettiği kayıtları etiketle/linkle.
   const idler = (tip: string) =>
     [...new Set(kaliteBulgulari.filter((b) => b.kaynakTipi === tip).map((b) => b.kaynakId))];
-  const [varliklar, tesisler, kanitlar] = await Promise.all([
+  const [varliklar, tesisler, kanitlar, agSegmentleri] = await Promise.all([
     db.varlik.findMany({ where: { id: { in: idler('Varlik') } },
-      select: { id: true, etiket: true } }),
+      /* `tesisId` yalnız etiket için değil KARAR KAPSAMI için okunur:
+         bir varlığa ait bulguyu ancak o santralde onay yetkisi olan
+         kapatabilir (OT-44). */
+      select: { id: true, etiket: true, tesisId: true } }),
     db.tesis.findMany({ where: { id: { in: idler('Tesis') } },
       select: { id: true, kod: true } }),
     db.kanit.findMany({ where: { id: { in: idler('Kanit') } },
       select: { id: true, ad: true } }),
+    /* OT-11 · Ağ tutarlılığı motoru segment kaynaklı bulgu da açar; kaynağı
+       çözülmezse bulgu "silinmiş kayıt" gibi görünürdü. */
+    db.agSegmenti.findMany({ where: { id: { in: idler('AgSegmenti') } },
+      select: { id: true, kod: true } }),
   ]);
   const kayitBilgisi = new Map<string, { etiket: string; href: string | null }>();
   for (const v of varliklar) kayitBilgisi.set(`Varlik|${v.id}`, { etiket: v.etiket, href: '/envanter' });
   for (const t of tesisler) kayitBilgisi.set(`Tesis|${t.id}`, { etiket: t.kod, href: `/tesisler/${t.id}` });
   for (const kn of kanitlar) kayitBilgisi.set(`Kanit|${kn.id}`, { etiket: kn.ad, href: null });
+  for (const sg of agSegmentleri) {
+    kayitBilgisi.set(`AgSegmenti|${sg.id}`, {
+      etiket: sg.kod, href: `/topoloji?kip=segment&segment=${sg.id}`,
+    });
+  }
+  /* Varlığın tesisi karar kapsamının girdisidir; etiket haritasından ayrı
+     tutulur çünkü etiket görünürlük, tesis ise YETKİ sorusudur. */
+  const varlikTesisi = new Map(varliklar.map((v) => [v.id, v.tesisId]));
 
   const motorlar: Motor[] = tanimlar.map((t, i) => ({
     ...t,
@@ -188,6 +207,13 @@ export default async function Sayfa() {
       kaynakTipi: b.kaynakTipi, olusturuldu: b.olusturuldu.toISOString(),
       // Kayıt bulunamadıysa null: "boş etiket" değil, DOĞRULANAMAYAN bulgu.
       kayitEtiket: bilgi?.etiket ?? null, href: bilgi?.href ?? null,
+      /* Kaynağı varlık olan bulgu O SANTRALİN onayını ister; kaynağı
+         segment ya da tesis olan kayıt kurumsaldır ve `envanter/onay`
+         yeterlidir (lib/eylemler2/varlikDurusu.ts ile aynı kural). */
+      kapatilabilir: bulguOnaylanabilir && (
+        b.kaynakTipi !== 'Varlik'
+        || kapsamdaYetkili(k, 'envanter', 'onay', varlikTesisi.get(b.kaynakId) ?? null)
+      ),
     };
   });
 

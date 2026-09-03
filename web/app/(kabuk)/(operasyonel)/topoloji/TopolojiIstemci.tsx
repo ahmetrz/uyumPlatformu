@@ -13,6 +13,7 @@ import {
   AnlikAlmaFormu, AnlikEylemleri, SapmaKararlari, kaynakSozu,
   type MaddeSecenegi, type Tesis,
 } from './Karar';
+import { SegmentCekmecesi, SegmentGorunumu } from './Segmentler';
 import {
   GORUNUR_TAVAN, KARSILASTIRMA_SOZU, MERCEKLER, SAPMA_DURUM_SOZU,
   SAPMA_TIP_ETIKETI, SIDDET_ETIKETI,
@@ -21,7 +22,8 @@ import {
   karsilastirmaHucresi, mercekten, sapmaImi, sapmaKenari, sayimHesapla, sirala,
   toplanabilir,
   type AnlikSatiri, type BolgeSatiri, type GecitSatiri, type KarsilastirmaIzi,
-  type Mercek, type SapmaSatiri, type SunucuOzeti, type TemelSatiri,
+  type Mercek, type SapmaSatiri, type SegmentSatiri, type SunucuOzeti,
+  type TemelSatiri,
 } from './mantik';
 
 /* O12 · Topoloji sapma tezgâhı.
@@ -41,7 +43,7 @@ import {
    aktarımıyla gelir, anlık alınmadan da vardır; bu yüzden anlıksız boş
    ekranda da gösterilir. Sapma görünümüne dokunmaz. */
 
-type Kip = 'sapma' | 'anlik' | 'bolge';
+type Kip = 'sapma' | 'anlik' | 'bolge' | 'segment';
 
 /** Temel şeridinde gösterilen kapsam satırı tavanı (yoğunluk sözleşmesi). */
 const SERIT_TAVANI = 6;
@@ -77,8 +79,9 @@ function farkAlanlari(kaynak: Record<string, unknown> | null) {
 }
 
 export default function TopolojiIstemci({
-  sapmalar, anliklar, temeller, ozet, iz, tesisler, bolgeler, gecitler, maddeDurumlari,
-  yazabilir, onaylayabilir, riskYazabilir, uyumYazabilir, sapmaTavani, anlikTavani,
+  sapmalar, anliklar, temeller, ozet, iz, tesisler, bolgeler, gecitler, segmentler,
+  maddeDurumlari, yazabilir, onaylayabilir, riskYazabilir, uyumYazabilir,
+  segmentYazabilir, sapmaTavani, anlikTavani,
 }: {
   sapmalar: SapmaSatiri[];
   anliklar: AnlikSatiri[];
@@ -86,6 +89,8 @@ export default function TopolojiIstemci({
   /** kapsamdaki ağ bölgeleri ve aralarındaki geçitler (kapsam budaması sunucuda) */
   bolgeler: BolgeSatiri[];
   gecitler: GecitSatiri[];
+  /** OT-11 · bölgelere bağlı adresleme segmentleri (kapsam budaması sunucuda) */
+  segmentler: SegmentSatiri[];
   /** sunucunun tavandan bağımsız saydığı açık/kritik sapma */
   ozet: SunucuOzeti;
   iz: KarsilastirmaIzi;
@@ -95,6 +100,8 @@ export default function TopolojiIstemci({
   onaylayabilir: boolean;
   riskYazabilir: boolean;
   uyumYazabilir: boolean;
+  /** segment tanımı kütük kaydıdır: `tanimlar/onay` */
+  segmentYazabilir: boolean;
   sapmaTavani: number;
   anlikTavani: number;
 }) {
@@ -105,6 +112,7 @@ export default function TopolojiIstemci({
   const [seciliSapma, setSeciliSapma] = useUrlDurumuBos('sapma');
   const [seciliAnlik, setSeciliAnlik] = useUrlDurumuBos('anlik');
   const [seciliBolgeUrl, setSeciliBolge] = useUrlDurumuBos('bolge');
+  const [seciliSegment, setSeciliSegment] = useUrlDurumuBos('segment');
   const [kuyrukAcik, setKuyrukAcik] = useState(false);
   const [anlikKuyrugu, setAnlikKuyrugu] = useState(false);
 
@@ -168,6 +176,7 @@ export default function TopolojiIstemci({
   }, [bolgeGrafigi]);
   const seciliBolge = seciliBolgeUrl === '-' ? null : (seciliBolgeUrl ?? varsayilanBolge);
   const bolge = bolgeler.find((b) => b.id === seciliBolge) ?? null;
+  const segment = segmentler.find((s) => s.id === seciliSegment) ?? null;
   const bolgeGecitleri = useMemo(
     () => (bolge ? bolgeninGecitleri(bolge.id, gecitler, bolgeler) : []),
     [bolge, gecitler, bolgeler]);
@@ -304,10 +313,12 @@ export default function TopolojiIstemci({
               { id: 'sapma', ad: `Sapmalar · ${sapmalar.length}` },
               { id: 'anlik', ad: `Anlık görüntüler · ${anliklar.length}` },
               { id: 'bolge', ad: `Bölgeler · ${bolgeler.length}` },
+              { id: 'segment', ad: `Segmentler · ${segmentler.length}` },
             ]}
             aktif={kip}
             sec={(id) => {
-              setKip(id as Kip); setSeciliSapma(null); setSeciliAnlik(null); setSeciliBolge(null);
+              setKip(id as Kip); setSeciliSapma(null); setSeciliAnlik(null);
+              setSeciliBolge(null); setSeciliSegment(null);
             }}
           />
 
@@ -359,6 +370,12 @@ export default function TopolojiIstemci({
             </>
           ) : kip === 'bolge' ? (
             <div style={{ marginTop: 'var(--s18)' }}>{bolgeGorunumu}</div>
+          ) : kip === 'segment' ? (
+            <SegmentGorunumu
+              segmentler={segmentler} bolgeler={bolgeler}
+              yazabilir={segmentYazabilir}
+              secili={seciliSegment} sec={setSeciliSegment}
+            />
           ) : (
             <Tablo
               konuBasligi="Anlık görüntü"
@@ -504,6 +521,11 @@ export default function TopolojiIstemci({
       {kip === 'bolge' && bolge && (
         <BolgeCekmecesi bolge={bolge} gecitler={bolgeGecitleri}
           kapat={bolgeKapat} />
+      )}
+
+      {kip === 'segment' && segment && (
+        <SegmentCekmecesi segment={segment} bolgeler={bolgeler}
+          kapat={() => setSeciliSegment(null)} />
       )}
     </>
   );

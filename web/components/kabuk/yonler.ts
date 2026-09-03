@@ -49,8 +49,8 @@ const ALAN_ROTALARI: Record<string, string[]> = {
   ],
   '/envanter': [
     '/envanter', '/kesif', '/varlik-aktarim', '/ice-aktarim', '/topoloji', '/esleme',
-    '/omur', '/yedekleme', '/tedarikciler', '/kimlik', '/yetkiler', '/olaylar',
-    '/operasyon', '/saglik',
+    '/omur', '/tabanlar', '/yedekleme', '/tedarikciler', '/kimlik', '/yetkiler',
+    '/olaylar', '/operasyon', '/saglik',
   ],
   '/riskler': ['/riskler'],
 };
@@ -122,6 +122,9 @@ export const IKINCIL: Record<string, { baslik?: string; ogeler: Oge[] }[]> = {
       ]},
       { ad: 'Yaşam döngüsü', yol: '/omur', alt: [
         { ad: 'Ömür', yol: '/omur' },
+        /* OT-22 · Firmware tabanı bir ömür kararıdır: hangi sürüm onaylı,
+           hangisi geri çekilmiş. Ömür ve Yedekleme ile aynı grupta durur. */
+        { ad: 'Firmware tabanları', yol: '/tabanlar' },
         { ad: 'Yedekleme', yol: '/yedekleme' },
         { ad: 'Tedarikçiler', yol: '/tedarikciler' },
       ]},

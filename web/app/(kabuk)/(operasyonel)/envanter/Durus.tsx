@@ -4,7 +4,7 @@ import { Alan, Dugme } from '@/components/kabuk/temel';
 import { useEylem } from '@/components/useEylem';
 import {
   alanUygulanabilirligiKaldir, alanUygulanamazIsaretle, firmwareIstisnasiKaydet,
-  kapsamKaydet, korelasyonElleKarar, varligaSegmentAta,
+  kapsamKaydet, korelasyonElleKarar, sbomYukle, varligaSegmentAta, yamaKaydiKaydet,
 } from '@/lib/eylemler2/varlikDurusu';
 import {
   KAPSAM_DURUMLARI, KAPSAM_DURUM_SINIFI, KAPSAM_ETIKETI, KAPSAM_TIPLERI,
@@ -235,8 +235,105 @@ function FirmwareBlogu({ v, onaylanabilir }: { v: V; onaylanabilir: boolean }) {
 
 /* ── OT-21 · Yama duruşu ────────────────────────────────────────────── */
 
+const YAMA_SIDDETLERI = ['bilinmiyor', 'kritik', 'yuksek', 'orta', 'dusuk'] as const;
+
+type YamaFormu = {
+  kaynakSistem: string; kaynakKayitId: string;
+  mevcutSeviye: string; temelSeviye: string; eksikYama: string;
+  siddet: string; yenidenBaslatma: string;
+  yamalanamaz: boolean; istisnaGerekcesi: string; telafiEdiciKontrol: string;
+};
+
+const BOS_YAMA: YamaFormu = {
+  kaynakSistem: '', kaynakKayitId: '', mevcutSeviye: '', temelSeviye: '',
+  eksikYama: '', siddet: 'bilinmiyor', yenidenBaslatma: '',
+  yamalanamaz: false, istisnaGerekcesi: '', telafiEdiciKontrol: '',
+};
+
+/** Elle yama kaydı — kaynağı bir sistem olmayan cihazlar için. */
+function YamaKaydiFormu({ varlikId, kapat }: { varlikId: string; kapat: () => void }) {
+  const { bekliyor, hata, calistir } = useEylem();
+  const [f, setF] = useState<YamaFormu>(BOS_YAMA);
+  const gecerli = !!f.kaynakSistem.trim() && !!f.kaynakKayitId.trim();
+
+  return (
+    <div className="ab-durus-form">
+      <p className="mono dipnot">
+        Durum bu formdan SEÇİLMEZ, alanlardan türetilir: yamalanamaz →
+        istisna → eksik yama → uyumlu; seviyelerden biri okunamıyorsa
+        &quot;karar verilemedi&quot;.
+      </p>
+      <Alan etiket="Kaynak sistem">
+        <input className="ab-gr" value={f.kaynakSistem}
+          onChange={(e) => setF({ ...f, kaynakSistem: e.target.value })} />
+      </Alan>
+      <Alan etiket="Kaynak kayıt kimliği">
+        <input className="ab-gr" style={{ fontFamily: 'var(--veri)' }} value={f.kaynakKayitId}
+          onChange={(e) => setF({ ...f, kaynakKayitId: e.target.value })} />
+      </Alan>
+      <Alan etiket="Mevcut yama seviyesi">
+        <input className="ab-gr" style={{ fontFamily: 'var(--veri)' }} value={f.mevcutSeviye}
+          onChange={(e) => setF({ ...f, mevcutSeviye: e.target.value })} />
+      </Alan>
+      <Alan etiket="Taban yama seviyesi">
+        <input className="ab-gr" style={{ fontFamily: 'var(--veri)' }} value={f.temelSeviye}
+          onChange={(e) => setF({ ...f, temelSeviye: e.target.value })} />
+      </Alan>
+      <Alan etiket="Eksik yama">
+        <input className="ab-gr" value={f.eksikYama}
+          onChange={(e) => setF({ ...f, eksikYama: e.target.value })} />
+      </Alan>
+      <Alan etiket="Şiddet">
+        <select className="ab-gr" value={f.siddet}
+          onChange={(e) => setF({ ...f, siddet: e.target.value })}>
+          {YAMA_SIDDETLERI.map((s) => <option key={s} value={s}>{etiketle(s)}</option>)}
+        </select>
+      </Alan>
+      <Alan etiket="Yeniden başlatma">
+        <select className="ab-gr" value={f.yenidenBaslatma}
+          onChange={(e) => setF({ ...f, yenidenBaslatma: e.target.value })}>
+          <option value="">Bilinmiyor</option>
+          <option value="evet">Gerekli</option>
+          <option value="hayir">Gerekmiyor</option>
+        </select>
+      </Alan>
+      <Alan etiket="Yamalanamaz">
+        <select className="ab-gr" value={f.yamalanamaz ? 'evet' : 'hayir'}
+          onChange={(e) => setF({ ...f, yamalanamaz: e.target.value === 'evet' })}>
+          <option value="hayir">Hayır</option>
+          <option value="evet">Evet — üretici yama yayımlamıyor</option>
+        </select>
+      </Alan>
+      <Alan etiket="İstisna gerekçesi">
+        <textarea className="ab-gr" rows={2} value={f.istisnaGerekcesi}
+          onChange={(e) => setF({ ...f, istisnaGerekcesi: e.target.value })} />
+      </Alan>
+      <Alan etiket="Telafi edici kontrol">
+        <input className="ab-gr" value={f.telafiEdiciKontrol}
+          onChange={(e) => setF({ ...f, telafiEdiciKontrol: e.target.value })} />
+      </Alan>
+      {hata && <p className="ab-gr-hata" role="alert">{hata}</p>}
+      <Dugme tur="tam" disabled={bekliyor || !gecerli}
+        onClick={() => calistir(() => yamaKaydiKaydet({
+          varlikId,
+          kaynakSistem: f.kaynakSistem, kaynakKayitId: f.kaynakKayitId,
+          mevcutSeviye: f.mevcutSeviye || null, temelSeviye: f.temelSeviye || null,
+          eksikYama: f.eksikYama || null, siddet: f.siddet,
+          // Boş seçim null'a düşer: "gerekmiyor" ile "bilinmiyor" ayrıdır.
+          yenidenBaslatmaGerekli: f.yenidenBaslatma === '' ? null : f.yenidenBaslatma === 'evet',
+          yamalanamaz: f.yamalanamaz,
+          istisnaGerekcesi: f.istisnaGerekcesi || null,
+          telafiEdiciKontrol: f.telafiEdiciKontrol || null,
+        }), () => { setF(BOS_YAMA); kapat(); })}>
+        Yama kaydını kaydet
+      </Dugme>
+    </div>
+  );
+}
+
 function YamaBlogu({ v }: { v: V }) {
   const yamalar = v.durus.yamalar;
+  const [acik, setAcik] = useState(false);
   return (
     <Blok ad="Yama duruşu" rozet={<span className="mono">{yamalar.length} kaynak</span>}>
       {yamalar.length === 0 ? <KayitYok ne="Yama" /> : yamalar.map((y) => (
@@ -278,6 +375,15 @@ function YamaBlogu({ v }: { v: V }) {
           {y.istisnaGerekcesi && <p className="mono dipnot">İstisna · {y.istisnaGerekcesi}</p>}
         </div>
       ))}
+      {v.yazilabilir && (
+        <>
+          <button type="button" className="ab-dugme mini" aria-expanded={acik}
+            onClick={() => setAcik(!acik)}>
+            {acik ? 'Formu kapat' : 'Yama kaydı ekle'}
+          </button>
+          {acik && <YamaKaydiFormu varlikId={v.id} kapat={() => setAcik(false)} />}
+        </>
+      )}
     </Blok>
   );
 }
@@ -493,8 +599,28 @@ function SegmentBlogu({ v, segmentler, yazilabilir }: {
   );
 }
 
+/* SBOM yükleme — CycloneDX ya da SPDX belgesi.
+
+   Yükleme YERİNE GEÇER, üstüne eklemez: yeni belge cihazın o andaki
+   yazılım listesidir ve eski girdiler silinir. Ekleme semantiği olsaydı
+   kaldırılan bir bileşen listede sonsuza kadar kalırdı.
+
+   Ayrıştırıcı hiçbir koşulda throw etmez; okunamayan bileşenler REDDEDİLEN
+   olarak sayılır ve sonuçta gösterilir — sessizce düşürülmez. */
 function SbomBlogu({ v }: { v: V }) {
+  const { bekliyor, hata, calistir } = useEylem();
+  const [acik, setAcik] = useState(false);
+  const [icerik, setIcerik] = useState('');
+  const [kaynak, setKaynak] = useState('');
+  const [kayitId, setKayitId] = useState('');
   const s = v.durus.sbom;
+  const gecerli = icerik.trim().length > 0 && !!kaynak.trim() && !!kayitId.trim();
+
+  async function dosyadanOku(dosya: File) {
+    setIcerik(await dosya.text());
+    if (!kayitId.trim()) setKayitId(dosya.name);
+  }
+
   return (
     <Blok ad="Yazılım listesi (SBOM)">
       {!s ? <KayitYok ne="SBOM" /> : (
@@ -503,6 +629,52 @@ function SbomBlogu({ v }: { v: V }) {
           <div><dt>Bileşen</dt><dd className="mono">{s.bilesenSayisi}</dd></div>
           <div><dt>Yüklenme</dt><dd className="mono">{zamanTR(s.yuklendi)}</dd></div>
         </dl>
+      )}
+      {v.yazilabilir && (
+        <>
+          <button type="button" className="ab-dugme mini" aria-expanded={acik}
+            onClick={() => setAcik(!acik)}>
+            {acik ? 'Formu kapat' : s ? 'Yeni SBOM yükle' : 'SBOM yükle'}
+          </button>
+          {acik && (
+            <div className="ab-durus-form">
+              <p className="mono dipnot">
+                Yeni belge eskisinin YERİNE GEÇER: cihazın güncel yazılım
+                listesi budur, eski girdiler silinir.
+              </p>
+              <Alan etiket="Kaynak sistem">
+                <input className="ab-gr" value={kaynak}
+                  onChange={(e) => setKaynak(e.target.value)} />
+              </Alan>
+              <Alan etiket="Kaynak kayıt kimliği">
+                <input className="ab-gr" style={{ fontFamily: 'var(--veri)' }} value={kayitId}
+                  onChange={(e) => setKayitId(e.target.value)} />
+              </Alan>
+              <Alan etiket="Belge dosyası (CycloneDX JSON · SPDX)">
+                <input className="ab-gr" type="file" accept=".json,.spdx,.txt,application/json"
+                  onChange={(e) => {
+                    const d = e.target.files?.[0];
+                    if (d) void dosyadanOku(d);
+                  }} />
+              </Alan>
+              <Alan etiket="Belge içeriği">
+                <textarea className="ab-gr" rows={4} value={icerik}
+                  style={{ fontFamily: 'var(--veri)' }}
+                  onChange={(e) => setIcerik(e.target.value)} />
+              </Alan>
+              {hata && <p className="ab-gr-hata" role="alert">{hata}</p>}
+              <Dugme tur="tam" disabled={bekliyor || !gecerli}
+                onClick={() => calistir(
+                  () => sbomYukle({
+                    varlikId: v.id, icerik, kaynakSistem: kaynak, kaynakKayitId: kayitId,
+                  }),
+                  () => { setAcik(false); setIcerik(''); },
+                )}>
+                Belgeyi yükle
+              </Dugme>
+            </div>
+          )}
+        </>
       )}
     </Blok>
   );

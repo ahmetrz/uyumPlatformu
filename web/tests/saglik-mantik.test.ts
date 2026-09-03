@@ -68,7 +68,7 @@ function bulgu(ozel: Partial<KaliteBulgusu> = {}): KaliteBulgusu {
   return {
     id: 'b1', kural: 'sahipsiz_varlik', aciklama: 'Varlığın sahibi atanmamış',
     kaynakTipi: 'Varlik', olusturuldu: AN,
-    kayitEtiket: 'ADANA-OTFW-01', href: '/envanter', ...ozel,
+    kayitEtiket: 'ADANA-OTFW-01', href: '/envanter', kapatilabilir: true, ...ozel,
   };
 }
 

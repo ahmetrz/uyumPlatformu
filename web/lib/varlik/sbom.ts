@@ -22,6 +22,16 @@
    kuran alandır. purl yoksa (ad, sürüm) çifti kullanılır ve bu daha zayıf
    bir kimliktir — kayıt öyle işaretlenir. */
 
+/**
+ * Tek yüklemede işlenecek EN ÇOK bileşen.
+ *
+ * Büyük bir SBOM on binlerce bileşen taşıyabilir; hepsini tek bir yazma
+ * turunda işlemek SQLite'ı ve isteği kilitler. Sınır BURADA durur —
+ * ayrıştırıcının yanında — çünkü hem sunucu eylemi hem demo ikizi hem de
+ * testler aynı sayıyı okumak zorundadır.
+ */
+export const SBOM_PARTI_BOYU = 500;
+
 export type SbomBicimi = 'cyclonedx' | 'spdx';
 
 export type SbomBileseni = {

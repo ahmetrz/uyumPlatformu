@@ -412,7 +412,7 @@ function UyumMatrisi({ cerceve, satirlar, santraller, acik, setAcik, yazabilir }
   setAcik: (a: Acik) => void;
   yazabilir: boolean;
 }) {
-  /* Santral sütunu 68→88px: "Kızıldere III JES" ve "Zorlu Center Genel
+  /* Santral sütunu 68→88px: "Kızıldere III JES" ve "Zorlu Enerji Genel
      Müdürlük" 68px'te 3–4 satıra kırılıyor, altındaki kod da sarıyordu
      (ölçüldü, 1366×768: başlık satırı 5 satır/64px). Başlıkta yalnız
      kısa ad kalır, EN FAZLA 2 satır (`line-clamp`); kod ve künye `title`a

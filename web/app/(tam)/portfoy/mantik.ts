@@ -15,8 +15,10 @@ export type PortfoySatiri = {
   id: string; kod: string; ad: string;
   tipKod: string | null; tipAdi: string; tuzelKisi: string | null;
   konum: string | null; gucMw: number | null; gorselAnahtari: string | null;
-  /** Kesin coğrafi konum; null = girilmedi (harita ili kullanır, A4). */
+  /** Coğrafi konum; null = girilmedi (harita ili kullanır, A4). */
   enlem: number | null; boylam: number | null;
+  /** Koordinat nereden geldi ve bir İNSAN doğruladı mı (P3-8). */
+  konumKaynagi: string | null; konumDogrulandi: boolean;
   kritiklik: string | null;
   uyumYuzde: number | null; bilinmeyenOran: number | null;
   acikBulgu: number; acikRisk: number;

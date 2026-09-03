@@ -122,10 +122,18 @@ node arac/yedek.mjs --karsilastir /tmp/tatbikat.db  # 3. içerik aynı mı
 npx vitest run tests/yedek-araci.test.ts       # 4. aracın kendisi sağlam mı
 ```
 
-**Tatbikat sıklığı ve yedeklerin nerede/ne kadar saklanacağı bu belgede
-YAZMAZ.** Saklama süresi, saklama yeri ve tatbikat takvimi kurumun
-kararıdır; buraya bir sayı yazmak, kimsenin taahhüt etmediği bir politikayı
-belgelemiş gibi görünmek olurdu. Karar verildiğinde bu bölüme yazılır.
+### Politika — karara bağlandı 03.09.2026
+
+| | Kural | Gerekçe |
+| --- | --- | --- |
+| **Saklama** | Günlük 14 gün · haftalık 3 ay · aylık **24 ay** | Veritabanı 2,24 MB; kırk kopya bile 100 MB'ın altında. Bağlayıcı kısıt depolama değil, **denetim izinin delil ömrü**. 24 ay "geçen yılın denetimi + bu yılın denetimi"ni kapsar. |
+| **Yer** | En az iki yer, **biri ürünün koştuğu makinenin dışında** | Tek yerdeki yedek, makineyi kaybettiğinizde yedek değildir. Depoya konmaz (`yedek/` `.gitignore`'da). |
+| **Tatbikat** | Üç ayda bir **+ her göçten sonra ZORUNLU** | Takvimden önemlisi ikincisidir: ölçülen asıl kırılma noktası göç uyuşmazlığıdır — koddan eski bir yedek geri yüklenirse ürün açılışta değil, saatler sonra alakasız bir ekranda patlar. Şema her değiştiğinde bir tatbikat, üç aylık takvimden çok iş görür. |
+
+**Bu politikayı ezecek tek şey:** EPDK ya da iç denetim politikası denetim
+kayıtları için bir asgari saklama süresi dayatıyorsa, o süre 24 ayı ezer.
+Bugün elimizde böyle yazılı bir gereklilik yok; çıkarsa bu tablo ona göre
+yeniden yazılır ve sayı **buradan** değil, o gereklilikten gelir.
 
 ---
 

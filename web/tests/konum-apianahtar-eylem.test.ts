@@ -86,7 +86,12 @@ describe('tesisKonumKaydet — koordinat', () => {
       where: { varlikTipi: 'Tesis', varlikId: tesisA, alan: 'koordinat' },
       orderBy: { zaman: 'desc' },
     });
-    expect(iz?.yeniDeger).toBe('39.9208,32.8541');
+    /* İz artık noktayı TEK BAŞINA yazmıyor: kaynağı ve doğrulanmışlığı
+       da taşıyor (P3-8). Denetim izinde "şu koordinat yazıldı" yetmez,
+       "nereden geldi ve biri baktı mı" da durmalı. */
+    expect(iz?.yeniDeger).toContain('39.9208,32.8541');
+    expect(iz?.yeniDeger).toMatch(/kaynak: belirtilmedi/);
+    expect(iz?.yeniDeger).toMatch(/doğrulanmadı/);
   });
 
   it('YARIM koordinat reddedilir — tek başına enlem haritada bir yer değildir', async () => {
@@ -134,6 +139,98 @@ describe('tesisKonumKaydet — koordinat', () => {
     expect(hataMetni(await kimlikle([yetki('okuyucu')], () => tesisKonumKaydet({
       tesisId: tesisA, enlem: 41, boylam: 34,
     })))).toMatch(/yetki/i);
+  });
+});
+
+describe('Koordinat KAYNAĞI ve DOĞRULANMIŞLIĞI (P3-8)', () => {
+  /* Koordinat İKİ değil ÜÇ durumludur: yok · var ama doğrulanmadı ·
+     doğrulandı. Ortadaki durum olmadan, kamuya açık bir kaynaktan
+     bulunmuş yaklaşık bir nokta ile saha ekibinin ölçtüğü nokta
+     veritabanında ayırt edilemezdi ve ekran ikisini de kesin gösterirdi. */
+
+  it('kaynak yazılır ve doğrulanmamış olarak durur', async () => {
+    expect(hataMetni(await tesisKonumKaydet({
+      tesisId: tesisA, enlem: 38.5, boylam: 27.9, kaynak: 'OpenStreetMap',
+    }))).toBe('');
+    const t = await db.tesis.findUniqueOrThrow({ where: { id: tesisA } });
+    expect(t.konumKaynagi).toBe('OpenStreetMap');
+    // Varsayılan DOĞRULANMAMIŞ: aksi hâli varsaymak, kapatmak istediğimiz
+    // yalanı yazmak olurdu.
+    expect(t.konumDogrulandi).toBe(false);
+    expect(t.konumDogrulayanId).toBeNull();
+  });
+
+  it('DOĞRULAMA kimi ve ne zamanı birlikte yazar', async () => {
+    expect(hataMetni(await tesisKonumKaydet({
+      tesisId: tesisA, enlem: 38.51, boylam: 27.91,
+      kaynak: 'saha GPS', dogrulandi: true,
+    }))).toBe('');
+    const t = await db.tesis.findUniqueOrThrow({ where: { id: tesisA } });
+    expect(t.konumDogrulandi).toBe(true);
+    expect(t.konumDogrulayanId).toBe(oturum.id);
+    expect(t.konumDogrulandiZaman).not.toBeNull();
+  });
+
+  it('KOORDİNAT DEĞİŞİNCE doğrulama DÜŞER — eski onay yeni noktayı kapsamaz', async () => {
+    /* En pahalı kural: doğrulanmış bir koordinat değiştirilirse onay
+       otomatik düşmeli. Düşmezse, kimsenin bakmadığı yeni bir nokta
+       "doğrulanmış" damgasıyla haritada durur. */
+    await tesisKonumKaydet({
+      tesisId: tesisA, enlem: 38.52, boylam: 27.92,
+      kaynak: 'saha GPS', dogrulandi: true,
+    });
+    expect((await db.tesis.findUniqueOrThrow({ where: { id: tesisA } })).konumDogrulandi)
+      .toBe(true);
+
+    expect(hataMetni(await tesisKonumKaydet({
+      tesisId: tesisA, enlem: 39.99, boylam: 28.88, kaynak: 'EPDK lisans sicili',
+    }))).toBe('');
+    const t = await db.tesis.findUniqueOrThrow({ where: { id: tesisA } });
+    expect(t.konumDogrulandi).toBe(false);
+    expect(t.konumDogrulayanId).toBeNull();
+    expect(t.konumDogrulandiZaman).toBeNull();
+  });
+
+  it('koordinat SİLİNİNCE kaynak ve doğrulama da silinir', async () => {
+    await tesisKonumKaydet({
+      tesisId: tesisA, enlem: 38.5, boylam: 27.9, kaynak: 'saha GPS', dogrulandi: true,
+    });
+    expect(hataMetni(await tesisKonumKaydet({
+      tesisId: tesisA, enlem: null, boylam: null,
+    }))).toBe('');
+    const t = await db.tesis.findUniqueOrThrow({ where: { id: tesisA } });
+    expect(t.konumKaynagi).toBeNull();
+    expect(t.konumDogrulandi).toBe(false);
+    expect(t.konumDogrulandiZaman).toBeNull();
+  });
+
+  it('KOORDİNATSIZ doğrulama olmaz', async () => {
+    expect(hataMetni(await tesisKonumKaydet({
+      tesisId: tesisA, enlem: null, boylam: null, dogrulandi: true,
+    }))).toMatch(/koordinat/i);
+  });
+
+  it('doğrulama ONAY yetkisi ister — yazma yetmez', async () => {
+    /* Doğrulama bir ONAYDIR: "bu noktaya birisi baktı" demek, kaydı
+       girmekten farklı bir sorumluluktur. */
+    expect(hataMetni(await kimlikle([yetki('tesis_yoneticisi', tesisA)],
+      () => tesisKonumKaydet({
+        tesisId: tesisA, enlem: 38.5, boylam: 27.9,
+        kaynak: 'saha GPS', dogrulandi: true,
+      })))).toMatch(/yetki|onay/i);
+  });
+
+  it('iz kaydı kaynağı ve doğrulamayı taşır', async () => {
+    await tesisKonumKaydet({
+      tesisId: tesisA, enlem: 40.11, boylam: 29.22,
+      kaynak: 'kurum GIS', dogrulandi: true,
+    });
+    const iz = await db.aktiviteKaydi.findFirst({
+      where: { varlikTipi: 'Tesis', varlikId: tesisA, alan: 'koordinat' },
+      orderBy: { zaman: 'desc' },
+    });
+    expect(iz?.yeniDeger).toContain('kurum GIS');
+    expect(iz?.yeniDeger).toMatch(/doğruland/i);
   });
 });
 

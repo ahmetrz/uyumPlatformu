@@ -50,12 +50,38 @@ model Tesis {
   kuruluGucMw Float?
   konum       String?
 
-  /// Kesin coğrafi konum (WGS84). NULL = GİRİLMEDİ; harita bu santrali
-  /// ilinin merkezine YAKLAŞIK olarak koyar ve bunu ekranda söyler.
-  /// Uydurma koordinat yazılmaz: yanlış bir nokta, boş bir noktadan
-  /// daha pahalıdır (saha ekibi oraya gider).
+  /// Coğrafi konum (WGS84). NULL = GİRİLMEDİ; harita bu santrali ilinin
+  /// merkezine YAKLAŞIK olarak koyar ve bunu ekranda söyler. Uydurma
+  /// koordinat yazılmaz: yanlış bir nokta, boş bir noktadan daha
+  /// pahalıdır (saha ekibi oraya gider).
   enlem         Float?
   boylam        Float?
+
+  /// Koordinatın NEREDEN geldiği — serbest metin, kısa künye:
+  /// "saha GPS", "EPDK lisans sicili", "OpenStreetMap", "kurum GIS".
+  /// NULL = koordinat yok ya da kaynağı kayda geçmemiş.
+  ///
+  /// NEDEN VAR: kamuya açık kaynaklardan bulunan bir koordinat ile saha
+  /// ekibinin ölçtüğü koordinat şemada BİRBİRİNDEN AYIRT EDİLEMİYORDU.
+  /// İkisi de `enlem`/`boylam` kolonuna aynı biçimde yazılıyor, ekran
+  /// ikisini de kesin konum gibi gösteriyordu. Aynı adı taşıyan iki
+  /// santral, santral yerine merkez ofis, kapanmış bir tesisin eski
+  /// koordinatı — hepsi sessizce girerdi.
+  konumKaynagi String?
+
+  /// Bir İNSAN bu koordinatı doğruladı mı? Varsayılan `false`.
+  ///
+  /// "Bilinmeyen ≠ sıfır" kuralının koordinattaki karşılığı: koordinat
+  /// İKİ değil ÜÇ durumludur — yok · var ama doğrulanmadı · doğrulandı.
+  /// Ekran ortadakini "yaklaşık" diye gösterir; kesinmiş gibi
+  /// göstermek, uydurmakla aynı kapıya çıkar.
+  konumDogrulandi Boolean @default(false)
+
+  /// Doğrulamanın ne zaman ve kim tarafından yapıldığı. `konumDogrulandi`
+  /// true iken dolu olmak zorundadır (eylem katmanı birlikte yazar);
+  /// gerekçesi denetim izinde ayrıca durur.
+  konumDogrulayanId String?
+  konumDogrulandiZaman DateTime?
   durum         String    @default("aktif") // aktif | kapali
   devreyeGiris  DateTime?
   kapanisTarihi DateTime?
@@ -72,6 +98,7 @@ model Tesis {
 
   tip       TesisTipi? @relation(fields: [tipId], references: [id])
   tuzelKisi TuzelKisi? @relation(fields: [tuzelKisiId], references: [id])
+  konumDogrulayan Kullanici? @relation("TesisKonumDogrulayan", fields: [konumDogrulayanId], references: [id])
 
   surecKapsamlari SurecKapsami[]
   maddeDurumlari  MaddeDurumu[]
@@ -436,6 +463,7 @@ model Kullanici {
 
   yetkiler          Yetki[]
   durumSorumluluk   MaddeDurumu[]   @relation("DurumSorumlusu")
+  konumDogrulamalari Tesis[]        @relation("TesisKonumDogrulayan")
   bulguSorumluluk   Bulgu[]         @relation("BulguSorumlusu")
   aksiyonSorumluluk Aksiyon[]       @relation("AksiyonSorumlusu")
   yuklenenKanitlar  Kanit[]         @relation("KanitYukleyen")

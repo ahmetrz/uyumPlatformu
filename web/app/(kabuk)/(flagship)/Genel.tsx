@@ -501,7 +501,7 @@ function Takimyildizi({ santraller }: { santraller: SantralKarti[] }) {
     && Math.abs((o.endeks ?? 0) - (s.endeks ?? 0)) < 20
     && Math.abs(dikey(o) - dikey(s)) < 11
   )));
-  /* Eksene yakın işaretin künyesi YUKARI açılır: "Zorlu Center" (0 MW)
+  /* Eksene yakın işaretin künyesi YUKARI açılır: "Zorlu Enerji Genel Müdürlük" (0 MW)
      künyesi x ekseninin adıyla üst üste biniyordu (ölçüldü, 1366×768).
      Eşik %14 = künye yüksekliği (28px) / tuval yüksekliği (~300px) payı. */
   const yukari = (s: SantralKarti) => dikey(s) < 14;

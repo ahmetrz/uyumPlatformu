@@ -24,6 +24,7 @@ function santral(ek: Partial<PortfoySatiri> & { id: string }): PortfoySatiri {
     tipKod: 'JES', tipAdi: 'Jeotermal', tuzelKisi: 'Zorlu Jeotermal',
     konum: null, gucMw: 100, gorselAnahtari: null, kritiklik: null,
     enlem: null, boylam: null,
+    konumKaynagi: null, konumDogrulandi: false,
     uyumYuzde: 80, bilinmeyenOran: 0, acikBulgu: 0, acikRisk: 0,
     ...ek,
   };
@@ -92,11 +93,15 @@ describe('Yerleşim — üç hâl karışmaz', () => {
     santral({ id: 'konumsuz', konum: null }),
   ];
 
-  it('koordinatı olan KESİN, ili olan YAKLAŞIK, ikisi de yoksa haritada YOK', () => {
+  it('koordinatı olan yerleşir, ili olan YAKLAŞIK, ikisi de yoksa haritada YOK', () => {
     const y = yerlesimKur(liste);
     expect(y.isaretler.map((i) => i.id).sort()).toEqual(['kesin', 'yaklasik']);
     expect(y.yerlestirilemeyen.map((s) => s.id).sort()).toEqual(['bilinmeyen', 'konumsuz']);
-    expect(y.kesinSayisi).toBe(1);
+    /* Fikstürdeki koordinat DOĞRULANMAMIŞ (varsayılan): sayım da öyle
+       diyor. Eskiden tek bir "kesin" kovası vardı ve doğrulanmamış nokta
+       oraya düşüyordu — P3-8'de kapatılan yalan buydu. */
+    expect(y.dogrulanmisSayisi).toBe(0);
+    expect(y.dogrulanmamisSayisi).toBe(1);
     expect(y.yaklasikSayisi).toBe(1);
   });
 
@@ -105,22 +110,38 @@ describe('Yerleşim — üç hâl karışmaz', () => {
     const i = y.isaretler[0];
     expect(i.kaynak).toBe('il');
     expect(i.enlem).toBe(IL_MERKEZI.Osmaniye.enlem);
-    expect(kaynakYazisi(i)).toBe('Osmaniye il merkezi · kesin konum girilmedi');
+    expect(kaynakYazisi(i)).toBe('Osmaniye il merkezi · konum girilmedi');
   });
 
-  it('kesin işaret koordinatını yazar, il merkezini DEĞİL', () => {
+  it('koordinatlı işaret noktasını yazar, il merkezini DEĞİL', () => {
     const y = yerlesimKur([liste[0]]);
     const i = y.isaretler[0];
-    expect(i.kaynak).toBe('kesin');
-    expect(kaynakYazisi(i)).toBe(koordinatYazisi(37.9, 29.1));
+    expect(i.kaynak).toBe('dogrulanmamis');
     expect(i.enlem).not.toBe(IL_MERKEZI.Denizli.enlem);
+    // Doğrulanmamış nokta KENDİNİ SÖYLER; sessiz kalmak onu doğrulanmış
+    // gibi göstermekle aynı kapıya çıkardı.
+    expect(kaynakYazisi(i)).toContain(koordinatYazisi(37.9, 29.1));
+    expect(kaynakYazisi(i)).toMatch(/DOĞRULANMADI/);
+  });
+
+  it('DOĞRULANMIŞ işaret damgasız yazar ve kaynağını künyeye koyar', () => {
+    const y = yerlesimKur([santral({
+      id: 'dogru', konum: 'Denizli', enlem: 37.9, boylam: 29.1,
+      konumKaynagi: 'saha GPS', konumDogrulandi: true,
+    })]);
+    const i = y.isaretler[0];
+    expect(i.kaynak).toBe('dogrulanmis');
+    expect(kaynakYazisi(i)).toBe(`${koordinatYazisi(37.9, 29.1)} · saha GPS`);
+    expect(kaynakYazisi(i)).not.toMatch(/DOĞRULANMADI/);
+    expect(y.dogrulanmisSayisi).toBe(1);
   });
 
   it('çerçeve dışı KESİN koordinat ile merkezine düşer, zorlanmaz', () => {
     // Enlem/boylam ters girilmiş bir kayıt: 29.1 K, 37.9 D → çerçeve dışı.
     const y = yerlesimKur([santral({ id: 'ters', konum: 'Denizli', enlem: 29.1, boylam: 37.9 })]);
     expect(y.isaretler[0].kaynak).toBe('il');
-    expect(y.kesinSayisi).toBe(0);
+    expect(y.dogrulanmisSayisi).toBe(0);
+    expect(y.dogrulanmamisSayisi).toBe(0);
   });
 
   it('ili de tanınmayan çerçeve dışı kayıt haritaya hiç girmez', () => {
@@ -175,14 +196,24 @@ describe('Ölçü ve başlık', () => {
     const y2 = yerlesimKur([santral({ id: 'y', konum: 'Rize' })]);
     expect(baslikMetni(olcu(y2)).ad).toBe('il merkezine yaklaştırıldı');
 
+    /* DOĞRULANMAMIŞ nokta, il merkezine yaklaştırılmış noktadan DAHA
+       yanıltıcıdır: ikincisi zaten "yaklaşık" diyor, birincisi kesin
+       görünüyor. Bu yüzden başlıkta önce o söylenir. */
     const y3 = yerlesimKur([
       santral({ id: 'k', konum: 'Denizli', enlem: 37.9, boylam: 29.1 }),
       santral({ id: 'y', konum: 'Rize' }),
     ]);
-    expect(baslikMetni(olcu(y3)).ad).toBe('kesin konumu girilmemiş');
+    expect(baslikMetni(olcu(y3)).ad).toBe('koordinatı doğrulanmadı');
 
-    const y4 = yerlesimKur([santral({ id: 'k', konum: 'Denizli', enlem: 37.9, boylam: 29.1 })]);
-    expect(baslikMetni(olcu(y4))).toMatchObject({ ad: 'kesin konumuyla haritada', durum: 'ok' });
+    const dogru = (id: string, konum: string, enlem: number, boylam: number) =>
+      santral({ id, konum, enlem, boylam, konumKaynagi: 'saha GPS', konumDogrulandi: true });
+
+    const y3b = yerlesimKur([dogru('k', 'Denizli', 37.9, 29.1), santral({ id: 'y', konum: 'Rize' })]);
+    expect(baslikMetni(olcu(y3b)).ad).toBe('konumu girilmemiş');
+
+    const y4 = yerlesimKur([dogru('k', 'Denizli', 37.9, 29.1)]);
+    expect(baslikMetni(olcu(y4)))
+      .toMatchObject({ ad: 'doğrulanmış konumuyla haritada', durum: 'ok' });
 
     expect(baslikMetni(olcu(yerlesimKur([]))).ad).toBe('Kapsamınızda santral yok');
   });
@@ -192,7 +223,9 @@ describe('Ölçü ve başlık', () => {
       santral({ id: 'a', konum: 'Rize', uyumYuzde: null }),
       santral({ id: 'b', konum: 'Kars', uyumYuzde: 90 }),
     ]);
-    expect(olcu(y)).toMatchObject({ toplam: 2, yaklasik: 2, kesin: 0, olculmeyenUyum: 1 });
+    expect(olcu(y)).toMatchObject({
+      toplam: 2, yaklasik: 2, dogrulanmis: 0, dogrulanmamis: 0, olculmeyenUyum: 1,
+    });
   });
 });
 

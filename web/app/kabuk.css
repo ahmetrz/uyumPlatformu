@@ -613,18 +613,15 @@
 }
 .ab-b-takim .eksenad.x { left: 50%; transform: translateX(-50%); bottom: 2px; }
 .ab-b-takim .eksenad.y { left: 8px; top: 0; }
-/* Eksen çentikleri ve hedef köşesi — 11px mono, yapısal; başlığın
-   kuyruğundaki okuma anahtarı ile birlikte "sağ üst iyidir" sözünü
-   üç kanaldan söyler (madde 5, 2026-09). */
+/* Eksen çentikleri ve hedef köşesi — 11px mono, yapısal. "Sağ üst
+   iyidir" sözü iki kanaldan: eksen okları + hedef köşesi (başlık
+   kuyruğundaki üçüncü tekrar Faz 3 kapanışında `title`a taşındı). */
 .ab-b-takim .centik { position: absolute; bottom: 2px; font-size: 11px; color: var(--i3); }
 .ab-b-takim .centik.c0 { left: 4%; transform: translateX(-50%); }
 .ab-b-takim .centik.c100 { left: 90%; transform: translateX(-50%); }
 .ab-b-takim .hedef {
   position: absolute; right: 0; top: 0; font-size: 11px; letter-spacing: .08em;
   text-transform: uppercase; color: var(--aksan); opacity: .85;
-}
-.ab-b-takim .etiket.ust .okuma {
-  margin-left: 14px; font-size: 11px; letter-spacing: .02em; text-transform: none; color: var(--i3);
 }
 .ab-b-takim .isaret { position: absolute; transform: translate(-50%, 50%); }
 .ab-b-takim .kare {
@@ -660,10 +657,6 @@
 .ab-b-takim .isaret.oncelik .kunye .ad { color: var(--murekkep); }
 .ab-b-takim .isaret.oncelik .kunye .alt { color: var(--i2); }
 .ab-b-takim .isaret:hover .kunye .ad { color: var(--aksan); }
-.ab-b-takim .olculmemis-not {
-  flex: none; margin: 8px 0 0; font-size: 11px; line-height: 1.4; color: var(--i3);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
 
 /* ── Değerlendirilmemiş şeridi ──────────────────────────────────────
    Hiç değerlendirilmemiş santralin uyum endeksi YOKTUR; eksende bir yere
@@ -689,9 +682,10 @@
 .ab-b-takim .serit-bas {
   margin: 0 0 8px; font-size: var(--t-label); letter-spacing: .1em;
   text-transform: uppercase; color: var(--i3); line-height: 1.2;
-  display: grid; gap: 2px;
+  display: flex; align-items: baseline; justify-content: space-between; gap: 8px;
 }
-.ab-b-takim .serit-bas .alt { letter-spacing: .02em; opacity: .85; }
+/* Sayı başlığın sağında, 11px: sözcük bir kez, sayı yanında (yöntem notu `title`ta). */
+.ab-b-takim .serit-bas .adet { font-size: 11px; letter-spacing: 0; color: var(--i2); }
 .ab-b-takim .serit .kalem {
   display: grid; grid-template-columns: 12px minmax(0, 1fr) auto;
   align-items: baseline; gap: 8px; padding: 3px 0; min-width: 0;
@@ -741,11 +735,8 @@
 /* Yığın çubuğu — dört parça: uygun · kısmi · uygunsuz · BİLİNMEYEN */
 .ab-b-yigin { display: flex; gap: 1px; height: 24px; background: var(--hr); }
 .ab-b-yigin.bos {
-  align-items: center; justify-content: center;
+  /* sözsüz: taralı doku = "değerlendirilmedi" glifi; sözcük erişilebilir adda */
   background: repeating-linear-gradient(45deg, var(--hr) 0 3px, transparent 3px 6px);
-}
-.ab-b-yigin.bos .mono {
-  font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--i3);
 }
 .ab-b-yigin > span { display: block; }
 .ab-b-yigin .uygun { background: var(--ok); }

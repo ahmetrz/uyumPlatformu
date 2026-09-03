@@ -43,6 +43,15 @@ import type {
    · dikkat listesi = açık/aksiyonda bulgular, öncelik sırasıyla;
    · katmanlar = `TesisTipi` başına `uyumOzeti`;
    · eğilim = `UyumAnlik` kayıtları — yoksa ÇİZİLMEZ.
+
+   ── BİLGİ KATMANI (Faz 3 kapanış, 2026-09) ─────────────────────────────
+   Varsayılan görünümde yalnız BİRİNCİL katman yazılır: endeks, ilk 3
+   müdahale, takımyıldız, 4 öncelik sayısı, santral şeridi. İKİNCİL katman
+   (kontrol kodu, çerçeve, tanım cümleleri, yöntem notları, toplamlar)
+   ekrandan silinmez; `title`a ve hedef ekrana taşınır. Ölçüt: "bu metin
+   ilk bakışta karar verdiriyor mu?" — hayırsa varsayılan görünümde yok.
+   Veri kaybı yok: aynı alanlar `title`, erişilebilir ad veya tıklama
+   hedefinde durur.
    ═══════════════════════════════════════════════════════════════════════ */
 
 const KISA_TARIH = new Intl.DateTimeFormat('tr-TR', { day: '2-digit', month: 'short' });
@@ -51,10 +60,16 @@ function kisaTarih(iso: string): string {
   return Number.isNaN(d.getTime()) ? '—' : KISA_TARIH.format(d).toLocaleUpperCase('tr-TR');
 }
 
-/** Son tarih cümlesi — gecikme SÖZCÜKLE de anlatılır, salt renkle değil. */
+/** Son tarih cümlesi (tam, `title` için) — gecikme SÖZCÜKLE de anlatılır. */
 function terminSozu(gecikmisGun: number | null, hedefTarih: string | null): string {
   if (gecikmisGun !== null) return `son tarih ${gecikmisGun} gün geçti`;
   return hedefTarih ? `son tarih ${kisaTarih(hedefTarih)}` : 'son tarih yok';
+}
+/** Görünür termin: yalnız karar taşıyan parça. Gecikme sözcükle ("gün
+    gecikti"), plan tarihle; tarih yoksa hiç yazılmaz (tamamı `title`ta). */
+function terminKisa(gecikmisGun: number | null, hedefTarih: string | null): string | null {
+  if (gecikmisGun !== null) return `${gecikmisGun} gün gecikti`;
+  return hedefTarih ? kisaTarih(hedefTarih) : null;
 }
 
 export type Kayit = {
@@ -135,10 +150,13 @@ export default function Genel({
             <span className="sayi">{ozet.uyumYuzde === null ? '—' : `%${ozet.uyumYuzde}`}</span>
             <span className="yan">
               <span className="ad">Uyum endeksi</span>
-              <span className="alt">
+              <span className="alt"
+                title={ozet.bilinmeyenOran === null
+                  ? 'Hiç değerlendirme yok — endeks hesaplanamıyor'
+                  : `%${ozet.bilinmeyenOran} kontrol değerlendirilmedi; paydaya girmez (bilinmeyen ≠ sıfır)`}>
                 {ozet.bilinmeyenOran === null
-                  ? 'hiç değerlendirme yok'
-                  : `%${ozet.bilinmeyenOran} bilinmeyen · payda dışı`}
+                  ? 'değerlendirme yok'
+                  : `%${ozet.bilinmeyenOran} bilinmeyen`}
               </span>
             </span>
           </div>
@@ -153,7 +171,7 @@ export default function Genel({
 
         {/* ── Katman paneli · 320px ─────────────────────────────────── */}
         <aside className="ab-b-katman" aria-label="Üretim tipine göre uyum">
-          <p className="etiket">Üretim tipine göre uyum katmanları</p>
+          <p className="etiket" title="Üretim tipine göre uyum katmanları">Üretim tipi · uyum</p>
           <div className="katmanlar">
             {tipler.length === 0 && <p className="bos">Kapsamında santral yok.</p>}
             {tipler.slice(0, KATMAN_TAVANI).map((t) => (
@@ -162,11 +180,11 @@ export default function Genel({
                   <span className="ad">{tipAdi(t.kod, t.ad)}</span>
                   <span className="mono deger">{t.endeks === null ? '—' : `%${t.endeks}`}</span>
                 </div>
-                <p className="mono meta">
-                  {t.santralSayisi} santral · {t.gucMw} MWe · {t.kontrolSayisi} kontrol
+                <p className="mono meta" title={`${t.santralSayisi} santral · ${t.gucMw} MWe · ${t.kontrolSayisi} kontrol`}>
+                  {t.santralSayisi} santral · {t.gucMw} MWe
                 </p>
                 <Yigin uygun={t.uygun} kismi={t.kismi} uygunsuz={t.uygunsuz}
-                  bilinmeyen={t.bilinmeyen} tip={t.kod} />
+                  bilinmeyen={t.bilinmeyen} tip={t.kod} kontrol={t.kontrolSayisi} />
               </div>
             ))}
             {tipler.length > KATMAN_TAVANI && (
@@ -185,12 +203,12 @@ export default function Genel({
       {/* ═══ Saha şeridi ═══════════════════════════════════════════════ */}
       <section className="ab-b-serit" aria-label="Saha seçici">
         <header>
-          <span className="etiket">
-            Saha seçici · {ozet.tesisSayisi} üretim tesisi · {ozet.toplamGucMw} MWe
-          </span>
-          <span className="etiket sag">
-            Tesise geçmek için seçin
-            {santraller.length > 6 && ' · yatay kaydırın'}
+          {/* "Tesise geçmek için seçin · yatay kaydırın" yönlendirmesi
+              kaldırıldı: kartlar bağdır, şerit kesilerek biter — davranış
+              kendini gösterir; sözle tekrar karar taşımıyordu. */}
+          <span className="etiket"
+            title={`Saha seçici · ${ozet.tesisSayisi} üretim tesisi · ${ozet.toplamGucMw} MWe`}>
+            Santraller · {ozet.tesisSayisi} · {ozet.toplamGucMw} MWe
           </span>
         </header>
         <div className="kartlar">
@@ -222,27 +240,30 @@ function OncelikSeridi({ ozet, risk }: { ozet: Ozet; risk: RiskIzgarasi }) {
   const yogunlukDurumu = risk.kritik > 0 ? 'bd' : risk.yuksek > 0 ? 'md' : olculemeyenRisk > 0 ? 'unk' : 'ok';
   return (
     <section className="ab-kpi" aria-label="Öncelik göstergeleri">
+      {/* Cümle satırı yalnız KARAR taşıyan parçayı yazar: "ölçülemedi"
+          (bilinmeyen ≠ sıfır) ve denetimin adı/tarihi. Tanım cümleleri
+          ("artık skor ≥ 15", "hedef tarihi geçmiş…", "olasılık × etki")
+          `title`a taşındı — ilk bakışta karar verdirmiyordu. */}
       <Link href="/riskler"
-        className={`kalem d-${ozet.kritikRisk > 0 ? 'bd' : olculemeyenRisk > 0 ? 'unk' : 'ok'}`}>
+        className={`kalem d-${ozet.kritikRisk > 0 ? 'bd' : olculemeyenRisk > 0 ? 'unk' : 'ok'}`}
+        title={`Artık skor ≥ 15 · açık veya işlemde${olculemeyenRisk > 0 ? ` · ${olculemeyenRisk} risk ölçülemedi (olasılık/etki girilmemiş)` : ''}`}>
         <span className="etiket">Kritik risk</span>
         <span className="mono deger">{ozet.kritikRisk}</span>
-        <span className="cumle">
-          artık skor ≥ 15 · açık veya işlemde
-          {olculemeyenRisk > 0 && (
-            <> · <span className="unk">{olculemeyenRisk} risk ölçülemedi</span></>
-          )}
-        </span>
+        {olculemeyenRisk > 0 && (
+          <span className="cumle"><span className="unk">{olculemeyenRisk} ölçülemedi</span></span>
+        )}
       </Link>
-      <Link href="/bulgular" className={`kalem d-${ozet.gecikmisAksiyon > 0 ? 'bd' : 'ok'}`}>
+      <Link href="/bulgular" className={`kalem d-${ozet.gecikmisAksiyon > 0 ? 'bd' : 'ok'}`}
+        title={ozet.gecikmisAksiyon > 0
+          ? 'Hedef tarihi geçmiş, hâlâ planlı veya devam eden aksiyonlar'
+          : 'Hedef tarihi geçmiş aksiyon yok'}>
         <span className="etiket">Gecikmiş aksiyon</span>
         <span className="mono deger">{ozet.gecikmisAksiyon}</span>
-        <span className="cumle">
-          {ozet.gecikmisAksiyon > 0
-            ? 'hedef tarihi geçmiş, hâlâ planlı veya devam eden'
-            : 'hedef tarihi geçmiş aksiyon yok'}
-        </span>
       </Link>
-      <Link href="/denetimler" className={`kalem d-${denetimDurumu}`}>
+      <Link href="/denetimler" className={`kalem d-${denetimDurumu}`}
+        title={yaklasan === null
+          ? 'Planlı denetim yok'
+          : `${yaklasan.ad} · ${yaklasan.kod} · ${kisaTarih(yaklasan.tarih)} · ${yaklasan.kalanGun} gün kaldı`}>
         <span className="etiket">Yaklaşan denetim</span>
         {yaklasan === null ? (
           <>
@@ -251,30 +272,27 @@ function OncelikSeridi({ ozet, risk }: { ozet: Ozet; risk: RiskIzgarasi }) {
           </>
         ) : (
           <>
-            {/* Değer gün sayısı (sayı kanalı), ad ve kod cümlede: tek ekran
-                bütçesinde 62px'lik kalemde uzun denetim adı kırpılıyordu
-                (ölçüldü: "ISO 27001 Gö…" 1366'da). Ad tam yazılır, gerekirse
-                cümle sonu kırpılır — sayı hiç kırpılmaz. */}
+            {/* Değer gün sayısı (sayı kanalı); ad ve tarih cümlede, kod
+                `title`ta. Uzun ad cümle sonundan kırpılır — sayı hiç kırpılmaz. */}
             <span className="mono deger">
               {yaklasan.kalanGun}<span className="birim"> gün</span>
             </span>
             <span className="cumle">
-              {yaklasan.ad} · <span className="mono">{yaklasan.kod} · {kisaTarih(yaklasan.tarih)}</span>
-              {yaklasan.kalanGun <= 7 && ' · yakın'}
+              {yaklasan.ad} · <span className="mono">{kisaTarih(yaklasan.tarih)}</span>
             </span>
           </>
         )}
       </Link>
-      <Link href="/riskler" className={`kalem d-${yogunlukDurumu}`}>
+      <Link href="/riskler" className={`kalem d-${yogunlukDurumu}`}
+        title={`Olasılık × etki matrisi Risk alanında${olculemeyenRisk > 0 ? ` · ${olculemeyenRisk} risk ölçülemedi` : ''}`}>
         <span className="etiket">Risk yoğunluğu</span>
         <span className="mono deger">
           {risk.kritik}<span className="birim"> kritik</span>
           {' · '}{risk.yuksek}<span className="birim"> yüksek</span>
         </span>
-        <span className="cumle">
-          olasılık × etki matrisi Risk alanında
-          {olculemeyenRisk > 0 && <> · <span className="unk">{olculemeyenRisk} ölçülemedi</span></>}
-        </span>
+        {olculemeyenRisk > 0 && (
+          <span className="cumle"><span className="unk">{olculemeyenRisk} ölçülemedi</span></span>
+        )}
       </Link>
     </section>
   );
@@ -286,8 +304,8 @@ function OncelikSeridi({ ozet, risk }: { ozet: Ozet; risk: RiskIzgarasi }) {
 function Egilim({ seri }: { seri: { etiket: string; yuzde: number }[] | null }) {
   if (!seri) {
     return (
-      <p className="ab-b-egilim-yok">
-        Dönemsel anlık görüntü kaydı yok — eğilim çizilemiyor.
+      <p className="ab-b-egilim-yok" title="Dönemsel anlık görüntü kaydı yok — eğilim çizilemiyor; sistem saatinden türetilmez">
+        Eğilim · kayıt yok
       </p>
     );
   }
@@ -416,20 +434,20 @@ function Mudahale({ dikkat, toplamKayit, kapsamli }: {
           <span className={`sap ${ONEM_SINIF[b.onem] ?? 'pl'}`} aria-hidden />
           <span className="govde">
             <span className="konu">{b.baslik}</span>
-            {/* Tek satır, uzunu üç noktayla biter (kabuk.css). Sıra:
-                tesis · termin · kontrol kodu — kesilen parça en az karar
-                taşıyan kod olur; termin (gecikme sözcükle) görünür kalır.
-                Tamamı `title`ta. */}
+            {/* Tek satır: tesis · termin. Kontrol kodu ve çerçeve karar
+                taşımaz, `title`a taşındı (bulgu ekranında tam). Gecikme
+                sözcükle ("gün gecikti"), salt renkle değil. */}
             <span className="mono meta"
-              title={`${b.tesisAd} · ${terminSozu(b.gecikmisGun, b.hedefTarih)} · ${b.kontrolKodu}`}>
-              {b.tesisAd} · {terminSozu(b.gecikmisGun, b.hedefTarih)} · {b.kontrolKodu}
+              title={`${b.tesisAd} · ${terminSozu(b.gecikmisGun, b.hedefTarih)} · ${b.kontrolKodu} · ${b.cerceve}`}>
+              {b.tesisAd}
+              {terminKisa(b.gecikmisGun, b.hedefTarih) && ` · ${terminKisa(b.gecikmisGun, b.hedefTarih)}`}
             </span>
           </span>
           <span className="sira" aria-hidden>{String(i + 1).padStart(2, '0')}</span>
         </Link>
       ))}
       {cizilecek > 0 && kalan > 0 && (
-        <Link href="/bulgular" className="mono kalan">+{kalan} diğer · bulgular</Link>
+        <Link href="/bulgular" className="mono kalan" title={`${kalan} bulgu daha · bulgular ekranı`}>+{kalan} diğer →</Link>
       )}
     </div>
   );
@@ -463,12 +481,12 @@ function Takimyildizi({ santraller }: { santraller: SantralKarti[] }) {
 
   return (
     <div className="ab-b-takim" aria-label="Santral takımyıldızı">
-      {/* Okuma anahtarı başlığın içinde, tek satır: eksen adları tek başına
-          "ne iyi" sorusunu yanıtlamıyordu (ürün sahibi kabulü 2026-09,
-          madde 5). Yeni modül değil, başlığın kuyruğu. */}
-      <p className="etiket ust">
-        Santraller · uyum endeksi × kurulu güç
-        <span className="okuma">sağa → daha uyumlu · yukarı ↑ daha büyük güç</span>
+      {/* Yön bilgisi ÜÇ kanaldan söyleniyordu (başlık kuyruğu, eksen
+          adları, hedef köşesi); ikisi kaldı: eksen okları ("uyum endeksi →",
+          "↑ kurulu güç") ve "↗ güçlü ve uyumlu" köşesi. Başlık kuyruğu
+          `title`a taşındı — aynı bilgi, bir kez. */}
+      <p className="etiket ust" title="Yatay: uyum endeksi (sağa → daha uyumlu) · Dikey: kurulu güç (yukarı ↑ daha büyük)">
+        Santraller · uyum × güç
       </p>
       {santraller.length === 0 ? (
         <p className="bos">Kapsamda santral yok.</p>
@@ -476,9 +494,13 @@ function Takimyildizi({ santraller }: { santraller: SantralKarti[] }) {
         <div className="ab-tuval-sar">
           {olculmemis.length > 0 && (
             <div className="serit">
-              <p className="mono serit-bas">
-                değerlendirilmemiş
-                <span className="alt">güce göre sıralı</span>
+              {/* Sayı ve yöntem tek satırda: "güce göre sıralı", toplam
+                  MWe ve "endeks ölçülmedi, sıfır değil" `title`ta. Eski
+                  tuval-altı özet notu buraya katlandı (aynı bilgi iki yerde
+                  yazılıyordu). */}
+              <p className="mono serit-bas"
+                title={`Güce göre sıralı (ölçekli değil) · ${olculmemis.length} santral · ${olculmemis.reduce((a, s) => a + (s.gucMw ?? 0), 0).toFixed(1)} MWe · endeks ölçülmedi, sıfır değil`}>
+                değerlendirilmemiş<span className="adet">{olculmemis.length}</span>
               </p>
               {serit.map((s) => (
                 <Link key={s.id} href={`/tesisler/${s.id}`} className="kalem"
@@ -504,6 +526,7 @@ function Takimyildizi({ santraller }: { santraller: SantralKarti[] }) {
               const uygunsuz = s.sayim.uyumsuz ?? 0;
               return (
                 <Link key={s.id} href={`/tesisler/${s.id}`}
+                  title={`${s.ad} · ${s.gucMw ?? '—'} MW · %${s.endeks}${uygunsuz > 0 ? ` · ${uygunsuz} uygunsuz` : ''}`}
                   /* Odak sırası: uygunsuzu olan santral öne (`oncelik`, tam
                      mürekkep + halka), temiz olan arkaya (ikincil mürekkep).
                      Künye yönü: %58'in sağında sola, komşusu varsa alta,
@@ -518,8 +541,10 @@ function Takimyildizi({ santraller }: { santraller: SantralKarti[] }) {
                     style={{ background: tipRengi(s.tipKod) }} />
                   <span className="kunye">
                     <span className="ad">{s.ad}</span>
+                    {/* Güç dikey eksende ve kartta okunur; künye yalnız
+                        endeks ve uygunsuz sayısını yazar (MW `title`ta). */}
                     <span className="mono alt">
-                      {s.gucMw ?? '—'} MW · %{s.endeks}
+                      %{s.endeks}
                       {uygunsuz > 0 && ` · ${uygunsuz} uygunsuz`}
                     </span>
                   </span>
@@ -539,16 +564,6 @@ function Takimyildizi({ santraller }: { santraller: SantralKarti[] }) {
           </div>
         </div>
       )}
-      {olculmemis.length > 0 && (
-        <p className="mono olculmemis-not">
-          {/* Yön adı YAZILMAZ: şerit geniş bantta solda, dar bantta
-              tuvalin altındadır. TEK satır: yükseklik bütçesi (tek ekran
-              sözleşmesi) ikinci satırı karşılamaz. */}
-          Değerlendirilmemiş · {olculmemis.length} santral ·
-          {` ${olculmemis.reduce((a, s) => a + (s.gucMw ?? 0), 0).toFixed(1)} MWe`}
-          {' · endeks ölçülmedi, sıfır değil'}
-        </p>
-      )}
     </div>
   );
 }
@@ -557,17 +572,23 @@ function Takimyildizi({ santraller }: { santraller: SantralKarti[] }) {
    Prototipte üç parça vardı (uygun · kısmi · uygunsuz). DÖRDÜNCÜ parça
    burada eklendi: bilinmeyen. Onu çubuktan düşürmek, değerlendirilmemiş
    kontrolü sessizce "uygun" saymak olurdu. */
-function Yigin({ uygun, kismi, uygunsuz, bilinmeyen, tip }: {
+function Yigin({ uygun, kismi, uygunsuz, bilinmeyen, tip, kontrol }: {
   uygun: number; kismi: number; uygunsuz: number; bilinmeyen: number; tip: string;
+  /** toplam kontrol sayısı — yalnız `title`ta */
+  kontrol?: number;
 }) {
   const toplam = uygun + kismi + uygunsuz + bilinmeyen;
   if (toplam === 0) {
-    return <div className="ab-b-yigin bos"><span className="mono">değerlendirilmemiş</span></div>;
+    /* Sözcük yok: taralı çubuk ürünün "değerlendirilmedi" glifidir ve
+       kartta skor zaten "—". On bir kartta aynı sözcüğü yazmak metin
+       duvarıydı; erişilebilir ad ve `title` sözcüğü taşır. */
+    return <div className="ab-b-yigin bos" role="img" aria-label="değerlendirilmemiş" title="Değerlendirilmemiş — endeks ölçülmedi, sıfır değil" />;
   }
   const p = (n: number) => `${(n / toplam) * 100}%`;
+  const soz = `${uygun} uygun, ${kismi} kısmi, ${uygunsuz} uygunsuz, ${bilinmeyen} değerlendirilmedi`;
   return (
-    <div className="ab-b-yigin" role="img"
-      aria-label={`${uygun} uygun, ${kismi} kısmi, ${uygunsuz} uygunsuz, ${bilinmeyen} değerlendirilmedi`}>
+    <div className="ab-b-yigin" role="img" aria-label={soz}
+      title={kontrol !== undefined ? `${kontrol} kontrol · ${soz}` : soz}>
       {uygun > 0 && <span style={{ width: p(uygun), background: uygunRengi(tip) }} />}
       {kismi > 0 && <span className="kismi" style={{ width: p(kismi) }} />}
       {uygunsuz > 0 && <span className="uygunsuz" style={{ width: p(uygunsuz) }} />}

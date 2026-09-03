@@ -13,7 +13,7 @@ export default function KokHata({ error, reset }: {
   return (
     <html lang="tr">
       <body>
-        <div className="ab" data-yon="a">
+        <div className="ab" data-yogunluk="operasyonel">
           <div className="ab-sistem-sayfa">
             <header>
               <Link href="/" className="marka">ZORLU ENERJİ</Link>

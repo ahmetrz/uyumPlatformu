@@ -4,6 +4,7 @@ import { Yetkisiz } from '@/components/kabuk/temel';
 import { modulOkuyabilir } from '@/app/kapsam';
 import KanitlarIstemci from './KanitlarIstemci';
 import { kanitEkranVerisi } from './veri';
+import { kanitEsikleri } from '@/lib/yapilandirma/kanitEsik';
 
 export const metadata: Metadata = { title: 'Kanıt kütüphanesi' };
 
@@ -24,9 +25,12 @@ export default async function Sayfa() {
      her kullanıcıyı ekrandan tümüyle atardı (bkz. app/kapsam.ts). */
   if (!modulOkuyabilir(k, 'uyum')) return <Yetkisiz rol="uyum okuma" />;
 
-  const veri = await kanitEkranVerisi(k);
+  /* Tazelik eşiği sunucuda tek kaynaktan (konsol ayarı → kod varsayılanı);
+     istemci sayıyı bilmez, prop olarak alır. */
+  const [veri, esik] = await Promise.all([kanitEkranVerisi(k), kanitEsikleri()]);
   return (
     <KanitlarIstemci
+      esik={esik.esik}
       kanitlar={veri.kanitlar}
       toplam={veri.toplam}
       kapsamDisi={veri.kapsamDisi}

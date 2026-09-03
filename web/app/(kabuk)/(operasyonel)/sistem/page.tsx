@@ -11,7 +11,7 @@ export const metadata: Metadata = { title: 'Tasarım sistemi' };
    TOKEN REFERANSI
 
    Bu ekran token değerlerini İDDİA ETMEZ: `app/kabuk.css` dosyasını
-   OKUR ve üç yönün (A tezgâh · B saha · C defter) paletini olduğu gibi
+   OKUR ve tek paletin token değerlerini olduğu gibi
    listeler; kontrast oranları `lib/kontrast.ts` ile HESAPLANIR.
 
    Eski sürüm değerleri kaynak dosyadan bağımsız, elle yazılmış tablolarda
@@ -54,10 +54,10 @@ function olcekOku(css: string): Palet {
   return harita;
 }
 
+/* Tek palet (UX denetimi 2026-09): üç yön kipi birleştirildi; yoğunluk
+   (amiral · operasyonel · tezgâh) ölçüdür, renk değil. */
 const YONLER = [
-  { kod: 'a', ad: 'A · Industrial Precision', alt: 'Tezgâh — 52px kapsam çubuğu + 60px ikon rayı' },
-  { kod: 'b', ad: 'B · Energy Intelligence', alt: 'Saha — 56px sekme, ray yok, fotoğrafik alan' },
-  { kod: 'c', ad: 'C · Operational Luxury', alt: 'Defter — künye + serif sekme + 212px dizin' },
+  { kod: 'tek', ad: 'Tek palet · Saha dili', alt: 'Bakır aksan · Barlow Condensed / Inter / JetBrains Mono · 56px üst çubuk + 36px ikincil sıra' },
 ] as const;
 
 /** Mürekkep token'ı → hangi zeminlerde ve hangi eşikte okunmalı. */
@@ -105,7 +105,7 @@ export default async function TasarimSistemi() {
   await girisZorunlu();
   const css = readFileSync(KAYNAK, 'utf8');
   const paletler = YONLER.map((y) => ({
-    ...y, palet: paletOku(css, `.ab[data-yon='${y.kod}'] {`),
+    ...y, palet: paletOku(css, '.ab {\n  --zemin:'),
   }));
   const olcek = olcekOku(css);
 
@@ -114,7 +114,7 @@ export default async function TasarimSistemi() {
       <header className="ab-lede">
         <div className="sol">
           <p className="etiket">Tasarım sistemi · kabuk.css okunarak üretildi</p>
-          <h1>Üç yön, tek sözleşme</h1>
+          <h1>Tek kabuk, tek sözleşme</h1>
         </div>
         <div style={{ display: 'grid', gap: 10, justifyItems: 'end' }}>
           <p className="mono ab-dip" style={{ maxWidth: 420, margin: 0 }}>

@@ -1,8 +1,9 @@
 'use client';
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useUrlDurumu, useUrlDurumuBos } from '@/components/kabuk/urlDurumu';
 import { Bar, BosIlk, BosFiltre, Dugme, Im, type Durum } from '@/components/kabuk/temel';
 import { EkranBasligi, Filtreler } from '@/components/kabuk/ekran';
-import { darSablon } from '@/components/kabuk/tablo';
+import { VeriTablosu, type VtKolon } from '@/components/kabuk/tablo';
 import { ZamanCizelgesi } from '@/components/kabuk/zaman';
 import {
   Cekmece, CekmeceKimlik, CekmeceAlanlar, CekmeceBagli, CekmeceEylemler,
@@ -25,8 +26,38 @@ import {
    yanındaki yüzde taşır. Gecikmiş proje çeyrek yerine aşım gününü yazar.
    Detay modalda değil 420px çekmecede açılır (O9). */
 
-const KOLONLAR = 'minmax(0, 1fr) 200px 176px 68px 26px';
-const KOLONLAR_DAR = darSablon('minmax(0, 1fr) 140px 68px 26px');
+/* A5 kütük grameri (Faz 3): semantik tablo. Marker YOK: portföyde şiddeti
+   taşıyan şey ilerleme çubuğudur; renk tek sinyal değil — yüzde ve gecikme
+   günü yazılıdır. `simdi` satır hücresine kapanışla girer (kolonlar()). */
+function kolonlar(simdi: number): VtKolon<P>[] {
+  return [
+    { anahtar: 'proje', baslik: 'Proje',
+      hucre: (p) => (
+        <span className="kimlik-metin">
+          <span className="konu">{p.ad}</span>
+          <span className="alt">{altSatir(p)}</span>
+        </span>
+      ) },
+    { anahtar: 'bag', baslik: 'Bağ', genislik: '200px', ikincil: true,
+      hucre: (p) => <span className="ikincil">{bagMetni(p)}</span> },
+    { anahtar: 'ilerleme', baslik: 'İlerleme', genislik: '176px',
+      hucre: (p) => {
+        const oran = ilerleme(p);
+        return oran === null
+          ? <span style={{ color: 'var(--i3)' }}>faz kaydı yok</span>
+          : <Bar oran={oran} durum={barDurumu(p, simdi)} deger={`%${oran}`} />;
+      } },
+    { anahtar: 'hedef', baslik: 'Hedef', genislik: '68px', sag: true,
+      hucre: (p) => {
+        const hedef = hedefMetni(p, simdi);
+        return (
+          <span style={hedef.gecikmis ? { color: 'var(--bd)', fontWeight: 600 } : undefined}>
+            {hedef.metin}
+          </span>
+        );
+      } },
+  ];
+}
 
 type Kip = 'ozet' | 'form' | 'durum' | 'bag';
 
@@ -41,11 +72,11 @@ export default function ProjelerIstemci({
   projeler: P[]; simdi: number; yeniKod: string; yazabilir: boolean;
   kullanicilar: Kisi[]; maddeler: Secenek[]; bulgular: Secenek[];
 }) {
-  const [filtre, setFiltre] = useState('aktif');
-  const [tesisF, setTesisF] = useState<string | null>(null);
+  const [filtre, setFiltre] = useUrlDurumu<string>('mercek', 'aktif');
+  const [tesisF, setTesisF] = useUrlDurumuBos('tesis');
   const [kuyrukAcik, setKuyrukAcik] = useState(false);
-  const [seciliId, setSeciliId] = useState<string | null>(null);
-  const [kip, setKip] = useState<Kip>('ozet');
+  const [seciliId, setSeciliId] = useUrlDurumuBos('sec');
+  const [kip, setKip] = useUrlDurumu<Kip>('kip', 'ozet');
   const [yeniAcik, setYeniAcik] = useState(false);
 
   const secili = projeler.find((p) => p.id === seciliId) ?? null;
@@ -139,6 +170,8 @@ export default function ProjelerIstemci({
     for (const p of projeler) for (const t of p.tesisler) kova.set(t.id, t.ad);
     return [...kova].map(([id, ad]) => ({ id, ad })).sort((a, b) => a.ad.localeCompare(b.ad, 'tr'));
   }, [projeler]);
+
+  const vtKolonlar = useMemo(() => kolonlar(simdi), [simdi]);
 
   function sec(id: string) {
     setSeciliId((o) => (o === id ? null : id));
@@ -245,42 +278,26 @@ export default function ProjelerIstemci({
 
               {/* Şerit kartları mutlak konumlu: taşarlarsa akışı itmez,
                   tablonun üstüne biner. Aradaki boşluk o riski kapatır. */}
-              <div className="ab-tablo"
-                style={{
-                  '--kolonlar': KOLONLAR,
-                  '--kolonlar-dar': KOLONLAR_DAR,
-                  marginTop: 'var(--s26)',
-                  borderTop: 'var(--bw-strong) solid var(--hr2)',
-                } as CSSProperties}
-               >
-                {gosterilen.map((p) => (
-                  <Satir key={p.id} proje={p} simdi={simdi}
-                    secili={seciliId === p.id} sec={() => sec(p.id)} />
-                ))}
-
-                {/* Kuyruk satırı kolon düşürmeden etkilenmesin diye kendi
-                    şablonunu taşır (02-components §6). */}
-                {toplanan.length > 0 && (
-                  <button type="button" className="satir kuyruk"
-                    style={{ gridTemplateColumns: 'minmax(0, 1fr) 26px' }}
-                    onClick={() => setKuyrukAcik(true)}>
-                    <span className="" style={{ paddingLeft: 'var(--s16)' }}>
-                      +{toplanan.length} proje · {kuyrukOlgusu(toplanan)}
-                    </span>
-                    <span className="ab-ok" style={{ justifySelf: 'end' }} aria-hidden>▾</span>
-                  </button>
-                )}
-
-                {kuyrukAcik && kalan.length > slot && (
-                  <p className="ab-dip dip">
-                    <button type="button" className="ab-dugme satir"
-                      onClick={() => setKuyrukAcik(false)}>Kuyruğu topla</button>
-                  </p>
-                )}
-
-                {butcesiz > 0 && (
-                  <p className="ab-dip dip">{butcesiz} projede bütçe kaydı yok</p>
-                )}
+              <div style={{ marginTop: 'var(--s26)', borderTop: 'var(--bw-strong) solid var(--hr2)' }}>
+                <VeriTablosu<P>
+                  etiket="Proje portföyü"
+                  kolonlar={vtKolonlar}
+                  satirlar={gosterilen}
+                  secili={seciliId}
+                  sec={(id) => { if (id) sec(id); else { setSeciliId(null); setKip('ozet'); } }}
+                  durum={(p) => kartDurumu(p, simdi)}
+                  bosCumle={null}
+                  kuyruk={toplanan.length > 0
+                    ? { metin: `+${toplanan.length} proje · ${kuyrukOlgusu(toplanan)}`,
+                      ac: () => setKuyrukAcik(true) }
+                    : null}
+                  dipNot={(butcesiz > 0 || (kuyrukAcik && kalan.length > slot)) ? <>
+                    {butcesiz > 0 && `${butcesiz} projede bütçe kaydı yok`}
+                    {kuyrukAcik && kalan.length > slot && (
+                      <>{butcesiz > 0 && ' · '}<button type="button" className="ab-vt-dip-eylem" onClick={() => setKuyrukAcik(false)}>Kuyruğu topla</button></>
+                    )}
+                  </> : undefined}
+                />
               </div>
             </>
           )}
@@ -343,43 +360,6 @@ export default function ProjelerIstemci({
         </Cekmece>
       )}
     </>
-  );
-}
-
-/* ── Satır ──────────────────────────────────────────────────────────────
-   Marker YOK: portföyde şiddeti taşıyan şey ilerleme çubuğudur (03-screens
-   O8). Renk tek sinyal değildir — yanındaki yüzde ve gecikme günü yazılıdır. */
-
-function Satir({ proje, simdi, secili, sec }: {
-  proje: P; simdi: number; secili: boolean; sec: () => void;
-}) {
-  const oran = ilerleme(proje);
-  const durum = barDurumu(proje, simdi);
-  const hedef = hedefMetni(proje, simdi);
-  return (
-    <button
-      type="button"
-     
-      aria-pressed={secili}
-      className={`satir d-${kartDurumu(proje, simdi)}`}
-      onClick={sec}
-    >
-      <span style={{ minWidth: 0, paddingLeft: 'var(--s16)' }}>
-        <span className="konu">{proje.ad}</span>
-        <span className="alt">{altSatir(proje)}</span>
-      </span>
-      <span className="ikincil">{bagMetni(proje)}</span>
-      <span className="">
-        {oran === null
-          ? <span style={{ color: 'var(--i3)' }}>faz kaydı yok</span>
-          : <Bar oran={oran} durum={durum} deger={`%${oran}`} />}
-      </span>
-      <span className="sag"
-        style={hedef.gecikmis ? { color: 'var(--bd)', fontWeight: 600 } : undefined}>
-        {hedef.metin}
-      </span>
-      <span className="ab-ok" style={{ justifySelf: 'end' }} aria-hidden>▸</span>
-    </button>
   );
 }
 

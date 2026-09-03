@@ -1,6 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useUrlDurumu, useUrlDurumuBos, useUrlSira } from '@/components/kabuk/urlDurumu';
 import { Dugme, Kesir, BosIlk, BosFiltre, type Durum } from '@/components/kabuk/temel';
 import { Tablo, type Kolon, type Satir } from '@/components/kabuk/tablo';
 import { EkranBasligi, Filtreler } from '@/components/kabuk/ekran';
@@ -47,7 +48,6 @@ const MERCEKLER = [
 ];
 
 type Anahtar = 'konu' | 'asama' | 'kanit' | 'plan';
-type SiraYonu = 'artan' | 'azalan';
 
 export default function DenetimlerIstemci({
   denetimler, simdi, yeniKod, yazabilir, surecler,
@@ -55,13 +55,12 @@ export default function DenetimlerIstemci({
   denetimler: D[]; simdi: number; yeniKod: string; yazabilir: boolean;
   surecler: SurecSecenegi[];
 }) {
-  const [mercek, setMercek] = useState('yuruyen');
+  const [mercek, setMercek] = useUrlDurumu<string>('mercek', 'yuruyen');
   const [asamaF, setAsamaF] = useState<string | null>(null);
-  const [tipF, setTipF] = useState<string | null>(null);
+  const [tipF, setTipF] = useUrlDurumuBos('tip');
   const [arama, setArama] = useState('');
-  const [sira, setSira] = useState<{ anahtar: Anahtar; yon: SiraYonu }>(
-    { anahtar: 'plan', yon: 'artan' });
-  const [secili, setSecili] = useState<string | null>(null);
+  const [sira, setSira] = useUrlSira<Anahtar>({ anahtar: 'plan', yon: 'artan' });
+  const [secili, setSecili] = useUrlDurumuBos('sec');
   const [yeniAcik, setYeniAcik] = useState(false);
   const [kuyrukAcik, setKuyrukAcik] = useState(false);
 

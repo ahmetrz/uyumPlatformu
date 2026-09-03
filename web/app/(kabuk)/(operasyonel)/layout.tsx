@@ -1,9 +1,8 @@
 import Kabuk from '@/components/kabuk/Kabuk';
 import { kabukVerisi } from '@/components/kabuk/kabukVerisi';
 
-/* Uygulama kabuğu. Yön (A tezgâh / C defter) ROTADAN türetilir — bu grup
-   her ikisini birden barındırıyor ve Next rota grubu onları ayırmıyor.
-   Seçim `components/kabuk/yonler.ts → yonSec` içinde, tek yerde.
+/* Uygulama kabuğu — tek kabuk. Alan ve yoğunluk ROTADAN türetilir
+   (`components/kabuk/yonler.ts → alanSec / yogunlukSec`), tek yerde.
 
    İş mantığına dokunulmadı: veri sözleşmeleri, RBAC ve kapsam aynı. */
 

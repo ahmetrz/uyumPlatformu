@@ -1,6 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
+import { useUrlDurumu, useUrlDurumuBos } from '@/components/kabuk/urlDurumu';
 import { BosFiltre, BosIlk, Dugme, type Durum } from '@/components/kabuk/temel';
 import { Tablo, type Kolon, type Satir } from '@/components/kabuk/tablo';
 import { EkranBasligi, Filtreler } from '@/components/kabuk/ekran';
@@ -64,13 +65,13 @@ const Bos = () => <span style={{ color: 'var(--i3)' }}>—</span>;
 
 export default function SurecDetayIstemci({ veri }: { veri: DetayVerisi }) {
   const { surec: s, simdi, kayitlar } = veri;
-  const [mercek, setMercek] = useState('takip');
-  const [tesisF, setTesisF] = useState<string | null>(null);
+  const [mercek, setMercek] = useUrlDurumu<string>('mercek', 'takip');
+  const [tesisF, setTesisF] = useUrlDurumuBos('tesis');
   const [alanF, setAlanF] = useState<string | null>(null);
   const [arama, setArama] = useState('');
   const [sira, setSira] = useState<{ anahtar: Anahtar; yon: SiraYonu } | null>(null);
-  const [secili, setSecili] = useState<string | null>(null);
-  const [kip, setKip] = useState<Kip>('ozet');
+  const [secili, setSecili] = useUrlDurumuBos('sec');
+  const [kip, setKip] = useUrlDurumu<Kip>('kip', 'ozet');
   const [kuyrukAcik, setKuyrukAcik] = useState(false);
 
   /* ── mercek + kapsam ───────────────────────────────────────────────── */

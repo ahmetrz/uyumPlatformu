@@ -3,7 +3,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import {
   Im, Metrikler, Bar, Segment, Kesir, TikSeridi, Ipucu, Dugme, Alan,
-  Iskelet, BosIlk, BosFiltre, Hata, Yetkisiz, DURUM_SOZU, type Durum,
+  Iskelet, BosIlk, BosFiltre, Hata, Yetkisiz, Olculmedi, BaglantiYok, KismiVeri, EntegrasyonYok, Bakimda, KismiYukleniyor, DURUM_SOZU, type Durum,
 } from '@/components/kabuk/temel';
 import { Tablo, Matris, GenisleyenSatir } from '@/components/kabuk/tablo';
 import {
@@ -16,7 +16,7 @@ import { ZamanCizelgesi, OmurUfku } from '@/components/kabuk/zaman';
 import { Tuval } from '@/components/kabuk/grafik';
 import { KokenRozeti, KokenSatiri, type KokenGorunumu } from '@/components/kabuk/Koken';
 import BaglamCubugu from '@/components/kabuk/BaglamCubugu';
-import { C_DIZIN } from '@/components/kabuk/yonler';
+import { IKINCIL } from '@/components/kabuk/yonler';
 
 /* Paylaşılan primitif galerisi: her bileşen her durumda, gerçek işaretlemeyle.
    Anti-regresyon listesi burada denenir — durum sözcüğü işaretçinin yanında
@@ -31,7 +31,7 @@ const PRIMITIFLER = [
   'Im', 'Metrikler', 'Bar', 'Segment', 'Kesir', 'TikSeridi', 'Ipucu', 'Dugme', 'Alan',
   'Filtreler', 'KipDegistir', 'Asamalar', 'Tablo', 'Matris', 'GenisleyenSatir',
   'OdakKarti', 'ZamanCizelgesi', 'OmurUfku', 'Tuval', 'Iskelet', 'BosIlk', 'BosFiltre',
-  'Hata', 'Yetkisiz', 'Cekmece', 'KokenRozeti', 'KokenSatiri', 'BaglamCubugu', 'CDizin',
+  'Hata', 'Yetkisiz', 'Olculmedi', 'BaglantiYok', 'KismiVeri', 'EntegrasyonYok', 'Bakimda', 'KismiYukleniyor', 'Cekmece', 'KokenRozeti', 'KokenSatiri', 'BaglamCubugu', 'IkincilSira',
 ] as const;
 
 /* Köken örnekleri — dört görünümün dördü de gerçek `KokenGorunumu` şekliyle
@@ -375,21 +375,22 @@ export default function Galeri() {
           </div>
         </B>
 
-        <B no="15" ad="Defter dizini (C)" not="C kabuğunun 212px editoryal dizin sütunu: içindekiler tablosu ve kaynakça aynı sütunda. Satır 12.5px, sağda 10px mono sayaç; aktif satır mürekkep + 500 — aksan bu satırda yalnız kenar taşır, metin değil. Galeri A kabuğunda çizildiği için malzeme A'nın; C'de aynı işaretleme serif künye altında durur.">
-          <div style={{ maxWidth: 212 }}>
-            <aside className="ab-c-dizin" aria-label="Defter dizini (örnek)">
-              {C_DIZIN.map((b) => (
-                <div key={b.baslik} className="bolum">
-                  <span className="etiket">{b.baslik}</span>
-                  {b.ogeler.map((o) => (
-                    <Link key={o.yol} href={o.yol} className="satir"
-                      aria-current={o.yol === '/uyum' ? 'true' : undefined}>
-                      <span>{o.ad}</span>
-                      {o.yol === '/uyum' && <span className="sayi">42</span>}
-                    </Link>
-                  ))}
-                </div>
-              ))}
+        <B no="15" ad="İkincil sıra" not="Tek kabuğun 36px ikincil gezinme sırası: alanın kendi ekranları, gruplar saç çizgisiyle ayrılır; aktif öğe aria-current=&quot;true&quot; taşır (belgede tek &quot;page&quot; alan sekmesindedir). Barlow Condensed 14px büyük harf; grup başlığı yalnız Varlık'ta. Kendi okuma anahtarını veren ekran (uyum matrisi) `.ab-c-ekrandizin` ile ayrıca 212px sol sütun çizer.">
+          <nav className="ab-ikincil" aria-label="Bölümler (örnek)" style={{ position: 'static', margin: '0 calc(-1 * var(--s24))' }}>
+            {IKINCIL['/uyum'].map((grup, i) => (
+              <div key={i} className="grup">
+                {grup.ogeler.map((o) => (
+                  <Link key={o.yol} href={o.yol}
+                    aria-current={o.yol === '/uyum' ? 'true' : undefined}>
+                    {o.ad}
+                  </Link>
+                ))}
+              </div>
+            ))}
+            <span className="mono etiket sag">Zorlu Enerji · 16 santral</span>
+          </nav>
+          <div style={{ maxWidth: 212, marginTop: 'var(--s24)' }}>
+            <aside className="ab-c-dizin" aria-label="Okuma anahtarı (örnek)">
               <div className="bolum">
                 <span className="etiket">Okuma anahtarı</span>
                 {DURUMLAR.map((d) => (
@@ -432,6 +433,20 @@ export default function Galeri() {
               <Yetkisiz rol="denetim sorumlusu" />
             </div>
             <BosFiltre temizle={() => setFiltre('epdk')} />
+            {/* Bilinmeyen ≠ sıfır ≠ sağlıklı ≠ ölçülmedi: dört hâl, dört kutu.
+                Sol kenardaki 45° tarama bilinmeyen dilimiyle aynı şekil kodu. */}
+            <div style={{ display: 'flex', gap: 'var(--s24)', flexWrap: 'wrap' }}>
+              <Olculmedi ne="Alaşehir JES · OT segmenti" neden="tarama kapsamı dışında" />
+              <BaglantiYok kaynak="EPDK-SYM bağlayıcısı" sonBasarili="02 Eyl 03:10" />
+              <KismiVeri olculen={7} toplam={11} birim="santral" />
+            </div>
+            {/* Üç ayrı hâl daha: yapılandırılmamış ≠ ulaşılamıyor; bakım
+                planlı; kısmi yükleme toplam yazmaz. */}
+            <div style={{ display: 'flex', gap: 'var(--s24)', flexWrap: 'wrap' }}>
+              <EntegrasyonYok kaynak="SCADA tarihçe" ne="OT olay akışı" />
+              <Bakimda ne="Kızıldere III · DCS ağ geçidi" bitis="04 Eyl 06:00" />
+              <KismiYukleniyor gelen={9} toplam={17} birim="santral" />
+            </div>
           </div>
         </B>
       </main>

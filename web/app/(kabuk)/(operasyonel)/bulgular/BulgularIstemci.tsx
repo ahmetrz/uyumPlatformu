@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useUrlDurumu, useUrlDurumuBos, useUrlSira } from '@/components/kabuk/urlDurumu';
 import Link from 'next/link';
 import { Im, Ipucu, Dugme, BosIlk, BosFiltre, type Durum } from '@/components/kabuk/temel';
 import { Tablo, type Kolon, type Satir } from '@/components/kabuk/tablo';
@@ -61,7 +62,6 @@ const MERCEKLER = [
   { id: 'hepsi', ad: 'Tümü' },
 ];
 
-type SiraYonu = 'artan' | 'azalan';
 
 export default function BulgularIstemci({
   bulgular, toplam, metrikler, kapsamli = false,
@@ -77,12 +77,11 @@ export default function BulgularIstemci({
   /** liste bir santral kapsamıyla daraltıldı mı — boş ekranın SÖZÜ değişir */
   kapsamli?: boolean;
 }) {
-  const [mercek, setMercek] = useState('acik');
-  const [onemF, setOnemF] = useState<string | null>(null);
+  const [mercek, setMercek] = useUrlDurumu<string>('mercek', 'acik');
+  const [onemF, setOnemF] = useUrlDurumuBos('onem');
   const [arama, setArama] = useState('');
-  const [sira, setSira] = useState<{ anahtar: Anahtar; yon: SiraYonu }>(
-    { anahtar: 'termin', yon: 'artan' });
-  const [secili, setSecili] = useState<string | null>(null);
+  const [sira, setSira] = useUrlSira<Anahtar>({ anahtar: 'termin', yon: 'artan' });
+  const [secili, setSecili] = useUrlDurumuBos('sec');
   const [kuyrukAcik, setKuyrukAcik] = useState(false);
 
   /* ── türetme: her bulgu bir ilerleme satırına indirgenir ───────────── */
@@ -453,11 +452,10 @@ function DisaAktar({ satirlar }: { satirlar: (string | number)[][] }) {
 
 const Bos = () => <span style={{ color: 'var(--i3)' }}>—</span>;
 
-/** Kırpma tek satırda ve üç noktayla biter — sert kesim kırık görünür. */
-const KIRP = {
-  minWidth: 0, flex: '1 1 auto',
-  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-} as const;
+/* Semantik tabloda `nowrap` hücre sütunu içeriğine kadar genişletir ve
+   kütüğü yatay kaydırırdı (ölçüldü: 1366px'te 56px). Aksiyon cümlesi
+   sarılır; kırpılmaz — kaybolan sözcük yok. */
+const KIRP = { minWidth: 0, flex: '1 1 auto', overflowWrap: 'anywhere' } as const;
 
 const SATIR_ICI = {
   display: 'flex', alignItems: 'center', gap: 'var(--s10)', minWidth: 0,

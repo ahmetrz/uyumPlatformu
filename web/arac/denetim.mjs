@@ -50,7 +50,7 @@ for (const yol of YOLLAR) {
   await s.waitForTimeout(1200);
 
   const rapor = await s.evaluate(() => {
-    const kok = document.querySelector('.ab[data-yon]') || document.body;
+    const kok = document.querySelector('.ab[data-yogunluk]') || document.body;
     const hepsi = [...kok.querySelectorAll('*')];
     const gorunur = (e) => {
       const r = e.getBoundingClientRect();

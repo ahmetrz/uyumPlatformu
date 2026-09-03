@@ -1,5 +1,6 @@
 import 'server-only';
 import { db } from '../db';
+import { ayarlar } from '../yapilandirma/oku';
 
 /* Veri kalitesi motoru (§67): governance verisinin kendisi denetlenir.
 
@@ -50,6 +51,13 @@ const anahtar = (x: { kural: string; kaynakTipi: string; kaynakId: string }) =>
 
 export async function veriKalitesiniIsle(): Promise<{ islenen: number; uretilen: number }> {
   const ihlaller: Ihlal[] = [];
+  /* Eşikler yönetim konsolundan (B sınıfı); kayıt yoksa kod varsayılanları. */
+  const esik = await ayarlar([
+    'motor.veri_kalitesi.bayat_gun', 'motor.veri_kalitesi.bayat_periyot_kati',
+    'motor.veri_kalitesi.inceleme_yigilma_gun'] as const);
+  const bayatGun = Number(esik['motor.veri_kalitesi.bayat_gun']);
+  const periyotKati = Number(esik['motor.veri_kalitesi.bayat_periyot_kati']);
+  const yigilmaGun = Number(esik['motor.veri_kalitesi.inceleme_yigilma_gun']);
 
   // sahipsiz kritik varlık + kritikliği bilinmeyen varlık
   const varliklar = await db.varlik.findMany({
@@ -124,7 +132,7 @@ export async function veriKalitesiniIsle(): Promise<{ islenen: number; uretilen:
   const pollOnbellegi = new Map<string, number | null>();
   const simdi = Date.now();
   for (const k of otomatikKokenler) {
-    let esikMs = VARSAYILAN_BAYAT_GUN * 86_400_000;
+    let esikMs = bayatGun * 86_400_000;
     if (k.connectorId) {
       if (!pollOnbellegi.has(k.connectorId)) {
         const c = await db.connector.findUnique({
@@ -133,7 +141,7 @@ export async function veriKalitesiniIsle(): Promise<{ islenen: number; uretilen:
         pollOnbellegi.set(k.connectorId, c?.pollAralikDk ?? null);
       }
       const poll = pollOnbellegi.get(k.connectorId);
-      if (poll && poll > 0) esikMs = poll * 60_000 * BAYAT_PERIYOT_KATI;
+      if (poll && poll > 0) esikMs = poll * 60_000 * periyotKati;
     }
     const yas = simdi - k.aktarim.getTime();
     if (yas > esikMs)
@@ -197,7 +205,7 @@ export async function veriKalitesiniIsle(): Promise<{ islenen: number; uretilen:
      Otomasyon ÖNERİR, insan karar verir. Öneri kuyruğu birikiyorsa
      tasarım çalışmıyor demektir: ya öneriler anlamsız, ya kimse bakmıyor.
      İkisi de ürünün sorunudur ve sessiz kalmamalıdır. */
-  const yigilmaEsigi = new Date(simdi - INCELEME_YIGILMA_GUN * 86_400_000);
+  const yigilmaEsigi = new Date(simdi - yigilmaGun * 86_400_000);
   const bekleyenler = await db.kesifKaydi.findMany({
     where: { durum: 'inceleme_bekliyor', ilkGorulme: { lt: yigilmaEsigi } },
     select: { id: true, kaynak: true, ilkGorulme: true },

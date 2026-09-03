@@ -1,5 +1,6 @@
 'use client';
 import { useMemo, useState } from 'react';
+import { useUrlDurumu, useUrlDurumuBos } from '@/components/kabuk/urlDurumu';
 import Link from 'next/link';
 import {
   Im, Bar, Segment, Ipucu, Dugme, Alan, BosIlk, BosFiltre, type Durum,
@@ -67,8 +68,8 @@ const SOZ: Record<Durum, string> = {
 export default function YedeklemeIstemci({
   santraller, politikaSayisi,
 }: { santraller: Santral[]; politikaSayisi: number }) {
-  const [mercek, setMercek] = useState('hepsi');
-  const [secili, setSecili] = useState<string | null>(null);
+  const [mercek, setMercek] = useUrlDurumu<string>('mercek', 'hepsi');
+  const [secili, setSecili] = useUrlDurumuBos('sec');
   const [kuyrukAcik, setKuyrukAcik] = useState(false);
 
   const filo = useMemo(() => filoOzeti(santraller), [santraller]);
@@ -280,7 +281,7 @@ function KapsamaHucresi({ santral, oran }: { santral: Santral; oran: number | nu
 type Kip = 'ozet' | 'politika';
 
 function SantralCekmecesi({ santral, kapat }: { santral: Santral; kapat: () => void }) {
-  const [kip, setKip] = useState<Kip>('ozet');
+  const [kip, setKip] = useUrlDurumu<Kip>('kip', 'ozet');
   const im = hazirlik(santral);
   const oran = kapsama(santral);
   const bilinmeyen = bilinmeyenPayi(santral);

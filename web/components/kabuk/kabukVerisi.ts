@@ -1,9 +1,12 @@
 import 'server-only';
+import { ayar } from '@/lib/yapilandirma/oku';
 import { db } from '@/lib/db';
 import { aktifKullanici } from '@/lib/auth';
-import { izinliTesisIdleri } from '@/lib/erisim';
+import { izinVar, izinliTesisIdleri } from '@/lib/erisim';
 import { birlesikKapsam } from '@/app/kapsam';
 import { durumAyagiVerisi } from '@/components/kabuk/durumAyagiVerisi';
+import { DEMO } from '@/lib/demo';
+import paket from '../../package.json';
 import type { KabukVerisi } from './Kabuk';
 
 /* Kabuğun SUNUCU verisi — proje kalıbı: `page.tsx → veri.ts`.
@@ -65,7 +68,14 @@ export async function kabukVerisi(): Promise<KabukVerisi> {
   ).size;
 
   return {
-    kullanici: k ? { ad: k.adSoyad, unvan: k.unvan, demo: k.id === 'demo' } : null,
+    /* `yonetim`: hesap menüsünde "Yönetim tezgâhı" bağı çizilsin mi.
+       Yüklem /yonetim-tezgahi sayfasının kendi kapısıyla AYNIDIR (tanımlar
+       ∨ uyum ∨ yönetim okuma); yetkisi olmayana gidip "Yetkisiz" görecek
+       bağ gösterilmez. Kapı sayfada durur, burası yalnız sunum. */
+    kullanici: k ? {
+      ad: k.adSoyad, unvan: k.unvan, demo: k.id === 'demo',
+      yonetim: izinVar(k, 'tanimlar', 'okuma') || izinVar(k, 'uyum', 'okuma') || izinVar(k, 'yonetim', 'okuma'),
+    } : null,
     kapsam: grup ? { grup: grup.ad, tuzelKisi, santral } : null,
     ayak: ayak && {
       toplam: ayak.toplam,
@@ -78,5 +88,10 @@ export async function kabukVerisi(): Promise<KabukVerisi> {
        kullanıcıda da null: damga da bir sağlık bilgisidir. */
     kesit: ayak?.sonKosu ? ayak.sonKosu.toISOString() : null,
     okunmamis,
+    /* Ayak künyesi: sürüm package.json'dan OKUNUR (elle yazılmış sürüm
+       ilk yayında yalan söylerdi); ortam demo bayrağı + NODE_ENV'den. */
+    surum: paket.version,
+    kunye: await ayar<string>('kabuk.kunye').catch(() => 'Zorlu Enerji Yönetişim Platformu'),
+    ortam: DEMO ? 'demo' : process.env.NODE_ENV === 'production' ? 'uretim' : 'gelistirme',
   };
 }

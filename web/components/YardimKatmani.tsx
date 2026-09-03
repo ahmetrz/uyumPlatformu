@@ -21,7 +21,7 @@ import {
    · Esc kapatır; perdeye tıklamak kapatır;
    · ODAK TUZAĞI — Tab katmanın içinde döner, sayfaya kaçmaz;
    · açılınca odak kapat düğmesine gider, kapanınca AÇAN öğeye döner.
-   Bileşen `Kabuk` içinde monte edilir ki `.ab[data-yon]` token'larını
+   Bileşen `Kabuk` içinde monte edilir ki `.ab` token'larını
    alsın (palet için de aynı ders alınmıştı). */
 
 export default function YardimKatmani() {

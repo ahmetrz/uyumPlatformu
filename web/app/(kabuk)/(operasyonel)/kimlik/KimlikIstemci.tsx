@@ -1,8 +1,9 @@
 'use client';
-import { Fragment, useMemo, useState, type CSSProperties } from 'react';
-import { Im, Metrikler, BosIlk, BosFiltre, Dugme } from '@/components/kabuk/temel';
+import { useMemo, useState } from 'react';
+import { useUrlDurumu, useUrlDurumuBos } from '@/components/kabuk/urlDurumu';
+import { Im, Metrikler, BosIlk, BosFiltre, Dugme, type Durum } from '@/components/kabuk/temel';
 import { Filtreler } from '@/components/kabuk/ekran';
-import { darSablon } from '@/components/kabuk/tablo';
+import { VeriTablosu, type VtKolon } from '@/components/kabuk/tablo';
 import {
   Cekmece, CekmeceKimlik, CekmeceAlanlar, CekmeceBagli, CekmeceEylemler,
 } from '@/components/kabuk/panel';
@@ -19,16 +20,50 @@ import {
 
 /* O15 · Identity & Access Review — "kimin fazla yetkisi var?"
 
-   Tablo Tablo bileşeni yerine .tbl gramerinin kendisiyle kuruldu: grup
-   satırının açılma yönü (▾/▸) ve üye satırının girintisi Tablo'nun sabit
-   satır şablonuyla ifade edilemiyor. Sınıflar, kolon değişkenleri ve
-   marker aynı — zebra yok, satır içi eylem yok, sarmalayıcı kart yok.
+   Kütük `VeriTablosu` çekirdeğinde: önek grubu ve açık grubun üye
+   hesapları TEK düz listeye indirilir; grup satırı data-acik taşır,
+   üye satırı kimlik hücresinde girintilidir. Zebra yok, satır içi eylem
+   yok, sarmalayıcı kart yok.
 
    Sıralama: ayrıcalıklı / atıl / sahipsiz üstte; sağlıklı hesaplar tek
    kuyruk satırında toplanır. Kritik satır ASLA toplanmaz. */
 
-const KOLONLAR = '22px minmax(0, 1fr) 170px 160px 140px 26px';
-const KOLONLAR_DAR = darSablon('22px minmax(0, 1fr) 160px 140px 26px');
+/** tablo satırı: grup, açık grubun üyesi ya da tekil hesap */
+type DuzSatir = { id: string; satir: TabloSatiri; uye: boolean; acik: boolean };
+
+const KOLONLAR: VtKolon<DuzSatir>[] = [
+  {
+    anahtar: 'hesap', baslik: 'Hesap',
+    hucre: ({ satir, uye }) => {
+      const grup = satir.tur === 'grup';
+      return (
+        <span className="kimlik" style={uye ? { paddingLeft: 'var(--s22)' } : undefined}>
+          <Im durum={satirDurumu(satir)} />
+          <span className="konu">
+            {baslikMetni(satir)}
+            {grup && <span className="mono ek"> · {satir.hesaplar.length} hesap</span>}
+            <span className="alt">
+              {grup ? grupAltSatiri(satir.hesaplar) : altSatir(satir.hesaplar[0])}
+            </span>
+          </span>
+        </span>
+      );
+    },
+  },
+  {
+    anahtar: 'kapsam', baslik: 'Kapsam', ikincil: true, genislik: '170px',
+    hucre: ({ satir }) => kapsamMetni(satir.hesaplar),
+  },
+  {
+    anahtar: 'kullanim', baslik: 'Son kullanım', genislik: '160px',
+    hucre: ({ satir }) => <DurumluHucre {...kullanimHucresi(satir.hesaplar)} />,
+  },
+  {
+    anahtar: 'sahip', baslik: 'Sahip', genislik: '140px',
+    hucre: ({ satir }) => <DurumluHucre {...sahipHucresi(satir.hesaplar)} />,
+  },
+];
+
 const UYE_LISTE_BUTCESI = 10;
 
 const MERCEKLER = [
@@ -46,10 +81,10 @@ export default function KimlikIstemci({ hesaplar, tesisler, kaynaklar, kapsamli 
   /** liste bir santral kapsamıyla daraltıldı mı — boş ekranın SÖZÜ değişir */
   kapsamli?: boolean;
 }) {
-  const [mercek, setMercek] = useState('hepsi');
-  const [tesisF, setTesisF] = useState<string | null>(null);
-  const [kaynakF, setKaynakF] = useState<string | null>(null);
-  const [seciliId, setSeciliId] = useState<string | null>(null);
+  const [mercek, setMercek] = useUrlDurumu<string>('mercek', 'hepsi');
+  const [tesisF, setTesisF] = useUrlDurumuBos('tesis');
+  const [kaynakF, setKaynakF] = useUrlDurumuBos('kaynak');
+  const [seciliId, setSeciliId] = useUrlDurumuBos('sec');
   const [acikGruplar, setAcikGruplar] = useState<string[]>([]);
   const [kuyrukAcik, setKuyrukAcik] = useState(false);
   const [yetkiSecimi, setYetkiSecimi] = useState<string | null>(null);
@@ -77,6 +112,20 @@ export default function KimlikIstemci({ hesaplar, tesisler, kaynaklar, kapsamli 
   const sakin = sirali.filter(toplanabilir);
   const gosterilen = kuyrukAcik ? [...one, ...sakin] : one;
   const toplananHesap = kuyrukAcik ? 0 : sakin.reduce((a, s) => a + s.hesaplar.length, 0);
+
+  /* Grup + açık grubun üyeleri tek düz listeye iner (tablo çekirdeği düz
+     satır bekler; girinti ve data-acik satır verisinden türetilir). */
+  const duzSatirlar: DuzSatir[] = gosterilen.flatMap((s) => {
+    const acik = s.tur === 'grup' && acikGruplar.includes(s.onek);
+    return [
+      { id: s.id, satir: s, uye: false, acik },
+      ...(acik && s.tur === 'grup'
+        ? s.hesaplar.map((u): DuzSatir => ({
+          id: u.id, satir: { tur: 'hesap', id: u.id, hesaplar: [u] }, uye: true, acik: false,
+        }))
+        : []),
+    ];
+  });
 
   /* ── seçim ─────────────────────────────────────────────────────────── */
   const seciliHesap = seciliId ? hesaplar.find((h) => h.id === seciliId) ?? null : null;
@@ -179,70 +228,41 @@ export default function KimlikIstemci({ hesaplar, tesisler, kaynaklar, kapsamli 
             <BosDurum hicKayitYok={m.toplam === 0} kapsamli={kapsamli}
               filtreAktif={filtreAktif} temizle={filtreleriTemizle} />
           ) : (
-            <div className="ab-tablo"
-              style={{
-                '--kolonlar': KOLONLAR,
-                '--kolonlar-dar': KOLONLAR_DAR,
-                marginTop: 'var(--s22)',
-                borderTop: 'var(--bw-strong) solid var(--hr2)',
-              } as CSSProperties}>
-              <div className="bas">
-                <span />
-                <span className="kolonbas">Hesap</span>
-                <span className="kolonbas ikincil">Kapsam</span>
-                <span className="kolonbas">Son kullanım</span>
-                <span className="kolonbas">Sahip</span>
-                <span />
-              </div>
-
-              {gosterilen.map((s) => {
-                const grupAcik = s.tur === 'grup' && acikGruplar.includes(s.onek);
-                return (
-                  <Fragment key={s.id}>
-                    <Satir
-                      satir={s}
-                      secili={seciliId === s.id}
-                      acik={grupAcik}
-                      tikla={() => (s.tur === 'grup' ? grupTikla(s) : hesapSec(s.id))}
-                    />
-                    {grupAcik && s.hesaplar.map((u) => (
-                      <Satir
-                        key={u.id}
-                        satir={{ tur: 'hesap', id: u.id, hesaplar: [u] }}
-                        secili={seciliId === u.id}
-                        uye
-                        tikla={() => hesapSec(u.id)}
-                      />
-                    ))}
-                  </Fragment>
-                );
-              })}
-
-              {toplananHesap > 0 && (
-                <button type="button" className="satir kuyruk"
-                  style={{ gridTemplateColumns: '22px minmax(0, 1fr) 26px' }}
-                  onClick={() => setKuyrukAcik(true)}>
-                  <Im durum="ok" ad={`${toplananHesap} hesap incelemeden geçti`} />
-                  <span className="">+{toplananHesap} hesap · inceleme tamam</span>
-                  <span className="ab-ok" style={{ justifySelf: 'end' }} aria-hidden>▾</span>
-                </button>
-              )}
-
-              {kuyrukAcik && sakin.length > 0 && (
-                <p className="ab-dip dip">
-                  <button type="button" className="ab-dugme satir"
-                    onClick={() => setKuyrukAcik(false)}>Kuyruğu topla</button>
-                </p>
-              )}
-
-              <p className="ab-dip dip">
-                {m.ayricalikliAtamaVar
-                  ? `İnceleme gecikmesi ${m.bekleyenAtama} incelenmemiş ayrıcalıklı atamadan ölçüldü`
-                  : 'Ayrıcalıklı atama yok — inceleme gecikmesi ölçülemiyor'}
-                {' · '}atıl eşiği {ATIL_ESIK} gün
-                {m.ayricalikOlculmedi > 0
-                  && ` · ${m.ayricalikOlculmedi} hesabın ayrıcalık durumu kaynak sistemden gelmedi — ayrıcalıklı değil SAYILMADI`}
-              </p>
+            <div style={{ marginTop: 'var(--s22)', borderTop: 'var(--bw-strong) solid var(--hr2)' }}>
+              <VeriTablosu<DuzSatir>
+                etiket="Erişim incelemesi kütüğü"
+                kolonlar={KOLONLAR}
+                satirlar={duzSatirlar}
+                secili={seciliId}
+                sec={(id) => {
+                  if (!id) { setSeciliId(null); return; }
+                  const d = duzSatirlar.find((x) => x.id === id);
+                  if (d?.satir.tur === 'grup') grupTikla(d.satir); else hesapSec(id);
+                }}
+                durum={(d) => satirDurumu(d.satir)}
+                acik={(d) => (d.satir.tur === 'grup' ? d.acik : undefined)}
+                bosCumle={null}
+                kuyruk={toplananHesap > 0
+                  ? { metin: `+${toplananHesap} hesap · inceleme tamam`, ac: () => setKuyrukAcik(true) }
+                  : null}
+                dipNot={
+                  <>
+                    {m.ayricalikliAtamaVar
+                      ? `İnceleme gecikmesi ${m.bekleyenAtama} incelenmemiş ayrıcalıklı atamadan ölçüldü`
+                      : 'Ayrıcalıklı atama yok — inceleme gecikmesi ölçülemiyor'}
+                    {' · '}atıl eşiği {ATIL_ESIK} gün
+                    {m.ayricalikOlculmedi > 0
+                      && ` · ${m.ayricalikOlculmedi} hesabın ayrıcalık durumu kaynak sistemden gelmedi — ayrıcalıklı değil SAYILMADI`}
+                    {kuyrukAcik && sakin.length > 0 && (
+                      <>
+                        {' · '}
+                        <button type="button" className="ab-vt-dip-eylem"
+                          onClick={() => setKuyrukAcik(false)}>Kuyruğu topla</button>
+                      </>
+                    )}
+                  </>
+                }
+              />
             </div>
           )}
         </section>
@@ -263,53 +283,10 @@ export default function KimlikIstemci({ hesaplar, tesisler, kaynaklar, kapsamli 
   );
 }
 
-/* ── satır ─────────────────────────────────────────────────────────────── */
+/* ── durum renkli hücre ────────────────────────────────────────────────── */
 
-function Satir({ satir, secili, acik = false, uye = false, tikla }: {
-  satir: TabloSatiri; secili: boolean; acik?: boolean; uye?: boolean; tikla: () => void;
-}) {
-  const durum = satirDurumu(satir);
-  const grup = satir.tur === 'grup';
-  const kullanim = kullanimHucresi(satir.hesaplar);
-  const sahip = sahipHucresi(satir.hesaplar);
-  const alt = grup ? grupAltSatiri(satir.hesaplar) : altSatir(satir.hesaplar[0]);
-
-  return (
-    <button
-      type="button"
-      aria-pressed={secili}
-      aria-expanded={grup ? acik : undefined}
-      className="satir"
-      onClick={tikla}
-      style={{ borderLeftColor: secili ? `var(--${durum})` : 'transparent' }}
-    >
-      <Im durum={durum} />
-      <span style={{ minWidth: 0, paddingLeft: uye ? 'var(--s22)' : undefined }}>
-        <span className="konu">
-          {baslikMetni(satir)}
-          {grup && (
-            <span style={{
-              fontFamily: 'var(--veri)', fontSize: 'var(--t-code)',
-              fontWeight: 400, color: 'var(--i3)',
-            }}> · {satir.hesaplar.length} hesap</span>
-          )}
-        </span>
-        <span className="alt">{alt}</span>
-      </span>
-      <span className="ikincil">{kapsamMetni(satir.hesaplar)}</span>
-      <span className=""
-        style={kullanim.durum ? { color: `var(--${kullanim.durum})` } : undefined}>
-        {kullanim.metin}
-      </span>
-      <span className=""
-        style={sahip.durum ? { color: `var(--${sahip.durum})` } : undefined}>
-        {sahip.metin}
-      </span>
-      <span className="ab-ok" style={{ justifySelf: 'end' }} aria-hidden>
-        {grup ? (acik ? '▾' : '▸') : '▸'}
-      </span>
-    </button>
-  );
+function DurumluHucre({ metin, durum }: { metin: string; durum?: Durum }) {
+  return <span style={durum ? { color: `var(--${durum})` } : undefined}>{metin}</span>;
 }
 
 /* ── kapsam kontrolü (SANTRAL ▾ / KAYNAK ▾) ────────────────────────────── */

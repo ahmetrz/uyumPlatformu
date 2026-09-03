@@ -14,8 +14,8 @@ import Link from 'next/link';
    yaşayamaz". Bunlar tasarım tercihi değil, ürünün doğruluk kuralları;
    yeni sunum katmanı onları devralır.
 
-   Üç yön (A tezgâh · B saha · C defter) aynı bileşeni farklı MALZEMEYLE
-   çizer; ayrım CSS'te `[data-yon]` ile yapılır, burada değil. */
+   Tek kabuk, tek palet (UX denetimi 2026-09): yoğunluk farkı
+   (`[data-yogunluk]`) CSS'te ölçüyü ayarlar, malzemeyi değil. */
 
 export type Durum = 'ok' | 'md' | 'bd' | 'pl' | 'unk' | 'tamam';
 
@@ -262,6 +262,102 @@ export function Hata({ cumle, teknik, yenidenDene }: {
 /* 403 — kabuğun İÇİNDE çizilir, ayrı rota yok: kullanıcı nerede olduğunu
    ve nereye gidebileceğini görmeye devam eder. Sorunun adı (hangi yetki)
    ve çıkış yolu (kim verir, nereye dönülür) yan yana. */
+/* ── Bilinmeyen ≠ sıfır ≠ sağlıklı ≠ ölçülmedi ─────────────────────────
+   Dört ayrı hâl, dört ayrı cümle. "Veri yok" tek kutuya toplanınca
+   okuyucu sıfır sanır (Eylül 2026 denetimi, §5). Üçü de `role="status"`
+   taşır; `.taramali` sol kenar 45° tarama = bilinmeyen dilimiyle aynı
+   şekil kodu. */
+
+/** Kaynak var, ölçüm hiç YAPILMAMIŞ (denetlenmemiş santral, sorgulanmamış cihaz). */
+export function Olculmedi({ ne, neden, eylem }: { ne: string; neden?: string; eylem?: ReactNode }) {
+  return (
+    <div className="ab-blok taramali" role="status">
+      <span className="etiket">Ölçülmedi</span>
+      <p className="cumle"><b>{ne}</b> için henüz ölçüm yok{neden ? ` — ${neden}` : ''}. Bu sıfır değildir.</p>
+      {eylem && <div className="eylem">{eylem}</div>}
+    </div>
+  );
+}
+
+/** Ölçüm yapılacaktı, bağlayıcı ULAŞAMADI; son bilinen değer varsa yaşı yazılır. */
+export function BaglantiYok({ kaynak, sonBasarili, eylem }: {
+  kaynak: string; sonBasarili?: string; eylem?: ReactNode;
+}) {
+  return (
+    <div className="ab-blok taramali" role="status">
+      <span className="etiket">Bağlantı yok</span>
+      <p className="cumle">
+        <b>{kaynak}</b> bağlayıcısına ulaşılamadı.
+        {sonBasarili ? <> Son başarılı okuma: <span className="mono">{sonBasarili}</span>; gösterilen değer o kesittir.</> : ' Daha önce başarılı okuma yok; değer gösterilmez.'}
+      </p>
+      {eylem && <div className="eylem">{eylem}</div>}
+    </div>
+  );
+}
+
+/** Kümenin bir kısmı ölçüldü; toplam, ölçülmeyenleri SAYMAZ ve bunu söyler. */
+export function KismiVeri({ olculen, toplam, birim = 'kayıt', eylem }: {
+  olculen: number; toplam: number; birim?: string; eylem?: ReactNode;
+}) {
+  const eksik = Math.max(0, toplam - olculen);
+  return (
+    <div className="ab-blok taramali" role="status">
+      <span className="etiket">Kısmi veri · {olculen}/{toplam}</span>
+      <p className="cumle">
+        {toplam} {birim}ın {olculen}&apos;i ölçüldü; <b>{eksik}</b> {birim} ölçülmedi ve toplama katılmaz.
+        Oranlar yalnız ölçülen kümeye aittir.
+      </p>
+      {eylem && <div className="eylem">{eylem}</div>}
+    </div>
+  );
+}
+
+/** Bağlayıcı TANIMLI DEĞİL: ulaşılamama değil, hiç kurulmamışlık. Ayrı hâl,
+    ayrı cümle — "bağlantı yok" ile karışmaz. Yolu gösterir: Yönetim tezgâhı. */
+export function EntegrasyonYok({ kaynak, ne, eylem }: { kaynak: string; ne?: string; eylem?: ReactNode }) {
+  return (
+    <div className="ab-blok taramali" role="status">
+      <span className="etiket">Entegrasyon yapılandırılmamış</span>
+      <p className="cumle">
+        <b>{kaynak}</b> bağlayıcısı bu ortamda tanımlı değil{ne ? `; ${ne} bu yüzden gösterilmez` : ''}.
+        Değer yok demek sıfır demek değildir.
+      </p>
+      <div className="eylem">
+        {eylem ?? <Link href="/yonetim-tezgahi" className="ab-dugme">Yönetim tezgâhında tanımla</Link>}
+      </div>
+    </div>
+  );
+}
+
+/** Planlı bakım: kaynak bilerek kapalı; süre ve dönüş yolu yazılır. */
+export function Bakimda({ ne, bitis, eylem }: { ne: string; bitis?: string; eylem?: ReactNode }) {
+  return (
+    <div className="ab-blok taramali" role="status">
+      <span className="etiket">Bakımda</span>
+      <p className="cumle">
+        <b>{ne}</b> planlı bakımda; gösterilen değerler bakım öncesi kesittir.
+        {bitis && <> Planlanan bitiş: <span className="mono">{bitis}</span>.</>}
+      </p>
+      {eylem && <div className="eylem">{eylem}</div>}
+    </div>
+  );
+}
+
+/** Kısmi yükleme: kümenin bir bölümü geldi, kalanı hâlâ yolda. Gelenler
+    gösterilir, eksik sayısı yazılır; toplam ve oran YAZILMAZ (yanıltır). */
+export function KismiYukleniyor({ gelen, toplam, birim = 'kayıt' }: { gelen: number; toplam: number; birim?: string }) {
+  return (
+    <div className="ab-blok taramali" role="status" aria-live="polite" aria-busy="true">
+      <span className="etiket">Yükleniyor · {gelen}/{toplam}</span>
+      <p className="cumle">
+        {toplam} {birim}ın {gelen}&apos;i geldi; kalan <b>{Math.max(0, toplam - gelen)}</b> {birim} yükleniyor.
+        Toplamlar ve oranlar tümü gelince hesaplanır.
+      </p>
+      <Iskelet sinif="satir" />
+    </div>
+  );
+}
+
 export function Yetkisiz({ rol }: { rol: string }) {
   return (
     <div className="ab-blok" role="status">

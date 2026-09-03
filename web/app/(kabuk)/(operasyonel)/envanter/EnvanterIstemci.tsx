@@ -1,9 +1,11 @@
 'use client';
 import { useMemo, useState } from 'react';
+import { useUrlDurumu, useUrlDurumuBos } from '@/components/kabuk/urlDurumu';
 import Link from 'next/link';
 import { exceleAktar, pdfYazdir } from '@/components/disaAktar';
 import { VARLIK_SINIF_ETIKET, etiketle, tarihTR, zamanTR } from '@/lib/sabitler';
 import { IliskiEditoru, VarlikFormu, YasamFormu } from './Formlar';
+import { VeriTablosu, type VtKolon, type VtSira } from '@/components/kabuk/tablo';
 import {
   ILISKI_CUMLE, KRITIKLIKLER, MERCEKLER, MERCEK_TASMA, YASAM_ETIKET,
   ayYil, bilinmeyenAlanlar, bolumle, karariBloklayanBilinmeyen,
@@ -71,14 +73,14 @@ export default function EnvanterIstemci({
   /** `?bolge=KOD` bağından gelen başlangıç arama metni (topoloji çekmecesi). */
   baslangicArama?: string;
 }) {
-  const [kip, setKip] = useState<Kip>('zincir');
-  const [mercek, setMercek] = useState<Mercek>('sinyal');
-  const [tesisF, setTesisF] = useState<string | null>(null);
-  const [turF, setTurF] = useState<string | null>(null);
+  const [kip, setKip] = useUrlDurumu<Kip>('kip', 'zincir');
+  const [mercek, setMercek] = useUrlDurumu<Mercek>('mercek', 'sinyal');
+  const [tesisF, setTesisF] = useUrlDurumuBos('tesis');
+  const [turF, setTurF] = useUrlDurumuBos('tur');
   const [kritiklikF, setKritiklikF] = useState<string | null>(null);
   const [arama, setArama] = useState(baslangicArama);
   const [kuyrukAcik, setKuyrukAcik] = useState(false);
-  const [seciliId, setSeciliId] = useState<string | null>(null);
+  const [seciliId, setSeciliId] = useUrlDurumuBos('sec');
   const [panelKipi, setPanelKipi] = useState<PanelKipi>('ozet');
   const [yeniAcik, setYeniAcik] = useState(false);
 
@@ -128,6 +130,13 @@ export default function EnvanterIstemci({
 
   const sahipsiz = varliklar.filter((v) => kullanimda(v) && !v.sahip).length;
   const santralsiz = varliklar.filter((v) => kullanimda(v) && !v.tesis).length;
+  const kaynakCumlesi = kaynaklar.length === 0
+    ? 'Kaynak: bağlı kaynak yok — kayıtlar elle girildi'
+    : `Kaynak: ${kaynaklar.map(([k]) => k).join(' · ')} · son görülme ${zamanTR(kaynaklar[0][1])}`;
+
+  /* Tablo sıralaması yalnız GÖRÜNÜMDÜR: süzgeç ve mercek mantığına
+     dokunmaz, dışa aktarım `sirali` dizisini kullanmayı sürdürür. */
+  const [tabloSira, setTabloSira] = useState<VtSira | null>(null);
 
   return (
     <main className="ab-a-ekran">
@@ -141,8 +150,21 @@ export default function EnvanterIstemci({
           <button type="button" aria-pressed={kip === 'tablo'}
             onClick={() => setKip('tablo')}>Tablo görünümü</button>
         </div>
-        <span className="mono kunye">
-          Zincir: {HALKALAR.join(' → ').toLocaleUpperCase('tr-TR')}
+        {/* Künye: envanter KAYNAĞI. Eskiden 30px'lik ayrı bir ayakta
+            yaşıyordu (`.ab-a-envayak`); Eylül 2026 denetimi onu kabuğun
+            sistem durumu satırıyla çift ayak olarak ölçtü. Zincir dizisi
+            burada yazılmaz — tuvalin sütun başlıkları zaten o sırayı verir. */}
+        {/* Sayaç süzgeç şeridinden buraya: şerit 1366px'te iki satıra
+            kırılıyordu (ölçüldü: 90px), tuval 224px'te başlıyordu. */}
+        <span className="mono sayac" aria-live="polite">
+          {suzulmus.length} / {m.kullanimdaki} varlık
+          {m.bilinmeyen > 0 && ` · ${m.bilinmeyen} ölçülmemiş`}
+          {sahipsiz > 0 && ` · ${sahipsiz} sahipsiz`}
+          {santralsiz > 0 && ` · ${santralsiz} santralsiz`}
+          {m.emekli > 0 && ` · ${m.emekli} emekli`}
+        </span>
+        <span className="mono kunye" title={kaynakCumlesi}>
+          {kaynakCumlesi}
         </span>
         <span className={`mono aktif${secili ? ' var' : ''}`}>
           {secili ? '1 aktif zincir' : 'zincir seçilmedi'}
@@ -176,10 +198,6 @@ export default function EnvanterIstemci({
             Süzgeci temizle
           </button>
         )}
-        <span className="mono sayac">
-          {suzulmus.length} / {m.kullanimdaki} varlık
-          {m.bilinmeyen > 0 && ` · ${m.bilinmeyen} ölçülmemiş`}
-        </span>
         {yazabilir && (
           <button type="button" className="ab-dugme birincil"
             onClick={() => { setYeniAcik(true); setSeciliId(null); }}>
@@ -203,7 +221,8 @@ export default function EnvanterIstemci({
             <Zincir zincir={zincir} secili={secili} sec={sec} />
           ) : (
             <>
-              <Tablo satirlar={gorunur} secili={seciliId} sec={sec} simdi={simdi} />
+              <VarlikTablosu satirlar={gorunur} secili={seciliId} sec={sec} simdi={simdi}
+                sira={tabloSira} siraDegistir={setTabloSira} />
               <div className="ab-a-tabloayak">
                 <p className="mono">
                   {gorunur.length} satır · {suzulmus.length} mercekte
@@ -289,19 +308,6 @@ export default function EnvanterIstemci({
         </aside>
       </div>
 
-      {/* ── 30px envanter kaynağı ayağı ──────────────────────────────── */}
-      <footer className="ab-a-envayak">
-        <span className="mono">
-          {kaynaklar.length === 0
-            ? 'Envanter kaynağı: bağlı kaynak yok — kayıtlar elle girildi'
-            : `Envanter kaynağı: ${kaynaklar.map(([k]) => k).join(' · ')} · `
-              + `son görülme ${zamanTR(kaynaklar[0][1])}`}
-        </span>
-        <span className="mono sag">
-          {sahipsiz} sahipsiz varlık · {santralsiz} santrali girilmemiş
-          {m.emekli > 0 && ` · ${m.emekli} emekli kayıt`}
-        </span>
-      </footer>
     </main>
   );
 }
@@ -469,52 +475,60 @@ function Zincir({ zincir, secili, sec }: {
 }
 
 /* ── Tablo ────────────────────────────────────────────────────────────
-   A yüzeyinin tablo grameri: 30px satır, sol kenar durum çubuğu, mono
-   kod sütunu. Durum SÖZCÜĞÜ değil OLGU yazılır ("yamasız", "yedek yok"). */
-const TABLO_KOLONLARI = '104px minmax(220px, 1fr) 116px 132px 128px 74px 84px';
+   Semantik kütük (`VeriTablosu`): gerçek `<table>`, yapışkan başlık ve
+   kod sütunu, `aria-sort`, ok tuşuyla dolaşım. Görsel gramer aynı:
+   sol kenar durum çubuğu, mono kod, olgu alt satırı ("yamasız", "yedek
+   yok"). Sıralanabilir sütunlar: etiket, varlık, tür, santral, zafiyet,
+   destek sonu. Bilinmeyen tarih/sayı SONA gider, sıfır sayılmaz. */
+const sonaAt = <T,>(a: T | null | undefined, b: T | null | undefined, kiyas: (x: T, y: T) => number) =>
+  a == null && b == null ? 0 : a == null ? 1 : b == null ? -1 : kiyas(a, b);
+const tr = (a: string, b: string) => a.localeCompare(b, 'tr');
 
-function Tablo({ satirlar, secili, sec, simdi }: {
+function VarlikTablosu({ satirlar, secili, sec, simdi, sira, siraDegistir }: {
   satirlar: V[]; secili: string | null; sec: (id: string | null) => void; simdi: number;
+  sira: VtSira | null; siraDegistir: (s: VtSira | null) => void;
 }) {
-  return (
-    <div className="ab-tablo" style={{ ['--kolon' as string]: TABLO_KOLONLARI }}>
-      <div className="bas">
-        <span className="kolonbas">Etiket</span>
-        <span className="kolonbas">Varlık</span>
-        <span className="kolonbas">Tür</span>
-        <span className="kolonbas">Santral</span>
-        <span className="kolonbas">Ağ bölgesi</span>
-        <span className="kolonbas sag">Zafiyet</span>
-        <span className="kolonbas sag">Destek sonu</span>
-      </div>
-      {satirlar.map((v) => {
-        const d = varlikDurumu(v, simdi);
-        const gun = omurGunu(v, simdi);
+  const kolonlar: VtKolon<V>[] = [
+    { anahtar: 'etiket', baslik: 'Etiket', genislik: '168px',
+      sirala: (a, b) => tr(a.etiket, b.etiket),
+      hucre: (v) => <span className="mono kod">{v.etiket}</span> },
+    { anahtar: 'ad', baslik: 'Varlık',
+      sirala: (a, b) => tr(a.ad, b.ad),
+      hucre: (v) => {
         const o = olgu(v, simdi);
-        return (
-          <button key={v.id} type="button"
-            className={`satir d-${d}`}
-            aria-pressed={v.id === secili}
-            onClick={() => sec(v.id === secili ? null : v.id)}>
-            <span className="mono kod">{v.etiket}</span>
-            <span className="konu">
-              {v.ad}
-              {o && <span className="alt">{o}</span>}
-            </span>
-            <span className="mono ikincil">{v.tur.ad}</span>
-            <span className="ikincil">{v.tesis?.ad ?? '—'}</span>
-            <span className="mono ikincil">{v.bolge?.kod ?? '—'}</span>
-            <span className={`mono sag${v.acikZafiyet > 0 ? ' vurgu' : ''}`}>
-              {v.acikZafiyet}
-            </span>
-            <span className={`mono sag${gun !== null && gun < 0 ? ' vurgu'
- : gun !== null && gun < 365 ? ' uyari' : ''}`}>
-              {v.eosTarihi ? ayYil(v.eosTarihi) : '—'}
-            </span>
-          </button>
-        );
-      })}
-    </div>
+        return <span className="konu">{v.ad}{o && <span className="alt">{o}</span>}</span>;
+      } },
+    { anahtar: 'tur', baslik: 'Tür', genislik: '120px', ikincil: true,
+      sirala: (a, b) => tr(a.tur.ad, b.tur.ad),
+      hucre: (v) => <span className="mono ikincil">{v.tur.ad}</span> },
+    { anahtar: 'tesis', baslik: 'Santral', genislik: '140px',
+      sirala: (a, b) => sonaAt(a.tesis?.ad, b.tesis?.ad, tr),
+      hucre: (v) => <span className="ikincil">{v.tesis?.ad ?? '—'}</span> },
+    { anahtar: 'bolge', baslik: 'Ağ bölgesi', genislik: '124px', ikincil: true,
+      hucre: (v) => <span className="mono ikincil">{v.bolge?.kod ?? '—'}</span> },
+    { anahtar: 'zafiyet', baslik: 'Zafiyet', genislik: '84px', sag: true, ad: 'Açık zafiyet sayısı',
+      sirala: (a, b) => a.acikZafiyet - b.acikZafiyet,
+      hucre: (v) => <span className={`mono${v.acikZafiyet > 0 ? ' vurgu' : ''}`}>{v.acikZafiyet}</span> },
+    { anahtar: 'eos', baslik: 'Destek sonu', genislik: '104px', sag: true,
+      sirala: (a, b) => sonaAt(a.eosTarihi, b.eosTarihi, (x, y) => String(x).localeCompare(String(y))),
+      hucre: (v) => {
+        const gun = omurGunu(v, simdi);
+        const sinif = gun !== null && gun < 0 ? ' vurgu' : gun !== null && gun < 365 ? ' uyari' : '';
+        return <span className={`mono${sinif}`}>{v.eosTarihi ? ayYil(v.eosTarihi) : '—'}</span>;
+      } },
+  ];
+  return (
+    <VeriTablosu<V>
+      etiket="Varlık kütüğü"
+      kolonlar={kolonlar}
+      satirlar={satirlar}
+      secili={secili}
+      sec={sec}
+      durum={(v) => varlikDurumu(v, simdi)}
+      sira={sira}
+      siraDegistir={siraDegistir}
+      yukseklik="calc(100dvh - 56px - 36px - 42px - 56px - 120px)"
+    />
   );
 }
 

@@ -1,5 +1,6 @@
 'use client';
 import { useMemo, useState } from 'react';
+import { useUrlDurumu, useUrlDurumuBos } from '@/components/kabuk/urlDurumu';
 import { BosFiltre, BosIlk } from '@/components/kabuk/temel';
 import { EkranBasligi, Filtreler, KipDegistir } from '@/components/kabuk/ekran';
 import { Tablo, type Kolon } from '@/components/kabuk/tablo';
@@ -97,11 +98,13 @@ export default function TopolojiIstemci({
   sapmaTavani: number;
   anlikTavani: number;
 }) {
-  const [kip, setKip] = useState<Kip>('sapma');
-  const [mercek, setMercek] = useState<Mercek>('acik');
-  const [seciliSapma, setSeciliSapma] = useState<string | null>(null);
-  const [seciliAnlik, setSeciliAnlik] = useState<string | null>(null);
-  const [seciliBolge, setSeciliBolge] = useState<string | null>(null);
+  const [kip, setKip] = useUrlDurumu<Kip>('kip', 'sapma');
+  const [mercek, setMercek] = useUrlDurumu<Mercek>('mercek', 'acik');
+  /* Seçim adreste taşınır (A6): paylaşılan bağlantı aynı sapma/anlık/bölgeyi
+     açar; yenilemede seçim kaybolmaz. */
+  const [seciliSapma, setSeciliSapma] = useUrlDurumuBos('sapma');
+  const [seciliAnlik, setSeciliAnlik] = useUrlDurumuBos('anlik');
+  const [seciliBolgeUrl, setSeciliBolge] = useUrlDurumuBos('bolge');
   const [kuyrukAcik, setKuyrukAcik] = useState(false);
   const [anlikKuyrugu, setAnlikKuyrugu] = useState(false);
 
@@ -147,12 +150,30 @@ export default function TopolojiIstemci({
      deterministiktir (mantik.ts → bolgeGrafigiKur, testte sabit). */
   const bolgeGrafigi = useMemo(
     () => bolgeGrafigiKur({ bolgeler, gecitler }), [bolgeler, gecitler]);
+  /* Anlamlı varsayılan seçim: bölge kipinde hiçbir düğüm seçili değilse
+     en çok geçidi olan (çizilen) bölge odaklanır — tuval hiçbir zaman
+     "hangi düğüme bakayım" hâlinde açılmaz. Kullanıcı seçimi (adres) her
+     zaman öndedir; ikinci tıklama odağı bırakır ve varsayılana DÖNMEZ
+     (`'-'` işareti = bilinçli boş seçim). */
+  const varsayilanBolge = useMemo(() => {
+    if (bolgeGrafigi.dugumler.length === 0) return null;
+    const derece = new Map<string, number>();
+    for (const k of bolgeGrafigi.kenarlar) {
+      derece.set(k.kaynak, (derece.get(k.kaynak) ?? 0) + 1);
+      derece.set(k.hedef, (derece.get(k.hedef) ?? 0) + 1);
+    }
+    return [...bolgeGrafigi.dugumler]
+      .sort((a, b) => (derece.get(b.id) ?? 0) - (derece.get(a.id) ?? 0)
+        || a.id.localeCompare(b.id, 'tr'))[0]?.id ?? null;
+  }, [bolgeGrafigi]);
+  const seciliBolge = seciliBolgeUrl === '-' ? null : (seciliBolgeUrl ?? varsayilanBolge);
   const bolge = bolgeler.find((b) => b.id === seciliBolge) ?? null;
   const bolgeGecitleri = useMemo(
     () => (bolge ? bolgeninGecitleri(bolge.id, gecitler, bolgeler) : []),
     [bolge, gecitler, bolgeler]);
   // Tuval odak sözleşmesi: aynı düğüme ikinci tıklama odağı bırakır.
-  const bolgeOdakla = (id: string) => setSeciliBolge(id === seciliBolge ? null : id);
+  const bolgeOdakla = (id: string) => setSeciliBolge(id === seciliBolge ? '-' : id);
+  const bolgeKapat = () => setSeciliBolge('-');
 
   const bolgeGorunumu = bolgeler.length === 0 ? (
     <BosIlk cumle={'Kapsamınızda ağ bölgesi tanımı yok — bölge ve geçit tanımı'
@@ -211,7 +232,7 @@ export default function TopolojiIstemci({
       </main>
       {bolge && (
         <BolgeCekmecesi bolge={bolge} gecitler={bolgeGecitleri}
-          kapat={() => setSeciliBolge(null)} />
+          kapat={bolgeKapat} />
       )}
       </>
     );
@@ -482,7 +503,7 @@ export default function TopolojiIstemci({
 
       {kip === 'bolge' && bolge && (
         <BolgeCekmecesi bolge={bolge} gecitler={bolgeGecitleri}
-          kapat={() => setSeciliBolge(null)} />
+          kapat={bolgeKapat} />
       )}
     </>
   );

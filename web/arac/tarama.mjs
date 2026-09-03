@@ -80,7 +80,7 @@ for (const yol of ROTALAR) {
       return {
         tasma: Math.max(0, kok.scrollWidth - kok.clientWidth),
         kabukVar: Boolean(kabuk),
-        yon: kabuk?.getAttribute('data-yon') ?? null,
+        yon: kabuk?.getAttribute('data-yogunluk') ?? null,
         yukseklik: Math.round(govde.getBoundingClientRect().height),
         eski: sayim,
       };

@@ -1,5 +1,6 @@
 'use client';
 import { useMemo, useState, useSyncExternalStore } from 'react';
+import { useUrlDurumu, useUrlDurumuBos } from '@/components/kabuk/urlDurumu';
 import Link from 'next/link';
 import { Alan, BosFiltre, BosIlk, Dugme, Hata, Im, type Durum } from '@/components/kabuk/temel';
 import { Tablo, type Kolon, type Satir } from '@/components/kabuk/tablo';
@@ -88,8 +89,8 @@ export default function DokumanlarIstemci({
   onaylayabilir: boolean;
   kapsamli?: boolean;
 }) {
-  const [mercek, setMercek] = useState<Mercek>('tumu');
-  const [turF, setTurF] = useState<string | null>(null);
+  const [mercek, setMercek] = useUrlDurumu<Mercek>('mercek', 'tumu');
+  const [turF, setTurF] = useUrlDurumuBos('tur');
   const [arama, setArama] = useState('');
   const [siralama, setSiralama] = useState<Siralama>('acil');
   const [secim, setSecim] = useState<Secim>({ kaynak: 'cengel' });

@@ -1,5 +1,6 @@
 'use client';
 import { useMemo, useState } from 'react';
+import { useUrlDurumu, useUrlDurumuBos } from '@/components/kabuk/urlDurumu';
 import Link from 'next/link';
 import { BosFiltre, BosIlk, Dugme } from '@/components/kabuk/temel';
 import { EkranBasligi, Filtreler } from '@/components/kabuk/ekran';
@@ -54,8 +55,8 @@ export default function BildirimlerIstemci({
   simdi: number;
 }) {
   const { bekliyor, hata, calistir } = useEylem();
-  const [mercek, setMercek] = useState<Mercek>('okunmamis');
-  const [secili, setSecili] = useState<string | null>(null);
+  const [mercek, setMercek] = useUrlDurumu<Mercek>('mercek', 'okunmamis');
+  const [secili, setSecili] = useUrlDurumuBos('sec');
   const [kuyrukAcik, setKuyrukAcik] = useState(false);
 
   /* Metrikler filtreden BAĞIMSIZ: kutunun tamamını anlatır. */

@@ -1,78 +1,34 @@
 ---
 name: Zorlu Enerji Yönetişim Platformu
-description: Üç koyu kabuk (A tezgâh · B saha · C defter), radius 0, saç çizgisiyle kompozisyon, mono/tabular sayı — bir kontrol odası, bir saha, bir defter.
+description: Tek koyu kabuk, Saha dili (Barlow Condensed · Inter · JetBrains Mono, bakır aksan), üç yoğunluk (amiral · operasyonel · tezgâh), radius 0, saç çizgisiyle kompozisyon, mono/tabular sayı.
 colors:
-  a-zemin: "#0D1012"
-  a-panel: "#101416"
-  a-panel-2: "#181D1F"
-  a-murekkep: "#E7EAEA"
-  a-murekkep-2: "#B6BEC1"
-  a-murekkep-3: "#8A9497"
-  a-sac-cizgisi: "#262C2E"
-  a-sac-cizgisi-2: "#313739"
-  a-aksan-kehribar: "#D9A03C"
-  a-aksan-uzeri: "#0D1012"
-  a-secim: "#1B1712"
-  a-ok: "#6E9E7A"
-  a-md: "#D9A03C"
-  a-bd: "#DC6154"
-  a-pl: "#7A8B93"
-  a-unk: "#8A9497"
-  b-zemin: "#0A0C0D"
-  b-panel: "#0F1213"
-  b-panel-2: "#14181A"
-  b-murekkep: "#EDEEEC"
-  b-murekkep-2: "#B9BEBC"
-  b-murekkep-3: "#8D9497"
-  b-sac-cizgisi: "#1C2123"
-  b-sac-cizgisi-2: "#272D2F"
-  b-aksan-bakir: "#C2703E"
-  b-aksan-uzeri: "#0A0C0D"
-  b-secim: "#171211"
-  b-ok: "#6FA07E"
-  b-md: "#D9A03C"
-  b-bd: "#DB5A48"
-  b-pl: "#7A8B93"
-  b-unk: "#8D9497"
-  c-zemin: "#141210"
-  c-panel: "#1A1815"
-  c-panel-2: "#221F1B"
-  c-murekkep: "#EDE8DF"
-  c-murekkep-2: "#C2BBAF"
-  c-murekkep-3: "#958E82"
-  c-sac-cizgisi: "#2B2823"
-  c-sac-cizgisi-2: "#3A362F"
-  c-aksan-oxblood: "#B24936"
-  c-aksan-uzeri: "#F5F0E8"
-  c-secim: "#241A17"
-  c-ok: "#8FB39A"
-  c-md: "#D4A24A"
-  c-bd: "#E0644F"
-  c-pl: "#9AAA98"
-  c-unk: "#958E82"
+  zemin: "#0A0C0D"
+  panel: "#0F1213"
+  panel-2: "#14181A"
+  murekkep: "#EDEEEC"
+  murekkep-2: "#B9BEBC"
+  murekkep-3: "#8D9497"
+  sac-cizgisi: "#1C2123"
+  sac-cizgisi-2: "#272D2F"
+  aksan-bakir: "#C2703E"
+  aksan-uzeri: "#0A0C0D"
+  secim: "#171211"
+  ok: "#6FA07E"
+  md: "#D9A03C"
+  bd: "#DB5A48"
+  pl: "#7A8B93"
+  unk: "#8D9497"
   tip-jes: "#C47A3F"
   tip-hes: "#5F8FA8"
   tip-res: "#9DB3A8"
   tip-ges: "#C9A24C"
 typography:
-  display-a:
-    fontFamily: "Archivo, Inter Tight, sans-serif"
-    fontSize: "26px"
-    fontWeight: 500
-    lineHeight: 1.15
-    letterSpacing: "0.01em"
-  display-b:
+  display:
     fontFamily: "Barlow Condensed, Inter, sans-serif"
     fontSize: "26px"
     fontWeight: 500
     lineHeight: 1.15
     letterSpacing: "0.01em"
-  display-c:
-    fontFamily: "Newsreader, Georgia, serif"
-    fontSize: "34px"
-    fontWeight: 400
-    lineHeight: 1.1
-    letterSpacing: "-0.01em"
   headline:
     fontFamily: "var(--gorunum)"
     fontSize: "18px"
@@ -124,58 +80,60 @@ spacing:
   col-gap: "16px"
   gutter-op: "24px"
   drawer-w: "400px"
-  rail-w: "76px"
+  ayak-h: "32px"
+  durum-h: "32px"
+  satir-h: "36px"
 components:
   button-primary:
-    backgroundColor: "{colors.a-aksan-kehribar}"
-    textColor: "{colors.a-aksan-uzeri}"
+    backgroundColor: "{colors.aksan-bakir}"
+    textColor: "{colors.aksan-uzeri}"
     typography: "{typography.label}"
     rounded: "{rounded.none}"
     padding: "5px 12px"
   button-secondary:
-    backgroundColor: "{colors.a-panel}"
-    textColor: "{colors.a-murekkep-2}"
+    backgroundColor: "{colors.panel}"
+    textColor: "{colors.murekkep-2}"
     typography: "{typography.label}"
     rounded: "{rounded.none}"
     padding: "5px 12px"
   button-secondary-hover:
-    backgroundColor: "{colors.a-panel}"
-    textColor: "{colors.a-murekkep}"
+    backgroundColor: "{colors.panel}"
+    textColor: "{colors.murekkep}"
   button-reject:
-    backgroundColor: "{colors.a-panel}"
-    textColor: "{colors.a-bd}"
+    backgroundColor: "{colors.panel}"
+    textColor: "{colors.bd}"
     rounded: "{rounded.none}"
     padding: "5px 12px"
   button-row:
     backgroundColor: "transparent"
-    textColor: "{colors.a-aksan-kehribar}"
+    textColor: "{colors.aksan-bakir}"
     padding: "2px 0"
   input:
-    backgroundColor: "{colors.a-panel}"
-    textColor: "{colors.a-murekkep}"
+    backgroundColor: "{colors.panel}"
+    textColor: "{colors.murekkep}"
     typography: "{typography.body}"
     rounded: "{rounded.none}"
     padding: "6px 8px"
   table-row:
     backgroundColor: "transparent"
-    textColor: "{colors.a-murekkep}"
+    textColor: "{colors.murekkep}"
     padding: "10px 0"
   table-row-selected:
-    backgroundColor: "{colors.a-panel-2}"
-    textColor: "{colors.a-murekkep}"
+    backgroundColor: "{colors.panel-2}"
+    textColor: "{colors.murekkep}"
   drawer:
-    backgroundColor: "{colors.a-panel}"
-    textColor: "{colors.a-murekkep}"
+    backgroundColor: "{colors.panel}"
+    textColor: "{colors.murekkep}"
     width: "400px"
   chip-filter:
     backgroundColor: "transparent"
-    textColor: "{colors.a-murekkep-3}"
+    textColor: "{colors.murekkep-3}"
     typography: "{typography.label}"
     rounded: "{rounded.none}"
     padding: "5px 11px"
   chip-filter-active:
-    backgroundColor: "{colors.a-panel-2}"
-    textColor: "{colors.a-murekkep}"
+    backgroundColor: "{colors.panel-2}"
+    textColor: "{colors.murekkep}"
 ---
 
 # Design System: Zorlu Enerji Yönetişim Platformu
@@ -191,66 +149,66 @@ components:
 **Creative North Star: "Gece Vardiyasındaki Kontrol Odası"**
 
 Ürün bir enerji üretim grubunun BT/OT yönetişim konsoludur ve tek temadır:
-koyu. Üç ayrı kabuk aynı binanın üç katıdır — **A · tezgâh** (Industrial
-Precision: enstrüman, kontrol odası, kehribar aksan), **B · saha** (Energy
-Intelligence: fotoğraf, coğrafya, bakır aksan), **C · defter** (Operational
-Luxury: editoryal, basılı, serif görüntü, oxblood aksan). Ayrıştıkları yer
-zemin sıcaklığı (A/B soğuk çelik grisi, C sıcak mürekkep-kahve), görüntü
-yazı ailesi, fotoğrafın rolü ve gezinme felsefesidir; renk varyantı
-değildirler. Hangi kabuğun çizileceği rotadan seçilir
-(`components/kabuk/yonler.ts`).
+koyu, tek kabuk. Dili Saha'nın dilidir (Energy Intelligence: fotoğraf,
+coğrafya, Barlow Condensed büyük harf başlık, bakır aksan); Eylül 2026
+denetimi üç kabuğun (A tezgâh · B saha · C defter) "üç ayrı ürün" hissi
+verdiğini ölçtü ve A/C kaldırıldı. Ayrışma artık yoğunlukla kurulur —
+amiral (ana ekran, Plant 360, portföy), operasyonel (kütükler, kayıtlar),
+tezgâh (keşif, aktarım, sağlık) — hangi yoğunluğun çizileceği rotadan
+seçilir (`components/kabuk/yonler.ts`, `yogunlukSec`). Saha'nın YERLEŞİMİ
+öteki alanlara kopyalanmaz; kopyalanan dil ve disiplindir.
 
-Üçü de aynı disiplini paylaşır: **radius 0**, saç çizgisiyle kompozisyon
+Her yoğunluk aynı disiplini paylaşır: **radius 0**, saç çizgisiyle kompozisyon
 (dolgu ya da gölge değil, 1px kural), mono/tabular sayı, kart-içinde-kart
 yok, ikon kütüphanesi yok (monogram ve tipografik glif), donut/radyal
 gösterge yok. Ekran olguyu gösterir, yargı vermez: "kritik!" değil, "12 gün
 gecikmiş". Bilinmeyen sıfır değildir ve kendi diliminde durur.
 
 **Key Characteristics:**
-- Üç koyu kabuk, tek ürün: A kehribar `#D9A03C` · B bakır `#C2703E` · C oxblood `#B24936`
+- Tek koyu kabuk, tek aksan: bakır `#C2703E`; beş alan Saha · Portföy · Uyum · Varlık · Risk
 - Yarıçap yok; yalnız durum daireleri ve avatar `50%` (şekil kodlamasının parçası)
-- Durum yalnız renkle anlatılmaz: glif ailesi (A/B kare, C daire) + sözcük + erişilebilir ad
+- Durum yalnız renkle anlatılmaz: glif ailesi (10px kare) + sözcük + erişilebilir ad
 - Sayı her yerde mono/tabular; işlevsel metin (gezinme, kolon başlığı) 11px'in altına inmez
 - Kritik bilgi ipucunda yaşamaz; bilinmeyen `—` / "ölçülmedi" olarak yazılır, sıfır değil
 - Hareket seyrek ve anlamlı; azaltılmış harekette durur
 
 ## Colors
 
-Her kabuk kendi paletini `.ab[data-yon='a|b|c']` altında aynı token adlarıyla
-tanımlar (`--zemin --panel --panel2 --murekkep --i2 --i3 --hr --hr2 --aksan
---aksan-uzeri --secim --ok --md --bd --pl --unk --jes --hes --res --ges`);
-ekranlar yalnız token adı kullanır, kabuk malzemeyi seçer.
+Tek palet `.ab` altında tanımlıdır (`--zemin --panel --panel2 --murekkep --i2
+--i3 --hr --hr2 --aksan --aksan-uzeri --secim --ok --md --bd --pl --unk --jes
+--hes --res --ges`); Eylül 2026 denetiminden sonra A (kehribar/Archivo) ve C
+(oxblood/Newsreader) paletleri kaldırıldı, Saha (B) paleti tek kaynak oldu.
+Yoğunluk (`data-yogunluk="amiral|operasyonel|tezgah"`) renk değil ölçü değiştirir
+(`--gutter --ayak-h --durum-h --satir-h`).
 
 ### Primary
-- **Kehribar** (`#D9A03C`, A `--aksan`): seçili satırın sol kenarı, aktif ray öğesi, birincil düğme dolgusu, odak halkası. Yazı rengi olarak yalnız `.ab-dugme.satir` bağlantısında.
-- **Bakır** (`#C2703E`, B `--aksan`): saha kabuğunda aynı roller; fotoğraf üstünde işaretçi kenarı.
-- **Oxblood** (`#B24936`, C `--aksan`): defter kabuğunda seçili satır kenarı, aktif serif sekmenin alt çizgisi, birincil düğme. Prototipin `#8A3A2C` tonu koyu zeminde 2,6:1 kaldığı için ton korunarak açıldı (çukurda 3,05:1). **Metinde kullanılmaz**; düğme dolgusu üzerine kâğıt rengi mürekkep (`#F5F0E8`).
+- **Bakır** (`#C2703E`, `--aksan`): seçili satırın sol kenarı, aktif alan sekmesinin alt çizgisi, birincil düğme dolgusu, odak halkası; fotoğraf üstünde işaretçi kenarı. Yazı rengi olarak yalnız `.ab-dugme.satir` bağlantısında. Düğme dolgusu üzerine zemin rengi mürekkep (`#0A0C0D`).
 
 ### Secondary
-- **Durum ailesi** (kabuğa göre ton değişir, rol değişmez): `--ok` uygun (A `#6E9E7A`), `--md` kısmi / uyarı (A `#D9A03C`), `--bd` uygunsuz / kritik (A `#DC6154`), `--pl` planlı (A `#7A8B93`), `--unk` değerlendirilmedi (A `#8A9497`). `--bd` prototipte 3,45:1 kalıyordu; ton korunarak 4,76:1'e açıldı — kritik durumun rengi okunamıyorsa kritikliği taşımıyor demektir.
+- **Durum ailesi**: `--ok` uygun (`#6FA07E`), `--md` kısmi / uyarı (`#D9A03C`), `--bd` uygunsuz / kritik (`#DB5A48`), `--pl` planlı (`#7A8B93`), `--unk` değerlendirilmedi (`#8D9497`). `--bd` prototipte 3,45:1 kalıyordu; ton korunarak 4,76:1'e açıldı — kritik durumun rengi okunamıyorsa kritikliği taşımıyor demektir.
 
 ### Tertiary
 - **Üretim tipi kimliği** (`--jes` `#C47A3F` · `--hes` `#5F8FA8` · `--res` `#9DB3A8` · `--ges` `#C9A24C`): jeotermal / hidro / rüzgâr / güneş. Renk **kimliktir, durum değil**: yalnız işaretçi ölçeğinde (portföy düzlemi, santral seçici), asla metinde ya da durum yerine.
 
 ### Neutral
-- **Zemin** (A `#0D1012` · B `#0A0C0D` · C `#141210`): sayfanın kendisi; C'ninki sıcak mürekkep-kahve, A/B'ninki soğuk çelik.
-- **Panel / panel-2** (A `#101416` / `#181D1F`): çekmece, ray, satır hover ve seçili satır zemini. Panel zeminin bir kademe üstüdür; kart değildir, kenarlığı saç çizgisidir.
-- **Mürekkep** (A `#E7EAEA`), **mürekkep-2** (`#B6BEC1`, ikincil metin), **mürekkep-3** (`#8A9497`, etiket ve kolon başlığı; prototipteki `#6E777A` 4,5:1 için açıldı).
-- **Saç çizgisi / saç çizgisi-2** (A `#262C2E` / `#313739`): satır ayracı, bölüm kuralı, düğme ve girdi kenarlığı. Kompozisyonun tek çizgi aracıdır.
-- **Seçim** (A `#1B1712`): açık satırın zemini — aksanın çok soluk tonu.
+- **Zemin** (`#0A0C0D`): sayfanın kendisi; soğuk çelik.
+- **Panel / panel-2** (`#0F1213` / `#14181A`): çekmece, ikincil sıra, satır hover ve seçili satır zemini. Panel zeminin bir kademe üstüdür; kart değildir, kenarlığı saç çizgisidir.
+- **Mürekkep** (`#EDEEEC`), **mürekkep-2** (`#B9BEBC`, ikincil metin), **mürekkep-3** (`#8D9497`, etiket ve kolon başlığı).
+- **Saç çizgisi / saç çizgisi-2** (`#1C2123` / `#272D2F`): satır ayracı, bölüm kuralı, düğme ve girdi kenarlığı. Kompozisyonun tek çizgi aracıdır.
+- **Seçim** (`#171211`): açık satırın zemini — aksanın çok soluk tonu.
 
 ### Named Rules
-**The Tek Tema Rule.** Ürün koyudur; C'nin prototipteki açık kâğıt zemini üründe yoktur. Kabuklar arası geçiş "başka bir platform" hissi vermez — ayrışma zemin sıcaklığı ve tipografiyle kurulur, açık/koyu kontrastıyla değil.
+**The Tek Tema Rule.** Ürün koyudur ve TEK kabuktur. Alanlar arası geçiş "başka bir platform" hissi vermez — ayrışma yoğunlukla (oluk, satır yüksekliği, ayak/durum şeridi) kurulur, palet ya da yazı ailesiyle değil.
 
 **The Renk Tek Kanal Değil Rule.** Durum daima ikinci bir kanalla gelir: glif biçimi, sözcük, uzunluk (tik şeridi) ya da erişilebilir ad. Renk göremeyen okuyucu için 22 ile 4 aynı görünmez.
 
-**The Aksan Seyrek Rule.** Aksan seçimi, aktif öğeyi ve birincil eylemi işaretler; ekranın yüzde birkaçından fazlasını kaplamaz. Metinde aksan kullanılmaz (C'de kontrast eşiği altındadır, A/B'de de gerekmez).
+**The Aksan Seyrek Rule.** Aksan seçimi, aktif öğeyi ve birincil eylemi işaretler; ekranın yüzde birkaçından fazlasını kaplamaz. Metinde aksan kullanılmaz.
 
 ## Typography
 
-**Display Font:** Archivo (A) · Barlow Condensed (B) · Newsreader (C) — `--gorunum`
-**Body Font:** Inter Tight (A) · Inter (B, C) — `--ui`
-**Label/Mono Font:** IBM Plex Mono (A, C) · JetBrains Mono (B) — `--veri`
+**Display Font:** Barlow Condensed — `--gorunum` (başlıklar BÜYÜK HARF, `lang="tr"` ile İ/ı doğru)
+**Body Font:** Inter — `--ui`
+**Label/Mono Font:** JetBrains Mono — `--veri`
 
 Hepsi self-host (`public/fontlar`, latin + latin-ext; Türkçe `ş ğ İ ı`
 latin-ext'tedir). Çalışma anında Google Fonts'a çıkış yoktur (statik dışa
@@ -286,12 +244,11 @@ yana kaymaz**: taşma ya bir kaydırma kabına hapsedilir (üst çubuklar 1100px
 altında yatay kayar) ya da yerleşim tek kolona iner. `arac/yatay-tasma.mjs`
 375 ve 768'de 38 rotayı ölçer ve taşmayı üreten öğeyi adıyla yazar.
 
-- **A · tezgâh**: 52px kapsam çubuğu (`KAPSAM · tüzel kişi · santral` + çerçeve + veri kesiti damgası) + 76px ikon rayı (`--rail-w`; iki harf monogram + 11px etiket, öğe 40px, altıncı öğeden sonra ayraç) + içerik + 30px durum ayağı (bağlayıcı sayımları, yalnız yetkiliye). Ray daralmaz, genişlemez.
-- **B · saha**: 56px yatay sekme çubuğu, ray yok. Ana ekranda 648px fotoğrafik alan (sol 430px dikkat paneli, sağ 320px katman paneli), 168px kartlı saha şeridi, 430px takvim + akış bandı. Gezinme kısmen mekânsaldır (fotoğrafik şerit, düzlem).
-- **C · defter**: künye (`padding: 28px 56px 16px`, Newsreader 26px marka + mono alan dizisi) → 2px mürekkep kuralı → 15px serif sekmeler → 1px kural → gövde `212px + 1fr`, 44px aralık, `36px 56px 64px` dolgu. Sol dizin içindekiler tablosu ve okuma anahtarıdır; kendi dizinini veren ekran (`data-dizin="ekran"`) varsayılanı düşürür.
+- **Kabuk** (`.ab`, satırlar `56px auto 1fr auto auto`): 56px üst çubuk (marka · beş alan sekmesi · arama · kişi · Bildirim/Ayarlar/Yardım · Çıkış) → 36px ikincil sıra (`.ab-ikincil`; alanın bölümleri gruplu, sağda kapsam; Saha'da ve yardımcı rotalarda çizilmez) → `#icerik` → 32px sistem durumu şeridi (`.ab-durum`; veri kesiti, bağlayıcı sayımları, son koşu — yalnız yetkiliye) → 32px ayak (`.ab-alt`; künye · Yardım · Destek · Kısayollar · Tasarım sistemi · telif). Durum ve ayak AYRI şeritlerdir: biri ölçüm, öteki künye.
+- **Yoğunluk**: `amiral` (`/`, `/tesisler/*`, `/portfoy`, `/harita`) oluk 0, durum şeridi yok, ayak 28px tek satır; `operasyonel` oluk 24px, satır 36px; `tezgah` satır 32px. Ana ekran 1366×768 / 1440×900 / 1280×800'de tek ekrana sığar (`scrollHeight === innerHeight`).
 - **Ölçek**: boşluk `--s2 … --s44` (2·3·4·6·8·9·10·12·14·16·18·20·22·24·26·28·30·32·34·36·40·44px); kolon aralığı 16px; operasyonel oluk 24px; bölüm üst dolgu 22px, alt 40px; çekmece 400px.
 - **Tablo**: satır dolgusu 10px (`.sik` kipinde 7px — tipografi değil dolgu daralır); 1366px altında `ikincil` kolon düşer (`--kolon-dar`), başlık ve satır aynı şablonu kullanır (`arac/kolon-hizasi.mjs` ölçer). Dar bant şablonunu `darSablon` üretir: sabit kolon oransal olur (`minmax(0, min(Npx, T%))`, bütçe %58 paydaşlara bölünür), `minmax` tabanı sıfırlanır, 1'in altındaki esneme katsayısı 1'e çıkar. Küçük izler (im · ok, ≤40px) daralmaz. 700px altında kolon aralığı 16 → 10px iner ve kolon başlıkları sarar — kırpmak bilgi kaybettirir, sarmak kaybettirmez.
-- **Detay**: A sağ çekmece 400px (kalıcı), B alt levha, C satır içi genişleme (defteri terk etmeden; beş sütun: neden · kanıt · **karşılayan belge** · yönetişim zinciri · sorumluluk). Sütun sayısı bantla 5 → 3 → 1'e iner.
+- **Detay**: sağ çekmece 400px (kalıcı); uyum ekranlarında satır içi genişleme (beş sütun: neden · kanıt · **karşılayan belge** · yönetişim zinciri · sorumluluk). Sütun sayısı bantla 5 → 3 → 1'e iner.
 - **Yazdırma**: koyu kabuk kâğıda gitmez — beyaz zemin, siyah mürekkep, ray/sekme/künye düşer.
 
 ## Elevation & Depth
@@ -347,10 +304,9 @@ sınıfları (`.etiket .deger .cumle .mono .eylem .kod .konu .alt .sag`).
 - **Error:** `.hata` 11px `--bd` tek satır, `aria-invalid`; snackbar ve toast yok.
 
 ### Navigation
-- **A rayı** (`.ab-a-ray`): 76px, monogram + 11px etiket, aktif panel-2 zemin + kehribar sol kenar, `aria-current="page"` tekil.
-- **B sekmeleri** (`.ab-b-ust`): 56px çubuk, beş alan sekmesi = ortak alan listesi (`ALANLAR`).
-- **C künyesi** (`.ab-c-kunye`, `.ab-c-nav`, `.ab-c-dizin`): mono alan dizisi (`aria-current="location"` aksan alt çizgi), Newsreader 15px sekmeler, 212px dizin satırları 12.5px + sağa hizalı 10px mono sayaç; aktif satır mürekkep + 500, aksan yalnız kenar taşır.
-- **Üst bağlar**: Ayarlar · Yardım · Çıkış her kabukta; okunmamış bildirim rozeti sayıdır (`99+` tavan, sıfırda rozet yok). Komut paleti Ctrl/⌘+K.
+- **Alan sekmeleri** (`.ab-ust > nav`): beş alan (`ALANLAR`: Saha · Portföy · Uyum · Varlık · Risk), Barlow Condensed 15px büyük harf, aktif sekme bakır alt çizgi, `aria-current="page"` tekil. Rota → alan eşlemesi `alanSec` (yonler.ts).
+- **İkincil sıra** (`.ab-ikincil`): alanın bölümleri (`IKINCIL`), gruplar 10px etiketle ayrılır; aktif öğe mürekkep + 500 + bakır alt çizgi, `aria-current="true"`. Sekmede yeri olmayan ekran kendi dizinini (`.ab-c-ekrandizin[data-dizin="ekran"]`) verebilir.
+- **Üst bağlar**: Bildirimler · Ayarlar · Yardım · Çıkış; okunmamış bildirim rozeti sayıdır (`99+` tavan, sıfırda rozet yok). Komut paleti Ctrl/⌘+K.
 - **Bağlam çubuğu** (`BaglamCubugu`, `.ab-baglam`): en fazla üç seviyelik kırıntı (orta segment kısalır), sağda üretim tipine göre gruplu santral seçici; fotoğrafı olmayan santral tipografik döşeme alır.
 
 ### Tables (`Tablo`, `Matris`, `GenisleyenSatir`)

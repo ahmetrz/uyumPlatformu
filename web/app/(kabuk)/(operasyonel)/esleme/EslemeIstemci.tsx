@@ -1,5 +1,6 @@
 'use client';
 import { useMemo, useState, useTransition } from 'react';
+import { useUrlDurumu } from '@/components/kabuk/urlDurumu';
 import { BosFiltre, BosIlk, Dugme } from '@/components/kabuk/temel';
 import { EkranBasligi, Filtreler, KipDegistir } from '@/components/kabuk/ekran';
 import { Tablo, type Kolon } from '@/components/kabuk/tablo';
@@ -53,8 +54,8 @@ export default function EslemeIstemci({
   yazabilir: boolean;
   connectorTavani: number;
 }) {
-  const [kip, setKip] = useState<Kip>('profil');
-  const [mercek, setMercek] = useState<Mercek>('hepsi');
+  const [kip, setKip] = useUrlDurumu<Kip>('kip', 'profil');
+  const [mercek, setMercek] = useUrlDurumu<Mercek>('mercek', 'hepsi');
   const [seciliKod, setSeciliKod] = useState<string | null>(null);
   const [seciliConnector, setSeciliConnector] = useState<string | null>(null);
   const [kuyrukAcik, setKuyrukAcik] = useState(false);

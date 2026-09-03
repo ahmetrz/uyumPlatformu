@@ -1,5 +1,5 @@
 'use client';
-import { Bar, Im, type Durum } from '@/components/kabuk/temel';
+import { BaglantiYok, Bar, EntegrasyonYok, Im, type Durum } from '@/components/kabuk/temel';
 import {
   CekmeceKimlik, CekmeceAlanlar, CekmeceBagli,
 } from '@/components/kabuk/panel';
@@ -133,6 +133,17 @@ export function ConnectorOzeti({ c, ozet, yazabilir, kapat }: {
     <>
       <CekmeceKimlik durum={im} soz={ENTEGRASYON_SOZU[c.durum]} baslik={c.ad}
         cumle={ENTEGRASYON_ACIKLAMA[c.durum]} />
+
+      {/* İki ayrı hâl, iki ayrı kutu: yapılandırılmamış (kimlik yok) ile
+          ulaşılamıyor (kimlik var, koşu düştü) aynı şey değildir. */}
+      {c.durum === 'kimlik_bekleniyor' && (
+        <EntegrasyonYok kaynak={c.kaynakSistem} ne="bu kaynağın verisi"
+          eylem={<span className="not">Kimlik bilgisi aşağıdaki Yapılandırma bölümünden tanımlanır.</span>} />
+      )}
+      {(c.durum === 'basarisiz' || c.durum === 'bayat_kosu') && (
+        <BaglantiYok kaynak={c.kaynakSistem}
+          sonBasarili={c.sonBasariliKosu ? zamanTR(c.sonBasariliKosu) : undefined} />
+      )}
 
       <CekmeceAlanlar alanlar={[
         { etiket: 'Tip · kaynak sistem',

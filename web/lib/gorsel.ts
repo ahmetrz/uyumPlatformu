@@ -45,7 +45,10 @@ const HERO: Record<string, string> = {
     görseli dolgu amacıyla ASLA kullanılmaz. */
 const KUCUK = new Set(Object.keys(HERO));
 
-export const NOTR_TRIPTIK = `${TEMEL}/santraller/notr-triptik.webp`;
+/** Yönetim konsolu için: seçilebilir görsel anahtarları (dosya listesi
+    KODDADIR — repo'ya eklenen fotoğraf; seçim ise Tesis.gorselAnahtari'nda,
+    konsoldan A sınıfı olarak atanır). */
+export const GORSEL_ANAHTARLARI: readonly string[] = Object.keys(HERO);
 
 /** Hero/plaka fotoğrafı — yoksa null (çağıran tipografik fallback render eder). */
 export function heroGorseli(anahtar: string | null | undefined): string | null {

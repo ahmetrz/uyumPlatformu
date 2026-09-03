@@ -38,6 +38,7 @@ export default async function Sayfa() {
       takvim={veri.takvim}
       akis={veri.akis}
       egilim={veri.egilim}
+      yerlesim={veri.yerlesim}
     />
   );
 }

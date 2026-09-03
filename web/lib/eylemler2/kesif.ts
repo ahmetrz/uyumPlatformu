@@ -53,6 +53,14 @@ function ozetCumlesi(o: KesifIsleOzeti): string {
  */
 export async function kesifEslestir(girdi: { kaynak?: string } = {}): Promise<Sonuc> {
   try {
+    /* KAPSAMSIZ ve bilinçli — `KAPSAM_SONRA` DEĞİL. İki gerekçe:
+       · Bu geçiş CMDB'ye hiçbir şey YAZMAZ (yukarıdaki başlık); yazan tek
+         yol `kesifKarariVer` ve o zaten iki aşamalı.
+       · Kapsama çekmek ürünü bozardı: `KesifKaydi.tesisId` nullable ve
+         şema "null = santral BİLİNMİYOR" diyor. Santral süzgeçli bir
+         toplu geçiş, santrali henüz çözülememiş kayıtları sistematik
+         olarak atlardı — oysa triyaja en muhtaç olanlar onlardır.
+       2026-09-03'te bir kez "borç" diye sınıflandırılıp geri alındı. */
     const k = await yetkiZorunlu('envanter', 'yazma');
     const kaynak = girdi.kaynak?.trim() || undefined;
     const ozet = await bekleyenleriEslestir({ kaynak });
@@ -96,6 +104,9 @@ export async function elleAktarimCalistir(girdi: {
   let kosuId: string | null = null;
   const basla = Date.now();
   try {
+    /* KAPSAMSIZ ve bilinçli, `kesifEslestir` ile aynı gerekçeyle: içerik
+       keşif KUYRUĞUNA düşer, CMDB'ye değil. Kuyruktaki her satır ayrıca
+       `kesifKarariVer` kapısından geçmek zorundadır. */
     const k = await yetkiZorunlu('envanter', 'yazma');
     const v = ElleAktarimSemasi.parse(girdi);
 

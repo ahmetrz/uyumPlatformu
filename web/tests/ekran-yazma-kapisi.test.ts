@@ -123,9 +123,9 @@ const KAPSAMLI_MODULLER = new Set(['uyum', 'envanter', 'risk', 'denetim', 'proje
 
    Bu liste bir muafiyet defteridir, bir kaçış deliği değil: her satır
    GEREKÇESİYLE yazılır ve aşağıdaki ikinci test, gerekçesi kalmamış
-   satırın listede unutulmasını engeller. `kanitlar/veri.ts` satırı bir
-   muafiyet DEĞİL açık borçtur ve gerekçesinde öyle yazar: `MaddeDurumu`
-   tesisId taşır, yani orada asıl düzeltilecek yer SUNUCUDUR. */
+   satırın listede unutulmasını engeller. `kanitlar/veri.ts` bir zamanlar
+   burada AÇIK BORÇ olarak duruyordu; `kanitEkle` iki aşamalı yazılınca
+   (2026-09-03) satır kalktı — defterin küçülme yönü budur. */
 const KURUMSAL_KAYITLAR = new Map<string, string>([
   ['app/(kabuk)/(operasyonel)/tedarikciler/veri.ts · envanter/yazma',
     'Tedarikci tesisId taşımaz; tedarikciKaydet kapsamsız'],
@@ -151,8 +151,6 @@ const KURUMSAL_KAYITLAR = new Map<string, string>([
     'surecDurumDegistir kapsamsız'],
   ['app/(kabuk)/(operasyonel)/surecler/[id]/page.tsx · uyum/yazma',
     'Surec tesisId taşımaz; surecKaydet kapsamsız'],
-  ['app/(kabuk)/(operasyonel)/kanitlar/veri.ts · uyum/yazma',
-    'AÇIK BORÇ — MaddeDurumu tesisId TAŞIR; kanitEkle iki aşamalı yazılınca kalkar'],
 ]);
 
 function tsDosyalari(kok: string): string[] {

@@ -7,7 +7,7 @@
 import { revalidatePath } from 'next/cache';
 import { db } from './db';
 import { parcala } from './sorguParcala';
-import { yetkiZorunlu, izinVar, KAPSAM_SONRA } from './erisim';
+import { yetkiZorunlu, izinVar, kapsamZorunlu, KAPSAM_SONRA } from './erisim';
 import { tumOturumlariKapat } from './auth';
 import {
   DurumSemasi, OnemSemasi, BulguDurumSemasi, SurecDurumSemasi,
@@ -545,11 +545,26 @@ export async function kanitEkle(girdi: {
   maddeDurumuId: string; ad: string; tip: string;
 }): Promise<Sonuc> {
   try {
-    const k = await yetkiZorunlu('uyum', 'yazma');
+    /* İKİ AŞAMALI KAPI. Kanıt bir `MaddeDurumu`'na bağlanır ve o modelde
+       `tesisId` ZORUNLUDUR — her kanıt tam olarak bir santrale aittir.
+       Hangi santral olduğu ancak kayıt okunduktan sonra bilindiği için ön
+       kapı `KAPSAM_SONRA` ile açılır; kapsamsız çağrılsaydı (öyleydi)
+       santral yöneticisi KENDİ santralinin maddesine kanıt ekleyemezdi.
+       Ölçüldü 2026-09-03; testi `tests/kanit-kapsam.test.ts`. */
+    const k = await yetkiZorunlu('uyum', 'yazma', KAPSAM_SONRA);
     const v = z.object({
       maddeDurumuId: z.string(), ad: bosluksuz('Ad'),
       tip: z.enum(['politika', 'kayit', 'konfigurasyon', 'ekran_goruntusu', 'rapor']),
     }).parse(girdi);
+    /* Kayıt ÖNCE okunur: kapsam ondan gelir. Ayrıca olmayan madde durumu
+       artık yabancı anahtar hatasıyla değil, insanın okuyabileceği bir
+       cümleyle reddedilir. */
+    const md = await db.maddeDurumu.findUnique({
+      where: { id: v.maddeDurumuId }, select: { tesisId: true },
+    });
+    if (!md) throw new Error('Madde durumu bulunamadı');
+    kapsamZorunlu(k, 'uyum', 'yazma', { tesisId: md.tesisId },
+      'Bu tesis kapsamında kanıt ekleme yetkiniz yok');
     const kanit = await db.kanit.create({ data: { ad: v.ad, tip: v.tip } });
     await db.kanitBaglantisi.create({ data: {
       kanitId: kanit.id, maddeDurumuId: v.maddeDurumuId } });

@@ -125,36 +125,47 @@ portföy süzgecindeki `select` 160px tabanıyla sağ oluğu yiyordu; saha
 takımyıldızındaki nabız halkası 2,4× yarıçapla komşu santralin künyesini
 süpürüyordu.
 
-**3b. Kurumsal olmayan üç eylem kapsamsız korunuyor — santral rolü
-hiç giremiyor.** 2026-09-03'te iki aşamalı kapı ekran katmanına
-taşınırken, sunucu tarafında ÜÇÜNCÜ bir kusur biçimi ölçüldü ve
+**3b. ~~Kurumsal olmayan üç eylem kapsamsız korunuyor.~~ BİRİ KAPANDI,
+İKİSİ YANLIŞ SINIFLANDIRILMIŞTI.**
+
+2026-09-03'te iki aşamalı kapı ekran katmanına taşınırken sunucu
+tarafında ÜÇÜNCÜ bir kusur biçimi ölçüldü ve
 `tests/kapsam-kapisi-nobetci.test.ts` bunu yapısı gereği göremez:
 nöbetçi "kaydın tesisini denetleyip ön kapıyı kapsamsız çağıran"
 eylemleri arar; hiç denetim YAPMAYAN bir eylem o taramaya takılmaz.
 
 Kapsamsız ön kapılı 26 eylem tarandı. 23'ünde kayıt gerçekten
-kurumsaldır — `Tedarikci`, `Denetim`, `Proje`, `Surec`, aktarım
-partisi ve yedekleme politikası şemada `tesisId` **taşımaz**, çok
-santrale birden bağlanır — yani kapsamsız kapı doğru kapıdır ve
-ekranları da bilerek kapsamsız bırakıldı
+kurumsaldır — `Tedarikci`, `Denetim`, `Proje`, `Surec`, aktarım partisi
+ve yedekleme politikası şemada `tesisId` **taşımaz** — yani kapsamsız
+kapı doğru kapıdır ve ekranları da bilerek kapsamsız bırakıldı
 (`tests/ekran-yazma-kapisi.test.ts · KURUMSAL_KAYITLAR`, her satır
 gerekçesiyle).
 
-Kalan üçü gerçek borçtur:
+Kalan üçü "gerçek borç" diye yazılmıştı. Kapatılırken tek tek
+okununca **ikisinin sınıflandırması yanlış çıktı**:
 
-| eylem | kaydın santrali | bugünkü davranış |
-| --- | --- | --- |
-| `eylemler.ts · kanitEkle` | `MaddeDurumu.tesisId` | santral rolü kanıt ekleyemiyor |
-| `kesif.ts · kesifEslestir` | eşleşen varlığın tesisi | santral rolü eşleştiremiyor |
-| `kesif.ts · elleAktarimCalistir` | kuyruk santral kapsamlı | santral rolü çalıştıramıyor |
+**`eylemler.ts · kanitEkle` — GERÇEK KUSURDU, KAPANDI.** `MaddeDurumu`
+şemasında `tesisId` **zorunludur** (`String`, nullable değil): her kanıt
+tam olarak bir santrale aittir. Ön kapı `KAPSAM_SONRA` ile açıldı, kayıt
+okunduktan sonra `kapsamZorunlu` çağrılıyor. Yan fayda: olmayan bir
+madde durumu artık yabancı anahtar hatasıyla değil, insanın okuyabileceği
+bir cümleyle reddediliyor. Testi `tests/kanit-kapsam.test.ts` (5 vaka),
+ekran bayrağı da (`kanitlar/veri.ts`) aynı anda `modulYazabilir`e geçti.
 
-Bunlar bir SIZINTI değildir — kapsamsız kapı fazladan yetki vermez,
-aksine tesise kısıtlı rolü tümüyle dışarıda bırakır. Kusur şudur:
-santral yöneticisi KENDİ santralinin kanıtını ekleyemiyor. Düzeltme
-kalıbı bellidir (`yetkiZorunlu(..., KAPSAM_SONRA)` + kayıt okunduktan
-sonra `kapsamZorunlu`), ama her biri kendi davranış testiyle kapanmalı;
-körlemesine dokunulmadı. Ekranlar sunucudan ÖNCE gevşetilmedi: bugün
-düğme gösterilip sunucuda reddedilmesi, gizlenmesinden daha kötüdür.
+**`kesif.ts · kesifEslestir` ve `elleAktarimCalistir` — KUSUR DEĞİL.**
+İkisi de kuyruk işidir ve **CMDB'ye hiçbir şey yazmaz**; dosyanın kendi
+başlığı bunu söylüyor: *"CMDB'ye yazan tek yol"* `kesifKarariVer`'dir ve
+o zaten iki aşamalıdır. Eşleştirme yalnız aday ve güven skoru üretir.
+
+Santral kapsamına çekmek ürünü BOZARDI: `KesifKaydi.tesisId` nullable ve
+şema yorumu bunu açıkça tanımlıyor — *"null = santral BİLİNMİYOR (hiçbir
+santrale ait değil demek DEĞİL)"*. Kapsamlı bir toplu geçiş, santrali
+henüz çözülememiş kayıtları sistematik olarak atlardı; oysa triyaja en
+çok muhtaç olanlar tam da onlardır. "Bilinmeyen ≠ sıfır" kuralının bu
+dosyadaki karşılığı budur.
+
+Yani ilk ölçümdeki "üç borç" sayısı fazla sayılmıştı ve burada
+düzeltiliyor. Kalan kusur sayısı: **0**.
 
 ### P2 — üretim öncesi
 

@@ -1,7 +1,7 @@
 {
-  "imza": "08f1bf31a7d667bfdc8e707d08e4b1d4",
-  "dosya": 81,
-  "vaka": 1459,
+  "imza": "c1b243b654654662d4581887d14e116f",
+  "dosya": 85,
+  "vaka": 1499,
   "atlanan": 1,
   "dosyalar": {
     "tests/api.test.ts": {
@@ -124,6 +124,10 @@
       "vaka": 25,
       "atlanan": 0
     },
+    "tests/isler-eylem.test.ts": {
+      "vaka": 10,
+      "atlanan": 0
+    },
     "tests/istemci-adresi.test.ts": {
       "vaka": 37,
       "atlanan": 0
@@ -146,6 +150,10 @@
     },
     "tests/kalite-kapilari.test.ts": {
       "vaka": 11,
+      "atlanan": 0
+    },
+    "tests/kanit-kapsam.test.ts": {
+      "vaka": 5,
       "atlanan": 0
     },
     "tests/kanitlar-mantik.test.ts": {
@@ -186,6 +194,10 @@
     },
     "tests/konfig-yedek.test.ts": {
       "vaka": 28,
+      "atlanan": 0
+    },
+    "tests/konum-apianahtar-eylem.test.ts": {
+      "vaka": 13,
       "atlanan": 0
     },
     "tests/motor-defteri.test.ts": {
@@ -262,6 +274,10 @@
     },
     "tests/tedarikci-oturum.test.ts": {
       "vaka": 18,
+      "atlanan": 0
+    },
+    "tests/tesis360-eylem.test.ts": {
+      "vaka": 12,
       "atlanan": 0
     },
     "tests/topoloji-sapma.test.ts": {

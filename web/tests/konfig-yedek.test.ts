@@ -404,6 +404,11 @@ function santral(ozel: Partial<Santral> = {}): Santral {
     },
     celiskiler: [], bulgular: [],
     planlanabilir: true, yazabilir: true, bulguIsleyebilir: true,
+    drift: {
+      satirlar: [], olculen: 0, tabansiz: 0, ayni: 0,
+      acikSapma: 0, onayliSapma: 0, oran: null,
+    },
+    onaylayabilir: true,
     ...ozel,
   };
 }

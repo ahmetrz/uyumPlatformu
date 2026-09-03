@@ -46,7 +46,58 @@ async function varligiAlVeKapsamiDayat(
   return v;
 }
 
-/* ══ OT-05 · Proses adımı ═════════════════════════════════════════════ */
+/* ══ OT-05 · İş süreci ve proses adımı ════════════════════════════════ */
+
+/**
+ * İş sürecinin kendisi — adımların taşıyıcısı.
+ *
+ * Adım yazılabilen ama süreç yazılamayan bir ürün, ilk süreci seed'den
+ * gelen iki kayda mahkûm ederdi; santralin kendi üretim zincirini
+ * tanımlaması imkânsız olurdu.
+ */
+export async function isSureciKaydet(girdi: unknown): Promise<Sonuc> {
+  try {
+    const k = await yetkiZorunlu('tanimlar', 'onay', KAPSAM_SONRA);
+    const v = z.object({
+      id: z.string().optional(),
+      kod: bosluksuz('Kod'), ad: bosluksuz('Ad'),
+      tesisId: z.string().trim().transform((s) => s || null).nullable().optional(),
+      uretimEtkisi: z.enum(ETKI_DUZEYLERI).default('bilinmiyor'),
+    }).parse(girdi);
+
+    if (v.tesisId) {
+      const t = await db.tesis.findUnique({ where: { id: v.tesisId }, select: { id: true } });
+      if (!t) return hata(new Error('Seçilen santral bulunamadı'));
+    }
+    kapsamZorunlu(k, 'tanimlar', 'onay', { tesisId: v.tesisId ?? null },
+      'Bu tesis kapsamında iş süreci tanımlama yetkiniz yok');
+    /* Süreci BAŞKA bir santrale taşımak da bir kapsam kararıdır: eski
+       santralin kapsamı sorulmazsa, A'ya yetkili biri B'nin sürecini
+       kendine çekebilirdi. */
+    if (v.id) {
+      const eski = await db.isSureci.findUnique({
+        where: { id: v.id }, select: { tesisId: true },
+      });
+      if (!eski) return hata(new Error('İş süreci bulunamadı'));
+      kapsamZorunlu(k, 'tanimlar', 'onay', { tesisId: eski.tesisId },
+        'Bu sürecin bugünkü santral kapsamında düzenleme yetkiniz yok');
+    }
+
+    const veri = {
+      ad: v.ad, tesisId: v.tesisId ?? null, uretimEtkisi: v.uretimEtkisi,
+    };
+    const kayit = v.id
+      ? await db.isSureci.update({ where: { id: v.id }, data: veri })
+      : await db.isSureci.create({ data: { kod: v.kod, ...veri } });
+
+    await iz({
+      aktorId: k.id, varlikTipi: 'IsSureci', varlikId: kayit.id,
+      eylem: v.id ? 'guncelleme' : 'olusturma', alan: 'kod', sonra: v.kod,
+    });
+    revalidatePath('/prosesler');
+    return tamam();
+  } catch (e) { return hata(e); }
+}
 
 export async function prosesAdimiKaydet(girdi: unknown): Promise<Sonuc> {
   try {
@@ -98,7 +149,7 @@ export async function prosesAdimiKaydet(girdi: unknown): Promise<Sonuc> {
       aktorId: k.id, varlikTipi: 'ProsesAdimi', varlikId: kayit.id,
       eylem: v.id ? 'guncelleme' : 'olusturma', alan: 'kod', sonra: v.kod,
     });
-    revalidatePath('/surecler');
+    revalidatePath('/prosesler');
     revalidatePath('/envanter');
     return tamam();
   } catch (e) { return hata(e); }
@@ -144,7 +195,7 @@ export async function adimVarligiAta(girdi: unknown): Promise<Sonuc> {
       alan: `prosesAdimi:${adim.kod}`, sonra: v.rol,
     });
     revalidatePath('/envanter');
-    revalidatePath('/surecler');
+    revalidatePath('/prosesler');
     return tamam();
   } catch (e) { return hata(e); }
 }
@@ -169,7 +220,7 @@ export async function adimVarligiKaldir(girdi: {
       alan: `prosesAdimi:${bag.adim.kod}`, once: bag.rol, sonra: null,
     });
     revalidatePath('/envanter');
-    revalidatePath('/surecler');
+    revalidatePath('/prosesler');
     return tamam();
   } catch (e) { return hata(e); }
 }

@@ -24,9 +24,51 @@ export type Hesap = {
       false = hesap giriş yapamaz (kaydı var, parolası tanımlanmamış). */
   parolaVar: boolean;
   yetkiler: Yetki[];
+  /** OT-09 · bu kişinin taşıdığı varlık sahipliği. */
+  sahiplik: SahiplikYuku;
 };
 
 export type Secenek = { id: string; ad: string };
+
+/* ── OT-09 · Ekip ve sahiplik yükü ──────────────────────────────────────
+
+   Yetki ekranı "kim neye ERİŞİYOR" der; bu iki tip "kim neyin SAHİBİ"
+   sorusunu aynı ekrana getirir. İkisi ayrı sorulardır ve birleştirilemez:
+   bir kişinin erişimi kaldırıldığında sahibi olduğu 200 cihaz kendiliğinden
+   devredilmez — kayıt görünürde sahipli kalır, gerçekte öksüzdür. Hesabı
+   kapatan kişi devri de burada, aynı çekmecede yapar. */
+
+export type EkipUyesi = {
+  kullaniciId: string; ad: string; rol: string;
+  /** Pasif üye ekibi "aktif üyesi var" göstermez; ayrı yazılır. */
+  aktif: boolean;
+};
+
+export type Ekip = {
+  id: string; kod: string; ad: string; tip: string;
+  tesisId: string | null; tesisAd: string | null;
+  eposta: string | null; aktif: boolean;
+  uyeler: EkipUyesi[];
+  /** Ekibe atanmış varlık sayısı — ekip silinemezliğinin gerekçesi. */
+  varlikSayisi: number;
+};
+
+export type SahiplikYuku = {
+  /** Kişinin sahibi göründüğü varlık sayısı — KAPSAMDAN BAĞIMSIZ. */
+  toplam: number;
+  /** Emanetçisi olduğu varlık sayısı; devir kapsamına GİRMEZ. */
+  emanet: number;
+  /**
+   * Devredilebilir varlık kimlikleri — yalnız kullanıcının envanter ONAY
+   * kapsamındakiler. `toplam`dan küçük olabilir ve ekran farkı yazar:
+   * eylem tek bir kapsam dışı kayıtta devrin TAMAMINI reddeder, o yüzden
+   * listeyi peşin daraltmak bir gizleme değil, mümkün olanı doğru
+   * göstermektir.
+   */
+  devredilebilir: string[];
+};
+
+export const devirDisi = (s: SahiplikYuku) => s.toplam - s.devredilebilir.length;
 
 /* ── Rol ────────────────────────────────────────────────────────────── */
 
@@ -148,6 +190,13 @@ export function metrikleriHesapla(hesaplar: Hesap[]) {
     yetkiToplam: yetkiler.length,
     yetkiKapsamli: yetkiler.filter((y) => !kapsamsiz(y)).length,
     unvansiz: hesaplar.filter((h) => !h.unvan).length,
+    /* OT-09'un en sinsi hâli: hesap kapalı ama varlıklar hâlâ onun
+       üstünde. Ekranda "sahibi var" yazar, gerçekte sahip yoktur. Bu
+       sayı yetkisiz/artık yetki sayaçlarına TOPLANMAZ — ayrı bir
+       kusurdur ve ayrı bir işle kapanır (devir). */
+    pasifSahiplik: hesaplar
+      .filter((h) => !h.aktif)
+      .reduce((a, h) => a + h.sahiplik.toplam, 0),
     parolasiz: hesaplar.filter(girisYapamaz).length,
   };
 }

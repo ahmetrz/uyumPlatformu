@@ -13,13 +13,14 @@ import {
 import { gorevOlustur } from '@/lib/eylemler2/gorev';
 import { etiketle, tarihTR } from '@/lib/sabitler';
 import {
-  BulguIsle, KosuKaydet, PolitikaFormu, RestoreTestiKaydet, VarlikYedegi,
+  BulguIsle, KosuKaydet, PolitikaFormu, RestoreTestiKaydet, SapmaKarari,
+  TemelOnayla, VarlikYedegi,
 } from './Eylemler';
 import {
   BAR_OK_ESIGI, KAPSAMA_ESIGI, TEST_ESIGI,
   barDurumu, bilinmeyenPayi, filoOzeti, haricListesi, hazirlik, kapsama, karsilastir,
   kirilimMetni, kritikHucresi, sonKosu, sonTest, testGunu, testHucresi, toplanabilir,
-  yuzde, type Santral,
+  yuzde, type DriftSatiri, type Santral,
 } from './mantik';
 
 /* O14 istemcisi. Tek canvas modülü: hazırlığa göre sıralı santral tablosu.
@@ -457,6 +458,8 @@ function SantralCekmecesi({ santral, kapat }: { santral: Santral; kapat: () => v
         )}
       </div>
 
+      <DriftBlogu santral={santral} />
+
       {/* ── Çelişkiler: iki katman birbirini yalanlıyorsa örtülmez ── */}
       {santral.celiskiler.length > 0 && (
         <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
@@ -522,6 +525,133 @@ function SantralCekmecesi({ santral, kapat }: { santral: Santral; kapat: () => v
 
       <TestPlanla santral={santral} />
     </Cekmece>
+  );
+}
+
+/* ── OT-28 · konfigürasyon tabanı ve sapması ────────────────────────────
+
+   ÜÇÜNCÜ BİR YEDEK YARGISI DEĞİL, BAŞKA BİR SORU. Üstteki iki katman
+   "yedeğimiz var mı" diye sorar; bu katman "cihazın konfigürasyonu
+   onayladığımızdan SAPTI mı" diye sorar. Bir cihazın yedeği eksiksiz
+   olabilir ve konfigürasyonu yine de habersiz değişmiş olabilir.
+
+   ── SAYAÇ ÜÇE AYRILIR, İKİYE İNMEZ ────────────────────────────────────
+   açık sapma (kanıtlı fark) · tabansız (ölçüm borcu) · aynı. Tabansızı
+   "sapma yok" kutusuna koymak, hiç bakılmamış cihazı temiz göstermek
+   olurdu; oranın PAYDASINA da girmez. */
+
+function DriftBlogu({ santral }: { santral: Santral }) {
+  const d = santral.drift;
+  const [hepsi, setHepsi] = useState(false);
+  const gorunur = hepsi ? d.satirlar : d.satirlar.slice(0, 6);
+
+  return (
+    <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+      <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>
+        Konfigürasyon tabanı ve sapması
+      </p>
+
+      {d.satirlar.length === 0 ? (
+        <p style={{ margin: 0, fontSize: 'var(--t-field)', color: 'var(--unk)' }}>
+          Bu santralde onaylı konfigürasyon tabanı da, özeti hesaplanmış
+          konfigürasyon yedeği de yok — sapma ÖLÇÜLMEDİ, &quot;yok&quot; değil.
+        </p>
+      ) : (
+        <>
+          <p className="mono" style={{ margin: '0 0 var(--s10)', fontSize: 'var(--t-label)',
+            color: 'var(--i3)' }}>
+            {d.acikSapma} açık sapma · {d.tabansiz} tabansız (ölçülmedi) ·
+            {' '}{d.onayliSapma} onaylı değişiklik ·
+            {' '}taban uyumu {d.oran === null ? 'ölçülmedi' : `%${d.oran}`}
+            {d.oran !== null && ` (${d.ayni}/${d.olculen})`}
+          </p>
+          {d.oran === null && (
+            <p style={{ margin: '0 0 var(--s12)', fontSize: 'var(--t-field)',
+              color: 'var(--unk)' }}>
+              Karşılaştırılabilir cihaz yok; oran paydası boş — %0 da %100 de
+              yalan olurdu.
+            </p>
+          )}
+          <div style={{ display: 'grid', gap: 'var(--s16)' }}>
+            {gorunur.map((x) => (
+              <DriftSatiriGorunumu key={x.varlikId} satir={x}
+                yetkili={santral.onaylayabilir} />
+            ))}
+          </div>
+          {d.satirlar.length > gorunur.length && (
+            <div style={{ marginTop: 'var(--s12)' }}>
+              <Dugme onClick={() => setHepsi(true)}>
+                +{d.satirlar.length - gorunur.length} cihaz daha
+              </Dugme>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+/* İşaretçi cihazın DRIFT durumunu gösterir, yedek hazırlığını değil:
+   açık sapma bd · tabansız/karar verilemedi unk · onaylı değişiklik md ·
+   aynı ok. */
+function driftDurumu(x: DriftSatiri): Durum {
+  if (x.sapmalar.some((s) => s.durum === 'acik')) return 'bd';
+  if (x.sonuc === 'karar_verilemedi') return 'unk';
+  if (x.sapmalar.some((s) => s.durum === 'onayli')) return 'md';
+  return 'ok';
+}
+
+function DriftSatiriGorunumu({ satir, yetkili }: {
+  satir: DriftSatiri; yetkili: boolean;
+}) {
+  const im = driftDurumu(satir);
+  const acik = satir.sapmalar.filter((s) => s.durum === 'acik');
+  const kapali = satir.sapmalar.filter((s) => s.durum !== 'acik');
+
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: '22px 1fr',
+      alignItems: 'start', gap: 'var(--s8)' }}>
+      <span style={{ paddingTop: 3 }}><Im durum={im} ad={satir.gerekce} /></span>
+      <div style={{ display: 'grid', gap: 'var(--s8)' }}>
+        <span style={{ fontSize: 'var(--t-field)', fontWeight: 600 }}>
+          {satir.etiket} · {satir.ad}
+        </span>
+        <span style={{ fontSize: 'var(--t-field)',
+          color: im === 'unk' ? 'var(--unk)' : 'var(--i2)' }}>
+          {satir.gerekce}
+        </span>
+        <span className="mono" style={{ fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
+          {satir.temelZamani
+            ? `Taban ${tarihTR(satir.temelZamani)}`
+            : 'Onaylı taban yok'}
+          {' · '}
+          {satir.gozlemZamani
+            ? `son yedek ${tarihTR(satir.gozlemZamani)}`
+            : 'karşılaştırılacak yedek yok'}
+        </span>
+        {satir.temelNotu && (
+          <span style={{ fontSize: 'var(--t-label)', color: 'var(--i2)' }}>
+            Onay notu: {satir.temelNotu}
+          </span>
+        )}
+
+        {acik.length + kapali.length > 0 && (
+          <div style={{ display: 'grid', gap: 'var(--s12)' }}>
+            {[...acik, ...kapali.slice(0, 2)].map((s) => (
+              <SapmaKarari key={s.id} sapma={s} yetkili={yetkili} />
+            ))}
+          </div>
+        )}
+
+        {yetkili ? (
+          <TemelOnayla satir={satir} />
+        ) : (
+          <span className="ab-panel-dip">
+            Taban onaylamak envanter onay yetkisi ve bu santralin kapsamını ister.
+          </span>
+        )}
+      </div>
+    </div>
   );
 }
 

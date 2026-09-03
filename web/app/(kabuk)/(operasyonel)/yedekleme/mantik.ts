@@ -80,6 +80,53 @@ export type YedekBulgusu = {
   id: string; kural: string; aciklama: string; olusturuldu: string;
 };
 
+/* ── OT-28 · konfigürasyon tabanı ve sapması ────────────────────────────
+
+   Bu katman ÜÇÜNCÜ bir yedek yargısı değildir; başka bir soru sorar:
+   "yedeğimiz var mı" değil, "cihazın konfigürasyonu onayladığımızdan
+   SAPTI mı". Yargı `lib/varlik/konfigDrift.ts`ten gelir, burada yalnız
+   serileştirilir.
+
+   TABANSIZ CİHAZ "SAPMASIZ" DEĞİLDİR: tabanı olmayan cihazda drift
+   hesaplanamaz ve bu bir ölçüm borcudur — sayaçta ayrı durur, oranın
+   paydasına girmez.                                                     */
+
+/** `KonfigSapmasi` ikizi. `durum` SAPMA_DURUMLARI'ndan biridir. */
+export type Sapma = {
+  id: string; durum: string; siddet: string; gozlenenHash: string;
+  aciklama: string | null; degisiklikRef: string | null;
+  kararGerekcesi: string | null; kararZamani: string | null;
+  kararVeren: string | null; olusturuldu: string;
+};
+
+export type DriftSatiri = {
+  varlikId: string; etiket: string; ad: string; kritiklik: string;
+  /** Onaylı tabanın özeti; null = TABAN YOK (ölçüm borcu). */
+  temelHash: string | null;
+  temelZamani: string | null;
+  temelNotu: string | null;
+  /** Son BAŞARILI yedeğin özeti; null = gözlem yok ya da özet hesaplanmadı. */
+  gozlenenHash: string | null;
+  gozlemZamani: string | null;
+  /** Taban olarak onaylanabilecek yedeğin kimliği; özetsiz yedek gelmez. */
+  onaylanabilirYedekId: string | null;
+  sonuc: 'ayni' | 'sapma' | 'karar_verilemedi';
+  gerekce: string;
+  /** Açık sapmalar önde, sonra karara bağlanmışlar (en yeni önce). */
+  sapmalar: Sapma[];
+};
+
+export type DriftKatmani = {
+  satirlar: DriftSatiri[];
+  olculen: number;
+  tabansiz: number;
+  ayni: number;
+  acikSapma: number;
+  onayliSapma: number;
+  /** Payda yalnız ölçülebilenler; payda sıfırsa null — %100 yazılmaz. */
+  oran: number | null;
+};
+
 export type Santral = {
   id: string; kod: string; ad: string; tip: string | null;
   /* Envanter BEYANI katmanı — kapsama barı. Ölçüm değil, insan cevabı. */
@@ -100,6 +147,10 @@ export type Santral = {
   yazabilir: boolean;
   /** Veri kalitesi bulgusunu işleme (yonetim/yazma) yetkisi. */
   bulguIsleyebilir: boolean;
+  /** OT-28 · konfigürasyon tabanı ve sapma katmanı. */
+  drift: DriftKatmani;
+  /** Taban onayı ve sapma kararı envanter/onay ister (lib/erisim). */
+  onaylayabilir: boolean;
 };
 
 export function gunOnce(iso: string | null | undefined, simdi = Date.now()): number | null {

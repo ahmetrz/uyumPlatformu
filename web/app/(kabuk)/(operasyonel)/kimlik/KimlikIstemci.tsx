@@ -8,7 +8,7 @@ import {
   Cekmece, CekmeceKimlik, CekmeceAlanlar, CekmeceBagli, CekmeceEylemler,
 } from '@/components/kabuk/panel';
 import { tarihTR } from '@/lib/sabitler';
-import { IncelemeEylemleri } from './Inceleme';
+import { HesapTipiFormu, IncelemeEylemleri } from './Inceleme';
 import {
   ATIL_ESIK, DURUM_SOZU_HESAP, SONUC_ETIKET, TIP_ETIKET, YETKI_ETIKET,
   acikYetkiler, altSatir, atilYonetici, baslikMetni, grupAltSatiri, grupCumlesi,
@@ -385,6 +385,8 @@ function HesapOzeti({ hesap, yetki, secYetki }: {
           durum: hesap.sahip ? undefined : 'md',
         },
       ]} />
+
+      <HesapTipiFormu hesap={hesap} />
 
       <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
         <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>

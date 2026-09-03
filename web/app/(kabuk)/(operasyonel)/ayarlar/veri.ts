@@ -62,7 +62,10 @@ const GUN_MS = 24 * 3_600_000;
 
 export async function ayarlarVerisi(k: AktifKullanici, simdi: number): Promise<AyarlarVerisi> {
   const ozet = await mevcutOturumOzeti();
-  const [kayit, yetkiler, buOturum, aktifSayi, sonGiris, reddedilen24] = await Promise.all([
+  const [
+    kayit, yetkiler, buOturum, aktifSayi, sonGiris, reddedilen24,
+    sahipVarlik, emanetVarlik,
+  ] = await Promise.all([
     db.kullanici.findUnique({
       where: { id: k.id },
       // parolaHash SEÇİLİR ama ekrana yalnız `!== null` sonucu gider.
@@ -94,6 +97,10 @@ export async function ayarlarVerisi(k: AktifKullanici, simdi: number): Promise<A
         zaman: { gte: new Date(simdi - GUN_MS) },
       },
     }),
+    /* OT-09 · kişinin kendi üstündeki varlık yükü. Sayı GERÇEKTEN
+       ölçülür; sıfır varsayılmaz — "bilinmeyen ≠ sıfır". */
+    db.varlik.count({ where: { silindi: null, sahipId: k.id } }),
+    db.varlik.count({ where: { silindi: null, emanetciId: k.id } }),
   ]);
 
   /* Çerezdeki oturum başka bir kullanıcıya aitse (olmamalı; `aktifKullanici`
@@ -108,6 +115,11 @@ export async function ayarlarVerisi(k: AktifKullanici, simdi: number): Promise<A
     unvan: kayit?.unvan ?? k.unvan,
     aktif: true,
     parolaVar: kayit?.parolaHash !== null && kayit?.parolaHash !== undefined,
+    /* `devredilebilir` boş: bu ekranda devir YÜZEYİ yok. Kişi kendi
+       sahipliğini kendi devredemez — devir `envanter/onay` yetkisiyle
+       /yetkiler ekranından yapılır. Boş liste "devredilecek varlık yok"
+       demez, "bu ekrandan devredilemez" demektir. */
+    sahiplik: { toplam: sahipVarlik, emanet: emanetVarlik, devredilebilir: [] },
     yetkiler: yetkiler.map((y) => ({
       id: y.id,
       rol: y.rol,

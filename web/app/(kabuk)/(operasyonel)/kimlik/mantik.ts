@@ -52,6 +52,20 @@ export type Hesap = {
   tesisAd: string | null;
   yetkiler: Yetki[];
   bagli: Bag[];
+  /* ── OT-33 · İkinci eksen ───────────────────────────────────────────
+     `tip` hesabın KİME ait olduğunu (kişi/servis/paylaşımlı), bu ise
+     NEREDE yaşadığını söyler. Bir dizin hesabı da servis hesabı
+     olabilir; ikisini tek alana sıkıştırmak "kaç yerel servis hesabı
+     var" sorusunu cevapsız bırakırdı. */
+  kaynakTipi: string;
+  /** null = ÖLÇÜLMEDİ. "MFA yok" DEĞİLDİR ve o ayrım ayrıcalıklı hesap
+      raporunun tamamını değiştirir. */
+  mfaVar: boolean | null;
+  /** null = süresiz ya da belirlenmemiş */
+  sonaErme: string | null;
+  parolaPolitikasi: string | null;
+  /** bu kullanıcı hesabın tipini düzenleyebilir mi (tesis kapsamı dâhil) */
+  duzenlenebilir: boolean;
 };
 
 export const TIP_ETIKET: Record<string, string> = {

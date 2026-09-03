@@ -48,7 +48,8 @@ const ALAN_ROTALARI: Record<string, string[]> = {
     '/bulgular', '/projeler', '/raporlar', '/dokumanlar', '/kanitlar', '/aktivite',
   ],
   '/envanter': [
-    '/envanter', '/kesif', '/varlik-aktarim', '/ice-aktarim', '/topoloji', '/esleme',
+    '/envanter', '/kesif', '/varlik-aktarim', '/ice-aktarim', '/topoloji',
+    '/prosesler', '/esleme',
     '/omur', '/tabanlar', '/yedekleme', '/tedarikciler', '/kimlik', '/yetkiler',
     '/olaylar', '/operasyon', '/saglik',
   ],
@@ -118,6 +119,10 @@ export const IKINCIL: Record<string, { baslik?: string; ogeler: Oge[] }[]> = {
       ]},
       { ad: 'Ağ & bağımlılık', yol: '/topoloji', alt: [
         { ad: 'Topoloji', yol: '/topoloji' },
+        /* OT-05 · Proses zinciri cihazın ÜRETİMDE nerede durduğunu söyler;
+           topoloji ağda nerede durduğunu. İkisi aynı sorunun iki yüzü
+           olduğu için aynı grupta durur. */
+        { ad: 'Proses zinciri', yol: '/prosesler' },
         { ad: 'Eşleme', yol: '/esleme' },
       ]},
       { ad: 'Yaşam döngüsü', yol: '/omur', alt: [
@@ -207,7 +212,7 @@ export function sayacEtiketi(n: number): string {
    operasyonel: geri kalan tablo/matris/kütük ekranları — 36px satır. */
 const AMIRAL_YOLLARI = ['/', '/tesisler', '/portfoy', '/harita', '/giris'];
 const TEZGAH_YOLLARI = [
-  '/kesif', '/ice-aktarim', '/varlik-aktarim', '/topoloji', '/esleme',
+  '/kesif', '/ice-aktarim', '/varlik-aktarim', '/topoloji', '/prosesler', '/esleme',
   '/operasyon', '/saglik', '/yonetim-tezgahi', '/sistem',
 ];
 

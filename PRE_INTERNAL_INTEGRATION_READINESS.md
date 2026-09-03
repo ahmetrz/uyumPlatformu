@@ -37,10 +37,10 @@ söylemeye başlar ve yalanı kimse fark etmez.
 
 | Ölçü | Değer |
 |---|---|
-| test dosyası | 107 |
-| test vakası | 1975 |
+| test dosyası | 108 |
+| test vakası | 2002 |
 | atlanan test | 1 |
-| ekran (rota) | 47 |
+| ekran (rota) | 48 |
 | API ucu | 9 |
 | otomasyon motoru | 14 |
 | connector adaptörü | 8 |

@@ -8,8 +8,15 @@ import {
 import {
   yedegiDogrula, sonBilinenIyiIsaretle, yedekBulgusunuIsle, varlikYedekDurumu,
 } from '@/lib/eylemler2/konfigYedek';
+import { konfigTemeliOnayla, konfigSapmasiKarari } from '@/lib/eylemler2/varlikYonetisim';
+import {
+  SAPMA_DURUMLARI, SAPMA_ETIKETI, SAPMA_SINIFI, SIDDETLER, type SapmaDurumu,
+} from '@/lib/varlik/konfigDrift';
 import { tarihTR, zamanTR } from '@/lib/sabitler';
-import { BULGU_SOZU, bulguDurumu, type EksikVarlik, type Santral, type YedekBulgusu } from './mantik';
+import {
+  BULGU_SOZU, bulguDurumu,
+  type DriftSatiri, type EksikVarlik, type Santral, type Sapma, type YedekBulgusu,
+} from './mantik';
 
 /* O14 yazma yüzeyleri.
 
@@ -455,6 +462,172 @@ export function RestoreTestiKaydet({ santral }: { santral: Santral }) {
         Kayıt son koşuya asılır ve denetim izine düşer. Platform geri yükleme
         BAŞLATMAZ — testi saha yapar, sonucunu burası taşır.
       </p>
+    </div>
+  );
+}
+
+/* ── OT-28 · konfigürasyon tabanı ve sapma kararı ──────────────────────
+
+   İki ayrı insan kararı, iki ayrı yüzey:
+
+   TABAN ONAYI — "bu yedekteki konfigürasyon ONAYLIDIR". Taban olmadan
+   drift diye bir kavram kurulamaz; tabansız cihaz "sapmasız" değil,
+   ÖLÇÜLMEMİŞTİR.
+
+   SAPMA KARARI — motor farkı bulur, ne anlama geldiğini insan söyler.
+   Planlı bir değişiklikten gelen fark bir kusur değildir ama izlenmeden
+   geçmemelidir; bu yüzden `onaylı` kararı bir DEĞİŞİKLİK REFERANSI ister
+   ve referanssız kayıt sunucuda reddedilir. */
+
+export function TemelOnayla({ satir }: { satir: DriftSatiri }) {
+  const { bekliyor, hata, calistir } = useEylem();
+  const [acik, setAcik] = useState(false);
+  const [not, setNot] = useState('');
+
+  if (!satir.onaylanabilirYedekId) {
+    return (
+      <p className="ab-panel-dip" style={{ margin: 0 }}>
+        Taban bir YEDEĞE dayanır ve o yedeğin içerik özeti olmalıdır; bu
+        cihazda özeti hesaplanmış başarılı yedek yok — taban onaylanamaz.
+      </p>
+    );
+  }
+  if (!acik) {
+    return (
+      <Dugme onClick={() => setAcik(true)}>
+        {satir.temelHash ? 'Tabanı bu yedeğe taşı' : 'Bu yedeği taban olarak onayla'}
+      </Dugme>
+    );
+  }
+  return (
+    <div style={{ display: 'grid', gap: 'var(--s10)' }}>
+      <Alan etiket="Onay notu">
+        <textarea className="ab-gr" rows={2} value={not} style={{ resize: 'vertical' }}
+          placeholder="Bu konfigürasyon neden onaylı? (denetim izine yazılır)"
+          onChange={(e) => setNot(e.target.value)} />
+      </Alan>
+      {hata && <p className="ab-gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
+      <div style={{ display: 'flex', gap: 'var(--s10)' }}>
+        <Dugme tur="birincil" disabled={bekliyor}
+          onClick={() => calistir(() => konfigTemeliOnayla({
+            varlikId: satir.varlikId,
+            yedekId: satir.onaylanabilirYedekId as string,
+            not: not || null,
+          }), () => { setAcik(false); setNot(''); })}>
+          {bekliyor ? 'Kaydediliyor…' : 'Onayla'}
+        </Dugme>
+        <Dugme tur="ret" onClick={() => setAcik(false)} disabled={bekliyor}>Vazgeç</Dugme>
+      </div>
+      <p className="ab-panel-dip" style={{ margin: 0 }}>
+        Onay cihaza dokunmaz; yalnız &quot;karşılaştırma bundan sonra buna
+        göre yapılsın&quot; der. Mevcut açık sapmalar bir sonraki motor
+        koşusunda yeni tabana göre yeniden değerlendirilir.
+      </p>
+    </div>
+  );
+}
+
+/* `acik` bir KARAR değildir — sapma zaten açık durumdadır; sunucu da
+   reddeder. Bu yüzden listede yok. */
+const KARAR_SECENEK = SAPMA_DURUMLARI.filter((d) => d !== 'acik');
+
+export function SapmaKarari({ sapma, yetkili }: { sapma: Sapma; yetkili: boolean }) {
+  const { bekliyor, hata, calistir } = useEylem();
+  const [acik, setAcik] = useState(false);
+  const [v, setV] = useState({
+    durum: 'giderildi', gerekce: '', ref: sapma.degisiklikRef ?? '',
+    siddet: sapma.siddet,
+  });
+
+  const durum = (SAPMA_DURUMLARI as readonly string[]).includes(sapma.durum)
+    ? sapma.durum as SapmaDurumu : 'acik';
+  const kapali = sapma.durum !== 'acik';
+  /* "Onaylı" kararı referanssız verilemez: referanssız bir onay,
+     gerekçesiz bir yok saymadan ayırt edilemezdi. */
+  const refGerekli = v.durum === 'onayli' && !v.ref.trim();
+  const gecerli = v.gerekce.trim().length > 0 && !refGerekli;
+
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: '22px 1fr',
+      alignItems: 'start', gap: 'var(--s8)' }}>
+      <span style={{ paddingTop: 3 }}>
+        <Im durum={SAPMA_SINIFI[durum]} ad={SAPMA_ETIKETI[durum]} />
+      </span>
+      <div style={{ display: 'grid', gap: 'var(--s6)' }}>
+        <span style={{ fontSize: 'var(--t-field)' }}>
+          {sapma.aciklama ?? 'Gözlenen konfigürasyon onaylı tabandan farklı.'}
+        </span>
+        <span className="mono" style={{ fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
+          {SAPMA_ETIKETI[durum]} · şiddet {sapma.siddet === 'bilinmiyor' ? 'ölçülmedi' : sapma.siddet}
+          {' · '}{tarihTR(sapma.olusturuldu)}
+          {sapma.degisiklikRef && ` · değişiklik ${sapma.degisiklikRef}`}
+        </span>
+        {kapali && (
+          <span style={{ fontSize: 'var(--t-label)', color: 'var(--i2)' }}>
+            {sapma.kararGerekcesi ?? 'Gerekçe yazılmamış.'}
+            {sapma.kararZamani && ` — ${zamanTR(sapma.kararZamani)}`}
+            {sapma.kararVeren && ` · ${sapma.kararVeren}`}
+          </span>
+        )}
+
+        {!kapali && !yetkili && (
+          <span className="ab-panel-dip">
+            Sapma kararı envanter onay yetkisi ve bu santralin kapsamı ister.
+          </span>
+        )}
+        {!kapali && yetkili && !acik && (
+          <div><Dugme onClick={() => setAcik(true)}>Karara bağla</Dugme></div>
+        )}
+        {!kapali && yetkili && acik && (
+          <div style={{ display: 'grid', gap: 'var(--s10)' }}>
+            <Alan etiket="Karar" zorunlu>
+              <select className="ab-gr" value={v.durum}
+                onChange={(e) => setV({ ...v, durum: e.target.value })}>
+                {KARAR_SECENEK.map((d) => (
+                  <option key={d} value={d}>{SAPMA_ETIKETI[d]}</option>
+                ))}
+              </select>
+            </Alan>
+            <Alan etiket="Şiddet">
+              <select className="ab-gr" value={v.siddet}
+                onChange={(e) => setV({ ...v, siddet: e.target.value })}>
+                {SIDDETLER.map((x) => (
+                  <option key={x} value={x}>{x === 'bilinmiyor' ? 'ölçülmedi' : x}</option>
+                ))}
+              </select>
+            </Alan>
+            <Alan etiket="Değişiklik referansı" zorunlu={v.durum === 'onayli'}>
+              <input className="ab-gr" value={v.ref} placeholder="DEG-2026-014"
+                onChange={(e) => setV({ ...v, ref: e.target.value })} />
+            </Alan>
+            <Alan etiket="Gerekçe" zorunlu>
+              <textarea className="ab-gr" rows={2} value={v.gerekce} style={{ resize: 'vertical' }}
+                placeholder="Kararın dayanağı — denetim izine bu metin yazılır"
+                onChange={(e) => setV({ ...v, gerekce: e.target.value })} />
+            </Alan>
+            {refGerekli && (
+              <p className="ab-panel-dip" style={{ margin: 0 }}>
+                &quot;Onaylı değişiklik&quot; kararı bir değişiklik referansı ister;
+                referanssız onay, gerekçesiz yok saymadan ayırt edilemez.
+              </p>
+            )}
+            {hata && <p className="ab-gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
+            <div style={{ display: 'flex', gap: 'var(--s10)' }}>
+              <Dugme tur="birincil" disabled={bekliyor || !gecerli}
+                onClick={() => calistir(() => konfigSapmasiKarari({
+                  sapmaId: sapma.id,
+                  durum: v.durum,
+                  gerekce: v.gerekce,
+                  degisiklikRef: v.ref || null,
+                  siddet: v.siddet,
+                }), () => setAcik(false))}>
+                {bekliyor ? 'Kaydediliyor…' : 'Kararı yaz'}
+              </Dugme>
+              <Dugme tur="ret" onClick={() => setAcik(false)} disabled={bekliyor}>Vazgeç</Dugme>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

@@ -2,7 +2,9 @@ import 'server-only';
 import { db } from '@/lib/db';
 import { izinliTesisIdleri } from '@/lib/erisim';
 import type { AktifKullanici } from '@/lib/auth';
-import { kapsamDaraltildi, kapsamKosulu, kapsamda, modulKapisi } from '@/app/kapsam';
+import {
+  kapsamDaraltildi, kapsamKosulu, kapsamda, modulKapisi, modulYazabilir,
+} from '@/app/kapsam';
 import { ilkiniEsle } from '@/lib/sorguParcala';
 import type { Bag, Hesap } from './mantik';
 
@@ -52,6 +54,7 @@ export type EkranVerisi = {
 export async function kimlikEkranVerisi(k: AktifKullanici): Promise<EkranVerisi> {
   modulKapisi(k, 'envanter');
   const izinli = izinliTesisIdleri(k, 'envanter');
+  const yazabilir = modulYazabilir(k, 'envanter', 'yazma');
 
   const [hesaplar, riskler, bulgular, incelemeSatirlari] = await Promise.all([
     db.kimlikHesabi.findMany({
@@ -159,6 +162,15 @@ export async function kimlikEkranVerisi(k: AktifKullanici): Promise<EkranVerisi>
       tesisId: h.tesisId,
       tesisKod: h.tesis?.kod ?? null,
       tesisAd: h.tesis?.ad ?? null,
+      /* OT-33 · İkinci eksen ve MFA. Üçü de üç değerlidir ve `null`
+         "yok" değil "ölçülmedi" demektir. */
+      kaynakTipi: h.kaynakTipi,
+      mfaVar: h.mfaVar,
+      sonaErme: h.sonaErme?.toISOString() ?? null,
+      parolaPolitikasi: h.parolaPolitikasi,
+      /* Yazma yetkisi SATIR SATIR hesaplanır: hesabın santral kapsamı
+         dışında kalan kullanıcı formu görmez. Sunucu ayrıca reddeder. */
+      duzenlenebilir: yazabilir && kapsamda(izinli, h.tesisId),
       yetkiler: h.atamalar.map((a) => {
         // Kapsam dışı varlığın ETİKETİ/ADI taşınmaz; atama satırı kalır.
         const gorunurVarlik = a.varlik && kapsamda(izinli, a.varlik.tesisId) ? a.varlik : null;

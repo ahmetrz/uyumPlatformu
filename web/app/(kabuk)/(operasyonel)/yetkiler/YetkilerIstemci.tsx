@@ -10,12 +10,16 @@ import {
 import { useEylem } from '@/components/useEylem';
 import { yetkiSil, kullaniciAktifDegistir } from '@/lib/eylemler';
 import { ROLLER, ROL_ETIKET } from '@/lib/sabitler';
-import { KullaniciFormu, ParolaFormu, YetkiFormu } from './Formlar';
+import {
+  EkipFormu, KullaniciFormu, ParolaFormu, SahiplikDevri, UyeSatiri, UyelikFormu,
+  YetkiFormu,
+} from './Formlar';
+import { EKIP_TIP_ETIKETI, type EkipTipi } from '@/lib/varlik/sahiplik';
 import {
   artikYetki, durumCumlesi, durumSozu, enGenisRol, erisimsiz, girisNotu, hesapDurumu,
   kapsamMetni, kapsamsiz, kapsamsizYonetici, metrikleriHesapla, rolEtiketi,
   sirala, toplanabilir, yetkiKapsami,
-  type Hesap, type Secenek,
+  type Ekip, type Hesap, type Secenek,
 } from './mantik';
 
 /* Kullanıcı & yetki — "kim neye erişiyor, kimin fazlası var?"
@@ -50,6 +54,7 @@ type Kip = 'ozet' | 'kullanici' | 'yetki' | 'parola';
 
 export default function YetkilerIstemci({
   hesaplar, surecler, tesisler, yazabilir, onaylayabilir, kisitliKapsam,
+  ekipler, ekipTesisleri, ekipYonetebilir, devredebilir,
 }: {
   hesaplar: Hesap[];
   surecler: Secenek[];
@@ -57,6 +62,13 @@ export default function YetkilerIstemci({
   yazabilir: boolean;
   onaylayabilir: boolean;
   kisitliKapsam: boolean;
+  /** OT-09 · ekip kütüğü; kurumsal (santralsiz) ekipler de listede. */
+  ekipler: Ekip[];
+  ekipTesisleri: Secenek[];
+  /** Ekip tanımı `tanimlar/onay` ister — yetki verme yetkisinden AYRIDIR. */
+  ekipYonetebilir: boolean;
+  /** Sahiplik devri `envanter/onay` ister. */
+  devredebilir: boolean;
 }) {
   const { bekliyor, hata, calistir } = useEylem();
   const [mercek, setMercek] = useUrlDurumu<string>('mercek', 'hepsi');
@@ -66,9 +78,16 @@ export default function YetkilerIstemci({
   const [seciliId, setSeciliId] = useUrlDurumuBos('sec');
   const [kip, setKip] = useUrlDurumu<Kip>('kip', 'ozet');
   const [yeniAcik, setYeniAcik] = useState(false);
+  const [ekipAcik, setEkipAcik] = useState(false);
   const [kuyrukAcik, setKuyrukAcik] = useState(false);
 
   const secili = hesaplar.find((h) => h.id === seciliId) ?? null;
+  /* Ekip üyeliği ve devir hedefi aynı kütükten seçilir; pasif hesapları
+     formlar kendisi eler (sunucu da reddeder). */
+  const adaylar = useMemo(
+    () => hesaplar.map((h) => ({ id: h.id, ad: h.ad, aktif: h.aktif })),
+    [hesaplar],
+  );
 
   /* ── metrikler · filtrelerden BAĞIMSIZ, kütüğün tamamı ─────────────── */
   const m = useMemo(() => metrikleriHesapla(hesaplar), [hesaplar]);
@@ -142,6 +161,7 @@ export default function YetkilerIstemci({
     setSeciliId((o) => (o === id ? null : id));
     setKip('ozet');
     setYeniAcik(false);
+    setEkipAcik(false);
   }
 
   /* ── başlık: erişim kusuru varsa vurgu kritik rengi taşır ──────────── */
@@ -185,10 +205,14 @@ export default function YetkilerIstemci({
                   secenekler={ROLLER.map((r) => ({ id: r, ad: ROL_ETIKET[r] }))} />
                 {yazabilir && (
                   <button type="button" className="ab-dugme"
-                    onClick={() => { setYeniAcik(true); setSeciliId(null); }}>
+                    onClick={() => { setYeniAcik(true); setSeciliId(null); setEkipAcik(false); }}>
                     + Yeni kullanıcı
                   </button>
                 )}
+                <button type="button" className="ab-dugme"
+                  onClick={() => { setEkipAcik(true); setSeciliId(null); setYeniAcik(false); }}>
+                  Ekipler · {ekipler.length}
+                </button>
               </>
             }
           />
@@ -215,7 +239,8 @@ export default function YetkilerIstemci({
                   ? { metin: `+${toplanan.length} hesap · kapsamıyla sınırlı`,
                     ac: () => setKuyrukAcik(true) }
                   : null}
-                dipNot={dipNot(gorunur.length, m.unvansiz, m.hesap - m.aktif, m.parolasiz)}
+                dipNot={dipNot(gorunur.length, m.unvansiz, m.hesap - m.aktif,
+                  m.parolasiz, m.pasifSahiplik)}
               />
             </div>
           ) : filtreAktif ? (
@@ -236,6 +261,8 @@ export default function YetkilerIstemci({
           {kip === 'ozet' && (
             <Ozet
               hesap={secili}
+              adaylar={adaylar}
+              devredebilir={devredebilir}
               yazabilir={yazabilir}
               onaylayabilir={onaylayabilir}
               bekliyor={bekliyor}
@@ -283,6 +310,13 @@ export default function YetkilerIstemci({
         </Cekmece>
       )}
 
+      {ekipAcik && !secili && !yeniAcik && (
+        <Cekmece kod={`EKİPLER · ${ekipler.length}`} kapat={() => setEkipAcik(false)}>
+          <EkipKutugu ekipler={ekipler} tesisler={ekipTesisleri} adaylar={adaylar}
+            yetkili={ekipYonetebilir} />
+        </Cekmece>
+      )}
+
       {yeniAcik && !secili && (
         <Cekmece kod="YENİ HESAP" kapat={() => setYeniAcik(false)}>
           <div className="ab-panel-blok">
@@ -297,12 +331,21 @@ export default function YetkilerIstemci({
   );
 }
 
-function dipNot(gorunur: number, unvansiz: number, kapali: number, parolasiz: number): string {
+function dipNot(
+  gorunur: number, unvansiz: number, kapali: number, parolasiz: number,
+  pasifSahiplik: number,
+): string {
   const parcalar = [`${gorunur} satır görünüyor`, 'kolon başlığından sıralama'];
   // Bilinmeyen unvan sıfır sayılmaz: kaç hesabın unvanı hiç girilmediğini söyler.
   if (unvansiz > 0) parcalar.push(`${unvansiz} hesabın unvanı girilmedi`);
   if (kapali > 0) parcalar.push(`${kapali} hesap kapalı`);
   if (parolasiz > 0) parcalar.push(`${parolasiz} açık hesabın parolası tanımlı değil`);
+  /* OT-09 · kapalı hesabın üstünde duran varlık, erişim kusurlarıyla AYNI
+     sayaca girmez: erişim kaldırılmıştır ama sahiplik durmaktadır ve
+     kapanışı ayrı bir iştir (devir). */
+  if (pasifSahiplik > 0) {
+    parcalar.push(`${pasifSahiplik} varlık kapalı hesapların üstünde duruyor`);
+  }
   return parcalar.join(' · ');
 }
 
@@ -312,10 +355,12 @@ const Bilinmiyor = () => <span style={{ color: 'var(--i3)' }}>bilinmiyor</span>;
 /* ── Çekmece özeti ──────────────────────────────────────────────────── */
 
 function Ozet({
-  hesap, yazabilir, onaylayabilir, bekliyor,
+  hesap, adaylar, devredebilir, yazabilir, onaylayabilir, bekliyor,
   duzenle, yetkiEkle, parolaTanimla, yetkiKaldir, aktifDegistir,
 }: {
   hesap: Hesap;
+  adaylar: { id: string; ad: string; aktif: boolean }[];
+  devredebilir: boolean;
   yazabilir: boolean;
   onaylayabilir: boolean;
   bekliyor: boolean;
@@ -378,6 +423,8 @@ function Ozet({
         )}
       </div>
 
+      <SahiplikDevri hesap={hesap} adaylar={adaylar} yetkili={devredebilir} />
+
       <CekmeceEylemler
         birincil={onaylayabilir
           ? <Dugme tur="tam" onClick={yetkiEkle} disabled={bekliyor}>Yetki ver</Dugme>
@@ -402,6 +449,132 @@ function Ozet({
           : 'Kapsam boş bırakılan yetki tüm süreçlere ve tüm santrallere uygulanır. '
             + 'Yetki verme, kaldırma ve parola tanımlama denetim izine yazılır.'}
       />
+    </>
+  );
+}
+
+/* ── OT-09 · Ekip kütüğü ────────────────────────────────────────────────
+
+   Ekip, sahipliği KİŞİDEN daha dayanıklı kılan birimdir: kişi ayrıldığında
+   varlık öksüz kalır, ekip devredilebilir. Bu yüzden ekip kütüğü erişim
+   ekranının yanında durur — hesabı kapatan kişi devri de burada görür.
+
+   AKTİF ÜYESİ OLMAYAN EKİP SAHİP DEĞİLDİR: "boş ekip" ayrı bir kusurdur
+   ve "ekip atanmadı" ile aynı kutuya konmaz; ekranda ikisi ayrı yazılır. */
+
+function EkipKutugu({ ekipler, tesisler, adaylar, yetkili }: {
+  ekipler: Ekip[];
+  tesisler: Secenek[];
+  adaylar: { id: string; ad: string; aktif: boolean }[];
+  yetkili: boolean;
+}) {
+  const [duzenlenen, setDuzenlenen] = useState<string | null>(null);
+  const [yeni, setYeni] = useState(false);
+
+  if (yeni) {
+    return (
+      <>
+        <div className="ab-panel-blok">
+          <p className="etiket" style={{ margin: '0 0 var(--s12)' }}>Yeni ekip</p>
+        </div>
+        <div className="ab-panel-blok">
+          <EkipFormu ekip={null} tesisler={tesisler} kapat={() => setYeni(false)} />
+        </div>
+      </>
+    );
+  }
+
+  const secili = ekipler.find((e) => e.id === duzenlenen) ?? null;
+  if (secili) {
+    return (
+      <>
+        <div className="ab-panel-blok">
+          <p className="etiket" style={{ margin: '0 0 var(--s12)' }}>
+            {secili.kod} · ekibi düzenle
+          </p>
+        </div>
+        <div className="ab-panel-blok">
+          <EkipFormu ekip={secili} tesisler={tesisler} kapat={() => setDuzenlenen(null)} />
+        </div>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <div className="ab-panel-blok">
+        <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>
+          Ekipler · {ekipler.length}
+        </p>
+        <p className="ab-panel-dip" style={{ margin: 0 }}>
+          Ekip sahipliği kişi sahipliğinden dayanıklıdır: kişi ayrıldığında
+          varlık öksüz kalır, ekip devredilebilir. Aktif üyesi olmayan ekip
+          sahip SAYILMAZ.
+        </p>
+        {yetkili && (
+          <div style={{ marginTop: 'var(--s12)' }}>
+            <Dugme onClick={() => setYeni(true)}>+ Yeni ekip</Dugme>
+          </div>
+        )}
+        {!yetkili && (
+          <p className="ab-panel-dip" style={{ margin: 'var(--s10) 0 0' }}>
+            Ekip tanımlamak ve üyelik değiştirmek tanımlar/onay yetkisi ister.
+          </p>
+        )}
+      </div>
+
+      {ekipler.length === 0 ? (
+        <div className="ab-panel-blok">
+          <p style={{ margin: 0, fontSize: 'var(--t-field)', color: 'var(--unk)' }}>
+            Tanımlı ekip yok — bütün sahiplik kişilere bağlı ve kişi
+            ayrıldığında kayıt öksüz kalır.
+          </p>
+        </div>
+      ) : (
+        ekipler.map((e) => {
+          const aktifUye = e.uyeler.filter((u) => u.aktif).length;
+          const bosEkip = e.aktif && aktifUye === 0;
+          return (
+            <div key={e.id} className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+              <p className="etiket" style={{ margin: '0 0 var(--s8)' }}>
+                {e.kod} · {EKIP_TIP_ETIKETI[e.tip as EkipTipi] ?? e.tip}
+              </p>
+              <p style={{ margin: '0 0 var(--s8)', fontSize: 'var(--t-field)', fontWeight: 600 }}>
+                {e.ad}
+              </p>
+              <p className="mono" style={{ margin: '0 0 var(--s10)',
+                fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
+                {e.tesisAd ?? 'kurumsal (santralsiz)'} · {e.varlikSayisi} varlık ·
+                {' '}{aktifUye} aktif üye{e.aktif ? '' : ' · ekip pasif'}
+              </p>
+              {bosEkip && (
+                <p style={{ margin: '0 0 var(--s10)', fontSize: 'var(--t-field)',
+                  color: 'var(--bd)' }}>
+                  Aktif üyesi yok: bu ekibe atanmış {e.varlikSayisi} varlık
+                  ekranda sahipli görünür, gerçekte kimse sorumlu değil.
+                </p>
+              )}
+
+              {e.uyeler.length > 0 && (
+                <div style={{ display: 'grid', gap: 'var(--s3)' }}>
+                  {e.uyeler.map((u) => (
+                    <UyeSatiri key={u.kullaniciId} ekip={e} uye={u} yetkili={yetkili} />
+                  ))}
+                </div>
+              )}
+
+              {yetkili && (
+                <>
+                  <UyelikFormu ekip={e} adaylar={adaylar} />
+                  <div style={{ marginTop: 'var(--s12)' }}>
+                    <Dugme onClick={() => setDuzenlenen(e.id)}>Ekibi düzenle</Dugme>
+                  </div>
+                </>
+              )}
+            </div>
+          );
+        })
+      )}
     </>
   );
 }

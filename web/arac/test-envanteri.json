@@ -1,7 +1,7 @@
 {
-  "imza": "4d53106f559d7ff80f749f4bc33b9bd1",
-  "dosya": 107,
-  "vaka": 1975,
+  "imza": "f5a9897e27964304a01d8e55b15afaa2",
+  "dosya": 108,
+  "vaka": 2002,
   "atlanan": 1,
   "dosyalar": {
     "tests/advisory.test.ts": {
@@ -124,8 +124,12 @@
       "vaka": 73,
       "atlanan": 0
     },
+    "tests/faz-b-ekran.test.ts": {
+      "vaka": 20,
+      "atlanan": 0
+    },
     "tests/faz-b-eylem.test.ts": {
-      "vaka": 45,
+      "vaka": 52,
       "atlanan": 0
     },
     "tests/giris-guvenligi.test.ts": {

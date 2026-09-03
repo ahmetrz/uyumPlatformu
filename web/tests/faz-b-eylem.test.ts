@@ -50,8 +50,8 @@ const { db } = await import('@/lib/db');
 const {
   adimVarligiAta, ekipKaydet, ekipUyeligiKaydet, etkiDegerlendirmesiKaydet,
   hesapTipiKaydet, kesifYetkiKarari, konfigSapmasiKarari, konfigTemeliOnayla,
-  ouiKutuguYukle, pasifGozlemYukle, prosesAdimiKaydet, topluSahipDevri,
-  varligaEkipAta,
+  isSureciKaydet, ouiKutuguYukle, pasifGozlemYukle, prosesAdimiKaydet,
+  topluSahipDevri, varligaEkipAta,
 } = await import('@/lib/eylemler2/varlikYonetisim');
 
 type Sonuc = { ok: true } | { ok: false; hata: string };
@@ -100,6 +100,76 @@ beforeAll(async () => {
   surecA = (await db.isSureci.create({
     data: { kod: benzersiz('SUREC'), ad: 'Test süreci', tesisId: tesisA },
   })).id;
+});
+
+/* ══ OT-05 · İş süreci ═══════════════════════════════════════════════ */
+
+describe('OT-05 · iş süreci kütük yetkisi ve santral kapsamı ister', () => {
+  it('okuyucu süreç yazamaz', async () => {
+    const s = await kimlikle([yetki('okuyucu')], () => isSureciKaydet({
+      kod: benzersiz('IS'), ad: 'Yasak süreç', tesisId: tesisA,
+    }));
+    expect(s.ok).toBe(false);
+    expect(hataMetni(s)).toMatch(REDDEDILDI);
+  });
+
+  it('BAŞKA santralin süreci açılamaz', async () => {
+    const s = await kimlikle(kisitliYonetici(tesisB), () => isSureciKaydet({
+      kod: benzersiz('IS'), ad: 'Yabancı süreç', tesisId: tesisA,
+    }));
+    expect(s.ok).toBe(false);
+  });
+
+  /* Santralsiz süreç GRUP ÇAPINDADIR: tesise kısıtlı bir rol onu
+     açamaz. `tesisId: null` kapsamsız sorulur ve dar kapsam reddedilir —
+     aksi hâlde tek santrale yetkili biri bütün gruba süreç yazardı. */
+  it('tesise kısıtlı rol GRUP ÇAPINDA süreç açamaz', async () => {
+    const s = await kimlikle(kisitliYonetici(tesisA), () => isSureciKaydet({
+      kod: benzersiz('IS'), ad: 'Grup süreci', tesisId: null,
+    }));
+    expect(s.ok).toBe(false);
+  });
+
+  it('kendi santralinin süreci açılır ve İZE düşer', async () => {
+    const kod = benzersiz('IS');
+    const s = await kimlikle(kisitliYonetici(tesisA), () => isSureciKaydet({
+      kod, ad: 'Kendi sürecim', tesisId: tesisA, uretimEtkisi: 'yuksek',
+    }));
+    expect(hataMetni(s)).toBe('');
+    const kayit = await db.isSureci.findUnique({ where: { kod } });
+    expect(kayit?.uretimEtkisi).toBe('yuksek');
+    expect(await izVarMi('IsSureci', kayit!.id, 'kod')).not.toBeNull();
+  });
+
+  /* Süreci başka santrale TAŞIMAK iki kapsam kararıdır: hedefin ve
+     BUGÜNKÜ santralin. Yalnız hedef sorulsaydı, B'ye yetkili biri A'nın
+     sürecini kendine çekebilirdi. */
+  it('süreç başka santrale kaçırılamaz: eski santralin kapsamı da sorulur', async () => {
+    const kod = benzersiz('IS');
+    await isSureciKaydet({ kod, ad: 'Taşınacak', tesisId: tesisA });
+    const kayit = await db.isSureci.findUnique({ where: { kod } });
+    const s = await kimlikle(kisitliYonetici(tesisB), () => isSureciKaydet({
+      id: kayit!.id, kod, ad: 'Taşınacak', tesisId: tesisB,
+    }));
+    expect(s.ok).toBe(false);
+    const sonra = await db.isSureci.findUnique({ where: { kod } });
+    expect(sonra?.tesisId).toBe(tesisA);
+  });
+
+  it('bilinmeyen santral reddedilir', async () => {
+    const s = await isSureciKaydet({
+      kod: benzersiz('IS'), ad: 'Hayalet', tesisId: 'yok-boyle-tesis',
+    });
+    expect(s.ok).toBe(false);
+    expect(hataMetni(s)).toMatch(/santral/i);
+  });
+
+  it('üretim etkisi girilmezse "bilinmiyor" kalır — "yok" DEĞİL', async () => {
+    const kod = benzersiz('IS');
+    await isSureciKaydet({ kod, ad: 'Etkisiz', tesisId: tesisA });
+    const kayit = await db.isSureci.findUnique({ where: { kod } });
+    expect(kayit?.uretimEtkisi).toBe('bilinmiyor');
+  });
 });
 
 /* ══ OT-05 · Proses adımı ════════════════════════════════════════════ */

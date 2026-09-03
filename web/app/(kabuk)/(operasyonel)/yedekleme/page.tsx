@@ -4,8 +4,11 @@ import { Yetkisiz } from '@/components/kabuk/temel';
 import { db } from '@/lib/db';
 import { tesisYedekGorunumu } from '@/lib/entegrasyon/konfigYedek';
 import { YEDEK_KURALLARI } from '@/lib/motorlar/yedekDogrulama';
+import { driftKarsilastir, driftOzeti } from '@/lib/varlik/konfigDrift';
 import YedeklemeIstemci from './YedeklemeIstemci';
-import type { Politika, Santral, TurKirilimi, YedekBulgusu } from './mantik';
+import type {
+  DriftSatiri, Politika, Santral, Sapma, TurKirilimi, YedekBulgusu,
+} from './mantik';
 
 export const metadata: Metadata = { title: 'Yedekleme & kurtarma' };
 
@@ -28,6 +31,28 @@ export const metadata: Metadata = { title: 'Yedekleme & kurtarma' };
    Santraller kullanıcının envanter kapsamıyla daraltılır. Daha önce
    `girisZorunlu()` dışında hiçbir kapsam yoktu: tek santrale yetkili bir
    kullanıcı bütün filonun DR hazırlığını görebiliyordu. */
+
+/* Sayaç `driftOzeti`den gelir; sayfa kendi başına saymaz. Satır listesi
+   EN KÖTÜ ÜSTTE sıralanır: açık sapma → tabansız (ölçüm borcu) → onaylı
+   değişiklik → aynı. Açık sapma ile tabansız aynı kutuda toplanmaz. */
+const DRIFT_SIRASI = (x: DriftSatiri) =>
+  (x.sapmalar.some((s) => s.durum === 'acik') ? 0
+    : x.sonuc === 'karar_verilemedi' ? 1
+      : x.sapmalar.some((s) => s.durum === 'onayli') ? 2 : 3);
+
+function driftKatmani(satirlar: DriftSatiri[]) {
+  const ozet = driftOzeti(satirlar.map((x) => ({
+    temelVar: x.temelHash !== null,
+    sonuc: x.sonuc,
+    acikSapmaVar: x.sapmalar.some((s) => s.durum === 'acik'),
+    onayliSapmaVar: x.sapmalar.some((s) => s.durum === 'onayli'),
+  })));
+  return {
+    ...ozet,
+    satirlar: [...satirlar].sort((a, b) =>
+      DRIFT_SIRASI(a) - DRIFT_SIRASI(b) || a.etiket.localeCompare(b.etiket, 'tr')),
+  };
+}
 
 export default async function Sayfa() {
   const k = await girisZorunlu();
@@ -70,6 +95,38 @@ export default async function Sayfa() {
     }),
   ]);
 
+  /* ── OT-28 · konfigürasyon tabanı ve sapması ─────────────────────────
+     Bu üç sorgu BİLEREK ikinci turda: süzgeçleri kapsam içi varlık
+     kimlikleri kurar. İlk turla birlikte koşsalardı `varliklar` henüz
+     çözülmemiş olurdu ve süzgeçsiz okuma, tek santrale yetkili bir
+     kullanıcıya bütün filonun sapmalarını gösterirdi. */
+  const varlikIdleri = varliklar.map((v) => v.id);
+  const [temeller, yedekler, sapmalar] = await Promise.all([
+    db.konfigTemeli.findMany({
+      where: { varlikId: { in: varlikIdleri } },
+      select: { varlikId: true, ozetHash: true, onayZamani: true, not: true },
+    }),
+    /* Cihaz başına EN YENİ başarılı yedek aranır — motor da (bkz.
+       `lib/motorlar/varlikYonetisim.ts → konfigDriftiniIsle`) aynı kuralı
+       uygular; iki yer ayrışırsa ekran motorun açmadığı bir sapmayı
+       gösterirdi. Tarihe göre azalan tek sorgu çekilip varlık başına ilk
+       kayıt tutulur; varlık başına ayrı sorgu N+1 olurdu. */
+    db.konfigurasyonYedegi.findMany({
+      where: { varlikId: { in: varlikIdleri }, basarili: true },
+      orderBy: { yedekZamani: 'desc' },
+      select: { id: true, varlikId: true, icerikHash: true, yedekZamani: true },
+    }),
+    db.konfigSapmasi.findMany({
+      where: { varlikId: { in: varlikIdleri } },
+      orderBy: { olusturuldu: 'desc' },
+      select: {
+        id: true, varlikId: true, durum: true, siddet: true, gozlenenHash: true,
+        aciklama: true, degisiklikRef: true, kararGerekcesi: true, kararZamani: true,
+        olusturuldu: true, kararVeren: { select: { adSoyad: true } },
+      },
+    }),
+  ]);
+
   const turHaritasi = new Map(turAdlari.map((x) => [x.id, x.ad]));
 
   /* Politika ↔ santral bağı şemada yabancı anahtarla değil, politika ADINDA
@@ -104,6 +161,65 @@ export default async function Sayfa() {
       olusturuldu: b.olusturuldu.toISOString(),
     });
     bulguHaritasi.set(tesisId, liste);
+  }
+
+  const temelHaritasi = new Map(temeller.map((x) => [x.varlikId, x]));
+
+  /* Azalan tarihte gelen listede varlığın İLK kaydı en yenisidir. */
+  const sonYedek = new Map<string, (typeof yedekler)[number]>();
+  for (const y of yedekler) if (!sonYedek.has(y.varlikId)) sonYedek.set(y.varlikId, y);
+
+  const sapmaHaritasi = new Map<string, Sapma[]>();
+  for (const x of sapmalar) {
+    const liste = sapmaHaritasi.get(x.varlikId) ?? [];
+    liste.push({
+      id: x.id, durum: x.durum, siddet: x.siddet, gozlenenHash: x.gozlenenHash,
+      aciklama: x.aciklama, degisiklikRef: x.degisiklikRef,
+      kararGerekcesi: x.kararGerekcesi,
+      kararZamani: x.kararZamani?.toISOString() ?? null,
+      kararVeren: x.kararVeren?.adSoyad ?? null,
+      olusturuldu: x.olusturuldu.toISOString(),
+    });
+    sapmaHaritasi.set(x.varlikId, liste);
+  }
+
+  /* Drift satırı YALNIZ konusu olan cihaz için üretilir: onaylı tabanı
+     olan ya da hiç değilse bir konfigürasyon yedeği bulunan cihaz. Yedeği
+     de tabanı da olmayan bir PLC için "sapma yok" yazmak, hiç bakılmamış
+     bir cihazı temiz göstermek olurdu; o cihaz bu ekranın ÜST katmanında
+     zaten "kanıtlı yedek açığı" ya da "ölçülmemiş" olarak duruyor. */
+  const driftSatirlari = new Map<string, DriftSatiri[]>();
+  for (const v of varliklar) {
+    const temel = temelHaritasi.get(v.id) ?? null;
+    const yedek = sonYedek.get(v.id) ?? null;
+    if (!temel && !yedek) continue;
+
+    const karar = driftKarsilastir({
+      temelHash: temel?.ozetHash ?? null,
+      gozlenenHash: yedek?.icerikHash ?? null,
+    });
+    const hepsi = sapmaHaritasi.get(v.id) ?? [];
+    const satir: DriftSatiri = {
+      varlikId: v.id, etiket: v.etiket, ad: v.ad, kritiklik: v.kritiklik,
+      temelHash: temel?.ozetHash ?? null,
+      temelZamani: temel?.onayZamani.toISOString() ?? null,
+      temelNotu: temel?.not ?? null,
+      gozlenenHash: yedek?.icerikHash ?? null,
+      gozlemZamani: yedek?.yedekZamani.toISOString() ?? null,
+      /* Özeti olmayan yedek taban olarak ONAYLANAMAZ — eylem de
+         reddediyor (konfigTemeliOnayla); düğmeyi açık bırakmak
+         kullanıcıyı kesin bir hataya yürütürdü. */
+      onaylanabilirYedekId: yedek?.icerikHash ? yedek.id : null,
+      sonuc: karar.sonuc,
+      gerekce: karar.gerekce,
+      sapmalar: [
+        ...hepsi.filter((x) => x.durum === 'acik'),
+        ...hepsi.filter((x) => x.durum !== 'acik'),
+      ],
+    };
+    const liste = driftSatirlari.get(v.tesisId ?? '') ?? [];
+    liste.push(satir);
+    driftSatirlari.set(v.tesisId ?? '', liste);
   }
 
   const santraller: Santral[] = await Promise.all(tesisler.map(async (t) => {
@@ -184,6 +300,9 @@ export default async function Sayfa() {
       yazabilir: izinVar(k, 'envanter', 'yazma', { tesisId: t.id }),
       // Veri kalitesi bulgusu yönetim/yazma ister (yedekBulgusunuIsle kapısı).
       bulguIsleyebilir: izinVar(k, 'yonetim', 'yazma'),
+      drift: driftKatmani(driftSatirlari.get(t.id) ?? []),
+      // Taban onayı ve sapma kararı envanter/onay ister (lib/erisim).
+      onaylayabilir: izinVar(k, 'envanter', 'onay', { tesisId: t.id }),
     };
   }));
 

@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useUrlDurumuBos } from '@/components/kabuk/urlDurumu';
 import { BosFiltre, BosIlk, Dugme, type Durum } from '@/components/kabuk/temel';
 import { EkranBasligi, Filtreler, KipDegistir } from '@/components/kabuk/ekran';
@@ -105,9 +106,13 @@ export default function TezgahIstemci({
   aktifId, simdi, isler, tanimlar, anahtarlar, sonIstekler, kullanicilar, tesisSecenekleri,
   kirilimSecenekleri, sektorSecenekleri,
   tanimOkuyabilir, isOkuyabilir, anahtarOkuyabilir,
-  tanimYazabilir, tanimOnaylayabilir, gorevAcabilir, anahtarYazabilir,
+  tanimYazabilir, tanimOnaylayabilir, gorevAcabilir, anahtarYazabilir, baslangicKipi, konsolOkuyabilir,
 }: {
   aktifId: string;
+  /** adresteki ?bolum= değeri (is | tanim | anahtar); yoksa yetkiye göre ilk kip */
+  baslangicKipi?: Kip;
+  /** yönetim okuma yetkisi: Konsol seçeneği görünür (yetki sunucuda ayrıca aranır) */
+  konsolOkuyabilir?: boolean;
   simdi: number;
   isler: Is[];
   tanimlar: Tanim[];
@@ -126,8 +131,9 @@ export default function TezgahIstemci({
   gorevAcabilir: boolean;
   anahtarYazabilir: boolean;
 }) {
+  const router = useRouter();
   const [kip, setKip] = useState<Kip>(
-    isOkuyabilir ? 'is' : tanimOkuyabilir ? 'tanim' : 'anahtar');
+    baslangicKipi ?? (isOkuyabilir ? 'is' : tanimOkuyabilir ? 'tanim' : 'anahtar'));
   const [isMercek, setIsMercek] = useState('bekleyen');
   const [tanimMercek, setTanimMercek] = useState('hepsi');
   const [anahtarMercek, setAnahtarMercek] = useState('etkin');
@@ -148,7 +154,9 @@ export default function TezgahIstemci({
   /* Kip değişimi açık çekmeceyi kapatır. Bu yalnız düzen tercihi değil,
      token sözleşmesinin uygulanmasıdır: üretim formu sökülür ve bir kez
      gösterilen tam token bellekten gider. */
-  function kipeGec(y: Kip) {
+  function kipeGec(y: Kip | 'konsol') {
+    // Konsol ayrı bir istemcidir (KonsolIstemci); adres değişir, kip burada kalmaz.
+    if (y === 'konsol') { router.push('/yonetim-tezgahi'); return; }
     setKip(y);
     setSecili(null);
     setDuzenleAcik(false);
@@ -389,6 +397,7 @@ export default function TezgahIstemci({
             : { metin: 'Etkin API anahtarı yok' };
 
   const kipSecenekleri = [
+    ...(konsolOkuyabilir ? [{ id: 'konsol', ad: 'Konsol' }] : []),
     ...(isOkuyabilir ? [{ id: 'is', ad: `İş kuyruğu · ${acikIsler.length}` }] : []),
     ...(tanimOkuyabilir ? [{ id: 'tanim', ad: `Tanımlar · ${tanimlar.length}` }] : []),
     ...(anahtarOkuyabilir
@@ -434,7 +443,7 @@ export default function TezgahIstemci({
           {kipSecenekleri.length > 1 && (
             <div style={{ marginTop: 'var(--s26)' }}>
               <KipDegistir secenekler={kipSecenekleri} aktif={kip}
-                sec={(id) => kipeGec(id as Kip)} />
+                sec={(id) => kipeGec(id as Kip | 'konsol')} />
             </div>
           )}
 

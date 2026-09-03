@@ -1,4 +1,5 @@
 import 'server-only';
+import { ayar } from '@/lib/yapilandirma/oku';
 import { db } from '@/lib/db';
 import { aktifKullanici } from '@/lib/auth';
 import { izinVar, izinliTesisIdleri } from '@/lib/erisim';
@@ -90,6 +91,7 @@ export async function kabukVerisi(): Promise<KabukVerisi> {
     /* Ayak künyesi: sürüm package.json'dan OKUNUR (elle yazılmış sürüm
        ilk yayında yalan söylerdi); ortam demo bayrağı + NODE_ENV'den. */
     surum: paket.version,
+    kunye: await ayar<string>('kabuk.kunye').catch(() => 'Zorlu Enerji Yönetişim Platformu'),
     ortam: DEMO ? 'demo' : process.env.NODE_ENV === 'production' ? 'uretim' : 'gelistirme',
   };
 }

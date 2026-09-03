@@ -1,7 +1,7 @@
 {
-  "imza": "22c607e45138e8bb1c141cb083398be4",
-  "dosya": 73,
-  "vaka": 1314,
+  "imza": "02ec72ab337489021d2a6dc286788914",
+  "dosya": 75,
+  "vaka": 1354,
   "atlanan": 1,
   "dosyalar": {
     "tests/api.test.ts": {
@@ -276,6 +276,10 @@
       "vaka": 11,
       "atlanan": 0
     },
+    "tests/yapilandirma.test.ts": {
+      "vaka": 12,
+      "atlanan": 0
+    },
     "tests/yardim.test.ts": {
       "vaka": 17,
       "atlanan": 0
@@ -290,6 +294,10 @@
     },
     "tests/yeniTesis.test.ts": {
       "vaka": 1,
+      "atlanan": 0
+    },
+    "tests/yonetim-konsolu-eylem.test.ts": {
+      "vaka": 28,
       "atlanan": 0
     },
     "tests/zamanlayici.test.ts": {

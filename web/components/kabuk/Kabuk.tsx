@@ -54,6 +54,8 @@ export type KabukVerisi = {
   /** Ayak künyesi: package.json sürümü ve çalışma ortamı. */
   surum: string;
   ortam: 'demo' | 'gelistirme' | 'uretim';
+  /** Ayak künye metni — yönetim konsolundan (A sınıfı) ayarlanır; kod varsayılanı platform adı. */
+  kunye: string;
 };
 
 const TARIH = new Intl.DateTimeFormat('tr-TR', {
@@ -244,7 +246,7 @@ function Ayak({ veri }: { veri: KabukVerisi }) {
   return (
     <footer className="ab-alt ab-baskida-gizle">
       <span className="kunye">
-        Zorlu Enerji Yönetişim Platformu
+        {veri.kunye}
         <span className="mono"> · v{veri.surum} · {ORTAM_ADI[veri.ortam]}</span>
       </span>
       <nav aria-label="Ayak bağları">

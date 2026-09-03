@@ -2265,3 +2265,43 @@ model IsKilidi {
 
   @@index([gecerlilik])
 }
+
+// ═══ Merkezi yönetim konsolu ═════════════════════════════════════════════
+// Yapılandırma anahtarları: kodda VARSAYILANI olan, konsoldan değeri
+// değiştirilebilen parametreler (eşikler, pencereler, künye). Anahtar
+// sözlüğü ve doğrulama şeması KODDADIR (lib/yapilandirma/tanimlar.ts);
+// burada yalnız geçerli değer saklanır. Kayıt yoksa kod varsayılanı geçer —
+// "bilinmiyor" ile "sıfır" karışmaz.
+model Yapilandirma {
+  anahtar       String   @id
+  degerJson     String
+  guncellendi   DateTime @updatedAt
+  guncelleyenId String?
+}
+
+// Değişiklik talebi: Kaydet → İncele → Onayla → Uygula. Onay gerektiren (B
+// sınıfı) hedeflerde değer doğrudan yazılmaz; talep dört-göz onayından geçer
+// ve uygulama adımı ayrıdır. once/sonra JSON farkı ve etki özeti talep
+// üzerinde saklanır; uygulama AktiviteKaydi'na da iz düşer.
+model DegisiklikTalebi {
+  id          String    @id @default(cuid())
+  hedefTipi   String // ayar | grup | tuzelKisi | uretimUnitesi | varlikTuru | agBolgesi | uygulanabilirlikKurali | tesisGorsel
+  hedefId     String?
+  hedefEtiket String
+  onceJson    String?
+  sonraJson   String
+  etkiJson    String?
+  gerekce     String
+  durum       String    @default("taslak") // taslak | incelemede | onaylandi | reddedildi | uygulandi | iptal
+  talepEdenId String
+  inceleyenId String?
+  onaylayanId String?
+  uygulayanId String?
+  redNedeni   String?
+  olusturuldu DateTime  @default(now())
+  incelendi   DateTime?
+  onaylandi   DateTime?
+  uygulandi   DateTime?
+
+  @@index([durum, hedefTipi])
+}

@@ -7,6 +7,7 @@ import { dolmusOturumlariTemizle } from '../auth';
 import { adaptorVarMi, adaptorCoz } from '../entegrasyon/kayit';
 import { adaptorGerekeni } from '../entegrasyon/adaptorler';
 import { kuyrukSec } from './kuyruk';
+import { ayarlar } from '../yapilandirma/oku';
 
 /* ═══════════════════════════════════════════════════════════════════════
    ZAMANLAYICI — ne koşacağını VERİTABANINDAN TÜRETİR
@@ -95,7 +96,17 @@ async function motorVadeleri(simdi: Date, aralikDk: number): Promise<VadeSonucu>
   });
   const sonHarita = new Map(sonKosular.map((k) => [k.isAdi, k._max.baslangic ?? null]));
 
+  /* Motor bayrakları yönetim konsolundan (B sınıfı, onaylı). Kapalı motor
+     "vadesi gelmedi" değil "konsoldan kapatıldı" sebebiyle atlanır — ikisi
+     ayrı okunur. Kayıt yoksa her motor açıktır. */
+  const bayraklar = await ayarlar(
+    (Object.keys(MOTORLAR) as MotorAdi[]).map((ad) => `motor.${ad}.etkin` as const));
+
   for (const ad of Object.keys(MOTORLAR) as MotorAdi[]) {
+    if (bayraklar[`motor.${ad}.etkin`] === false) {
+      atlanan.push({ tur: 'motor', hedef: ad, ad, sebep: 'Yönetim konsolundan kapatıldı' });
+      continue;
+    }
     const son = { baslangic: sonHarita.get(ad) ?? null };
     const gecen = dkGecti(son?.baslangic ?? null, simdi);
     if (gecen === null || gecen >= aralikDk) {
@@ -237,9 +248,14 @@ async function bakimVadesi(simdi: Date): Promise<boolean> {
 /** Şu an vadesi gelmiş her şey + gelmemiş olanların SEBEBİ. */
 export async function vadesiGelenler(
   simdi: Date = new Date(),
-  motorAralikDk: number = MOTOR_ARALIK_DK,
+  motorAralikDk?: number,
 ): Promise<VadeSonucu> {
-  const m = await motorVadeleri(simdi, motorAralikDk);
+  /* Aralık verilmemişse yönetim konsolundan (B sınıfı) okunur; kayıt
+     yoksa kod varsayılanı MOTOR_ARALIK_DK. Testler açık değer geçer. */
+  const aralik = motorAralikDk
+    ?? (Number((await ayarlar(['zamanlayici.motor_aralik_dk'] as const))['zamanlayici.motor_aralik_dk'])
+      || MOTOR_ARALIK_DK);
+  const m = await motorVadeleri(simdi, aralik);
   const c = await connectorVadeleri(simdi);
   return { kosulacak: [...m.kosulacak, ...c.kosulacak], atlanan: [...m.atlanan, ...c.atlanan] };
 }

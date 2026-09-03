@@ -1,4 +1,5 @@
 import 'server-only';
+import { ayarlar } from '@/lib/yapilandirma/oku';
 import { db } from '@/lib/db';
 import { izinliTesisIdleri } from '@/lib/erisim';
 import type { AktifKullanici } from '@/lib/auth';
@@ -107,15 +108,20 @@ export type EkranVerisi = {
   egilim: { etiket: string; yuzde: number }[] | null;
 };
 
-/** Odak kartı + kuyruk için çekilen en fazla bulgu. */
-const KUYRUK_PENCERESI = 12;
-/** Düzenleyici takvim ufku — prototipte 90 gün. */
-const TAKVIM_GUN = 90;
-/** Uygunsuzluk akışı penceresi — prototipte 12 hafta. */
-const AKIS_HAFTA = 12;
+/* Pencereler ve risk eşikleri yönetim konsolundan ayarlanır
+   (`lib/yapilandirma/tanimlar.ts` · saha.* A sınıfı, risk.esik.* B sınıfı);
+   kayıt yoksa kod varsayılanları: 12 kayıt · 90 gün · 12 hafta · 15 / 8. */
 const HAFTA_MS = 7 * 86_400_000;
 
 export async function genelEkranVerisi(k: AktifKullanici): Promise<EkranVerisi> {
+  const ayarDegerleri = await ayarlar([
+    'saha.kuyruk_penceresi', 'saha.takvim_gun', 'saha.akis_hafta',
+    'risk.esik.kritik', 'risk.esik.yuksek'] as const);
+  const KUYRUK_PENCERESI = Number(ayarDegerleri['saha.kuyruk_penceresi']);
+  const TAKVIM_GUN = Number(ayarDegerleri['saha.takvim_gun']);
+  const AKIS_HAFTA = Number(ayarDegerleri['saha.akis_hafta']);
+  const RISK_KRITIK = Number(ayarDegerleri['risk.esik.kritik']);
+  const RISK_YUKSEK = Number(ayarDegerleri['risk.esik.yuksek']);
   modulKapisi(k, 'uyum');
   const simdi = new Date();
   const bugun = simdi.toLocaleDateString('tr-TR',
@@ -335,7 +341,7 @@ export async function genelEkranVerisi(k: AktifKullanici): Promise<EkranVerisi> 
     const et = Math.min(5, Math.max(1, e));
     hucreler[5 - et][o - 1] += 1;      // 0. satır = en yüksek etki
     const skor = o * et;
-    if (skor >= 15) kritik += 1; else if (skor >= 8) yuksek += 1;
+    if (skor >= RISK_KRITIK) kritik += 1; else if (skor >= RISK_YUKSEK) yuksek += 1;
   }
 
   const takvim: TakvimKalemi[] = [

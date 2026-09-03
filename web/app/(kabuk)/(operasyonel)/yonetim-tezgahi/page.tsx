@@ -3,6 +3,8 @@ import { girisZorunlu, izinVar, izinliTesisIdleri, type Modul } from '@/lib/eris
 import { Yetkisiz } from '@/components/kabuk/temel';
 import { db } from '@/lib/db';
 import TezgahIstemci from './TezgahIstemci';
+import KonsolIstemci from './KonsolIstemci';
+import { konsolVerisi } from './konsolVerisi';
 import { SON_ISTEK_TAVANI, type Anahtar, type Is, type SonIstek, type Tanim } from './ortak';
 
 export const metadata: Metadata = { title: 'Yönetim tezgâhı' };
@@ -35,8 +37,27 @@ const ONAY_TIP_MODUL: Record<string, Modul> = {
   proje_aday: 'proje', applicability_override: 'uyum', proje_kapanis: 'proje',
 };
 
-export default async function Sayfa() {
+/* Eski tezgâh kipleri adreste yaşar: ?bolum=is | tanim | anahtar.
+   Diğer her değer (ve boş adres) Yönetim konsoludur → KonsolIstemci. */
+const TEZGAH_KIPLERI = ['is', 'tanim', 'anahtar'] as const;
+type TezgahKipi = (typeof TEZGAH_KIPLERI)[number];
+
+export default async function Sayfa({ searchParams }: { searchParams: Promise<{ bolum?: string }> }) {
   const kullanici = await girisZorunlu();
+  const { bolum } = await searchParams;
+  const konsolOkuyabilir = izinVar(kullanici, 'yonetim', 'okuma');
+  const tezgahKipi = (TEZGAH_KIPLERI as readonly string[]).includes(bolum ?? '')
+    ? (bolum as TezgahKipi) : null;
+
+  /* ── Yönetim konsolu (varsayılan bölüm) ─────────────────────────────
+     Okuma yetkisi yoksa konsol verisi HİÇ SORGULANMAZ; eski kipler yetkiye
+     göre yine erişilebilir kalır (?bolum=is vb.). */
+  if (!tezgahKipi) {
+    if (!konsolOkuyabilir) return <Yetkisiz rol="yönetim okuma" />;
+    const simdi = new Date().getTime();
+    return <KonsolIstemci veri={await konsolVerisi(kullanici, simdi)} />;
+  }
+
   const tanimOkuyabilir = izinVar(kullanici, 'tanimlar', 'okuma');
   const isOkuyabilir = izinVar(kullanici, 'uyum', 'okuma');
   const anahtarOkuyabilir = izinVar(kullanici, 'yonetim', 'okuma');
@@ -281,6 +302,11 @@ export default async function Sayfa() {
       tanimOnaylayabilir={tanimOnaylayabilir}
       gorevAcabilir={gorevAcabilir}
       anahtarYazabilir={anahtarYazabilir}
+      baslangicKipi={
+        // adresteki kip yetkisizse yetkiye göre ilk kipe düşülür (UI gizlemesi yetki değildir)
+        (tezgahKipi === 'is' && isOkuyabilir) || (tezgahKipi === 'tanim' && tanimOkuyabilir)
+          || (tezgahKipi === 'anahtar' && anahtarOkuyabilir) ? tezgahKipi : undefined}
+      konsolOkuyabilir={konsolOkuyabilir}
     />
   );
 }

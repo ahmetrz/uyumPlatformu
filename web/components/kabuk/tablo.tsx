@@ -94,7 +94,8 @@ export function VeriTablosu<T extends { id: string }>({
   dipNot?: ReactNode;
   /** satırın grup başlığı; ardışık aynı gruplar tek başlık alır */
   grup?: (satir: T) => string | undefined;
-  /** genişleyebilen satır: true/false → aria-expanded; undefined → öznitelik yok */
+  /** genişleyebilen satır: true/false → data-acik (rol `row` aria-expanded almaz — axe
+     aria-conditional-attr); açık/kapalı duyurusu satırın adı (`grupCumlesi`) ile verilir */
   acik?: (satir: T) => boolean | undefined;
   /** iskelet satırı sayısı (veri gelmeden) */
   yukleniyor?: number;
@@ -228,7 +229,7 @@ export function VeriTablosu<T extends { id: string }>({
               <tr key={s.id}
                 className={d ? `d-${d}` : undefined}
                 aria-selected={sec ? seciliMi : undefined}
-                aria-expanded={acik?.(s)}
+                data-acik={acik?.(s) === undefined ? undefined : String(acik(s))}
                 aria-rowindex={i + 2}
                 tabIndex={sec ? (i === odakIndeksi ? 0 : -1) : undefined}
                 onClick={sec ? (e) => { if (!icEtkilesim(e)) sec(seciliMi ? null : s.id); } : undefined}
@@ -386,7 +387,7 @@ export type MatrisSatiri = {
 };
 
 export function Matris({
-  kolonBasliklari, satirlar, secili, sec, dipNot, konuBasligi = 'Konu',
+  kolonBasliklari, satirlar, secili, sec, dipNot, konuBasligi = 'Konu', etiket,
 }: {
   kolonBasliklari: (string | MatrisKolonu)[];
   satirlar: MatrisSatiri[];
@@ -394,6 +395,8 @@ export function Matris({
   sec?: (satirId: string, kolon: number) => void;
   dipNot?: string;
   konuBasligi?: string;
+  /** ekran okuyucuya matrisin adı; yoksa "konu × sütun" sözüyle kurulur */
+  etiket?: string;
 }) {
   const stil = { '--kolon-sayisi': kolonBasliklari.length } as CSSProperties;
   const enKotuIndeks = (h: MatrisSatiri['hucreler']) => {
@@ -406,14 +409,22 @@ export function Matris({
   const kolon = (b: string | MatrisKolonu): MatrisKolonu =>
     (typeof b === 'string' ? { ad: b } : b);
 
+  /* Ortak matris grameri (A4): ızgara görsel olarak CSS grid, anlamsal
+     olarak TABLO — `role=table/row/columnheader/cell`. Kap yalnız
+     gerekince yatay kayar; konu sütunu kapta yapışkandır, başlık sayfa
+     akışında kalır. Hücre semantiği `Im`/glif sözüyle okunur: boş hücre
+     "ölçülmedi/kapsam dışı"dır, sıfır ya da sağlıklı değil. */
   return (
-    <div className="ab-matris" style={stil}>
-      <div className="bas">
-        <span className="kolonbas">{konuBasligi}</span>
+    <div className="ab-matris-kap">
+    <div className="ab-matris" style={stil} role="table"
+      aria-label={etiket ?? `${konuBasligi} × ${kolonBasliklari.length} sütun`}
+      aria-rowcount={satirlar.length + 1}>
+      <div className="bas" role="row">
+        <span className="kolonbas" role="columnheader">{konuBasligi}</span>
         {kolonBasliklari.map((b) => {
           const k = kolon(b);
           return (
-            <span key={k.ad} className="kolonbas kesik">
+            <span key={k.ad} className="kolonbas kesik" role="columnheader">
               {k.yol ? <Link href={k.yol}>{k.ad}</Link> : k.ad}
             </span>
           );
@@ -423,32 +434,37 @@ export function Matris({
       {satirlar.map((s) => {
         const kotu = enKotuIndeks(s.hucreler);
         return (
-          <div key={s.id}
+          <div key={s.id} role="row" aria-selected={secili === s.id || undefined}
             className={`satir${s.sakin ? ' sakin' : ''}${secili === s.id ? ' secili' : ''}`}>
-            {s.yol ? (
-              <Link href={s.yol} className="ad">
-                <span className="baslik">{s.ad}</span>
-                <span className="mono alt">{s.alt}</span>
-              </Link>
-            ) : (
-              <button type="button" className="ad" onClick={() => sec?.(s.id, 0)}>
-                <span className="baslik">{s.ad}</span>
-                <span className="mono alt">{s.alt}</span>
-              </button>
-            )}
+            <span role="rowheader" className="adhucre">
+              {s.yol ? (
+                <Link href={s.yol} className="ad">
+                  <span className="baslik">{s.ad}</span>
+                  <span className="mono alt">{s.alt}</span>
+                </Link>
+              ) : (
+                <button type="button" className="ad" onClick={() => sec?.(s.id, 0)}>
+                  <span className="baslik">{s.ad}</span>
+                  <span className="mono alt">{s.alt}</span>
+                </button>
+              )}
+            </span>
             {s.hucreler.map((h, i) => (
-              <button key={i} type="button" className="hucre"
-                aria-expanded={secili === s.id ? undefined : undefined}
-                onClick={() => sec?.(s.id, i)}>
-                {h.durum
-                  ? <Im durum={h.durum} enKotu={i === kotu} ad={h.ipucu} />
-                  : <span className="ab-glif g-disi" role="img" aria-label={h.ipucu} />}
-              </button>
+              <span key={i} role="cell" className="hucrekap">
+                <button type="button" className="hucre"
+                  aria-pressed={secili === s.id ? true : false}
+                  onClick={() => sec?.(s.id, i)}>
+                  {h.durum
+                    ? <Im durum={h.durum} enKotu={i === kotu} ad={h.ipucu} />
+                    : <span className="ab-glif g-disi" role="img" aria-label={h.ipucu} />}
+                </button>
+              </span>
             ))}
           </div>
         );
       })}
 
+    </div>
       {dipNot && <p className="mono dip">{dipNot}</p>}
     </div>
   );

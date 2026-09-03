@@ -817,7 +817,7 @@
   font-family: var(--gorunum); font-size: 13px; letter-spacing: .04em;
   text-transform: uppercase; color: var(--i3);
 }
-.ab-b-portfoy-ust nav button .mono { font-size: 10px; color: var(--i3); }
+.ab-b-portfoy-ust nav button .mono { font-size: 11px; color: var(--i3); }
 .ab-b-portfoy-ust nav button:hover { color: var(--murekkep); }
 .ab-b-portfoy-ust nav button[aria-pressed='true'] {
   color: var(--murekkep); border-color: var(--aksan);
@@ -898,7 +898,7 @@
 .ab-b-portfoy-govde .plaka .ad {
   font-family: var(--gorunum); font-size: 28px; line-height: 1.05; text-transform: uppercase;
 }
-.ab-b-portfoy-govde .plaka .guc { font-size: 10.5px; color: var(--i2); }
+.ab-b-portfoy-govde .plaka .guc { font-size: 11px; color: var(--i2); }
 .ab-b-portfoy-govde .plaka .sayilar {
   position: relative; flex: none; display: flex; gap: 26px; text-align: right;
 }
@@ -992,7 +992,7 @@
 }
 .ab-b-panel .tepe .sag { text-align: right; padding-bottom: 6px; }
 .ab-b-panel .tepe .sag p { margin: 0; font-size: 11px; color: var(--i2); }
-.ab-b-panel .tepe .sag .alt { margin-top: 4px; font-size: 10px; color: var(--i3); }
+.ab-b-panel .tepe .sag .alt { margin-top: 4px; font-size: 11px; color: var(--i3); }
 
 .ab-b-panel .bolum > .etiket { display: block; margin: 0 0 12px; }
 .ab-b-panel .bos { margin: 0; font-size: 12px; color: var(--i3); }
@@ -1009,7 +1009,7 @@
 }
 .ab-b-panel .katman .ab-b-yigin { height: 10px; }
 .ab-b-panel .konu { margin: 0; font-size: 14px; line-height: 1.35; }
-.ab-b-panel .kirmizi { margin: 8px 0 0; font-size: 10px; color: var(--bd); }
+.ab-b-panel .kirmizi { margin: 8px 0 0; font-size: 11px; color: var(--bd); }
 .ab-b-panel .sayaclar {
   display: grid; grid-template-columns: 1fr 1fr; gap: 14px 16px;
   margin-top: auto; padding-top: 16px; border-top: 1px solid var(--hr2);
@@ -1041,7 +1041,7 @@
   margin: 12px 0 0; font-family: var(--gorunum); font-size: 21px;
   line-height: 1.1; text-transform: uppercase;
 }
-.ab-b-zincir .durak .alt { margin: 6px 0 0; font-size: 10px; color: var(--i3); }
+.ab-b-zincir .durak .alt { margin: 6px 0 0; font-size: 11px; color: var(--i3); }
 .ab-b-zincir .durak .sayilar { margin: 12px 0 0; display: grid; gap: 4px; font-size: 11px; } /* sayı = ölçüm, 11px tabanı */
 .ab-b-zincir .durak .sayilar > div { display: flex; justify-content: space-between; gap: 10px; }
 .ab-b-zincir .durak .sayilar dt { color: var(--i3); }
@@ -1108,10 +1108,10 @@
 .ab-b-ikili .unite .ad { flex: 1; min-width: 0; display: grid; gap: 3px; }
 .ab-b-ikili .unite .baslik { font-size: 13px; }
 .ab-b-ikili .unite .guc { font-size: 11px; color: var(--i3); }
-.ab-b-ikili .unite .kayit { flex: none; font-size: 10px; color: var(--i3); }
+.ab-b-ikili .unite .kayit { flex: none; font-size: 11px; color: var(--i3); }
 .ab-b-ikili .unite .durum {
   flex: none; width: 96px; display: flex; align-items: center; gap: 8px;
-  justify-content: flex-end; font-size: 10px; color: var(--i2);
+  justify-content: flex-end; font-size: 11px; color: var(--i2);
 }
 .ab-b-ikili .bulgular > header { display: flex; align-items: baseline; gap: 16px; margin-bottom: 6px; }
 .ab-b-ikili .bulgular > header .sag { margin-left: auto; }
@@ -1127,7 +1127,7 @@
 .ab-b-ikili .bulgular .onem.pl { color: var(--i3); }
 .ab-b-ikili .bulgular .konu { flex: 1; min-width: 0; font-size: 13px; }
 .ab-b-ikili .bulgular .satir:hover .konu { color: var(--aksan); }
-.ab-b-ikili .bulgular .kontrol { flex: none; width: 116px; font-size: 10px; color: var(--i3); }
+.ab-b-ikili .bulgular .kontrol { flex: none; width: 116px; font-size: 11px; color: var(--i3); }
 .ab-b-ikili .bulgular .termin { flex: none; width: 92px; text-align: right; font-size: 11px; }
 .ab-b-ikili .bulgular .termin.gecikmis { color: var(--bd); }
 
@@ -1877,7 +1877,7 @@
 .ab-suzgec .mercekler button {
   padding: 5px 11px; background: none; cursor: pointer;
   border: 1px solid var(--hr2); border-right-width: 0;
-  font-family: var(--veri); font-size: 10px; letter-spacing: .08em;
+  font-family: var(--veri); font-size: 11px; letter-spacing: .08em;
   text-transform: uppercase; color: var(--i3);
 }
 .ab-suzgec .mercekler button:last-child { border-right-width: 1px; }
@@ -1894,7 +1894,7 @@
 .ab-ikili { display: inline-flex; border: 1px solid var(--hr2); }
 .ab-ikili button {
   height: 26px; padding: 0 14px; background: none; border: 0; cursor: pointer;
-  font-family: var(--veri); font-size: 10px; letter-spacing: .14em;
+  font-family: var(--veri); font-size: 11px; letter-spacing: .14em;
   text-transform: uppercase; color: var(--i3);
 }
 .ab-ikili button:hover { color: var(--murekkep); }
@@ -1914,6 +1914,12 @@
 .ab-asamalar .ad { display: block; font-size: 12px; }
 .ab-asamalar li.simdi .ad { font-weight: 600; }
 .ab-asamalar .tarih { display: block; margin-top: 4px; font-size: var(--t-label); color: var(--i3); }
+
+/* ── Tezgâh hattı: aşama şeridi + hat notu ─────────────────────────── */
+.ab-tezgah-hat { margin: 0 0 var(--s20); }
+.ab-tezgah-hat .hat-not { margin: var(--s8) 0 0; }
+.ab-tezgah-hat .hat-not a { color: var(--i2); text-decoration: underline; text-underline-offset: 2px; }
+.ab-tezgah-hat .hat-not a:hover { color: var(--aksan); }
 
 /* ── Odak kartı ────────────────────────────────────────────────────── */
 .ab-odak {
@@ -2032,7 +2038,7 @@
   padding: 0 20px; border-bottom: 1px solid var(--hr);
 }
 .ab-panel > header .vurgu { color: var(--aksan); }
-.ab-panel > header .kod { font-size: 10px; color: var(--i3); }
+.ab-panel > header .kod { font-size: 11px; color: var(--i3); }
 .ab-panel > header .sag { margin-left: auto; }
 .ab-panel > .govde { padding: 18px 20px 28px; overflow-y: auto; min-height: 0; }
 
@@ -2072,7 +2078,7 @@
   text-transform: uppercase; color: var(--i3);
 }
 .ab-panel-zincir .kod { display: block; margin-top: 3px; font-size: 11px; overflow-wrap: anywhere; }
-.ab-panel-zincir .alt { display: block; margin-top: 2px; font-size: 10px; color: var(--i3); }
+.ab-panel-zincir .alt { display: block; margin-top: 2px; font-size: 11px; color: var(--i3); }
 .ab-panel-zincir a:hover .kod { color: var(--aksan); }
 .ab-panel-eylem { margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--hr); }
 .ab-panel-eylem .ikincil { margin-top: 10px; }
@@ -2156,9 +2162,9 @@
 .ab-zaman-kart.d-ok, .ab-zaman-kart.d-tamam { border-left-color: var(--ok); }
 .ab-zaman-kart.d-unk { border-left-color: var(--unk); }
 .ab-zaman-kart.d-pl { border-left-color: var(--pl); }
-.ab-zaman-kart .geri { float: right; font-family: var(--veri); font-size: 10px; color: var(--i3); }
+.ab-zaman-kart .geri { float: right; font-family: var(--veri); font-size: 11px; color: var(--i3); }
 .ab-zaman-kart .ad { display: block; font-size: 13px; font-weight: 600; }
-.ab-zaman-kart .kapsam { display: block; margin-top: 5px; font-size: 10px; color: var(--i3); }
+.ab-zaman-kart .kapsam { display: block; margin-top: 5px; font-size: 11px; color: var(--i3); }
 
 .ab-omur { position: relative; height: 224px; margin-top: 20px; }
 .ab-omur-bant { position: absolute; top: 0; bottom: 0; border-left: 1px dashed var(--hr2); }
@@ -2184,7 +2190,7 @@
 .ab-omur-kart .geri { float: right; font-size: 11px; color: var(--i3); }
 .ab-omur-kart.gecmis .geri { color: var(--bd); }
 .ab-omur-kart .ad { font-size: 13px; font-weight: 600; }
-.ab-omur-kart .kapsam { display: block; margin-top: 6px; font-size: 10px; color: var(--i3); }
+.ab-omur-kart .kapsam { display: block; margin-top: 6px; font-size: 11px; color: var(--i3); }
 
 /* ── Köken işareti — hap DEĞİL ─────────────────────────────────────── */
 .ab-koken {
@@ -2321,12 +2327,27 @@ textarea.ab-gr { min-height: 76px; resize: vertical; }
 }
 .ab-ayar-yetki li > .mono { text-align: right; min-width: 0; overflow-wrap: anywhere; }
 
+.ab-ayar-hal > .ab-blok { max-width: none; }
+
 /* ── Kesişim matrisi (paylaşılan) ──────────────────────────────────── */
+/* Kap: çok sütunlu matriste sayfa değil kap kayar; konu sütunu solda
+   yapışkan kalır (kimlik sütunu kuralı, VeriTablosu ile aynı). */
+.ab-matris-kap { overflow-x: auto; overscroll-behavior-x: contain; }
+.ab-matris-kap > .dip { margin: 14px 0 0; font-size: var(--t-label); color: var(--i3); }
 .ab-matris {
   --kolon-sayisi: 6;
   display: grid;
-  grid-template-columns: minmax(200px, 1fr) repeat(var(--kolon-sayisi), minmax(52px, 72px));
+  /* Konu sütunu 200–440px: 1fr iken hücreler ekranın sağ kıyısına
+     itiliyor, 400px çekmece açılınca görünmez kalıyordu (ölçüldü,
+     1366: ilk hücre x=1126). Sınırlı sütunla hücreler ada yakın durur. */
+  grid-template-columns: minmax(200px, 440px) repeat(var(--kolon-sayisi), minmax(52px, 72px));
+  min-width: max-content;
 }
+.ab-matris .adhucre,
+.ab-matris .bas > .kolonbas:first-child { position: sticky; left: 0; z-index: 1; background: var(--zemin); min-width: 0; }
+.ab-matris .satir.secili > .adhucre { background: var(--secim); }
+.ab-matris .hucrekap { display: flex; align-items: stretch; justify-content: stretch; }
+.ab-matris .hucrekap > .hucre { flex: 1 1 auto; width: 100%; }
 .ab-matris .bas {
   display: contents;
 }
@@ -2339,7 +2360,7 @@ textarea.ab-gr { min-height: 76px; resize: vertical; }
 .ab-matris .satir.sakin > * { color: var(--i3); } /* opaklık değil renk: mono alt yazı AA'da kalsın */
 .ab-matris .satir.secili > * { background: var(--secim); }
 .ab-matris .ad {
-  display: block; min-width: 0; padding: 9px 12px 9px 0; text-align: left;
+  display: block; min-width: 0; width: 100%; padding: 9px 12px 9px 0; text-align: left;
   background: none; border-left: 0; border-right: 0; border-top: 0;
   font: inherit; color: inherit; cursor: pointer;
 }
@@ -2352,7 +2373,6 @@ textarea.ab-gr { min-height: 76px; resize: vertical; }
   cursor: pointer; color: inherit;
 }
 .ab-matris .hucre:hover { background: var(--secim); }
-.ab-matris .dip { grid-column: 1 / -1; margin: 14px 0 0; font-size: var(--t-label); color: var(--i3); }
 
 /* ── Genişleyen satır ──────────────────────────────────────────────── */
 .ab-genisleyen { border-bottom: 1px solid var(--hr); }
@@ -2377,7 +2397,7 @@ textarea.ab-gr { min-height: 76px; resize: vertical; }
    görünmemesi pazarlık konusu değildir. */
 details:not([open]) > *:not(summary) { display: none !important; }
 .ab-genisleyen > summary .ad { flex: 1; min-width: 0; font-size: 13.5px; font-weight: 500; }
-.ab-genisleyen > summary .adet { font-size: 10px; color: var(--i3); }
+.ab-genisleyen > summary .adet { font-size: 11px; color: var(--i3); }
 .ab-genisleyen > summary .ok { color: var(--i3); transition: transform .18s ease; }
 .ab-genisleyen[open] > summary { background: var(--panel2); }
 .ab-genisleyen[open] > summary .ok { transform: rotate(90deg); color: var(--aksan); }
@@ -2456,7 +2476,8 @@ details:not([open]) > *:not(summary) { display: none !important; }
    tıklama alanı 13px glifti; 68×31px hedef klavye ve dokunma için
    gerçek bir hedeftir (harita §7 kusur 4). */
 .ab-mtx .satir > * { align-self: center; }
-.ab-mtx .satir > .hucre { align-self: stretch; }
+.ab-mtx .satir > .hucrekap { align-self: stretch; display: flex; min-width: 0; }
+.ab-mtx .satir > .hucrekap > .hucre { flex: 1 1 auto; width: 100%; }
 .ab-mtx .satir .kod { font-size: 11px; color: var(--i2); }
 .ab-mtx .satir .baslik { font-size: 12.5px; min-width: 0; overflow-wrap: anywhere; }
 .ab-mtx .satir .kapsam { font-size: 11px; color: var(--i3); text-align: right; }
@@ -2557,7 +2578,7 @@ details:not([open]) > *:not(summary) { display: none !important; }
   overflow-wrap: break-word;
 }
 .ab-mtx-acilan .acilan-zincir .alt {
-  display: block; margin-top: 2px; font-size: 10px; color: var(--i3);
+  display: block; margin-top: 2px; font-size: 11px; color: var(--i3);
 }
 
 .ab-mtx-acilan .acilan-form { display: grid; gap: 10px; margin-top: 14px; }
@@ -2610,7 +2631,7 @@ details:not([open]) > *:not(summary) { display: none !important; }
 .ab-dugme.bilesen { border-style: dashed; }
 .ab-dugme.bagli {
   margin-top: 14px; background: none; border: 0; padding: 0;
-  color: var(--aksan); text-transform: none; letter-spacing: .02em; font-size: 10.5px;
+  color: var(--aksan); text-transform: none; letter-spacing: .02em; font-size: 11px;
 }
 
 /* ═══ Ortak gramer — yoğunluk şeridi (tik dizisi, dolgu yok) ══════════ */
@@ -2705,6 +2726,16 @@ details:not([open]) > *:not(summary) { display: none !important; }
 .ab-yardim-baglam { color: var(--i3); font-size: var(--t-code-lg); }
 /* /yardim ekranı: bölümler /sistem ile aynı ritimde. Kök `<div>`; main
    kabuktadır. Tablo kendi kabında yatay kayar, sayfa kaymaz. */
+/* İçindekiler (A8): yatay çapa şeridi; başlıklar `scroll-margin-top`
+   ile yapışkan üst çubuğun altına gelir, ilk satırı gizlenmez. */
+.ab-icindekiler { margin: 22px 0 0; padding: 12px 0; border-top: 1px solid var(--hr); border-bottom: 1px solid var(--hr); display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 22px; }
+.ab-icindekiler .etiket { margin: 0; }
+.ab-icindekiler ol { display: flex; flex-wrap: wrap; gap: 6px 22px; margin: 0; padding: 0; list-style: none; counter-reset: icindekiler; }
+.ab-icindekiler li { counter-increment: icindekiler; font-size: 12.5px; }
+.ab-icindekiler li::before { content: counter(icindekiler, decimal-leading-zero) ' '; font-family: var(--veri); font-size: var(--t-label); color: var(--i3); }
+.ab-icindekiler a { color: var(--i2); text-decoration: none; padding: 4px 0; display: inline-block; min-height: 24px; }
+.ab-icindekiler a:hover { color: var(--aksan); }
+.ab-yardim-ekran .bolum > h2[id] { scroll-margin-top: 112px; }
 .ab-yardim-ekran .bolum { margin-top: 44px; }
 .ab-yardim-ekran .bolum > .ab-dip { margin: 6px 0 18px; }
 .ab-yardim-ekran .ab-yardim-liste { border: 1px solid var(--hr); }
@@ -2777,7 +2808,7 @@ details:not([open]) > *:not(summary) { display: none !important; }
 .ab-sistem .zemin .ornek {
   display: block; width: 132px; height: 46px; border: 1px solid var(--hr2);
 }
-.ab-sistem .zemin .ad { font-size: 10px; }
+.ab-sistem .zemin .ad { font-size: 11px; }
 .ab-sistem .zemin .deger { font-size: var(--t-label); color: var(--i3); }
 
 .ab-sistem-tablo { width: 100%; border-collapse: collapse; font-size: 12px; }
@@ -2796,8 +2827,8 @@ details:not([open]) > *:not(summary) { display: none !important; }
 .ab-sistem .olcek { display: grid; gap: 8px; }
 .ab-sistem .olcek > div { display: flex; align-items: center; gap: 14px; }
 .ab-sistem .olcek .cubuk { display: block; height: 10px; background: var(--aksan); flex: none; }
-.ab-sistem .olcek .ad { font-size: 10px; width: 54px; }
-.ab-sistem .olcek .deger { font-size: 10px; color: var(--i3); }
+.ab-sistem .olcek .ad { font-size: 11px; width: 54px; }
+.ab-sistem .olcek .deger { font-size: 11px; color: var(--i3); }
 
 /* ═══ Hareket — reduced-motion sözleşmesi ═════════════════════════════
    Prototiplerde hareket KOŞULSUZDU (`.scan`, `.ring`, `.fadein`).
@@ -2956,6 +2987,7 @@ details:not([open]) > *:not(summary) { display: none !important; }
      sarar — kesilmiş bir süreç adı okunmaz bir hücreden iyidir. */
   .ab-matris {
     grid-template-columns: minmax(0, 1.5fr) repeat(var(--kolon-sayisi), minmax(0, 1fr));
+    min-width: 0;
   }
   .ab-matris .bas > .kolonbas { min-width: 0; overflow-wrap: anywhere; }
   .ab-matris .satir > * { min-width: 0; }

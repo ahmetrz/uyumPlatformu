@@ -226,10 +226,10 @@ async function yokla(giris, url, envanter) {
     /* Aktif öğe TÜM belgede sayılır: hesap bağları (`/ayarlar`, `/yardim`,
        `/bildirimler`) gezinmenin dışında durur ama `aria-current="page"`
        taşır; "tek geçerli sayfa" sözleşmesi belgeye aittir, çubuğa değil. */
-    /* Yol çubuğunun (ekmek kırıntısı, `.yol`) son öğesi de `aria-current="page"`
-       taşır — WAI-ARIA'nın kendi kalıbı, ayrı bir "küme": gezinme "hangi
-       bölüm", yol "bu bölümde hangi kayıt" der. O yüzden sayıma girmez;
-       tek-sayfa sözleşmesi gezinme + hesap bağları belgesine aittir. */
+    /* Yol çubuğunun (ekmek kırıntısı, `.yol`) son öğesi `aria-current="location"`
+       taşır (Faz 3): gezinme "hangi bölüm", yol "bu bölümde hangi kayıt" der.
+       Belge genelinde tek `aria-current="page"` sözleşmesi böylece bozulmaz;
+       `.yol` süzgeci geriye dönük güvence olarak kalır. */
     const aktifler = [...document.querySelectorAll('[aria-current="page"]')]
       .filter((e) => !e.closest('.yol'));
     const aktif = aktifler[0] ?? null;

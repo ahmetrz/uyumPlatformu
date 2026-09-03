@@ -21,7 +21,7 @@ import {
 /* O15 · Identity & Access Review — "kimin fazla yetkisi var?"
 
    Kütük `VeriTablosu` çekirdeğinde: önek grubu ve açık grubun üye
-   hesapları TEK düz listeye indirilir; grup satırı aria-expanded taşır,
+   hesapları TEK düz listeye indirilir; grup satırı data-acik taşır,
    üye satırı kimlik hücresinde girintilidir. Zebra yok, satır içi eylem
    yok, sarmalayıcı kart yok.
 
@@ -114,7 +114,7 @@ export default function KimlikIstemci({ hesaplar, tesisler, kaynaklar, kapsamli 
   const toplananHesap = kuyrukAcik ? 0 : sakin.reduce((a, s) => a + s.hesaplar.length, 0);
 
   /* Grup + açık grubun üyeleri tek düz listeye iner (tablo çekirdeği düz
-     satır bekler; girinti ve aria-expanded satır verisinden türetilir). */
+     satır bekler; girinti ve data-acik satır verisinden türetilir). */
   const duzSatirlar: DuzSatir[] = gosterilen.flatMap((s) => {
     const acik = s.tur === 'grup' && acikGruplar.includes(s.onek);
     return [

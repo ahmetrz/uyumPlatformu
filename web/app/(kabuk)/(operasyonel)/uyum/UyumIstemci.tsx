@@ -446,57 +446,65 @@ function UyumMatrisi({ cerceve, satirlar, santraller, acik, setAcik, yazabilir }
     <div
       ref={kap}
       className={`ab-mtx${tasar ? ' kayar' : ''}`}
+      role="table"
+      aria-label={`${cerceve.gorunenAd} uyum matrisi: kontrol × santral`}
+      aria-rowcount={satirlar.length + 2}
       style={{ ['--mtx-kolon' as string]: kolonlar }}
       onKeyDown={(e) => { if (e.key === 'Escape' && acik) { e.stopPropagation(); setAcik(null); } }}
     >
-      <div className="bas">
-        <span className="kolonbas">Kontrol</span>
-        <span className="kolonbas">Başlık</span>
+      <div className="bas" role="row">
+        <span className="kolonbas" role="columnheader">Kontrol</span>
+        <span className="kolonbas" role="columnheader">Başlık</span>
         {santraller.map((t) => (
-          <span key={t.id} className="santral" title={`${t.ad} · ${t.kod} · ${t.alt}`}>
+          <span key={t.id} className="santral" role="columnheader" title={`${t.ad} · ${t.kod} · ${t.alt}`}>
             <span className="ad">{t.ad}</span>
           </span>
         ))}
-        <span className="kolonbas" style={{ textAlign: 'right' }}>Kapsam</span>
+        <span className="kolonbas" role="columnheader" style={{ textAlign: 'right' }}>Kapsam</span>
       </div>
 
       {satirlar.map((s) => {
         const satirAcik = acik?.maddeId === s.maddeId;
         return (
           <div key={s.maddeId}>
-            <div className={`satir${satirAcik ? ' acik' : ''}`}>
-              <span className="mono kod">{s.kisaKod || s.kod}</span>
-              <span className="baslik">{s.baslik}</span>
+            <div className={`satir${satirAcik ? ' acik' : ''}`} role="row">
+              <span className="mono kod" role="rowheader">{s.kisaKod || s.kod}</span>
+              <span className="baslik" role="cell">{s.baslik}</span>
               {santraller.map((t) => {
                 const k = s.hucreler.get(t.id);
                 const g = glif(k);
                 const bu = satirAcik && acik?.tesisId === t.id;
                 return (
-                  <button
-                    key={t.id}
-                    type="button"
-                    className={`hucre${bu ? ' secili' : ''}`}
-                    aria-expanded={bu}
-                    aria-label={`${s.kisaKod || s.kod} · ${t.ad} · ${g.soz}`}
-                    onClick={() => setAcik(bu ? null : (k ? { maddeId: s.maddeId, tesisId: t.id } : null))}
-                    disabled={!k || k.im === null}
-                  >
-                    <span className={`ab-glif ${g.sinif}`} aria-hidden />
-                  </button>
+                  <span key={t.id} role="cell" className="hucrekap">
+                    <button
+                      type="button"
+                      className={`hucre${bu ? ' secili' : ''}`}
+                      aria-expanded={bu}
+                      aria-label={`${s.kisaKod || s.kod} · ${t.ad} · ${g.soz}`}
+                      onClick={() => setAcik(bu ? null : (k ? { maddeId: s.maddeId, tesisId: t.id } : null))}
+                      disabled={!k || k.im === null}
+                    >
+                      <span className={`ab-glif ${g.sinif}`} aria-hidden />
+                    </button>
+                  </span>
                 );
               })}
-              <span className="mono kapsam">{s.kapsamda} / {santraller.length}</span>
+              <span className="mono kapsam" role="cell">{s.kapsamda} / {santraller.length}</span>
             </div>
 
             {satirAcik && acik && (
-              <Gerekce
-                cerceve={cerceve}
-                satir={s}
-                tesis={santraller.find((t) => t.id === acik.tesisId)!}
-                kontrol={s.hucreler.get(acik.tesisId)!}
-                kapat={() => setAcik(null)}
-                yazabilir={yazabilir}
-              />
+              <div role="row">
+                <div role="cell" aria-colspan={santraller.length + 3}>
+                  <Gerekce
+                    cerceve={cerceve}
+                    satir={s}
+                    tesis={santraller.find((t) => t.id === acik.tesisId)!}
+                    kontrol={s.hucreler.get(acik.tesisId)!}
+                    kapat={() => setAcik(null)}
+                    yazabilir={yazabilir}
+                  />
+                </div>
+              </div>
             )}
           </div>
         );
@@ -506,21 +514,21 @@ function UyumMatrisi({ cerceve, satirlar, santraller, acik, setAcik, yazabilir }
       {/* Sütun özeti — prototipteki gibi matrisin ALTINDA, kalın kuralla.
           Ölçülmemiş sütun "—" gösterir: 0 uyum ile hiç değerlendirilmemiş
           aynı şey değildir (UNKNOWN ≠ ZERO). */}
-      <div className="satir endeks">
-        <span className="etiket">Endeks</span>
-        <span style={{ fontSize: 11.5, color: 'var(--i3)' }}>
+      <div className="satir endeks" role="row">
+        <span className="etiket" role="rowheader">Endeks</span>
+        <span role="cell" style={{ fontSize: 11.5, color: 'var(--i3)' }}>
           Santral bazında ağırlıklı uyum
         </span>
         {santraller.map((t) => {
           const e = santralEndeksi(satirlar, t.id);
           return (
-            <span key={t.id} className="mono num deger"
+            <span key={t.id} className="mono num deger" role="cell"
               style={e === null ? { color: 'var(--i3)' } : undefined}>
               {e === null ? '—' : `%${e}`}
             </span>
           );
         })}
-        <span className="mono num" style={{ textAlign: 'right', fontSize: 12 }}>
+        <span className="mono num" role="cell" style={{ textAlign: 'right', fontSize: 12 }}>
           {genel === null ? '—' : `%${genel}`}
         </span>
       </div>

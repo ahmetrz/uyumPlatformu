@@ -1,5 +1,6 @@
 'use client';
 import type { ReactNode } from 'react';
+import Link from 'next/link';
 import { Metrikler, type Metrik, type Durum } from './temel';
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -110,6 +111,36 @@ export function Asamalar({ asamalar, aktifIndeks }: {
         </li>
       ))}
     </ol>
+  );
+}
+
+/* ── Tezgâh hattı (A7 ortak gramer) ──────────────────────────────────
+   Her tezgâh ekranı (keşif, içe aktarım, varlık aktarımı, yönetim,
+   operasyon) aynı üç bölgeyle okunur: AŞAMA şeridi → çalışma alanı →
+   sonuç/doğrulama. Bu bileşen ilk bölgeyi kurar: hangi aşamadayız,
+   reddedilen/ölü-mektup kuyruğu nerede. Aşama listesi veriden gelir;
+   aktif adım sekme değil, hattın durduğu yerdir. */
+export function TezgahHatti({ asamalar, aktifIndeks, not, reddedilenler = true }: {
+  asamalar: { ad: string; tarih?: string }[];
+  aktifIndeks: number;
+  /** hattın tek cümlelik açıklaması (ne girer, ne çıkar) */
+  not?: string;
+  /** reddedilen/ölü-mektup kuyruğu bağlantısı gösterilsin mi */
+  reddedilenler?: boolean;
+}) {
+  return (
+    <nav className="ab-tezgah-hat" aria-label="İş hattı aşamaları">
+      <Asamalar asamalar={asamalar} aktifIndeks={aktifIndeks} />
+      {(not || reddedilenler) && (
+        <p className="ab-dip hat-not">
+          {not}
+          {not && reddedilenler && ' · '}
+          {reddedilenler && (
+            <Link href="/saglik/reddedilenler">Reddedilen kayıtlar (ölü mektup) →</Link>
+          )}
+        </p>
+      )}
+    </nav>
   );
 }
 

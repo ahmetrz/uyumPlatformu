@@ -1,10 +1,20 @@
 'use client';
 
-/* Dışa aktarım yardımcıları: her veri ekranı Excel (.xlsx) ve PDF verebilir.
-   xlsx yalnızca tıklanınca dinamik yüklenir; PDF, baskı düzeniyle üretilir
-   (raporlar için özel @media print stilleri globals.css'te). */
+/* Dışa aktarım yardımcıları: her veri ekranı Excel (.xlsx), CSV ve PDF
+   verebilir.
 
-type Hucre = string | number | null | undefined;
+   Üçünün de girdisi AYNI `Sayfa` yapısıdır. Sebep: bir ekranın Excel'i ile
+   CSV'si farklı sütun kümesi taşırsa, iki dosyayı karşılaştıran kişi
+   ürünün yalan söylediğini düşünür. Sütunlar tek yerde tanımlanır ve üç
+   biçim de aynı diziyi okur.
+
+   xlsx kitaplığı yalnız tıklanınca yüklenir; CSV üretimi için kitaplık
+   YOKTUR — biçim `lib/disaAktarim/csv.ts` içinde saf kodla üretilir ve
+   test edilir. PDF baskı düzeniyle üretilir. */
+
+import { csvMetni, damgaliAd, guvenliDosyaAdi, type CsvAyraci, type Hucre }
+  from '@/lib/disaAktarim/csv';
+
 export type Sayfa = { ad: string; satirlar: Hucre[][] };
 
 export async function exceleAktar(dosyaAdi: string, sayfalar: Sayfa[]) {
@@ -21,6 +31,34 @@ export async function exceleAktar(dosyaAdi: string, sayfalar: Sayfa[]) {
   XLSX.writeFile(kitap, dosyaAdi.endsWith('.xlsx') ? dosyaAdi : `${dosyaAdi}.xlsx`);
 }
 
+/**
+ * Tek sayfayı CSV olarak indirir.
+ *
+ * CSV bir kitap değil bir TABLODUR: çok sayfalı dışa aktarımda hangi
+ * sayfanın indirileceği çağıran tarafından seçilir. Sessizce ilkini almak
+ * ya da hepsini alt alta yapıştırmak, dosyayı okuyan aracı yanıltırdı.
+ *
+ * `URL.revokeObjectURL` çağrısı şart: indirme başladıktan sonra bırakılan
+ * her nesne URL'i sekme kapanana kadar bellekte kalır.
+ */
+export function csvAktar(dosyaAdi: string, sayfa: Sayfa, ayrac: CsvAyraci = ';') {
+  const metin = csvMetni(sayfa.satirlar, { ayrac });
+  /* `text/csv` yerine `application/octet-stream` DEĞİL: tarayıcı doğru
+     tipi bilirse kullanıcıya doğru uygulamayı önerir. Karakter kümesi
+     başlıkta da yazılır; BOM'un yanında ikinci bir güvence. */
+  const yigin = new Blob([metin], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(yigin);
+  const bag = document.createElement('a');
+  bag.href = url;
+  bag.download = guvenliDosyaAdi(dosyaAdi, 'csv');
+  document.body.appendChild(bag);
+  bag.click();
+  bag.remove();
+  URL.revokeObjectURL(url);
+}
+
 export function pdfYazdir() {
   window.print();
 }
+
+export { damgaliAd };

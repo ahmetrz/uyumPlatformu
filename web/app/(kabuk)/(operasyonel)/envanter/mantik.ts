@@ -1,4 +1,5 @@
 import type { Durum } from '@/components/kabuk/temel';
+import { etiketle, tarihTR } from '@/lib/sabitler';
 
 /* O10/O11 · Varlık zekâsı — sunucu ve istemcinin PAYLAŞTIĞI tipler ve saf
    hesaplar. Burada veritabanı, React ve server-only bağımlılığı YOKTUR.
@@ -844,4 +845,78 @@ export function varsayilanTesis(varliklar: V[], tesisler: Kodlu[]): Kodlu | null
   const sirali = [...tesisler].sort((a, b) =>
     (sayac.get(b.id) ?? 0) - (sayac.get(a.id) ?? 0) || a.kod.localeCompare(b.kod, 'tr'));
   return sirali[0];
+}
+
+/* ── Dışa aktarım (OT-38) ─────────────────────────────────────────────
+   Sütun kümesi TEK YERDE tanımlıdır ve Excel ile CSV aynı diziyi okur.
+   İki biçim ayrı ayrı yazılsaydı zamanla ayrışır, iki dosyayı yan yana
+   koyan kişi ürünün yalan söylediğini düşünürdü.
+
+   Dışa aktarım ekrandaki SÜZÜLMÜŞ ve SIRALANMIŞ diziyi alır: kullanıcı
+   ne görüyorsa onu indirir. Kapsam kısıtı zaten sunucuda uygulanmıştır —
+   ekranda görünmeyen bir santral diziye hiç girmez.
+
+   Boş hücre BOŞ kalır. Ekranda "—" gösteren bir alan dosyada da tire
+   yazsaydı, o tireyi bir başka sistem "değer" sanırdı. */
+
+/** Dışa aktarımda tarih: ölçülmemiş alan boş kalır, "—" DEĞİL. */
+function disaTarih(d: string | null | undefined): string {
+  return d ? tarihTR(d) : '';
+}
+
+/** Dışa aktarımda etiket: bilinmeyen değer boş DEĞİL, kendi adıyla yazılır. */
+function disaEtiket(d: string | null | undefined): string {
+  return d ? etiketle(d) : '';
+}
+
+export const ENVANTER_DISA_BASLIKLARI = [
+  'Etiket', 'Ad', 'Tür', 'Sınıf',
+  'Santral', 'Ünite', 'Sistem/Servis', 'Ağ bölgesi',
+  'Segment', 'VLAN', 'Subnet',
+  'Üretici', 'Model', 'Seri no', 'IP', 'IPv6', 'MAC',
+  'İşletim sistemi', 'OS sürümü', 'Firmware',
+  'Kritiklik', 'Sahip', 'Ekip', 'Yaşam döngüsü',
+  'EOL', 'EOS', 'Garanti bitiş', 'Bakım bitiş', 'Destek bitiş',
+  'Yama durumu', 'Firmware durumu',
+  'EDR kapsaması', 'Log kaynağı', 'İzleme', 'Yedekleme',
+  'İnternet maruziyeti', 'Son görülme', 'Veri kaynağı',
+  'Koruma açığı', 'Bilinmeyen alanlar', 'İşaret',
+] as const;
+
+/**
+ * Bir varlığın dışa aktarım satırı.
+ *
+ * `Veri kaynağı` alanı bilinçli olarak "elle" ile bir kaynak sistemin adı
+ * arasında ayrım yapar: bir denetçinin ilk sorusu "bu sayı nereden geldi"
+ * olur ve dosyanın kendisi bunu söyleyebilmelidir.
+ */
+export function envanterDisaSatiri(v: V, simdi: number): (string | number)[] {
+  const seg = v.durus.segment;
+  return [
+    v.etiket, v.ad, v.tur.ad, disaEtiket(v.tur.sinif),
+    v.tesis?.kod ?? '', v.unite?.kod ?? '', v.sistem?.kod ?? '', v.bolge?.kod ?? '',
+    seg?.kod ?? '', seg?.vlanId ?? '', seg?.cidr ?? '',
+    v.uretici ?? '', v.model ?? '', v.seriNo ?? '',
+    v.ipAdresi ?? '', v.ipv6Adresi ?? '', v.macAdresi ?? '',
+    v.isletimSistemi ?? '', v.isletimSistemiSurumu ?? '', v.firmware ?? '',
+    disaEtiket(v.kritiklik), v.sahip?.ad ?? '', v.yonetisim.ekip?.ad ?? '',
+    YASAM_ETIKET[v.yasamDongusu] ?? disaEtiket(v.yasamDongusu),
+    disaTarih(v.eolTarihi), disaTarih(v.eosTarihi),
+    disaTarih(v.garantiBitis), disaTarih(v.bakimBitis), disaTarih(v.destekBitis),
+    disaEtiket(v.yamaDurumu), disaEtiket(v.durus.firmware?.durum ?? null),
+    disaEtiket(v.edrDurumu), disaEtiket(v.logKaynagi),
+    disaEtiket(v.izlemeDurumu), disaEtiket(v.yedekDurumu),
+    disaEtiket(v.internetMaruziyeti),
+    v.sonKesif ? tarihTR(v.sonKesif.sonGorulme) : '',
+    v.sonKesif?.kaynak ?? 'elle',
+    korumaAcigi(v).join(', '), bilinmeyenAlanlar(v).join(', '),
+    varlikDurumu(v, simdi),
+  ];
+}
+
+/** Başlık satırı + veri satırları — Excel ve CSV bunu paylaşır. */
+export function envanterDisaAktarimi(
+  varliklar: readonly V[], simdi: number,
+): (string | number)[][] {
+  return [[...ENVANTER_DISA_BASLIKLARI], ...varliklar.map((v) => envanterDisaSatiri(v, simdi))];
 }

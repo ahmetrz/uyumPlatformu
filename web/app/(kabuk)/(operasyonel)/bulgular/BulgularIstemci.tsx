@@ -8,7 +8,8 @@ import { EkranBasligi, Filtreler } from '@/components/kabuk/ekran';
 import {
   Cekmece, CekmeceKimlik, CekmeceAlanlar, CekmeceBagli, CekmeceEylemler,
 } from '@/components/kabuk/panel';
-import { exceleAktar, pdfYazdir } from '@/components/disaAktar';
+import { csvAktar, damgaliAd, exceleAktar, pdfYazdir } from '@/components/disaAktar';
+import { an } from '@/lib/an';
 import {
   ONEM_DERECELERI, ONEM_ETIKET, AKSIYON_ETIKET, BULGU_DURUM_ETIKET,
   etiketle, eylemCumlesi, tarihTR, zamanTR, type Onem,
@@ -414,6 +415,18 @@ function DisaAktar({ satirlar }: { satirlar: (string | number)[][] }) {
     is();
   };
 
+  /* Excel ve CSV AYNI diziyi okur: iki biçim ayrı yazılsaydı zamanla
+     ayrışır ve iki dosyayı karşılaştıran kişi hangisine inanacağını
+     bilemezdi. */
+  const sayfa = () => ({
+            ad: 'Bulgular',
+            satirlar: [
+              ['Bulgu', 'Madde', 'Tesis', 'Süreç', 'Önem', 'Durum', 'Aksiyon',
+                'Sahip', 'Son tarih', 'Gecikme (gün)', 'Doğrulama'],
+              ...satirlar,
+            ],
+          });
+
   return (
     <details ref={kok} className="ab-baskida-gizle" style={{ position: 'relative' }}>
       <summary className="ab-dugme"
@@ -427,15 +440,13 @@ function DisaAktar({ satirlar }: { satirlar: (string | number)[][] }) {
       }}>
         <button type="button" className="ab-filtre"
           style={{ display: 'block', width: '100%', textAlign: 'left' }}
-          onClick={(e) => kapatVe(e, () => exceleAktar('bulgular', [{
-            ad: 'Bulgular',
-            satirlar: [
-              ['Bulgu', 'Madde', 'Tesis', 'Süreç', 'Önem', 'Durum', 'Aksiyon',
-                'Sahip', 'Son tarih', 'Gecikme (gün)', 'Doğrulama'],
-              ...satirlar,
-            ],
-          }]))}>
+          onClick={(e) => kapatVe(e, () => exceleAktar(damgaliAd('bulgular', an(), 'xlsx'), [sayfa()]))}>
           Excel
+        </button>
+        <button type="button" className="ab-filtre"
+          style={{ display: 'block', width: '100%', textAlign: 'left' }}
+          onClick={(e) => kapatVe(e, () => csvAktar(damgaliAd('bulgular', an(), 'csv'), sayfa()))}>
+          CSV
         </button>
         <button type="button" className="ab-filtre"
           style={{ display: 'block', width: '100%', textAlign: 'left' }}

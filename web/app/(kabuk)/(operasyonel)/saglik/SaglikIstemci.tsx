@@ -6,7 +6,8 @@ import { BosIlk, Im, TikSeridi, Yetkisiz } from '@/components/kabuk/temel';
 import { Tablo, type Kolon, type Satir } from '@/components/kabuk/tablo';
 import { EkranBasligi, KipDegistir } from '@/components/kabuk/ekran';
 import { Cekmece } from '@/components/kabuk/panel';
-import { exceleAktar, pdfYazdir } from '@/components/disaAktar';
+import { csvAktar, damgaliAd, exceleAktar, pdfYazdir, type Sayfa } from '@/components/disaAktar';
+import { an } from '@/lib/an';
 import { etiketle, tarihTR, zamanTR } from '@/lib/sabitler';
 import type { ConnectorSagligi, EntegrasyonOzeti } from '@/lib/entegrasyon/saglikOzeti';
 import {
@@ -700,13 +701,15 @@ function DisaAktar({ motorlar, kalite, entegrasyon }: {
     is();
   };
 
-  function aktar() {
+  /* Kitap birden çok sayfa taşır; CSV bir TABLODUR. Sayfaları tek dosyaya
+     yapıştırmak yerine CSV menüsü sayfayı ADIYLA sunar. */
+  const sayfalar = (): Sayfa[] => {
     // Koşu satırları motor kaydından türetilir: hiçbir motor listeden düşmez.
     const kosular = motorlar
       .flatMap((mo) => mo.kosular.map((k) => ({ mo, k })))
       .sort((a, b) => b.k.baslangic.localeCompare(a.k.baslangic));
 
-    exceleAktar('platform-sagligi', [
+    return [
       { ad: 'Motor koşuları', satirlar: [
         ['Motor', 'İş adı', 'Durum', 'Başlangıç', 'Süre', 'İşlenen', 'Üretilen', 'Hata'],
         ...kosular.map(({ mo, k }) => [
@@ -740,8 +743,8 @@ function DisaAktar({ motorlar, kalite, entegrasyon }: {
           c.sonKosu?.ayrinti ?? c.kimlikGerekce, c.sirMaskeli,
         ]),
       ] }] : []),
-    ]);
-  }
+    ];
+  };
 
   return (
     <details ref={kok} className="ab-baskida-gizle" style={{ position: 'relative' }}>
@@ -756,9 +759,18 @@ function DisaAktar({ motorlar, kalite, entegrasyon }: {
       }}>
         <button type="button" className="ab-filtre"
           style={{ display: 'block', width: '100%', textAlign: 'left' }}
-          onClick={(e) => kapatVe(e, aktar)}>
+          onClick={(e) => kapatVe(e, () =>
+            exceleAktar(damgaliAd('platform-sagligi', an(), 'xlsx'), sayfalar()))}>
           Excel
         </button>
+        {sayfalar().map((sf) => (
+          <button key={sf.ad} type="button" className="ab-filtre"
+            style={{ display: 'block', width: '100%', textAlign: 'left' }}
+            onClick={(e) => kapatVe(e, () =>
+              csvAktar(damgaliAd(`platform-sagligi-${sf.ad}`, an(), 'csv'), sf))}>
+            CSV · {sf.ad}
+          </button>
+        ))}
         <button type="button" className="ab-filtre"
           style={{ display: 'block', width: '100%', textAlign: 'left' }}
           onClick={(e) => kapatVe(e, pdfYazdir)}>

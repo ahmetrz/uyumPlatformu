@@ -8,7 +8,8 @@ import { EkranBasligi, KipDegistir } from '@/components/kabuk/ekran';
 import {
   Cekmece, CekmeceKimlik, CekmeceAlanlar, CekmeceBagli, CekmeceEylemler,
 } from '@/components/kabuk/panel';
-import { exceleAktar, pdfYazdir } from '@/components/disaAktar';
+import { csvAktar, damgaliAd, exceleAktar, pdfYazdir, type Sayfa } from '@/components/disaAktar';
+import { an } from '@/lib/an';
 import { DURUM_ETIKET, KANIT_ESIK_VARSAYILAN, ONEM_ETIKET, etiketle, type KanitEsik } from '@/lib/sabitler';
 import {
   ALT_ESIK, HEDEF_ESIK, baglantisizKanit, hucreDurumu, hucreIpucu, hucreSozu,
@@ -394,8 +395,10 @@ function DisaAktar({ surecler, santraller, bulgular, kanitlar }: {
     is();
   };
 
-  function excel() {
-    exceleAktar('uyum-raporu', [
+  /* Bir Excel kitabı üç sayfa taşır; CSV bir TABLODUR ve üç sayfayı tek
+     dosyaya yapıştırmak dosyayı okuyan aracı yanıltırdı. Bu yüzden CSV
+     menüsü sayfayı ADIYLA sunar ve kullanıcı hangisini indirdiğini bilir. */
+  const sayfalar = (): Sayfa[] => [
       {
         ad: 'Uyum matrisi',
         satirlar: [
@@ -424,8 +427,7 @@ function DisaAktar({ surecler, santraller, bulgular, kanitlar }: {
           ...kanitlar.map((k) => [k.ad, etiketle(k.tip), k.gun, k.baglanti]),
         ],
       },
-    ]);
-  }
+  ];
 
   return (
     <details ref={kok} className="ab-baskida-gizle" style={{ position: 'relative' }}>
@@ -440,9 +442,18 @@ function DisaAktar({ surecler, santraller, bulgular, kanitlar }: {
       }}>
         <button type="button" className="ab-filtre"
           style={{ display: 'block', width: '100%', textAlign: 'left' }}
-          onClick={(e) => kapatVe(e, excel)}>
-          Excel
+          onClick={(e) => kapatVe(e, () =>
+            exceleAktar(damgaliAd('uyum-raporu', an(), 'xlsx'), sayfalar()))}>
+          Excel (3 sayfa)
         </button>
+        {sayfalar().map((sf) => (
+          <button key={sf.ad} type="button" className="ab-filtre"
+            style={{ display: 'block', width: '100%', textAlign: 'left' }}
+            onClick={(e) => kapatVe(e, () =>
+              csvAktar(damgaliAd(`uyum-raporu-${sf.ad}`, an(), 'csv'), sf))}>
+            CSV · {sf.ad}
+          </button>
+        ))}
         <button type="button" className="ab-filtre"
           style={{ display: 'block', width: '100%', textAlign: 'left' }}
           onClick={(e) => kapatVe(e, pdfYazdir)}>

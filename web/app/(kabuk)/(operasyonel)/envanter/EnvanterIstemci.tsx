@@ -2,7 +2,7 @@
 import { useMemo, useState } from 'react';
 import { useUrlDurumu, useUrlDurumuBos } from '@/components/kabuk/urlDurumu';
 import Link from 'next/link';
-import { exceleAktar, pdfYazdir } from '@/components/disaAktar';
+import { csvAktar, damgaliAd, exceleAktar, pdfYazdir } from '@/components/disaAktar';
 import { VARLIK_SINIF_ETIKET, etiketle, tarihTR, zamanTR } from '@/lib/sabitler';
 import { IliskiEditoru, VarlikFormu, YasamFormu } from './Formlar';
 import { DurusPaneli } from './Durus';
@@ -10,7 +10,7 @@ import { YonetisimPaneli } from './Yonetisim';
 import { VeriTablosu, type VtKolon, type VtSira } from '@/components/kabuk/tablo';
 import {
   ILISKI_CUMLE, KRITIKLIKLER, MERCEKLER, MERCEK_TASMA, YASAM_ETIKET,
-  ayYil, bilinmeyenAlanlar, bolumle, karariBloklayanBilinmeyen,
+  ayYil, bilinmeyenAlanlar, bolumle, envanterDisaAktarimi, karariBloklayanBilinmeyen,
   korumaAcigi, kullanimda, kuyrukMetni, metrikleriHesapla, olgu, omurGunu,
   sirala, suz, varlikDurumu,
   type Bolge, type Kisi, type Kodlu, type Mercek, type Segment, type Tur,
@@ -740,34 +740,29 @@ function Sec({ etiket, secenekler, aktif, sec }: {
 }
 
 /* ── Dışa aktarım ───────────────────────────────────────────────────
-   Sütun kümesi ve `exceleAktar` sözleşmesi DEĞİŞMEDİ; yalnız açılır
-   menü yerine iki düğme, A yüzeyinin gramerinde. */
+   Üç düğme, tek veri kümesi. Satırlar `envanterDisaAktarimi` ile
+   üretilir: Excel ve CSV AYNI diziyi okur, bir biçim diğerinden fazla
+   ya da eksik sütun taşıyamaz.
+
+   Dizi ekrandaki süzülmüş ve sıralanmış listedir — kullanıcı ne
+   görüyorsa onu indirir. Santral kapsamı zaten sunucuda uygulanmıştır;
+   ekranda görünmeyen bir santral bu diziye hiç girmez. */
 function DisaAktar({ varliklar, simdi }: { varliklar: V[]; simdi: number }) {
-  const satirlar = () => varliklar.map((v) => [
-    v.etiket, v.ad, v.tur.ad, etiketle(v.tur.sinif),
-    v.tesis?.kod ?? '', v.bolge?.kod ?? '', v.sistem?.kod ?? '',
-    etiketle(v.kritiklik), v.isletimSistemi ?? '',
-    v.eosTarihi ? tarihTR(v.eosTarihi) : '',
-    etiketle(v.yamaDurumu), etiketle(v.edrDurumu), etiketle(v.yedekDurumu),
-    etiketle(v.izlemeDurumu), etiketle(v.logKaynagi), etiketle(v.internetMaruziyeti),
-    YASAM_ETIKET[v.yasamDongusu] ?? etiketle(v.yasamDongusu),
-    v.sahip?.ad ?? '', korumaAcigi(v).join(', '), bilinmeyenAlanlar(v).join(', '),
-    varlikDurumu(v, simdi),
-  ]);
+  const sayfa = () => ({
+    ad: 'Envanter',
+    satirlar: envanterDisaAktarimi(varliklar, simdi),
+  });
 
   return (
     <span className="ab-a-disa ab-baskida-gizle">
       <button type="button" className="ab-dugme"
-        onClick={() => exceleAktar('envanter', [{
-          ad: 'Envanter',
-          satirlar: [
-            ['Etiket', 'Ad', 'Tür', 'Sınıf', 'Santral', 'Ağ bölgesi', 'Sistem',
-              'Kritiklik', 'İşletim sistemi', 'EOS', 'Yama', 'EDR', 'Yedek',
-              'İzleme', 'Log', 'İnternet maruziyeti', 'Yaşam döngüsü', 'Sahip',
-              'Koruma açığı', 'Bilinmeyen alanlar', 'İşaret'],
-            ...satirlar(),
-          ],
-        }])}>Excel</button>
+        onClick={() => exceleAktar(damgaliAd('envanter', simdi, 'xlsx'), [sayfa()])}>
+        Excel
+      </button>
+      <button type="button" className="ab-dugme"
+        onClick={() => csvAktar(damgaliAd('envanter', simdi, 'csv'), sayfa())}>
+        CSV
+      </button>
       <button type="button" className="ab-dugme" onClick={() => pdfYazdir()}>Yazdır</button>
     </span>
   );

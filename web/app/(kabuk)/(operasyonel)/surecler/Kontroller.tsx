@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useRef } from 'react';
-import { exceleAktar, pdfYazdir } from '@/components/disaAktar';
+import { csvAktar, damgaliAd, exceleAktar, pdfYazdir } from '@/components/disaAktar';
+import { an } from '@/lib/an';
 
 /* Filtre şeridinin sağ ucundaki kapsam kontrolleri — kutu yok, kenarlık yok:
    arama tek satır alt çizgili girdi, açılır listeler 9.5px mono
@@ -99,6 +100,9 @@ export function DisaAktar({ dosya, sayfaAdi, basliklar, satirlar }: {
     is();
   };
 
+  /* Excel ve CSV AYNI diziyi okur. */
+  const sayfa = () => ({ ad: sayfaAdi, satirlar: [basliklar, ...satirlar] });
+
   return (
     <details ref={kok} className="ab-baskida-gizle" style={{ position: 'relative' }}>
       <summary className="ab-dugme"
@@ -112,10 +116,13 @@ export function DisaAktar({ dosya, sayfaAdi, basliklar, satirlar }: {
       }}>
         <button type="button" className="ab-filtre"
           style={{ display: 'block', width: '100%', textAlign: 'left' }}
-          onClick={(e) => kapatVe(e, () => exceleAktar(dosya, [{
-            ad: sayfaAdi, satirlar: [basliklar, ...satirlar],
-          }]))}>
+          onClick={(e) => kapatVe(e, () => exceleAktar(damgaliAd(dosya, an(), 'xlsx'), [sayfa()]))}>
           Excel
+        </button>
+        <button type="button" className="ab-filtre"
+          style={{ display: 'block', width: '100%', textAlign: 'left' }}
+          onClick={(e) => kapatVe(e, () => csvAktar(damgaliAd(dosya, an(), 'csv'), sayfa()))}>
+          CSV
         </button>
         <button type="button" className="ab-filtre"
           style={{ display: 'block', width: '100%', textAlign: 'left' }}

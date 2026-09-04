@@ -6,7 +6,8 @@ import { Dugme, BosIlk, BosFiltre } from '@/components/kabuk/temel';
 import { EkranBasligi, Filtreler } from '@/components/kabuk/ekran';
 import { VeriTablosu, type VtKolon } from '@/components/kabuk/tablo';
 import { Cekmece, CekmeceAlanlar, CekmeceEylemler } from '@/components/kabuk/panel';
-import { exceleAktar, pdfYazdir } from '@/components/disaAktar';
+import { csvAktar, damgaliAd, exceleAktar, pdfYazdir } from '@/components/disaAktar';
+import { an } from '@/lib/an';
 import { etiketle, eylemCumlesi, tarihTR, zamanTR } from '@/lib/sabitler';
 import {
   MERCEKLER, aktorMetni, ayniKayit, degisimMetni, kaynakEtiketi, kisaZaman,
@@ -374,6 +375,21 @@ function DisaAktar({ kayitlar }: { kayitlar: Kayit[] }) {
     is();
   };
 
+  /* Excel ve CSV AYNI diziyi okur: iki biçim ayrı yazılsaydı zamanla
+     ayrışır ve iki dosyayı karşılaştıran kişi hangisine inanacağını
+     bilemezdi. */
+  const sayfa = () => ({
+            ad: 'Denetim izi',
+            satirlar: [
+              ['Zaman', 'Aktör', 'Varlık', 'Eylem', 'Alan', 'Önceki', 'Yeni', 'Dosya', 'Kaynak'],
+              ...kayitlar.map((k) => [
+                zamanTR(k.zaman), aktorMetni(k), etiketle(k.varlikTipi), etiketle(k.eylem),
+                k.alan ? etiketle(k.alan) : '', etiketle(k.once, ''), etiketle(k.sonra, ''),
+                k.dosya ?? '', kaynakEtiketi(k.kaynak),
+              ]),
+            ],
+          });
+
   return (
     <details ref={kok} className="ab-baskida-gizle" style={{ position: 'relative' }}>
       <summary className="ab-dugme"
@@ -387,18 +403,13 @@ function DisaAktar({ kayitlar }: { kayitlar: Kayit[] }) {
       }}>
         <button type="button" className="ab-filtre"
           style={{ display: 'block', width: '100%', textAlign: 'left' }}
-          onClick={(e) => kapatVe(e, () => exceleAktar('denetim-izi', [{
-            ad: 'Denetim izi',
-            satirlar: [
-              ['Zaman', 'Aktör', 'Varlık', 'Eylem', 'Alan', 'Önceki', 'Yeni', 'Dosya', 'Kaynak'],
-              ...kayitlar.map((k) => [
-                zamanTR(k.zaman), aktorMetni(k), etiketle(k.varlikTipi), etiketle(k.eylem),
-                k.alan ? etiketle(k.alan) : '', etiketle(k.once, ''), etiketle(k.sonra, ''),
-                k.dosya ?? '', kaynakEtiketi(k.kaynak),
-              ]),
-            ],
-          }]))}>
+          onClick={(e) => kapatVe(e, () => exceleAktar(damgaliAd('denetim-izi', an(), 'xlsx'), [sayfa()]))}>
           Excel
+        </button>
+        <button type="button" className="ab-filtre"
+          style={{ display: 'block', width: '100%', textAlign: 'left' }}
+          onClick={(e) => kapatVe(e, () => csvAktar(damgaliAd('denetim-izi', an(), 'csv'), sayfa()))}>
+          CSV
         </button>
         <button type="button" className="ab-filtre"
           style={{ display: 'block', width: '100%', textAlign: 'left' }}

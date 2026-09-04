@@ -4,6 +4,7 @@ import { izinVar } from '@/lib/erisim';
 import type { AktifKullanici } from '@/lib/auth';
 import { tumAyarlar } from '@/lib/yapilandirma/oku';
 import { GORSEL_ANAHTARLARI } from '@/lib/gorsel';
+import { HEDEF_SOZU, matrisKusurlari } from '@/lib/uyum/eskalasyon';
 import {
   KONSOL_VARLIK_TIPLERI, type KonsolKayit, type KonsolVerisi, type Talep, type TalepDurumu,
 } from './konsolOrtak';
@@ -16,7 +17,7 @@ const GECMIS_TAVANI = 300;
 
 export async function konsolVerisi(kullanici: AktifKullanici, simdi: number): Promise<KonsolVerisi> {
   const [ayarlar, talepler, gruplar, tuzelKisiler, uniteler, turler, bolgeler, kurallar, tesisler,
-    regulasyonlar, gecmis] = await Promise.all([
+    regulasyonlar, eskalasyonKurallari, gecmis] = await Promise.all([
     tumAyarlar(),
     db.degisiklikTalebi.findMany({ orderBy: { olusturuldu: 'desc' }, take: 200 }),
     db.grup.findMany({ include: { _count: { select: { tuzelKisiler: true } } }, orderBy: { kod: 'asc' } }),
@@ -32,6 +33,13 @@ export async function konsolVerisi(kullanici: AktifKullanici, simdi: number): Pr
     db.tesis.findMany({ select: { id: true, kod: true, ad: true, gorselAnahtari: true, durum: true },
       orderBy: { kod: 'asc' } }),
     db.regulasyon.findMany({ select: { id: true, kod: true, ad: true }, orderBy: { kod: 'asc' } }),
+    /* UY-36 · Eskalasyon kademeleri + her kademenin kaç kez tetiklendiği.
+       Tetiklenmiş kademe SİLİNMEZ, pasife alınır: kayıt bir eskalasyonun
+       gerçekten yapıldığının kanıtıdır. */
+    db.eskalasyonKurali.findMany({
+      include: { _count: { select: { kayitlar: true } } },
+      orderBy: [{ kaynakTipi: 'asc' }, { onemDerecesi: 'asc' }, { kademe: 'asc' }],
+    }),
     db.aktiviteKaydi.findMany({
       where: { varlikTipi: { in: [...KONSOL_VARLIK_TIPLERI] } },
       include: { aktor: { select: { adSoyad: true } } },
@@ -81,6 +89,42 @@ export async function konsolVerisi(kullanici: AktifKullanici, simdi: number): Pr
         degerler: { regulasyonId: k.regulasyonId, ad: k.ad, kosulJson: k.kosulJson, aciklama: k.aciklama ?? '', aktif: k.aktif },
       };
     }),
+    /* UY-36 · Matrisin kendi KUSURLARI da satırda görünür: üst kademenin
+       gecikmesi alt kademeden küçükse alt kademe hiç tetiklenmez ve
+       kimse fark etmez. `matrisKusurlari` bunu bulur. */
+    eskalasyonKurali: (() => {
+      const kusurlar = matrisKusurlari(eskalasyonKurallari.map((e) => ({
+        id: e.id, kaynakTipi: e.kaynakTipi, onemDerecesi: e.onemDerecesi,
+        kademe: e.kademe, gecikmeGun: e.gecikmeGun, hedefTuru: e.hedefTuru,
+        hedefDeger: e.hedefDeger, aktif: e.aktif,
+      })));
+      return eskalasyonKurallari.map((e) => {
+        const anahtar = `${e.kaynakTipi}|${e.onemDerecesi ?? '*'}`;
+        const kendiKusuru = kusurlar.filter(
+          (kk) => kk.kural === anahtar && kk.sebep.includes(`Kademe ${e.kademe}`));
+        const hedefSozu = e.hedefTuru === 'sorumlu'
+          ? HEDEF_SOZU.sorumlu
+          : `${HEDEF_SOZU[e.hedefTuru as 'rol' | 'kullanici'] ?? e.hedefTuru}`
+            + `${e.hedefDeger ? `: ${e.hedefDeger}` : ' — HEDEF BOŞ'}`;
+        return {
+          id: e.id,
+          kod: `${e.kaynakTipi}/${e.onemDerecesi ?? 'tümü'} · K${e.kademe}`,
+          ad: `${e.gecikmeGun} gün sonra → ${hedefSozu}`,
+          durum: (kendiKusuru.length > 0 ? 'bd' : e.aktif ? 'ok' : 'pl') as KonsolKayit['durum'],
+          pasif: !e.aktif,
+          bagli: e._count.kayitlar,
+          alt: kendiKusuru.length > 0
+            ? kendiKusuru[0].sebep
+            : `${e._count.kayitlar} kez tetiklendi`
+              + `${e.aciklama ? ` · ${e.aciklama}` : ''}${e.aktif ? '' : ' · pasif'}`,
+          degerler: {
+            kaynakTipi: e.kaynakTipi, onemDerecesi: e.onemDerecesi ?? '',
+            kademe: e.kademe, gecikmeGun: e.gecikmeGun, hedefTuru: e.hedefTuru,
+            hedefDeger: e.hedefDeger ?? '', aciklama: e.aciklama ?? '', aktif: e.aktif,
+          },
+        };
+      });
+    })(),
     tesisGorsel: tesisler.map((t) => ({
       id: t.id, kod: t.kod, ad: t.ad,
       durum: t.gorselAnahtari ? (GORSEL_ANAHTARLARI.includes(t.gorselAnahtari) ? 'ok' : 'bd') : 'unk',

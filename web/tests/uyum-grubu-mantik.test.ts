@@ -287,7 +287,8 @@ const KATALOG: Madde[] = [
 function reg(ek: Partial<Reg> = {}): Reg {
   return {
     id: 'r-1', kod: 'EPDK-SYM', ad: 'EPDK Siber Yetkinlik', surum: null,
-    aktif: true, surecSayisi: 2, maddeler: KATALOG, surumler: [], ...ek,
+    aktif: true, surecSayisi: 2, maddeler: KATALOG, surumler: [],
+    kaynaklar: [], ...ek,
   };
 }
 

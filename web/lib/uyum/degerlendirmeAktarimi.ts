@@ -219,6 +219,11 @@ export type UygulamaKarari =
 /** Elenen satır oranı bunu aşarsa aktarım şüphelidir. */
 export const ELEME_TAVANI = 0.5;
 
+/** Tek koşuda okunabilecek en çok satır — sınırsız yükleme kabul edilmez.
+    Saf modülde durur çünkü `'use server'` dosyaları YALNIZ async fonksiyon
+    dışa aktarabilir; sabit oraya konulursa derleme kırılır. */
+export const SATIR_TAVANI = 5000;
+
 /**
  * Bu kuru koşu uygulanabilir mi?
  *

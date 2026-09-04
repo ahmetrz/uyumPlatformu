@@ -1,3 +1,4 @@
+import type { TakipDurumu } from '@/lib/uyum/mevzuatKaynagi';
 import type { Durum } from '@/components/kabuk/temel';
 
 /* Regülasyon kütüphanesi — saf türetmeler. Bu modül veritabanına, React'e
@@ -47,6 +48,23 @@ export type Reg = {
   surecSayisi: number;
   maddeler: Madde[];
   surumler: Surum[];
+  /** UY-41 · Bu regülasyonun izlendiği resmî kaynaklar. */
+  kaynaklar: Kaynak[];
+};
+
+/** UY-41 · Resmî mevzuat kaynağı. `adres` ÜRÜNLE GELMEZ; kurum girer. */
+export type Kaynak = {
+  id: string;
+  ad: string;
+  adres: string | null;
+  izlemeTuru: string;
+  araliksGun: number;
+  /** `null` = HİÇ BAKILMADI. Sıfır değil, bilinmiyor. */
+  sonKontrol: string | null;
+  sonKontrolEden: string | null;
+  sonNot: string | null;
+  /** Takip durumu SUNUCUDA hesaplanır — istemci "şimdi"yi okuyamaz. */
+  takip: TakipDurumu;
 };
 
 /** `EPDK-SYM-4.2.1` → `4.2.1` (çerçeve kodu öndeyse düşer). */

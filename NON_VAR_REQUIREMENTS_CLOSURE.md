@@ -49,28 +49,28 @@ yazılmadı. Böyle maddeler için repo içi hazırlık ayrı ölçülür ve
 | Ölçü | Değer |
 | --- | --- |
 | Madde | 38 |
-| **COMPLETE** | **21** |
-| CODE_READY_EXTERNAL_DEPENDENCY | 5 |
+| **COMPLETE** | **26** |
+| CODE_READY_EXTERNAL_DEPENDENCY | 6 |
 | IN_PROGRESS | 0 |
-| NOT_STARTED | 12 |
-| Yeni Prisma modeli | 22 (FAZ A 13 · FAZ B 8 · FAZ D 1) |
-| Yeni göç | 5 (beşi de veri kaybı 0 · ölçülerek doğrulandı) |
-| Yeni motor | 5 (9 → 14) |
-| Yeni rota | 2 (`/tabanlar` · `/prosesler`) |
-| Yeni konsol modülü | 29 |
-| Toplam test | 2173 geçti · 1 atlandı |
+| NOT_STARTED | 6 |
+| Yeni Prisma modeli | 26 (FAZ A 13 · FAZ B 8 · FAZ D 1 · FAZ E 4) |
+| Yeni göç | 6 (altısı da veri kaybı 0 · ölçülerek doğrulandı) |
+| Yeni motor | 7 (9 → 16) |
+| Yeni rota | 3 (`/tabanlar` · `/prosesler` · `/degerlendirme-aktarim`) |
+| Yeni konsol modülü | 35 |
+| Toplam test | 2332 geçti · 1 atlandı |
 
-### Kapı sonuçları (03.09.2026 · FAZ D sonu)
+### Kapı sonuçları (03.09.2026 · FAZ E sonu)
 
 | Kapı | Sonuç |
 | --- | --- |
-| `npm run test` | **2173 geçti · 1 atlandı · 0 kusur** (113 dosya) |
+| `npm run test` | **2332 geçti · 1 atlandı · 0 kusur** (115 dosya) |
 | `npm run lint` · `npx tsc --noEmit` | temiz |
 | `tasarim:kapi` | kontrast kusuru 0 · eksik font 0 · eski tasarım izi 0 |
-| `rota:duman` | **48/48 rota** · kusurlu 0 · test edilemedi 0 · sayfa hatası 0 |
+| `rota:duman` | **49/49 rota** · kusurlu 0 · test edilemedi 0 · sayfa hatası 0 |
 | `tasarim:dizustu` (1366×768) | 40 rota · **kırpılan öğe 0** · yatay taşan rota 0 |
 | `tasarim:axe` (WCAG 2 A/AA) | 41 rota · ciddi/kritik ihlal **0** · kırık tarama 0 |
-| `tasarim:tasma` | 80 ölçümde 4 kusur — **hepsi bu programdan ÖNCE de vardı** (`/envanter` ×2, `/sistem`, `/sistem/bilesenler`; 375px ve 768px). Sayı **ölçülerek** doğrulandı: FAZ D öncesi ağaçta (`git stash`) aynı kapı yine `4 kusur (80 ölçümde)` döndü. FAZ D'nin dokunduğu hiçbir ekran (`/kanitlar`, `/surecler/[id]`, `/saglik`, `/dokumanlar`, `/raporlar/kanit-paketi`) listede yok. |
+| `tasarim:tasma` | 80 ölçümde 4 kusur — **hepsi bu programdan ÖNCE de vardı** (`/envanter` ×2, `/sistem`, `/sistem/bilesenler`; 375px ve 768px). Sayı **ölçülerek** doğrulandı: FAZ D öncesi ağaçta (`git stash`) aynı kapı yine `4 kusur (80 ölçümde)` döndü. FAZ D ve FAZ E'nin dokunduğu hiçbir ekran (`/kanitlar`, `/surecler/[id]`, `/saglik`, `/dokumanlar`, `/raporlar/kanit-paketi`, `/bulgular/[id]`, `/regulasyonlar`, `/degerlendirme-aktarim`) listede yok. |
 | `npm run build` | başarılı |
 
 Kapı çıktıları **olduğu gibi** yazıldı; hedefe uydurulmadı. Taşma
@@ -117,12 +117,12 @@ token tablosudur ve ikisi de ayrı bir işin konusudur.
 | UY-16 | Kapsama/tazelik/hazırlık KPI | **COMPLETE** | — (kanıt: §6.5) |
 | UY-18 | Kanıt paketi imzası | **CODE_READY_EXTERNAL_DEPENDENCY** | **Kalan tek eksik dış bağımlılık:** kurumun HSM/KMS erişimi. Paket bugün bütünlük damgası taşır ve başlığına "İMZASIZDIR" yazar (kanıt: §6.6) |
 | UY-20 | DMS entegrasyonu | **CODE_READY_EXTERNAL_DEPENDENCY** | **Kalan tek eksik dış bağımlılık:** kurumun DYS ürünü ve salt okunur API'si. Belge sürümü elle girilir ve ekran "DYS ile senkron değil" der (kanıt: §6.6) |
-| UY-26 | Kök neden standardı | `NOT_STARTED` | Kategori, zorunluluk politikası, **kapanış kapısında RCA kontrolü yok (ölçülmüş kusur)** |
-| UY-28 | Tekrarlayan bulgu | `NOT_STARTED` | Motor · `tekrarBulguId` **yazıcısı olmayan ölü alan** |
-| UY-36 | Eskalasyon matrisi | `NOT_STARTED` | Kademe, boyut, yönetici eskalasyonu · `Bildirim.tip='eskalasyon'` **hiç yazılmıyor** |
-| UY-39 | Değişiklik etki analizi | `NOT_STARTED` | Önizleme (bugün diff yalnız aktifleştirmeden SONRA yazılıyor), zincirin 9 halkası |
-| UY-41 | Resmî kaynak takibi | `NOT_STARTED` | `RegulatorySourceProvider` · sonunda **dış bağımlılık** |
-| UY-43 | Değerlendirme içe aktarımı | `NOT_STARTED` | Sihirbaz + kuru koşu + köken |
+| UY-26 | Kök neden standardı | **COMPLETE** | — (kanıt: §7.2) |
+| UY-28 | Tekrarlayan bulgu | **COMPLETE** | — (kanıt: §7.3) |
+| UY-36 | Eskalasyon matrisi | **COMPLETE** | — (kanıt: §7.4) |
+| UY-39 | Değişiklik etki analizi | **COMPLETE** | — (kanıt: §7.5) |
+| UY-41 | Resmî kaynak takibi | **CODE_READY_EXTERNAL_DEPENDENCY** | **Kalan tek eksik dış bağımlılık:** takip edilecek resmî kaynakların adresleri ve erişim biçimi. Kaynak KÜTÜĞÜ çalışır; ürün hiçbir adresle gelmez (kanıt: §7.6) |
+| UY-43 | Değerlendirme içe aktarımı | **COMPLETE** | — (kanıt: §7.7) |
 | UY-52 | Dış uyum API'si | `NOT_STARTED` | 8 okuma ucu + OpenAPI + anahtar kapsamı |
 | UY-53 | SSO / MFA | `NOT_STARTED` | `AuthProvider` · sonunda **dış bağımlılık** |
 | UY-54 | Vault/KMS/Postgres/kuyruk | `NOT_STARTED` | OT-48 ile ortak · sonunda **dış bağımlılık** |
@@ -547,23 +547,233 @@ testi yeşil döndü.
 
 ---
 
-## 7. Sıradaki iş — bağımlılık sırası
+## 7. FAZ E'de ne yapıldı — kanıtla
 
-1. **UY-26 / UY-28 / UY-36 / UY-39 / UY-41 / UY-43 (FAZ E)** — altısı da
-   `Bulgu` ve değişiklik çevresinde; birlikte yapılmalı.
-2. **UY-52 … UY-57 (FAZ F)** — dış erişim, SSO, saklama ve denetçi
-   erişimi. UY-54 OT-48'in sağlayıcı kütüğünü kullanır; UY-55 OT-49'un
-   aracını gerçek veriyle koşturur; UY-56 UY-13'ün kanıt deposuna
-   saklama politikası uygular.
+**UY-26 · UY-28 · UY-36 · UY-39 · UY-41 · UY-43.** Uyum yönetişimi.
+Beşi kapandı, biri (UY-41) repo içinde bitirilip dış bağımlılığa dayandı.
+
+Bu fazın dört maddesi **ölçülmüş kusur** kapatır. Dördü de aynı biçimde
+bulundu: şemada bir alan ya da bir sözlük değeri VARDI ve ürün kodunda
+onu YAZAN hiçbir yer YOKTU.
+
+| Madde | Ölü olan şey | Sonuç |
+| --- | --- | --- |
+| UY-26 | Kapanış kapısı kök neden SORMUYORDU | Kök nedeni hiç yazılmamış bir bulgu "kapalı" yapılabiliyordu |
+| UY-28 | `Bulgu.tekrarBulguId` — yazıcısı olmayan alan | "Bu bulgu daha önce de açılmış mıydı" sorusu cevapsızdı |
+| UY-36 | `Bildirim.tip = 'eskalasyon'` — hiç yazılmıyordu | Bildirim ekranının eskalasyon merceği BOŞ bir kovayı süzüyordu |
+| UY-39 | `SurumFarki` yalnız aktifleştirmeden SONRA yazılıyordu | "Aktifleştirirsem ne olur" sorusu sorulamıyordu; aktifleştirme geri alınamaz |
+
+### 7.1 Bu fazda hiçbir resmî kaynak adresi yazılmadı
+
+`lib/uyum/mevzuatKaynagi.ts` içinde tek bir resmî site adresi yoktur ve
+olmayacaktır. Bir mevzuat kaynağının adresi kurumun kararıdır: hangi
+otoritenin hangi sayfasının takip edileceği, kurumun kendi uyum
+kapsamına bağlıdır. Ürüne gömülü bir adres, kurum başka bir kaynağı
+takip ediyorsa sessizce yanlış bir izlenim verir.
+
+Sunucu eylemi `izlemeTuru: 'saglayici'` seçimini de REDDEDER: kayıtlı
+ve bağlı bir sağlayıcı yokken "otomatik izleniyor" yazan bir kayıt,
+hiçbir yere bağlanmayan bir kütük satırı olurdu.
+
+### 7.2 UY-26 · kapanış kapısı artık kök neden soruyor
+
+Kapı `lib/uyum/kokNeden.ts → kapanisKapisi()` içindeki SAF fonksiyondur;
+açık aksiyon denetimi de oraya taşındı ki kapanışın TEK bir kuralı
+olsun. `lib/eylemler.ts → bulguGuncelle` ve ekran AYNI fonksiyonu
+çağırır: ekranın kapıyı önceden göstermesi bir kolaylıktır, asıl kapı
+sunucudadır.
+
+**Kapı yalnız zorunlu olduğu yerde kapatır.** Kritik ve yüksek önemli
+bulgular ile TEKRAR eden bulgular analiz ister; düşük önemli, ilk kez
+görülen bir bulga analizsiz kapatılabilir. Kapıyı her yere koymak,
+kapının kendisini anlamsız kılardı — herkes aynı iki cümleyi kopyalamaya
+başlar.
+
+**Kategori sayılır, metin anlatır.** İkisi birlikte tutulur ve biri
+ötekinin yerine geçmez: yalnız serbest metin olsaydı "aynı kök neden kaç
+bulguda tekrarlıyor" sorusu cevaplanamazdı; yalnız kategori olsaydı
+analiz bir açılır listeye inerdi ve hiçbir denetçi bunu analiz saymaz.
+Bu yüzden metin en az 40 karakterdir ve kapı bunu ölçer.
+
+**Analizin damgası zorunludur.** Kim yaptığı bilinmeyen bir kök neden
+analizi `imzasiz` sayılır ve bu bir kusurdur — "bunu kim yazdı"
+sorusuna cevap veremeyen bir analiz, bir görüştür. Damga kullanıcıdan
+alınmaz, oturumdan yazılır.
+
+### 7.3 UY-28 · tekrar tanımı DAR tutuldu
+
+Tekrar: **aynı kontrol, aynı santral** (aynı `maddeDurumuId`) üzerinde
+pencere içinde KAPANMIŞ bir bulgu varsa ve yeni bulgu o kapanıştan
+sonra açıldıysa.
+
+**Başlık benzerliğine BAKILMAZ.** Metin benzerliğiyle tekrar aramak,
+birbirine benzeyen ama farklı iki sorunu birleştirir ve denetçiye "bu
+zaten biliniyordu" diye yanlış bir tarihçe sunar. Aynı kontrolün
+yeniden düşmesi ise tartışmasız bir olgudur.
+
+**Açık bir bulgunun yanındaki ikinci bulgu tekrar DEĞİLDİR:** o aynı
+sorunun ikinci kaydıdır ve ayrı bir veri kalitesi sorunudur.
+
+**Motor insanın kararını EZMEZ:** `tekrarBulguId` dolu olan bulgu
+atlanır. Bağın kim tarafından kurulduğu (`tekrarKaynagi`: motor / elle)
+kayda yazılır çünkü insanın gördüğü bir örüntü ile motorun bulduğu bir
+eşleşme aynı güvende değildir. Pencere de her bağın kendi kaydına
+yazılır (`tekrarPenceresiGun`) ki eşik sonradan değişince eski bağın
+hangi eşikle kurulduğu kaybolmasın.
+
+Motorun izi **aktörsüzdür** (`aktorId: null`, `kaynak: 'is_kosusu'`):
+bağı bir insan kurmadı ve iz bunu uydurmaz.
+
+### 7.4 UY-36 · eskalasyon bir bildirim türü değil, bir KADEME
+
+`Bildirim.tip` sözlüğünde `eskalasyon` değeri vardı; bildirim ekranı
+onun için ayrı bir mercek ve ayrı bir renk taşıyordu. Ürünün tek
+bildirim yazıcısı `motorlar/sonTarih.ts` idi ve daima `tip: 'uyari'`
+yazıyordu. `motorlar/eskalasyon.ts` o değeri yazan ilk yerdir.
+
+**Her kademe BİR KEZ tetiklenir** (`EskalasyonKaydi` tekil kısıtı).
+Motor her koşuda yeniden bildirim yazsaydı, gecikmiş tek bir bulgu her
+tikte bir bildirim üretir ve kullanıcı bildirim ekranını kapatırdı —
+eskalasyon o gün ölürdü.
+
+**En yüksek hak edilmiş kademe seçilir, alttakiler atlanır.** İlk kez
+40 gün gecikmiş bir kayda 7/14/30 günlük üç kademeyi arka arkaya yazmak
+üç bildirim üretir ve hiçbiri okunmaz.
+
+**Hedefsiz eskalasyon SESSİZCE düşmez.** Kural kime haber vereceğini
+bulamazsa (sorumlu atanmamış, rol boş, hedef kullanıcı pasif) kayıt
+YİNE yazılır ve `sebep` alanı bunu söyler; ekran o boşluğu gösterir.
+"Kimseye haber verilemedi" bir başarı değildir.
+
+**Matrisin kendi kusurları ölçülür.** Üst kademenin gecikmesi alt
+kademeden küçükse alt kademe hiç tetiklenmez ve kimse fark etmez;
+`matrisKusurlari()` bunu bulur ve konsol satırı kırmızı gösterir.
+
+**Hedef tarihi olmayan kayıt eskale EDİLMEZ:** gecikme olmayan bir
+tarihe göre ölçülemez ve "tarihi yok, demek ki gecikmiş" varsayımı
+ölçülmemiş bir şeyi kusur saymak olurdu.
+
+### 7.5 UY-39 · önizleme ile aktifleştirme AYNI fonksiyonu çağırır
+
+`surumEtkisiOnizle` hiçbir şey yazmaz ve `surumAktiflestir` ile aynı saf
+fark fonksiyonunu (`lib/uyum/degisiklikEtkisi.ts → surumFarki`)
+paylaşır. Önizlemenin gerçekten olacak şeyi göstermesinin tek garantisi
+budur; iki ayrı hesap, o gün önizlemeyi bir süse dönüştürürdü.
+
+**Etkilenen kayıtlar HALKA HALKA sayılır, tek sayıya toplanmaz.** "42
+kayıt etkilenir" cümlesi, 40'ı kanıt bağı 2'si açık bulgu olduğunda
+yanıltıcıdır. Dokuz halka ayrı ayrı raporlanır: değerlendirme · karar
+verilmiş değerlendirme · kanıt bağı · açık bulgu · açık aksiyon · risk ·
+belge · çapraz eşleme · aktif istisna.
+
+**Yeni maddenin ayak izi halkalara SAYILMAZ:** yeni madde mevcut hiçbir
+kaydı etkilemez, ekleyecektir. Sayılsaydı etkilenen kayıt sayısı
+olduğundan büyük çıkardı.
+
+Sonuç cümlesi NE OLACAĞINI söyler, "olabilir" demez: belirsiz bir uyarı
+kullanıcıyı karar veremez hâlde bırakır.
+
+### 7.6 UY-41 · bağlı olmamak, izlememek demek değildir
+
+Sağlayıcı BAĞLI DEĞİL ve ürün hiçbir siteye kendiliğinden bağlanmaz.
+Buna rağmen kütük bağlantıdan ÖNCE de işe yarar: hangi regülasyonun
+hangi resmî kaynaktan, hangi aralıkla izleneceği yazılı bir kurum
+kararıdır.
+
+`sonKontrol` yalnız bir insan "baktım" dediğinde yazılır ve **not
+zorunludur**: notsuz bir bakış takip sayacını sıfırlar ama denetçiye
+hiçbir şey söylemez. "Değişiklik yok" da bir nottur ve yazılması
+gerekir.
+
+Durum sözlüğü ölçülmemişi kusurdan AYIRIR: `adressiz` (bakılacak yer
+yok — önce adres girilmeli), `hic_bakilmadi` (takip hiç başlamadı) ve
+`gecikti` üç ayrı hâldir. Adresi olmayan bir kayda "gecikti" demek,
+kurumun yapmadığı bir işi kusur saymak olurdu.
+
+### 7.7 UY-43 · kuru koşu bir seçenek değil, bir ADIM
+
+Uygulama kaydı kendi kuru koşusuna KÖKENLE bağlıdır ve bağsız uygulama
+yazılamaz. Bir değerlendirme aktarımı tek hamlede yüzlerce kontrolün
+durumunu değiştirebilir ve bunların her biri bir DENETİM KARARIDIR.
+
+**Uygulama anında kuru koşu YENİDEN hesaplanır.** Kaydedilmiş rapora
+güvenilmez: kuru koşu ile uygulama arasında biri o kontrollerin durumunu
+elle değiştirmiş olabilir ve önizlemedeki "eski durum" artık doğru
+değildir. Kaydedilen rapora körü körüne yazmak, aradaki insan kararını
+sessizce ezerdi.
+
+**Eşleşen ile değişen AYRI sayılır.** 300 satırın 300'ü eşleşip hiçbiri
+değişmiyorsa, "300 kayıt güncellendi" demek denetim izini gürültüye
+boğar ve gerçek değişikliği görünmez kılar.
+
+**Eleme tavanı bir güvenlik kapısıdır.** Satırların yarısından çoğu
+eleniyorsa dosya büyük ihtimalle YANLIŞ regülasyona ya da yanlış
+santrale aktarılıyordur; kalan azınlığı sessizce yazmak, doğru görünen
+ama yanlış yere yazılmış bir aktarım üretirdi.
+
+**Onaylı istisna ezilmez:** aktif istisnası olan madde elenir. Kurum o
+maddeyi bu santral için bilinçli olarak kapsam dışı bırakmıştır ve bir
+elektronik tablo satırının o kararı geçersiz kılması kabul edilemez.
+
+**Gerekçe "uyumsuz" ve "kapsam dışı" için zorunludur.** İkisi de
+kurumun kendi aleyhine ya da lehine verdiği kararlardır ve denetimde
+ilk sorulanlardır; gerekçesiz toplu aktarımla yazılmaları tam olarak
+denetimin yakalamak istediği şeydir.
+
+**Her satır kendi izini bırakır:** her durum değişikliği kendi
+`DegerlendirmeTarihcesi` ve `AktiviteKaydi` satırını yazar. Toplu
+yazmayı tek bir "aktarım yapıldı" satırıyla geçirmek, denetimde en
+pahalı boşluktur.
+
+### 7.8 Sabotajla doğrulama — on bir kural, bir de test boşluğu
+
+Her kural tek tek kaldırıldı, hangi testin kırıldığı kaydedildi, kural
+geri kondu:
+
+| Kaldırılan kural | Kırılan test |
+| --- | --- |
+| Kapanış kapısının kök neden sorusu | 5 test (saf + eylem) |
+| Tekrar penceresi | *pencere dışında kalan kapanış tekrar üretmez* |
+| Kapanmış-bulgu koşulu | **ÖNCE HİÇBİRİ — test boşluğu** (aşağıya bakınız) |
+| Motorun "elle kurulan bağı ezme" koruması | 2 test (saf + motor) |
+| Özel kuralın geneli ezmesi | *aynı kademe iki kez uygulanmaz* |
+| Hedefsizliğin kaydedilmesi | 3 test |
+| En yüksek kademe seçimi | 2 test |
+| Yeni maddenin halkalardan çıkarılması | *YENİ maddenin ayak izi halkalara SAYILMAZ* |
+| Eleme tavanı | *eleme oranı tavanı aşarsa aktarım UYGULANMAZ* |
+| Kuru koşu ön koşulu | *KURU KOŞUSUZ uygulama reddedilir* |
+| Uyumsuz kararın gerekçe zorunluluğu | 2 test |
+
+**Bir sabotaj yakalanmadı ve bu bir bulgudur.** `tekrarKarari` içindeki
+`durum === 'kapali'` koşulu kaldırıldığında HİÇBİR test kırılmadı:
+testler açık bulguyu daima `kapanma: null` ile kuruyordu, dolayısıyla
+`kapanma !== null` koşulu tek başına yetiyordu. Gerçek boşluk şuydu —
+durumu "açık" görünüp kapanma tarihi taşıyan bozuk bir kayıt (elle
+düzenleme, hatalı aktarım) tekrar üretebilirdi.
+
+İki test eklendi (*"DURUMU açık ama kapanma tarihi dolu kayıt tekrar
+ÜRETMEZ"* ve *"kabul_edildi durumundaki bulgu da tekrar üretmez"*),
+sabotaj yeniden koşuldu ve bu kez YAKALANDI. Kural değişmedi; eksik
+olan testti.
 
 ---
 
-## 8. Gerçek bağlantı için gereken dış bilgiler
+## 8. Sıradaki iş — bağımlılık sırası
+
+1. **UY-52 … UY-57 (FAZ F)** — dış erişim, SSO, saklama ve denetçi
+   erişimi. UY-54 OT-48'in sağlayıcı kütüğünü kullanır; UY-55 OT-49'un
+   aracını gerçek veriyle koşturur; UY-56 UY-13'ün kanıt deposuna
+   saklama politikası uygular; UY-57 UY-18'in imza beyanını denetçiye
+   verilen paketle birlikte taşır.
+
+---
+
+## 9. Gerçek bağlantı için gereken dış bilgiler
 
 Yalnız gerçekten gerekenler. Bu bilgiler gelmeden de **repo içi hazırlık
 tamamlanabilir**.
 
-**OT-40 · OT-48 · OT-50 · UY-18 · UY-20 artık gerçekten "bilgi
+**OT-40 · OT-48 · OT-50 · UY-18 · UY-20 · UY-41 artık gerçekten "bilgi
 bekliyor" durumundadır**
 (`CODE_READY_EXTERNAL_DEPENDENCY`): repo içinde yapılabilecek her şey
 bitti. Kalan maddeler ise o hazırlık henüz yapılmadığı için
@@ -580,6 +790,6 @@ Adaptör başına ihtiyaç listesinin YAPISAL hâli üründedir:
 | UY-13 | (repo içi hazırlık bitti) Üretimde `KANIT_DEPO_KOKU` ya da S3 uyumlu nesne deposu uç noktası |
 | UY-18 | İmzalama anahtarının tanımlayıcısı, anahtar politikası (kim imzalayabilir), imza algoritması, doğrulama zinciri. **Anahtarın kendisi ürüne verilmez** |
 | UY-20 | Kurumun DYS ürünü ve **salt okunur** API'si: taban URL, kimlik yöntemi, okunacak kütüphane kapsamı, sürüm alanının adı |
-| UY-41 | Takip edilecek resmî mevzuat kaynaklarının adresleri |
+| UY-41 | Takip edilecek resmî kaynakların adresleri ve erişim biçimi: yayım sayfası ya da besleme (RSS/Atom/API) adresi, kimlik yöntemi, değişikliğin nasıl anlaşılacağı. **Adresler ÜRÜNLE GELMEZ**; kurumun uyum kapsamına göre kurum belirler |
 | UY-53 | IdP (Entra/ADFS) tenant, OIDC/SAML metadata, claim eşlemesi |
 | OT-49 · UY-55 | Hedef eşikler: eşzamanlı kullanıcı, kabul edilebilir gecikme |

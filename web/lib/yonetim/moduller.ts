@@ -1,4 +1,7 @@
 import { AYARLAR, type AyarGrubu } from '../yapilandirma/tanimlar';
+import {
+  ESKALASYON_KAYNAKLARI, HEDEF_SOZU, HEDEF_TURLERI, KAYNAK_SOZU,
+} from '../uyum/eskalasyon';
 
 /* ═══ Yönetim konsolu modül kütüğü — yapılandırılabilir alan ENVANTERİ ═══
 
@@ -23,9 +26,23 @@ import { AYARLAR, type AyarGrubu } from '../yapilandirma/tanimlar';
 export type Sinif = 'A' | 'B' | 'C';
 export type Yer = 'konsol' | 'mevcut_ekran' | 'eksik' | 'kod';
 
+/* UY-36 · Eskalasyon seçenekleri. Sözlük `lib/uyum/eskalasyon.ts` ile
+   BİREBİR olmak zorundadır: kütükte olmayan bir seçenek konsoldan
+   yazılabilseydi motor onu tanımaz ve kural sessizce hiç çalışmazdı. */
+const ESKALASYON_KAYNAK_SECENEKLERI = ESKALASYON_KAYNAKLARI.map((k) => ({
+  id: k, ad: KAYNAK_SOZU[k],
+}));
+const HEDEF_TURU_SECENEKLERI = HEDEF_TURLERI.map((h) => ({
+  id: h, ad: HEDEF_SOZU[h],
+}));
+const ONEM_SECENEKLERI = [
+  { id: 'kritik', ad: 'Kritik' }, { id: 'yuksek', ad: 'Yüksek' },
+  { id: 'orta', ad: 'Orta' }, { id: 'dusuk', ad: 'Düşük' },
+];
+
 export type HedefTipi =
   | 'grup' | 'tuzelKisi' | 'uretimUnitesi' | 'varlikTuru' | 'agBolgesi'
-  | 'uygulanabilirlikKurali' | 'tesisGorsel' | 'ayar';
+  | 'uygulanabilirlikKurali' | 'tesisGorsel' | 'ayar' | 'eskalasyonKurali';
 
 export type AlanTipi = 'metin' | 'sayi' | 'secim' | 'mantik' | 'json';
 
@@ -168,6 +185,43 @@ export const MODULLER: Modul[] = [
     kodYeri: 'lib/uyum/disSaglayicilar.ts → kmsImzaSaglayici · lib/disaAktarim/paket.ts → paketImzasi()',
     aciklama: 'UY-18 · BAĞLI DEĞİL. Paket SHA-256 bütünlük damgası taşır ve başlığına "imzasız" yazar; ürün kendi anahtarıyla imza atmaz.',
     neden: 'Konsoldan "imzalı" işaretlenebilseydi, hiçbir şeyi kanıtlamayan bir imza beyanı üretilirdi. Bağlantı kurumun HSM/KMS erişimini gerektirir ve anahtar ürüne asla verilmez.' },
+  { kod: 'eskalasyonMatrisi', grup: 'uyum', ad: 'Eskalasyon matrisi (kademeler)',
+    sinif: 'A', yer: 'konsol', hedefTipi: 'eskalasyonKurali',
+    aciklama: 'UY-36 · Gecikmiş bulgu/aksiyon/görev için kademe · gecikme · hedef. Her kademe BİR KEZ tetiklenir; hedef bulunamazsa sebebi kaydedilir.',
+    alanlar: [
+      { ad: 'kaynakTipi', etiket: 'Neyin gecikmesi', tip: 'secim', zorunlu: true,
+        secenekler: ESKALASYON_KAYNAK_SECENEKLERI, kimlik: true },
+      { ad: 'onemDerecesi', etiket: 'Önem derecesi', tip: 'secim',
+        secenekler: ONEM_SECENEKLERI, kimlik: true,
+        aciklama: 'Boş = HER önem derecesine uygulanır. Özel kural geneli EZER.' },
+      { ad: 'kademe', etiket: 'Kademe', tip: 'sayi', zorunlu: true, kimlik: true,
+        aciklama: '1 en alt kademedir; gecikme büyüdükçe daha yukarı haber verilir.' },
+      { ad: 'gecikmeGun', etiket: 'Hedef tarihten kaç gün sonra', tip: 'sayi', zorunlu: true,
+        aciklama: 'Üst kademenin gecikmesi alt kademeden BÜYÜK olmalı; değilse alt kademe hiç çalışmaz ve ekran bunu kusur sayar.' },
+      { ad: 'hedefTuru', etiket: 'Kime haber verilir', tip: 'secim', zorunlu: true,
+        secenekler: HEDEF_TURU_SECENEKLERI },
+      { ad: 'hedefDeger', etiket: 'Hedef (rol adı ya da kullanıcı)', tip: 'metin',
+        aciklama: '"Rol" ve "kullanıcı" hedeflerinde ZORUNLU: hedefsiz kural kayıt yazar ama kimseye haber vermez.' },
+      { ad: 'aciklama', etiket: 'Açıklama', tip: 'metin' },
+      { ad: 'aktif', etiket: 'Etkin', tip: 'mantik' },
+    ],
+    etki: ['eskalasyon motoru', 'Bildirimler'] },
+  { kod: 'kokNedenKategorileri', grup: 'uyum', ad: 'Kök neden kategorileri', sinif: 'C', yer: 'kod',
+    kodYeri: 'lib/uyum/kokNeden.ts → KOK_NEDEN_KATEGORILERI',
+    aciklama: 'UY-26 · 10 kategori. Kritik ve yüksek önemli bulgular ile TEKRAR eden bulgular kök neden analizi ister; kapanış kapısı bunu sorar.',
+    neden: 'Kategori listesi "aynı kök neden kaç bulguda tekrarlıyor" sorusunun sayılabilir zeminidir. Ekrandan serbest kategori açılabilseydi dağılım anlamsızlaşır ve sistemik sorun görünmez olurdu.' },
+  { kod: 'tekrarPenceresi', grup: 'uyum', ad: 'Tekrarlayan bulgu penceresi', sinif: 'C', yer: 'kod',
+    kodYeri: 'lib/uyum/tekrarBulgu.ts → TEKRAR_PENCERESI_GUN · KRONIK_ESIK',
+    aciklama: 'UY-28 · 365 gün pencere, 3 halkada KRONİK. Tekrar tanımı DAR: aynı kontrol, aynı santral. Metin benzerliğine bakılmaz.',
+    neden: 'Pencere ayarla değişirse eski bağların hangi eşikle kurulduğu kaybolurdu; bu yüzden pencere her bağın kendi kaydına yazılır ve eşik kodda durur. Metin benzerliğiyle tekrar aramak, farklı iki sorunu birleştirip denetçiye yanlış tarihçe sunardı.' },
+  { kod: 'aktarimElemeTavani', grup: 'uyum', ad: 'Değerlendirme aktarımı eleme tavanı', sinif: 'C', yer: 'kod',
+    kodYeri: 'lib/uyum/degerlendirmeAktarimi.ts → ELEME_TAVANI · SATIR_TAVANI',
+    aciklama: 'UY-43 · Satırların yarısından çoğu elenirse aktarım UYGULANMAZ; tek koşuda en çok 5000 satır. Kuru koşu zorunludur, uygulama kökeniyle ona bağlıdır.',
+    neden: 'Bu bir güvenlik kapısıdır: yarısı elenen bir dosya büyük ihtimalle yanlış regülasyona ya da yanlış santrale aktarılıyordur ve kalan azınlığı sessizce yazmak, doğru görünen ama yanlış yere yazılmış bir aktarım üretir.' },
+  { kod: 'mevzuatKaynakSaglayici', grup: 'uyum', ad: 'Resmî mevzuat kaynağı izleyici', sinif: 'C', yer: 'kod',
+    kodYeri: 'lib/uyum/mevzuatKaynagi.ts → mevzuatSaglayici',
+    aciklama: 'UY-41 · BAĞLI DEĞİL. Kaynaklar elle kaydedilir, "en son ne zaman bakıldı" elle güncellenir; ürün hiçbir siteye kendiliğinden bağlanmaz ve "değişiklik yok" DEMEZ.',
+    neden: 'Adres kurumun kararıdır ve ürüne gömülü bir adres, kurum başka bir kaynağı takip ediyorsa sessizce yanlış izlenim verir. Kaynak KAYITLARI konsolda değil regülasyon ekranında yönetilir, çünkü hangi regülasyonun nereden izlendiği o çerçevenin bilgisidir.' },
   { kod: 'dysBaglantisi', grup: 'uyum', ad: 'Belge yönetim sistemi (DYS) bağlantısı', sinif: 'C', yer: 'kod',
     kodYeri: 'lib/uyum/disSaglayicilar.ts → dysSaglayici',
     aciklama: 'UY-20 · BAĞLI DEĞİL. Belge sürümü elle girilir; ekran "DYS ile senkron" demez ve kütüğün geride kalmış olabileceğini yazar.',

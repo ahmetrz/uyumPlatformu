@@ -1,12 +1,28 @@
 'use client';
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useTransition } from 'react';
 import { useUrlDurumu } from '@/components/kabuk/urlDurumu';
-import { BosIlk, Dugme, Im, type Durum } from '@/components/kabuk/temel';
+/* `Alan` adı bu ekranda ÇAKIŞIR: `./mantik` kapsam alanını, form primitifi
+   girdi sarmalayıcısını `Alan` diye adlandırır. Primitif takma adla alınır. */
+import {
+  Alan as FormAlani, BosIlk, Dugme, Im, type Durum,
+} from '@/components/kabuk/temel';
 import { GenisleyenSatir } from '@/components/kabuk/tablo';
 import { EkranBasligi, Filtreler } from '@/components/kabuk/ekran';
 import { CekmeceKimlik } from '@/components/kabuk/panel';
 import { tarihTR } from '@/lib/sabitler';
+import { useEylem } from '@/components/useEylem';
+import { surumEtkisiOnizle } from '@/lib/eylemler2/degisiklikOnizleme';
+import {
+  kaynakKontroluKaydet, mevzuatKaynagiKaydet,
+} from '@/lib/eylemler2/mevzuatKaynagi';
+import {
+  AGIRLIK_SINIFI, AGIRLIK_SOZU, DEGISIM_SOZU, HALKA_ADLARI,
+  type EtkiOzeti, type EtkiSatiri,
+} from '@/lib/uyum/degisiklikEtkisi';
+import {
+  TAKIP_SINIFI, TAKIP_SOZU, mevzuatSaglayici, takipCumlesi, takipOzeti,
+} from '@/lib/uyum/mevzuatKaynagi';
 import { AktiflestirmeOnayi, MaddeFormu, TaslakFormu } from './Formlar';
 import {
   acilisCercevesi, agaciKur, aktifSurum, alansizMi, alansizSayisi, dallar, eslesiyor,
@@ -29,11 +45,11 @@ import {
 /** 06 §A3: aynı anda 5–9 bölüm görünür; kalanı tek satıra toplanır. */
 const KOK_BUTCESI = 7;
 
-type Kip = 'surum' | 'taslak' | 'fark' | 'aktiflestir' | 'madde';
+type Kip = 'surum' | 'taslak' | 'fark' | 'aktiflestir' | 'madde' | 'onizleme';
 
 const PANEL_KODU: Record<Kip, string> = {
   surum: 'Sürümler', taslak: 'Yeni taslak', fark: 'Sürüm farkı',
-  aktiflestir: 'Yürürlüğe alma', madde: 'Madde',
+  aktiflestir: 'Yürürlüğe alma', madde: 'Madde', onizleme: 'Etki önizlemesi',
 };
 
 export default function RegulasyonlarIstemci({
@@ -101,7 +117,7 @@ export default function RegulasyonlarIstemci({
   function panele(k: Kip) {
     setKip(k);
     if (k !== 'madde') setMaddeId(null);
-    if (k !== 'fark' && k !== 'aktiflestir') setSurumId(null);
+    if (k !== 'fark' && k !== 'aktiflestir' && k !== 'onizleme') setSurumId(null);
   }
 
   return (
@@ -192,7 +208,8 @@ export default function RegulasyonlarIstemci({
               onaylayabilir={onaylayabilir}
               taslak={() => panele('taslak')}
               fark={(id) => { setSurumId(id); setKip('fark'); }}
-              aktiflestir={(id) => { setSurumId(id); setKip('aktiflestir'); }} />
+              aktiflestir={(id) => { setSurumId(id); setKip('aktiflestir'); }}
+              onizle={(id) => { setSurumId(id); setKip('onizleme'); }} />
           )}
           {kip === 'taslak' && (
             <div className="ab-panel-blok">
@@ -201,6 +218,10 @@ export default function RegulasyonlarIstemci({
           )}
           {kip === 'fark' && surum && (
             <FarkPaneli surum={surum} />
+          )}
+          {/* UY-39 · Aktifleştirmeden ÖNCE etki önizlemesi. */}
+          {kip === 'onizleme' && surum && (
+            <EtkiOnizlemePaneli surum={surum} />
           )}
           {kip === 'aktiflestir' && surum && (
             <div className="ab-panel-blok">
@@ -329,7 +350,9 @@ function MaddeSatiri({ madde, agac, derinlik, secili, ac, kendiKaydi = false }: 
    §42: yeni sürüm eskiyi EZMEZ, diff üretir. Panel bu sözleşmeyi anlatır
    ve yürürlüğe almayı iki adıma böler. */
 
-function SurumPaneli({ reg, agac, yazabilir, onaylayabilir, taslak, fark, aktiflestir }: {
+function SurumPaneli({
+  reg, agac, yazabilir, onaylayabilir, taslak, fark, aktiflestir, onizle,
+}: {
   reg: Reg;
   agac: ReturnType<typeof agaciKur>;
   yazabilir: boolean;
@@ -337,6 +360,7 @@ function SurumPaneli({ reg, agac, yazabilir, onaylayabilir, taslak, fark, aktifl
   taslak: () => void;
   fark: (id: string) => void;
   aktiflestir: (id: string) => void;
+  onizle: (id: string) => void;
 }) {
   const aktif = aktifSurum(reg);
   const taslaklar = taslakSurumler(reg);
@@ -362,7 +386,8 @@ function SurumPaneli({ reg, agac, yazabilir, onaylayabilir, taslak, fark, aktifl
           </p>
         ) : reg.surumler.map((s) => (
           <SurumSatiri key={s.id} surum={s} yazabilir={yazabilir}
-            onaylayabilir={onaylayabilir} fark={fark} aktiflestir={aktiflestir} />
+            onaylayabilir={onaylayabilir} fark={fark} aktiflestir={aktiflestir}
+            onizle={onizle} />
         ))}
       </div>
 
@@ -371,6 +396,9 @@ function SurumPaneli({ reg, agac, yazabilir, onaylayabilir, taslak, fark, aktifl
           <Dugme tur="tam" onClick={taslak}>Taslak sürüm aç</Dugme>
         </div>
       )}
+
+      {/* UY-41 · Resmî kaynak kütüğü. */}
+      <KaynakBlogu reg={reg} yazabilir={yazabilir} />
 
       <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
         <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Kütüphane</p>
@@ -426,12 +454,13 @@ function SurumPaneli({ reg, agac, yazabilir, onaylayabilir, taslak, fark, aktifl
   );
 }
 
-function SurumSatiri({ surum, yazabilir, onaylayabilir, fark, aktiflestir }: {
+function SurumSatiri({ surum, yazabilir, onaylayabilir, fark, aktiflestir, onizle }: {
   surum: Surum;
   yazabilir: boolean;
   onaylayabilir: boolean;
   fark: (id: string) => void;
   aktiflestir: (id: string) => void;
+  onizle: (id: string) => void;
 }) {
   const farkSayisi = gercekFarklar(surum).length;
   return (
@@ -455,6 +484,14 @@ function SurumSatiri({ surum, yazabilir, onaylayabilir, fark, aktiflestir }: {
           {farkSayisi > 0 && (
             <button type="button" className="ab-dugme satir" onClick={() => fark(surum.id)}>
               Δ {farkSayisi} fark
+            </button>
+          )}
+          {/* UY-39 · ÖNİZLEME aktifleştirmenin SOLUNDA durur: aktifleştirme
+              geri alınamaz ve kullanıcı önce ne olacağını görmelidir. */}
+          {surum.durum === 'taslak' && (
+            <button type="button" className="ab-dugme satir"
+              onClick={() => onizle(surum.id)}>
+              Etkiyi önizle
             </button>
           )}
           {surum.durum === 'taslak' && yazabilir && onaylayabilir && (
@@ -526,5 +563,278 @@ function FarkPaneli({ surum }: { surum: Surum }) {
         açılır.
       </p>
     </>
+  );
+}
+
+/* ═══ UY-39 · Değişiklik etki önizlemesi ══════════════════════════════
+
+   ÖLÇÜLMÜŞ KUSUR: `SurumFarki` yalnız AKTİFLEŞTİRMEDEN SONRA
+   yazılıyordu; "aktifleştirirsem ne olur" sorusu ürün içinde
+   SORULAMIYORDU. Bu panel o soruyu sorar ve hiçbir şey yazmaz.
+
+   Etkilenen kayıtlar HALKA HALKA sayılır, tek bir sayıya toplanmaz:
+   "42 kayıt etkilenir" cümlesi, 40'ı kanıt bağı 2'si açık bulgu
+   olduğunda yanıltıcıdır. */
+
+function EtkiOnizlemePaneli({ surum }: { surum: Surum }) {
+  const [bekliyor, basla] = useTransition();
+  const [sonuc, setSonuc] = useState<{
+    satirlar: EtkiSatiri[]; ozet: EtkiOzeti; cumle: string;
+    aktifSurumEtiketi: string | null;
+  } | null>(null);
+  const [hata, setHata] = useState<string | null>(null);
+
+  function onizle() {
+    setHata(null);
+    basla(async () => {
+      const c = await surumEtkisiOnizle({ surumId: surum.id });
+      if (!c.ok) { setHata(c.hata); return; }
+      setSonuc({
+        satirlar: c.satirlar ?? [], ozet: c.ozet!, cumle: c.cumle ?? '',
+        aktifSurumEtiketi: c.aktifSurumEtiketi ?? null,
+      });
+    });
+  }
+
+  return (
+    <div className="ab-panel-blok">
+      <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>
+        {surum.etiket} · aktifleştirme etkisi
+      </p>
+      <p className="ab-panel-dip" style={{ margin: '0 0 var(--s14)' }}>
+        Bu önizleme HİÇBİR ŞEY YAZMAZ. Hesap, aktifleştirmenin kullandığı
+        fonksiyonun aynısıdır: burada görünen ile orada olacak olan
+        ayrışamaz.
+      </p>
+
+      {!sonuc && (
+        <Dugme tur="birincil" onClick={onizle} disabled={bekliyor}>
+          {bekliyor ? 'Hesaplanıyor…' : 'Etkiyi hesapla'}
+        </Dugme>
+      )}
+      {hata && <p className="ab-gr-hata" role="alert">{hata}</p>}
+
+      {sonuc && (
+        <>
+          <p style={{ margin: '0 0 var(--s14)', fontSize: 'var(--t-field)',
+            color: sonuc.ozet.yuksekEtki > 0 ? 'var(--bd)'
+              : sonuc.ozet.ortaEtki > 0 ? 'var(--md)' : 'var(--i2)' }}>
+            {sonuc.cumle}
+          </p>
+          <p className="ab-panel-dip" style={{ margin: '0 0 var(--s14)' }}>
+            Karşılaştırılan aktif sürüm: {sonuc.aktifSurumEtiketi ?? 'yok (ilk sürüm)'}
+            {' · '}{sonuc.ozet.degismeyen} madde değişmiyor
+          </p>
+
+          {/* Halkalar AYRI AYRI: toplanmaz. */}
+          <div style={{ display: 'grid', gap: 'var(--s6)',
+            marginBottom: 'var(--s16)' }}>
+            {(Object.keys(sonuc.ozet.halkalar) as (keyof typeof sonuc.ozet.halkalar)[])
+              .filter((h) => sonuc.ozet.halkalar[h] > 0)
+              .map((h) => (
+                <div key={h} className="ab-panel-alan">
+                  <span className="etiket">{HALKA_ADLARI[h]}</span>
+                  <span className="deger">{sonuc.ozet.halkalar[h]}</span>
+                </div>
+              ))}
+            {Object.values(sonuc.ozet.halkalar).every((x) => x === 0) && (
+              <p className="ab-panel-dip" style={{ margin: 0 }}>
+                Değişen ya da kaldırılan maddelerin hiçbirine bağlı kayıt yok.
+              </p>
+            )}
+          </div>
+
+          <div style={{ display: 'grid', gap: 'var(--s12)' }}>
+            {sonuc.satirlar.map((r) => (
+              <div key={`${r.maddeKodu}:${r.degisimTipi}`} style={{ display: 'grid',
+                gridTemplateColumns: '22px 1fr', gap: 'var(--s8)',
+                alignItems: 'start' }}>
+                <span style={{ paddingTop: 3 }}>
+                  <Im durum={AGIRLIK_SINIFI[r.agirlik]} ad={AGIRLIK_SOZU[r.agirlik]} />
+                </span>
+                <div style={{ display: 'grid', gap: 2 }}>
+                  <span style={{ fontFamily: 'var(--veri)',
+                    fontSize: 'var(--t-code)', fontWeight: 600 }}>
+                    {r.maddeKodu}
+                    <span style={{ marginLeft: 'var(--s8)', fontWeight: 400,
+                      color: 'var(--i3)' }}>
+                      {DEGISIM_SOZU[r.degisimTipi]}
+                    </span>
+                  </span>
+                  <span style={{ fontSize: 'var(--t-label)', color: 'var(--i2)' }}>
+                    {r.sonuc}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+/* ═══ UY-41 · Resmî mevzuat kaynakları ════════════════════════════════
+
+   Ürün HİÇBİR ADRESLE GELMEZ: adres kurumdan gelir ve girilene kadar
+   kayıt "adres girilmemiş" görünür — "güncel" DEĞİL.
+
+   `sonKontrol` boşken "hiç bakılmadı" yazılır, "0 gün önce" değil:
+   ölçülmemiş bir tazelik sıfır sayılmaz. */
+
+function KaynakBlogu({ reg, yazabilir }: { reg: Reg; yazabilir: boolean }) {
+  const [acik, setAcik] = useState(false);
+  /* Durumlar SUNUCUDAN gelir: render gövdesinde "şimdi" okumak saf
+     olmayan bir çağrıdır ve sunucu ile istemciye farklı zamanlar
+     gösterirdi. */
+  const durumlar = reg.kaynaklar.map((kk) => kk.takip);
+  const ozet = takipOzeti(durumlar);
+
+  return (
+    <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+      <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>
+        Resmî kaynak takibi
+      </p>
+      <p className="ab-panel-dip" style={{ margin: '0 0 var(--s12)',
+        color: ozet.gecikti > 0 ? 'var(--bd)'
+          : ozet.hicBakilmadi > 0 || ozet.adressiz > 0 ? 'var(--unk)' : 'var(--i3)' }}>
+        {takipCumlesi(ozet)}
+      </p>
+      <p className="ab-panel-dip" style={{ margin: '0 0 var(--s14)' }}>
+        Ürün hiçbir siteye kendiliğinden bağlanmaz ve &quot;değişiklik yok&quot;
+        DEMEZ: {mevzuatSaglayici.bagliDegilkenDavranis}
+      </p>
+
+      <div style={{ display: 'grid', gap: 'var(--s14)' }}>
+        {reg.kaynaklar.map((kk, i) => (
+          <div key={kk.id} style={{ display: 'grid', gridTemplateColumns: '22px 1fr',
+            gap: 'var(--s8)', alignItems: 'start' }}>
+            <span style={{ paddingTop: 3 }}>
+              <Im durum={TAKIP_SINIFI[durumlar[i]]} ad={TAKIP_SOZU[durumlar[i]]} />
+            </span>
+            <div style={{ display: 'grid', gap: 2 }}>
+              <span style={{ fontSize: 'var(--t-field)', fontWeight: 600 }}>{kk.ad}</span>
+              <span className="mono" style={{ fontSize: 'var(--t-label)',
+                color: kk.adres ? 'var(--i3)' : 'var(--unk)',
+                wordBreak: 'break-all' }}>
+                {kk.adres ?? 'adres girilmemiş — kurumdan alınacak'}
+              </span>
+              <span style={{ fontSize: 'var(--t-label)', color: 'var(--i2)' }}>
+                {TAKIP_SOZU[durumlar[i]]}
+                {' · '}her {kk.araliksGun} günde bir bakılmalı
+              </span>
+              <span className="mono" style={{ fontSize: 'var(--t-label)',
+                color: 'var(--i3)' }}>
+                {kk.sonKontrol
+                  ? `son bakış ${tarihTR(kk.sonKontrol)}`
+                    + (kk.sonKontrolEden ? ` · ${kk.sonKontrolEden}` : '')
+                  : 'hiç bakılmadı'}
+              </span>
+              {kk.sonNot && (
+                <span style={{ fontSize: 'var(--t-label)', color: 'var(--i2)' }}>
+                  Not: {kk.sonNot}
+                </span>
+              )}
+              {yazabilir && kk.adres && (
+                <KontrolFormu kaynakId={kk.id} />
+              )}
+            </div>
+          </div>
+        ))}
+        {reg.kaynaklar.length === 0 && (
+          <p className="ab-panel-dip" style={{ margin: 0, color: 'var(--unk)' }}>
+            Bu regülasyon için kayıtlı resmî kaynak yok — mevzuat değişikliği
+            izlenmiyor.
+          </p>
+        )}
+      </div>
+
+      {yazabilir && (
+        <div style={{ marginTop: 'var(--s14)' }}>
+          {acik
+            ? <KaynakFormu regulasyonId={reg.id} kapat={() => setAcik(false)} />
+            : <Dugme tur="ikincil" onClick={() => setAcik(true)}>Kaynak ekle</Dugme>}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function KaynakFormu({ regulasyonId, kapat }: {
+  regulasyonId: string; kapat: () => void;
+}) {
+  const { bekliyor, hata, calistir } = useEylem();
+  const [ad, setAd] = useState('');
+  const [adres, setAdres] = useState('');
+  const [aralik, setAralik] = useState(90);
+
+  return (
+    <div style={{ display: 'grid', gap: 'var(--s10)' }}>
+      <FormAlani etiket="Kaynak adı" zorunlu>
+        <input className="ab-gr" value={ad} disabled={bekliyor}
+          onChange={(e) => setAd(e.target.value)}
+          placeholder="Örn. otoritenin mevzuat yayım sayfası" />
+      </FormAlani>
+      <FormAlani etiket="Adres (kurumdan)">
+        <input className="ab-gr" value={adres} disabled={bekliyor}
+          onChange={(e) => setAdres(e.target.value)}
+          placeholder="https://…" />
+      </FormAlani>
+      <FormAlani etiket="Kontrol aralığı (gün)">
+        <input className="ab-gr" type="number" min={1} max={3650} value={aralik}
+          disabled={bekliyor}
+          onChange={(e) => setAralik(Number(e.target.value) || 90)} />
+      </FormAlani>
+      {hata && <p className="ab-gr-hata" role="alert">{hata}</p>}
+      <div style={{ display: 'flex', gap: 'var(--s8)' }}>
+        <Dugme tur="birincil" disabled={bekliyor || !ad.trim()}
+          onClick={() => calistir(
+            () => mevzuatKaynagiKaydet({
+              regulasyonId, ad, adres: adres || null, kontrolAraligiGun: aralik,
+            }),
+            kapat,
+          )}>
+          Kaydet
+        </Dugme>
+        <Dugme tur="ikincil" onClick={kapat} disabled={bekliyor}>Vazgeç</Dugme>
+      </div>
+    </div>
+  );
+}
+
+/* "Baktım" kaydı NOT ister: notsuz bir bakış sayacı sıfırlar ama
+   denetçiye hiçbir şey söylemez. "Değişiklik yok" da bir nottur. */
+function KontrolFormu({ kaynakId }: { kaynakId: string }) {
+  const { bekliyor, hata, calistir } = useEylem();
+  const [acik, setAcik] = useState(false);
+  const [not, setNot] = useState('');
+
+  if (!acik) {
+    return (
+      <button type="button" className="ab-dugme satir"
+        style={{ justifySelf: 'start' }} onClick={() => setAcik(true)}>
+        Baktım · not düş
+      </button>
+    );
+  }
+  return (
+    <div style={{ display: 'grid', gap: 'var(--s8)', marginTop: 'var(--s6)' }}>
+      <textarea className="ab-gr" rows={2} value={not} disabled={bekliyor}
+        onChange={(e) => setNot(e.target.value)}
+        placeholder="Ne bulundu? &quot;Değişiklik yok&quot; da bir nottur." />
+      {hata && <p className="ab-gr-hata" role="alert">{hata}</p>}
+      <div style={{ display: 'flex', gap: 'var(--s8)' }}>
+        <Dugme tur="ikincil" disabled={bekliyor || not.trim().length < 5}
+          onClick={() => calistir(
+            () => kaynakKontroluKaydet({ kaynakId, not }),
+            () => { setAcik(false); setNot(''); },
+          )}>
+          Kaydet
+        </Dugme>
+        <Dugme tur="ikincil" onClick={() => setAcik(false)} disabled={bekliyor}>
+          Vazgeç
+        </Dugme>
+      </div>
+    </div>
   );
 }

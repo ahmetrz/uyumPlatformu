@@ -26,7 +26,7 @@ import { z } from 'zod';
 import { db } from '../db';
 import { yetkiZorunlu, kapsamZorunlu, KAPSAM_SONRA } from '../erisim';
 import {
-  aktarimCumlesi, aktarimSayimlari, kuruKosu, uygulamaKapisi,
+  SATIR_TAVANI, aktarimCumlesi, aktarimSayimlari, kuruKosu, uygulamaKapisi,
   type HamSatir, type OnizlemeSatiri,
 } from '../uyum/degerlendirmeAktarimi';
 import { type Sonuc, tamam, hata, iz, bosluksuz } from './ortak';
@@ -38,9 +38,6 @@ const SatirSemasi = z.object({
   not: z.string().nullable().optional(),
   gerekce: z.string().nullable().optional(),
 });
-
-/** Tek koşuda okunabilecek en çok satır — sınırsız yükleme kabul edilmez. */
-export const SATIR_TAVANI = 5000;
 
 export type KuruKosuSonucu = Sonuc & {
   aktarimId?: string;

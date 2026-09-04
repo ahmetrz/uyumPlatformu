@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
+import { ESKALASYON_KAYNAKLARI, HEDEF_TURLERI } from '../uyum/eskalasyon';
 import { db } from '../db';
 import { yetkiZorunlu, kapsamZorunlu, KAPSAM_SONRA } from '../erisim';
 import { tamam, hata, iz, bosluksuz, type Sonuc } from './ortak';
@@ -35,7 +36,8 @@ import { MODUL_SOZLUGU, ayarinModulu, type HedefTipi } from '../yonetim/moduller
    `yetkiZorunlu('yonetim', …)` ile kapılanır; okuyucu rolü 'okuma' alır,
    yazma/onay alamaz (lib/erisim.ts ROL_IZINLERI). */
 
-const KATALOG_TIPLERI = ['grup', 'tuzelKisi', 'uretimUnitesi', 'varlikTuru', 'agBolgesi'] as const;
+const KATALOG_TIPLERI = ['grup', 'tuzelKisi', 'uretimUnitesi', 'varlikTuru',
+  'agBolgesi', 'eskalasyonKurali'] as const;
 type KatalogTipi = typeof KATALOG_TIPLERI[number];
 
 const bosaNull = (s: unknown) => (typeof s === 'string' && s.trim() === '' ? null : s);
@@ -73,11 +75,29 @@ const SEMALAR = {
     tesisId: z.preprocess(bosaNull, z.string().nullable().optional()),
     guvenlikSeviyesi: tamSayiYaNull.optional(),
   }),
+  /* UY-36 · Eskalasyon kademesi. `kod` alanı YOK: kimliği
+     (kaynakTipi, onemDerecesi, kademe) üçlüsüdür ve veritabanı bunu
+     tekil kısıtla zorlar. Konsolun ortak sözleşmesi bir `kod` beklediği
+     için görüntülenen kod o üçlüden TÜRETİLİR. */
+  eskalasyonKurali: z.object({
+    kaynakTipi: z.enum(ESKALASYON_KAYNAKLARI),
+    onemDerecesi: z.preprocess(bosaNull, z.string().nullable().optional()),
+    kademe: z.coerce.number().int().min(1, 'Kademe en az 1 olmalı')
+      .max(9, 'Kademe en çok 9 olabilir'),
+    gecikmeGun: z.coerce.number().int()
+      .min(1, 'Gecikme en az 1 gün olmalı — hedef tarihten önce eskalasyon olmaz')
+      .max(365, 'Gecikme en çok 365 gün olabilir'),
+    hedefTuru: z.enum(HEDEF_TURLERI),
+    hedefDeger: z.preprocess(bosaNull, z.string().nullable().optional()),
+    aciklama: z.preprocess(bosaNull, z.string().nullable().optional()),
+    aktif: mantik.optional(),
+  }),
 } satisfies Record<KatalogTipi, z.ZodTypeAny>;
 
 const VARLIK_TIPI: Record<KatalogTipi, string> = {
   grup: 'Grup', tuzelKisi: 'TuzelKisi', uretimUnitesi: 'UretimUnitesi',
   varlikTuru: 'VarlikTuru', agBolgesi: 'AgBolgesi',
+  eskalasyonKurali: 'EskalasyonKurali',
 };
 
 const yenile = () => { revalidatePath('/yonetim-tezgahi'); revalidatePath('/'); };
@@ -92,6 +112,7 @@ async function katalogOku(tip: KatalogTipi, id: string): Promise<Record<string, 
     case 'uretimUnitesi': return db.uretimUnitesi.findUnique({ where: { id } });
     case 'varlikTuru': return db.varlikTuru.findUnique({ where: { id } });
     case 'agBolgesi': return db.agBolgesi.findUnique({ where: { id } });
+    case 'eskalasyonKurali': return db.eskalasyonKurali.findUnique({ where: { id } });
   }
 }
 
@@ -163,6 +184,30 @@ export async function katalogKaydet(girdi: {
           : (await db.agBolgesi.create({ data: { kod: d.kod, ...data } })).id;
         break;
       }
+      case 'eskalasyonKurali': {
+        const d = v as z.infer<typeof SEMALAR.eskalasyonKurali>;
+        /* Hedef türü `rol` ya da `kullanici` ise hedef DEĞERİ zorunludur:
+           hedefsiz bir kural kayıt yazar ama kimseye haber vermez. */
+        if ((d.hedefTuru === 'rol' || d.hedefTuru === 'kullanici') && !d.hedefDeger) {
+          return { ok: false,
+            hata: `"${d.hedefTuru}" hedef türü bir hedef değeri ister; `
+              + 'hedefsiz kural kimseye haber veremez.' };
+        }
+        if (d.hedefTuru === 'kullanici' && d.hedefDeger) {
+          const kisi = await db.kullanici.findUnique({ where: { id: d.hedefDeger } });
+          if (!kisi) return { ok: false, hata: 'Seçilen hedef kullanıcı bulunamadı' };
+        }
+        const data = {
+          kaynakTipi: d.kaynakTipi, onemDerecesi: d.onemDerecesi ?? null,
+          kademe: d.kademe, gecikmeGun: d.gecikmeGun, hedefTuru: d.hedefTuru,
+          hedefDeger: d.hedefDeger ?? null, aciklama: d.aciklama ?? null,
+          aktif: d.aktif ?? true,
+        };
+        id = girdi.id
+          ? (await db.eskalasyonKurali.update({ where: { id: girdi.id }, data })).id
+          : (await db.eskalasyonKurali.create({ data })).id;
+        break;
+      }
     }
     const sonra = await katalogOku(tip, id);
     await iz({ aktorId: k.id, varlikTipi: VARLIK_TIPI[tip], varlikId: id,
@@ -218,6 +263,20 @@ export async function katalogArsivle(girdi: { tip: string; id: string; gerekce: 
         if (v > 0) return engel(v, 'varlık');
         if (g > 0) return engel(g, 'ağ geçidi');
         await db.agBolgesi.delete({ where: { id: girdi.id } });
+        break;
+      }
+      case 'eskalasyonKurali': {
+        /* Tetiklenmiş kademe SİLİNMEZ, PASİFE alınır: kayıt bir
+           eskalasyonun gerçekten yapıldığının kanıtıdır ve kuralı silmek
+           o kanıtı da (cascade) silerdi. */
+        const t = await db.eskalasyonKaydi.count({ where: { kuralId: girdi.id } });
+        if (t > 0) {
+          await db.eskalasyonKurali.update({
+            where: { id: girdi.id }, data: { aktif: false },
+          });
+          break;
+        }
+        await db.eskalasyonKurali.delete({ where: { id: girdi.id } });
         break;
       }
     }
@@ -344,6 +403,35 @@ async function etkiSatirlari(hedefTipi: HedefTipi, hedefId: string | null, sonra
     }
     case 'tesisGorsel':
       return [{ baslik: 'Ekran', deger: 3, not: 'Saha şeridi · Portföy · Santral 360' }];
+    case 'eskalasyonKurali': {
+      /* Etki: bu kademe kaç kez tetiklenmiş ve bugün kaç kayıt bu
+         kaynak tipinde gecikmiş. İkincisi bir TAHMİN değil, bugünkü
+         gerçek sayıdır; kural değişince kaç kaydın etkileneceğini
+         gösterir. */
+      const kaynakTipi = String(sonra?.kaynakTipi ?? '');
+      const satirlar: EtkiSatiri[] = [];
+      satirlar.push(hedefId
+        ? { baslik: 'Bu kademede tetiklenmiş eskalasyon',
+          deger: await db.eskalasyonKaydi.count({ where: { kuralId: hedefId } }) }
+        : { baslik: 'Bu kademede tetiklenmiş eskalasyon', deger: 0,
+          not: 'Yeni kural — henüz tetiklenmedi' });
+      const simdi = new Date();
+      if (kaynakTipi === 'bulgu') {
+        satirlar.push({ baslik: 'Bugün hedefi geçmiş açık bulgu',
+          deger: await db.bulgu.count({ where: {
+            silindi: null, durum: { in: ['acik', 'aksiyonda'] },
+            hedefTarih: { lt: simdi } } }) });
+      } else if (kaynakTipi === 'aksiyon') {
+        satirlar.push({ baslik: 'Bugün hedefi geçmiş açık aksiyon',
+          deger: await db.aksiyon.count({ where: {
+            durum: { in: ['planlandi', 'devam'] }, hedef: { lt: simdi } } }) });
+      } else if (kaynakTipi === 'gorev') {
+        satirlar.push({ baslik: 'Bugün son tarihi geçmiş açık görev',
+          deger: await db.gorev.count({ where: {
+            durum: { in: ['acik', 'yapiliyor'] }, sonTarih: { lt: simdi } } }) });
+      }
+      return satirlar;
+    }
     case 'ayar': {
       const anahtar = String(sonra?.anahtar ?? hedefId ?? '');
       const t = ayarTanimi(anahtar);

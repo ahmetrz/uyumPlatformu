@@ -46,6 +46,7 @@ const ALAN_ROTALARI: Record<string, string[]> = {
   '/uyum': [
     '/uyum', '/regulasyonlar', '/surecler', '/eslestirme', '/denetimler',
     '/bulgular', '/projeler', '/raporlar', '/dokumanlar', '/kanitlar', '/aktivite',
+    '/degerlendirme-aktarim',
   ],
   '/envanter': [
     '/envanter', '/kesif', '/varlik-aktarim', '/ice-aktarim', '/topoloji',
@@ -85,6 +86,11 @@ export const IKINCIL: Record<string, { baslik?: string; ogeler: Oge[] }[]> = {
       { ad: 'Regülasyonlar', yol: '/regulasyonlar' },
       { ad: 'Süreçler', yol: '/surecler' },
       { ad: 'Çapraz eşleme', yol: '/eslestirme' },
+      /* UY-43 · Değerlendirme aktarımı MATRİSİN yanında durur çünkü
+         matrisin içeriğini toplu değiştiren tek yol odur. Katalog
+         aktarımı (`/ice-aktarim`) ayrıdır ve gezinmede yer almaz:
+         o REGÜLASYONU aktarır, bu KURUMUN CEVABINI. */
+      { ad: 'Değerlendirme aktarımı', yol: '/degerlendirme-aktarim' },
     ]},
     { ogeler: [
       { ad: 'Denetimler', yol: '/denetimler' },

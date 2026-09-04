@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { girisZorunlu, izinVar } from '@/lib/erisim';
 import { Yetkisiz } from '@/components/kabuk/temel';
 import { db } from '@/lib/db';
+import { kaynaklariCoz } from './veri';
 import RegulasyonlarIstemci from './RegulasyonlarIstemci';
 import { kisaKod, type Reg } from './mantik';
 
@@ -49,6 +50,12 @@ export default async function Sayfa() {
           orderBy: { olusturuldu: 'desc' },
           include: { farklar: true, _count: { select: { maddeler: true } } },
         },
+        /* UY-41 · Resmî kaynak kütüğü. Adres kurumdan gelir; ürün hiçbir
+           adresle GELMEZ ve buraya hiçbir varsayılan yazılmaz. */
+        kaynaklar: {
+          orderBy: { ad: 'asc' },
+          include: { sonKontrolEden: { select: { adSoyad: true } } },
+        },
         _count: { select: { surecler: true } },
       },
       orderBy: { kod: 'asc' },
@@ -72,6 +79,9 @@ export default async function Sayfa() {
       altSayisi: m._count.altMaddeler,
       kullanimSayisi: m._count.durumlar,
     })),
+    /* Takip DURUMU `veri.ts` içinde, sunucuda hesaplanır: "şimdi" render
+       gövdesinde okunamaz (React saflık kuralı). */
+    kaynaklar: kaynaklariCoz(r.kaynaklar),
     surumler: r.surumler.map((sv) => ({
       id: sv.id, etiket: sv.surumEtiketi, durum: sv.durum,
       maddeSayisi: sv._count.maddeler,

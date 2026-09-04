@@ -1,7 +1,7 @@
 {
-  "imza": "c87a06d17b3fc381dd21b255443464d2",
-  "dosya": 113,
-  "vaka": 2174,
+  "imza": "70c6c2b3c3a0771904d021abb8e19f3f",
+  "dosya": 115,
+  "vaka": 2333,
   "atlanan": 1,
   "dosyalar": {
     "tests/advisory.test.ts": {
@@ -142,6 +142,14 @@
     },
     "tests/faz-d-uyum.test.ts": {
       "vaka": 66,
+      "atlanan": 0
+    },
+    "tests/faz-e-eylem.test.ts": {
+      "vaka": 50,
+      "atlanan": 0
+    },
+    "tests/faz-e-uyum.test.ts": {
+      "vaka": 109,
       "atlanan": 0
     },
     "tests/giris-guvenligi.test.ts": {

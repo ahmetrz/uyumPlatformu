@@ -213,6 +213,8 @@ export const MOTOR_ADLARI_SOZLUK = [
   'konfig_drift', 'envanter_gorunurlugu',
   /* Uyum yönetişimi ikilisi (UY-28 · UY-36) — aynı kural. */
   'tekrar_bulgu', 'eskalasyon',
+  /* UY-63 · Bildirim süresi — aynı kural. */
+  'bildirim_suresi',
 ] as const;
 
 for (const ad of MOTOR_ADLARI_SOZLUK) {

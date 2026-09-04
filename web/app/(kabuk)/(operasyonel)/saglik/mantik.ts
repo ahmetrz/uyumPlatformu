@@ -89,6 +89,11 @@ export const IS_TANIMLARI: IsTanimi[] = [
   { ad: 'eskalasyon', etiket: 'Eskalasyon', elleCalisir: true,
     aciklama: 'Gecikmiş bulgu/aksiyon/görev için kademeli bildirim yazar; her '
       + 'kademe BİR KEZ tetiklenir, haber verilecek kimse yoksa sebebi kaydeder' },
+  /* Bildirim süresi motoru (UY-63). Açıklaması NE YAZMADIĞINI da söyler:
+     resmî bir bildirimin yapıldığını yazabilecek tek şey insandır. */
+  { ad: 'bildirim_suresi', etiket: 'Bildirim süresi', elleCalisir: true,
+    aciklama: 'Resmî bildirim süresi geçen/daralan olaylar için görev açar — '
+      + '"bildirildi" YAZMAZ, olaya dokunmaz; kural tanımlı değilse hiçbir şey yapmaz' },
   { ad: 'bakim_temizlik', etiket: 'Bakım temizliği', elleCalisir: false,
     aciklama: 'Süresi dolmuş oturum ve iş kilidi satırlarını siler (saatlik, zamanlayıcıdan) '
       + '— bulgu üretmez, veri yorumlamaz' },

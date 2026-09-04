@@ -131,6 +131,11 @@ model Tesis {
   erisimOturumlari          TedarikciErisimOturumu[]
   kesifKayitlari            KesifKaydi[]
   belgeBaglantilari         DokumanTesis[]
+
+  // FAZ G ters bağları
+  envanterSayimlari EnvanterSayimi[]
+  yedekParcalari    YedekParca[]
+  tasinabilirMedya  TasinabilirMedya[]
 }
 
 model Regulasyon {
@@ -152,6 +157,10 @@ model Regulasyon {
   kararlar UygulanabilirlikKarari[]
   kaynaklar RegulasyonKaynagi[]
   degerlendirmeAktarimlari DegerlendirmeAktarimi[]
+
+  // FAZ G ters bağları
+  bildirimYukumlulukleri BildirimYukumlulugu[]
+  yonetimGozdenGecirmeleri YonetimGozdenGecirme[]
 }
 
 /// Kapsam alanı (BT, OT ...). Panelden tanımlanır; maddelerle çoktan-çoğa eşleştirilir.
@@ -213,6 +222,9 @@ model Madde {
   belgeBaglantilari DokumanMadde[]
 
   @@unique([regulasyonId, surumId, kod])
+
+  // FAZ G ters bağları
+  egitimBaglari EgitimMadde[]
 }
 
 /// Madde ↔ kapsam alanı eşleştirmesi (panelden yönetilir).
@@ -283,6 +295,14 @@ model MaddeDurumu {
   dogrulayanId     String?
   dogrulamaZamani  DateTime?
   not              String?
+  /// UY-59 · Bu santralde ÖLÇÜLEN olgunluk seviyesi (0-5).
+  ///
+  /// Hedef seviye `Madde.olgunlukSeviyesi`tedir ve bütün santraller için
+  /// ortaktır; ölçülen seviye santralden santrale değişir. İkisini tek
+  /// alana sıkıştırmak "hedefimiz neydi" sorusunu cevapsız bırakırdı.
+  ///
+  /// `null` = ÖLÇÜLMEDİ. Sıfır ayrı bir şeydir: "uygulama başlamadı".
+  olgunlukSeviyesi Int?
   sonDegerlendirme DateTime?
   guncellendi      DateTime  @updatedAt
 
@@ -299,6 +319,9 @@ model MaddeDurumu {
 
   @@unique([surecId, maddeId, tesisId])
   @@index([surecId, tesisId, durum])
+
+  // FAZ G ters bağları
+  kontrolTestleri KontrolTesti[]
 }
 
 // ------------------------------------------------------------ bulgu/aksiyon
@@ -428,6 +451,9 @@ model Kanit {
   tesisBaglantilari  KanitTesis[]
   talepler           KanitTalebi[]
   surumler           KanitSurumu[]
+
+  // FAZ G ters bağları
+  egitimKayitlari EgitimKaydi[]
 }
 
 /// UY-12 · Kanıt sürüm geçmişi — DEĞİŞMEZ kayıt.
@@ -611,6 +637,18 @@ model Kullanici {
   inceledigiRedler        ReddedilenKayit[]        @relation("RedInceleyen")
   uygulanamazKayitlari    AlanUygulanabilirligi[]  @relation("UygulanamazKaydeden")
   yukledigiSbomlar        SbomBelgesi[]            @relation("SbomYukleyen")
+
+  // FAZ G ters bağları
+  actigiSayimlar        EnvanterSayimi[] @relation("SayimAcan")
+  kapattigiSayimlar     EnvanterSayimi[] @relation("SayimKapatan")
+  saydigiSatirlar       SayimSatiri[]    @relation("SayimSayan")
+  sahipOlduguMedya      TasinabilirMedya[] @relation("MedyaSahibi")
+  onayladigiMedyaKullanimlari MedyaKullanimi[] @relation("MedyaOnaylayan")
+  guncelledigiBildirimKurallari BildirimYukumlulugu[] @relation("BildirimKuraliGuncelleyen")
+  yaptigiKontrolTestleri KontrolTesti[]  @relation("KontrolTestEden")
+  yurutuguGozdenGecirmeler YonetimGozdenGecirme[] @relation("GozdenGecirmeYuruten")
+  sorumluGozdenGecirmeKararlari GozdenGecirmeKarari[] @relation("GozdenGecirmeSorumlusu")
+  egitimKayitlari       EgitimKaydi[]    @relation("EgitimAlan")
 }
 
 /// Yetki kapsamı (kullanıcı × uyum süreci × tesis). Alan null ise "tümü".
@@ -1491,6 +1529,10 @@ model VarlikTuru {
 
   varliklar        Varlik[]
   firmwareTemelleri FirmwareTemeli[]
+
+  // FAZ G ters bağları
+  envanterSayimlari EnvanterSayimi[]
+  yedekParcalari    YedekParca[]
 }
 
 /// Varlık (assets, §7.2) — CMDB çekirdeği.
@@ -1610,6 +1652,11 @@ model Varlik {
 
   @@index([tesisId, kritiklik])
   @@index([eosTarihi])
+
+  // FAZ G ters bağları
+  sayimSatirlari   SayimSatiri[]
+  yedekParcalari   YedekParcaVarlik[]
+  medyaKullanimlari MedyaKullanimi[]
 }
 
 /// Varlık ilişkisi: depends_on | runs_on | connects_to | hosts | backs_up
@@ -1640,6 +1687,9 @@ model AgBolgesi {
   segmentler     AgSegmenti[]
   kaynakGecitler AgGeciti[]   @relation("GecitKaynak")
   hedefGecitler  AgGeciti[] @relation("GecitHedef")
+
+  // FAZ G ters bağları
+  envanterSayimlari EnvanterSayimi[]
 }
 
 /// Zone-to-zone geçit (conduit): hangi bölge hangi bölgeye, hangi kontrolle.
@@ -1757,6 +1807,9 @@ model Tedarikci {
   varliklar        Varlik[]
   sozlesmeler      Sozlesme[]
   erisimOturumlari TedarikciErisimOturumu[]
+
+  // FAZ G ters bağları
+  yedekParcalari YedekParca[]
 }
 
 model Sozlesme {
@@ -2118,6 +2171,9 @@ model Gorev {
   tesis   Tesis?     @relation(fields: [tesisId], references: [id])
 
   @@index([durum, sonTarih])
+
+  // FAZ G ters bağları
+  gozdenGecirmeKararlari GozdenGecirmeKarari[]
 }
 
 model Bildirim {
@@ -3399,4 +3455,370 @@ model OuiKaydi {
   yuklendi    DateTime @default(now())
 
   @@index([uretici])
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// FAZ G — isterler tablosundaki sekiz "YOK" maddesi
+// ═══════════════════════════════════════════════════════════════════════
+
+/// OT-55 · Fiziksel envanter sayımı — kampanya.
+///
+/// Envanterin sahayla tutarlılığını ölçen tek yol keşif kaynağı değildir:
+/// keşif yalnız AĞDA GÖRÜNEN cihazı bulur. Kapalı bir pano içindeki
+/// yedek PLC, ağa hiç bağlanmayan bir mühendislik dizüstü ya da sökülüp
+/// depoya konmuş bir kart hiçbir keşif taramasında çıkmaz. Sayım bunun
+/// için vardır ve insanın sahaya gitmesini gerektirir.
+///
+/// **Sayım hiçbir varlığı SİLMEZ.** Sonuç bir kayıttır; envanterden
+/// düşürme kararı ayrı bir insan kararıdır.
+model EnvanterSayimi {
+  id           String    @id @default(cuid())
+  kod          String    @unique
+  ad           String
+  tesisId      String
+  /// Kapsam daraltıcıları. null = o eksende daraltma yok.
+  turId        String?
+  bolgeId      String?
+  /// hazirlik | sahada | karsilastirma | kapali
+  durum        String    @default("hazirlik")
+  baslangic    DateTime  @default(now())
+  bitis        DateTime?
+  acanId       String
+  kapatanId    String?
+  /// Sayım AÇILDIĞI andaki kapsam büyüklüğü — payda burada donar.
+  /// Sonradan eklenen varlık bu sayımın paydasını değiştirmez; yoksa
+  /// oran her gün başka bir şey söylerdi.
+  kapsamSayisi Int
+  gerekce      String?
+  olusturuldu  DateTime  @default(now())
+
+  tesis   Tesis       @relation(fields: [tesisId], references: [id], onDelete: Cascade)
+  tur     VarlikTuru? @relation(fields: [turId], references: [id])
+  bolge   AgBolgesi?  @relation(fields: [bolgeId], references: [id])
+  acan    Kullanici   @relation("SayimAcan", fields: [acanId], references: [id])
+  kapatan Kullanici?  @relation("SayimKapatan", fields: [kapatanId], references: [id])
+
+  satirlar SayimSatiri[]
+
+  @@index([tesisId, durum])
+}
+
+/// OT-55 · Sayım satırı — bir varlığın o kampanyadaki sonucu.
+///
+/// **"Sayılmadı" ile "bulunamadı" AYRI durumlardır** ve bu ayrım bu
+/// modelin var olma sebebidir. Henüz gidilmemiş bir raf, kayıp varlık
+/// değildir; ikisini aynı kovaya koymak sayımı ilk gün %90 kayıp
+/// gösterir ve kimse bir daha bakmaz.
+model SayimSatiri {
+  id          String    @id @default(cuid())
+  sayimId     String
+  /// Kayıtta olan varlık. Sahada FAZLADAN bulunan cihazda null olur.
+  varlikId    String?
+  /// Sahada bulunup kayıtta olmayan cihazın kimliği (etiket, seri no, MAC).
+  sahaKimligi String?
+  /// sayilmadi | dogrulandi | bulunamadi | yeri_farkli | fazladan
+  sonuc       String    @default("sayilmadi")
+  bulunanYer  String?
+  not         String?
+  sayanId     String?
+  sayimZamani DateTime?
+
+  sayim  EnvanterSayimi @relation(fields: [sayimId], references: [id], onDelete: Cascade)
+  varlik Varlik?        @relation(fields: [varlikId], references: [id], onDelete: Cascade)
+  sayan  Kullanici?     @relation("SayimSayan", fields: [sayanId], references: [id])
+
+  @@index([sayimId, sonuc])
+  @@index([varlikId])
+}
+
+/// OT-56 · Kritik yedek parça.
+///
+/// EOL/EOS takibi "bu cihaz ne zaman desteksiz kalacak" sorusunu yanıtlar;
+/// yedek parça "bu kart BUGÜN bozulursa elimizde var mı" sorusunu. OT'de
+/// ikincisi çoğu zaman daha acildir: tedarik süresi aylarla ölçülen bir
+/// PLC kartı, üretimi durduran bir arızada EOL tarihinden çok daha
+/// belirleyicidir.
+model YedekParca {
+  id               String   @id @default(cuid())
+  kod              String   @unique
+  ad               String
+  ureticiParcaNo   String?
+  /// Hangi varlık türüne uyduğu. null = tür bazlı eşleşme yok, yalnız
+  /// aşağıdaki varlık bağları geçerli.
+  turId            String?
+  /// Parçanın durduğu depo. null = merkezî depo.
+  tesisId          String?
+  konum            String?
+  /// Elde kaç adet — ÖLÇÜLMÜŞ sayı. Sayılmadıysa kayıt açılmaz.
+  stokAdedi        Int
+  /// Bu adedin altına düşünce kritik sayılır.
+  kritikEsik       Int      @default(1)
+  /// Yeniden tedarik süresi (gün). null = ÖLÇÜLMEDİ — sıfır DEĞİL.
+  /// Sıfır yazmak "hemen gelir" demektir ve bu bir yalandır.
+  tedarikSuresiGun Int?
+  tedarikciId      String?
+  sonSayim         DateTime?
+  aktif            Boolean  @default(true)
+  olusturuldu      DateTime @default(now())
+  guncellendi      DateTime @updatedAt
+
+  tur        VarlikTuru? @relation(fields: [turId], references: [id])
+  tesis      Tesis?      @relation(fields: [tesisId], references: [id])
+  tedarikci  Tedarikci?  @relation(fields: [tedarikciId], references: [id])
+
+  varliklar YedekParcaVarlik[]
+
+  @@index([tesisId, aktif])
+}
+
+/// OT-56 · Parçanın hizmet ettiği TEKİL varlık.
+///
+/// Tür bazlı eşleşme (`YedekParca.turId`) çoğu durumda yeter; bu tablo
+/// "şu kritik türbin kontrolcüsünün yedeği özellikle budur" demek için
+/// vardır. Kritiklik hesabı bu bağdan gelir: hiçbir kritik varlığa
+/// bağlanmamış bir parçanın stoğunun sıfır olması bir arıza değildir.
+model YedekParcaVarlik {
+  id       String @id @default(cuid())
+  parcaId  String
+  varlikId String
+
+  parca  YedekParca @relation(fields: [parcaId], references: [id], onDelete: Cascade)
+  varlik Varlik     @relation(fields: [varlikId], references: [id], onDelete: Cascade)
+
+  @@unique([parcaId, varlikId])
+  @@index([varlikId])
+}
+
+/// OT-57 · Taşınabilir medya kütüğü.
+///
+/// OT ortamında bulaşmanın en bilinen yolu ağ değil, elden ele dolaşan
+/// bir USB bellektir: hava boşluklu (air-gapped) bir sistemi ağ
+/// üzerinden değil, mühendislik istasyonuna takılan bir bellekle
+/// vurursunuz. Kayıtsız medya, envanterin göremediği tek taşıyıcıdır.
+///
+/// **Ürün medyayı ENGELLEMEZ.** Bu bir kütük ve kayıt katmanıdır;
+/// engelleme uç nokta koruma ürününün işidir ve ürün onun yaptığını
+/// yaptığını iddia etmez.
+model TasinabilirMedya {
+  id          String    @id @default(cuid())
+  kod         String    @unique
+  ad          String
+  /// usb_bellek | harici_disk | optik | sd_kart | diger
+  tip         String    @default("usb_bellek")
+  seriNo      String?
+  tesisId     String?
+  sahibiId    String?
+  /// kayitli | karantina | kayip | imha
+  durum       String    @default("kayitli")
+  /// Şifreli mi? null = ÖLÇÜLMEDİ — "şifresiz" DEĞİL.
+  sifreli     Boolean?
+  /// Son zararlı yazılım taraması. null = HİÇ TARANMADI.
+  sonTarama   DateTime?
+  not         String?
+  olusturuldu DateTime  @default(now())
+  guncellendi DateTime  @updatedAt
+
+  tesis  Tesis?     @relation(fields: [tesisId], references: [id])
+  sahibi Kullanici? @relation("MedyaSahibi", fields: [sahibiId], references: [id])
+
+  kullanimlar MedyaKullanimi[]
+
+  @@index([tesisId, durum])
+}
+
+/// OT-57 · Medyanın bir varlıkta kullanılması.
+///
+/// Onay ALANI zorunlu değildir ama onaysız kullanım bir KUSURDUR ve
+/// ekran bunu böyle gösterir. Onayı zorunlu tutmak, kaydı hiç
+/// girilmeyen bir kullanım üretirdi: kayıtsız kullanım, onaysız
+/// kullanımdan kötüdür.
+model MedyaKullanimi {
+  id           String    @id @default(cuid())
+  medyaId      String
+  varlikId     String
+  baslangic    DateTime
+  bitis        DateTime?
+  amac         String
+  onaylayanId  String?
+  onayZamani   DateTime?
+  /// Kayıt bir uç nokta ürününden geldiyse kaynağı; elle girişte null.
+  kaynakSistem String?
+  olusturuldu  DateTime  @default(now())
+
+  medya      TasinabilirMedya @relation(fields: [medyaId], references: [id], onDelete: Cascade)
+  varlik     Varlik           @relation(fields: [varlikId], references: [id], onDelete: Cascade)
+  onaylayan  Kullanici?       @relation("MedyaOnaylayan", fields: [onaylayanId], references: [id])
+
+  @@index([medyaId])
+  @@index([varlikId, baslangic])
+}
+
+/// UY-63 · Resmî bildirim yükümlülüğü kuralı.
+///
+/// `Olay.bildirimGerekli` alanı VARDI ve bir insanın işaretlemesini
+/// bekliyordu; `bildirimTarihi` de yazılabiliyordu. Eksik olan tek şey
+/// SÜREYDİ: "ne zamana kadar bildirmeliydik" sorusunun cevabı hiçbir
+/// yerde yoktu, dolayısıyla süre aşımı da kendiliğinden görünmüyordu.
+///
+/// Süreler mevzuattan gelir ve ÜRÜNLE GELMEZ: kurum kendi tabi olduğu
+/// düzenlemeye göre tanımlar. Örnek bir süre yazmak, yanlış bir saatle
+/// çalışan bir sayaç bırakırdı.
+model BildirimYukumlulugu {
+  id           String   @id @default(cuid())
+  kod          String   @unique
+  ad           String
+  regulasyonId String?
+  /// Bu şiddetten itibaren yükümlülük doğar: dusuk | orta | yuksek | kritik
+  asgariSiddet String   @default("yuksek")
+  /// Olayın başlangıcından itibaren kaç SAAT içinde bildirilmeli.
+  sureSaat     Int
+  /// Hangi mevzuat maddesi bu süreyi gerektiriyor — zorunlu.
+  dayanak      String
+  /// Kime bildirilecek (kurum adı). Adres ya da uç nokta DEĞİL.
+  merci        String
+  aktif        Boolean  @default(true)
+  olusturuldu  DateTime @default(now())
+  guncelleyenId String?
+
+  regulasyon  Regulasyon? @relation(fields: [regulasyonId], references: [id])
+  guncelleyen Kullanici?  @relation("BildirimKuraliGuncelleyen", fields: [guncelleyenId], references: [id])
+}
+
+/// UY-64 · Kontrol testi — kontrolün NASIL doğrulandığı.
+///
+/// Ürün bir kontrolün doğrulandığını kaydediyordu ama hangi yöntemle
+/// doğrulandığını kaydetmiyordu. Denetçinin ilk sorusu budur:
+/// "tasarımına mı baktınız, işlediğine mi; kaç örnek incelediniz?"
+///
+/// **Tasarım testi kontrolün ÇALIŞTIĞINI göstermez.** Politikanın doğru
+/// yazıldığını gösterir. İkisini aynı kefeye koymak, hiç koşmamış bir
+/// kontrolü "doğrulandı" saymaktır.
+model KontrolTesti {
+  id             String   @id @default(cuid())
+  maddeDurumuId  String
+  /// tasarim | isleyis
+  yontem         String
+  /// İşleyiş testinde evren ve örneklem. Tasarım testinde null.
+  evrenSayisi    Int?
+  orneklemSayisi Int?
+  uygunSayisi    Int?
+  /// uygun | kismen | uygun_degil
+  sonuc          String
+  testTarihi     DateTime
+  testEdenId     String
+  not            String?
+  olusturuldu    DateTime @default(now())
+
+  maddeDurumu MaddeDurumu @relation(fields: [maddeDurumuId], references: [id], onDelete: Cascade)
+  testEden    Kullanici   @relation("KontrolTestEden", fields: [testEdenId], references: [id])
+
+  @@index([maddeDurumuId, testTarihi])
+}
+
+/// UY-65 · Yönetim gözden geçirmesi.
+///
+/// ISO 27001 dâhil çoğu çerçevede zorunlu bir KAYITTIR ve denetimde
+/// istenir. Ürün bunu tutmuyordu; toplantı yapılıyor, kararlar
+/// e-postada kalıyordu.
+model YonetimGozdenGecirme {
+  id           String    @id @default(cuid())
+  kod          String    @unique
+  baslik       String
+  tarih        DateTime
+  /// planli | yapildi | iptal
+  durum        String    @default("planli")
+  regulasyonId String?
+  /// Kimler katıldı — serbest metin. Kullanıcı kütüğüne bağlamak,
+  /// kurum dışı katılımcıyı (denetçi, danışman) kaydedilemez kılardı.
+  katilimcilar String?
+  gundem       String?
+  ozet         String?
+  yurutenId    String
+  olusturuldu  DateTime  @default(now())
+
+  regulasyon Regulasyon? @relation(fields: [regulasyonId], references: [id])
+  yuruten    Kullanici   @relation("GozdenGecirmeYuruten", fields: [yurutenId], references: [id])
+
+  kararlar GozdenGecirmeKarari[]
+
+  @@index([durum, tarih])
+}
+
+/// UY-65 · Gözden geçirme kararı.
+///
+/// **Kararı olmayan gözden geçirme "yapıldı" sayılmaz.** Bir toplantı
+/// kaydının denetimdeki değeri, ürettiği kararlardır; özet metni değil.
+model GozdenGecirmeKarari {
+  id              String    @id @default(cuid())
+  gozdenGecirmeId String
+  karar           String
+  sorumluId       String?
+  sonTarih        DateTime?
+  /// acik | tamamlandi | iptal
+  durum           String    @default("acik")
+  /// Karardan açılan görev. Karar bir CÜMLE değil, bir İŞ olmalı.
+  gorevId         String?
+  olusturuldu     DateTime  @default(now())
+
+  gozdenGecirme YonetimGozdenGecirme @relation(fields: [gozdenGecirmeId], references: [id], onDelete: Cascade)
+  sorumlu       Kullanici?           @relation("GozdenGecirmeSorumlusu", fields: [sorumluId], references: [id])
+  gorev         Gorev?               @relation(fields: [gorevId], references: [id])
+
+  @@index([gozdenGecirmeId, durum])
+}
+
+/// UY-66 · Eğitim tanımı.
+///
+/// "Eğitim kaydı" zaten bir KANIT TİPİYDİ: bir belge yükleyip kontrole
+/// bağlayabiliyordunuz. Eksik olan kütüktü — kimin hangi eğitimi ne
+/// zaman aldığı ve ne zaman geçerliliğini yitirdiği.
+model Egitim {
+  id           String   @id @default(cuid())
+  kod          String   @unique
+  ad           String
+  /// Geçerlilik süresi (ay). null = SÜRESİZ — bilinçli bir karardır,
+  /// ölçülmemiş değil.
+  gecerlilikAy Int?
+  /// Zorunlu eğitimde kapsamdaki herkesin kaydı beklenir.
+  zorunlu      Boolean  @default(false)
+  aciklama     String?
+  aktif        Boolean  @default(true)
+  olusturuldu  DateTime @default(now())
+  guncellendi  DateTime @updatedAt
+
+  kayitlar EgitimKaydi[]
+  maddeler EgitimMadde[]
+}
+
+/// UY-66 · Bir kişinin bir eğitimi tamamlaması.
+model EgitimKaydi {
+  id              String    @id @default(cuid())
+  egitimId        String
+  kullaniciId     String
+  tamamlanma      DateTime
+  /// Tamamlanma + geçerlilik süresi. Süresiz eğitimde null.
+  gecerlilikBitis DateTime?
+  belgeNo         String?
+  /// Kanıt kütüğündeki belgeye bağ — sertifikanın kendisi.
+  kanitId         String?
+  olusturuldu     DateTime  @default(now())
+
+  egitim    Egitim    @relation(fields: [egitimId], references: [id], onDelete: Cascade)
+  kullanici Kullanici @relation("EgitimAlan", fields: [kullaniciId], references: [id], onDelete: Cascade)
+  kanit     Kanit?    @relation(fields: [kanitId], references: [id])
+
+  @@unique([egitimId, kullaniciId, tamamlanma])
+  @@index([kullaniciId])
+}
+
+/// UY-66 · Eğitimin karşıladığı kontrol maddesi.
+model EgitimMadde {
+  id       String @id @default(cuid())
+  egitimId String
+  maddeId  String
+
+  egitim Egitim @relation(fields: [egitimId], references: [id], onDelete: Cascade)
+  madde  Madde  @relation(fields: [maddeId], references: [id], onDelete: Cascade)
+
+  @@unique([egitimId, maddeId])
 }

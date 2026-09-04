@@ -14,6 +14,7 @@ import {
 import { konfigDriftiniIsle, envanterGorunurluguIsle } from './varlikYonetisim';
 import { tekrarlariIsle } from './tekrarBulgu';
 import { eskalasyonlariIsle } from './eskalasyon';
+import { bildirimSurelerini } from './bildirimSuresi';
 
 /* Motor kayıt defteri — TEK doğruluk kaynağı.
 
@@ -62,6 +63,11 @@ export const MOTORLAR = {
      vardı ve hiçbir kod onu yazmıyordu (ölçülmüş kusur). */
   tekrar_bulgu: tekrarlariIsle,
   eskalasyon: eskalasyonlariIsle,
+  /* UY-63 · Bildirim süresi. Sayacı işletir, BİLDİRİMİ YAPMAZ ve
+     "bildirildi" YAZMAZ: resmî bir bildirimin yapıldığını söyleyebilecek
+     tek şey insandır. Kurum kendi sürelerini tanımlamadıysa motor hiçbir
+     şey yapmaz — süre uydurmaz. */
+  bildirim_suresi: bildirimSurelerini,
 } as const satisfies Record<string, () => Promise<{ islenen: number; uretilen: number }>>;
 
 export type MotorAdi = keyof typeof MOTORLAR;

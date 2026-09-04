@@ -155,6 +155,11 @@ describe('denetim hücresi', () => {
 
 function degerlendirme(ek: Partial<Degerlendirme> = {}): Degerlendirme {
   return {
+    /* UY-59 · ölçülmemiş olgunluk `null`dur; sıfır DEĞİL.
+       UY-64 · test kaydı olmayan kontrol "uygunsuz" değil ölçülmemiştir. */
+    olgunluk: null,
+    hedefOlgunluk: null,
+    testler: [],
     id: 'd-1',
     madde: {
       id: 'm-1', kod: 'EPDK-SYM-4.2.1', kisaKod: '4.2.1',

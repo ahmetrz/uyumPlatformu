@@ -350,6 +350,29 @@ export type Degerlendirme = {
   /** UY-16 · bugün GEÇERLİ olan kanıt sayısı (süresi dolmuş sayılmaz). */
   gecerliKanit: number;
   acikBulgu: number;
+  /* ── UY-59 · olgunluk ───────────────────────────────────────────────
+     `olgunluk` bu santralde ÖLÇÜLEN, `hedefOlgunluk` maddenin bütün
+     santraller için ortak hedefi. İkisi de `null` olabilir ve `null`
+     "ölçülmedi/tanımsız" demektir — sıfır ayrı bir şeydir ("uygulama
+     başlamadı"). Uyum durumundan da AYRIDIR: bir kontrol uyumlu olup
+     olgunluk 1'de olabilir (çalışıyor ama tek kişiye bağlı). */
+  olgunluk: number | null;
+  hedefOlgunluk: number | null;
+  /** UY-64 · en yeni beş kontrol testi (yeniden eskiye). */
+  testler: KontrolTestiOzeti[];
+};
+
+export type KontrolTestiOzeti = {
+  id: string;
+  /** tasarim | isleyis */
+  yontem: string;
+  sonuc: string;
+  evrenSayisi: number | null;
+  orneklemSayisi: number | null;
+  uygunSayisi: number | null;
+  testTarihi: string;
+  testEden: string;
+  not: string | null;
 };
 
 /** `EPDK-SYM-4.2.1` → `4.2.1` (çerçeve kodu öndeyse düşer). */

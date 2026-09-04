@@ -19,6 +19,7 @@ import {
   type BagAdayi, type BagTipi, type EtkiAlani, type HalkaGorunumu,
   type OlayKaydi, type Santral,
 } from './mantik';
+import { BILDIRIM_SINIFI, BILDIRIM_SOZU } from '@/lib/uyum/bildirimSuresi';
 
 /* O · Olaylar — "bu olay üretimi nasıl etkiledi, kim onayladı?"
 
@@ -340,6 +341,17 @@ function Detay({
               : o.bildirimTarihi ? tarihTR(o.bildirimTarihi) : 'Gerekli · tarih girilmemiş',
           durum: o.bildirimGerekli === null ? 'unk'
             : bildirimBekliyor(o) ? 'bd' : undefined,
+        },
+        /* UY-63 · Süre sayacı. Yükümlülük kuralı tanımlı değilse satır
+           "kural tanımlanmamış" der — bir süre UYDURMAZ. */
+        {
+          etiket: 'Bildirim süresi',
+          deger: o.bildirim.kural === null
+            ? 'kural tanımlanmamış'
+            : `${BILDIRIM_SOZU[o.bildirim.durum]}`
+              + ` · ${o.bildirim.kural.merci} · ${o.bildirim.kural.sureSaat} saat`
+              + (o.bildirim.sonTarih ? ` · son: ${zamanTR(o.bildirim.sonTarih)}` : ''),
+          durum: o.bildirim.kural === null ? 'unk' : BILDIRIM_SINIFI[o.bildirim.durum],
         },
       ]} />
 

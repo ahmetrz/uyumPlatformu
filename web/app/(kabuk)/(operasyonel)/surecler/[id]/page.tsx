@@ -75,6 +75,14 @@ export default async function Sayfa({ params }: { params: Promise<{ id: string }
           },
         },
         dogrulayan: { select: { id: true, adSoyad: true } },
+        /* UY-64 · Kontrol testleri, en yeniden eskiye. Beş kayıt yeter:
+           ekran duruşu belirleyen SON işleyiş testini gösterir, tam
+           geçmiş denetim izindedir. */
+        kontrolTestleri: {
+          include: { testEden: { select: { adSoyad: true } } },
+          orderBy: { testTarihi: 'desc' },
+          take: 5,
+        },
         /* Değerlendirmeyi KİM yaptı: değişmez tarihçenin son satırı.
            `MaddeDurumu` üzerinde ayrıca tutulmaz — iki doğruluk kaynağı
            olurdu. */
@@ -154,6 +162,22 @@ export default async function Sayfa({ params }: { params: Promise<{ id: string }
       durum: d.durum,
       guven: d.guven,
       kanitBayat: d.kanitBayat,
+      /* UY-59 · ÖLÇÜLEN olgunluk santral başına; HEDEF madde üzerinde ve
+         bütün santraller için ortak. `null` = ölçülmedi, sıfır DEĞİL. */
+      olgunluk: d.olgunlukSeviyesi,
+      hedefOlgunluk: d.madde.olgunlukSeviyesi,
+      /* UY-64 · Kontrol testleri — en yeniden eskiye. */
+      testler: d.kontrolTestleri.map((t) => ({
+        id: t.id,
+        yontem: t.yontem,
+        sonuc: t.sonuc,
+        evrenSayisi: t.evrenSayisi,
+        orneklemSayisi: t.orneklemSayisi,
+        uygunSayisi: t.uygunSayisi,
+        testTarihi: t.testTarihi.toISOString(),
+        testEden: t.testEden.adSoyad,
+        not: t.not,
+      })),
       not: d.not,
       sorumlu: d.sorumlu ? { id: d.sorumlu.id, ad: d.sorumlu.adSoyad } : null,
       sorumluAktif: d.sorumlu?.aktif ?? false,

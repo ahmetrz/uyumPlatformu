@@ -3,6 +3,8 @@ import { girisZorunlu, izinVar, izinliTesisIdleri } from '@/lib/erisim';
 import { kapsamdaYetkili, modulYazabilir } from '@/app/kapsam';
 import { Yetkisiz } from '@/components/kabuk/temel';
 import { db } from '@/lib/db';
+import { bildirimKarari } from '@/lib/uyum/bildirimSuresi';
+import { simdiOku } from './veri';
 import { oneriOku, ETKI_ALANLARI } from '@/lib/motorlar/olayEtki';
 import OlaylarIstemci from './OlaylarIstemci';
 import type {
@@ -43,6 +45,27 @@ export default async function Sayfa() {
 
   /** Kapsam koşulu: null = tüm santraller; aksi hâlde yalnız izinli küme. */
   const kapsam = izinli === null ? {} : { tesisId: { in: izinli } };
+
+  /* UY-63 · Bildirim yükümlülüğü kuralları ve santrallerin regülasyon
+     kapsamı. Kural yoksa sayaç HİÇ işlemez ve ekran süre uydurmaz.
+
+     "Şimdi" burada bir kez okunur ve BÜTÜN satırlar için aynıdır; her
+     satırda ayrı `Date.now()` çağırmak, uzun bir listede satırların
+     birbirine göre milisaniyelerce kaymasına yol açardı. */
+  const simdi = simdiOku();
+  const [bildirimKurallari, uygulanabilirlikler] = await Promise.all([
+    db.bildirimYukumlulugu.findMany({
+      where: { aktif: true },
+      select: {
+        id: true, kod: true, ad: true, regulasyonId: true,
+        asgariSiddet: true, sureSaat: true, merci: true, aktif: true,
+      },
+    }),
+    db.uygulanabilirlikKarari.findMany({
+      where: { uygulanabilir: true },
+      select: { tesisId: true, regulasyonId: true },
+    }),
+  ]);
 
   const [olaylar, tesisler, varliklar, sistemler, riskler, bulgular, projeler, degisiklikler] =
     await Promise.all([
@@ -191,6 +214,30 @@ export default async function Sayfa() {
       ogrenilenler: o.ogrenilenler,
       bildirimGerekli: o.bildirimGerekli,
       bildirimTarihi: o.bildirimTarihi?.toISOString() ?? null,
+      /* UY-63 · Süre sayacı. Karar sunucuda verilir: istemci kendi
+         saatine göre "geciktiniz" DEMEZ. */
+      bildirim: (() => {
+        const karar = bildirimKarari({
+          siddet: o.siddet,
+          baslangic: o.baslangic.getTime(),
+          simdi,
+          bildirimGerekli: o.bildirimGerekli,
+          bildirimTarihi: o.bildirimTarihi?.getTime() ?? null,
+          regulasyonIdleri: uygulanabilirlikler
+            .filter((u) => u.tesisId === o.tesisId)
+            .map((u) => u.regulasyonId),
+          kurallar: bildirimKurallari,
+        });
+        return {
+          durum: karar.durum,
+          sonTarih: karar.sonTarih === null ? null : new Date(karar.sonTarih).toISOString(),
+          kalanDakika: karar.kalanDakika,
+          kural: karar.yukumluluk
+            ? { ad: karar.yukumluluk.ad, merci: karar.yukumluluk.merci,
+              sureSaat: karar.yukumluluk.sureSaat }
+            : null,
+        };
+      })(),
       varliklar: o.varliklar.map((v) => ({
         id: v.varlik.id, kod: v.varlik.etiket,
         alt: `${v.varlik.ad} · ${v.rol}`, yol: '/envanter',

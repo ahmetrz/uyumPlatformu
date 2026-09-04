@@ -1,9 +1,14 @@
 # "VAR olmayan" isterlerin kapatılması — durum kütüğü
 
 Bu belge, alternatif ürün değerlendirme matrisinde **Zorlu Enerji
-Yönetişim Platformu** sütununda doğrudan "VAR" olmayan 38 maddenin
+Yönetişim Platformu** sütununda doğrudan "VAR" olmayan **46 maddenin**
 bugünkü gerçeğini **dosya kanıtıyla** yazar. Yaşayan bir belgedir:
 her turda güncellenir.
+
+İlk 38 madde matrisin kendi listesinden geldi. Kalan 8 madde, isterler
+listesi **Regülasyon-Uyum ve OT-Envanter platformu gözüyle** yeniden
+okunduğunda ortaya çıkan ve o güne kadar üründe **hiç karşılığı olmayan**
+boşluklardır; FAZ G'de kapatıldılar (§9).
 
 Ölçüm tarihi: 04.09.2026 · Dal: `claude/repo-public-github-domain-271hxa`
 
@@ -48,41 +53,41 @@ yazılmadı. Böyle maddeler için repo içi hazırlık ayrı ölçülür ve
 
 | Ölçü | Değer |
 | --- | --- |
-| Madde | 38 |
-| **COMPLETE** | **29** |
+| Madde | 46 |
+| **COMPLETE** | **37** |
 | CODE_READY_EXTERNAL_DEPENDENCY | 9 |
 | IN_PROGRESS | 0 |
 | NOT_STARTED | **0** |
-| Yeni Prisma modeli | 31 (FAZ A 13 · FAZ B 8 · FAZ D 1 · FAZ E 4 · FAZ F 5) |
-| Yeni göç | 7 (yedisi de veri kaybı 0 · ölçülerek doğrulandı) |
-| Yeni motor | 7 (9 → 16) |
-| Yeni rota | 6 (`/tabanlar` · `/prosesler` · `/degerlendirme-aktarim` · `/api-sozlesmesi` · `/saklama` · `/denetci-erisimi`) |
-| Yeni konsol modülü | 43 |
-| Toplam test | 2428 geçti · 1 atlandı |
+| Yeni Prisma modeli | 44 (FAZ A 13 · FAZ B 8 · FAZ D 1 · FAZ E 4 · FAZ F 5 · FAZ G 13) |
+| Yeni göç | 9 (dokuzu da veri kaybı 0 · ölçülerek doğrulandı) |
+| Yeni motor | 8 (9 → 17) |
+| Yeni rota | 11 (`/tabanlar` · `/prosesler` · `/degerlendirme-aktarim` · `/api-sozlesmesi` · `/saklama` · `/denetci-erisimi` · `/sayim` · `/yedek-parca` · `/tasinabilir-medya` · `/gozden-gecirme` · `/egitimler`) |
+| Yeni konsol modülü | 54 |
+| Toplam test | 2560 geçti · 1 atlandı |
 
-### Kapı sonuçları (04.09.2026 · FAZ F sonu)
+### Kapı sonuçları (04.09.2026 · FAZ G sonu)
 
 | Kapı | Sonuç |
 | --- | --- |
-| `npm run test` | **2428 geçti · 1 atlandı · 0 kusur** (118 dosya) |
+| `npm run test` | **2560 geçti · 1 atlandı · 0 kusur** (121 dosya) |
 | `npm run lint` · `npx tsc --noEmit` | temiz |
 | `tasarim:kapi` | kontrast kusuru 0 · eksik font 0 · eski tasarım izi 0 |
-| `rota:duman` | **52/52 rota** · kusurlu 0 · test edilemedi 0 · sayfa hatası 0 |
-| `tasarim:dizustu` (1366×768) | 43 rota · **kırpılan öğe 0** · yatay taşan rota 0 |
-| `tasarim:axe` (WCAG 2 A/AA) | 44 rota · ciddi/kritik ihlal **0** · kırık tarama 0 |
-| `tasarim:tasma` | 86 ölçümde 4 kusur — **hepsi bu programdan ÖNCE de vardı** (`/envanter` ×2, `/sistem`, `/sistem/bilesenler`; 375px ve 768px). Sayı FAZ D'de `git stash` ile ölçülerek doğrulanmıştı; FAZ F'nin üç yeni ekranı (`/api-sozlesmesi`, `/saklama`, `/denetci-erisimi`) listede YOK. |
+| `rota:duman` | **57/57 rota** · kusurlu 0 · test edilemedi 0 · sayfa hatası 0 |
+| `tasarim:dizustu` (1366×768) | 48 rota · **kırpılan öğe 0** · yatay taşan rota 0 |
+| `tasarim:axe` (WCAG 2 A/AA) | 49 rota · ciddi/kritik ihlal **0** · kırık tarama 0 |
+| `tasarim:tasma` | 96 ölçümde 4 kusur — **hepsi bu programdan ÖNCE de vardı** (`/envanter` ×2, `/sistem`, `/sistem/bilesenler`; 375px ve 768px). FAZ G'de `git stash` ile YENİDEN ölçüldü: FAZ G'siz ağaçta aynı 4 kusur, aynı öğelerle çıktı. FAZ G'nin beş yeni ekranı listede YOK. |
 | `npm run build` | başarılı |
-
-**İlk koşuda üç kusur çıktı ve düzeltildi.** `rota:duman` üç yeni ekranın
-da ana bölgesiz (`<main>` yok) olduğunu söyledi: kabuk `<main>` basmaz,
-onu ekran çizer. Ana bölgesi olmayan sayfada "içeriğe atla" bağı bir
-yere varmaz ve axe'ın wcag2a/aa kümesi bunu GÖRMEZ. Üçüne de kendi
-`<main data-yuzey=…>` bölgesi eklendi ve kapı 52/52'ye çıktı.
 
 Kapı çıktıları **olduğu gibi** yazıldı; hedefe uydurulmadı. Taşma
 kapısındaki 4 kusur bu programın ürünü değildir ve bilerek kapatılmamış
 olarak bırakıldı — kaynakları `/envanter` kip çubuğu ile `/sistem`
 token tablosudur ve ikisi de ayrı bir işin konusudur.
+
+**FAZ F'de ilk koşuda üç kusur çıkmıştı ve düzeltildi.** `rota:duman` o
+fazın üç yeni ekranının da ana bölgesiz (`<main>` yok) olduğunu söyledi:
+kabuk `<main>` basmaz, onu ekran çizer. Ana bölgesi olmayan sayfada
+"içeriğe atla" bağı bir yere varmaz ve axe'ın wcag2a/aa kümesi bunu
+GÖRMEZ. Üçüne de kendi `<main data-yuzey=…>` bölgesi eklendi.
 
 ---
 
@@ -112,6 +117,9 @@ token tablosudur ve ikisi de ayrı bir işin konusudur.
 | OT-48 | Üretim ölçeği altyapısı | **CODE_READY_EXTERNAL_DEPENDENCY** | Mantık: `lib/altyapi/saglayicilar.ts` (üç aile × bağlı/bağlı değil; PostgreSQL · S3 uyumlu depo · dağıtık kilit KAYITLI DEĞİL ve neyin gerektiğini yazar) · `hazirlikKarari.ts` (dört durum: hazır · eksik · arızalı · ÖLÇÜLEMEDİ) · `hazirlik.ts` (yazma yoklaması · göç kütüğü · zamanlayıcı · sağlayıcı · çok örnek engeli) · UI: `/saglik` › Kurulum hazırlığı kipi · Konsol: `kurulumHazirligi` · `altyapiSaglayici` · Test: 15 | **Kalan tek eksik dış bağımlılık:** PostgreSQL, nesne deposu ve (gerekirse) dağıtık koordinasyon uç noktaları. Kilit/önderlik zaten `IsKilidi` kira modeliyle çok örnekli çalışır. |
 | OT-49 | Performans testi | **COMPLETE** | Araç: `arac/yuk.mjs` (`npm run olcum:yuk`) + saf matematik `arac/yuzdelik.mjs` (nearest-rank; ölçülmeyen yüzdelik `null`, `0 ms` DEĞİL) · Taban: `arac/performans-tabani.json` — ÜRETİM YAPISINA karşı ölçüldü ve kip dosyaya yazıldı · Gerileme için hem oran hem ÖLÇÜLMÜŞ gürültü bandı (50 ms) aşılmalı · Konsol: `performansTabani` · Test: 10 | — |
 | OT-50 | Gerçek entegrasyonlar | **CODE_READY_EXTERNAL_DEPENDENCY** | Şablon: 8 adaptör (7'si `BaglanmamisAdaptor` ve bunu AÇIKÇA söyler) · Sözleşme: `IhtiyacKalemi` — bağlanmamış her adaptör kurumdan isteyeceği kalemleri YAPISAL beyan eder (`abstract`, unutulamaz) · Sertifikasyon: 15. kontrol `baglanti_ihtiyaci` boş/yinelenen listeyi ve sırsız beyanı KUSUR sayar · UI: `/saglik` › Kurulum hazırlığı › Bağlantı ihtiyacı · Konsol: `baglantiIhtiyaci` · Test: 27 | **Kalan tek eksik dış bağımlılık:** her adaptör için kurumun uç noktası, salt okunur kimlik bilgisi ve ağ erişimi. Ürün hiçbir gerçek adres ya da kimlik İÇERMEZ. |
+| OT-55 | Fiziksel envanter sayımı | **COMPLETE** | Şema: `EnvanterSayimi` · `SayimSatiri` · Mantık: `lib/varlik/sayim.ts` (5 sonuç · `sayilmadi` ≠ `bulunamadi` · doğruluk paydası yalnız SAYILAN satırlar · hiç sayılmadıysa oran `null`) · Eylem: `sayimAc` · `sayimDurumu` · `sayimSatiriKaydet` · `sayimKapat` · UI: `/sayim` · Konsol: `envanterSayimi` · `sayimSonuclari` · Test: 38 + 39 (ortak) | — (kanıt: §9.2) |
+| OT-56 | Kritik yedek parça stoğu | **COMPLETE** | Şema: `YedekParca` · `YedekParcaVarlik` · Mantık: `lib/varlik/yedekParca.ts` (`yeterli`/`esikte`/`tukendi`/`pasif` · `acikRisk` yalnız stok bittiğinde VE ağır kritiklikte varlık hizmet ediyorsa) · Eylem: `yedekParcaKaydet` · `yedekParcaVarlikBagla` / `…Kaldir` · UI: `/yedek-parca` · Konsol: `yedekParca` · Test: 38 + 39 (ortak) | — (kanıt: §9.3) |
+| OT-57 | Taşınabilir medya izlemesi | **COMPLETE** | Şema: `TasinabilirMedya` · `MedyaKullanimi` · Mantık: `lib/varlik/tasinabilirMedya.ts` (90 gün tarama tazeliği · `sifreli` ÜÇ değerli · karantina/imha kullanım kabul etmez, kayıp KABUL EDER) · Eylem: `medyaKaydet` · `medyaTaramaDamgasi` · `medyaKullanimiKaydet` · UI: `/tasinabilir-medya` · Konsol: `tasinabilirMedya` · `medyaKurali` · Test: 38 + 39 (ortak) | — (kanıt: §9.4) · Ürün medyayı **engellemez**; kayıt tutar |
 
 ### UY — Regülasyon ve uyum
 
@@ -135,6 +143,11 @@ token tablosudur ve ikisi de ayrı bir işin konusudur.
 | UY-55 | Gerçek veri performansı | **CODE_READY_EXTERNAL_DEPENDENCY** | **Kalan tek eksik dış bağımlılık:** gerçek veri hacmi, eşzamanlılık ve gecikme hedefi. Araç tohum verisiyle koşar, bunu her koşuda EKRANA YAZAR ve hazırlık ekranı da söyler (kanıt: §8.4) |
 | UY-56 | Retention / legal hold | **COMPLETE** | — (kanıt: §8.5) · 8 kayıt ailesi · legal hold · dört gözle imha |
 | UY-57 | Dış denetçi erişimi | **COMPLETE** | — (kanıt: §8.6) · davet gerçek `dis_denetci` yetki satırı yazar, iptal ve süre sonu siler |
+| UY-59 | Kontrol olgunluk seviyesi | **COMPLETE** | — (kanıt: §9.5) · ölü şema alanı ekrana bağlandı; ortalama YOK, dağılım var |
+| UY-63 | Resmî bildirim süresi sayacı | **COMPLETE** | — (kanıt: §9.6) · süreler ürünle GELMEZ; kural yoksa sayaç hiç işlemez |
+| UY-64 | Kontrol testi yöntemi ve örneklemi | **COMPLETE** | — (kanıt: §9.7) · tasarım / işleyiş ayrımı; test kaydı silinmez, düzeltme yeni kayıttır |
+| UY-65 | Yönetim gözden geçirmesi | **COMPLETE** | — (kanıt: §9.8) · kararsız toplantı "yapıldı" işaretlenemez |
+| UY-66 | Eğitim ve farkındalık kütüğü | **COMPLETE** | — (kanıt: §9.9) · kapsam sıfırken oran `null`; "%100 eğitildi" yazılmaz |
 
 ---
 
@@ -998,14 +1011,270 @@ Beş sabotajın beşi de yakalandı. Ağaç sonra geri yüklendi ve
 
 ---
 
-## 9. Sıradaki iş — bağımlılık sırası
+## 9. FAZ G'de ne yapıldı — kanıtla
 
-**38 maddenin repo içi işi bitti.** `NOT_STARTED` ve `IN_PROGRESS`
-kalmadı: 29 madde `COMPLETE`, 9 madde `CODE_READY_EXTERNAL_DEPENDENCY`.
+FAZ G'nin sekiz maddesi diğer fazlardan **farklı bir yerden** geldi.
+İlk 38 madde karşılaştırma matrisinin kendi listesiydi. Bu sekizi,
+liste *"bir regülasyon-uyum ve OT-envanter platformundan ne beklenir"*
+gözüyle yeniden okunduğunda görülen ve üründe **hiçbir karşılığı
+olmayan** boşluklardır:
+
+| ID | Boşluk | Neden gerçek bir boşluktu |
+| --- | --- | --- |
+| OT-55 | Fiziksel envanter sayımı | Keşif yalnız **ağda görüneni** bulur. Kapalı panodaki yedek PLC, hiç ağa bağlanmayan mühendislik dizüstü, depoya konmuş kart taramada çıkmaz. |
+| OT-56 | Kritik yedek parça | EOL/EOS "ne zaman desteksiz kalacak" der; "bugün bozulursa elimizde var mı" sorusunun cevabı yoktu. |
+| OT-57 | Taşınabilir medya | OT ortamında en sık bulaşma yollarından biri; ürün hiç kayıt tutmuyordu. |
+| UY-59 | Olgunluk seviyesi | Şemada `Madde.olgunlukSeviyesi` alanı VARDI ve **hiçbir ekran, motor ya da tohum veri onu okumuyordu**: ölü alan. |
+| UY-63 | Bildirim süresi | `bildirimGerekli` ve `bildirimTarihi` vardı; eksik olan tek şey **süreydi**. "Ne zamana kadar" sorusunun cevabı hiçbir yerde yoktu. |
+| UY-64 | Kontrol testi yöntemi | Kontrolün doğrulandığı kayıtlıydı; **hangi yöntemle** doğrulandığı değil. |
+| UY-65 | Yönetim gözden geçirmesi | Çoğu çerçevede (ISO 27001 dâhil) zorunlu bir kayıt; ürün için ayrı bir yer yoktu. |
+| UY-66 | Eğitim kütüğü | "Eğitim kaydı" bir kanıt *tipi* olarak bağlanabiliyordu; kim–ne–ne zaman–ne kadar geçerli kütüğü yoktu. |
+
+### 9.1 Göç veri kaybı 0 — ölçülerek
+
+İki göç yazıldı, ikisi de **yalnız ekleyici**:
+
+| Göç | İçerik |
+| --- | --- |
+| `20260904054339_faz_g_sayim_yedekparca_medya_egitim` | 13 yeni tablo |
+| `20260904055548_faz_g_madde_durumu_olgunluk` | `MaddeDurumu.olgunlukSeviyesi` tek sütun |
+
+İkinci göçün sebebi bir **atlamadır**: ilk göç yazılırken
+`MaddeDurumu` üzerindeki ölçülen olgunluk sütunu unutuldu. Var olan
+göçü elle düzeltmek yerine ikinci ve temiz bir `ALTER TABLE ADD COLUMN`
+göçü yazıldı — göç dosyası bir kez uygulandıktan sonra geçmişi
+değiştirilmez.
+
+| Ölçü | Öncesi | Sonrası |
+| --- | --- | --- |
+| Tablo | 132 | 145 |
+| Toplam satır | 4779 | 4781 |
+| Kaybolan tablo | — | **0** |
+| Tetikleyici | 6 | 6 |
+| `PRAGMA foreign_key_check` | temiz | temiz |
+
+Artan iki satır `_prisma_migrations` kaydıdır. İki göç dosyasında da
+`DROP TABLE` ve `DROP COLUMN` **sıfırdır** (metinle doğrulandı).
+
+### 9.2 OT-55 · "sayılmadı" ile "bulunamadı" ayrı şeylerdir
+
+Bu ayrım modülün var olma sebebidir. Henüz gidilmemiş bir raf, kayıp
+varlık değildir. İkisini aynı kovaya koymak sayımı ilk gün
+"%90 kayıp" gösterir ve kimse bir daha o ekrana bakmaz.
+
+Beş sonuç var: `sayilmadi` · `dogrulandi` · `bulunamadi` ·
+`yeri_farkli` · `fazladan`. Üç karar bilinçlidir:
+
+- **Doğruluk oranının paydası yalnız sayılmış satırlardır.** Hiç
+  sayılmamışsa oran `null` döner — ekran "ölçülmedi" der, "%0 doğru"
+  demez.
+- **Payda açılışta DONAR.** Kampanya açıldıktan sonra envantere eklenen
+  varlık bu sayımın paydasını değiştirmez; yoksa iki gün arayla alınan
+  iki ekran görüntüsü çelişirdi.
+- **Sayım hiçbir varlığı silmez.** `lib/eylemler2/sayim.ts` içinde
+  `varlik.delete` ya da `varlik.update({ silindi })` YOKTUR. "Bulunamadı"
+  bir ölçüm sonucudur; envanterden düşürme ayrı bir insan kararıdır.
+
+`fazladan` satır — sahada var, kayıtta yok — envanter bağı taşıyamaz ve
+**saha kimliği zorunludur**: kimliksiz bir "fazladan cihaz" kaydı,
+kimsenin bir daha bulamayacağı bir uyarıdır.
+
+### 9.3 OT-56 · stok tükenmesi tek başına kırmızı değildir
+
+`acikRisk` yalnız **ikisi birden** doğruyken açılır: stok tükenmiş VE
+ağır kritiklikte (yüksek/kritik) en az bir varlık o parçaya bağlı.
+Yalnız stoğa bakmak, kimsenin umursamadığı bir parçayı da kırmızı
+gösterirdi ve ekran gürültüye boğulurdu.
+
+Tedarik süresi **ölçülmediyse boş kalır**; `0` yazılmaz. Sıfır gün
+"hemen gelir" demektir ve ölçülmemiş süreyi anlatmak için `null` vardır
+— kapı `tedarikSuresiGun: 0` girişini reddeder.
+
+### 9.4 OT-57 · ürün medyayı ENGELLEMEZ, kayıt tutar
+
+Bu bir yönetişim ürünüdür; USB portuna müdahale eden bir uç nokta
+ajanı değildir. Kütük tutar, tarama tazeliğini (90 gün) söyler, onaysız
+kullanımı işaretler.
+
+Üç karar:
+
+- **`sifreli` üç değerlidir**: evet · hayır · **ölçülmedi**. Şifreli
+  olup olmadığı bilinmeyen bir medyayı "şifresiz" saymak da
+  "şifreli" saymak da uydurmadır.
+- **Karantina ve imha kullanım kaydı KABUL ETMEZ**; **kayıp medya
+  kabul EDER**. Kayıp bir belleğin en son nerede kullanıldığını
+  yazamamak, olay incelemesini kör bırakırdı.
+- **Onaysız kullanım reddedilmez, uyarıyla kaydedilir.** Onayı zorunlu
+  tutmak, kaydı hiç girilmeyen bir kullanım üretirdi — ve kayıtsız
+  kullanım hiç görünmez.
+
+### 9.5 UY-59 · ölçülmüş kusur: yazılıp okunmayan alan
+
+`Madde.olgunlukSeviyesi` şemada **vardı**. Hiçbir ekran, hiçbir motor,
+hiçbir tohum veri onu okumuyor ya da yazmıyordu: ölü alan. Bu, matriste
+"VAR" görünüp üründe karşılığı olmayan tipte bir satırdır ve bu programın
+aramakla yükümlü olduğu şeydir.
+
+FAZ G'de alan **ikiye ayrıldı**: hedef seviye maddenin kendisinde,
+**ölçülen** seviye `MaddeDurumu` üzerinde (tesis başına). İkisi aynı
+sütunda dursaydı "hedefimiz 4" ile "bugün 2'deyiz" aynı sayıya yazılırdı.
+
+Ölçek koda gömülüdür (0–5) ve konsoldan değiştirilemez: kademeler
+ekrandan yeniden yazılabilseydi iki santralin "seviye 3"ü aynı şeyi
+anlatmazdı ve karşılaştırma çökerdi.
+
+**Ortalama YOK.** Özet bir dağılım döndürür. Olgunluk kademeleri sıralı
+ama eşit aralıklı değildir; ortalaması alınan bir olgunluk puanı,
+2 ile 4'ün ortasını 3 diye gösterir ve bu yanlıştır.
+
+Seviye 3 ve üstü **gerekçe ister**: "yazılı ve kurum genelinde aynı"
+iddiası denetçinin ilk soracağı şeydir.
+
+### 9.6 UY-63 · süreler ürünle GELMEZ
+
+Kaç saat içinde bildirileceği mevzuattan gelir ve kurumun tabi olduğu
+düzenlemeye göre değişir. **Örnek bir süre yazmak**, yanlış bir saatle
+çalışan bir sayaç bırakırdı: kimse değiştirmez ve ürün yanlış anda
+"geciktiniz" ya da daha kötüsü "vaktiniz var" der. Kural tanımlı
+değilse sayaç **hiç işlemez** ve bu bir hata değildir.
+
+Üç karar:
+
+- **Saat olayın BAŞLANGICINDAN işler**, kaydın açıldığı andan değil.
+  Bir olay üç gün sonra fark edilip kaydedilmiş olabilir; yükümlülük o
+  üç günü beklemez.
+- **Birden fazla kural uyuyorsa EN KISA süre kazanır.** En dar
+  yükümlülük bağlayıcıdır; en uzunu seçmek kurumu kendi kurallarından
+  birine göre geciktirirdi.
+- **Elle işaretlenmiş yükümlülük kuralı ezer**: `bildirimGerekli = false`
+  yazan olayda kural uysa bile sayaç işlemez — insan bakmış ve "bu
+  kapsamda değil" demiştir.
+
+**17. motor** (`bildirim_suresi`) süresi geçen/daralan olaylar için
+`Gorev` açar. Üç şeyi bilerek YAPMAZ: olayın kendisine dokunmaz,
+`bildirimGerekli`/`bildirimTarihi` alanlarını **yazmaz** ve kural yoksa
+hiçbir şey yapmaz. Resmî bir bildirimin yapıldığını söyleyebilecek tek
+şey insandır.
+
+`Bildirim` değil `Gorev` açmasının sebebi yapısaldır: `Bildirim` bir
+kullanıcıya yazılır, olayın ise atanmış bir sorumlusu yoktur. Sahipsiz
+bir uyarıyı kime göndereceğini bilmeyen motor onu ortak iş kuyruğuna
+bırakır.
+
+### 9.7 UY-64 · "işleyişini test ettik" bir sayı ister
+
+İki yöntem var: **tasarım** testi (kontrol doğru mu kurgulanmış) ve
+**işleyiş** testi (kurgulandığı gibi çalışıyor mu).
+
+- İşleyiş testi **evren + örneklem + uygun sayısı** ister. "İşleyişini
+  test ettik" demek, kaç kayda bakıldığını söylemeden bir iddiadır.
+- Tasarım testinde bu alanlar **boş kalmalıdır**; sayı yazmak testi
+  olduğundan güçlü gösterir.
+- Kayıt **kendi sayılarıyla çelişemez**: örneklemin tamamı uygunken
+  sonuç "uygun değil" olamaz; uygunsuz kayıt varken sonuç "uygun"
+  olamaz.
+- Test kaydı **silinmez ve değiştirilmez**; düzeltme yeni bir test
+  kaydıdır. Duruş hesaplanırken en yeni **işleyiş** testi tercih edilir.
+
+Tazelik eşiği 365 gündür; daha eski bir test "bayat" gösterilir ve
+"test edilmedi" ile karıştırılmaz.
+
+### 9.8 UY-65 · kararsız bir toplantı "yapıldı" değildir
+
+Bir gözden geçirmenin denetimdeki değeri **ürettiği kararlardır**.
+Kapı bu yüzden en az bir karar ve bir özet ister; gelecekte olan bir
+toplantı "yapıldı" işaretlenemez.
+
+Kararın **sorumlusu ve son tarihi birlikte zorunludur**: sahipsiz bir
+karar, bir sonraki toplantıya kadar kimsenin bakmadığı bir satırdır.
+Karardan görev açılabilir.
+
+Yaşayan durum üç değerlidir ve dördüncüsü `kararsiz`'dır: yapılmış ama
+kararsız bir gözden geçirme, yapılmamış gibi gösterilmez — kendi adıyla
+gösterilir. Periyot 365 gündür.
+
+### 9.9 UY-66 · kapsam sıfırken oran YOKTUR
+
+Sıfır kişilik bir eğitimi "%100 tamamlandı" göstermek ekranı yalan
+söyler hâle getirirdi; `egitimKapsamasi` bu durumda `oran: null` döner.
+
+Geçerlilik bitişi **tamamlanma tarihinden** hesaplanır, atama
+tarihinden değil. Geçerlilik süresi girilmemişse eğitim `suresiz`
+sayılır — "süresi dolmuş" değil. Yenilemeye 30 gün kalınca durum
+`yenilenmeli` olur.
+
+Zorunlu eğitimin paydası **aktif kullanıcılardır**; eğitim kaydı
+kontrol maddesine bağlanabilir ve orada bir kanıt olarak okunur.
+
+### 9.10 Bu fazda hiçbir gerçek kurum verisi yazılmadı
+
+Sekiz maddenin hiçbiri bir dış sisteme bağlanmaz ve hiçbiri kurumdan
+veri beklemez — bu yüzden sekizi de `COMPLETE`, hiçbiri
+`CODE_READY_EXTERNAL_DEPENDENCY` değildir. Ürüne yazılmayanlar:
+
+- **Bildirim süresi yok.** Hiçbir saat, hiçbir merci, hiçbir mevzuat
+  maddesi ürünle gelmez.
+- **Olgunluk kademelerinin resmî metni yeniden yazılmadı.** Ölçek
+  genel bir 0–5 merdivenidir; kurumun kendi çerçevesiyle eşlemesi bir
+  yapılandırma kararıdır.
+- **Eğitim adı, süresi, zorunluluğu yok.** Kütük boştur.
+- **Yedek parça, medya ve sayım verisi tohumdur** ve tohum olduğu
+  söylenir.
+
+### 9.11 Sabotajla doğrulama — on bir kural, on bir kırmızı
+
+Her kural tek tek bozuldu, testler koşturuldu, sonra geri alındı.
+
+| # | Bozulan kural | Sonuç |
+| --- | --- | --- |
+| 1 | Sayım doğruluk paydasına SAYILMAYAN satırlar da katıldı | **2 test düştü** |
+| 2 | Sayımı eksik kapatmak için gerekçe zorunluluğu kaldırıldı | **2 test düştü** |
+| 3 | Yedek parça açık riski ağır varlık aranmadan açıldı | **2 test düştü** |
+| 4 | Karantinadaki medyaya kullanım kaydı serbest bırakıldı | **2 test düştü** |
+| 5 | Olgunluk 3+ için gerekçe zorunluluğu kaldırıldı | **2 test düştü** |
+| 6 | Bildirim yükümlülüğünde EN KISA yerine en uzun süre seçildi | **1 test düştü** |
+| 7 | Bildirim sayacı olayın başlangıcı yerine ŞİMDİDEN işletildi | **4 test düştü** |
+| 8 | Kontrol testinde kendi sayılarıyla çelişen sonuç kabul edildi | **1 test düştü** |
+| 9 | Kararsız gözden geçirme "yapıldı" işaretlenebilir yapıldı | **3 test düştü** |
+| 10 | Kapsamı boş eğitimin oranı `null` yerine %100 döndürüldü | **1 test düştü** |
+| 11 | Motor olaya "bildirildi" tarihi yazdı | **1 test düştü** |
+
+On bir sabotajın on biri de yakalandı. Ağaç sonra geri yüklendi:
+sabotaj öncesi alınan on yedek dosyanın onu da geri yüklenen dosyayla
+**bayt bayt aynı** çıktı ve `npx tsc --noEmit` temiz döndü.
+
+> **Önceki turda bir ölçüm hatası yapılmıştı ve bu tur düzeltildi.**
+> İlk sabotaj koşusunda yedek dosyalar `basename` ile adlandırılmıştı;
+> `lib/varlik/sayim.ts` ile `lib/eylemler2/sayim.ts` aynı yedek adını
+> paylaştı ve geri yükleme saf modülün üstüne eylem dosyasını yazdı.
+> 2–4. sabotajların sonuçları bu yüzden geçersizdi. Yedek adları tam
+> yola göre üretilecek şekilde düzeltildi ve **on bir sabotajın hepsi
+> baştan koşuldu**; yukarıdaki tablo o koşunun sonucudur.
+
+### 9.12 Dokuz ölçütün karşılığı
+
+| Ölçüt | FAZ G'de karşılığı |
+| --- | --- |
+| VERİ MODELİ | 13 yeni model + 1 sütun · 2 salt ekleyici göç · veri kaybı 0 (§9.1) |
+| ALAN MANTIĞI | 8 saf modül: `lib/varlik/{sayim,yedekParca,tasinabilirMedya}.ts` · `lib/uyum/{olgunluk,bildirimSuresi,kontrolTesti,gozdenGecirme,egitim}.ts` |
+| SUNUCU / API | 7 eylem dosyası + 7 demo ikizi: `sayim` · `yedekParca` · `tasinabilirMedya` · `uyumOlcum` · `bildirimYukumlulugu` · `gozdenGecirme` · `egitim` |
+| UI | 5 yeni ekran (`/sayim` · `/yedek-parca` · `/tasinabilir-medya` · `/gozden-gecirme` · `/egitimler`) + `/surecler/[id]` içinde olgunluk ve test blokları + `/olaylar` içinde bildirim süresi |
+| YÖNETİM / KONFİG. | 11 yeni konsol satırı (3'ü `sinif: 'C'` — kod yeri ve gerekçesiyle) |
+| GÜVENLİK | Her eylemde `yetkiZorunlu(KAPSAM_SONRA)` + kayıt okunduktan sonra `kapsamZorunlu` (tesis kapsamı) |
+| TEST | 132 yeni vaka (38 + 55 + 39) · 11 sabotajın 11'i yakalandı (§9.11) |
+| DENETİM İZİ | Her yazma `AktiviteKaydi`na düşer; sayım eksik kapatıldığında iz kaç satırın hiç sayılmadığını YAZAR |
+| BELGE | Bu bölüm |
+
+---
+
+## 10. Sıradaki iş — bağımlılık sırası
+
+**46 maddenin repo içi işi bitti.** `NOT_STARTED` ve `IN_PROGRESS`
+kalmadı: 37 madde `COMPLETE`, 9 madde `CODE_READY_EXTERNAL_DEPENDENCY`.
 
 Dokuz maddenin tamamı **tek bir şey** bekliyor ve o şey repo içinde
 üretilemez: kurumun gerçek uç noktası, kimlik bilgisi ya da altyapısı
-(§10). Hiçbiri "kod eksik" durumunda değildir.
+(§11). Hiçbiri "kod eksik" durumunda değildir.
 
 Bağlantı günü sırası `INTEGRATION_DAY_RUNBOOK.md` içindedir. Sıradaki iş
 bir geliştirme işi değil, bir **kurulum** işidir:
@@ -1022,7 +1291,7 @@ bir geliştirme işi değil, bir **kurulum** işidir:
 
 ---
 
-## 10. Gerçek bağlantı için gereken dış bilgiler
+## 11. Gerçek bağlantı için gereken dış bilgiler
 
 Yalnız gerçekten gerekenler. Bu bilgiler gelmeden de **repo içi hazırlık
 tamamlanabilir**.

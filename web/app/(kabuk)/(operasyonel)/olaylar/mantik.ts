@@ -1,3 +1,4 @@
+import type { BildirimDurumu } from '@/lib/uyum/bildirimSuresi';
 import type { Durum } from '@/components/kabuk/temel';
 
 /* O · Olay → etki zinciri — saf türetme katmanı.
@@ -149,6 +150,16 @@ export type OlayKaydi = {
   ogrenilenler: string | null;
   bildirimGerekli: boolean | null;
   bildirimTarihi: string | null;
+  /* UY-63 · Bildirim SÜRESİ. Karar sunucuda verilir (kural kütüğü +
+     santralin regülasyon kapsamı); istemci kendi saatine göre
+     "geciktiniz" demez. Kural tanımlı değilse `durum` daima
+     `yukumluluk_yok`tur ve ürün bir süre UYDURMAZ. */
+  bildirim: {
+    durum: BildirimDurumu;
+    sonTarih: string | null;
+    kalanDakika: number | null;
+    kural: { ad: string; merci: string; sureSaat: number } | null;
+  };
   /* Zincir bağları. `varliklar`/`sistemler` etki önerisini BESLER; öneri
      zincirinden AYRI taşınır çünkü öneri üretilmemişken de bağ vardır —
      "öneri yok" ile "bağ yok" karıştırılmamalı. */
@@ -212,6 +223,10 @@ export const acikMi = (o: OlayKaydi) => o.durum === 'acik' || o.durum === 'mudah
 /** Bildirimi gereken ama tarihi girilmemiş olay — regülasyon saati işliyor. */
 export const bildirimBekliyor = (o: OlayKaydi) =>
   o.bildirimGerekli === true && o.bildirimTarihi === null;
+
+/** UY-63 · Süresi geçmiş ya da geç yapılmış bildirim — kusur. */
+export const bildirimKusurlu = (o: OlayKaydi) =>
+  o.bildirim.durum === 'GECIKTI' || o.bildirim.durum === 'gec_bildirildi';
 
 /** Satır işaretçisi. Sıra: sert olgu → bekleyen karar → değerlendirilemez → sakin. */
 export function olayImi(o: OlayKaydi): Durum {

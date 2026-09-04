@@ -47,12 +47,14 @@ const ALAN_ROTALARI: Record<string, string[]> = {
     '/uyum', '/regulasyonlar', '/surecler', '/eslestirme', '/denetimler',
     '/bulgular', '/projeler', '/raporlar', '/dokumanlar', '/kanitlar', '/aktivite',
     '/degerlendirme-aktarim', '/denetci-erisimi', '/saklama',
+    '/gozden-gecirme', '/egitimler',
   ],
   '/envanter': [
     '/envanter', '/kesif', '/varlik-aktarim', '/ice-aktarim', '/topoloji',
     '/prosesler', '/esleme',
     '/omur', '/tabanlar', '/yedekleme', '/tedarikciler', '/kimlik', '/yetkiler',
     '/olaylar', '/operasyon', '/saglik',
+    '/sayim', '/yedek-parca', '/tasinabilir-medya',
   ],
   '/riskler': ['/riskler'],
 };
@@ -101,6 +103,9 @@ export const IKINCIL: Record<string, { baslik?: string; ogeler: Oge[] }[]> = {
          tezgâhına koymak, denetimi yürüten kişinin hiç bakmadığı bir
          yere koymak olurdu. */
       { ad: 'Dış denetçi erişimi', yol: '/denetci-erisimi' },
+      /* UY-65 · Yönetim gözden geçirmesi de bir denetim kaydıdır ve
+         denetimde istenir; bu grup onun doğal yeri. */
+      { ad: 'Yönetim gözden geçirme', yol: '/gozden-gecirme' },
     ]},
     { ogeler: [
       { ad: 'Raporlar', yol: '/raporlar' },
@@ -110,6 +115,9 @@ export const IKINCIL: Record<string, { baslik?: string; ogeler: Oge[] }[]> = {
       /* UY-56 · Saklama, kayıt ailelerinin durduğu grupta: bu grubun
          hepsi "hangi kaydı ne kadar tutuyoruz" sorusunun konusu. */
       { ad: 'Saklama ve imha', yol: '/saklama' },
+      /* UY-66 · Eğitim kütüğü kanıt grubunda: eğitim kaydı bir kontrolün
+         kanıtıdır ve kanıt kütüğüyle aynı soruya hizmet eder. */
+      { ad: 'Eğitim kütüğü', yol: '/egitimler' },
     ]},
   ],
   '/riskler': [
@@ -129,6 +137,10 @@ export const IKINCIL: Record<string, { baslik?: string; ogeler: Oge[] }[]> = {
       { ad: 'Envanter', yol: '/envanter', alt: [
         { ad: 'Varlık', yol: '/envanter' },
         { ad: 'Keşif', yol: '/kesif' },
+        /* OT-55 · Sayım keşfin YANINDA durur ve onun tamamlayıcısıdır:
+           keşif ağda görüneni bulur, sayım sahada duranı. İkisi aynı
+           sorunun (envanter gerçekle tutuyor mu) iki yarısıdır. */
+        { ad: 'Sayım', yol: '/sayim' },
         { ad: 'Aktarım', yol: '/varlik-aktarim' },
       ]},
       { ad: 'Ağ & bağımlılık', yol: '/topoloji', alt: [
@@ -145,11 +157,19 @@ export const IKINCIL: Record<string, { baslik?: string; ogeler: Oge[] }[]> = {
            hangisi geri çekilmiş. Ömür ve Yedekleme ile aynı grupta durur. */
         { ad: 'Firmware tabanları', yol: '/tabanlar' },
         { ad: 'Yedekleme', yol: '/yedekleme' },
+        /* OT-56 · Yedek parça bir ömür kararıdır: EOL "ne zaman
+           desteksiz kalacak", yedek parça "bugün bozulursa ne olur"
+           sorusudur ve ikisi birlikte okunur. */
+        { ad: 'Yedek parça', yol: '/yedek-parca' },
         { ad: 'Tedarikçiler', yol: '/tedarikciler' },
       ]},
       { ad: 'Erişim', yol: '/kimlik', alt: [
         { ad: 'Kimlik', yol: '/kimlik' },
         { ad: 'Yetkiler', yol: '/yetkiler' },
+        /* OT-57 · Taşınabilir medya bir ERİŞİM yoludur: hava boşluklu
+           bir sistemi ağdan değil, elden giren bir bellekle vurursunuz.
+           Kimlik ve yetkilerle aynı grupta durmasının sebebi budur. */
+        { ad: 'Taşınabilir medya', yol: '/tasinabilir-medya' },
       ]},
       { ad: 'Olay & değişiklik', yol: '/olaylar', alt: [
         { ad: 'Olaylar', yol: '/olaylar' },

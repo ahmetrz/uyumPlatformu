@@ -16,6 +16,13 @@ import { Ara, DisaAktar, Kapsam } from '../Kontroller';
 import { useEylem } from '@/components/useEylem';
 import { an } from '@/lib/an';
 import { degerlendirmeDogrula, kontrolEkibiAta } from '@/lib/eylemler2/uyumSahiplik';
+import { kontrolTestiKaydet, olgunlukKaydet } from '@/lib/eylemler2/uyumOlcum';
+import {
+  OLGUNLUK_ADI, OLGUNLUK_KISA, OLGUNLUK_SINIFI, OLGUNLUK_SOZU, olgunlukDurumu,
+} from '@/lib/uyum/olgunluk';
+import {
+  DURUS_SINIFI, DURUS_SOZU, SONUC_ETIKETI, YONTEM_ETIKETI, testDurusu,
+} from '@/lib/uyum/kontrolTesti';
 import {
   DOGRULAMA_SINIFI, DOGRULAMA_SOZU, SAHIPLIK_SINIFI, SAHIPLIK_SOZU,
   dogrulamaDurumu, kontrolSahipligi,
@@ -411,6 +418,9 @@ function Ozet({ kayit, yazabilir, ekipler, git }: {
 
       <SahiplikBlogu kayit={kayit} ekipler={ekipler} />
 
+      <OlgunlukBlogu kayit={kayit} yazabilir={yazabilir} />
+      <TestBlogu kayit={kayit} yazabilir={yazabilir} />
+
       <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
         <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Madde metni</p>
         <p style={{ margin: 0, fontSize: 'var(--t-cell)', lineHeight: 1.7, color: 'var(--i2)' }}>
@@ -736,5 +746,176 @@ function HazirlikBlogu({ kayitlar, simdi }: {
         en kolay yoludur.
       </p>
     </section>
+  );
+}
+
+
+/* ═══ UY-59 · Olgunluk bloğu ══════════════════════════════════════════
+
+   Olgunluk uyum durumundan AYRIDIR: bir kontrol uyumlu olup olgunluk
+   1'de olabilir — çalışıyor ama tek bir kişiye bağlı. Bu ayrım
+   kaybolursa, kurumun en kırılgan kontrolleri yeşil görünür. */
+function OlgunlukBlogu({ kayit, yazabilir }: {
+  kayit: Degerlendirme; yazabilir: boolean;
+}) {
+  const { bekliyor, hata, calistir } = useEylem();
+  const [seviye, setSeviye] = useState<string>(
+    kayit.olgunluk === null ? '' : String(kayit.olgunluk));
+  const [gerekce, setGerekce] = useState('');
+  const d = olgunlukDurumu({ olculen: kayit.olgunluk, hedef: kayit.hedefOlgunluk });
+  const secilen = seviye === '' ? null : Number(seviye);
+
+  return (
+    <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+      <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Olgunluk</p>
+      <p className="ab-panel-dip" style={{ margin: '0 0 var(--s12)' }}>
+        <Im durum={OLGUNLUK_SINIFI[d]} />{' '}
+        {kayit.olgunluk === null
+          ? 'Ölçülmedi — sıfır DEĞİL. Sıfır "uygulama başlamadı" demektir.'
+          : OLGUNLUK_ADI[kayit.olgunluk]}
+        {kayit.hedefOlgunluk !== null
+          && ` · hedef: ${OLGUNLUK_KISA[kayit.hedefOlgunluk]} · ${OLGUNLUK_SOZU[d]}`}
+        {kayit.hedefOlgunluk === null && ' · hedef seviye tanımlanmamış'}
+      </p>
+      {yazabilir && (
+        <div style={{ display: 'grid', gap: 'var(--s10)' }}>
+          <select className="ab-gr" value={seviye} onChange={(e) => setSeviye(e.target.value)}>
+            <option value="">ölçülmedi</option>
+            {[0, 1, 2, 3, 4, 5].map((n) => (
+              <option key={n} value={n}>{n} · {OLGUNLUK_ADI[n]}</option>
+            ))}
+          </select>
+          {/* Seviye 3 ve üstü "yazılı ve kurum genelinde aynı" iddiasıdır
+              ve gerekçe ister; denetçinin ilk soracağı şey odur. */}
+          {secilen !== null && secilen >= 3 && (
+            <textarea className="ab-gr" rows={2} value={gerekce}
+              placeholder="Bu seviye neye dayanıyor?"
+              onChange={(e) => setGerekce(e.target.value)} />
+          )}
+          <Dugme disabled={bekliyor
+            || (secilen !== null && secilen >= 3 && !gerekce.trim())}
+            onClick={() => calistir(() => olgunlukKaydet({
+              maddeDurumuId: kayit.id, seviye: secilen, gerekce: gerekce || null,
+            }))}>
+            Olgunluğu kaydet
+          </Dugme>
+          {hata && <p className="ab-gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ═══ UY-64 · Kontrol testi bloğu ═════════════════════════════════════
+
+   Tasarım testi kontrolün ÇALIŞTIĞINI göstermez; politikanın doğru
+   yazıldığını gösterir. Blok bu ikisini asla aynı kefeye koymaz. */
+function TestBlogu({ kayit, yazabilir }: {
+  kayit: Degerlendirme; yazabilir: boolean;
+}) {
+  const { bekliyor, hata, calistir } = useEylem();
+  const [acik, setAcik] = useState(false);
+  const [yontem, setYontem] = useState<'tasarim' | 'isleyis'>('isleyis');
+  const [f, setF] = useState({ evren: '', orneklem: '', uygun: '', tarih: '', not: '' });
+  const [sonuc, setSonuc] = useState<'uygun' | 'kismen' | 'uygun_degil'>('uygun');
+  const g = (k: keyof typeof f) => (e: { target: { value: string } }) =>
+    setF({ ...f, [k]: e.target.value });
+
+  const durus = testDurusu({
+    testler: kayit.testler.map((t) => ({
+      yontem: t.yontem, sonuc: t.sonuc, testTarihi: new Date(t.testTarihi).getTime(),
+    })),
+    /* `an()` sunucu ve tarayıcının AYNI şimdiyi görmesini sağlar; ham
+       `Date.now()` statik yayında hidrasyon uyuşmazlığı üretir (lib/an.ts). */
+    simdi: an(),
+  });
+
+  return (
+    <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+      <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Kontrol testi</p>
+      <p className="ab-panel-dip" style={{ margin: '0 0 var(--s12)' }}>
+        <Im durum={DURUS_SINIFI[durus]} /> {DURUS_SOZU[durus]}
+      </p>
+      {kayit.testler.length > 0 && (
+        <ul style={{ margin: '0 0 var(--s12)', paddingLeft: '1.1em',
+          fontSize: 'var(--t-cell)', color: 'var(--i2)', lineHeight: 1.7 }}>
+          {kayit.testler.map((t) => (
+            <li key={t.id}>
+              {tarihTR(t.testTarihi)} · {YONTEM_ETIKETI[t.yontem as 'tasarim' | 'isleyis']
+                .split(' —')[0]} · {SONUC_ETIKETI[t.sonuc as 'uygun']}
+              {t.orneklemSayisi !== null
+                && ` · ${t.uygunSayisi}/${t.orneklemSayisi} örnek (evren ${t.evrenSayisi})`}
+              {` · ${t.testEden}`}
+            </li>
+          ))}
+        </ul>
+      )}
+      {yazabilir && !acik && (
+        <Dugme onClick={() => setAcik(true)}>Test kaydet</Dugme>
+      )}
+      {yazabilir && acik && (
+        <div style={{ display: 'grid', gap: 'var(--s10)' }}>
+          <Alan etiket="Yöntem" zorunlu>
+            <select className="ab-gr" value={yontem}
+              onChange={(e) => setYontem(e.target.value as typeof yontem)}>
+              <option value="isleyis">{YONTEM_ETIKETI.isleyis}</option>
+              <option value="tasarim">{YONTEM_ETIKETI.tasarim}</option>
+            </select>
+          </Alan>
+          {/* İşleyiş testi ÖRNEKLEM ister: "test ettik" demek kaç kayda
+              bakıldığını söylemeden bir iddiadır. */}
+          {yontem === 'isleyis' && (
+            <div style={{ display: 'flex', gap: 'var(--s10)' }}>
+              <Alan etiket="Evren" zorunlu>
+                <input className="ab-gr" type="number" min={1} value={f.evren}
+                  onChange={g('evren')} />
+              </Alan>
+              <Alan etiket="Örneklem" zorunlu>
+                <input className="ab-gr" type="number" min={1} value={f.orneklem}
+                  onChange={g('orneklem')} />
+              </Alan>
+              <Alan etiket="Uygun" zorunlu>
+                <input className="ab-gr" type="number" min={0} value={f.uygun}
+                  onChange={g('uygun')} />
+              </Alan>
+            </div>
+          )}
+          <Alan etiket="Sonuç" zorunlu>
+            <select className="ab-gr" value={sonuc}
+              onChange={(e) => setSonuc(e.target.value as typeof sonuc)}>
+              <option value="uygun">{SONUC_ETIKETI.uygun}</option>
+              <option value="kismen">{SONUC_ETIKETI.kismen}</option>
+              <option value="uygun_degil">{SONUC_ETIKETI.uygun_degil}</option>
+            </select>
+          </Alan>
+          <Alan etiket="Test tarihi" zorunlu>
+            <input className="ab-gr" type="date" value={f.tarih} onChange={g('tarih')} />
+          </Alan>
+          <textarea className="ab-gr" rows={2} value={f.not} placeholder="Not"
+            onChange={g('not')} />
+          <div style={{ display: 'flex', gap: 'var(--s10)' }}>
+            <Dugme tur="birincil" disabled={bekliyor || !f.tarih}
+              onClick={() => calistir(async () => {
+                const s = await kontrolTestiKaydet({
+                  maddeDurumuId: kayit.id,
+                  yontem,
+                  evrenSayisi: yontem === 'isleyis' ? Number(f.evren) : null,
+                  orneklemSayisi: yontem === 'isleyis' ? Number(f.orneklem) : null,
+                  uygunSayisi: yontem === 'isleyis' ? Number(f.uygun) : null,
+                  sonuc,
+                  testTarihi: new Date(f.tarih).toISOString(),
+                  not: f.not || null,
+                });
+                if (s.ok) setAcik(false);
+                return s;
+              })}>
+              Kaydet
+            </Dugme>
+            <Dugme onClick={() => setAcik(false)} disabled={bekliyor}>Vazgeç</Dugme>
+          </div>
+          {hata && <p className="ab-gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
+        </div>
+      )}
+    </div>
   );
 }

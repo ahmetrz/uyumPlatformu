@@ -1026,3 +1026,56 @@ export const PLATFORM_SENARYOLARI_4: Senaryo[] = [
     katmanlar: ['DOMAIN'],
   },
 ];
+
+/* ── Beşinci dalga: yetki kapısının kendisi ──────────────────────────
+   Bu dört senaryo bir SABOTAJ koşusunun bulduğu boşluktan doğdu: ilk
+   kapının izin kontrolü silindiğinde test paketi kırılmıyordu, çünkü
+   ölçüm hep ikinci aşamadan geçiyordu. Kapı artık kendi başına ölçülür. */
+
+export const PLATFORM_SENARYOLARI_5: Senaryo[] = [
+  {
+    id: 'SIS-KPS-004', alan: 'Sistem', rota: '—', eksen: 'yetki',
+    amac: 'Oturumsuz bir çağrının hiçbir şey yapamaması',
+    rol: 'kimliksiz ziyaretçi', kapsam: 'yok',
+    onkosul: 'Oturum yok', veriHali: 'yok',
+    eylem: 'Bir sunucu eylemini doğrudan çağırır',
+    beklenenSonuc: 'Kapı "oturum gerekli" diye reddeder',
+    beklenenEkran: '—',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['SERVER', 'RBAC'],
+  },
+  {
+    id: 'SIS-KPS-005', alan: 'Sistem', rota: '—', eksen: 'yetki',
+    amac: 'Okuma yetkisinin yazmaya yetmemesi',
+    rol: 'salt okuyucu', kapsam: 'kurum geneli',
+    onkosul: 'Rolün modülde yazma izni yok', veriHali: 'normal',
+    eylem: 'Bir yazma eylemi çağırır',
+    beklenenSonuc: 'İlk kapı TEK BAŞINA reddeder — ikinci aşamaya kalmaz',
+    beklenenEkran: 'Yazma yüzeyi hiç açılmaz',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['SERVER', 'RBAC'],
+  },
+  {
+    id: 'SIS-KPS-006', alan: 'Sistem', rota: '—', eksen: 'yetki',
+    amac: 'Bir modüldeki yetkinin başka modülü açmaması',
+    rol: 'uyum uzmanı', kapsam: 'kurum geneli',
+    onkosul: 'Yetki yalnız uyum modülüne verilmiş', veriHali: 'normal',
+    eylem: 'Envanter modülünde yazma dener',
+    beklenenSonuc: 'Reddedilir',
+    beklenenEkran: 'Modül kısıtı diğer modülleri kapatır',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['SERVER', 'RBAC'],
+  },
+  {
+    id: 'SIS-KPS-007', alan: 'Sistem', rota: '—', eksen: 'yetki',
+    amac: 'İkinci aşamanın kendi mesajını vermesi',
+    rol: 'BT yöneticisi', kapsam: 'tek santral',
+    onkosul: 'Kaydın santrali kullanıcının kapsamı dışında',
+    veriHali: 'normal',
+    eylem: 'Kayıt okunduktan sonra kapsam kapısı sorulur',
+    beklenenSonuc: 'Eyleme özel mesajla reddedilir',
+    beklenenEkran: 'Kullanıcı neyin eksik olduğunu okur',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['SERVER', 'SCOPE'],
+  },
+];

@@ -13,7 +13,7 @@ it('kapsam dışı varlığa yazılamaz [ENV-YAZ-003]', …)
 Ayrı bir eşleme tablosu tutulsaydı, tablo ilk yeniden adlandırmada
 testten ayrışır ve kimse görmezdi.
 
-Senaryo: **211** · testli: **211** · GAP: **0**
+Senaryo: **215** · testli: **215** · GAP: **0**
 
 ## API · 8 senaryo
 
@@ -316,7 +316,7 @@ Senaryo: **211** · testli: **211** · GAP: **0**
 | `SAY-KMP-001` | /sayim | BT yöneticisi · kendi santrali | Kapsamda hiç varlık yok · yok | Sayım açmayı dener | Açılmaz — sıfır paydalı kampanya olamaz | Neden açılmadığı yazılır | yazma yok | yok | `faz-g-varlik.test.ts` |
 | `SAY-KMP-002` | /sayim | BT yöneticisi · kendi santrali | Satır "bulunamadı" işaretlendi · kısmi | Sonucu kaydeder | Varlık SİLİNMEZ — envanterden düşürme ayrı bir karardır | "Sayılmadı" ile "bulunamadı" ayrı durumlardır | Sayım satırı · guncelleme | yok | `faz-g-eylem.test.ts` |
 
-## Sistem · 15 senaryo
+## Sistem · 19 senaryo
 
 | ID | Rota | Rol · kapsam | Ön koşul · veri | Eylem | Beklenen sonuç | Ekran | Denetim izi | Görev/bildirim | Test |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -335,6 +335,10 @@ Senaryo: **211** · testli: **211** · GAP: **0**
 | `SIS-GOC-002` | — | güvenlik denetçisi · kurum geneli | Kanıt sürüm geçmişi yazılmış · normal | Geçmişi değiştirmeyi ya da silmeyi dener | Veritabanı tetikleyicisi REDDEDER | — | yazma yok | yok | `senaryo-platform.test.ts` |
 | `SIS-GRS-001` | — | tasarım denetçisi · kurum geneli | — · normal | Tasarım kapısı koşturulur | Kontrast, font ve eski tasarım izi kusuru SIFIRDIR | Tek palet; açık temaya geçiş yok | yazma yok | yok | `senaryo-platform.test.ts` |
 | `SIS-GRS-002` | — | son kullanıcı · kendi kapsamı | Kayıt adları uzun · yüksek | Dar bantta ekranları gezer | Kırpılan kritik bilgi ve yatay taşma SIFIRDIR | Geniş içerik kendi kabında kayar | yazma yok | yok | `senaryo-platform.test.ts` |
+| `SIS-KPS-004` | — | kimliksiz ziyaretçi · yok | Oturum yok · yok | Bir sunucu eylemini doğrudan çağırır | Kapı "oturum gerekli" diye reddeder | — | yazma yok | yok | `yetki-kapisi.test.ts` |
+| `SIS-KPS-005` | — | salt okuyucu · kurum geneli | Rolün modülde yazma izni yok · normal | Bir yazma eylemi çağırır | İlk kapı TEK BAŞINA reddeder — ikinci aşamaya kalmaz | Yazma yüzeyi hiç açılmaz | yazma yok | yok | `yetki-kapisi.test.ts` |
+| `SIS-KPS-006` | — | uyum uzmanı · kurum geneli | Yetki yalnız uyum modülüne verilmiş · normal | Envanter modülünde yazma dener | Reddedilir | Modül kısıtı diğer modülleri kapatır | yazma yok | yok | `yetki-kapisi.test.ts` |
+| `SIS-KPS-007` | — | BT yöneticisi · tek santral | Kaydın santrali kullanıcının kapsamı dışında · normal | Kayıt okunduktan sonra kapsam kapısı sorulur | Eyleme özel mesajla reddedilir | Kullanıcı neyin eksik olduğunu okur | yazma yok | yok | `yetki-kapisi.test.ts` |
 
 ## Taşınabilir medya · 2 senaryo
 

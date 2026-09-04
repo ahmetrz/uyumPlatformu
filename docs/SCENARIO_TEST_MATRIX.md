@@ -4,12 +4,12 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 211 |
-| Testi olan senaryo | 211 |
+| Senaryo | 215 |
+| Testi olan senaryo | 215 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
-| Taranan test dosyası | 131 |
+| Taranan test dosyası | 132 |
 
 ## Katman başına kapsam
 
@@ -22,10 +22,10 @@
 | ENGINE | 28 | 28 | 0 |
 | INTEGRATION | 21 | 21 | 0 |
 | MIGRATION | 2 | 2 | 0 |
-| RBAC | 29 | 29 | 0 |
+| RBAC | 32 | 32 | 0 |
 | RESPONSIVE | 2 | 2 | 0 |
-| SCOPE | 24 | 24 | 0 |
-| SERVER | 76 | 76 | 0 |
+| SCOPE | 25 | 25 | 0 |
+| SERVER | 80 | 80 | 0 |
 | UI | 51 | 51 | 0 |
 | VISUAL | 2 | 2 | 0 |
 | WORKFLOW | 26 | 26 | 0 |
@@ -245,6 +245,10 @@
 | `ESL-PRF-003` | Eşleme | DOMAIN · INTEGRATION | `esleme.test.ts` | VARSAYILAN BİR ÖLÇÜM DEĞİLDİR: kaynağın verdiği alan ile varsayılan ayırt edilir | evet | geçti |
 | `YRD-SOR-002` | Yardım | UI · ACCESSIBILITY | `yardim.test.ts` | yazı alanında TETİKLENMEZ: input/textarea/select/contentEditable | evet | geçti |
 | `OPR-DEG-003` | Operasyon | DOMAIN | `operasyon-mantik.test.ts` | geri alma döngünün adımı değildir — indeksi yoktur | evet | geçti |
+| `SIS-KPS-004` | Sistem | SERVER · RBAC | `yetki-kapisi.test.ts` | oturumsuz çağrı REDDEDİLİR | evet | geçti |
+| `SIS-KPS-005` | Sistem | SERVER · RBAC | `yetki-kapisi.test.ts` | modülde YAZMA izni olmayan rol reddedilir | evet | geçti |
+| `SIS-KPS-006` | Sistem | SERVER · RBAC | `yetki-kapisi.test.ts` | BAŞKA modülün yetkisi bu modülü açmaz | evet | geçti |
+| `SIS-KPS-007` | Sistem | SERVER · SCOPE | `yetki-kapisi.test.ts` | kapsam dışı kayıtta verilen MESAJI fırlatır | evet | geçti |
 
 ## Gerekçesiyle kütüksüz kalan dosyalar
 

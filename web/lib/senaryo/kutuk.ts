@@ -6,7 +6,7 @@ import {
 } from './uyum';
 import {
   PLATFORM_SENARYOLARI, PLATFORM_SENARYOLARI_2, PLATFORM_SENARYOLARI_3,
-  PLATFORM_SENARYOLARI_4,
+  PLATFORM_SENARYOLARI_4, PLATFORM_SENARYOLARI_5,
 } from './platform';
 import { KIMLIK_KALIBI, type Senaryo } from './tipler';
 
@@ -25,6 +25,7 @@ export const SENARYOLAR: Senaryo[] = [
   ...PLATFORM_SENARYOLARI_2,
   ...PLATFORM_SENARYOLARI_3,
   ...PLATFORM_SENARYOLARI_4,
+  ...PLATFORM_SENARYOLARI_5,
 ];
 
 /** Kütüğün kendi tutarlılığı — nöbetçi test bu listeyi boş bekler. */

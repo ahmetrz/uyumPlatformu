@@ -23,6 +23,7 @@
     "tasarim:font": "node arac/font-kontrol.mjs",
     "tasarim:iz": "node arac/iz-tarama.mjs",
     "tasarim:rota": "node arac/tarama.mjs",
+    "sabotaj": "node arac/sabotaj.mjs",
     "tasarim:kapi": "node arac/kontrast.mjs && node arac/font-kontrol.mjs && node arac/iz-tarama.mjs",
     "tasarim:erisim": "node arac/erisim.mjs",
     "yayin:kontrol": "node arac/yayin-kontrol.mjs",

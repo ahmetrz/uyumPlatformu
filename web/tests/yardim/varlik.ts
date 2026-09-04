@@ -40,7 +40,7 @@ export function ornekVarlik(ek: Partial<V> = {}): V {
     eosTarihi: '2028-01-01T00:00:00.000Z', guncellendi: '2026-09-01T00:00:00.000Z',
     iliskiler: [], riskler: [], kanitlar: [], acikZafiyet: 0,
     zafiyetler: [], projeler: [],
-    sonYedek: null, sonKesif: null, yazilabilir: true, onaylanabilir: true,
+    sonYedek: null, sonKesif: null, zimmet: null, yazilabilir: true, onaylanabilir: true,
     durus: BOS_DURUS, yonetisim: BOS_YONETISIM,
     ...ek,
   };

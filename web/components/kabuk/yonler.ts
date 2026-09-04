@@ -55,6 +55,7 @@ const ALAN_ROTALARI: Record<string, string[]> = {
     '/omur', '/tabanlar', '/yedekleme', '/tedarikciler', '/kimlik', '/yetkiler',
     '/olaylar', '/operasyon', '/saglik',
     '/sayim', '/yedek-parca', '/tasinabilir-medya',
+    '/zimmetlerim',
   ],
   '/riskler': ['/riskler'],
 };
@@ -141,6 +142,9 @@ export const IKINCIL: Record<string, { baslik?: string; ogeler: Oge[] }[]> = {
            keşif ağda görüneni bulur, sayım sahada duranı. İkisi aynı
            sorunun (envanter gerçekle tutuyor mu) iki yarısıdır. */
         { ad: 'Sayım', yol: '/sayim' },
+        /* OT-09b · Zimmet sahiplikle aynı grupta: "bu cihazın sahibi kim"
+           sorusunun cevabı, kimsenin onaylamadığı bir isim olmamalıdır. */
+        { ad: 'Zimmetlerim', yol: '/zimmetlerim' },
         { ad: 'Aktarım', yol: '/varlik-aktarim' },
       ]},
       { ad: 'Ağ & bağımlılık', yol: '/topoloji', alt: [

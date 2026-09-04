@@ -15,6 +15,7 @@ import { konfigDriftiniIsle, envanterGorunurluguIsle } from './varlikYonetisim';
 import { tekrarlariIsle } from './tekrarBulgu';
 import { eskalasyonlariIsle } from './eskalasyon';
 import { bildirimSurelerini } from './bildirimSuresi';
+import { zimmetSurelerini } from './zimmetSuresi';
 
 /* Motor kayıt defteri — TEK doğruluk kaynağı.
 
@@ -68,6 +69,11 @@ export const MOTORLAR = {
      tek şey insandır. Kurum kendi sürelerini tanımlamadıysa motor hiçbir
      şey yapmaz — süre uydurmaz. */
   bildirim_suresi: bildirimSurelerini,
+  /* OT-09b · Zimmet süresi. Talep AÇMAZ ve kimse adına KABUL ETMEZ:
+     sahiplik yalnız insanın imzasıyla geçer. Motorun dokunduğu tek şey
+     talebin kendi durumudur — süresi dolan, sahibi pasifleşen ya da
+     sahipliği başka yoldan değişen talepler düşer. */
+  zimmet_suresi: zimmetSurelerini,
 } as const satisfies Record<string, () => Promise<{ islenen: number; uretilen: number }>>;
 
 export type MotorAdi = keyof typeof MOTORLAR;

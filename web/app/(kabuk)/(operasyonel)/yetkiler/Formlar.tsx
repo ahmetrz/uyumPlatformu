@@ -4,13 +4,14 @@ import { Alan, Dugme } from '@/components/kabuk/temel';
 import { useEylem } from '@/components/useEylem';
 import { kullaniciKaydet, yetkiVer } from '@/lib/eylemler';
 import { parolaBelirle } from '@/lib/eylemler2/hesap';
+import { topluZimmetAc, zimmetIptal } from '@/lib/eylemler2/zimmet';
 import {
   ekipKaydet, ekipUyeligiKaydet, ekipUyeligiKaldir, topluSahipDevri,
 } from '@/lib/eylemler2/varlikYonetisim';
 import {
   EKIP_TIPLERI, EKIP_TIP_ETIKETI, UYELIK_ROLLERI,
 } from '@/lib/varlik/sahiplik';
-import { ROLLER, ROL_ETIKET } from '@/lib/sabitler';
+import { ROLLER, ROL_ETIKET, tarihTR } from '@/lib/sabitler';
 import { PAROLA_EN_AZ, parolaKusuru } from '../ayarlar/mantik';
 import { devirDisi, type Ekip, type EkipUyesi, type Hesap, type Secenek } from './mantik';
 
@@ -379,6 +380,35 @@ export function SahiplikDevri({ hesap, adaylar, yetkili }: {
         </p>
       ) : null}
 
+      {/* OT-09b · Cevap bekleyen zimmetler. Sahiplik sayısına KATILMAZ:
+          imzalanmamış bir atama sahiplik değildir. */}
+      {s.bekleyenZimmet.length > 0 && (
+        <div style={{ marginTop: 'var(--s12)' }}>
+          <p className="etiket" style={{ margin: '0 0 var(--s8)' }}>
+            Cevap bekleyen zimmet ({s.bekleyenZimmet.length})
+          </p>
+          <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'grid', gap: 'var(--s8)' }}>
+            {s.bekleyenZimmet.map((z) => (
+              <li key={z.id} style={{ display: 'flex', alignItems: 'baseline', gap: 'var(--s10)' }}>
+                <span className="mono" style={{ flex: '1 1 auto', minWidth: 0 }}>
+                  {z.varlikEtiket} · son tarih {tarihTR(z.sonTarih)}
+                </span>
+                {z.iptalEdilebilir && (
+                  <button type="button" className="ab-dugme mini" disabled={bekliyor}
+                    onClick={() => calistir(() => zimmetIptal({ talepId: z.id }))}>
+                    İptal
+                  </button>
+                )}
+              </li>
+            ))}
+          </ul>
+          <p className="ab-panel-dip" style={{ margin: 'var(--s8) 0 0' }}>
+            Yönetici bir zimmeti yalnız İPTAL edebilir; kimse adına kabul
+            edemez. Kabul ve red kararı zimmetlenen kişinindir.
+          </p>
+        </div>
+      )}
+
       {disarida > 0 && (
         <p className="ab-panel-dip" style={{ margin: 'var(--s10) 0 0' }}>
           {disarida} varlık envanter onay kapsamınızın dışında ve bu
@@ -429,8 +459,31 @@ export function SahiplikDevri({ hesap, adaylar, yetkili }: {
               }, () => { setAcik(false); setGerekce(''); })}>
               {bekliyor ? 'Devrediliyor…' : 'Devri uygula'}
             </Dugme>
+            <Dugme disabled={bekliyor || !hedef}
+              onClick={() => calistir(async () => {
+                const r = await topluZimmetAc({
+                  varlikIdleri: s.devredilebilir,
+                  atananId: hedef,
+                  not: gerekce.trim() || null,
+                });
+                if (r.ok && r.ozet) {
+                  setOzet(`${r.ozet.acilan} zimmet talebi açıldı, `
+                    + `${r.ozet.atlanan} kayıt atlandı.`
+                    + (r.ozet.sebepler.length > 0 ? ` ${r.ozet.sebepler[0]}` : ''));
+                }
+                return r;
+              }, () => { setGerekce(''); })}>
+              {bekliyor ? 'Gönderiliyor…' : 'Zimmetle (kabul iste)'}
+            </Dugme>
             <Dugme onClick={() => setAcik(false)} disabled={bekliyor}>Vazgeç</Dugme>
           </div>
+          <p className="ab-panel-dip" style={{ margin: 0 }}>
+            İki yol arasındaki fark bilinçlidir: <strong>devir</strong> sahipliği
+            anında geçirir ve karşı tarafa sormaz; <strong>zimmet</strong> bir
+            talep açar ve sahiplik ancak kişi kabul edince geçer. Sorumluluk
+            devri için ikincisi, kapanan bir hesabın yükünü boşaltmak için
+            birincisi kullanılır.
+          </p>
           <p className="ab-panel-dip" style={{ margin: 0 }}>
             Devir geri alınamaz ve her kayıt için AYRI denetim izi bırakır.
             &quot;Sahipsiz bırak&quot; seçeneği bilinçli bir karardır:

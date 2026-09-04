@@ -208,6 +208,11 @@ export type V = {
   sonYedek: { zaman: string; basarili: boolean } | null;
   /** varlığa eşleşmiş son keşif kaydı */
   sonKesif: { id: string; kaynak: string; sonGorulme: string } | null;
+  /** OT-09b · cevap bekleyen zimmet talebi; yoksa null (sahiplik kesin) */
+  zimmet: {
+    id: string; atananAd: string; atayanAd: string;
+    olusturuldu: string; sonTarih: string; not: string | null;
+  } | null;
   /** bu kullanıcı bu varlığı yazabilir mi (tesis kapsamı dâhil) */
   yazilabilir: boolean;
   /** emekli/imha geçişi denetimlidir: envanter/onay ister */

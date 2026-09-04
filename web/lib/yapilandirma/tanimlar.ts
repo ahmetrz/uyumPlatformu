@@ -4,6 +4,7 @@ import { SAHA_YERLESIM_VARSAYILAN, yerlesimDogrula, yerlesimMetni, type SahaYerl
 import {
   OLCULMEMIS_VARSAYILAN, olculmemisDogrula, olculmemisMetni, type OlculmemisGosterimi,
 } from '../yonetim/olculmemisGosterimi';
+import { ZIMMET_AZAMI_GUN, ZIMMET_VARSAYILAN_GUN } from '../varlik/zimmet';
 
 /* ═══ Yapılandırma anahtar sözlüğü — TEK doğruluk kaynağı ═══════════════
 
@@ -43,6 +44,17 @@ export type AyarTanimi = {
 const tamSayi = (min: number, max: number) => z.number().int().min(min).max(max);
 
 const T: AyarTanimi[] = [
+  /* ── Varlık zimmeti (OT-09b) ───────────────────────────────────────── */
+  {
+    anahtar: 'zimmet.cevap_suresi_gun', grup: 'varlik', sinif: 'A',
+    etiket: 'Zimmet cevap süresi', birim: 'gün',
+    aciklama: 'Bir zimmet talebinin cevapsız kalabileceği süre. Bu süre '
+      + 'dolduğunda talep KENDİLİĞİNDEN DÜŞER — kimse adına kabul edilmez '
+      + 've varlığın sahibi değişmez.',
+    etki: ['Bana atanan varlıklar', 'Envanter · sahiplik', 'Zimmet süresi motoru'],
+    varsayilan: ZIMMET_VARSAYILAN_GUN, sema: tamSayi(1, ZIMMET_AZAMI_GUN),
+  },
+
   /* ── Uyum & regülasyon ─────────────────────────────────────────────── */
   {
     anahtar: 'kanit.tazelik.taze_gun', grup: 'uyum', sinif: 'B',
@@ -215,6 +227,8 @@ export const MOTOR_ADLARI_SOZLUK = [
   'tekrar_bulgu', 'eskalasyon',
   /* UY-63 · Bildirim süresi — aynı kural. */
   'bildirim_suresi',
+  /* OT-09b · Zimmet süresi — aynı kural. */
+  'zimmet_suresi',
 ] as const;
 
 for (const ad of MOTOR_ADLARI_SOZLUK) {

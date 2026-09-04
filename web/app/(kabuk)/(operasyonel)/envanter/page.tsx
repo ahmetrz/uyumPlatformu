@@ -317,7 +317,7 @@ export default async function Sayfa({ searchParams }: {
      hem de yalnız parametre bağlamak için ölçülebilir zaman harcar
      (boş tabloda 12 parçalı sorgu 34ms, ilişki filtresiyle 0ms).
      Süzülen küme birebir aynıdır — ebeveyn sorgusuyla aynı `where`. */
-  const [yedekSatirlari, kesifSatirlari] = await Promise.all([
+  const [yedekSatirlari, kesifSatirlari, zimmetSatirlari] = await Promise.all([
     /* `id` ve `icerikHash` OT-28 için okunur: konfigürasyon tabanı bir
        YEDEĞE dayanır ve sapma özet karşılaştırmasıyla bulunur. Ayrı bir
        sorgu açmak, aynı tabloyu iki kez taramak olurdu. */
@@ -334,9 +334,21 @@ export default async function Sayfa({ searchParams }: {
       select: { id: true, kaynak: true, sonGorulme: true, eslesenVarlikId: true },
       orderBy: { sonGorulme: 'desc' },
     }),
+    /* OT-09b · Cevap bekleyen zimmet talepleri. Yalnız `bekliyor` olanlar
+       okunur: kapanmış talepler varlık künyesinin değil, denetim izinin
+       konusudur. */
+    db.varlikAtamaTalebi.findMany({
+      where: { durum: 'bekliyor', varlik: varlikKapsami },
+      select: {
+        id: true, varlikId: true, olusturuldu: true, sonTarih: true, not: true,
+        atanan: { select: { adSoyad: true } },
+        atayan: { select: { adSoyad: true } },
+      },
+    }),
   ]);
   const sonYedekler = ilkiniEsle(yedekSatirlari, (y) => y.varlikId);
   const sonKesifler = ilkiniEsle(kesifSatirlari, (k) => k.eslesenVarlikId);
+  const acikZimmetler = ilkiniEsle(zimmetSatirlari, (z) => z.varlikId);
   /* OT-28 · Son BAŞARILI yedek ayrı tutulur: başarısız bir yedeğin özeti
      eksik olabilir ve eksik özet "konfigürasyon değişmiş" gibi
      görünürdü. Liste `yedekZamani desc` sıralı, `ilkiniEsle` en yeniyi
@@ -505,6 +517,7 @@ export default async function Sayfa({ searchParams }: {
     ];
     const yedek = sonYedekler.get(v.id) ?? null;
     const kesif = sonKesifler.get(v.id) ?? null;
+    const zimmet = acikZimmetler.get(v.id) ?? null;
     /* Yazma kapsamı satır satır: tesise kısıtlı rol yalnız kendi santralinin
        varlığını yazabilir. Kural lib/eylemler2/envanter.ts ile aynıdır —
        ekran yalnız düğmeyi kapatır, sunucu ayrıca reddeder. */
@@ -609,6 +622,18 @@ export default async function Sayfa({ searchParams }: {
         : null,
       sonKesif: kesif
         ? { id: kesif.id, kaynak: kesif.kaynak, sonGorulme: kesif.sonGorulme.toISOString() }
+        : null,
+      /* OT-09b · Cevap bekleyen zimmet. Sahiplik alanı DEĞİŞMEZ; bu satır
+         "atandı ama henüz imzalanmadı" hâlini görünür kılar. */
+      zimmet: zimmet
+        ? {
+          id: zimmet.id,
+          atananAd: zimmet.atanan.adSoyad,
+          atayanAd: zimmet.atayan.adSoyad,
+          olusturuldu: zimmet.olusturuldu.toISOString(),
+          sonTarih: zimmet.sonTarih.toISOString(),
+          not: zimmet.not,
+        }
         : null,
       yazilabilir: yazmaYetkisi && kapsamdaYetkili(k, 'envanter', 'yazma', kapsam.tesisId),
       onaylanabilir: onayYetkisi && kapsamdaYetkili(k, 'envanter', 'onay', kapsam.tesisId),

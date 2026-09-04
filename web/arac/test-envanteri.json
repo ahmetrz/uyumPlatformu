@@ -1,7 +1,7 @@
 {
-  "imza": "e195cd58996532341b7c149594ae378e",
-  "dosya": 122,
-  "vaka": 2602,
+  "imza": "cf54ea896d02c051198968e187da8987",
+  "dosya": 124,
+  "vaka": 2662,
   "atlanan": 1,
   "dosyalar": {
     "tests/advisory.test.ts": {
@@ -490,6 +490,14 @@
     },
     "tests/zamanlayici.test.ts": {
       "vaka": 32,
+      "atlanan": 0
+    },
+    "tests/zimmet-eylem.test.ts": {
+      "vaka": 23,
+      "atlanan": 0
+    },
+    "tests/zimmet.test.ts": {
+      "vaka": 37,
       "atlanan": 0
     }
   }

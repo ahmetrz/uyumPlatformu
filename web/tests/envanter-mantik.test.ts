@@ -54,7 +54,7 @@ function varlik(ek: Partial<V> = {}): V {
     eosTarihi: gunSonra(900), guncellendi: gunSonra(-10),
     iliskiler: [], riskler: [], kanitlar: [], acikZafiyet: 0,
     zafiyetler: [], projeler: [],
-    sonYedek: null, sonKesif: null, yazilabilir: true, onaylanabilir: true,
+    sonYedek: null, sonKesif: null, zimmet: null, yazilabilir: true, onaylanabilir: true,
     durus: BOS_DURUS, yonetisim: BOS_YONETISIM,
     ...ek,
   };

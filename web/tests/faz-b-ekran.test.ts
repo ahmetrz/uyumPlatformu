@@ -177,7 +177,7 @@ function hesap(ozel: Partial<Hesap> = {}): Hesap {
   return {
     id: 'k1', ad: 'Ahmet', eposta: 'a@b', unvan: null, aktif: true,
     parolaVar: true, yetkiler: [],
-    sahiplik: { toplam: 0, emanet: 0, devredilebilir: [] },
+    sahiplik: { toplam: 0, emanet: 0, devredilebilir: [], bekleyenZimmet: [] },
     ...ozel,
   };
 }
@@ -188,22 +188,22 @@ describe('OT-09 · kapalı hesabın üstündeki varlık ayrı bir kusurdur', () 
      bambaşka bir iştir (devir). */
   it('pasif hesapların sahipliği ayrı sayaçta toplanır', () => {
     const m = metrikleriHesapla([
-      hesap({ id: '1', aktif: false, sahiplik: { toplam: 12, emanet: 3, devredilebilir: [] } }),
-      hesap({ id: '2', aktif: true, sahiplik: { toplam: 40, emanet: 0, devredilebilir: [] } }),
+      hesap({ id: '1', aktif: false, sahiplik: { toplam: 12, emanet: 3, devredilebilir: [], bekleyenZimmet: [] } }),
+      hesap({ id: '2', aktif: true, sahiplik: { toplam: 40, emanet: 0, devredilebilir: [], bekleyenZimmet: [] } }),
     ]);
     expect(m.pasifSahiplik).toBe(12);
   });
 
   it('aktif hesabın sahipliği o sayaca GİRMEZ', () => {
     const m = metrikleriHesapla([
-      hesap({ sahiplik: { toplam: 99, emanet: 0, devredilebilir: [] } }),
+      hesap({ sahiplik: { toplam: 99, emanet: 0, devredilebilir: [], bekleyenZimmet: [] } }),
     ]);
     expect(m.pasifSahiplik).toBe(0);
   });
 
   it('sahiplik sayacı yetkisiz/artık yetki sayaçlarından bağımsızdır', () => {
     const m = metrikleriHesapla([
-      hesap({ id: '1', aktif: false, sahiplik: { toplam: 5, emanet: 0, devredilebilir: [] } }),
+      hesap({ id: '1', aktif: false, sahiplik: { toplam: 5, emanet: 0, devredilebilir: [], bekleyenZimmet: [] } }),
     ]);
     expect(m.pasifSahiplik).toBe(5);
     expect(m.yetkisiz).toBe(0);   // pasif hesap "yetkisiz" değildir
@@ -216,18 +216,18 @@ describe('OT-09 · kapsam dışı varlık gizlenmez, SAYILIR', () => {
      liste peşin daraltılır. Ama fark yazılmazsa kullanıcı 12 varlığın
      5’ini devredip işi bitirdiğini sanırdı. */
   it('devredilemeyen fark açıkça hesaplanır', () => {
-    const s = { toplam: 12, emanet: 0, devredilebilir: ['a', 'b', 'c', 'd', 'e'] };
+    const s = { toplam: 12, emanet: 0, devredilebilir: ['a', 'b', 'c', 'd', 'e'], bekleyenZimmet: [] };
     expect(devirDisi(s)).toBe(7);
   });
 
   it('hepsi kapsamdaysa fark sıfırdır', () => {
-    expect(devirDisi({ toplam: 2, emanet: 0, devredilebilir: ['a', 'b'] })).toBe(0);
+    expect(devirDisi({ toplam: 2, emanet: 0, devredilebilir: ['a', 'b'], bekleyenZimmet: [] })).toBe(0);
   });
 
   /* Yetkisi olmayan kullanıcıda `devredilebilir` boştur; bu "devredilecek
      varlık yok" DEĞİL "bu kullanıcı devredemez" demektir ve ekran ikisini
      ayrı yazar (form yerine yetki notu gösterir). */
   it('yetkisiz kullanıcıda fark, toplamın kendisidir', () => {
-    expect(devirDisi({ toplam: 8, emanet: 2, devredilebilir: [] })).toBe(8);
+    expect(devirDisi({ toplam: 8, emanet: 2, devredilebilir: [], bekleyenZimmet: [] })).toBe(8);
   });
 });

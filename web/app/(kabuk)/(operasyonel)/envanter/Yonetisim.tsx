@@ -11,13 +11,14 @@ import {
   gecerliEtki, tekNoktaRiskleri, type AdimBagi,
 } from '@/lib/varlik/etki';
 import { SAHIPLIK_SINIFI, SAHIPLIK_SOZU, sahiplikDurumu } from '@/lib/varlik/sahiplik';
+import { zimmetAc, zimmetIptal } from '@/lib/eylemler2/zimmet';
 import {
   SURE_ETIKETI, SURE_SINIFI, bakimDurumu, BAKIM_SOZU, enAcilSure,
   olcumBorcu, sureleriCoz,
 } from '@/lib/varlik/omurTarihleri';
 import { driftKarsilastir } from '@/lib/varlik/konfigDrift';
 import { etiketle, tarihTR, zamanTR } from '@/lib/sabitler';
-import type { V } from './mantik';
+import type { Kisi, V } from './mantik';
 
 /* ═══ O11 · Yönetişim sekmesi — OT-05 · 08 · 09 · 20 · 28 ══════════════
 
@@ -60,12 +61,17 @@ function Blok({ ad, rozet, children }: {
 
 /* ── OT-09 · Sahiplik zinciri ───────────────────────────────────────── */
 
-function SahiplikBlogu({ v, ekipler }: {
-  v: V; ekipler: { id: string; kod: string; ad: string; tip: string; aktifUye: number }[];
+function SahiplikBlogu({ v, ekipler, kisiler }: {
+  v: V;
+  ekipler: { id: string; kod: string; ad: string; tip: string; aktifUye: number }[];
+  kisiler: Kisi[];
 }) {
   const { bekliyor, hata, calistir } = useEylem();
   const [acik, setAcik] = useState(false);
   const [secim, setSecim] = useState(v.yonetisim.ekip?.id ?? '');
+  const [zimmetAcik, setZimmetAcik] = useState(false);
+  const [zimmetKisi, setZimmetKisi] = useState('');
+  const [zimmetNot, setZimmetNot] = useState('');
 
   /* Aktiflik bilgisi `V` üzerinde YOK (kişi listesi yalnız ad taşır);
      ekranın elindeki tek gerçek, sunucunun gönderdiği ekip kaydıdır.
@@ -98,10 +104,62 @@ function SahiplikBlogu({ v, ekipler }: {
           </dd>
         </div>
       </dl>
+      {/* OT-09b · Zimmet. Sahiplik alanı ile ARASINDAKİ fark bilinçlidir:
+          "sahip" imzalanmış sorumluluğu, "zimmet" imzalanmayı bekleyen
+          atamayı gösterir. İkisini tek satıra toplamak, kabul edilmemiş
+          bir atamayı sahiplik gibi okuturdu. */}
+      {v.zimmet && (
+        <p className="cumle md">
+          Zimmet bekliyor: <strong>{v.zimmet.atananAd}</strong> —{' '}
+          {v.zimmet.atayanAd} tarafından {tarihTR(v.zimmet.olusturuldu)} tarihinde
+          açıldı, cevap için son tarih {tarihTR(v.zimmet.sonTarih)}.
+          {v.zimmet.not ? ` Not: ${v.zimmet.not}` : ''}
+          {' '}Sahiplik kabul edilene kadar DEĞİŞMEZ.
+        </p>
+      )}
       {v.yazilabilir && (
         <>
           <button type="button" className="ab-dugme mini" aria-expanded={acik}
             onClick={() => setAcik(!acik)}>Ekip ata</button>
+          {!v.zimmet && (
+            <button type="button" className="ab-dugme mini" aria-expanded={zimmetAcik}
+              onClick={() => setZimmetAcik(!zimmetAcik)}>Zimmet aç</button>
+          )}
+          {v.zimmet && (
+            <button type="button" className="ab-dugme mini"
+              disabled={bekliyor}
+              onClick={() => calistir(() => zimmetIptal({ talepId: v.zimmet!.id }))}>
+              Zimmeti iptal et
+            </button>
+          )}
+          {zimmetAcik && !v.zimmet && (
+            <div className="ab-durus-form">
+              <Alan etiket="Zimmetlenecek kişi">
+                <select className="ab-gr" value={zimmetKisi}
+                  onChange={(e) => setZimmetKisi(e.target.value)}>
+                  <option value="">— seçin —</option>
+                  {kisiler.map((kk) => (
+                    <option key={kk.id} value={kk.id}>{kk.ad}</option>
+                  ))}
+                </select>
+              </Alan>
+              <Alan etiket="Not (isteğe bağlı)">
+                <input className="ab-gr" value={zimmetNot}
+                  onChange={(e) => setZimmetNot(e.target.value)} />
+              </Alan>
+              {hata && <p className="ab-gr-hata" role="alert">{hata}</p>}
+              <Dugme tur="tam" disabled={bekliyor || !zimmetKisi}
+                onClick={() => calistir(
+                  () => zimmetAc({
+                    varlikId: v.id, atananId: zimmetKisi,
+                    not: zimmetNot.trim() || null,
+                  }),
+                  () => { setZimmetAcik(false); setZimmetNot(''); setZimmetKisi(''); },
+                )}>
+                Zimmet talebini gönder
+              </Dugme>
+            </div>
+          )}
           {acik && (
             <div className="ab-durus-form">
               <Alan etiket="Ekip">
@@ -548,15 +606,16 @@ function KonfigBlogu({ v, onaylanabilir }: { v: V; onaylanabilir: boolean }) {
 
 /* ── Sekme gövdesi ──────────────────────────────────────────────────── */
 
-export function YonetisimPaneli({ v, ekipler, onaylanabilir, simdi }: {
+export function YonetisimPaneli({ v, ekipler, kisiler, onaylanabilir, simdi }: {
   v: V;
   ekipler: { id: string; kod: string; ad: string; tip: string; aktifUye: number }[];
+  kisiler: Kisi[];
   onaylanabilir: boolean;
   simdi: number;
 }) {
   return (
     <div className="ab-durus">
-      <SahiplikBlogu v={v} ekipler={ekipler} />
+      <SahiplikBlogu v={v} ekipler={ekipler} kisiler={kisiler} />
       <EtkiBlogu v={v} />
       <AdimBlogu v={v} />
       <SureBlogu v={v} simdi={simdi} />

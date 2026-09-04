@@ -32,7 +32,7 @@ function varlik(ek: Partial<V> = {}, durus: Partial<Durus> = {}): V {
     kurulumTarihi: null, garantiBitis: null, destekBitis: null,
     eolTarihi: null, eosTarihi: null, guncellendi: '2026-01-01T00:00:00.000Z',
     iliskiler: [], riskler: [], zafiyetler: [], projeler: [], kanitlar: [],
-    acikZafiyet: 0, sonYedek: null, sonKesif: null,
+    acikZafiyet: 0, sonYedek: null, sonKesif: null, zimmet: null,
     yazilabilir: true, onaylanabilir: true,
     durus: { ...BOS_DURUS, ...durus }, yonetisim: BOS_YONETISIM,
     ...ek,

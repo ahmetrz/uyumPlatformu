@@ -94,6 +94,12 @@ export const IS_TANIMLARI: IsTanimi[] = [
   { ad: 'bildirim_suresi', etiket: 'Bildirim süresi', elleCalisir: true,
     aciklama: 'Resmî bildirim süresi geçen/daralan olaylar için görev açar — '
       + '"bildirildi" YAZMAZ, olaya dokunmaz; kural tanımlı değilse hiçbir şey yapmaz' },
+  /* Zimmet süresi motoru (OT-09b). Açıklaması NE YAPMADIĞINI da söyler:
+     sahiplik yalnız insanın imzasıyla geçer. */
+  { ad: 'zimmet_suresi', etiket: 'Zimmet süresi', elleCalisir: true,
+    aciklama: 'Süresi geçen, sahibi pasifleşen ya da sahipliği başka yoldan '
+      + 'değişen zimmet taleplerini düşürür — kimse ADINA KABUL ETMEZ, '
+      + 'varlığın sahibini değiştirmez ve yeni talep açmaz' },
   { ad: 'bakim_temizlik', etiket: 'Bakım temizliği', elleCalisir: false,
     aciklama: 'Süresi dolmuş oturum ve iş kilidi satırlarını siler (saatlik, zamanlayıcıdan) '
       + '— bulgu üretmez, veri yorumlamaz' },

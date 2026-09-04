@@ -66,6 +66,15 @@ export type SahiplikYuku = {
    * göstermektir.
    */
   devredilebilir: string[];
+  /**
+   * OT-09b · Bu kişiye açılmış ve HÂLÂ cevap bekleyen zimmet talepleri.
+   *
+   * `toplam` ile TOPLANMAZ: imzalanmamış bir atama sahiplik değildir ve
+   * iki sayıyı birleştirmek, akışın var olma sebebi olan farkı silerdi.
+   */
+  bekleyenZimmet: {
+    id: string; varlikEtiket: string; sonTarih: string; iptalEdilebilir: boolean;
+  }[];
 };
 
 export const devirDisi = (s: SahiplikYuku) => s.toplam - s.devredilebilir.length;

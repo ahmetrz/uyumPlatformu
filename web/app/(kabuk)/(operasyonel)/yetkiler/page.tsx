@@ -45,7 +45,8 @@ export default async function Sayfa() {
      veriliyor. */
   const devredebilir = modulYazabilir(k, 'envanter', 'onay');
 
-  const [kullanicilar, surecler, tesisler, ekipler, sahiplikler] = await Promise.all([
+  const [kullanicilar, surecler, tesisler, ekipler, sahiplikler, zimmetSatirlari]
+    = await Promise.all([
     db.kullanici.findMany({
       include: {
         yetkiler: {
@@ -80,7 +81,23 @@ export default async function Sayfa() {
       where: { silindi: null, OR: [{ sahipId: { not: null } }, { emanetciId: { not: null } }] },
       select: { id: true, sahipId: true, emanetciId: true, tesisId: true },
     }),
+    /* OT-09b · Cevap bekleyen zimmet talepleri — kişi bazında. */
+    db.varlikAtamaTalebi.findMany({
+      where: { durum: 'bekliyor' },
+      select: {
+        id: true, atananId: true, sonTarih: true,
+        varlik: { select: { etiket: true, tesisId: true } },
+      },
+      orderBy: { sonTarih: 'asc' },
+    }),
   ]);
+
+  const bekleyenZimmetler = new Map<string, typeof zimmetSatirlari>();
+  for (const z of zimmetSatirlari) {
+    const liste = bekleyenZimmetler.get(z.atananId) ?? [];
+    liste.push(z);
+    bekleyenZimmetler.set(z.atananId, liste);
+  }
 
   const sahipVarliklari = new Map<string, { id: string; tesisId: string | null }[]>();
   const emanetSayisi = new Map<string, number>();
@@ -123,6 +140,15 @@ export default async function Sayfa() {
       emanet: emanetSayisi.get(u.id) ?? 0,
       devredilebilir: (sahipVarliklari.get(u.id) ?? [])
         .filter((v) => kapsamda(v.tesisId)).map((v) => v.id),
+      /* OT-09b · Bu kişiye açılmış ve HÂLÂ cevap bekleyen zimmetler.
+         Sahiplik sayısına KATILMAZ: imzalanmamış bir atama sahiplik
+         değildir ve iki sayının toplanması tam da bu farkı silerdi. */
+      bekleyenZimmet: (bekleyenZimmetler.get(u.id) ?? []).map((z) => ({
+        id: z.id,
+        varlikEtiket: z.varlik.etiket,
+        sonTarih: z.sonTarih.toISOString(),
+        iptalEdilebilir: kapsamda(z.varlik.tesisId),
+      })),
     },
   }));
 

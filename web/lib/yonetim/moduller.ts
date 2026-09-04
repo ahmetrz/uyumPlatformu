@@ -329,6 +329,15 @@ export const MODULLER: Modul[] = [
   { kod: 'hesapTipi', grup: 'erisim', ad: 'Hesap kaynak tipi ve MFA', sinif: 'A',
     yer: 'mevcut_ekran', rota: '/kimlik',
     aciklama: 'OT-33 · Hesabın NEREDE yaşadığı (yerel/dizin/uygulama/tedarikçi) `tip` alanından AYRI bir eksendir. MFA üç değerlidir: `null` "MFA yok" değil "ölçülmedi"dir.' },
+  { kod: 'zimmetTalebi', grup: 'varlik', ad: 'Varlık zimmeti (kabul/red)', sinif: 'A', yer: 'mevcut_ekran', rota: '/zimmetlerim',
+    aciklama: 'OT-09b · Atama bir TALEP açar; sahiplik ancak kişi kabul edince geçer. Red gerekçe ister ve sahiplik önceki sahibine döner; dönecek aktif kimse yoksa varlık sahipsiz kalır ve veri kalitesi bulgusu açılır.' },
+  { kod: 'zimmetSuresi', grup: 'varlik', ad: 'Zimmet cevap süresi', sinif: 'A', yer: 'konsol', hedefTipi: 'ayar',
+    aciklama: 'OT-09b · Bir zimmet talebinin cevapsız kalabileceği süre. Süre dolunca talep kendiliğinden DÜŞER — kimse adına KABUL EDİLMEZ ve varlığın sahibi değişmez. Tavan koda gömülüdür: sonsuza kadar bekleyen bir zimmet, zimmet değildir.',
+    etki: ['Bana atanan varlıklar', 'Envanter · sahiplik', 'zimmet_suresi motoru'] },
+  { kod: 'zimmetKurali', grup: 'varlik', ad: 'Zimmet imza kuralı', sinif: 'C', yer: 'kod',
+    kodYeri: 'lib/varlik/zimmet.ts → cevapKapisi() · iptalKapisi()',
+    aciklama: 'OT-09b · Bir zimmeti yalnız zimmetlenen kişi cevaplayabilir; yönetici iptal edebilir ama kimse adına kabul edemez. Red gerekçe zorunludur.',
+    neden: 'Bu kural akışın var olma sebebidir. Panelden gevşetilseydi "yönetici kullanıcı adına kabul etsin" seçeneği açılır ve zimmet yeniden tek taraflı bir alan doldurmaya dönerdi — denetimde "bu cihazı kim üstlendi" sorusunun cevabı yine kimsenin onaylamadığı bir isim olurdu.' },
   { kod: 'envanterSayimi', grup: 'varlik', ad: 'Fiziksel envanter sayımı', sinif: 'A', yer: 'mevcut_ekran', rota: '/sayim',
     aciklama: 'OT-55 · Kampanya, kapsam ve satır sonuçları. Payda açılışta DONAR; "sayılmadı" ile "bulunamadı" ayrı durumlardır ve sayım hiçbir varlığı silmez.' },
   { kod: 'sayimSonuclari', grup: 'varlik', ad: 'Sayım sonuç sözlüğü', sinif: 'C', yer: 'kod',
@@ -513,6 +522,7 @@ export function ayarinModulu(anahtar: string): Modul | null {
   if (anahtar === 'saha.yerlesim' || anahtar === 'saha.olculmemis') return MODUL_SOZLUGU.moduleGorunurluk;
   if (anahtar.startsWith('saha.')) return MODUL_SOZLUGU.sahaPencere;
   if (anahtar === 'kabuk.kunye') return MODUL_SOZLUGU.kunye;
+  if (anahtar.startsWith('zimmet.')) return MODUL_SOZLUGU.zimmetSuresi;
   if (anahtar === 'zamanlayici.motor_aralik_dk') return MODUL_SOZLUGU.motorAralik;
   if (/^motor\.[a-z_]+\.etkin$/.test(anahtar)) return MODUL_SOZLUGU.motorBayraklari;
   return null;

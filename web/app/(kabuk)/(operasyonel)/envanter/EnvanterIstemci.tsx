@@ -306,7 +306,7 @@ export default function EnvanterIstemci({
                   <DurusPaneli v={secili} segmentler={segmentler} />
                 )}
                 {panelKipi === 'yonetisim' && (
-                  <YonetisimPaneli v={secili} ekipler={ekipler}
+                  <YonetisimPaneli v={secili} ekipler={ekipler} kisiler={kullanicilar}
                     onaylanabilir={secili.onaylanabilir && onaylayabilir} simdi={simdi} />
                 )}
                 {panelKipi === 'form' && (

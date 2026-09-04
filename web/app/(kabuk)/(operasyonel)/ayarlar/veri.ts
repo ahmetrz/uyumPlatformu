@@ -119,7 +119,7 @@ export async function ayarlarVerisi(k: AktifKullanici, simdi: number): Promise<A
        sahipliğini kendi devredemez — devir `envanter/onay` yetkisiyle
        /yetkiler ekranından yapılır. Boş liste "devredilecek varlık yok"
        demez, "bu ekrandan devredilemez" demektir. */
-    sahiplik: { toplam: sahipVarlik, emanet: emanetVarlik, devredilebilir: [] },
+    sahiplik: { toplam: sahipVarlik, emanet: emanetVarlik, devredilebilir: [], bekleyenZimmet: [] },
     yetkiler: yetkiler.map((y) => ({
       id: y.id,
       rol: y.rol,

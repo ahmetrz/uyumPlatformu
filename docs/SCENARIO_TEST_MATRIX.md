@@ -4,12 +4,12 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 272 |
-| Testi olan senaryo | 272 |
+| Senaryo | 275 |
+| Testi olan senaryo | 275 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
-| Taranan test dosyası | 137 |
+| Taranan test dosyası | 138 |
 
 ## Katman başına kapsam
 
@@ -18,7 +18,7 @@
 | ACCESSIBILITY | 8 | 8 | 0 |
 | API | 12 | 12 | 0 |
 | CONCURRENCY | 7 | 7 | 0 |
-| DOMAIN | 140 | 140 | 0 |
+| DOMAIN | 142 | 142 | 0 |
 | ENGINE | 33 | 33 | 0 |
 | INTEGRATION | 26 | 26 | 0 |
 | MIGRATION | 2 | 2 | 0 |
@@ -26,7 +26,7 @@
 | RESPONSIVE | 8 | 8 | 0 |
 | SCOPE | 30 | 30 | 0 |
 | SERVER | 104 | 104 | 0 |
-| UI | 74 | 74 | 0 |
+| UI | 77 | 77 | 0 |
 | VISUAL | 4 | 4 | 0 |
 | WORKFLOW | 32 | 32 | 0 |
 
@@ -307,6 +307,9 @@
 | `TAB-DRF-001` | Konfigürasyon tabanı | ENGINE | `ters-kapsam-eylem.test.ts` | özeti olmayan yedek konfigürasyon SAPMASI açmaz | evet | geçti |
 | `ENV-GRN-001` | Envanter | ENGINE | `ters-kapsam-eylem.test.ts` | "hiç görülmedi" ile "ağda görülmedi" ayrı kurallardır | evet | geçti |
 | `SIS-KYR-001` | Sistem | SERVER | `ters-kapsam-eylem.test.ts` | aynı adla ikinci sağlayıcı sessizce ÜSTÜNE YAZMAZ | evet | geçti |
+| `BUL-KAP-003` | Bulgu | DOMAIN · UI | `kapanis-yolu.test.ts` | kapanış şeridi TIKLANABİLİR — süs değil, navigatör | evet | geçti |
+| `BUL-KAP-004` | Bulgu | DOMAIN · UI | `kapanis-yolu.test.ts` | kök nedene yazan İKİNCİ form yoktur | evet | geçti |
+| `BUL-KAP-005` | Bulgu | UI | `kapanis-yolu.test.ts` | kayıt açılınca düzenleme formu KENDİLİĞİNDEN gelmez | evet | geçti |
 
 ## Gerekçesiyle kütüksüz kalan dosyalar
 

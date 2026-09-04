@@ -199,6 +199,7 @@ const ARAYUZ_IZLERI = [
   { tur: 'genişleyen satır', kalip: /<GenisleyenSatir\b/ },
   { tur: 'form', kalip: /<form\b/ },
   { tur: 'aşama hattı', kalip: /<TezgahHatti\b|<Asamalar\b/ },
+  { tur: 'kapanış şeridi', kalip: /<KapanisBandi\b/ },
 ];
 
 /* Rotanın KENDİ dizinindeki tsx dosyaları taranır — alt dizinlere

@@ -1,7 +1,7 @@
 {
-  "imza": "668cabb79c41930dca1f1df106785fa8",
-  "dosya": 137,
-  "vaka": 2877,
+  "imza": "82cb38be2056c55695dec1728eca26a5",
+  "dosya": 138,
+  "vaka": 2906,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -254,6 +254,10 @@
     },
     "tests/kanitlar-mantik.test.ts": {
       "vaka": 23,
+      "atlanan": 0
+    },
+    "tests/kapanis-yolu.test.ts": {
+      "vaka": 29,
       "atlanan": 0
     },
     "tests/kapsam-ekranlari.test.ts": {

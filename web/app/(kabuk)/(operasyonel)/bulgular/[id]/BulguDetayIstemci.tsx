@@ -1,11 +1,11 @@
 'use client';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import {
   Im, Ipucu, Dugme, Alan, BosIlk, Hata, type Durum,
 } from '@/components/kabuk/temel';
 import { Tablo, type Satir } from '@/components/kabuk/tablo';
-import { EkranBasligi, Asamalar, KipDegistir } from '@/components/kabuk/ekran';
+import { EkranBasligi, KapanisBandi, KipDegistir } from '@/components/kabuk/ekran';
 import {
   Cekmece, CekmeceKimlik, CekmeceAlanlar, CekmeceBagli, CekmeceEylemler,
 } from '@/components/kabuk/panel';
@@ -22,6 +22,7 @@ import {
   type KokNedenKategorisi,
 } from '@/lib/uyum/kokNeden';
 import { KRONIK_ESIK, TEKRAR_KAYNAK_SOZU } from '@/lib/uyum/tekrarBulgu';
+import { kapanisYolu } from '@/lib/uyum/kapanisYolu';
 import {
   bulguGuncelle, aksiyonEkle, aksiyonDurumDegistir, aksiyonDogrula, kanitEkle,
 } from '@/lib/eylemler';
@@ -83,7 +84,6 @@ const SOZ: Record<Durum, string> = {
   unk: 'Aksiyon yok', tamam: 'Kapandı', pl: 'Riski kabul edildi',
 };
 
-const ASAMALAR = ['Tespit', 'Aksiyon', 'Doğrulama', 'Kapanış'];
 const KANIT_TIPLERI = ['politika', 'kayit', 'konfigurasyon', 'ekran_goruntusu', 'rapor'];
 
 export default function BulguDetayIstemci({ veri, esik = KANIT_ESIK_VARSAYILAN }: {
@@ -97,6 +97,15 @@ export default function BulguDetayIstemci({ veri, esik = KANIT_ESIK_VARSAYILAN }
   const [seciliAksiyon, setSeciliAksiyon] = useState<string | null>(null);
   const [aksiyonFormu, setAksiyonFormu] = useState(false);
   const [kanitFormu, setKanitFormu] = useState(false);
+  /* Okuma hâli ile düzenleme hâli AYRI (§11): kayıt açılınca dört seçim
+     kutusu birden gelmez. Kullanıcı çoğu zaman bakmaya gelmiştir. */
+  const [duzenle, setDuzenle] = useState(false);
+  const [analizAcik, setAnalizAcik] = useState(false);
+  /* Şeritten bir adıma gidildiğinde o bloğa kaydırılır. Kaydırma
+     render'dan SONRA olmalı (blok o an açılıyor olabilir), bu yüzden
+     bir tetikleyici tutulur. Sayaç, aynı adıma ikinci kez tıklandığında
+     da etkinin yeniden koşmasını sağlar — nesne kimliği değişir. */
+  const [odak, setOdak] = useState<{ ad: string; kez: number } | null>(null);
   const [yeniAksiyon, setYeniAksiyon] = useState({ baslik: '', sorumluId: '', hedef: '' });
   const [yeniKanit, setYeniKanit] = useState({ ad: '', tip: 'kayit' });
 
@@ -107,20 +116,44 @@ export default function BulguDetayIstemci({ veri, esik = KANIT_ESIK_VARSAYILAN }
   const acikAksiyon = veri.aksiyonlar.filter(aksiyonAcikMi).length;
   const aksiyon = veri.aksiyonlar.find((a) => a.id === seciliAksiyon) ?? null;
 
-  /* Aşama: bulgu → aksiyon → doğrulama → kapanış. Kayıt etiketinden DEĞİL,
-     iş durumundan türer: aksiyon sürüyorsa "Aksiyon", bittiyse "Doğrulama".
-     Beklemenin kendisi metrikle aynı yerden gelir (dogrulamaBekliyorMu). */
+  /* KAPANIŞ YOLU — ekranın birincil işi budur ve cevabı `lib/uyum/
+     kapanisYolu.ts` hesaplar. Kural orada tek yerdedir ve sunucu kapısı
+     (`kapanisKapisi`) ile aynı fonksiyonu paylaşır: ekranın "hazır"
+     deyip sunucunun reddetmesi mümkün değil. */
   const dogrulamaBekliyor = dogrulamaBekliyorMu(veri);
-  const asamaIndeksi = veri.durum === 'kapali' ? 3
-    : veri.aksiyonlar.length === 0 ? 0
-      : acikAksiyon > 0 ? 1 : 2;
+  const yol = useMemo(() => kapanisYolu({
+    durum: veri.durum,
+    onemDerecesi: veri.onem,
+    tekrarMi: veri.tekrarBulguId !== null,
+    analiz: {
+      kategori: veri.kokNedenKategori,
+      metin: veri.kokNeden,
+      analizEdenId: veri.kokNedenAnalizEden,
+      analizZamani: veri.kokNedenAnalizZamani ? Date.parse(veri.kokNedenAnalizZamani) : null,
+    },
+    aksiyonToplam: veri.aksiyonlar.length,
+    aksiyonAcik: acikAksiyon,
+    retestGerekli: veri.retestGerekli,
+    retestSonucu: veri.retestSonucu,
+    dogrulamaBekleyen: dogrulamaBekliyor,
+    kapanisDogrulama: veri.kapanisDogrulama,
+    tespit: veri.tespit,
+    tarih: kisaTarih,
+  }), [veri, acikAksiyon, dogrulamaBekliyor]);
 
-  const asamaTarihleri = [
-    kisaTarih(veri.tespit),
-    veri.aksiyonlar.length ? `${biten}/${veri.aksiyonlar.length}` : undefined,
-    dogrulamaBekliyor || dogrulama.im ? dogrulama.soz : undefined,
-    veri.kapanma ? kisaTarih(veri.kapanma) : veri.hedef ? kisaTarih(veri.hedef) : undefined,
-  ];
+  /* Şerit bir NAVİGATÖRDÜR: adıma tıklamak o adımın işine götürür. */
+  function yolaGit(anahtar: string) {
+    setPanel(true); setKip('kayit'); setSeciliAksiyon(null);
+    if (anahtar === 'analiz') setAnalizAcik(true);
+    if (anahtar === 'aksiyon' && veri.aksiyonlar.length === 0) setAksiyonFormu(true);
+    if (anahtar === 'kapanis') setDuzenle(true);
+    setOdak((o) => ({ ad: anahtar, kez: (o?.kez ?? 0) + 1 }));
+  }
+
+  useEffect(() => {
+    if (!odak) return;
+    document.getElementById(`yol-${odak.ad}`)?.scrollIntoView({ block: 'nearest' });
+  }, [odak]);
 
   const kartlar = useMemo(() => zamanKartlari(veri), [veri]);
 
@@ -148,8 +181,8 @@ export default function BulguDetayIstemci({ veri, esik = KANIT_ESIK_VARSAYILAN }
   /* C20 · Kök neden ve retest, her tuşta değil kaydet düğmesiyle yazılır:
      serbest metin denetim izine satır satır düşmesin. Boş metin sunucuda
      null olur — "kayıt yok" ile "boş dize" ayrımı ekrana sızmaz. */
-  function capaKaydet(alan: 'kokNeden' | 'retestSonucu', deger: string) {
-    calistir(() => bulguGuncelle({ id: veri.id, [alan]: deger }));
+  function retestKaydet(deger: string) {
+    calistir(() => bulguGuncelle({ id: veri.id, retestSonucu: deger }));
   }
 
   return (
@@ -179,13 +212,11 @@ export default function BulguDetayIstemci({ veri, esik = KANIT_ESIK_VARSAYILAN }
           eyebrow={`${etiketle(veri.kaynak, 'Bulgu')} · tespit ${kisaTarih(veri.tespit)}`}
           vurgu={veri.tesis.ad}
           baslik={`— ${veri.baslik}`}
+          /* "Aksiyon x/y" buradan KALKTI: kapanış şeridi aynı sayıyı
+             hem taşıyor hem de ne yapılacağını söylüyor. İki yerde
+             yazmak, ikinci yazının hiçbir yeni karar üretmemesi
+             demekti. */
           metrikler={[
-            {
-              deger: veri.aksiyonlar.length === 0 ? '—' : biten,
-              payda: veri.aksiyonlar.length === 0 ? undefined : veri.aksiyonlar.length,
-              yazi: 'Aksiyon',
-              durum: veri.aksiyonlar.length === 0 ? undefined : acikAksiyon > 0 ? 'md' : 'ok',
-            },
             {
               deger: gecikme !== null ? `+${gecikme} g` : veri.hedef ? kisaTarih(veri.hedef) : '—',
               yazi: 'Son tarih',
@@ -196,8 +227,17 @@ export default function BulguDetayIstemci({ veri, esik = KANIT_ESIK_VARSAYILAN }
         />
 
         <div style={{ padding: 'var(--s26) var(--gutter-op) 0', maxWidth: 900 }}>
-          <Asamalar aktifIndeks={asamaIndeksi}
-            asamalar={ASAMALAR.map((ad, i) => ({ ad, tarih: asamaTarihleri[i] }))} />
+          <KapanisBandi
+            adimlar={yol.adimlar}
+            sonraki={yol.sonraki}
+            git={yolaGit}
+            bittiCumlesi={yol.adimlar[yol.adimlar.length - 1].cumle}
+            birincil={yol.sonraki && veri.yazabilir ? (
+              <Dugme tur="birincil" onClick={() => yolaGit(yol.sonraki!.anahtar)}>
+                {yol.sonraki.etiket}
+              </Dugme>
+            ) : undefined}
+          />
         </div>
 
         {/* ── Modül 1 · aksiyon zinciri ─────────────────────────────── */}
@@ -227,22 +267,6 @@ export default function BulguDetayIstemci({ veri, esik = KANIT_ESIK_VARSAYILAN }
           )}
         </section>
 
-        {/* ── Modül 2 · bulgu → aksiyon → doğrulama zaman ekseni ────── */}
-        {kartlar.kartlar.length > 1 && (
-          <section style={{ padding: 'var(--s30) var(--gutter-op) var(--sec-pad-bot)' }}>
-            <p className="etiket" style={{ margin: '0 0 var(--s12)' }}>Zaman ekseni</p>
-            <ZamanCizelgesi
-              donemler={kartlar.donemler}
-              kartlar={kartlar.kartlar}
-              bugun={kartlar.bugun}
-              tikla={(id) => {
-                if (veri.aksiyonlar.some((a) => a.id === id)) {
-                  setSeciliAksiyon(id); setPanel(true); setKip('kayit');
-                }
-              }}
-            />
-          </section>
-        )}
       </main>
 
       {panel && (
@@ -278,6 +302,7 @@ export default function BulguDetayIstemci({ veri, esik = KANIT_ESIK_VARSAYILAN }
 
               {kip === 'kayit' ? (
                 <>
+                  <div id="yol-tespit" />
                   <CekmeceKimlik
                     durum={im}
                     soz={im === 'bd' && gecikme !== null ? `${SOZ.bd} · ${gecikme} gün` : SOZ[im]}
@@ -300,28 +325,66 @@ export default function BulguDetayIstemci({ veri, esik = KANIT_ESIK_VARSAYILAN }
                   {/* UY-26 · Kök neden analizi ve KAPANIŞ KAPISI. Kapı
                       ekranda da gösterilir ama asıl kapı sunucudadır
                       (`bulguGuncelle` aynı saf fonksiyonu çağırır). */}
-                  <KokNedenBlogu veri={veri} bekliyor={bekliyor} calistir={calistir} />
+                  <div id="yol-analiz">
+                    <KokNedenBlogu veri={veri} bekliyor={bekliyor} calistir={calistir}
+                      acik={analizAcik} ac={() => setAnalizAcik(true)} />
+                  </div>
 
                   {/* UY-28 · Tekrar zinciri. */}
                   <TekrarBlogu veri={veri} bekliyor={bekliyor} calistir={calistir} />
 
-                  {/* C20 · CAPA: kök neden + retest — yazma yetkisi olana */}
+                  {/* C20 · Retest — yazma yetkisi olana. Kök neden YUKARIDA,
+                      tek yerde yazılır. */}
                   {veri.yazabilir && (
-                    <CapaAlanlari
-                      key={`${veri.kokNeden ?? ''}|${veri.retestSonucu ?? ''}`}
-                      kokNeden={veri.kokNeden}
+                    <RetestBlogu
+                      key={veri.retestSonucu ?? ''}
                       retestGerekli={veri.retestGerekli}
                       retestSonucu={veri.retestSonucu}
                       bekliyor={bekliyor}
-                      kaydet={capaKaydet}
+                      kaydet={retestKaydet}
                       retestDegistir={(g) => calistir(
                         () => bulguGuncelle({ id: veri.id, retestGerekli: g }))}
                     />
                   )}
 
-                  <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)',
-                    display: 'grid', gap: 'var(--s14)' }}>
-                    <p className="etiket" style={{ margin: 0 }}>Kaydı güncelle</p>
+                  {/* OKUMA ≠ DÜZENLEME (§11). Kayıt açılır açılmaz dört
+                      seçim kutusu gelmez: kullanıcı çoğu zaman bakmaya
+                      gelmiştir ve düzenleme yüzeyi okumanın önüne
+                      geçmemeli. Şeritten "Kapanışa gönder" denince kip
+                      kendiliğinden açılır — kullanıcı istediği anda
+                      formu bulur. */}
+                  <div className="ab-panel-blok" id="yol-kapanis"
+                    style={{ marginTop: 'var(--s24)', display: 'grid', gap: 'var(--s14)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center',
+                      justifyContent: 'space-between', gap: 'var(--s12)' }}>
+                      <p className="etiket" style={{ margin: 0 }}>Kayıt</p>
+                      {veri.yazabilir && (
+                        <Dugme tur="ikincil" onClick={() => setDuzenle((o) => !o)}
+                          aria-expanded={duzenle}>
+                          {duzenle ? 'Düzenlemeyi kapat' : 'Düzenle'}
+                        </Dugme>
+                      )}
+                    </div>
+                    {!duzenle && (
+                      <dl className="ab-panel-ciftler">
+                        <div>
+                          <dt className="etiket">Durum</dt>
+                          <dd className="deger">{BULGU_DURUM_ETIKET[
+                            veri.durum as keyof typeof BULGU_DURUM_ETIKET] ?? veri.durum}</dd>
+                        </div>
+                        <div>
+                          <dt className="etiket">Önem</dt>
+                          <dd className="deger">{ONEM_ETIKET[
+                            veri.onem as keyof typeof ONEM_ETIKET] ?? veri.onem}</dd>
+                        </div>
+                        <div>
+                          <dt className="etiket">Sahip</dt>
+                          <dd className="deger">{veri.sorumlu ?? 'atanmadı'}</dd>
+                        </div>
+                      </dl>
+                    )}
+                    {duzenle && (
+                    <>
                     <Alan etiket="Durum">
                       <select className="ab-gr" value={veri.durum} disabled={bekliyor}
                         onChange={(e) => guncelle('durum', e.target.value)}>
@@ -352,11 +415,14 @@ export default function BulguDetayIstemci({ veri, esik = KANIT_ESIK_VARSAYILAN }
                         defaultValue={veri.hedef ? veri.hedef.slice(0, 10) : ''}
                         onChange={(e) => guncelle('hedefTarih', e.target.value)} />
                     </Alan>
+                    </>
+                    )}
                     {hata && <Hata cumle={hata} />}
                   </div>
 
                   {/* aksiyonEkle */}
-                  <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+                  <div className="ab-panel-blok" id="yol-aksiyon"
+                    style={{ marginTop: 'var(--s24)' }}>
                     <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>
                       Aksiyon · {biten}/{veri.aksiyonlar.length}
                     </p>
@@ -480,7 +546,28 @@ export default function BulguDetayIstemci({ veri, esik = KANIT_ESIK_VARSAYILAN }
                   <CekmeceEylemler dipNot="Kapatma, açık aksiyon kalmadığında ve doğrulama yetkisiyle yapılır; her değişiklik denetim izine yazılır." />
                 </>
               ) : (
-                <DenetimIzi kayitlar={veri.aktiviteler} />
+                /* GEÇMİŞ TEK YERDE (§12). Zaman ekseni buraya taşındı:
+                   ana yüzeyde 362px yer kaplıyor ve karar yüzeyini
+                   aşağı itiyordu. Sıra, sıradaki kararı doğrudan
+                   etkilemiyorsa kanıt katmanına aittir. */
+                <>
+                  {kartlar.kartlar.length > 1 && (
+                    <div className="ab-panel-blok" style={{ marginBottom: 'var(--s20)' }}>
+                      <p className="etiket" style={{ margin: '0 0 var(--s12)' }}>Zaman ekseni</p>
+                      <ZamanCizelgesi
+                        donemler={kartlar.donemler}
+                        kartlar={kartlar.kartlar}
+                        bugun={kartlar.bugun}
+                        tikla={(id) => {
+                          if (veri.aksiyonlar.some((a) => a.id === id)) {
+                            setSeciliAksiyon(id); setPanel(true); setKip('kayit');
+                          }
+                        }}
+                      />
+                    </div>
+                  )}
+                  <DenetimIzi kayitlar={veri.aktiviteler} />
+                </>
               )}
             </>
           )}
@@ -504,36 +591,32 @@ function DogrulamaHucresi({ hucre }: { hucre: ReturnType<typeof aksiyonDogrulama
   return hucre.kanit ? <Ipucu metin={hucre.kanit} genis>{govde}</Ipucu> : govde;
 }
 
-/* ── CAPA alanları: kök neden + retest ──────────────────────────────── */
+/* ── Retest bloğu ────────────────────────────────────────────────────
+   BURADA BİR ZAMANLAR İKİNCİ BİR KÖK NEDEN FORMU VARDI ve aynı alana
+   `KokNedenBlogu`dan farklı bir yoldan yazıyordu: kategori istemeden,
+   asgari uzunluk aramadan, imza bırakmadan. Yani kapanış kapısının
+   REDDETTİĞİ hâli (`kategorisiz` · `metinsiz` · `imzasiz`) tam olarak
+   bu form üretebiliyordu. Kullanıcı kaydediyor, ekran
+   kaydediyor, kapı yine "analiz yok" diyordu.
 
-function CapaAlanlari({
-  kokNeden, retestGerekli, retestSonucu, bekliyor, kaydet, retestDegistir,
+   Aynı gerçeği iki yerden yazdırmak bir kolaylık değil, bir çelişki
+   üreticisidir. Kök neden tek yerde yazılır: `KokNedenBlogu`. Burada
+   yalnız retest kalır. */
+
+function RetestBlogu({
+  retestGerekli, retestSonucu, bekliyor, kaydet, retestDegistir,
 }: {
-  kokNeden: string | null; retestGerekli: boolean; retestSonucu: string | null;
+  retestGerekli: boolean; retestSonucu: string | null;
   bekliyor: boolean;
-  kaydet: (alan: 'kokNeden' | 'retestSonucu', deger: string) => void;
+  kaydet: (deger: string) => void;
   retestDegistir: (gerekli: boolean) => void;
 }) {
-  const [neden, setNeden] = useState(kokNeden ?? '');
   const [sonuc, setSonuc] = useState(retestSonucu ?? '');
-  const nedenDegisti = neden.trim() !== (kokNeden ?? '');
   const sonucDegisti = sonuc.trim() !== (retestSonucu ?? '');
   return (
-    <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)', display: 'grid', gap: 'var(--s14)' }}>
-      <p className="etiket" style={{ margin: 0 }}>Kök neden analizi</p>
-      <Alan etiket="Kök neden">
-        <textarea className="ab-gr" value={neden} disabled={bekliyor}
-          placeholder="Bulgu neden oluştu? (5 neden / balık kılçığı özeti)"
-          onChange={(e) => setNeden(e.target.value)} />
-      </Alan>
-      <div style={{ display: 'flex', gap: 'var(--s12)' }}>
-        <Dugme tur="birincil" disabled={bekliyor || !nedenDegisti}
-          onClick={() => kaydet('kokNeden', neden)}>
-          Kök nedeni kaydet
-        </Dugme>
-      </div>
-
-      <p className="etiket" style={{ margin: 'var(--s8) 0 0' }}>Retest</p>
+    <div className="ab-panel-blok" id="yol-dogrulama"
+      style={{ marginTop: 'var(--s24)', display: 'grid', gap: 'var(--s14)' }}>
+      <p className="etiket" style={{ margin: 0 }}>Retest</p>
       <label style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--s8)',
         fontSize: 'var(--t-field)' }}>
         <input className="ab-gr" type="checkbox" checked={retestGerekli} disabled={bekliyor}
@@ -549,7 +632,7 @@ function CapaAlanlari({
           </Alan>
           <div style={{ display: 'flex', gap: 'var(--s12)' }}>
             <Dugme tur="birincil" disabled={bekliyor || !sonucDegisti}
-              onClick={() => kaydet('retestSonucu', sonuc)}>
+              onClick={() => kaydet(sonuc)}>
               Retest sonucunu kaydet
             </Dugme>
           </div>
@@ -832,10 +915,16 @@ function gunEtiketi(an: number, simdi: number): string {
    fonksiyonu (`kapanisKapisi`) çağırır. Ekranın kapıyı önceden
    göstermesi, kullanıcının reddedilecek bir düğmeye basmasını önler. */
 
-function KokNedenBlogu({ veri, bekliyor, calistir }: {
+function KokNedenBlogu({ veri, bekliyor, calistir, acik, ac }: {
   veri: Veri;
   bekliyor: boolean;
   calistir: (is: () => Promise<Sonuc>) => void;
+  /* Form varsayılan olarak KAPALI: kayıt açılır açılmaz boş bir kategori
+     kutusu ve boş bir metin alanı görmek, bakmaya gelen kullanıcıya
+     doldurulmamış bir form göstermektir. Şeritteki "Kök neden" adımına
+     tıklamak burayı açar. */
+  acik: boolean;
+  ac: () => void;
 }) {
   const [kategori, setKategori] = useState(veri.kokNedenKategori ?? '');
   const [metin, setMetin] = useState(veri.kokNeden ?? '');
@@ -898,7 +987,15 @@ function KokNedenBlogu({ veri, bekliyor, calistir }: {
           : `Kapanış kapısı KAPALI — ${kapi.ok === false ? kapi.sebep : ''}`}
       </p>
 
-      {veri.yazabilir && (
+      {veri.yazabilir && !acik && (
+        <div>
+          <Dugme tur="ikincil" onClick={ac} aria-expanded={false}>
+            {durum === 'tam' ? 'Analizi düzenle' : 'Analizi yaz'}
+          </Dugme>
+        </div>
+      )}
+
+      {veri.yazabilir && acik && (
         <>
           <Alan etiket="Kök neden kategorisi">
             <select className="ab-gr" value={kategori} disabled={bekliyor}

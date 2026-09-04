@@ -13,7 +13,7 @@ it('kapsam dışı varlığa yazılamaz [ENV-YAZ-003]', …)
 Ayrı bir eşleme tablosu tutulsaydı, tablo ilk yeniden adlandırmada
 testten ayrışır ve kimse görmezdi.
 
-Senaryo: **272** · testli: **272** · GAP: **0**
+Senaryo: **275** · testli: **275** · GAP: **0**
 
 ## Aktivite · 2 senaryo
 
@@ -44,7 +44,7 @@ Senaryo: **272** · testli: **272** · GAP: **0**
 | `BLD-KTU-002` | /bildirimler | herhangi bir kullanıcı · kendi kutusu | Okunmamış bildirim var · normal | Okundu işaretler | Yalnız kendi kutusunda okundu olur; kayıt kapanmaz | Sayaç düşer | Bildirim · guncelleme | yok | `bildirim-kutusu.test.ts` |
 | `BLD-KTU-003` | /bildirimler | herhangi bir kullanıcı · kendi kutusu | Hiç okunmamış bildirim yok · yok | Kabuktaki sayaca bakar | "En eski okunmamış" SIFIR GÜN değil, ölçülmedi (null) | Sıfırda rozet ÇİZİLMEZ | yazma yok | yok | `bildirim-kutusu.test.ts` |
 
-## Bulgu · 8 senaryo
+## Bulgu · 11 senaryo
 
 | ID | Rota | Rol · kapsam | Ön koşul · veri | Eylem | Beklenen sonuç | Ekran | Denetim izi | Görev/bildirim | Test |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -56,6 +56,9 @@ Senaryo: **272** · testli: **272** · GAP: **0**
 | `BUL-KAP-002` | /bulgular/[id] | uyum yöneticisi · kurum geneli | Aynı kök nedenle bulgu tekrar açılmış · yinelenen | Tekrar motoru koşar | Tekrar işaretlenir ve görev açılır | Tekrar rozeti | Aktivite kaydı | Görev | `faz-e-uyum.test.ts` |
 | `BUL-ANL-001` | /bulgular/[id] | uyum uzmanı · kendi santrali | Bulgu kritik, analiz yok · kısmi | Bulguyu kapatmayı dener | Reddedilir; kategori seçmek analiz DEĞİLDİR | Eksik olanın ne olduğu yazılır | yazma yok | yok | `faz-e-eylem.test.ts` |
 | `BUL-UYG-001` | /bulgular | sistem (motor) · kurum geneli | Aynı tesis ve kural için açık bulgu var · yinelenen | Motor tekrar koşar | Açık bulgu ÇOĞALTILMAZ | Kapatılmış bulgu koşuyu engellemez | yazma yok | yok | `uygulanabilirlik-bulgu.test.ts` |
+| `BUL-KAP-003` | /bulgular/[id] | uyum uzmanı · kendi santrali | Bulgunun bir adımı eksik · kısmi | Kapanış şeridindeki bir adıma tıklar | O adımın işine gidilir — şerit navigatördür, ilerleme süsü değil | Sıradaki iş tek cümleyle ve birincil eylemle yan yana durur | yazma yok | yok | `kapanis-yolu.test.ts` |
+| `BUL-KAP-004` | /bulgular/[id] | uyum uzmanı · kendi santrali | Ekranda kök nedene yazan iki ayrı form vardı · çelişen | Kök nedeni kaydeder | Tek yol vardır; kategori ve asgari uzunluk isteyen kapıdan geçilir | Kapının reddettiği hâli üretebilen ikinci form YOKTUR | Bulgu · guncelleme (kokNeden) | yok | `kapanis-yolu.test.ts` |
+| `BUL-KAP-005` | /bulgular/[id] | uyum uzmanı · kendi santrali | Kullanıcı düzenleme istemedi · normal | Bulgu kaydını açar | Düzenleme formu KENDİLİĞİNDEN açılmaz; okunabilir özet gelir | Düzenle düğmesi formu açar; geçmiş ana yüzeyde durmaz | yazma yok | yok | `kapanis-yolu.test.ts` |
 
 ## Canlı duruş · 9 senaryo
 

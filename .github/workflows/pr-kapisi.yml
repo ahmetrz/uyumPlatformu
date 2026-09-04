@@ -73,6 +73,14 @@ jobs:
         working-directory: web
         run: npm run ters:kapsam
 
+      - name: Bozuk durum ve dil kapısı
+        # Boş bir ekranda bozuk durum bloğunun cümlesi ekranın TEK
+        # içeriğidir. "Ne oldu" demek yetmez; "şimdi ne yapabilirim"
+        # sorusu da cevaplanmalı (`eylem`) ya da yokluğun beklenen durum
+        # olduğu söylenmeli (`iyiHaber`).
+        working-directory: web
+        run: npm run tasarim:dil
+
       - name: Tasarım kapısı (kontrast · font · eski iz)
         working-directory: web
         run: npm run tasarim:kapi

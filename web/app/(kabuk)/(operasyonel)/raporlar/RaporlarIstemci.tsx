@@ -117,9 +117,11 @@ export default function RaporlarIstemci({
           {/* ── Modül 1 · santral × süreç uyum matrisi ─────────────────── */}
           {satirlar.length === 0 ? (
             <div style={{ marginTop: 'var(--s26)' }}>
-              <BosIlk cumle={kisitliKapsam
-                ? 'Yetkinizin kapsamındaki santraller için tanımlı uyum süreci yok.'
-                : 'Uyum süreçlerinin kapsamı boş — matris çizilemiyor.'} />
+              <BosIlk
+                cumle={kisitliKapsam
+                  ? 'Yetkinizin kapsamındaki santraller için tanımlı uyum süreci yok.'
+                  : 'Uyum süreçlerinin kapsamı boş — matris çizilemiyor.'}
+                eylem={<Link href="/surecler" className="ab-dugme">Uyum kampanyalarını aç</Link>} />
             </div>
           ) : (
             <div style={{ marginTop: 'var(--s26)' }}>
@@ -223,7 +225,7 @@ function BulguYasi({ kovalar, toplam, bulgular }: {
   kovalar: ReturnType<typeof yasKovalari>; toplam: number; bulgular: Bulgu[];
 }) {
   if (toplam === 0) {
-    return <BosIlk cumle="Açık bulgu yok — yaş dağılımı çizilecek kayıt bulunmuyor." />;
+    return <BosIlk iyiHaber cumle="Açık bulgu yok — yaş dağılımı çizilecek kayıt bulunmuyor." />;
   }
   const enCok = Math.max(1, ...kovalar.map((k) => k.sayi));
   const agirToplam = kovalar.reduce((a, k) => a + k.agir, 0);
@@ -255,7 +257,10 @@ function KanitTazeligi({ kovalar, toplam, baglantisiz, esik }: {
   kovalar: ReturnType<typeof tazelikKovalari>; toplam: number; baglantisiz: number; esik: KanitEsik;
 }) {
   if (toplam === 0) {
-    return <BosIlk cumle="Kanıt kütüğünde kayıt yok — tazelik ölçülemiyor." />;
+    return (
+      <BosIlk cumle="Kanıt kütüğünde kayıt yok — tazelik ölçülemiyor."
+        eylem={<Link href="/kanitlar" className="ab-dugme">Kanıt kütüphanesini aç</Link>} />
+    );
   }
   const [taze, orta, eski] = kovalar;
   return (

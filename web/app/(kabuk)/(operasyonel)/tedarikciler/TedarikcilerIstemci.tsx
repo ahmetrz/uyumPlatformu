@@ -102,7 +102,11 @@ export default function TedarikcilerIstemci({
       <main data-yuzey="tezgah" style={{ minWidth: 0 }}>
         <EkranBasligi eyebrow="Üçüncü taraf" baslik="Tedarikçiler" />
         <section className="ab-ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
-          <BosIlk cumle="Tedarikçi kaydı yok" />
+          <BosIlk
+            cumle={'Tedarikçi kaydı yok. Tedarikçiler yönetim tezgâhındaki'
+              + ' tanım kataloglarından açılır; buradan sözleşme, sertifika'
+              + ' ve uzaktan erişim oturumları izlenir.'}
+            eylem={<Link href="/yonetim-tezgahi" className="ab-dugme">Tanım kataloglarını aç</Link>} />
         </section>
       </main>
     );

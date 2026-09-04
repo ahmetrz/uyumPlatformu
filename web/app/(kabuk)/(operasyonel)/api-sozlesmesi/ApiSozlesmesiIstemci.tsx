@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 import { useState } from 'react';
 import { BosIlk, Im } from '@/components/kabuk/temel';
 import { EkranBasligi } from '@/components/kabuk/ekran';
@@ -89,7 +90,12 @@ export default function ApiSozlesmesiIstemci({
       </p>
 
       {satirlar.length === 0
-        ? <BosIlk cumle="Uç kütüğü boş." />
+        ? (
+          <BosIlk
+            cumle={'Uç kütüğü boş — sözleşmede tanımlı hiçbir uç yok.'
+              + ' Anahtar kütüğü yönetim tezgâhındadır.'}
+            eylem={<Link href="/yonetim-tezgahi" className="ab-dugme">API anahtarlarını aç</Link>} />
+        )
         : <Tablo kolonlar={KOLONLAR} satirlar={satirlar} />}
 
       <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>

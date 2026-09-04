@@ -15,10 +15,16 @@
 
    Bu araç iki şeyi sayar:
 
-   A · EYLEMSİZ BOZUK DURUM — `BosIlk`, `Olculmedi`, `BaglantiYok`,
-       `EntegrasyonYok`, `KismiVeri`, `Bakimda` bileşenlerinden `eylem`
-       özelliği verilmeden çizilenler. Bunlar "ne oldu" der, "ne
-       yapabilirim" demez.
+   A · CEVAPSIZ BOZUK DURUM — `BosIlk`, `Olculmedi`, `BaglantiYok`,
+       `EntegrasyonYok`, `KismiVeri`, `Bakimda` bileşenlerinden ne
+       `eylem` ne de `iyiHaber` verilmeden çizilenler. Bunlar "ne oldu"
+       der, "ne yapabilirim" demez.
+
+       `iyiHaber` bilerek bir kaçış kapısı DEĞİLDİR: yokluğun beklenen
+       durum olduğunu söyler ("elenen satır yok — hepsi doğrulamayı
+       geçti") ve ekranda ayrı çizilir. Yapılacak iş olmadığını söylemek
+       de bir cevaptır; oraya sahte bir düğme koymak olmayan bir işi
+       varmış gibi göstermek olurdu.
 
    B · SİSTEM DİLİ — son kullanıcı yüzeyinde geliştirici sözcüğü:
        provider, adapter, registry, mutation, boolean, foreign key,
@@ -89,7 +95,10 @@ export function olc() {
       const kalip = new RegExp(`<${ad}(?=[\\s/>])`, 'g');
       for (const m of metin.matchAll(kalip)) {
         const govde = etiketMetni(metin, m.index);
-        if (/\beylem=/.test(govde)) continue;
+        /* `eylem` yapılacak işi verir; `iyiHaber` yokluğun BEKLENEN
+           durum olduğunu söyler. İkisi de bir cevaptır; hiçbiri yoksa
+           kullanıcı "ne yapabilirim" sorusuyla ekranda kalır. */
+        if (/\beylem=/.test(govde) || /\biyiHaber\b/.test(govde)) continue;
         const satir = metin.slice(0, m.index).split('\n').length;
         const cumle = govde.match(/(?:cumle|ne)="([^"]{0,70})/)?.[1]
           ?? govde.match(/(?:cumle|ne)=\{['"]([^'"]{0,70})/)?.[1] ?? '';

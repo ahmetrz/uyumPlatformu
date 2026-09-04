@@ -2212,6 +2212,13 @@
 .ab-asamalar li.simdi .ad { font-weight: 600; }
 .ab-asamalar .tarih { display: block; margin-top: 4px; font-size: var(--t-label); color: var(--i3); }
 
+/* Beklenen boşluk KUSUR DEĞİLDİR: "elenen satır yok" iyi haberdir ve
+   ilk kurulum boşluğuyla aynı görünmemeli. Ayrım renkte değil kaşta ve
+   sol kenarda: yeşil bir kutu "her şey yolunda" diye okunur ve ölçülmemiş
+   bir boşluğu da aynı yeşile boyama riski doğar. */
+.ab-blok.iyi { border-left: 2px solid var(--ok); }
+.ab-blok.iyi > .etiket { color: var(--ok); }
+
 /* ── Kapanış yolu şeridi (K arketipi) ──────────────────────────────────
    Bu şeridin yerinde dekoratif `Asamalar` vardı: dört aşama, dört tarih,
    sıfır etkileşim. Ölçüm (`arac/bilissel-yuk.mjs`) ana kolonda tek bir

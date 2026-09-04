@@ -9,7 +9,7 @@
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
-| Taranan test dosyası | 138 |
+| Taranan test dosyası | 139 |
 
 ## Katman başına kapsam
 
@@ -318,6 +318,7 @@
 | `belge-sayimlari.test.ts` | Belgelerdeki sayıların koda karşı doğrulaması |
 | `senaryo-kutugu.test.ts` | Kütüğün kendi nöbetçisi |
 | `ters-kapsam.test.ts` | Ters kapsamanın nöbetçisi — davranış envanterini kütüğe karşı sayar |
+| `eylem-dili.test.ts` | Bozuk durum bloklarının eylem/beklenen-durum nöbetçisi |
 | `bagimlilik-guvenligi.test.ts` | Bağımlılık ağacının güvenlik taraması |
 | `kalite-kapilari.test.ts` | Kapı betiklerinin varlığı |
 | `semantik.test.ts` | Ortak durum sözlüğünün tutarlılığı |

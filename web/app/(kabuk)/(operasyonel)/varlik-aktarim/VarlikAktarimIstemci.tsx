@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 import { useMemo, useRef, useState } from 'react';
 import { useUrlDurumuBos } from '@/components/kabuk/urlDurumu';
 import { Dugme, BosIlk, Alan, type Durum } from '@/components/kabuk/temel';
@@ -177,9 +178,11 @@ export default function VarlikAktarimIstemci({
           )}
 
           {aktarimlar.length === 0 ? (
-            <BosIlk cumle={yukleyebilir
-              ? 'Henüz dosya yüklenmedi. CSV/Excel yükleyin; kolonları eşleyin, önizlemeyi görün, sonra onaylayın.'
-              : 'Henüz dosya yüklenmedi.'} />
+            <BosIlk
+              cumle={yukleyebilir
+                ? 'Henüz dosya yüklenmedi. Aşağıdan CSV/Excel yükleyin; kolonları eşleyin, önizlemeyi görün, sonra onaylayın.'
+                : 'Henüz dosya yüklenmedi. Yükleme envanter yazma yetkisi ister.'}
+              eylem={<Link href="/envanter" className="ab-dugme">Envanteri aç</Link>} />
           ) : (
             <>
               <Tablo
@@ -355,10 +358,18 @@ function Onizleme({ a, butce, kapsamli }: {
      olabilir, sen göremiyorsundur — ikisi farklı şeydir ve ikincisi
      kullanıcıyı hata listesine bakmaya göndermez. */
   if (a.onizleme.length === 0 && kapsamli && a.gecerli > 0) {
-    return <BosIlk cumle="Kapsamınızdaki santrallere yazacak satır yok." />;
+    return (
+      <BosIlk
+        cumle={'Kapsamınızdaki santrallere yazacak satır yok — dosyadaki satırlar'
+          + ' başka santrallere ait. Yetkiniz genişlemeden bu aktarım hiçbir kayıt yazmaz.'}
+        eylem={<Link href="/yetkiler" className="ab-dugme">Yetki kapsamını gör</Link>} />
+    );
   }
   if (a.gecerli === 0) {
-    return <BosIlk cumle="Doğrulamayı geçen satır yok. Hata listesine bakın." />;
+    return (
+      <BosIlk cumle="Doğrulamayı geçen satır yok — bu dosyadan hiçbir varlık yazılamaz."
+        eylem={<Link href="/envanter" className="ab-dugme">Envanteri aç</Link>} />
+    );
   }
   return (
     <>
@@ -393,7 +404,7 @@ function Onizleme({ a, butce, kapsamli }: {
 
 function HataListesi({ a }: { a: Aktarim }) {
   if (a.hatali === 0) {
-    return <BosIlk cumle="Reddedilen satır yok — tüm satırlar doğrulamayı geçti." />;
+    return <BosIlk iyiHaber cumle="Reddedilen satır yok — tüm satırlar doğrulamayı geçti." />;
   }
   return (
     <>
@@ -418,7 +429,7 @@ function HataListesi({ a }: { a: Aktarim }) {
 
 function YinelenenListesi({ a, kapsamli }: { a: Aktarim; kapsamli: boolean }) {
   if (a.yinelenen === 0) {
-    return <BosIlk cumle={kapsamli
+    return <BosIlk iyiHaber cumle={kapsamli
       ? 'Kapsamınızdaki varlıklarla eşleşen satır yok.'
       : 'Mevcut envanterle eşleşen satır yok — hepsi yeni kayıt.'} />;
   }

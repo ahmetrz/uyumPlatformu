@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { useUrlDurumu, useUrlDurumuBos } from '@/components/kabuk/urlDurumu';
 import { Im, Metrikler, BosIlk, BosFiltre, Dugme, type Durum } from '@/components/kabuk/temel';
@@ -533,9 +534,11 @@ function BosDurum({ hicKayitYok, kapsamli, filtreAktif, temizle }: {
     /* "Hesap kaydı yok" ile "kapsamınızda hesap yok" AYNI ŞEY DEĞİLDİR. */
     return (
       <div style={{ marginTop: 'var(--s26)' }}>
-        <BosIlk cumle={kapsamli
-          ? 'Kapsamınızda hesap kaydı yok.'
-          : 'İnceleme kapsamında hesap yok.'} />
+        <BosIlk
+          cumle={kapsamli
+            ? 'Kapsamınızda hesap kaydı yok — erişim incelemesi yapılacak hesap bulunamadı.'
+            : 'İnceleme kapsamında hesap yok — erişim incelemesi yapılacak hesap bulunamadı.'}
+          eylem={<Link href="/yetkiler" className="ab-dugme">Kullanıcı ve yetkileri aç</Link>} />
       </div>
     );
   }

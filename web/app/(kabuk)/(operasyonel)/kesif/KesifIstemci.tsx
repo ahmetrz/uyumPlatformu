@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { useUrlDurumu, useUrlDurumuBos } from '@/components/kabuk/urlDurumu';
 import { BosIlk, BosFiltre } from '@/components/kabuk/temel';
@@ -270,7 +271,10 @@ export default function KesifIstemci({
             not="Kayıt CMDB'ye kendiliğinden yazılmaz; eşleştirme öneri üretir, kararı insan verir"
           />
           <PasiflikSatiri />
-          <BosIlk cumle="Henüz keşif kaydı yok. Pasif bir kaynağın dışa aktarımını yükleyin ya da bir bağlayıcı çalıştırın." />
+          <BosIlk
+            cumle={'Henüz keşif kaydı yok. Aşağıdan pasif bir kaynağın dışa'
+              + ' aktarımını yükleyin ya da bir bağlayıcı çalıştırın.'}
+            eylem={<Link href="/saglik" className="ab-dugme">Bağlayıcıları aç</Link>} />
           <ElleAktarimFormu yazabilir={yazabilir} />
           <PasifGozlemFormu yazabilir={yazabilir} tesisler={tesisler} />
         </section>

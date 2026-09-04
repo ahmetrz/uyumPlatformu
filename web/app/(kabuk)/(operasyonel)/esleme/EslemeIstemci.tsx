@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 import { useMemo, useState, useTransition } from 'react';
 import { useUrlDurumu } from '@/components/kabuk/urlDurumu';
 import { BosFiltre, BosIlk, Dugme } from '@/components/kabuk/temel';
@@ -229,9 +230,11 @@ export default function EslemeIstemci({
         {kip === 'connector' && (
           <section className="ab-ekran-govde" style={{ paddingTop: 'var(--s22)' }}>
             {connectorlar.length === 0 ? (
-              <BosIlk cumle={'Tanımlı bağlayıcı yok. Eşleme profili yine de'
-                + ' yayımlanabilir: bağlayıcı açıldığında tipinin etkin profili'
-                + ' kendiliğinden geçerli olur.'} />
+              <BosIlk
+                cumle={'Tanımlı bağlayıcı yok. Eşleme profili yine de'
+                  + ' yayımlanabilir: bağlayıcı açıldığında tipinin etkin profili'
+                  + ' kendiliğinden geçerli olur.'}
+                eylem={<Link href="/saglik" className="ab-dugme">Bağlayıcıları aç</Link>} />
             ) : (
               <Tablo
                 konuBasligi="Connector"

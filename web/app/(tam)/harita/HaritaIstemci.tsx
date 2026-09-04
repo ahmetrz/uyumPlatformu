@@ -47,9 +47,11 @@ export default function HaritaIstemci({
       <main className="ab-b-harita">
         <EkranBasligi eyebrow="Santral haritası" baslik="Kapsamınızda santral yok" />
         <section className="ab-ekran-govde">
-          <BosIlk cumle={kapsamli
-            ? 'Santral kapsamınız boş; harita gösterilecek kayıt bulamadı.'
-            : 'Portföyde aktif santral yok.'} />
+          <BosIlk
+            cumle={kapsamli
+              ? 'Santral kapsamınız boş; harita gösterilecek kayıt bulamadı.'
+              : 'Portföyde aktif santral yok.'}
+            eylem={<Link href="/portfoy" className="ab-dugme">Portföyü aç</Link>} />
         </section>
       </main>
     );

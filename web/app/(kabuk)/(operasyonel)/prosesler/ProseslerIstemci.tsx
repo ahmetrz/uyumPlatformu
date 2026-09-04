@@ -391,9 +391,11 @@ export default function ProseslerIstemci({
           )}
 
           {surecler.length === 0 ? (
-            <BosIlk cumle={'Hiç iş süreci tanımlanmamış. Süreç yoksa "bu cihaz '
-              + 'dururca ne durur" sorusu hiç sorulamaz; ekran bunu "risk yok" '
-              + 'değil "değerlendirilmedi" sayar.'} />
+            <BosIlk
+              cumle={'Hiç iş süreci tanımlanmamış. Süreç yoksa "bu cihaz '
+                + 'dururca ne durur" sorusu hiç sorulamaz; ekran bunu "risk yok" '
+                + 'değil "değerlendirilmedi" sayar.'}
+              eylem={<Link href="/yonetim-tezgahi" className="ab-dugme">Tanım kataloglarını aç</Link>} />
           ) : suzulmus.length === 0 ? (
             <BosFiltre temizle={() => setMercek('hepsi')} />
           ) : (

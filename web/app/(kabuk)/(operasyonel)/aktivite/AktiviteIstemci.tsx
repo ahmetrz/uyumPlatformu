@@ -185,9 +185,10 @@ export default function AktiviteIstemci({
             }} />
           ) : (
             <div style={{ marginTop: 'var(--s26)' }}>
-              <BosIlk cumle={kapsamli
-                ? 'Kapsamınızda denetim izi kaydı yok.'
-                : 'Denetim izi kütüğünde kayıt yok.'} />
+              <BosIlk iyiHaber
+                cumle={kapsamli
+                  ? 'Kapsamınızda denetim izi kaydı yok — bu kapsamda henüz hiçbir değişiklik yapılmamış.'
+                  : 'Denetim izi kütüğünde kayıt yok — henüz hiçbir değişiklik yapılmamış.'} />
             </div>
           )}
         </section>

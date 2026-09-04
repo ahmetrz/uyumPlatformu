@@ -101,7 +101,12 @@ export default function GozdenGecirmeIstemci({
       )}
 
       {tablo.length === 0
-        ? <BosIlk cumle="Hiç yönetim gözden geçirmesi kaydı yok." />
+        ? (
+          <BosIlk cumle="Hiç yönetim gözden geçirmesi kaydı yok."
+            eylem={yonetebilir
+              ? <Dugme tur="birincil" onClick={() => setFormAcik(true)}>Toplantı planla</Dugme>
+              : undefined} />
+        )
         : <Tablo kolonlar={KOLONLAR} satirlar={tablo} />}
 
       {yonetebilir && planlilar.length > 0 && (

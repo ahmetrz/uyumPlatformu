@@ -92,7 +92,9 @@ export default function BildirimlerIstemci({
         <EkranBasligi eyebrow="Bildirim kutusu · kişisel"
           baslik="Size hiç bildirim yazılmadı" />
         <section className="ab-ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
-          <BosIlk cumle={'Bu kutu yalnız SİZE yazılan bildirimleri gösterir.'
+          <BosIlk
+            eylem={<Link href="/yonetim-tezgahi" className="ab-dugme">Bana düşen görevleri aç</Link>}
+            cumle={'Bu kutu yalnız SİZE yazılan bildirimleri gösterir.'
             + ' Boş olması "sistemde uyarı yok" demek değildir: son tarih motoru'
             + ' bildirimi yalnız kaydın SORUMLUSUNA yazar, sorumlusu olmayan'
             + ' kayıt için görev açar ama bildirim üretmez.'} />

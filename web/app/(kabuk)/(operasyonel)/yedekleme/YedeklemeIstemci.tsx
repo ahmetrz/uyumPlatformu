@@ -148,7 +148,9 @@ export default function YedeklemeIstemci({
       <main data-yuzey="tezgah" style={{ minWidth: 0 }}>
         <EkranBasligi eyebrow="Yedekleme & kurtarma" baslik="Yedekleme & kurtarma" />
         <section className="ab-ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
-          <BosIlk cumle="Kapsamınızda aktif santral yok." />
+          <BosIlk
+            cumle={'Kapsamınızda aktif santral yok — yedekleme kaydı gösterilecek santral bulunamadı.'}
+            eylem={<Link href="/portfoy" className="ab-dugme">Portföyü aç</Link>} />
         </section>
       </main>
     );
@@ -207,7 +209,12 @@ export default function YedeklemeIstemci({
             />
           ) : gorunur.length === 0 && toplanan.length === 0 ? (
             filtreAktif ? <BosFiltre temizle={() => setMercek('hepsi')} />
-              : <BosIlk cumle="Yedekleme kaydı yok." />
+              : (
+                <BosIlk
+                  cumle={'Yedekleme kaydı yok — hiçbir koşu kaydedilmemiş.'
+                    + ' Kayıtlar yedekleme kaynağı bağlandığında gelir.'}
+                  eylem={<Link href="/saglik" className="ab-dugme">Bağlayıcıları aç</Link>} />
+              )
           ) : (
             <Tablo
               kolonlar={KOLONLAR}

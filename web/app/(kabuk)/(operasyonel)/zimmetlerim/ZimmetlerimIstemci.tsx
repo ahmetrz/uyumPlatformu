@@ -133,7 +133,7 @@ export default function ZimmetlerimIstemci({
       </div>
 
       {gorunen.length === 0 ? (
-        <BosIlk cumle={sekme === 'bekleyen'
+        <BosIlk iyiHaber={sekme === 'bekleyen'} cumle={sekme === 'bekleyen'
           ? 'Cevap bekleyen zimmetiniz yok. Size bir varlık atandığında burada görünür.'
           : 'Bu bölümde kayıt yok.'} />
       ) : (

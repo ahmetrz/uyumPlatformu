@@ -106,9 +106,22 @@ function olc() {
   const dugmeler = etkilesimli.filter((el) => el.matches('button, [role="button"]'));
   const baglar = etkilesimli.filter((el) => el.matches('a[href]'));
 
-  /* Birincil eylem: `.birincil` sınıfı taşıyan düğme; yoksa ilk düğme.
-     Ürünün kendi grameri `Dugme tur="birincil"` ile bunu işaretler. */
+  /* ── Birincil eylem ────────────────────────────────────────────────
+     İlk sürüm yalnız `.birincil` düğmesini arıyordu ve KUYRUK
+     ekranlarında yanılıyordu: `/saglik/reddedilenler` gibi bir dead-
+     letter kuyruğunda kullanıcının birincil eylemi bir düğmeye basmak
+     değil, BİR SATIR SEÇMEKTİR — karar çekmecesi öyle açılır. O ekranda
+     tek düğme sayfanın en altındaki "+4 kayıt" açıcısıydı ve araç onu
+     "birincil eylem 1190px'te" diye raporladı. Ölçüm doğruydu, hedef
+     yanlıştı.
+
+     Sıra: gerçek birincil düğme → seçilebilir ızgaranın ilk satırı →
+     gönderim düğmesi → ilk düğme. `role="grid"` ürünün kendi işaretidir
+     ve yalnız satır seçimi olan tabloya konur (`components/kabuk/
+     tablo.tsx`). */
+  const izgaraSatiri = is.querySelector('[role="grid"] tbody tr');
   const birincil = dugmeler.find((el) => el.classList.contains('birincil'))
+    ?? izgaraSatiri
     ?? dugmeler.find((el) => el.matches('[type="submit"]'))
     ?? dugmeler[0];
   const ustu = (el) => (el ? Math.round(el.getBoundingClientRect().top + window.scrollY) : null);
@@ -145,10 +158,21 @@ function olc() {
      Zaman çizelgesi, denetim izi, aktivite listesi. Ekranın ana yüzeyinde
      ne kadar yer kapladığı ölçülür; ana iş bunun altına inmişse karar
      yüzeyi kanıt yüzeyine yenilmiş demektir. */
-  /* L3 · kanıt ve geçmiş: zaman çizelgesi, köken kaydı, denetim izi.
-     Sınıf adları ürünün kendi grameridir (`app/kabuk.css`). */
-  const L3 = '.ab-zaman, .ab-zaman-kart, .ab-koken, .ab-konsol-iz, .ab-teknik,'
-    + ' [data-katman="l3"]';
+  /* L3 · KANIT ve GEÇMİŞ.
+
+     İlk sürüm buraya `.ab-zaman` (zaman çizelgesi) de koyuyordu ve
+     yanılıyordu: `/projeler`, `/surecler` ve `/denetimler` ekranlarında
+     o çizelge GELECEĞE bakar — "hangi proje taahhüdünü tutmuyor",
+     "hangi denetim takvimine yetişmiyor". Yani o ekranların BİRİNCİL
+     karar yüzeyi. Araç onu "geçmiş" sayıp indirilecek bir yük gibi
+     raporladı; ölçüm doğruydu, sınıflandırma yanlıştı.
+
+     Aynı bileşen bir ekranda karar, ötekinde kanıt olabiliyor ve
+     bileşenin kendisi hangisi olduğunu söylemiyor. Bu yüzden burada
+     yalnız TARTIŞMASIZ kanıt katmanı sayılır: köken kaydı, denetim izi,
+     teknik ayrıntı. Zaman çizelgesinin yeri ekran ekran karara bağlanır
+     ve gerekçesi `docs/UX_SIMPLIFICATION_AUDIT.md` içinde yazılır. */
+  const L3 = '.ab-koken, .ab-konsol-iz, .ab-teknik, [data-katman="l3"]';
   let l3Yuksekligi = 0;
   for (const el of is.querySelectorAll(L3)) {
     if (gorunur(el) && !kabuktaMi(el)) l3Yuksekligi += Math.round(el.getBoundingClientRect().height);
@@ -167,6 +191,8 @@ function olc() {
     tekrarlar: tekrarlar.slice(0, 6),
     ilkAksiyonY: ustu(birincil),
     ilkAksiyonAdi: birincil?.textContent?.trim().slice(0, 40) ?? null,
+    ilkAksiyonTuru: birincil == null ? null
+      : (birincil.tagName === 'TR' ? 'satır seçimi' : 'düğme'),
     isYuzeyiY: ustu(isYuzeyi),
     l3Yuksekligi,
     govdeMetin: metin.length,

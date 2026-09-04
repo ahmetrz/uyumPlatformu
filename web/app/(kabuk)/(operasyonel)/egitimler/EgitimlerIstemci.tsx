@@ -117,7 +117,12 @@ export default function EgitimlerIstemci({
       )}
 
       {tablo.length === 0
-        ? <BosIlk cumle="Tanımlı eğitim yok." />
+        ? (
+          <BosIlk cumle="Tanımlı eğitim yok."
+            eylem={yazabilir
+              ? <Dugme tur="birincil" onClick={() => setForm('egitim')}>Eğitim tanımla</Dugme>
+              : undefined} />
+        )
         : <Tablo kolonlar={KOLONLAR} satirlar={tablo} />}
     </main>
   );

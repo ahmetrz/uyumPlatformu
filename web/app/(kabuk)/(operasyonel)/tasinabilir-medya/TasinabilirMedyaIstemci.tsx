@@ -111,7 +111,12 @@ export default function TasinabilirMedyaIstemci({
       )}
 
       {tablo.length === 0
-        ? <BosIlk cumle="Kayıtlı taşınabilir medya yok." />
+        ? (
+          <BosIlk cumle="Kayıtlı taşınabilir medya yok."
+            eylem={yazabilir
+              ? <Dugme tur="birincil" onClick={() => setForm('medya')}>Medya kaydet</Dugme>
+              : undefined} />
+        )
         : <Tablo kolonlar={KOLONLAR} satirlar={tablo} />}
 
       {yazabilir && medyalar.length > 0 && <MedyaIslemleri medyalar={medyalar} />}

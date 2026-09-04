@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { Alan, BosIlk, Dugme, Im } from '@/components/kabuk/temel';
@@ -116,10 +117,10 @@ export default function DegerlendirmeAktarimIstemci({
               sec={(id) => setSecili(secili === id ? null : id)}
             />
           ) : (
-            <BosIlk cumle={
-              'Değerlendirme aktarımı kaydı yok. Bir kuru koşu, hiçbir '
-              + 'değerlendirmeye dokunmadan ne olacağını hesaplar.'
-            } />
+            <BosIlk
+              cumle={'Değerlendirme aktarımı kaydı yok. Bir kuru koşu, hiçbir '
+                + 'değerlendirmeye dokunmadan ne olacağını hesaplar.'}
+              eylem={<Link href="/uyum" className="ab-dugme">Uyum matrisini aç</Link>} />
           )}
         </section>
       </main>

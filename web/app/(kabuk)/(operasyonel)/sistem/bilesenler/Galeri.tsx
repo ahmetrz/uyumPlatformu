@@ -442,15 +442,20 @@ export default function Galeri() {
             {/* Bilinmeyen ≠ sıfır ≠ sağlıklı ≠ ölçülmedi: dört hâl, dört kutu.
                 Sol kenardaki 45° tarama bilinmeyen dilimiyle aynı şekil kodu. */}
             <div style={{ display: 'flex', gap: 'var(--s24)', flexWrap: 'wrap' }}>
-              <Olculmedi ne="Alaşehir JES · OT segmenti" neden="tarama kapsamı dışında" />
-              <BaglantiYok kaynak="EPDK-SYM bağlayıcısı" sonBasarili="02 Eyl 03:10" />
-              <KismiVeri olculen={7} toplam={11} birim="santral" />
+              <Olculmedi ne="Alaşehir JES · OT segmenti" neden="tarama kapsamı dışında"
+                eylem={<Dugme>Kapsama al</Dugme>} />
+              <BaglantiYok kaynak="EPDK-SYM bağlayıcısı" sonBasarili="02 Eyl 03:10"
+                eylem={<Dugme>Kuru koşu</Dugme>} />
+              <KismiVeri olculen={7} toplam={11} birim="santral"
+                eylem={<Dugme>Eksik santralleri gör</Dugme>} />
             </div>
             {/* Üç ayrı hâl daha: yapılandırılmamış ≠ ulaşılamıyor; bakım
                 planlı; kısmi yükleme toplam yazmaz. */}
             <div style={{ display: 'flex', gap: 'var(--s24)', flexWrap: 'wrap' }}>
-              <EntegrasyonYok kaynak="SCADA tarihçe" ne="OT olay akışı" />
-              <Bakimda ne="Kızıldere III · DCS ağ geçidi" bitis="04 Eyl 06:00" />
+              <EntegrasyonYok kaynak="SCADA tarihçe" ne="OT olay akışı"
+                eylem={<Dugme>Bağlayıcı tanımla</Dugme>} />
+              <Bakimda ne="Kızıldere III · DCS ağ geçidi" bitis="04 Eyl 06:00"
+                eylem={<Dugme>Bakım penceresini gör</Dugme>} />
               <KismiYukleniyor gelen={9} toplam={17} birim="santral" />
             </div>
           </div>

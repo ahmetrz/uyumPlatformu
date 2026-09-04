@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { useUrlDurumu, useUrlDurumuBos } from '@/components/kabuk/urlDurumu';
 import { BosFiltre, BosIlk } from '@/components/kabuk/temel';
@@ -185,8 +186,10 @@ export default function TopolojiIstemci({
   const bolgeKapat = () => setSeciliBolge('-');
 
   const bolgeGorunumu = bolgeler.length === 0 ? (
-    <BosIlk cumle={'Kapsamınızda ağ bölgesi tanımı yok — bölge ve geçit tanımı'
-      + ' varlık aktarımı (CMDB kaydı) ile gelir; bu ekran ağı taramaz.'} />
+    <BosIlk
+      cumle={'Kapsamınızda ağ bölgesi tanımı yok — bölge ve geçit tanımı'
+        + ' varlık aktarımı (CMDB kaydı) ile gelir; bu ekran ağı taramaz.'}
+      eylem={<Link href="/varlik-aktarim" className="ab-dugme">Varlık aktarımını aç</Link>} />
   ) : (
     <>
       <BolgeTuvali grafik={bolgeGrafigi} odak={seciliBolge} odakla={bolgeOdakla} />
@@ -223,9 +226,11 @@ export default function TopolojiIstemci({
           baslik="Topoloji anlığı alınmadı" />
         <section className="ab-ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
           <AnlikAlmaFormu tesisler={tesisler} yazabilir={yazabilir} />
-          <BosIlk cumle={'Kapsamınızda topoloji anlığı yok — bu "sapma yok" demek'
-            + ' değildir, hiç ölçülmedi demektir. Onaylı ağ kaydından bir anlık'
-            + ' dondurun, sonra onu temel olarak onaylayın.'} />
+          <BosIlk
+            cumle={'Kapsamınızda topoloji anlığı yok — bu "sapma yok" demek'
+              + ' değildir, hiç ölçülmedi demektir. Yukarıdaki formdan onaylı ağ'
+              + ' kaydından bir anlık dondurun, sonra onu temel olarak onaylayın.'}
+            eylem={<Link href="/envanter" className="ab-dugme">Ağ kaydını aç</Link>} />
 
           {/* Bölge tanımı anlıktan bağımsızdır: anlık yokken de çizilir,
               çünkü tanım varlık aktarımıyla gelir ve okunabilir olmalıdır. */}

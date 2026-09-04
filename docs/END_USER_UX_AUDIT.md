@@ -61,12 +61,15 @@ kabuk kuralları (gezinme, erişilebilirlik, taşma) onlarda da geçerlidir ve
 | UX-0008 | **P2** | `/topoloji` tuval | Sonsuz akış animasyonu azaltılmış harekette durmuyor | kapatıldı |
 | UX-0009 | **P2** | `/riskler` | Çekmece 1280px'te tablonun %42'sini örtüyor | kapatıldı (UX-0003 ile) |
 | UX-0010 | **P2** | `/esleme` · `/saglik/reddedilenler` bağı | "connector" · "ölü mektup" · "legal hold" son kullanıcı metninde | kapatıldı |
-| UX-0011 | **P2** | `/yonetim-tezgahi` | H1 ölçüyle sloganı tek cümlede birleştiriyor | açık |
+| UX-0011 | **P2** | `/yonetim-tezgahi` | H1 ölçüyle sloganı tek cümlede birleştiriyor | kapatıldı |
 | UX-0012 | **P3** | `/kesif` | "28 kayıt" künyede dört kez | kapatıldı (UX-0004 ile) |
-| UX-0013 | **P3** | `/dokumanlar` | Boşluk listesi katlanamıyor · "9 karşılıksız" üç yerde | açık |
-| UX-0014 | **P3** | `/prosesler` | H1 sözdizimi bozuk | açık |
+| UX-0013 | **P3** | `/dokumanlar` | Boşluk listesi katlanamıyor · "9 karşılıksız" üç yerde | kapatıldı |
+| UX-0014 | **P3** | `/prosesler` | H1 sözdizimi bozuk | kapatıldı |
 | UX-0016 | **P2** | Kabuk · ayak | 375px'te dört ayak bağı tamamen kırpılıyordu | kapatıldı |
 | UX-0017 | **P3** | `/saglik` kip çubuğu | 768px'te beşinci kip gizli kaydırmanın ardında | kapatıldı |
+| UX-0018 | **P1** | `/api-sozlesmesi` · `/saklama` | Tablo `role="grid"` diyor ama klavyeyle girilemiyor | kapatıldı |
+| UX-0019 | **P1** | `/zimmetlerim` | Süzgeç şeridi sekme rolü taşıyor; tabpanel de gezinen odak da yok | kapatıldı |
+| UX-0020 | **P2** | `/api-sozlesmesi` · `/saklama` | Seçilemeyen satır tıklanabilir görünüyor | kapatıldı |
 | UX-0015 | **P1** | `/degerlendirme-aktarim` | Ekran bütün kalite kapılarının dışındaydı | kapatıldı |
 
 ---
@@ -430,6 +433,60 @@ kaydırma yalnız dokunmatik bantta kalır.
 
 ---
 
+### UX-0018 · P1 · İki tablo `role="grid"` diyordu ama klavyeye kapalıydı
+
+**Ölçüm.** `role="grid"` bir SÖZDÜR: "buraya Tab ile girilir, ok
+tuşlarıyla gezilir". `components/kabuk/tablo.tsx` bu rolü koşulsuz
+basıyor, gezinen odağı (`tabIndex` 0/−1) ise yalnız satır seçilebilir
+olduğunda basıyordu. Seçilemeyen iki tabloda — `/api-sozlesmesi` ve
+`/saklama` — ızgarada **tek bir odak durağı yoktu**: ekran okuyucuya
+verilen söz tutulmuyordu.
+
+**Bu ölçümün kendi hikâyesi de var.** `arac/erisim.mjs` bu kusuru
+bulabilmek için önce KENDİSİ düzeltildi: kendi giriş kopyasını taşıyordu
+ve ortak katmandaki (değeri doğrulanmış) giriş düzeltmesini almadığı için
+hidrasyon yarışına düşüp zaman aşımına uğruyordu — araç hiç koşmuyordu.
+Koşar hâle geldiğinde ise ilk raporu YANLIŞTI: `tabindex="-1"` taşıyan
+her şeyi suçlayıp ürünün bütün tablolarını kusurlu saydı. Oysa o tablolar
+gezinen odak kalıbını doğru kuruyor; ölçüldü (`/riskler`): 46. Tab
+durağında ızgaraya girildi, ArrowDown/ArrowUp satır değiştirdi, Enter
+çekmeceyi açtı ve odak panele geçti. Yanlış olan ekranlar değil kuraldı.
+Kural düzeltildikten sonra kalan üç bulgu gerçekti.
+
+**Çözüm.** `role="grid"` yalnız seçilebilir tabloda basılıyor; seçilemeyen
+tablo `<table>`ın kendi semantiğiyle (`role="table"`) kalıyor.
+
+**Kapatıldı.** `SIS-ERS-003`.
+
+---
+
+### UX-0019 · P1 · `/zimmetlerim` süzgeci sekme rolü taşıyordu
+
+**Ölçüm.** `role="tablist"` + `role="tab"` kullanılıyordu ama ne
+`tabpanel` vardı, ne gezinen odak; `aria-selected` de düz bir `<button>`
+üzerinde geçerli değildir. Bunlar sekme değil SÜZGEÇti — sınıf adı bile
+`ab-filtre`.
+
+**Çözüm.** Ürünün her yerindeki mercek grameri uygulandı: `role="group"` +
+`aria-pressed`. Bir kapı artık `role="tablist"` kullanan her dosyada
+`role="tabpanel"` de arıyor.
+
+**Kapatıldı.** `SIS-ERS-003`.
+
+---
+
+### UX-0020 · P2 · Seçilemeyen satır tıklanabilir görünüyordu
+
+**Ölçüm.** `.ab-vt tbody tr { cursor: pointer }` koşulsuzdu; seçilemeyen
+tabloların satırları da tıklanabilir görünüyor ama hiçbir şey yapmıyordu.
+
+**Çözüm.** İmleç `role="grid"` koşuluna bağlandı — yani satırın gerçekten
+seçilebilir olmasına.
+
+**Kapatıldı.** `SIS-ERS-002`.
+
+---
+
 ## Ölçülen ve TEMİZ çıkan kapılar
 
 Bu başlık, denetimin neyi bulamadığını da yazmak içindir; "hiçbir şey
@@ -446,7 +503,11 @@ bulunamadı" ile "bakılmadı" aynı şey değildir.
 | Çekmecede ESC | **10/10** |
 | Çekmecede kapanışta odak geri dönüşü | **10/10** |
 | Çekmecede erişilebilir ad | **10/10** |
-| Jargon taraması (`SIS-DIL-001`) | temiz — sözlük UX-0010 ile genişletilecek |
+| Jargon taraması (`SIS-DIL-001`) | temiz · sözlük dört sözcükle genişletildi |
+| axe (wcag2a + wcag2aa) | **51 rota · ciddi/kritik ihlal 0 · diğer 0** |
+| `erisim.mjs` (odak halkası · klavye · azaltılmış hareket · renk dışı kanal) | **50 rota · 0 kusur** |
+| Çekmece (ESC · odak · ad · kimlik kolonu) | **10/10 temiz** · 1440 · 1280 · 1024 · 900 · 768 · 375 |
+| Duyarlılık süpürmesi (`tasarim:ux`) | **450 ölçüm · 0 kusur** |
 
 **Bilinmeyen semantiği (soru 14) platformun en güçlü yanıdır** ve hiçbir
 ekranda bozulmuş bulunmadı: "ölçülmedi" sıfır olarak gösterilmiyor,

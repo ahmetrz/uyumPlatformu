@@ -163,6 +163,46 @@ const SABOTAJLAR = [
     yaz: '    yuzde: kapsam === 0 ? 0 : Math.round(((u + k * 0.5) / kapsam) * 100),',
     testler: ['tests/semantik.test.ts', 'tests/uyum-grubu-mantik.test.ts'],
   },
+  /* ── UX kapıları (FAZ F–M) ────────────────────────────────────────
+     Dördü de denetimde ÖLÇÜLEN bir kusuru donduran kurallardır. Bir
+     kural "artık gerekmiyor" diye kaldırılırsa testin bunu görmesi
+     gerekir; görmezse kural bir yorumdan ibarettir. */
+  {
+    ad: 'Gezinme sırası yeniden gizli kaydırmaya döndü',
+    kural: 'Geniş ekranda gezinme sırası sarar, kırpmaz',
+    dosya: 'app/kabuk.css',
+    ara: `.ab-ikincil {
+  display: flex; align-items: stretch; flex-wrap: wrap;
+  min-height: 36px; padding: 0 12px;`,
+    yaz: `.ab-ikincil {
+  display: flex; align-items: stretch; height: 36px;
+  overflow-x: auto; scrollbar-width: none; padding: 0 12px;`,
+    testler: ['tests/kabuk-gezinme.test.ts'],
+  },
+  {
+    ad: 'Bir ekran rota envanterinden düştü',
+    kural: 'app/ altındaki her kabuklu sayfa kalite kapılarının listesinde',
+    dosya: 'arac/rotalar.json',
+    ara: '"/degerlendirme-aktarim", ',
+    yaz: '',
+    testler: ['tests/kabuk-gezinme.test.ts'],
+  },
+  {
+    ad: 'Ekran başlığı yeniden cümle parçası',
+    kural: 'Vurgusuz kalabilen başlık tek başına okunur',
+    dosya: 'app/(kabuk)/(operasyonel)/sayim/SayimIstemci.tsx',
+    ara: `        baslik={acik.length > 0 ? 'sayım turu açık' : 'Açık sayım turu yok'}`,
+    yaz: '        baslik="sayımı"',
+    testler: ['tests/ekran-basligi.test.ts'],
+  },
+  {
+    ad: 'Seçilemeyen tablo yeniden grid diyor',
+    kural: 'role="grid" yalnız gezinen odağı olan tabloda basılır',
+    dosya: 'components/kabuk/tablo.tsx',
+    ara: "role={sec ? 'grid' : undefined}",
+    yaz: 'role="grid"',
+    testler: ['tests/senaryo-platform.test.ts'],
+  },
 ];
 
 function testKos(testler) {

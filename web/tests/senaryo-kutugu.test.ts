@@ -160,7 +160,10 @@ describe('UX denetim belgesi · hiçbir ekran atlanmaz', () => {
       const satir = metin.split('\n').find((l) => l.startsWith(`| ${kimlik} |`));
       expect(satir, `${kimlik} bulgu tablosunda yok`).toBeTruthy();
       expect(satir!, `${kimlik} önem derecesiz`).toMatch(/\*\*P[0-3]\*\*/);
-      expect(satir!, `${kimlik} durumsuz`).toMatch(/\| (açık|kapatıldı) \|/);
+      /* Durum sütunu "açık" ya da "kapatıldı" ile başlar; kapanışın
+         nasıl olduğu parantez içinde eklenebilir ("kapatıldı (UX-0003
+         ile)") — bilgi eksiltmeden okunurluk katar. */
+      expect(satir!, `${kimlik} durumsuz`).toMatch(/\| (açık|kapatıldı)[^|]*\|\s*$/);
     }
   });
 });

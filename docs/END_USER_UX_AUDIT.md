@@ -52,19 +52,21 @@ kabuk kuralları (gezinme, erişilebilirlik, taşma) onlarda da geçerlidir ve
 | Kimlik | Önem | Ekran | Kusur | Durum |
 | --- | --- | --- | --- | --- |
 | UX-0001 | **P0** | Kabuk · Uyum alanı | İkincil gezinme sırası 1440px'te üç ekranı gizliyor | kapatıldı |
-| UX-0002 | **P1** | Kabuk · üst çubuk | Arama · bildirim · hesap/çıkış 807px altında ekran dışında | açık |
-| UX-0003 | **P1** | Çekmece (10 ekran) | Odak tuzağı yok · `role="dialog"` yok · `aria-modal` yok | açık |
-| UX-0004 | **P1** | `/kesif` | İş yüzeyi 1518px derinde · 2×7 kart ızgarası · iki form kuyruğun üstünde | açık |
-| UX-0005 | **P1** | `/envanter` | Açılışta ekranın çoğu boş sütun ve yönerge | açık |
-| UX-0006 | **P1** | 8 ekran | Sayfanın H1'i cümle değil, parça | açık |
-| UX-0007 | **P2** | Kabuk · ayak | Ayak bağları 14px — 24px'lik dokunma hedefinin altında | açık |
-| UX-0008 | **P2** | `/topoloji` tuval | Sonsuz akış animasyonu azaltılmış harekette durmuyor | açık |
-| UX-0009 | **P2** | `/riskler` | Çekmece 1280px'te tablonun %42'sini örtüyor | açık |
-| UX-0010 | **P2** | `/esleme` · `/saglik/reddedilenler` bağı | "connector" ve "ölü mektup" son kullanıcı metninde | açık |
+| UX-0002 | **P1** | Kabuk · üst çubuk | Arama · bildirim · hesap/çıkış 807px altında ekran dışında | kapatıldı |
+| UX-0003 | **P1** | Çekmece (10 ekran) | Panel doklu değil, iş yüzeyinin kimlik kolonlarını örtüyor | kapatıldı |
+| UX-0004 | **P1** | `/kesif` | İş yüzeyi 1518px derinde · 2×7 kart ızgarası · iki form kuyruğun üstünde | kapatıldı |
+| UX-0005 | **P1** | `/envanter` | Açılışta ekranın çoğu boş sütun ve yönerge | kapatıldı |
+| UX-0006 | **P1** | 8 ekran | Sayfanın H1'i cümle değil, parça | kapatıldı |
+| UX-0007 | **P2** | Kabuk · ayak | Ayak bağları 14px — 24px'lik dokunma hedefinin altında | kapatıldı |
+| UX-0008 | **P2** | `/topoloji` tuval | Sonsuz akış animasyonu azaltılmış harekette durmuyor | kapatıldı |
+| UX-0009 | **P2** | `/riskler` | Çekmece 1280px'te tablonun %42'sini örtüyor | kapatıldı (UX-0003 ile) |
+| UX-0010 | **P2** | `/esleme` · `/saglik/reddedilenler` bağı | "connector" · "ölü mektup" · "legal hold" son kullanıcı metninde | kapatıldı |
 | UX-0011 | **P2** | `/yonetim-tezgahi` | H1 ölçüyle sloganı tek cümlede birleştiriyor | açık |
-| UX-0012 | **P3** | `/kesif` | "28 kayıt" künyede dört kez | açık |
+| UX-0012 | **P3** | `/kesif` | "28 kayıt" künyede dört kez | kapatıldı (UX-0004 ile) |
 | UX-0013 | **P3** | `/dokumanlar` | Boşluk listesi katlanamıyor · "9 karşılıksız" üç yerde | açık |
 | UX-0014 | **P3** | `/prosesler` | H1 sözdizimi bozuk | açık |
+| UX-0016 | **P2** | Kabuk · ayak | 375px'te dört ayak bağı tamamen kırpılıyordu | kapatıldı |
+| UX-0017 | **P3** | `/saglik` kip çubuğu | 768px'te beşinci kip gizli kaydırmanın ardında | kapatıldı |
 | UX-0015 | **P1** | `/degerlendirme-aktarim` | Ekran bütün kalite kapılarının dışındaydı | kapatıldı |
 
 ---
@@ -114,36 +116,51 @@ kabul ölçütü "kırpılmış kritik bilgi: 0"dır. Arama, okunmamış bildiri
 sayacı ve çıkış kritik kontrollerdir. UX-0001'le aynı ailedendir: kayan
 ama ipucu vermeyen bir şerit.
 
-**Çözüm yönü.** Marka sola yapışkan olduğu gibi sağ öbek de sağa yapışkan
-olmalı; ortadaki alan sekmeleri ikisinin arasında kayar. Her bantta üç
-kontrol de görünür kalır.
+**Çözüm.** Marka sola yapışkan olduğu gibi sağ öbek de sağa yapışkan
+oldu; ortadaki alan sekmeleri ikisinin arasında kayar.
+
+**Kapatıldı.** Ölçüldü: 1100 · 1024 · 960 · 900 · 860 · 820 · 800 · 768 ·
+720px — hiçbirinde ekran dışı yok.
 
 ---
 
-### UX-0003 · P1 · Çekmece klavyeyi bırakıyor
+### UX-0003 · P1 · Çekmece doklu değildi, iş yüzeyini örtüyordu
 
-**Ölçüm** (`arac/cekmece-erisim.mjs`, 1280px, 10 ekran — `/kesif`,
-`/bulgular`, `/riskler`, `/olaylar`, `/omur`, `/yedekleme`,
-`/tedarikciler`, `/kanitlar`, `/denetimler`, `/projeler`):
+**İlk ölçüm YANLIŞ YORUMLANDI — bu, denetimin kendi kaydıdır.**
+`arac/cekmece-erisim.mjs` ilk sürümü `role="dialog"`, `aria-modal="true"`
+ve odak tuzağı arıyordu; bulamayınca on ekranı birden kusurlu saydı.
+Oysa `components/kabuk/panel.tsx` bu paneli BİLEREK modal yapmıyor ve
+gerekçesini yazıyor: *"okuyucu kütüğü/tuvali GÖRMEYE DEVAM EDER"*. Böyle
+bir panelde `aria-modal="true"` yazmak YALAN olurdu (arka plan atıl
+değil) ve odak tuzağı, tasarımın okunur bıraktığı tabloya klavyeyle
+ulaşmayı ENGELLERDİ. Yanlış olan ekranlar değil, aracın varsayımıydı;
+araç düzeltildi ve artık modal işaretlerinin YOKLUĞUNU doğruluyor
+(yarım modal — üçünden ikisi — hâlâ kusur).
 
-| Ölçüt | Sonuç |
+**Asıl kusur ise gerçekti: panel sözünü tutmuyordu.** `position: fixed`
+olduğu için gövde daralmıyor, panel içeriğin ÜSTÜNE biniyordu. Ölçüm
+(1440px, kaydın KİMLİK kolonları = ilk iki kolon):
+
+| Bant | Kimlik kolonu örtülen ekran |
 | --- | --- |
-| ESC kapatıyor | ✓ 10/10 |
-| Kapanışta odak geri dönüyor | ✓ 10/10 |
-| Erişilebilir ad var | ✓ 10/10 |
-| **Odak tuzağı** | ✗ 0/10 — son öğeden sonra Tab arkadaki sayfaya çıkıyor |
-| **`role="dialog"`** | ✗ 0/10 |
-| **`aria-modal="true"`** | ✗ 0/10 |
+| 1440 | **7 / 10** (`/riskler`, `/olaylar`, `/omur`, `/yedekleme`, `/tedarikciler`, `/denetimler`, `/projeler`) |
+| 1280 | 3 / 10 |
+| 1024 | 3 / 10 |
 
-**Niçin kusur.** Klavye kullanan biri çekmecenin son düğmesinden sonra Tab'a
-bastığında odak sessizce arkadaki tabloya geçiyor; ekranda hiçbir şey
-değişmediği için kullanıcı hâlâ çekmecede sanıyor. Ekran okuyucu ise
-çekmeceyi bir katman olarak duyurmuyor, arka planı okumayı sürdürüyor.
-Görev listesi FAZ L'de "Drawer/modal focus trap" açıkça isteniyor.
+Kusur geniş ekranda daha ağırdı: tablo genişledikçe ilk iki kolon da
+sağa uzuyor ve 400px'lik şeridin altına giriyordu. Kullanıcı panelde
+incelediği satırı listede bulamıyordu — "maksimum bağlam korunumu"nun
+tam tersi.
 
-**Çözüm yönü.** `components/kabuk/panel.tsx` içindeki `Cekmece` bileşenine
-odak tuzağı (Tab/Shift+Tab sarması) ve `role="dialog"` + `aria-modal="true"`.
-ESC ve odak geri dönüşü zaten çalışıyor, korunur.
+**Çözüm.** Panel artık gerçekten DOKLU: `.ab:has(.ab-panel)` ile içerik,
+durum şeridi ve ayak panelin enini boş bırakır, tablo kalan ende yeniden
+akar. `/envanter` bunu zaten böyle yapıyordu (`.ab-a-calisma` ızgarasında
+panel gerçek bir sütun); gramer birleşti. 1024'ün ALTINDA panel bilerek
+tam eni kaplar: o bantta tabloya kalan 368px kolon başlıklarını bile
+taşımaz, kullanıcı tek seferde tek şeye bakar.
+
+**Kapatıldı.** Ölçüldü: 1440 · 1280 · 1024 · 900 · 768 · 375
+bantlarında kimlik kolonu örtülmüyor, 10/10 çekmece temiz.
 
 ---
 
@@ -170,10 +187,16 @@ artırarak sorun çözme" diyor. Ayrıca kullanıcı bu ekrana kuyruğu inceleme
 için gelir; iki veri giriş formunun kuyruğun ÜSTÜNDE durması, seyrek yapılan
 bir işi her ziyarette önüne koymaktır.
 
-**Çözüm yönü.** Yedi grup, kart ızgarasından süzgeç şeridine iner (sayı +
-ad; gerekçe metni açılabilir satırda kalır — bilgi silinmez, gösterimi
-sıkışır). Politika bloğu ve iki form aşamalı açığa çıkarmaya alınır. Kuyruk
-ilk ekrana çıkar.
+**Çözüm.** Yedi grup, kart ızgarasından süzgeç şeridine indi (sayı + ad +
+durum glifi); gerekçe metni SİLİNMEDİ — grup seçilince şeridin altında tek
+satır olarak yazılır, seçilmeden `title` ile durur. Politika sözü bir
+cümleye indi ve yapılmayan işlemler düğmenin ardına geçti. İki yükleme
+formu kuyruğun ALTINA indi: seyrek yapılan iş, her ziyarette önde durmaz.
+Dipnottaki dört sayı da metrik bandıyla çakışıyordu; yalnız metrik
+bandının söylemediği iki şey kaldı.
+
+**Kapatıldı.** İş yüzeyi **1518px → 692px**. Sayfa boyu 2309 → 1660px.
+Platformdaki tek kart ızgarası kalktı.
 
 ---
 
@@ -191,10 +214,14 @@ doldurulmaması DOĞRUDUR ve korunmalıdır ("sahte bir zincir çizilmez").
 Kusur dürüstlükte değil, YOĞUNLUKTA: doğru olan şey ekranın yarısını
 kaplıyor.
 
-**Çözüm yönü.** Seçim yokken (a) dolmayan dört halka tek bir dar "seçim
-bekliyor" rayına iner ve yönerge BİR kez yazılır, (b) bağlam paneli
-kapanır — bağlamı olmayan bir bağlam paneli 400px tutmamalıdır. Dolan üç
-halka boşalan eni alır. Seçim yapılınca ikisi de bugünkü hâline döner.
+**Çözüm.** Seçim yokken (a) dolmayan dört halka tek bir dar bekleme rayına
+indi ve yönerge BİR kez yazılıyor, (b) bağlam paneli hiç çizilmiyor —
+bağlamı olmayan bir bağlam paneli 400px tutmamalı. Dolan üç halka boşalan
+eni aldı. Seçim yapılınca yedi halka ve panel geri geliyor; boş halkalar
+o zaman "bağlı kayıt yok" diyor — bir ÖLÇÜM sonucu, yönerge değil.
+
+**Kapatıldı.** Ölçüldü: seçimsiz 3 halka + 1 ray, panel yok; seçimli 7
+halka + panel. Sayfa boyu 1180 → 1000px, tuval 1016 → 1392px.
 
 ---
 
@@ -223,9 +250,12 @@ kez açan kişinin gözü oraya düşer. "Kütüğü" bir başlık değildir. İ
 Ayrıca künyedeki `UY-66`, `OT-55` gibi ister kodları son kullanıcının
 sözlüğünde yoktur; kodun yeri ürün belgesidir, ekranın künyesi değil.
 
-**Çözüm yönü.** Her ekranın H1'i tek başına okunabilen bir cümle olur;
-ister kodu künyeden düşer. Boş vurgu (`vurgu` yokken) H1'i parçaya
-düşürmeyecek biçimde kurulur ve bir kapı bunu dondurur.
+**Çözüm.** Sekiz ekranın H1'i tek başına okunan cümlelere çevrildi; ister
+kodları künyeden düştü (`/api-sozlesmesi`, `/prosesler`, `/tabanlar` dâhil
+üç künye daha). `tests/ekran-basligi.test.ts` kuralı dondurur: vurgusuz
+kalabilen bir başlık cümle parçası olamaz, künyede `UY-`/`OT-` kodu geçemez.
+
+**Kapatıldı.** `SIS-BSL-001` · `SIS-BSL-002`.
 
 ---
 
@@ -235,9 +265,10 @@ düşürmeyecek biçimde kurulur ve bir kapı bunu dondurur.
 Tasarım sistemi" bağları 36×14, 50×14 ve 81×14 piksel. WCAG 2.2'nin
 2.5.8 ölçütü 24×24 ister.
 
-**Çözüm yönü.** Bağlar `inline-flex` + `min-height: 24px` olur. Ayağın
-yüksekliği amiral yoğunlukta 22px'ten 24px'e çıkar; 2px'lik bu bedel,
-ölçütü karşılamanın en ucuz yoludur.
+**Çözüm.** Bağlar `inline-flex` + `min-height: 24px` oldu; alt çizgi kutuya
+değil metne bağlandı. Ayak amiral yoğunlukta 22 → 25px.
+
+**Kapatıldı.** Ölçüldü: 36×24 · 36×24 · 50×24 · 81×24.
 
 ---
 
@@ -251,8 +282,11 @@ durduruyor. `.ab-tuval .kenar.akis` (topoloji tuvalindeki sonsuz akış,
 **Niçin kusur.** Kendiliğinden başlayan ve beş saniyeden uzun süren
 hareket, azaltılmış hareket isteyen kullanıcı için durdurulabilir olmalıdır.
 
-**Çözüm yönü.** Kuralı mevcut bloğa eklemek. Aynı blokta `.ab-genisleyen >
-summary .ok` dönüşü ve fotoğraf soluklaşmaları da gözden geçirilir.
+**Çözüm.** `.ab-tuval .kenar.akis` azaltılmış hareket bloğuna alındı;
+açılır oku dönüşü ve fotoğraf soluklaşmaları da aynı blokta durduruldu.
+Kenar görünür kalır, yalnız akışı durur — çizginin kendisi bir veridir.
+
+**Kapatıldı.**
 
 ---
 
@@ -266,8 +300,13 @@ tablosunun sağ kolonlarının geniş olması).
 listenin okunur kalmasını ister. Yarıya yakını örtülen bir tablo bağlam
 sağlamaz.
 
-**Çözüm yönü.** Dar masaüstünde (≤1280px) çekmece açıkken tablo kolonlarının
-daralması ya da çekmecenin enini bant başına ayarlaması.
+**Çözüm.** UX-0003'ün doklu panel çözümüyle birlikte kapandı: panel artık
+tablonun üstüne binmiyor, gövde daralıyor. Ham örtme yüzdesi de anlamlı
+bir ölçü olmadığı için araçta KİMLİK KOLONU ölçüsüyle değiştirildi —
+400px'lik bir panel her ekranda tablonun benzer bir dilimini kaplar; asıl
+soru kaydın kimliğinin okunur kalıp kalmadığıdır.
+
+**Kapatıldı.**
 
 ---
 
@@ -286,10 +325,13 @@ daralması ya da çekmecenin enini bant başına ayarlaması.
 kendi içinde tutarsız. "Ölü mektup" ise bir kuyruk terimidir; son kullanıcı
 sözlüğünde yoktur.
 
-**Çözüm yönü.** "connector" → "bağlayıcı"; "ölü mektup" bağ metninden düşer
-(ekranın kendi başlığı zaten "reddedilen kayıtlar"dır). Jargon kapısı
-(`tests/senaryo-platform.test.ts` · `SIS-DIL-001`) bu iki sözcükle
-genişletilir ki geri gelmesinler.
+**Çözüm.** "connector" → "bağlayıcı" (dokuz yerde: H1, iki kolon başlığı,
+iki form etiketi, dört boş/açıklama metni); "ölü mektup" bağ metninden
+düştü; `/saklama`'da "Hukuki muhafaza (legal hold)" → "Hukuki muhafaza".
+Jargon kapısının sözlüğü dördüyle genişletildi ve `components/` dizini de
+taranıyor.
+
+**Kapatıldı.** `SIS-DIL-001`.
 
 ---
 
@@ -354,6 +396,37 @@ envanterde olmasını şart koşuyor; `(giris)` grubu (kabuksuz, oturumsuz:
 ve gerekçesi testte yazılı.
 
 **Kapatıldı.** `arac/rotalar.json` · `tests/kabuk-gezinme.test.ts`.
+
+---
+
+### UX-0016 · P2 · 375px'te dört ayak bağı tamamen kırpılıyordu
+
+**Ölçüm.** `.ab-alt` `white-space: nowrap` + `overflow: hidden` idi ve
+içeriği 375px'lik ekranda **737px** tutuyordu. Yardım, Destek, Kısayollar
+ve Tasarım sistemi kaydırılamıyordu, KESİLİYORDU: telefonda o dört ekrana
+ayaktan ulaşmanın hiçbir yolu yoktu.
+
+Bu, UX-0001 ve UX-0002 ile aynı aileden ama daha ağır: orada içerik kayan
+bir kapta duruyordu (ipucusuz ama ulaşılabilir), burada tamamen kesiliyordu.
+
+**Çözüm.** Ayak dokunmatik bantta SARAR. İki satır 24px daha yer alır;
+dört bağın yok olmasından iyidir. Görev listesinin kabul ölçütü de bunu
+ister: "mobilde bilgi kaybı 0".
+
+**Kapatıldı.** Ölçüldü: 375px'te içerik 737 → 375px, dört bağ da görünür.
+
+---
+
+### UX-0017 · P3 · `/saglik` kip çubuğunun beşinci kipi 768px'te gizliydi
+
+**Ölçüm.** `.ab-ikili` (kip çubuğu) `overflow-x: auto; scrollbar-width:
+none` idi. `/saglik`'ın beş kipi 768px'te 775px tutuyor ve "Kurulum
+hazırlığı" gizli kaydırmanın ardında kalıyordu.
+
+**Çözüm.** İkincil gezinme sırasıyla aynı kural: masaüstünde SARAR, yatay
+kaydırma yalnız dokunmatik bantta kalır.
+
+**Kapatıldı.** Ölçüldü: 768px'te içerik 775 → 718px.
 
 ---
 

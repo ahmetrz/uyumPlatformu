@@ -472,6 +472,22 @@
   background: var(--zemin); border-top: 1px solid var(--hr);
   font-size: 11px; color: var(--i3); white-space: nowrap; overflow: hidden;
 }
+/* ── ÖLÇÜLDÜ: 375px'te DÖRT BAĞ TAMAMEN ULAŞILAMIYORDU ───────────────
+   Ayak `white-space: nowrap` + `overflow: hidden` idi ve içeriği 375px'lik
+   ekranda 737px tutuyordu. Yardım, Destek, Kısayollar ve Tasarım sistemi
+   kırpılıyordu — kaydırılamıyordu, KESİLİYORDU. Telefonda o dört ekrana
+   ayaktan ulaşmanın hiçbir yolu yoktu.
+
+   Çözüm ayağın SARMASI. İki satır 24px daha yer alır; dört bağın yok
+   olmasından iyidir. Görev listesinin kabul ölçütü de bunu ister:
+   "mobilde bilgi kaybı 0". */
+@media (max-width: 700px) {
+  .ab-alt {
+    flex-wrap: wrap; white-space: normal; overflow: visible;
+    gap: 8px 16px; padding: 8px 16px;
+  }
+  .ab-alt nav { margin-left: 0; flex-wrap: wrap; gap: 8px 14px; }
+}
 .ab-alt .kunye { color: var(--i2); }
 .ab-alt .kunye .mono { font-size: 11px; color: var(--i3); }
 .ab-alt nav { display: inline-flex; gap: 16px; margin-left: auto; }
@@ -1445,6 +1461,8 @@
 
 /* ── Gövde ─────────────────────────────────────────────────────────── */
 .ab-a-calisma { display: grid; grid-template-columns: minmax(0, 1fr) 400px; min-height: 0; }
+/* Bağlam paneli yokken tek sütun (UX-0005). */
+.ab-a-calisma.panelsiz { grid-template-columns: minmax(0, 1fr); }
 /* Sağdaki 400px'lik seçim paneli 375px'lik ekrana sığmaz. Panel
    GİZLENMEZ — seçili varlığın künyesi orada yaşıyor; tuvalin ALTINA
    iner ve kenarlığını sola değil üste alır. */
@@ -1476,6 +1494,20 @@
 .ab-zincir .sutun > .bos {
   font-family: var(--veri); font-size: 11px; letter-spacing: .1em;
   text-transform: uppercase; color: var(--i3); padding-top: 6px;
+}
+/* ── Kısalı zincir: seçim yokken üç dolu halka + bir bekleme rayı ────
+   Dört boş sütun yerine tek dar ray. Dolan halkalar boşalan eni alır;
+   ray içeriğe göre daralır ve yönergeyi BİR kez taşır (UX-0005). */
+.ab-zincir.kisali {
+  --zincir-kolon: repeat(3, minmax(140px, 1fr)) minmax(150px, .8fr);
+}
+.ab-zincir .kolonbas.bekleyen { color: var(--i3); opacity: .7; }
+.ab-zincir .bekleyen-ray {
+  border-left: 1px dashed var(--hr2); padding-left: 14px;
+}
+.ab-zincir .bekleyen-ray > .bos {
+  letter-spacing: .04em; text-transform: none; line-height: 1.5;
+  padding-top: 0; max-width: 26ch;
 }
 .ab-zincir .dugum {
   display: grid; gap: 4px; align-content: center; text-align: left;
@@ -2091,8 +2123,15 @@
    sabit yükseklik); dar ekranda tek çözüm yatay kaydırmadır. Dört kipli
    ekranlar (Topoloji, Sağlık) 375px'te bu satır yüzünden taşıyordu. */
 .ab-ikili {
-  display: inline-flex; border: 1px solid var(--hr2);
-  max-width: 100%; overflow-x: auto; scrollbar-width: none;
+  display: inline-flex; flex-wrap: wrap; border: 1px solid var(--hr2);
+  max-width: 100%;
+}
+/* Ölçüldü: /saglik'ın beş kipi 768px'te 775px tutuyor ve "Kurulum
+   hazırlığı" gizli kaydırmanın ardında kalıyordu — ikincil gezinme
+   sırasındaki kusurun aynısı, bir kat aşağıda. Masaüstünde sıra SARAR;
+   yatay kaydırma yalnız dokunmatik bantta kalır. */
+@media (max-width: 700px) {
+  .ab-ikili { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
 }
 .ab-ikili::-webkit-scrollbar { display: none; }
 .ab-ikili button {
@@ -3382,23 +3421,45 @@ details:not([open]) > *:not(summary) { display: none !important; }
    Yedi grup DIŞLAYICIDIR ve sayıları toplama eşittir. Kutular birer
    süzgeç düğmesidir; sıfır sayılı grup tıklanamaz ama LİSTEDEN ÇIKMAZ —
    "o gruptan hiç yok" bilgisi, grubun görünmemesinden farklıdır. */
-.ab-kesif-gruplar {
-  display: grid; gap: 10px; margin-top: 14px;
-  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+/* ── Keşif grup süzgeci ─────────────────────────────────────────────
+   Eskiden `auto-fit minmax(210px, 1fr)` bir KART IZGARASIYDI: yedi kutu,
+   her biri kendi kenarını çizen, tam paragraf taşıyan. 1440px'te iki
+   sütuna dört satır, ~560px yer. Ölçüldü: platformdaki tek kart
+   ızgarası buydu ve inceleme kuyruğunu 1518px aşağı itiyordu.
+
+   Şimdi mercek şeridinin gramerinde: sayı + ad + durum glifi. Gerekçe
+   metni silinmedi — seçilince şeridin altında tek satır olarak yazılır,
+   seçilmeden `title` ile durur. */
+.ab-kesif-suzgec { flex-wrap: wrap; }
+.ab-kesif-suzgec .mercekler button {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 26px;
 }
-.ab-kesif-grup {
-  display: grid; gap: 6px; text-align: left; min-width: 0;
-  padding: 12px; border: 1px solid var(--hr); border-radius: 2px;
-  background: transparent; color: inherit; font: inherit; cursor: pointer;
+.ab-kesif-suzgec .mercekler button .sayi {
+  font-size: 13px; color: var(--murekkep); font-variant-numeric: tabular-nums;
 }
-.ab-kesif-grup:hover:not(:disabled) { border-color: var(--i3); }
-.ab-kesif-grup[aria-pressed='true'] { border-color: var(--aksan); background: var(--secim); }
-.ab-kesif-grup:disabled { cursor: default; opacity: 0.55; }
-.ab-kesif-grup .bas { display: flex; align-items: center; gap: 8px; }
-.ab-kesif-grup .sayi { font-size: 19px; line-height: 1; }
-.ab-kesif-grup .ad {
-  font-size: 12px; font-weight: 600; overflow-wrap: anywhere;
+.ab-kesif-suzgec .mercekler button:disabled { opacity: .5; cursor: default; }
+.ab-kesif-suzgec .mercekler button:disabled .sayi { color: var(--i3); }
+.ab-kesif-suzgec > .aciklama {
+  flex-basis: 100%; margin: 0; padding-top: 8px; max-width: 78ch;
 }
-.ab-kesif-grup .aciklama {
-  font-size: 11px; line-height: 1.5; color: var(--i2); overflow-wrap: anywhere;
+
+/* ── Keşif · pasiflik satırı ────────────────────────────────────────
+   Ürünün ağa ne YAPMADIĞI her ziyarette görünür kalır (OT ekibinin ilk
+   sorusudur) ama bir paragraf değil bir satır tutar; yapılmayan işlemler
+   düğmenin ardındadır. */
+.ab-kesif-pasiflik {
+  display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;
+  padding: 12px 0; margin-top: var(--s20); border-top: 1px solid var(--hr);
 }
+.ab-kesif-pasiflik > p { margin: 0; flex: 1 1 340px; font-size: 12px; color: var(--i2); }
+.ab-kesif-pasiflik > p strong { color: var(--murekkep); }
+.ab-kesif-pasiflik .yasaklar {
+  flex-basis: 100%; list-style: none; margin: 8px 0 0; padding: 0;
+  display: grid; gap: 8px;
+}
+.ab-kesif-pasiflik .yasaklar li {
+  display: grid; grid-template-columns: 22px 1fr; gap: 8px; align-items: start;
+  font-size: 11px; line-height: 1.5; color: var(--i2);
+}
+.ab-kesif-pasiflik .yasaklar li b { color: var(--murekkep); font-weight: 600; }
+

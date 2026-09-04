@@ -12,7 +12,7 @@ import { csvAktar, damgaliAd, exceleAktar } from '@/components/disaAktar';
 import { tarihTR, zamanTR } from '@/lib/sabitler';
 import {
   AKTIF_ISLEM_YASAKLARI, KESIF_ADIMLARI, KESIF_GRUPLARI, KESIF_GRUP_ACIKLAMASI,
-  KESIF_GRUP_ADI, KESIF_GRUP_SINIFI, isBekleyen, kesifCumlesi,
+  KESIF_GRUP_ADI, KESIF_GRUP_SINIFI, kesifCumlesi,
   type KesifDagilimi, type KesifGrubu,
 } from '@/lib/varlik/pasifKesif';
 import {
@@ -80,62 +80,62 @@ function SantralSuzgeci({ tesisler, aktif, sec, yerisiz }: {
   );
 }
 
-/* ═══ OT-16b · Yedi grup özeti ═══════════════════════════════════════
+/* ═══ OT-16b · Yedi grup süzgeci ════════════════════════════════════
 
    Gruplar DIŞLAYICIDIR: her kayıt tek bir gruba düşer ve sayılar toplama
    eşittir. Bir kayıt birden çok tarife uyduğunda önce yapılacak iş
    kazanır; sıra `lib/varlik/pasifKesif.ts` içinde sabittir ve panelden
-   değiştirilemez (aynı kuyruğa bakan iki kişi aynı önceliği görmelidir). */
+   değiştirilemez (aynı kuyruğa bakan iki kişi aynı önceliği görmelidir).
 
-function GrupOzeti({ dagilim, aktif, sec, disaAktar }: {
+   ── KART IZGARASI SÜZGEÇ ŞERİDİNE İNDİ (UX-0004) ──────────────────────
+   Yedi grup, her biri kendi kenarını çizen ve tam paragraf taşıyan
+   kutulardı: 1440px'te iki sütuna dört satır, ~560px. Dördü sıfır
+   sayılıydı ve yine de tam paragrafını taşıyordu. Ölçüldü: inceleme
+   kuyruğu — kullanıcının bu ekrana gelme sebebi — sayfanın 1518px
+   altında başlıyordu.
+
+   Gerekçe metni SİLİNMEDİ, GÖSTERİMİ SIKIŞTI: grup seçilince açıklaması
+   şeridin altında tek satır olarak yazılır. Seçilmemiş grubun
+   açıklaması `title` ile durur. Bilgi kaybı yok; ilk ekranda 560px
+   yerine 60px yer var. */
+
+function GrupSuzgeci({ dagilim, aktif, sec, disaAktar }: {
   dagilim: KesifDagilimi;
   aktif: KesifGrubu | null;
   sec: (g: KesifGrubu | null) => void;
   disaAktar: { excel: () => void; csv: () => void; sayi: number };
 }) {
-  const toplam = KESIF_GRUPLARI.reduce((t, g) => t + dagilim[g], 0);
   return (
-    <section className="ab-blok" style={{ marginBottom: 'var(--s16)' }}>
-      <p className="etiket">
-        Keşif özeti · {toplam} kayıt · {isBekleyen(dagilim)} inceleme bekliyor
-      </p>
-      <p className="ab-dip" style={{ marginTop: 0 }}>{kesifCumlesi(dagilim)}</p>
-
-      <div className="ab-kesif-gruplar">
+    <div className="ab-suzgec ab-kesif-suzgec">
+      <div className="mercekler" role="group" aria-label="Keşif grubu">
         {KESIF_GRUPLARI.map((g) => (
           <button
             key={g}
             type="button"
-            className="ab-kesif-grup"
             aria-pressed={aktif === g}
+            title={KESIF_GRUP_ACIKLAMASI[g]}
             disabled={dagilim[g] === 0 && aktif !== g}
             onClick={() => sec(aktif === g ? null : g)}
           >
-            <span className="bas">
-              <Im durum={KESIF_GRUP_SINIFI[g]} ad={KESIF_GRUP_ADI[g]} />
-              <span className="sayi mono">{dagilim[g]}</span>
-            </span>
-            <span className="ad">{KESIF_GRUP_ADI[g]}</span>
-            <span className="aciklama">{KESIF_GRUP_ACIKLAMASI[g]}</span>
+            <Im durum={KESIF_GRUP_SINIFI[g]} ad={KESIF_GRUP_ADI[g]} />
+            <span className="mono sayi">{dagilim[g]}</span>
+            {KESIF_GRUP_ADI[g]}
           </button>
         ))}
       </div>
-
-      <div style={{ display: 'flex', gap: 'var(--s8)', justifyContent: 'flex-end',
-        alignItems: 'center', flexWrap: 'wrap', paddingTop: 'var(--s12)' }}>
+      <div className="kapsam">
         <span className="ab-dip" style={{ margin: 0 }}>
           {aktif === null
             ? `Dosya ekranda görünen ${disaAktar.sayi} kaydı taşır.`
-            : `Dosya "${KESIF_GRUP_ADI[aktif]}" grubundaki ${disaAktar.sayi} kaydı taşır.`}
+            : `Dosya bu gruptaki ${disaAktar.sayi} kaydı taşır.`}
         </span>
-        <button type="button" className="ab-dugme mini" onClick={disaAktar.excel}>
-          Excel
-        </button>
-        <button type="button" className="ab-dugme mini" onClick={disaAktar.csv}>
-          CSV
-        </button>
+        <button type="button" className="ab-dugme mini" onClick={disaAktar.excel}>Excel</button>
+        <button type="button" className="ab-dugme mini" onClick={disaAktar.csv}>CSV</button>
       </div>
-    </section>
+      {aktif !== null && (
+        <p className="ab-dip aciklama">{KESIF_GRUP_ACIKLAMASI[aktif]}</p>
+      )}
+    </div>
   );
 }
 
@@ -144,43 +144,38 @@ function GrupOzeti({ dagilim, aktif, sec, disaAktar }: {
    OT ekibinin ilk sorusu "bu şey ağıma ne yapacak" olur. Cevabın
    sözleşmede ya da bir sunumda değil, ÜRÜNÜN KENDİSİNDE durması gerekir:
    burada yazan her satır kodda da bir C sınıfı kuraldır ve panelden
-   gevşetilemez. */
+   gevşetilemez.
 
-function PasiflikBolumu() {
+   ── BLOK TEK SATIRA İNDİ (UX-0004) ────────────────────────────────────
+   Söz her ziyarette görünür kalmalı — o yüzden SİLİNMEDİ ve gizlenmedi.
+   Ama üç cümlelik bir paragraf olarak kuyruğun üstünde durması, seyrek
+   okunan bir metni her gün önüne koymaktı. Şimdi bir cümle görünür,
+   yapılmayan işlemlerin listesi düğmenin ardındadır. */
+
+function PasiflikSatiri() {
   const [acik, setAcik] = useState(false);
   return (
-    <section className="ab-blok" style={{ marginBottom: 'var(--s16)' }}>
-      <p className="etiket">Bu ürün ağa paket ATMAZ</p>
-      <p className="ab-dip" style={{ marginTop: 0 }}>
-        Bütün keşif, kurumun zaten çalışan gözlem kaynaklarının çıktısını
-        OKUMAYA dayanır. Ürün hiçbir cihazı sorgulamaz, yoklamaz ya da
-        taramaz; gerekçe teknik değil emniyettir.
+    <div className="ab-kesif-pasiflik">
+      <p>
+        <strong>Bu ürün ağa paket ATMAZ.</strong> Bütün keşif, kurumun
+        zaten çalışan gözlem kaynaklarının çıktısını OKUMAYA dayanır;
+        gerekçe teknik değil emniyettir.
       </p>
       <button type="button" className="ab-dugme mini" aria-expanded={acik}
         onClick={() => setAcik(!acik)}>
         {acik ? 'Listeyi kapat' : `Yapılmayan ${AKTIF_ISLEM_YASAKLARI.length} işlem`}
       </button>
       {acik && (
-        <div style={{ display: 'grid', gap: 'var(--s10)', marginTop: 'var(--s12)' }}>
+        <ul className="yasaklar">
           {AKTIF_ISLEM_YASAKLARI.map((y) => (
-            <div key={y.islem} style={{ display: 'grid',
-              gridTemplateColumns: '22px 1fr', gap: 'var(--s8)', alignItems: 'start' }}>
-              <span style={{ paddingTop: 3 }}>
-                <Im durum="pl" ad="yapılmaz" />
-              </span>
-              <div style={{ display: 'grid', gap: 'var(--s3)' }}>
-                <span style={{ fontSize: 'var(--t-field)', fontWeight: 600 }}>
-                  {y.islem} — yapılmaz
-                </span>
-                <span style={{ fontSize: 'var(--t-label)', color: 'var(--i2)' }}>
-                  {y.neden}
-                </span>
-              </div>
-            </div>
+            <li key={y.islem}>
+              <Im durum="pl" ad="yapılmaz" />
+              <span><b>{y.islem} — yapılmaz.</b> {y.neden}</span>
+            </li>
           ))}
-        </div>
+        </ul>
       )}
-    </section>
+    </div>
   );
 }
 
@@ -252,10 +247,13 @@ export default function KesifIstemci({
     .map((id) => satirlar.find((s) => s.id === id))
     .filter((s): s is KesifSatiri => !!s && bekliyorMu(s));
 
+  /* Dipnot, METRİK BANDININ SÖYLEMEDİĞİNİ söyler (UX-0012). Kayıt
+     sayısı künyede, karar bekleyen / güveni ölçülmemiş / görülmeyen
+     sayıları metrik kutularında zaten yazıyor; dördünü burada tekrar
+     etmek aynı gerçeği ekranda üç kez göstermekti. Burada kalan iki şey
+     yalnız burada söylenebilir: "görülmüyor" bir SİLME kararı değildir,
+     ve liste bir tavana vurmuşsa kullanıcı bunu bilmelidir. */
   const dipNot = [
-    `${satirlar.length} keşif kaydı`,
-    `${m.bekleyen} karar bekliyor`,
-    m.guvensiz > 0 && `${m.guvensiz} kaydın güveni ölçülmedi`,
     m.gorunmeyen > 0
       && `${m.gorunmeyen} kayıt ${gorunmezEsikGun} gündür görülmüyor — silinmedi, gözlem olarak duruyor`,
     satirlar.length >= kuyrukTavani && `en yeni ${kuyrukTavani} kayıt gösteriliyor`,
@@ -271,10 +269,10 @@ export default function KesifIstemci({
             aktifIndeks={0}
             not="Kayıt CMDB'ye kendiliğinden yazılmaz; eşleştirme öneri üretir, kararı insan verir"
           />
-          <PasiflikBolumu />
+          <PasiflikSatiri />
+          <BosIlk cumle="Henüz keşif kaydı yok. Pasif bir kaynağın dışa aktarımını yükleyin ya da bir bağlayıcı çalıştırın." />
           <ElleAktarimFormu yazabilir={yazabilir} />
           <PasifGozlemFormu yazabilir={yazabilir} tesisler={tesisler} />
-          <BosIlk cumle="Henüz keşif kaydı yok. Pasif bir kaynağın dışa aktarımını yükleyin ya da bir bağlayıcı çalıştırın." />
         </section>
       </main>
     );
@@ -314,12 +312,16 @@ export default function KesifIstemci({
             not="Kayıt CMDB'ye kendiliğinden yazılmaz; eşleştirme öneri üretir, kararı insan verir"
           />
 
+          {/* ── SÜZGEÇLER · üç şerit, arka arkaya ──────────────────────
+              Santral → grup → iş akışı merceği. Üçü de aynı gramerde
+              (`.ab-suzgec`) ve toplamda ~150px; eskiden yalnız grup
+              özeti 560px tutuyordu (UX-0004). */}
           <SantralSuzgeci
             tesisler={tesisler} aktif={tesisF} sec={setTesisF}
             yerisiz={satirlar.filter((x) => x.tesisId === null).length}
           />
 
-          <GrupOzeti
+          <GrupSuzgeci
             dagilim={dagilim} aktif={grup as KesifGrubu | null}
             sec={(g) => { setGrup(g); if (g !== null) setMercek('hepsi'); }}
             disaAktar={{
@@ -329,27 +331,25 @@ export default function KesifIstemci({
             }}
           />
 
-          <PasiflikBolumu />
-          <ElleAktarimFormu yazabilir={yazabilir} />
-          <PasifGozlemFormu yazabilir={yazabilir} tesisler={tesisler} />
+          <Filtreler
+            secenekler={MERCEKLER}
+            aktif={grup === null ? mercek : ''}
+            sec={(id) => { setMercek(id as Mercek); setGrup(null); }}
+          />
 
-          {eslestirilmemis > 0 && (
-            <p className="ab-dip" style={{ marginBottom: 'var(--s12)' }}>
-              {eslestirilmemis} kayıt henüz eşleştirilmedi — eşleştirme öneri
-              üretir, CMDB’ye yazmaz.
-            </p>
-          )}
+          {/* Özet cümlesi ne olduğunu söyler; `kesifCumlesi` her zaman
+              bir cümle döner (temiz veride bile) — koşul gerekmez. */}
+          <p className="ab-dip" style={{ margin: '0 0 var(--s12)' }}>
+            {kesifCumlesi(dagilim)}
+            {eslestirilmemis > 0
+              && ` ${eslestirilmemis} kayıt henüz eşleştirilmedi — eşleştirme`
+                + ' öneri üretir, CMDB’ye yazmaz.'}
+          </p>
 
           <TopluKararTepsisi
             secilenler={secilenler}
             cikar={(id) => setToplu((e) => e.filter((x) => x !== id))}
             temizle={() => setToplu([])}
-          />
-
-          <Filtreler
-            secenekler={MERCEKLER}
-            aktif={grup === null ? mercek : ''}
-            sec={(id) => { setMercek(id as Mercek); setGrup(null); }}
           />
 
           {gosterilen.length === 0 ? (
@@ -388,6 +388,15 @@ export default function KesifIstemci({
               }))}
             />
           )}
+
+          {/* ── Kuyruğun ALTINDA: seyrek yapılan işler ─────────────────
+              Politika sözü ve iki yükleme formu buradadır. İkisi de
+              her ziyarette değil, ara sıra kullanılır; kuyruğun üstünde
+              durmaları kullanıcının bu ekrana geliş sebebini üç ekran
+              aşağı itiyordu (UX-0004). */}
+          <PasiflikSatiri />
+          <ElleAktarimFormu yazabilir={yazabilir} />
+          <PasifGozlemFormu yazabilir={yazabilir} tesisler={tesisler} />
         </section>
       </main>
 

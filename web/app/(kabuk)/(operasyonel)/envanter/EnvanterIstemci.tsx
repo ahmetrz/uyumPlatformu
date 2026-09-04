@@ -219,8 +219,10 @@ export default function EnvanterIstemci({
         )}
       </div>
 
-      {/* ── Gövde: tuval/tablo + 400px panel ─────────────────────────── */}
-      <div className="ab-a-calisma">
+      {/* ── Gövde: tuval/tablo + (varsa) 400px bağlam paneli ────────────
+          Panel yokken ızgara tek sütuna iner; boş bir 400px sütunu
+          bırakmak tuvali gereksiz daraltırdı (UX-0005). */}
+      <div className={`ab-a-calisma${secili || yeniAcik ? '' : ' panelsiz'}`}>
         <div className="ab-a-tuval">
           {suzulmus.length === 0 ? (
             <p className="bos">
@@ -253,6 +255,10 @@ export default function EnvanterIstemci({
           )}
         </div>
 
+        {/* Bağlamı olmayan bağlam paneli 400px tutmaz (UX-0005): seçim
+            yokken ve form kapalıyken panel hiç çizilmez, tuval tam eni
+            alır. Yönerge zincirin kendi rayında bir kez duruyor. */}
+        {(secili || yeniAcik) && (
         <aside className="ab-a-panel" aria-label="Seçili düğüm">
           {yeniAcik && !secili ? (
             <>
@@ -329,6 +335,7 @@ export default function EnvanterIstemci({
             </>
           )}
         </aside>
+        )}
       </div>
 
     </main>
@@ -448,20 +455,39 @@ function kirp(halka: Dugum[]): Dugum[] {
 /** Bir halkada çizilen en fazla düğüm; kalanı sayıyla söylenir. */
 const ZINCIR_TAVANI = 8;
 
+/* ── ÖLÇÜLDÜ: AÇILIŞTA EKRANIN ÇOĞU BOŞ SÜTUNDU (UX-0005) ───────────
+   Seçim yokken yedi halkanın dördü — Zafiyet, Risk, Kontrol, Proje/CAPA
+   — boştu ve her biri "VARLIK SEÇİN" yazıyordu; yanında 400px'lik panel
+   aynı yönergeyi ikinci kez, zincirin altındaki dipnot üçüncü kez
+   veriyordu. 1440px'te ekranın büyük bölümü boş sütun ve yönergeydi.
+
+   Boş halkaların SAHTE VERİYLE doldurulmaması doğrudur ve korunur.
+   Kusur dürüstlükte değil YOĞUNLUKTAYDI. Şimdi: dolmayan halkalar tek
+   bir dar rayda toplanır, yönerge BİR kez yazılır, dolan üç halka
+   boşalan eni alır. Seçim yapılınca yedi halka bugünkü hâline döner. */
 function Zincir({ zincir, secili, sec }: {
   zincir: Dugum[][]; secili: V | null; sec: (id: string | null) => void;
 }) {
+  /* Seçim yokken son dört halka hiç dolmaz (bkz. `zinciriKur`). */
+  const kisali = !secili;
+  const gorunur = kisali ? zincir.slice(0, 3) : zincir;
+  const gorunurBaslik = kisali ? HALKALAR.slice(0, 3) : HALKALAR;
   return (
-    <div className="ab-zincir">
+    <div className={`ab-zincir${kisali ? ' kisali' : ''}`}>
       <div className="basliklar">
-        {HALKALAR.map((h) => <span key={h} className="kolonbas">{h}</span>)}
+        {gorunurBaslik.map((h) => <span key={h} className="kolonbas">{h}</span>)}
+        {kisali && (
+          <span className="kolonbas bekleyen">
+            {HALKALAR.slice(3).join(' · ')}
+          </span>
+        )}
       </div>
       <div className="sutunlar">
-        {zincir.map((halka, i) => (
+        {gorunur.map((halka, i) => (
           <div key={HALKALAR[i]} className="sutun">
             {halka.length === 0 ? (
               <span className="bos">
-                {secili ? 'bağlı kayıt yok' : 'varlık seçin'}
+                {secili ? 'bağlı kayıt yok' : 'kayıt yok'}
               </span>
             ) : halka.map((d) => {
               const govde = (
@@ -488,10 +514,18 @@ function Zincir({ zincir, secili, sec }: {
             })}
           </div>
         ))}
+        {kisali && (
+          <div className="sutun bekleyen-ray">
+            <span className="bos">
+              Bir varlık seçin; dört halka o varlıktan geçen yolu gösterir.
+            </span>
+          </div>
+        )}
       </div>
       <p className="mono dip">
-        Kademeli açılım: bir varlığa tıkla → sağdaki halkalar o varlığın zincirini gösterir.
-        {' '}Görünen {zincir.reduce((a, h) => a + h.length, 0)} düğüm.
+        {kisali
+          ? `Görünen ${gorunur.reduce((a, h) => a + h.length, 0)} düğüm.`
+          : `Kademeli açılım · görünen ${zincir.reduce((a, h) => a + h.length, 0)} düğüm.`}
       </p>
     </div>
   );

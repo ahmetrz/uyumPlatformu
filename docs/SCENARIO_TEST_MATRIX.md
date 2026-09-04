@@ -4,18 +4,18 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 215 |
-| Testi olan senaryo | 215 |
+| Senaryo | 223 |
+| Testi olan senaryo | 223 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
-| Taranan test dosyası | 132 |
+| Taranan test dosyası | 133 |
 
 ## Katman başına kapsam
 
 | Katman | Senaryo | Testli | GAP |
 | --- | --- | --- | --- |
-| ACCESSIBILITY | 3 | 3 | 0 |
+| ACCESSIBILITY | 5 | 5 | 0 |
 | API | 12 | 12 | 0 |
 | CONCURRENCY | 7 | 7 | 0 |
 | DOMAIN | 121 | 121 | 0 |
@@ -23,10 +23,10 @@
 | INTEGRATION | 21 | 21 | 0 |
 | MIGRATION | 2 | 2 | 0 |
 | RBAC | 32 | 32 | 0 |
-| RESPONSIVE | 2 | 2 | 0 |
+| RESPONSIVE | 8 | 8 | 0 |
 | SCOPE | 25 | 25 | 0 |
 | SERVER | 80 | 80 | 0 |
-| UI | 51 | 51 | 0 |
+| UI | 59 | 59 | 0 |
 | VISUAL | 2 | 2 | 0 |
 | WORKFLOW | 26 | 26 | 0 |
 
@@ -249,6 +249,14 @@
 | `SIS-KPS-005` | Sistem | SERVER · RBAC | `yetki-kapisi.test.ts` | modülde YAZMA izni olmayan rol reddedilir | evet | geçti |
 | `SIS-KPS-006` | Sistem | SERVER · RBAC | `yetki-kapisi.test.ts` | BAŞKA modülün yetkisi bu modülü açmaz | evet | geçti |
 | `SIS-KPS-007` | Sistem | SERVER · SCOPE | `yetki-kapisi.test.ts` | kapsam dışı kayıtta verilen MESAJI fırlatır | evet | geçti |
+| `SIS-KBK-010` | Sistem | UI · RESPONSIVE | `kabuk-gezinme.test.ts` | temel kural SARAR — bağların hepsi ulaşılabilir | evet | geçti |
+| `SIS-KBK-011` | Sistem | UI · ACCESSIBILITY | `kabuk-gezinme.test.ts` | temel kuralda gizli kaydırma çubuğu YOK | evet | geçti |
+| `SIS-KBK-012` | Sistem | UI · RESPONSIVE | `kabuk-gezinme.test.ts` | temel kuralda sabit yükseklik YOK — ikinci satır kırpılamaz | evet | geçti |
+| `SIS-KBK-013` | Sistem | UI · RESPONSIVE | `kabuk-gezinme.test.ts` | yatay kaydırma yalnız dokunmatik banda izinli | evet | geçti |
+| `SIS-KBK-014` | Sistem | UI · RESPONSIVE | `kabuk-gezinme.test.ts` | Uyum alanının sırası 1440px pencereye SIĞMAZ | evet | geçti |
+| `SIS-KBK-015` | Sistem | UI · RESPONSIVE | `kabuk-gezinme.test.ts` | sararken hiçbir alan iki satırı aşmaz | evet | geçti |
+| `SIS-KBK-016` | Sistem | UI · ACCESSIBILITY | `kabuk-gezinme.test.ts` | hiçbir ikincil bağ adı kırpılacak kadar uzun değil | evet | geçti |
+| `SIS-KBK-017` | Sistem | UI · RESPONSIVE | `kabuk-gezinme.test.ts` | hiçbir Varlık grubu 1024px bandını taşırmaz | evet | geçti |
 
 ## Gerekçesiyle kütüksüz kalan dosyalar
 

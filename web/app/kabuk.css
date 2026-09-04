@@ -356,12 +356,38 @@
    saç çizgisiyle; aktif öğe mürekkep + 2px bakır alt çizgi (alan
    sekmesiyle aynı işaret, bir kademe küçük). `aria-current="true"`:
    belgede tek "page" alan sekmesindedir. */
+/* ── ÖLÇÜLDÜ: 1440px'te ÜÇ EKRAN ULAŞILAMIYORDU ──────────────────────
+   Sıra `height: 36px` + `overflow-x: auto` + gizli kaydırma çubuğuydu.
+   Uyum alanının 14 bağı 1440px'te 1699px'e uzuyor ve son üçü —
+   "Denetim izi", "Saklama ve imha", "Eğitim kütüğü" — ekranın dışında
+   kalıyordu. Sıra teknik olarak kayıyordu ama kaydırma çubuğu
+   gizlendiği için EKRANDA HİÇBİR İPUCU YOKTU: fare kullanan bir kişi o
+   üç ekranı bulamıyordu.
+
+   Yatay taşma kapısı bunu göremez, çünkü `documentElement.scrollWidth`
+   büyümüyor — kırpma sıranın KENDİ kabında oluyor. Bu yüzden ölçü
+   `tests/kabuk-gezinme.test.ts` ve dar bant denetimiyle ayrıca alındı.
+
+   Çözüm: sıra SARAR. İkinci satır 30px yer alır ve her bağ ulaşılabilir
+   kalır. Kaydırma çubuğunu geri getirmek, kullanıcıdan yatay kaydırmayı
+   keşfetmesini istemek olurdu; bir gezinme sırası keşfedilmeyi
+   beklememelidir. */
 .ab-ikincil {
-  display: flex; align-items: stretch; height: 36px; padding: 0 12px;
+  display: flex; align-items: stretch; flex-wrap: wrap;
+  min-height: 36px; padding: 0 12px;
   background: var(--panel); border-bottom: 1px solid var(--hr);
-  overflow-x: auto; scrollbar-width: none;
 }
-.ab-ikincil .grup { display: flex; align-items: stretch; gap: 2px; padding: 0 8px; }
+/* Dokunmatik bantta sarma çözmez: tek bir grup bile 375px'ten geniştir.
+   Orada sıra yatay KAYAR ve bu meşrudur — parmakla kaydırmak keşfedilmesi
+   gereken bir jest değil, beklenen jesttir. Masaüstünde aynı şeyi yapmak
+   (gizli kaydırma çubuğu) üç ekranı görünmez kılıyordu; ayrım bilinçli. */
+@media (max-width: 700px) {
+  .ab-ikincil { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+}
+.ab-ikincil .grup {
+  display: flex; align-items: stretch; gap: 2px; padding: 0 8px;
+  min-height: 36px;
+}
 .ab-ikincil .grup + .grup { border-left: 1px solid var(--hr2); }
 .ab-ikincil .grup > .etiket { align-self: center; margin-right: 6px; color: var(--i3); white-space: nowrap; }
 .ab-ikincil a {
@@ -375,10 +401,13 @@
 .ab-ikincil .grup { flex: none; }
 /* Kapsam künyesi DARALAN taraftır: bağlar kırpılmaz, künye üç noktaya
    iner (ölçüldü: Varlık alanının 14 bağı 1366px'te künyeyle çakışıyor,
-   "Olay & Değişiklik" ekran dışında kalıyordu). */
+   "Olay & Değişiklik" ekran dışında kalıyordu). Sıra sardığında künye
+   ikinci satırın sonuna geçer ve orada da sağa yaslı kalır — bağların
+   arasına girmez. */
 .ab-ikincil > .sag {
   margin-left: auto; align-self: center; padding-left: 16px; white-space: nowrap;
   flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis;
+  min-height: 36px; display: flex; align-items: center;
 }
 
 /* Üçüncül sıra — aktif Varlık grubunun alt ekranları. 30px, Inter 13px

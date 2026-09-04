@@ -1,7 +1,7 @@
 {
-  "imza": "e0199e649780e1341a191cf60e877ddd",
-  "dosya": 131,
-  "vaka": 2808,
+  "imza": "2dea4463aed97216e4b3fbdde2e00002",
+  "dosya": 133,
+  "vaka": 2824,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -222,6 +222,10 @@
     },
     "tests/istisna.test.ts": {
       "vaka": 5,
+      "atlanan": 0
+    },
+    "tests/kabuk-gezinme.test.ts": {
+      "vaka": 8,
       "atlanan": 0
     },
     "tests/kabuk-inceleme.test.ts": {
@@ -510,6 +514,10 @@
     },
     "tests/yeniTesis.test.ts": {
       "vaka": 1,
+      "atlanan": 0
+    },
+    "tests/yetki-kapisi.test.ts": {
+      "vaka": 8,
       "atlanan": 0
     },
     "tests/yonetim-konsolu-eylem.test.ts": {

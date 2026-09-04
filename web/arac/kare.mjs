@@ -16,10 +16,19 @@ s.on('pageerror', (e) => hata.push('pageerror: ' + e.message.slice(0, 160)));
 s.on('console', (m) => { if (m.type() === 'error' && !/fonts\.g/.test(m.text())) hata.push('console: ' + m.text().slice(0, 160)); });
 
 // korumali rotalar icin once giris yap
-await s.goto(KOK + '/giris', { waitUntil: 'domcontentloaded' });
+/* Giriş formu istemcide hidratlanmadan doldurulursa alanlar boş gider ve
+   `waitForURL` sessizce zaman aşımına düşer. Değerin GERÇEKTEN yerleştiği
+   doğrulanır, yerleşmediyse tekrar denenir — rota-duman ile aynı kalıp. */
+await s.goto(KOK + '/giris', { waitUntil: 'load' });
 if (s.url().includes('/giris')) {
-  await s.fill('input[type=email]', 'ahmet.terzi@zorlu.com');
-  await s.fill('input[type=password]', 'Enerji!2026');
+  for (let deneme = 1; deneme <= 4; deneme += 1) {
+    await s.fill('input[type=email]', 'ahmet.terzi@zorlu.com');
+    await s.fill('input[type=password]', 'Enerji!2026');
+    const yerlesti = await s.inputValue('input[type=email]') === 'ahmet.terzi@zorlu.com'
+      && (await s.inputValue('input[type=password]')).length > 0;
+    if (yerlesti) break;
+    await s.waitForTimeout(300 * deneme);
+  }
   await s.click('button[type=submit]');
   await s.waitForURL((u) => !u.pathname.startsWith('/giris'), { timeout: 25000 });
 }

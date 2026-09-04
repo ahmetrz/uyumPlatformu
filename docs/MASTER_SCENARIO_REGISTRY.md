@@ -13,7 +13,7 @@ it('kapsam dışı varlığa yazılamaz [ENV-YAZ-003]', …)
 Ayrı bir eşleme tablosu tutulsaydı, tablo ilk yeniden adlandırmada
 testten ayrışır ve kimse görmezdi.
 
-Senaryo: **215** · testli: **215** · GAP: **0**
+Senaryo: **223** · testli: **223** · GAP: **0**
 
 ## API · 8 senaryo
 
@@ -316,7 +316,7 @@ Senaryo: **215** · testli: **215** · GAP: **0**
 | `SAY-KMP-001` | /sayim | BT yöneticisi · kendi santrali | Kapsamda hiç varlık yok · yok | Sayım açmayı dener | Açılmaz — sıfır paydalı kampanya olamaz | Neden açılmadığı yazılır | yazma yok | yok | `faz-g-varlik.test.ts` |
 | `SAY-KMP-002` | /sayim | BT yöneticisi · kendi santrali | Satır "bulunamadı" işaretlendi · kısmi | Sonucu kaydeder | Varlık SİLİNMEZ — envanterden düşürme ayrı bir karardır | "Sayılmadı" ile "bulunamadı" ayrı durumlardır | Sayım satırı · guncelleme | yok | `faz-g-eylem.test.ts` |
 
-## Sistem · 19 senaryo
+## Sistem · 27 senaryo
 
 | ID | Rota | Rol · kapsam | Ön koşul · veri | Eylem | Beklenen sonuç | Ekran | Denetim izi | Görev/bildirim | Test |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -339,6 +339,14 @@ Senaryo: **215** · testli: **215** · GAP: **0**
 | `SIS-KPS-005` | — | salt okuyucu · kurum geneli | Rolün modülde yazma izni yok · normal | Bir yazma eylemi çağırır | İlk kapı TEK BAŞINA reddeder — ikinci aşamaya kalmaz | Yazma yüzeyi hiç açılmaz | yazma yok | yok | `yetki-kapisi.test.ts` |
 | `SIS-KPS-006` | — | uyum uzmanı · kurum geneli | Yetki yalnız uyum modülüne verilmiş · normal | Envanter modülünde yazma dener | Reddedilir | Modül kısıtı diğer modülleri kapatır | yazma yok | yok | `yetki-kapisi.test.ts` |
 | `SIS-KPS-007` | — | BT yöneticisi · tek santral | Kaydın santrali kullanıcının kapsamı dışında · normal | Kayıt okunduktan sonra kapsam kapısı sorulur | Eyleme özel mesajla reddedilir | Kullanıcı neyin eksik olduğunu okur | yazma yok | yok | `yetki-kapisi.test.ts` |
+| `SIS-KBK-010` | /uyum | uyum uzmanı · kurum geneli | Uyum alanı açık · normal | İkincil gezinme sırasına bakar | Sıra sarar; 16 bağın hepsi görünür | İkinci satır çizilir, hiçbir bağ ekran dışında kalmaz | yazma yok | yok | `kabuk-gezinme.test.ts` |
+| `SIS-KBK-011` | /uyum | uyum uzmanı · kurum geneli | Geniş ekran · normal | Sıranın taşma davranışı okunur | Kaydırma çubuğu gizlenerek taşma saklanmaz | Kayan ama ipucu vermeyen sıra YOK | yazma yok | yok | `kabuk-gezinme.test.ts` |
+| `SIS-KBK-012` | /uyum | uyum uzmanı · kurum geneli | Sıra iki satıra sarmış · normal | Sıranın yüksekliği okunur | Yükseklik içerikle büyür (sabit değil) | İkinci satır tam görünür | yazma yok | yok | `kabuk-gezinme.test.ts` |
+| `SIS-KBK-013` | /uyum | saha kullanıcısı · tek santral | Ekran eni 375px · normal | Sırayı parmakla yana kaydırır | Sıra yatay kayar — dar bantta sarma çözüm değildir | Bağlar kırpılmadan kaydırılabilir | yazma yok | yok | `kabuk-gezinme.test.ts` |
+| `SIS-KBK-014` | /uyum | uyum uzmanı · kurum geneli | Pencere 1440px · yüksek hacim | Bağların toplam eni hesaplanır | Toplam en pencereyi aşar | Tek satır bu alanı taşıyamaz | yazma yok | yok | `kabuk-gezinme.test.ts` |
+| `SIS-KBK-015` | /uyum | uyum uzmanı · kurum geneli | Pencere 1280px · yüksek hacim | Sıranın kaç satıra sardığı hesaplanır | Hiçbir alan iki satırı aşmaz | Gövdenin yeri korunur | yazma yok | yok | `kabuk-gezinme.test.ts` |
+| `SIS-KBK-016` | /uyum | saha kullanıcısı · tek santral | Dar bant · uzun içerik | En uzun bağ adı ölçülür | Hiçbir bağ dar bandın yarısını aşmaz | Gezinme etiketi yarım okunmaz | yazma yok | yok | `kabuk-gezinme.test.ts` |
+| `SIS-KBK-017` | /envanter | BT yöneticisi · kurum geneli | Pencere 1024px · Varlık grubu açık · normal | Grubun alt ekranlarının toplam eni hesaplanır | Sıra sığar — saramadığı için sığmak zorundadır | Alt ekranların hepsi görünür | yazma yok | yok | `kabuk-gezinme.test.ts` |
 
 ## Taşınabilir medya · 2 senaryo
 

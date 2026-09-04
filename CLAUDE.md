@@ -21,7 +21,9 @@ oku; buradan varsayma.
 | Müşteri matrisi · "Kısmen" maddeleri | `CUSTOMER_REQUIREMENTS_STATUS.md` |
 | Bağlantı günü sırası | `INTEGRATION_DAY_RUNBOOK.md` |
 | Ürünün kendi yedeği | `docs/URUN_YEDEKLEME.md` · `web/arac/yedek.mjs` |
-| Tarihsel denetim kayıtları | `ARCHITECTURE_GAP_ANALYSIS.md` · `ENTEGRASYON_GAP_MATRIX.md` · `DESIGN_HANDOFF_GAP.md` (bilerek güncellenmez) |
+| Tarihsel denetim kayıtları | `ARCHITECTURE_GAP_ANALYSIS.md` · `ENTEGRASYON_GAP_MATRIX.md` · `DESIGN_HANDOFF_GAP.md` · `docs/UX_DENETIM_2026-09.md` (bilerek güncellenmez) |
+| Son kullanıcı UX denetimi ve kapanışı | `docs/END_USER_UX_AUDIT.md` · `docs/UX_KALITE_PROGRAMI_RAPORU.md` |
+| Senaryo kütüğü · test eşlemesi | `docs/MASTER_SCENARIO_REGISTRY.md` · `docs/SCENARIO_TEST_MATRIX.md` |
 
 ## Bağlayıcı kurallar
 

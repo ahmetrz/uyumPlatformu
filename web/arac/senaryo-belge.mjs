@@ -30,6 +30,7 @@ const BELGE_DIZINI = path.join(KOK, '..', 'docs');
 export const KUTUKSUZ_DOSYALAR = {
   'belge-sayimlari.test.ts': 'Belgelerdeki sayıların koda karşı doğrulaması',
   'senaryo-kutugu.test.ts': 'Kütüğün kendi nöbetçisi',
+  'ters-kapsam.test.ts': 'Ters kapsamanın nöbetçisi — davranış envanterini kütüğe karşı sayar',
   'bagimlilik-guvenligi.test.ts': 'Bağımlılık ağacının güvenlik taraması',
   'kalite-kapilari.test.ts': 'Kapı betiklerinin varlığı',
   'semantik.test.ts': 'Ortak durum sözlüğünün tutarlılığı',

@@ -65,6 +65,14 @@ jobs:
         working-directory: web
         run: npm test
 
+      - name: Ters kapsama kapısı (davranış → senaryo)
+        # Senaryo → test kapısı `npm test` içinde koşar ve "yazdığım her
+        # senaryonun testi var mı" sorusunu yanıtlar. Bu adım TERSİNİ
+        # sorar: koddaki her kullanıcı davranışı kütükte yazılı mı?
+        # Kütüğe hiç yazılmamış bir eylem ötekinde görünmez.
+        working-directory: web
+        run: npm run ters:kapsam
+
       - name: Tasarım kapısı (kontrast · font · eski iz)
         working-directory: web
         run: npm run tasarim:kapi

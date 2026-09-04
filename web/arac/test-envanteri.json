@@ -1,7 +1,7 @@
 {
-  "imza": "9ff77d87cbe4bc90230b2c3f41980f47",
-  "dosya": 134,
-  "vaka": 2832,
+  "imza": "668cabb79c41930dca1f1df106785fa8",
+  "dosya": 137,
+  "vaka": 2877,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -426,6 +426,18 @@
     },
     "tests/tedarikci-oturum.test.ts": {
       "vaka": 18,
+      "atlanan": 0
+    },
+    "tests/ters-kapsam-ekran.test.ts": {
+      "vaka": 13,
+      "atlanan": 0
+    },
+    "tests/ters-kapsam-eylem.test.ts": {
+      "vaka": 30,
+      "atlanan": 0
+    },
+    "tests/ters-kapsam.test.ts": {
+      "vaka": 2,
       "atlanan": 0
     },
     "tests/tesis360-eylem.test.ts": {

@@ -325,3 +325,37 @@ ve kusur sayılmaz — `yatay-tasma.mjs` ile aynı ayrım.
 Bu panel BİLEREK modal değildir (`components/kabuk/panel.tsx`) ve araç
 modal işaretlerinin YOKLUĞUNU doğrular; yarı modal (üçünden ikisi) kusurdur.
 1024'ün altında panel tam eni kaplar ve bu da ölçülür.
+
+## `ters-kapsam.mjs` — davranış → senaryo (tarayıcı istemez)
+
+`arac/senaryo-belge.mjs` "yazdığım her senaryonun testi var mı" diye
+sorar. Bu araç tersini sorar: **koddaki her kullanıcı davranışı kütükte
+yazılı mı?**
+
+Fark önemlidir. Senaryo → test kapısı, kimsenin senaryo YAZMADIĞI bir
+eylemi göremez: olmayan senaryonun testi de yoktur, sayı yine sıfır
+çıkar. Bu araç envanteri kaynak koddan çıkarır — rota, sunucu eylemi,
+API ucu, motor, zamanlanmış iş, ve arayüz etkileşimleri (süzgeç, kip,
+çekmece, genişleyen satır, form, aşama hattı) — ve kütükle karşılaştırır.
+
+İlk koşusunda **56 boşluk** buldu: dokuz rota hiç yazılmamıştı, yirmi bir
+sunucu eylemi ve beş motor hiçbir senaryo işaretli testte geçmiyordu,
+üç ekran da yalnız mutlu yol senaryosu taşıyordu.
+
+```
+npm run ters:kapsam          # rapor; boşluk varsa çıkış kodu 1
+node arac/ters-kapsam.mjs --json
+```
+
+Bağ mekaniktir; ayrı bir eşleme tablosu tutulmaz. Rota kütükteki `rota`
+alanıyla, eylem/motor/iş ise **onu kullanan test dosyasındaki senaryo
+işaretleriyle** eşleşir. Dosya düzeyinde tarama bilinçlidir: testler
+eylemi çoğu kez bir yardımcının içinden çağırır, `it` gövdesini taramak
+gerçekten test edilen bir eylemi "kapsanmadı" gösterirdi.
+
+Arayüz etkileşimleri için kanıt farklıdır: o rotanın kütükte **bozulmuş
+veri hâli** de olmalı (`yok · kısmi · bilinmiyor · bayat · çelişen ·
+yinelenen · tek`). Her süzgeç boş sonuç, her çekmece eksik kayıt
+üretebilir; yalnız mutlu yol senaryosu taşıyan bir rota geçemez.
+
+Nöbetçi: `tests/ters-kapsam.test.ts`. CI'da `pr-kapisi.yml` içinde koşar.

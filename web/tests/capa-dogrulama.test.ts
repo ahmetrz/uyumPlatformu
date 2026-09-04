@@ -259,7 +259,7 @@ async function denetimAc(durum: string) {
 }
 
 describe('C24 — dogrulama → kapanis kapısı', () => {
-  it('tamamlanmış ama doğrulanmamış aksiyon varken kapanış reddedilir; aşama yerinde kalır', async () => {
+  it('tamamlanmış ama doğrulanmamış aksiyon varken kapanış reddedilir; aşama yerinde kalır [BUL-KAP-001]', async () => {
     const d = await denetimAc('dogrulama');
     const b = await bulguAc({ denetimId: d.id, durum: 'kapali' });
     await aksiyonAc(b.id, { durum: 'tamamlandi', dogrulamaDurumu: 'bekliyor' });

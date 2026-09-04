@@ -46,7 +46,7 @@ function surec(ozel: Partial<SurecSatiri> = {}): SurecSatiri {
 }
 
 describe('OT-05 · tek nokta ÜÇ DEĞERLİDİR ve üçü ayrı sayılır', () => {
-  it('değerlendirilmemiş bağ TEK NOKTA sayılmaz ama ölçüm borcuna girer', () => {
+  it('değerlendirilmemiş bağ TEK NOKTA sayılmaz ama ölçüm borcuna girer [ENV-SUR-001]', () => {
     const s = surec({ adimlar: [adim({ varliklar: [bag({ tekNokta: null })] })] });
     const c = sayaclar(s);
     expect(c.tekNokta).toBe(0);

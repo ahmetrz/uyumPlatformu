@@ -60,7 +60,7 @@ describe('RBAC + kapsam (cross-plant sızıntı koruması)', () => {
     expect(izinVar(k, 'risk', 'okuma')).toBe(true);
   });
 
-  it('dış denetçi yalnız denetim ve uyum okur', () => {
+  it('dış denetçi yalnız denetim ve uyum okur [DNE-ERS-002]', () => {
     const k = kisi([yetki({ rol: 'dis_denetci' })]);
     expect(izinVar(k, 'denetim', 'okuma')).toBe(true);
     expect(izinVar(k, 'envanter', 'okuma')).toBe(false);
@@ -130,7 +130,7 @@ describe('ErisimAtamasi tekilliği veritabanı kısıtıdır', () => {
     expect(await say({ hesapId, varlikId, kapsam })).toBe(1);
   });
 
-  it('farklı yetki seviyesi de İKİNCİ SATIR açmaz — aynı erişimin değişimidir', async () => {
+  it('farklı yetki seviyesi de İKİNCİ SATIR açmaz — aynı erişimin değişimidir [YTK-ATM-001]', async () => {
     const kapsam = `Seviye testi ${Date.now()}`;
     await erisimAta({ hesapId, varlikId, kapsam, yetkiSeviyesi: 'okuma' });
     const y = await erisimAta({ hesapId, varlikId, kapsam, yetkiSeviyesi: 'yonetici' });

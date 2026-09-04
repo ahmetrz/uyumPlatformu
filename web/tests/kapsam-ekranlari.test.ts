@@ -453,7 +453,7 @@ describe('/bulgular · kapsam', () => {
       [`${ONEK} A bulgusu`, `${ONEK} B gizli bulgu`, `${ONEK}-B`]);
   });
 
-  it('detay kapsam dışı bulguyu AÇMIYOR', async () => {
+  it('detay kapsam dışı bulguyu AÇMIYOR [BUL-DTY-002]', async () => {
     expect(await bulguDetayVerisi(kA, kimlik.bulguB)).toBeNull();
     expect(await bulguDetayVerisi(kA, 'olmayan-id')).toBeNull();
     expect(await bulguDetayVerisi(kGlobal, kimlik.bulguB)).not.toBeNull();

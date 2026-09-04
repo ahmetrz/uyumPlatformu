@@ -172,7 +172,7 @@ describe('Bütünlük damgası', () => {
 /* ═══ 3 · RBAC kapsamı ════════════════════════════════════════════════ */
 
 describe('RBAC — yetki dışındaki santral pakete girmez', () => {
-  it('yetkili kapsam üretilir ve denetim izine yazılır', async () => {
+  it('yetkili kapsam üretilir ve denetim izine yazılır [KNT-PKT-001]', async () => {
     const once = await db.aktiviteKaydi.count({ where: { varlikTipi: 'KanitPaketi' } });
     const sonuc = await kanitPaketiUretEylem({
       regulasyonId, tesisIdleri: [izinliTesisId],
@@ -193,7 +193,7 @@ describe('RBAC — yetki dışındaki santral pakete girmez', () => {
     expect(iz.gerekce).toContain('KIZILDERE-3');
   });
 
-  it('kapsam dışı santral istenirse istek REDDEDİLİR, sessizce daraltılmaz', async () => {
+  it('kapsam dışı santral istenirse istek REDDEDİLİR, sessizce daraltılmaz [RAP-URT-002]', async () => {
     const sonuc = await kanitPaketiUretEylem({
       regulasyonId, tesisIdleri: [izinliTesisId, yasakTesisId],
       baslangic: ARALIK.baslangic.toISOString(), bitis: ARALIK.bitis.toISOString(),

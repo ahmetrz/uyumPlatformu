@@ -14,7 +14,7 @@ const { db } = await import('@/lib/db');
 // surumAktiflestir ile aynı adımlarla DB seviyesinde doğruluyoruz —
 // bu test sürümleme VERİ kurallarını sabitler (kabul testi 6).
 describe('Kabul testi 6 — regülasyon yeni sürüm', () => {
-  it('yeni sürüm eski değerlendirmeleri SİLMEZ; diff oluşur; yeni değerlendirme ihtiyacı açılır', async () => {
+  it('yeni sürüm eski değerlendirmeleri SİLMEZ; diff oluşur; yeni değerlendirme ihtiyacı açılır [UYU-SUR-001]', async () => {
     const reg = await db.regulasyon.findFirstOrThrow({ where: { kod: 'EPDK-SYM' } });
     const eskiSurum = await db.frameworkSurumu.findFirstOrThrow({
       where: { regulasyonId: reg.id, durum: 'aktif' } });

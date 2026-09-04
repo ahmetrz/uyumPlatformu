@@ -109,7 +109,7 @@ describe('Cevap kapısı — kimse başkası adına cevap veremez', () => {
     expect(cevapKapisi({ ...acik, cevaplayanId: 'k9' }).ok).toBe(false);
   });
 
-  it('kapanmış talep yeniden cevaplanamaz', () => {
+  it('kapanmış talep yeniden cevaplanamaz [ZIM-KAP-001]', () => {
     for (const d of ['kabul_edildi', 'reddedildi', 'iptal_edildi', 'suresi_doldu']) {
       expect(cevapKapisi({ ...acik, durum: d }).ok).toBe(false);
     }

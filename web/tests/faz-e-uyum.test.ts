@@ -202,7 +202,7 @@ describe('UY-28 · tekrar kararı', () => {
     tespit: simdi, kapanma: null, tekrarBulguId: null, ...o,
   });
 
-  it('aynı kontrolde pencere içinde kapanmış bulgu → TEKRAR', () => {
+  it('aynı kontrolde pencere içinde kapanmış bulgu → TEKRAR [BUL-KAP-002]', () => {
     const k = tekrarKarari({
       yeni: bulgu({}),
       gecmis: [bulgu({

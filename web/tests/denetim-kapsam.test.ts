@@ -118,7 +118,7 @@ describe('Kapsam ekleme', () => {
 });
 
 describe('Kapanmış denetim', () => {
-  it('kapanmış denetimin kapsamı GENİŞLETİLEMEZ', async () => {
+  it('kapanmış denetimin kapsamı GENİŞLETİLEMEZ [DEN-ASM-002]', async () => {
     /* Kapanıştan sonra kapsam eklemek, biten bir denetimin sonucunu
        geçmişe dönük değiştirmektir: rapor imzalanmış, bulgular kapanmış,
        kapsam ise büyümüş görünür. */

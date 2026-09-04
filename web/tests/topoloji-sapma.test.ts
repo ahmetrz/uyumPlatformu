@@ -75,7 +75,7 @@ describe('Topoloji sapma tespiti (P2-2)', () => {
 
   /* ── 1 · temel yoksa hesap yok ──────────────────────────────────── */
 
-  it('temel yokken sapma HESAPLANMAZ — ilk anlık kendiliğinden temel olmaz', async () => {
+  it('temel yokken sapma HESAPLANMAZ — ilk anlık kendiliğinden temel olmaz [TOP-SAP-001]', async () => {
     const tesisId = await tesisAc('TOPO-TEMELSIZ');
     const ilk = await anlik(tesisId, TEMEL_OGELER);
 

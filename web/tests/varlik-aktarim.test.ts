@@ -149,7 +149,7 @@ describe('Doğrulama — zorunlu alan, sözlük, tarih', () => {
     expect(s.hatalar[0].sebep).toContain('etiket tekrarı');
   });
 
-  it('sözlük dışı değer ve okunamayan tarih satırı reddeder — uydurulmaz', () => {
+  it('sözlük dışı değer ve okunamayan tarih satırı reddeder — uydurulmaz [IMP-XLS-002]', () => {
     const ref = { ...BOS_REF, turler: new Map([['testtur', 'T1']]) };
     const s = coz(
       [{ tag: 'A-1', t: 'test-tur', k: 'çok kritik', e: '31/31/2026' }],
@@ -184,7 +184,7 @@ describe('Duplicate tespiti — üç anahtar, çakışma yazılmaz', () => {
   const coz = (satirlar: Record<string, string>[]) =>
     satirlariCoz({ satirlar, esleme, referanslar: ref, mevcutlar, kapsam: KAPSAMSIZ });
 
-  it('etiket eşleşmesi güncelleme, eşleşmeyen yeni', () => {
+  it('etiket eşleşmesi güncelleme, eşleşmeyen yeni [IMP-XLS-001]', () => {
     const s = coz([{ tag: 'A-1', t: 'test-tur' }, { tag: 'C-1', t: 'test-tur' }]);
     expect(s.satirlar[0]).toMatchObject({ islem: 'guncelleme', hedefId: 'V-A', eslesmeAlani: 'etiket' });
     expect(s.satirlar[1]).toMatchObject({ islem: 'yeni', hedefId: null });

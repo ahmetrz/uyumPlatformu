@@ -74,7 +74,7 @@ function bulgu(ozel: Partial<KaliteBulgusu> = {}): KaliteBulgusu {
 }
 
 describe('Motor kataloğu', () => {
-  it('elle koşan işler TAM OLARAK motor defteridir', async () => {
+  it('elle koşan işler TAM OLARAK motor defteridir [SAG-MOT-002]', async () => {
     /* Eskiden burada iki donmuş sabit vardı: zincirden koşanların adları
        ve "sekiz motor elle koşar". Dokuzuncu motor eklendiğinde bu test,
        kusuru değil kendi eskimişliğini bildirdi. Sayı artık defterden
@@ -97,7 +97,7 @@ describe('Motor kataloğu', () => {
 });
 
 describe('Motor işaretçisi — hiç koşmamış motor BAŞARISIZ değildir', () => {
-  it('koşu kaydı olmayan motor bilinmeyendir', () => {
+  it('koşu kaydı olmayan motor bilinmeyendir [SAG-MOT-001]', () => {
     const m = motor({ kosular: [] });
     expect(sonKosu(m)).toBeNull();
     expect(motorImi(m)).toBe('unk');

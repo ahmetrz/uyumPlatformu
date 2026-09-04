@@ -13,7 +13,7 @@ const { db } = await import('@/lib/db');
 const { tesisKapsaminiHesapla } = await import('@/lib/motorlar/uygulanabilirlik');
 
 describe('Kabul testi 1 — yeni santral kapsam akışı (izole DB)', () => {
-  it('profilsiz santral: karar verilmez + veri kalitesi bulgusu; profil gelince kapsam kararı gerekçeli yazılır', async () => {
+  it('profilsiz santral: karar verilmez + veri kalitesi bulgusu; profil gelince kapsam kararı gerekçeli yazılır [TES-PRF-003]', async () => {
     const yeni = await db.tesis.create({ data: { kod: 'TEST-YENI-HES', ad: 'Test HES' } });
     await tesisKapsaminiHesapla(yeni.id);
     expect(await db.uygulanabilirlikKarari.count({ where: { tesisId: yeni.id } })).toBe(0);

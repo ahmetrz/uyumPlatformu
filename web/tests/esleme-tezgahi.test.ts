@@ -142,7 +142,7 @@ describe('Eşleme tezgâhı yetki kapısı', () => {
 describe('Yayımlanmış sürüm değişmez, yeni yayın YENİ SÜRÜM açar', () => {
   const kod = `${ONEK}-SURUM`;
 
-  it('ikinci yayın v2 açar, v1 arşive geçer ve v1 kuralları AYNEN kalır', async () => {
+  it('ikinci yayın v2 açar, v1 arşive geçer ve v1 kuralları AYNEN kalır [ESL-PRF-001]', async () => {
     const ilk = await E.eslemeProfilYayinla({
       kod, ad: 'Sürüm testi', connectorTipi: 'test_tip', kurallar: KURALLAR });
     expect(ilk.ok).toBe(true);
@@ -198,7 +198,7 @@ describe('Yayımlanmış sürüm değişmez, yeni yayın YENİ SÜRÜM açar', (
 /* ═══ 3 · Önizleme HİÇBİR ŞEY YAZMAZ ══════════════════════════════════ */
 
 describe('Önizleme bir prova, bir ölçüm değil', () => {
-  it('önizleme profil, köken ya da red kaydı YAZMAZ', async () => {
+  it('önizleme profil, köken ya da red kaydı YAZMAZ [ESL-PRF-002]', async () => {
     const once = await Promise.all([
       db.eslemeProfili.count(), db.veriKokeni.count(), db.reddedilenKayit.count(),
     ]);

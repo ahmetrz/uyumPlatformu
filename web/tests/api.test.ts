@@ -123,7 +123,7 @@ beforeEach(async () => { await oranSayaclariniSifirla(); });
 /* ═══ kimlik ═════════════════════════════════════════════════════════ */
 
 describe('Kimlik: geçersiz anahtar veri göstermez', () => {
-  it('token yoksa 401 yetkisiz', async () => {
+  it('token yoksa 401 yetkisiz [API-KIM-001]', async () => {
     const y = await santralleriGetir(new Request('http://test/api/v1/plants'));
     expect(y.status).toBe(401);
     expect((await y.json()).error.code).toBe('yetkisiz');
@@ -137,7 +137,7 @@ describe('Kimlik: geçersiz anahtar veri göstermez', () => {
     expect(g.data).toBeUndefined();
   });
 
-  it('süresi dolmuş anahtar 401', async () => {
+  it('süresi dolmuş anahtar 401 [API-KIM-002]', async () => {
     const y = await santralleriGetir(al('/api/v1/plants', jeton.suresiDolmus));
     expect(y.status).toBe(401);
     expect((await y.json()).error.message).toMatch(/süresi dolmuş/i);
@@ -156,7 +156,7 @@ describe('Kimlik: geçersiz anahtar veri göstermez', () => {
     expect(anahtar?.sonKullanim).not.toBeNull();
   });
 
-  it('veritabanında token AÇIK HÂLDE durmaz (yalnız SHA-256 özeti)', async () => {
+  it('veritabanında token AÇIK HÂLDE durmaz (yalnız SHA-256 özeti) [API-KIM-003]', async () => {
     const satirlar = await db.apiAnahtari.findMany({ where: { ad: `${ONEK} anahtar` } });
     expect(satirlar.length).toBeGreaterThan(0);
     for (const s of satirlar) {
@@ -196,7 +196,7 @@ describe('Yetki: modül izni olmayan anahtar 403', () => {
 /* ═══ santral kapsamı izolasyonu ═════════════════════════════════════ */
 
 describe('Santral kapsamı: A anahtarı B tesisini NE GÖRÜR NE YAZAR', () => {
-  it('okuma: yalnız kendi santralinin varlıkları döner', async () => {
+  it('okuma: yalnız kendi santralinin varlıkları döner [API-KPS-002]', async () => {
     const y = await varlikGetir(al('/api/v1/assets?limit=200', jeton.a));
     expect(y.status).toBe(200);
     const g = await y.json();
@@ -339,7 +339,7 @@ describe('Duruş gözlemi: ENVANTERİ DEĞİŞTİRMEZ, eski veri yeniyi ezmez', 
     ...ek,
   });
 
-  it('gözlem yazılır ama Varlik satırına DOKUNULMAZ', async () => {
+  it('gözlem yazılır ama Varlik satırına DOKUNULMAZ [DUR-API-001]', async () => {
     const once = await db.varlik.findFirstOrThrow({ where: { etiket: `${ONEK}-A-1` } });
     const y = await durusYaz(yolla('/api/v1/asset-state', jeton.a, { records: [durusKaydi({
       assetKey: `${ONEK}-A-1`, os: 'Windows Server 2022',
@@ -376,7 +376,7 @@ describe('Duruş gözlemi: ENVANTERİ DEĞİŞTİRMEZ, eski veri yeniyi ezmez', 
     expect(g.yamaSeviyesi).toBe('2026-09 KB5043050');
   });
 
-  it('GEÇ GELEN paket yazılmaz ve cevapta `stale` olarak SAYILIR', async () => {
+  it('GEÇ GELEN paket yazılmaz ve cevapta `stale` olarak SAYILIR [DUR-API-002]', async () => {
     /* Sessizce düşseydi gönderen taraf verinin işlendiğini sanırdı. */
     const y = await durusYaz(yolla('/api/v1/asset-state', jeton.a, { records: [durusKaydi({
       assetKey: `${ONEK}-A-1`, os: 'Windows Server 2019',
@@ -417,7 +417,7 @@ describe('Duruş gözlemi: ENVANTERİ DEĞİŞTİRMEZ, eski veri yeniyi ezmez', 
     })).toBe(0);
   });
 
-  it('KAPSAM DIŞI santralin varlığına duruş yazılamaz', async () => {
+  it('KAPSAM DIŞI santralin varlığına duruş yazılamaz [DUR-API-003]', async () => {
     const y = await durusYaz(yolla('/api/v1/asset-state', jeton.a, { records: [{
       source: 'test_edr', sourceRecordId: 'sizinti-1', collectedAt: zaman,
       confidence: null, assetKey: `${ONEK}-B-1`, os: 'Windows 11',
@@ -448,7 +448,7 @@ describe('Duruş gözlemi: ENVANTERİ DEĞİŞTİRMEZ, eski veri yeniyi ezmez', 
 /* ═══ doğrulama ══════════════════════════════════════════════════════ */
 
 describe('Doğrulama: bozuk payload 400 + hangi alan', () => {
-  it('köken alanı eksikse hangi alan olduğunu söyler', async () => {
+  it('köken alanı eksikse hangi alan olduğunu söyler [API-DGR-001]', async () => {
     const y = await varlikYaz(yolla('/api/v1/assets/upsert', jeton.a, { records: [{
       source: 'test_itam', sourceRecordId: 'x-1', collectedAt: zaman,
       assetTag: `${ONEK}-EKSIK`, plantCode: `${ONEK}-A`, typeCode: `${ONEK}-TUR`,

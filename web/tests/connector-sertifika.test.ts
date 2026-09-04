@@ -124,7 +124,7 @@ describe('Bağlanmayan yedi adaptör: `uygulanamaz` BEKLENEN sonuçtur', () => {
     }
   });
 
-  it('sır kontrolü: bağlı olmayan adaptörde eksik sır KUSUR DEĞİLDİR', () => {
+  it('sır kontrolü: bağlı olmayan adaptörde eksik sır KUSUR DEĞİLDİR [SAG-SRT-001]', () => {
     for (const tip of bagliOlmayanlar) {
       /* Adaptörler gereken sırlarını beyan ediyor ama bu kurulumda hiçbiri
          tanımlı değil — bu bekleyen bir kurulum adımıdır. `kaldi` demek,

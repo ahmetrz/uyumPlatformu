@@ -81,7 +81,7 @@ describe('Eşleme tezgâhı (§7)', () => {
 
   /* ═══ Saf motor ═════════════════════════════════════════════════════ */
 
-  it('VARSAYILAN BİR ÖLÇÜM DEĞİLDİR: kaynağın verdiği alan ile varsayılan ayırt edilir', () => {
+  it('VARSAYILAN BİR ÖLÇÜM DEĞİLDİR: kaynağın verdiği alan ile varsayılan ayırt edilir [ESL-PRF-003]', () => {
     const kurallar = [
       kural({ kaynakAlan: 'serial', hedefAlan: 'seriNo', donusum: 'buyukHarf',
         guvenKurali: { agirlik: 0.9 } }),
@@ -104,7 +104,7 @@ describe('Eşleme tezgâhı (§7)', () => {
     expect(s.reddedildi).toBe(false);
   });
 
-  it('güven ÖLÇÜLEMİYORSA null döner — sıfır DEĞİL', () => {
+  it('güven ÖLÇÜLEMİYORSA null döner — sıfır DEĞİL [SAG-ESL-001]', () => {
     // (a) hiç güven kuralı yok → ölçüm yapılmadı
     const a = eslemeUygula([kural({ kaynakAlan: 'tag', hedefAlan: 'etiket' })], { tag: 'X' });
     expect(a.guven).toBeNull();

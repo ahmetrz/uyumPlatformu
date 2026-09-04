@@ -61,7 +61,7 @@ function varlik(ek: Partial<V> = {}): V {
 }
 
 describe('Bilinmeyen birinci sınıftır — sıfır ya da sağlıklı sayılmaz', () => {
-  it('EOS tarihi girilmemiş varlık "ömrü bitmedi" değildir: unk, ok DEĞİL', () => {
+  it('EOS tarihi girilmemiş varlık "ömrü bitmedi" değildir: unk, ok DEĞİL [ENV-LST-005]', () => {
     const v = varlik({ eosTarihi: null });
     expect(omurGunu(v, SIMDI)).toBeNull();
     expect(varlikDurumu(v, SIMDI)).toBe('unk');
@@ -145,7 +145,7 @@ describe('Mercek ve kapsam', () => {
     expect(mercekten(varlik(), 'sinyal', SIMDI)).toBe(false);
   });
 
-  it('ömür mercekleri bilinmeyen tarihi ne "bitti" ne "yakın" sayar', () => {
+  it('ömür mercekleri bilinmeyen tarihi ne "bitti" ne "yakın" sayar [OMR-EOL-001]', () => {
     const gecmis = varlik({ eosTarihi: gunSonra(-1) });
     const yakin = varlik({ eosTarihi: gunSonra(100) });
     const bilinmeyen = varlik({ eosTarihi: null });
@@ -179,7 +179,7 @@ describe('Mercek ve kapsam', () => {
     expect(turKapsamindan(v, 't:baska')).toBe(false);
   });
 
-  it('santral kapsamı dışındaki varlık süzülür', () => {
+  it('santral kapsamı dışındaki varlık süzülür [ENV-LST-001]', () => {
     const havuz = [varlik({ id: 'a' }), varlik({ id: 'b', tesis: GOKCEDAG })];
     const sonuc = suz(havuz, {
       mercek: 'hepsi', tesisId: GOKCEDAG.id, turKapsami: null, kritiklik: null, arama: '',
@@ -209,7 +209,7 @@ describe('Mercek ve kapsam', () => {
 });
 
 describe('Sıralama ve kuyruk — kritik satır ASLA toplanmaz', () => {
-  it('kritik işaretli satırlar bütçeden bağımsız görünür kalır', () => {
+  it('kritik işaretli satırlar bütçeden bağımsız görünür kalır [ENV-LST-004]', () => {
     const kritikler = Array.from({ length: 12 }, (_, i) =>
       varlik({ id: `k${i}`, etiket: `KRT-${i}`, eosTarihi: gunSonra(-i - 1) }));
     const sakinler = Array.from({ length: 40 }, (_, i) =>

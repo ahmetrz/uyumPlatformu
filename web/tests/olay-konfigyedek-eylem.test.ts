@@ -129,7 +129,7 @@ describe('Olay kapısı', () => {
     expect(hataMetni(sonuc as Sonuc)).toMatch(/yetki/i);
   });
 
-  it('olay BAŞKA SANTRALE taşınırken hedefte de yetki aranır', async () => {
+  it('olay BAŞKA SANTRALE taşınırken hedefte de yetki aranır [OLY-ETK-002]', async () => {
     // Kaynakta yetkisi olan biri, olayı yetkisi olmayan bir santrale
     // taşıyarak kapsamı dolanamaz.
     const o = await olayAc(tesisA);

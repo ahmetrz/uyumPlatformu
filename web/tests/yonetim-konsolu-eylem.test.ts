@@ -111,7 +111,7 @@ describe('RBAC — okuyucu okur, yazamaz, onaylayamaz', () => {
     if (s.ok) expect(s.etki.find((e) => e.baslik === 'Tüzel kişi')?.deger).toBeGreaterThan(0);
   });
 
-  it('yönetim yetkisi olmayan yazar rol (bt_yoneticisi) de konsola yazamaz', async () => {
+  it('yönetim yetkisi olmayan yazar rol (bt_yoneticisi) de konsola yazamaz [YTK-LST-002]', async () => {
     const s = await kimlikle({ yetkiler: [yetki('bt_yoneticisi')] },
       () => katalogKaydet({ tip: 'grup', degerler: { kod: 'RBAC-Y', ad: 'BT grubu' } }));
     expect(hataMetni(s)).toMatch(/yetki/i);
@@ -168,7 +168,7 @@ describe('A sınıfı — doğrudan yazılır, iz bırakır, şema korur', () =>
     await db.varlikTuru.update({ where: { id: tur.id }, data: { aktif: true } });
   });
 
-  it('A sınıfı ayar doğrudan yazılır, okuyucu görür, iz düşer', async () => {
+  it('A sınıfı ayar doğrudan yazılır, okuyucu görür, iz düşer [YON-AYR-001]', async () => {
     const s = await ayarKaydet({ anahtar: 'saha.takvim_gun', deger: 120, gerekce: GEREKCE });
     expect(hataMetni(s)).toBe('');
     expect(await ayar<number>('saha.takvim_gun')).toBe(120);

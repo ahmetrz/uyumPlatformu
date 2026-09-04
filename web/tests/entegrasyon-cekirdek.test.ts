@@ -86,7 +86,7 @@ describe('Connector senkronizasyon çekirdeği (izole DB kopyası)', () => {
     expect(() => adaptorCoz('yok_boyle_bir_tip')).toThrow(/adaptör kayıtlı değil/);
   });
 
-  it('idempotent senkronizasyon: aynı kaynak kaydı ikinci koşuda YENİ satır açmaz', async () => {
+  it('idempotent senkronizasyon: aynı kaynak kaydı ikinci koşuda YENİ satır açmaz [SAG-CON-006]', async () => {
     const kaynak = 'TEST-IDEMPOTENT';
     let kayitlar = [gozlem('a1', kaynak), gozlem('a2', kaynak), gozlem('a3', kaynak)];
     adaptorYap('test_idempotent', async () => ({ gozlemler: kayitlar, yeniImlec: 'c1', devamVar: false }));
@@ -203,7 +203,7 @@ describe('Connector senkronizasyon çekirdeği (izole DB kopyası)', () => {
     expect(await db.kesifKaydi.count({ where: { kaynak } })).toBe(2);
   });
 
-  it('bayat "calisiyor" koşusu kapatılır; TAZE koşu ikinci koşuyu engeller', async () => {
+  it('bayat "calisiyor" koşusu kapatılır; TAZE koşu ikinci koşuyu engeller [API-IDM-001]', async () => {
     const kaynak = 'TEST-BAYAT';
     adaptorYap('test_bayat', async () => ({ gozlemler: [gozlem('b1', kaynak)], yeniImlec: null, devamVar: false }));
     const c = await connectorYap('test_bayat');

@@ -64,7 +64,7 @@ describe('Tedarikçi erişim oturumu — üç değerli uyum', () => {
 
   /* ── Kaynak bağlı değilken: "oturum yok" DENMEZ ──────────────────────── */
 
-  it('hiç kayıt yokken durum "kaynak_bagli_degil" — "oturum yok" DEĞİL', async () => {
+  it('hiç kayıt yokken durum "kaynak_bagli_degil" — "oturum yok" DEĞİL [TED-OTR-001]', async () => {
     expect(await oturumKaynagiBagliMi()).toBe(false);
 
     const rapor = await uyumsuzOturumlar();

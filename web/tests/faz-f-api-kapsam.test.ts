@@ -36,7 +36,7 @@ describe('Uç kütüğü ürünün GERÇEĞİYLE birebir', () => {
     expect(bildirimler.length).toBe(ucDosyalari.length);
   });
 
-  it('UC_KIMLIKLERI ile bildirilen uçlar AYNI kümedir', () => {
+  it('UC_KIMLIKLERI ile bildirilen uçlar AYNI kümedir [API-KPS-003]', () => {
     expect([...bildirimler.map((b) => b.uc)].sort())
       .toEqual([...UC_KIMLIKLERI].sort());
   });

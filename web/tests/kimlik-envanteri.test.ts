@@ -67,7 +67,7 @@ describe('Envanter on dört alanı da listeler — boş olan gizlenmez', () => {
       .toBe('WinCC 7.5 · Step7');
   });
 
-  it('kurulu yazılım yoksa alan ÖLÇÜLMEDİ olur, "yok" değil', () => {
+  it('kurulu yazılım yoksa alan ÖLÇÜLMEDİ olur, "yok" değil [ENV-KML-001]', () => {
     expect(kimlikEnvanteri(varlik()).find((a) => a.anahtar === 'yazilim')?.deger)
       .toBeNull();
   });

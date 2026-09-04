@@ -191,7 +191,7 @@ describe('Sapma kararı İNSAN ONAYI ister', () => {
     expect(sapma.kararZamani).toBeNull();
   });
 
-  it('envanter/onay yetkisi olmayan kullanıcı karar VEREMEZ', async () => {
+  it('envanter/onay yetkisi olmayan kullanıcı karar VEREMEZ [TOP-SAP-002]', async () => {
     const { sapmaId } = await sapmaliKapsam();
     oturum.token = okuyucuToken;
     try {

@@ -52,7 +52,7 @@ describe('Motor entegrasyonları (izole DB kopyası)', () => {
     expect(sonra.durum).toBe('acik'); // kabul süresi doldu → yeniden değerlendirme
   });
 
-  it('gap-to-action: uyumsuz+kritik → proje adayı üretir; İNSAN ONAYSIZ projeye dönmez; mükerrer üretmez', async () => {
+  it('gap-to-action: uyumsuz+kritik → proje adayı üretir; İNSAN ONAYSIZ projeye dönmez; mükerrer üretmez [YON-MOT-004]', async () => {
     const sonuc = await gapAksiyonMotoru();
     expect(sonuc.uretilen).toBeGreaterThan(0);
     const adaylar = await db.projeAdayi.findMany();

@@ -159,7 +159,7 @@ describe('UY-12 · kanıt kaydı yetki ve kapsam ister', () => {
     expect(s.ok).toBe(false);
   });
 
-  it('geçerli kanıt açılır ve ize düşer', async () => {
+  it('geçerli kanıt açılır ve ize düşer [KNT-YUK-001]', async () => {
     const s = await kanitKaydet({
       maddeDurumuId: durumA, ad: benzersiz('Politika'), tip: 'politika',
       gizlilik: 'kurumsal',

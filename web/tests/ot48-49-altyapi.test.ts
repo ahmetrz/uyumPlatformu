@@ -43,7 +43,7 @@ describe('OT-48 · dört durum üçe indirilmez', () => {
 
   /* "Hazır değil" ile "hazır olduğunu bilmiyoruz" farklı cümlelerdir;
      ikincisi bir ölçüm işidir, bir kurulum işi değil. */
-  it('ölçülemeyen zorunlu kontrol varken HAZIR cümlesi kurulmaz', () => {
+  it('ölçülemeyen zorunlu kontrol varken HAZIR cümlesi kurulmaz [SIS-ALT-001]', () => {
     const cumle = hazirlikCumlesi(hazirlikOzeti([
       kontrol({ kod: 'a', durum: 'bilinmiyor' }),
     ]));

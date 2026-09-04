@@ -52,7 +52,7 @@ describe('tazelik', () => {
     expect(t.durum).toBe('md');
   });
 
-  it('180 günden yaşlı kanıt süresi dolmuş · bd', () => {
+  it('180 günden yaşlı kanıt süresi dolmuş · bd [KNT-LST-001]', () => {
     const t = tazelik(kanit({ baslangic: gunOnce(200) }), SIMDI);
     expect(t.kova).toBe('dolmus');
     expect(t.durum).toBe('bd');

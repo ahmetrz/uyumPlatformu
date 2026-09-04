@@ -148,7 +148,7 @@ describe('Olay → etki zinciri motoru (izole DB kopyası)', () => {
     expect(oneri.gerekce.every((g) => g.dayanak.trim().length > 0)).toBe(true);
   });
 
-  it('kopuk zincir (sistemin süreci yok) BİLİNMİYOR der, YOK demez', async () => {
+  it('kopuk zincir (sistemin süreci yok) BİLİNMİYOR der, YOK demez [OLY-ETK-001]', async () => {
     const olay = await olayAc({ baslik: 'Sanallaştırma platformu kesintisi' });
     await db.olayVarlik.create({ data: { olayId: olay.id, varlikId: kopukVarlik.id } });
 

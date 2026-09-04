@@ -39,7 +39,7 @@ describe('KAPSAM_SONRA — tesise kısıtlı rol ön kapıdan geçer, gerçek ka
     expect(izinVar(kisitli, 'uyum', 'yazma', { tesisId: 'T-2', surecId: null })).toBe(false);
     expect(izinVar(global, 'uyum', 'yazma', { tesisId: 'T-2', surecId: null })).toBe(true);
   });
-  it('KAPSAM_SONRA tek başına yetki VERMEZ: modül/işlem eşleşmesi aranır', () => {
+  it('KAPSAM_SONRA tek başına yetki VERMEZ: modül/işlem eşleşmesi aranır [SIS-KPS-002]', () => {
     expect(izinVar(kisitli, 'yonetim', 'yazma', KAPSAM_SONRA)).toBe(false);
     expect(izinVar(kisitli, 'uyum', 'onay', KAPSAM_SONRA)).toBe(false);
   });

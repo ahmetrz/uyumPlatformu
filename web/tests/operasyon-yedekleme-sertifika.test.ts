@@ -90,7 +90,7 @@ describe('Yedekleme politikası ve koşusu', () => {
     expect(await db.yedeklemePolitikasi.count({ where: { ad } })).toBe(1);
   });
 
-  it('boş ad ve negatif saklama süresi reddedilir', async () => {
+  it('boş ad ve negatif saklama süresi reddedilir [YED-POL-002]', async () => {
     expect(hataMetni(await yedeklemePolitikasiKaydet({ ad: '   ' }))).not.toBe('');
     expect(hataMetni(await yedeklemePolitikasiKaydet({
       ad: benzersiz('pol-eksi'), saklamaGun: -5,
@@ -122,7 +122,7 @@ describe('Yedekleme politikası ve koşusu', () => {
     }))).not.toBe('');
   });
 
-  it('restore testi KANITTIR: koşuya bağlanır ve iz bırakır', async () => {
+  it('restore testi KANITTIR: koşuya bağlanır ve iz bırakır [YED-POL-001]', async () => {
     const ad = benzersiz('pol-restore');
     await yedeklemePolitikasiKaydet({ ad });
     const p = await db.yedeklemePolitikasi.findFirstOrThrow({ where: { ad } });

@@ -103,7 +103,7 @@ beforeAll(async () => {
 /* ══ OT-03 · Alan uygulanabilirliği ═════════════════════════════════ */
 
 describe('OT-03 · "uygulanamaz" bir ölçüm değil KARARDIR', () => {
-  it('gerekçesiz uygulanamazlık reddedilir', async () => {
+  it('gerekçesiz uygulanamazlık reddedilir [ENV-KML-002]', async () => {
     const s = await alanUygulanamazIsaretle({ varlikId: varlikA, alan: 'edr', gerekce: 'kısa' });
     expect(s.ok).toBe(false);
     expect(hataMetni(s)).toMatch(/gerekçe/i);
@@ -141,7 +141,7 @@ describe('OT-03 · "uygulanamaz" bir ölçüm değil KARARDIR', () => {
 /* ══ OT-11 · Ağ segmenti ═════════════════════════════════════════════ */
 
 describe('OT-11 · segment CIDR ürüne girmeden doğrulanır', () => {
-  it('geçersiz CIDR REDDEDİLİR', async () => {
+  it('geçersiz CIDR REDDEDİLİR [ENV-AG-001]', async () => {
     for (const cidr of ['10.0.0.0/99', '10.0.0.0', 'bilinmiyor', '999.0.0.0/24']) {
       const s = await agSegmentiKaydet({
         bolgeId, kod: benzersiz('SEG'), ad: 'Geçersiz', cidr,

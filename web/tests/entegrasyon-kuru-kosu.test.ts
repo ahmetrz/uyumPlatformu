@@ -121,7 +121,7 @@ describe('Kuru koşu (§6) — hesaplar, hiçbir şey yazmaz', () => {
     await db.entegrasyonKosusu.deleteMany({ where: { connectorId: { not: null } } });
   });
 
-  it('KANIT: kuru koşu ilgili tabloların TEK BİR SATIRINI bile değiştirmez', async () => {
+  it('KANIT: kuru koşu ilgili tabloların TEK BİR SATIRINI bile değiştirmez [SAG-KUR-001]', async () => {
     const kaynak = 'KURU-KANIT';
     /* CMDB'de var olan bir varlığın seri numarasını taşıyan gözlem: kuru
        koşu gerçekten eşleştirme yapsın, "hiç iş yapmadığı için hiçbir şey

@@ -144,7 +144,7 @@ describe('OT-05 · iş süreci kütük yetkisi ve santral kapsamı ister', () =>
   /* Süreci başka santrale TAŞIMAK iki kapsam kararıdır: hedefin ve
      BUGÜNKÜ santralin. Yalnız hedef sorulsaydı, B'ye yetkili biri A'nın
      sürecini kendine çekebilirdi. */
-  it('süreç başka santrale kaçırılamaz: eski santralin kapsamı da sorulur', async () => {
+  it('süreç başka santrale kaçırılamaz: eski santralin kapsamı da sorulur [UYU-PRS-001]', async () => {
     const kod = benzersiz('IS');
     await isSureciKaydet({ kod, ad: 'Taşınacak', tesisId: tesisA });
     const kayit = await db.isSureci.findUnique({ where: { kod } });

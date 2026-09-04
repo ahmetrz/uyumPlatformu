@@ -77,7 +77,7 @@ describe('Yaşam döngüsü', () => {
     expect([...ASAMALAR]).toEqual(['talep', 'onay', 'planlandi', 'uygulandi', 'dogrulandi']);
   });
 
-  it('geri alma döngünün adımı değildir — indeksi yoktur', () => {
+  it('geri alma döngünün adımı değildir — indeksi yoktur [OPR-DEG-003]', () => {
     expect(asamaIndeksi('geri_alindi')).toBe(-1);
     expect(asamaIndeksi('planlandi')).toBe(2);
     expect(asamaEtiketi('geri_alindi')).toBe('Geri alındı');
@@ -91,7 +91,7 @@ describe('Yaşam döngüsü', () => {
 });
 
 describe('OT emniyet kapıları', () => {
-  it('BT değişikliğinin kapısı YOKTUR — "0/5" uydurulmaz', () => {
+  it('BT değişikliğinin kapısı YOKTUR — "0/5" uydurulmaz [OPR-DEG-002]', () => {
     expect(kapilar(d())).toEqual([]);
     expect(eksikKapilar(d())).toEqual([]);
     expect(kapiHucresi(d())).toBeNull();

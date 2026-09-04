@@ -115,7 +115,7 @@ describe('Süre — süresiz istisna yoktur', () => {
 });
 
 describe('Gerekçe', () => {
-  it('on karakterden kısa gerekçe reddedilir', async () => {
+  it('on karakterden kısa gerekçe reddedilir [UYU-IST-001]', async () => {
     const d = sirada();
     expect(hataMetni(await istisnaTalep({ maddeDurumuId: d.id, bitis: YARIN(), gerekce: 'olur' })))
       .toMatch(/10 karakter/);

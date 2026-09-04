@@ -68,7 +68,7 @@ describe('süreç sayımı — bilinmeyen sıfır değildir', () => {
     expect(s.yuzde).toBe(100);
   });
 
-  it('hiç değerlendirme yoksa yüzde null olur, %0 uydurulmaz', () => {
+  it('hiç değerlendirme yoksa yüzde null olur, %0 uydurulmaz [UYU-CRC-002]', () => {
     expect(sayimla({ degerlendirilmedi: 12 }).yuzde).toBeNull();
     expect(BOS_SAYIM.yuzde).toBeNull();
   });
@@ -115,7 +115,7 @@ describe('süreç işaretçisi', () => {
     expect(surecImi(surec({ acikBulgu: 2 }), SIMDI)).toBe('bd');
   });
 
-  it('bilinmeyeni kalan kampanya kısmi, hepsi uyumlu olan tamdır', () => {
+  it('bilinmeyeni kalan kampanya kısmi, hepsi uyumlu olan tamdır [UYU-CRC-001]', () => {
     expect(surecImi(surec(), SIMDI)).toBe('md');
     expect(surecImi(surec({ sayim: sayimla({ uyumlu: 10 }) }), SIMDI)).toBe('ok');
   });

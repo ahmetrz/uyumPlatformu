@@ -81,7 +81,7 @@ describe('Ekran ile sunucu ayrışmaz', () => {
   const MODULLER: Modul[] = ['uyum', 'envanter', 'risk', 'denetim', 'proje', 'tanimlar', 'yonetim'];
   const ISLEMLER: Islem[] = ['yazma', 'onay'];
 
-  it('EKRAN DAR DEĞİLDİR: satır yazılabiliyorsa kaba kapı da açıktır', () => {
+  it('EKRAN DAR DEĞİLDİR: satır yazılabiliyorsa kaba kapı da açıktır [SIS-KPS-001]', () => {
     /* Bu, kusurun tam tersidir ve asıl ölçülmesi gereken şeydir: ekranın
        gizlediği ama sunucunun yazdırdığı tek bir (rol · modül · işlem)
        üçlüsü kalmamalı. */

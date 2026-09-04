@@ -78,7 +78,7 @@ beforeAll(async () => {
 });
 
 describe('Köken sözleşmesi — kökeni olmayan kayıt manueldir', () => {
-  it('köken satırı olmayan varlık MANUEL sayılır, "otomatik" kovasına girmez', async () => {
+  it('köken satırı olmayan varlık MANUEL sayılır, "otomatik" kovasına girmez [SAG-KOK-001]', async () => {
     const once = (await kokenSayimlari()).satirlar.find((s) => s.varlikTipi === 'Varlik');
     expect(once?.manuel).not.toBeNull(); // Varlik evreni bilinir
 

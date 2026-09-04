@@ -93,7 +93,7 @@ describe('Yerleşim — üç hâl karışmaz', () => {
     santral({ id: 'konumsuz', konum: null }),
   ];
 
-  it('koordinatı olan yerleşir, ili olan YAKLAŞIK, ikisi de yoksa haritada YOK', () => {
+  it('koordinatı olan yerleşir, ili olan YAKLAŞIK, ikisi de yoksa haritada YOK [HRT-KNM-001]', () => {
     const y = yerlesimKur(liste);
     expect(y.isaretler.map((i) => i.id).sort()).toEqual(['kesin', 'yaklasik']);
     expect(y.yerlestirilemeyen.map((s) => s.id).sort()).toEqual(['bilinmeyen', 'konumsuz']);

@@ -63,7 +63,7 @@ describe('OT-08 · Etki miras alınır ama ÖLÇÜLMÜŞ değeri ezmez', () => {
     expect(s.mirasAdimId).toBe('a2');
   });
 
-  it('hiçbir kaynak bilinmiyorsa sonuç BİLİNMİYOR — "yok" değil', () => {
+  it('hiçbir kaynak bilinmiyorsa sonuç BİLİNMİYOR — "yok" değil [ENV-ETK-001]', () => {
     const s = gecerliEtki(null, [bag()]);
     expect(s.duzey).toBe('bilinmiyor');
     expect(s.kaynak).toBe('yok');

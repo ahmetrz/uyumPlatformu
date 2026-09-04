@@ -91,7 +91,7 @@ describe('surecKapsamCikar — ekleme ile aynı kapı', () => {
     expect(await kapsamdaMi(tesisA)).toBe(false);
   });
 
-  it('BAŞKA santrali kapsamdan çıkaramaz', async () => {
+  it('BAŞKA santrali kapsamdan çıkaramaz [UYU-OLC-002]', async () => {
     await kapsamdanKaldir(tesisB);
     expect(hataMetni(await surecKapsamEkle({ surecId, tesisId: tesisB }))).toBe('');
 

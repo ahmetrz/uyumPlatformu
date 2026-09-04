@@ -40,7 +40,7 @@ describe('Atomik iş kilidi', () => {
     expect(k.alindi).toBe(true);
   });
 
-  it('EŞZAMANLI iki istekten yalnız BİRİ kazanır', async () => {
+  it('EŞZAMANLI iki istekten yalnız BİRİ kazanır [YON-KLT-001]', async () => {
     /* Asıl kusur buydu: "önce bak, sonra oluştur" yarışında ikisi de
        kazanıyordu. Aynı anda beş istek atıp tam birinin kazandığını
        ölçüyoruz — dörtte üç kazansa da test kırmızı olur. */

@@ -188,7 +188,7 @@ describe('UY-52 · Kapsam kapısı HATTA çalışır', () => {
     expect(govde.error.message).toContain('plants');
   });
 
-  it('SALT OKUNUR anahtar yazma ucundan 403 alır ve hiçbir şey yazılmaz', async () => {
+  it('SALT OKUNUR anahtar yazma ucundan 403 alır ve hiçbir şey yazılmaz [API-KPS-001]', async () => {
     const token = await anahtar(['plants'], true);
     const once = await db.zafiyet.count();
     const y = await zafiyetYaz(new Request('http://test/api/v1/vulnerabilities', {
@@ -511,7 +511,7 @@ describe('UY-57 · Davet GERÇEK yetki satırı yazar', () => {
     expect(iz?.gerekce).toContain('yetki satırı kaldırıldı');
   });
 
-  it('SÜRESİ DOLAN erişimin yetkileri de kapanır', async () => {
+  it('SÜRESİ DOLAN erişimin yetkileri de kapanır [DNE-ERS-003]', async () => {
     expect(hataMetni(await denetciDavetEt({
       kullaniciId: denetciId, firma: 'X Denetim',
       bitis: new Date(Date.now() + 5 * 86_400_000).toISOString(),

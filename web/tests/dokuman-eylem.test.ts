@@ -117,7 +117,7 @@ describe('Yaşam döngüsü', () => {
     expect((await db.dokuman.findUniqueOrThrow({ where: { id: b.id } })).durum).toBe('taslak');
   });
 
-  it('yürürlüğe alma tarihi, onaylayanı ve gözden geçirme takvimini kurar', async () => {
+  it('yürürlüğe alma tarihi, onaylayanı ve gözden geçirme takvimini kurar [DOK-SUR-001]', async () => {
     const b = await belgeAc({ gozdenGecirmeAy: 12 });
     expect((await dokumanDurumDegistir({ id: b.id, durum: 'incelemede' })).ok).toBe(true);
     expect((await dokumanDurumDegistir({ id: b.id, durum: 'yururlukte' })).ok).toBe(true);

@@ -192,7 +192,7 @@ describe('Görev durumu — sahiplik', () => {
     expect(sonra.kapanis).not.toBeNull();
   });
 
-  it('BAŞKASININ görevini yazma yetkisi tek başına kapatamaz', async () => {
+  it('BAŞKASININ görevini yazma yetkisi tek başına kapatamaz [DEN-GRV-001]', async () => {
     /* Sorumlusu atanmış bir görevi herkes kapatabilseydi, "tamamlandı"
        kaydı kimin işi olduğunu söylemezdi. */
     const g = await gorevAc({ sorumluId: otekiId });

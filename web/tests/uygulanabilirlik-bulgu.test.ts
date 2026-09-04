@@ -37,7 +37,7 @@ describe('Uygulanabilirlik motoru — veri kalitesi bulgusu üretimi', () => {
     await db.veriKalitesiBulgusu.deleteMany({ where: { kural: 'eksik_profil' } });
   });
 
-  it('tekrarlı koşu açık bulguyu ÇOĞALTMAZ', async () => {
+  it('tekrarlı koşu açık bulguyu ÇOĞALTMAZ [BUL-UYG-001]', async () => {
     await tumTesisleriHesapla();
     const ilk = await eksikProfilSayisi();
 

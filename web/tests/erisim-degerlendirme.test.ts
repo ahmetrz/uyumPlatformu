@@ -89,7 +89,7 @@ describe('Erişim değerlendirme — üç değerli mantık', () => {
     expect(s.temelSiddet).toBe('kritik');
   });
 
-  it('null ile false KARIŞTIRILMAZ: biri ihlal, diğeri ölçüm boşluğu', () => {
+  it('null ile false KARIŞTIRILMAZ: biri ihlal, diğeri ölçüm boşluğu [KIM-ERS-001]', () => {
     const s = oturumuDegerlendir(
       temiz({ onayli: false, mfaVar: null, izlendi: true }), SIMDI);
     expect(s.ihlaller.map((i) => i.kural)).toEqual(['onay_yok']);

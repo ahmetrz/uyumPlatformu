@@ -149,7 +149,7 @@ describe('Başarısız giriş denetim izine YAZILIR', () => {
     expect(await db.oturum.count({ where: { kullaniciId: pasifId } })).toBe(0);
   });
 
-  it('istemciye dönen mesaj HER ret için AYNIDIR — hesap sayımı yapılamaz', async () => {
+  it('istemciye dönen mesaj HER ret için AYNIDIR — hesap sayımı yapılamaz [OTR-GRS-002]', async () => {
     const yok = await giris('hic-yok@test.local', 'x');
     const yanlis = await giris(EPOSTA, 'x');
     const pasif = await giris(PASIF_EPOSTA, PAROLA);
@@ -165,7 +165,7 @@ describe('Başarısız giriş denetim izine YAZILIR', () => {
     expect([...mesajlar][0]).toBe('E-posta veya parola hatalı');
   });
 
-  it('başarılı giriş de kaynak adresle birlikte kaydedilir', async () => {
+  it('başarılı giriş de kaynak adresle birlikte kaydedilir [OTR-GRS-001]', async () => {
     const s = await giris(EPOSTA, PAROLA);
     expect(s.ok).toBe(true);
     const kayitlar = await girisKayitlari(kullaniciId, 'olusturma');

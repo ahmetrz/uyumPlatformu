@@ -168,7 +168,7 @@ describe('Motor zinciri — sıra, koşul, dayanıklılık, otomasyon sınırı'
     expect(i('veri_kalitesi')).toBeLessThan(i('gap_to_action'));
   });
 
-  it('bir motor patlarsa zincir DEVAM eder ve sonuç bunu bildirir', async () => {
+  it('bir motor patlarsa zincir DEVAM eder ve sonuç bunu bildirir [YON-MOT-002]', async () => {
     // Hata enjeksiyonu veri üzerinden: bozuk kural JSON'u → kuralDegerlendir
     // JSON.parse'da fırlatır → tesisKapsaminiHesapla fırlatır → isKos yakalar.
     const reg = await db.regulasyon.findFirstOrThrow();

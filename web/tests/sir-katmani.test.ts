@@ -37,7 +37,7 @@ describe('Referans ayrıştırma ve doğrulama', () => {
 
   /* Biçim geçerliliği ile SAĞLAYICI tanınırlığı ayrı kontroldür: bir
      referans biçimsel olarak doğru ama sağlayıcısı kayıtlı olmayabilir. */
-  it('tanınmayan sağlayıcı biçimsel olarak geçerli ama DENETİMDEN geçmez', () => {
+  it('tanınmayan sağlayıcı biçimsel olarak geçerli ama DENETİMDEN geçmez [SIS-SIR-001]', () => {
     expect(referansGecerli('kasa:ot/ad')).toBe(true);
     const d = referansDenetle('kasa:ot/ad');
     expect(d.ok).toBe(false);

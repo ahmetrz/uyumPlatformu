@@ -41,7 +41,7 @@ const kosu = (y: Partial<KosuGirdi> = {}): KosuGirdi => ({
 });
 
 describe('Entegrasyon sağlığı — sessiz hata yasağı', () => {
-  it('hiç koşmamış connector SAĞLIKLI görünmez; "hiç koşmadı" ayrı bir durumdur', () => {
+  it('hiç koşmamış connector SAĞLIKLI görünmez; "hiç koşmadı" ayrı bir durumdur [SAG-CON-001]', () => {
     const s = connectorSagligi(conn(), [], { simdi: SIMDI });
     expect(s.durum).toBe('hic_kosmadi');
     expect(s.durum).not.toBe('basarili');
@@ -65,7 +65,7 @@ describe('Entegrasyon sağlığı — sessiz hata yasağı', () => {
 });
 
 describe('kimlik_bekleniyor ile basarisiz ayrımı', () => {
-  it('kimlik referansı olmayan connector başarısız DEĞİL, kimlik bekleniyor sayılır', () => {
+  it('kimlik referansı olmayan connector başarısız DEĞİL, kimlik bekleniyor sayılır [SAG-CON-002]', () => {
     const s = connectorSagligi(
       conn({ kimlikTipi: 'api_key', sirReferansi: null }),
       [kosu({ durum: 'basarisiz', hata: 'bağlantı kurulamadı' })],

@@ -210,7 +210,7 @@ describe('2 · kapsamTesisleriJson kolonuna yazılabiliyor', () => {
     expect(connectorKapsamKodlari({}, sonra.kapsamTesisleriJson)).toBeNull();
   });
 
-  it('tanımlı olmayan santral kodu REDDEDİLİR ve kolon değişmez', async () => {
+  it('tanımlı olmayan santral kodu REDDEDİLİR ve kolon değişmez [SAG-YAP-001]', async () => {
     const c = await connectorAc({ kapsamTesisleriJson: JSON.stringify([`${ONEK}-A`]) });
     const y = await connectorKapsamKaydet({
       connectorId: c.id, tesisKodlari: [`${ONEK}-A`, `${ONEK}-YOK`] });

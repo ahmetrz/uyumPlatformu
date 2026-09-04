@@ -66,7 +66,7 @@ describe('SBOM · CycloneDX', () => {
     expect(l?.kimlikGucu).toBe('purl');
   });
 
-  it('SÜRÜM UYDURULMAZ — yoksa null geçer', () => {
+  it('SÜRÜM UYDURULMAZ — yoksa null geçer [ENV-YAS-001]', () => {
     const b = s.bilesenler.find((x) => x.ad === 'sürümsüz-kütüphane');
     expect(b?.surum).toBeNull();
     expect(b?.surum).not.toBe('0');

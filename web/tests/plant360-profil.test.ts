@@ -76,7 +76,7 @@ describe('gösterim', () => {
     expect(alanDegeri({ ...DOLU, kabulTarihi: 'bozuk' }, alan('kabulTarihi')).deger).toBe('geçersiz tarih');
   });
 
-  it('profil kaydı yokken her alan tanımsızdır; gruplar tüm alanları kapsar', () => {
+  it('profil kaydı yokken her alan tanımsızdır; gruplar tüm alanları kapsar [PRT-OZT-002]', () => {
     const sayim = tanimsizSayisi(null);
     expect(sayim.tanimsiz).toBe(sayim.toplam);
     expect(sayim.toplam).toBe(PROFIL_ALANLARI.length);

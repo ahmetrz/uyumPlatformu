@@ -24,7 +24,7 @@ import {
 const GUN = 86_400_000;
 
 describe('UY-56 · Saklama politikası durumu', () => {
-  it('politika yoksa TANIMSIZ — süresiz değil', () => {
+  it('politika yoksa TANIMSIZ — süresiz değil [SAK-SUR-001]', () => {
     expect(politikaDurumu(null)).toBe('tanimsiz');
   });
 

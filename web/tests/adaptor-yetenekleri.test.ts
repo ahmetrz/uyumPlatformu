@@ -84,7 +84,7 @@ describe('Pasif keşif yeteneği AKTİF TARAMA anlamına gelmez', () => {
     expect(pasifler.length).toBeGreaterThan(0);
   });
 
-  it('hiçbir adaptör aktif tarama yeteneği beyan EDEMEZ — kütükte yoktur', () => {
+  it('hiçbir adaptör aktif tarama yeteneği beyan EDEMEZ — kütükte yoktur [KES-YSK-002]', () => {
     /* OT emniyeti: port tarama, SNMP deneme, Modbus sorgusu ve PLC
        yoklaması ürünün yetenek kütüğünde YOKTUR. Bir adaptörün böyle bir
        şey beyan edebilmesi için önce bu listenin değişmesi gerekir ve

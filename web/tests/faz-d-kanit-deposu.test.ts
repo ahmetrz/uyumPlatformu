@@ -114,7 +114,7 @@ describe('UY-13 · okuma ve bütünlük', () => {
     expect(o.icerik.toString('utf8')).toBe(icerik);
   });
 
-  it('diskte DEĞİŞTİRİLMİŞ dosya sessizce sağlam dönmez', async () => {
+  it('diskte DEĞİŞTİRİLMİŞ dosya sessizce sağlam dönmez [KNT-DEP-001]', async () => {
     /* Bozulmuş bir kanıtı denetçiye sağlam diye vermek, bu katmanın
        engellemek için var olduğu şeydir. */
     const icerik = `değişecek ${randomUUID()}`;

@@ -122,7 +122,7 @@ describe('kayıt yok → kod varsayılanı', () => {
 
 /* ── 2 · RBAC ve sınıf kapısı ─────────────────────────────────────────── */
 describe('kapılar — B anahtarı doğrudan yazılmaz, okuyucu öneremez', () => {
-  it('ayarKaydet B anahtarını reddeder', async () => {
+  it('ayarKaydet B anahtarını reddeder [KNT-TAZ-001]', async () => {
     const s = await ayarKaydet({ anahtar: TAZE, deger: 60, gerekce: GEREKCE });
     expect(hataMetni(s)).toMatch(/onay/i);
     expect((await ayarOku(TAZE)).kaynak).toBe('varsayilan');

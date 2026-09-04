@@ -94,7 +94,7 @@ describe('tesisKonumKaydet — koordinat', () => {
     expect(iz?.yeniDeger).toMatch(/doğrulanmadı/);
   });
 
-  it('YARIM koordinat reddedilir — tek başına enlem haritada bir yer değildir', async () => {
+  it('YARIM koordinat reddedilir — tek başına enlem haritada bir yer değildir [KNM-KRD-001]', async () => {
     expect(hataMetni(await tesisKonumKaydet({
       tesisId: tesisA, enlem: 39.9, boylam: null,
     }))).toMatch(/birlikte/i);

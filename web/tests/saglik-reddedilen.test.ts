@@ -94,7 +94,7 @@ beforeAll(async () => {
 });
 
 describe('Aşama sözlüğü: esleme ≠ eslesme', () => {
-  it('iki aşama ayrı yazılır ve ayrı açıklanır', () => {
+  it('iki aşama ayrı yazılır ve ayrı açıklanır [SAG-RED-001]', () => {
     expect(R.asamaYazisi('esleme')).not.toBe(R.asamaYazisi('eslesme'));
     expect(R.asamaYazisi('esleme')).toMatch(/alan çevirisi/);
     expect(R.asamaYazisi('eslesme')).toMatch(/CMDB/);

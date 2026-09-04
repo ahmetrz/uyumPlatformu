@@ -87,7 +87,7 @@ beforeAll(async () => {
 });
 
 describe('Skor — bilinmeyen sıfır DEĞİLDİR', () => {
-  it('hiçbir boyut ölçülmemişse skor null kalır', async () => {
+  it('hiçbir boyut ölçülmemişse skor null kalır [RSK-LST-002]', async () => {
     // En pahalı kusur burada olurdu: ölçülmemiş risk 0 skorla "en düşük"
     // sıraya düşer ve ısı haritasının boş hücresinde kaybolur.
     const r = await riskAc();
@@ -105,7 +105,7 @@ describe('Skor — bilinmeyen sıfır DEĞİLDİR', () => {
     expect(r.artikRisk).toBeNull();
   });
 
-  it('skor = olasılık × EN YÜKSEK bilinen etki', async () => {
+  it('skor = olasılık × EN YÜKSEK bilinen etki [RSK-LST-001]', async () => {
     const r = await riskAc({ olasilik: 3, etkiUretim: 2, etkiSiber: 5, etkiCevre: 1 });
     expect(r.artikRisk).toBe(15);
   });
@@ -147,7 +147,7 @@ describe('Girdi doğrulama', () => {
 });
 
 describe('Kapsam kapısı', () => {
-  it('tesise kısıtlı rol KENDİ tesisinin riskini yazabilir', async () => {
+  it('tesise kısıtlı rol KENDİ tesisinin riskini yazabilir [RSK-DTY-001]', async () => {
     /* İKİ AŞAMALI KAPI (bkz. erisim.ts · KAPSAM_SONRA). Ön kapı kapsamsız
        çağrılırsa tesise kısıtlı rol daha ilk adımda reddedilir: ekran
        "yazabilirsin" der, sunucu "yetkin yok" der. Kapsam, kayıt okunduktan

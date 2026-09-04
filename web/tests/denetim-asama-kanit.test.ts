@@ -124,7 +124,7 @@ describe('denetimKaydet', () => {
 });
 
 describe('Aşama geçişleri', () => {
-  it('SIRA ZORUNLU: her ilerletme yalnız bir sonraki aşamaya gider', async () => {
+  it('SIRA ZORUNLU: her ilerletme yalnız bir sonraki aşamaya gider [DEN-LST-001]', async () => {
     const id = await denetimAc();
     // Kapanış öncesine kadar sırayla yürü.
     for (let i = 0; i < DENETIM_ASAMALARI.length - 2; i += 1) {
@@ -150,7 +150,7 @@ describe('Aşama geçişleri', () => {
       .toMatch(REDDEDILDI);
   });
 
-  it('AÇIK KANIT TALEBİYLE kapanmaz ve aşama GERİ ALINIR', async () => {
+  it('AÇIK KANIT TALEBİYLE kapanmaz ve aşama GERİ ALINIR [DEN-ASM-001]', async () => {
     /* Kapanış kontrolü "önce yaz sonra doğrula" biçimindedir; reddedilirse
        transaction geri alınır ve aşama HİÇ DEĞİŞMEMİŞ olmalıdır. Yarım
        durum kalırsa denetim "kapandı" görünür, kapanmamıştır. */

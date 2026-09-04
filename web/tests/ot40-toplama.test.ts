@@ -89,7 +89,7 @@ describe('OT-40 · adres politikası: TLS ve SSRF', () => {
     if (!dis.ok) expect(dis.hata).toMatch(/özel ağ değil/i);
   });
 
-  it('bulut metadata adresi HER KOŞULDA reddedilir', () => {
+  it('bulut metadata adresi HER KOŞULDA reddedilir [KES-KYT-002]', () => {
     for (const u of [
       'http://169.254.169.254/latest/meta-data/',
       'https://metadata.google.internal/computeMetadata/v1/',

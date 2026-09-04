@@ -150,7 +150,7 @@ describe('İki aşamalı kapı — uygulanmış mı', () => {
       .toEqual([]);
   });
 
-  it('KAPSAM_SONRA verilip ikinci aşama YAZILMAMIŞ eylem yoktur', () => {
+  it('KAPSAM_SONRA verilip ikinci aşama YAZILMAMIŞ eylem yoktur [SIS-KPS-003]', () => {
     /* Ters kusur: ön kapı gevşetilir, gerçek denetim hiç yazılmaz. Kapı
        ardına kadar açık kalır ve hiçbir hata mesajı çıkmaz — kod
        "yetkilendirilmiş" görünür. */

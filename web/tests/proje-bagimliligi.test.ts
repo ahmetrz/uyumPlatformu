@@ -55,13 +55,13 @@ describe('Bağımlılık yüklemleri', () => {
     expect(O.engelleyenler(p).map((x) => x.id)).toEqual(['2', '3', '4']);
   });
 
-  it('İPTAL edilmiş önkoşul da engeldir — dayanılan iş artık yapılmayacak', () => {
+  it('İPTAL edilmiş önkoşul da engeldir — dayanılan iş artık yapılmayacak [PRJ-BAG-001]', () => {
     // Sessizce "engel yok" demek en kötü cevap olurdu: plan değişmeli.
     const p = proje({ onkosullar: [bag({ id: '1', durum: 'iptal' })] });
     expect(O.engelleyenler(p)).toHaveLength(1);
   });
 
-  it('gecikmiş engel AYRI sayılır ve engellerin alt kümesidir', () => {
+  it('gecikmiş engel AYRI sayılır ve engellerin alt kümesidir [PRJ-LST-001]', () => {
     const p = proje({ onkosullar: [
       bag({ id: 'gec', durum: 'devam', hedef: '2026-01-01T00:00:00.000Z' }),
       bag({ id: 'ileri', durum: 'devam', hedef: '2027-01-01T00:00:00.000Z' }),

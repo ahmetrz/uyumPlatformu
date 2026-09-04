@@ -37,7 +37,7 @@ describe('Sözlük tutarlılığı', () => {
     }
   });
 
-  it('her ayar bir konsol modülüne bağlı; kütük–sözlük çapraz kontrolü boş döner', () => {
+  it('her ayar bir konsol modülüne bağlı; kütük–sözlük çapraz kontrolü boş döner [YON-MOD-002]', () => {
     for (const a of AYARLAR) {
       const m = ayarinModulu(a.anahtar);
       expect(m, `${a.anahtar} modülsüz`).not.toBeNull();
@@ -47,7 +47,7 @@ describe('Sözlük tutarlılığı', () => {
     expect(kutukTutarli()).toEqual([]);
   });
 
-  it('modül kodları tek; kapsama özeti payda/pay tutarlı', () => {
+  it('modül kodları tek; kapsama özeti payda/pay tutarlı [YON-MOD-001]', () => {
     const kodlar = MODULLER.map((m) => m.kod);
     expect(new Set(kodlar).size).toBe(kodlar.length);
     const o = kapsamaOzeti();
@@ -69,7 +69,7 @@ describe('Sözlük tutarlılığı', () => {
     }
   });
 
-  it('şema: tip ve sınır dışı değerler reddedilir', () => {
+  it('şema: tip ve sınır dışı değerler reddedilir [YON-AYR-002]', () => {
     expect(ayarDogrula('motor.son_tarih.bulgu_gun', 'otuz').ok).toBe(false);
     expect(ayarDogrula('motor.son_tarih.bulgu_gun', -1).ok).toBe(false);
     expect(ayarDogrula('motor.son_tarih.bulgu_gun', 45).ok).toBe(true);
@@ -117,7 +117,7 @@ describe('Okuma katmanı — yokluk varsayılandır, bozuk kayıt işaretlenir',
     expect(coklu['kabuk.kunye']).toBe(AYAR_SOZLUGU['kabuk.kunye'].varsayilan);
   });
 
-  it('şemayı geçmeyen kayıt varsayılana düşer ama gecersiz_kayit diye işaretlenir', async () => {
+  it('şemayı geçmeyen kayıt varsayılana düşer ama gecersiz_kayit diye işaretlenir [YON-AYR-003]', async () => {
     await db.yapilandirma.update({ where: { anahtar: ANAHTAR }, data: { degerJson: JSON.stringify('bozuk') } });
     const o = await ayarOku<number>(ANAHTAR);
     expect(o.deger).toBe(tanim.varsayilan);

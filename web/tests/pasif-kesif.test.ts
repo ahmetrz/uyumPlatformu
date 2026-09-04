@@ -68,7 +68,7 @@ describe('Aktif tarama yasağı — gerekçe teknik değil EMNİYET', () => {
     }
   });
 
-  it('port taraması, SNMP denemesi, OT protokol sorgusu ve PLC yoklaması listede', () => {
+  it('port taraması, SNMP denemesi, OT protokol sorgusu ve PLC yoklaması listede [KES-YSK-001]', () => {
     const metin = AKTIF_ISLEM_YASAKLARI.map((y) => y.islem).join(' ').toLowerCase();
     expect(metin).toContain('port tarama');
     expect(metin).toContain('snmp');
@@ -91,7 +91,7 @@ describe('İnsan onayı akışı', () => {
       .toEqual(['Tespit', 'Eşleştirme', 'Öneri', 'İnsan onayı', 'Envanter']);
   });
 
-  it('öneri ile envanter arasında İNSAN ONAYI vardır', () => {
+  it('öneri ile envanter arasında İNSAN ONAYI vardır [KES-ONY-001]', () => {
     const i = KESIF_ADIMLARI.findIndex((a) => a.ad === 'İnsan onayı');
     const oneri = KESIF_ADIMLARI.findIndex((a) => a.ad === 'Öneri');
     const envanter = KESIF_ADIMLARI.findIndex((a) => a.ad === 'Envanter');
@@ -108,7 +108,7 @@ describe('Eşleşme sırası — IP tek başına kimlik DEĞİLDİR', () => {
     expect(ANAHTAR_GUCU.hostname).toBeGreaterThan(ANAHTAR_GUCU.ip);
   });
 
-  it('IP ve üretici+model TEK BAŞINA eşleşme kuramaz', () => {
+  it('IP ve üretici+model TEK BAŞINA eşleşme kuramaz [KES-ESL-001]', () => {
     /* DHCP adresi gezer: iki hafta önce bir kontrolörün olan adres bugün
        bir dizüstünde olabilir. */
     expect(TEK_BASINA_ESLESMEZ).toContain('ip');
@@ -152,12 +152,12 @@ describe('Yedi grup', () => {
     expect(kesifGrubu(d())).toBe('envanterde_sahipli');
   });
 
-  it('envanterde karşılığı olmayan cihaz ayrı gruptur', () => {
+  it('envanterde karşılığı olmayan cihaz ayrı gruptur [KES-GRP-001]', () => {
     expect(kesifGrubu(d({ eslesenVar: false, eslesenSahipVar: null })))
       .toBe('envanterde_yok');
   });
 
-  it('envanterde var ama SAHİBİ YOK ayrı bir gruptur', () => {
+  it('envanterde var ama SAHİBİ YOK ayrı bir gruptur [KES-GRP-002]', () => {
     expect(kesifGrubu(d({ eslesenSahipVar: false }))).toBe('sahipsiz');
   });
 
@@ -167,7 +167,7 @@ describe('Yedi grup', () => {
     expect(kesifGrubu(d({ yetkiDurumu: 'yetkisiz' }))).toBe('yetkisiz');
   });
 
-  it('kimlik çakışması diğer bütün tariflerin ÖNÜNE geçer', () => {
+  it('kimlik çakışması diğer bütün tariflerin ÖNÜNE geçer [KES-GRP-003]', () => {
     /* Kimliği belirsiz bir kayıt üzerinde verilen her karar yanlış cihazı
        vurabilir. */
     expect(kesifGrubu(d({
@@ -187,14 +187,14 @@ describe('Yedi grup', () => {
     expect(kesifGrubu(d({ gunGorulmedi: 29 }))).toBe('envanterde_sahipli');
   });
 
-  it('eşik konsoldan gelir — 30 gün koda gömülü değildir', () => {
+  it('eşik konsoldan gelir — 30 gün koda gömülü değildir [KES-GRP-004]', () => {
     expect(kesifGrubu(d({ gunGorulmedi: 10, gorunmezEsikGun: 7 })))
       .toBe('gorulmuyor');
     expect(kesifGrubu(d({ gunGorulmedi: 10, gorunmezEsikGun: 90 })))
       .toBe('envanterde_sahipli');
   });
 
-  it('santrali çözülemeyen kayıt gizlenmez, kendi grubuna düşer', () => {
+  it('santrali çözülemeyen kayıt gizlenmez, kendi grubuna düşer [KES-GRP-005]', () => {
     expect(kesifGrubu(d({ tesisBilinen: false }))).toBe('yeri_belirsiz');
   });
 

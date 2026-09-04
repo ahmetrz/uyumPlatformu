@@ -121,7 +121,7 @@ describe('Değişiklik kaydı', () => {
     expect(hataMetni(sonuc)).toMatch(/yetki/i);
   });
 
-  it('KAYDIN GERÇEK tesisi güncellemede de bağlayıcıdır', async () => {
+  it('KAYDIN GERÇEK tesisi güncellemede de bağlayıcıdır [OPR-DEG-001]', async () => {
     /* Girdi tesis taşımadan güncelleme yapılırsa kapı denetleyecek bir
        tesis bulamaz; kaydın kendi tesisi okunmazsa tesise kısıtlı rol
        başka santralin değişikliğini düzenleyebilirdi. */

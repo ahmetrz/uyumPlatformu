@@ -110,7 +110,7 @@ describe('cerceveleriYukle — kontrolün belge örtüsü', () => {
     await db.dokuman.deleteMany({ where: { kod: { startsWith: ONEK } } });
   });
 
-  it('santrale bağlı belge ÖTEKİ santralin hücresine sızmaz', async () => {
+  it('santrale bağlı belge ÖTEKİ santralin hücresine sızmaz [UYU-BLG-001]', async () => {
     await belgeEkle('SANTRAL-A', 'yururlukte', [tesisA]);
 
     const a = await hucre(tesisA);

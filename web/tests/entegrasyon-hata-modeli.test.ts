@@ -75,7 +75,7 @@ const hicBekleme = async () => {};
 /* ═══ Hata sınıflandırma ══════════════════════════════════════════════ */
 
 describe('Hata sınıflandırma', () => {
-  it('yetki hatası HTTP koduyla tanınır', () => {
+  it('yetki hatası HTTP koduyla tanınır [SAG-CON-005]', () => {
     expect(hataSinifiCikar({ status: 401 })).toBe('yetki');
     expect(hataSinifiCikar({ status: 403 })).toBe('yetki');
   });
@@ -90,7 +90,7 @@ describe('Hata sınıflandırma', () => {
     expect(hataSinifiCikar(new Error('401 unauthorized'), 'sozlesme')).toBe('sozlesme');
   });
 
-  it('tanınmayan hata GEÇİCİ sayılmaz — bilinmeyen kalır', () => {
+  it('tanınmayan hata GEÇİCİ sayılmaz — bilinmeyen kalır [SAG-CON-004]', () => {
     /* Bilinmeyen bir hatayı geçici saymak, kalıcı bir arızayı sonsuz
        tekrar denemeye çevirirdi. */
     expect(hataSinifiCikar(new Error('bambaşka bir şey oldu'))).toBe('bilinmeyen');
@@ -117,7 +117,7 @@ describe('Devre kesici — tek hata connector durdurmaz', () => {
     expect(sonra.sonHataOzeti).toContain('geçici ağ hatası');
   });
 
-  it('SINIRA ULAŞINCA duraklatır', async () => {
+  it('SINIRA ULAŞINCA duraklatır [SAG-CON-003]', async () => {
     const tip = `hata-sinir-${Date.now()}`;
     adaptorYap(tip, async () => { throw new Error('kalıcı arıza'); });
     const c = await connectorYap(tip, { ardisikHataSiniri: 3 });

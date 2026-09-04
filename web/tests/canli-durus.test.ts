@@ -39,14 +39,14 @@ describe('Tazelik — "canlı" bir iddiadır', () => {
     expect(canliDenebilirMi(t)).toBe(false);
   });
 
-  it('veri saniyeler önce gelse bile bağlı olmayan kaynak canlı sayılmaz', () => {
+  it('veri saniyeler önce gelse bile bağlı olmayan kaynak canlı sayılmaz [DUR-TAZ-002]', () => {
     /* Bu, ürünün en pahalı yalanının testi: veri taze diye kaynağı bağlı
        göstermek. Bağlantı bilgisi olmadan tazelik bir iddiadır. */
     expect(tazelik(girdi({ bagli: false, kaynakZamani: SIMDI })).durum)
       .toBe('kaynak_yok');
   });
 
-  it('kaynak hatalıysa tazelik değil HATA raporlanır', () => {
+  it('kaynak hatalıysa tazelik değil HATA raporlanır [DUR-TAZ-004]', () => {
     const t = tazelik(girdi({ hatali: true }));
     expect(t.durum).toBe('hata');
     expect(canliDenebilirMi(t)).toBe(false);
@@ -58,7 +58,7 @@ describe('Tazelik — "canlı" bir iddiadır', () => {
     expect(t.yasDk).toBeNull();
   });
 
-  it('poll aralığı olmayan kaynak ne kadar yeni olursa olsun canlı değildir', () => {
+  it('poll aralığı olmayan kaynak ne kadar yeni olursa olsun canlı değildir [DUR-TAZ-003]', () => {
     /* Bir dosya yüklemesi bir AKIŞ değildir. */
     const t = tazelik(girdi({ pollAralikDk: null, kaynakZamani: SIMDI }));
     expect(t.durum).toBe('bilinmiyor');
@@ -80,7 +80,7 @@ describe('Tazelik — "canlı" bir iddiadır', () => {
     expect(yavas.durum).toBe('canli');
   });
 
-  it('canlı eşiği tam sınırda hâlâ canlıdır', () => {
+  it('canlı eşiği tam sınırda hâlâ canlıdır [DUR-TAZ-001]', () => {
     const t = tazelik(girdi({ pollAralikDk: 10, kaynakZamani: SIMDI - 20 * DK }));
     expect(t.canliEsikDk).toBe(20);
     expect(t.durum).toBe('canli');
@@ -174,7 +174,7 @@ describe('Çakışma çözümü — eski veri yeniyi EZMEZ', () => {
     expect(alaniCoz([g('edr', '', SIMDI)]).deger).toBeNull();
   });
 
-  it('en YENİ ölçüm kazanır — kaynak önceliği bunu bozamaz', () => {
+  it('en YENİ ölçüm kazanır — kaynak önceliği bunu bozamaz [DUR-CAK-001]', () => {
     /* `edr` öncelik listesinde `siem`den önce gelir; ama üç saat önce
        ölçülmüş bir değer, az önce ölçülmüşü ezemez. */
     const s = alaniCoz([

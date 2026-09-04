@@ -157,7 +157,7 @@ describe('UY-26 · kök neden analizi', () => {
     expect(s.ok).toBe(false);
   });
 
-  it('kısa analiz metni reddedilir — kategori seçmek analiz değildir', async () => {
+  it('kısa analiz metni reddedilir — kategori seçmek analiz değildir [BUL-ANL-001]', async () => {
     const bulguId = await bulguAc({ maddeDurumuId: durumA });
     const s = await kokNedenKaydet({ bulguId, kategori: 'surec_yok', metin: 'kısa' });
     expect(s.ok).toBe(false);

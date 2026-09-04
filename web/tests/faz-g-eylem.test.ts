@@ -142,7 +142,7 @@ describe('OT-55 · Fiziksel envanter sayımı', () => {
   });
 
   /* En kritik kural: sayım envanteri değiştirmez. */
-  it('"bulunamadı" varlığı SİLMEZ — envanterden düşürme ayrı bir karardır', async () => {
+  it('"bulunamadı" varlığı SİLMEZ — envanterden düşürme ayrı bir karardır [SAY-KMP-002]', async () => {
     const satir = await db.sayimSatiri.findFirstOrThrow({
       where: { sayimId, sonuc: 'bulunamadi' },
     });
@@ -197,7 +197,7 @@ describe('OT-55 · Fiziksel envanter sayımı', () => {
 describe('OT-56 · Kritik yedek parça', () => {
   let parcaId = '';
 
-  it('ölçülmemiş tedarik süresi BOŞ kalır; sıfır reddedilir', async () => {
+  it('ölçülmemiş tedarik süresi BOŞ kalır; sıfır reddedilir [YDP-STK-001]', async () => {
     expect(hataMetni(await yedekParcaKaydet({
       kod: `FAZG-P0-${Date.now()}`, ad: 'Sıfır süre', stokAdedi: 1,
       kritikEsik: 1, tedarikSuresiGun: 0,
@@ -261,7 +261,7 @@ describe('OT-57 · Taşınabilir medya', () => {
     varlikId = v.id;
   });
 
-  it('şifreleme ÜÇ değerlidir; ölçülmemiş `null` kalır', async () => {
+  it('şifreleme ÜÇ değerlidir; ölçülmemiş `null` kalır [MED-KRT-002]', async () => {
     const kod = `FAZG-M-${Date.now()}`;
     expect(hataMetni(await medyaKaydet({
       kod, ad: 'Saha USB', tip: 'usb_bellek', tesisId, sifreli: null,
@@ -285,7 +285,7 @@ describe('OT-57 · Taşınabilir medya', () => {
     expect(k.onaylayanId).toBeNull();
   });
 
-  it('ZARARLI bulunan medya kendiliğinden KARANTİNAYA alınır', async () => {
+  it('ZARARLI bulunan medya kendiliğinden KARANTİNAYA alınır [MED-KRT-001]', async () => {
     expect(hataMetni(await medyaTaramaKaydet({
       id: medyaId, temiz: false, not: 'Zararlı imza',
     }))).toBe('');
@@ -334,7 +334,7 @@ describe('UY-59 · Olgunluk  ·  UY-64 · Kontrol testi', () => {
     expect(d.olgunlukSeviyesi).toBe(3);
   });
 
-  it('ölçümü KALDIRMAK serbesttir ve iz düşer', async () => {
+  it('ölçümü KALDIRMAK serbesttir ve iz düşer [UYU-OLC-001]', async () => {
     expect(hataMetni(await olgunlukKaydet({
       maddeDurumuId: durumId, seviye: null,
     }))).toBe('');

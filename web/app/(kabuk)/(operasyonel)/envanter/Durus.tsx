@@ -13,7 +13,7 @@ import {
 import { etiketle, tarihTR, zamanTR } from '@/lib/sabitler';
 import {
   DURUS_ALANLARI, DURUS_ALAN_ETIKETI, TAZELIK_SOZU,
-  durusuCoz, type DurusAlani, type TazelikDurumu,
+  celiskiVarMi, durusuCoz, type DurusAlani, type TazelikDurumu,
 } from '@/lib/varlik/canliDurus';
 import {
   kimlikEnvanteri, kimlikTamligi,
@@ -188,7 +188,7 @@ function CanliBlogu({ v, simdi, ayar }: {
         const c = cozum[alan];
         const envanter = ENVANTER_DEGERI[alan](v);
         const durum: TazelikDurumu = c.tazelik?.durum ?? 'kaynak_yok';
-        const celiski = c.deger !== null && envanter !== null && c.deger !== envanter;
+        const celiski = celiskiVarMi(c.deger, envanter);
         return (
           <div key={alan} className="ab-durus-satir">
             <span className={`ab-glif g-${TAZELIK_GLIF[durum]}`} aria-hidden />

@@ -100,7 +100,7 @@ beforeEach(async () => {
 });
 
 describe('Talep açmak sahipliği DEĞİŞTİRMEZ', () => {
-  it('talep açılır ama varlığın sahibi aynı kalır', async () => {
+  it('talep açılır ama varlığın sahibi aynı kalır [ZIM-ACT-001]', async () => {
     const r = await zimmetAc({ varlikId, atananId: atanan, not: 'saha devri' });
     expect(r.ok, hataMetni(r)).toBe(true);
 
@@ -145,7 +145,7 @@ describe('Talep açmak sahipliği DEĞİŞTİRMEZ', () => {
       .toBe(1);
   });
 
-  it('kısıt VERİTABANINDA durur — eşzamanlı iki yazma tek talep bırakır', async () => {
+  it('kısıt VERİTABANINDA durur — eşzamanlı iki yazma tek talep bırakır [ZIM-ACT-002]', async () => {
     /* Eylem kapısı atlanarak doğrudan yazılır: kural yalnız uygulamada
        olsaydı iki eşzamanlı istek iki talep açardı. */
     await db.varlikAtamaTalebi.create({
@@ -179,7 +179,7 @@ describe('Cevap — kimse başkası adına imza atamaz', () => {
     return r.id!;
   }
 
-  it('zimmetlenen kişi kabul edince sahiplik geçer', async () => {
+  it('zimmetlenen kişi kabul edince sahiplik geçer [ZIM-CVP-001]', async () => {
     const id = await acilmisTalep();
     const r = await kimlikle(atanan, [yetki('yonetici')],
       () => zimmetCevapla({ talepId: id, kabul: true }));
@@ -203,7 +203,7 @@ describe('Cevap — kimse başkası adına imza atamaz', () => {
     expect(v.sahipId).toBe(atayan);
   });
 
-  it('yönetici bile başkası adına kabul edemez', async () => {
+  it('yönetici bile başkası adına kabul edemez [ZIM-CVP-004]', async () => {
     const id = await acilmisTalep();
     const r = await kimlikle(ucuncu, [yetki('yonetici')],
       () => zimmetCevapla({ talepId: id, kabul: true }));
@@ -236,7 +236,7 @@ describe('Cevap — kimse başkası adına imza atamaz', () => {
     expect(hataMetni(r)).toContain('gerekçe');
   });
 
-  it('gerekçeli redde sahiplik önceki sahibine DÖNER', async () => {
+  it('gerekçeli redde sahiplik önceki sahibine DÖNER [ZIM-CVP-002]', async () => {
     const id = await acilmisTalep();
     const r = await kimlikle(atanan, [yetki('yonetici')],
       () => zimmetCevapla({ talepId: id, kabul: false, not: 'Bu saha bende değil' }));
@@ -248,7 +248,7 @@ describe('Cevap — kimse başkası adına imza atamaz', () => {
     expect(v.sahipId).toBe(atayan);
   });
 
-  it('önceki sahip yoksa red SAHİPSİZ bırakır ve bulgu açar', async () => {
+  it('önceki sahip yoksa red SAHİPSİZ bırakır ve bulgu açar [ZIM-CVP-003]', async () => {
     await db.varlik.update({ where: { id: varlikId }, data: { sahipId: null } });
     const acilan = await zimmetAc({ varlikId, atananId: atanan });
     expect(acilan.ok, hataMetni(acilan)).toBe(true);
@@ -275,7 +275,7 @@ describe('Cevap — kimse başkası adına imza atamaz', () => {
 });
 
 describe('İptal', () => {
-  it('atayan iptal edebilir ve sahiplik değişmez', async () => {
+  it('atayan iptal edebilir ve sahiplik değişmez [ZIM-CVP-005]', async () => {
     const acilan = await zimmetAc({ varlikId, atananId: atanan });
     const r = await zimmetIptal({ talepId: acilan.id!, gerekce: 'yanlış kişi' });
     expect(r.ok, hataMetni(r)).toBe(true);
@@ -299,7 +299,7 @@ describe('İptal', () => {
 });
 
 describe('Motor — kimse adına KABUL ETMEZ', () => {
-  it('süresi geçen talep düşer ama sahiplik DEĞİŞMEZ', async () => {
+  it('süresi geçen talep düşer ama sahiplik DEĞİŞMEZ [ZIM-SUR-001]', async () => {
     const acilan = await zimmetAc({ varlikId, atananId: atanan });
     await db.varlikAtamaTalebi.update({
       where: { id: acilan.id! },
@@ -318,7 +318,7 @@ describe('Motor — kimse adına KABUL ETMEZ', () => {
     expect(v.sahipId).toBe(atayan);
   });
 
-  it('atanan pasifleşirse bekleyen talep düşer', async () => {
+  it('atanan pasifleşirse bekleyen talep düşer [ZIM-SUR-002]', async () => {
     const acilan = await zimmetAc({ varlikId, atananId: atanan });
     await db.kullanici.update({ where: { id: atanan }, data: { aktif: false } });
 
@@ -336,7 +336,7 @@ describe('Motor — kimse adına KABUL ETMEZ', () => {
     expect(t.durum).toBe('iptal_edildi');
   });
 
-  it('süre daralınca BİR KEZ uyarır — ikinci koşuda tekrar etmez', async () => {
+  it('süre daralınca BİR KEZ uyarır — ikinci koşuda tekrar etmez [ZIM-SUR-003]', async () => {
     const acilan = await zimmetAc({ varlikId, atananId: atanan });
     await db.varlikAtamaTalebi.update({
       where: { id: acilan.id! },

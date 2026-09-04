@@ -178,7 +178,7 @@ describe('1 · Santral A yetkili kullanıcı santral B verisini OKUYAMAZ', () =>
     expect(metin).not.toContain(kimlik.tesisB);
   });
 
-  it('B santralini açıkça isteyen sorgu 403 döner ve gövde kayıt taşımaz', async () => {
+  it('B santralini açıkça isteyen sorgu 403 döner ve gövde kayıt taşımaz [SIS-GVN-001]', async () => {
     const y = await varlikGetir(al(`/api/v1/assets?plantId=${kimlik.tesisB}`, jeton.a));
     expect(y.status).toBe(403);
     const metin = await y.text();

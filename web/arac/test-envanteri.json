@@ -1,7 +1,7 @@
 {
-  "imza": "09bdca0e04efe02026196391b158f739",
-  "dosya": 127,
-  "vaka": 2747,
+  "imza": "e0199e649780e1341a191cf60e877ddd",
+  "dosya": 131,
+  "vaka": 2808,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -386,6 +386,22 @@
     },
     "tests/semantik.test.ts": {
       "vaka": 8,
+      "atlanan": 0
+    },
+    "tests/senaryo-envanter.test.ts": {
+      "vaka": 8,
+      "atlanan": 0
+    },
+    "tests/senaryo-kutugu.test.ts": {
+      "vaka": 12,
+      "atlanan": 0
+    },
+    "tests/senaryo-platform.test.ts": {
+      "vaka": 17,
+      "atlanan": 0
+    },
+    "tests/senaryo-uyum.test.ts": {
+      "vaka": 24,
       "atlanan": 0
     },
     "tests/sir-katmani.test.ts": {

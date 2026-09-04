@@ -116,7 +116,7 @@ describe('kutuKapisiAcik: kutu kapısı kapsamsız izin ARAMAZ', () => {
 /* ═══ 2 · Sahiplik — ekranın yapamadığı ═══════════════════════════════ */
 
 describe('Bildirim kutusu SAHİPLİK sınırı', () => {
-  it('kullanıcı KENDİ bildirimini okundu işaretleyebilir', async () => {
+  it('kullanıcı KENDİ bildirimini okundu işaretleyebilir [BLD-KTU-001]', async () => {
     const b = await bildirimAc(ali.id, 'kendi bildirimim');
     oturum.token = ali.token;
     const sonuc = await bildirimOkundu({ id: b.id });
@@ -125,7 +125,7 @@ describe('Bildirim kutusu SAHİPLİK sınırı', () => {
       .not.toBeNull();
   });
 
-  it('BAŞKASININ bildirimini okundu işaretleme denemesi REDDEDİLİR', async () => {
+  it('BAŞKASININ bildirimini okundu işaretleme denemesi REDDEDİLİR [BLD-KTU-002]', async () => {
     const b = await bildirimAc(ali.id, 'Ali için yazıldı');
     oturum.token = veli.token;
 
@@ -211,7 +211,7 @@ const satir = (ek: Partial<Satir>): Satir => ({
 describe('Bildirim kutusu: bilinmeyen ≠ sıfır', () => {
   const simdi = SIMDI;
 
-  it('okunmamış bildirim yokken "en eski okunmamış" SIFIR GÜN DEĞİL, null olur', () => {
+  it('okunmamış bildirim yokken "en eski okunmamış" SIFIR GÜN DEĞİL, null olur [BLD-KTU-003]', () => {
     const okunmus = [
       satir({ okundu: new Date().toISOString() }),
       satir({ okundu: new Date().toISOString() }),

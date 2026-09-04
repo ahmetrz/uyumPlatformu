@@ -118,6 +118,24 @@ export function tazelik(o: TazelikGirdisi): Tazelik {
   return { durum, yasDk, canliEsikDk };
 }
 
+/**
+ * Envanterde YAZAN ile sahada GÖRÜLEN çelişiyor mu.
+ *
+ * İkisinden biri yoksa çelişki de yoktur: "girilmemiş" ile "farklı" aynı
+ * şey değildir ve boş bir alanı çelişki saymak, ekranı her gün yanlış
+ * uyarı verir hâle getirirdi.
+ *
+ * Çelişki bir HATA DEĞİLDİR ve ürün envanteri kendiliğinden düzeltmez:
+ * hangisinin doğru olduğuna insan karar verir.
+ */
+export function celiskiVarMi(
+  sahada: string | null, envanterde: string | null,
+): boolean {
+  if (sahada === null || envanterde === null) return false;
+  if (sahada.trim() === '' || envanterde.trim() === '') return false;
+  return sahada.trim() !== envanterde.trim();
+}
+
 /** Ekranda "canlı" sözcüğü YALNIZ bu doğruyken yazılabilir. */
 export function canliDenebilirMi(t: Tazelik): boolean {
   return t.durum === 'canli';

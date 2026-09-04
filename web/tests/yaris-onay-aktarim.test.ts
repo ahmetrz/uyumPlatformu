@@ -85,7 +85,7 @@ describe('Onay kararı iki kez uygulanmaz', () => {
     });
   }
 
-  it('EŞZAMANLI iki karardan tam biri yazar', async () => {
+  it('EŞZAMANLI iki karardan tam biri yazar [DGA-AKT-001]', async () => {
     const t = await talepAc();
     const sonuclar = await Promise.all([
       onayKarar({ id: t.id, karar: 'onaylandi', gerekce: 'ilk karar' }),

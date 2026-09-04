@@ -40,7 +40,7 @@ const GUN = 86_400_000;
 const SAAT = 3_600_000;
 
 describe('UY-59 · Olgunluk — ölçülmedi ≠ sıfır', () => {
-  it('ölçülmemiş olgunluk `olculmedi`; sıfır ölçülmüş bir sonuçtur', () => {
+  it('ölçülmemiş olgunluk `olculmedi`; sıfır ölçülmüş bir sonuçtur [UYU-OLG-001]', () => {
     expect(olgunlukDurumu({ olculen: null, hedef: 3 })).toBe('olculmedi');
     expect(olgunlukDurumu({ olculen: 0, hedef: 3 })).toBe('hedefin_altinda');
     expect(OLGUNLUK_SINIFI.olculmedi).toBe('unk');

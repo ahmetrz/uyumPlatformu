@@ -144,7 +144,7 @@ describe('Tekil karar', () => {
 });
 
 describe('Yetki — envantere yazan karar imza ister', () => {
-  it('YAZMA yetkisi karar vermeye yetmez', async () => {
+  it('YAZMA yetkisi karar vermeye yetmez [KES-ONY-002]', async () => {
     /* `bt_yoneticisi` envanteri yazabilir ama keşif kararı veremez: karar,
        dış kaynağın iddiasını kurumun envanterine geçirmektir. */
     const kesif = await kesifAc((await varlikAc(tesisA)).id);
@@ -223,7 +223,7 @@ describe('Kapsam kapısı', () => {
 });
 
 describe('Toplu karar', () => {
-  it('birden çok kaydı tek gerekçeyle kapatır ve izi TOPLU diye işaretler', async () => {
+  it('birden çok kaydı tek gerekçeyle kapatır ve izi TOPLU diye işaretler [KES-KYT-001]', async () => {
     const kesifler = await Promise.all([
       kesifAc((await varlikAc(tesisA)).id),
       kesifAc((await varlikAc(tesisA)).id),

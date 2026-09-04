@@ -149,7 +149,7 @@ describe('hesapKaydet', () => {
       .toBe(tesisB);
   });
 
-  it('SANTRALSİZ (kurumsal) hesap kapsamsız yetki ister', async () => {
+  it('SANTRALSİZ (kurumsal) hesap kapsamsız yetki ister [KIM-HSP-001]', async () => {
     const ad = benzersiz('svc-kurumsal');
     expect(hataMetni(await kimlikle([yetki('tesis_yoneticisi', tesisA)], () => hesapKaydet({
       hesapAdi: ad, tip: 'servis', tesisId: null, ayricalikli: null,

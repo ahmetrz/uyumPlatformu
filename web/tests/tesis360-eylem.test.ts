@@ -75,7 +75,7 @@ beforeAll(async () => {
 });
 
 describe('profilKaydet — üç durumlu alanlar', () => {
-  it('boş metin NULL olur — "" ile "bilinmiyor" aynı şey değildir', async () => {
+  it('boş metin NULL olur — "" ile "bilinmiyor" aynı şey değildir [TES-PRF-001]', async () => {
     expect(hataMetni(await profilKaydet({
       tesisId: tesisA, lisansTipi: '   ', lisansNo: 'LIS-1',
     }))).toBe('');
@@ -162,7 +162,7 @@ describe('uygulanabilirlikOverride', () => {
     expect(karar.onaylayanId).toBe(oturum.id);
   });
 
-  it('MOTOR insanın kararını ezmez — override sonrası yeniden hesap kararı korur', async () => {
+  it('MOTOR insanın kararını ezmez — override sonrası yeniden hesap kararı korur [TES-PRF-002]', async () => {
     /* Bu, dosyanın en pahalı kuralı: motor her koşuda kapsamı yeniden
        hesaplar. El ile verilmiş kararı ezerse, insan aynı kararı her
        koşudan sonra yeniden vermek zorunda kalır ve bir gün fark etmez. */

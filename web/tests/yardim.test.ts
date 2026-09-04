@@ -51,7 +51,7 @@ describe('Yardım katmanı · tetikleme kuralı', () => {
     expect(yardimTusuMu({ key: '?', altKey: true })).toBe(false);
   });
 
-  it('yazı alanında TETİKLENMEZ: input/textarea/select/contentEditable', () => {
+  it('yazı alanında TETİKLENMEZ: input/textarea/select/contentEditable [YRD-SOR-002]', () => {
     expect(yazmaAlanindaMi({ tagName: 'INPUT' })).toBe(true);
     expect(yazmaAlanindaMi({ tagName: 'input', type: 'search' })).toBe(true);
     expect(yazmaAlanindaMi({ tagName: 'TEXTAREA' })).toBe(true);
@@ -84,7 +84,7 @@ describe('Kısayol listesi · yalnız gerçekten bağlı tuşlar', () => {
     }
   });
 
-  it('listedeki genel kısayolların her biri kaynakta bağlıdır', () => {
+  it('listedeki genel kısayolların her biri kaynakta bağlıdır [YRD-SOR-001]', () => {
     /* Belgenin yapabileceği en kötü şey var olmayan bir tuşu öğretmektir:
        liste, dinleyicisi olan kaynak dosyalarla çapraz doğrulanır. */
     const palet = readFileSync('components/KomutPaleti.tsx', 'utf8');
@@ -109,7 +109,7 @@ describe('Kısayol listesi · yalnız gerçekten bağlı tuşlar', () => {
 
 describe('Yardım katmanı · erişilebilirlik sözleşmesi (kaynak metni)', () => {
   const yardim = readFileSync('components/YardimKatmani.tsx', 'utf8');
-  it('dialog rolü, modal, başlık bağı ve odak tuzağı var', () => {
+  it('dialog rolü, modal, başlık bağı ve odak tuzağı var [SIS-ERS-001]', () => {
     expect(yardim).toContain('role="dialog"');
     expect(yardim).toContain('aria-modal="true"');
     expect(yardim).toContain('aria-labelledby="yardim-katman-baslik"');
@@ -124,7 +124,7 @@ describe('Yardım katmanı · erişilebilirlik sözleşmesi (kaynak metni)', () 
 
 describe('Atla bağı + tek main', () => {
   const kabuk = readFileSync('components/kabuk/Kabuk.tsx', 'utf8');
-  it('atla bağı kabuğun ilk çocuğu; tek kabukta TEK `#icerik` sarmalayıcısı var, kabuk main AÇMAZ', () => {
+  it('atla bağı kabuğun ilk çocuğu; tek kabukta TEK `#icerik` sarmalayıcısı var, kabuk main AÇMAZ [SIS-KBK-001]', () => {
     // Bağ, üst çubuktan ÖNCE gelmeli ki ilk Tab onu bulsun.
     const bag = kabuk.indexOf('href="#icerik"');
     const ust = kabuk.indexOf('<header className="ab-ust"');

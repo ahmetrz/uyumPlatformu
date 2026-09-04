@@ -28,7 +28,7 @@ const TAM = {
 };
 
 describe('Ayrıştırıcı hiçbir girdide throw etmez', () => {
-  it('geçersiz JSON reddedilen olarak döner, istisna fırlatmaz', () => {
+  it('geçersiz JSON reddedilen olarak döner, istisna fırlatmaz [SAG-ADV-001]', () => {
     const s = advisoryAyristir('{ bozuk');
     expect(s.girdiler).toHaveLength(0);
     expect(s.reddedilen[0].sebep).toMatch(/JSON/);

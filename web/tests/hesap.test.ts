@@ -80,7 +80,7 @@ beforeAll(async () => {
 /* ═══ Saf kurallar ════════════════════════════════════════════════════ */
 
 describe('Parola kuralı (paylaşılan)', () => {
-  it('alt sınır 12 karakter; kısa parola kusur cümlesi üretir, boş alan susar', () => {
+  it('alt sınır 12 karakter; kısa parola kusur cümlesi üretir, boş alan susar [OTR-HSP-001]', () => {
     expect(PAROLA_EN_AZ).toBe(12);
     expect(parolaKusuru('')).toBeNull();
     expect(parolaKusuru('kisa')).toMatch(/En az 12/);

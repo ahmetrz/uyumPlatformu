@@ -12,7 +12,7 @@ const { db } = await import('@/lib/db');
 const { sonTarihleriIsle } = await import('@/lib/motorlar/sonTarih');
 
 describe('İstisna / waiver yaşam döngüsü (§50)', () => {
-  it('onaylı istisna maddeyi kapsam dışına alır; süre dolunca yeniden değerlendirme açılır', async () => {
+  it('onaylı istisna maddeyi kapsam dışına alır; süre dolunca yeniden değerlendirme açılır [UYU-IST-002]', async () => {
     const durum = await db.maddeDurumu.findFirstOrThrow({
       where: { durum: 'uyumlu' }, include: { madde: true } });
 

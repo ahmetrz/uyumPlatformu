@@ -29,7 +29,7 @@ import {
 const GUN = 86_400_000;
 
 describe('OT-55 · Sayım açma kapısı', () => {
-  it('boş kapsamda sayım açılmaz — sıfır paydalı kampanya olamaz', () => {
+  it('boş kapsamda sayım açılmaz — sıfır paydalı kampanya olamaz [SAY-KMP-001]', () => {
     const k = sayimAcmaKapisi({ kapsamSayisi: 0 });
     expect(k.ok).toBe(false);
     if (k.ok) return;

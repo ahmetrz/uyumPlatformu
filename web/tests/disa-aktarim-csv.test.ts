@@ -47,7 +47,7 @@ describe('Formül enjeksiyonu kalkanı', () => {
     expect(formulKalkani(yuk).startsWith("'=")).toBe(true);
   });
 
-  it('dört tehlikeli başlangıcın hepsini yakalar', () => {
+  it('dört tehlikeli başlangıcın hepsini yakalar [ENV-DIS-003]', () => {
     for (const b of ['=', '+', '-', '@']) {
       expect(formulKalkani(`${b}KOMUT`)).toBe(`'${b}KOMUT`);
     }
@@ -114,7 +114,7 @@ describe('CSV metni', () => {
     expect(csvMetni(satirlar, { bom: false }).startsWith(CSV_BOM)).toBe(false);
   });
 
-  it('Türkçe karakterler bozulmadan geçer', () => {
+  it('Türkçe karakterler bozulmadan geçer [ENV-DIS-002]', () => {
     const m = csvMetni([['Şırnak', 'Iğdır', 'çöğüş']]);
     expect(m).toContain('Şırnak');
     expect(m).toContain('Iğdır');
@@ -147,7 +147,7 @@ describe('CSV metni', () => {
     expect(m).toBe(`a;b;c${CSV_SATIR_SONU}x${CSV_SATIR_SONU}`);
   });
 
-  it('10.000 satırı üretir ve satır sayısı korunur', () => {
+  it('10.000 satırı üretir ve satır sayısı korunur [ENV-DIS-005]', () => {
     const cok = Array.from({ length: 10_000 }, (_, i) => [`etiket-${i}`, i, 'Kızıldere II']);
     const m = csvMetni(cok, { bom: false });
     expect(m.trimEnd().split(CSV_SATIR_SONU)).toHaveLength(10_000);

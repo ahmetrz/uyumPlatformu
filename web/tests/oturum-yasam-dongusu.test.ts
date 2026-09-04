@@ -31,7 +31,7 @@ describe('Oturum geçerliliği — iki eşik birlikte', () => {
       .toBe(true);
   });
 
-  it('MUTLAK süre dolmuşsa, az önce kullanılmış olsa bile düşer', () => {
+  it('MUTLAK süre dolmuşsa, az önce kullanılmış olsa bile düşer [OTR-OTR-001]', () => {
     /* Kayan bir mutlak süre, çalınmış bir çerezi sonsuza dek geçerli
        kılardı: saldırgan her saat bir istek atarak oturumu diri tutardı. */
     const s = oturumGecerli({ bitis: saatOnce(1), sonKullanim: saatOnce(0.01) }, SIMDI);
@@ -79,7 +79,7 @@ describe('Toplu oturum sonlandırma', () => {
     expect(await db.oturum.count({ where: { kullaniciId } })).toBe(0);
   });
 
-  it('başka kullanıcının oturumuna DOKUNMAZ', async () => {
+  it('başka kullanıcının oturumuna DOKUNMAZ [OTR-HSP-002]', async () => {
     const oncekiToplam = await db.oturum.count();
     await tumOturumlariKapat(kullaniciId);
     expect(await db.oturum.count()).toBe(oncekiToplam - 3);

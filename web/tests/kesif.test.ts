@@ -75,7 +75,7 @@ describe('Eşleme: anahtar gücü ve güven skoru', () => {
       uretici: null, model: null },
   ]);
 
-  it('seri numarasıyla eşleşir ve en yüksek güveni alır', () => {
+  it('seri numarasıyla eşleşir ve en yüksek güveni alır [KES-ESL-002]', () => {
     // Küçük harfli/boşluklu yazım normalize edilir.
     const s = esle(gozlem('k1', { seriNo: ' sn-test-a1 ' }), indeks);
     expect(s.durum).toBe('eslesti');

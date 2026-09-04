@@ -14,7 +14,7 @@ describe('Uygulanabilirlik motoru (§5)', () => {
     expect(s.gerekce).toContain('kuruluGucMw');
   });
 
-  it('küçük santral, koşulsuz → kapsam dışı', () => {
+  it('küçük santral, koşulsuz → kapsam dışı [UYU-UYG-001]', () => {
     const s = kuralDegerlendir(EPDK_KURALI, { kuruluGucMw: 47 },
       { blackStart: false, teiasScadaEms: false, seriHaberlesme: false });
     expect(s.uygulanabilir).toBe(false);
@@ -32,7 +32,7 @@ describe('Uygulanabilirlik motoru (§5)', () => {
     expect(s.uygulanabilir).toBe(false);
   });
 
-  it('profil eksikse karar VERİLMEZ (bilinmiyor ≠ hayır)', () => {
+  it('profil eksikse karar VERİLMEZ (bilinmiyor ≠ hayır) [UYU-UYG-002]', () => {
     const s = kuralDegerlendir(EPDK_KURALI, { kuruluGucMw: 50 }, { });
     expect(s.uygulanabilir).toBeNull();
     expect(s.gerekce).toContain('bilinmiyor');

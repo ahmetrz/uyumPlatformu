@@ -43,7 +43,7 @@ const noktalar = async (sid: string, kapsam: string[] | null = null) =>
   (await uyumTrendiYukle(kapsam)).filter((n) => n.surecId === sid && n.tarih >= gun(0).toISOString());
 
 describe('uyumTrendiYukle — birleştirme', () => {
-  it('aynı gün süreç geneli varsa santral kayıtları SAYILMAZ; yoksa toplanır', async () => {
+  it('aynı gün süreç geneli varsa santral kayıtları SAYILMAZ; yoksa toplanır [UYU-TRN-001]', async () => {
     // gün 0: genel (10/0 → %100) + santral (0/10) → yalnız genel
     await db.uyumAnlik.createMany({ data: [
       { surecId, tesisId: null, tarih: gun(0), ozetJson: ozet(10, 0) },

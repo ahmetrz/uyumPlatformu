@@ -125,7 +125,7 @@ describe('tumIsleriCalistir — karar tablosu', () => {
     expect(hataMetni(await tumIsleriCalistir())).toMatch(/başarısız/i);
   });
 
-  it('yonetim/yazma yetkisi olmayan çalıştıramaz — tek motora bile dokunulmaz', async () => {
+  it('yonetim/yazma yetkisi olmayan çalıştıramaz — tek motora bile dokunulmaz [YON-MOT-001]', async () => {
     const s = await kimlikle([yetki('okuyucu')], () => tumIsleriCalistir());
     expect(hataMetni(s)).toMatch(/yetki/i);
     expect(cagrilanlar).toEqual([]);

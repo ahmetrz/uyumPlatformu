@@ -95,7 +95,7 @@ describe('kanitEkle — santral kapsamı', () => {
     expect(await bagliKanitSayisi(mdA)).toBe(once + 1);
   });
 
-  it('tesise kısıtlı rol BAŞKA santralin maddesine kanıt EKLEYEMEZ', async () => {
+  it('tesise kısıtlı rol BAŞKA santralin maddesine kanıt EKLEYEMEZ [KNT-YUK-002]', async () => {
     // Kurgunun kendisi de doğrulanır: iki madde gerçekten ayrı santralde
     // değilse bu test hiçbir şey ölçmez, yalnız yeşil yanardı.
     expect(tesisA).not.toBe(tesisB);

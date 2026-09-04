@@ -145,7 +145,7 @@ describe('Bağlanamayan adaptör test edilince SAHTE BAŞARI dönmez', () => {
 /* ═══ 2 · Sır değeri hiçbir yüzeye çıkmaz ════════════════════════════ */
 
 describe('Sır DEĞERİ forma ve istemciye hiç gitmez', () => {
-  it('özet katmanının tamamında sır değeri geçmez; yalnız maskeli adres geçer', async () => {
+  it('özet katmanının tamamında sır değeri geçmez; yalnız maskeli adres geçer [SAG-CON-007]', async () => {
     const k = await aktifKullanici();
     expect(k).not.toBeNull();
     const ozet = await entegrasyonSagligiOzeti(k!, { simdi: SIMDI });

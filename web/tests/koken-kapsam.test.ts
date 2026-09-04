@@ -135,7 +135,7 @@ describe('Toplu köken doğrulama', () => {
     expect(hataMetni(sonuc)).toBe('');
   });
 
-  it('KAPSAM DIŞI tek kayıt bütün partiyi durdurur — yarım onay bırakmaz', async () => {
+  it('KAPSAM DIŞI tek kayıt bütün partiyi durdurur — yarım onay bırakmaz [SAG-KOK-002]', async () => {
     /* Ön denetim hepsini birden yapar: biri kapsam dışıysa hiçbirine
        dokunulmaz. Yarım toplu onay, hangi kaydın kimin kararıyla
        doğrulandığını belirsiz bırakırdı. */

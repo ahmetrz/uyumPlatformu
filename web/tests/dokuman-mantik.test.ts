@@ -74,7 +74,7 @@ describe('Gözden geçirme takvimi', () => {
 });
 
 describe('Yaşam döngüsü geçişleri', () => {
-  it('taslaktan doğrudan yürürlüğe atlanamaz — inceleme adımı onaylayanı kayda geçirir', () => {
+  it('taslaktan doğrudan yürürlüğe atlanamaz — inceleme adımı onaylayanı kayda geçirir [DOK-KTK-001]', () => {
     expect(gecisGecerli('taslak', 'yururlukte')).toBe(false);
     expect(gecisGecerli('taslak', 'incelemede')).toBe(true);
     expect(gecisGecerli('incelemede', 'yururlukte')).toBe(true);

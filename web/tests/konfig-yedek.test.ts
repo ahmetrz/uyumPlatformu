@@ -130,7 +130,7 @@ describe('Konfigürasyon yedeği — üç değerli kontrol', () => {
 
   /* ── yedekVarMi: yok ile bilinmiyor asla karışmaz ────────────────────── */
 
-  it('hiç kayıt yokken sonuç "bilinmiyor" — "yok" DEĞİL', async () => {
+  it('hiç kayıt yokken sonuç "bilinmiyor" — "yok" DEĞİL [TAB-KNF-001]', async () => {
     const s = await yedekVarMi(v(0).id);
     expect(s.sonuc).toBe('bilinmiyor');
     expect(s.sonuc).not.toBe('yok');

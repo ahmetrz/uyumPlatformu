@@ -142,7 +142,7 @@ describe('Güvenlik anlık görüntüsü sekiz yasağın HEPSİNİ ölçer', () 
     expect(Object.keys(MOTORLAR).sort()).toEqual([...MOTOR_ADLARI].sort());
   });
 
-  it('her yasak için bir ölçü vardır — yorumda kalan kural yok', () => {
+  it('her yasak için bir ölçü vardır — yorumda kalan kural yok [YON-OTO-001]', () => {
     const alanlar = GUVENLIK_OLCULERI.map((o) => o.alan);
     /* Bu liste kısalırsa bir yasak ÖLÇÜLMEZ hâle gelmiş demektir; testin
        tek amacı o sessiz gerilemeyi yakalamaktır. */

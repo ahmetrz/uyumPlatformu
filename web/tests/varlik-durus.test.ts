@@ -22,7 +22,7 @@ describe('OT-22 · Firmware kararı', () => {
     expect(firmwareKarariVer('4.9.0', TEMEL).durum).toBe('uyumlu');
   });
 
-  it('TABAN YOKSA uyumlu SAYILMAZ', () => {
+  it('TABAN YOKSA uyumlu SAYILMAZ [ENV-FRM-001]', () => {
     /* Hiç kural yazılmamış bir cihazı "kurallara uyuyor" saymak, uyum
        ölçümünü anlamsızlaştırırdı. */
     const k = firmwareKarariVer('4.4.0', null);

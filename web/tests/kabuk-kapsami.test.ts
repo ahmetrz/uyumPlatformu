@@ -64,7 +64,7 @@ describe('Kabuk kapsam çubuğu santral sayısını sızdırmaz', () => {
     expect(v.kapsam?.santral).toBe(aktifToplam);
   });
 
-  it('tek santrale kısıtlı kullanıcı YALNIZ onu sayar', async () => {
+  it('tek santrale kısıtlı kullanıcı YALNIZ onu sayar [YTK-LST-001]', async () => {
     await oturumAc('denetim_sorumlusu', kizildere3);
     const v = await kabukVerisi();
     expect(v.kapsam?.santral).toBe(1);

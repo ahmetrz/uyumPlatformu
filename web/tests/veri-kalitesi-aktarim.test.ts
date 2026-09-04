@@ -53,7 +53,7 @@ const SESSIZ_OLMASI_GEREKENLER = AKTARIM_KURALLARI
   .filter((k) => k !== 'sahipsiz_gorulen_varlik');
 
 describe('Temiz veride sessizlik', () => {
-  it('entegrasyon tabloları boşken HİÇBİR aktarım kuralı bulgu üretmez', async () => {
+  it('entegrasyon tabloları boşken HİÇBİR aktarım kuralı bulgu üretmez [SAG-VKL-001]', async () => {
     await veriKalitesiniIsle();
     for (const kural of SESSIZ_OLMASI_GEREKENLER) {
       expect((await bulgular(kural)).length, `${kural} yanlış pozitif üretti`).toBe(0);
@@ -289,7 +289,7 @@ describe('B6 — OT-16b · ağda görülen ama sahipsiz varlık', () => {
     await db.varlik.update({ where: { id: v.id }, data: { sahipId: v.sahipId } });
   });
 
-  it('aynı varlığı iki kaynak görse bile TEK bulgu açılır', async () => {
+  it('aynı varlığı iki kaynak görse bile TEK bulgu açılır [SAG-VKL-002]', async () => {
     /* Bulgu varlık başınadır: gözlem başına açılsaydı tek bir sahipsiz
        cihaz için beş bulgu üretilir ve kuyruk gürültüye boğulurdu. */
     const v = await sahipsizVarlik();

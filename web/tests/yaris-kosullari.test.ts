@@ -125,7 +125,7 @@ beforeAll(async () => {
 /* ═══ P5 · aşama makinesi ═════════════════════════════════════════════ */
 
 describe('P5 — denetim aşama geçişi', () => {
-  it('aynı geçişi aynı anda deneyen iki onaylayandan yalnız biri yazar; izde TEK satır olur', async () => {
+  it('aynı geçişi aynı anda deneyen iki onaylayandan yalnız biri yazar; izde TEK satır olur [ENV-YRS-001]', async () => {
     const d = await denetimAc('kapsam');
 
     const sonuclar = await Promise.all([

@@ -139,7 +139,7 @@ describe('OT-26 · SBOM bileşeni korelasyona girer', () => {
     expect(k?.gerekce).toMatch(/SBOM bileşeni/);
   });
 
-  it('SBOM’u olmayan cihaz bileşen zafiyetinden etkilenmiş SAYILMAZ', async () => {
+  it('SBOM’u olmayan cihaz bileşen zafiyetinden etkilenmiş SAYILMAZ [ENV-ZAF-001]', async () => {
     expect(await korelasyon(cihazVarlik, sbomZafiyet)).toBeNull();
   });
 

@@ -31,7 +31,7 @@ describe('UY-07 · kontrol sahipliği', () => {
   const ekip = (aktifUye: number, aktif = true) =>
     ({ id: 'e1', kod: 'EKP', aktif, aktifUye });
 
-  it('kişi + aktif ekip → sağlam', () => {
+  it('kişi + aktif ekip → sağlam [UYU-SHP-001]', () => {
     expect(kontrolSahipligi({ sorumlu: kisi(true), ekip: ekip(3) })).toBe('saglam');
   });
 

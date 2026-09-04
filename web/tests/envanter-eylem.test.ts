@@ -112,7 +112,7 @@ describe('Etiket tekilliği', () => {
     }))).toMatch(/kullanılıyor/i);
   });
 
-  it('varlık KENDİ etiketiyle güncellenebilir', async () => {
+  it('varlık KENDİ etiketiyle güncellenebilir [ENV-YAZ-001]', async () => {
     const v = await varlikAc();
     expect(hataMetni(await varlikKaydet({
       id: v.id, etiket: v.etiket, ad: 'Yeni ad', turId, tesisId: tesisA,
@@ -141,7 +141,7 @@ describe('Kapsam kapısı', () => {
     expect(hataMetni(sonuc)).toBe('');
   });
 
-  it('tesise kısıtlı rol BAŞKA tesise varlık yazamaz', async () => {
+  it('tesise kısıtlı rol BAŞKA tesise varlık yazamaz [ENV-YAZ-003]', async () => {
     const sonuc = await kimlikle([yetki('tesis_yoneticisi', tesisA)], () => varlikKaydet({
       etiket: benzersiz('TST-KAPSAM'), ad: 'Başka tesis', turId, tesisId: tesisB,
     }));
@@ -166,7 +166,7 @@ describe('Kapsam kapısı', () => {
     expect((await db.varlik.findUniqueOrThrow({ where: { id: v.id } })).ad).toBe('Test varlığı');
   });
 
-  it('okuyucu rolü varlık yazamaz', async () => {
+  it('okuyucu rolü varlık yazamaz [ENV-YAZ-002]', async () => {
     const sonuc = await kimlikle([yetki('okuyucu')], () => varlikKaydet({
       etiket: benzersiz('TST-RO'), ad: 'a', turId, tesisId: tesisA,
     }));
@@ -260,7 +260,7 @@ describe('Yaşam döngüsü', () => {
       .not.toBe('emekli');
   });
 
-  it('İMHA yazma yetkisiyle YAPILAMAZ — onay yetkisi ister', async () => {
+  it('İMHA yazma yetkisiyle YAPILAMAZ — onay yetkisi ister [ENV-YAZ-004]', async () => {
     /* Bir varlığı imha etmek envanterden düşürmektir; uyum sayıları,
        yedekleme kapsamı ve zafiyet takibi o satırla birlikte kapanır.
        Yazma yetkisi bunu tek başına yapamaz. */

@@ -10,7 +10,11 @@ listesi **Regülasyon-Uyum ve OT-Envanter platformu gözüyle** yeniden
 okunduğunda ortaya çıkan ve o güne kadar üründe **hiç karşılığı olmayan**
 boşluklardır; FAZ G'de kapatıldılar (§9).
 
-Ölçüm tarihi: 04.09.2026 · Dal: `claude/repo-public-github-domain-271hxa`
+Ölçüm tarihi: 04.09.2026 · Dal: `feature/customer-partial-to-complete`
+
+FAZ H (§10) bu 46 maddeye yeni madde eklemez; müşteri matrisinde
+"Kısmen" kalan dört maddeyi kapatır. Müşteri anlatımı için:
+`CUSTOMER_REQUIREMENTS_STATUS.md`.
 
 ---
 
@@ -58,12 +62,12 @@ yazılmadı. Böyle maddeler için repo içi hazırlık ayrı ölçülür ve
 | CODE_READY_EXTERNAL_DEPENDENCY | 9 |
 | IN_PROGRESS | 0 |
 | NOT_STARTED | **0** |
-| Yeni Prisma modeli | 44 (FAZ A 13 · FAZ B 8 · FAZ D 1 · FAZ E 4 · FAZ F 5 · FAZ G 13) |
-| Yeni göç | 9 (dokuzu da veri kaybı 0 · ölçülerek doğrulandı) |
-| Yeni motor | 8 (9 → 17) |
-| Yeni rota | 11 (`/tabanlar` · `/prosesler` · `/degerlendirme-aktarim` · `/api-sozlesmesi` · `/saklama` · `/denetci-erisimi` · `/sayim` · `/yedek-parca` · `/tasinabilir-medya` · `/gozden-gecirme` · `/egitimler`) |
-| Yeni konsol modülü | 54 |
-| Toplam test | 2560 geçti · 1 atlandı |
+| Yeni Prisma modeli | 46 (FAZ A 13 · FAZ B 8 · FAZ D 1 · FAZ E 4 · FAZ F 5 · FAZ G 13 · FAZ H 2) |
+| Yeni göç | 12 (on ikisi de veri kaybı 0 · ölçülerek doğrulandı) |
+| Yeni motor | 9 (9 → 18) |
+| Yeni rota | 12 (`/tabanlar` · `/prosesler` · `/degerlendirme-aktarim` · `/api-sozlesmesi` · `/saklama` · `/denetci-erisimi` · `/sayim` · `/yedek-parca` · `/tasinabilir-medya` · `/gozden-gecirme` · `/egitimler` · `/zimmetlerim`) |
+| Yeni konsol modülü | 62 |
+| Toplam test | 2746 geçti · 1 atlandı |
 
 ### Kapı sonuçları (04.09.2026 · FAZ G sonu)
 
@@ -1294,7 +1298,154 @@ ilk kez tamamen temiz.
 
 ---
 
-## 10. Sıradaki iş — bağımlılık sırası
+## 10. FAZ H'de ne yapıldı — kanıtla
+
+FAZ H bu kütüğün 46 maddesine yeni madde EKLEMEZ. Konusu farklıdır:
+müşteri karşılaştırma matrisinde **"Kısmen"** işaretlenmiş dört maddeyi
+en yüksek dürüst seviyeye çıkarmak. Ayrıntılı müşteri anlatımı ayrı bir
+belgededir: **`CUSTOMER_REQUIREMENTS_STATUS.md`**.
+
+Buraya yalnız kütüğün saydığı şeyler yazılır: yeni model, yeni göç, yeni
+motor, yeni rota, yeni konsol modülü ve kapı sonuçları.
+
+### 10.1 Yeni veri modeli — iki tablo, üç göç
+
+| Model | Ne tutuyor |
+| --- | --- |
+| `VarlikAtamaTalebi` | Zimmet talebinin kendisi: kime, kim tarafından, hangi durumda, hangi gerekçeyle, hangi süreyle. Beş durum: `bekliyor` · `kabul_edildi` · `reddedildi` · `iptal_edildi` · `suresi_doldu`. |
+| `VarlikDurusGozlemi` | Kaynak sistemlerin bildirdiği işletim sistemi, sürüm/yapı, yama seviyesi, son yama tarihi ve firmware. Kaynak başına tek satır. |
+
+Üç göç: `20260904084002_faz_h_varlik_atama_talebi`,
+`20260904084500_faz_h_tek_aktif_atama` (elle yazılmış kısmi tekil
+indeks), `20260904090801_faz_h_varlik_durus_gozlemi`.
+
+**Ölçüm:** 145 → 147 tablo · 6 tetikleyici korundu ·
+`PRAGMA foreign_key_check` temiz · üç göçte **tek bir `DROP` yok**.
+
+Kısmi tekil indeks elle yazıldı çünkü Prisma şema dili koşullu indeks
+üretmiyor:
+
+```sql
+CREATE UNIQUE INDEX "VarlikAtamaTalebi_tek_aktif"
+  ON "VarlikAtamaTalebi"("varlikId")
+  WHERE "durum" = 'bekliyor';
+```
+
+Bir varlığın aynı anda tek aktif zimmet talebi olması kuralı **iki
+katmanda** tutulur: uygulama kapısı ve bu indeks. `tests/zimmet-eylem.test.ts`
+uygulama kapısını ATLAYIP doğrudan veritabanına yazmayı dener ve
+veritabanının reddettiğini gösterir — kuralın gerçekten iki katmanlı
+olduğunun kanıtı budur.
+
+`VarlikDurusGozlemi` bilinçli olarak `Varlik` satırına YAZMAZ. Yazsaydı
+bir uç nokta ürününün gördüğü sürüm elle girilmiş kaydı sessizce ezer ve
+"envanterde ne yazıyor" ile "sahada ne var" ayrımı kaybolurdu.
+
+### 10.2 Yeni motor — 18'inci
+
+`zimmet_suresi`: süresi dolan talebi düşürür, yaklaşan için bir kez
+uyarır, pasifleşen kullanıcının ve dışarıdan değişen sahipliğin
+taleplerini iptal eder. **Kimse adına KABUL ETMEZ**; süresi dolan talep
+varlığın sahibini değiştirmez.
+
+Motor kütüğü, `MOTOR_ADLARI_SOZLUK` ve `IS_TANIMLARI` üçü birden
+güncellendi; üç nöbetçi test (`motor-defteri`, `zamanlayici`,
+`otomasyon-guvenligi`) sayıyı 17'den 18'e çekerek doğruladı.
+
+### 10.3 Yeni rota — `/zimmetlerim`
+
+"Bana Atanan Varlıklar": dört sekme (bekleyen · kabul ettiklerim ·
+reddettiklerim · süresi dolanlar), kabul/red çekmecesi, red gerekçesi
+yazılmadan red düğmesi açılmaz.
+
+Bu ekranın kapısı **kimliktir, santral kapsamı değil**: bir zimmeti
+yalnız zimmetlenen kişi cevaplayabilir ve o kişinin hangi santrale
+yetkili olduğu bu soruyu değiştirmez. `kapsam-kapisi-nobetci` nöbetçisi
+bunu ilk denemede yakaladı (`KAPSAM_SONRA` bildirilmiş ama ikinci aşama
+yazılmamıştı); nöbetçi **gevşetilmedi**, eylem `girisZorunlu()` ile
+dürüst kapıya taşındı.
+
+### 10.4 Yeni API ucu — `POST /api/v1/asset-state`
+
+Kaynak sistemlerin duruş bildirimi. Üç davranışı ayrıca ölçüldü:
+
+- envanteri **değiştirmez** (`Varlik` satırına dokunmaz),
+- aynı kaynaktan gelen yeni gözlem satırı **tazeler**, yenisini açmaz,
+- kaynağın ölçtüğü an mevcut kayıttakinden eskiyse yazma **atlanır** ve
+  cevapta `stale` olarak sayılır — sessizce düşseydi gönderen taraf
+  verinin işlendiğini sanırdı.
+
+`faz-f-api-kapsam` sürüklenme nöbetçisi uç kütüğünü, kapsam listesini,
+yazma uçları listesini ve OpenAPI belgesini birlikte doğruladı.
+
+### 10.5 Yeni konsol modülü — sekiz satır
+
+| Modül | Sınıf | Yeri |
+| --- | --- | --- |
+| `zimmetTalebi` | A | mevcut ekran · `/zimmetlerim` |
+| `zimmetSuresi` | A | konsol · ayar (`zimmet.cevap_suresi_gun`) |
+| `zimmetKurali` | **C** | kod — kimse adına kabul edilemez |
+| `durusTazelik` | A | konsol · ayar (`durus.canli_kat` · `durus.guncel_kat` · `durus.kaynak_onceligi`) |
+| `canliSozu` | **C** | kod — "canlı" yalnız bağlı kaynakta yazılır |
+| `kesifGorunmez` | A | konsol · ayar (`kesif.gorunmez_gun`) |
+| `kesifGruplari` | **C** | kod — grup önceliği sırası |
+| `aktifTaramaYasagi` | **C** | kod — port/SNMP/Modbus/PLC/aktif paket YOK |
+
+Dört C sınıfı satırın hepsi **neden** alanı taşır: bir kuralın panelden
+gevşetilememesi, gerekçesi yazılmadan savunulamaz. `aktifTaramaYasagi`
+satırının gerekçesi teknik değil emniyettir ve bu kütükteki en sert
+karardır: panelden açılabilen bir bayrak olsaydı "bir kereliğine" açılır
+ve o bir kere yeterdi.
+
+### 10.6 Yeni yetenek beyanı — adaptör sözleşmesi
+
+`Adaptor` sözleşmesine `yetenekler` alanı eklendi ve yedi yetenek
+tanımlandı: `asset_inventory` · `asset_state` · `vulnerability` ·
+`backup_result` · `access_observation` · `topology` ·
+`passive_asset_discovery`. Sekiz adaptörün hepsi beyanını yazdı ve
+sağlık ekranı "bu kaynak bağlanınca hangi alanlar canlanır" satırını
+buradan üretiyor.
+
+**Beyan bir BAĞLANTI İDDİASI DEĞİLDİR.** `tests/adaptor-yetenekleri.test.ts`
+bunu çiviler: `asset_state` beyan eden adaptörlerin **hiçbiri bağlı
+değildir** ve ekran o alanlarda hâlâ "kaynak bağlı değil" der. Aynı test
+yetenek kütüğünde aktif tarama karşılığı bir kod bulunmadığını da
+doğrular.
+
+### 10.7 Yeni veri kalitesi kuralı — `sahipsiz_gorulen_varlik`
+
+Bir gözlem kaynağının sahada gördüğü, envanterde karşılığı olan ama
+sorumlusu olmayan varlık. Mevcut `sahipsiz_varlik` kuralından ayrıdır:
+o yalnız KRİTİK varlığa bakar, bu ise "cihaz gerçekten çalışıyor ve
+kimse üstlenmiyor" der.
+
+Bulgu **varlık başınadır**, gözlem başına değil: aynı sahipsiz cihazı
+beş kaynak görünce beş bulgu açılsaydı kuyruk gürültüye boğulurdu.
+
+Bu kural, aktarım kurallarının "temiz veride sessizlik" testine
+KATILMAZ ve bu bilinçlidir: kural seed verisinde **gerçek** bir sahiplik
+boşluğu buluyor. Sessiz kalmasını beklemek, kuralı kendi gerçek
+bulgusunu gizleyecek kadar dar yazmak olurdu.
+
+### 10.8 Kapı sonuçları (FAZ H sonu)
+
+| Kapı | Sonuç |
+| --- | --- |
+| `npm run test` | **2746 geçti · 1 atlandı · 0 kusur** (127 dosya) |
+| `npm run lint` · `npx tsc --noEmit` | temiz |
+| `tasarim:kapi` | kontrast kusuru 0 · eksik font 0 · eski tasarım izi 0 |
+| `rota:duman` | **58/58 rota** · kusurlu 0 · test edilemedi 0 · sayfa hatası 0 |
+| `tasarim:dizustu` (1366×768) | 49 rota · kırpılan öğe **0** · yatay taşan rota 0 |
+| `tasarim:axe` (WCAG 2 A/AA) | 50 rota · ciddi/kritik ihlal **0** · kırık tarama 0 |
+| `tasarim:tasma` | **98 ölçüm · 2 bant × 49 rota · 0 kusur** |
+| `npm run build` | başarılı |
+| `demo:build` | başarılı · 3853 varlık başvurusu doğrulandı · 10 rota temiz |
+
+Kapı çıktıları **olduğu gibi** yazıldı; hedefe uydurulmadı.
+
+---
+
+## 11. Sıradaki iş — bağımlılık sırası
 
 **46 maddenin repo içi işi bitti.** `NOT_STARTED` ve `IN_PROGRESS`
 kalmadı: 37 madde `COMPLETE`, 9 madde `CODE_READY_EXTERNAL_DEPENDENCY`.
@@ -1318,7 +1469,7 @@ bir geliştirme işi değil, bir **kurulum** işidir:
 
 ---
 
-## 11. Gerçek bağlantı için gereken dış bilgiler
+## 12. Gerçek bağlantı için gereken dış bilgiler
 
 Yalnız gerçekten gerekenler. Bu bilgiler gelmeden de **repo içi hazırlık
 tamamlanabilir**.

@@ -37,16 +37,16 @@ söylemeye başlar ve yalanı kimse fark etmez.
 
 | Ölçü | Değer |
 |---|---|
-| test dosyası | 124 |
-| test vakası | 2662 |
+| test dosyası | 127 |
+| test vakası | 2747 |
 | atlanan test | 1 |
 | ekran (rota) | 58 |
-| API ucu | 9 |
+| API ucu | 10 |
 | otomasyon motoru | 18 |
 | connector adaptörü | 8 |
 | sunucu eylemi modülü | 49 |
-| Prisma modeli | 145 |
-| uygulanmış göç | 32 |
+| Prisma modeli | 146 |
+| uygulanmış göç | 33 |
 
 <!-- SAYIMLAR:BITIS -->
 
@@ -55,6 +55,29 @@ Sayılara eşlik eden nitel gerçekler: connector adaptörlerinin yalnız BİRİ
 çekirdek onları koşturmaz. Otomasyon motorlarının tamamı tek kayıt
 defterinde (`lib/motorlar/kayit.ts`) yaşar; zamanlayıcı ve "hepsini
 çalıştır" düğmesi aynı defteri okur.
+
+### 1.1 Bu turda eklenen üç yetenek
+
+| Yetenek | Bugün | Kuruma bağlanınca |
+| --- | --- | --- |
+| **Excel / CSV dışa aktarım** | Sekiz ekranda çalışır; kuruma bağlı DEĞİLDİR. | Değişmez. |
+| **Varlık zimmeti (kabul/red)** | Uçtan uca çalışır; kuruma bağlı DEĞİLDİR. | IdP bağlanınca kullanıcılar oradan gelir, akış aynı kalır. |
+| **Canlı duruş (OS · yama · firmware)** | Tablo, alım ucu, tazelik hesabı ve ekran hazır; **hiçbir kaynak bağlı değil** ve ekran bunu "KAYNAK BAĞLI DEĞİL" diye yazar. | Uç nokta yönetimi / CMDB / zafiyet tarayıcısı / OT keşif platformu `POST /api/v1/asset-state` ucuna yazmaya başlayınca bölüm kendiliğinden dolar. |
+| **Pasif cihaz keşfi (yedi grup)** | Kuyruk, eşleştirme, gruplama, sahiplik boşluğu ve dışa aktarım çalışır; elle yüklenen bir dışa aktarımla bugün kullanılabilir. | Gözlem kaynaklarından biri bağlanınca akış kendiliğinden dolar. |
+
+**Aktif tarama bağlantı gününde de eklenmez.** Port taraması, SNMP
+deneme-yanılması, Modbus/OT protokol sorgusu, PLC yoklaması ve aktif
+keşif paketi ürünün yetenek kütüğünde YOKTUR ve bir yapılandırma
+seçeneği değildir (`lib/varlik/pasifKesif.ts` →
+`AKTIF_ISLEM_YASAKLARI`). Kurumun aktif tarama ihtiyacı varsa bunu kendi
+tarama ürünüyle yapar; bu ürün o çıktıyı okur.
+
+**"Canlı" sözcüğü bağlantı gününden önce hiçbir ekranda yazmaz.**
+Tazelik yalnız bağlı, hatasız ve poll aralığı bilinen bir kaynak için
+hesaplanır; elle beslenen kaynak ne kadar yeni olursa olsun canlı
+sayılmaz.
+
+Ayrıntılı müşteri anlatımı: `CUSTOMER_REQUIREMENTS_STATUS.md`.
 
 ## 2. Kalan boşlukların sınıflandırması
 

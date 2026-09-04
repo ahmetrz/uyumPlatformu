@@ -1,9 +1,13 @@
 {
-  "imza": "cf54ea896d02c051198968e187da8987",
-  "dosya": 124,
-  "vaka": 2662,
+  "imza": "09bdca0e04efe02026196391b158f739",
+  "dosya": 127,
+  "vaka": 2747,
   "atlanan": 1,
   "dosyalar": {
+    "tests/adaptor-yetenekleri.test.ts": {
+      "vaka": 9,
+      "atlanan": 0
+    },
     "tests/advisory.test.ts": {
       "vaka": 21,
       "atlanan": 0
@@ -21,7 +25,7 @@
       "atlanan": 0
     },
     "tests/api.test.ts": {
-      "vaka": 49,
+      "vaka": 57,
       "atlanan": 0
     },
     "tests/arama-kosulu.test.ts": {
@@ -38,6 +42,10 @@
     },
     "tests/bildirim-kutusu.test.ts": {
       "vaka": 17,
+      "atlanan": 0
+    },
+    "tests/canli-durus.test.ts": {
+      "vaka": 33,
       "atlanan": 0
     },
     "tests/capa-dogrulama.test.ts": {
@@ -340,6 +348,10 @@
       "vaka": 7,
       "atlanan": 0
     },
+    "tests/pasif-kesif.test.ts": {
+      "vaka": 30,
+      "atlanan": 0
+    },
     "tests/plant360-profil.test.ts": {
       "vaka": 12,
       "atlanan": 0
@@ -453,7 +465,7 @@
       "atlanan": 0
     },
     "tests/veri-kalitesi-aktarim.test.ts": {
-      "vaka": 16,
+      "vaka": 21,
       "atlanan": 0
     },
     "tests/xlsx-ayristirma.test.ts": {

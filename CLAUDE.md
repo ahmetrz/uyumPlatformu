@@ -18,6 +18,7 @@ oku; buradan varsayma.
 | Kalite araçları ve kapılar | `web/arac/BENIOKU.md` |
 | Güncel durum · yol haritası | `PRE_INTERNAL_INTEGRATION_READINESS.md` |
 | Kuruma açılma öncesi boşluklar | `docs/HAZIRLIK_DURUMU.md` |
+| Müşteri matrisi · "Kısmen" maddeleri | `CUSTOMER_REQUIREMENTS_STATUS.md` |
 | Bağlantı günü sırası | `INTEGRATION_DAY_RUNBOOK.md` |
 | Ürünün kendi yedeği | `docs/URUN_YEDEKLEME.md` · `web/arac/yedek.mjs` |
 | Tarihsel denetim kayıtları | `ARCHITECTURE_GAP_ANALYSIS.md` · `ENTEGRASYON_GAP_MATRIX.md` · `DESIGN_HANDOFF_GAP.md` (bilerek güncellenmez) |

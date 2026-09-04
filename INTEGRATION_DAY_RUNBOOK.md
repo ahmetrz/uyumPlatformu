@@ -222,6 +222,58 @@ kaynaktan gelmiş gibi görünmez**.
 
 ---
 
+### 3.9 Canlı duruş beslemesi — `POST /api/v1/asset-state`
+
+- **Kim verir:** Uç nokta yönetimi / CMDB / zafiyet yönetimi / OT keşif
+  platformunu işleten ekip. Kaynak fark etmez: uç, gözlemi kim
+  gönderirse ondan alır.
+- **Ne gerekir:** Ürünün kendi API anahtarı (kapsamında `asset-state`
+  bulunan, salt okunur OLMAYAN bir anahtar) ve kaynak sistemin **sorgu
+  aralığı** (dakika). Aralık, connector kaydındaki `pollAralikDk`
+  alanına yazılır.
+- **Neden aralık şart:** Tazelik eşiği sabit bir dakika değil, kaynağın
+  KENDİ periyodunun katıdır. Aralık bildirilmezse ürün o kaynağı bir
+  AKIŞ saymaz ve hiçbir alanına "canlı" yazmaz — "tazelik ölçülmedi" der.
+  Bu bir kusur değil, dürüst bir cevaptır.
+- **Ne eşleşir:** İşletim sistemi, OS sürümü ve yapısı, yama seviyesi,
+  son yama tarihi, firmware. Değerler `Varlik` satırına YAZILMAZ; kendi
+  gözlem tablosunda durur ve ekran ikisini yan yana gösterir.
+- **Kritik kural:** Gönderilen her kayıtta `observedAt` (kaynağın ölçtüğü
+  an) bulunmalıdır. Yoksa tazelik ölçülemez ve alan "bilinmiyor" kalır.
+  Mevcut kayıttan ESKİ bir `observedAt` yazılmaz; cevapta `stale` olarak
+  sayılır.
+- **Kabul kriteri:** İlk koşudan sonra `/envanter` › varlık çekmecesi ›
+  Duruş › **Canlı duruş** bölümünde en az bir alan "CANLI" ya da "güncel"
+  göstermeli ve veri kaynağı adı görünmelidir. Hâlâ "KAYNAK BAĞLI DEĞİL"
+  yazıyorsa connector `etkin` durumda değildir — veri gelmiş olması
+  yetmez, bağlantının kendisi de beyan edilmelidir.
+- **Ayrıntı:** `lib/api/uclar/durusGozlemleri.ts` · `lib/varlik/canliDurus.ts`
+
+### 3.10 Pasif cihaz keşfi kaynakları
+
+- **Kim verir:** Ağ, güvenlik ve OT ekipleri — hangisi hangi kaynağı
+  işletiyorsa.
+- **Ne gerekir:** Aşağıdaki kategorilerden **en az birinin** salt okunur
+  çıktısı ya da akışı: SIEM/log, ağ izleme ve akış telemetrisi, güvenlik
+  duvarı oturum kayıtları, switch MAC/CAM tablosu, ARP gözlemleri, DHCP
+  kiraları, NAC, uç nokta ajanı envanteri, OT pasif keşif platformu, SNMP
+  salt okunur çıktı, historian, SCADA envanter dışa aktarımı, tedarikçi
+  cihaz listesi.
+- **İzin İSTENMEYECEK:** Hiçbir kaynaktan **yazma**, **komut** ya da
+  **aktif sorgulama** yetkisi istenmez. OT keşif platformlarının aktif
+  sorgulama kipi **açılmaz** ve kurulan connector onu tetiklemez.
+- **Ürün ne YAPMAZ:** Port taraması, SNMP deneme-yanılması, Modbus/OT
+  protokol sorgusu, PLC yoklaması, aktif keşif paketi. Bu bir
+  yapılandırma seçeneği değildir; kütükte de yoktur.
+- **Ne eşleşir:** Keşif kuyruğuna kayıt. Eşleştirme sırası seri no →
+  varlık etiketi → MAC → hostname; **IP tek başına eşleşme kurmaz**.
+- **Kabul kriteri:** `/kesif` ekranında **Keşif özeti** yedi grubu
+  saymalı ve toplam, kayıt sayısına eşit olmalıdır. "Envanterde yok" ve
+  "sahibi yok" gruplarındaki kayıtlar CMDB'ye **kendiliğinden
+  yazılmamalıdır** — akış Tespit → Eşleştirme → Öneri → İnsan onayı →
+  Envanter şeklindedir.
+- **Ayrıntı:** `lib/varlik/pasifKesif.ts` · `lib/entegrasyon/kesif.ts`
+
 ## 4. Bağlantıdan sonra ilk hafta
 
 | Gün | Kontrol |
@@ -232,6 +284,8 @@ kaynaktan gelmiş gibi görünmez**.
 | 3 | Zamanlayıcı connector'ı gerçekten koşturuyor mu — `/saglik` ekranında son başarılı koşu ilerliyor mu |
 | 5 | Ardışık hata sayacı artıyor mu; devre kesici tetiklendi mi |
 | 7 | Aynı kaydın iki koşuda iki kez yazılmadığı doğrulandı mı (idempotency) |
+| 7 | Canlı duruş bölümünde "CANLI" yazan bir alan varsa, o kaynağın connector'ı gerçekten `etkin` mi — sözcük yalnız bağlı kaynakta yazılmalı |
+| 7 | Keşif özetindeki yedi grubun toplamı kayıt sayısına eşit mi; "sahipsiz" grubundaki cihazlar için veri kalitesi bulgusu açıldı mı |
 
 ## 5. Bu koşu kitabının kapsamadıkları
 

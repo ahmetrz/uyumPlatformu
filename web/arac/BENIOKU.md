@@ -297,3 +297,31 @@ PORT=3210 node arac/erisim-axe.mjs --json /tmp/axe.json
 `gezinme-testi.mjs` yedi bant koşar (1920 · 1440 · 1100 · 1024 · 900 ·
 768 · 375); `--hizli` eski dörtlüyü (1440 · 1100 · 900 · 375). `tarama.mjs`
 `EN` değişkenini virgüllü liste olarak alır.
+
+## `ux-denetim.mjs` — mevcut kapıların bilerek dışarıda bıraktığı aile
+
+`npm run tasarim:ux` (canlı sunucu ister). 49+1 rota × 9 bant = 450 ölçüm.
+
+Öteki kapıların GÖRMEDİĞİ kusurları ölçer:
+
+| Ölçü | Ne arar |
+| --- | --- |
+| `gizliKirpma` | Kaydırma çubuğu gizli bir kapta ekran dışında kalan etkileşimli öğe. `yatay-tasma.mjs` kaydırma kabı içindeki taşmayı KUSUR SAYMAZ (ve haklıdır); burada masaüstünde ipucu vermeyen kap kusurdur. |
+| `isYuzeyiY` | Ekranın asıl tezgâhının (tablo/ızgara) üstten uzaklığı. Kullanıcı oraya gelmiştir. |
+| `kartIzgarasi` | İki+ sütuna dizilmiş, kendi kenarını çizen, çok satırlı kutular — "generic SaaS card grid" yasağının sayısal karşılığı. |
+| `yerTutucu` · `tekrarSayi` · `kucukHedef` · `baslikAtlama` | İlk ekrandaki boş-durum metinleri, künyede tekrarlanan sayılar, 24px altı hedefler, atlanan başlık kademesi. |
+
+Dokunmatik bant (≤700px) ayrıdır: orada yatay kaydırma beklenen jesttir
+ve kusur sayılmaz — `yatay-tasma.mjs` ile aynı ayrım.
+
+## `cekmece-erisim.mjs` — çekmece AÇIKKEN ölçülenler
+
+`npm run tasarim:cekmece --bant 1440` (canlı sunucu ister).
+
+`erisim.mjs` sayfanın durgun hâlini ölçer; çekmecenin kusurları ancak
+çekmece açıkken görünür: ESC, açılışta/kapanışta odak, erişilebilir ad ve
+İŞ YÜZEYİNİ ÖRTME.
+
+Bu panel BİLEREK modal değildir (`components/kabuk/panel.tsx`) ve araç
+modal işaretlerinin YOKLUĞUNU doğrular; yarı modal (üçünden ikisi) kusurdur.
+1024'ün altında panel tam eni kaplar ve bu da ölçülür.

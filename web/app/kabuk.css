@@ -1873,6 +1873,18 @@
   margin: 0 0 var(--s22); padding: var(--s14) var(--s16);
   background: var(--panel); border-left: 2px solid var(--hr2);
 }
+/* Boşluk bloğu `<details>` oldu (UX-0013): açılıp kapanır ama varsayılan
+   AÇIKTIR — eksik belge, ekranın söylemesi gereken ilk şeydir. */
+.ab-dok-bosluk > summary {
+  cursor: pointer; list-style: none; display: flex; align-items: center; gap: 8px;
+  min-height: 24px;
+}
+.ab-dok-bosluk > summary::-webkit-details-marker { display: none; }
+.ab-dok-bosluk > summary::before {
+  content: '▾'; color: var(--i3); font-size: 10px; transition: transform .15s ease;
+}
+.ab-dok-bosluk:not([open]) > summary::before { transform: rotate(-90deg); }
+.ab-dok-bosluk > summary:focus-visible { outline: 2px solid var(--aksan); outline-offset: 2px; }
 .ab-dok-bosluk.d-bd { border-left-color: var(--bd); }
 .ab-dok-bosluk.d-ok { border-left-color: var(--ok); }
 .ab-dok-bosluk > .etiket { display: block; margin: 0 0 var(--s10); }
@@ -1996,7 +2008,13 @@
 .ab-vt .kolonbas .ok { font-family: var(--ui); font-size: 11px; color: var(--i3); }
 .ab-vt .kolonbas.etkin .ok { color: var(--aksan); }
 .ab-vt th.sag, .ab-vt td.sag { text-align: right; font-variant-numeric: tabular-nums; }
-.ab-vt tbody tr { height: var(--satir-h); cursor: pointer; }
+/* Satır YALNIZ seçilebilir tabloda işaretçi imleci alır. Ölçüldü
+   (/api-sozlesmesi · /saklama): seçilemeyen tabloların satırları da
+   tıklanabilir görünüyordu ama hiçbir şey yapmıyordu — sahte bir
+   çağrı. `role="grid"` artık yalnız seçilebilir tabloda basılıyor, o
+   yüzden imleç de ona bağlandı. */
+.ab-vt tbody tr { height: var(--satir-h); cursor: default; }
+.ab-vt[role='grid'] tbody tr { cursor: pointer; }
 /* Sol kenar durum çubuğu ilk hücrede (yapışkan sütun) çizilir: `<tr>`
    kenarlığı `border-collapse: separate`ta boyanmaz. */
 .ab-vt tbody tr > :first-child { box-shadow: inset 2px 0 0 transparent; }
@@ -3130,7 +3148,7 @@ details:not([open]) > *:not(summary) { display: none !important; }
      akışı durur — çizginin kendisi bir veridir. */
   .ab-tuval .kenar.akis { animation: none; }
   /* Açılır oku ve fotoğraf soluklaşmaları da anında olur. */
-  .ab-genisleyen > summary .ok,
+  .ab-genisleyen > summary .ok, .ab-dok-bosluk > summary::before,
   .ab-b-serit .kart > img, .ab-b-fon > img.ust { transition: none; }
 }
 

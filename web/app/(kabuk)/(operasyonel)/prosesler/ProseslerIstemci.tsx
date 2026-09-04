@@ -344,9 +344,11 @@ export default function ProseslerIstemci({
       <main className="ab-icerik">
         <EkranBasligi
           eyebrow="Varlık · Ağ & bağımlılık · proses zinciri"
-          vurgu={String(toplam.tekNokta)}
+          vurgu={toplam.tekNokta > 0 ? String(toplam.tekNokta) : undefined}
           vurguDurumu={toplam.tekNokta > 0 ? 'bd' : 'ok'}
-          baslik="bağ tek nokta ve yedeksiz"
+          baslik={toplam.tekNokta > 0
+            ? 'bağımlılık tek noktaya düşüyor ve yedeği yok'
+            : 'Tek noktaya düşen yedeksiz bağımlılık yok'}
           metrikler={[
             { deger: surecler.length, yazi: 'iş süreci' },
             { deger: toplam.adim, yazi: 'proses adımı' },

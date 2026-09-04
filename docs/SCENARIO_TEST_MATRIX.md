@@ -4,8 +4,8 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 228 |
-| Testi olan senaryo | 228 |
+| Senaryo | 230 |
+| Testi olan senaryo | 230 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
@@ -15,7 +15,7 @@
 
 | Katman | Senaryo | Testli | GAP |
 | --- | --- | --- | --- |
-| ACCESSIBILITY | 6 | 6 | 0 |
+| ACCESSIBILITY | 8 | 8 | 0 |
 | API | 12 | 12 | 0 |
 | CONCURRENCY | 7 | 7 | 0 |
 | DOMAIN | 124 | 124 | 0 |
@@ -26,7 +26,7 @@
 | RESPONSIVE | 8 | 8 | 0 |
 | SCOPE | 25 | 25 | 0 |
 | SERVER | 80 | 80 | 0 |
-| UI | 64 | 64 | 0 |
+| UI | 65 | 65 | 0 |
 | VISUAL | 2 | 2 | 0 |
 | WORKFLOW | 26 | 26 | 0 |
 
@@ -262,6 +262,8 @@
 | `SIS-UXD-002` | Sistem | UI · DOMAIN | `senaryo-kutugu.test.ts` | her bulgu bir önem derecesi taşır | evet | geçti |
 | `SIS-BSL-001` | Sistem | UI · ACCESSIBILITY | `ekran-basligi.test.ts` | vurgusuz kalabilen başlık cümle parçası olamaz | evet | geçti |
 | `SIS-BSL-002` | Sistem | UI | `ekran-basligi.test.ts` | künyede ister kodu geçmiyor | evet | geçti |
+| `SIS-ERS-002` | Sistem | ACCESSIBILITY · UI | `senaryo-platform.test.ts` | seçilemeyen tablo grid demez, işaretçi imleci taşımaz | evet | geçti |
+| `SIS-ERS-003` | Sistem | ACCESSIBILITY | `senaryo-platform.test.ts` | sekme rolü yalnız gerçek sekmelerde kullanılır | evet | geçti |
 
 ## Gerekçesiyle kütüksüz kalan dosyalar
 

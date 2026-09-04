@@ -221,9 +221,9 @@ export default function KonsolIstemci({ veri }: { veri: KonsolVerisi }) {
       <main data-yuzey="tezgah" data-alan="yonetim" style={{ minWidth: 0 }}>
         <EkranBasligi
           eyebrow={`Yönetim konsolu · ${GRUP_SIRASI.length} grup · ${MODULLER.length} modül`}
-          vurgu={`Kapsama ${kapsama.yonetilen}/${kapsama.ab}`}
+          vurgu={`${kapsama.yonetilen}/${kapsama.ab}`}
           vurguDurumu={kapsama.eksik > 0 ? 'md' : 'ok'}
-          baslik="Yapılandırılabilir alanlar tek konsoldan: doğrudan, onaylı ya da kodda"
+          baslik="yapılandırılabilir alan bu konsoldan yönetiliyor"
           metrikler={[
             { deger: acikTalepler.length, yazi: 'İncelemede', durum: acikTalepler.length > 0 ? 'md' : undefined },
             { deger: onayliTalepler.length, yazi: 'Onaylı · uygulanmadı', durum: onayliTalepler.length > 0 ? 'md' : undefined },

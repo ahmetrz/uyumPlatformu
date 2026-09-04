@@ -188,8 +188,17 @@ export function VeriTablosu<T extends { id: string }>({
   return (
     <>
     <div className="ab-vt-sar" style={yukseklik ? ({ '--vt-h': yukseklik } as CSSProperties) : undefined}>
-      <table className={`ab-vt${sik ? ' sik' : ''}`} role="grid" aria-label={etiket}
-        aria-rowcount={sirali.length + 1}>
+      {/* ── ÖLÇÜLDÜ: SEÇİLEMEYEN TABLO "grid" DİYORDU ────────────────
+          `role="grid"` bir SÖZDÜR: "buraya Tab ile girilir, ok tuşlarıyla
+          gezilir". Satır seçilebilir olmadığında `tabIndex` de basılmıyor
+          ve ızgarada tek bir odak durağı kalmıyordu — ekran okuyucuya
+          verilen söz tutulmuyordu. `/api-sozlesmesi` ve `/saklama`'da
+          ölçüldü: `role="grid"` var, `tabindex="0"` yok.
+
+          Seçilemeyen tablo düz bir tablodur ve `<table>`ın kendi
+          semantiği (`role="table"`) zaten doğrudur. */}
+      <table className={`ab-vt${sik ? ' sik' : ''}`} role={sec ? 'grid' : undefined}
+        aria-label={etiket} aria-rowcount={sirali.length + 1}>
         <thead>
           <tr>
             {kolonlar.map((k) => {

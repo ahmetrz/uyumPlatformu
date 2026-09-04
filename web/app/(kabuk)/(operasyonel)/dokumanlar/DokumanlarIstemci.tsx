@@ -323,8 +323,15 @@ function BoslukPaneli({ karsiliksiz, yarim, toplam }: {
   }
 
   return (
-    <div className="ab-dok-bosluk d-bd">
-      <p className="etiket">Kontrol karşılığı · {karsiliksiz.length} / {toplam} eksik</p>
+    /* ── UX-0013 · Blok KATLANIR ve sayıyı tekrarlamaz ─────────────────
+       "9 / 25 eksik" metrik bandında zaten yazıyordu; burada üçüncü kez
+       yazmak aynı gerçeği ekranda üç yerde göstermekti. Blok İÇERİK
+       taşır (hangi kontrol, hangi belge) ve o yüzden silinmedi — ama
+       açık mı kapalı mı olduğu artık kullanıcının kararı. */
+    <details className="ab-dok-bosluk d-bd" open>
+      <summary className="etiket">
+        Karşılıksız kontroller — hangi kontrolün belgesi eksik
+      </summary>
       {yalnizBos.length > 0 && (
         <>
           <p className="cumle">
@@ -371,7 +378,7 @@ function BoslukPaneli({ karsiliksiz, yarim, toplam }: {
           </ul>
         </>
       )}
-    </div>
+    </details>
   );
 }
 

@@ -18,25 +18,23 @@
    Kullanım: PORT=3210 node arac/erisim.mjs [--rota=/uyum,/riskler]
 */
 import { chromium } from 'playwright-core';
-import { readFileSync } from 'node:fs';
+import { KOK, girisYap, rotaBayragi, rotalarOku, tarayiciYolu } from './kosu-ortak.mjs';
 
-const KOK = `http://localhost:${process.env.PORT || 3000}`;
-const argRota = process.argv.find((a) => a.startsWith('--rota='));
-const ROTALAR = argRota
-  ? argRota.slice('--rota='.length).split(',')
-  : JSON.parse(readFileSync(new URL('./rotalar.json', import.meta.url), 'utf8'));
+/* Bu araç kendi giriş ve tarayıcı kopyasını taşıyordu; kopya, ortak
+   katmandaki DEĞERİ DOĞRULANMIŞ giriş düzeltmesini almadığı için
+   hidrasyon yarışına düşüyor ve `waitForURL` zaman aşımına uğruyordu —
+   araç koşmuyordu. Artık ortak katmandan alır. */
+const ROTALAR = rotaBayragi(
+  rotalarOku().map((r) => (typeof r === 'string' ? r : r.yol)).map((r) => r || '/'),
+);
 
 const b = await chromium.launch({
-  executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
+  executablePath: tarayiciYolu(), args: ['--no-sandbox'],
 });
 
 async function otur(ctxSecenek) {
   const s = await b.newPage({ viewport: { width: 1440, height: 900 }, ...ctxSecenek });
-  await s.goto(`${KOK}/giris`, { waitUntil: 'domcontentloaded' });
-  await s.fill('input[type=email]', 'ahmet.terzi@zorlu.com');
-  await s.fill('input[type=password]', 'Enerji!2026');
-  await s.click('button[type=submit]');
-  await s.waitForURL((u) => !u.pathname.startsWith('/giris'), { timeout: 25000 });
+  await girisYap(s, KOK);
   return s;
 }
 
@@ -48,14 +46,38 @@ for (const yol of ROTALAR) {
   await s.waitForTimeout(450);
 
   const olcum = await s.evaluate(() => {
-    /* 2 · imleç işaretçi ama klavyeyle ulaşılamaz */
+    /* 2 · imleç işaretçi ama klavyeyle ulaşılamaz
+       ── BİLEŞİK WIDGET'LAR YANLIŞ ALARM VERİYORDU ────────────────────
+       Kural, `tabindex="-1"` taşıyan her şeyi "ulaşılamaz" sayıyordu ve
+       ürünün BÜTÜN tablolarını suçluyordu. Oysa o tablolar `role="grid"`
+       ile GEZİNEN ODAK (roving tabindex) kalıbını kuruyor: satırlardan
+       biri `tabindex="0"`, ötekiler `-1`; Tab ızgaraya girer, ok tuşları
+       satırlar arasında gezer, Enter çekmeceyi açar. Ölçüldü (/riskler):
+       46. Tab durağında ızgaraya girildi, ArrowDown/ArrowUp satır
+       değiştirdi, Enter paneli açtı ve odak panele geçti.
+
+       Kalıbın kendisi doğru; yanlış olan onu tanımayan kuraldı. Artık
+       bileşik bir widget'ın (grid · listbox · tablist · tree · menu)
+       İÇİNDEKİ öğeler, widget'ta en az bir `tabindex="0"` varsa
+       ulaşılabilir sayılır. Sıfır tane varsa widget GERÇEKTEN kapalıdır
+       ve kusur olarak bildirilir. */
     const ODAK = 'a[href], button:not([disabled]), input:not([disabled]), select, textarea, summary, [tabindex]:not([tabindex="-1"])';
+    const BILESIK = '[role="grid"], [role="listbox"], [role="tablist"], [role="tree"], [role="menu"]';
+    const kapaliBilesik = [];
+    for (const w of document.querySelectorAll(BILESIK)) {
+      if (!w.querySelector('[tabindex="0"]')) {
+        kapaliBilesik.push(`${w.tagName.toLowerCase()}[role=${w.getAttribute('role')}]`);
+      }
+    }
     const yalanci = [];
     for (const el of document.querySelectorAll('*')) {
       if (getComputedStyle(el).cursor !== 'pointer') continue;
       if (el.matches(ODAK)) continue;
       if (el.closest(ODAK)) continue;
       if (el.querySelector(ODAK)) continue;
+      /* Gezinen odaklı bir bileşiğin içi: Tab değil ok tuşlarıyla gezilir. */
+      const bilesik = el.closest(BILESIK);
+      if (bilesik && bilesik.querySelector('[tabindex="0"]')) continue;
       yalanci.push(`${el.tagName.toLowerCase()}.${(el.className || '').toString().split(' ')[0]}`);
     }
 
@@ -64,7 +86,8 @@ for (const yol of ROTALAR) {
       .filter((el) => !el.getAttribute('aria-label') && !el.getAttribute('aria-labelledby'))
       .map((el) => (el.className || '').toString().slice(0, 40));
 
-    return { yalanci: [...new Set(yalanci)], adsiz: [...new Set(adsiz)] };
+    return { yalanci: [...new Set(yalanci)], adsiz: [...new Set(adsiz)],
+      kapaliBilesik: [...new Set(kapaliBilesik)] };
   });
 
   /* 1 · ODAK HALKASI — GERÇEK Tab ile. `:focus-visible` programatik
@@ -91,6 +114,9 @@ for (const yol of ROTALAR) {
   if (halkasiz.size) kusurlar.push(`ODAK HALKASI YOK · ${yol} → ${[...halkasiz].join(', ')}`);
 
   if (olcum.yalanci.length) kusurlar.push(`KLAVYEYLE ERİŞİLEMEZ · ${yol} → ${olcum.yalanci.join(', ')}`);
+  if (olcum.kapaliBilesik.length) {
+    kusurlar.push(`BİLEŞİK WIDGET KLAVYEYE KAPALI · ${yol} → ${olcum.kapaliBilesik.join(', ')}`);
+  }
   if (olcum.adsiz.length) kusurlar.push(`ADSIZ GLİF · ${yol} → ${olcum.adsiz.join(', ')}`);
 }
 await s.close();

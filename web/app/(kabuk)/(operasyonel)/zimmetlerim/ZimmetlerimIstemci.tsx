@@ -113,11 +113,19 @@ export default function ZimmetlerimIstemci({
         {zimmetCumlesi(ozet)}
       </p>
 
-      <div role="tablist" aria-label="Zimmet durumu"
+      {/* ── ÖLÇÜLDÜ: SEKME DEĞİL SÜZGEÇ ────────────────────────────────
+          `role="tablist"`/`role="tab"` bir SÖZDÜR: "her sekmenin bir
+          `tabpanel`i vardır, aralarında ok tuşlarıyla gezilir". Burada
+          ne tabpanel vardı ne de gezinen odak; düğmelerin hiçbiri
+          `tabindex="0"` taşımıyordu ve `aria-selected` düz bir düğmede
+          geçerli bile değildir. Bunlar sekme değil SÜZGEÇtir — ürünün
+          her yerindeki mercek şeridiyle aynı şey. O yüzden aynı
+          gramere alındı: `role="group"` + `aria-pressed`. */}
+      <div role="group" aria-label="Zimmet durumu"
         style={{ display: 'flex', gap: 'var(--s8)', marginBottom: 'var(--s16)' }}>
         {SEKMELER.map((sk) => (
-          <button key={sk.id} type="button" role="tab" className="ab-filtre"
-            aria-selected={sekme === sk.id}
+          <button key={sk.id} type="button" className="ab-filtre"
+            aria-pressed={sekme === sk.id}
             onClick={() => { setSekme(sk.id); setAcikId(null); }}>
             {sk.ad} ({satirlar.filter((s) => sekmeye(s) === sk.id).length})
           </button>

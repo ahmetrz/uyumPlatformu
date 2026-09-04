@@ -328,3 +328,39 @@ describe('Göçler', () => {
     expect(hepsi).toMatch(/RAISE\s*\(\s*ABORT/i);
   });
 });
+
+/* ── Erişilebilirlik sözleşmeleri ───────────────────────────────────── */
+
+describe('Erişilebilirlik · rol sözünü tutar', () => {
+  it('seçilemeyen tablo grid demez, işaretçi imleci taşımaz [SIS-ERS-002]', () => {
+    const tablo = readFileSync(path.join(KOK, 'components/kabuk/tablo.tsx'), 'utf8');
+    /* `role="grid"` yalnız seçilebilir tabloda basılır. */
+    expect(tablo).toMatch(/role=\{sec \? 'grid' : undefined\}/);
+    const css = readFileSync(path.join(KOK, 'app/kabuk.css'), 'utf8');
+    /* İmleç de aynı koşula bağlıdır. */
+    expect(css).toMatch(/\.ab-vt tbody tr \{[^}]*cursor: default/);
+    expect(css).toMatch(/\.ab-vt\[role='grid'\] tbody tr \{ cursor: pointer; \}/);
+  });
+
+  it('sekme rolü yalnız gerçek sekmelerde kullanılır [SIS-ERS-003]', () => {
+    /* `role="tablist"` bir söz: her sekmenin bir `tabpanel`i vardır ve
+       aralarında ok tuşlarıyla gezilir. Süzgeç şeridi sekme değildir;
+       ölçüldü, /zimmetlerim'de tabpanel yoktu ve gezinen odak yoktu. */
+    const dosyalar = [
+      ...tsxDosyalari(path.join(KOK, 'app')),
+      ...tsxDosyalari(path.join(KOK, 'components')),
+    ];
+    /* Yorum içindeki `role="tablist"` bir kullanım değil bir ANLATIMDIR;
+       ters tırnak içinde geçenler elenir, yoksa kuralın gerekçesini
+       yazan yorum kuralı ihlal etmiş sayılırdı. */
+    const sekmeli = dosyalar.filter((y) => {
+      const kaynak = readFileSync(y, 'utf8').replace(/`[^`]*`/g, '');
+      return /role="tablist"/.test(kaynak);
+    });
+    for (const y of sekmeli) {
+      const kaynak = readFileSync(y, 'utf8');
+      expect(kaynak, `${path.relative(KOK, y)}: tablist var, tabpanel yok`)
+        .toMatch(/role="tabpanel"/);
+    }
+  });
+});

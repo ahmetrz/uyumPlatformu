@@ -13,7 +13,7 @@ it('kapsam dışı varlığa yazılamaz [ENV-YAZ-003]', …)
 Ayrı bir eşleme tablosu tutulsaydı, tablo ilk yeniden adlandırmada
 testten ayrışır ve kimse görmezdi.
 
-Senaryo: **228** · testli: **228** · GAP: **0**
+Senaryo: **230** · testli: **230** · GAP: **0**
 
 ## API · 8 senaryo
 
@@ -316,7 +316,7 @@ Senaryo: **228** · testli: **228** · GAP: **0**
 | `SAY-KMP-001` | /sayim | BT yöneticisi · kendi santrali | Kapsamda hiç varlık yok · yok | Sayım açmayı dener | Açılmaz — sıfır paydalı kampanya olamaz | Neden açılmadığı yazılır | yazma yok | yok | `faz-g-varlik.test.ts` |
 | `SAY-KMP-002` | /sayim | BT yöneticisi · kendi santrali | Satır "bulunamadı" işaretlendi · kısmi | Sonucu kaydeder | Varlık SİLİNMEZ — envanterden düşürme ayrı bir karardır | "Sayılmadı" ile "bulunamadı" ayrı durumlardır | Sayım satırı · guncelleme | yok | `faz-g-eylem.test.ts` |
 
-## Sistem · 32 senaryo
+## Sistem · 34 senaryo
 
 | ID | Rota | Rol · kapsam | Ön koşul · veri | Eylem | Beklenen sonuç | Ekran | Denetim izi | Görev/bildirim | Test |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -352,6 +352,8 @@ Senaryo: **228** · testli: **228** · GAP: **0**
 | `SIS-UXD-002` | — | ürün ekibi · kurum geneli | Denetimde bulgu var · kısmi | Bulgu kimlikleri tabloyla karşılaştırılır | Her kimlik P0–P3 ve açık/kapatıldı taşır | Önemsiz ya da durumsuz bulgu kalmaz | yazma yok | yok | `senaryo-kutugu.test.ts` |
 | `SIS-BSL-001` | — | herhangi bir kullanıcı · kendi kapsamı | Ekranın vurgusu boş kalabiliyor · yok | Ekran açılır ve H1 okunur | Başlık cümle parçası değil | Ekran okuyucu ve arama sonucu anlamlı bir ad görür | yazma yok | yok | `ekran-basligi.test.ts` |
 | `SIS-BSL-002` | — | herhangi bir kullanıcı · kendi kapsamı | Ekran bir isterden doğmuş · normal | Ekran künyesi okunur | Künyede UY-/OT- kodu geçmez | Kod ürün belgesinde kalır | yazma yok | yok | `ekran-basligi.test.ts` |
+| `SIS-ERS-002` | — | klavye kullanıcısı · kendi kapsamı | Tablo seçilebilir değil · normal | Satırın imlecine ve rolüne bakılır | Seçilemeyen satır işaretçi imleci taşımaz | Sahte tıklama çağrısı yok | yazma yok | yok | `senaryo-platform.test.ts` |
+| `SIS-ERS-003` | — | klavye kullanıcısı · kendi kapsamı | Ekranda grid ya da sekme listesi var · normal | Widget içinde odaklanabilir bir durak aranır | Rol varsa gezinen odak da vardır | Tab ile girilir, ok tuşlarıyla gezilir | yazma yok | yok | `senaryo-platform.test.ts` |
 
 ## Taşınabilir medya · 2 senaryo
 

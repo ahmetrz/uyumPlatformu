@@ -15,7 +15,9 @@ import { eslestirmeyiKos } from '../../entegrasyon/cekirdek';
 
    Ham gozlem hamJson'da dokunulmadan saklanir: denetim izinin girdisi odur. */
 
-export const POST = apiUcu({ modul: 'envanter', islem: 'yazma' }, async ({ govde, kullanici }) => {
+export const POST = apiUcu(
+  { uc: 'assets.observations', modul: 'envanter', islem: 'yazma' },
+  async ({ govde, kullanici }) => {
   const { records } = dogrula(zarf(varlikKaydiSemasi), govde);
   const hamlar = hamKayitlar(govde);
   const { sonuc, kosuId } = await kosuIcinde(

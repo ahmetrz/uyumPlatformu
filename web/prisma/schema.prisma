@@ -119,6 +119,8 @@ model Tesis {
   ekipler                   Ekip[]
   kimlikHesaplari           KimlikHesabi[]
   degerlendirmeAktarimlari  DegerlendirmeAktarimi[]
+  legalHoldlar              LegalHold[]
+  denetciKapsamlari         DenetciKapsami[]
   degisiklikler             Degisiklik[]
   olaylar                   Olay[]
   projeAdaylari             ProjeAdayi[]
@@ -584,6 +586,14 @@ model Kullanici {
   kokNedenAnalizleri      Bulgu[]                  @relation("BulguKokNedenAnalisti")
   kontrolEttigiKaynaklar  RegulasyonKaynagi[]      @relation("KaynakKontrolEden")
   degerlendirmeAktarimlari DegerlendirmeAktarimi[] @relation("AktarimYukleyen")
+  saklamaGuncellemeleri   SaklamaPolitikasi[]      @relation("SaklamaGuncelleyen")
+  koydugıHoldlar          LegalHold[]              @relation("HoldKoyan")
+  kaldirdigiHoldlar       LegalHold[]              @relation("HoldKaldiran")
+  onerdigiImhalar         ImhaKarari[]             @relation("ImhaOneren")
+  onayladigiImhalar       ImhaKarari[]             @relation("ImhaOnaylayan")
+  denetciHesabi           DenetciErisimi[]         @relation("DenetciHesabi")
+  davetEttigiDenetciler   DenetciErisimi[]         @relation("DenetciDavetEden")
+  iptalEttigiDenetciler   DenetciErisimi[]         @relation("DenetciIptalEden")
   dogruladigiAksiyonlar   Aksiyon[]                @relation("AksiyonDogrulayan")
   sahipBelgeler           Dokuman[]                @relation("DokumanSahibi")
   onayladigiBelgeler      Dokuman[]                @relation("DokumanOnaylayan")
@@ -1002,6 +1012,172 @@ model DegerlendirmeAktarimi {
   @@index([regulasyonId, tesisId, durum])
 }
 
+
+// ---------------------------------------- UY-56 · saklama ve legal hold
+
+/// Saklama politikası (UY-56).
+///
+/// Bir uyum platformunda saklama iki yönlü bir yükümlülüktür: kayıt
+/// SÜRESİNDEN ÖNCE silinemez (denetim kanıtı yok olur) ve süresi dolan
+/// kayıt SONSUZA KADAR da tutulamaz (kişisel veri, sözleşme yükümlülüğü).
+/// Ürün bugüne kadar yalnız birincisini yapıyordu: hiçbir şey silinmiyordu
+/// ve bu bir politika değil, politikasızlıktı.
+///
+/// ── ÜRÜN KENDİ KENDİNE SİLMEZ ─────────────────────────────────────────
+/// Politika bir ÖNERİ üretir; imha kararı insanındır ve `İmhaKarari`
+/// kaydıyla verilir. Motorun bir denetim kaydını kendiliğinden silmesi,
+/// bu ürünün baştan beri reddettiği şeydir.
+model SaklamaPolitikasi {
+  id           String   @id @default(cuid())
+  /// Hangi kayıt ailesi: `Bulgu` | `Kanit` | `AktiviteKaydi` | `IsKosusu` ...
+  varlikTipi   String   @unique
+  /// Kaç gün saklanacak. `null` = SÜRESİZ (bilinçli karar, ölçülmemiş değil).
+  saklamaGun   Int?
+  /// Süre dolduktan sonra ne yapılır: `oner` | `arsivle` | `imha_oner`.
+  /// `sil` YOKTUR: ürün kendiliğinden silmez.
+  sureSonu     String   @default("oner")
+  /// Bu politikanın dayanağı — hangi mevzuat, hangi kurum kararı.
+  dayanak      String
+  aktif        Boolean  @default(true)
+  olusturuldu  DateTime @default(now())
+  guncelleyenId String?
+
+  guncelleyen Kullanici? @relation("SaklamaGuncelleyen", fields: [guncelleyenId], references: [id])
+  kararlar    ImhaKarari[]
+}
+
+/// Legal hold (UY-56) — hukuki muhafaza.
+///
+/// Bir dava, soruşturma ya da denetim sürerken ilgili kayıtlar saklama
+/// süresi dolsa bile İMHA EDİLEMEZ. Hold aktifken imha kararı yazılamaz;
+/// sunucu bunu reddeder.
+///
+/// Kapsam BİLEREK geniş tutuldu (varlık tipi + isteğe bağlı kimlik):
+/// bir soruşturma çoğu zaman "şu santralin şu dönemdeki bütün bulguları"
+/// gibi bir kümeyi kapsar ve tek tek kayıt işaretlemek pratikte
+/// uygulanmaz.
+model LegalHold {
+  id          String    @id @default(cuid())
+  ad          String
+  /// Hangi kayıt ailesi tutuluyor.
+  varlikTipi  String
+  /// Tek bir kayda mı bağlı; `null` = o ailenin TAMAMI.
+  varlikId    String?
+  /// Santral kapsamı; `null` = bütün santraller.
+  tesisId     String?
+  gerekce     String
+  /// `aktif` | `kaldirildi`. Kayıt SİLİNMEZ: bir hold'un ne zaman
+  /// konduğu ve ne zaman kalktığı denetimin sorusudur.
+  durum       String    @default("aktif")
+  koyanId     String
+  konuldu     DateTime  @default(now())
+  kaldiranId  String?
+  kaldirildi  DateTime?
+  kaldirmaGerekcesi String?
+
+  koyan    Kullanici  @relation("HoldKoyan", fields: [koyanId], references: [id])
+  kaldiran Kullanici? @relation("HoldKaldiran", fields: [kaldiranId], references: [id])
+  tesis    Tesis?     @relation(fields: [tesisId], references: [id])
+
+  @@index([varlikTipi, durum])
+}
+
+/// İmha kararı (UY-56) — KONTROLLÜ imha.
+///
+/// Kararın kendisi bir kayıttır ve SİLİNMEZ: neyin, ne zaman, kimin
+/// kararıyla ve hangi politikaya dayanarak imha edildiği denetimin
+/// sorusudur. İmha edilen kaydın İÇERİĞİ gitse de bu satır kalır.
+///
+/// `uygulandi` alanı boşken karar yalnız bir ÖNERİDİR: dört göz gerektirir
+/// ve legal hold varken hiç yazılamaz.
+model ImhaKarari {
+  id            String    @id @default(cuid())
+  politikaId    String
+  varlikTipi    String
+  /// Kaç kayıt kapsanıyor — karar anındaki ÖLÇÜLMÜŞ sayı.
+  kapsananSayi  Int
+  /// Kararın kapsadığı en eski/en yeni kayıt tarihi — denetçinin
+  /// "hangi dönem imha edildi" sorusunun cevabı.
+  donemBaslangic DateTime?
+  donemBitis     DateTime?
+  gerekce       String
+  /// `oneri` | `onaylandi` | `uygulandi` | `reddedildi`.
+  durum         String    @default("oneri")
+  onerenId      String
+  /// DÖRT GÖZ: öneren ile onaylayan aynı kişi olamaz.
+  onaylayanId   String?
+  onaylandi     DateTime?
+  uygulandi     DateTime?
+  /// Uygulama anında gerçekten silinen kayıt sayısı; öneri anındaki
+  /// `kapsananSayi` ile aynı OLMAYABİLİR (arada hold konmuş olabilir).
+  silinenSayi   Int?
+  olusturuldu   DateTime  @default(now())
+
+  politika   SaklamaPolitikasi @relation(fields: [politikaId], references: [id])
+  oneren     Kullanici         @relation("ImhaOneren", fields: [onerenId], references: [id])
+  onaylayan  Kullanici?        @relation("ImhaOnaylayan", fields: [onaylayanId], references: [id])
+
+  @@index([durum, varlikTipi])
+}
+
+// ------------------------------------------- UY-57 · dış denetçi erişimi
+
+/// Dış denetçi erişimi (UY-57).
+///
+/// `dis_denetci` rolü `lib/erisim.ts` içinde VARDI ve yalnız bir rol
+/// adıydı: süresi, kapsamı, kim davet etti, ne zaman biter, hangi
+/// kayıtlara baktı — hiçbiri kayıtlı değildi. Bir dış denetçiye kalıcı
+/// hesap açmak, denetim bittikten sonra da açık kalan bir kapı bırakır.
+///
+/// ── SÜRE ZORUNLUDUR ───────────────────────────────────────────────────
+/// `bitis` alanı `null` olamaz: süresiz dış denetçi erişimi, denetim
+/// bittikten sonra kimsenin kapatmayı hatırlamadığı bir hesaptır.
+model DenetciErisimi {
+  id           String    @id @default(cuid())
+  kullaniciId  String
+  /// Hangi denetime bağlı — erişimin SEBEBİ.
+  denetimId    String?
+  /// Kurum dışı denetçinin bağlı olduğu firma; kayıt için, kimlik için değil.
+  firma        String
+  baslangic    DateTime  @default(now())
+  /// ZORUNLU: süresiz dış erişim yoktur.
+  bitis        DateTime
+  /// `aktif` | `suresi_doldu` | `iptal`. Kayıt SİLİNMEZ.
+  durum        String    @default("aktif")
+  davetEdenId  String
+  iptalEdenId  String?
+  iptalZamani  DateTime?
+  iptalGerekcesi String?
+  /// Erişimin son kullanıldığı an; `null` = HİÇ KULLANILMADI.
+  sonErisim    DateTime?
+  olusturuldu  DateTime  @default(now())
+
+  kullanici  Kullanici  @relation("DenetciHesabi", fields: [kullaniciId], references: [id], onDelete: Cascade)
+  denetim    Denetim?   @relation(fields: [denetimId], references: [id])
+  davetEden  Kullanici  @relation("DenetciDavetEden", fields: [davetEdenId], references: [id])
+  iptalEden  Kullanici? @relation("DenetciIptalEden", fields: [iptalEdenId], references: [id])
+  kapsamlar  DenetciKapsami[]
+
+  @@index([durum, bitis])
+}
+
+/// Dış denetçinin santral kapsamı (UY-57).
+///
+/// Bir dış denetçi kurumun TAMAMINI görmez: hangi santrallerin
+/// denetimine geldiyse yalnız onları görür. Kapsam boşsa erişim
+/// hiçbir santrali kapsamaz — "boş kapsam = her şey" varsayımı, bir
+/// dış denetçiye kurumun tamamını açmak olurdu.
+model DenetciKapsami {
+  id        String @id @default(cuid())
+  erisimId  String
+  tesisId   String
+
+  erisim DenetciErisimi @relation(fields: [erisimId], references: [id], onDelete: Cascade)
+  tesis  Tesis          @relation(fields: [tesisId], references: [id], onDelete: Cascade)
+
+  @@unique([erisimId, tesisId])
+}
+
 // ---------------------------------------------------- uygulanabilirlik
 
 /// Uygulanabilirlik kuralı (applicability_rules): santral profilinden
@@ -1186,6 +1362,7 @@ model Denetim {
   kapsamlar DenetimKapsami[]
   talepler  KanitTalebi[]
   bulgular  Bulgu[]
+  denetciErisimleri DenetciErisimi[]
 }
 
 model DenetimKapsami {
@@ -2550,6 +2727,17 @@ model ApiAnahtari {
   sonKullanim DateTime?
   bitis       DateTime?
   iptalZamani DateTime?
+  /// UY-52 · ANAHTAR KAPSAMI. Boş liste = anahtar hiçbir uca erişemez.
+  /// `null` = ESKİ KAYIT: sahibinin bütün yetkilerini miras alır ve
+  /// ekran bunu bir kusur olarak gösterir. Yeni anahtar açılırken kapsam
+  /// ZORUNLUDUR: sahibinin tüm yetkisini taşıyan bir entegrasyon
+  /// anahtarı, salt okunur olması gereken bir bağlantıya yazma hakkı
+  /// verir ve bunu kimse fark etmez.
+  kapsamJson  String?
+  /// UY-52 · Yazma yasağı. `true` ise anahtar hiçbir yazma ucuna
+  /// erişemez — kapsam listesi yazma ucu içerse bile. İki katmanlı
+  /// savunma: kapsam listesi yanlış doldurulsa bile bayrak tutar.
+  saltOkunur  Boolean   @default(true)
   olusturanId String?
   olusturuldu DateTime  @default(now())
 

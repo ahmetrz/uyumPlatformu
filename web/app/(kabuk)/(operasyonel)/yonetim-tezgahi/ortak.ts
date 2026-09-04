@@ -328,7 +328,20 @@ export type Anahtar = {
   olusturuldu: string;
   /** ApiIstegi sayacı — Prisma COUNT'u */
   istekSayisi: number;
+  /* ── UY-52 · anahtarın KENDİ kapsamı ─────────────────────────────────
+     `kapsam` null = kapsam hiç tanımlanmamış ESKİ kayıt. Boş dizi ile
+     null AYNI ŞEY DEĞİLDİR: boşu hiçbir uca giremez, null ise sahibinin
+     bütün yetkilerini taşır — yani ikincisi kusurdur. */
+  kapsam: string[] | null;
+  saltOkunur: boolean;
 };
+
+/** Kapsam hücresi. "TANIMSIZ" bir kusur bildirimidir, boş bir alan değil. */
+export function kapsamMetni(a: Anahtar): string {
+  if (a.kapsam === null) return 'TANIMSIZ';
+  if (a.kapsam.length === 0) return 'boş — hiçbir uç';
+  return `${a.kapsam.length} uç${a.saltOkunur ? ' · salt okunur' : ''}`;
+}
 
 export function anahtarBittiMi(a: Anahtar, simdi: number): boolean {
   return !!a.bitis && new Date(a.bitis).getTime() <= simdi;
@@ -352,6 +365,11 @@ export function anahtarImi(a: Anahtar, simdi: number): Durum {
   if (a.iptalZamani) return 'tamam';
   if (anahtarBittiMi(a, simdi)) return 'pl';
   if (!a.sahipAktif) return 'bd';
+  /* UY-52 · Kapsamı tanımsız ETKİN anahtar, sahibinin bütün yetkilerini
+     taşır ve bunu kimseye söylemez. Sahibi pasif anahtarla aynı sınıfta:
+     sessiz ve büyük. Sonlanmış anahtarlarda bakılmaz — kapatılmış bir
+     kapının genişliği artık bir kusur değildir. */
+  if (a.kapsam === null) return 'bd';
   const g = kalanGun(a.bitis, simdi);
   return g !== null && g <= UFUK_GUN ? 'md' : 'ok';
 }
@@ -361,6 +379,7 @@ export function anahtarSozu(a: Anahtar, simdi: number): string {
   if (a.iptalZamani) return 'İptal edildi';
   if (anahtarBittiMi(a, simdi)) return 'Süresi doldu';
   if (!a.sahipAktif) return 'Sahibi pasif';
+  if (a.kapsam === null) return 'Kapsamı tanımsız';
   const g = kalanGun(a.bitis, simdi);
   return g !== null && g <= UFUK_GUN ? 'Süresi doluyor' : 'Etkin';
 }

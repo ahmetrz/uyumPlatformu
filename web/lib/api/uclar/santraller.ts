@@ -8,7 +8,9 @@ import { apiUcu } from '../ucnokta';
    Anahtarin GOREBILDIGI santraller. Kapsam disi santral listede YER ALMAZ;
    kapsami sinirli anahtar kac santral oldugunu bile ogrenemez. */
 
-export const GET = apiUcu({ modul: 'envanter', islem: 'okuma' }, async ({ url, kapsam }) => {
+export const GET = apiUcu(
+  { uc: 'plants', modul: 'envanter', islem: 'okuma' },
+  async ({ url, kapsam }) => {
   const { limit, imlec } = sayfaSorgusu(url);
   const durum = secenekParam(url, 'status', ['aktif', 'kapali'] as const);
 

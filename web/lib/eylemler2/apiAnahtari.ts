@@ -6,6 +6,7 @@ import { AZAMI_ANAHTAR_GUN, VARSAYILAN_ANAHTAR_GUN } from '../apiAnahtariKuralla
 import { db } from '../db';
 import { yetkiZorunlu } from '../erisim';
 import { apiTokenUret } from '../api/kimlik';
+import { kapsamKapisi, UC_KIMLIKLERI } from '../api/kapsam';
 import { bosluksuz, hata, iz, tamam, type Sonuc } from './ortak';
 
 /* Dis API anahtarlari (§P1-3).
@@ -14,9 +15,16 @@ import { bosluksuz, hata, iz, tamam, type Sonuc } from './ortak';
    YALNIZ SHA-256 ozeti durur. Tam token bir kez, uretim yanitinda doner ve
    bir daha ASLA gosterilemez - kaybedilirse yenisi uretilir.
 
-   Anahtar kendi yetkisini tasimaz: SAHIBININ yetkilerini tasir. Boylece
+   Anahtar kendi ROLUNU tasimaz: SAHIBININ yetkilerini tasir. Boylece
    RBAC/kapsam tek yerde (lib/erisim.ts) kalir, API icin paralel bir izin
-   modeli olusmaz. Bir kisinin yetkisi daralinca anahtari da daralir. */
+   modeli olusmaz. Bir kisinin yetkisi daralinca anahtari da daralir.
+
+   ── UY-52 · AMA KENDİ KAPSAMI VARDIR ──────────────────────────────────
+   Rolü miras almak doğruydu; kapsamı OLMAMASI değildi. Bir CMDB
+   entegrasyonuna verilen anahtar, sahibi yönetici olduğu için kanıt
+   paketi de okuyabiliyordu. Artık her anahtar hangi uçlara
+   erişebileceğini SAYARAK bildirir; kapsam rolü yalnız daraltır.
+   Karar `lib/api/kapsam.ts`tedir, bu dosya yalnız yazar. */
 
 export type AnahtarUretimSonucu =
   | {
@@ -51,6 +59,10 @@ export async function apiAnahtariUret(girdi: {
   kullaniciId?: string | null;
   /** gecerlilik suresi (gun); bos ise VARSAYILAN_ANAHTAR_GUN. Süresiz YOK. */
   gecerlilikGun?: number | null;
+  /** UY-52 · erisebilecegi uclar. BOS BIRAKILAMAZ. */
+  uclar: string[];
+  /** yazma uclarina hic giremesin mi (ikinci katman) */
+  saltOkunur?: boolean;
 }): Promise<AnahtarUretimSonucu> {
   try {
     const k = await yetkiZorunlu('yonetim', 'yazma');
@@ -61,8 +73,16 @@ export async function apiAnahtariUret(girdi: {
         gecerlilikGun: z.number().int().min(1)
           .max(AZAMI_ANAHTAR_GUN, `Anahtar ömrü en çok ${AZAMI_ANAHTAR_GUN} gün olabilir`)
           .nullable().optional(),
+        uclar: z.array(z.string()).max(UC_KIMLIKLERI.length),
+        saltOkunur: z.boolean().optional(),
       })
       .parse(girdi);
+
+    /* Kapsam kapısı sahip aramasından ÖNCE: geçersiz bir kapsamla gelen
+       istek, var olmayan bir kullanıcı id'sini de sınamamalı. */
+    const saltOkunur = v.saltOkunur ?? true;
+    const kapsam = kapsamKapisi({ uclar: v.uclar, saltOkunur });
+    if (!kapsam.ok) return { ok: false, hata: kapsam.sebep };
 
     const sahipId = v.kullaniciId ?? k.id;
     const sahip = await db.kullanici.findUnique({
@@ -78,14 +98,18 @@ export async function apiAnahtariUret(girdi: {
     const bitis = new Date(Date.now() + gun * 86_400_000);
 
     const anahtar = await db.apiAnahtari.create({
-      data: { ad: v.ad, kullaniciId: sahip.id, onEk, tokenHash, bitis, olusturanId: k.id },
+      data: {
+        ad: v.ad, kullaniciId: sahip.id, onEk, tokenHash, bitis, olusturanId: k.id,
+        kapsamJson: kapsam.kapsamJson, saltOkunur,
+      },
     });
 
     // Denetim izine ONEK yazilir, token DEGIL.
     await iz({
       aktorId: k.id, varlikTipi: 'ApiAnahtari', varlikId: anahtar.id,
       eylem: 'olusturma', sonra: `${v.ad} (${onEk}...)`,
-      gerekce: `Gecerlilik: ${bitis.toISOString()} (${gun} gun)`,
+      gerekce: `Gecerlilik: ${bitis.toISOString()} (${gun} gun) · `
+        + `Kapsam: ${kapsam.kapsamJson}${saltOkunur ? ' · salt okunur' : ''}`,
     });
 
     revalidatePath('/yonetim-tezgahi');
@@ -115,6 +139,65 @@ export async function apiAnahtariIptal(girdi: { id: string; gerekce?: string | n
     await iz({
       aktorId: k.id, varlikTipi: 'ApiAnahtari', varlikId: v.id, eylem: 'iptal',
       alan: 'iptalZamani', once: null, sonra: new Date().toISOString(),
+      gerekce: v.gerekce ?? null,
+    });
+
+    revalidatePath('/yonetim-tezgahi');
+    return tamam();
+  } catch (e) { return hata(e); }
+}
+
+/**
+ * UY-52 · Var olan bir anahtarın kapsamını daraltır ya da tanımlar.
+ *
+ * ── NEDEN YENİ ANAHTAR ÜRETMEK YETMEZ ─────────────────────────────────
+ * Kapsamı tanımsız eski anahtarların tek çaresi "iptal et, yenisini üret"
+ * olsaydı, düzeltme her seferinde entegrasyonu durdurmayı gerektirirdi ve
+ * kimse yapmazdı. Kapsam token'ın kendisini değiştirmez: aynı anahtar
+ * çalışmaya devam eder, yalnız erişebildiği uçlar kısılır.
+ *
+ * ── TOKEN'A DOKUNULMAZ ────────────────────────────────────────────────
+ * Bu eylem `tokenHash`e HİÇ bakmaz. Kapsam değişikliği bir kimlik
+ * değişikliği değildir.
+ */
+export async function apiAnahtariKapsamGuncelle(girdi: {
+  id: string;
+  uclar: string[];
+  saltOkunur: boolean;
+  gerekce?: string | null;
+}): Promise<Sonuc> {
+  try {
+    const k = await yetkiZorunlu('yonetim', 'yazma');
+    const v = z.object({
+      id: bosluksuz('Anahtar id'),
+      uclar: z.array(z.string()).max(UC_KIMLIKLERI.length),
+      saltOkunur: z.boolean(),
+      gerekce: z.string().trim().max(500).nullable().optional(),
+    }).parse(girdi);
+
+    const kapsam = kapsamKapisi({ uclar: v.uclar, saltOkunur: v.saltOkunur });
+    if (!kapsam.ok) return { ok: false, hata: kapsam.sebep };
+
+    const anahtar = await db.apiAnahtari.findUnique({
+      where: { id: v.id },
+      select: { id: true, onEk: true, kapsamJson: true, iptalZamani: true },
+    });
+    if (!anahtar) throw new Error('Anahtar bulunamadi');
+    /* İptal edilmiş anahtarın kapsamı düzenlenemez: kapatılmış bir kapıyı
+       yeniden ayarlamak, kapalı olduğunu unutturur. */
+    if (anahtar.iptalZamani) {
+      return { ok: false, hata: 'Anahtar iptal edilmiş; kapsamı değiştirilemez.' };
+    }
+
+    await db.apiAnahtari.update({
+      where: { id: v.id },
+      data: { kapsamJson: kapsam.kapsamJson, saltOkunur: v.saltOkunur },
+    });
+    await iz({
+      aktorId: k.id, varlikTipi: 'ApiAnahtari', varlikId: v.id,
+      eylem: 'guncelleme', alan: 'kapsam',
+      once: anahtar.kapsamJson ?? 'TANIMSIZ',
+      sonra: `${kapsam.kapsamJson}${v.saltOkunur ? ' · salt okunur' : ''}`,
       gerekce: v.gerekce ?? null,
     });
 

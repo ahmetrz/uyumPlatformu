@@ -17,7 +17,9 @@ import { apiUcu } from '../ucnokta';
 const DURUMLAR = ['calisiyor', 'basarili', 'basarisiz'] as const;
 const TETIKLEYENLER = ['manuel', 'zamanlanmis', 'api'] as const;
 
-export const GET = apiUcu({ modul: 'yonetim', islem: 'okuma' }, async ({ url, kapsam }) => {
+export const GET = apiUcu(
+  { uc: 'integration-runs', modul: 'yonetim', islem: 'okuma' },
+  async ({ url, kapsam }) => {
   if (kapsam !== null) {
     throw new ApiHata('kapsam_disi',
       'Entegrasyon kosulari santral bazinda bolunmez; kurum geneli yonetim okuma izni gerekir');

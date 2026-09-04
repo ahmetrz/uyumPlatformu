@@ -9,7 +9,10 @@ import {
   regulasyonKaydet, regulasyonAktifDegistir, alanKaydet, tanimSil,
 } from '@/lib/eylemler';
 import { gorevOlustur, gorevDurum, onayKarar } from '@/lib/eylemler2/gorev';
-import { apiAnahtariUret, apiAnahtariIptal } from '@/lib/eylemler2/apiAnahtari';
+import {
+  apiAnahtariUret, apiAnahtariIptal, apiAnahtariKapsamGuncelle,
+} from '@/lib/eylemler2/apiAnahtari';
+import { UC_ETIKETI, UC_KIMLIKLERI, YAZMA_UCLARI } from '@/lib/api/kapsam';
 import { GOREV_TIP_ETIKET, etiketle, tarihTR, zamanTR } from '@/lib/sabitler';
 import {
   GOREV_DURUMLARI, GOREV_DURUM_ETIKET, KATALOG_ETIKET,
@@ -445,6 +448,11 @@ export function ApiAnahtarFormu({ kullanicilar, aktifId, kapat }: {
   const [bekliyor, baslat] = useTransition();
   const [hata, setHata] = useState<string | null>(null);
   const [f, setF] = useState({ ad: '', kullaniciId: aktifId, gun: '90' });
+  /* UY-52 · Kapsam BOŞ BAŞLAR ve boş kalırsa sunucu reddeder. Varsayılan
+     olarak birkaç ucu işaretlemek, "hepsini seç"in yumuşak hâli olurdu:
+     kimse dokunmaz ve anahtar gereğinden geniş çıkar. */
+  const [uclar, setUclar] = useState<string[]>([]);
+  const [saltOkunur, setSaltOkunur] = useState(true);
   const [uretilen, setUretilen] = useState<Uretilen | null>(null);
 
   if (uretilen) return <TokenTekSefer uretilen={uretilen} kapat={kapat} />;
@@ -474,10 +482,48 @@ export function ApiAnahtarFormu({ kullanicilar, aktifId, kapat }: {
           onChange={(e) => setF({ ...f, gun: e.target.value })} />
       </Alan>
 
+      <Alan etiket="Erişebileceği uçlar" zorunlu>
+        <div style={{ display: 'grid', gap: 'var(--s6)' }}>
+          {UC_KIMLIKLERI.map((uc) => {
+            const yazan = YAZMA_UCLARI.includes(uc);
+            const kilitli = saltOkunur && yazan;
+            return (
+              <label key={uc} style={{
+                display: 'flex', alignItems: 'center', gap: 'var(--s8)',
+                opacity: kilitli ? 0.45 : 1,
+              }}>
+                <input type="checkbox" disabled={kilitli}
+                  checked={uclar.includes(uc)}
+                  onChange={(e) => setUclar(e.target.checked
+                    ? [...uclar, uc]
+                    : uclar.filter((x) => x !== uc))} />
+                <span>{UC_ETIKETI[uc]}</span>
+                <code style={{ fontFamily: 'var(--veri)', opacity: 0.6 }}>{uc}</code>
+              </label>
+            );
+          })}
+        </div>
+      </Alan>
+
+      {/* Salt okunur işareti kapsam listesinden BAĞIMSIZ ikinci katmandır:
+          listeye yanlışlıkla bir yazma ucu girse bile bayrak kapalıysa
+          yazma geçmez. İşaret kalkınca seçili yazma uçları kalır; işaret
+          konunca yazma uçları listeden ÇIKARILIR — aksi hâlde sunucu
+          çelişkiyi reddeder ve kullanıcı sebebini formda göremezdi. */}
+      <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--s8)' }}>
+        <input type="checkbox" checked={saltOkunur}
+          onChange={(e) => {
+            setSaltOkunur(e.target.checked);
+            if (e.target.checked) setUclar(uclar.filter((u) => !YAZMA_UCLARI.includes(u as never)));
+          }} />
+        <span>Salt okunur — yazma uçlarına hiç giremesin</span>
+      </label>
+
       {hata && <p className="ab-gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
 
       <div style={{ display: 'flex', gap: 'var(--s10)' }}>
-        <Dugme tur="birincil" disabled={bekliyor || !f.ad.trim() || !f.kullaniciId}
+        <Dugme tur="birincil"
+          disabled={bekliyor || !f.ad.trim() || !f.kullaniciId || uclar.length === 0}
           onClick={() => {
             setHata(null);
             baslat(async () => {
@@ -485,6 +531,8 @@ export function ApiAnahtarFormu({ kullanicilar, aktifId, kapat }: {
                 ad: f.ad,
                 kullaniciId: f.kullaniciId,
                 gecerlilikGun: f.gun ? Number(f.gun) : null,
+                uclar,
+                saltOkunur,
               });
               if (!sonuc.ok) { setHata(sonuc.hata); return; }
               /* Token yanıttan doğrudan ekrana geçer; router.refresh listeyi
@@ -499,9 +547,10 @@ export function ApiAnahtarFormu({ kullanicilar, aktifId, kapat }: {
       </div>
 
       <p className="ab-panel-dip" style={{ margin: 0 }}>
-        Anahtar kendi yetkisini taşımaz: {sahip ? sahip.ad : 'sahibi'} kimin
+        Anahtar kendi ROLÜNÜ taşımaz: {sahip ? sahip.ad : 'sahibi'} kimin
         verisini görüyorsa anahtar da onu görür, yetkisi daralınca anahtar da
-        daralır. Tam token yalnız üretim yanıtında bir kez gösterilir.
+        daralır. Seçilen uçlar bu rolü yalnız DARALTIR — sahibinde olmayan bir
+        yetkiyi açmaz. Tam token yalnız üretim yanıtında bir kez gösterilir.
       </p>
     </div>
   );
@@ -576,6 +625,87 @@ export function ApiAnahtarIptal({ anahtar, yazabilir }: {
       <p className="ab-panel-dip" style={{ margin: 0 }}>
         İptal anında geçerlidir: anahtar bundan sonra her istekte 401 döner.
         Gerekçe denetim izine yazılır; token izin hiçbir yerine girmez.
+      </p>
+    </div>
+  );
+}
+
+/**
+ * UY-52 · Var olan bir anahtarın kapsamını daraltır.
+ *
+ * ── NEDEN İPTALİN YANINDA DEĞİL, ÜSTÜNDE ──────────────────────────────
+ * Kapsamı tanımsız bir anahtarı görünce doğru refleks onu iptal etmek
+ * değil, DARALTMAKTIR: iptal entegrasyonu durdurur, daraltma çalışır
+ * hâlde bırakır. İptal düğmesi çekmecenin en dibinde kalır.
+ */
+export function ApiAnahtarKapsam({ anahtar, yazabilir }: {
+  anahtar: Anahtar; yazabilir: boolean;
+}) {
+  const { bekliyor, hata, calistir } = useEylem();
+  const [uclar, setUclar] = useState<string[]>(anahtar.kapsam ?? []);
+  const [saltOkunur, setSaltOkunur] = useState(anahtar.saltOkunur);
+
+  if (anahtar.iptalZamani) return null;
+
+  if (!yazabilir) {
+    return (
+      <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+        <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Kapsam</p>
+        <p className="ab-panel-dip" style={{ margin: 0 }}>
+          {anahtar.kapsam === null
+            ? 'Kapsam tanımsız. Değiştirmek yönetim yazma yetkisi gerektiriyor.'
+            : anahtar.kapsam.map((u) => UC_ETIKETI[u as keyof typeof UC_ETIKETI] ?? u)
+              .join(' · ')}
+        </p>
+      </div>
+    );
+  }
+
+  /* Değişmemiş bir kapsamı yeniden yazmak denetim izine anlamsız bir satır
+     bırakır; düğme yalnız gerçek bir değişiklikte açılır. */
+  const oncekiler = [...(anahtar.kapsam ?? [])].sort().join(',');
+  const degisti = oncekiler !== [...uclar].sort().join(',')
+    || anahtar.saltOkunur !== saltOkunur;
+
+  return (
+    <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
+      <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Kapsam</p>
+      <div style={{ display: 'grid', gap: 'var(--s6)', marginBottom: 'var(--s12)' }}>
+        {UC_KIMLIKLERI.map((uc) => {
+          const kilitli = saltOkunur && YAZMA_UCLARI.includes(uc);
+          return (
+            <label key={uc} style={{
+              display: 'flex', alignItems: 'center', gap: 'var(--s8)',
+              opacity: kilitli ? 0.45 : 1,
+            }}>
+              <input type="checkbox" disabled={kilitli} checked={uclar.includes(uc)}
+                onChange={(e) => setUclar(e.target.checked
+                  ? [...uclar, uc]
+                  : uclar.filter((x) => x !== uc))} />
+              <span>{UC_ETIKETI[uc]}</span>
+            </label>
+          );
+        })}
+      </div>
+      <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--s8)',
+        marginBottom: 'var(--s12)' }}>
+        <input type="checkbox" checked={saltOkunur}
+          onChange={(e) => {
+            setSaltOkunur(e.target.checked);
+            if (e.target.checked) setUclar(uclar.filter((u) => !YAZMA_UCLARI.includes(u as never)));
+          }} />
+        <span>Salt okunur</span>
+      </label>
+      <Dugme tur="birincil" disabled={bekliyor || uclar.length === 0 || !degisti}
+        onClick={() => calistir(() => apiAnahtariKapsamGuncelle({
+          id: anahtar.id, uclar, saltOkunur,
+        }))}>
+        Kapsamı kaydet
+      </Dugme>
+      {hata && <p className="ab-gr-hata" role="alert" style={{ margin: 'var(--s10) 0 0' }}>{hata}</p>}
+      <p className="ab-panel-dip" style={{ margin: 'var(--s10) 0 0' }}>
+        Kapsam token&apos;ı değiştirmez: aynı anahtar çalışmaya devam eder, yalnız
+        erişebildiği uçlar kısılır. Değişiklik denetim izine yazılır.
       </p>
     </div>
   );

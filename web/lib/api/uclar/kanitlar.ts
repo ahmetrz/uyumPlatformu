@@ -76,7 +76,9 @@ const tesisKosulu = (tesisIdleri: string[] | string) => ({
   },
 });
 
-export const GET = apiUcu({ modul: 'uyum', islem: 'okuma' }, async ({ url, kapsam }) => {
+export const GET = apiUcu(
+  { uc: 'evidence', modul: 'uyum', islem: 'okuma' },
+  async ({ url, kapsam }) => {
   const { limit, imlec } = sayfaSorgusu(url);
   const tip = secenekParam(url, 'type', TIPLER);
   const tesisId = metinParam(url, 'plantId', 64);

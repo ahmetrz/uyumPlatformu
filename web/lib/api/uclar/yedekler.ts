@@ -18,7 +18,9 @@ import { zinciriCalistir } from '../../entegrasyon/zincir';
    `dogrulandi` alanina DOKUNULMAZ: yedegin okunabilirligini dogrulamak
    restore testinin (insan) isidir, kaynak sistemin "basarili" demesi degil. */
 
-export const POST = apiUcu({ modul: 'envanter', islem: 'yazma' }, async ({ govde, kullanici }) => {
+export const POST = apiUcu(
+  { uc: 'backup-results', modul: 'envanter', islem: 'yazma' },
+  async ({ govde, kullanici }) => {
   const { records } = dogrula(zarf(yedekKaydiSemasi), govde);
   const hamlar = hamKayitlar(govde);
   const { sonuc, kosuId } = await kosuIcinde(

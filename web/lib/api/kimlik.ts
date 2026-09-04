@@ -28,6 +28,11 @@ export type ApiKimlik = {
   anahtarId: string;
   anahtarAdi: string;
   kullanici: AktifKullanici;
+  /* UY-52 · Anahtarın KENDİ kapsamı. Rol katmanından ayrıdır ve onu
+     yalnız DARALTIR: kapsam kararı `lib/api/kapsam.ts` içindedir, burada
+     yalnız taşınır. `null` = eski kayıt, kapsamı hiç tanımlanmamış. */
+  kapsamJson: string | null;
+  saltOkunur: boolean;
 };
 
 /** `Authorization: Bearer <token>` — başka taşıyıcı kabul edilmez
@@ -75,5 +80,11 @@ export async function istekKimligi(istek: Request): Promise<ApiKimlik> {
       tuzelKisiId: y.tuzelKisiId, regulasyonId: y.regulasyonId, modul: y.modul,
     })),
   };
-  return { anahtarId: anahtar.id, anahtarAdi: anahtar.ad, kullanici };
+  return {
+    anahtarId: anahtar.id,
+    anahtarAdi: anahtar.ad,
+    kullanici,
+    kapsamJson: anahtar.kapsamJson,
+    saltOkunur: anahtar.saltOkunur,
+  };
 }

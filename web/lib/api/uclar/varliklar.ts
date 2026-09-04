@@ -15,7 +15,9 @@ import { tesisKapsamZorunlu } from '../yetki';
 const KRITIKLIK = ['dusuk', 'orta', 'yuksek', 'kritik', 'bilinmiyor'] as const;
 const YASAM = ['planlandi', 'aktif', 'bakim', 'emekli', 'imha'] as const;
 
-export const GET = apiUcu({ modul: 'envanter', islem: 'okuma' }, async ({ url, kapsam }) => {
+export const GET = apiUcu(
+  { uc: 'assets', modul: 'envanter', islem: 'okuma' },
+  async ({ url, kapsam }) => {
   const { limit, imlec } = sayfaSorgusu(url);
   const tesisId = metinParam(url, 'plantId', 64);
   const tesisKodu = metinParam(url, 'plantCode', 64);

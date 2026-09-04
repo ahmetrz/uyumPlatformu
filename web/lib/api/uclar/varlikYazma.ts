@@ -30,7 +30,9 @@ type Cozum = {
   bolgeId: string | null;
 };
 
-export const POST = apiUcu({ modul: 'envanter', islem: 'yazma' }, async ({ govde, kullanici }) => {
+export const POST = apiUcu(
+  { uc: 'assets.upsert', modul: 'envanter', islem: 'yazma' },
+  async ({ govde, kullanici }) => {
   const { records } = dogrula(zarf(varlikKaydiSemasi), govde);
   const hamlar = hamKayitlar(govde);
   const { sonuc, kosuId } = await kosuIcinde(

@@ -3,6 +3,7 @@ import { girisZorunlu, izinVar, izinliTesisIdleri, type Modul } from '@/lib/eris
 import { modulYazabilir } from '@/app/kapsam';
 import { Yetkisiz } from '@/components/kabuk/temel';
 import { db } from '@/lib/db';
+import { kapsamiCoz } from '@/lib/api/kapsam';
 import { DEMO } from '@/lib/demo';
 import TezgahIstemci from './TezgahIstemci';
 import KonsolIstemci from './KonsolIstemci';
@@ -93,7 +94,7 @@ export default async function Sayfa({ searchParams }: { searchParams: Promise<{ 
     ? db.apiAnahtari.findMany({
       select: {
         id: true, ad: true, onEk: true, sonKullanim: true, bitis: true,
-        iptalZamani: true, olusturuldu: true,
+        iptalZamani: true, olusturuldu: true, kapsamJson: true, saltOkunur: true,
         kullanici: { select: { id: true, adSoyad: true, aktif: true } },
         olusturan: { select: { adSoyad: true } },
         _count: { select: { istekler: true } },
@@ -271,6 +272,11 @@ export default async function Sayfa({ searchParams }: { searchParams: Promise<{ 
          "0 istek" yazmak doğrudur. Bilinmeyeni sıfır saymak (§19) ancak
          ölçümün YAPILMADIĞI yerde yasaktır; burada ölçüm var. */
       istekSayisi: a._count.istekler,
+      /* Bozuk bir kapsam alanı BOŞ kapsam olarak okunur, "her şey" olarak
+         DEĞİL (`kapsamiCoz`). Ekranda da böyle görünür: kapsamı okunamayan
+         anahtar hiçbir uca giremez ve satır bunu söyler. */
+      kapsam: a.kapsamJson === null ? null : kapsamiCoz(a.kapsamJson).uclar,
+      saltOkunur: a.saltOkunur,
     }))
     : [];
 

@@ -1,6 +1,8 @@
 import 'server-only';
 import { db } from '../db';
 import { AILE_ETIKETI, cokOrnekEngelleri, etkinSaglayici } from './saglayicilar';
+import { KIMLIK_AILE_ETIKETI, PLATFORM_SAGLAYICILARI } from './kimlikSaglayici';
+import { sirSaglayicilari } from '../entegrasyon/sir';
 import type { Kontrol } from './hazirlikKarari';
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -160,6 +162,58 @@ function cokOrnekKontrolu(): Kontrol {
   };
 }
 
+/**
+ * UY-54 · Sır sağlayıcısı — Vault/KMS bağlı mı?
+ *
+ * BİLGİ KALEMİDİR. `env:` ve `dosya:` sağlayıcıları bağlıdır ve çalışan
+ * bir kurulum verirler; Vault/KMS bunun ÜSTÜNE gelen bir sertleştirmedir
+ * (döndürme, merkezî iptal, erişim izi). Zorunlu göstermek, bugün doğru
+ * çalışan her kurulumu arızalı ilan ederdi — ama satırın hiç olmaması da
+ * "sırlar merkezî kasada" sanılmasına yol açardı.
+ */
+function sirKontrolu(): Kontrol {
+  const taban = { kod: 'sir_saglayici', ad: 'Sır kasası (Vault/KMS) bağlı', zorunlu: false };
+  const hepsi = sirSaglayicilari();
+  const kasa = hepsi.find((s) => s.ad === 'vault');
+  const bagliOlanlar = hepsi.filter((s) => s.bagli).map((s) => s.ad);
+  if (kasa?.bagli) {
+    return {
+      ...taban, durum: 'hazir',
+      ayrinti: 'Sırlar merkezî kasadan çözülüyor.',
+      yapilacak: null,
+    };
+  }
+  return {
+    ...taban, durum: 'eksik',
+    ayrinti: `Kasa bağlı değil; sırlar ${bagliOlanlar.join(' / ')} sağlayıcılarından `
+      + 'çözülüyor. Döndürme ve merkezî iptal ürünün dışındadır.',
+    yapilacak: kasa?.gereken ?? 'Sır kasası sağlayıcısı bağlayın.',
+  };
+}
+
+/**
+ * UY-53 · SSO/MFA  ·  UY-55 · gerçek veri yükü.
+ *
+ * Üçü de BİLGİ kalemidir ve üçü de bugün bağlı değildir. Kütükten
+ * türetilir: sağlayıcı listesine yeni bir aile eklendiğinde bu satırlar
+ * kendiliğinden gelir, elle güncellenecek ikinci bir liste yoktur.
+ */
+function platformKontrolleri(): Kontrol[] {
+  return PLATFORM_SAGLAYICILARI.map((s) => {
+    const taban = {
+      kod: `platform_${s.aile}`, ad: KIMLIK_AILE_ETIKETI[s.aile], zorunlu: false,
+    };
+    if (s.bagli) {
+      return { ...taban, durum: 'hazir' as const, ayrinti: `${s.ad} bağlı.`, yapilacak: null };
+    }
+    return {
+      ...taban, durum: 'eksik' as const,
+      ayrinti: s.bagliDegilkenDavranis,
+      yapilacak: s.gereken,
+    };
+  });
+}
+
 /** Bütün kontroller. Sıra `kontrolleriSirala` ile ekranda belirlenir. */
 export async function hazirligiOlc(): Promise<Kontrol[]> {
   const [vt, goc, zaman] = await Promise.all([
@@ -169,10 +223,13 @@ export async function hazirligiOlc(): Promise<Kontrol[]> {
     vt, goc, zaman,
     saglayiciKontrolu('veritabani', true),
     saglayiciKontrolu('koordinasyon', true),
-    /* Nesne deposu ZORUNLU DEĞİL: kanıt dosyası katmanı (UY-13) henüz
-       yok ve olmayan bir yeteneği zorunlu göstermek, çalışan kurulumu
-       kırmızıya boyardı. */
+    /* Nesne deposu ZORUNLU DEĞİL. UY-13 ile kanıt dosyası katmanı ARTIK
+       VAR (`lib/uyum/kanitDeposu.ts`) ve bugün yerel dosya sisteminde
+       çalışıyor; S3 uyumlu bir depo tek örnekli kurulumda gerekmez.
+       Zorunlu yapmak, çalışan bir kurulumu kırmızıya boyardı. */
     saglayiciKontrolu('nesne_deposu', false),
+    sirKontrolu(),
+    ...platformKontrolleri(),
     cokOrnekKontrolu(),
   ];
 }

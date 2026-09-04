@@ -31,7 +31,20 @@ export default function HesapMenusu({ kullanici, patika }: {
   const liste = useRef<HTMLDivElement>(null);
   const id = useId();
 
-  const yollar = [...UST_BAGLAR, ...(kullanici.yonetim ? [{ ad: 'Yönetim tezgâhı', yol: '/yonetim-tezgahi' }] : [])];
+  /* UY-52 · API sözleşmesi tezgâhın YANINDA durur: ikisi de yönetim
+     yetkisine bağlı ve ikisi de "dışarıdan kim girebiliyor" sorusunun
+     parçası. Sözleşmeyi bir alan rayına koymak, entegrasyonu yazan
+     kişinin bakacağı yeri uyum ya da varlık ekranlarının arasına
+     gömerdi. */
+  const yollar = [
+    ...UST_BAGLAR,
+    ...(kullanici.yonetim
+      ? [
+        { ad: 'Yönetim tezgâhı', yol: '/yonetim-tezgahi' },
+        { ad: 'API sözleşmesi', yol: '/api-sozlesmesi' },
+      ]
+      : []),
+  ];
   const icinde = yollar.some((o) => aktifMi(o.yol, patika));
 
   /* Rota değişimi kapatır — efekt içinde setState yerine "önceki patika"

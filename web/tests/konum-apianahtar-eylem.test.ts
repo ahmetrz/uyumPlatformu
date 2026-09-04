@@ -236,7 +236,7 @@ describe('Koordinat KAYNAĞI ve DOĞRULANMIŞLIĞI (P3-8)', () => {
 
 describe('apiAnahtariUret / apiAnahtariIptal', () => {
   it('token BİR KEZ döner; veritabanında yalnız özeti durur', async () => {
-    const s = await apiAnahtariUret({ ad: 'Test anahtarı' });
+    const s = await apiAnahtariUret({ ad: 'Test anahtarı', uclar: ['plants'] });
     expect(s.ok).toBe(true);
     if (!s.ok) return;
 
@@ -259,7 +259,9 @@ describe('apiAnahtariUret / apiAnahtariIptal', () => {
   });
 
   it('SÜRESİZ anahtar yoktur: süre boş bırakılınca varsayılan ömür konur', async () => {
-    const s = await apiAnahtariUret({ ad: 'Süresiz denemesi', gecerlilikGun: null });
+    const s = await apiAnahtariUret({
+      ad: 'Süresiz denemesi', gecerlilikGun: null, uclar: ['plants'],
+    });
     expect(s.ok).toBe(true);
     if (!s.ok) return;
     expect(s.bitis).not.toBeNull();
@@ -270,7 +272,7 @@ describe('apiAnahtariUret / apiAnahtariIptal', () => {
 
   it('TAVAN aşılamaz', async () => {
     const s = await apiAnahtariUret({
-      ad: 'Çok uzun', gecerlilikGun: AZAMI_ANAHTAR_GUN + 1,
+      ad: 'Çok uzun', gecerlilikGun: AZAMI_ANAHTAR_GUN + 1, uclar: ['plants'],
     });
     expect(s.ok).toBe(false);
     if (s.ok) return;
@@ -282,14 +284,16 @@ describe('apiAnahtariUret / apiAnahtariIptal', () => {
       ?? await db.kullanici.create({ data: {
         adSoyad: 'Pasif Kişi', eposta: `pasif-${Date.now()}@test`, aktif: false,
       } });
-    const s = await apiAnahtariUret({ ad: 'Pasif adına', kullaniciId: pasif.id });
+    const s = await apiAnahtariUret({
+      ad: 'Pasif adına', kullaniciId: pasif.id, uclar: ['plants'],
+    });
     expect(s.ok).toBe(false);
     if (s.ok) return;
     expect(s.hata).toMatch(/pasif/i);
   });
 
   it('iptal geri alınamaz ama İDEMPOTENTTİR', async () => {
-    const s = await apiAnahtariUret({ ad: 'İptal edilecek' });
+    const s = await apiAnahtariUret({ ad: 'İptal edilecek', uclar: ['plants'] });
     expect(s.ok).toBe(true);
     if (!s.ok) return;
 
@@ -310,10 +314,10 @@ describe('apiAnahtariUret / apiAnahtariIptal', () => {
 
   it('yonetim/yazma yetkisi olmayan anahtar üretemez ve iptal edemez', async () => {
     const s = await kimlikle([yetki('tesis_yoneticisi', tesisA)],
-      () => apiAnahtariUret({ ad: 'Olmaz' }));
+      () => apiAnahtariUret({ ad: 'Olmaz', uclar: ['plants'] }));
     expect(s.ok).toBe(false);
 
-    const mevcut = await apiAnahtariUret({ ad: 'Kapı denemesi' });
+    const mevcut = await apiAnahtariUret({ ad: 'Kapı denemesi', uclar: ['plants'] });
     expect(mevcut.ok).toBe(true);
     if (!mevcut.ok) return;
     expect(hataMetni(await kimlikle([yetki('okuyucu')],

@@ -46,7 +46,7 @@ const ALAN_ROTALARI: Record<string, string[]> = {
   '/uyum': [
     '/uyum', '/regulasyonlar', '/surecler', '/eslestirme', '/denetimler',
     '/bulgular', '/projeler', '/raporlar', '/dokumanlar', '/kanitlar', '/aktivite',
-    '/degerlendirme-aktarim',
+    '/degerlendirme-aktarim', '/denetci-erisimi', '/saklama',
   ],
   '/envanter': [
     '/envanter', '/kesif', '/varlik-aktarim', '/ice-aktarim', '/topoloji',
@@ -96,12 +96,20 @@ export const IKINCIL: Record<string, { baslik?: string; ogeler: Oge[] }[]> = {
       { ad: 'Denetimler', yol: '/denetimler' },
       { ad: 'Bulgular & CAPA', yol: '/bulgular' },
       { ad: 'Projeler', yol: '/projeler' },
+      /* UY-57 · Dış denetçi erişimi denetimlerin YANINDA durur: erişim
+         bir denetime bağlı açılır ve denetim bitince kapanır. Yönetim
+         tezgâhına koymak, denetimi yürüten kişinin hiç bakmadığı bir
+         yere koymak olurdu. */
+      { ad: 'Dış denetçi erişimi', yol: '/denetci-erisimi' },
     ]},
     { ogeler: [
       { ad: 'Raporlar', yol: '/raporlar' },
       { ad: 'Belge kütüğü', yol: '/dokumanlar' },
       { ad: 'Kanıt', yol: '/kanitlar' },
       { ad: 'Denetim izi', yol: '/aktivite' },
+      /* UY-56 · Saklama, kayıt ailelerinin durduğu grupta: bu grubun
+         hepsi "hangi kaydı ne kadar tutuyoruz" sorusunun konusu. */
+      { ad: 'Saklama ve imha', yol: '/saklama' },
     ]},
   ],
   '/riskler': [
@@ -219,7 +227,7 @@ export function sayacEtiketi(n: number): string {
 const AMIRAL_YOLLARI = ['/', '/tesisler', '/portfoy', '/harita', '/giris'];
 const TEZGAH_YOLLARI = [
   '/kesif', '/ice-aktarim', '/varlik-aktarim', '/topoloji', '/prosesler', '/esleme',
-  '/operasyon', '/saglik', '/yonetim-tezgahi', '/sistem',
+  '/operasyon', '/saglik', '/yonetim-tezgahi', '/api-sozlesmesi', '/sistem',
 ];
 
 export function yogunlukSec(patika: string): Yogunluk {

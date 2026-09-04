@@ -37,16 +37,16 @@ söylemeye başlar ve yalanı kimse fark etmez.
 
 | Ölçü | Değer |
 |---|---|
-| test dosyası | 115 |
-| test vakası | 2333 |
+| test dosyası | 118 |
+| test vakası | 2429 |
 | atlanan test | 1 |
-| ekran (rota) | 49 |
+| ekran (rota) | 52 |
 | API ucu | 9 |
 | otomasyon motoru | 16 |
 | connector adaptörü | 8 |
-| sunucu eylemi modülü | 39 |
-| Prisma modeli | 126 |
-| uygulanmış göç | 27 |
+| sunucu eylemi modülü | 41 |
+| Prisma modeli | 131 |
+| uygulanmış göç | 28 |
 
 <!-- SAYIMLAR:BITIS -->
 

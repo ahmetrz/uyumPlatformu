@@ -12,6 +12,7 @@ process.env.TEST_DB = testDb;
 
 const { db } = await import('@/lib/db');
 const { apiTokenUret } = await import('@/lib/api/kimlik');
+const { UC_KIMLIKLERI } = await import('@/lib/api/kapsam');
 const { oranAyariAyarla, oranSayaclariniSifirla } = await import('@/lib/api/oranSinir');
 const { izinVar, izinliTesisIdleri } = await import('@/lib/erisim');
 const { senkronizasyonKos } = await import('@/lib/entegrasyon/cekirdek');
@@ -70,10 +71,21 @@ const varlikKaydi = (ek: Record<string, unknown>) => ({
   collectedAt: zaman, confidence: null, ...ek,
 });
 
+/* UY-52 · Anahtar KAPSAMLI üretilir.
+
+   `saltOkunur` şema varsayılanı `true`dur ve bu bilinçlidir: alanı
+   doldurmayı unutan her kod yolu, fazla yetkili değil ZARARSIZ bir
+   anahtar üretsin. Bu fikstür ürünün kendi eylemi (`apiAnahtariUret`)
+   gibi davranır ve kapsamı AÇIKÇA yazar; kapsam kapısının kendisi
+   `tests/faz-f-api-kapsam.test.ts` içinde ayrıca sınanır. */
 async function anahtarUret(kullaniciId: string, ek: Record<string, unknown> = {}) {
   const { token, onEk, tokenHash } = apiTokenUret();
   const satir = await db.apiAnahtari.create({
-    data: { ad: `${ONEK} anahtar`, kullaniciId, onEk, tokenHash, ...ek },
+    data: {
+      ad: `${ONEK} anahtar`, kullaniciId, onEk, tokenHash,
+      kapsamJson: JSON.stringify(UC_KIMLIKLERI), saltOkunur: false,
+      ...ek,
+    },
   });
   return { token, id: satir.id };
 }

@@ -16,7 +16,9 @@ import { zinciriCalistir } from '../../entegrasyon/zincir';
    yasak. Tarayici "artik gormuyorum" dedi diye kayit kapanmaz; kapatma
    insan kararidir. */
 
-export const POST = apiUcu({ modul: 'envanter', islem: 'yazma' }, async ({ govde, kullanici }) => {
+export const POST = apiUcu(
+  { uc: 'vulnerabilities', modul: 'envanter', islem: 'yazma' },
+  async ({ govde, kullanici }) => {
   const { records } = dogrula(zarf(zafiyetKaydiSemasi), govde);
   const hamlar = hamKayitlar(govde);
   const { sonuc, kosuId } = await kosuIcinde(

@@ -10,7 +10,7 @@ import {
 } from '@/components/kabuk/panel';
 import { etiketle, tarihTR, zamanTR } from '@/lib/sabitler';
 import {
-  ApiAnahtarFormu, ApiAnahtarIptal,
+  ApiAnahtarFormu, ApiAnahtarIptal, ApiAnahtarKapsam,
   GorevFormu, GorevDurumEylemleri, OnayKarariFormu, TanimEylemleri, TanimFormu,
 } from './Formlar';
 import {
@@ -19,7 +19,7 @@ import {
   anahtarKuyrukEtiketi, anahtarSabit, anahtarSirala, anahtarSozu,
   gecenGun, gecikmisMi, isAcikMi, isAltSatiri, isDurumSozu, isImi, isSabit,
   isKuyrukEtiketi, isSirala, isTipEtiketi, istekDurumMetni, istekImi, istekMetni,
-  kalanGun, kaynakYolu, kullanimMetni, silinebilir, sonIstekDipNotu, sonKullanimMetni,
+  kalanGun, kapsamMetni, kaynakYolu, kullanimMetni, silinebilir, sonIstekDipNotu, sonKullanimMetni,
   sureMetni, tanimAltSatiri, tanimImi, tanimKuyrukEtiketi, tanimSabit, tanimSirala,
   tanimSozu,
   type Anahtar, type Is, type Katalog, type Kisi, type Kodlu, type SonIstek, type Tanim,
@@ -78,6 +78,10 @@ const TANIM_MERCEKLERI = [
    ne kadar kullanılmış, en son ne zaman, ne zaman bitiyor. */
 const ANAHTAR_KOLONLARI: Kolon[] = [
   { baslik: 'Sahip', genislik: '148px' },
+  /* Kapsam sahibin hemen yanında durur: iki kolon birlikte "kimin adına,
+     neye kadar" sorusunu yanıtlar ve ayrı düşerlerse kimse ikisini bir
+     arada okumaz. */
+  { baslik: 'Kapsam', genislik: '132px' },
   { baslik: 'İstek', genislik: '78px', sag: true },
   { baslik: 'Son kullanım', genislik: '112px', sag: true },
   { baslik: 'Bitiş', genislik: '100px', sag: true, ikincil: true },
@@ -352,6 +356,11 @@ export default function TezgahIstemci({
           hucreler: [
             <span key="s" style={a.sahipAktif ? undefined : { color: 'var(--bd)' }}>
               {a.sahip.ad}
+            </span>,
+            <span key="kp" style={a.kapsam === null
+              ? { color: 'var(--bd)' }
+              : a.kapsam.length === 0 ? { color: 'var(--md)' } : undefined}>
+              {kapsamMetni(a)}
             </span>,
             /* "0 istek" uydurma değil ölçülmüş sıfırdır (ApiIstegi COUNT'u);
                yine de sakin bir tonda yazılır, trafiği olan satır öne çıksın. */
@@ -909,16 +918,24 @@ function AnahtarOzeti({ anahtar, simdi, yazabilir }: {
         { etiket: 'Son kullanım', deger: sonKullanimMetni(anahtar) },
         { etiket: 'Bitiş', deger: anahtar.bitis ? tarihTR(anahtar.bitis) : 'süresiz' },
         { etiket: 'İstek', deger: istekMetni(anahtar) },
+        { etiket: 'Kapsam', deger: kapsamMetni(anahtar),
+          durum: anahtar.kapsam === null ? 'bd' : undefined },
       ]} />
 
       <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
         <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Yetki</p>
         <p className="ab-panel-dip" style={{ margin: 0 }}>
-          Anahtar kendi yetkisini taşımaz: {anahtar.sahip.ad} adına çalışır ve
+          Anahtar kendi ROLÜNÜ taşımaz: {anahtar.sahip.ad} adına çalışır ve
           onun rol/kapsam yetkileriyle sınırlıdır. Sahibin yetkisi daralınca
           anahtarınki de daralır; sahip pasifleşirse anahtar 401 döner.
+          {anahtar.kapsam === null
+            ? ' Bu anahtarın KENDİ kapsamı tanımsız: sahibinin erişebildiği'
+              + ' bütün uçlara girebiliyor. Aşağıdan daraltın.'
+            : ' Aşağıdaki uç listesi bu rolü yalnız DARALTIR.'}
         </p>
       </div>
+
+      <ApiAnahtarKapsam anahtar={anahtar} yazabilir={yazabilir} />
 
       <CekmeceEylemler
         birincil={<ApiAnahtarIptal anahtar={anahtar} yazabilir={yazabilir} />}

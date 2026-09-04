@@ -10,18 +10,20 @@ import {
 import { adresBilinmiyor, adresEtiketi, istekAdresi } from '../istemciAdresi';
 import { apiTokenOzeti, bearerToken, istekKimligi, type ApiKimlik } from './kimlik';
 import { oranSinirla } from './oranSinir';
+import { ucaErisim, type UcKimligi } from './kapsam';
 import { modulYazmaZorunlu, okumaKapsami } from './yetki';
 
 /* API uç noktası sarmalayıcısı. Her uç bu çemberden geçer:
 
-     demo kilidi → oran sınırı → kimlik → modül izni → gövde →
-     idempotency rezervasyonu → işleyici → denetim satırı
+     demo kilidi → oran sınırı → kimlik → ANAHTAR KAPSAMI → modül izni →
+     gövde → idempotency rezervasyonu → işleyici → denetim satırı
 
    Değişmezler:
    · HER istek bir ApiIstegi satırı bırakır (kimliksiz istekler dahil).
    · Aynı (anahtar, Idempotency-Key) ikinci kez işi TEKRAR ETMEZ; ilk yanıt döner.
    · Yığın izi/iç mesaj gövdeye girmez; yalnız ApiIstegi.yanitOzeti'ne yazılır.
-   · Demo yayını salt okunurdur — yazma uçları 403 döner, hiçbir şey yazmaz. */
+   · Demo yayını salt okunurdur — yazma uçları 403 döner, hiçbir şey yazmaz.
+   · UY-52: anahtar kapsamı ROLDEN ÖNCE bakılır ve rolü yalnız daraltır. */
 
 export type Baglam = {
   istek: Request;
@@ -38,6 +40,8 @@ export type Baglam = {
 export type UcYaniti = { durum?: number; govde: unknown; basliklar?: Record<string, string> };
 
 export type UcSecenegi = {
+  /** UY-52 · Ucun kendi kimliği. Anahtar kapsamı bununla eşleşir. */
+  uc: UcKimligi;
   modul: Modul;
   islem: 'okuma' | 'yazma';
 };
@@ -161,7 +165,27 @@ export function apiUcu(
       const kimlik = await istekKimligi(istek);
       anahtarId = kimlik.anahtarId;
 
-      // 4 · Modül izni (kapsamdan bağımsız ön kontrol)
+      /* 4 · ANAHTAR KAPSAMI (UY-52) — rol kapısından ÖNCE.
+         Sıra bilinçlidir: "bu anahtar bu uca bakabilir mi" sorusu, "bu
+         kullanıcı bu veriyi görebilir mi" sorusundan bağımsızdır ve önce
+         gelir. Kapsamı olmayan bir anahtar, sahibi yönetici olsa bile
+         uca giremez. Ters sırada, kapsam dışı bir uç için önce rol
+         kapısı çalışır ve yetkili bir sahiple istek geçerdi. */
+      const kapsamKarari = ucaErisim({
+        kapsamJson: kimlik.kapsamJson,
+        saltOkunur: kimlik.saltOkunur,
+        uc: secenek.uc,
+      });
+      if (!kapsamKarari.izin) {
+        throw new ApiHata('kapsam_disi', kapsamKarari.sebep);
+      }
+      /* Kapsamı hiç tanımlanmamış eski anahtar çalışmaya devam eder ama
+         SESSİZ kalmaz: entegrasyonu kuran taraf yanıtta görür. */
+      const kapsamBasliklari: Record<string, string> = kapsamKarari.miras
+        ? { 'X-Anahtar-Kapsami': 'tanimsiz' }
+        : {};
+
+      // 5 · Modül izni (kapsamdan bağımsız ön kontrol)
       let kapsam: string[] | null = null;
       if (secenek.islem === 'okuma') {
         kapsam = okumaKapsami(kimlik.kullanici, secenek.modul);
@@ -169,7 +193,7 @@ export function apiUcu(
         modulYazmaZorunlu(kimlik.kullanici, secenek.modul);
       }
 
-      // 5 · Gövde + idempotency
+      // 6 · Gövde + idempotency
       let govde: unknown = null;
       if (secenek.islem !== 'okuma') {
         idem = (istek.headers.get('idempotency-key') ?? '').trim() || null;
@@ -210,12 +234,12 @@ export function apiUcu(
             throw new ApiHata('cakisma', 'İlk yanıt tekrar oynatılamıyor; yeni bir Idempotency-Key kullanın');
           }
           return yanit(JSON.parse(onceki.yanitOzeti), onceki.durumKodu, {
-            ...oranBasliklari, 'Idempotent-Replay': 'true',
+            ...oranBasliklari, ...kapsamBasliklari, 'Idempotent-Replay': 'true',
           });
         }
       }
 
-      // 6 · İşleyici
+      // 7 · İşleyici
       const sonuc = await isle({
         istek, url, kimlik, kullanici: kimlik.kullanici, kapsam, govde,
         idempotencyAnahtari: idem,
@@ -230,7 +254,9 @@ export function apiUcu(
         hataKodu: null, sureMs: Date.now() - basla,
       });
 
-      return yanit(sonuc.govde, durum, { ...oranBasliklari, ...(sonuc.basliklar ?? {}) });
+      return yanit(sonuc.govde, durum, {
+        ...oranBasliklari, ...kapsamBasliklari, ...(sonuc.basliklar ?? {}),
+      });
     } catch (e) {
       const h = apiHatasinaCevir(e);
       const durum = durumKodu(h.kod);

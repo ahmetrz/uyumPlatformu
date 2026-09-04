@@ -20,7 +20,9 @@ import { zinciriCalistir } from '../../entegrasyon/zincir';
      olculmemis olarak acilir, mevcut hesabin daha once olculmus degeri
      ise kaynak bildirmeyi biraktı diye SILINMEZ. */
 
-export const POST = apiUcu({ modul: 'envanter', islem: 'yazma' }, async ({ govde, kullanici }) => {
+export const POST = apiUcu(
+  { uc: 'access-observations', modul: 'envanter', islem: 'yazma' },
+  async ({ govde, kullanici }) => {
   const { records } = dogrula(zarf(erisimKaydiSemasi), govde);
   const hamlar = hamKayitlar(govde);
   const { sonuc, kosuId } = await kosuIcinde(

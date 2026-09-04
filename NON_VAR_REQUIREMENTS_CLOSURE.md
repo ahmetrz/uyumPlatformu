@@ -5,7 +5,7 @@ Yönetişim Platformu** sütununda doğrudan "VAR" olmayan 38 maddenin
 bugünkü gerçeğini **dosya kanıtıyla** yazar. Yaşayan bir belgedir:
 her turda güncellenir.
 
-Ölçüm tarihi: 03.09.2026 · Dal: `claude/repo-public-github-domain-271hxa`
+Ölçüm tarihi: 04.09.2026 · Dal: `claude/repo-public-github-domain-271hxa`
 
 ---
 
@@ -49,29 +49,35 @@ yazılmadı. Böyle maddeler için repo içi hazırlık ayrı ölçülür ve
 | Ölçü | Değer |
 | --- | --- |
 | Madde | 38 |
-| **COMPLETE** | **26** |
-| CODE_READY_EXTERNAL_DEPENDENCY | 6 |
+| **COMPLETE** | **29** |
+| CODE_READY_EXTERNAL_DEPENDENCY | 9 |
 | IN_PROGRESS | 0 |
-| NOT_STARTED | 6 |
-| Yeni Prisma modeli | 26 (FAZ A 13 · FAZ B 8 · FAZ D 1 · FAZ E 4) |
-| Yeni göç | 6 (altısı da veri kaybı 0 · ölçülerek doğrulandı) |
+| NOT_STARTED | **0** |
+| Yeni Prisma modeli | 31 (FAZ A 13 · FAZ B 8 · FAZ D 1 · FAZ E 4 · FAZ F 5) |
+| Yeni göç | 7 (yedisi de veri kaybı 0 · ölçülerek doğrulandı) |
 | Yeni motor | 7 (9 → 16) |
-| Yeni rota | 3 (`/tabanlar` · `/prosesler` · `/degerlendirme-aktarim`) |
-| Yeni konsol modülü | 35 |
-| Toplam test | 2332 geçti · 1 atlandı |
+| Yeni rota | 6 (`/tabanlar` · `/prosesler` · `/degerlendirme-aktarim` · `/api-sozlesmesi` · `/saklama` · `/denetci-erisimi`) |
+| Yeni konsol modülü | 43 |
+| Toplam test | 2428 geçti · 1 atlandı |
 
-### Kapı sonuçları (03.09.2026 · FAZ E sonu)
+### Kapı sonuçları (04.09.2026 · FAZ F sonu)
 
 | Kapı | Sonuç |
 | --- | --- |
-| `npm run test` | **2332 geçti · 1 atlandı · 0 kusur** (115 dosya) |
+| `npm run test` | **2428 geçti · 1 atlandı · 0 kusur** (118 dosya) |
 | `npm run lint` · `npx tsc --noEmit` | temiz |
 | `tasarim:kapi` | kontrast kusuru 0 · eksik font 0 · eski tasarım izi 0 |
-| `rota:duman` | **49/49 rota** · kusurlu 0 · test edilemedi 0 · sayfa hatası 0 |
-| `tasarim:dizustu` (1366×768) | 40 rota · **kırpılan öğe 0** · yatay taşan rota 0 |
-| `tasarim:axe` (WCAG 2 A/AA) | 41 rota · ciddi/kritik ihlal **0** · kırık tarama 0 |
-| `tasarim:tasma` | 80 ölçümde 4 kusur — **hepsi bu programdan ÖNCE de vardı** (`/envanter` ×2, `/sistem`, `/sistem/bilesenler`; 375px ve 768px). Sayı **ölçülerek** doğrulandı: FAZ D öncesi ağaçta (`git stash`) aynı kapı yine `4 kusur (80 ölçümde)` döndü. FAZ D ve FAZ E'nin dokunduğu hiçbir ekran (`/kanitlar`, `/surecler/[id]`, `/saglik`, `/dokumanlar`, `/raporlar/kanit-paketi`, `/bulgular/[id]`, `/regulasyonlar`, `/degerlendirme-aktarim`) listede yok. |
+| `rota:duman` | **52/52 rota** · kusurlu 0 · test edilemedi 0 · sayfa hatası 0 |
+| `tasarim:dizustu` (1366×768) | 43 rota · **kırpılan öğe 0** · yatay taşan rota 0 |
+| `tasarim:axe` (WCAG 2 A/AA) | 44 rota · ciddi/kritik ihlal **0** · kırık tarama 0 |
+| `tasarim:tasma` | 86 ölçümde 4 kusur — **hepsi bu programdan ÖNCE de vardı** (`/envanter` ×2, `/sistem`, `/sistem/bilesenler`; 375px ve 768px). Sayı FAZ D'de `git stash` ile ölçülerek doğrulanmıştı; FAZ F'nin üç yeni ekranı (`/api-sozlesmesi`, `/saklama`, `/denetci-erisimi`) listede YOK. |
 | `npm run build` | başarılı |
+
+**İlk koşuda üç kusur çıktı ve düzeltildi.** `rota:duman` üç yeni ekranın
+da ana bölgesiz (`<main>` yok) olduğunu söyledi: kabuk `<main>` basmaz,
+onu ekran çizer. Ana bölgesi olmayan sayfada "içeriğe atla" bağı bir
+yere varmaz ve axe'ın wcag2a/aa kümesi bunu GÖRMEZ. Üçüne de kendi
+`<main data-yuzey=…>` bölgesi eklendi ve kapı 52/52'ye çıktı.
 
 Kapı çıktıları **olduğu gibi** yazıldı; hedefe uydurulmadı. Taşma
 kapısındaki 4 kusur bu programın ürünü değildir ve bilerek kapatılmamış
@@ -123,12 +129,12 @@ token tablosudur ve ikisi de ayrı bir işin konusudur.
 | UY-39 | Değişiklik etki analizi | **COMPLETE** | — (kanıt: §7.5) |
 | UY-41 | Resmî kaynak takibi | **CODE_READY_EXTERNAL_DEPENDENCY** | **Kalan tek eksik dış bağımlılık:** takip edilecek resmî kaynakların adresleri ve erişim biçimi. Kaynak KÜTÜĞÜ çalışır; ürün hiçbir adresle gelmez (kanıt: §7.6) |
 | UY-43 | Değerlendirme içe aktarımı | **COMPLETE** | — (kanıt: §7.7) |
-| UY-52 | Dış uyum API'si | `NOT_STARTED` | 8 okuma ucu + OpenAPI + anahtar kapsamı |
-| UY-53 | SSO / MFA | `NOT_STARTED` | `AuthProvider` · sonunda **dış bağımlılık** |
-| UY-54 | Vault/KMS/Postgres/kuyruk | `NOT_STARTED` | OT-48 ile ortak · sonunda **dış bağımlılık** |
-| UY-55 | Gerçek veri performansı | `NOT_STARTED` | OT-49 ile ortak |
-| UY-56 | Retention / legal hold | `NOT_STARTED` | Politika motoru, legal hold, kontrollü imha |
-| UY-57 | Dış denetçi erişimi | `NOT_STARTED` | Davet, süre sonu, denetim kapsamı, iptal, erişim izi |
+| UY-52 | Dış uyum API'si | **COMPLETE** | — (kanıt: §8.2) · 9 uç · anahtar başına kapsam · ürüne türetilen OpenAPI 3.1 |
+| UY-53 | SSO / MFA | **CODE_READY_EXTERNAL_DEPENDENCY** | **Kalan tek eksik dış bağımlılık:** kurumun IdP'si (tenant, metadata/discovery adresi, istemci kimliği, claim eşlemesi). Ürün bugün kendi kullanıcı kütüğünden giriş yapar ve ekran buna "SSO" DEMEZ (kanıt: §8.3) |
+| UY-54 | Vault/KMS/Postgres/kuyruk | **CODE_READY_EXTERNAL_DEPENDENCY** | **Kalan tek eksik dış bağımlılık:** PostgreSQL, nesne deposu, koordinasyon ve Vault/KMS uç noktaları. Dört aile de sağlayıcı kütüğünde ve artık hazırlık ekranında SATIR olarak durur (kanıt: §8.4) |
+| UY-55 | Gerçek veri performansı | **CODE_READY_EXTERNAL_DEPENDENCY** | **Kalan tek eksik dış bağımlılık:** gerçek veri hacmi, eşzamanlılık ve gecikme hedefi. Araç tohum verisiyle koşar, bunu her koşuda EKRANA YAZAR ve hazırlık ekranı da söyler (kanıt: §8.4) |
+| UY-56 | Retention / legal hold | **COMPLETE** | — (kanıt: §8.5) · 8 kayıt ailesi · legal hold · dört gözle imha |
+| UY-57 | Dış denetçi erişimi | **COMPLETE** | — (kanıt: §8.6) · davet gerçek `dis_denetci` yetki satırı yazar, iptal ve süre sonu siler |
 
 ---
 
@@ -758,26 +764,273 @@ olan testti.
 
 ---
 
-## 8. Sıradaki iş — bağımlılık sırası
+## 8. FAZ F'de ne yapıldı — kanıtla
 
-1. **UY-52 … UY-57 (FAZ F)** — dış erişim, SSO, saklama ve denetçi
-   erişimi. UY-54 OT-48'in sağlayıcı kütüğünü kullanır; UY-55 OT-49'un
-   aracını gerçek veriyle koşturur; UY-56 UY-13'ün kanıt deposuna
-   saklama politikası uygular; UY-57 UY-18'in imza beyanını denetçiye
-   verilen paketle birlikte taşır.
+UY-52 · UY-53 · UY-54 · UY-55 · UY-56 · UY-57.
+
+Bu fazın dört yeni Prisma modeli, üç yeni ekranı ve altı sunucu eylemi
+var; ama asıl konusu **kapı**dır: bir anahtarın nereye girebildiği, bir
+kaydın ne zaman silinebildiği, bir dış denetçinin ne zaman çıktığı.
+
+### 8.1 Göç veri kaybı 0 — ölçülerek
+
+`20260904041111_faz_f_altyapi_saklama_denetci`
+
+| Ölçü | Öncesi | Sonrası |
+| --- | --- | --- |
+| Tablo | 127 | 132 |
+| Toplam satır | 4732 | 4733 (**yalnız `_prisma_migrations` büyüdü**) |
+| Kaybolan tablo / satır | — | **0** |
+| Tetikleyici | 6 | 6 (hepsi korundu) |
+| `PRAGMA foreign_key_check` | — | temiz |
+
+**Göçe elle bir satır eklendi ve sebebi budur:**
+
+```sql
+-- UY-52 · MEVCUT ANAHTARLARIN DAVRANIŞI KORUNUR
+UPDATE "ApiAnahtari" SET "saltOkunur" = 0 WHERE "kapsamJson" IS NULL;
+```
+
+`saltOkunur` şema varsayılanı `true`dur; bu YENİ anahtarlar için doğru
+varsayılandır (alanı doldurmayı unutan kod yolu fazla yetkili değil
+zararsız bir anahtar üretsin). Ama aynı varsayılanı var olan üç satıra
+yazmak, çalışan entegrasyonları **sessizce** kırardı. Bir göçün
+yapabileceği en kötü şey, çalışan bir bağlantıyı kimse fark etmeden
+kesmektir.
+
+### 8.2 UY-52 · ölçülmüş kusur: anahtarın kendi kapsamı YOKTU
+
+`lib/api/kimlik.ts` şunu yazıyordu ve **rol katmanı için doğruydu**:
+"API için paralel bir yetki sistemi YOKTUR." Atladığı şey şuydu: bir
+CMDB entegrasyonuna verilen anahtar, sahibi yönetici olduğu için kanıt
+paketi de okuyabiliyor, varlık da yazabiliyordu. Salt okunur olması
+gereken bir bağlantı kurumun her şeyine erişiyordu.
+
+Artık her anahtar erişebileceği uçları **sayarak** bildirir
+(`ApiAnahtari.kapsamJson` + `saltOkunur`). Kapı `lib/api/kapsam.ts`
+içindedir ve `lib/api/ucnokta.ts` hattına **kimlikten sonra, rolden
+önce** takıldı:
+
+```
+demo kilidi → oran sınırı → kimlik → ANAHTAR KAPSAMI → modül izni →
+gövde → idempotency → işleyici → denetim satırı
+```
+
+Sıra bilinçlidir. Ters sırada, kapsam dışı bir uç için önce rol kapısı
+çalışır ve yetkili bir sahiple istek geçerdi.
+
+**Kapsam rolü DARALTIR, genişletmez.** Sahibinde olmayan bir uca kapsam
+açmak hiçbir şey vermez; rol kapısı yine reddeder.
+
+**Bu fazda ölçülmüş ikinci kusur — kendi listemdeydi.** `YAZMA_UCLARI`
+ilk yazıldığında yalnız `assets.upsert` içeriyordu. Oysa POST alıp
+veritabanına yazan **beş** uç var: adı "upsert" olmayan dördü
+(`vulnerabilities`, `backup-results`, `access-observations`,
+`assets.observations`) listede yoktu. Bu hâliyle salt okunur bir anahtar
+zafiyet kaydı yazabilirdi — yani kapının koruduğunu sandığı şeyin dördü
+açıkta kalırdı. Bir daha kaymasın diye
+`tests/faz-f-api-kapsam.test.ts` listeyi `lib/api/uclar/` içindeki
+`islem: 'yazma'` bildirimleriyle **karşılaştırır**: yeni bir yazma ucu
+eklenip listeye yazılmazsa test kırılır.
+
+**İki katmanlı savunma.** `saltOkunur` bayrağı kapsam listesinden
+BAĞIMSIZ tutulur ve önce bakılır: listeye yanlışlıkla bir yazma ucu
+girse bile bayrak kapalıysa yazma geçmez. Çelişki ayrıca üretim anında
+da kesilir (`kapsamKapisi`) — ama iki katman ayrı sebeplerle vardır:
+biri veritabanına elle dokunan birine karşı, öteki formu dolduran
+kişiye karşı.
+
+**Eski anahtarlar kesilmedi, İŞARETLENDİ.** `kapsamJson: null` olan
+kayıt çalışmaya devam eder ve yanıt `X-Anahtar-Kapsami: tanimsiz`
+başlığını taşır; ekranda da kusur (`bd`) olarak görünür. Bugün kesmek
+çalışan entegrasyonları sessizce kırardı; görünmez bırakmak ise boşluğu
+gizlerdi.
+
+**Bozuk kapsam "her şey" DEĞİL "hiçbir şey"dir.** Okunamayan bir kapsam
+alanını "kısıt yok" diye yorumlamak, kısıtın var olma sebebini ortadan
+kaldırırdı.
+
+**OpenAPI belgesi üründen TÜRETİLİR** (`lib/api/sozlesme.ts`): uç
+kütüğünden, zod şemalarından (`z.toJSONSchema`) ve hata sözlüğünden.
+Elle tutulan bir sözleşme ilk uç değişikliğinde sessizce yanlışa döner
+ve entegrasyonu yazan taraf yanlış belgeye göre kod üretir.
+`servers` alanı **bilerek yoktur**: ürünün nerede koşacağı ürünle
+gelmez ve örnek bir taban adres, üretilen her istemciye yanlış bir adres
+koymak olurdu.
+
+**Yeni ekran:** `/api-sozlesmesi` — uç tablosu (yol · yöntem · **o uca
+erişen etkin anahtar sayısı**) ve belgenin kendisi. İkinci sütun
+birinciden önemlidir: bir uca kaç anahtarın eriştiğini bilmeyen kurum o
+ucu kapatamaz. Kapsamı tanımsız anahtarlar BÜTÜN uçlara sayılır —
+bugünkü gerçek erişimleri odur.
+
+### 8.3 UY-53 · yerel parola bir SSO değildir
+
+`lib/altyapi/kimlikSaglayici.ts` — `lib/uyum/disSaglayicilar.ts` ile
+aynı kalıp: arayüz, kayıt defteri, bağlanmamış sağlayıcının açık beyanı.
+**Hiçbir IdP uç noktası, tenant kimliği ya da claim eşlemesi ürünle
+gelmez.** Test bunu ayrıca ölçer: kütükte `https://`, `.onmicrosoft.com`
+ya da GUID benzeri bir dize bulunursa kırılır.
+
+Ürünün bugünkü girişi kendi kullanıcı kütüğüne bakar. Bu **çalışan bir
+kurulumdur** ama SSO değildir: parola politikası, oturum ömrü, ikinci
+faktör ve ayrılan personelin kapatılması ürünün dışında yönetilir.
+`kimlikBeyani()` bunu bir cümlede söyler ve ekran "SSO ile giriş" DEMEZ.
+
+Ürüne ayrı bir TOTP katmanı da **kurulmadı**. Kurumun IdP'si zaten MFA
+uyguluyorken ürüne ikinci bir faktör koymak, kullanıcıyı iki kez
+doğrulatır ve kurumun politikasından ayrışan ikinci bir kimlik yüzeyi
+üretirdi.
+
+### 8.4 UY-54 · UY-55 — hazırlık ekranında SATIR olmak
+
+İkisinin de altyapısı OT-48 ve OT-49'da vardı; eksik olan, kurulum
+hazırlığı ekranının bunları **söylememesiydi**.
+
+`lib/altyapi/hazirlik.ts`e üç kontrol eklendi ve üçü de **bilgi
+kalemidir** (`zorunlu: false`):
+
+| Kontrol | Bugünkü hâli |
+| --- | --- |
+| Sır kasası (Vault/KMS) bağlı | eksik — sırlar `env` / `dosya` sağlayıcılarından çözülüyor; döndürme ve merkezî iptal ürünün dışında |
+| Kurumsal kimlik (SSO) | eksik — giriş ürünün kendi kütüğünden |
+| İkinci faktör (MFA) | eksik — ürün ikinci faktör istemez ve "MFA korumalı" numarası yapmaz |
+| Gerçek veri hacmiyle yük ölçümü | eksik — `npm run olcum:yuk` TOHUM verisiyle koşar |
+
+Zorunlu yapmak, bugün doğru çalışan her kurulumu kırmızı gösterirdi ve
+ekrana bir daha bakılmazdı. Satırın hiç olmaması ise "sırlar merkezî
+kasada" ya da "SSO var" sanılmasına yol açardı.
+
+`arac/yuk.mjs`in "her koşuda ekrana yazar" iddiası **doğrulandı**:
+araç 133-134. satırlarda tohum verisi uyarısını basıyor ve
+`arac/performans-tabani.json` aynı notu taşıyor.
+
+Aynı geçişte, `hazirlik.ts` içindeki bir yorum da düzeltildi: nesne
+deposunun zorunlu olmama gerekçesi "kanıt dosyası katmanı (UY-13) henüz
+yok" diyordu; UY-13 FAZ D'de kapandı ve katman **artık var**
+(`lib/uyum/kanitDeposu.ts`, yerel dosya sisteminde). Gerekçe bugünkü
+gerçeğe göre yeniden yazıldı.
+
+### 8.5 UY-56 · ürün kendi kendine SİLMEZ
+
+Saklama iki yönlü bir yükümlülüktür: kayıt süresinden önce silinemez
+(denetim kanıtı yok olur), süresi dolan da sonsuza kadar tutulamaz
+(kişisel veri, sözleşme, kurumun kendi politikası). Ürün bugüne kadar
+yalnız birincisini yapıyordu — ve bu bir politika değil,
+**politikasızlıktı**.
+
+Üç kütük, bu sırayla: **politika** → **hold** → **imha kararı**.
+
+**Ürün hiçbir kaydı kendiliğinden silmez.** Politika bir ÖNERİ üretir;
+silmenin olduğu tek yer `imhaKarariniUygula` ve oraya giden yol dört
+kapıdan geçer:
+
+1. Kayıt ailesi **değişmez** mi (`AktiviteKaydi`,
+   `DegerlendirmeTarihcesi` — veritabanı tetikleyicisi silmeyi zaten
+   reddeder; kapı bunu **baştan** söyler).
+2. Politika var ve aktif mi, süre tanımlı mı.
+3. **Dört göz:** öneren ile onaylayan aynı kişi olamaz. Toplu ve geri
+   alınamaz bir silmeyi tek kişinin kararına bırakmak, bu ürünün hiçbir
+   yerde yapmadığı şeydir.
+4. **Hold uygulama anında YENİDEN sorulur.** Öneri ile uygulama
+   arasında bir soruşturma başlamış olabilir; öneri anındaki "hold yok"
+   cevabına güvenmek, dondurulmuş kayıtları silmek demek olurdu.
+
+Kapsanan kayıt sayısı öneri anında **ölçülür** ve karara yazılır;
+uygulama anında **yeniden ölçülür** ve ikisi ayrı alanlarda durur.
+Farklıysa arada bir şey olmuştur ve bu görünür kalır. Süresi dolmuş
+kayıt yoksa boş bir karar kaydı **açılmaz**.
+
+Hold kaydı silinmez, durumu değişir: bir muhafazanın ne zaman konduğu ve
+ne zaman kalktığı denetimin sorusudur.
+
+İmhadan sonra geriye kalan tek şey denetim izidir ve o iz değişmez
+ailededir — imha edilemez.
+
+**Yeni ekran:** `/saklama`. Politika kütüğünde payda kayıt ailelerinin
+kendisidir: politikası **olmayan** aile de satır olarak görünür. Yalnız
+tanımlı politikaları listelemek, eksikliği görünmez kılardı.
+
+### 8.6 UY-57 · defter yazmak kapı açmaz
+
+`dis_denetci` rolü `lib/erisim.ts` içinde zaten vardı
+(`denetim: ['okuma'], uyum: ['okuma']`) ve **yalnız bir rol adıydı**:
+süresi, kapsamı, kim davet etti, ne zaman biter — hiçbiri kayıtlı
+değildi. Dış denetçiye kalıcı hesap açmak, denetim bittikten sonra da
+açık kalan ve kimsenin kapatmayı hatırlamadığı bir kapı bırakır.
+
+Bu maddenin en kritik kararı şu: **`DenetciErisimi` bir DEFTERDİR,
+kapı değil.** Erişimi gerçekten uygulayan şey ürünün var olan yetki
+katmanıdır. Bu yüzden davet, kapsamdaki her santral için bir
+`dis_denetci` **yetki satırı yazar**; iptal ve süre sonu o satırları
+**siler**. İkisini ayırmak — deftere yazıp yetkiye dokunmamak — ekranda
+"erişim kapandı" yazarken kapının açık kalması demek olurdu. Bu üründe
+en pahalı hata sınıfı budur ve test tam olarak bunu ölçer
+(sabotaj 4: yetki silmeyi kaldırınca iki test düştü).
+
+**Süre zorunludur**, tavanı 365 gündür ve **boş kapsam = hiçbir şey**:
+kapsamsız bir dış erişim hiçbir santral göstermez; "boş kapsam = her
+şey" varsayımı bir dış denetçiye kurumun tamamını açmak olurdu.
+
+Kayıt veritabanında `aktif` görünüp bitiş tarihi geçmiş olabilir
+(zamanlayıcı henüz koşmamıştır). `yasayanDurum` o satırı zaten "süresi
+doldu" gösterir ve ekran, yetki satırları hâlâ duruyor olabileceği için
+bir düğme çıkarır. Ekranın gösterdiği ile kapının yaptığı arasında fark
+bırakılmaz.
+
+Süresi dolan erişim bir **kusur değildir**: sistem doğru çalıştı ve kapı
+kapandı — `pl` (planlı) ile gösterilir, kırmızıyla değil.
+
+### 8.7 Sabotajla doğrulama — beş kural
+
+Her kural tek tek bozuldu, testler koşturuldu, sonra geri alındı.
+
+| # | Bozulan kural | Sonuç |
+| --- | --- | --- |
+| 1 | `saltOkunur` katmanı kaldırıldı (`if (false && …)`) | **3 test düştü** |
+| 2 | Bozuk kapsam "her şey" sayıldı | **1 test düştü** |
+| 3 | Dört göz kuralı kaldırıldı (öneri + onay kapısı) | **3 test düştü** |
+| 4 | İptalde `dis_denetci` yetki satırları silinmedi | **2 test düştü** |
+| 5 | Uygulama anında hold sorulmadı | **5 test düştü** |
+
+Beş sabotajın beşi de yakalandı. Ağaç sonra geri yüklendi ve
+`npx tsc --noEmit` temiz döndü.
 
 ---
 
-## 9. Gerçek bağlantı için gereken dış bilgiler
+## 9. Sıradaki iş — bağımlılık sırası
+
+**38 maddenin repo içi işi bitti.** `NOT_STARTED` ve `IN_PROGRESS`
+kalmadı: 29 madde `COMPLETE`, 9 madde `CODE_READY_EXTERNAL_DEPENDENCY`.
+
+Dokuz maddenin tamamı **tek bir şey** bekliyor ve o şey repo içinde
+üretilemez: kurumun gerçek uç noktası, kimlik bilgisi ya da altyapısı
+(§10). Hiçbiri "kod eksik" durumunda değildir.
+
+Bağlantı günü sırası `INTEGRATION_DAY_RUNBOOK.md` içindedir. Sıradaki iş
+bir geliştirme işi değil, bir **kurulum** işidir:
+
+1. **Kimlik** (UY-53) — IdP bağlanınca giriş yüzeyi değişir ve dış
+   denetçi hesapları da oradan gelir; en önce o.
+2. **Altyapı** (OT-48 · UY-54) — PostgreSQL ve nesne deposu; UY-13'ün
+   kanıt dosyaları ve UY-56'nın imha kararları bunun üstünde durur.
+3. **Kaynaklar** (OT-40 · OT-50 · UY-20 · UY-41) — gerçek sistemlerin
+   uç noktaları ve salt okunur kimlik bilgileri.
+4. **İmza** (UY-18) — HSM/KMS; kanıt paketi imzasız kalmasın.
+5. **Ölçüm** (OT-49 · UY-55) — gerçek veri hacmi geldikten SONRA;
+   tohum verisiyle alınmış taban gerçeği temsil etmez.
+
+---
+
+## 10. Gerçek bağlantı için gereken dış bilgiler
 
 Yalnız gerçekten gerekenler. Bu bilgiler gelmeden de **repo içi hazırlık
 tamamlanabilir**.
 
-**OT-40 · OT-48 · OT-50 · UY-18 · UY-20 · UY-41 artık gerçekten "bilgi
-bekliyor" durumundadır**
-(`CODE_READY_EXTERNAL_DEPENDENCY`): repo içinde yapılabilecek her şey
-bitti. Kalan maddeler ise o hazırlık henüz yapılmadığı için
-`NOT_STARTED`tır — ikisi karıştırılmaz.
+**Dokuz madde gerçekten "bilgi bekliyor" durumundadır**
+(`CODE_READY_EXTERNAL_DEPENDENCY`): OT-40 · OT-48 · OT-50 · UY-18 ·
+UY-20 · UY-41 · UY-53 · UY-54 · UY-55. Hepsinde repo içinde
+yapılabilecek her şey bitti; `NOT_STARTED` madde KALMADI.
 
 Adaptör başına ihtiyaç listesinin YAPISAL hâli üründedir:
 `/saglik` › Kurulum hazırlığı › Bağlantı ihtiyacı. Aşağıdaki tablo onun
@@ -791,5 +1044,7 @@ Adaptör başına ihtiyaç listesinin YAPISAL hâli üründedir:
 | UY-18 | İmzalama anahtarının tanımlayıcısı, anahtar politikası (kim imzalayabilir), imza algoritması, doğrulama zinciri. **Anahtarın kendisi ürüne verilmez** |
 | UY-20 | Kurumun DYS ürünü ve **salt okunur** API'si: taban URL, kimlik yöntemi, okunacak kütüphane kapsamı, sürüm alanının adı |
 | UY-41 | Takip edilecek resmî kaynakların adresleri ve erişim biçimi: yayım sayfası ya da besleme (RSS/Atom/API) adresi, kimlik yöntemi, değişikliğin nasıl anlaşılacağı. **Adresler ÜRÜNLE GELMEZ**; kurumun uyum kapsamına göre kurum belirler |
-| UY-53 | IdP (Entra/ADFS) tenant, OIDC/SAML metadata, claim eşlemesi |
+| UY-53 | IdP (Entra/ADFS) tenant, keşif/metadata adresi, istemci kimliği ve sırrı, dönüş adresi, claim eşlemesi (hangi claim kullanıcıyı, hangisi rolü taşıyor), MFA'yı bildiren claim'in adı, ayrılan personelin kapatılmasının ürüne ne zaman yansıyacağı |
+| UY-56 | (repo içi hazırlık bitti) Kurumun saklama süreleri ve **dayanakları**: hangi kayıt ailesi kaç yıl, hangi mevzuata göre. Süreler ürünle GELMEZ ve varsayılan bir süre uydurulmaz |
+| UY-57 | (repo içi hazırlık bitti) Dış denetçilerin hesapları — bugün ürünün kendi kullanıcı kütüğünden açılır; UY-53 bağlandığında IdP'den gelir |
 | OT-49 · UY-55 | Hedef eşikler: eşzamanlı kullanıcı, kabul edilebilir gecikme |

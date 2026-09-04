@@ -39,7 +39,8 @@
     "tasarim:ux": "node arac/ux-denetim.mjs",
     "tasarim:cekmece": "node arac/cekmece-erisim.mjs",
     "tasarim:yuk": "node arac/bilissel-yuk.mjs",
-    "tasarim:dil": "node arac/eylem-dili.mjs"
+    "tasarim:dil": "node arac/eylem-dili.mjs",
+    "tasarim:gorev": "node arac/gorev-akisi.mjs"
   },
   "dependencies": {
     "@prisma/adapter-better-sqlite3": "^7.10.0",

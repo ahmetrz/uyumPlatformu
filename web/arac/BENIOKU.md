@@ -408,3 +408,25 @@ Tablo hücresindeki "kayıt yok" bir durum ETİKETİDİR ve sayılmaz; araç
 yalnız bozuk durum BİLEŞENLERİNE bakar. `BosFiltre` listede yoktur:
 eylemi (`temizle`) zorunlu bir parametre olduğu için tip kuralı zaten
 dayatıyor.
+
+## `gorev-akisi.mjs` — "bu işi kaç tıkla bitiriyorum?"
+
+`bilissel-yuk.mjs` bir EKRANI ölçer. Kullanıcı ise ekranda değil bir
+İŞİN içinde yaşar ve iş çoğu zaman üç ekrandan geçer: bir ekran tek
+başına temiz olabilir, iki ekran arasındaki geçiş kaybolduğunda iş yine
+bitmez.
+
+Yirmi gerçek görev baştan sona koşulur; dört şey sayılır: tıklama · sayfa
+geçişi · çıkmaz · süre.
+
+```
+PORT=3210 npm run tasarim:gorev
+PORT=3210 node arac/gorev-akisi.mjs --gorev TASK-001
+```
+
+Araç **eşik koymaz.** Bazı işler doğası gereği çok adımlıdır (dosya yükle
+→ eşle → önizle → onayla) ve onları tek tıka indirmek onaysız yazmak
+demek olurdu. Kusur sayılan tek şey **ÇIKMAZ**: hedefe hiç ulaşılamaması.
+Sayıların yorumu `docs/UX_SIMPLIFICATION_AUDIT.md` içindedir.
+
+Görevlerin hepsi YALNIZ OKUR; hiçbiri kayıt yazmaz.

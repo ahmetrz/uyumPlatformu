@@ -1052,9 +1052,19 @@
   font-family: var(--gorunum); font-size: 28px; line-height: 1.05; text-transform: uppercase;
 }
 .ab-b-portfoy-govde .plaka .guc { font-size: 11px; color: var(--i2); }
+/* Sayı kolonları SABİT genişliktedir: kaş yukarıda tek satır olarak
+   yazıldığı için plakadaki sayının onun altına düşmesi gerekir. İçerik
+   genişliğine bırakılsaydı "%100" ile "8" farklı yerlere hizalanır ve
+   kaş yalan söylerdi. */
 .ab-b-portfoy-govde .plaka .sayilar {
   position: relative; flex: none; display: flex; gap: 26px; text-align: right;
 }
+.ab-b-portfoy-govde .plaka .sayilar > .deger { min-width: 46px; }
+.ab-b-portfoy-govde .plaka-kas {
+  display: flex; gap: 26px; justify-content: flex-end;
+  padding: var(--s8) 32px; border-bottom: 1px solid var(--hr);
+}
+.ab-b-portfoy-govde .plaka-kas .etiket { min-width: 46px; text-align: right; }
 .ab-b-portfoy-govde .plaka .sayilar .deger {
   display: block; font-family: var(--veri); font-size: 17px;
   font-variant-numeric: tabular-nums;
@@ -1918,7 +1928,8 @@
 }
 .ab-dok-bosluk > summary::-webkit-details-marker { display: none; }
 .ab-dok-bosluk > summary::before {
-  content: '▾'; color: var(--i3); font-size: 10px; transition: transform .15s ease;
+  content: '▾'; color: var(--i3); font-size: 10px;
+  transition: transform var(--gecis-hizli) var(--gecis-egri);
 }
 .ab-dok-bosluk:not([open]) > summary::before { transform: rotate(-90deg); }
 .ab-dok-bosluk > summary:focus-visible { outline: 2px solid var(--aksan); outline-offset: 2px; }
@@ -2263,7 +2274,7 @@
   margin: var(--s12) 0 0; font-size: 13px; line-height: 1.5; color: var(--i2);
 }
 .ab-yol-sonraki .cumle { flex: 1 1 320px; min-width: 0; margin: 0; }
-.ab-yol-sonraki b { color: var(--i1); font-weight: 600; }
+.ab-yol-sonraki b { color: var(--murekkep); font-weight: 600; }
 
 @media (max-width: 900px) {
   /* Dar bantta beş sütun 60px'e iner ve ad kırpılır; şerit sarar. */
@@ -2402,10 +2413,22 @@
    böyle yapıyor (`.ab-a-calisma` ızgarasında panel gerçek bir sütun);
    burada da aynı gramer kurulur. Kaydırma çubuğu kaymasın diye geçiş
    animasyonu YOKTUR: açılış anında yeniden akış tek karede olur. */
+/* Çekmece YÜZEY değiştirir: bir anda belirirse kullanıcı onun nereden
+   geldiğini ve neyin yerini aldığını göremez. Kısa bir kayma bunu
+   anlatır; uzun bir kayma bekletir. `--gecis-yavas` bu ürünün en uzun
+   süresidir ve yalnız yüzey değişiminde kullanılır. */
 .ab-panel {
   position: fixed; right: 0; top: 0; bottom: 0; z-index: 30; width: 400px;
   display: flex; flex-direction: column;
   background: var(--panel); border-left: 1px solid var(--hr2);
+  animation: ab-panel-gir var(--gecis-yavas) var(--gecis-egri);
+}
+@keyframes ab-panel-gir {
+  from { transform: translateX(16px); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ab-panel { animation: none; }
 }
 /* Panel açıkken içerik, durum şeridi ve ayak panelin enini boş bırakır.
    `:has()` seçicisi kabuğun kökünde çalışır; panel kapanınca kural da
@@ -2791,7 +2814,9 @@ textarea.ab-gr { min-height: 76px; resize: vertical; }
 details:not([open]) > *:not(summary) { display: none !important; }
 .ab-genisleyen > summary .ad { flex: 1; min-width: 0; font-size: 13.5px; font-weight: 500; }
 .ab-genisleyen > summary .adet { font-size: 11px; color: var(--i3); }
-.ab-genisleyen > summary .ok { color: var(--i3); transition: transform .18s ease; }
+.ab-genisleyen > summary .ok {
+  color: var(--i3); transition: transform var(--gecis-orta) var(--gecis-egri);
+}
 .ab-genisleyen[open] > summary { background: var(--panel2); }
 .ab-genisleyen[open] > summary .ok { transform: rotate(90deg); color: var(--aksan); }
 .ab-genisleyen .cocuk { padding: 4px 0 14px 26px; }

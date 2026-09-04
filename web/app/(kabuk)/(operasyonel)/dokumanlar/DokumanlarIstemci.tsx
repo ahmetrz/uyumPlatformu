@@ -309,6 +309,11 @@ function BoslukPaneli({ karsiliksiz, yarim, toplam }: {
   const [genis, setGenis] = useState(false);
   const yalnizBos = karsiliksiz.filter((k) => k.belgeler.length === 0);
   const gosterilen = genis ? yalnizBos : yalnizBos.slice(0, 6);
+  /* İkinci liste (belgesi var ama yürürlükte değil) SINIRSIZ çiziliyordu
+     ve blok 382px'e çıkıyordu; kütük 754px'e, katlamanın altına iniyordu.
+     Birinci liste zaten altıda kesiliyordu — kural artık ikisinde de
+     aynı. */
+  const yarimGosterilen = genis ? yarim : yarim.slice(0, 4);
 
   if (karsiliksiz.length === 0) {
     return (
@@ -363,7 +368,7 @@ function BoslukPaneli({ karsiliksiz, yarim, toplam }: {
             kütükte adı görünür, denetimde karşılığı yoktur.
           </p>
           <ul className="ab-dok-liste">
-            {yarim.map((k) => (
+            {yarimGosterilen.map((k) => (
               <li key={k.maddeId}>
                 <Im durum="md" ad="Yalnız taslak/askıda belge" />
                 <Link className="kod"
@@ -376,6 +381,11 @@ function BoslukPaneli({ karsiliksiz, yarim, toplam }: {
               </li>
             ))}
           </ul>
+          {yarim.length > yarimGosterilen.length && (
+            <Dugme tur="satir" onClick={() => setGenis(true)}>
+              +{yarim.length - yarimGosterilen.length} kontrol daha
+            </Dugme>
+          )}
         </>
       )}
     </details>

@@ -173,128 +173,165 @@ kurallarını miras alır.
 | **P2** | Gereksiz yük · karmaşıklık · fazla tıklama |
 | **P3** | Cila; öznel iyileştirme |
 
-Bulgu sayısına üst sınır konmadı. Aşağıdaki her madde ya bir **ölçüme**
-ya da **kaynağın kendisine** dayanır; hiçbiri "bence" ile açılmadı.
-Ölçülen ama kusur SAYILMAYAN sayılar da yazıldı — çünkü bir sayının
-büyük olması tek başına bulgu değildir ve bunu ayırt etmek denetimin
-kendisidir.
+Bulgu sayısına üst sınır konmadı ve hiçbir madde "bence" ile açılmadı:
+her biri ya bir **ölçüme** ya da **kaynağın kendisine** dayanır.
+
+### Önce: geri çekilen beş bulgu
+
+Denetimin ilk turunda on sekiz bulgu açıldı. Düzeltmeye geçmeden önce her
+biri ekranın kendisine bakılarak doğrulandı ve **beşi geri çekildi.**
+Ölçümler doğruydu; ARACIN SINIFLANDIRMASI yanlıştı. Yazılmalarının sebebi
+bir sonraki denetimin aynı sayıları yeniden bulgu sanmaması.
+
+**SDL-0004 (kısmi) · `/surecler` · `/denetimler` · `/projeler` — "kanıt
+ana yüzeyde".** Araç `.ab-zaman` bloklarını "geçmiş" sayıyordu. Bu üç
+ekranda o çizelge GELECEĞE bakar: "hangi proje taahhüdünü tutmuyor",
+"hangi denetim takvimine yetişmiyor". Yani ekranların birincil karar
+yüzeyi. Aynı bileşen bir ekranda karar, ötekinde kanıt olabiliyor ve
+bileşenin kendisi hangisi olduğunu söylemiyor. Araç düzeltildi: artık
+yalnız tartışmasız kanıt katmanını sayıyor (köken · denetim izi · teknik
+ayrıntı). *Bulgu yalnız `/bulgular/[id]` için ayakta kaldı ve orada
+gerekçesi de değişti — aşağıya bakın.*
+
+**SDL-0005 · `/saglik/reddedilenler` — "karar eylemi 1190px'te".** Araç
+"ilk `.birincil` düğme" arıyordu; o ekranda tek düğme sayfanın en
+altındaki "+4 kayıt" açıcısıydı. Ekranın birincil eylemi bir düğmeye
+basmak DEĞİL, bir satır seçmektir — karar çekmecesi öyle açılır ve tablo
+219px'te başlıyor. Araç düzeltildi: seçilebilir ızgaranın ilk satırı da
+birincil eylem sayılıyor.
+
+**SDL-0008 · `/raporlar/kanit-paketi` — "ana yüzeyde hiç eylem yok".**
+Aynı kör nokta. Düzeltilmiş ölçümde birincil eylem 293px'te (kapsam
+satırı seçimi). Akış zaten doğruydu: önce kapsam, sonra üretim.
+
+**SDL-0016 · `/ayarlar` (446px) ve SDL-0017 · `/harita` (464px).** İkisi
+de 900px katlamasının ÜSTÜNDE. Bir ölçüt bandı taşıyan ekranda bu normal
+bir derinliktir; kusur değil.
+
+**SDL-0014 (kısmi) · iş yüzeyi 483–502px olan üç ekran.** Yukarıdaki
+düzeltmeden sonra o alanın üstünde duran şeyin kanıt değil KARAR içeriği
+olduğu görüldü. Kusur değil.
 
 ### P0
 
 **SDL-0001 · `/bulgular/[id]` · "Bu bulgunun kapanması için ne eksik?"
-sorusunun cevabı ekranda hiçbir yerde yok.**
+sorusunun cevabı ekranda hiçbir yerde yoktu. → KAPANDI**
 
-Ekranın birincil kullanıcı işi budur ve ekran onu hiçbir yerde tek parça
-söylemiyor. Kullanıcı cevabı dört ayrı yerden kendisi toplamak zorunda:
-aşama şeridinden hangi aşamada olduğunu, aksiyon tablosundan kaç
-aksiyonun açık olduğunu, çekmecedeki kök neden bloğundan analizin
-durumunu, "Doğrulama" alanından doğrulamanın yapılıp yapılmadığını.
+Ekranın birincil kullanıcı işi buydu ve ekran cevabı hiçbir yerde tek
+parça söylemiyordu; kullanıcı onu dört ayrı yerden kendisi topluyordu.
+Ölçüm: ana kolonda **tek bir eylem düğmesi yok**, ilk birincil eylem
+çekmecenin içinde **1098px** aşağıda.
 
-Ölçüm bunu doğruluyor: ana kolonda **tek bir eylem düğmesi yok.**
-Ekrandaki ilk birincil eylem çekmecenin içinde, sayfanın tepesinden
-**1098px** aşağıda ("Kök nedeni kaydet"). "Aksiyon planla" 1604px'te,
-"Kanıt bağla" 1717px'te. 1440×900 bir pencerede kullanıcı ne yapacağını
-GÖRMÜYOR.
+*Kapanış:* `lib/uyum/kapanisYolu.ts` cevabı hesaplar — beş adım, her
+birinin durumu ve görev dilinde tek cümlesi. İkinci bir kural yazılmadı:
+kapanış kararı için sunucu kapısının kendisi (`kapanisKapisi`) çağrılıyor,
+bir test ikisini yan yana koşturarak ayrışmayı imkânsız kılıyor.
 
-*Kanıt:* `arac/bilissel-yuk.mjs` ölçümü + `BulguDetayIstemci.tsx`
-satır 155-246 (ana kolon) ve 248-420 (çekmece).
+| Ölçü | Önce | Sonra |
+| --- | ---: | ---: |
+| İlk birincil eylem | 1098px | **390px** |
+| Ana yüzeyde kanıt/geçmiş | 362px | **0** |
+| Görünür etiket | 21 | **15** |
+| Görünür metin | 2 025 | **1 406** |
+| Gerekçesiz tekrar eden çift | 0 | 0 |
 
 ### P1
 
-**SDL-0002 · `/bulgular/[id]` · Aşama şeridi dekoratif.**
-`Asamalar` bileşeni dört aşamayı ve tarihlerini çiziyor ama hiçbiri
-tıklanabilir değil; şerit iş yaptırmıyor, yalnız durum bildiriyor.
-Bir kayıt ekranında ilerleme göstergesi, o adımın işine götüren
-navigatör olmalıdır.
+**SDL-0002 · `/bulgular/[id]` · Aşama şeridi dekoratifti. → KAPANDI**
+`Asamalar` dört aşamayı çiziyor, hiçbiri tıklanmıyordu. Yerine
+`KapanisBandi`: her adım bir düğmedir ve o adımın işine götürür.
 
-**SDL-0003 · `/bulgular/[id]` · Okuma hâli ile düzenleme hâli aynı.**
-Kayıt açılır açılmaz çekmecede dört seçim kutusu ("Durum", "Önem",
-"Sahip", "Son tarih"), kök neden metin alanı, retest alanı, aksiyon
-formu ve kanıt formu birden geliyor. Kullanıcı çoğu zaman bakmaya
-gelmiştir; düzenleme yüzeyi okumanın önüne geçiyor.
-*Kaynak:* `BulguDetayIstemci.tsx` 322-420.
+**SDL-0003 · `/bulgular/[id]` · Okuma hâli ile düzenleme hâli aynıydı.
+→ KAPANDI** Kayıt açılır açılmaz dört seçim kutusu, kök neden formu,
+aksiyon formu ve kanıt formu birden geliyordu. Artık okunabilir özet
+gelir; "Düzenle" ve "Analizi yaz" formları açar.
 
-**SDL-0004 · K ve Q arketipleri · Kanıt/geçmiş ana yüzeyde.**
-Zaman ekseni ve denetim izi karar yüzeyiyle aynı düzlemde duruyor ve
-asıl işi aşağı itiyor: `/bulgular/[id]` 362px · `/surecler` 402px ·
-`/denetimler` 402px · `/projeler` 342px. L3 bir kanıt katmanıdır;
-sıradaki kararı doğrudan etkilemiyorsa ana yüzeyi işgal etmemeli.
+**SDL-0004 · `/bulgular/[id]` · Zaman ekseni ana yüzeyde 362px. →
+KAPANDI** Gerekçe ilk yazdığımdan farklı ve daha güçlü: o çizelge ana
+yüzeyde duran her olguyu (son tarih · aksiyon hedefi) ölçüt bandında ve
+aksiyon tablosunda ZATEN yazılı olan biçimde tekrarlıyordu. Denetim izi
+sekmesine taşındı.
 
-**SDL-0005 · `/saglik/reddedilenler` · Kuyruğun karar eylemi 1190px'te.**
-Bu ekran bir dead-letter kuyruğudur; kullanıcı buraya reddedilen kaydı
-karara bağlamak için gelir. Karar eylemi ekranın en altında.
+**SDL-0006 · `/tesisler/[id]` · Ölçülmemiş dört boyut sonraki adımı
+söylemiyordu. → KAPANDI** İlk ifade "birincil eylem 1053px'te" idi;
+ekrana bakınca asıl kusur başka çıktı. Plant 360 "bu santral kontrol
+altında mı" sorusuna dört ayrı yerde "ölçmedik" diye cevap veriyor —
+çerçeve atanmamış · değerlendirilmiş kontrol yok · açık risk kaydı yok ·
+kayıtlı sistem yok — ve hiçbiri ölçmeye nasıl başlanacağını söylemiyordu.
+Üçüne sonraki adım bağı eklendi; ilki artık **230px**'te.
 
-**SDL-0006 · `/tesisler/[id]` · İlk eylem 1053px.**
-Santral 360 ekranı yirmi meta satırı ve on altı bağ gösteriyor; tek
-eylem hepsinin altında.
+**SDL-0009 · `/topoloji` · Sapma tezgâhı 871px'te başlıyordu. → KAPANDI**
+"Onaylı temel · kapsam başına" bloğu 480px yer kaplıyordu ve on üç
+satırın sekizi aynı cümleydi ("anlık yok — topoloji hiç ölçülmedi").
+Blok bir özet satırı + açılır listeye indi; sayı satırı hep görünür,
+çünkü sıfır sapma ile hiç ölçülmemiş kapsam aynı şey değildir.
 
-**SDL-0007 · `/api-sozlesmesi` · Tek eylem 966px'te.**
-Referans arketipi olduğu için eylem azlığı doğru; ama VAR OLAN tek
-eylemin katlamanın altında kalması, ekranın "bir şey yapılabilir"
-olduğunu gizliyor.
-
-**SDL-0008 · `/raporlar/kanit-paketi` · Durağan hâlde ne eylem var ne de
-"şimdi ne yapmalıyım" cümlesi.**
-Ölçüm: ana yüzeyde **0 düğme**. Birincil eylem ("Paketi üret ve indir")
-yalnız bir kapsam satırı seçildikten sonra çekmecede beliriyor. Akışın
-kendisi doğru — önce kapsam, sonra üretim — ama ekran bunu söylemiyor.
-
-**SDL-0009 · `/topoloji` · İş yüzeyi 871px'te başlıyor.**
-Kullanıcı buraya sapma tezgâhı için gelir; tezgâh katlamanın altında.
+| Ölçü | Önce | Sonra |
+| --- | ---: | ---: |
+| İş yüzeyi | 871px | **467px** |
+| İlk eylem | 912px | **509px** |
+| Görünür metin | 1 893 | **1 098** |
 
 **SDL-0010 · Platform geneli · 50 bozuk durum bloğu "ne yapabilirim"
-demiyor.**
-`arac/eylem-dili.mjs` ölçümü: `BosIlk` · `Olculmedi` · `BaglantiYok` ·
-`EntegrasyonYok` · `KismiVeri` · `Bakimda` bileşenlerinden ellisi
-`eylem` özelliği olmadan çiziliyor. Boş bir ekranda o cümle ekranın
-TEK içeriğidir; sonraki adımı söylemiyorsa kullanıcı orada kalır.
-Şiddeti P1'dir çünkü kusur boş ekranda tam yüzeyi kaplar.
+demiyordu. → KAPANDI** `BosIlk`, `Olculmedi`, `BaglantiYok`,
+`EntegrasyonYok`, `KismiVeri`, `Bakimda` bileşenlerinden ellisi ne eylem
+ne de "beklenen durum" işareti taşıyordu. Boş bir ekranda o cümle ekranın
+TEK içeriğidir. 38'ine sonraki adım eklendi, 12'si "beklenen durum" olarak
+işaretlendi (yeşil sol kenar, ayrı kaş). Nöbetçi: `tests/eylem-dili.test.ts`
+ve CI'da `npm run tasarim:dil`.
+
+**SDL-0019 · `/bulgular/[id]` · Kök nedene yazan İKİ ayrı form vardı.
+→ KAPANDI · denetim sırasında bulundu** Bu bulgu ölçümden değil kaynağı
+okumaktan çıktı. İkinci form (`CapaAlanlari`) aynı alana kategori
+istemeden, asgari uzunluk aramadan ve imza bırakmadan yazıyordu — yani
+kapanış kapısının reddettiği hâli (`kategorisiz` · `metinsiz` ·
+`imzasiz`) tam olarak o üretebiliyordu. Kullanıcı kaydediyor, ekran
+kaydediyor, kapı yine "analiz yok" diyordu. Kaldırıldı; kök neden tek
+yerde yazılıyor.
 
 ### P2
 
-**SDL-0011 · `/dokumanlar` · İş yüzeyi 754px, ilk eylem 646px.**
-"Karşılıksız kontroller" paneli belge kütüğünün üstünde duruyor. İkisi
-de gerçek iştir ama biri ötekini katlamanın altına itiyor.
+**SDL-0011 · `/dokumanlar` · İş yüzeyi 754px. → KAPANDI (674px)**
+"Karşılıksız kontroller" panelindeki ikinci liste sınırsız çiziliyordu;
+birincisi zaten altıda kesiliyordu. Kural ikisinde de aynı oldu.
 
-**SDL-0012 · `/kesif` · İş yüzeyi 692px.**
-Önceki program bunu 1518px'ten 692px'e indirdi; hâlâ katlamanın
-dörtte üçü kuyruğun üstünde.
+**SDL-0015 · `/portfoy` · Aynı üç etiket on altı kez. → KAPANDI**
+"Uyum · Bulgu · Risk" her plakada yeniden yazılıyordu: 16 × 3 = 48
+görünür etiket, hepsi aynı üç sözcük. Kaş bir kez, kolon başlığı olarak
+yukarı çıktı; sayılar `aria-label` ile kendi adını taşımaya devam ediyor.
+Görünür etiket **53 → 8**.
 
-**SDL-0013 · `/omur` · İş yüzeyi 570px.**
+**SDL-0012 · `/kesif` (692px) ve SDL-0013 · `/omur` (570px) · GERİ
+ÇEKİLDİ.** İkisinin de üstünde duran şey karar içeriği: aşama hattı,
+ölçüt bandı, süzgeç şeridi ve pasiflik satırı. `/kesif` bu programdan
+önce 1518px'ten 692px'e zaten indirilmişti (`docs/END_USER_UX_AUDIT.md` ·
+UX-0009) ve yeni bir kanıt olmadan o kararı yeniden açmak, kabul edilmiş
+bir tasarım kararını gerekçesiz bozmak olurdu.
 
-**SDL-0014 · `/surecler` · `/denetimler` · `/projeler` · İş yüzeyi
-483-502px ve üstünde L3 var.**
+### P3 · açık kalanlar
 
-**SDL-0015 · `/portfoy` · Aynı üç etiket on altı kez tekrar ediyor.**
-Ölçüm: 53 görünür etiket; bunların 48'i santral şeridindeki
-"Uyum · Bulgu · Risk" üçlüsünün her santral için yeniden yazılması.
-Üç etiket bir kez yazılıp değerler hizalanabilir.
+**SDL-0007 · `/api-sozlesmesi` · "Belgeyi göster" 966px'te.** Referans
+arketipinde ikincil bir yardımcı; ekranın kendi işi (hangi anahtar hangi
+uca erişiyor) katlamanın üstünde tamamlanıyor.
 
-**SDL-0016 · `/ayarlar` · İlk eylem 446px, 13 meta satırı, iş yüzeyi yok.**
+**SDL-0018 · `/sistem/bilesenler` · 2 090px'lik galeride atlama şeridi
+yok.** Geliştirici/tasarımcı referansı; son kullanıcı yüzeyi değil.
 
-**SDL-0017 · `/harita` · İlk eylem 464px.**
-
-**SDL-0018 · `/sistem/bilesenler` · İlk eylem 978px, iş yüzeyi 2090px,
-sayfada atlama şeridi yok.**
-Galeri arketipi gereği uzun; ama uzun bir referans sayfasının içindekiler
-şeridi olmalı.
+İkisi de bilinçli olarak açık bırakıldı ve kapanış raporunda öyle
+sayıldı: kapatılmamış bir kusuru kapatılmış göstermek, bu programın
+kapatmaya çalıştığı kusurdan daha pahalıdır.
 
 ### Ölçüldü, kusur SAYILMADI
 
-Bu maddeler ölçümde büyük çıktı ve tek tek incelendikten sonra bulgu
-açılmadı. Yazılmalarının sebebi, bir sonraki denetimin aynı sayıları
-yeniden "bulgu" sanmaması.
-
 | Ölçü | Neden kusur değil |
 | --- | --- |
-| `/uyum` 80 düğme · 75 durum imi | 70'i devrik matrisin hücresi. Matris bu ekranın kendisidir; hücre sayısı bir yoğunluk kusuru değil, ekranın işidir. "Bir satırda sekiz eşit düğme" kuralı satır eylemleri içindir. |
-| `/kanitlar` 66 durum imi · 6 403 karakter | 58 kanıt satırının tazelik imleri. Ekranda 7 süzgeç var ve kullanıcı listeyi daraltabiliyor. |
-| `/yardim` 7 826 karakter · 0 düğme | Referans arketipi; okuma ekranıdır, karar ekranı değil. |
+| `/uyum` 80 düğme · 75 durum imi | 70'i devrik matrisin hücresi. Matris bu ekranın kendisidir. "Bir satırda sekiz eşit düğme" kuralı satır eylemleri içindir. |
+| `/kanitlar` 66 durum imi · 6 403 karakter | 58 kanıt satırının tazelik imleri; ekranda 7 süzgeç var. |
+| `/yardim` 7 826 karakter · 0 düğme | Referans arketipi; okuma ekranıdır. |
 | `/sistem` 0 düğme | Token referansı; değer iddia etmez, okur. |
-| `/sistem/bilesenler` 4 tekrar eden çift | Galeri aynı primitifi bilerek iki durumda gösteriyor. |
 | Son kullanıcı yüzeyinde sistem dili | Tarandı: **0**. Önceki programın dil geçişi tutmuş. |
 | Gerekçesiz tekrar eden etiket→değer çifti | Tarandı: galeri dışında **0**. |
-| `/envanter` `/portfoy` `/tesisler/[id]` ölçütü 0 | Aracın kör noktası, ekranın kusuru değil. Üçü de kendi ölçüt bandını kuruyor: `/envanter` üstünde "52 / 347 varlık · 39 ölçülmemiş · 13 sahipsiz" yazıyor, `/portfoy` kendi uyum endeksini çiziyor. Araç ORTAK primitif sözlüğüne bakar; sınır aracın başlığında yazılıdır. |
+| `/envanter` `/portfoy` `/tesisler/[id]` ölçütü 0 | Aracın kör noktası, ekranın kusuru değil: üçü de kendi ölçüt bandını kuruyor. Sınır aracın başlığında yazılı. |
 
 ## Ekran ekran
 

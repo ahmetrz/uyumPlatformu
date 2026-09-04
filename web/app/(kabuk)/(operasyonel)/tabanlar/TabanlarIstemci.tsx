@@ -309,7 +309,7 @@ export default function TabanlarIstemci({
     <>
       <main className="ab-icerik">
         <EkranBasligi
-          eyebrow="Varlık · Yaşam döngüsü · OT-22"
+          eyebrow="Varlık · Yaşam döngüsü · firmware tabanı"
           vurgu={String(acik)}
           vurguDurumu={acik > 0 ? 'bd' : 'ok'}
           baslik="cihaz onaylı firmware sürümünde değil"

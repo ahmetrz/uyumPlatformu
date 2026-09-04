@@ -141,9 +141,9 @@ export default function SaklamaIstemci({
        bunu GÖRMEZ, `rota:duman` görür. */
     <main data-yuzey="defter" style={{ minWidth: 0 }}>
       <EkranBasligi
-        eyebrow="UY-56 · Saklama"
-        baslik="ve kontrollü imha"
-        vurgu={`%${ozet.kapsamaOrani}`}
+        eyebrow="Saklama ve kontrollü imha"
+        baslik="kayıt ailesinin saklama politikası tanımlı"
+        vurgu={`${ozet.tanimli + ozet.suresiz}/${ozet.tanimlanabilir}`}
         vurguDurumu={ozet.tanimsiz > 0 ? 'bd' : 'ok'}
         metrikler={[
           { deger: String(ozet.tanimli + ozet.suresiz), payda: String(ozet.tanimlanabilir),
@@ -179,7 +179,7 @@ export default function SaklamaIstemci({
         <Tablo kolonlar={POLITIKA_KOLONLARI} satirlar={politikaSatirlari} />
       </Bolum>
 
-      <Bolum baslik="Hukuki muhafaza (legal hold)">
+      <Bolum baslik="Hukuki muhafaza">
         {holdSatirlari.length === 0
           ? <BosIlk cumle="Tanımlı hukuki muhafaza yok." />
           : <Tablo kolonlar={HOLD_KOLONLARI} satirlar={holdSatirlari} />}

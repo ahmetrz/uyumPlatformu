@@ -80,9 +80,9 @@ export default function YedekParcaIstemci({
   return (
     <main data-yuzey="defter" style={{ minWidth: 0 }}>
       <EkranBasligi
-        eyebrow="OT-56 · Kritik"
-        baslik="yedek parça"
-        vurgu={ozet.acikRisk > 0 ? `${ozet.acikRisk} parça açıkta` : undefined}
+        eyebrow={`Kritik yedek parça · ${ozet.toplam} kayıt`}
+        baslik={ozet.acikRisk > 0 ? 'parçanın kritik varlığı açıkta' : 'Kritik varlıkta açık parça yok'}
+        vurgu={ozet.acikRisk > 0 ? `${ozet.acikRisk}` : undefined}
         vurguDurumu={ozet.acikRisk > 0 ? 'bd' : ozet.esikte > 0 ? 'md' : 'ok'}
         metrikler={[
           { deger: String(ozet.aktif), payda: String(ozet.toplam), yazi: 'aktif kayıt' },

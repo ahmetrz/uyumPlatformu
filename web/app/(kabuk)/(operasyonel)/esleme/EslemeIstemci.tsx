@@ -31,7 +31,7 @@ import {
 type Kip = 'profil' | 'connector' | 'duzenleyici';
 
 const PROFIL_KOLONLARI: Kolon[] = [
-  { baslik: 'Connector tipi', genislik: '150px' },
+  { baslik: 'Bağlayıcı tipi', genislik: '150px' },
   { baslik: 'Etkin sürüm', genislik: '110px' },
   { baslik: 'Kural', genislik: '70px', sag: true },
   { baslik: 'Sürüm', genislik: '80px', sag: true, ikincil: true },
@@ -144,7 +144,7 @@ export default function EslemeIstemci({
             { deger: sayim.etkinSurum, yazi: 'Etkin sürüm',
               durum: sayim.etkinsizProfil > 0 ? 'md' : undefined },
             { deger: sayim.arsivSurum, yazi: 'Arşiv sürüm' },
-            { deger: sayim.gomuluConnector, yazi: 'Gömülü eşlemeyle koşan connector',
+            { deger: sayim.gomuluConnector, yazi: 'Gömülü eşlemeyle koşan bağlayıcı',
               durum: sayim.gomuluConnector > 0 ? 'unk' : undefined },
           ]}
         />
@@ -173,9 +173,9 @@ export default function EslemeIstemci({
 
             {aileler.length === 0 ? (
               <BosIlk
-                cumle={'Hiç eşleme profili yayımlanmadı. Bu, connector\'ların'
+                cumle={'Hiç eşleme profili yayımlanmadı. Bu, bağlayıcıların'
                   + ' eşlemesiz koştuğu anlamına GELMEZ: profili olmayan'
-                  + ' connector adaptörün gömülü eşlemesini kullanır ve o'
+                  + ' bağlayıcı kendi gömülü eşlemesini kullanır ve o'
                   + ' kurallar üründe görünmez. Bir profil yayımlamak, o'
                   + ' kuralları görünür ve sürümlü hâle getirir.'}
                 eylem={yazabilir
@@ -229,8 +229,8 @@ export default function EslemeIstemci({
         {kip === 'connector' && (
           <section className="ab-ekran-govde" style={{ paddingTop: 'var(--s22)' }}>
             {connectorlar.length === 0 ? (
-              <BosIlk cumle={'Tanımlı connector yok. Eşleme profili yine de'
-                + ' yayımlanabilir: connector açıldığında tipinin etkin profili'
+              <BosIlk cumle={'Tanımlı bağlayıcı yok. Eşleme profili yine de'
+                + ' yayımlanabilir: bağlayıcı açıldığında tipinin etkin profili'
                 + ' kendiliğinden geçerli olur.'} />
             ) : (
               <Tablo
@@ -285,7 +285,7 @@ export default function EslemeIstemci({
 
           <CekmeceAlanlar
             alanlar={[
-              { etiket: 'Connector tipi', deger: secim.connectorTipi },
+              { etiket: 'Bağlayıcı tipi', deger: secim.connectorTipi },
               { etiket: 'Etkin sürüm',
                 deger: secim.etkin ? `v${secim.etkin.surum}` : 'yok',
                 durum: secim.etkin ? undefined : 'unk' },
@@ -371,7 +371,7 @@ export default function EslemeIstemci({
                 : DURUM_SOZU[cSecim.profilDurumu ?? ''] ?? 'Profil bağlı'}
             baslik={cSecim.ad}
             cumle={cSecim.kaynak === 'gomulu' && !cSecim.hata
-              ? 'Bu connector adaptörün gömülü eşlemesiyle koşuyor. Alanların'
+              ? 'Bu bağlayıcı kendi gömülü eşlemesiyle koşuyor. Alanların'
                 + ' nasıl çevrildiği üründe TANIMLI DEĞİL; sürümlü bir profil'
                 + ' yayımlayıp bağlamak kuralı görünür ve denetlenebilir yapar.'
               : undefined}
@@ -392,8 +392,8 @@ export default function EslemeIstemci({
             ]}
           />
           <CekmeceEylemler
-            dipNot={'Profil BAĞLAMA bu ekranda değil, connector yapılandırma'
-              + ' çekmecesindedir (/saglik): bağ connector kaydının alanıdır,'
+            dipNot={'Profil BAĞLAMA bu ekranda değil, bağlayıcı yapılandırma'
+              + ' çekmecesindedir (/saglik): bağ bağlayıcı kaydının alanıdır,'
               + ' profilin değil. Burası profilin doğduğu yerdir.'}
           />
         </Cekmece>

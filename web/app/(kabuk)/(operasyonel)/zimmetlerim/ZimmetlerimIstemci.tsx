@@ -93,9 +93,11 @@ export default function ZimmetlerimIstemci({
   return (
     <main data-yuzey="defter" style={{ minWidth: 0 }}>
       <EkranBasligi
-        eyebrow="OT-09b · Zimmet"
-        baslik="bana atanan varlıklar"
-        vurgu={ozet.bekleyen === 0 ? 'bekleyen yok' : `${ozet.bekleyen} bekliyor`}
+        eyebrow="Zimmet · bana atanan varlıklar"
+        baslik={ozet.bekleyen === 0
+          ? 'Cevap bekleyen zimmet yok'
+          : 'zimmet cevabımı bekliyor'}
+        vurgu={ozet.bekleyen === 0 ? undefined : `${ozet.bekleyen}`}
         vurguDurumu={ozet.gecikmis > 0 ? 'bd' : ozet.bekleyen > 0 ? 'md' : 'ok'}
         metrikler={[
           { deger: ozet.bekleyen, yazi: 'Cevap bekliyor',

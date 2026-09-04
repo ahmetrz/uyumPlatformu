@@ -165,7 +165,7 @@ export default function Duzenleyici({
             <input className="ab-gr" value={ad} placeholder="CMDB varlık eşlemesi"
               onChange={(e) => setAd(e.target.value)} />
           </Alan>
-          <Alan etiket="Connector tipi" zorunlu>
+          <Alan etiket="Bağlayıcı tipi" zorunlu>
             <input className="ab-gr" value={tip} list="esleme-tipleri"
               placeholder="ör. cmdb_rest"
               onChange={(e) => setTip(e.target.value)} />

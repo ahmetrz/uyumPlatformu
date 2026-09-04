@@ -7,17 +7,31 @@
    ise ancak çekmece AÇIKKEN görünür ve hiçbir statik tarama onları
    göremez:
 
-     · Odak tuzağı — Tab, çekmeceden çıkıp arkadaki sayfada dolaşıyor
-       mu? Klavye kullanan biri çekmeceyi "kapatmadan" terk ederse
-       ekranda nerede olduğunu kaybeder; ekran okuyucu ise arka planı
-       okumaya devam eder.
-     · `role="dialog"` ve `aria-modal` — ekran okuyucuya "bu bir katman"
-       demenin tek yolu.
      · ESC — açılan her katmanın kaçış yolu.
+     · Açılışta odak panele girmeli; ekran okuyucu paneli okusun.
      · Kapanışta odak — çekmeceyi açan öğeye geri dönmeli; yoksa odak
        belgenin başına düşer ve kullanıcı listedeki yerini kaybeder.
+     · Erişilebilir ad — panel adsızsa "tamamlayıcı bölge" diye okunur.
      · Örtme — dar masaüstünde 400px'lik panel iş yüzeyinin ne kadarını
        kapatıyor? Kapattığı yer okunamıyorsa bağlam korunmuş sayılmaz.
+
+   ── BU PANEL MODAL DEĞİLDİR VE ÖYLE ÖLÇÜLÜR ───────────────────────────
+   Aracın ilk sürümü `role="dialog"`, `aria-modal="true"` ve odak tuzağı
+   arıyordu; onları bulamayınca on ekranı birden kusurlu saydı. Yanlış
+   olan ekranlar değil, aracın varsayımıydı.
+
+   `components/kabuk/panel.tsx` bu paneli BİLEREK modal yapmıyor ve
+   gerekçesini yazıyor: okuyucu kütüğü görmeye devam etmelidir. Modal
+   bir çekmece bunun tam tersini yapar. Böyle bir panelde:
+
+     · `aria-modal="true"` YAZMAK YALAN OLUR — arka plan atıl değildir;
+       ekran okuyucuya "arkası kapandı" demek onu yanlış yönlendirir.
+     · Odak tuzağı KURMAK ZARARLI OLUR — tasarımın okunur bıraktığı
+       tabloya klavyeyle ulaşmayı engellerdi.
+
+   Bu yüzden araç modal işaretlerinin YOKLUĞUNU doğrular. Panel bir gün
+   gerçekten modal olursa üçü birden gelmelidir; ikisi olup biri olmayan
+   hâl kusurdur ve burada öyle raporlanır.
 
    Çekmeceyi AÇMAK için ekrandaki ilk seçilebilir satır tıklanır; bu
    ürünün her tezgâh ekranında geçerli kalıptır.
@@ -84,14 +98,21 @@ for (const rota of ROTALAR) {
       .filter((e) => e.offsetParent !== null || e === document.activeElement);
     const disarida = hepsi.filter((e) => !p.contains(e));
 
-    /* Panelin kapattığı iş yüzeyi: panelin altında kalan tablo eni. */
+    /* Panelin kapattığı iş yüzeyi. Ham yüzde tek başına bir şey söylemez:
+       400px'lik panel her ekranda tablonun benzer bir dilimini örter ve
+       tasarım bunu kabul eder. ÖLÇÜLMESİ GEREKEN, kaydın KİMLİĞİNİN
+       okunur kalıp kalmadığıdır — kullanıcı panelde incelediği satırı
+       listede bulabilmelidir. Kimlik ilk iki kolondadır. */
     const r = p.getBoundingClientRect();
     const tablo = document.querySelector('table');
     let ortulenOran = null;
+    let kimlikOrtuldu = false;
     if (tablo) {
       const t = tablo.getBoundingClientRect();
       const kesisim = Math.max(0, Math.min(t.right, r.right) - Math.max(t.left, r.left));
       ortulenOran = t.width > 0 ? Math.round((kesisim / t.width) * 100) : null;
+      const kimlikKolonlari = [...tablo.querySelectorAll('thead th')].slice(0, 2);
+      kimlikOrtuldu = kimlikKolonlari.some((th) => th.getBoundingClientRect().right > r.left);
     }
     return {
       rol: p.getAttribute('role'),
@@ -100,12 +121,13 @@ for (const rota of ROTALAR) {
       icerdeki: icerdeki.length,
       disarida: disarida.length,
       ortulenOran,
+      kimlikOrtuldu,
       panelEni: Math.round(r.width),
     };
   });
   if (!olcum) { atlanan.push(`${rota}: panel ölçülemedi`); continue; }
 
-  /* ── Odak tuzağı: son öğeden sonra Tab ilk öğeye dönmeli ──────────── */
+  /* ── Odak tuzağı VAR MI (kusur değil, hâl tespiti) ────────────────── */
   await sayfa.evaluate(() => {
     const p = document.querySelector('.ab-panel');
     const ODAKLANABILIR = 'a[href], button:not([disabled]), input:not([disabled]),'
@@ -130,21 +152,35 @@ for (const rota of ROTALAR) {
   });
 
   const sorunlar = [];
-  if (!tuzakVar) sorunlar.push('odak tuzağı YOK — Tab çekmeceden çıkıyor');
-  if (olcum.rol !== 'dialog') sorunlar.push(`role="${olcum.rol ?? 'yok'}" (dialog bekleniyor)`);
-  if (olcum.modal !== 'true') sorunlar.push('aria-modal yok');
   if (!olcum.etiketli) sorunlar.push('erişilebilir ad yok');
   if (!escKapatti) sorunlar.push('ESC kapatmadı');
   if (!odakGeriDondu) sorunlar.push('kapanışta odak belgeye düştü');
-  if (olcum.ortulenOran !== null && olcum.ortulenOran > 40) {
-    sorunlar.push(`iş yüzeyinin %${olcum.ortulenOran}'ini örtüyor`);
+  /* 1024'ün altında panel bilerek tam eni kaplar (bkz. app/kabuk.css):
+     o bantta tabloya kalan en, kolon başlıklarını bile taşımaz. Örtme
+     orada tasarımın kendisidir, kusur değil — dokunmatik bantta yatay
+     kaydırmayı kusur saymadığımız gibi. */
+  if (EN >= 1024 && olcum.kimlikOrtuldu) {
+    sorunlar.push(`kaydın KİMLİK kolonlarını örtüyor (%${olcum.ortulenOran})`);
+  }
+  if (EN < 1024 && !olcum.kimlikOrtuldu) {
+    sorunlar.push('dar bantta panel tam eni kaplamıyor — yarım okunan iki yüzey');
+  }
+  /* Modal olmayan panelin modal işareti taşımaması KURALDIR (yukarıya
+     bakın). Üçlünün eksik kalanı da kusurdur: yarı modal bir panel,
+     ekran okuyucuya tutarsız bir söz verir. */
+  const modalIsaretleri = [olcum.rol === 'dialog', olcum.modal === 'true', tuzakVar];
+  const kacIsaret = modalIsaretleri.filter(Boolean).length;
+  if (kacIsaret > 0 && kacIsaret < 3) {
+    sorunlar.push(`YARI MODAL: role=${olcum.rol ?? 'yok'} · aria-modal=${olcum.modal ?? 'yok'}`
+      + ` · odak tuzağı ${tuzakVar ? 'var' : 'yok'}`);
   }
 
   if (sorunlar.length) {
     kusurlar.push({ rota, sorunlar, olcum });
     console.log(`✗ ${rota.padEnd(24)} ${sorunlar.join(' · ')}`);
   } else {
-    console.log(`✓ ${rota.padEnd(24)} ${olcum.icerdeki} odaklanabilir · panel ${olcum.panelEni}px`);
+    console.log(`✓ ${rota.padEnd(24)} ${olcum.icerdeki} odaklanabilir · panel ${olcum.panelEni}px`
+      + ` · tabloyu örtme %${olcum.ortulenOran ?? '—'} · modal değil (bilinçli)`);
   }
 }
 

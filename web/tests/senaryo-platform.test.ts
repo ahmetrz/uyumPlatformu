@@ -152,6 +152,11 @@ describe('Duyarlı yerleşim kapısı', () => {
 const JARGON = [
   'provider', 'adapter', 'registry', 'mutation', 'payload', 'boolean',
   'foreign key', 'nullable', 'endpoint', 'middleware', 'schema',
+  /* UX-0010'da ölçüldü. "connector" ürünün KENDİ İÇİNDE tutarsızdı:
+     durum şeridi "bağlayıcı" derken /esleme ve /kesif "connector"
+     diyordu. "ölü mektup" ile "legal hold" ise doğrudan çeviri
+     jargonudur; ikisinin de son kullanıcı sözlüğünde karşılığı yok. */
+  'connector', 'ölü mektup', 'legal hold', 'dead letter',
 ];
 
 /** Bu sözcüklerin GEÇMESİ serbest olan yerler ve gerekçeleri. */

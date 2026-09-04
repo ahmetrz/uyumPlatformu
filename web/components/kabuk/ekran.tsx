@@ -136,7 +136,7 @@ export function TezgahHatti({ asamalar, aktifIndeks, not, reddedilenler = true }
           {not}
           {not && reddedilenler && ' · '}
           {reddedilenler && (
-            <Link href="/saglik/reddedilenler">Reddedilen kayıtlar (ölü mektup) →</Link>
+            <Link href="/saglik/reddedilenler">Reddedilen kayıtlar →</Link>
           )}
         </p>
       )}

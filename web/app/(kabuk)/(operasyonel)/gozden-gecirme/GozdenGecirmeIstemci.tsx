@@ -70,11 +70,11 @@ export default function GozdenGecirmeIstemci({
   return (
     <main data-yuzey="defter" style={{ minWidth: 0 }}>
       <EkranBasligi
-        eyebrow="UY-65 · Yönetim"
-        baslik="gözden geçirme"
-        vurgu={ozet.sonYapilanGun === null
-          ? 'hiç yapılmadı'
-          : `${ozet.sonYapilanGun} gün önce`}
+        eyebrow={`Yönetim gözden geçirmesi · ${ozet.toplam} kayıt`}
+        baslik={ozet.sonYapilanGun === null
+          ? 'Gözden geçirme henüz hiç yapılmadı'
+          : 'gün önce gözden geçirildi'}
+        vurgu={ozet.sonYapilanGun === null ? undefined : `${ozet.sonYapilanGun}`}
         vurguDurumu={ozet.kararsiz > 0 ? 'bd'
           : ozet.sonYapilanGun === null || ozet.sonYapilanGun > PERIYOT_GUN ? 'md' : 'ok'}
         metrikler={[

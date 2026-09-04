@@ -71,9 +71,9 @@ export default function TasinabilirMedyaIstemci({
   return (
     <main data-yuzey="defter" style={{ minWidth: 0 }}>
       <EkranBasligi
-        eyebrow="OT-57 · Taşınabilir"
-        baslik="medya"
-        vurgu={ozet.kayip > 0 ? `${ozet.kayip} medya kayıp` : undefined}
+        eyebrow={`Taşınabilir medya · ${ozet.toplam} kayıt`}
+        baslik={ozet.kayip > 0 ? 'medya kayıp' : 'Kayıp medya yok'}
+        vurgu={ozet.kayip > 0 ? `${ozet.kayip}` : undefined}
         vurguDurumu={ozet.kayip > 0 || ozet.taranmayan > 0 ? 'bd' : 'ok'}
         metrikler={[
           { deger: String(ozet.toplam), yazi: 'kayıtlı medya' },

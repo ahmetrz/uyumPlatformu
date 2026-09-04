@@ -343,7 +343,7 @@ export default function ProseslerIstemci({
     <>
       <main className="ab-icerik">
         <EkranBasligi
-          eyebrow="Varlık · Ağ & bağımlılık · OT-05"
+          eyebrow="Varlık · Ağ & bağımlılık · proses zinciri"
           vurgu={String(toplam.tekNokta)}
           vurguDurumu={toplam.tekNokta > 0 ? 'bd' : 'ok'}
           baslik="bağ tek nokta ve yedeksiz"

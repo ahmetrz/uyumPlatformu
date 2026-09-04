@@ -274,7 +274,7 @@ export default function KesifIstemci({
           <PasiflikBolumu />
           <ElleAktarimFormu yazabilir={yazabilir} />
           <PasifGozlemFormu yazabilir={yazabilir} tesisler={tesisler} />
-          <BosIlk cumle="Henüz keşif kaydı yok. Pasif bir kaynağın dışa aktarımını yükleyin ya da bir connector çalıştırın." />
+          <BosIlk cumle="Henüz keşif kaydı yok. Pasif bir kaynağın dışa aktarımını yükleyin ya da bir bağlayıcı çalıştırın." />
         </section>
       </main>
     );

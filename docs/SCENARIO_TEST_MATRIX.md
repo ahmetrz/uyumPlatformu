@@ -4,18 +4,18 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 226 |
-| Testi olan senaryo | 226 |
+| Senaryo | 228 |
+| Testi olan senaryo | 228 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
-| Taranan test dosyası | 133 |
+| Taranan test dosyası | 134 |
 
 ## Katman başına kapsam
 
 | Katman | Senaryo | Testli | GAP |
 | --- | --- | --- | --- |
-| ACCESSIBILITY | 5 | 5 | 0 |
+| ACCESSIBILITY | 6 | 6 | 0 |
 | API | 12 | 12 | 0 |
 | CONCURRENCY | 7 | 7 | 0 |
 | DOMAIN | 124 | 124 | 0 |
@@ -26,7 +26,7 @@
 | RESPONSIVE | 8 | 8 | 0 |
 | SCOPE | 25 | 25 | 0 |
 | SERVER | 80 | 80 | 0 |
-| UI | 62 | 62 | 0 |
+| UI | 64 | 64 | 0 |
 | VISUAL | 2 | 2 | 0 |
 | WORKFLOW | 26 | 26 | 0 |
 
@@ -260,6 +260,8 @@
 | `SIS-KBK-018` | Sistem | UI · DOMAIN | `kabuk-gezinme.test.ts` | app/ altındaki her statik sayfa rotalar.json içinde | evet | geçti |
 | `SIS-UXD-001` | Sistem | UI · DOMAIN | `senaryo-kutugu.test.ts` | rota envanterindeki her ekranın kendi bölümü var | evet | geçti |
 | `SIS-UXD-002` | Sistem | UI · DOMAIN | `senaryo-kutugu.test.ts` | her bulgu bir önem derecesi taşır | evet | geçti |
+| `SIS-BSL-001` | Sistem | UI · ACCESSIBILITY | `ekran-basligi.test.ts` | vurgusuz kalabilen başlık cümle parçası olamaz | evet | geçti |
+| `SIS-BSL-002` | Sistem | UI | `ekran-basligi.test.ts` | künyede ister kodu geçmiyor | evet | geçti |
 
 ## Gerekçesiyle kütüksüz kalan dosyalar
 

@@ -72,9 +72,9 @@ export default function EgitimlerIstemci({
   return (
     <main data-yuzey="defter" style={{ minWidth: 0 }}>
       <EkranBasligi
-        eyebrow="UY-66 · Eğitim"
-        baslik="kütüğü"
-        vurgu={eksikKayit > 0 ? `${eksikKayit} eksik kayıt` : undefined}
+        eyebrow={`Eğitim kütüğü · ${satirlar.length} tanımlı eğitim`}
+        baslik={eksikKayit > 0 ? 'kişinin eğitim kaydı yok' : 'Kapsamdaki herkesin eğitim kaydı var'}
+        vurgu={eksikKayit > 0 ? `${eksikKayit} kişi` : undefined}
         vurguDurumu={eksikKayit > 0 || suresiDolan > 0 ? 'bd' : 'ok'}
         metrikler={[
           { deger: String(satirlar.length), yazi: 'tanımlı eğitim' },

@@ -475,8 +475,17 @@
 .ab-alt .kunye { color: var(--i2); }
 .ab-alt .kunye .mono { font-size: 11px; color: var(--i3); }
 .ab-alt nav { display: inline-flex; gap: 16px; margin-left: auto; }
-.ab-alt nav a { color: var(--i3); border-bottom: 1px solid var(--hr2); line-height: 1.2; }
-.ab-alt nav a:hover { color: var(--murekkep); border-bottom-color: var(--aksan); }
+/* Bağlar 24px'lik dokunma hedefini karşılar (WCAG 2.2 · 2.5.8): ölçüldü,
+   eskiden 36×14 · 50×14 · 81×14 idi ve 49 rotanın hepsinde öyleydi.
+   Alt çizgi metnin kendi altında kalır — kutunun değil — yoksa 24px'lik
+   hedef ayağın içinde kalın bir şerit gibi görünürdü. */
+.ab-alt nav a {
+  display: inline-flex; align-items: center; min-height: 24px;
+  color: var(--i3); line-height: 1.2;
+  text-decoration: underline; text-decoration-color: var(--hr2);
+  text-underline-offset: 3px;
+}
+.ab-alt nav a:hover { color: var(--murekkep); text-decoration-color: var(--aksan); }
 .ab-alt .telif { color: var(--i3); }
 /* Amiral: iki satır sıkışır ama BİRLEŞMEZ — durum 26px (panel zemini,
    canlı veri) + ayak 22px (zemin, kurumsal künye). Eski tek 28px şerit
@@ -2221,10 +2230,44 @@
 .ab-ok { color: var(--i3); }
 
 /* ── Doklu detay paneli ────────────────────────────────────────────── */
+/* ── ÖLÇÜLDÜ: PANEL DOKLU DEĞİL, ÜSTE BİNİYORDU ──────────────────────
+   `components/kabuk/panel.tsx` bu panelin sözünü yazıyor: "okuyucu
+   kütüğü/tuvali GÖRMEYE DEVAM EDER". Ölçüm sözün tutulmadığını gösterdi:
+   panel `position: fixed` olduğu için gövde daralmıyor, panel içeriğin
+   ÜSTÜNE biniyordu. 1440px'te on tezgâhın YEDİSİNDE kaydın KİMLİK
+   kolonları (ilk iki kolon) panelin altında kalıyordu — kullanıcı
+   panelde incelediği satırı listede bulamıyordu.
+
+   Kusur geniş ekranda daha ağırdı: tablo genişledikçe ilk iki kolon da
+   sağa uzuyor ve 400px'lik şeridin altına giriyordu.
+
+   Çözüm gövdeyi DARALTMAK: panel açıkken içerik alanı panelin enini
+   bırakır ve tablo kalan ende yeniden akar. `/envanter` bunu zaten
+   böyle yapıyor (`.ab-a-calisma` ızgarasında panel gerçek bir sütun);
+   burada da aynı gramer kurulur. Kaydırma çubuğu kaymasın diye geçiş
+   animasyonu YOKTUR: açılış anında yeniden akış tek karede olur. */
 .ab-panel {
   position: fixed; right: 0; top: 0; bottom: 0; z-index: 30; width: 400px;
   display: flex; flex-direction: column;
   background: var(--panel); border-left: 1px solid var(--hr2);
+}
+/* Panel açıkken içerik, durum şeridi ve ayak panelin enini boş bırakır.
+   `:has()` seçicisi kabuğun kökünde çalışır; panel kapanınca kural da
+   düşer ve hiçbir sınıf temizliği gerekmez. */
+.ab:has(.ab-panel) .ab-icerik,
+.ab:has(.ab-panel) .ab-durum,
+.ab:has(.ab-panel) .ab-alt { padding-right: calc(400px + var(--gutter)); }
+@media (max-width: 1023px) {
+  /* Eşik ÖLÇÜLEREK seçildi. 1024px görev listesindeki en dar masaüstü
+     bandıdır ve orada 400px'lik panel tabloya 624px bırakır — kimlik
+     kolonları okunur kalır. Bir alt bantta (768px) aynı bölüşüm tabloya
+     368px bırakırdı; o en, kolon başlıklarını bile taşımaz. Bu yüzden
+     1024'ün ALTINDA panel bilerek tam eni kaplar: kullanıcı tek seferde
+     tek şeye bakar, yarım okunan iki şeye değil. */
+  .ab-panel { width: 100%; }
+  .ab:has(.ab-panel) .ab-icerik,
+  .ab:has(.ab-panel) .ab-durum,
+  .ab:has(.ab-panel) .ab-alt { padding-right: var(--gutter); }
 }
 .ab-panel:focus { outline: none; }
 .ab-panel > header {
@@ -3043,6 +3086,13 @@ details:not([open]) > *:not(summary) { display: none !important; }
 @media (prefers-reduced-motion: reduce) {
   .ab-tara::after, .ab-halka, .ab-b-takim .halka { animation: none; }
   .ab-tara::after { display: none; }
+  /* Topoloji tuvalindeki akış sonsuzdur ve kendiliğinden başlar; listede
+     olmaması bir gözden kaçmaydı (UX-0008). Kenar görünür kalır, yalnız
+     akışı durur — çizginin kendisi bir veridir. */
+  .ab-tuval .kenar.akis { animation: none; }
+  /* Açılır oku ve fotoğraf soluklaşmaları da anında olur. */
+  .ab-genisleyen > summary .ok,
+  .ab-b-serit .kart > img, .ab-b-fon > img.ust { transition: none; }
 }
 
 /* ═══ Yazdırma — rapor ve denetim ekranları ═══════════════════════════
@@ -3088,9 +3138,25 @@ details:not([open]) > *:not(summary) { display: none !important; }
   .ab-c-dizin .bolum { flex: 1 1 200px; margin-bottom: 0; }
   .ab-ust > nav a { padding: 0 12px; font-size: 12px; }
   /* Üst çubuk 1100px'in ALTINDA yatay kaydırılır; marka yapışkan kalır
-     ki çıkış kapısı kaybolmasın (768px'te ölçüldü, 34 rotada). */
+     ki çıkış kapısı kaybolmasın (768px'te ölçüldü, 34 rotada).
+
+     ── ÖLÇÜLDÜ: ÇIKIŞ KAPISI MARKADA DEĞİLDİ ─────────────────────────
+     Sağ öbek (arama · bildirim · hesap menüsü) 807px'lik doğal enini
+     koruyor; pencere 807'nin altına inince ekran dışında kalıyordu —
+     800px'te 7px, 768px'te 39px, 720px'te 87px. Kaydırma çubuğu gizli
+     olduğu için de bir ipucu yoktu. Çıkış, arama ve okunmamış bildirim
+     sayacı orada duruyor; yani kaybolan şey markanın koruduğu sanılan
+     kapının ta kendisiydi.
+
+     Çözüm markayla simetrik: marka sola, sağ öbek sağa yapışır. Ortadaki
+     alan sekmeleri ikisinin arasında kayar. Zemin şart: yapışkan öbeğin
+     altından geçen bağlar okunmaz hâle gelmesin. */
   .ab-ust { overflow-x: auto; scrollbar-width: none; }
   .ab-ust .marka { position: sticky; left: 0; z-index: 1; background: var(--zemin); }
+  .ab-ust .sag {
+    position: sticky; right: 0; z-index: 1; background: var(--zemin);
+    box-shadow: -12px 0 12px -12px var(--zemin);
+  }
   /* Portföy: 380px kimlik sütunu + plakalar yan yana sığmaz; kimlik üste
      çıkar, yapışkanlığını bırakır (aksi hâlde plakaları örter). */
   .ab-b-portfoy-govde { grid-template-columns: minmax(0, 1fr); }

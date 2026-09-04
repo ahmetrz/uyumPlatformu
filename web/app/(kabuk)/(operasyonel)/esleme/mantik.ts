@@ -183,7 +183,7 @@ export function yayinPasifMi(g: {
     return 'Kod yalnız harf, rakam, tire ve alt çizgi içerebilir.';
   }
   if (!g.ad.trim()) return 'Ad zorunlu.';
-  if (!g.connectorTipi.trim()) return 'Connector tipi zorunlu.';
+  if (!g.connectorTipi.trim()) return 'Bağlayıcı tipi zorunlu.';
   if (g.kuralSayisi === 0) return 'Profil en az bir kural içermeli.';
   if (g.bekliyor) return 'Önceki yayın gönderiliyor.';
   return '';
@@ -240,7 +240,7 @@ export function ekranHali(sayim: Sayim, connectorSayisi: number): {
   }
   if (sayim.gomuluConnector > 0) {
     return {
-      vurgu: `${sayim.gomuluConnector} connector`,
+      vurgu: `${sayim.gomuluConnector} bağlayıcı`,
       metin: 'gömülü eşlemeyle koşuyor — kuralları üründe tanımlı değil',
       durum: 'unk',
     };

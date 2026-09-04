@@ -63,9 +63,9 @@ export default function ApiSozlesmesiIstemci({
        bunu GÖRMEZ, `rota:duman` görür. */
     <main data-yuzey="tezgah" style={{ minWidth: 0 }}>
       <EkranBasligi
-        eyebrow="UY-52 · Dış API"
-        baslik="sözleşmesi"
-        vurgu={`${UC_KIMLIKLERI.length} uç`}
+        eyebrow="Dış API · uç sözleşmesi"
+        baslik="uç sözleşmesi tanımlı"
+        vurgu={`${UC_KIMLIKLERI.length}`}
         vurguDurumu={ozet.kapsamsiz > 0 ? 'bd' : 'ok'}
         metrikler={[
           { deger: String(ozet.toplam - ozet.pasif), payda: String(ozet.toplam),

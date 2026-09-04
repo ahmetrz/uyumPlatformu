@@ -76,9 +76,13 @@ export default function DenetciErisimiIstemci({
        bunu GÖRMEZ, `rota:duman` görür. */
     <main data-yuzey="defter" style={{ minWidth: 0 }}>
       <EkranBasligi
-        eyebrow="UY-57 · Dış denetçi"
-        baslik="erişimi"
-        vurgu={`${ozet.aktif + ozet.hicKullanilmayan + ozet.bitmekUzere} açık`}
+        eyebrow={`Dış denetçi erişimi · ${ozet.toplam} kayıt`}
+        baslik={ozet.aktif + ozet.hicKullanilmayan + ozet.bitmekUzere > 0
+          ? 'erişim şu anda açık'
+          : 'Şu anda açık dış denetçi erişimi yok'}
+        vurgu={ozet.aktif + ozet.hicKullanilmayan + ozet.bitmekUzere > 0
+          ? `${ozet.aktif + ozet.hicKullanilmayan + ozet.bitmekUzere}`
+          : undefined}
         vurguDurumu={ozet.kapsamsiz > 0 ? 'bd' : ozet.bitmekUzere > 0 ? 'md' : 'ok'}
         metrikler={[
           { deger: String(ozet.toplam), yazi: 'kayıtlı erişim' },

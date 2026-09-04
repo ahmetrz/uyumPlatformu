@@ -76,9 +76,9 @@ export default function SayimIstemci({
     /* Kabuk `<main>` basmaz; ana bölgeyi ekran çizer. */
     <main data-yuzey="defter" style={{ minWidth: 0 }}>
       <EkranBasligi
-        eyebrow="OT-55 · Envanter"
-        baslik="sayımı"
-        vurgu={acik.length > 0 ? `${acik.length} sayım açık` : undefined}
+        eyebrow={`Envanter sayımı · ${sayimlar.length} tur`}
+        baslik={acik.length > 0 ? 'sayım turu açık' : 'Açık sayım turu yok'}
+        vurgu={acik.length > 0 ? `${acik.length}` : undefined}
         vurguDurumu={kayip > 0 || fazladan > 0 ? 'bd' : 'ok'}
         metrikler={[
           { deger: String(sayimlar.length), yazi: 'sayım turu' },

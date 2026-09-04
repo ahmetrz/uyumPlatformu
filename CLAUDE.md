@@ -15,6 +15,7 @@ oku; buradan varsayma.
 | İsterler listesi terimleri | `docs/TERIMLER_SOZLUGU.md` |
 | İsterlerin "nasıl" cevabı · veri yolları | `docs/VERI_NEREDEN_GELIR.md` |
 | Tasarım sistemi | `web/DESIGN.md` |
+| Zorunlu UX / ürün tasarımı skill seti | `.claude/skills/` |
 | Kalite araçları ve kapılar | `web/arac/BENIOKU.md` |
 | Güncel durum · yol haritası | `PRE_INTERNAL_INTEGRATION_READINESS.md` |
 | Kuruma açılma öncesi boşluklar | `docs/HAZIRLIK_DURUMU.md` |
@@ -55,6 +56,44 @@ yazılır.
 merge yok.
 
 **Dosyayı değiştirmeden önce güncel hâlini oku.**
+
+## Zorunlu UX / ürün tasarımı skill seti
+
+UX, UI, ürün tasarımı, etkileşim tasarımı, bilgi mimarisi, responsive
+tasarım, erişilebilirlik veya kullanıcı akışıyla ilgili **her** görevde
+aşağıdaki üç skill birlikte kullanılmalıdır:
+
+1. `.claude/skills/enterprise-ux-product-design-auditor/SKILL.md`
+2. `.claude/skills/credit-efficient-enterprise-design-execution/SKILL.md`
+3. `.claude/skills/enterprise-interaction-simplification-auditor/SKILL.md`
+
+Bunlar opsiyonel referans değildir; çalışma talimatıdır.
+
+UX/UI işi başlamadan önce:
+
+- üç skill dosyasının da güncel hâlini oku,
+- mevcut kullanıcı yolculuğunu ve ekranın birincil kullanıcı görevini tanımla,
+- mevcut audit ve kabul edilmiş kararları tekrar üretmek yerine delta üzerinden ilerle,
+- iş kuralları, RBAC, kapsam, değişmez denetim izi, köken ve bilinmeyen veri
+  semantiğini koru,
+- bilişsel yükü, görev tamamlama süresini, gereksiz tıklamayı, bilgi tekrarını,
+  bağlam kaybını ve gereksiz navigasyonu ayrı kalite eksenleri olarak ölç,
+- responsive/axe/test kapılarının yeşil olmasını tek başına iyi UX kanıtı sayma,
+- mümkün olduğunda tek güçlü tasarım yönü seç; gereksiz varyant üretme,
+- önce örnek/archetype ekranlarda doğrula, sonra platform geneline yay.
+
+Çelişki durumunda öncelik sırası:
+1. güvenlik ve veri bütünlüğü,
+2. iş kuralları / yetki / kapsam / audit,
+3. doğru semantik ve gerçeklik,
+4. kullanılabilirlik,
+5. görsel iyileştirme,
+6. yürütme/credit optimizasyonu.
+
+Claude Code görevin başlangıcında bu üç skill'in okunduğunu kısa bir
+`SKILL LOAD CHECK` ile doğrulamalı ve her biri için bu görevde uygulanacak
+en az üç kuralı belirtmelidir. Bu kontrol audit veya kod değişikliğinden önce
+yapılır.
 
 ## Kalite kapıları
 

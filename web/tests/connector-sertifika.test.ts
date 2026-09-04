@@ -236,6 +236,7 @@ describe('Harness kusurları yakalıyor mu (mutasyon sınaması)', () => {
     const gercek = ADAPTORLER.manual_import as Adaptor;
     return {
       tip: 'manual_import',
+      yetenekler: ['asset_inventory'] as const,
       baglanabilir: true,
       // Vekil gerçek adaptörü taklit eder: beyanları da ondan devralır.
       yapilandirmaSemasi: gercek.yapilandirmaSemasi,

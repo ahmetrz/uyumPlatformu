@@ -1,6 +1,6 @@
 import 'server-only';
 import { z } from 'zod';
-import { BaglanmamisAdaptor, type IhtiyacKalemi } from '../sozlesme';
+import { BaglanmamisAdaptor, type IhtiyacKalemi, type Yetenek } from '../sozlesme';
 import { AKTIF_ISLEM_YASAK, ORTAK_YAPILANDIRMA } from './ortak';
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -60,6 +60,10 @@ export class YedeklemeAdaptoru extends BaglanmamisAdaptor {
     /* Geri yükleme bir DEĞİŞİKLİK'tir ve insan onayına tabidir. */
     geriYuklemeIzni: AKTIF_ISLEM_YASAK,
   });
+  /* Yedeklenen nesne envanterini ve iş sonuçlarını verir. Cihazın yama ya
+     da firmware seviyesini BİLMEZ. */
+  readonly yetenekler: Yetenek[] = ['asset_inventory', 'backup_result'];
+
   readonly gerekenSirlar = ['env:YEDEK_API_SIRRI'];
   readonly gereken =
     'Yedekleme konsolunda salt okunur (Backup Viewer / Restore Operator ' +

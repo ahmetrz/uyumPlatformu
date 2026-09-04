@@ -26,6 +26,7 @@ import type {
 function gozlem(id: string, kaynak: string, ek: Record<string, unknown> = {}): Gozlem {
   return {
     tip: 'varlik',
+    yetenekler: ['asset_inventory'] as const,
     koken: { kaynakSistem: kaynak, kaynakKayitId: id, toplanma: new Date(), guven: null },
     hostname: `sunucu-${id}`,
     ham: { id, kaynak },
@@ -41,6 +42,7 @@ function adaptorYap(
   const a: Adaptor = {
     tip,
     baglanabilir: true,
+    yetenekler: ['asset_inventory'] as const,
     async testConnection() { return { ok: true, ayrinti: 'sahte fikstür' }; },
     async discover() { return { ozet: 'sahte fikstür', tahminiKayit: null }; },
     fetchChanges: cek,
@@ -235,6 +237,7 @@ describe('Connector senkronizasyon çekirdeği (izole DB kopyası)', () => {
   it('bağlanamayan adaptör: koşu kimlik_bekleniyor ile kapanır, HATA sayılmaz', async () => {
     class BagliDegil extends BaglanmamisAdaptor {
       readonly tip = 'test_baglanmamis';
+      readonly yetenekler = ['asset_inventory'] as const;
       readonly gereken = 'AD servis hesabı ve LDAPS sertifikası';
       /* Bağlanmamış adaptör de beyan eder: hangi ayarlar geçerli, hangi
          sırlar istenecek. Bunlar bağlantıdan ÖNCE bilinmesi gereken

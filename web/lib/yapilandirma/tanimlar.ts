@@ -5,6 +5,7 @@ import {
   OLCULMEMIS_VARSAYILAN, olculmemisDogrula, olculmemisMetni, type OlculmemisGosterimi,
 } from '../yonetim/olculmemisGosterimi';
 import { ZIMMET_AZAMI_GUN, ZIMMET_VARSAYILAN_GUN } from '../varlik/zimmet';
+import { CANLI_KAT, GUNCEL_KAT, KAYNAK_ONCELIGI_VARSAYILAN } from '../varlik/canliDurus';
 
 /* ═══ Yapılandırma anahtar sözlüğü — TEK doğruluk kaynağı ═══════════════
 
@@ -44,6 +45,37 @@ export type AyarTanimi = {
 const tamSayi = (min: number, max: number) => z.number().int().min(min).max(max);
 
 const T: AyarTanimi[] = [
+  /* ── Canlı duruş (OT-21b) ──────────────────────────────────────────── */
+  {
+    anahtar: 'durus.canli_kat', grup: 'varlik', sinif: 'A',
+    etiket: 'Canlı eşiği (poll aralığı katı)', birim: 'kat',
+    aciklama: 'Bir gözlem, kaynağın poll aralığının bu katına kadar '
+      + '"CANLI" sayılır. Sabit bir dakika yerine kat kullanılır: 5 dakikada '
+      + 'bir sorgulanan bir uç nokta ürünü ile günde bir koşan bir tarayıcı '
+      + 'aynı ölçüye vurulamaz.',
+    etki: ['Envanter · canlı duruş', 'Varlık çekmecesi'],
+    varsayilan: CANLI_KAT, sema: tamSayi(1, 10),
+  },
+  {
+    anahtar: 'durus.guncel_kat', grup: 'varlik', sinif: 'A',
+    etiket: 'Güncel eşiği (poll aralığı katı)', birim: 'kat',
+    aciklama: 'Bu katın ötesindeki gözlem BAYAT sayılır. Canlı eşiğinden '
+      + 'büyük olmalıdır.',
+    etki: ['Envanter · canlı duruş', 'Varlık çekmecesi'],
+    varsayilan: GUNCEL_KAT, sema: tamSayi(2, 50),
+  },
+  {
+    anahtar: 'durus.kaynak_onceligi', grup: 'varlik', sinif: 'A',
+    etiket: 'Kaynak önceliği (çakışmada berabere bozar)',
+    aciklama: 'İki kaynak aynı alan için farklı değer bildirdiğinde önce '
+      + 'KAYNAĞIN ZAMANINA bakılır; bu liste yalnız zaman ve güven eşitken '
+      + 'devreye girer. Önce sıraya bakmak, eski bir "güvenilir" değerin '
+      + 'az önce ölçülmüş doğru değeri ezmesine izin verirdi.',
+    etki: ['Envanter · canlı duruş'],
+    varsayilan: KAYNAK_ONCELIGI_VARSAYILAN,
+    sema: z.array(z.string().min(1)).min(1),
+  },
+
   /* ── Varlık zimmeti (OT-09b) ───────────────────────────────────────── */
   {
     anahtar: 'zimmet.cevap_suresi_gun', grup: 'varlik', sinif: 'A',

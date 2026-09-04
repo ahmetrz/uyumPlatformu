@@ -87,6 +87,42 @@ export type DurusKorelasyon = {
   elleSonuc: string | null; elleGerekce: string | null;
 };
 
+/* OT-21b · Bir kaynak sistemin varlık hakkında bildirdiği son duruş.
+   Değerler `Varlik` satırına YAZILMAZ: envanterde ne yazdığı ile sahada
+   ne görüldüğü ayrı iki gerçektir ve ekran ikisini yan yana koyar. */
+export type DurusCanliKaynak = {
+  kaynakSistem: string;
+  /** Gözlemi getiren connector'ın adı; kayıt bir connector'a bağlı
+      değilse null (elle yüklenmiş gözlem). */
+  connectorAd: string | null;
+  /** Connector etkin ve `etkin` durumda mı — "canlı" sözünün ön şartı. */
+  bagli: boolean;
+  /** Connector son koşuda hata verdi mi. */
+  hatali: boolean;
+  /** Kaynağın sorgu aralığı (dakika); null = yalnız elle tetiklenir. */
+  pollAralikDk: number | null;
+  /** Kaynağın ÖLÇTÜĞÜ an; null = kaynak zaman bildirmedi. */
+  kaynakZamani: string | null;
+  /** Bizim ALDIĞIMIZ an. */
+  alinma: string;
+  guven: number | null;
+  sonBasariliKosu: string | null;
+  sonHata: string | null;
+  isletimSistemi: string | null;
+  osSurumu: string | null;
+  osYapisi: string | null;
+  yamaSeviyesi: string | null;
+  sonYamaTarihi: string | null;
+  firmware: string | null;
+};
+
+/** OT-21b · konsoldan gelen tazelik eşikleri ve çakışma sırası. */
+export type CanliAyar = {
+  canliKat: number;
+  guncelKat: number;
+  kaynakOnceligi: string[];
+};
+
 export type Durus = {
   firmware: DurusFirmware | null;
   /** Bir varlığın birden çok kaynak sistemden yama kaydı olabilir. */
@@ -97,6 +133,9 @@ export type Durus = {
   uygulanamaz: Record<string, string>;
   sbom: { bicim: string; bilesenSayisi: number; yuklendi: string } | null;
   segment: { id: string; kod: string; ad: string; cidr: string; vlanId: number | null } | null;
+  /** OT-21b · kaynak sistemlerin bildirdiği canlı duruş; boş dizi =
+      hiçbir kaynak bu varlığı beslemiyor ("güncel" DEĞİL, "kaynak yok"). */
+  canli: DurusCanliKaynak[];
 };
 
 /* ── Yönetişim (OT-05 · OT-08 · OT-09 · OT-20 · OT-28) ────────────────
@@ -158,7 +197,7 @@ export const BOS_YONETISIM: Yonetisim = {
 
 export const BOS_DURUS: Durus = {
   firmware: null, yamalar: [], kapsamlar: [], korelasyonlar: [],
-  uygulanamaz: {}, sbom: null, segment: null,
+  uygulanamaz: {}, sbom: null, segment: null, canli: [],
 };
 
 export type V = {
@@ -885,6 +924,8 @@ export const ENVANTER_DISA_BASLIKLARI = [
   'Yama durumu', 'Firmware durumu',
   'EDR kapsaması', 'Log kaynağı', 'İzleme', 'Yedekleme',
   'İnternet maruziyeti', 'Son görülme', 'Veri kaynağı',
+  'Sahada görülen OS', 'Sahada görülen yama seviyesi', 'Sahada görülen firmware',
+  'Duruş kaynağı', 'Duruş kaynağı bağlı mı', 'Son duruş ölçümü',
   'Koruma açığı', 'Bilinmeyen alanlar', 'İşaret',
 ] as const;
 
@@ -897,6 +938,16 @@ export const ENVANTER_DISA_BASLIKLARI = [
  */
 export function envanterDisaSatiri(v: V, simdi: number): (string | number)[] {
   const seg = v.durus.segment;
+  /* OT-21b · Dosyaya EŞİKE BAĞLI bir yargı ("canlı"/"bayat") değil, ÖLÇÜM
+     yazılır: eşikler konsoldan değişir ve dün "canlı" diye kaydedilmiş bir
+     satır bugün yanlış olurdu. Zamanı ve kaynağı veren dosya her zaman
+     doğrudur; yorumu okuyan yapar. Zamanı bildirilmiş gözlem, en yeni
+     ölçüm sayılır. */
+  const durusKaynagi = [...v.durus.canli].sort((a, b) => {
+    const at = a.kaynakZamani === null ? -1 : new Date(a.kaynakZamani).getTime();
+    const bt = b.kaynakZamani === null ? -1 : new Date(b.kaynakZamani).getTime();
+    return bt - at;
+  })[0] ?? null;
   return [
     v.etiket, v.ad, v.tur.ad, disaEtiket(v.tur.sinif),
     v.tesis?.kod ?? '', v.unite?.kod ?? '', v.sistem?.kod ?? '', v.bolge?.kod ?? '',
@@ -914,6 +965,11 @@ export function envanterDisaSatiri(v: V, simdi: number): (string | number)[] {
     disaEtiket(v.internetMaruziyeti),
     v.sonKesif ? tarihTR(v.sonKesif.sonGorulme) : '',
     v.sonKesif?.kaynak ?? 'elle',
+    durusKaynagi?.isletimSistemi ?? '', durusKaynagi?.yamaSeviyesi ?? '',
+    durusKaynagi?.firmware ?? '',
+    durusKaynagi?.kaynakSistem ?? '',
+    durusKaynagi === null ? '' : durusKaynagi.bagli ? 'bağlı' : 'bağlı değil',
+    durusKaynagi?.kaynakZamani ? tarihTR(durusKaynagi.kaynakZamani) : '',
     korumaAcigi(v).join(', '), bilinmeyenAlanlar(v).join(', '),
     varlikDurumu(v, simdi),
   ];

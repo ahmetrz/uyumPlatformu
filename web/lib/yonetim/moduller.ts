@@ -338,6 +338,13 @@ export const MODULLER: Modul[] = [
     kodYeri: 'lib/varlik/zimmet.ts → cevapKapisi() · iptalKapisi()',
     aciklama: 'OT-09b · Bir zimmeti yalnız zimmetlenen kişi cevaplayabilir; yönetici iptal edebilir ama kimse adına kabul edemez. Red gerekçe zorunludur.',
     neden: 'Bu kural akışın var olma sebebidir. Panelden gevşetilseydi "yönetici kullanıcı adına kabul etsin" seçeneği açılır ve zimmet yeniden tek taraflı bir alan doldurmaya dönerdi — denetimde "bu cihazı kim üstlendi" sorusunun cevabı yine kimsenin onaylamadığı bir isim olurdu.' },
+  { kod: 'durusTazelik', grup: 'varlik', ad: 'Canlı duruş tazelik eşikleri', sinif: 'A', yer: 'konsol', hedefTipi: 'ayar',
+    aciklama: 'OT-21b · Bir gözlemin ne zaman "canlı", ne zaman "güncel", ne zaman "bayat" sayıldığı. Eşik sabit bir dakika değil, kaynağın KENDİ sorgu aralığının katıdır: beş dakikada bir sorgulanan uç nokta ürünü ile günde bir koşan tarayıcı aynı ölçüye vurulamaz. Çakışmada berabere bozan kaynak sırası da buradadır.',
+    etki: ['Envanter · canlı duruş', 'Varlık çekmecesi'] },
+  { kod: 'canliSozu', grup: 'varlik', ad: '"Canlı" sözünün kuralı', sinif: 'C', yer: 'kod',
+    kodYeri: 'lib/varlik/canliDurus.ts → tazelik() · canliDenebilirMi()',
+    aciklama: 'OT-21b · Ekran "CANLI" sözcüğünü yalnız kaynak GERÇEKTEN bağlıyken, son koşu başarılıyken ve veri kaynağın sorgu aralığı içinde geldiyse yazar. Bağlı olmayan kaynak "kaynak bağlı değil" der; yalnız elle beslenen bir kaynak ne kadar yeni olursa olsun canlı sayılmaz.',
+    neden: 'Bu ürünün satabileceği en pahalı yalan, bağlı olmayan bir kaynağın önüne "canlı" yazmaktır: bir kez yakalandığında müşteri o alandaki hiçbir sayıya bir daha güvenmez. Panelden gevşetilebilseydi, "demoda canlı görünsün" isteği kuralı ilk gün deler ve ürünün tazelik iddiası ölçüsüz kalırdı.' },
   { kod: 'envanterSayimi', grup: 'varlik', ad: 'Fiziksel envanter sayımı', sinif: 'A', yer: 'mevcut_ekran', rota: '/sayim',
     aciklama: 'OT-55 · Kampanya, kapsam ve satır sonuçları. Payda açılışta DONAR; "sayılmadı" ile "bulunamadı" ayrı durumlardır ve sayım hiçbir varlığı silmez.' },
   { kod: 'sayimSonuclari', grup: 'varlik', ad: 'Sayım sonuç sözlüğü', sinif: 'C', yer: 'kod',
@@ -523,6 +530,7 @@ export function ayarinModulu(anahtar: string): Modul | null {
   if (anahtar.startsWith('saha.')) return MODUL_SOZLUGU.sahaPencere;
   if (anahtar === 'kabuk.kunye') return MODUL_SOZLUGU.kunye;
   if (anahtar.startsWith('zimmet.')) return MODUL_SOZLUGU.zimmetSuresi;
+  if (anahtar.startsWith('durus.')) return MODUL_SOZLUGU.durusTazelik;
   if (anahtar === 'zamanlayici.motor_aralik_dk') return MODUL_SOZLUGU.motorAralik;
   if (/^motor\.[a-z_]+\.etkin$/.test(anahtar)) return MODUL_SOZLUGU.motorBayraklari;
   return null;

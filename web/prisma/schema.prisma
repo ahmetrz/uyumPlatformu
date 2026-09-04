@@ -1619,18 +1619,19 @@ model Varlik {
   olusturuldu          DateTime  @default(now())
   guncellendi          DateTime  @updatedAt
 
-  tur            VarlikTuru          @relation(fields: [turId], references: [id])
-  tesis          Tesis?              @relation(fields: [tesisId], references: [id])
-  unite          UretimUnitesi?      @relation("UniteVarliklari", fields: [uniteId], references: [id])
-  sistem         SistemServis?       @relation(fields: [sistemId], references: [id])
-  sahip          Kullanici?          @relation("VarlikSahibi", fields: [sahipId], references: [id])
-  emanetci       Kullanici?          @relation("VarlikEmanetcisi", fields: [emanetciId], references: [id])
-  bolge          AgBolgesi?          @relation(fields: [bolgeId], references: [id])
-  segment        AgSegmenti?         @relation(fields: [segmentId], references: [id])
-  ekip           Ekip?               @relation("VarlikEkibi", fields: [ekipId], references: [id])
-  atamaTalepleri VarlikAtamaTalebi[]
-  tedarikci      Tedarikci?          @relation(fields: [tedarikciId], references: [id])
-  sozlesme       Sozlesme?           @relation(fields: [sozlesmeId], references: [id])
+  tur             VarlikTuru           @relation(fields: [turId], references: [id])
+  tesis           Tesis?               @relation(fields: [tesisId], references: [id])
+  unite           UretimUnitesi?       @relation("UniteVarliklari", fields: [uniteId], references: [id])
+  sistem          SistemServis?        @relation(fields: [sistemId], references: [id])
+  sahip           Kullanici?           @relation("VarlikSahibi", fields: [sahipId], references: [id])
+  emanetci        Kullanici?           @relation("VarlikEmanetcisi", fields: [emanetciId], references: [id])
+  bolge           AgBolgesi?           @relation(fields: [bolgeId], references: [id])
+  segment         AgSegmenti?          @relation(fields: [segmentId], references: [id])
+  ekip            Ekip?                @relation("VarlikEkibi", fields: [ekipId], references: [id])
+  atamaTalepleri  VarlikAtamaTalebi[]
+  durusGozlemleri VarlikDurusGozlemi[]
+  tedarikci       Tedarikci?           @relation(fields: [tedarikciId], references: [id])
+  sozlesme        Sozlesme?            @relation(fields: [sozlesmeId], references: [id])
 
   kaynakIliskiler       VarlikIliskisi[]         @relation("IliskiKaynak")
   hedefIliskiler        VarlikIliskisi[]         @relation("IliskiHedef")
@@ -2374,10 +2375,11 @@ model Connector {
   olusturuldu     DateTime  @default(now())
   guncellendi     DateTime  @updatedAt
 
-  kosular       EntegrasyonKosusu[]
-  kesifler      KesifKaydi[]
-  eslemeProfil  EslemeProfili?      @relation(fields: [eslemeProfilId], references: [id])
-  reddedilenler ReddedilenKayit[]
+  kosular         EntegrasyonKosusu[]
+  kesifler        KesifKaydi[]
+  eslemeProfil    EslemeProfili?       @relation(fields: [eslemeProfilId], references: [id])
+  reddedilenler   ReddedilenKayit[]
+  durusGozlemleri VarlikDurusGozlemi[] @relation("DurusGozlemConnector")
 
   @@index([tip, etkin])
 }
@@ -3875,4 +3877,59 @@ model VarlikAtamaTalebi {
   @@index([atananId, durum])
   @@index([varlikId, durum])
   @@index([durum, sonTarih])
+}
+
+/// ═══ FAZ H · OT-21b · Varlığın canlı duruşu (asset_state) ════════════
+///
+/// Bir cihazın "şu anki" işletim sistemi, yama seviyesi ve firmware'i
+/// KAYNAK SİSTEMİN söylediğidir. Envanterdeki elle girilmiş değer bir
+/// KAYITTIR; bu tablo ise bir GÖZLEMDİR ve ikisi karıştırılmaz.
+///
+/// Kaynak başına TEK satır tutulur: her koşuda yeni satır açmak, bir
+/// varlığın geçmişini değil aynı gerçeğin binlerce kopyasını üretirdi.
+/// Değişiklik geçmişi denetim izinin ve koşu defterinin işidir.
+///
+/// `kaynakZamani` KAYNAĞIN ölçtüğü an, `alinma` bizim aldığımız andır.
+/// İkisi ayrı tutulur: tazelik kaynağın zamanına göre hesaplanır, çünkü
+/// dört saat önce ölçülmüş bir veriyi az önce almak onu taze yapmaz.
+model VarlikDurusGozlemi {
+  id            String  @id @default(cuid())
+  varlikId      String
+  /// Gözlemi veren sistem (connector `kaynakSistem` değeri).
+  kaynakSistem  String
+  /// Kaynak sistemdeki kararlı kayıt kimliği — idempotency buna dayanır.
+  kaynakKayitId String
+  connectorId   String?
+  kosuId        String?
+
+  /// Kaynağın bildirdiği kimlik alanları — eşleştirmenin kanıtı.
+  hostname  String?
+  ipAdresi  String?
+  macAdresi String?
+  uretici   String?
+  model     String?
+
+  isletimSistemi String?
+  osSurumu       String?
+  osYapisi       String?
+  yamaSeviyesi   String?
+  sonYamaTarihi  DateTime?
+  firmware       String?
+
+  /// Kaynağın ÖLÇTÜĞÜ an. null = kaynak zaman bildirmedi (tazelik ölçülemez).
+  kaynakZamani DateTime?
+  /// Bizim ALDIĞIMIZ an.
+  alinma       DateTime  @default(now())
+  /// 0–1; null = ÖLÇÜLMEDİ (sıfır güven DEĞİL).
+  guven        Float?
+  /// Ham kayıt — denetim izinin girdisi, dokunulmaz.
+  ham          String?
+
+  guncellendi DateTime @updatedAt
+
+  varlik    Varlik     @relation(fields: [varlikId], references: [id], onDelete: Cascade)
+  connector Connector? @relation("DurusGozlemConnector", fields: [connectorId], references: [id])
+
+  @@unique([varlikId, kaynakSistem])
+  @@index([kaynakSistem, kaynakZamani])
 }

@@ -25,6 +25,7 @@ const { GET: kosuGetir } = await import('@/app/api/v1/integration-runs/route.api
 const { GET: kanitGetir } = await import('@/app/api/v1/evidence/route.api');
 const { POST: yedekYaz } = await import('@/app/api/v1/backup-results/route.api');
 const { POST: erisimYaz } = await import('@/app/api/v1/access-observations/route.api');
+const { POST: durusYaz } = await import('@/app/api/v1/asset-state/route.api');
 
 /* ═══ sabitler ═══════════════════════════════════════════════════════ */
 
@@ -324,6 +325,123 @@ describe('Idempotency', () => {
     const kesif = await db.kesifKaydi.findFirstOrThrow({
       where: { kaynakKayitId: `kayit-${ONEK}-ESL` } });
     expect(kesif.durum).not.toBe('kesfedildi');
+  });
+});
+
+/* ═══ OT-21b · canlı duruş ucu ═══════════════════════════════════════ */
+
+describe('Duruş gözlemi: ENVANTERİ DEĞİŞTİRMEZ, eski veri yeniyi ezmez', () => {
+  const durusKaydi = (ek: Record<string, unknown>) => ({
+    source: 'test_edr',
+    sourceRecordId: `durus-${ek.assetKey}`,
+    collectedAt: zaman,
+    confidence: null,
+    ...ek,
+  });
+
+  it('gözlem yazılır ama Varlik satırına DOKUNULMAZ', async () => {
+    const once = await db.varlik.findFirstOrThrow({ where: { etiket: `${ONEK}-A-1` } });
+    const y = await durusYaz(yolla('/api/v1/asset-state', jeton.a, { records: [durusKaydi({
+      assetKey: `${ONEK}-A-1`, os: 'Windows Server 2022',
+      osVersion: '10.0.20348', patchLevel: '2026-08 KB5041160',
+      observedAt: '2026-08-01T08:00:00.000Z',
+    })] }, 'durus-1'));
+    expect(y.status).toBe(200);
+    expect((await y.json()).data.created).toBe(1);
+
+    const gozlem = await db.varlikDurusGozlemi.findFirstOrThrow({
+      where: { varlikId: once.id, kaynakSistem: 'test_edr' } });
+    expect(gozlem.isletimSistemi).toBe('Windows Server 2022');
+
+    /* Kritik ayrım: envanterde ne YAZDIĞI ile sahada ne GÖRÜLDÜĞÜ ayrı iki
+       gerçektir. Bir EDR'in gördüğü sürüm elle girilmiş kaydı EZERSE
+       "envanter ne diyor" sorusunun cevabı kaybolur. */
+    const sonra = await db.varlik.findUniqueOrThrow({ where: { id: once.id } });
+    expect(sonra.isletimSistemi).toBe(once.isletimSistemi);
+    expect(sonra.firmware).toBe(once.firmware);
+  });
+
+  it('aynı kaynaktan gelen yeni gözlem satırı TAZELER, yenisini açmaz', async () => {
+    const y = await durusYaz(yolla('/api/v1/asset-state', jeton.a, { records: [durusKaydi({
+      assetKey: `${ONEK}-A-1`, os: 'Windows Server 2022',
+      patchLevel: '2026-09 KB5043050',
+      observedAt: '2026-09-01T08:00:00.000Z',
+    })] }, 'durus-2'));
+    expect(y.status).toBe(200);
+    expect((await y.json()).data.refreshed).toBe(1);
+    expect(await db.varlikDurusGozlemi.count({
+      where: { kaynakSistem: 'test_edr' } })).toBe(1);
+    const g = await db.varlikDurusGozlemi.findFirstOrThrow({
+      where: { kaynakSistem: 'test_edr' } });
+    expect(g.yamaSeviyesi).toBe('2026-09 KB5043050');
+  });
+
+  it('GEÇ GELEN paket yazılmaz ve cevapta `stale` olarak SAYILIR', async () => {
+    /* Sessizce düşseydi gönderen taraf verinin işlendiğini sanırdı. */
+    const y = await durusYaz(yolla('/api/v1/asset-state', jeton.a, { records: [durusKaydi({
+      assetKey: `${ONEK}-A-1`, os: 'Windows Server 2019',
+      patchLevel: '2026-07 KB5039705',
+      observedAt: '2026-07-01T08:00:00.000Z',
+    })] }, 'durus-3'));
+    expect(y.status).toBe(200);
+    const veri = (await y.json()).data;
+    expect(veri.stale).toBe(1);
+    expect(veri.refreshed).toBe(0);
+
+    const g = await db.varlikDurusGozlemi.findFirstOrThrow({
+      where: { kaynakSistem: 'test_edr' } });
+    expect(g.yamaSeviyesi).toBe('2026-09 KB5043050');
+    expect(g.isletimSistemi).toBe('Windows Server 2022');
+  });
+
+  it('FARKLI kaynak sistem kendi satırını açar — çakışma korunur', async () => {
+    const y = await durusYaz(yolla('/api/v1/asset-state', jeton.a, { records: [{
+      source: 'test_ot_kesif', sourceRecordId: 'ot-1', collectedAt: zaman,
+      confidence: 0.6, assetKey: `${ONEK}-A-1`, firmware: 'v4.2.1',
+      os: 'Windows Server 2019',
+      observedAt: '2026-08-15T08:00:00.000Z',
+    }] }, 'durus-4'));
+    expect(y.status).toBe(200);
+    expect((await y.json()).data.created).toBe(1);
+    const varlik = await db.varlik.findFirstOrThrow({ where: { etiket: `${ONEK}-A-1` } });
+    expect(await db.varlikDurusGozlemi.count({ where: { varlikId: varlik.id } })).toBe(2);
+  });
+
+  it('eşleşmeyen anahtar 400 döner ve hiçbir gözlem yazılmaz', async () => {
+    const y = await durusYaz(yolla('/api/v1/asset-state', jeton.a, { records: [durusKaydi({
+      assetKey: `${ONEK}-YOK-BOYLE-BIR-VARLIK`, os: 'Linux',
+    })] }, 'durus-5'));
+    expect(y.status).toBe(400);
+    expect(await db.varlikDurusGozlemi.count({
+      where: { kaynakSistem: 'test_edr', kaynakKayitId: `durus-${ONEK}-YOK-BOYLE-BIR-VARLIK` },
+    })).toBe(0);
+  });
+
+  it('KAPSAM DIŞI santralin varlığına duruş yazılamaz', async () => {
+    const y = await durusYaz(yolla('/api/v1/asset-state', jeton.a, { records: [{
+      source: 'test_edr', sourceRecordId: 'sizinti-1', collectedAt: zaman,
+      confidence: null, assetKey: `${ONEK}-B-1`, os: 'Windows 11',
+    }] }, 'durus-6'));
+    expect(y.status).toBe(403);
+    const b = await db.varlik.findFirstOrThrow({ where: { etiket: `${ONEK}-B-1` } });
+    expect(await db.varlikDurusGozlemi.count({ where: { varlikId: b.id } })).toBe(0);
+  });
+
+  it('dış denetçi duruş yazamaz', async () => {
+    const y = await durusYaz(yolla('/api/v1/asset-state', jeton.denetci, { records: [durusKaydi({
+      assetKey: `${ONEK}-A-2`, os: 'Windows 11',
+    })] }, 'durus-7'));
+    expect(y.status).toBe(403);
+  });
+
+  it('köken defteri her gözlem için kaynağı yazar', async () => {
+    const varlik = await db.varlik.findFirstOrThrow({ where: { etiket: `${ONEK}-A-1` } });
+    const gozlemler = await db.varlikDurusGozlemi.findMany({
+      where: { varlikId: varlik.id }, select: { id: true } });
+    for (const g of gozlemler) {
+      expect(await db.veriKokeni.count({
+        where: { varlikTipi: 'VarlikDurusGozlemi', varlikId: g.id } })).toBeGreaterThan(0);
+    }
   });
 });
 

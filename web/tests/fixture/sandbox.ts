@@ -103,6 +103,7 @@ export function sandboxKur(adaptor: Adaptor, fikstur: FiksturSeti): SandboxKurul
     return {
       tip,
       baglanabilir: adaptor.baglanabilir,
+      yetenekler: adaptor.yetenekler,
       // Vekil yalnız fetchChanges'i sarar; beyanlar sarılan adaptörün.
       yapilandirmaSemasi: adaptor.yapilandirmaSemasi,
       gerekenSirlar: adaptor.gerekenSirlar,

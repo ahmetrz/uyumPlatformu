@@ -47,6 +47,7 @@ function adaptorYap(tip: string, cek: (b: Baglam) => Promise<CekmeSonucu>): Adap
   const a: Adaptor = {
     tip,
     baglanabilir: true,
+    yetenekler: ['asset_inventory'] as const,
     yapilandirmaSemasi: z.looseObject({}),
     gerekenSirlar: [],
     async testConnection() { return { ok: true, ayrinti: 'eşleme fikstürü' }; },

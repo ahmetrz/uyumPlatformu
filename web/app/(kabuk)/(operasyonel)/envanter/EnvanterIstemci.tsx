@@ -13,7 +13,7 @@ import {
   ayYil, bilinmeyenAlanlar, bolumle, envanterDisaAktarimi, karariBloklayanBilinmeyen,
   korumaAcigi, kullanimda, kuyrukMetni, metrikleriHesapla, olgu, omurGunu,
   sirala, suz, varlikDurumu,
-  type Bolge, type Kisi, type Kodlu, type Mercek, type Segment, type Tur,
+  type Bolge, type CanliAyar, type Kisi, type Kodlu, type Mercek, type Segment, type Tur,
   type Unite, type V,
 } from './mantik';
 
@@ -68,7 +68,8 @@ type Dugum = {
 
 export default function EnvanterIstemci({
   varliklar, turler, tesisler, uniteler, sistemler, bolgeler, kullanicilar,
-  segmentler, ekipler, yazabilir, onaylayabilir, simdi, baslangicArama = '',
+  segmentler, ekipler, yazabilir, onaylayabilir, simdi, canliAyar,
+  baslangicArama = '',
 }: {
   varliklar: V[]; turler: Tur[]; tesisler: Kodlu[]; uniteler: Unite[];
   sistemler: Kodlu[]; bolgeler: Bolge[]; kullanicilar: Kisi[];
@@ -80,6 +81,8 @@ export default function EnvanterIstemci({
   /** OT-28 · konfigürasyon tabanı onayı `envanter/onay` ister */
   onaylayabilir: boolean;
   simdi: number;
+  /** OT-21b · konsoldan gelen tazelik eşikleri ve kaynak sırası. */
+  canliAyar: CanliAyar;
   /** `?bolge=KOD` bağından gelen başlangıç arama metni (topoloji çekmecesi). */
   baslangicArama?: string;
 }) {
@@ -303,7 +306,8 @@ export default function EnvanterIstemci({
               <div className="govde">
                 {panelKipi === 'ozet' && <Ozet v={secili} simdi={simdi} />}
                 {panelKipi === 'durus' && (
-                  <DurusPaneli v={secili} segmentler={segmentler} />
+                  <DurusPaneli v={secili} segmentler={segmentler}
+                    simdi={simdi} canliAyar={canliAyar} />
                 )}
                 {panelKipi === 'yonetisim' && (
                   <YonetisimPaneli v={secili} ekipler={ekipler} kisiler={kullanicilar}

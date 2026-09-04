@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { girisZorunlu, izinliTesisIdleri } from '@/lib/erisim';
 import { kapsamdaYetkili, modulYazabilir } from '@/app/kapsam';
 import { db } from '@/lib/db';
+import { ayar } from '@/lib/yapilandirma/oku';
 import { DEMO } from '@/lib/demo';
 import { ilkiniEsle } from '@/lib/sorguParcala';
 import EnvanterIstemci from './EnvanterIstemci';
@@ -317,7 +318,7 @@ export default async function Sayfa({ searchParams }: {
      hem de yalnız parametre bağlamak için ölçülebilir zaman harcar
      (boş tabloda 12 parçalı sorgu 34ms, ilişki filtresiyle 0ms).
      Süzülen küme birebir aynıdır — ebeveyn sorgusuyla aynı `where`. */
-  const [yedekSatirlari, kesifSatirlari, zimmetSatirlari] = await Promise.all([
+  const [yedekSatirlari, kesifSatirlari, zimmetSatirlari, durusSatirlari] = await Promise.all([
     /* `id` ve `icerikHash` OT-28 için okunur: konfigürasyon tabanı bir
        YEDEĞE dayanır ve sapma özet karşılaştırmasıyla bulunur. Ayrı bir
        sorgu açmak, aynı tabloyu iki kez taramak olurdu. */
@@ -345,10 +346,41 @@ export default async function Sayfa({ searchParams }: {
         atayan: { select: { adSoyad: true } },
       },
     }),
+    /* OT-21b · Kaynak sistemlerin bildirdiği canlı duruş. Connector'ın
+       KENDİ durumu da okunur: "canlı" sözcüğü yalnız bağlı, etkin ve
+       hatasız bir kaynağın verisi için yazılabilir — bağlantı bilgisi
+       olmadan tazelik ölçülemez, ölçülemeyen tazelik "güncel" sayılamaz. */
+    db.varlikDurusGozlemi.findMany({
+      where: { varlik: varlikKapsami },
+      select: {
+        varlikId: true, kaynakSistem: true, kaynakZamani: true, alinma: true,
+        guven: true, isletimSistemi: true, osSurumu: true, osYapisi: true,
+        yamaSeviyesi: true, sonYamaTarihi: true, firmware: true,
+        connector: {
+          select: {
+            ad: true, etkin: true, durum: true, pollAralikDk: true,
+            sonBasariliKosu: true, sonHata: true, silindi: true,
+          },
+        },
+      },
+      orderBy: { kaynakSistem: 'asc' },
+    }),
   ]);
+  /* OT-21b · Tazelik eşikleri ve çakışmada berabere bozan kaynak sırası
+     konsoldan gelir; kod varsayılanı yalnız kayıt yoksa geçerlidir. */
+  const [canliKat, guncelKat, kaynakOnceligi] = await Promise.all([
+    ayar<number>('durus.canli_kat'),
+    ayar<number>('durus.guncel_kat'),
+    ayar<string[]>('durus.kaynak_onceligi'),
+  ]);
+
   const sonYedekler = ilkiniEsle(yedekSatirlari, (y) => y.varlikId);
   const sonKesifler = ilkiniEsle(kesifSatirlari, (k) => k.eslesenVarlikId);
   const acikZimmetler = ilkiniEsle(zimmetSatirlari, (z) => z.varlikId);
+  const durusHaritasi = new Map<string, typeof durusSatirlari>();
+  for (const d of durusSatirlari) {
+    durusHaritasi.set(d.varlikId, [...(durusHaritasi.get(d.varlikId) ?? []), d]);
+  }
   /* OT-28 · Son BAŞARILI yedek ayrı tutulur: başarısız bir yedeğin özeti
      eksik olabilir ve eksik özet "konfigürasyon değişmiş" gibi
      görünürdü. Liste `yedekZamani desc` sıralı, `ilkiniEsle` en yeniyi
@@ -458,6 +490,28 @@ export default async function Sayfa({ searchParams }: {
           cidr: segment.cidr, vlanId: segment.vlanId,
         }
         : null,
+      /* Silinmiş ya da pasif bir connector BAĞLI DEĞİLDİR: satırı
+         silmiyoruz (gözlem bir kere gerçekten geldi) ama tazelik
+         iddiasını da sürdürmüyoruz — ekran "kaynak bağlı değil" der. */
+      canli: (durusHaritasi.get(varlikId) ?? []).map((d) => ({
+        kaynakSistem: d.kaynakSistem,
+        connectorAd: d.connector?.ad ?? null,
+        bagli: d.connector != null && d.connector.silindi === null
+          && d.connector.etkin && d.connector.durum === 'etkin',
+        hatali: d.connector?.durum === 'hatali',
+        pollAralikDk: d.connector?.pollAralikDk ?? null,
+        kaynakZamani: d.kaynakZamani?.toISOString() ?? null,
+        alinma: d.alinma.toISOString(),
+        guven: d.guven,
+        sonBasariliKosu: d.connector?.sonBasariliKosu?.toISOString() ?? null,
+        sonHata: d.connector?.sonHata ?? null,
+        isletimSistemi: d.isletimSistemi,
+        osSurumu: d.osSurumu,
+        osYapisi: d.osYapisi,
+        yamaSeviyesi: d.yamaSeviyesi,
+        sonYamaTarihi: d.sonYamaTarihi?.toISOString() ?? null,
+        firmware: d.firmware,
+      })),
     };
   }
 
@@ -661,6 +715,7 @@ export default async function Sayfa({ searchParams }: {
       onaylayabilir={onayYetkisi}
       yazabilir={yazmaYetkisi}
       simdi={simdi}
+      canliAyar={{ canliKat, guncelKat, kaynakOnceligi }}
       baslangicArama={baslangicArama}
     />
   );

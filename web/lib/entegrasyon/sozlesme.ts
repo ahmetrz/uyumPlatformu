@@ -92,8 +92,50 @@ export type TopolojiGozlemiGirdi = {
   ham: unknown;
 };
 
+/* ═══ OT-21b · Varlığın canlı duruşu (asset_state) ════════════════════
+
+   Bu gözlem `VarlikGozlemi`den AYRIDIR ve ayrılığı bilinçlidir:
+   `VarlikGozlemi` "böyle bir varlık var" der ve envanteri besler;
+   `DurusGozlemi` "o varlık ŞU AN şu hâlde" der ve envanteri DEĞİŞTİRMEZ.
+   İkisi birleştirilseydi, bir EDR'in bildirdiği yama seviyesi envanter
+   kaydını sessizce ezerdi.
+
+   `kaynakZamani` KAYNAĞIN ölçtüğü andır; `Koken.toplanma`dan farklı
+   olabilir ve tazelik ONA göre hesaplanır: dört saat önce ölçülmüş bir
+   veriyi az önce almak onu taze yapmaz. */
+export type DurusGozlemi = {
+  tip: 'durus';
+  koken: Koken;
+  /** hostname | ip | seri | MAC | etiket — eşleştirme anahtarı */
+  varlikAnahtari: string;
+  hostname?: string | null;
+  ipAdresi?: string | null;
+  macAdresi?: string | null;
+  uretici?: string | null;
+  model?: string | null;
+  isletimSistemi?: string | null;
+  osSurumu?: string | null;
+  osYapisi?: string | null;
+  yamaSeviyesi?: string | null;
+  sonYamaTarihi?: Date | null;
+  firmware?: string | null;
+  /** Kaynağın ÖLÇTÜĞÜ an; null = kaynak zaman bildirmedi (tazelik ölçülemez). */
+  kaynakZamani?: Date | null;
+  ham: unknown;
+};
+
+/* Adaptörün hangi gözlem ailelerini üretebildiği. Kütük ekranı bunu
+   okur: "bu kaynak bağlanınca hangi alanlar canlanır" sorusunun cevabı
+   yorumda değil, VERİDE durmalıdır. */
+export const YETENEKLER = [
+  'asset_inventory', 'asset_state', 'vulnerability', 'backup_result',
+  'access_observation', 'topology', 'passive_asset_discovery',
+] as const;
+export type Yetenek = (typeof YETENEKLER)[number];
+
 export type Gozlem =
-  | VarlikGozlemi | ZafiyetGozlemi | YedekGozlemi | ErisimGozlemi | TopolojiGozlemiGirdi;
+  | VarlikGozlemi | ZafiyetGozlemi | YedekGozlemi | ErisimGozlemi
+  | TopolojiGozlemiGirdi | DurusGozlemi;
 
 /* ═══ Adaptör sonuç tipleri ═══════════════════════════════════════════ */
 
@@ -138,6 +180,8 @@ export type AdaptorBaglami = {
 
 export interface Adaptor {
   readonly tip: string;
+  /** Bu kaynağın üretebildiği gözlem aileleri. */
+  readonly yetenekler: readonly Yetenek[];
   /** Bu adaptör gerçek bir dış sisteme bağlanabiliyor mu? false ise
       çekirdek onu koşturmaz ve sağlık ekranında "kimlik bekleniyor" yazar. */
   readonly baglanabilir: boolean;
@@ -242,6 +286,15 @@ export abstract class BaglanmamisAdaptor implements Adaptor {
    * yazardı. Bağlanmamış bir adaptörde bu, mümkün olan en yanlış cümledir.
    */
   abstract readonly ihtiyaclar: IhtiyacKalemi[];
+  /**
+   * Bu kaynak bağlanınca hangi gözlem aileleri canlanır.
+   *
+   * `abstract`: varsayılan verilseydi yeni bir adaptör onu doldurmayı
+   * unutur ve ekran "bu kaynak bağlanınca hiçbir şey değişmez" ya da
+   * daha kötüsü "her şey canlanır" derdi. İkisi de yanlıştır ve
+   * bağlantı günü planını bozar.
+   */
+  abstract readonly yetenekler: readonly Yetenek[];
 
   async testConnection(): Promise<BaglantiSonucu> {
     return { ok: false, kimlikEksik: true, hata: `Bağlı değil — gereken: ${this.gereken}` };

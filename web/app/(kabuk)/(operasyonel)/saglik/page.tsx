@@ -239,6 +239,7 @@ export default async function Sayfa() {
     return {
       tip,
       baglanabilir: a.baglanabilir,
+      yetenekler: [...a.yetenekler],
       gerekenSirlar: [...a.gerekenSirlar],
       kalemler: (a.ihtiyaclar ?? []).map((x) => ({ ...x })),
     };

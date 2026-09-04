@@ -3,7 +3,7 @@ import {
   UC_ETIKETI, UC_KIMLIKLERI, YAZMA_UCLARI, yazmaUcuMu, type UcKimligi,
 } from './kapsam';
 import {
-  erisimKaydiSemasi, varlikKaydiSemasi, yedekKaydiSemasi, zafiyetKaydiSemasi, zarf,
+  erisimKaydiSemasi, durusKaydiSemasi, varlikKaydiSemasi, yedekKaydiSemasi, zafiyetKaydiSemasi, zarf,
 } from './semalar';
 import { AZAMI_LIMIT, VARSAYILAN_LIMIT } from './sayfalama';
 import { HATA_DURUMU } from './hatalar';
@@ -39,6 +39,7 @@ export const UC_YOLU: Record<UcKimligi, string> = {
   'backup-results': '/api/v1/backup-results',
   'integration-runs': '/api/v1/integration-runs',
   'access-observations': '/api/v1/access-observations',
+  'asset-state': '/api/v1/asset-state',
 };
 
 /** Yazma ucunun gövde şeması — `dogrula(...)` çağrısındaki şemanın AYNISI. */
@@ -48,6 +49,7 @@ const GOVDE_SEMASI: Partial<Record<UcKimligi, z.ZodTypeAny>> = {
   vulnerabilities: zarf(zafiyetKaydiSemasi),
   'backup-results': zarf(yedekKaydiSemasi),
   'access-observations': zarf(erisimKaydiSemasi),
+  'asset-state': zarf(durusKaydiSemasi),
 };
 
 /** Okuma ucunun kabul ettiği süzgeçler — uç dosyalarındaki `*Param` çağrıları. */

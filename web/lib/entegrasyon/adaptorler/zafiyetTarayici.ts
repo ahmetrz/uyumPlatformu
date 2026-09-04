@@ -1,6 +1,6 @@
 import 'server-only';
 import { z } from 'zod';
-import { BaglanmamisAdaptor, type IhtiyacKalemi } from '../sozlesme';
+import { BaglanmamisAdaptor, type IhtiyacKalemi, type Yetenek } from '../sozlesme';
 import { AKTIF_ISLEM_YASAK, ORTAK_YAPILANDIRMA } from './ortak';
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -66,6 +66,11 @@ export class ZafiyetTarayiciAdaptoru extends BaglanmamisAdaptor {
        kontrolcü durdurabilir. */
     taramaBaslat: AKTIF_ISLEM_YASAK,
   });
+  /* Kimlik doğrulamalı tarama işletim sistemi ve eksik yama listesini
+     verir; kimlik doğrulamasız tarama vermez. Hangi kipte koştuğu
+     yapılandırmada durur ve güven ona göre yazılır. */
+  readonly yetenekler: Yetenek[] = ['asset_inventory', 'asset_state', 'vulnerability'];
+
   readonly gerekenSirlar = ['env:VULN_API_ANAHTARI'];
   readonly gereken =
     'Tenable.io/Qualys/Rapid7 salt okunur API anahtarı (access + secret key, ' +

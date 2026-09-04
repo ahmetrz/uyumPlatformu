@@ -1,6 +1,6 @@
 import 'server-only';
 import { z } from 'zod';
-import { BaglanmamisAdaptor, type IhtiyacKalemi } from '../sozlesme';
+import { BaglanmamisAdaptor, type IhtiyacKalemi, type Yetenek } from '../sozlesme';
 import { AKTIF_ISLEM_YASAK, ORTAK_YAPILANDIRMA } from './ortak';
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -68,6 +68,11 @@ export class SiemAdaptoru extends BaglanmamisAdaptor {
     /* Playbook/otomasyon tetikleme YASAK. */
     playbookIzni: AKTIF_ISLEM_YASAK,
   });
+  /* Log kaynağı envanteri ve ayrıcalıklı oturum izleri verir. Cihazın
+     yama ya da firmware seviyesini SÖYLEMEZ — log göndermek bir duruş
+     beyanı değildir. */
+  readonly yetenekler: Yetenek[] = ['asset_inventory', 'access_observation', 'passive_asset_discovery'];
+
   readonly gerekenSirlar = ['env:SIEM_TOKEN'];
   readonly gereken =
     'SIEM üzerinde salt okunur arama hesabı ve token: Splunk için ' +

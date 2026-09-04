@@ -246,6 +246,7 @@ describe('2 · kapsamTesisleriJson kolonuna yazılabiliyor', () => {
     adaptorKaydet({
       tip: TIP,
       baglanabilir: true,
+      yetenekler: ['asset_inventory'] as const,
       yapilandirmaSemasi: z.looseObject({}),
       gerekenSirlar: [],
       async testConnection() { return { ok: true, ayrinti: 'kapsam fikstürü' }; },

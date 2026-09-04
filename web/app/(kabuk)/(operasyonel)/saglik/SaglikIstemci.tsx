@@ -799,6 +799,8 @@ function DisaAktar({ motorlar, kalite, entegrasyon }: {
 export type AdaptorIhtiyaci = {
   tip: string;
   baglanabilir: boolean;
+  /** Bu kaynak bağlanınca ürünün hangi gözlem ailesi CANLANIR. */
+  yetenekler: string[];
   gerekenSirlar: string[];
   kalemler: { kod: string; ad: string; tur: string; sir: boolean; aciklama: string }[];
 };
@@ -971,6 +973,19 @@ const IHTIYAC_TUR_SOZU: Record<string, string> = {
   sertifika: 'sertifika', izin: 'izin',
 };
 
+/* Yetenek kodları müşteriye ÜRÜN adıyla değil, ALAN adıyla söylenir:
+   "hangi kutuyu alacağız" değil "hangi ekran canlanacak" sorusunun
+   cevabıdır. */
+const YETENEK_SOZU: Record<string, string> = {
+  asset_inventory: 'varlık künyesi',
+  asset_state: 'canlı duruş (OS · yama · firmware)',
+  vulnerability: 'zafiyet kaydı',
+  backup_result: 'yedek sonucu',
+  access_observation: 'hesap ve erişim gözlemi',
+  topology: 'ağ topolojisi',
+  passive_asset_discovery: 'pasif cihaz keşfi',
+};
+
 function IhtiyacBolumu({ liste }: { liste: AdaptorIhtiyaci[] }) {
   const bagliOlmayan = liste.filter((x) => !x.baglanabilir);
   const toplamKalem = bagliOlmayan.reduce((t, x) => t + x.kalemler.length, 0);
@@ -989,6 +1004,7 @@ function IhtiyacBolumu({ liste }: { liste: AdaptorIhtiyaci[] }) {
       {liste.filter((x) => x.baglanabilir).map((x) => (
         <p key={x.tip} className="ab-dip" style={{ margin: 'var(--s10) 0 0' }}>
           <strong>{x.tip}</strong> bağlı — kurumdan istenecek bilgi yok.
+          {' '}Beslediği alanlar: {x.yetenekler.map((y) => YETENEK_SOZU[y] ?? y).join(' · ')}.
         </p>
       ))}
 
@@ -1000,6 +1016,14 @@ function IhtiyacBolumu({ liste }: { liste: AdaptorIhtiyaci[] }) {
               {x.tip} · {x.kalemler.length} kalem ·
               {' '}sır referansı {x.gerekenSirlar.length > 0
                 ? x.gerekenSirlar.join(', ') : 'bildirilmedi'}
+            </p>
+            {/* Bağlanınca NE canlanacağı, kurulumu planlayanın ilk sorusudur.
+                Bağlı olmadığı sürece bu bir VAAT değil bir KAPSAM beyanıdır:
+                ekran bu alanlarda hâlâ "kaynak bağlı değil" yazar. */}
+            <p className="ab-dip" style={{ margin: '0 0 var(--s8)' }}>
+              Bağlanınca besleyeceği alanlar:{' '}
+              {x.yetenekler.length === 0 ? 'bildirilmedi'
+                : x.yetenekler.map((y) => YETENEK_SOZU[y] ?? y).join(' · ')}
             </p>
             <div style={{ display: 'grid', gap: 'var(--s10)' }}>
               {x.kalemler.map((k) => (

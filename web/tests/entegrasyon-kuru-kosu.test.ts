@@ -75,6 +75,7 @@ function farkliTablolar(once: Anlik, sonra: Anlik): string[] {
 function gozlem(id: string, kaynak: string, ek: Record<string, unknown> = {}): Gozlem {
   return {
     tip: 'varlik',
+    yetenekler: ['asset_inventory'] as const,
     koken: { kaynakSistem: kaynak, kaynakKayitId: id, toplanma: new Date(), guven: null },
     hostname: `kuru-${id}`,
     ham: { id, kaynak },
@@ -86,6 +87,7 @@ function adaptorYap(tip: string, cek: (b: Baglam) => Promise<CekmeSonucu>): Adap
   const a: Adaptor = {
     tip,
     baglanabilir: true,
+    yetenekler: ['asset_inventory'] as const,
     yapilandirmaSemasi: z.looseObject({}),
     gerekenSirlar: [],
     async testConnection() { return { ok: true, ayrinti: 'kuru koşu fikstürü' }; },

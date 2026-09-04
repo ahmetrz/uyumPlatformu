@@ -1,6 +1,6 @@
 import 'server-only';
 import { z } from 'zod';
-import { BaglanmamisAdaptor, type IhtiyacKalemi } from '../sozlesme';
+import { BaglanmamisAdaptor, type IhtiyacKalemi, type Yetenek } from '../sozlesme';
 import { AKTIF_ISLEM_YASAK, ORTAK_YAPILANDIRMA } from './ortak';
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -59,6 +59,11 @@ export class EdrAdaptoru extends BaglanmamisAdaptor {
        izin vermez. */
     mudahaleIzni: AKTIF_ISLEM_YASAK,
   });
+  /* Agent cihazın üzerinde çalışır: işletim sistemi, sürüm ve BIOS/firmware
+     doğrudan ondan gelir. Yama seviyesi ürüne göre değişir ve
+     gelmeyebilir; gelmeyen alan BOŞ kalır, uydurulmaz. */
+  readonly yetenekler: Yetenek[] = ['asset_inventory', 'asset_state', 'passive_asset_discovery'];
+
   readonly gerekenSirlar = ['env:EDR_ISTEMCI_SIRRI'];
   readonly gereken =
     'EDR konsolunda salt okunur API istemcisi: CrowdStrike için client id + ' +

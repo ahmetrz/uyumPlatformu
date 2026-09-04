@@ -391,6 +391,7 @@ describe('6 · Connector kapsamı yapılandırılmış santralleri AŞAMAZ', () 
     adaptorKaydet({
       tip: TIP,
       baglanabilir: true,
+      yetenekler: ['asset_inventory'] as const,
       yapilandirmaSemasi: z.looseObject({}),
       gerekenSirlar: [],
       async testConnection() { return { ok: true, ayrinti: 'negatif test fikstürü' }; },

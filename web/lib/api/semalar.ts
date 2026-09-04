@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import type {
-  ErisimGozlemi, Koken, VarlikGozlemi, YedekGozlemi, ZafiyetGozlemi,
+  DurusGozlemi, ErisimGozlemi, Koken, VarlikGozlemi, YedekGozlemi, ZafiyetGozlemi,
 } from '../entegrasyon/sozlesme';
 
 /* Tel biçimi (wire format) → lib/entegrasyon/sozlesme.ts `Gozlem` tipleri.
@@ -131,6 +131,48 @@ export const yedekGozlemine = (t: YedekKaydiTel, ham: unknown): YedekGozlemi => 
   icerikHash: t.contentHash ?? null,
   depolamaKonumu: t.storageLocation ?? null,
   hata: t.error ?? null,
+  ham,
+});
+
+/* ── canlı duruş gözlemi (asset_state) ─────────────────────────────── */
+
+/* `observedAt` KAYNAĞIN ölçtüğü andır ve isteğe bağlıdır: bildirmeyen bir
+   kaynak için tazelik "ölçülmedi" olur. Zorunlu tutmak, kaynağı olmayan
+   bir zamanı uydurmaya zorlardı. */
+export const durusKaydiSemasi = z.object({
+  ...kokenAlanlari,
+  assetKey: metin('assetKey', 255),
+  hostname: metinOpsiyonel(255),
+  ip: metinOpsiyonel(64),
+  mac: metinOpsiyonel(64),
+  manufacturer: metinOpsiyonel(160),
+  model: metinOpsiyonel(160),
+  os: metinOpsiyonel(160),
+  osVersion: metinOpsiyonel(80),
+  osBuild: metinOpsiyonel(80),
+  patchLevel: metinOpsiyonel(120),
+  lastPatchDate: tarih.nullable().optional(),
+  firmware: metinOpsiyonel(120),
+  observedAt: tarih.nullable().optional(),
+});
+export type DurusKaydiTel = z.infer<typeof durusKaydiSemasi>;
+
+export const durusGozlemine = (t: DurusKaydiTel, ham: unknown): DurusGozlemi => ({
+  tip: 'durus',
+  koken: kokene(t),
+  varlikAnahtari: t.assetKey,
+  hostname: t.hostname ?? null,
+  ipAdresi: t.ip ?? null,
+  macAdresi: t.mac ?? null,
+  uretici: t.manufacturer ?? null,
+  model: t.model ?? null,
+  isletimSistemi: t.os ?? null,
+  osSurumu: t.osVersion ?? null,
+  osYapisi: t.osBuild ?? null,
+  yamaSeviyesi: t.patchLevel ?? null,
+  sonYamaTarihi: t.lastPatchDate ?? null,
+  firmware: t.firmware ?? null,
+  kaynakZamani: t.observedAt ?? null,
   ham,
 });
 

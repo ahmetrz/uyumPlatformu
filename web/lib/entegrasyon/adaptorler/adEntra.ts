@@ -1,6 +1,6 @@
 import 'server-only';
 import { z } from 'zod';
-import { BaglanmamisAdaptor, type IhtiyacKalemi } from '../sozlesme';
+import { BaglanmamisAdaptor, type IhtiyacKalemi, type Yetenek } from '../sozlesme';
 import { AKTIF_ISLEM_YASAK, ORTAK_YAPILANDIRMA } from './ortak';
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -69,6 +69,13 @@ export class AdEntraAdaptoru extends BaglanmamisAdaptor {
     /* Dizinde YAZMA hiçbir yapılandırmayla açılamaz: bu adaptör okur. */
     yazmaIzni: AKTIF_ISLEM_YASAK,
   });
+  /* Dizin cihaz ve kullanıcı kaydı verir; işletim sistemi ve sürümü Entra
+     cihaz kaydında bulunur ama YAMA SEVİYESİ bulunmaz — o Intune gibi
+     bir uç nokta yönetimi bağlanmadan gelmez. `asset_state` bu yüzden
+     BEYAN EDİLMEZ: eksik bir alanı vaat etmek, bağlantı günü planını
+     yanlış kurar. */
+  readonly yetenekler: Yetenek[] = ['asset_inventory', 'access_observation', 'passive_asset_discovery'];
+
   readonly gerekenSirlar = ['env:ENTRA_ISTEMCI_SIRRI'];
   readonly gereken =
     'Entra ID uygulama kaydı (tenant id + client id) · Directory.Read.All ve ' +

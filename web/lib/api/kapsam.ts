@@ -23,7 +23,7 @@
 export const UC_KIMLIKLERI = [
   'plants', 'assets', 'assets.upsert', 'assets.observations',
   'evidence', 'vulnerabilities', 'backup-results', 'integration-runs',
-  'access-observations',
+  'access-observations', 'asset-state',
 ] as const;
 export type UcKimligi = (typeof UC_KIMLIKLERI)[number];
 
@@ -37,6 +37,7 @@ export const UC_ETIKETI: Record<UcKimligi, string> = {
   'backup-results': 'Yedek sonucu bildirimi (yazma)',
   'integration-runs': 'Entegrasyon koşuları (okuma)',
   'access-observations': 'Erişim gözlemi bildirimi (yazma)',
+  'asset-state': 'Canlı duruş bildirimi (yazma)',
 };
 
 /** Ucun bağlı olduğu modül — rol kapısının sorduğu modülün AYNISI. */
@@ -50,6 +51,7 @@ export const UC_MODULU: Record<UcKimligi, 'envanter' | 'uyum' | 'yonetim'> = {
   'backup-results': 'envanter',
   'integration-runs': 'yonetim',
   'access-observations': 'envanter',
+  'asset-state': 'envanter',
 };
 
 /* YAZMA yapan uçlar. Liste burada durur ve tek kaynaktır.
@@ -66,7 +68,7 @@ export const UC_MODULU: Record<UcKimligi, 'envanter' | 'uyum' | 'yonetim'> = {
    yeni bir yazma ucu eklenip buraya yazılmazsa test kırılır. */
 export const YAZMA_UCLARI: readonly UcKimligi[] = [
   'assets.upsert', 'assets.observations', 'vulnerabilities',
-  'backup-results', 'access-observations',
+  'backup-results', 'access-observations', 'asset-state',
 ];
 
 export function yazmaUcuMu(uc: UcKimligi): boolean {

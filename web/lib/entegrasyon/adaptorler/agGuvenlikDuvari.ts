@@ -1,6 +1,6 @@
 import 'server-only';
 import { z } from 'zod';
-import { BaglanmamisAdaptor, type IhtiyacKalemi } from '../sozlesme';
+import { BaglanmamisAdaptor, type IhtiyacKalemi, type Yetenek } from '../sozlesme';
 import { AKTIF_ISLEM_YASAK, ORTAK_YAPILANDIRMA } from './ortak';
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -77,6 +77,10 @@ export class AgGuvenlikDuvariAdaptoru extends BaglanmamisAdaptor {
     /* Kural/konfigürasyon yazma hiçbir yapılandırmayla açılamaz. */
     yazmaIzni: AKTIF_ISLEM_YASAK,
   });
+  /* Ağ ekipmanının tuttuğu tablolar MAC, IP ve üretici kodu verir; cihazın
+     içindeki yazılım hakkında hiçbir şey söylemez. */
+  readonly yetenekler: Yetenek[] = ['asset_inventory', 'topology', 'passive_asset_discovery'];
+
   readonly gerekenSirlar = ['env:FW_API_ANAHTARI'];
   readonly gereken =
     'Ağ ekipmanında SALT OKUNUR yönetim hesabı ve API erişimi: Palo Alto ' +

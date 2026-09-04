@@ -12,7 +12,12 @@ import {
 } from '@/lib/varlik/kapsam';
 import { etiketle, tarihTR, zamanTR } from '@/lib/sabitler';
 import {
-  kimlikEnvanteri, kimlikTamligi, type Segment, type V,
+  DURUS_ALANLARI, DURUS_ALAN_ETIKETI, TAZELIK_SOZU,
+  durusuCoz, type DurusAlani, type TazelikDurumu,
+} from '@/lib/varlik/canliDurus';
+import {
+  kimlikEnvanteri, kimlikTamligi,
+  type CanliAyar, type DurusCanliKaynak, type Segment, type V,
 } from './mantik';
 
 /* ═══ O11 · Duruş sekmesi — OT-03 · 11 · 21 · 22 · 25 · 26 · 27 ════════
@@ -79,6 +84,209 @@ function Blok({ ad, rozet, children }: {
 /** "kayıt yok" cümlesi — "sorun yok" DEĞİLDİR ve öyle yazılmaz. */
 function KayitYok({ ne }: { ne: string }) {
   return <p className="bos">{ne} kaydı yok — ölçülmedi.</p>;
+}
+
+/* ── OT-21b · Canlı duruş ───────────────────────────────────────────
+
+   Bu blok tek bir soruyu cevaplar: "bu cihazın işletim sistemi, yaması ve
+   firmware'i hakkında ŞU AN ne biliyoruz ve bunu nereden biliyoruz?"
+
+   Üç şey asla karıştırılmaz:
+     · envanterde YAZAN     — bir insanın girdiği kayıt
+     · sahada GÖRÜLEN       — bir kaynak sistemin bildirdiği ölçüm
+     · hiç ölçülmemiş olan  — kaynağın bağlı olmadığı alan
+
+   "CANLI" sözcüğü yalnız kaynak gerçekten bağlıyken, son koşu başarılıyken
+   ve veri kaynağın kendi sorgu aralığı içinde geldiğinde yazılır. Bağlı
+   olmayan bir kaynağın önüne "canlı" yazmak, ürünün söyleyebileceği en
+   pahalı yalandır. */
+
+const TAZELIK_GLIF: Record<TazelikDurumu, string> = {
+  canli: 'uygun', guncel: 'uygun', bayat: 'kismi',
+  kaynak_yok: 'planli', hata: 'uygunsuz', bilinmiyor: 'yok',
+};
+
+/** Envanter satırının KENDİ değeri — gözlemin karşısına konur. */
+const ENVANTER_DEGERI: Record<DurusAlani, (v: V) => string | null> = {
+  isletimSistemi: (v) => v.isletimSistemi,
+  osSurumu: (v) => v.isletimSistemiSurumu,
+  yamaSeviyesi: (v) => v.durus.yamalar[0]?.mevcutSeviye ?? null,
+  firmware: (v) => v.firmware,
+};
+
+function yasCumlesi(yasDk: number | null): string {
+  if (yasDk === null) return 'yaş ölçülemedi';
+  if (yasDk < 1) return 'az önce';
+  if (yasDk < 60) return `${yasDk} dk önce`;
+  if (yasDk < 1440) return `${Math.round(yasDk / 60)} sa önce`;
+  return `${Math.round(yasDk / 1440)} gün önce`;
+}
+
+/** Bir kaynağın bağlantı durumu — cümlesi ve sınıfı. */
+function kaynakDurumu(g: DurusCanliKaynak): { yazi: string; sinif: string } {
+  if (!g.bagli) return { yazi: 'bağlı değil', sinif: 'planli' };
+  if (g.hatali) return { yazi: 'HATA', sinif: 'uygunsuz' };
+  if (g.pollAralikDk === null || g.pollAralikDk <= 0) {
+    return { yazi: 'elle tetiklenir', sinif: 'yok' };
+  }
+  return { yazi: `${g.pollAralikDk} dk'da bir sorgulanır`, sinif: 'uygun' };
+}
+
+function CanliBlogu({ v, simdi, ayar }: {
+  v: V; simdi: number; ayar: CanliAyar;
+}) {
+  const kaynaklar = v.durus.canli;
+
+  /* Çözüm SAF bir hesaptır ve girdisi sunucudan gelen `simdi`dir:
+     render gövdesinde saat okunmaz, iki kullanıcı aynı ekranı aynı
+     eşiklerle görür. */
+  const cozum = durusuCoz(
+    kaynaklar.map((g) => ({
+      kaynakSistem: g.kaynakSistem,
+      bagli: g.bagli,
+      hatali: g.hatali,
+      pollAralikDk: g.pollAralikDk,
+      kaynakZamani: g.kaynakZamani === null ? null : new Date(g.kaynakZamani).getTime(),
+      guven: g.guven,
+      alanlar: {
+        isletimSistemi: g.isletimSistemi,
+        osSurumu: g.osSurumu === null ? g.osYapisi
+          : g.osYapisi === null ? g.osSurumu : `${g.osSurumu} (${g.osYapisi})`,
+        yamaSeviyesi: g.yamaSeviyesi,
+        firmware: g.firmware,
+      },
+    })),
+    {
+      simdi,
+      canliKat: ayar.canliKat,
+      guncelKat: ayar.guncelKat,
+      kaynakOnceligi: ayar.kaynakOnceligi,
+    },
+  );
+
+  const bagliSayisi = kaynaklar.filter((g) => g.bagli).length;
+
+  return (
+    <Blok
+      ad="Canlı duruş"
+      rozet={(
+        <span className="mono">
+          {kaynaklar.length === 0 ? 'kaynak yok'
+            : `${kaynaklar.length} kaynak · ${bagliSayisi} bağlı`}
+        </span>
+      )}
+    >
+      {bagliSayisi === 0 && (
+        <p className="mono dipnot">
+          KAYNAK BAĞLI DEĞİL — aşağıdaki değerler envantere elle girilmiştir
+          ve hiçbiri canlı ölçüm değildir. Bir kaynak sistem bağlandığında
+          bu blok sahadan gelen değeri envanterdekinin yanına koyar.
+        </p>
+      )}
+
+      {DURUS_ALANLARI.map((alan) => {
+        const c = cozum[alan];
+        const envanter = ENVANTER_DEGERI[alan](v);
+        const durum: TazelikDurumu = c.tazelik?.durum ?? 'kaynak_yok';
+        const celiski = c.deger !== null && envanter !== null && c.deger !== envanter;
+        return (
+          <div key={alan} className="ab-durus-satir">
+            <span className={`ab-glif g-${TAZELIK_GLIF[durum]}`} aria-hidden />
+            <span className="konu">{DURUS_ALAN_ETIKETI[alan]}</span>
+            <span className="mono son">{TAZELIK_SOZU[durum]}</span>
+            <dl className="ciftler">
+              <div>
+                <dt>Sahada görülen</dt>
+                <dd className={`mono${c.deger ? '' : ' unk'}`}>
+                  {c.deger ?? 'ölçülmedi'}
+                </dd>
+              </div>
+              <div>
+                <dt>Envanter kaydı</dt>
+                <dd className={`mono${envanter ? (celiski ? ' vurgu' : '') : ' unk'}`}>
+                  {envanter ?? 'girilmedi'}
+                </dd>
+              </div>
+              <div>
+                <dt>Veri kaynağı</dt>
+                <dd className={`mono${c.kaynakSistem ? '' : ' unk'}`}>
+                  {c.kaynakSistem ?? 'kaynak bağlı değil'}
+                </dd>
+              </div>
+              <div>
+                <dt>Son veri</dt>
+                <dd className={`mono${c.tazelik?.yasDk == null ? ' unk' : ''}`}>
+                  {yasCumlesi(c.tazelik?.yasDk ?? null)}
+                </dd>
+              </div>
+            </dl>
+            {celiski && (
+              <p className="mono dipnot">
+                Envanterde yazan ile sahada görülen AYNI DEĞİL. Ürün
+                envanteri kendiliğinden değiştirmez: hangisinin doğru
+                olduğuna insan karar verir.
+              </p>
+            )}
+            {c.cakisanlar.length > 0 && (
+              <p className="mono dipnot">
+                Çakışma · {c.cakisanlar.map((k) => `${k.kaynakSistem}: ${k.deger}`).join(' · ')}
+                {' — '}en yeni ölçüm kazandı, diğerleri gizlenmedi.
+              </p>
+            )}
+          </div>
+        );
+      })}
+
+      {kaynaklar.length === 0 ? (
+        <p className="bos">
+          Bu varlığı besleyen kaynak sistem yok — duruş ölçülmedi.
+        </p>
+      ) : (
+        <>
+          <p className="etiket blokbas">Kaynak sağlığı</p>
+          {kaynaklar.map((g) => {
+            const kd = kaynakDurumu(g);
+            return (
+              <div key={g.kaynakSistem} className="ab-durus-satir">
+                <span className={`ab-glif g-${kd.sinif}`} aria-hidden />
+                <span className="konu">{g.connectorAd ?? g.kaynakSistem}</span>
+                <span className="mono son">{kd.yazi}</span>
+                <dl className="ciftler">
+                  <div>
+                    <dt>Kaynak sistem</dt>
+                    <dd className="mono">{g.kaynakSistem}</dd>
+                  </div>
+                  <div>
+                    <dt>Kaynağın ölçtüğü an</dt>
+                    <dd className={`mono${g.kaynakZamani ? '' : ' unk'}`}>
+                      {g.kaynakZamani ? zamanTR(g.kaynakZamani) : 'kaynak zaman bildirmedi'}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Bize ulaştığı an</dt>
+                    <dd className="mono">{zamanTR(g.alinma)}</dd>
+                  </div>
+                  <div>
+                    <dt>Son başarılı koşu</dt>
+                    <dd className={`mono${g.sonBasariliKosu ? '' : ' unk'}`}>
+                      {g.sonBasariliKosu ? zamanTR(g.sonBasariliKosu) : 'koşu kaydı yok'}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Güven</dt>
+                    <dd className={`mono${g.guven === null ? ' unk' : ''}`}>
+                      {g.guven === null ? 'ölçülmedi' : g.guven.toFixed(2)}
+                    </dd>
+                  </div>
+                </dl>
+                {g.sonHata && <p className="mono dipnot">Son hata · {g.sonHata}</p>}
+              </div>
+            );
+          })}
+        </>
+      )}
+    </Blok>
+  );
 }
 
 /* ── OT-03 · Kimlik alanı envanteri ─────────────────────────────────── */
@@ -682,9 +890,12 @@ function SbomBlogu({ v }: { v: V }) {
 
 /* ── Sekme gövdesi ──────────────────────────────────────────────────── */
 
-export function DurusPaneli({ v, segmentler }: { v: V; segmentler: Segment[] }) {
+export function DurusPaneli({ v, segmentler, simdi, canliAyar }: {
+  v: V; segmentler: Segment[]; simdi: number; canliAyar: CanliAyar;
+}) {
   return (
     <div className="ab-durus">
+      <CanliBlogu v={v} simdi={simdi} ayar={canliAyar} />
       <KimlikEnvanteri v={v} yazilabilir={v.yazilabilir} />
       <FirmwareBlogu v={v} onaylanabilir={v.onaylanabilir} />
       <YamaBlogu v={v} />

@@ -4,7 +4,7 @@ import type {
   Gozlem, SaglikSonucu, VarlikGozlemi,
 } from '../sozlesme';
 import { z } from 'zod';
-import { temelDogrula } from '../sozlesme';
+import { temelDogrula, type Yetenek } from '../sozlesme';
 import { ORTAK_YAPILANDIRMA, bosNull, icerikOzeti, kararliKimlik } from './ortak';
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -191,6 +191,11 @@ export class ElleAktarimAdaptoru implements Adaptor {
   readonly tip = 'manual_import';
   /** Dış sistem gerektirmiyor: gerçekten bağlanabilir. */
   readonly baglanabilir = true;
+  /* Dosya ne taşıyorsa onu üretir. `asset_state` LİSTEDE DEĞİL ve bu
+     bilinçli: bir dışa aktarım dosyası bir AKIŞ değildir; canlı duruş
+     iddiası ancak periyodik bir kaynaktan doğar. Dosyayla gelen sürüm
+     bilgisi envanter kaydını besler, "canlı" etiketi almaz. */
+  readonly yetenekler: Yetenek[] = ['asset_inventory', 'passive_asset_discovery'];
 
   /* Kaynağı olmayan bir elle aktarım connector'ı, ilk koşusunda
      "kaynağı tanımlı değil" diye patlıyordu — yani yapılandırma hatası

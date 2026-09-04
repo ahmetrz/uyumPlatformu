@@ -1,6 +1,6 @@
 import 'server-only';
 import { z } from 'zod';
-import { BaglanmamisAdaptor, type IhtiyacKalemi } from '../sozlesme';
+import { BaglanmamisAdaptor, type IhtiyacKalemi, type Yetenek } from '../sozlesme';
 import { AKTIF_ISLEM_YASAK, ORTAK_YAPILANDIRMA } from './ortak';
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -77,6 +77,11 @@ export class OtKesifAdaptoru extends BaglanmamisAdaptor {
        senkronizasyonundan tetiklenemez. */
     aktifSorgulama: AKTIF_ISLEM_YASAK,
   });
+  /* Pasif keşif ürünü firmware sürümünü protokol trafiğinden çıkarır; OT
+     cihazlarında bu genelde TEK kaynaktır. İşletim sistemi alanı gömülü
+     cihazlarda anlamsız olabilir ve boş gelir. */
+  readonly yetenekler: Yetenek[] = ['asset_inventory', 'asset_state', 'topology', 'passive_asset_discovery'];
+
   readonly gerekenSirlar = ['env:OT_KESIF_TOKEN'];
   readonly gereken =
     'Sahada kurulu pasif OT keşif ürünü (Claroty CTD / Nozomi Guardian / ' +

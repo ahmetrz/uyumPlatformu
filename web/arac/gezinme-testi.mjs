@@ -2,12 +2,14 @@
 /* Duyarlı gezinme testi — HİÇBİR ROTA ERİŞİLEMEZ OLMAMALI.
 
    ── Kapatılan kusur ("bazı sayfalar arası geçiş yapılamıyor") ─────────
-   Ürün üç kabuktan oluşur (A tezgâh · B saha · C defter) ve her kabuk
-   yalnız KENDİ ekranlarını listeliyordu. Erişim taraması üç ayrı ada
-   ölçtü: A'dan C'ye, C'den portföye gitmenin tek yolu ana ekrana dönmekti;
-   `/sistem` hiçbir yerden bağlı değildi. Çözüm: beş alanı (Saha · Portföy
-   · Uyum · Varlık · Risk) taşıyan ORTAK bir alan gezinmesi
-   (`nav[aria-label="Alanlar"]`), her kabuğun kendi gramerinde çizilir.
+   Ürün eskiden üç kabuktan oluşuyordu (A tezgâh · B saha · C defter) ve
+   her kabuk yalnız KENDİ ekranlarını listeliyordu: A'dan C'ye, C'den
+   portföye gitmenin tek yolu ana ekrana dönmekti; `/sistem` hiçbir
+   yerden bağlı değildi. Çözüm beş alanı (Saha · Portföy · Uyum · Varlık
+   · Risk) taşıyan ORTAK bir alan gezinmesiydi
+   (`nav[aria-label="Alanlar"]`). Kabuklar sonra TEKE indirildi; yoğunluk
+   artık kabuğun değil ekranın ölçüsüdür. Bu araç o değişikliğe göre
+   güncellendi (aşağıdaki TUR yorumuna bakın).
 
    ── Bu araç ne ölçer ──────────────────────────────────────────────────
    Dört genişlikte, dokunmatik + klavyeyle:
@@ -62,11 +64,26 @@ const KARDES = '/bulgular';
 
 /* Kabuklar arası tur: her adım "buradayım → alan bağlantısına dokun →
    oraya vardım". Hedef kabuğun belirtisi kök `.ab[data-yogunluk]` değeridir. */
+/* ── ARAÇ TEK KABUĞA GÜNCELLENDİ ──────────────────────────────────────
+   Bu tur eskiden ÜÇ KABUK (A tezgâh · B saha · C defter) modelini
+   ölçüyordu ve `data-yogunluk` değerini 'a'/'b'/'c' bekliyordu. Ürün o
+   modeli bıraktı: tek kabuk var, `data-yogunluk` ise kabuğun değil
+   EKRANIN ölçüsüdür (amiral · operasyonel · tezgah) ve rotadan türer.
+   Aynı şekilde alan sekmesi `aria-current="location"` değil `"page"`
+   taşıyor — `components/kabuk/Kabuk.tsx` bunu açıkça yazıyor: belgede
+   TEK "page" alan sekmesindedir.
+
+   Araç bu iki beklentiyi güncellemediği için ölçtüğü şey artık gerçek
+   değildi ve her koşuda kırmızı yanıyordu. Kırmızı yanan ama gerçek bir
+   şey söylemeyen kapı, insanları kapıyı yok saymaya alıştırır.
+
+   Turun ASIL iddiası değişmedi ve korunuyor: hiçbir rotaya ulaşmak için
+   ana ekrana dönmek gerekmez. */
 const TUR = [
-  { neredeyim: '/riskler', hedef: '/envanter', yon: 'a', ad: 'C → A (Risk → Varlık)' },
-  { neredeyim: '/envanter', hedef: '/portfoy', yon: 'b', ad: 'A → B (Varlık → Portföy)' },
-  { neredeyim: '/portfoy', hedef: '/uyum', yon: 'c', ad: 'B → C (Portföy → Uyum)' },
-  { neredeyim: '/uyum', hedef: '/', yon: 'b', ad: 'C → B (Uyum → Saha)' },
+  { neredeyim: '/riskler', hedef: '/envanter', yogunluk: 'operasyonel', ad: 'Risk → Varlık' },
+  { neredeyim: '/envanter', hedef: '/portfoy', yogunluk: 'amiral', ad: 'Varlık → Portföy' },
+  { neredeyim: '/portfoy', hedef: '/uyum', yogunluk: 'operasyonel', ad: 'Portföy → Uyum' },
+  { neredeyim: '/uyum', hedef: '/', yogunluk: 'amiral', ad: 'Uyum → Saha' },
 ];
 
 const kusurlar = [];
@@ -132,7 +149,11 @@ for (const bant of BANTLAR) {
     await s.waitForTimeout(400);
     const n = await aktifSayisi(s);
     if (n !== 1) bildir(bant.ad, `${BASLANGIC}: aria-current="page" sayısı ${n} (1 olmalı)`);
-    await dokunVeVar(s, bant.ad, s.locator(`.ab-c-nav a[href="${KARDES}"]`), KARDES, 'kardeş (dokunmatik)');
+    /* `.ab-c-nav` üç kabuklu modelin defter rayıydı ve artık YOK; kardeş
+       ekranlar tek kabuğun ikincil sırasında (`.ab-ikincil`) duruyor.
+       Eski seçici hiçbir şey bulamadığı için araç "bağlantı YOK" diyordu
+       — bağlantı oradaydı, arayan yanlış yere bakıyordu. */
+    await dokunVeVar(s, bant.ad, s.locator(`.ab-ikincil a[href="${KARDES}"]`), KARDES, 'kardeş (dokunmatik)');
     const n2 = await aktifSayisi(s);
     if (n2 !== 1) bildir(bant.ad, `${KARDES}: aria-current="page" sayısı ${n2} (1 olmalı)`);
 
@@ -147,7 +168,7 @@ for (const bant of BANTLAR) {
       odaklandi = await s.evaluate((h) => {
         const a = document.activeElement;
         return a instanceof HTMLAnchorElement && a.getAttribute('href') === h
-          && !!a.closest('.ab-c-nav');
+          && !!a.closest('.ab-ikincil');
       }, KARDES);
     }
     if (!odaklandi) {
@@ -170,13 +191,16 @@ for (const bant of BANTLAR) {
       );
       if (!ok) continue;
       const y = await yon(s);
-      if (y !== adim.yon) bildir(bant.ad, `${adim.ad}: kabuk ${y} (${adim.yon} olmalı)`);
+      if (y !== adim.yogunluk) {
+        bildir(bant.ad, `${adim.ad}: yoğunluk ${y} (${adim.yogunluk} olmalı)`);
+      }
       const n3 = await aktifSayisi(s);
       if (n3 !== 1) bildir(bant.ad, `${adim.hedef}: aria-current="page" sayısı ${n3} (1 olmalı)`);
-      /* Alan bağlantılarından TAM BİRİ "buradasın" demeli. */
+      /* Alan sekmelerinden TAM BİRİ "buradasın" demeli — ve belgedeki
+         tek "page" odur (yukarıdaki sayım da bunu doğrular). */
       const konum = await s.evaluate(() => document
-        .querySelectorAll('nav[aria-label="Alanlar"] [aria-current="location"]').length);
-      if (y !== 'b' && konum !== 1) bildir(bant.ad, `${adim.hedef}: alan "location" sayısı ${konum} (1 olmalı)`);
+        .querySelectorAll('nav[aria-label="Alanlar"] [aria-current="page"]').length);
+      if (konum !== 1) bildir(bant.ad, `${adim.hedef}: alan sekmesi "page" sayısı ${konum} (1 olmalı)`);
     }
 
     if (sayfaHatalari.length) bildir(bant.ad, `sayfa hatası: ${sayfaHatalari[0]}`);

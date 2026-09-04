@@ -384,6 +384,28 @@
 @media (max-width: 700px) {
   .ab-ikincil { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
 }
+/* ── Sağ öbek YALNIZ kırpılmanın olduğu bantta yapışkan ──────────────
+   Ölçüldü: arama · bildirim · hesap menüsü 807px'lik doğal enini koruyor
+   ve pencere onun altına inince ekran dışında kalıyordu (768px'te 39px,
+   720px'te 87px) — kaydırma çubuğu gizli olduğu için ipucu da yoktu.
+   Marka sola yapıştığı gibi öbek de sağa yapışır ve üçü görünür kalır.
+
+   AMA dokunmatik bantta yapıştırmak kusurun kendisini üretiyordu:
+   375px'te yapışkan marka (~170px) ve yapışkan öbek (~180px) çubuğun
+   neredeyse tamamını kaplıyor, ortadaki BEŞ ALAN SEKMESİ altlarında
+   kalıyordu (gezinme testi bunu yakaladı: "marka intercepts pointer
+   events"). Orada sıra parmakla kaydırılır ve öbeğe kaydırarak varılır —
+   dokunmatikte beklenen jest budur.
+
+   Bu yüzden yapışkanlık 701–1100px bandına kapatıldı: kırpılma zaten
+   yalnız 807px'in altında oluyor ve 700px'in altı dokunmatik bandın
+   kendi kuralına bırakılıyor. */
+@media (min-width: 701px) and (max-width: 1100px) {
+  .ab-ust .sag {
+    position: sticky; right: 0; z-index: 1; background: var(--zemin);
+    box-shadow: -12px 0 12px -12px var(--zemin);
+  }
+}
 .ab-ikincil .grup {
   display: flex; align-items: stretch; gap: 2px; padding: 0 8px;
   min-height: 36px;
@@ -3210,10 +3232,6 @@ details:not([open]) > *:not(summary) { display: none !important; }
      altından geçen bağlar okunmaz hâle gelmesin. */
   .ab-ust { overflow-x: auto; scrollbar-width: none; }
   .ab-ust .marka { position: sticky; left: 0; z-index: 1; background: var(--zemin); }
-  .ab-ust .sag {
-    position: sticky; right: 0; z-index: 1; background: var(--zemin);
-    box-shadow: -12px 0 12px -12px var(--zemin);
-  }
   /* Portföy: 380px kimlik sütunu + plakalar yan yana sığmaz; kimlik üste
      çıkar, yapışkanlığını bırakır (aksi hâlde plakaları örter). */
   .ab-b-portfoy-govde { grid-template-columns: minmax(0, 1fr); }

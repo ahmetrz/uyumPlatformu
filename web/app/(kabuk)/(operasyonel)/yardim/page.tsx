@@ -90,6 +90,21 @@ const SSS: { soru: string; cevap: string; kaynak: string }[] = [
     cevap: 'Bu sürümde hayır. Bağlayıcılar (AD/Entra ID, EDR, zafiyet tarayıcı, SIEM, yedekleme, ağ cihazı, OT keşif) tanımlıdır ama gerçek uç noktaya bağlanmaz; Sağlık ekranı hiç koşmamış bağlayıcıyı "hiç koşmadı — sağlıklı olduğu anlamına gelmez" diye gösterir, sağlayıcıyı da "bağlı / bağlı değil" olarak.',
     kaynak: 'saglik/Cekmeceler.tsx · connector ve sağlayıcı çekmeceleri',
   },
+  {
+    soru: 'Ürün ağımı tarıyor mu? OT hattına paket gönderiyor mu?',
+    cevap: 'Hayır. Port taraması, SNMP deneme-yanılması, Modbus ya da başka bir OT protokol sorgusu, PLC yoklaması ve aktif keşif paketi bu üründe yoktur; bu bir yapılandırma seçeneği de değildir. Bütün cihaz keşfi, kurumun zaten çalışan gözlem kaynaklarının (SIEM, ağ izleme, güvenlik duvarı, switch MAC tablosu, ARP, DHCP, NAC, uç nokta ajanı, OT pasif keşif platformu, historian, SCADA dışa aktarımı) çıktısını okumaya dayanır. Gerekçe teknik değil emniyettir: bir OT ağında beklenmeyen bir paket eski bir kontrolörün haberleşme yığınını kilitleyebilir ve bedeli bir üretim durmasıdır. Keşif ekranındaki "Bu ürün ağa paket ATMAZ" bölümü yapılmayan işlemleri gerekçeleriyle sayar.',
+    kaynak: 'lib/varlik/pasifKesif.ts · AKTIF_ISLEM_YASAKLARI',
+  },
+  {
+    soru: 'Keşfedilen bir cihaz envantere kendiliğinden eklenir mi?',
+    cevap: 'Hayır. Akış beş adımdır: Tespit → Eşleştirme → Öneri → İnsan onayı → Envanter. En yüksek güvenli eşleşme bile doğrudan yazılmaz; kayıt öneri olarak bekler ve bir kişi "envantere ekle", "mevcut kayda bağla" ya da "gerekçeyle yoksay" der. Eşleştirmede IP tek başına kimlik sayılmaz: DHCP adresi gezer, iki hafta önce bir kontrolörün olan adres bugün bir dizüstünde olabilir. Sıra seri numarası → etiket → MAC → hostname biçimindedir.',
+    kaynak: 'lib/entegrasyon/kesif.ts · ANAHTAR_GUCU · TEK_BASINA_ESLESMEZ',
+  },
+  {
+    soru: '"Canlı" yazan bir alan gerçekten canlı mı?',
+    cevap: 'Evet — o sözcük yalnız üç koşul birlikte sağlanınca yazılır: kaynak sistem gerçekten bağlı, son koşusu başarılı ve veri kaynağın kendi sorgu aralığı içinde gelmiş. Eşik sabit bir dakika değildir; kaynağın periyodunun katıdır, çünkü beş dakikada bir sorgulanan bir uç nokta ürünü ile günde bir koşan bir tarayıcı aynı ölçüye vurulamaz. Kaynak bağlı değilse ekran "KAYNAK BAĞLI DEĞİL" der; yalnız elle beslenen bir kaynak ne kadar yeni olursa olsun canlı sayılmaz, çünkü bir dosya yüklemesi bir akış değildir.',
+    kaynak: 'lib/varlik/canliDurus.ts · tazelik() · canliDenebilirMi()',
+  },
 ];
 
 export default async function YardimEkrani() {

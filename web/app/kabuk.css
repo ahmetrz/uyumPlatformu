@@ -3282,3 +3282,28 @@ details:not([open]) > *:not(summary) { display: none !important; }
   .ab-konsol-dizin { position: static; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
   .ab-konsol-dizin > .etiket { grid-column: 1 / -1; }
 }
+
+/* ═══ OT-16b · Keşif grup özeti ═══════════════════════════════════════
+   Yedi grup DIŞLAYICIDIR ve sayıları toplama eşittir. Kutular birer
+   süzgeç düğmesidir; sıfır sayılı grup tıklanamaz ama LİSTEDEN ÇIKMAZ —
+   "o gruptan hiç yok" bilgisi, grubun görünmemesinden farklıdır. */
+.ab-kesif-gruplar {
+  display: grid; gap: 10px; margin-top: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+}
+.ab-kesif-grup {
+  display: grid; gap: 6px; text-align: left; min-width: 0;
+  padding: 12px; border: 1px solid var(--hr); border-radius: 2px;
+  background: transparent; color: inherit; font: inherit; cursor: pointer;
+}
+.ab-kesif-grup:hover:not(:disabled) { border-color: var(--i3); }
+.ab-kesif-grup[aria-pressed='true'] { border-color: var(--aksan); background: var(--secim); }
+.ab-kesif-grup:disabled { cursor: default; opacity: 0.55; }
+.ab-kesif-grup .bas { display: flex; align-items: center; gap: 8px; }
+.ab-kesif-grup .sayi { font-size: 19px; line-height: 1; }
+.ab-kesif-grup .ad {
+  font-size: 12px; font-weight: 600; overflow-wrap: anywhere;
+}
+.ab-kesif-grup .aciklama {
+  font-size: 11px; line-height: 1.5; color: var(--i2); overflow-wrap: anywhere;
+}

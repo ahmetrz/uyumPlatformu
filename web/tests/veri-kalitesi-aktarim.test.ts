@@ -33,7 +33,7 @@ async function bulgular(kural: string) {
 
 const AKTARIM_KURALLARI = [
   'kokensiz_dogrulama', 'bayat_koken', 'cakisan_kaynak_kaydi',
-  'kapsamsiz_kesif', 'bekleyen_kesif_yigilmasi',
+  'kapsamsiz_kesif', 'bekleyen_kesif_yigilmasi', 'sahipsiz_gorulen_varlik',
 ];
 
 async function temizle() {
@@ -44,10 +44,18 @@ async function temizle() {
 
 afterEach(temizle);
 
+/* `sahipsiz_gorulen_varlik` bu listede DEĞİLDİR ve olmamalıdır: kural
+   entegrasyon tablolarına değil, seed'de de bulunan keşif kayıtlarına
+   bakar ve orada GERÇEK bir sahiplik boşluğu vardır. Sessiz kalmasını
+   beklemek, kuralı gerçek bulgusunu gizleyecek kadar dar yazmak
+   olurdu. */
+const SESSIZ_OLMASI_GEREKENLER = AKTARIM_KURALLARI
+  .filter((k) => k !== 'sahipsiz_gorulen_varlik');
+
 describe('Temiz veride sessizlik', () => {
   it('entegrasyon tabloları boşken HİÇBİR aktarım kuralı bulgu üretmez', async () => {
     await veriKalitesiniIsle();
-    for (const kural of AKTARIM_KURALLARI) {
+    for (const kural of SESSIZ_OLMASI_GEREKENLER) {
       expect((await bulgular(kural)).length, `${kural} yanlış pozitif üretti`).toBe(0);
     }
   });
@@ -253,6 +261,89 @@ describe('B4 / B5 — keşif kuyruğu', () => {
     });
     await veriKalitesiniIsle();
     expect(await bulgular('bekleyen_kesif_yigilmasi')).toHaveLength(0);
+  });
+});
+
+describe('B6 — OT-16b · ağda görülen ama sahipsiz varlık', () => {
+  /** Sahipsiz, silinmemiş bir varlık; testten sonra sahibi geri konur. */
+  async function sahipsizVarlik() {
+    const v = await db.varlik.findFirstOrThrow({
+      where: { silindi: null }, select: { id: true, sahipId: true },
+    });
+    await db.varlik.update({ where: { id: v.id }, data: { sahipId: null } });
+    return v;
+  }
+
+  it('gözlemde görülen sahipsiz varlık için bulgu açılır', async () => {
+    const v = await sahipsizVarlik();
+    await db.kesifKaydi.create({
+      data: {
+        kaynak: 'switch_arp', kaynakKayitId: 'B6-1', hamJson: '{}',
+        durum: 'eslesti', eslesenVarlikId: v.id,
+      },
+    });
+    await veriKalitesiniIsle();
+    const b = await bulgular('sahipsiz_gorulen_varlik');
+    expect(b).toHaveLength(1);
+    expect(b[0]!.kaynakId).toBe(v.id);
+    await db.varlik.update({ where: { id: v.id }, data: { sahipId: v.sahipId } });
+  });
+
+  it('aynı varlığı iki kaynak görse bile TEK bulgu açılır', async () => {
+    /* Bulgu varlık başınadır: gözlem başına açılsaydı tek bir sahipsiz
+       cihaz için beş bulgu üretilir ve kuyruk gürültüye boğulurdu. */
+    const v = await sahipsizVarlik();
+    for (const kaynak of ['switch_arp', 'siem', 'dhcp']) {
+      await db.kesifKaydi.create({
+        data: {
+          kaynak, kaynakKayitId: `B6-cok-${kaynak}`, hamJson: '{}',
+          durum: 'eslesti', eslesenVarlikId: v.id,
+        },
+      });
+    }
+    await veriKalitesiniIsle();
+    expect(await bulgular('sahipsiz_gorulen_varlik')).toHaveLength(1);
+    await db.varlik.update({ where: { id: v.id }, data: { sahipId: v.sahipId } });
+  });
+
+  it('SAHİBİ OLAN varlık görülse de bulgu üretilmez', async () => {
+    const v = await db.varlik.findFirstOrThrow({
+      where: { silindi: null, sahipId: { not: null } }, select: { id: true },
+    });
+    await db.kesifKaydi.create({
+      data: {
+        kaynak: 'siem', kaynakKayitId: 'B6-2', hamJson: '{}',
+        durum: 'eslesti', eslesenVarlikId: v.id,
+      },
+    });
+    await veriKalitesiniIsle();
+    expect(await bulgular('sahipsiz_gorulen_varlik')).toHaveLength(0);
+  });
+
+  it('REDDEDİLMİŞ gözlem sahipsizlik bulgusu açmaz', async () => {
+    const v = await sahipsizVarlik();
+    await db.kesifKaydi.create({
+      data: {
+        kaynak: 'siem', kaynakKayitId: 'B6-3', hamJson: '{}',
+        durum: 'reddedildi', eslesenVarlikId: v.id,
+      },
+    });
+    await veriKalitesiniIsle();
+    expect(await bulgular('sahipsiz_gorulen_varlik')).toHaveLength(0);
+    await db.varlik.update({ where: { id: v.id }, data: { sahipId: v.sahipId } });
+  });
+
+  it('eşleşmemiş gözlem bu kuralın konusu DEĞİLDİR', async () => {
+    /* Envanterde karşılığı olmayan cihaz keşif kuyruğunun işidir; burada
+       sayılsaydı iki ayrı boşluk tek bir bulguya karışırdı. */
+    await db.kesifKaydi.create({
+      data: {
+        kaynak: 'arp', kaynakKayitId: 'B6-4', hamJson: '{}',
+        durum: 'inceleme_bekliyor', eslesenVarlikId: null,
+      },
+    });
+    await veriKalitesiniIsle();
+    expect(await bulgular('sahipsiz_gorulen_varlik')).toHaveLength(0);
   });
 });
 

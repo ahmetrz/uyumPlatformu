@@ -345,6 +345,17 @@ export const MODULLER: Modul[] = [
     kodYeri: 'lib/varlik/canliDurus.ts → tazelik() · canliDenebilirMi()',
     aciklama: 'OT-21b · Ekran "CANLI" sözcüğünü yalnız kaynak GERÇEKTEN bağlıyken, son koşu başarılıyken ve veri kaynağın sorgu aralığı içinde geldiyse yazar. Bağlı olmayan kaynak "kaynak bağlı değil" der; yalnız elle beslenen bir kaynak ne kadar yeni olursa olsun canlı sayılmaz.',
     neden: 'Bu ürünün satabileceği en pahalı yalan, bağlı olmayan bir kaynağın önüne "canlı" yazmaktır: bir kez yakalandığında müşteri o alandaki hiçbir sayıya bir daha güvenmez. Panelden gevşetilebilseydi, "demoda canlı görünsün" isteği kuralı ilk gün deler ve ürünün tazelik iddiası ölçüsüz kalırdı.' },
+  { kod: 'kesifGorunmez', grup: 'varlik', ad: 'Keşif "görülmüyor" eşiği', sinif: 'A', yer: 'konsol', hedefTipi: 'ayar',
+    aciklama: 'OT-16b · Bir keşif kaydının kaç gün görülmeyince "artık görülmüyor" sayılacağı. Eşiğin aşılması kaydı SİLMEZ; kayıt gruplandırmada ayrı bir kovaya iner ve incelemeye kalır.',
+    etki: ['Varlık keşfi · gruplar', 'Keşif dışa aktarımı'] },
+  { kod: 'kesifGruplari', grup: 'varlik', ad: 'Keşif grup sırası', sinif: 'C', yer: 'kod',
+    kodYeri: 'lib/varlik/pasifKesif.ts → kesifGrubu()',
+    aciklama: 'OT-16b · Bir kayıt birden çok tarife uyduğunda hangi gruba düştüğü: çakışma → yetkisiz → envanterde yok → sahipsiz → görülmüyor → yeri belirsiz → tamam.',
+    neden: 'Sıra, "önce hangi işi yapmalıyım" sorusunun cevabıdır ve panelden değiştirilmesi ekranın anlamını kişiye göre değiştirirdi: aynı kuyruğa bakan iki kişi farklı öncelik görürse ortak bir iş listesi kalmaz. Çakışma en öne kodda sabitlenmiştir çünkü kimliği belirsiz bir kayıt üzerinde verilen her karar yanlış cihazı vurabilir.' },
+  { kod: 'aktifTaramaYasagi', grup: 'varlik', ad: 'Aktif tarama yasağı', sinif: 'C', yer: 'kod',
+    kodYeri: 'lib/varlik/pasifKesif.ts → AKTIF_ISLEM_YASAKLARI · lib/entegrasyon/sozlesme.ts → AKTIF_ISLEM_YASAK',
+    aciklama: 'OT-16b · Ürün port taraması, SNMP deneme-yanılması, Modbus/OT protokol sorgusu, PLC yoklaması ve aktif keşif paketi ÜRETMEZ. Bütün keşif, kurumun zaten çalışan gözlem kaynaklarının çıktısını okumaya dayanır.',
+    neden: 'Gerekçe teknik değil EMNİYETTİR: bir OT ağında beklenmeyen bir paket eski bir kontrolörün haberleşme yığınını kilitleyebilir ve bedeli bir üretim durması, en kötü hâlde bir emniyet olayıdır. Bir envanter aracının bu riski alması savunulamaz; panelden açılabilen bir bayrak olsaydı "bir kereliğine" açılır ve o bir kere yeterdi.' },
   { kod: 'envanterSayimi', grup: 'varlik', ad: 'Fiziksel envanter sayımı', sinif: 'A', yer: 'mevcut_ekran', rota: '/sayim',
     aciklama: 'OT-55 · Kampanya, kapsam ve satır sonuçları. Payda açılışta DONAR; "sayılmadı" ile "bulunamadı" ayrı durumlardır ve sayım hiçbir varlığı silmez.' },
   { kod: 'sayimSonuclari', grup: 'varlik', ad: 'Sayım sonuç sözlüğü', sinif: 'C', yer: 'kod',
@@ -531,6 +542,7 @@ export function ayarinModulu(anahtar: string): Modul | null {
   if (anahtar === 'kabuk.kunye') return MODUL_SOZLUGU.kunye;
   if (anahtar.startsWith('zimmet.')) return MODUL_SOZLUGU.zimmetSuresi;
   if (anahtar.startsWith('durus.')) return MODUL_SOZLUGU.durusTazelik;
+  if (anahtar.startsWith('kesif.')) return MODUL_SOZLUGU.kesifGorunmez;
   if (anahtar === 'zamanlayici.motor_aralik_dk') return MODUL_SOZLUGU.motorAralik;
   if (/^motor\.[a-z_]+\.etkin$/.test(anahtar)) return MODUL_SOZLUGU.motorBayraklari;
   return null;

@@ -3,8 +3,9 @@ import { girisZorunlu, izinVar, izinliTesisIdleri } from '@/lib/erisim';
 import { kapsamdaYetkili, modulYazabilir } from '@/app/kapsam';
 import { db } from '@/lib/db';
 import { normalCoz } from '@/lib/entegrasyon/kesif';
+import { ayar } from '@/lib/yapilandirma/oku';
 import KesifIstemci from './KesifIstemci';
-import { GORUNMEZ_ESIK_GUN, kesifKapsamKosulu, type Aday, type KesifSatiri } from './mantik';
+import { kesifKapsamKosulu, type Aday, type KesifSatiri } from './mantik';
 
 export const metadata: Metadata = { title: 'Varlık keşfi' };
 
@@ -55,7 +56,16 @@ export default async function Sayfa() {
       take: KUYRUK_TAVANI,
       include: {
         connector: { select: { ad: true } },
-        eslesenVarlik: { select: { id: true, etiket: true, ad: true, tesisId: true } },
+        /* OT-16b · Sahiplik boşluğu bu ekranın konusudur: eşleşen varlığın
+           SORUMLUSU okunur. "Envanterde var" ile "sahibi var" ayrı iki
+           gerçektir ve ikincisi olmadan yama, yedek ve emeklilik
+           kararlarını kimse üstlenmez. */
+        eslesenVarlik: {
+          select: {
+            id: true, etiket: true, ad: true, tesisId: true,
+            sahip: { select: { adSoyad: true } },
+          },
+        },
         inceleyen: { select: { adSoyad: true } },
         yetkiKararVeren: { select: { adSoyad: true } },
       },
@@ -71,6 +81,11 @@ export default async function Sayfa() {
       orderBy: { kod: 'asc' },
     }),
   ]);
+
+  /* OT-16b · "Kaç gündür görülmüyor" eşiği konsoldan gelir: bir OT
+     santralinde ayda bir açılan bir cihaz ile sürekli çalışan bir sunucu
+     aynı eşikle ölçülemez. */
+  const gorunmezEsikGun = await ayar<number>('kesif.gorunmez_gun');
 
   /* OT-17 · OUI kütüğü — YALNIZ görünen kayıtların ön ekleri okunur.
      Kütüğün tamamını çekmek 50.000 satır demekti; burada gerekli olan
@@ -89,6 +104,8 @@ export default async function Sayfa() {
   /* `new Date()` sunucuda istek başına bir kez okunur; "kaç gündür
      görülmüyor" eşiği tüm satırlar için bu ana göre hesaplanır. */
   const simdi = new Date().getTime();
+
+  const tesisKodlari = new Map(tesisler.map((t) => [t.id, t.kod] as const));
 
   const satirlar: KesifSatiri[] = [];
   for (const kayit of kayitlar) {
@@ -126,6 +143,8 @@ export default async function Sayfa() {
         ? {
           id: kayit.eslesenVarlik.id, etiket: kayit.eslesenVarlik.etiket,
           ad: kayit.eslesenVarlik.ad, tesisId: kayit.eslesenVarlik.tesisId,
+          sahipVar: kayit.eslesenVarlik.sahip !== null,
+          sahipAd: kayit.eslesenVarlik.sahip?.adSoyad ?? null,
         }
         : null,
       adaylar: (eslesme?.adaylar ?? []) as Aday[],
@@ -151,6 +170,8 @@ export default async function Sayfa() {
          "kütükte yok" der — "üreticisi yok" demez. */
       ouiUretici: kayit.ouiOnEki ? ouiKutugu.get(kayit.ouiOnEki) ?? null : null,
       otProtokolu: kayit.otProtokolu,
+      tesisId,
+      tesisKod: tesisId === null ? null : tesisKodlari.get(tesisId) ?? null,
     });
   }
 
@@ -161,8 +182,9 @@ export default async function Sayfa() {
       tesisler={tesisler}
       yazabilir={yazmaYetkisi}
       onaylayabilir={onayYetkisi}
-      gorunmezEsikGun={GORUNMEZ_ESIK_GUN}
+      gorunmezEsikGun={gorunmezEsikGun}
       kuyrukTavani={KUYRUK_TAVANI}
+      simdi={simdi}
     />
   );
 }

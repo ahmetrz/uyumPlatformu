@@ -1,4 +1,9 @@
 import type { Durum } from '@/components/kabuk/temel';
+import {
+  KESIF_GRUP_ADI, KESIF_KAYNAK_SOZU, kesifDagilimi, kesifGrubu,
+  type KesifDagilimi, type KesifDurusu, type KesifGrubu,
+} from '@/lib/varlik/pasifKesif';
+import { etiketle, tarihTR } from '@/lib/sabitler';
 
 /* Keşif inceleme kuyruğunun saf mantığı — sunucu ve istemci ortak kullanır.
    Burada veritabanı, React ve server-only bağımlılığı YOKTUR. */
@@ -28,7 +33,12 @@ export type KesifSatiri = {
   /** eşleştirme geçişi bu kayda hiç uğramadı mı */
   eslestirilmedi: boolean;
   eslesmeAnahtari: string | null;
-  eslesen: { id: string; etiket: string; ad: string; tesisId: string | null } | null;
+  eslesen: {
+    id: string; etiket: string; ad: string; tesisId: string | null;
+    /** OT-16b · sahiplik boşluğu: eşleşen varlığın sorumlusu var mı. */
+    sahipVar: boolean;
+    sahipAd: string | null;
+  } | null;
   adaylar: Aday[];
   cakisma: boolean;
   gerekce: string;
@@ -57,6 +67,9 @@ export type KesifSatiri = {
   ouiOnEki: string | null;
   ouiUretici: string | null;
   otProtokolu: string | null;
+  /** OT-16b · kaydın çözülebilen santrali; null = YERİ BİLİNMİYOR. */
+  tesisId: string | null;
+  tesisKod: string | null;
 };
 
 export const DURUM_SOZU_KESIF: Record<string, string> = {
@@ -78,18 +91,11 @@ export const ANAHTAR_SOZU: Record<string, string> = {
   uretici_model: 'üretici + model',
 };
 
-/** Kaynak kategorisi → insan sözü. Bilinmeyen kod OLDUĞU GİBİ gösterilir. */
-export const KAYNAK_SOZU: Record<string, string> = {
-  csv: 'CSV / elle aktarım',
-  firewall: 'Güvenlik duvarı',
-  switch_arp: 'Switch ARP/MAC',
-  dhcp: 'DHCP kiraları',
-  snmp: 'SNMP (salt okunur)',
-  siem: 'SIEM / log',
-  historian: 'Historian',
-  scada_export: 'SCADA envanter dışa aktarımı',
-  vendor_export: 'Tedarikçi dışa aktarımı',
-};
+/* Kaynak kategorisi → insan sözü. Kütük `lib/varlik/pasifKesif.ts`
+   içindedir ve orada hiçbir ürün/satıcı adı geçmez: kurum hangi ürünü
+   kullanıyorsa dışa aktarımı ilgili KATEGORİYE bağlanır. Bilinmeyen kod
+   olduğu gibi gösterilir. */
+export const KAYNAK_SOZU: Record<string, string> = KESIF_KAYNAK_SOZU;
 
 export const BEKLEYEN_DURUMLAR = ['kesfedildi', 'normalize', 'eslesti', 'inceleme_bekliyor'];
 export const GORUNMEZ_ESIK_GUN = 30;
@@ -167,15 +173,102 @@ export type Metrikler = {
   gorunmeyen: number;
 };
 
-export function metrikleriHesapla(satirlar: KesifSatiri[]): Metrikler {
+export function metrikleriHesapla(
+  satirlar: KesifSatiri[], gorunmezEsikGun: number = GORUNMEZ_ESIK_GUN,
+): Metrikler {
   const bekleyen = satirlar.filter(bekliyorMu);
   return {
     bekleyen: bekleyen.length,
     cakisan: bekleyen.filter((s) => s.cakisma).length,
     // "Güven ölçülmedi" — sıfır güven değil; ayrı sayılır ve ayrı gösterilir.
     guvensiz: bekleyen.filter((s) => s.guvenSkoru === null).length,
-    gorunmeyen: satirlar.filter((s) => s.gunGorulmedi >= GORUNMEZ_ESIK_GUN).length,
+    gorunmeyen: satirlar.filter((s) => s.gunGorulmedi >= gorunmezEsikGun).length,
   };
+}
+
+/* ═══ OT-16b · Yedi grup ══════════════════════════════════════════════ */
+
+/** Satırdan gruplandırma girdisini çıkarır. */
+export function kesifDurusuOku(
+  s: KesifSatiri, gorunmezEsikGun: number,
+): KesifDurusu {
+  return {
+    cakisma: s.cakisma,
+    yetkiDurumu: s.yetkiDurumu,
+    eslesenVar: s.eslesen !== null,
+    eslesenSahipVar: s.eslesen === null ? null : s.eslesen.sahipVar,
+    tesisBilinen: s.tesisId !== null,
+    gunGorulmedi: s.gunGorulmedi,
+    gorunmezEsikGun,
+  };
+}
+
+export function satirinGrubu(s: KesifSatiri, gorunmezEsikGun: number): KesifGrubu {
+  return kesifGrubu(kesifDurusuOku(s, gorunmezEsikGun));
+}
+
+export function kesifOzeti(
+  satirlar: readonly KesifSatiri[], gorunmezEsikGun: number,
+): KesifDagilimi {
+  return kesifDagilimi(satirlar.map((s) => kesifDurusuOku(s, gorunmezEsikGun)));
+}
+
+/* ═══ Dışa aktarım ════════════════════════════════════════════════════
+
+   Dosya, ekranda görünen SÜZÜLMÜŞ kümeyi taşır: dışa aktarılan liste ile
+   bakılan liste ayrışırsa, dosyayı açan kişi başka bir gerçeği okur. */
+
+export const KESIF_DISA_BASLIKLARI = [
+  'Grup', 'Konu', 'Kaynak kategorisi', 'Connector', 'Kaynak kayıt kimliği',
+  'Santral', 'Durum', 'Yetki durumu', 'Yetki gerekçesi',
+  'Eşleşen varlık', 'Eşleşme anahtarı', 'Eşleşme güveni', 'Kaynak güveni',
+  'Sahip', 'Aday sayısı', 'Çakışma',
+  'Üretici (OUI)', 'MAC ön eki', 'OT protokolü',
+  'İlk görülme', 'Son görülme', 'Kaç gündür görülmüyor',
+  'İnceleyen', 'İnceleme zamanı', 'İnceleme notu',
+] as const;
+
+export function kesifDisaSatiri(
+  s: KesifSatiri, gorunmezEsikGun: number,
+): (string | number)[] {
+  const grup = satirinGrubu(s, gorunmezEsikGun);
+  return [
+    KESIF_GRUP_ADI[grup],
+    s.konu,
+    KAYNAK_SOZU[s.kaynak] ?? s.kaynak,
+    s.connectorAd ?? 'elle',
+    s.kaynakKayitId,
+    s.tesisKod ?? '',
+    DURUM_SOZU_KESIF[s.durum] ?? etiketle(s.durum),
+    etiketle(s.yetkiDurumu),
+    s.yetkiGerekcesi ?? '',
+    s.eslesen ? `${s.eslesen.etiket} · ${s.eslesen.ad}` : '',
+    s.eslesmeAnahtari ? ANAHTAR_SOZU[s.eslesmeAnahtari] ?? s.eslesmeAnahtari : '',
+    /* "ölçülmedi" sıfır DEĞİLDİR ve dosyada da 0 yazılmaz. */
+    s.guvenSkoru === null ? 'ölçülmedi' : s.guvenSkoru,
+    s.kaynakGuveni === null ? 'ölçülmedi' : s.kaynakGuveni,
+    s.eslesen ? (s.eslesen.sahipAd ?? 'SAHİPSİZ') : '',
+    s.adaylar.length,
+    s.cakisma ? 'evet' : 'hayır',
+    s.ouiUretici ?? '',
+    s.ouiOnEki ?? '',
+    s.otProtokolu ?? '',
+    tarihTR(s.ilkGorulme),
+    tarihTR(s.sonGorulme),
+    s.gunGorulmedi,
+    s.inceleyen ?? '',
+    s.incelemeZamani ? tarihTR(s.incelemeZamani) : '',
+    s.incelemeNotu ?? '',
+  ];
+}
+
+export function kesifDisaAktarimi(
+  satirlar: readonly KesifSatiri[], gorunmezEsikGun: number,
+): (string | number)[][] {
+  return [
+    [...KESIF_DISA_BASLIKLARI],
+    ...satirlar.map((s) => kesifDisaSatiri(s, gorunmezEsikGun)),
+  ];
 }
 
 /* ═══ Kapsam ══════════════════════════════════════════════════════════ */

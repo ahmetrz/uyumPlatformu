@@ -16,6 +16,7 @@ import { ayarlar } from '../yapilandirma/oku';
    - bayat_koken              → otomatik kaynak beslemeyi kesmiş
    - cakisan_kaynak_kaydi     → tek kaynak kaydı İKİ ayrı varlığa yazılmış
    - kapsamsiz_kesif          → keşif kaydının santrali çözülememiş
+   - sahipsiz_gorulen_varlik  → ağda görülen varlığın envanterde sahibi yok
    - bekleyen_kesif_yigilmasi → insan inceleme kuyruğu tıkanmış
 
    B grubu neden VAR ama bugün SESSİZ: entegrasyon tabloları boş, çünkü
@@ -35,7 +36,7 @@ import { ayarlar } from '../yapilandirma/oku';
 const KURALLAR = ['sahipsiz_varlik', 'kritikligi_bilinmeyen', 'eksik_profil',
   'envanteri_bos_tesis', 'sahipsiz_kanit',
   'kokensiz_dogrulama', 'bayat_koken', 'cakisan_kaynak_kaydi',
-  'kapsamsiz_kesif', 'bekleyen_kesif_yigilmasi'] as const;
+  'kapsamsiz_kesif', 'bekleyen_kesif_yigilmasi', 'sahipsiz_gorulen_varlik'] as const;
 
 /** Poll aralığı bilinmeyen otomatik kaynak için bayatlık eşiği. */
 export const VARSAYILAN_BAYAT_GUN = 30;
@@ -217,6 +218,46 @@ export async function veriKalitesiniIsle(): Promise<{ islenen: number; uretilen:
       aciklama: `'${k.kaynak}' kaynağından gelen kayıt `
         + `${Math.round((simdi - k.ilkGorulme.getTime()) / 86_400_000)} gündür insan `
         + 'incelemesi bekliyor.',
+    });
+
+  /* B6 — OT-16b · Ağda GÖRÜLEN ama sahibi olmayan varlık.
+
+     `sahipsiz_varlik` yalnız KRİTİK varlığa bakar; bu kural başka bir
+     soruyu sorar: "bir gözlem kaynağı bu cihazı sahada gördü ve
+     envanterdeki karşılığının sorumlusu yok". Kritiklik burada ölçüt
+     değildir — cihaz gerçekten çalışıyor, gerçekten trafik üretiyor ve
+     yamasını, yedeğini, emekliliğini kimse üstlenmiyor. Sahiplik
+     boşluğunun en pahalı hâli budur ve keşif ekranında ayrı bir grup
+     olarak da sayılır.
+
+     Yalnız EŞLEŞMİŞ kayıtlar bakılır: envanterde karşılığı olmayan cihaz
+     bu kuralın değil, keşif kuyruğunun konusudur. */
+  const gorulenSahipsiz = await db.kesifKaydi.findMany({
+    where: {
+      eslesenVarlik: { is: { silindi: null, sahipId: null } },
+      durum: { notIn: ['reddedildi', 'yinelenen'] },
+    },
+    select: {
+      kaynak: true, sonGorulme: true,
+      eslesenVarlik: { select: { id: true, etiket: true, ad: true } },
+    },
+    take: 200,
+  });
+  /* Aynı varlığı birden çok kaynak görebilir; bulgu VARLIK başına açılır,
+     gözlem başına değil — yoksa tek bir sahipsiz cihaz için beş bulgu
+     üretilir ve kuyruk gürültüye boğulur. */
+  const gorulenTekil = new Map<string, { etiket: string; ad: string; kaynak: string }>();
+  for (const k of gorulenSahipsiz) {
+    const v = k.eslesenVarlik;
+    if (v && !gorulenTekil.has(v.id)) {
+      gorulenTekil.set(v.id, { etiket: v.etiket, ad: v.ad, kaynak: k.kaynak });
+    }
+  }
+  for (const [varlikId, v] of gorulenTekil)
+    ihlaller.push({
+      kural: 'sahipsiz_gorulen_varlik', kaynakTipi: 'Varlik', kaynakId: varlikId,
+      aciklama: `${v.etiket} (${v.ad}) '${v.kaynak}' kaynağında görülüyor ama `
+        + 'envanterde sorumlusu yok — yama, yedek ve emeklilik kararını kimse üstlenmiyor.',
     });
 
   // sahipsiz kanıt (sahip de yükleyen de yoksa tazelik görevi kimseye atanamaz)

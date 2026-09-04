@@ -6,6 +6,7 @@ import {
 } from '../yonetim/olculmemisGosterimi';
 import { ZIMMET_AZAMI_GUN, ZIMMET_VARSAYILAN_GUN } from '../varlik/zimmet';
 import { CANLI_KAT, GUNCEL_KAT, KAYNAK_ONCELIGI_VARSAYILAN } from '../varlik/canliDurus';
+import { GORUNMEZ_GUN_VARSAYILAN } from '../varlik/pasifKesif';
 
 /* ═══ Yapılandırma anahtar sözlüğü — TEK doğruluk kaynağı ═══════════════
 
@@ -74,6 +75,19 @@ const T: AyarTanimi[] = [
     etki: ['Envanter · canlı duruş'],
     varsayilan: KAYNAK_ONCELIGI_VARSAYILAN,
     sema: z.array(z.string().min(1)).min(1),
+  },
+
+  /* ── Pasif keşif (OT-16b) ──────────────────────────────────────────── */
+  {
+    anahtar: 'kesif.gorunmez_gun', grup: 'varlik', sinif: 'A',
+    etiket: 'Görülmüyor eşiği', birim: 'gün',
+    aciklama: 'Bir keşif kaydı bu kadar gündür hiçbir kaynakta görülmediyse '
+      + '"artık görülmüyor" sayılır. Eşik santralden santrale değişir: ayda '
+      + 'bir enerjilendirilen bir yedek panoyla sürekli çalışan bir sunucu '
+      + 'aynı ölçüye vurulamaz. Eşiğin aşılması kaydı SİLMEZ — "görülmüyor" '
+      + 'bir gözlemdir, bir silme kararı değil.',
+    etki: ['Varlık keşfi · gruplar', 'Keşif dışa aktarımı'],
+    varsayilan: GORUNMEZ_GUN_VARSAYILAN, sema: tamSayi(1, 365),
   },
 
   /* ── Varlık zimmeti (OT-09b) ───────────────────────────────────────── */

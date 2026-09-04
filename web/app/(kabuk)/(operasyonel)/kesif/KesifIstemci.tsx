@@ -7,7 +7,14 @@ import { Tablo, type Kolon } from '@/components/kabuk/tablo';
 import {
   Cekmece, CekmeceKimlik, CekmeceAlanlar, CekmeceBagli,
 } from '@/components/kabuk/panel';
+import { Im } from '@/components/kabuk/temel';
+import { csvAktar, damgaliAd, exceleAktar } from '@/components/disaAktar';
 import { tarihTR, zamanTR } from '@/lib/sabitler';
+import {
+  AKTIF_ISLEM_YASAKLARI, KESIF_ADIMLARI, KESIF_GRUPLARI, KESIF_GRUP_ACIKLAMASI,
+  KESIF_GRUP_ADI, KESIF_GRUP_SINIFI, isBekleyen, kesifCumlesi,
+  type KesifDagilimi, type KesifGrubu,
+} from '@/lib/varlik/pasifKesif';
 import {
   ElleAktarimFormu, EslestirmeDugmesi, KararEylemleri, PasifGozlemFormu,
   TopluKararTepsisi, YetkiKarari,
@@ -15,8 +22,8 @@ import {
 } from './Karar';
 import {
   ANAHTAR_SOZU, DURUM_SOZU_KESIF, GORUNUR_TAVAN, KAYNAK_SOZU, MERCEKLER,
-  bekliyorMu, guvenDurumu, guvenYazisi, mercekten, metrikleriHesapla,
-  satirDurumu, sirala, toplanabilir,
+  bekliyorMu, guvenDurumu, guvenYazisi, kesifDisaAktarimi, kesifOzeti,
+  mercekten, metrikleriHesapla, satirDurumu, satirinGrubu, sirala, toplanabilir,
   type KesifSatiri, type Mercek,
 } from './mantik';
 
@@ -37,8 +44,149 @@ const KOLONLAR: Kolon[] = [
   { baslik: 'Son görülme', genislik: '120px', sag: true, ikincil: true },
 ];
 
+/* ═══ OT-16b · Santral süzgeci ═══════════════════════════════════════
+
+   "Yeri belirsiz" ayrı bir seçenektir ve GİZLENMEZ: santrali çözülemeyen
+   kayıt tam da incelenmesi gereken kayıttır. Bir santral seçildiğinde
+   özet de o santrale daralır — bir santrale bakan kişi kurumun toplamını
+   değil kendi sayısını görmelidir. */
+
+function SantralSuzgeci({ tesisler, aktif, sec, yerisiz }: {
+  tesisler: Tesis[];
+  aktif: string | null;
+  sec: (id: string | null) => void;
+  yerisiz: number;
+}) {
+  return (
+    <div className="ab-suzgec" style={{ marginBottom: 'var(--s12)' }}>
+      <div className="mercekler" role="group" aria-label="Santral">
+        <button type="button" aria-pressed={aktif === null} onClick={() => sec(null)}>
+          Tüm santraller
+        </button>
+        {tesisler.map((t) => (
+          <button key={t.id} type="button" className="tasma"
+            aria-pressed={aktif === t.id} onClick={() => sec(t.id)}>
+            {t.kod}
+          </button>
+        ))}
+        {yerisiz > 0 && (
+          <button type="button" className="tasma"
+            aria-pressed={aktif === 'yok'} onClick={() => sec('yok')}>
+            Yeri belirsiz · {yerisiz}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ═══ OT-16b · Yedi grup özeti ═══════════════════════════════════════
+
+   Gruplar DIŞLAYICIDIR: her kayıt tek bir gruba düşer ve sayılar toplama
+   eşittir. Bir kayıt birden çok tarife uyduğunda önce yapılacak iş
+   kazanır; sıra `lib/varlik/pasifKesif.ts` içinde sabittir ve panelden
+   değiştirilemez (aynı kuyruğa bakan iki kişi aynı önceliği görmelidir). */
+
+function GrupOzeti({ dagilim, aktif, sec, disaAktar }: {
+  dagilim: KesifDagilimi;
+  aktif: KesifGrubu | null;
+  sec: (g: KesifGrubu | null) => void;
+  disaAktar: { excel: () => void; csv: () => void; sayi: number };
+}) {
+  const toplam = KESIF_GRUPLARI.reduce((t, g) => t + dagilim[g], 0);
+  return (
+    <section className="ab-blok" style={{ marginBottom: 'var(--s16)' }}>
+      <p className="etiket">
+        Keşif özeti · {toplam} kayıt · {isBekleyen(dagilim)} inceleme bekliyor
+      </p>
+      <p className="ab-dip" style={{ marginTop: 0 }}>{kesifCumlesi(dagilim)}</p>
+
+      <div className="ab-kesif-gruplar">
+        {KESIF_GRUPLARI.map((g) => (
+          <button
+            key={g}
+            type="button"
+            className="ab-kesif-grup"
+            aria-pressed={aktif === g}
+            disabled={dagilim[g] === 0 && aktif !== g}
+            onClick={() => sec(aktif === g ? null : g)}
+          >
+            <span className="bas">
+              <Im durum={KESIF_GRUP_SINIFI[g]} ad={KESIF_GRUP_ADI[g]} />
+              <span className="sayi mono">{dagilim[g]}</span>
+            </span>
+            <span className="ad">{KESIF_GRUP_ADI[g]}</span>
+            <span className="aciklama">{KESIF_GRUP_ACIKLAMASI[g]}</span>
+          </button>
+        ))}
+      </div>
+
+      <div style={{ display: 'flex', gap: 'var(--s8)', justifyContent: 'flex-end',
+        alignItems: 'center', flexWrap: 'wrap', paddingTop: 'var(--s12)' }}>
+        <span className="ab-dip" style={{ margin: 0 }}>
+          {aktif === null
+            ? `Dosya ekranda görünen ${disaAktar.sayi} kaydı taşır.`
+            : `Dosya "${KESIF_GRUP_ADI[aktif]}" grubundaki ${disaAktar.sayi} kaydı taşır.`}
+        </span>
+        <button type="button" className="ab-dugme mini" onClick={disaAktar.excel}>
+          Excel
+        </button>
+        <button type="button" className="ab-dugme mini" onClick={disaAktar.csv}>
+          CSV
+        </button>
+      </div>
+    </section>
+  );
+}
+
+/* ═══ OT-16b · Ürünün ağa YAPMADIĞI şeyler ═══════════════════════════
+
+   OT ekibinin ilk sorusu "bu şey ağıma ne yapacak" olur. Cevabın
+   sözleşmede ya da bir sunumda değil, ÜRÜNÜN KENDİSİNDE durması gerekir:
+   burada yazan her satır kodda da bir C sınıfı kuraldır ve panelden
+   gevşetilemez. */
+
+function PasiflikBolumu() {
+  const [acik, setAcik] = useState(false);
+  return (
+    <section className="ab-blok" style={{ marginBottom: 'var(--s16)' }}>
+      <p className="etiket">Bu ürün ağa paket ATMAZ</p>
+      <p className="ab-dip" style={{ marginTop: 0 }}>
+        Bütün keşif, kurumun zaten çalışan gözlem kaynaklarının çıktısını
+        OKUMAYA dayanır. Ürün hiçbir cihazı sorgulamaz, yoklamaz ya da
+        taramaz; gerekçe teknik değil emniyettir.
+      </p>
+      <button type="button" className="ab-dugme mini" aria-expanded={acik}
+        onClick={() => setAcik(!acik)}>
+        {acik ? 'Listeyi kapat' : `Yapılmayan ${AKTIF_ISLEM_YASAKLARI.length} işlem`}
+      </button>
+      {acik && (
+        <div style={{ display: 'grid', gap: 'var(--s10)', marginTop: 'var(--s12)' }}>
+          {AKTIF_ISLEM_YASAKLARI.map((y) => (
+            <div key={y.islem} style={{ display: 'grid',
+              gridTemplateColumns: '22px 1fr', gap: 'var(--s8)', alignItems: 'start' }}>
+              <span style={{ paddingTop: 3 }}>
+                <Im durum="pl" ad="yapılmaz" />
+              </span>
+              <div style={{ display: 'grid', gap: 'var(--s3)' }}>
+                <span style={{ fontSize: 'var(--t-field)', fontWeight: 600 }}>
+                  {y.islem} — yapılmaz
+                </span>
+                <span style={{ fontSize: 'var(--t-label)', color: 'var(--i2)' }}>
+                  {y.neden}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
 export default function KesifIstemci({
-  satirlar, turler, tesisler, yazabilir, onaylayabilir, gorunmezEsikGun, kuyrukTavani,
+  satirlar, turler, tesisler, yazabilir, onaylayabilir, gorunmezEsikGun,
+  kuyrukTavani, simdi,
 }: {
   satirlar: KesifSatiri[];
   turler: Tur[];
@@ -47,19 +195,49 @@ export default function KesifIstemci({
   onaylayabilir: boolean;
   gorunmezEsikGun: number;
   kuyrukTavani: number;
+  /** Sunucuda istek başına bir kez okunan an — dosya damgası buradan. */
+  simdi: number;
 }) {
   const [mercek, setMercek] = useUrlDurumu<Mercek>('mercek', 'hepsi');
+  /* OT-16b · Grup merceği ile iş akışı merceği AYNI ANDA açılmaz: ikisi
+     aynı listeye iki farklı soru sorar ve birlikte uygulanınca ekran
+     hangi soruyu cevapladığını söyleyemez hâle gelirdi. Biri seçilince
+     diğeri sıfırlanır. */
+  const [grup, setGrup] = useUrlDurumuBos('grup');
+  const [tesisF, setTesisF] = useUrlDurumuBos('tesis');
   const [seciliId, setSeciliId] = useUrlDurumuBos('sec');
   const [kuyrukAcik, setKuyrukAcik] = useState(false);
   const [toplu, setToplu] = useState<string[]>([]);
 
-  /* Metrikler filtreden BAĞIMSIZ: kapsamın tamamını anlatır. */
-  const m = useMemo(() => metrikleriHesapla(satirlar), [satirlar]);
+  /* Santral süzgeci metriklerden ÖNCE uygulanır: bir santrale bakan kişi
+     kendi santralinin sayısını görmelidir, kurumun toplamını değil.
+     `yeri_belirsiz` ayrı bir seçenektir — santralsiz kayıt gizlenmez. */
+  const kapsamli = useMemo(() => {
+    if (tesisF === null) return satirlar;
+    if (tesisF === 'yok') return satirlar.filter((s) => s.tesisId === null);
+    return satirlar.filter((s) => s.tesisId === tesisF);
+  }, [satirlar, tesisF]);
+
+  /* Metrikler mercekten BAĞIMSIZ: seçilen santral kapsamının tamamını
+     anlatır. */
+  const m = useMemo(
+    () => metrikleriHesapla(kapsamli, gorunmezEsikGun), [kapsamli, gorunmezEsikGun]);
+  const dagilim = useMemo(
+    () => kesifOzeti(kapsamli, gorunmezEsikGun), [kapsamli, gorunmezEsikGun]);
 
   const suzulmus = useMemo(
-    () => sirala(satirlar.filter((s) => mercekten(s, mercek))),
-    [satirlar, mercek],
+    () => sirala(kapsamli.filter((s) => (grup === null
+      ? mercekten(s, mercek)
+      : satirinGrubu(s, gorunmezEsikGun) === grup))),
+    [kapsamli, mercek, grup, gorunmezEsikGun],
   );
+
+  /* Dosya EKRANDA GÖRÜNEN kümeyi taşır: dışa aktarılan liste ile bakılan
+     liste ayrışırsa dosyayı açan kişi başka bir gerçeği okur. */
+  const disaSayfa = () => ({
+    ad: 'Keşif', satirlar: kesifDisaAktarimi(suzulmus, gorunmezEsikGun),
+  });
+  const disaAd = (uzanti: string) => damgaliAd('kesif', simdi, uzanti);
 
   /* Karar bekleyen hiçbir satır kuyruğa inmez; yalnız karara bağlananlar
      toplanır (06 §A3: kritik satır sayıdan bağımsız görünür kalır). */
@@ -89,10 +267,11 @@ export default function KesifIstemci({
         <EkranBasligi eyebrow="Varlık keşfi" baslik="İnceleme kuyruğu" />
         <section className="ab-ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
           <TezgahHatti
-            asamalar={[{ ad: 'Kaynak' }, { ad: 'Eşleştirme' }, { ad: 'Karar' }, { ad: 'CMDB' }]}
+            asamalar={KESIF_ADIMLARI.map((a) => ({ ad: a.ad }))}
             aktifIndeks={0}
-            not="Pasif kaynaklardan gelen kayıt CMDB'ye yazılmaz; eşleştirme öneri üretir, karar burada verilir"
+            not="Kayıt CMDB'ye kendiliğinden yazılmaz; eşleştirme öneri üretir, kararı insan verir"
           />
+          <PasiflikBolumu />
           <ElleAktarimFormu yazabilir={yazabilir} />
           <PasifGozlemFormu yazabilir={yazabilir} tesisler={tesisler} />
           <BosIlk cumle="Henüz keşif kaydı yok. Pasif bir kaynağın dışa aktarımını yükleyin ya da bir connector çalıştırın." />
@@ -130,10 +309,27 @@ export default function KesifIstemci({
 
         <section className="ab-ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
           <TezgahHatti
-            asamalar={[{ ad: 'Kaynak' }, { ad: 'Eşleştirme' }, { ad: 'Karar' }, { ad: 'CMDB' }]}
-            aktifIndeks={m.bekleyen > 0 ? 2 : eslestirilmemis > 0 ? 1 : 3}
-            not="Pasif kaynaklardan gelen kayıt CMDB'ye yazılmaz; eşleştirme öneri üretir, karar burada verilir"
+            asamalar={KESIF_ADIMLARI.map((a) => ({ ad: a.ad }))}
+            aktifIndeks={m.bekleyen > 0 ? 3 : eslestirilmemis > 0 ? 1 : 4}
+            not="Kayıt CMDB'ye kendiliğinden yazılmaz; eşleştirme öneri üretir, kararı insan verir"
           />
+
+          <SantralSuzgeci
+            tesisler={tesisler} aktif={tesisF} sec={setTesisF}
+            yerisiz={satirlar.filter((x) => x.tesisId === null).length}
+          />
+
+          <GrupOzeti
+            dagilim={dagilim} aktif={grup as KesifGrubu | null}
+            sec={(g) => { setGrup(g); if (g !== null) setMercek('hepsi'); }}
+            disaAktar={{
+              excel: () => void exceleAktar(disaAd('xlsx'), [disaSayfa()]),
+              csv: () => csvAktar(disaAd('csv'), disaSayfa()),
+              sayi: suzulmus.length,
+            }}
+          />
+
+          <PasiflikBolumu />
           <ElleAktarimFormu yazabilir={yazabilir} />
           <PasifGozlemFormu yazabilir={yazabilir} tesisler={tesisler} />
 
@@ -152,12 +348,12 @@ export default function KesifIstemci({
 
           <Filtreler
             secenekler={MERCEKLER}
-            aktif={mercek}
-            sec={(id) => setMercek(id as Mercek)}
+            aktif={grup === null ? mercek : ''}
+            sec={(id) => { setMercek(id as Mercek); setGrup(null); }}
           />
 
           {gosterilen.length === 0 ? (
-            <BosFiltre temizle={() => setMercek('hepsi')} />
+            <BosFiltre temizle={() => { setMercek('hepsi'); setGrup(null); setTesisF(null); }} />
           ) : (
             <Tablo
               konuBasligi="Keşfedilen kayıt"

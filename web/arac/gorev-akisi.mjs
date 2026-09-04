@@ -53,7 +53,10 @@ const GOREVLER = [
     kod: 'TASK-001',
     ad: 'Kritik ve gecikmiş bulgunun kapanması için eksik adımı bul',
     baslangic: '/bulgular',
-    adimlar: [{ ad: 'İlk bulgu satırını aç', secici: '[role="grid"] tbody tr' }],
+    adimlar: [
+      { ad: 'İlk bulgu satırını aç', secici: '[role="grid"] tbody tr' },
+      { ad: 'Kaydı aç', metin: 'Kaydı aç' },
+    ],
     hedef: 'text=Kapanış için gerekenler',
   },
   {
@@ -62,6 +65,7 @@ const GOREVLER = [
     baslangic: '/bulgular',
     adimlar: [
       { ad: 'İlk bulgu satırını aç', secici: '[role="grid"] tbody tr' },
+      { ad: 'Kaydı aç', metin: 'Kaydı aç' },
       { ad: 'Kapanış şeridinde sıradaki adım', secici: '.ab-yol-serit li.eksik button' },
     ],
     hedef: '.ab-panel',
@@ -148,7 +152,7 @@ const GOREVLER = [
     ad: 'Karşılıksız kontrolün belgesine git',
     baslangic: '/dokumanlar',
     adimlar: [{ ad: 'Karşılıksız kontrol bağı', secici: '.ab-dok-liste a.kod' }],
-    hedef: '.ab-ekran-govde',
+    hedef: '.ab-panel',
   },
   {
     kod: 'TASK-015',
@@ -189,8 +193,10 @@ const GOREVLER = [
     kod: 'TASK-020',
     ad: 'Bir ekranın nasıl okunduğunu öğren',
     baslangic: '/yardim',
-    adimlar: [{ ad: 'İlk soruyu aç', secici: '.ab-yardim-sss summary, details summary' }],
-    hedef: '.ab-yardim-ekran, .ab-yardim-sss, .ab-ekran-govde',
+    /* Yardım bir OKUMA ekranıdır: okuma anahtarı tıklama istemeden
+       açılır. Sıfır tıklama burada kusur değil, ekranın kendisidir. */
+    adimlar: [],
+    hedef: '.ab-yardim-ekran',
   },
 ];
 

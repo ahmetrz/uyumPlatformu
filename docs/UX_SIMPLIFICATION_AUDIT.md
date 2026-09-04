@@ -54,6 +54,13 @@ verilemez; araç bu yüzden eşik koymaz, yalnız sayar.
 Bu ayrımlar tek tek yapıldı; aşağıdaki bulguların hiçbiri yalnız bir
 sayının büyüklüğüne dayanmıyor.
 
+**4 · Önce/sonra kare seti.** Ölçüm sayı verir, kare gerekçe verir.
+`docs/sadelestirme-2026-09/` altında beş bantta (1440×900 · 1366×768 ·
+1024 · 768 · 375) önce/sonra kareleri durur. Önce, dalın tabanı
+(`4cde36f`) ayrı bir çalışma ağacında; sonra, dalın HEAD'i — ikisi de
+aynı tohum veritabanının kopyasıyla, aynı anda, yan yana koştu. Künye
+ve bant bant ölçüm o klasördeki `KUNYE.md` içindedir.
+
 ## Ölçüm — 56 rota @ 1440×900
 | Rota | Etiket | Rozet | KPI | Düğme | Bağ | Meta | Tekrar | İlk aksiyon Y | İş yüzeyi Y | L3 px | Metin |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |

@@ -1,7 +1,7 @@
 # Ana senaryo kütüğü
 
 Bu belge **elle yazılmaz.** `web/lib/senaryo/` altındaki kütükten
-`node arac/senaryo-belge.mjs --yaz` ile üretilir ve
+`npx tsx arac/senaryo-belge.mjs --yaz` ile üretilir ve
 `tests/senaryo-kutugu.test.ts` sapma olduğu an kırmızı olur.
 
 Senaryo ile test arasındaki bağ, testin **kendi başlığıdır**:

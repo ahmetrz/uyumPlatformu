@@ -24,7 +24,7 @@ oku; buradan varsayma.
 | Ürünün kendi yedeği | `docs/URUN_YEDEKLEME.md` · `web/arac/yedek.mjs` |
 | Tarihsel denetim kayıtları | `ARCHITECTURE_GAP_ANALYSIS.md` · `ENTEGRASYON_GAP_MATRIX.md` · `DESIGN_HANDOFF_GAP.md` · `docs/UX_DENETIM_2026-09.md` (bilerek güncellenmez) |
 | Son kullanıcı UX denetimi ve kapanışı | `docs/END_USER_UX_AUDIT.md` · `docs/UX_KALITE_PROGRAMI_RAPORU.md` |
-| Sadeleştirme ve etkileşim denetimi (delta) | `docs/UX_SIMPLIFICATION_AUDIT.md` · `docs/UX_SADELESTIRME_RAPORU.md` |
+| Sadeleştirme ve etkileşim denetimi (delta) | `docs/UX_SIMPLIFICATION_AUDIT.md` · `docs/UX_SADELESTIRME_RAPORU.md` · `docs/sadelestirme-2026-09/` (önce/sonra kareler) |
 | Senaryo kütüğü · test eşlemesi | `docs/MASTER_SCENARIO_REGISTRY.md` · `docs/SCENARIO_TEST_MATRIX.md` |
 
 ## Bağlayıcı kurallar

@@ -71,8 +71,8 @@ bir sunucu eylemi ve beş motor hiçbir senaryo işaretli testte geçmiyor,
 | Envanterdeki kullanıcı davranışı | 387 |
 | Eşlenen | 387 |
 | **UNMAPPED USER BEHAVIOR** | **0** |
-| Senaryo | 277 |
-| Testli senaryo | 277 |
+| Senaryo | 275 |
+| Testli senaryo | 275 |
 | **SCENARIO TEST GAP** | **0** |
 
 ## Önce / sonra — ölçülen
@@ -92,6 +92,21 @@ bir sunucu eylemi ve beş motor hiçbir senaryo işaretli testte geçmiyor,
 | Platform | cevapsız bozuk durum bloğu | 50 | **0** |
 | Platform | son kullanıcı yüzeyinde sistem dili | 0 | **0** |
 | Platform | gerekçesiz tekrar eden etiket→değer çifti | 0 | **0** |
+
+Yukarıdaki `bilissel-yuk.mjs` ölçümleri tek bantta (1440×900) ve
+denetimin başındaki kayıtlar üzerinde alındı.
+
+**Beş bantta kare seti: `docs/sadelestirme-2026-09/`.** Önce ve sonra
+YAN YANA koşturuldu: dalın tabanı (`4cde36f`) ayrı bir çalışma ağacında
+3211'de, dalın HEAD'i 3210'da, aynı tohum veritabanının kopyasıyla. Tek
+değişken kodun kendisidir. Beş bant (1440×900 · 1366×768 · 1024 · 768 ·
+375) × beş ekran; künye, seçilen kaydın niçin seçildiği ve bant bant
+ölçüm o klasördeki `KUNYE.md` içindedir.
+
+`/bulgular/[id]` beş bantta gövde metni **2 990 → 2 381** (1440),
+**2 795 → 2 287** (375). 375'te sayfa boyu bilerek arttı: kapanış şeridi
+telefonda alt alta dizilir ve cevabı tek bakışta verir; eskiden aynı
+cevap dört ayrı yerden toplanıyordu.
 
 ## Ne değişti
 
@@ -141,7 +156,110 @@ connector dürüstlüğü, bilinmeyen semantiği, köken ve migrasyonlar
 korundu. Yeniden tasarım hiçbir iş kuralını gevşetmedi; tersine bir
 çelişkiyi (iki yoldan yazılan kök neden) kapattı.
 
-Yeni yazılan 47 senaryonun çoğu MUTLU YOL DEĞİL: bir eylemin en pahalı
+Yeni yazılan 45 senaryonun çoğu MUTLU YOL DEĞİL: bir eylemin en pahalı
 kusuru, reddetmesi gereken şeyi kabul etmesidir.
 
 ## Kapılar
+
+Bütün kapılar bu dalın HEAD'inde koşuldu.
+
+| Kapı | Sonuç |
+| --- | --- |
+| eslint (`--max-warnings=0`) | temiz |
+| `tsc --noEmit` | temiz |
+| vitest | **2 909 vaka · 139 dosya · 0 kırık** (1 bilerek atlanan) |
+| ters kapsama (`ters:kapsam`) | **387/387 · senaryosuz davranış 0** |
+| senaryo → test (`senaryo-belge`) | **275 senaryo · 275 testli · GAP 0 · hayalet 0** |
+| bozuk durum ve dil (`tasarim:dil`) | **cevapsız blok 0 · sistem dili 0** |
+| tasarım kapısı (kontrast · font · eski iz) | **ESKİ TASARIM İZİ 0** |
+| rota duman | **58/58 rota · kusurlu 0 · sayfa hatası 0** |
+| gezinme (7 bant) | **kusur 0** |
+| yatay taşma | **100 ölçüm · 0 kusur** |
+| dizüstü kapısı | **50 rota · kırpılan öğe 0** |
+| UX denetimi (9 bant × 50 rota) | **450 ölçüm · 0 kusurlu** |
+| çekmece erişimi | **10 çekmece · 0 kusurlu** |
+| axe (wcag2a + wcag2aa) | **51 rota · ciddi/kritik 0 · diğer 0** |
+| klavye erişimi | **50 rota · kusur 0** |
+| görev akışı (20 görev) | **ÇIKMAZ 0 · ort. 1,0 tıklama · ort. 0,2 sayfa geçişi** |
+| üretim derlemesi (`next build`) | temiz |
+| demo derlemesi (`demo:build`) | **10 rota statik · 147 sayfa kolon hizası temiz** |
+| sabotaj | **23 sabotaj · yakalanan 23 · kaçırılan 0 · geri yükleme bozuk 0** |
+| çakışma imi taraması | **0** |
+| sır taraması (fark üzerinde) | **0** — gerçek uç/anahtar/token eklenmedi |
+
+## Sabotaj kapısı bu programın kendi kapılarını denedi
+
+Yeni bir kapı, kırılmadığı sürece bir kapı değildir. Bu programın kurduğu
+üç kapı (`ters-kapsam`, `tasarim:dil`, `kapanisYolu`) sabotaj kütüğüne
+eklendi ve **ilk koşuda ikisi KAÇIRILDI.** İkisi de gerçek zayıflıktı.
+
+**1 · Ters kapsama kütüğü değil, dizini okuyordu.** `kutuguOku()`
+`lib/senaryo/` altındaki bütün `.ts` dosyalarını tarıyordu. Kütükten
+`...KAPSAMA_SENARYOLARI` düştüğünde 45 senaryo ÜRÜNDEN çıkıyor, dosya
+diskte durduğu için araç hiçbir şey olmamış gibi "SENARYOSUZ DAVRANIŞ 0"
+diyordu. Aynı kör nokta, kütüğe hiç bağlanmamış bir senaryo dosyasını da
+kapsama sayardı. Araç artık `kutuk.ts` içinde `SENARYOLAR` dizisine
+GERÇEKTEN serpilen sabitleri ve onların geldiği modülleri çözüyor; yalnız
+o dosyaları tarıyor. Sayılar değişmedi (387/387), kapının dayanağı
+değişti.
+
+**2 · Kapanış yolu testi yanlış yere bakıyordu.** İddia `sonraki`
+üzerindeydi: "ekran sıradaki iş kapanış derse sunucu kapısı da açıktır."
+Ama `kapanisKapisi` çağrısını `{ ok: true }` ile değiştirmek `sonraki`yi
+DEĞİŞTİRMİYOR — ondan önce eksik bir adım varsa `sonraki` o adımı
+gösterir. Değişen şey kapanış ADIMININ kendisiydi: şeritte "Bulgu
+kapanışa hazır; kaydı kapatın" cümlesi ve birincil düğme belirir,
+kullanıcı basar, sunucu reddeder. Tam olarak önlemek için yazdığım kusur,
+testimin baktığı yerin bir adım yanındaydı.
+
+İddia kapanış adımının kendisine taşındı ve altı elle seçilmiş hâl yerine
+**2 880 hâllik çarpım** dolaşılıyor (durum × önem × tekrar × altı analiz
+hâli × dört aksiyon dağılımı × beş doğrulama kombinasyonu). Çarpımın
+sessizce daralmasına ve "hazır" hâli hiç üretmemesine karşı iki alt sınır
+testi var.
+
+İkisi düzeltildikten sonra: **23 sabotaj · yakalanan 23 · kaçırılan 0.**
+
+Buradaki ders raporun geri kalanı için de geçerlidir: bir ölçüm aracının
+yeşil olması, ölçtüğü şeyin doğru olduğunu göstermez. Aracı da kırmak
+gerekir.
+
+## Görev akışı — ölçülen
+
+Yirmi gerçek görev baştan sona koşuldu.
+
+| Ölçü | Sonuç |
+| --- | --- |
+| Görev | 20 |
+| Çıkmaz | **0** |
+| Ortalama tıklama | **1,0** |
+| Ortalama sayfa geçişi | **0,2** |
+| En uzun görev | TASK-002 · 3 tıklama · 1 geçiş (bulgu → kayıt → sıradaki iş) |
+
+Hedef "0–1 gezinme + 1–3 etkileşim" idi; ölçüm bunun içinde kaldı.
+
+**Aracın ilk koşusu dört ÇIKMAZ raporladı ve dördü de yanlıştı.** Üçü
+görev tanımımın hatasıydı (`/bulgular` satırı çekmece açar, kayıt sayfası
+"Kaydı aç" ile gelir; `/yardim` bir okuma ekranı, katlanır bölüm taşımaz;
+`/dokumanlar` bağı çekmeceye götürür), biri yanlış hedef seçicisiydi.
+Düzeltildi. Yanlış bir çıkmaz raporlamak, gerçek bir çıkmazı kaçırmak
+kadar zararlıdır: ikisi de aracın söylediğine güveni bitirir.
+
+## Ne YAPILMADI
+
+* **Görsel yeniden tasarım yapılmadı.** Premium koyu endüstriyel dil
+  korundu; generic SaaS kart ızgarası eklenmedi, kart sayısı artırılarak
+  hiçbir sorun çözülmedi.
+* **Hiçbir iş kuralı gevşetilmedi.** RBAC, kapsam, dört göz, denetim izi,
+  köken ve bilinmeyen semantiği aynen duruyor.
+* **Hiçbir kurum sistemine bağlanılmadı**, gerçek uç/anahtar/token
+  uydurulmadı, şirket içi veri kullanılmadı. Bütün veri seed.
+* **`main` dalına merge EDİLMEDİ.**
+
+## SON KARAR: GO
+
+P0 = 0 · P1 = 0 · P2 = 0 · unmapped davranış = 0 · testsiz senaryo = 0 ·
+çıkmaz görev = 0.
+
+Açık kalan iki madde P3'tür, ikisi de referans ekranındadır ve raporda
+açık olarak sayılmıştır.

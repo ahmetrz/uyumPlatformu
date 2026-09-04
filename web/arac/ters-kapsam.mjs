@@ -76,10 +76,43 @@ const oku = (f) => readFileSync(f, 'utf8');
 
 /* ── KÜTÜK ──────────────────────────────────────────────────────────── */
 
+/**
+ * `lib/senaryo/kutuk.ts` içinde SENARYOLAR dizisine GERÇEKTEN serpilen
+ * alan dosyalarını verir.
+ *
+ * Dizini olduğu gibi taramak yanlış olurdu: kütüğe bağlanmamış bir
+ * senaryo dosyası diskte durur, ürün onu bilmez ama tarayan araç onu
+ * kapsama sayar. Sabotaj kapısı bu kör noktayı yakaladı — kütükten
+ * `...KAPSAMA_SENARYOLARI` düştüğünde 45 senaryo üründen çıkıyor,
+ * araç ise hiçbir şey olmamış gibi yeşil kalıyordu.
+ */
+function kutukDosyalari() {
+  const kutuk = oku(path.join(KOK, 'lib/senaryo/kutuk.ts'));
+  const govde = kutuk.match(/export const SENARYOLAR[^=]*=\s*\[([\s\S]*?)\];/);
+  if (!govde) throw new Error('lib/senaryo/kutuk.ts içinde SENARYOLAR dizisi okunamadı');
+  const serpilen = new Set([...govde[1].matchAll(/\.\.\.([A-Z0-9_]+)/g)].map((m) => m[1]));
+
+  /* Her serpilen sabit hangi modülden geliyor? */
+  const modul = new Map();
+  for (const im of kutuk.matchAll(/import\s*\{([\s\S]*?)\}\s*from\s*'\.\/([\w-]+)'/g)) {
+    for (const ad of im[1].split(',').map((a) => a.trim().replace(/^type\s+/, ''))) {
+      if (ad) modul.set(ad, im[2]);
+    }
+  }
+
+  const yollar = new Set();
+  for (const ad of serpilen) {
+    const m = modul.get(ad);
+    if (!m) throw new Error(`kutuk.ts: ...${ad} serpiliyor ama nereden geldiği okunamadı`);
+    yollar.add(path.join(KOK, 'lib/senaryo', `${m}.ts`));
+  }
+  return [...yollar];
+}
+
 /** Senaryo kütüğünü TS kaynağından okur — derlemeye gerek yok. */
 function kutuguOku() {
   const senaryolar = [];
-  for (const f of dosyalar(path.join(KOK, 'lib/senaryo'), (a) => a.endsWith('.ts'))) {
+  for (const f of kutukDosyalari()) {
     const metin = oku(f);
     /* Her senaryo bir nesne değişmezi; `id:` satırından başlayıp
        `katmanlar:` satırında biter. Alan alan ayrıştırmak yerine bloğu

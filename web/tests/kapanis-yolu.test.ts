@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { kapanisYolu, type KapanisGirdisi } from '@/lib/uyum/kapanisYolu';
-import { kapanisKapisi } from '@/lib/uyum/kokNeden';
+import { kapanisKapisi, type AnalizGirdisi } from '@/lib/uyum/kokNeden';
 
 /* ═══════════════════════════════════════════════════════════════════════
    KAPANIŞ YOLU
@@ -207,39 +207,94 @@ describe('kapanış', () => {
 describe('yol ile sunucu kapısı AYRIŞAMAZ', () => {
   /* Ekranın "kapanışa hazır" deyip sunucunun reddetmesi, kullanıcının
      güvenini bir kez kaybettiren kusurdur. `kapanisYolu` ikinci bir
-     kural yazmaz; `kapanisKapisi`yi çağırır. Bu test onu dondurur. */
-  const haller: KapanisGirdisi[] = [
-    temel(),
-    temel({ onemDerecesi: 'kritik' }),
-    temel({ onemDerecesi: 'kritik', aksiyonToplam: 2, aksiyonAcik: 1 }),
-    temel({ onemDerecesi: 'yuksek', tekrarMi: true }),
-    temel({
-      onemDerecesi: 'kritik', aksiyonToplam: 1, aksiyonAcik: 0,
-      analiz: {
-        kategori: 'surec', metin: 'y'.repeat(60), analizEdenId: 'k1', analizZamani: 1,
-      },
-      kapanisDogrulama: '2026-09-01T00:00:00.000Z',
-    }),
-    temel({ aksiyonToplam: 3, aksiyonAcik: 3 }),
+     kural yazmaz; `kapanisKapisi`yi çağırır. Bu test onu dondurur.
+
+     İDDİA `sonraki` ÜZERİNDEN KURULMAZ. Kapanış adımı "hazır" derken
+     ondan ÖNCE eksik bir adım varsa `sonraki` o adımı gösterir ve
+     ayrışma `sonraki`de görünmez — ama kullanıcı kapanış şeridinde
+     "kaydı kapatın" cümlesini ve birincil düğmeyi GÖRÜR. Bu yüzden
+     iddia kapanış adımının KENDİSİ üzerindedir.
+
+     Hâller elle seçilmez: elle seçilen altı hâl bu ayrışmayı
+     kaçırmıştı (sabotaj kapısı yakaladı). Aşağıdaki çarpım, kapının
+     okuduğu bütün girdileri ve kapanış adımını açan doğrulama
+     kombinasyonlarını dolaşır. */
+  const ONEM = ['dusuk', 'orta', 'yuksek', 'kritik'];
+  const ANALIZLER: AnalizGirdisi[] = [
+    { kategori: null, metin: null, analizEdenId: null, analizZamani: null },
+    { kategori: 'surec', metin: null, analizEdenId: null, analizZamani: null },
+    { kategori: null, metin: 'y'.repeat(80), analizEdenId: 'k1', analizZamani: 1 },
+    { kategori: 'surec', metin: 'kısa', analizEdenId: 'k1', analizZamani: 1 },
+    { kategori: 'surec', metin: 'y'.repeat(80), analizEdenId: null, analizZamani: null },
+    { kategori: 'surec', metin: 'y'.repeat(80), analizEdenId: 'k1', analizZamani: 1 },
+  ];
+  const AKSIYONLAR = [[0, 0], [2, 0], [2, 1], [3, 3]];
+  const DOGRULAMALAR = [
+    { kapanisDogrulama: null, retestGerekli: false, retestSonucu: null, dogrulamaBekleyen: false },
+    { kapanisDogrulama: '2026-09-01T00:00:00.000Z', retestGerekli: false, retestSonucu: null, dogrulamaBekleyen: false },
+    { kapanisDogrulama: '2026-09-01T00:00:00.000Z', retestGerekli: false, retestSonucu: null, dogrulamaBekleyen: true },
+    { kapanisDogrulama: null, retestGerekli: true, retestSonucu: 'gecti', dogrulamaBekleyen: false },
+    { kapanisDogrulama: null, retestGerekli: true, retestSonucu: null, dogrulamaBekleyen: false },
   ];
 
-  it.each(haller.map((h, i) => [i, h] as const))(
-    'hâl %i: ekran "kapanışa hazır" derse kapı da açıktır',
-    (_i, h) => {
-      const y = kapanisYolu(h);
-      const kapi = kapanisKapisi({
+  const haller: KapanisGirdisi[] = [];
+  for (const durum of ['acik', 'kapali', 'kabul_edildi']) {
+    for (const onemDerecesi of ONEM) {
+      for (const tekrarMi of [false, true]) {
+        for (const analiz of ANALIZLER) {
+          for (const [aksiyonToplam, aksiyonAcik] of AKSIYONLAR) {
+            for (const d of DOGRULAMALAR) {
+              haller.push(temel({
+                durum, onemDerecesi, tekrarMi, analiz, aksiyonToplam, aksiyonAcik, ...d,
+              }));
+            }
+          }
+        }
+      }
+    }
+  }
+
+  it('taranan hâl sayısı kombinasyonların tamamıdır', () => {
+    /* Çarpım sessizce daralırsa aşağıdaki iddia hâlâ yeşil kalırdı:
+       hiç hâl yoksa hiçbiri ayrışmaz. */
+    expect(haller.length).toBe(3 * 4 * 2 * 6 * 4 * 5);
+    expect(haller.length).toBeGreaterThan(2000);
+  });
+
+  it('kapanış adımı "hazır" diyen HİÇBİR hâlde sunucu kapısı kapalı değildir', () => {
+    const ayrisan = haller.filter((h) => {
+      const kapanis = adim(kapanisYolu(h), 'kapanis');
+      if (kapanis.olgu !== 'hazır') return false;
+      return !kapanisKapisi({
         onemDerecesi: h.onemDerecesi,
         tekrarMi: h.tekrarMi,
         analiz: h.analiz,
         acikAksiyon: h.aksiyonAcik,
-      });
-      const ekranHazirDiyor = y.sonraki?.anahtar === 'kapanis';
-      if (ekranHazirDiyor) expect(kapi.ok).toBe(true);
-      /* Tersi zorunlu değil: kapı açık olsa bile doğrulama kaydı
-         yoksa yol önce doğrulamayı ister — yol kapıdan DAHA SIKI
-         olabilir, daha gevşek olamaz. */
-    },
-  );
+      }).ok;
+    });
+    /* Kırmızıysa: ekran kapatılamayacak bir kaydı "kapatın" diye
+       gösteriyor. Çözüm testi gevşetmek değil, `kapanisYolu`nun
+       kapıyı ÇAĞIRMASINI geri getirmektir. */
+    expect(ayrisan.map((h) => `${h.durum}·${h.onemDerecesi}·açık ${h.aksiyonAcik}`)).toEqual([]);
+  });
+
+  it('sıradaki iş "kapanış" diyen hiçbir hâlde de kapı kapalı değildir', () => {
+    const ayrisan = haller.filter((h) => kapanisYolu(h).sonraki?.anahtar === 'kapanis'
+      && !kapanisKapisi({
+        onemDerecesi: h.onemDerecesi,
+        tekrarMi: h.tekrarMi,
+        analiz: h.analiz,
+        acikAksiyon: h.aksiyonAcik,
+      }).ok);
+    expect(ayrisan.length).toBe(0);
+  });
+
+  it('çarpım gerçekten "hazır" hâlleri üretiyor — iddia boşa dönmüyor', () => {
+    /* Kapanış adımı hiçbir hâlde "hazır" demeseydi yukarıdaki iki
+       iddia da yeşil kalırdı. Alt sınır o sessiz boşluğu kapatır. */
+    const hazir = haller.filter((h) => adim(kapanisYolu(h), 'kapanis').olgu === 'hazır');
+    expect(hazir.length).toBeGreaterThan(50);
+  });
 });
 
 /* ═══════════════════════════════════════════════════════════════════════

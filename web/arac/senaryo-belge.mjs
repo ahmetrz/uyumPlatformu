@@ -108,7 +108,7 @@ function registryMetni(senaryolar, olcum) {
   satirlar.push('# Ana senaryo kütüğü');
   satirlar.push('');
   satirlar.push('Bu belge **elle yazılmaz.** `web/lib/senaryo/` altındaki kütükten');
-  satirlar.push('`node arac/senaryo-belge.mjs --yaz` ile üretilir ve');
+  satirlar.push('`npx tsx arac/senaryo-belge.mjs --yaz` ile üretilir ve');
   satirlar.push('`tests/senaryo-kutugu.test.ts` sapma olduğu an kırmızı olur.');
   satirlar.push('');
   satirlar.push('Senaryo ile test arasındaki bağ, testin **kendi başlığıdır**:');

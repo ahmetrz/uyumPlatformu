@@ -359,3 +359,52 @@ yinelenen · tek`). Her süzgeç boş sonuç, her çekmece eksik kayıt
 üretebilir; yalnız mutlu yol senaryosu taşıyan bir rota geçemez.
 
 Nöbetçi: `tests/ters-kapsam.test.ts`. CI'da `pr-kapisi.yml` içinde koşar.
+
+## `bilissel-yuk.mjs` — "bu ekran kullanıcıdan ne kadar iş istiyor?"
+
+Mevcut kapılar ekranın DOĞRU olduğunu söyler; hiçbiri "kullanıcı burada
+ne yapacağını üç saniyede anlıyor mu" demez. Bu araç o soruya giden
+yoldaki engelleri sayar: görünür etiket · durum imi · ölçüt kutusu ·
+düğme · bağ · etiket→değer satırı · tekrar eden çift · ilk birincil
+eylemin üstten uzaklığı · iş yüzeyinin üstten uzaklığı · ana yüzeydeki
+kanıt/geçmiş yüksekliği · görünür metin uzunluğu.
+
+```
+PORT=3210 npm run tasarim:yuk
+PORT=3210 node arac/bilissel-yuk.mjs --rota=/envanter --json cikti.json
+```
+
+Tek bant (1440×900) ölçer: buradaki sayılar banda değil BİLGİ MİMARİSİNE
+bağlıdır; dokuz bantta dokuz kez ölçmek aynı sayıyı dokuz kez üretirdi.
+Duyarlılık ayrı bir kapının işidir (`ux-denetim.mjs`).
+
+Araç **eşik koymaz.** Bir sayının kusur olup olmadığına ekranın işine
+bakmadan karar verilemez: `/yardim`'ın 7 826 karakteri doğrudur,
+`/uyum`'un 80 düğmesi matrisin hücreleridir. Yorum
+`docs/UX_SIMPLIFICATION_AUDIT.md` içindedir.
+
+Bilinen sınır: sayımlar ORTAK primitif sözlüğüne bakar. Kendi ölçüt
+bandını kuran ekran (`/envanter`, `/portfoy`) `kpi: 0` görünür ve bu, o
+ekranda durum bilgisi olmadığı anlamına gelmez — aracın başlığında
+yazılıdır.
+
+## `eylem-dili.mjs` — boş ekranın söylediği son cümle
+
+Bir ekranın en çok okunan cümlesi çoğu zaman hiçbir şeyin olmadığı anda
+yazdığı cümledir. Kullanıcı o anda iki şey sorar: *ne oldu* ve *şimdi ne
+yapabilirim.* Araç ikinciyi cevaplamayan blokları sayar: `BosIlk`,
+`Olculmedi`, `BaglantiYok`, `EntegrasyonYok`, `KismiVeri`, `Bakimda`
+bileşenlerinden `eylem` özelliği verilmeden çizilenler.
+
+Ayrıca son kullanıcı yüzeyinde geliştirici sözcüğü (provider · adapter ·
+registry · mutation · boolean · payload …) arar; bu aile bir kez
+temizlendi, araç geri sızmasın diye nöbet tutar.
+
+```
+npm run tasarim:dil
+```
+
+Tablo hücresindeki "kayıt yok" bir durum ETİKETİDİR ve sayılmaz; araç
+yalnız bozuk durum BİLEŞENLERİNE bakar. `BosFiltre` listede yoktur:
+eylemi (`temizle`) zorunlu bir parametre olduğu için tip kuralı zaten
+dayatıyor.

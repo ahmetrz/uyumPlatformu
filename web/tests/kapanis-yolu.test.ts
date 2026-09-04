@@ -181,6 +181,22 @@ describe('kapanış', () => {
     expect(adim(y, 'kapanis').cumle).toContain('kapanış istemiyor');
   });
 
+  it('doğrulama kaydı OLMADAN kapanmış kayıt "tamam" gösterilmez', () => {
+    /* Üç seçenek de yanlış olurdu: "tamam" yalan, "eksik" kapanmış bir
+       kayda yapılamayacak iş dayatmak, sessizce gizlemek ise denetimde
+       en pahalı olan. Dördüncü hâl: olanı yaz. */
+    const y = kapanisYolu(temel({ durum: 'kapali', aksiyonToplam: 1, aksiyonAcik: 0 }));
+    expect(adim(y, 'dogrulama').durum).toBe('bekliyor');
+    expect(adim(y, 'dogrulama').cumle).toContain('doğrulama kaydı olmadan kapanmış');
+    expect(adim(y, 'dogrulama').olgu).toBe('kayıt yok');
+    expect(y.sonraki).toBeNull();
+  });
+
+  it('riski kabul edilen kayıt doğrulama İSTEMEZ', () => {
+    const y = kapanisYolu(temel({ durum: 'kabul_edildi' }));
+    expect(adim(y, 'dogrulama').cumle).toContain('doğrulama istemez');
+  });
+
   it('ilerleme sayısı adım durumlarından türer, ayrı sayılmaz', () => {
     const y = kapanisYolu(temel({ aksiyonToplam: 1, aksiyonAcik: 1 }));
     expect(y.ilerleme.toplam).toBe(5);

@@ -116,7 +116,13 @@ sayının büyüklüğüne dayanmıyor.
 
 ### Ölçümün öne çıkardıkları
 
-| Gözlem | Ölçü | Rotalar |
+Aşağıdaki tablo denetimin İLK turudur — araçlar henüz düzeltilmemişti.
+Beş satırı sonradan geri çekildi; hangileri ve neden, "Önce: geri
+çekilen beş bulgu" bölümündedir. Tabloyu olduğu gibi bırakmanın sebebi
+şu: bir denetimin ilk okuması ile son kararı arasındaki farkı silmek,
+denetimi olduğundan daha isabetli göstermek olurdu.
+
+| Gözlem (ilk tur) | Ölçü | Rotalar |
 | --- | --- | --- |
 | İlk birincil eylem 900px katlamasının ALTINDA | 5 rota | `/saglik/reddedilenler` 1190 · `/bulgular/[id]` 1098 · `/tesisler/[id]` 1053 · `/sistem/bilesenler` 978 · `/api-sozlesmesi` 966 |
 | İş yüzeyi 500px'in altında başlamıyor | 8 rota | `/sistem/bilesenler` 2090 · `/topoloji` 871 · `/dokumanlar` 754 · `/surecler/[id]` 734 · `/kesif` 692 · `/omur` 570 · `/projeler` 502 · `/surecler` · `/denetimler` 483 |
@@ -124,8 +130,14 @@ sayının büyüklüğüne dayanmıyor.
 | Ana yüzeyde hiç eylem yok | 3 rota | `/raporlar/kanit-paketi` · `/sistem` · `/yardim` |
 | Gerekçesiz tekrar eden etiket→değer çifti | **0** | — (yalnız `/sistem/bilesenler` galerisinde 4, bilerek: aynı primitif iki durumda gösteriliyor) |
 
-Son satır önemlidir: **kritik bilgi tekrarı ölçüldü ve sıfır çıktı.**
-Önceki programın kapattığı tekrar kusurları geri gelmemiş.
+Düzeltilmiş ölçümde ilk üç satır şöyle okunur: katlamanın altında kalan
+**üç** rota (`/api-sozlesmesi` · `/sistem/bilesenler` · `/topoloji`),
+ana yüzeyde kanıt taşıyan **bir** rota (`/bulgular/[id]`), ana yüzeyde
+hiç eylem taşımayan **iki** referans ekranı (`/sistem` · `/yardim`).
+
+Son satır her iki turda da aynı ve önemlidir: **kritik bilgi tekrarı
+ölçüldü ve sıfır çıktı.** Önceki programın kapattığı tekrar kusurları
+geri gelmemiş.
 
 ### Dil ve bozuk durum taraması
 
@@ -348,51 +360,51 @@ ekranın sıralamasına, "neredeyim" için künye ve kırıntıya bakıldı.
 | --- | --- | :-: | --- | --- |
 | `/` | Bugün yönetim dikkatinin nereye gitmesi gerektiğini görmek | 5/5 | Odak kaydını aç | — |
 | `/aktivite` | Belirli bir değişikliğin kim tarafından ne zaman yapıldığını bulmak | 5/5 | Merceği daralt | — |
-| `/api-sozlesmesi` | Hangi anahtarın hangi uca eriştiğini görmek | 4/5 | Kapsamı düzenle (966px) | SDL-0007 |
-| `/ayarlar` | Kendi yetkimi ve oturumumu doğrulamak | 5/5 | Oturumu kapat | SDL-0016 |
+| `/api-sozlesmesi` | Hangi anahtarın hangi uca eriştiğini görmek | 4/5 | Belgeyi göster (966px) | SDL-0007 · açık (P3) |
+| `/ayarlar` | Kendi yetkimi ve oturumumu doğrulamak | 5/5 | Oturumu kapat (446px) | — (SDL-0016 geri çekildi) |
 | `/bildirimler` | Bana yazılanları görüp okundu işaretlemek | 5/5 | Okundu işaretle | — |
 | `/bulgular` | Gecikmiş ve yüksek şiddetli bulguyu bulup açmak | 5/5 | Bulgu satırını aç | — |
-| `/bulgular/[id]` | **Bu bulgunun kapanması için eksik olan işi görüp tamamlamak** | 2/5 | Yok (ilk eylem 1098px) | **SDL-0001** · 0002 · 0003 · 0004 |
+| `/bulgular/[id]` | **Bu bulgunun kapanması için eksik olan işi görüp tamamlamak** | 2/5 → **5/5** | Sıradaki iş düğmesi (390px) | **SDL-0001** · 0002 · 0003 · 0004 · 0019 — hepsi kapandı |
 | `/degerlendirme-aktarim` | Değerlendirme dosyasını önizleyip uygulamak | 5/5 | Kuru koşu | — |
 | `/denetci-erisimi` | Dış denetçiye süreli erişim vermek ve süresi dolanı kapatmak | 5/5 | Erişim tanımla | — |
-| `/denetimler` | Takvimini tutmayan denetimi bulmak | 5/5 | Denetim satırını aç | SDL-0004 · 0014 |
+| `/denetimler` | Takvimini tutmayan denetimi bulmak | 5/5 | Denetim satırını aç | — (SDL-0004/0014 geri çekildi) |
 | `/denetimler/[id]` | Denetimin kapanmasını engelleyen eksiği görüp gidermek | 5/5 | Kanıt talebi | — |
-| `/dokumanlar` | Karşılıksız kontrolü ve gözden geçirmesi geçmiş belgeyi bulmak | 5/5 | Belge satırını aç (646px) | SDL-0011 |
+| `/dokumanlar` | Karşılıksız kontrolü ve gözden geçirmesi geçmiş belgeyi bulmak | 5/5 | Belge satırını aç | SDL-0011 kapandı (754 → 674px) |
 | `/egitimler` | Eğitim kaydını maddeye bağlamak | 5/5 | Eğitim tanımla | — |
 | `/envanter` | Aksiyon gerektiren varlığı hızlıca bulup işlem yapmak | 5/5 | Varlık düğümünü seç | — |
 | `/esleme` | Kaynağın alanlarını hedefe eşleyip profili yayına almak | 5/5 | Profil sürümü aç | — |
 | `/eslestirme` | Hangi maddenin hangi maddeyi karşıladığını görmek | 5/5 | Eşleme kur | — |
 | `/gozden-gecirme` | Dönem sonu gözden geçirmesini kayda geçirmek | 5/5 | Gözden geçirme aç | — |
-| `/harita` | Coğrafi dağılımda hangi santralin dikkat istediğini görmek | 5/5 | Santral seç (464px) | SDL-0017 |
+| `/harita` | Coğrafi dağılımda hangi santralin dikkat istediğini görmek | 5/5 | Santral seç (464px) | — (SDL-0017 geri çekildi) |
 | `/ice-aktarim` | Madde dosyasını doğrulayıp onaya göndermek | 5/5 | Dosya yükle | — |
 | `/kanitlar` | Süresi dolmuş ya da bağlantısız kanıtı bulmak | 5/5 | Kanıt satırını aç | — |
-| `/kesif` | Yeni veya bilinmeyen cihazı sınıflandırıp karar vermek | 5/5 | Kayıt eşle | SDL-0012 |
+| `/kesif` | Yeni veya bilinmeyen cihazı sınıflandırıp karar vermek | 5/5 | Kayıt eşle | — (SDL-0012 geri çekildi) |
 | `/kimlik` | Fazla yetkisi olan hesabı bulup incelemeyi başlatmak | 5/5 | İnceleme aç | — |
 | `/olaylar` | Olayın hangi varlıkları etkilediğini görüp zinciri onaylamak | 5/5 | Etki önerisi yenile | — |
-| `/omur` | Ömrü yaklaşan varlığa telafi edici kontrol ya da proje bağlamak | 5/5 | Varlık satırını aç | SDL-0013 |
+| `/omur` | Ömrü yaklaşan varlığa telafi edici kontrol ya da proje bağlamak | 5/5 | Varlık satırını aç | — (SDL-0013 geri çekildi) |
 | `/operasyon` | OT emniyet kapısı olan değişikliği karara bağlamak | 5/5 | Değişiklik aç | — |
-| `/portfoy` | Hangi santralin dikkat istediğini tek düzlemde görmek | 5/5 | Santral seç | SDL-0015 |
-| `/projeler` | Taahhüdünü tutmayan projeyi bulmak | 5/5 | Proje satırını aç | SDL-0004 · 0014 |
+| `/portfoy` | Hangi santralin dikkat istediğini tek düzlemde görmek | 5/5 | Santral seç | SDL-0015 kapandı (53 → 8 etiket) |
+| `/projeler` | Taahhüdünü tutmayan projeyi bulmak | 5/5 | Proje satırını aç | — (SDL-0004/0014 geri çekildi) |
 | `/prosesler` | Bir iş sürecinin tek nokta bağımlılığını görmek | 5/5 | Adım varlığı bağla | — |
 | `/raporlar` | Santral × süreç boşluğunu görüp rapor hedefi koymak | 5/5 | Rapor hedefi | — |
-| `/raporlar/kanit-paketi` | Denetçiye verilecek kanıt paketini üretmek | 3/5 | Yok (kapsam seçilince belirir) | SDL-0008 |
+| `/raporlar/kanit-paketi` | Denetçiye verilecek kanıt paketini üretmek | 5/5 | Kapsam satırı seçimi (293px) | — (SDL-0008 geri çekildi) |
 | `/regulasyonlar` | Bir çerçevenin madde kataloğunu ve sürümünü görmek | 5/5 | Madde aç | — |
 | `/riskler` | Skoru yüksek ya da ölçülmemiş riski bulup işlem yapmak | 5/5 | Risk satırını aç | — |
 | `/riskler/[id]` | Riskin kapanma zincirini görüp sonraki işlemi seçmek | 5/5 | Risk işlemi | — |
 | `/saglik` | Hangi motorun ya da kaynağın beklendiği gibi çalışmadığını görmek | 5/5 | Connector koştur | — |
-| `/saglik/reddedilenler` | Reddedilen kaydı inceleyip karara bağlamak | 4/5 | Kaydı kapat (1190px) | SDL-0005 |
+| `/saglik/reddedilenler` | Reddedilen kaydı inceleyip karara bağlamak | 5/5 | Kayıt satırı seçimi (219px) | — (SDL-0005 geri çekildi) |
 | `/saklama` | Süresi dolan kaydın imha kararını açmak; muhafazayı korumak | 5/5 | İmha kararı aç | — |
 | `/sayim` | Envanter sayımını açıp farkları karara bağlamak | 5/5 | Sayım aç | — |
 | `/sistem` | Bir token'ın gerçek değerini ve kontrastını görmek | 3/5 | Yok (referans ekranı) | — |
-| `/sistem/bilesenler` | Bir primitifin bütün durumlarını tek yerde görmek | 4/5 | Galeri örneği (978px) | SDL-0018 |
-| `/surecler` | Denetim tarihine yetişmeyen kampanyayı bulmak | 5/5 | Kampanya satırını aç | SDL-0004 · 0014 |
-| `/surecler/[id]` | Kampanyada değerlendirilmemiş madde × santral hücresini kapatmak | 5/5 | Değerlendirme (668px) | SDL-0014 |
+| `/sistem/bilesenler` | Bir primitifin bütün durumlarını tek yerde görmek | 4/5 | Galeri örneği (978px) | SDL-0018 · açık (P3) |
+| `/surecler` | Denetim tarihine yetişmeyen kampanyayı bulmak | 5/5 | Kampanya satırını aç | — (SDL-0004/0014 geri çekildi) |
+| `/surecler/[id]` | Kampanyada değerlendirilmemiş madde × santral hücresini kapatmak | 5/5 | Satır seçimi (779px) | — (SDL-0014 geri çekildi) |
 | `/tabanlar` | Firmware tabanını tanımlayıp uyumu ölçülebilir yapmak | 5/5 | Taban tanımla | — |
 | `/tasinabilir-medya` | Kayıtlı taşınabilir medyayı ve iznini görmek | 5/5 | Medya kaydet | — |
 | `/tedarikciler` | Sertifikası ya da sözleşmesi süresi dolan tedarikçiyi bulmak | 5/5 | Tedarikçi aç | — |
 | `/tesisler` | (Yönlendirme) Santral listesine ulaşmak | — | `/portfoy` | — |
-| `/tesisler/[id]` | Bu santralin kontrol altında olup olmadığını doğrulamak | 3/5 | Yok (ilk eylem 1053px) | SDL-0006 |
-| `/topoloji` | Ağ anlığını temele karşı karşılaştırıp sapmayı karara bağlamak | 5/5 | Anlık karşılaştır (789px) | SDL-0009 |
+| `/tesisler/[id]` | Bu santralin kontrol altında olup olmadığını doğrulamak | 3/5 → **5/5** | Sonraki adım bağı (230px) | SDL-0006 kapandı |
+| `/topoloji` | Ağ anlığını temele karşı karşılaştırıp sapmayı karara bağlamak | 5/5 | Sapma satırı seçimi (509px) | SDL-0009 kapandı (871 → 467px) |
 | `/uyum` | Hangi kontrolün hangi santralde açık olduğunu görmek | 5/5 | Matris hücresi | — |
 | `/uyum/[cerceve]` | Bu regülasyonun bizde nerede durduğunu görmek | 5/5 | Kontrol satırını genişlet | — |
 | `/varlik-aktarim` | CMDB dosyasını eşleyip onaya göndermek | 5/5 | Dosya yükle | — |
@@ -409,5 +421,17 @@ listesi `node arac/eylem-dili.mjs` çıktısındadır.
 
 ## Kapanış durumu
 
-Bu bölüm yeniden tasarım ilerledikçe güncellenir; ölçümler kapanışta
-YENİDEN alınır ve önce/sonra sayıları buraya yazılır.
+Ölçümler kapanışta yeniden alındı; önce/sonra sayıları yukarıda her
+bulgunun altında duruyor. Programın toplu sonucu ve kapı çıktıları
+`docs/UX_SADELESTIRME_RAPORU.md` içindedir.
+
+| Şiddet | Açılan | Kapanan | Geri çekilen | Açık |
+| --- | ---: | ---: | ---: | ---: |
+| P0 | 1 | 1 | 0 | **0** |
+| P1 | 8 | 7 | 1 (kısmi) | **0** |
+| P2 | 8 | 3 | 5 | **0** |
+| P3 | 2 | 0 | 0 | **2** |
+
+Açık kalan iki P3 (SDL-0007 · SDL-0018) bilinçlidir ve raporda öyle
+sayılır. Kapatılmamış bir kusuru kapatılmış göstermek, bu programın
+kapatmaya çalıştığı kusurdan daha pahalıdır.

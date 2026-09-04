@@ -158,25 +158,36 @@ export function kapanisYolu(g: KapanisGirdisi): KapanisYolu {
      doğrulama istemek, kullanıcıya yapamayacağı bir iş göstermektir. */
   const dogrulamaYapildi = g.kapanisDogrulama !== null
     || (g.retestGerekli && !!g.retestSonucu);
-  const dogrulama: KapanisAdimi = dogrulamaYapildi && !g.dogrulamaBekleyen
+  const dogrulama: KapanisAdimi = bitti && !dogrulamaYapildi
     ? {
-      anahtar: 'dogrulama', ad: 'Doğrulama', durum: 'tamam',
-      cumle: 'Doğrulama kaydı var.',
-      olgu: g.kapanisDogrulama ? g.tarih(g.kapanisDogrulama) : 'retest sonucu girildi',
+      /* Kapanmış bir kayda "doğrulama ekleyin" demek, yapılamayacak bir
+         iş dayatmaktır. Ama "tamam" demek de yalan olurdu: kayıt
+         doğrulama kaydı OLMADAN kapanmış. Üçüncü hâl bunu yazar. */
+      anahtar: 'dogrulama', ad: 'Doğrulama', durum: 'bekliyor',
+      cumle: kabul
+        ? 'Riski kabul edilen kayıt doğrulama istemez.'
+        : 'Kayıt doğrulama kaydı olmadan kapanmış.',
+      olgu: kabul ? '' : 'kayıt yok',
     }
-    : aksiyon.durum === 'tamam'
+    : dogrulamaYapildi && !g.dogrulamaBekleyen
       ? {
-        anahtar: 'dogrulama', ad: 'Doğrulama', durum: 'eksik',
-        cumle: g.dogrulamaBekleyen
-          ? 'Tamamlanan aksiyonu doğrulayın.'
-          : 'Aksiyon tamamlandı; doğrulama kaydı ekleyin.',
-        olgu: '',
+        anahtar: 'dogrulama', ad: 'Doğrulama', durum: 'tamam',
+        cumle: 'Doğrulama kaydı var.',
+        olgu: g.kapanisDogrulama ? g.tarih(g.kapanisDogrulama) : 'retest sonucu girildi',
       }
-      : {
-        anahtar: 'dogrulama', ad: 'Doğrulama', durum: 'bekliyor',
-        cumle: 'Aksiyon tamamlandıktan sonra doğrulama ekleyin.',
-        olgu: '',
-      };
+      : aksiyon.durum === 'tamam'
+        ? {
+          anahtar: 'dogrulama', ad: 'Doğrulama', durum: 'eksik',
+          cumle: g.dogrulamaBekleyen
+            ? 'Tamamlanan aksiyonu doğrulayın.'
+            : 'Aksiyon tamamlandı; doğrulama kaydı ekleyin.',
+          olgu: '',
+        }
+        : {
+          anahtar: 'dogrulama', ad: 'Doğrulama', durum: 'bekliyor',
+          cumle: 'Aksiyon tamamlandıktan sonra doğrulama ekleyin.',
+          olgu: '',
+        };
 
   /* ── 5 · Kapanış ────────────────────────────────────────────────────
      Kapı `kapanisKapisi`nin kendisidir; ikinci bir kural yazılmaz. */

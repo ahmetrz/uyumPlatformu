@@ -12,6 +12,7 @@ oku; buradan varsayma.
 | --- | --- |
 | Ürün / kod kuralları | `web/CLAUDE.md` · `web/AGENTS.md` |
 | Ürün bağlamı ve sözlük | `web/PRODUCT.md` |
+| İsterler listesi terimleri | `docs/TERIMLER_SOZLUGU.md` |
 | Tasarım sistemi | `web/DESIGN.md` |
 | Kalite araçları ve kapılar | `web/arac/BENIOKU.md` |
 | Güncel durum · yol haritası | `PRE_INTERNAL_INTEGRATION_READINESS.md` |

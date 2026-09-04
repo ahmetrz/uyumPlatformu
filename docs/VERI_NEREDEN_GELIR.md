@@ -1,185 +1,187 @@
 # Veri nereden gelir
 
-İsterler listesindeki "nasıl" sorusunun ortak cevabı. Her madde için ayrı
-ayrı yazılmış hâli isterler tablosunun **H sütunundadır**; bu belge o
-cevapların dayandığı **beş yolu** ve her yolun kurallarını anlatır.
+Bir isterin karşısında "VAR" yazması tek başına yeterli değildir. Asıl
+soru şudur: **o alanı kim, hangi yolla dolduracak?** Cevabı olmayan bir
+alan boş kalır ve ekran ilk gün güzel görünüp altıncı ay anlamsızlaşır.
 
-Bir ekranın "VAR" demesi tek başına yeterli değildir: o alanı kimin,
-hangi yolla dolduracağı sorusunun cevabı yoksa alan boş kalır. Bu
-belgenin işi o cevabı tek yerde tutmaktır.
+Bu belge o sorunun cevabını verir. Her ister için ayrı ayrı yazılmış
+hâli isterler tablosunun **H sütunundadır**; burada o cevapların
+dayandığı beş yol ve her yolun kuralları anlatılır.
 
 ---
 
 ## Beş yol
 
-| # | Yol | Ne zaman kullanılır | Bugün çalışıyor mu |
-| --- | --- | --- | --- |
-| 1 | **Elle giriş** | Kararlar, gerekçeler, iş bilgisi — hiçbir sistemin bilmediği şeyler | Evet |
-| 2 | **Dosya** (CSV · XLSX · JSON) | Kurumda zaten bir dışa aktarım varsa | Evet |
-| 3 | **API** (9 uç) | Karşı taraf bize gönderebiliyorsa | Evet |
-| 4 | **Connector adaptörü** (8 şablon) | Kaynak sistemden düzenli çekmek gerekiyorsa | **7'si bağlı değil** |
-| 5 | **Motor** (17 motor) | Değer başka kayıtlardan türetiliyorsa | Evet |
+| Yol | Ne zaman | Bugün |
+| --- | --- | --- |
+| **Elle giriş** | Kararlar, gerekçeler, iş bilgisi — hiçbir sistemin bilmediği şeyler | Çalışıyor |
+| **Excel / CSV** | Kurumda zaten bir liste ya da dışa aktarım varsa | Çalışıyor |
+| **API** | Karşı sistem bize gönderebiliyorsa | Çalışıyor |
+| **Doğrudan bağlantı** | Kaynak sistemden düzenli çekmek gerekiyorsa | **Sekiz kaynağın yedisi henüz bağlı değil** |
+| **Otomatik hesaplama** | Değer başka kayıtlardan çıkarılabiliyorsa | Çalışıyor |
 
 **Hiçbir yol diğerini kapatmaz.** Bir alan otomatik doluyor olsa bile
-elle giriş açık kalır; elle girilen değer kökeninde `manuel` olarak
-işaretlenir ve otomatik gelen değerle çakışırsa hangisinin kazanacağına
-köken güveni karar verir. İki değer de saklanır.
+elle giriş açık kalır. İki kaynak farklı şey söylerse ikisi de saklanır
+ve hangi bilginin nereden geldiği kayıtta görünür.
 
 ---
 
 ## 1. Elle giriş
 
-Ekranın kendi formu. Şunlar **yalnız** buradan gelir ve hiçbir sistemden
-çekilemez:
+Şunlar yalnız buradan gelir — hiçbir sistemden çekilemez, çünkü hiçbir
+sistem bilmez:
 
-- kritiklik, üretim etkisi, RTO/RPO ve **gerekçeleri**
-- proses ve proses adımı bağları (bu bilgi süreç sahibinin kafasındadır)
-- onaylı firmware tabanı, konfigürasyon tabanı onayı
+- kritiklik, üretime etkisi, kurtarma hedefleri ve **gerekçeleri**
+- süreç ve süreç adımı bağları (bunu süreci bilen kişi bilir)
+- onaylı firmware sürümü, onaylı konfigürasyon
 - uygulanabilirlik, kapsam dışı ve istisna kararları
-- bildirim yükümlülüğü kuralları (süre, merci, dayanak)
+- bildirim yükümlülüğü kuralları (kaç saat, hangi kuruma, hangi dayanakla)
 - olgunluk seviyesi ve gerekçesi, kontrol testi kaydı
-- yönetim gözden geçirmesi ve kararları
-- fiziksel sayım sonuçları, yedek parça stoğu, taşınabilir medya kütüğü
+- yönetim gözden geçirmesi ve alınan kararlar
+- saha sayımı sonuçları, yedek parça stoğu, taşınabilir medya kaydı
 - eğitim tanımı ve katılım kaydı
 
 Ortak kural: **sayı yazan bir değerlendirme gerekçe ister.** Denetimde
-ilk sorulacak şey odur.
+ilk sorulan şey odur.
 
-## 2. Dosya
+## 2. Excel / CSV
 
-CSV, XLSX ve JSON. Hat her zaman aynı beş adımdır:
+Akış her zaman aynıdır:
 
 ```
-dosya → kolon eşleme → KURU KOŞU → önizleme → insan onayı → yazma
+dosya  →  kolonları eşle  →  DENEME KOŞUSU  →  önizleme  →  onay  →  yazılır
 ```
 
-- Kolon adları normalleştirilerek eşlenir: `Serial Number`, `seri no`,
-  `SN` aynı kolondur.
-- Tanınmayan kolon **sessizce atılmaz**; satırın tamamı ham olarak
-  saklanır ve denetim izinin girdisi olur.
-- Kuru koşu bir seçenek değil, bir **adımdır**: kaç yeni, kaç güncelleme,
-  kaç hata — hepsi yazmadan önce görünür.
-- Hatalı satır sebebiyle ölü mektup kuyruğuna yazılır ve düzeltildikten
-  sonra yeniden işlenir.
-
-Ekranlar: `/varlik-aktarim` (varlık), `/ice-aktarim` (kontrol seti ve
-uyum değerlendirmesi).
+- Kolon başlıklarını platform kendi tanır: `Serial Number`, `seri no`,
+  `SN` aynı kolon sayılır.
+- Tanımadığı kolonu **atmaz**; saklar ve size sorar.
+- Deneme koşusu isteğe bağlı değildir. "Şu kadar yeni kayıt, şu kadar
+  güncelleme, şu kadar hatalı satır" — hepsi yazılmadan önce görünür.
+- Onaylamadığınız hiçbir satır yazılmaz.
+- Hatalı satır sessizce düşmez: sebebiyle saklanır, düzeltilip yeniden
+  işlenir.
 
 ## 3. API
 
-Dokuz uç. **Okuma:** `GET /api/v1/assets` (imleç sayfalamalı, filtreli) ·
-`/plants` · `/evidence` · `/integration-runs`.
-**Yazma:** `POST /api/v1/assets/upsert` · `/assets/observations` ·
-`/vulnerabilities` · `/backup-results` · `/access-observations`.
+Dış sistemler platformdan **okuyabilir**: varlık listesi, santral
+bilgisi, kanıt bilgileri, entegrasyon geçmişi. Ve platforma
+**yazabilir**: varlık kaydı, keşif gözlemi, zafiyet bulgusu, yedek
+sonucu, erişim gözlemi.
 
-- Her anahtar **kendi kapsamını** taşır; sahibinin bütün yetkilerini
-  miras almaz. Bir CMDB entegrasyonuna verilen anahtar kanıt paketi
-  okuyamaz.
-- Anahtarlar varsayılan olarak **salt okunurdur**.
-- Aynı kayıt iki kez gönderilirse iki satır açılmaz — idempotency köken
-  defterine dayanır.
-- OpenAPI 3.1 sözleşmesi uç kütüğünden ve zod şemalarından **türetilir**,
-  elle yazılmaz; `/api-sozlesmesi` ekranında durur. `servers` alanı
-  bilerek yoktur.
+- Her API anahtarı **kendi yetkisini** taşır — onu oluşturan kişinin
+  bütün yetkilerini devralmaz. Bir envanter entegrasyonuna verdiğiniz
+  anahtar kanıt paketinize erişemez.
+- Anahtarlar varsayılan olarak **salt okunurdur**; yazma yetkisi ayrıca
+  verilir.
+- Aynı kayıt iki kez gönderilirse iki satır oluşmaz.
+- Teknik sözleşme (OpenAPI) ürünün kendisinden üretilir, elle yazılmaz —
+  dolayısıyla doküman ile davranış birbirinden ayrışamaz.
 
-## 4. Connector adaptörü
+## 4. Doğrudan bağlantı
 
-Sekiz şablon: dizin (AD/Entra) · EDR · SIEM · OT keşif · zafiyet tarayıcı
-· yedekleme · ağ ve güvenlik duvarı · elle aktarım. **Yalnız sonuncusu
-çalışır**; diğer yedisi bağlı değildir ve bunu ekranda açıkça söyler.
+Sekiz kaynak için bağlantı hazır: kurumsal dizin, uç nokta koruması, log
+platformu, OT keşif ürünü, zafiyet tarayıcı, yedekleme yazılımı, ağ ve
+güvenlik duvarı, ve dosya aktarımı. **Bugün yalnız sonuncusu
+çalışıyor**; diğer yedisi bağlı değil ve ekran bunu açıkça söylüyor.
 
-Her bağlanmamış adaptör kurumdan isteyeceği kalemleri **yapısal olarak**
-beyan eder (adres · kimlik · izin · kapsam) — beyan zorunludur,
-unutulamaz. Liste `/saglik › Kurulum hazırlığı › Bağlantı ihtiyacı`
-ekranındadır.
+Her bağlanmamış kaynak, sizden isteyeceği bilgileri liste hâlinde
+beyan eder — adres, salt okunur hesap, hangi izinler, hangi kapsam.
+Bu liste hazırlık ekranında durur ve bağlantı gününde doğrudan
+kullanılır.
 
-### Passive-first — bu ürünün en sert kısıtı
+### En sert kural: sahaya paket gitmez
 
-Platform OT'de **kendi tarayıcısını çalıştırmaz** ve hiçbir OT cihazına
-paket göndermez. Doğru kaynak, sahada zaten çalışan ürünün **sonucudur**.
+Platform OT ağında **kendi taramasını çalıştırmaz** ve hiçbir OT
+cihazına sorgu göndermez. Doğru kaynak, sahada zaten çalışan ürünün
+**sonucudur**.
 
-Şema seviyesinde yasak olan ve yapılandırmayla bile açılamayan işlemler:
+Şu işlemler bağlantı ayarlarından bile açılamaz:
 
-| Kaynak | Yasak |
+| Kaynak | Yapılmayan |
 | --- | --- |
-| EDR | izolasyon / karantina, süreç sonlandırma, uzaktan script (RTR) |
-| Zafiyet tarayıcı | tarama başlatma (OT'de kontrolcü durdurabilir) |
-| OT keşif | Active Queries / Smart Polling tetikleme |
-| Yedekleme | yedek başlatma, geri yükleme tetikleme |
-| Ağ / firewall | kural, ACL, konfigürasyon değişikliği; SNMP ile cihaz uyandırma |
+| Uç nokta koruması | cihaz izolasyonu, karantina, uzaktan komut |
+| Zafiyet tarayıcı | tarama başlatma |
+| OT keşif ürünü | aktif sorgulama tetikleme |
+| Yedekleme | yedek başlatma, geri yükleme |
+| Ağ / güvenlik duvarı | kural değişikliği, cihaz uyandırma |
 
-İstemcilerde yalnız okuma metotları bulunur. Bir "tarama başlat"
-fonksiyonu eklenmesi bir kusur sayılır ve sertifikasyon kontrolü bunu
-her koşuda sınar.
+Sebep teknik: OT segmentinde kimlik doğrulamasız bir bağlantı ya da
+beklenmedik bir paket, bir kontrolcüyü durdurabilir. Bu bir güvenlik
+tercihi değil, emniyet meselesidir.
 
-### Kaynak başına ne okunur
+Sebep aynı zamanda kurumsaldır: bu platform bir **kayıt ve karar**
+ürünüdür. Sahaya müdahale kararı insanındır ve kendi sisteminden verilir.
 
-| Kaynak | Ne verir | Ne İSTENMEZ |
+### Hangi kaynak ne verir
+
+| Kaynak | Ne verir | Ne istenmez |
 | --- | --- | --- |
-| **OT keşif** (Claroty · Nozomi · Dragos · Tenable.ot · Forescout) | Pasif dinlemeyle çıkarılmış OT envanteri: seri no, MAC, üretici, model, firmware sürümü, zone, Purdue seviyesi; düğüm ve bağlantı listesi | Aktif sorgulama izni |
-| **EDR** (CrowdStrike · Defender · SentinelOne) | Agent'ın kendi raporu: hostname, seri no, MAC, üretici/model, işletim sistemi, BIOS sürümü | Müdahale izni |
-| **Zafiyet tarayıcı** (Tenable · Qualys · Rapid7) | Zaten çalışmış taramanın sonucu: CVE, CVSS, başlık, son tarih; ayrıca tarayıcı envanteri | Tarama başlatma izni |
-| **Yedekleme** (Veeam · Commvault · NetBackup) | İş sonuçları: zaman, sürüm, içerik özeti, depolama konumu, başarı/hata | Geri yükleme izni |
-| **Dizin** (AD / Entra) | Kullanıcı ve cihaz delta'sı, ayrıcalıklı rol üyeliği, son oturum, parola rotasyonu | Yazma izni |
-| **SIEM** (Splunk · Sentinel · QRadar · Elastic) | "Kim log gönderiyor" — en pasif keşif kaynağı; ayrıcalıklı oturum izleri | Playbook tetikleme, alarm kapatma |
-| **Ağ / firewall** (PAN-OS · FortiOS · IOS-XE · SNMP · DHCP) | Ekipmanın **zaten tuttuğu** tablolar: ARP, MAC/port, DHCP kirası, VLAN | Kural değişikliği; PLC/RTU'ya SNMP |
+| **OT keşif** (Claroty · Nozomi · Dragos · Tenable.ot · Forescout) | Pasif dinlemeyle çıkarılmış OT envanteri: seri no, MAC, üretici, model, firmware sürümü, ağ bölgesi, Purdue seviyesi; ayrıca cihazlar arası iletişim haritası | Aktif sorgulama izni |
+| **Uç nokta koruması** (CrowdStrike · Defender · SentinelOne) | Cihazın kendi raporu: bilgisayar adı, seri no, MAC, üretici/model, işletim sistemi, BIOS sürümü | Müdahale izni |
+| **Zafiyet tarayıcı** (Tenable · Qualys · Rapid7) | Zaten çalışmış taramanın sonucu: CVE, CVSS, başlık, son tarih; ayrıca tarayıcının kendi envanteri | Tarama başlatma izni |
+| **Yedekleme** (Veeam · Commvault · NetBackup) | İş sonuçları: ne zaman, hangi sürüm, içerik parmak izi, nerede saklandı, başarılı mı | Geri yükleme izni |
+| **Kurumsal dizin** (AD / Entra) | Kullanıcılar ve cihazlar, ayrıcalıklı rol üyelikleri, son oturum, parola değişim tarihi | Yazma izni |
+| **Log platformu** (Splunk · Sentinel · QRadar · Elastic) | "Kim log gönderiyor" — en pasif keşif kaynağı; ayrıcalıklı oturum izleri | Alarm kapatma, otomasyon tetikleme |
+| **Ağ / güvenlik duvarı** (Palo Alto · Fortinet · Cisco · SNMP · DHCP) | Ağ cihazlarının **zaten tuttuğu** tablolar: ARP, MAC/port eşlemesi, DHCP kiraları, VLAN'lar | Kural değişikliği; PLC ve RTU'ya sorgu |
 
 ### İki kural, her kaynakta aynı
 
-**Yokluk kanıt değildir.** EDR'de görünen varlık "kapsanıyor" yazabilir;
-görünmeyen varlık "kapsanmıyor" **değil**, `bilinmiyor` kalır. Aynısı
-yedekleme ve log kaynağı için de geçerlidir.
+**Bir sistemde görünmemek, orada olmamanın kanıtı değildir.** Uç nokta
+korumasında görünen varlık "kapsanıyor" yazılır; görünmeyen varlık
+"kapsanmıyor" **değil**, "bilinmiyor" kalır. Aynısı yedekleme ve log
+kaynağı için de geçerlidir.
 
-**Eşleme anahtarı sırası:** seri no > MAC > hostname. **IP tek başına
-eşleme yapmaz** — DHCP'de gezer.
+**Aynı cihazı tanıma sırası:** seri no, sonra MAC, sonra bilgisayar adı.
+**IP tek başına eşleştirme için kullanılmaz** — DHCP'de değişir.
 
-### Bir adaptörü olmayan kaynaklar
+### Bağlantı şablonu olmayan kaynaklar
 
-Sahada karşılığı olan ama ürüne şablonu yazılmamış kaynaklar dosya ya da
-API yoluyla beslenir; ayrı bir adaptör yazılması ileri bir iştir:
+Sahada karşılığı olan ama henüz hazır şablonu yazılmamış kaynaklar
+bugün Excel ya da API ile beslenir; ayrı bir bağlantı yazılması ileri
+bir iştir:
 
 - **PLC/DCS/SCADA konfigürasyon versiyonlama** (octoplant/versiondog,
-  AutoSave sınıfı) → `POST /api/v1/backup-results` ya da CSV
-- **PAM / VPN oturum kayıtları** → `POST /api/v1/access-observations`
-  ya da CSV
-- **LMS / İK eğitim kayıtları** → CSV
-- **Depo / ERP yedek parça stoğu** → CSV
+  AutoSave benzeri)
+- **Ayrıcalıklı erişim (PAM) ve VPN oturum kayıtları**
+- **Eğitim ve İK sistemleri**
+- **Depo / ERP yedek parça stoğu**
 
-## 5. Motor
+## 5. Otomatik hesaplama
 
-On yedi motor. Türetilmiş değerleri hesaplar, bağ kurar, görev ve bulgu
-açar. Üç ortak kural:
+Bazı değerler girilmez, başka kayıtlardan çıkarılır: yama durumu, ağ
+tutarsızlıkları, konfigürasyon sapması, kanıt tazeliği, tekrarlayan
+bulgular, bildirim süresi. Üç ortak kural:
 
-- **Motor önerir, insan karar verir.** Hiçbir motor bir varlığı
-  envanterden düşürmez, bir bulguyu kabul etmez, bir kaydı silmez.
-- **Elle verilmiş kararı ezmez.** Ezseydi yanlış pozitif bastırma her
-  koşuda silinir ve işe yaramazdı.
-- **Sahte başarı yoktur.** Koşu defteri işlenen/üretilen sayısını ve hata
-  sebebini yazar; kural tanımlı olmadığı için hiçbir şey yapmayan motor
-  bunu ayrıca söyler.
+- **Sistem önerir, insan karar verir.** Hiçbir otomatik hesaplama bir
+  varlığı envanterden düşürmez, bir bulguyu kabul etmez, bir kaydı
+  silmez.
+- **Elle verdiğiniz kararı bozmaz.** Bozsaydı "bu bizi etkilemiyor"
+  notunuz her koşuda silinir ve işe yaramazdı.
+- **Sahte başarı yoktur.** Koşu geçmişi kaç kayıt işlendiğini ve hata
+  sebebini yazar. Kural tanımlanmadığı için hiçbir şey yapmayan bir
+  hesaplama bunu ayrıca söyler — bu bir hata değildir, ama sessizlik de
+  değildir.
 
 ---
 
-## Ürünle GELMEYEN veriler
+## Ürünle gelmeyen veriler
 
-Bunlar kuruma özgüdür ve ürüne gömülmez. Örnek bir değer yazmak,
+Bunlar kuruma özgüdür ve ürüne gömülmez. Örnek bir değer koymak,
 kimsenin değiştirmediği yanlış bir sayaç bırakırdı:
 
-| Ne | Neden ürüne yazılmaz |
+| Ne | Neden |
 | --- | --- |
-| Bildirim süreleri, merciler, mevzuat dayanakları | Mevzuattan gelir ve kurumun tabi olduğu düzenlemeye göre değişir. Kural tanımlanmadıysa sayaç **hiç işlemez** |
-| Resmî kaynak adresleri (mevzuat takibi) | Kurumun uyum kapsamına göre kurum belirler |
-| Saklama süreleri ve dayanakları | Hangi kayıt ailesi kaç yıl, hangi mevzuata göre — kurum girer |
+| Bildirim süreleri, ilgili kurumlar, mevzuat dayanakları | Mevzuattan gelir ve kurumun tabi olduğu düzenlemeye göre değişir. Kural tanımlanmadan sayaç **hiç işlemez** |
+| Takip edilecek resmî kaynakların adresleri | Uyum kapsamınıza göre siz belirlersiniz |
+| Saklama süreleri ve dayanakları | Hangi kayıt kaç yıl, hangi mevzuata göre |
 | Eğitim tanımları ve geçerlilik süreleri | Kurumun eğitim programı |
-| Onaylı firmware ve konfigürasyon tabanları | Mühendislik kararı |
-| IEEE OUI kütüğü | Kurum yükleyene kadar üretici alanı "kütükte yok" kalır |
-| Uç noktalar, kimlik bilgileri, token'lar | Hiçbiri ürüne yazılmaz ve uydurulmaz |
+| Onaylı firmware ve konfigürasyon sürümleri | Mühendislik kararı |
+| Üretici kodu (OUI) kütüğü | Siz yükleyene kadar üretici alanı "kütükte yok" kalır |
+| Sistem adresleri, hesaplar, parolalar | Hiçbiri ürüne yazılmaz ve uydurulmaz |
 
----
+## Parola ve anahtarlar
 
-## Sır katmanı
-
-Yapılandırmada sırrın **değeri** değil **adresi** durur
-(`env:EDR_ISTEMCI_SIRRI` gibi). Değer çalışma anında çözülür ve hiçbir
-yere loglanmaz. İmzalama anahtarı ürüne hiç verilmez — imzalama servise
+Ayarlarda parolanın kendisi değil, **nerede durduğunun adresi** saklanır.
+Değer çalışma anında çözülür ve hiçbir kayda yazılmaz. İmzalama anahtarı
+platforma hiç verilmez — imzalama işi kurumun kendi altyapısına
 yaptırılır.

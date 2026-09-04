@@ -4,8 +4,8 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 223 |
-| Testi olan senaryo | 223 |
+| Senaryo | 226 |
+| Testi olan senaryo | 226 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
@@ -18,7 +18,7 @@
 | ACCESSIBILITY | 5 | 5 | 0 |
 | API | 12 | 12 | 0 |
 | CONCURRENCY | 7 | 7 | 0 |
-| DOMAIN | 121 | 121 | 0 |
+| DOMAIN | 124 | 124 | 0 |
 | ENGINE | 28 | 28 | 0 |
 | INTEGRATION | 21 | 21 | 0 |
 | MIGRATION | 2 | 2 | 0 |
@@ -26,7 +26,7 @@
 | RESPONSIVE | 8 | 8 | 0 |
 | SCOPE | 25 | 25 | 0 |
 | SERVER | 80 | 80 | 0 |
-| UI | 59 | 59 | 0 |
+| UI | 62 | 62 | 0 |
 | VISUAL | 2 | 2 | 0 |
 | WORKFLOW | 26 | 26 | 0 |
 
@@ -257,6 +257,9 @@
 | `SIS-KBK-015` | Sistem | UI · RESPONSIVE | `kabuk-gezinme.test.ts` | sararken hiçbir alan iki satırı aşmaz | evet | geçti |
 | `SIS-KBK-016` | Sistem | UI · ACCESSIBILITY | `kabuk-gezinme.test.ts` | hiçbir ikincil bağ adı kırpılacak kadar uzun değil | evet | geçti |
 | `SIS-KBK-017` | Sistem | UI · RESPONSIVE | `kabuk-gezinme.test.ts` | hiçbir Varlık grubu 1024px bandını taşırmaz | evet | geçti |
+| `SIS-KBK-018` | Sistem | UI · DOMAIN | `kabuk-gezinme.test.ts` | app/ altındaki her statik sayfa rotalar.json içinde | evet | geçti |
+| `SIS-UXD-001` | Sistem | UI · DOMAIN | `senaryo-kutugu.test.ts` | rota envanterindeki her ekranın kendi bölümü var | evet | geçti |
+| `SIS-UXD-002` | Sistem | UI · DOMAIN | `senaryo-kutugu.test.ts` | her bulgu bir önem derecesi taşır | evet | geçti |
 
 ## Gerekçesiyle kütüksüz kalan dosyalar
 

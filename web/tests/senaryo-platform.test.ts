@@ -181,7 +181,14 @@ function kullaniciMetinleri(kaynak: string): string[] {
 
 describe('Ekran dili · son kullanıcı geliştirici sözcüğü görmez', () => {
   it('kullanıcıya dönük hiçbir metinde jargon geçmez [SIS-DIL-001]', () => {
-    const dosyalar = tsxDosyalari(path.join(KOK, 'app'));
+    /* `components/` de taranır: kabuk, çekmece ve tablo primitifleri her
+       ekranda çizilir; oradaki bir jargon tek ekranın değil ürünün
+       dilini bozar. Muafiyet yolları `app/` köküne göre yazıldığı için
+       iki taban ayrı ayrı gezilir ve bağıl yol ürün köküne göre kurulur. */
+    const dosyalar = [
+      ...tsxDosyalari(path.join(KOK, 'app')),
+      ...tsxDosyalari(path.join(KOK, 'components')),
+    ];
     expect(dosyalar.length).toBeGreaterThan(40);
 
     const bulgular: string[] = [];

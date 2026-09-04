@@ -130,3 +130,37 @@ describe('Üretilen belgeler koda karşı TAZE', () => {
     expect(metin).toContain('| **GAP** | **0** |');
   });
 });
+
+/* ── UX denetim belgesi ─────────────────────────────────────────────── */
+
+/* Denetim belgesi ekran ekran yazılır ve elle tutulur; kod ürettiğinde
+   değil. Tek gerçek kuralı vardır: BİR EKRAN ATLANAMAZ. Yeni bir ekran
+   eklendiğinde denetimi de yapılmalıdır — yoksa belge "49 ekranı
+   denetledik" der ve yalan söyler.
+
+   UX-0015 tam olarak bu delikten çıktı: `/degerlendirme-aktarim`
+   gezinmede vardı, kapı listesinde yoktu, dolayısıyla hiçbir denetimde
+   görünmüyordu. */
+
+describe('UX denetim belgesi · hiçbir ekran atlanmaz', () => {
+  const metin = readFileSync(path.join(KOK, '..', 'docs', 'END_USER_UX_AUDIT.md'), 'utf8');
+  const rotalar: string[] = JSON.parse(readFileSync(path.join(KOK, 'arac', 'rotalar.json'), 'utf8'))
+    .map((r: string) => r || '/');
+
+  it('rota envanterindeki her ekranın kendi bölümü var [SIS-UXD-001]', () => {
+    const eksik = rotalar.filter((r) => !metin.includes(`#### \`${r}\` `));
+    expect(eksik, `denetlenmemiş ekran: ${eksik.join(', ')}`).toEqual([]);
+  });
+
+  it('her bulgu bir önem derecesi taşır [SIS-UXD-002]', () => {
+    const kimlikler = [...metin.matchAll(/\bUX-(\d{4})\b/g)].map((m) => m[0]);
+    expect(new Set(kimlikler).size).toBeGreaterThan(0);
+    /* Bulgu tablosunun her satırı: kimlik · önem · ekran · kusur · durum. */
+    for (const kimlik of new Set(kimlikler)) {
+      const satir = metin.split('\n').find((l) => l.startsWith(`| ${kimlik} |`));
+      expect(satir, `${kimlik} bulgu tablosunda yok`).toBeTruthy();
+      expect(satir!, `${kimlik} önem derecesiz`).toMatch(/\*\*P[0-3]\*\*/);
+      expect(satir!, `${kimlik} durumsuz`).toMatch(/\| (açık|kapatıldı) \|/);
+    }
+  });
+});

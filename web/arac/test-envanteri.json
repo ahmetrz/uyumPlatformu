@@ -1,7 +1,7 @@
 {
-  "imza": "2dea4463aed97216e4b3fbdde2e00002",
+  "imza": "da27ec5c58498cd24e0901cb8529a18f",
   "dosya": 133,
-  "vaka": 2824,
+  "vaka": 2827,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -225,7 +225,7 @@
       "atlanan": 0
     },
     "tests/kabuk-gezinme.test.ts": {
-      "vaka": 8,
+      "vaka": 9,
       "atlanan": 0
     },
     "tests/kabuk-inceleme.test.ts": {
@@ -397,7 +397,7 @@
       "atlanan": 0
     },
     "tests/senaryo-kutugu.test.ts": {
-      "vaka": 12,
+      "vaka": 14,
       "atlanan": 0
     },
     "tests/senaryo-platform.test.ts": {

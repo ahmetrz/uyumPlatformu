@@ -13,7 +13,7 @@ it('kapsam dışı varlığa yazılamaz [ENV-YAZ-003]', …)
 Ayrı bir eşleme tablosu tutulsaydı, tablo ilk yeniden adlandırmada
 testten ayrışır ve kimse görmezdi.
 
-Senaryo: **223** · testli: **223** · GAP: **0**
+Senaryo: **226** · testli: **226** · GAP: **0**
 
 ## API · 8 senaryo
 
@@ -316,7 +316,7 @@ Senaryo: **223** · testli: **223** · GAP: **0**
 | `SAY-KMP-001` | /sayim | BT yöneticisi · kendi santrali | Kapsamda hiç varlık yok · yok | Sayım açmayı dener | Açılmaz — sıfır paydalı kampanya olamaz | Neden açılmadığı yazılır | yazma yok | yok | `faz-g-varlik.test.ts` |
 | `SAY-KMP-002` | /sayim | BT yöneticisi · kendi santrali | Satır "bulunamadı" işaretlendi · kısmi | Sonucu kaydeder | Varlık SİLİNMEZ — envanterden düşürme ayrı bir karardır | "Sayılmadı" ile "bulunamadı" ayrı durumlardır | Sayım satırı · guncelleme | yok | `faz-g-eylem.test.ts` |
 
-## Sistem · 27 senaryo
+## Sistem · 30 senaryo
 
 | ID | Rota | Rol · kapsam | Ön koşul · veri | Eylem | Beklenen sonuç | Ekran | Denetim izi | Görev/bildirim | Test |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -347,6 +347,9 @@ Senaryo: **223** · testli: **223** · GAP: **0**
 | `SIS-KBK-015` | /uyum | uyum uzmanı · kurum geneli | Pencere 1280px · yüksek hacim | Sıranın kaç satıra sardığı hesaplanır | Hiçbir alan iki satırı aşmaz | Gövdenin yeri korunur | yazma yok | yok | `kabuk-gezinme.test.ts` |
 | `SIS-KBK-016` | /uyum | saha kullanıcısı · tek santral | Dar bant · uzun içerik | En uzun bağ adı ölçülür | Hiçbir bağ dar bandın yarısını aşmaz | Gezinme etiketi yarım okunmaz | yazma yok | yok | `kabuk-gezinme.test.ts` |
 | `SIS-KBK-017` | /envanter | BT yöneticisi · kurum geneli | Pencere 1024px · Varlık grubu açık · normal | Grubun alt ekranlarının toplam eni hesaplanır | Sıra sığar — saramadığı için sığmak zorundadır | Alt ekranların hepsi görünür | yazma yok | yok | `kabuk-gezinme.test.ts` |
+| `SIS-KBK-018` | — | ürün ekibi · kurum geneli | Yeni bir ekran eklendi · normal | Rota envanteri sayfa ağacıyla karşılaştırılır | Kabuklu her statik sayfa envanterde | Listede olmayan ekran hiçbir kapıdan geçmez | yazma yok | yok | `kabuk-gezinme.test.ts` |
+| `SIS-UXD-001` | — | ürün ekibi · kurum geneli | Yeni bir ekran eklendi · normal | Denetim belgesi rota envanteriyle karşılaştırılır | Her ekranın kendi denetim bölümü var | Belge "hepsini denetledik" derken doğru söyler | yazma yok | yok | `senaryo-kutugu.test.ts` |
+| `SIS-UXD-002` | — | ürün ekibi · kurum geneli | Denetimde bulgu var · kısmi | Bulgu kimlikleri tabloyla karşılaştırılır | Her kimlik P0–P3 ve açık/kapatıldı taşır | Önemsiz ya da durumsuz bulgu kalmaz | yazma yok | yok | `senaryo-kutugu.test.ts` |
 
 ## Taşınabilir medya · 2 senaryo
 

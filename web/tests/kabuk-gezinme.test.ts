@@ -171,3 +171,49 @@ describe('kabuk · üçüncül sıra en dar masaüstünde sığar', () => {
     expect(tasan).toEqual([]);
   });
 });
+
+/* ── Rota envanteri EKSİKSİZ olmalı ──────────────────────────────────── */
+
+/* UX denetiminde ölçüldü: `/degerlendirme-aktarim` gezinmede duruyordu,
+   sayfası vardı, çalışıyordu — ama `arac/rotalar.json` içinde YOKTU. O
+   dosya bütün tarayıcılı kapıların (taşma, axe, duman, UX) okuduğu tek
+   listedir; listede olmayan ekran hiçbir kapıdan geçmez. Bir ekran
+   sessizce denetim dışında kalmıştı.
+
+   Bu test o boşluğu kapatır: `app/` altındaki her STATİK sayfa listede
+   olmalı. Dinamik rotalar (`[id]`) dışarıdadır — kayıt kimliği olmadan
+   açılamazlar ve kapılar statik rota kapılarıdır. */
+
+describe('rota envanteri · hiçbir ekran kapıların dışında kalmaz', () => {
+  it('app/ altındaki her statik sayfa rotalar.json içinde [SIS-KBK-018]', async () => {
+    const { readdirSync, statSync } = await import('node:fs');
+    const path = await import('node:path');
+
+    const sayfalar: string[] = [];
+    const gez = (dizin: string, url: string) => {
+      for (const ad of readdirSync(dizin)) {
+        const tam = path.join(dizin, ad);
+        if (statSync(tam).isDirectory()) {
+          /* `(giris)` grubu KABUKSUZDUR: oturum yok, gezinme yok, ray
+             yok (`/giris`, `/bakim`). Kapılar oturum açıp kabuk ölçer;
+             bu grup onların konusu değildir. `api/` ekran değildir.
+             Öteki `(grup)` klasörleri URL'e girmez; `[dinamik]` rotalar
+             kayıt kimliği ister ve statik kapılardan geçmez. */
+          if (ad === '(giris)' || ad === 'api') continue;
+          if (ad.startsWith('(')) gez(tam, url);
+          else if (!ad.startsWith('[')) gez(tam, `${url}/${ad}`);
+        } else if (ad === 'page.tsx') {
+          sayfalar.push(url);
+        }
+      }
+    };
+    gez('app', '');
+
+    const rotalar: string[] = JSON.parse(readFileSync('arac/rotalar.json', 'utf8'));
+    const kayitli = new Set(rotalar);
+    const beklenen = sayfalar;
+
+    expect(beklenen.length).toBeGreaterThan(45);
+    expect(beklenen.filter((y) => !kayitli.has(y))).toEqual([]);
+  });
+});

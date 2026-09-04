@@ -75,13 +75,15 @@ yazılmadı. Böyle maddeler için repo içi hazırlık ayrı ölçülür ve
 | `rota:duman` | **57/57 rota** · kusurlu 0 · test edilemedi 0 · sayfa hatası 0 |
 | `tasarim:dizustu` (1366×768) | 48 rota · **kırpılan öğe 0** · yatay taşan rota 0 |
 | `tasarim:axe` (WCAG 2 A/AA) | 49 rota · ciddi/kritik ihlal **0** · kırık tarama 0 |
-| `tasarim:tasma` | 96 ölçümde 4 kusur — **hepsi bu programdan ÖNCE de vardı** (`/envanter` ×2, `/sistem`, `/sistem/bilesenler`; 375px ve 768px). FAZ G'de `git stash` ile YENİDEN ölçüldü: FAZ G'siz ağaçta aynı 4 kusur, aynı öğelerle çıktı. FAZ G'nin beş yeni ekranı listede YOK. |
+| `tasarim:tasma` | **96 ölçüm · 2 bant × 48 rota · 0 kusur** (§9.13) |
 | `npm run build` | başarılı |
 
-Kapı çıktıları **olduğu gibi** yazıldı; hedefe uydurulmadı. Taşma
-kapısındaki 4 kusur bu programın ürünü değildir ve bilerek kapatılmamış
-olarak bırakıldı — kaynakları `/envanter` kip çubuğu ile `/sistem`
-token tablosudur ve ikisi de ayrı bir işin konusudur.
+Kapı çıktıları **olduğu gibi** yazıldı; hedefe uydurulmadı.
+
+**Taşma kapısı bu turda ilk kez sıfırlandı.** Kapının uzun süredir
+taşıdığı 4 kusur bu programın ürünü değildi (kaynakları `/envanter` kip
+çubuğu ve `/sistem` token tablosuydu) ve önceki turlarda bilerek
+bırakılmıştı; FAZ G'den sonra kapatıldılar — kanıt §9.13.
 
 **FAZ F'de ilk koşuda üç kusur çıkmıştı ve düzeltildi.** `rota:duman` o
 fazın üç yeni ekranının da ana bölgesiz (`<main>` yok) olduğunu söyledi:
@@ -1264,6 +1266,31 @@ sabotaj öncesi alınan on yedek dosyanın onu da geri yüklenen dosyayla
 | TEST | 132 yeni vaka (38 + 55 + 39) · 11 sabotajın 11'i yakalandı (§9.11) |
 | DENETİM İZİ | Her yazma `AktiviteKaydi`na düşer; sayım eksik kapatıldığında iz kaç satırın hiç sayılmadığını YAZAR |
 | BELGE | Bu bölüm |
+
+### 9.13 Taşma kapısı sıfırlandı — dört eski kusur
+
+Bu kusurlar FAZ G'nin ürünü değildi: `git stash` ile FAZ G'siz ağaçta
+yeniden ölçüldüler ve aynı öğelerle çıktılar. Programın önceki
+turlarında bilerek açık bırakılmışlardı; FAZ G bittikten sonra
+kapatıldılar.
+
+| Rota · bant | Taşıran öğe | Çözüm |
+| --- | --- | --- |
+| `/envanter` · 375px | Kip çubuğu (`ad` + görünüm ikilisi + sayaç + künye + aktif zincir tek satırda 847px'e uzuyordu) | `≤900px`'te çubuk **sarılır** ve sabit 42px yüksekliğini bırakır |
+| `/envanter` · 375px | Mercek düğmeleri (505px) | Grup **kendi kabında kayar**; sarılmaz, çünkü sarılınca bitişik kenarlıklar kırılır ve altı düğme tek bir kontrol gibi okunmaz |
+| `/envanter` · 375px · 768px | Sağdaki 400px'lik seçim paneli | `≤820px`'te panel tuvalin **altına iner**; kenarlığını sola değil üste alır |
+| `/sistem` · 375px | Kontrast tablosu (3 + zemin sayısı kadar sütun) | Tablo **kendi kabında kayar** (`.ab-sistem-kaydir`) |
+| `/sistem/bilesenler` · 375px | Durum işaretçisi efsanesi (altı çift, 681px) | Efsane satırı **sarılır** |
+
+**Hiçbir şey gizlenerek çözülmedi.** Kip çubuğundaki her öğe ya bir
+eylem ya bir ölçümdür; seçim paneli seçili varlığın künyesini taşır;
+kontrast tablosunun sütunları bir kalite kapısının çıktısıdır; efsanenin
+işi zaten adlandırmaktır. Dar ekranda `display: none` yazmak, kusuru
+kapıdan kaçırıp ekranı eksik konuşur hâle getirirdi. Beşi de ya sarma ya
+kendi kabında kaydırma ile çözüldü.
+
+Sonuç: **96 ölçüm · 2 bant × 48 rota · 0 kusur.** Ürünün taşma kapısı
+ilk kez tamamen temiz.
 
 ---
 

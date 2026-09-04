@@ -99,8 +99,14 @@ export default function Galeri() {
               Ürün ekranlarında işaretçinin yanına durum sözcüğü YAZILAMAZ (durum
               sözleşmesi); denetim aracı bu bloğu data-efsane ile muaf sayar,
               kuralı gevşetmez. */}
+          {/* Efsane dar ekranda SARILIR: altı işaretçi-etiket çifti
+              375px'te 681px'e kadar uzuyordu (ölçüldü). Etiketler
+              kısaltılamaz — efsanenin işi zaten adlandırmaktır. */}
           <div data-efsane="statusmarker"
-            style={{ display: 'flex', gap: 'var(--s34)', alignItems: 'center' }}>
+            style={{
+              display: 'flex', gap: 'var(--s34)', alignItems: 'flex-start',
+              flexWrap: 'wrap',
+            }}>
             {DURUMLAR.map((d) => (
               <span key={d} style={{ display: 'grid', justifyItems: 'center', gap: 'var(--s10)' }}>
                 <Im durum={d} />

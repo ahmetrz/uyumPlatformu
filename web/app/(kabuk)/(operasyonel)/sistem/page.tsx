@@ -140,6 +140,7 @@ export default async function TasarimSistemi() {
             ))}
           </div>
 
+          <div className="ab-sistem-kaydir">
           <table className="ab-sistem-tablo">
             <thead>
               <tr>
@@ -175,6 +176,7 @@ export default async function TasarimSistemi() {
               ))}
             </tbody>
           </table>
+          </div>
           <p className="mono ab-dip">
             Eşik: metin 4.5:1 · grafik ve büyük tipografi 3.0:1. Kapı
             <code> arac/kontrast.mjs</code> ile her derlemede koşar.
@@ -184,7 +186,8 @@ export default async function TasarimSistemi() {
 
       <section className="bolum">
         <h2 className="ab-bolum-basligi">Tipografi kademeleri</h2>
-        <table className="ab-sistem-tablo">
+        <div className="ab-sistem-kaydir">
+          <table className="ab-sistem-tablo">
           <thead>
             <tr>
               <th className="kolonbas">Token</th>
@@ -204,6 +207,7 @@ export default async function TasarimSistemi() {
             ))}
           </tbody>
         </table>
+          </div>
         <p className="mono ab-dip">
           Arayüz Inter/Inter Tight, veri IBM Plex Mono / JetBrains Mono,
           görünüm Archivo / Barlow Condensed / Newsreader — yön seçer.

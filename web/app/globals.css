@@ -1,0 +1,43 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   BELGE KATMANI
+
+   Bu dosyada YALNIZ belge sıfırlaması vardır. Ürünün bütün sunumu
+   `kabuk.css` içinde, `.ab` kapsamında yaşar; kabuk her rotayı o
+   kapsamla sarar.
+
+   ── NE SİLİNDİ ─────────────────────────────────────────────────────────
+   Bu dosya sırasıyla iki önceki arayüz katmanının stil katmanıydı: önce
+   ilk kabuk, sonra ikinci kabuğun token seti (`tokens.css` içe aktarımı)
+   ve 978 satırlık kabuk stili. Yeni kabuk geçişiyle üçünün de son
+   kullanıcısı kalmadı; `arac/iz-tarama.mjs` bunu her koşuda kanıtlar.
+   Silinenler:
+     · eski kabuk stil dosyası — 978 satır, kabuk ve primitifleri
+     · `app/tokens.css`        — 397 satır, önceki katmanların token seti
+     · eski bileşen klasörü     — on iki bileşen dosyası
+   Ölü stil zararsız değildir: her okumada tarayıcıya yük, her aramada
+   insana gürültü, her bakışta "bu hâlâ kullanılıyor mu?" sorusu.
+
+   Zemin `.ab` kapsamında verilir; burada `body` yalnız yüzeyin dışında
+   kalan piksellerin rengini tutar ki koyu yönlerde beyaz bir kenar
+   şeridi görünmesin. Değer sabittir çünkü belge kökü hangi yönün
+   çizileceğini BİLEMEZ — yön rotadan, kabukta seçilir.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+html { color-scheme: dark; }
+
+body {
+  background: #0D1012;
+  color: #E7EAEA;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 13px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Yazdırma: rapor çıktısı beyaz kâğıda siyah mürekkeple basılır; ekran
+   temasının koyu zemini yazıcıya gitmez. Kabuk kuralları kabuk.css'te. */
+@media print {
+  body { background: #fff; color: #000; }
+}

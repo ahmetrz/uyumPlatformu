@@ -1,0 +1,20 @@
+# Yerel geliştirme aracı durumu
+/.claude/
+/.agents/
+/.abacus.donotdelete
+/skills-lock.json
+/web/.impeccable/
+
+# Tek seferlik audit kanıtları
+/docs/denetim-*/
+/docs/sadelestirme-*/
+
+# Kökten yanlışlıkla üretilen bağımlılık ve çıktılar
+/node_modules/
+/coverage/
+
+# Yerel ve geçici dosyalar
+.DS_Store
+*.log
+*.tmp
+.env*

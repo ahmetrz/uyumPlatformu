@@ -1,0 +1,71 @@
+name: PR kapısı
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-kapisi-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  kapi:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Depoyu al
+        uses: actions/checkout@v7
+
+      - name: Node kur
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Bağımlılıkları kur
+        working-directory: web
+        run: npm ci
+
+      - name: Veritabanını hazırla
+        working-directory: web
+        run: |
+          npx prisma migrate deploy
+          npx prisma generate
+          npx tsx prisma/seed.ts
+
+      - name: Lint
+        working-directory: web
+        run: npm run lint
+
+      - name: Tip denetimi
+        working-directory: web
+        run: npx tsc --noEmit
+
+      - name: Birim ve entegrasyon testleri
+        working-directory: web
+        run: npm test
+
+      - name: Ters kapsam kapısı
+        working-directory: web
+        run: npm run ters:kapsam
+
+      - name: Bozuk durum ve dil kapısı
+        working-directory: web
+        run: npm run tasarim:dil
+
+      - name: Tasarım kapısı
+        working-directory: web
+        run: npm run tasarim:kapi
+
+      - name: Üretim derlemesi
+        working-directory: web
+        run: npm run build
+
+      - name: Statik demo derlemesi
+        working-directory: web
+        env:
+          NEXT_PUBLIC_DEMO: '1'
+        run: npx next build

@@ -1,0 +1,3935 @@
+// Uyum Platformu veri şeması — docs/ICERIK_MODELI.md'yi birebir izler.
+//
+// Temel ilke (kullanıcı kararı): hiçbir tanım koda gömülü değildir.
+// Sektörler, tesis tipleri (doğalgaz, jeotermal, HES, RES...), tesisler,
+// regülasyonlar, kapsam alanları (BT/OT...) ve uyum süreçleri (denetimler)
+// panelden tanımlanır, eşleştirilir ve yaşam döngüsü yönetilir
+// (santral kapanır/satılır, süreç pasifleşir, kapsam değişir).
+//
+// Sağlayıcı SQLite (kurulumsuz); Postgres'e geçişte yalnızca datasource değişir.
+// Enum kullanılmaz: değerler String + web/lib/sabitler.ts'te zod ile doğrulanır.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/prisma-client"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// ------------------------------------------------------- tanımlar (panelden)
+
+model Sektor {
+  id    String  @id @default(cuid())
+  kod   String  @unique // ELEKTRIK-URETIM ...
+  ad    String
+  aktif Boolean @default(true)
+
+  tipler TesisTipi[]
+}
+
+model TesisTipi {
+  id       String  @id @default(cuid())
+  kod      String  @unique // DGKC | JEO | HES | RES | GES | TERMIK | MERKEZ ...
+  ad       String
+  sektorId String?
+  sira     Int     @default(0)
+  aktif    Boolean @default(true)
+
+  sektor   Sektor? @relation(fields: [sektorId], references: [id])
+  tesisler Tesis[]
+}
+
+/// Santral / lokasyon. Yaşam döngüsü: aktif → kapali (satış, kapanış).
+model Tesis {
+  id          String  @id @default(cuid())
+  kod         String  @unique
+  ad          String
+  tipId       String?
+  kuruluGucMw Float?
+  konum       String?
+
+  /// Coğrafi konum (WGS84). NULL = GİRİLMEDİ; harita bu santrali ilinin
+  /// merkezine YAKLAŞIK olarak koyar ve bunu ekranda söyler. Uydurma
+  /// koordinat yazılmaz: yanlış bir nokta, boş bir noktadan daha
+  /// pahalıdır (saha ekibi oraya gider).
+  enlem  Float?
+  boylam Float?
+
+  /// Koordinatın NEREDEN geldiği — serbest metin, kısa künye:
+  /// "saha GPS", "EPDK lisans sicili", "OpenStreetMap", "kurum GIS".
+  /// NULL = koordinat yok ya da kaynağı kayda geçmemiş.
+  ///
+  /// NEDEN VAR: kamuya açık kaynaklardan bulunan bir koordinat ile saha
+  /// ekibinin ölçtüğü koordinat şemada BİRBİRİNDEN AYIRT EDİLEMİYORDU.
+  /// İkisi de `enlem`/`boylam` kolonuna aynı biçimde yazılıyor, ekran
+  /// ikisini de kesin konum gibi gösteriyordu. Aynı adı taşıyan iki
+  /// santral, santral yerine merkez ofis, kapanmış bir tesisin eski
+  /// koordinatı — hepsi sessizce girerdi.
+  konumKaynagi String?
+
+  /// Bir İNSAN bu koordinatı doğruladı mı? Varsayılan `false`.
+  ///
+  /// "Bilinmeyen ≠ sıfır" kuralının koordinattaki karşılığı: koordinat
+  /// İKİ değil ÜÇ durumludur — yok · var ama doğrulanmadı · doğrulandı.
+  /// Ekran ortadakini "yaklaşık" diye gösterir; kesinmiş gibi
+  /// göstermek, uydurmakla aynı kapıya çıkar.
+  konumDogrulandi Boolean @default(false)
+
+  /// Doğrulamanın ne zaman ve kim tarafından yapıldığı. `konumDogrulandi`
+  /// true iken dolu olmak zorundadır (eylem katmanı birlikte yazar);
+  /// gerekçesi denetim izinde ayrıca durur.
+  konumDogrulayanId    String?
+  konumDogrulandiZaman DateTime?
+  durum                String    @default("aktif") // aktif | kapali
+  devreyeGiris         DateTime?
+  kapanisTarihi        DateTime?
+  kapanisNedeni        String? // satis | kapanis | birlesme ...
+  olusturuldu          DateTime  @default(now())
+
+  /// Santral fotoğrafının anahtarı (05-photography §5): eşleme bileşen
+  /// kodunda değil VERİDE tutulur ki yeni bir santral yanlış varsayılanı
+  /// miras almasın. null ise tipografik fallback render edilir — asla
+  /// "yakın" bir başka santralin fotoğrafı kullanılmaz.
+  gorselAnahtari String?
+
+  tuzelKisiId String?
+
+  tip             TesisTipi? @relation(fields: [tipId], references: [id])
+  tuzelKisi       TuzelKisi? @relation(fields: [tuzelKisiId], references: [id])
+  konumDogrulayan Kullanici? @relation("TesisKonumDogrulayan", fields: [konumDogrulayanId], references: [id])
+
+  surecKapsamlari SurecKapsami[]
+  maddeDurumlari  MaddeDurumu[]
+  yetkiler        Yetki[]
+
+  // hedef mimari genişlemesi
+  profil                    TesisProfili?
+  uniteler                  UretimUnitesi[]
+  sistemler                 SistemServis[]
+  isSurecleri               IsSureci[]
+  uygulanabilirlikKararlari UygulanabilirlikKarari[]
+  istisnalar                Istisna[]
+  anlikler                  UyumAnlik[]
+  riskler                   Risk[]
+  denetimKapsamlari         DenetimKapsami[]
+  varliklar                 Varlik[]
+  agBolgeleri               AgBolgesi[]
+  ekipler                   Ekip[]
+  kimlikHesaplari           KimlikHesabi[]
+  degerlendirmeAktarimlari  DegerlendirmeAktarimi[]
+  legalHoldlar              LegalHold[]
+  denetciKapsamlari         DenetciKapsami[]
+  degisiklikler             Degisiklik[]
+  olaylar                   Olay[]
+  projeAdaylari             ProjeAdayi[]
+  kanitBaglantilari         KanitTesis[]
+  gorevler                  Gorev[]
+  projeBaglantilari         ProjeBaglantisi[]
+  topolojiAnliklari         TopolojiAnlik[]
+  erisimOturumlari          TedarikciErisimOturumu[]
+  kesifKayitlari            KesifKaydi[]
+  belgeBaglantilari         DokumanTesis[]
+
+  // FAZ G ters bağları
+  envanterSayimlari EnvanterSayimi[]
+  yedekParcalari    YedekParca[]
+  tasinabilirMedya  TasinabilirMedya[]
+}
+
+model Regulasyon {
+  id            String    @id @default(cuid())
+  kod           String    @unique // EPDK-SYM, CBDDO, ISO-27001, SPK-BS ... (panelden eklenir)
+  ad            String
+  surum         String?
+  yururlukTarih DateTime?
+  kaynakUrl     String?
+  aktif         Boolean   @default(true)
+
+  maddeler      Madde[]
+  surecler      UyumSureci[]
+  iceAktarimlar IceAktarim[]
+
+  // hedef mimari genişlemesi
+  surumler                 FrameworkSurumu[]
+  kurallar                 UygulanabilirlikKurali[]
+  kararlar                 UygulanabilirlikKarari[]
+  kaynaklar                RegulasyonKaynagi[]
+  degerlendirmeAktarimlari DegerlendirmeAktarimi[]
+
+  // FAZ G ters bağları
+  bildirimYukumlulukleri   BildirimYukumlulugu[]
+  yonetimGozdenGecirmeleri YonetimGozdenGecirme[]
+}
+
+/// Kapsam alanı (BT, OT ...). Panelden tanımlanır; maddelerle çoktan-çoğa eşleştirilir.
+model KapsamAlani {
+  id       String  @id @default(cuid())
+  kod      String  @unique
+  ad       String
+  aciklama String?
+  aktif    Boolean @default(true)
+
+  maddeAlanlari MaddeAlan[]
+}
+
+// ---------------------------------------------------------------- çekirdek
+
+model Madde {
+  id           String  @id @default(cuid())
+  regulasyonId String
+  ustMaddeId   String?
+  kod          String // EPDK-SYM-4.2.1
+  baslik       String
+  metin        String
+  kanitTipi    String?
+  sira         Int     @default(0)
+
+  // hedef mimari: kontrol source-of-truth (§4)
+  surumId                String? // FrameworkSurumu — sürümsüz maddeler geçiş dönemi kaydıdır
+  disKontrolId           String? // external_control_id
+  alanAdi                String? // domain
+  altAlan                String? // subdomain
+  olgunlukSeviyesi       Int?
+  zorunlulukTipi         String    @default("REGULATION") // LAW|REGULATION|REGULATOR_NOTIFICATION|CONTRACT|CORPORATE_POLICY|CERTIFICATION|BEST_PRACTICE|OPTIONAL
+  gereksinimTipi         String?
+  kaynakSayfa            String?
+  maddeKaynakUrl         String?
+  gecerliBaslangic       DateTime?
+  gecerliBitis           DateTime?
+  yeriniAlanId           String? // superseded_by
+  kanitBeklentisi        String?
+  degerlendirmeRehberi   String?
+  varsayilanIncelemeGunu Int       @default(180)
+  silindi                DateTime?
+
+  regulasyon     Regulasyon       @relation(fields: [regulasyonId], references: [id], onDelete: Cascade)
+  ustMadde       Madde?           @relation("MaddeHiyerarsi", fields: [ustMaddeId], references: [id])
+  altMaddeler    Madde[]          @relation("MaddeHiyerarsi")
+  surum          FrameworkSurumu? @relation(fields: [surumId], references: [id])
+  yeriniAlan     Madde?           @relation("MaddeSuperseded", fields: [yeriniAlanId], references: [id])
+  yerineGecenler Madde[]          @relation("MaddeSuperseded")
+
+  alanlar           MaddeAlan[]
+  durumlar          MaddeDurumu[]
+  eslestirmeKaynak  MaddeEslestirmesi[] @relation("EslestirmeKaynak")
+  eslestirmeHedef   MaddeEslestirmesi[] @relation("EslestirmeHedef")
+  projeBaglantilari ProjeBaglantisi[]
+  riskKontrolleri   RiskKontrol[]
+  istisnalar        Istisna[]
+  denetimKapsamlari DenetimKapsami[]
+  belgeBaglantilari DokumanMadde[]
+
+  // FAZ G ters bağları
+  egitimBaglari EgitimMadde[]
+
+  @@unique([regulasyonId, surumId, kod])
+}
+
+/// Madde ↔ kapsam alanı eşleştirmesi (panelden yönetilir).
+model MaddeAlan {
+  id      String @id @default(cuid())
+  maddeId String
+  alanId  String
+
+  madde Madde       @relation(fields: [maddeId], references: [id], onDelete: Cascade)
+  alan  KapsamAlani @relation(fields: [alanId], references: [id], onDelete: Cascade)
+
+  @@unique([maddeId, alanId])
+}
+
+/// Uyum süreci (denetim dönemi): bir regülasyonun belirli tesis kapsamında
+/// yürütülen çalışması. Kapsam değişebilir; süreç pasifleşebilir/tamamlanır.
+model UyumSureci {
+  id           String    @id @default(cuid())
+  kod          String    @unique // EPDK-SYM-2026 ...
+  ad           String
+  regulasyonId String
+  durum        String    @default("planlandi") // planlandi | aktif | pasif | tamamlandi
+  baslangic    DateTime?
+  bitis        DateTime?
+  aciklama     String?
+  olusturuldu  DateTime  @default(now())
+
+  regulasyon Regulasyon @relation(fields: [regulasyonId], references: [id], onDelete: Cascade)
+
+  kapsam                   SurecKapsami[]
+  durumlar                 MaddeDurumu[]
+  yetkiler                 Yetki[]
+  anlikler                 UyumAnlik[]
+  denetimler               Denetim[]
+  degerlendirmeAktarimlari DegerlendirmeAktarimi[]
+}
+
+/// Süreç ↔ tesis kapsamı. Tesis kapsamdan çıkarılabilir (kayıt silinir),
+/// geçmiş MaddeDurumu kayıtları tarihçe olarak kalır.
+model SurecKapsami {
+  id      String   @id @default(cuid())
+  surecId String
+  tesisId String
+  eklendi DateTime @default(now())
+
+  surec UyumSureci @relation(fields: [surecId], references: [id], onDelete: Cascade)
+  tesis Tesis      @relation(fields: [tesisId], references: [id], onDelete: Cascade)
+
+  @@unique([surecId, tesisId])
+}
+
+/// (Süreç × madde × tesis) kesişimi — sistemin en sık okunan tablosu.
+model MaddeDurumu {
+  id               String    @id @default(cuid())
+  surecId          String
+  maddeId          String
+  tesisId          String
+  durum            String    @default("degerlendirilmedi") // uyumlu | kismi | uyumsuz | degerlendirilmedi | incelemede | kapsamdisi
+  guven            String    @default("kanit_yok") // otomatik_kanit | denetci_dogrulamis | oz_degerlendirme | bayat_kanit | kanit_yok
+  kanitBayat       Boolean   @default(false)
+  sorumluId        String?
+  /// UY-07 · Sorumlu EKİP. Kişi sahipliğinin yerine geçmez, tamamlar:
+  /// kişi ayrıldığında kontrol öksüz kalmasın (OT-09 ile aynı gerekçe).
+  ekipId           String?
+  /// UY-07 · Değerlendirmeyi DOĞRULAYAN kişi — hazırlayandan AYRI olmalı.
+  /// Aynı kişinin hem hazırlayıp hem doğruladığı bir değerlendirme, dört
+  /// göz ilkesini kâğıt üstünde bırakır; sunucu bunu reddeder.
+  dogrulayanId     String?
+  dogrulamaZamani  DateTime?
+  not              String?
+  /// UY-59 · Bu santralde ÖLÇÜLEN olgunluk seviyesi (0-5).
+  ///
+  /// Hedef seviye `Madde.olgunlukSeviyesi`tedir ve bütün santraller için
+  /// ortaktır; ölçülen seviye santralden santrale değişir. İkisini tek
+  /// alana sıkıştırmak "hedefimiz neydi" sorusunu cevapsız bırakırdı.
+  ///
+  /// `null` = ÖLÇÜLMEDİ. Sıfır ayrı bir şeydir: "uygulama başlamadı".
+  olgunlukSeviyesi Int?
+  sonDegerlendirme DateTime?
+  guncellendi      DateTime  @updatedAt
+
+  surec      UyumSureci @relation(fields: [surecId], references: [id], onDelete: Cascade)
+  madde      Madde      @relation(fields: [maddeId], references: [id], onDelete: Cascade)
+  tesis      Tesis      @relation(fields: [tesisId], references: [id], onDelete: Cascade)
+  sorumlu    Kullanici? @relation("DurumSorumlusu", fields: [sorumluId], references: [id])
+  ekip       Ekip?      @relation("MaddeDurumuEkibi", fields: [ekipId], references: [id])
+  dogrulayan Kullanici? @relation("DurumDogrulayan", fields: [dogrulayanId], references: [id])
+
+  bulgular          Bulgu[]
+  kanitBaglantilari KanitBaglantisi[]
+  tarihce           DegerlendirmeTarihcesi[]
+
+  // FAZ G ters bağları
+  kontrolTestleri KontrolTesti[]
+
+  @@unique([surecId, maddeId, tesisId])
+  @@index([surecId, tesisId, durum])
+}
+
+// ------------------------------------------------------------ bulgu/aksiyon
+
+model Bulgu {
+  id                   String    @id @default(cuid())
+  maddeDurumuId        String
+  denetimId            String?
+  kokNeden             String?
+  /// UY-26 · Kök neden KATEGORİSİ — serbest metin `kokNeden` ile birlikte
+  /// yaşar ve onun yerine geçmez: kategori sayılabilir, metin anlatır.
+  /// Sözlük `lib/uyum/kokNeden.ts` → KOK_NEDEN_KATEGORILERI ile birebir.
+  kokNedenKategori     String?
+  /// UY-26 · Analizi KİM yaptı ve NE ZAMAN. Kök neden alanı doluyken bu
+  /// ikisi boşsa, analiz bir kayıt değil bir not demektir; ekran ayırır.
+  kokNedenAnalizEdenId String?
+  kokNedenAnalizZamani DateTime?
+  tekrarBulguId        String? // repeat_of — tekrar eden bulgu
+  /// UY-28 · Tekrar bağı NASIL kuruldu: `motor` | `elle`. Motorun kurduğu
+  /// bağ ile insanın kurduğu bağ aynı güvende değildir ve ekran ayırır.
+  tekrarKaynagi        String?
+  /// UY-28 · Motor bağı kurarken hangi pencereyi kullandı (gün). Eşik
+  /// sonradan değişirse, eski bağın hangi eşikle kurulduğu kaybolmasın.
+  tekrarPenceresiGun   Int?
+  retestGerekli        Boolean   @default(false)
+  retestSonucu         String?
+  kapanisDogrulayanId  String?
+  kapanisDogrulama     DateTime?
+  silindi              DateTime?
+  baslik               String
+  aciklama             String
+  onemDerecesi         String // kritik | yuksek | orta | dusuk
+  durum                String    @default("acik") // acik | aksiyonda | kapali | kabul_edildi
+  kaynak               String? // ic_denetim | dis_denetim | oz_degerlendirme
+  tespitTarihi         DateTime  @default(now())
+  hedefTarih           DateTime?
+  kapanmaTarihi        DateTime?
+  sorumluId            String?
+
+  maddeDurumu        MaddeDurumu @relation(fields: [maddeDurumuId], references: [id], onDelete: Cascade)
+  sorumlu            Kullanici?  @relation("BulguSorumlusu", fields: [sorumluId], references: [id])
+  denetim            Denetim?    @relation(fields: [denetimId], references: [id])
+  tekrarBulgu        Bulgu?      @relation("TekrarBulgu", fields: [tekrarBulguId], references: [id])
+  tekrarlar          Bulgu[]     @relation("TekrarBulgu")
+  kapanisDogrulayan  Kullanici?  @relation("BulguKapanisDogrulayan", fields: [kapanisDogrulayanId], references: [id])
+  kokNedenAnalizEden Kullanici?  @relation("BulguKokNedenAnalisti", fields: [kokNedenAnalizEdenId], references: [id])
+
+  aksiyonlar        Aksiyon[]
+  projeBaglantilari ProjeBaglantisi[]
+  riskler           Risk[]
+  olaylar           OlayBulgu[]
+
+  @@index([durum, onemDerecesi])
+}
+
+model Aksiyon {
+  id         String    @id @default(cuid())
+  bulguId    String
+  baslik     String
+  aciklama   String?
+  sorumluId  String?
+  durum      String    @default("planlandi") // planlandi | devam | tamamlandi | iptal
+  baslangic  DateTime?
+  hedef      DateTime?
+  tamamlanma DateTime?
+
+  kokNeden        String?
+  dogrulamaDurumu String    @default("gerekmez") // gerekmez | bekliyor | dogrulandi | reddedildi
+  dogrulayanId    String?
+  dogrulamaTarihi DateTime?
+  etkinlikNotu    String?
+
+  bulgu      Bulgu      @relation(fields: [bulguId], references: [id], onDelete: Cascade)
+  sorumlu    Kullanici? @relation("AksiyonSorumlusu", fields: [sorumluId], references: [id])
+  dogrulayan Kullanici? @relation("AksiyonDogrulayan", fields: [dogrulayanId], references: [id])
+}
+
+// ------------------------------------------------------------------- kanıt
+
+model Kanit {
+  id                  String   @id @default(cuid())
+  ad                  String
+  tip                 String // politika | kayit | konfigurasyon | ekran_goruntusu | rapor | log | bilet | onay | test_sonucu | egitim_kaydi | sozlesme | ag_semasi
+  dosyaYolu           String?
+  gecerlilikBaslangic DateTime @default(now())
+  yukleyenId          String?
+  olusturuldu         DateTime @default(now())
+
+  // hedef mimari: evidence metadata (§15.1)
+  sahipId        String? // evidence owner (yükleyenden farklı olabilir)
+  kaynakSistem   String?
+  kaynakUrl      String?
+  dosyaHash      String?
+  surum          Int       @default(1)
+  gecerliBitis   DateTime? // valid_until — tazelik motoru bunu izler
+  toplanmaTarihi DateTime?
+  otomatik       Boolean   @default(false)
+  gizlilik       String    @default("kurumsal") // acik | kurumsal | gizli | ot_hassas
+  /// UY-12 · Kanıtın YAŞAM DÖNGÜSÜ durumu — geçerlilik tarihinden AYRIDIR.
+  /// taslak | gecerli | reddedildi | arsivlendi
+  /// Tarih "ne zamana kadar geçerli" der; bu alan "kabul edildi mi" der.
+  /// İkisini birleştirmek, reddedilmiş bir kanıtı süresi dolana kadar
+  /// geçerli göstermek olurdu.
+  durum          String    @default("gecerli")
+  /// UY-13 · Yüklenen dosyanın kendi bilgileri. Dosya YOKSA hepsi null
+  /// kalır ve bu "dosyasız kanıt" demektir — bir kusur değil, bir olgu
+  /// (bir ekran görüntüsü dosyadır, bir sözlü teyit değildir).
+  dosyaAdi       String?
+  /// IANA MIME tipi; kullanıcının verdiği ada DEĞİL, izin listesine bakılır.
+  dosyaTipi      String?
+  dosyaBoyut     Int?
+  /// Nesne deposundaki anahtar. İÇERİK ADRESLİDİR (hash tabanlı): kullanıcı
+  /// girdisi hiçbir zaman dosya yoluna geçmez.
+  depoAnahtari   String?
+  /// Hangi sağlayıcı sakladı (lib/altyapi/saglayicilar.ts). Depo değişirse
+  /// eski kaydın nerede olduğu kaybolmasın.
+  depoSaglayici  String?
+  silindi        DateTime?
+  /// Bu kanıt bir yönetişim belgesinden üretildiyse kütükteki kaydı (C22/C23).
+  dokumanId      String?
+
+  dokuman            Dokuman?          @relation(fields: [dokumanId], references: [id])
+  yukleyen           Kullanici?        @relation("KanitYukleyen", fields: [yukleyenId], references: [id])
+  sahip              Kullanici?        @relation("KanitSahibi", fields: [sahipId], references: [id])
+  baglantilar        KanitBaglantisi[]
+  varlikBaglantilari KanitVarlik[]
+  tesisBaglantilari  KanitTesis[]
+  talepler           KanitTalebi[]
+  surumler           KanitSurumu[]
+
+  // FAZ G ters bağları
+  egitimKayitlari EgitimKaydi[]
+}
+
+/// UY-12 · Kanıt sürüm geçmişi — DEĞİŞMEZ kayıt.
+///
+/// `Kanit.surum` bir sayaçtı ve kimse artırmıyordu; artırılsa bile ESKİ
+/// hâlin ne olduğu hiçbir yerde durmuyordu. Denetimde sorulan soru tam
+/// olarak budur: "bu kanıt geçen sene de böyle miydi?"
+///
+/// Satır ASLA güncellenmez ve silinmez. Yeni sürüm yeni satırdır; eski
+/// satır olduğu gibi kalır ve kendi özetini taşır.
+model KanitSurumu {
+  id           String   @id @default(cuid())
+  kanitId      String
+  /// 1'den başlar; her yeni sürüm bir artar.
+  surum        Int
+  /// O sürümdeki dosya özeti; dosyasız sürümde null.
+  dosyaHash    String?
+  dosyaAdi     String?
+  dosyaBoyut   Int?
+  depoAnahtari String?
+  /// Sürümün NEDEN açıldığı — zorunludur. Gerekçesiz sürüm, sessizce
+  /// değiştirilmiş bir kanıttan ayırt edilemez.
+  gerekce      String
+  yukleyenId   String?
+  olusturuldu  DateTime @default(now())
+
+  kanit    Kanit      @relation(fields: [kanitId], references: [id], onDelete: Cascade)
+  yukleyen Kullanici? @relation("KanitSurumYukleyen", fields: [yukleyenId], references: [id])
+
+  @@unique([kanitId, surum])
+  @@index([kanitId])
+}
+
+/// Kanıt ↔ MaddeDurumu çoktan-çoğa: tek kanıt birden çok sürecin/regülasyonun
+/// maddesini karşılayabilir (crosswalk).
+model KanitBaglantisi {
+  id            String   @id @default(cuid())
+  kanitId       String
+  maddeDurumuId String
+  eklendi       DateTime @default(now())
+
+  kanit       Kanit       @relation(fields: [kanitId], references: [id], onDelete: Cascade)
+  maddeDurumu MaddeDurumu @relation(fields: [maddeDurumuId], references: [id], onDelete: Cascade)
+
+  @@unique([kanitId, maddeDurumuId])
+}
+
+// -------------------------------------------------------------- eşleştirme
+
+model MaddeEslestirmesi {
+  id       String  @id @default(cuid())
+  kaynakId String
+  hedefId  String
+  denklik  String // tam | kismi | ilgili
+  aciklama String?
+
+  kaynak Madde @relation("EslestirmeKaynak", fields: [kaynakId], references: [id], onDelete: Cascade)
+  hedef  Madde @relation("EslestirmeHedef", fields: [hedefId], references: [id], onDelete: Cascade)
+
+  @@unique([kaynakId, hedefId])
+}
+
+model Proje {
+  id        String    @id @default(cuid())
+  kod       String    @unique
+  ad        String
+  aciklama  String?
+  tip       String    @default("iyilestirme") // regulasyon | guvenlik | altyapi | ot | iyilestirme
+  gerekce   String? // "bu projeyi neden yapıyoruz" — bağlantı zincirinden türetilir
+  silindi   DateTime?
+  durum     String    @default("planlandi") // planlandi | devam | tamamlandi | beklemede
+  baslangic DateTime?
+  hedef     DateTime?
+  sahipId   String?
+
+  sahip            Kullanici?         @relation("ProjeSahibi", fields: [sahipId], references: [id])
+  baglantilar      ProjeBaglantisi[]
+  butceler         Butce[]
+  kilometreTaslari KilometreTasi[]
+  bagimliOldugu    ProjeBagimliligi[] @relation("BagimliOlan")
+  bagimliOlanlar   ProjeBagimliligi[] @relation("BagimliOlunan")
+  adaylar          ProjeAdayi[]
+  olaylar          OlayProje[]
+}
+
+model ProjeBaglantisi {
+  id       String  @id @default(cuid())
+  projeId  String
+  maddeId  String?
+  bulguId  String?
+  riskId   String?
+  tesisId  String?
+  varlikId String?
+  gerekce  String?
+
+  proje  Proje   @relation(fields: [projeId], references: [id], onDelete: Cascade)
+  madde  Madde?  @relation(fields: [maddeId], references: [id], onDelete: Cascade)
+  bulgu  Bulgu?  @relation(fields: [bulguId], references: [id], onDelete: Cascade)
+  risk   Risk?   @relation(fields: [riskId], references: [id])
+  tesis  Tesis?  @relation(fields: [tesisId], references: [id])
+  varlik Varlik? @relation(fields: [varlikId], references: [id])
+
+  @@unique([projeId, maddeId, bulguId, riskId, tesisId, varlikId])
+}
+
+// --------------------------------------------------------------- yetki/iz
+
+model Kullanici {
+  id          String   @id @default(cuid())
+  eposta      String   @unique
+  adSoyad     String
+  unvan       String?
+  aktif       Boolean  @default(true)
+  parolaHash  String? // scrypt; null = henüz giriş tanımlanmamış
+  olusturuldu DateTime @default(now())
+
+  yetkiler           Yetki[]
+  durumSorumluluk    MaddeDurumu[]   @relation("DurumSorumlusu")
+  durumDogrulamalari MaddeDurumu[]   @relation("DurumDogrulayan")
+  kanitSurumleri     KanitSurumu[]   @relation("KanitSurumYukleyen")
+  konumDogrulamalari Tesis[]         @relation("TesisKonumDogrulayan")
+  bulguSorumluluk    Bulgu[]         @relation("BulguSorumlusu")
+  aksiyonSorumluluk  Aksiyon[]       @relation("AksiyonSorumlusu")
+  yuklenenKanitlar   Kanit[]         @relation("KanitYukleyen")
+  sahipProjeler      Proje[]         @relation("ProjeSahibi")
+  aktiviteler        AktiviteKaydi[]
+  iceAktarimlar      IceAktarim[]
+
+  // hedef mimari genişlemesi
+  oturumlar                Oturum[]
+  sahipSistemler           SistemServis[]           @relation("SistemSahibi")
+  onayladigiKararlar       UygulanabilirlikKarari[] @relation("KararOnaylayan")
+  onayladigiIstisnalar     Istisna[]                @relation("IstisnaOnaylayan")
+  degerlendirmeleri        DegerlendirmeTarihcesi[]
+  sahipRiskler             Risk[]                   @relation("RiskSahibi")
+  onayladigiRiskler        Risk[]                   @relation("RiskOnaylayan")
+  kanitTalepleri           KanitTalebi[]            @relation("TalepSorumlusu")
+  sahipKanitlar            Kanit[]                  @relation("KanitSahibi")
+  sahipVarliklar           Varlik[]                 @relation("VarlikSahibi")
+  emanetVarliklar          Varlik[]                 @relation("VarlikEmanetcisi")
+  ekipUyelikleri           EkipUyeligi[]            @relation("EkipUyesi")
+  etkiDegerlendirmeleri    EtkiDegerlendirmesi[]    @relation("EtkiDegerlendiren")
+  konfigTemelOnaylari      KonfigTemeli[]           @relation("KonfigTemeliOnaylayan")
+  konfigSapmaKararlari     KonfigSapmasi[]          @relation("KonfigSapmasiKarari")
+  kesifYetkiKararlari      KesifKaydi[]             @relation("KesifYetkiKarari")
+  erisimIncelemeleri       ErisimIncelemesi[]       @relation("ErisimInceleyen")
+  kimlikHesaplari          KimlikHesabi[]
+  talepDegisiklikler       Degisiklik[]             @relation("DegisiklikTalep")
+  onayDegisiklikler        Degisiklik[]             @relation("DegisiklikOnay")
+  adayKararlari            ProjeAdayi[]             @relation("AdayKarari")
+  gorevler                 Gorev[]                  @relation("GorevSorumlusu")
+  bildirimler              Bildirim[]
+  onayTalepleri            OnayTalebi[]             @relation("OnayTalepEden")
+  verdigiOnaylar           OnayTalebi[]             @relation("OnayVeren")
+  dogruladigiBulgular      Bulgu[]                  @relation("BulguKapanisDogrulayan")
+  kokNedenAnalizleri       Bulgu[]                  @relation("BulguKokNedenAnalisti")
+  kontrolEttigiKaynaklar   RegulasyonKaynagi[]      @relation("KaynakKontrolEden")
+  degerlendirmeAktarimlari DegerlendirmeAktarimi[]  @relation("AktarimYukleyen")
+  saklamaGuncellemeleri    SaklamaPolitikasi[]      @relation("SaklamaGuncelleyen")
+  koydugıHoldlar          LegalHold[]              @relation("HoldKoyan")
+  kaldirdigiHoldlar        LegalHold[]              @relation("HoldKaldiran")
+  onerdigiImhalar          ImhaKarari[]             @relation("ImhaOneren")
+  onayladigiImhalar        ImhaKarari[]             @relation("ImhaOnaylayan")
+  denetciHesabi            DenetciErisimi[]         @relation("DenetciHesabi")
+  davetEttigiDenetciler    DenetciErisimi[]         @relation("DenetciDavetEden")
+  iptalEttigiDenetciler    DenetciErisimi[]         @relation("DenetciIptalEden")
+  dogruladigiAksiyonlar    Aksiyon[]                @relation("AksiyonDogrulayan")
+  sahipBelgeler            Dokuman[]                @relation("DokumanSahibi")
+  onayladigiBelgeler       Dokuman[]                @relation("DokumanOnaylayan")
+  // ── entegrasyon katmanı ────────────────────────────────────────────
+  apiAnahtarlari           ApiAnahtari[]            @relation("AnahtarSahibi")
+  urettigiApiAnahtarlari   ApiAnahtari[]            @relation("AnahtarOlusturan")
+  varlikAktarimlari        VarlikAktarimi[]         @relation("AktarimYukleyen")
+  onayladigiAktarimlar     VarlikAktarimi[]         @relation("AktarimOnaylayan")
+  inceledigiKesifler       KesifKaydi[]             @relation("KesifInceleyen")
+  onayladigiAnliklar       TopolojiAnlik[]          @relation("AnlikOnaylayan")
+  kararVerdigiSapmalar     TopolojiSapmasi[]        @relation("SapmaKarari")
+  dogruladigiOlaylar       Olay[]                   @relation("OlayEtkiDogrulayan")
+  dogruladigiKokenler      VeriKokeni[]             @relation("KokenDogrulayan")
+  yazdigiEslemeProfilleri  EslemeProfili[]          @relation("EslemeOlusturan")
+  inceledigiRedler         ReddedilenKayit[]        @relation("RedInceleyen")
+  uygulanamazKayitlari     AlanUygulanabilirligi[]  @relation("UygulanamazKaydeden")
+  yukledigiSbomlar         SbomBelgesi[]            @relation("SbomYukleyen")
+
+  // FAZ G ters bağları
+  actigiSayimlar                EnvanterSayimi[]       @relation("SayimAcan")
+  kapattigiSayimlar             EnvanterSayimi[]       @relation("SayimKapatan")
+  saydigiSatirlar               SayimSatiri[]          @relation("SayimSayan")
+  sahipOlduguMedya              TasinabilirMedya[]     @relation("MedyaSahibi")
+  onayladigiMedyaKullanimlari   MedyaKullanimi[]       @relation("MedyaOnaylayan")
+  guncelledigiBildirimKurallari BildirimYukumlulugu[]  @relation("BildirimKuraliGuncelleyen")
+  yaptigiKontrolTestleri        KontrolTesti[]         @relation("KontrolTestEden")
+  yurutuguGozdenGecirmeler      YonetimGozdenGecirme[] @relation("GozdenGecirmeYuruten")
+  sorumluGozdenGecirmeKararlari GozdenGecirmeKarari[]  @relation("GozdenGecirmeSorumlusu")
+  egitimKayitlari               EgitimKaydi[]          @relation("EgitimAlan")
+
+  // FAZ H · zimmet (varlık atama kabul/red) ters bağları
+  bekleyenAtamalari   VarlikAtamaTalebi[] @relation("AtamaAtanan")
+  actigiAtamalar      VarlikAtamaTalebi[] @relation("AtamaAtayan")
+  devrettigiAtamalar  VarlikAtamaTalebi[] @relation("AtamaOncekiSahip")
+  iptalEttigiAtamalar VarlikAtamaTalebi[] @relation("AtamaIptalEden")
+}
+
+/// Yetki kapsamı (kullanıcı × uyum süreci × tesis). Alan null ise "tümü".
+/// "Denetim bazında yetkilendirme": süreç, denetimin kendisidir.
+model Yetki {
+  id           String  @id @default(cuid())
+  kullaniciId  String
+  surecId      String?
+  tesisId      String?
+  tuzelKisiId  String?
+  regulasyonId String? // framework kapsamı
+  modul        String? // compliance | envanter | risk | denetim | proje | yonetim — null = tüm modüller
+  rol          String // okuyucu | katkici | denetim_sorumlusu | tesis_yoneticisi | ot_yoneticisi | bt_yoneticisi | risk_sahibi | dis_denetci | yonetici
+
+  kullanici Kullanici   @relation(fields: [kullaniciId], references: [id], onDelete: Cascade)
+  surec     UyumSureci? @relation(fields: [surecId], references: [id], onDelete: Cascade)
+  tesis     Tesis?      @relation(fields: [tesisId], references: [id], onDelete: Cascade)
+  tuzelKisi TuzelKisi?  @relation(fields: [tuzelKisiId], references: [id])
+
+  @@unique([kullaniciId, surecId, tesisId, tuzelKisiId, regulasyonId, modul])
+}
+
+/// Değişmez iz kaydı — bulgu zaman çizelgesinin kaynağı. Güncellenmez, yalnızca eklenir.
+model AktiviteKaydi {
+  id           String   @id @default(cuid())
+  aktorId      String?
+  varlikTipi   String // Madde | MaddeDurumu | Bulgu | Aksiyon | Kanit | Proje | Yetki | Tesis | UyumSureci | Regulasyon | Risk | Denetim | Varlik | ...
+  varlikId     String
+  eylem        String // olusturma | guncelleme | silme | yumusak_silme | dosya_ekleme | durum_degisimi | kapsam_degisimi | onay | red
+  alan         String?
+  oncekiDeger  String?
+  yeniDeger    String?
+  gerekce      String? // reason (§32)
+  kaynak       String   @default("ui") // ui | is_kosusu | entegrasyon | api
+  korelasyonId String?
+  dosyaAdi     String?
+  zaman        DateTime @default(now())
+
+  aktor Kullanici? @relation(fields: [aktorId], references: [id])
+
+  @@index([varlikTipi, varlikId, zaman])
+  /// Aktivite ekranı (app/(kabuk)/(operasyonel)/aktivite/page.tsx) filtresiz
+  /// `zaman desc` okur; yukarıdaki indeksin ilk kolonu varlikTipi olduğu için
+  /// o sorguya yaramaz. ÖLÇÜLMEDİ — tablo bugün ~22 satır, ölçülecek bir fark
+  /// yok. Gerekçe BÜYÜMEDİR: denetim izi hiç silinmez (bkz.
+  /// 20260830190000_denetim_izi_degismezligi tetikleyicileri), tablo tek yönlü
+  /// büyür ve ilk darboğaz adayı budur.
+  @@index([zaman])
+}
+
+// ---------------------------------------------------------- içe aktarım
+
+model IceAktarim {
+  id           String   @id @default(cuid())
+  regulasyonId String
+  surumId      String? // hangi framework sürümüne aktarıldı
+  kaynakTipi   String // excel | otomatik
+  kaynakAdi    String // dosya adı veya adaptör kimliği
+  durum        String   @default("dogrulama_bekliyor") // dogrulama_bekliyor | onaylandi | reddedildi | hata
+  okunan       Int      @default(0)
+  eklenen      Int      @default(0)
+  guncellenen  Int      @default(0)
+  elenen       Int      @default(0)
+  raporJson    String? // satır önizlemesi, elenenler ve sebepleri
+  yukleyenId   String?
+  olusturuldu  DateTime @default(now())
+
+  regulasyon Regulasyon       @relation(fields: [regulasyonId], references: [id], onDelete: Cascade)
+  surum      FrameworkSurumu? @relation(fields: [surumId], references: [id])
+  yukleyen   Kullanici?       @relation(fields: [yukleyenId], references: [id])
+}
+
+// ================================================================
+// HEDEF MİMARİ GENİŞLEMESİ — docs/ENERJI_IT_OT hedef mimarisine göre
+// Additive: mevcut modeller korunur; yeni modüller aşağıda.
+// ================================================================
+
+// ------------------------------------------------ organizasyon hiyerarşisi
+
+/// Grup (organizations) — en üst seviye.
+///
+/// YAZILIR ama HİÇBİR EKRANDA GÖSTERİLMEZ: `TuzelKisi.grupId` zorunlu bir
+/// yabancı anahtardır ve tohum tek bir grup kaydı açar, fakat hiçbir ekran
+/// grup seviyesinde kırılım sunmaz. Tek gruplu bir kurulumda bu doğru
+/// karardır — "1 grup" diye bir satır hiçbir kararı değiştirmez. Birden
+/// çok grup gerçekten oluşursa portföy ve uyum ekranlarının bu seviyeyi
+/// kırılım olarak açması gerekir.
+model Grup {
+  id          String   @id @default(cuid())
+  kod         String   @unique
+  ad          String
+  olusturuldu DateTime @default(now())
+
+  tuzelKisiler TuzelKisi[]
+}
+
+/// Tüzel kişi (legal_entities). Tesisler tüzel kişiye bağlanır.
+model TuzelKisi {
+  id          String   @id @default(cuid())
+  grupId      String
+  kod         String   @unique
+  ad          String
+  vergiNo     String?
+  olusturuldu DateTime @default(now())
+
+  grup     Grup    @relation(fields: [grupId], references: [id])
+  tesisler Tesis[]
+  yetkiler Yetki[]
+}
+
+/// Üretim ünitesi (generation_units) — santral içindeki üretim birimi.
+model UretimUnitesi {
+  id           String    @id @default(cuid())
+  tesisId      String
+  kod          String
+  ad           String
+  kuruluGucMw  Float?
+  devreyeGiris DateTime?
+  durum        String    @default("aktif") // aktif | bakim | devre_disi
+
+  tesis     Tesis          @relation(fields: [tesisId], references: [id])
+  sistemler SistemServis[]
+  varliklar Varlik[]       @relation("UniteVarliklari")
+
+  @@unique([tesisId, kod])
+}
+
+/// Sistem/Servis (systems/services) — üretim ünitesi veya tesis seviyesinde.
+model SistemServis {
+  id        String  @id @default(cuid())
+  tesisId   String?
+  uniteId   String?
+  kod       String  @unique
+  ad        String
+  tip       String  @default("sistem") // sistem | servis | uygulama
+  aciklama  String?
+  kritiklik String  @default("bilinmiyor") // dusuk | orta | yuksek | kritik | bilinmiyor
+  sahipId   String?
+  /// OT-09 · Sahip ekip; kişi sahipliğinin yerine geçmez, tamamlar.
+  ekipId    String?
+
+  tesis            Tesis?                   @relation(fields: [tesisId], references: [id])
+  unite            UretimUnitesi?           @relation(fields: [uniteId], references: [id])
+  sahip            Kullanici?               @relation("SistemSahibi", fields: [sahipId], references: [id])
+  ekip             Ekip?                    @relation("SistemEkibi", fields: [ekipId], references: [id])
+  surecler         IsSureciSistemi[]
+  varliklar        Varlik[]
+  riskler          Risk[]
+  erisimOturumlari TedarikciErisimOturumu[]
+  olaylar          OlaySistem[]
+}
+
+/// İş süreci (business_processes) — üretim etkisi analizinin ucu.
+model IsSureci {
+  id           String  @id @default(cuid())
+  tesisId      String?
+  kod          String  @unique
+  ad           String
+  uretimEtkisi String  @default("bilinmiyor") // yok | dusuk | orta | yuksek | uretim_durur | bilinmiyor
+
+  tesis     Tesis?            @relation(fields: [tesisId], references: [id])
+  sistemler IsSureciSistemi[]
+  adimlar   ProsesAdimi[]
+}
+
+model IsSureciSistemi {
+  id       String @id @default(cuid())
+  surecId  String
+  sistemId String
+
+  surec  IsSureci     @relation(fields: [surecId], references: [id], onDelete: Cascade)
+  sistem SistemServis @relation(fields: [sistemId], references: [id], onDelete: Cascade)
+
+  @@unique([surecId, sistemId])
+}
+
+/// Santral profili (§5.1) — uygulanabilirlik motorunun girdisi. Tesis 1:1.
+model TesisProfili {
+  id                   String    @id @default(cuid())
+  tesisId              String    @unique
+  lisansTipi           String?
+  lisansNo             String?
+  kabulDurumu          String? // gecici_kabul | kesin_kabul | insaat | lisans_oncesi
+  kabulTarihi          DateTime?
+  blackStart           Boolean? // null = bilinmiyor
+  teiasScadaEms        Boolean? // TEİAŞ SCADA/EMS haberleşmesi
+  seriHaberlesme       Boolean? // seri tabanlı haberleşme
+  kritiklikSinifi      String? // EPDK kritiklik sınıfı
+  kritikAltyapiStatusu Boolean?
+  veriIslemeProfili    String?
+  internetMaruziyeti   String? // yok | sinirli | var | bilinmiyor
+  uzaktanErisim        Boolean?
+  otMimariTipi         String? // dcs | scada | plc_scada | hibrit
+  dcsSaglayici         String?
+  scadaSaglayici       String?
+  plcAileleri          String? // noktalı virgülle liste
+  iotVar               Boolean?
+  akilliSayacVar       Boolean?
+  yerelAdVar           Boolean?
+  yerelVeriMerkeziVar  Boolean?
+  grupOrtakServisler   String? // noktalı virgülle liste (merkezi AD, SOC, EDR...)
+  guncellendi          DateTime  @updatedAt
+
+  tesis Tesis @relation(fields: [tesisId], references: [id], onDelete: Cascade)
+}
+
+// -------------------------------------------- regülasyon sürümleme ve diff
+
+/// Framework sürümü (framework_versions). Maddeler sürüme bağlanır;
+/// yeni sürüm eskini EZMEZ — diff kaydı üretilir.
+model FrameworkSurumu {
+  id            String    @id @default(cuid())
+  regulasyonId  String
+  surumEtiketi  String // "2024", "v2.1"...
+  yayimTarihi   DateTime?
+  yururlukTarih DateTime?
+  kaynakUrl     String?
+  durum         String    @default("taslak") // taslak | aktif | arsiv
+  olusturuldu   DateTime  @default(now())
+
+  regulasyon    Regulasyon   @relation(fields: [regulasyonId], references: [id])
+  maddeler      Madde[]
+  iceAktarimlar IceAktarim[]
+  farklar       SurumFarki[] @relation("YeniSurum")
+  eskiFarklar   SurumFarki[] @relation("EskiSurum")
+  /// DİKKAT — bu modelde şemada GÖRÜNMEYEN bir kısıt daha var:
+  /// `FrameworkSurumu_tekAktif`, bir regülasyonda yalnız BİR satırın
+  /// durum = 'aktif' olmasını zorlar. KISMİ (partial) tekil indekstir ve
+  /// Prisma `@@unique` sözdizimi `WHERE` ifadesi taşıyamadığı için ham SQL
+  /// migration ile eklenmiştir:
+  /// prisma/migrations/20260901201000_framework_surumu_tek_aktif/migration.sql
+  /// Prisma bu indeksi introspection'da görmez (`migrate diff` boş döner),
+  /// bu yüzden şemadan silinmiş sanılıp kaybolmaması için burada yazılıdır.
+  /// İhlali `lib/eylemler2/surum.ts` içinde yakalanır ve anlamlı hataya
+  /// çevrilir; çıplak Prisma istisnası kullanıcıya çıkmaz.
+
+  @@unique([regulasyonId, surumEtiketi])
+}
+
+/// Sürüm farkı (diff): iki sürüm arasında madde bazında değişim + etki.
+model SurumFarki {
+  id          String   @id @default(cuid())
+  eskiSurumId String?
+  yeniSurumId String
+  maddeKodu   String
+  degisimTipi String // yeni | degisti | kaldirildi | ayni
+  ozet        String?
+  etkiNotu    String? // hangi santral/assessment etkilenir
+  olusturuldu DateTime @default(now())
+
+  eskiSurum FrameworkSurumu? @relation("EskiSurum", fields: [eskiSurumId], references: [id])
+  yeniSurum FrameworkSurumu  @relation("YeniSurum", fields: [yeniSurumId], references: [id])
+}
+
+// ------------------------------------------------------ UY-36 · eskalasyon
+
+/// Eskalasyon kuralı (UY-36).
+///
+/// ÖLÇÜLMÜŞ KUSUR: `Bildirim.tip` sözlüğünde 'eskalasyon' değeri VARDI ve
+/// hiçbir kod onu YAZMIYORDU. Bildirim ekranının "Eskalasyon & uyarı"
+/// merceği bu yüzden yalnız 'uyari' satırlarını gösteriyordu; kurumun
+/// eskalasyon matrisi ürün içinde YOKTU.
+///
+/// Kural bir KADEMEDİR: gecikme büyüdükçe daha yukarı haber verilir.
+/// Kademeler ayrı satırlardır çünkü her kademenin kendi gecikmesi, kendi
+/// hedefi ve kendi metni vardır.
+model EskalasyonKurali {
+  id           String   @id @default(cuid())
+  /// Neyin gecikmesi: `bulgu` | `aksiyon` | `gorev`.
+  kaynakTipi   String
+  /// Hangi önem derecesine uygulanır; boşsa HEPSİNE uygulanır.
+  onemDerecesi String?
+  /// Kademe numarası (1 en alt). Aynı kaynak+önem içinde tekildir.
+  kademe       Int
+  /// Hedef tarihten kaç gün SONRA bu kademe tetiklenir.
+  gecikmeGun   Int
+  /// Kime haber verilir: `sorumlu` | `rol` | `kullanici`.
+  hedefTuru    String
+  /// `rol` hedefinde rol adı, `kullanici` hedefinde kullanıcı kimliği.
+  hedefDeger   String?
+  aciklama     String?
+  aktif        Boolean  @default(true)
+  olusturuldu  DateTime @default(now())
+
+  kayitlar EskalasyonKaydi[]
+
+  @@unique([kaynakTipi, onemDerecesi, kademe])
+}
+
+/// Eskalasyon kaydı — bir kademenin BİR KEZ tetiklendiğinin kanıtı.
+///
+/// Tekil kısıt bilinçlidir: aynı kaynak için aynı kademe iki kez
+/// tetiklenmez. Motor her koşuda yeniden bildirim yazsaydı, gecikmiş tek
+/// bir bulgu her tikte bir bildirim üretir ve kullanıcı bildirim
+/// ekranını kapatırdı — eskalasyon o gün ölürdü.
+model EskalasyonKaydi {
+  id               String   @id @default(cuid())
+  kuralId          String
+  kaynakTipi       String
+  kaynakId         String
+  kademe           Int
+  /// Bildirim yazıldıysa kimliği; hedef bulunamadıysa `null` ve `sebep`
+  /// bunu YAZAR — sessiz düşürme yok.
+  bildirimId       String?
+  hedefKullaniciId String?
+  /// Hedef bulunamadıysa NEDEN bulunamadı. "Kimseye haber verilemedi"
+  /// bir başarı değildir ve ekranda görünür.
+  sebep            String?
+  zaman            DateTime @default(now())
+
+  kural EskalasyonKurali @relation(fields: [kuralId], references: [id], onDelete: Cascade)
+
+  @@unique([kaynakTipi, kaynakId, kademe])
+  @@index([zaman])
+}
+
+// ------------------------------------------------ UY-41 · resmî kaynak
+
+/// Resmî mevzuat kaynağı (UY-41).
+///
+/// Bu kayıt bir ADRES TUTABİLİR ama ürün HİÇBİR ADRESLE GELMEZ: `adres`
+/// alanı tohumda boştur ve kurum doldurana kadar boş kalır. Sağlayıcı
+/// `lib/uyum/mevzuatKaynagi.ts` kütüğünde BAĞLI DEĞİL yazar; ürün hiçbir
+/// resmî siteye kendiliğinden bağlanmaz.
+///
+/// Kayıt bağlantıdan ÖNCE de işe yarar: hangi regülasyonun hangi resmî
+/// kaynaktan izleneceği bir kurum kararıdır ve yazılı olması gerekir.
+model RegulasyonKaynagi {
+  id                String    @id @default(cuid())
+  regulasyonId      String
+  ad                String
+  /// Kurumun vereceği adres. ÜRÜNLE GELMEZ.
+  adres             String?
+  /// `elle` | `saglayici`. Bugün daima `elle`: bağlı sağlayıcı yok.
+  izlemeTuru        String    @default("elle")
+  /// Kaç günde bir bakılması bekleniyor (kurum kararı).
+  kontrolAraligiGun Int       @default(90)
+  /// EN SON ne zaman bakıldı. `null` = HİÇ BAKILMADI (sıfır değil).
+  sonKontrol        DateTime?
+  sonKontrolEdenId  String?
+  /// Son bakışta ne bulundu; boşsa "bakıldı ama not düşülmedi".
+  sonNot            String?
+  aktif             Boolean   @default(true)
+  olusturuldu       DateTime  @default(now())
+
+  regulasyon     Regulasyon @relation(fields: [regulasyonId], references: [id], onDelete: Cascade)
+  sonKontrolEden Kullanici? @relation("KaynakKontrolEden", fields: [sonKontrolEdenId], references: [id])
+
+  @@unique([regulasyonId, ad])
+}
+
+// ------------------------------- UY-43 · değerlendirme içe aktarımı
+
+/// Değerlendirme içe aktarımı (UY-43).
+///
+/// `IceAktarim` MADDE metnini aktarır; bu model DEĞERLENDİRME SONUCUNU
+/// (hangi santralde hangi madde ne durumda) aktarır. İkisi ayrı
+/// modellerdir çünkü ayrı şeylerdir: biri regülasyonun kendisi, öteki
+/// kurumun o regülasyona verdiği cevap.
+///
+/// KURU KOŞU ZORUNLUDUR: `durum` daima `kuru_kosu` ile başlar. Bir
+/// değerlendirme aktarımı yüzlerce kontrolün durumunu bir anda
+/// değiştirebilir; önizlemesiz uygulamak, denetim kararlarını körlemesine
+/// toptan yazmak olurdu.
+model DegerlendirmeAktarimi {
+  id           String    @id @default(cuid())
+  regulasyonId String
+  /// Hangi santrale aktarılıyor. Kapsam kapısı bu alandan sorulur.
+  tesisId      String
+  surecId      String?
+  kaynakAdi    String
+  /// `kuru_kosu` | `uygulandi` | `reddedildi`. `uygulandi` yalnız bir
+  /// kuru koşudan SONRA yazılabilir.
+  durum        String    @default("kuru_kosu")
+  okunan       Int       @default(0)
+  eslesen      Int       @default(0)
+  /// Kod eşleşmedi ya da doğrulama düştü — UYGULANMAZ ve sayılır.
+  elenen       Int       @default(0)
+  /// Uygulandığında gerçekten DEĞİŞEN satır sayısı. Eşleşen değişen
+  /// demek değildir: aynı durumu yeniden yazmak bir değişiklik değildir.
+  degisen      Int       @default(0)
+  /// Satır satır önizleme ve eleme sebepleri.
+  raporJson    String?
+  /// KÖKEN: bu uygulamanın hangi kuru koşudan geldiği. Uygulama kaydı
+  /// kendi kuru koşusuna bağlıdır ve bağsız uygulama YAZILAMAZ.
+  kuruKosuId   String?
+  yukleyenId   String?
+  uygulandi    DateTime?
+  olusturuldu  DateTime  @default(now())
+
+  regulasyon  Regulasyon              @relation(fields: [regulasyonId], references: [id], onDelete: Cascade)
+  tesis       Tesis                   @relation(fields: [tesisId], references: [id], onDelete: Cascade)
+  surec       UyumSureci?             @relation(fields: [surecId], references: [id])
+  kuruKosu    DegerlendirmeAktarimi?  @relation("AktarimKokeni", fields: [kuruKosuId], references: [id])
+  uygulamalar DegerlendirmeAktarimi[] @relation("AktarimKokeni")
+  yukleyen    Kullanici?              @relation("AktarimYukleyen", fields: [yukleyenId], references: [id])
+
+  @@index([regulasyonId, tesisId, durum])
+}
+
+// ---------------------------------------- UY-56 · saklama ve legal hold
+
+/// Saklama politikası (UY-56).
+///
+/// Bir uyum platformunda saklama iki yönlü bir yükümlülüktür: kayıt
+/// SÜRESİNDEN ÖNCE silinemez (denetim kanıtı yok olur) ve süresi dolan
+/// kayıt SONSUZA KADAR da tutulamaz (kişisel veri, sözleşme yükümlülüğü).
+/// Ürün bugüne kadar yalnız birincisini yapıyordu: hiçbir şey silinmiyordu
+/// ve bu bir politika değil, politikasızlıktı.
+///
+/// ── ÜRÜN KENDİ KENDİNE SİLMEZ ─────────────────────────────────────────
+/// Politika bir ÖNERİ üretir; imha kararı insanındır ve `İmhaKarari`
+/// kaydıyla verilir. Motorun bir denetim kaydını kendiliğinden silmesi,
+/// bu ürünün baştan beri reddettiği şeydir.
+model SaklamaPolitikasi {
+  id            String   @id @default(cuid())
+  /// Hangi kayıt ailesi: `Bulgu` | `Kanit` | `AktiviteKaydi` | `IsKosusu` ...
+  varlikTipi    String   @unique
+  /// Kaç gün saklanacak. `null` = SÜRESİZ (bilinçli karar, ölçülmemiş değil).
+  saklamaGun    Int?
+  /// Süre dolduktan sonra ne yapılır: `oner` | `arsivle` | `imha_oner`.
+  /// `sil` YOKTUR: ürün kendiliğinden silmez.
+  sureSonu      String   @default("oner")
+  /// Bu politikanın dayanağı — hangi mevzuat, hangi kurum kararı.
+  dayanak       String
+  aktif         Boolean  @default(true)
+  olusturuldu   DateTime @default(now())
+  guncelleyenId String?
+
+  guncelleyen Kullanici?   @relation("SaklamaGuncelleyen", fields: [guncelleyenId], references: [id])
+  kararlar    ImhaKarari[]
+}
+
+/// Legal hold (UY-56) — hukuki muhafaza.
+///
+/// Bir dava, soruşturma ya da denetim sürerken ilgili kayıtlar saklama
+/// süresi dolsa bile İMHA EDİLEMEZ. Hold aktifken imha kararı yazılamaz;
+/// sunucu bunu reddeder.
+///
+/// Kapsam BİLEREK geniş tutuldu (varlık tipi + isteğe bağlı kimlik):
+/// bir soruşturma çoğu zaman "şu santralin şu dönemdeki bütün bulguları"
+/// gibi bir kümeyi kapsar ve tek tek kayıt işaretlemek pratikte
+/// uygulanmaz.
+model LegalHold {
+  id                String    @id @default(cuid())
+  ad                String
+  /// Hangi kayıt ailesi tutuluyor.
+  varlikTipi        String
+  /// Tek bir kayda mı bağlı; `null` = o ailenin TAMAMI.
+  varlikId          String?
+  /// Santral kapsamı; `null` = bütün santraller.
+  tesisId           String?
+  gerekce           String
+  /// `aktif` | `kaldirildi`. Kayıt SİLİNMEZ: bir hold'un ne zaman
+  /// konduğu ve ne zaman kalktığı denetimin sorusudur.
+  durum             String    @default("aktif")
+  koyanId           String
+  konuldu           DateTime  @default(now())
+  kaldiranId        String?
+  kaldirildi        DateTime?
+  kaldirmaGerekcesi String?
+
+  koyan    Kullanici  @relation("HoldKoyan", fields: [koyanId], references: [id])
+  kaldiran Kullanici? @relation("HoldKaldiran", fields: [kaldiranId], references: [id])
+  tesis    Tesis?     @relation(fields: [tesisId], references: [id])
+
+  @@index([varlikTipi, durum])
+}
+
+/// İmha kararı (UY-56) — KONTROLLÜ imha.
+///
+/// Kararın kendisi bir kayıttır ve SİLİNMEZ: neyin, ne zaman, kimin
+/// kararıyla ve hangi politikaya dayanarak imha edildiği denetimin
+/// sorusudur. İmha edilen kaydın İÇERİĞİ gitse de bu satır kalır.
+///
+/// `uygulandi` alanı boşken karar yalnız bir ÖNERİDİR: dört göz gerektirir
+/// ve legal hold varken hiç yazılamaz.
+model ImhaKarari {
+  id             String    @id @default(cuid())
+  politikaId     String
+  varlikTipi     String
+  /// Kaç kayıt kapsanıyor — karar anındaki ÖLÇÜLMÜŞ sayı.
+  kapsananSayi   Int
+  /// Kararın kapsadığı en eski/en yeni kayıt tarihi — denetçinin
+  /// "hangi dönem imha edildi" sorusunun cevabı.
+  donemBaslangic DateTime?
+  donemBitis     DateTime?
+  gerekce        String
+  /// `oneri` | `onaylandi` | `uygulandi` | `reddedildi`.
+  durum          String    @default("oneri")
+  onerenId       String
+  /// DÖRT GÖZ: öneren ile onaylayan aynı kişi olamaz.
+  onaylayanId    String?
+  onaylandi      DateTime?
+  uygulandi      DateTime?
+  /// Uygulama anında gerçekten silinen kayıt sayısı; öneri anındaki
+  /// `kapsananSayi` ile aynı OLMAYABİLİR (arada hold konmuş olabilir).
+  silinenSayi    Int?
+  olusturuldu    DateTime  @default(now())
+
+  politika  SaklamaPolitikasi @relation(fields: [politikaId], references: [id])
+  oneren    Kullanici         @relation("ImhaOneren", fields: [onerenId], references: [id])
+  onaylayan Kullanici?        @relation("ImhaOnaylayan", fields: [onaylayanId], references: [id])
+
+  @@index([durum, varlikTipi])
+}
+
+// ------------------------------------------- UY-57 · dış denetçi erişimi
+
+/// Dış denetçi erişimi (UY-57).
+///
+/// `dis_denetci` rolü `lib/erisim.ts` içinde VARDI ve yalnız bir rol
+/// adıydı: süresi, kapsamı, kim davet etti, ne zaman biter, hangi
+/// kayıtlara baktı — hiçbiri kayıtlı değildi. Bir dış denetçiye kalıcı
+/// hesap açmak, denetim bittikten sonra da açık kalan bir kapı bırakır.
+///
+/// ── SÜRE ZORUNLUDUR ───────────────────────────────────────────────────
+/// `bitis` alanı `null` olamaz: süresiz dış denetçi erişimi, denetim
+/// bittikten sonra kimsenin kapatmayı hatırlamadığı bir hesaptır.
+model DenetciErisimi {
+  id             String    @id @default(cuid())
+  kullaniciId    String
+  /// Hangi denetime bağlı — erişimin SEBEBİ.
+  denetimId      String?
+  /// Kurum dışı denetçinin bağlı olduğu firma; kayıt için, kimlik için değil.
+  firma          String
+  baslangic      DateTime  @default(now())
+  /// ZORUNLU: süresiz dış erişim yoktur.
+  bitis          DateTime
+  /// `aktif` | `suresi_doldu` | `iptal`. Kayıt SİLİNMEZ.
+  durum          String    @default("aktif")
+  davetEdenId    String
+  iptalEdenId    String?
+  iptalZamani    DateTime?
+  iptalGerekcesi String?
+  /// Erişimin son kullanıldığı an; `null` = HİÇ KULLANILMADI.
+  sonErisim      DateTime?
+  olusturuldu    DateTime  @default(now())
+
+  kullanici Kullanici        @relation("DenetciHesabi", fields: [kullaniciId], references: [id], onDelete: Cascade)
+  denetim   Denetim?         @relation(fields: [denetimId], references: [id])
+  davetEden Kullanici        @relation("DenetciDavetEden", fields: [davetEdenId], references: [id])
+  iptalEden Kullanici?       @relation("DenetciIptalEden", fields: [iptalEdenId], references: [id])
+  kapsamlar DenetciKapsami[]
+
+  @@index([durum, bitis])
+}
+
+/// Dış denetçinin santral kapsamı (UY-57).
+///
+/// Bir dış denetçi kurumun TAMAMINI görmez: hangi santrallerin
+/// denetimine geldiyse yalnız onları görür. Kapsam boşsa erişim
+/// hiçbir santrali kapsamaz — "boş kapsam = her şey" varsayımı, bir
+/// dış denetçiye kurumun tamamını açmak olurdu.
+model DenetciKapsami {
+  id       String @id @default(cuid())
+  erisimId String
+  tesisId  String
+
+  erisim DenetciErisimi @relation(fields: [erisimId], references: [id], onDelete: Cascade)
+  tesis  Tesis          @relation(fields: [tesisId], references: [id], onDelete: Cascade)
+
+  @@unique([erisimId, tesisId])
+}
+
+// ---------------------------------------------------- uygulanabilirlik
+
+/// Uygulanabilirlik kuralı (applicability_rules): santral profilinden
+/// kapsam türetir. Koşul JSON olarak saklanır, motor değerlendirir.
+model UygulanabilirlikKurali {
+  id           String   @id @default(cuid())
+  regulasyonId String
+  ad           String
+  kosulJson    String // {"herhangi":[{"alan":"kuruluGucMw","islec":">=","deger":100},...]}
+  surum        Int      @default(1)
+  aktif        Boolean  @default(true)
+  aciklama     String?
+  olusturuldu  DateTime @default(now())
+
+  regulasyon Regulasyon               @relation(fields: [regulasyonId], references: [id])
+  kararlar   UygulanabilirlikKarari[]
+}
+
+/// Uygulanabilirlik kararı (applicability_decisions): tesis × regülasyon
+/// kapsam kararı — gerekçesi ve kural sürümüyle. Override onaylıdır.
+model UygulanabilirlikKarari {
+  id                  String   @id @default(cuid())
+  tesisId             String
+  regulasyonId        String
+  uygulanabilir       Boolean
+  gerekce             String
+  kuralId             String?
+  kuralSurumu         Int?
+  hesaplandi          DateTime @default(now())
+  elIleDegistirildi   Boolean  @default(false)
+  degistirmeGerekcesi String?
+  onaylayanId         String?
+
+  tesis      Tesis                   @relation(fields: [tesisId], references: [id])
+  regulasyon Regulasyon              @relation(fields: [regulasyonId], references: [id])
+  kural      UygulanabilirlikKurali? @relation(fields: [kuralId], references: [id])
+  onaylayan  Kullanici?              @relation("KararOnaylayan", fields: [onaylayanId], references: [id])
+
+  @@unique([tesisId, regulasyonId])
+}
+
+/// İstisna / waiver (§50): süreli, onaylı, gerekçeli.
+model Istisna {
+  id          String   @id @default(cuid())
+  maddeId     String
+  tesisId     String
+  gerekce     String
+  baslangic   DateTime @default(now())
+  bitis       DateTime
+  onaylayanId String?
+  durum       String   @default("onay_bekliyor") // onay_bekliyor | aktif | suresi_doldu | reddedildi
+
+  madde     Madde      @relation(fields: [maddeId], references: [id])
+  tesis     Tesis      @relation(fields: [tesisId], references: [id])
+  onaylayan Kullanici? @relation("IstisnaOnaylayan", fields: [onaylayanId], references: [id])
+}
+
+// -------------------------------------- assessment tarihçesi ve snapshot
+
+/// Değerlendirme tarihçesi (assessment_history): MaddeDurumu değişimleri
+/// SİLİNMEZ — eski değerlendirme burada yaşar.
+model DegerlendirmeTarihcesi {
+  id            String   @id @default(cuid())
+  maddeDurumuId String
+  eskiDurum     String
+  yeniDurum     String
+  eskiGuven     String?
+  yeniGuven     String?
+  gerekce       String?
+  aktorId       String?
+  zaman         DateTime @default(now())
+
+  maddeDurumu MaddeDurumu @relation(fields: [maddeDurumuId], references: [id])
+  aktor       Kullanici?  @relation(fields: [aktorId], references: [id])
+
+  @@index([maddeDurumuId, zaman])
+}
+
+/// Uyum anlık görüntüsü (§44): dönemsel karşılaştırma için.
+model UyumAnlik {
+  id       String   @id @default(cuid())
+  surecId  String
+  tesisId  String?
+  tarih    DateTime @default(now())
+  ozetJson String // durum sayıları, skorlar, güven dağılımı
+
+  surec UyumSureci @relation(fields: [surecId], references: [id])
+  tesis Tesis?     @relation(fields: [tesisId], references: [id])
+
+  @@index([surecId, tarih])
+}
+
+// ------------------------------------------------------------------ risk
+
+/// Risk kaydı (§13): etki boyutları ayrı; kabul süreli ve onaylı.
+model Risk {
+  id               String    @id @default(cuid())
+  kod              String    @unique
+  baslik           String
+  aciklama         String
+  kaynak           String? // bulgu | zafiyet | eol | denetim | manuel | veri_kalitesi
+  tesisId          String?
+  sistemId         String?
+  bulguId          String?
+  tehdit           String?
+  zayiflik         String?
+  olasilik         Int? // 1-5, null = bilinmiyor
+  etkiUretim       Int?
+  etkiEmniyet      Int?
+  etkiRegulasyon   Int?
+  etkiFinans       Int?
+  etkiSiber        Int?
+  etkiItibar       Int?
+  etkiCevre        Int?
+  etkiVeri         Int?
+  dogalRisk        Int? // inherent
+  mevcutKontroller String?
+  artikRisk        Int? // residual
+  sahipId          String?
+  islemTipi        String? // azalt | kacin | devret | kabul
+  islemTarihi      DateTime?
+  kabulBitis       DateTime? // risk kabulü SÜRELİ
+  onaylayanId      String?
+  durum            String    @default("acik") // acik | islemde | kabul_edildi | kapali
+  silindi          DateTime?
+  olusturuldu      DateTime  @default(now())
+  guncellendi      DateTime  @updatedAt
+
+  tesis      Tesis?            @relation(fields: [tesisId], references: [id])
+  sistem     SistemServis?     @relation(fields: [sistemId], references: [id])
+  bulgu      Bulgu?            @relation(fields: [bulguId], references: [id])
+  sahip      Kullanici?        @relation("RiskSahibi", fields: [sahipId], references: [id])
+  onaylayan  Kullanici?        @relation("RiskOnaylayan", fields: [onaylayanId], references: [id])
+  varliklar  RiskVarlik[]
+  kontroller RiskKontrol[]
+  projeler   ProjeBaglantisi[]
+  olaylar    OlayRisk[]
+
+  @@index([durum, tesisId])
+}
+
+model RiskVarlik {
+  id       String @id @default(cuid())
+  riskId   String
+  varlikId String
+
+  risk   Risk   @relation(fields: [riskId], references: [id], onDelete: Cascade)
+  varlik Varlik @relation(fields: [varlikId], references: [id], onDelete: Cascade)
+
+  @@unique([riskId, varlikId])
+}
+
+model RiskKontrol {
+  id      String @id @default(cuid())
+  riskId  String
+  maddeId String
+
+  risk  Risk  @relation(fields: [riskId], references: [id], onDelete: Cascade)
+  madde Madde @relation(fields: [maddeId], references: [id], onDelete: Cascade)
+
+  @@unique([riskId, maddeId])
+}
+
+// --------------------------------------------------------------- denetim
+
+/// Denetim (§14): Plan → Kapsam → Kanıt talebi → Saha → Bulgu → Yanıt →
+/// Düzeltici aksiyon → Doğrulama → Kapanış.
+model Denetim {
+  id            String    @id @default(cuid())
+  kod           String    @unique
+  ad            String
+  tip           String // ic_denetim | dis_denetim | oz_degerlendirme | regulasyon_denetimi
+  denetleyen    String? // kurum/firma adı
+  surecId       String?
+  durum         String    @default("plan") // plan | kapsam | kanit_talebi | saha | bulgu | yanit | aksiyon | dogrulama | kapanis
+  planBaslangic DateTime?
+  planBitis     DateTime?
+  silindi       DateTime?
+  olusturuldu   DateTime  @default(now())
+
+  surec             UyumSureci?      @relation(fields: [surecId], references: [id])
+  kapsamlar         DenetimKapsami[]
+  talepler          KanitTalebi[]
+  bulgular          Bulgu[]
+  denetciErisimleri DenetciErisimi[]
+}
+
+model DenetimKapsami {
+  id        String  @id @default(cuid())
+  denetimId String
+  tesisId   String?
+  maddeId   String?
+
+  denetim Denetim @relation(fields: [denetimId], references: [id], onDelete: Cascade)
+  tesis   Tesis?  @relation(fields: [tesisId], references: [id])
+  madde   Madde?  @relation(fields: [maddeId], references: [id])
+}
+
+/// Kanıt talebi (audit_requests): denetimin istediği kanıtlar.
+model KanitTalebi {
+  id        String    @id @default(cuid())
+  denetimId String
+  baslik    String
+  aciklama  String?
+  sorumluId String?
+  sonTarih  DateTime?
+  durum     String    @default("acik") // acik | saglandi | reddedildi
+  kanitId   String?
+
+  denetim Denetim    @relation(fields: [denetimId], references: [id], onDelete: Cascade)
+  sorumlu Kullanici? @relation("TalepSorumlusu", fields: [sorumluId], references: [id])
+  kanit   Kanit?     @relation(fields: [kanitId], references: [id])
+}
+
+// ------------------------------------------------------- yönetişim belgesi
+
+/// Yönetişim belgesi kütüğü (C22 politika · C23 doküman kütüğü).
+///
+/// KANITTAN FARKI: `Kanit` bir ANIN ispatıdır ("14 Mart'ta bu ayar böyleydi");
+/// `Dokuman` YAŞAYAN bir yönetişim kaydıdır — sahibi, onaylayanı, yürürlük
+/// tarihi, gözden geçirme periyodu vardır ve sürümlenir. Bir politika PDF'i
+/// kanıt olarak sunulduğunda `Kanit.dokumanId` ile buraya bağlanır; böylece
+/// "hangi belgenin hangi sürümü kanıt olarak verilmiş" izlenebilir.
+///
+/// DOSYA BURADA DURMAZ: platform bir doküman yönetim sistemi değildir.
+/// `disKaynak` kurumun DYS/portal yolunu ya da URL'sini taşır; ürün belgenin
+/// KÜTÜĞÜNÜ tutar, içeriğini değil. Bu bilinçli bir sınırdır ve ekranda
+/// açıkça yazılır — "yüklenmiş gibi" gösterip boş bağ vermekten iyidir.
+model Dokuman {
+  id     String @id @default(cuid())
+  kod    String @unique // POL-BG-001
+  baslik String
+  tur    String // politika | prosedur | talimat | plan | standart | form
+  durum  String @default("taslak") // taslak | incelemede | yururlukte | askida | yururlukten_kalkti
+  /// Belge sürümü METİNDİR (1.0, 2.1): kurumlar ondalık sürüm kullanır.
+  surum  String @default("1.0")
+
+  sahipId     String? // belgeyi güncel tutan
+  onaylayanId String? // yürürlüğe alan
+
+  yururlukTarihi       DateTime?
+  /// Gözden geçirme periyodu (ay). null = periyot tanımlanmamış; bu
+  /// "gerek yok" DEĞİL "bilinmiyor" demektir ve ekranda öyle yazılır.
+  gozdenGecirmeAy      Int?
+  sonGozdenGecirme     DateTime?
+  /// Türetilmiş ama SAKLANIR: "gözden geçirmesi geçmiş belgeler" sorgusu
+  /// listeyi belleğe çekmeden çalışsın diye.
+  sonrakiGozdenGecirme DateTime?
+
+  /// Kurumun doküman sisteminde nerede durduğu (yol ya da URL). Ürün bu
+  /// adrese İSTEK ATMAZ; yalnız kaydeder ve gösterir.
+  disKaynak    String?
+  kaynakSistem String?
+  gizlilik     String  @default("kurumsal") // acik | kurumsal | gizli | ot_hassas
+  aciklama     String?
+
+  silindi     DateTime?
+  olusturuldu DateTime  @default(now())
+  guncellendi DateTime  @updatedAt
+
+  sahip     Kullanici? @relation("DokumanSahibi", fields: [sahipId], references: [id])
+  onaylayan Kullanici? @relation("DokumanOnaylayan", fields: [onaylayanId], references: [id])
+
+  maddeBaglantilari DokumanMadde[]
+  tesisBaglantilari DokumanTesis[]
+  kanitlar          Kanit[]
+
+  @@index([durum, sonrakiGozdenGecirme])
+}
+
+/// Belge ↔ Madde: belge hangi KONTROL GEREĞİNİ karşılıyor.
+/// Bağ madde durumuna (santral bazlı) değil MADDEYE kurulur: kurumsal bir
+/// politika gereğin kendisini karşılar, santral santral tekrarlanmaz.
+model DokumanMadde {
+  id        String   @id @default(cuid())
+  dokumanId String
+  maddeId   String
+  eklendi   DateTime @default(now())
+
+  dokuman Dokuman @relation(fields: [dokumanId], references: [id], onDelete: Cascade)
+  madde   Madde   @relation(fields: [maddeId], references: [id], onDelete: Cascade)
+
+  @@unique([dokumanId, maddeId])
+  @@index([maddeId])
+}
+
+/// Belge ↔ Tesis: yalnız BELİRLİ santralleri bağlayan belgeler için.
+/// Bağ yoksa belge KURUMSALDIR (tüm portföy) — boş liste "hiçbir santral"
+/// değil "ayrım yok" demektir; ekran bunu sözcükle yazar.
+model DokumanTesis {
+  id        String @id @default(cuid())
+  dokumanId String
+  tesisId   String
+
+  dokuman Dokuman @relation(fields: [dokumanId], references: [id], onDelete: Cascade)
+  tesis   Tesis   @relation(fields: [tesisId], references: [id], onDelete: Cascade)
+
+  @@unique([dokumanId, tesisId])
+}
+
+// ------------------------------------------------------------------ CMDB
+
+/// Varlık türü — panelden tanımlanır (fiziksel sunucu, sanal sunucu,
+/// uygulama, PLC, HMI, SCADA sunucusu, DCS, EWS, ağ cihazı, servis hesabı...)
+model VarlikTuru {
+  id    String  @id @default(cuid())
+  kod   String  @unique
+  ad    String
+  sinif String  @default("BT") // BT | OT | BT_OT_KOPRU | ORTAK_ALTYAPI | FIZIKSEL_EMNIYET
+  aktif Boolean @default(true)
+
+  varliklar         Varlik[]
+  firmwareTemelleri FirmwareTemeli[]
+
+  // FAZ G ters bağları
+  envanterSayimlari EnvanterSayimi[]
+  yedekParcalari    YedekParca[]
+}
+
+/// Varlık (assets, §7.2) — CMDB çekirdeği.
+model Varlik {
+  id                   String    @id @default(cuid())
+  etiket               String    @unique // asset_tag
+  ad                   String
+  turId                String
+  tesisId              String?
+  uniteId              String?
+  sistemId             String?
+  hostname             String?
+  seriNo               String?
+  uretici              String?
+  model                String?
+  sahipId              String?
+  emanetciId           String? // custodian
+  kritiklik            String    @default("bilinmiyor") // dusuk | orta | yuksek | kritik | bilinmiyor
+  emniyetEtkisi        String? // safety_impact
+  uretimEtkisi         String?
+  gizlilik             Int? // C-I-A 1-5
+  butunluk             Int?
+  erisilebilirlik      Int?
+  ipAdresi             String?
+  /// OT-03 · IPv6 adresi AYRI sütundur. `ipAdresi` içine yazılsaydı hem
+  /// `lib/alan/ag.ts` ailesi (v4 mü v6 mı) her okumada yeniden tahmin
+  /// etmek zorunda kalırdı hem de "IPv6 ölçülmedi" ile "IPv6 yok" ayırt
+  /// edilemezdi. null = ölçülmedi.
+  ipv6Adresi           String?
+  macAdresi            String?
+  isletimSistemi       String?
+  /// OT-03 · İşletim sistemi sürümü/derlemesi (ör. "22H2 · 19045.4291").
+  /// `isletimSistemi` ürün adıdır; yama kararı derlemeye bakar.
+  isletimSistemiSurumu String?
+  firmware             String?
+  /// OT-03 · Firmware derleme/yapı damgası. Üretici aynı sürüm etiketiyle
+  /// farklı yapılar dağıtabilir; taban karşılaştırması sürüme, kanıt
+  /// zinciri yapıya bakar.
+  firmwareYapisi       String?
+  /// OT-03 · Donanım revizyonu (ör. "Rev. C"). Aynı model farklı
+  /// revizyonlarda farklı firmware kabul eder.
+  donanimRevizyonu     String?
+  surum                String?
+  kurulumTarihi        DateTime?
+  garantiBitis         DateTime?
+  /// OT-20 · Garantiyi VEREN. Garanti bitişi bir tarih, garantiyi kimin
+  /// verdiği bir sözleşme sorusudur; ikisi ayrı alanlardır.
+  garantiSaglayici     String?
+  destekBitis          DateTime? // support_end
+  /// OT-20 · Bakım sözleşmesinin bitişi. `destekBitis` üreticinin ürün
+  /// desteği, bu ise kurumun bakım anlaşmasıdır — biri bitip öteki
+  /// sürebilir.
+  bakimBitis           DateTime?
+  /// OT-20 · Son ve planlanan bakım. null = KAYIT YOK, "bakım yapılmadı"
+  /// demek değil.
+  sonBakim             DateTime?
+  sonrakiBakim         DateTime?
+  eolTarihi            DateTime?
+  eosTarihi            DateTime?
+  yamaDurumu           String    @default("bilinmiyor") // guncel | eksik | yamasiz | bilinmiyor
+  edrDurumu            String    @default("bilinmiyor") // var | yok | bilinmiyor
+  yedekDurumu          String    @default("bilinmiyor")
+  izlemeDurumu         String    @default("bilinmiyor")
+  logKaynagi           String    @default("bilinmiyor")
+  kimlikDogrulama      String?
+  internetMaruziyeti   String    @default("bilinmiyor") // yok | sinirli | var | bilinmiyor
+  uzaktanErisim        Boolean?
+  bolgeId              String? // network zone
+  /// OT-11 · Adresleme segmenti (VLAN + CIDR). Bölgeden AYRIDIR: bir
+  /// bölge birden çok segment taşır. null = segment bilinmiyor.
+  segmentId            String?
+  /// OT-09 · Sahip EKİBİ. Kişi sahipliği (`sahipId`) yerine geçmez, onu
+  /// tamamlar: kişi ayrıldığında varlık öksüz kalmasın.
+  ekipId               String?
+  rafOda               String?
+  tedarikciId          String?
+  sozlesmeId           String?
+  yasamDongusu         String    @default("aktif") // planlandi | aktif | bakim | emekli | imha
+  silindi              DateTime?
+  olusturuldu          DateTime  @default(now())
+  guncellendi          DateTime  @updatedAt
+
+  tur             VarlikTuru           @relation(fields: [turId], references: [id])
+  tesis           Tesis?               @relation(fields: [tesisId], references: [id])
+  unite           UretimUnitesi?       @relation("UniteVarliklari", fields: [uniteId], references: [id])
+  sistem          SistemServis?        @relation(fields: [sistemId], references: [id])
+  sahip           Kullanici?           @relation("VarlikSahibi", fields: [sahipId], references: [id])
+  emanetci        Kullanici?           @relation("VarlikEmanetcisi", fields: [emanetciId], references: [id])
+  bolge           AgBolgesi?           @relation(fields: [bolgeId], references: [id])
+  segment         AgSegmenti?          @relation(fields: [segmentId], references: [id])
+  ekip            Ekip?                @relation("VarlikEkibi", fields: [ekipId], references: [id])
+  atamaTalepleri  VarlikAtamaTalebi[]
+  durusGozlemleri VarlikDurusGozlemi[]
+  tedarikci       Tedarikci?           @relation(fields: [tedarikciId], references: [id])
+  sozlesme        Sozlesme?            @relation(fields: [sozlesmeId], references: [id])
+
+  kaynakIliskiler       VarlikIliskisi[]         @relation("IliskiKaynak")
+  hedefIliskiler        VarlikIliskisi[]         @relation("IliskiHedef")
+  zafiyetler            VarlikZafiyeti[]
+  riskler               RiskVarlik[]
+  kanitlar              KanitVarlik[]
+  hesaplar              ErisimAtamasi[]
+  yazilimlar            VarlikYazilimi[]
+  sertifikalar          Sertifika[]
+  projeBaglantilari     ProjeBaglantisi[]
+  kesifler              KesifKaydi[]
+  konfigYedekleri       KonfigurasyonYedegi[]
+  erisimOturumlari      TedarikciErisimOturumu[]
+  olaylar               OlayVarlik[]
+  yamaKayitlari         YamaKaydi[]
+  firmwareUyumu         FirmwareUyumu?
+  zafiyetKorelasyonlari ZafiyetKorelasyonu[]
+  sbomBelgeleri         SbomBelgesi[]
+  guvenlikKapsamlari    GuvenlikKapsami[]
+  adimBaglari           AdimVarligi[]
+  etkiDegerlendirmesi   EtkiDegerlendirmesi?
+  konfigTemeli          KonfigTemeli?
+  konfigSapmalari       KonfigSapmasi[]
+
+  // FAZ G ters bağları
+  sayimSatirlari    SayimSatiri[]
+  yedekParcalari    YedekParcaVarlik[]
+  medyaKullanimlari MedyaKullanimi[]
+
+  @@index([tesisId, kritiklik])
+  @@index([eosTarihi])
+}
+
+/// Varlık ilişkisi: depends_on | runs_on | connects_to | hosts | backs_up
+model VarlikIliskisi {
+  id       String @id @default(cuid())
+  kaynakId String
+  hedefId  String
+  tip      String
+
+  kaynak Varlik @relation("IliskiKaynak", fields: [kaynakId], references: [id], onDelete: Cascade)
+  hedef  Varlik @relation("IliskiHedef", fields: [hedefId], references: [id], onDelete: Cascade)
+
+  @@unique([kaynakId, hedefId, tip])
+}
+
+// ---------------------------------------------------------- ağ topolojisi
+
+model AgBolgesi {
+  id               String  @id @default(cuid())
+  tesisId          String?
+  kod              String  @unique
+  ad               String
+  tip              String  @default("bt") // bt | ot | dmz | ot_dmz | kurumsal | internet
+  guvenlikSeviyesi Int? // Purdue/IEC62443 seviyesi
+
+  tesis          Tesis?       @relation(fields: [tesisId], references: [id])
+  varliklar      Varlik[]
+  segmentler     AgSegmenti[]
+  kaynakGecitler AgGeciti[]   @relation("GecitKaynak")
+  hedefGecitler  AgGeciti[]   @relation("GecitHedef")
+
+  // FAZ G ters bağları
+  envanterSayimlari EnvanterSayimi[]
+}
+
+/// Zone-to-zone geçit (conduit): hangi bölge hangi bölgeye, hangi kontrolle.
+model AgGeciti {
+  id             String    @id @default(cuid())
+  kaynakBolgeId  String
+  hedefBolgeId   String
+  kontrolVarligi String? // firewall/diode varlık etiketi
+  protokoller    String?
+  onaylandi      Boolean   @default(false)
+  /// Geçidin conduit kuralına göre en son ne zaman doğrulandığı (O12).
+  /// null = hiç doğrulanmadı; bu SIFIR değil BİLİNMEYEN olarak gösterilir.
+  sonDogrulama   DateTime?
+  aciklama       String?
+
+  kaynakBolge AgBolgesi @relation("GecitKaynak", fields: [kaynakBolgeId], references: [id])
+  hedefBolge  AgBolgesi @relation("GecitHedef", fields: [hedefBolgeId], references: [id])
+
+  @@unique([kaynakBolgeId, hedefBolgeId])
+}
+
+// ------------------------------------------------------- kimlik / erişim
+
+/// Kimlik hesabı: kişi hesabı VEYA servis hesabı.
+model KimlikHesabi {
+  id               String    @id @default(cuid())
+  hesapAdi         String    @unique
+  tip              String // kisi | servis | paylasimli | acil_durum
+  kullaniciId      String? // kişiyse platform kullanıcısı
+  tesisId          String?
+  kaynakSistem     String? // AD | Entra | yerel | SCADA...
+  /// null = ÖLÇÜLMEDİ. Dizin/PAM gözlemi ayrıcalık bilgisi taşımıyorsa
+  /// hesabı 'ayrıcalıklı değil' saymak, ayrıcalıklı hesap sayımını
+  /// olduğundan düşük gösterir — bilinmeyen sıfır değildir.
+  ayricalikli      Boolean?
+  /// OT-33 · Hesabın KAYNAK TİPİ — `tip` hesabın kime ait olduğunu
+  /// (kişi/servis/paylaşımlı), bu ise NEREDE yaşadığını söyler. İkisi
+  /// ayrı eksendir: bir dizin hesabı da servis hesabı olabilir.
+  /// yerel | dizin | uygulama | tedarikci | bilinmiyor
+  kaynakTipi       String    @default("bilinmiyor")
+  /// OT-33 · Çok faktörlü doğrulama. null = ÖLÇÜLMEDİ — "MFA yok"
+  /// demek DEĞİLDİR ve o ayrım ayrıcalıklı hesap raporunun tamamını
+  /// değiştirir.
+  mfaVar           Boolean?
+  /// OT-33 · Hesabın sona erme tarihi (geçici/tedarikçi hesapları).
+  /// null = süresiz ya da belirlenmemiş; ikisini ayırt etmek için
+  /// `sonaErmeBilinmiyor` değil, gerekçe alanı kullanılır.
+  sonaErme         DateTime?
+  /// OT-33 · Parola politikası referansı (kurum politika kodu).
+  parolaPolitikasi String?
+  parolaRotasyon   DateTime?
+  sonKullanim      DateTime?
+  durum            String    @default("aktif") // aktif | askida | kapatildi
+
+  kullanici        Kullanici?               @relation(fields: [kullaniciId], references: [id])
+  tesis            Tesis?                   @relation(fields: [tesisId], references: [id])
+  atamalar         ErisimAtamasi[]
+  erisimOturumlari TedarikciErisimOturumu[]
+}
+
+model ErisimAtamasi {
+  id            String    @id @default(cuid())
+  hesapId       String
+  varlikId      String?
+  kapsam        String? // sistem/uygulama adı
+  yetkiSeviyesi String? // okuma | yazma | yonetici
+  verilis       DateTime  @default(now())
+  bitis         DateTime?
+
+  hesap       KimlikHesabi       @relation(fields: [hesapId], references: [id], onDelete: Cascade)
+  varlik      Varlik?            @relation(fields: [varlikId], references: [id])
+  incelemeler ErisimIncelemesi[]
+
+  /// Bir hesabın aynı varlık+kapsam ikilisine İKİ atama satırı olamaz.
+  /// Idempotency bugüne kadar yalnız `findFirst` → yoksa `create` kalıbıyla
+  /// sağlanıyordu; eşzamanlı iki PAM aktarımı ikisi de "yok" görüp aynı
+  /// atamayı iki kez yazabiliyor ve ayrıcalıklı erişim sayısı olduğundan
+  /// yüksek çıkıyordu. Kısıt artık veritabanında.
+  ///
+  /// SQLite'ta NULL'lar tekil indekste BİRBİRİNDEN FARKLI sayılır; bu
+  /// kısıt tek başına varlıksız/kapsamsız satırları kapsamaz. Göç dosyası
+  /// bu yüzden aynı üçlü üzerinde COALESCE'li İKİNCİ bir tekil indeks daha
+  /// kurar (`ErisimAtamasi_tekil_coalesce_key`) — Prisma şeması ifade
+  /// indeksi tanımlayamadığı için o indeks yalnız göçte görünür.
+  @@unique([hesapId, varlikId, kapsam])
+}
+
+/// Erişim incelemesi (access review): dönemsel onay.
+model ErisimIncelemesi {
+  id          String   @id @default(cuid())
+  atamaId     String
+  inceleyenId String?
+  sonuc       String // onaylandi | kaldirilsin | degistirilsin
+  not         String?
+  zaman       DateTime @default(now())
+
+  atama     ErisimAtamasi @relation(fields: [atamaId], references: [id], onDelete: Cascade)
+  inceleyen Kullanici?    @relation("ErisimInceleyen", fields: [inceleyenId], references: [id])
+}
+
+// ------------------------------------------- tedarikçi / sözleşme / lisans
+
+model Tedarikci {
+  id                   String    @id @default(cuid())
+  ad                   String    @unique
+  tip                  String? // donanim | yazilim | ot_saglayici | hizmet | mssp
+  uzaktanErisimVar     Boolean   @default(false)
+  /// Uzaktan erişimin nasıl yapıldığı: vpn | jump_host | saticiya_ozel | yok
+  uzaktanErisimYontemi String?
+  /// Oturum kaydı alınıyor mu. null = bilinmiyor (izlenmiyor DEĞİL).
+  oturumKaydiVar       Boolean?
+  kritiklik            String    @default("bilinmiyor")
+  silindi              DateTime?
+
+  varliklar        Varlik[]
+  sozlesmeler      Sozlesme[]
+  erisimOturumlari TedarikciErisimOturumu[]
+
+  // FAZ G ters bağları
+  yedekParcalari YedekParca[]
+}
+
+model Sozlesme {
+  id                  String    @id @default(cuid())
+  tedarikciId         String
+  kod                 String    @unique
+  ad                  String
+  baslangic           DateTime?
+  bitis               DateTime?
+  slaOzeti            String?
+  guvenlikSartlariVar Boolean?
+  silindi             DateTime?
+
+  tedarikci Tedarikci @relation(fields: [tedarikciId], references: [id])
+  varliklar Varlik[]
+  lisanslar Lisans[]
+}
+
+model YazilimUrunu {
+  id        String    @id @default(cuid())
+  ad        String
+  uretici   String?
+  surum     String?
+  eolTarihi DateTime?
+  eosTarihi DateTime?
+
+  kurulumlar VarlikYazilimi[]
+  lisanslar  Lisans[]
+  sbomlar    SbomBelgesi[]
+
+  @@unique([ad, surum])
+}
+
+model VarlikYazilimi {
+  id        String @id @default(cuid())
+  varlikId  String
+  yazilimId String
+
+  varlik  Varlik       @relation(fields: [varlikId], references: [id], onDelete: Cascade)
+  yazilim YazilimUrunu @relation(fields: [yazilimId], references: [id], onDelete: Cascade)
+
+  @@unique([varlikId, yazilimId])
+}
+
+/// YAZILIM LİSANSI — HENÜZ HİÇBİR YERE BAĞLI DEĞİL.
+///
+/// Bu tabloyu okuyan ya da yazan tek satır kod YOKTUR ve tabloda kayıt da
+/// yoktur. Şemada durması bir yetenek iddiası DEĞİLDİR: lisans adedi,
+/// bitişi ve maliyeti hiçbir ekranda görünmez, hiçbir motor okumaz.
+///
+/// Neden silinmedi: `YazilimUrunu` ve `Sozlesme` zincirinin doğal devamı
+/// ve lisans verisi gerçek bir kurum sisteminden (yazılım varlık yönetimi)
+/// gelecek. Neden doldurulmadı: uydurma lisans kaydı üretmek, olmayan bir
+/// kabiliyeti var göstermek olurdu.
+///
+/// Durumu PRE_INTERNAL_INTEGRATION_READINESS.md'de
+/// REQUIRES_REAL_INTERNAL_SYSTEM altında kayıtlıdır.
+model Lisans {
+  id         String    @id @default(cuid())
+  yazilimId  String
+  sozlesmeId String?
+  adet       Int?
+  bitis      DateTime?
+  maliyet    Float?
+
+  yazilim  YazilimUrunu @relation(fields: [yazilimId], references: [id])
+  sozlesme Sozlesme?    @relation(fields: [sozlesmeId], references: [id])
+}
+
+model Sertifika {
+  id       String   @id @default(cuid())
+  ad       String
+  varlikId String?
+  veren    String?
+  bitis    DateTime
+  durum    String   @default("gecerli") // gecerli | yaklasiyor | suresi_doldu
+
+  varlik Varlik? @relation(fields: [varlikId], references: [id])
+}
+
+// ------------------------------------------------- zafiyet / yama / yedek
+
+model Zafiyet {
+  id             String   @id @default(cuid())
+  /// CVE-… gibi kaynak referansı. TEKİLDİR: aynı zafiyet iki farklı
+  /// tarayıcıdan gelse de tek satır olur. null = referanssız (elle
+  /// girilmiş) kayıt; SQLite NULL'ları ayrı saydığı için bunlar kısıtın
+  /// dışında kalır ve bu kasıtlıdır — referansı olmayan iki kaydın aynı
+  /// olduğunu iddia edemeyiz.
+  kaynakRef      String?  @unique
+  baslik         String
+  cvss           Float?
+  /// CVSS vektör dizesi (`AV:N/AC:L/...`). null = kaydedilmedi.
+  cvssVektor     String?
+  /// Vektörün sürümü (`2.0` | `3.0` | `3.1` | `4.0`). Sürüm bilinmeden
+  /// bir CVSS sayısı karşılaştırılamaz: 3.1'in 7.5'i ile 2.0'ın 7.5'i
+  /// aynı şey değildir.
+  cvssSurumu     String?
+  /// Common Platform Enumeration — korelasyonun ikinci yolu.
+  cpe            String?
+  /// bilinmiyor | kanit_yok | kanit_var | istismar_ediliyor
+  /// Varsayılan BİLİNMİYOR: istismar kanıtı yokluğu, istismar edilmediği
+  /// anlamına gelmez.
+  istismarDurumu String   @default("bilinmiyor")
+  /// CISA KEV kütüğünde mi? null = bakılmadı.
+  kevMi          Boolean?
+  /// EPSS olasılığı 0–1; null = ölçülmedi.
+  epss           Float?
+  aciklama       String?
+  kesfedildi     DateTime @default(now())
+
+  varliklar     VarlikZafiyeti[]
+  advisoryler   AdvisoryZafiyeti[]
+  korelasyonlar ZafiyetKorelasyonu[]
+}
+
+model VarlikZafiyeti {
+  id        String    @id @default(cuid())
+  zafiyetId String
+  varlikId  String
+  durum     String    @default("acik") // acik | yamalandi | azaltildi | kabul_edildi | yanlis_pozitif
+  sonTarih  DateTime?
+  kapanis   DateTime?
+
+  zafiyet Zafiyet @relation(fields: [zafiyetId], references: [id], onDelete: Cascade)
+  varlik  Varlik  @relation(fields: [varlikId], references: [id], onDelete: Cascade)
+
+  @@unique([zafiyetId, varlikId])
+  /// Varlıktan zafiyete gidiş (envanter ekranı). `varlikId` yukarıdaki tekil
+  /// indeksin İKİNCİ kolonu olduğu için SQLite tüm zafiyetleri dolaşıyordu
+  /// (EXPLAIN: ANY(zafiyetId) AND varlikId=?). ÖLÇÜLDÜ (PERFORMANS_TABANI §6):
+  /// 100.030 satırda 900 varlık için 21,4 ms → 6,6 ms.
+  @@index([varlikId])
+}
+
+model YedeklemePolitikasi {
+  id           String  @id @default(cuid())
+  ad           String
+  kapsam       String? // hangi sistem/varlık grubu
+  siklik       String? // gunluk | haftalik...
+  saklamaGun   Int?
+  hedef        String? // yerel | uzak | immutable
+  rpoSaat      Int? // kabul edilen veri kaybı penceresi
+  rtoSaat      Int? // hedeflenen kurtarma süresi
+  haricTutulan String? // kapsam dışı bırakılan kritik sistemler
+
+  kosular YedeklemeKosusu[]
+}
+
+model YedeklemeKosusu {
+  id         String   @id @default(cuid())
+  politikaId String
+  zaman      DateTime @default(now())
+  durum      String // basarili | basarisiz | kismi
+  boyutMb    Float?
+  hata       String?
+
+  politika       YedeklemePolitikasi @relation(fields: [politikaId], references: [id], onDelete: Cascade)
+  geriYuklemeler GeriYuklemeTesti[]
+}
+
+/// Restore testi: yedeğin geri dönebildiğinin KANITI.
+model GeriYuklemeTesti {
+  id     String   @id @default(cuid())
+  kosuId String
+  zaman  DateTime @default(now())
+  sonuc  String // basarili | basarisiz
+  sureDk Int?
+  not    String?
+
+  kosu YedeklemeKosusu @relation(fields: [kosuId], references: [id], onDelete: Cascade)
+}
+
+// --------------------------------------------------- değişiklik / olay
+
+/// Değişiklik (§19): OT değişikliklerinde emniyet kapıları zorunlu.
+model Degisiklik {
+  id                 String    @id @default(cuid())
+  kod                String    @unique
+  baslik             String
+  aciklama           String?
+  tesisId            String?
+  varlikEtiketi      String?
+  otMu               Boolean   @default(false)
+  saglayiciOnayi     Boolean? // OT ise zorunlu kapı
+  bakimPenceresi     String?
+  geriAlmaPlani      String?
+  onDegisiklikYedegi Boolean?
+  uretimEtkisi       String?
+  sonDogrulama       String? // post-change verification notu
+  durum              String    @default("talep") // talep | onay | planlandi | uygulandi | dogrulandi | geri_alindi
+  talepEdenId        String?
+  onaylayanId        String?
+  planTarihi         DateTime?
+  olusturuldu        DateTime  @default(now())
+
+  tesis     Tesis?           @relation(fields: [tesisId], references: [id])
+  talepEden Kullanici?       @relation("DegisiklikTalep", fields: [talepEdenId], references: [id])
+  onaylayan Kullanici?       @relation("DegisiklikOnay", fields: [onaylayanId], references: [id])
+  olaylar   OlayDegisiklik[]
+}
+
+model Olay {
+  id        String    @id @default(cuid())
+  kod       String    @unique
+  baslik    String
+  tip       String    @default("olay") // olay | problem
+  tesisId   String?
+  siddet    String    @default("orta") // dusuk | orta | yuksek | kritik
+  durum     String    @default("acik") // acik | mudahale | cozuldu | kapali
+  baslangic DateTime  @default(now())
+  cozum     DateTime?
+  ozet      String?
+
+  // ── etki zinciri genişletmesi ──────────────────────────────────────
+  /// siem | operator | tedarikci | denetim | musteri | otomatik_kural
+  tespitKaynagi       String?
+  /// Etki boyutları AYRI tutulur: bir olayın üretimi durdurmadan
+  /// regülasyon bildirimi doğurması olağandır. null = DEĞERLENDİRİLMEDİ.
+  uretimEtkisi        String? // yok | dusuk | orta | yuksek | uretim_durdu
+  emniyetEtkisi       String?
+  regulasyonEtkisi    String?
+  siberEtki           String?
+  kokNeden            String?
+  sinirlama           String? // containment
+  kurtarma            String? // recovery
+  ogrenilenler        String?
+  bildirimGerekli     Boolean?
+  bildirimTarihi      DateTime?
+  /// Motorun ÖNERİSİ. İnsan doğrulayana kadar etki alanlarına yazılmaz —
+  /// otomasyon önerir, karar vermez.
+  etkiOnerisiJson     String?
+  etkiDogrulayanId    String?
+  etkiDogrulamaZamani DateTime?
+
+  tesis          Tesis?     @relation(fields: [tesisId], references: [id])
+  etkiDogrulayan Kullanici? @relation("OlayEtkiDogrulayan", fields: [etkiDogrulayanId], references: [id])
+
+  varliklar     OlayVarlik[]
+  sistemler     OlaySistem[]
+  riskler       OlayRisk[]
+  bulgular      OlayBulgu[]
+  projeler      OlayProje[]
+  degisiklikler OlayDegisiklik[]
+}
+
+// ----------------------------------------------- proje/bütçe genişlemesi
+
+model Butce {
+  id         String @id @default(cuid())
+  projeId    String
+  yil        Int
+  tip        String // capex | opex
+  planlanan  Float
+  harcanan   Float  @default(0)
+  paraBirimi String @default("TRY")
+
+  proje Proje @relation(fields: [projeId], references: [id], onDelete: Cascade)
+
+  @@unique([projeId, yil, tip])
+}
+
+model KilometreTasi {
+  id          String    @id @default(cuid())
+  projeId     String
+  ad          String
+  hedef       DateTime
+  gerceklesen DateTime?
+  durum       String    @default("planlandi") // planlandi | tamamlandi | gecikti
+
+  proje Proje @relation(fields: [projeId], references: [id], onDelete: Cascade)
+}
+
+model ProjeBagimliligi {
+  id             String @id @default(cuid())
+  projeId        String
+  bagimliProjeId String
+
+  proje        Proje @relation("BagimliOlan", fields: [projeId], references: [id], onDelete: Cascade)
+  bagimliProje Proje @relation("BagimliOlunan", fields: [bagimliProjeId], references: [id], onDelete: Cascade)
+
+  @@unique([projeId, bagimliProjeId])
+}
+
+/// Proje adayı (§17): motorlar üretir, İNSAN ONAYI olmadan projeye dönmez.
+model ProjeAdayi {
+  id           String   @id @default(cuid())
+  baslik       String
+  gerekce      String // "neden bu proje" — otomatik üretilen gerekçe
+  kaynak       String // regulatory_gap | kritik_risk | tekrar_bulgu | eol_eos | yedek_dr | zafiyet_trendi | yeni_regulasyon
+  kaynakRef    String? // ilgili kaydın id'si
+  tesisId      String?
+  durum        String   @default("oneri") // oneri | onaylandi | reddedildi | projeye_donustu
+  projeId      String? // dönüştüyse
+  olusturuldu  DateTime @default(now())
+  kararVerenId String?
+
+  tesis      Tesis?     @relation(fields: [tesisId], references: [id])
+  proje      Proje?     @relation(fields: [projeId], references: [id])
+  kararVeren Kullanici? @relation("AdayKarari", fields: [kararVerenId], references: [id])
+}
+
+// ------------------------------------------ kanıt genişleme bağlantıları
+
+model KanitVarlik {
+  id       String @id @default(cuid())
+  kanitId  String
+  varlikId String
+
+  kanit  Kanit  @relation(fields: [kanitId], references: [id], onDelete: Cascade)
+  varlik Varlik @relation(fields: [varlikId], references: [id], onDelete: Cascade)
+
+  @@unique([kanitId, varlikId])
+}
+
+model KanitTesis {
+  id      String @id @default(cuid())
+  kanitId String
+  tesisId String
+
+  kanit Kanit @relation(fields: [kanitId], references: [id], onDelete: Cascade)
+  tesis Tesis @relation(fields: [tesisId], references: [id], onDelete: Cascade)
+
+  @@unique([kanitId, tesisId])
+}
+
+// --------------------------------------- oturum / görev / bildirim / onay
+
+model Oturum {
+  id          String   @id @default(cuid())
+  kullaniciId String
+  tokenHash   String   @unique
+  olusturuldu DateTime @default(now())
+  sonKullanim DateTime @default(now())
+  bitis       DateTime
+
+  kullanici Kullanici @relation(fields: [kullaniciId], references: [id], onDelete: Cascade)
+
+  @@index([kullaniciId])
+}
+
+/// Görev motoru (§52): sistem üretir (kanıt yenileme, süre yaklaşan,
+/// erişim incelemesi...), insan kapatır.
+model Gorev {
+  id               String    @id @default(cuid())
+  baslik           String
+  tip              String // kanit_yenileme | son_tarih | erisim_incelemesi | dogrulama | veri_kalitesi | manuel
+  kaynakTipi       String? // ilişkili varlık tipi
+  kaynakId         String?
+  sorumluId        String?
+  tesisId          String?
+  sonTarih         DateTime?
+  durum            String    @default("acik") // acik | yapiliyor | tamamlandi | iptal
+  otomatikUretildi Boolean   @default(false)
+  olusturuldu      DateTime  @default(now())
+  kapanis          DateTime?
+
+  sorumlu Kullanici? @relation("GorevSorumlusu", fields: [sorumluId], references: [id])
+  tesis   Tesis?     @relation(fields: [tesisId], references: [id])
+
+  // FAZ G ters bağları
+  gozdenGecirmeKararlari GozdenGecirmeKarari[]
+
+  @@index([durum, sonTarih])
+}
+
+model Bildirim {
+  id          String    @id @default(cuid())
+  kullaniciId String
+  baslik      String
+  govde       String?
+  tip         String    @default("bilgi") // bilgi | uyari | eskalasyon
+  kaynakTipi  String?
+  kaynakId    String?
+  okundu      DateTime?
+  olusturuldu DateTime  @default(now())
+
+  kullanici Kullanici @relation(fields: [kullaniciId], references: [id], onDelete: Cascade)
+
+  @@index([kullaniciId, okundu])
+}
+
+/// Onay talebi (§30): kritik işlemler onay akışından geçer.
+model OnayTalebi {
+  id          String    @id @default(cuid())
+  tip         String // bulgu_kapanis | risk_kabul | istisna | proje_aday | applicability_override | proje_kapanis
+  kaynakTipi  String
+  kaynakId    String
+  ozet        String
+  talepEdenId String?
+  onaylayanId String?
+  durum       String    @default("bekliyor") // bekliyor | onaylandi | reddedildi
+  gerekce     String?
+  olusturuldu DateTime  @default(now())
+  kapanis     DateTime?
+
+  talepEden Kullanici? @relation("OnayTalepEden", fields: [talepEdenId], references: [id])
+  onaylayan Kullanici? @relation("OnayVeren", fields: [onaylayanId], references: [id])
+
+  @@index([durum, tip])
+}
+
+// -------------------------------------- iş koşuları / veri kalitesi / sağlık
+
+/// Arka plan iş koşusu (§68): sessiz hata YASAK — her koşu iz bırakır.
+model IsKosusu {
+  id        String    @id @default(cuid())
+  isAdi     String // deadline_motoru | kanit_tazelik | gap_to_action | veri_kalitesi | applicability | surum_diff
+  baslangic DateTime  @default(now())
+  bitis     DateTime?
+  durum     String    @default("calisiyor") // calisiyor | basarili | basarisiz
+  sureMs    Int?
+  islenen   Int       @default(0)
+  uretilen  Int       @default(0)
+  hata      String?
+  denemeNo  Int       @default(1)
+
+  @@index([isAdi, baslangic])
+}
+
+model EntegrasyonKosusu {
+  id           String    @id @default(cuid())
+  kaynak       String // AD | EDR | vuln_scanner | backup | manual_import
+  baslangic    DateTime  @default(now())
+  bitis        DateTime?
+  durum        String    @default("calisiyor")
+  kayitSayisi  Int       @default(0)
+  guvenEtiketi String    @default("manuel") // otomatik | manuel | dogrulanmis
+  hata         String?
+  /// Hata OLMAYAN açıklama: hangi kimlik eksik, kaç kayıt neden reddedildi,
+  /// kaynak neden yok. `hata` alanı yalnız gerçek başarısızlık taşır;
+  /// ikisini karıştırmak sağlık ekranını yanlış renklendiriyordu.
+  ayrinti      String?
+
+  // ── connector çatısı genişletmesi ──────────────────────────────────
+  connectorId String?
+  /// manuel | zamanlanmis | api
+  tetikleyen  String  @default("manuel")
+  /// Sayaçlar ayrı tutulur: "alınan" ile "kabul edilen" aynı şey değildir
+  /// ve reddedilen kayıt sessizce yok sayılmaz.
+  alinan      Int     @default(0)
+  kabulEdilen Int     @default(0)
+  reddedilen  Int     @default(0)
+  yinelenen   Int     @default(0)
+  sureMs      Int?
+  denemeNo    Int     @default(1)
+  /// delta senkronizasyon imleci — koşu öncesi/sonrası
+  imlecOnce   String?
+  imlecSonra  String?
+
+  /// KURU KOŞU: kayıt yazılmaz, yalnız ne olacağı hesaplanır. Ayrı bir
+  /// alan olarak durur ki sağlık ekranı kuru koşuyu gerçek koşuyla
+  /// karıştırmasın — "son başarılı koşu" bir kuru koşuysa o entegrasyon
+  /// hâlâ hiç veri getirmemiştir.
+  kuruKosu           Boolean @default(false)
+  /// Kuru koşunun "olsaydı ne olurdu" sayaçları (JSON). Gerçek koşuda null.
+  kuruOzetJson       String?
+  /// Hatanın PARMAK İZİ: aynı hata tekrar mı ediyor, ucuzca anlaşılsın.
+  /// Mesajın kendisi değişken (zaman damgası, id) taşıyabilir; parmak izi
+  /// sınıf + normalize edilmiş metinden türetilir.
+  hataOzeti          String?
+  /// gecici | kalici — ağ/zaman aşımı gibi GEÇİCİ hatalar ile
+  /// yapılandırma/yetki gibi KALICI hatalar ayrı raporlanır; ikisini
+  /// karıştırmak "tekrar dene" düğmesini anlamsız yapar.
+  hataSinifi         String?
+  /// Bu koşuyu tetikleyen dış istek/zincir kimliği — uçtan uca izleme.
+  korelasyonId       String?
+  /// Koşunun kullandığı eşleme profili sürümü (varsa).
+  eslemeProfilSurumu Int?
+
+  connector     Connector?        @relation(fields: [connectorId], references: [id])
+  reddedilenler ReddedilenKayit[]
+
+  @@index([connectorId, baslangic])
+}
+
+model VeriKalitesiBulgusu {
+  id          String    @id @default(cuid())
+  kural       String // sahipsiz_varlik | kritikligi_bilinmeyen | bayat_kayit | eksik_profil | envanteri_bos_tesis
+  kaynakTipi  String
+  kaynakId    String
+  aciklama    String
+  durum       String    @default("acik") // acik | cozuldu | yok_sayildi
+  olusturuldu DateTime  @default(now())
+  kapanis     DateTime?
+
+  @@index([kural, durum])
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// ENTEGRASYON VE OTOMASYON KATMANI
+//
+// Tasarım ilkeleri:
+//  · Otomasyon ÖNERİR, karar vermez: detect → correlate → propose → approve.
+//  · Sır veritabanında tutulmaz; Connector yalnız bir referans taşır.
+//  · Bilinmeyen ≠ sıfır: ölçülmemiş güven null'dır, 0 değil.
+//  · Kaynağı bilinmeyen veri "otomatik" sayılmaz; kökeni yoksa manueldir.
+// ═══════════════════════════════════════════════════════════════════════
+
+/// Dış sistem bağlayıcısı. Kimlik bilgisi BURADA DURMAZ: `sirReferansi`
+/// yalnız sırra giden adresi taşır (env:ANAHTAR, dosya:/run/secrets/x#alan).
+model Connector {
+  id               String  @id @default(cuid())
+  kod              String  @unique
+  ad               String
+  /// ad_entra | vuln_scanner | edr | siem | backup | network_firewall |
+  /// ot_discovery | manual_import
+  tip              String
+  /// taslak | etkin | duraklatildi | hatali | kimlik_bekleniyor
+  /// kimlik_bekleniyor: yapılandırma tam ama dış sistem kimlik bilgisi yok.
+  /// Bu bir HATA DEĞİLDİR — bekleyen bir kurulum adımıdır ve sağlık
+  /// ekranında kırmızı değil, bekliyor olarak gösterilir.
+  durum            String  @default("taslak")
+  kaynakSistem     String
+  /// none | api_key | basic | oauth2_client_credentials | certificate
+  kimlikTipi       String  @default("none")
+  /// bağlantı ayarları — SIR İÇERMEZ (host, port, taban URL, filtre…)
+  yapilandirmaJson String?
+  sirReferansi     String?
+  /// dakika; null = yalnız elle tetiklenir
+  pollAralikDk     Int?
+
+  /// Hangi ortamın sistemine bakıyor: gelistirme | test | uretim.
+  /// Bir connector'ın hangi ortama baktığı bir GÜVENLİK bilgisidir —
+  /// üretim OT ağına bakan bir kaydı test sanıp etkinleştirmek en kolay
+  /// yapılan hatadır; ekran bunu ayrı gösterir.
+  ortam               String  @default("gelistirme")
+  /// tam | delta — delta imleç kullanır, tam her koşuda hepsini çeker.
+  senkronKipi         String  @default("delta")
+  /// En fazla kaç deneme; null = çekirdek varsayılanı.
+  maksDeneme          Int?
+  /// Geri çekilme taban süresi (ms); null = çekirdek varsayılanı.
+  geriCekilmeMs       Int?
+  /// Ardışık kaç başarısızlıktan sonra connector otomatik duraklatılır.
+  /// null = duraklatma yok. Devre kesici burada YALNIZ SAYILIR; kararı
+  /// çekirdek verir ve durum 'hatali' olur — sessizce koşmaya devam
+  /// etmek, ölü bir entegrasyonu canlı göstermek olurdu.
+  ardisikHataSiniri   Int?
+  /// Şu ana kadarki ardışık başarısızlık sayısı (başarıda sıfırlanır).
+  ardisikHata         Int     @default(0)
+  /// Bu connector'ın YAZABİLECEĞİ santraller. Boş = kapsam sınırı yok.
+  /// Kapsam connector düzeyinde de tutulur, çünkü bir OT keşif ürünü
+  /// yalnız kendi sahasını görür; kaydın beyan ettiği santrale güvenmek
+  /// yanlış yapılandırılmış bir kaynağın başka sahaya yazmasına izin verir.
+  kapsamTesisleriJson String?
+  /// Etkin eşleme profili — null ise adaptörün gömülü eşlemesi kullanılır.
+  eslemeProfilId      String?
+
+  sonBasariliKosu DateTime?
+  sonHata         String?
+  /// Son hatanın parmak izi — aynı hata tekrar ediyor mu, ucuzca anlaşılsın.
+  sonHataOzeti    String?
+  etkin           Boolean   @default(false)
+  /// delta senkronizasyon imleci — adaptör yorumlar
+  imlec           String?
+  silindi         DateTime?
+  olusturuldu     DateTime  @default(now())
+  guncellendi     DateTime  @updatedAt
+
+  kosular         EntegrasyonKosusu[]
+  kesifler        KesifKaydi[]
+  eslemeProfil    EslemeProfili?       @relation(fields: [eslemeProfilId], references: [id])
+  reddedilenler   ReddedilenKayit[]
+  durusGozlemleri VarlikDurusGozlemi[] @relation("DurusGozlemConnector")
+
+  @@index([tip, etkin])
+}
+
+/// Otomatik gelen kaydın kökeni. Polimorfiktir: on beş tabloyu genişletmek
+/// yerine tek yerde tutulur. Kaynağı gerçekten bilinmeyen kayıt için satır
+/// AÇILMAZ — kökeni olmayan kayıt manueldir.
+/// Eşleme profili — kaynak alanından hedef alana çevirinin SÜRÜMLÜ tanımı.
+///
+/// Neden sürümlü: gerçek sistem bağlandığında en çok vakit alan iş eşleme
+/// olacak ve eşleme DEĞİŞECEK. Eski içe aktarımların hangi kuralla
+/// yorumlandığı kaybolursa bir denetimde "bu alan neden böyle" sorusunun
+/// yanıtı olmaz. Yeni sürüm ESKİSİNİ EZMEZ: yeni satır açılır, eski satır
+/// arşive geçer ve VeriKokeni.eslemeProfilSurumu hangi sürümle
+/// yorumlandığını taşır.
+model EslemeProfili {
+  id            String   @id @default(cuid())
+  kod           String
+  ad            String
+  /// hangi connector tipi için — profil TİPE aittir, tek bir connector'a
+  /// değil; böylece aynı profil birden çok connector'da kullanılabilir
+  connectorTipi String
+  surum         Int      @default(1)
+  /// taslak | etkin | arsiv — yalnız 'etkin' olan koşuda kullanılır
+  durum         String   @default("taslak")
+  /// kural listesi (JSON): [{ kaynakAlan, hedefAlan, donusum, zorunlu,
+  /// varsayilan, enumEsleme, guvenKurali }]
+  kurallarJson  String
+  aciklama      String?
+  olusturanId   String?
+  olusturuldu   DateTime @default(now())
+
+  olusturan    Kullanici?  @relation("EslemeOlusturan", fields: [olusturanId], references: [id])
+  connectorlar Connector[]
+
+  @@unique([kod, surum])
+  @@index([connectorTipi, durum])
+}
+
+/// Reddedilen kayıt (dead-letter / inceleme kuyruğu).
+///
+/// Bir kaydın reddedilmesi bir SAYIDAN ibaret olamaz: hangi kayıt, neden,
+/// hangi aşamada, ham hâli neydi — bunlar olmadan kimse düzeltemez. Sayaç
+/// EntegrasyonKosusu.reddedilen alanında duruyordu ama kaydın kendisi
+/// kayboluyordu; "3 kayıt reddedildi" bir kusur raporu değil, bir kusurun
+/// ilanıdır.
+model ReddedilenKayit {
+  id             String    @id @default(cuid())
+  kosuId         String?
+  connectorId    String?
+  kaynakSistem   String
+  /// kaynak kaydın kimliği — biliniyorsa; bilinmiyorsa null (öyle geldi)
+  kaynakKayitId  String?
+  /// sema | normalize | esleme | dogrulama | eslesme | kapsam | yazma
+  ///
+  /// `esleme` ile `eslesme` AYRI aşamalardır ve karıştırılmaları kaydın
+  /// hangi adımda düştüğünü yanlış gösterir:
+  ///   esleme  = eşleme profili kaynağın alanlarını hedef alanlara çevirir
+  ///             (ör. tanınmayan enum değeri).
+  ///   eslesme = normalleşmiş kayıt CMDB'deki bir varlıkla eşleştirilir
+  ///             (ör. hiçbir anahtar tutmadı).
+  asama          String
+  sebep          String
+  /// ham kayıt — SIR İÇERMEZ (çekirdek sırları maskeleyerek yazar)
+  hamJson        String?
+  /// acik | incelendi | duzeltildi | yok_sayildi
+  durum          String    @default("acik")
+  inceleyenId    String?
+  incelemeNotu   String?
+  incelemeZamani DateTime?
+  olusturuldu    DateTime  @default(now())
+
+  kosu      EntegrasyonKosusu? @relation(fields: [kosuId], references: [id], onDelete: Cascade)
+  connector Connector?         @relation(fields: [connectorId], references: [id])
+  inceleyen Kullanici?         @relation("RedInceleyen", fields: [inceleyenId], references: [id])
+
+  @@index([durum, olusturuldu])
+  @@index([connectorId, asama])
+}
+
+model VeriKokeni {
+  id              String    @id @default(cuid())
+  varlikTipi      String // Varlik | Zafiyet | YedeklemeKosusu | ErisimAtamasi …
+  varlikId        String
+  /// manuel | otomatik | dogrulanmis
+  kokenTipi       String
+  kaynakSistem    String
+  /// Kaynak sistemdeki birincil anahtar. ZORUNLU: nullable olsaydı SQLite
+  /// tekillik kısıtı iş görmezdi (NULL'lar birbirinden farklı sayılır) ve
+  /// yeniden senkronizasyon her koşuda yeni satır açardı. Kaynağın kararlı
+  /// bir kimliği yoksa adaptör kimlik alanlarından türetilmiş bir özet üretir.
+  kaynakKayitId   String
+  connectorId     String?
+  kosuId          String?
+  toplanma        DateTime?
+  aktarim         DateTime  @default(now())
+  /// 0–1; null = ÖLÇÜLMEDİ (sıfır güven değil)
+  guven           Float?
+  /// dogrulanmadi | dogrulandi | reddedildi
+  dogrulamaDurumu String    @default("dogrulanmadi")
+  dogrulayanId    String?
+  dogrulamaZamani DateTime?
+
+  /// Kaydın hangi eşleme profili SÜRÜMÜYLE yorumlandığı. Eşleme değişince
+  /// eski kayıtların hangi kuralla üretildiği kaybolmamalı — yoksa bir
+  /// denetimde "bu alan neden böyle" sorusunun yanıtı olmaz.
+  eslemeProfilSurumu Int?
+  /// Ham kaydın özeti (SHA-256, onaltılık). Aynı kaynak kaydı içerik
+  /// değişmeden yeniden geldiğinde güncelleme yapılmasına gerek yok;
+  /// ayrıca "kaynak ne gönderdi" sorusu kanıtlanabilir kalır.
+  /// null = özet hesaplanmadı (eski kayıt ya da hesaplanamayan biçim).
+  kayitOzeti         String?
+
+  dogrulayan Kullanici? @relation("KokenDogrulayan", fields: [dogrulayanId], references: [id])
+
+  @@unique([varlikTipi, varlikId, kaynakSistem, kaynakKayitId])
+  @@index([varlikTipi, varlikId])
+  @@index([kokenTipi, dogrulamaDurumu])
+}
+
+/// Keşfedilen ham kayıt. CMDB'ye DOĞRUDAN yazılmaz:
+/// kesfedildi → normalize → eslesti → inceleme_bekliyor → onaylandi → Varlik
+model KesifKaydi {
+  id                String    @id @default(cuid())
+  connectorId       String?
+  kosuId            String?
+  /// firewall | switch_arp | dhcp | snmp | siem | historian | scada_export |
+  /// vendor_export | csv
+  kaynak            String
+  kaynakKayitId     String
+  /// Kaydın BEYAN EDİLEN santrali: gözlemdeki tesis kodundan ya da
+  /// connector yapılandırmasından çözülür. Henüz bir varlığa eşlenmemiş
+  /// kaydın kapsamı buradan bilinir; null = santral BİLİNMİYOR (hiçbir
+  /// santrale ait değil demek DEĞİL).
+  tesisId           String?
+  /// ham gözlem — dokunulmaz, denetim izinin girdisi
+  hamJson           String
+  normalJson        String?
+  /// kesfedildi | normalize | eslesti | inceleme_bekliyor | onaylandi |
+  /// reddedildi | yinelenen
+  durum             String    @default("kesfedildi")
+  eslesenVarlikId   String?
+  /// seri | mac | hostname | ip | etiket | uretici_model
+  eslesmeAnahtari   String?
+  /// 0–1; null = hesaplanamadı
+  guvenSkoru        Float?
+  /// OT-16 · Kaydın YETKİ durumu — `durum` iş akışının nerede olduğunu,
+  /// bu ise cihazın envanterde OLMASI GEREKİP GEREKMEDİĞİNİ söyler.
+  /// İkisi ayrıdır: "eşleşti" bir cihazın yetkili olduğunu kanıtlamaz.
+  /// karar_verilmedi | bilinen | yetkisiz | gerekceyle_yoksayildi
+  yetkiDurumu       String    @default("karar_verilmedi")
+  /// Yetkisizlik / yok sayma kararının gerekçesi. Gerekçesiz yok sayma,
+  /// kapatılmış bir kusurdan ayırt edilemezdi.
+  yetkiGerekcesi    String?
+  yetkiKararVerenId String?
+  yetkiKararZamani  DateTime?
+  /// OT-17 · Gözlemden okunan MAC ön eki (OUI). Üretici eşlemesi ayrı
+  /// tablodadır ve BOŞ gelebilir — o zaman üretici `null`'dır.
+  ouiOnEki          String?
+  /// OT-17 · Gözlenen OT protokolü (modbus, dnp3, s7comm …). Port/protokol
+  /// imzasından türetilir; tanınmayan trafik `null` bırakılır.
+  otProtokolu       String?
+  inceleyenId       String?
+  incelemeZamani    DateTime?
+  incelemeNotu      String?
+  ilkGorulme        DateTime  @default(now())
+  sonGorulme        DateTime  @default(now())
+
+  connector       Connector? @relation(fields: [connectorId], references: [id])
+  tesis           Tesis?     @relation(fields: [tesisId], references: [id])
+  eslesenVarlik   Varlik?    @relation(fields: [eslesenVarlikId], references: [id])
+  inceleyen       Kullanici? @relation("KesifInceleyen", fields: [inceleyenId], references: [id])
+  yetkiKararVeren Kullanici? @relation("KesifYetkiKarari", fields: [yetkiKararVerenId], references: [id])
+
+  @@unique([kaynak, kaynakKayitId])
+  @@index([yetkiDurumu])
+  @@index([durum, sonGorulme])
+  @@index([tesisId, durum])
+  /// Keşif kuyruğu ekranı (app/(kabuk)/(operasyonel)/kesif/page.tsx) durum
+  /// filtresi OLMADAN `sonGorulme desc` sıralar; yukarıdaki [durum, sonGorulme]
+  /// indeksi bu sorguya yaramaz (ilk kolonu durum). ÖLÇÜLDÜ
+  /// (PERFORMANS_TABANI §6): 100.000 satırda tam tarama + geçici B-ağacı
+  /// sıralaması 58,5 ms → 1,9 ms.
+  @@index([sonGorulme])
+  /// Varlığın SON keşif kaydı (envanter ekranı): eşleşen varlık üzerinden
+  /// gidiş bugün tam tarama yapıyor. ÖLÇÜLDÜ (PERFORMANS_TABANI §6):
+  /// 45,1 ms → 3,9 ms.
+  @@index([eslesenVarlikId, sonGorulme])
+}
+
+/// Topoloji anlık görüntüsü. `temelMi` işaretli anlık BASELINE'dır ve
+/// sapma buna göre hesaplanır.
+model TopolojiAnlik {
+  id          String    @id @default(cuid())
+  tesisId     String?
+  kaynak      String
+  alindi      DateTime  @default(now())
+  /// gözlem kümesinin özeti — iki anlık aynı mı, ucuzca anlaşılsın
+  ozetHash    String
+  temelMi     Boolean   @default(false)
+  onaylayanId String?
+  onayZamani  DateTime?
+  not         String?
+
+  tesis     Tesis?            @relation(fields: [tesisId], references: [id])
+  onaylayan Kullanici?        @relation("AnlikOnaylayan", fields: [onaylayanId], references: [id])
+  gozlemler TopolojiGozlemi[]
+  sapmalar  TopolojiSapmasi[]
+
+  @@index([tesisId, alindi])
+}
+
+model TopolojiGozlemi {
+  id          String @id @default(cuid())
+  anlikId     String
+  /// dugum | gecit | baglanti
+  tip         String
+  /// kimlik anahtarı: dugum→etiket/ip, gecit→"kaynakBolge>hedefBolge"
+  anahtar     String
+  ozellikJson String
+
+  anlik TopolojiAnlik @relation(fields: [anlikId], references: [id], onDelete: Cascade)
+
+  @@index([anlikId, tip])
+}
+
+/// Sapma OTOMATİK DEĞİŞİKLİK YAPMAZ: gozlendi → inceleme → kabul/ret.
+/// Kabul edilirse yeni temel yazılır; reddedilirse temel korunur.
+model TopolojiSapmasi {
+  id              String    @id @default(cuid())
+  tesisId         String?
+  anlikId         String
+  /// yeni_dugum | kayip_dugum | ip_degisti | bolge_degisti | yeni_gecit |
+  /// silinen_gecit | beklenmeyen_protokol | yol_degisti |
+  /// yeni_bt_ot_koprusu | yetkisiz_dogrudan_baglanti
+  tip             String
+  siddet          String    @default("orta") // dusuk | orta | yuksek | kritik
+  aciklama        String
+  oncekiJson      String?
+  sonrakiJson     String?
+  /// gozlendi | inceleme | kabul | ret
+  durum           String    @default("gozlendi")
+  kararVerenId    String?
+  kararZamani     DateTime?
+  kararGerekcesi  String?
+  /// kritik sapma risk/bulgu ADAYI üretir; kaydı insan açar
+  uretilenRiskId  String?
+  uretilenBulguId String?
+  olusturuldu     DateTime  @default(now())
+
+  anlik      TopolojiAnlik @relation(fields: [anlikId], references: [id], onDelete: Cascade)
+  kararVeren Kullanici?    @relation("SapmaKarari", fields: [kararVerenId], references: [id])
+
+  @@index([durum, siddet])
+}
+
+/// Varlık seviyesinde konfigürasyon yedeği. YedeklemePolitikasi santral
+/// seviyesindedir ve yerini almaz — bu onu tamamlar.
+model KonfigurasyonYedegi {
+  id              String    @id @default(cuid())
+  varlikId        String
+  kaynakSistem    String
+  /// Kaynak sistemdeki kaydın kimliği. Idempotency buna dayanır ve
+  /// kısıt VERİTABANINDA durur: köken tablosu üzerinden arama yapan
+  /// iki eşzamanlı içe aktarım aynı yedeği iki kez yazamasın.
+  kaynakKayitId   String
+  yedekZamani     DateTime
+  surum           String?
+  /// içerik özeti — konfigürasyon gerçekten değişmiş mi
+  icerikHash      String?
+  basarili        Boolean   @default(true)
+  /// yedeğin okunabilirliği doğrulandı mı (restore testinden farklıdır)
+  dogrulandi      Boolean   @default(false)
+  dogrulamaZamani DateTime?
+  /// GeriYuklemeTesti kaydına yumuşak referans
+  restoreTestId   String?
+  depolamaKonumu  String?
+  saklamaGun      Int?
+  /// varlığın bilinen son ÇALIŞIR konfigürasyonu
+  sonBilinenIyi   Boolean   @default(false)
+  hata            String?
+
+  varlik         Varlik          @relation(fields: [varlikId], references: [id], onDelete: Cascade)
+  temelOlduklari KonfigTemeli[]
+  sapmalar       KonfigSapmasi[]
+
+  @@unique([kaynakSistem, kaynakKayitId])
+  @@index([varlikId, yedekZamani])
+}
+
+/// Platform PAM/VPN ürünü DEĞİLDİR: oturumu yönetmez, metadata ve uyum
+/// sonucunu gösterir. Kayıt ancak gerçek bir kaynaktan gelirse yazılır.
+model TedarikciErisimOturumu {
+  id             String    @id @default(cuid())
+  tedarikciId    String
+  hesapId        String?
+  tesisId        String?
+  varlikId       String?
+  sistemId       String?
+  baslangic      DateTime
+  bitis          DateTime?
+  kaynakSistem   String
+  /// Kaynak sistemdeki oturum kimliği — idempotency anahtarı (yukarıdaki
+  /// KonfigurasyonYedegi notuyla aynı gerekçe).
+  kaynakKayitId  String
+  /// null = BİLİNMİYOR (onaysız değil)
+  onayli         Boolean?
+  mfaVar         Boolean?
+  izlendi        Boolean?
+  talepReferansi String?
+  kayitReferansi String?
+  /// suruyor | tamamlandi | kesildi
+  durum          String    @default("tamamlandi")
+
+  tedarikci Tedarikci     @relation(fields: [tedarikciId], references: [id])
+  hesap     KimlikHesabi? @relation(fields: [hesapId], references: [id])
+  tesis     Tesis?        @relation(fields: [tesisId], references: [id])
+  varlik    Varlik?       @relation(fields: [varlikId], references: [id])
+  sistem    SistemServis? @relation(fields: [sistemId], references: [id])
+
+  @@unique([kaynakSistem, kaynakKayitId])
+  @@index([tedarikciId, baslangic])
+}
+
+// ── olay etki zinciri bağ tabloları ──────────────────────────────────
+
+model OlayVarlik {
+  id       String @id @default(cuid())
+  olayId   String
+  varlikId String
+  /// etkilenen | kaynak | telafi_edici
+  rol      String @default("etkilenen")
+
+  olay   Olay   @relation(fields: [olayId], references: [id], onDelete: Cascade)
+  varlik Varlik @relation(fields: [varlikId], references: [id], onDelete: Cascade)
+
+  @@unique([olayId, varlikId])
+}
+
+model OlaySistem {
+  id       String @id @default(cuid())
+  olayId   String
+  sistemId String
+  rol      String @default("etkilenen")
+
+  olay   Olay         @relation(fields: [olayId], references: [id], onDelete: Cascade)
+  sistem SistemServis @relation(fields: [sistemId], references: [id], onDelete: Cascade)
+
+  @@unique([olayId, sistemId])
+}
+
+model OlayRisk {
+  id     String @id @default(cuid())
+  olayId String
+  riskId String
+
+  olay Olay @relation(fields: [olayId], references: [id], onDelete: Cascade)
+  risk Risk @relation(fields: [riskId], references: [id], onDelete: Cascade)
+
+  @@unique([olayId, riskId])
+}
+
+model OlayBulgu {
+  id      String @id @default(cuid())
+  olayId  String
+  bulguId String
+
+  olay  Olay  @relation(fields: [olayId], references: [id], onDelete: Cascade)
+  bulgu Bulgu @relation(fields: [bulguId], references: [id], onDelete: Cascade)
+
+  @@unique([olayId, bulguId])
+}
+
+model OlayProje {
+  id      String @id @default(cuid())
+  olayId  String
+  projeId String
+
+  olay  Olay  @relation(fields: [olayId], references: [id], onDelete: Cascade)
+  proje Proje @relation(fields: [projeId], references: [id], onDelete: Cascade)
+
+  @@unique([olayId, projeId])
+}
+
+model OlayDegisiklik {
+  id           String @id @default(cuid())
+  olayId       String
+  degisiklikId String
+
+  olay       Olay       @relation(fields: [olayId], references: [id], onDelete: Cascade)
+  degisiklik Degisiklik @relation(fields: [degisiklikId], references: [id], onDelete: Cascade)
+
+  @@unique([olayId, degisiklikId])
+}
+
+// ── dış sistem API'si ────────────────────────────────────────────────
+
+/// Servis hesabı anahtarı. Token saklanmaz, yalnız SHA-256 özeti tutulur.
+/// Yetki anahtara bağlı KULLANICI üzerinden mevcut RBAC ile çözülür —
+/// paralel bir yetki sistemi kurulmaz.
+model ApiAnahtari {
+  id          String    @id @default(cuid())
+  ad          String
+  kullaniciId String
+  /// gösterim için ilk karakterler; tam token asla saklanmaz
+  onEk        String
+  tokenHash   String    @unique
+  sonKullanim DateTime?
+  bitis       DateTime?
+  iptalZamani DateTime?
+  /// UY-52 · ANAHTAR KAPSAMI. Boş liste = anahtar hiçbir uca erişemez.
+  /// `null` = ESKİ KAYIT: sahibinin bütün yetkilerini miras alır ve
+  /// ekran bunu bir kusur olarak gösterir. Yeni anahtar açılırken kapsam
+  /// ZORUNLUDUR: sahibinin tüm yetkisini taşıyan bir entegrasyon
+  /// anahtarı, salt okunur olması gereken bir bağlantıya yazma hakkı
+  /// verir ve bunu kimse fark etmez.
+  kapsamJson  String?
+  /// UY-52 · Yazma yasağı. `true` ise anahtar hiçbir yazma ucuna
+  /// erişemez — kapsam listesi yazma ucu içerse bile. İki katmanlı
+  /// savunma: kapsam listesi yanlış doldurulsa bile bayrak tutar.
+  saltOkunur  Boolean   @default(true)
+  olusturanId String?
+  olusturuldu DateTime  @default(now())
+
+  kullanici Kullanici   @relation("AnahtarSahibi", fields: [kullaniciId], references: [id], onDelete: Cascade)
+  olusturan Kullanici?  @relation("AnahtarOlusturan", fields: [olusturanId], references: [id])
+  istekler  ApiIstegi[]
+
+  @@index([kullaniciId])
+}
+
+/// İdempotency defteri ve API denetim izi. Aynı Idempotency-Key ile gelen
+/// ikinci istek işi TEKRAR ETMEZ, ilk yanıtı döner.
+model ApiIstegi {
+  id                  String   @id @default(cuid())
+  anahtarId           String?
+  yontem              String
+  yol                 String
+  idempotencyAnahtari String?
+  durumKodu           Int
+  yanitOzeti          String?
+  hataKodu            String?
+  sureMs              Int?
+  zaman               DateTime @default(now())
+
+  anahtar ApiAnahtari? @relation(fields: [anahtarId], references: [id], onDelete: Cascade)
+
+  @@unique([anahtarId, idempotencyAnahtari])
+  @@index([yol, zaman])
+  @@index([anahtarId, zaman])
+}
+
+/// Varlık toplu aktarımı. IceAktarim regülasyon maddesine bağlıdır
+/// (regulasyonId zorunlu) ve genel varlık aktarımı için kullanılamaz.
+model VarlikAktarimi {
+  id            String    @id @default(cuid())
+  dosyaAdi      String
+  kaynakTipi    String // csv | xlsx
+  yukleyenId    String?
+  /// eslesme | dogrulama_bekliyor | onaylandi | reddedildi | hata
+  durum         String    @default("eslesme")
+  /// kullanıcının kurduğu kolon eşlemesi: { "asset_tag": "etiket", … }
+  eslemeJson    String?
+  /// ham başlık satırı — eşleme ekranı bunu gösterir
+  basliklarJson String?
+  okunan        Int       @default(0)
+  gecerli       Int       @default(0)
+  hatali        Int       @default(0)
+  yinelenen     Int       @default(0)
+  eklenen       Int       @default(0)
+  guncellenen   Int       @default(0)
+  /// satır önizlemesi, hata listesi, yinelenen eşleşmeleri
+  raporJson     String?
+  onaylayanId   String?
+  onayZamani    DateTime?
+  olusturuldu   DateTime  @default(now())
+
+  yukleyen  Kullanici? @relation("AktarimYukleyen", fields: [yukleyenId], references: [id])
+  onaylayan Kullanici? @relation("AktarimOnaylayan", fields: [onaylayanId], references: [id])
+}
+
+/// Adlandırılmış iş kilidi — aynı işin iki süreçte birden koşmasını engeller.
+///
+/// Eskiden çakışma önleme "önce `calisiyor` satırı var mı diye bak, yoksa
+/// oluştur" biçimindeydi. Bu bir KONTROL-SONRA-KULLAN yarışıdır: iki süreç
+/// (ya da tek süreçte iki eşzamanlı tik) aynı anda "yok" görüp ikisi de
+/// koşuyu açabilir. Tek örnekli geliştirmede görünmez, iki örnekli
+/// dağıtımda her motor iki kez koşar ve bulguları çoğaltır.
+///
+/// Burada kilit TEK bir atomik ifadeyle alınır: ya süresi dolmuş satırı
+/// güncelleyerek devralırsın, ya birincil anahtar çakışmasına çarparsın.
+/// İkisi de kaybetmeyi güvenli kılar: kaybeden koşmaz.
+///
+/// `gecerlilik` bir KİRA'dır, sonsuz kilit değil: süreç ölürse kilit
+/// kendiliğinden serbest kalır. Süreci ölen bir işin kilidini elle
+/// temizlemek gerekseydi, ilk çökmede tüm otomasyon kalıcı olarak dururdu.
+model IsKilidi {
+  /// Kilit adı: motor için `motor:<ad>`, connector için `connector:<id>`.
+  ad         String   @id
+  /// Kilidi tutan çalışma örneğinin kimliği (süreç başına üretilir).
+  sahip      String
+  alindi     DateTime @default(now())
+  /// Kira bitişi. Bu anı geçmiş kilit devralınabilir.
+  gecerlilik DateTime
+
+  @@index([gecerlilik])
+}
+
+// ═══ Merkezi yönetim konsolu ═════════════════════════════════════════════
+// Yapılandırma anahtarları: kodda VARSAYILANI olan, konsoldan değeri
+// değiştirilebilen parametreler (eşikler, pencereler, künye). Anahtar
+// sözlüğü ve doğrulama şeması KODDADIR (lib/yapilandirma/tanimlar.ts);
+// burada yalnız geçerli değer saklanır. Kayıt yoksa kod varsayılanı geçer —
+// "bilinmiyor" ile "sıfır" karışmaz.
+model Yapilandirma {
+  anahtar       String   @id
+  degerJson     String
+  guncellendi   DateTime @updatedAt
+  guncelleyenId String?
+}
+
+// Değişiklik talebi: Kaydet → İncele → Onayla → Uygula. Onay gerektiren (B
+// sınıfı) hedeflerde değer doğrudan yazılmaz; talep dört-göz onayından geçer
+// ve uygulama adımı ayrıdır. once/sonra JSON farkı ve etki özeti talep
+// üzerinde saklanır; uygulama AktiviteKaydi'na da iz düşer.
+model DegisiklikTalebi {
+  id          String    @id @default(cuid())
+  hedefTipi   String // ayar | grup | tuzelKisi | uretimUnitesi | varlikTuru | agBolgesi | uygulanabilirlikKurali | tesisGorsel
+  hedefId     String?
+  hedefEtiket String
+  onceJson    String?
+  sonraJson   String
+  etkiJson    String?
+  gerekce     String
+  durum       String    @default("taslak") // taslak | incelemede | onaylandi | reddedildi | uygulandi | iptal
+  talepEdenId String
+  inceleyenId String?
+  onaylayanId String?
+  uygulayanId String?
+  redNedeni   String?
+  olusturuldu DateTime  @default(now())
+  incelendi   DateTime?
+  onaylandi   DateTime?
+  uygulandi   DateTime?
+
+  @@index([durum, hedefTipi])
+}
+
+/**
+ * ═══════════════════════════════════════════════════════════════════════
+ * VARLIK GÜVENLİK DURUŞU — OT-11 · OT-21 · OT-22 · OT-25 · OT-26 · OT-27
+ * Denetim (2026-09-03) bu altı maddenin TEK bir eksik yapı taşına
+ * dayandığını ölçtü: yapısal sürüm karşılaştırması ve ağ adresleme
+ * matematiği repoda hiç yoktu. İkisi de `lib/alan/surum.ts` ve
+ * `lib/alan/ag.ts` içinde saf mantık olarak kondu; aşağıdaki modeller
+ * o mantığın veri karşılığıdır.
+ * Üç kural bu bloğun tamamında geçerlidir ve tek tek uygulanmıştır:
+ * · BİLİNMEYEN ≠ YOK ≠ UYGULANAMAZ — üçü ayrı değerlerdir.
+ * · Sürüm karşılaştırması KARAR VERİLEMEDİ döndürebilir; o durumda
+ * kayıt "uyumlu" sayılmaz, `karar_verilemedi` olarak saklanır.
+ * · Her ölçüm kaynağını ve doğrulanma zamanını taşır; taşımayan ölçüm
+ * "bir kez yazılıp sonsuza kadar doğru sanılan" ölçümdür.
+ * ═══════════════════════════════════════════════════════════════════════
+ */
+
+/// OT-11 · Ağ segmenti — bir bölge birden çok subnet taşıyabilir.
+/// `AgBolgesi` güvenlik/Purdue katmanıdır; ADRESLEME buradadır. İkisini
+/// tek tabloda birleştirmek, "bir bölge = bir subnet" varsayımını şemaya
+/// gömmek olurdu ve OT ağlarında bu varsayım yanlıştır.
+model AgSegmenti {
+  id          String   @id @default(cuid())
+  bolgeId     String
+  kod         String   @unique
+  ad          String
+  /// 802.1Q VLAN kimliği; null = VLAN bilinmiyor (VLAN yok DEĞİL).
+  vlanId      Int?
+  /// CIDR gösterimi (`10.0.0.0/22`). `lib/alan/ag.ts` ile doğrulanır.
+  cidr        String
+  gatewayIp   String?
+  /// Bant dışı yönetim ağı mı? null = bilinmiyor.
+  yonetimAgi  Boolean?
+  aciklama    String?
+  olusturuldu DateTime @default(now())
+  guncellendi DateTime @updatedAt
+
+  bolge     AgBolgesi @relation(fields: [bolgeId], references: [id])
+  varliklar Varlik[]
+
+  @@unique([bolgeId, cidr])
+  @@index([vlanId])
+}
+
+/// OT-03 · OT-27 · Bir alanın bu varlık için UYGULANAMAZ olduğunun kaydı.
+/// "Bilinmiyor" ile "uygulanamaz" aynı şey değildir: OT cihazına EDR
+/// kurulamıyorsa `kapsanmayan` yazmak kalıcı kırmızı, `bilinmiyor` yazmak
+/// ölçülmemiş gösterir — ikisi de yanlıştır. Uygulanamazlık bir KARARDIR
+/// ve gerekçesiyle, kim verdiğiyle birlikte saklanır.
+model AlanUygulanabilirligi {
+  id         String   @id @default(cuid())
+  varlikTipi String
+  varlikId   String
+  /// Alan adı ya da kapsam tipi (`firmware`, `edr`, `macAdresi` …).
+  alan       String
+  gerekce    String
+  kaydedenId String
+  zaman      DateTime @default(now())
+
+  kaydeden Kullanici @relation("UygulanamazKaydeden", fields: [kaydedenId], references: [id])
+
+  @@unique([varlikTipi, varlikId, alan])
+  @@index([varlikTipi, varlikId])
+}
+
+/// OT-21 · Yama uyumu. "Yama eksik" ile "zafiyet var" AYRI kayıtlardır ve
+/// bu ayrım bilinçlidir: eksik bir yama istismar edilebilir bir açık
+/// olmayabilir, istismar edilen bir açığın yaması hiç çıkmamış olabilir.
+model YamaKaydi {
+  id                     String    @id @default(cuid())
+  varlikId               String
+  kaynakSistem           String
+  kaynakKayitId          String
+  /// Kurulu yama seviyesi (serbest biçim; `lib/alan/surum.ts` çözümler).
+  mevcutSeviye           String?
+  /// Gereken taban seviye. null = taban TANIMLANMADI (uyumlu demek değil).
+  temelSeviye            String?
+  yamaTarihi             DateTime?
+  /// Eksik yamanın kütük numarası (KB, bülten, advisory kimliği).
+  eksikYama              String?
+  /// kritik | yuksek | orta | dusuk | bilinmiyor
+  siddet                 String    @default("bilinmiyor")
+  /// null = ölçülmedi.
+  yenidenBaslatmaGerekli Boolean?
+  bakimPenceresi         String?
+  /// Onaylı istisna; varsa uyumsuzluk kabul edilmiş demektir.
+  istisnaGerekcesi       String?
+  telafiEdiciKontrol     String?
+  /// Cihaz yamalanamaz (EOL/üretici desteği bitti). Uyumsuzluktan AYRI.
+  yamalanamaz            Boolean   @default(false)
+  /// uyumlu | eksik | yamalanamaz | karar_verilemedi
+  /// `karar_verilemedi` = sürüm ya da taban çözümlenemedi.
+  durum                  String    @default("karar_verilemedi")
+  sonDogrulama           DateTime?
+  olusturuldu            DateTime  @default(now())
+  guncellendi            DateTime  @updatedAt
+
+  varlik Varlik @relation(fields: [varlikId], references: [id], onDelete: Cascade)
+
+  @@unique([varlikId, kaynakSistem, kaynakKayitId])
+  @@index([durum])
+  @@index([varlikId])
+}
+
+/// OT-22 · Firmware tabanı — varlık TÜRÜ + üretici + model üçlüsüne bağlı.
+/// Taban varlığa değil sınıfa bağlanır; yoksa her cihaz için ayrı taban
+/// girilmesi gerekirdi ve taban pratikte hiç dolmazdı.
+model FirmwareTemeli {
+  id                  String   @id @default(cuid())
+  turId               String?
+  uretici             String?
+  model               String?
+  /// Onaylı sürüm — uyumun hedefi.
+  onayliSurum         String
+  /// Kabul edilebilir en düşük sürüm; null = yalnız onaylı sürüm kabul.
+  asgariSurum         String?
+  /// Planlanan yükseltme hedefi (bilgi; uyum kararına girmez).
+  hedefSurum          String?
+  /// Bilinen kötü sürümler, virgülle ayrılmış.
+  bilinenKotuSurumler String?
+  advisoryReferansi   String?
+  gecerlilikBaslangic DateTime @default(now())
+  aciklama            String?
+  aktif               Boolean  @default(true)
+  olusturuldu         DateTime @default(now())
+  guncellendi         DateTime @updatedAt
+
+  tur     VarlikTuru?     @relation(fields: [turId], references: [id])
+  uyumlar FirmwareUyumu[]
+
+  @@unique([turId, uretici, model])
+}
+
+/// OT-22 · Firmware uyum SONUCU — motorun yazdığı, ekranın okuduğu satır.
+/// Sonuç saklanır çünkü "neden uyumsuz" sorusunun cevabı hesaplandığı anın
+/// tabanına bağlıdır; taban değişince eski karar açıklanamaz hâle gelirdi.
+model FirmwareUyumu {
+  id               String    @id @default(cuid())
+  varlikId         String    @unique
+  temelId          String?
+  kuruluSurum      String?
+  /// uyumlu | eski | bilinen_kotu | taban_yok | karar_verilemedi
+  durum            String    @default("karar_verilemedi")
+  /// Kararın insan tarafından okunabilir gerekçesi.
+  gerekce          String?
+  istisnaGerekcesi String?
+  yukseltmePlani   String?
+  sonDogrulama     DateTime?
+  kaynakSistem     String?
+  hesaplanma       DateTime  @default(now())
+
+  varlik Varlik          @relation(fields: [varlikId], references: [id], onDelete: Cascade)
+  temel  FirmwareTemeli? @relation(fields: [temelId], references: [id])
+
+  @@index([durum])
+}
+
+/// OT-25 · Üretici / ICS-CERT güvenlik duyurusu.
+model Advisory {
+  id          String    @id @default(cuid())
+  /// icscert | uretici | nvd | diger
+  kaynak      String
+  referans    String    @unique
+  baslik      String
+  yayim       DateTime?
+  guncelleme  DateTime?
+  url         String?
+  ozet        String?
+  olusturuldu DateTime  @default(now())
+
+  urunler    AdvisoryUrunu[]
+  zafiyetler AdvisoryZafiyeti[]
+}
+
+/// OT-25 · Duyurunun etkilediği ürün ve SÜRÜM ARALIĞI.
+/// Aralık uç noktalıdır: her uç ayrı ayrı dahil/hariç olabilir. Tek bir
+/// "etkilenen sürüm" metni tutmak, `>=2.0 <2.4.5` gibi gerçek advisory
+/// ifadelerini temsil edemezdi.
+model AdvisoryUrunu {
+  id                String  @id @default(cuid())
+  advisoryId        String
+  uretici           String?
+  urunAdi           String?
+  /// Common Platform Enumeration (cpe:2.3:…), varsa.
+  cpe               String?
+  etkilenenAlt      String?
+  etkilenenAltDahil Boolean @default(true)
+  etkilenenUst      String?
+  etkilenenUstDahil Boolean @default(false)
+  duzeltilenSurum   String?
+
+  advisory Advisory @relation(fields: [advisoryId], references: [id], onDelete: Cascade)
+
+  @@index([advisoryId])
+  @@index([uretici, urunAdi])
+}
+
+model AdvisoryZafiyeti {
+  id         String @id @default(cuid())
+  advisoryId String
+  zafiyetId  String
+
+  advisory Advisory @relation(fields: [advisoryId], references: [id], onDelete: Cascade)
+  zafiyet  Zafiyet  @relation(fields: [zafiyetId], references: [id], onDelete: Cascade)
+
+  @@unique([advisoryId, zafiyetId])
+}
+
+/// OT-25 · Korelasyon SONUCU — hangi varlık hangi zafiyetten, NEDEN etkilenir.
+/// `karar_verilemedi` birinci sınıf sonuçtur: sürüm çözümlenemediğinde
+/// "etkilenmiyor" yazmak, ekranda hiç görünmeyen bir zafiyet üretirdi.
+model ZafiyetKorelasyonu {
+  id               String    @id @default(cuid())
+  varlikId         String
+  zafiyetId        String
+  advisoryUrunId   String?
+  /// surum_araligi | cpe | tarayici
+  yontem           String
+  /// etkilenen | etkilenmeyen | karar_verilemedi
+  sonuc            String
+  /// 0–1; null = ölçülmedi.
+  guven            Float?
+  gerekce          String
+  /// Karşılaştırılan değerler — denetimde "neye bakıldı" sorusunun cevabı.
+  kanitJson        String?
+  /// İnsan kararı korelasyonu ezer; yanlış pozitif bastırma yolu budur.
+  elleSonuc        String?
+  elleGerekce      String?
+  elleKararVerenId String?
+  elleKararZamani  DateTime?
+  hesaplanma       DateTime  @default(now())
+
+  varlik  Varlik  @relation(fields: [varlikId], references: [id], onDelete: Cascade)
+  zafiyet Zafiyet @relation(fields: [zafiyetId], references: [id], onDelete: Cascade)
+
+  @@unique([varlikId, zafiyetId, yontem])
+  @@index([sonuc])
+  @@index([varlikId])
+}
+
+/// OT-26 · SBOM belgesi — bir varlığa ya da yazılım ürününe ait bileşen listesi.
+model SbomBelgesi {
+  id            String    @id @default(cuid())
+  varlikId      String?
+  yazilimId     String?
+  /// cyclonedx | spdx
+  bicim         String
+  bicimSurumu   String?
+  seriNo        String?
+  belgeSurumu   Int       @default(1)
+  uretimZamani  DateTime?
+  kaynakSistem  String
+  kaynakKayitId String
+  bilesenSayisi Int       @default(0)
+  /// Ham belgenin SHA-256 özeti — aynı belge iki kez işlenmesin.
+  hamOzeti      String?
+  yukleyenId    String?
+  yuklendi      DateTime  @default(now())
+
+  varlik   Varlik?       @relation(fields: [varlikId], references: [id], onDelete: Cascade)
+  yazilim  YazilimUrunu? @relation(fields: [yazilimId], references: [id])
+  yukleyen Kullanici?    @relation("SbomYukleyen", fields: [yukleyenId], references: [id])
+  girdiler SbomGirdisi[]
+
+  @@unique([kaynakSistem, kaynakKayitId])
+  @@index([varlikId])
+}
+
+/// OT-26 · Yazılım bileşeni — SBOM'un satırı. `purl` varsa kanonik kimliktir.
+model YazilimBileseni {
+  id          String   @id @default(cuid())
+  /// KANONİK KİMLİK — `purl` varsa o, yoksa `ad@surum`. ZORUNLUDUR ve
+  /// tekildir; nullable kolonlardan kurulu bir bileşik kısıt SQLite'ta
+  /// iş görmez (NULL'lar birbirinden farklı sayılır) ve sürümü olmayan
+  /// her bileşen her yüklemede yeni satır açardı. Aynı gerekçe
+  /// `VeriKokeni.kaynakKayitId` yorumunda da yazılı.
+  kimlik      String   @unique
+  ad          String
+  surum       String?
+  /// package-url (pkg:npm/lodash@4.17.21) — varsa tekilliğin kaynağı.
+  purl        String?
+  cpe         String?
+  tedarikci   String?
+  lisans      String?
+  /// Bileşen dosyasının özeti (algoritma öneki ile: `sha256:…`).
+  ozet        String?
+  olusturuldu DateTime @default(now())
+
+  girdiler SbomGirdisi[]
+
+  @@index([purl])
+  @@index([ad])
+}
+
+/// OT-26 · Belge ↔ bileşen bağı; kapsam (required/optional/excluded) burada.
+model SbomGirdisi {
+  id        String @id @default(cuid())
+  sbomId    String
+  bilesenId String
+  /// gerekli | istege_bagli | haric | bilinmiyor
+  kapsam    String @default("bilinmiyor")
+
+  sbom    SbomBelgesi     @relation(fields: [sbomId], references: [id], onDelete: Cascade)
+  bilesen YazilimBileseni @relation(fields: [bilesenId], references: [id], onDelete: Cascade)
+
+  @@unique([sbomId, bilesenId])
+}
+
+/// OT-27 · Güvenlik kapsaması — beş durumlu, kaynaklı ve TARİHLİ.
+/// Bugünkü `Varlik.edrDurumu` üç değerlidir (`var|yok|bilinmiyor`) ve
+/// kaynağı da doğrulanma zamanı da yoktur: bir kez `var` yazılan alan
+/// sonsuza kadar `var` kalır. Bu model o üçünü de kapatır.
+model GuvenlikKapsami {
+  id            String    @id @default(cuid())
+  varlikId      String
+  /// edr | antivirus | siem | izleme | yedekleme | pam | mfa |
+  /// zafiyet_yonetimi | konfig_yedek | ntp | syslog
+  tip           String
+  /// kapsanan | kismi | kapsanmayan | uygulanamaz | bilinmiyor
+  durum         String    @default("bilinmiyor")
+  kaynakSistem  String?
+  kaynakKayitId String?
+  /// Kapsamın en son NE ZAMAN doğrulandığı. null = hiç doğrulanmadı.
+  sonDogrulama  DateTime?
+  gerekce       String?
+  olusturuldu   DateTime  @default(now())
+  guncellendi   DateTime  @updatedAt
+
+  varlik Varlik @relation(fields: [varlikId], references: [id], onDelete: Cascade)
+
+  @@unique([varlikId, tip])
+  @@index([tip, durum])
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// FAZ B · OT-05 · OT-08 · OT-09 · OT-16 · OT-17 · OT-20 · OT-28 · OT-33
+// ═══════════════════════════════════════════════════════════════════════
+
+/// OT-05 · Proses ADIMI — iş sürecinin kırılımı.
+///
+/// `IsSureci` bugün yalnız SİSTEME bağlanıyor ("Türbin kontrolü → DCS").
+/// Bu, "hangi adımda hangi cihaz devrede" sorusunu cevaplayamıyor ve
+/// etki analizi sistem tanesinde kalıyor. Adım, sürecin sıralı
+/// parçasıdır; varlıklar adıma bağlanır.
+model ProsesAdimi {
+  id           String   @id @default(cuid())
+  surecId      String
+  kod          String
+  ad           String
+  /// Süreç içindeki sıra; aynı süreçte tekildir.
+  sira         Int
+  aciklama     String?
+  /// Kurtarma hedefi (saat). null = BELİRLENMEDİ — sıfır değil.
+  rtoSaat      Float?
+  /// Kabul edilebilir veri kaybı (saat). null = belirlenmedi.
+  rpoSaat      Float?
+  /// yok | dusuk | orta | yuksek | uretim_durur | bilinmiyor
+  uretimEtkisi String   @default("bilinmiyor")
+  olusturuldu  DateTime @default(now())
+  guncellendi  DateTime @updatedAt
+
+  surec     IsSureci      @relation(fields: [surecId], references: [id], onDelete: Cascade)
+  varliklar AdimVarligi[]
+
+  @@unique([surecId, kod])
+  @@unique([surecId, sira])
+  @@index([surecId])
+}
+
+/// OT-05 · Adım ↔ varlık bağı. Bağın KENDİSİ bilgi taşır: bir cihaz aynı
+/// adımda hem ölçüm hem kayıt rolü üstlenebilir ve bunların yedeklilik
+/// durumu farklıdır.
+model AdimVarligi {
+  id       String   @id @default(cuid())
+  adimId   String
+  varlikId String
+  /// kontrol | olcum | iletisim | kayit | emniyet | diger
+  rol      String   @default("diger")
+  /// Bu varlık bu adım için TEK NOKTA mı? null = değerlendirilmedi.
+  tekNokta Boolean?
+  /// Yedeği var mı? null = değerlendirilmedi ("yedeği yok" DEĞİL).
+  yedekli  Boolean?
+  aciklama String?
+
+  adim   ProsesAdimi @relation(fields: [adimId], references: [id], onDelete: Cascade)
+  varlik Varlik      @relation(fields: [varlikId], references: [id], onDelete: Cascade)
+
+  @@unique([adimId, varlikId, rol])
+  @@index([varlikId])
+}
+
+/// OT-08 · Varlığın üretim / iş sürekliliği ETKİSİ — ölçülmüş değer.
+///
+/// `Varlik.uretimEtkisi` üç kelimelik bir etikettir ("yuksek"); bu tablo
+/// SAYIYI ve gerekçesini taşır. İkisi ayrı durur çünkü etiket bir
+/// sınıflandırma, bu kayıt bir DEĞERLENDİRMEDİR: kim, ne zaman, neye
+/// dayanarak.
+model EtkiDegerlendirmesi {
+  id              String   @id @default(cuid())
+  varlikId        String   @unique
+  /// Kaybedilen üretim (MW). null = HESAPLANMADI, sıfır değil.
+  uretimKaybiMw   Float?
+  /// tam | kismi | yok | bilinmiyor — kaybın niteliği.
+  kayipTipi       String   @default("bilinmiyor")
+  /// Kurtarma hedefi (saat); null = belirlenmedi.
+  rtoSaat         Float?
+  rpoSaat         Float?
+  /// yok | dusuk | orta | yuksek | bilinmiyor
+  emniyetEtkisi   String   @default("bilinmiyor")
+  cevreEtkisi     String   @default("bilinmiyor")
+  /// Değerlendirmenin dayanağı — denetimde sayının savunmasıdır.
+  gerekce         String?
+  degerlendirenId String?
+  zaman           DateTime @default(now())
+  guncellendi     DateTime @updatedAt
+
+  varlik        Varlik     @relation(fields: [varlikId], references: [id], onDelete: Cascade)
+  degerlendiren Kullanici? @relation("EtkiDegerlendiren", fields: [degerlendirenId], references: [id])
+
+  @@index([kayipTipi])
+}
+
+/// OT-09 · Ekip — sahipliğin KİŞİ ötesindeki hâli.
+///
+/// Bugün sahiplik yalnız bir kullanıcıya bağlanıyor; kişi ayrıldığında
+/// varlık öksüz kalıyor ve bunu fark eden bir mekanizma yok. Ekip,
+/// sahipliğin devredilebilir ve denetlenebilir birimidir.
+model Ekip {
+  id          String   @id @default(cuid())
+  kod         String   @unique
+  ad          String
+  /// ot | bt | guvenlik | bakim | isletme | diger
+  tip         String   @default("diger")
+  tesisId     String?
+  eposta      String?
+  aktif       Boolean  @default(true)
+  olusturuldu DateTime @default(now())
+  guncellendi DateTime @updatedAt
+
+  tesis          Tesis?         @relation(fields: [tesisId], references: [id])
+  uyeler         EkipUyeligi[]
+  varliklar      Varlik[]       @relation("VarlikEkibi")
+  sistemler      SistemServis[] @relation("SistemEkibi")
+  maddeDurumlari MaddeDurumu[]  @relation("MaddeDurumuEkibi")
+
+  @@index([tesisId, aktif])
+}
+
+/// OT-09 · Ekip üyeliği. Rol, sahiplik zincirindeki YERİ söyler.
+model EkipUyeligi {
+  id          String   @id @default(cuid())
+  ekipId      String
+  kullaniciId String
+  /// sahip | emanetci | uye — `sahip` ekibin karar merciidir.
+  rol         String   @default("uye")
+  olusturuldu DateTime @default(now())
+
+  ekip      Ekip      @relation(fields: [ekipId], references: [id], onDelete: Cascade)
+  kullanici Kullanici @relation("EkipUyesi", fields: [kullaniciId], references: [id], onDelete: Cascade)
+
+  @@unique([ekipId, kullaniciId])
+  @@index([kullaniciId])
+}
+
+/// OT-28 · Konfigürasyon TABANI — onaylanmış beklenen yapılandırma.
+///
+/// `KonfigurasyonYedegi` cihazın o günkü konfigürasyonunu SAKLAR; bu
+/// tablo hangisinin ONAYLI olduğunu söyler. İkisi ayrı olmasaydı "drift"
+/// diye bir kavram kurulamazdı: her yeni yedek yeni gerçek olurdu.
+model KonfigTemeli {
+  id          String   @id @default(cuid())
+  varlikId    String   @unique
+  /// Onaylı yedeğin kimliği — taban bir YEDEĞE dayanır, elle yazılmaz.
+  yedekId     String?
+  /// Onaylı içeriğin SHA-256 özeti; karşılaştırma bunun üzerinden.
+  ozetHash    String
+  onaylayanId String?
+  onayZamani  DateTime @default(now())
+  not         String?
+  guncellendi DateTime @updatedAt
+
+  varlik    Varlik               @relation(fields: [varlikId], references: [id], onDelete: Cascade)
+  yedek     KonfigurasyonYedegi? @relation(fields: [yedekId], references: [id])
+  onaylayan Kullanici?           @relation("KonfigTemeliOnaylayan", fields: [onaylayanId], references: [id])
+  sapmalar  KonfigSapmasi[]
+}
+
+/// OT-28 · Konfigürasyon SAPMASI — beklenen ile gözlenen arasındaki fark.
+///
+/// ONAYLI ile ONAYSIZ drift ayrı durumlardır: planlı bir değişiklikten
+/// doğan fark bir kusur değildir, ama izlenmeden geçmemelidir.
+model KonfigSapmasi {
+  id             String    @id @default(cuid())
+  temelId        String
+  varlikId       String
+  /// Sapmayı gösteren gözlem (yedek) kimliği.
+  yedekId        String?
+  /// Gözlenen içeriğin özeti — tabanın özetiyle karşılaştırılır.
+  gozlenenHash   String
+  /// acik | onayli | giderildi | kabul_edildi
+  durum          String    @default("acik")
+  /// Sapmanın hangi değişiklik talebine bağlandığı (varsa).
+  degisiklikRef  String?
+  /// kritik | yuksek | orta | dusuk | bilinmiyor
+  siddet         String    @default("bilinmiyor")
+  aciklama       String?
+  kararVerenId   String?
+  kararZamani    DateTime?
+  kararGerekcesi String?
+  olusturuldu    DateTime  @default(now())
+
+  temel      KonfigTemeli         @relation(fields: [temelId], references: [id], onDelete: Cascade)
+  varlik     Varlik               @relation(fields: [varlikId], references: [id], onDelete: Cascade)
+  yedek      KonfigurasyonYedegi? @relation(fields: [yedekId], references: [id])
+  kararVeren Kullanici?           @relation("KonfigSapmasiKarari", fields: [kararVerenId], references: [id])
+
+  @@index([durum, siddet])
+  @@index([varlikId])
+}
+
+/// OT-17 · IEEE OUI kaydı — MAC ön ekinden üretici.
+///
+/// **TABLO BOŞ GELİR VE BU BİLEREK BÖYLEDİR.** IEEE OUI kütüğü kurumun
+/// indirip yüklediği bir veridir; uydurma bir üretici eşlemesi, MAC'ten
+/// yanlış üretici okuyan bir envanter üretirdi. Yükleme yolu vardır;
+/// eşleşme bulunamazsa üretici `null` döner — "bilinmiyor" demektir.
+model OuiKaydi {
+  /// Normalleştirilmiş ön ek: büyük harf, ayraçsız (ör. `00:1B:1B` → `001B1B`).
+  onEk     String   @id
+  uretici  String
+  kaynak   String?
+  yuklendi DateTime @default(now())
+
+  @@index([uretici])
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// FAZ G — isterler tablosundaki sekiz "YOK" maddesi
+// ═══════════════════════════════════════════════════════════════════════
+
+/// OT-55 · Fiziksel envanter sayımı — kampanya.
+///
+/// Envanterin sahayla tutarlılığını ölçen tek yol keşif kaynağı değildir:
+/// keşif yalnız AĞDA GÖRÜNEN cihazı bulur. Kapalı bir pano içindeki
+/// yedek PLC, ağa hiç bağlanmayan bir mühendislik dizüstü ya da sökülüp
+/// depoya konmuş bir kart hiçbir keşif taramasında çıkmaz. Sayım bunun
+/// için vardır ve insanın sahaya gitmesini gerektirir.
+///
+/// **Sayım hiçbir varlığı SİLMEZ.** Sonuç bir kayıttır; envanterden
+/// düşürme kararı ayrı bir insan kararıdır.
+model EnvanterSayimi {
+  id           String    @id @default(cuid())
+  kod          String    @unique
+  ad           String
+  tesisId      String
+  /// Kapsam daraltıcıları. null = o eksende daraltma yok.
+  turId        String?
+  bolgeId      String?
+  /// hazirlik | sahada | karsilastirma | kapali
+  durum        String    @default("hazirlik")
+  baslangic    DateTime  @default(now())
+  bitis        DateTime?
+  acanId       String
+  kapatanId    String?
+  /// Sayım AÇILDIĞI andaki kapsam büyüklüğü — payda burada donar.
+  /// Sonradan eklenen varlık bu sayımın paydasını değiştirmez; yoksa
+  /// oran her gün başka bir şey söylerdi.
+  kapsamSayisi Int
+  gerekce      String?
+  olusturuldu  DateTime  @default(now())
+
+  tesis   Tesis       @relation(fields: [tesisId], references: [id], onDelete: Cascade)
+  tur     VarlikTuru? @relation(fields: [turId], references: [id])
+  bolge   AgBolgesi?  @relation(fields: [bolgeId], references: [id])
+  acan    Kullanici   @relation("SayimAcan", fields: [acanId], references: [id])
+  kapatan Kullanici?  @relation("SayimKapatan", fields: [kapatanId], references: [id])
+
+  satirlar SayimSatiri[]
+
+  @@index([tesisId, durum])
+}
+
+/// OT-55 · Sayım satırı — bir varlığın o kampanyadaki sonucu.
+///
+/// **"Sayılmadı" ile "bulunamadı" AYRI durumlardır** ve bu ayrım bu
+/// modelin var olma sebebidir. Henüz gidilmemiş bir raf, kayıp varlık
+/// değildir; ikisini aynı kovaya koymak sayımı ilk gün %90 kayıp
+/// gösterir ve kimse bir daha bakmaz.
+model SayimSatiri {
+  id          String    @id @default(cuid())
+  sayimId     String
+  /// Kayıtta olan varlık. Sahada FAZLADAN bulunan cihazda null olur.
+  varlikId    String?
+  /// Sahada bulunup kayıtta olmayan cihazın kimliği (etiket, seri no, MAC).
+  sahaKimligi String?
+  /// sayilmadi | dogrulandi | bulunamadi | yeri_farkli | fazladan
+  sonuc       String    @default("sayilmadi")
+  bulunanYer  String?
+  not         String?
+  sayanId     String?
+  sayimZamani DateTime?
+
+  sayim  EnvanterSayimi @relation(fields: [sayimId], references: [id], onDelete: Cascade)
+  varlik Varlik?        @relation(fields: [varlikId], references: [id], onDelete: Cascade)
+  sayan  Kullanici?     @relation("SayimSayan", fields: [sayanId], references: [id])
+
+  @@index([sayimId, sonuc])
+  @@index([varlikId])
+}
+
+/// OT-56 · Kritik yedek parça.
+///
+/// EOL/EOS takibi "bu cihaz ne zaman desteksiz kalacak" sorusunu yanıtlar;
+/// yedek parça "bu kart BUGÜN bozulursa elimizde var mı" sorusunu. OT'de
+/// ikincisi çoğu zaman daha acildir: tedarik süresi aylarla ölçülen bir
+/// PLC kartı, üretimi durduran bir arızada EOL tarihinden çok daha
+/// belirleyicidir.
+model YedekParca {
+  id               String    @id @default(cuid())
+  kod              String    @unique
+  ad               String
+  ureticiParcaNo   String?
+  /// Hangi varlık türüne uyduğu. null = tür bazlı eşleşme yok, yalnız
+  /// aşağıdaki varlık bağları geçerli.
+  turId            String?
+  /// Parçanın durduğu depo. null = merkezî depo.
+  tesisId          String?
+  konum            String?
+  /// Elde kaç adet — ÖLÇÜLMÜŞ sayı. Sayılmadıysa kayıt açılmaz.
+  stokAdedi        Int
+  /// Bu adedin altına düşünce kritik sayılır.
+  kritikEsik       Int       @default(1)
+  /// Yeniden tedarik süresi (gün). null = ÖLÇÜLMEDİ — sıfır DEĞİL.
+  /// Sıfır yazmak "hemen gelir" demektir ve bu bir yalandır.
+  tedarikSuresiGun Int?
+  tedarikciId      String?
+  sonSayim         DateTime?
+  aktif            Boolean   @default(true)
+  olusturuldu      DateTime  @default(now())
+  guncellendi      DateTime  @updatedAt
+
+  tur       VarlikTuru? @relation(fields: [turId], references: [id])
+  tesis     Tesis?      @relation(fields: [tesisId], references: [id])
+  tedarikci Tedarikci?  @relation(fields: [tedarikciId], references: [id])
+
+  varliklar YedekParcaVarlik[]
+
+  @@index([tesisId, aktif])
+}
+
+/// OT-56 · Parçanın hizmet ettiği TEKİL varlık.
+///
+/// Tür bazlı eşleşme (`YedekParca.turId`) çoğu durumda yeter; bu tablo
+/// "şu kritik türbin kontrolcüsünün yedeği özellikle budur" demek için
+/// vardır. Kritiklik hesabı bu bağdan gelir: hiçbir kritik varlığa
+/// bağlanmamış bir parçanın stoğunun sıfır olması bir arıza değildir.
+model YedekParcaVarlik {
+  id       String @id @default(cuid())
+  parcaId  String
+  varlikId String
+
+  parca  YedekParca @relation(fields: [parcaId], references: [id], onDelete: Cascade)
+  varlik Varlik     @relation(fields: [varlikId], references: [id], onDelete: Cascade)
+
+  @@unique([parcaId, varlikId])
+  @@index([varlikId])
+}
+
+/// OT-57 · Taşınabilir medya kütüğü.
+///
+/// OT ortamında bulaşmanın en bilinen yolu ağ değil, elden ele dolaşan
+/// bir USB bellektir: hava boşluklu (air-gapped) bir sistemi ağ
+/// üzerinden değil, mühendislik istasyonuna takılan bir bellekle
+/// vurursunuz. Kayıtsız medya, envanterin göremediği tek taşıyıcıdır.
+///
+/// **Ürün medyayı ENGELLEMEZ.** Bu bir kütük ve kayıt katmanıdır;
+/// engelleme uç nokta koruma ürününün işidir ve ürün onun yaptığını
+/// yaptığını iddia etmez.
+model TasinabilirMedya {
+  id          String    @id @default(cuid())
+  kod         String    @unique
+  ad          String
+  /// usb_bellek | harici_disk | optik | sd_kart | diger
+  tip         String    @default("usb_bellek")
+  seriNo      String?
+  tesisId     String?
+  sahibiId    String?
+  /// kayitli | karantina | kayip | imha
+  durum       String    @default("kayitli")
+  /// Şifreli mi? null = ÖLÇÜLMEDİ — "şifresiz" DEĞİL.
+  sifreli     Boolean?
+  /// Son zararlı yazılım taraması. null = HİÇ TARANMADI.
+  sonTarama   DateTime?
+  not         String?
+  olusturuldu DateTime  @default(now())
+  guncellendi DateTime  @updatedAt
+
+  tesis  Tesis?     @relation(fields: [tesisId], references: [id])
+  sahibi Kullanici? @relation("MedyaSahibi", fields: [sahibiId], references: [id])
+
+  kullanimlar MedyaKullanimi[]
+
+  @@index([tesisId, durum])
+}
+
+/// OT-57 · Medyanın bir varlıkta kullanılması.
+///
+/// Onay ALANI zorunlu değildir ama onaysız kullanım bir KUSURDUR ve
+/// ekran bunu böyle gösterir. Onayı zorunlu tutmak, kaydı hiç
+/// girilmeyen bir kullanım üretirdi: kayıtsız kullanım, onaysız
+/// kullanımdan kötüdür.
+model MedyaKullanimi {
+  id           String    @id @default(cuid())
+  medyaId      String
+  varlikId     String
+  baslangic    DateTime
+  bitis        DateTime?
+  amac         String
+  onaylayanId  String?
+  onayZamani   DateTime?
+  /// Kayıt bir uç nokta ürününden geldiyse kaynağı; elle girişte null.
+  kaynakSistem String?
+  olusturuldu  DateTime  @default(now())
+
+  medya     TasinabilirMedya @relation(fields: [medyaId], references: [id], onDelete: Cascade)
+  varlik    Varlik           @relation(fields: [varlikId], references: [id], onDelete: Cascade)
+  onaylayan Kullanici?       @relation("MedyaOnaylayan", fields: [onaylayanId], references: [id])
+
+  @@index([medyaId])
+  @@index([varlikId, baslangic])
+}
+
+/// UY-63 · Resmî bildirim yükümlülüğü kuralı.
+///
+/// `Olay.bildirimGerekli` alanı VARDI ve bir insanın işaretlemesini
+/// bekliyordu; `bildirimTarihi` de yazılabiliyordu. Eksik olan tek şey
+/// SÜREYDİ: "ne zamana kadar bildirmeliydik" sorusunun cevabı hiçbir
+/// yerde yoktu, dolayısıyla süre aşımı da kendiliğinden görünmüyordu.
+///
+/// Süreler mevzuattan gelir ve ÜRÜNLE GELMEZ: kurum kendi tabi olduğu
+/// düzenlemeye göre tanımlar. Örnek bir süre yazmak, yanlış bir saatle
+/// çalışan bir sayaç bırakırdı.
+model BildirimYukumlulugu {
+  id            String   @id @default(cuid())
+  kod           String   @unique
+  ad            String
+  regulasyonId  String?
+  /// Bu şiddetten itibaren yükümlülük doğar: dusuk | orta | yuksek | kritik
+  asgariSiddet  String   @default("yuksek")
+  /// Olayın başlangıcından itibaren kaç SAAT içinde bildirilmeli.
+  sureSaat      Int
+  /// Hangi mevzuat maddesi bu süreyi gerektiriyor — zorunlu.
+  dayanak       String
+  /// Kime bildirilecek (kurum adı). Adres ya da uç nokta DEĞİL.
+  merci         String
+  aktif         Boolean  @default(true)
+  olusturuldu   DateTime @default(now())
+  guncelleyenId String?
+
+  regulasyon  Regulasyon? @relation(fields: [regulasyonId], references: [id])
+  guncelleyen Kullanici?  @relation("BildirimKuraliGuncelleyen", fields: [guncelleyenId], references: [id])
+}
+
+/// UY-64 · Kontrol testi — kontrolün NASIL doğrulandığı.
+///
+/// Ürün bir kontrolün doğrulandığını kaydediyordu ama hangi yöntemle
+/// doğrulandığını kaydetmiyordu. Denetçinin ilk sorusu budur:
+/// "tasarımına mı baktınız, işlediğine mi; kaç örnek incelediniz?"
+///
+/// **Tasarım testi kontrolün ÇALIŞTIĞINI göstermez.** Politikanın doğru
+/// yazıldığını gösterir. İkisini aynı kefeye koymak, hiç koşmamış bir
+/// kontrolü "doğrulandı" saymaktır.
+model KontrolTesti {
+  id             String   @id @default(cuid())
+  maddeDurumuId  String
+  /// tasarim | isleyis
+  yontem         String
+  /// İşleyiş testinde evren ve örneklem. Tasarım testinde null.
+  evrenSayisi    Int?
+  orneklemSayisi Int?
+  uygunSayisi    Int?
+  /// uygun | kismen | uygun_degil
+  sonuc          String
+  testTarihi     DateTime
+  testEdenId     String
+  not            String?
+  olusturuldu    DateTime @default(now())
+
+  maddeDurumu MaddeDurumu @relation(fields: [maddeDurumuId], references: [id], onDelete: Cascade)
+  testEden    Kullanici   @relation("KontrolTestEden", fields: [testEdenId], references: [id])
+
+  @@index([maddeDurumuId, testTarihi])
+}
+
+/// UY-65 · Yönetim gözden geçirmesi.
+///
+/// ISO 27001 dâhil çoğu çerçevede zorunlu bir KAYITTIR ve denetimde
+/// istenir. Ürün bunu tutmuyordu; toplantı yapılıyor, kararlar
+/// e-postada kalıyordu.
+model YonetimGozdenGecirme {
+  id           String   @id @default(cuid())
+  kod          String   @unique
+  baslik       String
+  tarih        DateTime
+  /// planli | yapildi | iptal
+  durum        String   @default("planli")
+  regulasyonId String?
+  /// Kimler katıldı — serbest metin. Kullanıcı kütüğüne bağlamak,
+  /// kurum dışı katılımcıyı (denetçi, danışman) kaydedilemez kılardı.
+  katilimcilar String?
+  gundem       String?
+  ozet         String?
+  yurutenId    String
+  olusturuldu  DateTime @default(now())
+
+  regulasyon Regulasyon? @relation(fields: [regulasyonId], references: [id])
+  yuruten    Kullanici   @relation("GozdenGecirmeYuruten", fields: [yurutenId], references: [id])
+
+  kararlar GozdenGecirmeKarari[]
+
+  @@index([durum, tarih])
+}
+
+/// UY-65 · Gözden geçirme kararı.
+///
+/// **Kararı olmayan gözden geçirme "yapıldı" sayılmaz.** Bir toplantı
+/// kaydının denetimdeki değeri, ürettiği kararlardır; özet metni değil.
+model GozdenGecirmeKarari {
+  id              String    @id @default(cuid())
+  gozdenGecirmeId String
+  karar           String
+  sorumluId       String?
+  sonTarih        DateTime?
+  /// acik | tamamlandi | iptal
+  durum           String    @default("acik")
+  /// Karardan açılan görev. Karar bir CÜMLE değil, bir İŞ olmalı.
+  gorevId         String?
+  olusturuldu     DateTime  @default(now())
+
+  gozdenGecirme YonetimGozdenGecirme @relation(fields: [gozdenGecirmeId], references: [id], onDelete: Cascade)
+  sorumlu       Kullanici?           @relation("GozdenGecirmeSorumlusu", fields: [sorumluId], references: [id])
+  gorev         Gorev?               @relation(fields: [gorevId], references: [id])
+
+  @@index([gozdenGecirmeId, durum])
+}
+
+/// UY-66 · Eğitim tanımı.
+///
+/// "Eğitim kaydı" zaten bir KANIT TİPİYDİ: bir belge yükleyip kontrole
+/// bağlayabiliyordunuz. Eksik olan kütüktü — kimin hangi eğitimi ne
+/// zaman aldığı ve ne zaman geçerliliğini yitirdiği.
+model Egitim {
+  id           String   @id @default(cuid())
+  kod          String   @unique
+  ad           String
+  /// Geçerlilik süresi (ay). null = SÜRESİZ — bilinçli bir karardır,
+  /// ölçülmemiş değil.
+  gecerlilikAy Int?
+  /// Zorunlu eğitimde kapsamdaki herkesin kaydı beklenir.
+  zorunlu      Boolean  @default(false)
+  aciklama     String?
+  aktif        Boolean  @default(true)
+  olusturuldu  DateTime @default(now())
+  guncellendi  DateTime @updatedAt
+
+  kayitlar EgitimKaydi[]
+  maddeler EgitimMadde[]
+}
+
+/// UY-66 · Bir kişinin bir eğitimi tamamlaması.
+model EgitimKaydi {
+  id              String    @id @default(cuid())
+  egitimId        String
+  kullaniciId     String
+  tamamlanma      DateTime
+  /// Tamamlanma + geçerlilik süresi. Süresiz eğitimde null.
+  gecerlilikBitis DateTime?
+  belgeNo         String?
+  /// Kanıt kütüğündeki belgeye bağ — sertifikanın kendisi.
+  kanitId         String?
+  olusturuldu     DateTime  @default(now())
+
+  egitim    Egitim    @relation(fields: [egitimId], references: [id], onDelete: Cascade)
+  kullanici Kullanici @relation("EgitimAlan", fields: [kullaniciId], references: [id], onDelete: Cascade)
+  kanit     Kanit?    @relation(fields: [kanitId], references: [id])
+
+  @@unique([egitimId, kullaniciId, tamamlanma])
+  @@index([kullaniciId])
+}
+
+/// UY-66 · Eğitimin karşıladığı kontrol maddesi.
+model EgitimMadde {
+  id       String @id @default(cuid())
+  egitimId String
+  maddeId  String
+
+  egitim Egitim @relation(fields: [egitimId], references: [id], onDelete: Cascade)
+  madde  Madde  @relation(fields: [maddeId], references: [id], onDelete: Cascade)
+
+  @@unique([egitimId, maddeId])
+}
+
+/// ═══ FAZ H · OT-09b · Varlık zimmeti (atama kabul/red) ═══════════════
+///
+/// Bir varlığı birine ATAMAK ile o kişinin sahipliği KABUL ETMESİ aynı
+/// şey değildir. Eski davranışta atama tek taraflıydı: yönetici alanı
+/// doldurur, atanan kişinin haberi bile olmayabilirdi. Denetimde
+/// "bu cihazın sahibi kim" sorusunun cevabı, kimsenin onaylamadığı bir
+/// isimdi.
+///
+/// Talep bu boşluğu kapatır: atama bir KAYIT açar, kişi kabul ya da
+/// reddeder, ve her adım denetim izine düşer.
+///
+/// `oncekiSahipId` red hâlinde geri dönüş için tutulur — reddedilen bir
+/// atama varlığı sahipsiz bırakmamalıdır.
+model VarlikAtamaTalebi {
+  id            String    @id @default(cuid())
+  varlikId      String
+  /// Sahipliği devralması istenen kişi.
+  atananId      String
+  /// Talebi açan kişi. Atanan ile AYNI OLAMAZ (kendi kendine zimmet yok).
+  atayanId      String
+  /// Talep açıldığı andaki sahip; red hâlinde buraya dönülür.
+  oncekiSahipId String?
+  /// bekliyor · kabul_edildi · reddedildi · iptal_edildi · suresi_doldu
+  durum         String    @default("bekliyor")
+  /// Atama notu — neden bu kişiye veriliyor.
+  not           String?
+  olusturuldu   DateTime  @default(now())
+  /// Cevap için son tarih; geçerse talep kendiliğinden düşer.
+  sonTarih      DateTime
+  cevapZamani   DateTime?
+  /// Red gerekçesi ZORUNLUDUR; kabulde isteğe bağlıdır.
+  cevapNotu     String?
+  iptalZamani   DateTime?
+  iptalEdenId   String?
+  /// Süre uyarısı bir kez gider; her koşuda tekrar yazılmaz.
+  uyarildi      Boolean   @default(false)
+  guncellendi   DateTime  @updatedAt
+
+  varlik      Varlik     @relation(fields: [varlikId], references: [id], onDelete: Cascade)
+  atanan      Kullanici  @relation("AtamaAtanan", fields: [atananId], references: [id])
+  atayan      Kullanici  @relation("AtamaAtayan", fields: [atayanId], references: [id])
+  oncekiSahip Kullanici? @relation("AtamaOncekiSahip", fields: [oncekiSahipId], references: [id])
+  iptalEden   Kullanici? @relation("AtamaIptalEden", fields: [iptalEdenId], references: [id])
+
+  @@index([atananId, durum])
+  @@index([varlikId, durum])
+  @@index([durum, sonTarih])
+}
+
+/// ═══ FAZ H · OT-21b · Varlığın canlı duruşu (asset_state) ════════════
+///
+/// Bir cihazın "şu anki" işletim sistemi, yama seviyesi ve firmware'i
+/// KAYNAK SİSTEMİN söylediğidir. Envanterdeki elle girilmiş değer bir
+/// KAYITTIR; bu tablo ise bir GÖZLEMDİR ve ikisi karıştırılmaz.
+///
+/// Kaynak başına TEK satır tutulur: her koşuda yeni satır açmak, bir
+/// varlığın geçmişini değil aynı gerçeğin binlerce kopyasını üretirdi.
+/// Değişiklik geçmişi denetim izinin ve koşu defterinin işidir.
+///
+/// `kaynakZamani` KAYNAĞIN ölçtüğü an, `alinma` bizim aldığımız andır.
+/// İkisi ayrı tutulur: tazelik kaynağın zamanına göre hesaplanır, çünkü
+/// dört saat önce ölçülmüş bir veriyi az önce almak onu taze yapmaz.
+model VarlikDurusGozlemi {
+  id            String  @id @default(cuid())
+  varlikId      String
+  /// Gözlemi veren sistem (connector `kaynakSistem` değeri).
+  kaynakSistem  String
+  /// Kaynak sistemdeki kararlı kayıt kimliği — idempotency buna dayanır.
+  kaynakKayitId String
+  connectorId   String?
+  kosuId        String?
+
+  /// Kaynağın bildirdiği kimlik alanları — eşleştirmenin kanıtı.
+  hostname  String?
+  ipAdresi  String?
+  macAdresi String?
+  uretici   String?
+  model     String?
+
+  isletimSistemi String?
+  osSurumu       String?
+  osYapisi       String?
+  yamaSeviyesi   String?
+  sonYamaTarihi  DateTime?
+  firmware       String?
+
+  /// Kaynağın ÖLÇTÜĞÜ an. null = kaynak zaman bildirmedi (tazelik ölçülemez).
+  kaynakZamani DateTime?
+  /// Bizim ALDIĞIMIZ an.
+  alinma       DateTime  @default(now())
+  /// 0–1; null = ÖLÇÜLMEDİ (sıfır güven DEĞİL).
+  guven        Float?
+  /// Ham kayıt — denetim izinin girdisi, dokunulmaz.
+  ham          String?
+
+  guncellendi DateTime @updatedAt
+
+  varlik    Varlik     @relation(fields: [varlikId], references: [id], onDelete: Cascade)
+  connector Connector? @relation("DurusGozlemConnector", fields: [connectorId], references: [id])
+
+  @@unique([varlikId, kaynakSistem])
+  @@index([kaynakSistem, kaynakZamani])
+}

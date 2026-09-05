@@ -1,0 +1,77 @@
+name: Siteyi yayınla
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'web/**'
+      - '.github/workflows/publish.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: site-publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Depoyu al
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Node kur
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Bağımlılıkları kur
+        working-directory: web
+        run: npm ci
+
+      - name: Veritabanını hazırla
+        working-directory: web
+        run: |
+          npx prisma migrate deploy
+          npx prisma generate
+          npx tsx prisma/seed.ts
+
+      - name: Kalite kapısı
+        working-directory: web
+        run: |
+          npx tsc --noEmit
+          npx eslint app lib components --max-warnings=0
+          npm test
+
+      - name: Chromium kur
+        run: |
+          PW_VERSION="$(node -p "require('./web/node_modules/playwright-core/package.json').version")"
+          npx --yes "playwright@${PW_VERSION}" install --with-deps chromium
+
+      - name: Statik demo derle ve doğrula
+        working-directory: web
+        env:
+          NEXT_PUBLIC_DEMO: '1'
+        run: npm run demo:build
+
+      - name: Çıktıyı gh-pages dalına yayınla
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          rm -rf .site && mkdir .site
+          cp -a web/out/. .site/
+          touch .site/.nojekyll
+          cd .site
+          git init -q -b gh-pages
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -qm "Yayın: ${GITHUB_SHA::7}"
+          git push --force "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" gh-pages

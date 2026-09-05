@@ -1,0 +1,57 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files (can opt-in for committing if needed)
+.env*
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# veritabanı ve üretilen istemci
+prisma/dev.db
+lib/prisma-client/
+
+# geçici sorgu/inceleme betikleri (ajan çalışması sırasında oluşur)
+*.tmp.mjs
+q-*.mjs
+*gecici*
+yedek/
+
+# UY-13 · kanıt dosyası deposu (yerel_dosya sağlayıcısı)
+# Depo İÇERİK tutar, kod değil: yüklenen kanıt dosyaları depoya girer ve
+# repoya ASLA girmez. Kurulumda `KANIT_DEPO_KOKU` ile ürün dizininin
+# dışına alınması beklenir; verilmezse burası kullanılır.
+/veri/

@@ -5,6 +5,28 @@ export default defineConfig({
   test: {
     include: ['tests/**/*.test.ts'],
     environment: 'node',
+    /* ── ZAMAN BÜTÇESİ ─────────────────────────────────────────────────
+       Vitest'in 5 sn'lik varsayılanı bu depo için gerçekçi değil ve bir
+       kez YAYINI DURDURDU: `zamanlayici.test.ts` yayın işinde zaman
+       aşımına uğradı, aynı ağaç PR kapısında geçmişti.
+
+       Buradaki testlerin çoğu SAHTE DEĞİL: gerçek SQLite kopyası açar,
+       gerçek yetki kapısından geçer, on sekiz motoru uçtan uca koşturur.
+       Boş bir makinede en ağır dördü 1 153 · 2 110 · 3 446 · 3 478 ms
+       sürüyor — bütçenin dörtte üçü. Paylaşımlı koşucuda (iki çekirdek,
+       139 dosya paralel, aynı işte migrate + seed) ölçülen yavaşlama
+       ~3,8× oldu: motor defteri 1 153 → 4 416 ms. Aynı çarpan öbür üçünü
+       bütçenin dışına taşır.
+
+       Yani kusur tek bir testte değil, bütçenin kendisindeydi. Tek tek
+       muafiyet yazmak sırayı bir sonraki ağır teste devrederdi.
+
+       30 sn, ölçülen en kötü hâlin yaklaşık altı katı. Bir testi
+       gevşetmez — hiçbir iddia değişmez, hiçbir test atlanmaz; yalnız
+       yüklü bir koşucuda bitmesine izin verir. Gerçekten TAKILAN bir
+       test hâlâ yakalanır, altı saniye yerine yarım dakikada. */
+    testTimeout: 30_000,
+    hookTimeout: 30_000,
     /* Kapsam ölçümü (`npm run test:kapsam`) — sağlayıcı V8, araçsız.
        Kapsama giren şey ÜRÜN KODUDUR: iş kuralları (`lib/`), ekranların
        saf mantık/ortak modülleri ve kabuk bileşenleri. Rota giriş

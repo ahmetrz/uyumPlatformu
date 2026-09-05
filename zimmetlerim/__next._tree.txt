@@ -1,0 +1,2 @@
+:HL["/uyumPlatformu/_next/static/chunks/0y78swzd7k2_n.css","style"]
+0:{"tree":{"name":"","param":null,"prefetchHints":4176,"slots":{"children":{"name":"(kabuk)","param":null,"prefetchHints":4192,"slots":{"children":{"name":"(operasyonel)","param":null,"prefetchHints":4192,"slots":{"children":{"name":"zimmetlerim","param":null,"prefetchHints":4192,"slots":{"children":{"name":"__PAGE__","param":null,"prefetchHints":4256,"slots":null}}}}}}}}},"staleTime":300,"buildId":"xCH8s8XWQh0tet39Vv6D3"}

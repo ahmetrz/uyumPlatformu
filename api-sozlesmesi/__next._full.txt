@@ -1,0 +1,1707 @@
+1:"$Sreact.fragment"
+2:I[39756,["/uyumPlatformu/_next/static/chunks/1mpnoxox0-4cg.js"],"default"]
+3:I[8821,["/uyumPlatformu/_next/static/chunks/1mpnoxox0-4cg.js","/uyumPlatformu/_next/static/chunks/3ha-05a98m2lc.js"],"default"]
+4:I[37457,["/uyumPlatformu/_next/static/chunks/1mpnoxox0-4cg.js"],"default"]
+5:I[22016,["/uyumPlatformu/_next/static/chunks/1mpnoxox0-4cg.js","/uyumPlatformu/_next/static/chunks/2diuq0ktrxnn4.js","/uyumPlatformu/_next/static/chunks/216uc5kj608ci.js","/uyumPlatformu/_next/static/chunks/296oj6-uny3ba.js"],""]
+8:I[97367,["/uyumPlatformu/_next/static/chunks/1mpnoxox0-4cg.js"],"OutletBoundary"]
+9:"$Sreact.suspense"
+c:I[97367,["/uyumPlatformu/_next/static/chunks/1mpnoxox0-4cg.js"],"ViewportBoundary"]
+e:I[97367,["/uyumPlatformu/_next/static/chunks/1mpnoxox0-4cg.js"],"MetadataBoundary"]
+10:I[53348,["/uyumPlatformu/_next/static/chunks/1mpnoxox0-4cg.js","/uyumPlatformu/_next/static/chunks/0dc3yp2zfmqe3.js"],"default"]
+:HL["/uyumPlatformu/_next/static/chunks/0y78swzd7k2_n.css","style"]
+b:X
+0:{"P":null,"c":["","api-sozlesmesi",""],"q":"","i":false,"f":[[["",{"children":["(kabuk)",{"children":["(operasyonel)",{"children":["api-sozlesmesi",{"children":["__PAGE__",{},"$undefined","$undefined",4608]},"$undefined","$undefined",4608]},"$undefined","$undefined",4608]},"$undefined","$undefined",4608]},"$undefined","$undefined",4624],[["$","$1","c",{"children":[[["$","link","0",{"rel":"stylesheet","href":"/uyumPlatformu/_next/static/chunks/0y78swzd7k2_n.css","precedence":"next","crossOrigin":"$undefined","nonce":"$undefined"}],["$","script","script-0",{"src":"/uyumPlatformu/_next/static/chunks/1mpnoxox0-4cg.js","async":true,"nonce":"$undefined"}]],["$","html",null,{"lang":"tr","suppressHydrationWarning":true,"data-an":"1788642983803","children":["$","body",null,{"children":["$","$L2",null,{"parallelRouterKey":"children","error":"$3","errorStyles":[],"errorScripts":[["$","script","script-0",{"src":"/uyumPlatformu/_next/static/chunks/3ha-05a98m2lc.js","async":true}]],"template":["$","$L4",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":[["$","div",null,{"className":"ab","data-yogunluk":"operasyonel","children":["$","div",null,{"className":"ab-sistem-sayfa","children":[["$","header",null,{"children":[["$","$L5",null,{"href":"/","className":"marka","aria-label":"Zorlu Enerji Yönetişim Platformu — ana ekran","children":"ZORLU ENERJİ"}],["$","span",null,{"className":"etiket","children":"Yönetişim Platformu"}]]}],["$","main",null,{"children":[["$","p",null,{"className":"kod","children":"404 · Sayfa yok"}],["$","h1",null,{"className":"ab-pano-basligi","children":"Bu adreste bir ekran yok."}],["$","p",null,{"className":"cumle","children":"Bağlantı taşınmış ya da adres yanlış yazılmış olabilir. Aradığınız kaydı ana ekrandaki genel aramayla (Ctrl / ⌘ + K) bulabilirsiniz."}],["$","div",null,{"className":"eylem","children":[["$","$L5",null,{"href":"/","className":"ab-dugme birincil","children":"Ana ekrana dön"}],["$","$L5",null,{"href":"/uyum","className":"ab-dugme","children":"Uyum defteri"}],["$","$L5",null,{"href":"/envanter","className":"ab-dugme","children":"Varlık envanteri"}]]}],"$undefined"]}],["$","footer",null,{"children":"BT/OT yönetişim · uyum · dönüşüm"}]]}]}],[]],"forbidden":"$undefined","unauthorized":"$undefined"}]}]}]]}],{"children":[["$","$1","c",{"children":[null,["$","$L2",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L4",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":[["$","div",null,{"className":"ab","data-yogunluk":"operasyonel","children":["$","div",null,{"className":"ab-sistem-sayfa","children":[["$","header",null,{"children":[["$","$L5",null,{"href":"/","className":"marka","aria-label":"Zorlu Enerji Yönetişim Platformu — ana ekran","children":"ZORLU ENERJİ"}],["$","span",null,{"className":"etiket","children":"Yönetişim Platformu"}]]}],["$","main",null,{"children":[["$","p",null,{"className":"kod","children":"404 · Sayfa yok"}],["$","h1",null,{"className":"ab-pano-basligi","children":"Bu adreste bir ekran yok."}],["$","p",null,{"className":"cumle","children":"Bağlantı taşınmış ya da adres yanlış yazılmış olabilir. Aradığınız kaydı ana ekrandaki genel aramayla (Ctrl / ⌘ + K) bulabilirsiniz."}],["$","div",null,{"className":"eylem","children":[["$","$L5",null,{"href":"/","className":"ab-dugme birincil","children":"Ana ekrana dön"}],["$","$L5",null,{"href":"/uyum","className":"ab-dugme","children":"Uyum defteri"}],["$","$L5",null,{"href":"/envanter","className":"ab-dugme","children":"Varlık envanteri"}]]}],"$undefined"]}],["$","footer",null,{"children":"BT/OT yönetişim · uyum · dönüşüm"}]]}]}],[]],"forbidden":"$undefined","unauthorized":"$undefined"}]]}],{"children":[["$","$1","c",{"children":[[["$","script","script-0",{"src":"/uyumPlatformu/_next/static/chunks/2diuq0ktrxnn4.js","async":true,"nonce":"$undefined"}]],"$L6"]}],{"children":[["$","$1","c",{"children":[null,["$","$L2",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L4",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","forbidden":"$undefined","unauthorized":"$undefined"}]]}],{"children":[["$","$1","c",{"children":["$L7",[["$","script","script-0",{"src":"/uyumPlatformu/_next/static/chunks/216uc5kj608ci.js","async":true,"nonce":"$undefined"}],["$","script","script-1",{"src":"/uyumPlatformu/_next/static/chunks/296oj6-uny3ba.js","async":true,"nonce":"$undefined"}]],["$","$L8",null,{"children":["$","$9",null,{"name":"Next.MetadataOutlet","children":"$@a"}]}]]}],{},null,false,null]},null,false,"$b"]},null,false,null]},null,false,"$b"]},null,false,null],["$","$1","h",{"children":[null,["$","$Lc",null,{"children":"$Ld"}],["$","div",null,{"hidden":true,"children":["$","$Le",null,{"children":["$","$9",null,{"name":"Next.Metadata","children":"$Lf"}]}]}],null]}],false]],"m":"$undefined","G":["$10",[["$","link","0",{"rel":"stylesheet","href":"/uyumPlatformu/_next/static/chunks/0y78swzd7k2_n.css","precedence":"next","crossOrigin":"$undefined","nonce":"$undefined"}]]],"S":true,"h":null,"r":"$undefined","s":"$undefined","a":"$undefined","l":"$undefined","p":"$undefined","d":"$undefined","b":"xCH8s8XWQh0tet39Vv6D3"}
+11:I[10346,["/uyumPlatformu/_next/static/chunks/1mpnoxox0-4cg.js","/uyumPlatformu/_next/static/chunks/2diuq0ktrxnn4.js","/uyumPlatformu/_next/static/chunks/216uc5kj608ci.js","/uyumPlatformu/_next/static/chunks/296oj6-uny3ba.js"],"default"]
+b:C
+12:Td9ab,{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Zorlu Enerji Yönetişim Platformu · Dış API",
+    "version": "1.0.0",
+    "description": "Kimlik: `Authorization: Bearer <token>`. Başka taşıyıcı kabul edilmez;\nsorgu parametresiyle token taşımak logları kirletir.\n\nHer anahtarın KENDİ kapsamı vardır ve erişebileceği uçlar sayılıdır.\nKapsam anahtar sahibinin rolünü yalnız DARALTIR: sahibinde olmayan bir\nyetkiyi açmaz. Kapsam dışı bir uca istek 403 döner.\n\nYazma uçları: assets.upsert, assets.observations, vulnerabilities, backup-results, access-observations, asset-state. Hepsi zorunlu\n`Idempotency-Key` başlığı ister. Salt okunur işaretli anahtarlar bu\nuçlara hiç giremez.\n\nBu belge ürünün uç kütüğünden ve zod şemalarından üretilir; elle\ndüzenlenmez."
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    },
+    "schemas": {
+      "Hata": {
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "error": {
+            "type": "object",
+            "required": [
+              "code",
+              "message"
+            ],
+            "properties": {
+              "code": {
+                "type": "string",
+                "enum": [
+                  "gecersiz_istek",
+                  "yetkisiz",
+                  "kapsam_disi",
+                  "bulunamadi",
+                  "cakisma",
+                  "oran_asildi",
+                  "ic_hata"
+                ]
+              },
+              "message": {
+                "type": "string"
+              },
+              "details": {}
+            }
+          }
+        }
+      }
+    }
+  },
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "paths": {
+    "/api/v1/plants": {
+      "get": {
+        "operationId": "plants",
+        "summary": "Santraller (okuma)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "Sayfa boyu (varsayılan 50, tavan 200).",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200,
+              "default": 50
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "description": "Bir önceki yanıtın `nextCursor` alanı. Boşsa baştan başlar.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "description": "aktif | kapali",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "İmleç sayfalamalı liste",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "nextCursor"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    },
+                    "nextCursor": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Gövde ya da parametre doğrulaması başarısız"
+          },
+          "401": {
+            "description": "Kimlik yok, geçersiz, süresi dolmuş ya da iptal edilmiş"
+          },
+          "403": {
+            "description": "Anahtarın kapsamında bu uç yok, salt okunur anahtarla yazma denendi, ya da istenen santral kapsam dışı"
+          },
+          "429": {
+            "description": "İstek sınırı aşıldı — `Retry-After` başlığına bakın"
+          },
+          "500": {
+            "description": "Beklenmeyen sunucu hatası (iç ayrıntı gövdeye girmez)"
+          }
+        }
+      }
+    },
+    "/api/v1/assets": {
+      "get": {
+        "operationId": "assets",
+        "summary": "Varlıklar (okuma)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "Sayfa boyu (varsayılan 50, tavan 200).",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200,
+              "default": 50
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "description": "Bir önceki yanıtın `nextCursor` alanı. Boşsa baştan başlar.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "plantId",
+            "in": "query",
+            "required": false,
+            "description": "santral kimliği — kapsam dışıysa 403",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "plantCode",
+            "in": "query",
+            "required": false,
+            "description": "santral kodu",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "typeCode",
+            "in": "query",
+            "required": false,
+            "description": "varlık türü kodu",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "criticality",
+            "in": "query",
+            "required": false,
+            "description": "dusuk | orta | yuksek | kritik | bilinmiyor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "lifecycle",
+            "in": "query",
+            "required": false,
+            "description": "planlandi | aktif | bakim | emekli | imha",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "updatedSince",
+            "in": "query",
+            "required": false,
+            "description": "ISO 8601 zaman damgası",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "İmleç sayfalamalı liste",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "nextCursor"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    },
+                    "nextCursor": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Gövde ya da parametre doğrulaması başarısız"
+          },
+          "401": {
+            "description": "Kimlik yok, geçersiz, süresi dolmuş ya da iptal edilmiş"
+          },
+          "403": {
+            "description": "Anahtarın kapsamında bu uç yok, salt okunur anahtarla yazma denendi, ya da istenen santral kapsam dışı"
+          },
+          "429": {
+            "description": "İstek sınırı aşıldı — `Retry-After` başlığına bakın"
+          },
+          "500": {
+            "description": "Beklenmeyen sunucu hatası (iç ayrıntı gövdeye girmez)"
+          }
+        }
+      }
+    },
+    "/api/v1/assets/upsert": {
+      "post": {
+        "operationId": "assets_upsert",
+        "summary": "Varlık yazma (upsert)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "description": "İstemcinin ürettiği benzersiz değer. Aynı anahtar+değer ikinci kez gelirse iş TEKRAR EDİLMEZ, ilk yanıt döner (`Idempotent-Replay: true`).",
+            "schema": {
+              "type": "string",
+              "maxLength": 200
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "type": "object",
+                "properties": {
+                  "records": {
+                    "minItems": 1,
+                    "maxItems": 1000,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "source": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 120
+                        },
+                        "sourceRecordId": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 200
+                        },
+                        "collectedAt": {
+                          "type": "string"
+                        },
+                        "confidence": {
+                          "anyOf": [
+                            {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "assetTag": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "maxLength": 120
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "hostname": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "maxLength": 255
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "serialNumber": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "maxLength": 120
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "macAddress": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "maxLength": 64
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "ipAddress": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "maxLength": 64
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "vendor": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "maxLength": 160
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "model": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "maxLength": 160
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "operatingSystem": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "maxLength": 160
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "firmware": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "maxLength": 160
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "plantCode": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "maxLength": 64
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "zoneCode": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "maxLength": 64
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "typeCode": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "maxLength": 64
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        }
+                      },
+                      "required": [
+                        "source",
+                        "sourceRecordId",
+                        "collectedAt",
+                        "confidence"
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "records"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Kayıtlar işlendi; sonuç özeti döner"
+          },
+          "400": {
+            "description": "Gövde ya da parametre doğrulaması başarısız"
+          },
+          "401": {
+            "description": "Kimlik yok, geçersiz, süresi dolmuş ya da iptal edilmiş"
+          },
+          "403": {
+            "description": "Anahtarın kapsamında bu uç yok, salt okunur anahtarla yazma denendi, ya da istenen santral kapsam dışı"
+          },
+          "409": {
+            "description": "Aynı Idempotency-Key hâlâ işleniyor ya da başka bir uç için kullanılmış"
+          },
+          "429": {
+            "description": "İstek sınırı aşıldı — `Retry-After` başlığına bakın"
+          },
+          "500": {
+            "description": "Beklenmeyen sunucu hatası (iç ayrıntı gövdeye girmez)"
+          }
+        }
+      }
+    },
+    "/api/v1/assets/observations": {
+      "post": {
+        "operationId": "assets_observations",
+        "summary": "Varlık gözlemi bildirimi (yazma)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "description": "İstemcinin ürettiği benzersiz değer. Aynı anahtar+değer ikinci kez gelirse iş TEKRAR EDİLMEZ, ilk yanıt döner (`Idempotent-Replay: true`).",
+            "schema": {
+              "type": "string",
+              "maxLength": 200
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "type": "object",
+                "properties": {
+                  "records": {
+                    "minItems": 1,
+                    "maxItems": 1000,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "source": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 120
+                        },
+                        "sourceRecordId": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 200
+                        },
+                        "collectedAt": {
+                          "type": "string"
+                        },
+                        "confidence": {
+                          "anyOf": [
+                            {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "assetTag": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "maxLength": 120
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "hostname": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "maxLength": 255
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "serialNumber": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "maxLength": 120
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "macAddress": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "maxLength": 64
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "ipAddress": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "maxLength": 64
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "vendor": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "maxLength": 160
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "model": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "maxLength": 160
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "operatingSystem": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "maxLength": 160
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "firmware": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "maxLength": 160
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "plantCode": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "maxLength": 64
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "zoneCode": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "maxLength": 64
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "typeCode": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "maxLength": 64
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        }
+                      },
+                      "required": [
+                        "source",
+                        "sourceRecordId",
+                        "collectedAt",
+                        "confidence"
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "records"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Kayıtlar işlendi; sonuç özeti döner"
+          },
+          "400": {
+            "description": "Gövde ya da parametre doğrulaması başarısız"
+          },
+          "401": {
+            "description": "Kimlik yok, geçersiz, süresi dolmuş ya da iptal edilmiş"
+          },
+          "403": {
+            "description": "Anahtarın kapsamında bu uç yok, salt okunur anahtarla yazma denendi, ya da istenen santral kapsam dışı"
+          },
+          "409": {
+            "description": "Aynı Idempotency-Key hâlâ işleniyor ya da başka bir uç için kullanılmış"
+          },
+          "429": {
+            "description": "İstek sınırı aşıldı — `Retry-After` başlığına bakın"
+          },
+          "500": {
+            "description": "Beklenmeyen sunucu hatası (iç ayrıntı gövdeye girmez)"
+          }
+        }
+      }
+    },
+    "/api/v1/evidence": {
+      "get": {
+        "operationId": "evidence",
+        "summary": "Kanıtlar (okuma)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "Sayfa boyu (varsayılan 50, tavan 200).",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200,
+              "default": 50
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "description": "Bir önceki yanıtın `nextCursor` alanı. Boşsa baştan başlar.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "required": false,
+            "description": "kanıt tipi",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "plantId",
+            "in": "query",
+            "required": false,
+            "description": "santral kimliği",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "collectedSince",
+            "in": "query",
+            "required": false,
+            "description": "ISO 8601 zaman damgası",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "İmleç sayfalamalı liste",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "nextCursor"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    },
+                    "nextCursor": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Gövde ya da parametre doğrulaması başarısız"
+          },
+          "401": {
+            "description": "Kimlik yok, geçersiz, süresi dolmuş ya da iptal edilmiş"
+          },
+          "403": {
+            "description": "Anahtarın kapsamında bu uç yok, salt okunur anahtarla yazma denendi, ya da istenen santral kapsam dışı"
+          },
+          "429": {
+            "description": "İstek sınırı aşıldı — `Retry-After` başlığına bakın"
+          },
+          "500": {
+            "description": "Beklenmeyen sunucu hatası (iç ayrıntı gövdeye girmez)"
+          }
+        }
+      }
+    },
+    "/api/v1/vulnerabilities": {
+      "post": {
+        "operationId": "vulnerabilities",
+        "summary": "Zafiyet bildirimi (yazma)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "description": "İstemcinin ürettiği benzersiz değer. Aynı anahtar+değer ikinci kez gelirse iş TEKRAR EDİLMEZ, ilk yanıt döner (`Idempotent-Replay: true`).",
+            "schema": {
+              "type": "string",
+              "maxLength": 200
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "type": "object",
+                "properties": {
+                  "records": {
+                    "minItems": 1,
+                    "maxItems": 1000,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "source": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 120
+                        },
+                        "sourceRecordId": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 200
+                        },
+                        "collectedAt": {
+                          "type": "string"
+                        },
+                        "confidence": {
+                          "anyOf": [
+                            {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "sourceRef": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 64
+                        },
+                        "title": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 400
+                        },
+                        "cvss": {
+                          "anyOf": [
+                            {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 10
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "assetKey": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 255
+                        },
+                        "dueDate": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "source",
+                        "sourceRecordId",
+                        "collectedAt",
+                        "confidence",
+                        "sourceRef",
+                        "title",
+                        "assetKey"
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "records"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Kayıtlar işlendi; sonuç özeti döner"
+          },
+          "400": {
+            "description": "Gövde ya da parametre doğrulaması başarısız"
+          },
+          "401": {
+            "description": "Kimlik yok, geçersiz, süresi dolmuş ya da iptal edilmiş"
+          },
+          "403": {
+            "description": "Anahtarın kapsamında bu uç yok, salt okunur anahtarla yazma denendi, ya da istenen santral kapsam dışı"
+          },
+          "409": {
+            "description": "Aynı Idempotency-Key hâlâ işleniyor ya da başka bir uç için kullanılmış"
+          },
+          "429": {
+            "description": "İstek sınırı aşıldı — `Retry-After` başlığına bakın"
+          },
+          "500": {
+            "description": "Beklenmeyen sunucu hatası (iç ayrıntı gövdeye girmez)"
+          }
+        }
+      }
+    },
+    "/api/v1/backup-results": {
+      "post": {
+        "operationId": "backup_results",
+        "summary": "Yedek sonucu bildirimi (yazma)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "description": "İstemcinin ürettiği benzersiz değer. Aynı anahtar+değer ikinci kez gelirse iş TEKRAR EDİLMEZ, ilk yanıt döner (`Idempotent-Replay: true`).",
+            "schema": {
+              "type": "string",
+              "maxLength": 200
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "type": "object",
+                "properties": {
+                  "records": {
+                    "minItems": 1,
+                    "maxItems": 1000,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "source": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 120
+                        },
+                        "sourceRecordId": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 200
+                        },
+                        "collectedAt": {
+                          "type": "string"
+                        },
+                        "confidence": {
+                          "anyOf": [
+                            {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "assetKey": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 255
+                        },
+                        "backupAt": {
+                          "type": "string"
+                        },
+                        "success": {
+                          "type": "boolean"
+                        },
+                        "version": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "maxLength": 120
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "contentHash": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "maxLength": 200
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "storageLocation": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "maxLength": 400
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "error": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "maxLength": 1000
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        }
+                      },
+                      "required": [
+                        "source",
+                        "sourceRecordId",
+                        "collectedAt",
+                        "confidence",
+                        "assetKey",
+                        "backupAt",
+                        "success"
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "records"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Kayıtlar işlendi; sonuç özeti döner"
+          },
+          "400": {
+            "description": "Gövde ya da parametre doğrulaması başarısız"
+          },
+          "401": {
+            "description": "Kimlik yok, geçersiz, süresi dolmuş ya da iptal edilmiş"
+          },
+          "403": {
+            "description": "Anahtarın kapsamında bu uç yok, salt okunur anahtarla yazma denendi, ya da istenen santral kapsam dışı"
+          },
+          "409": {
+            "description": "Aynı Idempotency-Key hâlâ işleniyor ya da başka bir uç için kullanılmış"
+          },
+          "429": {
+            "description": "İstek sınırı aşıldı — `Retry-After` başlığına bakın"
+          },
+          "500": {
+            "description": "Beklenmeyen sunucu hatası (iç ayrıntı gövdeye girmez)"
+          }
+        }
+      }
+    },
+    "/api/v1/integration-runs": {
+      "get": {
+        "operationId": "integration_runs",
+        "summary": "Entegrasyon koşuları (okuma)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "Sayfa boyu (varsayılan 50, tavan 200).",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200,
+              "default": 50
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "description": "Bir önceki yanıtın `nextCursor` alanı. Boşsa baştan başlar.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "description": "koşu durumu",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "trigger",
+            "in": "query",
+            "required": false,
+            "description": "tetikleyen",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "source",
+            "in": "query",
+            "required": false,
+            "description": "kaynak sistem",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "connectorId",
+            "in": "query",
+            "required": false,
+            "description": "connector kimliği",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "startedSince",
+            "in": "query",
+            "required": false,
+            "description": "ISO 8601 zaman damgası",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "İmleç sayfalamalı liste",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "nextCursor"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    },
+                    "nextCursor": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Gövde ya da parametre doğrulaması başarısız"
+          },
+          "401": {
+            "description": "Kimlik yok, geçersiz, süresi dolmuş ya da iptal edilmiş"
+          },
+          "403": {
+            "description": "Anahtarın kapsamında bu uç yok, salt okunur anahtarla yazma denendi, ya da istenen santral kapsam dışı"
+          },
+          "429": {
+            "description": "İstek sınırı aşıldı — `Retry-After` başlığına bakın"
+          },
+          "500": {
+            "description": "Beklenmeyen sunucu hatası (iç ayrıntı gövdeye girmez)"
+          }
+        }
+      }
+    },
+    "/api/v1/access-observations": {
+      "post": {
+        "operationId": "access_observations",
+        "summary": "Erişim gözlemi bildirimi (yazma)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "description": "İstemcinin ürettiği benzersiz değer. Aynı anahtar+değer ikinci kez gelirse iş TEKRAR EDİLMEZ, ilk yanıt döner (`Idempotent-Replay: true`).",
+            "schema": {
+              "type": "string",
+              "maxLength": 200
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "type": "object",
+                "properties": {
+                  "records": {
+                    "minItems": 1,
+                    "maxItems": 1000,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "source": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 120
+                        },
+                        "sourceRecordId": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 200
+                        },
+                        "collectedAt": {
+                          "type": "string"
+                        },
+                        "confidence": {
+                          "anyOf": [
+                            {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "accountName": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 200
+                        },
+                        "accountType": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": [
+                                "kisi",
+                                "servis",
+                                "paylasimli",
+                                "acil_durum"
+                              ]
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "privileged": {
+                          "type": [
+                            "boolean",
+                            "null"
+                          ]
+                        },
+                        "lastUsedAt": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "passwordRotatedAt": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "scope": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "maxLength": 400
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "assetKey": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "maxLength": 255
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "plantCode": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "maxLength": 64
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        }
+                      },
+                      "required": [
+                        "source",
+                        "sourceRecordId",
+                        "collectedAt",
+                        "confidence",
+                        "accountName"
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "records"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Kayıtlar işlendi; sonuç özeti döner"
+          },
+          "400": {
+            "description": "Gövde ya da parametre doğrulaması başarısız"
+          },
+          "401": {
+            "description": "Kimlik yok, geçersiz, süresi dolmuş ya da iptal edilmiş"
+          },
+          "403": {
+            "description": "Anahtarın kapsamında bu uç yok, salt okunur anahtarla yazma denendi, ya da istenen santral kapsam dışı"
+          },
+          "409": {
+            "description": "Aynı Idempotency-Key hâlâ işleniyor ya da başka bir uç için kullanılmış"
+          },
+          "429": {
+            "description": "İstek sınırı aşıldı — `Retry-After` başlığına bakın"
+          },
+          "500": {
+            "description": "Beklenmeyen sunucu hatası (iç ayrıntı gövdeye girmez)"
+          }
+        }
+      }
+    },
+    "/api/v1/asset-state": {
+      "post": {
+        "operationId": "asset_state",
+        "summary": "Canlı duruş bildirimi (yazma)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "description": "İstemcinin ürettiği benzersiz değer. Aynı anahtar+değer ikinci kez gelirse iş TEKRAR EDİLMEZ, ilk yanıt döner (`Idempotent-Replay: true`).",
+            "schema": {
+              "type": "string",
+              "maxLength": 200
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "type": "object",
+                "properties": {
+                  "records": {
+                    "minItems": 1,
+                    "maxItems": 1000,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "source": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 120
+                        },
+                        "sourceRecordId": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 200
+                        },
+                        "collectedAt": {
+                          "type": "string"
+                        },
+                        "confidence": {
+                          "anyOf": [
+                            {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "assetKey": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 255
+                        },
+                        "hostname": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "maxLength": 255
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "ip": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "maxLength": 64
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "mac": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "maxLength": 64
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "manufacturer": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "maxLength": 160
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "model": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "maxLength": 160
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "os": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "maxLength": 160
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "osVersion": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "maxLength": 80
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "osBuild": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "maxLength": 80
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "patchLevel": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "maxLength": 120
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "lastPatchDate": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "firmware": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "maxLength": 120
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "observedAt": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "source",
+                        "sourceRecordId",
+                        "collectedAt",
+                        "confidence",
+                        "assetKey"
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "records"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Kayıtlar işlendi; sonuç özeti döner"
+          },
+          "400": {
+            "description": "Gövde ya da parametre doğrulaması başarısız"
+          },
+          "401": {
+            "description": "Kimlik yok, geçersiz, süresi dolmuş ya da iptal edilmiş"
+          },
+          "403": {
+            "description": "Anahtarın kapsamında bu uç yok, salt okunur anahtarla yazma denendi, ya da istenen santral kapsam dışı"
+          },
+          "409": {
+            "description": "Aynı Idempotency-Key hâlâ işleniyor ya da başka bir uç için kullanılmış"
+          },
+          "429": {
+            "description": "İstek sınırı aşıldı — `Retry-After` başlığına bakın"
+          },
+          "500": {
+            "description": "Beklenmeyen sunucu hatası (iç ayrıntı gövdeye girmez)"
+          }
+        }
+      }
+    }
+  }
+}7:["$","$L11",null,{"belge":"$12","ozet":{"toplam":3,"kapsamsiz":2,"saltOkunur":2,"yazabilen":0,"pasif":1},"ucKullanimi":{"plants":2,"assets":2,"assets.upsert":2,"assets.observations":2,"evidence":2,"vulnerabilities":2,"backup-results":2,"integration-runs":2,"access-observations":2,"asset-state":2},"mirasli":2}]
+d:[["$","meta","0",{"charSet":"utf-8"}],["$","meta","1",{"name":"viewport","content":"width=device-width, initial-scale=1"}]]
+13:I[27201,["/uyumPlatformu/_next/static/chunks/1mpnoxox0-4cg.js"],"IconMark"]
+a:null
+f:[["$","title","0",{"children":"API sözleşmesi — Zorlu Enerji Yönetişim Platformu"}],["$","meta","1",{"name":"description","content":"Enerji üretimi BT/OT yönetişim ve uyum platformu: regülasyonlar, uyum süreçleri, bulgular, kanıtlar ve tam denetim izi."}],["$","link","2",{"rel":"icon","href":"/uyumPlatformu/favicon.ico?favicon.2vob68tjqpejf.ico","sizes":"256x256","type":"image/x-icon"}],["$","$L13","3",{}]]
+14:I[56532,["/uyumPlatformu/_next/static/chunks/1mpnoxox0-4cg.js","/uyumPlatformu/_next/static/chunks/2diuq0ktrxnn4.js"],"default"]
+6:["$","$L14",null,{"veri":{"kullanici":{"ad":"Ahmet Terzi","unvan":"BT Direktörü · demo (salt okunur)","demo":true,"yonetim":true},"kapsam":{"grup":"Zorlu Enerji Grubu","tuzelKisi":3,"santral":16},"ayak":{"toplam":7,"sayimlar":{"kimlik_bekleniyor":6,"taslak":1},"sonKosu":null},"kesit":null,"okunmamis":0,"surum":"0.1.0","kunye":"Zorlu Enerji Yönetişim Platformu","ortam":"demo"},"children":["$","$L2",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L4",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","forbidden":"$undefined","unauthorized":"$undefined"}]}]

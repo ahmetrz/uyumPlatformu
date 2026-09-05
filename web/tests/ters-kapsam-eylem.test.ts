@@ -358,20 +358,45 @@ describe('varlık alan işaretleri', () => {
   });
 
   it('firmware istisnası uyum DURUMUNU değiştirmez [ENV-FRM-010]', async () => {
-    const uyum = await db.firmwareUyumu.findFirstOrThrow();
-    const once = uyum.durum;
+    /* GİRDİYİ TEST KURAR. Önceki hâli `firmwareUyumu.findFirstOrThrow()`
+       ile veritabanında ne bulursa onu alıyordu ve bu sessiz bir
+       varsayımdı: `FirmwareUyumu` TÜRETİLMİŞ veridir — `firmwareUyumunuIsle`
+       motoru üretir, seed yazmaz. Geliştirme veritabanında motor koşmuş
+       olduğu için test yerelde yeşildi; CI'nın taze seed'inde tablo boştu
+       ve test P2025 ile kırıldı.
+
+       Ayrım önemli: bu dosyadaki öbür koşulsuz `findFirstOrThrow()`
+       çağrıları tesis, kullanıcı, madde gibi SEED'İN YAZDIĞI tablolara
+       bakar ve taze veritabanında da doludur. Kusur "koşulsuz ilk kaydı
+       al" deseninde değil, türetilmiş bir tabloyu seed sanmaktaydı.
+
+       Kayıt önce silinip yeniden kurulur; böylece test her ortamda AYNI
+       yolu koşar ve girdisi kendi elindedir. */
+    const varlik = await db.varlik.findFirstOrThrow({
+      where: { silindi: null }, select: { id: true },
+    });
+    await db.firmwareUyumu.deleteMany({ where: { varlikId: varlik.id } });
+    /* Durum bilerek `eski`: `taban_yok` bir kayıtta "durum değişmedi"
+       demek ucuzdur. Pahalı kusur, eski firmware'li bir cihazın istisna
+       kaydedildikten sonra uyumlu görünmesidir; iddia onu sınamalı. */
+    await db.firmwareUyumu.create({ data: {
+      varlikId: varlik.id, kuruluSurum: '1.0.0', durum: 'eski',
+      gerekce: 'Test girdisi: kurulu sürüm tabanın altında',
+    } });
+
     const sonuc = await firmwareIstisnasiKaydet({
-      varlikId: uyum.varlikId,
+      varlikId: varlik.id,
       gerekce: 'Üretici yeni sürüm yayınlamadı; kabul edildi',
       yukseltmePlani: '2027 planlı duruşunda',
     });
     expect(hataMetni(sonuc)).toBe('');
-    const sonra = await db.firmwareUyumu.findUniqueOrThrow({ where: { varlikId: uyum.varlikId } });
+    const sonra = await db.firmwareUyumu.findUniqueOrThrow({ where: { varlikId: varlik.id } });
     /* Cihaz hâlâ eski sürümdedir. İstisna "biliniyor ve kabul edildi"
        der; "artık uyumlu" DEMEZ. Durumu değiştirseydi risk raporu
        gerçekte yamalanmamış bir filoyu temiz gösterirdi. */
-    expect(sonra.durum).toBe(once);
+    expect(sonra.durum).toBe('eski');
     expect(sonra.istisnaGerekcesi).not.toBeNull();
+    expect(sonra.yukseltmePlani).toBe('2027 planlı duruşunda');
   });
 });
 

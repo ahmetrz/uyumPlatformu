@@ -226,6 +226,14 @@ const SABOTAJLAR = [
     testler: ['tests/eylem-dili.test.ts'],
   },
   {
+    ad: 'Firmware istisnası cihazı uyumlu ilan etti',
+    kural: 'İstisna "biliniyor ve kabul edildi" der, "artık uyumlu" DEMEZ',
+    dosya: 'lib/eylemler2/varlikDurusu.ts',
+    ara: '      data: { istisnaGerekcesi: v.gerekce, yukseltmePlani: v.yukseltmePlani ?? null },',
+    yaz: "      data: { istisnaGerekcesi: v.gerekce, yukseltmePlani: v.yukseltmePlani ?? null, durum: 'uyumlu' },",
+    testler: ['tests/ters-kapsam-eylem.test.ts'],
+  },
+  {
     ad: 'Kapanış yolu sunucu kapısından ayrıştı',
     kural: 'Ekranın "kapanışa hazır" dediği yerde sunucu kapısı da açıktır',
     dosya: 'lib/uyum/kapanisYolu.ts',

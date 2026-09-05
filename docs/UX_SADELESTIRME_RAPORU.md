@@ -163,6 +163,11 @@ kusuru, reddetmesi gereken şeyi kabul etmesidir.
 
 Bütün kapılar bu dalın HEAD'inde koşuldu.
 
+Vitest ve derleme satırları **CI'da**, taze `migrate deploy` + `seed.ts`
+üzerinde de koşuldu (bkz. "CI, yerelde göremediğim bir kusuru buldu").
+Tarayıcı isteyen kapılar yerel sunucuda koşulur; onlar için ölçüm ortamı
+geliştirme veritabanıdır.
+
 | Kapı | Sonuç |
 | --- | --- |
 | eslint (`--max-warnings=0`) | temiz |
@@ -183,7 +188,7 @@ Bütün kapılar bu dalın HEAD'inde koşuldu.
 | görev akışı (20 görev) | **ÇIKMAZ 0 · ort. 1,0 tıklama · ort. 0,2 sayfa geçişi** |
 | üretim derlemesi (`next build`) | temiz |
 | demo derlemesi (`demo:build`) | **10 rota statik · 147 sayfa kolon hizası temiz** |
-| sabotaj | **23 sabotaj · yakalanan 23 · kaçırılan 0 · geri yükleme bozuk 0** |
+| sabotaj | **24 sabotaj · yakalanan 24 · kaçırılan 0 · geri yükleme bozuk 0** |
 | çakışma imi taraması | **0** |
 | sır taraması (fark üzerinde) | **0** — gerçek uç/anahtar/token eklenmedi |
 
@@ -223,6 +228,46 @@ testi var.
 Buradaki ders raporun geri kalanı için de geçerlidir: bir ölçüm aracının
 yeşil olması, ölçtüğü şeyin doğru olduğunu göstermez. Aracı da kırmak
 gerekir.
+
+## CI, yerelde göremediğim bir kusuru buldu
+
+PR açıldıktan sonra CI kırmızı döndü. Kırılan test **bu programın
+yazdığı** testlerden biriydi: `ters-kapsam-eylem.test.ts` →
+`firmware istisnası uyum DURUMUNU değiştirmez [ENV-FRM-010]`.
+
+Test şöyle başlıyordu:
+
+```ts
+const uyum = await db.firmwareUyumu.findFirstOrThrow();
+```
+
+Bu bir iddia değil, sessiz bir **varsayımdı**: "veritabanında bir
+firmware uyum kaydı vardır." `FirmwareUyumu` ise TÜRETİLMİŞ veridir —
+`firmwareUyumunuIsle` motoru üretir, seed yazmaz. Geliştirme
+veritabanımda motor aylar önce koşmuş ve 347 kayıt bırakmıştı; test
+yerelde yeşildi. CI ise her koşuda `migrate deploy` + taze `seed.ts`
+ile başlıyor ve o tablo boş; test P2025 ile kırıldı.
+
+**Yerel yeşil, CI yeşili değildir.** Raporun "kapılar bu dalın HEAD'inde
+koşuldu" cümlesi doğruydu ama eksikti: kapılar benim geliştirme
+veritabanımda koşulmuştu ve o veritabanı, ürünün taze kurulumundan
+farklıdır. Bu farkı ölçmediğim için raporda vitest'i yeşil yazdım.
+
+Düzeltme testin girdisini kendi eline verdi: kayıt önce silinip yeniden
+kuruluyor, böylece test her ortamda AYNI yolu koşuyor. Durum bilerek
+`eski` seçildi — `taban_yok` bir kayıtta "durum değişmedi" demek ucuzdur;
+pahalı kusur, eski firmware'li bir cihazın istisna kaydedildikten sonra
+uyumlu görünmesidir.
+
+Ayrım önemli: depodaki öbür yirmi dört koşulsuz `findFirstOrThrow()`
+çağrısı tesis, kullanıcı, madde gibi **seed'in yazdığı** tablolara bakar
+ve taze veritabanında da doludur; hepsi CI'da geçti. Kusur "koşulsuz ilk
+kaydı al" deseninde değil, türetilmiş bir tabloyu seed sanmaktaydı.
+
+Kural artık bir sabotajla korunuyor (24'üncü): `firmwareIstisnasiKaydet`
+eylemine `durum: 'uyumlu'` eklendiğinde test kırmızı olur. İstisna
+"biliniyor ve kabul edildi" der; "artık uyumlu" DEMEZ — aksi hâlde risk
+raporu gerçekte yamalanmamış bir filoyu temiz gösterirdi.
 
 ## Görev akışı — ölçülen
 

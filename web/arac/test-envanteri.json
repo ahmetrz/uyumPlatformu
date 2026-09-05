@@ -1,7 +1,7 @@
 {
-  "imza": "9ff77d87cbe4bc90230b2c3f41980f47",
-  "dosya": 134,
-  "vaka": 2832,
+  "imza": "bf9c6dbd0707acd0da832ee713e3fded",
+  "dosya": 139,
+  "vaka": 2909,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -136,6 +136,10 @@
       "vaka": 13,
       "atlanan": 0
     },
+    "tests/eylem-dili.test.ts": {
+      "vaka": 3,
+      "atlanan": 0
+    },
     "tests/faz-b-alan.test.ts": {
       "vaka": 73,
       "atlanan": 0
@@ -254,6 +258,10 @@
     },
     "tests/kanitlar-mantik.test.ts": {
       "vaka": 23,
+      "atlanan": 0
+    },
+    "tests/kapanis-yolu.test.ts": {
+      "vaka": 29,
       "atlanan": 0
     },
     "tests/kapsam-ekranlari.test.ts": {
@@ -426,6 +434,18 @@
     },
     "tests/tedarikci-oturum.test.ts": {
       "vaka": 18,
+      "atlanan": 0
+    },
+    "tests/ters-kapsam-ekran.test.ts": {
+      "vaka": 13,
+      "atlanan": 0
+    },
+    "tests/ters-kapsam-eylem.test.ts": {
+      "vaka": 30,
+      "atlanan": 0
+    },
+    "tests/ters-kapsam.test.ts": {
+      "vaka": 2,
       "atlanan": 0
     },
     "tests/tesis360-eylem.test.ts": {

@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 import { useMemo, useState, useTransition } from 'react';
 import { Alan, BosIlk, Dugme, Kesir, type Durum } from '@/components/kabuk/temel';
 import { Tablo, type Satir } from '@/components/kabuk/tablo';
@@ -110,9 +111,11 @@ export default function KanitPaketiIstemci({
         <section className="ab-ekran-govde">
           {sirali.length === 0 ? (
             <div style={{ marginTop: 'var(--s26)' }}>
-              <BosIlk cumle={kisitliKapsam
-                ? 'Yetkinizin kapsamındaki santraller için değerlendirilmiş madde yok — paketlenecek kanıt bulunmuyor.'
-                : 'Hiçbir süreçte madde durumu yok — kanıt paketi üretilecek kapsam bulunmuyor.'} />
+              <BosIlk
+                cumle={kisitliKapsam
+                  ? 'Yetkinizin kapsamındaki santraller için değerlendirilmiş madde yok — paketlenecek kanıt bulunmuyor.'
+                  : 'Hiçbir süreçte madde durumu yok — kanıt paketi üretilecek kapsam bulunmuyor.'}
+                eylem={<Link href="/uyum" className="ab-dugme">Uyum matrisini aç</Link>} />
             </div>
           ) : (
             <div style={{ marginTop: 'var(--s26)' }}>

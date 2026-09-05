@@ -14,6 +14,7 @@
     "test:kapsam": "vitest run --coverage",
     "sayimlar:yenile": "node arac/test-envanteri.mjs --yaz && node arac/sayimlar.mjs --yaz",
     "sayimlar:denetle": "node arac/test-envanteri.mjs --denetle",
+    "ters:kapsam": "node arac/ters-kapsam.mjs",
     "gezinme:test": "node arac/gezinme-testi.mjs",
     "rota:duman": "node arac/rota-duman.mjs",
     "konsol:olcum": "node arac/konsol-olcum.mjs",
@@ -36,7 +37,10 @@
     "kalite:lighthouse": "node arac/lighthouse.mjs",
     "yedek": "node arac/yedek.mjs --al",
     "tasarim:ux": "node arac/ux-denetim.mjs",
-    "tasarim:cekmece": "node arac/cekmece-erisim.mjs"
+    "tasarim:cekmece": "node arac/cekmece-erisim.mjs",
+    "tasarim:yuk": "node arac/bilissel-yuk.mjs",
+    "tasarim:dil": "node arac/eylem-dili.mjs",
+    "tasarim:gorev": "node arac/gorev-akisi.mjs"
   },
   "dependencies": {
     "@prisma/adapter-better-sqlite3": "^7.10.0",

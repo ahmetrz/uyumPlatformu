@@ -181,7 +181,12 @@ export default function SaklamaIstemci({
 
       <Bolum baslik="Hukuki muhafaza">
         {holdSatirlari.length === 0
-          ? <BosIlk cumle="Tanımlı hukuki muhafaza yok." />
+          ? (
+            <BosIlk cumle="Tanımlı hukuki muhafaza yok."
+              eylem={yonetebilir
+                ? <Dugme tur="birincil" onClick={() => setForm('hold')}>Muhafaza aç</Dugme>
+                : undefined} />
+          )
           : <Tablo kolonlar={HOLD_KOLONLARI} satirlar={holdSatirlari} />}
         {yonetebilir && holdlar.some((h) => h.durum === 'aktif') && (
           <HoldKaldirma holdlar={holdlar.filter((h) => h.durum === 'aktif')} />
@@ -190,7 +195,12 @@ export default function SaklamaIstemci({
 
       <Bolum baslik="İmha kararları">
         {kararSatirlari.length === 0
-          ? <BosIlk cumle="Hiç imha kararı açılmadı." />
+          ? (
+            <BosIlk cumle="Hiç imha kararı açılmadı."
+              eylem={yonetebilir
+                ? <Dugme tur="birincil" onClick={() => setForm('imha')}>İmha kararı aç</Dugme>
+                : undefined} />
+          )
           : <Tablo kolonlar={KARAR_KOLONLARI} satirlar={kararSatirlari} />}
         {yonetebilir && <KararEylemleri kararlar={kararlar} />}
       </Bolum>

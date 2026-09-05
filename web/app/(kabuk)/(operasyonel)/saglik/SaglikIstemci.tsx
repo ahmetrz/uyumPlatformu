@@ -298,7 +298,10 @@ function MotorTablosu({ bolum, secili, sec, kuyrugaAc, olculmedi }: {
   });
 
   if (satirlar.length === 0 && bolum.toplanan.length === 0) {
-    return <BosIlk cumle="Motor kataloğu boş — hiçbir otomasyon tanımlı değil." />;
+    return (
+      <BosIlk cumle="Motor kataloğu boş — hiçbir otomasyon tanımlı değil."
+        eylem={<Link href="/yonetim-tezgahi" className="ab-dugme">Yönetim tezgâhını aç</Link>} />
+    );
   }
 
   const parcalar = [`${bolum.gorunur.length} motor görünüyor`];
@@ -488,8 +491,8 @@ function KaliteTablosu({ bolum, secili, sec, kuyrugaAc, toplam }: {
 }) {
   if (toplam === 0) {
     return (
-      <BosIlk cumle={'Açık veri kalitesi bulgusu yok. Motor koştuğunda bulduğu '
-        + 'boşluklar burada listelenir.'} />
+      <BosIlk iyiHaber cumle={'Açık veri kalitesi bulgusu yok. Motor koştuğunda '
+        + 'bulduğu boşluklar burada listelenir.'} />
     );
   }
 
@@ -591,7 +594,7 @@ function KokenBolumu({ ozet, kaynakBolum, tipBolum, secili, sec, kuyrugaAc }: {
   return (
     <>
       {ozet.kaynaklar.length === 0 ? (
-        <BosIlk cumle={'Hiç köken kaydı yok. Bir connector veri getirdiğinde hangi '
+        <BosIlk iyiHaber cumle={'Hiç köken kaydı yok. Bir connector veri getirdiğinde hangi '
           + 'kaynağın hangi kaydı beslediği burada görünür. Kökeni olmayan '
           + 'kayıtlar aşağıda yine de sayılır.'} />
       ) : (

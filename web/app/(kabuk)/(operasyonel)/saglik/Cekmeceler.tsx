@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 import { BaglantiYok, Bar, EntegrasyonYok, Im, type Durum } from '@/components/kabuk/temel';
 import {
   CekmeceKimlik, CekmeceAlanlar, CekmeceBagli,
@@ -142,7 +143,8 @@ export function ConnectorOzeti({ c, ozet, yazabilir, kapat }: {
       )}
       {(c.durum === 'basarisiz' || c.durum === 'bayat_kosu') && (
         <BaglantiYok kaynak={c.kaynakSistem}
-          sonBasarili={c.sonBasariliKosu ? zamanTR(c.sonBasariliKosu) : undefined} />
+          sonBasarili={c.sonBasariliKosu ? zamanTR(c.sonBasariliKosu) : undefined}
+          eylem={<Link href="/saglik" className="ab-dugme">Koşu geçmişini aç</Link>} />
       )}
 
       <CekmeceAlanlar alanlar={[

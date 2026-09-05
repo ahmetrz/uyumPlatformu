@@ -105,7 +105,12 @@ export default function SayimIstemci({
       )}
 
       {tablo.length === 0
-        ? <BosIlk cumle="Hiç envanter sayımı açılmadı." />
+        ? (
+          <BosIlk cumle="Hiç envanter sayımı açılmadı."
+            eylem={yazabilir
+              ? <Dugme tur="birincil" onClick={() => setFormAcik(true)}>Sayım aç</Dugme>
+              : undefined} />
+        )
         : <Tablo kolonlar={KOLONLAR} satirlar={tablo} />}
 
       {yazabilir && acik.length > 0 && (

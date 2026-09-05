@@ -203,6 +203,49 @@ const SABOTAJLAR = [
     yaz: 'role="grid"',
     testler: ['tests/senaryo-platform.test.ts'],
   },
+
+  /* ── Bu programın kurduğu üç kapı ────────────────────────────────────
+     Yeni bir kapı, kırılmadığı sürece bir kapı değildir. */
+  {
+    ad: 'Kütükten bir davranış düştü',
+    kural: 'Koddaki her kullanıcı davranışı senaryo kütüğünde yazılıdır',
+    dosya: 'lib/senaryo/kutuk.ts',
+    ara: '  ...KAPSAMA_SENARYOLARI,\n',
+    yaz: '',
+    testler: ['tests/ters-kapsam.test.ts'],
+  },
+  {
+    ad: 'Boş durum yeniden "ne yapabilirim" demiyor',
+    kural: 'Her bozuk durum bloğu eylem ya da beklenen-durum taşır',
+    dosya: 'app/(kabuk)/(operasyonel)/sayim/SayimIstemci.tsx',
+    ara: `          <BosIlk cumle="Hiç envanter sayımı açılmadı."
+            eylem={yazabilir
+              ? <Dugme tur="birincil" onClick={() => setFormAcik(true)}>Sayım aç</Dugme>
+              : undefined} />`,
+    yaz: '          <BosIlk cumle="Hiç envanter sayımı açılmadı." />',
+    testler: ['tests/eylem-dili.test.ts'],
+  },
+  {
+    ad: 'Firmware istisnası cihazı uyumlu ilan etti',
+    kural: 'İstisna "biliniyor ve kabul edildi" der, "artık uyumlu" DEMEZ',
+    dosya: 'lib/eylemler2/varlikDurusu.ts',
+    ara: '      data: { istisnaGerekcesi: v.gerekce, yukseltmePlani: v.yukseltmePlani ?? null },',
+    yaz: "      data: { istisnaGerekcesi: v.gerekce, yukseltmePlani: v.yukseltmePlani ?? null, durum: 'uyumlu' },",
+    testler: ['tests/ters-kapsam-eylem.test.ts'],
+  },
+  {
+    ad: 'Kapanış yolu sunucu kapısından ayrıştı',
+    kural: 'Ekranın "kapanışa hazır" dediği yerde sunucu kapısı da açıktır',
+    dosya: 'lib/uyum/kapanisYolu.ts',
+    ara: `  const kapi = kapanisKapisi({
+    onemDerecesi: g.onemDerecesi,
+    tekrarMi: g.tekrarMi,
+    analiz: g.analiz,
+    acikAksiyon: g.aksiyonAcik,
+  });`,
+    yaz: '  const kapi = { ok: true } as const;',
+    testler: ['tests/kapanis-yolu.test.ts'],
+  },
 ];
 
 function testKos(testler) {

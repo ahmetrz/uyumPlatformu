@@ -178,8 +178,16 @@ export default function Plant360({ veri, santraller }: {
 
           <div className="bolum">
             <p className="etiket">Katmanlı durum · kontrol ailesi</p>
+            {/* "Ölçülmedi" doğru bir cevaptır ama TEK BAŞINA yetmez:
+                kullanıcı bu ekrana "bu santral kontrol altında mı"
+                sorusuyla gelir ve cevap "bilmiyoruz" ise sıradaki iş
+                ölçmeye başlamaktır. */}
             {veri.katmanlar.length === 0 ? (
-              <p className="bos">Bu santralde değerlendirilmiş kontrol yok.</p>
+              <p className="bos">
+                Bu santralde değerlendirilmiş kontrol yok — santral bir uyum
+                kampanyasına alındığında kontroller burada görünür.{' '}
+                <Link href="/surecler">Uyum kampanyaları →</Link>
+              </p>
             ) : veri.katmanlar.slice(0, 6).map((kt) => (
               <div key={kt.kod} className="katman">
                 <span className="mono ad">{kt.ad}</span>
@@ -204,7 +212,11 @@ export default function Plant360({ veri, santraller }: {
                 </p>
               </>
             ) : (
-              <p className="bos">Bu santralde açık risk kaydı yok.</p>
+              <p className="bos">
+                Bu santralde açık risk kaydı yok. Risk kütüğüne bu santral için
+                hiç kayıt açılmamış olması da bir olasılıktır.{' '}
+                <Link href="/riskler">Risk kütüğü →</Link>
+              </p>
             )}
           </div>
 
@@ -237,7 +249,11 @@ export default function Plant360({ veri, santraller }: {
           </span>
         </header>
         {veri.zincir.length === 0 ? (
-          <p className="bos">Bu santral için kayıtlı sistem yok.</p>
+          <p className="bos">
+            Bu santral için kayıtlı sistem yok — varlıklar envanterde bir
+            sisteme bağlandığında burada kritiklik sırasıyla listelenir.{' '}
+            <Link href="/envanter">Envanteri aç →</Link>
+          </p>
         ) : (
           <div className="duraklar">
             {veri.zincir.map((z) => (

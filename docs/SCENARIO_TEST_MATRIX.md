@@ -4,12 +4,12 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 230 |
-| Testi olan senaryo | 230 |
+| Senaryo | 275 |
+| Testi olan senaryo | 275 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
-| Taranan test dosyası | 134 |
+| Taranan test dosyası | 139 |
 
 ## Katman başına kapsam
 
@@ -18,17 +18,17 @@
 | ACCESSIBILITY | 8 | 8 | 0 |
 | API | 12 | 12 | 0 |
 | CONCURRENCY | 7 | 7 | 0 |
-| DOMAIN | 124 | 124 | 0 |
-| ENGINE | 28 | 28 | 0 |
-| INTEGRATION | 21 | 21 | 0 |
+| DOMAIN | 142 | 142 | 0 |
+| ENGINE | 33 | 33 | 0 |
+| INTEGRATION | 26 | 26 | 0 |
 | MIGRATION | 2 | 2 | 0 |
 | RBAC | 32 | 32 | 0 |
 | RESPONSIVE | 8 | 8 | 0 |
-| SCOPE | 25 | 25 | 0 |
-| SERVER | 80 | 80 | 0 |
-| UI | 65 | 65 | 0 |
-| VISUAL | 2 | 2 | 0 |
-| WORKFLOW | 26 | 26 | 0 |
+| SCOPE | 30 | 30 | 0 |
+| SERVER | 104 | 104 | 0 |
+| UI | 77 | 77 | 0 |
+| VISUAL | 4 | 4 | 0 |
+| WORKFLOW | 32 | 32 | 0 |
 
 ## Satır satır
 
@@ -264,6 +264,52 @@
 | `SIS-BSL-002` | Sistem | UI | `ekran-basligi.test.ts` | künyede ister kodu geçmiyor | evet | geçti |
 | `SIS-ERS-002` | Sistem | ACCESSIBILITY · UI | `senaryo-platform.test.ts` | seçilemeyen tablo grid demez, işaretçi imleci taşımaz | evet | geçti |
 | `SIS-ERS-003` | Sistem | ACCESSIBILITY | `senaryo-platform.test.ts` | sekme rolü yalnız gerçek sekmelerde kullanılır | evet | geçti |
+| `SAH-GRS-001` | Saha | DOMAIN · UI | `ters-kapsam-ekran.test.ts` | fotoğrafı olmayan santral BAŞKA santralin görselini almaz | evet | geçti |
+| `SAH-GRS-002` | Saha | SERVER · DOMAIN | `ters-kapsam-eylem.test.ts` | hiç anlık görüntü yoksa eğilim null kalır — düz sıfır çizgisi çizilmez | evet | geçti |
+| `AKT-IZL-001` | Aktivite | DOMAIN · UI | `ters-kapsam-ekran.test.ts` | mercek hiçbir kayda uymayınca boş SÜZGEÇ sonucu doğar | evet | geçti |
+| `AKT-IZL-002` | Aktivite | DOMAIN | `ters-kapsam-ekran.test.ts` | aktörü bilinmeyen kayıt aktör sayısına KATILMAZ, ayrı sayılır | evet | geçti |
+| `API-SZL-001` | API | DOMAIN · UI | `ters-kapsam-ekran.test.ts` | kapsamı tanımsız anahtar, "salt okunur" cümlesinin ARDINA saklanmaz | evet | geçti |
+| `SIS-BKM-001` | Sistem | DOMAIN · UI | `ters-kapsam-ekran.test.ts` | bitiş saati uydurulmaz ve eylem düğmesi konmaz | evet | geçti |
+| `SIS-TKN-001` | Sistem | DOMAIN · VISUAL | `ters-kapsam-ekran.test.ts` | token değerleri stil dosyasından OKUNUR, ekrana elle yazılmaz | evet | geçti |
+| `SIS-BLS-001` | Sistem | UI · VISUAL | `ters-kapsam-ekran.test.ts` | bozuk durum primitiflerinin HEPSİ galeride yer alır | evet | geçti |
+| `UYU-SRC-001` | Uyum | DOMAIN | `ters-kapsam-ekran.test.ts` | hiçbir madde değerlendirilmemişse yüzde null kalır — %0 değil | evet | geçti |
+| `UYU-SRC-002` | Uyum | DOMAIN | `ters-kapsam-ekran.test.ts` | kapsam dışı madde paydaya girmez; toplam alt sayımların toplamıdır | evet | geçti |
+| `TES-YON-001` | Tesis | UI | `ters-kapsam-ekran.test.ts` | eski adres kanona yönlendirir; ikinci bir santral listesi tutulmaz | evet | geçti |
+| `DEN-LST-002` | Denetim | DOMAIN · UI | `ters-kapsam-ekran.test.ts` | boş liste ile boş süzgeç sonucu AYRI durumlardır | evet | geçti |
+| `UYU-CRC-004` | Uyum | DOMAIN · UI | `ters-kapsam-ekran.test.ts` | değerlendirilmemiş madde uyumlu da uyumsuz da SAYILMAZ | evet | geçti |
+| `YON-TZG-001` | Yönetim konsolu | DOMAIN · UI | `ters-kapsam-ekran.test.ts` | tezgâhta boş süzgeç sonucu, hiç görev olmamasından ayrılır | evet | geçti |
+| `OLY-BLD-001` | Olay | SERVER · WORKFLOW | `ters-kapsam-eylem.test.ts` | kural SİLİNMEZ, pasifleştirilir — geçmiş olayın dayanağı kayıtta kalır | evet | geçti |
+| `EGT-MDD-001` | Eğitim | SERVER | `ters-kapsam-eylem.test.ts` | olmayan bağı kaldırmak hata vermez ve İZ YAZMAZ — idempotent | evet | geçti |
+| `SAG-KOS-001` | Sağlık | SERVER · INTEGRATION | `ters-kapsam-eylem.test.ts` | kuru koşu hiçbir varlık kaydı YAZMAZ | evet | geçti |
+| `SAG-KOS-002` | Sağlık | SERVER · INTEGRATION | `ters-kapsam-eylem.test.ts` | tanımsız tetikleyenle senkronizasyon reddedilir | evet | geçti |
+| `SAG-ETK-001` | Sağlık | SERVER · INTEGRATION | `ters-kapsam-eylem.test.ts` | sır referansı olmadan connector etkinleştirilemez | evet | geçti |
+| `ESL-SZL-001` | Eşleme | SERVER · DOMAIN | `ters-kapsam-eylem.test.ts` | sözlük KOPYA verir; çağıran onu değiştirerek kaynağı bozamaz | evet | geçti |
+| `ESL-BAG-001` | Eşleme | SERVER · INTEGRATION | `ters-kapsam-eylem.test.ts` | tipi tutmayan profil bağlanamaz | evet | geçti |
+| `GZD-KRR-001` | Gözden geçirme | SERVER · WORKFLOW | `ters-kapsam-eylem.test.ts` | karar kapanınca bağlı görev de kapanır | evet | geçti |
+| `GZD-KRR-002` | Gözden geçirme | SERVER · WORKFLOW | `ters-kapsam-eylem.test.ts` | karar iptali gerekçe ister | evet | geçti |
+| `OLY-ETK-003` | Olay | SERVER · SCOPE | `ters-kapsam-eylem.test.ts` | kapsam dışı olayın etki önerisi yenilenemez | evet | geçti |
+| `TOP-TML-001` | Topoloji | SERVER · SCOPE | `ters-kapsam-eylem.test.ts` | kapsam dışı anlık temel onaylanamaz | evet | geçti |
+| `TOP-BUL-001` | Topoloji | SERVER · WORKFLOW | `ters-kapsam-eylem.test.ts` | madde durumu bağlanmadan sapmadan bulgu açılamaz | evet | geçti |
+| `VAK-YUK-001` | Varlık aktarımı | SERVER · INTEGRATION | `ters-kapsam-eylem.test.ts` | desteklenmeyen dosya türü aktarım kaydı AÇMAZ | evet | geçti |
+| `VAK-YUK-001` | Varlık aktarımı | SERVER · INTEGRATION | `ters-kapsam-eylem.test.ts` | boş dosya da reddedilir ve kayıt açmaz | evet | geçti |
+| `VAK-ESL-001` | Varlık aktarımı | SERVER · WORKFLOW | `ters-kapsam-eylem.test.ts` | etiket alanı eşlenmeden ilerlenemez | evet | geçti |
+| `VAK-RED-001` | Varlık aktarımı | SERVER · WORKFLOW | `ters-kapsam-eylem.test.ts` | onaylanmış aktarım reddedilemez | evet | geçti |
+| `ENV-UYG-001` | Envanter | SERVER · SCOPE | `ters-kapsam-eylem.test.ts` | kapsam dışı varlığın uygulanamaz işareti kaldırılamaz | evet | geçti |
+| `ENV-FRM-010` | Envanter | SERVER · DOMAIN | `ters-kapsam-eylem.test.ts` | firmware istisnası uyum DURUMUNU değiştirmez | evet | geçti |
+| `ENV-PRS-001` | Envanter | SERVER · SCOPE | `ters-kapsam-eylem.test.ts` | olmayan proses adımı bağı sessizce başarılı SAYILMAZ | evet | geçti |
+| `YTK-EKP-001` | Yetkiler | SERVER | `ters-kapsam-eylem.test.ts` | olmayan ekip üyeliği sessizce başarılı SAYILMAZ | evet | geçti |
+| `YDP-BAG-001` | Yedek parça | SERVER · SCOPE | `ters-kapsam-eylem.test.ts` | zaten çözülmüş yedek parça bağı ikinci kez çözülünce iz yazılmaz | evet | geçti |
+| `YON-MOD-003` | Yönetim konsolu | SERVER · DOMAIN | `ters-kapsam-eylem.test.ts` | tanımsız modül kodu bir sınıfa DÜŞMEZ, null döner | evet | geçti |
+| `ZIM-SUR-010` | Zimmet | SERVER · DOMAIN | `ters-kapsam-eylem.test.ts` | zimmet süre sınırları TEK kaynaktan gelir | evet | geçti |
+| `UYU-ANL-001` | Uyum | ENGINE | `ters-kapsam-eylem.test.ts` | uyum anlığı günde bir alınır | evet | geçti |
+| `ENV-FRM-011` | Envanter | ENGINE | `ters-kapsam-eylem.test.ts` | firmware kararı değişmediyse yeniden YAZILMAZ | evet | geçti |
+| `ENV-AGT-001` | Envanter | ENGINE | `ters-kapsam-eylem.test.ts` | segmenti atanmamış varlık için ölçüm BORCU açılır, bulgu değil | evet | geçti |
+| `TAB-DRF-001` | Konfigürasyon tabanı | ENGINE | `ters-kapsam-eylem.test.ts` | özeti olmayan yedek konfigürasyon SAPMASI açmaz | evet | geçti |
+| `ENV-GRN-001` | Envanter | ENGINE | `ters-kapsam-eylem.test.ts` | "hiç görülmedi" ile "ağda görülmedi" ayrı kurallardır | evet | geçti |
+| `SIS-KYR-001` | Sistem | SERVER | `ters-kapsam-eylem.test.ts` | aynı adla ikinci sağlayıcı sessizce ÜSTÜNE YAZMAZ | evet | geçti |
+| `BUL-KAP-003` | Bulgu | DOMAIN · UI | `kapanis-yolu.test.ts` | kapanış şeridi TIKLANABİLİR — süs değil, navigatör | evet | geçti |
+| `BUL-KAP-004` | Bulgu | DOMAIN · UI | `kapanis-yolu.test.ts` | kök nedene yazan İKİNCİ form yoktur | evet | geçti |
+| `BUL-KAP-005` | Bulgu | UI | `kapanis-yolu.test.ts` | kayıt açılınca düzenleme formu KENDİLİĞİNDEN gelmez | evet | geçti |
 
 ## Gerekçesiyle kütüksüz kalan dosyalar
 
@@ -271,6 +317,8 @@
 | --- | --- |
 | `belge-sayimlari.test.ts` | Belgelerdeki sayıların koda karşı doğrulaması |
 | `senaryo-kutugu.test.ts` | Kütüğün kendi nöbetçisi |
+| `ters-kapsam.test.ts` | Ters kapsamanın nöbetçisi — davranış envanterini kütüğe karşı sayar |
+| `eylem-dili.test.ts` | Bozuk durum bloklarının eylem/beklenen-durum nöbetçisi |
 | `bagimlilik-guvenligi.test.ts` | Bağımlılık ağacının güvenlik taraması |
 | `kalite-kapilari.test.ts` | Kapı betiklerinin varlığı |
 | `semantik.test.ts` | Ortak durum sözlüğünün tutarlılığı |

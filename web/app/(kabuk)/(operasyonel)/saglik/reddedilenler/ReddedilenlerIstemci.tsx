@@ -61,7 +61,7 @@ export default function ReddedilenlerIstemci({
     if (satirlar.length === 0) {
       return (
         /* Kuyruğun boş olması ile kuyruğu görememek AYNI ŞEY DEĞİLDİR. */
-        <BosIlk cumle={kapsamli
+        <BosIlk iyiHaber={!kapsamli} cumle={kapsamli
           ? 'Kapsamınızdaki santrallere ait reddedilen kayıt yok.'
           : 'Reddedilen kayıt yok. Bir connector koşusunda düşen her '
             + 'kayıt — şemadan, eşlemeden, doğrulamadan ya da kapsamdan — burada '

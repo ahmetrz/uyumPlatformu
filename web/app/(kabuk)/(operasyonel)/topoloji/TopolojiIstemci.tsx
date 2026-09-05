@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { useUrlDurumu, useUrlDurumuBos } from '@/components/kabuk/urlDurumu';
 import { BosFiltre, BosIlk } from '@/components/kabuk/temel';
@@ -184,9 +185,27 @@ export default function TopolojiIstemci({
   const bolgeOdakla = (id: string) => setSeciliBolge(id === seciliBolge ? '-' : id);
   const bolgeKapat = () => setSeciliBolge('-');
 
+  /* Temel şeridinin tek satırlık özeti. Üç hâl AYRI sayılır: ölçülmüş ve
+     temeli onaylı · ölçülmüş ama temeli onaylanmamış (sapma
+     HESAPLANMIYOR) · hiç ölçülmemiş. Üçünü tek sayıya toplamak,
+     "sapma yok" ile "hiç bakılmadı"yı aynı kefeye koyardı. */
+  const temelOzeti = (() => {
+    const olculmemis = temelSeridi.filter((t) => t.anlikSayisi === 0).length;
+    const temelsiz = temelSeridi.filter((t) => t.anlikSayisi > 0 && !t.temelVar).length;
+    const onayli = temelSeridi.filter((t) => t.temelVar).length;
+    return [
+      `${temelSeridi.length} kapsam`,
+      onayli > 0 ? `${onayli} temeli onaylı` : null,
+      temelsiz > 0 ? `${temelsiz} temel bekliyor` : null,
+      olculmemis > 0 ? `${olculmemis} hiç ölçülmedi` : null,
+    ].filter(Boolean).join(' · ');
+  })();
+
   const bolgeGorunumu = bolgeler.length === 0 ? (
-    <BosIlk cumle={'Kapsamınızda ağ bölgesi tanımı yok — bölge ve geçit tanımı'
-      + ' varlık aktarımı (CMDB kaydı) ile gelir; bu ekran ağı taramaz.'} />
+    <BosIlk
+      cumle={'Kapsamınızda ağ bölgesi tanımı yok — bölge ve geçit tanımı'
+        + ' varlık aktarımı (CMDB kaydı) ile gelir; bu ekran ağı taramaz.'}
+      eylem={<Link href="/varlik-aktarim" className="ab-dugme">Varlık aktarımını aç</Link>} />
   ) : (
     <>
       <BolgeTuvali grafik={bolgeGrafigi} odak={seciliBolge} odakla={bolgeOdakla} />
@@ -223,9 +242,11 @@ export default function TopolojiIstemci({
           baslik="Topoloji anlığı alınmadı" />
         <section className="ab-ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
           <AnlikAlmaFormu tesisler={tesisler} yazabilir={yazabilir} />
-          <BosIlk cumle={'Kapsamınızda topoloji anlığı yok — bu "sapma yok" demek'
-            + ' değildir, hiç ölçülmedi demektir. Onaylı ağ kaydından bir anlık'
-            + ' dondurun, sonra onu temel olarak onaylayın.'} />
+          <BosIlk
+            cumle={'Kapsamınızda topoloji anlığı yok — bu "sapma yok" demek'
+              + ' değildir, hiç ölçülmedi demektir. Yukarıdaki formdan onaylı ağ'
+              + ' kaydından bir anlık dondurun, sonra onu temel olarak onaylayın.'}
+            eylem={<Link href="/envanter" className="ab-dugme">Ağ kaydını aç</Link>} />
 
           {/* Bölge tanımı anlıktan bağımsızdır: anlık yokken de çizilir,
               çünkü tanım varlık aktarımıyla gelir ve okunabilir olmalıdır. */}
@@ -272,9 +293,25 @@ export default function TopolojiIstemci({
           <AnlikAlmaFormu tesisler={tesisler} yazabilir={yazabilir} />
 
           {/* Temel şeridi: her kapsamın temeli VAR MI — sapmanın hesaplanıp
-              hesaplanmadığı bu satırda okunur, tabloda değil. */}
-          <section className="ab-blok" style={{ maxWidth: 'none', marginBottom: 'var(--s20)' }}>
-            <p className="etiket" style={{ margin: 0 }}>Onaylı temel · kapsam başına</p>
+              hesaplanmadığı bu satırda okunur, tabloda değil.
+
+              ÖLÇÜLDÜ: bu blok açıkken 480px yer kaplıyordu ve sapma
+              kuyruğunu 871px'e — katlamanın altına — itiyordu. On üç
+              satırın sekizi aynı cümleydi ("anlık yok — topoloji hiç
+              ölçülmedi"). Kullanıcı buraya sapmaya karar vermeye gelir;
+              temel envanteri o kararın BAĞLAMIDIR, kendisi değil.
+
+              Sayı satırı hep görünür (bağlam kaybolmaz), tam liste
+              açılır. "Hiç ölçülmedi" sayısı önde durur çünkü sıfır
+              sapma ile hiç ölçülmemiş kapsam AYNI ŞEY DEĞİLDİR. */}
+          <details className="ab-blok ab-dok-bosluk"
+            style={{ maxWidth: 'none', marginBottom: 'var(--s20)' }}>
+            <summary>
+              <span className="etiket">Onaylı temel · kapsam başına</span>
+              <span className="mono" style={{ marginLeft: 'var(--s12)', color: 'var(--i2)' }}>
+                {temelOzeti}
+              </span>
+            </summary>
             <ul style={{ listStyle: 'none', margin: 'var(--s12) 0 0', padding: 0,
               display: 'grid', gap: 'var(--s6)' }}>
               {temelSeridi.map((t) => (
@@ -306,7 +343,7 @@ export default function TopolojiIstemci({
                   + `${iz.motorZamani ? ` (${zamanTR(iz.motorZamani)})` : ''}`
                 : ' · motor bu kapsamda hiç koşmadı'}
             </p>
-          </section>
+          </details>
 
           <KipDegistir
             secenekler={[

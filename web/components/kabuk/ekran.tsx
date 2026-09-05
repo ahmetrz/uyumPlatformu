@@ -1,7 +1,7 @@
 'use client';
 import type { ReactNode } from 'react';
 import Link from 'next/link';
-import { Metrikler, type Metrik, type Durum } from './temel';
+import { Im, Metrikler, type Metrik, type Durum } from './temel';
 
 /* ═══════════════════════════════════════════════════════════════════════
    EKRAN İSKELETİ
@@ -188,5 +188,80 @@ export function OdakKarti({
         </div>
       )}
     </article>
+  );
+}
+
+/* ── Kapanış yolu şeridi ──────────────────────────────────────────────
+   K arketipinin (kayıt detayı) ana yüzeydeki karar bandı.
+
+   Buradan ÖNCE bu şeridin yerinde `Asamalar` vardı ve dekoratifti:
+   dört aşamayı ve tarihlerini çiziyor, hiçbiri tıklanmıyordu. Kullanıcı
+   "ne eksik" sorusunun cevabını dört ayrı yerden kendi topluyordu ve
+   ekranın ana kolonunda tek bir eylem düğmesi yoktu — ölçüm: ilk
+   birincil eylem 1098px, çekmecenin içinde.
+
+   Bu şerit üç şeyi birden yapar ve üçü de aynı veriden gelir:
+     1 · her adımın DURUMU (yapıldı · sıradaki iş · sırası gelmedi),
+     2 · sıradaki işin GÖREV DİLİNDE tek cümlesi,
+     3 · o işe götüren BİRİNCİL eylem.
+
+   Adımlar düğmedir: şerit bir navigatördür, ilerleme süsü değil.
+
+   Renk semantiği (§22): yapılan `ok`, sıradaki iş `md` (dikkat, hata
+   değil), sırası gelmemiş `unk` (nötr belirsizlik). Eksik bir adım
+   KIRMIZI DEĞİLDİR — kırmızı gerçek kusur içindir ve her açık kaydı
+   kırmızıya boyamak kırmızının anlamını tüketirdi. */
+
+export type YolAdimi = {
+  anahtar: string;
+  ad: string;
+  durum: 'tamam' | 'eksik' | 'bekliyor';
+  /** Görev dilinde tek cümle. */
+  cumle: string;
+  /** Adın altındaki olgu: tarih, sayı. Yoksa boş. */
+  olgu: string;
+};
+
+const YOL_IMI: Record<YolAdimi['durum'], Durum> = {
+  tamam: 'ok', eksik: 'md', bekliyor: 'unk',
+};
+
+export function KapanisBandi({
+  baslik = 'Kapanış için gerekenler', adimlar, sonraki, git, birincil, bittiCumlesi,
+}: {
+  adimlar: YolAdimi[];
+  /** Sıradaki iş; `null` = yapacak bir şey yok. */
+  sonraki: { anahtar: string; cumle: string } | null;
+  /** Adıma tıklanınca çağrılır — o adımın işine götürür. */
+  git: (anahtar: string) => void;
+  /** Sıradaki işin birincil eylemi. */
+  birincil?: ReactNode;
+  baslik?: string;
+  /** Sıradaki iş yokken yazılan cümle (kapandı · riski kabul edildi). */
+  bittiCumlesi?: string;
+}) {
+  return (
+    <section className="ab-yol" aria-label={baslik}>
+      <p className="etiket ab-yol-bas">{baslik}</p>
+      <ol className="ab-yol-serit">
+        {adimlar.map((a) => (
+          <li key={a.anahtar} className={a.durum}>
+            <button type="button" onClick={() => git(a.anahtar)}
+              {...(a.anahtar === sonraki?.anahtar ? { 'aria-current': 'step' as const } : {})}
+              title={a.cumle}>
+              <Im durum={YOL_IMI[a.durum]} ad={`${a.ad} — ${a.cumle}`} />
+              <span className="ad">{a.ad}</span>
+              {a.olgu && <span className="mono olgu">{a.olgu}</span>}
+            </button>
+          </li>
+        ))}
+      </ol>
+      <p className="ab-yol-sonraki">
+        <span className="cumle">
+          {sonraki ? <><b>Sıradaki iş —</b> {sonraki.cumle}</> : bittiCumlesi}
+        </span>
+        {birincil}
+      </p>
+    </section>
   );
 }

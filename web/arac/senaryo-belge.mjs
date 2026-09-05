@@ -30,6 +30,8 @@ const BELGE_DIZINI = path.join(KOK, '..', 'docs');
 export const KUTUKSUZ_DOSYALAR = {
   'belge-sayimlari.test.ts': 'Belgelerdeki sayıların koda karşı doğrulaması',
   'senaryo-kutugu.test.ts': 'Kütüğün kendi nöbetçisi',
+  'ters-kapsam.test.ts': 'Ters kapsamanın nöbetçisi — davranış envanterini kütüğe karşı sayar',
+  'eylem-dili.test.ts': 'Bozuk durum bloklarının eylem/beklenen-durum nöbetçisi',
   'bagimlilik-guvenligi.test.ts': 'Bağımlılık ağacının güvenlik taraması',
   'kalite-kapilari.test.ts': 'Kapı betiklerinin varlığı',
   'semantik.test.ts': 'Ortak durum sözlüğünün tutarlılığı',
@@ -106,7 +108,7 @@ function registryMetni(senaryolar, olcum) {
   satirlar.push('# Ana senaryo kütüğü');
   satirlar.push('');
   satirlar.push('Bu belge **elle yazılmaz.** `web/lib/senaryo/` altındaki kütükten');
-  satirlar.push('`node arac/senaryo-belge.mjs --yaz` ile üretilir ve');
+  satirlar.push('`npx tsx arac/senaryo-belge.mjs --yaz` ile üretilir ve');
   satirlar.push('`tests/senaryo-kutugu.test.ts` sapma olduğu an kırmızı olur.');
   satirlar.push('');
   satirlar.push('Senaryo ile test arasındaki bağ, testin **kendi başlığıdır**:');

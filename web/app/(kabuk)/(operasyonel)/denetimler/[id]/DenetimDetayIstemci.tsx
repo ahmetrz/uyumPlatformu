@@ -241,7 +241,7 @@ export default function DenetimDetayIstemci({ veri }: { veri: DetayVerisi }) {
                 />
               )
             ) : veri.bulgular.length === 0 ? (
-              <BosIlk cumle="Bu denetime bağlı bulgu yok." />
+              <BosIlk iyiHaber cumle="Bu denetime bağlı bulgu yok." />
             ) : (
               <Tablo
                 sik

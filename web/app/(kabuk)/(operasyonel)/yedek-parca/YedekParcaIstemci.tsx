@@ -110,7 +110,12 @@ export default function YedekParcaIstemci({
       )}
 
       {tablo.length === 0
-        ? <BosIlk cumle="Kayıtlı yedek parça yok." />
+        ? (
+          <BosIlk cumle="Kayıtlı yedek parça yok."
+            eylem={yazabilir
+              ? <Dugme tur="birincil" onClick={() => setFormAcik(true)}>Parça ekle</Dugme>
+              : undefined} />
+        )
         : <Tablo kolonlar={KOLONLAR} satirlar={tablo} />}
 
       {yazabilir && parcalar.length > 0 && <StokSayimi parcalar={parcalar} />}

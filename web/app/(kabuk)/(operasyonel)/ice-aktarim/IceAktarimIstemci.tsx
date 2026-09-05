@@ -257,7 +257,11 @@ function Islenecek({ a, butce }: { a: Aktarim; butce: number }) {
     );
   }
   if (a.islenecek === 0) {
-    return <BosIlk cumle="Doğrulamayı geçen satır yok. Elenen listesine bakın." />;
+    return (
+      <BosIlk
+        cumle={'Doğrulamayı geçen satır yok — bu dosyadan hiçbir madde yazılamaz.'}
+        eylem={<Link href="/regulasyonlar" className="ab-dugme">Madde kataloğunu aç</Link>} />
+    );
   }
   return (
     <>
@@ -285,7 +289,7 @@ function Islenecek({ a, butce }: { a: Aktarim; butce: number }) {
 
 function ElenenListesi({ a }: { a: Aktarim }) {
   if (a.elenen === 0) {
-    return <BosIlk cumle="Elenen satır yok — tüm satırlar doğrulamayı geçti." />;
+    return <BosIlk iyiHaber cumle="Elenen satır yok — tüm satırlar doğrulamayı geçti." />;
   }
   if (a.elenenler.length === 0) {
     return (

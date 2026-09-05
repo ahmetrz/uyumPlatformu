@@ -141,6 +141,21 @@
   --t-screen: 26px;
   --t-board: 34px;
 
+  /* ── Hareket ────────────────────────────────────────────────────────
+     Üç süre yeter ve üçünün de bir işi var. Bunlardan önce ürün .15s,
+     .18s, 400ms, .5s gibi dağınık değerler kullanıyordu; aynı jest iki
+     ekranda iki farklı hızda oluyordu.
+
+     · hizli  — imleç altındaki geri bildirim; farkına varılmadan biter.
+     · orta   — durum değişimi, satır seçimi, süzgeç sonucu.
+     · yavas  — yüzey değişimi (çekmece, panel); yer değiştiren bir şey
+                nereden nereye gittiğini gösterecek kadar sürmeli.
+     Hepsi `prefers-reduced-motion` altında sıfırlanır. */
+  --gecis-hizli: 120ms;
+  --gecis-orta: 180ms;
+  --gecis-yavas: 240ms;
+  --gecis-egri: cubic-bezier(.2, .0, .2, 1);
+
   --tr-colhead: .18em;
   --tr-label: .14em;
   --tr-section: -.01em;
@@ -1037,9 +1052,19 @@
   font-family: var(--gorunum); font-size: 28px; line-height: 1.05; text-transform: uppercase;
 }
 .ab-b-portfoy-govde .plaka .guc { font-size: 11px; color: var(--i2); }
+/* Sayı kolonları SABİT genişliktedir: kaş yukarıda tek satır olarak
+   yazıldığı için plakadaki sayının onun altına düşmesi gerekir. İçerik
+   genişliğine bırakılsaydı "%100" ile "8" farklı yerlere hizalanır ve
+   kaş yalan söylerdi. */
 .ab-b-portfoy-govde .plaka .sayilar {
   position: relative; flex: none; display: flex; gap: 26px; text-align: right;
 }
+.ab-b-portfoy-govde .plaka .sayilar > .deger { min-width: 46px; }
+.ab-b-portfoy-govde .plaka-kas {
+  display: flex; gap: 26px; justify-content: flex-end;
+  padding: var(--s8) 32px; border-bottom: 1px solid var(--hr);
+}
+.ab-b-portfoy-govde .plaka-kas .etiket { min-width: 46px; text-align: right; }
 .ab-b-portfoy-govde .plaka .sayilar .deger {
   display: block; font-family: var(--veri); font-size: 17px;
   font-variant-numeric: tabular-nums;
@@ -1903,7 +1928,8 @@
 }
 .ab-dok-bosluk > summary::-webkit-details-marker { display: none; }
 .ab-dok-bosluk > summary::before {
-  content: '▾'; color: var(--i3); font-size: 10px; transition: transform .15s ease;
+  content: '▾'; color: var(--i3); font-size: 10px;
+  transition: transform var(--gecis-hizli) var(--gecis-egri);
 }
 .ab-dok-bosluk:not([open]) > summary::before { transform: rotate(-90deg); }
 .ab-dok-bosluk > summary:focus-visible { outline: 2px solid var(--aksan); outline-offset: 2px; }
@@ -2197,6 +2223,68 @@
 .ab-asamalar li.simdi .ad { font-weight: 600; }
 .ab-asamalar .tarih { display: block; margin-top: 4px; font-size: var(--t-label); color: var(--i3); }
 
+/* Beklenen boşluk KUSUR DEĞİLDİR: "elenen satır yok" iyi haberdir ve
+   ilk kurulum boşluğuyla aynı görünmemeli. Ayrım renkte değil kaşta ve
+   sol kenarda: yeşil bir kutu "her şey yolunda" diye okunur ve ölçülmemiş
+   bir boşluğu da aynı yeşile boyama riski doğar. */
+.ab-blok.iyi { border-left: 2px solid var(--ok); }
+.ab-blok.iyi > .etiket { color: var(--ok); }
+
+/* ── Kapanış yolu şeridi (K arketipi) ──────────────────────────────────
+   Bu şeridin yerinde dekoratif `Asamalar` vardı: dört aşama, dört tarih,
+   sıfır etkileşim. Ölçüm (`arac/bilissel-yuk.mjs`) ana kolonda tek bir
+   eylem düğmesi bulamadı; ilk birincil eylem 1098px'te, çekmecenin
+   içindeydi. Şerit artık NAVİGATÖRDÜR: her adım bir düğmedir ve o adımın
+   işine götürür.
+
+   Adımlar kart DEĞİLDİR. Kutu, kenarlık ve gölge yerine tek bir alt
+   çizgi durumu taşır — beş kart yan yana dizmek, bu ürünün reddettiği
+   generic ızgaraya dönerdi. */
+.ab-yol { margin: 0 0 var(--s20); }
+.ab-yol-bas { margin: 0 0 var(--s10); }
+.ab-yol-serit {
+  display: grid; grid-auto-flow: column; grid-auto-columns: 1fr;
+  gap: 2px; margin: 0; padding: 0; list-style: none;
+}
+.ab-yol-serit li { min-width: 0; }
+.ab-yol-serit button {
+  display: grid; grid-template-columns: auto 1fr; align-items: center;
+  gap: 4px 8px; width: 100%; min-height: 44px;
+  padding: 8px 12px 7px; border: 0; border-bottom: 3px solid var(--hr2);
+  background: var(--panel); color: inherit; font: inherit;
+  text-align: left; cursor: pointer;
+  transition: background var(--gecis-hizli) var(--gecis-egri);
+}
+.ab-yol-serit button:hover { background: var(--panel2); }
+.ab-yol-serit li.tamam button { border-bottom-color: var(--ok); }
+.ab-yol-serit li.eksik button { border-bottom-color: var(--aksan); background: var(--panel2); }
+.ab-yol-serit li.bekliyor button { border-bottom-color: var(--hr2); }
+.ab-yol-serit li.bekliyor .ad { color: var(--i3); }
+.ab-yol-serit .ad { font-size: 12px; min-width: 0; }
+.ab-yol-serit li.eksik .ad { font-weight: 600; }
+.ab-yol-serit .olgu {
+  grid-column: 2; font-size: var(--t-label); color: var(--i3);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+/* Sıradaki iş cümlesi ve birincil eylem AYNI satırda durur: cümle "ne
+   yapılacak" der, düğme onu yaptırır. İkisini ayırmak, kullanıcıyı
+   cümleyi okuyup eylemi aramaya zorlardı. */
+.ab-yol-sonraki {
+  display: flex; align-items: center; gap: var(--s14); flex-wrap: wrap;
+  margin: var(--s12) 0 0; font-size: 13px; line-height: 1.5; color: var(--i2);
+}
+.ab-yol-sonraki .cumle { flex: 1 1 320px; min-width: 0; margin: 0; }
+.ab-yol-sonraki b { color: var(--murekkep); font-weight: 600; }
+
+@media (max-width: 900px) {
+  /* Dar bantta beş sütun 60px'e iner ve ad kırpılır; şerit sarar. */
+  .ab-yol-serit { grid-auto-flow: row; grid-auto-columns: auto;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ab-yol-serit button { transition: none; }
+}
+
 /* ── Tezgâh hattı: aşama şeridi + hat notu ─────────────────────────── */
 .ab-tezgah-hat { margin: 0 0 var(--s20); }
 .ab-tezgah-hat .hat-not { margin: var(--s8) 0 0; }
@@ -2325,10 +2413,22 @@
    böyle yapıyor (`.ab-a-calisma` ızgarasında panel gerçek bir sütun);
    burada da aynı gramer kurulur. Kaydırma çubuğu kaymasın diye geçiş
    animasyonu YOKTUR: açılış anında yeniden akış tek karede olur. */
+/* Çekmece YÜZEY değiştirir: bir anda belirirse kullanıcı onun nereden
+   geldiğini ve neyin yerini aldığını göremez. Kısa bir kayma bunu
+   anlatır; uzun bir kayma bekletir. `--gecis-yavas` bu ürünün en uzun
+   süresidir ve yalnız yüzey değişiminde kullanılır. */
 .ab-panel {
   position: fixed; right: 0; top: 0; bottom: 0; z-index: 30; width: 400px;
   display: flex; flex-direction: column;
   background: var(--panel); border-left: 1px solid var(--hr2);
+  animation: ab-panel-gir var(--gecis-yavas) var(--gecis-egri);
+}
+@keyframes ab-panel-gir {
+  from { transform: translateX(16px); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ab-panel { animation: none; }
 }
 /* Panel açıkken içerik, durum şeridi ve ayak panelin enini boş bırakır.
    `:has()` seçicisi kabuğun kökünde çalışır; panel kapanınca kural da
@@ -2714,7 +2814,9 @@ textarea.ab-gr { min-height: 76px; resize: vertical; }
 details:not([open]) > *:not(summary) { display: none !important; }
 .ab-genisleyen > summary .ad { flex: 1; min-width: 0; font-size: 13.5px; font-weight: 500; }
 .ab-genisleyen > summary .adet { font-size: 11px; color: var(--i3); }
-.ab-genisleyen > summary .ok { color: var(--i3); transition: transform .18s ease; }
+.ab-genisleyen > summary .ok {
+  color: var(--i3); transition: transform var(--gecis-orta) var(--gecis-egri);
+}
 .ab-genisleyen[open] > summary { background: var(--panel2); }
 .ab-genisleyen[open] > summary .ok { transform: rotate(90deg); color: var(--aksan); }
 .ab-genisleyen .cocuk { padding: 4px 0 14px 26px; }

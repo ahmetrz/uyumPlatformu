@@ -176,7 +176,10 @@ export default function OmurIstemci({
         />
         <div className="ab-ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
           {/* "EOL kaydı yok" ile "kapsamınızda kayıt yok" AYNI ŞEY DEĞİLDİR. */}
-          <BosIlk cumle={kapsamli ? 'Kapsamınızda EOL kaydı yok.' : 'EOL kaydı yok.'} />
+          <BosIlk iyiHaber
+            cumle={kapsamli
+              ? 'Kapsamınızda ömrü yaklaşan varlık yok.'
+              : 'Ömrü yaklaşan varlık yok — EOL/EOS tarihi girilmiş hiçbir cihaz eşiğe yaklaşmadı.'} />
         </div>
       </main>
     );

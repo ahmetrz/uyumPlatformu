@@ -215,10 +215,30 @@ export function Iskelet({ sinif = '', stil }: { sinif?: string; stil?: CSSProper
   return <span className={`ab-iskelet ${sinif}`} style={stil} aria-hidden />;
 }
 
-export function BosIlk({ cumle, eylem }: { cumle: string; eylem?: ReactNode }) {
+/**
+ * Boş ilk-durum.
+ *
+ * Boş bir ekranda bu cümle ekranın TEK içeriğidir; okunma ihtimali en
+ * yüksek cümledir. Kullanıcı o anda iki şey sorar — *ne oldu* ve *şimdi
+ * ne yapabilirim*. Ürün uzun süre yalnız birincisini cevapladı:
+ * `arac/eylem-dili.mjs` ilk koşusunda eylem taşımayan elli bozuk durum
+ * bloğu buldu.
+ *
+ * `eylem` ya da `iyiHaber` VERİLMELİDİR ve araç bunu sayar. İkisi ayrı
+ * şeyler söyler:
+ *
+ *   eylem     — yapılacak bir iş var, düğmesi burada.
+ *   iyiHaber  — yokluk BEKLENEN durumdur ("elenen satır yok, hepsi
+ *               doğrulamayı geçti"). Yapılacak bir iş olmadığını
+ *               söylemek de bir cevaptır; sahte bir düğme koymak
+ *               olmayan bir işi varmış gibi göstermek olurdu.
+ */
+export function BosIlk({ cumle, eylem, iyiHaber = false }: {
+  cumle: string; eylem?: ReactNode; iyiHaber?: boolean;
+}) {
   return (
-    <div className="ab-blok">
-      <span className="etiket">Boş · ilk kurulum</span>
+    <div className={`ab-blok${iyiHaber ? ' iyi' : ''}`}>
+      <span className="etiket">{iyiHaber ? 'Beklenen durum' : 'Boş · ilk kurulum'}</span>
       <p className="cumle">{cumle}</p>
       {eylem && <div className="eylem">{eylem}</div>}
     </div>

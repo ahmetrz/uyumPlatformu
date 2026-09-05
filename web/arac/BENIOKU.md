@@ -325,3 +325,108 @@ ve kusur sayılmaz — `yatay-tasma.mjs` ile aynı ayrım.
 Bu panel BİLEREK modal değildir (`components/kabuk/panel.tsx`) ve araç
 modal işaretlerinin YOKLUĞUNU doğrular; yarı modal (üçünden ikisi) kusurdur.
 1024'ün altında panel tam eni kaplar ve bu da ölçülür.
+
+## `ters-kapsam.mjs` — davranış → senaryo (tarayıcı istemez)
+
+`arac/senaryo-belge.mjs` "yazdığım her senaryonun testi var mı" diye
+sorar. Bu araç tersini sorar: **koddaki her kullanıcı davranışı kütükte
+yazılı mı?**
+
+Fark önemlidir. Senaryo → test kapısı, kimsenin senaryo YAZMADIĞI bir
+eylemi göremez: olmayan senaryonun testi de yoktur, sayı yine sıfır
+çıkar. Bu araç envanteri kaynak koddan çıkarır — rota, sunucu eylemi,
+API ucu, motor, zamanlanmış iş, ve arayüz etkileşimleri (süzgeç, kip,
+çekmece, genişleyen satır, form, aşama hattı) — ve kütükle karşılaştırır.
+
+İlk koşusunda **56 boşluk** buldu: dokuz rota hiç yazılmamıştı, yirmi bir
+sunucu eylemi ve beş motor hiçbir senaryo işaretli testte geçmiyordu,
+üç ekran da yalnız mutlu yol senaryosu taşıyordu.
+
+```
+npm run ters:kapsam          # rapor; boşluk varsa çıkış kodu 1
+node arac/ters-kapsam.mjs --json
+```
+
+Bağ mekaniktir; ayrı bir eşleme tablosu tutulmaz. Rota kütükteki `rota`
+alanıyla, eylem/motor/iş ise **onu kullanan test dosyasındaki senaryo
+işaretleriyle** eşleşir. Dosya düzeyinde tarama bilinçlidir: testler
+eylemi çoğu kez bir yardımcının içinden çağırır, `it` gövdesini taramak
+gerçekten test edilen bir eylemi "kapsanmadı" gösterirdi.
+
+Arayüz etkileşimleri için kanıt farklıdır: o rotanın kütükte **bozulmuş
+veri hâli** de olmalı (`yok · kısmi · bilinmiyor · bayat · çelişen ·
+yinelenen · tek`). Her süzgeç boş sonuç, her çekmece eksik kayıt
+üretebilir; yalnız mutlu yol senaryosu taşıyan bir rota geçemez.
+
+Nöbetçi: `tests/ters-kapsam.test.ts`. CI'da `pr-kapisi.yml` içinde koşar.
+
+## `bilissel-yuk.mjs` — "bu ekran kullanıcıdan ne kadar iş istiyor?"
+
+Mevcut kapılar ekranın DOĞRU olduğunu söyler; hiçbiri "kullanıcı burada
+ne yapacağını üç saniyede anlıyor mu" demez. Bu araç o soruya giden
+yoldaki engelleri sayar: görünür etiket · durum imi · ölçüt kutusu ·
+düğme · bağ · etiket→değer satırı · tekrar eden çift · ilk birincil
+eylemin üstten uzaklığı · iş yüzeyinin üstten uzaklığı · ana yüzeydeki
+kanıt/geçmiş yüksekliği · görünür metin uzunluğu.
+
+```
+PORT=3210 npm run tasarim:yuk
+PORT=3210 node arac/bilissel-yuk.mjs --rota=/envanter --json cikti.json
+```
+
+Tek bant (1440×900) ölçer: buradaki sayılar banda değil BİLGİ MİMARİSİNE
+bağlıdır; dokuz bantta dokuz kez ölçmek aynı sayıyı dokuz kez üretirdi.
+Duyarlılık ayrı bir kapının işidir (`ux-denetim.mjs`).
+
+Araç **eşik koymaz.** Bir sayının kusur olup olmadığına ekranın işine
+bakmadan karar verilemez: `/yardim`'ın 7 826 karakteri doğrudur,
+`/uyum`'un 80 düğmesi matrisin hücreleridir. Yorum
+`docs/UX_SIMPLIFICATION_AUDIT.md` içindedir.
+
+Bilinen sınır: sayımlar ORTAK primitif sözlüğüne bakar. Kendi ölçüt
+bandını kuran ekran (`/envanter`, `/portfoy`) `kpi: 0` görünür ve bu, o
+ekranda durum bilgisi olmadığı anlamına gelmez — aracın başlığında
+yazılıdır.
+
+## `eylem-dili.mjs` — boş ekranın söylediği son cümle
+
+Bir ekranın en çok okunan cümlesi çoğu zaman hiçbir şeyin olmadığı anda
+yazdığı cümledir. Kullanıcı o anda iki şey sorar: *ne oldu* ve *şimdi ne
+yapabilirim.* Araç ikinciyi cevaplamayan blokları sayar: `BosIlk`,
+`Olculmedi`, `BaglantiYok`, `EntegrasyonYok`, `KismiVeri`, `Bakimda`
+bileşenlerinden `eylem` özelliği verilmeden çizilenler.
+
+Ayrıca son kullanıcı yüzeyinde geliştirici sözcüğü (provider · adapter ·
+registry · mutation · boolean · payload …) arar; bu aile bir kez
+temizlendi, araç geri sızmasın diye nöbet tutar.
+
+```
+npm run tasarim:dil
+```
+
+Tablo hücresindeki "kayıt yok" bir durum ETİKETİDİR ve sayılmaz; araç
+yalnız bozuk durum BİLEŞENLERİNE bakar. `BosFiltre` listede yoktur:
+eylemi (`temizle`) zorunlu bir parametre olduğu için tip kuralı zaten
+dayatıyor.
+
+## `gorev-akisi.mjs` — "bu işi kaç tıkla bitiriyorum?"
+
+`bilissel-yuk.mjs` bir EKRANI ölçer. Kullanıcı ise ekranda değil bir
+İŞİN içinde yaşar ve iş çoğu zaman üç ekrandan geçer: bir ekran tek
+başına temiz olabilir, iki ekran arasındaki geçiş kaybolduğunda iş yine
+bitmez.
+
+Yirmi gerçek görev baştan sona koşulur; dört şey sayılır: tıklama · sayfa
+geçişi · çıkmaz · süre.
+
+```
+PORT=3210 npm run tasarim:gorev
+PORT=3210 node arac/gorev-akisi.mjs --gorev TASK-001
+```
+
+Araç **eşik koymaz.** Bazı işler doğası gereği çok adımlıdır (dosya yükle
+→ eşle → önizle → onayla) ve onları tek tıka indirmek onaysız yazmak
+demek olurdu. Kusur sayılan tek şey **ÇIKMAZ**: hedefe hiç ulaşılamaması.
+Sayıların yorumu `docs/UX_SIMPLIFICATION_AUDIT.md` içindedir.
+
+Görevlerin hepsi YALNIZ OKUR; hiçbiri kayıt yazmaz.

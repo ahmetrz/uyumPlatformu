@@ -351,9 +351,13 @@ export default function TabanlarIstemci({
           )}
 
           {tabanlar.length === 0 ? (
-            <BosIlk cumle={'Hiç firmware tabanı tanımlanmamış. Taban olmadan '
-              + 'hiçbir cihazın firmware kararı verilemez; ekran bunu "uyumlu" '
-              + 'değil "karar verilemedi" sayar.'} />
+            <BosIlk
+              cumle={'Hiç firmware tabanı tanımlanmamış. Taban olmadan '
+                + 'hiçbir cihazın firmware kararı verilemez; ekran bunu "uyumlu" '
+                + 'değil "karar verilemedi" sayar.'}
+              eylem={yazabilir
+                ? <Dugme tur="birincil" onClick={() => setYeni({ ...BOS })}>Taban tanımla</Dugme>
+                : undefined} />
           ) : suzulmus.length === 0 ? (
             <BosFiltre temizle={() => setMercek('hepsi')} />
           ) : (

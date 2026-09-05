@@ -114,7 +114,12 @@ export default function DenetciErisimiIstemci({
       )}
 
       {tablo.length === 0
-        ? <BosIlk cumle="Tanımlı dış denetçi erişimi yok." />
+        ? (
+          <BosIlk cumle="Tanımlı dış denetçi erişimi yok."
+            eylem={yonetebilir
+              ? <Dugme tur="birincil" onClick={() => setFormAcik(true)}>Denetçi davet et</Dugme>
+              : undefined} />
+        )
         : <Tablo kolonlar={KOLONLAR} satirlar={tablo} />}
 
       {yonetebilir && satirlar.some((e) => e.kayitDurumu === 'aktif') && (

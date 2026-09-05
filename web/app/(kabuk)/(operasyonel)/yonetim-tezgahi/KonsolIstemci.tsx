@@ -317,7 +317,14 @@ export default function KonsolIstemci({ veri }: { veri: KonsolVerisi }) {
                       secili={secili} sec={(id) => setSecili((s) => (s === id ? null : id))}
                       dipNot="Kaynak «kod varsayılanı»: konsolda kayıt yok, motor koddaki değeri okur. «geçersiz kayıt»: konsoldaki değer şemayı geçmiyor, motor varsayılana düşer." />
                   ) : kayitSatirlari.length === 0 ? (
-                    <BosIlk cumle={arama ? 'Aramayla eşleşen kayıt yok.' : 'Bu katalogda kayıt yok.'} />
+                    <BosIlk
+                      iyiHaber={!arama}
+                      cumle={arama
+                        ? 'Aramayla eşleşen kayıt yok.'
+                        : 'Bu katalogda kayıt yok — motor koddaki varsayılanı okur.'}
+                      eylem={arama
+                        ? <Dugme onClick={() => setArama('')}>Aramayı temizle</Dugme>
+                        : undefined} />
                   ) : (
                     <Tablo kolonlar={KAYIT_KOLONLARI} satirlar={kayitSatirlari} konuBasligi={modul.ad} sik
                       secili={secili} sec={(id) => setSecili((s) => (s === id ? null : id))} />
@@ -339,7 +346,8 @@ export default function KonsolIstemci({ veri }: { veri: KonsolVerisi }) {
                       placeholder="Hedef, kişi ya da gerekçede ara" aria-label="Talep ara" />
                   </div>
                   {talepSatirlari.length === 0
-                    ? <BosIlk cumle={talepMercek === 'acik' ? 'Açık talep yok.' : 'Talep kaydı yok.'} />
+                    ? <BosIlk iyiHaber={talepMercek === 'acik'}
+                      cumle={talepMercek === 'acik' ? 'Açık talep yok.' : 'Talep kaydı yok.'} />
                     : <Tablo kolonlar={TALEP_KOLONLARI} satirlar={talepSatirlari} konuBasligi="Talep" sik
                       secili={secili} sec={(id) => setSecili((s) => (s === id ? null : id))} />}
                 </>
@@ -357,7 +365,14 @@ export default function KonsolIstemci({ veri }: { veri: KonsolVerisi }) {
                       placeholder="Varlık, eylem, kişi ya da gerekçede ara" aria-label="İz ara" />
                   </div>
                   {izSatirlari.length === 0
-                    ? <BosIlk cumle="Eşleşen iz yok." />
+                    ? (
+                      <BosIlk
+                        iyiHaber={!arama}
+                        cumle={arama ? 'Aramayla eşleşen iz yok.' : 'Bu katalogda iz kaydı yok.'}
+                        eylem={arama
+                          ? <Dugme onClick={() => setArama('')}>Aramayı temizle</Dugme>
+                          : undefined} />
+                    )
                     : <Tablo kolonlar={IZ_KOLONLARI} satirlar={izSatirlari} konuBasligi="Kayıt" sik
                       secili={secili} sec={(id) => setSecili((s) => (s === id ? null : id))} />}
                 </>

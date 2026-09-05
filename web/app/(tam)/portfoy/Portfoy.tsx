@@ -193,8 +193,20 @@ export default function Portfoy({ satirlar, toplamGucMw, endeks, kapsamli = fals
           </p>
         </aside>
 
-        {/* ── Plakalar ──────────────────────────────────────────────── */}
+        {/* ── Plakalar ──────────────────────────────────────────────────
+            KOLON KAŞI BİR KEZ. Bu üç etiket ("Uyum · Bulgu · Risk") her
+            plakanın içinde yeniden yazılıyordu: on altı santral × üç
+            etiket = kırk sekiz görünür etiket, hepsi aynı üç sözcük.
+            Ölçüm (`arac/bilissel-yuk.mjs`) ekranda 53 etiket saydı ve
+            48'i buydu. Kaş yukarı çıktı; sayılar `aria-label` ile kendi
+            adını taşımaya devam ediyor, yani ekran okuyucu hiçbir şey
+            kaybetmedi. */}
         <div className="plakalar">
+          <div className="plaka-kas" aria-hidden>
+            <span className="etiket">Uyum</span>
+            <span className="etiket">Bulgu</span>
+            <span className="etiket">Risk</span>
+          </div>
           {gorunen.map((s, i) => {
             const foto = heroGorseli(s.gorselAnahtari) ?? kucukGorsel(s.gorselAnahtari);
             /* İlk sıra görüntü alanındadır: tembel yüklenirse LCP gecikir
@@ -246,23 +258,19 @@ export default function Portfoy({ satirlar, toplamGucMw, endeks, kapsamli = fals
                   </span>
                 </span>
                 <span className="sayilar">
-                  <span>
-                    <span className="deger">
-                      {s.uyumYuzde === null ? '—' : `%${s.uyumYuzde}`}
-                    </span>
-                    <span className="etiket">Uyum</span>
+                  <span className="deger"
+                    aria-label={s.uyumYuzde === null
+                      ? 'Uyum endeksi ölçülmedi'
+                      : `Uyum endeksi yüzde ${s.uyumYuzde}`}>
+                    {s.uyumYuzde === null ? '—' : `%${s.uyumYuzde}`}
                   </span>
-                  <span>
-                    <span className={`deger${s.acikBulgu > 0 ? ' vurgu' : ''}`}>
-                      {s.acikBulgu}
-                    </span>
-                    <span className="etiket">Bulgu</span>
+                  <span className={`deger${s.acikBulgu > 0 ? ' vurgu' : ''}`}
+                    aria-label={`${s.acikBulgu} açık bulgu`}>
+                    {s.acikBulgu}
                   </span>
-                  <span>
-                    <span className={`deger${s.acikRisk > 0 ? ' vurgu' : ''}`}>
-                      {s.acikRisk}
-                    </span>
-                    <span className="etiket">Risk</span>
+                  <span className={`deger${s.acikRisk > 0 ? ' vurgu' : ''}`}
+                    aria-label={`${s.acikRisk} açık risk`}>
+                    {s.acikRisk}
                   </span>
                 </span>
               </Link>

@@ -210,7 +210,7 @@ export function openapiBelgesi(): Record<string, unknown> {
   return {
     openapi: '3.1.0',
     info: {
-      title: 'Zorlu Enerji Yönetişim Platformu · Dış API',
+      title: 'Enerji Yönetişim Platformu · Dış API',
       version: SOZLESME_SURUMU,
       description: [
         'Kimlik: `Authorization: Bearer <token>`. Başka taşıyıcı kabul edilmez;',

@@ -35,7 +35,7 @@ const gunSonra = (n: number) => new Date(SIMDI + n * GUN).toISOString();
 
 /* ═══ Süreç kütüğü ═══════════════════════════════════════════════════ */
 
-const TESIS = { id: 'tesis-1', kod: 'KIZILDERE-3', ad: 'Kızıldere III JES' };
+const TESIS = { id: 'tesis-1', kod: 'SAHA-A3', ad: 'Saha A-3 JES' };
 
 function surec(ek: Partial<S> = {}): S {
   return {
@@ -145,7 +145,7 @@ describe('denetim hücresi', () => {
   });
 
   it('kapsam metni tesis sayısını, boş kapsamı ayrı söyler', () => {
-    expect(santralMetni(surec())).toBe('Kızıldere III JES');
+    expect(santralMetni(surec())).toBe('Saha A-3 JES');
     expect(santralMetni(surec({ tesisler: [] }))).toBe('kapsam boş');
     expect(santralMetni(surec({ tesisler: [TESIS, { ...TESIS, id: 't2' }] }))).toBe('2 santral');
   });

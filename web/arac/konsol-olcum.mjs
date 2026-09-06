@@ -44,9 +44,9 @@ async function girisYap(sayfa) {
   await sayfa.goto(`${KOK}/giris`, { waitUntil: 'load' });
   if (!sayfa.url().includes('/giris')) return;
   for (let deneme = 1; deneme <= 3; deneme += 1) {
-    await sayfa.fill('input[type=email]', 'ahmet.terzi@zorlu.com');
+    await sayfa.fill('input[type=email]', 'kullanici.a@demo.local');
     await sayfa.fill('input[type=password]', 'Enerji!2026');
-    const yerlesti = await sayfa.inputValue('input[type=email]') === 'ahmet.terzi@zorlu.com'
+    const yerlesti = await sayfa.inputValue('input[type=email]') === 'kullanici.a@demo.local'
       && (await sayfa.inputValue('input[type=password]')).length > 0;
     if (yerlesti) break;
     await sayfa.waitForTimeout(300 * deneme);

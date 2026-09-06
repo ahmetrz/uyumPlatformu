@@ -251,8 +251,8 @@ Etkilenen üretim kodu — hepsi **global arama** (`web/lib/eylemler2/arama.ts`)
 | 46 | `Denetim` | `kod contains q`, `ad contains q` |
 
 Toplam **11 `contains` koşulu, 7 sorgu, 7 model** — komut paletinin tamamı.
-Bugün `kizildere` yazan kullanıcı "Kızıldere I JES"i bulur; PostgreSQL'de
-**bulamaz**. Kod alanları (`KIZILDERE-1`) büyük harfle saklandığı için küçük
+Bugün `saha-ı` yazan kullanıcı "Saha I HES"i bulur; PostgreSQL'de
+**bulamaz**. Kod alanları (`SAHA-A1`) büyük harfle saklandığı için küçük
 harfle arayan hiçbir kod eşleşmesi kalmaz.
 
 Ayrıca `web/tests/kesif.test.ts:50` `startsWith: ONEK` ile temizlik yapar;
@@ -560,7 +560,7 @@ gösteren birer negatif test.
 
 **e.5 — `LIKE` duyarlılığının kapatılması.**
 `lib/eylemler2/arama.ts`'teki 11 `contains` koşuluna `mode: 'insensitive'`
-eklenir. *Doğrulama:* küçük harfle "kizildere" araması "Kızıldere I JES"i
+eklenir. *Doğrulama:* küçük harfle "saha-ı" araması "Saha I HES"i
 bulur — bu bir testle sabitlenmelidir; bugün böyle bir test **yoktur** ve
 regresyon sessizdir.
 

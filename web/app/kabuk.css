@@ -734,7 +734,7 @@
   animation: ab-halka 3.6s ease-out infinite;
 }
 /* Süpürme yarıçapı 2,4 idi: halka 38px'e çıkıp KOMŞU işaretin künyesini
-   siliyordu (ölçüldü: 1440px'te "Gökçedağ RES" satırı Kızıldere III'ün
+   siliyordu (ölçüldü: 1440px'te "Saha C RES" satırı Saha A-3'ün
    halkası altında okunmuyordu). 1,6 aynı sinyali verir, komşuya girmez. */
 @keyframes ab-halka {
   0% { transform: scale(.6); opacity: .8; }
@@ -746,7 +746,7 @@
   text-shadow: 0 1px 2px var(--zemin), 0 0 6px var(--zemin);
 }
 /* Bağ çizgisi: künye hangi işarete ait, saç teliyle söylenir — komşu
-   künyeler yakınken (Kızıldere III / Gökçedağ) yön tahminine kalmaz. */
+   künyeler yakınken (Saha A-3 / Saha C) yön tahminine kalmaz. */
 .ab-b-takim .kunye::before {
   content: ''; position: absolute; top: 12px; width: 8px; height: 1px;
   background: var(--hr2); left: -13px;
@@ -826,7 +826,7 @@
    "+8 diğer" sayısı "3 ad yazıldı" varsayımıyla hesaplanır. CSS adlardan
    birini üç noktayla yutarsa ekranda 1 ad görünür ama yanında hâlâ "+8"
    yazar — 11 - 1 = 10 iken. Ölçüldü (1366×768, özet başlıkla aynı
-   satırdayken): "Alaşehir ..." diye kesiliyor ve sayı yalan söylüyordu.
+   satırdayken): "Saha B ..." diye kesiliyor ve sayı yalan söylüyordu.
    Bu yüzden özet kendi satırına alındı ve adlar sarar, kesilmez. */
 .ab-olculmemis .adlar {
   min-width: 0; font-size: 12px; color: var(--i2); line-height: 1.4;

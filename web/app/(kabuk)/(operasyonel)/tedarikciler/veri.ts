@@ -32,7 +32,7 @@ import {
 
    ── TEDARİKÇİ KAYDININ KENDİSİ ─────────────────────────────────────────
    `Tedarikci` şemada santrale bağlı DEĞİLDİR; grup seviyesinde bir
-   sicildir (ad, sözleşme, uzaktan erişim beyanı). Bu yüzden sicil satırı
+   sisahak (ad, sözleşme, uzaktan erişim beyanı). Bu yüzden sicil satırı
    gizlenmez; santrale bağlı olan HER ŞEY (varlık, santral bağı, sertifika,
    risk, kontrol, erişim oturumu) daraltılır. Kapsam dışı bir tedarikçi
    ekranda "bağlı varlık kaydı yok" olarak görünür — başka santralin

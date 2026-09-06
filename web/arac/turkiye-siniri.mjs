@@ -18,7 +18,7 @@
    ── YALNIZ TÜRKİYE ────────────────────────────────────────────────────
    Dünya altlığı DEĞİL, tek ülke poligonu çizilir. Natural Earth sınırları
    *de facto* çizer; komşu ya da ihtilaflı sınır çizmediğimiz için o konu
-   ekranda hiç doğmaz. Haritanın işi Zorlu'nun santrallerini göstermektir.
+   ekranda hiç doğmaz. Haritanın işi Demo'nun santrallerini göstermektir.
 
    ── SADELEŞTİRME ÖLÇÜLÜ SEÇİLİR ───────────────────────────────────────
    Tuval 960×420, çerçeve 19,5° × 6,8°; iç alan 904×364px. Yani

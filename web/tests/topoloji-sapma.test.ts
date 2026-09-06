@@ -486,7 +486,7 @@ describe('Topoloji sapma tespiti (P2-2)', () => {
     const gecitler = ogeler.filter((o) => o.tip === 'gecit');
     expect(gecitler.length).toBeGreaterThan(0);
     const onaysiz = gecitler.find((g) => g.ozellikler.onaylandi === false);
-    expect(onaysiz).toBeDefined(); // seed'de MERKEZ→GOKCEDAG-OT onaysız
+    expect(onaysiz).toBeDefined(); // seed'de MERKEZ→SAHA-C-OT onaysız
     // sonDogrulama özet dışında: kontrol alanı topolojiyi değiştirmez
     expect(Object.keys(gecitler[0].ozellikler)).not.toContain('sonDogrulama');
   });

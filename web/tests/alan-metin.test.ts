@@ -36,7 +36,7 @@ describe('Kimlik katlama · Türkçe I tuzağı', () => {
 
   it('I ailesinin tamamı tek harfe iner', () => {
     expect(kimlikKatla('İIıi')).toBe('iiii');
-    expect(ayniKimlikMi('KIZILDERE', 'kizildere')).toBe(true);
+    expect(ayniKimlikMi('SAHA-I', 'saha-ı')).toBe(true);
   });
 
   it('gerçekten farklı kimlikler ayrı kalır', () => {

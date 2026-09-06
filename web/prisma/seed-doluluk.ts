@@ -73,11 +73,11 @@ export async function dolulukKatmani(db: PrismaClient) {
   ]);
 
   const kul = (e: string) => kullanicilar.find((k) => k.eposta.startsWith(e))?.id ?? null;
-  const ahmet = kul('ahmet.terzi');
-  const selin = kul('selin.aydin');
-  const burak = kul('burak.sahin');
-  const mehmet = kul('mehmet.kaya');
-  const zeynep = kul('zeynep.arslan');
+  const kulA = kul('kullanici.a');
+  const kulB = kul('kullanici.b');
+  const kulC = kul('kullanici.c');
+  const kulD = kul('kullanici.d');
+  const kulE = kul('kullanici.e');
   const con = (kod: string) => connectorlar.find((c) => c.kod === kod)?.id ?? null;
 
   if (kullanicilar.length === 0 || tesisler.length === 0) {
@@ -85,17 +85,17 @@ export async function dolulukKatmani(db: PrismaClient) {
     return;
   }
 
-  await eslemeProfilleri(db, { con, ahmet, burak });
-  await kesifKayitlari(db, r, { con, tesisler, varliklar, selin, burak });
-  await reddedilenler(db, { con, kosular, selin, burak });
-  await veriKokenleri(db, r, { varliklar, ahmet, selin });
+  await eslemeProfilleri(db, { con, kulA, kulC });
+  await kesifKayitlari(db, r, { con, tesisler, varliklar, kulB, kulC });
+  await reddedilenler(db, { con, kosular, kulB, kulC });
+  await veriKokenleri(db, r, { varliklar, kulA, kulB });
   await konfigYedekleri(db, r, { varliklar });
-  await varlikAktarimlari(db, { ahmet, burak, mehmet });
-  await apiKatmani(db, r, { ahmet, burak });
+  await varlikAktarimlari(db, { kulA, kulC, kulD });
+  await apiKatmani(db, r, { kulA, kulC });
   await olayEtkiZinciri(db);
   await tedarikciOturumlari(db, r, { tesisler });
-  await topolojiTemeli(db, r, { tesisler, ahmet, burak });
-  await degerlendirmeTarihcesi(db, r, { ahmet, selin, zeynep });
+  await topolojiTemeli(db, r, { tesisler, kulA, kulC });
+  await degerlendirmeTarihcesi(db, r, { kulA, kulB, kulE });
   await kanitKapsami(db, r, { varliklar });
   await lisanslar(db);
   await surumFarklari(db);
@@ -116,7 +116,7 @@ export async function dolulukKatmani(db: PrismaClient) {
    ══════════════════════════════════════════════════════════════════════ */
 async function eslemeProfilleri(
   db: PrismaClient,
-  o: { con: (k: string) => string | null; ahmet: string | null; burak: string | null },
+  o: { con: (k: string) => string | null; kulA: string | null; kulC: string | null },
 ) {
   if (await db.eslemeProfili.count() > 0) return;
 
@@ -135,7 +135,7 @@ async function eslemeProfilleri(
   const profiller = [
     {
       kod: 'CMDB_VARLIK', ad: 'CMDB varlık aktarımı', connectorTipi: 'manual_import',
-      surum: 1, durum: 'arsiv', olusturanId: o.burak,
+      surum: 1, durum: 'arsiv', olusturanId: o.kulC,
       aciklama: 'İlk sürüm; ağ ve ömür alanları taşınmıyordu, yalnız kimlik yazılıyordu.',
       kurallar: [
         { kaynakAlan: 'Asset Tag', hedefAlan: 'etiket', zorunlu: true },
@@ -146,7 +146,7 @@ async function eslemeProfilleri(
     },
     {
       kod: 'CMDB_VARLIK', ad: 'CMDB varlık aktarımı', connectorTipi: 'manual_import',
-      surum: 2, durum: 'etkin', olusturanId: o.ahmet,
+      surum: 2, durum: 'etkin', olusturanId: o.kulA,
       aciklama: 'Ağ, üretici ve yazılım alanları eklendi; santral kodu zorunlu ve '
         + 'büyük harfe çevriliyor, MAC/IP biçimi normalleştiriliyor.',
       kurallar: [
@@ -170,7 +170,7 @@ async function eslemeProfilleri(
     },
     {
       kod: 'OT_KESIF', ad: 'OT pasif keşif dışa aktarımı', connectorTipi: 'ot_discovery',
-      surum: 1, durum: 'taslak', olusturanId: o.burak,
+      surum: 1, durum: 'taslak', olusturanId: o.kulC,
       aciklama: 'Taslak: PLC tür sözlüğü üreticiye göre değişiyor ve tamamlanmadı — '
         + 'yayımlanmadan koşuya alınamaz.',
       kurallar: [
@@ -185,7 +185,7 @@ async function eslemeProfilleri(
     {
       kod: 'OMUR_DISA', ad: 'Ömür ve destek tarihleri dışa aktarımı',
       connectorTipi: 'manual_import',
-      surum: 1, durum: 'taslak', olusturanId: o.ahmet,
+      surum: 1, durum: 'taslak', olusturanId: o.kulA,
       aciklama: 'Üretici ömür bildirimlerinin elle derlenmiş listesi. Taslak: '
         + 'aynı tipte ikinci bir ETKİN profil koşuda belirsizlik yaratırdı, '
         + 'ayrı bir connector tanımı bekliyor.',
@@ -224,7 +224,7 @@ async function kesifKayitlari(
     con: (k: string) => string | null;
     tesisler: { id: string; kod: string }[];
     varliklar: { id: string; etiket: string; ad: string; tesisId: string | null; tur: { kod: string } | null }[];
-    selin: string | null; burak: string | null;
+    kulB: string | null; kulC: string | null;
   },
 ) {
   if (await db.kesifKaydi.count() > 0) return;
@@ -281,13 +281,13 @@ async function kesifKayitlari(
 
   /* b · Eşleşmeyenler — envanterde karşılığı yok. Ekranın asıl işi bu. */
   const yabancilar: [string, string, string, string, string][] = [
-    ['Rockwell', 'PLC', 'KIZILDERE-3', 'PLC-SAHA-07', 'Türbin sahasında etiketsiz denetleyici'],
-    ['Siemens', 'HMI', 'KIZILDERE-3', 'HMI-OPR-03', 'Operatör panosu — CMDB kaydı yok'],
-    ['Moxa', 'AGCIHAZ', 'GOKCEDAG-RES', 'GW-SERI-02', 'Seri-Ethernet dönüştürücü'],
-    ['Hirschmann', 'AGCIHAZ', 'GOKCEDAG-RES', 'SW-DOLAP-11', 'Yönetilmeyen anahtar, saha dolabı'],
-    ['Advantech', 'EWS', 'ALASEHIR-JES', 'EWS-TASINIR-01', 'Taşınabilir mühendislik dizüstü'],
-    ['Schneider', 'PLC', 'ALASEHIR-JES', 'PLC-YRD-04', 'Yardımcı tesis denetleyicisi'],
-    ['Dell', 'SSUNUCU', 'KIZILDERE-1', 'SRV-TARIH-01', 'Yerel tarih sunucusu — sahibi belirsiz'],
+    ['Rockwell', 'PLC', 'SAHA-A3', 'PLC-SAHA-07', 'Türbin sahasında etiketsiz denetleyici'],
+    ['Siemens', 'HMI', 'SAHA-A3', 'HMI-OPR-03', 'Operatör panosu — CMDB kaydı yok'],
+    ['Moxa', 'AGCIHAZ', 'SAHA-C-RES', 'GW-SERI-02', 'Seri-Ethernet dönüştürücü'],
+    ['Hirschmann', 'AGCIHAZ', 'SAHA-C-RES', 'SW-DOLAP-11', 'Yönetilmeyen anahtar, saha dolabı'],
+    ['Advantech', 'EWS', 'SAHA-B-JES', 'EWS-TASINIR-01', 'Taşınabilir mühendislik dizüstü'],
+    ['Schneider', 'PLC', 'SAHA-B-JES', 'PLC-YRD-04', 'Yardımcı tesis denetleyicisi'],
+    ['Dell', 'SSUNUCU', 'SAHA-A1', 'SRV-TARIH-01', 'Yerel tarih sunucusu — sahibi belirsiz'],
   ];
   yabancilar.forEach(([vendor, tip, tesisKodu, hostname, not], i) => {
     const m = mac(r);
@@ -353,11 +353,11 @@ async function kesifKayitlari(
      · yinelenen. Bunların dışındaki bir sözcük ekranda "bekleyen" sayılır
      ve karara bağlanmış kayıt kuyrukta görünmeye devam ederdi. */
   const kararlar: [string, string, string | null, string][] = [
-    ['onaylandi', 'Envantere yeni varlık olarak eklendi.', o.burak, 'SRV-YENI-01'],
-    ['onaylandi', 'Yedek parça havuzundan sahaya alınmış; kayıt açıldı.', o.burak, 'PLC-YEDEK-02'],
-    ['reddedildi', 'Müteahhit dizüstü bilgisayarı; kurum varlığı değil.', o.selin, 'LAPTOP-MTH-4'],
-    ['reddedildi', 'Test sırasında geçici bağlanan analiz cihazı.', o.selin, 'ANALIZ-GECICI'],
-    ['yinelenen', 'Mevcut PLC kaydının ikinci ağ arayüzü.', o.burak, 'PLC-SAHA-02-B'],
+    ['onaylandi', 'Envantere yeni varlık olarak eklendi.', o.kulC, 'SRV-YENI-01'],
+    ['onaylandi', 'Yedek parça havuzundan sahaya alınmış; kayıt açıldı.', o.kulC, 'PLC-YEDEK-02'],
+    ['reddedildi', 'Müteahhit dizüstü bilgisayarı; kurum varlığı değil.', o.kulB, 'LAPTOP-MTH-4'],
+    ['reddedildi', 'Test sırasında geçici bağlanan analiz cihazı.', o.kulB, 'ANALIZ-GECICI'],
+    ['yinelenen', 'Mevcut PLC kaydının ikinci ağ arayüzü.', o.kulC, 'PLC-SAHA-02-B'],
   ];
   kararlar.forEach(([durum, not, kim, hostname], i) => {
     const kayitId = `OTX-${String(4700 + i)}`;
@@ -426,7 +426,7 @@ async function reddedilenler(
   o: {
     con: (k: string) => string | null;
     kosular: { id: string; connectorId: string | null }[];
-    selin: string | null; burak: string | null;
+    kulB: string | null; kulC: string | null;
   },
 ) {
   if (await db.reddedilenKayit.count() > 0) return;
@@ -444,7 +444,7 @@ async function reddedilenler(
     ['sema', 'OT pasif keşif dışa aktarımı', 'Beklenen "devices" dizisi yok; dosya tek nesne', 'acik'],
     ['normalize', 'OT pasif keşif dışa aktarımı', 'mac alanı "-" ayraçlı, tanınmadı', 'acik'],
     ['yazma', 'CMDB elle içe aktarım', 'etiket benzersizlik kısıtı ihlali (SRV-KZD-0007)', 'acik'],
-    ['esleme', 'CMDB elle içe aktarım', 'site="Kizildere 3" santral koduna çevrilemedi', 'duzeltildi'],
+    ['esleme', 'CMDB elle içe aktarım', 'site="Saha A3" santral koduna çevrilemedi', 'duzeltildi'],
     ['eslesme', 'Zafiyet tarama dışa aktarımı', 'host=10.42.7.19 karşılığı envantere eklendi', 'duzeltildi'],
     ['dogrulama', 'CMDB elle içe aktarım', 'Eksik köken alanı; profil v2 ile giderildi', 'duzeltildi'],
     ['kapsam', 'OT pasif keşif dışa aktarımı', 'Kapsam genişletildi, kayıt yeniden işlendi', 'duzeltildi'],
@@ -472,7 +472,7 @@ async function reddedilenler(
         kaynakSistem, kaynakKayitId: `SRC-${String(9000 + i)}`,
         asama, sebep, durum,
         hamJson: JSON.stringify({ satir: 120 + i * 7, alanlar: { asama, kaynak: kaynakSistem } }),
-        inceleyenId: durum === 'acik' ? null : (i % 2 === 0 ? o.burak : o.selin),
+        inceleyenId: durum === 'acik' ? null : (i % 2 === 0 ? o.kulC : o.kulB),
         incelemeNotu: durum === 'acik' ? null : notlar[durum],
         incelemeZamani: durum === 'acik' ? null : gunOnce(4 + i),
         olusturuldu: gunOnce(2 + i * 2),
@@ -492,7 +492,7 @@ async function veriKokenleri(
   r: ReturnType<typeof uretec>,
   o: {
     varliklar: { id: string; etiket: string }[];
-    ahmet: string | null; selin: string | null;
+    kulA: string | null; kulB: string | null;
   },
 ) {
   if (await db.veriKokeni.count() > 0) return;
@@ -620,7 +620,7 @@ async function konfigYedekleri(
    ══════════════════════════════════════════════════════════════════════ */
 async function varlikAktarimlari(
   db: PrismaClient,
-  o: { ahmet: string | null; burak: string | null; mehmet: string | null },
+  o: { kulA: string | null; kulC: string | null; kulD: string | null },
 ) {
   if (await db.varlikAktarimi.count() > 0) return;
 
@@ -632,16 +632,16 @@ async function varlikAktarimlari(
 
   await db.varlikAktarimi.create({ data: {
     dosyaAdi: 'cmdb-merkez-2026-07.xlsx', kaynakTipi: 'xlsx',
-    yukleyenId: o.burak, durum: 'onaylandi',
+    yukleyenId: o.kulC, durum: 'onaylandi',
     basliklarJson: JSON.stringify(basliklar), eslemeJson: esleme,
     okunan: 212, gecerli: 198, hatali: 9, yinelenen: 5, eklenen: 141, guncellenen: 57,
     raporJson: JSON.stringify({ ozet: '198 geçerli satır yazıldı; 9 satır doğrulamada düştü.' }),
-    onaylayanId: o.ahmet, onayZamani: gunOnce(38), olusturuldu: gunOnce(39),
+    onaylayanId: o.kulA, onayZamani: gunOnce(38), olusturuldu: gunOnce(39),
   } });
 
   await db.varlikAktarimi.create({ data: {
-    dosyaAdi: 'ot-saha-kizildere3-2026-08.csv', kaynakTipi: 'csv',
-    yukleyenId: o.mehmet, durum: 'dogrulama_bekliyor',
+    dosyaAdi: 'ot-saha-sahaa3-2026-08.csv', kaynakTipi: 'csv',
+    yukleyenId: o.kulD, durum: 'dogrulama_bekliyor',
     basliklarJson: JSON.stringify(basliklar), eslemeJson: esleme,
     okunan: 64, gecerli: 58, hatali: 4, yinelenen: 2, eklenen: 0, guncellenen: 0,
     raporJson: JSON.stringify({
@@ -652,8 +652,8 @@ async function varlikAktarimlari(
   } });
 
   await db.varlikAktarimi.create({ data: {
-    dosyaAdi: 'alasehir-yardimci-tesis.csv', kaynakTipi: 'csv',
-    yukleyenId: o.mehmet, durum: 'eslesme',
+    dosyaAdi: 'sahabjes-yardimci-tesis.csv', kaynakTipi: 'csv',
+    yukleyenId: o.kulD, durum: 'eslesme',
     basliklarJson: JSON.stringify(['Etiket', 'Cihaz Adı', 'Saha', 'Tip', 'Önem']),
     eslemeJson: null,
     okunan: 31, gecerli: 0, hatali: 0, yinelenen: 0, eklenen: 0, guncellenen: 0,
@@ -661,8 +661,8 @@ async function varlikAktarimlari(
   } });
 
   await db.varlikAktarimi.create({ data: {
-    dosyaAdi: 'gokcedag-envanter-taslak.xlsx', kaynakTipi: 'xlsx',
-    yukleyenId: o.mehmet, durum: 'hata',
+    dosyaAdi: 'sahac-envanter-taslak.xlsx', kaynakTipi: 'xlsx',
+    yukleyenId: o.kulD, durum: 'hata',
     basliklarJson: JSON.stringify(['Kolon1', 'Kolon2']), eslemeJson: null,
     okunan: 0, gecerli: 0, hatali: 0, yinelenen: 0, eklenen: 0, guncellenen: 0,
     raporJson: JSON.stringify({
@@ -672,14 +672,14 @@ async function varlikAktarimlari(
   } });
 
   await db.varlikAktarimi.create({ data: {
-    dosyaAdi: 'kizildere1-2-birlesik.csv', kaynakTipi: 'csv',
-    yukleyenId: o.burak, durum: 'reddedildi',
+    dosyaAdi: 'sahaa1-2-birlesik.csv', kaynakTipi: 'csv',
+    yukleyenId: o.kulC, durum: 'reddedildi',
     basliklarJson: JSON.stringify(basliklar), eslemeJson: esleme,
     okunan: 96, gecerli: 71, hatali: 25, yinelenen: 0, eklenen: 0, guncellenen: 0,
     raporJson: JSON.stringify({
       ozet: '25 satırda kritiklik alanı boş; kaynak dosya düzeltilip yeniden yüklenecek.',
     }),
-    onaylayanId: o.ahmet, onayZamani: gunOnce(21), olusturuldu: gunOnce(22),
+    onaylayanId: o.kulA, onayZamani: gunOnce(21), olusturuldu: gunOnce(22),
   } });
 }
 
@@ -692,17 +692,17 @@ async function varlikAktarimlari(
 async function apiKatmani(
   db: PrismaClient,
   r: ReturnType<typeof uretec>,
-  o: { ahmet: string | null; burak: string | null },
+  o: { kulA: string | null; kulC: string | null },
 ) {
   if (await db.apiAnahtari.count() > 0) return;
-  if (!o.ahmet) return;
+  if (!o.kulA) return;
 
   const anahtarlar = [
-    { ad: 'CMDB aktarım işi', onEk: 'zey_cmdb', kullaniciId: o.burak ?? o.ahmet,
+    { ad: 'CMDB aktarım işi', onEk: 'zey_cmdb', kullaniciId: o.kulC ?? o.kulA,
       gunOnce: 120, bitisGun: 245, iptal: false, sonKullanimGun: 1 },
-    { ad: 'Raporlama okuyucu', onEk: 'zey_rapor', kullaniciId: o.ahmet,
+    { ad: 'Raporlama okuyucu', onEk: 'zey_rapor', kullaniciId: o.kulA,
       gunOnce: 80, bitisGun: 285, iptal: false, sonKullanimGun: 3 },
-    { ad: 'Eski aktarım betiği', onEk: 'zey_eski', kullaniciId: o.burak ?? o.ahmet,
+    { ad: 'Eski aktarım betiği', onEk: 'zey_eski', kullaniciId: o.kulC ?? o.kulA,
       gunOnce: 300, bitisGun: 65, iptal: true, sonKullanimGun: 96 },
   ];
 
@@ -717,7 +717,7 @@ async function apiKatmani(
         sonKullanim: gunOnce(a.sonKullanimGun),
         bitis: new Date(Date.now() + a.bitisGun * GUN),
         iptalZamani: a.iptal ? gunOnce(60) : null,
-        olusturanId: o.ahmet, olusturuldu: gunOnce(a.gunOnce),
+        olusturanId: o.kulA, olusturuldu: gunOnce(a.gunOnce),
       },
     });
     olusturulan.push({ id: k.id, onEk: a.onEk });
@@ -782,7 +782,7 @@ async function olayEtkiZinciri(db: PrismaClient) {
         data: { olayId: olay.id, sistemId: sistem.id, rol: 'etkilenen' },
       });
     }
-    /* Kızıldere olayı ikinci bir sistemi de durdurdu. */
+    /* Saha A olayı ikinci bir sistemi de durdurdu. */
     const ikinci = sistemler.find((s) => s.id !== sistem?.id && s.tesisId === olay.tesisId);
     if (i === 0 && ikinci) {
       await db.olaySistem.create({
@@ -878,7 +878,7 @@ async function tedarikciOturumlari(
 async function topolojiTemeli(
   db: PrismaClient,
   r: ReturnType<typeof uretec>,
-  o: { tesisler: { id: string; kod: string }[]; ahmet: string | null; burak: string | null },
+  o: { tesisler: { id: string; kod: string }[]; kulA: string | null; kulC: string | null },
 ) {
   if (await db.topolojiAnlik.count() > 0) return;
 
@@ -900,10 +900,10 @@ async function topolojiTemeli(
   const bolgeliTesisler = o.tesisler.filter((t) => bolgeler.some((b) => b.tesisId === t.id));
   /* Yayılım alfabetik DEĞİL, önem sırasına göredir: pasif keşif önce en
      büyük ve en kritik sahalara kurulur. Alfabetik dilim, portföyün
-     amiral santralini (Kızıldere III) ölçülmemiş bırakıyordu ve ekran
+     amiral santralini (Saha A-3) ölçülmemiş bırakıyordu ve ekran
      gerçekte olmayacak bir öncelik sırası anlatıyordu. */
-  const ONCELIK = ['KIZILDERE-3', 'KIZILDERE-2', 'KIZILDERE-1', 'ALASEHIR-JES',
-    'GOKCEDAG-RES', 'ALASEHIR-GES', 'ATAKOY-HES', 'MERKEZ-BT'];
+  const ONCELIK = ['SAHA-A3', 'SAHA-A2', 'SAHA-A1', 'SAHA-B-JES',
+    'SAHA-C-RES', 'SAHA-B-GES', 'SAHA-L-HES', 'MERKEZ-BT'];
   const sirali = [...bolgeliTesisler].sort((a, b) => {
     const ia = ONCELIK.indexOf(a.kod);
     const ib = ONCELIK.indexOf(b.kod);
@@ -959,7 +959,7 @@ async function topolojiTemeli(
         temelMi: true,
         /* Bir temel HENÜZ ONAYLANMAMIŞ olabilir: "temel var" ile "temel
            onaylı" ayrı şeylerdir ve ekran ikisini ayrı sayar. */
-        onaylayanId: i % 4 === 3 ? null : o.ahmet,
+        onaylayanId: i % 4 === 3 ? null : o.kulA,
         onayZamani: i % 4 === 3 ? null : gunOnce(94 + i * 4),
         not: `${t.kod} saha ağı temeli; sapmalar buna göre ölçülür.`,
       },
@@ -1007,7 +1007,7 @@ async function topolojiTemeli(
           tip: k.tip, siddet: k.siddet, aciklama: k.aciklama,
           oncekiJson: JSON.stringify(k.onceki), sonrakiJson: JSON.stringify(k.sonraki),
           durum: k.durum,
-          kararVerenId: kararli ? o.burak : null,
+          kararVerenId: kararli ? o.kulC : null,
           kararZamani: kararli ? gunOnce(2) : null,
           kararGerekcesi: k.durum === 'kabul'
             ? 'Planlı değişiklikle uyumlu; temel bir sonraki onayda güncellenecek.'
@@ -1031,7 +1031,7 @@ async function topolojiTemeli(
 async function degerlendirmeTarihcesi(
   db: PrismaClient,
   r: ReturnType<typeof uretec>,
-  o: { ahmet: string | null; selin: string | null; zeynep: string | null },
+  o: { kulA: string | null; kulB: string | null; kulE: string | null },
 ) {
   if (await db.degerlendirmeTarihcesi.count() > 0) return;
 
@@ -1039,7 +1039,7 @@ async function degerlendirmeTarihcesi(
     select: { id: true, durum: true, guven: true, sonDegerlendirme: true },
     orderBy: { id: 'asc' },
   });
-  const aktorler = [o.ahmet, o.selin, o.zeynep].filter((x): x is string => !!x);
+  const aktorler = [o.kulA, o.kulB, o.kulE].filter((x): x is string => !!x);
   if (aktorler.length === 0) return;
 
   const ONCEKI: Record<string, string> = {

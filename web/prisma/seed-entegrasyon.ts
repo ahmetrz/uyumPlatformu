@@ -27,7 +27,7 @@ type Tanim = {
 const CONNECTORLAR: Tanim[] = [
   {
     kod: 'AD-01',
-    ad: 'Zorlu Entra ID',
+    ad: 'Demo Entra ID',
     tip: 'ad_entra',
     kaynakSistem: 'Entra ID',
     kimlikTipi: 'oauth2_client_credentials',
@@ -73,14 +73,14 @@ const CONNECTORLAR: Tanim[] = [
   },
   {
     kod: 'OT-01',
-    ad: 'OT pasif keşif — Kızıldere III',
+    ad: 'OT pasif keşif — Saha A-3',
     tip: 'ot_discovery',
     kaynakSistem: 'OT keşif ürünü',
     kimlikTipi: 'api_key',
     sirReferansi: 'env:OT_KESIF_API_ANAHTARI',
     pollAralikDk: 720,
     yapilandirma: {
-      tesisKodu: 'KIZILDERE-3',
+      tesisKodu: 'SAHA-A3',
       yontem: 'pasif',
       kaynaklar: ['span_port', 'arp_tablosu', 'dhcp_kaydi', 'scada_envanter_disa_aktarim'],
       not: 'PASSIVE-FIRST. Aktif tarama, port taraması ve cihaz sorgulaması ' +

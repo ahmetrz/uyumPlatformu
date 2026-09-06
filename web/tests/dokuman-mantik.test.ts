@@ -28,7 +28,7 @@ function belge(ek: Partial<BelgeSatiri> = {}): BelgeSatiri {
   return {
     id: 'b1', kod: 'POL-2026-001', baslik: 'Bilgi Güvenliği Politikası',
     tur: 'politika', durum: 'yururlukte', surum: '1.0',
-    sahip: 'Ahmet Terzi', onaylayan: null,
+    sahip: 'Kullanıcı A', onaylayan: null,
     yururlukTarihi: iso(-200),
     gozdenGecirmeAy: 12,
     sonrakiGozdenGecirme: iso(165),
@@ -165,15 +165,15 @@ describe('Mercek, arama ve sıralama', () => {
   it('arama kod, başlık, bağlı kontrol ve santral kodunu tarar', () => {
     const l = [belge({ id: 'x', kod: 'POL-X', baslik: 'OT Güvenlik Politikası',
       maddeler: [{ id: 'm', kod: 'EPDK-SYM-4.2.1', baslik: 'SCADA segmentasyonu', regulasyon: 'EPDK-SYM' }],
-      tesisler: [{ id: 't', kod: 'KIZILDERE-3', ad: 'Kızıldere III JES' }] })];
+      tesisler: [{ id: 't', kod: 'SAHA-I', ad: 'Saha I HES' }] })];
     expect(aramaUygula(l, 'scada')).toHaveLength(1);
     expect(aramaUygula(l, 'POL-X')).toHaveLength(1);
     /* Türkçe katlama sınırı BİLİNÇLİDİR (lib/aramaKosulu.ts § Türkçe uyarısı):
-       "KIZILDERE" küçüldüğünde 'kızıldere' olur; ASCII 'i' ile yazılan sorgu
+       "SAHA-I" küçüldüğünde 'saha-ı' olur; ASCII 'i' ile yazılan sorgu
        eşleşmez, Türkçe 'ı' ile yazılan eşleşir. Uydurma ASCII katlaması
        yapılmıyor; bu satır davranışı gizlemek değil SABİTLEMEK için var. */
-    expect(aramaUygula(l, 'kızıldere')).toHaveLength(1);
-    expect(aramaUygula(l, 'kizildere')).toHaveLength(0);
+    expect(aramaUygula(l, 'saha-ı')).toHaveLength(1);
+    expect(aramaUygula(l, 'saha-i')).toHaveLength(0);
     expect(aramaUygula(l, 'yedekleme')).toHaveLength(0);
     // Tek harf aramada liste daralmaz (gürültü olurdu).
     expect(aramaUygula(l, 'o')).toHaveLength(1);

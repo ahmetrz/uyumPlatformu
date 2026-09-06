@@ -3542,7 +3542,7 @@ model SayimSatiri {
 ///
 /// EOL/EOS takibi "bu cihaz ne zaman desteksiz kalacak" sorusunu yanıtlar;
 /// yedek parça "bu kart BUGÜN bozulursa elimizde var mı" sorusunu. OT'de
-/// ikincisi çoğu zaman daha acildir: tedarik süresi aylarla ölçülen bir
+/// ikincisi çoğu zaman daha asahak: tedarik süresi aylarla ölçülen bir
 /// PLC kartı, üretimi durduran bir arızada EOL tarihinden çok daha
 /// belirleyicidir.
 model YedekParca {

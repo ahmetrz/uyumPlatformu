@@ -65,8 +65,8 @@ const { etkiDogrula, etkiDogrulamaGeriAl, olayBagla, olayBagKaldir, olayGuncelle
   await import('@/lib/eylemler2/olay');
 const { olayKaydet } = await import('@/lib/eylemler2/operasyon');
 
-/** Seed'de kurulu zincir: KIZILDERE3-DCS-01 → KIZILDERE3-DCS →
-    KIZILDERE3-URETIM (uretim_durur) → Kızıldere III tesisi. */
+/** Seed'de kurulu zincir: SAHA-A3-DCS-01 → SAHA-A3-DCS →
+    SAHA-A3-URETIM (uretim_durur) → Saha A-3 tesisi. */
 let tamZincirVarligi: { id: string; etiket: string };
 /** Sistemi hiçbir iş sürecine bağlı olmayan varlık (MERKEZ-SANALLASTIRMA). */
 let kopukVarlik: { id: string; etiket: string };

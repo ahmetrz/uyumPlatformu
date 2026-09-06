@@ -1,4 +1,4 @@
-# Zorlu Enerji Yönetişim Platformu
+# Enerji Yönetişim Platformu
 
 Enerji üretim grubu için IT/OT yönetişim, uyum ve dönüşüm platformu.
 Ürün kodu `web/` altındadır (Next.js 16 · React 19 · Prisma 7 · SQLite).
@@ -30,7 +30,7 @@ oku; buradan varsayma.
 ## Bağlayıcı kurallar
 
 **Dil.** Ürün metinleri, kod yorumları, commit mesajları ve belgeler
-Türkçedir. Ürünün adı **Zorlu Enerji Yönetişim Platformu**'dur; eski kod
+Türkçedir. Ürünün adı **Enerji Yönetişim Platformu**'dur; eski kod
 adları kod, belge ve arayüzde geçmez.
 
 **Gerçek kurum sistemine bağlanılmaz.** AD/Entra, EDR, zafiyet tarayıcı,
@@ -41,7 +41,7 @@ erişilmez. **Gerçek endpoint, credential, secret veya token uydurulmaz.**
 
 **Koyu tema.** Bütün ekranlar koyu temadır; açık temaya geçiş yoktur.
 
-**Santral görselleri temsilîdir ve ödünç alınmaz.** Görsel seti Ahmet'in
+**Santral görselleri temsilîdir ve ödünç alınmaz.** Görsel seti ürün sahibinin
 sağladığı fotoğraflardır (`public/santraller/KUNYE.md`). Fotoğrafı olmayan
 santrale **başka bir santralin görseli konmaz**; tipografik fallback alır.
 Üretim tipleri de birbirinin yerine geçmez.

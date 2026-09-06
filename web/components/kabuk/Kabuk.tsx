@@ -82,8 +82,8 @@ export default function Kabuk({ veri, children }: { veri: KabukVerisi; children:
           bir main açmaz). */}
       <a href="#icerik" className="ab-atla">İçeriğe atla</a>
       <header className="ab-ust">
-        <Link href="/" className="marka" aria-label="Zorlu Enerji Yönetişim Platformu — ana ekran">
-          ZORLU ENERJİ<span className="ikinci">Yönetişim Platformu</span>
+        <Link href="/" className="marka" aria-label="Enerji Yönetişim Platformu — ana ekran">
+          DEMO ENERJİ<span className="ikinci">Yönetişim Platformu</span>
         </Link>
         <nav aria-label="Alanlar">
           {ALANLAR.map((o) => (
@@ -255,7 +255,7 @@ function Ayak({ veri }: { veri: KabukVerisi }) {
         <Link href="/yardim#yardim-kisayol">Kısayollar</Link>
         <Link href="/sistem">Tasarım sistemi</Link>
       </nav>
-      <span className="telif">© 2026 Zorlu Enerji</span>
+      <span className="telif">© 2026 Demo Enerji</span>
     </footer>
   );
 }

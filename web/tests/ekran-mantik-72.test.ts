@@ -19,7 +19,7 @@ import {
 function santral(kismi: Partial<PortfoySatiri> & { id: string }): PortfoySatiri {
   return {
     kod: kismi.id.toUpperCase(), ad: kismi.id,
-    tipKod: 'HES', tipAdi: 'Hidroelektrik', tuzelKisi: 'Zorlu Doğal',
+    tipKod: 'HES', tipAdi: 'Hidroelektrik', tuzelKisi: 'Demo Doğal',
     konum: null, gucMw: 100, gorselAnahtari: null, kritiklik: null,
     enlem: null, boylam: null,
   konumKaynagi: null, konumDogrulandi: false,
@@ -62,13 +62,13 @@ describe('A2 · portföy sıralama', () => {
 
 describe('A2 · portföy süzgeç ve en zayıf', () => {
   const satirlar = [
-    santral({ id: 'a', tuzelKisi: 'Zorlu Doğal', tipKod: 'HES', acikBulgu: 2, uyumYuzde: 70 }),
-    santral({ id: 'b', tuzelKisi: 'Zorlu Jeotermal', tipKod: 'JES', acikBulgu: 0, uyumYuzde: 95 }),
+    santral({ id: 'a', tuzelKisi: 'Demo Doğal', tipKod: 'HES', acikBulgu: 2, uyumYuzde: 70 }),
+    santral({ id: 'b', tuzelKisi: 'Demo Jeotermal', tipKod: 'JES', acikBulgu: 0, uyumYuzde: 95 }),
     santral({ id: 'c', tuzelKisi: null, tipKod: null, acikBulgu: 0, uyumYuzde: null }),
   ];
 
   it('tüzel kişi süzgeci; kayıtsız tüzel kişi ayrı anahtarla süzülür', () => {
-    expect(suz(satirlar, { tuzelKisi: 'Zorlu Doğal' }).map((s) => s.id)).toEqual(['a']);
+    expect(suz(satirlar, { tuzelKisi: 'Demo Doğal' }).map((s) => s.id)).toEqual(['a']);
     expect(suz(satirlar, { tuzelKisi: TUZEL_YOK }).map((s) => s.id)).toEqual(['c']);
     expect(suz(satirlar, { tuzelKisi: HEPSI })).toHaveLength(3);
   });

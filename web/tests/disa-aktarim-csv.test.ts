@@ -74,7 +74,7 @@ describe('Formül enjeksiyonu kalkanı', () => {
   });
 
   it('tehlikesiz metne tırnak eklemez', () => {
-    expect(formulKalkani('Kızıldere II')).toBe('Kızıldere II');
+    expect(formulKalkani('Saha A-2')).toBe('Saha A-2');
   });
 });
 
@@ -104,7 +104,7 @@ describe('Alan tırnaklama', () => {
 });
 
 describe('CSV metni', () => {
-  const satirlar = [['Ad', 'Kod'], ['Kızıldere II', 'KZD2']];
+  const satirlar = [['Ad', 'Kod'], ['Saha A-2', 'KZD2']];
 
   it('BOM ile başlar — Excel Türkçe karakterleri doğru okusun', () => {
     expect(csvMetni(satirlar).startsWith(CSV_BOM)).toBe(true);
@@ -148,7 +148,7 @@ describe('CSV metni', () => {
   });
 
   it('10.000 satırı üretir ve satır sayısı korunur [ENV-DIS-005]', () => {
-    const cok = Array.from({ length: 10_000 }, (_, i) => [`etiket-${i}`, i, 'Kızıldere II']);
+    const cok = Array.from({ length: 10_000 }, (_, i) => [`etiket-${i}`, i, 'Saha A-2']);
     const m = csvMetni(cok, { bom: false });
     expect(m.trimEnd().split(CSV_SATIR_SONU)).toHaveLength(10_000);
   });
@@ -169,7 +169,7 @@ describe('Dosya adı', () => {
   });
 
   it('Türkçe harfleri korur', () => {
-    expect(guvenliDosyaAdi('Kızıldere Envanteri', 'csv')).toBe('Kızıldere-Envanteri.csv');
+    expect(guvenliDosyaAdi('Saha M DGKÇ Envanteri', 'csv')).toBe('Saha-M-DGKÇ-Envanteri.csv');
   });
 
   it('noktayı gövdede bırakmaz — çift uzantı saldırısı olmaz', () => {

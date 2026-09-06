@@ -39,7 +39,7 @@ const { kanitPaketiUretEylem } = await import('@/lib/eylemler2/disaAktarim');
 const { kokenYaz } = await import('@/lib/entegrasyon/koken');
 const { sirMaskesi } = await import('@/lib/entegrasyon/sir');
 
-/** Kapsam: EPDK-SYM × KIZILDERE-3. Yetkisiz santral: KIZILDERE-2. */
+/** Kapsam: EPDK-SYM × SAHA-A3. Yetkisiz santral: SAHA-A2. */
 let regulasyonId = '';
 let izinliTesisId = '';
 let yasakTesisId = '';
@@ -71,9 +71,9 @@ async function paketUret(tesisIdleri = [izinliTesisId]): Promise<KanitPaketi> {
 
 beforeAll(async () => {
   regulasyonId = (await db.regulasyon.findFirstOrThrow({ where: { kod: 'EPDK-SYM' } })).id;
-  izinliTesisId = (await db.tesis.findFirstOrThrow({ where: { kod: 'KIZILDERE-3' } })).id;
-  yasakTesisId = (await db.tesis.findFirstOrThrow({ where: { kod: 'KIZILDERE-2' } })).id;
-  // Yetki YALNIZ KIZILDERE-3'e kısıtlı: kapsam denetimi gerçek yoldan koşar.
+  izinliTesisId = (await db.tesis.findFirstOrThrow({ where: { kod: 'SAHA-A3' } })).id;
+  yasakTesisId = (await db.tesis.findFirstOrThrow({ where: { kod: 'SAHA-A2' } })).id;
+  // Yetki YALNIZ SAHA-A3'e kısıtlı: kapsam denetimi gerçek yoldan koşar.
   kullaniciId = await oturumAc('denetim_sorumlusu', izinliTesisId);
 });
 
@@ -190,7 +190,7 @@ describe('RBAC — yetki dışındaki santral pakete girmez', () => {
     // İz satırı paketin özetini taşır: dosya ile kayıt eşleşebilsin.
     expect(iz.yeniDeger).toBe(sonuc.ozet);
     expect(iz.aktorId).toBe(kullaniciId);
-    expect(iz.gerekce).toContain('KIZILDERE-3');
+    expect(iz.gerekce).toContain('SAHA-A3');
   });
 
   it('kapsam dışı santral istenirse istek REDDEDİLİR, sessizce daraltılmaz [RAP-URT-002]', async () => {
@@ -203,7 +203,7 @@ describe('RBAC — yetki dışındaki santral pakete girmez', () => {
     expect(sonuc.hata).toMatch(/kapsamı dışında/);
     // Hata metni HANGİ santralin dışarıda kaldığını söylemez.
     expect(sonuc.hata).not.toContain(yasakTesisId);
-    expect(JSON.stringify(sonuc)).not.toContain('KIZILDERE-2');
+    expect(JSON.stringify(sonuc)).not.toContain('SAHA-A2');
   });
 
   it('reddedilen istek de denetim izine yazılır', async () => {
@@ -226,12 +226,12 @@ describe('RBAC — yetki dışındaki santral pakete girmez', () => {
     if (!sonuc.ok) return;
     const paket = JSON.parse(sonuc.json) as KanitPaketi;
 
-    expect(paket.baslik.kapsam.tesisler.map((t) => t.kod)).toEqual(['KIZILDERE-3']);
-    expect(paket.maddeler.every((m) => m.tesisKodu === 'KIZILDERE-3')).toBe(true);
-    expect(paket.bulgular.every((b) => b.tesisKodu === 'KIZILDERE-3')).toBe(true);
+    expect(paket.baslik.kapsam.tesisler.map((t) => t.kod)).toEqual(['SAHA-A3']);
+    expect(paket.maddeler.every((m) => m.tesisKodu === 'SAHA-A3')).toBe(true);
+    expect(paket.bulgular.every((b) => b.tesisKodu === 'SAHA-A3')).toBe(true);
     // Yasak santralin kimliği hiçbir alanda geçmez (iz satırları dahil).
     expect(sonuc.json).not.toContain(yasakTesisId);
-    expect(sonuc.json).not.toContain('KIZILDERE-2');
+    expect(sonuc.json).not.toContain('SAHA-A2');
     expect(paket.maddeler.length).toBeGreaterThan(0);
   });
 });

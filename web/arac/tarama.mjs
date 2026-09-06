@@ -48,7 +48,7 @@ const s = await b.newPage({ viewport: { width: BANTLAR[0], height: 900 } });
 
 await s.goto(`${KOK}/giris`, { waitUntil: 'domcontentloaded' });
 if (s.url().includes('/giris')) {
-  await s.fill('input[type=email]', 'ahmet.terzi@zorlu.com');
+  await s.fill('input[type=email]', 'kullanici.a@demo.local');
   await s.fill('input[type=password]', 'Enerji!2026');
   await s.click('button[type=submit]');
   await s.waitForURL((u) => !u.pathname.startsWith('/giris'), { timeout: 25000 });

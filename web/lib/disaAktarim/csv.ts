@@ -27,7 +27,7 @@
    için ayraç seçilebilir.
 
    ── BOM ───────────────────────────────────────────────────────────────
-   UTF-8 BOM olmadan Excel dosyayı Windows-1254 sanır ve "Kızıldere"
+   UTF-8 BOM olmadan Excel dosyayı Windows-1254 sanır ve "Saha A"
    "KÄ±zÄ±ldere" olur. BOM üç bayttır ve bu ürün için pazarlık konusu
    değildir. */
 

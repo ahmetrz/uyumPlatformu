@@ -6,7 +6,7 @@
    paralel çalışılan bir dosyada satır kaydırmak riskli. Buradaki veriler
    yalnızca kod ve isimlerle bağlanır, seed.ts'in iç değişkenlerine dokunmaz.
 
-   Rakamlar Zorlu Enerji üretim portföyünün gerçek yapısına oturur; ZES, OEDAŞ
+   Rakamlar Demo Enerji üretim portföyünün gerçek yapısına oturur; ZES, OEDAŞ
    ve OEPSAŞ platform kapsamı dışıdır ve buraya girmez. */
 
 import type { PrismaClient } from '../lib/prisma-client/client';
@@ -62,7 +62,7 @@ export async function operasyonVerisi(db: PrismaClient) {
   const bolgeler = await db.agBolgesi.findMany();
 
   const uretimSantralleri = tesisler.filter(
-    (x) => x.kod !== 'MERKEZ-BT' && !x.kod.startsWith('LULEBURGAZ'),
+    (x) => x.kod !== 'MERKEZ-BT' && !x.kod.startsWith('SAHA-M'),
   );
 
   /* ═══ Tedarikçiler ═══════════════════════════════════════════════════
@@ -189,10 +189,10 @@ export async function operasyonVerisi(db: PrismaClient) {
      bölgeler → izlemeDurumu 'bilinmiyor' (sıfır değil, BİLİNMEYEN). */
   const sistemEslesme = new Map(sistemler.map((x) => [x.tesisId ?? '', x.id]));
   const varliklar: { id: string; etiket: string; tesisId: string | null; kritiklik: string }[] = [];
-  const sahipDagitim = ['ahmet.terzi', 'selin.aydin', 'burak.sahin', 'mehmet.kaya', 'zeynep.arslan'];
+  const sahipDagitim = ['kullanici.a', 'kullanici.b', 'kullanici.c', 'kullanici.d', 'kullanici.e'];
 
   for (const s of uretimSantralleri) {
-    const jes = s.kod.includes('JES') || s.kod.startsWith('KIZILDERE');
+    const jes = s.kod.includes('JES') || s.kod.startsWith('SAHA-A');
     const res = s.kod.includes('RES');
     const hes = s.kod.includes('HES');
     /* Tedarikçi santralin teknolojisinden gelir: jeotermal ünitede Ormat,
@@ -296,7 +296,7 @@ export async function operasyonVerisi(db: PrismaClient) {
             yedekDurumu: 'var', izlemeDurumu: 'var', logKaynagi: 'var',
             internetMaruziyeti: turKod === 'AGCIHAZ' && ek === 'FW' ? 'var' : 'sinirli',
             uzaktanErisim: true,
-            sahipId: K['mehmet.kaya'].id,
+            sahipId: K['kullanici.d'].id,
             tedarikciId: TD[turKod === 'AGCIHAZ' ? 'Cisco Systems' : 'Microsoft'].id,
           },
         });
@@ -367,12 +367,12 @@ export async function operasyonVerisi(db: PrismaClient) {
   /* ═══ Sertifikalar — O16'nın "21g sertifika doluyor" sinyali ══════════ */
   const kritikVarliklar = varliklar.filter((v) => v.kritiklik === 'kritik');
   const sertifikaTanim: [string, number, string][] = [
-    ['Saha VPN geçit sertifikası', 21, 'Zorlu Enerji İç PKI'],
-    ['Uzaktan bakım VPN sertifikası', 47, 'Zorlu Enerji İç PKI'],
+    ['Saha VPN geçit sertifikası', 21, 'Demo Enerji İç PKI'],
+    ['Uzaktan bakım VPN sertifikası', 47, 'Demo Enerji İç PKI'],
     ['Historian TLS sertifikası', -9, "Let's Encrypt"],
-    ['SCADA istemci sertifikası', 118, 'Zorlu Enerji İç PKI'],
+    ['SCADA istemci sertifikası', 118, 'Demo Enerji İç PKI'],
     ['Kurumsal portal TLS', 240, 'DigiCert'],
-    ['OPC UA sunucu sertifikası', 63, 'Zorlu Enerji İç PKI'],
+    ['OPC UA sunucu sertifikası', 63, 'Demo Enerji İç PKI'],
     ['Denetçi erişim portalı TLS', 12, 'DigiCert'],
   ];
   for (let i = 0; i < sertifikaTanim.length; i++) {
@@ -391,7 +391,7 @@ export async function operasyonVerisi(db: PrismaClient) {
      santralin varlıklarındaki yedekDurumu alanından hesaplar. Buradaki
      kayıtlar koşu geçmişi ve restore testi kanıtıdır.
      "Hiç test edilmemiş" santral 0 gün değil, KAYIT YOKLUĞU ile anlatılır. */
-  const testEdilmeyen = new Set(['CILDIR-HES', 'ATAKOY-HES']);
+  const testEdilmeyen = new Set(['SAHA-K-HES', 'SAHA-L-HES']);
   for (const s of uretimSantralleri.concat(merkez ? [merkez] : [])) {
     const pol = await db.yedeklemePolitikasi.create({
       data: {
@@ -504,9 +504,9 @@ export async function kimlikErisim(db: PrismaClient) {
   const rnd = uret(20260901);
   const kullanicilar = await db.kullanici.findMany();
   const K = Object.fromEntries(kullanicilar.map((x) => [x.eposta.split('@')[0], x]));
-  const sahipDagitim = ['ahmet.terzi', 'selin.aydin', 'burak.sahin', 'mehmet.kaya', 'zeynep.arslan'];
+  const sahipDagitim = ['kullanici.a', 'kullanici.b', 'kullanici.c', 'kullanici.d', 'kullanici.e'];
   const uretimSantralleri = (await db.tesis.findMany({ where: { durum: 'aktif' } }))
-    .filter((x) => x.kod !== 'MERKEZ-BT' && !x.kod.startsWith('LULEBURGAZ'));
+    .filter((x) => x.kod !== 'MERKEZ-BT' && !x.kod.startsWith('SAHA-M'));
   const varliklar = (await db.varlik.findMany({
     where: { silindi: null }, select: { id: true, kritiklik: true },
   }));
@@ -654,7 +654,7 @@ export async function kimlikErisim(db: PrismaClient) {
       if (!incelenmemis) {
         await db.erisimIncelemesi.create({
           data: {
-            atamaId: atama.id, inceleyenId: K['mehmet.kaya'].id,
+            atamaId: atama.id, inceleyenId: K['kullanici.d'].id,
             sonuc: rnd() > 0.12 ? 'onaylandi' : 'kaldirilsin',
             not: rnd() > 0.85 ? 'Vardiya rotasyonu nedeniyle kapsam daraltıldı.' : null,
             zaman: gun(-Math.floor(10 + rnd() * 150)),

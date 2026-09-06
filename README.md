@@ -1,6 +1,6 @@
-# Zorlu Enerji Yönetişim Platformu
+# Enerji Yönetişim Platformu
 
-Zorlu Enerji üretim portföyü için IT/OT yönetişim, uyum, risk, denetim ve dönüşüm süreçlerini tek yerde yöneten kurumsal web uygulaması.
+Demo Enerji üretim portföyü için IT/OT yönetişim, uyum, risk, denetim ve dönüşüm süreçlerini tek yerde yöneten kurumsal web uygulaması.
 
 Uygulama; tesis ve varlık envanterini, regülasyon kontrollerini, kanıtları, bulguları, riskleri, aksiyonları, denetimleri, projeleri ve otomasyon durumunu aynı veri zincirinde tutar. Gerçek kurum sistemleri için entegrasyon altyapısı vardır; aktif kimlik bilgileri veya kurum içi uç noktalar repoda tutulmaz.
 

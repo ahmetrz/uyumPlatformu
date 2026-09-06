@@ -66,14 +66,14 @@ describe('Değerlendirilmemiş özeti · yönetilebilen', () => {
 });
 
 /* ── "+N diğer" DOĞRU olmak zorundadır ────────────────────────────────
-   Ekranda "Alaşehir JES · İkizdere HES · Demirciler RES  +8 diğer" yazar.
+   Ekranda "Saha B JES · Saha F HES · Saha E RES  +8 diğer" yazar.
    Bu cümle ancak yazılan ad sayısı + N === toplam ise doğrudur. İlk
    uygulamada özet başlıkla aynı satırdaydı, CSS adlardan ikisini üç
    noktayla yutuyordu ve ekranda 1 ad + "+8 diğer" görünüyordu — 11 - 1 = 10
    iken. Kusur ölçümle yakalandı (1366×768), özet kendi satırına alındı ve
    adların kesilmesi kaldırıldı. Aşağıdaki değişmez o kusurun nöbetçisidir. */
 describe('Değerlendirilmemiş özeti · "+N diğer" değişmezi', () => {
-  const adlar = ['Alaşehir JES', 'İkizdere HES', 'Demirciler RES', 'Kuzgun HES', 'Mercan HES'];
+  const adlar = ['Saha B JES', 'Saha F HES', 'Saha E RES', 'Saha J HES', 'Saha H HES'];
 
   it('gösterilen + kalan HER ZAMAN toplamı verir', () => {
     for (const gosterim of ['ozet', 'sayi'] as const) {

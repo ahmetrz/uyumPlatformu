@@ -45,12 +45,12 @@ const KOKENLER: { ad: string; koken: KokenGorunumu | null }[] = [
   { ad: 'Doğrulanmış', koken: {
     kokenTipi: 'dogrulanmis', kaynakSistem: 'Varlık keşfi', guven: 0.92,
     dogrulamaDurumu: 'dogrulandi', toplanma: '2026-08-30T09:12:00Z',
-    dogrulayan: 'M. Kaya', dogrulamaZamani: '2026-08-31T14:05:00Z',
+    dogrulayan: 'Kullanıcı D', dogrulamaZamani: '2026-08-31T14:05:00Z',
   } },
   { ad: 'Reddedildi', koken: {
     kokenTipi: 'otomatik', kaynakSistem: 'Zafiyet tarayıcı', guven: 0.4,
     dogrulamaDurumu: 'reddedildi', toplanma: '2026-08-28T22:40:00Z',
-    dogrulayan: 'B. Şahin', dogrulamaZamani: '2026-08-29T08:00:00Z',
+    dogrulayan: 'Kullanıcı C', dogrulamaZamani: '2026-08-29T08:00:00Z',
   } },
 ];
 
@@ -176,7 +176,7 @@ export default function Galeri() {
 
         <B no="05" ad="İpucu" not="Hover ve odakla açılır. Sözleşme: kritik hiçbir bilgi yalnız burada yaşayamaz.">
           <div style={{ display: 'flex', gap: 'var(--s34)' }}>
-            <Ipucu metin="EPDK-SYM 4.2.1 · Kızıldere 3 · ağ ayrıştırma yok">
+            <Ipucu metin="EPDK-SYM 4.2.1 · Saha A 3 · ağ ayrıştırma yok">
               <span style={{ display: 'inline-flex' }}><Im durum="bd" /></span>
             </Ipucu>
             <Ipucu genis metin="R-EPDK-01 · kurulu güç ≥ 50 MWe ve TEİAŞ SCADA bağlantısı varsa kapsam açılır.">
@@ -211,14 +211,14 @@ export default function Galeri() {
           <BaglamCubugu
             kirintiler={[
               { ad: 'Portföy', yol: '/portfoy' },
-              { ad: 'Zorlu Jeotermal Enerji', yol: '/portfoy' },
-              { ad: 'Kızıldere 3 JES' },
+              { ad: 'Demo Jeotermal Enerji', yol: '/portfoy' },
+              { ad: 'Saha A-3 JES' },
             ]}
             secici={[
-              { id: 'k3', ad: 'Kızıldere 3 JES', alt: '165 MWe · Denizli', tip: 'JES', gorsel: null, yol: '/tesisler/k3' },
-              { id: 'k2', ad: 'Kızıldere 2 JES', alt: '80 MWe · Denizli', tip: 'JES', gorsel: null, yol: '/tesisler/k2' },
-              { id: 'gd', ad: 'Gökçedağ RES', alt: '135 MWe · Osmaniye', tip: 'RES', gorsel: null, yol: '/tesisler/gd' },
-              { id: 'ik', ad: 'İkizdere HES', alt: '18 MWe · Rize', tip: 'HES', gorsel: null, yol: '/tesisler/ik' },
+              { id: 'k3', ad: 'Saha A-3 JES', alt: '165 MWe · Denizli', tip: 'JES', gorsel: null, yol: '/tesisler/k3' },
+              { id: 'k2', ad: 'Saha A 2 JES', alt: '80 MWe · Denizli', tip: 'JES', gorsel: null, yol: '/tesisler/k2' },
+              { id: 'gd', ad: 'Saha C RES', alt: '135 MWe · Osmaniye', tip: 'RES', gorsel: null, yol: '/tesisler/gd' },
+              { id: 'ik', ad: 'Saha F HES', alt: '18 MWe · Rize', tip: 'HES', gorsel: null, yol: '/tesisler/ik' },
             ]}
             sag={<Dugme tur="ikincil">Kapsamı daralt</Dugme>}
           />
@@ -234,13 +234,13 @@ export default function Galeri() {
             satirlar={[
               { id: 'R-1', durum: 'bd', konu: 'SCADA ağı kurumsal ağdan ayrıştırılmamış',
                 alt: 'RSK-2026-001 · 16/25 · üretim etkisi 5/5',
-                hucreler: ['Gökçedağ RES', 'B. Şahin', '24 gün'], kenar: 'bd' },
+                hucreler: ['Saha C RES', 'Kullanıcı C', '24 gün'], kenar: 'bd' },
               { id: 'R-2', durum: 'md', konu: 'Kuyubaşı RTU’larda tekil haberleşme güzergâhı',
                 alt: 'RSK-2026-004 · 12/25 · azalt',
-                hucreler: ['Kızıldere 3 JES', 'M. Kaya', 'Q1’27'], kenar: 'md' },
-              { id: 'R-3', durum: 'unk', konu: 'Alaşehir JES saha ağı envanteri',
+                hucreler: ['Saha A-3 JES', 'Kullanıcı D', 'Q1’27'], kenar: 'md' },
+              { id: 'R-3', durum: 'unk', konu: 'Saha B JES saha ağı envanteri',
                 alt: 'RSK-2026-011 · profil eksik',
-                hucreler: ['Alaşehir JES', '—', '—'] },
+                hucreler: ['Saha B JES', '—', '—'] },
             ]}
             secili={secili} sec={setSecili}
             kuyruk={{ metin: '+22 risk · zamanında ilerliyor' }}
@@ -252,23 +252,23 @@ export default function Galeri() {
           <Matris
             kolonBasliklari={['Erişim', 'Ağ', 'İzleme', 'Yedek', 'Olay']}
             satirlar={[
-              { id: 'k3', ad: 'Kızıldere 3 JES', alt: '165 MWe', hucreler: [
+              { id: 'k3', ad: 'Saha A-3 JES', alt: '165 MWe', hucreler: [
                 { durum: 'md', ipucu: 'Erişim · kısmi' }, { durum: 'bd', ipucu: 'Ağ · uyumsuz' },
                 { durum: 'ok', ipucu: 'İzleme · uyumlu' }, { durum: 'md', ipucu: 'Yedek · kısmi' },
                 { durum: 'ok', ipucu: 'Olay · uyumlu' }] },
-              { id: 'gd', ad: 'Gökçedağ RES', alt: '135 MWe', hucreler: [
+              { id: 'gd', ad: 'Saha C RES', alt: '135 MWe', hucreler: [
                 { durum: 'bd', ipucu: 'Erişim · uyumsuz' }, { durum: 'bd', ipucu: 'Ağ · uyumsuz' },
                 { durum: 'md', ipucu: 'İzleme · kısmi' }, { durum: 'ok', ipucu: 'Yedek · uyumlu' },
                 { durum: 'md', ipucu: 'Olay · kısmi' }] },
-              { id: 'k2', ad: 'Kızıldere 2 JES', alt: '80 MWe', hucreler: [
+              { id: 'k2', ad: 'Saha A 2 JES', alt: '80 MWe', hucreler: [
                 { durum: 'ok', ipucu: 'Erişim · uyumlu' }, { durum: 'md', ipucu: 'Ağ · kısmi' },
                 { durum: 'ok', ipucu: 'İzleme · uyumlu' }, { durum: 'ok', ipucu: 'Yedek · uyumlu' },
                 { durum: 'unk', ipucu: 'Olay · henüz değerlendirme yok' }] },
-              { id: 'coklu', ad: 'Kuzgun · Mercan · Tercan', alt: '3 HES', hucreler: [
+              { id: 'coklu', ad: 'Saha J · Saha H · Saha G', alt: '3 HES', hucreler: [
                 { durum: 'ok', ipucu: 'Erişim · uyumlu' }, { durum: 'md', ipucu: 'Ağ · kısmi' },
                 { durum: 'md', ipucu: 'İzleme · kısmi' }, { durum: 'ok', ipucu: 'Yedek · uyumlu' },
                 { durum: 'unk', ipucu: 'Olay · henüz değerlendirme yok' }] },
-              { id: 'sakin', ad: 'Beyköy · Çıldır · Ataköy', alt: '3 tesis', sakin: true, hucreler: [
+              { id: 'sakin', ad: 'Saha I · Saha K · Saha L', alt: '3 tesis', sakin: true, hucreler: [
                 { durum: 'ok', ipucu: 'Erişim · uyumlu' }, { durum: 'ok', ipucu: 'Ağ · uyumlu' },
                 { durum: 'ok', ipucu: 'İzleme · uyumlu' }, { durum: 'ok', ipucu: 'Yedek · uyumlu' },
                 { durum: 'ok', ipucu: 'Olay · uyumlu' }] },
@@ -304,9 +304,9 @@ export default function Galeri() {
         <B no="11" ad="Odak kartı" not="Ekran başına bir tane. En fazla bir cümle düzyazı. 5px sol kenar sürükleyen durumun renginde.">
           <OdakKarti
             ust="Kritik · yönetim kararı gerektirir"
-            vurgu="Gökçedağ RES" baslik="’te SCADA ağı kurumsal ağdan ayrıştırılmamış"
+            vurgu="Saha C RES" baslik="’te SCADA ağı kurumsal ağdan ayrıştırılmamış"
             cumle="Düz ağ topolojisi tespit edildi; EPDK-SYM 4.2.1, RSK-2026-001 ve CBDDÖ denetim hazırlığı bu boşluğa bağlı."
-            hedef={{ sayi: '24 gün', yazi: 'Sahip B. Şahin' }}
+            hedef={{ sayi: '24 gün', yazi: 'Sahip Kullanıcı C' }}
             seritler={[
               { etiket: 'Uyum', deger: 'EPDK 4.2.1 uyumsuz', not: 'Grup uyumu −3 puan' },
               { etiket: 'Risk', deger: 'RSK-2026-001 · 16/25', not: 'Üretim etkisi 5/5' },
@@ -327,13 +327,13 @@ export default function Galeri() {
               { ad: 'Tem', konum: 0.56 }, { ad: 'Eki', konum: 0.82 }]}
             kartlar={[
               { id: 'a', ad: 'CBDDÖ denetimi', geri: '35g', kapsam: '13 santral · kanıt 11/15', durum: 'bd', konum: 0.30 },
-              { id: 'b', ad: 'İç denetim · JES', geri: '14 Eki', kapsam: 'Kızıldere 1–3', durum: 'md', konum: 0.62 },
+              { id: 'b', ad: 'İç denetim · JES', geri: '14 Eki', kapsam: 'Saha A 1–3', durum: 'md', konum: 0.62 },
             ]}
           />
           <div style={{ marginTop: 'var(--s24)' }}>
             <OmurUfku kartlar={[
               { id: 'e1', ad: 'Separatör PLC (S7-300 ×3)', geri: 'Mar 27', kapsam: 'EOS geçti · telafi yok', gecmis: true, konum: 0.06 },
-              { id: 'e2', ad: 'WinCC SCADA sunucu', geri: 'Eyl 27', kapsam: 'Kızıldere 3', gecmis: false, konum: 0.44 },
+              { id: 'e2', ad: 'WinCC SCADA sunucu', geri: 'Eyl 27', kapsam: 'Saha A 3', gecmis: false, konum: 0.44 },
               { id: 'e3', ad: 'Saha anahtarları', geri: 'Q2 28', kapsam: '4 santral', gecmis: false, konum: 0.74 },
             ]} />
           </div>
@@ -393,7 +393,7 @@ export default function Galeri() {
                 ))}
               </div>
             ))}
-            <span className="mono etiket sag">Zorlu Enerji · 16 santral</span>
+            <span className="mono etiket sag">Demo Enerji · 16 santral</span>
           </nav>
           <div style={{ maxWidth: 212, marginTop: 'var(--s24)' }}>
             <aside className="ab-c-dizin" aria-label="Okuma anahtarı (örnek)">
@@ -442,7 +442,7 @@ export default function Galeri() {
             {/* Bilinmeyen ≠ sıfır ≠ sağlıklı ≠ ölçülmedi: dört hâl, dört kutu.
                 Sol kenardaki 45° tarama bilinmeyen dilimiyle aynı şekil kodu. */}
             <div style={{ display: 'flex', gap: 'var(--s24)', flexWrap: 'wrap' }}>
-              <Olculmedi ne="Alaşehir JES · OT segmenti" neden="tarama kapsamı dışında"
+              <Olculmedi ne="Saha B JES · OT segmenti" neden="tarama kapsamı dışında"
                 eylem={<Dugme>Kapsama al</Dugme>} />
               <BaglantiYok kaynak="EPDK-SYM bağlayıcısı" sonBasarili="02 Eyl 03:10"
                 eylem={<Dugme>Kuru koşu</Dugme>} />
@@ -454,7 +454,7 @@ export default function Galeri() {
             <div style={{ display: 'flex', gap: 'var(--s24)', flexWrap: 'wrap' }}>
               <EntegrasyonYok kaynak="SCADA tarihçe" ne="OT olay akışı"
                 eylem={<Dugme>Bağlayıcı tanımla</Dugme>} />
-              <Bakimda ne="Kızıldere III · DCS ağ geçidi" bitis="04 Eyl 06:00"
+              <Bakimda ne="Saha A-3 · DCS ağ geçidi" bitis="04 Eyl 06:00"
                 eylem={<Dugme>Bakım penceresini gör</Dugme>} />
               <KismiYukleniyor gelen={9} toplam={17} birim="santral" />
             </div>
@@ -463,13 +463,13 @@ export default function Galeri() {
       </main>
 
       {secili && (
-        <Cekmece kod="RSK-2026-004 · Kızıldere 3" kapat={() => setSecili(null)}>
+        <Cekmece kod="RSK-2026-004 · Saha A 3" kapat={() => setSecili(null)}>
           <CekmeceKimlik durum="bd" soz="Uyumsuz"
             baslik="EPDK-SYM 4.2.1 — ağ ayrıştırma"
             cumle="Kuyu sahası ile kurumsal ağ arasında düz L2 geçiş." />
           <CekmeceAlanlar alanlar={[
             { etiket: 'Kanıt', deger: 'yok', durum: 'bd' },
-            { etiket: 'Sahip', deger: 'B. Şahin' },
+            { etiket: 'Sahip', deger: 'Kullanıcı C' },
             { etiket: 'Son tarih', deger: '26 Eylül' },
             { etiket: 'Aile durumu', deger: '1 / 4 uyumsuz' },
           ]} />

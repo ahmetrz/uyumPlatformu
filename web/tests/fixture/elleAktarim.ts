@@ -21,37 +21,37 @@ type Satir = Record<string, string>;
 const GECERLI_SATIRLAR: Satir[] = [
   {
     'Record ID': 'SRT-0001',
-    'Asset Tag': VARLIK_ETIKETLERI.kizildere3Scada,
+    'Asset Tag': VARLIK_ETIKETLERI.sahaa3Scada,
     Hostname: 'kd3-scada-01',
-    'Serial Number': 'PE740-KD3-0001',
+    'Serial Number': 'PE740-SA3-0001',
     'MAC Address': '00:1B:1B:AA:BB:01',
     'IP Address': '10.60.10.11',
     Vendor: 'Dell',
     Model: 'PowerEdge R740',
     OS: 'Windows Server 2019',
     'Firmware Version': '2.11.2',
-    'Site Code': TESIS_KODLARI.kizildere3,
-    Zone: 'KIZILDERE3-OT',
+    'Site Code': TESIS_KODLARI.sahaa3,
+    Zone: 'SAHA-A3-OT',
     'Device Type': 'SCADA-SRV',
   },
   {
     'Record ID': 'SRT-0002',
-    'Asset Tag': VARLIK_ETIKETLERI.kizildere3Ews,
+    'Asset Tag': VARLIK_ETIKETLERI.sahaa3Ews,
     Hostname: 'kd3-ews-01',
-    'Serial Number': 'EWS-KD3-0002',
+    'Serial Number': 'EWS-SA3-0002',
     'MAC Address': '00:1B:1B:AA:BB:02',
     'IP Address': '10.60.10.12',
     Vendor: 'Siemens',
     Model: 'SIMATIC IPC647E',
     OS: 'Windows 10 IoT LTSC',
     'Firmware Version': '1.4.0',
-    'Site Code': TESIS_KODLARI.kizildere3,
-    Zone: 'KIZILDERE3-OT',
+    'Site Code': TESIS_KODLARI.sahaa3,
+    Zone: 'SAHA-A3-OT',
     'Device Type': 'EWS',
   },
   {
     'Record ID': 'SRT-0003',
-    'Asset Tag': VARLIK_ETIKETLERI.alasehirScada,
+    'Asset Tag': VARLIK_ETIKETLERI.sahabjesScada,
     Hostname: 'als-scada-01',
     'Serial Number': 'ALS-SCADA-0003',
     'MAC Address': '00:1B:1B:CC:DD:03',
@@ -60,8 +60,8 @@ const GECERLI_SATIRLAR: Satir[] = [
     Model: 'Experion PKS',
     OS: 'Windows Server 2016',
     'Firmware Version': '9.5',
-    'Site Code': TESIS_KODLARI.alasehirJes,
-    Zone: 'ALASEHIR-OT',
+    'Site Code': TESIS_KODLARI.sahabjesJes,
+    Zone: 'SAHA-B-OT',
     'Device Type': 'SCADA-SRV',
   },
 ];
@@ -79,8 +79,8 @@ const BOZUK_SATIRLAR: Satir[] = [
 const KISMI_SATIRLAR: Satir[] = [
   {
     'Record ID': 'SRT-PARC-1',
-    'Asset Tag': VARLIK_ETIKETLERI.kizildere2Hmi,
-    'Site Code': TESIS_KODLARI.kizildere2,
+    'Asset Tag': VARLIK_ETIKETLERI.sahaa2Hmi,
+    'Site Code': TESIS_KODLARI.sahaa2,
   },
 ];
 
@@ -88,16 +88,16 @@ const KISMI_SATIRLAR: Satir[] = [
    Kararlı özet üretilmezse aynı cihaz her koşuda çoğalır. */
 const YINELENEN_SATIRLAR: Satir[] = [
   {
-    'Asset Tag': VARLIK_ETIKETLERI.kizildere3Otfw,
+    'Asset Tag': VARLIK_ETIKETLERI.sahaa3Otfw,
     Hostname: 'kd3-otfw-01',
-    'Serial Number': 'FG200F-KD3-0007',
-    'Site Code': TESIS_KODLARI.kizildere3,
+    'Serial Number': 'FG200F-SA3-0007',
+    'Site Code': TESIS_KODLARI.sahaa3,
   },
   {
-    'Asset Tag': VARLIK_ETIKETLERI.kizildere3Otfw,
+    'Asset Tag': VARLIK_ETIKETLERI.sahaa3Otfw,
     Hostname: 'kd3-otfw-01',
-    'Serial Number': 'FG200F-KD3-0007',
-    'Site Code': TESIS_KODLARI.kizildere3,
+    'Serial Number': 'FG200F-SA3-0007',
+    'Site Code': TESIS_KODLARI.sahaa3,
   },
 ];
 
@@ -106,8 +106,8 @@ const YINELENEN_SATIRLAR: Satir[] = [
 const BILINMEYEN_ALANLI_SATIRLAR: Satir[] = [
   {
     'Record ID': 'SRT-BILINMEYEN-1',
-    'Asset Tag': VARLIK_ETIKETLERI.kizildere3Scada,
-    'Site Code': TESIS_KODLARI.kizildere3,
+    'Asset Tag': VARLIK_ETIKETLERI.sahaa3Scada,
+    'Site Code': TESIS_KODLARI.sahaa3,
     'Purdue Level': '2',
     'Safety Instrumented': 'false',
     'Vendor Risk Score': '37',
@@ -128,15 +128,15 @@ const EKSIK_REFERANSLI_SATIRLAR: Satir[] = [
 const KAPSAM_SATIRLARI: Satir[] = [
   {
     'Record ID': 'SRT-KAPSAM-IC',
-    'Asset Tag': VARLIK_ETIKETLERI.kizildere3Scada,
+    'Asset Tag': VARLIK_ETIKETLERI.sahaa3Scada,
     Hostname: 'kd3-scada-01',
-    'Site Code': TESIS_KODLARI.kizildere3,
+    'Site Code': TESIS_KODLARI.sahaa3,
   },
   {
     'Record ID': 'SRT-KAPSAM-DIS',
-    'Asset Tag': VARLIK_ETIKETLERI.alasehirScada,
+    'Asset Tag': VARLIK_ETIKETLERI.sahabjesScada,
     Hostname: 'als-scada-01',
-    'Site Code': TESIS_KODLARI.alasehirJes,
+    'Site Code': TESIS_KODLARI.sahabjesJes,
   },
 ];
 
@@ -151,9 +151,9 @@ const BAYAT_YAS_DK = 3 * 24 * 60;
 const BAYAT_DOSYA = () => eskiDosyaYaz(
   'bayat-envanter.csv',
   csvYap([{
-    'Asset Tag': VARLIK_ETIKETLERI.kizildere3Scada,
+    'Asset Tag': VARLIK_ETIKETLERI.sahaa3Scada,
     Hostname: 'kd3-scada-01',
-    'Site Code': TESIS_KODLARI.kizildere3,
+    'Site Code': TESIS_KODLARI.sahaa3,
     Vendor: 'Dell',
   }]),
   BAYAT_YAS_DK,
@@ -177,17 +177,17 @@ export const elleAktarimFiksturu: FiksturSeti = {
         tip: 'varlik',
         kaynakKayitId: 'SRT-0001',
         alanlar: {
-          etiket: VARLIK_ETIKETLERI.kizildere3Scada,
+          etiket: VARLIK_ETIKETLERI.sahaa3Scada,
           hostname: 'kd3-scada-01',
-          seriNo: 'PE740-KD3-0001',
+          seriNo: 'PE740-SA3-0001',
           macAdresi: '00:1B:1B:AA:BB:01',
           ipAdresi: '10.60.10.11',
           uretici: 'Dell',
           model: 'PowerEdge R740',
           isletimSistemi: 'Windows Server 2019',
           firmware: '2.11.2',
-          tesisKodu: TESIS_KODLARI.kizildere3,
-          bolgeKodu: 'KIZILDERE3-OT',
+          tesisKodu: TESIS_KODLARI.sahaa3,
+          bolgeKodu: 'SAHA-A3-OT',
           turKodu: 'SCADA-SRV',
         },
       },
@@ -195,9 +195,9 @@ export const elleAktarimFiksturu: FiksturSeti = {
         tip: 'varlik',
         kaynakKayitId: 'SRT-0002',
         alanlar: {
-          etiket: VARLIK_ETIKETLERI.kizildere3Ews,
-          seriNo: 'EWS-KD3-0002',
-          tesisKodu: TESIS_KODLARI.kizildere3,
+          etiket: VARLIK_ETIKETLERI.sahaa3Ews,
+          seriNo: 'EWS-SA3-0002',
+          tesisKodu: TESIS_KODLARI.sahaa3,
           turKodu: 'EWS',
         },
       },
@@ -205,9 +205,9 @@ export const elleAktarimFiksturu: FiksturSeti = {
         tip: 'varlik',
         kaynakKayitId: 'SRT-0003',
         alanlar: {
-          etiket: VARLIK_ETIKETLERI.alasehirScada,
+          etiket: VARLIK_ETIKETLERI.sahabjesScada,
           seriNo: 'ALS-SCADA-0003',
-          tesisKodu: TESIS_KODLARI.alasehirJes,
+          tesisKodu: TESIS_KODLARI.sahabjesJes,
         },
       },
     ],
@@ -256,9 +256,9 @@ export const elleAktarimFiksturu: FiksturSeti = {
     yinelenen: jsonYapilandirma(YINELENEN_SATIRLAR),
     kapsam: {
       yapilandirma: jsonYapilandirma(KAPSAM_SATIRLARI),
-      kapsamKodlari: [TESIS_KODLARI.kizildere3],
-      icKod: TESIS_KODLARI.kizildere3,
-      disKod: TESIS_KODLARI.alasehirJes,
+      kapsamKodlari: [TESIS_KODLARI.sahaa3],
+      icKod: TESIS_KODLARI.sahaa3,
+      disKod: TESIS_KODLARI.sahabjesJes,
     },
     get okunamayan() {
       return { bicim: 'json', dosyaYolu: olmayanDosyaYolu('envanter.json') };

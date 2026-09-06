@@ -19,28 +19,28 @@ const gunSonra = (n: number) => new Date(SIMDI + n * GUN).toISOString();
 const TUR_OT: V['tur'] = { id: 't-ot', kod: 'PLC', ad: 'PLC', sinif: 'OT' };
 const TUR_BT: V['tur'] = { id: 't-bt', kod: 'SRV', ad: 'Sanal Sunucu', sinif: 'BT' };
 
-const KIZILDERE: Kodlu = { id: 'tesis-1', kod: 'KIZILDERE-3', ad: 'Kızıldere III JES' };
-const GOKCEDAG: Kodlu = { id: 'tesis-2', kod: 'GOKCEDAG-RES', ad: 'Gökçedağ RES' };
+const SAHA_A: Kodlu = { id: 'tesis-1', kod: 'SAHA-A3', ad: 'Saha A-3 JES' };
+const SAHA_C: Kodlu = { id: 'tesis-2', kod: 'SAHA-C-RES', ad: 'Saha C RES' };
 
 const OT_BOLGE: Bolge = {
-  id: 'b-ot', kod: 'KIZILDERE3-OT', ad: 'Süreç Kontrol Ağı',
-  tip: 'ot', seviye: 2, tesisId: KIZILDERE.id,
+  id: 'b-ot', kod: 'SAHA-A3-OT', ad: 'Süreç Kontrol Ağı',
+  tip: 'ot', seviye: 2, tesisId: SAHA_A.id,
 };
 const DMZ_BOLGE: Bolge = {
-  id: 'b-dmz', kod: 'KIZILDERE3-OT-DMZ', ad: 'OT DMZ',
-  tip: 'ot_dmz', seviye: 3, tesisId: KIZILDERE.id,
+  id: 'b-dmz', kod: 'SAHA-A3-OT-DMZ', ad: 'OT DMZ',
+  tip: 'ot_dmz', seviye: 3, tesisId: SAHA_A.id,
 };
 const YABANCI_BOLGE: Bolge = {
-  id: 'b-yad', kod: 'GOKCEDAG-OT', ad: 'Türbin SCADA Ağı',
-  tip: 'ot', seviye: 2, tesisId: GOKCEDAG.id,
+  id: 'b-yad', kod: 'SAHA-C-OT', ad: 'Türbin SCADA Ağı',
+  tip: 'ot', seviye: 2, tesisId: SAHA_C.id,
 };
 
 /** Her alanı BİLİNEN ve sağlıklı bir taban varlık; testler tek alan bozar. */
 function varlik(ek: Partial<V> = {}): V {
   return {
-    id: ek.id ?? 'v1', etiket: ek.etiket ?? 'KIZILDERE-3-PLC-01', ad: ek.ad ?? 'Saha PLC',
-    tur: TUR_OT, tesis: KIZILDERE, unite: null, sistem: null, bolge: OT_BOLGE,
-    sahip: { id: 'k1', ad: 'B. Şahin' }, emanetci: null, tedarikci: null, sozlesme: null,
+    id: ek.id ?? 'v1', etiket: ek.etiket ?? 'SAHA-A3-PLC-01', ad: ek.ad ?? 'Saha PLC',
+    tur: TUR_OT, tesis: SAHA_A, unite: null, sistem: null, bolge: OT_BOLGE,
+    sahip: { id: 'k1', ad: 'Kullanıcı C' }, emanetci: null, tedarikci: null, sozlesme: null,
     hostname: null, seriNo: null, uretici: null, model: null, ipAdresi: null,
     macAdresi: null, isletimSistemi: null, firmware: null, surum: null,
     rafOda: null, kimlikDogrulama: null,
@@ -180,9 +180,9 @@ describe('Mercek ve kapsam', () => {
   });
 
   it('santral kapsamı dışındaki varlık süzülür [ENV-LST-001]', () => {
-    const havuz = [varlik({ id: 'a' }), varlik({ id: 'b', tesis: GOKCEDAG })];
+    const havuz = [varlik({ id: 'a' }), varlik({ id: 'b', tesis: SAHA_C })];
     const sonuc = suz(havuz, {
-      mercek: 'hepsi', tesisId: GOKCEDAG.id, turKapsami: null, kritiklik: null, arama: '',
+      mercek: 'hepsi', tesisId: SAHA_C.id, turKapsami: null, kritiklik: null, arama: '',
     }, SIMDI);
     expect(sonuc.map((v) => v.id)).toEqual(['b']);
   });
@@ -272,17 +272,17 @@ describe('Sıralama ve kuyruk — kritik satır ASLA toplanmaz', () => {
 
 describe('İlişki grafiği — kapsam daraltması zorunludur', () => {
   const kapsamli = (id: string, ek: Partial<V> = {}) =>
-    varlik({ id, etiket: `KIZILDERE-3-${id.toUpperCase()}`, ...ek });
+    varlik({ id, etiket: `SAHA-A3-${id.toUpperCase()}`, ...ek });
 
   it('seçili santralin dışındaki hiçbir düğüm çizilmez', () => {
     const g = grafigiKur({
       varliklar: [
         kapsamli('a'),
-        varlik({ id: 'yabanci', etiket: 'GOKCEDAG-RES-PLC-01', tesis: GOKCEDAG,
+        varlik({ id: 'yabanci', etiket: 'SAHA-C-RES-PLC-01', tesis: SAHA_C,
           bolge: YABANCI_BOLGE }),
       ],
       bolgeler: [OT_BOLGE, DMZ_BOLGE, YABANCI_BOLGE],
-      tesis: KIZILDERE,
+      tesis: SAHA_A,
       simdi: SIMDI,
     });
     expect(g.kapsamdaki).toBe(1);
@@ -296,7 +296,7 @@ describe('İlişki grafiği — kapsam daraltması zorunludur', () => {
       kapsamli('agir', { eosTarihi: gunSonra(-20) }),
     ];
     const g = grafigiKur({
-      varliklar: havuz, bolgeler: [OT_BOLGE], tesis: KIZILDERE, simdi: SIMDI,
+      varliklar: havuz, bolgeler: [OT_BOLGE], tesis: SAHA_A, simdi: SIMDI,
     });
     expect(g.kapsamdaki).toBe(41);
     expect(g.cizilen).toBe(GRAFIK_VARLIK_TAVANI);
@@ -312,7 +312,7 @@ describe('İlişki grafiği — kapsam daraltması zorunludur', () => {
     const g = grafigiKur({
       varliklar: havuz,
       adaylar: [havuz[0]],
-      bolgeler: [OT_BOLGE], tesis: KIZILDERE, simdi: SIMDI,
+      bolgeler: [OT_BOLGE], tesis: SAHA_A, simdi: SIMDI,
     });
     expect(g.kapsamdaki).toBe(3);
     expect(g.aday).toBe(1);
@@ -322,20 +322,20 @@ describe('İlişki grafiği — kapsam daraltması zorunludur', () => {
   });
 
   it('kenarsız sistem düğümü çizilmez', () => {
-    const sistem: Kodlu = { id: 'sis-1', kod: 'KIZILDERE3-DCS', ad: 'Türbin DCS' };
+    const sistem: Kodlu = { id: 'sis-1', kod: 'SAHA-A3-DCS', ad: 'Türbin DCS' };
     const g = grafigiKur({
       varliklar: [kapsamli('a', { sistem }), kapsamli('b', { eosTarihi: gunSonra(-10) })],
       adaylar: [kapsamli('b', { eosTarihi: gunSonra(-10) })],
-      bolgeler: [OT_BOLGE], tesis: KIZILDERE, simdi: SIMDI,
+      bolgeler: [OT_BOLGE], tesis: SAHA_A, simdi: SIMDI,
     });
     expect(g.dugumler.some((d) => d.id === 's-sis-1')).toBe(false);
   });
 
   it('varlık ↔ bölge ↔ sistem üçlüsü kenarlarla bağlanır', () => {
-    const sistem: Kodlu = { id: 'sis-1', kod: 'KIZILDERE3-DCS', ad: 'Türbin DCS' };
+    const sistem: Kodlu = { id: 'sis-1', kod: 'SAHA-A3-DCS', ad: 'Türbin DCS' };
     const g = grafigiKur({
       varliklar: [kapsamli('a', { sistem })],
-      bolgeler: [OT_BOLGE], tesis: KIZILDERE, simdi: SIMDI,
+      bolgeler: [OT_BOLGE], tesis: SAHA_A, simdi: SIMDI,
     });
     expect(g.kenarlar).toContainEqual({ kaynak: `b-${OT_BOLGE.id}`, hedef: 'v-a' });
     expect(g.kenarlar).toContainEqual({ kaynak: 'v-a', hedef: 's-sis-1', aktif: true });
@@ -346,14 +346,14 @@ describe('İlişki grafiği — kapsam daraltması zorunludur', () => {
       eosTarihi: gunSonra(-30),
       iliskiler: [
         { id: 'i1', tip: 'depends_on', giden: true,
-          diger: { id: 'b', etiket: 'KIZILDERE-3-B', ad: 'B' } },
+          diger: { id: 'b', etiket: 'SAHA-A3-B', ad: 'B' } },
         { id: 'i2', tip: 'connects_to', giden: true,
           diger: { id: 'yok', etiket: 'BASKA', ad: 'Başka' } },
       ],
     });
     const b = kapsamli('b', { eosTarihi: gunSonra(-20) });
     const g = grafigiKur({
-      varliklar: [a, b], bolgeler: [OT_BOLGE], tesis: KIZILDERE, simdi: SIMDI,
+      varliklar: [a, b], bolgeler: [OT_BOLGE], tesis: SAHA_A, simdi: SIMDI,
     });
     expect(g.kenarlar).toContainEqual({ kaynak: 'v-a', hedef: 'v-b', etiket: 'depends_on' });
     expect(g.kenarlar.some((k) => k.hedef === 'v-yok')).toBe(false);
@@ -362,7 +362,7 @@ describe('İlişki grafiği — kapsam daraltması zorunludur', () => {
   it('düğüm üst etiketi durum sözcüğü değil, olgu taşır', () => {
     const g = grafigiKur({
       varliklar: [kapsamli('a', { eosTarihi: null })],
-      bolgeler: [OT_BOLGE], tesis: KIZILDERE, simdi: SIMDI,
+      bolgeler: [OT_BOLGE], tesis: SAHA_A, simdi: SIMDI,
     });
     const dugum = g.dugumler.find((d) => d.id === 'v-a');
     expect(dugum?.ustEtiket).toBe('EOS YOK');
@@ -371,7 +371,7 @@ describe('İlişki grafiği — kapsam daraltması zorunludur', () => {
 
   it('kapsam boşken bile grafik üretilir ama hiçbir varlık çizilmez', () => {
     const g = grafigiKur({
-      varliklar: [], bolgeler: [OT_BOLGE, DMZ_BOLGE], tesis: KIZILDERE, simdi: SIMDI,
+      varliklar: [], bolgeler: [OT_BOLGE, DMZ_BOLGE], tesis: SAHA_A, simdi: SIMDI,
     });
     expect(g.cizilen).toBe(0);
     expect(g.dugumler.every((d) => d.id.startsWith('b-'))).toBe(true);
@@ -380,21 +380,21 @@ describe('İlişki grafiği — kapsam daraltması zorunludur', () => {
 
   it('varsayılan kapsam en çok varlığı olan santraldir', () => {
     const secim = varsayilanTesis(
-      [varlik({ id: 'a', tesis: GOKCEDAG }), varlik({ id: 'b', tesis: GOKCEDAG }),
+      [varlik({ id: 'a', tesis: SAHA_C }), varlik({ id: 'b', tesis: SAHA_C }),
         varlik({ id: 'c' })],
-      [KIZILDERE, GOKCEDAG],
+      [SAHA_A, SAHA_C],
     );
-    expect(secim?.id).toBe(GOKCEDAG.id);
+    expect(secim?.id).toBe(SAHA_C.id);
   });
 });
 
 describe('Düğüm etiketi santral önekini tekrar etmez', () => {
   it('santral kodu önekse düşer', () => {
-    expect(kisaEtiket('KIZILDERE-3-SCADA-01', 'KIZILDERE-3')).toBe('SCADA-01');
-    expect(kisaEtiket('KIZILDERE3-SCADA-01', 'KIZILDERE-3')).toBe('SCADA-01');
+    expect(kisaEtiket('SAHA-A3-SCADA-01', 'SAHA-A3')).toBe('SCADA-01');
+    expect(kisaEtiket('SAHA-A3-SCADA-01', 'SAHA-A3')).toBe('SCADA-01');
   });
   it('önek uymuyorsa etiket olduğu gibi kalır', () => {
-    expect(kisaEtiket('MERKEZ-ESX-02', 'KIZILDERE-3')).toBe('MERKEZ-ESX-02');
+    expect(kisaEtiket('MERKEZ-ESX-02', 'SAHA-A3')).toBe('MERKEZ-ESX-02');
     expect(kisaEtiket('SCADA-01', null)).toBe('SCADA-01');
   });
 });

@@ -11,7 +11,7 @@ import { TANIMSIZ_TESIS_KODU, TESIS_KODLARI, baglanmamisFikstur } from './ortak'
 export const otKesifFiksturu: FiksturSeti = baglanmamisFikstur({
   tip: 'ot_discovery',
   kaynakSistem: 'SERTIFIKA-SANDBOX · pasif OT keşif envanteri',
-  yapilandirma: { siteKapsami: [TESIS_KODLARI.kizildere3], aktifSorgulama: false },
+  yapilandirma: { siteKapsami: [TESIS_KODLARI.sahaa3], aktifSorgulama: false },
   gecersizYapilandirma: { aktifSorgulama: true },
 
   gecerli: {
@@ -19,14 +19,14 @@ export const otKesifFiksturu: FiksturSeti = baglanmamisFikstur({
       {
         id: 'ot-asset-000001',
         name: 'kd3-plc-01',
-        serial_number: 'S71500-KD3-0011',
+        serial_number: 'S71500-SA3-0011',
         mac_address: ['00:1b:1b:11:22:01'],
         ip_addresses: ['10.60.20.11'],
         vendor: 'Siemens',
         product_name: 'SIMATIC S7-1500',
         firmware_version: '2.9.2',
-        site: TESIS_KODLARI.kizildere3,
-        zone: 'KIZILDERE3-OT',
+        site: TESIS_KODLARI.sahaa3,
+        zone: 'SAHA-A3-OT',
         purdue_level: 1,
         type: 'PLC',
         confidence: 0.9,
@@ -38,8 +38,8 @@ export const otKesifFiksturu: FiksturSeti = baglanmamisFikstur({
         ip_addresses: ['10.60.20.12'],
         vendor: 'Siemens',
         product_name: 'SIMATIC HMI',
-        site: TESIS_KODLARI.kizildere3,
-        zone: 'KIZILDERE3-OT',
+        site: TESIS_KODLARI.sahaa3,
+        zone: 'SAHA-A3-OT',
         purdue_level: 2,
         type: 'HMI',
       },
@@ -49,9 +49,9 @@ export const otKesifFiksturu: FiksturSeti = baglanmamisFikstur({
         tip: 'varlik',
         kaynakKayitId: 'ot-asset-000001',
         alanlar: {
-          hostname: 'kd3-plc-01', seriNo: 'S71500-KD3-0011', macAdresi: '00:1b:1b:11:22:01',
+          hostname: 'kd3-plc-01', seriNo: 'S71500-SA3-0011', macAdresi: '00:1b:1b:11:22:01',
           ipAdresi: '10.60.20.11', uretici: 'Siemens', model: 'SIMATIC S7-1500',
-          firmware: '2.9.2', tesisKodu: TESIS_KODLARI.kizildere3, bolgeKodu: 'KIZILDERE3-OT',
+          firmware: '2.9.2', tesisKodu: TESIS_KODLARI.sahaa3, bolgeKodu: 'SAHA-A3-OT',
           turKodu: 'PLC',
         },
       },
@@ -74,14 +74,14 @@ export const otKesifFiksturu: FiksturSeti = baglanmamisFikstur({
     /* Pasif dinleme cihazı gördü ama protokol sorgusu yapılmadığı için
        seri/firmware ÇIKARILAMADI. Bu bir eksiklik değil, pasif keşfin
        doğasıdır; alanlar null kalmalı ve `confidence` yoksa guven null. */
-    satirlar: [{ id: 'ot-asset-000003', mac_address: ['00:1b:1b:11:22:04'], ip_addresses: ['10.60.20.13'], zone: 'KIZILDERE3-OT' }],
+    satirlar: [{ id: 'ot-asset-000003', mac_address: ['00:1b:1b:11:22:04'], ip_addresses: ['10.60.20.13'], zone: 'SAHA-A3-OT' }],
     bosAlanlar: ['seriNo', 'firmware', 'model', 'isletimSistemi', 'hostname', 'turKodu'],
   },
 
   yinelenen: {
     satirlar: [
-      { id: 'ot-asset-000004', name: 'kd3-rtu-01', serial_number: 'RTU-KD3-0044' },
-      { id: 'ot-asset-000004', name: 'kd3-rtu-01', serial_number: 'RTU-KD3-0044' },
+      { id: 'ot-asset-000004', name: 'kd3-rtu-01', serial_number: 'RTU-SA3-0044' },
+      { id: 'ot-asset-000004', name: 'kd3-rtu-01', serial_number: 'RTU-SA3-0044' },
     ],
   },
 

@@ -12,16 +12,16 @@ const TUR: V['tur'] = { id: 't-ot', kod: 'PLC', ad: 'PLC', sinif: 'OT' };
 
 export function ornekVarlik(ek: Partial<V> = {}): V {
   return {
-    id: 'v1', etiket: 'KIZILDERE-3-PLC-01', ad: 'Saha PLC',
+    id: 'v1', etiket: 'SAHA-A3-PLC-01', ad: 'Saha PLC',
     tur: TUR,
-    tesis: { id: 'tesis-1', kod: 'KIZILDERE-3', ad: 'Kızıldere III JES' },
+    tesis: { id: 'tesis-1', kod: 'SAHA-A3', ad: 'Saha A-3 JES' },
     unite: { id: 'u1', kod: 'UNITE-1', ad: '1. Ünite' },
     sistem: { id: 's1', kod: 'SCADA', ad: 'SCADA' },
     bolge: {
-      id: 'b-ot', kod: 'KIZILDERE3-OT', ad: 'Süreç Kontrol Ağı',
+      id: 'b-ot', kod: 'SAHA-A3-OT', ad: 'Süreç Kontrol Ağı',
       tip: 'ot', seviye: 2, tesisId: 'tesis-1',
     },
-    sahip: { id: 'k1', ad: 'B. Şahin' }, emanetci: null,
+    sahip: { id: 'k1', ad: 'Kullanıcı C' }, emanetci: null,
     tedarikci: null, sozlesme: null,
     hostname: 'kzd3-plc-01', seriNo: 'SN-0001', uretici: 'Üretici A',
     model: 'M-100', ipAdresi: '10.20.30.40', macAdresi: '00:11:22:33:44:55',

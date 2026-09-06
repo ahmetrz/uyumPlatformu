@@ -44,7 +44,7 @@ const TANIMLAR: Tanim[] = [
     kod: 'POL-2026-001',
     baslik: 'Bilgi Güvenliği Politikası',
     tur: 'politika', durum: 'yururlukte', surum: '3.0',
-    sahip: 'ahmet.terzi@zorlu.com', onaylayan: 'ahmet.terzi@zorlu.com',
+    sahip: 'kullanici.a@demo.local', onaylayan: 'kullanici.a@demo.local',
     yururlukGunOnce: 210, gozdenGecirmeAy: 12, sonGozdenGunOnce: 210,
     maddeler: ['ISO-27001-A.5.9', 'CBDDO-3.1', 'SPK-BS-11'],
     aciklama: 'Grup genelinde bilgi güvenliği yönetim sisteminin çatı politikası; '
@@ -54,7 +54,7 @@ const TANIMLAR: Tanim[] = [
     kod: 'POL-2026-002',
     baslik: 'OT ve Endüstriyel Kontrol Sistemleri Güvenlik Politikası',
     tur: 'politika', durum: 'yururlukte', surum: '2.1',
-    sahip: 'burak.sahin@zorlu.com', onaylayan: 'ahmet.terzi@zorlu.com',
+    sahip: 'kullanici.c@demo.local', onaylayan: 'kullanici.a@demo.local',
     // Gecikmiş: 14 ay önce yürürlüğe girmiş, periyodu 12 ay, hiç gözden geçirilmemiş.
     yururlukGunOnce: 425, gozdenGecirmeAy: 12, sonGozdenGunOnce: null,
     maddeler: ['EPDK-SYM-4.2', 'EPDK-SYM-4.2.1', 'EPDK-SYM-6.1'],
@@ -66,7 +66,7 @@ const TANIMLAR: Tanim[] = [
     kod: 'PRS-2026-001',
     baslik: 'Varlık Envanteri ve Sınıflandırma Prosedürü',
     tur: 'prosedur', durum: 'yururlukte', surum: '2.0',
-    sahip: 'mehmet.kaya@zorlu.com', onaylayan: 'ahmet.terzi@zorlu.com',
+    sahip: 'kullanici.d@demo.local', onaylayan: 'kullanici.a@demo.local',
     yururlukGunOnce: 150, gozdenGecirmeAy: 12, sonGozdenGunOnce: 150,
     maddeler: ['EPDK-SYM-4.1', 'EPDK-SYM-4.1.1', 'EPDK-SYM-4.1.2', 'ISO-27001-A.5.9'],
     aciklama: 'Varlık kaydının açılması, kritiklik sınıfının verilmesi ve '
@@ -76,7 +76,7 @@ const TANIMLAR: Tanim[] = [
     kod: 'PRS-2026-002',
     baslik: 'Kimlik ve Erişim Yönetimi Prosedürü',
     tur: 'prosedur', durum: 'yururlukte', surum: '1.4',
-    sahip: 'mehmet.kaya@zorlu.com', onaylayan: 'ahmet.terzi@zorlu.com',
+    sahip: 'kullanici.d@demo.local', onaylayan: 'kullanici.a@demo.local',
     // Yaklaşan: 6 aylık periyot, son bakış 5,5 ay önce.
     yururlukGunOnce: 330, gozdenGecirmeAy: 6, sonGozdenGunOnce: 165,
     maddeler: ['EPDK-SYM-5', 'EPDK-SYM-5.1', 'EPDK-SYM-5.1.1',
@@ -88,7 +88,7 @@ const TANIMLAR: Tanim[] = [
     kod: 'PRS-2026-003',
     baslik: 'Uzak Bakım ve Tedarikçi Erişim Prosedürü',
     tur: 'prosedur', durum: 'incelemede', surum: '0.9',
-    sahip: 'burak.sahin@zorlu.com',
+    sahip: 'kullanici.c@demo.local',
     // Hiç yürürlüğe girmemiş: bağlı kontroller "yarım karşılanan" olur.
     yururlukGunOnce: null, gozdenGecirmeAy: 12, sonGozdenGunOnce: null,
     maddeler: ['EPDK-SYM-4.2.2', 'EPDK-SYM-6.1.2'],
@@ -99,7 +99,7 @@ const TANIMLAR: Tanim[] = [
     kod: 'PLN-2026-001',
     baslik: 'Siber Olay Müdahale Planı',
     tur: 'plan', durum: 'yururlukte', surum: '2.2',
-    sahip: 'selin.aydin@zorlu.com', onaylayan: 'ahmet.terzi@zorlu.com',
+    sahip: 'kullanici.b@demo.local', onaylayan: 'kullanici.a@demo.local',
     yururlukGunOnce: 95, gozdenGecirmeAy: 12, sonGozdenGunOnce: 95,
     maddeler: ['EPDK-SYM-7', 'EPDK-SYM-7.2', 'ISO-27001-A.5.24'],
     aciklama: 'Olay sınıflandırma, tırmandırma zinciri ve regülatör bildirim '
@@ -109,7 +109,7 @@ const TANIMLAR: Tanim[] = [
     kod: 'PLN-2026-002',
     baslik: 'İş Sürekliliği ve Felaket Kurtarma Planı',
     tur: 'plan', durum: 'yururlukte', surum: '1.1',
-    sahip: 'selin.aydin@zorlu.com', onaylayan: 'ahmet.terzi@zorlu.com',
+    sahip: 'kullanici.b@demo.local', onaylayan: 'kullanici.a@demo.local',
     // Takvimsiz: periyodu hiç tanımlanmamış — "gecikmedi" DEĞİL, bilinmiyor.
     yururlukGunOnce: 260, gozdenGecirmeAy: null, sonGozdenGunOnce: null,
     maddeler: ['EPDK-SYM-8.2', 'EPDK-SYM-8.2.1', 'SPK-BS-19'],
@@ -120,7 +120,7 @@ const TANIMLAR: Tanim[] = [
     kod: 'PRS-2026-004',
     baslik: 'Yedekleme ve Geri Yükleme Prosedürü',
     tur: 'prosedur', durum: 'yururlukte', surum: '1.6',
-    sahip: 'mehmet.kaya@zorlu.com', onaylayan: 'ahmet.terzi@zorlu.com',
+    sahip: 'kullanici.d@demo.local', onaylayan: 'kullanici.a@demo.local',
     yururlukGunOnce: 120, gozdenGecirmeAy: 12, sonGozdenGunOnce: 120,
     maddeler: ['EPDK-SYM-8.1', 'EPDK-SYM-8.1.1', 'EPDK-SYM-8.1.2'],
     aciklama: 'Yedek kapsamı, saklama süreleri ve dönemsel geri yükleme testi.',
@@ -129,7 +129,7 @@ const TANIMLAR: Tanim[] = [
     kod: 'STD-2026-001',
     baslik: 'Sistem Sıkılaştırma Standardı',
     tur: 'standart', durum: 'askida', surum: '1.2',
-    sahip: 'mehmet.kaya@zorlu.com', onaylayan: 'ahmet.terzi@zorlu.com',
+    sahip: 'kullanici.d@demo.local', onaylayan: 'kullanici.a@demo.local',
     yururlukGunOnce: 400, gozdenGecirmeAy: 12, sonGozdenGunOnce: 400,
     maddeler: ['CBDDO-3.2', 'EPDK-SYM-6.2', 'EPDK-SYM-6.2.1', 'ISO-27001-A.8.9'],
     aciklama: 'Yeni OT donanım ailesi standardın kapsamına girmediği için '
@@ -139,7 +139,7 @@ const TANIMLAR: Tanim[] = [
     kod: 'PRS-2026-005',
     baslik: 'Log Yönetimi ve İzleme Prosedürü',
     tur: 'prosedur', durum: 'taslak', surum: '0.4',
-    sahip: 'burak.sahin@zorlu.com',
+    sahip: 'kullanici.c@demo.local',
     yururlukGunOnce: null, gozdenGecirmeAy: 12, sonGozdenGunOnce: null,
     maddeler: ['EPDK-SYM-7.1', 'EPDK-SYM-7.1.4', 'ISO-27001-A.8.16',
       'CBDDO-4.2', 'SPK-BS-14'],
@@ -148,12 +148,12 @@ const TANIMLAR: Tanim[] = [
   },
   {
     kod: 'TLM-2026-001',
-    baslik: 'Kızıldere III JES OT Değişiklik Talimatı',
+    baslik: 'Saha A-3 JES OT Değişiklik Talimatı',
     tur: 'talimat', durum: 'yururlukte', surum: '1.0',
-    sahip: 'burak.sahin@zorlu.com', onaylayan: 'ahmet.terzi@zorlu.com',
+    sahip: 'kullanici.c@demo.local', onaylayan: 'kullanici.a@demo.local',
     yururlukGunOnce: 60, gozdenGecirmeAy: 24, sonGozdenGunOnce: 60,
     maddeler: ['EPDK-SYM-6.2.1'],
-    tesisler: ['KIZILDERE-3'],
+    tesisler: ['SAHA-A3'],
     aciklama: 'Santral özelinde yama penceresi, geri alma planı ve üretim '
       + 'etkisi onayı; grup standardının saha uygulaması.',
     gizlilik: 'ot_hassas',

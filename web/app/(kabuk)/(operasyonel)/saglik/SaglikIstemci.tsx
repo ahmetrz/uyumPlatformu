@@ -53,8 +53,8 @@ const MOTOR_KOLONLARI: Kolon[] = [
   { baslik: 'Süre', genislik: '78px', sag: true, ikincil: true },
 ];
 
-/* ORTAM kolonu birincildir ve dar alanda DÜŞMEZ: bir connector'ın hangi
-   ortamın sistemine baktığı güvenlik bilgisidir. Sayaçlar ikincildir —
+/* ORTAM kolonu birinsahak ve dar alanda DÜŞMEZ: bir connector'ın hangi
+   ortamın sistemine baktığı güvenlik bilgisidir. Sayaçlar ikinsahak —
    çekmece açıkken kaybolmaları bir şey gizlemez. */
 const ENTEGRASYON_KOLONLARI: Kolon[] = [
   { baslik: 'Ortam', genislik: '94px' },

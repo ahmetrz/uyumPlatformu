@@ -7,8 +7,8 @@ import path from 'node:path';
 /* Arama koşulu tek yerde mi?
 
    Prisma'nın `contains` koşulu SQLite'ta büyük/küçük harf DUYARSIZ,
-   PostgreSQL'de DUYARLI çalışır. Bugün "kizildere" yazınca "Kızıldere I
-   JES" bulunuyor; PostgreSQL'e geçildiği gün aynı arama sessizce boş
+   PostgreSQL'de DUYARLI çalışır. Bugün "saha-ı" yazınca "Saha I
+   HES" bulunuyor; PostgreSQL'e geçildiği gün aynı arama sessizce boş
    dönecek — hata vermez, sadece hiçbir şey bulmaz.
 
    Koşul on bir ayrı yerde tekrarlanıyordu. Bu test onu tek yerde tutar:
@@ -64,7 +64,7 @@ describe('Metin arama koşulu tek yerde', () => {
        olmalı; açık unutulursa arama tamamen çöker. */
     const { aramaKosulu, DUYARSIZ_KIP_DESTEKLI } = await import('@/lib/aramaKosulu');
     expect(DUYARSIZ_KIP_DESTEKLI).toBe(false);
-    expect(aramaKosulu('  kizildere  ')).toEqual({ contains: 'kizildere' });
+    expect(aramaKosulu('  saha-ı  ')).toEqual({ contains: 'saha-ı' });
     expect('mode' in aramaKosulu('x')).toBe(false);
   });
 

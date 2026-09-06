@@ -1,11 +1,8 @@
-import type { Metadata } from 'next';
 import { girisZorunlu } from '@/lib/erisim';
 import { Yetkisiz } from '@/components/kabuk/temel';
 import { modulOkuyabilir } from '@/app/kapsam';
 import Genel from './Genel';
 import { genelEkranVerisi } from './veri';
-
-export const metadata: Metadata = { title: 'Bugün' };
 
 /* F1 · Executive Overview — "bugün neyin yönetim dikkatine ihtiyacı var?"
    Hiyerarşi: bir kart baskındır; şerit bağlamdır; kuyruk kuyruktur.

@@ -1,8 +1,10 @@
 # Uyum ve Yönetişim Platformu
 
 > Ad **geçicidir ve tanımlayıcıdır** — marka değildir. Üründe görünen ad
-> yapılandırmadan gelir (`web/lib/marka.ts`, `MARKA_AD`); bu başlık
-> bugünkü değeri taşır. Gerekçe: `docs/URUN_VIZYONU.md` §10.
+> yapılandırmadan gelir (`web/lib/marka.ts`, `MARKA_AD`); yukarıdaki
+> başlık onun bugünkü değerini taşır ve ondan **sapamaz**:
+> `web/tests/marka-adi.test.ts` ikisini karşılaştırır, eşit değillerse
+> kapı kırmızı yanar. Gerekçe: `docs/URUN_VIZYONU.md` §10.
 
 Düzenlemeye tabi kuruluşların BT ve OT varlıklarını tek kapsam ağacında
 tutan; her regülasyon maddesine hangi tesiste hangi kanıtla, hangi

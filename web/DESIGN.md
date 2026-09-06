@@ -154,9 +154,15 @@ gelene kadar sözcük markası tek marka varlığıdır.
 
 Adı değiştirmek tek satırdır ve bu bir kabul kriteridir (P0 ·
 URN-KUR-004): `lib/marka.ts` dışında hiçbir `.ts`/`.tsx`/`.css`
-dosyasında ürün adı düz metin geçmez. Bu belgenin başlığı ve
-frontmatter'ındaki `name` bugünkü değeri taşır; ad değişirse bu iki satır
-da elle güncellenir (belge Markdown'dır, yapılandırma okuyamaz).
+dosyasında ürün adı düz metin geçmez.
+
+Bu belgenin başlığı ve frontmatter'ındaki `name` adı düz metin taşır —
+Markdown yapılandırma okuyamaz. Ama **sapamaz**: `tests/marka-adi.test.ts`
+her iki satırı `marka.ts`'teki varsayılana karşı ölçer ve eşit
+değillerse kırmızı yanıp hangi satırın güncelleneceğini söyler. Aynı
+kapı `README.md`'nin H1 başlığını da tutar. Yani ad değişimi hâlâ tek
+satırlık bir karardır; belgelerin peşinden gelmesi bir söz değil, bir
+testtir.
 
 ## Overview
 

@@ -12,7 +12,7 @@
 
 ## 1. Tek cümle
 
-**Regula** (geçici ad — §10), düzenlemeye tabi kuruluşların BT ve OT varlıklarını tek
+Ürün (görünen adı yapılandırmadan gelir — §10), düzenlemeye tabi kuruluşların BT ve OT varlıklarını tek
 kapsam ağacında tutup her regülasyon maddesine hangi tesiste hangi
 kanıtla, hangi güvenle uyduğunu — bilinmeyeni sıfır saymadan — kayıt altına
 alan; regülasyon değişikliğini yakalayıp etkilenen değerlendirmelere
@@ -101,7 +101,7 @@ koddan · dosyayı değiştirmeden önce oku.
 
 | Eski (kurum içi) | Yeni (ürün) |
 |---|---|
-| Ürün adı "Uyum ve Yönetişim Platformu", tek ad | Çalışma adı **Regula** (geçici, §10); kiracı görünen adı marka yapılandırmasından; Demo adı yalnız referans kiracı verisinde |
+| Ürün adı koda gömülü, tek ad | Görünen ad `MARKA_AD` yapılandırmasından gelir (`web/lib/marka.ts`); bugünkü değer geçici ve tanımlayıcıdır. `Regula` **iç çalışma adıdır** ve arayüzde, sitede, dış iletişimde kullanılmaz (§10). Kiracı görünen adı `KIRACI_AD`'dan; Demo adı yalnız referans kiracı verisinde |
 | Dil yalnız Türkçe | **Çok dilli**, Türkçe birinci dil; İngilizce ikinci; içerik paketleri kendi dilinde; terimler sektör sözlüğünden |
 | "Santral, ünite, MWe" alan dili | Çekirdek: "tesis, birim, öznitelik"; enerji sözlüğü "santral, üretim ünitesi, MWe" der |
 | Demo santral fotoğrafları, gerçek portföy seed'de | Demo kiracısı **tamamen kurgusal**; gerçek santral adı/fotoğrafı depoda yok; Demo verisi Demo kurulumunda |
@@ -141,7 +141,7 @@ koddan · dosyayı değiştirmeden önce oku.
 
 | Karar | Seçenekler | Etkisi |
 |---|---|---|
-| **Ürün adı** | ~~Karar bekliyor~~ → **Regula** (geçici, 6 Eylül 2026) | P0 marka yapılandırması; depo, belge, sekme başlığı. Kalıcı ad §10 uyarısı nedeniyle sonra verilecek |
+| **Ürün adı** | ~~Karar bekliyor~~ → görünen ad geçici ve tanımlayıcı, `MARKA_AD`'dan gelir (6 Eylül 2026). `Regula` iç çalışma adı, arayüzde geçmez | P0 marka yapılandırması **uygulandı** (`web/lib/marka.ts`). Kalıcı ad §10 uyarısı ve seçim ölçütü nedeniyle sonra verilecek |
 | **İlk enerji dışı sektör** | su/atıksu · imalat · ulaştırma · sağlık | P8 ikinci demo kiracısı ve sözlük |
 | **İlk Türkiye dışı ülke paketi** | EU-NIS2 (genel) · DE-KRITIS · US-NERC-CIP | P4 ikinci kaynak kataloğu ve çerçeve |
 | **Dağıtım önceliği** | on-prem önce · SaaS önce · ikisi birden | P7 sırası |
@@ -156,8 +156,11 @@ yazılır.
 
 ## 10. Ad hakkında — "Regula" geçicidir
 
-**Karar (6 Eylül 2026):** Çalışma adı **Regula**. Bu ad *geçicidir* ve
-kalıcı marka olarak kullanılması **önerilmez**.
+**Karar (6 Eylül 2026):** **Regula** bir *iç çalışma adıdır*: depo içi
+konuşmada ve iç belgelerde geçebilir, ancak **arayüzde, sitede ve dış
+iletişimde kullanılmaz**. Arayüzde görünen ad `MARKA_AD`'dan gelir ve o
+da geçicidir. Regula'nın kalıcı marka olarak kullanılması
+**önerilmez**.
 
 **Neden geçici.** [Regula Forensics](https://regulaforensics.com/) adlı
 faal bir şirket var: kimlik doğrulama ve adli belge inceleme ürünleri
@@ -177,10 +180,28 @@ başvurusu yapılmaz, logo çizdirilmez, dış iletişimde (sunum, teklif,
 web) kullanılmaz. Ad yalnız depo içinde, arayüzde ve iç belgelerde
 çalışma adı olarak geçer.
 
+**Seçim ölçütü — ad kod tabanında çakışmamalı.** Aday ad, kod tabanında
+ve Türkçe alan sözlüğünde **başka bir anlamda geçmemelidir**. Ölçüm:
+adayı `git grep -i` ile depoda ara — ürün adı dışındaki her eşleşme
+elemedir. Bugün bilinen elenenler: **Regula** (regülasyon), **Kayda**
+(kayıt/kayda). Sebep: ada dayanan her kapı, arama ve günlük filtresi
+çakışan bir adla kullanılamaz hâle gelir.
+
+Bu ölçüt 6 Eylül 2026'da ölçülerek eklendi: `MARKA_AD` varsayılanı
+denemek için "Kayda" yapıldığında ad sızıntısını arayan kapı dört
+dosyada yanlış alarm verdi — "Kayda git" düğmesi ve üç yorumdaki
+"Kayda dönüşmemiş…" / "Kayda PAROLA ASLA GİRMEZ" cümleleri. Üçü yorum,
+biri gerçek arayüz metniydi; hiçbir düzenli ifade onları marka
+kullanımından ayıramaz.
+
 **Kalıcı ad seçilirken.** 5 Eylül 2026 taramasında en temiz çıkan aday
 **Kayda** idi (yazılım/güvenlik/GRC sektöründe hiçbir marka çakışması
 yok; `kayda.com` yatırımcı elinde, satın alınabilir). İkinci sırada
 **Tutanak** (dünyada sıfır tescil; `.com` 4.495 USD ile satılık; ama AB
-pazarında telaffuz sürtünmesi). Karar öncesi **TÜRKPATENT sınıf 9 + 42**
-ve **EUIPO** taraması bir marka vekiline yaptırılmalıdır — bu tarama
-henüz hiçbir aday için yapılmamıştır.
+pazarında telaffuz sürtünmesi). **Uyarı:** yukarıdaki ölçüte göre
+"Kayda" **elenir** — Türkçe alan sözlüğünde "kayıt" sözcüğünün yönelme
+hâlidir ve depoda o anlamda geçer. "Tutanak" aynı ölçütten **geçer**:
+6 Eylül 2026'da ölçüldü, `git grep -i tutanak` bu belge dışında sıfır
+eşleşme verdi. Karar öncesi **TÜRKPATENT sınıf 9 + 42** ve **EUIPO**
+taraması bir marka vekiline yaptırılmalıdır — bu tarama henüz hiçbir
+aday için yapılmamıştır.

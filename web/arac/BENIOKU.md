@@ -93,8 +93,38 @@ kurum sistemine giden hiçbir şey yoktur.
 | `erisim-axe.mjs` | `tasarim:axe` | axe-core WCAG 2 A/AA, rotalar.json'daki tüm rotalar | ciddi/kritik ihlal |
 | `yatay-tasma.mjs` | `tasarim:tasma` | 375 + 768'de her rota yana kayıyor mu, taşmayı üreten öğe kim | taşan rota |
 | `dizustu.mjs` | `tasarim:dizustu` | 1366×768'de kaydırılamayan (kırpılan) içerik var mı | kırpılan öğe |
+| `marka-kapisi.mjs` | `marka:kapi` | ürün adı tek kaynaktan mı geliyor: nöbetçi adla statik demo derlemesi koşar, üretilen çıktıya bakar (tarayıcı istemez) | varsayılan ad işlenmiş yüzeyde geçiyor **ya da** nöbetçi görünmesi gereken yüzeyde yok |
 | `turkiye-siniri.mjs` | `harita:sinir` | üretir (kapı değil): Natural Earth'ten Türkiye silüeti | kaynak/öznitelik bulunamadı |
 | — | `test:kapsam` | vitest V8 kapsamı (`lib/**`, ekran `mantik.ts`/`ortak.ts`, `components/**`) | test kırığı |
+
+### `marka-kapisi.mjs` — adın tek kaynaktan geldiğini DAVRANIŞLA ölçer
+
+Kaynak ağacına hiç bakmaz. `NEXT_PUBLIC_MARKA_AD` nöbetçi bir dizgeye
+(`ZZ-MARKA-NOBETCI-7`) ayarlanmış hâlde statik demo derlemesi koşar ve
+`out/` altındaki üretilmiş dosyaları okur:
+
+- **(a)** `lib/marka.ts` varsayılanı işlenmiş hiçbir yüzeyde geçmemeli —
+  HTML, RSC yükü (`.txt`), CSS, manifest. JS demetinde yalnız `||`
+  operatörünün sağında durabilir: derleyici `env || 'varsayılan'`
+  ifadesinin yedek operandını silmez, o dizge ölü koddur ve çalışma
+  zamanında okunmaz.
+- **(b)** Nöbetçi ad, görünmesi gereken yüzeylerde geçmeli: kök ve giriş
+  sekme başlıkları, kabuk sözcük markasının ikinci satırı ve onun
+  `aria-label`'ı. Yalnız (a) ölçülseydi adı her yerden silmek de kapıyı
+  geçerdi.
+
+**Neden kaynak taraması değil.** İlk hâli adı kaynak ağacında dizge
+olarak arıyordu ve ad Türkçe bir sözcük olduğunda çöküyordu: varsayılan
+deneme amaçlı "Kayda" yapıldığında "Kayda git" düğmesi ve üç yorum
+kusurlu göründü. Bkz. `docs/URUN_VIZYONU.md` §10 ad seçim ölçütü.
+
+**Sınır.** Statik demoda `/giris` bir yönlendirme koçanıdır (demo kimliği
+her zaman dolu), gövdesi boş çıkar; giriş ekranının hero metni bu kapıda
+**ölçülmez**, yalnız sekme başlığıyla temsil edilir.
+
+**Yan etki.** Derleme nöbetçi adla yapıldığı için kapı bitince `out/` ve
+`.next` silinir — nöbetçi bir derlemenin yayımlanması ürün adının yanlış
+görünmesi demektir. Sonraki gerçek derleme sıfırdan koşar.
 
 ### `kosu-ortak.mjs` · `kalite-kurallari.mjs`
 

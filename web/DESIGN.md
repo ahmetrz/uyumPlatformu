@@ -153,8 +153,10 @@ CSS `text-transform: uppercase`). Monogram **yoktur** ve üretilmez; logo
 gelene kadar sözcük markası tek marka varlığıdır.
 
 Adı değiştirmek tek satırdır ve bu bir kabul kriteridir (P0 ·
-URN-KUR-004): `lib/marka.ts` dışında hiçbir `.ts`/`.tsx`/`.css`
-dosyasında ürün adı düz metin geçmez.
+URN-KUR-004). Ölçüm davranışsaldır: `npm run marka:kapi` nöbetçi bir
+adla statik demo derlemesi koşar ve üretilen çıktıya bakar — varsayılan
+ad işlenmiş hiçbir yüzeyde geçmemeli, nöbetçi ise sekme başlıklarında ve
+sözcük markasında görünmeli.
 
 Bu belgenin başlığı ve frontmatter'ındaki `name` adı düz metin taşır —
 Markdown yapılandırma okuyamaz. Ama **sapamaz**: `tests/marka-adi.test.ts`

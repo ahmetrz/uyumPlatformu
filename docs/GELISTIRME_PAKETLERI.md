@@ -222,9 +222,22 @@ temizliği (P1'e — ürün adı bu paketin işidir, alan sözlüğü değil).
 3. `docs/URUN_VIZYONU.md` depodadır ve `CLAUDE.md`'nin "Nereye bakılır"
    tablosundaki **her** hedef diskte vardır — ölü atıf sayısı sıfırdır.
    [URN-KUR-003]
-4. Ürün adı **tek bir yerden** gelir: `web/lib/marka.ts`. Bu dosya
-   dışında hiçbir kod dosyasında (`.ts` · `.tsx` · `.css`) ürün adı düz
-   metin geçmez — ad değişimi tek satırdır. [URN-KUR-004]
+4. Ürün adı **tek bir yerden** gelir: `web/lib/marka.ts`. Ölçüm
+   **davranışsaldır**, kaynak taraması değil (`npm run marka:kapi`):
+   nöbetçi bir adla statik demo derlemesi koşulur ve üretilen çıktıya
+   bakılır. (a) `marka.ts` varsayılanı işlenmiş hiçbir yüzeyde (HTML,
+   RSC yükü, CSS, manifest) geçmez — JS demetindeki ölü yedek operandı
+   (`… || '<ad>'`) hariç; (b) nöbetçi ad, görünmesi gereken yüzeylerde
+   geçer (kök ve giriş sekme başlıkları, kabuk sözcük markası ve onun
+   erişilebilir adı). Ayrıca `web/DESIGN.md` ve `README.md` başlıkları
+   varsayılandan sapmaz (`tests/marka-adi.test.ts`). Ad değişimi tek
+   satırdır. [URN-KUR-004]
+
+   > *Neden kaynak taraması değil:* ilk hâli adı kaynak ağacında dizge
+   > olarak arıyordu. 6 Eylül 2026'da ölçüldü — ad Türkçe bir sözcük
+   > olduğunda ("Kayda") dört dosyada yanlış alarm veriyor: bir düğme
+   > metni, üç yorum. Yanlış güven veren ölçüm silindi.
+   > `URUN_VIZYONU.md` §10'a da bir ad seçim ölçütü eklendi.
 
 **Kararlar.** *Ürün adı.* Görünen ad **"Uyum ve Yönetişim Platformu"**;
 geçici ve TANIMLAYICI bir addır, marka değildir, sektör sözcüğü

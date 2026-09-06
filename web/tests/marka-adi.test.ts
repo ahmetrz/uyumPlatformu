@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -9,15 +9,23 @@ import path from 'node:path';
    cümleleridir; belge cümleleri sessizce bayatlar. Buradaki testler
    bayatlamayı ilk koşuda kırmızı yapar.
 
-   En önemlisi URN-KUR-004: ürünün adı GEÇİCİDİR
-   (`docs/URUN_VIZYONU.md` §10) ve değiştirmek tek satır olmalıdır. Ad
-   koda sızarsa değişim bir tarama–değiştir turuna döner ve her turda bir
-   yer atlanır — atlanan yer de en görünür yerde yakalanır. */
+   URN-KUR-004 (ad tek kaynaktan gelir) İKİ yerde ölçülür ve iş bölümü
+   kasıtlıdır:
+
+   - Adın ÜRÜNDE tek kaynaktan geldiği, `arac/marka-kapisi.mjs` ile
+     ölçülür: nöbetçi bir adla derleme yapılır ve üretilen çıktıya
+     bakılır. Burada değil, çünkü derleme ister ve birim testi değildir.
+     Önceki hâli kaynak ağacında dizge arıyordu; ad Türkçe bir sözcük
+     olduğunda yanlış alarm verdiği ölçüldüğü için kaldırıldı
+     (`docs/URUN_VIZYONU.md` §10 seçim ölçütü).
+   - Adın BELGELERDE sapmadığı burada ölçülür. Markdown yapılandırma
+     okuyamaz; `DESIGN.md` ve `README.md` adı düz metin taşır. Taşımaya
+     devam etsinler, ama `marka.ts`'ten SAPAMASINLAR. */
 
 const WEB = path.resolve(__dirname, '..');
 const KOK = path.resolve(WEB, '..');
 
-/** Ürün adının TEK kaynağı; ölçüm bu dosyayı hariç tutar. */
+/** Ürün adının TEK kaynağı; belge başlıkları buna karşı ölçülür. */
 const MARKA_DOSYASI = path.join(WEB, 'lib', 'marka.ts');
 
 /** Adı `marka.ts`'ten okur — testin kendisi de adı gömmez. */
@@ -49,46 +57,7 @@ const BELGE_KONUMLARI: { dosya: string; nerede: string; cikar: (s: string) => st
   },
 ];
 
-function kaynakDosyalari(): string[] {
-  const atla = new Set(['node_modules', '.next', 'prisma-client', 'out', 'coverage', 'vendor']);
-  const cikti: string[] = [];
-  const gez = (d: string) => {
-    for (const ad of readdirSync(d)) {
-      if (atla.has(ad)) continue;
-      const tam = path.join(d, ad);
-      if (statSync(tam).isDirectory()) gez(tam);
-      else if (/\.(ts|tsx|css)$/.test(ad)) cikti.push(tam);
-    }
-  };
-  for (const alt of ['app', 'components', 'lib', 'tests', 'arac']) {
-    const y = path.join(WEB, alt);
-    if (existsSync(y)) gez(y);
-  }
-  return cikti;
-}
-
 describe('P0 · ürün adı ve kurgu', () => {
-  /* SINIR — bu tarama adın DİZGE olarak benzersiz olduğunu varsayar.
-     Bugünkü ad uzun ve ayırt edici, sorun yok. Ama kalıcı ad adaylarından
-     biri ("Kayda", `docs/URUN_VIZYONU.md` §10) aynı zamanda bir Türkçe
-     sözcüktür: 6 Eylül 2026'da denendi ve dört dosyada YANLIŞ ALARM verdi
-     ("Kayda git" düğmesi, "Kayda dönüşmemiş adaylar" yorumu, "Kayda
-     PAROLA ASLA GİRMEZ"). Yorumları elemek üçünü çözer, dördüncüsü gerçek
-     bir çakışmadır ve hiçbir düzenli ifade onu marka kullanımından
-     ayıramaz. Sözcük-olan bir ada geçilirse bu tarama ya bir istisna
-     listesiyle ya da "yalnız marka yüzeyleri `MARKA_AD` içe aktarır"
-     kuralıyla değiştirilmelidir — ad kararından ÖNCE. */
-  it('ürün adı yalnız lib/marka.ts içinde düz metin geçer [URN-KUR-004]', () => {
-    const ad = markaAdi();
-    const sizinti = kaynakDosyalari()
-      .filter((f) => f !== MARKA_DOSYASI)
-      .filter((f) => readFileSync(f, 'utf8').includes(ad))
-      .map((f) => path.relative(KOK, f));
-
-    expect(sizinti, `Ad şu dosyalarda düz metin: ${sizinti.join(', ')}. `
-      + 'MARKA_AD içe aktarılmalı — ad değişimi tek satır kalmalı.').toEqual([]);
-  });
-
   it('belge başlıkları marka.ts varsayılanından sapmaz [URN-KUR-004]', () => {
     const ad = markaAdi();
 

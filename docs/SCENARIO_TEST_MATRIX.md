@@ -311,7 +311,6 @@
 | `URN-KUR-001` | Ürünleştirme | DOMAIN | `marka-adi.test.ts` | CLAUDE.md bağlayıcı kuralları kalan/değişen ayrımıyla yazar | evet | geçti |
 | `URN-KUR-002` | Ürünleştirme | DOMAIN | `marka-adi.test.ts` | PRODUCT.md ürünleştirme kurgusunu anlatır | evet | geçti |
 | `URN-KUR-003` | Ürünleştirme | DOMAIN | `marka-adi.test.ts` | CLAUDE.md yönlendirme tablosunda ölü atıf yoktur | evet | geçti |
-| `URN-KUR-004` | Ürünleştirme | DOMAIN · UI | `marka-adi.test.ts` | ürün adı yalnız lib/marka.ts içinde düz metin geçer | evet | geçti |
 | `URN-KUR-004` | Ürünleştirme | DOMAIN · UI | `marka-adi.test.ts` | belge başlıkları marka.ts varsayılanından sapmaz | evet | geçti |
 
 ## Gerekçesiyle kütüksüz kalan dosyalar

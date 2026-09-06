@@ -170,8 +170,10 @@ zamanı; mobil/tablet kullanım (hedef değil, reddedilmiş de değil).
   başlığı (`app/layout.tsx`), kabuk sözcük markası
   (`components/kabuk/Kabuk.tsx`: kiracı adı + ürün adı), sistem sayfası
   künyesi, giriş ekranı, hata ekranı, dış API sözleşmesi ve ayak künyesi
-  varsayılanı **hepsi** oradan okur; hiçbirinde ad düz metin geçmez
-  (P0 · URN-KUR-004, `tests/marka-adi.test.ts` ölçer). Bugünkü değer
+  varsayılanı **hepsi** oradan okur (P0 · URN-KUR-004). Ölçüm
+  davranışsaldır: `npm run marka:kapi` nöbetçi bir adla derleyip üretilen
+  çıktıya bakar; `tests/marka-adi.test.ts` ise belge başlıklarının
+  varsayılandan sapmadığını tutar. Bugünkü değer
   geçici ve tanımlayıcıdır: sektör taşımaz, marka değildir. `Regula` iç
   çalışma adıdır ve arayüzde kullanılmaz (`docs/URUN_VIZYONU.md` §10).
   Karar: ürün sahibi, 2026-09-01; ad 2026-09-06'da sektörsüz hâle

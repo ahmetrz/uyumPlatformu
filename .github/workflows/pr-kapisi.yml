@@ -69,3 +69,10 @@ jobs:
         env:
           NEXT_PUBLIC_DEMO: '1'
         run: npx next build
+
+      # Ürün adının tek kaynaktan geldiğini DAVRANIŞLA ölçer: nöbetçi bir
+      # adla derler ve üretilen çıktıya bakar. Kendi derlemesini yaptığı
+      # için en sonda durur; `out/` ve `.next` dizinlerini silerek biter.
+      - name: Marka kapısı
+        working-directory: web
+        run: npm run marka:kapi

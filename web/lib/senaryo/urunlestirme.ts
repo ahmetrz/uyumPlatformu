@@ -60,4 +60,21 @@ export const URUNLESTIRME_SENARYOLARI: Senaryo[] = [
     beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
     katmanlar: ['DOMAIN', 'UI'],
   },
+  /* ── P1 · URN-ALN ────────────────────────────────────────────────────
+     Kütüğe yalnız TESTİ OLAN senaryo girer: kayıtlı ama testsiz senaryo
+     `senaryo-belge` aracında GAP olur ve kütük "kapsanıyor" diye yalan
+     söylemeye başlar. P1'in kalan kriterleri (002-006) uygulandıkça
+     buraya eklenir. */
+  {
+    id: 'URN-ALN-001', alan: 'Ürünleştirme', rota: '—', eksen: 'veri',
+    amac: 'Sektöre özgü niteliğin çekirdek şemadan çıkarken kaybolmaması',
+    rol: 'ürünü sürdüren geliştirici', kapsam: 'depo geneli',
+    onkosul: 'Kurulu güç bir kolondu; öznitelik satırına taşınıyor',
+    veriHali: 'kısmi',
+    eylem: 'Göç koşulduktan sonra kolon ile öznitelik satırı karşılaştırılır',
+    beklenenSonuc: 'Değeri olan her tesis ve birim aynı sayıyı öznitelik satırında taşır; değeri OLMAYAN satır almaz ve göç ölçüm zamanı uydurmaz',
+    beklenenEkran: 'Ekran yok — veri göçü',
+    beklenenIz: 'yazma yok (göç betiği)', beklenenBildirim: 'yok',
+    katmanlar: ['MIGRATION', 'DOMAIN'],
+  },
 ];

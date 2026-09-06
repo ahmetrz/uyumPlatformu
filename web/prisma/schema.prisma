@@ -26,7 +26,9 @@ model Sektor {
   ad    String
   aktif Boolean @default(true)
 
-  tipler TesisTipi[]
+  tipler          TesisTipi[]
+  oznitelikSemasi SektorOznitelikSemasi[]
+  sozluk          SektorSozlugu[]
 }
 
 model TesisTipi {
@@ -39,6 +41,104 @@ model TesisTipi {
 
   sektor   Sektor? @relation(fields: [sektorId], references: [id])
   tesisler Tesis[]
+}
+
+/// ═══════════════════════════════════════════════════════════════════════
+/// SEKTÖR BAĞIMSIZLIK KATMANI (P1 · URN-ALN)
+///
+/// Çekirdek şema hiçbir sektör niteliği TAŞIMAZ. "Kurulu güç" bir enerji
+/// niteliğidir; su tesisinde "m³/gün", hastanede "yatak sayısı" olur.
+/// Bunların hepsi kolon değil SATIR olur: nitelik `TesisOzellik` /
+/// `BirimOzellik` tablolarında anahtar-değer olarak yaşar, hangi
+/// anahtarların geçerli olduğunu `SektorOznitelikSemasi` söyler.
+///
+/// BİLİNMEYEN ≠ SIFIR: ölçülmemiş nitelik için SATIR AÇILMAZ. Boş bir
+/// satır ("değeri yok" diyen bir kayıt) ile ölçülmemiş nitelik aynı şey
+/// değildir; ilki bir iddiadır, ikincisi bir boşluktur.
+/// ═══════════════════════════════════════════════════════════════════════
+
+/// Bir sektör paketinin tanımladığı nitelik: hangi anahtar, hangi tip,
+/// hangi birim, kapsam kuralında kullanılabilir mi.
+model SektorOznitelikSemasi {
+  id                String  @id @default(cuid())
+  sektorId          String
+  /// Öznitelik anahtarı — `kuruluGucMw`, `gunlukDebiM3`, `yatakSayisi`.
+  anahtar           String
+  /// Etiketin sözlük anahtarı; ekran metni buradan çözülür.
+  etiketAnahtari    String
+  /// `sayi` | `metin` | `mantik`
+  tip               String  @default("sayi")
+  /// Gösterim birimi — `MW`, `m³/gün`. Metin özniteliklerde null.
+  birim             String?
+  /// Kapsam/uygulanabilirlik kuralında kullanılabilir mi.
+  kuraldaKullanilir Boolean @default(false)
+  sira              Int     @default(0)
+
+  sektor Sektor @relation(fields: [sektorId], references: [id], onDelete: Cascade)
+
+  @@unique([sektorId, anahtar])
+}
+
+/// Çekirdek terim anahtarının bir sektördeki karşılığı. Türkçe ekler
+/// için biçim ALANLARI vardır ("{tesis}in" gibi dize birleştirme
+/// yapılmaz — o yol "santralin" ile "üretim ünitesinin" arasında
+/// sessizce bozulur).
+model SektorSozlugu {
+  id       String  @id @default(cuid())
+  sektorId String
+  /// Çekirdek terim anahtarı — `tesis`, `birim`, `portfoy`, `tesis360`.
+  anahtar  String
+  /// Dil etiketi (BCP 47). Bugün yalnız `tr`; P3 ikinci dili ekler.
+  dil      String  @default("tr")
+  tekil    String
+  cogul    String?
+  /// İyelik biçimi — "santralin", "tesisin".
+  iyelik   String?
+  /// Belirtme biçimi — "santrali", "tesisi".
+  belirtme String?
+
+  sektor Sektor @relation(fields: [sektorId], references: [id], onDelete: Cascade)
+
+  @@unique([sektorId, anahtar, dil])
+}
+
+/// Bir tesisin ölçülmüş niteliği. SATIR YOKSA ÖLÇÜLMEDİ.
+model TesisOzellik {
+  id           String    @id @default(cuid())
+  tesisId      String
+  anahtar      String
+  /// Sayısal nitelikler burada; metin nitelikler `metinDeger`de.
+  sayisalDeger Float?
+  metinDeger   String?
+  birim        String?
+  /// Değerin nereden geldiği — `goc:P1`, `elle`, `ice_aktarim`, connector kodu.
+  kaynak       String?
+  /// Ölçümün zamanı; null = zamanı kayda geçmemiş (değerin kendisi var).
+  olcumZamani  DateTime?
+  guncellendi  DateTime  @updatedAt
+
+  tesis Tesis @relation(fields: [tesisId], references: [id], onDelete: Cascade)
+
+  @@unique([tesisId, anahtar])
+  @@index([anahtar])
+}
+
+/// Bir operasyonel birimin ölçülmüş niteliği. SATIR YOKSA ÖLÇÜLMEDİ.
+model BirimOzellik {
+  id           String    @id @default(cuid())
+  birimId      String
+  anahtar      String
+  sayisalDeger Float?
+  metinDeger   String?
+  birim        String?
+  kaynak       String?
+  olcumZamani  DateTime?
+  guncellendi  DateTime  @updatedAt
+
+  operasyonelBirim UretimUnitesi @relation(fields: [birimId], references: [id], onDelete: Cascade)
+
+  @@unique([birimId, anahtar])
+  @@index([anahtar])
 }
 
 /// Santral / lokasyon. Yaşam döngüsü: aktif → kapali (satış, kapanış).
@@ -136,6 +236,7 @@ model Tesis {
   envanterSayimlari EnvanterSayimi[]
   yedekParcalari    YedekParca[]
   tasinabilirMedya  TasinabilirMedya[]
+  ozellikler        TesisOzellik[]
 }
 
 model Regulasyon {
@@ -775,9 +876,10 @@ model UretimUnitesi {
   devreyeGiris DateTime?
   durum        String    @default("aktif") // aktif | bakim | devre_disi
 
-  tesis     Tesis          @relation(fields: [tesisId], references: [id])
-  sistemler SistemServis[]
-  varliklar Varlik[]       @relation("UniteVarliklari")
+  tesis      Tesis          @relation(fields: [tesisId], references: [id])
+  sistemler  SistemServis[]
+  varliklar  Varlik[]       @relation("UniteVarliklari")
+  ozellikler BirimOzellik[]
 
   @@unique([tesisId, kod])
 }

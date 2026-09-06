@@ -27,11 +27,12 @@ hiçbir şey "geçti" diye yazılmadı.
    **sağlanmadığı** anlamına gelir. Çözüm (geçmiş yazımı ya da depoyu
    geçici olarak private yapmak) ürün sahibinin kararıdır; bu oturumda
    yapılmadı.
-2. **Çalışma ağacında üç gerçek-veri kalıntısı var** (§3.2): giriş
-   ekranının hero fotoğrafı gerçek ve **adı künyede yazılı** bir
-   santraldir; iki kod yorumu gerçek grup şirketi kısaltmalarını taşır;
-   künye dosyası kurgusal "Saha" adlarını gerçek il ve coğrafyalarla
-   eşler.
+2. **Çalışma ağacındaki üç kalıntının ikisi kapatıldı** (§3.2): giriş
+   ekranının gerçek santral fotoğrafı ve onu kurgusal "Saha A"ya bağlayan
+   cümleler kaldırıldı (K1); iki koddaki gerçek grup şirketi
+   kısaltmaları temizlendi (K2). Açık kalan: künye dosyasının kurgusal
+   adları gerçek il ve coğrafyalarla eşlemesi (K3) — ürün sahibi kararıyla
+   bilerek bırakıldı, P8'e.
 3. **P0'ın kabul kriteri URN-KUR-004 bugünkü hâliyle ölçülemez** (§5,
    P0). `grep -ri "regula"` ölçütü Türkçe alan sözcüğü "regülasyon" ile
    çakışıyor: bugün 706 satır / 140 kod dosyası eşleşiyor (üretilmiş
@@ -122,18 +123,18 @@ DGKÇ (devredildi)"`, tüzel kişiler `Demo Enerji Üretim A.Ş.` vb.
 `gh-pages` dalı da temiz — `6d7b125 "Yayın: fc66712"` ile bugünkü temiz
 tepe noktasından yeniden yayımlanmış.
 
-### 3.2 Ama üç kalıntı var — üçü de public depoda, bugünkü ağaçta
+### 3.2 Üç kalıntı vardı — ikisi kapatıldı
 
-| # | Nerede | Ne |
-|---|---|---|
-| K1 | `web/public/gorseller/KUNYE.md:9` ve `:13` | Giriş ekranının hero fotoğrafı gerçek ve **adı verilmiş** bir jeotermal santraldir (kaynak URL'si santral adını yüzde-kodlu taşır, bu yüzden düz metin aramasına takılmaz). Satır 13 ayrıca kurgusal "Saha A"yı o gerçek santrale **açıkça bağlar**: "Saha A fotoğrafı Demo Enerji'nin işlettiği santrale aittir". Dosya `/gorseller` künye bağlantısıyla üründen erişilebilir. |
-| K2 | `web/prisma/seed-operasyon.ts:9-10` ve `web/app/(tam)/portfoy/page.tsx:11` | Referans kurumun üç gerçek grup şirketi kısaltması yorum olarak duruyor. Aynı yorum ayrıca "Rakamlar … üretim portföyünün **gerçek yapısına** oturur" diyor. |
-| K3 | `web/public/santraller/KUNYE.md` | Kurgusal adlar gerçek illerle ve gerçek coğrafî tariflerle eşleniyor ("Manisa/… bağ ovası", "Tunceli/Munzur vadisi", "Kars/… gölü", "Kırklareli/Trakya"). Tip + kurulu güç + il üçlüsü portföyü tanınır kılar. Ayrıca fotoğraflar ürün sahibinin sağladığı **gerçek tesis fotoğraflarıdır** (`KUNYE.md` başı) — P8'in hedefi "nötr lisanslı görsel"; bugün öyle değil. |
+| # | Nerede | Ne | Durum |
+|---|---|---|---|
+| K1 | `web/public/gorseller/KUNYE.md` · `web/app/(giris)/giris/page.tsx` · `web/PRODUCT.md` | Giriş ekranının hero fotoğrafı gerçek ve **adı verilmiş** bir santraldi (künyedeki kaynak URL adı yüzde-kodlu taşıyordu, bu yüzden düz metin aramasına takılmıyordu); künye ve `PRODUCT.md` ayrıca kurgusal "Saha A"yı o gerçek santrale açıkça bağlıyordu; `alt` metni de öyle. | **kapatıldı** — görsel, atıf yükümlülüğü olmayan üretilmiş (AI) bir görselle değiştirildi (`giris-genis.webp`), üçüncü taraf fotoğrafı depodan çıkarıldı, bağ cümleleri ve `alt` metni kaldırıldı |
+| K2 | `web/prisma/seed-operasyon.ts:9-10` · `web/app/(tam)/portfoy/page.tsx:11` | Referans kurumun üç gerçek grup şirketi kısaltması yorum olarak duruyordu; aynı yorum "Rakamlar … üretim portföyünün **gerçek yapısına** oturur" diyordu. | **kapatıldı** — kısaltmalar ve "gerçek yapısına oturur" cümlesi kaldırıldı; kapsam cümlesi kuruluş adı vermeden yazıldı |
+| K3 | `web/public/santraller/KUNYE.md` | Kurgusal adlar gerçek illerle ve gerçek coğrafî tariflerle eşleniyor ("Manisa/… bağ ovası", "Tunceli/Munzur vadisi", "Kars/… gölü", "Kırklareli/Trakya"). Tip + kurulu güç + il üçlüsü portföyü tanınır kılar. Ayrıca tesis fotoğrafları ürün sahibinin sağladığı **gerçek tesis fotoğraflarıdır** — P8'in hedefi "nötr lisanslı görsel"; bugün öyle değil. | **açık** — ürün sahibi kararıyla bu temizlikte bilerek dokunulmadı; P8'e |
 
 K3'ün il bilgisi `URUN_VIZYONU` P8 kapsamında "il bilgisi
 kurgusal-uyumlu" diye zaten kabul edilmiş bir tercihtir; buraya
 tanınırlık riski olarak yazıldı, kural ihlali olarak değil. K1 ve K2
-kural ihlalidir.
+kural ihlaliydi ve kapatıldı.
 
 ### 3.3 Geçmiş temizlenmedi — depo public
 

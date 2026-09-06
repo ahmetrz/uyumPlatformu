@@ -8,8 +8,8 @@ import { portfoyEkranVerisi } from './veri';
 export const metadata: Metadata = { title: 'Enerji portföyü' };
 
 /* F2 · Enerji Portföyü — "hangi santral beni istiyor ve nasıl bir santral bu?"
-   Kapsam yalnız ÜRETİM portföyüdür; ZES / OEDAŞ / OEPSAŞ platform dışıdır ve
-   veriye de girmez (README §Scope).
+   Kapsam yalnız ÜRETİM portföyüdür: dağıtım ve perakende tüzel kişileri
+   bu kurulumun kapsamı dışındadır ve veriye de girmez.
 
    Santral kapsamı `veri.ts`te uygulanır (modül: `uyum`). */
 

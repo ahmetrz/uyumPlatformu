@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { KIRACI_AD, MARKA_AD } from '@/lib/marka';
 import type { ReactNode } from 'react';
 
 /* Sistem sayfası — 404 · 500 · bakım. Kabuğun DIŞINDA yaşar (kök
@@ -23,10 +24,10 @@ export default function SistemSayfasi({ kod, baslik, cumle, eylemler, teknik, di
     <div className="ab" data-yogunluk="operasyonel">
       <div className="ab-sistem-sayfa">
         <header>
-          <Link href="/" className="marka" aria-label="Uyum ve Yönetişim Platformu — ana ekran">
-            DEMO ENERJİ
+          <Link href="/" className="marka" aria-label={`${MARKA_AD} — ana ekran`}>
+            {KIRACI_AD.toLocaleUpperCase('tr-TR')}
           </Link>
-          <span className="etiket">Uyum ve Yönetişim Platformu</span>
+          <span className="etiket">{MARKA_AD}</span>
         </header>
         <main>
           <p className="kod">{kod}</p>

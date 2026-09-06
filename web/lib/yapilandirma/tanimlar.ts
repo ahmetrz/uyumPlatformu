@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { MARKA_AD } from '../marka';
 import { KANIT_ESIK_VARSAYILAN } from '../sabitler';
 import { SAHA_YERLESIM_VARSAYILAN, yerlesimDogrula, yerlesimMetni, type SahaYerlesimi } from '../yonetim/sahaModulleri';
 import {
@@ -243,7 +244,7 @@ const T: AyarTanimi[] = [
     etiket: 'Ayak künye metni',
     aciklama: 'Her ekranın ayağında görünen kurum/platform adı. Sürüm ve ortam koddan gelir.',
     etki: ['Kabuk · ayak'],
-    varsayilan: 'Uyum ve Yönetişim Platformu',
+    varsayilan: MARKA_AD,
     sema: z.string().trim().min(3).max(80),
   },
   /* ── Sistem ────────────────────────────────────────────────────────── */

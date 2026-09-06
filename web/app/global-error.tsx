@@ -1,6 +1,7 @@
 'use client';
 import { useEffect } from 'react';
 import Link from 'next/link';
+import { KIRACI_AD, MARKA_AD } from '@/lib/marka';
 import './globals.css';
 import './kabuk.css';
 
@@ -16,8 +17,8 @@ export default function KokHata({ error, reset }: {
         <div className="ab" data-yogunluk="operasyonel">
           <div className="ab-sistem-sayfa">
             <header>
-              <Link href="/" className="marka">DEMO ENERJİ</Link>
-              <span className="etiket">Uyum ve Yönetişim Platformu</span>
+              <Link href="/" className="marka">{KIRACI_AD.toLocaleUpperCase('tr-TR')}</Link>
+              <span className="etiket">{MARKA_AD}</span>
             </header>
             <main>
               <p className="kod">500 · Uygulama hatası</p>

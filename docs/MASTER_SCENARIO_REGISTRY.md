@@ -13,7 +13,7 @@ it('kapsam dışı varlığa yazılamaz [ENV-YAZ-003]', …)
 Ayrı bir eşleme tablosu tutulsaydı, tablo ilk yeniden adlandırmada
 testten ayrışır ve kimse görmezdi.
 
-Senaryo: **273** · testli: **273** · GAP: **0**
+Senaryo: **277** · testli: **277** · GAP: **0**
 
 ## Aktivite · 2 senaryo
 
@@ -444,6 +444,15 @@ Senaryo: **273** · testli: **273** · GAP: **0**
 | `UYU-SRC-002` | /surecler | uyum uzmanı · kendi santrali | Bazı maddeler kapsam dışı · kısmi | Süreç toplamına bakar | Kapsam dışı maddeler paydaya GİRMEZ; toplam alt sayımların toplamıdır | Kapsam dışı ayrı sayılır | yazma yok | yok | `ters-kapsam-ekran.test.ts` |
 | `UYU-CRC-004` | /uyum/[cerceve] | uyum uzmanı · kendi santrali | Çerçevenin bazı maddeleri hiç değerlendirilmemiş · kısmi | Madde satırını genişletir | Değerlendirilmemiş madde "uyumlu" ya da "uyumsuz" SAYILMAZ | Genişleyen satırda "ölçülmedi" ayrı okunur | yazma yok | yok | `ters-kapsam-ekran.test.ts` |
 | `UYU-ANL-001` | — | sistem (motor) · kurum geneli | Aynı gün zaten anlık alınmış · yinelenen | Motor aynı gün ikinci kez koşar | İkinci anlık YAZILMAZ — günde bir | — | yazma yok | yok | `ters-kapsam-eylem.test.ts` |
+
+## Ürünleştirme · 4 senaryo
+
+| ID | Rota | Rol · kapsam | Ön koşul · veri | Eylem | Beklenen sonuç | Ekran | Denetim izi | Görev/bildirim | Test |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `URN-KUR-001` | — | ürünü sürdüren geliştirici · depo geneli | Ürünleştirme kararı verilmiş (5 Eylül 2026) · normal | Kök `CLAUDE.md` bağlayıcı kurallar bölümünü okur | Kurallar "kalan" ve "değişen" başlıkları altında ayrılmıştır; tek dilli ve gömülü ürün adı cümleleri kalkmıştır | Ekran yok — belge | yazma yok | yok | `marka-adi.test.ts` |
+| `URN-KUR-002` | — | ürünü sürdüren geliştirici · depo geneli | P0 uygulanmış · normal | `web/PRODUCT.md` kullanıcı tiplerini, konumlandırmayı ve marka bölümünü okur | Kiracı yöneticisi, ürün yöneticisi ve destek tipleri yazılıdır; konumlandırma beş mekanizma sayar; ürün adı düz metin geçmez, yapılandırmaya atıf yapar | Ekran yok — belge | yazma yok | yok | `marka-adi.test.ts` |
+| `URN-KUR-003` | — | ürünü sürdüren geliştirici · depo geneli | Vizyon belgesi depoda; tabloda temizlik öncesi 13 ölü atıf vardı · yok | `CLAUDE.md` "Nereye bakılır" tablosundaki her hedefi açmayı dener | Tablodaki her hedef diskte vardır; ölü atıf sayısı sıfırdır | Ekran yok — belge | yazma yok | yok | `marka-adi.test.ts` |
+| `URN-KUR-004` | — | ürünü sürdüren geliştirici · depo geneli | Ad geçici; kalıcı ad sonra verilecek — ad sekiz kod dosyasında düz metindi · çelişen | Kaynak ağacında ürün adını düz metin olarak arar | `lib/marka.ts` dışında hiçbir `.ts`/`.tsx`/`.css` dosyasında ad geçmez; görünen her yüzey `MARKA_AD` okur | Sekme başlığı, kabuk sözcük markası, giriş ve hata ekranı aynı adı gösterir | yazma yok | yok | `marka-adi.test.ts` |
 
 ## Varlık aktarımı · 3 senaryo
 

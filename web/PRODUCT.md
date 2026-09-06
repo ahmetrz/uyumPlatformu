@@ -27,14 +27,30 @@ onaylandı; hepsi birincil):
   ne gecikti, ne riskli" sorusuna sayısal ve karşılaştırmalı yanıt arar;
   detaya nadiren iner.
 
+Ürünleştirmeyle üç kullanıcı tipi daha eklenir; üçü de bugün **yok**,
+paketleriyle gelir:
+
+- **Kiracı yöneticisi** — kiracının kendi kurulumunu yönetir: kullanıcı,
+  kimlik sağlayıcı, içerik paketi, bağlayıcı, dil ve para birimi. Kiracı
+  verisini görür. (P2 · P6)
+- **Ürün yöneticisi (hub)** — kiracı açar, askıya alır, arşivler; içerik
+  paketi yayımlar; kullanımı ölçer. Kiracı **verisini görmez**. (P2 · P4)
+- **Destek (hub)** — yalnız kiracının süreli ve kapsamlı onayıyla, salt
+  okunur ve her okuması denetim izine yazılarak bakar; `DenetciErisimi`
+  kalıbının ikizi. (P2)
+
 Roller üründe `okuyucu · katkici · denetim_sorumlusu · yonetici` olarak
-tanımlıdır ve yetki modül × işlem (okuma/yazma/onay) ile tesis/süreç kapsamı
-düzeyinde uygulanır (`lib/erisim.ts`).
+tanımlıdır (`lib/sabitler.ts` `ROLLER`) ve yetki modül × işlem
+(okuma/yazma/onay) ile tesis/süreç kapsamı düzeyinde uygulanır
+(`lib/erisim.ts` izin matrisi). *(Not: izin matrisi bugün bu dörtten
+fazla rol anahtarı tanıyor; iki listenin birleştirilmesi P2'nin
+işidir — `docs/GELISTIRME_PAKETLERI_DURUM.md` Ç30.)*
 
 ## Product Purpose
 
-**Uyum ve Yönetişim Platformu**, çok tesisli bir kuruluş için IT/OT
-governance, uyum ve dönüşüm platformudur. Regülasyon gerekliliklerini tesis
+Ürün (görünen adı `MARKA_AD`'dan gelir — bkz. Brand Commitments),
+düzenlemeye tabi, çok tesisli kuruluşlar için BT/OT yönetişim, uyum ve
+dönüşüm platformudur. Regülasyon gerekliliklerini tesis
 bazında uygulanabilir kontrollere indirger; her kontrol için durum, kanıt,
 bulgu, aksiyon ve doğrulamayı tek zincirde tutar; bunu varlık envanteri,
 risk kütüğü, denetim döngüsü ve projelerle bağlar. Bugünkü içerik seti
@@ -53,8 +69,9 @@ kolaylığına göre değil.
 
 ## Positioning
 
-Sıradan bir GRC aracının doğru söyleyerek kopyalayamayacağı dört mekanizma
-(görüşmede dördü de onaylandı):
+Sıradan bir GRC aracının doğru söyleyerek kopyalayamayacağı **beş**
+mekanizma (ilk dördü görüşmede onaylandı; beşincisi ürünleştirme
+kararıyla geldi — `docs/URUN_VIZYONU.md` §5):
 
 1. **BT ve OT tek kapsam ağacında.** `Grup → Tüzel Kişi → Santral → Ünite →
    Sistem/Servis → Varlık` zinciri ofis BT'sini ve santral OT'sini aynı
@@ -70,15 +87,27 @@ Sıradan bir GRC aracının doğru söyleyerek kopyalayamayacağı dört mekaniz
    "uyumsuz" değil, açıkça `Değerlendirilmedi`'dir ve toplamlarda ayrı bir
    dilim olarak taşınır. Bağlanmamış bir kaynak "başarılı" değil,
    `kimlik_bekleniyor`'dur.
+5. **OT gerçekleri uyum kaydına bağlanır.** Pasif keşif, topoloji sapması,
+   yedek ve geri yükleme testi, tedarikçi uzaktan erişim oturumu,
+   firmware/EOL — hepsi bir kontrolün kanıtına bağlanır; OT ağına paket
+   gönderilmez. Kurumsal GRC bu katmanı tanımaz, OT güvenlik ürünleri de
+   uyum yaşam döngüsü sunmaz.
+
+Ve iki dağıtım ilkesi: **veri kiracıda kalır** (kurum içi ya da kiracının
+seçtiği bölgede bulut) ve **motor önerir, insan karar verir** (yapay zekâ
+dâhil).
 
 ## Operating Context
 
 - **Kullanım sahnesi:** masaüstü, ofis ve santral BT odası. Doğrulama
   kapıları 1440 / 1366 / 1280 px genişlikleri hedefler; santral tarafında
   1366 px dizüstü gerçekçi bir alt sınırdır. Mobil bir hedef değildir.
-- **Dil:** yalnız Türkçe. Alan sözlüğü Türkçedir (santral, madde, kanıt,
-  bulgu, aksiyon, kütük, tezgâh); arayüzde İngilizce ödünç terim
-  kullanılmaz.
+- **Dil:** çok dilli, **Türkçe birinci dil**. Bugün arayüz yalnız
+  Türkçedir; mesaj kataloğu ve `t()` katmanı P3'te gelir (TR birinci,
+  EN ikinci). Alan sözlüğü Türkçedir (madde, kanıt, bulgu, aksiyon,
+  kütük, tezgâh); arayüzde İngilizce ödünç terim kullanılmaz. Sektöre
+  bağlı terimler ("santral", "ünite", "MWe") P1'de sektör sözlüğüne
+  taşınır; çekirdek "tesis / birim / öznitelik" der.
 - **Ritimler:** uyum süreçleri (çerçeve × yıl), denetim dönemleri, termin
   takibi (gün çözünürlüğünde), haftalık erişim incelemesi, yedekleme koşusu
   ve geri yükleme testi kayıtları, tedarikçi uzaktan erişim oturumları.
@@ -135,13 +164,18 @@ zamanı; mobil/tablet kullanım (hedef değil, reddedilmiş de değil).
 
 ## Brand Commitments
 
-- **Ad:** Uyum ve Yönetişim Platformu. Tek ürün adı budur; kısa ad
-  yok. Geçici tanımlayıcı addır: sektör taşımaz, marka değildir ve P0
-  bunu `MARKA_AD` yapılandırmasına taşıyacaktır. Sekme başlığı
-  (`app/layout.tsx` şablonu), kabuk sözcük markası
-  (`components/kabuk/Kabuk.tsx`: kiracı adı + iki satırlı ürün adı),
-  sistem sayfası künyesi ve giriş ekranı bu adı taşır. Karar: ürün
-  sahibi, 2026-09-01; ad 2026-09-06'da sektörsüz hâle getirildi.
+- **Ad yapılandırmadan gelir.** Tek kaynak `web/lib/marka.ts`:
+  `MARKA_AD` (ürün) ve `KIRACI_AD` (kurulum). İkisi de
+  `NEXT_PUBLIC_MARKA_AD` / `NEXT_PUBLIC_KIRACI_AD` ile ezilir. Sekme
+  başlığı (`app/layout.tsx`), kabuk sözcük markası
+  (`components/kabuk/Kabuk.tsx`: kiracı adı + ürün adı), sistem sayfası
+  künyesi, giriş ekranı, hata ekranı, dış API sözleşmesi ve ayak künyesi
+  varsayılanı **hepsi** oradan okur; hiçbirinde ad düz metin geçmez
+  (P0 · URN-KUR-004, `tests/marka-adi.test.ts` ölçer). Bugünkü değer
+  geçici ve tanımlayıcıdır: sektör taşımaz, marka değildir. `Regula` iç
+  çalışma adıdır ve arayüzde kullanılmaz (`docs/URUN_VIZYONU.md` §10).
+  Karar: ürün sahibi, 2026-09-01; ad 2026-09-06'da sektörsüz hâle
+  getirildi, aynı gün yapılandırmaya taşındı.
 - **Kod adları kullanıcıya görünmez:** "Voltaj Atlas" ve "Atlas"
   taşınan tasarımın iç kod adlarıdır; rota grubu `(kabuk)`, `atlas-*`
   sınıfları, `kabuk.css` ve kod yorumlarında kalabilir, ancak arayüz
@@ -155,8 +189,8 @@ zamanı; mobil/tablet kullanım (hedef değil, reddedilmiş de değil).
 - **Ses:** Türkçe, doğrudan, kurumsal ama kuru değil; ürün kendini
   açıklamaz, olguyu gösterir. Metin durum yargısı vermez ("kritik!" değil,
   "12 gün gecikmiş").
-- **Kimlik kısıtı:** grup içi kurumsal araçtır; pazarlama dili, vaat ve
-  slogan yoktur. Marka varlığı (logo) depoda yok; yer tutucu üretilmez,
+- **Kimlik kısıtı:** ürün içi metin olgu dilidir; pazarlama dili, vaat ve
+  slogan yoktur. Pazarlama/ürün sitesi bu depoda **yoktur**. Marka varlığı (logo) depoda yok; yer tutucu üretilmez,
   gelene kadar sözcük markası kullanılır.
 - **Fotoğraf politikası:** yalnız görseli sağlanmış tesis görsel alır;
   "yakın" bir tesisin görseli asla ödünç alınmaz. Gerçek bir tesisin

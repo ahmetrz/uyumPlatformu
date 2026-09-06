@@ -6,6 +6,7 @@ import { izinVar, izinliTesisIdleri } from '@/lib/erisim';
 import { birlesikKapsam } from '@/app/kapsam';
 import { durumAyagiVerisi } from '@/components/kabuk/durumAyagiVerisi';
 import { DEMO } from '@/lib/demo';
+import { MARKA_AD } from '@/lib/marka';
 import paket from '../../package.json';
 import type { KabukVerisi } from './Kabuk';
 
@@ -91,7 +92,7 @@ export async function kabukVerisi(): Promise<KabukVerisi> {
     /* Ayak künyesi: sürüm package.json'dan OKUNUR (elle yazılmış sürüm
        ilk yayında yalan söylerdi); ortam demo bayrağı + NODE_ENV'den. */
     surum: paket.version,
-    kunye: await ayar<string>('kabuk.kunye').catch(() => 'Uyum ve Yönetişim Platformu'),
+    kunye: await ayar<string>('kabuk.kunye').catch(() => MARKA_AD),
     ortam: DEMO ? 'demo' : process.env.NODE_ENV === 'production' ? 'uretim' : 'gelistirme',
   };
 }

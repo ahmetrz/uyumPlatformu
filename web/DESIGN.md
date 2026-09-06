@@ -142,12 +142,36 @@ components:
      primitifler `components/kabuk/*.tsx`; doğrulama araçları `arac/`
      altındadır. Frontmatter normatiftir. -->
 
+## Sözcük markası
+
+Ürünün ve kurulumun **adı tasarım sisteminin sabiti değildir**; tek
+kaynaktan gelir: `lib/marka.ts` (`MARKA_AD`, `KIRACI_AD`;
+`NEXT_PUBLIC_*` ile ezilir). Kabuk sözcük markası iki satırdır — üstte
+kurulumun adı (`.marka`, Barlow Condensed 17px, `toLocaleUpperCase('tr-TR')`
+ile büyütülür), altta ürünün adı (`.marka .ikinci`, mono, bakır aksan,
+CSS `text-transform: uppercase`). Monogram **yoktur** ve üretilmez; logo
+gelene kadar sözcük markası tek marka varlığıdır.
+
+Adı değiştirmek tek satırdır ve bu bir kabul kriteridir (P0 ·
+URN-KUR-004). Ölçüm davranışsaldır: `npm run marka:kapi` nöbetçi bir
+adla statik demo derlemesi koşar ve üretilen çıktıya bakar — varsayılan
+ad işlenmiş hiçbir yüzeyde geçmemeli, nöbetçi ise sekme başlıklarında ve
+sözcük markasında görünmeli.
+
+Bu belgenin başlığı ve frontmatter'ındaki `name` adı düz metin taşır —
+Markdown yapılandırma okuyamaz. Ama **sapamaz**: `tests/marka-adi.test.ts`
+her iki satırı `marka.ts`'teki varsayılana karşı ölçer ve eşit
+değillerse kırmızı yanıp hangi satırın güncelleneceğini söyler. Aynı
+kapı `README.md`'nin H1 başlığını da tutar. Yani ad değişimi hâlâ tek
+satırlık bir karardır; belgelerin peşinden gelmesi bir söz değil, bir
+testtir.
+
 ## Overview
 
 **Creative North Star: "Gece Vardiyasındaki Kontrol Odası"**
 
-Ürün bir enerji üretim grubunun BT/OT yönetişim konsoludur ve tek temadır:
-koyu, tek kabuk. Dili saha odaklıdır: fotoğraf, coğrafya, Barlow Condensed
+Ürün düzenlemeye tabi kuruluşların BT/OT yönetişim konsoludur ve tek
+temadır: koyu, tek kabuk. Dili saha odaklıdır: fotoğraf, coğrafya, Barlow Condensed
 büyük harf başlık ve bakır aksan. Ayrışma yoğunlukla kurulur — amiral
 (ana ekran, Plant 360, portföy), operasyonel (kütükler, kayıtlar) ve
 tezgâh (keşif, aktarım, sağlık). Yoğunluk rotadan seçilir

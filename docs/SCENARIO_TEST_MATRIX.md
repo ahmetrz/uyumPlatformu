@@ -4,12 +4,12 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 273 |
-| Testi olan senaryo | 273 |
+| Senaryo | 277 |
+| Testi olan senaryo | 277 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
-| Taranan test dosyası | 139 |
+| Taranan test dosyası | 140 |
 
 ## Katman başına kapsam
 
@@ -18,7 +18,7 @@
 | ACCESSIBILITY | 8 | 8 | 0 |
 | API | 12 | 12 | 0 |
 | CONCURRENCY | 7 | 7 | 0 |
-| DOMAIN | 140 | 140 | 0 |
+| DOMAIN | 144 | 144 | 0 |
 | ENGINE | 33 | 33 | 0 |
 | INTEGRATION | 26 | 26 | 0 |
 | MIGRATION | 2 | 2 | 0 |
@@ -26,7 +26,7 @@
 | RESPONSIVE | 8 | 8 | 0 |
 | SCOPE | 30 | 30 | 0 |
 | SERVER | 104 | 104 | 0 |
-| UI | 75 | 75 | 0 |
+| UI | 76 | 76 | 0 |
 | VISUAL | 4 | 4 | 0 |
 | WORKFLOW | 32 | 32 | 0 |
 
@@ -308,6 +308,10 @@
 | `BUL-KAP-003` | Bulgu | DOMAIN · UI | `kapanis-yolu.test.ts` | kapanış şeridi TIKLANABİLİR — süs değil, navigatör | evet | geçti |
 | `BUL-KAP-004` | Bulgu | DOMAIN · UI | `kapanis-yolu.test.ts` | kök nedene yazan İKİNCİ form yoktur | evet | geçti |
 | `BUL-KAP-005` | Bulgu | UI | `kapanis-yolu.test.ts` | kayıt açılınca düzenleme formu KENDİLİĞİNDEN gelmez | evet | geçti |
+| `URN-KUR-001` | Ürünleştirme | DOMAIN | `marka-adi.test.ts` | CLAUDE.md bağlayıcı kuralları kalan/değişen ayrımıyla yazar | evet | geçti |
+| `URN-KUR-002` | Ürünleştirme | DOMAIN | `marka-adi.test.ts` | PRODUCT.md ürünleştirme kurgusunu anlatır | evet | geçti |
+| `URN-KUR-003` | Ürünleştirme | DOMAIN | `marka-adi.test.ts` | CLAUDE.md yönlendirme tablosunda ölü atıf yoktur | evet | geçti |
+| `URN-KUR-004` | Ürünleştirme | DOMAIN · UI | `marka-adi.test.ts` | belge başlıkları marka.ts varsayılanından sapmaz | evet | geçti |
 
 ## Gerekçesiyle kütüksüz kalan dosyalar
 

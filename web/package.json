@@ -9,6 +9,7 @@
     "lint": "eslint --max-warnings=0",
     "seed": "tsx prisma/seed.ts",
     "db:hazirla": "prisma migrate deploy && prisma generate && tsx prisma/seed.ts",
+    "marka:kapi": "node arac/marka-kapisi.mjs",
     "demo:build": "prisma generate && next build && node arac/demo-yol.mjs && node arac/yayin-kontrol.mjs && node arac/statik-kontrol.mjs && node arac/kolon-hizasi.mjs",
     "test": "vitest run",
     "test:kapsam": "vitest run --coverage",

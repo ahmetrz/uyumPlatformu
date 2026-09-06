@@ -9,6 +9,7 @@ import {
   PLATFORM_SENARYOLARI_4, PLATFORM_SENARYOLARI_5, PLATFORM_SENARYOLARI_6,
 } from './platform';
 import { KAPSAMA_SENARYOLARI } from './kapsama';
+import { URUNLESTIRME_SENARYOLARI } from './urunlestirme';
 import { KIMLIK_KALIBI, type Senaryo } from './tipler';
 
 /* Senaryo kütüğünün TEK toplama noktası. Belge üreticisi ve nöbetçi test
@@ -29,6 +30,7 @@ export const SENARYOLAR: Senaryo[] = [
   ...PLATFORM_SENARYOLARI_5,
   ...PLATFORM_SENARYOLARI_6,
   ...KAPSAMA_SENARYOLARI,
+  ...URUNLESTIRME_SENARYOLARI,
 ];
 
 /** Kütüğün kendi tutarlılığı — nöbetçi test bu listeyi boş bekler. */

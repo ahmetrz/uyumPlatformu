@@ -124,7 +124,7 @@ Her paket aynı başlıkları taşır:
 | **Kapsam dışı** | Bilerek yapılmayanlar. Paketi büyütmek isteyen her fikir buraya yazılır, yapılmaz. |
 | **Kabul kriterleri** | Numaralı, testle ölçülebilir cümleler. Her biri en az bir `it('… [KOD-ALT-NNN]')` testine bağlanır. |
 | **Testler** | Yeni test dosyaları; negatif testler; sabotaj kapısına eklenecek kural. |
-| **Belgeler** | Güncellenecek belgeler. `node arac/sayimlar.mjs --yaz` ve `npx tsx arac/senaryo-belge.mjs --yaz` her pakette koşar. |
+| **Belgeler** | Güncellenecek belgeler. `npx tsx arac/senaryo-belge.mjs --yaz` her pakette koşar. `node arac/sayimlar.mjs` sayıları basar ama **belgeye yazmaz** — `--yaz` bayrağı bugün yok (R0-7); sayı taşıyan belge satırları o kalem kapanana kadar elle güncellenir ve PR'da komut çıktısıyla gösterilir. |
 | **Kararlar** | Açık soru + bu belgenin **varsayılan** cevabı. Kullanıcı değiştirmezse varsayılan uygulanır. |
 
 **Etki / çaba etiketleri** pazar kıyası çalışmasından gelir; süre
@@ -160,10 +160,14 @@ ayrı; depoda yalnız kurgusal demo kiracısı kalır.
 
 **Alan kodu:** `URN-KUR` · **Etki:** ön koşul · **Çaba:** düşük (belge)
 
-**Bugün.** `CLAUDE.md`: tek ürün adı "Uyum ve Yönetişim Platformu";
-yalnız Türkçe; santral fotoğraf politikası; "grup içi kurumsal araç,
-pazarlama dili yok". `web/PRODUCT.md` aynı çerçevede. Seed Demo'nun
-kamuya açık portföyü (gerçek santral adları, bir gerçek fotoğraf).
+**Bugün.** *(6 Eylül 2026'da koda karşı doğrulandı —
+`docs/GELISTIRME_PAKETLERI_DURUM.md` §5.1.)* `CLAUDE.md`: tek ürün adı
+"Uyum ve Yönetişim Platformu" (ad sekiz kod dosyasında düz metin); yalnız
+Türkçe; santral fotoğraf politikası. "Grup içi kurumsal araç, pazarlama
+dili yok" cümlesi `CLAUDE.md`'de **değil**, `web/PRODUCT.md`'dedir.
+`CLAUDE.md`'nin "Nereye bakılır" tablosu var olmayan **13** belgeye
+yönlendirir. Seed portföyü **kurgusaldır** (gerçek adlar 6 Eylül'de
+çıkarıldı); gerçek tesis fotoğrafı da aynı gün depodan çıkarıldı.
 
 **Hedef.** Belgeler yeni kurguyu anlatır; hangi kuralın kaldığı, hangisinin
 değiştiği tek tabloda; ürün adı yapılandırmadan gelir.
@@ -174,40 +178,77 @@ değiştiği tek tabloda; ürün adı yapılandırmadan gelir.
   yöneticisi, +ürün yöneticisi, +destek; Positioning: beş mekanizma
   sektör-nötr; Brand: ad yapılandırmadan).
 - `CLAUDE.md` revizyonu — **kalan** kurallar aynen; **değişen**: ürün adı
-  → `MARKA_AD` (ortam/kiracı yapılandırması; değer **Regula** — geçici
-  çalışma adı, `URUN_VIZYONU.md` §10. Ad koda ya da belgeye **gömülmez**;
-  her görünen yer yapılandırmadan okur), dil → çok dilli/TR birinci, fotoğraf
-  politikası → "demo kiracısı yalnız lisanslı nötr görsel; gerçek tesis
-  fotoğrafı depoda yok", "kurum" → "müşteri/kiracı".
-- `web/DESIGN.md`: marka sözcük markası token'lardan (`--marka-ad`,
-  `--marka-kisa`); koyu tema kalır; kabuk sözcük markaları (`ZE` monogram)
-  → yapılandırmadan.
-- `docs/TERIMLER_SOZLUGU.md`: çekirdek terimler sektör-nötr ("tesis",
-  "birim", "öznitelik"); "santral, ünite, MWe" **enerji sözlüğü** başlığı
-  altına taşınır (P1 ile birlikte uygulanır).
-- `README.md` giriş paragrafları; `.github` şablonları.
+  → `MARKA_AD` (görünen ad "Uyum ve Yönetişim Platformu"; `Regula` iç
+  çalışma adıdır ve arayüzde geçmez, `URUN_VIZYONU.md` §10. Ad koda
+  **gömülmez**; her görünen yer tek kaynaktan okur), dil → çok dilli/TR
+  birinci, fotoğraf politikası → gerçek tesis fotoğrafı depoya girmez,
+  "kurum" → "müşteri/kiracı". Ayrıca "Nereye bakılır" tablosundaki ölü
+  atıflar temizlenir (URN-KUR-003).
+- `web/DESIGN.md`: sözcük markasının nereden geldiği yazılır
+  (`lib/marka.ts`); koyu tema kalır. *(Not: paketin ilk yazımındaki "`ZE`
+  monogram" örneği yanlıştı — üründe öyle bir monogram yok; kabuk sözcük
+  markası iki satırdır: kiracı adı + ürün adı.)*
+- `docs/TERIMLER_SOZLUGU.md` **P1'e bırakıldı**: terim sözlüğü katmanı
+  (`lib/dil/terimler.ts`) orada kurulur; belgeyi ondan önce yazmak
+  kodsuz bir sözlük üretirdi. `CLAUDE.md`'nin ona yönlendiren satırı
+  P1'e kadar tablodan çıkar.
+- `README.md` giriş paragrafları. *(`.github` altında bugün şablon yok,
+  yalnız iki iş akışı var; şablon üretmek bu paketin işi değildir.)*
 - Depo adı/klasörü değişmez (bu pakette); ad kararı sonrası ayrı küçük PR.
 
-**Kapsam dışı.** Kod değişikliği (P1'e); pazarlama metni; logo.
+**Kapsam dışı.** Pazarlama metni; logo; sektör terimlerinin
+temizliği (P1'e — ürün adı bu paketin işidir, alan sözlüğü değil).
+
+> **Kapsam düzeltmesi (6 Eylül 2026).** Bu paket başlangıçta "kod
+> değişikliği yok" kısıtıyla yazılmıştı. Kısıt **kaldırıldı**, kriter
+> korundu. Gerekçe: URN-KUR-004 ürün adının tek yerden gelmesini
+> istiyor; ad ise bugün sekiz kod dosyasında düz metin duruyor
+> (`app/layout.tsx`, `app/global-error.tsx`, `app/(giris)/giris/page.tsx`,
+> `components/kabuk/Kabuk.tsx`, `components/kabuk/SistemSayfasi.tsx`,
+> `components/kabuk/kabukVerisi.ts`, `lib/api/sozlesme.ts`,
+> `lib/yapilandirma/tanimlar.ts`). Koda dokunmadan kriter
+> sağlanamıyordu; iki cümle birbirini iptal ediyordu. Kriteri düşürmek
+> yerine kısıt düzeltildi — ad değişiminin tek satır olması bu ürünün
+> temel bir gereğidir (`URUN_VIZYONU.md` §10).
 
 **Kabul kriterleri.**
-1. `CLAUDE.md` "Bağlayıcı kurallar" tablosu kalan/değişen ayrımıyla
-   yazılıdır; "yalnız Türkçe" ve tek ürün adı cümleleri kalkmıştır.
-   [URN-KUR-001]
-2. `web/PRODUCT.md` Demo'yu yalnız "referans kiracı" olarak anar;
-   `grep -c "Demo" web/PRODUCT.md` ≤ 3 (referans kiracı bölümü).
-   [URN-KUR-002]
-3. `docs/URUN_VIZYONU.md` depoda; kullanıcı kararları tablosu doludur ya
-   da "bekleniyor" der. [URN-KUR-003]
-4. Ürün adı **tek bir yerden** gelir (`MARKA_AD`); `grep -ri "regula"`
-   sonucu yapılandırma dosyası, sözlük anahtarı ve belgeler dışında
-   **sıfır** kod eşleşmesi verir — ad değişimi tek satırdır. [URN-KUR-004]
+1. `CLAUDE.md` "Bağlayıcı kurallar" bölümü **kalan** ve **değişen**
+   ayrımıyla yazılıdır; "yalnız Türkçe" ve tek/gömülü ürün adı cümleleri
+   kalkmıştır. [URN-KUR-001]
+2. `web/PRODUCT.md` yeni kurguyu anlatır: kullanıcı tipleri arasında
+   **kiracı yöneticisi**, **ürün yöneticisi** ve **destek** vardır;
+   konumlandırma **beş** mekanizma sayar (dört değil); ürün adı düz metin
+   olarak geçmez, `MARKA_AD`'a atıf yapar. [URN-KUR-002]
+3. `docs/URUN_VIZYONU.md` depodadır ve `CLAUDE.md`'nin "Nereye bakılır"
+   tablosundaki **her** hedef diskte vardır — ölü atıf sayısı sıfırdır.
+   [URN-KUR-003]
+4. Ürün adı **tek bir yerden** gelir: `web/lib/marka.ts`. Ölçüm
+   **davranışsaldır**, kaynak taraması değil (`npm run marka:kapi`):
+   nöbetçi bir adla statik demo derlemesi koşulur ve üretilen çıktıya
+   bakılır. (a) `marka.ts` varsayılanı işlenmiş hiçbir yüzeyde (HTML,
+   RSC yükü, CSS, manifest) geçmez; JS demeti **taranmaz** — oradaki
+   varsayılan yedeğin kendisidir, sızıntı değil; (b) nöbetçi ad, görünmesi gereken yüzeylerde
+   geçer (kök ve giriş sekme başlıkları, kabuk sözcük markası ve onun
+   erişilebilir adı). Ayrıca `web/DESIGN.md` ve `README.md` başlıkları
+   varsayılandan sapmaz (`tests/marka-adi.test.ts`). Ad değişimi tek
+   satırdır. [URN-KUR-004]
 
-**Kararlar.** Ürün adı — **Regula** (geçici; karar 6 Eylül 2026,
-`URUN_VIZYONU.md` §10). Ad `MARKA_AD` yapılandırmasına konur, hiçbir
-yere gömülmez; değiştirmek tek satır olmalıdır ve bu bir kabul
-kriteridir (URN-KUR-004). Kalıcı ad sonra verilecek — bu pakette domain,
-marka başvurusu, logo işi **yoktur**.
+   > *Neden kaynak taraması değil:* ilk hâli adı kaynak ağacında dizge
+   > olarak arıyordu. 6 Eylül 2026'da ölçüldü — ad Türkçe bir sözcük
+   > olduğunda ("Kayda") dört dosyada yanlış alarm veriyor: bir düğme
+   > metni, üç yorum. Yanlış güven veren ölçüm silindi.
+   > `URUN_VIZYONU.md` §10'a da bir ad seçim ölçütü eklendi.
+
+**Kararlar.** *Ürün adı.* Görünen ad **"Uyum ve Yönetişim Platformu"**;
+geçici ve TANIMLAYICI bir addır, marka değildir, sektör sözcüğü
+içermez. `Regula` **iç çalışma adıdır** ve arayüzde, sitede, dış
+iletişimde kullanılmaz (`URUN_VIZYONU.md` §10: domain, marka başvurusu,
+logo yasak). Ad `MARKA_AD` yapılandırmasından okunur
+(`NEXT_PUBLIC_MARKA_AD`, varsayılanı `web/lib/marka.ts`); değiştirmek
+tek satırdır ve bu bir kabul kriteridir (URN-KUR-004). Kalıcı ad sonra
+verilecek — bu pakette domain, marka başvurusu, logo işi **yoktur**.
+*Kiracı adı.* Kabuk sözcük markasının ilk satırı `KIRACI_AD`'dan gelir;
+P2 bunu `Kiraci.markaAd` alanına taşır.
 
 ---
 
@@ -219,8 +260,12 @@ marka başvurusu, logo işi **yoktur**.
 **Bugün.** `Sektor`, `TesisTipi`, `Tesis` (`kuruluGucMw`), `TesisProfili`,
 `UretimUnitesi` (`kuruluGucMw`); `UygulanabilirlikKurali.kosulJson`
 `kuruluGucMw` gibi sabit alan adlarına bakar; UI metinlerinde "santral",
-"ünite", "MWe", tip kodları JES/RES/HES/GES/DGKC seed'de; "Santral 360",
-"Enerji Portföyü" ekran adları; harita "santral haritası".
+"ünite", "MWe"; tesis tipi kodları seed'de **`JEO` · `RES` · `HES` ·
+`GES` · `DGKC` · `MERKEZ`** (sunum katmanı ayrıca `TERMIK` tanır — `JES`
+diye bir tip kodu **yoktur**, yalnız tesis adlarının ekidir);
+"Enerji portföyü" ve "Santral haritası" ekran adları. *("Santral 360"
+bugün render edilen bir başlık değildir; yalnız yorumlarda ve `/sistem`
+demo şeridinde geçer — `docs/GELISTIRME_PAKETLERI_DURUM.md` §5.1.)*
 
 **Hedef.** Çekirdek şema ve UI hiçbir sektör terimi taşımaz; sektöre özgü
 nitelikler (kurulu güç, kapasite, yatak sayısı…) öznitelik şemasından
@@ -257,7 +302,7 @@ görür, su kiracısı "tesis / m³/gün".
 - *Enerji sözlüğü:* ilk sektör paketi `SEKTOR-ENERJI-URETIM` (P4 paket
   biçimiyle): öznitelik şeması (`kuruluGucMw`, `uretimTipi`,
   `sebekeBaglantisi`…), sözlük (santral, üretim ünitesi…), tesis tipleri
-  (JES/RES/HES/GES/DGKÇ). İkinci sözlük **iskeleti** (su/atıksu ya da
+  (`JEO` · `RES` · `HES` · `GES` · `DGKC` · `MERKEZ`; sunumda `TERMIK`). İkinci sözlük **iskeleti** (su/atıksu ya da
   kullanıcının seçtiği sektör) yalnız anahtar listesiyle.
 
 **Kapsam dışı.** Sektöre özgü motor mantığı (yok — motorlar özniteliğe
@@ -266,11 +311,22 @@ sözlük katmanını kurar).
 
 **Kabul kriterleri.**
 1. Şemada `kuruluGucMw`, `UretimUnitesi`, `santral` geçmez; göç sonrası
-   17 tesisin kurulu gücü `TesisOzellik(kuruluGucMw)` olarak aynı
-   değerlerle durur (sayısal eşitlik testi). [URN-ALN-001]
-2. Uygulanabilirlik kuralı `kuruluGucMw >= 100` öznitelik üzerinden aynı
-   5 tesisi kapsama alır (regresyon); özniteliği olmayan tesis
-   `bilinmiyor` döner, `kapsamdisi` **değil**. [URN-ALN-002]
+   kurulu güç değeri **olan 16 tesis** `TesisOzellik(kuruluGucMw)` olarak
+   aynı değerlerle durur (sayısal eşitlik testi). 17. tesis
+   (`MERKEZ-BT`) bugün `kuruluGucMw = null` taşıyor ve göçten sonra da
+   **öznitelik satırı almaz** — "bilinmeyen ≠ sıfır": ölçülmemiş değer
+   sıfırla ya da boş bir satırla temsil edilmez. [URN-ALN-001]
+2. Uygulanabilirlik kuralı öznitelik üzerinden **aynı 4 tesisi**
+   kapsama alır (regresyon). Bugünkü seed kuralı üç kolludur
+   (`herhangi`: `kuruluGucMw >= 100` **veya** black-start **veya** TEİAŞ
+   SCADA/EMS seri değil); `>= 100` kolu tek başına **2** tesis getirir
+   (`SAHA-A3` 165, `SAHA-C-RES` 135), kuralın tamamı **3** tesisi
+   uygulanabilir yapar (`+ SAHA-A2`, SCADA kolundan) ve dördüncüsü
+   (`SAHA-D-RES`) **elle değiştirilmiş** karardır — göç bu dördünü de
+   korumalıdır. Özniteliği olmayan tesis `bilinmiyor` döner,
+   `kapsamdisi` **değil** *(motor bugün de böyle davranıyor:
+   `lib/motorlar/uygulanabilirlik.ts` eksik alanda `null` yayıyor —
+   kriter mevcut davranışı korur, yenisini getirmez)*. [URN-ALN-002]
 3. Bekçi test yeşil: UI'da sabit sektör terimi yok. [URN-ALN-003]
 4. Enerji sözlüğü kuruluyken `/tesisler/[id]` başlığı "Santral 360",
    kurulu değilken "Tesis 360"; ikisi de aynı bileşenden. [URN-ALN-004]
@@ -618,9 +674,15 @@ CDN.
 **Alan kodu:** `URN-DEMO` · **Etki:** orta · **Çaba:** orta ·
 **Bağımlılık:** P1, P4
 
-**Bugün.** Seed Demo'nun kamuya açık portföyü (gerçek santral adları,
-iller, kurulu güçler) + kurgusal operasyon kayıtları; `public/santraller/`
-fotoğraflar (biri gerçek Saha A); `KUNYE.md`.
+**Bugün.** *(6 Eylül 2026'da doğrulandı.)* Seed portföyü
+**kurgusaldır**: 17 tesisin hepsi sentetik ad taşır (`Saha A-1 JES` …
+`Saha M DGKÇ`), tüzel kişiler de öyle. **Kalan iki iz:** (1) iller ve
+coğrafî tarifler gerçektir (`public/santraller/KUNYE.md`) ve tip +
+kurulu güç + il üçlüsü portföyü tanınır kılar; (2) tesis
+fotoğraflarının tamamı ürün sahibinin sağladığı **gerçek tesis
+fotoğraflarıdır** — paketin hedefi "nötr lisanslı görsel", bugün öyle
+değil. Üçüncü taraf fotoğrafı ve onu kurgusal tesise bağlayan künye
+cümleleri 6 Eylül'de kaldırıldı.
 
 **Hedef.** Depodaki tek kiracı verisi **tamamen kurgusal** bir demo
 kiracısıdır; ikinci bir sektörden minimal demo kiracısı sektör
@@ -1669,12 +1731,12 @@ birlikte ele alınır:
 | # | Kalem | Ne yapılır | Not |
 |---|---|---|---|
 | R0-1 | Santral kesin koordinatları (17/17 yok) | Koordinatları kurum verir, depoda aday liste yok; Claude Code **yalnız** içe aktarım yolu ve "kesin/yaklaşık" işaretçisini ekler | Koordinat uydurulmaz |
-| R0-2 | Haritada ülke sınırı | `arac/turkiye-siniri.mjs` çıktısı haritaya bağlanır | Araç hazır |
+| R0-2 | Haritada ülke sınırı | **Kapandı** — sınır üretilmiş (`web/lib/cografya/turkiyeSiniri.ts`: `TURKIYE_SINIRI`, `SINIR_CERCEVESI`) ve haritada çiziliyor (`app/(tam)/harita/HaritaIstemci.tsx:101-102`, `SINIR_YOLLARI`). Not: bu sabit çekirdekte duran bir ÜLKE verisidir; §0.5 gereği P1'de içerik paketine taşınmalı | Kapandı (doğrulama: 6 Eyl 2026) |
 | R0-3 | `?next=` üreticisi | Giriş sonrası dönüş adresi üretilir; kapı zaten güvenli | Küçük |
 | R0-4 | Bayat belgeler | `URUN_YEDEKLEME` | R3 ile |
 | R0-5 | `.abacus.donotdelete` | 5 Eylül 2026 temizliğinde silindi; ürün deposuna geri alınmayacak. Arşivde duruyor (`ahmetrz/uyumPlatformu-arsiv`, `830c174` ile eklenmiş, 22 520 baytlık Fernet şifreli blob); içeriği anahtarsız okunamaz ve ne olduğu tek satırdan fazla belgelenmemiş (arşivdeki `docs/HAZIRLIK_DURUMU.md` §13: "şifreli blob, dokunulmadı"). İçeriği bilinmediği için arşiv deposu **private kalmalı**. | Kapandı |
 | R0-6 | Uygulanmamış tasarım teslimi | Eylül 2026'da ayrı bir depoda alternatif bir tasarım sistemi üretildi (`tokens.css`, `TASARIM_TOKENLARI.md`, `TASARIM_PLANI.md`, `mockups.html`); ürünün canlı jetonlarıyla yalnız 1 jetonu ortaktı. Değerlendirildi ve **terk edildi**: ürün `web/app/kabuk.css` dilinde devam eder. Kayıt: `ahmetrz/uyumPlatformu-arsiv` deposu, `arsiv/tasarim-denemesi-2026-09` dalı (public depodan kaldırıldı: mockup verisi gerçek filodan türetilmiş tesis adları ve kişi adları taşıyordu). | Kapandı |
-| R0-7 | Belge–kod bağı koptu | `web/arac/sayimlar.mjs` ve `web/tests/belge-sayimlari.test.ts` duruyor ama Eylül 2026 temizliğinde içleri boşaltıldı: araç 6 046 → 2 633 bayt (`--yaz`, `--tablo`, `blok()`, `BASLA`/`BITIS` işaretleri düştü), test 199 → 63 satır (belgelere bakan yarısı ile `KANONIK`/`TARIHSEL` listeleri düştü). Sonuç: belgeler yeniden elle yazılmış sayaç taşımaya açık — bu belgede bir günde iki örneği çıktı. Bu belgedeki `node arac/sayimlar.mjs --yaz` şartı da bu yüzden karşılıksız. Geri kurulacaksa kaynak: `ahmetrz/uyumPlatformu-arsiv` deposu. | P0 ile |
+| R0-7 | Belge–kod bağı koptu | `web/arac/sayimlar.mjs` ve `web/tests/belge-sayimlari.test.ts` duruyor ama Eylül 2026 temizliğinde içleri boşaltıldı: araç 6 046 → 2 633 bayt (`--yaz`, `--tablo`, `blok()`, `BASLA`/`BITIS` işaretleri düştü), test 199 → 63 satır (belgelere bakan yarısı ile `KANONIK`/`TARIHSEL` listeleri düştü). Sonuç: belgeler yeniden elle yazılmış sayaç taşımaya açık — bu belgede bir günde iki örneği çıktı. Bu belgedeki `node arac/sayimlar.mjs --yaz` şartı da bu yüzden karşılıksız. Geri kurulacaksa kaynak: `ahmetrz/uyumPlatformu-arsiv` deposu. **6 Eyl 2026 doğrulaması:** araç gerçekten 2 633 bayt ve `--yaz` bayrağı yok; test 63 satır ve hiçbir belgeye bakmıyor. P0 bunu **kapsamına almadı** — ürün adı ve belge kurgusu ile aynı PR'a sığmıyor; ayrı kalem olarak açık kalır ve o gelene kadar bu belgedeki `arac/sayimlar.mjs --yaz` şartı geçersizdir (araç yalnız JSON basar). | açık — ayrı kalem |
 
 ---
 
@@ -1720,7 +1782,7 @@ alınan kararlar.
 | K11 | LLM sağlayıcı | Kurum içi uç nokta, `bagli:false` | 7545 md. 7'ye uygun sağlayıcı |
 | K12 | İki datasource (SQLite dev/demo, PG üretim) | Evet | — |
 | K13 | R17 | Kapandı — ürünleştirme kararı verildi (Dalga 0) | — |
-| K14 | Ürün adı | **Regula** — geçici çalışma adı (6 Eylül 2026). Kalıcı değil; `URUN_VIZYONU.md` §10 | Kalıcı ad seçilince `MARKA_AD` değişir |
+| K14 | Ürün adı | Görünen ad **"Uyum ve Yönetişim Platformu"** — geçici, TANIMLAYICI ad; sektör sözcüğü içermez. `Regula` **iç çalışma adıdır**, arayüzde/sitede/dış iletişimde kullanılmaz (`URUN_VIZYONU.md` §10). Değer `MARKA_AD`'dan okunur (`web/lib/marka.ts`) | Kalıcı ad seçilince `NEXT_PUBLIC_MARKA_AD` ya da `marka.ts` varsayılanı değişir — tek satır |
 | K15 | Kullanıcı çok kiracılı olabilir mi? | Hayır; `DenetciErisimi`/`DestekErisimi` ile | — |
 | K16 | RLS | PostgreSQL'de zorunlu; SQLite yalnız uygulama kapısı | — |
 | K17 | i18n kütüphanesi · ikinci dil | Hafif kendi katman + ICU · İngilizce | `next-intl` / Almanca |

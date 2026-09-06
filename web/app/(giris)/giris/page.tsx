@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { aktifKullanici } from '@/lib/auth';
 import GirisFormu from './GirisFormu';
 import { DEMO, TEMEL } from '@/lib/demo';
+import { MARKA_AD } from '@/lib/marka';
 import { guvenliHedef, VARSAYILAN_HEDEF } from './mantik';
 
 export const metadata: Metadata = { title: 'Giriş' };
@@ -71,7 +72,7 @@ export default async function Giris({ searchParams }: {
           flexDirection: 'column', justifyContent: 'space-between',
           padding: 'var(--s40) var(--s44)' }}>
           <p className="etiket" style={{ margin: 0, color: 'rgba(246,244,238,.72)' }}>
-            Uyum ve Yönetişim Platformu
+            {MARKA_AD}
           </p>
           <div>
             <h1 className="ab-pano-basligi" style={{ margin: 0, maxWidth: 620 }}>

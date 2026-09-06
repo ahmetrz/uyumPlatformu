@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import { KIRACI_AD, MARKA_AD } from '@/lib/marka';
 import { usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
 import HesapMenusu from '@/components/kabuk/HesapMenusu';
@@ -82,8 +83,8 @@ export default function Kabuk({ veri, children }: { veri: KabukVerisi; children:
           bir main açmaz). */}
       <a href="#icerik" className="ab-atla">İçeriğe atla</a>
       <header className="ab-ust">
-        <Link href="/" className="marka" aria-label="Uyum ve Yönetişim Platformu — ana ekran">
-          DEMO ENERJİ<span className="ikinci">Uyum ve Yönetişim Platformu</span>
+        <Link href="/" className="marka" aria-label={`${MARKA_AD} — ana ekran`}>
+          {KIRACI_AD.toLocaleUpperCase('tr-TR')}<span className="ikinci">{MARKA_AD}</span>
         </Link>
         <nav aria-label="Alanlar">
           {ALANLAR.map((o) => (

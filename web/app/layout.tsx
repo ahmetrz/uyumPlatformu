@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import './kabuk.css';
 import { an } from '@/lib/an';
+import { BASLIK_SABLONU, MARKA_AD } from '@/lib/marka';
 import BakimEkrani from '@/components/kabuk/BakimEkrani';
 
 /* Kök yerleşim yalnız belge iskeletini kurar. Kabuk (kapsam çubuğu, ray,
@@ -16,10 +17,12 @@ import BakimEkrani from '@/components/kabuk/BakimEkrani';
    sözleşmesiyle durdurulur). Statik yayında ortam değişkeni yoktur. */
 const BAKIM = process.env.BAKIM_MODU === '1';
 
+/* Ad tek yerden: `lib/marka.ts` (URN-KUR-004). */
+
 export const metadata: Metadata = {
   title: {
-    default: 'Uyum ve Yönetişim Platformu',
-    template: '%s — Uyum ve Yönetişim Platformu',
+    default: MARKA_AD,
+    template: BASLIK_SABLONU,
   },
   description:
     'BT/OT yönetişim ve uyum platformu: regülasyonlar, uyum süreçleri, bulgular, kanıtlar ve tam denetim izi.',

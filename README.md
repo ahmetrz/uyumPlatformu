@@ -1,8 +1,24 @@
 # Uyum ve Yönetişim Platformu
 
-IT/OT yönetişim, uyum, risk, denetim ve dönüşüm süreçlerini tek yerde yöneten kurumsal web uygulaması.
+> Ad **geçicidir ve tanımlayıcıdır** — marka değildir. Üründe görünen ad
+> yapılandırmadan gelir (`web/lib/marka.ts`, `MARKA_AD`); yukarıdaki
+> başlık onun bugünkü değerini taşır ve ondan **sapamaz**:
+> `web/tests/marka-adi.test.ts` ikisini karşılaştırır, eşit değillerse
+> kapı kırmızı yanar. Gerekçe: `docs/URUN_VIZYONU.md` §10.
 
-Uygulama; tesis ve varlık envanterini, regülasyon kontrollerini, kanıtları, bulguları, riskleri, aksiyonları, denetimleri, projeleri ve otomasyon durumunu aynı veri zincirinde tutar. Gerçek kurum sistemleri için entegrasyon altyapısı vardır; aktif kimlik bilgileri veya kurum içi uç noktalar repoda tutulmaz.
+Düzenlemeye tabi kuruluşların BT ve OT varlıklarını tek kapsam ağacında
+tutan; her regülasyon maddesine hangi tesiste hangi kanıtla, hangi
+güvenle uyulduğunu — bilinmeyeni sıfır saymadan — kayıt altına alan
+yönetişim, uyum ve dönüşüm platformu.
+
+Uygulama; tesis ve varlık envanterini, regülasyon kontrollerini, kanıtları, bulguları, riskleri, aksiyonları, denetimleri, projeleri ve otomasyon durumunu aynı veri zincirinde tutar. Müşteri sistemleri için entegrasyon altyapısı vardır; aktif kimlik bilgileri veya kurum içi uç noktalar repoda tutulmaz.
+
+Platform bir enerji şirketi için kurum içi geliştirildi ve **sektör ile
+ülke bağımsız bir ürüne** dönüştürülüyor; ilk kurum, ilk ve **referans
+kiracı** oluyor. Depodaki bütün veri kurgusal demo kiracısına aittir.
+Yol haritası: `docs/URUN_VIZYONU.md` (ne) ve
+`docs/GELISTIRME_PAKETLERI.md` (nasıl); paketlerin koda karşı durumu
+`docs/GELISTIRME_PAKETLERI_DURUM.md`.
 
 ## Teknoloji
 

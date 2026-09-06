@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { MARKA_AD } from '../marka';
 import {
   UC_ETIKETI, UC_KIMLIKLERI, YAZMA_UCLARI, yazmaUcuMu, type UcKimligi,
 } from './kapsam';
@@ -210,7 +211,7 @@ export function openapiBelgesi(): Record<string, unknown> {
   return {
     openapi: '3.1.0',
     info: {
-      title: 'Uyum ve Yönetişim Platformu · Dış API',
+      title: `${MARKA_AD} · Dış API`,
       version: SOZLESME_SURUMU,
       description: [
         'Kimlik: `Authorization: Bearer <token>`. Başka taşıyıcı kabul edilmez;',

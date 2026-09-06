@@ -1,7 +1,7 @@
 {
-  "imza": "121f9b3b2e94e6dddc626a2dce826fb7",
-  "dosya": 139,
-  "vaka": 2904,
+  "imza": "b47d04647c875846d09d98a3e38f7a44",
+  "dosya": 140,
+  "vaka": 2908,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -310,6 +310,10 @@
     },
     "tests/konum-apianahtar-eylem.test.ts": {
       "vaka": 20,
+      "atlanan": 0
+    },
+    "tests/marka-adi.test.ts": {
+      "vaka": 4,
       "atlanan": 0
     },
     "tests/motor-defteri.test.ts": {

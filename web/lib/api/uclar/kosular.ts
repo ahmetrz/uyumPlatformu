@@ -7,8 +7,8 @@ import { apiUcu } from '../ucnokta';
 
 /* GET /api/v1/integration-runs - entegrasyon kosu defteri.
 
-   Kosular santral boyutunda BOLUNMEZ; bu yuzden santrale kisitli bir anahtar
-   bu ucu goremez (aksi halde baska santrallerin kosu sayaclari sizardi).
+   Kosular tesis boyutunda BOLUNMEZ; bu yuzden tesise kisitli bir anahtar
+   bu ucu goremez (aksi halde baska tesislerin kosu sayaclari sizardi).
    Kapsamsiz (kurum geneli) yonetim okuma izni sarttir.
 
    Sayaclar AYRI tutulur: 'alinan' ile 'kabul edilen' ayni sey degildir ve
@@ -22,7 +22,7 @@ export const GET = apiUcu(
   async ({ url, kapsam }) => {
   if (kapsam !== null) {
     throw new ApiHata('kapsam_disi',
-      'Entegrasyon kosulari santral bazinda bolunmez; kurum geneli yonetim okuma izni gerekir');
+      'Entegrasyon kosulari tesis bazinda bolunmez; kurum geneli yonetim okuma izni gerekir');
   }
 
   const { limit, imlec } = sayfaSorgusu(url);

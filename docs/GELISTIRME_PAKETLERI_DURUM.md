@@ -248,10 +248,17 @@ literalinde**" arıyor. Oysa terim kodda üç yerde daha yaşıyor:
   eşleşme veriyor (`Santral` 245 · `santraller` 193 · `santralId` 10).
   Hiçbiri metin literali değildir.
 - **CSS jetonlarında ve yorumlarda:** `app/kabuk.css` 28 satır.
-- **Yayınlanmış API sözleşmesinde:** `/api/v1/plants` ucu ve
-  `capacityMw` yanıt alanı (`lib/api/sozlesme.ts`, `SOZLESME_SURUMU =
-  '1.0.0'`). Yeniden adlandırma **kırıcı değişikliktir** ve P1 kapsamında
-  yazılı değil — P9'un sözleşme dondurma kararıyla çakışır.
+- **Yayınlanmış API sözleşmesinde:** ~~`/api/v1/plants` ucu ve
+  `capacityMw` yanıt alanı~~ → **P1'de çözüldü.** Ürün sahibi kararıyla
+  `v1` içinde yeniden adlandırıldı (`facilities`, `facilityCode`,
+  `facilityId`, `attributes` haritası); `v2` açılmadı. Dayanak §8 K23:
+  sözleşme, erişilebilir bir dağıtım ya da ilk dış `ApiAnahtari` ortaya
+  çıkana kadar **taslaktır**. Karar öncesi üç şart ölçüldü — dağıtılmış
+  anahtar yok (3 kayıt da seed), canlı entegrasyon yok (7 connector'ın
+  hepsi `kimlik_bekleniyor`), ama v1'i tarifleyen **yayımlanmış bir sayfa
+  vardı** (`gh-pages`/`api-sozlesmesi`); ürün sahibi bunu tüketici
+  saymadı ve §8 K24 ile ekrana taslak uyarısı konarak örtük taahhüt
+  kaldırıldı.
 
 Ayrıca `lib/cografya/turkiyeSiniri.ts` çekirdekte bir **ülke** sabitidir
 (Türkiye sınır poligonu, `SINIR_CERCEVESI`); §0.5 "çekirdeğe ülke
@@ -372,10 +379,13 @@ Sıra: paket açılmadan düzeltilmesi gerekenler önce.
   biçimiyle**" istiyor (`:257`); P4'ün bağımlılığı ise "**P1, P2**"
   (`:465`). Biri gevşetilmeli — öneri: P1 sözlüğü düz TS sabiti olarak
   kursun, P4 onu paket biçimine taşısın.
-- **P1 kapsamı yayınlanmış API sözleşmesini görmüyor.** `/api/v1/plants`
-  ucu ve `capacityMw` alanı (`lib/api/sozlesme.ts`, sürüm `1.0.0`)
-  sektör terimi taşıyor; yeniden adlandırma kırıcı değişikliktir ve
-  P9'un "`v1` dondurulur" kararıyla çakışır. Karar gerekiyor.
+- ~~**P1 kapsamı yayınlanmış API sözleşmesini görmüyor.**~~
+  **Çözüldü (6 Eyl 2026):** §8 K23/K24 eklendi, `v1` içinde yeniden
+  adlandırıldı, P9'un "`v1` dondurulur / kıranı `v2`'ye at" varsayımı
+  düzeltildi. Sektör terimi taşıyan yüzeyin tamamı tarandı: `plants` ·
+  `plantId` · `plantCode` · `plantIds` · `capacityMw` + `uclar/santraller.ts`
+  dosya adı + `ApiAnahtari.kapsamJson` içindeki kapsam değeri (veri
+  göçüyle).
 
 ---
 

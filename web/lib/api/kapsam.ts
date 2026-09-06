@@ -21,14 +21,14 @@
 
 /** Uç kimlikleri — `lib/api/uclar/` ile BİREBİR. */
 export const UC_KIMLIKLERI = [
-  'plants', 'assets', 'assets.upsert', 'assets.observations',
+  'facilities', 'assets', 'assets.upsert', 'assets.observations',
   'evidence', 'vulnerabilities', 'backup-results', 'integration-runs',
   'access-observations', 'asset-state',
 ] as const;
 export type UcKimligi = (typeof UC_KIMLIKLERI)[number];
 
 export const UC_ETIKETI: Record<UcKimligi, string> = {
-  plants: 'Santraller (okuma)',
+  facilities: 'Tesisler (okuma)',
   assets: 'Varlıklar (okuma)',
   'assets.upsert': 'Varlık yazma (upsert)',
   'assets.observations': 'Varlık gözlemi bildirimi (yazma)',
@@ -42,7 +42,7 @@ export const UC_ETIKETI: Record<UcKimligi, string> = {
 
 /** Ucun bağlı olduğu modül — rol kapısının sorduğu modülün AYNISI. */
 export const UC_MODULU: Record<UcKimligi, 'envanter' | 'uyum' | 'yonetim'> = {
-  plants: 'envanter',
+  facilities: 'envanter',
   assets: 'envanter',
   'assets.upsert': 'envanter',
   'assets.observations': 'envanter',

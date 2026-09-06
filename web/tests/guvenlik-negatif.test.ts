@@ -26,7 +26,7 @@ const {
 
 const { GET: varlikGetir } = await import('@/app/api/v1/assets/route.api');
 const { POST: varlikYaz } = await import('@/app/api/v1/assets/upsert/route.api');
-const { GET: santralleriGetir } = await import('@/app/api/v1/plants/route.api');
+const { GET: tesisleriGetir } = await import('@/app/api/v1/facilities/route.api');
 
 import type { AktifKullanici } from '@/lib/auth';
 import type { Adaptor, AdaptorBaglami, CekmeSonucu, Gozlem } from '@/lib/entegrasyon/sozlesme';
@@ -169,9 +169,9 @@ describe('1 · Santral A yetkili kullanıcı santral B verisini OKUYAMAZ', () =>
     const y = await varlikGetir(al('/api/v1/assets?limit=200', jeton.a));
     expect(y.status).toBe(200);
     const metin = await y.text();
-    const g = JSON.parse(metin) as { data: { assetTag: string; plantId: string }[] };
+    const g = JSON.parse(metin) as { data: { assetTag: string; facilityId: string }[] };
     // (a) reddedildi/daraltıldı
-    expect(g.data.every((v) => v.plantId === kimlik.tesisA)).toBe(true);
+    expect(g.data.every((v) => v.facilityId === kimlik.tesisA)).toBe(true);
     // (b) veri GERÇEKTEN dönmedi — etiket de, gizli hostname de gövdede yok
     expect(metin).not.toContain(`${ONEK}-B-1`);
     expect(metin).not.toContain('b-gizli-host');
@@ -179,7 +179,7 @@ describe('1 · Santral A yetkili kullanıcı santral B verisini OKUYAMAZ', () =>
   });
 
   it('B santralini açıkça isteyen sorgu 403 döner ve gövde kayıt taşımaz [SIS-GVN-001]', async () => {
-    const y = await varlikGetir(al(`/api/v1/assets?plantId=${kimlik.tesisB}`, jeton.a));
+    const y = await varlikGetir(al(`/api/v1/assets?facilityId=${kimlik.tesisB}`, jeton.a));
     expect(y.status).toBe(403);
     const metin = await y.text();
     expect(JSON.parse(metin).error.code).toBe('kapsam_disi');
@@ -189,7 +189,7 @@ describe('1 · Santral A yetkili kullanıcı santral B verisini OKUYAMAZ', () =>
   });
 
   it('santral listesi de daraltılır — B santrali A anahtarına görünmez', async () => {
-    const y = await santralleriGetir(al('/api/v1/plants?limit=200', jeton.a));
+    const y = await tesisleriGetir(al('/api/v1/facilities?limit=200', jeton.a));
     expect(y.status).toBe(200);
     const metin = await y.text();
     expect(metin).toContain(kimlik.tesisA);
@@ -203,7 +203,7 @@ describe('1 · Santral A yetkili kullanıcı santral B verisini OKUYAMAZ', () =>
 describe('2 · Santral A kapsamlı API anahtarı santral B\'ye YAZAMAZ', () => {
   it('yeni kayıt: 403 ve satır AÇILMAZ', async () => {
     const y = await varlikYaz(yolla('/api/v1/assets/upsert', jeton.a, { records: [
-      varlikKaydi({ assetTag: `${ONEK}-B-YENI`, plantCode: `${ONEK}-B`, typeCode: `${ONEK}-TUR` }),
+      varlikKaydi({ assetTag: `${ONEK}-B-YENI`, facilityCode: `${ONEK}-B`, typeCode: `${ONEK}-TUR` }),
     ] }, 'gneg-yaz-1'));
     expect(y.status).toBe(403);
     expect((await y.json()).error.code).toBe('kapsam_disi');
@@ -234,8 +234,8 @@ describe('2 · Santral A kapsamlı API anahtarı santral B\'ye YAZAMAZ', () => {
 
   it('karma toplu istekte tek kayıt kapsam dışıysa TAMAMI reddedilir', async () => {
     const y = await varlikYaz(yolla('/api/v1/assets/upsert', jeton.a, { records: [
-      varlikKaydi({ assetTag: `${ONEK}-A-IYI`, plantCode: `${ONEK}-A`, typeCode: `${ONEK}-TUR` }),
-      varlikKaydi({ assetTag: `${ONEK}-B-KOTU`, plantCode: `${ONEK}-B`, typeCode: `${ONEK}-TUR` }),
+      varlikKaydi({ assetTag: `${ONEK}-A-IYI`, facilityCode: `${ONEK}-A`, typeCode: `${ONEK}-TUR` }),
+      varlikKaydi({ assetTag: `${ONEK}-B-KOTU`, facilityCode: `${ONEK}-B`, typeCode: `${ONEK}-TUR` }),
     ] }, 'gneg-yaz-4'));
     expect(y.status).toBe(403);
     // Yarım import yok: kapsam İÇİ satır bile yazılmaz.
@@ -283,13 +283,13 @@ describe('3 · Global yetki tesis kısıtını ANLAMSIZLAŞTIRIR — davranış 
   });
 
   it('uçtan uca: karma anahtar B santralinin verisini GÖRÜR ve YAZAR', async () => {
-    const y = await varlikGetir(al(`/api/v1/assets?plantId=${kimlik.tesisB}`, jeton.karma));
+    const y = await varlikGetir(al(`/api/v1/assets?facilityId=${kimlik.tesisB}`, jeton.karma));
     expect(y.status).toBe(200);
     const metin = await y.text();
     expect(metin).toContain(`${ONEK}-B-1`);
 
     const yaz = await varlikYaz(yolla('/api/v1/assets/upsert', jeton.karma, { records: [
-      varlikKaydi({ assetTag: `${ONEK}-B-KARMA`, plantCode: `${ONEK}-B`, typeCode: `${ONEK}-TUR` }),
+      varlikKaydi({ assetTag: `${ONEK}-B-KARMA`, facilityCode: `${ONEK}-B`, typeCode: `${ONEK}-TUR` }),
     ] }, 'gneg-karma-1'));
     expect(yaz.status).toBe(200);
     expect(await db.varlik.count({ where: { etiket: `${ONEK}-B-KARMA` } })).toBe(1);
@@ -321,7 +321,7 @@ describe('4 · İptal edilmiş anahtar ANINDA başarısız olur', () => {
 
   it('iptal edilmiş anahtarla YAZMA da geçmez, satır açılmaz', async () => {
     const y = await varlikYaz(yolla('/api/v1/assets/upsert', jeton.iptalEdilecek, { records: [
-      varlikKaydi({ assetTag: `${ONEK}-IPTAL-YAZ`, plantCode: `${ONEK}-A`, typeCode: `${ONEK}-TUR` }),
+      varlikKaydi({ assetTag: `${ONEK}-IPTAL-YAZ`, facilityCode: `${ONEK}-A`, typeCode: `${ONEK}-TUR` }),
     ] }, 'gneg-iptal-1'));
     expect(y.status).toBe(401);
     expect(await db.varlik.count({ where: { etiket: `${ONEK}-IPTAL-YAZ` } })).toBe(0);
@@ -359,7 +359,7 @@ describe('5 · Süresi dolmuş anahtar başarısız olur', () => {
 
   it('süresi dolmuş anahtarla yazma da geçmez', async () => {
     const y = await varlikYaz(yolla('/api/v1/assets/upsert', jeton.suresiDolacak, { records: [
-      varlikKaydi({ assetTag: `${ONEK}-SURE-YAZ`, plantCode: `${ONEK}-A`, typeCode: `${ONEK}-TUR` }),
+      varlikKaydi({ assetTag: `${ONEK}-SURE-YAZ`, facilityCode: `${ONEK}-A`, typeCode: `${ONEK}-TUR` }),
     ] }, 'gneg-sure-1'));
     expect(y.status).toBe(401);
     expect(await db.varlik.count({ where: { etiket: `${ONEK}-SURE-YAZ` } })).toBe(0);
@@ -709,7 +709,7 @@ describe('İstek gövde boyutu sınırı GERÇEKTEN uygulanır', () => {
       headers: bearer(jeton.a, {
         'Idempotency-Key': 'gneg-boyut-1', 'Content-Length': String(SINIR + 1) }),
       body: JSON.stringify({ records: [
-        varlikKaydi({ assetTag: `${ONEK}-BOYUT-1`, plantCode: `${ONEK}-A`, typeCode: `${ONEK}-TUR` }),
+        varlikKaydi({ assetTag: `${ONEK}-BOYUT-1`, facilityCode: `${ONEK}-A`, typeCode: `${ONEK}-TUR` }),
       ] }),
     });
     const y = await varlikYaz(istek);
@@ -725,7 +725,7 @@ describe('İstek gövde boyutu sınırı GERÇEKTEN uygulanır', () => {
       headers: bearer(jeton.a, {
         'Idempotency-Key': 'gneg-boyut-2', 'Content-Length': '10' }),
       body: JSON.stringify({ records: [varlikKaydi({
-        assetTag: `${ONEK}-BOYUT-2`, plantCode: `${ONEK}-A`,
+        assetTag: `${ONEK}-BOYUT-2`, facilityCode: `${ONEK}-A`,
         typeCode: `${ONEK}-TUR`, hostname: sisirme })] }),
     });
     const y = await varlikYaz(istek);
@@ -736,7 +736,7 @@ describe('İstek gövde boyutu sınırı GERÇEKTEN uygulanır', () => {
 
   it('sınırın altındaki gövde normal işlenir — sınır her şeyi kesmiyor', async () => {
     const y = await varlikYaz(yolla('/api/v1/assets/upsert', jeton.a, { records: [
-      varlikKaydi({ assetTag: `${ONEK}-BOYUT-OK`, plantCode: `${ONEK}-A`,
+      varlikKaydi({ assetTag: `${ONEK}-BOYUT-OK`, facilityCode: `${ONEK}-A`,
         typeCode: `${ONEK}-TUR`, hostname: 'x'.repeat(200) }),
     ] }, 'gneg-boyut-3'));
     expect(y.status).toBe(200);

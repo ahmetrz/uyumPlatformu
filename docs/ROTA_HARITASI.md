@@ -98,7 +98,7 @@ yetki, oran sınırı ve şema `lib/api` altındadır ([MIMARI.md](MIMARI.md)).
 
 | Uç | Kaynak |
 | --- | --- |
-| `/api/v1/plants` | `lib/api/uclar/santraller.ts` |
+| `/api/v1/facilities` | `lib/api/uclar/tesisler.ts` |
 | `/api/v1/assets` · `/api/v1/assets/upsert` · `/api/v1/assets/observations` | `lib/api/uclar/varliklar.ts` · `varlikYazma.ts` · `varlikGozlemleri.ts` |
 | `/api/v1/vulnerabilities` | `lib/api/uclar/zafiyetler.ts` |
 | `/api/v1/backup-results` | `lib/api/uclar/yedekler.ts` |

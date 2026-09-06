@@ -52,7 +52,7 @@ const {
 const {
   denetciDavetEt, denetciErisimiIptal, denetciSureleriniIsle,
 } = await import('@/lib/eylemler2/denetciErisimi');
-const { GET: santralleriGetir } = await import('@/app/api/v1/plants/route.api');
+const { GET: tesisleriGetir } = await import('@/app/api/v1/facilities/route.api');
 const { POST: zafiyetYaz } = await import('@/app/api/v1/vulnerabilities/route.api');
 const { oranSayaclariniSifirla } = await import('@/lib/api/oranSinir');
 
@@ -108,37 +108,37 @@ describe('UY-52 · Anahtar üretimi kapsam ister', () => {
   });
 
   it('kapsam ve salt okunurluk kayda YAZILIR, denetim izine geçer', async () => {
-    const s = await apiAnahtariUret({ ad: 'Kapsamlı', uclar: ['plants', 'assets'] });
+    const s = await apiAnahtariUret({ ad: 'Kapsamlı', uclar: ['facilities', 'assets'] });
     expect(s.ok).toBe(true);
     if (!s.ok) return;
 
     const kayit = await db.apiAnahtari.findUniqueOrThrow({ where: { id: s.id } });
-    expect(JSON.parse(kayit.kapsamJson!)).toEqual(['plants', 'assets']);
+    expect(JSON.parse(kayit.kapsamJson!)).toEqual(['facilities', 'assets']);
     expect(kayit.saltOkunur).toBe(true);
 
     const iz = await db.aktiviteKaydi.findFirst({
       where: { varlikTipi: 'ApiAnahtari', varlikId: s.id },
       orderBy: { zaman: 'desc' },
     });
-    expect(iz?.gerekce).toContain('plants');
+    expect(iz?.gerekce).toContain('facilities');
     expect(iz?.gerekce).toContain('salt okunur');
     // Token izin hiçbir yerinde geçmez.
     expect(JSON.stringify(iz)).not.toContain(s.token);
   });
 
   it('kapsam güncelleme TOKEN\'a dokunmaz ve iz bırakır', async () => {
-    const s = await apiAnahtariUret({ ad: 'Daraltılacak', uclar: ['plants', 'assets'] });
+    const s = await apiAnahtariUret({ ad: 'Daraltılacak', uclar: ['facilities', 'assets'] });
     expect(s.ok).toBe(true);
     if (!s.ok) return;
     const once = await db.apiAnahtari.findUniqueOrThrow({ where: { id: s.id } });
 
     expect(hataMetni(await apiAnahtariKapsamGuncelle({
-      id: s.id, uclar: ['plants'], saltOkunur: true, gerekce: 'daraltma',
+      id: s.id, uclar: ['facilities'], saltOkunur: true, gerekce: 'daraltma',
     }))).toBe('');
 
     const sonra = await db.apiAnahtari.findUniqueOrThrow({ where: { id: s.id } });
     expect(sonra.tokenHash).toBe(once.tokenHash);
-    expect(JSON.parse(sonra.kapsamJson!)).toEqual(['plants']);
+    expect(JSON.parse(sonra.kapsamJson!)).toEqual(['facilities']);
 
     const iz = await db.aktiviteKaydi.findFirst({
       where: { varlikTipi: 'ApiAnahtari', varlikId: s.id, alan: 'kapsam' },
@@ -149,7 +149,7 @@ describe('UY-52 · Anahtar üretimi kapsam ister', () => {
 
   it('yetkisiz kullanıcı anahtar üretemez', async () => {
     const s = await kimlikle([yetki('okuyucu')], () =>
-      apiAnahtariUret({ ad: 'Olmaz', uclar: ['plants'] }));
+      apiAnahtariUret({ ad: 'Olmaz', uclar: ['facilities'] }));
     expect(s.ok).toBe(false);
   });
 });
@@ -168,9 +168,9 @@ describe('UY-52 · Kapsam kapısı HATTA çalışır', () => {
   }
 
   it('kapsamındaki okuma ucu 200 döner', async () => {
-    const token = await anahtar(['plants'], true);
-    const y = await santralleriGetir(
-      new Request('http://test/api/v1/plants', { headers: bearer(token) }));
+    const token = await anahtar(['facilities'], true);
+    const y = await tesisleriGetir(
+      new Request('http://test/api/v1/facilities', { headers: bearer(token) }));
     expect(y.status).toBe(200);
     // Kapsamı tanımlı anahtar "miras" başlığı TAŞIMAZ.
     expect(y.headers.get('X-Anahtar-Kapsami')).toBeNull();
@@ -180,16 +180,16 @@ describe('UY-52 · Kapsam kapısı HATTA çalışır', () => {
      yalnız anahtarın kendi kapsamıdır. */
   it('kapsam DIŞI uç 403 döner — sahibi yönetici olsa bile', async () => {
     const token = await anahtar(['assets'], true);
-    const y = await santralleriGetir(
-      new Request('http://test/api/v1/plants', { headers: bearer(token) }));
+    const y = await tesisleriGetir(
+      new Request('http://test/api/v1/facilities', { headers: bearer(token) }));
     expect(y.status).toBe(403);
     const govde = await y.json() as { error: { code: string; message: string } };
     expect(govde.error.code).toBe('kapsam_disi');
-    expect(govde.error.message).toContain('plants');
+    expect(govde.error.message).toContain('facilities');
   });
 
   it('SALT OKUNUR anahtar yazma ucundan 403 alır ve hiçbir şey yazılmaz [API-KPS-001]', async () => {
-    const token = await anahtar(['plants'], true);
+    const token = await anahtar(['facilities'], true);
     const once = await db.zafiyet.count();
     const y = await zafiyetYaz(new Request('http://test/api/v1/vulnerabilities', {
       method: 'POST',
@@ -204,10 +204,10 @@ describe('UY-52 · Kapsam kapısı HATTA çalışır', () => {
 
   it('reddedilen istek de DENETİM İZİ bırakır — sessiz düşmez', async () => {
     const token = await anahtar(['assets'], true);
-    await santralleriGetir(
-      new Request('http://test/api/v1/plants', { headers: bearer(token) }));
+    await tesisleriGetir(
+      new Request('http://test/api/v1/facilities', { headers: bearer(token) }));
     const kayit = await db.apiIstegi.findFirst({
-      where: { yol: '/api/v1/plants', durumKodu: 403 },
+      where: { yol: '/api/v1/facilities', durumKodu: 403 },
       orderBy: { zaman: 'desc' },
     });
     expect(kayit).not.toBeNull();
@@ -217,7 +217,7 @@ describe('UY-52 · Kapsam kapısı HATTA çalışır', () => {
   /* Eski anahtarları kesmek çalışan entegrasyonları sessizce kırardı;
      bunun yerine çalışır ve yanıt bunu SÖYLER. */
   it('kapsamı TANIMSIZ eski anahtar çalışır ve yanıt bunu işaretler', async () => {
-    const s = await apiAnahtariUret({ ad: 'Eski', uclar: ['plants'], saltOkunur: false });
+    const s = await apiAnahtariUret({ ad: 'Eski', uclar: ['facilities'], saltOkunur: false });
     expect(s.ok).toBe(true);
     if (!s.ok) return;
     // Göç öncesi kaydı taklit et: kapsam alanı hiç doldurulmamış.
@@ -225,8 +225,8 @@ describe('UY-52 · Kapsam kapısı HATTA çalışır', () => {
       where: { id: s.id }, data: { kapsamJson: null },
     });
 
-    const y = await santralleriGetir(
-      new Request('http://test/api/v1/plants', { headers: bearer(s.token) }));
+    const y = await tesisleriGetir(
+      new Request('http://test/api/v1/facilities', { headers: bearer(s.token) }));
     expect(y.status).toBe(200);
     expect(y.headers.get('X-Anahtar-Kapsami')).toBe('tanimsiz');
   });

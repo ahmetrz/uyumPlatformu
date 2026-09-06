@@ -60,7 +60,7 @@ export const varlikKaydiSemasi = z.object({
   model: metinOpsiyonel(160),
   operatingSystem: metinOpsiyonel(160),
   firmware: metinOpsiyonel(160),
-  plantCode: metinOpsiyonel(64),
+  facilityCode: metinOpsiyonel(64),
   zoneCode: metinOpsiyonel(64),
   typeCode: metinOpsiyonel(64),
 });
@@ -78,7 +78,7 @@ export const varlikGozlemine = (t: VarlikKaydiTel, ham: unknown): VarlikGozlemi 
   model: t.model ?? null,
   isletimSistemi: t.operatingSystem ?? null,
   firmware: t.firmware ?? null,
-  tesisKodu: t.plantCode ?? null,
+  tesisKodu: t.facilityCode ?? null,
   bolgeKodu: t.zoneCode ?? null,
   turKodu: t.typeCode ?? null,
   ham,
@@ -187,8 +187,8 @@ export const erisimKaydiSemasi = z.object({
   passwordRotatedAt: tarihOpsiyonel,
   scope: metinOpsiyonel(400),
   assetKey: metinOpsiyonel(255),
-  /** API düzeyinde kapsam alanı: hesabın hangi santrale ait olduğu. */
-  plantCode: metinOpsiyonel(64),
+  /** API düzeyinde kapsam alanı: hesabın hangi tesise ait olduğu. */
+  facilityCode: metinOpsiyonel(64),
 });
 export type ErisimKaydiTel = z.infer<typeof erisimKaydiSemasi>;
 

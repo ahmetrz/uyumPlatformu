@@ -8,7 +8,7 @@ import { tesisKapsamZorunlu } from '../yetki';
 
 /* GET /api/v1/assets - imlec sayfalamali, filtreli varlik listesi.
 
-   Santral izolasyonu: sorgu HER ZAMAN izinliTesisIdleri kumesiyle daraltilir.
+   Tesis izolasyonu: sorgu HER ZAMAN izinliTesisIdleri kumesiyle daraltilir.
    Kapsami sinirli anahtarin gordugu kumede tesisId'si NULL olan varlik da
    YOKTUR (sahipsiz varlik kapsamsiz yazma iznine tabidir). */
 
@@ -19,14 +19,14 @@ export const GET = apiUcu(
   { uc: 'assets', modul: 'envanter', islem: 'okuma' },
   async ({ url, kapsam }) => {
   const { limit, imlec } = sayfaSorgusu(url);
-  const tesisId = metinParam(url, 'plantId', 64);
-  const tesisKodu = metinParam(url, 'plantCode', 64);
+  const tesisId = metinParam(url, 'facilityId', 64);
+  const tesisKodu = metinParam(url, 'facilityCode', 64);
   const turKodu = metinParam(url, 'typeCode', 64);
   const kritiklik = secenekParam(url, 'criticality', KRITIKLIK);
   const yasam = secenekParam(url, 'lifecycle', YASAM);
   const degisenden = tarihParam(url, 'updatedSince');
 
-  // Istenen santral kapsam disiysa 403; govdede kayit yok, varlik/yokluk sizmaz.
+  // Istenen tesis kapsam disiysa 403; govdede kayit yok, varlik/yokluk sizmaz.
   if (tesisId) tesisKapsamZorunlu(kapsam, tesisId);
 
   const satirlar = await db.varlik.findMany({
@@ -61,8 +61,8 @@ export const GET = apiUcu(
         id: v.id,
         assetTag: v.etiket,
         name: v.ad,
-        plantId: v.tesisId,
-        plantCode: v.tesis?.kod ?? null,
+        facilityId: v.tesisId,
+        facilityCode: v.tesis?.kod ?? null,
         typeCode: v.tur.kod,
         typeClass: v.tur.sinif,
         hostname: v.hostname,

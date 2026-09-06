@@ -50,7 +50,7 @@ export const POST = apiUcu(
         },
       });
       const mevcutHarita = new Map(mevcutlar.map((v) => [v.etiket, v]));
-      const tesisler = await tesisHaritasi(records.map((r) => r.plantCode ?? ''));
+      const tesisler = await tesisHaritasi(records.map((r) => r.facilityCode ?? ''));
       const turler = await varlikTuruHaritasi(records.map((r) => r.typeCode ?? ''));
       const bolgeler = await agBolgesiHaritasi(records.map((r) => r.zoneCode ?? ''));
 
@@ -80,13 +80,13 @@ export const POST = apiUcu(
         }
 
         let hedefTesisId: string | null = mevcut?.tesisId ?? null;
-        if (tel.plantCode) {
-          const tesis = tesisler.get(tel.plantCode);
-          if (!tesis) { defter.ekle(i, 'plantCode', 'bilinmeyen santral kodu'); continue; }
+        if (tel.facilityCode) {
+          const tesis = tesisler.get(tel.facilityCode);
+          if (!tesis) { defter.ekle(i, 'facilityCode', 'bilinmeyen tesis kodu'); continue; }
           hedefTesisId = tesis.id;
         }
         if (!mevcut && !hedefTesisId) {
-          defter.ekle(i, 'plantCode', 'yeni varlik icin plantCode zorunlu');
+          defter.ekle(i, 'facilityCode', 'yeni varlik icin facilityCode zorunlu');
           continue;
         }
 
@@ -111,8 +111,8 @@ export const POST = apiUcu(
           }
         }
 
-        // Santral izolasyonu: hem HEDEF hem (varsa) MEVCUT santral icin yazma
-        // izni sart - kapsam disi bir varlik baska santrale tasinamaz.
+        // Tesis izolasyonu: hem HEDEF hem (varsa) MEVCUT tesis icin yazma
+        // izni sart - kapsam disi bir varlik baska tesise tasinamaz.
         // 403 doner (404 degil), govdede kayit yoktur.
         yazmaIzniZorunlu(kullanici, 'envanter', hedefTesisId);
         if (mevcut && mevcut.tesisId !== hedefTesisId) {
@@ -144,7 +144,7 @@ export const POST = apiUcu(
           koy('isletimSistemi', t.operatingSystem);
           koy('firmware', t.firmware);
           if (t.zoneCode !== undefined) yama.bolgeId = c.bolgeId;
-          if (t.plantCode !== undefined) yama.tesisId = c.hedefTesisId;
+          if (t.facilityCode !== undefined) yama.tesisId = c.hedefTesisId;
           if (t.typeCode !== undefined) yama.turId = c.turId;
 
           let varlikId: string;

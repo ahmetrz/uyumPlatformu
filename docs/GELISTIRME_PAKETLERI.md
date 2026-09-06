@@ -717,16 +717,22 @@ depoda değil).
 **Bağımlılık:** P2, R4
 
 **Bugün.** Adaptör sözleşmesi (`lib/entegrasyon/sozlesme.ts`), 15 kontrollü
-sertifikasyon harness'ı, `/api-sozlesmesi` ekranı, 10 `v1` ucu,
+sertifikasyon harness'ı, `/api-sozlesmesi` ekranı, 10 `v1` ucu
+(P1'de sektör terimleri temizlendi: `plants` → `facilities`, `plantCode`
+→ `facilityCode`, `capacityMw` → `attributes` haritası),
 `ApiAnahtari`.
 
-**Hedef.** `v1` dondurulur ve OpenAPI belgesi sözleşmeden üretilir; giden
-webhook aboneliği; adaptör geliştirme kılavuzu ve harness dışa açılır;
-kiracı adaptörü politikası uygulanır.
+**Hedef.** OpenAPI belgesi sözleşmeden üretilir; giden webhook
+aboneliği; adaptör geliştirme kılavuzu ve harness dışa açılır; kiracı
+adaptörü politikası uygulanır. **`v1` dondurma kararı K23'e bağlıdır**:
+sözleşme, erişilebilir bir dağıtım ya da ilk dış `ApiAnahtari` ortaya
+çıkana kadar **taslaktır**. P9 bu yüzden `v2` açmaz — temiz bir `v1`'in
+üstüne SDK yayımlar.
 
 **Kapsam.** OpenAPI 3.1 üretimi (`lib/api/sozlesme.ts` → `openapi.json`,
 `/api-sozlesmesi` ekranı indirir); `v1` değişiklik bekçisi (sözleşme
-anlık görüntüsü; kırılma → `v2`); `WebhookAboneligi` (kiracı × olay
+anlık görüntüsü — K23 kapanana kadar değişikliği **bildirir**, kırmızı
+yakmaz; K23 kapandıktan sonra kırılma → `v2`); `WebhookAboneligi` (kiracı × olay
 türü × adres sır referansı × HMAC anahtarı sır referansı × etkin) +
 `WebhookTeslimi` (3 deneme, dead-letter — R4 kalıbı); adaptör geliştirme
 kılavuzu (`docs/ADAPTOR_GELISTIRME.md`) ve harness CLI (`arac/sertifika.mjs`);
@@ -1791,6 +1797,8 @@ alınan kararlar.
 | K20 | Kiracı adaptörü | Yalnız imzalı ürün adaptörleri; kiracı verisi CSV/API/webhook | Sandbox (ayrı karar) |
 | K21 | İlk enerji dışı sektör · ilk TR dışı ülke paketi | Su/atıksu · EU-NIS2 | Kullanıcı seçer |
 | K22 | Tema | Koyu tek tema kalır | Kiracı teması |
+| K23 | **`v1` ne zaman donar?** | Yayımlanmış bir belge değil, **erişilebilir dağıtım + dağıtılmış kimlik**. `v1` şu iki olaydan **ilki** gerçekleştiğinde donar: (a) API'yi servis eden bir dağıtım dışarıdan erişilebilir hâle gelir, (b) ilk **dış** `ApiAnahtari` düzenlenir. O ana kadar sözleşme **taslaktır** ve `v2` açılmadan değiştirilebilir. Gerekçe: kıran değişikliğin maliyeti kırılan tüketici sayısıdır ve o sayı bugün sıfırdır | İlk olay gerçekleşince K23 kapanır; sonraki kıran değişiklik `v2` ister |
+| K24 | Taslak sözleşme **görünür** olmalı | `/api-sozlesmesi` ekranı, açık adreste duran tarifin örtük bir taahhüt sayılmaması için başında tek satır uyarı taşır: "`v1` taslaktır; ilk dış tüketiciye kadar haber verilmeden değişebilir." Statik demo bu ekranı yayımladığı için uyarı da yayımlanır | K23 kapanınca uyarı kalkar |
 
 ---
 

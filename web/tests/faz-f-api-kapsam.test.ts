@@ -79,7 +79,7 @@ describe('kapsamiCoz — bozuk kapsam HER ŞEY değildir', () => {
   });
 
   it('bozuk JSON boş kapsama düşer, sınırsıza DEĞİL', () => {
-    for (const bozuk of ['{', 'null', '"plants"', '{"uclar":["plants"]}', '42']) {
+    for (const bozuk of ['{', 'null', '"facilities"', '{"uclar":["facilities"]}', '42']) {
       const k = kapsamiCoz(bozuk);
       expect(k.durum).toBe('bozuk');
       expect(k.uclar).toEqual([]);
@@ -91,8 +91,8 @@ describe('kapsamiCoz — bozuk kapsam HER ŞEY değildir', () => {
   });
 
   it('tanınmayan girdiler SESSİZCE atılmaz, sayılır', () => {
-    const k = kapsamiCoz('["plants","olmayan-uc","plants"]');
-    expect(k.uclar).toEqual(['plants']);
+    const k = kapsamiCoz('["facilities","olmayan-uc","facilities"]');
+    expect(k.uclar).toEqual(['facilities']);
     expect(k.taninmayan).toEqual(['olmayan-uc']);
   });
 
@@ -163,7 +163,7 @@ describe('kapsamKapisi — yeni anahtar kapsamsız açılamaz', () => {
   });
 
   it('tanınmayan uç reddedilir', () => {
-    const k = kapsamKapisi({ uclar: ['plants', 'hayali'], saltOkunur: true });
+    const k = kapsamKapisi({ uclar: ['facilities', 'hayali'], saltOkunur: true });
     expect(k.ok).toBe(false);
   });
 
@@ -175,8 +175,8 @@ describe('kapsamKapisi — yeni anahtar kapsamsız açılamaz', () => {
   });
 
   it('aynı kapsam her zaman AYNI metni üretir (iz kirlenmesin)', () => {
-    const a = kapsamKapisi({ uclar: ['assets', 'plants', 'plants'], saltOkunur: true });
-    const b = kapsamKapisi({ uclar: ['plants', 'assets'], saltOkunur: true });
+    const a = kapsamKapisi({ uclar: ['assets', 'facilities', 'facilities'], saltOkunur: true });
+    const b = kapsamKapisi({ uclar: ['facilities', 'assets'], saltOkunur: true });
     expect(a.ok && b.ok && a.kapsamJson === b.kapsamJson).toBe(true);
   });
 });
@@ -186,7 +186,7 @@ describe('anahtarOzeti — kusur sayımı', () => {
     const o = anahtarOzeti([
       { kapsamJson: null, saltOkunur: true, pasif: false },
       { kapsamJson: null, saltOkunur: true, pasif: true },
-      { kapsamJson: '["plants"]', saltOkunur: true, pasif: false },
+      { kapsamJson: '["facilities"]', saltOkunur: true, pasif: false },
       { kapsamJson: '["assets.upsert"]', saltOkunur: false, pasif: false },
     ]);
     expect(o.toplam).toBe(4);

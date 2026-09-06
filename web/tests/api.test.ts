@@ -16,7 +16,7 @@ const { oranAyari, oranAyariAyarla, oranSayaclariniSifirla } = await import('@/l
 
 // Route dosyalarının KENDİSİ import edilir: `route.api.ts` sarmalayıcısının
 // gerçekten doğru işleyiciyi dışa aktardığı da test edilmiş olur.
-const { GET: santralleriGetir } = await import('@/app/api/v1/plants/route.api');
+const { GET: santralleriGetir } = await import('@/app/api/v1/facilities/route.api');
 const { GET: varlikGetir } = await import('@/app/api/v1/assets/route.api');
 const { POST: varlikYaz } = await import('@/app/api/v1/assets/upsert/route.api');
 const { POST: gozlemYaz } = await import('@/app/api/v1/assets/observations/route.api');
@@ -124,13 +124,13 @@ beforeEach(async () => { await oranSayaclariniSifirla(); });
 
 describe('Kimlik: geçersiz anahtar veri göstermez', () => {
   it('token yoksa 401 yetkisiz [API-KIM-001]', async () => {
-    const y = await santralleriGetir(new Request('http://test/api/v1/plants'));
+    const y = await santralleriGetir(new Request('http://test/api/v1/facilities'));
     expect(y.status).toBe(401);
     expect((await y.json()).error.code).toBe('yetkisiz');
   });
 
   it('geçersiz token 401 döner ve gövdede kayıt yoktur', async () => {
-    const y = await santralleriGetir(al('/api/v1/plants', 'kesinlikle-gecersiz-token'));
+    const y = await santralleriGetir(al('/api/v1/facilities', 'kesinlikle-gecersiz-token'));
     expect(y.status).toBe(401);
     const g = await y.json();
     expect(g.error.code).toBe('yetkisiz');
@@ -138,19 +138,19 @@ describe('Kimlik: geçersiz anahtar veri göstermez', () => {
   });
 
   it('süresi dolmuş anahtar 401 [API-KIM-002]', async () => {
-    const y = await santralleriGetir(al('/api/v1/plants', jeton.suresiDolmus));
+    const y = await santralleriGetir(al('/api/v1/facilities', jeton.suresiDolmus));
     expect(y.status).toBe(401);
     expect((await y.json()).error.message).toMatch(/süresi dolmuş/i);
   });
 
   it('iptal edilmiş anahtar 401', async () => {
-    const y = await santralleriGetir(al('/api/v1/plants', jeton.iptal));
+    const y = await santralleriGetir(al('/api/v1/facilities', jeton.iptal));
     expect(y.status).toBe(401);
     expect((await y.json()).error.message).toMatch(/iptal/i);
   });
 
   it('geçerli anahtar sonKullanim damgasını tazeler', async () => {
-    await santralleriGetir(al('/api/v1/plants', jeton.genel));
+    await santralleriGetir(al('/api/v1/facilities', jeton.genel));
     const anahtar = await db.apiAnahtari.findFirst({
       where: { kullaniciId: kimlikler.kullaniciGenel, iptalZamani: null, bitis: null } });
     expect(anahtar?.sonKullanim).not.toBeNull();
@@ -180,7 +180,7 @@ describe('Yetki: modül izni olmayan anahtar 403', () => {
 
   it('dış denetçi varlık yazamaz (403)', async () => {
     const y = await varlikYaz(yolla('/api/v1/assets/upsert', jeton.denetci,
-      { records: [varlikKaydi({ assetTag: `${ONEK}-YASAK`, plantCode: `${ONEK}-A`, typeCode: `${ONEK}-TUR` })] },
+      { records: [varlikKaydi({ assetTag: `${ONEK}-YASAK`, facilityCode: `${ONEK}-A`, typeCode: `${ONEK}-TUR` })] },
       'denetci-yazma-1'));
     expect(y.status).toBe(403);
     expect(await db.varlik.count({ where: { etiket: `${ONEK}-YASAK` } })).toBe(0);
@@ -203,11 +203,11 @@ describe('Santral kapsamı: A anahtarı B tesisini NE GÖRÜR NE YAZAR', () => {
     const etiketler = g.data.map((v: { assetTag: string }) => v.assetTag);
     expect(etiketler).toContain(`${ONEK}-A-1`);
     expect(etiketler).not.toContain(`${ONEK}-B-1`);
-    expect(g.data.every((v: { plantId: string }) => v.plantId === kimlikler.tesisA)).toBe(true);
+    expect(g.data.every((v: { facilityId: string }) => v.facilityId === kimlikler.tesisA)).toBe(true);
   });
 
   it('okuma: başka santral filtresi 403 döner (404 değil) ve kayıt sızdırmaz', async () => {
-    const y = await varlikGetir(al(`/api/v1/assets?plantId=${kimlikler.tesisB}`, jeton.a));
+    const y = await varlikGetir(al(`/api/v1/assets?facilityId=${kimlikler.tesisB}`, jeton.a));
     expect(y.status).toBe(403);
     const g = await y.json();
     expect(g.error.code).toBe('kapsam_disi');
@@ -217,7 +217,7 @@ describe('Santral kapsamı: A anahtarı B tesisini NE GÖRÜR NE YAZAR', () => {
 
   it('yazma: kapsam dışı santrale yeni varlık yazılamaz, hiçbir şey kaydedilmez', async () => {
     const y = await varlikYaz(yolla('/api/v1/assets/upsert', jeton.a,
-      { records: [varlikKaydi({ assetTag: `${ONEK}-B-YENI`, plantCode: `${ONEK}-B`, typeCode: `${ONEK}-TUR` })] },
+      { records: [varlikKaydi({ assetTag: `${ONEK}-B-YENI`, facilityCode: `${ONEK}-B`, typeCode: `${ONEK}-TUR` })] },
       'kapsam-disi-1'));
     expect(y.status).toBe(403);
     expect(await db.varlik.count({ where: { etiket: `${ONEK}-B-YENI` } })).toBe(0);
@@ -236,8 +236,8 @@ describe('Santral kapsamı: A anahtarı B tesisini NE GÖRÜR NE YAZAR', () => {
 
   it('toplu istekte tek kayıt kapsam dışıysa TAMAMI reddedilir (yarım import yok)', async () => {
     const y = await varlikYaz(yolla('/api/v1/assets/upsert', jeton.a, { records: [
-      varlikKaydi({ assetTag: `${ONEK}-A-YENI`, plantCode: `${ONEK}-A`, typeCode: `${ONEK}-TUR` }),
-      varlikKaydi({ assetTag: `${ONEK}-B-YENI2`, plantCode: `${ONEK}-B`, typeCode: `${ONEK}-TUR` }),
+      varlikKaydi({ assetTag: `${ONEK}-A-YENI`, facilityCode: `${ONEK}-A`, typeCode: `${ONEK}-TUR` }),
+      varlikKaydi({ assetTag: `${ONEK}-B-YENI2`, facilityCode: `${ONEK}-B`, typeCode: `${ONEK}-TUR` }),
     ] }, 'karisik-1'));
     expect(y.status).toBe(403);
     expect(await db.varlik.count({ where: { etiket: { in: [`${ONEK}-A-YENI`, `${ONEK}-B-YENI2`] } } })).toBe(0);
@@ -248,7 +248,7 @@ describe('Santral kapsamı: A anahtarı B tesisini NE GÖRÜR NE YAZAR', () => {
 
 describe('Idempotency', () => {
   const kayit = () => ({ records: [varlikKaydi({
-    assetTag: `${ONEK}-IDEM`, plantCode: `${ONEK}-A`, typeCode: `${ONEK}-TUR`, hostname: 'idem-host' })] });
+    assetTag: `${ONEK}-IDEM`, facilityCode: `${ONEK}-A`, typeCode: `${ONEK}-TUR`, hostname: 'idem-host' })] });
 
   it('Idempotency-Key olmadan yazma 400 + alan adı', async () => {
     const istek = new Request('http://test/api/v1/assets/upsert', {
@@ -280,7 +280,7 @@ describe('Idempotency', () => {
 
   it('farklı Idempotency-Key ile aynı kayıt yeni satır AÇMAZ (upsert), güncellenir', async () => {
     const y = await varlikYaz(yolla('/api/v1/assets/upsert', jeton.a, { records: [varlikKaydi({
-      assetTag: `${ONEK}-IDEM`, plantCode: `${ONEK}-A`, typeCode: `${ONEK}-TUR`, hostname: 'idem-host-2' })] },
+      assetTag: `${ONEK}-IDEM`, facilityCode: `${ONEK}-A`, typeCode: `${ONEK}-TUR`, hostname: 'idem-host-2' })] },
       'idem-tek-2'));
     expect(y.status).toBe(200);
     const g = await y.json();
@@ -291,7 +291,7 @@ describe('Idempotency', () => {
 
   it('gözlem ucu (source, sourceRecordId) ile idempotenttir', async () => {
     const govde = { records: [varlikKaydi({
-      assetTag: `${ONEK}-GOZLEM`, plantCode: `${ONEK}-A`, hostname: 'kesif-1' })] };
+      assetTag: `${ONEK}-GOZLEM`, facilityCode: `${ONEK}-A`, hostname: 'kesif-1' })] };
     const bir = await gozlemYaz(yolla('/api/v1/assets/observations', jeton.a, govde, 'gozlem-1'));
     const iki = await gozlemYaz(yolla('/api/v1/assets/observations', jeton.a, govde, 'gozlem-2'));
     expect(bir.status).toBe(200);
@@ -315,7 +315,7 @@ describe('Idempotency', () => {
 
   it('gözlem ucu eşleştirme geçişini koşturur ve sonucunu yanıtta söyler', async () => {
     const govde = { records: [varlikKaydi({
-      assetTag: `${ONEK}-ESL`, plantCode: `${ONEK}-A`, hostname: 'kesif-esl' })] };
+      assetTag: `${ONEK}-ESL`, facilityCode: `${ONEK}-A`, hostname: 'kesif-esl' })] };
     const y = await gozlemYaz(yolla('/api/v1/assets/observations', jeton.a, govde, 'esl-1'));
     const veri = (await y.json()).data;
     // Sessiz geçmez: geçişin sonucu çağırana da bildirilir.
@@ -451,7 +451,7 @@ describe('Doğrulama: bozuk payload 400 + hangi alan', () => {
   it('köken alanı eksikse hangi alan olduğunu söyler [API-DGR-001]', async () => {
     const y = await varlikYaz(yolla('/api/v1/assets/upsert', jeton.a, { records: [{
       source: 'test_itam', sourceRecordId: 'x-1', collectedAt: zaman,
-      assetTag: `${ONEK}-EKSIK`, plantCode: `${ONEK}-A`, typeCode: `${ONEK}-TUR`,
+      assetTag: `${ONEK}-EKSIK`, facilityCode: `${ONEK}-A`, typeCode: `${ONEK}-TUR`,
       // confidence YOK — "ölçülmedi" demek için null gönderilmeliydi
     }] }, 'bozuk-1'));
     expect(y.status).toBe(400);
@@ -474,8 +474,8 @@ describe('Doğrulama: bozuk payload 400 + hangi alan', () => {
 
   it('iş kuralı hatası indeks + alan ile döner, hiçbir kayıt yazılmaz', async () => {
     const y = await varlikYaz(yolla('/api/v1/assets/upsert', jeton.a, { records: [
-      varlikKaydi({ assetTag: `${ONEK}-IYI`, plantCode: `${ONEK}-A`, typeCode: `${ONEK}-TUR` }),
-      varlikKaydi({ assetTag: `${ONEK}-KOTU`, plantCode: `${ONEK}-A`, typeCode: 'OLMAYAN-TUR' }),
+      varlikKaydi({ assetTag: `${ONEK}-IYI`, facilityCode: `${ONEK}-A`, typeCode: `${ONEK}-TUR` }),
+      varlikKaydi({ assetTag: `${ONEK}-KOTU`, facilityCode: `${ONEK}-A`, typeCode: 'OLMAYAN-TUR' }),
     ] }, 'bozuk-3'));
     expect(y.status).toBe(400);
     const g = await y.json();
@@ -536,7 +536,7 @@ describe('Sayfalama: imleç tabanlı', () => {
   });
 
   it('santral listesi de imleçle sayfalanır', async () => {
-    const y = await santralleriGetir(al('/api/v1/plants?limit=1', jeton.genel));
+    const y = await santralleriGetir(al('/api/v1/facilities?limit=1', jeton.genel));
     const g = await y.json();
     expect(g.data).toHaveLength(1);
     expect(g.nextCursor).toBe(g.data[0].id);
@@ -551,15 +551,15 @@ describe('Oran sınırı', () => {
     oranAyariAyarla({ sinir: 2, pencereMs: 60_000 });
     await oranSayaclariniSifirla();
     try {
-      expect((await santralleriGetir(al('/api/v1/plants', jeton.genel))).status).toBe(200);
-      expect((await santralleriGetir(al('/api/v1/plants', jeton.genel))).status).toBe(200);
-      const ucuncu = await santralleriGetir(al('/api/v1/plants', jeton.genel));
+      expect((await santralleriGetir(al('/api/v1/facilities', jeton.genel))).status).toBe(200);
+      expect((await santralleriGetir(al('/api/v1/facilities', jeton.genel))).status).toBe(200);
+      const ucuncu = await santralleriGetir(al('/api/v1/facilities', jeton.genel));
       expect(ucuncu.status).toBe(429);
       expect(ucuncu.headers.get('Retry-After')).toBeTruthy();
       expect((await ucuncu.json()).error.code).toBe('oran_asildi');
 
       // Kova kimlik başınadır: başka anahtar etkilenmez.
-      expect((await santralleriGetir(al('/api/v1/plants', jeton.a))).status).toBe(200);
+      expect((await santralleriGetir(al('/api/v1/facilities', jeton.a))).status).toBe(200);
     } finally {
       oranAyariAyarla(eski);
       await oranSayaclariniSifirla();
@@ -584,18 +584,18 @@ describe('Köken ve denetim izi', () => {
 
   it('her istek ApiIstegi satırı bırakır (kimliksiz istek dahil)', async () => {
     const once = await db.apiIstegi.count();
-    await santralleriGetir(al('/api/v1/plants', 'gecersiz-token-denetim'));
-    await santralleriGetir(al('/api/v1/plants', jeton.genel));
+    await santralleriGetir(al('/api/v1/facilities', 'gecersiz-token-denetim'));
+    await santralleriGetir(al('/api/v1/facilities', jeton.genel));
     const sonra = await db.apiIstegi.findMany({ orderBy: { zaman: 'desc' }, take: 2 });
     expect(await db.apiIstegi.count()).toBe(once + 2);
     expect(sonra.some((s) => s.durumKodu === 401 && s.hataKodu === 'yetkisiz')).toBe(true);
-    expect(sonra.every((s) => s.yol === '/api/v1/plants' && s.yontem === 'GET')).toBe(true);
+    expect(sonra.every((s) => s.yol === '/api/v1/facilities' && s.yontem === 'GET')).toBe(true);
     expect(sonra.every((s) => (s.sureMs ?? -1) >= 0)).toBe(true);
   });
 
   it('yazma ucu EntegrasyonKosusu satırı bırakır (tetikleyen = api)', async () => {
     const y = await varlikYaz(yolla('/api/v1/assets/upsert', jeton.a, { records: [varlikKaydi({
-      assetTag: `${ONEK}-KOSU`, plantCode: `${ONEK}-A`, typeCode: `${ONEK}-TUR` })] }, 'kosu-1'));
+      assetTag: `${ONEK}-KOSU`, facilityCode: `${ONEK}-A`, typeCode: `${ONEK}-TUR` })] }, 'kosu-1'));
     const g = await y.json();
     const kosu = await db.entegrasyonKosusu.findUniqueOrThrow({ where: { id: g.data.runId } });
     expect(kosu.tetikleyen).toBe('api');
@@ -607,7 +607,7 @@ describe('Köken ve denetim izi', () => {
 
   it('başarısız yazma da koşu satırı bırakır (sessiz hata yok)', async () => {
     await varlikYaz(yolla('/api/v1/assets/upsert', jeton.a, { records: [varlikKaydi({
-      assetTag: `${ONEK}-HATA`, plantCode: `${ONEK}-A`, typeCode: 'YOK' })] }, 'kosu-hata-1'));
+      assetTag: `${ONEK}-HATA`, facilityCode: `${ONEK}-A`, typeCode: 'YOK' })] }, 'kosu-hata-1'));
     const kosu = await db.entegrasyonKosusu.findFirst({
       where: { tetikleyen: 'api', durum: 'basarisiz' }, orderBy: { baslangic: 'desc' } });
     expect(kosu).not.toBeNull();
@@ -676,7 +676,7 @@ describe('Yedek, erişim ve kanıt uçları', () => {
     const y = await erisimYaz(yolla('/api/v1/access-observations', jeton.a, { records: [{
       source: 'test_ad', sourceRecordId: 'hesap-1', collectedAt: zaman, confidence: 0.5,
       accountName: `${ONEK}-svc-1`, accountType: 'servis', privileged: null,
-      plantCode: `${ONEK}-A`, assetKey: `${ONEK}-A-3`,
+      facilityCode: `${ONEK}-A`, assetKey: `${ONEK}-A-3`,
     }] }, 'erisim-1'));
     expect(y.status).toBe(200);
     const g = await y.json();
@@ -695,7 +695,7 @@ describe('Yedek, erişim ve kanıt uçları', () => {
     const yolla1 = { records: [{
       source: 'test_ad', sourceRecordId: 'hesap-olc', collectedAt: zaman, confidence: 0.9,
       accountName: `${ONEK}-svc-olc`, accountType: 'servis', privileged: true,
-      plantCode: `${ONEK}-A`,
+      facilityCode: `${ONEK}-A`,
     }] };
     expect((await erisimYaz(yolla('/api/v1/access-observations', jeton.a, yolla1, 'erisim-olc-1'))).status).toBe(200);
     expect((await db.kimlikHesabi.findUniqueOrThrow({
@@ -713,7 +713,7 @@ describe('Yedek, erişim ve kanıt uçları', () => {
   it('erişim gözlemi kapsam dışı santrale yazılamaz', async () => {
     const y = await erisimYaz(yolla('/api/v1/access-observations', jeton.a, { records: [{
       source: 'test_ad', sourceRecordId: 'hesap-2', collectedAt: zaman, confidence: null,
-      accountName: `${ONEK}-svc-b`, accountType: 'servis', plantCode: `${ONEK}-B`,
+      accountName: `${ONEK}-svc-b`, accountType: 'servis', facilityCode: `${ONEK}-B`,
     }] }, 'erisim-2'));
     expect(y.status).toBe(403);
     expect(await db.kimlikHesabi.count({ where: { hesapAdi: `${ONEK}-svc-b` } })).toBe(0);
@@ -762,8 +762,8 @@ describe('Yedek, erişim ve kanıt uçları', () => {
     const g = await (await kanitGetir(al('/api/v1/evidence?limit=200', jeton.a))).json();
     const kayit = g.data.find((k: { name: string }) => k.name === `${ONEK} kanıt A`);
     expect(kayit).toBeTruthy();
-    // Eski davranış: her kayıtta `plantIds: []` — "bağlı değil" değil, "yok" gibi.
-    expect(kayit.plantIds).toEqual([kimlikler.tesisA]);
+    // Eski davranış: her kayıtta `facilityIds: []` — "bağlı değil" değil, "yok" gibi.
+    expect(kayit.facilityIds).toEqual([kimlikler.tesisA]);
     expect(kayit.plantLink).toBe('requirement');
   });
 
@@ -775,7 +775,7 @@ describe('Yedek, erişim ve kanıt uçları', () => {
     const g = await y.json();
     expect(g.data).toEqual([]);
     expect(g.scope.applied).toBe(true);
-    expect(g.scope.plantIds).toEqual([kimlikler.tesisA]);
+    expect(g.scope.facilityIds).toEqual([kimlikler.tesisA]);
     expect(g.scope.basis).toBe('requirementStatus');
     // BİLİNMEYEN ≠ SIFIR: bağsız kanıtlar sıfır sayılmaz, ayrıca sayılır.
     expect(g.scope.unlinkedEvidenceExcluded).toBeGreaterThan(0);
@@ -786,18 +786,18 @@ describe('Yedek, erişim ve kanıt uçları', () => {
     const { baglanmamis } = await kanitFiksturu();
     const g = await (await kanitGetir(al('/api/v1/evidence?limit=200', jeton.genel))).json();
     expect(g.scope.applied).toBe(false);
-    expect(g.scope.plantIds).toBeNull();
+    expect(g.scope.facilityIds).toBeNull();
     expect(g.scope.unlinkedEvidenceExcluded).toBe(0);
     const kayit = g.data.find((k: { id: string }) => k.id === baglanmamis.id);
     expect(kayit).toBeTruthy();
     // Bağsız kanıt: sıfır santral DEĞİL, santrali BİLİNMİYOR.
     expect(kayit.plantLink).toBe('none');
-    expect(kayit.plantIds).toEqual([]);
+    expect(kayit.facilityIds).toEqual([]);
   });
 
   it('kapsam dışı santral istenirse 403 — boş liste ile geçiştirilmez', async () => {
     const y = await kanitGetir(
-      al(`/api/v1/evidence?plantId=${kimlikler.tesisB}&limit=5`, jeton.a));
+      al(`/api/v1/evidence?facilityId=${kimlikler.tesisB}&limit=5`, jeton.a));
     expect(y.status).toBe(403);
   });
 

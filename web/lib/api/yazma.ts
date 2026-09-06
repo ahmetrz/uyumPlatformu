@@ -131,7 +131,7 @@ export async function kosuIcinde<T>(
 
 /* Cozumleyiciler */
 
-/** Santral kodu -> Tesis. Bulunamayan kod kayit hatasidir, sessiz atlanmaz. */
+/** Tesis kodu -> Tesis. Bulunamayan kod kayit hatasidir, sessiz atlanmaz. */
 export async function tesisHaritasi(kodlar: string[]): Promise<Map<string, { id: string; kod: string }>> {
   const tekil = [...new Set(kodlar.filter(Boolean))];
   if (tekil.length === 0) return new Map();

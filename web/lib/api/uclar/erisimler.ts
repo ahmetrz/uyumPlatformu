@@ -35,7 +35,7 @@ export const POST = apiUcu(
         select: { id: true, hesapAdi: true, tesisId: true, tip: true, ayricalikli: true },
       });
       const hesapHarita = new Map(mevcutHesaplar.map((h) => [h.hesapAdi, h]));
-      const tesisler = await tesisHaritasi(records.map((r) => r.plantCode ?? ''));
+      const tesisler = await tesisHaritasi(records.map((r) => r.facilityCode ?? ''));
       const varliklar = await varlikAnahtarlariniCoz(
         records.map((r) => r.assetKey ?? '').filter((a): a is string => a.length > 0),
       );
@@ -61,9 +61,9 @@ export const POST = apiUcu(
 
         const mevcut = hesapHarita.get(tel.accountName) ?? null;
         let tesisId: string | null = mevcut?.tesisId ?? null;
-        if (tel.plantCode) {
-          const tesis = tesisler.get(tel.plantCode);
-          if (!tesis) { defter.ekle(i, 'plantCode', 'bilinmeyen santral kodu'); continue; }
+        if (tel.facilityCode) {
+          const tesis = tesisler.get(tel.facilityCode);
+          if (!tesis) { defter.ekle(i, 'facilityCode', 'bilinmeyen tesis kodu'); continue; }
           tesisId = tesis.id;
         }
         if (!mevcut && !tel.accountType) {
@@ -83,7 +83,7 @@ export const POST = apiUcu(
           yazmaIzniZorunlu(kullanici, 'envanter', varlik.tesisId);
         }
 
-        // Hem hedef hem mevcut santral icin yazma izni sart.
+        // Hem hedef hem mevcut tesis icin yazma izni sart.
         yazmaIzniZorunlu(kullanici, 'envanter', tesisId);
         if (mevcut && mevcut.tesisId !== tesisId) {
           yazmaIzniZorunlu(kullanici, 'envanter', mevcut.tesisId);

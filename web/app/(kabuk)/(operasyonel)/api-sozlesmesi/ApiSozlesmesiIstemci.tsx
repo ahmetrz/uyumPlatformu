@@ -79,6 +79,24 @@ export default function ApiSozlesmesiIstemci({
         ]}
       />
 
+      {/* K24 · taslak uyarısı. Bu ekran statik demoya giriyor ve açık bir
+          adreste yayımlanıyor; orada duran bir sözleşme tarifi, kimse söz
+          vermemiş olsa da örtük bir taahhüt gibi okunur. Uyarı o örtüyü
+          kaldırır. Sözcük ("TASLAK") rengin YANINDA durur: durum yalnız
+          renkle anlatılmaz. K23 kapandığında (erişilebilir dağıtım ya da
+          ilk dış anahtar) bu satır kalkar. */}
+      <p
+        className="ab-panel-dip"
+        style={{
+          margin: '0 0 var(--s16)', paddingLeft: 'var(--s12)',
+          borderLeft: '3px solid var(--md)',
+        }}
+      >
+        <b>TASLAK.</b>{' '}
+        <code>v{SOZLESME_SURUMU.split('.')[0]}</code> taslaktır; ilk dış
+        tüketiciye kadar haber verilmeden değişebilir.
+      </p>
+
       <p className="ab-panel-dip" style={{ margin: '0 0 var(--s16)' }}>
         {anahtarCumlesi(ozet)}
         {mirasli > 0 && (

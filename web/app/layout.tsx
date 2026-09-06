@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     template: '%s — Uyum ve Yönetişim Platformu',
   },
   description:
-    'Enerji üretimi BT/OT yönetişim ve uyum platformu: regülasyonlar, uyum süreçleri, bulgular, kanıtlar ve tam denetim izi.',
+    'BT/OT yönetişim ve uyum platformu: regülasyonlar, uyum süreçleri, bulgular, kanıtlar ve tam denetim izi.',
 };
 
 export default function KokYerlesim({ children }: { children: React.ReactNode }) {

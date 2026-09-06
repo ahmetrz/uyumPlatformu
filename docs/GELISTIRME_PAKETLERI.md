@@ -1674,6 +1674,7 @@ birlikte ele alınır:
 | R0-4 | Bayat belgeler | `URUN_YEDEKLEME` | R3 ile |
 | R0-5 | `.abacus.donotdelete` | 5 Eylül 2026 temizliğinde silindi; ne olduğu hiç belgelenmemişti. Kalem kapandı. | Kapandı |
 | R0-6 | Uygulanmamış tasarım teslimi | Eylül 2026'da ayrı bir depoda alternatif bir tasarım sistemi üretildi (`tokens.css`, `TASARIM_TOKENLARI.md`, `TASARIM_PLANI.md`, `mockups.html`); ürünün canlı jetonlarıyla yalnız 1 jetonu ortaktı. Değerlendirildi ve **terk edildi**: ürün `web/app/kabuk.css` dilinde devam eder. Kayıt: `arsiv/tasarim-denemesi-2026-09` dalı. | Kapandı |
+| R0-7 | Belge–kod bağı koptu | `web/arac/sayimlar.mjs` ve `web/tests/belge-sayimlari.test.ts` duruyor ama Eylül 2026 temizliğinde içleri boşaltıldı: araç 6 046 → 2 633 bayt (`--yaz`, `--tablo`, `blok()`, `BASLA`/`BITIS` işaretleri düştü), test 199 → 63 satır (belgelere bakan yarısı ile `KANONIK`/`TARIHSEL` listeleri düştü). Sonuç: belgeler yeniden elle yazılmış sayaç taşımaya açık — bu belgede bir günde iki örneği çıktı. Bu belgedeki `node arac/sayimlar.mjs --yaz` şartı da bu yüzden karşılıksız. Geri kurulacaksa kaynak: `ahmetrz/uyumPlatformu-arsiv` deposu. | P0 ile |
 
 ---
 

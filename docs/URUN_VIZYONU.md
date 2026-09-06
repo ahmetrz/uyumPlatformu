@@ -184,4 +184,3 @@ yok; `kayda.com` yatırımcı elinde, satın alınabilir). İkinci sırada
 pazarında telaffuz sürtünmesi). Karar öncesi **TÜRKPATENT sınıf 9 + 42**
 ve **EUIPO** taraması bir marka vekiline yaptırılmalıdır — bu tarama
 henüz hiçbir aday için yapılmamıştır.
-

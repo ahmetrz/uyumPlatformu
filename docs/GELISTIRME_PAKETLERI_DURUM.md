@@ -347,7 +347,7 @@ Sıra: paket açılmadan düzeltilmesi gerekenler önce.
 | **Ç31** | K15 "kullanıcı çok kiracılı **olamaz**" | `Kullanici.eposta` bugün **global `@unique`**. Kriter 2 gereği `Kullanici` de `kiraciId` alınca kısıt `@@unique([kiraciId, eposta])`'ya döner ve aynı e-posta iki kiracıda açılabilir — K15 şema tarafından korunmaz, yalnız kural olarak kalır. | düşük |
 | **Ç32** | URN-KIR-003 (RLS) dayanağı `docs/POSTGRES_READINESS.md` | O belge **satır düzeyi güvenlikten (RLS) hiç söz etmiyor** — 288. satırdaki "satır seviyesinde kilitler" ifadesi MVCC kilitleriyle ilgilidir, RLS ile değil. RLS politikalarının tasarımı R5'in mevcut planında yok; P2 ile birlikte yazılmalı. | orta |
 
-### 6.1 Belge içi tutarsızlıklar (kod dışı)
+### 6.4 Belge içi tutarsızlıklar (kod dışı)
 
 - **P1'in bağımlılığı iki yerde farklı.** Paket başlığı (`:216-217`)
   "Bağımlılık: **P0**" diyor; §7 zinciri (`:1684`) P1'i P2/R5'ten

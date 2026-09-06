@@ -6,8 +6,10 @@
    paralel çalışılan bir dosyada satır kaydırmak riskli. Buradaki veriler
    yalnızca kod ve isimlerle bağlanır, seed.ts'in iç değişkenlerine dokunmaz.
 
-   Rakamlar Demo Enerji üretim portföyünün gerçek yapısına oturur; ZES, OEDAŞ
-   ve OEPSAŞ platform kapsamı dışıdır ve buraya girmez. */
+   Rakamlar kurgusal demo kiracısının üretim portföyüne göre ölçeklenmiştir;
+   hiçbir gerçek kuruluşun yapısını, sayısını ya da adını taşımaz. Kapsam
+   yalnız ÜRETİM portföyüdür: dağıtım ve perakende tüzel kişileri bu
+   kurulumun kapsamı dışındadır ve veriye girmez. */
 
 import type { PrismaClient } from '../lib/prisma-client/client';
 

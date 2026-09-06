@@ -53,8 +53,13 @@ export default async function Giris({ searchParams }: {
         background: 'var(--panel2)', color: 'var(--murekkep)' }}>
         {/* eslint-disable-next-line @next/next/no-img-element -- statik dışa aktarım: optimizasyon kapalı */}
         <img
-          src={`${TEMEL}/gorseller/jeotermal-genis.webp`}
-          alt="Saha A jeotermal santrali"
+          src={`${TEMEL}/gorseller/giris-genis.webp`}
+          /* Dekoratif fotoğrafik alan: ekranın bilgisi kardeş düğümlerde
+             (başlık, gövde, form). Saha ana ekranındaki aynı türden alanla
+             tutarlı olarak boş alt + aria-hidden alır; ekran okuyucu
+             gereksiz bir görsel tarifiyle oyalanmaz. */
+          alt=""
+          aria-hidden
           decoding="async"
           fetchPriority="high"
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%',

@@ -158,9 +158,11 @@ zamanı; mobil/tablet kullanım (hedef değil, reddedilmiş de değil).
 - **Kimlik kısıtı:** grup içi kurumsal araçtır; pazarlama dili, vaat ve
   slogan yoktur. Marka varlığı (logo) depoda yok; yer tutucu üretilmez,
   gelene kadar sözcük markası kullanılır.
-- **Fotoğraf politikası:** yalnız fotoğrafı sağlanmış santral görsel alır;
-  "yakın" bir santralin fotoğrafı asla ödünç alınmaz. Künye ve lisanslar
-  `web/public/gorseller/KUNYE.md`.
+- **Fotoğraf politikası:** yalnız görseli sağlanmış tesis görsel alır;
+  "yakın" bir tesisin görseli asla ödünç alınmaz. Gerçek bir tesisin
+  fotoğrafı depoya girmez. Künye ve lisanslar
+  `web/public/santraller/KUNYE.md` (tesis seti) ve
+  `web/public/gorseller/KUNYE.md` (giriş ve saha görselleri).
 
 ## Evidence on Hand
 
@@ -168,8 +170,12 @@ zamanı; mobil/tablet kullanım (hedef değil, reddedilmiş de değil).
   portföyü (adlar, tipler, iller) ve operasyon kayıtları (kullanıcılar,
   bulgular, aksiyonlar, kanıtlar, denetimler). Tamamı kurgudur, gerçek
   şirket verisi DEĞİLDİR ve öyle sunulmaz.
-- **Fotoğraflar:** `web/public/gorseller/` — 7 konu × 2 kırpım, serbest
-  lisans, künyeli. Saha A fotoğrafı gerçek Demo santralidir.
+- **Görseller:** `web/public/gorseller/` — 3 dosya (giriş hero'su + iki
+  saha arka planı), tamamı ürün sahibinin sağladığı üretilmiş (AI)
+  görsel, üçüncü taraf atıf yükümlülüğü yok; künyesi
+  `web/public/gorseller/KUNYE.md`. Tesis görsel seti ayrıdır:
+  `web/public/santraller/`, künyesi `web/public/santraller/KUNYE.md`.
+  Gerçek bir tesisin fotoğrafı depoda yoktur.
 - **Belgeler:** kök `README.md`, `INTEGRATION_DAY_RUNBOOK.md`,
   `docs/MIMARI.md`, `docs/ICERIK_MODELI.md`, `docs/ROTA_HARITASI.md`,
   `docs/VERI_NEREDEN_GELIR.md` ve `docs/URUN_YEDEKLEME.md`.

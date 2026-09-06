@@ -33,19 +33,20 @@ düzeyinde uygulanır (`lib/erisim.ts`).
 
 ## Product Purpose
 
-**Uyum ve Yönetişim Platformu**, Türkiye'de elektrik üretimi yapan bir şirketler
-grubu için IT/OT governance, uyum ve dönüşüm platformudur. Grubun santral
-portföyünde regülasyon gerekliliklerini (EPDK-SYM, CBDDÖ, ISO 27001, SPK-BS)
-tesis bazında uygulanabilir kontrollere indirger; her kontrol için durum,
-kanıt, bulgu, aksiyon ve doğrulamayı tek zincirde tutar; bunu varlık
-envanteri, risk kütüğü, denetim döngüsü ve projelerle bağlar.
+**Uyum ve Yönetişim Platformu**, çok tesisli bir kuruluş için IT/OT
+governance, uyum ve dönüşüm platformudur. Regülasyon gerekliliklerini tesis
+bazında uygulanabilir kontrollere indirger; her kontrol için durum, kanıt,
+bulgu, aksiyon ve doğrulamayı tek zincirde tutar; bunu varlık envanteri,
+risk kütüğü, denetim döngüsü ve projelerle bağlar. Bugünkü içerik seti
+EPDK-SYM, CBDDÖ, ISO 27001 ve SPK-BS çerçevelerini taşır; çerçeveler içerik
+paketidir, ürünün kendisi değil.
 
 Başarı: bir denetim geldiğinde "hangi santral hangi maddeyi hangi kanıtla
 karşılıyor" sorusunun ekrandan, tartışmasız ve tarihçesiyle yanıtlanabilmesi;
 gecikmiş ya da değerlendirilmemiş hiçbir şeyin sessizce kaybolmaması.
 
-**Varış noktası (onaylandı):** ürün Demo Enerji grubu içinde gerçek
-kullanıma girecek ve gerçek kurum sistemlerine bağlanacaktır. Bugünkü
+**Varış noktası (onaylandı):** ürün kurum içinde gerçek kullanıma girecek
+ve gerçek kurum sistemlerine bağlanacaktır. Bugünkü
 "hiçbir gerçek sisteme bağlı değil" sınırı geçicidir; bir ürün kararı
 değildir. Tasarım ve mimari kararlar bu hedefe göre verilir, demo
 kolaylığına göre değil.
@@ -163,10 +164,10 @@ zamanı; mobil/tablet kullanım (hedef değil, reddedilmiş de değil).
 
 ## Evidence on Hand
 
-- **Örnek veri:** `web/prisma/seed*.ts` — Demo Enerji'nin kamuya açık
-  santral portföyü (adlar, tipler, iller) + kurgusal operasyon kayıtları
-  (kullanıcılar, bulgular, aksiyonlar, kanıtlar, denetimler). Kurgusal
-  kısım gerçek şirket verisi DEĞİLDİR ve öyle sunulmaz.
+- **Örnek veri:** `web/prisma/seed*.ts` — kurgusal demo kiracısı: tesis
+  portföyü (adlar, tipler, iller) ve operasyon kayıtları (kullanıcılar,
+  bulgular, aksiyonlar, kanıtlar, denetimler). Tamamı kurgudur, gerçek
+  şirket verisi DEĞİLDİR ve öyle sunulmaz.
 - **Fotoğraflar:** `web/public/gorseller/` — 7 konu × 2 kırpım, serbest
   lisans, künyeli. Saha A fotoğrafı gerçek Demo santralidir.
 - **Belgeler:** kök `README.md`, `INTEGRATION_DAY_RUNBOOK.md`,

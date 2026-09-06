@@ -55,9 +55,9 @@ kamuya açıktır ve tam girilebilir.
 "Gerçek kurum sistemine bağlanılmaz" kuralı **kurumun kendi** sistemleri
 içindir (AD, SIEM, PAM…). Resmî Gazete, EPDK, Siber Güvenlik Başkanlığı,
 KVKK, SPK, EPİAŞ, USOM, CISA, NVD gibi **kamuya açık resmî kaynaklar**
-`PRE_INTERNAL_INTEGRATION_READINESS.md`'deki "kamuya açık vendor uç noktası"
-sınıfındadır: **adresleri belgelenmiş sabit olarak koda girilebilir.**
-Şu şartlarla:
+**kamuya açık vendor uç noktası** sınıfındadır: kimlik gerektirmeyen,
+herkese açık uç nokta; **adresi belgelenmiş sabit olarak koda
+girebilir.** Şu şartlarla:
 
 1. Her kaynak `etkin = false` ile gelir; yalnız `yonetici` açar.
 2. Kaynağa gitmek için ortam değişkeni (`MEVZUAT_RADARI=1` vb.) **ve**
@@ -277,7 +277,7 @@ sözlük katmanını kurar).
    kurulu değilken "Tesis 360"; ikisi de aynı bileşenden. [URN-ALN-004]
 5. Kanıt paketi şema sürümü artmış; eski sürüm okuyucusu için alan adı
    eşleme notu paket başlığında. [URN-ALN-005]
-6. `İ/ı` yerel ayar testi ve mevcut 2 909 test yeşil (yeniden
+6. `İ/ı` yerel ayar testi ve mevcut test kümesi tümüyle yeşil (yeniden
    adlandırma sonrası). [URN-ALN-006]
 
 **Kararlar.** *Tablo yeniden adlandırma mı, görünüm mü?* **Varsayılan:**
@@ -931,13 +931,14 @@ dogrulayici.test.ts` (negatif ağırlıklı), `tests/surum-cok-sirali.test.ts`
 **Alan kodu:** `KAN-YED` (yedek) · `KAN-IMZ` (imza) · **Etki:** yüksek ·
 **Çaba:** orta
 
-**Bugün.** 8 adaptörün 7'si `kimlik_bekleniyor`; bağlantı **kurulum**
-işidir (`INTEGRATION_DAY_RUNBOOK.md`) ve Claude Code'un işi **değildir**
+**Bugün.** Adaptörlerin çoğu `kimlik_bekleniyor` (güncel sayı için
+`lib/uyum/disSaglayicilar.ts`); bağlantı **kurulum** işidir
+(`INTEGRATION_DAY_RUNBOOK.md`) ve Claude Code'un işi **değildir**
 (gerçek kimlik gerekir). Kanıt dosyası deposu **var** (UY-13,
 `lib/uyum/kanitDeposu.ts`: yerel dosya, içerik adresli, SHA-256, izinli
 MIME listesi; `kanitDosyasiYukle` eylemi). Ancak ürünün kendi yedeği
 (`arac/yedek.mjs`) yalnız veritabanını alır; `docs/URUN_YEDEKLEME.md`
-ve `docs/HAZIRLIK_DURUMU.md` hâlâ "kanıt dosyası yok" der (**bayat**).
+hâlâ "kanıt dosyası yok" der (**bayat**).
 İmza: `lib/uyum/disSaglayicilar.ts` `imza` ailesinde yalnız `kms_hsm`,
 `bagli:false`; paket `imzasiz`.
 
@@ -1669,10 +1670,10 @@ sürekliliği için kalır; içeriği yoktur.
 
 | # | Kalem | Ne yapılır | Not |
 |---|---|---|---|
-| R0-1 | Santral kesin koordinatları (17/17 yok) | Kurum koordinatları verir (`docs/SANTRAL_KOORDINAT_ADAYLARI.md` aday liste); Claude Code **yalnız** içe aktarım yolu ve "kesin/yaklaşık" işaretçisini ekler | Koordinat uydurulmaz |
+| R0-1 | Santral kesin koordinatları (17/17 yok) | Koordinatları kurum verir, depoda aday liste yok; Claude Code **yalnız** içe aktarım yolu ve "kesin/yaklaşık" işaretçisini ekler | Koordinat uydurulmaz |
 | R0-2 | Haritada ülke sınırı | `arac/turkiye-siniri.mjs` çıktısı haritaya bağlanır | Araç hazır |
 | R0-3 | `?next=` üreticisi | Giriş sonrası dönüş adresi üretilir; kapı zaten güvenli | Küçük |
-| R0-4 | Bayat belgeler | `URUN_YEDEKLEME`, `HAZIRLIK_DURUMU`, `CUSTOMER_REQUIREMENTS_STATUS` (2 746 → 2 909 test) | R3 ile |
+| R0-4 | Bayat belgeler | `URUN_YEDEKLEME` | R3 ile |
 | R0-5 | `.abacus.donotdelete` | Dokunulmaz; README'de bir satırla ne olduğu (bilinmiyorsa "bilinmiyor") yazılır | — |
 
 ---

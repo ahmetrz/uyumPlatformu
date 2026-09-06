@@ -185,8 +185,7 @@ değiştiği tek tabloda; ürün adı yapılandırmadan gelir.
 - `docs/TERIMLER_SOZLUGU.md`: çekirdek terimler sektör-nötr ("tesis",
   "birim", "öznitelik"); "santral, ünite, MWe" **enerji sözlüğü** başlığı
   altına taşınır (P1 ile birlikte uygulanır).
-- `README.md`, `PRE_INTERNAL_INTEGRATION_READINESS.md` giriş
-  paragrafları; `.github` şablonları.
+- `README.md` giriş paragrafları; `.github` şablonları.
 - Depo adı/klasörü değişmez (bu pakette); ad kararı sonrası ayrı küçük PR.
 
 **Kapsam dışı.** Kod değişikliği (P1'e); pazarlama metni; logo.
@@ -823,8 +822,8 @@ sahte istemcisi kullanılır).
 
 **Belgeler.** `docs/VERI_NEREDEN_GELIR.md` (yeni bölüm: mevzuat
 değişikliği nereden gelir), `docs/ROTA_HARITASI.md`, `README.md` modül
-listesi, `PRE_INTERNAL_INTEGRATION_READINESS.md` §1.1'e satır,
-`docs/TERIMLER_SOZLUGU.md` ("değişiklik adayı", "yayın kanalı").
+listesi, `docs/TERIMLER_SOZLUGU.md` ("değişiklik adayı", "yayın
+kanalı").
 
 **Kararlar.**
 - *Kaynak kataloğu ürünle gelsin mi?* **Varsayılan: evet, kapalı gelir**
@@ -954,9 +953,7 @@ tek sayfada hazırdır.
   ile karşılaştırır ve eksik/çürük dosyayı listeler; `--geri-yukle`
   tatbikatı dosyaları da doğrular. `tests/yedek-araci.test.ts` genişler.
 - **Belge düzeltme:** `docs/URUN_YEDEKLEME.md` ("kanıt dosyaları bugün
-  yok" satırları kaldırılır, yeni kapsam yazılır), `docs/HAZIRLIK_DURUMU.md`
-  §P2-7 ve "Özet" listesi, `PRE_INTERNAL_INTEGRATION_READINESS.md` §2.3
-  "kanıt paketi arşivlenmiyor" satırı güncel duruma göre.
+  yok" satırları kaldırılır, yeni kapsam yazılır).
 - **Zaman damgası sağlayıcısı:** `imza` ailesine `rfc3161` üyesi:
   `gereken`: TSA adresi, hesap (sır referansı), sertifika zinciri;
   `bagliDegilkenDavranis`: mevcut `imzasiz` davranışı. Bağlıyken paket
@@ -1664,9 +1661,10 @@ sürekliliği için kalır; içeriği yoktur.
 
 ---
 
-## 6. R0 · Bilinen açık kalemler (belgeden)
+## 6. R0 · Bilinen açık kalemler
 
-`docs/HAZIRLIK_DURUMU.md` P2/P3'ten, bu belgeyle birlikte ele alınır:
+Açık kalemlerin kütüğü artık bu belgedir; her kalem ilgili paketle
+birlikte ele alınır:
 
 | # | Kalem | Ne yapılır | Not |
 |---|---|---|---|
@@ -1674,7 +1672,7 @@ sürekliliği için kalır; içeriği yoktur.
 | R0-2 | Haritada ülke sınırı | `arac/turkiye-siniri.mjs` çıktısı haritaya bağlanır | Araç hazır |
 | R0-3 | `?next=` üreticisi | Giriş sonrası dönüş adresi üretilir; kapı zaten güvenli | Küçük |
 | R0-4 | Bayat belgeler | `URUN_YEDEKLEME` | R3 ile |
-| R0-5 | `.abacus.donotdelete` | Dokunulmaz; README'de bir satırla ne olduğu (bilinmiyorsa "bilinmiyor") yazılır | — |
+| R0-5 | `.abacus.donotdelete` | 5 Eylül 2026 temizliğinde silindi; ne olduğu hiç belgelenmemişti. Kalem kapandı. | Kapandı |
 
 ---
 

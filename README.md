@@ -1,4 +1,4 @@
-# Enerji Yönetişim Platformu
+# Uyum ve Yönetişim Platformu
 
 Demo Enerji üretim portföyü için IT/OT yönetişim, uyum, risk, denetim ve dönüşüm süreçlerini tek yerde yöneten kurumsal web uygulaması.
 

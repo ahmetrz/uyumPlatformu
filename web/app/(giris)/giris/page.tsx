@@ -66,7 +66,7 @@ export default async function Giris({ searchParams }: {
           flexDirection: 'column', justifyContent: 'space-between',
           padding: 'var(--s40) var(--s44)' }}>
           <p className="etiket" style={{ margin: 0, color: 'rgba(246,244,238,.72)' }}>
-            Enerji Yönetişim Platformu
+            Uyum ve Yönetişim Platformu
           </p>
           <div>
             <h1 className="ab-pano-basligi" style={{ margin: 0, maxWidth: 620 }}>

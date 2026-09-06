@@ -18,8 +18,8 @@ const BAKIM = process.env.BAKIM_MODU === '1';
 
 export const metadata: Metadata = {
   title: {
-    default: 'Enerji Yönetişim Platformu',
-    template: '%s — Enerji Yönetişim Platformu',
+    default: 'Uyum ve Yönetişim Platformu',
+    template: '%s — Uyum ve Yönetişim Platformu',
   },
   description:
     'Enerji üretimi BT/OT yönetişim ve uyum platformu: regülasyonlar, uyum süreçleri, bulgular, kanıtlar ve tam denetim izi.',

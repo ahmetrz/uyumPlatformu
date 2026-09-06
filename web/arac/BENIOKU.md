@@ -1,6 +1,6 @@
 # arac/ — görsel doğrulama araçları
 
-Enerji Yönetişim Platformu arayüzünün kalite ve doğrulama araçlarıdır.
+Uyum ve Yönetişim Platformu arayüzünün kalite ve doğrulama araçlarıdır.
 Tasarım sözleşmesi `../DESIGN.md` dosyasındadır. Bu araçlar üretim bundle'ına
 girmez.
 

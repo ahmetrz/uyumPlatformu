@@ -17,7 +17,7 @@ export default function KokHata({ error, reset }: {
           <div className="ab-sistem-sayfa">
             <header>
               <Link href="/" className="marka">DEMO ENERJİ</Link>
-              <span className="etiket">Yönetişim Platformu</span>
+              <span className="etiket">Uyum ve Yönetişim Platformu</span>
             </header>
             <main>
               <p className="kod">500 · Uygulama hatası</p>

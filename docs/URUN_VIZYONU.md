@@ -101,7 +101,7 @@ koddan · dosyayı değiştirmeden önce oku.
 
 | Eski (kurum içi) | Yeni (ürün) |
 |---|---|
-| Ürün adı "Enerji Yönetişim Platformu", tek ad | Çalışma adı **Regula** (geçici, §10); kiracı görünen adı marka yapılandırmasından; Demo adı yalnız referans kiracı verisinde |
+| Ürün adı "Uyum ve Yönetişim Platformu", tek ad | Çalışma adı **Regula** (geçici, §10); kiracı görünen adı marka yapılandırmasından; Demo adı yalnız referans kiracı verisinde |
 | Dil yalnız Türkçe | **Çok dilli**, Türkçe birinci dil; İngilizce ikinci; içerik paketleri kendi dilinde; terimler sektör sözlüğünden |
 | "Santral, ünite, MWe" alan dili | Çekirdek: "tesis, birim, öznitelik"; enerji sözlüğü "santral, üretim ünitesi, MWe" der |
 | Demo santral fotoğrafları, gerçek portföy seed'de | Demo kiracısı **tamamen kurgusal**; gerçek santral adı/fotoğrafı depoda yok; Demo verisi Demo kurulumunda |

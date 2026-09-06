@@ -33,7 +33,7 @@ düzeyinde uygulanır (`lib/erisim.ts`).
 
 ## Product Purpose
 
-**Enerji Yönetişim Platformu**, Türkiye'de elektrik üretimi yapan bir şirketler
+**Uyum ve Yönetişim Platformu**, Türkiye'de elektrik üretimi yapan bir şirketler
 grubu için IT/OT governance, uyum ve dönüşüm platformudur. Grubun santral
 portföyünde regülasyon gerekliliklerini (EPDK-SYM, CBDDÖ, ISO 27001, SPK-BS)
 tesis bazında uygulanabilir kontrollere indirger; her kontrol için durum,
@@ -134,10 +134,13 @@ zamanı; mobil/tablet kullanım (hedef değil, reddedilmiş de değil).
 
 ## Brand Commitments
 
-- **Ad:** Enerji Yönetişim Platformu. Tek ürün adı budur; kısa ad
-  yok. Sekme başlığı (`app/layout.tsx` şablonu), kabuk sözcük markaları
-  (`components/kabuk/Kabuk.tsx`: A monogram "ZE", B iki satırlı sözcük
-  markası, C künye) ve giriş ekranı bu adı taşır. Karar: ürün sahibi, 2026-09-01.
+- **Ad:** Uyum ve Yönetişim Platformu. Tek ürün adı budur; kısa ad
+  yok. Geçici tanımlayıcı addır: sektör taşımaz, marka değildir ve P0
+  bunu `MARKA_AD` yapılandırmasına taşıyacaktır. Sekme başlığı
+  (`app/layout.tsx` şablonu), kabuk sözcük markası
+  (`components/kabuk/Kabuk.tsx`: kiracı adı + iki satırlı ürün adı),
+  sistem sayfası künyesi ve giriş ekranı bu adı taşır. Karar: ürün
+  sahibi, 2026-09-01; ad 2026-09-06'da sektörsüz hâle getirildi.
 - **Kod adları kullanıcıya görünmez:** "Voltaj Atlas" ve "Atlas"
   taşınan tasarımın iç kod adlarıdır; rota grubu `(kabuk)`, `atlas-*`
   sınıfları, `kabuk.css` ve kod yorumlarında kalabilir, ancak arayüz

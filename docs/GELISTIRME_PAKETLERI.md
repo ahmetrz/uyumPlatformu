@@ -160,7 +160,7 @@ ayrı; depoda yalnız kurgusal demo kiracısı kalır.
 
 **Alan kodu:** `URN-KUR` · **Etki:** ön koşul · **Çaba:** düşük (belge)
 
-**Bugün.** `CLAUDE.md`: tek ürün adı "Enerji Yönetişim Platformu";
+**Bugün.** `CLAUDE.md`: tek ürün adı "Uyum ve Yönetişim Platformu";
 yalnız Türkçe; santral fotoğraf politikası; "grup içi kurumsal araç,
 pazarlama dili yok". `web/PRODUCT.md` aynı çerçevede. Seed Demo'nun
 kamuya açık portföyü (gerçek santral adları, bir gerçek fotoğraf).

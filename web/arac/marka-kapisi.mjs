@@ -23,18 +23,20 @@
    (b) Nöbetçi, adın görünmesi GEREKEN yüzeylerde geçer. Yalnız (a)
        ölçülseydi adı her yerden silmek de kapıyı geçerdi.
 
-   ── ÖLÜ YEDEK DİZGE ───────────────────────────────────────────────────
+   ── JS DEMETİ TARANMAZ ────────────────────────────────────────────────
    `marka.ts` şunu yazar: `process.env.NEXT_PUBLIC_MARKA_AD?.trim() ||
-   '<varsayılan>'`. Derleyici ortam değişkenini yerine gömer ama YEDEK
-   OPERANDI silmez; varsayılan dizge JS demetinde ölü kod olarak kalır.
-   Çalışma zamanında hiç okunmaz — nöbetçi kazanır, (b) bunu zaten
-   kanıtlar.
+   '<varsayılan>'`. Derleyici ortam değişkenini gömer ama yedek operandı
+   demette kalır. Bu bir sızıntı DEĞİL, gerekliliktir: o dizge yedeğin ta
+   kendisidir.
 
-   Bu yüzden ölçüm iki bölümdür: işlenmiş yüzeylerde (HTML, RSC yükü,
-   CSS, manifest) SIFIR tolerans; JS demetlerinde ise varsayılan yalnız
-   `||` operatörünün sağında, yani bir yedek operandı olarak durabilir.
-   Demette başka bir bağlamda geçmesi gerçek bir sızıntıdır: ikinci bir
-   doğruluk kaynağı demektir.
+   "Varsayılan demette yalnız `||` sağında durabilir" gibi bir kural
+   yazmıyoruz; o kural demet hakkında değil KÜÇÜLTÜCÜ hakkında bir
+   varsayım olurdu. Bugün `a||b` üretiliyor; yarın `a?a:b` üretilirse
+   kapı sebepsiz kırmızı yanardı.
+
+   Kapsam da kaybolmuyor: biri adı bir bileşene düz metin yazarsa,
+   nöbetçi koşusunda o ad İŞLENMİŞ YÜZEYDE görünür ve (a) onu yakalar.
+   Bu yüzden ölçüm `out/` altındaki `*.js` DIŞINDAKİ her şeydir.
 
    ── SINIR ─────────────────────────────────────────────────────────────
    Statik demo derlemesinde `/giris` bir yönlendirme koçanıdır: demo
@@ -73,14 +75,15 @@ function varsayilanAd() {
   return m[1];
 }
 
-/** Çıktıdaki bütün metin dosyaları — HTML, RSC yükü, JS demeti, CSS. */
+/** İşlenmiş yüzeyler — HTML, RSC yükü, JSON/manifest, CSS. `*.js` YOK
+    (yukarıya bakın: demetteki varsayılan yedeğin kendisidir). */
 function ciktiDosyalari(kok) {
   const cikti = [];
   const gez = (d) => {
     for (const ad of readdirSync(d)) {
       const tam = path.join(d, ad);
       if (statSync(tam).isDirectory()) gez(tam);
-      else if (/\.(html|txt|json|js|css|md|xml|webmanifest)$/.test(ad)) cikti.push(tam);
+      else if (/\.(html|txt|json|css|md|xml|webmanifest)$/.test(ad)) cikti.push(tam);
     }
   };
   gez(kok);
@@ -133,23 +136,10 @@ function main() {
 
   const dosyalar = ciktiDosyalari(CIKTI);
 
-  /* (a) — varsayılan ad işlenmiş yüzeylerde HİÇ geçmemeli; JS demetinde
-     yalnız `||` yedek operandı olarak durabilir (ölü kod). */
-  const kacir = (x) => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const YEDEK_OPERANDI = new RegExp(`\\|\\|\\s*["']${kacir(ad)}["']`, 'g');
-
-  const sizinti = [];
-  for (const f of dosyalar) {
-    const metin = readFileSync(f, 'utf8');
-    if (!metin.includes(ad)) continue;
-    const goreli = path.relative(CIKTI, f);
-
-    if (!f.endsWith('.js')) { sizinti.push(`${goreli} (işlenmiş yüzey)`); continue; }
-
-    /* Demet: yedek operandlarını düşür, kalan varsa gerçek sızıntıdır. */
-    const kalan = metin.replace(YEDEK_OPERANDI, '');
-    if (kalan.includes(ad)) sizinti.push(`${goreli} (demette yedek operandı DIŞINDA)`);
-  }
+  /* (a) — varsayılan ad işlenmiş yüzeylerin HİÇBİRİNDE geçmemeli. */
+  const sizinti = dosyalar
+    .filter((f) => readFileSync(f, 'utf8').includes(ad))
+    .map((f) => path.relative(CIKTI, f));
 
   /* (b) — nöbetçi, görünmesi gereken yüzeylerde geçmeli. */
   const eksik = [];
@@ -167,7 +157,7 @@ function main() {
 
   console.log(`\ntaranan çıktı dosyası: ${dosyalar.length}`);
   console.log(`(a) varsayılan ad sızıntısı: ${sizinti.length}`
-    + ' (işlenmiş yüzeylerde sıfır tolerans; demette yedek operandı serbest)');
+    + ' (işlenmiş yüzeyler; JS demeti taranmaz)');
   console.log(`(b) nöbetçi eksik olan yüzey: ${eksik.length} / ${YUZEYLER.length}`);
   console.log('not: statik demoda /giris bir yönlendirme koçanıdır; giriş ekranının '
     + 'hero metni ÖLÇÜLMEDİ (canlı sunucu ister).');

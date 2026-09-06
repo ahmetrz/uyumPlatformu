@@ -226,8 +226,8 @@ temizliği (P1'e — ürün adı bu paketin işidir, alan sözlüğü değil).
    **davranışsaldır**, kaynak taraması değil (`npm run marka:kapi`):
    nöbetçi bir adla statik demo derlemesi koşulur ve üretilen çıktıya
    bakılır. (a) `marka.ts` varsayılanı işlenmiş hiçbir yüzeyde (HTML,
-   RSC yükü, CSS, manifest) geçmez — JS demetindeki ölü yedek operandı
-   (`… || '<ad>'`) hariç; (b) nöbetçi ad, görünmesi gereken yüzeylerde
+   RSC yükü, CSS, manifest) geçmez; JS demeti **taranmaz** — oradaki
+   varsayılan yedeğin kendisidir, sızıntı değil; (b) nöbetçi ad, görünmesi gereken yüzeylerde
    geçer (kök ve giriş sekme başlıkları, kabuk sözcük markası ve onun
    erişilebilir adı). Ayrıca `web/DESIGN.md` ve `README.md` başlıkları
    varsayılandan sapmaz (`tests/marka-adi.test.ts`). Ad değişimi tek

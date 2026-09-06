@@ -187,6 +187,10 @@ elemedir. Bugün bilinen elenenler: **Regula** (regülasyon), **Kayda**
 (kayıt/kayda). Sebep: ada dayanan her kapı, arama ve günlük filtresi
 çakışan bir adla kullanılamaz hâle gelir.
 
+Bu ölçüt **gerekli ama yeterli değildir**: geçmesi adın uygun olduğunu
+değil, yalnız kod tabanıyla çakışmadığını gösterir. Marka uygunluğu ayrı
+bir sorudur ve aşağıdaki tescil taramasını bekler.
+
 Bu ölçüt 6 Eylül 2026'da ölçülerek eklendi: `MARKA_AD` varsayılanı
 denemek için "Kayda" yapıldığında ad sızıntısını arayan kapı dört
 dosyada yanlış alarm verdi — "Kayda git" düğmesi ve üç yorumdaki

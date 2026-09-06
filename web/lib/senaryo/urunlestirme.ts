@@ -55,7 +55,7 @@ export const URUNLESTIRME_SENARYOLARI: Senaryo[] = [
     onkosul: 'Ad geçici; kalıcı ad sonra verilecek. Kaynak taraması sözcük-olan adlarda yanlış alarm verdiği için davranış ölçümüne çevrildi',
     veriHali: 'çelişen',
     eylem: 'Nöbetçi bir adla statik demo derlemesi koşar ve üretilen çıktıya bakar',
-    beklenenSonuc: 'Varsayılan ad işlenmiş hiçbir yüzeyde geçmez (demetteki ölü yedek operandı hariç); nöbetçi ad sekme başlıklarında ve kabuk sözcük markasında görünür. Belgelerdeki başlıklar da varsayılandan sapmaz',
+    beklenenSonuc: 'Varsayılan ad işlenmiş hiçbir yüzeyde geçmez (JS demeti taranmaz — oradaki varsayılan yedeğin kendisidir); nöbetçi ad sekme başlıklarında ve kabuk sözcük markasında görünür. Belgelerdeki başlıklar da varsayılandan sapmaz',
     beklenenEkran: 'Sekme başlığı ve kabuk sözcük markası nöbetçi adı gösterir',
     beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
     katmanlar: ['DOMAIN', 'UI'],

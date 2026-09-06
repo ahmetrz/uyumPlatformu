@@ -104,10 +104,11 @@ Kaynak ağacına hiç bakmaz. `NEXT_PUBLIC_MARKA_AD` nöbetçi bir dizgeye
 `out/` altındaki üretilmiş dosyaları okur:
 
 - **(a)** `lib/marka.ts` varsayılanı işlenmiş hiçbir yüzeyde geçmemeli —
-  HTML, RSC yükü (`.txt`), CSS, manifest. JS demetinde yalnız `||`
-  operatörünün sağında durabilir: derleyici `env || 'varsayılan'`
-  ifadesinin yedek operandını silmez, o dizge ölü koddur ve çalışma
-  zamanında okunmaz.
+  HTML, RSC yükü (`.txt`), CSS, manifest. **`*.js` taranmaz:** derleyici
+  `env || 'varsayılan'` ifadesinin yedek operandını demette bırakır ve o
+  dizge sızıntı değil, yedeğin ta kendisidir. Kapsam kaybolmuyor — biri
+  adı bir bileşene düz metin yazarsa nöbetçi koşusunda işlenmiş yüzeyde
+  görünür (ölçüldü: tek bir bileşen sabiti 460 dosyada yakalandı).
 - **(b)** Nöbetçi ad, görünmesi gereken yüzeylerde geçmeli: kök ve giriş
   sekme başlıkları, kabuk sözcük markasının ikinci satırı ve onun
   `aria-label`'ı. Yalnız (a) ölçülseydi adı her yerden silmek de kapıyı

@@ -19,7 +19,7 @@ export const otKesifFiksturu: FiksturSeti = baglanmamisFikstur({
       {
         id: 'ot-asset-000001',
         name: 'kd3-plc-01',
-        serial_number: 'S71500-KD3-0011',
+        serial_number: 'S71500-SA3-0011',
         mac_address: ['00:1b:1b:11:22:01'],
         ip_addresses: ['10.60.20.11'],
         vendor: 'Siemens',
@@ -49,7 +49,7 @@ export const otKesifFiksturu: FiksturSeti = baglanmamisFikstur({
         tip: 'varlik',
         kaynakKayitId: 'ot-asset-000001',
         alanlar: {
-          hostname: 'kd3-plc-01', seriNo: 'S71500-KD3-0011', macAdresi: '00:1b:1b:11:22:01',
+          hostname: 'kd3-plc-01', seriNo: 'S71500-SA3-0011', macAdresi: '00:1b:1b:11:22:01',
           ipAdresi: '10.60.20.11', uretici: 'Siemens', model: 'SIMATIC S7-1500',
           firmware: '2.9.2', tesisKodu: TESIS_KODLARI.sahaa3, bolgeKodu: 'SAHA-A3-OT',
           turKodu: 'PLC',
@@ -80,8 +80,8 @@ export const otKesifFiksturu: FiksturSeti = baglanmamisFikstur({
 
   yinelenen: {
     satirlar: [
-      { id: 'ot-asset-000004', name: 'kd3-rtu-01', serial_number: 'RTU-KD3-0044' },
-      { id: 'ot-asset-000004', name: 'kd3-rtu-01', serial_number: 'RTU-KD3-0044' },
+      { id: 'ot-asset-000004', name: 'kd3-rtu-01', serial_number: 'RTU-SA3-0044' },
+      { id: 'ot-asset-000004', name: 'kd3-rtu-01', serial_number: 'RTU-SA3-0044' },
     ],
   },
 

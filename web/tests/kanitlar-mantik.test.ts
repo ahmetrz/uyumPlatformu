@@ -159,8 +159,8 @@ describe('mercek · arama · sıralama', () => {
     expect(aramadan(liste[0], 'a.5.1')).toBe(true);
     expect(aramadan(liste[2], 'açık port')).toBe(true);
     expect(aramadan(liste[2], 'res')).toBe(true);
-    expect(aramadan(liste[2], 'kulD')).toBe(true);
-    expect(aramadan(liste[3], 'kulD')).toBe(false);
+    expect(aramadan(liste[2], 'kullanıcı h')).toBe(true);
+    expect(aramadan(liste[3], 'kullanıcı h')).toBe(false);
     expect(aramadan(liste[1], '   ')).toBe(true);
   });
 

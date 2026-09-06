@@ -169,7 +169,7 @@ describe('Dosya adı', () => {
   });
 
   it('Türkçe harfleri korur', () => {
-    expect(guvenliDosyaAdi('Saha A Envanteri', 'csv')).toBe('Saha A-Envanteri.csv');
+    expect(guvenliDosyaAdi('Saha M DGKÇ Envanteri', 'csv')).toBe('Saha-M-DGKÇ-Envanteri.csv');
   });
 
   it('noktayı gövdede bırakmaz — çift uzantı saldırısı olmaz', () => {

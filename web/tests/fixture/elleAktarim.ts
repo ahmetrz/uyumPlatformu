@@ -23,7 +23,7 @@ const GECERLI_SATIRLAR: Satir[] = [
     'Record ID': 'SRT-0001',
     'Asset Tag': VARLIK_ETIKETLERI.sahaa3Scada,
     Hostname: 'kd3-scada-01',
-    'Serial Number': 'PE740-KD3-0001',
+    'Serial Number': 'PE740-SA3-0001',
     'MAC Address': '00:1B:1B:AA:BB:01',
     'IP Address': '10.60.10.11',
     Vendor: 'Dell',
@@ -38,7 +38,7 @@ const GECERLI_SATIRLAR: Satir[] = [
     'Record ID': 'SRT-0002',
     'Asset Tag': VARLIK_ETIKETLERI.sahaa3Ews,
     Hostname: 'kd3-ews-01',
-    'Serial Number': 'EWS-KD3-0002',
+    'Serial Number': 'EWS-SA3-0002',
     'MAC Address': '00:1B:1B:AA:BB:02',
     'IP Address': '10.60.10.12',
     Vendor: 'Siemens',
@@ -90,13 +90,13 @@ const YINELENEN_SATIRLAR: Satir[] = [
   {
     'Asset Tag': VARLIK_ETIKETLERI.sahaa3Otfw,
     Hostname: 'kd3-otfw-01',
-    'Serial Number': 'FG200F-KD3-0007',
+    'Serial Number': 'FG200F-SA3-0007',
     'Site Code': TESIS_KODLARI.sahaa3,
   },
   {
     'Asset Tag': VARLIK_ETIKETLERI.sahaa3Otfw,
     Hostname: 'kd3-otfw-01',
-    'Serial Number': 'FG200F-KD3-0007',
+    'Serial Number': 'FG200F-SA3-0007',
     'Site Code': TESIS_KODLARI.sahaa3,
   },
 ];
@@ -179,7 +179,7 @@ export const elleAktarimFiksturu: FiksturSeti = {
         alanlar: {
           etiket: VARLIK_ETIKETLERI.sahaa3Scada,
           hostname: 'kd3-scada-01',
-          seriNo: 'PE740-KD3-0001',
+          seriNo: 'PE740-SA3-0001',
           macAdresi: '00:1B:1B:AA:BB:01',
           ipAdresi: '10.60.10.11',
           uretici: 'Dell',
@@ -196,7 +196,7 @@ export const elleAktarimFiksturu: FiksturSeti = {
         kaynakKayitId: 'SRT-0002',
         alanlar: {
           etiket: VARLIK_ETIKETLERI.sahaa3Ews,
-          seriNo: 'EWS-KD3-0002',
+          seriNo: 'EWS-SA3-0002',
           tesisKodu: TESIS_KODLARI.sahaa3,
           turKodu: 'EWS',
         },

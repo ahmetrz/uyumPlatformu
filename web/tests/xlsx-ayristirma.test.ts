@@ -88,7 +88,7 @@ describe('dosyayiAyristir — donmuş .xlsx fikstürü', () => {
 
   it('baştaki ve sondaki boşluğu kırpar', async () => {
     const s = await dosyayiAyristir(tampon(), 'envanter.xlsx');
-    expect(s.satirlar[1]['Asset Tag']).toBe('GKC-PLC-04');
+    expect(s.satirlar[1]['Asset Tag']).toBe('SAC-PLC-04');
   });
 
   it('Türkçe karakterleri bozmaz', async () => {

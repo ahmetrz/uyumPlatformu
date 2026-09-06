@@ -21,7 +21,7 @@ export const edrFiksturu: FiksturSeti = baglanmamisFikstur({
       {
         device_id: 'edr0000000000000000000000000001',
         hostname: 'kd3-scada-01',
-        serial_number: 'PE740-KD3-0001',
+        serial_number: 'PE740-SA3-0001',
         mac_address: '00-1b-1b-aa-bb-01',
         local_ip: '10.60.10.11',
         system_manufacturer: 'Dell Inc.',
@@ -37,7 +37,7 @@ export const edrFiksturu: FiksturSeti = baglanmamisFikstur({
       kaynakKayitId: 'edr0000000000000000000000000001',
       alanlar: {
         hostname: 'kd3-scada-01',
-        seriNo: 'PE740-KD3-0001',
+        seriNo: 'PE740-SA3-0001',
         macAdresi: '00-1b-1b-aa-bb-01',
         ipAdresi: '10.60.10.11',
         uretici: 'Dell Inc.',

@@ -132,8 +132,8 @@ export default async function Sayfa() {
   /* Politika ↔ santral bağı şemada yabancı anahtarla değil, politika ADINDA
      kurulmuş (`${tesis.ad} — kontrol sistemi yedeklemesi`). `kapsam` alanı
      ayırt edici değil — santrallerin çoğunda aynı metin. Bu yüzden ad
-     önekiyle eşleştiriyoruz; ÖNCE UZUN ADLAR denenir ki "Kızıldere I JES"
-     kendinden uzun adlı "Kızıldere II JES"in politikasını kapmasın. Eşleşen
+     önekiyle eşleştiriyoruz; ÖNCE UZUN ADLAR denenir ki "Saha A-1 JES"
+     kendinden uzun adlı "Saha A-2 JES"in politikasını kapmasın. Eşleşen
      politika havuzdan düşer, iki santral aynı kaydı paylaşamaz.
 
      `tesisYedekGorunumu` bu kırılgan eşlemeyi bilerek TEKRARLAMIYOR —

@@ -222,7 +222,7 @@ export default function Portfoy({ satirlar, toplamGucMw, endeks, kapsamli = fals
                 /* İMLEÇLE SEÇİM YOK — bilinçli. Seçim sol paneli ve oradaki
                    birincil bağın hedefini belirliyor; imleç panele giderken
                    aradaki plakaların üzerinden geçtiği için hedef tek tık
-                   olmadan değişiyordu (ölçüldü: Kızıldere III → Sarıtepe RES).
+                   olmadan değişiyordu (ölçüldü: Saha A-3 → Saha D RES).
                    Klavye odağı kalır: orada odak görünür ve kullanıcı nereye
                    gittiğini bilir. Plakanın kendisi zaten santral dosyasına
                    giden bağdır; keşif oradan yürür. */

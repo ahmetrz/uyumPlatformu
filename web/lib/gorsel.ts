@@ -14,27 +14,27 @@ import { TEMEL } from './demo';
 
 
 /** Tam boy hero kırpımı üretilmiş anahtarlar (560px hero / 300px plaka).
-    Set: Ahmet'in sağladığı 17 temsilî görsel (10'u 2026-09-01, 7'si
+    Set: ürün sahibinin sağladığı 17 temsilî görsel (10'u 2026-09-01, 7'si
     2026-09-02), künye `public/santraller/KUNYE.md`. Portföydeki her tesis
     kendi görselini taşır. Anahtar → dosya adı `<anahtar>-<tip>.webp`. */
 const HERO: Record<string, string> = {
-  kizildere1: 'kizildere1-jes',
-  kizildere2: 'kizildere2-jes',
-  kizildere3: 'kizildere3-jes',
-  alasehir: 'alasehir-jes',
-  gokcedag: 'gokcedag-res',
-  ikizdere: 'ikizdere-hes',
-  kuzgun: 'kuzgun-hes',
-  beykoy: 'beykoy-hes',
-  cildir: 'cildir-hes',
-  mercan: 'mercan-hes',
-  tercan: 'tercan-hes',
-  saritepe: 'saritepe-res',
-  atakoy: 'atakoy-hes',
-  luleburgaz: 'luleburgaz-dgkc',
-  // Alaşehir'de iki tesis var: `alasehir` JES, `alasehirges` hibrit GES.
-  alasehirges: 'alasehir-ges',
-  demirciler: 'demirciler-res',
+  sahaa1: 'sahaa1-jes',
+  sahaa2: 'sahaa2-jes',
+  sahaa3: 'sahaa3-jes',
+  sahabjes: 'sahab-jes',
+  sahac: 'sahac-res',
+  sahaf: 'sahaf-hes',
+  sahaj: 'sahaj-hes',
+  sahai: 'sahai-hes',
+  sahak: 'sahak-hes',
+  sahah: 'sahah-hes',
+  sahag: 'sahag-hes',
+  sahad: 'sahad-res',
+  sahal: 'sahal-hes',
+  saham: 'saham-dgkc',
+  // Saha B'de iki tesis var: `sahabjes` JES, `sahabges` hibrit GES.
+  sahabges: 'sahab-ges',
+  sahae: 'sahae-res',
   // Üretim tesisi değil, genel müdürlük binası — tipi `MERKEZ`.
   merkezbt: 'merkezbt-merkez',
 };

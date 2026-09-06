@@ -247,7 +247,7 @@ export function YeniOlayFormu({
     <div style={{ display: 'grid', gap: 'var(--s16)' }}>
       <Alan etiket="Başlık" zorunlu>
         <input className="ab-gr" value={v.baslik} autoFocus
-          placeholder="Örn. Kızıldere III DCS operatör istasyonunda yetkisiz oturum"
+          placeholder="Örn. Saha A-3 DCS operatör istasyonunda yetkisiz oturum"
           onChange={(e) => setV({ ...v, baslik: e.target.value })} />
       </Alan>
 

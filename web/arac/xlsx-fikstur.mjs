@@ -45,10 +45,10 @@ const BASLIKLAR = ['Asset Tag', 'Site Code', 'Device Type', 'Firmware Version', 
 /* Satırlar JavaScript tipleriyle verilir; yazıcı hücre tipini buradan
    türetir (tarih hücresi gerçekten tarih hücresi olur, metin değil). */
 const SATIRLAR = [
-  ['KD3-SCADA-01', 'KIZILDERE3', 'SCADA-SRV', 2.11, new Date(Date.UTC(2026, 2, 14)), true],
+  ['KD3-SCADA-01', 'SAHA-A3', 'SCADA-SRV', 2.11, new Date(Date.UTC(2026, 2, 14)), true],
   [],                                                    // tümü boş → düşer
-  ['  GKC-PLC-04  ', 'GOKCEDAG', 'PLC', null, null, false], // boşluk + BOŞ hücre
-  ['ŞŞ-ÖLÇÜM-09', 'ALASEHIR', 'Sıcaklık ölçer', 0, null, null], // Türkçe + sıfır
+  ['  GKC-PLC-04  ', 'SAHA-C', 'PLC', null, null, false], // boşluk + BOŞ hücre
+  ['ŞŞ-ÖLÇÜM-09', 'SAHA-B', 'Sıcaklık ölçer', 0, null, null], // Türkçe + sıfır
 ];
 
 const { utils, write } = await import('xlsx');

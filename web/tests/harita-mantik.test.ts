@@ -21,7 +21,7 @@ import type { PortfoySatiri } from '@/app/(tam)/portfoy/mantik';
 function santral(ek: Partial<PortfoySatiri> & { id: string }): PortfoySatiri {
   return {
     kod: ek.id.toUpperCase(), ad: ek.id,
-    tipKod: 'JES', tipAdi: 'Jeotermal', tuzelKisi: 'Zorlu Jeotermal',
+    tipKod: 'JES', tipAdi: 'Jeotermal', tuzelKisi: 'Demo Jeotermal',
     konum: null, gucMw: 100, gorselAnahtari: null, kritiklik: null,
     enlem: null, boylam: null,
     konumKaynagi: null, konumDogrulandi: false,

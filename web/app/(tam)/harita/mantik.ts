@@ -147,7 +147,7 @@ export type Isaret = {
   r: number;
   /* Etiketin işarete göre yönü. Yığında işaretler bir çember üzerine
      dağıtılır; etiket hep sağa yazılsaydı komşusunun üstüne binerdi
-     (ölçüldü: Kızıldere üçlüsü, Osmaniye üçlüsü). Etiket, işaretin
+     (ölçüldü: Saha A üçlüsü, Osmaniye üçlüsü). Etiket, işaretin
      merkezden İTİLDİĞİ yöne yazılır. */
   etiketDx: number;
   etiketDy: number;

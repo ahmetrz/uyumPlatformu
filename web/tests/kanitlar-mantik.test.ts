@@ -21,7 +21,7 @@ function kanit(ek: Partial<KanitSatiri> = {}): KanitSatiri {
   return {
     id: 'k1', ad: 'Yedekleme politikası v3', tip: 'politika', dosyaYolu: null,
     baslangic: gunOnce(10), toplanma: null, bitis: null,
-    yukleyen: 'Ayşe Kaya', sahip: null, kaynakSistem: null, otomatik: false,
+    yukleyen: 'Kullanıcı G', sahip: null, kaynakSistem: null, otomatik: false,
     gizlilik: 'kurumsal', surum: 1,
     durum: 'gecerli', kaynakUrl: null, dosyaHash: null,
     dosyaAdi: null, dosyaTipi: null, dosyaBoyut: null, depoAnahtari: null,
@@ -128,7 +128,7 @@ describe('mercek · arama · sıralama', () => {
   const liste: KanitSatiri[] = [
     kanit({ id: 'taze', ad: 'Erişim listesi', tip: 'kayit', baslangic: gunOnce(5), maddeler: [madde] }),
     kanit({ id: 'yeni', ad: 'Firewall konfigürasyonu', tip: 'konfigurasyon', baslangic: gunOnce(120), maddeler: [madde] }),
-    kanit({ id: 'eski', ad: 'Pentest raporu', tip: 'rapor', baslangic: gunOnce(400), yukleyen: 'Mehmet Öz',
+    kanit({ id: 'eski', ad: 'Pentest raporu', tip: 'rapor', baslangic: gunOnce(400), yukleyen: 'Kullanıcı H',
       bulgular: [{ id: 'b1', baslik: 'Açık port bulgusu', durum: 'acik', tesisKod: 'RES' }] }),
     kanit({ id: 'bagsiz', ad: 'Eski politika', tip: 'politika', baslangic: gunOnce(20), yukleyen: null }),
   ];
@@ -159,8 +159,8 @@ describe('mercek · arama · sıralama', () => {
     expect(aramadan(liste[0], 'a.5.1')).toBe(true);
     expect(aramadan(liste[2], 'açık port')).toBe(true);
     expect(aramadan(liste[2], 'res')).toBe(true);
-    expect(aramadan(liste[2], 'mehmet')).toBe(true);
-    expect(aramadan(liste[3], 'mehmet')).toBe(false);
+    expect(aramadan(liste[2], 'kulD')).toBe(true);
+    expect(aramadan(liste[3], 'kulD')).toBe(false);
     expect(aramadan(liste[1], '   ')).toBe(true);
   });
 

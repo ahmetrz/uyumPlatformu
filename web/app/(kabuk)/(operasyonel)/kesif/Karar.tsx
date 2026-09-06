@@ -300,7 +300,7 @@ export function ElleAktarimFormu({ yazabilir }: { yazabilir: boolean }) {
         <Alan etiket="Kaynak sistem" zorunlu>
           <input className="ab-gr" value={kaynakSistem}
             onChange={(e) => setKaynakSistem(e.target.value)}
-            placeholder="ör. SCADA envanter dışa aktarımı — Kızıldere II" />
+            placeholder="ör. SCADA envanter dışa aktarımı — Saha A-2" />
         </Alan>
         <Alan etiket="Biçim">
           <select className="ab-gr" value={bicim}

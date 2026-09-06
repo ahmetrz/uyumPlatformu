@@ -5,7 +5,7 @@
    yanıtlar. Yedek parça başka bir soruyu yanıtlar: "bu kart BUGÜN
    bozulursa elimizde var mı, yoksa ne kadar bekleriz?"
 
-   OT'de çoğu zaman ikincisi daha acildir. Tedarik süresi aylarla
+   OT'de çoğu zaman ikincisi daha asahak. Tedarik süresi aylarla
    ölçülen bir PLC kartı, üretimi durduran bir arızada EOL tarihinden
    çok daha belirleyicidir.
 

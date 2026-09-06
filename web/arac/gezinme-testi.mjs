@@ -94,9 +94,9 @@ async function girisYap(s) {
   await s.goto(`${KOK}/giris`, { waitUntil: 'load' });
   if (!s.url().includes('/giris')) return;
   for (let d = 1; d <= 3; d += 1) {
-    await s.fill('input[type=email]', 'ahmet.terzi@zorlu.com');
+    await s.fill('input[type=email]', 'kullanici.a@demo.local');
     await s.fill('input[type=password]', 'Enerji!2026');
-    const ok = (await s.inputValue('input[type=email]')) === 'ahmet.terzi@zorlu.com'
+    const ok = (await s.inputValue('input[type=email]')) === 'kullanici.a@demo.local'
       && (await s.inputValue('input[type=password]')).length > 0;
     if (ok) break;
     await s.waitForTimeout(300 * d);

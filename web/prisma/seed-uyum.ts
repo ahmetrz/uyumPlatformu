@@ -51,19 +51,19 @@ const YENI_MADDELER: [string, string, string | null, string, string | null][] = 
    tedarikçi erişimi olan sahada 6.1.2 uyumsuz, doğrulanmamış geçidi olan
    sahada 6.1.1 kısmi, restore testi 180 günü aşan sahada 8.1.2 kısmi. */
 const DURUM: Record<string, Record<string, string>> = {
-  'KIZILDERE-3': {
+  'SAHA-A3': {
     'EPDK-SYM-6.1.1': 'kismi', 'EPDK-SYM-6.1.2': 'uyumsuz', 'EPDK-SYM-6.2.1': 'uyumsuz',
     'EPDK-SYM-8.1.1': 'uyumlu', 'EPDK-SYM-8.1.2': 'kismi', 'EPDK-SYM-8.2.1': 'uyumlu',
   },
-  'KIZILDERE-2': {
+  'SAHA-A2': {
     'EPDK-SYM-6.1.1': 'uyumlu', 'EPDK-SYM-6.1.2': 'kismi', 'EPDK-SYM-6.2.1': 'kismi',
     'EPDK-SYM-8.1.1': 'uyumlu', 'EPDK-SYM-8.1.2': 'uyumlu', 'EPDK-SYM-8.2.1': 'kismi',
   },
-  'GOKCEDAG-RES': {
+  'SAHA-C-RES': {
     'EPDK-SYM-6.1.1': 'uyumsuz', 'EPDK-SYM-6.1.2': 'kismi', 'EPDK-SYM-6.2.1': 'uyumlu',
     'EPDK-SYM-8.1.1': 'kismi', 'EPDK-SYM-8.1.2': 'incelemede', 'EPDK-SYM-8.2.1': 'uyumlu',
   },
-  'SARITEPE-RES': {
+  'SAHA-D-RES': {
     'EPDK-SYM-6.1.1': 'kismi', 'EPDK-SYM-6.1.2': 'uyumlu', 'EPDK-SYM-6.2.1': 'kismi',
     'EPDK-SYM-8.1.1': 'uyumlu', 'EPDK-SYM-8.1.2': 'uyumsuz', 'EPDK-SYM-8.2.1': 'incelemede',
   },
@@ -160,8 +160,8 @@ export async function uyumKatalogu(db: PrismaClient) {
             ? { kanitBayat: true, guven: 'bayat_kanit' }
             : { kanitBayat: false, guven: GUVEN[durum] ?? 'kanit_yok' }),
           sorumluId: maddeKod.startsWith('EPDK-SYM-6')
-            ? K['burak.sahin']?.id ?? null
-            : K['selin.aydin']?.id ?? null,
+            ? K['kullanici.c']?.id ?? null
+            : K['kullanici.b']?.id ?? null,
           sonDegerlendirme: durum === 'incelemede' ? null : gun(-Math.floor(20 + Math.abs(maddeKod.length * 7) % 160)),
           not: durum === 'uyumsuz'
             ? 'Tespit doğrulandı; düzeltici aksiyon bulgu üzerinden takip ediliyor.'

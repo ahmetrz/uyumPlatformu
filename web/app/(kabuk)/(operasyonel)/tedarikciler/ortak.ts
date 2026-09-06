@@ -306,7 +306,7 @@ export function ayYil(iso: string | null): string {
   return AY_YIL.format(new Date(iso)).replace('.', '');
 }
 
-/** Santral hücresi: birden fazlası `Kızıldere III JES +14` biçiminde kısalır.
+/** Santral hücresi: birden fazlası `Saha A-3 JES +14` biçiminde kısalır.
     Tamamı ipucunda ve çekmecede — kısaltma bilgi saklamaz, taşır.
     Üç ad 190px kolona sığmıyor ve üçü birden kırpılıyordu; en çok varlığı
     olan santral yazılır, kalanı sayıya iner. */

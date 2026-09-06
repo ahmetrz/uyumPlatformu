@@ -1,7 +1,7 @@
 # Ürün Vizyonu — Sektör ve Ülke Bağımsız Yönetişim, Uyum ve OT Envanter Platformu
 
 **Tarih:** 5 Eylül 2026 · **Durum:** karar verildi, uygulama başlıyor ·
-**Kaynak:** pazar kıyası çalışması + ürünleştirme kararı (Ahmet, 5 Eylül 2026)
+**Kaynak:** pazar kıyası çalışması + ürünleştirme kararı (ürün sahibi, 5 Eylül 2026)
 
 > Bu belge ürünün **ne olduğunu** ve **ne olmadığını** yazar. Nasıl
 > yapılacağı `docs/GELISTIRME_PAKETLERI.md`'de (Dalga 0 ve sonrası).
@@ -21,7 +21,7 @@ olsun aynı çekirdekle çalışan bir yönetişim platformudur.
 
 ## 2. Nereden geliyor, nereye gidiyor
 
-Ürün, Zorlu Enerji BT/OT ekibi için kurum içi geliştirilen "Zorlu Enerji
+Ürün, Demo Enerji BT/OT ekibi için kurum içi geliştirilen "Demo Enerji
 Yönetişim Platformu"ndan doğar. 5 Eylül 2026 pazar kıyası şunu gösterdi:
 BT+OT tek ağaç, madde bazlı uygulanabilirlik, regülasyon sürüm/fark
 motoru, "bilinmeyen ≠ sıfır", yedek ve tedarikçi erişimini uyum kaydına
@@ -29,7 +29,7 @@ bağlama — bu özellikler taranan 98 ürünün hiçbirinde bir arada yok;
 kurumsal GRC OT'yi tanımıyor, OT güvenlik platformları uyum yaşam
 döngüsü sunmuyor, regülasyon istihbaratı araçları Türkiye'yi kapsamıyor.
 
-Karar: bu çekirdek **ürünleştirilir**. Zorlu Enerji ilk ve **referans
+Karar: bu çekirdek **ürünleştirilir**. Demo Enerji ilk ve **referans
 kiracı** olur; ürün adı, markası, dili ve içeriği ondan bağımsızlaşır.
 
 ## 3. Ürünün üç katmanı
@@ -40,7 +40,7 @@ kiracı** olur; ürün adı, markası, dili ve içeriği ondan bağımsızlaşı
 | **İçerik paketleri** | Çerçeve/regülasyon maddeleri (sürümlü), çapraz eşlemeler (STRM), bildirim yükümlülükleri, denetim form şablonları, mevzuat kaynak katalogları, sektör terim sözlükleri, demo verisi | Ürün ekibi + ortaklar + kiracı | Ülke × sektör × dil etiketli; imzalı; kiracıya kurulur; güncellemesi fark motorunu besler |
 | **Modüller** | OT derinliği (pasif keşif, topoloji sapması, güvenlik duvarı kural analizi, IEC 62443 seviye, firmware/EOL), kişisel veri koruma, süreklilik/BIA, parasal risk, öneri (YZ) yardımcısı | Ürün ekibi | Kiracı başına açılır/kapanır; OT modülleri OT'si olmayan kiracıda görünmez |
 
-Zorlu Enerji'nin bugünkü kurulumu = çekirdek + `TR-ENERJI` içerik paketi
+Demo Enerji'nin bugünkü kurulumu = çekirdek + `TR-ENERJI` içerik paketi
 (EPDK Yetkinlik Modeli, BİG Rehberi, SPK VII-128.9, KVKK) + uluslararası
 paketler (ISO 27001, IEC 62443, SCF) + OT modülleri + enerji sektör
 sözlüğü ("tesis" yerine "santral", "birim" yerine "üretim ünitesi", MWe
@@ -101,10 +101,10 @@ koddan · dosyayı değiştirmeden önce oku.
 
 | Eski (kurum içi) | Yeni (ürün) |
 |---|---|
-| Ürün adı "Zorlu Enerji Yönetişim Platformu", tek ad | Çalışma adı **Regula** (geçici, §10); kiracı görünen adı marka yapılandırmasından; Zorlu adı yalnız referans kiracı verisinde |
+| Ürün adı "Enerji Yönetişim Platformu", tek ad | Çalışma adı **Regula** (geçici, §10); kiracı görünen adı marka yapılandırmasından; Demo adı yalnız referans kiracı verisinde |
 | Dil yalnız Türkçe | **Çok dilli**, Türkçe birinci dil; İngilizce ikinci; içerik paketleri kendi dilinde; terimler sektör sözlüğünden |
 | "Santral, ünite, MWe" alan dili | Çekirdek: "tesis, birim, öznitelik"; enerji sözlüğü "santral, üretim ünitesi, MWe" der |
-| Zorlu santral fotoğrafları, gerçek portföy seed'de | Demo kiracısı **tamamen kurgusal**; gerçek santral adı/fotoğrafı depoda yok; Zorlu verisi Zorlu kurulumunda |
+| Demo santral fotoğrafları, gerçek portföy seed'de | Demo kiracısı **tamamen kurgusal**; gerçek santral adı/fotoğrafı depoda yok; Demo verisi Demo kurulumunda |
 | "Gerçek kurum sistemine bağlanılmaz" | "Gerçek **müşteri** sistemine bağlanılmaz" — kural aynı; kamuya açık resmî kaynaklar belgelenmiş sabit, kapalı gelir |
 | Tek kurum, SQLite | Çok kiracı, PostgreSQL (RLS), nesne deposu, kuyruk, sır kasası — sağlayıcılar gerçekten bağlanabilir; kimlik kurulumda |
 | Pazarlama dili yok | Ürün sitesi/pazarlama **bu depoda yok**; ürün içi metin yine olgu dili ("12 gün gecikmiş", "kritik!" değil) |
@@ -126,7 +126,7 @@ koddan · dosyayı değiştirmeden önce oku.
 
 ## 8. Başarı ölçüleri (ilk 12 ay, ürün için)
 
-- Referans kiracı (Zorlu Enerji) gerçek sistemlere bağlı, EPDK sektörel
+- Referans kiracı (Demo Enerji) gerçek sistemlere bağlı, EPDK sektörel
   denetimini platformdan verdi.
 - `TR-ENERJI` içerik paketi tam (EPDK Yetkinlik Modeli tüm sektör ekleri,
   BİGR, SPK, KVKK) ve en az bir dış kuruluşta kuruldu.

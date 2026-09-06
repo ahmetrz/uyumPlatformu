@@ -49,7 +49,7 @@ export async function kanitVerisi(db: PrismaClient) {
   const K = Object.fromEntries(
     (await db.kullanici.findMany()).map((x) => [x.eposta.split('@')[0], x]),
   );
-  const sahipler = ['ahmet.terzi', 'selin.aydin', 'burak.sahin', 'mehmet.kaya', 'zeynep.arslan'];
+  const sahipler = ['kullanici.a', 'kullanici.b', 'kullanici.c', 'kullanici.d', 'kullanici.e'];
 
   const durumlar = await db.maddeDurumu.findMany({
     include: {

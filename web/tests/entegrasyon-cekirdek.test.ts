@@ -384,8 +384,8 @@ describe('Connector senkronizasyon çekirdeği (izole DB kopyası)', () => {
    görebiliyordu. Kaydın beyan edilen santrali artık satırda durur.
    ──────────────────────────────────────────────────────────────────── */
 describe('Keşif kaydının santrali', () => {
-  const KOD_A = 'ALASEHIR-JES';
-  const KOD_B = 'ATAKOY-HES';
+  const KOD_A = 'SAHA-B-JES';
+  const KOD_B = 'SAHA-L-HES';
   let tesisA = '', tesisB = '';
 
   beforeAll(async () => {

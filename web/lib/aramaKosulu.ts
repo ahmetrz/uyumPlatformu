@@ -8,7 +8,7 @@ import type { Prisma } from './prisma-client/client';
    `LIKE`'ı ASCII harfler için BÜYÜK/KÜÇÜK HARF DUYARSIZDIR. PostgreSQL'in
    `LIKE`'ı DUYARLIDIR.
 
-   Yani bugün "kizildere" yazınca "Kızıldere I JES" bulunuyor; PostgreSQL'e
+   Yani bugün "saha-ı" yazınca "Saha I HES" bulunuyor; PostgreSQL'e
    geçildiği gün aynı arama HİÇBİR ŞEY bulmuyor. Hata vermez, boş döner —
    komut paletinin tamamı sessizce işlevsizleşir ve sebebi aylarca "arama
    kötü" diye aranır.

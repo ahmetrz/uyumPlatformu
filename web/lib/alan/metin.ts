@@ -26,7 +26,7 @@
      katlama onları BOZAR.
 
    ── I AİLESİ TEK BİR HARFE İNDİRİLİR ──────────────────────────────────
-   `İ`, `I`, `ı`, `i` → hepsi `i`. Bu, `KIZILDERE` ile `KİZİLDERE`yi de
+   `İ`, `I`, `ı`, `i` → hepsi `i`. Bu, `SAHA-A` ile `KİZİLDERE`yi de
    eşitler; yani biraz FAZLA eşleştirir. Ödünleşim bilerek bu yöne
    verildi: kimlik karşılaştırmasında bir zafiyet eşleşmesini KAÇIRMAK,
    fazladan bir aday üretmekten çok daha pahalıdır — ikincisini insan

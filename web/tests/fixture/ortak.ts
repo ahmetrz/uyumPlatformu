@@ -28,19 +28,19 @@ import type { FiksturSeti } from '@/lib/entegrasyon/sertifika';
 
 /** Seed'de gerçekten bulunan santral kodları. */
 export const TESIS_KODLARI = {
-  kizildere3: 'KIZILDERE-3',
-  kizildere2: 'KIZILDERE-2',
-  alasehirJes: 'ALASEHIR-JES',
-  gokcedag: 'GOKCEDAG-RES',
+  sahaa3: 'SAHA-A3',
+  sahaa2: 'SAHA-A2',
+  sahabjesJes: 'SAHA-B-JES',
+  sahac: 'SAHA-C-RES',
 } as const;
 
 /** Seed'de gerçekten bulunan varlık etiketleri (eşleşme yolu sınanabilsin). */
 export const VARLIK_ETIKETLERI = {
-  kizildere3Scada: 'KIZILDERE3-SCADA-01',
-  kizildere3Ews: 'KIZILDERE3-EWS-01',
-  kizildere3Otfw: 'KIZILDERE3-OTFW-01',
-  kizildere2Hmi: 'KIZILDERE-2-HMI-01',
-  alasehirScada: 'ALASEHIR-JES-SCADA-01',
+  sahaa3Scada: 'SAHA-A3-SCADA-01',
+  sahaa3Ews: 'SAHA-A3-EWS-01',
+  sahaa3Otfw: 'SAHA-A3-OTFW-01',
+  sahaa2Hmi: 'SAHA-A2-HMI-01',
+  sahabjesScada: 'SAHA-B-JES-SCADA-01',
 } as const;
 
 /** Platformda KASTEN tanımsız — "eksik referans" durumu için. */

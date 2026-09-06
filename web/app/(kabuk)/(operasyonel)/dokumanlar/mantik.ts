@@ -225,7 +225,7 @@ export function mercekUygula(
 
 /* Arama havuzu: kod, başlık, tür sözcüğü, sahip, bağlı madde kodu, santral
    kodu. Katlama `tr-TR` yereliyle yapılır — ev kuralı (`lib/aramaKosulu.ts`
-   § Türkçe uyarısı): UYDURMA ASCII katlaması YOK. Yani "KIZILDERE" içindeki
+   § Türkçe uyarısı): UYDURMA ASCII katlaması YOK. Yani "SAHA-A" içindeki
    I küçüldüğünde 'ı' olur ve ASCII 'i' ile yazılan sorgu eşleşmez. Bu bilinen
    sınır burada da aynen geçerlidir; yanlış katlama, hiç katlamamaktan zor
    teşhis edilir. */

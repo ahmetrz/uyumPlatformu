@@ -243,7 +243,7 @@ const T: AyarTanimi[] = [
     etiket: 'Ayak künye metni',
     aciklama: 'Her ekranın ayağında görünen kurum/platform adı. Sürüm ve ortam koddan gelir.',
     etki: ['Kabuk · ayak'],
-    varsayilan: 'Zorlu Enerji Yönetişim Platformu',
+    varsayilan: 'Enerji Yönetişim Platformu',
     sema: z.string().trim().min(3).max(80),
   },
   /* ── Sistem ────────────────────────────────────────────────────────── */

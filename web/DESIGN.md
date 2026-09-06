@@ -1,5 +1,5 @@
 ---
-name: Zorlu Enerji Yönetişim Platformu
+name: Enerji Yönetişim Platformu
 description: Tek koyu kabuk, Saha dili (Barlow Condensed · Inter · JetBrains Mono, bakır aksan), üç yoğunluk (amiral · operasyonel · tezgâh), radius 0, saç çizgisiyle kompozisyon, mono/tabular sayı.
 colors:
   zemin: "#0A0C0D"
@@ -136,7 +136,7 @@ components:
     textColor: "{colors.murekkep}"
 ---
 
-# Design System: Zorlu Enerji Yönetişim Platformu
+# Design System: Enerji Yönetişim Platformu
 
 <!-- Güncel tasarım sözleşmesi. Token kaynağı `app/kabuk.css`, ortak
      primitifler `components/kabuk/*.tsx`; doğrulama araçları `arac/`

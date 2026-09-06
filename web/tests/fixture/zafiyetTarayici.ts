@@ -12,7 +12,7 @@ import { TANIMSIZ_TESIS_KODU, VARLIK_ETIKETLERI, baglanmamisFikstur } from './or
 export const zafiyetTarayiciFiksturu: FiksturSeti = baglanmamisFikstur({
   tip: 'vuln_scanner',
   kaynakSistem: 'SERTIFIKA-SANDBOX · zafiyet tarayıcı sonuç okuması',
-  yapilandirma: { izinliBolgeler: ['KIZILDERE3-OT-DMZ'], disaAktarimIzni: false, sonucKapsami: 'agent' },
+  yapilandirma: { izinliBolgeler: ['SAHA-A3-OT-DMZ'], disaAktarimIzni: false, sonucKapsami: 'agent' },
   gecersizYapilandirma: { izinliBolgeler: 'hepsi' },
 
   gecerli: {
@@ -89,7 +89,7 @@ export const zafiyetTarayiciFiksturu: FiksturSeti = baglanmamisFikstur({
     satirlar: [{
       asset: { uuid: 'aaaaaaaa-0000-4000-8000-000000000007', hostname: 'bilinmeyen-cihaz-01', site: TANIMSIZ_TESIS_KODU },
       plugin: { id: 100003, cve: ['CVE-2019-6579'] },
-      etiket: VARLIK_ETIKETLERI.kizildere3Scada,
+      etiket: VARLIK_ETIKETLERI.sahaa3Scada,
     }],
     korunanAlan: 'varlikAnahtari',
     not: 'bulgu CMDB\'de olmayan bir varlığa işaret ediyor — bulgu düşürülmez',

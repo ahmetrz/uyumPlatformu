@@ -17,11 +17,11 @@ export const agGuvenlikDuvariFiksturu: FiksturSeti = baglanmamisFikstur({
 
   gecerli: {
     satirlar: [
-      { mac: '00:1b:1b:aa:bb:01', ip: '10.60.10.11', interface: 'port3', vlan: 'KIZILDERE3-OT', tip: 'static', hostname: 'kd3-scada-01' },
-      { mac: '00-1b-1b-aa-bb-02', ip: '10.60.10.12', interface: 'port3', vlan: 'KIZILDERE3-OT', tip: 'dynamic' },
+      { mac: '00:1b:1b:aa:bb:01', ip: '10.60.10.11', interface: 'port3', vlan: 'SAHA-A3-OT', tip: 'static', hostname: 'kd3-scada-01' },
+      { mac: '00-1b-1b-aa-bb-02', ip: '10.60.10.12', interface: 'port3', vlan: 'SAHA-A3-OT', tip: 'dynamic' },
     ],
     beklenen: [
-      { tip: 'varlik', kaynakKayitId: 'arp:00:1B:1B:AA:BB:01', alanlar: { macAdresi: '00:1b:1b:aa:bb:01', ipAdresi: '10.60.10.11', hostname: 'kd3-scada-01', bolgeKodu: 'KIZILDERE3-OT' } },
+      { tip: 'varlik', kaynakKayitId: 'arp:00:1B:1B:AA:BB:01', alanlar: { macAdresi: '00:1b:1b:aa:bb:01', ipAdresi: '10.60.10.11', hostname: 'kd3-scada-01', bolgeKodu: 'SAHA-A3-OT' } },
       // Yazım biçimi farklı (tire) ama AYNI kanonik MAC: kimlik kararlı olmalı.
       { tip: 'varlik', kaynakKayitId: 'arp:00:1B:1B:AA:BB:02', alanlar: { macAdresi: '00-1b-1b-aa-bb-02', ipAdresi: '10.60.10.12' } },
     ],
@@ -39,7 +39,7 @@ export const agGuvenlikDuvariFiksturu: FiksturSeti = baglanmamisFikstur({
   kismi: {
     /* Yalnız MAC tablosu satırı: IP eşlemesi yok. Hostname BİLİNMİYOR;
        "" yazmak cihazın adsız olduğunu iddia etmek olurdu. */
-    satirlar: [{ mac: '00:1b:1b:cc:dd:03', interface: 'port7', vlan: 'KIZILDERE3-OT' }],
+    satirlar: [{ mac: '00:1b:1b:cc:dd:03', interface: 'port7', vlan: 'SAHA-A3-OT' }],
     bosAlanlar: ['hostname', 'ipAdresi', 'seriNo', 'model', 'isletimSistemi'],
   },
 

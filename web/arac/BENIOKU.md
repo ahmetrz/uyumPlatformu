@@ -1,6 +1,6 @@
 # arac/ — görsel doğrulama araçları
 
-Zorlu Enerji Yönetişim Platformu arayüzünün kalite ve doğrulama araçlarıdır.
+Enerji Yönetişim Platformu arayüzünün kalite ve doğrulama araçlarıdır.
 Tasarım sözleşmesi `../DESIGN.md` dosyasındadır. Bu araçlar üretim bundle'ına
 girmez.
 
@@ -36,7 +36,7 @@ yakalanabiliyor — ekran görüntüsünde vurgulu görünerek görsel kalite
 kontrollerini yanıltabiliyor.
 
 Giriş gerektiren rotalar için betiğe oturum açma adımı eklenmelidir
-(geliştirme girişi: `ahmet.terzi@zorlu.com`).
+(geliştirme girişi: `kullanici.a@demo.local`).
 
 ## `olcek.mjs`
 
@@ -230,7 +230,7 @@ içinde mi, ve **bu poligon gerçekten Türkiye mi**.
 
 ### `dizustu.mjs`
 
-**Sahada ekranlar dizüstünde açılıyor** (Ahmet, 03.09.2026). Bu cevap bir
+**Sahada ekranlar dizüstünde açılıyor** (ürün sahibi, 03.09.2026). Bu cevap bir
 genişlik sorusu değil, bir **yükseklik** sorusudur:
 
 - 1366px genişlik kabuktaki her kırılma noktasının üstündedir; yatay

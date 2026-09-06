@@ -187,16 +187,16 @@ describe('Çekmece sözcüğü ve cümlesi', () => {
 
 describe('Satır metinleri', () => {
   it('alt satır kimlik + en fazla iki olgu taşır', () => {
-    expect(altSatir(d({ otMu: true, varlikEtiketi: 'ADANA-OTFW-01', talepEden: 'A. Terzi' })))
+    expect(altSatir(d({ otMu: true, varlikEtiketi: 'ADANA-OTFW-01', talepEden: 'Kullanıcı A' })))
       .toBe('DGS-0001 · OT · ADANA-OTFW-01');
-    expect(altSatir(d({ talepEden: 'A. Terzi' }))).toBe('DGS-0001 · A. Terzi');
+    expect(altSatir(d({ talepEden: 'Kullanıcı A' }))).toBe('DGS-0001 · Kullanıcı A');
     expect(altSatir(d())).toBe('DGS-0001');
   });
 
   it('santralsiz değişiklik portföy geneli sayılır', () => {
     expect(santralMetni(d())).toBe('portföy');
-    expect(santralMetni(d({ tesis: { id: 't', kod: 'KZD-3', ad: 'Kızıldere III' } })))
-      .toBe('Kızıldere III');
+    expect(santralMetni(d({ tesis: { id: 't', kod: 'KZD-3', ad: 'Saha A-3' } })))
+      .toBe('Saha A-3');
   });
 });
 

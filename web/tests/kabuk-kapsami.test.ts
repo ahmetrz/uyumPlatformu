@@ -35,7 +35,7 @@ const { db } = await import('@/lib/db');
 const { kabukVerisi } = await import('@/components/kabuk/kabukVerisi');
 
 let aktifToplam = 0;
-let kizildere3 = '';
+let sahaa3 = '';
 
 async function oturumAc(rol: string, tesisId: string | null) {
   const kisi = await db.kullanici.create({ data: {
@@ -53,7 +53,7 @@ async function oturumAc(rol: string, tesisId: string | null) {
 
 beforeAll(async () => {
   aktifToplam = await db.tesis.count({ where: { durum: 'aktif' } });
-  kizildere3 = (await db.tesis.findFirstOrThrow({ where: { kod: 'KIZILDERE-3' } })).id;
+  sahaa3 = (await db.tesis.findFirstOrThrow({ where: { kod: 'SAHA-A3' } })).id;
   expect(aktifToplam).toBeGreaterThan(1);
 });
 
@@ -65,7 +65,7 @@ describe('Kabuk kapsam çubuğu santral sayısını sızdırmaz', () => {
   });
 
   it('tek santrale kısıtlı kullanıcı YALNIZ onu sayar [YTK-LST-001]', async () => {
-    await oturumAc('denetim_sorumlusu', kizildere3);
+    await oturumAc('denetim_sorumlusu', sahaa3);
     const v = await kabukVerisi();
     expect(v.kapsam?.santral).toBe(1);
     /* Tüzel kişi de aynı kapsamdan türer: bir santral en fazla bir tüzel

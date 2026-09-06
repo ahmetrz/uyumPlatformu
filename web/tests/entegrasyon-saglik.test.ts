@@ -28,7 +28,7 @@ const dkOnce = (dk: number) => new Date(SIMDI.getTime() - dk * 60_000);
 
 const conn = (y: Partial<ConnectorGirdi> = {}): ConnectorGirdi => ({
   id: 'c1', kod: 'AD-01', ad: 'Active Directory', tip: 'ad_entra',
-  durum: 'etkin', kaynakSistem: 'entra.zorlu.local', kimlikTipi: 'none',
+  durum: 'etkin', kaynakSistem: 'entra.demo.local', kimlikTipi: 'none',
   sirReferansi: null, pollAralikDk: null, sonBasariliKosu: null,
   sonHata: null, etkin: true, imlec: null, ...y,
 });

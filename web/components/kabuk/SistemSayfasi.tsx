@@ -23,8 +23,8 @@ export default function SistemSayfasi({ kod, baslik, cumle, eylemler, teknik, di
     <div className="ab" data-yogunluk="operasyonel">
       <div className="ab-sistem-sayfa">
         <header>
-          <Link href="/" className="marka" aria-label="Zorlu Enerji Yönetişim Platformu — ana ekran">
-            ZORLU ENERJİ
+          <Link href="/" className="marka" aria-label="Enerji Yönetişim Platformu — ana ekran">
+            DEMO ENERJİ
           </Link>
           <span className="etiket">Yönetişim Platformu</span>
         </header>

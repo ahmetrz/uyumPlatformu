@@ -22,7 +22,7 @@ export const WEB = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '.
 export const KOK = `http://localhost:${process.env.PORT || 3210}`;
 
 /* Tohum geliştirme girişi (prisma/seed.ts). Gerçek hesap DEĞİLDİR. */
-export const GIRIS = { eposta: 'ahmet.terzi@zorlu.com', parola: 'Enerji!2026' };
+export const GIRIS = { eposta: 'kullanici.a@demo.local', parola: 'Enerji!2026' };
 
 function playwrightTarayicilari(kok) {
   if (!kok) return [];

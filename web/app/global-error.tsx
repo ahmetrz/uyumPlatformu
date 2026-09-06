@@ -16,7 +16,7 @@ export default function KokHata({ error, reset }: {
         <div className="ab" data-yogunluk="operasyonel">
           <div className="ab-sistem-sayfa">
             <header>
-              <Link href="/" className="marka">ZORLU ENERJİ</Link>
+              <Link href="/" className="marka">DEMO ENERJİ</Link>
               <span className="etiket">Yönetişim Platformu</span>
             </header>
             <main>

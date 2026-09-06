@@ -43,21 +43,21 @@ export async function operasyonKayitlari(db: PrismaClient) {
      Kurulu güçler santralin kendi kaydından bölünür: uydurma bir sayı
      yazmak yerine gerçek toplam üniteler arasında paylaştırılır. */
   const uniteTanim: [string, string[]][] = [
-    ['KIZILDERE-3', ['Ünite 1', 'Ünite 2', 'Ünite 3']],
-    ['KIZILDERE-2', ['Ünite 1', 'Ünite 2']],
-    ['KIZILDERE-1', ['Ünite 1']],
-    ['ALASEHIR-JES', ['Ünite 1', 'Ünite 2']],
-    ['GOKCEDAG-RES', ['Saha A', 'Saha B', 'Saha C']],
-    ['SARITEPE-RES', ['Saha A', 'Saha B']],
-    ['DEMIRCILER-RES', ['Saha A']],
-    ['IKIZDERE-HES', ['Türbin 1', 'Türbin 2']],
-    ['BEYKOY-HES', ['Türbin 1', 'Türbin 2']],
-    ['CILDIR-HES', ['Türbin 1', 'Türbin 2']],
-    ['KUZGUN-HES', ['Türbin 1', 'Türbin 2']],
-    ['MERCAN-HES', ['Türbin 1', 'Türbin 2']],
-    ['TERCAN-HES', ['Türbin 1']],
-    ['ATAKOY-HES', ['Türbin 1']],
-    ['ALASEHIR-GES', ['Dizi 1']],
+    ['SAHA-A3', ['Ünite 1', 'Ünite 2', 'Ünite 3']],
+    ['SAHA-A2', ['Ünite 1', 'Ünite 2']],
+    ['SAHA-A1', ['Ünite 1']],
+    ['SAHA-B-JES', ['Ünite 1', 'Ünite 2']],
+    ['SAHA-C-RES', ['Saha A', 'Saha B', 'Saha C']],
+    ['SAHA-D-RES', ['Saha A', 'Saha B']],
+    ['SAHA-E-RES', ['Saha A']],
+    ['SAHA-F-HES', ['Türbin 1', 'Türbin 2']],
+    ['SAHA-I-HES', ['Türbin 1', 'Türbin 2']],
+    ['SAHA-K-HES', ['Türbin 1', 'Türbin 2']],
+    ['SAHA-J-HES', ['Türbin 1', 'Türbin 2']],
+    ['SAHA-H-HES', ['Türbin 1', 'Türbin 2']],
+    ['SAHA-G-HES', ['Türbin 1']],
+    ['SAHA-L-HES', ['Türbin 1']],
+    ['SAHA-B-GES', ['Dizi 1']],
   ];
   let unite = 0;
   for (const [tesisKod, adlar] of uniteTanim) {
@@ -80,7 +80,7 @@ export async function operasyonKayitlari(db: PrismaClient) {
           /* Bir ünite planlı bakımda: "hepsi aktif" bir portföy gerçekçi
              değil ve bakımdaki ünite değişiklik penceresi kararlarını
              etkiler. */
-          durum: tesisKod === 'KIZILDERE-2' && i === 1 ? 'bakim' : 'aktif',
+          durum: tesisKod === 'SAHA-A2' && i === 1 ? 'bakim' : 'aktif',
         },
       });
       unite++;
@@ -99,10 +99,10 @@ export async function operasyonKayitlari(db: PrismaClient) {
     uretim?: string; dogrulama?: string; aciklama: string;
   }[] = [
     {
-      kod: 'DEG-2026-041', baslik: 'Kızıldere III DCS yazılım yaması',
-      tesis: 'KIZILDERE-3', ot: true, durum: 'dogrulandi',
-      talep: 'burak.sahin', onay: 'ahmet.terzi', plan: -21,
-      varlik: 'KIZILDERE3-DCS-01', saglayici: true,
+      kod: 'DEG-2026-041', baslik: 'Saha A-3 DCS yazılım yaması',
+      tesis: 'SAHA-A3', ot: true, durum: 'dogrulandi',
+      talep: 'kullanici.c', onay: 'kullanici.a', plan: -21,
+      varlik: 'SAHA-A3-DCS-01', saglayici: true,
       pencere: '14.08.2026 02:00–06:00 · planlı duruş',
       geriAlma: 'Önceki firmware imajı saha PC\'sinde; geri alma 40 dk.',
       yedek: true, uretim: 'Planlı duruş penceresinde, üretim kaybı yok',
@@ -111,8 +111,8 @@ export async function operasyonKayitlari(db: PrismaClient) {
     },
     {
       kod: 'DEG-2026-047', baslik: 'OT güvenlik duvarı kural sadeleştirmesi',
-      tesis: 'KIZILDERE-3', ot: true, durum: 'onay',
-      talep: 'mehmet.kaya', plan: 12, saglayici: null,
+      tesis: 'SAHA-A3', ot: true, durum: 'onay',
+      talep: 'kullanici.d', plan: 12, saglayici: null,
       pencere: '12.09.2026 01:00–04:00',
       geriAlma: 'Kural seti dışa aktarıldı; geri yükleme 10 dk.',
       yedek: true, uretim: 'Yok — kural değişikliği trafiği kesmiyor',
@@ -120,10 +120,10 @@ export async function operasyonKayitlari(db: PrismaClient) {
         + 'Sağlayıcı onayı henüz alınmadı.',
     },
     {
-      kod: 'DEG-2026-052', baslik: 'Gökçedağ türbin SCADA sunucu yenileme',
-      tesis: 'GOKCEDAG-RES', ot: true, durum: 'planlandi',
-      talep: 'burak.sahin', onay: 'ahmet.terzi', plan: 26,
-      varlik: 'GOKCEDAG-RES-SCADA-01', saglayici: true,
+      kod: 'DEG-2026-052', baslik: 'Saha C türbin SCADA sunucu yenileme',
+      tesis: 'SAHA-C-RES', ot: true, durum: 'planlandi',
+      talep: 'kullanici.c', onay: 'kullanici.a', plan: 26,
+      varlik: 'SAHA-C-RES-SCADA-01', saglayici: true,
       pencere: '26.09.2026 · düşük rüzgâr penceresi',
       geriAlma: 'Eski sunucu iki hafta yerinde bekletilecek.',
       yedek: true, uretim: 'Düşük — saha B geçici olarak elle izlenecek',
@@ -132,16 +132,16 @@ export async function operasyonKayitlari(db: PrismaClient) {
     {
       kod: 'DEG-2026-055', baslik: 'Merkez sanallaştırma ana makinesi bellek artırımı',
       tesis: 'MERKEZ-BT', ot: false, durum: 'uygulandi',
-      talep: 'mehmet.kaya', onay: 'ahmet.terzi', plan: -6,
+      talep: 'kullanici.d', onay: 'kullanici.a', plan: -6,
       varlik: 'MERKEZ-ESX-02',
       geriAlma: 'Donanım geri sökülebilir.', yedek: true,
       uretim: 'Yok — BT tarafı',
       aciklama: 'Sanal makine yoğunluğu eşiği aşıldı.',
     },
     {
-      kod: 'DEG-2026-058', baslik: 'Ataköy HES operatör istasyonu işletim sistemi yükseltmesi',
-      tesis: 'ATAKOY-HES', ot: true, durum: 'talep',
-      talep: 'selin.aydin', saglayici: null,
+      kod: 'DEG-2026-058', baslik: 'Saha L HES operatör istasyonu işletim sistemi yükseltmesi',
+      tesis: 'SAHA-L-HES', ot: true, durum: 'talep',
+      talep: 'kullanici.b', saglayici: null,
       uretim: 'Değerlendirilmedi',
       aciklama: 'Destek süresi bitmiş istasyon. Sağlayıcı uyumluluk yanıtı bekleniyor; '
         + 'bakım penceresi ve geri alma planı henüz yazılmadı.',
@@ -149,15 +149,15 @@ export async function operasyonKayitlari(db: PrismaClient) {
     {
       kod: 'DEG-2026-060', baslik: 'Uzak erişim jump host oturum kaydı zorunlu hâle getirilmesi',
       tesis: null, ot: false, durum: 'onay',
-      talep: 'zeynep.arslan', plan: 8,
+      talep: 'kullanici.e', plan: 8,
       geriAlma: 'Yapılandırma sürümlenmiş; geri alma anlık.', yedek: true,
       uretim: 'Yok',
       aciklama: 'Tedarikçi uzak bakım oturumlarında kayıt eksikliği bulgusunun karşılığı.',
     },
     {
-      kod: 'DEG-2026-062', baslik: 'Alaşehir JES ünite 2 titreşim izleme kartı değişimi',
-      tesis: 'ALASEHIR-JES', ot: true, durum: 'geri_alindi',
-      talep: 'burak.sahin', onay: 'ahmet.terzi', plan: -9,
+      kod: 'DEG-2026-062', baslik: 'Saha B JES ünite 2 titreşim izleme kartı değişimi',
+      tesis: 'SAHA-B-JES', ot: true, durum: 'geri_alindi',
+      talep: 'kullanici.c', onay: 'kullanici.a', plan: -9,
       saglayici: true, pencere: '22.08.2026 03:00–05:00',
       geriAlma: 'Eski kart yerine takıldı.', yedek: true,
       uretim: 'Yok',
@@ -168,15 +168,15 @@ export async function operasyonKayitlari(db: PrismaClient) {
     {
       kod: 'DEG-2026-064', baslik: 'Yedekleme politikası saklama süresi uzatımı',
       tesis: null, ot: false, durum: 'planlandi',
-      talep: 'zeynep.arslan', onay: 'ahmet.terzi', plan: 15,
+      talep: 'kullanici.e', onay: 'kullanici.a', plan: 15,
       geriAlma: 'Politika sürümlenmiş.', yedek: false,
       uretim: 'Yok',
       aciklama: 'Regülasyon saklama süresi gereği 90 günden 365 güne çıkarılıyor.',
     },
     {
-      kod: 'DEG-2026-066', baslik: 'İkizdere HES ağ anahtarı firmware güncellemesi',
-      tesis: 'IKIZDERE-HES', ot: true, durum: 'talep',
-      talep: 'selin.aydin', saglayici: false,
+      kod: 'DEG-2026-066', baslik: 'Saha F HES ağ anahtarı firmware güncellemesi',
+      tesis: 'SAHA-F-HES', ot: true, durum: 'talep',
+      talep: 'kullanici.b', saglayici: false,
       uretim: 'Değerlendirilmedi',
       aciklama: 'Sağlayıcı bu firmware sürümünü kontrol sistemiyle uyumlu bulmadı; '
         + 'değişiklik askıda.',
@@ -220,8 +220,8 @@ export async function operasyonKayitlari(db: PrismaClient) {
     bildirim?: boolean;
   }[] = [
     {
-      kod: 'OLY-2026-014', baslik: 'Kızıldere III mühendislik istasyonunda zararlı yazılım tespiti',
-      tesis: 'KIZILDERE-3', siddet: 'yuksek', durum: 'cozuldu',
+      kod: 'OLY-2026-014', baslik: 'Saha A-3 mühendislik istasyonunda zararlı yazılım tespiti',
+      tesis: 'SAHA-A3', siddet: 'yuksek', durum: 'cozuldu',
       bas: -34, cozum: -31, kaynak: 'siem',
       ozet: 'EDR, taşınabilir bellekten bulaşan bir betiği karantinaya aldı.',
       uretim: 'yok', emniyet: 'yok', siber: 'yuksek', regulasyon: 'orta',
@@ -233,8 +233,8 @@ export async function operasyonKayitlari(db: PrismaClient) {
       bildirim: true,
     },
     {
-      kod: 'OLY-2026-019', baslik: 'Gökçedağ RES saha ağında beklenmedik kesinti',
-      tesis: 'GOKCEDAG-RES', siddet: 'orta', durum: 'kapali',
+      kod: 'OLY-2026-019', baslik: 'Saha C RES saha ağında beklenmedik kesinti',
+      tesis: 'SAHA-C-RES', siddet: 'orta', durum: 'kapali',
       bas: -20, cozum: -20, kaynak: 'operator',
       ozet: 'Saha B ile kontrol merkezi arasındaki bağlantı 40 dakika koptu.',
       uretim: 'dusuk', emniyet: 'yok', siber: 'yok',
@@ -247,7 +247,7 @@ export async function operasyonKayitlari(db: PrismaClient) {
     },
     {
       kod: 'OLY-2026-023', baslik: 'Tedarikçi uzak bakım oturumu kayıt dışı kaldı',
-      tesis: 'KIZILDERE-3', siddet: 'orta', durum: 'mudahale',
+      tesis: 'SAHA-A3', siddet: 'orta', durum: 'mudahale',
       bas: -7, kaynak: 'denetim',
       ozet: 'İç denetim, üç uzak bakım oturumunun oturum kaydını bulamadı.',
       siber: 'orta', uretim: 'yok',
@@ -309,9 +309,9 @@ export async function operasyonKayitlari(db: PrismaClient) {
       bag++;
     }
   };
-  await bagla('OLY-2026-014', ['KIZILDERE3-EWS-01', 'KIZILDERE3-DCS-01']);
-  await bagla('OLY-2026-019', ['GOKCEDAG-RES-SW-01', 'GOKCEDAG-RES-SCADA-01']);
-  await bagla('OLY-2026-023', ['KIZILDERE3-SCADA-01']);
+  await bagla('OLY-2026-014', ['SAHA-A3-EWS-01', 'SAHA-A3-DCS-01']);
+  await bagla('OLY-2026-019', ['SAHA-C-RES-SW-01', 'SAHA-C-RES-SCADA-01']);
+  await bagla('OLY-2026-023', ['SAHA-A3-SCADA-01']);
   await bagla('OLY-2026-026', ['MERKEZ-SRV-01', 'MERKEZ-ESX-02']);
 
   /* ═══ 4 · İstisna ve onay talebi ════════════════════════════════════
@@ -323,15 +323,15 @@ export async function operasyonKayitlari(db: PrismaClient) {
     select: { id: true, kod: true, baslik: true },
   });
   const istisnaTanim: [string, string, string, number, string][] = [
-    ['EPDK-SYM-4.2.1', 'ATAKOY-HES',
+    ['EPDK-SYM-4.2.1', 'SAHA-L-HES',
       'Saha operatör istasyonunun işletim sistemi destek dışı; sağlayıcı uyumlu sürüm '
       + 'yayımlayana kadar ağ ayrıştırması telafi edici kontrol olarak uygulanıyor.',
       120, 'onay_bekliyor'],
-    ['EPDK-SYM-6.1.2', 'IKIZDERE-HES',
+    ['EPDK-SYM-6.1.2', 'SAHA-F-HES',
       'Tedarikçi uzak bakım oturum kaydı için jump host kurulumu DEG-2026-060 ile '
       + 'planlandı; kurulum tamamlanana kadar erişim elle gözetleniyor.',
       60, 'onay_bekliyor'],
-    ['EPDK-SYM-8.1.2', 'ALASEHIR-GES',
+    ['EPDK-SYM-8.1.2', 'SAHA-B-GES',
       'Kanıt yenileme periyodu saha ziyareti takvimine bağlı; bir sonraki ziyarete '
       + 'kadar süre uzatımı talep edildi.',
       45, 'aktif'],
@@ -348,7 +348,7 @@ export async function operasyonKayitlari(db: PrismaClient) {
       data: {
         maddeId: madde.id, tesisId, gerekce,
         bitis: gun(sure), durum,
-        onaylayanId: durum === 'aktif' ? K['ahmet.terzi'] ?? null : null,
+        onaylayanId: durum === 'aktif' ? K['kullanici.a'] ?? null : null,
       },
     });
     istisna++;
@@ -359,7 +359,7 @@ export async function operasyonKayitlari(db: PrismaClient) {
       data: {
         tip: 'istisna', kaynakTipi: 'Istisna', kaynakId: kayit.id,
         ozet: `${madde.kod} · ${tesisKod} — ${sure} günlük istisna talebi`,
-        talepEdenId: K['selin.aydin'] ?? null,
+        talepEdenId: K['kullanici.b'] ?? null,
         durum: 'bekliyor',
         gerekce,
       },

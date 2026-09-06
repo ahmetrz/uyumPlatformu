@@ -259,7 +259,7 @@ export type KesifDurusu = {
  *
  * Gerekçe: çakışmayı çözmeden diğer hiçbir karar güvenilir değildir;
  * yetkisiz cihaz bir güvenlik sorusudur ve envanter eksiğinden önce
- * gelir; sahipsizlik, artık görülmemekten daha acildir çünkü ikincisi
+ * gelir; sahipsizlik, artık görülmemekten daha asahak çünkü ikincisi
  * kendiliğinden zararsızdır.
  */
 export function kesifGrubu(d: KesifDurusu): KesifGrubu {

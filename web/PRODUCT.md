@@ -33,7 +33,7 @@ düzeyinde uygulanır (`lib/erisim.ts`).
 
 ## Product Purpose
 
-**Zorlu Enerji Yönetişim Platformu**, Türkiye'de elektrik üretimi yapan bir şirketler
+**Enerji Yönetişim Platformu**, Türkiye'de elektrik üretimi yapan bir şirketler
 grubu için IT/OT governance, uyum ve dönüşüm platformudur. Grubun santral
 portföyünde regülasyon gerekliliklerini (EPDK-SYM, CBDDÖ, ISO 27001, SPK-BS)
 tesis bazında uygulanabilir kontrollere indirger; her kontrol için durum,
@@ -44,7 +44,7 @@ Başarı: bir denetim geldiğinde "hangi santral hangi maddeyi hangi kanıtla
 karşılıyor" sorusunun ekrandan, tartışmasız ve tarihçesiyle yanıtlanabilmesi;
 gecikmiş ya da değerlendirilmemiş hiçbir şeyin sessizce kaybolmaması.
 
-**Varış noktası (onaylandı):** ürün Zorlu Enerji grubu içinde gerçek
+**Varış noktası (onaylandı):** ürün Demo Enerji grubu içinde gerçek
 kullanıma girecek ve gerçek kurum sistemlerine bağlanacaktır. Bugünkü
 "hiçbir gerçek sisteme bağlı değil" sınırı geçicidir; bir ürün kararı
 değildir. Tasarım ve mimari kararlar bu hedefe göre verilir, demo
@@ -134,10 +134,10 @@ zamanı; mobil/tablet kullanım (hedef değil, reddedilmiş de değil).
 
 ## Brand Commitments
 
-- **Ad:** Zorlu Enerji Yönetişim Platformu. Tek ürün adı budur; kısa ad
+- **Ad:** Enerji Yönetişim Platformu. Tek ürün adı budur; kısa ad
   yok. Sekme başlığı (`app/layout.tsx` şablonu), kabuk sözcük markaları
   (`components/kabuk/Kabuk.tsx`: A monogram "ZE", B iki satırlı sözcük
-  markası, C künye) ve giriş ekranı bu adı taşır. Karar: Ahmet, 2026-09-01.
+  markası, C künye) ve giriş ekranı bu adı taşır. Karar: ürün sahibi, 2026-09-01.
 - **Kod adları kullanıcıya görünmez:** "Voltaj Atlas" ve "Atlas"
   taşınan tasarımın iç kod adlarıdır; rota grubu `(kabuk)`, `atlas-*`
   sınıfları, `kabuk.css` ve kod yorumlarında kalabilir, ancak arayüz
@@ -147,7 +147,7 @@ zamanı; mobil/tablet kullanım (hedef değil, reddedilmiş de değil).
   taşır; C'nin prototipteki açık kâğıt zemini üründe yoktur. Kabuklar
   arası geçiş "başka bir platform" hissi vermemelidir — ayrışma zemin
   sıcaklığı ve tipografiyle kurulur, açık/koyu kontrastıyla değil.
-  Karar: Ahmet, 2026-09-01. Ölçüm kapısı `arac/kontrast.mjs`.
+  Karar: ürün sahibi, 2026-09-01. Ölçüm kapısı `arac/kontrast.mjs`.
 - **Ses:** Türkçe, doğrudan, kurumsal ama kuru değil; ürün kendini
   açıklamaz, olguyu gösterir. Metin durum yargısı vermez ("kritik!" değil,
   "12 gün gecikmiş").
@@ -160,12 +160,12 @@ zamanı; mobil/tablet kullanım (hedef değil, reddedilmiş de değil).
 
 ## Evidence on Hand
 
-- **Örnek veri:** `web/prisma/seed*.ts` — Zorlu Enerji'nin kamuya açık
+- **Örnek veri:** `web/prisma/seed*.ts` — Demo Enerji'nin kamuya açık
   santral portföyü (adlar, tipler, iller) + kurgusal operasyon kayıtları
   (kullanıcılar, bulgular, aksiyonlar, kanıtlar, denetimler). Kurgusal
   kısım gerçek şirket verisi DEĞİLDİR ve öyle sunulmaz.
 - **Fotoğraflar:** `web/public/gorseller/` — 7 konu × 2 kırpım, serbest
-  lisans, künyeli. Kızıldere fotoğrafı gerçek Zorlu santralidir.
+  lisans, künyeli. Saha A fotoğrafı gerçek Demo santralidir.
 - **Belgeler:** kök `README.md`, `INTEGRATION_DAY_RUNBOOK.md`,
   `docs/MIMARI.md`, `docs/ICERIK_MODELI.md`, `docs/ROTA_HARITASI.md`,
   `docs/VERI_NEREDEN_GELIR.md` ve `docs/URUN_YEDEKLEME.md`.

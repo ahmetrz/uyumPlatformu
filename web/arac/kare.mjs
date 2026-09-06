@@ -23,9 +23,9 @@ s.on('console', (m) => { if (m.type() === 'error' && !/fonts\.g/.test(m.text()))
 await s.goto(KOK + '/giris', { waitUntil: 'load' });
 if (s.url().includes('/giris')) {
   for (let deneme = 1; deneme <= 4; deneme += 1) {
-    await s.fill('input[type=email]', 'ahmet.terzi@zorlu.com');
+    await s.fill('input[type=email]', 'kullanici.a@demo.local');
     await s.fill('input[type=password]', 'Enerji!2026');
-    const yerlesti = await s.inputValue('input[type=email]') === 'ahmet.terzi@zorlu.com'
+    const yerlesti = await s.inputValue('input[type=email]') === 'kullanici.a@demo.local'
       && (await s.inputValue('input[type=password]')).length > 0;
     if (yerlesti) break;
     await s.waitForTimeout(300 * deneme);

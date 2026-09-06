@@ -110,7 +110,7 @@ describe('nesne kipi — `aktarimYukle`nin dayandığı sözleşme', () => {
     const ham = XLSX.utils.sheet_to_json<Record<string, unknown>>(sayfa, { defval: '' });
 
     expect(ham).toHaveLength(3);
-    expect(ham[0]['Site Code']).toBe('KIZILDERE3');
+    expect(ham[0]['Site Code']).toBe('SAHA-A3');
     // Boş başlıklı kolona kütüphane kendi adını verir; `aktarimYukle`
     // yalnız adı bilinen kolonları okur, bu yüzden adın NE olduğu değil
     // boş hücrenin `''` gelmesi bağlayıcıdır.

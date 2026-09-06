@@ -562,8 +562,8 @@ function Takimyildizi({ santraller, gosterim = OLCULMEMIS_VARSAYILAN, serit, pan
   const mweToplam = olculmemis.reduce((a, s) => a + (s.gucMw ?? 0), 0).toFixed(1);
   const { gosterilen: ilkAdlar, kalan } = ozetKur(serit.map((s) => s.ad), gosterim);
 
-  /* Künye çakışması — ÖLÇÜLDÜ, varsayılmadı: Kızıldere III (%56 · 165 MW)
-     ile Gökçedağ (%67 · 135 MW) dikeyde 31px, künye ise 28px yüksek;
+  /* Künye çakışması — ÖLÇÜLDÜ, varsayılmadı: Saha A-3 (%56 · 165 MW)
+     ile Saha C (%67 · 135 MW) dikeyde 31px, künye ise 28px yüksek;
      ikisi birbirinin üstüne biniyordu. Nokta yerini DEĞİŞTİRMEK veriyi
      bozar, o yüzden yalnız künye kayar: yakın komşusu olan işaret
      künyesini işaretin altına açar. */
@@ -572,7 +572,7 @@ function Takimyildizi({ santraller, gosterim = OLCULMEMIS_VARSAYILAN, serit, pan
     && Math.abs((o.endeks ?? 0) - (s.endeks ?? 0)) < 20
     && Math.abs(dikey(o) - dikey(s)) < 11
   )));
-  /* Eksene yakın işaretin künyesi YUKARI açılır: "Zorlu Enerji Genel Müdürlük" (0 MW)
+  /* Eksene yakın işaretin künyesi YUKARI açılır: "Demo Enerji Genel Müdürlük" (0 MW)
      künyesi x ekseninin adıyla üst üste biniyordu (ölçüldü, 1366×768).
      Eşik %14 = künye yüksekliği (28px) / tuval yüksekliği (~300px) payı. */
   const yukari = (s: SantralKarti) => dikey(s) < 14;

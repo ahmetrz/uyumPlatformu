@@ -40,7 +40,7 @@ function adim(ozel: Partial<AdimSatiri> = {}): AdimSatiri {
 
 function surec(ozel: Partial<SurecSatiri> = {}): SurecSatiri {
   return {
-    id: 's1', kod: 'URT', ad: 'Üretim', tesisId: 't1', tesisAd: 'Kızıldere',
+    id: 's1', kod: 'URT', ad: 'Üretim', tesisId: 't1', tesisAd: 'Saha A',
     uretimEtkisi: 'bilinmiyor', adimlar: [], duzenlenebilir: true, ...ozel,
   };
 }
@@ -175,7 +175,7 @@ describe('OT-05 · belirlenmemiş RTO sıfır saat DEĞİLDİR', () => {
 
 function hesap(ozel: Partial<Hesap> = {}): Hesap {
   return {
-    id: 'k1', ad: 'Ahmet', eposta: 'a@b', unvan: null, aktif: true,
+    id: 'k1', ad: 'Kullanıcı A', eposta: 'a@b', unvan: null, aktif: true,
     parolaVar: true, yetkiler: [],
     sahiplik: { toplam: 0, emanet: 0, devredilebilir: [], bekleyenZimmet: [] },
     ...ozel,

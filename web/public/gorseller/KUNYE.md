@@ -10,7 +10,7 @@ zorunluluğu taşır; bu dosya atıf yükümlülüğünü karşılar ve ürün i
 
 ## Not
 
-Kızıldere fotoğrafı Zorlu Enerji'nin işlettiği santrale aittir (Wikimedia Commons, CC BY-SA).
+Saha A fotoğrafı Demo Enerji'nin işlettiği santrale aittir (Wikimedia Commons, CC BY-SA).
 Bu dizinde kalan tek türetilmiş dosya giriş ekranının geniş hero görseli `jeotermal-genis.webp`
 (2400×800); kırpım özneye göre hizalanmıştır, içerik değiştirilmemiştir. Santral görsel seti
 `public/santraller/genis/` altındadır, künyesi `public/santraller/KUNYE.md`.

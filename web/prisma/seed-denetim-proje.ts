@@ -38,9 +38,9 @@ export async function denetimVeProje(db: PrismaClient) {
      biri planda. */
   const denetimTanim: [string, string, string, string, string, number, number, string[]][] = [
     ['DEN-2026-ISO-GOZ', 'ISO 27001 Gözetim Denetimi', 'dis_denetim', 'BSI Türkiye',
-      'saha', -3, 4, ['MERKEZ-BT', 'KIZILDERE-3']],
+      'saha', -3, 4, ['MERKEZ-BT', 'SAHA-A3']],
     ['DEN-2026-IC-OT', 'OT Güvenliği İç Denetimi', 'ic_denetim', 'İç Denetim Birimi',
-      'plan', 62, 74, ['GOKCEDAG-RES', 'SARITEPE-RES', 'KIZILDERE-2']],
+      'plan', 62, 74, ['SAHA-C-RES', 'SAHA-D-RES', 'SAHA-A2']],
   ];
 
   const denetimler: Record<string, { id: string }> = {};
@@ -68,21 +68,21 @@ export async function denetimVeProje(db: PrismaClient) {
   /* Kanıt talepleri — tasarımda 11 karşılanmış talep kuyruğa toplanıyor,
      gecikmiş olanlar sıralamadan bağımsız üstte kalıyor. */
   const talepTanim: [string, string, string, string, number, string][] = [
-    ['DEN-2026-CBDDO', 'Ağ bölge ve geçit envanteri', 'Onaylı topoloji şeması ve geçit kuralları listesi', 'saglandi', -12, 'burak.sahin'],
-    ['DEN-2026-CBDDO', 'Ayrıcalıklı hesap listesi', 'Servis ve yönetici hesapları, son inceleme kayıtlarıyla', 'acik', -4, 'mehmet.kaya'],
-    ['DEN-2026-CBDDO', 'Yama yönetimi prosedürü', 'OT varlıklarında yama penceresi ve telafi edici kontroller', 'acik', 9, 'burak.sahin'],
-    ['DEN-2026-CBDDO', 'Olay müdahale tatbikat kaydı', 'Son 12 ayda yapılan tatbikatın raporu', 'acik', -1, 'selin.aydin'],
-    ['DEN-2026-CBDDO', 'Yedekleme ve geri yükleme test kayıtları', 'Santral bazında son restore testi sonuçları', 'acik', 16, 'zeynep.arslan'],
-    ['DEN-2026-CBDDO', 'Tedarikçi uzaktan erişim kayıtları', 'Oturum kaydı örnekleri ve saklama süresi', 'acik', 23, 'mehmet.kaya'],
-    ['DEN-2026-ISO-GOZ', 'Bilgi varlıkları envanteri', 'Güncel envanter dışa aktarımı ve sahiplik bilgisi', 'saglandi', -20, 'ahmet.terzi'],
-    ['DEN-2026-ISO-GOZ', 'Risk değerlendirme metodolojisi', 'Doğal/artık risk hesabı ve kabul eşikleri', 'saglandi', -18, 'ahmet.terzi'],
-    ['DEN-2026-ISO-GOZ', 'Konfigürasyon yönetimi kanıtı', 'Temel konfigürasyon ve sapma raporu', 'saglandi', -15, 'burak.sahin'],
-    ['DEN-2026-ISO-GOZ', 'Erişim inceleme kayıtları', 'Dönemsel inceleme çıktıları ve kaldırılan yetkiler', 'saglandi', -11, 'mehmet.kaya'],
-    ['DEN-2026-ISO-GOZ', 'İzleme faaliyetleri kanıtı', 'Log toplama kapsamı ve uyarı örnekleri', 'acik', 2, 'selin.aydin'],
-    ['DEN-2026-ISO-GOZ', 'Düzeltici faaliyet takibi', 'Önceki denetim bulgularının kapanış kanıtları', 'saglandi', -8, 'zeynep.arslan'],
-    ['DEN-2026-IC-OT', 'Saha PLC envanteri', 'Rüzgâr ve jeotermal sahalarda PLC/HMI listesi', 'acik', 40, 'burak.sahin'],
-    ['DEN-2026-IC-OT', 'Uzak bakım onay akışı', 'Tedarikçi erişim talep ve onay kayıtları', 'acik', 45, 'mehmet.kaya'],
-    ['DEN-2026-IC-OT', 'Bölge güvenlik seviyesi ataması', 'IEC 62443 bölge/geçit dokümanı', 'acik', 52, 'burak.sahin'],
+    ['DEN-2026-CBDDO', 'Ağ bölge ve geçit envanteri', 'Onaylı topoloji şeması ve geçit kuralları listesi', 'saglandi', -12, 'kullanici.c'],
+    ['DEN-2026-CBDDO', 'Ayrıcalıklı hesap listesi', 'Servis ve yönetici hesapları, son inceleme kayıtlarıyla', 'acik', -4, 'kullanici.d'],
+    ['DEN-2026-CBDDO', 'Yama yönetimi prosedürü', 'OT varlıklarında yama penceresi ve telafi edici kontroller', 'acik', 9, 'kullanici.c'],
+    ['DEN-2026-CBDDO', 'Olay müdahale tatbikat kaydı', 'Son 12 ayda yapılan tatbikatın raporu', 'acik', -1, 'kullanici.b'],
+    ['DEN-2026-CBDDO', 'Yedekleme ve geri yükleme test kayıtları', 'Santral bazında son restore testi sonuçları', 'acik', 16, 'kullanici.e'],
+    ['DEN-2026-CBDDO', 'Tedarikçi uzaktan erişim kayıtları', 'Oturum kaydı örnekleri ve saklama süresi', 'acik', 23, 'kullanici.d'],
+    ['DEN-2026-ISO-GOZ', 'Bilgi varlıkları envanteri', 'Güncel envanter dışa aktarımı ve sahiplik bilgisi', 'saglandi', -20, 'kullanici.a'],
+    ['DEN-2026-ISO-GOZ', 'Risk değerlendirme metodolojisi', 'Doğal/artık risk hesabı ve kabul eşikleri', 'saglandi', -18, 'kullanici.a'],
+    ['DEN-2026-ISO-GOZ', 'Konfigürasyon yönetimi kanıtı', 'Temel konfigürasyon ve sapma raporu', 'saglandi', -15, 'kullanici.c'],
+    ['DEN-2026-ISO-GOZ', 'Erişim inceleme kayıtları', 'Dönemsel inceleme çıktıları ve kaldırılan yetkiler', 'saglandi', -11, 'kullanici.d'],
+    ['DEN-2026-ISO-GOZ', 'İzleme faaliyetleri kanıtı', 'Log toplama kapsamı ve uyarı örnekleri', 'acik', 2, 'kullanici.b'],
+    ['DEN-2026-ISO-GOZ', 'Düzeltici faaliyet takibi', 'Önceki denetim bulgularının kapanış kanıtları', 'saglandi', -8, 'kullanici.e'],
+    ['DEN-2026-IC-OT', 'Saha PLC envanteri', 'Rüzgâr ve jeotermal sahalarda PLC/HMI listesi', 'acik', 40, 'kullanici.c'],
+    ['DEN-2026-IC-OT', 'Uzak bakım onay akışı', 'Tedarikçi erişim talep ve onay kayıtları', 'acik', 45, 'kullanici.d'],
+    ['DEN-2026-IC-OT', 'Bölge güvenlik seviyesi ataması', 'IEC 62443 bölge/geçit dokümanı', 'acik', 52, 'kullanici.c'],
   ];
 
   const varOlanTalepler = new Set(
@@ -103,17 +103,17 @@ export async function denetimVeProje(db: PrismaClient) {
   /* ═══ Dönüşüm portföyü ════════════════════════════════════════════════
      [kod, ad, tip, durum, başlangıç, hedef, sahip, gerekçe] */
   const projeTanim: [string, string, string, string, number, number, string, string][] = [
-    ['PRJ-YEDEK-DR', 'Yedekleme ve Kurtarma Programı', 'altyapi', 'devam', -150, 210, 'zeynep.arslan',
+    ['PRJ-YEDEK-DR', 'Yedekleme ve Kurtarma Programı', 'altyapi', 'devam', -150, 210, 'kullanici.e',
       'Yedek kapsamı ve geri yükleme testi kontrolleri dört sahada kısmi; iki santralde hiç restore testi yok.'],
-    ['PRJ-UZAK-BAKIM', 'Tedarikçi Uzak Bakım Kontrolü', 'guvenlik', 'devam', -90, 120, 'mehmet.kaya',
+    ['PRJ-UZAK-BAKIM', 'Tedarikçi Uzak Bakım Kontrolü', 'guvenlik', 'devam', -90, 120, 'kullanici.d',
       'Üç tedarikçinin uzaktan erişiminde oturum kaydı yok; EPDK-SYM-6.1.2 uyumsuz.'],
-    ['PRJ-EOS-YENILEME', 'Kontrol Sistemi Yenileme Dalgası 1', 'ot', 'devam', -60, 330, 'burak.sahin',
+    ['PRJ-EOS-YENILEME', 'Kontrol Sistemi Yenileme Dalgası 1', 'ot', 'devam', -60, 330, 'kullanici.c',
       'Destek süresi biten kontrol sistemi varlıkları üretim durduran kritiklikte; telafi edici kontrol yetersiz.'],
-    ['PRJ-ENVANTER', 'Varlık Envanteri Güveni', 'iyilestirme', 'devam', -200, 60, 'ahmet.terzi',
+    ['PRJ-ENVANTER', 'Varlık Envanteri Güveni', 'iyilestirme', 'devam', -200, 60, 'kullanici.a',
       'Envanter güncelliği ve kritiklik sınıflandırması kontrollerinde kanıt bayat.'],
-    ['PRJ-LOG-OT', 'OT Log Toplama Yaygınlaştırma', 'guvenlik', 'beklemede', -40, 260, 'selin.aydin',
+    ['PRJ-LOG-OT', 'OT Log Toplama Yaygınlaştırma', 'guvenlik', 'beklemede', -40, 260, 'kullanici.b',
       'OT bölgelerinde log kaynağı bilinmeyen varlıklar var; olay görünürlüğü riski açık.'],
-    ['PRJ-YAMA', 'OT Yama Yönetimi Çerçevesi', 'ot', 'planlandi', 30, 400, 'burak.sahin',
+    ['PRJ-YAMA', 'OT Yama Yönetimi Çerçevesi', 'ot', 'planlandi', 30, 400, 'kullanici.c',
       'Yamasız kritik varlıklar için tanımlı pencere ve telafi edici kontrol kaydı yok.'],
   ];
 
@@ -251,20 +251,20 @@ export async function denetimVeProje(db: PrismaClient) {
   const zincir: [string, { madde?: string; risk?: string; tesis?: string }[]][] = [
     ['PRJ-YEDEK-DR', [
       { madde: 'EPDK-SYM-8.1.1' }, { madde: 'EPDK-SYM-8.1.2' }, { madde: 'EPDK-SYM-8.2.1' },
-      { tesis: 'KIZILDERE-3' }, { tesis: 'GOKCEDAG-RES' },
+      { tesis: 'SAHA-A3' }, { tesis: 'SAHA-C-RES' },
     ]],
     ['PRJ-UZAK-BAKIM', [
       { madde: 'EPDK-SYM-6.1.2' }, { madde: 'EPDK-SYM-4.2.2' }, { risk: 'RSK-2026-001' },
     ]],
     ['PRJ-EOS-YENILEME', [
       { madde: 'EPDK-SYM-4.1.1' }, { madde: 'EPDK-SYM-6.2.1' },
-      { risk: 'RSK-2026-001' }, { risk: 'RSK-2026-007' }, { tesis: 'KIZILDERE-3' },
+      { risk: 'RSK-2026-001' }, { risk: 'RSK-2026-007' }, { tesis: 'SAHA-A3' },
     ]],
     ['PRJ-ENVANTER', [
       { madde: 'EPDK-SYM-4.1.1' }, { madde: 'EPDK-SYM-4.1.2' }, { risk: 'RSK-2026-004' },
     ]],
     ['PRJ-LOG-OT', [
-      { madde: 'EPDK-SYM-7.1.4' }, { risk: 'RSK-2026-002' }, { tesis: 'GOKCEDAG-RES' },
+      { madde: 'EPDK-SYM-7.1.4' }, { risk: 'RSK-2026-002' }, { tesis: 'SAHA-C-RES' },
     ]],
     ['PRJ-YAMA', [
       { madde: 'EPDK-SYM-6.2.1' }, { risk: 'RSK-2026-001' },

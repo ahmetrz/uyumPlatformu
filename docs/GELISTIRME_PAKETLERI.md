@@ -106,7 +106,7 @@ paketi** (çerçeve, yükümlülük, kaynak kataloğu, form, sözlük — P4),
 P2) ve **sektör öznitelik şeması** (P1). Bir özelliğin çekirdeğe sektör
 terimi sokması gerekiyorsa tasarım yanlıştır; terim sözlük anahtarına,
 nitelik öznitelik şemasına gider. Bekçi testler bunu ölçer
-(`tests/bekci/`). Zorlu Enerji **referans kiracı**dır; adı ve verisi
+(`tests/bekci/`). Demo Enerji **referans kiracı**dır; adı ve verisi
 yalnız kendi kurulumunda bulunur, depoda yalnız kurgusal demo kiracısı
 vardır (P8).
 
@@ -153,16 +153,16 @@ Sıra: **P0 → (R5 + P2) → P1 → P4 → P8 → P3 → P6 → P7 → P9**. R5
 (PostgreSQL) bu dalgada P2 ile birlikte çalışır çünkü kiracı izolasyonunun
 ikinci savunması satır düzeyi güvenliktir (RLS).
 
-Zorlu Enerji bu dalga boyunca **referans kiracı**dır: gerçek kurulumu
+Demo Enerji bu dalga boyunca **referans kiracı**dır: gerçek kurulumu
 ayrı; depoda yalnız kurgusal demo kiracısı kalır.
 
 ### P0 · Kurgu güncellemesi — vizyon, kurallar, ad
 
 **Alan kodu:** `URN-KUR` · **Etki:** ön koşul · **Çaba:** düşük (belge)
 
-**Bugün.** `CLAUDE.md`: tek ürün adı "Zorlu Enerji Yönetişim Platformu";
+**Bugün.** `CLAUDE.md`: tek ürün adı "Enerji Yönetişim Platformu";
 yalnız Türkçe; santral fotoğraf politikası; "grup içi kurumsal araç,
-pazarlama dili yok". `web/PRODUCT.md` aynı çerçevede. Seed Zorlu'nun
+pazarlama dili yok". `web/PRODUCT.md` aynı çerçevede. Seed Demo'nun
 kamuya açık portföyü (gerçek santral adları, bir gerçek fotoğraf).
 
 **Hedef.** Belgeler yeni kurguyu anlatır; hangi kuralın kaldığı, hangisinin
@@ -194,8 +194,8 @@ değiştiği tek tabloda; ürün adı yapılandırmadan gelir.
 1. `CLAUDE.md` "Bağlayıcı kurallar" tablosu kalan/değişen ayrımıyla
    yazılıdır; "yalnız Türkçe" ve tek ürün adı cümleleri kalkmıştır.
    [URN-KUR-001]
-2. `web/PRODUCT.md` Zorlu'yu yalnız "referans kiracı" olarak anar;
-   `grep -c "Zorlu" web/PRODUCT.md` ≤ 3 (referans kiracı bölümü).
+2. `web/PRODUCT.md` Demo'yu yalnız "referans kiracı" olarak anar;
+   `grep -c "Demo" web/PRODUCT.md` ≤ 3 (referans kiracı bölümü).
    [URN-KUR-002]
 3. `docs/URUN_VIZYONU.md` depoda; kullanıcı kararları tablosu doludur ya
    da "bekleniyor" der. [URN-KUR-003]
@@ -396,7 +396,7 @@ bulut-yönetimli Postgres kurulumu (altyapı).
 **Kabul kriterleri.**
 1. PostgreSQL üzerinde `AktiviteKaydi`, `DegerlendirmeTarihcesi`,
    `KanitSurumu` için UPDATE, DELETE ve **TRUNCATE** reddedilir. [ALT-PG-001]
-2. "kizildere" araması PostgreSQL'de "Kızıldere I JES"i bulur (bugünkü
+2. "saha-ı" araması PostgreSQL'de "Saha I HES"i bulur (bugünkü
    davranışı kaydeden test kırmızıya döner ve **güncellenir**). [ALT-PG-002]
 3. Tüm test kümesi iki sağlayıcıda da yeşil; atlanan test sayısı artmaz.
    [ALT-PG-003]
@@ -618,13 +618,13 @@ CDN.
 **Alan kodu:** `URN-DEMO` · **Etki:** orta · **Çaba:** orta ·
 **Bağımlılık:** P1, P4
 
-**Bugün.** Seed Zorlu'nun kamuya açık portföyü (gerçek santral adları,
+**Bugün.** Seed Demo'nun kamuya açık portföyü (gerçek santral adları,
 iller, kurulu güçler) + kurgusal operasyon kayıtları; `public/santraller/`
-fotoğraflar (biri gerçek Kızıldere); `KUNYE.md`.
+fotoğraflar (biri gerçek Saha A); `KUNYE.md`.
 
 **Hedef.** Depodaki tek kiracı verisi **tamamen kurgusal** bir demo
 kiracısıdır; ikinci bir sektörden minimal demo kiracısı sektör
-bağımsızlığı gösterir; Zorlu'nun gerçek verisi depoda yoktur.
+bağımsızlığı gösterir; Demo'nun gerçek verisi depoda yoktur.
 
 **Kapsam.** `DEMO-TR-ENERJI` paketi: kurgusal ad (kullanıcı verir;
 varsayılan "Örnek Enerji Üretim A.Ş."), kurgusal tesis adları/kodları,
@@ -634,10 +634,10 @@ lisanslı görseller (ya da yalnız tipografik fallback); operasyon
 kayıtları mevcut kurgusal içerikten taşınır. `DEMO-TR-SU` (ya da
 kullanıcının seçtiği sektör): 3 tesis, 20 varlık, 1 çerçeve, sözlük
 farkı görünür. Statik demo iki kiracı arasında salt okunur geçiş.
-Bekçi test: seed/paket dosyalarında "Zorlu", "Kızıldere", gerçek
+Bekçi test: seed/paket dosyalarında "Demo", "Saha A", gerçek
 santral adları geçmez (liste `tests/bekci/gercek-ad.json`).
 
-**Kapsam dışı.** Zorlu'nun gerçek kurulumu için veri (o kurulumda, bu
+**Kapsam dışı.** Demo'nun gerçek kurulumu için veri (o kurulumda, bu
 depoda değil).
 
 **Kabul kriterleri.**
@@ -687,7 +687,7 @@ webhook (API zaten var).
 
 ## 3. Dalga 1 — Kurum içinde canlı olmak
 
-Amaç: referans kiracının (Zorlu Enerji) örnek veriden gerçek uyum kaydına
+Amaç: referans kiracının (Demo Enerji) örnek veriden gerçek uyum kaydına
 dönmesi — Dalga 0 temeli üzerinde. Sıra: **R4 → R1 → R3 → R2** (R5 Dalga
 0'a taşındı ve P2 ile birlikte yapılır). Her paket kiracı bağlamında ve
 paket/sözlük katmanıyla uyumlu yazılır; aşağıdaki "Ürünleştirme notu"
@@ -841,7 +841,7 @@ kanalı").
 **Ürünleştirme notu.** Bu paket artık "içe aktarım şablonu" değil,
 **içerik paketi üretimi**dir (P4): `TR-ENERJI` paketinin OSCAL + uzantı
 dosyaları ve `DegerlendirmeAktarimi` şablonu. Metin yine kurumdan gelir
-(§0.1). Referans kiracı Zorlu kendi kurulumunda kurar; depoya paket
+(§0.1). Referans kiracı Demo kendi kurulumunda kurar; depoya paket
 **iskeleti** ve doğrulayıcı girer; kamu metni (EPDK, BİGR, SPK, KVKK)
 paket içeriği olarak eklenebilir; ISO yalnız kimlik+başlık.
 
@@ -1749,5 +1749,5 @@ kullanımı yöneten ürün tarafı; kiracı verisini görmez. **İçerik paketi
 form/kaynak kataloğu/sözlük/demo verisi kümesi. **Sektör sözlüğü** —
 çekirdek terim anahtarlarına sektör etiketi veren paket ("tesis" →
 "santral"). **Öznitelik şeması** — sektöre özgü tesis/birim niteliklerinin
-(kurulu güç vb.) tipi ve birimi. **Referans kiracı** — Zorlu Enerji;
+(kurulu güç vb.) tipi ve birimi. **Referans kiracı** — Demo Enerji;
 ürünün ilk gerçek kurulumu, depoda verisi yok.

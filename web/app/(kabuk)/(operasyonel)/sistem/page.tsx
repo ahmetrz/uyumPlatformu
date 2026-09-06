@@ -80,14 +80,14 @@ const MUREKKEPLER: { anahtar: string; rol: string; esik: 'metin' | 'bilesen' }[]
 const ZEMINLER = ['--zemin', '--panel', '--panel2', '--secim'] as const;
 
 const TIPOGRAFI = [
-  ['--t-hero', 'Hero başlığı (Santral 360)', 'Kızıldere III JES'],
+  ['--t-hero', 'Hero başlığı (Santral 360)', 'Saha A-3 JES'],
   ['--t-board', 'Pano başlığı (portföy)', 'Enerji portföyü'],
   ['--t-screen', 'Ekran başlığı', 'Risk kütüğü'],
   ['--t-metric', 'Ölçüt değeri', '78'],
   ['--t-section', 'Bölüm başlığı', 'Kuyubaşı RTU güzergâhı'],
   ['--t-lead', 'Giriş cümlesi', 'Nerede uygunsuz, ve neden?'],
   ['--t-row', 'Kütük satırı', 'Ağ güvenliği ve segmentasyon'],
-  ['--t-cell', 'Hücre metni', 'Kızıldere III JES'],
+  ['--t-cell', 'Hücre metni', 'Saha A-3 JES'],
   ['--t-code-lg', 'Kod (büyük)', 'RSK-2026-001'],
   ['--t-caption', 'Alt yazı', 'Bilinmeyen %18'],
   ['--t-label', 'Bölüm etiketi', 'ŞU AN ÖNEMLİ OLAN'],

@@ -93,7 +93,7 @@ const BAG_ARASI = 2;
 const GRUP_DOLGUSU = 16;
 /* `.ab-ikincil { padding: 0 12px }` */
 const KAP_DOLGUSU = 24;
-/* Kapsam künyesi ("Zorlu Enerji · N santral") sağ uçta yer tutar. */
+/* Kapsam künyesi ("Demo Enerji · N santral") sağ uçta yer tutar. */
 const KUNYE_ENI = 150;
 
 function siraEni(gruplar: readonly { ogeler: readonly { ad: string }[] }[]): number {

@@ -54,7 +54,7 @@ export default async function Giris({ searchParams }: {
         {/* eslint-disable-next-line @next/next/no-img-element -- statik dışa aktarım: optimizasyon kapalı */}
         <img
           src={`${TEMEL}/gorseller/jeotermal-genis.webp`}
-          alt="Kızıldere jeotermal santrali"
+          alt="Saha A jeotermal santrali"
           decoding="async"
           fetchPriority="high"
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%',
@@ -66,7 +66,7 @@ export default async function Giris({ searchParams }: {
           flexDirection: 'column', justifyContent: 'space-between',
           padding: 'var(--s40) var(--s44)' }}>
           <p className="etiket" style={{ margin: 0, color: 'rgba(246,244,238,.72)' }}>
-            Zorlu Enerji Yönetişim Platformu
+            Enerji Yönetişim Platformu
           </p>
           <div>
             <h1 className="ab-pano-basligi" style={{ margin: 0, maxWidth: 620 }}>

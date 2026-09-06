@@ -686,7 +686,7 @@ export type Grafik = {
 /**
  * Santral öneki tekrar etmesin: grafik zaten tek santrale daraltılmıştır,
  * her düğümde santral kodunu yeniden yazmak düğümü genişletir ve okumayı
- * zorlaştırır. `KIZILDERE-3-SCADA-01` → `SCADA-01`.
+ * zorlaştırır. `SAHA-A3-SCADA-01` → `SCADA-01`.
  */
 export function kisaEtiket(etiket: string, tesisKod: string | null | undefined): string {
   if (!tesisKod) return etiket;

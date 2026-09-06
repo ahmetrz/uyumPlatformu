@@ -118,7 +118,7 @@ export const aktifKullanici = cache(async (): Promise<AktifKullanici | null> => 
   if (DEMO) {
     // Örnek veriyle aynı kişi görünür; yetki YİNE salt okur ('okuyucu') —
     // demo hiçbir koşulda yazma yetkisi taşımaz.
-    return { id: 'demo', adSoyad: 'Ahmet Terzi', eposta: 'ahmet.terzi@zorlu.com',
+    return { id: 'demo', adSoyad: 'Kullanıcı A', eposta: 'kullanici.a@demo.local',
       unvan: 'BT Direktörü · demo (salt okunur)',
       yetkiler: [{ rol: 'okuyucu', surecId: null, tesisId: null,
         tuzelKisiId: null, regulasyonId: null, modul: null }] };

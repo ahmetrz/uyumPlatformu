@@ -144,7 +144,7 @@ describe('OT-05 · Tek nokta riski DEĞERLENDİRİLMİŞ olandan sayılır', () 
 const sahiplik = (ek: Partial<SahiplikGirdisi> = {}): SahiplikGirdisi => ({
   sahip: null, emanetci: null, ekip: null, ...ek,
 });
-const kisi = (aktif: boolean) => ({ id: 'k1', ad: 'B. Şahin', aktif });
+const kisi = (aktif: boolean) => ({ id: 'k1', ad: 'Kullanıcı C', aktif });
 const ekip = (aktif: boolean, aktifUye: number) =>
   ({ id: 'e1', kod: 'OT-BAKIM', aktif, aktifUye });
 
@@ -191,14 +191,14 @@ describe('OT-09 · Etkin sahip PASİF kişiye düşmez', () => {
 
   it('kişi pasifse ekibin AKTİF sahibine düşer', () => {
     const s = etkinSahip(sahiplik({ sahip: kisi(false), ekip: ekip(true, 1) }), [
-      { kullaniciId: 'k9', ad: 'A. Yıldız', aktif: true },
+      { kullaniciId: 'k9', ad: 'Kullanıcı F', aktif: true },
     ]);
     expect(s).toMatchObject({ id: 'k9', kaynak: 'ekip' });
   });
 
   it('hiçbir aktif sahip yoksa NULL — pasif kişiye görev atanmaz', () => {
     const s = etkinSahip(sahiplik({ sahip: kisi(false) }), [
-      { kullaniciId: 'k9', ad: 'A. Yıldız', aktif: false },
+      { kullaniciId: 'k9', ad: 'Kullanıcı F', aktif: false },
     ]);
     expect(s).toBeNull();
   });

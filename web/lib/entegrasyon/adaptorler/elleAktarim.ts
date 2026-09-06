@@ -26,7 +26,7 @@ import { ORTAK_YAPILANDIRMA, bosNull, icerikOzeti, kararliKimlik } from './ortak
      esleme?       : { hamKolonAdi: normalizeAlanAdi } — kolon adları
                      tanınmıyorsa elle eşleme
      kaynakSistem  : `AdaptorBaglami.kaynakSistem` alanından gelir
-                     (ör. "SCADA envanter dışa aktarımı — Kızıldere II")
+                     (ör. "SCADA envanter dışa aktarımı — Saha A-2")
 
    `dosyaYolu` ve `icerik` ikisi de yoksa FIRLATIR. Boş dizi döndürmek
    "kaynakta hiç kayıt yok" demektir; kaynağın hiç tanımlanmamış olması o

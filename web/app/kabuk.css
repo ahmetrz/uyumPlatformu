@@ -2862,22 +2862,34 @@ details:not([open]) > *:not(summary) { display: none !important; }
      için çizilmişti (kusur 8). Sığdığı sürece kap taşmasızdır ki başlık
      satırı sayfaya YAPIŞABİLSİN: overflow'lu kapta sticky kaba yapışır
      ve etkisiz kalır (madde 2, 2026-09). */
-.ab-mtx { overflow: visible; }
-.ab-mtx.kayar { overflow-x: auto; }
-.ab-mtx .bas,
-.ab-mtx .satir {
+/* Matris TEK ızgaradır. Satırlar ayrı grid olduğunda `minmax(220px,1fr)`
+   başlık sütunu HER SATIRDA kendi içeriğine göre çözülüyordu: sütunlar
+   satırdan satıra kayıyor ve `min-width:max-content` taşan satırı kabın
+   dışına sızdırıyordu (kayar ölçümü yalnız `.bas`e baktığı için kaydırma
+   da açılmıyordu). Tek ızgarada sütun izleri paylaşılır; taşma olduğunda
+   kap gerçekten kayar. */
+.ab-mtx {
   display: grid;
   grid-template-columns: var(--mtx-kolon);
-  gap: 8px;
-  min-width: max-content;
+  column-gap: 8px;
+  row-gap: 0;
+  overflow: visible;
 }
-.ab-mtx .bas {
-  align-items: end;
+.ab-mtx.kayar { overflow-x: auto; }
+/* Satır kapları KUTU DEĞİL: hücreler doğrudan ızgaranın öğesi olur. */
+.ab-mtx .bas,
+.ab-mtx .satir,
+.ab-mtx .satirkap,
+.ab-mtx .acilankap { display: contents; }
+/* Başlığın kutusu kalmadı: hizalama, dolgu, kural ve yapışkanlık
+   HÜCRELERE taşındı (aynı dosyadaki `.ab-matris` kalıbı). */
+.ab-mtx .bas > * {
+  align-self: end;
   padding-bottom: 7px;
   border-bottom: 1px solid var(--murekkep);
   position: sticky; top: 0; z-index: 2; background: var(--zemin);
 }
-.ab-mtx.kayar .bas { position: static; }
+.ab-mtx.kayar .bas > * { position: static; }
 /* Santral başlığı: kısa ad, 11px, EN FAZLA İKİ SATIR; tam etiket (ad ·
    kod · künye) `title`da. Kesik satır "…" ile biter, 3. satır yok. */
 .ab-mtx .bas .santral { text-align: center; font-size: 11px; color: var(--i2); line-height: 1.25; min-width: 0; }
@@ -2885,22 +2897,22 @@ details:not([open]) > *:not(summary) { display: none !important; }
   display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
   overflow: hidden; overflow-wrap: anywhere;
 }
-.ab-mtx .satir {
-  align-items: stretch;
+/* Metin hücreleri ortalanır, DÜĞME hücreleri satırı kaplar: prototipte
+   tıklama alanı 13px glifti; 68×31px hedef klavye ve dokunma için
+   gerçek bir hedeftir (harita §7 kusur 4). Satır dolgusu ve alt kuralı
+   artık hücrelerde — satırın kendi kutusu yok. */
+.ab-mtx .satir > * {
+  align-self: center;
   padding: 9px 0;
   border-bottom: 1px solid var(--hr);
 }
-/* Metin hücreleri ortalanır, DÜĞME hücreleri satırı kaplar: prototipte
-   tıklama alanı 13px glifti; 68×31px hedef klavye ve dokunma için
-   gerçek bir hedeftir (harita §7 kusur 4). */
-.ab-mtx .satir > * { align-self: center; }
 .ab-mtx .satir > .hucrekap { align-self: stretch; display: flex; min-width: 0; }
 .ab-mtx .satir > .hucrekap > .hucre { flex: 1 1 auto; width: 100%; }
 .ab-mtx .satir .kod { font-size: 11px; color: var(--i2); }
 .ab-mtx .satir .baslik { font-size: 12.5px; min-width: 0; overflow-wrap: anywhere; }
 .ab-mtx .satir .kapsam { font-size: 11px; color: var(--i3); text-align: right; }
 
-.ab-mtx .satir.acik { background: var(--secim); }
+.ab-mtx .satir.acik > * { background: var(--secim); }
 .ab-mtx .satir.acik .kod,
 .ab-mtx .satir.acik .kapsam { color: var(--aksan); }
 .ab-mtx .satir.acik .baslik { font-weight: 500; }
@@ -2915,11 +2927,13 @@ details:not([open]) > *:not(summary) { display: none !important; }
 .ab-mtx .hucre:not(:disabled):hover { background: var(--secim); }
 .ab-mtx .hucre.secili { background: var(--panel); box-shadow: inset 0 0 0 1px var(--hr2); }
 
-.ab-mtx .satir.endeks {
+.ab-mtx .satir.endeks > * {
   padding: 11px 0 0;
   border-bottom: 0;
   border-top: 1px solid var(--murekkep);
 }
+/* Açılan gerekçe satırın tamamını kaplar. */
+.ab-mtx .acilanhucre { grid-column: 1 / -1; }
 .ab-mtx .satir.endeks .deger { font-size: 12px; text-align: center; }
 
 /* ── Satır içi gerekçe — çekmece DEĞİL ─────────────────────────────── */

@@ -432,10 +432,10 @@ function UyumMatrisi({ cerceve, satirlar, santraller, acik, setAcik, yazabilir }
     const el = kap.current;
     if (!el) return;
     const olc = () => {
-      // kaydırma kapalıyken ölç: ızgaranın gerçek genişliği ilk satırdan okunur
-      const bas = el.querySelector<HTMLElement>('.bas');
-      const gerek = bas ? bas.scrollWidth : el.scrollWidth;
-      setTasar(gerek > el.clientWidth + 1);
+      /* Izgara TEK grid; satırlar `display:contents` olduğu için kendi
+         kutuları yok ve `.bas`in scrollWidth'i 0 döner. Ölçüm kabın
+         kendi taşmasına bakar: `scrollWidth` en geniş içeriği görür. */
+      setTasar(el.scrollWidth > el.clientWidth + 1);
     };
     olc();
     const ro = new ResizeObserver(olc);
@@ -466,7 +466,7 @@ function UyumMatrisi({ cerceve, satirlar, santraller, acik, setAcik, yazabilir }
       {satirlar.map((s) => {
         const satirAcik = acik?.maddeId === s.maddeId;
         return (
-          <div key={s.maddeId}>
+          <div key={s.maddeId} className="satirkap">
             <div className={`satir${satirAcik ? ' acik' : ''}`} role="row">
               <span className="mono kod" role="rowheader">{s.kisaKod || s.kod}</span>
               <span className="baslik" role="cell">{s.baslik}</span>
@@ -493,8 +493,8 @@ function UyumMatrisi({ cerceve, satirlar, santraller, acik, setAcik, yazabilir }
             </div>
 
             {satirAcik && acik && (
-              <div role="row">
-                <div role="cell" aria-colspan={santraller.length + 3}>
+              <div role="row" className="acilankap">
+                <div role="cell" className="acilanhucre" aria-colspan={santraller.length + 3}>
                   <Gerekce
                     cerceve={cerceve}
                     satir={s}

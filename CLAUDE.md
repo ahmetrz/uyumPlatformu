@@ -1,4 +1,4 @@
-# Enerji Yönetişim Platformu
+# Uyum ve Yönetişim Platformu
 
 Enerji üretim grubu için IT/OT yönetişim, uyum ve dönüşüm platformu.
 Ürün kodu `web/` altındadır (Next.js 16 · React 19 · Prisma 7 · SQLite).
@@ -30,8 +30,9 @@ oku; buradan varsayma.
 ## Bağlayıcı kurallar
 
 **Dil.** Ürün metinleri, kod yorumları, commit mesajları ve belgeler
-Türkçedir. Ürünün adı **Enerji Yönetişim Platformu**'dur; eski kod
-adları kod, belge ve arayüzde geçmez.
+Türkçedir. Ürünün adı **Uyum ve Yönetişim Platformu**'dur; eski kod
+adları kod, belge ve arayüzde geçmez. Geçici tanımlayıcı ad; P0 bunu
+`MARKA_AD` yapılandırmasına taşıyacak.
 
 **Gerçek kurum sistemine bağlanılmaz.** AD/Entra, EDR, zafiyet tarayıcı,
 SIEM, yedekleme platformu, firewall ve ağ cihazları, OT keşif ürünü,

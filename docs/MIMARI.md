@@ -1,6 +1,6 @@
 # Mimari — katman şeması
 
-Enerji Yönetişim Platformu'nun kod katmanları ve aralarındaki akış.
+Uyum ve Yönetişim Platformu'nun kod katmanları ve aralarındaki akış.
 Şema depodaki güncel dizinlerden türetilmiştir; bir hedef mimari değil,
 **bugünkü** yerleşimdir. Gerçek kurum sistemi, uç nokta ya da kimlik bilgisi
 bu belgede yer almaz — ürün hiçbir gerçek sisteme bağlı değildir.

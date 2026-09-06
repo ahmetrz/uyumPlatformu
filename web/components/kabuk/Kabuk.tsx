@@ -82,8 +82,8 @@ export default function Kabuk({ veri, children }: { veri: KabukVerisi; children:
           bir main açmaz). */}
       <a href="#icerik" className="ab-atla">İçeriğe atla</a>
       <header className="ab-ust">
-        <Link href="/" className="marka" aria-label="Enerji Yönetişim Platformu — ana ekran">
-          DEMO ENERJİ<span className="ikinci">Yönetişim Platformu</span>
+        <Link href="/" className="marka" aria-label="Uyum ve Yönetişim Platformu — ana ekran">
+          DEMO ENERJİ<span className="ikinci">Uyum ve Yönetişim Platformu</span>
         </Link>
         <nav aria-label="Alanlar">
           {ALANLAR.map((o) => (

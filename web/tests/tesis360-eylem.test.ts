@@ -67,7 +67,12 @@ beforeAll(async () => {
   const kisi = await db.kullanici.findFirstOrThrow({ where: { aktif: true } });
   oturum.id = kisi.id;
   oturum.eposta = kisi.eposta;
+  /* ÜRETİM tesisi seçilir: kapsam motoru MERKEZ tipine (genel müdürlük)
+     uygulanabilirlik kararı üretmez. Önceden bu filtre yoktu ve doğru
+     tesise alfabetik sıra sayesinde RASTLANTIYLA düşülüyordu; kodlar
+     değişince sıra başa MERKEZ-BT'yi getirdi ve motor boş döndü. */
   const tesisler = await db.tesis.findMany({
+    where: { tip: { kod: { not: 'MERKEZ' } } },
     select: { id: true }, take: 2, orderBy: { kod: 'asc' },
   });
   [tesisA, tesisB] = tesisler.map((t) => t.id);

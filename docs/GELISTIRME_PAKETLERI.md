@@ -1673,6 +1673,7 @@ birlikte ele alınır:
 | R0-3 | `?next=` üreticisi | Giriş sonrası dönüş adresi üretilir; kapı zaten güvenli | Küçük |
 | R0-4 | Bayat belgeler | `URUN_YEDEKLEME` | R3 ile |
 | R0-5 | `.abacus.donotdelete` | 5 Eylül 2026 temizliğinde silindi; ne olduğu hiç belgelenmemişti. Kalem kapandı. | Kapandı |
+| R0-6 | Uygulanmamış tasarım teslimi | Eylül 2026'da ayrı bir depoda alternatif bir tasarım sistemi üretildi (`tokens.css`, `TASARIM_TOKENLARI.md`, `TASARIM_PLANI.md`, `mockups.html`); ürünün canlı jetonlarıyla yalnız 1 jetonu ortaktı. Değerlendirildi ve **terk edildi**: ürün `web/app/kabuk.css` dilinde devam eder. Kayıt: `arsiv/tasarim-denemesi-2026-09` dalı. | Kapandı |
 
 ---
 

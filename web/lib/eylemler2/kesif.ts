@@ -21,6 +21,7 @@
      hiçbir paket çıkmaz, tarama başlatılmaz.
    Kalıp: yetkiZorunlu → zod → db → iz → revalidatePath. */
 
+import { kapsamMesaji, kapsamTerimi } from './kapsamMesaji';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { db } from '../db';
@@ -219,7 +220,8 @@ export async function kesifKarariVer(girdi: {
     const v = KararSemasi.parse(girdi);
     const { kayit, tesisId } = await kararKapsami(v.kesifId, v.tesisId);
     kapsamZorunlu(k, 'envanter', 'onay', { tesisId },
-      'Bu tesis kapsamında envanter onay yetkiniz yok');
+
+      await kapsamMesaji(k, 'envanter', 'envanter onay yetkiniz yok', null));
 
     /* HEDEF tesis de denetlenir. Kararın kapsamı EŞLEŞEN varlıktan
        okunur, ama `yeni_varlik` kararı ÇAĞIRANIN verdiği `tesisId`'ye
@@ -229,7 +231,8 @@ export async function kesifKarariVer(girdi: {
        tests/kesif-karar.test.ts içinde. */
     if (v.tesisId && v.tesisId !== tesisId) {
       kapsamZorunlu(k, 'envanter', 'onay', { tesisId: v.tesisId },
-        'Yeni varlığın açılacağı tesis kapsamında yetkiniz yok');
+        `Yeni varlığın açılacağı ${await kapsamTerimi(k, 'envanter')}`
+        + ' kapsamında yetkiniz yok');
     }
 
     const sonuc = await kesifKararUygula({
@@ -321,7 +324,8 @@ export async function kesifTopluKarar(girdi: {
         const { kayit, tesisId } = await kararKapsami(kesifId);
         // Kapsam KAYIT KAYIT denetlenir: karışık bir partide yalnız
         // kapsam dışı olanlar düşer, ötekiler işlenir.
-        kapsamZorunlu(k, 'envanter', 'onay', { tesisId }, 'tesis kapsamı dışında');
+        kapsamZorunlu(k, 'envanter', 'onay', { tesisId },
+          `${await kapsamTerimi(k, 'envanter')} kapsamı dışında`);
         const sonuc = await kesifKararUygula({
           kesifId, karar: v.karar, inceleyenId: k.id, not: v.not,
           uzerineYaz: v.uzerineYaz ?? false,

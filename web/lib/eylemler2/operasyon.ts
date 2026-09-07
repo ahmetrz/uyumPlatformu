@@ -1,5 +1,6 @@
 'use server';
 
+import { kapsamMesaji } from './kapsamMesaji';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { db } from '../db';
@@ -38,7 +39,8 @@ export async function degisiklikKaydet(girdi: {
       uretimEtkisi: z.string().nullable().optional(),
     }).parse(girdi);
     kapsamZorunlu(k, 'envanter', 'yazma', { tesisId: v.tesisId },
-      'Bu tesis kapsamında yetkiniz yok');
+
+      await kapsamMesaji(k, 'envanter', 'yetkiniz yok', v.tesisId));
     if (v.id) {
       /* KAYDIN KENDİ tesisi de bağlayıcı: girdi tesis taşımadan güncelleme
          yapılırsa yukarıdaki denetim kapsamsız sorulur ve tesise kısıtlı
@@ -47,7 +49,8 @@ export async function degisiklikKaydet(girdi: {
         where: { id: v.id }, select: { tesisId: true } });
       if (!eski) throw new Error('Değişiklik bulunamadı');
       kapsamZorunlu(k, 'envanter', 'yazma', { tesisId: eski.tesisId },
-        'Bu tesis kapsamında yetkiniz yok');
+
+        await kapsamMesaji(k, 'envanter', 'yetkiniz yok', eski.tesisId));
     }
     const veri = {
       baslik: v.baslik, aciklama: v.aciklama ?? null, tesisId: v.tesisId ?? null,
@@ -93,7 +96,8 @@ export async function degisiklikIlerlet(girdi: { id: string; sonDogrulama?: stri
        ilerletir; ayrıca `degisiklikKaydet` ile aynı kapı olmazsa rol
        açabildiği bir kaydı asla ilerletemezdi. */
     kapsamZorunlu(k, 'envanter', 'yazma', { tesisId: d.tesisId },
-      'Bu tesis kapsamında yetkiniz yok');
+
+      await kapsamMesaji(k, 'envanter', 'yetkiniz yok', d.tesisId));
     const su = DEGISIKLIK_SIRASI.indexOf(d.durum as (typeof DEGISIKLIK_SIRASI)[number]);
     if (su < 0 || su === DEGISIKLIK_SIRASI.length - 1)
       return { ok: false, hata: 'Bu durumdan ilerlenemez' };
@@ -147,7 +151,8 @@ export async function degisiklikGeriAl(girdi: { id: string; gerekce: string }): 
     const v = z.object({ id: z.string(), gerekce: bosluksuz('Gerekçe') }).parse(girdi);
     const d = await db.degisiklik.findUniqueOrThrow({ where: { id: v.id } });
     kapsamZorunlu(k, 'envanter', 'onay', { tesisId: d.tesisId },
-      'Bu tesis kapsamında yetkiniz yok');
+
+      await kapsamMesaji(k, 'envanter', 'yetkiniz yok', d.tesisId));
     await db.$transaction(async (tx) => {
       const sonuc = await tx.degisiklik.updateMany({
         where: { id: v.id, durum: d.durum }, data: { durum: 'geri_alindi' },

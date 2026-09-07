@@ -279,7 +279,9 @@ describe('Toplu karar', () => {
     const sonuc = await kimlikle([yetki('yonetici', tesisA)], () => kesifTopluKarar({
       kesifIdleri: [kendi.id, yabanci.id], karar: 'reddet', not: 'karışık kapsam',
     }));
-    expect(hataMetni(sonuc)).toMatch(/tesis kapsamı dışında/);
+    /* Sözcük SÖZLÜKTEN gelir; test tohumda kurulu sözlüğe bağlı kalmasın
+       diye çerçeveyi arıyor, terimi değil. */
+    expect(hataMetni(sonuc)).toMatch(/kapsamı dışında/);
     expect((await izler(kendi.id)).length).toBe(1);
     expect((await izler(yabanci.id)).length).toBe(0);
   });

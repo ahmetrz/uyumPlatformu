@@ -1,5 +1,6 @@
 'use server';
 
+import { kapsamMesaji } from './kapsamMesaji';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { db } from '../db';
@@ -39,7 +40,8 @@ async function yedegeErisim(yedekId: string) {
   });
   if (!yedek) throw new Error('Yedek kaydı bulunamadı');
   kapsamZorunlu(k, 'envanter', 'yazma', { tesisId: yedek.varlik.tesisId },
-    'Bu tesis kapsamında yetkiniz yok');
+
+    await kapsamMesaji(k, 'envanter', 'yetkiniz yok', yedek.varlik.tesisId));
   return { k, yedek };
 }
 
@@ -242,7 +244,8 @@ export async function varlikYedekDurumu(
     if (!varlik || varlik.silindi) return { ok: false, hata: 'Varlık bulunamadı' };
     try {
       kapsamZorunlu(k, 'envanter', 'okuma', { tesisId: varlik.tesisId },
-        'Bu tesis kapsamında yetkiniz yok');
+
+        await kapsamMesaji(k, 'envanter', 'yetkiniz yok', varlik.tesisId));
     } catch {
       return { ok: false, hata: 'Bu tesis kapsamında yetkiniz yok' };
     }

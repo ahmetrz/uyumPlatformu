@@ -16,6 +16,7 @@
    Konfigürasyon TABANI ve keşif YETKİ kararı `onay` ister: ikisi de
    sonradan "böyle olması gerekiyordu" diye okunacak kararlardır. */
 
+import { kapsamMesaji } from './kapsamMesaji';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { db } from '../db';
@@ -70,7 +71,8 @@ export async function isSureciKaydet(girdi: unknown): Promise<Sonuc> {
       if (!t) return hata(new Error('Seçilen santral bulunamadı'));
     }
     kapsamZorunlu(k, 'tanimlar', 'onay', { tesisId: v.tesisId ?? null },
-      'Bu tesis kapsamında iş süreci tanımlama yetkiniz yok');
+
+      await kapsamMesaji(k, 'tanimlar', 'iş süreci tanımlama yetkiniz yok', v.tesisId ?? null));
     /* Süreci BAŞKA bir santrale taşımak da bir kapsam kararıdır: eski
        santralin kapsamı sorulmazsa, A'ya yetkili biri B'nin sürecini
        kendine çekebilirdi. */
@@ -122,7 +124,8 @@ export async function prosesAdimiKaydet(girdi: unknown): Promise<Sonuc> {
     });
     if (!surec) return hata(new Error('İş süreci bulunamadı'));
     kapsamZorunlu(k, 'tanimlar', 'onay', { tesisId: surec.tesisId },
-      'Bu tesis kapsamında proses adımı tanımlama yetkiniz yok');
+
+      await kapsamMesaji(k, 'tanimlar', 'proses adımı tanımlama yetkiniz yok', surec.tesisId));
 
     /* Sıra süreç içinde TEKİLDİR (şemadaki `@@unique`); çakışmayı burada
        anlamlı bir mesajla yakalıyoruz, yoksa kullanıcı ham kısıt hatası
@@ -327,7 +330,8 @@ export async function ekipKaydet(girdi: unknown): Promise<Sonuc> {
       if (!t) return hata(new Error('Seçilen santral bulunamadı'));
     }
     kapsamZorunlu(k, 'tanimlar', 'onay', { tesisId: v.tesisId ?? null },
-      'Bu tesis kapsamında ekip tanımlama yetkiniz yok');
+
+      await kapsamMesaji(k, 'tanimlar', 'ekip tanımlama yetkiniz yok', v.tesisId ?? null));
     /* Ekibi BAŞKA bir santrale taşımak da bir kapsam kararıdır: eski
        santralin kapsamı da sorulmazsa, A santraline yetkili biri B'nin
        ekibini kendine çekebilirdi. */
@@ -536,7 +540,8 @@ export async function kesifYetkiKarari(girdi: {
     });
     if (!kayit) return hata(new Error('Keşif kaydı bulunamadı'));
     kapsamZorunlu(k, 'envanter', 'onay', { tesisId: kayit.tesisId },
-      'Bu tesis kapsamında keşif kararı verme yetkiniz yok');
+
+      await kapsamMesaji(k, 'envanter', 'keşif kararı verme yetkiniz yok', kayit.tesisId));
 
     /* Gerekçe kuralı ALAN MANTIĞINDA durur; sunucu onu çağırır. İki yerde
        ayrı yazılsaydı ekran ile sunucu ayrışırdı. */
@@ -646,7 +651,9 @@ export async function pasifGozlemYukle(girdi: {
     }).parse(girdi);
 
     kapsamZorunlu(k, 'envanter', 'yazma', { tesisId: v.tesisId ?? null },
-      'Bu tesis kapsamında gözlem yükleme yetkiniz yok');
+
+
+      await kapsamMesaji(k, 'envanter', 'gözlem yükleme yetkiniz yok', v.tesisId ?? null));
 
     let kok: unknown;
     try { kok = JSON.parse(v.icerik); } catch {
@@ -789,7 +796,8 @@ export async function konfigSapmasiKarari(girdi: {
     });
     if (!sapma) return hata(new Error('Konfigürasyon sapması bulunamadı'));
     kapsamZorunlu(k, 'envanter', 'onay', { tesisId: sapma.varlik.tesisId },
-      'Bu tesis kapsamında sapma kararı verme yetkiniz yok');
+
+      await kapsamMesaji(k, 'envanter', 'sapma kararı verme yetkiniz yok', sapma.varlik.tesisId));
 
     if (!kararGerekceIster(v.durum)) {
       return hata(new Error('"Açık" bir karar değildir; sapma zaten açık durumdadır.'));
@@ -844,7 +852,8 @@ export async function hesapTipiKaydet(girdi: {
     });
     if (!hesap) return hata(new Error('Kimlik hesabı bulunamadı'));
     kapsamZorunlu(k, 'envanter', 'yazma', { tesisId: hesap.tesisId },
-      'Bu tesis kapsamında hesap düzenleme yetkiniz yok');
+
+      await kapsamMesaji(k, 'envanter', 'hesap düzenleme yetkiniz yok', hesap.tesisId));
 
     await db.kimlikHesabi.update({
       where: { id: v.hesapId },

@@ -6,6 +6,7 @@
    yetkisi ister; red gerekçesiz verilemez; her karar iz bırakır. Karar kaydı
    kaynak kaydı otomatik DEĞİŞTİRMEZ — uygulama ilgili modülün sorumluluğudur. */
 
+import { kapsamMesaji } from './kapsamMesaji';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { db } from '../db';
@@ -53,7 +54,8 @@ export async function gorevOlustur(girdi: {
     const k = await yetkiZorunlu('uyum', 'yazma', KAPSAM_SONRA);
     const v = GorevGirdisi.parse(girdi);
     kapsamZorunlu(k, 'uyum', 'yazma', { tesisId: v.tesisId },
-      'Bu tesis kapsamında görev açma yetkiniz yok');
+
+      await kapsamMesaji(k, 'uyum', 'görev açma yetkiniz yok', v.tesisId));
     if (v.sorumluId) {
       const sorumlu = await db.kullanici.findUnique({ where: { id: v.sorumluId } });
       if (!sorumlu || !sorumlu.aktif) throw new Error('Seçilen sorumlu bulunamadı ya da pasif');
@@ -97,7 +99,8 @@ export async function gorevDurum(girdi: { id: string; durum: string }): Promise<
          Ölçüldü (2026-09-02, gözden geçirme).
        Aşağıdaki sahiplik kuralı bundan AYRI bir sorudur, yerine geçmez. */
     kapsamZorunlu(k, 'uyum', 'yazma', { tesisId: g.tesisId },
-      'Bu tesis kapsamında görev değiştirme yetkiniz yok');
+
+      await kapsamMesaji(k, 'uyum', 'görev değiştirme yetkiniz yok', g.tesisId));
     if (g.durum === v.durum) return tamam();
     if (g.sorumluId && g.sorumluId !== k.id
       && !izinVar(k, 'uyum', 'onay', g.tesisId ? { tesisId: g.tesisId } : {}))

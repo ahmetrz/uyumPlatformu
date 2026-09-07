@@ -1,7 +1,7 @@
 {
-  "imza": "81714dc8f0a4b332af917d710535e26e",
-  "dosya": 151,
-  "vaka": 3020,
+  "imza": "dd10a1652123d5c244451b8ab4121d83",
+  "dosya": 152,
+  "vaka": 3024,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -34,6 +34,10 @@
     },
     "tests/bagimlilik-guvenligi.test.ts": {
       "vaka": 5,
+      "atlanan": 0
+    },
+    "tests/bekci/cekirdek-taban.test.ts": {
+      "vaka": 4,
       "atlanan": 0
     },
     "tests/bekci/cekirdek-tarayici.test.ts": {

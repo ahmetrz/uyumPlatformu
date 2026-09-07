@@ -18,6 +18,7 @@
    `tanimlar` modülüdür — ikisi de tek bir varlığı değil, bir SINIFI
    bağlar; kütük değişikliğidir ve `onay` ister. */
 
+import { kapsamMesaji } from './kapsamMesaji';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { db } from '../db';
@@ -317,7 +318,8 @@ export async function firmwareIstisnasiKaydet(girdi: {
     });
     if (!varlik || varlik.silindi) return hata(new Error('Varlık bulunamadı'));
     kapsamZorunlu(k, 'envanter', 'onay', { tesisId: varlik.tesisId },
-      'Bu tesis kapsamında istisna onaylama yetkiniz yok');
+
+      await kapsamMesaji(k, 'envanter', 'istisna onaylama yetkiniz yok', varlik.tesisId));
 
     /* İstisna `durum`u DEĞİŞTİRMEZ: cihaz hâlâ eski firmware'dedir ve
        ekran öyle göstermelidir. İstisna yalnız "bu biliniyor ve kabul
@@ -354,7 +356,8 @@ export async function korelasyonElleKarar(girdi: {
     });
     if (!kor) return hata(new Error('Korelasyon kaydı bulunamadı'));
     kapsamZorunlu(k, 'envanter', 'onay', { tesisId: kor.varlik.tesisId },
-      'Bu tesis kapsamında zafiyet kararı verme yetkiniz yok');
+
+      await kapsamMesaji(k, 'envanter', 'zafiyet kararı verme yetkiniz yok', kor.varlik.tesisId));
 
     await db.zafiyetKorelasyonu.update({
       where: { id: v.korelasyonId },
@@ -649,7 +652,8 @@ export async function veriKalitesiBulgusuKapat(girdi: {
       });
       if (varlik) {
         kapsamZorunlu(k, 'envanter', 'onay', { tesisId: varlik.tesisId },
-          'Bu tesis kapsamında veri kalitesi kararı verme yetkiniz yok');
+
+          await kapsamMesaji(k, 'envanter', 'veri kalitesi kararı verme yetkiniz yok', varlik.tesisId));
       }
     }
 

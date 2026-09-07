@@ -24,6 +24,7 @@
    katmanı (`lib/uyum/kanitDeposu.ts`) onu bir bayt dizisi olarak saklar
    ve özetini alır. */
 
+import { kapsamMesaji } from './kapsamMesaji';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { db } from '../db';
@@ -165,7 +166,8 @@ export async function kanitKaydet(girdi: {
     });
     if (!md) return hata(new Error('Madde durumu bulunamadı'));
     kapsamZorunlu(k, 'uyum', 'yazma', { tesisId: md.tesisId, surecId: md.surecId },
-      'Bu tesis kapsamında kanıt ekleme yetkiniz yok');
+
+      await kapsamMesaji(k, 'uyum', 'kanıt ekleme yetkiniz yok', md.tesisId));
 
     const kanit = await db.kanit.create({
       data: {
@@ -309,7 +311,8 @@ export async function kanitBaglantisiEkle(girdi: {
     });
     if (!md) return hata(new Error('Madde durumu bulunamadı'));
     kapsamZorunlu(k, 'uyum', 'yazma', { tesisId: md.tesisId, surecId: md.surecId },
-      'Bu tesis kapsamında kanıt bağlama yetkiniz yok');
+
+      await kapsamMesaji(k, 'uyum', 'kanıt bağlama yetkiniz yok', md.tesisId));
 
     await db.kanitBaglantisi.upsert({
       where: {

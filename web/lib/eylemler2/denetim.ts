@@ -4,6 +4,7 @@
    kapanışa geçiş onay yetkisi ister ve açık kanıt talebi ya da açık bulgu
    varken REDDEDİLİR), gerekçeli geri alma, kanıt talepleri ve kapsam yönetimi. */
 
+import { kapsamMesaji, kapsamTerimi } from './kapsamMesaji';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { db } from '../db';
@@ -296,12 +297,13 @@ export async function kapsamEkle(girdi: {
     if (!d || d.silindi) throw new Error('Denetim bulunamadı');
     if (d.durum === 'kapanis') throw new Error('Kapanmış denetimin kapsamı değiştirilemez');
     kapsamZorunlu(k, 'denetim', 'yazma', { tesisId: v.tesisId },
-      'Bu tesis kapsamında denetim yazma yetkiniz yok');
+
+      await kapsamMesaji(k, 'denetim', 'denetim yazma yetkiniz yok', v.tesisId));
 
     let etiket = '';
     if (v.tesisId) {
       const tesis = await db.tesis.findUnique({ where: { id: v.tesisId } });
-      if (!tesis) throw new Error('Tesis bulunamadı');
+      if (!tesis) throw new Error(`${await kapsamTerimi(k, 'denetim', 'tekil')} bulunamadı`);
       etiket = tesis.kod;
     }
     if (v.maddeId) {
@@ -337,7 +339,8 @@ export async function kapsamCikar(girdi: { id: string }): Promise<Sonuc> {
     if (kapsam.denetim.durum === 'kapanis')
       throw new Error('Kapanmış denetimin kapsamı değiştirilemez');
     kapsamZorunlu(k, 'denetim', 'yazma', { tesisId: kapsam.tesisId },
-      'Bu tesis kapsamında denetim yazma yetkiniz yok');
+
+      await kapsamMesaji(k, 'denetim', 'denetim yazma yetkiniz yok', kapsam.tesisId));
 
     await db.denetimKapsami.delete({ where: { id } });
     await iz({ aktorId: k.id, varlikTipi: 'Denetim', varlikId: kapsam.denetimId,

@@ -1,5 +1,6 @@
 'use server';
 
+import { kapsamMesaji } from './kapsamMesaji';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { db } from '../db';
@@ -31,7 +32,7 @@ export async function istisnaTalep(girdi: {
     const durum = await db.maddeDurumu.findUniqueOrThrow({
       where: { id: v.maddeDurumuId }, include: { madde: true, tesis: true } });
     if (!izinVar(k, 'uyum', 'yazma', { tesisId: durum.tesisId, surecId: durum.surecId }))
-      return { ok: false, hata: 'Bu tesis kapsamında yetkiniz yok' };
+      return { ok: false, hata: await kapsamMesaji(k, 'uyum', 'yetkiniz yok') };
 
     const acikIstisna = await db.istisna.findFirst({ where: {
       maddeId: durum.maddeId, tesisId: durum.tesisId,

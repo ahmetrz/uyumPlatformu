@@ -30,7 +30,7 @@
 
    Kullanım:  npx tsx arac/cekirdek-sozcuk-taramasi.mjs [--json]
 */
-import { readFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { CEKIRDEK_TERIMLER } from '../lib/dil/terimler';
 import { SOZLUKLER } from './sozluk-takas.mjs';
@@ -104,6 +104,7 @@ const ATLA = [`${path.sep}dil${path.sep}`, `prisma${path.sep}`, `tests${path.sep
 
 /* Gerekçeli muafiyetler — çekirdek sözcüğün DOĞRU olduğu dosyalar
    (R0-8 · R0-9 · kod anahtarı · ölçü birimi). Ölü kayıt kırmızı verir. */
+const TABAN = 'cekirdek-sozcuk-taban.json';
 const MUAFIYET = JSON.parse(
   readFileSync(path.join(WEB, 'arac', 'cekirdek-sozcuk-muafiyet.json'), 'utf8')).dosyalar;
 
@@ -138,7 +139,20 @@ for (const gorece of taranacakDosyalar()) {
 
 }
 
-if (DOGRUDAN && process.argv.includes('--json')) {
+/* `--taban`: ölçümü taban dosyasına yazar. Sayı DÜŞTÜĞÜNDE çalıştırılır;
+   yükseldiğinde çalıştırmak cırcırı delmek olur — test zaten kırmızı
+   yanar ve önce sebep düzeltilir. */
+if (DOGRUDAN && process.argv.includes('--taban')) {
+  const dosyalar = {};
+  for (const b of bulgular) dosyalar[b.dosya] = (dosyalar[b.dosya] ?? 0) + 1;
+  const eski = JSON.parse(readFileSync(path.join(WEB, 'arac', TABAN), 'utf8'));
+  writeFileSync(path.join(WEB, 'arac', TABAN), `${JSON.stringify({
+    '//': eski['//'],
+    toplam: bulgular.length,
+    dosyalar: Object.fromEntries(Object.entries(dosyalar).sort()),
+  }, null, 2)}\n`);
+  console.log(`taban güncellendi: ${eski.toplam} → ${bulgular.length}`);
+} else if (DOGRUDAN && process.argv.includes('--json')) {
   console.log(JSON.stringify(bulgular, null, 2));
 } else if (DOGRUDAN) {
   const dosyaBasina = new Map();

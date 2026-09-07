@@ -135,7 +135,7 @@ export default function Plant360({ veri, tesisler, sozluk }: {
       <section className={`ab-b-plaka${foto ? '' : ' fotosuz'}`}>
         {foto && (
           // eslint-disable-next-line @next/next/no-img-element -- statik dışa aktarım
-          <img src={foto} alt={gorselAlt(veri.ad, veri.tipAdi, veri.konum)}
+          <img src={foto} alt={gorselAlt(veri.ad, veri.tipAdi, veri.konum, t(sozluk, 'tesis'))}
             decoding="async" fetchPriority="high" />
         )}
         <span className="perde" aria-hidden />

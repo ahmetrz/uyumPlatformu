@@ -15,7 +15,7 @@
     "",
     "Taban güncelleme: npx tsx arac/cekirdek-sozcuk-taramasi.mjs --taban"
   ],
-  "toplam": 61,
+  "toplam": 59,
   "dosyalar": {
     "app/(kabuk)/(flagship)/Genel.tsx": 1,
     "app/(kabuk)/(flagship)/tesisler/[id]/veri.ts": 1,
@@ -47,6 +47,6 @@
     "lib/uyum/degisiklikEtkisi.ts": 1,
     "lib/uyum/denetciErisimi.ts": 3,
     "lib/varlik/pasifKesif.ts": 1,
-    "lib/yonetim/moduller.ts": 3
+    "lib/yonetim/moduller.ts": 1
   }
 }

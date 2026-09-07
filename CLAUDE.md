@@ -32,7 +32,7 @@ kabul kriteridir (P0 · URN-KUR-003); ölü atıf eklemeyin.
 | Ürünün kendi yedeği | `docs/URUN_YEDEKLEME.md` · `web/arac/yedek.mjs` |
 | Senaryo kütüğü · test eşlemesi | `docs/MASTER_SCENARIO_REGISTRY.md` · `docs/SCENARIO_TEST_MATRIX.md` (`web/lib/senaryo/` üretir) |
 | Kalite araçları ve kapılar | `web/arac/BENIOKU.md` |
-| Görsel künyeleri | `web/public/gorseller/KUNYE.md` · `web/public/santraller/KUNYE.md` |
+| Görsel künyeleri | `web/public/gorseller/KUNYE.md` · `web/public/tesisler/KUNYE.md` |
 | Zorunlu UX / ürün tasarımı skill seti | `.claude/skills/` |
 
 Terim sözlüğü belgesi (`docs/TERIMLER_SOZLUGU.md`) **henüz yok**: terim
@@ -107,7 +107,7 @@ bir tesisin fotoğrafı; tesise bağlı gerçek güvenlik bulgusu koda
 
 **Görseller.** Tesis görselleri temsilîdir ve ödünç alınmaz: fotoğrafı
 olmayan tesise başka bir tesisin görseli konmaz, üretim tipleri
-birbirinin yerine geçmez (`web/public/santraller/KUNYE.md`). Giriş ve
+birbirinin yerine geçmez (`web/public/tesisler/KUNYE.md`). Giriş ve
 saha görselleri üçüncü taraf atıf yükümlülüğü taşımaz
 (`web/public/gorseller/KUNYE.md`). Kurgusal demo kiracısının kayıtları
 gerçek bir tesise bağlanmaz.

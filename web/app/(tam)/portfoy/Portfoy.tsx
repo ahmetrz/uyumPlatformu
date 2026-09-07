@@ -248,7 +248,7 @@ export default function Portfoy({ satirlar, toplamGuc, endeks, kapsamli = false 
                 onFocus={() => setSeciliId(s.id)}>
                 {foto ? (
                   // eslint-disable-next-line @next/next/no-img-element -- statik dışa aktarım
-                  <img src={foto} alt={gorselAlt(s.ad, s.tipAdi, s.konum)}
+                  <img src={foto} alt={gorselAlt(s.ad, s.tipAdi, s.konum, terim('tesis'))}
                     loading={ilkSira ? 'eager' : 'lazy'} decoding="async"
                     fetchPriority={i === 0 ? 'high' : undefined} />
                 ) : (

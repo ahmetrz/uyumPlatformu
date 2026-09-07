@@ -1,3 +1,5 @@
+import { basHarf } from '../dil/terimler';
+import { CEKIRDEK_TERIM_SETI, type Metin, type TerimSeti } from './moduller';
 /* ═══ Saha modül kütüğü — dashboard görünürlük / sıra GÜVENLİ BEYAZ LİSTE ══
 
    Yönetim konsolu (`moduleGorunurluk`, A sınıfı, anahtar `saha.yerlesim`)
@@ -11,7 +13,7 @@
 
    `required` modül gizlenemez — Saha'nın kritik karar yüzeyleri (uyum
    endeksi, müdahale gerektirenler, takımyıldız, kritik risk, gecikmiş
-   aksiyon, yaklaşan denetim, santral şeridi) her yerleşimde vardır.
+   aksiyon, yaklaşan denetim, tesis şeridi) her yerleşimde vardır.
    `allowedPositions` KPI kalemine izinli konum kümesidir: kritik risk
    ilk iki konumdan çıkamaz (uyarı görünürlüğü).
 
@@ -23,6 +25,7 @@ export type SahaAlani = 'dikkat' | 'alan' | 'kpi' | 'serit';
 
 export type SahaModulu = {
   id: string;
+  /** ÇÖZÜLMÜŞ ad — `SAHA_MODUL_TANIMLARI` yazımında işlev olabilir. */
   ad: string;
   /** Ekran bölgesi — bölgeler arası taşıma YOK (bilgi mimarisi sabit). */
   alan: SahaAlani;
@@ -39,7 +42,10 @@ export type SahaModulu = {
 
 const KPI_KONUMLARI = [0, 1, 2, 3];
 
-export const SAHA_MODULLERI: readonly SahaModulu[] = [
+/** Yazım tarafı: ad sözlükten gelebilir (bkz. `lib/yonetim/moduller.ts`). */
+type SahaModuluTanimi = Omit<SahaModulu, 'ad'> & { ad: Metin };
+
+const SAHA_MODUL_TANIMLARI: readonly SahaModuluTanimi[] = [
   { id: 'uyumEndeksi', ad: 'Uyum endeksi', alan: 'dikkat', defaultVisible: true, allowedPositions: null,
     required: true, hideable: false, orderable: false, etkilenenEkran: 'Saha',
     aciklama: 'Grup uyum yüzdesi ve bilinmeyen oranı — birincil karar sayısı.' },
@@ -67,13 +73,32 @@ export const SAHA_MODULLERI: readonly SahaModulu[] = [
   { id: 'kpiRiskYogunlugu', ad: 'KPI · Risk yoğunluğu', alan: 'kpi', defaultVisible: true, allowedPositions: KPI_KONUMLARI,
     required: false, hideable: true, orderable: true, etkilenenEkran: 'Saha',
     aciklama: 'Kritik · yüksek · ölçülemedi özeti; matris /riskler’de.' },
-  { id: 'santralSeridi', ad: 'Santral şeridi', alan: 'serit', defaultVisible: true, allowedPositions: null,
+  /* `id` SAKLANAN bir anahtardır (`saha.yerlesim` ayarı gizli modül
+     kimliklerini tutar) ve kiracıya göre DEĞİŞMEZ; adı ise ekranda
+     görünür ve sözlükten yazılır. İkisi ayrı eksen — anahtarı çevirmek
+     kayıtlı yerleşimleri sessizce geçersiz kılardı. */
+  { id: 'tesisSeridi', ad: (x) => `${basHarf(x.tesis.tekil)} şeridi`, alan: 'serit', defaultVisible: true, allowedPositions: null,
     required: true, hideable: false, orderable: false, etkilenenEkran: 'Saha',
     aciklama: 'Saha seçici; tek ekran sözleşmesinin ikinci yarısı.' },
 ];
 
+/** Kütüğü verilen terim setiyle çözer. */
+export function sahaModulleriCoz(x: TerimSeti): SahaModulu[] {
+  return SAHA_MODUL_TANIMLARI.map((m) => ({
+    ...m, ad: typeof m.ad === 'string' ? m.ad : m.ad(x),
+  }));
+}
+
+/** ÇEKİRDEK çözümlü kütük — sözlüğü olmayan tüketiciler için. */
+export const SAHA_MODULLERI: readonly SahaModulu[] = sahaModulleriCoz(CEKIRDEK_TERIM_SETI);
+
 export const SAHA_MODUL_SOZLUGU: Record<string, SahaModulu> =
   Object.fromEntries(SAHA_MODULLERI.map((m) => [m.id, m]));
+
+/** Ekranın kendi sözlüğüyle çözülmüş saha modülü sözlüğü. */
+export function sahaModulSozlugu(x: TerimSeti): Record<string, SahaModulu> {
+  return Object.fromEntries(sahaModulleriCoz(x).map((m) => [m.id, m]));
+}
 
 export const KPI_MODULLERI = SAHA_MODULLERI.filter((m) => m.alan === 'kpi');
 
@@ -87,7 +112,7 @@ export const SAHA_YERLESIM_VARSAYILAN: SahaYerlesimi = {
 
 /* ── Tek ekran sözleşmesi bütçesi ──────────────────────────────────────
    `.ab-b-saha.ab-b-genel` ızgarası `minmax(0,1fr) auto auto`: fotoğrafik
-   alan esner, KPI şeridi ve santral şeridi sabit yüksekliktedir. Sözleşme
+   alan esner, KPI şeridi ve tesis şeridi sabit yüksekliktedir. Sözleşme
    (scrollHeight === innerHeight) en küçük sözleşme ekranında (1280×800)
    sabit satırlar + alanın asgari kullanılabilir yüksekliği bütçeyi aşmazsa
    korunur. Sayılar 2026-09 kapanış ölçümünden (kabuk.css yorumları):
@@ -114,7 +139,7 @@ export function sozlesmeKontrol(y: SahaYerlesimi, butce: SozlesmeButcesi = SOZLE
   const kpiSayisi = KPI_MODULLERI.filter((m) => !gizli.has(m.id)).length;
   const kpiSatir = Math.ceil(kpiSayisi / butce.kpiSutun);
   if (kpiSatir > 1) nedenler.push(`KPI şeridi ${kpiSatir} satıra taşar; tek satır sözleşmesi bozulur.`);
-  const serit = gizli.has('santralSeridi') ? 0 : butce.seritYukseklik;
+  const serit = gizli.has('tesisSeridi') ? 0 : butce.seritYukseklik;
   const alanYukseklik = butce.viewportYukseklik - butce.ustBar - butce.bantlar - kpiSatir * butce.kpiSatirYukseklik - serit;
   if (alanYukseklik < butce.alanAsgari) {
     nedenler.push(`Fotoğrafik alana ${alanYukseklik}px kalır; asgari ${butce.alanAsgari}px (1280×800).`);

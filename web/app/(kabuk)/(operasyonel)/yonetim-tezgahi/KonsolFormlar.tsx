@@ -7,7 +7,8 @@ import { zamanTR } from '@/lib/sabitler';
 import type { FormAlani, Modul } from '@/lib/yonetim/moduller';
 import { degerMetni, type AyarTanimi } from '@/lib/yapilandirma/tanimlar';
 import {
-  SAHA_MODULLERI, SAHA_MODUL_SOZLUGU, gorunur, kpiSirasi, sozlesmeKontrol, yerlesimDogrula, yerlesimFarki,
+  gorunur, kpiSirasi, sahaModulSozlugu, sahaModulleriCoz, sozlesmeKontrol, yerlesimDogrula,
+  yerlesimFarki,
   yerlesimMetni, yerlesimNormalle, type SahaYerlesimi,
 } from '@/lib/yonetim/sahaModulleri';
 import {
@@ -22,6 +23,8 @@ import {
   EYLEM_ETIKET, TALEP_DURUM_ETIKET, TALEP_DURUM_IMI, degerYaz, fark,
   type IzKaydi, type KonsolAyar, type KonsolKayit, type KonsolVerisi, type Talep,
 } from './konsolOrtak';
+import { useSozluk, useTerim } from '@/lib/dil/SozlukSaglayici';
+import { terimSeti } from '@/lib/yonetim/moduller';
 
 /* ═══ Konsol çekmeceleri — form, fark, etki, geçmiş ═══════════════════════
 
@@ -570,18 +573,27 @@ export function AyarCekmecesi({ tanim, okuma, veri, kapat, tazele, gecmis, acikT
    konum kümesi içinde çalışır. Kaydetmeden önce fark, etkilenen ekran ve
    tek ekran sözleşmesi hesaplanır; ihlal varsa Kaydet KAPALI kalır ve sunucu
    da aynı doğrulamayı yapar (istemcinin hesabı yetki değildir). */
-const ALAN_ADI: Record<string, string> = { dikkat: 'Dikkat paneli', alan: 'Fotoğrafik alan', kpi: 'KPI şeridi', serit: 'Santral şeridi' };
+/** Ekran BÖLGESİ adları; `serit` bölgesinin adı terim taşır. */
+function alanAdi(alan: string, tesis: string): string {
+  if (alan === 'serit') return `${tesis} şeridi`;
+  return { dikkat: 'Dikkat paneli', alan: 'Fotoğrafik alan', kpi: 'KPI şeridi' }[alan] ?? alan;
+}
 
 function YerlesimTablosu({ yerlesim, taslak, degistir }: {
   yerlesim: SahaYerlesimi; taslak?: SahaYerlesimi; degistir?: (y: SahaYerlesimi) => void;
 }) {
+  /* Modül ADLARI terim taşır ("<Tesis> şeridi") ve sözlükten yazılır;
+     `id` saklanan anahtardır ve değişmez. */
+  const sozluk = useSozluk();
+  const { tBas } = useTerim();
+  const sahaModulleri = useMemo(() => sahaModulleriCoz(terimSeti(sozluk)), [sozluk]);
   const y = taslak ?? yerlesim;
   const sira = kpiSirasi(y);
   const duzenlenir = Boolean(degistir);
   const gorunurlukDegistir = (id: string, acik: boolean) => {
     if (!degistir) return;
     const gizli = acik ? y.gizli.filter((g) => g !== id) : [...y.gizli, id];
-    const gorunen = SAHA_MODULLERI.filter((m) => m.alan === 'kpi' && !gizli.includes(m.id)).map((m) => m.id);
+    const gorunen = sahaModulleri.filter((m) => m.alan === 'kpi' && !gizli.includes(m.id)).map((m) => m.id);
     const kpiSira = [...y.kpiSira.filter((k) => gorunen.includes(k)), ...gorunen.filter((k) => !y.kpiSira.includes(k))];
     degistir({ gizli, kpiSira });
   };
@@ -596,7 +608,7 @@ function YerlesimTablosu({ yerlesim, taslak, degistir }: {
      ad + alan/ekran · görünürlük denetimi · sıra denetimi · zorunlu/varsayılan. */
   return (
     <ul className="ab-yerlesim" aria-label="Saha modülleri">
-      {SAHA_MODULLERI.map((m) => {
+      {sahaModulleri.map((m) => {
         const acik = gorunur(y, m.id);
         const konum = m.alan === 'kpi' && acik ? sira.indexOf(m.id) : -1;
         const kilitli = m.required || !m.hideable;
@@ -604,7 +616,9 @@ function YerlesimTablosu({ yerlesim, taslak, degistir }: {
           <li key={m.id} className={acik ? undefined : 'gizli'}>
             <div className="bas">
               <span className="ad" title={m.aciklama}>{m.ad}</span>
-              <span className="mono kunye">{ALAN_ADI[m.alan]} · {m.etkilenenEkran}</span>
+              <span className="mono kunye">
+                {alanAdi(m.alan, tBas('tesis'))} · {m.etkilenenEkran}
+              </span>
             </div>
             <div className="denetim">
               {duzenlenir && !kilitli ? (
@@ -651,7 +665,8 @@ function YerlesimDuzenleyici({ tanim, bugun, vazgec, bitti }: {
   const f = useMemo(() => yerlesimFarki(bugun, taslak), [bugun, taslak]);
   const farkVar = JSON.stringify({ gizli: [...bugun.gizli].sort(), sira: kpiSirasi(bugun) })
     !== JSON.stringify({ gizli: [...taslak.gizli].sort(), sira: kpiSirasi(taslak) });
-  const ad = (id: string) => SAHA_MODUL_SOZLUGU[id]?.ad ?? id;
+  const sozluk = useSozluk();
+  const ad = (id: string) => sahaModulSozlugu(terimSeti(sozluk))[id]?.ad ?? id;
 
   const kaydet = () => {
     if (!dogrulama.ok) { setHata(dogrulama.hata); return; }

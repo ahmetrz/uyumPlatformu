@@ -197,7 +197,7 @@ zamanı; mobil/tablet kullanım (hedef değil, reddedilmiş de değil).
 - **Fotoğraf politikası:** yalnız görseli sağlanmış tesis görsel alır;
   "yakın" bir tesisin görseli asla ödünç alınmaz. Gerçek bir tesisin
   fotoğrafı depoya girmez. Künye ve lisanslar
-  `web/public/santraller/KUNYE.md` (tesis seti) ve
+  `web/public/tesisler/KUNYE.md` (tesis seti) ve
   `web/public/gorseller/KUNYE.md` (giriş ve saha görselleri).
 
 ## Evidence on Hand
@@ -210,7 +210,7 @@ zamanı; mobil/tablet kullanım (hedef değil, reddedilmiş de değil).
   saha arka planı), tamamı ürün sahibinin sağladığı üretilmiş (AI)
   görsel, üçüncü taraf atıf yükümlülüğü yok; künyesi
   `web/public/gorseller/KUNYE.md`. Tesis görsel seti ayrıdır:
-  `web/public/santraller/`, künyesi `web/public/santraller/KUNYE.md`.
+  `web/public/tesisler/`, künyesi `web/public/tesisler/KUNYE.md`.
   Gerçek bir tesisin fotoğrafı depoda yoktur.
 - **Belgeler:** kök `README.md`, `INTEGRATION_DAY_RUNBOOK.md`,
   `docs/MIMARI.md`, `docs/ICERIK_MODELI.md`, `docs/ROTA_HARITASI.md`,

@@ -38,5 +38,5 @@ Havuz ürün sahibi onayıyla 5'ten 2'ye indirildi (2026-09-03); onaylanmayan
 ## Tesis görsel seti ayrı settir
 
 Tesis (kart/hero) görselleri bu dizinde değil,
-`public/santraller/genis/` ve `public/santraller/kucuk/` altındadır;
-künyesi `public/santraller/KUNYE.md`.
+`public/tesisler/genis/` ve `public/tesisler/kucuk/` altındadır;
+künyesi `public/tesisler/KUNYE.md`.

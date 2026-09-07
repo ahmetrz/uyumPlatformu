@@ -926,7 +926,7 @@ CDN.
 **Bugün.** *(6 Eylül 2026'da doğrulandı.)* Seed portföyü
 **kurgusaldır**: 17 tesisin hepsi sentetik ad taşır (`Saha A-1 JES` …
 `Saha M DGKÇ`), tüzel kişiler de öyle. **Kalan iki iz:** (1) iller ve
-coğrafî tarifler gerçektir (`public/santraller/KUNYE.md`) ve tip +
+coğrafî tarifler gerçektir (`public/tesisler/KUNYE.md`) ve tip +
 kurulu güç + il üçlüsü portföyü tanınır kılar; (2) tesis
 fotoğraflarının tamamı ürün sahibinin sağladığı **gerçek tesis
 fotoğraflarıdır** — paketin hedefi "nötr lisanslı görsel", bugün öyle

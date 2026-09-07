@@ -1,6 +1,6 @@
 # Santral Görselleri Künyesi
 
-`santraller/genis/` (hero, 1672×941) ve `santraller/kucuk/` (seçici, 240×150) altındaki
+`tesisler/genis/` (hero, 1672×941) ve `tesisler/kucuk/` (seçici, 240×150) altındaki
 tesis görselleri Kullanıcı A tarafından sağlandı — ilk onu 2026-09-01'de,
 kalan yedisi 2026-09-02'de; platformda **temsilî** görseller olarak kullanılır. Santral → anahtar eşlemesi
 veride (`Tesis.gorselAnahtari`), anahtar → dosya eşlemesi `lib/gorsel.ts`'de yaşar.

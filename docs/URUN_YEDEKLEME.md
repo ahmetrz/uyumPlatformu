@@ -24,7 +24,7 @@ kalite kapılarında koşar.
 | Bütün ürün verisi | `web/prisma/dev.db` | tek SQLite dosyası · 99 tablo · 19 uygulanmış göç |
 | Yapılandırma ve sırlar | `web/.env` | `.gitignore`'da · **yedeğe DAHİL DEĞİL** |
 | Kanıt dosyaları | — | **bugün yok** (aşağıya bakın) |
-| Santral görselleri | `web/public/santraller/` | depoda sürümlü, ayrıca yedek istemez |
+| Tesis görselleri | `web/public/tesisler/` | depoda sürümlü, ayrıca yedek istemez |
 
 **Kanıt dosyaları bugün yoktur ve bu bilinçli olarak yazılmıştır.**
 `Kanit.dosyaYolu` kolonu şemada duruyor ama hiçbir kod ona yazmıyor; API

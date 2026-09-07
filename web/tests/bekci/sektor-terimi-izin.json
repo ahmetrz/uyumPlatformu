@@ -141,8 +141,8 @@
     "tavan hiçbir şey tutmuyordu. Cırcır sessizce gevşemişti; ölçülen sayının",
     "ADI ile İDDİASI ayrışırsa kapı yaşarken ölür."
   ],
-  "tavan": 102,
-  "terimTavani": 683,
+  "tavan": 99,
+  "terimTavani": 630,
   "dosyalar": [
     "app/(giris)/giris/page.tsx",
     "app/(kabuk)/(flagship)/Genel.tsx",
@@ -242,9 +242,6 @@
     "lib/sabitler.ts",
     "lib/sahaArkaPlan.ts",
     "lib/senaryo/urunlestirme.ts",
-    "lib/yapilandirma/tanimlar.ts",
-    "lib/yonetim/moduller.ts",
-    "lib/yonetim/olculmemisGosterimi.ts",
-    "lib/yonetim/sahaModulleri.ts"
+    "lib/yapilandirma/tanimlar.ts"
   ]
 }

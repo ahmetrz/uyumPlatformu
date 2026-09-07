@@ -8,7 +8,8 @@ import { Tablo, type Kolon, type Satir } from '@/components/kabuk/tablo';
 import { Cekmece, CekmeceKimlik, CekmeceAlanlar, CekmeceEylemler } from '@/components/kabuk/panel';
 import { zamanTR } from '@/lib/sabitler';
 import {
-  MODULLER, MODUL_SOZLUGU, kapsamaOzeti, modulAyarlari, type Modul, type Sinif, type Yer,
+  kapsamaOzeti, modulAyarlari, modulSozlugu, modulleriCoz, terimSeti,
+  type Modul, type Sinif, type Yer,
 } from '@/lib/yonetim/moduller';
 import { AYAR_SOZLUGU, GRUP_ETIKETI, GRUP_SIRASI, degerMetni, type AyarGrubu } from '@/lib/yapilandirma/tanimlar';
 import {
@@ -18,6 +19,7 @@ import {
   EYLEM_ETIKET, HEDEF_VARLIK_TIPI, TALEP_DURUM_ETIKET, TALEP_DURUM_IMI,
   type IzKaydi, type KonsolVerisi, type Talep,
 } from './konsolOrtak';
+import { useSozluk } from '@/lib/dil/SozlukSaglayici';
 
 /* ═══ Yönetim konsolu — platformun yapılandırılabilir alanları TEK yerden ═══
 
@@ -79,13 +81,22 @@ export default function KonsolIstemci({ veri }: { veri: KonsolVerisi }) {
   const [arama, setArama] = useState('');
   const [talepMercek, setTalepMercek] = useState<'acik' | 'hepsi'>('acik');
 
+  /* KÜTÜK SÖZLÜKLE ÇÖZÜLÜR: modül adları ve açıklamaları terim taşıyor
+     ve terim kiracıya göre değişir. Kütüğün kendisi saf; çözüm burada,
+     ekranın kendi sözlüğüyle yapılır. `sozluk` referansı kabuktan gelen
+     AYNI nesne olduğu için `useMemo` her render'da yeniden çözmez. */
+  const sozluk = useSozluk();
+  const terimler = useMemo(() => terimSeti(sozluk), [sozluk]);
+  const moduller = useMemo(() => modulleriCoz(terimler), [terimler]);
+  const modulSoz = useMemo(() => modulSozlugu(terimler), [terimler]);
+
   const kapsama = useMemo(() => kapsamaOzeti(), []);
   const acikTalepler = veri.talepler.filter((t) => t.durum === 'incelemede');
   const onayliTalepler = veri.talepler.filter((t) => t.durum === 'onaylandi');
 
-  const modul: Modul | null = modulKod ? MODUL_SOZLUGU[modulKod] ?? null : null;
+  const modul: Modul | null = modulKod ? modulSoz[modulKod] ?? null : null;
   const grupModulleri = useMemo(
-    () => MODULLER.filter((m) => m.grup === bolum), [bolum]);
+    () => moduller.filter((m) => m.grup === bolum), [moduller, bolum]);
 
   function bolumeGec(b: Bolum) { setBolum(b); setModulKod(null); setSecili(null); setArama(''); }
   function moduleGir(kod: string | null) { setModulKod(kod); setSecili(null); setArama(''); }
@@ -170,7 +181,7 @@ export default function KonsolIstemci({ veri }: { veri: KonsolVerisi }) {
     konu: t.hedefEtiket,
     alt: `${TALEP_DURUM_ETIKET[t.durum]} · ${t.gerekce.length > 90 ? `${t.gerekce.slice(0, 90)}…` : t.gerekce}`,
     hucreler: [
-      <span key="h" className="mono">{MODULLER.find((m) => m.hedefTipi === t.hedefTipi)?.ad ?? t.hedefTipi}</span>,
+      <span key="h" className="mono">{moduller.find((m) => m.hedefTipi === t.hedefTipi)?.ad ?? t.hedefTipi}</span>,
       <span key="k">{t.talepEden.ad}</span>,
       <span key="z" className="mono">{zamanTR(t.olusturuldu)}</span>,
     ],
@@ -191,7 +202,7 @@ export default function KonsolIstemci({ veri }: { veri: KonsolVerisi }) {
   }));
 
   /* ── Seçili nesne çözümü (çekmece) ──────────────────────────────────── */
-  const seciliModul: Modul | null = !modul && secili && bolum !== 'onay' && bolum !== 'gecmis' ? MODUL_SOZLUGU[secili] ?? null : null;
+  const seciliModul: Modul | null = !modul && secili && bolum !== 'onay' && bolum !== 'gecmis' ? modulSoz[secili] ?? null : null;
   const seciliKayit = modul && secili && secili !== 'yeni' ? kayitlar.find((k) => k.id === secili) ?? null : null;
   const seciliAyar = modul?.hedefTipi === 'ayar' && secili ? AYAR_SOZLUGU[secili] ?? null : null;
   const seciliTalep = bolum === 'onay' && secili ? veri.talepler.find((t) => t.id === secili) ?? null : null;
@@ -220,7 +231,7 @@ export default function KonsolIstemci({ veri }: { veri: KonsolVerisi }) {
     <>
       <main data-yuzey="tezgah" data-alan="yonetim" style={{ minWidth: 0 }}>
         <EkranBasligi
-          eyebrow={`Yönetim konsolu · ${GRUP_SIRASI.length} grup · ${MODULLER.length} modül`}
+          eyebrow={`Yönetim konsolu · ${GRUP_SIRASI.length} grup · ${moduller.length} modül`}
           vurgu={`${kapsama.yonetilen}/${kapsama.ab}`}
           vurguDurumu={kapsama.eksik > 0 ? 'md' : 'ok'}
           baslik="yapılandırılabilir alan bu konsoldan yönetiliyor"
@@ -243,7 +254,7 @@ export default function KonsolIstemci({ veri }: { veri: KonsolVerisi }) {
             <nav className="ab-konsol-dizin" aria-label="Yönetim grupları">
               <p className="etiket">Gruplar</p>
               {GRUP_SIRASI.map((g, i) => {
-                const mods = MODULLER.filter((m) => m.grup === g);
+                const mods = moduller.filter((m) => m.grup === g);
                 const eksik = mods.filter((m) => m.yer === 'eksik').length;
                 const talep = mods.reduce((s, m) => s + modulTalepSayisi(m), 0);
                 return (
@@ -286,7 +297,7 @@ export default function KonsolIstemci({ veri }: { veri: KonsolVerisi }) {
                   <Tablo kolonlar={MODUL_KOLONLARI} satirlar={modulSatirlari} konuBasligi="Modül"
                     secili={secili} sik
                     sec={(id) => {
-                      const m = MODUL_SOZLUGU[id];
+                      const m = modulSoz[id];
                       if (m?.yer === 'konsol' && m.hedefTipi) moduleGir(id);
                       else if (m?.kod === 'degisiklikTalepleri') bolumeGec('onay');
                       else setSecili((s) => (s === id ? null : id));

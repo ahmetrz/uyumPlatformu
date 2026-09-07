@@ -1,5 +1,8 @@
 import { AYARLAR, type AyarGrubu } from '../yapilandirma/tanimlar';
 import {
+  CEKIRDEK_TERIMLER, basHarf, terim, type Sozluk, type Terim,
+} from '../dil/terimler';
+import {
   ESKALASYON_KAYNAKLARI, HEDEF_SOZU, HEDEF_TURLERI, KAYNAK_SOZU,
 } from '../uyum/eskalasyon';
 
@@ -58,6 +61,26 @@ export type FormAlani = {
   kimlik?: boolean;
 };
 
+/* ── EKRAN METNİ SÖZLÜKTEN GELEBİLİR ──────────────────────────────────
+   Bu kütüğün `ad` · `aciklama` · `etiket` · `etki` alanları EKRANA çıkar
+   (yönetim konsolu). Bir kısmı terim taşıyor ("<Tesis> görsel eşlemesi",
+   "<Tesis> içindeki alt bölüm") ve terim kiracıya göre değişir.
+
+   Metin bu yüzden ya düz DİZE ya da terimlerin İŞLEVİdir. İşlev seçildi
+   çünkü terim cümlenin İÇİNDE geçiyor ve hâli cümleye göre değişiyor;
+   "etiket + ek" birleştirmesi Türkçede yanlış sonuç verirdi.
+
+   Yazım tarafı `ModulTanimi`, okuma tarafı `Modul`: çözüm bir kez yapılır
+   (`modulleriCoz`) ve tüketiciler yalnız dize görür — kütüğü okuyan
+   ölçüm araçları (`kapsamaOzeti` · `kutukTutarli`) işlevle uğraşmaz. */
+export type TerimSeti = Record<'tesis' | 'birim' | 'portfoy' | 'tesis360', Terim>;
+export type Metin = string | ((x: TerimSeti) => string);
+
+/** Yazım tarafı: metin alanları işlev OLABİLİR. */
+export type FormAlaniTanimi = Omit<FormAlani, 'etiket' | 'aciklama'> & {
+  etiket: Metin; aciklama?: Metin;
+};
+
 export type Modul = {
   kod: string;
   grup: AyarGrubu;
@@ -89,28 +112,37 @@ const BIRIM_DURUMLARI = [
   { id: 'aktif', ad: 'Aktif' }, { id: 'bakim', ad: 'Bakımda' }, { id: 'devre_disi', ad: 'Devre dışı' },
 ];
 
-export const MODULLER: Modul[] = [
+export type ModulTanimi = Omit<Modul, 'ad' | 'aciklama' | 'neden' | 'etki' | 'alanlar'> & {
+  ad: Metin; aciklama: Metin; neden?: Metin; etki?: Metin[]; alanlar?: FormAlaniTanimi[];
+};
+
+const MODUL_TANIMLARI: ModulTanimi[] = [
   /* ═ 1 · ORGANİZASYON & SAHA ═══════════════════════════════════════════ */
   { kod: 'grup', grup: 'organizasyon', ad: 'Grup', sinif: 'A', yer: 'konsol', hedefTipi: 'grup',
     aciklama: 'Holding / grup kaydı; tüzel kişilerin çatısı.',
     alanlar: [
       { ad: 'kod', etiket: 'Kod', tip: 'metin', zorunlu: true, kimlik: true },
       { ad: 'ad', etiket: 'Ad', tip: 'metin', zorunlu: true },
-    ], etki: ['tüzel kişi', 'santral'] },
+    ], etki: ['tüzel kişi', (x) => x.tesis.tekil] },
   { kod: 'tuzelKisi', grup: 'organizasyon', ad: 'Tüzel kişi', sinif: 'A', yer: 'konsol', hedefTipi: 'tuzelKisi',
-    aciklama: 'Şirket; santral sahipliği ve yetki kapsamı bu kayda bağlanır.',
+    aciklama: (x) => `Şirket; ${x.tesis.tekil} sahipliği ve yetki kapsamı bu kayda bağlanır.`,
     alanlar: [
       { ad: 'kod', etiket: 'Kod', tip: 'metin', zorunlu: true, kimlik: true },
       { ad: 'ad', etiket: 'Ad', tip: 'metin', zorunlu: true },
       { ad: 'grupId', etiket: 'Grup', tip: 'secim', zorunlu: true, secenekler: 'grup' },
       { ad: 'vergiNo', etiket: 'Vergi no', tip: 'metin' },
-    ], etki: ['santral', 'yetki kapsamı'] },
-  { kod: 'tesis', grup: 'organizasyon', ad: 'Santral', sinif: 'A', yer: 'mevcut_ekran', rota: '/yonetim-tezgahi?bolum=tanim',
-    aciklama: 'Santral kimliği, tipi, kurulu güç, konum, tüzel kişi; kapatma gerekçeli.' },
-  { kod: 'operasyonelBirim', grup: 'organizasyon', ad: 'Üretim ünitesi', sinif: 'A', yer: 'konsol', hedefTipi: 'operasyonelBirim',
-    aciklama: 'Santral içi ünite (türbin, blok); varlık ve sistem bağları buraya iner.',
+    ], etki: [(x) => x.tesis.tekil, 'yetki kapsamı'] },
+  { kod: 'tesis', grup: 'organizasyon', ad: (x) => basHarf(x.tesis.tekil), sinif: 'A', yer: 'mevcut_ekran', rota: '/yonetim-tezgahi?bolum=tanim',
+    aciklama: (x) => `${basHarf(x.tesis.iyelik)} kimliği, tipi, kurulu güç, konum, `
+      + 'tüzel kişi; kapatma gerekçeli.' },
+  { kod: 'operasyonelBirim', grup: 'organizasyon', ad: (x) => basHarf(x.birim.tekil), sinif: 'A', yer: 'konsol', hedefTipi: 'operasyonelBirim',
+    /* Eski metindeki örnek liste SEKTÖR sözcükleriydi ve kiracıya göre
+       değişir; yerine BAĞIN kendisi yazılıyor — hangi kayıtların buraya
+       indiği ürünün her sektörde aynı olan gerçeği. */
+    aciklama: (x) => `${basHarf(x.tesis.iyelik)} içindeki alt bölüm; `
+      + 'varlık ve sistem bağları buraya iner.',
     alanlar: [
-      { ad: 'tesisId', etiket: 'Santral', tip: 'secim', zorunlu: true, secenekler: 'tesis', kimlik: true },
+      { ad: 'tesisId', etiket: (x) => basHarf(x.tesis.tekil), tip: 'secim', zorunlu: true, secenekler: 'tesis', kimlik: true },
       { ad: 'kod', etiket: 'Kod', tip: 'metin', zorunlu: true, kimlik: true },
       { ad: 'ad', etiket: 'Ad', tip: 'metin', zorunlu: true },
       { ad: 'kuruluGuc', etiket: 'Kurulu güç', tip: 'sayi' },
@@ -121,17 +153,20 @@ export const MODULLER: Modul[] = [
       { ad: 'durum', etiket: 'Durum', tip: 'secim', secenekler: BIRIM_DURUMLARI },
     ], etki: ['varlık', 'sistem/servis'] },
   { kod: 'tesisTipi', grup: 'organizasyon', ad: 'Üretim tipi (kırılım)', sinif: 'A', yer: 'mevcut_ekran', rota: '/yonetim-tezgahi?bolum=tanim',
-    aciklama: 'JES / RES / HES / GES / DGKÇ / Merkez — sektöre bağlı üretim tipleri.' },
+    aciklama: (x) => `Sektöre bağlı ${x.tesis.tekil} tipleri; kırılım verisinden gelir, koda gömülü değildir.` },
   { kod: 'sektor', grup: 'organizasyon', ad: 'Sektör', sinif: 'A', yer: 'mevcut_ekran', rota: '/yonetim-tezgahi?bolum=tanim',
     aciklama: 'Üretim tiplerinin üst kümesi.' },
-  { kod: 'tesisProfili', grup: 'organizasyon', ad: 'Santral metadata (profil)', sinif: 'A', yer: 'mevcut_ekran', rota: '/tesisler',
-    aciklama: 'Uygulanabilirlik kurallarının okuduğu profil alanları (TEİAŞ SCADA/EMS, seri haberleşme …); Santral 360 ekranından düzenlenir.' },
-  { kod: 'tesisGorsel', grup: 'organizasyon', ad: 'Santral görsel eşlemesi', sinif: 'A', yer: 'konsol', hedefTipi: 'tesisGorsel',
-    aciklama: 'Santral → fotoğraf anahtarı. Dosya seti repo\'dadır (künye public/santraller/KUNYE.md); eşleme buradan seçilir. Başka santralin görseli dolgu olarak ATANMAZ.',
+  { kod: 'tesisProfili', grup: 'organizasyon', ad: (x) => `${basHarf(x.tesis.tekil)} metadata (profil)`, sinif: 'A', yer: 'mevcut_ekran', rota: '/tesisler',
+    aciklama: (x) => 'Uygulanabilirlik kurallarının okuduğu profil alanları '
+      + `(TEİAŞ SCADA/EMS, seri haberleşme …); ${x.tesis360.tekil} ekranından düzenlenir.` },
+  { kod: 'tesisGorsel', grup: 'organizasyon', ad: (x) => `${basHarf(x.tesis.tekil)} görsel eşlemesi`, sinif: 'A', yer: 'konsol', hedefTipi: 'tesisGorsel',
+    aciklama: (x) => `${basHarf(x.tesis.tekil)} → fotoğraf anahtarı. Dosya seti repo'dadır `
+      + '(künye public/tesisler/KUNYE.md); eşleme buradan seçilir. '
+      + `Başka ${x.tesis.iyelik} görseli dolgu olarak ATANMAZ.`,
     alanlar: [
       { ad: 'gorselAnahtari', etiket: 'Görsel anahtarı', tip: 'secim', secenekler: 'gorsel',
         aciklama: 'Boş bırakılırsa tipografik plaka çizilir.' },
-    ], etki: ['Saha şeridi', 'Portföy', 'Santral 360'] },
+    ], etki: ['Saha şeridi', (x) => basHarf(x.portfoy.tekil), (x) => x.tesis360.tekil] },
 
   /* ═ 2 · UYUM & REGÜLASYON ═════════════════════════════════════════════ */
   { kod: 'regulasyon', grup: 'uyum', ad: 'Regülasyon / framework', sinif: 'A', yer: 'mevcut_ekran', rota: '/yonetim-tezgahi?bolum=tanim',
@@ -145,7 +180,9 @@ export const MODULLER: Modul[] = [
   { kod: 'esdegerlik', grup: 'uyum', ad: 'Çapraz eşleme (eşdeğerlik)', sinif: 'A', yer: 'mevcut_ekran', rota: '/eslestirme',
     aciklama: 'Framework\'ler arası kontrol eşdeğerlikleri.' },
   { kod: 'uygulanabilirlikKurali', grup: 'uyum', ad: 'Uygulanabilirlik kuralı', sinif: 'B', yer: 'konsol', hedefTipi: 'uygulanabilirlikKurali',
-    aciklama: 'Regülasyonun hangi santrale uygulanacağını profil alanlarından karara bağlayan kural. Değişiklik kapsam kararlarını yeniden hesaplatır → onaylı.',
+    aciklama: (x) => `Regülasyonun hangi ${x.tesis.yonelme} uygulanacağını profil `
+      + 'alanlarından karara bağlayan kural. Değişiklik kapsam kararlarını '
+      + 'yeniden hesaplatır → onaylı.',
     alanlar: [
       { ad: 'regulasyonId', etiket: 'Regülasyon', tip: 'secim', zorunlu: true, secenekler: 'regulasyon', kimlik: true },
       { ad: 'ad', etiket: 'Kural adı', tip: 'metin', zorunlu: true },
@@ -153,11 +190,15 @@ export const MODULLER: Modul[] = [
         aciklama: '{"herhangi":[{"alan":"kuruluGuc","islec":">=","deger":100}]} ya da {"hepsi":[…]}' },
       { ad: 'aciklama', etiket: 'Açıklama', tip: 'metin' },
       { ad: 'aktif', etiket: 'Aktif', tip: 'mantik' },
-    ], etki: ['santral kapsam kararı', 'uyum matrisi', 'madde durumu'] },
+    ], etki: [(x) => `${x.tesis.tekil} kapsam kararı`, 'uyum matrisi', 'madde durumu'] },
   { kod: 'olgunlukOlcegi', grup: 'uyum', ad: 'Olgunluk ölçeği (0-5)', sinif: 'C', yer: 'kod',
     kodYeri: 'lib/uyum/olgunluk.ts → OLGUNLUK_ADI · olgunlukKapisi()',
     aciklama: 'UY-59 · Altı kademe: yok · başlangıç · tekrarlanabilir · tanımlı · yönetilen · optimize. Hedef seviye maddede, ölçülen seviye madde durumunda. Seviye 3 ve üstü gerekçe ister.',
-    neden: 'Ölçek bir ANLAM sözleşmesidir: kademeler ekrandan değiştirilebilseydi iki santralin "seviye 3"ü aynı şeyi anlatmazdı ve karşılaştırma çökerdi. Ürün hiçbir düzenleyicinin resmî kademe metnini yeniden yazmaz; kurumun kendi çerçevesiyle eşlemesi bir yapılandırma kararıdır.' },
+    neden: (x) => 'Ölçek bir ANLAM sözleşmesidir: kademeler ekrandan '
+      + `değiştirilebilseydi iki ${x.tesis.iyelik} "seviye 3"ü aynı şeyi `
+      + 'anlatmazdı ve karşılaştırma çökerdi. Ürün hiçbir düzenleyicinin resmî '
+      + 'kademe metnini yeniden yazmaz; kurumun kendi çerçevesiyle eşlemesi bir '
+      + 'yapılandırma kararıdır.' },
   { kod: 'kontrolTesti', grup: 'uyum', ad: 'Kontrol testi kaydı', sinif: 'A', yer: 'mevcut_ekran', rota: '/uyum',
     aciklama: 'UY-64 · Tasarım mı işleyiş mi, kaç örnek incelendi, kaçı uygun. Kayıt SİLİNMEZ ve değiştirilmez; düzeltme yeni bir test kaydıdır.' },
   { kod: 'testKurali', grup: 'uyum', ad: 'Kontrol testi kuralları', sinif: 'C', yer: 'kod',
@@ -232,12 +273,16 @@ export const MODULLER: Modul[] = [
     neden: 'Kategori listesi "aynı kök neden kaç bulguda tekrarlıyor" sorusunun sayılabilir zeminidir. Ekrandan serbest kategori açılabilseydi dağılım anlamsızlaşır ve sistemik sorun görünmez olurdu.' },
   { kod: 'tekrarPenceresi', grup: 'uyum', ad: 'Tekrarlayan bulgu penceresi', sinif: 'C', yer: 'kod',
     kodYeri: 'lib/uyum/tekrarBulgu.ts → TEKRAR_PENCERESI_GUN · KRONIK_ESIK',
-    aciklama: 'UY-28 · 365 gün pencere, 3 halkada KRONİK. Tekrar tanımı DAR: aynı kontrol, aynı santral. Metin benzerliğine bakılmaz.',
+    aciklama: (x) => 'UY-28 · 365 gün pencere, 3 halkada KRONİK. Tekrar tanımı '
+      + `DAR: aynı kontrol, aynı ${x.tesis.tekil}. Metin benzerliğine bakılmaz.`,
     neden: 'Pencere ayarla değişirse eski bağların hangi eşikle kurulduğu kaybolurdu; bu yüzden pencere her bağın kendi kaydına yazılır ve eşik kodda durur. Metin benzerliğiyle tekrar aramak, farklı iki sorunu birleştirip denetçiye yanlış tarihçe sunardı.' },
   { kod: 'aktarimElemeTavani', grup: 'uyum', ad: 'Değerlendirme aktarımı eleme tavanı', sinif: 'C', yer: 'kod',
     kodYeri: 'lib/uyum/degerlendirmeAktarimi.ts → ELEME_TAVANI · SATIR_TAVANI',
     aciklama: 'UY-43 · Satırların yarısından çoğu elenirse aktarım UYGULANMAZ; tek koşuda en çok 5000 satır. Kuru koşu zorunludur, uygulama kökeniyle ona bağlıdır.',
-    neden: 'Bu bir güvenlik kapısıdır: yarısı elenen bir dosya büyük ihtimalle yanlış regülasyona ya da yanlış santrale aktarılıyordur ve kalan azınlığı sessizce yazmak, doğru görünen ama yanlış yere yazılmış bir aktarım üretir.' },
+    neden: (x) => 'Bu bir güvenlik kapısıdır: yarısı elenen bir dosya büyük '
+      + `ihtimalle yanlış regülasyona ya da yanlış ${x.tesis.yonelme} `
+      + 'aktarılıyordur ve kalan azınlığı sessizce yazmak, doğru görünen ama '
+      + 'yanlış yere yazılmış bir aktarım üretir.' },
   { kod: 'mevzuatKaynakSaglayici', grup: 'uyum', ad: 'Resmî mevzuat kaynağı izleyici', sinif: 'C', yer: 'kod',
     kodYeri: 'lib/uyum/mevzuatKaynagi.ts → mevzuatSaglayici',
     aciklama: 'UY-41 · BAĞLI DEĞİL. Kaynaklar elle kaydedilir, "en son ne zaman bakıldı" elle güncellenir; ürün hiçbir siteye kendiliğinden bağlanmaz ve "değişiklik yok" DEMEZ.',
@@ -283,7 +328,8 @@ export const MODULLER: Modul[] = [
       { ad: 'kod', etiket: 'Kod', tip: 'metin', zorunlu: true, kimlik: true },
       { ad: 'ad', etiket: 'Ad', tip: 'metin', zorunlu: true },
       { ad: 'tip', etiket: 'Tip', tip: 'secim', zorunlu: true, secenekler: BOLGE_TIPLERI },
-      { ad: 'tesisId', etiket: 'Santral', tip: 'secim', secenekler: 'tesis', aciklama: 'Boş = kurumsal / santral bağımsız' },
+      { ad: 'tesisId', etiket: (x) => basHarf(x.tesis.tekil), tip: 'secim', secenekler: 'tesis',
+        aciklama: (x) => `Boş = kurumsal / ${x.tesis.tekil} bağımsız` },
       { ad: 'guvenlikSeviyesi', etiket: 'Güvenlik seviyesi (Purdue)', tip: 'sayi' },
     ], etki: ['varlık', 'ağ geçidi', 'topoloji anlığı'] },
   { kod: 'agSegmenti', grup: 'varlik', ad: 'Ağ segmenti (VLAN / CIDR)', sinif: 'A', yer: 'mevcut_ekran',
@@ -308,7 +354,10 @@ export const MODULLER: Modul[] = [
     aciklama: 'OT-44 · Açık boşluğu GİDERİLDİ ya da KABUL EDİLDİ diye karara bağlama; gerekçe zorunlu. Motorun kendi çözdüğü bulgu bir sonraki koşuda kendiliğinden kapanır.' },
   { kod: 'isSureci', grup: 'varlik', ad: 'İş süreci (üretim zinciri)', sinif: 'A',
     yer: 'mevcut_ekran', rota: '/prosesler',
-    aciklama: 'OT-05 · Adımların taşıyıcısı. Santralsiz süreç grup çapındadır; tesise kısıtlı rol onu düzenleyemez. Uyum SÜRECİYLE (/surecler) karıştırılmamalıdır — bu üretim zinciridir.' },
+    aciklama: (x) => 'OT-05 · Adımların taşıyıcısı. Hiçbir '
+      + `${x.tesis.yonelme} bağlanmamış süreç grup çapındadır; ${x.tesis.yonelme} `
+      + 'kısıtlı rol onu düzenleyemez. Uyum SÜRECİYLE (/surecler) '
+      + 'karıştırılmamalıdır — bu üretim zinciridir.' },
   { kod: 'prosesAdimi', grup: 'varlik', ad: 'Proses adımı', sinif: 'A', yer: 'mevcut_ekran',
     rota: '/prosesler',
     aciklama: 'OT-05 · İş sürecinin sıralı kırılımı; varlıklar adıma bağlanır. Bağın kendisi bilgi taşır: rol, tek nokta ve yedeklilik — üçü de ÜÇ DEĞERLİ, "değerlendirilmedi" ayrı bir durumdur.' },
@@ -433,7 +482,8 @@ export const MODULLER: Modul[] = [
   { kod: 'kullanici', grup: 'erisim', ad: 'Kullanıcılar', sinif: 'A', yer: 'mevcut_ekran', rota: '/yetkiler',
     aciklama: 'Hesap, parola sıfırlama, aktif/pasif.' },
   { kod: 'yetki', grup: 'erisim', ad: 'Rol + kapsam atamaları', sinif: 'A', yer: 'mevcut_ekran', rota: '/yetkiler',
-    aciklama: 'Kullanıcıya rol; santral / süreç / regülasyon / tüzel kişi kapsamı.' },
+    aciklama: (x) => `Kullanıcıya rol; ${x.tesis.tekil} / süreç / regülasyon / `
+      + 'tüzel kişi kapsamı.' },
   { kod: 'apiAnahtari', grup: 'erisim', ad: 'API anahtarları', sinif: 'A', yer: 'mevcut_ekran', rota: '/yonetim-tezgahi?bolum=anahtar',
     aciklama: 'Üretim (tek gösterim), kapsam ve iptal; hash saklanır.' },
   { kod: 'apiKapsami', grup: 'erisim', ad: 'API anahtarı uç kapsamı', sinif: 'C', yer: 'kod',
@@ -449,7 +499,9 @@ export const MODULLER: Modul[] = [
     aciklama: 'UY-53 · Bugün giriş ürünün KENDİ kullanıcı kütüğündendir; SSO bağlı DEĞİLDİR ve ürün ikinci faktör istemez. Hazırlık ekranı bunu satır olarak gösterir.',
     neden: 'Tenant kimliği, metadata adresi ve claim eşlemesi kurumdan gelir; konsola örnek bir değer yazmak, kurulumda kimsenin değiştirmediği ve sessizce yanlış yere bakan bir yapılandırma bırakırdı.' },
   { kod: 'denetciErisimi', grup: 'erisim', ad: 'Dış denetçi erişimi', sinif: 'A', yer: 'mevcut_ekran', rota: '/denetci-erisimi',
-    aciklama: 'UY-57 · Davet, süre (tavan 365 gün), santral kapsamı, iptal ve erişim izi. Davet `dis_denetci` yetki satırlarını açar; iptal ve süre sonu kapatır.' },
+    aciklama: (x) => `UY-57 · Davet, süre (tavan 365 gün), ${x.tesis.tekil} kapsamı, `
+      + 'iptal ve erişim izi. Davet `dis_denetci` yetki satırlarını açar; iptal '
+      + 've süre sonu kapatır.' },
   { kod: 'rolMatrisi', grup: 'erisim', ad: 'Rol → modül izin matrisi', sinif: 'C', yer: 'kod',
     kodYeri: 'lib/erisim.ts → ROL_IZINLERI',
     aciklama: '9 rol × 7 modül × okuma/yazma/onay.',
@@ -460,7 +512,8 @@ export const MODULLER: Modul[] = [
 
   /* ═ 7 · ENTEGRASYON & VERİ ════════════════════════════════════════════ */
   { kod: 'connector', grup: 'entegrasyon', ad: 'Connector tanımları', sinif: 'A', yer: 'mevcut_ekran', rota: '/ice-aktarim',
-    aciklama: 'Tip, ortam, poll aralığı, sır referansı, santral kapsamı; test / kuru koşu / senkron.' },
+    aciklama: (x) => `Tip, ortam, poll aralığı, sır referansı, ${x.tesis.tekil} `
+      + 'kapsamı; test / kuru koşu / senkron.' },
   { kod: 'connectorEsleme', grup: 'entegrasyon', ad: 'Connector ↔ eşleme profili bağı', sinif: 'A', yer: 'mevcut_ekran', rota: '/esleme',
     aciklama: 'Hangi connector hangi profil sürümüyle okunur.' },
   { kod: 'iceAktarim', grup: 'entegrasyon', ad: 'İçe aktarım profilleri (katalog / varlık)', sinif: 'A', yer: 'mevcut_ekran', rota: '/varlik-aktarim',
@@ -482,7 +535,7 @@ export const MODULLER: Modul[] = [
     aciklama: 'Odak kuyruğu 12 kayıt · takvim 90 gün · akış 12 hafta.', etki: ['Saha'] },
   { kod: 'kunye', grup: 'gorunum', ad: 'Ayak künye metni', sinif: 'A', yer: 'konsol', hedefTipi: 'ayar',
     aciklama: 'Her ekranın ayağındaki platform adı.', etki: ['Kabuk'] },
-  { kod: 'gorselEsleme', grup: 'gorunum', ad: 'Santral görsel eşlemesi', sinif: 'A', yer: 'mevcut_ekran', rota: '/yonetim-tezgahi?bolum=organizasyon&modul=tesisGorsel',
+  { kod: 'gorselEsleme', grup: 'gorunum', ad: (x) => `${basHarf(x.tesis.tekil)} görsel eşlemesi`, sinif: 'A', yer: 'mevcut_ekran', rota: '/yonetim-tezgahi?bolum=organizasyon&modul=tesisGorsel',
     aciklama: 'Organizasyon grubunda yönetilir (aynı kayıt, iki giriş).' },
   { kod: 'moduleGorunurluk', grup: 'gorunum', ad: 'Dashboard modül görünürlüğü / KPI sırası', sinif: 'A', yer: 'konsol', hedefTipi: 'ayar',
     aciklama: 'Saha sunum bloklarının açık/kapalı durumu ve KPI sırası; güvenli beyaz liste (lib/yonetim/sahaModulleri.ts), zorunlu modül gizlenemez, tek ekran sözleşmesi hesaplanır.',
@@ -530,7 +583,57 @@ export const MODULLER: Modul[] = [
     aciklama: 'Tablolar, kısıtlar, tetikleyiciler.', neden: 'Veri modeli; konsoldan değişmesi denetim izini ve testleri geçersiz kılar.' },
 ];
 
+/** Çekirdek terim seti — sözlüksüz bağlam (test, ölçüm aracı, e-posta). */
+export const CEKIRDEK_TERIM_SETI: TerimSeti = {
+  tesis: CEKIRDEK_TERIMLER.tesis, birim: CEKIRDEK_TERIMLER.birim,
+  portfoy: CEKIRDEK_TERIMLER.portfoy, tesis360: CEKIRDEK_TERIMLER.tesis360,
+};
+
+/** Sözlükten terim seti kurar. */
+export function terimSeti(sozluk: Sozluk | null | undefined): TerimSeti {
+  return {
+    tesis: terim(sozluk, 'tesis'), birim: terim(sozluk, 'birim'),
+    portfoy: terim(sozluk, 'portfoy'), tesis360: terim(sozluk, 'tesis360'),
+  };
+}
+
+const coz = (m: Metin, x: TerimSeti) => (typeof m === 'string' ? m : m(x));
+
+/** Kütüğü verilen terim setiyle çözer; sonuç tümüyle dizedir. */
+export function modulleriCoz(x: TerimSeti): Modul[] {
+  return MODUL_TANIMLARI.map((m): Modul => {
+    const { ad, aciklama, neden, etki, alanlar, ...kalan } = m;
+    return {
+      ...kalan,
+      ad: coz(ad, x),
+      aciklama: coz(aciklama, x),
+      ...(neden === undefined ? {} : { neden: coz(neden, x) }),
+      ...(etki === undefined ? {} : { etki: etki.map((e) => coz(e, x)) }),
+      ...(alanlar === undefined ? {} : {
+        alanlar: alanlar.map((a): FormAlani => {
+          const { etiket, aciklama: alanAciklama, ...alanKalan } = a;
+          return {
+            ...alanKalan,
+            etiket: coz(etiket, x),
+            ...(alanAciklama === undefined ? {} : { aciklama: coz(alanAciklama, x) }),
+          };
+        }),
+      }),
+    };
+  });
+}
+
+/** ÇEKİRDEK çözümlü kütük — sözlüğü olmayan tüketiciler için (ölçüm
+    araçları, testler, sunucu tarafı tutarlılık kontrolü). Ekran kendi
+    sözlüğüyle `modulleriCoz` çağırır. */
+export const MODULLER: Modul[] = modulleriCoz(CEKIRDEK_TERIM_SETI);
+
 export const MODUL_SOZLUGU: Record<string, Modul> = Object.fromEntries(MODULLER.map((m) => [m.kod, m]));
+
+/** Ekranın kendi sözlüğüyle çözülmüş kütük sözlüğü. */
+export function modulSozlugu(x: TerimSeti): Record<string, Modul> {
+  return Object.fromEntries(modulleriCoz(x).map((m) => [m.kod, m]));
+}
 
 /** Ayar anahtarı → onu taşıyan konsol modülü (grup ve ön ek eşlemesi). */
 export function ayarinModulu(anahtar: string): Modul | null {

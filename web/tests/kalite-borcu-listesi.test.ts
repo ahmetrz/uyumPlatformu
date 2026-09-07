@@ -70,10 +70,15 @@ async function borcOkuYolla(yol: string) {
 const satirlar = () => JSON.parse(readFileSync(LISTE, 'utf8')).bulgular;
 
 describe('borç listesi satır biçimi', () => {
+  it('liste BOŞ OLABİLİR — borçsuz hâl cırcırın hedefidir', () => {
+    /* `length > 0` beklemek, son satır düzelip silindiğinde `npm test`i
+       kırardı: cırcırın kendi talimatı ("düzelen satırı SİLİN") ile
+       çelişir ve sonsuza kadar yapay borç tutmayı zorunlu kılardı. */
+    expect(Array.isArray(satirlar())).toBe(true);
+  });
+
   it('her satır cırcırın anahtar alanlarını ve bir tavan taşır', () => {
-    const bulgular = satirlar();
-    expect(bulgular.length).toBeGreaterThan(0);
-    for (const b of bulgular) {
+    for (const b of satirlar()) {
       expect(['tasma', 'axe']).toContain(b.kapi);
       expect(typeof b.tur).toBe('string');
       expect(b.rota.startsWith('/')).toBe(true);

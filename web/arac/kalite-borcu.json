@@ -16,7 +16,7 @@
     "4 · OKUNAMAZSA KIRMIZI — taban dal okunamıyorsa CI'da kapı kırmızıdır;",
     "    yerelde yalnız `--circir-atla=\"<gerekçe>\"` ile atlanır."
   ],
-  "_olculdu": "2026-09-07 · TAZE tohumla (npm run db:hazirla), üretim sunucusuna karşı · 56 rota × 2 bant (taşma) · 57 rota × 3 bant (axe)",
+  "_olculdu": "2026-09-07 · TAZE tohumla (npm run db:hazirla), üretim sunucusuna karşı · 68 rota (50 statik + 18 dinamik varyant) × 2 bant (taşma) · 69 rota × 3 bant (axe)",
   "_birim": "tasma/sayfa-kayiyor: px · tasma/kirpilan-icerik: KUSUR TÜRÜ (etiket + kırpılma türü + kutu eni tek imzadır; kutu eni yerleşimden gelir, satır sayısından değil) · axe: ihlal düğümü",
   "bulgular": [
     {
@@ -404,6 +404,6 @@
       "not": ".ab-sistem-kaydir kapları klavyeyle odaklanamıyor"
     }
   ],
-  "_dinamik": "Dinamik rota satırları KALIBA anahtarlanır (`/tesisler/[id]`), somut URL'e değil: tohum kimlikleri `@default(cuid())` ile her seed'de değişir.",
+  "_dinamik": "Dinamik rota satırları KALIBA anahtarlanır (`/tesisler/[id]`), somut URL'e değil: tohum kimlikleri `@default(cuid())` ile her seed'de değişir. Her kalıptan üç kayıt VARYANTI taranır ve tavan EN KÖTÜ varyanta göre tutulur — tek kayıt ölçmek içeriğe bağlı kusuru kaçırırdı (ölçüldü: Tesis 360'ın 768px kusuru 17 tesisin yalnız 5'inde çıkıyordu).",
   "_tavan_nasil": "Tavanlar ÖLÇÜMDEN üretilir, elle yazılmaz. Ölçüm birimi kusur TÜRÜDÜR, öğe sayısı değil: satır sayısına bağlı bir tavan tohum verisi değişince kayar (ölçüldü: /saglik yerelde 8, CI'da 23 öğe — aynı iki kusur türü). Yeniden ölçerken tohum TAZE olmalı: `rm prisma/dev.db && npm run db:hazirla`."
 }

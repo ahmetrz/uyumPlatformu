@@ -82,9 +82,13 @@ function somutlastir(giris) {
   if (giris.dinamik.length > 1) return { hata: 'çok parametreli rota — eşleme tanımlı değil' };
   const t = tohumDegeri(giris.rota);
   if (t.hata) return { hata: t.hata };
+  /* Duman testi rotanın ÇİZİLDİĞİNİ yoklar; bir örnek yeter. İçeriğe
+     bağlı kusuru arayan tarayıcılı kapılar varyantların hepsini tarar
+     (`dinamikRotalar`). */
+  const deger = t.degerler[0];
   return {
-    url: giris.rota.replace(/\[[^\]]+\]/, encodeURIComponent(t.deger)),
-    not: `${t.kaynak}=${t.deger.slice(0, 12)}…`,
+    url: giris.rota.replace(/\[[^\]]+\]/, encodeURIComponent(deger)),
+    not: `${t.kaynak}=${deger.slice(0, 12)}…`,
   };
 }
 

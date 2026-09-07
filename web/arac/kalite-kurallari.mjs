@@ -125,6 +125,7 @@ const KESME_ISARETI = (o) => String(o?.metinTasmasi ?? 'clip') !== 'clip'
  * Tek bir ölçümün kararı. Eksik/bozuk ölçüm kusur ÜRETMEZ — ölçülemeyen
  * bir şey "kusurlu" da olamaz (bkz. bilinmeyen ≠ sıfır).
  * @param {{disari?:number, tasma?:number, kendiOverflow?:string,
+ *          metinTasmasi?:string, satirKirpma?:number,
  *          kapTuru?:string|null, erisilir?:boolean}|null|undefined} olcum
  * @param {number} [tolerans]
  */

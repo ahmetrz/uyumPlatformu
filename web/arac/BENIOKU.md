@@ -275,7 +275,9 @@ doğrulanır; `kalite-borcu.mjs` yalnız dosya/git okur ve raporlar.
 
 **Bir satır düzeldiğinde silinir.** Kapı zaten söyler: "DÜZELMİŞ BORÇ · N
 satır — kalite-borcu.json içinden SİLİN". Silinen satır DİŞ 3 yüzünden
-geri gelemez.
+geri gelemez. **Liste BOŞALABİLİR** — borçsuz hâl cırcırın hedefidir ve
+testler bunu engellemez (`length > 0` beklemek, son satır silindiğinde
+`npm test`i kırar ve sonsuza kadar yapay borç tutmayı zorunlu kılardı).
 
 #### Tavan VERİYE BAĞIMLI olamaz
 
@@ -439,6 +441,21 @@ tohumdan somutlaşan rotaları da tarar (56 rota · 112 ölçüm).
 > (`/riskler/[id]`): tohum kimlikleri `@default(cuid())` ile her seed
 > koşusunda değişir, somut URL yazılsaydı CI'daki kimlik yerelde
 > ölçülene hiç uymaz ve liste kilitlenirdi.
+
+**Her kalıptan tek kayıt değil, ÜÇ KAYIT VARYANTI taranır.** Tek kayıt
+ölçmek içeriğe bağlı kusuru kaçırır ve bunun kanıtı bu depodadır: Tesis
+360'ın 768px kusuru 17 tesisin **yalnız 5'inde** çıkıyordu (açık bulgusu
+olanlarda). `kod`a göre sıralı ilk üç tesis SAHA-A1 · A2 · A3 ve kusurlu
+beşin ikisi (A2, A3) bu üçün içindeydi — üç örnek o kusuru YAKALARDI,
+tek örnek kaçırırdı. Sayı `TOHUM_ORNEK` ile artırılabilir.
+
+Aynı kalıptan birden çok bulgu geldiğinde tavan **EN KÖTÜ varyanta**
+göre tutulur. Toplamak ölçüyü örnek sayısına yani tohuma bağlardı;
+ilkini almak kusurlu varyantı temizin arkasına saklardı — ikisi de bu
+turda düzeltilen hataların aynısı olurdu.
+
+> **Ölçüldü:** 6 → 18 dinamik rota · taşma 112 → **136 ölçüm · 119sn** ·
+> axe 171 → **207 tarama · 176sn**. İkisi de exit 0.
 
 **Çözülemeyen dinamik rota bir uyarı değil, KIRIK TARAMADIR.** Tablo ya
 da kolon yeniden adlandırılırsa, tohum tablosu boşalırsa veya

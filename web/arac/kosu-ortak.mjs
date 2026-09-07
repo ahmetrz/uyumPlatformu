@@ -88,6 +88,17 @@ export const TOHUM_KAYNAGI = {
 
 const DB_YOL = process.env.DB_YOL || path.join(WEB, 'prisma', 'dev.db');
 
+/* Kayıt BAŞINA bir ekran taranmaz, kayıt VARYANTLARI taranır. Tek kayıt
+   ölçmek, içeriğe bağlı kusuru kaçırır ve bunun kanıtı bu depodadır:
+   Tesis 360'ın 768px kusuru 17 tesisin YALNIZ 5'inde çıkıyordu (açık
+   bulgusu olanlarda). `kod`a göre sıralı ilk üç tesis SAHA-A1 · A2 · A3
+   ve kusurlu beşin ikisi (A2, A3) bu üçün içindeydi — yani üç örnek o
+   kusuru YAKALARDI, tek örnek kaçırırdı.
+
+   Üç, ölçülmüş bir dengedir: kapsam ile CI süresi arasında. `TOHUM_ORNEK`
+   ile artırılabilir. */
+const ORNEK_SAYISI = Math.max(1, Number(process.env.TOHUM_ORNEK) || 3);
+
 /** Tek bir dinamik rotanın tohumdaki gerçek değeri. */
 export function tohumDegeri(rota) {
   const kaynak = TOHUM_KAYNAGI[rota];
@@ -102,12 +113,15 @@ export function tohumDegeri(rota) {
        her koşuda farklı bir ekranı ölçerdi ve borç tavanları koşudan
        koşuya oynardı. Sıra, tohumda ELLE yazılmış bir alandan alınır
        (kod ya da başlık); kimlik yalnız URL'e konur. */
-    const satir = db.prepare(
+    const satirlar = db.prepare(
       `select ${kaynak.kolon} as v from ${kaynak.tablo}`
-      + ` order by ${kaynak.sira ?? kaynak.kolon} limit 1`,
-    ).get();
-    if (!satir?.v) return { hata: `tohumda ${kaynak.tablo} kaydı yok` };
-    return { deger: String(satir.v), kaynak: `${kaynak.tablo}.${kaynak.kolon}` };
+      + ` order by ${kaynak.sira ?? kaynak.kolon} limit ${ORNEK_SAYISI}`,
+    ).all();
+    if (satirlar.length === 0) return { hata: `tohumda ${kaynak.tablo} kaydı yok` };
+    return {
+      degerler: satirlar.map((r) => String(r.v)),
+      kaynak: `${kaynak.tablo}.${kaynak.kolon}`,
+    };
   } catch (e) {
     return { hata: `tohum sorgusu başarısız (${kaynak.tablo}): ${e.message}` };
   } finally {
@@ -132,7 +146,9 @@ export function dinamikRotalar() {
   for (const kalip of Object.keys(TOHUM_KAYNAGI)) {
     const d = tohumDegeri(kalip);
     if (d.hata) { atlanan.push({ rota: kalip, sebep: d.hata }); continue; }
-    liste.push({ kalip, url: kalip.replace(/\[[^\]]+\]/, encodeURIComponent(d.deger)) });
+    for (const deger of d.degerler) {
+      liste.push({ kalip, url: kalip.replace(/\[[^\]]+\]/, encodeURIComponent(deger)) });
+    }
   }
   return { liste, url: liste.map((x) => x.url), atlanan };
 }

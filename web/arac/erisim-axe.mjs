@@ -226,6 +226,22 @@ if (JSON_YOLU) {
    yazılıdır ve liste yalnız küçülebilir (arac/kalite-borcu.json).
    Kırık tarama İZİN LİSTESİNE GİRMEZ: ölçülemeyen bir rota "borç" değil,
    ölçümün kendisinin kırılmasıdır. */
+/* Aynı kalıbın birkaç örneği taranır (`/tesisler/[id]` × 3). Borç anahtarı
+   kalıptır, yani aynı anahtarda birden çok bulgu oluşur; tavan EN KÖTÜ
+   örneğe göre tutulur. Toplasaydık ölçü örnek sayısına, yani tohuma
+   bağlanırdı; ilkini alsaydık kusurlu örnek temiz örneğin arkasına
+   saklanırdı — ikisi de bu turda düzeltilen hataların aynısı olurdu. */
+function enKotuyeIndirge(bulgular) {
+  const en = new Map();
+  for (const b of bulgular) {
+    const anahtar = [b.kapi, b.tur, b.rota, b.bant].join('|');
+    const v = en.get(anahtar);
+    if (!v || b.olcum > v.olcum) en.set(anahtar, { ...b, ornek: (v?.ornek ?? 0) + 1 });
+    else en.set(anahtar, { ...v, ornek: v.ornek + 1 });
+  }
+  return [...en.values()];
+}
+
 /* Borç anahtarı KALIBA yazılır (`/tesisler/[id]`), somut URL'e değil:
    tohum kimlikleri her seed'de değişir. */
 const kalip = kalipCozucu(DINAMIK);
@@ -235,7 +251,7 @@ const bulgular = rapor.flatMap((r) => r.ihlaller
     kapi: 'axe', tur: i.id, rota: kalip(r.rota), bant: r.bantEn,
     olcum: i.dugum, birim: 'düğüm', not: i.ornek?.[0],
   })));
-const borcKapali = borcuUygula(bulgular, { kapi: 'axe' });
+const borcKapali = borcuUygula(enKotuyeIndirge(bulgular), { kapi: 'axe' });
 if (kirik.length > 0) {
   console.error(`\nKIRIK TARAMA · ${kirik.length} rota ölçülemedi — izin listesine giremez.`);
 }

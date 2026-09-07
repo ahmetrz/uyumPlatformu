@@ -325,6 +325,22 @@ for (const k of kirpilmalar) {
 /* ── Kalite borcu cırcırı ─────────────────────────────────────────────
    Kapı BUGÜN bloklayıcıdır; bugünün açık bulguları izin listesinde
    yazılıdır ve liste yalnız küçülebilir (arac/kalite-borcu.json). */
+/* Aynı kalıbın birkaç örneği taranır (`/tesisler/[id]` × 3). Borç anahtarı
+   kalıptır, yani aynı anahtarda birden çok bulgu oluşur; tavan EN KÖTÜ
+   örneğe göre tutulur. Toplasaydık ölçü örnek sayısına, yani tohuma
+   bağlanırdı; ilkini alsaydık kusurlu örnek temiz örneğin arkasına
+   saklanırdı — ikisi de bu turda düzeltilen hataların aynısı olurdu. */
+function enKotuyeIndirge(bulgular) {
+  const en = new Map();
+  for (const b of bulgular) {
+    const anahtar = [b.kapi, b.tur, b.rota, b.bant].join('|');
+    const v = en.get(anahtar);
+    if (!v || b.olcum > v.olcum) en.set(anahtar, { ...b, ornek: (v?.ornek ?? 0) + 1 });
+    else en.set(anahtar, { ...v, ornek: v.ornek + 1 });
+  }
+  return [...en.values()];
+}
+
 /* Borç anahtarı KALIBA yazılır (`/tesisler/[id]`), somut URL'e değil:
    tohum kimlikleri her seed'de değişir. */
 const kalip = kalipCozucu(DINAMIK);
@@ -340,7 +356,7 @@ const bulgular = [
     not: k.ogeler[0]?.etiket,
   })),
 ];
-const borcKapali = borcuUygula(bulgular, { kapi: 'tasma' });
+const borcKapali = borcuUygula(enKotuyeIndirge(bulgular), { kapi: 'tasma' });
 if (DINAMIK_KIRIK) {
   console.error(`\nKIRIK TARAMA · ${DINAMIK.atlanan.length} dinamik rota ölçülemedi`
     + ' — izin listesine giremez, kapı KIRMIZIDIR.');

@@ -254,6 +254,14 @@ const SABOTAJLAR = [
     yaz: '/* ═══ IP · subnet · CIDR — SAF MANTIK (santral ağı) ════════════════════',
     testler: ['tests/bekci/sektor-terimi.test.ts'],
   },
+  {
+    ad: 'Tasarım belgesindeki jeton değeri koddan sapıyor',
+    kural: 'DESIGN.md jeton değerleri kabuk.css\'ten SAPAMAZ',
+    dosya: 'DESIGN.md',
+    ara: '- **Bakır** (`--aksan` `#C2703E`)',
+    yaz: '- **Bakır** (`--aksan` `#C2703F`)',
+    testler: ['tests/tasarim-belgesi.test.ts'],
+  },
 ];
 
 function testKos(testler) {

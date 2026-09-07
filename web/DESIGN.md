@@ -4,13 +4,13 @@ description: Tek koyu kabuk, Saha dili (Barlow Condensed · Inter · JetBrains M
 colors:
   zemin: "#0A0C0D"
   panel: "#0F1213"
-  panel-2: "#14181A"
+  panel2: "#14181A"
   murekkep: "#EDEEEC"
-  murekkep-2: "#B9BEBC"
-  murekkep-3: "#8D9497"
-  sac-cizgisi: "#1C2123"
-  sac-cizgisi-2: "#272D2F"
-  aksan-bakir: "#C2703E"
+  i2: "#B9BEBC"
+  i3: "#8D9497"
+  hr: "#1C2123"
+  hr2: "#272D2F"
+  aksan: "#C2703E"
   aksan-uzeri: "#0A0C0D"
   secim: "#171211"
   ok: "#6FA07E"
@@ -18,10 +18,10 @@ colors:
   bd: "#DB5A48"
   pl: "#7A8B93"
   unk: "#8D9497"
-  tip-jes: "#C47A3F"
-  tip-hes: "#5F8FA8"
-  tip-res: "#9DB3A8"
-  tip-ges: "#C9A24C"
+  tip-a: "#B7734A"
+  tip-b: "#5A87A3"
+  tip-c: "#93A6AD"
+  tip-d: "#C9A24C"
 typography:
   display:
     fontFamily: "Barlow Condensed, Inter, sans-serif"
@@ -85,14 +85,14 @@ spacing:
   satir-h: "36px"
 components:
   button-primary:
-    backgroundColor: "{colors.aksan-bakir}"
+    backgroundColor: "{colors.aksan}"
     textColor: "{colors.aksan-uzeri}"
     typography: "{typography.label}"
     rounded: "{rounded.none}"
     padding: "5px 12px"
   button-secondary:
     backgroundColor: "{colors.panel}"
-    textColor: "{colors.murekkep-2}"
+    textColor: "{colors.i2}"
     typography: "{typography.label}"
     rounded: "{rounded.none}"
     padding: "5px 12px"
@@ -106,7 +106,7 @@ components:
     padding: "5px 12px"
   button-row:
     backgroundColor: "transparent"
-    textColor: "{colors.aksan-bakir}"
+    textColor: "{colors.aksan}"
     padding: "2px 0"
   input:
     backgroundColor: "{colors.panel}"
@@ -119,7 +119,7 @@ components:
     textColor: "{colors.murekkep}"
     padding: "10px 0"
   table-row-selected:
-    backgroundColor: "{colors.panel-2}"
+    backgroundColor: "{colors.panel2}"
     textColor: "{colors.murekkep}"
   drawer:
     backgroundColor: "{colors.panel}"
@@ -127,12 +127,12 @@ components:
     width: "400px"
   chip-filter:
     backgroundColor: "transparent"
-    textColor: "{colors.murekkep-3}"
+    textColor: "{colors.i3}"
     typography: "{typography.label}"
     rounded: "{rounded.none}"
     padding: "5px 11px"
   chip-filter-active:
-    backgroundColor: "{colors.panel-2}"
+    backgroundColor: "{colors.panel2}"
     textColor: "{colors.murekkep}"
 ---
 
@@ -184,7 +184,7 @@ gösterge yok. Ekran olguyu gösterir, yargı vermez: "kritik!" değil, "12 gün
 gecikmiş". Bilinmeyen sıfır değildir ve kendi diliminde durur.
 
 **Key Characteristics:**
-- Tek koyu kabuk, tek aksan: bakır `#C2703E`; beş alan Saha · Portföy · Uyum · Varlık · Risk
+- Tek koyu kabuk, tek aksan: bakır `--aksan` `#C2703E`; beş alan Saha · Portföy · Uyum · Varlık · Risk
 - Yarıçap yok; yalnız durum daireleri ve avatar `50%` (şekil kodlamasının parçası)
 - Durum yalnız renkle anlatılmaz: glif ailesi (10px kare) + sözcük + erişilebilir ad
 - Sayı her yerde mono/tabular; işlevsel metin (gezinme, kolon başlığı) 11px'in altına inmez
@@ -202,7 +202,7 @@ Yoğunluk (`data-yogunluk="amiral|operasyonel|tezgah"`) renk değil ölçü değ
 (`--gutter --ayak-h --durum-h --satir-h`).
 
 ### Primary
-- **Bakır** (`#C2703E`, `--aksan`): seçili satırın sol kenarı, aktif alan sekmesinin alt çizgisi, birincil düğme dolgusu, odak halkası; fotoğraf üstünde işaretçi kenarı. Yazı rengi olarak yalnız `.ab-dugme.satir` bağlantısında. Düğme dolgusu üzerine zemin rengi mürekkep (`#0A0C0D`).
+- **Bakır** (`--aksan` `#C2703E`): seçili satırın sol kenarı, aktif alan sekmesinin alt çizgisi, birincil düğme dolgusu, odak halkası; fotoğraf üstünde işaretçi kenarı. Yazı rengi olarak yalnız `.ab-dugme.satir` bağlantısında. Düğme dolgusu üzerine zemin rengi mürekkep (`--aksan-uzeri` `#0A0C0D`).
 
 ### Secondary
 - **Durum ailesi**: `--ok` uygun (`#6FA07E`), `--md` kısmi / uyarı (`#D9A03C`), `--bd` uygunsuz / kritik (`#DB5A48`), `--pl` planlı (`#7A8B93`), `--unk` değerlendirilmedi (`#8D9497`). `--bd` prototipte 3,45:1 kalıyordu; ton korunarak 4,76:1'e açıldı — kritik durumun rengi okunamıyorsa kritikliği taşımıyor demektir.
@@ -212,11 +212,11 @@ Yoğunluk (`data-yogunluk="amiral|operasyonel|tezgah"`) renk değil ölçü değ
 - **Kapasite dörttür ve bir sınırdır.** Yuvası olmayan tip nötr mürekkebe (`--i2`) düşer; yuva **sarılmaz** — aynı rengi iki tipe vermek "bunlar aynı" demek olurdu ve renk burada kimliktir. Renksiz kalmanın iki ayrı sebebi `/sistem` sayfasında ayrı cümlelerde yazılır (kapasite eksiği ≠ tasarım gereği).
 
 ### Neutral
-- **Zemin** (`#0A0C0D`): sayfanın kendisi; soğuk çelik.
-- **Panel / panel-2** (`#0F1213` / `#14181A`): çekmece, ikincil sıra, satır hover ve seçili satır zemini. Panel zeminin bir kademe üstüdür; kart değildir, kenarlığı saç çizgisidir.
-- **Mürekkep** (`#EDEEEC`), **mürekkep-2** (`#B9BEBC`, ikincil metin), **mürekkep-3** (`#8D9497`, etiket ve kolon başlığı).
-- **Saç çizgisi / saç çizgisi-2** (`#1C2123` / `#272D2F`): satır ayracı, bölüm kuralı, düğme ve girdi kenarlığı. Kompozisyonun tek çizgi aracıdır.
-- **Seçim** (`#171211`): açık satırın zemini — aksanın çok soluk tonu.
+- **Zemin** (`--zemin` `#0A0C0D`): sayfanın kendisi; soğuk çelik.
+- **Panel / panel-2** (`--panel` `#0F1213` / `--panel2` `#14181A`): çekmece, ikincil sıra, satır hover ve seçili satır zemini. Panel zeminin bir kademe üstüdür; kart değildir, kenarlığı saç çizgisidir.
+- **Mürekkep** (`--murekkep` `#EDEEEC`), **mürekkep-2** (`--i2` `#B9BEBC`, ikincil metin), **mürekkep-3** (`--i3` `#8D9497`, etiket ve kolon başlığı).
+- **Saç çizgisi / saç çizgisi-2** (`--hr` `#1C2123` / `--hr2` `#272D2F`): satır ayracı, bölüm kuralı, düğme ve girdi kenarlığı. Kompozisyonun tek çizgi aracıdır.
+- **Seçim** (`--secim` `#171211`): açık satırın zemini — aksanın çok soluk tonu.
 
 ### Named Rules
 **The Tek Tema Rule.** Ürün koyudur ve TEK kabuktur. Alanlar arası geçiş "başka bir platform" hissi vermez — ayrışma yoğunlukla (oluk, satır yüksekliği, ayak/durum şeridi) kurulur, palet ya da yazı ailesiyle değil.
@@ -272,7 +272,7 @@ altında yatay kayar) ya da yerleşim tek kolona iner. `arac/yatay-tasma.mjs`
 - **Kabuk** (`.ab`, satırlar `56px auto 1fr auto auto`): 56px üst çubuk (marka · beş alan sekmesi · arama · kişi · Bildirim/Ayarlar/Yardım · Çıkış) → 36px ikincil sıra (`.ab-ikincil`; alanın bölümleri gruplu, sağda kapsam; Saha'da ve yardımcı rotalarda çizilmez) → `#icerik` → 32px sistem durumu şeridi (`.ab-durum`; veri kesiti, bağlayıcı sayımları, son koşu — yalnız yetkiliye) → 32px ayak (`.ab-alt`; künye · Yardım · Destek · Kısayollar · Tasarım sistemi · telif). Durum ve ayak AYRI şeritlerdir: biri ölçüm, öteki künye.
 - **Yoğunluk**: `amiral` (`/`, `/tesisler/*`, `/portfoy`, `/harita`) oluk 0, durum şeridi yok, ayak 28px tek satır; `operasyonel` oluk 24px, satır 36px; `tezgah` satır 32px. Ana ekran 1366×768 / 1440×900 / 1280×800'de tek ekrana sığar (`scrollHeight === innerHeight`).
 - **Ölçek**: boşluk `--s2 … --s44` (2·3·4·6·8·9·10·12·14·16·18·20·22·24·26·28·30·32·34·36·40·44px); kolon aralığı 16px; operasyonel oluk 24px; bölüm üst dolgu 22px, alt 40px; çekmece 400px.
-- **Tablo**: satır dolgusu 10px (`.sik` kipinde 7px — tipografi değil dolgu daralır); 1366px altında `ikincil` kolon düşer (`--kolon-dar`), başlık ve satır aynı şablonu kullanır (`arac/kolon-hizasi.mjs` ölçer). Dar bant şablonunu `darSablon` üretir: sabit kolon oransal olur (`minmax(0, min(Npx, T%))`, bütçe %58 paydaşlara bölünür), `minmax` tabanı sıfırlanır, 1'in altındaki esneme katsayısı 1'e çıkar. Küçük izler (im · ok, ≤40px) daralmaz. 700px altında kolon aralığı 16 → 10px iner ve kolon başlıkları sarar — kırpmak bilgi kaybettirir, sarmak kaybettirmez.
+- **Tablo**: kütük Faz 3'ten beri semantik `<table class="ab-vt" role="grid">`; `table-layout: fixed`, satır dolgusu `--satir-y` 10px (`.sik` kipinde 7px — tipografi değil dolgu daralır), yatay dolgu 8px, kimlik sütunu 10px ve yapışkan. Başlıkla hücre AYNI sütun modelinden geçtiği için ray ayrışması yapısal olarak mümkün değil; geriye tek karar kalır: 1366px altında ikincil sütun `.ikincil-k` başlıkta ve hücrede birlikte düşer (`display: none`) ve sıralı başlıklar sarar (`white-space: normal`) — kırpmak bilgi kaybettirir, sarmak kaybettirmez. `arac/kolon-hizasi.mjs` üç bantta (1440 · 1366 · 1280) görünen başlık/hücre sayısını, sol kenar hizasını (±1px) ve tablonun kaydırma kabını (`.ab-vt-sar`) aşmadığını ölçer. 700px altında kimlik sütununun sol dolgusu 10 → 8px iner: 335px'lik iç alanda konu sütunu dört satıra kırılıyordu (ölçüldü).
 - **Detay**: sağ çekmece 400px (kalıcı); uyum ekranlarında satır içi genişleme (beş sütun: neden · kanıt · **karşılayan belge** · yönetişim zinciri · sorumluluk). Sütun sayısı bantla 5 → 3 → 1'e iner.
 - **Yazdırma**: koyu kabuk kâğıda gitmez — beyaz zemin, siyah mürekkep, ray/sekme/künye düşer.
 

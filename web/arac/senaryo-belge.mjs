@@ -29,6 +29,7 @@ const BELGE_DIZINI = path.join(KOK, '..', 'docs');
    tutarlılığını ölçer; bir senaryo kimliği taşımaları anlamsız olurdu. */
 export const KUTUKSUZ_DOSYALAR = {
   'belge-sayimlari.test.ts': 'Belgelerdeki sayıların koda karşı doğrulaması',
+  'tasarim-belgesi.test.ts': 'DESIGN.md jeton değerlerinin kabuk.css\'e karşı doğrulaması',
   'senaryo-kutugu.test.ts': 'Kütüğün kendi nöbetçisi',
   'ters-kapsam.test.ts': 'Ters kapsamanın nöbetçisi — davranış envanterini kütüğe karşı sayar',
   'eylem-dili.test.ts': 'Bozuk durum bloklarının eylem/beklenen-durum nöbetçisi',

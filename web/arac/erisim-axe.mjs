@@ -76,9 +76,14 @@ const ETIKETLER = ['wcag2a', 'wcag2aa'];
 
 const b = await chromium.launch({ executablePath: tarayiciYolu() });
 
-async function tara(s, rota) {
+async function tara(s, rota, girisFormu = false) {
   const y = await s.goto(KOK + rota, { waitUntil: 'load' });
   await s.waitForTimeout(450);
+  if (girisFormu) {
+    const platformaGir = s.getByRole('link', { name: 'Platforma Gir' });
+    if (await platformaGir.isVisible()) await platformaGir.click();
+    await s.locator('input[type=email]').waitFor({ state: 'visible' });
+  }
   const varilan = new URL(s.url()).pathname;
   await s.addScriptTag({ path: AXE_YOLU });
   const sonuc = await s.evaluate(async (etiketler) => {
@@ -130,7 +135,11 @@ try {
     const ctx = await b.newContext({ viewport: { width: bant.en, height: bant.boy }, locale: 'tr-TR' });
     const s = await ctx.newPage();
     try {
-      if (ROTALAR.includes(GIRIS_ROTASI)) rapor.push({ bant: bant.ad, bantEn: bant.en, ...await tara(s, GIRIS_ROTASI) });
+      if (ROTALAR.includes(GIRIS_ROTASI)) {
+        rapor.push({ bant: bant.ad, bantEn: bant.en, ...await tara(s, GIRIS_ROTASI) });
+        // Hem sinematik giriş hem de CTA'dan sonraki gerçek form taranır.
+        rapor.push({ bant: bant.ad, bantEn: bant.en, ...await tara(s, GIRIS_ROTASI, true) });
+      }
       await girisYap(s, KOK);
       for (const rota of ROTALAR.filter((r) => r !== GIRIS_ROTASI)) {
         try {

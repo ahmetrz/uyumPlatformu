@@ -2060,6 +2060,9 @@
    hücre zemini kabuk zeminidir; saydam kalsa altındaki satır metni
    başlığın içinden görünürdü. */
 .ab-vt-sar { overflow: auto; max-height: var(--vt-h, none); min-width: 0; }
+/* Kap odak durağıdır (tablo.tsx); halka İÇERİ alınır — dışarıdaki pay
+   yapışkan başlığın ve komşu kabuk kenarının altında kalırdı. */
+.ab-vt-sar:focus-visible { outline: 2px solid var(--aksan); outline-offset: -2px; }
 /* table-layout: fixed — eski grid kütüğünden semantik tabloya geçişte eklendi.
    Grid sütun genişliklerini kesin kılar; <table width="100%"> ise içerik
    iticidir ve hücre minimum genişliklerinin toplamı kabı aştığında tablo
@@ -2148,6 +2151,37 @@
 .ab-vt tbody tr.iskelet { cursor: default; }
 .ab-vt tbody tr.iskelet:hover > * { background: transparent; }
 .ab-vt tbody tr.iskelet .ab-iskelet { display: block; height: 12px; }
+/* ── DAR BANTTA KÜTÜK · bileşenin KENDİ niyeti geri veriliyor ────────
+   `.ab-vt-sar` bir kaydırma kabıdır ve ilk sütun (kimlik) yatay
+   kaydırmada YAPIŞKAN kalsın diye yazılmıştır — yani bu kütük yatay
+   kaydırma için TASARLANMIŞ. `width: 100%` + `table-layout: fixed` bunu
+   hiç gerçekleşmeden öldürüyordu: tablo kabını asla aşmadığı için
+   kaydırma HİÇ olmuyor, sütunlar sıfıra doğru eziliyor ve
+   `overflow: hidden` içeriği sessizce kesiyordu.
+
+   ÖLÇÜLDÜ · /aktivite · 375px: ekranda yalnız ZAMAN ve DEĞİŞİM sütunları
+   görünüyordu; "KAYIT" başlığı ve her satırın ne olduğu ("Kullanıcı A
+   giriş oluşturdu") TÜMÜYLE yoktu. Kullanıcı eksiği bir hata olarak bile
+   göremiyordu, çünkü eksik olan şey görünmüyordu.
+
+   Dar bantta düzen niyete döner: sütunlar İÇERİĞE göre ölçülür, tablo
+   kabı aşar, kap kaydırır, kimlik sütunu yapışkan kalır. Bilgi
+   GİZLENMEZ, hiçbir sütun DÜŞMEZ.
+
+   `kolon-hizasi.mjs` ("tablo kabını aşmıyor") 1440 · 1366 · 1280'de
+   koşar; bu kural onların ALTINDA açılır ve o kapıyı ilgilendirmez. */
+@media (max-width: 900px) {
+  .ab-vt { width: auto; min-width: 100%; table-layout: auto; }
+  /* Uzun metin sütunu ölçüsüz genişletmesin: hücre SARAR, kırpılmaz.
+     Sınırsız bırakılsaydı tek bir bulgu başlığı tabloyu metrelerce
+     uzatırdı. */
+  .ab-vt td { max-width: 34ch; }
+  .ab-vt th { max-width: 22ch; }
+  /* Sütunlar artık içerik enindedir; kırpma gereksiz ve zaten SESSİZ
+     bilgi kaybının kendisiydi. */
+  .ab-vt th, .ab-vt td { overflow: visible; }
+}
+
 /* Dokunmatik / dar bant: sıralı başlıklar sarar, kırpılmaz. */
 @media (max-width: 1366px) {
   .ab-vt thead th { white-space: normal; }

@@ -293,6 +293,26 @@ Kimlik bunun yerine **sayfanın yapısından** üretilir:
 Aynı yapısal yolu paylaşan düğümler `AYRIŞTIRILDI` diye raporlanır —
 "birleştirildi" değil.
 
+##### YORDAM · yeni bir axe borç satırı eklerken
+
+Kimliğin veri altında kararlı olduğunu **ÖLÇ**; varsayma. Bugün
+`/saklama` için yapılan ölçümün aynısı:
+
+1. Satırın rotasını iki veri durumunda tara — ilgili kayıt **yokken** ve
+   **varken** (`/saklama` için tek bir `LegalHold` satırı yetti).
+2. İki koşuda **aynı kimlik** çıkmalı. Çıkmıyorsa satır listeye
+   yazılmaz; kimlik önce kararlı hâle getirilir.
+
+Sıra numarası, aynı yapısal yola uyan düğüm kümesi **YAPISAL** ise
+kararlıdır — `/sistem`'de bölümler, `/saklama`'da sabit tablolar; ikisi
+de ölçüldü. Küme **kayıt başına** üretiliyorsa (her kayıt için bir
+kaydırma bölgesi) araya kayıt girdiğinde `#3` `#4` olur ve kilit geri
+gelir; o satır için başka bir ayırt edici gerekir.
+
+**Bugün böyle bir satır yok.** Çıktığında bu ölçüm onu gösterir — bu
+yüzden buraya makine değil yordam yazıldı: sıfır örneği olan bir durum
+için kod, bakımı olmayan bir tahmindir.
+
 **Taşma kapısında aynı soru sorulamaz ve bu bilerek böyledir.** Oradaki
 kimlik `etiket@kutuEni`dir ve tekrarlayan tablo satırlarını BİLEREK tek
 hedefte toplar; onları ayrıştırmak ölçüyü satır sayısına, yani tohuma
@@ -460,11 +480,21 @@ GÖRÜNÜR bir işaret taşıyorsa muaftır: `text-overflow` (üç nokta) ya da
 `-webkit-line-clamp`. İşaretsiz kırpma — `overflow: hidden` +
 `white-space: nowrap`, üç nokta yok — kusurdur ve `işaretsiz kırpma`
 diye raporlanır; metin düğümleri ağaçta gezilmediği için o kayıp başka
-hiçbir ölçüde görünmezdi. `disari` için böyle bir muafiyet yoktur.
+hiçbir ölçüde görünmezdi. `disari` için muafiyet öğenin KENDİSİNE değil
+**KIRPAN ATAYA** bakar: ata görünür bir kesme işareti taşıyorsa kesme
+duyurulmuştur ve ata kutusunun kestiği çocuk da o işaretin kapsamındadır;
+işaretsiz kırpan ata suçlu kalır.
 
-> Bugün bu kalıptan **0 bulgu** çıkıyor (ölçüldü): kod tabanındaki
-> kendi kırpmasını yöneten öğelerin hepsi ya üç nokta gösteriyor ya da
-> taşmıyor. Kural yine de kapıdadır — kalıp yarın girerse yakalanır.
+> **Ölçüldü · `/kanitlar` · 375px:** kırpan ata `text-overflow: ellipsis`
+> VE `title` taşıyordu — kesme kenarında üç nokta çizilir ve "devamı var"
+> der. Bu muafiyet olmadan **12 borç satırı yanlış alarmdı**. Hero
+> plakası (`overflow: hidden`, işaret yok) muaf DEĞİLDİR ve suçlu
+> kalır — ayrım tam olarak oradadır.
+
+> Bugün **`işaretsiz kırpma`** kalıbından **0 bulgu** çıkıyor (son
+> koşuda da 0 · ölçüldü): kod tabanındaki kendi kırpmasını yöneten
+> öğelerin hepsi ya üç nokta gösteriyor ya da taşmıyor. Kural yine de
+> kapıdadır — kalıp yarın girerse yakalanır.
 
 Karar `kalite-kurallari.mjs → kirpilmaKarari` içindedir ve
 `tests/kalite-kapilari.test.ts` ile TARAYICISIZ doğrulanır; araç sayfada
@@ -508,6 +538,28 @@ göre kurulur.
 > "KAYIT" başlığı ve her satırın ne olduğu (`span.kimlik-metin`,
 > "Kullanıcı A giriş oluşturdu") TÜMÜYLE görünmüyor. Yapışkan bayrak
 > bunu platform genelinde saklıyordu.
+
+**Kapatıldı — ve kapatan şey bileşenin KENDİ niyetiydi.** `.ab-vt-sar`
+bir kaydırma kabıdır ve kimlik sütunu yatay kaydırmada YAPIŞKAN kalsın
+diye yazılmıştır; yani kütük yatay kaydırma için TASARLANMIŞ.
+`width: 100%` + `table-layout: fixed` bunu hiç gerçekleşmeden
+öldürüyordu: tablo kabını asla aşmadığı için kaydırma HİÇ olmuyor,
+sütunlar sıfıra doğru eziliyor ve `overflow: hidden` kalanı sessizce
+kesiyordu. `kabuk.css` ≤900px'te düzeni niyete döndürür: sütunlar
+İÇERİĞE göre ölçülür (`table-layout: auto` · `min-width: 100%`), tablo
+kabı aşar, kap kaydırır, kimlik sütunu yapışkan kalır. Bilgi GİZLENMEZ,
+hiçbir sütun DÜŞMEZ. `kolon-hizasi.mjs` ("tablo kabını aşmıyor")
+1440 · 1366 · 1280'de koşar, yani bu kuralın ÜSTÜNDE; etkilenmez.
+
+> **Ölçüldü:** kırpılan içerik **51 rota → 4 rota**; borç listesinden
+> **80 satır** eridi, karşılığında **0 yeni taşma bulgusu** çıktı.
+>
+> Kütükler gerçekten kaydırmaya başlayınca axe **yeni bir ciddi ihlal**
+> gösterdi: `/api-sozlesmesi` · 375px · `scrollable-region-focusable`.
+> Kusur eskiden de oradaydı ama GÖRÜNEMEZDİ — hiç kaydırmayan bir kap
+> "klavyeyle erişilemez kaydırma bölgesi" olmaz. `.ab-vt-sar` artık
+> `role="region"` + tablonun adı + `tabIndex={0}` taşır; aynı düzeltme
+> `/saklama`'nın borç satırını da kapattı.
 
 **2 · Metin şart değildir.** `textContent` boş diye eleme, kırpılan bir
 görseli, SVG şemayı ya da yalnız simge taşıyan bir düğmeyi hiç aday

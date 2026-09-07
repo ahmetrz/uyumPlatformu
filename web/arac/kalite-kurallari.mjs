@@ -126,6 +126,7 @@ const KESME_ISARETI = (o) => String(o?.metinTasmasi ?? 'clip') !== 'clip'
  * bir şey "kusurlu" da olamaz (bkz. bilinmeyen ≠ sıfır).
  * @param {{disari?:number, tasma?:number, kendiOverflow?:string,
  *          metinTasmasi?:string, satirKirpma?:number,
+ *          kapMetinTasmasi?:string, kapSatirKirpma?:number,
  *          kapTuru?:string|null, erisilir?:boolean}|null|undefined} olcum
  * @param {number} [tolerans]
  */
@@ -137,6 +138,16 @@ export function kirpilmaKarari(olcum, tolerans = KIRPILMA_TOLERANSI) {
 
   const disari = Number(olcum?.disari);
   if (Number.isFinite(disari) && disari > tolerans) {
+    /* Kırpan ATA görünür bir kesme işareti taşıyorsa (üç nokta, satır
+       kırpma) kırpma DUYURULMUŞTUR: işaret kesme kenarında çizilir ve
+       "devamı var" der — o kutunun kestiği çocuk da o işaretin
+       kapsamındadır. Ölçüldü (/kanitlar · 375px): kırpan ata
+       `text-overflow: ellipsis` VE `title` taşıyordu; 12 borç satırı bu
+       yüzden yanlış alarmdı. İşaretsiz kırpan ata (hero plakası gibi)
+       muaf DEĞİLDİR ve suçlu kalır. */
+    if (KESME_ISARETI({ metinTasmasi: olcum?.kapMetinTasmasi, satirKirpma: olcum?.kapSatirKirpma })) {
+      return { kusur: false, sebep: 'kırpan ata kesmeyi GÖSTEREREK yönetiyor' };
+    }
     return { kusur: true, tur: 'kap dışı', sebep: `kap ${kap} · kutunun ${Math.round(disari)}px'i kırpılıyor` };
   }
 

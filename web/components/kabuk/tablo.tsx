@@ -187,7 +187,20 @@ export function VeriTablosu<T extends { id: string }>({
 
   return (
     <>
-    <div className="ab-vt-sar" style={yukseklik ? ({ '--vt-h': yukseklik } as CSSProperties) : undefined}>
+    {/* ── KAYDIRMA KABI KLAVYEYLE ERİŞİLEBİLİR ─────────────────────
+        Dar bantta kütük artık gerçekten yatay kaydırılıyor (kabuk.css
+        ≤900: sütunlar içeriğe göre ölçülür, tablo kabı aşar). Kaydırılan
+        ama odaklanamayan bir bölge klavye kullanıcısı için ERİŞİLEMEZDİR
+        — ölçüldü: /api-sozlesmesi · 375px'te axe `serious ·
+        scrollable-region-focusable` verdi. Seçilebilir tabloda satırlar
+        odak alır ve kural sağlanır; seçilemeyen tabloda tek odak durağı
+        kalmaz, o yüzden kabın kendisi odaklanır.
+
+        `role="region"` + ad: adsız bir odak durağı ekran okuyucuya
+        "nereye geldim" sorusunu bırakırdı; tablo zaten `etiket` taşıyor,
+        kap da onu taşır. */}
+    <div className="ab-vt-sar" role="region" aria-label={etiket} tabIndex={0}
+      style={yukseklik ? ({ '--vt-h': yukseklik } as CSSProperties) : undefined}>
       {/* ── ÖLÇÜLDÜ: SEÇİLEMEYEN TABLO "grid" DİYORDU ────────────────
           `role="grid"` bir SÖZDÜR: "buraya Tab ile girilir, ok tuşlarıyla
           gezilir". Satır seçilebilir olmadığında `tabIndex` de basılmıyor

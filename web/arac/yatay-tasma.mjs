@@ -187,6 +187,8 @@ function kirpilmaOlcumleri(kaydiranKaplar) {
           metinTasmasi: st.textOverflow,
           satirKirpma: Number(st.webkitLineClamp) || 0,
           kapTuru: kap.tur,
+          kapMetinTasmasi: kap.metinTasmasi,
+          kapSatirKirpma: kap.satirKirpma,
           erisilir: kap.erisilir,
           metin: metin === ''
             ? `‹metinsiz ${e.tagName.toLowerCase()}${e.getAttribute('aria-label') ? ` · ${e.getAttribute('aria-label')}` : ''}›`
@@ -208,7 +210,15 @@ function kirpilmaOlcumleri(kaydiranKaplar) {
     if (st.overflowX !== 'visible') {
       altKap = kaydiranKaplar.includes(st.overflowX)
         ? { erisilir: true, tur: null, kutu: null }
-        : { erisilir: false, tur: st.overflowX, kutu: { sol: r.left, sag: r.right } };
+        : {
+          erisilir: false,
+          tur: st.overflowX,
+          kutu: { sol: r.left, sag: r.right },
+          /* Kırpan kabın KENDİ kesme işareti aşağı taşınır: üç nokta,
+             kestiği çocuğu da duyurur. */
+          metinTasmasi: st.textOverflow,
+          satirKirpma: Number(st.webkitLineClamp) || 0,
+        };
     }
     for (let i = 0; i < e.children.length; i += 1) gez(e.children[i], [...yol, i], altKap);
   };

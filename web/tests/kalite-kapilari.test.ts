@@ -107,6 +107,29 @@ describe('kırpılma kararı', () => {
     expect(kirpilmaKarari({ ...temel, disari: 45, kendiOverflow: 'auto' }).kusur).toBe(true);
   });
 
+  it('kırpan ATA kesmeyi GÖSTERİYORSA kutu dışı kusur değildir', () => {
+    /* ÖLÇÜLDÜ · /kanitlar · 375px: kırpan ata `text-overflow: ellipsis`
+       VE `title` taşıyordu — kesme kenarında üç nokta çizilir ve "devamı
+       var" der. O kutunun kestiği çocuk da o işaretin kapsamındadır.
+       12 borç satırı bu yüzden yanlış alarmdı. */
+    const k = kirpilmaKarari({ ...temel, disari: 45, kapMetinTasmasi: 'ellipsis' });
+    expect(k.kusur).toBe(false);
+    expect(k.sebep).toContain('GÖSTEREREK');
+  });
+
+  it('ATA satır kırpması (line-clamp) da görünür bir işarettir', () => {
+    expect(kirpilmaKarari({ ...temel, disari: 45, kapSatirKirpma: 2 }).kusur).toBe(false);
+  });
+
+  it('İŞARETSİZ kırpan ata SUÇLU kalır — muafiyet atanın işaretine bağlıdır', () => {
+    /* Hero plakası: `overflow: hidden`, üç nokta yok, `title` yok. Kesme
+       hiç duyurulmuyor; muafiyeti "ata kırpıyor" diye vermek onu aklardı
+       ve kapı gerçek kaybı göremezdi. */
+    const k = kirpilmaKarari({ ...temel, disari: 45, kapMetinTasmasi: 'clip', kapSatirKirpma: 0 });
+    expect(k.kusur).toBe(true);
+    expect(k.tur).toBe('kap dışı');
+  });
+
   it('içerik kutusuna sığmıyorsa ve kap kırpıyorsa KUSURDUR', () => {
     const k = kirpilmaKarari({ ...temel, tasma: 112 });
     expect(k.kusur).toBe(true);

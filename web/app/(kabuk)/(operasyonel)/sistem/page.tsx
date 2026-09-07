@@ -5,7 +5,7 @@ import path from 'node:path';
 import { kontrast, bicimle, aaGecer } from '@/lib/kontrast';
 import { girisZorunlu } from '@/lib/erisim';
 import { db } from '@/lib/db';
-import { YUVALI_TIPLER, tipYuvasi } from '@/components/kabuk/tip';
+import { YUVALI_TIPLER, kimliksizlikNedeni, tipYuvasi } from '@/components/kabuk/tip';
 
 export const metadata: Metadata = { title: 'Tasarım sistemi' };
 
@@ -85,24 +85,46 @@ const ZEMINLER = ['--zemin', '--panel', '--panel2', '--secim'] as const;
    Kimlik yuvası dörttür ve tesis tipi sayısı bundan çoktur. Yuvası
    olmayan tip nötr mürekkebe düşer — bu bir kusur değil, yazılı bir
    karar (`components/kabuk/tip.ts`). Ama SESSİZ olmamalı: paleti
-   sürdüren kişi hangi tipin kimliği olduğunu ve kaçının nötre düştüğünü
-   burada görür. Eşlemenin kendisi P4'te sektör paketine taşınacak. */
+   sürdüren kişi hangi tipin kimliği olduğunu burada görür.
+
+   ── İKİ AYRI SEBEP, İKİ AYRI CÜMLE ────────────────────────────────
+   Nötre düşenleri tek listede yazmak, satıra bakan herkese İKİ EKSİK
+   gösterirdi ve biri gerçek değil: `DGKC` yuva kalmadığı için renksiz
+   (gerçek eksik), `MERKEZ` üretim tesisi olmadığı için renksiz (karar).
+   `tipYuvasi()` ikisine de `null` döner ve doğru davranır; ayrım burada,
+   sunumda yapılır. Birleştirilmiş bir cümle sayıyı şişirir ve palet
+   sürdürücüsünü var olmayan bir borcun peşine düşürür. */
 async function YuvaDagilimi() {
   const tipler = await db.tesisTipi.findMany({
     select: { kod: true, ad: true }, orderBy: { sira: 'asc' },
   }).catch(() => []);
   const yuvali = tipler.filter((t) => tipYuvasi(t.kod));
-  const notr = tipler.filter((t) => !tipYuvasi(t.kod));
+  const yuvasiz = tipler.filter((t) => !tipYuvasi(t.kod) && !kimliksizlikNedeni(t.kod));
+  const kimliksiz = tipler.filter((t) => !tipYuvasi(t.kod) && kimliksizlikNedeni(t.kod));
   return (
-    <p className="mono ab-dip">
-      Kimlik yuvası: <b>{YUVALI_TIPLER.length}</b> · tanımlı tesis tipi:{' '}
-      <b>{tipler.length}</b>
-      {yuvali.length > 0 && <> · yuvalı: {yuvali.map((t) => `${t.kod}→${tipYuvasi(t.kod)}`).join(' ')}</>}
-      {notr.length > 0 && (
-        <> · nötre düşen: {notr.map((t) => t.kod).join(' ')} — yuva SARILMAZ,
-          aynı rengi iki tipe vermek &quot;bunlar aynı&quot; demek olurdu.</>
+    <>
+      <p className="mono ab-dip">
+        Kimlik yuvası: <b>{YUVALI_TIPLER.length}</b> · tanımlı tesis tipi:{' '}
+        <b>{tipler.length}</b>
+        {yuvali.length > 0 && (
+          <> · yuvalı: {yuvali.map((t) => `${t.kod}→${tipYuvasi(t.kod)}`).join(' ')}</>
+        )}
+      </p>
+      {yuvasiz.length > 0 && (
+        <p className="mono ab-dip">
+          Yuvasız (kapasite eksiği): {yuvasiz.map((t) => t.kod).join(' ')} — kimlik
+          rengini hak ediyor, yuva kalmadı. Yuva SARILMAZ: aynı rengi iki tipe
+          vermek &quot;bunlar aynı&quot; demek olurdu.
+        </p>
       )}
-    </p>
+      {kimliksiz.length > 0 && (
+        <p className="mono ab-dip">
+          Kimlik rengi taşımayan (tasarım gereği):{' '}
+          {kimliksiz.map((t) => `${t.kod} — ${kimliksizlikNedeni(t.kod)}`).join(' · ')}.
+          Yuva açılsa da renk almaz; bu bir eksik değil.
+        </p>
+      )}
+    </>
   );
 }
 

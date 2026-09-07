@@ -35,15 +35,28 @@
 
    ── KAPASİTE AŞILIRSA NE OLUR ─────────────────────────────────────────
    Dört yuva var, tohumda ALTI tesis tipi (`JEO` `RES` `HES` `GES` `DGKC`
-   `MERKEZ`). Dördü yuvalı, ikisi (`DGKC` · `MERKEZ`) NÖTR mürekkebe
-   düşüyor — ölçüm `/sistem` sayfasında, veriden okunuyor.
+   `MERKEZ`). Dördü yuvalı, ikisi NÖTR mürekkebe düşüyor.
 
    Yuva SARILMAZ. Sarma, beşinci tipe birinci tipin rengini verirdi ve
    renk burada kimlik olduğu için bu "bu ikisi aynı şeydir" demek olurdu
    — sessizce yanlış. Nötre düşmek ise doğru bir cümle kurar: "bu tipin
-   ayırt edici bir kimlik rengi yok." Ayrıca sessiz değil: `/sistem`
-   tasarım sayfası hangi kodun yuvası olduğunu ve kaçının nötre düştüğünü
-   listeler, `tipYuvasi()` de `null` döndürerek çağırana söyler. */
+   ayırt edici bir kimlik rengi yok."
+
+   ── NÖTRE DÜŞMENİN İKİ AYRI SEBEBİ VAR ────────────────────────────────
+   `tipYuvasi()` ikisine de `null` döner ve bu doğrudur: ikisinin de
+   yuvası yoktur. Ama SEBEPLERİ aynı değil ve ikisini tek listede
+   göstermek, bakan kişiye iki eksik varmış gibi okutur — oysa biri
+   eksik değil:
+
+     · `DGKC` — KAPASİTE EKSİĞİ. Üretim tesisi tipidir, kimlik rengini
+       hak eder; yuva kalmadığı için renksiz. Yuva sayısı artarsa ya da
+       sektör paketi kendi yuvasını getirirse (P4) düzelir.
+     · `MERKEZ` — TASARIM GEREĞİ. Üretim tesisi değil, genel müdürlük
+       binası. Üretim tipi kimlik paletinde yeri YOKTUR; yuva açılsa bile
+       renk almaz. Bu bir eksik değil, bir karar.
+
+   Ayrım SUNUMDADIR: `tipYuvasi()` iki hâli ayırmaz, `/sistem` sayfası
+   ikisini ayrı cümlelerde yazar. */
 
 /** Tip kodu → kimlik yuvası. GEÇİCİ; P4'te sektör paketine taşınır. */
 const TIP_YUVASI: Record<string, 'a' | 'b' | 'c' | 'd'> = {
@@ -71,6 +84,24 @@ export function tipYuvasi(kod: string | null | undefined): 'a' | 'b' | 'c' | 'd'
 
 /** Yuvası olan bütün tip kodları — `/sistem` sayfası bunu listeler. */
 export const YUVALI_TIPLER = Object.keys(TIP_YUVASI);
+
+/** Kimlik rengi BEKLENMEYEN tipler ve nedenleri. Yuva kıtlığı değil,
+    karar: bu tipler üretim tipi kimlik paletinin dışındadır.
+
+    `TIP_YUVASI` gibi bu tablo da GEÇİCİ ve sektöre gömülü; ikisi P4'te
+    birlikte sektör paketine taşınır. */
+const KIMLIKSIZ_TIPLER: Record<string, string> = {
+  MERKEZ: 'üretim tesisi değil',
+};
+
+/** Tipin kimlik rengi TAŞIMAMA gerekçesi; kapasite eksiğiyse `null`.
+
+    `tipYuvasi()` yuvasız her tipe `null` döner — bu işlev o `null`ın
+    hangi sebepten geldiğini söyler ve yalnız SUNUM için vardır. Renk
+    seçimi ikisinde de aynıdır: nötr mürekkep. */
+export function kimliksizlikNedeni(kod: string | null | undefined): string | null {
+  return KIMLIKSIZ_TIPLER[(kod ?? '').toUpperCase()] ?? null;
+}
 
 /** Kimlik rengi; yuvası olmayan tip için nötr mürekkep. */
 export function tipRengi(kod: string | null | undefined): string {

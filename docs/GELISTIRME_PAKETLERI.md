@@ -364,8 +364,16 @@ görür, su kiracısı "tesis / m³/gün".
   `--tip-a` … `--tip-d`. Kapasite dörttür ve bir sınırdır; yuvası olmayan
   tip **nötr mürekkebe** düşer, yuva **sarılmaz** — aynı rengi iki tipe
   vermek "bunlar aynı" demek olurdu ve renk burada kimliktir. Kural sessiz
-  değil: `/sistem` sayfası hangi kodun yuvası olduğunu ve kaçının nötre
-  düştüğünü veriden okuyup yazar (bugün 6 tip · 4 yuvalı · 2 nötr).
+  değil: `/sistem` sayfası hangi kodun yuvası olduğunu veriden okuyup
+  yazar (bugün 6 tip · 4 yuvalı · 2 renksiz).
+
+  Renksiz kalanlar **iki ayrı cümlede** yazılır, çünkü sebepleri aynı
+  değil ve tek listede göstermek bakan kişiye iki eksik gösterirdi —
+  oysa biri eksik değil: `DGKC` **yuvasız (kapasite eksiği)**, üretim
+  tipi olduğu için kimlik rengini hak ediyor ama yuva kalmadı; `MERKEZ`
+  **kimlik rengi taşımayan (tasarım gereği)**, üretim tesisi olmadığı
+  için yuva açılsa da renk almaz. `tipYuvasi()` ikisine de `null` döner
+  ve doğru davranır; ayrım sunumdadır.
   Kontrast kapısı yuvalar üzerinde koştu: dördü de IRI 3:1 eşiğinin
   üstünde (en düşük 4,62:1, dört zemin).
 

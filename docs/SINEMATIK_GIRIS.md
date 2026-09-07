@@ -36,4 +36,6 @@ Normal `npm run dev` Next.js geliştirme sunucusunu açar. `arac/dev.mjs`, denet
 
 Kaydırma pozlarının tersinirliği, kamera son konumu ve hizalama/açılma sırası `tests/giris-zaman.test.ts` ile doğrulanır.
 
-Bu çalışma ortamındaki tarayıcı denemesinde masaüstü ve 375 × 812 çerçevede statik giriş, CTA'nın gerçek arayüze bağlantısı ve `/uyum` rotası görüldü. Denetimli Next.js sunucusu JavaScript dosyalarını sunarken `uv_resident_set_memory` hatası verdi. Bu nedenle hareketli WebGL akışı, scroll-stop, ters kaydırma, 3D → DOM geçişinin görsel sürekliliği ve tarayıcıda reduced-motion emülasyonu henüz doğrulanmış değildir. Bu kontroller tamamlanmadan sürüm yayın onayı almış sayılmaz.
+Tarayıcıda masaüstü ve 375 × 812 çerçevede statik giriş, CTA'nın gerçek arayüze bağlantısı ve `/uyum` rotası görüldü. Denetimli Next.js geliştirme sunucusunun `uv_resident_set_memory` hatası, aynı önizlemede derlenmiş gerçek uygulamanın geçici QA dosyalarıyla açılması yoluyla aşıldı. Derlenmiş sürümde giriş atlama, odağın `platform-arayuzu` öğesine taşınması ve gerçek genel arama penceresinin açılması doğrulandı.
+
+Bu tarayıcı WebGL bağlamı sağlayamıyor (`GL_RENDERER = Disabled`). Uygulamanın bu hatadan statik alternatife geçtiği doğrulandı. Hareketli WebGL akışı, scroll-stop, ters kaydırma, 3D → DOM geçişinin görsel sürekliliği ve tarayıcıda reduced-motion emülasyonu henüz doğrulanmış değildir. Bu kontroller tamamlanmadan sürüm yayın onayı almış sayılmaz. QA dosyaları kaynak sürümüne dahil edilmez.

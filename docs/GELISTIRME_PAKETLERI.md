@@ -667,15 +667,17 @@ tek `t()`.
 5. Para birimi kiracıdan; R13 parasal etki kiracı para biriminde
    biçimlenir (ileri bağımlılık notu). [URN-DIL-005]
 
-> **P1'den devir · R0-8 burada karara bağlanır.** Oturum çözülmeden koşan
-> katmanlar (zod şemaları, paket sözleşme kapıları) kullanıcının diline
-> erişemez — dil tercihi oturumdadır. P1 aynı duvara SÖZLÜK için çarptı
-> ve mesajları çekirdek sözcükte bıraktı; bu paket aynı duvara DİL için
-> çarpacak. Karar burada verilir: sınır olduğu yerde mi kalır (oturum
-> öncesi mesajlar tek dilde), yoksa doğrulama sırası mı değişir? Sıra,
-> denetim gerekçesiyle seçildi (reddedilen isteğin izi aktörsüz kalmasın)
-> — değiştirmek o gerekçeyi yeniden tartmayı gerektirir. İki paketin aynı
-> şeyi ayrı ayrı keşfetmemesi için kalem R0-8'de duruyor.
+> **P1'den devir · R0-8 burada karara bağlanır.** Kiracı bağlamını
+> bekleyemeyen yüzeyler kullanıcının diline de erişemez — dil tercihi,
+> sözlük gibi, oturumdadır. P1 aynı duvara SÖZLÜK için ÜÇ ayrı yerden
+> çarptı (zod şeması · paket sözleşme kapısı · Suspense yedeği) ve
+> mesajları çekirdek sözcükte bıraktı; bu paket aynı duvara DİL için
+> çarpacak. Karar burada verilir: sınır olduğu yerde mi kalır (bu
+> yüzeyler tek dilde), yoksa bağlamın çözülme ANI mı değişir? İki aday
+> var ve ikisi de ayrı gerekçe ister: doğrulama sırası (denetim
+> gerekçesiyle seçildi — reddedilen isteğin izi aktörsüz kalmasın) ve
+> derleme zamanında çözülen mesaj kataloğu (Suspense yedeğini de
+> kapsardı). Kalem R0-8'de; üç örnek orada listeli.
 
 **Kararlar.** *Kütüphane:* **Varsayılan** hafif kendi katman (ICU için
 `intl-messageformat`); alternatif `next-intl` (Next 16 uyumu
@@ -1943,7 +1945,7 @@ birlikte ele alınır:
 | R0-5 | `.abacus.donotdelete` | 5 Eylül 2026 temizliğinde silindi; ürün deposuna geri alınmayacak. Arşivde duruyor (`ahmetrz/uyumPlatformu-arsiv`, `830c174` ile eklenmiş, 22 520 baytlık Fernet şifreli blob); içeriği anahtarsız okunamaz ve ne olduğu tek satırdan fazla belgelenmemiş (arşivdeki `docs/HAZIRLIK_DURUMU.md` §13: "şifreli blob, dokunulmadı"). İçeriği bilinmediği için arşiv deposu **private kalmalı**. | Kapandı |
 | R0-6 | Uygulanmamış tasarım teslimi | Eylül 2026'da ayrı bir depoda alternatif bir tasarım sistemi üretildi (`tokens.css`, `TASARIM_TOKENLARI.md`, `TASARIM_PLANI.md`, `mockups.html`); ürünün canlı jetonlarıyla yalnız 1 jetonu ortaktı. Değerlendirildi ve **terk edildi**: ürün `web/app/kabuk.css` dilinde devam eder. Kayıt: `ahmetrz/uyumPlatformu-arsiv` deposu, `arsiv/tasarim-denemesi-2026-09` dalı (public depodan kaldırıldı: mockup verisi gerçek filodan türetilmiş tesis adları ve kişi adları taşıyordu). | Kapandı |
 | R0-7 | Belge–kod bağı koptu | `web/arac/sayimlar.mjs` ve `web/tests/belge-sayimlari.test.ts` duruyor ama Eylül 2026 temizliğinde içleri boşaltıldı: araç 6 046 → 2 633 bayt (`--yaz`, `--tablo`, `blok()`, `BASLA`/`BITIS` işaretleri düştü), test 199 → 63 satır (belgelere bakan yarısı ile `KANONIK`/`TARIHSEL` listeleri düştü). Sonuç: belgeler yeniden elle yazılmış sayaç taşımaya açık — bu belgede bir günde iki örneği çıktı. Bu belgedeki `node arac/sayimlar.mjs --yaz` şartı da bu yüzden karşılıksız. Geri kurulacaksa kaynak: `ahmetrz/uyumPlatformu-arsiv` deposu. **6 Eyl 2026 doğrulaması:** araç gerçekten 2 633 bayt ve `--yaz` bayrağı yok; test 63 satır ve hiçbir belgeye bakmıyor. P0 bunu **kapsamına almadı** — ürün adı ve belge kurgusu ile aynı PR'a sığmıyor; ayrı kalem olarak açık kalır ve o gelene kadar bu belgedeki `arac/sayimlar.mjs --yaz` şartı geçersizdir (araç yalnız JSON basar). | açık — ayrı kalem |
-| R0-8 | Oturum öncesi mesaj sınırı | Oturum çözülmeden koşan katmanlar (zod şemaları, paket sözleşme kapıları) ne kiracının **SÖZLÜĞÜNE** ne de **DİLİNE** erişebilir: sözlük kullanıcının kapsamından, dil kullanıcının tercihinden çözülür ve ikisi de oturum gerektirir. Bu mesajlar bugün çekirdek sözcükle ve tek dilde kalıyor — bilinçli tercih, çünkü doğrulama sırası denetim gerekçesiyle seçildi (`lib/eylemler2/disaAktarim.ts`: zod önce, yetki sonra; sıra değişirse reddedilen isteğin izi de değişir). **P3 aynı sınıra çarpacak**: oturumdan önce üretilen hiçbir mesaj yerelleştirilemez de. Karar o zaman verilir — sınır olduğu yerde mi kalır, yoksa doğrulama sırası mı değişir. İki paketin ayrı ayrı keşfetmemesi için burada. Bugünkü örnekler: `disaAktarim.ts` zod şeması, `lib/disaAktarim/paket.ts` kapsam kapıları (P1 · raporlar dilimi). | açık — P3 ile karar |
+| R0-8 | Kiracı bağlamını bekleyemeyen yüzeyler | Kiracı bağlamı (sektör **SÖZLÜĞÜ** ve **DİLİ**) oturumdan ve kapsamdan çözülür. O bağlamı bekleyemeyen her yüzey ikisine de erişemez — sebepleri farklı, sınır aynı. Bugün **üç** örnek var ve üçü ayrı istisna gibi birikiyordu: (a) **zod şemaları** — doğrulama oturumdan ÖNCE koşuyor ve sıra denetim gerekçesiyle seçildi (`lib/eylemler2/disaAktarim.ts`: reddedilen isteğin izi aktörsüz kalmasın); (b) **paket sözleşme kapıları** — `lib/disaAktarim/paket.ts` kiracının sözlüğünü bilmez ve BİLMEMELİ, ürettiği denetim artefaktının alanları kod anahtarıdır; (c) **Suspense yedekleri** — `loading.tsx` anında render edilmek zorunda, `async` olamaz, `useTerim()` ise istemci bağlamı ister (`app/(kabuk)/(operasyonel)/tedarikciler/loading.tsx`). Üçü de bugün çekirdek sözcükte ve tek dilde. **P3 aynı sınıra DİL için çarpacak**; karar orada verilir: sınır olduğu yerde mi kalır, yoksa bağlamın çözülme anı mı değişir (doğrulama sırası, derleme zamanında çözülen mesaj kataloğu). Kalem burada ki dördüncü örnek çıktığında yeniden keşfedilmesin, her seferinde ayrı bir gerekçe yazılmasın. | açık — P3 ile karar |
 
 ---
 

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { TERIMLER, eslesmeSayisi, taranacakDosyalar } from './terimler';
 import { readFileSync } from 'node:fs';
+import { katlamaliVarMi } from '../../arac/turkce-arama.mjs';
 
 /* ═══════════════════════════════════════════════════════════════════════
    BEKÇİNİN KÖRLÜK VAKALARI (P1 · URN-ALN-003)
@@ -176,6 +177,30 @@ describe('Bekçi körlüğü · küçük harfli kod biçimi', () => {
     const sinirsiz = /(jes|res|hes|ges)/g;
     expect(eslesmeSayisi(sinirsiz, tuzak),
       'sınırsız küçük harf araması masum sözcükleri yakalar').toBeGreaterThan(3);
+  });
+
+  /* ── ÖLÇÜM SONDALARI DA AYNI TUZAĞA DÜŞÜYOR ────────────────────────
+     Bekçiyi bu dosya koruyor; ama tek seferlik ölçüm sondaları kalıbı
+     HER ÖLÇÜMDE sıfırdan türetiyor ve aynı hataya yeniden düşüyor.
+     Gerçekten oldu (7 Eyl 2026): `/tedarikciler` çekmecesini iki sözlükle
+     karşılaştıran bir sonda `/arıtma/i` kullandı ve ekranda AÇIKÇA duran
+     "ARITMA TESİSİ · 7" satırını göremedi; "terim yok" dedi.
+
+     Çare test değil ARAÇ: `arac/turkce-arama.mjs`. Aşağıdaki vaka o
+     aracın kendi kalıcı kanıtıdır — kör hâl ile gören hâl yan yana. */
+  it('ölçüm sondası: `/…/i` kör, `katlamaliVarMi` görür [URN-ALN-007]', () => {
+    const ekran = 'ARITMA TESİSİ · 7';
+    expect(/arıtma/i.test(ekran), '`/i` bayrağı Türkçede kör DEĞİLMİŞ — kalıp değişti?')
+      .toBe(false);
+    expect(/tesis/i.test(ekran), '`TESİSİ` içindeki `İ` `/i` ile `i`ye katlanmıyor')
+      .toBe(false);
+    expect(katlamaliVarMi(/arıtma/, ekran), 'çift küçültme "ARITMA"yı görmeli').toBe(true);
+    expect(katlamaliVarMi(/tesis/, ekran), 'çift küçültme "TESİSİ"yi görmeli').toBe(true);
+    // Ters yön: yalnız DEĞİŞMEZ katlamada görünen yazım da yakalanmalı.
+    expect(katlamaliVarMi(/termik/, 'TERMIK SANTRAL'), 'TERMIK → değişmez katlama')
+      .toBe(true);
+    // Kör kalmaması gereken yerde yanlış pozitif de üretmemeli.
+    expect(katlamaliVarMi(/arıtma/, 'TEDARİKÇİ · SÖZLEŞME')).toBe(false);
   });
 
   it('CSS jetonu (`--hes`) — öncesi 0, sonrası 1 [URN-ALN-007]', () => {

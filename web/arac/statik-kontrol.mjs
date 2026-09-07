@@ -19,6 +19,7 @@
    Kullanım: node arac/statik-kontrol.mjs [out dizini]
 */
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { ciktiyiDogrula } from './derleme-ortami.mjs';
 import path from 'node:path';
 import http from 'node:http';
 import os from 'node:os';
@@ -31,10 +32,10 @@ const CIKTI = path.resolve(process.argv[2] ?? path.join(WEB, 'out'));
 const KOK = /export const YAYIN_KOKU = '([^']+)'/
   .exec(readFileSync(path.join(WEB, 'lib', 'demo.ts'), 'utf8'))[1];
 
-if (!existsSync(CIKTI)) {
-  console.error(`statik-kontrol: çıktı dizini yok → ${CIKTI}`);
-  process.exit(1);
-}
+/* Ölçmeden önce ÇIKTININ TAM olduğu doğrulanır: yer bitince `next build`
+   yarım bir `out/` bırakır ve bu kapı o yarım siteyi "kusursuz" ölçerdi
+   (`arac/derleme-ortami.mjs`). Ölçülmeyen "geçti" diye yazılmaz. */
+if (!ciktiyiDogrula('statik-kontrol', CIKTI)) process.exit(1);
 
 /** Ziyaretçi derlemeden bu kadar sonra bakıyor. */
 const SAPMA_GUN = 90;

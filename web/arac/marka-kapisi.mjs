@@ -55,6 +55,7 @@
    ═══════════════════════════════════════════════════════════════════════ */
 
 import { execFileSync } from 'node:child_process';
+import { yerVarMi } from './derleme-ortami.mjs';
 import { existsSync, readdirSync, readFileSync, rmSync, statSync } from 'node:fs';
 import path from 'node:path';
 
@@ -91,6 +92,10 @@ function ciktiDosyalari(kok) {
 }
 
 function derle() {
+  /* Derlemeden ÖNCE yer kontrolü: yarıda kalan bir derleme, bu kapının
+     ölçtüğü çıktıyı yarım bırakır ve nöbetçi adı "hiçbir yüzeyde yok"
+     diye okunur — yani kapı YANLIŞ YEŞİL verir. (`derleme-ortami.mjs`) */
+  if (!yerVarMi('marka:kapi')) process.exit(1);
   console.log(`derleme: NEXT_PUBLIC_MARKA_AD="${NOBETCI}" · NEXT_PUBLIC_DEMO=1`);
   execFileSync('npx', ['next', 'build'], {
     cwd: WEB,

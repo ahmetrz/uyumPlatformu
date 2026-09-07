@@ -6,6 +6,13 @@
    vaka sayısını sessizce ikiye katlardı. */
 import { readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
+/* Çift küçültme ve Unicode sınır ARTIK ORTAK: aynı tuzak ölçüm
+   sondalarını da vuruyor ve onları hiçbir test korumuyor (bkz.
+   `arac/turkce-arama.mjs` başlığı). Kalıp tek yerde durur; bu dosyanın
+   kalıcı vakaları (`katlama-korlugu.test.ts`) onu koruyor. */
+import { eslesmeSayisi, katlamaliSayi, sinirKalibi } from '../../arac/turkce-arama.mjs';
+
+export { eslesmeSayisi };
 
 /* ── İKİ AYRI TÜRKÇE TUZAĞI ───────────────────────────────────────────
 
@@ -43,8 +50,7 @@ import path from 'node:path';
    kapatıyor. `tests/bekci/katlama-korlugu.test.ts` her birini kalıcı
    vaka olarak tutuyor: katlama mantığı ileride sadeleştirilirse körlük
    sessizce geri gelmesin. */
-const sinir = (govde: string) => new RegExp(
-  `(?<![\\p{L}\\p{N}_])(?:${govde})(?![\\p{L}\\p{N}_])`, 'gu');
+const sinir = (govde: string) => sinirKalibi(govde);
 
 /** `ham` = kaynağın kendisi · `kucuk` = İKİ küçültmenin birleşimi */
 type Hedef = 'ham' | 'kucuk';
@@ -83,11 +89,6 @@ export const TERIMLER: { ad: string; kaliplar: { re: RegExp; hedef: Hedef }[] }[
   ] },
 ];
 
-/** Bir kalıbın metindeki eşleşme sayısı. */
-export function eslesmeSayisi(re: RegExp, metin: string): number {
-  return metin.match(new RegExp(re.source, re.flags))?.length ?? 0;
-}
-
 /** Dosyada (adı dâhil) geçen sektör terimleri — hangi terim, kaç kez.
 
     `kucuk` hedefli kalıplar İKİ küçültmede birden aranır ve BÜYÜK sayı
@@ -98,14 +99,11 @@ export function eslesmeSayisi(re: RegExp, metin: string): number {
     sayı alt sınırdır; KARAR yine de doğrudur ve karar ölçülen şeydir. */
 export function terimleriBul(yol: string, icerik?: string): { terim: string; sayi: number }[] {
   const ham = `${icerik ?? readFileSync(yol, 'utf8')}\n${yol}`;
-  const kucukler = [ham.toLocaleLowerCase('tr-TR'), ham.toLowerCase()];
   const bulunan: { terim: string; sayi: number }[] = [];
   for (const { ad, kaliplar } of TERIMLER) {
     let sayi = 0;
     for (const { re, hedef } of kaliplar) {
-      sayi += hedef === 'ham'
-        ? eslesmeSayisi(re, ham)
-        : Math.max(...kucukler.map((m) => eslesmeSayisi(re, m)));
+      sayi += hedef === 'ham' ? eslesmeSayisi(re, ham) : katlamaliSayi(re, ham);
     }
     if (sayi > 0) bulunan.push({ terim: ad, sayi });
   }

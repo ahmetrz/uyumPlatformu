@@ -95,6 +95,8 @@ kurum sistemine giden hiçbir şey yoktur.
 | `dizustu.mjs` | `tasarim:dizustu` | 1366×768'de kaydırılamayan (kırpılan) içerik var mı | kırpılan öğe |
 | `iki-sozluk.mjs` | `kapi:iki-sozluk` | üç düzen kapısını (tasma · dizüstü · axe) ÜÇ sözlükle koşar (enerji · su · stres); kusurun hangi sözlükte çıktığını söyler | herhangi bir sözlükte kusur |
 | `kolon-hizasi.mjs` | `tasarim:kolon` | statik çıktıda başlık/hücre sayısı, sol kenar hizası (±1px), kaydırma kabını aşma — 1440 · 1366 · 1280. **İki sözlükle ölçülmedi** (istisna, aşağıda) | hiza kusuru |
+| `derleme-ortami.mjs` | — (kütüphane) | derlemeye dayanan kapıların önkoşulu: boş alan (derlemeden önce) + statik çıktının TAM olduğu (ölçmeden önce) | çağıran kapı düşer |
+| `turkce-arama.mjs` | — (kütüphane) | Türkçe metin araması: çift küçültme + Unicode sözcük sınırı. **Sondalarda düz `/…/i` KULLANMAYIN** | — |
 | `marka-kapisi.mjs` | `marka:kapi` | ürün adı tek kaynaktan mı geliyor: nöbetçi adla statik demo derlemesi koşar, üretilen çıktıya bakar (tarayıcı istemez) | varsayılan ad işlenmiş yüzeyde geçiyor **ya da** nöbetçi görünmesi gereken yüzeyde yok |
 | `turkiye-siniri.mjs` | `harita:sinir` | üretir (kapı değil): Natural Earth'ten Türkiye silüeti | kaynak/öznitelik bulunamadı |
 | — | `test:kapsam` | vitest V8 kapsamı (`lib/**`, ekran `mantik.ts`/`ortak.ts`, `components/**`) | test kırığı |
@@ -312,6 +314,66 @@ Bugünkü ölçüm: **38 rota · kırpılan öğe 0 · yatay taşan rota 0.**
 PORT=3210 npm run tasarim:dizustu
 PORT=3210 node arac/dizustu.mjs --rota=/,/portfoy
 ```
+
+### `turkce-arama.mjs` — Türkçe metin ararken bunu kullanın
+
+**Düz `/…/i` kullanmayın.** `i` bayrağı Unicode BASİT katlama yapar ve
+Türkçede iki yönde de kördür: `ı` `I`'ya, `i` `İ`'ye katlanmaz.
+
+```js
+/arıtma/i.test('ARITMA TESİSİ')              // false  ✗ kör
+katlamaliVarMi(/arıtma/, 'ARITMA TESİSİ')    // true   ✓
+```
+
+Bu mantık bekçi testinde doğdu ve orada kalıcı vakalarla korunuyor
+(`tests/bekci/katlama-korlugu.test.ts` · URN-ALN-007). Ama tuzak yalnız
+bekçiyi vurmuyor: **ölçüm sondalarını da vuruyor ve onları hiçbir test
+korumuyor.** Gerçekten oldu (7 Eyl 2026): `/tedarikciler` çekmecesini iki
+sözlükle karşılaştıran tek seferlik bir sonda `/arıtma/i` kullandı ve
+ekranda AÇIKÇA duran `ARITMA TESİSİ · 7` satırını göremedi; "terim yok"
+dedi. Kalıcı test bunu koruyamaz — sonda her ölçümde kalıbı sıfırdan
+türetiyor. Çare test değil **araç**: kalıp bir kez burada durur.
+
+| İşlev | Ne yapar |
+| --- | --- |
+| `kucultmeler(m)` | `[tr-TR katlaması, değişmez katlama]` |
+| `katlamaliVarMi(re, m)` | ikisinin birleşiminde `test()` — `/…/i` yerine bu |
+| `katlamaliSayi(re, m)` | ikisinin BÜYÜK eşleşme sayısı (toplamaz) |
+| `katlamaliSatirlar(re, m)` | kalıbı taşıyan satırlar |
+| `sinirKalibi(govde)` | Unicode sözcük sınırı — `\b` ASCII'dir, `RES`i "SÜRESİ" içinde bulur |
+
+Büyük harfli KODLAR (`JES` · `MW`) ham metinde aranır: küçültülmüşte
+`res` "süresi"nin, `hes` "hesap"ın içine düşer.
+
+### `derleme-ortami.mjs` — ölçüm ortamı da ölçülür
+
+7 Eyl 2026'da oturumun yazılabilir disk payı %100'e dayandı. O turda kayıp
+olmadı ama sessiz bir **yanlış-yeşil** yolu açıyor: `next build` yer
+bitince YARIM bir `out/` bırakır, statik kapı o yarım siteyi ölçer ve
+"kusur yok" der. Kapı kırmızı yanmaz, çünkü ölçtüğü şey orada değildir.
+
+İki ayrı soru, iki ayrı işlev — ve ikisi de gerekli:
+
+| İşlev | Ne zaman | Niçin |
+| --- | --- | --- |
+| `yerVarMi(ad)` | derlemeden ÖNCE | Yeter alan yoksa derleme başlatılmaz; başlarsa yarım kalır ve kusur ölçüm anına taşınır. |
+| `ciktiyiDogrula(ad, out)` | ölçmeden ÖNCE | Elimizdeki `out/` GEÇMİŞ bir koşuda yarım kalmış olabilir; o an bol yer bulunur. Rota envanterindeki her rotanın karşılığı yoksa ölçüm geçersizdir. |
+
+Yalnız birincisini koymak geçmişten kalan yarım çıktıyı görmezdi.
+
+**Eşik ölçüldü, seçilmedi** (temiz ağaç, aynı gün):
+
+| Derleme | Net alan | Sonuç |
+| --- | --- | --- |
+| `npm run build` | 78 MB | `.next` 266 MB |
+| `NEXT_PUBLIC_DEMO=1 next build` | 185 MB | `.next` 426 MB · `out/` 26 MB |
+
+Tam bir çevrim ~450 MB istiyor; eşik **1024 MB** — ölçülenin iki katından
+biraz fazla, npm önbelleği ve ikinci derleme için pay bırakır.
+
+Kapıyı taşıyanlar: `statik-kontrol` · `kolon-hizasi` (çıktıyı ölçerler) ve
+`marka-kapisi` (kendi derlemesini yapar). Sabotajla doğrulandı: `out/`tan
+üç rota silindiğinde ikisi de eksikleri adıyla yazıp **çıkış 1** verdi.
 
 ### `iki-sozluk.mjs` · `sozluk-takas.mjs` · `sozluk-kipi.mjs`
 

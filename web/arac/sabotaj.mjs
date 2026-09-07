@@ -255,6 +255,14 @@ const SABOTAJLAR = [
     testler: ['tests/bekci/sektor-terimi.test.ts'],
   },
   {
+    ad: 'Türkçe arama tek katlamaya düşürüldü',
+    kural: 'Türkçe metin İKİ küçültmenin birleşiminde aranır',
+    dosya: 'arac/turkce-arama.mjs',
+    ara: "  return [metin.toLocaleLowerCase('tr-TR'), metin.toLowerCase()];",
+    yaz: "  return [metin.toLowerCase()];",
+    testler: ['tests/bekci/katlama-korlugu.test.ts'],
+  },
+  {
     ad: 'Terimin kırılma fırsatı garantisi kaldırıldı',
     kural: 'Kırılamayan bir terim düzeni BOZMAZ, yalnız çirkin görünür',
     dosya: 'app/kabuk.css',

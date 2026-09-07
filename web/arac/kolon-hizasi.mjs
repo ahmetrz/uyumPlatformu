@@ -20,6 +20,7 @@
    Kullanım: node arac/kolon-hizasi.mjs [out dizini]
 */
 import { existsSync, readFileSync, readdirSync, createReadStream, statSync } from 'node:fs';
+import { ciktiyiDogrula } from './derleme-ortami.mjs';
 import path from 'node:path';
 import os from 'node:os';
 import http from 'node:http';
@@ -36,10 +37,10 @@ const ROTALAR = JSON.parse(readFileSync(path.join(WEB, 'arac', 'rotalar.json'), 
   .map((r) => (typeof r === 'string' ? r : r.yol))
   .filter(Boolean);
 
-if (!existsSync(CIKTI)) {
-  console.error(`kolon-hizasi: çıktı dizini yok → ${CIKTI}`);
-  process.exit(1);
-}
+/* Ölçmeden önce ÇIKTININ TAM olduğu doğrulanır — bkz. `derleme-ortami.mjs`.
+   Yarım bir `out/`ta eksik rotalar sessizce atlanır ve hiza kusuru
+   görünmez olurdu. */
+if (!ciktiyiDogrula('kolon-hizasi', CIKTI)) process.exit(1);
 
 const TIP = {
   '.html': 'text/html; charset=utf-8', '.css': 'text/css', '.js': 'text/javascript',

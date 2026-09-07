@@ -87,7 +87,7 @@ describe('bağlantı', () => {
     expect(bagliMi(k)).toBe(false);
     expect(kanitImi(k, SIMDI)).toBe('unk');
     expect(kimlikSozu(k, SIMDI)).toBe('Bağlantısız');
-    expect(baglantiOzeti(k)).toBe('bağlantısız');
+    expect(baglantiOzeti(k, null)).toBe('bağlantısız');
   });
 
   it('madde · bulgu · santral · varlık bağlarından biri yeterlidir', () => {
@@ -108,7 +108,7 @@ describe('bağlantı', () => {
       maddeler: [madde, { ...madde, maddeDurumuId: 'md2' }],
       bulgular: [{ id: 'b1', baslik: 'X', durum: 'acik', tesisKod: 'DGS' }],
     });
-    expect(baglantiOzeti(k)).toBe('1 bulgu · 2 madde');
+    expect(baglantiOzeti(k, null)).toBe('1 bulgu · 2 madde');
   });
 });
 
@@ -207,11 +207,13 @@ describe('metrik · başlık · dip not', () => {
   });
 
   it('dip not kesmeyi ve kapsam dışı kanıtları sessiz bırakmaz', () => {
-    const n = dipNot({ gorunur: 8, toplam: 450, yuklenen: 400, kapsamDisi: 3 });
+    /* Sözlük `null`: çekirdek sözcük ("tesis") beklenir. Sektör sözlüğü
+       ile aynı cümlenin nasıl kurulduğu `p1-ikinci-sozluk.test.ts`te. */
+    const n = dipNot({ gorunur: 8, toplam: 450, yuklenen: 400, kapsamDisi: 3 }, null);
     expect(n).toContain('8 satır görünüyor');
     expect(n).toContain('kütükte 450 kanıt var, 400 tanesi yüklendi');
-    expect(n).toContain('3 kanıt santral kapsamınız dışında');
-    expect(dipNot({ gorunur: 2, toplam: 2, yuklenen: 2, kapsamDisi: 0 }))
+    expect(n).toContain('3 kanıt tesis kapsamınız dışında');
+    expect(dipNot({ gorunur: 2, toplam: 2, yuklenen: 2, kapsamDisi: 0 }, null))
       .toBe('2 satır görünüyor · kolon başlığından sıralama');
   });
 });

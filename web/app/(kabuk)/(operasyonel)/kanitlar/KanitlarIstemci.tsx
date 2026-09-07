@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useSozluk, useTerim } from '@/lib/dil/SozlukSaglayici';
 import { useUrlDurumu, useUrlDurumuBos, useUrlSira } from '@/components/kabuk/urlDurumu';
 import { Alan, BosFiltre, BosIlk, Dugme, Hata, Im, type Durum } from '@/components/kabuk/temel';
 import { Tablo, type Kolon, type Satir } from '@/components/kabuk/tablo';
@@ -72,6 +73,8 @@ export default function KanitlarIstemci({
   yazabilir: boolean;
   kapsamli?: boolean;
 }) {
+  const sozluk = useSozluk();
+  const { t } = useTerim();
   const [mercek, setMercek] = useUrlDurumu<Mercek>('mercek', 'hepsi');
   const [tipF, setTipF] = useUrlDurumuBos('tip');
   const [arama, setArama] = useState('');
@@ -191,7 +194,7 @@ export default function KanitlarIstemci({
                   : null}
               />
               <p className="ab-dip" style={{ margin: 'var(--s14) 0 0' }}>
-                {dipNot({ gorunur: gorunur.length, toplam, yuklenen: kanitlar.length, kapsamDisi })}
+                {dipNot({ gorunur: gorunur.length, toplam, yuklenen: kanitlar.length, kapsamDisi }, sozluk)}
               </p>
             </div>
           ) : filtreAktif ? (
@@ -202,7 +205,9 @@ export default function KanitlarIstemci({
                  ilki kütüphanenin hâli, ikincisi yetki sınırıdır. */
               cumle={kapsamli
                 ? kapsamDisi > 0
-                  ? `Kapsamınızda kanıt kaydı yok. ${kapsamDisi} kanıt santral kapsamınız dışında (bağlantısız ya da başka santrale bağlı).`
+                  ? `Kapsamınızda kanıt kaydı yok. ${kapsamDisi} kanıt `
+                    + `${t('tesis')} kapsamınız dışında (bağlantısız ya da `
+                    + `başka ${t('tesis', 'yonelme')} bağlı).`
                   : 'Kapsamınızda kanıt kaydı yok.'
                 : 'Kanıt kaydı yok.'}
               eylem={yazabilir && !formAcik
@@ -403,6 +408,7 @@ function TarihHucresi({ kanit, simdi, esik }: { kanit: KanitSatiri; simdi: numbe
 
 /** Bağlı kayıt: ilk bağın kodu + sayı özeti; bağ yoksa bilinmeyen elması. */
 function BagHucresi({ kanit }: { kanit: KanitSatiri }) {
+  const sozluk = useSozluk();
   if (!bagliMi(kanit)) {
     return (
       <span style={SATIR_ICI}>
@@ -416,9 +422,9 @@ function BagHucresi({ kanit }: { kanit: KanitSatiri }) {
     ?? kanit.tesisler[0]?.kod
     ?? `${kanit.varlikSayisi} varlık`;
   return (
-    <span style={KIRP} title={baglantiOzeti(kanit)}>
+    <span style={KIRP} title={baglantiOzeti(kanit, sozluk)}>
       {ilk}
-      <span style={{ color: 'var(--i3)' }}> · {baglantiOzeti(kanit)}</span>
+      <span style={{ color: 'var(--i3)' }}> · {baglantiOzeti(kanit, sozluk)}</span>
     </span>
   );
 }
@@ -428,6 +434,10 @@ function BagHucresi({ kanit }: { kanit: KanitSatiri }) {
 function KanitCekmecesi({ kanit, simdi, esik, kapat }: {
   kanit: KanitSatiri; simdi: number; esik: KanitEsik; kapat: () => void;
 }) {
+  const sozluk = useSozluk();
+  /* `t` bu bileşende ZATEN tazelik sonucu; sözlük yardımcısı `terim`
+     adıyla alınır. Kısa adın iki anlamı olmasındansa uzun ad. */
+  const { t: terim, tBas } = useTerim();
   const im: Durum = kanitImi(kanit, simdi, esik);
   const t = tazelik(kanit, simdi, esik);
   const kayitlar = [
@@ -442,7 +452,8 @@ function KanitCekmecesi({ kanit, simdi, esik, kapat }: {
       yol: `/surecler/${m.surecId}`,
     })),
     ...kanit.tesisler.map((ts) => ({
-      id: `tesis-${ts.id}`, kod: ts.kod, alt: `Santral · ${ts.ad}`, yol: `/tesisler/${ts.id}`,
+      id: `tesis-${ts.id}`, kod: ts.kod, alt: `${tBas('tesis')} · ${ts.ad}`,
+      yol: `/tesisler/${ts.id}`,
     })),
   ];
 
@@ -467,7 +478,7 @@ function KanitCekmecesi({ kanit, simdi, esik, kapat }: {
         { etiket: 'Sahip', deger: kanit.sahip ?? 'kayıt yok' },
         { etiket: 'Kaynak sistem', deger: kanit.kaynakSistem ?? (kanit.otomatik ? 'otomatik · sistem adı kayıt yok' : 'elle') },
         { etiket: 'Gizlilik', deger: etiketle(kanit.gizlilik) },
-        { etiket: 'Bağlantı', deger: baglantiOzeti(kanit), durum: bagliMi(kanit) ? undefined : 'unk' },
+        { etiket: 'Bağlantı', deger: baglantiOzeti(kanit, sozluk), durum: bagliMi(kanit) ? undefined : 'unk' },
       ]} />
 
       {kayitlar.length > 0 ? (
@@ -476,7 +487,8 @@ function KanitCekmecesi({ kanit, simdi, esik, kapat }: {
         <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
           <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Bağlı kayıtlar</p>
           <p style={{ margin: 0, fontSize: 'var(--t-field)', color: 'var(--i3)' }}>
-            <Im durum="unk" ad="Bağlı kayıt yok" /> Bu kanıt hiçbir madde, bulgu ya da santrale bağlı değil;
+            <Im durum="unk" ad="Bağlı kayıt yok" /> Bu kanıt hiçbir madde, bulgu ya da
+            {' '}{terim('tesis', 'yonelme')} bağlı değil;
             neyi karşıladığı bilinmiyor.
           </p>
         </div>
@@ -507,6 +519,7 @@ function KanitCekmecesi({ kanit, simdi, esik, kapat }: {
    Reddedilmiş bir kanıt süresi dolana kadar geçerli görünemez. */
 
 function MetadataBlogu({ kanit }: { kanit: KanitSatiri }) {
+  const { t: terim } = useTerim();
   const { bekliyor, hata, calistir } = useEylem();
   const [acik, setAcik] = useState(false);
   const [f, setF] = useState({
@@ -549,7 +562,7 @@ function MetadataBlogu({ kanit }: { kanit: KanitSatiri }) {
 
       {!kanit.duzenlenebilir ? (
         <p className="ab-panel-dip" style={{ margin: 'var(--s10) 0 0' }}>
-          Bu kanıtı düzenlemek, bağlı olduğu santrallerin HEPSİNDE uyum yazma
+          Bu kanıtı düzenlemek, bağlı olduğu {terim('tesis', 'cogul')} HEPSİNDE uyum yazma
           yetkisi ister. Bağı olmayan kanıt yalnız kapsamsız yetkiyle
           düzenlenir.
         </p>

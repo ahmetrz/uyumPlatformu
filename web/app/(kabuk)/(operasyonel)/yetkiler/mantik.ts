@@ -1,8 +1,9 @@
 import type { Durum } from '@/components/kabuk/temel';
+import { t, type Sozluk } from '@/lib/dil/terimler';
 import { ROL_ETIKET } from '@/lib/sabitler';
 
 /* O · Kullanıcı & yetki — sunucu ile istemcinin PAYLAŞTIĞI tipler ve saf
-   hesaplar. Yetki modeli üç eksenlidir: kullanıcı × uyum süreci × santral.
+   hesaplar. Yetki modeli üç eksenlidir: kullanıcı × uyum süreci × tesis.
    Boş eksen "tümü" demektir; bu yüzden kapsamsız bir yönetici yetkisi
    portföyün tamamına açılır ve gözden geçirilmesi gerekir. */
 
@@ -101,7 +102,7 @@ export function rolEtiketi(rol: string | null): string {
 
 /* ── Kapsam ─────────────────────────────────────────────────────────── */
 
-/** Süreç ve santral boşsa yetki tüm portföye uygulanır. */
+/** Süreç ve tesis boşsa yetki tüm portföye uygulanır. */
 export const kapsamsiz = (y: Yetki) => !y.surec && !y.tesis;
 
 /** Kapsamsız yönetici: portföyün tamamında tam yetki — ayrıcalıklı erişim. */
@@ -119,23 +120,32 @@ export const artikYetki = (h: Hesap) => !h.aktif && h.yetkiler.length > 0;
     görmesi gereken bir olgu — satırda ve çekmecede sözcükle yazılır. */
 export const girisYapamaz = (h: Hesap) => h.aktif && !h.parolaVar;
 
-/** Kapsam metni: "Tüm portföy" ya da "2 süreç · 1 santral". */
-export function kapsamMetni(h: Hesap): string {
+/* ── SÖZLÜK SAF İŞLEVE PARAMETREYLE GİRER ─────────────────────────────
+   Bu modül React bilmez; `useTerim()` çağıramaz. Sektör sözcüğü üreten
+   her işlev sözlüğü SON PARAMETRE olarak alır ve çağıran (ekran) onu
+   `useTerim()`/`useSozluk()`ten geçirir.
+
+   Alternatifi modül seviyesinde bir sözlük tutmaktı; o yol sunucu ile
+   istemciyi ayrıştırır ve saf işlevi gizli duruma bağlardı. Parametre
+   çirkin ama dürüst: işlevin çıktısı yalnız girdisine bağlı kalır. */
+
+/** Kapsam metni: "Tüm portföy" ya da "2 süreç · 1 tesis". */
+export function kapsamMetni(h: Hesap, sozluk: Sozluk | null): string {
   if (h.yetkiler.length === 0) return 'kapsam yok';
   if (h.yetkiler.some(kapsamsiz)) return 'Tüm portföy';
   const surecler = new Set(h.yetkiler.map((y) => y.surec?.id).filter(Boolean));
   const tesisler = new Set(h.yetkiler.map((y) => y.tesis?.id).filter(Boolean));
   const parcalar: string[] = [];
   if (surecler.size) parcalar.push(`${surecler.size} süreç`);
-  if (tesisler.size) parcalar.push(`${tesisler.size} santral`);
+  if (tesisler.size) parcalar.push(`${tesisler.size} ${t(sozluk, 'tesis')}`);
   return parcalar.join(' · ');
 }
 
 /** Tek yetkinin kapsam metni — çekmecede satır satır okunur. */
-export function yetkiKapsami(y: Yetki): string {
+export function yetkiKapsami(y: Yetki, sozluk: Sozluk | null): string {
   const s = y.surec ? `${y.surec.regKod} · ${y.surec.kod}` : 'tüm süreçler';
-  const t = y.tesis ? y.tesis.ad : 'tüm santraller';
-  return `${s} · ${t}`;
+  const tesis = y.tesis ? y.tesis.ad : `tüm ${t(sozluk, 'tesis', 'cogul')}`;
+  return `${s} · ${tesis}`;
 }
 
 /* ── Durum ──────────────────────────────────────────────────────────── */
@@ -160,7 +170,7 @@ export function durumSozu(h: Hesap): string {
   return 'Kapsamlı';
 }
 
-export function durumCumlesi(h: Hesap): string {
+export function durumCumlesi(h: Hesap, sozluk: Sozluk | null): string {
   if (erisimsiz(h)) {
     return 'Hesap açık ama hiçbir yetkisi yok: giriş yapar, hiçbir ekranı açamaz.';
   }
@@ -169,10 +179,11 @@ export function durumCumlesi(h: Hesap): string {
       + 'hesap yeniden açılırsa erişim geri gelir.';
   }
   if (kapsamsizYonetici(h)) {
-    return 'Yönetici yetkisi kapsamsız verilmiş: tüm süreçlerde ve tüm santrallerde tam yetki.';
+    return 'Yönetici yetkisi kapsamsız verilmiş: tüm süreçlerde ve tüm '
+      + `${t(sozluk, 'tesis', 'cogul')} tam yetki.`;
   }
   if (!h.aktif) return 'Hesap kapalı ve yetkisi yok; erişim kapsamı değerlendirilmiyor.';
-  return `Yetki ${kapsamMetni(h).toLocaleLowerCase('tr-TR')} kapsamıyla sınırlı.`;
+  return `Yetki ${kapsamMetni(h, sozluk).toLocaleLowerCase('tr-TR')} kapsamıyla sınırlı.`;
 }
 
 /** Satır altı ve çekmece için giriş notu; null = söylenecek bir şey yok. */

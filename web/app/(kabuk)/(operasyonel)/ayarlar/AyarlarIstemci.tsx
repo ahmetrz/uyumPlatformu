@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { useTerim } from '@/lib/dil/SozlukSaglayici';
+import { useSozluk, useTerim } from '@/lib/dil/SozlukSaglayici';
 import Link from 'next/link';
 import { Alan, Dugme, EntegrasyonYok } from '@/components/kabuk/temel';
 import { EkranBasligi } from '@/components/kabuk/ekran';
@@ -254,6 +254,7 @@ function Yetki({ hesap, yonetimOkuyabilir }: {
   hesap: AyarlarVerisi['hesap']; yonetimOkuyabilir: boolean;
 }) {
   const { t } = useTerim();
+  const sozluk = useSozluk();
   const rol = enGenisRol(hesap);
   return (
     <section className="ab-ayar-bolum" aria-labelledby="ayar-yetki">
@@ -263,11 +264,11 @@ function Yetki({ hesap, yonetimOkuyabilir }: {
           ? 'Hesabınızda tanımlı yetki yok: giriş yaparsınız, hiçbir ekran açılmaz.'
           : kapsamsizYonetici(hesap)
             ? `Yönetici yetkiniz kapsamsız: tüm süreçler ve tüm ${t('tesis', 'cogul')}.`
-            : `Yetkiniz ${kapsamMetni(hesap).toLocaleLowerCase('tr-TR')} kapsamıyla sınırlı.`}
+            : `Yetkiniz ${kapsamMetni(hesap, sozluk).toLocaleLowerCase('tr-TR')} kapsamıyla sınırlı.`}
       </p>
       <CekmeceAlanlar alanlar={[
         { etiket: 'En geniş rol', deger: rolEtiketi(rol), durum: rol ? undefined : 'unk' },
-        { etiket: 'Kapsam', deger: kapsamMetni(hesap) },
+        { etiket: 'Kapsam', deger: kapsamMetni(hesap, sozluk) },
         { etiket: 'Yetki sayısı', deger: hesap.yetkiler.length },
       ]} />
       {hesap.yetkiler.length > 0 && (
@@ -275,7 +276,7 @@ function Yetki({ hesap, yonetimOkuyabilir }: {
           {hesap.yetkiler.map((y) => (
             <li key={y.id}>
               <span>{rolEtiketi(y.rol)}</span>
-              <span className="mono" style={{ color: 'var(--i3)' }}>{yetkiKapsami(y)}</span>
+              <span className="mono" style={{ color: 'var(--i3)' }}>{yetkiKapsami(y, sozluk)}</span>
             </li>
           ))}
         </ul>

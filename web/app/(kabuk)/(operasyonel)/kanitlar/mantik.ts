@@ -1,4 +1,5 @@
 import type { Durum } from '@/components/kabuk/temel';
+import { t, type Sozluk } from '@/lib/dil/terimler';
 import { etiketle, kanitTazelik, KANIT_ESIK_VARSAYILAN, type KanitEsik } from '@/lib/sabitler';
 import { an } from '@/lib/an';
 
@@ -11,7 +12,7 @@ import { an } from '@/lib/an';
        ile aynıdır (tazelik motoru da onu izler); burada yalnız referans
        tarihi seçilir ve `gecerliBitis` aşıldıysa sonuç "süresi doldu"ya
        çekilir. İki yerde iki farklı "taze" tanımı doğmasın.
-     · kanıt BAĞLI mı? — madde durumu (dolayısıyla bulgu), doğrudan santral
+     · kanıt BAĞLI mı? — madde durumu (dolayısıyla bulgu), doğrudan tesis
        ya da varlık bağı yoksa kanıt bağlantısızdır: kimin hangi maddeyi
        hangi belgeyle karşıladığı BİLİNMİYOR demektir. İşaretçisi `unk`,
        sıfır değil.
@@ -144,7 +145,7 @@ export function tazelik(
   return { kova, etiket: karar.etiket, durum, gun, kaynak: ref.kaynak };
 }
 
-/** Bir madde durumuna, bulguya, santrale ya da varlığa bağlı mı? */
+/** Bir madde durumuna, bulguya, tesise ya da varlığa bağlı mı? */
 export function bagliMi(
   k: Pick<KanitSatiri, 'maddeler' | 'bulgular' | 'tesisler' | 'varlikSayisi'>,
 ): boolean {
@@ -166,16 +167,17 @@ export function kimlikSozu(k: KanitSatiri, simdi: number = an(), esik: KanitEsik
 }
 
 /**
- * "2 bulgu · 3 madde · 1 santral" — bağlantı özeti. Bağ yoksa sözcük
+ * "2 bulgu · 3 madde · 1 tesis" — bağlantı özeti. Bağ yoksa sözcük
  * "bağlantısız"dır; boş dize ya da "0 bulgu" yazılmaz (unknown ≠ zero).
  */
 export function baglantiOzeti(
   k: Pick<KanitSatiri, 'maddeler' | 'bulgular' | 'tesisler' | 'varlikSayisi'>,
+  sozluk: Sozluk | null,
 ): string {
   const parcalar: string[] = [];
   if (k.bulgular.length > 0) parcalar.push(`${k.bulgular.length} bulgu`);
   if (k.maddeler.length > 0) parcalar.push(`${k.maddeler.length} madde`);
-  if (k.tesisler.length > 0) parcalar.push(`${k.tesisler.length} santral`);
+  if (k.tesisler.length > 0) parcalar.push(`${k.tesisler.length} ${t(sozluk, 'tesis')}`);
   if (k.varlikSayisi > 0) parcalar.push(`${k.varlikSayisi} varlık`);
   return parcalar.length === 0 ? 'bağlantısız' : parcalar.join(' · ');
 }
@@ -216,7 +218,7 @@ export function mercekten(k: KanitSatiri, mercek: Mercek, simdi: number = an(), 
   }
 }
 
-/** Serbest metin: ad · tip etiketi · madde kodu · bulgu başlığı · santral kodu · yükleyen. */
+/** Serbest metin: ad · tip etiketi · madde kodu · bulgu başlığı · tesis kodu · yükleyen. */
 export function aramaHavuzu(k: KanitSatiri): string {
   return [
     k.ad, tipEtiketi(k.tip), k.tip, k.yukleyen ?? '', k.kaynakSistem ?? '',
@@ -311,13 +313,15 @@ export function baslikMetni(m: KanitMetrikleri, kapsamli: boolean): {
 /** Tablo dip notu — kesme ve kapsam dışı kanıt sayısı sessiz kalmaz. */
 export function dipNot(girdi: {
   gorunur: number; toplam: number; yuklenen: number; kapsamDisi: number;
-}): string {
+}, sozluk: Sozluk | null): string {
   const parcalar = [`${girdi.gorunur} satır görünüyor`, 'kolon başlığından sıralama'];
   if (girdi.toplam > girdi.yuklenen) {
     parcalar.push(`kütükte ${girdi.toplam} kanıt var, ${girdi.yuklenen} tanesi yüklendi`);
   }
   if (girdi.kapsamDisi > 0) {
-    parcalar.push(`${girdi.kapsamDisi} kanıt santral kapsamınız dışında (bağlantısız ya da yalnız başka santrale bağlı) — listelenmiyor`);
+    parcalar.push(`${girdi.kapsamDisi} kanıt ${t(sozluk, 'tesis')} kapsamınız `
+      + `dışında (bağlantısız ya da yalnız başka ${t(sozluk, 'tesis', 'yonelme')} `
+      + 'bağlı) — listelenmiyor');
   }
   return parcalar.join(' · ');
 }

@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useSozluk, useTerim } from '@/lib/dil/SozlukSaglayici';
 import { useUrlDurumu, useUrlDurumuBos, useUrlSira } from '@/components/kabuk/urlDurumu';
 import { Dugme, Kesir, BosIlk, BosFiltre, type Durum } from '@/components/kabuk/temel';
 import { Tablo, type Kolon, type Satir } from '@/components/kabuk/tablo';
@@ -62,7 +63,7 @@ export default function YetkilerIstemci({
   yazabilir: boolean;
   onaylayabilir: boolean;
   kisitliKapsam: boolean;
-  /** OT-09 · ekip kütüğü; kurumsal (santralsiz) ekipler de listede. */
+  /** OT-09 · ekip kütüğü; kurumsal (tesise bağlı olmayan) ekipler de listede. */
   ekipler: Ekip[];
   ekipTesisleri: Secenek[];
   /** Ekip tanımı `tanimlar/onay` ister — yetki verme yetkisinden AYRIDIR. */
@@ -70,6 +71,7 @@ export default function YetkilerIstemci({
   /** Sahiplik devri `envanter/onay` ister. */
   devredebilir: boolean;
 }) {
+  const sozluk = useSozluk();
   const { bekliyor, hata, calistir } = useEylem();
   const [mercek, setMercek] = useUrlDurumu<string>('mercek', 'hepsi');
   const [rolF, setRolF] = useUrlDurumuBos('rol');
@@ -101,11 +103,15 @@ export default function YetkilerIstemci({
     if (rolF && !h.yetkiler.some((y) => y.rol === rolF)) return false;
     if (arama) {
       const havuz = `${h.ad} ${h.eposta} ${h.unvan ?? ''} `
-        + h.yetkiler.map((y) => `${rolEtiketi(y.rol)} ${yetkiKapsami(y)}`).join(' ');
+        + h.yetkiler.map((y) => `${rolEtiketi(y.rol)} ${yetkiKapsami(y, sozluk)}`).join(' ');
       if (!havuz.toLocaleLowerCase('tr-TR').includes(arama.toLocaleLowerCase('tr-TR'))) return false;
     }
     return true;
-  }), [hesaplar, mercek, rolF, arama]);
+    /* `sozluk` bağımlılıkta: arama havuzu yetki kapsamı METNİNİ içeriyor
+       ve o metin sözlükten geliyor. Sözlük değişince havuz da değişir;
+       listede bırakmamak, kiracı sözcüğü değiştiğinde aramayı eski
+       sözcükle çalışır bırakırdı. */
+  }), [hesaplar, mercek, rolF, arama, sozluk]);
 
   /* Erişim kusurları üste sabitlenir ve toplanmaz; sağlıklı ve kapalı
      hesaplar tek kuyruk satırında toplanır (06 §A3). */
@@ -148,7 +154,7 @@ export default function YetkilerIstemci({
       alt: `${h.eposta}${h.aktif ? '' : ' · hesap kapalı'}${not ? ` · ${not}` : ''}`,
       hucreler: [
         rolEtiketi(enGenisRol(h)),
-        kapsamMetni(h),
+        kapsamMetni(h, sozluk),
         h.yetkiler.length > 0 ? h.yetkiler.length : <Bos key="y" />,
         h.unvan ?? <Bilinmiyor key="u" />,
       ],
@@ -370,18 +376,20 @@ function Ozet({
   yetkiKaldir: (id: string) => void;
   aktifDegistir: () => void;
 }) {
+  const sozluk = useSozluk();
+  const { t } = useTerim();
   const d = hesapDurumu(hesap);
   const not = girisNotu(hesap);
 
   return (
     <>
       <CekmeceKimlik durum={d} soz={durumSozu(hesap)} baslik={hesap.ad}
-        cumle={not ? `${durumCumlesi(hesap)} Hesap ${not}.` : durumCumlesi(hesap)} />
+        cumle={not ? `${durumCumlesi(hesap, sozluk)} Hesap ${not}.` : durumCumlesi(hesap, sozluk)} />
 
       <CekmeceAlanlar alanlar={[
         { etiket: 'Unvan', deger: hesap.unvan ?? 'bilinmiyor', durum: hesap.unvan ? undefined : 'unk' },
         { etiket: 'En geniş rol', deger: rolEtiketi(enGenisRol(hesap)) },
-        { etiket: 'Kapsam', deger: kapsamMetni(hesap) },
+        { etiket: 'Kapsam', deger: kapsamMetni(hesap, sozluk) },
         { etiket: 'Yetki', deger: hesap.yetkiler.length },
         /* Yalnız "tanımlı / tanımlı değil" — özet istemciye hiç inmez. */
         { etiket: 'Parola', deger: hesap.parolaVar ? 'tanımlı' : 'tanımlı değil',
@@ -410,7 +418,7 @@ function Ozet({
                   </span>
                   <span style={{ display: 'block', marginTop: 2, fontFamily: 'var(--veri)',
                     fontSize: 'var(--t-label)', color: kapsamsiz(y) ? 'var(--md)' : 'var(--i3)' }}>
-                    {yetkiKapsami(y)}
+                    {yetkiKapsami(y, sozluk)}
                   </span>
                 </span>
                 {onaylayabilir && (
@@ -446,7 +454,7 @@ function Ozet({
         }
         dipNot={!onaylayabilir
           ? 'Yetki vermek, kaldırmak ve parola tanımlamak için yönetim/onay yetkisi gerekir.'
-          : 'Kapsam boş bırakılan yetki tüm süreçlere ve tüm santrallere uygulanır. '
+          : `Kapsam boş bırakılan yetki tüm süreçlere ve tüm ${t('tesis', 'cogul')} uygulanır. `
             + 'Yetki verme, kaldırma ve parola tanımlama denetim izine yazılır.'}
       />
     </>
@@ -468,6 +476,7 @@ function EkipKutugu({ ekipler, tesisler, adaylar, yetkili }: {
   adaylar: { id: string; ad: string; aktif: boolean }[];
   yetkili: boolean;
 }) {
+  const { t } = useTerim();
   const [duzenlenen, setDuzenlenen] = useState<string | null>(null);
   const [yeni, setYeni] = useState(false);
 
@@ -544,7 +553,7 @@ function EkipKutugu({ ekipler, tesisler, adaylar, yetkili }: {
               </p>
               <p className="mono" style={{ margin: '0 0 var(--s10)',
                 fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
-                {e.tesisAd ?? 'kurumsal (santralsiz)'} · {e.varlikSayisi} varlık ·
+                {e.tesisAd ?? `kurumsal (${t('tesis', 'yonelme')} bağlı değil)`} · {e.varlikSayisi} varlık ·
                 {' '}{aktifUye} aktif üye{e.aktif ? '' : ' · ekip pasif'}
               </p>
               {bosEkip && (

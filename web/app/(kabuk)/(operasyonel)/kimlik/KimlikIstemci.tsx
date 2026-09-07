@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import { useTerim } from '@/lib/dil/SozlukSaglayici';
 import { useMemo, useState } from 'react';
 import { useUrlDurumu, useUrlDurumuBos } from '@/components/kabuk/urlDurumu';
 import { Im, Metrikler, BosIlk, BosFiltre, Dugme, type Durum } from '@/components/kabuk/temel';
@@ -79,9 +80,10 @@ export default function KimlikIstemci({ hesaplar, tesisler, kaynaklar, kapsamli 
   hesaplar: Hesap[];
   tesisler: { id: string; ad: string }[];
   kaynaklar: string[];
-  /** liste bir santral kapsamıyla daraltıldı mı — boş ekranın SÖZÜ değişir */
+  /** liste bir tesis kapsamıyla daraltıldı mı — boş ekranın SÖZÜ değişir */
   kapsamli?: boolean;
 }) {
+  const { tBas } = useTerim();
   const [mercek, setMercek] = useUrlDurumu<string>('mercek', 'hepsi');
   const [tesisF, setTesisF] = useUrlDurumuBos('tesis');
   const [kaynakF, setKaynakF] = useUrlDurumuBos('kaynak');
@@ -217,7 +219,7 @@ export default function KimlikIstemci({ hesaplar, tesisler, kaynaklar, kapsamli 
             sec={(id) => { setMercek(id); setKuyrukAcik(false); }}
             kapsam={
               <>
-                <Kapsam etiket="Santral" aktif={tesisF} sec={setTesisF}
+                <Kapsam etiket={tBas('tesis')} aktif={tesisF} sec={setTesisF}
                   secenekler={tesisler.map((t) => ({ id: t.id, ad: t.ad }))} />
                 <Kapsam etiket="Kaynak" aktif={kaynakF} sec={setKaynakF}
                   secenekler={kaynaklar.map((k) => ({ id: k, ad: k }))} />
@@ -290,7 +292,7 @@ function DurumluHucre({ metin, durum }: { metin: string; durum?: Durum }) {
   return <span style={durum ? { color: `var(--${durum})` } : undefined}>{metin}</span>;
 }
 
-/* ── kapsam kontrolü (SANTRAL ▾ / KAYNAK ▾) ────────────────────────────── */
+/* ── kapsam kontrolü (TESİS ▾ / KAYNAK ▾) ──────────────────────────────── */
 
 function Kapsam({ etiket, secenekler, aktif, sec }: {
   etiket: string;
@@ -352,6 +354,7 @@ function yetkiAltSatiri(y: Yetki): string {
 function HesapOzeti({ hesap, yetki, secYetki }: {
   hesap: Hesap; yetki: Yetki | null; secYetki: (id: string) => void;
 }) {
+  const { t, tBas } = useTerim();
   const durum = hesapDurumu(hesap);
   const rotasyon = rotasyonAlani(hesap);
   const kullanim = gunFarki(hesap.sonKullanim);
@@ -373,7 +376,7 @@ function HesapOzeti({ hesap, yetki, secYetki }: {
           deger: hesap.kaynakSistem ?? '—',
           durum: hesap.kaynakSistem ? undefined : 'unk',
         },
-        { etiket: 'Santral', deger: hesap.tesisAd ?? 'portföy' },
+        { etiket: tBas('tesis'), deger: hesap.tesisAd ?? 'portföy' },
         { etiket: 'Parola rotasyonu', ...rotasyon },
         {
           etiket: 'Son kullanım',
@@ -445,7 +448,8 @@ function HesapOzeti({ hesap, yetki, secYetki }: {
         <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
           <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Bağlı kayıtlar</p>
           <p className="ab-panel-dip" style={{ margin: 0 }}>
-            Bu hesabın varlıkları ve santrali üzerinden açık risk ya da bulgu bağı kurulmadı.
+            Bu hesabın varlıkları ve bağlı olduğu {t('tesis')} üzerinden açık risk ya da
+            bulgu bağı kurulmadı.
           </p>
         </div>
       )}

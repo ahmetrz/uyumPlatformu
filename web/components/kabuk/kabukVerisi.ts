@@ -7,6 +7,7 @@ import { birlesikKapsam } from '@/app/kapsam';
 import { durumAyagiVerisi } from '@/components/kabuk/durumAyagiVerisi';
 import { DEMO } from '@/lib/demo';
 import { MARKA_AD } from '@/lib/marka';
+import { kapsamAnahtari, kapsamSozlugu } from '@/lib/dil/sozlukOku';
 import paket from '../../package.json';
 import type { KabukVerisi } from './Kabuk';
 
@@ -25,9 +26,9 @@ export async function kabukVerisi(): Promise<KabukVerisi> {
   const k = await aktifKullanici().catch(() => null);
 
   /* ── KAPSAM ÇUBUĞU DA BİR EKRANDIR ────────────────────────────────
-     Sayılar kapsamsız okunuyordu: bir santrale kısıtlı kullanıcı her
-     sayfanın tepesinde "16 santral" görüyordu. Bu, göremediği on üç
-     santralin VARLIĞINI doğrulamak demek — /portfoy ve /tesisler için
+     Sayılar kapsamsız okunuyordu: tek tesise kısıtlı kullanıcı her
+     sayfanın tepesinde "16 tesis" görüyordu. Bu, göremediği on üç
+     tesisin VARLIĞINI doğrulamak demek — /portfoy ve /tesisler için
      kapatılan sızıntının aynısı, yalnız kabukta.
 
      Kapsam BİRLEŞİK alınır (uyum ∪ envanter ∪ risk ∪ denetim): çubuk
@@ -43,7 +44,11 @@ export async function kabukVerisi(): Promise<KabukVerisi> {
     )
     : [];
 
-  const [ayak, grup, tesisler, okunmamis] = await Promise.all([
+  /* Kabuk PAYLAŞILAN katman: sözlük tek bir kaydın değil, KAPSAMIN
+     dilinden gelir. Kapsamda birden çok sektör varsa `null` iner ve
+     çekirdek sözcük yazılır — birini seçmek öbür yarısı için yalan
+     olurdu (`lib/dil/sozlukOku.ts`). */
+  const [ayak, grup, tesisler, okunmamis, sozluk] = await Promise.all([
     durumAyagiVerisi(k).catch(() => null),
     db.grup.findFirst({ select: { ad: true } }).catch(() => null),
     db.tesis.findMany({
@@ -59,9 +64,10 @@ export async function kabukVerisi(): Promise<KabukVerisi> {
        kabuk 0'da rozet çizmediği için ikisi aynı görünür — bilerek. */
     k ? db.bildirim.count({ where: { kullaniciId: k.id, okundu: null } }).catch(() => 0)
       : Promise.resolve(0),
+    kapsamSozlugu(kapsamAnahtari(kapsam)).catch(() => null),
   ]);
-  const santral = tesisler.length;
-  /* Tüzel kişi de aynı kapsamdan türer: kapsamdaki santrallerin bağlı
+  const tesisSayisi = tesisler.length;
+  /* Tüzel kişi de aynı kapsamdan türer: kapsamdaki tesislerin bağlı
      olduğu AYRI tüzel kişi sayısı. Kapsamsız `tuzelKisi.count()` aynı
      sızıntının başka biçimiydi. */
   const tuzelKisi = new Set(
@@ -77,7 +83,7 @@ export async function kabukVerisi(): Promise<KabukVerisi> {
       ad: k.adSoyad, unvan: k.unvan, demo: k.id === 'demo',
       yonetim: izinVar(k, 'tanimlar', 'okuma') || izinVar(k, 'uyum', 'okuma') || izinVar(k, 'yonetim', 'okuma'),
     } : null,
-    kapsam: grup ? { grup: grup.ad, tuzelKisi, santral } : null,
+    kapsam: grup ? { grup: grup.ad, tuzelKisi, tesis: tesisSayisi } : null,
     ayak: ayak && {
       toplam: ayak.toplam,
       sayimlar: ayak.sayimlar,
@@ -91,6 +97,7 @@ export async function kabukVerisi(): Promise<KabukVerisi> {
     okunmamis,
     /* Ayak künyesi: sürüm package.json'dan OKUNUR (elle yazılmış sürüm
        ilk yayında yalan söylerdi); ortam demo bayrağı + NODE_ENV'den. */
+    sozluk,
     surum: paket.version,
     kunye: await ayar<string>('kabuk.kunye').catch(() => MARKA_AD),
     ortam: DEMO ? 'demo' : process.env.NODE_ENV === 'production' ? 'uretim' : 'gelistirme',

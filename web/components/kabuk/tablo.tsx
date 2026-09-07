@@ -30,7 +30,7 @@ import { Im, Iskelet, type Durum } from './temel';
      `aria-selected` ve dolaşan odak (`tabIndex` 0 / −1) taşır.
    · Ok tuşları satırlar arasında gezer (↑ ↓ Home End), Enter/Boşluk
      seçer; fare tıklaması aynı `sec`i çağırır. Hücre içindeki bağ ya da
-     düğme tıklaması satırı SEÇMEZ (tedarikçi → santral bağı gibi).
+     düğme tıklaması satırı SEÇMEZ (tedarikçi → tesis bağı gibi).
    · Başlık YAPIŞKAN (`position: sticky; top: 0`), ilk sütun (kimlik) da
      yatay kaydırmada yapışkan kalır — `.ab-vt-sar` kaydırma kabıdır.
    · Sıralama sütun başlığındaki DÜĞMEDEDİR ve `<th aria-sort>` ile
@@ -480,7 +480,7 @@ export function Matris({
 }
 
 /* ── Genişleyen satır ─────────────────────────────────────────────────
-   Kontrol aileleri ve santral katmanları. Aynı anda TEK aile açık kalır;
+   Kontrol aileleri ve tesis katmanları. Aynı anda TEK aile açık kalır;
    `<details name>` bunu tarayıcıya yaptırır. `c-compliance`ın satır içi
    açılımıyla aynı fikir: detay ÇEKMECEDE değil, yerinde açılır. */
 export function GenisleyenSatir({

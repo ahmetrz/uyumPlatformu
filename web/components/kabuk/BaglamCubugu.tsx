@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useId, useRef, useState } from 'react';
+import { useTerim } from '@/lib/dil/SozlukSaglayici';
 import Link from 'next/link';
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -7,11 +8,16 @@ import Link from 'next/link';
 
    `a-assets`ın 52px kapsam çubuğunun ekran içi karşılığı: solda en fazla
    ÜÇ seviyelik kırıntı yolu (sarmaz; önce ORTA segment kısalır), sağda
-   üretim tipine göre gruplanmış santral seçici.
+   tipine göre gruplanmış tesis seçici.
 
-   Prototipin kapsam çubuğu kabukta yaşar ve GRUP → SANTRAL zincirini
+   Prototipin kapsam çubuğu kabukta yaşar ve GRUP → TESİS zincirini
    söyler; bu bileşen aynı zinciri EKRAN içinde, kayıt derinliğinde
-   sürdürür. */
+   sürdürür.
+
+   Seçicinin etiketi SÖZLÜKTEN gelir; kiracının sektörü hangi sözcüğü
+   veriyorsa o yazılır, sektörsüz kurulumda çekirdek "Tesis". Çağıran
+   ayrıca `seciciEtiketi` geçebilir ama geçmek zorunda değildir — altı
+   ekranın beşi geçmiyordu ve etiket koda gömülüydü. */
 
 export type Kirinti = { ad: string; yol?: string };
 
@@ -19,7 +25,7 @@ export type SeciciOgesi = {
   id: string;
   ad: string;
   alt: string;          // kapasite / il — 9.5px mono
-  tip: string;          // JES / HES / RES / GES …
+  tip: string;          // tesis tipi kodu — sektör paketinden gelir
   gorsel: string | null; // yoksa tipografik döşeme
   yol: string;
 };
@@ -33,7 +39,7 @@ function ucSeviye(kirintiler: Kirinti[]): Kirinti[] {
 export default function BaglamCubugu({
   kirintiler,
   secici,
-  seciciEtiketi = 'Santral',
+  seciciEtiketi,
   koyu = false,
   sag,
 }: {
@@ -44,6 +50,8 @@ export default function BaglamCubugu({
   /** 1–2 bağlamsal eylem */
   sag?: React.ReactNode;
 }) {
+  const { tBas } = useTerim();
+  const etiket = seciciEtiketi ?? tBas('tesis');
   const [acik, setAcik] = useState(false);
   const sarmal = useRef<HTMLDivElement | null>(null);
   const menuId = useId();
@@ -88,7 +96,7 @@ export default function BaglamCubugu({
             <button type="button" className="ab-dugme"
               aria-expanded={acik} aria-controls={menuId}
               onClick={() => setAcik((v) => !v)}>
-              {seciciEtiketi} <span aria-hidden>▾</span>
+              {etiket} <span aria-hidden>▾</span>
             </button>
             {acik && (
               <div className="menu" id={menuId} role="menu">
@@ -102,7 +110,7 @@ export default function BaglamCubugu({
                           // eslint-disable-next-line @next/next/no-img-element -- statik dışa aktarım
                           <img src={s.gorsel} alt={`${s.ad} — ${s.tip}`} loading="lazy" decoding="async" />
                         ) : (
-                          /* Fotoğrafı olmayan santral için sahte görsel
+                          /* Fotoğrafı olmayan tesis için sahte görsel
                              UYDURULMAZ: tipografik döşeme (harita §7-3). */
                           <span className="fotoyok"><span className="kolonbas">{s.tip}</span></span>
                         )}

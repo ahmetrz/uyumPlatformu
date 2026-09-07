@@ -80,7 +80,7 @@ export function alanAktif(alan: Oge, patika: string): boolean {
 /* ── İkincil sıra — alanın kendi ekranları ────────────────────────────
    Denetim §4: Uyum 3 grup · Varlık 5 operasyon grubu (iki harfli 16'lık
    ray KALDIRILDI; alt ekranlar üçüncül sırada) · Risk 2 · Portföy 2 ·
-   Saha yok (Saha'nın tek ekranı kendisidir; santral detayı şeritten
+   Saha yok (Saha'nın tek ekranı kendisidir; tesis detayı şeritten
    açılır). Gruplar saç çizgisiyle ayrılır. */
 export const IKINCIL: Record<string, { baslik?: string; ogeler: Oge[] }[]> = {
   '/uyum': [
@@ -244,7 +244,7 @@ export function sayacEtiketi(n: number): string {
 
 /* ── Rota → yoğunluk ──────────────────────────────────────────────────
    amiral: fotoğrafik, tek ekrana sığan yüzeyler (Saha, Portföy, Harita,
-   Santral 360) — 28px sıkı ayak, dolgu geniş.
+   Tesis 360) — 28px sıkı ayak, dolgu geniş.
    tezgâh: mühendislik ekranları (keşif, topoloji, aktarımlar, sağlık,
    yönetim tezgâhı, sistem) — 32px satır, dolgu dar.
    operasyonel: geri kalan tablo/matris/kütük ekranları — 36px satır. */

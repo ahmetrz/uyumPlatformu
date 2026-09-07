@@ -65,7 +65,7 @@ type PanelKipi = 'ozet' | 'durus' | 'yonetisim' | 'form' | 'iliski' | 'yasam';
     ekrana çakılı kalmıştı. Bekçi bunu göremezdi — dosya artık sektör
     sözcüğü taşımıyordu ve TEMİZ görünüyordu. Metni ölçmek yetmiyor;
     ekranı ölçmek gerekiyor. */
-const halkalar = (sozluk: Sozluk | null) => [
+export const halkalar = (sozluk: Sozluk | null) => [
   tBas(sozluk, 'tesis'), 'Sistem / servis', 'Varlık', 'Zafiyet', 'Risk',
   'Kontrol', 'Proje / CAPA',
 ];

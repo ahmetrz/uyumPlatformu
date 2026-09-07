@@ -28,6 +28,18 @@
    koşar) ve ölçtüğü şey düzen değil, rotanın ayakta olup olmadığıdır.
    İki sözlükle ayrıca koşulur, ama aile başına değil.
 
+   ── DÖRDÜNCÜ İDDİA · SÖZLÜK EKRANA ULAŞIYOR MU ────────────────────────
+   Yukarıdaki üç kapı NEGATİF sorular sorar: düzen bozuldu mu, içerik
+   kırpıldı mı, erişilebilirlik ihlali var mı. Hiçbiri "sözcük gerçekten
+   değişti mi" diye sormaz — ve bekçi de sormaz (o yalnız "sektör sözcüğü
+   kaldı mı" der). Bir dosya sektör sözcüğünü ÇEKİRDEK sözcükle sabit
+   değiştirirse ikisi de yeşil yanar, hedef ıskalanır.
+
+   O yüzden `sozluk-farki.mjs` burada, POZİTİF ölçü olarak koşar: aynı
+   rotanın metni iki sözlükle alınır ve fark çıkarılır. Çevrilmiş ailenin
+   rotasında fark BOŞ OLAMAZ. Kapının kendi başlığı yeter açıklamayı
+   taşır.
+
    ── ÇIKTI ─────────────────────────────────────────────────────────────
    Kapı × sözlük tablosu. Kusur çıkarsa HANGİ SÖZLÜKTE çıktığı yazılır:
      · yalnız `su`    → sözcük uzunluğunun ürettiği kusur, bu dilimin işi.
@@ -41,6 +53,7 @@
      PORT=3210 npx tsx arac/iki-sozluk.mjs --rota=/yedekleme,/kanitlar
      PORT=3210 npx tsx arac/iki-sozluk.mjs            (rota süzgeci yok → tüm küme)
 */
+import { spawnSync } from 'node:child_process';
 import { db } from '../lib/db.ts';
 import { SOZLUK_ADLARI, sozlukleKos } from './sozluk-takas.mjs';
 
@@ -108,5 +121,15 @@ for (const s of kusurlu) {
 
 console.log(`\niki-sozluk: ${KAPILAR.length} kapı × ${SIRA.length} sözlük`
   + ` = ${sonuclar.length} koşum · kusurlu ${kusurlu.length}`);
+
+/* ── POZİTİF ÖLÇÜ ──────────────────────────────────────────────────────
+   Düzen kapıları temizse bile sözlük ekrana ulaşmamış olabilir. Bu adım
+   ayrı bir süreçte koşar (kendi sözlük takasını kendi yapar) ve sonucu
+   çıkış koduna katılır: iki ölçüden biri kırmızıysa kapı kırmızıdır. */
+console.log('');
+const fark = spawnSync('npx', ['tsx', 'arac/sozluk-farki.mjs',
+  ...(rotalar ? [`--rota=${rotalar}`] : [])], { stdio: 'inherit', encoding: 'utf8' });
+const farkKodu = fark.status ?? 1;
+
 await db.$disconnect();
-process.exit(kusurlu.length > 0 ? 1 : 0);
+process.exit(kusurlu.length > 0 || farkKodu !== 0 ? 1 : 0);

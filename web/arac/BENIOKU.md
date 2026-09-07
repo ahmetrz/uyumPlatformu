@@ -95,6 +95,10 @@ kurum sistemine giden hiçbir şey yoktur.
 | `dizustu.mjs` | `tasarim:dizustu` | 1366×768'de kaydırılamayan (kırpılan) içerik var mı | kırpılan öğe |
 | `iki-sozluk.mjs` | `kapi:iki-sozluk` | üç düzen kapısını (tasma · dizüstü · axe) ÜÇ sözlükle koşar (enerji · su · stres); kusurun hangi sözlükte çıktığını söyler | herhangi bir sözlükte kusur |
 | `kolon-hizasi.mjs` | `tasarim:kolon` | statik çıktıda başlık/hücre sayısı, sol kenar hizası (±1px), kaydırma kabını aşma — 1440 · 1366 · 1280. **İki sözlükle ölçülmedi** (istisna, aşağıda) | hiza kusuru |
+| `sozluk-farki.mjs` | (iki-sozluk içinde) | **pozitif ölçü**: sözlük ekrana ulaşıyor mu — aynı rotanın metni iki sözlükle alınır, fark çıkarılır | çevrilmiş rotada fark yoksa çıkış 1 |
+| `sozluk-metni.mjs` | — (yardımcı) | render edilen `main` metnini JSON'a yazar; sözlüğü bilmez | — |
+| `rota-dizini.mjs` | — (kütüphane) | rota → kaynak dizini, `app/` ağacından türetilir | — |
+| `izin-listesi.mjs` | — (kütüphane) | izin listesinde SÖZLÜK terimiyle duran dosyalar (şema terimleri ayrı) | — |
 | `derleme-ortami.mjs` | — (kütüphane) | derlemeye dayanan kapıların önkoşulu: boş alan (derlemeden önce) + statik çıktının TAM olduğu (ölçmeden önce) | çağıran kapı düşer |
 | `turkce-arama.mjs` | — (kütüphane) | Türkçe metin araması: çift küçültme + Unicode sözcük sınırı. **Sondalarda düz `/…/i` KULLANMAYIN** | — |
 | `marka-kapisi.mjs` | `marka:kapi` | ürün adı tek kaynaktan mı geliyor: nöbetçi adla statik demo derlemesi koşar, üretilen çıktıya bakar (tarayıcı istemez) | varsayılan ad işlenmiş yüzeyde geçiyor **ya da** nöbetçi görünmesi gereken yüzeyde yok |
@@ -314,6 +318,73 @@ Bugünkü ölçüm: **38 rota · kırpılan öğe 0 · yatay taşan rota 0.**
 PORT=3210 npm run tasarim:dizustu
 PORT=3210 node arac/dizustu.mjs --rota=/,/portfoy
 ```
+
+### `sozluk-farki.mjs` — sözlük ekrana ULAŞIYOR mu (pozitif ölçü)
+
+Bekçi (`tests/bekci/sektor-terimi.test.ts`) **negatif** ölçüdür ve kabul
+modelinde bir boşluk bırakır:
+
+> Bekçi "sektör sözcüğü kalmadı" der; **"sözlükten geliyor" demez.**
+
+Bir dosya `santral`ı çekirdek sözcük `tesis` ile **sabit** değiştirirse
+bekçi yeşil yanar ve hedef ıskalanır. Ölçüldü (7 Eyl 2026): `envanter`
+zincir halka etiketi tam olarak böyle kaçtı. Bu araç, o gün elle yazılan
+sondayı **ölçüye** çevirir; `kapi:iki-sozluk` içinde dördüncü iddia
+olarak koşar.
+
+**Ölçüm.** Aynı rotanın render edilen metni `enerji` ve `su` sözlükleriyle
+alınır. İki şey raporlanır:
+
+| Sinyal | Ne der | Kapı |
+| --- | --- | --- |
+| **fark sayısı** | kaç yer sözlüğü izliyor | bilgi (insan okur) |
+| **çakılı satır** | enerji altında ÇEKİRDEK sözcük görünen yer | çevrilmiş ailede **kusur** |
+
+**Neden fark sayısı tek başına yetmez.** İlk kurgu "çevrilmiş ailenin
+rotasında fark boş olamaz" idi ve ilk tam koşumda **üç yanlış alarm**
+verdi (`/bakim` · `/api-sozlesmesi` · `/yedek-parca` hiç terim taşımıyor)
+artı bir açıklanabilir vaka (`/raporlar/kanit-paketi` — tek sözlük
+çağrısı boş-durum dalında, demo veride hiç render edilmiyor). Üstelik
+**kısmi kaçağı hiç yakalamıyordu**: iki yerden biri çakılıysa fark yine
+> 0 olur ve kapı geçer.
+
+**Keskin sinyal.** Enerji sözlüğü kuruluyken ekranda çekirdek sözcük
+("tesis" · "portföy") görünmesi. Sözlükten beslenen hiçbir yer enerji
+altında çekirdek sözcüğü yazamaz — yazıyorsa o yer sabit çakılıdır.
+Koşula bağlı dallar render edilmedikleri için sessiz kalır; hiç terim
+taşımayan rota da öyle. Kısmi kaçak **yakalanır**.
+
+İki incelik ölçümden çıktı, ikisi de kalıcı:
+
+- **Yalnız `main`** ölçülür, gövde değil. Kabuk başlığı ("… · 16 SANTRAL")
+  her rotada sözlüğü izler; gövdeyi ölçmek tamamen çakılı bir sayfayı bile
+  geçirirdi.
+- **Sektör karşılığı önce satırdan silinir**, sonra çekirdek aranır. Enerji
+  karşılığı "enerji portföyü" ve içinde çekirdek "portföyü" geçiyor;
+  doğrudan aramak doğru çalışan bir yeri çakılı sanardı. Silme
+  `kanonik()` ile yapılır — `.replace` Türkçede `İ`'yi katlamaz ve
+  silinemeyen kopya yanlış alarm üretir (bu da ölçüldü).
+
+**"Aile çevrildi mi" elle tutulmaz.** İki kaynaktan türetilir: (1) ailenin
+bir dosyası izin listesinden **çıkarılmışsa** (git geçmişi), (2) ya da
+ailenin bir dosyası **sözlüğü çağırıyorsa**. "Listede değil" tek başına
+yetmez — `/bakim` hiç sektör sözcüğü taşımamıştı, çevrilmedi.
+
+İzin listesinde ayrıca **sözlükle ifade edilebilir** terim ayrımı yapılır:
+`MW` · `JES` · `türbin` · `--hes` sözlükte yoktur, şema/öznitelik işidir
+(`izin-listesi.mjs`). `envanter/Yonetisim.tsx` yalnız `MW` yüzünden
+listede duruyor; `/envanter` yine de çevrilmiş sayılır.
+
+**İlk koşumunda iki gerçek kaçak buldu**, ikisi de çevrilmiş `/raporlar`
+ailesinde ve ikisini de bekçi temiz görüyordu: `5 tesis × 3 süreç` ve
+`Portföy raporu` / `portföy uyumu`. Sabotajla da doğrulandı: zincir
+halkası çekirdeğe çakıldığında (iki yerden BİRİ) `1 fark · 1 ÇAKILI` deyip
+çıkış 1 verdi — eski kurgu bunu geçirirdi.
+
+**Sınırı.** Yalnız o an render EDİLEN metni görür: koşula bağlı dallar
+(boş durum, yetki kısıtı, modal) ölçülmez. Modül sabitleri için tarayıcı
+istemeyen kendi vakaları vardır (`tests/envanter-mantik.test.ts` · zincir
+halkası) ve sabotaj kütüğü onları koruyor.
 
 ### `turkce-arama.mjs` — Türkçe metin ararken bunu kullanın
 

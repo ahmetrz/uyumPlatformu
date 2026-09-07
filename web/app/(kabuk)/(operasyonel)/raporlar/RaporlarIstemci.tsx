@@ -50,7 +50,7 @@ export default function RaporlarIstemci({
   const [secim, setSecim] = useState<{ tesisId: string; kolon: number } | null>(null);
 
   const sozluk = useSozluk();
-  const { t: terim } = useTerim();
+  const { t: terim, tBas: terimBas } = useTerim();
   const sirali = useMemo(() => siralaTesisler(tesisler), [tesisler]);
   const portfoy = useMemo(() => portfoyOzeti(tesisler), [tesisler]);
   const zayif = useMemo(() => zayifHucreSayisi(tesisler), [tesisler]);
@@ -87,14 +87,15 @@ export default function RaporlarIstemci({
   const baslik = zayif > 0
     ? { vurgu: `${zayif} hücre`, ad: 'eşiğin altında', durum: 'bd' as Durum }
     : portfoy.yuzde !== null
-      ? { vurgu: `%${portfoy.yuzde}`, ad: 'portföy uyumu', durum: undefined }
-      : { vurgu: undefined, ad: 'Portföy uyumu henüz ölçülmedi', durum: undefined };
+      ? { vurgu: `%${portfoy.yuzde}`, ad: `${terim('portfoy')} uyumu`, durum: undefined }
+      : { vurgu: undefined, ad: `${terimBas('portfoy')} uyumu henüz ölçülmedi`, durum: undefined };
 
   return (
     <>
       <main data-yuzey="defter" style={{ minWidth: 0 }}>
         <EkranBasligi
-          eyebrow={`Portföy raporu · ${raporZamani} · ${tesisler.length} tesis × ${surecler.length} süreç`}
+          eyebrow={`${terimBas('portfoy')} raporu · ${raporZamani}`
+            + ` · ${tesisler.length} ${terim('tesis')} × ${surecler.length} süreç`}
           vurgu={baslik.vurgu}
           vurguDurumu={baslik.durum}
           baslik={baslik.ad}

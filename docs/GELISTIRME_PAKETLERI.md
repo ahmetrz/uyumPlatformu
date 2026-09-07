@@ -415,6 +415,27 @@ görür, su kiracısı "tesis / m³/gün".
   `table-layout: fixed` + `overflow: hidden` taşan sözcüğü keser, sayfa
   yana kaymaz ve `yatay-tasma` yeşil kalır.
 
+- *Bekçi NEGATİF ölçüdür; yanına POZİTİF ölçü kondu (7 Eyl 2026):*
+  bekçi "sektör sözcüğü kalmadı" der, **"sözlükten geliyor" demez**. Bir
+  dosya `santral`ı çekirdek `tesis` ile SABİT değiştirirse bekçi yeşil
+  yanar ve hedef ıskalanır — kabul modelindeki boşluk buydu ve kalan 205
+  dosya onun altında çevriliyordu. `arac/sozluk-farki.mjs` rotanın
+  metnini iki sözlükle alır; **enerji sözlüğü kuruluyken ekranda çekirdek
+  sözcük görünmesi** kusurdur (sözlükten beslenen hiçbir yer enerji
+  altında "tesis" yazamaz). Aile başına `kapi:iki-sozluk` içinde koşar,
+  "aile çevrildi mi" bilgisi izin listesinin git geçmişinden ve sözlük
+  çağrılarından TÜRETİLİR — elle tutulan ikinci bir liste yok.
+
+  İlk koşumunda **iki gerçek kaçak** buldu, ikisi de çevrilmiş
+  `/raporlar` ailesinde ve ikisini de bekçi temiz görüyordu
+  (`5 tesis × 3 süreç` · `Portföy raporu`). Bir de gelecek dilime kalem
+  bıraktı: **`lib/api/kapsam.ts` · `UC_ETIKETI`** uç adlarını çekirdek
+  sözcükle yazıyor ("Tesisler (okuma)"). Uç KİMLİĞİ (`facilities`) doğru
+  şekilde kod anahtarıdır ve öyle kalmalı; sorulacak olan ETİKETİN
+  kiracının sözlüğünü izleyip izlemeyeceğidir — dosya veritabanı ve React
+  bilmiyor (R0-8 (b) ailesi), o yüzden karar API dilimine ait, bugünkü
+  aileye değil.
+
   > **İstisna (yazılı olmasının sebebi budur).** `kolon-hizasi` **iki
   > sözlükle ölçülmedi**: canlı sunucuda değil statik dışa aktarım
   > (`out/`) üzerinde koşuyor, veri ve sözlük derleme anında gömülüyor;

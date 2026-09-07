@@ -77,6 +77,23 @@ export function katlamaliVarMi(re, metin) {
   return kucultmeler(metin).some((m) => k.test(m));
 }
 
+/** Türkçe kanonik küçültme: tr-TR katlaması + birleşen nokta temizliği.
+
+    ARAMA için değil, KALDIR-SONRA-ARA işleri içindir. `katlamaliVarMi`
+    iki katlamanın BİRLEŞİMİNE bakar; bir şeyi metinden SİLİP kalanı
+    aramak gerektiğinde birleşim işe yaramaz — hangi katlamada sildiğin
+    hangi katlamada bulacağını değiştirir ve silinemeyen kopya yanlış
+    alarm üretir (ölçüldü: "ENERJİ PORTFÖYÜ" değişmez katlamada
+    silinemedi, geriye kalan "portföyü" çakılı sanıldı).
+
+    İki tarafın da AYNI Türkçe render'dan geldiği durumlarda tek kanonik
+    biçim doğrudur: tr-TR katlaması Türkçe metinde gidiş-dönüş yapar
+    (`ENERJİ`→`enerji`, `VARLIK`→`varlık`). ASCII `I` ile yazılmış
+    yabancı yazımlar için bu YETMEZ — orada `katlamaliVarMi` kullanın. */
+export function kanonik(metin) {
+  return metin.toLocaleLowerCase('tr-TR').normalize('NFC').replace(/\u0307/g, '');
+}
+
 /** Kalıbı taşıyan satırlar — çok satırlı ekran metnini süzmenin kısa yolu. */
 export function katlamaliSatirlar(re, metin, ayrac = '\n') {
   return metin.split(ayrac).filter((s) => katlamaliVarMi(re, s));

@@ -255,6 +255,17 @@ const SABOTAJLAR = [
     testler: ['tests/bekci/sektor-terimi.test.ts'],
   },
   {
+    /* Bekçinin GÖREMEDİĞİ kusur: sektör sözcüğü gitti ama yerine sözlük
+       değil ÇEKİRDEK SÖZCÜK çakıldı. Dosya bekçiye temiz görünür; ekran
+       her kiracıda aynı sözcüğü gösterir. Gerçekten oldu (7 Eyl 2026). */
+    ad: 'Zincir halkası çekirdek sözcüğe çakıldı',
+    kural: 'Ekrandaki sektör sözcüğü sözlükten gelir, sabit değildir',
+    dosya: 'app/(kabuk)/(operasyonel)/envanter/EnvanterIstemci.tsx',
+    ara: "  tBas(sozluk, 'tesis'), 'Sistem / servis', 'Varlık', 'Zafiyet', 'Risk',",
+    yaz: "  'Tesis', 'Sistem / servis', 'Varlık', 'Zafiyet', 'Risk',",
+    testler: ['tests/envanter-mantik.test.ts'],
+  },
+  {
     ad: 'Türkçe arama tek katlamaya düşürüldü',
     kural: 'Türkçe metin İKİ küçültmenin birleşiminde aranır',
     dosya: 'arac/turkce-arama.mjs',

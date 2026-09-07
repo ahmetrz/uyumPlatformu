@@ -897,7 +897,7 @@
       "tur": "scrollable-region-focusable",
       "rota": "/saklama",
       "bant": 375,
-      "hedef": ".ab-vt-sar",
+      "hedef": "div.ab-icerik > main > section > div.ab-vt-sar#1",
       "azami": 1,
       "not": "Scrollable region must have keyboard access"
     },
@@ -906,22 +906,22 @@
       "tur": "scrollable-region-focusable",
       "rota": "/sistem",
       "bant": 375,
-      "hedef": ".bolum:nth-child(2) > .ab-sistem-kaydir",
+      "hedef": "div.ab-icerik > main.ab-ekran-govde.ab-sistem > section.bolum > div.ab-sistem-kaydir#1",
       "azami": 1,
-      "not": ".ab-sistem-kaydir kabı klavyeyle odaklanamıyor · normalize seçici (\".bolum > .ab-sistem-kaydir\") iki düğümü ayırt etmediği için konum bilgisi GERİ KONDU — çakışan kimlik dar bir bypass olurdu"
+      "not": "Scrollable region must have keyboard access"
     },
     {
       "kapi": "axe",
       "tur": "scrollable-region-focusable",
       "rota": "/sistem",
       "bant": 375,
-      "hedef": ".bolum:nth-child(3) > .ab-sistem-kaydir",
+      "hedef": "div.ab-icerik > main.ab-ekran-govde.ab-sistem > section.bolum > div.ab-sistem-kaydir#2",
       "azami": 1,
-      "not": ".ab-sistem-kaydir kabı klavyeyle odaklanamıyor · normalize seçici (\".bolum > .ab-sistem-kaydir\") iki düğümü ayırt etmediği için konum bilgisi GERİ KONDU — çakışan kimlik dar bir bypass olurdu"
+      "not": "Scrollable region must have keyboard access"
     }
   ],
   "_dinamik": "Dinamik rota satırları KALIBA anahtarlanır (`/tesisler/[id]`), somut URL'e değil: tohum kimlikleri `@default(cuid())` ile her seed'de değişir. Her kalıptan üç kayıt VARYANTI taranır ve tavan EN KÖTÜ varyanta göre tutulur — tek kayıt ölçmek içeriğe bağlı kusuru kaçırırdı (ölçüldü: Tesis 360'ın 768px kusuru 17 tesisin yalnız 5'inde çıkıyordu).",
   "_tavan_nasil": "Tavanlar ÖLÇÜMDEN üretilir, elle yazılmaz. Ölçüm birimi kusur TÜRÜDÜR, öğe sayısı değil: satır sayısına bağlı bir tavan tohum verisi değişince kayar (ölçüldü: /saglik yerelde 8, CI'da 23 öğe — aynı iki kusur türü). Yeniden ölçerken tohum TAZE olmalı: `rm prisma/dev.db && npm run db:hazirla`.",
   "_anahtar": "kapi + tur + rota + bant + HEDEF. Hedef kimliği olmadan bir PR izinli hedefi kaldırıp aynı rotada aynı kuralla başkasını getirebilir ve ihlal \"mevcut borç\" sayılırdı — bloklayıcı kapının içinde bir bypass. Hedef: taşmada etiket@kutuEni, axe'ta normalize seçici (`:nth-child(n)` gibi kırılgan parçalar atılır). Sözleşme `tests/kalite-kapilari.test.ts` ile İKİ kapıya birden sınanır.",
-  "_hedef": "Hedef kimliği UYARLANABİLİR normalize edilir: yaygın durumda agresif (`:nth-child(n)` gibi konum bağlı sözde sınıflar atılır), ÇAKIŞAN durumda kesin (o grup için konum geri konur). Belirsizlik iki kaynaktan sorulur: aynı taramada iki farklı ham hedefin tek kimliğe düşmesi, VE normalize seçicinin sayfada birden çok öğeyle eşleşmesi. İkincisi şart: yalnız ilki sorulsaydı kimlik ihlal EDEN düğüm sayısına bağlanır, iki çakışan ihlalden biri düzelince kalanın kimliği kayar ve DİŞ 3 yüzünden yeniden yazılamazdı."
+  "_hedef": "Hedef kimliği SAYFANIN YAPISINDAN üretilir, axe seçicisinden değil. ÖLÇÜLDÜ (/saklama · 375px, tek bir LegalHold kaydı eklenerek): axe hedefi \".ab-vt-sar\" → \"section > .ab-vt-sar\", eşleşme 1 → 2. Yani hem seçici hem sayı VERİYE bağlı; kimliği ikisine de bağlamak, veri değişince satırı \"yeni\" gösterir ve DİŞ 3 yeniden yazmayı yasaklar. Yapısal kimlik = en fazla dört kademe `etiket`+sıralı sınıf yolu (`:nth-child` YOK) + aynı yola uyan düğümler arasındaki sıra (HER ZAMAN yazılır). Aynı ölçüm iki veri durumunda da AYNI kimliği verdi."
 }

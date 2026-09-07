@@ -247,7 +247,7 @@ Hedefi iki kapı ayrı üretir ama sözleşme tektir:
 | Kapı | Hedef kimliği | Neden kararlı |
 | --- | --- | --- |
 | `yatay-tasma` | `etiket@kutuEni` | kutu eni yerleşimden gelir (`table-layout: fixed` sütunu), satır sayısından değil |
-| `erisim-axe` | normalize seçici yolu | `:nth-child(n)` gibi konum bağlı sözde sınıflar atılır — kardeş eklenince kimlik kaymasın |
+| `erisim-axe` | yapısal yol + sıra (`section > div.k#2`) | yol `:nth-child` taşımaz (kardeş eklenince kaymaz); sıra her zaman yazılır (düğüm eklenince kaymaz) |
 
 **Sözleşme teste bağlıdır ve test İKİ kapıya birden sorar**
 (`tests/kalite-kapilari.test.ts`): *aynı rota + bant + kural, FARKLI
@@ -260,40 +260,45 @@ burada kırpılıyor". Örnek sayısı satır sayısına, yani tohuma bağlı
 olurdu; büyümeyi ALT KÜME dişi yakalar — yeni bir hedef, yeni bir satır
 demektir.
 
-**Normalizasyon AGRESİFTİR, ama ÇAKIŞMAYA KADAR.** Çakışan bir kimlik
-kapının içinde dar bir bypass'tır: iki düğüm tek anahtardaysa ve tavan
-2 ise, biri düzelip yerine aynı kimliğe düşen BAŞKASI geldiğinde sayı
-2'yi aşmaz ve geçer. Çözüm birleştirmek değil **AYRIŞTIRMAK**: çakışan
-grupta konum bilgisi (`:nth-child`) geri konur. Yaygın durumda kararlı,
-çakışan durumda kesin.
+**axe kimliği, axe'ın SEÇİCİSİNDEN türetilmez.** Bu ölçümle
+kararlaştırıldı, tahminle değil. axe hedefi düğümü DOM'da benzersiz kılan
+EN KISA seçicidir; yani sayfadaki öteki düğümlere bağlıdır:
 
-Belirsizlik **iki** kaynaktan sorulur ve ikincisi bilerek daha geniştir:
+> **Ölçüldü** — `/saklama` · 375px, tek bir `LegalHold` kaydı eklenerek
+> (ekran üç `<Tablo>` render eder, ikisi koşulludur):
+>
+> | | 0 kayıt | 1 kayıt |
+> | --- | --- | --- |
+> | axe hedefi | `.ab-vt-sar` | `section > .ab-vt-sar` |
+> | eşleşme | 1 | 2 |
+>
+> Yani hem eşleşme SAYISI hem HAM SEÇİCİNİN KENDİSİ veriyle değişti.
+> Kimliği ikisinden birine bağlamak, veri değişince satırı "yeni"
+> gösterir, DİŞ 3 yeniden yazmayı yasaklar ve düzeltmeyi yapan kişi
+> KİLİTLENİR — tavanları öğe sayısına bağlayıp CI'yı kırdıran hatanın
+> aynı ailesi.
 
-| Kaynak | Sorusu |
-| --- | --- |
-| (a) | aynı taramada iki FARKLI ham hedef tek kimliğe düşüyor mu |
-| (b) | normalize seçici SAYFADA birden çok öğeyle eşleşiyor mu |
+Kimlik bunun yerine **sayfanın yapısından** üretilir:
 
-Yalnız (a) sorulsaydı kimlik, o an İHLAL EDEN düğüm sayısına bağlı
-olurdu: iki çakışan ihlalden biri düzelince kalanın kimliği ham'dan
-normale DÖNER, satır "yeni" görünür ve DİŞ 3 yüzünden yeniden yazılamaz
-— düzeltmeyi yapan kişi kilitlenirdi. (b) sayfanın YAPISINA bakar; bir
-ihlalin düzelmesi eşleşme sayısını değiştirmez. Eşleşme, ihlallerle aynı
-sayfa durumunda ölçülür; normalizasyon tek yerdedir (`axeHedefi`),
-sayfaya yalnız hesaplanmış seçiciler gider.
+| Parça | Tanım | Neden |
+| --- | --- | --- |
+| yapısal yol | gövdeye doğru en fazla dört kademe; her kademe `etiket` + SIRALI sınıfları | `:nth-child` YOK — ilgisiz bir kardeşin eklenmesi kimliği kaydırmaz |
+| sıra | aynı yapısal yola uyan düğümler arasındaki sıra, **her zaman** yazılır (`#1` dahil) | yalnız çakışınca eklenseydi, ikinci düğüm çıkınca BİRİNCİNİN kimliği `yol` → `yol#1` diye değişirdi |
 
-> **Bugün bir ayrıştırma var, ölçüldü:** `/sistem` · 375px ·
-> `scrollable-region-focusable` · `.bolum > .ab-sistem-kaydir` →
-> `.bolum:nth-child(2) > .ab-sistem-kaydir` ve `:nth-child(3) > …`.
-> Rapor "birleştirildi" değil **AYRIŞTIRILDI** yazar; izin listesinde de
-> tek satır (azami 2) yerine iki satır (azami 1) durur — toplam
-> değişmedi, kesinlik arttı.
+> **Kararlılık ÖLÇÜLDÜ.** Aynı iki veri durumunda kimlikler birebir aynı
+> çıktı: `/saklama` → `…> div.ab-vt-sar#1`, `/sistem` → `…>
+> div.ab-sistem-kaydir#1` ve `#2`. Veri eklenince çıkan tek fark
+> GERÇEKTEN yeni bir ihlaldi (`select-name`), kimlik kayması değil.
+
+Aynı yapısal yolu paylaşan düğümler `AYRIŞTIRILDI` diye raporlanır —
+"birleştirildi" değil.
 
 **Taşma kapısında aynı soru sorulamaz ve bu bilerek böyledir.** Oradaki
 kimlik `etiket@kutuEni`dir ve tekrarlayan tablo satırlarını BİLEREK tek
 hedefte toplar; onları ayrıştırmak ölçüyü satır sayısına, yani tohuma
-geri bağlardı. Yapısal olarak farklı bir kırpma zaten farklı kutu eni
-verir ve ayrı hedef olur.
+geri bağlardı — bu turda iki kez düzeltilen hatanın aynısı. Yapısal
+olarak farklı bir kırpma zaten farklı kutu eni verir ve ayrı hedef olur.
+Asimetri kasıtlıdır; "tutarsız" diye tekleştirilmemelidir.
 
 #### Anahtar şeması geçişi — kaldıraç değil, kanıt
 

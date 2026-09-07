@@ -211,7 +211,7 @@ export function enDistakiKirpilmalar(adaylar) {
      "mevcut borç" sayılır ve ciddi bir ihlal, bir başkasının yerine
      sessizce geçer.
 
-   Hedef kimliğini iki kapı da ayrı üretir (`tasmaHedefi`, `axeHedefi`)
+   Hedef kimliğini iki kapı da ayrı üretir (`tasmaHedefi`, `axeKimlikBicimi`)
    ama TEK sözleşmeye uyar ve `tests/kalite-kapilari.test.ts` ikisini
    birlikte sınar: aynı rota + bant + kural, FARKLI hedef → FARKLI
    anahtar. Böylece bir sonraki ayrışma incelemede değil KAPIDA çıkar. */
@@ -232,95 +232,56 @@ export function tasmaHedefi(oge) {
   return `${etiket}@${Number.isFinite(en) ? Math.round(en) : '?'}px`;
 }
 
-/* axe seçicilerindeki KIRILGAN parçalar: konum bağlı sözde sınıflar.
-   `:nth-child(2)` bir kardeş eklenince kayar ve hedef kimliği o zaman
-   kusuru değil DOM sırasını izlerdi. */
-const KIRILGAN_SOZDE = /:(nth-child|nth-of-type|nth-last-child|nth-last-of-type)\([^)]*\)|:(first|last|only)-(child|of-type)/g;
+/* ── axe HEDEF KİMLİĞİ · YAPISAL YOL + SIRA ─────────────────────────
+   Kimlik axe'ın `target` seçicisinden TÜRETİLMEZ ve bu, ÖLÇÜMLE
+   kararlaştırıldı — tahminle değil.
 
-/**
- * axe'ın hedef kimliği: kırılgan parçaları atılmış seçici yolu.
- *
- * Yol KORUNUR (yalnız son basit seçici değil): daha özgüldür, yani iki
- * ayrı ihlalin aynı kimliğe düşme olasılığı düşer. Yine de düşebilir —
- * o durum ÖLÇÜLÜR ve raporlanır (`hedefCakismalari`), sessizce
- * birleştirilmez.
- */
-export function axeHedefi(secici) {
-  return String(secici ?? '')
-    .replace(KIRILGAN_SOZDE, '')
-    .replace(/\s*>\s*/g, ' > ')
-    .replace(/\s+/g, ' ')
-    .trim() || '‹seçicisiz›';
-}
+   axe hedefi, düğümü DOM'da benzersiz kılan EN KISA seçicidir; yani
+   sayfadaki ÖTEKİ düğümlere bağlıdır. Ölçüldü (/saklama · 375px, tek
+   bir LegalHold kaydı eklenerek):
 
-/* ── UYARLANABİLİR NORMALİZASYON ────────────────────────────────────
-   Normalize etmek kimliği kararlı yapar ama ayırt ediciliğini azaltır.
-   Çakışan bir kimlik, KAPININ İÇİNDE dar bir bypass'tır: `.bolum >
-   .ab-sistem-kaydir` altında iki düğüm varsa ve tavan 2 ise, biri
-   düzelip yerine aynı kimliğe düşen BAŞKASI geldiğinde sayı 2'yi aşmaz
-   ve geçer.
+     0 kayıt → ".ab-vt-sar"            · 1 eşleşme
+     1 kayıt → "section > .ab-vt-sar"  · 2 eşleşme
 
-   Kural: AGRESİF normalize et, ama ÇAKIŞMAYA KADAR değil. Çakışan
-   grupta konum bilgisi (`:nth-child`) geri konur — yaygın durumda
-   kararlı, çakışan durumda kesin.
+   Yani hem eşleşme SAYISI hem HAM SEÇİCİNİN KENDİSİ veriyle değişti.
+   Kimliği ikisinden birine bağlamak, veri değişince satırı "yeni"
+   gösterir, DİŞ 3 yeniden yazmayı yasaklar ve düzeltmeyi yapan kişi
+   KİLİTLENİR — tavanları öğe sayısına bağlayıp CI'yı kırdıran hatanın
+   aynı ailesi.
 
-   Belirsizlik İKİ kaynaktan sorulur ve ikincisi bilerek daha geniştir:
+   Kimlik bunun yerine SAYFANIN YAPISINDAN üretilir:
 
-     (a) aynı taramada iki FARKLI ham hedef tek kimliğe düşüyor;
-     (b) normalize seçici SAYFADA birden çok öğeyle eşleşiyor.
+     yapısal yol  gövdeye doğru en fazla dört kademe; her kademe
+                  `etiket` + SIRALI sınıfları. `:nth-child` YOKTUR, yani
+                  ilgisiz bir kardeşin eklenmesi kimliği kaydırmaz.
+     sıra         AYNI yapısal yola uyan düğümler arasındaki sıra;
+                  HER ZAMAN yazılır — tek düğümde de "#1".
 
-   Yalnız (a) sorulsaydı kimlik, o an İHLAL EDEN düğüm sayısına bağlı
-   olurdu: iki çakışan ihlalden biri düzelince kalanın kimliği ham'dan
-   normale DÖNER, borç satırı "yeni" görünür ve DİŞ 3 yüzünden yeniden
-   yazılamaz — düzeltme yapan kişi kilitlenirdi. (b) sayfanın yapısına
-   bakar; bir ihlalin düzelmesi eşleşme sayısını değiştirmez. */
+   Sıranın her zaman yazılması şart: yalnız çakışınca eklenseydi, ikinci
+   düğüm ortaya çıktığında BİRİNCİNİN kimliği "yol" → "yol#1" diye
+   değişirdi; kaçınılmak istenen kilidin ta kendisi. */
 
-/** Tek bir düğümün kimliği: belirsizse ham, değilse normalize. */
-export function axeHedefSecimi({ ham, belirsiz }) {
-  return belirsiz ? String(ham ?? '') || '‹seçicisiz›' : axeHedefi(ham);
+/** Yapısal kimliğin metin biçimi. Sıra HER ZAMAN yazılır. */
+export function axeKimlikBicimi(kimlik) {
+  const yol = String(kimlik?.yol ?? '').trim() || '‹yolsuz›';
+  const sira = Number(kimlik?.sira);
+  return `${yol}#${Number.isFinite(sira) && sira > 0 ? sira : '?'}`;
 }
 
 /**
- * Bir kuralın düğümleri için kimlikleri hesaplar.
- * @param {{ham:string, domEslesme?:number}[]} dugumler
- * @returns {{ham:string, norm:string, hedef:string, ayristirildi:boolean}[]}
+ * Aynı yapısal yolu paylaşan düğümler: sıra olmasaydı kimlik onları
+ * ayırt etmezdi. Kapı bunu yazar — "birleştirildi" değil "AYRIŞTIRILDI".
  */
-export function axeHedefleri(dugumler) {
-  const liste = (dugumler ?? []).map((d) => ({
-    ham: String(d?.ham ?? ''),
-    norm: axeHedefi(d?.ham),
-    domEslesme: Number(d?.domEslesme),
-  }));
+export function ayristirilanHedefler(kimlikler) {
   const grup = new Map();
-  for (const d of liste) {
-    if (!grup.has(d.norm)) grup.set(d.norm, new Set());
-    grup.get(d.norm).add(d.ham);
+  for (const k of kimlikler ?? []) {
+    const yol = String(k?.yol ?? '');
+    if (!grup.has(yol)) grup.set(yol, new Set());
+    grup.get(yol).add(axeKimlikBicimi(k));
   }
-  return liste.map((d) => {
-    const belirsiz = grup.get(d.norm).size > 1
-      || (Number.isFinite(d.domEslesme) && d.domEslesme > 1);
-    return {
-      ham: d.ham,
-      norm: d.norm,
-      hedef: axeHedefSecimi({ ham: d.ham, belirsiz }),
-      ayristirildi: belirsiz,
-    };
-  });
-}
-
-/**
- * Ayrıştırılan kimlikler: hangi normalize seçici, hangi ham hedeflere
- * bölündü. Kapı bunu yazar — "birleştirildi" değil, "AYRIŞTIRILDI".
- */
-export function ayristirilanHedefler(dugumler) {
-  const cozum = axeHedefleri(dugumler);
-  const grup = new Map();
-  for (const c of cozum) {
-    if (!c.ayristirildi) continue;
-    if (!grup.has(c.norm)) grup.set(c.norm, new Set());
-    grup.get(c.norm).add(c.hedef);
-  }
-  return [...grup.entries()].map(([norm, hedefler]) => ({ norm, hedefler: [...hedefler] }));
+  return [...grup.entries()]
+    .filter(([, hedefler]) => hedefler.size > 1)
+    .map(([yol, hedefler]) => ({ norm: yol, hedefler: [...hedefler] }));
 }
 
 /**

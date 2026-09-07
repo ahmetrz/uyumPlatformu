@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
-  KIRPILMA_TOLERANSI, altinDosyaAdi, axeCiddiMi, axeHedefi, axeOzeti, borcAnahtari,
+  KIRPILMA_TOLERANSI, altinDosyaAdi, axeCiddiMi, axeKimlikBicimi, axeOzeti, borcAnahtari,
   borcSuzgeci, ciMi, circirKarari, enDistakiKirpilmalar, esikAltindakiler, gorselFark,
-  axeHedefleri, ayristirilanHedefler, kirpilmaKarari, rotaAdi, tasmaHedefi, yuzPuan,
+  ayristirilanHedefler, kirpilmaKarari, rotaAdi, tasmaHedefi, yuzPuan,
 } from '../arac/kalite-kurallari.mjs';
 
 /* Kalite kapılarının SAF kuralları — tarayıcısız doğrulanır.
@@ -285,8 +285,8 @@ describe('CI ortam değişkeni AYRIŞTIRILIR', () => {
    kuralla başka bir hedef gelir, sayı tavanı aşmaz, ihlal "mevcut borç"
    sayılır.
 
-   Kapılar hedefi ayrı üretir (`tasmaHedefi` etiket+kutu eni, `axeHedefi`
-   normalize seçici) ama sözleşme tektir. Bir sonraki ayrışma incelemede
+   Kapılar hedefi ayrı üretir (`tasmaHedefi` etiket+kutu eni,
+   `axeKimlikBicimi` yapısal yol + sıra) ama sözleşme tektir. Bir sonraki ayrışma incelemede
    değil BURADA çıkar.
    ═══════════════════════════════════════════════════════════════════════ */
 
@@ -302,8 +302,8 @@ describe('borç anahtarı · iki kapının ortak değişmezi', () => {
     },
     {
       ad: 'axe',
-      a: { ...ORTAK, kapi: 'axe', tur: 'scrollable-region-focusable', hedef: axeHedefi('.ab-vt-sar') },
-      b: { ...ORTAK, kapi: 'axe', tur: 'scrollable-region-focusable', hedef: axeHedefi('.ab-sistem-kaydir') },
+      a: { ...ORTAK, kapi: 'axe', tur: 'scrollable-region-focusable', hedef: axeKimlikBicimi({ yol: 'section > div.k', sira: 1 }) },
+      b: { ...ORTAK, kapi: 'axe', tur: 'scrollable-region-focusable', hedef: axeKimlikBicimi({ yol: 'section > div.k', sira: 2 }) },
     },
   ];
 
@@ -331,98 +331,6 @@ describe('borç anahtarı · iki kapının ortak değişmezi', () => {
       expect(s.yeni[0].hedefDegisti).toEqual([k.a.hedef]);
     });
   }
-});
-
-describe('axe hedef kimliği · normalizasyon', () => {
-  it('konum bağlı sözde sınıflar atılır — kardeş eklenince kimlik kaymasın', () => {
-    expect(axeHedefi('.bolum:nth-child(2) > .ab-sistem-kaydir')).toBe('.bolum > .ab-sistem-kaydir');
-    expect(axeHedefi('tr:first-child td')).toBe('tr td');
-    expect(axeHedefi('li:nth-of-type(3)')).toBe('li');
-  });
-
-  it('yol KORUNUR — yalnız son basit seçici alınsaydı çakışma artardı', () => {
-    expect(axeHedefi('.a > .x')).not.toBe(axeHedefi('.b > .x'));
-  });
-
-  it('boş/bozuk seçici sessizce boş kimliğe düşmez', () => {
-    expect(axeHedefi('')).toBe('‹seçicisiz›');
-    expect(axeHedefi(undefined)).toBe('‹seçicisiz›');
-  });
-
-});
-
-/* ═══════════════════════════════════════════════════════════════════════
-   UYARLANABİLİR NORMALİZASYON — agresif, ama ÇAKIŞMAYA KADAR
-
-   Çakışan bir kimlik dar bir bypass'tır: iki düğüm tek anahtarda, tavan
-   2; biri düzelip yerine aynı kimliğe düşen BAŞKASI gelirse sayı 2'yi
-   aşmaz ve geçer. Çözüm birleştirmek değil AYRIŞTIRMAK: çakışan grupta
-   konum bilgisi geri konur.
-   ═══════════════════════════════════════════════════════════════════════ */
-
-describe('uyarlanabilir hedef kimliği', () => {
-  it('çakışma YOKSA normalize kimlik kullanılır — kararlı hâl', () => {
-    const c = axeHedefleri([{ ham: '.bolum:nth-child(2) > .k', domEslesme: 1 }]);
-    expect(c[0].hedef).toBe('.bolum > .k');
-    expect(c[0].ayristirildi).toBe(false);
-  });
-
-  it('iki ham hedef tek kimliğe düşüyorsa KONUM GERİ KONUR', () => {
-    const c = axeHedefleri([
-      { ham: '.bolum:nth-child(2) > .k', domEslesme: 2 },
-      { ham: '.bolum:nth-child(3) > .k', domEslesme: 2 },
-    ]);
-    expect(c.map((x) => x.hedef)).toEqual([
-      '.bolum:nth-child(2) > .k', '.bolum:nth-child(3) > .k',
-    ]);
-    expect(c.every((x) => x.ayristirildi)).toBe(true);
-    /* Ve ayrışan kimlikler birbirinden GERÇEKTEN ayrı. */
-    expect(new Set(c.map((x) => x.hedef)).size).toBe(2);
-  });
-
-  it('TEK ihlal olsa da normalize seçici sayfada çok eşleşiyorsa ayrıştırılır', () => {
-    /* Kimlik "kaç düğüm ihlal ediyor"a bağlansaydı, iki çakışan
-       ihlalden biri düzelince kalanın kimliği ham'dan normale DÖNER,
-       satır "yeni" görünür ve DİŞ 3 yüzünden yeniden yazılamazdı —
-       düzeltme yapan kişi kilitlenirdi. Sayfanın YAPISI sorulur. */
-    const c = axeHedefleri([{ ham: '.bolum:nth-child(3) > .k', domEslesme: 2 }]);
-    expect(c[0].hedef).toBe('.bolum:nth-child(3) > .k');
-    expect(c[0].ayristirildi).toBe(true);
-  });
-
-  it('ayrıştırma bir ihlal düzelince KAYMAZ — kimlik kararlıdır', () => {
-    const ikisi = axeHedefleri([
-      { ham: '.b:nth-child(2) > .k', domEslesme: 2 },
-      { ham: '.b:nth-child(3) > .k', domEslesme: 2 },
-    ]);
-    const biri = axeHedefleri([{ ham: '.b:nth-child(3) > .k', domEslesme: 2 }]);
-    expect(biri[0].hedef).toBe(ikisi[1].hedef);
-  });
-
-  it('ayrıştırma RAPORLANIR — "birleştirildi" değil "ayrıştırıldı"', () => {
-    const a = ayristirilanHedefler([
-      { ham: '.a:nth-child(1) .b', domEslesme: 2 },
-      { ham: '.a:nth-child(7) .b', domEslesme: 2 },
-      { ham: '.c', domEslesme: 1 },
-    ]);
-    expect(a).toHaveLength(1);
-    expect(a[0].norm).toBe('.a .b');
-    expect(a[0].hedefler).toHaveLength(2);
-  });
-
-  it('ayrıştırma yoksa rapor boştur', () => {
-    expect(ayristirilanHedefler([{ ham: '.a', domEslesme: 1 }])).toEqual([]);
-  });
-
-  it('ayrıştırılan kimlikler ANAHTARDA da ayrışır', () => {
-    const c = axeHedefleri([
-      { ham: '.b:nth-child(2) > .k', domEslesme: 2 },
-      { ham: '.b:nth-child(3) > .k', domEslesme: 2 },
-    ]);
-    const ortak = { kapi: 'axe', tur: 'scrollable-region-focusable', rota: '/sistem', bant: 375 };
-    expect(borcAnahtari({ ...ortak, hedef: c[0].hedef }))
-      .not.toBe(borcAnahtari({ ...ortak, hedef: c[1].hedef }));
-  });
 });
 
 describe('taşma hedef kimliği', () => {
@@ -479,5 +387,55 @@ describe('anahtar şeması geçişi · kaldıraç DEĞİL, kanıt', () => {
     const c = circirKarari([{ ...yeni('a@1px'), rota: '/uyum' }], [ESKI]);
     expect(c.kapiKapali).toBe(true);
     expect(c.gecis).toBe(0);
+  });
+});
+
+/* ═══════════════════════════════════════════════════════════════════════
+   axe HEDEF KİMLİĞİ · YAPISAL YOL + SIRA
+
+   Kimlik axe'ın seçicisinden türetilmez ve bu ÖLÇÜMLE kararlaştırıldı:
+   /saklama'ya tek bir kayıt eklenince axe hedefi ".ab-vt-sar"dan
+   "section > .ab-vt-sar"a, eşleşme sayısı 1'den 2'ye çıktı. İkisine de
+   bağlanan bir kimlik, veri değişince satırı "yeni" gösterir ve DİŞ 3
+   yeniden yazmayı yasaklar — düzeltmeyi yapan kişi kilitlenir.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+describe('axe hedef kimliği · yapısal', () => {
+  it('sıra HER ZAMAN yazılır — tek düğümde de', () => {
+    /* Yalnız çakışınca eklenseydi, ikinci düğüm ortaya çıktığında
+       BİRİNCİNİN kimliği "yol" → "yol#1" diye değişirdi. */
+    expect(axeKimlikBicimi({ yol: 'section > div.ab-vt-sar', sira: 1 }))
+      .toBe('section > div.ab-vt-sar#1');
+  });
+
+  it('aynı yol, farklı sıra → FARKLI kimlik', () => {
+    expect(axeKimlikBicimi({ yol: 'a > b', sira: 1 }))
+      .not.toBe(axeKimlikBicimi({ yol: 'a > b', sira: 2 }));
+  });
+
+  it('bir düğüm eklenince ÖTEKİNİN kimliği kaymaz', () => {
+    const once = [{ yol: 'a > b', sira: 1 }];
+    const sonra = [{ yol: 'a > b', sira: 1 }, { yol: 'a > b', sira: 2 }];
+    expect(axeKimlikBicimi(sonra[0])).toBe(axeKimlikBicimi(once[0]));
+  });
+
+  it('ölçülemeyen sıra sessizce 1 olmaz', () => {
+    expect(axeKimlikBicimi({ yol: 'a' })).toBe('a#?');
+    expect(axeKimlikBicimi(undefined)).toBe('‹yolsuz›#?');
+  });
+
+  it('aynı yolu paylaşan düğümler AYRIŞTIRILDI diye raporlanır', () => {
+    const a = ayristirilanHedefler([
+      { yol: 'section > div.k', sira: 1 },
+      { yol: 'section > div.k', sira: 2 },
+      { yol: 'main > div.t', sira: 1 },
+    ]);
+    expect(a).toHaveLength(1);
+    expect(a[0].norm).toBe('section > div.k');
+    expect(a[0].hedefler).toEqual(['section > div.k#1', 'section > div.k#2']);
+  });
+
+  it('ayrıştırma yoksa rapor boştur', () => {
+    expect(ayristirilanHedefler([{ yol: 'a', sira: 1 }])).toEqual([]);
   });
 });

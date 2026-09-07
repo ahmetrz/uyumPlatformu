@@ -41,7 +41,7 @@ import {
   rotalarOku, tarayiciYolu,
 } from './kosu-ortak.mjs';
 import {
-  axeHedefi, axeHedefleri, axeOzeti, ayristirilanHedefler, borcAnahtari,
+  axeKimlikBicimi, axeOzeti, ayristirilanHedefler, borcAnahtari,
 } from './kalite-kurallari.mjs';
 import { yonlendirmeKarari } from './rota-kurallari.mjs';
 import { borcuUygula } from './kalite-borcu.mjs';
@@ -105,22 +105,40 @@ async function tara(s, rota) {
       belirsiz: r.incomplete.length,
     };
   }, ETIKETLER);
-  /* Normalize seçicinin SAYFADA kaç öğeyle eşleştiği burada, ihlallerle
-     AYNI sayfa durumunda ölçülür. Kimlik böylece "kaç düğüm ihlal
-     ediyor"a değil sayfanın YAPISINA bağlanır: bir ihlalin düzelmesi
-     eşleşme sayısını değiştirmez, yani kalan satırın kimliği kaymaz.
-     Normalizasyon tek yerdedir (`axeHedefi`); sayfaya yalnız hesaplanmış
-     seçiciler gider. */
-  const seciciler = [...new Set(sonuc.ihlaller.flatMap((i) => (i.hedefler ?? []).map(axeHedefi)))];
-  const eslesme = seciciler.length === 0 ? {} : await s.evaluate((liste) => {
+  /* Kimlik SAYFANIN YAPISINDAN üretilir, axe'ın seçicisinden değil:
+     axe hedefi düğümü DOM'da benzersiz kılan en kısa seçicidir ve
+     ölçüldü — bir kayıt eklenince hem seçici hem eşleşme sayısı
+     değişiyor (bkz. `kalite-kurallari.mjs`). Yapısal yol + sıra ikisine
+     de bağlı değildir. */
+  const kimlikler = await s.evaluate((hedefler) => {
+    const parca = (e) => e.tagName.toLowerCase()
+      + [...e.classList].sort().map((c) => `.${c}`).join('');
+    const yolu = (e) => {
+      const p = [];
+      for (let n = e, i = 0; n && n !== document.body && i < 4; n = n.parentElement, i += 1) {
+        p.unshift(parca(n));
+      }
+      return p.join(' > ');
+    };
+    /* Yol → o yola uyan düğümler, TEK geçişte. */
+    const kova = new Map();
+    for (const e of document.querySelectorAll('body *')) {
+      const y = yolu(e);
+      if (!kova.has(y)) kova.set(y, []);
+      kova.get(y).push(e);
+    }
     const cikti = {};
-    for (const sec of liste) {
-      try { cikti[sec] = document.querySelectorAll(sec).length; } catch { cikti[sec] = -1; }
+    for (const hedef of hedefler) {
+      let e = null;
+      try { e = document.querySelector(hedef); } catch { e = null; }
+      if (!e) { cikti[hedef] = { yol: hedef, sira: 1, bulunamadi: true }; continue; }
+      const y = yolu(e);
+      cikti[hedef] = { yol: y, sira: (kova.get(y) ?? []).indexOf(e) + 1 };
     }
     return cikti;
-  }, seciciler);
+  }, [...new Set(sonuc.ihlaller.flatMap((i) => i.hedefler ?? []))]);
   for (const i of sonuc.ihlaller) {
-    i.dugumler = (i.hedefler ?? []).map((ham) => ({ ham, domEslesme: eslesme[axeHedefi(ham)] }));
+    i.kimlikler = (i.hedefler ?? []).map((ham) => ({ ham, ...(kimlikler[ham] ?? { yol: ham, sira: 1 }) }));
   }
 
   const ozet = axeOzeti(sonuc.ihlaller);
@@ -276,8 +294,9 @@ const bulgular = rapor.flatMap((r) => r.ihlaller
   .filter((i) => i.impact === 'serious' || i.impact === 'critical')
   .flatMap((i) => {
     const sayac = new Map();
-    for (const c of axeHedefleri(i.dugumler)) {
-      sayac.set(c.hedef, (sayac.get(c.hedef) ?? 0) + 1);
+    for (const k of i.kimlikler ?? []) {
+      const h = axeKimlikBicimi(k);
+      sayac.set(h, (sayac.get(h) ?? 0) + 1);
     }
     return [...sayac.entries()].map(([hedef, adet]) => ({
       kapi: 'axe', tur: i.id, rota: kalip(r.rota), bant: r.bantEn,
@@ -288,16 +307,16 @@ const bulgular = rapor.flatMap((r) => r.ihlaller
 /* Çakışan kimlikler BİRLEŞTİRİLMEZ, AYRIŞTIRILIR: konum bilgisi o grup
    için geri konur. Rapor bunu yazar — hangi normalize seçici, hangi
    kesin hedeflere bölündü. */
-const ayrisan = rapor.flatMap((r) => r.ihlaller.flatMap((i) => ayristirilanHedefler(i.dugumler)
+const ayrisan = rapor.flatMap((r) => r.ihlaller.flatMap((i) => ayristirilanHedefler(i.kimlikler)
   .map((c) => ({ rota: r.rota, bant: r.bant, kural: i.id, ...c }))));
 if (ayrisan.length > 0) {
-  console.log(`\nHEDEF KİMLİĞİ AYRIŞTIRILDI · ${ayrisan.length} — normalize seçici ayırt etmiyordu`);
+  console.log(`\nHEDEF KİMLİĞİ AYRIŞTIRILDI · ${ayrisan.length} — aynı yapısal yolu paylaşan düğümler`);
   for (const c of ayrisan) {
     console.log(`  ${c.bant} · ${c.rota} · ${c.kural} · "${c.norm}" →`);
     for (const h of c.hedefler) console.log(`      ${h}`);
   }
 } else {
-  console.log('\nhedef kimliği ayrıştırması: 0 — normalize seçiciler zaten ayırt ediyor');
+  console.log('\nhedef kimliği ayrıştırması: 0 — yapısal yollar zaten ayırt ediyor');
 }
 const borcKapali = borcuUygula(enKotuyeIndirge(bulgular), { kapi: 'axe' });
 if (kirik.length > 0) {

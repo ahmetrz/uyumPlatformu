@@ -6,7 +6,7 @@
        dis_denetci: { denetim: ['okuma'], uyum: ['okuma'] }
 
    ve yalnız bir rol adıydı. Süresi, kapsamı, kim davet etti, ne zaman
-   biter, hangi santralleri kapsar — hiçbiri kayıtlı değildi. Bir dış
+   biter, hangi tesisleri kapsar — hiçbiri kayıtlı değildi. Bir dış
    denetçiye kalıcı hesap açmak, denetim bittikten sonra da açık kalan
    bir kapı bırakır ve o kapıyı kimse kapatmayı hatırlamaz.
 
@@ -15,7 +15,7 @@
    yoktur: denetimin bir bitiş tarihi vardır ve erişim onunla biter.
 
    ── BOŞ KAPSAM = HİÇBİR ŞEY ───────────────────────────────────────────
-   Kapsamı boş bir denetçi erişimi hiçbir santrali kapsamaz. "Boş kapsam
+   Kapsamı boş bir denetçi erişimi hiçbir tesisi kapsamaz. "Boş kapsam
    = her şey" varsayımı, ürünün öteki yerlerinde de reddedilen bir
    kalıptır ve burada bir dış denetçiye kurumun tamamını açmak olurdu.
 
@@ -42,9 +42,9 @@ export const YASAYAN_SOZU: Record<YasayanDurum, string> = {
   bitmek_uzere: 'süresi bitmek üzere',
   suresi_doldu: 'süresi doldu — erişim kapalı',
   iptal: 'iptal edildi',
-  /* Kapsamı olmayan aktif erişim: hesap açık ama hiçbir santral
+  /* Kapsamı olmayan aktif erişim: hesap açık ama hiçbir tesis
      görmüyor. Bir kusur değil ama bir kurulum eksiğidir ve gizlenmez. */
-  kapsamsiz: 'kapsam tanımlanmadı — hiçbir santral görünmüyor',
+  kapsamsiz: 'kapsam tanımlanmadı — hiçbir tesis görünmüyor',
   hic_kullanilmadi: 'açık ama HİÇ kullanılmadı',
 };
 
@@ -136,7 +136,7 @@ export function davetKapisi(o: {
   if (o.kapsamSayisi === 0) {
     return {
       ok: false,
-      sebep: 'En az bir santral seçilmeli. Kapsamsız bir dış erişim hiçbir '
+      sebep: 'En az bir tesis seçilmeli. Kapsamsız bir dış erişim hiçbir '
         + 'şey göstermez; "boş kapsam = her şey" DEĞİLDİR.',
     };
   }
@@ -172,7 +172,7 @@ export function denetciCumlesi(o: DenetciOzeti): string {
   if (o.toplam === 0) return 'Tanımlı dış denetçi erişimi yok.';
   if (o.kapsamsiz > 0) {
     return `${o.kapsamsiz} erişimin kapsamı boş: hesap açık ama hiçbir `
-      + 'santral görünmüyor.';
+      + 'tesis görünmüyor.';
   }
   if (o.bitmekUzere > 0) {
     return `${o.bitmekUzere} erişimin süresi ${BITIS_UYARI_GUN} gün içinde doluyor.`;

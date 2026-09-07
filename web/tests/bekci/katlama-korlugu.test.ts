@@ -203,6 +203,26 @@ describe('Bekçi körlüğü · küçük harfli kod biçimi', () => {
     expect(katlamaliVarMi(/arıtma/, 'TEDARİKÇİ · SÖZLEŞME')).toBe(false);
   });
 
+  it('`plant` sınırsız aranınca "toplantı"yı yakalıyordu [URN-ALN-007]', () => {
+    /* `\bRES\b`in "SÜRESİ" içinde eşleşmesiyle AYNI SINIF: sınır
+       konmadan aranan kısa gövde uzun sözcüğün içine düşer. Burada
+       İngilizce "plant", Türkçe "toplantı"nın ortasında (top-PLANT-ı).
+
+       Ölçüldü (7 Eyl 2026): 18 yanlış pozitif ve izin listesinde ALTI
+       dosya yalnız bu yüzden duruyordu — hiçbirinde tek bir sektör
+       sözcüğü yoktu. Yani yanlış pozitif sessizce "iş var" gösteriyordu. */
+    const sinirsiz = /plant/gi;
+    expect(eslesmeSayisi(sinirsiz, 'toplantı kararı'), 'eski kalıp toplantıyı yakalıyordu')
+      .toBe(1);
+    expect(bugun('plant', 'toplantı kararı'), 'bugünkü kalıp toplantıyı GÖRMEMELİ').toBe(0);
+    expect(bugun('plant', 'toplantıda alınan kararlar')).toBe(0);
+    // Gerçek geçişler yakalanmaya devam eder.
+    expect(bugun('plant', 'Plant 360 ekranı')).toBe(1);
+    expect(bugun('plant', 'the plant is offline')).toBe(1);
+    // Bitişik yazım kod tanımlayıcısıdır, sözcük değil.
+    expect(bugun('plant', 'Plant360'), 'bitişik yazım sözcük değildir').toBe(0);
+  });
+
   it('CSS jetonu (`--hes`) — öncesi 0, sonrası 1 [URN-ALN-007]', () => {
     /* İkinci şekil ölçümde VAR çıktı: 12 geçiş, 3 dosya. Üçü de zaten
        izin listesindeydi, o yüzden kalıbı eklemek listeye satır

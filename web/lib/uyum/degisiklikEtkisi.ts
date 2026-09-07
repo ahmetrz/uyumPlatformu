@@ -94,7 +94,7 @@ export function surumFarki(o: {
 /** Bir maddenin bugünkü ayak izi — halkaların HER BİRİ ayrı sayılır. */
 export type MaddeAyakIzi = {
   maddeId: string;
-  /** Bu maddenin santral × süreç değerlendirmeleri. */
+  /** Bu maddenin tesis × süreç değerlendirmeleri. */
   degerlendirme: number;
   /** Bunlardan kaçı gerçekten DEĞERLENDİRİLMİŞ (bir karar taşıyor). */
   kararliDegerlendirme: number;
@@ -180,7 +180,7 @@ export function etkiSonucu(o: {
 }): string {
   const iz = o.ayakIzi;
   if (o.degisimTipi === 'yeni') {
-    return 'Yeni madde: kapsamdaki her santralde değerlendirilmemiş olarak açılır.';
+    return 'Yeni madde: kapsamdaki her tesiste değerlendirilmemiş olarak açılır.';
   }
   if (o.degisimTipi === 'kaldirildi') {
     const parca: string[] = [];

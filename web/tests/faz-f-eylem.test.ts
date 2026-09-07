@@ -446,7 +446,7 @@ describe('UY-57 · Davet GERÇEK yetki satırı yazar', () => {
       kullaniciId: denetciId, firma: 'X Denetim',
       bitis: new Date(Date.now() + 30 * 86_400_000).toISOString(),
       tesisIdler: [],
-    }))).toMatch(/en az bir santral/i);
+    }))).toMatch(/en az bir tesis/i);
   });
 
   it('SÜRESİZ davet yoktur: geçmiş bitiş reddedilir', async () => {

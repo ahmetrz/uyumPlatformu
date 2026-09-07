@@ -1,3 +1,5 @@
+import { kapsamAnahtari, kapsamSozlugu } from '@/lib/dil/sozlukOku';
+import { t as terim } from '@/lib/dil/terimler';
 import 'server-only';
 import { db } from '@/lib/db';
 import { uyumOzeti } from '@/lib/sabitler';
@@ -11,17 +13,17 @@ import type {
   TrendNoktasi, Zincir,
 } from './mantik';
 import { ORTU_KISA, belgeOrtusu } from '../dokumanlar/mantik';
-import { KURULU_GUC, ozelligeGoreSirala, sayisalOzellik } from '@/lib/alan/oznitelik';
+import { KURULU_GUC, birimliOzellik, ozelligeGoreSirala } from '@/lib/alan/oznitelik';
 
 /* O1 · O2 sunucu yükleyicisi.
 
-   İki ekran AYNI kütüğü okur: O1 (santral × aile matrisi) ile O2 (çerçeve
+   İki ekran AYNI kütüğü okur: O1 (tesis × aile matrisi) ile O2 (çerçeve
    içinde aile → alt madde ağacı) tek `CerceveVerisi` üzerinden türetilir.
    Böylece bir hücrenin işaretçisi ile aynı kontrolün detaydaki işaretçisi
    ayrışamaz.
 
    KAPSAM KURALI (iş mantığı — ekran bunu ezmez):
-   Bir santralin matriste satırı olması için (a) çerçevenin yürüyen uyum
+   Bir tesisin matriste satırı olması için (a) çerçevenin yürüyen uyum
    sürecinin kapsamında olması ve (b) `UygulanabilirlikKarari` ile kapsam
    dışına alınmamış olması gerekir. Motorun "kapsam dışı" kararı ekranda
    geçersiz kılınmaz; kapsam dışı ve kararsız tesisler ayrı ve sessiz
@@ -83,7 +85,8 @@ function tesisAlt(
     tip: { kod: string } | null; konum: string | null;
   },
 ): string {
-  const mw = guc(sayisalOzellik(t.ozellikler, KURULU_GUC));
+  const o = birimliOzellik(t.ozellikler, KURULU_GUC);
+  const mw = guc(o.deger, o.birim);
   if (mw) return mw;
   const yedek = [t.tip?.kod.toLocaleLowerCase('tr-TR'), t.konum].filter(Boolean).join(' · ');
   return yedek || '—';
@@ -111,6 +114,9 @@ export async function cerceveleriYukle(
   izinliTesisler: string[] | null,
 ): Promise<CerceveVerisi[]> {
   const simdi = Date.now();
+  /* Bağlam kullanıcının KAPSAMI: bu veri katmanı bir kayda değil bir
+     kümeye bakıyor, en dar doğru bağlam kapsamdır. */
+  const sozluk = await kapsamSozlugu(kapsamAnahtari(izinliTesisler));
 
   const [regulasyonlar, tesisSirasiz, riskler, projeBaglantilari, eslestirmeler, denetimler,
     belgeKayitlari] =
@@ -241,13 +247,13 @@ export async function cerceveleriYukle(
   }
 
   /* ── belge indeksi: madde → aday belgeler ─────────────────────────
-     Kurumsal belge (santral bağı YOK) tüm santrallere düşer; santrale
-     bağlı belge yalnız kendi santralinin hücresine. Bu, kütüğün kapsam
+     Kurumsal belge (tesis bağı YOK) tüm tesislere düşer; tesise
+     bağlı belge yalnız kendi tesisinin hücresine. Bu, kütüğün kapsam
      kuralının aynısıdır (`dokumanlar/veri.ts`) — kurumsal belge gizlenmez,
-     çünkü kendi santralinin uyacağı kuralı görmeyen kimse uyamaz.
+     çünkü kendi tesisinin uyacağı kuralı görmeyen kimse uyamaz.
 
      Kapsam sızıntısı yoktur: hücre yalnız kullanıcının okuyabildiği
-     santraller için kurulur, dolayısıyla burada görünen santral bağı zaten
+     tesisler için kurulur, dolayısıyla burada görünen tesis bağı zaten
      kapsamdadır. */
   type BelgeKaydi = KontrolBelgesi & { tesisler: Set<string> };
   const belgeMaddeye = new Map<string, BelgeKaydi[]>();
@@ -327,7 +333,9 @@ export async function cerceveleriYukle(
       kapsam.push({
         ...ortak,
         durum: 'kararsiz',
-        gerekce: karar?.gerekce ?? 'Kapsam kararı üretilmedi — santral profili eksik.',
+        /* Sözlük SUNUCUDA çözülür: bu bir veri katmanı, React yok. */
+        gerekce: karar?.gerekce
+          ?? `Kapsam kararı üretilmedi — ${terim(sozluk, 'tesis')} profili eksik.`,
       });
     }
 
@@ -640,21 +648,21 @@ export async function cerceveYukle(
    UYDURULMAZ: kayıt yoksa istemci "henüz anlık görüntü yok" satırı basar,
    boş bir grafik değil.
 
-   KAPSAM: süreç geneli anlıklar (`tesisId: null`) ile izinli santralin
+   KAPSAM: süreç geneli anlıklar (`tesisId: null`) ile izinli tesisin
    kendi anlıkları okunur; kapsam daraltılmış kullanıcı için süreç geneli
-   nokta yine de gösterilir — o bir toplamdır, başka bir santralin satırı
+   nokta yine de gösterilir — o bir toplamdır, başka bir tesisin satırı
    değil (kök ekran da aynı kuralı uygular). Süreç + gün başına birden çok
-   kayıt varsa (santral başına anlık) sayımlar TOPLANIR; böylece nokta
-   "o günün kapsamı" olur, keyfi bir santralinki değil. */
+   kayıt varsa (tesis başına anlık) sayımlar TOPLANIR; böylece nokta
+   "o günün kapsamı" olur, keyfi bir tesisinki değil. */
 const TREND_ADET = 12;
 
 export async function uyumTrendiYukle(
   izinliTesisler: string[] | null,
 ): Promise<TrendNoktasi[]> {
   /* Pencere SÜREÇ BAŞINA açılır: tek ortak `take` olsaydı her gün çok
-     santral yazan bir süreç ötekilerin eski noktalarını pencereden düşürür,
+     tesis yazan bir süreç ötekilerin eski noktalarını pencereden düşürür,
      şerit sessizce kısalırdı. Süreç başına gereken satır sayısı en çok
-     TREND_ADET gün × (1 genel + izinli santral) kayıttır; aynı gün yinelenen
+     TREND_ADET gün × (1 genel + izinli tesis) kayıttır; aynı gün yinelenen
      koşular için iki kat pay bırakılır. */
   const kapsam = izinliTesisler === null ? {} : {
     OR: [{ tesisId: null }, { tesisId: { in: izinliTesisler } }],
@@ -671,7 +679,7 @@ export async function uyumTrendiYukle(
     take: pencere,
   })))).flat();
 
-  /* Süreç geneli kayıt (tesisId null) varsa o gün için santral kayıtları
+  /* Süreç geneli kayıt (tesisId null) varsa o gün için tesis kayıtları
      çift sayım olur — geneli olan günde yalnız genel alınır. */
   const gunler = new Map<string, { surecId: string; zaman: number; genel: boolean; sayim: Record<string, number> }>();
   for (const k of kayitlar) {

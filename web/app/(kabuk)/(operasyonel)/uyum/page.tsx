@@ -17,7 +17,7 @@ export const metadata: Metadata = { title: 'Uyum kontrol odası' };
 
    `useSearchParams` (derin bağlantı: ?kontrol=…) istemcide okunur; Next bunu
    en yakın Suspense sınırına kadar istemcide render eder, bu yüzden iskelet
-   GERÇEK santral adlarıyla önden basılır (03-screens O1 · loading). */
+   GERÇEK tesis adlarıyla önden basılır (03-screens O1 · loading). */
 
 export default async function Sayfa() {
   const kullanici = await girisZorunlu();
@@ -30,7 +30,7 @@ export default async function Sayfa() {
     cerceveleriYukle(izinli), uyumTrendiYukle(izinli),
   ]);
   /* KAPSAMSIZ sorulur ve bilinçlidir: `Denetim` şemada `tesisId` TAŞIMAZ,
-     `denetimKaydet` kapısı da kapsamsızdır. Ekranı gevşetmek santral
+     `denetimKaydet` kapısı da kapsamsızdır. Ekranı gevşetmek tesis
      yöneticisine kaydedilmeyecek düğme göstermek olurdu. */
   const yazabilir = izinVar(kullanici, 'denetim', 'yazma');
 

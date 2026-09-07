@@ -2946,8 +2946,8 @@ details:not([open]) > *:not(summary) { display: none !important; }
 .ab-mtx.kayar .bas > * { position: static; }
 /* Santral başlığı: kısa ad, 11px, EN FAZLA İKİ SATIR; tam etiket (ad ·
    kod · künye) `title`da. Kesik satır "…" ile biter, 3. satır yok. */
-.ab-mtx .bas .santral { text-align: center; font-size: 11px; color: var(--i2); line-height: 1.25; min-width: 0; }
-.ab-mtx .bas .santral .ad {
+.ab-mtx .bas .tesis { text-align: center; font-size: 11px; color: var(--i2); line-height: 1.25; min-width: 0; }
+.ab-mtx .bas .tesis .ad {
   display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
   overflow: hidden; overflow-wrap: anywhere;
 }

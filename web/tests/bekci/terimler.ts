@@ -71,7 +71,19 @@ export const TERIMLER: { ad: string; kaliplar: { re: RegExp; hedef: Hedef }[] }[
     // Şapkasız `rüzgar` da yazımda geçer; ikisi de sektör sözcüğüdür.
     { re: /jeotermal|rüzgâr|rüzgar|hidroelektrik/g, hedef: 'kucuk' },
   ] },
-  { ad: 'plant', kaliplar: [{ re: /plant/gi, hedef: 'ham' }] },
+  /* ── `plant` SÖZCÜK SINIRLI ARANIR ─────────────────────────────────
+     Sınırsız kalıp Türkçe "toplantı" içinde eşleşiyordu (top-PLANT-ı) ve
+     18 yanlış pozitif üretiyordu; `lib/uyum/gozdenGecirme.ts` yalnız bu
+     yüzden listede duruyordu — dosyada tek bir sektör sözcüğü yok.
+     Bu, `\bRES\b`in "SÜRESİ" içinde eşleşmesiyle aynı sınıf: sınır
+     konmadan aranan kısa gövde, uzun sözcüğün içine düşer.
+
+     Sınır Unicode harflerine göre (`sinirKalibi`), ASCII `\b`ye göre
+     değil: "Plant360" ve "plant_kodu" gibi bitişik yazımlar yine
+     yakalanmamalı, ama "toplantı" da yakalanmamalı. Kalıp `i` bayrağı
+     TAŞIMAZ ve `ham` metinde aranır — İngilizce sözcük, Türkçe katlama
+     tuzağına girmez. */
+  { ad: 'plant', kaliplar: [{ re: sinirKalibi('plant|Plant|PLANT'), hedef: 'ham' }] },
   /* ── KÜÇÜK HARFLİ KOD BİÇİMİ · CSS JETONU ──────────────────────────
      Kodlar ham metinde BÜYÜK harfle aranır; küçültülmüşte `res` Türkçe
      sözcüklerin içine düşerdi. Bu, küçük harfle yazılmış kod

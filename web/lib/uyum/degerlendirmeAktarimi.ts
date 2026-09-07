@@ -2,7 +2,7 @@
    UY-43 · Değerlendirme içe aktarımı — SAF KARAR
 
    `IceAktarim` MADDE metnini aktarır; bu katman DEĞERLENDİRME SONUCUNU
-   aktarır (hangi santralde hangi kontrol ne durumda). İkisi ayrı
+   aktarır (hangi tesiste hangi kontrol ne durumda). İkisi ayrı
    şeylerdir: biri regülasyonun kendisi, öteki kurumun ona verdiği cevap.
 
    ── KURU KOŞU BİR SEÇENEK DEĞİL, BİR ADIMDIR ──────────────────────────
@@ -56,7 +56,7 @@ export const ELEME_SOZU: Record<ElemeSebebi, string> = {
   kod_bulunamadi: 'Bu kodda madde yok (regülasyon ya da sürüm eşleşmiyor)',
   kod_yinelendi: 'Aynı madde kodu dosyada birden çok kez var',
   durum_gecersiz: 'Durum sözlükte yok',
-  kapsam_disi_madde: 'Maddede AKTİF istisna var — bu santral için kapsam dışı',
+  kapsam_disi_madde: 'Maddede AKTİF istisna var — bu tesis için kapsam dışı',
   gerekce_eksik: 'Uyumsuz/kapsam dışı karar gerekçe ister',
 };
 
@@ -85,7 +85,7 @@ export type MevcutKayit = {
   maddeKodu: string;
   maddeDurumuId: string;
   durum: string;
-  /** Bu madde bu santralin kapsamında mı (uygulanabilirlik kararı). */
+  /** Bu madde bu tesisin kapsamında mı (uygulanabilirlik kararı). */
   kapsamda: boolean;
 };
 
@@ -232,7 +232,7 @@ export const SATIR_TAVANI = 5000;
  *
  * Üçüncüsü bir güvenlik kapısıdır: satırların yarısından çoğu
  * eleniyorsa, kaynak dosya büyük ihtimalle YANLIŞ regülasyona ya da
- * yanlış santrale aktarılıyordur. Kalan azınlığı sessizce yazmak, doğru
+ * yanlış tesise aktarılıyordur. Kalan azınlığı sessizce yazmak, doğru
  * görünen ama yanlış yere yazılmış bir aktarım üretirdi.
  */
 export function uygulamaKapisi(o: {
@@ -262,7 +262,7 @@ export function uygulamaKapisi(o: {
       ok: false,
       sebep: `${o.sayimlar.elenen}/${o.sayimlar.okunan} satır elendi `
         + `(%${Math.round(elemeOrani * 100)}). Bu oran, dosyanın yanlış `
-        + 'regülasyona ya da yanlış santrale aktarıldığını gösterir; '
+        + 'regülasyona ya da yanlış tesise aktarıldığını gösterir; '
         + 'kalan satırlar uygulanmaz.',
     };
   }

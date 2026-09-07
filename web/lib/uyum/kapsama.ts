@@ -16,7 +16,7 @@
    Bu dosya veritabanı ve React bilmez.
 
    ── PAYDA TARTIŞMASI ──────────────────────────────────────────────────
-   KAPSAM DIŞI kontrol paydaya girmez: bir santralde uygulanamayan bir
+   KAPSAM DIŞI kontrol paydaya girmez: bir tesiste uygulanamayan bir
    maddeyi "değerlendirilmedi" saymak, kapatılamayacak bir borç üretir.
    Ama kapsam dışı sayısı AYRI raporlanır — çünkü paydayı küçülterek
    oranı yükseltmek, kapsamı daraltarak uyumu "iyileştirmenin" en kolay

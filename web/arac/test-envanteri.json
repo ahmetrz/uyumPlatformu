@@ -1,7 +1,7 @@
 {
-  "imza": "5b3cc436bd8fcf57b73ef437201849c1",
+  "imza": "e8e2c32d52cbc49a587957863a75db64",
   "dosya": 148,
-  "vaka": 2989,
+  "vaka": 2990,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -37,7 +37,7 @@
       "atlanan": 0
     },
     "tests/bekci/katlama-korlugu.test.ts": {
-      "vaka": 13,
+      "vaka": 14,
       "atlanan": 0
     },
     "tests/bekci/sektor-terimi.test.ts": {

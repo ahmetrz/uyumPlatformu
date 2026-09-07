@@ -1,4 +1,5 @@
 'use client';
+import { useTerim } from '@/lib/dil/SozlukSaglayici';
 import { an } from '@/lib/an';
 import { useMemo } from 'react';
 import { useUrlDurumu } from '@/components/kabuk/urlDurumu';
@@ -35,7 +36,7 @@ export default function CerceveIstemci({
   /* ── aile ve alt madde durumları: matrisle AYNI kuraldan türer ────── */
   const aileler = useMemo(() => veri.aileler.map((a) => {
     const yapraklar = a.yapraklar.map((y) => {
-      /* Alt maddenin kapsam notu: hangi santralde takip gerektiriyor. */
+      /* Alt maddenin kapsam notu: hangi tesiste takip gerektiriyor. */
       const hucreler = veri.satirlar.flatMap((s) => {
         const k = s.kontroller.find((x) => x.maddeId === y.id);
         return k ? [{ tesisKodu: s.kod, ham: k.ham }] : [];
@@ -291,6 +292,7 @@ function KuruPanel({
   veri, yazabilir, bitti,
 }: { veri: CerceveVerisi; yazabilir: boolean; bitti: () => void }) {
   const { bekliyor, hata, calistir } = useEylem();
+  const { t: terim, tBas } = useTerim();
 
   if (!veri.kuru) {
     return (
@@ -366,7 +368,8 @@ function KuruPanel({
             : 'Hesaplama denetim izine yazılır; el ile değiştirilmiş kararlar korunur.'}
           {!yazabilir && ' · Kapsam hesaplaması için tanım yazma yetkisi gerekir.'}
           {dikkat.length > 0
-            && ` · ${dikkat.length} tesiste santral profili eksik — karar Plant 360'tan tamamlanır.`}
+            && ` · ${dikkat.length} ${terim('tesis', 'bulunma')} ${terim('tesis')} profili`
+              + ` eksik — karar ${tBas('tesis360')}'tan tamamlanır.`}
         </p>
       </div>
     </>

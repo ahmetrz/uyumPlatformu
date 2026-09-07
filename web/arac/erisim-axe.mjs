@@ -37,14 +37,23 @@ import { chromium } from 'playwright-core';
 import { writeFileSync } from 'node:fs';
 import path from 'node:path';
 import {
-  KOK, WEB, bayrakDegeri, girisYap, rotaBayragi, rotalarOku, tarayiciYolu,
+  KOK, WEB, bayrakDegeri, dinamikRotalar, girisYap, kalipCozucu, rotaBayragi, rotalarOku,
+  tarayiciYolu,
 } from './kosu-ortak.mjs';
 import { axeOzeti } from './kalite-kurallari.mjs';
 import { borcuUygula } from './kalite-borcu.mjs';
 
 const GIRIS_ROTASI = '/giris';
 /* rotalar.json'daki '' ana ekrandır; giriş listede yoktur, ayrıca eklenir. */
-const ROTALAR = rotaBayragi([GIRIS_ROTASI, ...rotalarOku().map((r) => (r === '' ? '/' : r))]);
+/* Statik liste + tohumdan somutlaşan dinamik rotalar. Dinamikler uzun
+   süre dışarıdaydı ve bu, kapıyı KÖR bırakıyordu: altı kayıt detayı
+   ekranının hiçbiri taranmıyordu (Tesis 360 dahil). */
+const DINAMIK = dinamikRotalar();
+const ROTALAR = rotaBayragi([
+  GIRIS_ROTASI,
+  ...rotalarOku().map((r) => (r === '' ? '/' : r)),
+  ...DINAMIK.url,
+]);
 const JSON_YOLU = bayrakDegeri('--json');
 
 /* `yatay-tasma.mjs` ile aynı iki dar bant + masaüstü tabanı. */
@@ -128,6 +137,12 @@ try {
   await b.close();
 }
 
+/* Değeri çözülemeyen dinamik rota SESSİZCE düşmez: taranmayan bir rota
+   "kusursuz" demek değildir. */
+for (const a of DINAMIK.atlanan) {
+  console.error(`  DİNAMİK ROTA TARANMADI · ${a.rota} · ${a.sebep}`);
+}
+
 /* ── Rapor ─────────────────────────────────────────────────────────── */
 
 let ciddiToplam = 0;
@@ -194,10 +209,13 @@ if (JSON_YOLU) {
    yazılıdır ve liste yalnız küçülebilir (arac/kalite-borcu.json).
    Kırık tarama İZİN LİSTESİNE GİRMEZ: ölçülemeyen bir rota "borç" değil,
    ölçümün kendisinin kırılmasıdır. */
+/* Borç anahtarı KALIBA yazılır (`/tesisler/[id]`), somut URL'e değil:
+   tohum kimlikleri her seed'de değişir. */
+const kalip = kalipCozucu(DINAMIK);
 const bulgular = rapor.flatMap((r) => r.ihlaller
   .filter((i) => i.impact === 'serious' || i.impact === 'critical')
   .map((i) => ({
-    kapi: 'axe', tur: i.id, rota: r.rota, bant: r.bantEn,
+    kapi: 'axe', tur: i.id, rota: kalip(r.rota), bant: r.bantEn,
     olcum: i.dugum, birim: 'düğüm', not: i.ornek?.[0],
   })));
 const borcKapali = borcuUygula(bulgular, { kapi: 'axe' });

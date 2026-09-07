@@ -46,7 +46,9 @@
 */
 
 import { chromium } from 'playwright-core';
-import { KOK, girisYap, rotaBayragi, rotalarOku, tarayiciYolu } from './kosu-ortak.mjs';
+import {
+  KOK, dinamikRotalar, girisYap, kalipCozucu, rotaBayragi, rotalarOku, tarayiciYolu,
+} from './kosu-ortak.mjs';
 import { KAYDIRAN_KAPLAR, enDistakiKirpilmalar, kirpilmaKarari } from './kalite-kurallari.mjs';
 import { borcuUygula } from './kalite-borcu.mjs';
 
@@ -61,9 +63,14 @@ const BANTLAR = [
 /** Taşma toleransı: alt piksel yuvarlaması gürültü üretmesin. */
 const TOLERANS = 1;
 
-const ROTALAR = rotaBayragi(
-  rotalarOku().map((r) => (typeof r === 'string' ? r : r.yol)).map((r) => r || '/'),
-);
+/* Statik liste + tohumdan somutlaşan dinamik rotalar. Dinamikler uzun
+   süre dışarıdaydı ve bu, kapıyı KÖR bırakıyordu: altı kayıt detayı
+   ekranının hiçbiri taranmıyordu (Tesis 360 dahil). */
+const DINAMIK = dinamikRotalar();
+const ROTALAR = rotaBayragi([
+  ...rotalarOku().map((r) => (typeof r === 'string' ? r : r.yol)).map((r) => r || '/'),
+  ...DINAMIK.url,
+]);
 
 /* Sayfa bağlamında koşar: taşmayı ÜRETEN öğeleri döner. */
 function suclulariBul() {
@@ -103,6 +110,8 @@ function suclulariBul() {
    ölçülebilir bir maliyettir; ayrıca görünmeyen alt ağaçlar budanır. */
 function kirpilmaOlcumleri(kaydiranKaplar) {
   const adaylar = [];
+  /* Metni olmayan ama BİLGİ taşıyan öğeler. */
+  const TASIYICI_ETIKET = ['img', 'svg', 'canvas', 'video', 'iframe', 'object'];
 
   /* Akış içi ve GÖRÜNÜR içeriğin yatay uçları. `scrollWidth` bilerek
      kullanılmaz: konumlandırılmış (absolute/fixed) ve gizli soyları da
@@ -148,8 +157,16 @@ function kirpilmaOlcumleri(kaydiranKaplar) {
 
     const r = e.getBoundingClientRect();
     const metin = (e.textContent || '').trim();
+    /* Metin ŞART DEĞİLDİR. Yalnız metin arasaydık, kırpılan bir görsel,
+       bir SVG şema ya da yalnız simge taşıyan bir düğme hiç aday olmaz
+       ve kapı "kusursuz" derdi — oysa kaybolan şey bir bilgi ya da bir
+       EYLEMDİR. Dekoratif gürültü yine dışarıda kalır: `aria-hidden`,
+       görünmez ve `clip-path` taşıyan öğeler yukarıda elendi. */
+    const tasiyici = metin !== ''
+      || TASIYICI_ETIKET.includes(e.tagName.toLowerCase())
+      || e.matches('a[href], button, input, select, textarea, [role], [tabindex]');
 
-    if (metin !== '' && r.height > 0 && (kap.erisilir || kap.kutu)) {
+    if (tasiyici && r.height > 0 && (kap.erisilir || kap.kutu)) {
       const disari = kap.erisilir || !kap.kutu ? 0
         : Math.max(0, kap.kutu.sol - r.left) + Math.max(0, r.right - kap.kutu.sag);
       const uc = icerikUclari(e);
@@ -165,24 +182,27 @@ function kirpilmaOlcumleri(kaydiranKaplar) {
           kendiOverflow: st.overflowX,
           kapTuru: kap.tur,
           erisilir: kap.erisilir,
-          metin: metin.slice(0, 40).replace(/\s+/g, ' '),
+          metin: metin === ''
+            ? `‹metinsiz ${e.tagName.toLowerCase()}${e.getAttribute('aria-label') ? ` · ${e.getAttribute('aria-label')}` : ''}›`
+            : metin.slice(0, 40).replace(/\s+/g, ' '),
         });
       }
     }
 
-    /* Kırpma durumu çocuklara taşınır. Yol üstünde bir kez kaydırma kabı
-       görüldüyse aşağısı ERİŞİLEBİLİRDİR ve öyle kalır. */
+    /* Kırpma durumu çocuklara taşınır ve her zaman EN YAKIN kaba göre
+       kurulur. Erişilebilirlik YAPIŞKAN DEĞİLDİR: bir kaydırma kabının
+       içindeki `overflow: hidden` kap, kendi içeriğini yine kırpar ve
+       dıştaki kabı kaydırmak onu geri getirmez. Eskiden `erisilir`
+       aşağıya taşınıyordu ve bu, iç içe kaplarda kapıyı kör bırakıyordu.
+
+       Ters yön de doğrudur ve ayrı ölçülür: iç kaydırma kabının KENDİSİ
+       dıştaki `hidden` tarafından kesiliyorsa, o kabın kendi satırında
+       `disari` ile yakalanır. */
     let altKap = kap;
     if (st.overflowX !== 'visible') {
       altKap = kaydiranKaplar.includes(st.overflowX)
         ? { erisilir: true, tur: null, kutu: null }
-        : {
-          erisilir: kap.erisilir,
-          tur: st.overflowX,
-          kutu: kap.kutu
-            ? { sol: Math.max(kap.kutu.sol, r.left), sag: Math.min(kap.kutu.sag, r.right) }
-            : { sol: r.left, sag: r.right },
-        };
+        : { erisilir: false, tur: st.overflowX, kutu: { sol: r.left, sag: r.right } };
     }
     for (let i = 0; i < e.children.length; i += 1) gez(e.children[i], [...yol, i], altKap);
   };
@@ -232,6 +252,12 @@ try {
   await tarayici.close();
 }
 
+/* Değeri çözülemeyen dinamik rota SESSİZCE düşmez: taranmayan bir rota
+   "kusursuz" demek değildir. */
+for (const a of DINAMIK.atlanan) {
+  console.error(`  DİNAMİK ROTA TARANMADI · ${a.rota} · ${a.sebep}`);
+}
+
 const bas = `yatay-tasma: ${olculen} ölçüm · ${BANTLAR.length} bant × ${ROTALAR.length} rota`;
 console.log(`${bas} · taşan rota ${kusurlar.length} · kırpılan içerik ${kirpilmalar.length}`);
 
@@ -260,14 +286,17 @@ for (const k of kirpilmalar) {
 /* ── Kalite borcu cırcırı ─────────────────────────────────────────────
    Kapı BUGÜN bloklayıcıdır; bugünün açık bulguları izin listesinde
    yazılıdır ve liste yalnız küçülebilir (arac/kalite-borcu.json). */
+/* Borç anahtarı KALIBA yazılır (`/tesisler/[id]`), somut URL'e değil:
+   tohum kimlikleri her seed'de değişir. */
+const kalip = kalipCozucu(DINAMIK);
 const bulgular = [
   ...kusurlar.map((k) => ({
-    kapi: 'tasma', tur: 'sayfa-kayiyor', rota: k.yol, bant: k.bantEn,
+    kapi: 'tasma', tur: 'sayfa-kayiyor', rota: kalip(k.yol), bant: k.bantEn,
     olcum: k.tasma, birim: 'px',
     not: k.suclular[0] ? `${k.suclular[0].etiket} "${k.suclular[0].metin}"` : undefined,
   })),
   ...kirpilmalar.map((k) => ({
-    kapi: 'tasma', tur: 'kirpilan-icerik', rota: k.yol, bant: k.bantEn,
+    kapi: 'tasma', tur: 'kirpilan-icerik', rota: kalip(k.yol), bant: k.bantEn,
     olcum: k.ogeler.length, birim: 'öğe',
     not: k.ogeler[0]?.etiket,
   })),

@@ -222,7 +222,8 @@ kırpılması, aylarca kimsenin koşmadığı bir kapının arkasında durdu.
 Alternatif: bugünkü borcu YAZIYA DÖK, kapıyı BUGÜN bloklayıcı yap,
 listeyi bir cırcırla koru. Liste bir mazeret değil bir **tavandır**.
 
-Satır biçimi — anahtar `kapi + tur + rota + bant`, tavan `azami`:
+Satır biçimi — anahtar `kapi + tur + rota + bant`, tavan `azami`
+(dinamik rotalarda `rota` KALIPTIR, somut URL değil):
 
 ```json
 { "kapi": "tasma", "tur": "kirpilan-icerik", "rota": "/sistem/bilesenler",
@@ -359,6 +360,44 @@ yalnız ham geometri toplar.
 > `/tesisler/[id]` hero plakası (ayrı düzeltildi). `.ab-alt` ayağında
 > AYNI kalıp daha önce ölçülüp düzeltilmişti (aşağıda); `.ab-durum` o
 > turda atlanmış.
+
+#### Detektörün kendi kör noktaları — üçü inceleme ile bulundu
+
+İlk hâl üç yerde eksikti; üçü de PR incelemesinde işaret edildi,
+doğrulandı ve düzeltildi.
+
+**1 · Erişilebilirlik YAPIŞKAN olamaz.** Yol üstünde bir kez `auto`
+görülünce aşağısı "erişilir" sayılıyordu. Oysa bir kaydırma kabının
+İÇİNDEKİ `overflow: hidden` kap kendi içeriğini yine kırpar ve dıştaki
+kabı kaydırmak onu geri getirmez. Durum artık her zaman EN YAKIN kaba
+göre kurulur.
+
+> **Maskelediği kusur ölçüldü ve görsel olarak doğrulandı.** Kütük
+> tabloları `.ab-vt-sar { overflow: auto }` içindedir; içlerindeki
+> `.ab-vt th, .ab-vt td` ise `overflow: hidden` taşır ve
+> `table-layout: fixed` dar bantta sütunu **0 genişliğe** çöktürür.
+> `/aktivite` · 375px: ekranda yalnız ZAMAN ve DEĞİŞİM sütunları var —
+> "KAYIT" başlığı ve her satırın ne olduğu (`span.kimlik-metin`,
+> "Kullanıcı A giriş oluşturdu") TÜMÜYLE görünmüyor. Yapışkan bayrak
+> bunu platform genelinde saklıyordu.
+
+**2 · Metin şart değildir.** `textContent` boş diye eleme, kırpılan bir
+görseli, SVG şemayı ya da yalnız simge taşıyan bir düğmeyi hiç aday
+yapmıyordu — kaybolan şey bir bilgi ya da bir EYLEM olabilir. Artık
+`img · svg · canvas · video · iframe · object` ve etkileşimli öğeler de
+ölçülür; dekoratif gürültü `aria-hidden` · görünmezlik · `clip-path`
+elemeleriyle dışarıda kalır.
+
+**3 · Dinamik rotalar taranmıyordu.** `rotalar.json` yalnız statik
+rotaları taşır ve `/tesisler` zaten `/portfoy`'a yönlenir; yani altı
+kayıt detayı ekranının hiçbiri taranmıyordu — **kapıların koruması
+gereken Tesis 360 dahil**. İki kapı da artık `dinamikRotalar()` ile
+tohumdan somutlaşan rotaları da tarar (56 rota · 112 ölçüm).
+
+> Borç satırı somut URL'e değil **KALIBA** anahtarlanır
+> (`/riskler/[id]`): tohum kimlikleri `@default(cuid())` ile her seed
+> koşusunda değişir, somut URL yazılsaydı CI'daki kimlik yerelde
+> ölçülene hiç uymaz ve liste kilitlenirdi.
 
 ```bash
 PORT=3210 npm run tasarim:tasma

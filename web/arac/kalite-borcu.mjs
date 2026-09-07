@@ -16,9 +16,13 @@ import { WEB } from './kosu-ortak.mjs';
 import { borcAnahtari, borcSuzgeci, circirKarari } from './kalite-kurallari.mjs';
 
 export const BORC_YOLU = path.join(WEB, 'arac', 'kalite-borcu.json');
-/* Taban dal DAL DEĞİL: dalın kendi eklemesi kendini meşrulaştıramaz.
-   `KALITE_TABAN_DAL` yalnız iki iş için vardır — varsayılan dalı başka
-   olan bir çatal, ve dişlerin ISIRDIĞINI denemek. CI onu ayarlamaz. */
+/* Taban DALIN KENDİSİ DEĞİL: dalın kendi eklemesi kendini
+   meşrulaştıramaz. Yerelde varsayılan `origin/main`'dir; CI bunu
+   `KALITE_TABAN_DAL` ile PR'ın BASE COMMIT'ine sabitler — `origin/main`
+   hareketli bir uçtur ve PR'ın merge ref'i kurulduktan sonra main
+   ilerleyip bir satırı silerse, dalın değişmemiş listesi "eklenmiş"
+   görünüp yanlış kırmızı üretirdi. Değişken bir dal adı ya da bir SHA
+   alır; dişlerin ISIRDIĞINI denemek için de kullanılır. */
 export const TABAN_DAL = process.env.KALITE_TABAN_DAL || 'origin/main';
 /** Depo kökünden yol — `git show <dal>:<yol>` bunu ister. */
 const BORC_GIT_YOLU = 'web/arac/kalite-borcu.json';
@@ -102,6 +106,17 @@ export function tabanBorcOku() {
   } catch {
     return { durum: 'okunamadi' };
   }
+  /* YOKLUK ile OKUNAMAMA ayrı sorulur. Tek bir `try` ile sorulsaydı,
+     tabandaki blob'un BOZUK olması da "ilk kurulum" sayılırdı ve DİŞ 4
+     sessizce devre dışı kalırdı: bozuk bir taban listesi commit'lemek,
+     cırcırı kalıcı olarak muaf yapardı. */
+  try {
+    execFileSync('git', ['cat-file', '-e', `${TABAN_DAL}:${BORC_GIT_YOLU}`], {
+      cwd: WEB, stdio: ['ignore', 'ignore', 'ignore'],
+    });
+  } catch {
+    return { durum: 'kurulum' };  // yol tabanda YOK — listeyi kuran commit
+  }
   try {
     const ham = execFileSync('git', ['show', `${TABAN_DAL}:${BORC_GIT_YOLU}`], {
       cwd: WEB, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'],
@@ -112,7 +127,8 @@ export function tabanBorcOku() {
     if (!Array.isArray(bulgular)) return { durum: 'okunamadi' };
     return { durum: 'var', bulgular };
   } catch {
-    return { durum: 'kurulum' };
+    /* Yol VAR ama okunamadı ya da ayrıştırılamadı → DİŞ 4. */
+    return { durum: 'okunamadi' };
   }
 }
 
@@ -138,14 +154,15 @@ export function borcuUygula(bulgular, { kapi, yaz = console.error, bilgi = conso
 
   if (taban.durum === 'okunamadi') {
     if (ciDe) {
-      yaz(`\nDİŞ 4 · CIRCIR OKUNAMADI — ${TABAN_DAL} bu klonda yok`);
-      yaz('  CI\'da taban dal okunamıyorsa kapı KIRMIZIDIR: karşılaştırılamayan');
+      yaz(`\nDİŞ 4 · CIRCIR OKUNAMADI — taban ${TABAN_DAL}`);
+      yaz('  Ya taban commit\'i bu klonda yok, ya da listesi okunamıyor /');
+      yaz('  ayrıştırılamıyor. CI\'da ikisi de KIRMIZIDIR: karşılaştırılamayan');
       yaz('  bir izin listesi, listenin büyümediğini KANITLAMAZ.');
-      yaz('  Gereken: actions/checkout `fetch-depth: 0` + `git fetch origin main`.');
+      yaz('  Gereken: actions/checkout `fetch-depth: 0` + taban commit fetch\'i.');
       return true;
     }
     if (!gerekce) {
-      yaz(`\nDİŞ 4 · CIRCIR OKUNAMADI — ${TABAN_DAL} bu klonda yok`);
+      yaz(`\nDİŞ 4 · CIRCIR OKUNAMADI — taban ${TABAN_DAL}`);
       yaz('  Yerelde atlamak için GEREKÇE gerekir:');
       yaz('    --circir-atla="taban dal bu klonda yok"');
       return true;

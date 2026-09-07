@@ -80,6 +80,7 @@
 
    Kullanım:
      PORT=3210 node arac/sozluk-farki.mjs --rota=/envanter
+     PORT=3210 node arac/sozluk-farki.mjs --rota=/uyum --bekle=/uyum:4
      PORT=3210 node arac/sozluk-farki.mjs              (tüm küme)
    ═══════════════════════════════════════════════════════════════════════ */
 import { execFileSync } from 'node:child_process';
@@ -183,6 +184,29 @@ function terimFarklari(a, b) {
   return farklar;
 }
 
+/* ── BEKLENEN FARK ─────────────────────────────────────────────────────
+   `--bekle=/rota:N,...` — o rotada EN AZ kaç terim farkı beklendiği.
+
+   Niçin: "çakılı 0" sözcüğün SABİT olmadığını söyler, ekrana ULAŞTIĞINI
+   değil. 16 dosyalık bir aile çevrilip ekranda 4 fark çıkıyorsa soru
+   şudur: 4 doğru mu, yoksa iki yer kaçtı mı? Sayıyı yazmadan bu soru
+   sorulamaz. Beklenti aileyi çeviren kişinin ölçümüdür — kaç ekran
+   noktasının sözlükten beslendiğini o bilir.
+
+   Ölçülen beklenenin ALTINDAysa kusur: bir yer kaçmış ya da koşula bağlı
+   bir dalda kalmış. ÜSTÜNDEyse kusur değil — beklenti güncellenir. */
+const bekleArg = process.argv.find((a) => a.startsWith('--bekle='));
+/* Kayıtlı beklentiler: aile kapanırken ölçülen sayı buraya yazılır ve
+   bundan sonra HER koşumda denetlenir. CLI bayrağı üzerine yazar. */
+const KAYITLI = JSON.parse(
+  readFileSync(path.join(WEB, 'arac', 'beklenen-fark.json'), 'utf8')).rotalar;
+const BEKLENEN = new Map(Object.entries(KAYITLI));
+for (const [r, n] of (
+  (bekleArg ? bekleArg.slice('--bekle='.length).split(',') : [])
+    .map((x) => x.split(':'))
+    .filter(([r, n]) => r && n)
+    .map(([r, n]) => [r.trim(), Number(n)]))) BEKLENEN.set(r, n);
+
 const rotaArg = process.argv.find((a) => a.startsWith('--rota='));
 const istenen = rotaArg
   ? rotaArg.slice('--rota='.length).split(',').map((r) => r.trim()).filter(Boolean)
@@ -248,7 +272,8 @@ try {
   const ma = JSON.parse(readFileSync(dosya(A), 'utf8'));
   const mb = JSON.parse(readFileSync(dosya(B), 'utf8'));
 
-  const kusurlar = [];
+  const kusurlar = [];   // sözcük çakılı — bekçinin göremediği kusur
+  const eksikler = [];   // beklenen fark sayısına ulaşılmadı
   const bilgiler = [];
   console.log('');
   for (const rota of istenen) {
@@ -263,8 +288,16 @@ try {
     const farklar = terimFarklari(a, b);
     const cakili = cakiliSatirlar(a);
     const etiket = cevrildi ? (kirliMi ? 'çevrildi (şema kaldı)' : 'çevrildi') : 'çevrilmedi';
+    const bekle = BEKLENEN.get(yol);
+    const bekleSoz = bekle === undefined
+      ? ''
+      : farklar.length >= bekle ? ` (≥${bekle} ✓)` : ` (BEKLENEN ${bekle} — EKSİK)`;
     console.log(`  ${yol.padEnd(26)} ${etiket.padEnd(21)}`
-      + ` ${farklar.length} fark${cakili.length ? ` · ${cakili.length} ÇAKILI` : ''}`);
+      + ` ${farklar.length} fark${bekleSoz}${cakili.length ? ` · ${cakili.length} ÇAKILI` : ''}`);
+    if (bekle !== undefined && farklar.length < bekle) {
+      eksikler.push(`${yol}: ${bekle} fark bekleniyordu, ${farklar.length} ölçüldü —`
+        + ' bir yer sözlüğe bağlanmamış ya da koşula bağlı bir dalda kalmış.');
+    }
     for (const f of farklar.slice(0, 4)) console.log(`      ${f.a}  →  ${f.b}`);
     if (farklar.length > 4) console.log(`      … +${farklar.length - 4} fark daha`);
     for (const c of cakili) {
@@ -282,10 +315,14 @@ try {
     console.error('\nKUSUR — ÇEVRİLMİŞ ailede sözcük SABİT ÇAKILI (bekçi bunu göremez):');
     for (const k of kusurlar) console.error(`  ${k}`);
   }
-  console.log(`\nsozluk-farki: ${istenen.length} rota · kusurlu ${kusurlar.length}`
-    + ` · bilgi ${bilgiler.length}`);
+  if (eksikler.length > 0) {
+    console.error('\nEKSİK — beklenen fark sayısına ulaşılmadı:');
+    for (const e of eksikler) console.error(`  ${e}`);
+  }
+  console.log(`\nsozluk-farki: ${istenen.length} rota · çakılı ${kusurlar.length}`
+    + ` · eksik ${eksikler.length} · bilgi ${bilgiler.length}`);
   await db.$disconnect();
-  process.exit(kusurlar.length > 0 ? 1 : 0);
+  process.exit(kusurlar.length + eksikler.length > 0 ? 1 : 0);
 } finally {
   rmSync(gecici, { recursive: true, force: true });
 }

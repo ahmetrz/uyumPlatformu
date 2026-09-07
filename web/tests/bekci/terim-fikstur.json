@@ -1,0 +1,174 @@
+{
+  "//": [
+    "TERİM KALIPLARININ SİSTEMATİK DOĞRULAMASI — her terim, İKİ YÖNDE.",
+    "",
+    "NİÇİN VAR. Kalıplarda bugüne kadar ÜÇ hata çıktı ve üçü de tepkisel",
+    "olarak, kusur patladıktan sonra düzeltildi:",
+    "  · `\\bRES\\b` \"SÜRESİ\" içinde eşleşiyordu   (yanlış POZİTİF)",
+    "  · `/ünite/i` \"ÜNİTE\" ile eşleşmiyordu       (yanlış NEGATİF)",
+    "  · `/plant/gi` \"toplantı\" içinde eşleşiyordu (yanlış POZİTİF)",
+    "Yani liste bir bütün olarak HİÇ doğrulanmamıştı; her terimin hangi",
+    "yönde bozuk olduğu bilinmiyordu. Bu fikstür o bilgisizliği kapatır.",
+    "",
+    "NASIL TÜRETİLDİ. `eslesmemeli` listesi tahminle değil, DEPODAKİ GERÇEK",
+    "METİNDEN türetildi: kalıbın gövdesini İÇEREN ama tam eşleşmeyen bütün",
+    "sözcükler tarandı (`arac/terim-adaylari.mjs`). \"toplantı\" böyle",
+    "bulunmuştu — bir kusur patladığı için değil.",
+    "",
+    "`bilincli_kor` = yakalanMAYAN ve yakalanmaması KARARLAŞTIRILAN yazımlar.",
+    "Bilinmeyen değil, karar. Gerekçesi her birinin yanında.",
+    "",
+    "Yeni bir terim eklenirse buraya da girmelidir: test, TERIMLER'deki her",
+    "kaydın fikstürde karşılığı olmasını ŞART koşar. Doğrulanmamış terim",
+    "sessizce listeye giremez.",
+    "",
+    "`eslesmemeli` BOŞ olan terimlerde bu bir atlama değil ÖLÇÜM SONUCUDUR:",
+    "depo taraması o terim için tek bir yanlış eşleşme adayı bulmadı."
+  ],
+  "terimler": {
+    "santral": {
+      "eslesmeli": [
+        "santral",
+        "Santral",
+        "SANTRAL",
+        "santraller",
+        "santralin",
+        "SantralKarti",
+        "santralSayisi"
+      ],
+      "eslesmemeli": [],
+      "not": "Depo taramasında kalıbı içerip eşleşmeyen TEK sözcük yok: gövde uzun ve Türkçe başka sözcüğün içine düşmüyor. Bu yüzden sınırsız aranması güvenli — liste BOŞ olması ölçülmüş bir sonuçtur, atlanmış bir adım değil."
+    },
+    "ünite": {
+      "eslesmeli": [
+        "ünite",
+        "Ünite",
+        "ÜNİTE",
+        "üniteleri",
+        "unite",
+        "UNITE"
+      ],
+      "eslesmemeli": [],
+      "bilincli_kor": {
+        "uniteSayisi": "camelCase KOD tanımlayıcısı — sınır `unite`den sonra harf istemiyor. URN-ALN-007'de kayıtlı karar: bekçi EKRAN METNİNİ ölçer, tanımlayıcıyı değil.",
+        "UretimUnitesi": "aynı sebep; tip adı, ekranda görünmez."
+      },
+      "not": "Kalıp sınırsız (`/ünite/`), o yüzden gövdeyi içeren her sözcük eşleşir; depoda yanlış eşleşen yok. ASCII yazım (`unite`) SINIRLI aranır — `uniteSayisi` bilinçli körlükte."
+    },
+    "MW": {
+      "eslesmeli": [
+        "MW",
+        "MWe",
+        "MWp"
+      ],
+      "eslesmemeli": [
+        "FIRMWARE_ETIKET",
+        "FIRMWARE_SINIF",
+        "firmware",
+        "FIRMWARE"
+      ],
+      "not": "`FIRMWARE` içindeki `MW` en sinsi yanlış pozitif adayıydı; sınır onu dışarıda tutuyor."
+    },
+    "tip kodu": {
+      "eslesmeli": [
+        "JES",
+        "RES",
+        "HES",
+        "GES",
+        "DGKC",
+        "DGKÇ",
+        "TERMIK",
+        "TERMİK",
+        "JEO"
+      ],
+      "eslesmemeli": [
+        "SÜRESİ",
+        "ADRES",
+        "ADRESİ",
+        "BELGESİ",
+        "HESAP",
+        "HESAPLANMADI",
+        "HESAPLANIR",
+        "HESAPLANMAZ",
+        "HESAPLANMIYOR",
+        "ŞİFRESİZ",
+        "BULGU_PENCERESI",
+        "KUYRUK_PENCERESI",
+        "IZ_PENCERESI",
+        "ADRESLE",
+        "ADRESLEME",
+        "ADRESLEMEYİ",
+        "RESTORE",
+        "DURUM_SOZU_HESAP",
+        "HESAP_KAYNAK_TIPLERI",
+        "HESAPLAMAZ"
+      ],
+      "bilincli_kor": {
+        "hesId": "camelCase kod biçimi — URN-ALN-007.",
+        "resKapasite": "aynı sebep."
+      },
+      "not": "En büyük yanlış pozitif yüzeyi: depoda kalıbı içeren 45 sözcük var ve hepsi Türkçe. Sınır olmadan bu terim tek başına listeyi çöpe çevirirdi."
+    },
+    "türbin": {
+      "eslesmeli": [
+        "türbin",
+        "Türbin",
+        "TÜRBİN",
+        "türbinler"
+      ],
+      "eslesmemeli": [],
+      "not": "Depo taramasında kalıbı içerip eşleşmeyen sözcük yok."
+    },
+    "üretim tipi": {
+      "eslesmeli": [
+        "jeotermal",
+        "Jeotermal",
+        "JEOTERMAL",
+        "rüzgâr",
+        "rüzgar",
+        "hidroelektrik"
+      ],
+      "eslesmemeli": [],
+      "not": "Kalıp sınırsız; depoda yanlış eşleşen yok. Şapkalı ve şapkasız yazım İKİSİ de terim — biri düşerse ekranda öbürü kalırdı."
+    },
+    "plant": {
+      "eslesmeli": [
+        "plant",
+        "Plant",
+        "PLANT"
+      ],
+      "eslesmemeli": [
+        "toplantı",
+        "Toplantı",
+        "toplantıya",
+        "toplantıdır",
+        "toplantıyı",
+        "Toplantıyı",
+        "plantLink"
+      ],
+      "bilincli_kor": {
+        "Plant360": "Bitişik yazım bir EKRAN ADI tanımlayıcısıdır (dosya/tip adı). Ekranda görünen ad sözlükten gelir (`tesis360`) ve o yol çevrildi; tanımlayıcıyı yakalamak dosya adlarını da kirli sayardı.",
+        "b-plant360": "Prototip referansı/CSS jetonu, aynı sebep.",
+        "plant360-profil": "Rota jetonu, aynı sebep."
+      },
+      "not": "\"toplantı\" (top-PLANT-ı) yüzünden ALTI dosya izin listesinde gereksiz duruyordu."
+    },
+    "kod jetonu": {
+      "eslesmeli": [
+        "--jes",
+        "--hes",
+        "--res",
+        "--ges",
+        "--jesd",
+        "--termik"
+      ],
+      "eslesmemeli": [
+        "--resim",
+        "--hesap",
+        "--gesture",
+        "--jest"
+      ],
+      "not": "CSS özel özelliği; sınır `-` dâhil ve sonrasında harf istemiyor."
+    }
+  }
+}

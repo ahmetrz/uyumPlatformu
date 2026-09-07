@@ -1,0 +1,31 @@
+{
+  "//": [
+    "BEKLENEN TERİM FARKI — rota başına, aile kapanırken ölçülüp yazılır.",
+    "",
+    "NİÇİN. `sozluk-farki`in 'çakılı 0' sonucu sözcüğün SABİT olmadığını",
+    "söyler; ekrana ULAŞTIĞINI değil. 16 dosyalık bir aile çevrilip ekranda",
+    "4 fark çıkıyorsa soru şudur: 4 doğru mu, iki yer mi kaçtı? Sayı",
+    "yazılmadan bu soru sorulamaz.",
+    "",
+    "Sayı BEKLENTİ değil ÖLÇÜMDÜR: aileyi çeviren, o rotanın varsayılan",
+    "render'ında sözlükten beslenen kaç nokta olduğunu sayar ve yazar.",
+    "Ölçülen bunun ALTINDAysa kapı kırmızı — bir yer kaçmış ya da koşula",
+    "bağlı bir dalda kalmış. ÜSTÜNDEyse kusur değil; yeni nokta eklenmiştir",
+    "ve sayı güncellenir.",
+    "",
+    "Koşula bağlı dallar (boş durum, yetki kısıtı, modal) varsayılan",
+    "render'da görünmez ve sayıya GİRMEZ — bu yüzden sayı ailedeki toplam",
+    "sözlük çağrısından küçüktür ve öyle olmalıdır."
+  ],
+  "rotalar": {
+    "/envanter": 2,
+    "/tedarikciler": 1,
+    "/raporlar": 2,
+    "/yedekleme": 4,
+    "/olaylar": 2,
+    "/kesif": 1,
+    "/harita": 5,
+    "/portfoy": 2,
+    "/uyum": 4
+  }
+}

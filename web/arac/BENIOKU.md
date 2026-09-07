@@ -100,6 +100,7 @@ kurum sistemine giden hiçbir şey yoktur.
 | `sozluk-metni.mjs` | — (yardımcı) | render edilen `main` metnini JSON'a yazar; sözlüğü bilmez | — |
 | `rota-dizini.mjs` | — (kütüphane) | rota → kaynak dizini, `app/` ağacından türetilir | — |
 | `izin-listesi.mjs` | — (kütüphane) | izin listesinde SÖZLÜK terimiyle duran dosyalar (şema terimleri ayrı) | — |
+| `terim-adaylari.mjs` | — (elle) | terim kalıplarının yanlış pozitif yüzeyini DEPODAN türetir; fikstürün kaynağı | — |
 | `derleme-ortami.mjs` | — (kütüphane) | derlemeye dayanan kapıların önkoşulu: boş alan (derlemeden önce) + statik çıktının TAM olduğu (ölçmeden önce) | çağıran kapı düşer |
 | `turkce-arama.mjs` | — (kütüphane) | Türkçe metin araması: çift küçültme + Unicode sözcük sınırı. **Sondalarda düz `/…/i` KULLANMAYIN** | — |
 | `marka-kapisi.mjs` | `marka:kapi` | ürün adı tek kaynaktan mı geliyor: nöbetçi adla statik demo derlemesi koşar, üretilen çıktıya bakar (tarayıcı istemez) | varsayılan ad işlenmiş yüzeyde geçiyor **ya da** nöbetçi görünmesi gereken yüzeyde yok |
@@ -397,10 +398,50 @@ ailesinde ve ikisini de bekçi temiz görüyordu: `5 tesis × 3 süreç` ve
 halkası çekirdeğe çakıldığında (iki yerden BİRİ) `1 fark · 1 ÇAKILI` deyip
 çıkış 1 verdi — eski kurgu bunu geçirirdi.
 
+**Beklenen fark sayısı.** "Çakılı 0" sözcüğün SABİT olmadığını söyler,
+ekrana ULAŞTIĞINI değil. Rota başına beklenen fark
+`arac/beklenen-fark.json`da durur ve HER koşumda denetlenir; ölçülen
+altındaysa kapı kırmızı yanar (`--bekle=/rota:N` üzerine yazar). Sayı bir
+tahmin değil, aile kapanırken yapılan ölçümdür.
+
 **Sınırı.** Yalnız o an render EDİLEN metni görür: koşula bağlı dallar
 (boş durum, yetki kısıtı, modal) ölçülmez. Modül sabitleri için tarayıcı
 istemeyen kendi vakaları vardır (`tests/envanter-mantik.test.ts` · zincir
 halkası) ve sabotaj kütüğü onları koruyor.
+
+### `terim-adaylari.mjs` — kalıpları TEPKİSEL değil sistematik doğrula
+
+Bekçinin terim kalıplarında bugüne kadar **üç** hata çıktı ve üçü de bir
+kusur patladıktan sonra düzeltildi:
+
+| Hata | Yön |
+| --- | --- |
+| `\bRES\b` "SÜRESİ" içinde eşleşiyordu | yanlış **pozitif** |
+| `/ünite/i` "ÜNİTE" ile eşleşmiyordu | yanlış **negatif** |
+| `/plant/gi` "toplantı" içinde eşleşiyordu | yanlış **pozitif** |
+
+Yani liste bir bütün olarak **hiç doğrulanmamıştı**; her terimin hangi
+yönde bozuk olduğu bilinmiyordu. Vakalar hep bir hata çıktıkça eklendi.
+
+Bu araç tahmin etmez, **depodaki gerçek Türkçe metni** kaynak alır: her
+terim için kalıbın gövdesini İÇEREN ama tam eşleşmeyen sözcükleri
+çıkarır. Yanlış pozitif yüzeyi tam olarak budur.
+
+```
+npx tsx arac/terim-adaylari.mjs
+  tip kodu   eşleşen 10 · yanlış pozitif adayı 45 → SÜRESİ · ADRES · HESAP …
+  plant      eşleşen  2 · yanlış pozitif adayı 11 → toplantı · Plant360 …
+```
+
+Çıktı `tests/bekci/terim-fikstur.json`e tasnif edilerek girer (gerçek
+yanlış pozitif mi, bilinçli körlük mü) ve
+`tests/bekci/terim-dogrulama.test.ts` her terimi **iki yönde** sınar.
+Test ayrıca **eksiksizlik** şartı koyar: `TERIMLER`deki her kaydın
+fikstürde karşılığı olmalı — doğrulanmamış bir terim sessizce listeye
+giremez.
+
+`eslesmemeli` listesi boş olan terimlerde bu bir atlama değil **ölçüm
+sonucudur**: tarama o terim için tek bir aday bulmadı.
 
 ### `turkce-arama.mjs` — Türkçe metin ararken bunu kullanın
 

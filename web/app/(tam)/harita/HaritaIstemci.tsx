@@ -1,5 +1,6 @@
 'use client';
 import { useSozluk, useTerim } from '@/lib/dil/SozlukSaglayici';
+import { olculenYazi } from '@/lib/alan/oznitelik';
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { Alan, Dugme, Hata, Im, BosIlk } from '@/components/kabuk/temel';
@@ -285,7 +286,7 @@ function SeciliKunye({ isaret, yazabilir, duzenle, kapat }: {
         </div>
         <div>
           <dt>Kurulu güç</dt>
-          <dd>{isaret.gucMw === null ? 'kayıt yok' : `${isaret.gucMw} MWe`}</dd>
+          <dd>{olculenYazi({ deger: isaret.gucMw, birim: isaret.gucBirim }) ?? 'kayıt yok'}</dd>
         </div>
         <div>
           <dt>Uyum</dt>

@@ -87,7 +87,7 @@ export async function riskDetayVerisi(
        formda seçilemeyen bir santral şeritte de anılmaz. */
     db.tesis.findMany({
       where: { durum: 'aktif', ...(izinli === null ? {} : { id: { in: izinli } }) },
-      include: { tip: true, ozellikler: { select: { anahtar: true, sayisalDeger: true } } },
+      include: { tip: true, ozellikler: { select: { anahtar: true, sayisalDeger: true, birim: true } } },
       orderBy: { kod: 'asc' },
     }),
     db.sistemServis.findMany({ orderBy: { kod: 'asc' } }),

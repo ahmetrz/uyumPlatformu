@@ -78,7 +78,8 @@ const SUREC_ONCELIGI: Record<string, number> = {
 
 function tesisAlt(
   t: {
-    ozellikler: readonly { anahtar: string; sayisalDeger: number | null }[];
+    ozellikler: readonly { anahtar: string; sayisalDeger: number | null;
+      birim: string | null }[];
     tip: { kod: string } | null; konum: string | null;
   },
 ): string {

@@ -199,7 +199,7 @@ export async function genelEkranVerisi(k: AktifKullanici): Promise<EkranVerisi> 
          `ozellikToplami` da ölçülmemişi atlıyor. */
       db.tesis.findMany({
         where: { durum: 'aktif', ...tesisKosulu },
-        select: { ozellikler: { select: { anahtar: true, sayisalDeger: true } } },
+        select: { ozellikler: { select: { anahtar: true, sayisalDeger: true, birim: true } } },
       }),
     ]);
 
@@ -220,7 +220,7 @@ export async function genelEkranVerisi(k: AktifKullanici): Promise<EkranVerisi> 
       where: { durum: 'aktif', ...tesisKosulu },
       select: {
         id: true, kod: true, ad: true, konum: true,
-        ozellikler: { select: { anahtar: true, sayisalDeger: true } },
+        ozellikler: { select: { anahtar: true, sayisalDeger: true, birim: true } },
         gorselAnahtari: true, tip: { select: { kod: true, ad: true, sira: true } },
       },
       /* Sıralama JS'te: öznitelik bir ilişki, `orderBy` ona bakamaz.

@@ -95,7 +95,7 @@ export async function tesis360Verisi(
     where: { id },
     include: {
       tip: true, tuzelKisi: true, profil: true,
-      ozellikler: { select: { anahtar: true, sayisalDeger: true } },
+      ozellikler: { select: { anahtar: true, sayisalDeger: true, birim: true } },
     },
   });
   if (!tesis) return null;
@@ -139,7 +139,7 @@ export async function tesis360Verisi(
         where: { tesisId: id },
         select: {
           id: true, kod: true, ad: true, durum: true,
-          ozellikler: { select: { anahtar: true, sayisalDeger: true } },
+          ozellikler: { select: { anahtar: true, sayisalDeger: true, birim: true } },
           _count: { select: { sistemler: true, varliklar: true } },
         },
         orderBy: { kod: 'asc' },
@@ -150,7 +150,7 @@ export async function tesis360Verisi(
       db.tesis.findMany({
         where: { durum: 'aktif', ...(izinli === null ? {} : { id: { in: izinli } }) },
         select: { id: true, kod: true, ad: true, gorselAnahtari: true,
-          ozellikler: { select: { anahtar: true, sayisalDeger: true } },
+          ozellikler: { select: { anahtar: true, sayisalDeger: true, birim: true } },
           tip: { select: { kod: true, ad: true } } },
         orderBy: { ad: 'asc' },
       }),

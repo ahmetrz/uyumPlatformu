@@ -25,7 +25,7 @@ export async function konsolVerisi(kullanici: AktifKullanici, simdi: number): Pr
     db.tuzelKisi.findMany({ include: { grup: true, _count: { select: { tesisler: true, yetkiler: true } } },
       orderBy: { kod: 'asc' } }),
     db.operasyonelBirim.findMany({ include: { tesis: true,
-      ozellikler: { select: { anahtar: true, sayisalDeger: true } },
+      ozellikler: { select: { anahtar: true, sayisalDeger: true, birim: true } },
       _count: { select: { varliklar: true, sistemler: true } } },
       orderBy: [{ tesis: { kod: 'asc' } }, { kod: 'asc' }] }),
     db.varlikTuru.findMany({ include: { _count: { select: { varliklar: true } } }, orderBy: { kod: 'asc' } }),

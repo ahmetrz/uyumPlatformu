@@ -136,6 +136,8 @@ export type Isaret = {
   tipKod: string | null; tipAdi: string;
   konum: string | null; il: string | null;
   gucMw: number | null;
+  /** Birim satırdan gelir; ekranda sabit yazılmaz (§0.5). */
+  gucBirim: string | null;
   uyumYuzde: number | null;
   acikBulgu: number; acikRisk: number;
   kaynak: KonumKaynagi;
@@ -210,7 +212,7 @@ export function yerlesimKur(satirlar: PortfoySatiri[]): Yerlesim {
     isaretler.push({
       id: s.id, kod: s.kod, ad: s.ad, tipKod: s.tipKod, tipAdi: s.tipAdi,
       konum: s.konum, il: ilAyikla(s.konum),
-      gucMw: s.gucMw, uyumYuzde: s.uyumYuzde,
+      gucMw: s.gucMw, gucBirim: s.gucBirim, uyumYuzde: s.uyumYuzde,
       acikBulgu: s.acikBulgu, acikRisk: s.acikRisk,
       kaynak,
       // `il` kaynağında nokta tesisin kendisi değil il merkezi; künye

@@ -25,6 +25,15 @@ export type OzellikSatiri = {
   anahtar: string;
   sayisalDeger: number | null;
   metinDeger?: string | null;
+  /** Değerin birimi — ekranda yazılan şey budur, koda gömülü sabit değil.
+
+      İSTEĞE BAĞLI DEĞİL, ZORUNLU: `select`ten düşünce `undefined` gelir,
+      `birimliOzellik` `null` döner ve ekran sayıyı BİRİMSİZ yazar —
+      sessizce. Gerçekten oldu (7 Eyl 2026): portföy toplamı birimiyle
+      değil çıplak sayı olarak çıktı ve hiçbir kapı görmedi; ekranı açınca fark
+      edildi. Alan zorunlu olunca `birim: true` yazmayan her `select`
+      DERLEME hatası verir — kusur sessiz olmaktan çıkar. */
+  birim: string | null;
 };
 
 /** GEÇİCİ — Aşama D/E'de sözlük katmanına devredilecek. */
@@ -37,6 +46,42 @@ export function sayisalOzellik(
 ): number | null {
   const o = ozellikler?.find((x) => x.anahtar === anahtar);
   return o?.sayisalDeger ?? null;
+}
+
+/** Sayısal öznitelik + BİRİMİ — birim satırda saklanır, ekranda yazılmaz.
+
+    ── NİÇİN ─────────────────────────────────────────────────────────────
+    Ekranlar birimi kendi dizelerine gömüyordu (`${g} <enerji birimi>`) ve
+    bu iki kusur üretiyordu:
+
+      1. SEKTÖR SIZINTISI. Enerji birimi çekirdek koda gömülüydü; su
+         kiracısının tesisinde kurulu güç m³/gün olabilir. Birim sabiti,
+         §0.5'in yasakladığı şeyin ta kendisi.
+      2. AYNI VERİ İKİ TÜRLÜ OKUNUYORDU. Aynı satır bir ekranda elektrik
+         eki taşıyan biçimle, başka ekranda eksiz biçimle yazılıyordu
+         (ölçüldü: `tesisler/[id]` ve `yonetim-tezgahi`). Kaynak tekti,
+         yazım ikiydi.
+
+    Birim ARTIK VERİDEN gelir: `TesisOzellik.birim` / `BirimOzellik.birim`
+    (ölçüldü: 43 satırın 43'ünde dolu). Satırda birim yoksa
+    UYDURULMAZ — sayı birimsiz yazılır; bilinmeyen bir birimi varsaymak
+    "bilinmeyen ≠ sıfır" kuralının birim tarafındaki karşılığı olurdu. */
+export function birimliOzellik(
+  ozellikler: readonly OzellikSatiri[] | null | undefined,
+  anahtar: string,
+): { deger: number | null; birim: string | null } {
+  const o = ozellikler?.find((x) => x.anahtar === anahtar);
+  return { deger: o?.sayisalDeger ?? null, birim: o?.birim ?? null };
+}
+
+/** Ekran yazısı: `120 <birim>` · birimsiz satırda `120` · ölçülmemişte `null`.
+
+    `null` dönüşü çağıranın kendi "—" ya da "ölçülmedi" sözcüğünü
+    seçmesi içindir; buradan bir yer tutucu dönmek, ölçülmemiş değeri
+    ekranda ölçülmüş gibi gösterme riskini araca taşırdı. */
+export function olculenYazi(o: { deger: number | null; birim: string | null }): string | null {
+  if (o.deger === null) return null;
+  return o.birim ? `${o.deger} ${o.birim}` : `${o.deger}`;
 }
 
 /** Metin özniteliği; satır yoksa `null`. */

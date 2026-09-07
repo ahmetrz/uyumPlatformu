@@ -20,7 +20,7 @@ function santral(kismi: Partial<PortfoySatiri> & { id: string }): PortfoySatiri 
   return {
     kod: kismi.id.toUpperCase(), ad: kismi.id,
     tipKod: 'HES', tipAdi: 'Hidroelektrik', tuzelKisi: 'Demo Doğal',
-    konum: null, gucMw: 100, gorselAnahtari: null, kritiklik: null,
+    konum: null, gucMw: 100, gucBirim: 'MW', gorselAnahtari: null, kritiklik: null,
     enlem: null, boylam: null,
   konumKaynagi: null, konumDogrulandi: false,
     uyumYuzde: 80, bilinmeyenOran: 0, acikBulgu: 0, acikRisk: 0,
@@ -102,8 +102,24 @@ describe('A2 · portföy süzgeç ve en zayıf', () => {
   it('ölçü yazısı: null → "ölçülmedi", birim anahtara göre', () => {
     expect(olcuYazisi(satirlar[2], 'uyum')).toBe('ölçülmedi');
     expect(olcuYazisi(satirlar[0], 'uyum')).toBe('%70');
-    expect(olcuYazisi(satirlar[0], 'guc')).toBe('100 MWe');
     expect(olcuYazisi(satirlar[0], 'bulgu')).toBe('2');
+  });
+
+  /* ── BİRİM VERİDEN GELİR, KODDAN DEĞİL (P1 · §0.5) ──────────────────
+     Bu vaka eskiden `'100 MWe'` bekliyordu: birim ekran koduna sabit
+     yazılıydı ve aynı satır başka ekranda eksiz biçimde okunuyordu.
+     Artık `TesisOzellik.birim` ne diyorsa o yazılır — yani beklenti
+     KAYDIN kendi birimidir, aracın varsayımı değil. */
+  it('güç yazısı satırın BİRİMİNİ kullanır', () => {
+    expect(olcuYazisi(santral({ id: 'x', gucMw: 100, gucBirim: 'MW' }), 'guc')).toBe('100 MW');
+    expect(olcuYazisi(santral({ id: 'y', gucMw: 100, gucBirim: 'm³/gün' }), 'guc')).toBe('100 m³/gün');
+  });
+
+  it('birimsiz satırda birim UYDURULMAZ', () => {
+    /* Satırda birim yoksa sayı çıplak yazılır. Bir birim varsaymak,
+       "bilinmeyen ≠ sıfır" kuralının birim tarafındaki karşılığını
+       delerdi: okuyan kişi ölçülmemiş bir birimi ölçülmüş sanardı. */
+    expect(olcuYazisi(santral({ id: 'z', gucMw: 100, gucBirim: null }), 'guc')).toBe('100');
   });
 });
 

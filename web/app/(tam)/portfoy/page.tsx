@@ -7,11 +7,11 @@ import { portfoyEkranVerisi } from './veri';
 
 export const metadata: Metadata = { title: 'Enerji portföyü' };
 
-/* F2 · Enerji Portföyü — "hangi santral beni istiyor ve nasıl bir santral bu?"
+/* F2 · Portföy — "hangi tesis beni istiyor ve nasıl bir tesis bu?"
    Kapsam yalnız ÜRETİM portföyüdür: dağıtım ve perakende tüzel kişileri
    bu kurulumun kapsamı dışındadır ve veriye de girmez.
 
-   Santral kapsamı `veri.ts`te uygulanır (modül: `uyum`). */
+   Tesis kapsamı `veri.ts`te uygulanır (modül: `uyum`). */
 
 export default async function Sayfa() {
   const k = await girisZorunlu();

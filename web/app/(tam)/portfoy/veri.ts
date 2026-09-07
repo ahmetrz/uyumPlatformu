@@ -5,35 +5,35 @@ import type { AktifKullanici } from '@/lib/auth';
 import { kapsamDaraltildi, kapsamKosulu, modulKapisi } from '@/app/kapsam';
 import { uyumOzeti } from '@/lib/sabitler';
 import type { PortfoyEndeksi, PortfoySatiri } from './mantik';
-import { KURULU_GUC, ozelligeGoreSirala, sayisalOzellik } from '@/lib/alan/oznitelik';
+import { KURULU_GUC, birimliOzellik, ozelligeGoreSirala } from '@/lib/alan/oznitelik';
 
 /* F2 · Enerji Portföyü — SUNUCU VERİSİ.
 
    ═══ KAPSAM SIZINTISI ══════════════════════════════════════════════════
    Ekran `db.tesis.findMany({ where: { durum: 'aktif' } })` ile BÜTÜN aktif
-   santralleri — id, kod, ad, tüzel kişi, konum, kurulu güç ve fotoğrafıyla
-   — listeliyordu. Bu ekranın konusu SANTRALİN KENDİSİ olduğu için sızıntı
-   en doğrudan biçimindeydi: kapsam dışı santral bir satır olarak değil,
+   tesisleri — id, kod, ad, tüzel kişi, konum, kurulu güç ve fotoğrafıyla
+   — listeliyordu. Bu ekranın konusu TESİSİN KENDİSİ olduğu için sızıntı
+   en doğrudan biçimindeydi: kapsam dışı tesis bir satır olarak değil,
    bir PLAKA olarak görünüyordu. Metrikler (uyum yüzdesi, açık bulgu, açık
    risk, toplam kurulu güç) de kapsamsız sorgulardan geliyordu.
 
    MODÜL SEÇİMİ: `uyum`. Gerekçe kaydın konusudur: satırın taşıdığı iki
    sayı — uyum yüzdesi ve açık bulgu — `MaddeDurumu` ve `Bulgu`dan gelir,
    ikisi de uyum modülünün kayıtlarıdır (/uyum, /surecler, /raporlar aynı
-   modülü kullanır). `tanimlar` (santral sicilinin yazma modülü) seçmek
+   modülü kullanır). `tanimlar` (tesis sicilinin yazma modülü) seçmek
    yanlış olurdu: dış denetçinin (`dis_denetci`) `tanimlar` izni yoktur ve
-   portföy ona tümüyle kapanırdı — oysa denetlediği santralleri görmesi
+   portföy ona tümüyle kapanırdı — oysa denetlediği tesisleri görmesi
    gerekir.
 
    TEK MODÜL, tüm toplamlar: açık risk sayacı da `uyum` kapsamıyla
    daraltılır, `risk` kapsamıyla DEĞİL. Nedeni "bilinmeyen ≠ sıfır"dır:
    riski hiç okuyamayan bir kullanıcı için risk kapsamı `[]` döner ve sayaç
-   `0` yazardı — yani "bu santralde açık risk yok" diye YALAN söylerdi.
-   Kapsam bir santral sınırıdır; modül izni ayrı bir eksendir ve sayıyı
+   `0` yazardı — yani "bu tesiste açık risk yok" diye YALAN söylerdi.
+   Kapsam bir tesis sınırıdır; modül izni ayrı bir eksendir ve sayıyı
    sıfıra çevirerek anlatılamaz.
 
-   ── SANTRALİ BİLİNMEYEN KAYIT ──────────────────────────────────────────
-   Bu ekranda her satır bir santraldir; "santrali bilinmeyen" satır yoktur.
+   ── TESİSİ BİLİNMEYEN KAYIT ────────────────────────────────────────────
+   Bu ekranda her satır bir tesistir; "tesisi bilinmeyen" satır yoktur.
    Kural yine de tek yerden (`app/kapsam.ts`) gelir. */
 
 export type EkranVerisi = {
@@ -42,7 +42,7 @@ export type EkranVerisi = {
   /** Portföy geneli uyum endeksi — kök ekranla AYNI formül (`uyumOzeti`),
       aynı kapsam. Değerlendirilmiş kontrol yoksa `yuzde: null`. */
   endeks: PortfoyEndeksi;
-  /** true = portföy bir santral kapsamıyla daraltıldı */
+  /** true = portföy bir tesis kapsamıyla daraltıldı */
   kapsamli: boolean;
 };
 
@@ -55,7 +55,7 @@ export async function portfoyEkranVerisi(k: AktifKullanici): Promise<EkranVerisi
       where: { durum: 'aktif', ...(izinli === null ? {} : { id: { in: izinli } }) },
       include: {
         tip: true, tuzelKisi: true, profil: { select: { kritiklikSinifi: true } },
-        ozellikler: { select: { anahtar: true, sayisalDeger: true } },
+        ozellikler: { select: { anahtar: true, sayisalDeger: true, birim: true } },
       },
       /* Sıra JS'te: kurulu güç artık öznitelik satırı (P1). Sorgu `take`
          almıyor, küme tamamı geliyor — sonuç veritabanı sırasıyla aynı. */
@@ -110,7 +110,11 @@ export async function portfoyEkranVerisi(k: AktifKullanici): Promise<EkranVerisi
       tipAdi: t.tip?.ad ?? 'Diğer',
       tuzelKisi: t.tuzelKisi?.ad ?? null,
       konum: t.konum,
-      gucMw: sayisalOzellik(t.ozellikler, KURULU_GUC),
+      /* Sayı ve BİRİM birlikte taşınır: birimi ekranda sabit yazmak
+         çekirdeğe enerji birimi gömerdi (§0.5). `birimliOzellik` satırda
+         ne yazıyorsa onu verir; yoksa birimsiz yazılır, uydurulmaz. */
+      ...((o) => ({ gucMw: o.deger, gucBirim: o.birim }))(
+        birimliOzellik(t.ozellikler, KURULU_GUC)),
       gorselAnahtari: t.gorselAnahtari,
       enlem: t.enlem, boylam: t.boylam,
       konumKaynagi: t.konumKaynagi, konumDogrulandi: t.konumDogrulandi,
@@ -122,13 +126,14 @@ export async function portfoyEkranVerisi(k: AktifKullanici): Promise<EkranVerisi
     };
   });
 
-  /* Toplam kurulu güç GÖRÜNEN satırlardan toplanır: kapsam dışı santralin
-     MW'ı toplama girseydi, satırı gizlenmiş bir santralin varlığı tek bir
+  /* Toplam kurulu güç GÖRÜNEN satırlardan toplanır: kapsam dışı tesisin
+     gücü toplama girseydi, satırı gizlenmiş bir tesisin varlığı tek bir
      sayıdan okunabilirdi. */
   const toplamGuc = satirlar.reduce((a, s) => a + (s.gucMw ?? 0), 0);
 
-  /* Portföy endeksi santral yüzdelerinin ORTALAMASI değildir: 900 kontrollü
-     HES ile 40 kontrollü GES'i eşit ağırlıkta toplamak yanlış olurdu.
+  /* Portföy endeksi tesis yüzdelerinin ORTALAMASI değildir: 900 kontrollü
+     bir tesisle 40 kontrollü bir tesisi eşit ağırlıkta toplamak yanlış
+     olurdu.
      Kapsamdaki tüm madde durumları tek havuzda sayılır — kök ekran (/)
      aynı havuzdan aynı formülle hesaplar, iki ekran birbirini tutar. */
   const genelSayim: Record<string, number> = {};

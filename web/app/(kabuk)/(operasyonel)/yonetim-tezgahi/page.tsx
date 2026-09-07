@@ -127,7 +127,7 @@ export default async function Sayfa({ searchParams }: { searchParams: Promise<{ 
     db.tesisTipi.findMany({ include: { sektor: true, _count: { select: { tesisler: true } } },
       orderBy: { sira: 'asc' } }),
     db.tesis.findMany({ include: { tip: true,
-      ozellikler: { select: { anahtar: true, sayisalDeger: true } },
+      ozellikler: { select: { anahtar: true, sayisalDeger: true, birim: true } },
       _count: { select: { surecKapsamlari: true } } },
       orderBy: { kod: 'asc' } }),
     db.regulasyon.findMany({ include: { _count: { select: { maddeler: true, surecler: true } } },

@@ -63,10 +63,10 @@ export const TERIMLER: { ad: string; kaliplar: { re: RegExp; hedef: Hedef }[] }[
     { re: new RegExp(sinir('unite').source, 'gu'), hedef: 'kucuk' },
   ] },
   /* ── camelCase İÇİNE GÖMÜLÜ MW ─────────────────────────────────────
-     Sözcük sınırlı kalıp `gucMw` içindeki `Mw`yi GÖREMEZ ve görmemesi
+     Sözcük sınırlı kalıp `kuruluGuc` içindeki `Mw`yi GÖREMEZ ve görmemesi
      kendi tanımı gereğidir: solunda `c` var. Ama tanımlayıcı adları
-     sektör terimini tam da böyle taşıyor. ÖLÇÜLDÜ (7 Eyl 2026): `gucMw`
-     ON BİR dosyada geçiyordu (`Birim.gucMw` alanı ve onu okuyan ekranlar)
+     sektör terimini tam da böyle taşıyor. ÖLÇÜLDÜ (7 Eyl 2026): `kuruluGuc`
+     ON BİR dosyada geçiyordu (`Birim.kuruluGuc` alanı ve onu okuyan ekranlar)
      ve bekçi hiçbirini görmüyordu — izin listesi 135 dosyaydı, gerçek
      146. Kalıp eklendi; on bir dosya listeye GEREKÇESİYLE girdi.
 
@@ -103,7 +103,7 @@ export const TERIMLER: { ad: string; kaliplar: { re: RegExp; hedef: Hedef }[] }[
      körlük vakası ise `Plant360`ın eşleşmemesini SABİTLİYORDU. Vakanın
      gerekçesi ("bitişik yazım kod tanımlayıcısıdır, sözcük değil") kendi
      kendini çürütüyor: bekçinin işi zaten KOD TANIMLAYICILARIDIR —
-     `gucMw` de, `santralMetni` de öyle sayıldı.
+     `kuruluGuc` de, `santralMetni` de öyle sayıldı.
 
      Sınır artık SOLDA sözcük sınırı (toplantı dışarıda), SAĞDA yalnız
      harf ve alt çizgi yasak (rakam serbest): `Plant360` görünür,

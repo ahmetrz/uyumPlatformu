@@ -242,7 +242,7 @@ export async function tesis360Verisi(
       tipAdi: tesis.tip?.ad ?? 'Tesis',
       tuzelKisi: tesis.tuzelKisi?.ad ?? null,
       konum: tesis.konum,
-      gucMw: sayisalOzellik(tesis.ozellikler, KURULU_GUC),
+      kuruluGuc: sayisalOzellik(tesis.ozellikler, KURULU_GUC),
       gorselAnahtari: tesis.gorselAnahtari,
       kritiklik: tesis.profil?.kritiklikSinifi ?? null,
       profil: profilSerisi(tesis.profil),
@@ -273,7 +273,7 @@ export async function tesis360Verisi(
       zincir,
       birimler: birimListesi.map((u) => ({
         id: u.id, kod: u.kod, ad: u.ad,
-        gucMw: sayisalOzellik(u.ozellikler, KURULU_GUC), durum: u.durum,
+        kuruluGuc: sayisalOzellik(u.ozellikler, KURULU_GUC), durum: u.durum,
         sistemSayisi: u._count.sistemler, varlikSayisi: u._count.varliklar,
       })),
       sistemSayisi: sistemler.length,

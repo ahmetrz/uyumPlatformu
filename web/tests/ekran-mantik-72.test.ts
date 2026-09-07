@@ -20,7 +20,7 @@ function santral(kismi: Partial<PortfoySatiri> & { id: string }): PortfoySatiri 
   return {
     kod: kismi.id.toUpperCase(), ad: kismi.id,
     tipKod: 'HES', tipAdi: 'Hidroelektrik', tuzelKisi: 'Demo Doğal',
-    konum: null, gucMw: 100, gucBirim: 'MW', gorselAnahtari: null, kritiklik: null,
+    konum: null, kuruluGuc: 100, gucBirim: 'MW', gorselAnahtari: null, kritiklik: null,
     enlem: null, boylam: null,
   konumKaynagi: null, konumDogrulandi: false,
     uyumYuzde: 80, bilinmeyenOran: 0, acikBulgu: 0, acikRisk: 0,
@@ -30,9 +30,9 @@ function santral(kismi: Partial<PortfoySatiri> & { id: string }): PortfoySatiri 
 
 describe('A2 · portföy sıralama', () => {
   const satirlar = [
-    santral({ id: 'a', gucMw: 50, acikBulgu: 2, acikRisk: 1, uyumYuzde: 70 }),
-    santral({ id: 'b', gucMw: 200, acikBulgu: 0, acikRisk: 4, uyumYuzde: 95 }),
-    santral({ id: 'c', gucMw: null, acikBulgu: 5, acikRisk: 0, uyumYuzde: null }),
+    santral({ id: 'a', kuruluGuc: 50, acikBulgu: 2, acikRisk: 1, uyumYuzde: 70 }),
+    santral({ id: 'b', kuruluGuc: 200, acikBulgu: 0, acikRisk: 4, uyumYuzde: 95 }),
+    santral({ id: 'c', kuruluGuc: null, acikBulgu: 5, acikRisk: 0, uyumYuzde: null }),
   ];
 
   it('kurulu güç azalan; ölçülmemiş (null) sona düşer', () => {
@@ -49,7 +49,7 @@ describe('A2 · portföy sıralama', () => {
   });
 
   it('eşitlikte ad sırası — aynı veriyle aynı liste', () => {
-    const esit = [santral({ id: 'z', gucMw: 10 }), santral({ id: 'y', gucMw: 10 })];
+    const esit = [santral({ id: 'z', kuruluGuc: 10 }), santral({ id: 'y', kuruluGuc: 10 })];
     expect(sirala(esit, 'guc').map((s) => s.id)).toEqual(['y', 'z']);
   });
 
@@ -111,15 +111,15 @@ describe('A2 · portföy süzgeç ve en zayıf', () => {
      Artık `TesisOzellik.birim` ne diyorsa o yazılır — yani beklenti
      KAYDIN kendi birimidir, aracın varsayımı değil. */
   it('güç yazısı satırın BİRİMİNİ kullanır', () => {
-    expect(olcuYazisi(santral({ id: 'x', gucMw: 100, gucBirim: 'MW' }), 'guc')).toBe('100 MW');
-    expect(olcuYazisi(santral({ id: 'y', gucMw: 100, gucBirim: 'm³/gün' }), 'guc')).toBe('100 m³/gün');
+    expect(olcuYazisi(santral({ id: 'x', kuruluGuc: 100, gucBirim: 'MW' }), 'guc')).toBe('100 MW');
+    expect(olcuYazisi(santral({ id: 'y', kuruluGuc: 100, gucBirim: 'm³/gün' }), 'guc')).toBe('100 m³/gün');
   });
 
   it('birimsiz satırda birim UYDURULMAZ', () => {
     /* Satırda birim yoksa sayı çıplak yazılır. Bir birim varsaymak,
        "bilinmeyen ≠ sıfır" kuralının birim tarafındaki karşılığını
        delerdi: okuyan kişi ölçülmemiş bir birimi ölçülmüş sanardı. */
-    expect(olcuYazisi(santral({ id: 'z', gucMw: 100, gucBirim: null }), 'guc')).toBe('100');
+    expect(olcuYazisi(santral({ id: 'z', kuruluGuc: 100, gucBirim: null }), 'guc')).toBe('100');
   });
 });
 

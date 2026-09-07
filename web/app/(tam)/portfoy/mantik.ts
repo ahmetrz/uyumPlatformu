@@ -14,7 +14,7 @@
 export type PortfoySatiri = {
   id: string; kod: string; ad: string;
   tipKod: string | null; tipAdi: string; tuzelKisi: string | null;
-  konum: string | null; gucMw: number | null; gucBirim: string | null;
+  konum: string | null; kuruluGuc: number | null; gucBirim: string | null;
   gorselAnahtari: string | null;
   /** Coğrafi konum; null = girilmedi (harita ili kullanır, A4). */
   enlem: number | null; boylam: number | null;
@@ -51,7 +51,7 @@ export const TUZEL_YOK = '__yok';
    onu daima sona atar, anahtardan bağımsız. */
 function olcu(s: PortfoySatiri, anahtar: SiralamaAnahtari): number | null {
   switch (anahtar) {
-    case 'guc': return s.gucMw;
+    case 'guc': return s.kuruluGuc;
     case 'bulgu': return s.acikBulgu;
     case 'risk': return s.acikRisk;
     case 'uyum': return s.uyumYuzde;

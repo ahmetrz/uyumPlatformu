@@ -91,7 +91,7 @@ type Ozet = {
   uyumYuzde: number | null; bilinmeyenOran: number | null;
   kritikRisk: number; gecikmisAksiyon: number;
   yaklasanDenetim: { kod: string; ad: string; tarih: string; kalanGun: number } | null;
-  tesisSayisi: number; toplamGucMw: number; toplamGucBirim: string | null;
+  tesisSayisi: number; toplamKuruluGuc: number; toplamGucBirim: string | null;
 };
 
 /** Katman panelinde çizilen tip sayısı — kalanı sayıyla söylenir. */
@@ -110,7 +110,7 @@ const KALAN_SATIR_PX = 20;
    aynıdır: kullanıcı özette gördüğü üç adı panelin başında yeniden bulur. */
 function olculmemisSirali(tesisler: TesisKarti[]): TesisKarti[] {
   return tesisler.filter((s) => s.endeks === null)
-    .sort((a, b) => (b.gucMw ?? -1) - (a.gucMw ?? -1));
+    .sort((a, b) => (b.kuruluGuc ?? -1) - (a.kuruluGuc ?? -1));
 }
 
 const ONEM_SINIF: Record<string, string> = {
@@ -160,7 +160,7 @@ export default function Genel({
   /* Güç yazısı: sayı + VERİDEN gelen birim. Karışık birimde birim
      yazılmaz — karışık bir toplamı tek birimle etiketlemek onu tek
      birimmiş gibi gösterirdi (`ozellikToplami` aynı kuralı uyguluyor). */
-  const gucYazi = olculenYazi({ deger: ozet.toplamGucMw, birim: ozet.toplamGucBirim }) ?? '—';
+  const gucYazi = olculenYazi({ deger: ozet.toplamKuruluGuc, birim: ozet.toplamGucBirim }) ?? '—';
 
   return (
     <main className="ab-b-saha ab-b-genel">
@@ -215,8 +215,8 @@ export default function Genel({
                     <span className="ad">{tipAdi(t.kod, t.ad)}</span>
                     <span className="mono deger">{t.endeks === null ? '—' : `%${t.endeks}`}</span>
                   </div>
-                  <p className="mono meta" title={`${t.tesisSayisi} santral · ${t.gucMw} MWe · ${t.kontrolSayisi} kontrol`}>
-                    {t.tesisSayisi} santral · {t.gucMw} MWe
+                  <p className="mono meta" title={`${t.tesisSayisi} santral · ${t.kuruluGuc} MWe · ${t.kontrolSayisi} kontrol`}>
+                    {t.tesisSayisi} santral · {t.kuruluGuc} MWe
                   </p>
                   <Yigin uygun={t.uygun} kismi={t.kismi} uygunsuz={t.uygunsuz}
                     bilinmeyen={t.bilinmeyen} tip={t.kod} kontrol={t.kontrolSayisi} />
@@ -275,18 +275,18 @@ export default function Genel({
             <p className="ab-olculmemis-not">
               Bu santrallerin uyum endeksi <strong>ölçülmedi</strong> — sıfır değil.
               Güce göre sıralı; toplam{' '}
-              {olculmemisSerit.reduce((a, s) => a + (s.gucMw ?? 0), 0).toFixed(1)} MWe.
+              {olculmemisSerit.reduce((a, s) => a + (s.kuruluGuc ?? 0), 0).toFixed(1)} MWe.
             </p>
             <ul className="ab-olculmemis-liste">
               {olculmemisSerit.map((s) => (
                 <li key={s.id}>
                   <Link href={`/tesisler/${s.id}`}
-                    aria-label={`${s.ad} · ${s.gucMw ?? 'güç kaydı yok'} MW · değerlendirilmedi`}>
+                    aria-label={`${s.ad} · ${s.kuruluGuc ?? 'güç kaydı yok'} MW · değerlendirilmedi`}>
                     {/* `color` veriyoruz: tarama deseni de kenarlık da
                         `currentColor` okur, ikisi tek yerden gelsin. */}
                     <span className="kare" aria-hidden style={{ color: tipRengi(s.tipKod) }} />
                     <span className="ad">{s.ad}</span>
-                    <span className="mono guc">{s.gucMw ?? '—'} MW</span>
+                    <span className="mono guc">{s.kuruluGuc ?? '—'} MW</span>
                   </Link>
                 </li>
               ))}
@@ -567,9 +567,9 @@ function Takimyildizi({ tesisler, gosterim = OLCULMEMIS_VARSAYILAN, serit, panel
   const olculmemis = tesisler.filter((s) => s.endeks === null);
   /* Ölçek TÜM portföyden gelir: eksen ve panel aynı dikey ölçeği
      paylaşmazsa iki taraf karşılaştırılamaz hâle gelir. */
-  const enGuc = Math.max(1, ...tesisler.map((s) => s.gucMw ?? 0));
-  const dikey = (s: TesisKarti) => 8 + Math.sqrt((s.gucMw ?? 0) / enGuc) * 100 * 0.78;
-  const mweToplam = olculmemis.reduce((a, s) => a + (s.gucMw ?? 0), 0).toFixed(1);
+  const enGuc = Math.max(1, ...tesisler.map((s) => s.kuruluGuc ?? 0));
+  const dikey = (s: TesisKarti) => 8 + Math.sqrt((s.kuruluGuc ?? 0) / enGuc) * 100 * 0.78;
+  const mweToplam = olculmemis.reduce((a, s) => a + (s.kuruluGuc ?? 0), 0).toFixed(1);
   const { gosterilen: ilkAdlar, kalan } = ozetKur(serit.map((s) => s.ad), gosterim);
 
   /* Künye çakışması — ÖLÇÜLDÜ, varsayılmadı: Saha A-3 (%56 · 165 MW)
@@ -641,7 +641,7 @@ function Takimyildizi({ tesisler, gosterim = OLCULMEMIS_VARSAYILAN, serit, panel
               const uygunsuz = s.sayim.uyumsuz ?? 0;
               return (
                 <Link key={s.id} href={`/tesisler/${s.id}`}
-                  title={`${s.ad} · ${s.gucMw ?? '—'} MW · %${s.endeks}${uygunsuz > 0 ? ` · ${uygunsuz} uygunsuz` : ''}`}
+                  title={`${s.ad} · ${s.kuruluGuc ?? '—'} MW · %${s.endeks}${uygunsuz > 0 ? ` · ${uygunsuz} uygunsuz` : ''}`}
                   /* Odak sırası: uygunsuzu olan santral öne (`oncelik`, tam
                      mürekkep + halka), temiz olan arkaya (ikincil mürekkep).
                      Künye yönü: %58'in sağında sola, komşusu varsa alta,
@@ -732,7 +732,7 @@ function SahaKarti({ s }: { s: TesisKarti }) {
         </span>
         <span className="ad">{s.ad}</span>
         <span className="olcu">
-          <span className="mono guc">{s.gucMw ?? '—'} MW</span>
+          <span className="mono guc">{s.kuruluGuc ?? '—'} MW</span>
           <span className="mono skor">{s.endeks === null ? '—' : `%${s.endeks}`}</span>
         </span>
         <Yigin uygun={s.sayim.uyumlu ?? 0} kismi={s.sayim.kismi ?? 0}

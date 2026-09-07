@@ -37,8 +37,8 @@ export type { PortfoySatiri } from './mantik';
    yalnız durumu tutar ve sonucu çizer. En zayıf tesis SÖZCÜKLE
    işaretlenir ("en zayıf · 4 açık bulgu"), yalnız kenarlık rengiyle değil. */
 
-export default function Portfoy({ satirlar, toplamGucMw, endeks, kapsamli = false }: {
-  satirlar: PortfoySatiri[]; toplamGucMw: number;
+export default function Portfoy({ satirlar, toplamKuruluGuc, endeks, kapsamli = false }: {
+  satirlar: PortfoySatiri[]; toplamKuruluGuc: number;
   endeks: PortfoyEndeksi;
   kapsamli?: boolean;
 }) {
@@ -53,7 +53,7 @@ export default function Portfoy({ satirlar, toplamGucMw, endeks, kapsamli = fals
     for (const s of satirlar) {
       const k = s.tipKod ?? 'DIGER';
       const v = m.get(k) ?? { kod: k, ad: s.tipAdi, adet: 0, guc: 0 };
-      v.adet += 1; v.guc += s.gucMw ?? 0; m.set(k, v);
+      v.adet += 1; v.guc += s.kuruluGuc ?? 0; m.set(k, v);
     }
     return [...m.values()].sort((a, b) => b.adet - a.adet);
   }, [satirlar]);
@@ -69,7 +69,7 @@ export default function Portfoy({ satirlar, toplamGucMw, endeks, kapsamli = fals
      cevaplanır. */
   const zayif = useMemo(() => enZayif(gorunen, anahtar), [gorunen, anahtar]);
   const secili = gorunen.find((s) => s.id === seciliId) ?? gorunen[0] ?? null;
-  const gorunenGuc = Math.round(gorunen.reduce((a, s) => a + (s.gucMw ?? 0), 0) * 10) / 10;
+  const gorunenGuc = Math.round(gorunen.reduce((a, s) => a + (s.kuruluGuc ?? 0), 0) * 10) / 10;
   /* TOPLAMIN BİRİMİ satırlardan gelir, koda gömülmez. Satırlar farklı
      birimler taşıyorsa toplam ANLAMSIZDIR ve birim yazılmaz — sayıyı
      tek bir birimle etiketlemek karışık bir toplamı tek birimmiş gibi
@@ -77,7 +77,7 @@ export default function Portfoy({ satirlar, toplamGucMw, endeks, kapsamli = fals
   const birimler = new Set(satirlar.map((s) => s.gucBirim).filter(Boolean));
   const tekBirim = birimler.size === 1 ? [...birimler][0]! : null;
   const yaz = (x: number) => olculenYazi({ deger: x, birim: tekBirim });
-  const toplamGucYazi = yaz(toplamGucMw);
+  const toplamGucYazi = yaz(toplamKuruluGuc);
   const gorunenGucYazi = yaz(gorunenGuc);
   const suzgecli = tip !== HEPSI || tuzel !== HEPSI;
   const siralamaAdi = SIRALAMALAR.find((s) => s.anahtar === anahtar)?.ad ?? '';
@@ -168,7 +168,7 @@ export default function Portfoy({ satirlar, toplamGucMw, endeks, kapsamli = fals
               </p>
               <dl className="olgular">
                 <Olgu ad="Kurulu güç"
-                  deger={olculenYazi({ deger: secili.gucMw, birim: secili.gucBirim }) ?? '—'} />
+                  deger={olculenYazi({ deger: secili.kuruluGuc, birim: secili.gucBirim }) ?? '—'} />
                 <Olgu ad="Uyum endeksi"
                   deger={secili.uyumYuzde === null ? '—' : `%${secili.uyumYuzde}`}
                   not={secili.bilinmeyenOran != null && secili.bilinmeyenOran > 0
@@ -266,7 +266,7 @@ export default function Portfoy({ satirlar, toplamGucMw, endeks, kapsamli = fals
                   <span className="olcu">
                     <span className="mono guc">
                       {[s.tuzelKisi,
-                        olculenYazi({ deger: s.gucMw, birim: s.gucBirim }) ?? 'kurulu güç kayıtsız']
+                        olculenYazi({ deger: s.kuruluGuc, birim: s.gucBirim }) ?? 'kurulu güç kayıtsız']
                         .filter(Boolean).join(' · ')}
                       {/* Güç dışı bir anahtarla sıralanırken ölçü satırda da yazılır;
                           "ölçülmedi" sözcüğü sıfırla karışmaz. */}

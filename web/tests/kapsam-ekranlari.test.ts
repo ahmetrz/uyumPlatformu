@@ -659,8 +659,8 @@ describe('/portfoy · kapsam', () => {
   it('toplam kurulu güç de daraltılmış satırlardan toplanıyor', async () => {
     const a = await portfoyEkranVerisi(kA);
     const g = await portfoyEkranVerisi(kGlobal);
-    expect(a.toplamGucMw).toBe(11);
-    expect(g.toplamGucMw).toBeGreaterThan(a.toplamGucMw);
+    expect(a.toplamKuruluGuc).toBe(11);
+    expect(g.toplamKuruluGuc).toBeGreaterThan(a.toplamKuruluGuc);
     expect(a.satirlar).toHaveLength(1);
   });
 
@@ -682,7 +682,7 @@ describe('/ (yönetici özeti) · kapsam', () => {
     const g = await genelEkranVerisi(kGlobal);
     expect(a.ozet.tesisSayisi).toBe(1);
     expect(g.ozet.tesisSayisi).toBeGreaterThan(1);
-    expect(a.ozet.toplamGucMw).toBe(11);
+    expect(a.ozet.toplamKuruluGuc).toBe(11);
     expect(a.ozet.kritikRisk).toBeLessThan(g.ozet.kritikRisk);
     expect(a.toplamKayit).toBeLessThanOrEqual(g.toplamKayit);
   });

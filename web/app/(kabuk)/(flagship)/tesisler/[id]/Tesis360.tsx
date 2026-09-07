@@ -57,7 +57,7 @@ export type ZincirDuragi = {
 };
 
 export type Birim = {
-  id: string; kod: string; ad: string; gucMw: number | null; durum: string;
+  id: string; kod: string; ad: string; kuruluGuc: number | null; durum: string;
   sistemSayisi: number; varlikSayisi: number;
 };
 
@@ -69,7 +69,7 @@ export type AcikBulgu = {
 export type Tesis360Veri = {
   id: string; kod: string; ad: string;
   tipKod: string | null; tipAdi: string; tuzelKisi: string | null;
-  konum: string | null; gucMw: number | null; gorselAnahtari: string | null;
+  konum: string | null; kuruluGuc: number | null; gorselAnahtari: string | null;
   kritiklik: string | null; uniteSayisi: number | null;
   /** OT mimari profili — null: kayıt hiç açılmamış (her alan tanımsız) */
   profil: OtProfilKaydi | null;
@@ -153,7 +153,7 @@ export default function Tesis360({ veri, tesisler, sozluk }: {
         {/* Prototipte beş ölçü vardı; ikisi (anlık üretim, kullanılabilirlik)
             gerçek üretim sistemine bağlanmadığı için UYDURULMADI. */}
         <div className="olcuolar">
-          <Olcu etiket="Kurulu güç" deger={veri.gucMw ?? '—'} birim="MWe" />
+          <Olcu etiket="Kurulu güç" deger={veri.kuruluGuc ?? '—'} birim="MWe" />
           <Olcu etiket={tBas(sozluk, 'birim')} deger={veri.uniteSayisi ?? 0} />
           <Olcu etiket="Kayıtlı varlık" deger={veri.varlikSayisi} />
           <Olcu etiket="Kritiklik sınıfı"
@@ -309,7 +309,7 @@ export default function Tesis360({ veri, tesisler, sozluk }: {
               <span className="kod">{u.kod}</span>
               <span className="ad">
                 <span className="baslik">{u.ad}</span>
-                <span className="mono guc">{u.gucMw ?? '—'} MW</span>
+                <span className="mono guc">{u.kuruluGuc ?? '—'} MW</span>
               </span>
               <span className="mono kayit">
                 {u.sistemSayisi} sistem · {u.varlikSayisi} varlık

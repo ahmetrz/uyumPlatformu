@@ -38,7 +38,7 @@ import { KURULU_GUC, birimliOzellik, ozelligeGoreSirala } from '@/lib/alan/oznit
 
 export type EkranVerisi = {
   satirlar: PortfoySatiri[];
-  toplamGucMw: number;
+  toplamKuruluGuc: number;
   /** Portföy geneli uyum endeksi — kök ekranla AYNI formül (`uyumOzeti`),
       aynı kapsam. Değerlendirilmiş kontrol yoksa `yuzde: null`. */
   endeks: PortfoyEndeksi;
@@ -113,7 +113,7 @@ export async function portfoyEkranVerisi(k: AktifKullanici): Promise<EkranVerisi
       /* Sayı ve BİRİM birlikte taşınır: birimi ekranda sabit yazmak
          çekirdeğe enerji birimi gömerdi (§0.5). `birimliOzellik` satırda
          ne yazıyorsa onu verir; yoksa birimsiz yazılır, uydurulmaz. */
-      ...((o) => ({ gucMw: o.deger, gucBirim: o.birim }))(
+      ...((o) => ({ kuruluGuc: o.deger, gucBirim: o.birim }))(
         birimliOzellik(t.ozellikler, KURULU_GUC)),
       gorselAnahtari: t.gorselAnahtari,
       enlem: t.enlem, boylam: t.boylam,
@@ -129,7 +129,7 @@ export async function portfoyEkranVerisi(k: AktifKullanici): Promise<EkranVerisi
   /* Toplam kurulu güç GÖRÜNEN satırlardan toplanır: kapsam dışı tesisin
      gücü toplama girseydi, satırı gizlenmiş bir tesisin varlığı tek bir
      sayıdan okunabilirdi. */
-  const toplamGuc = satirlar.reduce((a, s) => a + (s.gucMw ?? 0), 0);
+  const toplamGuc = satirlar.reduce((a, s) => a + (s.kuruluGuc ?? 0), 0);
 
   /* Portföy endeksi tesis yüzdelerinin ORTALAMASI değildir: 900 kontrollü
      bir tesisle 40 kontrollü bir tesisi eşit ağırlıkta toplamak yanlış
@@ -142,7 +142,7 @@ export async function portfoyEkranVerisi(k: AktifKullanici): Promise<EkranVerisi
 
   return {
     satirlar,
-    toplamGucMw: Math.round(toplamGuc * 10) / 10,
+    toplamKuruluGuc: Math.round(toplamGuc * 10) / 10,
     endeks: {
       yuzde: genel.yuzde,
       bilinmeyenOran: genel.bilinmeyenOran,

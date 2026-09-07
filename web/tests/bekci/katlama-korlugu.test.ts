@@ -147,13 +147,18 @@ const CAMEL_BAS = /\b(jes|res|hes|ges)(?=[A-Z])/g;
    İki karar aynı ilkeden çıkıyor: kalıp, ÖLÇÜM gösterdiğinde eklenir.
    Bu blok MW kalıbının körlüğünü kalıcı tutuyor — biri
    `camelKalibi`yi "sözcük sınırı zaten yeter" diye kaldırırsa, o gün
-   depoda `gucMw` bulunsa bile bekçi yeşil kalırdı.
+   depoda öyle bir yazım bulunsa bile bekçi yeşil kalırdı.
+
+   (Aşağıdaki dizeler NUMUNEDİR, kod tanımlayıcısı değil: depoda o
+   yazımlar artık YOK — `gucMw` ailesi `kuruluGuc`a çevrildi ve birim
+   veriden geliyor. Numuneleri "temizlemek", kalıbın ne gördüğünü
+   sınayan tek şeyi silerdi.)
    ═══════════════════════════════════════════════════════════════════════ */
 describe('Bekçi körlüğü · camelCase içine gömülü MW', () => {
   /** Düzeltmeden ÖNCEKİ MW kalıbı: yalnız sözcük sınırlı. */
   const ONCE_MW = (m: string) => eslesmeSayisi(sinirKalibi('MW[ep]?'), m);
 
-  it('`gucMw` — öncesi 0, sonrası 1 [URN-ALN-007]', () => {
+  it('`gucMw` NUMUNESİ — öncesi 0, sonrası 1 [URN-ALN-007]', () => {
     const kod = 'const gucMw = birim.gucMw ?? null;';
     expect(ONCE_MW(kod), 'sözcük sınırı camelCase içini GÖRMEMELİ').toBe(0);
     expect(bugun('MW', kod), 'bugünkü kalıp görmeli').toBeGreaterThan(0);

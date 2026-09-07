@@ -24,7 +24,7 @@ function santral(ek: Partial<PortfoySatiri> & { id: string }): PortfoySatiri {
   return {
     kod: ek.id.toUpperCase(), ad: ek.id,
     tipKod: 'JES', tipAdi: 'Jeotermal', tuzelKisi: 'Demo Jeotermal',
-    konum: null, gucMw: 100, gucBirim: 'MW', gorselAnahtari: null, kritiklik: null,
+    konum: null, kuruluGuc: 100, gucBirim: 'MW', gorselAnahtari: null, kritiklik: null,
     enlem: null, boylam: null,
     konumKaynagi: null, konumDogrulandi: false,
     uyumYuzde: 80, bilinmeyenOran: 0, acikBulgu: 0, acikRisk: 0,

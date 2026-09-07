@@ -50,7 +50,7 @@ import {
 export type TesisKarti = {
   id: string; kod: string; ad: string;
   tipKod: string | null; tipAd: string | null;
-  gucMw: number | null; konum: string | null; gorselAnahtari: string | null;
+  kuruluGuc: number | null; konum: string | null; gorselAnahtari: string | null;
   /** ham durum → adet; kapsam dışı SAYILMAZ */
   sayim: Record<string, number>;
   /** `uyumOzeti` ile; hiç değerlendirilmemişse null — sıfır DEĞİL */
@@ -61,7 +61,7 @@ export type TesisKarti = {
 /** Üretim tipine göre uyum katmanı — prototipin sağ sütunu. */
 export type TipKatmani = {
   kod: string; ad: string;
-  tesisSayisi: number; gucMw: number; kontrolSayisi: number;
+  tesisSayisi: number; kuruluGuc: number; kontrolSayisi: number;
   endeks: number | null;
   uygun: number; kismi: number; uygunsuz: number; bilinmeyen: number;
 };
@@ -97,7 +97,7 @@ export type EkranVerisi = {
     kritikRisk: number; gecikmisAksiyon: number;
     /** En yakın planlı denetim: ad ve tarih ekranda YAZILIR, yalnız kod değil. */
     yaklasanDenetim: { kod: string; ad: string; tarih: string; kalanGun: number } | null;
-    tesisSayisi: number; toplamGucMw: number; toplamGucBirim: string | null;
+    tesisSayisi: number; toplamKuruluGuc: number; toplamGucBirim: string | null;
   };
   odak: Kayit | null;
   kuyruk: Kayit[];
@@ -317,7 +317,7 @@ export async function genelEkranVerisi(k: AktifKullanici): Promise<EkranVerisi> 
     return {
       id: t.id, kod: t.kod, ad: t.ad,
       tipKod: t.tip?.kod ?? null, tipAd: t.tip?.ad ?? null,
-      gucMw: sayisalOzellik(t.ozellikler, KURULU_GUC), konum: t.konum, gorselAnahtari: t.gorselAnahtari,
+      kuruluGuc: sayisalOzellik(t.ozellikler, KURULU_GUC), konum: t.konum, gorselAnahtari: t.gorselAnahtari,
       sayim: s, endeks: o.yuzde, bilinmeyen: o.bilinmeyen,
     };
   });
@@ -329,11 +329,11 @@ export async function genelEkranVerisi(k: AktifKullanici): Promise<EkranVerisi> 
     const kod = s.tipKod ?? '—';
     const kat = tipHarita.get(kod) ?? {
       kod, ad: s.tipAd ?? 'Tipi tanımsız',
-      tesisSayisi: 0, gucMw: 0, kontrolSayisi: 0,
+      tesisSayisi: 0, kuruluGuc: 0, kontrolSayisi: 0,
       endeks: null, uygun: 0, kismi: 0, uygunsuz: 0, bilinmeyen: 0,
     };
     kat.tesisSayisi += 1;
-    kat.gucMw += s.gucMw ?? 0;
+    kat.kuruluGuc += s.kuruluGuc ?? 0;
     kat.uygun += s.sayim.uyumlu ?? 0;
     kat.kismi += s.sayim.kismi ?? 0;
     kat.uygunsuz += s.sayim.uyumsuz ?? 0;
@@ -347,7 +347,7 @@ export async function genelEkranVerisi(k: AktifKullanici): Promise<EkranVerisi> 
     });
     return {
       ...kat,
-      gucMw: Math.round(kat.gucMw * 10) / 10,
+      kuruluGuc: Math.round(kat.kuruluGuc * 10) / 10,
       kontrolSayisi: o.kapsam,
       endeks: o.yuzde,
     };
@@ -462,7 +462,7 @@ export async function genelEkranVerisi(k: AktifKullanici): Promise<EkranVerisi> 
       /* Birim VERİDEN gelir (`TesisOzellik.birim`); ekran onu koda
          gömmüyor. Karışık birimde `null` gelir ve sayı birimsiz yazılır. */
       ...((o) => ({
-        toplamGucMw: Math.round(o.toplam * 10) / 10, toplamGucBirim: o.birim,
+        toplamKuruluGuc: Math.round(o.toplam * 10) / 10, toplamGucBirim: o.birim,
       }))(ozellikToplami(gucToplami, KURULU_GUC)),
     },
     odak: sirali[0] ? kayit(sirali[0]) : null,

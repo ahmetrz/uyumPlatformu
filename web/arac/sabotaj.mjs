@@ -246,6 +246,14 @@ const SABOTAJLAR = [
     yaz: '  const kapi = { ok: true } as const;',
     testler: ['tests/kapanis-yolu.test.ts'],
   },
+  {
+    ad: 'Sektör terimi izin listesi dışında bir dosyaya sızdı',
+    kural: 'Çekirdek kod sektör terimi taşımaz; borç kütüğü YALNIZ erir',
+    dosya: 'lib/alan/ag.ts',
+    ara: '/* ═══ IP · subnet · CIDR — SAF MANTIK ══════════════════════════════════',
+    yaz: '/* ═══ IP · subnet · CIDR — SAF MANTIK (santral ağı) ════════════════════',
+    testler: ['tests/bekci/sektor-terimi.test.ts'],
+  },
 ];
 
 function testKos(testler) {

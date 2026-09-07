@@ -101,4 +101,16 @@ export const URUNLESTIRME_SENARYOLARI: Senaryo[] = [
     beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
     katmanlar: ['DOMAIN', 'UI'],
   },
+  {
+    id: 'URN-ALN-003', alan: 'Ürünleştirme', rota: '—', eksen: 'akis',
+    amac: 'Çekirdek koda sektör teriminin geri sızmasını engellemek',
+    rol: 'ürünü sürdüren geliştirici', kapsam: 'depo geneli',
+    onkosul: 'Bugün 258 dosya hâlâ gömülü terim taşıyor; borç kütüğe yazıldı',
+    veriHali: 'kısmi',
+    eylem: 'Bekçi test app/, components/ ve lib/ altındaki .ts/.tsx/.css dosyalarını (adları dâhil) tarar',
+    beklenenSonuc: 'İzin listesinde OLMAYAN dosyada sektör terimi varsa kırmızı; listedeki bir dosyada terim kalmamışsa kırmızı (listeden düşürülür); liste tavanı aşamaz. Tarama metin literaliyle sınırlı değildir — tanımlayıcılar, yorumlar, CSS sınıfları ve dosya adları da sayılır',
+    beklenenEkran: 'Ekran yok — kapı',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['DOMAIN', 'UI'],
+  },
 ];

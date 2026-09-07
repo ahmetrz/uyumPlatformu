@@ -52,10 +52,26 @@ export const KUTUKSUZ_DOSYALAR = {
   'uc-deger-kurali.test.ts': 'Üç değerli mantığın sözlüğü',
 };
 
+/* Vitest'in globuyla AYNI küme: `tests/**\/*.test.ts` — yani ALT
+   DİZİNLER DE. Düz `readdirSync` yalnız kökü görüyordu; `tests/bekci/`
+   gibi bir alt dizin açıldığında oradaki testler kütük ölçümünün dışında
+   kalır, senaryoları GAP görünür ve araç kendi körlüğünü kusur diye
+   raporlardı. Ölçüm aracının kapsamı, ölçtüğü kümenin kapsamıyla aynı
+   olmak zorundadır. Dosya adı `tests/` köküne GÖRELİ tutulur ki iki
+   dizindeki aynı ad birbirini ezmesin. */
 function testDosyalari() {
-  return readdirSync(TEST_DIZINI)
-    .filter((d) => d.endsWith('.test.ts'))
-    .map((d) => ({ ad: d, metin: readFileSync(path.join(TEST_DIZINI, d), 'utf8') }));
+  const cikti = [];
+  const gez = (d) => {
+    for (const ad of readdirSync(d, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
+      const tam = path.join(d, ad.name);
+      if (ad.isDirectory()) gez(tam);
+      else if (ad.name.endsWith('.test.ts')) {
+        cikti.push({ ad: path.relative(TEST_DIZINI, tam), metin: readFileSync(tam, 'utf8') });
+      }
+    }
+  };
+  gez(TEST_DIZINI);
+  return cikti;
 }
 
 /** Bir dosyadaki `[KIMLIK]` işaretlerini ve taşıdıkları test başlığını çıkarır. */

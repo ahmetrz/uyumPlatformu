@@ -4,12 +4,12 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 280 |
-| Testi olan senaryo | 280 |
+| Senaryo | 281 |
+| Testi olan senaryo | 281 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
-| Taranan test dosyası | 143 |
+| Taranan test dosyası | 144 |
 
 ## Katman başına kapsam
 
@@ -18,7 +18,7 @@
 | ACCESSIBILITY | 8 | 8 | 0 |
 | API | 12 | 12 | 0 |
 | CONCURRENCY | 7 | 7 | 0 |
-| DOMAIN | 147 | 147 | 0 |
+| DOMAIN | 148 | 148 | 0 |
 | ENGINE | 33 | 33 | 0 |
 | INTEGRATION | 26 | 26 | 0 |
 | MIGRATION | 3 | 3 | 0 |
@@ -26,7 +26,7 @@
 | RESPONSIVE | 8 | 8 | 0 |
 | SCOPE | 30 | 30 | 0 |
 | SERVER | 104 | 104 | 0 |
-| UI | 78 | 78 | 0 |
+| UI | 79 | 79 | 0 |
 | VISUAL | 4 | 4 | 0 |
 | WORKFLOW | 32 | 32 | 0 |
 
@@ -321,6 +321,7 @@
 | `URN-ALN-004` | Ürünleştirme | DOMAIN · UI | `p1-terim-sozlugu.test.ts` | çekirdek karşılıklar hiçbir sektör sözcüğü taşımaz | evet | geçti |
 | `URN-ALN-004` | Ürünleştirme | DOMAIN · UI | `p1-tesis360-sozluk.test.ts` | enerji sözlüğü kuruluyken ekran adı "Santral 360" | evet | geçti |
 | `URN-ALN-004` | Ürünleştirme | DOMAIN · UI | `p1-tesis360-sozluk.test.ts` | sözlük kaldırılınca AYNI ekran "Tesis 360" der | evet | geçti |
+| `URN-ALN-003` | Ürünleştirme | DOMAIN · UI | `bekci/sektor-terimi.test.ts` | izin listesinde OLMAYAN dosyada sektör terimi yok | evet | geçti |
 
 ## Gerekçesiyle kütüksüz kalan dosyalar
 

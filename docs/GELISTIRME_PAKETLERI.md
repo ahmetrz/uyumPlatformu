@@ -296,9 +296,30 @@ görür, su kiracısı "tesis / m³/gün".
   sözlük anahtarına; ekran adları (`Tesis 360`, `Portföy`); harita
   "tesis haritası"; kapsam ağacı etiketleri; CSV/XLSX başlıkları; kanıt
   paketi alan adları (şema sürümü artar).
-- *Bekçi test:* `tests/bekci/sektor-terimi.test.ts` — `app/`, `components/`,
-  `lib/` içinde JSX/metin literalinde `santral|ünite|MWe|JES|RES|HES`
-  geçerse kırmızı; istisna: enerji sözlüğü dosyası ve demo paketi.
+- *Bekçi test:* `tests/bekci/sektor-terimi.test.ts` — **kuruldu (7 Eyl
+  2026), CIRCIR (ratchet) biçiminde.** `app/`, `components/`, `lib/`
+  altındaki `.ts` · `.tsx` · `.css` dosyalarının HAM METNİNİ ve DOSYA
+  ADINI tarar: `santral · ünite · MW/MWe/MWp · JES/JEO/RES/HES/GES/DGKÇ/
+  TERMİK · türbin · jeotermal/rüzgâr/hidroelektrik · plant`.
+
+  > **Tarife düzeltmesi.** Bu satır önce "JSX/metin literalinde" diyordu.
+  > Öyle bir tarama `type Santral`, `santraller: Santral[]`, `santralId`,
+  > `Plant360Veri` gibi **406 tanımlayıcı eşleşmesini** görmez ve paketin
+  > iddiasını boşa çıkarırdı (`docs/GELISTIRME_PAKETLERI_DURUM.md` §4.4).
+  > Tarama artık ham metin üstündedir: literal, tanımlayıcı, yorum, CSS
+  > sınıfı ve dosya adı dâhil.
+
+  İstisna listesi ayrı bir dosyadadır — `tests/bekci/sektor-terimi-izin.json`
+  — ve **borç kütüğüdür**: kapı kurulduğu gün kirli olan **258 dosya**.
+  Kural: **listeye dosya EKLENMEZ, yalnız çıkarılır.** Bekçi üç yönlü
+  ölçer: (a) listede olmayan dosyada terim → kırmızı, (b) listedeki
+  dosyada terim kalmamış → kırmızı (listeden düşür), (c) liste `tavan`ı
+  (258) aşamaz. `arac/sabotaj.mjs` kapının gerçekten ısırdığını ölçer
+  (25. sabotaj).
+
+  Kapsam dışı bırakılan iki terim, gerekçesiyle izin dosyasının
+  başlığında yazılıdır: `üretim` (Türkçede genel eylem — yanlış pozitif
+  üretir) ve `enerji` (kurulum adı yapılandırmadan gelir).
 - *Enerji sözlüğü:* ilk sektör paketi `SEKTOR-ENERJI-URETIM` (P4 paket
   biçimiyle): öznitelik şeması (`kuruluGucMw`, `uretimTipi`,
   `sebekeBaglantisi`…), sözlük (santral, üretim ünitesi…), tesis tipleri
@@ -327,7 +348,11 @@ sözlük katmanını kurar).
    `kapsamdisi` **değil** *(motor bugün de böyle davranıyor:
    `lib/motorlar/uygulanabilirlik.ts` eksik alanda `null` yayıyor —
    kriter mevcut davranışı korur, yenisini getirmez)*. [URN-ALN-002]
-3. Bekçi test yeşil: UI'da sabit sektör terimi yok. [URN-ALN-003]
+3. Bekçi test yeşil **ve izin listesi boş**: çekirdekte (`app/` ·
+   `components/` · `lib/`) sabit sektör terimi yok — metin literalinde de
+   tanımlayıcıda da. Kapı Aşama F'de **önce** kuruldu; kriter, listenin
+   erimesiyle karşılanır. Ara ölçü: kalan dosya sayısı (bugün **258**).
+   [URN-ALN-003]
 4. Enerji sözlüğü kuruluyken `/tesisler/[id]` başlığı "Santral 360",
    kurulu değilken "Tesis 360"; ikisi de aynı bileşenden. [URN-ALN-004]
 5. Kanıt paketi şema sürümü artmış; eski sürüm okuyucusu için alan adı

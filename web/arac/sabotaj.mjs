@@ -255,6 +255,14 @@ const SABOTAJLAR = [
     testler: ['tests/bekci/sektor-terimi.test.ts'],
   },
   {
+    ad: 'Terimin kırılma fırsatı garantisi kaldırıldı',
+    kural: 'Kırılamayan bir terim düzeni BOZMAZ, yalnız çirkin görünür',
+    dosya: 'app/kabuk.css',
+    ara: '.ab .terim-sar { min-width: 0; overflow-wrap: anywhere; }',
+    yaz: '.ab .terim-sar { min-width: auto; }',
+    testler: ['tests/senaryo-platform.test.ts'],
+  },
+  {
     ad: 'Tasarım belgesindeki jeton değeri koddan sapıyor',
     kural: 'DESIGN.md jeton değerleri kabuk.css\'ten SAPAMAZ',
     dosya: 'DESIGN.md',

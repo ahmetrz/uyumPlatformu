@@ -93,7 +93,9 @@ export default function BaglamCubugu({
         {sag}
         {secici && secici.length > 0 && (
           <div className="secici" ref={sarmal}>
-            <button type="button" className="ab-dugme"
+            {/* `terim-sar`: etiket sözlükten gelir ve müşteri içeriğidir;
+                kırılamayan uzun bir terim düğmeyi kabından taşırmasın. */}
+            <button type="button" className="ab-dugme terim-sar"
               aria-expanded={acik} aria-controls={menuId}
               onClick={() => setAcik((v) => !v)}>
               {etiket} <span aria-hidden>▾</span>

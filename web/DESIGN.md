@@ -366,6 +366,7 @@ altında durur — `arac/erisim.mjs` azaltılmış kipte çalışan animasyon ar
 - **Do** ölçülmemişi `null` taşı ve "—" / "ölçülmedi" yaz; bilinmeyen dilimini toplamda ayrı göster.
 - **Do** işlevsel metni 11px ve üstünde tut; sayıyı mono/tabular ve sağa hizalı yaz.
 - **Do** devre dışı düğmenin nedenini yanına yaz; hata detayını açılır `ab-teknik` bloğuna koy; uzun adı kırpma, sar (`overflow-wrap: anywhere`).
+- **Do** sektör sözlüğünden gelen bir sözcüğün düştüğü slota `terim-sar` ver. **Terim ürünün sabiti değil, müşteri içeriğidir**: uzunluğunu ve kırılabilirliğini biz seçmiyoruz. Taban `overflow-wrap: break-word` her yerde açık, ama genişliği içeriğinden gelen bir esnek/ızgara izi ancak `min-width: 0` ile daralır — ikisi bir arada olmadan hiçbiri yetmez (ölçüldü). Kırılamayan bir terim düzeni bozmasın, yalnız çirkin görünsün; kalıcı vakası `arac/iki-sozluk.mjs` `stres` sözlüğüdür.
 - **Do** her etkileşimli öğeye görünür odak ver ve klavyeyle ulaşılır kıl; `aria-current` tekil olsun.
 - **Do** kontrastı `arac/kontrast.mjs` ile ölç (metin 4,5:1, kenar/işaret 3:1) — yeni renk açmadan önce.
 
@@ -377,3 +378,4 @@ altında durur — `arac/erisim.mjs` azaltılmış kipte çalışan animasyon ar
 - **Don't** kritik bilgiyi yalnız hover/ipucuna koy; spinner, illüstrasyon ya da cesaretlendirme metniyle boş durum doldurma.
 - **Don't** aksanı metinde kullanma (C'de eşik altındadır); kabuğa açık tema ya da tema anahtarı ekleme.
 - **Don't** eski sınıf adlarına dönme (`t-label`, `cekmece-*`, `atlas-*`, `kart` …) — `arac/iz-tarama.mjs` yasak listeyi zorlar.
+- **Don't** `overflow-wrap: anywhere` kuralını kabuğun tamamına verme. Denendi ve düzeni bozdu: min-content tek harfe iner, `/bulgular` 375px'te üst gezinme harf harf alt alta düştü, kolon başlıkları dikey sütuna döndü. `anywhere` yalnız terimin düştüğü slotta (`terim-sar`) ve içeriği zaten uzun olan tekil yerlerde (hash, dosya adı) durur.

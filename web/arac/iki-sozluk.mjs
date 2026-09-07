@@ -17,6 +17,8 @@
      · `yatay-tasma.mjs`  375 + 768 · sayfa yana kayıyor mu
      · `dizustu.mjs`      1366×768 · kaydırılamayan (KIRPILAN) içerik
      · `erisim-axe.mjs`   WCAG 2 A/AA ihlalleri
+   Üç sözlükle: `enerji` (taban) · `su` (gerçek ikinci) · `stres`
+   (boşluksuz uzun gövde — kırılma fırsatı garantisinin kalıcı vakası).
    Kırpılma ayrı bir kapı olarak burada: `table-layout: fixed` +
    `overflow: hidden` taşan bir sözcüğü SESSİZCE keser, sayfa yana
    kaymaz ve `yatay-tasma` yeşil kalır. Uzun sözlüğün en olası kusur
@@ -28,8 +30,9 @@
 
    ── ÇIKTI ─────────────────────────────────────────────────────────────
    Kapı × sözlük tablosu. Kusur çıkarsa HANGİ SÖZLÜKTE çıktığı yazılır:
-     · yalnız `su` → sözlük uzunluğunun ürettiği kusur, bu dilimin işi.
-     · iki sözlükte de → sözlükten bağımsız kusur (çoğu zaman eski).
+     · yalnız `su`    → sözcük uzunluğunun ürettiği kusur, bu dilimin işi.
+     · yalnız `stres` → kırılma fırsatı garantisi eksik ya da kalkmış.
+     · hepsinde       → sözlükten bağımsız kusur (çoğu zaman eski).
    Kusurlu koşumun tam çıktısı da basılır; özet yeter sanıp kök sebebi
    gizlemek, kapının işini yarıda bırakırdı.
 
@@ -50,9 +53,15 @@ const KAPILAR = [
 const rotaArg = process.argv.find((a) => a.startsWith('--rota='));
 const rotalar = rotaArg ? rotaArg.slice('--rota='.length) : null;
 
-/* Taban ÖNCE koşar: `su` kusuru ancak `enerji` sonucuyla yan yana
-   konduğunda "sözlük uzunluğundan" diye okunabilir. */
-const SIRA = ['enerji', 'su'].filter((a) => SOZLUK_ADLARI.includes(a));
+/* Taban ÖNCE koşar: uzun sözlüğün kusuru ancak `enerji` sonucuyla yan
+   yana konduğunda "sözcük uzunluğundan" diye okunabilir.
+
+   `stres` bir sektör değil, KALICI SINAVDIR: boşluksuz uzun gövde, yani
+   hiç kırılma fırsatı olmayan terim. `kabuk.css` içindeki `.terim-sar`
+   savunmasının vakası odur — savunma kalkarsa burası kırmızı yanar.
+   Sözcük ürünün sabiti değil MÜŞTERİ İÇERİĞİ olduğu için bu koşum
+   isteğe bağlı değildir. */
+const SIRA = ['enerji', 'su', 'stres'].filter((a) => SOZLUK_ADLARI.includes(a));
 
 console.log(`iki-sozluk: rota ${rotalar ?? '(tüm küme)'} · sözlük ${SIRA.join(' → ')}\n`);
 
@@ -70,7 +79,7 @@ for (const kapi of KAPILAR) {
 
 /* Doğrulama satırı raporun bir parçası: takas ekrana ulaşmadıysa "temiz"
    yanlış sözlüğü ölçmüş demektir ve yeşil bir yalan olur. */
-const takasBozuk = sonuclar.filter((s) => s.sozluk === 'su' && s.dogrulama === 'santral');
+const takasBozuk = sonuclar.filter((s) => s.sozluk !== 'enerji' && s.dogrulama === 'santral');
 if (takasBozuk.length > 0) {
   console.error('\nSÖZLÜK TAKASI EKRANA ULAŞMADI — ölçüm geçersiz.');
   await db.$disconnect();
@@ -82,9 +91,15 @@ console.log('');
 for (const kapi of KAPILAR) {
   const k = sonuclar.filter((s) => s.kapi === kapi.ad && s.kod !== 0).map((s) => s.sozluk);
   if (k.length === 0) continue;
-  console.log(k.length === SIRA.length
-    ? `${kapi.ad}: İKİ SÖZLÜKTE DE kusurlu — sözlükten bağımsız.`
-    : `${kapi.ad}: YALNIZ ${k.join('/')} sözlüğünde kusurlu — sözcük uzunluğunun ürettiği kusur.`);
+  if (k.length === SIRA.length) {
+    console.log(`${kapi.ad}: HER SÖZLÜKTE kusurlu — sözlükten bağımsız.`);
+  } else if (k.length === 1 && k[0] === 'stres') {
+    console.log(`${kapi.ad}: YALNIZ stres sözlüğünde kusurlu — kırılma fırsatı`
+      + ' olmayan terim düzeni bozuyor; `.terim-sar` savunması eksik ya da kalkmış.');
+  } else {
+    console.log(`${kapi.ad}: YALNIZ ${k.join('/')} sözlüğünde kusurlu —`
+      + ' sözcük uzunluğunun ürettiği kusur.');
+  }
 }
 
 for (const s of kusurlu) {

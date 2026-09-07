@@ -415,15 +415,49 @@ görür, su kiracısı "tesis / m³/gün".
   `table-layout: fixed` + `overflow: hidden` taşan sözcüğü keser, sayfa
   yana kaymaz ve `yatay-tasma` yeşil kalır.
 
-  > **Ölçüldü (7 Eyl 2026).** Düzen, gerçek su sözlüğünü ve 51 harflik
-  > kurgusal bir gövdeyi taşıyor: eyebrow sarıyor, tablo kolonu esniyor,
-  > kutusuna sığmayan metin öğesi 0. Kapının kırmızı yanabildiği de
-  > ölçüldü: **boşluksuz** 31 harflik bir gövdeyle `/sistem/bilesenler`
-  > 375px'te 48px yana kaydı (`div.sag`) ve rapor "YALNIZ su" dedi.
-  > Yani düzen sektör teriminin **sarılabilir** olmasına bağlı; bugün
-  > sevk edilen bir kusur değil, kayıtlı bir bağımlılık. Boşluksuz
-  > bileşik ad kullanan bir sektör paketi gelirse (Almanca tarzı) o rota
-  > önce kırılır.
+  > **İstisna (yazılı olmasının sebebi budur).** `kolon-hizasi` **iki
+  > sözlükle ölçülmedi**: canlı sunucuda değil statik dışa aktarım
+  > (`out/`) üzerinde koşuyor, veri ve sözlük derleme anında gömülüyor;
+  > ikinci sözlükle ölçmek `out/`u o sözlükle yeniden derlemeyi
+  > gerektirir. Sebep meşru — ama yazılmazsa kural altı ay sonra "hepsi
+  > iki sözlükle koşuyor" diye okunur. Ölçülmedi, "geçti" değil
+  > (`web/arac/BENIOKU.md`; vakası `SIS-RSP-001`).
+
+- *Kırılma fırsatı garantisi (çekirdek savunma):* sektör sözcüğü ürünün
+  yazdığı bir sabit değil **MÜŞTERİ İÇERİĞİDİR**. Bir sektör paketi
+  boşluksuz uzun bir bileşik ad gönderdiğinde kusur bizim CI'mızda değil
+  o paketi yazanın ekranında çıkar ve hiçbir koşumuz onu görmez. Ölçüldü
+  (7 Eyl 2026): boşluksuz 31 harflik gövde `/sistem/bilesenler` rotasını
+  375px'te 48px yana kaydırıyordu (`div.ab-baglam > div.sag`).
+
+  Savunma iki katmanlı ve **ikisi de ölçülerek** seçildi:
+  `.ab, .ab * { overflow-wrap: break-word }` tabanı kutusuna sığmayan
+  sözcüğü kırar ve min-content'e dokunmadığı için mevcut sarma davranışını
+  değiştirmez; terimin düştüğü slot ayrıca `.terim-sar`
+  (`min-width: 0` + `overflow-wrap: anywhere`) taşır — genişliği
+  içeriğinden gelen bir esnek/ızgara izi ancak böyle daralabilir.
+
+  > Genel `overflow-wrap: anywhere` **denendi ve düzeni bozdu**:
+  > min-content tek harfe iner ve `/bulgular` 375px'te dağıldı — üst
+  > gezinme ("SAHA PORTFÖY UYUM") harf harf alt alta düştü, kolon
+  > başlıkları dikey sütuna döndü. Düzeni korumak için konan kural düzeni
+  > bozuyordu; ölçüm olmasa fark edilmezdi.
+
+  Kural ürünün kendi ilkesiyle aynı: **içerik sessizce kaybolmaz.**
+  Kırılamayan bir terim düzeni bozmasın, yalnız çirkin görünsün.
+
+  Kalıcı vaka: `arac/iki-sozluk.mjs` üçüncü bir **`stres`** sözlüğü koşar
+  (boşluksuz uzun gövde — sektör değil, sınav). Savunma kalkarsa o kapı
+  kırmızı yanar; `arac/sabotaj.mjs` (27.) bunu ayrıca ölçer. Savunmadan
+  sonra tam küme, üç sözlük: 3 kapı × 3 sözlük = 9 koşum, tek kusur
+  `/omur` (`span.ad`, `">1 yıl"`) ve o kusur **üç sözlükte de bit-bit
+  aynı** — sözlükten bağımsız, borç listesinde duruyor.
+
+  Paket tarafındaki karşılığı **P4'tedir** (`URN-PKT-007`): paket
+  kurulurken terim uzunluğu ölçülür, eşiğin üstünde ve kırılamayan terim
+  **uyarı** üretir, kurulumu bloklamaz. Eşik bugün seçilmedi — iki gerçek
+  paketle ölçülecek. Tip renklerinde yapılan bölmenin aynısı: çekirdek
+  savunması şimdi, paket sözleşmesi P4'te.
 
 **Kapsam dışı.** Sektöre özgü motor mantığı (yok — motorlar özniteliğe
 bakar); tesis tipi görselleri (P8); dil çevirisi (P3 — bu paket yalnız TR
@@ -682,6 +716,34 @@ kiracıya kurulur ve güncellenir; güncelleme fark motorunu besler.
 - *Ekran:* `/hub/paketler` (yayınla, sürümle, imzala), kiracıda
   `/paketler` (kurulu, güncelleme var, kur/güncelle → onay akışı, lisans
   notu, içerik dili).
+- *Sözlük doğrulaması (P1'den devir):* paket kurulurken **terim uzunluğu
+  ve kırılabilirliği ölçülür**; eşiğin üstünde VE kırılma fırsatı
+  taşımayan (boşluksuz/tiresiz) bir terim **UYARI üretir — kurulumu
+  BLOKLAMAZ.** Paket yazarı bilir, ürün çalışmaya devam eder.
+
+  Bloklamamanın sebebi ürünün kendi ilkesidir: motor önerir, insan karar
+  verir. Bir kiracının kendi sözcüğü uzun diye paketi reddetmek, ürünün
+  bilemeyeceği bir şeye karar vermek olurdu — belki o sektörde gerçekten
+  öyle deniyor.
+
+  Uyarı bir kusur değil, bir **ölçüm bildirimidir** ve "ölçülmedi ≠
+  sıfır" kuralına tabi: terim ölçülemiyorsa (dil paketi eksik, sözlük
+  yarım) uyarı üretilmez, "uzun değil" DENMEZ.
+
+  **Eşik bugün seçilmedi ve seçilmemeli.** P1'de tek bir kurgusal gövdeyle
+  (31 harf, boşluksuz) ölçüldü ve çekirdek savunması ona göre kuruldu;
+  bir eşik sayısı ancak İKİ GERÇEK paketle ölçülünce dürüst olur. P4'te
+  `SEKTOR-ENERJI-URETIM` ve ikinci gerçek sektör paketi elde olduğunda
+  ölçülür ve buraya yazılır. Bugün bir sayı yazmak, ölçmeden hedefe
+  uydurmak olurdu.
+
+  Çekirdek savunması P1'de **kuruldu** ve bu doğrulamanın önkoşuludur:
+  kırılamayan bir terim düzeni bozmaz, yalnız çirkin görünür
+  (`app/kabuk.css` · `.terim-sar`; kalıcı vaka `arac/iki-sozluk.mjs`
+  `stres` sözlüğü). Yani P4 uyarısı bir ÇÖKME riskini değil, bir
+  OKUNABİLİRLİK sorununu bildirir. Ayrım bilinçli: tip renklerinde
+  yapılan bölmenin aynısı — çekirdek savunması şimdi, paket sözleşmesi
+  P4'te.
 
 **Kapsam dışı.** Paket pazaryeri/ödeme; otomatik güncelleme (insan
 onayı şart); paket içeriğinin ürünle telif dışı gelmesi.
@@ -696,6 +758,10 @@ onayı şart); paket içeriğinin ürünle telif dışı gelmesi.
 5. OSCAL fikstürü içe alınıp tekrar dışa verildiğinde eşdeğer (gidiş-dönüş
    testi). [URN-PKT-005]
 6. Lisans notu kiracı ekranında ve kanıt paketinde görünür. [URN-PKT-006]
+7. Eşiğin üstünde ve kırılma fırsatı taşımayan terim içeren paket
+   **kurulur** ve kurulum raporunda uyarı olarak görünür; terimi
+   ölçülemeyen paket uyarı ÜRETMEZ ("uzun değil" demez). Eşik P4'te iki
+   gerçek paketle ölçülüp buraya yazılır. [URN-PKT-007]
 
 **Kararlar.** *İmza:* **Varsayılan** SHA-256 özet zorunlu, Ed25519 imza
 isteğe bağlı (hub anahtarı sır). *OSCAL dışı alanlar:* `props` ad alanı

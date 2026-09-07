@@ -186,6 +186,48 @@
 /* ═══ Ortak taban ═════════════════════════════════════════════════════ */
 
 .ab, .ab *, .ab *::before, .ab *::after { border-radius: 0; box-sizing: border-box; }
+
+/* ── KIRILMA FIRSATI GARANTİSİ (P1 · terim sözlüğü) ──────────────────
+   Ekranda okunan sektör sözcüğü kiracının paketinden gelir ("santral" ·
+   "arıtma tesisi" · yarın başka bir dilde bilinmeyen bir bileşik). O
+   sözcük ürünün yazdığı bir sabit DEĞİL, MÜŞTERİ İÇERİĞİDİR ve nereye
+   düşeceğini `t()` çağrısı belirler — yani her yere düşebilir.
+
+   Ölçüldü (7 Eyl 2026, `arac/iki-sozluk.mjs`): BOŞLUKSUZ 31 harflik bir
+   gövde `/sistem/bilesenler` rotasını 375px'te 48px yana kaydırıyordu.
+   Kusur bizim CI'mızda değil, o paketi yazan müşterinin ekranında
+   çıkardı ve hiçbir koşumuz onu görmezdi.
+
+   `break-word`, `anywhere` DEĞİL — ve bu fark ÖLÇÜLDÜ. İkisi de uzun
+   sözcüğü kırar; `anywhere` bunu min-content ölçüsüne de yansıtır, yani
+   her öğenin en dar hâli TEK HARFE iner. Genel kural olarak denendi
+   (7 Eyl 2026) ve `/bulgular` 375px'te dağıldı: üst gezinme
+   ("SAHA PORTFÖY UYUM") harf harf alt alta düştü, kolon başlıkları
+   dikey sütuna döndü. Düzeni korumak için konan kural düzeni bozdu.
+   `break-word` min-content'e dokunmaz: mevcut sarma davranışı
+   DEĞİŞMEZ (altın karşılaştırmada tek piksel fark yok), yalnız kutusuna
+   sığmayan sözcük kırılır.
+
+   `anywhere` gereken tekil yerler (uzun kimlik, hash, dosya adı) zaten
+   kendi kurallarını taşıyor; bu taban onları ezmez, altlarında kalır.
+
+   Kural ürünün kendi ilkesiyle aynı: içerik sessizce KAYBOLMAZ.
+   Kırılamayan bir terim düzeni bozmasın, yalnız çirkin görünsün. */
+.ab, .ab * { overflow-wrap: break-word; }
+
+/* Taban tek başına YETMEZ ve bu da ölçüldü: `break-word` min-content'e
+   dokunmadığı için, genişliği İÇERİĞİNDEN gelen bir esnek/ızgara izi
+   (`min-width: auto`) yine sözcüğün bölünemez genişliğine kadar büyür ve
+   kabından taşar. Terimin düştüğü SLOT bu yüzden ayrıca işaretlenir:
+   `min-width: 0` izin daralmasına izin verir, `anywhere` daralınca
+   sözcüğün kırılmasını sağlar. İkisi bir arada olmadan hiçbiri yetmez.
+
+   Sınıf ELLE konur ve konması gereken yer bellidir: sözlükten gelen bir
+   sözcüğün render edildiği, genişliği içeriğinden türeyen slot. Yeni bir
+   yüzey unutulursa kapı söyler — `arac/iki-sozluk.mjs` `stres` sözlüğü
+   (boşluksuz uzun gövde) bütün rotalarda koşar ve taşan öğeyi adıyla
+   yazar. Savunma kalkarsa o kapı kırmızı yanar. */
+.ab .terim-sar { min-width: 0; overflow-wrap: anywhere; }
 /* Tek istisna: durum daireleri ve avatar. Yarıçap SÜS DEĞİL, ŞEKİL
    KODLAMASININ parçası — dolu daire ile dolu kare farklı şey söyler. */
 .ab .daire { border-radius: 50%; }
@@ -2639,7 +2681,9 @@
   text-overflow: ellipsis; white-space: nowrap;
 }
 .ab-baglam .yol .son { color: var(--murekkep); font-weight: 500; }
-.ab-baglam .sag { margin-left: auto; display: flex; align-items: center; gap: 14px; }
+/* Sağ slot terimi taşır (kapsam seçici düğmesi) — daralabilmeli. */
+.ab-baglam .sag { margin-left: auto; display: flex; align-items: center; gap: 14px; min-width: 0; }
+.ab-baglam .secici { min-width: 0; }
 .ab-baglam .secici { position: relative; }
 .ab-baglam .menu {
   position: absolute; top: calc(100% + 6px); right: 0; z-index: 25;

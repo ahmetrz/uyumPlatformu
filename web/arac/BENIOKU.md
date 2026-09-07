@@ -93,7 +93,8 @@ kurum sistemine giden hiçbir şey yoktur.
 | `erisim-axe.mjs` | `tasarim:axe` | axe-core WCAG 2 A/AA, rotalar.json'daki tüm rotalar | ciddi/kritik ihlal |
 | `yatay-tasma.mjs` | `tasarim:tasma` | 375 + 768'de her rota yana kayıyor mu, taşmayı üreten öğe kim | taşan rota |
 | `dizustu.mjs` | `tasarim:dizustu` | 1366×768'de kaydırılamayan (kırpılan) içerik var mı | kırpılan öğe |
-| `iki-sozluk.mjs` | `kapi:iki-sozluk` | üç düzen kapısını (tasma · dizüstü · axe) İKİ sektör sözlüğüyle koşar; kusurun hangi sözlükte çıktığını söyler | herhangi bir sözlükte kusur |
+| `iki-sozluk.mjs` | `kapi:iki-sozluk` | üç düzen kapısını (tasma · dizüstü · axe) ÜÇ sözlükle koşar (enerji · su · stres); kusurun hangi sözlükte çıktığını söyler | herhangi bir sözlükte kusur |
+| `kolon-hizasi.mjs` | `tasarim:kolon` | statik çıktıda başlık/hücre sayısı, sol kenar hizası (±1px), kaydırma kabını aşma — 1440 · 1366 · 1280. **İki sözlükle ölçülmedi** (istisna, aşağıda) | hiza kusuru |
 | `marka-kapisi.mjs` | `marka:kapi` | ürün adı tek kaynaktan mı geliyor: nöbetçi adla statik demo derlemesi koşar, üretilen çıktıya bakar (tarayıcı istemez) | varsayılan ad işlenmiş yüzeyde geçiyor **ya da** nöbetçi görünmesi gereken yüzeyde yok |
 | `turkiye-siniri.mjs` | `harita:sinir` | üretir (kapı değil): Natural Earth'ten Türkiye silüeti | kaynak/öznitelik bulunamadı |
 | — | `test:kapsam` | vitest V8 kapsamı (`lib/**`, ekran `mantik.ts`/`ortak.ts`, `components/**`) | test kırığı |
@@ -353,12 +354,51 @@ görür ve ölçümü geçersiz sayar (çıkış 2).
 `sozluk-kipi.mjs` tek sözlükle ad-hoc koşum için ince kabuktur
 (`npx tsx arac/sozluk-kipi.mjs su -- node arac/dizustu.mjs --rota=/x`).
 
-**Ölçüldü (7 Eyl 2026).** Gerçek su sözlüğü ve 51 harflik kurgusal bir
-gövde düzeni bozmadı: eyebrow sarıyor, tablo kolonu esniyor, kutusuna
-sığmayan metin öğesi 0. Kapının kırmızı yanabildiği ayrıca ölçüldü:
-**boşluksuz** 31 harflik gövdeyle `/sistem/bilesenler` 375px'te 48px yana
-kaydı ve rapor "YALNIZ su" dedi. Düzen, sektör teriminin **sarılabilir**
-olmasına bağlı — bugün sevk edilen bir kusur değil, kayıtlı bir bağımlılık.
+#### Kuralın tek istisnası: `kolon-hizasi`
+
+"Düzen kapıları iki sözlükle koşar" kuralının **bugün bir istisnası var** ve
+burada yazılı olmasının sebebi tam olarak budur: yazılmazsa kural altı ay
+sonra "hepsi iki sözlükle koşuyor" diye okunur ve boşluk kimsenin aklına
+gelmez.
+
+`kolon-hizasi.mjs` **iki sözlükle ölçülmedi.** Sebep: canlı sunucuda değil
+**statik dışa aktarım** (`out/`) üzerinde koşuyor; veri ve sözlük derleme
+anında gömülüyor. İkinci sözlükle ölçmek `out/`u o sözlükle yeniden
+derlemeyi gerektirir (`npm run demo:build`), yani `sozluk-takas.mjs`'in
+çalışma zamanı takası oraya ulaşmaz. Ölçülmedi — "geçti" DEĞİL.
+
+Kapatma yolu (P4 ile birlikte değerlendirilecek): `demo:build`'i sözlük
+kipi altında koşturup `out/`u ikinci sözlükle üretmek. Bugün yapılmadı,
+çünkü tam derleme başına birkaç dakika ve kolon hizası sözcük
+uzunluğundan çok **sütun sayısına** duyarlı — ama bu bir varsayım, ölçüm
+değil; kapatıldığında ölçülecek.
+
+#### Kırılma fırsatı garantisi (`stres` sözlüğü)
+
+Üçüncü sözlük bir sektör değil, `kabuk.css` içindeki savunmanın **kalıcı
+vakasıdır**: boşluksuz uzun bir gövde, yani hiçbir kırılma fırsatı
+sunmayan terim. Sözcük ürünün sabiti değil **müşteri içeriğidir**; bir
+sektör paketi böyle bir ad gönderdiğinde kusur bizim CI'mızda değil o
+paketi yazanın ekranında çıkar.
+
+Savunma iki katmanlı ve **ikisi de ölçülerek** seçildi:
+
+| Katman | Kural | Niçin |
+| --- | --- | --- |
+| taban | `.ab, .ab * { overflow-wrap: break-word }` | Kutusuna sığmayan sözcüğü kırar; min-content'e dokunmadığı için mevcut sarma davranışı **değişmez**. |
+| slot | `.ab .terim-sar { min-width: 0; overflow-wrap: anywhere }` | Genişliği içeriğinden gelen esnek/ızgara izi ancak böyle daralabilir. Elle konur; unutulan yeri `stres` koşumu söyler. |
+
+Genel `overflow-wrap: anywhere` **denendi ve düzeni bozdu**: min-content
+tek harfe iner, `/bulgular` 375px'te üst gezinme ("SAHA PORTFÖY UYUM")
+harf harf alt alta düştü, kolon başlıkları dikey sütuna döndü. Düzeni
+korumak için konan kural düzeni bozuyordu; ölçüm olmasa fark edilmezdi.
+
+**Ölçüldü (7 Eyl 2026).** Boşluksuz 31 harflik gövde savunma konmadan
+önce `/sistem/bilesenler` rotasını 375px'te 48px yana kaydırıyordu
+(`div.ab-baglam > div.sag`); `.terim-sar` + `min-width: 0` ile
+temizlendi. Savunmadan sonra tam küme, üç sözlük: 3 kapı × 3 sözlük = 9
+koşum, tek kusur `/omur` (`span.ad`, `">1 yıl"`) ve o kusur **üç sözlükte
+de bit-bit aynı** — sözlükten bağımsız, bu dalda dokunulmamış.
 
 ### `erisim-axe.mjs`
 

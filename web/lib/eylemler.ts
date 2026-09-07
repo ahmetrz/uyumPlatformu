@@ -9,6 +9,7 @@ import { db } from './db';
 import { parcala } from './sorguParcala';
 import { yetkiZorunlu, izinVar, kapsamZorunlu, KAPSAM_SONRA } from './erisim';
 import { tumOturumlariKapat } from './auth';
+import { kapsamMesaji, kapsamTerimi } from './eylemler2/kapsamMesaji';
 import { kapanisKapisi } from './uyum/kokNeden';
 import {
   DurumSemasi, OnemSemasi, BulguDurumSemasi, SurecDurumSemasi,
@@ -110,7 +111,7 @@ export async function tesisKaydet(girdi: {
       await sayisalOzellikYaz({ tip: 'tesis', id: yeni.id }, KURULU_GUC, guc,
         { birim: gucBirimi });
       await iz({ aktorId: k.id, varlikTipi: 'Tesis', varlikId: yeni.id, eylem: 'olusturma' });
-      /* Kabul testi 1: yeni santral → uygulanabilirlik kuralları hemen
+      /* Kabul testi 1: yeni tesis → uygulanabilirlik kuralları hemen
          değerlendirilir. Öznitelik satırı BU ÇAĞRIDAN ÖNCE yazılır; motor
          gücü artık satırdan okuyor, sonra yazılsa ilk karar gücü
          "ölçülmemiş" görürdü. */
@@ -122,7 +123,7 @@ export async function tesisKaydet(girdi: {
   } catch (e) { return hata(e); }
 }
 
-/** Santral kapanışı (satış vb.): tesis kapalıya çekilir, süreç kapsamındaki
+/** Tesis kapanışı (satış vb.): tesis kapalıya çekilir, süreç kapsamındaki
     kayıtları tarihçe olarak kalır. */
 export async function tesisKapat(girdi: { id: string; neden: string }): Promise<Sonuc> {
   try {
@@ -282,6 +283,9 @@ export async function surecKapsamEkle(girdi: { surecId: string; tesisId: string 
         create: { surecId: girdi.surecId, maddeId: m.id, tesisId: girdi.tesisId },
       });
     await iz({ aktorId: k.id, varlikTipi: 'UyumSureci', varlikId: girdi.surecId, eylem: 'kapsam_degisimi',
+      /* İZ SATIRI ÇEKİRDEK SÖZCÜK TAŞIR (R0-9): `AktiviteKaydi.sonra`
+         saklanır ve aylar sonra okunur; sözlük değişirse eski satırın
+         anlamı kaymamalı. */
       alan: 'kapsam', sonra: `tesis eklendi (${yapraklar.length} madde açıldı)` });
     revalidatePath('/surecler');
     return tamam();
@@ -292,7 +296,7 @@ export async function surecKapsamCikar(girdi: { surecId: string; tesisId: string
   try {
     /* Kapsam ön kapıya GERÇEK değerlerle verilir — `surecKapsamEkle` ile
        birebir aynı biçim. Kapsamsız çağrılıyordu ve sonuç asimetrikti:
-       tesise kısıtlı yönetici kendi santralini kapsama EKLEYEBİLİYOR ama
+       tesise kısıtlı yönetici kendi tesisini kapsama EKLEYEBİLİYOR ama
        ÇIKARAMIYORDU. Onay yetkisi şartı burada da duruyor; değişen tek
        şey sorunun kapsamlı sorulması. Ölçüldü 2026-09-03. */
     const k = await yetkiZorunlu('uyum', 'onay',
@@ -327,7 +331,9 @@ export async function maddeDurumGuncelle(girdi: {
     });
     // Kapsam: tesise kısıtlı kullanıcı başka tesisin kaydına yazamaz
     if (!izinVar(k, 'uyum', 'yazma', { tesisId: eski.tesisId, surecId: eski.surecId }))
-      return { ok: false, hata: 'Bu tesis/süreç kapsamında yazma yetkiniz yok' };
+      return { ok: false,
+        hata: `Bu ${await kapsamTerimi(k, 'uyum', eski.tesisId)}/süreç `
+          + 'kapsamında yazma yetkiniz yok' };
 
     // Kanıt güveni: kanıtsız "uyumlu" kör güvenle gösterilmez (kabul testi 2)
     const kanitlar = eski.kanitBaglantilari
@@ -402,7 +408,8 @@ export async function bulguOlustur(girdi: {
     }).parse(girdi);
     const hedefDurum = await db.maddeDurumu.findUniqueOrThrow({ where: { id: v.maddeDurumuId } });
     if (!izinVar(k, 'uyum', 'yazma', { tesisId: hedefDurum.tesisId, surecId: hedefDurum.surecId }))
-      return { ok: false, hata: 'Bu tesis kapsamında bulgu açma yetkiniz yok' };
+      return { ok: false,
+        hata: await kapsamMesaji(k, 'uyum', 'bulgu açma yetkiniz yok', hedefDurum.tesisId) };
     const yeni = await db.bulgu.create({ data: {
       maddeDurumuId: v.maddeDurumuId, baslik: v.baslik, aciklama: v.aciklama,
       onemDerecesi: v.onemDerecesi, hedefTarih: v.hedefTarih ?? null,
@@ -433,8 +440,10 @@ export async function bulguGuncelle(girdi: {
       where: { id: v.id },
       include: { maddeDurumu: true, aksiyonlar: true },
     });
-    if (!izinVar(k, 'uyum', 'yazma', { tesisId: eski.maddeDurumu.tesisId, surecId: eski.maddeDurumu.surecId }))
-      return { ok: false, hata: 'Bu tesis kapsamında yazma yetkiniz yok' };
+    if (!izinVar(k, 'uyum', 'yazma', { tesisId: eski.maddeDurumu.tesisId, surecId: eski.maddeDurumu.surecId })) {
+      return { ok: false,
+        hata: await kapsamMesaji(k, 'uyum', 'yazma yetkiniz yok', eski.maddeDurumu.tesisId) };
+    }
     // Bulgu yalnız durum değiştirilerek KAPATILAMAZ (§14): doğrulama gerekir
     let kapanisAlanlari: { kapanisDogrulayanId?: string; kapanisDogrulama?: Date } = {};
     if (v.durum === 'kapali' && eski.durum !== 'kapali') {
@@ -514,7 +523,9 @@ export async function aksiyonEkle(girdi: {
       where: { id: v.bulguId }, include: { maddeDurumu: true },
     });
     if (!izinVar(k, 'uyum', 'yazma', { tesisId: bulgu.maddeDurumu.tesisId, surecId: bulgu.maddeDurumu.surecId }))
-      return { ok: false, hata: 'Bu tesis kapsamında aksiyon açma yetkiniz yok' };
+      return { ok: false,
+        hata: await kapsamMesaji(k, 'uyum', 'aksiyon açma yetkiniz yok',
+          bulgu.maddeDurumu.tesisId) };
     const yeni = await db.aksiyon.create({ data: {
       bulguId: v.bulguId, baslik: v.baslik, sorumluId: v.sorumluId ?? null,
       baslangic: new Date(), hedef: v.hedef ?? null,
@@ -548,7 +559,7 @@ export async function aksiyonDurumDegistir(girdi: {
     });
     const md = eski.bulgu.maddeDurumu;
     if (!izinVar(k, 'uyum', 'yazma', { tesisId: md.tesisId, surecId: md.surecId }))
-      return { ok: false, hata: 'Bu tesis kapsamında yazma yetkiniz yok' };
+      return { ok: false, hata: await kapsamMesaji(k, 'uyum', 'yazma yetkiniz yok', md.tesisId) };
     const tamamlaniyor = v.durum === 'tamamlandi' && eski.durum !== 'tamamlandi';
     if (tamamlaniyor && !v.not)
       return { ok: false, hata: 'Tamamlama notu boş olamaz: ne yapıldığı kısaca yazılmalı' };
@@ -593,7 +604,8 @@ export async function aksiyonDogrula(girdi: {
     });
     const md = eski.bulgu.maddeDurumu;
     if (!izinVar(k, 'uyum', 'onay', { tesisId: md.tesisId, surecId: md.surecId }))
-      return { ok: false, hata: 'Bu tesis kapsamında doğrulama yetkiniz yok' };
+      return { ok: false,
+        hata: await kapsamMesaji(k, 'uyum', 'doğrulama yetkiniz yok', md.tesisId) };
     if (eski.durum !== 'tamamlandi')
       return { ok: false, hata: 'Yalnız tamamlanmış aksiyon doğrulanabilir' };
     if (eski.sorumluId === k.id)
@@ -623,10 +635,10 @@ export async function kanitEkle(girdi: {
 }): Promise<Sonuc> {
   try {
     /* İKİ AŞAMALI KAPI. Kanıt bir `MaddeDurumu`'na bağlanır ve o modelde
-       `tesisId` ZORUNLUDUR — her kanıt tam olarak bir santrale aittir.
-       Hangi santral olduğu ancak kayıt okunduktan sonra bilindiği için ön
+       `tesisId` ZORUNLUDUR — her kanıt tam olarak bir tesise aittir.
+       Hangi tesis olduğu ancak kayıt okunduktan sonra bilindiği için ön
        kapı `KAPSAM_SONRA` ile açılır; kapsamsız çağrılsaydı (öyleydi)
-       santral yöneticisi KENDİ santralinin maddesine kanıt ekleyemezdi.
+       tesis yöneticisi KENDİ tesisinin maddesine kanıt ekleyemezdi.
        Ölçüldü 2026-09-03; testi `tests/kanit-kapsam.test.ts`. */
     const k = await yetkiZorunlu('uyum', 'yazma', KAPSAM_SONRA);
     const v = z.object({
@@ -641,7 +653,7 @@ export async function kanitEkle(girdi: {
     });
     if (!md) throw new Error('Madde durumu bulunamadı');
     kapsamZorunlu(k, 'uyum', 'yazma', { tesisId: md.tesisId },
-      'Bu tesis kapsamında kanıt ekleme yetkiniz yok');
+      await kapsamMesaji(k, 'uyum', 'kanıt ekleme yetkiniz yok', md.tesisId));
     const kanit = await db.kanit.create({ data: { ad: v.ad, tip: v.tip } });
     await db.kanitBaglantisi.create({ data: {
       kanitId: kanit.id, maddeDurumuId: v.maddeDurumuId } });
@@ -1091,14 +1103,16 @@ export async function tanimSil(girdi: {
   tur: 'sektor' | 'tesisTipi' | 'alan'; id: string;
 }): Promise<Sonuc> {
   try {
-    await yetkiZorunlu('tanimlar', 'onay');
+    const k = await yetkiZorunlu('tanimlar', 'onay');
+    const tesisSozu = await kapsamTerimi(k, 'tanimlar');
     if (girdi.tur === 'sektor') {
       if (await db.tesisTipi.count({ where: { sektorId: girdi.id } }))
-        return { ok: false, hata: 'Sektöre bağlı tesis tipleri var' };
+        return { ok: false, hata: `Sektöre bağlı ${tesisSozu} tipleri var` };
       await db.sektor.delete({ where: { id: girdi.id } });
     } else if (girdi.tur === 'tesisTipi') {
       if (await db.tesis.count({ where: { tipId: girdi.id } }))
-        return { ok: false, hata: 'Tipe bağlı tesisler var' };
+        return { ok: false,
+          hata: `Tipe bağlı ${await kapsamTerimi(k, 'tanimlar', null, 'cogul')} var` };
       await db.tesisTipi.delete({ where: { id: girdi.id } });
     } else {
       await db.kapsamAlani.delete({ where: { id: girdi.id } });

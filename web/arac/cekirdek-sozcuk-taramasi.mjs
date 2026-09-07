@@ -66,17 +66,19 @@ export function yorumsuz(kaynak) {
     2. SÖZLÜK ANAHTARI ARGÜMANLARI atlanır: `t(sozluk, 'tesis')` içindeki
        `'tesis'` bir ekran metni değil, anahtarın kendisidir.
 
-    3. `varlikTipi` DEĞERLERİ atlanır — R0-9, YAPISAL olarak. Bu alan
-       `AktiviteKaydi`ye YAZILIR ve değeri Prisma MODEL adıdır
-       (`'Varlik'` · `'MaddeDurumu'` · `'Tesis'` …); depodaki 250+ geçişin
-       hepsi böyle. Değişmez denetim izine kiracıya göre değişen sözcük
-       gömülemez, yani buradaki `'Tesis'` çakılı olmak ZORUNDA.
+    3. MODEL ADI ALANLARININ DEĞERLERİ atlanır — R0-9, YAPISAL olarak.
+       `varlikTipi` (`AktiviteKaydi`) ve `kaynakTipi`
+       (`VeriKalitesiBulgusu` · köken kayıtları) SAKLANIR ve değerleri
+       Prisma MODEL adıdır (`'Varlik'` · `'MaddeDurumu'` · `'Tesis'` …);
+       depodaki 280+ geçişin hepsi böyle. Değişmez kayda kiracıya göre
+       değişen sözcük gömülemez, yani buradaki `'Tesis'` çakılı olmak
+       ZORUNDA.
 
        Kural KONUMLUDUR, küme değil: aynı dosyada `baslik: 'Tesis'` bir
        EKRAN etiketidir ve yakalanmaya devam eder (`lib/eylemler2/
        yonetim.ts` ikisini birden taşıyor). Kümeye atsaydık ikincisi de
        sessizce kaybolurdu. */
-const IZ_ALANI = /\bvarlikTipi\s*(?::|={2,3}|!={1,2})\s*$/;
+const IZ_ALANI = /\b(?:varlikTipi|kaynakTipi)\s*(?::|={2,3}|!={1,2})\s*$/;
 
 export function metinParcalari(kaynak) {
   const parcalar = [];

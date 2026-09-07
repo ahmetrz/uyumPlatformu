@@ -94,7 +94,7 @@ export type SozlesmeKapsami = 'kapsamda' | 'suresi_gecmis' | 'bilinmiyor';
 /* ═══ 1 · Kritiklik çözümü ════════════════════════════════════════════ */
 
 /**
- * Erişilen hedefin kritikliğini çözer: VARLIK → SİSTEM → SANTRAL sırasıyla.
+ * Erişilen hedefin kritikliğini çözer: VARLIK → SİSTEM → TESİS sırasıyla.
  *
  * Sıra bilinçlidir: en dar kapsam en iyi bilgidir. Bir üst basamağa ancak
  * alttaki basamak ÖLÇÜLMEMİŞSE (`bilinmiyor`/null) inilir — yani
@@ -119,7 +119,7 @@ export function kritikligiCoz(hedef: {
   const sistem = seviyele(hedef.sistemKritikligi);
   if (sistem) return { seviye: sistem, kaynak: 'sistem' };
 
-  /* Santral basamağı: `kritikAltyapiStatusu === true` doğrudan 'kritik'tir
+  /* Tesis basamağı: `kritikAltyapiStatusu === true` doğrudan 'kritik'tir
      (kritik altyapı beyanı). `false` ise "kritik altyapı değil" demektir,
      "kritikliği düşük" DEMEK DEĞİLDİR — o yüzden sınıfa bakılır ve sınıf
      da yoksa 'bilinmiyor' kalır. */
@@ -224,7 +224,7 @@ function puandanSiddet(puan: number): Siddet | null {
  * kritiklik, ölçülene kadar düşük SAYILAMAZ; en güvenli varsayım "ölçseydik
  * yüksek çıkabilirdi"dir. Sıfır vermek, bilinmeyeni sessizce "düşük"e
  * çevirirdi — bu ürünün açıkça yasakladığı şey. `kritik` ise iki basamak
- * alır: kritik santral/varlığa zayıf kontrollü uzaktan erişim, bu motorun
+ * alır: kritik tesis/varlığa zayıf kontrollü uzaktan erişim, bu motorun
  * tarif ettiği en ağır durumdur.
  *
  * Bilinmeyen aynı zamanda bir VERİ KALİTESİ bulgusu üretir (aşağıda):
@@ -345,7 +345,7 @@ export function oturumuDegerlendir(
      geçemez; bu yüzden görünmezleşmeden önce bulgu olur. */
   if (!o.varlikId && !o.sistemId && !o.tesisId)
     veriKalitesi.push({ kural: 'erisim_kapsami_cozulemedi',
-      aciklama: `${o.tedarikciAdi} oturumunun varlık/sistem/santral bağı ÇÖZÜLEMEDİ. `
+      aciklama: `${o.tedarikciAdi} oturumunun varlık/sistem/tesis bağı ÇÖZÜLEMEDİ. `
         + 'Bu bir erişim ihlali değil, bir envanter/eşleme boşluğudur: kapsam '
         + 'süzgecinden geçemediği için kısıtlı yetkili hiç kimse göremez.' });
 

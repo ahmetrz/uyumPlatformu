@@ -64,11 +64,14 @@ describe('Çekirdek sözcük tarayıcısı · kendi vakaları [URN-ALN-007]', ()
     expect(p.join(' ')).toContain('tüm portföy');
   });
 
-  it('GÜRÜLTÜ 5: `varlikTipi` DEĞERİ denetim izi model adıdır [URN-ALN-007]', () => {
-    /* R0-9 · `AktiviteKaydi.varlikTipi`ye YAZILIR; çakılı olmak zorunda. */
+  it('GÜRÜLTÜ 5: model adı alanlarının DEĞERİ saklanan kimliktir [URN-ALN-007]', () => {
+    /* R0-9 · `AktiviteKaydi.varlikTipi` ve `VeriKalitesiBulgusu.kaynakTipi`
+       SAKLANIR; değerleri Prisma model adıdır ve çakılı olmak zorunda. */
     expect(metinParcalari("await iz({ varlikTipi: 'Tesis', varlikId: id });"))
       .not.toContain('Tesis');
     expect(metinParcalari("if (k.varlikTipi === 'Tesis') return 1;")).not.toContain('Tesis');
+    expect(metinParcalari("ihlaller.push({ kaynakTipi: 'Tesis', kaynakId: t.id });"))
+      .not.toContain('Tesis');
   });
 
   it('GÜRÜLTÜ 5 KONUMLUDUR: aynı dosyadaki ekran etiketi yakalanır [URN-ALN-007]', () => {

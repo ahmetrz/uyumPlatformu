@@ -245,7 +245,7 @@ export const EK_ETIKET: Record<string, string> = {
   // veri kalitesi kuralları
   sahipsiz_varlik: 'Sahipsiz varlık', kritikligi_bilinmeyen: 'Kritikliği bilinmeyen',
   bayat_kayit: 'Bayat kayıt', eksik_profil: 'Eksik santral profili',
-  envanteri_bos_tesis: 'Envanteri boş tesis', sahipsiz_kanit: 'Sahipsiz kanıt',
+  envanteri_bos_tesis: 'Envanteri boş santral', sahipsiz_kanit: 'Sahipsiz kanıt',
   // OT-40 · kaynakta artık görünmeyen kayıt (SİLME DEĞİL, bulgu)
   kaynakta_kayboldu: 'Kaynakta kayboldu',
   // varlık yaşam döngüsü
@@ -275,7 +275,7 @@ export const EK_ETIKET: Record<string, string> = {
   // varlık (kayıt) tipleri — aktivite izi ve görev kaynakları
   Madde: 'Madde', MaddeDurumu: 'Madde durumu', Bulgu: 'Bulgu', Aksiyon: 'Aksiyon',
   Kanit: 'Kanıt', KanitTalebi: 'Kanıt talebi', Proje: 'Proje', ProjeAdayi: 'Proje adayı',
-  Yetki: 'Yetki', Tesis: 'Tesis', TesisProfili: 'Santral profili',
+  Yetki: 'Yetki', Tesis: 'Santral', TesisProfili: 'Santral profili',
   UyumSureci: 'Uyum süreci', Regulasyon: 'Regülasyon', Risk: 'Risk',
   Denetim: 'Denetim', Varlik: 'Varlık', VarlikIliskisi: 'Varlık ilişkisi',
   KimlikHesabi: 'Kimlik hesabı', ErisimAtamasi: 'Erişim ataması',
@@ -284,8 +284,13 @@ export const EK_ETIKET: Record<string, string> = {
   Istisna: 'İstisna', UygulanabilirlikKarari: 'Uygulanabilirlik kararı',
   Degisiklik: 'Değişiklik', Olay: 'Olay', Gorev: 'Görev', Kullanici: 'Kullanıcı',
   Sistem: 'Sistem', Unite: 'Ünite', AgBolgesi: 'Ağ bölgesi',
-  /* `UretimUnitesi` P1'de `OperasyonelBirim` oldu. Eski anahtar KALIR:
-     o adla yazılmış iz satırları değişmez ve etiketsiz kalmamalı. */
+  /* ── ESKİ MODEL ADLARI ANAHTAR OLARAK KALIR ───────────────────────
+     `Unite` ve `UretimUnitesi` P1'de `OperasyonelBirim` oldu. ANAHTARLAR
+     silinmez: o adla YAZILMIŞ denetim izi satırları değişmez ve etiketsiz
+     kalmamalıdır. Anahtar bir sektör sözcüğü taşıyor ama o sözcük
+     BUGÜNÜN ürününün değil, GEÇMİŞ kayıtların adıdır — çevrilirse eski
+     satırlar etiketini kaybeder. Bu yüzden dosya bekçi listesinde kalır
+     ve bu KALICI bir kayıttır, erimeyecek bir borç değil. */
   OperasyonelBirim: 'Operasyonel birim', UretimUnitesi: 'Operasyonel birim',
   VeriKalitesiBulgusu: 'Veri kalitesi bulgusu',
 };

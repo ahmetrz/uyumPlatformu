@@ -1,7 +1,7 @@
 import 'server-only';
 import { db } from '../db';
 
-/* Uygulanabilirlik motoru (§5): santral profilinden kural bazlı kapsam kararı.
+/* Uygulanabilirlik motoru (§5): tesis profilinden kural bazlı kapsam kararı.
    Kural JSON'u: { herhangi?: Kosul[], hepsi?: Kosul[] }
    Kosul: { alan, islec: '='|'!='|'>='|'<='|'>'|'<', deger } */
 

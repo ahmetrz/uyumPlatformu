@@ -15,6 +15,10 @@ import { GORSEL_ANAHTARLARI } from '../gorsel';
 import { kuralDegerlendir, tesisKapsaminiHesapla } from '../motorlar/uygulanabilirlik';
 import { MODUL_SOZLUGU, ayarinModulu, type HedefTipi } from '../yonetim/moduller';
 import { KURULU_GUC } from '../alan/oznitelik';
+import {
+  eylemSozlugu, eylemTerimi, kapsamMesaji, kapsamTerimiBas,
+} from './kapsamMesaji';
+import { t, tBas, type Sozluk, type TerimAnahtari } from '../dil/terimler';
 import { sayisalOzellikYaz } from '../alan/oznitelikYazma';
 
 /* ═══ Yönetim konsolu sunucu eylemleri ═══════════════════════════════════
@@ -53,7 +57,12 @@ const tamSayiYaNull = z.preprocess((v) => {
 }, z.number().int().nullable());
 const mantik = z.preprocess((v) => (v === 'true' ? true : v === 'false' ? false : v), z.boolean());
 
-const SEMALAR = {
+/* Şemalar İŞLEVDEN gelir, modül sabitinden değil: `operasyonelBirim`in
+   tesis etiketi sözlükten okunur ve sözlük oturum açıldıktan sonra
+   çözülür. Modül düzeyinde sabit olsaydı R0-8 sınırına girer, çekirdek
+   sözcüğe çakılırdı. Tipler `SEMALAR` takma adından türer — `z.infer`
+   çağrıları olduğu gibi kalıyor. */
+const semalar = (tesis: string) => ({
   grup: z.object({
     kod: bosluksuz('Kod'), ad: bosluksuz('Ad'),
   }),
@@ -62,7 +71,7 @@ const SEMALAR = {
     vergiNo: z.preprocess(bosaNull, z.string().nullable().optional()),
   }),
   operasyonelBirim: z.object({
-    tesisId: bosluksuz('Santral'), kod: bosluksuz('Kod'), ad: bosluksuz('Ad'),
+    tesisId: bosluksuz(tesis), kod: bosluksuz('Kod'), ad: bosluksuz('Ad'),
     kuruluGucMw: sayiYaNull.optional(),
     durum: z.enum(['aktif', 'bakim', 'devre_disi']).optional(),
   }),
@@ -94,7 +103,11 @@ const SEMALAR = {
     aciklama: z.preprocess(bosaNull, z.string().nullable().optional()),
     aktif: mantik.optional(),
   }),
-} satisfies Record<KatalogTipi, z.ZodTypeAny>;
+} satisfies Record<KatalogTipi, z.ZodTypeAny>);
+
+/* `z.infer<typeof SEMALAR.x>` çağrıları olduğu gibi kalsın diye tip
+   takma adı: değer değil, YALNIZ tip düzeyinde yaşar. */
+type SEMALAR = ReturnType<typeof semalar>;
 
 const VARLIK_TIPI: Record<KatalogTipi, string> = {
   grup: 'Grup', tuzelKisi: 'TuzelKisi', operasyonelBirim: 'OperasyonelBirim',
@@ -132,21 +145,22 @@ export async function katalogKaydet(girdi: {
   try {
     const k = await yetkiZorunlu('yonetim', 'yazma');
     const tip = z.enum(KATALOG_TIPLERI).parse(girdi.tip);
-    const v = SEMALAR[tip].parse(girdi.degerler) as Record<string, unknown>;
+    const sozluk = await eylemSozlugu(k, 'yonetim');
+    const v = semalar(tBas(sozluk, 'tesis'))[tip].parse(girdi.degerler) as Record<string, unknown>;
     const once = girdi.id ? await katalogOku(tip, girdi.id) : null;
     if (girdi.id && !once) return { ok: false, hata: 'Kayıt bulunamadı' };
 
     let id: string;
     switch (tip) {
       case 'grup': {
-        const d = v as z.infer<typeof SEMALAR.grup>;
+        const d = v as z.infer<SEMALAR['grup']>;
         id = girdi.id
           ? (await db.grup.update({ where: { id: girdi.id }, data: { ad: d.ad } })).id
           : (await db.grup.create({ data: d })).id;
         break;
       }
       case 'tuzelKisi': {
-        const d = v as z.infer<typeof SEMALAR.tuzelKisi>;
+        const d = v as z.infer<SEMALAR['tuzelKisi']>;
         const grup = await db.grup.findUnique({ where: { id: d.grupId } });
         if (!grup) return { ok: false, hata: 'Seçilen grup bulunamadı' };
         const data = { ad: d.ad, grupId: d.grupId, vergiNo: d.vergiNo ?? null };
@@ -156,9 +170,11 @@ export async function katalogKaydet(girdi: {
         break;
       }
       case 'operasyonelBirim': {
-        const d = v as z.infer<typeof SEMALAR.operasyonelBirim>;
+        const d = v as z.infer<SEMALAR['operasyonelBirim']>;
         const tesis = await db.tesis.findUnique({ where: { id: d.tesisId } });
-        if (!tesis) return { ok: false, hata: 'Seçilen santral bulunamadı' };
+        if (!tesis) {
+          return { ok: false, hata: `Seçilen ${t(sozluk, 'tesis')} bulunamadı` };
+        }
         const data = { ad: d.ad, durum: d.durum ?? 'aktif' };
         id = girdi.id
           ? (await db.operasyonelBirim.update({ where: { id: girdi.id }, data })).id
@@ -170,7 +186,7 @@ export async function katalogKaydet(girdi: {
         break;
       }
       case 'varlikTuru': {
-        const d = v as z.infer<typeof SEMALAR.varlikTuru>;
+        const d = v as z.infer<SEMALAR['varlikTuru']>;
         const data = { ad: d.ad, sinif: d.sinif, aktif: d.aktif ?? true };
         id = girdi.id
           ? (await db.varlikTuru.update({ where: { id: girdi.id }, data })).id
@@ -178,10 +194,12 @@ export async function katalogKaydet(girdi: {
         break;
       }
       case 'agBolgesi': {
-        const d = v as z.infer<typeof SEMALAR.agBolgesi>;
+        const d = v as z.infer<SEMALAR['agBolgesi']>;
         if (d.tesisId) {
           const tesis = await db.tesis.findUnique({ where: { id: d.tesisId } });
-          if (!tesis) return { ok: false, hata: 'Seçilen santral bulunamadı' };
+          if (!tesis) {
+            return { ok: false, hata: `Seçilen ${t(sozluk, 'tesis')} bulunamadı` };
+          }
         }
         const data = { ad: d.ad, tip: d.tip, tesisId: d.tesisId ?? null,
           guvenlikSeviyesi: d.guvenlikSeviyesi ?? null };
@@ -191,7 +209,7 @@ export async function katalogKaydet(girdi: {
         break;
       }
       case 'eskalasyonKurali': {
-        const d = v as z.infer<typeof SEMALAR.eskalasyonKurali>;
+        const d = v as z.infer<SEMALAR['eskalasyonKurali']>;
         /* Hedef türü `rol` ya da `kullanici` ise hedef DEĞERİ zorunludur:
            hedefsiz bir kural kayıt yazar ama kimseye haber vermez. */
         if ((d.hedefTuru === 'rol' || d.hedefTuru === 'kullanici') && !d.hedefDeger) {
@@ -226,7 +244,7 @@ export async function katalogKaydet(girdi: {
 
 /* ── A · Arşivleme / pasife alma — BAĞIMLILIK VARSA REDDEDİLİR ─────────
    Silme yalnız bağımlılığı olmayan kayıtta; durum alanı olan kayıt
-   (üretim ünitesi, varlık türü) silinmez, pasife alınır. Gerekçe zorunlu. */
+   (operasyonel birim, varlık türü) silinmez, pasife alınır. Gerekçe zorunlu. */
 export async function katalogArsivle(girdi: { tip: string; id: string; gerekce: string }): Promise<Sonuc> {
   try {
     const k = await yetkiZorunlu('yonetim', 'yazma');
@@ -249,7 +267,7 @@ export async function katalogArsivle(girdi: { tip: string; id: string; gerekce: 
         const [t, y] = await Promise.all([
           db.tesis.count({ where: { tuzelKisiId: girdi.id } }),
           db.yetki.count({ where: { tuzelKisiId: girdi.id } })]);
-        if (t > 0) return engel(t, 'santral');
+        if (t > 0) return engel(t, 'tesis');
         if (y > 0) return engel(y, 'yetki kaydı');
         await db.tuzelKisi.delete({ where: { id: girdi.id } });
         break;
@@ -294,27 +312,35 @@ export async function katalogArsivle(girdi: { tip: string; id: string; gerekce: 
   } catch (e) { return hata(e); }
 }
 
-/* ── A · Santral görsel eşlemesi ───────────────────────────────────────── */
+/* ── A · Tesis görsel eşlemesi ───────────────────────────────────────── */
 export async function tesisGorselAta(girdi: { tesisId: string; gorselAnahtari: string | null; gerekce: string }): Promise<Sonuc> {
   try {
     /* İKİ AŞAMALI KAPI (`KAPSAM_SONRA`, bkz. erisim.ts): görsel ataması tek
-       bir santrala dokunur; ön kapı kapsamsız sorulsaydı santraline kısıtlı
-       yönetici kendi santralinin görselini bile atayamazdı. Gerçek sınır
-       aşağıda `kapsamZorunlu` ile santral bazında sorulur. */
+       bir tesise dokunur; ön kapı kapsamsız sorulsaydı tesisine kısıtlı
+       yönetici kendi tesisinin görselini bile atayamazdı. Gerçek sınır
+       aşağıda `kapsamZorunlu` ile tesis bazında sorulur. */
     const k = await yetkiZorunlu('yonetim', 'yazma', KAPSAM_SONRA);
     const gerekce = gerekceSemasi.parse(girdi.gerekce);
     const anahtar = girdi.gorselAnahtari?.trim() || null;
     if (anahtar && !GORSEL_ANAHTARLARI.includes(anahtar))
       return { ok: false, hata: 'Bilinmeyen görsel anahtarı; katalogda olmayan dosya atanamaz.' };
     const tesis = await db.tesis.findUnique({ where: { id: girdi.tesisId } });
-    if (!tesis) return { ok: false, hata: 'Santral bulunamadı' };
+    if (!tesis) {
+      return { ok: false,
+        hata: `${await kapsamTerimiBas(k, 'yonetim')} bulunamadı` };
+    }
     kapsamZorunlu(k, 'yonetim', 'yazma', { tesisId: tesis.id },
-      'Bu santral kapsamında yönetim yazma yetkiniz yok');
-    /* Kural (gorsel.ts §1/3): bir görsel yalnız kendi santralini temsil eder.
-       Aynı anahtar başka santralde kullanılıyorsa atama REDDEDİLİR. */
+      await kapsamMesaji(k, 'yonetim', 'yönetim yazma yetkiniz yok', tesis.id));
+    /* Kural (gorsel.ts §1/3): bir görsel yalnız kendi tesisini temsil eder.
+       Aynı anahtar başka tesiste kullanılıyorsa atama REDDEDİLİR. */
     if (anahtar) {
       const baska = await db.tesis.findFirst({ where: { gorselAnahtari: anahtar, NOT: { id: girdi.tesisId } } });
-      if (baska) return { ok: false, hata: `Bu görsel ${baska.kod} santraline bağlı; başka santralin görseli dolgu olarak atanamaz.` };
+      if (baska) {
+        const x = await eylemTerimi(k, 'yonetim', tesis.id);
+        return { ok: false,
+          hata: `Bu görsel ${baska.kod} ${x.yonelme} bağlı; `
+            + `başka ${x.iyelik} görseli dolgu olarak atanamaz.` };
+      }
     }
     await db.tesis.update({ where: { id: girdi.tesisId }, data: { gorselAnahtari: anahtar } });
     await iz({ aktorId: k.id, varlikTipi: 'Tesis', varlikId: girdi.tesisId, eylem: 'guncelleme',
@@ -364,30 +390,54 @@ function sayiyaCevir(t: { varsayilan: unknown }, deger: unknown): unknown {
 }
 
 /* ── ETKİ — "bu değişiklik nereyi etkiler?" ────────────────────────────
-   Salt okunur sayımlar. Bilinmeyen sayı 0 DEĞİL null döner. */
-export type EtkiSatiri = { baslik: string; deger: number | null; not?: string };
+   Salt okunur sayımlar. Bilinmeyen sayı 0 DEĞİL null döner.
+
+   ── SAKLANAN KOPYA ÇEKİRDEK SÖZCÜK TAŞIR (R0-9) ──────────────────────
+   Bu satırlar İKİ yol izliyor: (a) formda canlı önizleme, (b)
+   `DegisiklikTalebi.etkiJson`a YAZILIR ve dört göz kaydının parçası
+   olur. Saklanan kopyaya kiracıya göre değişen sözcük gömmek, sözlük
+   değiştiğinde eski kaydın anlamını kaydırırdı.
+
+   Çözüm ekranı çekirdek sözcüğe mahkûm ETMİYOR: satır, terim ANAHTARINI
+   da taşır. Saklanan JSON'da başlık çekirdektir; ekran anahtarı görünce
+   başlığı sözlükten yeniden yazar (`konsolVerisi.ts`). Böylece hem iz
+   sabit kalır hem kullanıcı kendi sözcüğünü görür. */
+export type EtkiSatiri = {
+  baslik: string; deger: number | null; not?: string;
+  /** Başlığın terim anahtarı; ekran başlığı bundan yeniden yazar. */
+  terim?: TerimAnahtari;
+  /** Terimden SONRAKİ sabit parça (" (dolaylı)"). Çekim eki DEĞİL —
+      ayrı bir sözcük; Türkçe ek üretimi burada da yapılmaz. */
+  ek?: string;
+};
 
 export async function etkiHesapla(girdi: { hedefTipi: string; hedefId?: string | null; sonra?: Record<string, unknown> | null })
   : Promise<{ ok: true; etki: EtkiSatiri[] } | { ok: false; hata: string }> {
   try {
-    await yetkiZorunlu('yonetim', 'okuma');
-    return { ok: true, etki: await etkiSatirlari(girdi.hedefTipi as HedefTipi, girdi.hedefId ?? null, girdi.sonra ?? null) };
+    const k = await yetkiZorunlu('yonetim', 'okuma');
+    /* Etki satırlarının BAŞLIKLARI ekranda görünür; sözlük burada
+       çözülür ve saf yardımcıya geçirilir (`etkiSatirlari` veritabanı
+       okur ama oturum bilmez). */
+    const sozluk = await eylemSozlugu(k, 'yonetim');
+    return { ok: true,
+      etki: await etkiSatirlari(sozluk, girdi.hedefTipi as HedefTipi,
+        girdi.hedefId ?? null, girdi.sonra ?? null) };
   } catch (e) { const h = hata(e); return { ok: false, hata: h.ok ? 'Beklenmeyen hata' : h.hata }; }
 }
 
-async function etkiSatirlari(hedefTipi: HedefTipi, hedefId: string | null, sonra: Record<string, unknown> | null): Promise<EtkiSatiri[]> {
+async function etkiSatirlari(sozluk: Sozluk | null, hedefTipi: HedefTipi, hedefId: string | null, sonra: Record<string, unknown> | null): Promise<EtkiSatiri[]> {
   switch (hedefTipi) {
     case 'grup': {
       if (!hedefId) return [{ baslik: 'Tüzel kişi', deger: 0, not: 'Yeni kayıt — bağ yok' }];
       const tk = await db.tuzelKisi.findMany({ where: { grupId: hedefId }, select: { id: true } });
       const t = await db.tesis.count({ where: { tuzelKisiId: { in: tk.map((x) => x.id) } } });
-      return [{ baslik: 'Tüzel kişi', deger: tk.length }, { baslik: 'Santral (dolaylı)', deger: t }];
+      return [{ baslik: 'Tüzel kişi', deger: tk.length }, { baslik: `${tBas(sozluk, 'tesis')} (dolaylı)`, deger: t, terim: 'tesis', ek: ' (dolaylı)' }];
     }
     case 'tuzelKisi': {
-      if (!hedefId) return [{ baslik: 'Santral', deger: 0, not: 'Yeni kayıt — bağ yok' }];
+      if (!hedefId) return [{ baslik: tBas(sozluk, 'tesis'), deger: 0, not: 'Yeni kayıt — bağ yok', terim: 'tesis' }];
       const [t, y] = await Promise.all([
         db.tesis.count({ where: { tuzelKisiId: hedefId } }), db.yetki.count({ where: { tuzelKisiId: hedefId } })]);
-      return [{ baslik: 'Santral', deger: t }, { baslik: 'Yetki kapsamı', deger: y, not: 'Bu tüzel kişiye kısıtlı roller' }];
+      return [{ baslik: tBas(sozluk, 'tesis'), deger: t, terim: 'tesis' }, { baslik: 'Yetki kapsamı', deger: y, not: 'Bu tüzel kişiye kısıtlı roller' }];
     }
     case 'operasyonelBirim': {
       if (!hedefId) return [{ baslik: 'Varlık', deger: 0, not: 'Yeni kayıt — bağ yok' }];
@@ -408,7 +458,8 @@ async function etkiSatirlari(hedefTipi: HedefTipi, hedefId: string | null, sonra
       return [{ baslik: 'Varlık', deger: v }, { baslik: 'Ağ geçidi', deger: g }];
     }
     case 'tesisGorsel':
-      return [{ baslik: 'Ekran', deger: 3, not: 'Saha şeridi · Portföy · Santral 360' }];
+      return [{ baslik: 'Ekran', deger: 3,
+        not: `Saha şeridi · ${tBas(sozluk, 'portfoy')} · ${t(sozluk, 'tesis360')}` }];
     case 'eskalasyonKurali': {
       /* Etki: bu kademe kaç kez tetiklenmiş ve bugün kaç kayıt bu
          kaynak tipinde gecikmiş. İkincisi bir TAHMİN değil, bugünkü
@@ -607,7 +658,10 @@ export async function degisiklikOner(girdi: {
       sonraJson = JSON.stringify({ regulasyonId: d.regulasyonId, ad: d.ad, kosulJson: d.kosulJson,
         aciklama: d.aciklama ?? null, aktif: d.aktif ?? true });
     }
-    const etki = await etkiSatirlari(hedefTipi, hedefId, JSON.parse(sonraJson) as Record<string, unknown>);
+    /* SAKLANACAK kopya: sözlük YOK, çekirdek sözcük yazılır (R0-9).
+       Satır terim anahtarını taşır; ekran onu sözlükten çözer. */
+    const etki = await etkiSatirlari(null, hedefTipi, hedefId,
+      JSON.parse(sonraJson) as Record<string, unknown>);
     const talep = await db.degisiklikTalebi.create({ data: {
       hedefTipi, hedefId, hedefEtiket, onceJson, sonraJson, etkiJson: JSON.stringify(etki),
       gerekce, durum: 'incelemede', talepEdenId: k.id } });

@@ -23,7 +23,7 @@ export async function degisiklikKaydet(girdi: {
 }): Promise<Sonuc> {
   try {
     /* İKİ AŞAMALI KAPI (`KAPSAM_SONRA`, bkz. erisim.ts): ön kapı kapsamsız
-       çağrılırsa tesise kısıtlı rol kendi santralinin değişikliğini bile
+       çağrılırsa tesise kısıtlı rol kendi tesisinin değişikliğini bile
        kaydedemez. Gerçek denetim aşağıda ve KOŞULSUZ. */
     const k = await yetkiZorunlu('envanter', 'yazma', KAPSAM_SONRA);
     const v = z.object({
@@ -44,7 +44,7 @@ export async function degisiklikKaydet(girdi: {
     if (v.id) {
       /* KAYDIN KENDİ tesisi de bağlayıcı: girdi tesis taşımadan güncelleme
          yapılırsa yukarıdaki denetim kapsamsız sorulur ve tesise kısıtlı
-         rol başka santralin değişikliğini düzenleyebilirdi. */
+         rol başka tesisin değişikliğini düzenleyebilirdi. */
       const eski = await db.degisiklik.findUnique({
         where: { id: v.id }, select: { tesisId: true } });
       if (!eski) throw new Error('Değişiklik bulunamadı');
@@ -92,7 +92,7 @@ export async function degisiklikIlerlet(girdi: { id: string; sonDogrulama?: stri
     const k = await yetkiZorunlu('envanter', 'yazma', KAPSAM_SONRA);
     const d = await db.degisiklik.findUniqueOrThrow({ where: { id: girdi.id } });
     /* Kaydın kendi tesisi bağlayıcı. Ön kapı gevşetildiği için burada
-       sorulmazsa tesise kısıtlı rol başka santralin değişikliğini
+       sorulmazsa tesise kısıtlı rol başka tesisin değişikliğini
        ilerletir; ayrıca `degisiklikKaydet` ile aynı kapı olmazsa rol
        açabildiği bir kaydı asla ilerletemezdi. */
     kapsamZorunlu(k, 'envanter', 'yazma', { tesisId: d.tesisId },
@@ -183,15 +183,15 @@ export async function olayKaydet(girdi: {
       durum: z.enum(['acik', 'mudahale', 'cozuldu', 'kapali']).optional(),
       ozet: z.string().nullable().optional(),
     }).parse(girdi);
-    /* Hem HEDEF hem KAYDIN KENDİ santrali denetlenir. `olay.ts ·
-       olayKapisi` ile aynı kural: olay yetkisiz bir santrale taşınamaz,
-       başka santralin olayı buradan düzenlenemez. */
+    /* Hem HEDEF hem KAYDIN KENDİ tesisi denetlenir. `olay.ts ·
+       olayKapisi` ile aynı kural: olay yetkisiz bir tesise taşınamaz,
+       başka tesisin olayı buradan düzenlenemez. */
     kapsamZorunlu(k, 'envanter', 'yazma', { tesisId: v.tesisId },
-      'Bu santral kapsamında yetkiniz yok');
+      await kapsamMesaji(k, 'envanter', 'yetkiniz yok', v.tesisId));
     if (v.id) {
       const eski = await db.olay.findUniqueOrThrow({ where: { id: v.id } });
       kapsamZorunlu(k, 'envanter', 'yazma', { tesisId: eski.tesisId },
-        'Bu santral kapsamında yetkiniz yok');
+        await kapsamMesaji(k, 'envanter', 'yetkiniz yok', eski.tesisId));
       await db.olay.update({ where: { id: v.id }, data: {
         baslik: v.baslik, tip: v.tip, tesisId: v.tesisId ?? null, siddet: v.siddet,
         durum: v.durum ?? eski.durum, ozet: v.ozet ?? null,

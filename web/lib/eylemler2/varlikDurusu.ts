@@ -36,16 +36,20 @@ import { type Sonuc, tamam, hata, iz, tarihAlani, bosluksuz } from './ortak';
 const metin = z.string().trim().transform((s) => s || null).nullable().optional();
 const gerekceAlani = z.string().trim().min(10, 'Gerekçe en az 10 karakter olmalı');
 
-/** Varlığı okur ve kapsamını dayatır; bulunamazsa anlamlı hata. */
+/** Varlığı okur ve kapsamını dayatır; bulunamazsa anlamlı hata.
+
+    Mesajın SONEKİ alınır, tamamı değil: tesis terimi kaydın KENDİ
+    sözlüğünden gelir ve onu bu yardımcı okur (`kapsamMesaji`). */
 async function varligiAlVeKapsamiDayat(
-  k: Awaited<ReturnType<typeof yetkiZorunlu>>, varlikId: string, mesaj: string,
+  k: Awaited<ReturnType<typeof yetkiZorunlu>>, varlikId: string, sonek: string,
 ) {
   const v = await db.varlik.findUnique({
     where: { id: varlikId },
     select: { id: true, etiket: true, tesisId: true, silindi: true },
   });
   if (!v || v.silindi) throw new Error('Varlık bulunamadı');
-  kapsamZorunlu(k, 'envanter', 'yazma', { tesisId: v.tesisId }, mesaj);
+  kapsamZorunlu(k, 'envanter', 'yazma', { tesisId: v.tesisId },
+    await kapsamMesaji(k, 'envanter', sonek, v.tesisId));
   return v;
 }
 
@@ -62,7 +66,7 @@ export async function alanUygulanamazIsaretle(girdi: {
     const v = z.object({
       varlikId: bosluksuz('Varlık'), alan: bosluksuz('Alan'), gerekce: gerekceAlani,
     }).parse(girdi);
-    await varligiAlVeKapsamiDayat(k, v.varlikId, 'Bu tesis kapsamında varlık düzenleme yetkiniz yok');
+    await varligiAlVeKapsamiDayat(k, v.varlikId, 'varlık düzenleme yetkiniz yok');
 
     await db.alanUygulanabilirligi.upsert({
       where: { varlikTipi_varlikId_alan: { varlikTipi: 'Varlik', varlikId: v.varlikId, alan: v.alan } },
@@ -87,7 +91,7 @@ export async function alanUygulanabilirligiKaldir(girdi: {
     const v = z.object({
       varlikId: bosluksuz('Varlık'), alan: bosluksuz('Alan'), gerekce: gerekceAlani,
     }).parse(girdi);
-    await varligiAlVeKapsamiDayat(k, v.varlikId, 'Bu tesis kapsamında varlık düzenleme yetkiniz yok');
+    await varligiAlVeKapsamiDayat(k, v.varlikId, 'varlık düzenleme yetkiniz yok');
 
     await db.alanUygulanabilirligi.deleteMany({
       where: { varlikTipi: 'Varlik', varlikId: v.varlikId, alan: v.alan },
@@ -175,7 +179,7 @@ export async function varligaSegmentAta(girdi: {
       varlikId: bosluksuz('Varlık'),
       segmentId: z.string().trim().transform((s) => s || null).nullable(),
     }).parse(girdi);
-    await varligiAlVeKapsamiDayat(k, v.varlikId, 'Bu tesis kapsamında varlık düzenleme yetkiniz yok');
+    await varligiAlVeKapsamiDayat(k, v.varlikId, 'varlık düzenleme yetkiniz yok');
     const eski = await db.varlik.findUnique({
       where: { id: v.varlikId }, select: { segmentId: true },
     });
@@ -211,7 +215,7 @@ export async function yamaKaydiKaydet(girdi: unknown): Promise<Sonuc> {
       bakimPenceresi: metin, istisnaGerekcesi: metin, telafiEdiciKontrol: metin,
       yamalanamaz: z.boolean().default(false),
     }).parse(girdi);
-    await varligiAlVeKapsamiDayat(k, v.varlikId, 'Bu tesis kapsamında varlık düzenleme yetkiniz yok');
+    await varligiAlVeKapsamiDayat(k, v.varlikId, 'varlık düzenleme yetkiniz yok');
 
     /* Durum burada TÜRETİLİR, kullanıcıdan alınmaz: alanlardan bağımsız
        bir durum yazılabilseydi "uyumlu" işaretli ama eksik yaması olan
@@ -392,7 +396,7 @@ export async function sbomYukle(girdi: {
       kaynakSistem: bosluksuz('Kaynak sistem'),
       kaynakKayitId: bosluksuz('Kaynak kayıt'),
     }).parse(girdi);
-    await varligiAlVeKapsamiDayat(k, v.varlikId, 'Bu tesis kapsamında SBOM yükleme yetkiniz yok');
+    await varligiAlVeKapsamiDayat(k, v.varlikId, 'SBOM yükleme yetkiniz yok');
 
     const cozum = sbomAyristir(v.icerik);
     if (!cozum.ok) return hata(new Error(cozum.hata ?? 'SBOM çözümlenemedi'));
@@ -467,7 +471,7 @@ export async function sbomYukle(girdi: {
 
    Duyuru bir KÜTÜK kaydıdır — tek varlığa değil, bir ürün SINIFINA
    bağlanır — bu yüzden `tanimlar/onay` ister; tesis kapsamı yoktur
-   (Siemens duyurusu bütün santralleri ilgilendirir).
+   (Siemens duyurusu bütün tesisleri ilgilendirir).
 
    BU EYLEM HİÇBİR DIŞ KAYNAĞA BAĞLANMAZ. ICS-CERT, üretici PSIRT ya da
    NVD akışına bağlanmak bir dış bağımlılıktır ve bu ürün onu taklit
@@ -590,7 +594,7 @@ export async function kapsamKaydet(girdi: {
       durum: z.enum(KAPSAM_DURUMLARI, 'Geçersiz kapsam durumu'),
       gerekce: metin, kaynakSistem: metin,
     }).parse(girdi);
-    await varligiAlVeKapsamiDayat(k, v.varlikId, 'Bu tesis kapsamında varlık düzenleme yetkiniz yok');
+    await varligiAlVeKapsamiDayat(k, v.varlikId, 'varlık düzenleme yetkiniz yok');
 
     /* `uygulanamaz` GEREKÇE İSTER: gerekçesiz uygulanamazlık, kapatılmış
        bir kusurdan ayırt edilemez ve denetimde savunulamaz. */

@@ -2,7 +2,7 @@ import 'server-only';
 import type { AktifKullanici } from '../auth';
 import { izinliTesisIdleri, type Modul } from '../erisim';
 import { kapsamAnahtari, kapsamSozlugu, tesisSozlugu } from '../dil/sozlukOku';
-import { t, type Bicim } from '../dil/terimler';
+import { t, tBas, terim, type Bicim, type Sozluk, type Terim } from '../dil/terimler';
 
 /* ═══════════════════════════════════════════════════════════════════════
    KAPSAM YETKİ MESAJI — sözlükten, tek yerden
@@ -37,15 +37,21 @@ import { t, type Bicim } from '../dil/terimler';
    Bu yüzden yardımcı `bicim` parametresi alır ve terimi o hâliyle okur.
    Hiçbir yerde terim + ek birleştirmesi YOKTUR.
 
-   ── 25 MESAJIN GEREKTİRDİĞİ HÂLLER (ölçüldü) ──────────────────────────
-   Sekiz dosyadaki yirmi beş mesajın hepsi TEKİL hâl istiyor:
-     "Bu <tesis> kapsamında … yetkiniz yok"           → tekil
-     "<Tesis> bulunamadı" · "<Tesis> veya madde seçin" → tekil (baş harf)
-     "En az bir <tesis> seçin"                        → tekil
-     "… <tesis> kapsamı dışında"                      → tekil
-   Çerçeve gerçekten tek biçimli; "tesisi güncellendi" / "tesise eklendi"
-   gibi başka hâl isteyen bir mesaj bu kümede YOK. Yeni bir çerçeve
-   gerekirse `bicim` verilir — dize birleştirmesi değil. */
+   ── MESAJLARIN GEREKTİRDİĞİ HÂLLER (ölçüldü · `lib/eylemler2` geneli) ─
+   İlk ölçüm sekiz dosyadaki yirmi beş mesajı kapsıyordu ve hepsi TEKİL
+   istiyordu. Sınıf taraması aile geneline yayılınca çerçeve sayısı
+   arttı; hâller ölçüldü:
+
+     "Bu <tesis> kapsamında … yetkiniz yok"            → tekil   (44)
+     "<Tesis> bulunamadı" · "<Tesis> veya madde seçin" → tekil   (9)
+     "Bu <tesiste> … yetkiniz yok"                     → bulunma (7)
+     "Bu hesabın <tesisi> kapsamınızda değil"          → belirtme (3)
+     "Bu <tesisin> sicilinde …"                        → iyelik  (1)
+     "<Tesise> bağlı olmayan kayıt …"                  → yönelme (2)
+
+   Yani ALTI hâlin beşi gerçekten kullanılıyor. Hiçbiri ek birleştirerek
+   üretilmez; her biri sözlükten OKUNUR. Yeni bir çerçeve gerekirse yine
+   `bicim` verilir — dize birleştirmesi değil. */
 
 /**
  * "Bu <tesis> kapsamında <sonek>" — sonek çağıranın işidir.
@@ -58,16 +64,54 @@ export async function kapsamMesaji(
   k: AktifKullanici, modul: Modul, sonek: string, tesisId?: string | null,
   bicim: Bicim = 'tekil',
 ): Promise<string> {
-  const sozluk = tesisId
-    ? await tesisSozlugu(tesisId)
-    : await kapsamSozlugu(kapsamAnahtari(izinliTesisIdleri(k, modul)));
-  return `Bu ${t(sozluk, 'tesis', bicim)} kapsamında ${sonek}`;
+  return `Bu ${t(await eylemSozlugu(k, modul, tesisId), 'tesis', bicim)} kapsamında ${sonek}`;
 }
 
-/** Kullanıcının kapsamına göre tesis sözcüğü — serbest cümleler için. */
+/** Kapsama (ya da kaydın tesisine) göre tesis sözcüğü — serbest cümleler.
+
+    `kapsamMesaji`nin çerçevesi ("Bu … kapsamında …") ailedeki mesajların
+    çoğunu karşılıyor, ama HEPSİNİ değil: "Bu <tesiste> zimmet açma
+    yetkiniz yok", "<Tesise> bağlı olmayan kayıt", "Bu hesabın <tesisi>
+    kapsamınızda değil". Bunlar için çerçeve BAŞINA yardımcı yazmak
+    yardımcı enflasyonu olurdu; doğru kapı terimin kendisidir. */
 export async function kapsamTerimi(
-  k: AktifKullanici, modul: Modul, bicim: Bicim = 'tekil',
+  k: AktifKullanici, modul: Modul, tesisId?: string | null,
+  bicim: Bicim = 'tekil',
 ): Promise<string> {
-  const sozluk = await kapsamSozlugu(kapsamAnahtari(izinliTesisIdleri(k, modul)));
-  return t(sozluk, 'tesis', bicim);
+  return t(await eylemSozlugu(k, modul, tesisId), 'tesis', bicim);
+}
+
+/** Cümle başındaki hâli. Türkçe büyütme sözlüğün işi (`tBas`): düz
+    `toUpperCase` "işletme"yi "ISLETME" yapardı. */
+export async function kapsamTerimiBas(
+  k: AktifKullanici, modul: Modul = 'yonetim', tesisId?: string | null,
+  bicim: Bicim = 'tekil',
+): Promise<string> {
+  return tBas(await eylemSozlugu(k, modul, tesisId), 'tesis', bicim);
+}
+
+/** Tesis teriminin BÜTÜN hâlleri — çerçevesi standart olmayan cümleler.
+
+    Aile içindeki kapsam yardımcıları (`bulguKapsamiDayat`,
+    `varligiAlVeKapsamiDayat` …) mesajı ÇAĞIRANDAN alır, ama tesisi
+    KENDİ okur. Çağıran doğru hâli seçebilsin diye mesaj bir işlev
+    olarak verilir ve terim ona geçirilir; çağıranın ayrıca veritabanı
+    okuması gerekmez. */
+export async function eylemTerimi(
+  k: AktifKullanici, modul: Modul, tesisId?: string | null,
+): Promise<Terim> {
+  return terim(await eylemSozlugu(k, modul, tesisId), 'tesis');
+}
+
+/** Sunucu eyleminin okuyacağı sözlük — kayıt tesisi biliniyorsa onunki.
+
+    Bir eylemde BİRDEN ÇOK terim geçiyorsa (zod etiketi + iki mesaj gibi)
+    sözlük bir kez okunur ve `t`/`tBas` ile kullanılır; her mesaj için
+    ayrı veritabanı okuması yapılmaz. */
+export async function eylemSozlugu(
+  k: AktifKullanici, modul: Modul, tesisId?: string | null,
+): Promise<Sozluk | null> {
+  return tesisId
+    ? tesisSozlugu(tesisId)
+    : kapsamSozlugu(kapsamAnahtari(izinliTesisIdleri(k, modul)));
 }

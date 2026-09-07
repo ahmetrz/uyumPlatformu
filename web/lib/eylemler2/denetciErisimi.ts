@@ -4,9 +4,9 @@
 
    ── KAYIT TEK BAŞINA BİR KAPI DEĞİLDİR ────────────────────────────────
    `DenetciErisimi` bir DEFTERDİR: kim, hangi denetim için, ne zamana
-   kadar, hangi santralleri görecek. Erişimi gerçekten uygulayan şey
+   kadar, hangi tesisleri görecek. Erişimi gerçekten uygulayan şey
    ürünün var olan yetki katmanıdır (`Yetki` satırları, `lib/erisim.ts`).
-   Bu yüzden davet, kapsamdaki her santral için bir `dis_denetci` yetki
+   Bu yüzden davet, kapsamdaki her tesis için bir `dis_denetci` yetki
    satırı YAZAR; iptal ve süre sonu o satırları SİLER.
 
    İkisini ayırmak — deftere yazıp yetkiye dokunmamak — ekranda "erişim
@@ -24,8 +24,9 @@ import { db } from '../db';
 import { yetkiZorunlu } from '../erisim';
 import { AZAMI_SURE_GUN, davetKapisi } from '../uyum/denetciErisimi';
 import { type Sonuc, tamam, hata, iz, bosluksuz } from './ortak';
+import { kapsamTerimi } from './kapsamMesaji';
 
-/** Kapsamdaki santraller için `dis_denetci` yetki satırlarını yazar. */
+/** Kapsamdaki tesisler için `dis_denetci` yetki satırlarını yazar. */
 async function yetkileriAc(kullaniciId: string, tesisIdler: string[]): Promise<void> {
   for (const tesisId of tesisIdler) {
     /* `createMany` + skipDuplicates yerine tek tek upsert: bileşik
@@ -94,14 +95,18 @@ export async function denetciDavetEt(girdi: {
     if (!kisi) throw new Error('Kullanıcı bulunamadı');
     if (!kisi.aktif) return { ok: false, hata: 'Pasif kullanıcı davet edilemez.' };
 
-    /* Santrallerin gerçekten var olduğu doğrulanır: olmayan bir santral
-       kimliğiyle açılan kapsam, ekranda "1 santral" yazar ama hiçbir şey
+    /* Kayıtların gerçekten var olduğu doğrulanır: olmayan bir tesis
+       kimliğiyle açılan kapsam, ekranda "1 kayıt" yazar ama hiçbir şey
        göstermez. */
     const tesisler = await db.tesis.findMany({
       where: { id: { in: [...new Set(v.tesisIdler)] } }, select: { id: true, kod: true },
     });
     if (tesisler.length !== new Set(v.tesisIdler).size) {
-      return { ok: false, hata: 'Seçilen santrallerden biri bulunamadı.' };
+      /* Çekim eki ÜRETİLMEZ: "…lerden biri" ayrılma hâli ister ve
+         sözlükte o hâl yok. Cümle var olan hâlle kurulur (çoğul). */
+      return { ok: false,
+        hata: `Seçilen ${await kapsamTerimi(k, 'yonetim', null, 'cogul')} `
+          + 'arasında bulunamayan var.' };
     }
 
     const erisim = await db.denetciErisimi.create({

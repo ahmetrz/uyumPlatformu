@@ -4,6 +4,8 @@ import { db } from '../db';
 import { aktifKullanici } from '../auth';
 import { izinliTesisIdleri } from '../erisim';
 import { aramaKosulu, aramaOr } from '../aramaKosulu';
+import { kapsamAnahtari, kapsamSozlugu } from '../dil/sozlukOku';
+import { tBas } from '../dil/terimler';
 
 /* Global arama (§27): tek kutudan tesis, madde, bulgu, risk, varlık, proje,
    denetim. Sonuçlar kullanıcının tesis kapsamıyla DARALTILIR (veri seviyesi). */
@@ -47,8 +49,12 @@ export async function ara(sorgu: string): Promise<AramaSonucu[]> {
         OR: aramaOr(['kod', 'ad'], q), silindi: null }, take: 4 }),
     ]);
 
+  /* Sonuç TÜRÜ ekranda rozet olarak görünür (`KomutPaleti` · `.tur`),
+     kod anahtarı değil — sözlükten gelir. */
+  const sozluk = await kapsamSozlugu(kapsamAnahtari(tesisKapsami));
+
   return [
-    ...tesisler.map((t) => ({ tip: 'Tesis', id: t.id, baslik: t.ad,
+    ...tesisler.map((t) => ({ tip: tBas(sozluk, 'tesis'), id: t.id, baslik: t.ad,
       altBilgi: t.kod, yol: `/tesisler/${t.id}` })),
     ...maddeler.map((m) => ({ tip: 'Madde', id: m.id, baslik: m.baslik,
       altBilgi: `${m.kod} · ${m.regulasyon.kod}`, yol: '/regulasyonlar' })),

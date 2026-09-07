@@ -13,6 +13,7 @@ import {
   MEDYA_DURUMLARI, MEDYA_TIPLERI, kullanimKapisi,
 } from '../varlik/tasinabilirMedya';
 import { type Sonuc, tamam, hata, iz, bosluksuz } from './ortak';
+import { kapsamTerimi } from './kapsamMesaji';
 
 export async function medyaKaydet(girdi: {
   id?: string | null;
@@ -43,7 +44,8 @@ export async function medyaKaydet(girdi: {
 
     kapsamZorunlu(k, 'envanter', 'yazma',
       v.tesisId ? { tesisId: v.tesisId } : {},
-      'Bu santralde medya kaydetme yetkiniz yok');
+      `Bu ${await kapsamTerimi(k, 'envanter', v.tesisId, 'bulunma')} `
+      + 'medya kaydetme yetkiniz yok');
 
     const veri = {
       kod: v.kod, ad: v.ad, tip: v.tip,

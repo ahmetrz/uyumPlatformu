@@ -80,6 +80,26 @@ export function t(sozluk: Sozluk | null | undefined, anahtar: TerimAnahtari,
   return sozluk?.[anahtar]?.[bicim] ?? CEKIRDEK_TERIMLER[anahtar][bicim];
 }
 
+/** Terimin BÜTÜN hâlleri — bir cümlede birden çok hâl geçiyorsa.
+
+    `t()` tek hâl döner ve çağıran her hâl için sözlüğü yeniden yazar.
+    Bir cümle iki hâl istediğinde ("Bağlanacak bulgunun <belirtme>
+    kapsamınızda değil" · "Bu <bulunma> …") bu, satırı okunmaz yapıyordu.
+    Eksik biçim yine çekirdeğe düşer — `t()` ile AYNI kural. */
+export function terim(sozluk: Sozluk | null | undefined, anahtar: TerimAnahtari): Terim {
+  const cekirdek = CEKIRDEK_TERIMLER[anahtar];
+  const sektor = sozluk?.[anahtar];
+  if (!sektor) return cekirdek;
+  return {
+    tekil: sektor.tekil ?? cekirdek.tekil,
+    cogul: sektor.cogul ?? cekirdek.cogul,
+    iyelik: sektor.iyelik ?? cekirdek.iyelik,
+    belirtme: sektor.belirtme ?? cekirdek.belirtme,
+    bulunma: sektor.bulunma ?? cekirdek.bulunma,
+    yonelme: sektor.yonelme ?? cekirdek.yonelme,
+  };
+}
+
 /** Aynı terimin cümle başındaki hâli. Türkçe yerel ayarla büyütür:
     `i` → `İ` (varsayılan `toUpperCase` `I` üretir ve "Işletme" yazar). */
 export function tBas(sozluk: Sozluk | null | undefined, anahtar: TerimAnahtari,

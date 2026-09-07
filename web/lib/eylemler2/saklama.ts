@@ -12,11 +12,11 @@
    (`tests/otomasyon-guvenligi.test.ts` bunu ölçer).
 
    ── KAPSAMSIZ BİR YETKİ ───────────────────────────────────────────────
-   Saklama politikası bütün kurumu bağlar; santral kapsamı yoktur.
+   Saklama politikası bütün kurumu bağlar; tesis kapsamı yoktur.
    Bu yüzden kapı `uyum/onay` ister ve `kapsamZorunlu` ÇAĞRILMAZ: burada
-   daraltılacak bir santral kümesi yok. Legal hold santrale bağlanabilir
-   ama koyan kişi yine kurum çapında yetkilidir — bir santral sorumlusunun
-   başka santralin kayıtlarını dondurmaması için değil, hukuki muhafazanın
+   daraltılacak bir tesis kümesi yok. Legal hold tesise bağlanabilir
+   ama koyan kişi yine kurum çapında yetkilidir — bir tesis sorumlusunun
+   başka tesisin kayıtlarını dondurmaması için değil, hukuki muhafazanın
    bir hukuk kararı olması için. */
 
 import { revalidatePath } from 'next/cache';
@@ -105,7 +105,7 @@ export async function saklamaPolitikasiKaydet(girdi: {
  * Hukuki muhafaza koyar.
  *
  * Hold BİR KAYIT AİLESİNE konur; `varlikId` boşsa ailenin tamamı, doluysa
- * tek kayıt. Bir soruşturma çoğu zaman "şu santralin bütün bulguları"
+ * tek kayıt. Bir soruşturma çoğu zaman "şu tesisin bütün bulguları"
  * gibi bir kümedir ve tek tek kayıt işaretlemek pratikte uygulanmaz.
  */
 export async function legalHoldKoy(girdi: {

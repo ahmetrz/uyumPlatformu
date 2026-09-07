@@ -6,7 +6,7 @@
    yetkisi ister; red gerekçesiz verilemez; her karar iz bırakır. Karar kaydı
    kaynak kaydı otomatik DEĞİŞTİRMEZ — uygulama ilgili modülün sorumluluğudur. */
 
-import { kapsamMesaji } from './kapsamMesaji';
+import { kapsamMesaji, kapsamTerimi } from './kapsamMesaji';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { db } from '../db';
@@ -49,19 +49,18 @@ export async function gorevOlustur(girdi: {
   try {
     /* İKİ AŞAMALI KAPI (`KAPSAM_SONRA`, bkz. erisim.ts): ön kapı kapsamsız
        çağrılırsa tesise kısıtlı rol daha ilk adımda reddedilir ve kendi
-       santraline görev açamaz. Gerçek denetim KOŞULSUZ: tesissiz görev
+       tesisine görev açamaz. Gerçek denetim KOŞULSUZ: tesissiz görev
        kurumsaldır, tesise kısıtlı rol onu da açamaz. */
     const k = await yetkiZorunlu('uyum', 'yazma', KAPSAM_SONRA);
     const v = GorevGirdisi.parse(girdi);
     kapsamZorunlu(k, 'uyum', 'yazma', { tesisId: v.tesisId },
-
       await kapsamMesaji(k, 'uyum', 'görev açma yetkiniz yok', v.tesisId));
     if (v.sorumluId) {
       const sorumlu = await db.kullanici.findUnique({ where: { id: v.sorumluId } });
       if (!sorumlu || !sorumlu.aktif) throw new Error('Seçilen sorumlu bulunamadı ya da pasif');
     }
     if (v.tesisId && !(await db.tesis.findUnique({ where: { id: v.tesisId } })))
-      throw new Error('Seçilen tesis bulunamadı');
+      throw new Error(`Seçilen ${await kapsamTerimi(k, 'uyum', v.tesisId)} bulunamadı`);
 
     const yeni = await db.gorev.create({ data: {
       baslik: v.baslik, tip: v.tip,
@@ -91,11 +90,11 @@ export async function gorevDurum(girdi: { id: string; durum: string }): Promise<
     if (!g) throw new Error('Görev bulunamadı');
     /* Kapsam denetimi HER ŞEYDEN ÖNCE. İki sebebi var:
        · Ön kapı `KAPSAM_SONRA` ile gevşetildi; görevin kendi tesisi burada
-         sorulmazsa tesise kısıtlı rol başka santralin görevini kapatır.
+         sorulmazsa tesise kısıtlı rol başka tesisin görevini kapatır.
        · "Zaten bu durumda" kısa yolundan da önce gelmeli: sonra gelseydi
          kapsam dışı bir çağrı, durumu DOĞRU tahmin ettiğinde `tamam()`,
          yanlış tahmin ettiğinde yetki hatası alırdı — eylem başka
-         santralin görevleri için bir DURUM KEHANETİNE dönerdi.
+         tesisin görevleri için bir DURUM KEHANETİNE dönerdi.
          Ölçüldü (2026-09-02, gözden geçirme).
        Aşağıdaki sahiplik kuralı bundan AYRI bir sorudur, yerine geçmez. */
     kapsamZorunlu(k, 'uyum', 'yazma', { tesisId: g.tesisId },

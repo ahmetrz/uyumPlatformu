@@ -64,7 +64,20 @@ export function yorumsuz(kaynak) {
        çevrilmiş her yer yeniden "borç" diye sayılır.
 
     2. SÖZLÜK ANAHTARI ARGÜMANLARI atlanır: `t(sozluk, 'tesis')` içindeki
-       `'tesis'` bir ekran metni değil, anahtarın kendisidir. */
+       `'tesis'` bir ekran metni değil, anahtarın kendisidir.
+
+    3. `varlikTipi` DEĞERLERİ atlanır — R0-9, YAPISAL olarak. Bu alan
+       `AktiviteKaydi`ye YAZILIR ve değeri Prisma MODEL adıdır
+       (`'Varlik'` · `'MaddeDurumu'` · `'Tesis'` …); depodaki 250+ geçişin
+       hepsi böyle. Değişmez denetim izine kiracıya göre değişen sözcük
+       gömülemez, yani buradaki `'Tesis'` çakılı olmak ZORUNDA.
+
+       Kural KONUMLUDUR, küme değil: aynı dosyada `baslik: 'Tesis'` bir
+       EKRAN etiketidir ve yakalanmaya devam eder (`lib/eylemler2/
+       yonetim.ts` ikisini birden taşıyor). Kümeye atsaydık ikincisi de
+       sessizce kaybolurdu. */
+const IZ_ALANI = /\bvarlikTipi\s*(?::|={2,3}|!={1,2})\s*$/;
+
 export function metinParcalari(kaynak) {
   const parcalar = [];
   /* Anahtar argümanları: `t(`/`tBas(` çağrılarındaki dizeler. */
@@ -76,6 +89,7 @@ export function metinParcalari(kaynak) {
   for (const m of kaynak.matchAll(/'([^'\\\n]*)'|"([^"\\\n]*)"|`([^`\\]*)`/g)) {
     const ham = sok(m[1] ?? m[2] ?? m[3] ?? '');
     if (anahtarlar.has(ham.trim())) continue;
+    if (IZ_ALANI.test(kaynak.slice(Math.max(0, m.index - 40), m.index))) continue;
     if (gorunenMetin(ham)) parcalar.push(ham);
   }
   return parcalar;
@@ -99,14 +113,72 @@ export function gorunenMetin(dize) {
   return /^\p{Lu}/u.test(s);
 }
 
+/** Eşleşme bir TANIMLAYICI parçası mı, yoksa ekran metni mi?
+
+    ── NİÇİN KOMŞU KARAKTERE BAKILIYOR ───────────────────────────────────
+    Prozanın içinde dosya adı ve nitelikli ad geçer: `sahabjes-yardimci-
+    tesis.csv`, `Connector.kapsamTesisleriJson`, `/tesisler/${id}`. Bunlar
+    ekranda "tesis" sözcüğü DEĞİLDİR; kiracıya göre değişmezler.
+
+    ── EKSİK KALAN HÂL (ölçüldü) ─────────────────────────────────────────
+    İlk kural komşuda `- . _ /` görünce ATLIYORDU ve bu, gerçek ekran
+    metnini kaçırıyordu: `"Bu tesis/süreç kapsamında doğrulama yetkiniz
+    yok"` (`lib/eylemler2/uyumSahiplik.ts`, iki mesaj). Türkçede eğik
+    çizgi bir SEÇENEK bağıdır ("tesis/süreç" = "tesis ya da süreç"), yol
+    ayracı değil. Kural olduğu gibi kalsaydı bu iki mesaj sınıf
+    taramasının kalıcı kör noktası olurdu.
+
+    ── AYIRT EDİCİ ───────────────────────────────────────────────────────
+    1. Eşleşmeyi çevreleyen BOŞLUKSUZ koşu `.` ya da `_` taşıyorsa
+       tanımlayıcıdır (uzantı, nitelikli ad, snake_case).
+    2. Komşu `-` ise tanımlayıcıdır (slug: `yardimci-tesis`).
+    3. Komşu `/` ise: çizginin ÖTESİ harfse seçenek bağıdır (proza);
+       değilse yol ayracıdır (`/tesisler/`).
+    4. Başka her hâl ekran metnidir. */
+export function tanimlayiciMi(metin, bas, uzunluk) {
+  const son = bas + uzunluk;
+  let sol = bas; while (sol > 0 && !/\s/.test(metin[sol - 1])) sol -= 1;
+  let sag = son; while (sag < metin.length && !/\s/.test(metin[sag])) sag += 1;
+  if (/[._]/.test(metin.slice(sol, sag))) return true;
+  const once = metin[bas - 1] ?? ' ';
+  const sonra = metin[son] ?? ' ';
+  if (once === '-' || sonra === '-') return true;
+  if (once === '/' && !/\p{L}/u.test(metin[bas - 2] ?? ' ')) return true;
+  if (sonra === '/' && !/\p{L}/u.test(metin[son + 1] ?? ' ')) return true;
+  return false;
+}
+
 const ATLA = [`${path.sep}dil${path.sep}`, `prisma${path.sep}`, `tests${path.sep}`,
   `arac${path.sep}`, `${path.sep}prisma-client${path.sep}`];
 
-/* Gerekçeli muafiyetler — çekirdek sözcüğün DOĞRU olduğu dosyalar
-   (R0-8 · R0-9 · kod anahtarı · ölçü birimi). Ölü kayıt kırmızı verir. */
+/* Gerekçeli muafiyetler — çekirdek sözcüğün DOĞRU olduğu yerler
+   (R0-8 · R0-9 · kod anahtarı · ölçü birimi). Ölü kayıt kırmızı verir.
+
+   ── İKİ BİRİM: DOSYA ve DİZE ──────────────────────────────────────────
+   Kayıt bir DİZE ise bütün dosya muaftır; sebep dosya düzeyinde geçerli
+   demektir (bütün bir sözleşme modülü, bütün bir saklanan artefakt).
+   Kayıt `{ sebep, dizeler }` ise YALNIZ o dizeler muaftır ve dosyanın
+   geri kalanı taranmaya devam eder.
+
+   İkinci biçim ölçümden çıktı: `disaAktarim.ts` bir R0-8 sınırı taşıyor
+   (zod, oturumdan ÖNCE koşuyor — dosyanın kendi denetim gerekçesi) ama
+   dosyanın geri kalanı sıradan sunucu eylemi. Dosyayı bütün muaf etmek,
+   bir satırlık gerçek bir sebeple 200 satırı kör etmek olurdu. */
 const TABAN = 'cekirdek-sozcuk-taban.json';
 const MUAFIYET = JSON.parse(
   readFileSync(path.join(WEB, 'arac', 'cekirdek-sozcuk-muafiyet.json'), 'utf8')).dosyalar;
+
+/** Dosyanın TAMAMI muaf mı? (kayıt dize ise evet) */
+const dosyaMuaf = (yol) => typeof MUAFIYET[yol] === 'string';
+/** Bu dize muaf mı? Eşleşme TAM: `includes` olsaydı kısa bir kayıt
+    ("Birim") uzun kardeşini ("Birim en fazla 16 karakter") yutar ve ölü
+    kayıt algılaması sessizce yanlış konuşurdu. Muafiyet dar olmalı. */
+function dizeMuaf(yol, metin) {
+  const kayit = MUAFIYET[yol];
+  if (!kayit || typeof kayit === 'string') return null;
+  const s = metin.trim();
+  return kayit.dizeler.find((d) => s === d) ?? null;
+}
 
 /* Test dosyası bu modülü İMPORT eder; taramanın kendisi yalnız doğrudan
    çalıştırıldığında koşar. Aksi hâlde her test koşumu 500 dosya tarardı. */
@@ -118,7 +190,7 @@ if (DOGRUDAN) {
 for (const gorece of taranacakDosyalar()) {
   if (!/\.(ts|tsx)$/.test(gorece)) continue;
   if (ATLA.some((x) => gorece.includes(x.replace(/\\/g, '/')))) continue;
-  if (gorece in MUAFIYET) { muafKullanildi.add(gorece); continue; }
+  if (dosyaMuaf(gorece)) { muafKullanildi.add(gorece); continue; }
   const kaynak = yorumsuz(readFileSync(path.join(WEB, gorece), 'utf8'));
   for (const parca of metinParcalari(kaynak)) {
     const k = kanonik(parca);
@@ -127,9 +199,9 @@ for (const gorece of taranacakDosyalar()) {
         const re = sinirKalibi(kanonik(form).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'u');
         const m = re.exec(k);
         if (!m) continue;
-        const once = k[m.index - 1] ?? ' ';
-        const sonra = k[m.index + m[0].length] ?? ' ';
-        if (/[-._/]/.test(once) || /[-._/]/.test(sonra)) continue;  // tanımlayıcı
+        if (tanimlayiciMi(k, m.index, m[0].length)) continue;
+        const muafDize = dizeMuaf(gorece, parca);
+        if (muafDize !== null) { muafKullanildi.add(`${gorece}\u0000${muafDize}`); break; }
         bulgular.push({ dosya: gorece, anahtar, form, metin: parca.trim().slice(0, 72) });
         break;
       }
@@ -165,15 +237,18 @@ if (DOGRUDAN && process.argv.includes('--taban')) {
     console.log(`  ${dosya}  (${liste.length})`);
     for (const b of liste.slice(0, 4)) console.log(`      '${b.anahtar}'  "${b.metin}"`);
   }
+  /* Beklenen kayıtlar: dosya muafiyeti bir, dize muafiyeti dizesi kadar. */
+  const beklenen = Object.entries(MUAFIYET).flatMap(([d, k]) => (typeof k === 'string'
+    ? [d] : k.dizeler.map((x) => `${d}\u0000${x}`)));
   console.log(`\ncekirdek-sozcuk: ${bulgular.length} bulgu · ${dosyaBasina.size} dosya`
-    + ` · ${muafKullanildi.size}/${Object.keys(MUAFIYET).length} muafiyet kullanıldı`);
+    + ` · ${muafKullanildi.size}/${beklenen.length} muafiyet kullanıldı`);
 
-  /* ÖLÜ MUAFİYET: dosya artık yok ya da içinde çekirdek sözcük kalmadı.
-     Elle tutulan liste sessizce bayatlar — kırmızı versin. */
-  const olu = Object.keys(MUAFIYET).filter((d) => !muafKullanildi.has(d));
+  /* ÖLÜ MUAFİYET: dosya artık yok, dize artık geçmiyor ya da içinde
+     çekirdek sözcük kalmadı. Elle tutulan liste sessizce bayatlar. */
+  const olu = beklenen.filter((d) => !muafKullanildi.has(d));
   if (olu.length > 0) {
     console.error('\nÖLÜ MUAFİYET — dosya taranmıyor ya da artık çekirdek sözcük taşımıyor:');
-    for (const d of olu) console.error(`  ${d}`);
+    for (const d of olu) console.error(`  ${d.replace('\u0000', '  →  ')}`);
     console.error('  Kaydı düşürün; gereksiz muafiyet kapının kör noktasıdır.');
     process.exit(1);
   }

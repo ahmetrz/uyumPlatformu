@@ -3,24 +3,31 @@
     "ÇEKİRDEK SÖZCÜK TARAMASI · MUAFİYETLER — her biri gerekçesiyle.",
     "",
     "── SINIR (izin listesi ve `beklenen-fark.json` ile AYNI kural) ───────",
-    "Muafiyet YALNIZ şu iki sınıf için meşrudur:",
+    "Muafiyet YALNIZ şu üç sınıf için meşrudur:",
     "  · DEĞİŞMEZ İZ / SÖZLEŞME — insana bir ekran metni olarak sunulmayan,",
     "    saklanan ya da entegratöre verilen artefakt (R0-9).",
     "  · KOD — eşleştirme anahtarı, tanımlayıcı, ölçü birimi; ekran metni",
     "    değil.",
+    "  · KİRACI BAĞLAMINI BEKLEYEMEYEN YÜZEY (R0-8) — `metadata` sabiti,",
+    "    modül düzeyinde zod şeması, Suspense yedeği. Sınır DAR: `async`",
+    "    olabilen her yol (`generateMetadata`, işlev içinde kurulan şema)",
+    "    bağlamı bekleyebilir ve muaf DEĞİLDİR.",
     "",
-    "KULLANICIYA GÖRÜNEN METİN MUAF EDİLEMEZ. Sunucu eylem mesajları,",
-    "form etiketleri, boş durum cümleleri sözlüğe BAĞLANIR — çevrilebilir",
-    "değil, çevrilmesi zorunludur. Görünen metni muaf etmek kapıyı kör eder.",
+    "KULLANICIYA GÖRÜNEN METİN, BAĞLAMI BEKLEYEBİLİYORSA MUAF EDİLEMEZ.",
+    "Sunucu eylem mesajları, form etiketleri, boş durum cümleleri sözlüğe",
+    "BAĞLANIR — çevrilebilir değil, çevrilmesi zorunludur.",
+    "",
+    "── İKİ BİRİM ─────────────────────────────────────────────────────────",
+    "Kayıt bir DİZE ise bütün dosya muaftır (sebep dosya düzeyinde geçerli).",
+    "Kayıt `{ sebep, dizeler }` ise YALNIZ o dizeler muaftır; dosyanın geri",
+    "kalanı taranmaya devam eder. İkinci biçim, bir satırlık gerçek bir",
+    "sebeple 200 satırı kör etmemek için var.",
     "",
     "Her kayıt gerekçelidir (en az 30 karakter, `muafiyet-canli.test.ts`",
-    "ölçer) ve ÖLÜ KAYIT KIRMIZI VERİR: dosya yoksa ya da içinde çekirdek",
-    "sözcük kalmadıysa kayıt düşmelidir. `rotalar.json` ve izin listesi bu",
-    "dersi zaten verdi — elle tutulan liste sessizce bayatlar.",
-    "",
-    "Tek fark `beklenen-fark.json`dan: orası DİZE muaf eder (veri satırı),",
-    "burası DOSYA — çünkü sebep dosya düzeyinde geçerli (bütün bir sözleşme",
-    "modülü, bütün bir saklanan artefakt üreticisi). Kural aynı, birim farklı.",
+    "ölçer) ve ÖLÜ KAYIT KIRMIZI VERİR: dosya yoksa, dize artık geçmiyorsa",
+    "ya da içinde çekirdek sözcük kalmadıysa kayıt düşmelidir. `rotalar.json`",
+    "ve izin listesi bu dersi zaten verdi — elle tutulan liste sessizce",
+    "bayatlar.",
     "",
     "SENARYO KÜTÜĞÜ NİÇİN MUAF. Kütük DAVRANIŞ anlatır, ekran metni değildir;",
     "sektörsüz olması gerekir ve çekirdek sözcük orada DOĞRUDUR. Bu, muafiyet",
@@ -47,6 +54,20 @@
     "lib/senaryo/platform.ts": "SENARYO KÜTÜĞÜ · DAVRANIŞ ANLATIMI. Kütük ürünün davranışını anlatır ve SEKTÖRSÜZ olmak zorundadır — çekirdek sözcük burada doğru olandır, çakılı değil. Ölçüldü: sözlük kapılarının hiçbiri (`iki-sozluk` · `sozluk-farki` · `yatay-tasma` · `dizustu` · `erisim-axe`) kütüğü OKUMUYOR; kütüğü okuyanlar kapsam muhasebesi araçları. Kütük ekran metni ALINTILAMAZ; alıntılarsa hangi kiracıyı anlattığını söylemek zorundadır (bkz. `urunlestirme.ts`, terim katmanının kendisini anlatıyor ve iki yazımı da alıntılıyor).",
     "lib/senaryo/uyum.ts": "SENARYO KÜTÜĞÜ · DAVRANIŞ ANLATIMI. Kütük ürünün davranışını anlatır ve SEKTÖRSÜZ olmak zorundadır — çekirdek sözcük burada doğru olandır, çakılı değil. Ölçüldü: sözlük kapılarının hiçbiri (`iki-sozluk` · `sozluk-farki` · `yatay-tasma` · `dizustu` · `erisim-axe`) kütüğü OKUMUYOR; kütüğü okuyanlar kapsam muhasebesi araçları. Kütük ekran metni ALINTILAMAZ; alıntılarsa hangi kiracıyı anlattığını söylemek zorundadır (bkz. `urunlestirme.ts`, terim katmanının kendisini anlatıyor ve iki yazımı da alıntılıyor).",
     "lib/senaryo/varlik.ts": "SENARYO KÜTÜĞÜ · DAVRANIŞ ANLATIMI. Kütük ürünün davranışını anlatır ve SEKTÖRSÜZ olmak zorundadır — çekirdek sözcük burada doğru olandır, çakılı değil. Ölçüldü: sözlük kapılarının hiçbiri (`iki-sozluk` · `sozluk-farki` · `yatay-tasma` · `dizustu` · `erisim-axe`) kütüğü OKUMUYOR; kütüğü okuyanlar kapsam muhasebesi araçları. Kütük ekran metni ALINTILAMAZ; alıntılarsa hangi kiracıyı anlattığını söylemek zorundadır (bkz. `urunlestirme.ts`, terim katmanının kendisini anlatıyor ve iki yazımı da alıntılıyor).",
-    "lib/senaryo/urunlestirme.ts": "SENARYO KÜTÜĞÜ · DAVRANIŞ ANLATIMI. Kütük ürünün davranışını anlatır ve SEKTÖRSÜZ olmak zorundadır — çekirdek sözcük burada doğru olandır, çakılı değil. Ölçüldü: sözlük kapılarının hiçbiri (`iki-sozluk` · `sozluk-farki` · `yatay-tasma` · `dizustu` · `erisim-axe`) kütüğü OKUMUYOR; kütüğü okuyanlar kapsam muhasebesi araçları. Kütük ekran metni ALINTILAMAZ; alıntılarsa hangi kiracıyı anlattığını söylemek zorundadır (bkz. `urunlestirme.ts`, terim katmanının kendisini anlatıyor ve iki yazımı da alıntılıyor)."
+    "lib/senaryo/urunlestirme.ts": "SENARYO KÜTÜĞÜ · DAVRANIŞ ANLATIMI. Kütük ürünün davranışını anlatır ve SEKTÖRSÜZ olmak zorundadır — çekirdek sözcük burada doğru olandır, çakılı değil. Ölçüldü: sözlük kapılarının hiçbiri (`iki-sozluk` · `sozluk-farki` · `yatay-tasma` · `dizustu` · `erisim-axe`) kütüğü OKUMUYOR; kütüğü okuyanlar kapsam muhasebesi araçları. Kütük ekran metni ALINTILAMAZ; alıntılarsa hangi kiracıyı anlattığını söylemek zorundadır (bkz. `urunlestirme.ts`, terim katmanının kendisini anlatıyor ve iki yazımı da alıntılıyor).",
+    "lib/eylemler2/disaAktarim.ts": {
+      "sebep": "R0-8 · zod şeması MODÜL DÜZEYİNDE ve `parse` bilerek oturumdan ÖNCE koşuyor (dosyanın kendi denetim gerekçesi: yetkinin girdisi kapsamın kendisi). Sözlük kullanıcının kapsamından çözülür; o an kimin sorduğu henüz bilinmiyor. Aynı dosyanın oturum SONRASI mesajı sözlükten geliyor — muafiyet o tek satırla sınırlı.",
+      "dizeler": [
+        "En az bir tesis seçin"
+      ]
+    },
+    "lib/eylemler2/varlikYonetisim.ts": {
+      "sebep": "YANLIŞ POZİTİF · `kayipBirim` bir ÖLÇÜ BİRİMİdir (MW · m³/gün · ton/saat), `birim` sözlük anahtarı (üretim ünitesi / arıtma hattı) DEĞİL. Aynı ayrım `envanter/Yonetisim.tsx` kaydında da yapıldı; orası ekranın alan etiketi, burası aynı alanın sunucu şeması ve denetim izi yazımı. Dosyanın geri kalanı taranmaya devam ediyor.",
+      "dizeler": [
+        "(birim belirtilmedi)",
+        "Birim",
+        "Birim en fazla 16 karakter"
+      ]
+    }
   }
 }

@@ -40,11 +40,28 @@ describe('Muafiyet kayıtları canlı [URN-ALN-004]', () => {
     }
   });
 
+  /* İki biçim: dize = bütün dosya muaf · `{sebep,dizeler}` = yalnız o
+     satırlar. İkisinin de gerekçesi ve canlılığı aynı ölçüde aranır. */
+  type Kayit = string | { sebep: string; dizeler: string[] };
+  const dosyalar: Record<string, Kayit> = oku('arac/cekirdek-sozcuk-muafiyet.json').dosyalar;
+
   it('her DOSYA muafiyeti var olan dosyayı gösterir ve gerekçelidir [URN-ALN-004]', () => {
-    const dosyalar: Record<string, string> = oku('arac/cekirdek-sozcuk-muafiyet.json').dosyalar;
-    for (const [dosya, sebep] of Object.entries(dosyalar)) {
+    for (const [dosya, kayit] of Object.entries(dosyalar)) {
       expect(existsSync(path.join(KOK, dosya)), `muafiyet ölü: ${dosya}`).toBe(true);
+      const sebep = typeof kayit === 'string' ? kayit : kayit.sebep;
       expect(sebep.length, `${dosya}: gerekçe çok kısa`).toBeGreaterThan(30);
+    }
+  });
+
+  it('DİZE muafiyeti kaynağında HÂLÂ geçiyor ve boş değil [URN-ALN-004]', () => {
+    for (const [dosya, kayit] of Object.entries(dosyalar)) {
+      if (typeof kayit === 'string') continue;
+      expect(kayit.dizeler.length, `${dosya}: boş dize listesi bütün dosyayı muaf eder`)
+        .toBeGreaterThan(0);
+      const kaynak = readFileSync(path.join(KOK, dosya), 'utf8');
+      for (const dize of kayit.dizeler) {
+        expect(kaynak, `${dosya}: "${dize}" artık geçmiyor — kaydı düşürün`).toContain(dize);
+      }
     }
   });
 });

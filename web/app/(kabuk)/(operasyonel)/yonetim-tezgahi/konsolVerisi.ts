@@ -6,8 +6,12 @@ import { tumAyarlar } from '@/lib/yapilandirma/oku';
 import { GORSEL_ANAHTARLARI } from '@/lib/gorsel';
 import { HEDEF_SOZU, matrisKusurlari } from '@/lib/uyum/eskalasyon';
 import { KURULU_GUC, sayisalOzellik } from '@/lib/alan/oznitelik';
+import { kapsamAnahtari, kapsamSozlugu } from '@/lib/dil/sozlukOku';
+import { izinliTesisIdleri } from '@/lib/erisim';
+import { tBas } from '@/lib/dil/terimler';
 import {
-  KONSOL_VARLIK_TIPLERI, type KonsolKayit, type KonsolVerisi, type Talep, type TalepDurumu,
+  KONSOL_VARLIK_TIPLERI, type EtkiSatiri, type KonsolKayit, type KonsolVerisi,
+  type Talep, type TalepDurumu,
 } from './konsolOrtak';
 
 /* Yönetim konsolu veri katmanı. Kapı: yonetim/okuma yoksa HİÇ sorgu
@@ -141,11 +145,19 @@ export async function konsolVerisi(kullanici: AktifKullanici, simdi: number): Pr
       degerler: { gorselAnahtari: t.gorselAnahtari ?? '' } })),
   };
 
+  /* SAKLANAN etki satırı çekirdek sözcük taşır (R0-9); ekranda kiracının
+     sözcüğü görünsün diye başlık terim ANAHTARINDAN yeniden yazılır.
+     Anahtarsız satır (sayım etiketi) olduğu gibi kalır. */
+  const sozluk = await kapsamSozlugu(
+    kapsamAnahtari(izinliTesisIdleri(kullanici, 'yonetim')));
+  const etkiyiSozlukleYaz = (satirlar: EtkiSatiri[]): EtkiSatiri[] => satirlar.map((e) => (
+    e.terim ? { ...e, baslik: `${tBas(sozluk, e.terim)}${e.ek ?? ''}` } : e));
+
   const talepListesi: Talep[] = talepler.map((t) => ({
     id: t.id, hedefTipi: t.hedefTipi, hedefId: t.hedefId, hedefEtiket: t.hedefEtiket,
     once: t.onceJson ? JSON.parse(t.onceJson) as Record<string, unknown> : null,
     sonra: JSON.parse(t.sonraJson) as Record<string, unknown>,
-    etki: t.etkiJson ? JSON.parse(t.etkiJson) as Talep['etki'] : null,
+    etki: t.etkiJson ? etkiyiSozlukleYaz(JSON.parse(t.etkiJson) as EtkiSatiri[]) : null,
     gerekce: t.gerekce, durum: t.durum as TalepDurumu,
     talepEden: { id: t.talepEdenId, ad: ad(t.talepEdenId) ?? 'bilinmeyen kullanıcı' },
     onaylayan: ad(t.onaylayanId), uygulayan: ad(t.uygulayanId), inceleyen: ad(t.inceleyenId),

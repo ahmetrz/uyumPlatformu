@@ -17,6 +17,7 @@ import {
   riskKaydiAc, sapmaKarari, temelBelirle,
 } from '../entegrasyon/topoloji';
 import { tamam, hata, iz, bosluksuz, type Sonuc } from './ortak';
+import { kapsamMesaji } from './kapsamMesaji';
 
 const gerekceAlani = bosluksuz('Gerekçe')
   .pipe(z.string().min(10, 'Gerekçe en az 10 karakter olmalı'));
@@ -76,7 +77,8 @@ export async function temelOlarakOnayla(girdi: {
     const k = await yetkiZorunlu('envanter', 'onay',
       anlik.tesisId ? { tesisId: anlik.tesisId } : {});
     if (!kapsamli(k, 'onay', anlik.tesisId))
-      return { ok: false, hata: 'Bu tesis kapsamında topoloji onay yetkiniz yok' };
+      return { ok: false,
+        hata: await kapsamMesaji(k, 'envanter', 'topoloji onay yetkiniz yok', anlik.tesisId) };
 
     const { dusenTemelId } = await temelBelirle(v.anlikId, k.id, v.gerekce);
     await iz({
@@ -134,7 +136,7 @@ export async function sapmayiIncelemeyeAl(girdi: { sapmaId: string }): Promise<S
     const s = await db.topolojiSapmasi.findUniqueOrThrow({ where: { id: v.sapmaId } });
     const k = await yetkiZorunlu('envanter', 'yazma', s.tesisId ? { tesisId: s.tesisId } : {});
     if (!kapsamli(k, 'yazma', s.tesisId))
-      return { ok: false, hata: 'Bu tesis kapsamında yetkiniz yok' };
+      return { ok: false, hata: await kapsamMesaji(k, 'envanter', 'yetkiniz yok', s.tesisId) };
     await incelemeyeAl(v.sapmaId, k.id);
     await iz({
       aktorId: k.id, varlikTipi: 'TopolojiSapmasi', varlikId: v.sapmaId,
@@ -163,7 +165,8 @@ export async function sapmaKararVer(girdi: {
     const s = await db.topolojiSapmasi.findUniqueOrThrow({ where: { id: v.sapmaId } });
     const k = await yetkiZorunlu('envanter', 'onay', s.tesisId ? { tesisId: s.tesisId } : {});
     if (!kapsamli(k, 'onay', s.tesisId))
-      return { ok: false, hata: 'Bu tesis kapsamında topoloji karar yetkiniz yok' };
+      return { ok: false,
+        hata: await kapsamMesaji(k, 'envanter', 'topoloji karar yetkiniz yok', s.tesisId) };
 
     const sonuc = await sapmaKarari({
       sapmaId: v.sapmaId, karar: v.karar, kararVerenId: k.id, gerekce: v.gerekce,
@@ -205,7 +208,8 @@ export async function sapmadanRiskAc(girdi: {
     const s = await db.topolojiSapmasi.findUniqueOrThrow({ where: { id: v.sapmaId } });
     const k = await yetkiZorunlu('risk', 'yazma', s.tesisId ? { tesisId: s.tesisId } : {});
     if (s.tesisId && !izinVar(k, 'risk', 'yazma', { tesisId: s.tesisId }))
-      return { ok: false, hata: 'Bu tesis kapsamında risk yazma yetkiniz yok' };
+      return { ok: false,
+        hata: await kapsamMesaji(k, 'risk', 'risk yazma yetkiniz yok', s.tesisId) };
 
     const { riskId, kod } = await riskKaydiAc(v.sapmaId, k.id, {
       kod: v.kod, baslik: v.baslik, sahipId: v.sahipId ?? null, gerekce: v.gerekce,

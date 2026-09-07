@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { gorunenMetin, metinParcalari, yorumsuz } from '../../arac/cekirdek-sozcuk-taramasi.mjs';
+import {
+  gorunenMetin, metinParcalari, tanimlayiciMi, yorumsuz,
+} from '../../arac/cekirdek-sozcuk-taramasi.mjs';
 
 /* ═══════════════════════════════════════════════════════════════════════
    ÇEKİRDEK SÖZCÜK TARAYICISININ KENDİ DOĞRULAMASI (URN-ALN-007)
@@ -60,5 +62,43 @@ describe('Çekirdek sözcük tarayıcısı · kendi vakaları [URN-ALN-007]', ()
     /* Kısmi çeviri en sinsi hâl: bir yer sözlükten, öbürü çakılı. */
     const p = metinParcalari("const q = `${t(sozluk, 'tesis')} · tüm portföy`;");
     expect(p.join(' ')).toContain('tüm portföy');
+  });
+
+  it('GÜRÜLTÜ 5: `varlikTipi` DEĞERİ denetim izi model adıdır [URN-ALN-007]', () => {
+    /* R0-9 · `AktiviteKaydi.varlikTipi`ye YAZILIR; çakılı olmak zorunda. */
+    expect(metinParcalari("await iz({ varlikTipi: 'Tesis', varlikId: id });"))
+      .not.toContain('Tesis');
+    expect(metinParcalari("if (k.varlikTipi === 'Tesis') return 1;")).not.toContain('Tesis');
+  });
+
+  it('GÜRÜLTÜ 5 KONUMLUDUR: aynı dosyadaki ekran etiketi yakalanır [URN-ALN-007]', () => {
+    /* Kümeye atmak, `lib/eylemler2/yonetim.ts`teki `baslik: 'Tesis'`
+       ekran etiketini de sessizce yutardı. */
+    const p = metinParcalari(
+      "await iz({ varlikTipi: 'Tesis' });\nconst s = [{ baslik: 'Tesis', deger: 3 }];");
+    expect(p).toContain('Tesis');
+    expect(p.filter((x: string) => x === 'Tesis')).toHaveLength(1);
+  });
+
+  /* ── GÜRÜLTÜ 4 · TANIMLAYICI KOMŞULUĞU ──────────────────────────────
+     Kural İKİ yönde de yanlış olabilir ve ikisi de ölçüldü:
+     yanlış POZİTİF (dosya adı "tesis" sayılır) ve yanlış NEGATİF
+     ("tesis/süreç" kod sayılır). Vakalar iki yönü de tutuyor. */
+  const yerBul = (metin: string, sozcuk: string) =>
+    tanimlayiciMi(metin, metin.indexOf(sozcuk), sozcuk.length);
+
+  it('GÜRÜLTÜ 4: dosya adı ve nitelikli ad tanımlayıcıdır [URN-ALN-007]', () => {
+    expect(yerBul('kaynak sahabjes-yardimci-tesis.csv okundu', 'tesis')).toBe(true);
+    expect(yerBul('alan Connector.kapsamTesisleriJson içinde', 'Tesisleri')).toBe(true);
+    expect(yerBul('yol /tesisler/ altında', 'tesisler')).toBe(true);
+    expect(yerBul('app/tesis/veri.ts dosyası', 'tesis')).toBe(true);
+  });
+
+  it('GÜRÜLTÜ 4: eğik çizgi SEÇENEK bağıysa ekran metnidir [URN-ALN-007]', () => {
+    /* Bu iki mesaj kuralın ilk hâlinde sınıf taramasının kör noktasıydı
+       (`lib/eylemler2/uyumSahiplik.ts`): "tesis/süreç" bir yol değil,
+       "tesis ya da süreç" demek. */
+    expect(yerBul('Bu tesis/süreç kapsamında doğrulama yetkiniz yok', 'tesis')).toBe(false);
+    expect(yerBul('Bu tesis kapsamında yetkiniz yok', 'tesis')).toBe(false);
   });
 });

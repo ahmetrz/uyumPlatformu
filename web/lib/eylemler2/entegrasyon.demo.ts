@@ -1,11 +1,20 @@
-/* Statik demo: yazma yok. */
+/* Statik demo: yazma yok.
+
+   Demo TEK SÖZLÜKLÜDÜR — sözlük okuması veritabanı ister, demo
+   yayınında veritabanı yok. Çekirdek sözcük yine de ÇEKİRDEKTEN
+   okunur, dizeye çakılmaz: kararın gerekçesi kodda görünsün ve sözlük
+   anahtarı değişirse burası da kırılsın. */
+import { CEKIRDEK_TERIMLER } from '../dil/terimler';
+
 type Sonuc = { ok: true } | { ok: false; hata: string };
 const uyar = async (): Promise<Sonuc> => ({ ok: false, hata: 'Demo sürümü: değişiklikler bu ortamda kaydedilmez.' });
 /* Kapsam görünümü de OKUNAMAZ döner: demo yayınında connector kaydı yoktur
-   ve boş bir kapsam listesi göstermek "bu connector her santrale yazabilir"
+   ve boş bir kapsam listesi göstermek "bu connector her tesise yazabilir"
    diye okunurdu — sahte güvenlik bilgisi üretmiyoruz. */
 const okunamaz = async (): Promise<{ ok: false; hata: string }> => ({
-  ok: false, hata: 'Demo sürümü: santral kapsamı yalnız canlı kurulumda okunur.' });
+  ok: false,
+  hata: `Demo sürümü: ${CEKIRDEK_TERIMLER.tesis.tekil} kapsamı `
+    + 'yalnız canlı kurulumda okunur.' });
 export const connectorKaydet = uyar;
 export const connectorKapsamGorunumu = okunamaz;
 export const connectorKapsamKaydet = uyar;

@@ -4,7 +4,8 @@
    kapanışa geçiş onay yetkisi ister ve açık kanıt talebi ya da açık bulgu
    varken REDDEDİLİR), gerekçeli geri alma, kanıt talepleri ve kapsam yönetimi. */
 
-import { kapsamMesaji, kapsamTerimi } from './kapsamMesaji';
+import { eylemSozlugu, kapsamMesaji } from './kapsamMesaji';
+import { tBas } from '../dil/terimler';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { db } from '../db';
@@ -274,11 +275,15 @@ export async function kanitTalebiDurum(girdi: {
 
 // ------------------------------------------------------------------ kapsam
 
-const KapsamGirdisi = z.object({
+/* Şema İŞLEVDİR, modül sabiti değil: `refine` mesajı sözlükten gelen
+   terimi taşıyor ve terim oturum açıldıktan sonra çözülüyor. Modül
+   düzeyinde sabit olsaydı R0-8 sınırına girer ve çekirdek sözcüğe
+   çakılırdı — burada böyle bir zorunluluk yok, şema kurulumu ucuz. */
+const kapsamGirdisi = (tesis: string) => z.object({
   denetimId: z.string(),
   tesisId: z.string().nullable().optional(),
   maddeId: z.string().nullable().optional(),
-}).refine((g) => g.tesisId || g.maddeId, { message: 'Tesis veya madde seçin' });
+}).refine((g) => g.tesisId || g.maddeId, { message: `${tesis} veya madde seçin` });
 
 /** Denetim kapsamına tesis ya da madde ekler. Tesis eklerken kullanıcının o
     tesis kapsamında denetim yazma yetkisi aranır. */
@@ -292,7 +297,8 @@ export async function kapsamEkle(girdi: {
        KOŞULSUZ: madde eklemek tesissiz (kurumsal) bir işlemdir, bütün
        denetimi etkiler, tesise kısıtlı rol onu da yapamaz. */
     const k = await yetkiZorunlu('denetim', 'yazma', KAPSAM_SONRA);
-    const v = KapsamGirdisi.parse(girdi);
+    const sozluk = await eylemSozlugu(k, 'denetim');
+    const v = kapsamGirdisi(tBas(sozluk, 'tesis')).parse(girdi);
     const d = await db.denetim.findUnique({ where: { id: v.denetimId } });
     if (!d || d.silindi) throw new Error('Denetim bulunamadı');
     if (d.durum === 'kapanis') throw new Error('Kapanmış denetimin kapsamı değiştirilemez');
@@ -303,7 +309,7 @@ export async function kapsamEkle(girdi: {
     let etiket = '';
     if (v.tesisId) {
       const tesis = await db.tesis.findUnique({ where: { id: v.tesisId } });
-      if (!tesis) throw new Error(`${await kapsamTerimi(k, 'denetim', 'tekil')} bulunamadı`);
+      if (!tesis) throw new Error(`${tBas(sozluk, 'tesis')} bulunamadı`);
       etiket = tesis.kod;
     }
     if (v.maddeId) {

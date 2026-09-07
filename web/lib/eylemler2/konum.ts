@@ -5,17 +5,18 @@ import { revalidatePath } from 'next/cache';
 import { db } from '../db';
 import { yetkiZorunlu, izinVar, KAPSAM_SONRA } from '../erisim';
 import { hata, iz, tamam, type Sonuc } from './ortak';
+import { eylemTerimi } from './kapsamMesaji';
 import { koordinatGecerli } from '@/app/(tam)/harita/mantik';
 
-/* A4 · Santral koordinatı.
+/* A4 · Tesis koordinatı.
 
-   YETKİ: `tanimlar/yazma` — koordinat santral SİCİLİNİN alanıdır (ad, kod,
-   kurulu güç ile aynı raf), uyum kaydı değil. Kapsam kaydın kendi
-   santralinden okunur: tesise kısıtlı kullanıcı yalnız kendi santralinin
+   YETKİ: `tanimlar/yazma` — koordinat tesis SİCİLİNİN alanıdır (ad, kod,
+   kurulu güç ile aynı raf), uyum kaydı değil. Kapsam kaydın KENDİ
+   tesisinden okunur: tesise kısıtlı kullanıcı yalnız kendi tesisinin
    konumunu düzeltebilir.
 
    SİLME AÇIKÇA MÜMKÜNDÜR: `null` gönderilirse koordinat kaldırılır ve
-   santral haritada yaklaşık işarete döner. "Yanlış girdim" demenin yolu
+   tesis haritada yaklaşık işarete döner. "Yanlış girdim" demenin yolu
    olmalı; yanlış bir koordinat, hiç koordinat olmamasından kötüdür. */
 
 export async function tesisKonumKaydet(girdi: {
@@ -55,8 +56,9 @@ export async function tesisKonumKaydet(girdi: {
         konumKaynagi: true, konumDogrulandi: true,
       },
     });
+    const tesis = await eylemTerimi(k, 'tanimlar', eski.id);
     if (!izinVar(k, 'tanimlar', 'yazma', { tesisId: eski.id, surecId: null })) {
-      return { ok: false, hata: 'Bu santralin sicilinde yazma yetkiniz yok' };
+      return { ok: false, hata: `Bu ${tesis.iyelik} sicilinde yazma yetkiniz yok` };
     }
     /* DOĞRULAMA AYRI BİR YETKİDİR. Koordinat girmek bir kayıt işidir;
        "bu noktaya biri baktı" demek bir ONAYDIR ve başka bir sorumluluk.

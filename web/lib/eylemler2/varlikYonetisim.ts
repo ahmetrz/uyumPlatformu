@@ -16,7 +16,7 @@
    Konfigürasyon TABANI ve keşif YETKİ kararı `onay` ister: ikisi de
    sonradan "böyle olması gerekiyordu" diye okunacak kararlardır. */
 
-import { kapsamMesaji } from './kapsamMesaji';
+import { kapsamMesaji, kapsamTerimi } from './kapsamMesaji';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { db } from '../db';
@@ -33,17 +33,21 @@ const metin = z.string().trim().transform((s) => s || null).nullable().optional(
 const gerekceAlani = z.string().trim().min(10, 'Gerekçe en az 10 karakter olmalı');
 const sayiYaNull = z.number().finite().nullable().optional();
 
-/** Varlığı okur ve tesis kapsamını dayatır. */
+/** Varlığı okur ve kapsamını dayatır.
+
+    Mesajın SONEKİ alınır, tamamı değil: tesis terimi kaydın KENDİ
+    sözlüğünden gelir ve onu bu yardımcı okur (`kapsamMesaji`). */
 async function varligiAlVeKapsamiDayat(
   k: Awaited<ReturnType<typeof yetkiZorunlu>>,
-  varlikId: string, islem: 'yazma' | 'onay', mesaj: string,
+  varlikId: string, islem: 'yazma' | 'onay', sonek: string,
 ) {
   const v = await db.varlik.findUnique({
     where: { id: varlikId },
     select: { id: true, etiket: true, tesisId: true, silindi: true },
   });
   if (!v || v.silindi) throw new Error('Varlık bulunamadı');
-  kapsamZorunlu(k, 'envanter', islem, { tesisId: v.tesisId }, mesaj);
+  kapsamZorunlu(k, 'envanter', islem, { tesisId: v.tesisId },
+    await kapsamMesaji(k, 'envanter', sonek, v.tesisId));
   return v;
 }
 
@@ -53,7 +57,7 @@ async function varligiAlVeKapsamiDayat(
  * İş sürecinin kendisi — adımların taşıyıcısı.
  *
  * Adım yazılabilen ama süreç yazılamayan bir ürün, ilk süreci seed'den
- * gelen iki kayda mahkûm ederdi; santralin kendi üretim zincirini
+ * gelen iki kayda mahkûm ederdi; tesisin kendi üretim zincirini
  * tanımlaması imkânsız olurdu.
  */
 export async function isSureciKaydet(girdi: unknown): Promise<Sonuc> {
@@ -68,13 +72,15 @@ export async function isSureciKaydet(girdi: unknown): Promise<Sonuc> {
 
     if (v.tesisId) {
       const t = await db.tesis.findUnique({ where: { id: v.tesisId }, select: { id: true } });
-      if (!t) return hata(new Error('Seçilen santral bulunamadı'));
+      if (!t) {
+        return hata(new Error(
+          `Seçilen ${await kapsamTerimi(k, 'tanimlar')} bulunamadı`));
+      }
     }
     kapsamZorunlu(k, 'tanimlar', 'onay', { tesisId: v.tesisId ?? null },
-
       await kapsamMesaji(k, 'tanimlar', 'iş süreci tanımlama yetkiniz yok', v.tesisId ?? null));
-    /* Süreci BAŞKA bir santrale taşımak da bir kapsam kararıdır: eski
-       santralin kapsamı sorulmazsa, A'ya yetkili biri B'nin sürecini
+    /* Süreci BAŞKA bir tesise taşımak da bir kapsam kararıdır: eski
+       tesisin kapsamı sorulmazsa, A'ya yetkili biri B'nin sürecini
        kendine çekebilirdi. */
     if (v.id) {
       const eski = await db.isSureci.findUnique({
@@ -82,7 +88,8 @@ export async function isSureciKaydet(girdi: unknown): Promise<Sonuc> {
       });
       if (!eski) return hata(new Error('İş süreci bulunamadı'));
       kapsamZorunlu(k, 'tanimlar', 'onay', { tesisId: eski.tesisId },
-        'Bu sürecin bugünkü santral kapsamında düzenleme yetkiniz yok');
+        `Bu sürecin bugünkü ${await kapsamTerimi(k, 'tanimlar', eski.tesisId)} `
+        + 'kapsamında düzenleme yetkiniz yok');
     }
 
     const veri = {
@@ -103,10 +110,10 @@ export async function isSureciKaydet(girdi: unknown): Promise<Sonuc> {
 
 export async function prosesAdimiKaydet(girdi: unknown): Promise<Sonuc> {
   try {
-    /* İKİ AŞAMALI KAPI: adım bir SÜRECE, süreç de bir santrale bağlıdır.
+    /* İKİ AŞAMALI KAPI: adım bir SÜRECE, süreç de bir tesise bağlıdır.
        Ön kapı kapsamsız sorulur (`KAPSAM_SONRA`), gerçek kapsam süreç
        okunduktan sonra dayatılır. Tek aşamalı kapsamsız bir kapı,
-       santral ekibinin KENDİ sürecine adım yazmasını engellerdi. */
+       tesis ekibinin KENDİ sürecine adım yazmasını engellerdi. */
     const k = await yetkiZorunlu('tanimlar', 'onay', KAPSAM_SONRA);
     const v = z.object({
       id: z.string().optional(),
@@ -175,7 +182,7 @@ export async function adimVarligiAta(girdi: unknown): Promise<Sonuc> {
     }).parse(girdi);
 
     await varligiAlVeKapsamiDayat(k, v.varlikId, 'yazma',
-      'Bu tesis kapsamında varlık düzenleme yetkiniz yok');
+      'varlık düzenleme yetkiniz yok');
     const adim = await db.prosesAdimi.findUnique({
       where: { id: v.adimId }, select: { id: true, kod: true },
     });
@@ -215,7 +222,7 @@ export async function adimVarligiKaldir(girdi: {
     });
     if (!bag) return hata(new Error('Bağ bulunamadı'));
     await varligiAlVeKapsamiDayat(k, bag.varlikId, 'yazma',
-      'Bu tesis kapsamında varlık düzenleme yetkiniz yok');
+      'varlık düzenleme yetkiniz yok');
 
     await db.adimVarligi.delete({ where: { id: v.bagId } });
     await iz({
@@ -264,7 +271,7 @@ export async function etkiDegerlendirmesiKaydet(girdi: unknown): Promise<Sonuc> 
     }).parse(girdi);
 
     await varligiAlVeKapsamiDayat(k, v.varlikId, 'yazma',
-      'Bu tesis kapsamında etki değerlendirmesi yetkiniz yok');
+      'etki değerlendirmesi yetkiniz yok');
 
     /* Sayı yazan değerlendirme GEREKÇE İSTER: gerekçesiz bir "12,5 MW"
        denetimde savunulamaz ve nereden geldiği sorulduğunda cevap kalmaz. */
@@ -312,8 +319,8 @@ export async function etkiDegerlendirmesiKaydet(girdi: unknown): Promise<Sonuc> 
 
 export async function ekipKaydet(girdi: unknown): Promise<Sonuc> {
   try {
-    /* İKİ AŞAMALI KAPI: ekip bir santrale bağlı OLABİLİR ve o zaman
-       kapsam kararı ekibin santraline aittir. Santralsiz (kurumsal) ekip
+    /* İKİ AŞAMALI KAPI: ekip bir tesise bağlı OLABİLİR ve o zaman
+       kapsam kararı ekibin tesisine aittir. Tesissiz (kurumsal) ekip
        için `kapsamZorunlu` null kapsamı zaten doğru değerlendirir. */
     const k = await yetkiZorunlu('tanimlar', 'onay', KAPSAM_SONRA);
     const v = z.object({
@@ -327,13 +334,15 @@ export async function ekipKaydet(girdi: unknown): Promise<Sonuc> {
 
     if (v.tesisId) {
       const t = await db.tesis.findUnique({ where: { id: v.tesisId }, select: { id: true } });
-      if (!t) return hata(new Error('Seçilen santral bulunamadı'));
+      if (!t) {
+        return hata(new Error(
+          `Seçilen ${await kapsamTerimi(k, 'tanimlar')} bulunamadı`));
+      }
     }
     kapsamZorunlu(k, 'tanimlar', 'onay', { tesisId: v.tesisId ?? null },
-
       await kapsamMesaji(k, 'tanimlar', 'ekip tanımlama yetkiniz yok', v.tesisId ?? null));
-    /* Ekibi BAŞKA bir santrale taşımak da bir kapsam kararıdır: eski
-       santralin kapsamı da sorulmazsa, A santraline yetkili biri B'nin
+    /* Ekibi BAŞKA bir tesise taşımak da bir kapsam kararıdır: eski
+       tesisin kapsamı da sorulmazsa, A tesisine yetkili biri B'nin
        ekibini kendine çekebilirdi. */
     if (v.id) {
       const eski = await db.ekip.findUnique({
@@ -341,7 +350,8 @@ export async function ekipKaydet(girdi: unknown): Promise<Sonuc> {
       });
       if (!eski) return hata(new Error('Ekip bulunamadı'));
       kapsamZorunlu(k, 'tanimlar', 'onay', { tesisId: eski.tesisId },
-        'Bu ekibin bugünkü santral kapsamında düzenleme yetkiniz yok');
+        `Bu ekibin bugünkü ${await kapsamTerimi(k, 'tanimlar', eski.tesisId)} `
+        + 'kapsamında düzenleme yetkiniz yok');
     }
     const veri = {
       ad: v.ad, tip: v.tip, tesisId: v.tesisId ?? null,
@@ -434,7 +444,7 @@ export async function varligaEkipAta(girdi: {
       ekipId: z.string().trim().transform((s) => s || null).nullable(),
     }).parse(girdi);
     await varligiAlVeKapsamiDayat(k, v.varlikId, 'yazma',
-      'Bu tesis kapsamında varlık düzenleme yetkiniz yok');
+      'varlık düzenleme yetkiniz yok');
 
     if (v.ekipId) {
       const e = await db.ekip.findUnique({
@@ -501,7 +511,8 @@ export async function topluSahipDevri(girdi: {
        hangi kayıtların değiştiğini bilmediği bir sonuç üretirdi. */
     for (const varlik of varliklar) {
       kapsamZorunlu(k, 'envanter', 'onay', { tesisId: varlik.tesisId },
-        `Bu tesis kapsamında devir yetkiniz yok (${varlik.etiket})`);
+        await kapsamMesaji(k, 'envanter',
+          `devir yetkiniz yok (${varlik.etiket})`, varlik.tesisId));
     }
 
     let degisen = 0; let degismeyen = 0;
@@ -731,7 +742,7 @@ export async function konfigTemeliOnayla(girdi: {
       varlikId: bosluksuz('Varlık'), yedekId: bosluksuz('Yedek'), not: metin,
     }).parse(girdi);
     await varligiAlVeKapsamiDayat(k, v.varlikId, 'onay',
-      'Bu tesis kapsamında konfigürasyon onaylama yetkiniz yok');
+      'konfigürasyon onaylama yetkiniz yok');
 
     const yedek = await db.konfigurasyonYedegi.findUnique({
       where: { id: v.yedekId },

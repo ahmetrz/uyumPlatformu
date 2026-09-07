@@ -21,18 +21,25 @@ import {
 } from '../uyum/kokNeden';
 import { TEKRAR_PENCERESI_GUN, tekrarKarari } from '../uyum/tekrarBulgu';
 import { type Sonuc, tamam, hata, iz, bosluksuz } from './ortak';
+import { eylemTerimi, kapsamTerimi } from './kapsamMesaji';
+import type { Terim } from '../dil/terimler';
 
 /** Bulgunun kapsamını madde durumundan sorar; bulgu kendi tesisini taşımaz. */
 async function bulguKapsamiDayat(
-  k: AktifKullanici, bulguId: string, islem: 'yazma' | 'onay', mesaj: string,
+  k: AktifKullanici, bulguId: string, islem: 'yazma' | 'onay',
+  mesaj: (tesis: Terim) => string,
 ) {
   const b = await db.bulgu.findUnique({
     where: { id: bulguId },
     select: { maddeDurumu: { select: { tesisId: true, surecId: true } } },
   });
   if (!b) throw new Error('Bulgu bulunamadı');
+  /* Mesaj İŞLEV olarak alınır: tesisi bu yardımcı okuyor, doğru çekim
+     hâlini ise cümleyi kuran çağıran biliyor. Çağırana terimin bütün
+     hâlleri geçirilir; ek birleştirme YOK. */
   kapsamZorunlu(k, 'uyum', islem,
-    { tesisId: b.maddeDurumu.tesisId, surecId: b.maddeDurumu.surecId }, mesaj);
+    { tesisId: b.maddeDurumu.tesisId, surecId: b.maddeDurumu.surecId },
+    mesaj(await eylemTerimi(k, 'uyum', b.maddeDurumu.tesisId)));
 }
 
 /**
@@ -65,7 +72,7 @@ export async function kokNedenKaydet(girdi: {
     });
     if (!eski || eski.silindi) return hata(new Error('Bulgu bulunamadı'));
     await bulguKapsamiDayat(k, v.bulguId, 'yazma',
-      'Bu tesis kapsamında kök neden analizi yazma yetkiniz yok');
+      (x) => `Bu ${x.tekil} kapsamında kök neden analizi yazma yetkiniz yok`);
 
     await db.bulgu.update({
       where: { id: v.bulguId },
@@ -115,7 +122,7 @@ export async function tekrarBagiKur(girdi: {
     });
     if (!bulgu || bulgu.silindi) return hata(new Error('Bulgu bulunamadı'));
     await bulguKapsamiDayat(k, v.bulguId, 'yazma',
-      'Bu tesis kapsamında tekrar bağı kurma yetkiniz yok');
+      (x) => `Bu ${x.tekil} kapsamında tekrar bağı kurma yetkiniz yok`);
 
     if (v.oncekiBulguId !== null) {
       if (v.oncekiBulguId === v.bulguId) {
@@ -128,16 +135,16 @@ export async function tekrarBagiKur(girdi: {
       if (!onceki || onceki.silindi) {
         return hata(new Error('Bağlanacak önceki bulgu bulunamadı'));
       }
-      /* Önceki bulgunun kapsamı da sorulur: A santralinde yetkili biri,
-         B santralinin bulgusuna zincir kuramasın. */
+      /* Önceki bulgunun kapsamı da sorulur: bir kapsamda yetkili biri,
+         başka kapsamdaki bulguya zincir kuramasın. */
       await bulguKapsamiDayat(k, v.oncekiBulguId, 'yazma',
-        'Bağlanacak bulgunun tesisinde yetkiniz yok');
+        (x) => `Bağlanacak bulgunun ${x.belirtme} kapsamınızda değil`);
 
       if (onceki.maddeDurumuId !== bulgu.maddeDurumuId) {
         return hata(new Error(
-          'Tekrar bağı yalnız AYNI kontrol ve AYNI santral içinde kurulur. '
-          + 'Farklı kontrolleri birbirine bağlamak, denetçiye yanlış bir '
-          + 'tarihçe sunardı.',
+          `Tekrar bağı yalnız AYNI kontrol ve AYNI ${await kapsamTerimi(k, 'uyum')} `
+          + 'içinde kurulur. Farklı kontrolleri birbirine bağlamak, '
+          + 'denetçiye yanlış bir tarihçe sunardı.',
         ));
       }
       /* Döngü savunması: zinciri yukarı yürü, kendimize dönüyor muyuz? */
@@ -198,7 +205,7 @@ export async function tekrarAdayiSor(girdi: { bulguId: string }): Promise<
     });
     if (!bulgu || bulgu.silindi) return hata(new Error('Bulgu bulunamadı'));
     await bulguKapsamiDayat(k, v.bulguId, 'yazma',
-      'Bu tesis kapsamında bulguyu okuma yetkiniz yok');
+      (x) => `Bu ${x.tekil} kapsamında bulguyu okuma yetkiniz yok`);
 
     const gecmis = await db.bulgu.findMany({
       where: { maddeDurumuId: bulgu.maddeDurumuId, silindi: null, id: { not: bulgu.id } },

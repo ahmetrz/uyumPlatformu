@@ -1,6 +1,6 @@
 'use server';
 
-/* Santral 360 eylemleri: tesis profili (uygulanabilirlik motorunun girdisi),
+/* Tesis 360 eylemleri: tesis profili (uygulanabilirlik motorunun girdisi),
    kapsam yeniden hesaplama ve onaylı uygulanabilirlik override'ı.
    Kalıp: her eylem yetkiZorunlu → zod → db → iz → revalidatePath → Sonuc. */
 
@@ -10,13 +10,18 @@ import { db } from '../db';
 import { yetkiZorunlu } from '../erisim';
 import { tesisKapsaminiHesapla } from '../motorlar/uygulanabilirlik';
 import { type Sonuc, tamam, hata, iz, tarihAlani, bosluksuz } from './ortak';
+import { eylemSozlugu } from './kapsamMesaji';
+import { tBas } from '../dil/terimler';
 
 /* null = BİLİNMİYOR (§5.1): boş metin null'a çevrilir, boolean üç durumludur. */
 const metin = z.string().trim().transform((s) => s || null).nullable().optional();
 const ucDurum = z.boolean().nullable().optional();
 
-const ProfilSemasi = z.object({
-  tesisId: bosluksuz('Tesis'),
+/* Şema İŞLEVDİR: tesis etiketi sözlükten gelir ve sözlük oturum
+   açıldıktan sonra çözülür. Modül sabiti olsaydı R0-8 sınırına girer,
+   çekirdek sözcüğe çakılırdı. Tip `z.input` ile aynı yerden türüyor. */
+const profilSemasi = (tesis: string) => z.object({
+  tesisId: bosluksuz(tesis),
   lisansTipi: metin,
   lisansNo: metin,
   kabulDurumu: z.enum(['gecici_kabul', 'kesin_kabul', 'insaat', 'lisans_oncesi']).nullable().optional(),
@@ -39,13 +44,14 @@ const ProfilSemasi = z.object({
   grupOrtakServisler: metin,
 });
 
-type ProfilGirdisi = z.input<typeof ProfilSemasi>;
+type ProfilGirdisi = z.input<ReturnType<typeof profilSemasi>>;
 
 /** Tesis profili upsert — null gönderilen alan "bilinmiyor" olarak saklanır. */
 export async function profilKaydet(girdi: ProfilGirdisi): Promise<Sonuc> {
   try {
     const k = await yetkiZorunlu('tanimlar', 'yazma', { tesisId: girdi.tesisId });
-    const v = ProfilSemasi.parse(girdi);
+    const sozluk = await eylemSozlugu(k, 'tanimlar', girdi.tesisId);
+    const v = profilSemasi(tBas(sozluk, 'tesis')).parse(girdi);
     const veri = {
       lisansTipi: v.lisansTipi ?? null,
       lisansNo: v.lisansNo ?? null,
@@ -88,7 +94,9 @@ export async function profilKaydet(girdi: ProfilGirdisi): Promise<Sonuc> {
 export async function kapsamYenidenHesapla(girdi: { tesisId: string }): Promise<Sonuc> {
   try {
     const k = await yetkiZorunlu('tanimlar', 'yazma', { tesisId: girdi.tesisId });
-    const v = z.object({ tesisId: bosluksuz('Tesis') }).parse(girdi);
+    const v = z.object({
+      tesisId: bosluksuz(tBas(await eylemSozlugu(k, 'tanimlar', girdi.tesisId), 'tesis')),
+    }).parse(girdi);
     await tesisKapsaminiHesapla(v.tesisId, k.id); // motor kendi iz kayıtlarını düşer
     revalidatePath(`/tesisler/${v.tesisId}`); revalidatePath('/tesisler');
     return tamam();
@@ -103,7 +111,8 @@ export async function uygulanabilirlikOverride(girdi: {
   try {
     const k = await yetkiZorunlu('tanimlar', 'onay', { tesisId: girdi.tesisId });
     const v = z.object({
-      tesisId: bosluksuz('Tesis'), regulasyonId: bosluksuz('Regülasyon'),
+      tesisId: bosluksuz(tBas(await eylemSozlugu(k, 'tanimlar', girdi.tesisId), 'tesis')),
+      regulasyonId: bosluksuz('Regülasyon'),
       uygulanabilir: z.boolean(),
       gerekce: z.string().trim().min(10, 'Gerekçe zorunlu (en az 10 karakter)'),
     }).parse(girdi);

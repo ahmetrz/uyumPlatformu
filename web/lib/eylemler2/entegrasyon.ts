@@ -17,7 +17,7 @@
    açıkça `null`/boş dize gelen alan SİLER. Tek istisna sır referansıdır ve
    sebebi orada yazılıdır.
 
-   KAPSAM KAYNAĞI: connector'ın yazabileceği santraller TEK yerde tutulur —
+   KAPSAM KAYNAĞI: connector'ın yazabileceği tesisler TEK yerde tutulur —
    `Connector.kapsamTesisleriJson` kolonu. Yapılandırma JSON'undaki eski
    `kapsamTesisKodlari` anahtarı yalnız MİRAS okumadır (çekirdek göç
    etmemiş kurulumlar için savunmacı okur) ve bu dosyadan yazılamaz. */
@@ -33,6 +33,7 @@ import {
   type KosuOzeti, type Tetikleyen,
 } from '../entegrasyon/cekirdek';
 import { tamam, hata, iz, bosluksuz, type Sonuc } from './ortak';
+import { kapsamTerimi, kapsamTerimiBas } from './kapsamMesaji';
 
 const TIPLER = ['ad_entra', 'vuln_scanner', 'edr', 'siem', 'backup',
   'network_firewall', 'ot_discovery', 'manual_import'] as const;
@@ -154,9 +155,13 @@ export async function connectorKaydet(girdi: {
          ekranda görünen kapsam ile uygulanan kapsam ayrışırdı. Yazma
          yüzeyi tektir: `connectorKapsamKaydet`. */
       if ('kapsamTesisKodlari' in (ayristirilan as Record<string, unknown>)) {
+        /* "<Tesis> kapsamı" bir YÜZEY ADIDIR ve ekranda o adla görünür;
+           kolon adı (`Connector.kapsamTesisleriJson`) şema kimliğidir ve
+           çakılı kalır. İkisi aynı cümlede, ikisi ayrı sınıf. */
+        const yuzey = `${await kapsamTerimiBas(k)} kapsamı`;
         throw new Error(
-          'Santral kapsamı yapılandırma JSON\'una yazılamaz. Kapsam ayrı bir '
-          + 'alandır (Connector.kapsamTesisleriJson) ve "Santral kapsamı" '
+          `${yuzey} yapılandırma JSON'una yazılamaz. Kapsam ayrı bir `
+          + `alandır (Connector.kapsamTesisleriJson) ve "${yuzey}" `
           + 'yüzeyinden ayarlanır; oradan kaydetmek eski anahtarı da devralır.');
       }
     }
@@ -196,7 +201,7 @@ export async function connectorKaydet(girdi: {
   } catch (e) { return hata(e); }
 }
 
-/* ═══ Santral kapsamı ════════════════════════════════════════════════
+/* ═══ Tesis kapsamı ════════════════════════════════════════════════
 
    Şemadaki `Connector.kapsamTesisleriJson` bir GÜVENLİK SINIRIDIR ve
    çekirdek onu okur (`lib/entegrasyon/cekirdek.ts` · connectorKapsamKodlari
@@ -223,7 +228,7 @@ export async function connectorKaydet(girdi: {
 
 /** Kapsam kodlarının ortak doğrulaması: boşlar atılır, sıra korunarak
     tekilleştirilir. Boş liste = "kapsam sınırı yok" (çekirdek boş diziyi ve
-    tanımsızı AYNI sayar; "hiçbir santrale yazamaz" demek için connector
+    tanımsızı AYNI sayar; "hiçbir tesise yazamaz" demek için connector
     pasife alınır, boş kapsam listesi bırakılmaz). */
 const KapsamSemasi = z.object({
   connectorId: z.string().trim().min(1, 'Connector kimliği zorunlu'),
@@ -237,7 +242,7 @@ export type KapsamKaynagi = 'kolon' | 'yapilandirma_mirasi' | 'yok';
 
 /**
  * Kapsam yüzeyinin okuma tarafı: yürürlükteki kapsam, kaynağı ve
- * seçilebilecek santraller. Yetki 'yonetim/okuma' — yazmaya girmeden
+ * seçilebilecek tesisler. Yetki 'yonetim/okuma' — yazmaya girmeden
  * mevcut sınırın görülebilmesi gerekir.
  *
  * Yürürlükteki liste ÇEKİRDEĞİN KENDİ FONKSİYONUYLA hesaplanır; ekranda
@@ -276,10 +281,10 @@ export async function connectorKapsamGorunumu(connectorId: string): Promise<
 }
 
 /**
- * Connector'ın YAZABİLECEĞİ santralleri belirler — kolona yazan tek yol.
+ * Connector'ın YAZABİLECEĞİ tesisleri belirler — kolona yazan tek yol.
  *
  * Üç kapı:
- *  1. Çözülemeyen santral kodu REDDEDİLİR. Çekirdek de çözülemeyen kapsam
+ *  1. Çözülemeyen tesis kodu REDDEDİLİR. Çekirdek de çözülemeyen kapsam
  *     kodunda koşuyu hiç başlatmaz; yazarken kabul edip koşarken patlatmak
  *     kapsamı "var ama işlemiyor" hâline getirirdi.
  *  2. Yapılandırmadaki varsayılan tesis kodu kapsamın dışındaysa
@@ -308,7 +313,8 @@ export async function connectorKapsamKaydet(girdi: {
       const bulunan = new Set(tesisler.map((t) => t.kod));
       const eksik = v.tesisKodlari.filter((kod) => !bulunan.has(kod));
       if (eksik.length > 0) {
-        throw new Error(`Tanımlı olmayan santral kodu: ${eksik.join(', ')}`);
+        throw new Error(
+          `Tanımlı olmayan ${await kapsamTerimi(k, 'yonetim')} kodu: ${eksik.join(', ')}`);
       }
     }
 
@@ -317,7 +323,8 @@ export async function connectorKapsamKaydet(girdi: {
       ? yapilandirma.tesisKodu.trim() : null;
     if (varsayilan && v.tesisKodlari.length > 0 && !v.tesisKodlari.includes(varsayilan)) {
       throw new Error(
-        `Yapılandırmadaki varsayılan tesis kodu (${varsayilan}) kapsamın dışında — `
+        `Yapılandırmadaki varsayılan ${await kapsamTerimi(k, 'yonetim')} kodu `
+        + `(${varsayilan}) kapsamın dışında — `
         + 'çelişkili yapılandırma koşuyu hiç başlatmaz. Ya kapsama ekleyin ya '
         + 'varsayılanı değiştirin.');
     }

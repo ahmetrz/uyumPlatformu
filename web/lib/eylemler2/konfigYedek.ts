@@ -244,10 +244,10 @@ export async function varlikYedekDurumu(
     if (!varlik || varlik.silindi) return { ok: false, hata: 'Varlık bulunamadı' };
     try {
       kapsamZorunlu(k, 'envanter', 'okuma', { tesisId: varlik.tesisId },
-
         await kapsamMesaji(k, 'envanter', 'yetkiniz yok', varlik.tesisId));
     } catch {
-      return { ok: false, hata: 'Bu tesis kapsamında yetkiniz yok' };
+      return { ok: false,
+        hata: await kapsamMesaji(k, 'envanter', 'yetkiniz yok', varlik.tesisId) };
     }
 
     const [varligiVar, iyi, degisim, kontroller, kayitlar] = await Promise.all([

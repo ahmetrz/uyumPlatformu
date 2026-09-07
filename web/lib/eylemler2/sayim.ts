@@ -17,6 +17,8 @@ import { yetkiZorunlu, kapsamZorunlu, KAPSAM_SONRA } from '../erisim';
 import type { AktifKullanici } from '../auth';
 import { kapatmaKapisi, satirKapisi, sayimAcmaKapisi, SONUCLAR } from '../varlik/sayim';
 import { type Sonuc, tamam, hata, iz, bosluksuz } from './ortak';
+import { eylemSozlugu } from './kapsamMesaji';
+import { t, tBas } from '../dil/terimler';
 
 async function sayimKapsami(k: AktifKullanici, sayimId: string, mesaj: string) {
   const s = await db.envanterSayimi.findUnique({
@@ -42,15 +44,16 @@ export async function sayimAc(girdi: {
 }): Promise<Sonuc & { id?: string }> {
   try {
     const k = await yetkiZorunlu('envanter', 'yazma', KAPSAM_SONRA);
+    const sozluk = await eylemSozlugu(k, 'envanter');
     const v = z.object({
       ad: bosluksuz('Sayım adı').max(200),
-      tesisId: bosluksuz('Santral'),
+      tesisId: bosluksuz(tBas(sozluk, 'tesis')),
       turId: z.string().trim().max(64).nullable().optional(),
       bolgeId: z.string().trim().max(64).nullable().optional(),
     }).parse(girdi);
 
     kapsamZorunlu(k, 'envanter', 'yazma', { tesisId: v.tesisId },
-      'Bu santralde sayım açma yetkiniz yok');
+      `Bu ${t(sozluk, 'tesis', 'bulunma')} sayım açma yetkiniz yok`);
 
     const kosul = {
       tesisId: v.tesisId,

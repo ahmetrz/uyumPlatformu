@@ -12,10 +12,11 @@ import { konfigTemeliOnayla, konfigSapmasiKarari } from '@/lib/eylemler2/varlikY
 import {
   SAPMA_DURUMLARI, SAPMA_ETIKETI, SAPMA_SINIFI, SIDDETLER, type SapmaDurumu,
 } from '@/lib/varlik/konfigDrift';
+import { useTerim } from '@/lib/dil/SozlukSaglayici';
 import { tarihTR, zamanTR } from '@/lib/sabitler';
 import {
   BULGU_SOZU, bulguDurumu,
-  type DriftSatiri, type EksikVarlik, type Santral, type Sapma, type YedekBulgusu,
+  type DriftSatiri, type EksikVarlik, type Tesis, type Sapma, type YedekBulgusu,
 } from './mantik';
 
 /* O14 yazma yüzeyleri.
@@ -45,7 +46,7 @@ const ucDurum = (s: string) => (s === 'var' ? 'ok' : s === 'yok' ? 'bd' : 'unk')
  * Kritik bir varlığın yedek detayı ve iki insan kararı:
  * okunabilirlik doğrulaması ve "son bilinen iyi" işareti.
  *
- * Detay ÇEKMECE AÇILINCA değil, SATIR AÇILINCA çekilir: 17 santralin her
+ * Detay ÇEKMECE AÇILINCA değil, SATIR AÇILINCA çekilir: 17 tesisin her
  * kritik varlığı için bu sorguları peşin koşturmak ekranı bir tarayıcıya
  * çevirirdi.
  */
@@ -289,20 +290,21 @@ const HEDEFLER = ['yerel', 'uzak', 'immutable'];
     `yedeklemePolitikasiKaydet` o alanları imzasında taşımıyor ve imzayı
     ekran değiştiremez (bkz. rapor). Yarım bir form, olmayan bir alanı
     "girilmedi" gibi göstermekten iyidir. */
-export function PolitikaFormu({ santral, kapat }: { santral: Santral; kapat: () => void }) {
+export function PolitikaFormu({ tesis, kapat }: { tesis: Tesis; kapat: () => void }) {
   const { bekliyor, hata, calistir } = useEylem();
-  const p = santral.politika;
+  const { t: terim } = useTerim();
+  const p = tesis.politika;
   const [v, setV] = useState({
-    // Politika ↔ santral bağı ADLA kuruluyor (bkz. page.tsx notu); yeni
-    // kayıt santral adıyla başlamazsa hiçbir santrale bağlanmaz.
-    ad: p?.ad ?? `${santral.ad} — kontrol sistemi yedeklemesi`,
+    // Politika ↔ tesis bağı ADLA kuruluyor (bkz. page.tsx notu); yeni
+    // kayıt tesis adıyla başlamazsa hiçbir tesise bağlanmaz.
+    ad: p?.ad ?? `${tesis.ad} — kontrol sistemi yedeklemesi`,
     kapsam: p?.kapsam ?? '',
     siklik: p?.siklik ?? '',
     saklamaGun: p?.saklamaGun != null ? String(p.saklamaGun) : '',
     hedef: p?.hedef ?? '',
   });
 
-  const adUyari = !v.ad.startsWith(santral.ad);
+  const adUyari = !v.ad.startsWith(tesis.ad);
 
   return (
     <div style={{ display: 'grid', gap: 'var(--s14)' }}>
@@ -311,7 +313,8 @@ export function PolitikaFormu({ santral, kapat }: { santral: Santral; kapat: () 
       </Alan>
       {adUyari && (
         <p style={{ margin: 0, fontSize: 'var(--t-label)', color: 'var(--md)' }}>
-          Ad &quot;{santral.ad}&quot; ile başlamıyor — kayıt bu santrale bağlanmaz.
+          Ad &quot;{tesis.ad}&quot; ile başlamıyor — kayıt bu {terim('tesis', 'yonelme')}
+          {' '}bağlanmaz.
         </p>
       )}
       <Alan etiket="Kapsam">
@@ -351,7 +354,7 @@ export function PolitikaFormu({ santral, kapat }: { santral: Santral; kapat: () 
       </div>
       <p className="ab-panel-dip" style={{ margin: 0 }}>
         Politika kaydı bir yedekleme İŞİ başlatmaz; platform yedek almaz.
-        Kayıt yalnız &quot;bu santral için neyi, ne sıklıkta, ne kadar
+        Kayıt yalnız &quot;bu tesis için neyi, ne sıklıkta, ne kadar
         saklamayı taahhüt ettik&quot; sorusunu cevaplar.
       </p>
     </div>
@@ -360,11 +363,11 @@ export function PolitikaFormu({ santral, kapat }: { santral: Santral; kapat: () 
 
 /* ── koşu ve restore testi sonucu ─────────────────────────────────────── */
 
-export function KosuKaydet({ santral }: { santral: Santral }) {
+export function KosuKaydet({ tesis }: { tesis: Tesis }) {
   const { bekliyor, hata, calistir } = useEylem();
   const [acik, setAcik] = useState(false);
   const [v, setV] = useState({ durum: 'basarili', boyutMb: '', hata: '' });
-  const p = santral.politika;
+  const p = tesis.politika;
   if (!p) return null;
 
   if (!acik) {
@@ -408,19 +411,20 @@ export function KosuKaydet({ santral }: { santral: Santral }) {
   );
 }
 
-export function RestoreTestiKaydet({ santral }: { santral: Santral }) {
+export function RestoreTestiKaydet({ tesis }: { tesis: Tesis }) {
   const { bekliyor, hata, calistir } = useEylem();
+  const { t: terim } = useTerim();
   const [acik, setAcik] = useState(false);
   const [v, setV] = useState({ sonuc: 'basarili', sureDk: '', not: '' });
 
   /* Test kaydı bir KOŞUYA asılır (şema: GeriYuklemeTesti.kosuId). Koşu yoksa
      testin bağlanacağı bir kanıt da yoktur; "test var ama neyin testi
      bilinmiyor" kaydı üretmektense yüzeyi kapatıp sebebini yazıyoruz. */
-  if (!santral.sonKosuId) {
+  if (!tesis.sonKosuId) {
     return (
       <p className="ab-panel-dip" style={{ margin: 0 }}>
-        Restore testi bir yedekleme koşusuna bağlanır; bu santralde kayıtlı koşu
-        yok. Önce koşu sonucu kaydedin.
+        Restore testi bir yedekleme koşusuna bağlanır; bu {terim('tesis', 'bulunma')}
+        {' '}kayıtlı koşu yok. Önce koşu sonucu kaydedin.
       </p>
     );
   }
@@ -449,7 +453,7 @@ export function RestoreTestiKaydet({ santral }: { santral: Santral }) {
       <div style={{ display: 'flex', gap: 'var(--s10)' }}>
         <Dugme tur="birincil" disabled={bekliyor}
           onClick={() => calistir(() => restoreTestiKaydet({
-            kosuId: santral.sonKosuId as string,
+            kosuId: tesis.sonKosuId as string,
             sonuc: v.sonuc,
             sureDk: v.sureDk ? Number(v.sureDk) : null,
             not: v.not || null,
@@ -533,6 +537,7 @@ const KARAR_SECENEK = SAPMA_DURUMLARI.filter((d) => d !== 'acik');
 
 export function SapmaKarari({ sapma, yetkili }: { sapma: Sapma; yetkili: boolean }) {
   const { bekliyor, hata, calistir } = useEylem();
+  const { t: terim } = useTerim();
   const [acik, setAcik] = useState(false);
   const [v, setV] = useState({
     durum: 'giderildi', gerekce: '', ref: sapma.degisiklikRef ?? '',
@@ -572,7 +577,8 @@ export function SapmaKarari({ sapma, yetkili }: { sapma: Sapma; yetkili: boolean
 
         {!kapali && !yetkili && (
           <span className="ab-panel-dip">
-            Sapma kararı envanter onay yetkisi ve bu santralin kapsamı ister.
+            Sapma kararı envanter onay yetkisi ve bu {terim('tesis', 'iyelik')}
+            {' '}kapsamı ister.
           </span>
         )}
         {!kapali && yetkili && !acik && (

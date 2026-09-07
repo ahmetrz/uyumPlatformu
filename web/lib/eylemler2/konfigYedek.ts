@@ -47,7 +47,7 @@ async function yedegeErisim(yedekId: string) {
  * Yedeğin OKUNABİLİRLİĞİNİ insan doğrular.
  *
  * Bu bir geri yükleme testi DEĞİLDİR ("yedek açılabiliyor" ≠ "sistem geri
- * dönüyor") — restore testi santral katmanında `GeriYuklemeTesti` olarak
+ * dönüyor") — restore testi tesis katmanında `GeriYuklemeTesti` olarak
  * durur ve `restoreTestId` ile buraya bağlanır. Motor bu alanı kendisi
  * dolduramaz: kendi topladığı veriyi doğrulayamaz.
  */
@@ -188,7 +188,7 @@ export async function yedekBulgusunuIsle(girdi: {
 /* ═══ Okuma yüzeyi — çekmecenin tembel yüklediği varlık yedek detayı ═══
 
    NEDEN EYLEM KATMANINDA BİR OKUMA VAR
-   /yedekleme sayfası 17 santrali birden çiziyor; her santralin her kritik
+   /yedekleme sayfası 17 tesisi birden çiziyor; her tesisin her kritik
    varlığı için `yedekVarMi + sonBilinenIyi + konfigurasyonDegistiMi +
    yedekKontrolBagi` koşturmak yüzlerce sorgu eder ve ekranın %99'u hiç
    açılmayan çekmece için harcanır. Detay bu yüzden ÇEKMECE AÇILINCA
@@ -226,7 +226,7 @@ export type VarlikYedekDetayi = {
  * Bir varlığın yedek durumunu ve uyum bağı ÖNERİSİNİ okur.
  *
  * Yalnız okur; hiçbir alanı yazmaz. Yetki: `envanter/okuma` ve varlığın
- * santral kapsamı. Kapsam dışı varlık için kayıt DÖNMEZ — çekmece bir
+ * tesis kapsamı. Kapsam dışı varlık için kayıt DÖNMEZ — çekmece bir
  * yetki kaçağı yüzeyi olamaz.
  */
 export async function varlikYedekDurumu(

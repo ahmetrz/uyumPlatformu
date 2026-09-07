@@ -1144,6 +1144,15 @@
   padding: 26px 30px; border-left: 1px solid var(--hr2);
   display: flex; flex-direction: column; gap: 18px; overflow-y: auto;
 }
+/* Panel KAYDIRILABİLİR bir bölgedir: 1440×900'de kabı 557px, içeriği
+   601px — 44px taşıyor (ölçüldü). Kaydırılabilir ama odaklanamayan bir
+   bölge klavye kullanıcısı için ERİŞİLEMEZDİR; sayaçlar ve sonraki
+   denetim satırı fareyle görülüp klavyeyle görülemiyordu (axe ·
+   serious · scrollable-region-focusable). Bölge `tabindex=0` ile odak
+   alır (Plant360.tsx); halka İÇERİ alınır çünkü plaka `overflow:
+   hidden` ve dışarıdaki 2px'lik pay kırpılırdı. */
+.ab-b-panel:focus-visible { outline-offset: -2px; }
+
 .ab-b-panel .tepe {
   display: flex; align-items: flex-end; justify-content: space-between; gap: 16px;
   padding-bottom: 16px; border-bottom: 1px solid var(--hr2);
@@ -3387,6 +3396,20 @@ details:not([open]) > *:not(summary) { display: none !important; }
   .ab-b-takim .isaret.sola-dar .kunye::before { left: auto; right: -13px; }
   .ab-b-takim .kunye .ad { font-size: 13px; }
 
+  /* Üniteler + açık bulgular: 560px SABİT kolon tek başına telefondan
+     geniştir. Izgara izini sığdıramayınca sağdaki `minmax(0, 1fr)` sıfıra
+     çöküyor, bulgu satırının sabit sütunları da belgeye taşıyordu —
+     ölçüldü: 375px bandında 17 tesis rotasının 17'sinde sayfa 359-541px,
+     768px bandında 5'inde 148px yana kayıyor. Kolon GİZLENMEZ, alt alta
+     iner: 560px + okunur bir konu sütunu ancak 1088px'ten sonra sığar,
+     eşik bu yüzden kabuğun mevcut dar bant eşiğiyle aynı yerdedir.
+
+     Aynı düzeltme sessiz bir kusuru da kapatır: konu (bulgu başlığı)
+     sütununun genişliği 768'de 0px, 1024'te 76px'ti (ölçüldü) — satırın
+     asıl bilgisi görünmüyordu. Tek kolonda 768'de 380px olur. */
+  .ab-b-ikili { grid-template-columns: minmax(0, 1fr); }
+  .ab-b-ikili .uniteler { border-right: 0; border-bottom: 1px solid var(--hr); }
+
   /* Düzenleyici bant: 430px takvim + akış yan yana sığmaz. */
 }
 /* ═══ Telefon — HİÇBİR ALAN ERİŞİLEMEZ OLAMAZ ═════════════════════════
@@ -3455,6 +3478,46 @@ details:not([open]) > *:not(summary) { display: none !important; }
     flex-wrap: wrap; align-items: flex-start; gap: 4px 16px;
   }
   .ab-b-serit > header .sag { margin-left: 0; flex-basis: 100%; }
+
+  /* Üniteler + bulgular telefonda: 32px yan dolgu şeridin telefon
+     ritmine (20px) iner — kazanılan 24px doğrudan konuya gider. */
+  .ab-b-ikili .uniteler, .ab-b-ikili .bulgular { padding: 24px 20px; }
+
+  /* Bulgu başlığı ile sayaç özeti yan yana durunca İKİSİ DE satır
+     ortasından kırılıyordu ("AÇIK / BULGULAR" + "2 AÇIK · 4 AKSİYONDA ·
+     0 / KAPANDI"). Saha şeridi başlığıyla aynı çözüm: özet alt satıra
+     iner ve itmesini bırakır. */
+  .ab-b-ikili .bulgular > header { flex-wrap: wrap; gap: 2px 16px; }
+  .ab-b-ikili .bulgular > header .sag { margin-left: 0; flex-basis: 100%; }
+
+  /* Satırlar telefonda İKİ SATIRA döner. Tek kolona inmek 375px'e
+     yetmiyor: bulgu satırının sabit sütunları (önem 62 + kontrol 116 +
+     termin 92 + üç 18px aralık) tek başına 324px eder, 20px dolguyla iç
+     alan 335px'tir — konuya 11px kalırdı. Hiçbir sütun DÜŞMEZ, hiçbir
+     kap yatay KAYMAZ: karar bilgisi (bulgu başlığı) üst satırda tam
+     genişlik alır, künyesi (önem · kontrol · termin) altına iner.
+     Ölçüldü: konu 0px → 335px. */
+  .ab-b-ikili .bulgular .satir {
+    display: grid; grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 4px 12px; align-items: baseline;
+  }
+  .ab-b-ikili .bulgular .konu { grid-column: 1 / -1; grid-row: 1; }
+  .ab-b-ikili .bulgular .onem { grid-column: 1; grid-row: 2; width: auto; }
+  .ab-b-ikili .bulgular .kontrol { grid-column: 2; grid-row: 2; width: auto; }
+  .ab-b-ikili .bulgular .termin { grid-column: 3; grid-row: 2; width: auto; }
+
+  /* Ünite satırı aynı gerekçeyle kırılır: 66px kod + kayıt sayıları +
+     96px durum, üniteyi TANIYAN ada yer bırakmıyordu (160px → 242px).
+     Kayıt sayıları alt satıra iner; durum glifi üst satırda kalır —
+     "hangi ünite, ne durumda" tek bakışta okunur. */
+  .ab-b-ikili .unite {
+    display: grid; grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 4px 12px; align-items: center;
+  }
+  .ab-b-ikili .unite .kod { grid-column: 1; grid-row: 1; width: auto; }
+  .ab-b-ikili .unite .ad { grid-column: 2; grid-row: 1; }
+  .ab-b-ikili .unite .durum { grid-column: 3; grid-row: 1; width: auto; }
+  .ab-b-ikili .unite .kayit { grid-column: 2 / -1; grid-row: 2; }
 
   /* Kütük hücre dolgusu telefonda daralır: 335px'lik iç alanda dört
      sütunun yatay dolgusu konu sütununu dört satıra kırıyordu. */

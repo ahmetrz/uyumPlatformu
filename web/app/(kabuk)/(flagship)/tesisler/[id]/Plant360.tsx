@@ -158,7 +158,13 @@ export default function Plant360({ veri, santraller }: {
         </div>
 
         {/* ── Veri paneli · 420px ────────────────────────────────────── */}
-        <aside className="ab-b-panel" aria-label="Santral uyum özeti">
+        {/* Panel içeriği kabından uzun olabilir ve kendi içinde kayar
+            (ölçüldü: 1440×900'de 44px taşma). Kaydırılabilir bölge
+            klavyeyle odaklanabilir OLMAK ZORUNDA — aksi hâlde alt
+            satırlar yalnız fareye açıktır (axe · serious ·
+            scrollable-region-focusable). `aria-label` bölgeye zaten ad
+            veriyor; odak halkası kabuk.css'te içeri alınır. */}
+        <aside className="ab-b-panel" aria-label="Santral uyum özeti" tabIndex={0}>
           <div className="tepe">
             <div>
               <p className="etiket">Uyum endeksi</p>

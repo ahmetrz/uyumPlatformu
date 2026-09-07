@@ -125,7 +125,7 @@ export function YetkiFormu({ hesap, surecler, tesisler, kisitliKapsam, kapat }: 
       <p className="ab-panel-dip" style={{ margin: 0 }}>
         {`${hesap.ad} · ${ROL_ETIKET[f.rol as keyof typeof ROL_ETIKET]} · ${surecAdi} · ${tesisAdi}`}
         {!f.surecId && !f.tesisId
-          && ' — kapsam boş bırakıldı: yetki portföyün tamamına uygulanır.'}
+          && ` — kapsam boş bırakıldı: yetki ${t('portfoy', 'iyelik')} tamamına uygulanır.`}
         {kisitliKapsam && ` ${tBas('tesis')} listesi kendi kapsamınızla sınırlıdır.`}
       </p>
     </div>

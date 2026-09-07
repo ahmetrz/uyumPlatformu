@@ -45,11 +45,22 @@ const SIRA: Record<string, number> = {
   bilinmiyor: -1, yok: 0, dusuk: 1, orta: 2, yuksek: 3, kritik: 4, uretim_durdu: 5,
 };
 
+/* Çekirdek metinler; EKRANDA `kopuklukSozu(sozluk)` kullanılır — yalnız
+   `tesis_yok` sektör terimi taşıyor. Sabit burada durur ki sözlüksüz
+   çağıran (test, sunucu) da okuyabilsin. */
 export const KOPUKLUK_SOZU: Record<string, string> = {
   sistem_yok: 'varlık bir sisteme bağlı değil',
   surec_yok: 'sistem hiçbir iş sürecine bağlı değil',
   tesis_yok: 'iş sürecinin tesisi kayıtlı değil',
 };
+
+/** Ekran sözü — sözlüğü izleyen tek kopukluk `tesis_yok`. */
+export function kopuklukSozu(sozluk: Sozluk | null): Record<string, string> {
+  return {
+    ...KOPUKLUK_SOZU,
+    tesis_yok: `iş sürecinin ${terim(sozluk, 'tesis', 'iyelik')} kayıtlı değil`,
+  };
+}
 
 /** Şiddet kademesi — canvas'ta sözcük yerine harf durur (06 §A2). */
 export const KADEME: Record<string, string> = {
@@ -268,7 +279,7 @@ export function olgu(o: OlayKaydi, sozluk: Sozluk | null = null): string {
   else if (zincirKopuk(o)) {
     const ilk = o.oneri?.zincir.find((h) => h.kopukluk !== null);
     parcalar.push(ilk
-      ? `zincir kopuk · ${KOPUKLUK_SOZU[ilk.kopukluk as string] ?? ilk.kopukluk}`
+      ? `zincir kopuk · ${kopuklukSozu(sozluk)[ilk.kopukluk as string] ?? ilk.kopukluk}`
       : o.oneriBozuk ? 'öneri kaydı okunamadı'
         : o.oneri === null ? 'etki önerisi üretilmedi'
           : 'zincir kurulmadı · varlık/sistem bağı yok');

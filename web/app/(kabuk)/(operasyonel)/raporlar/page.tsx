@@ -1,13 +1,22 @@
 import type { Metadata } from 'next';
 import { girisZorunlu, izinVar, izinliTesisIdleri } from '@/lib/erisim';
 import { db } from '@/lib/db';
+import { kapsamAnahtari, kapsamSozlugu } from '@/lib/dil/sozlukOku';
+import { tBas } from '@/lib/dil/terimler';
 import { Yetkisiz } from '@/components/kabuk/temel';
 import { gecenGun, tarihTR } from '@/lib/sabitler';
 import RaporlarIstemci from './RaporlarIstemci';
 import { kanitEsikleri } from '@/lib/yapilandirma/kanitEsik';
 import { hucreOzeti, kapsamDisiHucre, type Bulgu, type Kanit, type Tesis, type Sayilar, type Surec } from './mantik';
 
-export const metadata: Metadata = { title: 'Portföy raporu' };
+/* Sekme başlığı SÖZLÜKTEN. Sabit `metadata` kiracı bağlamını
+   bekleyemezdi (R0-8); `generateMetadata` async olabildiği için burada o
+   sınır YOK — bağlam kullanıcının kapsamı. */
+export async function generateMetadata(): Promise<Metadata> {
+  const k = await girisZorunlu();
+  const sozluk = await kapsamSozlugu(kapsamAnahtari(izinliTesisIdleri(k, 'uyum')));
+  return { title: `${tBas(sozluk, 'portfoy')} raporu` };
+}
 
 /* Portföy raporu — "hangi tesis × süreç hücresi zayıf, rapor nereye gidiyor?"
    Kabuk (ray + çekmece kolonu) (operasyonel)/layout.tsx'ten gelir; burada

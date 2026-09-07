@@ -1,4 +1,5 @@
 'use client';
+import { useTerim } from '@/lib/dil/SozlukSaglayici';
 import { useState } from 'react';
 import { Alan, Dugme, Im } from '@/components/kabuk/temel';
 import { CekmeceEylemler } from '@/components/kabuk/panel';
@@ -208,6 +209,7 @@ function OturumKarari({ oturum }: { oturum: OturumSatiri }) {
 }
 
 export function ErisimOturumlari({ t }: { t: T }) {
+  const { t: terim } = useTerim();
   const o = t.oturum;
 
   return (
@@ -271,7 +273,7 @@ export function ErisimOturumlari({ t }: { t: T }) {
                 </span>
                 <span style={{ fontSize: 'var(--t-label)', color: 'var(--i3)',
                   marginLeft: 'auto' }}>
-                  {s.tesisKod ?? 'tesis kaydı yok'} · {s.kaynakSistem} · {s.durum}
+                  {s.tesisKod ?? `${terim('tesis')} kaydı yok`} · {s.kaynakSistem} · {s.durum}
                 </span>
               </div>
 

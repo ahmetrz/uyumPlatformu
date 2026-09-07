@@ -1,3 +1,5 @@
+import { kapsamAnahtari, kapsamSozlugu } from '@/lib/dil/sozlukOku';
+import { tBas, type Sozluk } from '@/lib/dil/terimler';
 import type { Metadata } from 'next';
 import { girisZorunlu, izinVar, izinliTesisIdleri } from '@/lib/erisim';
 import { kapsamdaYetkili, modulYazabilir } from '@/app/kapsam';
@@ -21,15 +23,17 @@ export const metadata: Metadata = { title: 'Varlık keşfi' };
 const KUYRUK_TAVANI = 250;
 
 /** Gözlemin dolu alanlarını çekmece için hazırlar; boş alan GÖSTERİLMEZ. */
-function gozlemAlanlari(g: NonNullable<ReturnType<typeof normalCoz>>['gozlem']) {
-  const sozluk: [keyof typeof g, string][] = [
+function gozlemAlanlari(
+  g: NonNullable<ReturnType<typeof normalCoz>>['gozlem'], sozluk: Sozluk | null,
+) {
+  const alanlar: [keyof typeof g, string][] = [
     ['seriNo', 'Seri no'], ['macAdresi', 'MAC'], ['ipAdresi', 'IP'],
     ['hostname', 'Hostname'], ['etiket', 'Etiket'],
     ['uretici', 'Üretici'], ['model', 'Model'],
     ['isletimSistemi', 'İşletim sistemi'], ['firmware', 'Firmware'],
-    ['tesisKodu', 'Tesis kodu'], ['bolgeKodu', 'Ağ bölgesi'], ['turKodu', 'Tür'],
+    ['tesisKodu', `${tBas(sozluk, 'tesis')} kodu`], ['bolgeKodu', 'Ağ bölgesi'], ['turKodu', 'Tür'],
   ];
-  return sozluk
+  return alanlar
     .map(([alan, etiket]) => ({ etiket, deger: g[alan] }))
     .filter((a): a is { etiket: string; deger: string } => !!a.deger);
 }
@@ -37,6 +41,7 @@ function gozlemAlanlari(g: NonNullable<ReturnType<typeof normalCoz>>['gozlem']) 
 export default async function Sayfa() {
   const k = await girisZorunlu();
   const gorulebilirTesisler = izinliTesisIdleri(k, 'envanter');
+  const sozluk = await kapsamSozlugu(kapsamAnahtari(gorulebilirTesisler));
   const onayYetkisi = modulYazabilir(k, 'envanter', 'onay');
   /* Karar kapısı kayıttan sonra sorulur (`kesifKarariVer` iki aşamalı),
      ama YAZMA bayrağı elle aktarım ve eşleştirme düğmelerini açar;
@@ -153,7 +158,7 @@ export default async function Sayfa() {
         ?? (normal
           ? 'Henüz eşleştirilmedi — eşleştirme geçişi bu kayda uğramadı.'
           : 'Kayıt normalize edilmemiş; karar verilemez.'),
-      gozlemAlanlari: g ? gozlemAlanlari(g) : [],
+      gozlemAlanlari: g ? gozlemAlanlari(g, sozluk) : [],
       ilkGorulme: kayit.ilkGorulme.toISOString(),
       sonGorulme: kayit.sonGorulme.toISOString(),
       gunGorulmedi: Math.floor((simdi - kayit.sonGorulme.getTime()) / 86_400_000),

@@ -24,7 +24,12 @@
     "",
     "Muafiyet SATIR değil DİZE eşleşmesidir ve gerekçesi zorunludur. Ürün",
     "metnini muaf etmek kapıyı kör eder; yalnız veri kaynaklı dizeler girer",
-    "ve her biri kaynağıyla birlikte yazılır."
+    "ve her biri kaynağıyla birlikte yazılır.",
+    "",
+    "Her muafiyet KAYNAĞINI taşır (hangi tohum dosyası, hangi kayıt) ve",
+    "`tests/bekci/muafiyet-canli.test.ts` dizenin o dosyada HÂLÂ geçtiğini",
+    "doğrular. Tohum değişip dize kaybolursa ölü muafiyet kalır ve liste",
+    "kapının kör noktasına döner — kırmızı versin."
   ],
   "rotalar": {
     "/envanter": 2,
@@ -45,6 +50,10 @@
     "/dokumanlar": 8
   },
   "muafiyetler": {
-    "İç Denetim Birimi": "Denetçi ADI — tohum verisi (`prisma/seed-denetim-proje.ts`). Buradaki 'Birimi' kurumsal bir departmandır, `birim` sözlük anahtarı (üretim ünitesi / arıtma hattı) DEĞİL."
+    "İç Denetim Birimi": {
+      "sebep": "Denetçi ADI. Buradaki 'Birimi' kurumsal bir departmandır, `birim` sözlük anahtarı (üretim ünitesi / arıtma hattı) DEĞİL.",
+      "kaynak": "prisma/seed-denetim-proje.ts",
+      "kayit": "DEN-2026-IC-OT"
+    }
   }
 }

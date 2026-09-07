@@ -1,7 +1,7 @@
 {
-  "imza": "0f9c9bdd6760a32fec14584a94a050ab",
-  "dosya": 149,
-  "vaka": 3011,
+  "imza": "81714dc8f0a4b332af917d710535e26e",
+  "dosya": 151,
+  "vaka": 3020,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -36,8 +36,16 @@
       "vaka": 5,
       "atlanan": 0
     },
+    "tests/bekci/cekirdek-tarayici.test.ts": {
+      "vaka": 6,
+      "atlanan": 0
+    },
     "tests/bekci/katlama-korlugu.test.ts": {
       "vaka": 14,
+      "atlanan": 0
+    },
+    "tests/bekci/muafiyet-canli.test.ts": {
+      "vaka": 3,
       "atlanan": 0
     },
     "tests/bekci/sektor-terimi.test.ts": {

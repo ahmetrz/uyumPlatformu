@@ -100,6 +100,7 @@ kurum sistemine giden hiçbir şey yoktur.
 | `sozluk-metni.mjs` | — (yardımcı) | render edilen `main` metnini JSON'a yazar; sözlüğü bilmez | — |
 | `rota-dizini.mjs` | — (kütüphane) | rota → kaynak dizini, `app/` ağacından türetilir | — |
 | `izin-listesi.mjs` | — (kütüphane) | izin listesinde SÖZLÜK terimiyle duran dosyalar (şema terimleri ayrı) | — |
+| `cekirdek-sozcuk-taramasi.mjs` | — (elle) | bekçinin YAPISAL kör noktası: kaynakta sabit yazılmış ÇEKİRDEK sözcükler | ölü muafiyet varsa çıkış 1 |
 | `terim-adaylari.mjs` | — (elle) | terim kalıplarının yanlış pozitif yüzeyini DEPODAN türetir; fikstürün kaynağı | — |
 | `derleme-ortami.mjs` | — (kütüphane) | derlemeye dayanan kapıların önkoşulu: boş alan (derlemeden önce) + statik çıktının TAM olduğu (ölçmeden önce) | çağıran kapı düşer |
 | `turkce-arama.mjs` | — (kütüphane) | Türkçe metin araması: çift küçültme + Unicode sözcük sınırı. **Sondalarda düz `/…/i` KULLANMAYIN** | — |
@@ -408,6 +409,36 @@ tahmin değil, aile kapanırken yapılan ölçümdür.
 (boş durum, yetki kısıtı, modal) ölçülmez. Modül sabitleri için tarayıcı
 istemeyen kendi vakaları vardır (`tests/envanter-mantik.test.ts` · zincir
 halkası) ve sabotaj kütüğü onları koruyor.
+
+### `cekirdek-sozcuk-taramasi.mjs` — bekçinin yapısal kör noktası
+
+Bekçi **negatif** kanıt üretir: "sektör sözcüğü kalmadı". Bir ekran
+`santral`ı çekirdek `tesis`/`portföy` ile **sabit** değiştirirse bekçi
+yeşil yanar. `sozluk-farki` bunu ekranda yakalar — ama yalnız **o an
+render edilen** metinde; koşula bağlı dallar (boş durum, yetki kısıtı,
+modal) görünmez.
+
+Aynı kusur **beş ailede** aynı şekilde bulundu (riskler · kimlik ·
+yetkiler · ayarlar · dokümanlar), hepsi `portfoy` anahtarında. Aile aile
+keşfetmek, her seferinde aynı dersi yeniden öğrenmek demek. Bu araç
+sınıfı **topluca** görünür kılar: kaynakta, dize ve JSX metni içinde.
+
+**İki eleme ölçümden çıktı** — ilk kurgu 554 "bulgu" veriyordu ve çoğu
+koddu; gürültü aradığı sinyali gizliyordu:
+
+- `${…}` içi sökülür. `` `${t(sozluk,'tesis')}siz` `` çekirdek sözcük
+  taşıyor görünür, oysa taşıdığı şey sözlük **çağrısının anahtarıdır**.
+- Ekran metni **prozadır**: boşluk taşır ya da büyük harfle başlar.
+  Alan adı ve anahtar küçük harfli tek jetondur (`tesisler`) ve ekranda
+  görünmez. JSX `>…<` kalıbı TypeScript'te güvenilmez (ok işlevi,
+  jenerik, karşılaştırma) — bırakıldı.
+
+**Muafiyetler gerekçelidir** (`cekirdek-sozcuk-muafiyet.json`): çekirdek
+sözcüğün DOĞRU olduğu yerler — R0-9 (saklanan artefakt, API sözleşmesi),
+R0-8 (Suspense yedeği), kod eşleştirme anahtarı, ölçü birimi. **Ölü
+muafiyet kırmızı verir**: dosya artık çekirdek sözcük taşımıyorsa kayıt
+düşmelidir. `rotalar.json` ve izin listesi bu dersi zaten verdi — elle
+tutulan liste sessizce bayatlar.
 
 ### `terim-adaylari.mjs` — kalıpları TEPKİSEL değil sistematik doğrula
 

@@ -1,5 +1,5 @@
 import { kapsamAnahtari, kapsamSozlugu } from '@/lib/dil/sozlukOku';
-import { t as terim } from '@/lib/dil/terimler';
+import { t as terim, type Sozluk } from '@/lib/dil/terimler';
 import 'server-only';
 import { db } from '@/lib/db';
 import { uyumOzeti } from '@/lib/sabitler';
@@ -57,7 +57,9 @@ function kosulYazisi(k: Kosul): string {
   return `${ad} ${k.islec} ${k.deger}`;
 }
 
-function kuralOzeti(kosulJson: string): { satir: string; tam: string } {
+function kuralOzeti(
+  kosulJson: string, sozluk: Sozluk | null,
+): { satir: string; tam: string } {
   try {
     const kural = JSON.parse(kosulJson) as KuralJson;
     const liste = kural.herhangi ?? kural.hepsi ?? [];
@@ -65,7 +67,7 @@ function kuralOzeti(kosulJson: string): { satir: string; tam: string } {
     return {
       satir: liste.map(kosulYazisi).join(' · '),
       tam: `EĞER ${liste.map(kosulYazisi).join(baglac)} → KAPSAMDA. `
-        + `Değilse kapsam dışı; alanı bilinmeyen tesiste karar üretilmez.`,
+        + `Değilse kapsam dışı; alanı bilinmeyen ${terim(sozluk, 'tesis', 'bulunma')} karar üretilmez.`,
     };
   } catch {
     return { satir: 'Kural okunamadı', tam: kosulJson.slice(0, 200) };
@@ -452,7 +454,7 @@ export async function cerceveleriYukle(
                 : 'değerlendirme kaydı yok';
           const ilkProje = zincir.find((z) => z.id.startsWith('proje-'));
           const ipucu = ham === 'kapsamdisi'
-            ? `${kisa(y.kod)} · bu tesiste kapsam dışı`
+            ? `${kisa(y.kod)} · bu ${terim(sozluk, 'tesis', 'bulunma')} kapsam dışı`
             : [
                 kisa(y.kod), olgu,
                 kanitlar.length === 0 ? 'kanıt yok' : `kanıt ${kanitYazi}`,
@@ -501,7 +503,7 @@ export async function cerceveleriYukle(
 
     /* ── kural + kuru çalıştırma ─────────────────────────────────── */
     const kuralKaydi = reg.kurallar[0] ?? null;
-    const ozetKural = kuralKaydi ? kuralOzeti(kuralKaydi.kosulJson) : null;
+    const ozetKural = kuralKaydi ? kuralOzeti(kuralKaydi.kosulJson, sozluk) : null;
     const sonHesap = reg.kararlar.length
       ? new Date(Math.max(...reg.kararlar.map((k) => k.hesaplandi.getTime()))).toISOString()
       : null;

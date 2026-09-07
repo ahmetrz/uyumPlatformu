@@ -415,6 +415,22 @@ görür, su kiracısı "tesis / m³/gün".
   `table-layout: fixed` + `overflow: hidden` taşan sözcüğü keser, sayfa
   yana kaymaz ve `yatay-tasma` yeşil kalır.
 
+- *Aile dönüşüm TARİFİ (adım adım):* aynı adım dört ailede atlandı ve
+  dördünde de lint yakaladı — kodlama hatası değil TARİF eksikliğiydi.
+  Bir ekran ailesi sözlüğe geçerken:
+  1. Yorumlardaki ve tanımlayıcılardaki sektör sözcüğü çekirdeğe çevrilir.
+  2. Ekran metinleri sözlükten kurulur (`useTerim` · `t(sozluk, …)`).
+  3. Saf modüller sözlüğü **parametre** alır (React bilmezler).
+  4. **`useMemo`/`useCallback` bağımlılık listesine `sozluk`/`tBas`
+     EKLENİR.** Yardımcı sözlük parametresi alır almaz onu çağıran her
+     bellek kancası sözlüğe bağımlıdır; eklenmezse sözlük değişince
+     ekranda ESKİ sözcük kalır. Bekçi bunu göremez (metin doğru), lint
+     görür — bu sınıfın tek bekçisi odur ve CI'da bloklayıcıdır
+     (`--max-warnings=0`).
+  5. Modül seviyesindeki sabit diziler (`KOLONLAR` gibi) modülde kalır;
+     yalnız sözlüğe bağlı alan bileşende kopyalanır.
+  6. Kapılar: bekçi · `sozluk-farki` (beklenen fark) · vitest · build.
+
 - *Bekçi NEGATİF ölçüdür; yanına POZİTİF ölçü kondu (7 Eyl 2026):*
   bekçi "sektör sözcüğü kalmadı" der, **"sözlükten geliyor" demez**. Bir
   dosya `santral`ı çekirdek `tesis` ile SABİT değiştirirse bekçi yeşil

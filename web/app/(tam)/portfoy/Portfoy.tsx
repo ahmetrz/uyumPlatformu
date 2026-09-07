@@ -94,7 +94,7 @@ export default function Portfoy({ satirlar, toplamGucMw, endeks, kapsamli = fals
         </h1>
         {/* Portföy endeksi: kök ekranla aynı havuz, aynı formül. Yüzde
             yazılan her yerde bilinmeyen payı da yazılır. */}
-        <span className="ab-portfoy-endeks" aria-label="Portföy uyum endeksi">
+        <span className="ab-portfoy-endeks" aria-label={`${tBas('portfoy')} uyum endeksi`}>
           <span className="etiket">Uyum endeksi</span>
           <span className="mono deger">{endeks.yuzde === null ? '—' : `%${endeks.yuzde}`}</span>
           <span className="mono cumle">

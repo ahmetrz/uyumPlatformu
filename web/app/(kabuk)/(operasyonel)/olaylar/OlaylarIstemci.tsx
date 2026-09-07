@@ -13,7 +13,7 @@ import {
   EtkiDogrulama, OlayBaglari, OlayDuzenleFormu, OneriYenile, YeniOlayFormu,
 } from './Eylemler';
 import {
-  ETKI_ALANLARI, ETKI_ALAN_ETIKET, KADEME, KOPUKLUK_SOZU, TESPIT_SOZU,
+  ETKI_ALANLARI, ETKI_ALAN_ETIKET, KADEME, kopuklukSozu, TESPIT_SOZU,
   acikMi, bekleyenAlanlar, bildirimBekliyor, dogrulanmisAlanlar, imSozu,
   olayImi, olgu, seviyeDurumu, seviyeSozu, sirala, surukleyici,
   zincirKopuk, zincirOzeti,
@@ -500,6 +500,7 @@ function ZincirBlogu({ o }: { o: OlayKaydi }) {
 }
 
 function Halka({ h }: { h: HalkaGorunumu }) {
+  const sozluk = useSozluk();
   const adimlar = [
     h.varlik ? { ad: h.varlik.etiket, alt: `varlık · ${h.varlik.kritiklik}` } : null,
     h.sistem ? { ad: h.sistem.kod, alt: `sistem · ${h.sistem.kritiklik}` } : null,
@@ -532,7 +533,7 @@ function Halka({ h }: { h: HalkaGorunumu }) {
         <p style={{ margin: 'var(--s8) 0 0', display: 'flex', alignItems: 'center',
           gap: 'var(--s6)', fontSize: 'var(--t-label)', color: 'var(--unk)' }}>
           <Im durum="unk" ad="Zincir kopuk" />
-          zincir burada kopuyor — {KOPUKLUK_SOZU[h.kopukluk] ?? h.kopukluk}
+          zincir burada kopuyor — {kopuklukSozu(sozluk)[h.kopukluk] ?? h.kopukluk}
         </p>
       )}
     </div>

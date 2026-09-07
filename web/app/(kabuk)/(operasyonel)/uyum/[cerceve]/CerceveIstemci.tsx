@@ -28,6 +28,7 @@ type Kip = 'kapsam' | 'kuru';
 export default function CerceveIstemci({
   veri, kapsamYazabilir,
 }: { veri: CerceveVerisi; kapsamYazabilir: boolean }) {
+  const { t: terim } = useTerim();
   const parametreler = useSearchParams();
   const aileParam = parametreler.get('aile');
   const kontrolParam = parametreler.get('kontrol');
@@ -48,7 +49,8 @@ export default function CerceveIstemci({
         durum: aileDurumu(hucreler.map((h) => h.ham)),
         kapsamNotu: sorunlu.length > 0
           ? sorunlu.map((h) => h.tesisKodu).join(' · ')
-          : disarida.length > 0 ? `${disarida.length} tesiste kapsam dışı` : '',
+          : disarida.length > 0
+            ? `${disarida.length} ${terim('tesis', 'bulunma')} kapsam dışı` : '',
         odak: kontrolParam === y.kod || kontrolParam === y.kisaKod,
       };
     });
@@ -60,7 +62,13 @@ export default function CerceveIstemci({
       acik: aileParam === a.kod || aileParam === a.kisaKod
         || yapraklar.some((y) => y.odak),
     };
-  }), [veri, aileParam, kontrolParam]);
+  /* `terim` bağımlılıkta: bu `useMemo` sözlükten METİN üretiyor
+     ("N tesiste kapsam dışı"). Bağımlılık olmadan sözlük değişince
+     eski sözcük ekranda kalırdı — bu sınıfın BEŞİNCİ yakalanışı
+     (yetkiler · envanter · riskler · denetimler · şimdi burası) ve
+     her seferinde lint buldu. Tarif adımı olarak yazıldı:
+     `docs/GELISTIRME_PAKETLERI.md` §0.5 dönüşüm listesi. */
+  }), [veri, aileParam, kontrolParam, terim]);
 
   const m = veri.metrikler;
   const kapsamda = veri.kapsam.filter((k) => k.durum === 'kapsamda');

@@ -1,0 +1,41 @@
+{
+  "//": [
+    "ÇEKİRDEK SÖZCÜK TARAMASI · MUAFİYETLER — her biri gerekçesiyle.",
+    "",
+    "── SINIR (izin listesi ve `beklenen-fark.json` ile AYNI kural) ───────",
+    "Muafiyet YALNIZ şu iki sınıf için meşrudur:",
+    "  · DEĞİŞMEZ İZ / SÖZLEŞME — insana bir ekran metni olarak sunulmayan,",
+    "    saklanan ya da entegratöre verilen artefakt (R0-9).",
+    "  · KOD — eşleştirme anahtarı, tanımlayıcı, ölçü birimi; ekran metni",
+    "    değil.",
+    "",
+    "KULLANICIYA GÖRÜNEN METİN MUAF EDİLEMEZ. Sunucu eylem mesajları,",
+    "form etiketleri, boş durum cümleleri sözlüğe BAĞLANIR — çevrilebilir",
+    "değil, çevrilmesi zorunludur. Görünen metni muaf etmek kapıyı kör eder.",
+    "",
+    "Her kayıt gerekçelidir (en az 30 karakter, `muafiyet-canli.test.ts`",
+    "ölçer) ve ÖLÜ KAYIT KIRMIZI VERİR: dosya yoksa ya da içinde çekirdek",
+    "sözcük kalmadıysa kayıt düşmelidir. `rotalar.json` ve izin listesi bu",
+    "dersi zaten verdi — elle tutulan liste sessizce bayatlar.",
+    "",
+    "Tek fark `beklenen-fark.json`dan: orası DİZE muaf eder (veri satırı),",
+    "burası DOSYA — çünkü sebep dosya düzeyinde geçerli (bütün bir sözleşme",
+    "modülü, bütün bir saklanan artefakt üreticisi). Kural aynı, birim farklı."
+  ],
+  "dosyalar": {
+    "lib/motorlar/olayEtki.ts": "R0-9 · gerekçe metni `Olay.etkiOnerisiJson`a YAZILIR. Saklanan artefakta kiracıya göre değişen sözcük gömmek değişmez denetim izini deler.",
+    "lib/api/sozlesme.ts": "R0-9 · OpenAPI `summary`. Entegratörün okuduğu sözleşme iki kiracıda iki türlü okunamaz.",
+    "lib/api/kapsam.ts": "R0-9 · `UC_ETIKETI` sözleşme etiketi; ekran etiketi ayrı işlevde (`ucEtiketi`).",
+    "lib/api/yetki.ts": "R0-9 · API yetki/kapsam sözleşmesi; uç kimlikleri ve kapsam adları kod anahtarıdır.",
+    "lib/api/uclar/erisimler.ts": "R0-9 · API yanıt alan adları sözleşmedir.",
+    "lib/api/uclar/kosular.ts": "R0-9 · API yanıt alan adları sözleşmedir; entegratörün okuduğu alan iki kiracıda iki türlü adlandırılamaz.",
+    "lib/api/uclar/varlikGozlemleri.ts": "R0-9 · API yanıt alan adları sözleşmedir; entegratörün okuduğu alan iki kiracıda iki türlü adlandırılamaz.",
+    "lib/api/uclar/varlikYazma.ts": "R0-9 · API yanıt alan adları sözleşmedir; entegratörün okuduğu alan iki kiracıda iki türlü adlandırılamaz.",
+    "lib/disaAktarim/paket.ts": "R0-9 · dışa aktarım paketinin alan adları denetim artefaktıdır, kod anahtarıdır.",
+    "app/(kabuk)/(operasyonel)/tedarikciler/loading.tsx": "R0-8 · Suspense yedeği anında render edilir; `async` olamaz, `useTerim()` istemci bağlamı ister. Karar dosyada yazılı.",
+    "app/(kabuk)/(operasyonel)/envanter/Yonetisim.tsx": "YANLIŞ POZİTİF · \"Kaybın birimi\" ÖLÇÜ BİRİMİdir (MW · m³/gün), `birim` sözlük anahtarı (üretim ünitesi / arıtma hattı) DEĞİL.",
+    "app/(kabuk)/(operasyonel)/denetimler/DenetimlerIstemci.tsx": "KOD · `'Tesis'` burada kolon EŞLEŞTİRME ANAHTARI (`k.baslik !== 'Tesis'`); görünen başlık `tBas('tesis')` ile üretiliyor.",
+    "app/(kabuk)/(operasyonel)/riskler/RisklerIstemci.tsx": "KOD · aynı desen: sabit dizideki `'Tesis'` eşleştirme anahtarı, görünen başlık sözlükten.",
+    "app/(kabuk)/(operasyonel)/kesif/Karar.tsx": "KOD · sabit dizideki `'Tesis'` bir kolon/alan EŞLEŞTİRME ANAHTARIDIR; ekranda görünen etiket `tBas('tesis')` ile üretiliyor."
+  }
+}

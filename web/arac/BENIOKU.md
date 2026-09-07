@@ -78,10 +78,19 @@ Değişmezler:
 
 Statik kapılar (`npm run lint` · `npx tsc --noEmit` · `npm test` ·
 `npm run tasarim:kapi` · `npm run build`) `.github/workflows/pr-kapisi.yml`
-içinde her PR'da koşar. Aşağıdaki araçlar **canlı sunucu ister** ve CI'da
-koşmaz; port 3210'da elle koşulur (`PORT=3210 next dev` başka bir kabukta).
-Hepsi tohum geliştirme girişiyle oturum açar (`kosu-ortak.mjs`); gerçek
-kurum sistemine giden hiçbir şey yoktur.
+içinde her PR'da koşar.
+
+**İki tarayıcılı kapı da CI'da koşar ve BLOKLAYICIDIR:**
+`yatay-tasma.mjs` ve `erisim-axe.mjs`. CI üretim derlemesini 3210'da
+ayağa kaldırır (`next start`), Playwright'ın kendi chromium'unu kurar
+(runner imajına bırakılmaz) ve ikisini koşar. Ölçüldü: taşma 89sn, axe
+130sn. Bugünün açık bulguları `kalite-borcu.json` izin listesindedir ve
+liste bir CIRCIRLA korunur — aşağıda.
+
+Geri kalan tarayıcılı araçlar hâlâ **canlı sunucu ister** ve CI'da
+koşmaz; port 3210'da elle koşulur (`PORT=3210 next dev` başka bir
+kabukta). Hepsi tohum geliştirme girişiyle oturum açar
+(`kosu-ortak.mjs`); gerçek kurum sistemine giden hiçbir şey yoktur.
 
 | Betik | npm | Ne ölçer | Çıkış 1 |
 | --- | --- | --- | --- |
@@ -90,8 +99,8 @@ kurum sistemine giden hiçbir şey yoktur.
 | `tarama.mjs` | `tasarim:rota` | yatay taşma · eski sınıf · boş ekran · sayfa hatası (`EN=1440,1024,768,375` çok bant) | kusurlu rota |
 | `lighthouse.mjs` | `kalite:lighthouse` | 4 kategori puanı, `/giris` + 4 kanonik rota | eşik (90) altı |
 | `gorsel-regresyon.mjs` | `tasarim:gorsel` | 8 rota × 2 bant, altın görüntüyle piksel farkı | fark > %0,5 ya da altın yok |
-| `erisim-axe.mjs` | `tasarim:axe` | axe-core WCAG 2 A/AA, rotalar.json'daki tüm rotalar | ciddi/kritik ihlal |
-| `yatay-tasma.mjs` | `tasarim:tasma` | 375 + 768'de her rota yana kayıyor mu, taşmayı üreten öğe kim | taşan rota |
+| `erisim-axe.mjs` **(CI · bloklayıcı)** | `tasarim:axe` | axe-core WCAG 2 A/AA, rotalar.json'daki tüm rotalar, **üç bant** (1440 · 768 · 375) | izin listesinde olmayan ya da tavanı aşan ciddi/kritik ihlal |
+| `yatay-tasma.mjs` **(CI · bloklayıcı)** | `tasarim:tasma` | 375 + 768'de **iki kusur türü**: sayfa yana kayıyor mu · `overflow: hidden` kabında sessizce kırpılan içerik var mı | izin listesinde olmayan ya da tavanı aşan bulgu |
 | `dizustu.mjs` | `tasarim:dizustu` | 1366×768'de kaydırılamayan (kırpılan) içerik var mı | kırpılan öğe |
 | `marka-kapisi.mjs` | `marka:kapi` | ürün adı tek kaynaktan mı geliyor: nöbetçi adla statik demo derlemesi koşar, üretilen çıktıya bakar (tarayıcı istemez) | varsayılan ad işlenmiş yüzeyde geçiyor **ya da** nöbetçi görünmesi gereken yüzeyde yok |
 | `turkiye-siniri.mjs` | `harita:sinir` | üretir (kapı değil): Natural Earth'ten Türkiye silüeti | kaynak/öznitelik bulunamadı |
@@ -203,17 +212,274 @@ node arac/xlsx-fikstur.mjs --yaz    # ikiliyi yeniden üretir
 Tarayıcı istemez; `npm test` içinde `tests/xlsx-ayristirma.test.ts` onu
 okur.
 
-### `yatay-tasma.mjs`
+### `kalite-borcu.json` — kapıyı BUGÜN bloklayıcı yapan cırcır
 
-Dar bantta sayfanın yana kaymasını ölçer ve **taşmayı üreten öğeyi**
-adlandırır: taşan ama atası taşmayan, ve yol üstünde kaydırma/kırpma kabı
-bulunmayan öğe. Kaydırma kabı içindeki taşma kusur DEĞİLDİR — üst çubuklar
-dar bantta bilerek yatay kaydırılır.
+Bir kapıyı "bütün bulgular bitince bloklayıcı yaparız" diye bekletmek,
+kapıyı aylarca isteğe bağlı bırakır ve o arada borç sessizce büyür.
+Bunun kanıtı bu depoda var: `/omur` taşması ve 49 rotadaki durum şeridi
+kırpılması, aylarca kimsenin koşmadığı bir kapının arkasında durdu.
+
+Alternatif: bugünkü borcu YAZIYA DÖK, kapıyı BUGÜN bloklayıcı yap,
+listeyi bir cırcırla koru. Liste bir mazeret değil bir **tavandır**.
+
+Satır biçimi — anahtar `kapi + tur + rota + bant`, tavan `azami`
+(dinamik rotalarda `rota` KALIPTIR, somut URL değil):
+
+```json
+{ "kapi": "tasma", "tur": "kirpilan-icerik", "rota": "/sistem/bilesenler",
+  "bant": 375, "azami": 4, "not": "topoloji düğümleri … 39-55px" }
+```
+
+**Dört diş.** Biri gevşerse ötekiler kâğıttan kalır:
+
+| Diş | Ne engeller | Kırmızı olduğu an |
+| --- | --- | --- |
+| **1 · TAVAN** | Var olan borcun büyümesi | ölçüm `azami`yi aşar |
+| **2 · ALT KÜME** | Yeni borç açılması | bulgu listede yok |
+| **3 · TABAN DAL** | Listeye satır eklenmesi / tavan yükseltilmesi | dal listesi `origin/main` listesinin alt kümesi değil |
+| **4 · OKUNAMAZSA KIRMIZI** | Cırcırın sessizce atlanması | taban dal okunamıyor **ve** CI'dayız |
+
+Üçüncü diş olmasaydı ilk ikisi kâğıttan olurdu: bulguyu düzeltmek yerine
+listeye bir satır eklemek kapıyı yeşile döndürürdü. Taban dal **dalın
+kendisi değil `origin/main`'dir** — dalın kendi listesine bakmak, dalın
+kendi eklemesini meşrulaştırırdı. Dördüncü diş de aynı sebeple sert:
+karşılaştırılamayan bir izin listesi, listenin büyümediğini KANITLAMAZ,
+o yüzden sığ klonda CI kırmızıdır (`fetch-depth: 0` şart).
+
+Yerelde taban dal yoksa **gerekçeli** atlanır; CI'da gerekçe işe yaramaz.
+`CI` değişkeni AYRIŞTIRILIR (`ciMi`): kabuklar `CI=false` / `CI=0` ihraç
+eder ve `Boolean()` ikisini de doğru sayardı — yerel kabuk kendini CI
+sanar, belgelenmiş çıkış sessizce kaybolurdu (ölçüldü: `CI=false` +
+gerekçe → yeşil, `CI=true` + gerekçe → kırmızı).
+
+
+```bash
+PORT=3210 node arac/yatay-tasma.mjs --circir-atla="taban dal bu klonda yok"
+```
+
+Taban dal erişilebilir ama listeyi **henüz taşımıyorsa** (listeyi kuran
+commit) o tur muaftır ve "İLK KURULUM" diye yazar — bu, sığ klondan
+ayrıdır ve ayrımı önemlidir: ilki muaf olmalı, ikincisi kırmızı.
+
+Kararlar `kalite-kurallari.mjs → borcSuzgeci · circirKarari` içinde SAF
+işlevlerdir ve `tests/kalite-kapilari.test.ts` ile tarayıcısız
+doğrulanır; `kalite-borcu.mjs` yalnız dosya/git okur ve raporlar.
+
+> **Dört dişin de ISIRDIĞI denenerek doğrulandı.** DİŞ 1: `/omur` 375
+> tavanı 4→3 düşürüldü, kapı kırmızı (`4 > 3 px`). DİŞ 2: aynı satır
+> silindi, kapı kırmızı ("izin listesinde OLMAYAN 1 bulgu"). DİŞ 3:
+> listeye satır eklendi ve tavan yükseltildi, ikisi de kırmızı. DİŞ 4:
+> taban dal olmayan bir dala çevrildi — CI'da kırmızı, yerelde gerekçesiz
+> kırmızı, gerekçeli yeşil, CI'da gerekçeyle yine kırmızı. Deneme
+> değişiklikleri geri alındı.
+
+**Bir satır düzeldiğinde silinir.** Kapı zaten söyler: "DÜZELMİŞ BORÇ · N
+satır — kalite-borcu.json içinden SİLİN". Silinen satır DİŞ 3 yüzünden
+geri gelemez. **Liste BOŞALABİLİR** — borçsuz hâl cırcırın hedefidir ve
+testler bunu engellemez (`length > 0` beklemek, son satır silindiğinde
+`npm test`i kırar ve sonsuza kadar yapay borç tutmayı zorunlu kılardı).
+
+#### Tavan VERİYE BAĞIMLI olamaz
+
+`kirpilan-icerik` ölçüsünün birimi **kusur TÜRÜDÜR**, kırpılan öğe sayısı
+değil: **etiket + kırpılma türü + kutu eni** tek imzadır. Kutu eni imzaya
+girer çünkü aynı etiketle kırpılan YENİ bir sütun, yoksa mevcut imzanın
+arkasına saklanırdı; kutu eni yerleşimden gelir (`table-layout: fixed`
+sütun genişliği), satır sayısından değil. Kırpılan px imzaya GİRMEZ — o,
+metin uzunluğuyla yani veriyle değişir. Sebep ölçüldü —
+kütük tablosunda her SATIR ayrı öğe sayılıyordu ve tavan tohum verisiyle
+oynuyordu:
+
+> `/saglik` · 375px: yerelde **8**, CI'da **23** öğe — aynı iki kusur
+> türü. Tavanı 8 yazan liste CI'da kırmızı yandı; kusur değişmemişti,
+> yalnız satır sayısı değişmişti. İmzaya çevrilince ikisi de **2**.
+
+Aynı sebeple iki şey daha yapılır:
+
+- **Dinamik rota kaydı `id`ye göre SEÇİLMEZ.** `@default(cuid())` her
+  seed'de başka bir kaydı "ilk" yapardı ve kapı her koşuda başka bir
+  ekranı ölçerdi. Sıra tohumda ELLE yazılmış bir alandan alınır (`kod`,
+  yoksa `baslik`); kimlik yalnız URL'e konur.
+- **Tavanlar TAZE tohumla ölçülür.** Yeniden ölçmeden önce
+  `rm prisma/dev.db && npm run db:hazirla`. Kapının kendi girişi kayıt
+  üretir (aktivite, bildirim), yani ikinci koşu birinciden farklı satır
+  görebilir. Satır listede olduğu sürece bu salınım kapıyı YAKMAZ:
+  eksik çıkan satır "düzelmiş" diye raporlanır, kırmızı değil. Ölçüldü:
+  `/bildirimler` peş peşe iki koşuda 0 ve 1 kusur türü verdi, ikisi de
+  yeşil.
+
+#### Listenin KENDİSİ silinirse
+
+En sinsi kaçış yolu bir satırı değil DOSYANIN TAMAMINI silmektir: liste
+yoksa "muaf değil" diye okunacak bir şey de yoktur. Bu yol iki yerden
+kapatılır ve ikisi de ÖLÇÜLDÜ.
+
+**Liste modül seviyesinde okunur.** `kalite-borcu.mjs` listeyi
+`borcuUygula` içinde çağrı anında değil, modül yüklenirken okur. Yani
+modülü içe aktaran her yol — iki kapı ve testler — liste okunamıyorsa
+ilk satırda düşer. Liste kapının PARÇASIDIR, muafiyet defteri değil;
+silmek kapıyı susturmaz, kapının kendisini yıkar.
+
+> **Ölçüldü, önce ve sonra.** Okuma çağrı anındayken liste silinince kapı
+> gerçekten kırmızı yanıyordu — ama ham bir `ENOENT` yığın iziyle ve
+> tarayıcı koşusunun **90 saniyesi harcandıktan sonra**. Şimdi **1
+> saniyede** ve adıyla düşüyor:
+> `BORÇ LİSTESİ OKUNAMADI · web/arac/kalite-borcu.json`.
+>
+> Asıl tehlike de ölçüldü: *taban dalda liste yok + çalışma ağacında
+> liste yok* kombinasyonu "İLK KURULUM" diye OKUNMUYOR — okuma
+> `tabanBorcOku`dan önce patlıyor. Eski hâlde bu, iki satırın SIRASINA
+> bağlı bir güvenceydi; şimdi yapıdan geliyor.
+
+**Listenin varlığı AYRI bir iddiadır.** `tests/kalite-borcu-listesi.test.ts`
+muafiyet mantığından bağımsız koşar ve `kalite-kurallari.mjs`'i bilerek
+içe aktarmaz. Dosya okuması `describe` gövdesinde değil TEST GÖVDESİNDE
+yapılır — aradaki fark ölçüldü:
+
+| Liste silinince | `describe` gövdesinde okuma | test gövdesinde okuma |
+| --- | --- | --- |
+| vitest sonucu | dosya TOPLANAMIYOR · "Tests: **no tests**" | **6 vaka ADIYLA** düşüyor |
+| cırcırın 34 birim vakası | hepsi birden adsız hataya dönüşüyor | koşuyor ve geçiyor |
+
+Kaçış yolunun kapalı olduğunu söyleyecek iddia, kaçış denendiğinde
+susmamalı.
+
+### `yatay-tasma.mjs` — İKİ kusur türü
+
+**1 · Sayfa yana kayıyor.** Dar bantta sayfanın yana kaymasını ölçer ve
+**taşmayı üreten öğeyi** adlandırır: taşan ama atası taşmayan, ve yol
+üstünde kaydırma/kırpma kabı bulunmayan öğe. Kaydırma kabı içindeki taşma
+kusur DEĞİLDİR — üst çubuklar dar bantta bilerek yatay kaydırılır.
 
 `tarama.mjs` de taşma ölçer ama tek bir sayı olarak ve varsayılan olarak
 tek bantta (`EN=` verilmezse 1440); dar bant kusurları o yüzden yıllarca
 görünmedi. Bu araç iki dar bandı (375 · 768) tüm rotalarda VARSAYILAN
 koşar ve suçluyu yazar; ikisi birbirinin yerine geçmez.
+
+**2 · Kırpılan içerik.** Birinci ölçü tek başına KÖRDÜ. `overflow:
+hidden` bir kap taşmayı yutunca sayfa kaymaz, kapı "0 kusur" der — oysa
+içerik ekranda yoktur ve hiçbir jestle geri gelmez. Bu, `dizustu.mjs`'in
+DİKEY eksende ölçtüğü kusurun yatay eşleniğidir ve aynı iki alt ölçüyü
+kullanır:
+
+| Ölçü | Ne der | Ölçülen örnek |
+| --- | --- | --- |
+| `disari` | Öğenin KUTUSU, kırpan atanın görünür kutusunun dışında kalıyor | `/tesisler/[id]` · 375px: 420px veri paneli `left: -45px`'e oturuyor, sol 45px'i plakanın kenarında kesiliyor ("UYUM ENDEKSİ" → "UM ENDEKSİ") |
+| `tasma` | Öğenin AKIŞ İÇİ ve GÖRÜNÜR içeriği kendi kutusuna sığmıyor | aynı rota · 375px: künye ve ölçü şeridi 0px kutuya çöküyor · 768px: beş ölçü 42px sütunlara sıkışıp komşusunun üstüne biniyor |
+
+Ayrım "kaydırılabiliyor mu" DEĞİL, **"erişilebiliyor mu"**: yol üstünde
+`auto`/`scroll` bir kap varsa içerik kaydırılarak görülür, kusur değildir;
+`hidden`/`clip` kabında görülemez, kusurdur. Kırpan kap hiç yoksa taşma
+belgeye çıkar ve birinci ölçü onu zaten yakalar. `tasma` için öğenin KENDİ kırpması ancak
+GÖRÜNÜR bir işaret taşıyorsa muaftır: `text-overflow` (üç nokta) ya da
+`-webkit-line-clamp`. İşaretsiz kırpma — `overflow: hidden` +
+`white-space: nowrap`, üç nokta yok — kusurdur ve `işaretsiz kırpma`
+diye raporlanır; metin düğümleri ağaçta gezilmediği için o kayıp başka
+hiçbir ölçüde görünmezdi. `disari` için böyle bir muafiyet yoktur.
+
+> Bugün bu kalıptan **0 bulgu** çıkıyor (ölçüldü): kod tabanındaki
+> kendi kırpmasını yöneten öğelerin hepsi ya üç nokta gösteriyor ya da
+> taşmıyor. Kural yine de kapıdadır — kalıp yarın girerse yakalanır.
+
+Karar `kalite-kurallari.mjs → kirpilmaKarari` içindedir ve
+`tests/kalite-kapilari.test.ts` ile TARAYICISIZ doğrulanır; araç sayfada
+yalnız ham geometri toplar.
+
+> **Ölçülen ve elenen yanlış alarm.** İlk uygulama `scrollWidth -
+> clientWidth` kullanıyordu ve 8 rotada 60'tan çok yanlış bulgu üretti:
+> `scrollWidth` konumlandırılmış ve gizli soyları da sayar, yani her ipucu
+> balonu ve her tuval künyesi "kırpılmış" görünüyordu. Ölçü akış içi +
+> görünür geometriye çevrildi; yanlış alarmların tamamı düştü.
+> `dizustu.mjs`'in kendi dersiyle (ekran okuyucuya bırakılmış görünmez
+> metin kırpma değildir) aynı eleme burada da yapılır: `clip-path`
+> taşıyan öğe listeye girmez.
+
+> **Bant eklendiği gün ölçüldü** (50 rota × 2 bant): taşan rota **2**
+> (`/omur`, `span.ad` ">1 yıl" · 4px / 3px) · kırpılan içerik **51 rota ·
+> 106 öğe**. Kök sebep üç tanedir: (a) `.ab-durum` durum şeridi
+> `white-space: nowrap` + `overflow: hidden` ile 375'te iki kalemi
+> kesiyor — 49 rota × 2 öğe; (b) `/sistem/bilesenler` topoloji düğümleri
+> tuvalin kenarında kesiliyor (6 öğe · 375, 2 öğe · 768); (c)
+> `/tesisler/[id]` hero plakası (ayrı düzeltildi). `.ab-alt` ayağında
+> AYNI kalıp daha önce ölçülüp düzeltilmişti (aşağıda); `.ab-durum` o
+> turda atlanmış.
+
+#### Detektörün kendi kör noktaları — üçü inceleme ile bulundu
+
+İlk hâl üç yerde eksikti; üçü de PR incelemesinde işaret edildi,
+doğrulandı ve düzeltildi.
+
+**1 · Erişilebilirlik YAPIŞKAN olamaz.** Yol üstünde bir kez `auto`
+görülünce aşağısı "erişilir" sayılıyordu. Oysa bir kaydırma kabının
+İÇİNDEKİ `overflow: hidden` kap kendi içeriğini yine kırpar ve dıştaki
+kabı kaydırmak onu geri getirmez. Durum artık her zaman EN YAKIN kaba
+göre kurulur.
+
+> **Maskelediği kusur ölçüldü ve görsel olarak doğrulandı.** Kütük
+> tabloları `.ab-vt-sar { overflow: auto }` içindedir; içlerindeki
+> `.ab-vt th, .ab-vt td` ise `overflow: hidden` taşır ve
+> `table-layout: fixed` dar bantta sütunu **0 genişliğe** çöktürür.
+> `/aktivite` · 375px: ekranda yalnız ZAMAN ve DEĞİŞİM sütunları var —
+> "KAYIT" başlığı ve her satırın ne olduğu (`span.kimlik-metin`,
+> "Kullanıcı A giriş oluşturdu") TÜMÜYLE görünmüyor. Yapışkan bayrak
+> bunu platform genelinde saklıyordu.
+
+**2 · Metin şart değildir.** `textContent` boş diye eleme, kırpılan bir
+görseli, SVG şemayı ya da yalnız simge taşıyan bir düğmeyi hiç aday
+yapmıyordu — kaybolan şey bir bilgi ya da bir EYLEM olabilir. Artık
+`img · svg · canvas · video · iframe · object` ve etkileşimli öğeler de
+ölçülür; dekoratif gürültü `aria-hidden` · görünmezlik · `clip-path`
+elemeleriyle dışarıda kalır.
+
+**3 · Dinamik rotalar taranmıyordu.** `rotalar.json` yalnız statik
+rotaları taşır ve `/tesisler` zaten `/portfoy`'a yönlenir; yani altı
+kayıt detayı ekranının hiçbiri taranmıyordu — **kapıların koruması
+gereken Tesis 360 dahil**. İki kapı da artık `dinamikRotalar()` ile
+tohumdan somutlaşan rotaları da tarar (56 rota · 112 ölçüm).
+
+> Borç satırı somut URL'e değil **KALIBA** anahtarlanır
+> (`/riskler/[id]`): tohum kimlikleri `@default(cuid())` ile her seed
+> koşusunda değişir, somut URL yazılsaydı CI'daki kimlik yerelde
+> ölçülene hiç uymaz ve liste kilitlenirdi.
+
+**Her kalıptan tek kayıt değil, ÜÇ KAYIT VARYANTI taranır.** Tek kayıt
+ölçmek içeriğe bağlı kusuru kaçırır ve bunun kanıtı bu depodadır: Tesis
+360'ın 768px kusuru 17 tesisin **yalnız 5'inde** çıkıyordu (açık bulgusu
+olanlarda). `kod`a göre sıralı ilk üç tesis SAHA-A1 · A2 · A3 ve kusurlu
+beşin ikisi (A2, A3) bu üçün içindeydi — üç örnek o kusuru YAKALARDI,
+tek örnek kaçırırdı. Sayı `TOHUM_ORNEK` ile artırılabilir.
+
+Aynı kalıptan birden çok bulgu geldiğinde tavan **EN KÖTÜ varyanta**
+göre tutulur. Toplamak ölçüyü örnek sayısına yani tohuma bağlardı;
+ilkini almak kusurlu varyantı temizin arkasına saklardı — ikisi de bu
+turda düzeltilen hataların aynısı olurdu.
+
+> **Ölçüldü:** 6 → 18 dinamik rota · taşma 112 → **136 ölçüm · 119sn** ·
+> axe 171 → **207 tarama · 176sn**. İkisi de exit 0.
+
+**Çözülemeyen dinamik rota bir uyarı değil, KIRIK TARAMADIR.** Tablo ya
+da kolon yeniden adlandırılırsa, tohum tablosu boşalırsa veya
+veritabanı okunamazsa rota listeden sessizce düşerdi ve kapı yeşil
+kalırdı — kapatılan kör nokta geri açılırdı. Böyle bir rota kapıyı
+KIRMIZI yakar ve izin listesine GİREMEZ: ölçülemeyen bir şey "borç"
+değildir. `--rota=` ile kapsam elle daraltıldıysa dinamikler zaten
+istenmemiştir; orada kırık sayılmaz.
+
+> **Denendi:** `DB_YOL=/olmayan/dev.db` ile iki kapı da altı dinamik
+> rotayı çözemedi ve ikisi de exit 1 verdi; `--rota=/uyum` ile aynı
+> koşu exit 0.
+
+**Yanlış YÜZEYİ taramak, taramamaktan beterdir.** 404/500 gövdesi ya da
+giriş ekranı taşmaz ve "yeni ciddi ihlal yok" der; kapı yeşil kalır.
+Tohumdan somutlaşan detay rotalarında bu özellikle kritiktir — geçerli
+bir kimlik + bozuk bir işleyici tam olarak bu tuzağı kurar. İki kapı da
+artık HTTP durumunu ve varışı denetler; `rota-duman.mjs`'in kuralı
+geçerlidir (`BILINCLI_YONLENDIRME`: yalnız yazılı yönlendirme kabul
+edilir, bugün tek satır `/tesisler → /portfoy`).
+
+> **Denendi:** `--rota=/boyle-bir-rota-yok` ile axe `KIRIK: HTTP 404 —
+> yanlış yüzey tarandı` yazıp exit 1, taşma kapısı `KIRIK TARAMA · 2
+> rota YANLIŞ YÜZEY döndürdü` yazıp exit 1 verdi.
 
 ```bash
 PORT=3210 npm run tasarim:tasma
@@ -319,8 +585,24 @@ etiketli kuralları `rotalar.json`'daki her rotada ve oturumsuz `/giris`'te
 koşar. `serious`/`critical` ihlal çıkış kodu 1; `minor`/`moderate`
 listelenir, engellemez.
 
+**Üç bant koşar** (1440×900 · 768×1024 · 375×780). Uzun süre yalnız
+1440'ta koştu ve bu onu dar bantta KÖR bırakıyordu: erişilebilirlik
+ihlallerinin bir kısmı ancak yerleşim değişince doğar — dar bantta
+beliren kaydırma kapları, sarılan başlıklar, küçülen dokunma hedefleri.
+Görmediği kusuru "yok" diye raporlayan bir kapı, kusuru kalıcılaştırır.
+
+> **Ölçüldü** (bant eklendiği gün, 51 rota × 3 bant = 153 tarama):
+> 1440'ta 0, 768'de 0, **375'te 2 ciddi ihlal** — ikisi de
+> `scrollable-region-focusable`: `/saklama` (`.ab-vt-sar`, 1 düğüm) ve
+> `/sistem` (`.ab-sistem-kaydir`, 2 düğüm). Yani telefonda üç kaydırma
+> bölgesi klavyeyle erişilemiyordu ve kapı bunu hiç görmemişti.
+
+Bant seçimi `yatay-tasma.mjs` ile bilerek AYNIDIR: iki araç aynı kusuru
+aynı koşulda görsün. Tek bant koşmak için `--bant=375`.
+
 ```bash
 PORT=3210 node arac/erisim-axe.mjs --json /tmp/axe.json
+PORT=3210 node arac/erisim-axe.mjs --bant=375 --rota=/uyum
 ```
 
 ### Bantlar

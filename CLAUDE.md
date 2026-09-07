@@ -32,6 +32,7 @@ kabul kriteridir (P0 · URN-KUR-003); ölü atıf eklemeyin.
 | Ürünün kendi yedeği | `docs/URUN_YEDEKLEME.md` · `web/arac/yedek.mjs` |
 | Senaryo kütüğü · test eşlemesi | `docs/MASTER_SCENARIO_REGISTRY.md` · `docs/SCENARIO_TEST_MATRIX.md` (`web/lib/senaryo/` üretir) |
 | Kalite araçları ve kapılar | `web/arac/BENIOKU.md` |
+| Kalite borcu izin listesi · cırcır | `web/arac/kalite-borcu.json` |
 | Görsel künyeleri | `web/public/gorseller/KUNYE.md` · `web/public/santraller/KUNYE.md` |
 | Zorunlu UX / ürün tasarımı skill seti | `.claude/skills/` |
 
@@ -159,8 +160,14 @@ yapılır.
 ## Kalite kapıları
 
 CI'da (`.github/workflows/pr-kapisi.yml`): lint → tsc → vitest →
-ters kapsam → dil kapısı → tasarım kapısı → derleme → statik demo
-derlemesi. Tarayıcı isteyen kapılar canlı sunucu ister ve elle koşulur
+ters kapsam → dil kapısı → tasarım kapısı → derleme → **yatay taşma** →
+**erişilebilirlik (axe · üç bant)** → statik demo derlemesi → marka
+kapısı. Son iki tarayıcılı kapı CI'da üretim sunucusuyla koşar ve
+BLOKLAYICIDIR; bugünün açık bulguları `web/arac/kalite-borcu.json` izin
+listesindedir ve liste **yalnız küçülebilir** (dört dişli cırcır —
+tavan · alt küme · taban dal `origin/main` · okunamazsa kırmızı).
+
+Geri kalan tarayıcılı kapılar canlı sunucu ister ve elle koşulur
 (`PORT=3210 npm run dev` başka bir kabukta); listesi ve gerekçeleri
 `web/arac/BENIOKU.md` içindedir. Koşulmayan kapı "geçti" diye
 yazılmaz — "ölçülmedi" yazılır.

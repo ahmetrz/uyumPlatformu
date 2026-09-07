@@ -19,20 +19,40 @@
      · `overflow: hidden` + `text-overflow` satır içi kutuda yok sayılır,
        üç nokta hiç çalışmıyordu.
 
-   ── Ne ölçer ──────────────────────────────────────────────────────────
-   Her rota, her bant için `documentElement.scrollWidth` görüntü
-   genişliğini aşıyor mu. Aşıyorsa taşmayı ÜRETEN öğeyi de yazar:
-   taşan ama atası taşmayan, ve yol üstünde kaydırma/kırpma kabı
-   BULUNMAYAN öğe. Kaydırma kabı içindeki taşma kusur değildir — üst
-   çubuklar dar bantta bilerek yatay kaydırılır (`.ab-a-ust`,
-   `.ab-b-ust`), kap zaten kaydırmayı üstlenmiştir.
+   ── Ne ölçer · İKİ KUSUR TÜRÜ ─────────────────────────────────────────
+   1 · SAYFA YANA KAYIYOR. Her rota, her bant için
+       `documentElement.scrollWidth` görüntü genişliğini aşıyor mu.
+       Aşıyorsa taşmayı ÜRETEN öğeyi de yazar: taşan ama atası taşmayan,
+       ve yol üstünde kaydırma/kırpma kabı BULUNMAYAN öğe. Kaydırma kabı
+       içindeki taşma kusur değildir — üst çubuklar dar bantta bilerek
+       yatay kaydırılır (`.ab-a-ust`, `.ab-b-ust`), kap zaten kaydırmayı
+       üstlenmiştir.
+
+   2 · KIRPILAN İÇERİK. Birinci ölçüm tek başına KÖRDÜ: `overflow:
+       hidden` bir kap taşmayı yutunca sayfa kaymaz ve kapı "0 kusur"
+       der — oysa içerik ekranda yoktur ve hiçbir jestle geri gelmez.
+       Ölçüldü (/tesisler/[id] · 375px): hero künyesi ve beş ölçü şeridi
+       0px genişlikteydi; tesis adı, kurulu güç, kritiklik sınıfı
+       görünmüyordu ve bu kapı bunu göremiyordu.
+
+       Muafiyet KORUNUR ama gerekçesiyle: ayrım "kaydırılabiliyor mu"
+       değil, "ERİŞİLEBİLİYOR MU". `auto`/`scroll` kabında içerik
+       erişilebilir — kusur değil. `hidden`/`clip` kabında değil — kusur.
+       Karar `kalite-kurallari.mjs → kirpilmaKarari` içindedir ve
+       tarayıcısız test edilir.
 
    Kullanım: PORT=3210 node arac/yatay-tasma.mjs
              PORT=3210 node arac/yatay-tasma.mjs --rota=/uyum,/kanitlar
 */
 
 import { chromium } from 'playwright-core';
-import { KOK, girisYap, rotaBayragi, rotalarOku, tarayiciYolu } from './kosu-ortak.mjs';
+import {
+  KOK, dinamikRotalar, girisYap, kalipCozucu, rotaBayragi, rotaBayragiVar, rotalarOku,
+  tarayiciYolu,
+} from './kosu-ortak.mjs';
+import { KAYDIRAN_KAPLAR, enDistakiKirpilmalar, kirpilmaKarari } from './kalite-kurallari.mjs';
+import { borcuUygula } from './kalite-borcu.mjs';
+import { yonlendirmeKarari } from './rota-kurallari.mjs';
 
 /* İki bant yeter: 375 telefon (en sıkı), 768 dikey tablet (kırılma
    noktasının hemen üstü — 700px kuralları burada HENÜZ geçerli
@@ -45,9 +65,14 @@ const BANTLAR = [
 /** Taşma toleransı: alt piksel yuvarlaması gürültü üretmesin. */
 const TOLERANS = 1;
 
-const ROTALAR = rotaBayragi(
-  rotalarOku().map((r) => (typeof r === 'string' ? r : r.yol)).map((r) => r || '/'),
-);
+/* Statik liste + tohumdan somutlaşan dinamik rotalar. Dinamikler uzun
+   süre dışarıdaydı ve bu, kapıyı KÖR bırakıyordu: altı kayıt detayı
+   ekranının hiçbiri taranmıyordu (Tesis 360 dahil). */
+const DINAMIK = dinamikRotalar();
+const ROTALAR = rotaBayragi([
+  ...rotalarOku().map((r) => (typeof r === 'string' ? r : r.yol)).map((r) => r || '/'),
+  ...DINAMIK.url,
+]);
 
 /* Sayfa bağlamında koşar: taşmayı ÜRETEN öğeleri döner. */
 function suclulariBul() {
@@ -78,8 +103,123 @@ function suclulariBul() {
   return liste.slice(0, 4);
 }
 
+/* Sayfa bağlamında koşar: KARAR VERMEZ, ham ölçüm döner. Karar
+   `kirpilmaKarari` içindedir ve tarayıcısız test edilir; bu ayrım
+   `kalite-kurallari.mjs` başındaki gerekçenin aynısıdır.
+
+   Ağaç YUKARIDAN AŞAĞI gezilir ve kırpma durumu aşağı taşınır: her öğe
+   için ataları yeniden yürümek 50 rota × 2 bant × birkaç bin öğede
+   ölçülebilir bir maliyettir; ayrıca görünmeyen alt ağaçlar budanır. */
+function kirpilmaOlcumleri(kaydiranKaplar) {
+  const adaylar = [];
+  /* Metni olmayan ama BİLGİ taşıyan öğeler. */
+  const TASIYICI_ETIKET = ['img', 'svg', 'canvas', 'video', 'iframe', 'object'];
+
+  /* Akış içi ve GÖRÜNÜR içeriğin yatay uçları. `scrollWidth` bilerek
+     kullanılmaz: konumlandırılmış (absolute/fixed) ve gizli soyları da
+     sayar, ipucu balonları yanlış alarm üretir. */
+  const icerikUclari = (e) => {
+    let sol = Infinity;
+    let sag = -Infinity;
+    for (const n of e.childNodes) {
+      if (n.nodeType === 3) {
+        if ((n.textContent || '').trim() === '') continue;
+        const rg = document.createRange();
+        rg.selectNode(n);
+        for (const r of rg.getClientRects()) {
+          if (r.width === 0 && r.height === 0) continue;
+          sol = Math.min(sol, r.left);
+          sag = Math.max(sag, r.right);
+        }
+        rg.detach?.();
+      } else if (n.nodeType === 1) {
+        const cs = getComputedStyle(n);
+        if (cs.position === 'absolute' || cs.position === 'fixed') continue;
+        if (cs.display === 'none' || cs.visibility !== 'visible' || Number(cs.opacity) === 0) continue;
+        const r = n.getBoundingClientRect();
+        if (r.width === 0 && r.height === 0) continue;
+        sol = Math.min(sol, r.left);
+        sag = Math.max(sag, r.right);
+      }
+    }
+    return { sol, sag };
+  };
+
+  const gez = (e, yol, kap) => {
+    const st = getComputedStyle(e);
+    /* Görünmeyen alt ağaç budanır: ekrana çizilmeyen içerik kırpılmış
+       sayılmaz (ekran okuyucuya bırakılmış metin, kapalı çekmece…). */
+    if (st.display === 'none' || st.visibility !== 'visible' || Number(st.opacity) === 0) return;
+    if (e.getAttribute('aria-hidden') === 'true') return;
+    /* Ekran okuyucuya bırakılmış görünmez metnin standart kalıbı
+       (`width/height: 1px; clip-path: inset(50%)`) kırpma DEĞİLDİR:
+       okuyucu metni tam okur. `dizustu.mjs` ilk koşusunda 40 yanlış
+       alarmın kırkı buydu; aynı eleme burada da yapılır. */
+    if (st.clipPath !== 'none') return;
+
+    const r = e.getBoundingClientRect();
+    const metin = (e.textContent || '').trim();
+    /* Metin ŞART DEĞİLDİR. Yalnız metin arasaydık, kırpılan bir görsel,
+       bir SVG şema ya da yalnız simge taşıyan bir düğme hiç aday olmaz
+       ve kapı "kusursuz" derdi — oysa kaybolan şey bir bilgi ya da bir
+       EYLEMDİR. Dekoratif gürültü yine dışarıda kalır: `aria-hidden`,
+       görünmez ve `clip-path` taşıyan öğeler yukarıda elendi. */
+    const tasiyici = metin !== ''
+      || TASIYICI_ETIKET.includes(e.tagName.toLowerCase())
+      || e.matches('a[href], button, input, select, textarea, [role], [tabindex]');
+
+    if (tasiyici && r.height > 0 && (kap.erisilir || kap.kutu)) {
+      const disari = kap.erisilir || !kap.kutu ? 0
+        : Math.max(0, kap.kutu.sol - r.left) + Math.max(0, r.right - kap.kutu.sag);
+      const uc = icerikUclari(e);
+      const tasma = uc.sag === -Infinity ? 0
+        : Math.max(0, uc.sag - r.right) + Math.max(0, r.left - uc.sol);
+      if (disari > 0 || tasma > 0) {
+        adaylar.push({
+          yol,
+          etiket: `${e.tagName.toLowerCase()}${e.className ? `.${String(e.className).trim().split(/\s+/).join('.')}` : ''}`,
+          genislik: Math.round(r.width),
+          disari: Math.round(disari),
+          tasma: Math.round(tasma),
+          kendiOverflow: st.overflowX,
+          metinTasmasi: st.textOverflow,
+          satirKirpma: Number(st.webkitLineClamp) || 0,
+          kapTuru: kap.tur,
+          erisilir: kap.erisilir,
+          metin: metin === ''
+            ? `‹metinsiz ${e.tagName.toLowerCase()}${e.getAttribute('aria-label') ? ` · ${e.getAttribute('aria-label')}` : ''}›`
+            : metin.slice(0, 40).replace(/\s+/g, ' '),
+        });
+      }
+    }
+
+    /* Kırpma durumu çocuklara taşınır ve her zaman EN YAKIN kaba göre
+       kurulur. Erişilebilirlik YAPIŞKAN DEĞİLDİR: bir kaydırma kabının
+       içindeki `overflow: hidden` kap, kendi içeriğini yine kırpar ve
+       dıştaki kabı kaydırmak onu geri getirmez. Eskiden `erisilir`
+       aşağıya taşınıyordu ve bu, iç içe kaplarda kapıyı kör bırakıyordu.
+
+       Ters yön de doğrudur ve ayrı ölçülür: iç kaydırma kabının KENDİSİ
+       dıştaki `hidden` tarafından kesiliyorsa, o kabın kendi satırında
+       `disari` ile yakalanır. */
+    let altKap = kap;
+    if (st.overflowX !== 'visible') {
+      altKap = kaydiranKaplar.includes(st.overflowX)
+        ? { erisilir: true, tur: null, kutu: null }
+        : { erisilir: false, tur: st.overflowX, kutu: { sol: r.left, sag: r.right } };
+    }
+    for (let i = 0; i < e.children.length; i += 1) gez(e.children[i], [...yol, i], altKap);
+  };
+
+  const kok = { erisilir: false, tur: null, kutu: null };
+  for (let i = 0; i < document.body.children.length; i += 1) gez(document.body.children[i], [i], kok);
+  return adaylar;
+}
+
 const tarayici = await chromium.launch({ executablePath: tarayiciYolu() });
 const kusurlar = [];
+const kirpilmalar = [];
+const yuzeyKirigi = [];
 let olculen = 0;
 
 try {
@@ -89,7 +229,13 @@ try {
     await girisYap(sayfa, KOK);
 
     for (const yol of ROTALAR) {
-      await sayfa.goto(`${KOK}${yol}`, { waitUntil: 'networkidle' });
+      const yanit = await sayfa.goto(`${KOK}${yol}`, { waitUntil: 'networkidle' });
+      /* Yanlış yüzeyi ölçmek, ölçmemekten beterdir: 404/500 gövdesi ya da
+         giriş ekranı taşmaz ve kapı yeşil kalır (axe kapısıyla aynı kural). */
+      const kod = yanit?.status() ?? 0;
+      const karar = yonlendirmeKarari(yol, new URL(sayfa.url()).pathname);
+      const yuzeyHatasi = kod !== 200 ? `HTTP ${kod}` : (karar.kusur ?? null);
+      if (yuzeyHatasi) { yuzeyKirigi.push({ bant: bant.ad, yol, sebep: yuzeyHatasi }); continue; }
       /* Yerleşim istemcide oturuyor; ölçmeden önce bir kare beklenir. */
       await sayfa.waitForTimeout(150);
       olculen += 1;
@@ -101,7 +247,38 @@ try {
         if (tasma <= tolerans) return null;
         return { tasma, suclular: window.__suclulariBul() };
       }, TOLERANS);
-      if (olcum) kusurlar.push({ bant: bant.ad, yol, ...olcum });
+      if (olcum) kusurlar.push({ bant: bant.ad, bantEn: bant.en, yol, ...olcum });
+
+      /* İkinci kusur türü: taşma sayfayı kaydırmasa da içerik kayıp mı. */
+      await sayfa.addScriptTag({ content: `window.__kirpilmaOlcumleri = ${kirpilmaOlcumleri.toString()};` });
+      const adaylar = await sayfa.evaluate((k) => window.__kirpilmaOlcumleri(k), [...KAYDIRAN_KAPLAR]);
+      const kirpilan = enDistakiKirpilmalar(
+        adaylar.map((a) => ({ ...a, karar: kirpilmaKarari(a) })).filter((a) => a.karar.kusur),
+      );
+      /* Aynı kusurun her SATIRI ayrı öğe olarak sayılırsa ölçüm veriye
+         bağımlı olur: kütükte 8 satır varsa 8, 23 satır varsa 23 çıkar
+         ve borç tavanı tohum verisi değişince kayar (ölçüldü: /saglik
+         yerelde 8, CI'da 23). Kusur, satır sayısı değil TÜRDÜR — aynı
+         etiket + aynı kırpılma türü tek imzadır. */
+      const imzalar = new Map();
+      for (const o of kirpilan) {
+        /* İmzaya kutu ENİ de girer. Yalnız etiket + tür olsaydı, aynı
+           etiketle kırpılan YENİ bir sütun mevcut imzanın arkasına
+           saklanırdı. Kutu eni yerleşimden gelir (`table-layout: fixed`
+           sütun genişliği), satır SAYISINDAN değil: tekrarlayan satırlar
+           tek imzada birleşir, yapısal olarak yeni bir kırpma ayrı imza
+           olur. Kırpılan px imzaya GİRMEZ — o, metin uzunluğuyla yani
+           veriyle değişir. */
+        const anahtar = `${o.etiket}|${o.karar.tur}|${o.genislik}`;
+        const v = imzalar.get(anahtar) ?? { ...o, adet: 0 };
+        v.adet += 1;
+        imzalar.set(anahtar, v);
+      }
+      if (kirpilan.length > 0) {
+        kirpilmalar.push({
+          bant: bant.ad, bantEn: bant.en, yol, ogeler: [...imzalar.values()], ornek: kirpilan.length,
+        });
+      }
     }
     await baglam.close();
   }
@@ -109,14 +286,24 @@ try {
   await tarayici.close();
 }
 
-if (kusurlar.length === 0) {
-  console.log(`yatay-tasma: ${olculen} ölçüm · ${BANTLAR.length} bant × ${ROTALAR.length} rota · 0 kusur`);
-  process.exit(0);
+/* Çözülemeyen dinamik rota bir UYARI DEĞİL, KIRIK TARAMADIR: taranmayan
+   bir ekran "kusursuz" demek değildir ve tam da bu kapının kapatmak için
+   var olduğu kör noktadır (tablo/kolon yeniden adlandırılır, tohum tablosu
+   boşalır, veritabanı okunamaz — kapı yeşil kalırdı). `--rota=` ile kapsam
+   ELLE daraltıldıysa dinamikler zaten istenmemiştir; orada kırık sayılmaz. */
+const DINAMIK_KIRIK = !rotaBayragiVar() && DINAMIK.atlanan.length > 0;
+for (const a of DINAMIK.atlanan) {
+  console.error(`  DİNAMİK ROTA TARANMADI · ${a.rota} · ${a.sebep}`);
 }
 
-console.error(`yatay-tasma: ${kusurlar.length} kusur (${olculen} ölçümde)\n`);
+const bas = `yatay-tasma: ${olculen} ölçüm · ${BANTLAR.length} bant × ${ROTALAR.length} rota`;
+console.log(`${bas} · taşan rota ${kusurlar.length} · kırpılan içerik ${kirpilmalar.length}`);
+
+/* Ham bulgular her zaman YAZILIR — izin listesi bulguyu gizlemez,
+   yalnız kapıyı yakıp yakmayacağını söyler. */
+
 for (const k of kusurlar) {
-  console.error(`  ${k.bant} · ${k.yol} → sayfa ${k.tasma}px yana kayıyor`);
+  console.error(`  [SAYFA KAYIYOR] ${k.bant} · ${k.yol} → ${k.tasma}px`);
   for (const s of k.suclular) {
     console.error(`      ${s.etiket} · ${s.genislik}px · sağ kenar ${s.sag}px · "${s.metin}"`);
   }
@@ -125,4 +312,57 @@ for (const k of kusurlar) {
     console.error('      kırpılmış bir alt ağaçtan geliyor olabilir.');
   }
 }
-process.exit(1);
+
+for (const k of kirpilmalar) {
+  console.error(`  [KIRPILAN İÇERİK] ${k.bant} · ${k.yol} → ${k.ogeler.length} kusur türü`
+    + ` · ${k.ornek} öğe erişilemiyor`);
+  for (const o of k.ogeler) {
+    console.error(`      [${o.karar.tur}] ${o.etiket} ×${o.adet} · kutu ${o.genislik}px · ${o.karar.sebep}`);
+    console.error(`          "${o.metin}"`);
+  }
+}
+
+/* ── Kalite borcu cırcırı ─────────────────────────────────────────────
+   Kapı BUGÜN bloklayıcıdır; bugünün açık bulguları izin listesinde
+   yazılıdır ve liste yalnız küçülebilir (arac/kalite-borcu.json). */
+/* Aynı kalıbın birkaç örneği taranır (`/tesisler/[id]` × 3). Borç anahtarı
+   kalıptır, yani aynı anahtarda birden çok bulgu oluşur; tavan EN KÖTÜ
+   örneğe göre tutulur. Toplasaydık ölçü örnek sayısına, yani tohuma
+   bağlanırdı; ilkini alsaydık kusurlu örnek temiz örneğin arkasına
+   saklanırdı — ikisi de bu turda düzeltilen hataların aynısı olurdu. */
+function enKotuyeIndirge(bulgular) {
+  const en = new Map();
+  for (const b of bulgular) {
+    const anahtar = [b.kapi, b.tur, b.rota, b.bant].join('|');
+    const v = en.get(anahtar);
+    if (!v || b.olcum > v.olcum) en.set(anahtar, { ...b, ornek: (v?.ornek ?? 0) + 1 });
+    else en.set(anahtar, { ...v, ornek: v.ornek + 1 });
+  }
+  return [...en.values()];
+}
+
+/* Borç anahtarı KALIBA yazılır (`/tesisler/[id]`), somut URL'e değil:
+   tohum kimlikleri her seed'de değişir. */
+const kalip = kalipCozucu(DINAMIK);
+const bulgular = [
+  ...kusurlar.map((k) => ({
+    kapi: 'tasma', tur: 'sayfa-kayiyor', rota: kalip(k.yol), bant: k.bantEn,
+    olcum: k.tasma, birim: 'px',
+    not: k.suclular[0] ? `${k.suclular[0].etiket} "${k.suclular[0].metin}"` : undefined,
+  })),
+  ...kirpilmalar.map((k) => ({
+    kapi: 'tasma', tur: 'kirpilan-icerik', rota: kalip(k.yol), bant: k.bantEn,
+    olcum: k.ogeler.length, birim: 'kusur türü',
+    not: k.ogeler[0]?.etiket,
+  })),
+];
+const borcKapali = borcuUygula(enKotuyeIndirge(bulgular), { kapi: 'tasma' });
+if (DINAMIK_KIRIK) {
+  console.error(`\nKIRIK TARAMA · ${DINAMIK.atlanan.length} dinamik rota ölçülemedi`
+    + ' — izin listesine giremez, kapı KIRMIZIDIR.');
+}
+if (yuzeyKirigi.length > 0) {
+  console.error(`\nKIRIK TARAMA · ${yuzeyKirigi.length} rota YANLIŞ YÜZEY döndürdü`);
+  for (const k of yuzeyKirigi) console.error(`  ${k.bant} · ${k.yol} · ${k.sebep}`);
+}
+process.exit(borcKapali || DINAMIK_KIRIK || yuzeyKirigi.length > 0 ? 1 : 0);

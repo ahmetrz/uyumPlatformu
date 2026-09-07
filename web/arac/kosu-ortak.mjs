@@ -12,6 +12,7 @@
    (prisma/seed.ts); gerçek kimlik bilgisi yoktur, olmamalıdır. */
 
 import { readFileSync, readdirSync, statSync } from 'node:fs';
+import Database from 'better-sqlite3';
 import path from 'node:path';
 import os from 'node:os';
 import { fileURLToPath } from 'node:url';
@@ -60,6 +61,107 @@ export function tarayiciYolu() {
 /** arac/rotalar.json — kabuk rotalarının kanonik listesi. */
 export function rotalarOku() {
   return JSON.parse(readFileSync(path.join(WEB, 'arac', 'rotalar.json'), 'utf8'));
+}
+
+/* ── Dinamik rotalar ────────────────────────────────────────────────────
+   `rotalar.json` yalnız STATİK rotaları taşır; kayıt detayı ekranları
+   (`/tesisler/[id]` gibi) orada yoktur ve `/tesisler` zaten `/portfoy`'a
+   yönlenir. Bu, kapılarda ölçülmüş bir KÖR NOKTA üretti: tarayıcılı
+   kapılar varsayılan listeyle koşunca altı kayıt detayı ekranının HİÇBİRİ
+   taranmıyordu — Tesis 360 dahil, yani kapıların koruması gereken
+   yüzeyin ta kendisi.
+
+   Değer UYDURULMAZ: her dinamik segment değerini tohum tablosundan alır;
+   tablo boşsa rota listeye girmez ve sebebi raporlanır. Eşleme uzun süre
+   yalnız `rota-duman.mjs` içindeydi; kopyalanmasın diye buraya taşındı —
+   bu modülün var oluş gerekçesinin aynısı. */
+export const TOHUM_KAYNAGI = {
+  '/tesisler/[id]': { tablo: 'Tesis', kolon: 'id', sira: 'kod' },
+  '/bulgular/[id]': { tablo: 'Bulgu', kolon: 'id', sira: 'baslik' },
+  '/denetimler/[id]': { tablo: 'Denetim', kolon: 'id', sira: 'kod' },
+  '/riskler/[id]': { tablo: 'Risk', kolon: 'id', sira: 'kod' },
+  '/surecler/[id]': { tablo: 'UyumSureci', kolon: 'id', sira: 'kod' },
+  /* Çerçeve detayının parametresi id değil regülasyon KODUDUR
+     (bkz. uyum/[cerceve]/page.tsx: bağlantı paylaşılabilir olsun diye). */
+  '/uyum/[cerceve]': { tablo: 'Regulasyon', kolon: 'kod', sira: 'kod' },
+};
+
+const DB_YOL = process.env.DB_YOL || path.join(WEB, 'prisma', 'dev.db');
+
+/* Kayıt BAŞINA bir ekran taranmaz, kayıt VARYANTLARI taranır. Tek kayıt
+   ölçmek, içeriğe bağlı kusuru kaçırır ve bunun kanıtı bu depodadır:
+   Tesis 360'ın 768px kusuru 17 tesisin YALNIZ 5'inde çıkıyordu (açık
+   bulgusu olanlarda). `kod`a göre sıralı ilk üç tesis SAHA-A1 · A2 · A3
+   ve kusurlu beşin ikisi (A2, A3) bu üçün içindeydi — yani üç örnek o
+   kusuru YAKALARDI, tek örnek kaçırırdı.
+
+   Üç, ölçülmüş bir dengedir: kapsam ile CI süresi arasında. `TOHUM_ORNEK`
+   ile artırılabilir. */
+const ORNEK_SAYISI = Math.max(1, Number(process.env.TOHUM_ORNEK) || 3);
+
+/** Tek bir dinamik rotanın tohumdaki gerçek değeri. */
+export function tohumDegeri(rota) {
+  const kaynak = TOHUM_KAYNAGI[rota];
+  if (!kaynak) return { hata: 'tohum kaynağı tanımsız (kosu-ortak.mjs · TOHUM_KAYNAGI)' };
+  let db;
+  try { db = new Database(DB_YOL, { readonly: true }); } catch (e) {
+    return { hata: `tohum veritabanı açılamadı: ${e.message}` };
+  }
+  try {
+    /* Sıralama `id`ye göre YAPILMAZ: kimlikler `@default(cuid())` ile
+       üretilir ve her seed koşusunda başka bir kayıt "ilk" olur — kapı
+       her koşuda farklı bir ekranı ölçerdi ve borç tavanları koşudan
+       koşuya oynardı. Sıra, tohumda ELLE yazılmış bir alandan alınır
+       (kod ya da başlık); kimlik yalnız URL'e konur. */
+    const satirlar = db.prepare(
+      `select ${kaynak.kolon} as v from ${kaynak.tablo}`
+      + ` order by ${kaynak.sira ?? kaynak.kolon} limit ${ORNEK_SAYISI}`,
+    ).all();
+    if (satirlar.length === 0) return { hata: `tohumda ${kaynak.tablo} kaydı yok` };
+    return {
+      degerler: satirlar.map((r) => String(r.v)),
+      kaynak: `${kaynak.tablo}.${kaynak.kolon}`,
+    };
+  } catch (e) {
+    return { hata: `tohum sorgusu başarısız (${kaynak.tablo}): ${e.message}` };
+  } finally {
+    db?.close();
+  }
+}
+
+/**
+ * Dinamik rotaların somut URL'leri, KALIPLARIYLA birlikte.
+ *
+ * Kalıp şart: tohum kimlikleri `@default(cuid())` ile üretilir ve her
+ * seed koşusunda DEĞİŞİR. Kalite borcu satırı somut URL'e anahtarlansaydı
+ * CI'daki kimlik yerelde ölçülene hiç uymaz, satır "düzelmiş" görünür ve
+ * aynı bulgu "yeni" diye kapıyı yakardı — kilitlenirdi.
+ *
+ * Değeri çözülemeyen rota SESSİZCE düşmez: `atlanan` içinde sebebiyle
+ * döner ve çağıran onu yazar.
+ */
+export function dinamikRotalar() {
+  const liste = [];
+  const atlanan = [];
+  for (const kalip of Object.keys(TOHUM_KAYNAGI)) {
+    const d = tohumDegeri(kalip);
+    if (d.hata) { atlanan.push({ rota: kalip, sebep: d.hata }); continue; }
+    for (const deger of d.degerler) {
+      liste.push({ kalip, url: kalip.replace(/\[[^\]]+\]/, encodeURIComponent(deger)) });
+    }
+  }
+  return { liste, url: liste.map((x) => x.url), atlanan };
+}
+
+/** Somut URL → kalıp eşlemesi; kalıbı olmayan rota kendisini döner. */
+export function kalipCozucu(dinamik) {
+  const eslesme = new Map((dinamik?.liste ?? []).map((x) => [x.url, x.kalip]));
+  return (rota) => eslesme.get(rota) ?? rota;
+}
+
+/** `--rota=` verilmiş mi — kapılar varsayılan kapsamı bilmek ister. */
+export function rotaBayragiVar() {
+  return process.argv.some((a) => a.startsWith('--rota='));
 }
 
 /** `--rota=/a,/b` bayrağı varsa onu, yoksa verilen varsayılanı döner. */

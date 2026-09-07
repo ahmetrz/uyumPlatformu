@@ -1,9 +1,8 @@
 import { readdirSync, statSync } from 'node:fs';
 import path from 'node:path';
-import Database from 'better-sqlite3';
 import { chromium } from 'playwright-core';
 import { yonlendirmeKarari } from './rota-kurallari.mjs';
-import { tarayiciYolu } from './kosu-ortak.mjs';
+import { tarayiciYolu, tohumDegeri } from './kosu-ortak.mjs';
 
 /* Rota duman testi — KAPSAM DOSYA SİSTEMİNDEN TÜRER.
 
@@ -44,7 +43,6 @@ import { tarayiciYolu } from './kosu-ortak.mjs';
 
 const WEB = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
 const KOK = `http://localhost:${process.env.PORT || 3111}`;
-const DB_YOL = process.env.DB_YOL || path.join(WEB, 'prisma', 'dev.db');
 const JSON_CIKTI = process.argv.includes('--json');
 
 /* ── 1. Rota envanteri ─────────────────────────────────────────────── */
@@ -74,36 +72,9 @@ function rotaEnvanteri() {
 
 /* ── 2. Dinamik segmentlerin gerçek değerleri ──────────────────────── */
 
-/* Her dinamik rota, değerini hangi tohum tablosundan alır. Uydurma değer
-   YOK: tablo boşsa rota test edilmez ve sebebi raporlanır. */
-const TOHUM_KAYNAGI = {
-  '/tesisler/[id]': { tablo: 'Tesis', kolon: 'id' },
-  '/bulgular/[id]': { tablo: 'Bulgu', kolon: 'id' },
-  '/denetimler/[id]': { tablo: 'Denetim', kolon: 'id' },
-  '/riskler/[id]': { tablo: 'Risk', kolon: 'id' },
-  '/surecler/[id]': { tablo: 'UyumSureci', kolon: 'id' },
-  /* Çerçeve detayının parametresi id değil regülasyon KODUDUR
-     (bkz. uyum/[cerceve]/page.tsx: bağlantı paylaşılabilir olsun diye). */
-  '/uyum/[cerceve]': { tablo: 'Regulasyon', kolon: 'kod' },
-};
-
-function tohumDegeri(rota) {
-  const kaynak = TOHUM_KAYNAGI[rota];
-  if (!kaynak) return { hata: `tohum kaynağı tanımsız (arac/rota-duman.mjs · TOHUM_KAYNAGI)` };
-  let db;
-  try { db = new Database(DB_YOL, { readonly: true }); } catch (e) {
-    return { hata: `tohum veritabanı açılamadı: ${e.message}` };
-  }
-  try {
-    const satir = db.prepare(`select ${kaynak.kolon} as v from ${kaynak.tablo} order by ${kaynak.kolon} limit 1`).get();
-    if (!satir?.v) return { hata: `tohumda ${kaynak.tablo} kaydı yok` };
-    return { deger: String(satir.v), kaynak: `${kaynak.tablo}.${kaynak.kolon}` };
-  } catch (e) {
-    return { hata: `tohum sorgusu başarısız (${kaynak.tablo}): ${e.message}` };
-  } finally {
-    db.close();
-  }
-}
+/* Eşleme ve tohum okuması `kosu-ortak.mjs` içindedir: aynı liste
+   tarayıcılı kapılarda da gerekiyor ve iki kopya birbirinden uzaklaşırdı
+   (o modülün var oluş gerekçesi). Burada yalnız çağrılır. */
 
 /** Dinamik rotayı gerçek değerle somutlaştırır. */
 function somutlastir(giris) {
@@ -111,9 +82,13 @@ function somutlastir(giris) {
   if (giris.dinamik.length > 1) return { hata: 'çok parametreli rota — eşleme tanımlı değil' };
   const t = tohumDegeri(giris.rota);
   if (t.hata) return { hata: t.hata };
+  /* Duman testi rotanın ÇİZİLDİĞİNİ yoklar; bir örnek yeter. İçeriğe
+     bağlı kusuru arayan tarayıcılı kapılar varyantların hepsini tarar
+     (`dinamikRotalar`). */
+  const deger = t.degerler[0];
   return {
-    url: giris.rota.replace(/\[[^\]]+\]/, encodeURIComponent(t.deger)),
-    not: `${t.kaynak}=${t.deger.slice(0, 12)}…`,
+    url: giris.rota.replace(/\[[^\]]+\]/, encodeURIComponent(deger)),
+    not: `${t.kaynak}=${deger.slice(0, 12)}…`,
   };
 }
 

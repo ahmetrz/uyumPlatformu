@@ -164,7 +164,18 @@ export default function Plant360({ veri, tesisler, sozluk }: {
         </div>
 
         {/* ── Veri paneli · 420px ────────────────────────────────────── */}
-        <aside className="ab-b-panel" aria-label={`${tBas(sozluk, 'tesis')} uyum özeti`}>
+        {/* Panel içeriği kabından uzun olabilir ve kendi içinde kayar
+            (ölçüldü: 1440×900'de 44px taşma). Kaydırılabilir bölge
+            klavyeyle odaklanabilir OLMAK ZORUNDA — aksi hâlde alt
+            satırlar yalnız fareye açıktır (axe · serious ·
+            scrollable-region-focusable). `aria-label` bölgeye zaten ad
+            veriyor; odak halkası kabuk.css'te içeri alınır. Ad SÖZLÜKTEN
+            gelir: sektör sözcüğü çekirdeğe girmez. */}
+        <aside
+          className="ab-b-panel"
+          aria-label={`${tBas(sozluk, 'tesis')} uyum özeti`}
+          tabIndex={0}
+        >
           <div className="tepe">
             <div>
               <p className="etiket">Uyum endeksi</p>

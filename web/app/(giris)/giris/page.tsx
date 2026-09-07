@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { aktifKullanici } from '@/lib/auth';
 import GirisFormu from './GirisFormu';
+import SinematikGiris from '@/components/giris/SinematikGiris';
+import styles from '@/components/giris/giris.module.css';
 import { DEMO, TEMEL } from '@/lib/demo';
 import { MARKA_AD } from '@/lib/marka';
 import { guvenliHedef, VARSAYILAN_HEDEF } from './mantik';
@@ -46,9 +48,9 @@ export default async function Giris({ searchParams }: {
   if (await aktifKullanici()) redirect(hedef);
 
   return (
-    <div className="ab" data-yogunluk="amiral" style={{
+    <SinematikGiris>
+    <div className={`ab ${styles.login}`} data-yogunluk="amiral" style={{
       minHeight: '100dvh', display: 'grid',
-      gridTemplateColumns: 'minmax(0, 1fr) var(--drawer-w)',
     }}>
       <section style={{ position: 'relative', overflow: 'hidden',
         background: 'var(--panel2)', color: 'var(--murekkep)' }}>
@@ -99,5 +101,6 @@ export default async function Giris({ searchParams }: {
         <GirisFormu next={hedef === VARSAYILAN_HEDEF ? null : hedef} />
       </main>
     </div>
+    </SinematikGiris>
   );
 }

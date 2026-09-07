@@ -17,23 +17,30 @@ jobs:
     steps:
       - name: Depoyu al
         uses: actions/checkout@v7
+        with:
+          # Kalite borcu cırcırı dal listesini `origin/main` ile
+          # karşılaştırır (DİŞ 3). Sığ klonda taban dal okunamaz ve kapı
+          # bilerek KIRMIZI yanar (DİŞ 4) — o yüzden tam geçmiş gerekir.
+          fetch-depth: 0
 
-      # Sektör terimi bekçisinin (`tests/bekci/sektor-terimi.test.ts`) dördüncü
-      # dişi izin listesini TABAN DALDAKİ hâliyle karşılaştırır: liste yalnız
-      # erimeli, bir dosyayı temizleyip yerine başkasını koyma takası da
-      # yakalanmalı. `checkout` PR'da yalnız birleşme commit'ini sığ alır,
-      # `origin/main` ref'i olmaz; bu adım onu getirir.
+      # Cırcır, DALIN kendi listesini TABANLA karşılaştırır. Taban olarak
+      # `origin/main` HAREKETLİ ucu alınamaz: PR'ın merge ref'i oluştuktan
+      # sonra main ilerleyip bir borç satırını silerse, dalın DEĞİŞMEMİŞ
+      # listesi "eklenmiş" görünür ve CI yanlış yere kırmızı yanar. Taban,
+      # kontrol edilen merge'ün kurulduğu commit'tir: `base.sha`.
       #
-      # `continue-on-error` adımı SESSİZ YAPMAZ: bu adım düşerse bekçi
-      # CI'da KIRMIZI yanar ("CI'da taban dal okunamadı"). Bayrağın tek
-      # işi, hatayı ham bir git çıktısı olarak işi durdurmak yerine öbür
-      # kapılar da koştuktan sonra bekçinin gerekçeli mesajıyla
-      # göstermek. Yerelde (CI değişkeni yokken) diş atlanır ve
-      # "ölçülmedi" denir — orada taban dalın yokluğunun meşru sebepleri
-      # var, CI'da yok.
-      - name: Taban dalı al (bekçi cırcırı)
-        continue-on-error: true
-        run: git fetch --depth=1 origin main:refs/remotes/origin/main
+      # AYNI REF'İ SEKTÖR TERİMİ BEKÇİSİ DE İSTİYOR (dördüncü diş: izin
+      # listesi yalnız erimeli, dosya takası da yakalanmalı). Bekçinin
+      # kendi `git fetch --depth=1` adımı BİRLEŞMEDE SİLİNDİ ve yerini
+      # buraya bıraktı: `--depth=1`, `fetch-depth: 0` ile alınmış TAM
+      # klonu SIĞLAŞTIRIR ve borç cırcırının taban geçmişini keser —
+      # iki cırcır aynı ref'i farklı derinlikte isteyemez. Bu adım
+      # ikisini de besliyor; düşerse ikisi de "taban dal okunamadı"
+      # diyerek KIRMIZI yanar (DİŞ 4), sessiz düşüş yok.
+      - name: Taban commit'i getir (borç cırcırı · DİŞ 3 · sektör bekçisi)
+        run: |
+          git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main
+          git fetch --no-tags origin '${{ github.event.pull_request.base.sha }}'
 
       - name: Node kur
         uses: actions/setup-node@v7
@@ -65,6 +72,12 @@ jobs:
         working-directory: web
         run: npm test
 
+      # Test envanteri (`arac/test-envanteri.json`) elle tutulan bir sayı
+      # değil, keşifle doğrulanan bir kayıttır: bayatlarsa kapı kırmızı.
+      - name: Test envanteri tazeliği
+        working-directory: web
+        run: npm run sayimlar:denetle
+
       - name: Ters kapsam kapısı
         working-directory: web
         run: npm run ters:kapsam
@@ -77,15 +90,105 @@ jobs:
         working-directory: web
         run: npm run tasarim:kapi
 
+      # Her `package.json` betiği ya bu iş akışında koşar ya
+      # `arac/kapi-farki.mjs` BEYAN tablosunda gerekçesiyle durur.
+      # Beyansız betik kapıyı kırmızı yakar: yeni bir kapı yazıp CI'ya
+      # bağlamayı unutmak bir daha sessiz olmasın.
+      # P1'in getirdiği iki tarayıcısız kapı. `kapi:farki` ikisini de
+      # beyansız betik diye kırmızı yaktı; doğru cevap gerekçe yazmak
+      # değil, bağlamaktı (üçüncüsü `kapi:iki-sozluk` canlı sunucu ister
+      # ve beyanda duruyor).
+      - name: Sözlük kipi kapısı
+        working-directory: web
+        run: npm run sozluk:kip
+
+      - name: Şema sapması kapısı
+        working-directory: web
+        run: npm run kapi:sema-sapmasi
+
+      - name: Kapı farkı kapısı
+        working-directory: web
+        run: npm run kapi:farki
+
       - name: Üretim derlemesi
         working-directory: web
         run: npm run build
 
-      - name: Statik demo derlemesi
+      # ── Tarayıcılı kapılar ────────────────────────────────────────────
+      # Dördü de canlı sunucu ister ve uzun süre "elle koşulur" diye CI'nın
+      # dışında kaldı; dışarıda kalan kapı, kusuru kalıcılaştırır (ölçüldü:
+      # /omur taşması ve 49 rotadaki durum şeridi kırpılması aylarca
+      # kimsenin koşmadığı bir kapının arkasında durdu; rota duman ve
+      # gezinme kapıları ise KIRIK hâlde main'e girdi ve kimse görmedi).
+      #
+      # Bugün BLOKLAYICIDIR. Taşma ve axe kapılarının açık bulguları
+      # `arac/kalite-borcu.json`
+      # izin listesindedir ve liste bir CIRCIRLA korunur: yalnız küçülebilir.
+      # Listede olmayan ya da tavanı aşan her bulgu kapıyı kırmızı yakar.
+      #
+      # Tarayıcı runner imajına bırakılmaz: Playwright'ın kendi chromium'u
+      # kurulur, böylece kapı imaj değişikliğiyle sessizce kaymaz.
+      - name: Tarayıcıyı kur (kalite kapıları)
+        working-directory: web
+        run: node node_modules/playwright-core/cli.js install --with-deps --no-shell chromium
+
+      - name: Sunucuyu başlat (3210)
+        working-directory: web
+        run: |
+          nohup npx next start -p 3210 > /tmp/kapi-sunucu.log 2>&1 &
+          for i in $(seq 1 60); do
+            if curl -sf -o /dev/null http://localhost:3210/giris; then
+              echo "sunucu hazır ($((i * 2))sn)"; exit 0
+            fi
+            sleep 2
+          done
+          echo "sunucu 120sn içinde açılmadı"; cat /tmp/kapi-sunucu.log; exit 1
+
+      # İşlevsel duman testleri ÖNCE koşar: bir rota 404 veriyorsa ya da
+      # gezinme kırıksa, aynı sayfadaki piksel ölçümleri gürültüdür.
+      # İkisi de aylarca CI dışında kaldı ve #28 ortak `girisYap`a bir adım
+      # ekleyince ikisi de sessizce kırıldı — koşmayan kapı, kırıldığını da
+      # söyleyemez. Fark `npm run kapi:farki` ile sayılır.
+      - name: Rota duman testi · 58 rota
+        working-directory: web
+        env:
+          PORT: '3210'
+        run: npm run rota:duman
+
+      - name: Gezinme kapısı · yedi bant
+        working-directory: web
+        env:
+          PORT: '3210'
+        run: npm run gezinme:test
+
+      - name: Yatay taşma ve kırpılan içerik kapısı
+        working-directory: web
+        env:
+          PORT: '3210'
+          KALITE_TABAN_DAL: ${{ github.event.pull_request.base.sha }}
+        run: node arac/yatay-tasma.mjs
+
+      - name: Erişilebilirlik kapısı · axe · üç bant
+        working-directory: web
+        env:
+          PORT: '3210'
+          KALITE_TABAN_DAL: ${{ github.event.pull_request.base.sha }}
+        run: node arac/erisim-axe.mjs
+
+      # Statik demo derlemesi `.next`'i devralır; sunucu önce durmalı.
+      - name: Sunucuyu durdur
+        if: always()
+        run: pkill -f 'next start' || true
+
+      # `npx next build` DEĞİL: o, zincirin yalnız ilk halkasıdır ve
+      # demo-yol · yayin-kontrol · statik-kontrol · kolon-hizasi kapılarını
+      # atlıyordu. Dördü de `publish.yml` içinde, yani main'e GİRDİKTEN
+      # sonra koşuyordu; bir PR'ı bloklamayan kapı kapı değildir.
+      - name: Statik demo derlemesi ve doğrulaması
         working-directory: web
         env:
           NEXT_PUBLIC_DEMO: '1'
-        run: npx next build
+        run: npm run demo:build
 
       # Ürün adının tek kaynaktan geldiğini DAVRANIŞLA ölçer: nöbetçi bir
       # adla derler ve üretilen çıktıya bakar. Kendi derlemesini yaptığı

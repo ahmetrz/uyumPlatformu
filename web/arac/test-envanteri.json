@@ -1,7 +1,7 @@
 {
-  "imza": "11d365e0c7a2c867e515c39d0476470b",
-  "dosya": 152,
-  "vaka": 3024,
+  "imza": "6fc0ef3c098cc1aa5fdfc4ba97d3423a",
+  "dosya": 156,
+  "vaka": 3130,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -224,6 +224,10 @@
       "vaka": 19,
       "atlanan": 0
     },
+    "tests/giris-zaman.test.ts": {
+      "vaka": 3,
+      "atlanan": 0
+    },
     "tests/gorev-eylem.test.ts": {
       "vaka": 26,
       "atlanan": 0
@@ -268,8 +272,12 @@
       "vaka": 5,
       "atlanan": 0
     },
-    "tests/kalite-kapilari.test.ts": {
+    "tests/kalite-borcu-listesi.test.ts": {
       "vaka": 11,
+      "atlanan": 0
+    },
+    "tests/kalite-kapilari.test.ts": {
+      "vaka": 85,
       "atlanan": 0
     },
     "tests/kanit-kapsam.test.ts": {
@@ -286,6 +294,10 @@
     },
     "tests/kapanis-yolu.test.ts": {
       "vaka": 29,
+      "atlanan": 0
+    },
+    "tests/kapi-farki.test.ts": {
+      "vaka": 12,
       "atlanan": 0
     },
     "tests/kapsam-ekranlari.test.ts": {
@@ -362,6 +374,10 @@
     },
     "tests/olculmemis-gosterimi.test.ts": {
       "vaka": 12,
+      "atlanan": 0
+    },
+    "tests/omur-ufuk.test.ts": {
+      "vaka": 6,
       "atlanan": 0
     },
     "tests/operasyon-mantik.test.ts": {

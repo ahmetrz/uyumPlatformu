@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "node arac/dev.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "eslint --max-warnings=0",
@@ -16,6 +16,7 @@
     "sayimlar:yenile": "node arac/test-envanteri.mjs --yaz",
     "sayimlar:denetle": "node arac/test-envanteri.mjs --denetle",
     "ters:kapsam": "node arac/ters-kapsam.mjs",
+    "kapi:farki": "node arac/kapi-farki.mjs",
     "gezinme:test": "node arac/gezinme-testi.mjs",
     "rota:duman": "node arac/rota-duman.mjs",
     "konsol:olcum": "node arac/konsol-olcum.mjs",
@@ -54,6 +55,7 @@
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "server-only": "^0.0.1",
+    "three": "^0.185.1",
     "xlsx": "file:vendor/xlsx-0.20.3.tgz",
     "zod": "^4.5.4"
   },
@@ -61,6 +63,7 @@
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19.2.7",
+    "@types/three": "^0.185.4",
     "@vitest/coverage-v8": "^4.1.11",
     "axe-core": "^4.13.0",
     "eslint": "^9",
@@ -69,9 +72,9 @@
     "pixelmatch": "^7.2.0",
     "playwright-core": "^1.63.0",
     "pngjs": "^7.0.0",
+    "prisma": "^7.10.0",
     "tsx": "^4.23.13",
     "typescript": "^5",
-    "vitest": "^4.1.11",
-    "prisma": "^7.10.0"
+    "vitest": "^4.1.11"
   }
 }

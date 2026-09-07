@@ -67,26 +67,53 @@ const IZIN_DOSYASI = 'tests/bekci/sektor-terimi-izin.json';
    · `türbin`, `jeotermal`, `rüzgâr`, `hidroelektrik` — üretim teknolojisi.
    · `plant` — aynı sözcüğün İngilizcesi; `Plant360` gibi bileşen adları.
    Kapsam dışı bırakılanlar ve nedenleri izin dosyasının başlığındadır. */
-/* ── SÖZCÜK SINIRI `\b` DEĞİL ─────────────────────────────────────────
-   JavaScript'te `\b` ASCII tanımlıdır: `Ü`, `İ`, `ğ`, `ş` sözcük
-   KARAKTERİ SAYILMAZ ve Türkçe sözcükleri ortadan böler. `\bRES\b`
-   kalıbı bu yüzden "SÜRESİ" içinde eşleşiyordu (S | Ü | RES | İ) ve
-   bekçi, sektör terimi taşımayan bir dosyayı kirli gösteriyordu.
+/* ── İKİ AYRI TÜRKÇE TUZAĞI ───────────────────────────────────────────
 
-   Yanlış pozitif üreten kapı kapatılır; sınır Unicode harflerine göre
-   yazıldı. `kuruluGucMw` gibi bileşik tanımlayıcılar da doğru şekilde
-   DIŞARIDA kalır — `Mw` küçük harfli ve sınırsızdır. */
+   1 · SÖZCÜK SINIRI. JavaScript'te `\b` ASCII tanımlıdır: `Ü`, `İ`, `Ç`,
+       `ş` sözcük KARAKTERİ SAYILMAZ ve Türkçe sözcükleri ortadan böler.
+       İki yönde de bozuyordu:
+         · `\bRES\b` "SÜRESİ" içinde EŞLEŞİYORDU (S | Ü | RES | İ) —
+           sektör terimi taşımayan dört dosya listeye böyle girmişti;
+         · `\bDGKÇ\b` gerçek `DGKÇ` kodunu HİÇ görmüyordu, çünkü sondaki
+           `Ç`den sonra `\b` bir sözcük karakteri istiyor.
+       Sınır artık Unicode harflerine göre.
+
+   2 · BÜYÜK HARF KATLAMASI. `/ünite/i` kalıbı `ÜNİTE` ile EŞLEŞMEZ:
+       Türkçe `İ` (U+0130) Unicode basit katlamada `i`ye inmez. Aynı
+       nedenle `TERMİK` kalıpta yoktu, yalnız ASCII `TERMIK` vardı.
+       Türkçe sözcükler bu yüzden `i` bayrağıyla değil, metnin TÜRKÇE
+       YEREL AYARLA küçültülmüş kopyası üzerinde aranır.
+
+       Kodlar (`JES` · `RES` · `MW`) küçültülmüş metinde ARANMAZ:
+       `toLocaleLowerCase('tr-TR')` `I`yı `ı` yapar ve `TERMIK` → `termık`
+       olurdu. Kodlar ham metinde, olduğu gibi aranır.
+
+   Bugün depoda `ÜNİTE`, `TERMİK` ya da şapkasız `rüzgar` GEÇMİYOR (üçü de
+   0 eşleşme); bu düzeltmeler bulunan borcu değil, bekçinin körlüğünü
+   kapatıyor. */
 const sinir = (govde: string) => new RegExp(
   `(?<![\\p{L}\\p{N}_])(?:${govde})(?![\\p{L}\\p{N}_])`, 'gu');
 
-const TERIMLER: { ad: string; kalip: RegExp }[] = [
-  { ad: 'santral', kalip: /santral/gi },
-  { ad: 'ünite', kalip: new RegExp(`ünite|${sinir('unite').source}`, 'giu') },
-  { ad: 'MW', kalip: sinir('MW[ep]?') },
-  { ad: 'tip kodu', kalip: sinir('JES|JEO|RES|HES|GES|DGKC|DGKÇ|TERMIK') },
-  { ad: 'türbin', kalip: /türbin/gi },
-  { ad: 'üretim tipi', kalip: /jeotermal|rüzgâr|hidroelektrik/gi },
-  { ad: 'plant', kalip: /plant/gi },
+/** `ham` = kaynağın kendisi · `kucuk` = Türkçe yerel ayarla küçültülmüş kopya */
+type Hedef = 'ham' | 'kucuk';
+
+const TERIMLER: { ad: string; kaliplar: { re: RegExp; hedef: Hedef }[] }[] = [
+  { ad: 'santral', kaliplar: [{ re: /santral/g, hedef: 'kucuk' }] },
+  { ad: 'ünite', kaliplar: [
+    { re: /ünite/g, hedef: 'kucuk' },
+    // ASCII yazım: küçültülmüş metinde `UNITE` → `unıte` olurdu, ham metinde aranır.
+    { re: new RegExp(sinir('unite').source, 'giu'), hedef: 'ham' },
+  ] },
+  { ad: 'MW', kaliplar: [{ re: sinir('MW[ep]?'), hedef: 'ham' }] },
+  { ad: 'tip kodu', kaliplar: [
+    { re: sinir('JES|JEO|RES|HES|GES|DGKC|DGKÇ|TERMIK|TERMİK'), hedef: 'ham' },
+  ] },
+  { ad: 'türbin', kaliplar: [{ re: /türbin/g, hedef: 'kucuk' }] },
+  { ad: 'üretim tipi', kaliplar: [
+    // Şapkasız `rüzgar` da yazımda geçer; ikisi de sektör sözcüğüdür.
+    { re: /jeotermal|rüzgâr|rüzgar|hidroelektrik/g, hedef: 'kucuk' },
+  ] },
+  { ad: 'plant', kaliplar: [{ re: /plant/gi, hedef: 'ham' }] },
 ];
 
 function* kaynakDosyalari(kok: string): Generator<string> {
@@ -102,11 +129,15 @@ function* kaynakDosyalari(kok: string): Generator<string> {
 
 /** Dosyada (adı dâhil) geçen sektör terimleri — hangi terim, kaç kez. */
 function terimleriBul(yol: string): { terim: string; sayi: number }[] {
-  const metin = readFileSync(yol, 'utf8');
+  const ham = `${readFileSync(yol, 'utf8')}\n${yol}`;
+  const kucuk = ham.toLocaleLowerCase('tr-TR');
   const bulunan: { terim: string; sayi: number }[] = [];
-  for (const { ad, kalip } of TERIMLER) {
-    const sayi = (metin.match(new RegExp(kalip.source, kalip.flags))?.length ?? 0)
-      + (yol.match(new RegExp(kalip.source, kalip.flags))?.length ?? 0);
+  for (const { ad, kaliplar } of TERIMLER) {
+    let sayi = 0;
+    for (const { re, hedef } of kaliplar) {
+      const metin = hedef === 'kucuk' ? kucuk : ham;
+      sayi += metin.match(new RegExp(re.source, re.flags))?.length ?? 0;
+    }
     if (sayi > 0) bulunan.push({ terim: ad, sayi });
   }
   return bulunan;

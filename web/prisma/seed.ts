@@ -1,6 +1,7 @@
 /* Başlangıç verisi — Demo Enerji portföyü. Tüm sözlükler (sektör, tip, alan,
    regülasyon, süreç) panelden yönetilebilir; burası yalnızca ilk kurulum setidir. */
 import { PrismaClient } from '../lib/prisma-client/client';
+import { ENERJI_SOZLUGU } from './sozlukler';
 import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
 import path from 'node:path';
 import { randomBytes, scryptSync } from 'node:crypto';
@@ -69,20 +70,8 @@ async function main() {
      göreceğini söyler. Sözlük SİLİNİRSE ekran bozulmaz, çekirdek
      sözcüğe döner — kurulu sektör paketi olmayan bir kiracının hâli
      budur ve test tam olarak bunu ölçer. */
-  await db.sektorSozlugu.createMany({ data: [
-    { sektorId: elektrik.id, anahtar: 'tesis', tekil: 'santral', cogul: 'santraller',
-      iyelik: 'santralin', belirtme: 'santrali', bulunma: 'santralde', yonelme: 'santrale' },
-    { sektorId: elektrik.id, anahtar: 'birim', tekil: 'üretim ünitesi',
-      cogul: 'üretim üniteleri', iyelik: 'üretim ünitesinin', belirtme: 'üretim ünitesini',
-      bulunma: 'üretim ünitesinde', yonelme: 'üretim ünitesine' },
-    { sektorId: elektrik.id, anahtar: 'portfoy', tekil: 'enerji portföyü',
-      cogul: 'enerji portföyleri', iyelik: 'enerji portföyünün',
-      belirtme: 'enerji portföyünü', bulunma: 'enerji portföyünde',
-      yonelme: 'enerji portföyüne' },
-    { sektorId: elektrik.id, anahtar: 'tesis360', tekil: 'Santral 360',
-      cogul: 'Santral 360', iyelik: 'Santral 360', belirtme: 'Santral 360',
-      bulunma: 'Santral 360', yonelme: 'Santral 360' },
-  ] });
+  await db.sektorSozlugu.createMany({
+    data: ENERJI_SOZLUGU.map((r) => ({ ...r, sektorId: elektrik.id })) });
 
   // ---- tesisler: Demo Enerji üretim portföyü (biri kapalı: devir örneği)
   const t = Object.fromEntries(await Promise.all(([

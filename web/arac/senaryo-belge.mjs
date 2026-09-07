@@ -77,10 +77,14 @@ function testDosyalari() {
 /** Bir dosyadaki `[KIMLIK]` işaretlerini ve taşıdıkları test başlığını çıkarır. */
 function isaretler(metin) {
   const bulunan = [];
-  const kalip = /\b(it|test)\(\s*(['"`])((?:\\.|(?!\2)[\s\S])*?)\2/g;
+  /* `it(`, `test(`, `it.skip(`, `it.only(`, `it.each(...)(` … hepsi.
+     Önce yalnız `it(` aranıyordu; `it.each(TABLO)('… [KIMLIK]')` biçimindeki
+     başlıklar TARANMIYOR ve senaryoları GAP görünüyordu. Ölçüm aracının
+     göremediği bir test, kütükte olmayan bir test gibi davranır. */
+  const kalip = /\b(?:it|test)(?:\.\w+)*\s*(?:\([\s\S]*?\)\s*)?\(\s*(['"`])((?:\\.|(?!\1)[\s\S])*?)\1/g;
   let m;
   while ((m = kalip.exec(metin)) !== null) {
-    const baslik = m[3];
+    const baslik = m[2];
     for (const k of baslik.matchAll(/\[([A-Z]{3}-[A-Z0-9]{2,10}-\d{3})\]/g)) {
       bulunan.push({ id: k[1], baslik: baslik.replace(/\s*\[[^\]]+\]/g, '').trim() });
     }

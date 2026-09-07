@@ -9,7 +9,7 @@
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
-| Taranan test dosyası | 144 |
+| Taranan test dosyası | 146 |
 
 ## Katman başına kapsam
 
@@ -317,6 +317,10 @@
 | `URN-ALN-002` | Ürünleştirme | DOMAIN · UI | `p1-oznitelik-gocu.test.ts` | kural öznitelik üzerinden AYNI kararları üretir | evet | geçti |
 | `URN-ALN-002` | Ürünleştirme | DOMAIN · UI | `uygulanabilirlik.test.ts` | öznitelik ÖLÇÜLMEMİŞSE karar verilmez, kapsam dışı sayılmaz | evet | geçti |
 | `URN-ALN-002` | Ürünleştirme | DOMAIN · UI | `uygulanabilirlik.test.ts` | ölçülmemiş öznitelik, sağlanan başka bir koşulu ENGELLEMEZ | evet | geçti |
+| `URN-ALN-004` | Ürünleştirme | DOMAIN · UI | `p1-ikinci-sozluk.test.ts` | $ad — üç sözlükte de kurulur | evet | geçti |
+| `URN-ALN-004` | Ürünleştirme | DOMAIN · UI | `p1-kabuk-sozluk.test.ts` | tek sektörlü kapsamda sektörün sözcüğü iner | evet | geçti |
+| `URN-ALN-004` | Ürünleştirme | DOMAIN · UI | `p1-kabuk-sozluk.test.ts` | sektörün sözlüğü yoksa ÇEKİRDEK sözcük iner | evet | geçti |
+| `URN-ALN-004` | Ürünleştirme | DOMAIN · UI | `p1-kabuk-sozluk.test.ts` | kapsam İKİ sektöre yayılıyorsa hiçbiri seçilmez | evet | geçti |
 | `URN-ALN-004` | Ürünleştirme | DOMAIN · UI | `p1-terim-sozlugu.test.ts` | ekran adı sözlükle "Santral 360", sözlüksüz "Tesis 360" | evet | geçti |
 | `URN-ALN-004` | Ürünleştirme | DOMAIN · UI | `p1-terim-sozlugu.test.ts` | çekirdek karşılıklar hiçbir sektör sözcüğü taşımaz | evet | geçti |
 | `URN-ALN-004` | Ürünleştirme | DOMAIN · UI | `p1-tesis360-sozluk.test.ts` | enerji sözlüğü kuruluyken ekran adı "Santral 360" | evet | geçti |

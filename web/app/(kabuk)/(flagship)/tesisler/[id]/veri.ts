@@ -4,7 +4,7 @@ import { izinVar, izinliTesisIdleri } from '@/lib/erisim';
 import type { AktifKullanici } from '@/lib/auth';
 import { kapsamda, modulKapisi } from '@/app/kapsam';
 import { uyumOzeti, gecikmisMi, gecenGun } from '@/lib/sabitler';
-import type { Plant360Veri, TesisOzeti } from './Plant360';
+import type { Tesis360Veri, TesisOzeti } from './Tesis360';
 import type { OtProfili } from './mantik';
 import { KURULU_GUC, sayisalOzellik } from '@/lib/alan/oznitelik';
 import type { Sozluk } from '@/lib/dil/terimler';
@@ -40,7 +40,7 @@ import { sektorSozlugu } from '@/lib/dil/sozlukOku';
    OLDUĞUNU doğrulamak olurdu. */
 
 export type EkranVerisi = {
-  veri: Plant360Veri;
+  veri: Tesis360Veri;
   tesisler: TesisOzeti[];
   /* Terim sözlüğü ekran verisiyle birlikte iner: `t()` saf kalsın ve
      sunucu ile istemci AYNI sözcüğü versin (hidrasyon). `null` = tesisin

@@ -147,9 +147,7 @@
         "plantLink"
       ],
       "bilincli_kor": {
-        "Plant360": "Bitişik yazım bir EKRAN ADI tanımlayıcısıdır (dosya/tip adı). Ekranda görünen ad sözlükten gelir (`tesis360`) ve o yol çevrildi; tanımlayıcıyı yakalamak dosya adlarını da kirli sayardı.",
-        "b-plant360": "Prototip referansı/CSS jetonu, aynı sebep.",
-        "plant360-profil": "Rota jetonu, aynı sebep."
+        "plants": "İngilizce çoğul: sağ sınır harf yasakladığı için eşleşmez. Depoda geçmiyor; kalıbın kapsamını gösteren vaka."
       },
       "not": "\"toplantı\" (top-PLANT-ı) yüzünden ALTI dosya izin listesinde gereksiz duruyordu."
     },

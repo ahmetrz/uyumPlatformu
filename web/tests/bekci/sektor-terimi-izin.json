@@ -146,7 +146,7 @@
     "app/(kabuk)/(flagship)/Genel.tsx",
     "app/(kabuk)/(flagship)/page.tsx",
     "app/(kabuk)/(flagship)/tesisler/[id]/OtProfili.tsx",
-    "app/(kabuk)/(flagship)/tesisler/[id]/Plant360.tsx",
+    "app/(kabuk)/(flagship)/tesisler/[id]/Tesis360.tsx",
     "app/(kabuk)/(flagship)/tesisler/[id]/mantik.ts",
     "app/(kabuk)/(flagship)/tesisler/[id]/page.tsx",
     "app/(kabuk)/(flagship)/tesisler/[id]/veri.ts",

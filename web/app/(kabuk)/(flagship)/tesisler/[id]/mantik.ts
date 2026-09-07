@@ -9,7 +9,7 @@
        (yani "bilinmiyor"a) çevrilir, üç durumlu boolean üç seçenektir.
 
    Veritabanı, React ve `server-only` bağımlılığı YOKTUR; test doğrudan
-   çağırır (tests/plant360-profil.test.ts). */
+   çağırır (tests/tesis360-profil.test.ts). */
 
 /* ═══ Profil kaydı (serileştirilmiş) ═════════════════════════════════ */
 

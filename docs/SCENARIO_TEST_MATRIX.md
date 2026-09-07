@@ -203,7 +203,7 @@
 | `SIS-RSP-001` | Sistem | RESPONSIVE · UI | `senaryo-platform.test.ts` | iki-sözlük kuralının istisnası BELGELİDİR | evet | geçti |
 | `SIS-DIL-001` | Sistem | UI | `senaryo-platform.test.ts` | kullanıcıya dönük hiçbir metinde jargon geçmez | evet | geçti |
 | `PRT-OZT-001` | Portföy | DOMAIN · UI | `senaryo-platform.test.ts` | ölçülmemiş uyum yüzdesi SIFIRA çekilmez | evet | geçti |
-| `PRT-OZT-002` | Portföy | DOMAIN · UI | `plant360-profil.test.ts` | profil kaydı yokken her alan tanımsızdır; gruplar tüm alanları kapsar | evet | geçti |
+| `PRT-OZT-002` | Portföy | DOMAIN · UI | `tesis360-profil.test.ts` | profil kaydı yokken her alan tanımsızdır; gruplar tüm alanları kapsar | evet | geçti |
 | `HRT-KNM-001` | Harita | DOMAIN · UI | `harita-mantik.test.ts` | koordinatı olan yerleşir, ili olan YAKLAŞIK, ikisi de yoksa haritada YOK | evet | geçti |
 | `YRD-SOR-001` | Yardım | DOMAIN · UI | `yardim.test.ts` | listedeki genel kısayolların her biri kaynakta bağlıdır | evet | geçti |
 | `OTR-HSP-001` | Oturum | SERVER · DOMAIN | `hesap.test.ts` | alt sınır 12 karakter; kısa parola kusur cümlesi üretir, boş alan susar | evet | geçti |

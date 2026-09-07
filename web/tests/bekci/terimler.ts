@@ -88,19 +88,32 @@ export const TERIMLER: { ad: string; kaliplar: { re: RegExp; hedef: Hedef }[] }[
     // Şapkasız `rüzgar` da yazımda geçer; ikisi de sektör sözcüğüdür.
     { re: /jeotermal|rüzgâr|rüzgar|hidroelektrik/g, hedef: 'kucuk' },
   ] },
-  /* ── `plant` SÖZCÜK SINIRLI ARANIR ─────────────────────────────────
+  /* ── `plant` SOLDA SÖZCÜK SINIRLI, SAĞDA RAKAMA AÇIK ───────────────
      Sınırsız kalıp Türkçe "toplantı" içinde eşleşiyordu (top-PLANT-ı) ve
      18 yanlış pozitif üretiyordu; `lib/uyum/gozdenGecirme.ts` yalnız bu
      yüzden listede duruyordu — dosyada tek bir sektör sözcüğü yok.
      Bu, `\bRES\b`in "SÜRESİ" içinde eşleşmesiyle aynı sınıf: sınır
      konmadan aranan kısa gövde, uzun sözcüğün içine düşer.
 
-     Sınır Unicode harflerine göre (`sinirKalibi`), ASCII `\b`ye göre
-     değil: "Plant360" ve "plant_kodu" gibi bitişik yazımlar yine
-     yakalanmamalı, ama "toplantı" da yakalanmamalı. Kalıp `i` bayrağı
-     TAŞIMAZ ve `ham` metinde aranır — İngilizce sözcük, Türkçe katlama
-     tuzağına girmez. */
-  { ad: 'plant', kaliplar: [{ re: sinirKalibi('plant|Plant|PLANT'), hedef: 'ham' }] },
+     ── SINIR DÜZELTMESİ FAZLA GENİŞ KAPATMIŞTI (ölçüldü, 7 Eyl 2026) ──
+     `sinirKalibi` sağda da harf/RAKAM/alt çizgi istiyordu ve bu, tam da
+     bekçinin YAKALAMAK İÇİN VAR OLDUĞU yazımı dışarıda bıraktı:
+     `Plant360`. Çelişki iki dosya arasında yazılıydı — bekçinin terim
+     gerekçesi "`plant` … `Plant360` gibi bileşen adları" diyordu,
+     körlük vakası ise `Plant360`ın eşleşmemesini SABİTLİYORDU. Vakanın
+     gerekçesi ("bitişik yazım kod tanımlayıcısıdır, sözcük değil") kendi
+     kendini çürütüyor: bekçinin işi zaten KOD TANIMLAYICILARIDIR —
+     `gucMw` de, `santralMetni` de öyle sayıldı.
+
+     Sınır artık SOLDA sözcük sınırı (toplantı dışarıda), SAĞDA yalnız
+     harf ve alt çizgi yasak (rakam serbest): `Plant360` görünür,
+     "toplantı" görünmez, `plants` görünmez.
+
+     Kalıp `i` bayrağı TAŞIMAZ ve `ham` metinde aranır — İngilizce
+     sözcük, Türkçe katlama tuzağına girmez. */
+  { ad: 'plant', kaliplar: [
+    { re: /(?<![\p{L}\p{N}_])(?:plant|Plant|PLANT)(?![\p{L}_])/gu, hedef: 'ham' },
+  ] },
   /* ── KÜÇÜK HARFLİ KOD BİÇİMİ · CSS JETONU ──────────────────────────
      Kodlar ham metinde BÜYÜK harfle aranır; küçültülmüşte `res` Türkçe
      sözcüklerin içine düşerdi. Bu, küçük harfle yazılmış kod

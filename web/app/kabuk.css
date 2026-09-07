@@ -1156,7 +1156,7 @@
   color: var(--bd); border: 1px solid var(--bd);
 }
 
-/* ═══ B · Santral 360 — b-plant360 grameri ═══════════════════════════
+/* ═══ B · Tesis 360 — hero plakası grameri ═══════════════════════════
    560px hero plakası: solda künye + 92px dar başlık, altta ölçü şeridi,
    sağda 420px veri paneli. */
 /* Yükseklik viewport'a bağlı: 1366×768'de 560 sabit plaka, "Kapsamındaki
@@ -1221,7 +1221,7 @@
    bölge klavye kullanıcısı için ERİŞİLEMEZDİR; sayaçlar ve sonraki
    denetim satırı fareyle görülüp klavyeyle görülemiyordu (axe ·
    serious · scrollable-region-focusable). Bölge `tabindex=0` ile odak
-   alır (Plant360.tsx); halka İÇERİ alınır çünkü plaka `overflow:
+   alır (Tesis360.tsx); halka İÇERİ alınır çünkü plaka `overflow:
    hidden` ve dışarıdaki 2px'lik pay kırpılırdı. */
 .ab-b-panel:focus-visible { outline-offset: -2px; }
 

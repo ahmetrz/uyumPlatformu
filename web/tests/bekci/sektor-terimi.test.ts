@@ -71,7 +71,9 @@ const IZIN_DOSYASI = 'tests/bekci/sektor-terimi-izin.json';
      paketi verir (`SektorOznitelikSemasi.birim`).
    · tip kodları — enerji üretim tipleri; `TesisTipi` verisinden gelmeli.
    · `türbin`, `jeotermal`, `rüzgâr`, `hidroelektrik` — üretim teknolojisi.
-   · `plant` — aynı sözcüğün İngilizcesi; `Plant360` gibi bileşen adları.
+   · `plant` — aynı sözcüğün İngilizcesi; `Plant360` gibi bileşen adları
+     (bir dönem sınır kalıbı yüzünden GÖRÜNMÜYORDU; 7 Eyl 2026'da
+     kapatıldı ve `Plant360` → `Tesis360` yeniden adlandırıldı).
    Kapsam dışı bırakılanlar ve nedenleri izin dosyasının başlığındadır. */
 
 const izin = JSON.parse(readFileSync(IZIN_DOSYASI, 'utf8')) as {

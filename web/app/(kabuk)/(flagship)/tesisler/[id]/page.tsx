@@ -4,7 +4,7 @@ import { girisZorunlu } from '@/lib/erisim';
 import { Yetkisiz } from '@/components/kabuk/temel';
 import { modulOkuyabilir } from '@/app/kapsam';
 import { db } from '@/lib/db';
-import Plant360 from './Plant360';
+import Tesis360 from './Tesis360';
 import { tesis360Verisi } from './veri';
 import { t } from '@/lib/dil/terimler';
 import { tesisSozlugu } from '@/lib/dil/sozlukOku';
@@ -44,5 +44,5 @@ export default async function Sayfa({ params }: { params: Promise<{ id: string }
   const sonuc = await tesis360Verisi(k, id);
   if (!sonuc) notFound();
 
-  return <Plant360 veri={sonuc.veri} tesisler={sonuc.tesisler} sozluk={sonuc.sozluk} />;
+  return <Tesis360 veri={sonuc.veri} tesisler={sonuc.tesisler} sozluk={sonuc.sozluk} />;
 }

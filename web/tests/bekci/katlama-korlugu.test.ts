@@ -285,8 +285,20 @@ describe('Bekçi körlüğü · küçük harfli kod biçimi', () => {
     // Gerçek geçişler yakalanmaya devam eder.
     expect(bugun('plant', 'Plant 360 ekranı')).toBe(1);
     expect(bugun('plant', 'the plant is offline')).toBe(1);
-    // Bitişik yazım kod tanımlayıcısıdır, sözcük değil.
-    expect(bugun('plant', 'Plant360'), 'bitişik yazım sözcük değildir').toBe(0);
+    /* BİTİŞİK YAZIM DA YAKALANIR — eski vaka bunun TERSİNİ sabitliyordu
+       ve bekçinin kendi tüzüğüyle çelişiyordu: "tarama ham metin
+       üstündedir: literal, TANIMLAYICI, yorum, CSS sınıfı ve DOSYA ADI
+       dâhil" (bkz. `sektor-terimi.test.ts` başlığı; orada örnek olarak
+       tam da `Plant360Veri` anılıyor). Muafiyetin gerekçesi ilkesel
+       değil MALİYETTİ ("yakalamak dosya adı değişikliği ister") —
+       değişiklik yapıldı, muafiyet kalktı.
+
+       Sınır SOLDA sözcük sınırı, SAĞDA yalnız harf/alt çizgi yasağı:
+       rakam serbest. "toplantı" hâlâ görünmez. */
+    expect(bugun('plant', 'Plant360'), 'bitişik yazım da tanımlayıcıdır').toBe(1);
+    expect(bugun('plant', 'b-plant360'), 'jeton yazımı da').toBe(1);
+    expect(bugun('plant', 'plants'), 'İngilizce çoğul sağ sınıra takılır').toBe(0);
+    expect(bugun('plant', 'toplantı360'), 'Türkçe sözcük + rakam yine görünmez').toBe(0);
   });
 
   it('CSS jetonu (`--hes`) — öncesi 0, sonrası 1 [URN-ALN-007]', () => {

@@ -15,10 +15,9 @@ import type { OtProfili as OtProfilKaydi } from './mantik';
    sektör sözcükleri de aynı sözlükten çözülür — bileşen tektir, sözcük
    kiracıya göre değişir.
 
-   Görsel source of truth: `b-plant360.html`
-   (ORIGINAL_DESIGN_IMPLEMENTATION_MAP.md §2).
-
-   Prototipin grameri: 560px hero plakası — solda üstte künye ve 92px dar
+   Görsel kaynak bir prototip HTML'iydi; ne o dosya ne de onu anan
+   eşleme belgesi DEPODA VAR (ölü atıf kaldırıldı — CLAUDE.md). Grameri
+   burada yazılı olduğu için atıf zaten gereksizdi: 560px hero plakası — solda üstte künye ve 92px dar
    başlıklı santral adı, solda altta beş sayılık ölçü şeridi, sağda 420px
    veri paneli (uyum endeksi · katmanlı durum · başlıca risk · dört sayaç);
    altında üretim zinciri bandı; en altta 560px üretim üniteleri + açık
@@ -67,7 +66,7 @@ export type AcikBulgu = {
   hedefTarih: string | null; gecikmis: boolean;
 };
 
-export type Plant360Veri = {
+export type Tesis360Veri = {
   id: string; kod: string; ad: string;
   tipKod: string | null; tipAdi: string; tuzelKisi: string | null;
   konum: string | null; gucMw: number | null; gorselAnahtari: string | null;
@@ -117,8 +116,8 @@ const BIRIM_DURUM: Record<string, string> = {
   aktif: 'ok', bakim: 'md', devre_disi: 'unk',
 };
 
-export default function Plant360({ veri, tesisler, sozluk }: {
-  veri: Plant360Veri; tesisler: TesisOzeti[]; sozluk: Sozluk | null;
+export default function Tesis360({ veri, tesisler, sozluk }: {
+  veri: Tesis360Veri; tesisler: TesisOzeti[]; sozluk: Sozluk | null;
 }) {
   const foto = heroGorseli(veri.gorselAnahtari);
   const renk = tipRengi(veri.tipKod);

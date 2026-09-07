@@ -7,9 +7,10 @@ import { Im, DURUM_SOZU, type Durum } from './temel';
    DETAY PANELİ
 
    Orijinal prototiplerde ÇEKMECE YOKTUR. Detay üç yerden birinde durur:
-     A · a-assets   → 400px sağa DOKLU panel, sayfanın parçası;
-     B · b-plant360 → 420px hero paneli, aynı ekranın içinde;
-     C · c-compliance → satırın ALTINDA açılan blok.
+     A · envanter   → 400px sağa DOKLU panel, sayfanın parçası;
+     B · tesis 360  → 420px hero paneli, aynı ekranın içinde;
+     C · uyum       → satırın ALTINDA açılan blok.
+   (Prototip dosya adları depoda yok; yönler işleriyle anılıyor.)
    Ortak nokta: okuyucu kütüğü/tuvali GÖRMEYE DEVAM EDER. 420px'lik
    kayan bir çekmece bunun tam tersini yapıyordu.
 

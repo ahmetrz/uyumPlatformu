@@ -15,7 +15,16 @@
     "",
     "Koşula bağlı dallar (boş durum, yetki kısıtı, modal) varsayılan",
     "render'da görünmez ve sayıya GİRMEZ — bu yüzden sayı ailedeki toplam",
-    "sözlük çağrısından küçüktür ve öyle olmalıdır."
+    "sözlük çağrısından küçüktür ve öyle olmalıdır.",
+    "",
+    "MUAFİYET. Çekirdek sözcük bazen ÜRÜN METNİNDE değil VERİDE geçer:",
+    "denetçi adı \"İç Denetim Birimi\", dosya adı \"…-tesis.csv\" gibi. Bunlar",
+    "sözlükten beslenmez ve BESLENMEMELİ — kayıt neyse odur. Av bunları",
+    "çakılı sanır; muafiyet o dizeyi ölçümden çıkarır.",
+    "",
+    "Muafiyet SATIR değil DİZE eşleşmesidir ve gerekçesi zorunludur. Ürün",
+    "metnini muaf etmek kapıyı kör eder; yalnız veri kaynaklı dizeler girer",
+    "ve her biri kaynağıyla birlikte yazılır."
   ],
   "rotalar": {
     "/envanter": 2,
@@ -31,6 +40,10 @@
     "/kimlik": 8,
     "/yetkiler": 5,
     "/ayarlar": 3,
-    "/varlik-aktarim": 0
+    "/varlik-aktarim": 0,
+    "/denetimler": 7
+  },
+  "muafiyetler": {
+    "İç Denetim Birimi": "Denetçi ADI — tohum verisi (`prisma/seed-denetim-proje.ts`). Buradaki 'Birimi' kurumsal bir departmandır, `birim` sözlük anahtarı (üretim ünitesi / arıtma hattı) DEĞİL."
   }
 }

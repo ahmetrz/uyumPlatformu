@@ -287,7 +287,7 @@ export async function kapsamEkle(girdi: {
   try {
     /* İKİ AŞAMALI KAPI (`KAPSAM_SONRA`, bkz. erisim.ts): ön kapı kapsamsız
        çağrılırsa tesise kısıtlı rol daha ilk adımda reddedilir ve kendi
-       santralini denetim kapsamına ekleyemez. Gerçek denetim aşağıda ve
+       tesisini denetim kapsamına ekleyemez. Gerçek denetim aşağıda ve
        KOŞULSUZ: madde eklemek tesissiz (kurumsal) bir işlemdir, bütün
        denetimi etkiler, tesise kısıtlı rol onu da yapamaz. */
     const k = await yetkiZorunlu('denetim', 'yazma', KAPSAM_SONRA);

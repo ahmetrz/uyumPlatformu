@@ -159,6 +159,8 @@ function cakiliSatirlar(metin) {
   for (const ham of metin.split('\n')) {
     for (const { anahtar, kaliplar, sektor } of AVLANAN) {
       let kalan = kanonik(ham);
+      /* Muaf dizeler önce silinir: veri, sözlük yuvası değildir. */
+      for (const m of MUAFIYETLER) kalan = kalan.split(m).join(' ');
       for (const re of sektor) kalan = kalan.replace(re, ' ');
       const vuran = kaliplar.map((re) => {
         const g = new RegExp(re.source, 'gu');
@@ -219,8 +221,11 @@ function terimFarklari(a, b) {
 const bekleArg = process.argv.find((a) => a.startsWith('--bekle='));
 /* Kayıtlı beklentiler: aile kapanırken ölçülen sayı buraya yazılır ve
    bundan sonra HER koşumda denetlenir. CLI bayrağı üzerine yazar. */
-const KAYITLI = JSON.parse(
-  readFileSync(path.join(WEB, 'arac', 'beklenen-fark.json'), 'utf8')).rotalar;
+const BEKLENTI_DOSYASI = JSON.parse(
+  readFileSync(path.join(WEB, 'arac', 'beklenen-fark.json'), 'utf8'));
+const KAYITLI = BEKLENTI_DOSYASI.rotalar;
+/* Veri kaynaklı dizeler ölçümden ÇIKARILIR — bkz. dosyanın başlığı. */
+const MUAFIYETLER = Object.keys(BEKLENTI_DOSYASI.muafiyetler ?? {}).map(kanonik);
 const BEKLENEN = new Map(Object.entries(KAYITLI));
 for (const [r, n] of (
   (bekleArg ? bekleArg.slice('--bekle='.length).split(',') : [])

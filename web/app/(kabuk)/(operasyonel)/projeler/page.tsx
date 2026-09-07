@@ -2,10 +2,18 @@ import type { Metadata } from 'next';
 import { girisZorunlu, izinVar, izinliTesisIdleri } from '@/lib/erisim';
 import { Yetkisiz } from '@/components/kabuk/temel';
 import { db } from '@/lib/db';
+import { kapsamAnahtari, kapsamSozlugu } from '@/lib/dil/sozlukOku';
+import { t } from '@/lib/dil/terimler';
 import ProjelerIstemci from './ProjelerIstemci';
 import { PROJE_ICERIK, projeyeCevir } from './ortak';
 
-export const metadata: Metadata = { title: 'Dönüşüm portföyü' };
+/* Sekme başlığı SÖZLÜKTEN — `metadata` sabiti kiracı bağlamını
+   bekleyemezdi (R0-8); `generateMetadata` async, o sınır burada yok. */
+export async function generateMetadata(): Promise<Metadata> {
+  const k = await girisZorunlu();
+  const sozluk = await kapsamSozlugu(kapsamAnahtari(izinliTesisIdleri(k, 'uyum')));
+  return { title: `Dönüşüm ${t(sozluk, 'portfoy')}` };
+}
 
 /* O8 · Transformation Portfolio — "hangi proje taahhüdünü tutmuyor?"
    Kabuk (ray + çekmece kolonu) (operasyonel)/layout.tsx tarafından verilir;
@@ -22,7 +30,7 @@ export default async function Sayfa() {
   const simdi = new Date().getTime();
   const izinli = izinliTesisIdleri(kullanici, 'proje');
   /* KAPSAMSIZ sorulur ve bilinçlidir: `Proje` şemada `tesisId` TAŞIMAZ,
-     `projeKaydet` kapısı da kapsamsızdır. Ekranı gevşetmek santral
+     `projeKaydet` kapısı da kapsamsızdır. Ekranı gevşetmek tesis
      yöneticisine kaydedilmeyecek düğme göstermek olurdu. */
   const yazabilir = izinVar(kullanici, 'proje', 'yazma');
 
@@ -44,7 +52,7 @@ export default async function Sayfa() {
   const cevrilmis = projeler.map(projeyeCevir);
 
   /* Kapsam VERİ seviyesinde daraltılır, ekranda değil. Tesise kısıtlı bir
-     rol kendi santralinin projelerini görür; hiçbir santrale bağlanmamış
+     rol kendi tesisinin projelerini görür; hiçbir tesise bağlanmamış
      proje PORTFÖY projesidir ve herkesi ilgilendirir, gizlenmez. */
   const gorunur = izinli === null
     ? cevrilmis

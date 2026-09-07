@@ -1,3 +1,4 @@
+import { t, type Sozluk } from '@/lib/dil/terimler';
 import type { Durum } from '@/components/kabuk/temel';
 
 /* O8/O9 · Dönüşüm portföyü — sunucu ve istemcinin PAYLAŞTIĞI tipler ve saf
@@ -80,7 +81,7 @@ export type P = {
   fazlar: Faz[];
   butceler: ButceSatiri[];
   baglantilar: Baglanti[];
-  /** kapsamdaki santraller — doğrudan tesis bağı + bulguların tesisi */
+  /** kapsamdaki tesisler — doğrudan tesis bağı + bulguların tesisi */
   tesisler: { id: string; kod: string; ad: string }[];
   /** Bu projenin ÖNKOŞULLARI — tamamlanmadan bu proje bitemez. */
   onkosullar: Bagimlilik[];
@@ -202,11 +203,14 @@ export function hedefMetni(p: P, simdi: number): { metin: string; gecikmis: bool
   return { metin: ceyrek(p.hedef) ?? 'tarih yok', gecikmis: false };
 }
 
-/** Satırın santral kapsamı: iki santrale kadar ad, fazlası sayı, hiçbiri portföy. */
-export function santralMetni(p: Pick<P, 'tesisler'>): string {
-  if (p.tesisler.length === 0) return 'portföy';
-  if (p.tesisler.length <= 2) return p.tesisler.map((t) => t.ad).join(' + ');
-  return `${p.tesisler.length} santral`;
+/** Satırın tesis kapsamı: iki tesise kadar ad, fazlası sayı, hiçbiri portföy.
+
+    Sözlük PARAMETRE (modül saf hesap). `portföy` de sözlük anahtarıdır —
+    çekirdek sözcüğü yazmak onu ekrana çakardı. */
+export function tesisMetni(p: Pick<P, 'tesisler'>, sozluk: Sozluk | null = null): string {
+  if (p.tesisler.length === 0) return t(sozluk, 'portfoy');
+  if (p.tesisler.length <= 2) return p.tesisler.map((x) => x.ad).join(' + ');
+  return `${p.tesisler.length} ${t(sozluk, 'tesis')}`;
 }
 
 /** Satır alt satırı: kayıt kimliği + kapsam. Durum tekrar edilmez.
@@ -215,14 +219,19 @@ export function santralMetni(p: Pick<P, 'tesisler'>): string {
     im projenin kendi hâlini söyler, bu sayı ise "kendi hâli ne olursa
     olsun başkası bitmeden bitemez" der. Sıfırsa hiç yazılmaz — her satıra
     "0 önkoşul" koymak listeyi okunmaz yapar. */
-export function altSatir(p: P): string {
+export function altSatir(p: P, sozluk: Sozluk | null = null): string {
   const engel = engelleyenler(p).length;
-  return `${p.kod} · ${santralMetni(p)}${engel > 0 ? ` · ${engel} önkoşul açık` : ''}`;
+  return `${p.kod} · ${tesisMetni(p, sozluk)}${engel > 0 ? ` · ${engel} önkoşul açık` : ''}`;
 }
 
-/* Sayının ardından Türkçe çokluk eki gelmez: "7 kontrol", "7 kontroller" değil. */
+/* Sayının ardından Türkçe çokluk eki gelmez: "7 kontrol", "7 kontroller" değil.
+
+   `tesis` bağı burada ÇEKİRDEK sözcükte ve öyle kalıyor: `bagMetni`
+   yalnız madde/risk/bulgu/varlık türlerini yazar, `tesis` hiç render
+   EDİLMEZ (tesis kapsamdır, kapatılan boşluk değil). Sözlüğe bağlamak
+   ölü kod olurdu — ölçüldü, çağıranı yok. */
 const BAG_ADI: Record<Baglanti['tur'], string> = {
-  madde: 'kontrol', bulgu: 'bulgu', risk: 'risk', varlik: 'varlık', tesis: 'santral',
+  madde: 'kontrol', bulgu: 'bulgu', risk: 'risk', varlik: 'varlık', tesis: 'tesis',
 };
 
 /** `7 kontrol · 3 risk · 4 bulgu` — projenin kapattığı boşluğun tek satırı.
@@ -236,8 +245,8 @@ export function bagMetni(p: Pick<P, 'baglantilar'>): string {
   return parcalar.length ? parcalar.join(' · ') : 'bağ yok';
 }
 
-/** Metrik: portföyün kapattığı toplam kayıt (santral bağı sayılmaz —
-    santral kapsamdır, kapatılan boşluk değil). */
+/** Metrik: portföyün kapattığı toplam kayıt (tesis bağı sayılmaz —
+    tesis kapsamdır, kapatılan boşluk değil). */
 export function kapatilanSayisi(p: Pick<P, 'baglantilar'>): number {
   return p.baglantilar.filter((b) => b.tur !== 'tesis').length;
 }

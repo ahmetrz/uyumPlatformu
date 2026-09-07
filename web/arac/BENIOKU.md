@@ -110,7 +110,7 @@ kabukta). Hepsi tohum geliştirme girişiyle oturum açar
 | `lighthouse.mjs` | `kalite:lighthouse` | 4 kategori puanı, `/giris` + 4 kanonik rota | eşik (90) altı |
 | `gorsel-regresyon.mjs` | `tasarim:gorsel` | 8 rota × 2 bant, altın görüntüyle piksel farkı | fark > %0,5 ya da altın yok |
 | `erisim-axe.mjs` **(CI · bloklayıcı)** | `tasarim:axe` | axe-core WCAG 2 A/AA, rotalar.json'daki tüm rotalar, **üç bant** (1440 · 768 · 375) | izin listesinde olmayan ya da tavanı aşan ciddi/kritik ihlal |
-| `yatay-tasma.mjs` **(CI · bloklayıcı)** | `tasarim:tasma` | 375 + 768'de **iki kusur türü**: sayfa yana kayıyor mu · `overflow: hidden` kabında sessizce kırpılan içerik var mı | izin listesinde olmayan ya da tavanı aşan bulgu |
+| `yatay-tasma.mjs` **(CI · bloklayıcı)** | `tasarim:tasma` | 375 + 768'de **üç kusur türü**: sayfa yana kayıyor mu · `overflow: hidden` kabında sessizce kırpılan içerik var mı · akış içi iki taşıyıcı üst üste biniyor mu | izin listesinde olmayan ya da tavanı aşan bulgu |
 | `dizustu.mjs` | `tasarim:dizustu` | 1366×768'de kaydırılamayan (kırpılan) içerik var mı | kırpılan öğe |
 | `marka-kapisi.mjs` | `marka:kapi` | ürün adı tek kaynaktan mı geliyor: nöbetçi adla statik demo derlemesi koşar, üretilen çıktıya bakar (tarayıcı istemez) | varsayılan ad işlenmiş yüzeyde geçiyor **ya da** nöbetçi görünmesi gereken yüzeyde yok |
 | `turkiye-siniri.mjs` | `harita:sinir` | üretir (kapı değil): Natural Earth'ten Türkiye silüeti | kaynak/öznitelik bulunamadı |
@@ -338,6 +338,25 @@ geri bağlardı — bu turda iki kez düzeltilen hatanın aynısı. Yapısal
 olarak farklı bir kırpma zaten farklı kutu eni verir ve ayrı hedef olur.
 Asimetri kasıtlıdır; "tutarsız" diye tekleştirilmemelidir.
 
+#### YENİ KUSUR TÜRÜ — kapıyı KURMAK borcu büyütmez
+
+Yeni bir ölçü eklendiğinde (üçüncüsü: örtüşme) o türün ilk bulguları
+taban dalda OLAMAZ — tabanın aracı o türü hiç ölçmemiştir. DİŞ 3 bunu
+"eklendi" diye okusaydı yeni bir kapı kurmak imkânsız olurdu; oysa
+kapıyı kurmak borcu büyütmez, GÖRÜNÜR yapar.
+
+Kapı BEYANA bağlıdır (`kalite-borcu.json → _yeni_tur`, `kapi/tur`
+biçiminde) ve kaldıraç değildir, çünkü açılma koşulu yine **TABANIN
+şeklidir**: yalnız taban o türü henüz beyan etmemişken açılır. Beyan
+main'e girdiği an bu yol o tür için kalıcı olarak ölür — anahtar şeması
+geçişiyle aynı sınır.
+
+Var olan bir türe satır eklemenin yolu da değildir: beyan `kapi/tur`
+çiftine bakar, satırın kendisine değil. Uydurma bir tür adı yazmak da
+işe yaramaz — bulgular gerçek `tur` ile üretilir, uydurma türe yazılan
+satır hiçbir bulguyu karşılamaz ve DÜZELMİŞ raporunda ölü satır olarak
+görünür. Altı birim vakası bunların hepsini ayrı ayrı sınar.
+
 #### Anahtar şeması geçişi — kaldıraç değil, kanıt
 
 Anahtara hedef eklemek tabandaki her satırın anahtarını değiştirir ve
@@ -467,7 +486,7 @@ yapılır — aradaki fark ölçüldü:
 Kaçış yolunun kapalı olduğunu söyleyecek iddia, kaçış denendiğinde
 susmamalı.
 
-### `yatay-tasma.mjs` — İKİ kusur türü
+### `yatay-tasma.mjs` — ÜÇ kusur türü
 
 **1 · Sayfa yana kayıyor.** Dar bantta sayfanın yana kaymasını ölçer ve
 **taşmayı üreten öğeyi** adlandırır: taşan ama atası taşmayan, ve yol
@@ -489,6 +508,44 @@ kullanır:
 | --- | --- | --- |
 | `disari` | Öğenin KUTUSU, kırpan atanın görünür kutusunun dışında kalıyor | `/tesisler/[id]` · 375px: 420px veri paneli `left: -45px`'e oturuyor, sol 45px'i plakanın kenarında kesiliyor ("UYUM ENDEKSİ" → "UM ENDEKSİ") |
 | `tasma` | Öğenin AKIŞ İÇİ ve GÖRÜNÜR içeriği kendi kutusuna sığmıyor | aynı rota · 375px: künye ve ölçü şeridi 0px kutuya çöküyor · 768px: beş ölçü 42px sütunlara sıkışıp komşusunun üstüne biniyor |
+
+**3 · Örtüşen içerik.** İlk iki ölçü "içerik KAYIP mı" diye sorar. Üçüncü
+ölçü başka bir şey sorar: **okunuyor mu.** İki metin üst üste binerse
+ikisi de oradadır, ikisi de görünürdür ve ikisi de okunmaz — sayfa
+kaymaz, kırpan ata yoktur, axe örtüşme ölçmez. Kusur bu depoda gözle
+bulundu (`/riskler/[id]` · 375px, bağlam çubuğu) ve göz 69 rota × 2
+bantta ölçeklenmez.
+
+Muafiyet **kasıtlı KATMANLARDIR**: ipucu balonu, açılır menü, yapışkan
+başlık, kip penceresi — hepsi bir şeyin üstüne binmek için vardır.
+Ayrım "üst üste mi" değil, **"aynı AKIŞ mı yerleştirdi"**: her adaya en
+yakın akış-dışı atasının kimliği yazılır (`absolute` · `fixed` ·
+`sticky` · `float` · `transform` · offsetli `relative`) ve yalnız AYNI
+bağlamdaki çiftler karşılaştırılır. Ataları farklıysa biri bilerek
+katmanlanmıştır.
+
+> **İlk koşuda iki yanlış alarm ailesi çıktı; ikisi de ölçülüp elendi.**
+>
+> **(a) Ata-torun · 69 rotanın 69'u.** Doğrudan metni VE eleman çocuğu
+> olan öğeler (`<a>DEMO<span>alt</span></a>`) ikisi de aday olur ve
+> atanın kutusu çocuğunu ZATEN kapsar. `contains` elemesiyle 138 → 5.
+>
+> **(b) Satır içi birleşim kutusu · kalan 5'in 4'ü.** Satır içi bir
+> öğenin `getBoundingClientRect`i bütün satır kutularının BİRLEŞİMİDİR:
+> iki satıra sarılan bir `<span>`in kutusu ilk satırın sağındaki boşluğu
+> da kapsar ve oraya düşen komşusuyla "kesişiyor" görünür. Karşılaştırma
+> `getClientRects()` ile satır PARÇALARINA indirildi; 5 → 3.
+>
+> Kalan 3 bulgu tek gerçek kusurdur (`/denetimler/[id]`'nin üç kayıt
+> varyantı): `.ab-ikili` bölmeli denetim kendi kutusunu 59px aşıyor ve
+> "Bulgu 0/0" komşu düğmenin altına 43×26px giriyor.
+
+**Örtüşme hedefi YAPISAL yoldur, `etiket@kutuEni` DEĞİL.** Öteki iki
+ölçüde en yerleşimden gelir (sabit sütun, sabit panel); örtüşmede iki
+tarafın da eni METİNDEN gelebilir ve ölçüldü: aynı kalıbın üç kaydında
+ikinci düğme `102px` ve `101px` çıkıyor, çünkü etiket kayıt sayacı
+taşıyor. Kimlik `erisim-axe.mjs`'teki kuralın aynısıdır (en fazla dört
+kademe, `etiket` + sıralı sınıflar) ve üç kaydın üçünde de AYNI çıktı.
 
 Ayrım "kaydırılabiliyor mu" DEĞİL, **"erişilebiliyor mu"**: yol üstünde
 `auto`/`scroll` bir kap varsa içerik kaydırılarak görülür, kusur değildir;
@@ -606,6 +663,32 @@ Ders kapıya değil YORDAMA yazılır: kapı yeşil olduğu için ekran doğru
 değildir. `enterprise-interaction-simplification-auditor` bunu kural
 olarak söylüyor — "axe geçti, taşma yok" bir kullanılabilirlik kanıtı
 değildir. ÖRTÜŞME ölçen bir kapı bugün yoktur; yazılırsa yeri budur.
+
+#### OTURUMSUZ yüzeyler — ürünün ilk gördüğü ekran kapının dışındaydı
+
+İki tarayıcılı kapı da ölçmeden ÖNCE oturum açar. axe kapısı `/giris`i
+bu yüzden ayrıca, girişten önce tarıyordu; taşma kapısı ise listeyi hiç
+bilmiyordu ve `rotalar.json` da `/giris`i taşımaz — yani ürünün İLK
+gördüğü yüzey taşma kapısının dışındaydı.
+
+Liste artık tek kaynaktadır (`kosu-ortak.mjs → OTURUMSUZ_ROTALAR`) ve
+iki kapı da onu okur; bir sonraki oturumsuz yüzeyin birinde ölçülüp
+ötekinde atlanması yapısal olarak imkânsızdır. Her satır bir NÖBETÇİ
+seçici taşır: oturum çerezi sızarsa `/giris` panoya yönlenir ve kapı
+sessizce PANOYU ölçmeye başlardı. Yönlendirme denetimi "başka yere gitti
+mi" der, nöbetçi "doğru yere geldi mi" der; ikisi ayrı kilittir.
+
+> **İlk oturumsuz ölçüm ne buldu:** `/giris` 375px'te sayfayı 25px
+> kaydırıyor, kendi `<h1>`ini %100 kırpıyordu. Kök sebep daha ağırdı:
+> ekran `className="ab"`ı belirteç ve tipografi için kullanıyor ama
+> uygulama KABUĞU değil — `.ab`'nin altı satırlık şablonu
+> (`56px auto auto minmax(0, 1fr) auto auto`) ona da uygulanıyor ve iki
+> paneli de kabuğun 56 piksellik BAŞLIK satırına çakıyordu. Ölçüldü,
+> üç bantta da: görsel alanı 1040×56 · 368×56 · 0×56 ve e-posta alanının
+> üst kenarı **−15px**, yani form GÖRÜNTÜ ALANININ ÜSTÜNDE. Kusur her
+> ende vardı ve satır içi `style` ile düzelemezdi: orada yalnız
+> `grid-template-columns` yazılıydı.
+
 
 #### Detektörün kendi kör noktaları — üçü inceleme ile bulundu
 

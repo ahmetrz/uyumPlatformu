@@ -176,6 +176,36 @@ export function bayrakDegeri(ad) {
   return i >= 0 && process.argv[i + 1] ? process.argv[i + 1] : null;
 }
 
+/* ── OTURUMSUZ YÜZEYLER ─────────────────────────────────────────────────
+   İki tarayıcılı kapı da ölçmeden ÖNCE oturum açar. Bunun sessiz bedeli
+   şudur: oturum İSTEMEYEN yüzeyler hiç ölçülmez, çünkü giriş yapmış bir
+   tarayıcı onları hiç görmez — sunucu `/giris`'i doğrudan panoya
+   yönlendirir. `rotalar.json` da `/giris`i taşımaz. Yani ürünün İLK
+   gördüğü yüzey iki kapının da dışındaydı.
+
+   ÖLÇÜLDÜ (oturumsuz · 7 Eylül 2026): `/giris` 375px'te sayfayı 25px
+   kaydırıyordu — `minmax(0, 1fr) 400px` ızgarasında görsel sütunu 0px'e
+   çöküyor ve 400px form şeridi taşırıyor. `/riskler/[id]`'de kapıların
+   YAKALADIĞI kusurun aynısı; burada yalnız kimse bakmıyordu.
+
+   Liste UYDURULMAZ ve kendiliğinden büyümez: yalnız oturum
+   GEREKTİRMEYEN gerçek yüzeyler girer. Her satır bir NÖBETÇİ seçici
+   taşır — sayfanın gerçekten o yüzey olduğunun kanıtı. Nöbetçi
+   bulunamazsa tarama KIRIKTIR ve kapı kırmızıdır; bu, "yanlış yüzeyi
+   ölçmek ölçmemekten beterdir" kuralının oturumsuz karşılığıdır
+   (oturum çerezi sızarsa `/giris` panoya yönlenir ve kapı sessizce
+   PANOYU ölçmeye başlardı). */
+export const OTURUMSUZ_ROTALAR = [
+  { yol: '/giris', nobetci: 'input[type=email]' },
+];
+
+/** `--rota=` verilmişse oturumsuz listeyi ONA göre daraltır. */
+export function oturumsuzRotalar() {
+  if (!rotaBayragiVar()) return OTURUMSUZ_ROTALAR;
+  const istenen = new Set(rotaBayragi([]));
+  return OTURUMSUZ_ROTALAR.filter((r) => istenen.has(r.yol));
+}
+
 /* Giriş: form React ile KONTROLLÜ bir bileşendir. `domcontentloaded`
    sonrası doldurmak yeterli değil — hidrasyon henüz olmamışsa React
    alanı kendi (boş) durumuyla geri yazar ve sunucuya BOŞ e-posta gider.

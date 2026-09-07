@@ -37,7 +37,8 @@ import { chromium } from 'playwright-core';
 import { writeFileSync } from 'node:fs';
 import path from 'node:path';
 import {
-  KOK, WEB, bayrakDegeri, dinamikRotalar, girisYap, kalipCozucu, rotaBayragi, rotaBayragiVar,
+  KOK, WEB, bayrakDegeri, dinamikRotalar, girisYap, kalipCozucu, oturumsuzRotalar,
+  rotaBayragi, rotaBayragiVar,
   rotalarOku, tarayiciYolu,
 } from './kosu-ortak.mjs';
 import {
@@ -46,14 +47,21 @@ import {
 import { yonlendirmeKarari } from './rota-kurallari.mjs';
 import { borcuUygula } from './kalite-borcu.mjs';
 
-const GIRIS_ROTASI = '/giris';
-/* rotalar.json'daki '' ana ekrandır; giriş listede yoktur, ayrıca eklenir. */
+/* OTURUMSUZ yüzeyler (bugün yalnız `/giris`) tek kaynaktan gelir:
+   `kosu-ortak.mjs → OTURUMSUZ_ROTALAR`. Bu kapı onları uzun süre kendi
+   sabitinden okuyordu ve doğru ölçüyordu; taşma kapısı ise listeyi hiç
+   bilmiyordu, yani `/giris` orada HİÇ ölçülmedi. İki kapının aynı listeyi
+   okuması, bir sonraki oturumsuz yüzeyin birinde ölçülüp ötekinde
+   atlanmasını yapısal olarak imkânsız kılar. */
+const OTURUMSUZ = oturumsuzRotalar();
+const OTURUMSUZ_YOLLAR = OTURUMSUZ.map((r) => r.yol);
+/* rotalar.json'daki '' ana ekrandır; oturumsuz yüzeyler listede yoktur, ayrıca eklenir. */
 /* Statik liste + tohumdan somutlaşan dinamik rotalar. Dinamikler uzun
    süre dışarıdaydı ve bu, kapıyı KÖR bırakıyordu: altı kayıt detayı
    ekranının hiçbiri taranmıyordu (Tesis 360 dahil). */
 const DINAMIK = dinamikRotalar();
 const ROTALAR = rotaBayragi([
-  GIRIS_ROTASI,
+  ...OTURUMSUZ_YOLLAR,
   ...rotalarOku().map((r) => (r === '' ? '/' : r)),
   ...DINAMIK.url,
 ]);
@@ -78,7 +86,7 @@ const ETIKETLER = ['wcag2a', 'wcag2aa'];
 
 const b = await chromium.launch({ executablePath: tarayiciYolu() });
 
-async function tara(s, rota) {
+async function tara(s, rota, nobetci = null) {
   const y = await s.goto(KOK + rota, { waitUntil: 'load' });
   await s.waitForTimeout(450);
   const varilan = new URL(s.url()).pathname;
@@ -150,9 +158,16 @@ async function tara(s, rota) {
      yönlendirme kabul edilir. */
   const kod = y?.status() ?? 0;
   const karar = yonlendirmeKarari(rota, varilan);
-  const yuzeyHatasi = kod !== 200
+  let yuzeyHatasi = kod !== 200
     ? `HTTP ${kod} — yanlış yüzey tarandı`
     : (karar.kusur ?? null);
+  /* Oturumsuz yüzeyde NÖBETÇİ aranır: yönlendirme denetimi "başka yere
+     gitti mi" der, nöbetçi "doğru yere geldi mi" der. Oturum çerezi
+     sızarsa `/giris` panoya yönlenir ve o yönlendirme zaten yakalanır;
+     nöbetçi ikinci kilittir ve yüzeyin İÇERİĞİNE bakar. */
+  if (!yuzeyHatasi && nobetci && (await s.locator(nobetci).count()) === 0) {
+    yuzeyHatasi = `nöbetçi yok (${nobetci}) — yanlış yüzey tarandı`;
+  }
   return {
     rota,
     kod,
@@ -172,9 +187,13 @@ try {
     const ctx = await b.newContext({ viewport: { width: bant.en, height: bant.boy }, locale: 'tr-TR' });
     const s = await ctx.newPage();
     try {
-      if (ROTALAR.includes(GIRIS_ROTASI)) rapor.push({ bant: bant.ad, bantEn: bant.en, ...await tara(s, GIRIS_ROTASI) });
+      /* Oturumsuz yüzeyler ÖNCE taranır: bir kez giriş yapıldıktan sonra
+         bu bağlam `/giris`i hiç göremez, sunucu panoya yönlendirir. */
+      for (const r of OTURUMSUZ.filter((x) => ROTALAR.includes(x.yol))) {
+        rapor.push({ bant: bant.ad, bantEn: bant.en, ...await tara(s, r.yol, r.nobetci) });
+      }
       await girisYap(s, KOK);
-      for (const rota of ROTALAR.filter((r) => r !== GIRIS_ROTASI)) {
+      for (const rota of ROTALAR.filter((r) => !OTURUMSUZ_YOLLAR.includes(r))) {
         try {
           rapor.push({ bant: bant.ad, bantEn: bant.en, ...await tara(s, rota) });
         } catch (e) {

@@ -273,6 +273,68 @@ export function tasmaHedefi(oge) {
    değişirdi; kaçınılmak istenen kilidin ta kendisi. */
 
 /** Yapısal kimliğin metin biçimi. Sıra HER ZAMAN yazılır. */
+/** Örtüşme toleransı: alt piksel ve kenar teması gürültü üretmesin. */
+export const ORTUSME_TOLERANSI = 2;
+
+/**
+ * ÜÇÜNCÜ KUSUR TÜRÜ — AKIŞ İÇİ ÖRTÜŞME.
+ *
+ * İlk iki ölçü "içerik kayıp mı" diye sorar: sayfa kayıyor mu, kırpılıyor
+ * mu. İkisi de SESSİZ kalırken içerik yine okunamaz olabilir — iki metin
+ * üst üste binerse ikisi de oradadır, ikisi de görünürdür ve ikisi de
+ * okunmaz. Ölçüldü (/riskler/[id] · 375px): son kırıntı eylem düğmesinin
+ * üstüne biniyordu; sayfa kaymıyordu, kırpan ata yoktu, axe örtüşme
+ * ölçmez. Kusur gözle bulundu — ve göz 69 rota × 2 bantta ölçeklenmez.
+ *
+ * MUAFİYET: kasıtlı KATMANLAR. İpucu balonu, açılır menü, yapışkan
+ * başlık, kip penceresi — hepsi bir şeyin üstüne binmek için vardır.
+ * Ayrım "üst üste mi" değil, "AYNI AKIŞ tarafından mı yerleştirildi":
+ * iki taşıyıcının en yakın akış-dışı atası AYNIYSA ikisini de aynı
+ * yerleşim algoritması koymuştur ve kesişme o algoritmanın kusurudur.
+ * Ataları farklıysa biri bilerek katmanlanmıştır.
+ *
+ * @param {{akisDisi?:boolean, en?:number, boy?:number}|null|undefined} olcum
+ * @param {number} [tolerans]
+ */
+export function ortusmeKarari(olcum, tolerans = ORTUSME_TOLERANSI) {
+  if (!olcum) return { kusur: false, sebep: 'ölçüm yok' };
+  if (olcum.akisDisi) {
+    return { kusur: false, sebep: 'kasıtlı katman — taşıyıcılar ayrı akış bağlamında' };
+  }
+  const en = Number(olcum.en);
+  const boy = Number(olcum.boy);
+  /* Ölçülemeyen örtüşme kusur DEĞİLDİR (bilinmeyen ≠ sıfır'ın kapı
+     karşılığı: ölçülemeyen bir şey "kusurlu" da olamaz). */
+  if (!Number.isFinite(en) || !Number.isFinite(boy)) return { kusur: false, sebep: 'ölçülemedi' };
+  /* Kesişme İKİ eksende birden anlamlı olmalı: bitişik iki kutunun
+     paylaştığı kenar (1px) ya da alt piksel yuvarlaması örtüşme değildir. */
+  if (en <= tolerans || boy <= tolerans) {
+    return { kusur: false, sebep: `kesişme ${Math.round(en)}×${Math.round(boy)}px — tolerans içinde` };
+  }
+  return {
+    kusur: true,
+    tur: 'akış içi örtüşme',
+    sebep: `${Math.round(en)}×${Math.round(boy)}px kesişiyor — ikisi de okunmuyor`,
+  };
+}
+
+/**
+ * Örtüşme hedefi: İKİ taşıyıcının YAPISAL kimliği, sırası sabit
+ * (çift = tek kusur, hangi taraf önce ölçülürse ölçülsün aynı anahtar).
+ *
+ * Kutu ENİ bilerek KULLANILMAZ. Öteki iki ölçüde `etiket@kutuEni`
+ * yeterlidir çünkü orada en yerleşimden gelir; örtüşmede iki tarafın da
+ * eni METİNDEN gelebilir ve ölçüldü: aynı kalıbın üç kaydında ikinci
+ * düğme `button@102px` ve `button@101px` çıkıyor (etiket kayıt sayacı
+ * taşıyor). Kimliği ene bağlamak satırı her tohumda "yeni" gösterir ve
+ * DİŞ 3 onu yeniden yazmayı yasaklardı — axe kimliğinde ölçülüp
+ * kapatılan boşluğun aynısı.
+ */
+export function ortusmeHedefi(a, b) {
+  const kimlik = (o) => o?.yapisal || o?.etiket || '';
+  return [kimlik(a), kimlik(b)].sort().join(' ↔ ');
+}
+
 export function axeKimlikBicimi(kimlik) {
   const yol = String(kimlik?.yol ?? '').trim() || '‹yolsuz›';
   const sira = Number(kimlik?.sira);
@@ -341,7 +403,31 @@ export function borcSuzgeci(bulgular, borc) {
  * Satır eklemek ya da tavan yükseltmek kırmızıdır; satır silmek ve
  * tavan düşürmek serbesttir (cırcır bu yöne döner).
  */
-export function circirKarari(dalBorcu, tabanBorcu) {
+export function circirKarari(dalBorcu, tabanBorcu, turBeyani = {}) {
+  /* ── YENİ KUSUR TÜRÜ ────────────────────────────────────────────────
+     Yeni bir kusur TÜRÜ ölçülmeye başlandığında (üçüncü ölçü olarak
+     örtüşme gibi) o türün ilk bulguları tabanda OLAMAZ: taban dalın
+     aracı o türü hiç ölçmemiştir. Cırcır bunu "eklendi" diye okur ve
+     yeni bir kapının kurulmasını imkânsız kılardı — oysa kapıyı kurmak
+     borcu BÜYÜTMEZ, GÖRÜNÜR yapar.
+
+     Kapı BEYANA bağlıdır (`kalite-borcu.json → _yeni_tur`) ve bir
+     kaldıraç değildir, çünkü açılma koşulu yine TABANIN şeklidir: yalnız
+     taban o türü henüz beyan etmemişken açılır. Beyan main'e girdiği an
+     bu yol o tür için kalıcı olarak ölür.
+
+     Var olan bir türe satır eklemenin yolu DEĞİLDİR: beyan `kapi/tur`
+     çiftine bakar, satırın kendisine değil. Yeni bir tür adı uydurup
+     satır yazmak da işe yaramaz — bulgular gerçek `tur` ile üretilir,
+     uydurma türe yazılan satır hiçbir bulguyu karşılamaz ve ölü satır
+     olarak DÜZELMİŞ raporunda görünür. */
+  const beyan = (l) => new Set((l ?? []).map(String));
+  const dalTurler = beyan(turBeyani.dal);
+  const tabanTurler = beyan(turBeyani.taban);
+  const yeniTurMu = (b) => {
+    const ad = `${b?.kapi}/${b?.tur}`;
+    return dalTurler.has(ad) && !tabanTurler.has(ad);
+  };
   const taban = new Map((tabanBorcu ?? []).map((b) => [borcAnahtari(b), b]));
   /* ── ANAHTAR ŞEMASI GEÇİŞİ ──────────────────────────────────────────
      Anahtara HEDEF eklendiğinde her satırın anahtarı değişir ve cırcır
@@ -388,11 +474,17 @@ export function circirKarari(dalBorcu, tabanBorcu) {
     }
   }
 
+  /* Beyan edilmiş yeni türün satırları "eklendi" saymaz ama GİZLENMEZ:
+     ayrı başlıkta raporlanır. */
+  const yeniTur = eklenen.filter(yeniTurMu);
+  const gercekEklenen = eklenen.filter((b) => !yeniTurMu(b));
+
   return {
-    eklenen,
+    eklenen: gercekEklenen,
     yukseltilen,
+    yeniTur,
     gecis: [...gecis.values()].flat().length,
-    kapiKapali: eklenen.length > 0 || yukseltilen.length > 0,
+    kapiKapali: gercekEklenen.length > 0 || yukseltilen.length > 0,
   };
 }
 

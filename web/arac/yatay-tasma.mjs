@@ -47,11 +47,12 @@
 
 import { chromium } from 'playwright-core';
 import {
-  KOK, dinamikRotalar, girisYap, kalipCozucu, rotaBayragi, rotaBayragiVar, rotalarOku,
-  tarayiciYolu,
+  KOK, dinamikRotalar, girisYap, kalipCozucu, oturumsuzRotalar, rotaBayragi, rotaBayragiVar,
+  rotalarOku, tarayiciYolu,
 } from './kosu-ortak.mjs';
 import {
-  KAYDIRAN_KAPLAR, borcAnahtari, enDistakiKirpilmalar, kirpilmaKarari, tasmaHedefi,
+  KAYDIRAN_KAPLAR, borcAnahtari, enDistakiKirpilmalar, kirpilmaKarari, ortusmeHedefi,
+  ortusmeKarari, tasmaHedefi,
 } from './kalite-kurallari.mjs';
 import { borcuUygula } from './kalite-borcu.mjs';
 import { yonlendirmeKarari } from './rota-kurallari.mjs';
@@ -67,6 +68,9 @@ const BANTLAR = [
 /** Taşma toleransı: alt piksel yuvarlaması gürültü üretmesin. */
 const TOLERANS = 1;
 
+/** Kırpılma ölçüsüyle AYNI taşıyıcı tanımı: metin şart değildir. */
+const TASIYICI_ETIKETLER = ['img', 'svg', 'canvas', 'video', 'iframe', 'object'];
+
 /* Statik liste + tohumdan somutlaşan dinamik rotalar. Dinamikler uzun
    süre dışarıdaydı ve bu, kapıyı KÖR bırakıyordu: altı kayıt detayı
    ekranının hiçbiri taranmıyordu (Tesis 360 dahil). */
@@ -75,6 +79,13 @@ const ROTALAR = rotaBayragi([
   ...rotalarOku().map((r) => (typeof r === 'string' ? r : r.yol)).map((r) => r || '/'),
   ...DINAMIK.url,
 ]);
+
+/* Oturum İSTEMEYEN yüzeyler ayrı bir bağlamda ölçülür: oturum açmış bir
+   tarayıcı `/giris`'i hiç görmez (sunucu panoya yönlendirir), o yüzden
+   bu yüzey iki kapının da dışında kalmıştı. Gerekçe ve nöbetçi kuralı
+   `kosu-ortak.mjs → OTURUMSUZ_ROTALAR` içinde. */
+const OTURUMSUZ = oturumsuzRotalar();
+const OTURUMSUZ_YOLLAR = new Set(OTURUMSUZ.map((r) => r.yol));
 
 /* Sayfa bağlamında koşar: taşmayı ÜRETEN öğeleri döner. */
 function suclulariBul() {
@@ -228,71 +239,245 @@ function kirpilmaOlcumleri(kaydiranKaplar) {
   return adaylar;
 }
 
+/* Sayfa bağlamında koşar: KARAR VERMEZ, akış içi taşıyıcı ÇİFTLERİNİN
+   ham kesişme geometrisini döner. Karar `ortusmeKarari` içindedir.
+
+   Aday TANIMI bilerek dardır: doğrudan metin düğümü taşıyan öğeler ve
+   görsel taşıyıcılar. `textContent` kullanılsaydı her sarmalayıcı da
+   aday olur ve her ata-torun çifti "örtüşüyor" görünürdü.
+
+   AKIŞ BAĞLAMI: her adaya en yakın akış-dışı atasının kimliği yazılır.
+   İki aday aynı bağlamdaysa ikisini de AYNI yerleşim koymuştur; kesişme
+   o yerleşimin kusurudur. Farklıysa biri kasıtlı bir katmandır. */
+function ortusmeOlcumleri(tasiyiciEtiket) {
+  /* Kimlik SAYFANIN YAPISINDAN üretilir, kutu ENİNDEN değil. Öteki iki
+     ölçüde hedef `etiket@kutuEni`dir ve orada en yerleşimden gelir
+     (sabit sütun, sabit panel). Örtüşmede İKİ tarafın da eni METİNDEN
+     gelebilir ve ölçüldü: aynı kalıbın üç kaydında ikinci düğme
+     `button@102px` ve `button@101px` çıkıyor — kayıt sayacı etikete
+     yazıldığı için. Kimliği ene bağlamak satırı her tohumda "yeni"
+     gösterirdi. Kural `erisim-axe.mjs`'teki ile AYNIDIR ve aynı
+     sebepten: en fazla dört kademe, `etiket` + sıralı sınıflar. */
+  const parca = (e) => e.tagName.toLowerCase()
+    + [...e.classList].sort().map((c) => `.${c}`).join('');
+  const yapisalYol = (e) => {
+    const p = [];
+    for (let n = e, i = 0; n && n !== document.body && i < 4; n = n.parentElement, i += 1) {
+      p.unshift(parca(n));
+    }
+    return p.join(' > ');
+  };
+  const AKIS_DISI = ['absolute', 'fixed', 'sticky'];
+  const kaydirildi = (st) => [st.top, st.left, st.right, st.bottom]
+    .some((v) => v !== 'auto' && Math.abs(parseFloat(v) || 0) > 0.5);
+  const akistanCikar = (st) => AKIS_DISI.includes(st.position)
+    || st.float !== 'none'
+    || st.transform !== 'none'
+    || (st.position === 'relative' && kaydirildi(st));
+
+  const adaylar = [];
+  let baglamSayaci = 0;
+  const gez = (e, baglam) => {
+    const st = getComputedStyle(e);
+    if (st.display === 'none' || st.visibility !== 'visible' || Number(st.opacity) === 0) return;
+    if (e.getAttribute('aria-hidden') === 'true') return;
+    if (st.clipPath !== 'none') return;
+    const kendiBaglam = akistanCikar(st) ? (baglamSayaci += 1) : baglam;
+
+    const r = e.getBoundingClientRect();
+    const etiketAdi = e.tagName.toLowerCase();
+    /* DOĞRUDAN metin düğümü: sarmalayıcılar aday olmaz. */
+    let dogrudanMetin = '';
+    for (const d of e.childNodes) {
+      if (d.nodeType === 3) dogrudanMetin += d.nodeValue;
+    }
+    dogrudanMetin = dogrudanMetin.trim();
+    const tasiyici = dogrudanMetin !== '' || tasiyiciEtiket.includes(etiketAdi);
+    if (tasiyici && r.width > 0 && r.height > 0) {
+      adaylar.push({
+        el: e,
+        baglam: kendiBaglam,
+        etiket: `${etiketAdi}${e.className ? `.${String(e.className).trim().split(/\s+/).join('.')}` : ''}`,
+        genislik: Math.round(r.width),
+        kutu: { s: r.left, sg: r.right, u: r.top, a: r.bottom },
+        /* SATIR PARÇALARI. Satır içi bir öğenin `getBoundingClientRect`i
+           bütün satır kutularının BİRLEŞİMİDİR: iki satıra sarılan bir
+           `<span>`in kutusu, ilk satırın sağındaki boşluğu da kapsar ve
+           oraya düşen komşusuyla "kesişiyor" görünür. Ölçüldü: /aktivite
+           ve /sistem/bilesenler'deki bütün bulgular bu yanlış alarmdı.
+           Öğe gerçekte satır kutularını kaplar; karşılaştırma da onlar
+           üzerinden yapılır. */
+        parcalar: [...e.getClientRects()].map((p) => ({
+          s: p.left, sg: p.right, u: p.top, a: p.bottom,
+        })),
+        yapisal: yapisalYol(e),
+        metin: dogrudanMetin === ''
+          ? `‹metinsiz ${etiketAdi}›`
+          : dogrudanMetin.slice(0, 32).replace(/\s+/g, ' '),
+      });
+    }
+    for (let i = 0; i < e.children.length; i += 1) gez(e.children[i], kendiBaglam);
+  };
+  for (let i = 0; i < document.body.children.length; i += 1) gez(document.body.children[i], 0);
+
+  /* Çiftler yalnız AYNI akış bağlamı içinde aranır; her bağlam üst
+     kenara göre sıralanır ve süpürme ile karşılaştırma sayısı düşer. */
+  const gruplar = new Map();
+  for (const a of adaylar) {
+    if (!gruplar.has(a.baglam)) gruplar.set(a.baglam, []);
+    gruplar.get(a.baglam).push(a);
+  }
+  const ciftler = [];
+  for (const grup of gruplar.values()) {
+    grup.sort((x, y) => x.kutu.u - y.kutu.u);
+    for (let i = 0; i < grup.length; i += 1) {
+      for (let j = i + 1; j < grup.length; j += 1) {
+        const a = grup[i];
+        const b = grup[j];
+        if (b.kutu.u >= a.kutu.a) break;
+        /* ATA-TORUN çifti örtüşme değildir: atanın kutusu akış içi
+           çocuğunu ZATEN kapsar. Doğrudan metni VE eleman çocuğu olan
+           öğeler (`<a>DEMO<span>alt</span></a>`) ikisi de aday olur ve
+           bu eleme olmadan her biri kendi çocuğuyla "örtüşür" — ilk
+           koşuda 69 rotanın 69'unda çıkan yanlış alarm buydu. */
+        if (a.el.contains(b.el) || b.el.contains(a.el)) continue;
+        /* Kesişme SATIR PARÇALARI arasında aranır, birleşim kutularında
+           değil; en kötü parça çifti raporlanır. */
+        let en = 0;
+        let boy = 0;
+        for (const pa of a.parcalar) {
+          for (const pb of b.parcalar) {
+            const e2 = Math.min(pa.sg, pb.sg) - Math.max(pa.s, pb.s);
+            const b2 = Math.min(pa.a, pb.a) - Math.max(pa.u, pb.u);
+            if (e2 > 0 && b2 > 0 && e2 * b2 > en * boy) { en = e2; boy = b2; }
+          }
+        }
+        if (en <= 0 || boy <= 0) continue;
+        ciftler.push({
+          akisDisi: false,
+          en: Math.round(en),
+          boy: Math.round(boy),
+          a: { etiket: a.etiket, genislik: a.genislik, yapisal: a.yapisal, metin: a.metin },
+          b: { etiket: b.etiket, genislik: b.genislik, yapisal: b.yapisal, metin: b.metin },
+        });
+        if (ciftler.length >= 400) return ciftler;
+      }
+    }
+  }
+  return ciftler;
+}
+
 const tarayici = await chromium.launch({ executablePath: tarayiciYolu() });
 const kusurlar = [];
 const kirpilmalar = [];
+const ortusmeler = [];
 const yuzeyKirigi = [];
 let olculen = 0;
 
+/** Tek rotayı tek bantta ölçer. `nobetci` verilirse yüzeyin GERÇEKTEN o
+    yüzey olduğu ayrıca kanıtlanır (oturumsuz taramada oturum çerezi
+    sızarsa `/giris` panoya yönlenir ve kapı sessizce panoyu ölçerdi). */
+async function rotayiOlc(sayfa, bant, yol, nobetci = null) {
+  const yanit = await sayfa.goto(`${KOK}${yol}`, { waitUntil: 'networkidle' });
+  /* Yanlış yüzeyi ölçmek, ölçmemekten beterdir: 404/500 gövdesi ya da
+     giriş ekranı taşmaz ve kapı yeşil kalır (axe kapısıyla aynı kural). */
+  const kod = yanit?.status() ?? 0;
+  const karar = yonlendirmeKarari(yol, new URL(sayfa.url()).pathname);
+  let yuzeyHatasi = kod !== 200 ? `HTTP ${kod}` : (karar.kusur ?? null);
+  if (!yuzeyHatasi && nobetci && (await sayfa.locator(nobetci).count()) === 0) {
+    yuzeyHatasi = `nöbetçi yok (${nobetci}) — yanlış yüzey`;
+  }
+  if (yuzeyHatasi) { yuzeyKirigi.push({ bant: bant.ad, yol, sebep: yuzeyHatasi }); return; }
+  /* Yerleşim istemcide oturuyor; ölçmeden önce bir kare beklenir. */
+  await sayfa.waitForTimeout(150);
+  olculen += 1;
+  /* `suclulariBul` metni sayfaya kaynak olarak enjekte edilir; iki
+     bağlam arasında paylaşılan tek yol budur. */
+  await sayfa.addScriptTag({ content: `window.__suclulariBul = ${suclulariBul.toString()};` });
+  const olcum = await sayfa.evaluate((tolerans) => {
+    const tasma = document.documentElement.scrollWidth - window.innerWidth;
+    if (tasma <= tolerans) return null;
+    return { tasma, suclular: window.__suclulariBul() };
+  }, TOLERANS);
+  if (olcum) kusurlar.push({ bant: bant.ad, bantEn: bant.en, yol, ...olcum });
+
+  /* İkinci kusur türü: taşma sayfayı kaydırmasa da içerik kayıp mı. */
+  await sayfa.addScriptTag({ content: `window.__kirpilmaOlcumleri = ${kirpilmaOlcumleri.toString()};` });
+  const adaylar = await sayfa.evaluate((k) => window.__kirpilmaOlcumleri(k), [...KAYDIRAN_KAPLAR]);
+  const kirpilan = enDistakiKirpilmalar(
+    adaylar.map((a) => ({ ...a, karar: kirpilmaKarari(a) })).filter((a) => a.karar.kusur),
+  );
+  /* Aynı kusurun her SATIRI ayrı öğe olarak sayılırsa ölçüm veriye
+     bağımlı olur: kütükte 8 satır varsa 8, 23 satır varsa 23 çıkar
+     ve borç tavanı tohum verisi değişince kayar (ölçüldü: /saglik
+     yerelde 8, CI'da 23). Kusur, satır sayısı değil TÜRDÜR — aynı
+     etiket + aynı kırpılma türü tek imzadır. */
+  const imzalar = new Map();
+  for (const o of kirpilan) {
+    /* İmzaya kutu ENİ de girer. Yalnız etiket + tür olsaydı, aynı
+       etiketle kırpılan YENİ bir sütun mevcut imzanın arkasına
+       saklanırdı. Kutu eni yerleşimden gelir (`table-layout: fixed`
+       sütun genişliği), satır SAYISINDAN değil: tekrarlayan satırlar
+       tek imzada birleşir, yapısal olarak yeni bir kırpma ayrı imza
+       olur. Kırpılan px imzaya GİRMEZ — o, metin uzunluğuyla yani
+       veriyle değişir. */
+    const anahtar = `${o.etiket}|${o.karar.tur}|${o.genislik}`;
+    const v = imzalar.get(anahtar) ?? { ...o, adet: 0 };
+    v.adet += 1;
+    imzalar.set(anahtar, v);
+  }
+  if (kirpilan.length > 0) {
+    kirpilmalar.push({
+      bant: bant.ad, bantEn: bant.en, yol, ogeler: [...imzalar.values()], ornek: kirpilan.length,
+    });
+  }
+
+  /* Üçüncü kusur türü: içerik KAYIP değil, ama okunmuyor. */
+  await sayfa.addScriptTag({ content: `window.__ortusmeOlcumleri = ${ortusmeOlcumleri.toString()};` });
+  const ciftler = await sayfa.evaluate(
+    (t) => window.__ortusmeOlcumleri(t), TASIYICI_ETIKETLER,
+  );
+  /* Ölçü birimi VARLIK: aynı çiftin kaç kez çıktığı tekrarlayan satır
+     sayısına, yani tohuma bağlıdır; "bu çift burada örtüşüyor" değildir. */
+  const ortusmeImza = new Map();
+  for (const c of ciftler) {
+    const karar = ortusmeKarari(c);
+    if (!karar.kusur) continue;
+    const hedef = ortusmeHedefi(c.a, c.b);
+    const v = ortusmeImza.get(hedef) ?? { hedef, ...c, karar, adet: 0 };
+    v.adet += 1;
+    /* En kötü kesişme raporlanır; tavan VARLIK olduğu için bu sayı
+       yalnız insana bakar, karara girmez. */
+    if (c.en * c.boy > v.en * v.boy) { v.en = c.en; v.boy = c.boy; }
+    ortusmeImza.set(hedef, v);
+  }
+  if (ortusmeImza.size > 0) {
+    ortusmeler.push({
+      bant: bant.ad, bantEn: bant.en, yol, ogeler: [...ortusmeImza.values()], ornek: ciftler.length,
+    });
+  }
+}
 try {
   for (const bant of BANTLAR) {
     const baglam = await tarayici.newContext({ viewport: { width: bant.en, height: bant.boy } });
     const sayfa = await baglam.newPage();
     await girisYap(sayfa, KOK);
-
-    for (const yol of ROTALAR) {
-      const yanit = await sayfa.goto(`${KOK}${yol}`, { waitUntil: 'networkidle' });
-      /* Yanlış yüzeyi ölçmek, ölçmemekten beterdir: 404/500 gövdesi ya da
-         giriş ekranı taşmaz ve kapı yeşil kalır (axe kapısıyla aynı kural). */
-      const kod = yanit?.status() ?? 0;
-      const karar = yonlendirmeKarari(yol, new URL(sayfa.url()).pathname);
-      const yuzeyHatasi = kod !== 200 ? `HTTP ${kod}` : (karar.kusur ?? null);
-      if (yuzeyHatasi) { yuzeyKirigi.push({ bant: bant.ad, yol, sebep: yuzeyHatasi }); continue; }
-      /* Yerleşim istemcide oturuyor; ölçmeden önce bir kare beklenir. */
-      await sayfa.waitForTimeout(150);
-      olculen += 1;
-      /* `suclulariBul` metni sayfaya kaynak olarak enjekte edilir; iki
-         bağlam arasında paylaşılan tek yol budur. */
-      await sayfa.addScriptTag({ content: `window.__suclulariBul = ${suclulariBul.toString()};` });
-      const olcum = await sayfa.evaluate((tolerans) => {
-        const tasma = document.documentElement.scrollWidth - window.innerWidth;
-        if (tasma <= tolerans) return null;
-        return { tasma, suclular: window.__suclulariBul() };
-      }, TOLERANS);
-      if (olcum) kusurlar.push({ bant: bant.ad, bantEn: bant.en, yol, ...olcum });
-
-      /* İkinci kusur türü: taşma sayfayı kaydırmasa da içerik kayıp mı. */
-      await sayfa.addScriptTag({ content: `window.__kirpilmaOlcumleri = ${kirpilmaOlcumleri.toString()};` });
-      const adaylar = await sayfa.evaluate((k) => window.__kirpilmaOlcumleri(k), [...KAYDIRAN_KAPLAR]);
-      const kirpilan = enDistakiKirpilmalar(
-        adaylar.map((a) => ({ ...a, karar: kirpilmaKarari(a) })).filter((a) => a.karar.kusur),
-      );
-      /* Aynı kusurun her SATIRI ayrı öğe olarak sayılırsa ölçüm veriye
-         bağımlı olur: kütükte 8 satır varsa 8, 23 satır varsa 23 çıkar
-         ve borç tavanı tohum verisi değişince kayar (ölçüldü: /saglik
-         yerelde 8, CI'da 23). Kusur, satır sayısı değil TÜRDÜR — aynı
-         etiket + aynı kırpılma türü tek imzadır. */
-      const imzalar = new Map();
-      for (const o of kirpilan) {
-        /* İmzaya kutu ENİ de girer. Yalnız etiket + tür olsaydı, aynı
-           etiketle kırpılan YENİ bir sütun mevcut imzanın arkasına
-           saklanırdı. Kutu eni yerleşimden gelir (`table-layout: fixed`
-           sütun genişliği), satır SAYISINDAN değil: tekrarlayan satırlar
-           tek imzada birleşir, yapısal olarak yeni bir kırpma ayrı imza
-           olur. Kırpılan px imzaya GİRMEZ — o, metin uzunluğuyla yani
-           veriyle değişir. */
-        const anahtar = `${o.etiket}|${o.karar.tur}|${o.genislik}`;
-        const v = imzalar.get(anahtar) ?? { ...o, adet: 0 };
-        v.adet += 1;
-        imzalar.set(anahtar, v);
-      }
-      if (kirpilan.length > 0) {
-        kirpilmalar.push({
-          bant: bant.ad, bantEn: bant.en, yol, ogeler: [...imzalar.values()], ornek: kirpilan.length,
-        });
-      }
+    /* Oturumsuz yüzeyler bu döngüde ATLANIR: giriş yapmış bağlam onları
+       hiç göremez, sunucu panoya yönlendirir ve tarama KIRIK sayılırdı. */
+    for (const yol of ROTALAR.filter((y) => !OTURUMSUZ_YOLLAR.has(y))) {
+      await rotayiOlc(sayfa, bant, yol);
     }
     await baglam.close();
+
+    /* Oturumsuz yüzeyler TEMİZ bir bağlamda ölçülür — aynı bağlamda
+       kalsaydı çerez `/giris`i panoya yönlendirir ve ölçüm yine
+       yapılamazdı. */
+    if (OTURUMSUZ.length > 0) {
+      const temiz = await tarayici.newContext({ viewport: { width: bant.en, height: bant.boy } });
+      const s2 = await temiz.newPage();
+      for (const r of OTURUMSUZ) await rotayiOlc(s2, bant, r.yol, r.nobetci);
+      await temiz.close();
+    }
   }
 } finally {
   await tarayici.close();
@@ -308,8 +493,11 @@ for (const a of DINAMIK.atlanan) {
   console.error(`  DİNAMİK ROTA TARANMADI · ${a.rota} · ${a.sebep}`);
 }
 
-const bas = `yatay-tasma: ${olculen} ölçüm · ${BANTLAR.length} bant × ${ROTALAR.length} rota`;
-console.log(`${bas} · taşan rota ${kusurlar.length} · kırpılan içerik ${kirpilmalar.length}`);
+const ROTA_SAYISI = ROTALAR.filter((y) => !OTURUMSUZ_YOLLAR.has(y)).length + OTURUMSUZ.length;
+const bas = `yatay-tasma: ${olculen} ölçüm · ${BANTLAR.length} bant × ${ROTA_SAYISI} rota`
+  + (OTURUMSUZ.length > 0 ? ` (${OTURUMSUZ.length} oturumsuz)` : '');
+console.log(`${bas} · taşan rota ${kusurlar.length} · kırpılan içerik ${kirpilmalar.length}`
+  + ` · örtüşen içerik ${ortusmeler.length}`);
 
 /* Ham bulgular her zaman YAZILIR — izin listesi bulguyu gizlemez,
    yalnız kapıyı yakıp yakmayacağını söyler. */
@@ -331,6 +519,15 @@ for (const k of kirpilmalar) {
   for (const o of k.ogeler) {
     console.error(`      [${o.karar.tur}] ${o.etiket} ×${o.adet} · kutu ${o.genislik}px · ${o.karar.sebep}`);
     console.error(`          "${o.metin}"`);
+  }
+}
+
+for (const k of ortusmeler) {
+  console.error(`  [ÖRTÜŞEN İÇERİK] ${k.bant} · ${k.yol} → ${k.ogeler.length} kusur türü`
+    + ` · ${k.ornek} çift kesişiyor`);
+  for (const o of k.ogeler) {
+    console.error(`      ${o.a.etiket} ×${o.adet} · ${o.karar.sebep}`);
+    console.error(`          "${o.a.metin}"  ⊗  ${o.b.etiket} · "${o.b.metin}"`);
   }
 }
 
@@ -372,6 +569,13 @@ const bulgular = [
     kapi: 'tasma', tur: 'kirpilan-icerik', rota: kalip(k.yol), bant: k.bantEn,
     hedef: tasmaHedefi(o), olcum: 1, birim: 'kırpma',
     not: o.karar.tur,
+  }))),
+  /* Örtüşme de VARLIKTIR (1): kesişme pikselleri metin uzunluğuyla,
+     yani veriyle değişir — tavana girseydi tohum değişince kayardı. */
+  ...ortusmeler.flatMap((k) => k.ogeler.map((o) => ({
+    kapi: 'tasma', tur: 'ortusen-icerik', rota: kalip(k.yol), bant: k.bantEn,
+    hedef: o.hedef, olcum: 1, birim: 'örtüşme',
+    not: `${o.a.etiket} ⊗ ${o.b.etiket}`,
   }))),
 ];
 const borcKapali = borcuUygula(enKotuyeIndirge(bulgular), { kapi: 'tasma' });

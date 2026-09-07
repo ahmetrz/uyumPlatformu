@@ -167,6 +167,10 @@ BLOKLAYICIDIR; bugünün açık bulguları `web/arac/kalite-borcu.json` izin
 listesindedir ve liste **yalnız küçülebilir** (dört dişli cırcır —
 tavan · alt küme · taban dal `origin/main` · okunamazsa kırmızı).
 
+Taşma kapısı **üç kusur türü** ölçer: sayfa yana kayıyor mu · kırpılan
+içerik var mı · akış içi iki taşıyıcı üst üste biniyor mu. İki kapı da
+oturum İSTEMEYEN yüzeyleri (`/giris`) ayrı ve oturumsuz tarar.
+
 Geri kalan tarayıcılı kapılar canlı sunucu ister ve elle koşulur
 (`PORT=3210 npm run dev` başka bir kabukta); listesi ve gerekçeleri
 `web/arac/BENIOKU.md` içindedir. Koşulmayan kapı "geçti" diye

@@ -75,15 +75,25 @@ function listeyiOku(yol) {
   /* `bulgular` yoksa sessizce boş listeye düşmek, bozuk bir dosyayı
      "borç yok" diye okumak olurdu — bozukluk kusur gibi görünmeli. */
   if (!Array.isArray(belge?.bulgular)) patla('`bulgular` dizisi yok');
-  return belge.bulgular;
+  /* `_yeni_tur` bir kusur TÜRÜNÜN ilk kez ölçülmeye başladığını
+     BEYAN eder (bkz. `circirKarari`). Yoksa boş liste demektir; bozuk
+     yazılmışsa sessizce yutulmaz. */
+  const yeniTurler = belge?._yeni_tur ?? [];
+  if (!Array.isArray(yeniTurler)) patla('`_yeni_tur` bir dizi değil');
+  return { bulgular: belge.bulgular, yeniTurler };
 }
 
+const BELGE = listeyiOku(BORC_YOLU);
+
 /** Bu daldaki borç listesi. Modül yüklenirken okunur; okunamazsa atar. */
-export const BORC = listeyiOku(BORC_YOLU);
+export const BORC = BELGE.bulgular;
+
+/** Bu dalın BEYAN ettiği yeni kusur türleri (`kapi/tur`). */
+export const YENI_TURLER = BELGE.yeniTurler;
 
 /** Test ve araçlar için: başka bir yoldan da okunabilir, aynı sertlikle. */
 export function borcOku(yol = BORC_YOLU) {
-  return yol === BORC_YOLU ? BORC : listeyiOku(yol);
+  return yol === BORC_YOLU ? BORC : listeyiOku(yol).bulgular;
 }
 
 /**
@@ -121,11 +131,16 @@ export function tabanBorcOku() {
     const ham = execFileSync('git', ['show', `${TABAN_DAL}:${BORC_GIT_YOLU}`], {
       cwd: WEB, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'],
     });
-    const bulgular = JSON.parse(ham).bulgular;
+    const belge = JSON.parse(ham);
     /* Taban daldaki liste BOZUKSA muafiyet üretemez: `?? []` deseydik
        bozuk bir taban, dalın her eklemesini "yeni değil" gösterirdi. */
-    if (!Array.isArray(bulgular)) return { durum: 'okunamadi' };
-    return { durum: 'var', bulgular };
+    if (!Array.isArray(belge?.bulgular)) return { durum: 'okunamadi' };
+    /* Tabanın BEYANI da okunur: yeni tür kapısı yalnız taban o türü
+       HENÜZ beyan etmemişken açılır (aşağıda). Bozuk beyan muafiyet
+       üretmemeli, o yüzden dizi değilse taban okunamadı sayılır. */
+    const tabanTurler = belge?._yeni_tur ?? [];
+    if (!Array.isArray(tabanTurler)) return { durum: 'okunamadi' };
+    return { durum: 'var', bulgular: belge.bulgular, yeniTurler: tabanTurler };
   } catch {
     /* Yol VAR ama okunamadı ya da ayrıştırılamadı → DİŞ 4. */
     return { durum: 'okunamadi' };
@@ -178,7 +193,19 @@ export function borcuUygula(bulgular, { kapi, yaz = console.error, bilgi = conso
     circirNotu = 'ilk kurulum';
     bilgi(`\ncırcır: ${TABAN_DAL} listeyi henüz taşımıyor — İLK KURULUM turu`);
   } else {
-    circir = circirKarari(dalBorcu, taban.bulgular.filter((b) => !kapi || b.kapi === kapi));
+    circir = circirKarari(
+      dalBorcu,
+      taban.bulgular.filter((b) => !kapi || b.kapi === kapi),
+      { dal: YENI_TURLER, taban: taban.yeniTurler },
+    );
+    if (circir.yeniTur?.length > 0) {
+      bilgi(`\nYENİ KUSUR TÜRÜ · ${circir.yeniTur.length} satır — bu tür İLK KEZ ölçülüyor`);
+      for (const b of circir.yeniTur) bilgi(`  ${satir(b)}`);
+      bilgi('  Taban dalın aracı bu türü hiç ölçmemişti; satırlar bir BÜYÜME');
+      bilgi('  değil, yeni bir kapının ilk fotoğrafıdır. Koşul TABANIN beyanıdır');
+      bilgi('  ve dal onu belirleyemez: beyan main\'e girdiği an bu yol o tür');
+      bilgi('  için kalıcı olarak kapanır.');
+    }
     if (circir.gecis > 0) {
       bilgi(`\nANAHTAR ŞEMASI GEÇİŞİ · ${circir.gecis} satır — tabandaki HEDEFSİZ satırlar`);
       bilgi('  daha kesin yazıldı. Bu bir büyüme DEĞİLDİR ve bir kaldıraç da değildir:');

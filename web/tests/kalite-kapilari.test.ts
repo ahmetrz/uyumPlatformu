@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 import {
   KIRPILMA_TOLERANSI, altinDosyaAdi, axeCiddiMi, axeKimlikBicimi, axeOzeti, borcAnahtari,
   borcSuzgeci, ciMi, circirKarari, enDistakiKirpilmalar, esikAltindakiler, gorselFark,
-  ayristirilanHedefler, kirpilmaKarari, rotaAdi, tasmaHedefi, yuzPuan,
+  ayristirilanHedefler, kirpilmaKarari, ortusmeHedefi, ortusmeKarari,
+  rotaAdi, tasmaHedefi, yuzPuan,
 } from '../arac/kalite-kurallari.mjs';
 
 /* Kalite kapılarının SAF kuralları — tarayıcısız doğrulanır.
@@ -275,6 +276,59 @@ describe('DİŞ 3 · taban dal — liste yalnız küçülebilir', () => {
   });
 });
 
+/* ── YENİ KUSUR TÜRÜ · kapıyı KURMAK borcu büyütmez ────────────────────
+   Yeni bir ölçü eklendiğinde (üçüncüsü: örtüşme) o türün ilk bulguları
+   tabanda OLAMAZ — tabanın aracı o türü hiç ölçmemiştir. Cırcır bunu
+   "eklendi" diye okusaydı yeni bir kapı kurmak imkânsız olurdu. */
+
+describe('YENİ KUSUR TÜRÜ · beyanlı ve KENDİNİ EMEKLİYE AYIRAN yol', () => {
+  const YENI = { kapi: 'tasma', tur: 'ortusen-icerik', rota: '/denetimler/[id]', bant: 375, hedef: 'a ↔ b', azami: 1 };
+
+  it('dal BEYAN eder, taban etmezse satır "eklendi" saymaz', () => {
+    const c = circirKarari([YENI], [], { dal: ['tasma/ortusen-icerik'], taban: [] });
+    expect(c.kapiKapali).toBe(false);
+    expect(c.eklenen).toHaveLength(0);
+    expect(c.yeniTur).toHaveLength(1);
+  });
+
+  it('GİZLENMEZ — ayrı başlıkta raporlanmak üzere döner', () => {
+    const c = circirKarari([YENI], [], { dal: ['tasma/ortusen-icerik'], taban: [] });
+    expect(c.yeniTur[0].tur).toBe('ortusen-icerik');
+  });
+
+  it('TABAN da beyan ettiği an yol KAPANIR — bir kez kullanılır', () => {
+    /* Beyan main'e girdikten sonra aynı türe satır eklemek kırmızıdır. */
+    const c = circirKarari([YENI], [], { dal: ['tasma/ortusen-icerik'], taban: ['tasma/ortusen-icerik'] });
+    expect(c.kapiKapali).toBe(true);
+    expect(c.eklenen).toHaveLength(1);
+    expect(c.yeniTur).toHaveLength(0);
+  });
+
+  it('BEYANSIZ satır muaf DEĞİLDİR', () => {
+    expect(circirKarari([YENI], []).kapiKapali).toBe(true);
+    expect(circirKarari([YENI], [], { dal: [], taban: [] }).kapiKapali).toBe(true);
+  });
+
+  it('KALDIRAÇ DEĞİLDİR — beyan `kapi/tur` çiftine bakar, satıra değil', () => {
+    /* Yeni bir tür beyan etmek, VAR OLAN bir türe satır eklemenin yolu
+       olamaz: aşağıdaki satır beyan edilen türden değildir. */
+    const c = circirKarari(
+      [{ ...BORC, rota: '/uyum' }, YENI], [BORC],
+      { dal: ['tasma/ortusen-icerik'], taban: [] },
+    );
+    expect(c.kapiKapali).toBe(true);
+    expect(c.eklenen).toHaveLength(1);
+    expect(c.eklenen[0].rota).toBe('/uyum');
+    expect(c.yeniTur).toHaveLength(1);
+  });
+
+  it('beyan başka bir KAPIYA sızmaz', () => {
+    const axeSatiri = { ...YENI, kapi: 'axe' };
+    const c = circirKarari([axeSatiri], [], { dal: ['tasma/ortusen-icerik'], taban: [] });
+    expect(c.kapiKapali).toBe(true);
+  });
+});
+
 /* Listenin KENDİSİNE dair iddialar `kalite-borcu-listesi.test.ts`
    içindedir ve bilerek ayrı dosyadadır: liste silindiğinde bu dosyanın
    toplanması kırılıyordu ve cırcırın 36 birim vakası, adsız bir modül
@@ -313,6 +367,63 @@ describe('CI ortam değişkeni AYRIŞTIRILIR', () => {
    değil BURADA çıkar.
    ═══════════════════════════════════════════════════════════════════════ */
 
+/* ── ÜÇÜNCÜ KUSUR TÜRÜ · AKIŞ İÇİ ÖRTÜŞME ──────────────────────────────
+   İlk iki ölçü "içerik kayıp mı" diye sorar; bu ölçü "okunuyor mu" diye
+   sorar. İkisi de sessizken iki metin üst üste binebilir — ölçüldü
+   (/riskler/[id] · 375px) ve gözle bulundu. */
+
+describe('örtüşme kararı', () => {
+  const temel = { akisDisi: false, en: 40, boy: 20 };
+
+  it('akış içi iki taşıyıcının kesişmesi KUSURDUR', () => {
+    const k = ortusmeKarari(temel);
+    expect(k.kusur).toBe(true);
+    expect(k.tur).toBe('akış içi örtüşme');
+    expect(k.sebep).toContain('40×20px');
+  });
+
+  it('kasıtlı KATMAN kusur değildir — ipucu, açılır menü, yapışkan başlık', () => {
+    const k = ortusmeKarari({ ...temel, akisDisi: true });
+    expect(k.kusur).toBe(false);
+    expect(k.sebep).toContain('kasıtlı katman');
+  });
+
+  it('tek eksende temas kusur değildir — bitişik kutular kenar paylaşır', () => {
+    expect(ortusmeKarari({ ...temel, en: 1 }).kusur).toBe(false);
+    expect(ortusmeKarari({ ...temel, boy: 2 }).kusur).toBe(false);
+    expect(ortusmeKarari({ ...temel, en: 3, boy: 3 }).kusur).toBe(true);
+  });
+
+  it('ölçülemeyen kesişme kusur üretmez', () => {
+    expect(ortusmeKarari({ ...temel, en: Number.NaN }).kusur).toBe(false);
+    expect(ortusmeKarari(null).kusur).toBe(false);
+    expect(ortusmeKarari({}).kusur).toBe(false);
+  });
+});
+
+describe('örtüşme hedefi', () => {
+  it('çift SIRADAN bağımsızdır — tek kusur, tek anahtar', () => {
+    const a = { yapisal: 'div.x > button' };
+    const b = { yapisal: 'div.y > span' };
+    expect(ortusmeHedefi(a, b)).toBe(ortusmeHedefi(b, a));
+  });
+
+  it('kutu ENİ kimliğe GİRMEZ — o, veriyle değişir', () => {
+    /* ÖLÇÜLDÜ: aynı kalıbın üç kaydında ikinci düğme 102px ve 101px
+       çıkıyor; etiket kayıt sayacı taşıyor. En kimliğe girseydi satır
+       her tohumda "yeni" görünür ve DİŞ 3 yeniden yazmayı yasaklardı. */
+    const a1 = { yapisal: 'div.x > button', genislik: 102 };
+    const a2 = { yapisal: 'div.x > button', genislik: 101 };
+    const b = { yapisal: 'div.y > span', genislik: 50 };
+    expect(ortusmeHedefi(a1, b)).toBe(ortusmeHedefi(a2, b));
+  });
+
+  it('FARKLI yapısal yol → FARKLI hedef', () => {
+    expect(ortusmeHedefi({ yapisal: 'div.x > button' }, { yapisal: 'div.y > span' }))
+      .not.toBe(ortusmeHedefi({ yapisal: 'div.x > button' }, { yapisal: 'div.z > span' }));
+  });
+});
+
 describe('borç anahtarı · iki kapının ortak değişmezi', () => {
   const ORTAK = { rota: '/saklama', bant: 375 };
 
@@ -327,6 +438,14 @@ describe('borç anahtarı · iki kapının ortak değişmezi', () => {
       ad: 'axe',
       a: { ...ORTAK, kapi: 'axe', tur: 'scrollable-region-focusable', hedef: axeKimlikBicimi({ yol: 'section > div.k', sira: 1 }) },
       b: { ...ORTAK, kapi: 'axe', tur: 'scrollable-region-focusable', hedef: axeKimlikBicimi({ yol: 'section > div.k', sira: 2 }) },
+    },
+    {
+      /* Üçüncü ölçü aynı sözleşmeye tabidir: hedef İKİ taşıyıcının
+         yapısal kimliğidir ve çift, hangi taraf önce ölçülürse ölçülsün
+         aynı anahtarı verir. */
+      ad: 'örtüşme',
+      a: { ...ORTAK, kapi: 'tasma', tur: 'ortusen-icerik', hedef: ortusmeHedefi({ yapisal: 'div.a > button' }, { yapisal: 'div.b > span' }) },
+      b: { ...ORTAK, kapi: 'tasma', tur: 'ortusen-icerik', hedef: ortusmeHedefi({ yapisal: 'div.a > button' }, { yapisal: 'div.c > span' }) },
     },
   ];
 

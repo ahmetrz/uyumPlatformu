@@ -89,6 +89,19 @@ describe('borç listesi satır biçimi', () => {
     }
   });
 
+  it('BEYAN edilen yeni türler bir dizidir ve `kapi/tur` biçimindedir', () => {
+    /* `_yeni_tur` cırcırın kendini emekliye ayıran yolunu açar; biçimi
+       bozuksa muafiyet SESSİZCE değil ADIYLA düşmeli. */
+    const belge = JSON.parse(readFileSync(LISTE, 'utf8'));
+    const turler = belge._yeni_tur ?? [];
+    expect(Array.isArray(turler)).toBe(true);
+    for (const t of turler) {
+      expect(typeof t).toBe('string');
+      expect(t.split('/')).toHaveLength(2);
+      expect(['tasma', 'axe']).toContain(t.split('/')[0]);
+    }
+  });
+
   it('aynı anahtar iki kez yazılamaz — ikinci satır ilkini gölgelerdi', () => {
     const anahtarlar = satirlar().map(borcAnahtari);
     expect(new Set(anahtarlar).size).toBe(anahtarlar.length);

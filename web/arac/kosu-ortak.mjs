@@ -186,6 +186,9 @@ export function bayrakDegeri(ad) {
 export async function girisYap(sayfa, kok = KOK) {
   await sayfa.goto(`${kok}/giris`, { waitUntil: 'load' });
   if (!sayfa.url().includes('/giris')) return false;
+  // Yeni girişte formdan önce kullanıcının gördüğü CTA'yı izleriz.
+  const platformaGir = sayfa.getByRole('link', { name: 'Platforma Gir' });
+  if (await platformaGir.isVisible()) await platformaGir.click();
   const eposta = sayfa.locator('input[type=email]');
   if (!(await eposta.count())) return false;
   for (let deneme = 1; deneme <= 3; deneme += 1) {

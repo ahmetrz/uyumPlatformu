@@ -1230,4 +1230,15 @@ export const PLATFORM_SENARYOLARI_6: Senaryo[] = [
     beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
     katmanlar: ['ACCESSIBILITY'],
   },
+  {
+    id: 'SIS-SNG-001', alan: 'Sistem', rota: '/giris', eksen: 'arayuz',
+    amac: 'Giriş sahnesinin kaydırma konumuna bağlı ve tersinir kalması',
+    rol: 'ilk kez gelen ziyaretçi', kapsam: 'giriş deneyimi',
+    onkosul: 'Hareketli giriş kullanılabilir', veriHali: 'ileri ve geri kaydırma',
+    eylem: 'Aynı ilerleme noktasına ileri ve geri yönden ulaşılır',
+    beklenenSonuc: 'Poz aynıdır; katmanlar açılmadan hizalanır; kamera son katmanın önünde kalır',
+    beklenenEkran: 'Görsel süreklilik ayrıca tarayıcıda doğrulanmalıdır',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['DOMAIN'],
+  },
 ];

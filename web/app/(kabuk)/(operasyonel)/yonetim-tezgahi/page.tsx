@@ -9,7 +9,7 @@ import TezgahIstemci from './TezgahIstemci';
 import KonsolIstemci from './KonsolIstemci';
 import { konsolVerisi } from './konsolVerisi';
 import { SON_ISTEK_TAVANI, type Anahtar, type Is, type SonIstek, type Tanim } from './ortak';
-import { KURULU_GUC, sayisalOzellik } from '@/lib/alan/oznitelik';
+import { KURULU_GUC, birimliOzellik, olculenYazi } from '@/lib/alan/oznitelik';
 
 export const metadata: Metadata = { title: 'Yönetim tezgâhı' };
 
@@ -149,7 +149,8 @@ export default async function Sayfa({ searchParams }: { searchParams: Promise<{ 
   /* ── M1 · beş katalog tek satır tipine iner ─────────────────────────── */
 
   const bos = {
-    tipId: null, guc: null, konum: null, kapanisNedeni: null, kapanisTarihi: null,
+    tipId: null, guc: null, gucBirimi: null, konum: null,
+    kapanisNedeni: null, kapanisTarihi: null,
     surum: null, kaynakUrl: null, aciklama: null, sektorId: null,
   };
 
@@ -165,9 +166,14 @@ export default async function Sayfa({ searchParams }: { searchParams: Promise<{ 
         // Kırılımı olmayan AKTİF santralde uygulanabilirlik motoru karar
         // üretemez — zinciri kıran tek eksik budur. Kapalı santralde aranmaz.
         eksik: t.durum === 'aktif' && !t.tipId ? 'kırılım atanmadı' : null,
-        // Kurulu güç girilmemişse "bilinmiyor" yazılır, 0 MW uydurulmaz (§19).
-        not: t.konum ?? ((g) => (g !== null ? `${g} MW` : 'konum bilinmiyor'))(sayisalOzellik(t.ozellikler, KURULU_GUC)),
-        tipId: t.tipId, guc: sayisalOzellik(t.ozellikler, KURULU_GUC), konum: t.konum,
+        /* Kurulu güç girilmemişse "bilinmiyor" yazılır, sıfır uydurulmaz
+           (§19); BİRİM satırdan gelir, ekrana gömülmez (§0.5). */
+        not: t.konum ?? (olculenYazi(birimliOzellik(t.ozellikler, KURULU_GUC))
+          ?? 'konum bilinmiyor'),
+        tipId: t.tipId,
+        ...((o) => ({ guc: o.deger, gucBirimi: o.birim }))(
+          birimliOzellik(t.ozellikler, KURULU_GUC)),
+        konum: t.konum,
         kapanisNedeni: t.kapanisNedeni,
         kapanisTarihi: t.kapanisTarihi?.toISOString() ?? null,
       })),

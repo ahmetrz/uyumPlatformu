@@ -14,6 +14,7 @@ import { dokumanKutugu } from './seed-dokuman';
 import { entegrasyonVerisi } from './seed-entegrasyon';
 import { operasyonKayitlari } from './seed-operasyon-kayitlari';
 import { dolulukKatmani } from './seed-doluluk';
+import { KURULU_GUC } from '../lib/alan/oznitelik';
 
 const parolaUret = (parola: string) => {
   const tuz = randomBytes(16).toString('hex');
@@ -99,7 +100,7 @@ async function main() {
          tesis (MERKEZ-BT) satır ALMAZ: ölçülmemiş değer sıfırla ya da boş
          bir satırla temsil edilmez (URN-ALN-001). */
       ozellikler: guc === null ? undefined : { create: [{
-        anahtar: 'kuruluGucMw', sayisalDeger: guc, birim: 'MW', kaynak: 'tohum',
+        anahtar: KURULU_GUC, sayisalDeger: guc, birim: 'MW', kaynak: 'tohum',
       }] },
       kapanisTarihi: kapanis === null ? null : gun(kapanis), kapanisNedeni: neden,
       devreyeGiris: gun(giris),
@@ -526,14 +527,14 @@ async function main() {
     regulasyonId: reg['EPDK-SYM'].id, ad: 'EPDK SYM kapsam kuralı',
     aciklama: 'Kurulu güç ≥100 MWe VEYA Black-Start VEYA TEİAŞ SCADA/EMS (seri olmayan) → kapsamda',
     kosulJson: JSON.stringify({ herhangi: [
-      { alan: 'kuruluGucMw', islec: '>=', deger: 100 },
+      { alan: 'kuruluGuc', islec: '>=', deger: 100 },
       { alan: 'blackStart', islec: '=', deger: true },
       { alan: 'teiasScadaEmsSeriOlmayan', islec: '=', deger: true },
     ] }) } });
   const kapsamda = [
-    ['SAHA-A3', true, 'kuruluGucMw=165 ≥ 100 VE TEİAŞ SCADA/EMS (seri değil)'],
+    ['SAHA-A3', true, 'kuruluGuc=165 ≥ 100 VE TEİAŞ SCADA/EMS (seri değil)'],
     ['SAHA-A2', true, 'TEİAŞ SCADA/EMS haberleşmesi seri tabanlı değil'],
-    ['SAHA-C-RES', true, 'kuruluGucMw=135 ≥ 100 VE TEİAŞ SCADA/EMS (seri değil); Black-Start yok'],
+    ['SAHA-C-RES', true, 'kuruluGuc=135 ≥ 100 VE TEİAŞ SCADA/EMS (seri değil); Black-Start yok'],
     ['SAHA-D-RES', false, 'güç 57 < 100; TEİAŞ haberleşmesi seri tabanlı; Black-Start yok'],
     ['SAHA-A1', false, 'güç 15 < 100; TEİAŞ SCADA/EMS yok; Black-Start yok'],
     ['SAHA-B-JES', false, 'güç 45 < 100; kapsam koşulları sağlanmıyor'],

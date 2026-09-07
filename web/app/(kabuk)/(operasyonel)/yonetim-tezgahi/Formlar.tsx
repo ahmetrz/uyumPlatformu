@@ -199,6 +199,7 @@ export function TanimFormu({
     ad: tanim?.ad ?? '',
     tipId: tanim?.tipId ?? '',
     guc: tanim?.guc?.toString() ?? '',
+    gucBirimi: tanim?.gucBirimi ?? '',
     konum: tanim?.konum ?? '',
     surum: tanim?.surum ?? '',
     kaynakUrl: tanim?.kaynakUrl ?? '',
@@ -213,7 +214,8 @@ export function TanimFormu({
       case 'tesis':
         return tesisKaydet({
           id, kod: f.kod, ad: f.ad, tipId: f.tipId || null,
-          kuruluGucMw: f.guc ? Number(f.guc) : null, konum: f.konum || null,
+          kuruluGuc: f.guc ? Number(f.guc) : null,
+          kuruluGucBirimi: f.gucBirimi || null, konum: f.konum || null,
         });
       case 'regulasyon':
         return regulasyonKaydet({
@@ -263,12 +265,20 @@ export function TanimFormu({
               ))}
             </select>
           </Alan>
+          {/* BİRİM AYRI ALAN: ekrana sabit yazılamaz (§0.5) — ölçülen
+              nicelik sektöre göre değişir. Boş bırakılırsa sayı birimsiz
+              yazılır; bir birim VARSAYILMAZ. */}
           <div style={{ display: 'grid', gap: 'var(--s12)',
-            gridTemplateColumns: 'repeat(2, minmax(0, 1fr))' }}>
-            <Alan etiket="Kurulu güç · MW">
+            gridTemplateColumns: 'repeat(3, minmax(0, 1fr))' }}>
+            <Alan etiket="Kurulu güç">
               <input className="ab-gr" type="number" value={f.guc}
                 placeholder="bilinmiyor"
                 onChange={(e) => setF({ ...f, guc: e.target.value })} />
+            </Alan>
+            <Alan etiket="Birim">
+              <input className="ab-gr" value={f.gucBirimi} maxLength={16}
+                placeholder="birimsiz"
+                onChange={(e) => setF({ ...f, gucBirimi: e.target.value })} />
             </Alan>
             <Alan etiket="Konum">
               <input className="ab-gr" value={f.konum}

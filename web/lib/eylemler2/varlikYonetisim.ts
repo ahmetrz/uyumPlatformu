@@ -254,12 +254,13 @@ export async function etkiDegerlendirmesiKaydet(girdi: unknown): Promise<Sonuc> 
     const k = await yetkiZorunlu('envanter', 'yazma', KAPSAM_SONRA);
     const v = z.object({
       varlikId: bosluksuz('Varlık'),
-      /* MW kaybı NEGATİF olamaz ve `null` = hesaplanmadı. Sıfır geçerli
+      /* Kayıp NEGATİF olamaz ve `null` = hesaplanmadı. Sıfır geçerli
          bir ölçümdür ("bu cihaz durursa üretim etkilenmez") ve
          hesaplanmamışlıkla karıştırılmaz. */
-      uretimKaybiMw: z.number().finite().min(0, 'Üretim kaybı negatif olamaz').nullable().optional(),
+      uretimKaybi: z.number().finite().min(0, 'Üretim kaybı negatif olamaz').nullable().optional(),
       /* Kaybın BİRİMİ kayıtla birlikte saklanır: sektöre göre değişir
-         (MW · m³/gün · ton/saat) ve ekrana sabit yazılamaz. Boş bırakmak
+         (elektrik gücü · debi · kütle akışı) ve ekrana sabit yazılamaz.
+         Boş bırakmak
          geçerlidir — birim uydurulmaz, sayı çıplak okunur. */
       kayipBirim: bosluksuz('Birim').max(16, 'Birim en fazla 16 karakter').nullable().optional(),
       kayipTipi: z.enum(KAYIP_TIPLERI).default('bilinmiyor'),
@@ -273,17 +274,17 @@ export async function etkiDegerlendirmesiKaydet(girdi: unknown): Promise<Sonuc> 
     await varligiAlVeKapsamiDayat(k, v.varlikId, 'yazma',
       'etki değerlendirmesi yetkiniz yok');
 
-    /* Sayı yazan değerlendirme GEREKÇE İSTER: gerekçesiz bir "12,5 MW"
+    /* Sayı yazan değerlendirme GEREKÇE İSTER: gerekçesiz bir "12,5"
        denetimde savunulamaz ve nereden geldiği sorulduğunda cevap kalmaz. */
-    if (typeof v.uretimKaybiMw === 'number' && !(v.gerekce && v.gerekce.length >= 10)) {
+    if (typeof v.uretimKaybi === 'number' && !(v.gerekce && v.gerekce.length >= 10)) {
       return hata(new Error('Üretim kaybı sayısı en az 10 karakterlik gerekçe ister.'));
     }
 
     const eski = await db.etkiDegerlendirmesi.findUnique({
-      where: { varlikId: v.varlikId }, select: { uretimKaybiMw: true, kayipBirim: true },
+      where: { varlikId: v.varlikId }, select: { uretimKaybi: true, kayipBirim: true },
     });
     const veri = {
-      uretimKaybiMw: v.uretimKaybiMw ?? null, kayipBirim: v.kayipBirim ?? null,
+      uretimKaybi: v.uretimKaybi ?? null, kayipBirim: v.kayipBirim ?? null,
       kayipTipi: v.kayipTipi,
       rtoSaat: v.rtoSaat ?? null, rpoSaat: v.rpoSaat ?? null,
       emniyetEtkisi: v.emniyetEtkisi, cevreEtkisi: v.cevreEtkisi,
@@ -306,8 +307,8 @@ export async function etkiDegerlendirmesiKaydet(girdi: unknown): Promise<Sonuc> 
          Burada "ölçülmedi ≠ sıfır" kuralının aynısı geçerli: eksik olan
          şey görünür olmalı, sessiz değil. İz kendi başına okunabilir
          kalır (R0-9) — birim yoksa bunu da kendisi söyler. */
-      once: izDegeri(eski?.uretimKaybiMw ?? null, eski?.kayipBirim ?? null),
-      sonra: izDegeri(v.uretimKaybiMw ?? null, v.kayipBirim ?? null, 'hesaplanmadı'),
+      once: izDegeri(eski?.uretimKaybi ?? null, eski?.kayipBirim ?? null),
+      sonra: izDegeri(v.uretimKaybi ?? null, v.kayipBirim ?? null, 'hesaplanmadı'),
       gerekce: v.gerekce ?? null,
     });
     revalidatePath('/envanter');

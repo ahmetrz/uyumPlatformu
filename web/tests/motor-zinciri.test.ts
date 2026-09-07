@@ -243,7 +243,7 @@ describe('Motor zinciri — sıra, koşul, dayanıklılık, otomasyon sınırı'
     // kararı ezmeye ZORLAYAN bir kural: aynı regülasyon için her tesis kapsamda
     const zorlayici = await db.uygulanabilirlikKurali.create({ data: {
       regulasyonId: reg.id, ad: 'ZINCIR-TEST her zaman kapsamda',
-      kosulJson: JSON.stringify({ herhangi: [{ alan: 'kuruluGucMw', islec: '>=', deger: 0 }] }),
+      kosulJson: JSON.stringify({ herhangi: [{ alan: 'kuruluGuc', islec: '>=', deger: 0 }] }),
       aktif: true } });
 
     const once = await guvenlikAnligi();

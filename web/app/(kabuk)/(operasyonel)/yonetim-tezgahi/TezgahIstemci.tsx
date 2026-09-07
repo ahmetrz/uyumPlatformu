@@ -8,6 +8,7 @@ import { Tablo, type Kolon, type Satir } from '@/components/kabuk/tablo';
 import {
   Cekmece, CekmeceKimlik, CekmeceAlanlar, CekmeceBagli, CekmeceEylemler,
 } from '@/components/kabuk/panel';
+import { olculenYazi } from '@/lib/alan/oznitelik';
 import { etiketle, tarihTR, zamanTR } from '@/lib/sabitler';
 import {
   ApiAnahtarFormu, ApiAnahtarIptal, ApiAnahtarKapsam,
@@ -833,7 +834,7 @@ function TanimOzeti({ tanim, yazabilir, onaylayabilir, duzenle }: {
   // Katalog başına bir ek alan: kaydın kendi kimlik olgusu.
   const ekAlan = tanim.katalog === 'tesis'
     ? [{ etiket: 'Kurulu güç',
-      deger: tanim.guc !== null ? `${tanim.guc} MW` : 'bilinmiyor',
+      deger: olculenYazi({ deger: tanim.guc, birim: tanim.gucBirimi }) ?? 'bilinmiyor',
       durum: tanim.guc === null ? ('unk' as const) : undefined },
     { etiket: 'Konum', deger: tanim.konum ?? 'bilinmiyor',
       durum: tanim.konum ? undefined : ('unk' as const) }]

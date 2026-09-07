@@ -23,7 +23,7 @@
    yalnız ne kadar AYRINTI eşlik ettiğidir. */
 
 export type OlculmemisGosterimi = {
-  /** `ozet` sayı + oran + MWe + ilk adlar · `sayi` yalnız sayı + oran. */
+  /** `ozet` sayı + oran + güç toplamı + ilk adlar · `sayi` yalnız sayı + oran. */
   gosterim: 'ozet' | 'sayi';
   /** İlk görünümde yazılan santral adı sayısı (0–5). `sayi` kipinde yok sayılır. */
   ilkKac: number;

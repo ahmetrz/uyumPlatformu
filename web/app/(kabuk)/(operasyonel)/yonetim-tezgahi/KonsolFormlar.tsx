@@ -734,8 +734,8 @@ function OlculmemisDuzenleyici({ tanim, bugun, vazgec, bitti }: {
       <Alan etiket="Gösterim" zorunlu>
         <select className="ab-gr" value={taslak.gosterim}
           onChange={(e) => setTaslak({ ...taslak, gosterim: e.target.value as 'ozet' | 'sayi' })}>
-          <option value="ozet">Özet — sayı, oran, MWe ve ilk santral adları</option>
-          <option value="sayi">Yalnız sayı — sayı, oran ve MWe</option>
+          <option value="ozet">Özet — sayı, oran, güç toplamı ve ilk santral adları</option>
+          <option value="sayi">Yalnız sayı — sayı ve oran</option>
         </select>
       </Alan>
       <Alan etiket={`İlk görünümde yazılan santral adı (0–${OLCULMEMIS_ILK_KAC_TAVAN})`}>

@@ -6,11 +6,11 @@ import { kuralDegerlendir, type Oznitelik } from '@/lib/motorlar/uygulanabilirli
    ifade etmek için `guc()` HİÇ çağrılmaz — satırın yokluğu ölçümün
    yokluğudur. */
 const guc = (mw: number): Oznitelik[] =>
-  [{ anahtar: 'kuruluGucMw', sayisalDeger: mw, metinDeger: null }];
+  [{ anahtar: 'kuruluGuc', sayisalDeger: mw, metinDeger: null }];
 const OLCULMEDI: Oznitelik[] = [];
 
 const EPDK_KURALI = JSON.stringify({ herhangi: [
-  { alan: 'kuruluGucMw', islec: '>=', deger: 100 },
+  { alan: 'kuruluGuc', islec: '>=', deger: 100 },
   { alan: 'blackStart', islec: '=', deger: true },
   { alan: 'teiasScadaEmsSeriOlmayan', islec: '=', deger: true },
 ] });
@@ -19,7 +19,7 @@ describe('Uygulanabilirlik motoru (§5)', () => {
   it('kurulu güç ≥100 → kapsamda, gerekçeli', () => {
     const s = kuralDegerlendir(EPDK_KURALI, guc(790), { blackStart: false, teiasScadaEms: false });
     expect(s.uygulanabilir).toBe(true);
-    expect(s.gerekce).toContain('kuruluGucMw');
+    expect(s.gerekce).toContain('kuruluGuc');
   });
 
   it('küçük santral, koşulsuz → kapsam dışı [UYU-UYG-001]', () => {

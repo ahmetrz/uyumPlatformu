@@ -849,7 +849,7 @@
 
 /* ── Değerlendirilmemiş özeti ──────────────────────────────────────────
    Hiyerarşi bilinçli: SAYI en güçlü, oran onun hemen yanında daha sessiz,
-   MWe ve adlar üçüncül. Sayı kendi başına "11" der; oran "11/16" onun
+   güç toplamı ve adlar üçüncül. Sayı kendi başına "11" der; oran "11/16" onun
    söylemediğini söyler — portföyün üçte ikisi hiç ölçülmemiş. */
 .ab-olculmemis {
   display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 10px;
@@ -873,7 +873,7 @@
   font-variant-numeric: tabular-nums; cursor: help;
 }
 .ab-olculmemis .sayi .bolu { font-size: 12px; color: var(--i3); }
-.ab-olculmemis .mwe { flex: none; font-size: 11px; color: var(--i3); white-space: nowrap; }
+.ab-olculmemis .guc-toplam { flex: none; font-size: 11px; color: var(--i3); white-space: nowrap; }
 /* Adlar KESİLMEZ ve bu bir doğruluk kuralıdır, estetik tercih değil:
    "+8 diğer" sayısı "3 ad yazıldı" varsayımıyla hesaplanır. CSS adlardan
    birini üç noktayla yutarsa ekranda 1 ad görünür ama yanında hâlâ "+8"

@@ -43,7 +43,7 @@ type Kosul = { alan: string; islec: string; deger: unknown };
 type KuralJson = { herhangi?: Kosul[]; hepsi?: Kosul[] };
 
 const ALAN_ADI: Record<string, string> = {
-  kuruluGucMw: 'kurulu güç',
+  kuruluGuc: 'kurulu güç',
   blackStart: 'black-start',
   teiasScadaEmsSeriOlmayan: 'TEİAŞ SCADA/EMS (seri hariç)',
   teiasScadaEms: 'TEİAŞ SCADA/EMS',

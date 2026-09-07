@@ -33,7 +33,7 @@ export default async function Sayfa() {
   return (
     <Portfoy
       satirlar={veri.satirlar}
-      toplamGucMw={veri.toplamGucMw}
+      toplamGuc={veri.toplamGuc}
       endeks={veri.endeks}
       kapsamli={veri.kapsamli}
     />

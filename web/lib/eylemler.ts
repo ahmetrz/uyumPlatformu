@@ -80,27 +80,35 @@ export async function tesisTipiKaydet(girdi: {
 
 export async function tesisKaydet(girdi: {
   id?: string; kod: string; ad: string; tipId?: string | null;
-  kuruluGucMw?: number | null; konum?: string | null;
+  kuruluGuc?: number | null; kuruluGucBirimi?: string | null; konum?: string | null;
 }): Promise<Sonuc> {
   try {
     const k = await yetkiZorunlu('tanimlar', 'yazma');
     const v = z.object({
       id: z.string().optional(), kod: bosluksuz('Kod'), ad: bosluksuz('Ad'),
       tipId: z.string().nullable().optional(),
-      kuruluGucMw: z.coerce.number().positive().nullable().optional(),
+      kuruluGuc: z.coerce.number().positive().nullable().optional(),
+      /* BİRİM GİRDİDEN GELİR, koda gömülü değil (§0.5): ölçülen nicelik
+         sektöre göre değişir. Boş bırakılırsa satır BİRİMSİZ yazılır —
+         bir birim VARSAYILMAZ; ekran sayıyı çıplak gösterir ve borç
+         görünür kalır. */
+      kuruluGucBirimi: z.string().trim().max(16, 'Birim en fazla 16 karakter')
+        .nullable().optional(),
       konum: z.string().nullable().optional(),
     }).parse(girdi);
     const veri = { kod: v.kod, ad: v.ad, tipId: v.tipId ?? null, konum: v.konum ?? null };
     /* P1: kurulu güç artık kolon değil öznitelik satırı. Boş bırakılırsa
        satır silinir — `null` yazılmaz, çünkü "ölçtük, sonucu yok" ile
        "ölçmedik" aynı şey değildir (`lib/alan/oznitelikYazma.ts`). */
-    const guc = v.kuruluGucMw ?? null;
+    const guc = v.kuruluGuc ?? null;
+    const gucBirimi = v.kuruluGucBirimi?.trim() || null;
     if (v.id) {
       await db.tesis.update({ where: { id: v.id }, data: veri });
-      await sayisalOzellikYaz({ tip: 'tesis', id: v.id }, KURULU_GUC, guc, { birim: 'MW' });
+      await sayisalOzellikYaz({ tip: 'tesis', id: v.id }, KURULU_GUC, guc, { birim: gucBirimi });
     } else {
       const yeni = await db.tesis.create({ data: veri });
-      await sayisalOzellikYaz({ tip: 'tesis', id: yeni.id }, KURULU_GUC, guc, { birim: 'MW' });
+      await sayisalOzellikYaz({ tip: 'tesis', id: yeni.id }, KURULU_GUC, guc,
+        { birim: gucBirimi });
       await iz({ aktorId: k.id, varlikTipi: 'Tesis', varlikId: yeni.id, eylem: 'olusturma' });
       /* Kabul testi 1: yeni santral → uygulanabilirlik kuralları hemen
          değerlendirilir. Öznitelik satırı BU ÇAĞRIDAN ÖNCE yazılır; motor

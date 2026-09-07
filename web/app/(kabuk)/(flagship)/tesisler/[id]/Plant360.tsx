@@ -6,6 +6,7 @@ import { etiketle } from '@/lib/sabitler';
 import { t, tBas, type Sozluk } from '@/lib/dil/terimler';
 import OtProfili from './OtProfili';
 import type { OtProfili as OtProfilKaydi } from './mantik';
+import { olculenYazi } from '@/lib/alan/oznitelik';
 
 /* ═══════════════════════════════════════════════════════════════════════
    TESİS 360 — B · ENERGY INTELLIGENCE
@@ -27,7 +28,8 @@ import type { OtProfili as OtProfilKaydi } from './mantik';
    ── PROTOTİPTEN AYRILAN NOKTALAR VE NEDENLERİ ─────────────────────────
    1 · "ANLIK ÜRETİM" ve "KULLANILABİLİRLİK" ölçüleri prototipte vardı;
        ŞEMADA YOK ve gerçek üretim sistemine BAĞLANMADIK. Uydurulmuş bir
-       "148,3 MW" ekranın en inandırıcı yalanı olurdu. Yerlerine gerçek
+       uydurulmuş bir güç sayısı ekranın en inandırıcı yalanı olurdu.
+       Yerlerine gerçek
        alanlar kondu: kayıtlı varlık ve ünite sayısı.
    2 · Prototipin "KATMANLI DURUM" satırları (YÖNETİŞİM · BT · OT ·
        FİZİKSEL · TEDARİK) `Madde.alanAdi`ya benziyor ama o alan
@@ -58,7 +60,8 @@ export type ZincirDuragi = {
 };
 
 export type Birim = {
-  id: string; kod: string; ad: string; gucMw: number | null; durum: string;
+  id: string; kod: string; ad: string;
+  guc: number | null; gucBirim: string | null; durum: string;
   sistemSayisi: number; varlikSayisi: number;
 };
 
@@ -70,7 +73,9 @@ export type AcikBulgu = {
 export type Plant360Veri = {
   id: string; kod: string; ad: string;
   tipKod: string | null; tipAdi: string; tuzelKisi: string | null;
-  konum: string | null; gucMw: number | null; gorselAnahtari: string | null;
+  konum: string | null;
+  guc: number | null; gucBirim: string | null;
+  gorselAnahtari: string | null;
   kritiklik: string | null; uniteSayisi: number | null;
   /** OT mimari profili — null: kayıt hiç açılmamış (her alan tanımsız) */
   profil: OtProfilKaydi | null;
@@ -154,7 +159,9 @@ export default function Plant360({ veri, tesisler, sozluk }: {
         {/* Prototipte beş ölçü vardı; ikisi (anlık üretim, kullanılabilirlik)
             gerçek üretim sistemine bağlanmadığı için UYDURULMADI. */}
         <div className="olcuolar">
-          <Olcu etiket="Kurulu güç" deger={veri.gucMw ?? '—'} birim="MWe" />
+          {/* BİRİM VERİDEN: `Olcu`nun `birim` desteği duruyor ama değeri
+              artık satırdan geliyor; ekran birim SEÇMEZ (§0.5). */}
+          <Olcu etiket="Kurulu güç" deger={veri.guc ?? '—'} birim={veri.gucBirim ?? undefined} />
           <Olcu etiket={tBas(sozluk, 'birim')} deger={veri.uniteSayisi ?? 0} />
           <Olcu etiket="Kayıtlı varlık" deger={veri.varlikSayisi} />
           <Olcu etiket="Kritiklik sınıfı"
@@ -299,7 +306,9 @@ export default function Plant360({ veri, tesisler, sozluk }: {
               <span className="kod">{u.kod}</span>
               <span className="ad">
                 <span className="baslik">{u.ad}</span>
-                <span className="mono guc">{u.gucMw ?? '—'} MW</span>
+                <span className="mono guc">
+                  {olculenYazi({ deger: u.guc, birim: u.gucBirim }) ?? '—'}
+                </span>
               </span>
               <span className="mono kayit">
                 {u.sistemSayisi} sistem · {u.varlikSayisi} varlık

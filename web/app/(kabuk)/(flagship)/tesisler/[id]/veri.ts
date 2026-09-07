@@ -6,7 +6,9 @@ import { kapsamda, modulKapisi } from '@/app/kapsam';
 import { uyumOzeti, gecikmisMi, gecenGun } from '@/lib/sabitler';
 import type { Plant360Veri, TesisOzeti } from './Plant360';
 import type { OtProfili } from './mantik';
-import { KURULU_GUC, sayisalOzellik } from '@/lib/alan/oznitelik';
+import {
+  KURULU_GUC, birimliOzellik, olculenYazi,
+} from '@/lib/alan/oznitelik';
 import type { Sozluk } from '@/lib/dil/terimler';
 import { sektorSozlugu } from '@/lib/dil/sozlukOku';
 
@@ -242,7 +244,8 @@ export async function tesis360Verisi(
       tipAdi: tesis.tip?.ad ?? 'Tesis',
       tuzelKisi: tesis.tuzelKisi?.ad ?? null,
       konum: tesis.konum,
-      gucMw: sayisalOzellik(tesis.ozellikler, KURULU_GUC),
+      ...((o) => ({ guc: o.deger, gucBirim: o.birim }))(
+        birimliOzellik(tesis.ozellikler, KURULU_GUC)),
       gorselAnahtari: tesis.gorselAnahtari,
       kritiklik: tesis.profil?.kritiklikSinifi ?? null,
       profil: profilSerisi(tesis.profil),
@@ -273,7 +276,9 @@ export async function tesis360Verisi(
       zincir,
       birimler: birimListesi.map((u) => ({
         id: u.id, kod: u.kod, ad: u.ad,
-        gucMw: sayisalOzellik(u.ozellikler, KURULU_GUC), durum: u.durum,
+        ...((o) => ({ guc: o.deger, gucBirim: o.birim }))(
+          birimliOzellik(u.ozellikler, KURULU_GUC)),
+        durum: u.durum,
         sistemSayisi: u._count.sistemler, varlikSayisi: u._count.varliklar,
       })),
       sistemSayisi: sistemler.length,
@@ -311,8 +316,9 @@ export async function tesis360Verisi(
     sozluk,
     tesisler: tumTesisler.map((x) => ({
       id: x.id, kod: x.kod, ad: x.ad,
-      /* Ölçülmemiş güç "—" gösterir, 0 değil (bilinmeyen ≠ sıfır). */
-      alt: ((g) => (g === null ? '—' : `${g} MWe`))(sayisalOzellik(x.ozellikler, KURULU_GUC)),
+      /* Ölçülmemiş güç "—" gösterir, 0 değil (bilinmeyen ≠ sıfır).
+         BİRİM satırdan gelir; ekran birim seçmez (§0.5). */
+      alt: olculenYazi(birimliOzellik(x.ozellikler, KURULU_GUC)) ?? '—',
       tip: x.tip?.ad ?? 'Diğer',
       gorselAnahtari: x.gorselAnahtari,
     })),

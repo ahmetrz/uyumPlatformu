@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { copyFileSync, mkdtempSync, readdirSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import { KURULU_GUC } from '../lib/alan/oznitelik';
 
 // TEST_DB importlardan ÖNCE: gerçek dev.db'ye dokunulmaz (tests/sahte/db.ts kuralı).
 const dizin = mkdtempSync(path.join(tmpdir(), 'uyum-p1-'));
@@ -127,10 +128,10 @@ describe('P1 · öznitelik göçü', () => {
 
   it('uygulama veritabanında ölçülmemiş nitelik SATIRSIZ durur [URN-ALN-001]', async () => {
     /* Sentetik test göç betiğini ölçüyor; bu test yürürlükteki veriyi
-       ölçüyor: `kuruluGucMw` satırlarının hiçbiri boş değer taşımamalı.
+       ölçüyor: kurulu güç satırlarının hiçbiri boş değer taşımamalı.
        Satır varsa ölçüm var demektir — "ölçtük ama değeri yok" diye bir
        satır, ekranda sıfırdan ayırt edilemez. */
-    const satirlar = await db.tesisOzellik.findMany({ where: { anahtar: 'kuruluGucMw' } });
+    const satirlar = await db.tesisOzellik.findMany({ where: { anahtar: KURULU_GUC } });
     expect(satirlar.length, 'kurulu güç özniteliği kalmamış — test bir şey ölçmüyor')
       .toBeGreaterThan(0);
     expect(satirlar.filter((o) => o.sayisalDeger === null).map((o) => o.tesisId),

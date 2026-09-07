@@ -37,7 +37,7 @@ export type OzellikSatiri = {
 };
 
 /** GEÇİCİ — Aşama D/E'de sözlük katmanına devredilecek. */
-export const KURULU_GUC = 'kuruluGucMw';
+export const KURULU_GUC = 'kuruluGuc';
 
 /** Sayısal öznitelik; satır yoksa ya da sayısal değilse `null` (ÖLÇÜLMEDİ). */
 export function sayisalOzellik(
@@ -93,27 +93,67 @@ export function metinOzellik(
   return o?.metinDeger ?? null;
 }
 
-/** Bir öznitelik listesinin sayısal toplamı; ölçülmemişler ATLANIR.
-    Toplam, ölçülmüş olanların toplamıdır — eksikler sıfır sayılmaz.
-    `olculen` kaç kayıttan geldiğini söyler ki ekran "17 tesisin 16'sı"
-    diyebilsin. */
+export type BirimliToplam = {
+  /** Ölçülmüşlerin toplamı; `null` = hiç ölçüm yok YA DA birim karışık. */
+  toplam: number | null;
+  /** Toplamın birimi — satırlardan gelir. */
+  birim: string | null;
+  /** Ölçülen satırlar tek birimde değil (ya da birimsiz var). */
+  karisikBirim: boolean;
+  olculen: number;
+  toplamKayit: number;
+};
+
+/** Birimli değerlerin toplamı — FARKLI BİRİMLER TOPLANMAZ.
+
+    ── NİÇİN BÖYLE ───────────────────────────────────────────────────────
+    Ölçülmemişler atlanır; toplam ölçülmüş olanların toplamıdır ve
+    eksikler sıfır sayılmaz (`olculen` kaç kayıttan geldiğini söyler ki
+    ekran "17 tesisin 16'sı" diyebilsin).
+
+    Birim ise sektöre göre değişir (elektrik gücü · debi · kütle akışı).
+    Önceki hâl
+    birimi hiç sormadan topluyordu; iki sektörlü bir kiracıda bu, anlamsız
+    bir sayıyı anlamlı gibi gösterirdi. Ekranların bir kısmı bu tuzağı
+    kendi içinde çözmüştü (`/portfoy` satır birimlerini karşılaştırıyordu)
+    ama toplamı yine de üretiyor, sadece BİRİMİ gizliyordu — yanlış sayı
+    ekranda kalıyordu. Karar tek yere taşındı: karışıksa SAYI DA YOK.
+
+    Birimsiz ölçüm (birimi kaydedilmemiş satır) da karışık sayılır: onu
+    birimli bir toplama katmak, o satırın birimini UYDURMAK olurdu. */
+export function birimliToplam(
+  degerler: readonly { deger: number | null; birim: string | null }[],
+): BirimliToplam {
+  let toplam = 0;
+  let olculen = 0;
+  const birimler = new Set<string | null>();
+  for (const d of degerler) {
+    if (d.deger !== null) { toplam += d.deger; olculen += 1; birimler.add(d.birim); }
+  }
+  const tek = birimler.size === 1 ? [...birimler][0] : null;
+  const karisik = olculen > 0 && (birimler.size > 1 || tek === null);
+  return {
+    toplam: olculen === 0 || karisik ? null : toplam,
+    birim: karisik ? null : tek,
+    karisikBirim: karisik,
+    olculen,
+    toplamKayit: degerler.length,
+  };
+}
+
+/** `birimliToplam`ın öznitelik satırları üzerinden hâli. */
 export function ozellikToplami(
   kayitlar: readonly { ozellikler: readonly OzellikSatiri[] }[],
   anahtar: string,
-): { toplam: number; olculen: number; toplamKayit: number } {
-  let toplam = 0;
-  let olculen = 0;
-  for (const k of kayitlar) {
-    const d = sayisalOzellik(k.ozellikler, anahtar);
-    if (d !== null) { toplam += d; olculen += 1; }
-  }
-  return { toplam, olculen, toplamKayit: kayitlar.length };
+): BirimliToplam {
+  return birimliToplam(kayitlar.map((k) => birimliOzellik(k.ozellikler, anahtar)));
 }
 
 /** Sayısal özniteliğe göre AZALAN, eşitlikte ada göre artan sıralama.
 
     Kolon devrinde bunu veritabanı yapıyordu:
-    `orderBy: [{ kuruluGucMw: 'desc' }, { ad: 'asc' }]`. Öznitelik bir
+    kurulu güç bir KOLONDU ve `orderBy` doğrudan ona bakabiliyordu.
+    Öznitelik bir
     ilişki olduğu için `orderBy` ona bakamıyor; sıra JS'e taşındı ve
     SQLite'ın davranışı BİREBİR korundu: `DESC` NULL'ları sona koyar,
     burada da ölçülmemiş olan sona iner. Ölçülmemişi başa almak, onu

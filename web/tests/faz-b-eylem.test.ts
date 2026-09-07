@@ -246,7 +246,7 @@ describe('OT-05 · adım–varlık bağı üç durumlu değerleri KORUR', () => 
 describe('OT-08 · sayı yazan değerlendirme GEREKÇE ister', () => {
   it('gerekçesiz kayıp sayısı reddedilir', async () => {
     const s = await etkiDegerlendirmesiKaydet({
-      varlikId: varlikA, uretimKaybiMw: 12.5, gerekce: 'kısa',
+      varlikId: varlikA, uretimKaybi: 12.5, gerekce: 'kısa',
     });
     expect(s.ok).toBe(false);
     expect(hataMetni(s)).toMatch(/gerekçe/i);
@@ -254,7 +254,7 @@ describe('OT-08 · sayı yazan değerlendirme GEREKÇE ister', () => {
 
   it('negatif kayıp sayısı reddedilir', async () => {
     const s = await etkiDegerlendirmesiKaydet({
-      varlikId: varlikA, uretimKaybiMw: -3,
+      varlikId: varlikA, uretimKaybi: -3,
       gerekce: 'Negatif değer denemesi yapılıyor burada.',
     });
     expect(s.ok).toBe(false);
@@ -262,12 +262,12 @@ describe('OT-08 · sayı yazan değerlendirme GEREKÇE ister', () => {
 
   it('SIFIR geçerli bir ölçümdür ve hesaplanmamışlıkla karışmaz', async () => {
     const s = await etkiDegerlendirmesiKaydet({
-      varlikId: varlikA, uretimKaybiMw: 0, kayipTipi: 'yok',
+      varlikId: varlikA, uretimKaybi: 0, kayipTipi: 'yok',
       gerekce: 'Cihaz yedekli; durması üretimi etkilemiyor (test #1).',
     });
     expect(hataMetni(s)).toBe('');
     const e = await db.etkiDegerlendirmesi.findUnique({ where: { varlikId: varlikA } });
-    expect(e?.uretimKaybiMw).toBe(0);
+    expect(e?.uretimKaybi).toBe(0);
     expect(e?.kayipTipi).toBe('yok');
   });
 
@@ -297,7 +297,7 @@ describe('OT-08 · sayı yazan değerlendirme GEREKÇE ister', () => {
 describe('P1 · etki değerlendirmesi birimi [URN-ALN-004]', () => {
   it('birim kayda yazılır ve geri okunur', async () => {
     const s = await etkiDegerlendirmesiKaydet({
-      varlikId: varlikA, uretimKaybiMw: 12.5, kayipBirim: 'm³/gün',
+      varlikId: varlikA, uretimKaybi: 12.5, kayipBirim: 'm³/gün',
       gerekce: 'su kiracısında kayıp debiyle ölçülür',
     });
     expect(s.ok).toBe(true);
@@ -310,7 +310,7 @@ describe('P1 · etki değerlendirmesi birimi [URN-ALN-004]', () => {
        sonra "neyin 3'ü?" sorusunu doğurur ve kaçınılan belirsizlik
        ekrandan İZE taşınmış olurdu. Eksik olan şey görünür olmalı. */
     await etkiDegerlendirmesiKaydet({
-      varlikId: varlikA, uretimKaybiMw: 3, kayipBirim: null,
+      varlikId: varlikA, uretimKaybi: 3, kayipBirim: null,
       gerekce: 'birim henüz kararlaştırılmadı',
     });
     const iz = await db.aktiviteKaydi.findFirst({
@@ -326,7 +326,7 @@ describe('P1 · etki değerlendirmesi birimi [URN-ALN-004]', () => {
        birimi "MW" saymak, "bilinmeyen ≠ sıfır" kuralının birim
        tarafındaki karşılığını delerdi. */
     const s = await etkiDegerlendirmesiKaydet({
-      varlikId: varlikA, uretimKaybiMw: 3, kayipBirim: null,
+      varlikId: varlikA, uretimKaybi: 3, kayipBirim: null,
       gerekce: 'birim henüz kararlaştırılmadı',
     });
     expect(s.ok).toBe(true);
@@ -337,7 +337,7 @@ describe('P1 · etki değerlendirmesi birimi [URN-ALN-004]', () => {
   it('DENETİM İZİ sayıyı birimiyle yazar', async () => {
     /* "12.5" tek başına altı ay sonra "neyin 12.5'i?" sorusunu doğurur. */
     await etkiDegerlendirmesiKaydet({
-      varlikId: varlikA, uretimKaybiMw: 40, kayipBirim: 'MW',
+      varlikId: varlikA, uretimKaybi: 40, kayipBirim: 'MW',
       gerekce: 'blok tamamen durur, ölçülmüş kapasite',
     });
     const iz = await db.aktiviteKaydi.findFirst({

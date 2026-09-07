@@ -118,11 +118,11 @@ beforeAll(async () => {
   const tip = await db.tesisTipi.create({ data: { kod: `${ONEK}-TIP`, ad: 'Kapsam tipi' } });
   const tesisA = await db.tesis.create({
     data: { kod: `${ONEK}-A`, ad: 'Kapsam Santral A', tipId: tip.id,
-      ozellikler: { create: [{ anahtar: 'kuruluGucMw', sayisalDeger: 11, birim: 'MW' }] } },
+      ozellikler: { create: [{ anahtar: 'kuruluGuc', sayisalDeger: 11, birim: 'MW' }] } },
   });
   const tesisB = await db.tesis.create({
     data: { kod: `${ONEK}-B`, ad: 'Kapsam Santral B', tipId: tip.id,
-      ozellikler: { create: [{ anahtar: 'kuruluGucMw', sayisalDeger: 22, birim: 'MW' }] } },
+      ozellikler: { create: [{ anahtar: 'kuruluGuc', sayisalDeger: 22, birim: 'MW' }] } },
   });
   kimlik.tesisA = tesisA.id;
   kimlik.tesisB = tesisB.id;
@@ -659,8 +659,8 @@ describe('/portfoy · kapsam', () => {
   it('toplam kurulu güç de daraltılmış satırlardan toplanıyor', async () => {
     const a = await portfoyEkranVerisi(kA);
     const g = await portfoyEkranVerisi(kGlobal);
-    expect(a.toplamGucMw).toBe(11);
-    expect(g.toplamGucMw).toBeGreaterThan(a.toplamGucMw);
+    expect(a.toplamGuc.toplam).toBe(11);
+    expect(g.toplamGuc.toplam!).toBeGreaterThan(a.toplamGuc.toplam!);
     expect(a.satirlar).toHaveLength(1);
   });
 
@@ -682,7 +682,9 @@ describe('/ (yönetici özeti) · kapsam', () => {
     const g = await genelEkranVerisi(kGlobal);
     expect(a.ozet.tesisSayisi).toBe(1);
     expect(g.ozet.tesisSayisi).toBeGreaterThan(1);
-    expect(a.ozet.toplamGucMw).toBe(11);
+    /* Güç artık BİRİMİYLE yazılmış bir dize; birim veriden gelir ve
+       iddia sayıya kurulur, birim sözcüğüne değil. */
+    expect(a.ozet.gucYazi).toMatch(/^11(\s|$)/);
     expect(a.ozet.kritikRisk).toBeLessThan(g.ozet.kritikRisk);
     expect(a.toplamKayit).toBeLessThanOrEqual(g.toplamKayit);
   });

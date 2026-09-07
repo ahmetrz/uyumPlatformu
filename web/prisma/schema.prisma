@@ -3445,12 +3445,14 @@ model EtkiDegerlendirmesi {
   id              String   @id @default(cuid())
   varlikId        String   @unique
   /// Kaybedilen üretim miktarı. null = HESAPLANMADI, sıfır değil.
-  /// Kolon adındaki `Mw` TARİHSELDİR; birim artık `kayipBirim`de durur ve
-  /// ekranda oradan yazılır (adı değiştirmek 6 dosya + denetim izi
-  /// dokunuşu ister — ayrı bir göç).
-  uretimKaybiMw   Float?
+  /// Kolon adı SEKTÖRSÜZDÜR: miktarın birimi `kayipBirim`de durur.
+  /// (Eski ad `uretimKaybiMw` idi; `Mw` bir enerji birimidir ve çekirdek
+  /// şemaya sektör birimi gömülemez — §0.5.)
+  uretimKaybi     Float?
   /// Kaybın BİRİMİ — kayıtla birlikte saklanır, ekrana sabit yazılmaz.
-  /// Sektöre göre değişir (MW · m³/gün · ton/saat); çekirdek bilmez.
+  /// Sektöre göre değişir (elektrik gücü · debi · kütle akışı); çekirdek
+  /// bilmez. Çekirdek YORUMU bile bir sektörün birimini örnek diye
+  /// yazmaz — ölçülen NİCELİK yazılır, o sektörsüzdür.
   /// null = birim kaydedilmemiş; ekran sayıyı çıplak yazar, UYDURMAZ.
   /// Değerlendirmenin kendi birimini taşıması denetim açısından da
   /// doğrudur (R0-9): kayıt altı ay sonra kendi başına okunabilir,

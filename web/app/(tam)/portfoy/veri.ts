@@ -5,7 +5,9 @@ import type { AktifKullanici } from '@/lib/auth';
 import { kapsamDaraltildi, kapsamKosulu, modulKapisi } from '@/app/kapsam';
 import { uyumOzeti } from '@/lib/sabitler';
 import type { PortfoyEndeksi, PortfoySatiri } from './mantik';
-import { KURULU_GUC, birimliOzellik, ozelligeGoreSirala } from '@/lib/alan/oznitelik';
+import {
+  KURULU_GUC, birimliOzellik, birimliToplam, ozelligeGoreSirala,
+} from '@/lib/alan/oznitelik';
 
 /* F2 · Enerji Portföyü — SUNUCU VERİSİ.
 
@@ -38,7 +40,9 @@ import { KURULU_GUC, birimliOzellik, ozelligeGoreSirala } from '@/lib/alan/oznit
 
 export type EkranVerisi = {
   satirlar: PortfoySatiri[];
-  toplamGucMw: number;
+  /** Toplam kurulu güç ve birimi; `toplam` null = ölçülmedi ya da
+      birimler karışık (bkz. `birimliToplam`). */
+  toplamGuc: { toplam: number | null; birim: string | null; karisikBirim: boolean };
   /** Portföy geneli uyum endeksi — kök ekranla AYNI formül (`uyumOzeti`),
       aynı kapsam. Değerlendirilmiş kontrol yoksa `yuzde: null`. */
   endeks: PortfoyEndeksi;
@@ -128,8 +132,12 @@ export async function portfoyEkranVerisi(k: AktifKullanici): Promise<EkranVerisi
 
   /* Toplam kurulu güç GÖRÜNEN satırlardan toplanır: kapsam dışı tesisin
      gücü toplama girseydi, satırı gizlenmiş bir tesisin varlığı tek bir
-     sayıdan okunabilirdi. */
-  const toplamGuc = satirlar.reduce((a, s) => a + (s.gucMw ?? 0), 0);
+     sayıdan okunabilirdi.
+
+     Toplama kararı `birimliToplam`ın: farklı birimler TOPLANMAZ. Bu ekran
+     eskiden toplamı yine üretip yalnız birimi gizliyordu — sayı ekranda
+     kalıyordu ve karışık bir toplam tek birimlik gibi okunabiliyordu. */
+  const toplamGuc = birimliToplam(satirlar.map((s) => ({ deger: s.gucMw, birim: s.gucBirim })));
 
   /* Portföy endeksi tesis yüzdelerinin ORTALAMASI değildir: 900 kontrollü
      bir tesisle 40 kontrollü bir tesisi eşit ağırlıkta toplamak yanlış
@@ -142,7 +150,11 @@ export async function portfoyEkranVerisi(k: AktifKullanici): Promise<EkranVerisi
 
   return {
     satirlar,
-    toplamGucMw: Math.round(toplamGuc * 10) / 10,
+    toplamGuc: {
+      toplam: toplamGuc.toplam === null ? null : Math.round(toplamGuc.toplam * 10) / 10,
+      birim: toplamGuc.birim,
+      karisikBirim: toplamGuc.karisikBirim,
+    },
     endeks: {
       yuzde: genel.yuzde,
       bilinmeyenOran: genel.bilinmeyenOran,

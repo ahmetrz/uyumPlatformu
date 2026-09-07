@@ -72,7 +72,10 @@ const semalar = (tesis: string) => ({
   }),
   operasyonelBirim: z.object({
     tesisId: bosluksuz(tesis), kod: bosluksuz('Kod'), ad: bosluksuz('Ad'),
-    kuruluGucMw: sayiYaNull.optional(),
+    kuruluGuc: sayiYaNull.optional(),
+    /* Birim GİRDİDEN gelir, koda gömülü değil (§0.5). Boşsa satır
+       birimsiz yazılır — bir birim VARSAYILMAZ. */
+    kuruluGucBirimi: z.preprocess(bosaNull, z.string().trim().max(16).nullable().optional()),
     durum: z.enum(['aktif', 'bakim', 'devre_disi']).optional(),
   }),
   varlikTuru: z.object({
@@ -181,8 +184,8 @@ export async function katalogKaydet(girdi: {
           : (await db.operasyonelBirim.create({ data: { tesisId: d.tesisId, kod: d.kod, ...data } })).id;
         /* P1: birimin gücü de öznitelik satırı. Boş bırakılan güç satırı
            siler; `null` yazıp "ölçtük, sonucu yok" demez. */
-        await sayisalOzellikYaz({ tip: 'birim', id }, KURULU_GUC, d.kuruluGucMw ?? null,
-          { birim: 'MW' });
+        await sayisalOzellikYaz({ tip: 'birim', id }, KURULU_GUC, d.kuruluGuc ?? null,
+          { birim: d.kuruluGucBirimi ?? null });
         break;
       }
       case 'varlikTuru': {

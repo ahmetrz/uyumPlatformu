@@ -247,6 +247,8 @@ export type Tanim = {
   /* katalog alanları — çekmece formları bunları doldurur */
   tipId: string | null;
   guc: number | null;
+  /** Gücün BİRİMİ — satırdan gelir, formda düzenlenir, ekrana gömülmez. */
+  gucBirimi: string | null;
   konum: string | null;
   kapanisNedeni: string | null;
   kapanisTarihi: string | null;

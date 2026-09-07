@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { heroGorseli, kucukGorsel, gorselAlt } from '@/lib/gorsel';
 import { tipAdi, tipRengi } from '@/components/kabuk/tip';
 import { etiketle } from '@/lib/sabitler';
-import { olculenYazi } from '@/lib/alan/oznitelik';
+import { birimliToplam, olculenYazi } from '@/lib/alan/oznitelik';
 import {
   HEPSI, SIRALAMALAR, enZayif, olcuYazisi, sirala, suz, tuzelKisiler,
   type PortfoyEndeksi, type PortfoySatiri, type SiralamaAnahtari,
@@ -37,8 +37,9 @@ export type { PortfoySatiri } from './mantik';
    yalnız durumu tutar ve sonucu çizer. En zayıf tesis SÖZCÜKLE
    işaretlenir ("en zayıf · 4 açık bulgu"), yalnız kenarlık rengiyle değil. */
 
-export default function Portfoy({ satirlar, toplamGucMw, endeks, kapsamli = false }: {
-  satirlar: PortfoySatiri[]; toplamGucMw: number;
+export default function Portfoy({ satirlar, toplamGuc, endeks, kapsamli = false }: {
+  satirlar: PortfoySatiri[];
+  toplamGuc: { toplam: number | null; birim: string | null; karisikBirim: boolean };
   endeks: PortfoyEndeksi;
   kapsamli?: boolean;
 }) {
@@ -69,16 +70,18 @@ export default function Portfoy({ satirlar, toplamGucMw, endeks, kapsamli = fals
      cevaplanır. */
   const zayif = useMemo(() => enZayif(gorunen, anahtar), [gorunen, anahtar]);
   const secili = gorunen.find((s) => s.id === seciliId) ?? gorunen[0] ?? null;
-  const gorunenGuc = Math.round(gorunen.reduce((a, s) => a + (s.gucMw ?? 0), 0) * 10) / 10;
-  /* TOPLAMIN BİRİMİ satırlardan gelir, koda gömülmez. Satırlar farklı
-     birimler taşıyorsa toplam ANLAMSIZDIR ve birim yazılmaz — sayıyı
-     tek bir birimle etiketlemek karışık bir toplamı tek birimmiş gibi
-     gösterirdi. Bugün veride tek birim var (43 satırın 43'ünde dolu). */
-  const birimler = new Set(satirlar.map((s) => s.gucBirim).filter(Boolean));
-  const tekBirim = birimler.size === 1 ? [...birimler][0]! : null;
-  const yaz = (x: number) => olculenYazi({ deger: x, birim: tekBirim });
-  const toplamGucYazi = yaz(toplamGucMw);
-  const gorunenGucYazi = yaz(gorunenGuc);
+  /* TOPLAMIN BİRİMİ satırlardan gelir, koda gömülmez; farklı birimler
+     TOPLANMAZ (`birimliToplam`). Karışıkta sayı da yazılmaz — karışık
+     bir toplamı tek birimle etiketlemek yanlış sayıyı doğru gösterirdi.
+     Süzgeçten geçen alt küme AYRI hesaplanır: süzgeç tek birime indirmiş
+     olabilir ve o zaman görünen toplam anlamlıdır. */
+  const gorunenToplam = useMemo(
+    () => birimliToplam(gorunen.map((s) => ({ deger: s.gucMw, birim: s.gucBirim }))),
+    [gorunen]);
+  const yaz = (x: { toplam: number | null; birim: string | null }) => olculenYazi({
+    deger: x.toplam === null ? null : Math.round(x.toplam * 10) / 10, birim: x.birim });
+  const toplamGucYazi = yaz(toplamGuc);
+  const gorunenGucYazi = yaz(gorunenToplam);
   const suzgecli = tip !== HEPSI || tuzel !== HEPSI;
   const siralamaAdi = SIRALAMALAR.find((s) => s.anahtar === anahtar)?.ad ?? '';
 

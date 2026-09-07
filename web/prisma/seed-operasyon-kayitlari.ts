@@ -21,6 +21,7 @@
    dört olay, üç istisna. Daha fazlası ekranı gürültüye boğar. */
 
 import type { PrismaClient } from '../lib/prisma-client/client';
+import { KURULU_GUC } from '../lib/alan/oznitelik';
 
 const G = 86_400_000;
 
@@ -67,7 +68,7 @@ export async function operasyonKayitlari(db: PrismaClient) {
       where: { id: tesisId },
       select: {
         devreyeGiris: true,
-        ozellikler: { where: { anahtar: 'kuruluGucMw' }, select: { sayisalDeger: true } },
+        ozellikler: { where: { anahtar: KURULU_GUC }, select: { sayisalDeger: true } },
       } });
     /* Toplam güç ünitelere eşit paylaştırılır; tesisin gücü ÖLÇÜLMEMİŞSE
        (öznitelik satırı yok) birim de satır almaz — pay `null` kalır. */
@@ -83,7 +84,7 @@ export async function operasyonKayitlari(db: PrismaClient) {
         data: {
           tesisId, kod, ad: adlar[i],
           ozellikler: pay === null ? undefined : { create: [{
-            anahtar: 'kuruluGucMw', sayisalDeger: pay, birim: 'MW', kaynak: 'tohum',
+            anahtar: KURULU_GUC, sayisalDeger: pay, birim: 'MW', kaynak: 'tohum',
           }] },
           devreyeGiris: tesis.devreyeGiris,
           /* Bir ünite planlı bakımda: "hepsi aktif" bir portföy gerçekçi

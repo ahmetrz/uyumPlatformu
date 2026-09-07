@@ -5,7 +5,7 @@ import type { AktifKullanici } from '@/lib/auth';
 import { tumAyarlar } from '@/lib/yapilandirma/oku';
 import { GORSEL_ANAHTARLARI } from '@/lib/gorsel';
 import { HEDEF_SOZU, matrisKusurlari } from '@/lib/uyum/eskalasyon';
-import { KURULU_GUC, sayisalOzellik } from '@/lib/alan/oznitelik';
+import { KURULU_GUC, birimliOzellik, olculenYazi } from '@/lib/alan/oznitelik';
 import { kapsamAnahtari, kapsamSozlugu } from '@/lib/dil/sozlukOku';
 import { izinliTesisIdleri } from '@/lib/erisim';
 import { tBas } from '@/lib/dil/terimler';
@@ -77,11 +77,13 @@ export async function konsolVerisi(kullanici: AktifKullanici, simdi: number): Pr
       id: u.id, kod: `${u.tesis.kod}/${u.kod}`, ad: u.ad,
       durum: u.durum === 'devre_disi' ? 'pl' : u.durum === 'bakim' ? 'md' : 'ok',
       pasif: u.durum === 'devre_disi', bagli: u._count.varliklar,
-      alt: ((g) => `${u.tesis.ad} · ${g !== null ? `${g} MW` : 'güç bilinmiyor'} · ${u._count.varliklar} varlık`)(sayisalOzellik(u.ozellikler, KURULU_GUC)),
-      degerler: {
+      /* Güç BİRİMİYLE satırdan gelir; ölçülmemişte sayı uydurulmaz. */
+      alt: ((y) => `${u.tesis.ad} · ${y ?? 'güç bilinmiyor'} · ${u._count.varliklar} varlık`)(
+        olculenYazi(birimliOzellik(u.ozellikler, KURULU_GUC))),
+      degerler: ((o) => ({
         tesisId: u.tesisId, kod: u.kod, ad: u.ad,
-        kuruluGucMw: sayisalOzellik(u.ozellikler, KURULU_GUC) ?? '', durum: u.durum,
-      } })),
+        kuruluGuc: o.deger ?? '', kuruluGucBirimi: o.birim ?? '', durum: u.durum,
+      }))(birimliOzellik(u.ozellikler, KURULU_GUC)) })),
     varlikTuru: turler.map((v) => ({
       id: v.id, kod: v.kod, ad: v.ad, durum: v.aktif ? 'ok' : 'pl', pasif: !v.aktif, bagli: v._count.varliklar,
       alt: `${v.sinif} · ${v._count.varliklar} varlık`,

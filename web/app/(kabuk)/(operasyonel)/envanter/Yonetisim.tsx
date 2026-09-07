@@ -201,7 +201,7 @@ function EtkiBlogu({ v }: { v: V }) {
   const [acik, setAcik] = useState(false);
   const e = v.yonetisim.etki;
   const [f, setF] = useState<EtkiFormu>({
-    mw: e?.uretimKaybiMw === null || e === null ? '' : String(e.uretimKaybiMw),
+    mw: e?.uretimKaybi === null || e === null ? '' : String(e.uretimKaybi),
     birim: e?.kayipBirim ?? '',
     kayipTipi: e?.kayipTipi ?? 'bilinmiyor',
     rto: e?.rtoSaat === null || e === null ? '' : String(e.rtoSaat),
@@ -243,13 +243,13 @@ function EtkiBlogu({ v }: { v: V }) {
           <dl className="ciftler">
             <div>
               <dt>Üretim kaybı</dt>
-              <dd className={`mono${e.uretimKaybiMw === null ? ' unk' : ''}`}>
-                {e.uretimKaybiMw === null
+              <dd className={`mono${e.uretimKaybi === null ? ' unk' : ''}`}>
+                {e.uretimKaybi === null
                   ? 'hesaplanmadı'
                   /* Birim KAYITTAN gelir; sabit yazmak çekirdeğe sektör
                      birimi gömerdi. Birimsiz kayıtta sayı çıplak yazılır,
                      bir birim varsayılmaz. */
-                  : [e.uretimKaybiMw.toLocaleString('tr'), e.kayipBirim]
+                  : [e.uretimKaybi.toLocaleString('tr'), e.kayipBirim]
                     .filter(Boolean).join(' ')}
               </dd>
             </div>
@@ -366,7 +366,7 @@ function EtkiBlogu({ v }: { v: V }) {
                 onClick={() => calistir(
                   () => etkiDegerlendirmesiKaydet({
                     varlikId: v.id,
-                    uretimKaybiMw: mwSayi,
+                    uretimKaybi: mwSayi,
                     kayipBirim: f.birim.trim() === '' ? null : f.birim.trim(),
                     kayipTipi: f.kayipTipi,
                     rtoSaat: f.rto.trim() === '' ? null : Number(f.rto),

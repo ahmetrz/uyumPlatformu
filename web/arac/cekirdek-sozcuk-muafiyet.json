@@ -68,6 +68,31 @@
         "Birim",
         "Birim en fazla 16 karakter"
       ]
+    },
+    "app/(kabuk)/(operasyonel)/yonetim-tezgahi/Formlar.tsx": {
+      "sebep": "YANLIŞ POZİTİF · buradaki \"Birim\" bir ÖLÇÜ BİRİMİdir (MW · m³/gün · ton/saat), `birim` sözlük anahtarı (üretim ünitesi / arıtma hattı) DEĞİL. Ayrım aynı sınıfın dördüncü kaydı: `envanter/Yonetisim.tsx` (ekran etiketi), `eylemler2/varlikYonetisim.ts` (sunucu şeması), burası (kurulu güç birimi alanı). Dosyanın geri kalanı taranmaya devam ediyor.",
+      "dizeler": [
+        "Birim"
+      ]
+    },
+    "lib/eylemler.ts": {
+      "sebep": "YANLIŞ POZİTİF · buradaki \"Birim\" bir ÖLÇÜ BİRİMİdir (MW · m³/gün · ton/saat), `birim` sözlük anahtarı (üretim ünitesi / arıtma hattı) DEĞİL. Ayrım aynı sınıfın dördüncü kaydı: `envanter/Yonetisim.tsx` (ekran etiketi), `eylemler2/varlikYonetisim.ts` (sunucu şeması), burası (kurulu güç birimi alanı). Dosyanın geri kalanı taranmaya devam ediyor.",
+      "dizeler": [
+        "Birim en fazla 16 karakter"
+      ]
+    },
+    "lib/yonetim/moduller.ts": {
+      "sebep": "YANLIŞ POZİTİF · buradaki \"Birim\" bir ÖLÇÜ BİRİMİdir (MW · m³/gün · ton/saat), `birim` sözlük anahtarı (üretim ünitesi / arıtma hattı) DEĞİL. Ayrım aynı sınıfın dördüncü kaydı: `envanter/Yonetisim.tsx` (ekran etiketi), `eylemler2/varlikYonetisim.ts` (sunucu şeması), burası (kurulu güç birimi alanı). Dosyanın geri kalanı taranmaya devam ediyor.",
+      "dizeler": [
+        "Birim",
+        "ölçünün birimi — boşsa sayı birimsiz yazılır"
+      ]
+    },
+    "app/(kabuk)/(flagship)/Genel.tsx": {
+      "sebep": "YANLIŞ POZİTİF · buradaki \"Birim\" bir ÖLÇÜ BİRİMİdir (MW · m³/gün · ton/saat), `birim` sözlük anahtarı (üretim ünitesi / arıtma hattı) DEĞİL. Ayrım aynı sınıfın dördüncü kaydı: `envanter/Yonetisim.tsx` (ekran etiketi), `eylemler2/varlikYonetisim.ts` (sunucu şeması), burası (kurulu güç birimi alanı). Dosyanın geri kalanı taranmaya devam ediyor. Buradaki cümle güç TOPLAMININ neden yazılmadığını söylüyor: ölçü birimleri farklı.",
+      "dizeler": [
+        "birimler karışık, toplanmadı"
+      ]
     }
   }
 }

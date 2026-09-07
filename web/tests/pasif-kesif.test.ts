@@ -1,3 +1,5 @@
+import { sozlukKur } from '@/lib/dil/terimler';
+import { ENERJI_SOZLUGU, SU_SOZLUGU } from '@/prisma/sozlukler';
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
@@ -10,7 +12,7 @@ import {
 } from '@/lib/varlik/pasifKesif';
 import { ANAHTAR_GUCU, TEK_BASINA_ESLESMEZ } from '@/lib/entegrasyon/kesif';
 import {
-  KESIF_DISA_BASLIKLARI, kesifDisaAktarimi, type KesifSatiri,
+  kesifDisaBasliklari, kesifDisaAktarimi, type KesifSatiri,
 } from '@/app/(kabuk)/(operasyonel)/kesif/mantik';
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -253,8 +255,8 @@ describe('Keşif dışa aktarımı', () => {
   it('başlık satırı + kayıt başına bir satır', () => {
     const tablo = kesifDisaAktarimi([ornekSatir(), ornekSatir({ id: 'k2' })], 30);
     expect(tablo).toHaveLength(3);
-    expect(tablo[0]).toEqual([...KESIF_DISA_BASLIKLARI]);
-    expect(tablo[1]).toHaveLength(KESIF_DISA_BASLIKLARI.length);
+    expect(tablo[0]).toEqual(kesifDisaBasliklari(null));
+    expect(tablo[1]).toHaveLength(kesifDisaBasliklari(null).length);
   });
 
   it('grup adı dosyanın İLK sütunudur', () => {
@@ -265,7 +267,7 @@ describe('Keşif dışa aktarımı', () => {
 
   it('"ölçülmedi" dosyaya SIFIR olarak yazılmaz', () => {
     const t = kesifDisaAktarimi([ornekSatir({ guvenSkoru: null })], 30);
-    const i = KESIF_DISA_BASLIKLARI.indexOf('Eşleşme güveni');
+    const i = kesifDisaBasliklari(null).indexOf('Eşleşme güveni');
     expect(t[1]![i]).toBe('ölçülmedi');
     expect(t[1]![i]).not.toBe(0);
   });
@@ -275,7 +277,7 @@ describe('Keşif dışa aktarımı', () => {
       eslesen: { id: 'v1', etiket: 'VAR-1', ad: 'Kontrolör', tesisId: 't1',
         sahipVar: false, sahipAd: null },
     })], 30);
-    const i = KESIF_DISA_BASLIKLARI.indexOf('Sahip');
+    const i = kesifDisaBasliklari(null).indexOf('Sahip');
     expect(t[1]![i]).toBe('SAHİPSİZ');
     expect(t[1]![0]).toBe(KESIF_GRUP_ADI.sahipsiz);
   });
@@ -289,5 +291,23 @@ describe('Keşif dışa aktarımı', () => {
     });
     expect(kesifDisaAktarimi([s], 7)[1]![0]).toBe(KESIF_GRUP_ADI.gorulmuyor);
     expect(kesifDisaAktarimi([s], 90)[1]![0]).toBe(KESIF_GRUP_ADI.envanterde_sahipli);
+  });
+});
+
+/* Başlık sözlüğü izler, kolon sayısı ve sırası değişmez — dosyayı okuyan
+   araç kırılmasın (P1 · raporlar kararı; R0-9 kapsamı DIŞINDA: bu bir
+   görünüm dosyası, saklanan sözleşme artefaktı değil). */
+describe('Keşif dışa aktarımı · başlık sözlükten [URN-ALN-004]', () => {
+  it('yalnız tesis kolonu değişir', () => {
+    const cekirdek = kesifDisaBasliklari(null);
+    const enerji = kesifDisaBasliklari(sozlukKur(ENERJI_SOZLUGU));
+    const su = kesifDisaBasliklari(sozlukKur(SU_SOZLUGU));
+    const i = cekirdek.indexOf('Tesis');
+    expect(i).toBeGreaterThan(-1);
+    expect(enerji[i]).toBe('Santral');
+    expect(su[i]).toBe('Arıtma tesisi');
+    const sabit = (x: string[]) => x.filter((_, n) => n !== i);
+    expect(sabit(enerji)).toEqual(sabit(cekirdek));
+    expect(sabit(su)).toEqual(sabit(cekirdek));
   });
 });

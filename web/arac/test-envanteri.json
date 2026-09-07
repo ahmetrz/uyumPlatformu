@@ -1,7 +1,7 @@
 {
-  "imza": "280607f78cacb8213d325d142792e7be",
+  "imza": "9e26c29877172d5cba5f3a242242334e",
   "dosya": 148,
-  "vaka": 2981,
+  "vaka": 2982,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -397,7 +397,7 @@
       "atlanan": 0
     },
     "tests/pasif-kesif.test.ts": {
-      "vaka": 30,
+      "vaka": 31,
       "atlanan": 0
     },
     "tests/plant360-profil.test.ts": {

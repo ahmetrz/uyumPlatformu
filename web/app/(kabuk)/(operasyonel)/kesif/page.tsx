@@ -48,8 +48,8 @@ export default async function Sayfa() {
     db.kesifKaydi.findMany({
       /* Kapsam daraltması SORGUDA yapılır: kuyruk tavanı, kullanıcının
          göremeyeceği kayıtlarla dolup görebileceklerini dışarıda
-         bırakmasın. Santrali BİLİNMEYEN kayıt (tesisId ve eşleşen varlık
-         yoksa) herkese görünür — henüz bir santrale ait değildir ve
+         bırakmasın. Tesisi BİLİNMEYEN kayıt (tesisId ve eşleşen varlık
+         yoksa) herkese görünür — henüz bir tesise ait değildir ve
          gizlenmesi onu kimsenin incelemeyeceği anlamına gelirdi. */
       where: kesifKapsamKosulu(gorulebilirTesisler),
       orderBy: [{ sonGorulme: 'desc' }],
@@ -83,7 +83,7 @@ export default async function Sayfa() {
   ]);
 
   /* OT-16b · "Kaç gündür görülmüyor" eşiği konsoldan gelir: bir OT
-     santralinde ayda bir açılan bir cihaz ile sürekli çalışan bir sunucu
+     tesisinde ayda bir açılan bir cihaz ile sürekli çalışan bir sunucu
      aynı eşikle ölçülemez. */
   const gorunmezEsikGun = await ayar<number>('kesif.gorunmez_gun');
 
@@ -113,9 +113,9 @@ export default async function Sayfa() {
     const g = normal?.gozlem ?? null;
     const eslesme = normal?.eslesme ?? null;
 
-    /* Kapsam: eşleşmiş kayıt eşleştiği varlığın santraline tabidir;
-       eşleşmemiş kayıt, kaynağın BEYAN ETTİĞİ santrale (kayit.tesisId).
-       İkisi de yoksa santral bilinmiyordur. Filtreleme sorguda yapıldı;
+    /* Kapsam: eşleşmiş kayıt eşleştiği varlığın tesisine tabidir;
+       eşleşmemiş kayıt, kaynağın BEYAN ETTİĞİ tesise (kayit.tesisId).
+       İkisi de yoksa tesis bilinmiyordur. Filtreleme sorguda yapıldı;
        buradaki değer yalnız satırın karar yetkisini belirler. */
     const tesisId = kayit.eslesenVarlik?.tesisId ?? kayit.tesisId;
 

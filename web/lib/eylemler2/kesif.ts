@@ -57,8 +57,8 @@ export async function kesifEslestir(girdi: { kaynak?: string } = {}): Promise<So
        · Bu geçiş CMDB'ye hiçbir şey YAZMAZ (yukarıdaki başlık); yazan tek
          yol `kesifKarariVer` ve o zaten iki aşamalı.
        · Kapsama çekmek ürünü bozardı: `KesifKaydi.tesisId` nullable ve
-         şema "null = santral BİLİNMİYOR" diyor. Santral süzgeçli bir
-         toplu geçiş, santrali henüz çözülememiş kayıtları sistematik
+         şema "null = tesis BİLİNMİYOR" diyor. Tesis süzgeçli bir
+         toplu geçiş, tesisi henüz çözülememiş kayıtları sistematik
          olarak atlardı — oysa triyaja en muhtaç olanlar onlardır.
        2026-09-03'te bir kez "borç" diye sınıflandırılıp geri alındı. */
     const k = await yetkiZorunlu('envanter', 'yazma');

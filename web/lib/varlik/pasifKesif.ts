@@ -26,6 +26,8 @@
    Bu dosya veritabanı ve React bilmez. */
 
 /** Bir kaydın "artık görülmüyor" sayılması için gereken gün. */
+import { t, tBas, type Sozluk } from '../dil/terimler';
+
 export const GORUNMEZ_GUN_VARSAYILAN = 30;
 
 /* ── Kaynak kategorileri ─────────────────────────────────────────────
@@ -202,6 +204,9 @@ export const KESIF_GRUP_ADI: Record<KesifGrubu, string> = {
   envanterde_sahipli: 'Envanterde var, sahibi belli',
 };
 
+/* Çekirdek metinler. EKRANDA `kesifGrupAciklamasi(sozluk)` kullanılır:
+   `yeri_belirsiz` sektör sözcüğü taşıyor ve kiracının sözcüğünü izlemeli.
+   Sabit burada duruyor ki sözlüksüz çağıran (test, sunucu) da okuyabilsin. */
 export const KESIF_GRUP_ACIKLAMASI: Record<KesifGrubu, string> = {
   kimlik_cakismasi: 'Kaydın kimlik alanları birden çok varlığa uyuyor. '
     + 'Otomatik çözülmez: iki cihazdan biri yanlış kaydedilmiş olabilir.',
@@ -214,11 +219,20 @@ export const KESIF_GRUP_ACIKLAMASI: Record<KesifGrubu, string> = {
     + 'zinciri burada kopar: kimse yamayı, yedeği ya da emekliliği üstlenmiyor.',
   gorulmuyor: 'Kayıt eşiği aşan süredir hiçbir kaynakta görülmedi. '
     + 'SİLİNMEDİ: "görülmüyor" bir gözlemdir, bir silme kararı değil.',
-  yeri_belirsiz: 'Kaydın hangi santrale ait olduğu çözülemedi. '
-    + 'Santralsiz kayıt gizlenmez; gizlenseydi kimse incelemezdi.',
+  yeri_belirsiz: 'Kaydın hangi tesise ait olduğu çözülemedi. '
+    + 'Tesissiz kayıt gizlenmez; gizlenseydi kimse incelemezdi.',
   envanterde_sahipli: 'Gözlem envanterle örtüşüyor ve sorumlusu belli. '
     + 'Bu satırlar için yapılacak bir şey yok.',
 };
+
+/** EKRAN açıklamaları — sözlüğü izleyen tek grup `yeri_belirsiz`. */
+export function kesifGrupAciklamasi(sozluk: Sozluk | null): Record<KesifGrubu, string> {
+  return {
+    ...KESIF_GRUP_ACIKLAMASI,
+    yeri_belirsiz: `Kaydın hangi ${t(sozluk, 'tesis', 'yonelme')} ait olduğu çözülemedi. `
+      + `${tBas(sozluk, 'tesis')}siz kayıt gizlenmez; gizlenseydi kimse incelemezdi.`,
+  };
+}
 
 /** Grubun ekran sınıfı. `envanterde_sahipli` tek "ok" olandır. */
 export const KESIF_GRUP_SINIFI: Record<KesifGrubu, 'ok' | 'md' | 'bd' | 'unk' | 'pl'> = {
@@ -241,7 +255,7 @@ export type KesifDurusu = {
   eslesenVar: boolean;
   /** Eşleşen varlığın sahibi var mı; eşleşme yoksa null. */
   eslesenSahipVar: boolean | null;
-  /** Kaydın santrali çözülebildi mi. */
+  /** Kaydın tesisi çözülebildi mi. */
   tesisBilinen: boolean;
   gunGorulmedi: number;
   gorunmezEsikGun: number;

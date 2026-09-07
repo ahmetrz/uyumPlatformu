@@ -239,6 +239,10 @@ export async function etkiDegerlendirmesiKaydet(girdi: unknown): Promise<Sonuc> 
          bir ölçümdür ("bu cihaz durursa üretim etkilenmez") ve
          hesaplanmamışlıkla karıştırılmaz. */
       uretimKaybiMw: z.number().finite().min(0, 'Üretim kaybı negatif olamaz').nullable().optional(),
+      /* Kaybın BİRİMİ kayıtla birlikte saklanır: sektöre göre değişir
+         (MW · m³/gün · ton/saat) ve ekrana sabit yazılamaz. Boş bırakmak
+         geçerlidir — birim uydurulmaz, sayı çıplak okunur. */
+      kayipBirim: bosluksuz('Birim').max(16, 'Birim en fazla 16 karakter').nullable().optional(),
       kayipTipi: z.enum(KAYIP_TIPLERI).default('bilinmiyor'),
       rtoSaat: z.number().finite().min(0).nullable().optional(),
       rpoSaat: z.number().finite().min(0).nullable().optional(),
@@ -257,10 +261,11 @@ export async function etkiDegerlendirmesiKaydet(girdi: unknown): Promise<Sonuc> 
     }
 
     const eski = await db.etkiDegerlendirmesi.findUnique({
-      where: { varlikId: v.varlikId }, select: { uretimKaybiMw: true },
+      where: { varlikId: v.varlikId }, select: { uretimKaybiMw: true, kayipBirim: true },
     });
     const veri = {
-      uretimKaybiMw: v.uretimKaybiMw ?? null, kayipTipi: v.kayipTipi,
+      uretimKaybiMw: v.uretimKaybiMw ?? null, kayipBirim: v.kayipBirim ?? null,
+      kayipTipi: v.kayipTipi,
       rtoSaat: v.rtoSaat ?? null, rpoSaat: v.rpoSaat ?? null,
       emniyetEtkisi: v.emniyetEtkisi, cevreEtkisi: v.cevreEtkisi,
       gerekce: v.gerekce ?? null, degerlendirenId: k.id,
@@ -273,9 +278,17 @@ export async function etkiDegerlendirmesiKaydet(girdi: unknown): Promise<Sonuc> 
     await iz({
       aktorId: k.id, varlikTipi: 'Varlik', varlikId: v.varlikId, eylem: 'guncelleme',
       alan: 'etkiDegerlendirmesi',
-      once: eski?.uretimKaybiMw === null || eski === null ? null : String(eski.uretimKaybiMw),
+      /* Denetim izi SAYIYI ve BİRİMİ birlikte yazar. Sayıyı tek başına
+         yazmak, birimi ileride değişen bir kaydı altı ay sonra yanlış
+         okuturdu ("12.5" neyin 12.5'i?). Birim yoksa sayı çıplak yazılır
+         ve iz de öyle der — R0-9: saklanan iz kendi başına okunabilir,
+         hiçbir sözlüğe bağlı değildir. */
+      once: eski?.uretimKaybiMw === null || eski === null
+        ? null
+        : [String(eski.uretimKaybiMw), eski.kayipBirim].filter(Boolean).join(' '),
       sonra: v.uretimKaybiMw === null || v.uretimKaybiMw === undefined
-        ? 'hesaplanmadı' : String(v.uretimKaybiMw),
+        ? 'hesaplanmadı'
+        : [String(v.uretimKaybiMw), v.kayipBirim].filter(Boolean).join(' '),
       gerekce: v.gerekce ?? null,
     });
     revalidatePath('/envanter');

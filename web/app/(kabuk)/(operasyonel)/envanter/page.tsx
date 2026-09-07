@@ -227,7 +227,7 @@ export default async function Sayfa({ searchParams }: {
       }),
       db.etkiDegerlendirmesi.findMany({
         select: {
-          varlikId: true, uretimKaybiMw: true, kayipTipi: true,
+          varlikId: true, uretimKaybiMw: true, kayipBirim: true, kayipTipi: true,
           rtoSaat: true, rpoSaat: true, emniyetEtkisi: true, cevreEtkisi: true,
           gerekce: true, zaman: true,
           degerlendiren: { select: { adSoyad: true } },
@@ -534,7 +534,7 @@ export default async function Sayfa({ searchParams }: {
         .sort((a, b) => a.sira - b.sira),
       etki: e
         ? {
-          uretimKaybiMw: e.uretimKaybiMw, kayipTipi: e.kayipTipi,
+          uretimKaybiMw: e.uretimKaybiMw, kayipBirim: e.kayipBirim, kayipTipi: e.kayipTipi,
           rtoSaat: e.rtoSaat, rpoSaat: e.rpoSaat,
           emniyetEtkisi: e.emniyetEtkisi, cevreEtkisi: e.cevreEtkisi,
           gerekce: e.gerekce,

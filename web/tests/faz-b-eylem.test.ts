@@ -244,7 +244,7 @@ describe('OT-05 · adım–varlık bağı üç durumlu değerleri KORUR', () => 
 /* ══ OT-08 · Etki değerlendirmesi ════════════════════════════════════ */
 
 describe('OT-08 · sayı yazan değerlendirme GEREKÇE ister', () => {
-  it('gerekçesiz MW kaybı reddedilir', async () => {
+  it('gerekçesiz kayıp sayısı reddedilir', async () => {
     const s = await etkiDegerlendirmesiKaydet({
       varlikId: varlikA, uretimKaybiMw: 12.5, gerekce: 'kısa',
     });
@@ -252,7 +252,7 @@ describe('OT-08 · sayı yazan değerlendirme GEREKÇE ister', () => {
     expect(hataMetni(s)).toMatch(/gerekçe/i);
   });
 
-  it('negatif MW kaybı reddedilir', async () => {
+  it('negatif kayıp sayısı reddedilir', async () => {
     const s = await etkiDegerlendirmesiKaydet({
       varlikId: varlikA, uretimKaybiMw: -3,
       gerekce: 'Negatif değer denemesi yapılıyor burada.',
@@ -286,6 +286,49 @@ describe('OT-08 · sayı yazan değerlendirme GEREKÇE ister', () => {
     const s = await kimlikle([yetki('tesis_yoneticisi', tesisA)], () =>
       etkiDegerlendirmesiKaydet({ varlikId: varlikB, emniyetEtkisi: 'orta' }));
     expect(s.ok).toBe(false);
+  });
+});
+
+/* ═══ P1 · KAYBIN BİRİMİ KAYITLA SAKLANIR ═══════════════════════════════
+   Ekran birimi kendi dizesine gömüyordu ("… MW"): sektöre göre değişen
+   bir birimi çekirdek koda yazmak §0.5'in yasağı. Birim artık
+   `EtkiDegerlendirmesi.kayipBirim`de durur — kayıt kendi başına
+   okunabilir (R0-9), hiçbir sözlüğe bağlı değildir. */
+describe('P1 · etki değerlendirmesi birimi [URN-ALN-004]', () => {
+  it('birim kayda yazılır ve geri okunur', async () => {
+    const s = await etkiDegerlendirmesiKaydet({
+      varlikId: varlikA, uretimKaybiMw: 12.5, kayipBirim: 'm³/gün',
+      gerekce: 'su kiracısında kayıp debiyle ölçülür',
+    });
+    expect(s.ok).toBe(true);
+    const e = await db.etkiDegerlendirmesi.findUnique({ where: { varlikId: varlikA } });
+    expect(e?.kayipBirim).toBe('m³/gün');
+  });
+
+  it('birim BOŞ bırakılabilir — uydurulmaz', async () => {
+    /* Birimsiz kayıt geçerlidir ve ekran sayıyı çıplak yazar. Eksik
+       birimi "MW" saymak, "bilinmeyen ≠ sıfır" kuralının birim
+       tarafındaki karşılığını delerdi. */
+    const s = await etkiDegerlendirmesiKaydet({
+      varlikId: varlikA, uretimKaybiMw: 3, kayipBirim: null,
+      gerekce: 'birim henüz kararlaştırılmadı',
+    });
+    expect(s.ok).toBe(true);
+    const e = await db.etkiDegerlendirmesi.findUnique({ where: { varlikId: varlikA } });
+    expect(e?.kayipBirim).toBeNull();
+  });
+
+  it('DENETİM İZİ sayıyı birimiyle yazar', async () => {
+    /* "12.5" tek başına altı ay sonra "neyin 12.5'i?" sorusunu doğurur. */
+    await etkiDegerlendirmesiKaydet({
+      varlikId: varlikA, uretimKaybiMw: 40, kayipBirim: 'MW',
+      gerekce: 'blok tamamen durur, ölçülmüş kapasite',
+    });
+    const iz = await db.aktiviteKaydi.findFirst({
+      where: { varlikId: varlikA, alan: 'etkiDegerlendirmesi' },
+      orderBy: { zaman: 'desc' },
+    });
+    expect(iz?.yeniDeger).toBe('40 MW');
   });
 });
 

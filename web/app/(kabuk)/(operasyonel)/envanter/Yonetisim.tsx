@@ -26,13 +26,13 @@ import type { Kisi, V } from './mantik';
    cevaplar ve dördü de aynı kişilere sorulmaz:
 
      KİM SAHİBİ?          (OT-09) — kişi, ekip, ikisi de yoksa öksüz.
-     DURURSA NE OLUR?     (OT-08) — MW kaybı, RTO/RPO, emniyet, çevre.
+     DURURSA NE OLUR?     (OT-08) — üretim kaybı, RTO/RPO, emniyet, çevre.
      NEREDE DEVREDE?      (OT-05) — hangi proses adımında, tek nokta mı.
      KONFİGÜRASYONU ONAYLI MI? (OT-28) — taban var mı, sapma var mı.
      NE ZAMAN BİTİYOR?    (OT-20) — garanti/destek/bakım/EOL/EOS.
 
    ── ÜÇ AYRIM BURADA DA GEÇERLİ ────────────────────────────────────────
-   `null` MW kaybı "kayıp yok" değil "hesaplanmadı"dır. Değerlendirilmemiş
+   `null` kayıp "kayıp yok" değil "hesaplanmadı"dır. Değerlendirilmemiş
    bir tek nokta "tek nokta değil" değildir. Girilmemiş bir garanti tarihi
    "garanti bitti" değildir. Ekran üçünü de ayrı kelimelerle yazar. */
 
@@ -192,7 +192,7 @@ function SahiplikBlogu({ v, ekipler, kisiler }: {
 /* ── OT-08 · Etki değerlendirmesi ───────────────────────────────────── */
 
 type EtkiFormu = {
-  mw: string; kayipTipi: string; rto: string; rpo: string;
+  mw: string; birim: string; kayipTipi: string; rto: string; rpo: string;
   emniyet: string; cevre: string; gerekce: string;
 };
 
@@ -202,6 +202,7 @@ function EtkiBlogu({ v }: { v: V }) {
   const e = v.yonetisim.etki;
   const [f, setF] = useState<EtkiFormu>({
     mw: e?.uretimKaybiMw === null || e === null ? '' : String(e.uretimKaybiMw),
+    birim: e?.kayipBirim ?? '',
     kayipTipi: e?.kayipTipi ?? 'bilinmiyor',
     rto: e?.rtoSaat === null || e === null ? '' : String(e.rtoSaat),
     rpo: e?.rpoSaat === null || e === null ? '' : String(e.rpoSaat),
@@ -245,7 +246,11 @@ function EtkiBlogu({ v }: { v: V }) {
               <dd className={`mono${e.uretimKaybiMw === null ? ' unk' : ''}`}>
                 {e.uretimKaybiMw === null
                   ? 'hesaplanmadı'
-                  : `${e.uretimKaybiMw.toLocaleString('tr')} MW`}
+                  /* Birim KAYITTAN gelir; sabit yazmak çekirdeğe sektör
+                     birimi gömerdi. Birimsiz kayıtta sayı çıplak yazılır,
+                     bir birim varsayılmaz. */
+                  : [e.uretimKaybiMw.toLocaleString('tr'), e.kayipBirim]
+                    .filter(Boolean).join(' ')}
               </dd>
             </div>
             <div>
@@ -301,11 +306,20 @@ function EtkiBlogu({ v }: { v: V }) {
           </button>
           {acik && (
             <div className="ab-durus-form">
-              <Alan etiket="Üretim kaybı (MW) — boş = hesaplanmadı"
+              {/* Sayı ve BİRİM yan yana: ürün kiracının birimini bilmiyor
+                  ve varsaymıyor — soruyor. Birim boş bırakılabilir; o
+                  zaman kayıt birimsiz okunur ve öyle de yazılır. */}
+              <Alan etiket="Üretim kaybı — boş = hesaplanmadı"
                 hata={mwGecerli ? null : 'Negatif olamaz.'}>
-                <input className="ab-gr" style={{ fontFamily: 'var(--veri)' }}
-                  inputMode="decimal" value={f.mw}
-                  onChange={(x) => setF({ ...f, mw: x.target.value })} />
+                <div style={{ display: 'flex', gap: 'var(--s8)' }}>
+                  <input className="ab-gr" style={{ fontFamily: 'var(--veri)', flex: 1 }}
+                    inputMode="decimal" value={f.mw} aria-label="Üretim kaybı miktarı"
+                    onChange={(x) => setF({ ...f, mw: x.target.value })} />
+                  <input className="ab-gr" style={{ width: '92px' }}
+                    value={f.birim} placeholder="birim" aria-label="Kaybın birimi"
+                    maxLength={16}
+                    onChange={(x) => setF({ ...f, birim: x.target.value })} />
+                </div>
               </Alan>
               <Alan etiket="Kayıp tipi">
                 <select className="ab-gr" value={f.kayipTipi}
@@ -342,7 +356,7 @@ function EtkiBlogu({ v }: { v: V }) {
                 </select>
               </Alan>
               <Alan etiket={gerekceGerekli
-                ? 'Gerekçe (MW sayısı için zorunlu, en az 10 karakter)'
+                ? 'Gerekçe (kayıp sayısı için zorunlu, en az 10 karakter)'
                 : 'Gerekçe'}>
                 <textarea className="ab-gr" rows={2} value={f.gerekce}
                   onChange={(x) => setF({ ...f, gerekce: x.target.value })} />
@@ -353,6 +367,7 @@ function EtkiBlogu({ v }: { v: V }) {
                   () => etkiDegerlendirmesiKaydet({
                     varlikId: v.id,
                     uretimKaybiMw: mwSayi,
+                    kayipBirim: f.birim.trim() === '' ? null : f.birim.trim(),
                     kayipTipi: f.kayipTipi,
                     rtoSaat: f.rto.trim() === '' ? null : Number(f.rto),
                     rpoSaat: f.rpo.trim() === '' ? null : Number(f.rpo),

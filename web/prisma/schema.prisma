@@ -3444,8 +3444,18 @@ model AdimVarligi {
 model EtkiDegerlendirmesi {
   id              String   @id @default(cuid())
   varlikId        String   @unique
-  /// Kaybedilen üretim (MW). null = HESAPLANMADI, sıfır değil.
+  /// Kaybedilen üretim miktarı. null = HESAPLANMADI, sıfır değil.
+  /// Kolon adındaki `Mw` TARİHSELDİR; birim artık `kayipBirim`de durur ve
+  /// ekranda oradan yazılır (adı değiştirmek 6 dosya + denetim izi
+  /// dokunuşu ister — ayrı bir göç).
   uretimKaybiMw   Float?
+  /// Kaybın BİRİMİ — kayıtla birlikte saklanır, ekrana sabit yazılmaz.
+  /// Sektöre göre değişir (MW · m³/gün · ton/saat); çekirdek bilmez.
+  /// null = birim kaydedilmemiş; ekran sayıyı çıplak yazar, UYDURMAZ.
+  /// Değerlendirmenin kendi birimini taşıması denetim açısından da
+  /// doğrudur (R0-9): kayıt altı ay sonra kendi başına okunabilir,
+  /// bir sözlüğe bağlı kalmaz.
+  kayipBirim      String?
   /// tam | kismi | yok | bilinmiyor — kaybın niteliği.
   kayipTipi       String   @default("bilinmiyor")
   /// Kurtarma hedefi (saat); null = belirlenmedi.

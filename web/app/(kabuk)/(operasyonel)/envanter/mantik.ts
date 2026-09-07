@@ -160,6 +160,8 @@ export type YonetisimAdim = {
 export type YonetisimEtki = {
   /** null = HESAPLANMADI (sıfır bir ölçümdür, ondan farklıdır) */
   uretimKaybiMw: number | null;
+  /** Kaybın birimi — kayıtla saklanır, ekranda sabit yazılmaz. */
+  kayipBirim: string | null;
   kayipTipi: string;
   rtoSaat: number | null;
   rpoSaat: number | null;

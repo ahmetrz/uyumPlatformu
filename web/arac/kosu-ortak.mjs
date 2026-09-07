@@ -76,14 +76,14 @@ export function rotalarOku() {
    yalnız `rota-duman.mjs` içindeydi; kopyalanmasın diye buraya taşındı —
    bu modülün var oluş gerekçesinin aynısı. */
 export const TOHUM_KAYNAGI = {
-  '/tesisler/[id]': { tablo: 'Tesis', kolon: 'id' },
-  '/bulgular/[id]': { tablo: 'Bulgu', kolon: 'id' },
-  '/denetimler/[id]': { tablo: 'Denetim', kolon: 'id' },
-  '/riskler/[id]': { tablo: 'Risk', kolon: 'id' },
-  '/surecler/[id]': { tablo: 'UyumSureci', kolon: 'id' },
+  '/tesisler/[id]': { tablo: 'Tesis', kolon: 'id', sira: 'kod' },
+  '/bulgular/[id]': { tablo: 'Bulgu', kolon: 'id', sira: 'baslik' },
+  '/denetimler/[id]': { tablo: 'Denetim', kolon: 'id', sira: 'kod' },
+  '/riskler/[id]': { tablo: 'Risk', kolon: 'id', sira: 'kod' },
+  '/surecler/[id]': { tablo: 'UyumSureci', kolon: 'id', sira: 'kod' },
   /* Çerçeve detayının parametresi id değil regülasyon KODUDUR
      (bkz. uyum/[cerceve]/page.tsx: bağlantı paylaşılabilir olsun diye). */
-  '/uyum/[cerceve]': { tablo: 'Regulasyon', kolon: 'kod' },
+  '/uyum/[cerceve]': { tablo: 'Regulasyon', kolon: 'kod', sira: 'kod' },
 };
 
 const DB_YOL = process.env.DB_YOL || path.join(WEB, 'prisma', 'dev.db');
@@ -97,8 +97,14 @@ export function tohumDegeri(rota) {
     return { hata: `tohum veritabanı açılamadı: ${e.message}` };
   }
   try {
+    /* Sıralama `id`ye göre YAPILMAZ: kimlikler `@default(cuid())` ile
+       üretilir ve her seed koşusunda başka bir kayıt "ilk" olur — kapı
+       her koşuda farklı bir ekranı ölçerdi ve borç tavanları koşudan
+       koşuya oynardı. Sıra, tohumda ELLE yazılmış bir alandan alınır
+       (kod ya da başlık); kimlik yalnız URL'e konur. */
     const satir = db.prepare(
-      `select ${kaynak.kolon} as v from ${kaynak.tablo} order by ${kaynak.kolon} limit 1`,
+      `select ${kaynak.kolon} as v from ${kaynak.tablo}`
+      + ` order by ${kaynak.sira ?? kaynak.kolon} limit 1`,
     ).get();
     if (!satir?.v) return { hata: `tohumda ${kaynak.tablo} kaydı yok` };
     return { deger: String(satir.v), kaynak: `${kaynak.tablo}.${kaynak.kolon}` };

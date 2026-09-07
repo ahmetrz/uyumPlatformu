@@ -272,6 +272,31 @@ doğrulanır; `kalite-borcu.mjs` yalnız dosya/git okur ve raporlar.
 satır — kalite-borcu.json içinden SİLİN". Silinen satır DİŞ 3 yüzünden
 geri gelemez.
 
+#### Tavan VERİYE BAĞIMLI olamaz
+
+`kirpilan-icerik` ölçüsünün birimi **kusur TÜRÜDÜR**, kırpılan öğe sayısı
+değil: aynı etiket + aynı kırpılma türü tek imzadır. Sebep ölçüldü —
+kütük tablosunda her SATIR ayrı öğe sayılıyordu ve tavan tohum verisiyle
+oynuyordu:
+
+> `/saglik` · 375px: yerelde **8**, CI'da **23** öğe — aynı iki kusur
+> türü. Tavanı 8 yazan liste CI'da kırmızı yandı; kusur değişmemişti,
+> yalnız satır sayısı değişmişti. İmzaya çevrilince ikisi de **2**.
+
+Aynı sebeple iki şey daha yapılır:
+
+- **Dinamik rota kaydı `id`ye göre SEÇİLMEZ.** `@default(cuid())` her
+  seed'de başka bir kaydı "ilk" yapardı ve kapı her koşuda başka bir
+  ekranı ölçerdi. Sıra tohumda ELLE yazılmış bir alandan alınır (`kod`,
+  yoksa `baslik`); kimlik yalnız URL'e konur.
+- **Tavanlar TAZE tohumla ölçülür.** Yeniden ölçmeden önce
+  `rm prisma/dev.db && npm run db:hazirla`. Kapının kendi girişi kayıt
+  üretir (aktivite, bildirim), yani ikinci koşu birinciden farklı satır
+  görebilir. Satır listede olduğu sürece bu salınım kapıyı YAKMAZ:
+  eksik çıkan satır "düzelmiş" diye raporlanır, kırmızı değil. Ölçüldü:
+  `/bildirimler` peş peşe iki koşuda 0 ve 1 kusur türü verdi, ikisi de
+  yeşil.
+
 #### Listenin KENDİSİ silinirse
 
 En sinsi kaçış yolu bir satırı değil DOSYANIN TAMAMINI silmektir: liste

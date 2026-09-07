@@ -244,7 +244,23 @@ try {
       const kirpilan = enDistakiKirpilmalar(
         adaylar.map((a) => ({ ...a, karar: kirpilmaKarari(a) })).filter((a) => a.karar.kusur),
       );
-      if (kirpilan.length > 0) kirpilmalar.push({ bant: bant.ad, bantEn: bant.en, yol, ogeler: kirpilan });
+      /* Aynı kusurun her SATIRI ayrı öğe olarak sayılırsa ölçüm veriye
+         bağımlı olur: kütükte 8 satır varsa 8, 23 satır varsa 23 çıkar
+         ve borç tavanı tohum verisi değişince kayar (ölçüldü: /saglik
+         yerelde 8, CI'da 23). Kusur, satır sayısı değil TÜRDÜR — aynı
+         etiket + aynı kırpılma türü tek imzadır. */
+      const imzalar = new Map();
+      for (const o of kirpilan) {
+        const anahtar = `${o.etiket}|${o.karar.tur}`;
+        const v = imzalar.get(anahtar) ?? { ...o, adet: 0 };
+        v.adet += 1;
+        imzalar.set(anahtar, v);
+      }
+      if (kirpilan.length > 0) {
+        kirpilmalar.push({
+          bant: bant.ad, bantEn: bant.en, yol, ogeler: [...imzalar.values()], ornek: kirpilan.length,
+        });
+      }
     }
     await baglam.close();
   }
@@ -276,9 +292,10 @@ for (const k of kusurlar) {
 }
 
 for (const k of kirpilmalar) {
-  console.error(`  [KIRPILAN İÇERİK] ${k.bant} · ${k.yol} → ${k.ogeler.length} öğe erişilemiyor`);
+  console.error(`  [KIRPILAN İÇERİK] ${k.bant} · ${k.yol} → ${k.ogeler.length} kusur türü`
+    + ` · ${k.ornek} öğe erişilemiyor`);
   for (const o of k.ogeler) {
-    console.error(`      [${o.karar.tur}] ${o.etiket} · kutu ${o.genislik}px · ${o.karar.sebep}`);
+    console.error(`      [${o.karar.tur}] ${o.etiket} ×${o.adet} · kutu ${o.genislik}px · ${o.karar.sebep}`);
     console.error(`          "${o.metin}"`);
   }
 }
@@ -297,7 +314,7 @@ const bulgular = [
   })),
   ...kirpilmalar.map((k) => ({
     kapi: 'tasma', tur: 'kirpilan-icerik', rota: kalip(k.yol), bant: k.bantEn,
-    olcum: k.ogeler.length, birim: 'öğe',
+    olcum: k.ogeler.length, birim: 'kusur türü',
     not: k.ogeler[0]?.etiket,
   })),
 ];

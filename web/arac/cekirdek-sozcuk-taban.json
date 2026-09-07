@@ -15,7 +15,7 @@
     "",
     "Taban güncelleme: npx tsx arac/cekirdek-sozcuk-taramasi.mjs --taban"
   ],
-  "toplam": 187,
+  "toplam": 112,
   "dosyalar": {
     "app/(kabuk)/(flagship)/Genel.tsx": 1,
     "app/(kabuk)/(flagship)/tesisler/[id]/veri.ts": 1,
@@ -61,10 +61,6 @@
     "lib/motorlar/uygulanabilirlik.ts": 2,
     "lib/motorlar/veriKalitesi.ts": 4,
     "lib/sabitler.ts": 4,
-    "lib/senaryo/kapsama.ts": 2,
-    "lib/senaryo/platform.ts": 7,
-    "lib/senaryo/urunlestirme.ts": 14,
-    "lib/senaryo/uyum.ts": 52,
     "lib/uyum/degerlendirmeAktarimi.ts": 2,
     "lib/uyum/degisiklikEtkisi.ts": 1,
     "lib/uyum/denetciErisimi.ts": 3,

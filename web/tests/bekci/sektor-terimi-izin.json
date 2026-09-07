@@ -82,7 +82,7 @@
     "Aşama E eritme kütüğü (her aile bittiğinde kalan sayı LİSTEDEN okunur):",
     "  258 kurulum → 254 sınır düzeltmesi → 251 kabuk/gezinme → 236 cümle",
     "  yüzeyleri (11 ekran) → 230 yetkiler + kanıtlar + kimlik → 224 yedekleme.",
-    "  → 218 raporlar → 210 tedarikçiler → 205 envanter → 199 olaylar → 193 keşif → 191 harita → 186 portföy → 185 etki birimi → 164 uyum → 155 riskler → 154 portföy sözcüğü → 146 denetimler → 141 dokümanlar → 138 projeler.",
+    "  → 218 raporlar → 210 tedarikçiler → 205 envanter → 199 olaylar → 193 keşif → 191 harita → 186 portföy → 185 etki birimi → 164 uyum → 155 riskler → 154 portföy sözcüğü → 146 denetimler → 141 dokümanlar → 138 projeler → 135 senaryo kütüğü.",
     "MW EKSENİ · birim artık VERİDEN geliyor (`TesisOzellik.birim`).",
     "`portfoy/*` ve `harita/HaritaIstemci.tsx` bu sayede düştü. Kalan MW",
     "yazımları hâlâ `santral` yüzünden listede olan dosyalarda (flagship,",
@@ -119,7 +119,12 @@
     "OKUNAN cümle sözlüğü üçüncü parametre olarak alıyor. `lib/eylemler2/",
     "konfigYedek.ts` yalnız yorum taşıyordu, aynı dilimde düştü.",
     "",
-    "Ölçüm: 7 Eylül 2026 · app/ + components/ + lib/ altında .ts .tsx .css"
+    "Ölçüm: 7 Eylül 2026 · app/ + components/ + lib/ altında .ts .tsx .css",
+    "",
+    "`lib/senaryo/urunlestirme.ts` KALICI olarak listede: bu senaryolar TERİM",
+    "KATMANININ KENDİSİNİ anlatıyor ve sektör yazımlarını ALINTILAMAK zorunda",
+    "(\"ÜNİTE · TERMİK · UNITE · DGKÇ · şapkasız rüzgar bekçi kalıbına verilir\").",
+    "Alıntıyı sözlüğe bağlamak senaryonun ne söylediğini bozardı."
   ],
   "tavan": 258,
   "dosyalar": [
@@ -252,10 +257,7 @@
     "lib/motorlar/veriKalitesi.ts",
     "lib/sabitler.ts",
     "lib/sahaArkaPlan.ts",
-    "lib/senaryo/kapsama.ts",
-    "lib/senaryo/platform.ts",
     "lib/senaryo/urunlestirme.ts",
-    "lib/senaryo/varlik.ts",
     "lib/varlik/etki.ts",
     "lib/yapilandirma/tanimlar.ts",
     "lib/yonetim/moduller.ts",

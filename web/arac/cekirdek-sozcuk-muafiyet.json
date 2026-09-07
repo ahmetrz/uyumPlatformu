@@ -20,7 +20,13 @@
     "",
     "Tek fark `beklenen-fark.json`dan: orası DİZE muaf eder (veri satırı),",
     "burası DOSYA — çünkü sebep dosya düzeyinde geçerli (bütün bir sözleşme",
-    "modülü, bütün bir saklanan artefakt üreticisi). Kural aynı, birim farklı."
+    "modülü, bütün bir saklanan artefakt üreticisi). Kural aynı, birim farklı.",
+    "",
+    "SENARYO KÜTÜĞÜ NİÇİN MUAF. Kütük DAVRANIŞ anlatır, ekran metni değildir;",
+    "sektörsüz olması gerekir ve çekirdek sözcük orada DOĞRUDUR. Bu, muafiyet",
+    "sınırının 'kod' kolundan farklı üçüncü bir sınıf değil: kütük de insana",
+    "bir ekran metni olarak sunulmaz. Ölçüldü — hiçbir sözlük kapısı kütüğü",
+    "okumuyor, yani kütükteki sözcük hiçbir iddianın dayanağı değil."
   ],
   "dosyalar": {
     "lib/motorlar/olayEtki.ts": "R0-9 · gerekçe metni `Olay.etkiOnerisiJson`a YAZILIR. Saklanan artefakta kiracıya göre değişen sözcük gömmek değişmez denetim izini deler.",
@@ -36,6 +42,11 @@
     "app/(kabuk)/(operasyonel)/envanter/Yonetisim.tsx": "YANLIŞ POZİTİF · \"Kaybın birimi\" ÖLÇÜ BİRİMİdir (MW · m³/gün), `birim` sözlük anahtarı (üretim ünitesi / arıtma hattı) DEĞİL.",
     "app/(kabuk)/(operasyonel)/denetimler/DenetimlerIstemci.tsx": "KOD · `'Tesis'` burada kolon EŞLEŞTİRME ANAHTARI (`k.baslik !== 'Tesis'`); görünen başlık `tBas('tesis')` ile üretiliyor.",
     "app/(kabuk)/(operasyonel)/riskler/RisklerIstemci.tsx": "KOD · aynı desen: sabit dizideki `'Tesis'` eşleştirme anahtarı, görünen başlık sözlükten.",
-    "app/(kabuk)/(operasyonel)/kesif/Karar.tsx": "KOD · sabit dizideki `'Tesis'` bir kolon/alan EŞLEŞTİRME ANAHTARIDIR; ekranda görünen etiket `tBas('tesis')` ile üretiliyor."
+    "app/(kabuk)/(operasyonel)/kesif/Karar.tsx": "KOD · sabit dizideki `'Tesis'` bir kolon/alan EŞLEŞTİRME ANAHTARIDIR; ekranda görünen etiket `tBas('tesis')` ile üretiliyor.",
+    "lib/senaryo/kapsama.ts": "SENARYO KÜTÜĞÜ · DAVRANIŞ ANLATIMI. Kütük ürünün davranışını anlatır ve SEKTÖRSÜZ olmak zorundadır — çekirdek sözcük burada doğru olandır, çakılı değil. Ölçüldü: sözlük kapılarının hiçbiri (`iki-sozluk` · `sozluk-farki` · `yatay-tasma` · `dizustu` · `erisim-axe`) kütüğü OKUMUYOR; kütüğü okuyanlar kapsam muhasebesi araçları. Kütük ekran metni ALINTILAMAZ; alıntılarsa hangi kiracıyı anlattığını söylemek zorundadır (bkz. `urunlestirme.ts`, terim katmanının kendisini anlatıyor ve iki yazımı da alıntılıyor).",
+    "lib/senaryo/platform.ts": "SENARYO KÜTÜĞÜ · DAVRANIŞ ANLATIMI. Kütük ürünün davranışını anlatır ve SEKTÖRSÜZ olmak zorundadır — çekirdek sözcük burada doğru olandır, çakılı değil. Ölçüldü: sözlük kapılarının hiçbiri (`iki-sozluk` · `sozluk-farki` · `yatay-tasma` · `dizustu` · `erisim-axe`) kütüğü OKUMUYOR; kütüğü okuyanlar kapsam muhasebesi araçları. Kütük ekran metni ALINTILAMAZ; alıntılarsa hangi kiracıyı anlattığını söylemek zorundadır (bkz. `urunlestirme.ts`, terim katmanının kendisini anlatıyor ve iki yazımı da alıntılıyor).",
+    "lib/senaryo/uyum.ts": "SENARYO KÜTÜĞÜ · DAVRANIŞ ANLATIMI. Kütük ürünün davranışını anlatır ve SEKTÖRSÜZ olmak zorundadır — çekirdek sözcük burada doğru olandır, çakılı değil. Ölçüldü: sözlük kapılarının hiçbiri (`iki-sozluk` · `sozluk-farki` · `yatay-tasma` · `dizustu` · `erisim-axe`) kütüğü OKUMUYOR; kütüğü okuyanlar kapsam muhasebesi araçları. Kütük ekran metni ALINTILAMAZ; alıntılarsa hangi kiracıyı anlattığını söylemek zorundadır (bkz. `urunlestirme.ts`, terim katmanının kendisini anlatıyor ve iki yazımı da alıntılıyor).",
+    "lib/senaryo/varlik.ts": "SENARYO KÜTÜĞÜ · DAVRANIŞ ANLATIMI. Kütük ürünün davranışını anlatır ve SEKTÖRSÜZ olmak zorundadır — çekirdek sözcük burada doğru olandır, çakılı değil. Ölçüldü: sözlük kapılarının hiçbiri (`iki-sozluk` · `sozluk-farki` · `yatay-tasma` · `dizustu` · `erisim-axe`) kütüğü OKUMUYOR; kütüğü okuyanlar kapsam muhasebesi araçları. Kütük ekran metni ALINTILAMAZ; alıntılarsa hangi kiracıyı anlattığını söylemek zorundadır (bkz. `urunlestirme.ts`, terim katmanının kendisini anlatıyor ve iki yazımı da alıntılıyor).",
+    "lib/senaryo/urunlestirme.ts": "SENARYO KÜTÜĞÜ · DAVRANIŞ ANLATIMI. Kütük ürünün davranışını anlatır ve SEKTÖRSÜZ olmak zorundadır — çekirdek sözcük burada doğru olandır, çakılı değil. Ölçüldü: sözlük kapılarının hiçbiri (`iki-sozluk` · `sozluk-farki` · `yatay-tasma` · `dizustu` · `erisim-axe`) kütüğü OKUMUYOR; kütüğü okuyanlar kapsam muhasebesi araçları. Kütük ekran metni ALINTILAMAZ; alıntılarsa hangi kiracıyı anlattığını söylemek zorundadır (bkz. `urunlestirme.ts`, terim katmanının kendisini anlatıyor ve iki yazımı da alıntılıyor)."
   }
 }

@@ -4,45 +4,45 @@ import { izinVar, izinliTesisIdleri } from '@/lib/erisim';
 import type { AktifKullanici } from '@/lib/auth';
 import { kapsamda, modulKapisi } from '@/app/kapsam';
 import { uyumOzeti, gecikmisMi, gecenGun } from '@/lib/sabitler';
-import type { Plant360Veri, TesisOzeti } from './Plant360';
+import type { Tesis360Veri, TesisOzeti } from './Tesis360';
 import type { OtProfili } from './mantik';
 import {
   KURULU_GUC, birimliOzellik, olculenYazi,
 } from '@/lib/alan/oznitelik';
-import type { Sozluk } from '@/lib/dil/terimler';
+import { tBas, type Sozluk } from '@/lib/dil/terimler';
 import { sektorSozlugu } from '@/lib/dil/sozlukOku';
 
-/* F3 · Plant 360 — SUNUCU VERİSİ.
+/* F3 · Tesis 360 — SUNUCU VERİSİ.
 
    ═══ KAPSAM SIZINTISI ══════════════════════════════════════════════════
    Rota `db.tesis.findUnique({ where: { id } })` diyordu: kapsam dışı bir
-   santralin id'sini bilen herkes o santralin TAM dosyasını açabiliyordu —
+   tesisin id'sini bilen herkes o tesisin TAM dosyasını açabiliyordu —
    kurulu güç, tüzel kişi, konum, uyum yüzdesi, açık bulgu başlıkları, en
    yüksek risk, varlık sayısı, denetim programı. Ayrıca alt gezinme şeridi
-   (`tumTesisler`) BÜTÜN aktif santralleri kod/ad/fotoğrafıyla taşıyordu:
-   kapsam dışı bir santral açılamasa bile listede DURUYORDU.
+   (`tumTesisler`) BÜTÜN aktif tesisleri kod/ad/fotoğrafıyla taşıyordu:
+   kapsam dışı bir tesis açılamasa bile listede DURUYORDU.
 
    MODÜL SEÇİMİ: `uyum` — /portfoy ile AYNI modül, bilerek. Bu ekrana
-   portföyden girilir; portföyde plakası görünen santralin dosyası
-   açılabilmeli, açılamayan bir santralin plakası da portföyde durmamalıdır.
+   portföyden girilir; portföyde plakası görünen tesisin dosyası
+   açılabilmeli, açılamayan bir tesisin plakası da portföyde durmamalıdır.
    İki ekran farklı modül seçseydi kullanıcı görebildiği bir plakaya
    tıklayıp "bulunamadı" alırdı.
 
-   PANELLER (risk · denetim · varlık · bölge) santral kapısını GEÇTİKTEN
+   PANELLER (risk · denetim · varlık · bölge) tesis kapısını GEÇTİKTEN
    sonra ayrıca kendi modül kapsamlarıyla daraltılmaz. Nedeni
    "bilinmeyen ≠ sıfır"dır: riski hiç okuyamayan bir kullanıcı için risk
    kapsamı boş küme döner ve panel "en yüksek risk yok", "0 açık risk"
    yazardı — yani ölçülmemiş olanı sıfır diye gösterirdi. Kapsam bir
-   SANTRAL sınırıdır; modül izni ayrı bir eksendir ve panelin sayısını
+   TESİS sınırıdır; modül izni ayrı bir eksendir ve panelin sayısını
    sıfıra çevirerek anlatılamaz.
 
    ── VARLIĞI DOĞRULAMAK DA BİR SIZINTIDIR ───────────────────────────────
-   Kapsam dışı santral için `null` döner, rota `notFound()` çağırır.
-   "Bu santral kapsamınızda değil" demek, o id'de bir santralin VAR
+   Kapsam dışı tesis için `null` döner, rota `notFound()` çağırır.
+   "Bu tesis kapsamınızda değil" demek, o id'de bir tesisin VAR
    OLDUĞUNU doğrulamak olurdu. */
 
 export type EkranVerisi = {
-  veri: Plant360Veri;
+  veri: Tesis360Veri;
   tesisler: TesisOzeti[];
   /* Terim sözlüğü ekran verisiyle birlikte iner: `t()` saf kalsın ve
      sunucu ile istemci AYNI sözcüğü versin (hidrasyon). `null` = tesisin
@@ -82,7 +82,7 @@ function profilSerisi(p: {
 /** Açık bulgu listesinde gösterilen en fazla kayıt (prototipte 6). */
 const BULGU_PENCERESI = 8;
 
-/** Kapsam dışı ya da olmayan santral için `null` — çağıran `notFound()` der. */
+/** Kapsam dışı ya da olmayan tesis için `null` — çağıran `notFound()` der. */
 export async function tesis360Verisi(
   k: AktifKullanici,
   id: string,
@@ -90,7 +90,7 @@ export async function tesis360Verisi(
   modulKapisi(k, 'uyum');
   const izinli = izinliTesisIdleri(k, 'uyum');
   // Kural `lib/api/yetki.ts → tesisKapsamda` ile aynı; `app/kapsam.ts` onu
-  // aynen çağırır. Santral kaydı okunmadan ÖNCE karar verilir.
+  // aynen çağırır. Tesis kaydı okunmadan ÖNCE karar verilir.
   if (!kapsamda(izinli, id)) return null;
 
   const tesis = await db.tesis.findUnique({
@@ -146,8 +146,8 @@ export async function tesis360Verisi(
         },
         orderBy: { kod: 'asc' },
       }),
-      /* Alt gezinme şeridi santral kapısıyla AYNI kapsamdan gelir: bu
-         ekranda açamayacağın bir santralin adı/kodu/fotoğrafı şeritte de
+      /* Alt gezinme şeridi tesis kapısıyla AYNI kapsamdan gelir: bu
+         ekranda açamayacağın bir tesisin adı/kodu/fotoğrafı şeritte de
          anılmaz. */
       db.tesis.findMany({
         where: { durum: 'aktif', ...(izinli === null ? {} : { id: { in: izinli } }) },
@@ -241,7 +241,9 @@ export async function tesis360Verisi(
       kod: tesis.kod,
       ad: tesis.ad,
       tipKod: tesis.tip?.kod ?? null,
-      tipAdi: tesis.tip?.ad ?? 'Tesis',
+      /* Tipi tanımsız kayıtta tip adı yerine TERİM yazılır: "Tesis"
+         çakılı sözcüktü ve kiracının okuduğu ad o değil. */
+      tipAdi: tesis.tip?.ad ?? tBas(sozluk, 'tesis'),
       tuzelKisi: tesis.tuzelKisi?.ad ?? null,
       konum: tesis.konum,
       ...((o) => ({ guc: o.deger, gucBirim: o.birim }))(
@@ -250,9 +252,9 @@ export async function tesis360Verisi(
       kritiklik: tesis.profil?.kritiklikSinifi ?? null,
       profil: profilSerisi(tesis.profil),
       /* Düzenleme kapısı sunucu eylemiyle AYNI soru: tanimlar/yazma, bu
-         santral kapsamında (lib/eylemler2/tesis360.ts → profilKaydet). */
+         tesis kapsamında (lib/eylemler2/tesis360.ts → profilKaydet). */
       profilDuzenlenebilir: izinVar(k, 'tanimlar', 'yazma', { tesisId: id }),
-      uniteSayisi: birimListesi.length || null,
+      birimSayisi: birimListesi.length || null,
       // Uyum: bilinmeyen ASLA 0 sayılmaz — yüzde yalnız değerlendirilenden,
       // bilinmeyen oranı ayrıca taşınır (lib/sabitler.ts:uyumOzeti).
       uyumYuzde: ozet.yuzde,

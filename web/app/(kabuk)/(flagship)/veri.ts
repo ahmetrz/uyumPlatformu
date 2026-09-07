@@ -19,9 +19,9 @@ import {
 
    ═══ KAPSAM SIZINTISI ══════════════════════════════════════════════════
    Yönetici özeti bütün sorgularını kapsamsız yapıyordu: odak kartı ve
-   kuyruk B santralinin bulgu başlığını, santral adını ve KİMLİĞİNİ
+   kuyruk B tesisinin bulgu başlığını, tesis adını ve KİMLİĞİNİ
    (`tesisId`) taşıyordu; dört metriğin dördü de (uyum yüzdesi, kritik
-   risk, gecikmiş aksiyon, yaklaşan denetim) ve bağlam şeridi (santral
+   risk, gecikmiş aksiyon, yaklaşan denetim) ve bağlam şeridi (tesis
    sayısı + toplam kurulu güç) kapsamsız sayıyordu. Bu ekranın tamamı zaten
    metrikten ibarettir: burada satırı gizleyip sayacı bırakmak, ekranı
    olduğu gibi bırakmakla aynı şeydi.
@@ -35,20 +35,20 @@ import {
    daraltmak İLK BAKIŞTA daha ince görünür ama YANLIŞTIR: riski hiç
    okuyamayan bir kullanıcı için `izinliTesisIdleri(k,'risk')` boş küme
    döner ve sayaç `0` yazardı — "kritik risk yok" diye YALAN söylerdi.
-   Kapsam bir SANTRAL sınırıdır; modül izni ayrı bir eksendir ve bir sayıyı
+   Kapsam bir TESİS sınırıdır; modül izni ayrı bir eksendir ve bir sayıyı
    sıfıra çevirerek anlatılamaz ("bilinmeyen ≠ sıfır"). Aynı gerekçeyle
-   bağlam şeridi (santral sayısı + toplam kurulu güç) de tek bir kapsamdan gelir:
-   "kaç santral" sorusunun modüle göre değişen iki yanıtı aynı cümlede yan
+   bağlam şeridi (tesis sayısı + toplam kurulu güç) de tek bir kapsamdan gelir:
+   "kaç tesis" sorusunun modüle göre değişen iki yanıtı aynı cümlede yan
    yana duramaz.
 
-   ── SANTRALİ BİLİNMEYEN KAYIT ──────────────────────────────────────────
+   ── TESİSİ BİLİNMEYEN KAYIT ──────────────────────────────────────────
    `app/kapsam.ts → kapsamKosulu` = `lib/api/yetki.ts → tesisKapsamda`.
    Denetim bunun İSTİSNASIDIR ve bilinçlidir: kapsam satırı hiç girilmemiş
    bir denetim portföy geneli sayılır ve gizlenmez — /denetimler ekranı da
    aynı kuralı uygular, iki ekran ayrışamaz. */
 
-/** Saha kartı — B yüzeyinin santral şeridi (b-executive prototipi). */
-export type SantralKarti = {
+/** Saha kartı — B yüzeyinin tesis şeridi (b-executive prototipi). */
+export type TesisKarti = {
   id: string; kod: string; ad: string;
   tipKod: string | null; tipAd: string | null;
   /** Kurulu güç ve BİRİMİ — birim satırdan gelir, ekrana gömülmez. */
@@ -64,7 +64,7 @@ export type SantralKarti = {
 /** Üretim tipine göre uyum katmanı — prototipin sağ sütunu. */
 export type TipKatmani = {
   kod: string; ad: string;
-  santralSayisi: number;
+  tesisSayisi: number;
   /** Katmanın güç toplamı; `null` = ölçüm yok ya da birimler karışık. */
   guc: number | null; gucBirim: string | null; gucKarisik: boolean;
   kontrolSayisi: number;
@@ -111,9 +111,9 @@ export type EkranVerisi = {
   odak: Kayit | null;
   kuyruk: Kayit[];
   toplamKayit: number;
-  /** true = özet bir santral kapsamıyla daraltıldı */
+  /** true = özet bir tesis kapsamıyla daraltıldı */
   kapsamli: boolean;
-  santraller: SantralKarti[];
+  tesisler: TesisKarti[];
   tipler: TipKatmani[];
   risk: RiskIzgarasi;
   takvim: TakvimKalemi[];
@@ -217,9 +217,9 @@ export async function genelEkranVerisi(k: AktifKullanici): Promise<EkranVerisi> 
   const yaklasan = denetimler[0] ?? null;
 
   /* ── B yüzeyinin saha katmanı ────────────────────────────────────────
-     Prototip (b-executive) santral şeridi, üretim tipi katmanları, 5×5
+     Prototip (b-executive) tesis şeridi, üretim tipi katmanları, 5×5
      risk yoğunluğu ve düzenleyici takvim ister. Hepsi KÜME SORGUSUYLA
-     çekilir: santral başına sorgu açmak 16 santralde N+1 üretirdi. */
+     çekilir: tesis başına sorgu açmak 16 tesiste N+1 üretirdi. */
   const akisBaslangic = new Date(simdi.getTime() - AKIS_HAFTA * HAFTA_MS);
   const takvimSonu = new Date(simdi.getTime() + TAKVIM_GUN * 86_400_000);
 
@@ -309,7 +309,7 @@ export async function genelEkranVerisi(k: AktifKullanici): Promise<EkranVerisi> 
      Ölçülmemiş güç sona iner — kolon devrindeki `DESC` davranışı. */
   const tesisler = ozelligeGoreSirala(tesisSirasiz, KURULU_GUC);
 
-  /* Santral × durum sayımı — tek groupBy'dan haritaya. */
+  /* Tesis × durum sayımı — tek groupBy'dan haritaya. */
   const tesisSayimi = new Map<string, Record<string, number>>();
   for (const d of tesisDurumlari) {
     if (!d.tesisId) continue;
@@ -318,7 +318,9 @@ export async function genelEkranVerisi(k: AktifKullanici): Promise<EkranVerisi> 
     tesisSayimi.set(d.tesisId, kayitlar);
   }
 
-  const santraller: SantralKarti[] = tesisler.map((t) => {
+  /* Ham satırlar `tesisler`, ekran kartları `tesisKartlari`: ikisi ayrı
+     şekildir ve aynı adı taşımaları okumayı zorlaştırırdı. */
+  const tesisKartlari: TesisKarti[] = tesisler.map((t) => {
     const s = tesisSayimi.get(t.id) ?? {};
     const o = uyumOzeti(s);
     return {
@@ -331,21 +333,21 @@ export async function genelEkranVerisi(k: AktifKullanici): Promise<EkranVerisi> 
     };
   });
 
-  /* Üretim tipi katmanları — tipi tanımsız santral KENDİ grubunda kalır,
+  /* Üretim tipi katmanları — tipi tanımsız tesis KENDİ grubunda kalır,
      rastgele bir tipe atanmaz. */
   const tipHarita = new Map<string, TipKatmani>();
   /* Katmanın güç toplamı AYRI tutulur ve `birimliToplam` ile kapatılır:
      bir katmanda iki farklı birim varsa toplam anlamsızdır ve sayı hiç
      yazılmaz (bkz. `lib/alan/oznitelik.ts`). */
   const katGucleri = new Map<string, { deger: number | null; birim: string | null }[]>();
-  for (const s of santraller) {
+  for (const s of tesisKartlari) {
     const kod = s.tipKod ?? '—';
     const kat = tipHarita.get(kod) ?? {
       kod, ad: s.tipAd ?? 'Tipi tanımsız',
-      santralSayisi: 0, guc: null, gucBirim: null, gucKarisik: false, kontrolSayisi: 0,
+      tesisSayisi: 0, guc: null, gucBirim: null, gucKarisik: false, kontrolSayisi: 0,
       endeks: null, uygun: 0, kismi: 0, uygunsuz: 0, bilinmeyen: 0,
     };
-    kat.santralSayisi += 1;
+    kat.tesisSayisi += 1;
     katGucleri.set(kod, [...(katGucleri.get(kod) ?? []), { deger: s.guc, birim: s.gucBirim }]);
     kat.uygun += s.sayim.uyumlu ?? 0;
     kat.kismi += s.sayim.kismi ?? 0;
@@ -428,7 +430,7 @@ export async function genelEkranVerisi(k: AktifKullanici): Promise<EkranVerisi> 
   const egilim = anlikEgilimi(anliklar);
 
   const kapsamOzeti = {
-    santraller, tipler,
+    tesisler: tesisKartlari, tipler,
     risk: { hucreler, enYuksek: Math.max(0, ...hucreler.flat()), kritik, yuksek, olculemeyen },
     takvim, akis: akis.map(({ etiket, acilan, kapanan }) => ({ etiket, acilan, kapanan })),
     egilim,

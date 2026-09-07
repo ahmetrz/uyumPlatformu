@@ -15,10 +15,8 @@
     "",
     "Taban güncelleme: npx tsx arac/cekirdek-sozcuk-taramasi.mjs --taban"
   ],
-  "toplam": 40,
+  "toplam": 38,
   "dosyalar": {
-    "app/(kabuk)/(flagship)/Genel.tsx": 1,
-    "app/(kabuk)/(flagship)/tesisler/[id]/veri.ts": 1,
     "app/(kabuk)/(operasyonel)/aktivite/veri.ts": 2,
     "app/(kabuk)/(operasyonel)/bulgular/BulgularIstemci.tsx": 1,
     "app/(kabuk)/(operasyonel)/olaylar/OlaylarIstemci.tsx": 2,

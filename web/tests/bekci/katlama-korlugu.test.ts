@@ -219,7 +219,9 @@ describe('Bekçi körlüğü · küçük harfli kod biçimi', () => {
     // Gerçek geçişler yakalanmaya devam eder.
     expect(bugun('plant', 'Plant 360 ekranı')).toBe(1);
     expect(bugun('plant', 'the plant is offline')).toBe(1);
-    // Bitişik yazım kod tanımlayıcısıdır, sözcük değil.
+    /* Bitişik yazım kod tanımlayıcısıdır, sözcük değil. Örnek DEPODAKİ
+       bir bileşen değil (ekran artık `Tesis360`); ölçülen şey kalıbın
+       kendisi — bitişik yazım her zaman böyle davranmalı. */
     expect(bugun('plant', 'Plant360'), 'bitişik yazım sözcük değildir').toBe(0);
   });
 

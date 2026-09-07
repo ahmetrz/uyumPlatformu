@@ -1,5 +1,5 @@
 {
-  "imza": "eec593ddea0c3902cb2b0cd865b4a54d",
+  "imza": "8eda6e37ef7125e59350e08d32684d87",
   "dosya": 152,
   "vaka": 3033,
   "atlanan": 1,
@@ -416,10 +416,6 @@
       "vaka": 31,
       "atlanan": 0
     },
-    "tests/plant360-profil.test.ts": {
-      "vaka": 12,
-      "atlanan": 0
-    },
     "tests/proje-bagimliligi.test.ts": {
       "vaka": 9,
       "atlanan": 0
@@ -501,6 +497,10 @@
       "atlanan": 0
     },
     "tests/tesis360-eylem.test.ts": {
+      "vaka": 12,
+      "atlanan": 0
+    },
+    "tests/tesis360-profil.test.ts": {
       "vaka": 12,
       "atlanan": 0
     },

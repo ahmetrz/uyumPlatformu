@@ -12,17 +12,17 @@ import { olculenYazi } from '@/lib/alan/oznitelik';
    TESİS 360 — B · ENERGY INTELLIGENCE
 
    Ekranın ADI sözlükten gelir (P1 · URN-ALN-004): enerji sözlüğü kurulu
-   kiracıda "Santral 360", sözlüksüz kiracıda "Tesis 360". Bu dosyadaki
+   kiracıda "Tesis 360", sözlüksüz kiracıda "Tesis 360". Bu dosyadaki
    sektör sözcükleri de aynı sözlükten çözülür — bileşen tektir, sözcük
    kiracıya göre değişir.
 
-   Görsel source of truth: `b-plant360.html`
+   Görsel source of truth: `b-tesis360.html`
    (ORIGINAL_DESIGN_IMPLEMENTATION_MAP.md §2).
 
    Prototipin grameri: 560px hero plakası — solda üstte künye ve 92px dar
-   başlıklı santral adı, solda altta beş sayılık ölçü şeridi, sağda 420px
+   başlıklı tesis adı, solda altta beş sayılık ölçü şeridi, sağda 420px
    veri paneli (uyum endeksi · katmanlı durum · başlıca risk · dört sayaç);
-   altında üretim zinciri bandı; en altta 560px üretim üniteleri + açık
+   altında üretim zinciri bandı; en altta 560px üretim birimleri + açık
    bulgular.
 
    ── PROTOTİPTEN AYRILAN NOKTALAR VE NEDENLERİ ─────────────────────────
@@ -30,7 +30,7 @@ import { olculenYazi } from '@/lib/alan/oznitelik';
        ŞEMADA YOK ve gerçek üretim sistemine BAĞLANMADIK. Uydurulmuş bir
        uydurulmuş bir güç sayısı ekranın en inandırıcı yalanı olurdu.
        Yerlerine gerçek
-       alanlar kondu: kayıtlı varlık ve ünite sayısı.
+       alanlar kondu: kayıtlı varlık ve birim sayısı.
    2 · Prototipin "KATMANLI DURUM" satırları (YÖNETİŞİM · BT · OT ·
        FİZİKSEL · TEDARİK) `Madde.alanAdi`ya benziyor ama o alan
        maddelerin çoğunda BOŞ. Katmanlar kontrol AİLESİNDEN kuruldu —
@@ -39,13 +39,13 @@ import { olculenYazi } from '@/lib/alan/oznitelik';
        sistemler arası SIRA YOK; uydurma bir akış çizmek, olmayan bir
        varlık ilişkisi iddia etmek olurdu. Duraklar kritiklik sırasına
        konuldu ve bunun ne olduğu başlıkta yazıyor.
-   4 · Ünite satırının tik şeridi prototipte uyum durumuydu; `MaddeDurumu`
-       ünite kırılımı TAŞIMIYOR. Şerit üniteye bağlı SİSTEMLERİN risk
-       durumundan çizilir; sistemi olmayan ünitede şerit yok, "—" var.
+   4 · Birim satırının tik şeridi prototipte uyum durumuydu; `MaddeDurumu`
+       birim kırılımı TAŞIMIYOR. Şerit birime bağlı SİSTEMLERİN risk
+       durumundan çizilir; sistemi olmayan birimde şerit yok, "—" var.
    5 · Prototipte olmayan "OT MİMARİ PROFİLİ" bloğu (B6/B9) eklendi:
        `TesisProfili` uygulanabilirlik motorunun girdisidir ve /uyum
-       "profil Plant 360'tan tamamlanır" der; tamamlanacağı yer burasıdır.
-       Blok zincir bandının altında, üniteler/bulgular ikilisinin üstünde
+       "profil Tesis 360'tan tamamlanır" der; tamamlanacağı yer burasıdır.
+       Blok zincir bandının altında, birimler/bulgular ikilisinin üstünde
        durur (OtProfili.tsx).
    ═══════════════════════════════════════════════════════════════════════ */
 
@@ -70,13 +70,13 @@ export type AcikBulgu = {
   hedefTarih: string | null; gecikmis: boolean;
 };
 
-export type Plant360Veri = {
+export type Tesis360Veri = {
   id: string; kod: string; ad: string;
   tipKod: string | null; tipAdi: string; tuzelKisi: string | null;
   konum: string | null;
   guc: number | null; gucBirim: string | null;
   gorselAnahtari: string | null;
-  kritiklik: string | null; uniteSayisi: number | null;
+  kritiklik: string | null; birimSayisi: number | null;
   /** OT mimari profili — null: kayıt hiç açılmamış (her alan tanımsız) */
   profil: OtProfilKaydi | null;
   profilDuzenlenebilir: boolean;
@@ -122,8 +122,8 @@ const BIRIM_DURUM: Record<string, string> = {
   aktif: 'ok', bakim: 'md', devre_disi: 'unk',
 };
 
-export default function Plant360({ veri, tesisler, sozluk }: {
-  veri: Plant360Veri; tesisler: TesisOzeti[]; sozluk: Sozluk | null;
+export default function Tesis360({ veri, tesisler, sozluk }: {
+  veri: Tesis360Veri; tesisler: TesisOzeti[]; sozluk: Sozluk | null;
 }) {
   const foto = heroGorseli(veri.gorselAnahtari);
   const renk = tipRengi(veri.tipKod);
@@ -162,7 +162,7 @@ export default function Plant360({ veri, tesisler, sozluk }: {
           {/* BİRİM VERİDEN: `Olcu`nun `birim` desteği duruyor ama değeri
               artık satırdan geliyor; ekran birim SEÇMEZ (§0.5). */}
           <Olcu etiket="Kurulu güç" deger={veri.guc ?? '—'} birim={veri.gucBirim ?? undefined} />
-          <Olcu etiket={tBas(sozluk, 'birim')} deger={veri.uniteSayisi ?? 0} />
+          <Olcu etiket={tBas(sozluk, 'birim')} deger={veri.birimSayisi ?? 0} />
           <Olcu etiket="Kayıtlı varlık" deger={veri.varlikSayisi} />
           <Olcu etiket="Kritiklik sınıfı"
             deger={veri.kritiklik ? etiketle(veri.kritiklik) : '—'}
@@ -260,7 +260,7 @@ export default function Plant360({ veri, tesisler, sozluk }: {
           </span>
           <span className="mono etiket sag">
             {veri.sistemSayisi} sistem · {veri.varlikSayisi} varlık ·{' '}
-            {veri.uniteSayisi ?? 0} {t(sozluk, 'birim')}
+            {veri.birimSayisi ?? 0} {t(sozluk, 'birim')}
           </span>
         </header>
         {veri.zincir.length === 0 ? (
@@ -295,7 +295,7 @@ export default function Plant360({ veri, tesisler, sozluk }: {
       <OtProfili tesisId={veri.id} profil={veri.profil}
         duzenlenebilir={veri.profilDuzenlenebilir} />
 
-      {/* ═══ Üniteler + açık bulgular ══════════════════════════════════ */}
+      {/* ═══ Birimler + açık bulgular ══════════════════════════════════ */}
       <section className="ab-b-ikili">
         <div className="birimler">
           <p className="etiket">{tBas(sozluk, 'birim', 'cogul')}</p>

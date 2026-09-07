@@ -99,8 +99,16 @@ async function YuvaDagilimi() {
     select: { kod: true, ad: true }, orderBy: { sira: 'asc' },
   }).catch(() => []);
   const yuvali = tipler.filter((t) => tipYuvasi(t.kod));
-  const yuvasiz = tipler.filter((t) => !tipYuvasi(t.kod) && !kimliksizlikNedeni(t.kod));
-  const kimliksiz = tipler.filter((t) => !tipYuvasi(t.kod) && kimliksizlikNedeni(t.kod));
+
+  /* Renksiz tipler ÜÇ kovaya ayrılır. Kovalar `tur` üzerinden seçilir,
+     metne bakılarak değil: sebep ayrık bir değer ve üçüncüsü (`null` =
+     bilinmiyor) bugün boş kalsa da kovası duruyor — üçüncü bir durum
+     çıktığında satır "bilinmiyor" der, sessizce başka kovaya düşmez. */
+  const renksiz = tipler.filter((t) => !tipYuvasi(t.kod))
+    .map((t) => ({ ...t, neden: kimliksizlikNedeni(t.kod) }));
+  const yuvasiz = renksiz.filter((t) => t.neden?.tur === 'kapasite');
+  const kimliksiz = renksiz.filter((t) => t.neden?.tur === 'tasarim');
+  const sebebiBilinmeyen = renksiz.filter((t) => t.neden === null);
   return (
     <>
       <p className="mono ab-dip">
@@ -120,8 +128,19 @@ async function YuvaDagilimi() {
       {kimliksiz.length > 0 && (
         <p className="mono ab-dip">
           Kimlik rengi taşımayan (tasarım gereği):{' '}
-          {kimliksiz.map((t) => `${t.kod} — ${kimliksizlikNedeni(t.kod)}`).join(' · ')}.
+          {kimliksiz.map((t) => `${t.kod} — ${t.neden?.tur === 'tasarim'
+            ? t.neden.gerekce : ''}`).join(' · ')}.
           Yuva açılsa da renk almaz; bu bir eksik değil.
+        </p>
+      )}
+      {sebebiBilinmeyen.length > 0 && (
+        /* Bugün boş. Boş olduğu için silmiyoruz: sebebi çözülemeyen bir
+           tip sessizce "kapasite eksiği" sayılırsa var olmayan bir borç
+           raporlanır. Bilinmeyen, sıfır değildir. */
+        <p className="mono ab-dip">
+          Renksiz, sebebi BİLİNMİYOR: {sebebiBilinmeyen.map((t) => t.kod).join(' ')} —
+          tip sicilinde çözülemedi; kapasite eksiği mi tasarım kararı mı
+          söylenemez.
         </p>
       )}
     </>

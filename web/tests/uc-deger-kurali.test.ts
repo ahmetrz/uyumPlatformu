@@ -106,3 +106,51 @@ describe('Üç değerli alan iki değere indirgenmez', () => {
     expect(evet.deger).toBe('alındı');
   });
 });
+
+/* ═══════════════════════════════════════════════════════════════════════
+   AYNI KURALIN SUNUM TARAFINDAKİ KARŞILIĞI (P1)
+
+   `tipYuvasi()` kimlik rengi olmayan her tesis tipine `null` döner ve
+   doğru davranır: renk seçimi hepsinde nötr mürekkeptir. Ama "neden
+   renksiz" sorusunun cevabı üç değerlidir ve üçünü ikiye indirgemek,
+   yukarıdaki `?? false` hatasının sunum tarafındaki ikizidir:
+
+     kapasite  → üretim tipi, rengi hak ediyor, yuva kalmadı → GERÇEK eksik
+     tasarim   → paletin dışında olması bir karar            → eksik DEĞİL
+     null      → sebep BİLİNMİYOR                            → sıfır değil
+
+   İkisini tek kovada göstermek `/sistem` satırına bakan kişiye iki eksik
+   gösterirdi ve biri gerçek olmazdı. Üçüncüsü bugün hiç oluşmuyor; kovası
+   yine de duruyor, çünkü sebebi çözülemeyen bir tipi sessizce "kapasite
+   eksiği" saymak var olmayan bir borç raporlamaktır.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+describe('Kimlik rengi yokluğunun sebebi üç değerlidir', () => {
+  it('yuvası olmayan üretim tipi KAPASİTE eksiğidir', async () => {
+    const { kimliksizlikNedeni } = await import('@/components/kabuk/tip');
+    expect(kimliksizlikNedeni('DGKC')).toEqual({ tur: 'kapasite' });
+  });
+
+  it('bilerek kimliksiz tip GEREKÇESİYLE döner, "eksik" sayılmaz', async () => {
+    const { kimliksizlikNedeni } = await import('@/components/kabuk/tip');
+    const neden = kimliksizlikNedeni('MERKEZ');
+    expect(neden?.tur).toBe('tasarim');
+    expect(neden?.tur === 'tasarim' && neden.gerekce).toBeTruthy();
+  });
+
+  it('kod verilmemişse sebep BİLİNMİYOR — kapasite eksiği sayılmaz', async () => {
+    /* Üçüncü değerin bugünkü tek üreteci. `{ tur: 'kapasite' }` dönseydi
+       ekran, olmayan bir tip için var olmayan bir borç yazardı. */
+    const { kimliksizlikNedeni } = await import('@/components/kabuk/tip');
+    expect(kimliksizlikNedeni(null)).toBeNull();
+    expect(kimliksizlikNedeni('')).toBeNull();
+    expect(kimliksizlikNedeni('   ')).toBeNull();
+  });
+
+  it('yuvası OLAN tip için sebep sorulmaz — üçü de "renksiz" hâlleridir', async () => {
+    const { kimliksizlikNedeni, tipYuvasi } = await import('@/components/kabuk/tip');
+    expect(tipYuvasi('JEO')).not.toBeNull();
+    // Yuvası olan tipte bu işlevin cevabı anlamsızdır; ekran zaten sormaz.
+    expect(kimliksizlikNedeni('JEO')).toEqual({ tur: 'kapasite' });
+  });
+});

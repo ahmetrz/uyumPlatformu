@@ -94,13 +94,45 @@ const KIMLIKSIZ_TIPLER: Record<string, string> = {
   MERKEZ: 'üretim tesisi değil',
 };
 
-/** Tipin kimlik rengi TAŞIMAMA gerekçesi; kapasite eksiğiyse `null`.
+/** Bir tipin kimlik rengi taşımama SEBEBİ.
 
-    `tipYuvasi()` yuvasız her tipe `null` döner — bu işlev o `null`ın
-    hangi sebepten geldiğini söyler ve yalnız SUNUM için vardır. Renk
-    seçimi ikisinde de aynıdır: nötr mürekkep. */
-export function kimliksizlikNedeni(kod: string | null | undefined): string | null {
-  return KIMLIKSIZ_TIPLER[(kod ?? '').toUpperCase()] ?? null;
+    Ayrık değer, dize değil: "kapasite eksiği" ile "bilerek kimliksiz"
+    aynı türden şeyler değil ve ikisini tek dizeyle taşımak, çağıranı
+    metne bakıp karar vermeye zorlardı. */
+export type Kimliksizlik =
+  | { tur: 'kapasite' }
+  | { tur: 'tasarim'; gerekce: string };
+
+/** Tipin kimlik rengi TAŞIMAMA sebebi; sebebi bilinmiyorsa `null`.
+
+    `tipYuvasi()` yuvasız her tipe `null` döner ve doğru davranır: renk
+    seçimi üç hâlde de aynıdır, nötr mürekkep. Bu işlev o `null`ın
+    ARDINDAKİ sebebi söyler ve yalnız SUNUM için vardır.
+
+      { tur: 'kapasite' }            → üretim tipi, rengi hak ediyor,
+                                       yuva kalmadı. GERÇEK eksik.
+      { tur: 'tasarim', gerekce }    → paletin dışında olması bir karar.
+                                       Eksik DEĞİL.
+      null                           → BİLİNMİYOR. Bugün hiçbir çağrı
+                                       buraya düşmüyor; anlam boş
+                                       bırakıldı ki üçüncü bir durum
+                                       çıktığında sıfır yerine "bilmiyoruz"
+                                       yazacak yer olsun.
+
+    ── `kapasite`NİN VARSAYIMI ───────────────────────────────────────
+    Kod boş değilse ve tasarım tablosunda yoksa `kapasite` denir. Bu,
+    kodun tip sicilinden (`TesisTipi`) geldiğini VARSAYAR — çağıranın
+    sorumluluğu. Sicilde olmayan bir kod bugün yanlışlıkla "kapasite
+    eksiği" görünür; üçüncü değer tam da bunun için ayrıldı: sicili
+    bilen bir çağrı noktası çıktığında oradan `null` döner ve satır
+    "bilinmiyor" der, uydurma bir eksik saymaz. */
+export function kimliksizlikNedeni(kod: string | null | undefined): Kimliksizlik | null {
+  const k = (kod ?? '').trim().toUpperCase();
+  const gerekce = KIMLIKSIZ_TIPLER[k];
+  if (gerekce) return { tur: 'tasarim', gerekce };
+  // Kod hiç verilmemişse sebebi söylenemez — sıfır değil, bilinmiyor.
+  if (!k) return null;
+  return { tur: 'kapasite' };
 }
 
 /** Kimlik rengi; yuvası olmayan tip için nötr mürekkep. */

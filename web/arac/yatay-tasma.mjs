@@ -50,7 +50,9 @@ import {
   KOK, dinamikRotalar, girisYap, kalipCozucu, rotaBayragi, rotaBayragiVar, rotalarOku,
   tarayiciYolu,
 } from './kosu-ortak.mjs';
-import { KAYDIRAN_KAPLAR, enDistakiKirpilmalar, kirpilmaKarari } from './kalite-kurallari.mjs';
+import {
+  KAYDIRAN_KAPLAR, borcAnahtari, enDistakiKirpilmalar, kirpilmaKarari, tasmaHedefi,
+} from './kalite-kurallari.mjs';
 import { borcuUygula } from './kalite-borcu.mjs';
 import { yonlendirmeKarari } from './rota-kurallari.mjs';
 
@@ -333,7 +335,7 @@ for (const k of kirpilmalar) {
 function enKotuyeIndirge(bulgular) {
   const en = new Map();
   for (const b of bulgular) {
-    const anahtar = [b.kapi, b.tur, b.rota, b.bant].join('|');
+    const anahtar = borcAnahtari(b);
     const v = en.get(anahtar);
     if (!v || b.olcum > v.olcum) en.set(anahtar, { ...b, ornek: (v?.ornek ?? 0) + 1 });
     else en.set(anahtar, { ...v, ornek: v.ornek + 1 });
@@ -344,17 +346,23 @@ function enKotuyeIndirge(bulgular) {
 /* Borç anahtarı KALIBA yazılır (`/tesisler/[id]`), somut URL'e değil:
    tohum kimlikleri her seed'de değişir. */
 const kalip = kalipCozucu(DINAMIK);
+/* Her HEDEF ayrı bulgudur — tek satırda toplanmaz. Toplanınca hedef
+   kimliği anahtardan düşüyor ve bir kırpma ötekinin yerine geçebiliyordu
+   (bkz. `borcAnahtari` gerekçesi). `kirpilan-icerik` ölçüsü artık
+   VARLIKTIR (1): "bu hedef burada kırpılıyor". Örnek sayısı satır
+   sayısına, yani tohuma bağlı olurdu; büyümeyi ALT KÜME dişi yakalar —
+   yeni bir hedef, yeni bir satır demektir. */
 const bulgular = [
   ...kusurlar.map((k) => ({
     kapi: 'tasma', tur: 'sayfa-kayiyor', rota: kalip(k.yol), bant: k.bantEn,
-    olcum: k.tasma, birim: 'px',
-    not: k.suclular[0] ? `${k.suclular[0].etiket} "${k.suclular[0].metin}"` : undefined,
+    hedef: tasmaHedefi(k.suclular[0]), olcum: k.tasma, birim: 'px',
+    not: k.suclular[0] ? `"${k.suclular[0].metin}"` : undefined,
   })),
-  ...kirpilmalar.map((k) => ({
+  ...kirpilmalar.flatMap((k) => k.ogeler.map((o) => ({
     kapi: 'tasma', tur: 'kirpilan-icerik', rota: kalip(k.yol), bant: k.bantEn,
-    olcum: k.ogeler.length, birim: 'kusur türü',
-    not: k.ogeler[0]?.etiket,
-  })),
+    hedef: tasmaHedefi(o), olcum: 1, birim: 'kırpma',
+    not: o.karar.tur,
+  }))),
 ];
 const borcKapali = borcuUygula(enKotuyeIndirge(bulgular), { kapi: 'tasma' });
 if (DINAMIK_KIRIK) {

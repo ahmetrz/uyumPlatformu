@@ -200,24 +200,103 @@ export function enDistakiKirpilmalar(adaylar) {
    DAL DEĞİL `origin/main`'dir — dalın kendi listesine bakmak, dalın
    kendi eklemesini meşrulaştırırdı. */
 
-/** Bir bulgunun ya da borç satırının kimliği: kapı + tür + rota + bant. */
+/* ── BORÇ ANAHTARI · İKİ KAPININ ORTAK DEĞİŞMEZİ ───────────────────
+   Anahtar; rota + bant + kural/tür YANINDA kararlı bir HEDEF KİMLİĞİ
+   taşır. Taşımıyordu — ve İKİ kapıda da taşımıyordu: taşma kapısında
+   hedef yalnız SAYIMA giriyordu (imza), anahtara değil. Sonuç, artık
+   bloklayıcı olan bir kapının İÇİNDE bir bypass'tı:
+
+     bir PR izinli hedefi kaldırır, aynı rotada + aynı bantta + aynı
+     kuralla BAŞKA bir hedef getirir; sayı tavanı aşmadığı için bulgu
+     "mevcut borç" sayılır ve ciddi bir ihlal, bir başkasının yerine
+     sessizce geçer.
+
+   Hedef kimliğini iki kapı da ayrı üretir (`tasmaHedefi`, `axeHedefi`)
+   ama TEK sözleşmeye uyar ve `tests/kalite-kapilari.test.ts` ikisini
+   birlikte sınar: aynı rota + bant + kural, FARKLI hedef → FARKLI
+   anahtar. Böylece bir sonraki ayrışma incelemede değil KAPIDA çıkar. */
 export function borcAnahtari(k) {
-  return [k?.kapi, k?.tur, k?.rota, k?.bant].join('|');
+  return [k?.kapi, k?.tur, k?.rota, k?.bant, k?.hedef ?? ''].join('|');
+}
+
+/**
+ * Taşma kapısının hedef kimliği: etiket + kutu eni.
+ *
+ * Kutu eni yerleşimden gelir (`table-layout: fixed` sütun genişliği),
+ * satır sayısından değil — tekrarlayan satırlar tek hedefte birleşir,
+ * yapısal olarak başka bir kırpma ayrı hedef olur.
+ */
+export function tasmaHedefi(oge) {
+  const etiket = String(oge?.etiket ?? '').trim() || '‹etiketsiz›';
+  const en = Number(oge?.genislik);
+  return `${etiket}@${Number.isFinite(en) ? Math.round(en) : '?'}px`;
+}
+
+/* axe seçicilerindeki KIRILGAN parçalar: konum bağlı sözde sınıflar.
+   `:nth-child(2)` bir kardeş eklenince kayar ve hedef kimliği o zaman
+   kusuru değil DOM sırasını izlerdi. */
+const KIRILGAN_SOZDE = /:(nth-child|nth-of-type|nth-last-child|nth-last-of-type)\([^)]*\)|:(first|last|only)-(child|of-type)/g;
+
+/**
+ * axe'ın hedef kimliği: kırılgan parçaları atılmış seçici yolu.
+ *
+ * Yol KORUNUR (yalnız son basit seçici değil): daha özgüldür, yani iki
+ * ayrı ihlalin aynı kimliğe düşme olasılığı düşer. Yine de düşebilir —
+ * o durum ÖLÇÜLÜR ve raporlanır (`hedefCakismalari`), sessizce
+ * birleştirilmez.
+ */
+export function axeHedefi(secici) {
+  return String(secici ?? '')
+    .replace(KIRILGAN_SOZDE, '')
+    .replace(/\s*>\s*/g, ' > ')
+    .replace(/\s+/g, ' ')
+    .trim() || '‹seçicisiz›';
+}
+
+/**
+ * Normalizasyondan sonra AYNI kimliğe düşen FARKLI ham seçiciler.
+ * Kimlik o noktada gerçekten ayırt etmiyordur; kapı bunu yazar.
+ */
+export function hedefCakismalari(hamSeciciler) {
+  const grup = new Map();
+  for (const ham of hamSeciciler ?? []) {
+    const h = axeHedefi(ham);
+    if (!grup.has(h)) grup.set(h, new Set());
+    grup.get(h).add(String(ham));
+  }
+  return [...grup.entries()]
+    .filter(([, hamlar]) => hamlar.size > 1)
+    .map(([hedef, hamlar]) => ({ hedef, hamlar: [...hamlar] }));
 }
 
 /**
  * DİŞ 1 + DİŞ 2 — bulguları izin listesine karşı süzer.
- * @param {{kapi:string,tur:string,rota:string,bant:number,olcum:number,birim?:string}[]} bulgular
- * @param {{kapi:string,tur:string,rota:string,bant:number,azami:number}[]} borc
+ * @param {{kapi:string,tur:string,rota:string,bant:number,hedef?:string,
+ *          olcum:number,birim?:string,not?:string,hedefDegisti?:string[]}[]} bulgular
+ * @param {{kapi:string,tur:string,rota:string,bant:number,hedef?:string,azami:number}[]} borc
  */
 export function borcSuzgeci(bulgular, borc) {
   const liste = new Map((borc ?? []).map((b) => [borcAnahtari(b), b]));
   const yeni = [];
   const asan = [];
   const kalan = [];
+  /* Hedefsiz anahtar: aynı rota + bant + kural, başka hedef. Bir bulgu
+     YENİ ama bu öbekte listede satır VARSA, büyük olasılıkla bir hedef
+     ÖTEKİNİN YERİNE geçmiştir — bypass'ın tam kendisi. Ayrı raporlanır,
+     çünkü "yeni kusur" ile "kusur yer değiştirdi" farklı işlerdir. */
+  const obek = new Map();
+  for (const b of borc ?? []) {
+    const o = [b.kapi, b.tur, b.rota, b.bant].join('|');
+    if (!obek.has(o)) obek.set(o, []);
+    obek.get(o).push(b.hedef);
+  }
   for (const b of bulgular ?? []) {
     const satir = liste.get(borcAnahtari(b));
-    if (!satir) { yeni.push(b); continue; }                       // DİŞ 2
+    if (!satir) {                                                 // DİŞ 2
+      const listedeki = obek.get([b.kapi, b.tur, b.rota, b.bant].join('|'));
+      yeni.push(listedeki ? { ...b, hedefDegisti: listedeki } : b);
+      continue;
+    }
     if (Number(b.olcum) > Number(satir.azami)) {                  // DİŞ 1
       asan.push({ ...b, azami: satir.azami });
       continue;
@@ -238,14 +317,57 @@ export function borcSuzgeci(bulgular, borc) {
  */
 export function circirKarari(dalBorcu, tabanBorcu) {
   const taban = new Map((tabanBorcu ?? []).map((b) => [borcAnahtari(b), b]));
+  /* ── ANAHTAR ŞEMASI GEÇİŞİ ──────────────────────────────────────────
+     Anahtara HEDEF eklendiğinde her satırın anahtarı değişir ve cırcır
+     bunu "hepsi eklenmiş" diye okur. Oysa aynı borç, DAHA KESİN
+     yazılmıştır; büyüme değildir.
+
+     Geçiş bir KALDIRAÇ DEĞİLDİR, çünkü koşulu TABANIN şeklidir ve dal
+     onu belirleyemez: yalnız taban satırı hedefsizken açılır. Taban bir
+     kez hedefli satır taşıdıktan sonra (yani bu değişiklik main'e
+     girdikten sonra) bu dal kalıcı olarak ölür — hiçbir PR onu geri
+     açamaz.
+
+     Geçiş de sınırsız değildir: bir eski satırın altına, o satırın
+     TAVANINDAN çok yeni satır konamaz ve hiçbirinin tavanı eskisini
+     aşamaz. Yani "daha kesin yazmak" borcu büyütmenin yolu olamaz. */
+  const eskiObek = new Map();
+  for (const t of tabanBorcu ?? []) {
+    if (t?.hedef !== undefined && t?.hedef !== null) continue;
+    eskiObek.set([t.kapi, t.tur, t.rota, t.bant].join('|'), t);
+  }
+
   const eklenen = [];
   const yukseltilen = [];
+  const gecis = new Map();
   for (const b of dalBorcu ?? []) {
     const t = taban.get(borcAnahtari(b));
-    if (!t) { eklenen.push(b); continue; }
-    if (Number(b.azami) > Number(t.azami)) yukseltilen.push({ ...b, tabanAzami: t.azami });
+    if (t) {
+      if (Number(b.azami) > Number(t.azami)) yukseltilen.push({ ...b, tabanAzami: t.azami });
+      continue;
+    }
+    const eski = eskiObek.get([b.kapi, b.tur, b.rota, b.bant].join('|'));
+    if (!eski) { eklenen.push(b); continue; }
+    if (!gecis.has(eski)) gecis.set(eski, []);
+    gecis.get(eski).push(b);
   }
-  return { eklenen, yukseltilen, kapiKapali: eklenen.length > 0 || yukseltilen.length > 0 };
+
+  for (const [eski, yeniler] of gecis) {
+    if (yeniler.length > Number(eski.azami)) {
+      eklenen.push(...yeniler.map((b) => ({ ...b, gecisAsimi: eski.azami })));
+      continue;
+    }
+    for (const b of yeniler) {
+      if (Number(b.azami) > Number(eski.azami)) yukseltilen.push({ ...b, tabanAzami: eski.azami });
+    }
+  }
+
+  return {
+    eklenen,
+    yukseltilen,
+    gecis: [...gecis.values()].flat().length,
+    kapiKapali: eklenen.length > 0 || yukseltilen.length > 0,
+  };
 }
 
 /**

@@ -133,7 +133,9 @@ export function tabanBorcOku() {
 }
 
 function satir(b) {
-  return `${b.kapi} · ${b.tur} · ${b.rota} · ${b.bant}px`;
+  /* Hedef kimliği anahtarın parçasıdır; raporda GÖRÜNMELİ, yoksa
+     "hangi hedef ötekinin yerine geçti" sorusu çıktıdan okunamaz. */
+  return `${b.kapi} · ${b.tur} · ${b.rota} · ${b.bant}px · ${b.hedef ?? '‹hedefsiz›'}`;
 }
 
 /**
@@ -177,6 +179,12 @@ export function borcuUygula(bulgular, { kapi, yaz = console.error, bilgi = conso
     bilgi(`\ncırcır: ${TABAN_DAL} listeyi henüz taşımıyor — İLK KURULUM turu`);
   } else {
     circir = circirKarari(dalBorcu, taban.bulgular.filter((b) => !kapi || b.kapi === kapi));
+    if (circir.gecis > 0) {
+      bilgi(`\nANAHTAR ŞEMASI GEÇİŞİ · ${circir.gecis} satır — tabandaki HEDEFSİZ satırlar`);
+      bilgi('  daha kesin yazıldı. Bu bir büyüme DEĞİLDİR ve bir kaldıraç da değildir:');
+      bilgi('  koşul TABANIN şeklidir, dal onu belirleyemez. Taban hedefli satır');
+      bilgi('  taşımaya başladığında bu yol kalıcı olarak kapanır.');
+    }
   }
 
   /* ── Rapor ────────────────────────────────────────────────────────── */
@@ -191,7 +199,15 @@ export function borcuUygula(bulgular, { kapi, yaz = console.error, bilgi = conso
 
   if (s.yeni.length > 0) {
     yaz(`\nDİŞ 2 · ALT KÜME — izin listesinde OLMAYAN ${s.yeni.length} bulgu`);
-    for (const b of s.yeni) yaz(`  ${satir(b)} → ${b.olcum} ${b.birim ?? ''}${b.not ? ` · ${b.not}` : ''}`);
+    for (const b of s.yeni) {
+      yaz(`  ${satir(b)} → ${b.olcum} ${b.birim ?? ''}${b.not ? ` · ${b.not}` : ''}`);
+      /* Aynı rota + bant + kuralda listede BAŞKA hedef var: bu bir yeni
+         kusur değil, bir YER DEĞİŞTİRME olabilir — bypass'ın tam kendisi.
+         İki iş farklıdır, ayrı yazılır. */
+      if (b.hedefDegisti) {
+        yaz(`      ↔ HEDEF DEĞİŞMİŞ olabilir — listedeki: ${b.hedefDegisti.join(' , ')}`);
+      }
+    }
     yaz('  Bunlar YENİDİR: düzeltin. Listeye eklemek DİŞ 3\'e takılır.');
   }
   if (s.asan.length > 0) {
@@ -211,7 +227,8 @@ export function borcuUygula(bulgular, { kapi, yaz = console.error, bilgi = conso
   const kapali = s.kapiKapali || circir.kapiKapali;
   bilgi(`\nkalite borcu (${kapi ?? 'tümü'}): izinli ${s.kalan.length} · yeni ${s.yeni.length}`
     + ` · tavan aşan ${s.asan.length} · düzelmiş ${s.duzelmis.length}`
-    + ` · cırcır ${circirNotu ?? `${circir.eklenen.length} eklenen · ${circir.yukseltilen.length} yükseltilen`}`);
+    + ` · cırcır ${circirNotu ?? `${circir.eklenen.length} eklenen · ${circir.yukseltilen.length} yükseltilen`
+      + `${circir.gecis ? ` · ${circir.gecis} şema geçişi` : ''}`}`);
   return kapali;
 }
 

@@ -17,14 +17,51 @@
     "    yerelde yalnız `--circir-atla=\"<gerekçe>\"` ile atlanır."
   ],
   "_olculdu": "2026-09-07 · TAZE tohumla (npm run db:hazirla), üretim sunucusuna karşı · 68 rota (50 statik + 18 dinamik varyant) × 2 bant (taşma) · 69 rota × 3 bant (axe)",
-  "_birim": "tasma/sayfa-kayiyor: px · tasma/kirpilan-icerik: KUSUR TÜRÜ (etiket + kırpılma türü + kutu eni tek imzadır; kutu eni yerleşimden gelir, satır sayısından değil) · axe: ihlal düğümü",
+  "_birim": "tasma/sayfa-kayiyor: px · tasma/kirpilan-icerik: VARLIK (1 — \"bu hedef burada kırpılıyor\"; örnek sayısı satır sayısına yani tohuma bağlı olurdu) · axe: o hedefteki ihlal düğümü",
   "bulgular": [
+    {
+      "kapi": "tasma",
+      "tur": "sayfa-kayiyor",
+      "rota": "/omur",
+      "bant": 375,
+      "hedef": "span.ad@21px",
+      "azami": 4,
+      "not": "span.ad@21px sayfayı yana kaydırıyor"
+    },
+    {
+      "kapi": "tasma",
+      "tur": "sayfa-kayiyor",
+      "rota": "/riskler/[id]",
+      "bant": 375,
+      "hedef": "aside@400px",
+      "azami": 49,
+      "not": "aside@400px sayfayı yana kaydırıyor"
+    },
+    {
+      "kapi": "tasma",
+      "tur": "sayfa-kayiyor",
+      "rota": "/omur",
+      "bant": 768,
+      "hedef": "span.ad@21px",
+      "azami": 3,
+      "not": "span.ad@21px sayfayı yana kaydırıyor"
+    },
     {
       "kapi": "tasma",
       "tur": "kirpilan-icerik",
       "rota": "/aktivite",
       "bant": 375,
-      "azami": 2,
+      "hedef": "span.kolonbas@43px",
+      "azami": 1,
+      "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
+    },
+    {
+      "kapi": "tasma",
+      "tur": "kirpilan-icerik",
+      "rota": "/aktivite",
+      "bant": 375,
+      "hedef": "span.kimlik-metin@150px",
+      "azami": 1,
       "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
     },
     {
@@ -32,6 +69,7 @@
       "tur": "kirpilan-icerik",
       "rota": "/api-sozlesmesi",
       "bant": 375,
+      "hedef": "span.kimlik@150px",
       "azami": 1,
       "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
     },
@@ -40,31 +78,44 @@
       "tur": "kirpilan-icerik",
       "rota": "/bildirimler",
       "bant": 375,
-      "azami": 1,
-      "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor · satır SAYISI koşudan koşuya değişir (kapı girişi bildirim üretir); tavan kusur TÜRÜ olduğu için bu salınımdan etkilenmez, satır hiç çıkmazsa \"düzelmiş\" yazılır ve kapı yanmaz"
-    },
-    {
-      "kapi": "tasma",
-      "tur": "kirpilan-icerik",
-      "rota": "/bulgular",
-      "bant": 375,
-      "azami": 4,
-      "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
-    },
-    {
-      "kapi": "tasma",
-      "tur": "kirpilan-icerik",
-      "rota": "/bulgular",
-      "bant": 768,
+      "hedef": "span.kimlik@150px",
       "azami": 1,
       "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
     },
     {
       "kapi": "tasma",
       "tur": "kirpilan-icerik",
-      "rota": "/bulgular/[id]",
+      "rota": "/bulgular",
       "bant": 375,
-      "azami": 2,
+      "hedef": "button.kolonbas.sirali@60px",
+      "azami": 1,
+      "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
+    },
+    {
+      "kapi": "tasma",
+      "tur": "kirpilan-icerik",
+      "rota": "/bulgular",
+      "bant": 375,
+      "hedef": "button.kolonbas.sirali@77px",
+      "azami": 1,
+      "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
+    },
+    {
+      "kapi": "tasma",
+      "tur": "kirpilan-icerik",
+      "rota": "/bulgular",
+      "bant": 375,
+      "hedef": "span.kimlik@150px",
+      "azami": 1,
+      "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
+    },
+    {
+      "kapi": "tasma",
+      "tur": "kirpilan-icerik",
+      "rota": "/bulgular",
+      "bant": 375,
+      "hedef": "span@2px",
+      "azami": 1,
       "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
     },
     {
@@ -72,14 +123,16 @@
       "tur": "kirpilan-icerik",
       "rota": "/denetimler",
       "bant": 375,
-      "azami": 2,
+      "hedef": "button.kolonbas.sirali@77px",
+      "azami": 1,
       "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
     },
     {
       "kapi": "tasma",
       "tur": "kirpilan-icerik",
-      "rota": "/denetimler/[id]",
+      "rota": "/denetimler",
       "bant": 375,
+      "hedef": "span.kimlik@150px",
       "azami": 1,
       "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
     },
@@ -88,15 +141,35 @@
       "tur": "kirpilan-icerik",
       "rota": "/dokumanlar",
       "bant": 375,
-      "azami": 4,
+      "hedef": "span.kolonbas@43px",
+      "azami": 1,
       "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
     },
     {
       "kapi": "tasma",
       "tur": "kirpilan-icerik",
       "rota": "/dokumanlar",
-      "bant": 768,
-      "azami": 4,
+      "bant": 375,
+      "hedef": "span.kolonbas@60px",
+      "azami": 1,
+      "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
+    },
+    {
+      "kapi": "tasma",
+      "tur": "kirpilan-icerik",
+      "rota": "/dokumanlar",
+      "bant": 375,
+      "hedef": "span.kimlik@150px",
+      "azami": 1,
+      "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
+    },
+    {
+      "kapi": "tasma",
+      "tur": "kirpilan-icerik",
+      "rota": "/dokumanlar",
+      "bant": 375,
+      "hedef": "span@0px",
+      "azami": 1,
       "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
     },
     {
@@ -104,7 +177,17 @@
       "tur": "kirpilan-icerik",
       "rota": "/esleme",
       "bant": 375,
-      "azami": 2,
+      "hedef": "span.kolonbas@51px",
+      "azami": 1,
+      "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
+    },
+    {
+      "kapi": "tasma",
+      "tur": "kirpilan-icerik",
+      "rota": "/esleme",
+      "bant": 375,
+      "hedef": "span.kimlik@150px",
+      "azami": 1,
       "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
     },
     {
@@ -112,6 +195,7 @@
       "tur": "kirpilan-icerik",
       "rota": "/eslestirme",
       "bant": 375,
+      "hedef": "span.kimlik@150px",
       "azami": 1,
       "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
     },
@@ -120,14 +204,16 @@
       "tur": "kirpilan-icerik",
       "rota": "/ice-aktarim",
       "bant": 375,
-      "azami": 2,
+      "hedef": "span.kolonbas@77px",
+      "azami": 1,
       "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
     },
     {
       "kapi": "tasma",
       "tur": "kirpilan-icerik",
       "rota": "/ice-aktarim",
-      "bant": 768,
+      "bant": 375,
+      "hedef": "span.kimlik@150px",
       "azami": 1,
       "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
     },
@@ -136,15 +222,71 @@
       "tur": "kirpilan-icerik",
       "rota": "/kanitlar",
       "bant": 375,
-      "azami": 8,
+      "hedef": "button.kolonbas.sirali@60px",
+      "azami": 1,
       "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
     },
     {
       "kapi": "tasma",
       "tur": "kirpilan-icerik",
       "rota": "/kanitlar",
-      "bant": 768,
-      "azami": 7,
+      "bant": 375,
+      "hedef": "span.kimlik@150px",
+      "azami": 1,
+      "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
+    },
+    {
+      "kapi": "tasma",
+      "tur": "kirpilan-icerik",
+      "rota": "/kanitlar",
+      "bant": 375,
+      "hedef": "span@179px",
+      "azami": 1,
+      "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
+    },
+    {
+      "kapi": "tasma",
+      "tur": "kirpilan-icerik",
+      "rota": "/kanitlar",
+      "bant": 375,
+      "hedef": "span@178px",
+      "azami": 1,
+      "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
+    },
+    {
+      "kapi": "tasma",
+      "tur": "kirpilan-icerik",
+      "rota": "/kanitlar",
+      "bant": 375,
+      "hedef": "span@124px",
+      "azami": 1,
+      "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
+    },
+    {
+      "kapi": "tasma",
+      "tur": "kirpilan-icerik",
+      "rota": "/kanitlar",
+      "bant": 375,
+      "hedef": "span@231px",
+      "azami": 1,
+      "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
+    },
+    {
+      "kapi": "tasma",
+      "tur": "kirpilan-icerik",
+      "rota": "/kanitlar",
+      "bant": 375,
+      "hedef": "span@177px",
+      "azami": 1,
+      "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
+    },
+    {
+      "kapi": "tasma",
+      "tur": "kirpilan-icerik",
+      "rota": "/kanitlar",
+      "bant": 375,
+      "hedef": "span@234px",
+      "azami": 1,
       "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
     },
     {
@@ -152,14 +294,16 @@
       "tur": "kirpilan-icerik",
       "rota": "/kesif",
       "bant": 375,
-      "azami": 2,
+      "hedef": "span.kolonbas@86px",
+      "azami": 1,
       "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
     },
     {
       "kapi": "tasma",
       "tur": "kirpilan-icerik",
       "rota": "/kesif",
-      "bant": 768,
+      "bant": 375,
+      "hedef": "span.kimlik@150px",
       "azami": 1,
       "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
     },
@@ -168,7 +312,17 @@
       "tur": "kirpilan-icerik",
       "rota": "/kimlik",
       "bant": 375,
-      "azami": 2,
+      "hedef": "span.kolonbas@43px",
+      "azami": 1,
+      "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
+    },
+    {
+      "kapi": "tasma",
+      "tur": "kirpilan-icerik",
+      "rota": "/kimlik",
+      "bant": 375,
+      "hedef": "span.kimlik@150px",
+      "azami": 1,
       "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
     },
     {
@@ -176,6 +330,7 @@
       "tur": "kirpilan-icerik",
       "rota": "/olaylar",
       "bant": 375,
+      "hedef": "span.kimlik@150px",
       "azami": 1,
       "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
     },
@@ -184,7 +339,17 @@
       "tur": "kirpilan-icerik",
       "rota": "/omur",
       "bant": 375,
-      "azami": 2,
+      "hedef": "span.kolonbas@34px",
+      "azami": 1,
+      "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
+    },
+    {
+      "kapi": "tasma",
+      "tur": "kirpilan-icerik",
+      "rota": "/omur",
+      "bant": 375,
+      "hedef": "span.kimlik@150px",
+      "azami": 1,
       "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
     },
     {
@@ -192,7 +357,17 @@
       "tur": "kirpilan-icerik",
       "rota": "/operasyon",
       "bant": 375,
-      "azami": 2,
+      "hedef": "span.kolonbas@86px",
+      "azami": 1,
+      "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
+    },
+    {
+      "kapi": "tasma",
+      "tur": "kirpilan-icerik",
+      "rota": "/operasyon",
+      "bant": 375,
+      "hedef": "span.kimlik@150px",
+      "azami": 1,
       "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
     },
     {
@@ -200,7 +375,17 @@
       "tur": "kirpilan-icerik",
       "rota": "/projeler",
       "bant": 375,
-      "azami": 2,
+      "hedef": "span.kolonbas@43px",
+      "azami": 1,
+      "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
+    },
+    {
+      "kapi": "tasma",
+      "tur": "kirpilan-icerik",
+      "rota": "/projeler",
+      "bant": 375,
+      "hedef": "span.kimlik-metin@150px",
+      "azami": 1,
       "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
     },
     {
@@ -208,7 +393,17 @@
       "tur": "kirpilan-icerik",
       "rota": "/prosesler",
       "bant": 375,
-      "azami": 2,
+      "hedef": "span.kolonbas@51px",
+      "azami": 1,
+      "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
+    },
+    {
+      "kapi": "tasma",
+      "tur": "kirpilan-icerik",
+      "rota": "/prosesler",
+      "bant": 375,
+      "hedef": "span.kimlik@150px",
+      "azami": 1,
       "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
     },
     {
@@ -216,6 +411,7 @@
       "tur": "kirpilan-icerik",
       "rota": "/raporlar/kanit-paketi",
       "bant": 375,
+      "hedef": "span.kimlik@150px",
       "azami": 1,
       "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
     },
@@ -224,6 +420,7 @@
       "tur": "kirpilan-icerik",
       "rota": "/riskler",
       "bant": 375,
+      "hedef": "span.kimlik-metin@150px",
       "azami": 1,
       "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
     },
@@ -232,7 +429,17 @@
       "tur": "kirpilan-icerik",
       "rota": "/saglik",
       "bant": 375,
-      "azami": 2,
+      "hedef": "span.kolonbas@43px",
+      "azami": 1,
+      "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
+    },
+    {
+      "kapi": "tasma",
+      "tur": "kirpilan-icerik",
+      "rota": "/saglik",
+      "bant": 375,
+      "hedef": "span.kimlik@150px",
+      "azami": 1,
       "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
     },
     {
@@ -240,7 +447,17 @@
       "tur": "kirpilan-icerik",
       "rota": "/saglik/reddedilenler",
       "bant": 375,
-      "azami": 2,
+      "hedef": "span.kolonbas@51px",
+      "azami": 1,
+      "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
+    },
+    {
+      "kapi": "tasma",
+      "tur": "kirpilan-icerik",
+      "rota": "/saglik/reddedilenler",
+      "bant": 375,
+      "hedef": "span.kimlik@150px",
+      "azami": 1,
       "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
     },
     {
@@ -248,7 +465,26 @@
       "tur": "kirpilan-icerik",
       "rota": "/saklama",
       "bant": 375,
-      "azami": 3,
+      "hedef": "span.kolonbas@34px",
+      "azami": 1,
+      "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
+    },
+    {
+      "kapi": "tasma",
+      "tur": "kirpilan-icerik",
+      "rota": "/saklama",
+      "bant": 375,
+      "hedef": "span.kolonbas@60px",
+      "azami": 1,
+      "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
+    },
+    {
+      "kapi": "tasma",
+      "tur": "kirpilan-icerik",
+      "rota": "/saklama",
+      "bant": 375,
+      "hedef": "span.kimlik@150px",
+      "azami": 1,
       "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
     },
     {
@@ -256,46 +492,52 @@
       "tur": "kirpilan-icerik",
       "rota": "/sistem/bilesenler",
       "bant": 375,
-      "azami": 3,
-      "not": "topoloji düğümleri tuvalin kenarında kesiliyor · detektör keskinleşince 4 → 8 ölçüldü"
+      "hedef": "span.kolonbas@34px",
+      "azami": 1,
+      "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
     },
     {
       "kapi": "tasma",
       "tur": "kirpilan-icerik",
       "rota": "/sistem/bilesenler",
-      "bant": 768,
-      "azami": 1,
-      "not": "topoloji düğümleri (button.dugum) tuvalin kenarında kesiliyor · 16px"
-    },
-    {
-      "kapi": "tasma",
-      "tur": "kirpilan-icerik",
-      "rota": "/surecler",
       "bant": 375,
-      "azami": 3,
-      "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
-    },
-    {
-      "kapi": "tasma",
-      "tur": "kirpilan-icerik",
-      "rota": "/surecler",
-      "bant": 768,
+      "hedef": "span.kimlik@150px",
       "azami": 1,
       "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
     },
     {
       "kapi": "tasma",
       "tur": "kirpilan-icerik",
-      "rota": "/surecler/[id]",
+      "rota": "/sistem/bilesenler",
       "bant": 375,
-      "azami": 3,
+      "hedef": "button.dugum@168px",
+      "azami": 1,
+      "not": "topoloji düğümleri tuvalin kenarında kesiliyor"
+    },
+    {
+      "kapi": "tasma",
+      "tur": "kirpilan-icerik",
+      "rota": "/surecler",
+      "bant": 375,
+      "hedef": "button.kolonbas.sirali@86px",
+      "azami": 1,
       "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
     },
     {
       "kapi": "tasma",
       "tur": "kirpilan-icerik",
-      "rota": "/surecler/[id]",
-      "bant": 768,
+      "rota": "/surecler",
+      "bant": 375,
+      "hedef": "button.kolonbas.sirali@103px",
+      "azami": 1,
+      "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
+    },
+    {
+      "kapi": "tasma",
+      "tur": "kirpilan-icerik",
+      "rota": "/surecler",
+      "bant": 375,
+      "hedef": "span.kimlik@150px",
       "azami": 1,
       "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
     },
@@ -304,15 +546,35 @@
       "tur": "kirpilan-icerik",
       "rota": "/tedarikciler",
       "bant": 375,
-      "azami": 4,
+      "hedef": "span.kolonbas@77px",
+      "azami": 1,
       "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
     },
     {
       "kapi": "tasma",
       "tur": "kirpilan-icerik",
       "rota": "/tedarikciler",
-      "bant": 768,
-      "azami": 2,
+      "bant": 375,
+      "hedef": "span.kimlik@150px",
+      "azami": 1,
+      "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
+    },
+    {
+      "kapi": "tasma",
+      "tur": "kirpilan-icerik",
+      "rota": "/tedarikciler",
+      "bant": 375,
+      "hedef": "span.ab-ipucu-sar@219px",
+      "azami": 1,
+      "not": "ipucu balonu kabından taşıyor"
+    },
+    {
+      "kapi": "tasma",
+      "tur": "kirpilan-icerik",
+      "rota": "/tedarikciler",
+      "bant": 375,
+      "hedef": "span.ab-ipucu-sar@166px",
+      "azami": 1,
       "not": "ipucu balonu kabından taşıyor"
     },
     {
@@ -320,6 +582,7 @@
       "tur": "kirpilan-icerik",
       "rota": "/topoloji",
       "bant": 375,
+      "hedef": "span.kimlik@150px",
       "azami": 1,
       "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
     },
@@ -328,6 +591,7 @@
       "tur": "kirpilan-icerik",
       "rota": "/varlik-aktarim",
       "bant": 375,
+      "hedef": "span.kimlik@150px",
       "azami": 1,
       "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
     },
@@ -336,7 +600,17 @@
       "tur": "kirpilan-icerik",
       "rota": "/yedekleme",
       "bant": 375,
-      "azami": 2,
+      "hedef": "span.kolonbas@60px",
+      "azami": 1,
+      "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
+    },
+    {
+      "kapi": "tasma",
+      "tur": "kirpilan-icerik",
+      "rota": "/yedekleme",
+      "bant": 375,
+      "hedef": "span.kimlik@150px",
+      "azami": 1,
       "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
     },
     {
@@ -344,14 +618,25 @@
       "tur": "kirpilan-icerik",
       "rota": "/yetkiler",
       "bant": 375,
-      "azami": 3,
+      "hedef": "button.kolonbas.sirali.etkin@94px",
+      "azami": 1,
       "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
     },
     {
       "kapi": "tasma",
       "tur": "kirpilan-icerik",
       "rota": "/yetkiler",
-      "bant": 768,
+      "bant": 375,
+      "hedef": "button.kolonbas.sirali@60px",
+      "azami": 1,
+      "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
+    },
+    {
+      "kapi": "tasma",
+      "tur": "kirpilan-icerik",
+      "rota": "/yetkiler",
+      "bant": 375,
+      "hedef": "span.kimlik@150px",
       "azami": 1,
       "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
     },
@@ -360,50 +645,273 @@
       "tur": "kirpilan-icerik",
       "rota": "/yonetim-tezgahi",
       "bant": 375,
-      "azami": 2,
+      "hedef": "span.kolonbas@43px",
+      "azami": 1,
       "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
     },
     {
       "kapi": "tasma",
-      "tur": "sayfa-kayiyor",
-      "rota": "/omur",
+      "tur": "kirpilan-icerik",
+      "rota": "/yonetim-tezgahi",
       "bant": 375,
-      "azami": 4,
-      "not": "span.ad \">1 yıl\" sayfayı yana kaydırıyor"
+      "hedef": "span.kimlik@150px",
+      "azami": 1,
+      "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
     },
     {
       "kapi": "tasma",
-      "tur": "sayfa-kayiyor",
-      "rota": "/omur",
+      "tur": "kirpilan-icerik",
+      "rota": "/bulgular/[id]",
+      "bant": 375,
+      "hedef": "span.kolonbas@34px",
+      "azami": 1,
+      "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
+    },
+    {
+      "kapi": "tasma",
+      "tur": "kirpilan-icerik",
+      "rota": "/bulgular/[id]",
+      "bant": 375,
+      "hedef": "span.kimlik@150px",
+      "azami": 1,
+      "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
+    },
+    {
+      "kapi": "tasma",
+      "tur": "kirpilan-icerik",
+      "rota": "/denetimler/[id]",
+      "bant": 375,
+      "hedef": "span.kimlik@150px",
+      "azami": 1,
+      "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
+    },
+    {
+      "kapi": "tasma",
+      "tur": "kirpilan-icerik",
+      "rota": "/surecler/[id]",
+      "bant": 375,
+      "hedef": "button.kolonbas.sirali@60px",
+      "azami": 1,
+      "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
+    },
+    {
+      "kapi": "tasma",
+      "tur": "kirpilan-icerik",
+      "rota": "/surecler/[id]",
+      "bant": 375,
+      "hedef": "button.kolonbas.sirali@129px",
+      "azami": 1,
+      "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
+    },
+    {
+      "kapi": "tasma",
+      "tur": "kirpilan-icerik",
+      "rota": "/surecler/[id]",
+      "bant": 375,
+      "hedef": "span.kimlik@150px",
+      "azami": 1,
+      "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
+    },
+    {
+      "kapi": "tasma",
+      "tur": "kirpilan-icerik",
+      "rota": "/bulgular",
       "bant": 768,
-      "azami": 3,
-      "not": "span.ad \">1 yıl\" sayfayı yana kaydırıyor"
+      "hedef": "span.kimlik@150px",
+      "azami": 1,
+      "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
     },
     {
       "kapi": "tasma",
-      "tur": "sayfa-kayiyor",
-      "rota": "/riskler/[id]",
-      "bant": 375,
-      "azami": 49,
-      "not": "skor eğilimi paneli kabından taşıyor"
+      "tur": "kirpilan-icerik",
+      "rota": "/dokumanlar",
+      "bant": 768,
+      "hedef": "span.kimlik@150px",
+      "azami": 1,
+      "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
+    },
+    {
+      "kapi": "tasma",
+      "tur": "kirpilan-icerik",
+      "rota": "/dokumanlar",
+      "bant": 768,
+      "hedef": "span@20px",
+      "azami": 1,
+      "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
+    },
+    {
+      "kapi": "tasma",
+      "tur": "kirpilan-icerik",
+      "rota": "/dokumanlar",
+      "bant": 768,
+      "hedef": "span@18px",
+      "azami": 1,
+      "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
+    },
+    {
+      "kapi": "tasma",
+      "tur": "kirpilan-icerik",
+      "rota": "/dokumanlar",
+      "bant": 768,
+      "hedef": "span@21px",
+      "azami": 1,
+      "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
+    },
+    {
+      "kapi": "tasma",
+      "tur": "kirpilan-icerik",
+      "rota": "/ice-aktarim",
+      "bant": 768,
+      "hedef": "span.kolonbas@77px",
+      "azami": 1,
+      "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
+    },
+    {
+      "kapi": "tasma",
+      "tur": "kirpilan-icerik",
+      "rota": "/kanitlar",
+      "bant": 768,
+      "hedef": "span.kimlik@150px",
+      "azami": 1,
+      "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
+    },
+    {
+      "kapi": "tasma",
+      "tur": "kirpilan-icerik",
+      "rota": "/kanitlar",
+      "bant": 768,
+      "hedef": "span@179px",
+      "azami": 1,
+      "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
+    },
+    {
+      "kapi": "tasma",
+      "tur": "kirpilan-icerik",
+      "rota": "/kanitlar",
+      "bant": 768,
+      "hedef": "span@178px",
+      "azami": 1,
+      "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
+    },
+    {
+      "kapi": "tasma",
+      "tur": "kirpilan-icerik",
+      "rota": "/kanitlar",
+      "bant": 768,
+      "hedef": "span@124px",
+      "azami": 1,
+      "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
+    },
+    {
+      "kapi": "tasma",
+      "tur": "kirpilan-icerik",
+      "rota": "/kanitlar",
+      "bant": 768,
+      "hedef": "span@231px",
+      "azami": 1,
+      "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
+    },
+    {
+      "kapi": "tasma",
+      "tur": "kirpilan-icerik",
+      "rota": "/kanitlar",
+      "bant": 768,
+      "hedef": "span@177px",
+      "azami": 1,
+      "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
+    },
+    {
+      "kapi": "tasma",
+      "tur": "kirpilan-icerik",
+      "rota": "/kanitlar",
+      "bant": 768,
+      "hedef": "span@234px",
+      "azami": 1,
+      "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
+    },
+    {
+      "kapi": "tasma",
+      "tur": "kirpilan-icerik",
+      "rota": "/kesif",
+      "bant": 768,
+      "hedef": "span.kimlik@150px",
+      "azami": 1,
+      "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
+    },
+    {
+      "kapi": "tasma",
+      "tur": "kirpilan-icerik",
+      "rota": "/sistem/bilesenler",
+      "bant": 768,
+      "hedef": "button.dugum@168px",
+      "azami": 1,
+      "not": "topoloji düğümleri tuvalin kenarında kesiliyor"
+    },
+    {
+      "kapi": "tasma",
+      "tur": "kirpilan-icerik",
+      "rota": "/surecler",
+      "bant": 768,
+      "hedef": "button.kolonbas.sirali@103px",
+      "azami": 1,
+      "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
+    },
+    {
+      "kapi": "tasma",
+      "tur": "kirpilan-icerik",
+      "rota": "/tedarikciler",
+      "bant": 768,
+      "hedef": "span.ab-ipucu-sar@219px",
+      "azami": 1,
+      "not": "ipucu balonu kabından taşıyor"
+    },
+    {
+      "kapi": "tasma",
+      "tur": "kirpilan-icerik",
+      "rota": "/tedarikciler",
+      "bant": 768,
+      "hedef": "span.ab-ipucu-sar@166px",
+      "azami": 1,
+      "not": "ipucu balonu kabından taşıyor"
+    },
+    {
+      "kapi": "tasma",
+      "tur": "kirpilan-icerik",
+      "rota": "/yetkiler",
+      "bant": 768,
+      "hedef": "button.kolonbas.sirali@60px",
+      "azami": 1,
+      "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
+    },
+    {
+      "kapi": "tasma",
+      "tur": "kirpilan-icerik",
+      "rota": "/surecler/[id]",
+      "bant": 768,
+      "hedef": "button.kolonbas.sirali@129px",
+      "azami": 1,
+      "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
     },
     {
       "kapi": "axe",
       "tur": "scrollable-region-focusable",
       "rota": "/saklama",
       "bant": 375,
+      "hedef": ".ab-vt-sar",
       "azami": 1,
-      "not": ".ab-vt-sar tablo kabı klavyeyle odaklanamıyor"
+      "not": "Scrollable region must have keyboard access"
     },
     {
       "kapi": "axe",
       "tur": "scrollable-region-focusable",
       "rota": "/sistem",
       "bant": 375,
+      "hedef": ".bolum > .ab-sistem-kaydir",
       "azami": 2,
-      "not": ".ab-sistem-kaydir kapları klavyeyle odaklanamıyor"
+      "not": "Scrollable region must have keyboard access · HEDEF KİMLİĞİ ÇAKIŞIYOR: iki ayrı düğüm (.bolum:nth-child(2) ve (3)) normalize edilince tek kimliğe düşüyor — bu satırda kimlik ikisini AYIRT ETMEZ, kapı bunu her koşuda yazar"
     }
   ],
   "_dinamik": "Dinamik rota satırları KALIBA anahtarlanır (`/tesisler/[id]`), somut URL'e değil: tohum kimlikleri `@default(cuid())` ile her seed'de değişir. Her kalıptan üç kayıt VARYANTI taranır ve tavan EN KÖTÜ varyanta göre tutulur — tek kayıt ölçmek içeriğe bağlı kusuru kaçırırdı (ölçüldü: Tesis 360'ın 768px kusuru 17 tesisin yalnız 5'inde çıkıyordu).",
-  "_tavan_nasil": "Tavanlar ÖLÇÜMDEN üretilir, elle yazılmaz. Ölçüm birimi kusur TÜRÜDÜR, öğe sayısı değil: satır sayısına bağlı bir tavan tohum verisi değişince kayar (ölçüldü: /saglik yerelde 8, CI'da 23 öğe — aynı iki kusur türü). Yeniden ölçerken tohum TAZE olmalı: `rm prisma/dev.db && npm run db:hazirla`."
+  "_tavan_nasil": "Tavanlar ÖLÇÜMDEN üretilir, elle yazılmaz. Ölçüm birimi kusur TÜRÜDÜR, öğe sayısı değil: satır sayısına bağlı bir tavan tohum verisi değişince kayar (ölçüldü: /saglik yerelde 8, CI'da 23 öğe — aynı iki kusur türü). Yeniden ölçerken tohum TAZE olmalı: `rm prisma/dev.db && npm run db:hazirla`.",
+  "_anahtar": "kapi + tur + rota + bant + HEDEF. Hedef kimliği olmadan bir PR izinli hedefi kaldırıp aynı rotada aynı kuralla başkasını getirebilir ve ihlal \"mevcut borç\" sayılırdı — bloklayıcı kapının içinde bir bypass. Hedef: taşmada etiket@kutuEni, axe'ta normalize seçici (`:nth-child(n)` gibi kırılgan parçalar atılır). Sözleşme `tests/kalite-kapilari.test.ts` ile İKİ kapıya birden sınanır."
 }

@@ -222,13 +222,67 @@ kırpılması, aylarca kimsenin koşmadığı bir kapının arkasında durdu.
 Alternatif: bugünkü borcu YAZIYA DÖK, kapıyı BUGÜN bloklayıcı yap,
 listeyi bir cırcırla koru. Liste bir mazeret değil bir **tavandır**.
 
-Satır biçimi — anahtar `kapi + tur + rota + bant`, tavan `azami`
-(dinamik rotalarda `rota` KALIPTIR, somut URL değil):
+Satır biçimi — anahtar `kapi + tur + rota + bant + **hedef**`, tavan
+`azami` (dinamik rotalarda `rota` KALIPTIR, somut URL değil):
 
 ```json
-{ "kapi": "tasma", "tur": "kirpilan-icerik", "rota": "/sistem/bilesenler",
-  "bant": 375, "azami": 4, "not": "topoloji düğümleri … 39-55px" }
+{ "kapi": "tasma", "tur": "kirpilan-icerik", "rota": "/aktivite",
+  "bant": 375, "hedef": "span.kimlik-metin@150px", "azami": 1,
+  "not": "kütük tablosu · sütun 0 genişliğe çöküyor …" }
 ```
+
+#### Anahtar HEDEF KİMLİĞİ taşır — yoksa kapının içinde bypass olur
+
+Anahtar uzun süre `kapi + tur + rota + bant` idi ve İKİ kapıda da hedef
+kimliği YOKTU. Taşma kapısında hedef yalnız SAYIMA giriyordu (imza),
+anahtara değil. Sonuç, artık bloklayıcı olan bir kapının içinde bir
+bypass'tı:
+
+> bir PR izinli hedefi kaldırır, aynı rotada + aynı bantta + aynı kuralla
+> BAŞKA bir hedef getirir; sayı tavanı aşmadığı için bulgu "mevcut borç"
+> sayılır ve ciddi bir ihlal, bir başkasının yerine SESSİZCE geçer.
+
+Hedefi iki kapı ayrı üretir ama sözleşme tektir:
+
+| Kapı | Hedef kimliği | Neden kararlı |
+| --- | --- | --- |
+| `yatay-tasma` | `etiket@kutuEni` | kutu eni yerleşimden gelir (`table-layout: fixed` sütunu), satır sayısından değil |
+| `erisim-axe` | normalize seçici yolu | `:nth-child(n)` gibi konum bağlı sözde sınıflar atılır — kardeş eklenince kimlik kaymasın |
+
+**Sözleşme teste bağlıdır ve test İKİ kapıya birden sorar**
+(`tests/kalite-kapilari.test.ts`): *aynı rota + bant + kural, FARKLI
+hedef → FARKLI anahtar*; ayrıca hedef anahtardan düşerse iddia kırılır ve
+hedef değiştiğinde bulgu "mevcut borç" SAYILMAZ. Bir sonraki ayrışma
+incelemede değil kapıda çıkar.
+
+`kirpilan-icerik` ölçüsü bu yüzden artık **varlıktır** (1): "bu hedef
+burada kırpılıyor". Örnek sayısı satır sayısına, yani tohuma bağlı
+olurdu; büyümeyi ALT KÜME dişi yakalar — yeni bir hedef, yeni bir satır
+demektir.
+
+**Normalizasyon ayırt ediciliği azaltabilir; o nokta ÖLÇÜLÜR.** İki farklı
+ham seçici aynı kimliğe düşerse kapı her koşuda yazar ve satırın notuna
+işlenir; sessizce birleştirilmez.
+
+> **Bugün bir çakışma var, ölçüldü:** `/sistem` · 375px ·
+> `scrollable-region-focusable` → `.bolum > .ab-sistem-kaydir`; ham
+> seçiciler `.bolum:nth-child(2)` ve `:nth-child(3)`. O satırda kimlik
+> iki düğümü AYIRT ETMEZ.
+
+#### Anahtar şeması geçişi — kaldıraç değil, kanıt
+
+Anahtara hedef eklemek tabandaki her satırın anahtarını değiştirir ve
+cırcır bunu "hepsi eklenmiş" diye okur. Aynı borcun DAHA KESİN yazılması
+büyüme değildir; ama "daha kesin yazmak" da borcu büyütmenin yolu
+olamaz. Geçiş üç şartla açılır:
+
+1. Yalnız TABAN satırı hedefsizse — koşul tabanın şeklidir, **dal onu
+   belirleyemez**. Taban hedefli satır taşımaya başladığında (yani bu
+   değişiklik main'e girdiğinde) yol KALICI olarak kapanır.
+2. Bir eski satırın altına o satırın TAVANINDAN çok yeni satır konamaz.
+3. Hiçbir yeni satırın tavanı eskisini aşamaz.
+
+Beş vaka bunu sınar; dördü geçişin SINIRLARINI sınar.
 
 **Dört diş.** Biri gevşerse ötekiler kâğıttan kalır:
 

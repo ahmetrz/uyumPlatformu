@@ -40,7 +40,9 @@ import {
   KOK, WEB, bayrakDegeri, dinamikRotalar, girisYap, kalipCozucu, rotaBayragi, rotaBayragiVar,
   rotalarOku, tarayiciYolu,
 } from './kosu-ortak.mjs';
-import { axeOzeti } from './kalite-kurallari.mjs';
+import {
+  axeHedefi, axeOzeti, borcAnahtari, hedefCakismalari,
+} from './kalite-kurallari.mjs';
 import { yonlendirmeKarari } from './rota-kurallari.mjs';
 import { borcuUygula } from './kalite-borcu.mjs';
 
@@ -94,6 +96,10 @@ async function tara(s, rota) {
         helpUrl: v.helpUrl,
         dugum: v.nodes.length,
         ornek: v.nodes.slice(0, 3).map((n) => n.target.join(' ')),
+        /* Hedef kimliği düğüm BAŞINA gerekir: üç örnek, "hangi düğüm
+           hangisinin yerine geçti" sorusunu cevaplayamaz. Üst sınır
+           rapor şişmesin diye. */
+        hedefler: v.nodes.slice(0, 200).map((n) => n.target.join(' ')),
       })),
       gecen: r.passes.length,
       belirsiz: r.incomplete.length,
@@ -234,7 +240,7 @@ if (JSON_YOLU) {
 function enKotuyeIndirge(bulgular) {
   const en = new Map();
   for (const b of bulgular) {
-    const anahtar = [b.kapi, b.tur, b.rota, b.bant].join('|');
+    const anahtar = borcAnahtari(b);
     const v = en.get(anahtar);
     if (!v || b.olcum > v.olcum) en.set(anahtar, { ...b, ornek: (v?.ornek ?? 0) + 1 });
     else en.set(anahtar, { ...v, ornek: v.ornek + 1 });
@@ -245,12 +251,37 @@ function enKotuyeIndirge(bulgular) {
 /* Borç anahtarı KALIBA yazılır (`/tesisler/[id]`), somut URL'e değil:
    tohum kimlikleri her seed'de değişir. */
 const kalip = kalipCozucu(DINAMIK);
+/* Her HEDEF ayrı bulgudur. Kural + rota + bant tek anahtar olsaydı,
+   izinli bir düğümü kaldırıp aynı kuralla BAŞKA bir düğüm getirmek
+   toplam sayıyı değiştirmez ve ihlal "mevcut borç" sayılırdı. */
 const bulgular = rapor.flatMap((r) => r.ihlaller
   .filter((i) => i.impact === 'serious' || i.impact === 'critical')
-  .map((i) => ({
-    kapi: 'axe', tur: i.id, rota: kalip(r.rota), bant: r.bantEn,
-    olcum: i.dugum, birim: 'düğüm', not: i.ornek?.[0],
-  })));
+  .flatMap((i) => {
+    const sayac = new Map();
+    for (const ham of i.hedefler ?? []) {
+      const h = axeHedefi(ham);
+      sayac.set(h, (sayac.get(h) ?? 0) + 1);
+    }
+    return [...sayac.entries()].map(([hedef, adet]) => ({
+      kapi: 'axe', tur: i.id, rota: kalip(r.rota), bant: r.bantEn,
+      hedef, olcum: adet, birim: 'düğüm', not: i.help,
+    }));
+  }));
+
+/* Normalizasyondan sonra aynı kimliğe düşen FARKLI ham seçiciler:
+   kimlik orada gerçekten ayırt etmiyordur. Sessizce birleştirmek, tam
+   da kapatılmaya çalışılan bypass'ı küçük ölçekte geri açardı. */
+const cakismalar = rapor.flatMap((r) => r.ihlaller.flatMap((i) => hedefCakismalari(i.hedefler)
+  .map((c) => ({ rota: r.rota, bant: r.bant, kural: i.id, ...c }))));
+if (cakismalar.length > 0) {
+  console.log(`\nHEDEF KİMLİĞİ ÇAKIŞMASI · ${cakismalar.length} — normalize seçici ayırt etmiyor`);
+  for (const c of cakismalar) {
+    console.log(`  ${c.bant} · ${c.rota} · ${c.kural} → "${c.hedef}"`);
+    for (const h of c.hamlar) console.log(`      ham: ${h}`);
+  }
+} else {
+  console.log('\nhedef kimliği çakışması: 0 — normalize seçiciler ayırt ediyor');
+}
 const borcKapali = borcuUygula(enKotuyeIndirge(bulgular), { kapi: 'axe' });
 if (kirik.length > 0) {
   console.error(`\nKIRIK TARAMA · ${kirik.length} rota ölçülemedi — izin listesine giremez.`);

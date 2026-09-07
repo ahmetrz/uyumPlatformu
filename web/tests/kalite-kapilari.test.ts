@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
-  KIRPILMA_TOLERANSI, altinDosyaAdi, axeCiddiMi, axeOzeti, borcAnahtari, borcSuzgeci,
-  ciMi, circirKarari, enDistakiKirpilmalar, esikAltindakiler, gorselFark, kirpilmaKarari,
-  rotaAdi, yuzPuan,
+  KIRPILMA_TOLERANSI, altinDosyaAdi, axeCiddiMi, axeHedefi, axeOzeti, borcAnahtari,
+  borcSuzgeci, ciMi, circirKarari, enDistakiKirpilmalar, esikAltindakiler, gorselFark,
+  hedefCakismalari, kirpilmaKarari, rotaAdi, tasmaHedefi, yuzPuan,
 } from '../arac/kalite-kurallari.mjs';
 
 /* Kalite kapılarının SAF kuralları — tarayıcısız doğrulanır.
@@ -272,5 +272,150 @@ describe('CI ortam değişkeni AYRIŞTIRILIR', () => {
   it('tanımsızlık CI değildir', () => {
     expect(ciMi(undefined)).toBe(false);
     expect(ciMi(null)).toBe(false);
+  });
+});
+
+/* ═══════════════════════════════════════════════════════════════════════
+   İKİ KAPININ ORTAK ANAHTAR SÖZLEŞMESİ
+
+   Bu blok bilerek TEK bir iddiayı iki kapıya birden sorar: borç anahtarı
+   rota + bant + kural/tür YANINDA kararlı bir HEDEF KİMLİĞİ taşımalı.
+   Taşımadığında — ve iki kapıda da taşımıyordu — bloklayıcı kapının
+   içinde bir bypass açılır: izinli hedef kaldırılır, aynı rotada aynı
+   kuralla başka bir hedef gelir, sayı tavanı aşmaz, ihlal "mevcut borç"
+   sayılır.
+
+   Kapılar hedefi ayrı üretir (`tasmaHedefi` etiket+kutu eni, `axeHedefi`
+   normalize seçici) ama sözleşme tektir. Bir sonraki ayrışma incelemede
+   değil BURADA çıkar.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+describe('borç anahtarı · iki kapının ortak değişmezi', () => {
+  const ORTAK = { rota: '/saklama', bant: 375 };
+
+  /* Her kapı için: aynı rota + bant + kural, İKİ FARKLI hedef. */
+  const KAPILAR = [
+    {
+      ad: 'taşma',
+      a: { ...ORTAK, kapi: 'tasma', tur: 'kirpilan-icerik', hedef: tasmaHedefi({ etiket: 'span.kolonbas', genislik: 43 }) },
+      b: { ...ORTAK, kapi: 'tasma', tur: 'kirpilan-icerik', hedef: tasmaHedefi({ etiket: 'span.kimlik', genislik: 150 }) },
+    },
+    {
+      ad: 'axe',
+      a: { ...ORTAK, kapi: 'axe', tur: 'scrollable-region-focusable', hedef: axeHedefi('.ab-vt-sar') },
+      b: { ...ORTAK, kapi: 'axe', tur: 'scrollable-region-focusable', hedef: axeHedefi('.ab-sistem-kaydir') },
+    },
+  ];
+
+  for (const k of KAPILAR) {
+    it(`${k.ad} · aynı rota + bant + kural, FARKLI hedef → FARKLI anahtar`, () => {
+      expect(borcAnahtari(k.a)).not.toBe(borcAnahtari(k.b));
+    });
+
+    it(`${k.ad} · aynı hedef → AYNI anahtar (kimlik kararlıdır)`, () => {
+      expect(borcAnahtari(k.a)).toBe(borcAnahtari({ ...k.a }));
+    });
+
+    it(`${k.ad} · hedef anahtarda GERÇEKTEN var — düşerse bypass geri açılır`, () => {
+      const { hedef, ...hedefsiz } = k.a;
+      expect(hedef.length).toBeGreaterThan(0);
+      expect(borcAnahtari(hedefsiz)).not.toBe(borcAnahtari(k.a));
+    });
+
+    it(`${k.ad} · hedef DEĞİŞTİĞİNDE bulgu "mevcut borç" sayılmaz`, () => {
+      /* Bypass'ın kendisi: izinli hedef listede, gelen bulgu başka hedef. */
+      const s = borcSuzgeci([{ ...k.b, olcum: 1 }], [{ ...k.a, azami: 9 }]);
+      expect(s.kapiKapali).toBe(true);
+      expect(s.yeni).toHaveLength(1);
+      /* Ve bunun bir YER DEĞİŞTİRME olduğu söylenir — "yeni kusur"dan ayrı iş. */
+      expect(s.yeni[0].hedefDegisti).toEqual([k.a.hedef]);
+    });
+  }
+});
+
+describe('axe hedef kimliği · normalizasyon', () => {
+  it('konum bağlı sözde sınıflar atılır — kardeş eklenince kimlik kaymasın', () => {
+    expect(axeHedefi('.bolum:nth-child(2) > .ab-sistem-kaydir')).toBe('.bolum > .ab-sistem-kaydir');
+    expect(axeHedefi('tr:first-child td')).toBe('tr td');
+    expect(axeHedefi('li:nth-of-type(3)')).toBe('li');
+  });
+
+  it('yol KORUNUR — yalnız son basit seçici alınsaydı çakışma artardı', () => {
+    expect(axeHedefi('.a > .x')).not.toBe(axeHedefi('.b > .x'));
+  });
+
+  it('boş/bozuk seçici sessizce boş kimliğe düşmez', () => {
+    expect(axeHedefi('')).toBe('‹seçicisiz›');
+    expect(axeHedefi(undefined)).toBe('‹seçicisiz›');
+  });
+
+  it('normalizasyondan sonra çakışan FARKLI ham seçiciler ÖLÇÜLÜR', () => {
+    /* Normalize etmek kimliği kararlı yapar ama ayırt ediciliğini
+       azaltabilir. O nokta sessizce birleştirilmez, raporlanır. */
+    const c = hedefCakismalari(['.a:nth-child(1) .b', '.a:nth-child(7) .b', '.c']);
+    expect(c).toHaveLength(1);
+    expect(c[0].hedef).toBe('.a .b');
+    expect(c[0].hamlar).toHaveLength(2);
+  });
+
+  it('çakışma yoksa liste boştur', () => {
+    expect(hedefCakismalari(['.a', '.b'])).toEqual([]);
+  });
+});
+
+describe('taşma hedef kimliği', () => {
+  it('etiket + kutu eni birlikte kimliktir', () => {
+    expect(tasmaHedefi({ etiket: 'span.kolonbas', genislik: 43 })).toBe('span.kolonbas@43px');
+    expect(tasmaHedefi({ etiket: 'span.kolonbas', genislik: 43 }))
+      .not.toBe(tasmaHedefi({ etiket: 'span.kolonbas', genislik: 90 }));
+  });
+
+  it('ölçülemeyen en sessizce 0 olmaz', () => {
+    expect(tasmaHedefi({ etiket: 'div' })).toBe('div@?px');
+    expect(tasmaHedefi(undefined)).toBe('‹etiketsiz›@?px');
+  });
+});
+
+describe('anahtar şeması geçişi · kaldıraç DEĞİL, kanıt', () => {
+  const ESKI = { kapi: 'tasma', tur: 'kirpilan-icerik', rota: '/aktivite', bant: 375, azami: 2 };
+  const yeni = (hedef: string, azami = 1) => ({ ...ESKI, hedef, azami });
+
+  it('hedefsiz taban satırı, hedefli satırlarla DAHA KESİN yazılabilir', () => {
+    const c = circirKarari([yeni('span.kolonbas@43px'), yeni('span.kimlik@150px')], [ESKI]);
+    expect(c.kapiKapali).toBe(false);
+    expect(c.gecis).toBe(2);
+  });
+
+  it('geçiş SINIRSIZ değil: eski tavandan çok satır konamaz', () => {
+    /* Yoksa "daha kesin yazmak", borcu büyütmenin yolu olurdu. */
+    const c = circirKarari(
+      [yeni('a@1px'), yeni('b@2px'), yeni('c@3px')],
+      [ESKI],
+    );
+    expect(c.kapiKapali).toBe(true);
+    expect(c.eklenen).toHaveLength(3);
+    expect(c.eklenen[0].gecisAsimi).toBe(2);
+  });
+
+  it('geçişte tavan YÜKSELTİLEMEZ', () => {
+    const c = circirKarari([yeni('a@1px', 9)], [ESKI]);
+    expect(c.kapiKapali).toBe(true);
+    expect(c.yukseltilen[0].tabanAzami).toBe(2);
+  });
+
+  it('taban HEDEFLİ satır taşıyorsa geçiş YOLU KAPALIDIR — kalıcı olarak', () => {
+    /* Bu değişiklik main'e girdikten sonra her taban satırı hedeflidir;
+       hiçbir PR geçişi yeniden açamaz, çünkü koşul TABANIN şeklidir. */
+    const tabanHedefli = { ...ESKI, hedef: 'span.kolonbas@43px', azami: 1 };
+    const c = circirKarari([yeni('span.YENI@43px')], [tabanHedefli]);
+    expect(c.kapiKapali).toBe(true);
+    expect(c.eklenen).toHaveLength(1);
+    expect(c.gecis).toBe(0);
+  });
+
+  it('geçiş BAŞKA bir rotaya sızmaz', () => {
+    const c = circirKarari([{ ...yeni('a@1px'), rota: '/uyum' }], [ESKI]);
+    expect(c.kapiKapali).toBe(true);
+    expect(c.gecis).toBe(0);
   });
 });

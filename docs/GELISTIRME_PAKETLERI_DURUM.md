@@ -246,8 +246,12 @@ istisna listesi buna göre kurulmalı.
 > Aşama E'den **önce** yapıldı: kapı önce kuruldu, temizlik sonra.
 > Biçim **cırcır** (ratchet): `tests/bekci/sektor-terimi-izin.json`
 > bugün kirli olan **258 dosyayı** borç olarak taşıyor, listeye dosya
-> eklenemez, yalnız çıkarılır. Kapının ısırdığı üç sabotajla ölçüldü
-> (`arac/sabotaj.mjs` 25. giriş: listede olmayan dosyaya terim → kırmızı).
+> eklenemez, yalnız çıkarılır. Dört diş: listede olmayan dosyada terim ·
+> listedeki dosyada terim kalmaması · `tavan` · **taban daldaki listenin
+> alt kümesi olma**. Sonuncusu takası yakalar (bir dosyayı temizleyip
+> yerine başkasını koymak); taban dal okunamıyorsa "ölçülmedi" diye
+> raporlanır, "geçti" değil. Dördü de elle sabote edilip kırmızı verdiği
+> doğrulandı; birincisi `arac/sabotaj.mjs`'e 25. giriş olarak eklendi.
 > Kapsam dışı bırakılan `üretim` ve `enerji` terimlerinin gerekçesi izin
 > dosyasının başlığındadır.
 >

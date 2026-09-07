@@ -322,6 +322,7 @@
 | `URN-ALN-004` | Ürünleştirme | DOMAIN · UI | `p1-tesis360-sozluk.test.ts` | enerji sözlüğü kuruluyken ekran adı "Santral 360" | evet | geçti |
 | `URN-ALN-004` | Ürünleştirme | DOMAIN · UI | `p1-tesis360-sozluk.test.ts` | sözlük kaldırılınca AYNI ekran "Tesis 360" der | evet | geçti |
 | `URN-ALN-003` | Ürünleştirme | DOMAIN · UI | `bekci/sektor-terimi.test.ts` | izin listesinde OLMAYAN dosyada sektör terimi yok | evet | geçti |
+| `URN-ALN-003` | Ürünleştirme | DOMAIN · UI | `bekci/sektor-terimi.test.ts` | liste taban daldaki listenin ALT KÜMESİ | evet | geçti |
 
 ## Gerekçesiyle kütüksüz kalan dosyalar
 

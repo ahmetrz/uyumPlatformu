@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { execFileSync } from 'node:child_process';
 import { readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 
@@ -24,6 +25,25 @@ import path from 'node:path';
    (b) Listede OLAN dosyada terim kalmamış → kırmızı. Dişli geri
        kaymasın diye: temizlenen dosya listeden DÜŞMEK zorundadır, yoksa
        liste bir gün sadece eski bir hikâye olur ve kimse eritmez.
+   (c) Liste `tavan`ı aşamaz.
+   (d) Liste, TABAN DALDAKİ listenin ALT KÜMESİ olmalı.
+
+   ── (d) NEDEN GEREKLİ ─────────────────────────────────────────────────
+   (c) tek başına sayıyı sabit tutar ama TAKASI görmez: bir dosyayı
+   temizleyip yerine yenisini listeye koymak sayıyı değiştirmez ve
+   cırcır sessizce yana kayar. (d) listeyi taban daldaki (`origin/main`)
+   hâliyle karşılaştırır; yeni bir yol eklenmişse adıyla söyler.
+
+   ── ÖLÇÜLEMEYEN "GEÇTİ" DEĞİLDİR ──────────────────────────────────────
+   Taban dal her yerde yok: sığ bir klon, `origin` uzağı olmayan bir
+   çalışma kopyası, ya da listenin henüz taban dala girmemiş olması. O
+   durumda diş (d) KOŞMAZ ve vitest raporunda ATLANMIŞ görünür; yeşil
+   yazılmaz. Atlama ÇALIŞMA ZAMANINDA yapılır (`ctx.skip`), `it.skipIf`
+   ile değil: statik atlama vitest'in keşif çıktısını ortama göre
+   değiştirir ve `arac/test-envanteri.mjs` anlık görüntüsü CI ile yerelde
+   ayrışırdı.
+
+   Taban dal `BEKCI_TABAN` ile değiştirilebilir (varsayılan `origin/main`).
    ═══════════════════════════════════════════════════════════════════════ */
 
 const KOKLER = ['app', 'components', 'lib'] as const;
@@ -77,6 +97,28 @@ const izin = JSON.parse(readFileSync(IZIN_DOSYASI, 'utf8')) as {
 };
 const izinKumesi = new Set(izin.dosyalar);
 
+const TABAN_DAL = process.env.BEKCI_TABAN?.trim() || 'origin/main';
+
+/** Taban daldaki izin listesi; okunamıyorsa NEDENİYLE birlikte `null`. */
+function tabanListesi(): { dosyalar: string[] } | { yok: string } {
+  /* `<ref>:./yol` biçimi yolu ÇALIŞMA DİZİNİNE göre çözer; depo kökü
+     `web/`in bir üstünde olduğu için düz `<ref>:tests/...` bulunamazdı. */
+  let ham: string;
+  try {
+    ham = execFileSync('git', ['show', `${TABAN_DAL}:./${IZIN_DOSYASI}`],
+      { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+  } catch {
+    return { yok: `${TABAN_DAL} okunamadı (dal ya da dosya yok, sığ klon olabilir)` };
+  }
+  try {
+    const j = JSON.parse(ham) as { dosyalar?: unknown };
+    if (!Array.isArray(j.dosyalar)) return { yok: `${TABAN_DAL} sürümünde 'dosyalar' dizisi yok` };
+    return { dosyalar: j.dosyalar as string[] };
+  } catch {
+    return { yok: `${TABAN_DAL} sürümü çözümlenemedi (bozuk JSON)` };
+  }
+}
+
 const taranan = KOKLER.flatMap((k) => [...kaynakDosyalari(k)]);
 const kirli = taranan
   .map((yol) => ({ yol, terimler: terimleriBul(yol) }))
@@ -114,6 +156,22 @@ describe('Bekçi · sektör terimi (cırcır)', () => {
   it('izin listesindeki her yol gerçekten var', () => {
     const yok = izin.dosyalar.filter((d) => !taranan.includes(d));
     expect(yok, 'Taşınmış ya da silinmiş yol; izin listesini güncelleyin')
+      .toEqual([]);
+  });
+
+  it('liste taban daldaki listenin ALT KÜMESİ [URN-ALN-003]', (ctx) => {
+    const taban = tabanListesi();
+    if ('yok' in taban) {
+      /* ÖLÇÜLMEDİ — geçti değil. Rapor bunu atlanmış gösterir. */
+      ctx.skip(`ölçülmedi: ${taban.yok}`);
+      return;
+    }
+    const tabanKumesi = new Set(taban.dosyalar);
+    const eklenen = izin.dosyalar.filter((d) => !tabanKumesi.has(d));
+    expect(eklenen.map((d) => `izin listesine dosya eklenmiş: ${d}`),
+      `İzin listesi ${TABAN_DAL} sürümünün alt kümesi değil. Liste YALNIZ `
+      + 'erir: bir dosyayı temizleyip yerine başkasını koymak da ekleme '
+      + `sayılır. (Taban dal ilerlediyse önce ${TABAN_DAL} birleştirin.)`)
       .toEqual([]);
   });
 

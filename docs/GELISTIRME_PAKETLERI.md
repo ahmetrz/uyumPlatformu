@@ -311,11 +311,27 @@ görür, su kiracısı "tesis / m³/gün".
 
   İstisna listesi ayrı bir dosyadadır — `tests/bekci/sektor-terimi-izin.json`
   — ve **borç kütüğüdür**: kapı kurulduğu gün kirli olan **258 dosya**.
-  Kural: **listeye dosya EKLENMEZ, yalnız çıkarılır.** Bekçi üç yönlü
+  Kural: **listeye dosya EKLENMEZ, yalnız çıkarılır.** Bekçi dört yönlü
   ölçer: (a) listede olmayan dosyada terim → kırmızı, (b) listedeki
   dosyada terim kalmamış → kırmızı (listeden düşür), (c) liste `tavan`ı
-  (258) aşamaz. `arac/sabotaj.mjs` kapının gerçekten ısırdığını ölçer
-  (25. sabotaj).
+  (258) aşamaz, (d) liste **taban daldaki** (`origin/main`) listenin ALT
+  KÜMESİ olmalı — eklenen yol adıyla söylenir.
+
+  > **(d) neden ayrı bir diş.** (c) tek başına sayıyı sabit tutar ama
+  > **takası** görmez: bir dosyayı temizleyip yerine yenisini listeye
+  > koymak sayıyı değiştirmez. Denendi (7 Eyl 2026): listedeki bir dosya
+  > gerçekten temizlenip çıkarıldı, yerine yeni ve kirli bir dosya
+  > eklendi, sayı 258'de kaldı — (a), (b), (c) yeşil kaldı, **yalnız (d)**
+  > kırmızı verdi.
+  >
+  > Taban dal okunamıyorsa (sığ klon, `origin` yok, liste henüz taban
+  > dala girmemiş) (d) **koşmaz** ve raporda **atlanmış** görünür;
+  > "geçti" yazılmaz. CI taban dalı ayrı bir adımda getirir
+  > (`.github/workflows/pr-kapisi.yml`, `continue-on-error`).
+
+  `arac/sabotaj.mjs` kapının gerçekten ısırdığını ölçer (25. sabotaj:
+  listede olmayan dosyaya terim). (d) git geçmişine baktığı için kaynak
+  dosyası bozarak sabote edilemez; elle doğrulaması yukarıdadır.
 
   Kapsam dışı bırakılan iki terim, gerekçesiyle izin dosyasının
   başlığında yazılıdır: `üretim` (Türkçede genel eylem — yanlış pozitif

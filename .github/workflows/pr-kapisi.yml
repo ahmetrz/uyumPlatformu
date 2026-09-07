@@ -18,6 +18,19 @@ jobs:
       - name: Depoyu al
         uses: actions/checkout@v7
 
+      # Sektör terimi bekçisinin (`tests/bekci/sektor-terimi.test.ts`) dördüncü
+      # dişi izin listesini TABAN DALDAKİ hâliyle karşılaştırır: liste yalnız
+      # erimeli, bir dosyayı temizleyip yerine başkasını koyma takası da
+      # yakalanmalı. `checkout` PR'da yalnız birleşme commit'ini sığ alır,
+      # `origin/main` ref'i olmaz; bu adım onu getirir.
+      #
+      # Adım başarısız olursa iş DURMAZ: bekçi o dişi koşmaz ve raporda
+      # "ölçülmedi" der (yeşil yazmaz). Ölçemediğini geçti sayan bir kapı,
+      # olmayan bir güvence verir.
+      - name: Taban dalı al (bekçi cırcırı)
+        continue-on-error: true
+        run: git fetch --depth=1 origin main:refs/remotes/origin/main
+
       - name: Node kur
         uses: actions/setup-node@v7
         with:

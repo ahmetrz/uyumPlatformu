@@ -48,13 +48,9 @@ function Giris({ children }: { children: ReactNode }) {
     statik(dogrudan);
     atla.current = () => {
       hatirla();
-      if (hareketli) {
-        window.scrollTo({ top: window.scrollY + el.getBoundingClientRect().top + mesafe, behavior: 'instant' });
-        guncelle();
-      } else {
-        statik(true);
-        ui.scrollIntoView({ behavior: 'instant', block: 'start' });
-      }
+      // Explicit entry ends the scene so native form scrolling cannot reopen it.
+      statik(true);
+      ui.scrollIntoView({ behavior: 'instant', block: 'start' });
       ui.focus({ preventScroll: true });
     };
     function boyutla() {

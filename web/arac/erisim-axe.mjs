@@ -40,6 +40,7 @@ import {
   KOK, WEB, bayrakDegeri, girisYap, rotaBayragi, rotalarOku, tarayiciYolu,
 } from './kosu-ortak.mjs';
 import { axeOzeti } from './kalite-kurallari.mjs';
+import { borcuUygula } from './kalite-borcu.mjs';
 
 const GIRIS_ROTASI = '/giris';
 /* rotalar.json'daki '' ana ekrandır; giriş listede yoktur, ayrıca eklenir. */
@@ -107,14 +108,14 @@ try {
     const ctx = await b.newContext({ viewport: { width: bant.en, height: bant.boy }, locale: 'tr-TR' });
     const s = await ctx.newPage();
     try {
-      if (ROTALAR.includes(GIRIS_ROTASI)) rapor.push({ bant: bant.ad, ...await tara(s, GIRIS_ROTASI) });
+      if (ROTALAR.includes(GIRIS_ROTASI)) rapor.push({ bant: bant.ad, bantEn: bant.en, ...await tara(s, GIRIS_ROTASI) });
       await girisYap(s, KOK);
       for (const rota of ROTALAR.filter((r) => r !== GIRIS_ROTASI)) {
         try {
-          rapor.push({ bant: bant.ad, ...await tara(s, rota) });
+          rapor.push({ bant: bant.ad, bantEn: bant.en, ...await tara(s, rota) });
         } catch (e) {
           rapor.push({
-            bant: bant.ad, rota, kod: -1, hata: String(e).slice(0, 160),
+            bant: bant.ad, bantEn: bant.en, rota, kod: -1, hata: String(e).slice(0, 160),
             ihlaller: [], ciddi: 0, diger: 0,
           });
         }
@@ -187,4 +188,20 @@ if (JSON_YOLU) {
   writeFileSync(JSON_YOLU, JSON.stringify({ kok: KOK, etiketler: ETIKETLER, rotalar: rapor }, null, 2));
   console.log(`JSON → ${JSON_YOLU}`);
 }
-process.exitCode = ciddiToplam > 0 || kirik.length > 0 ? 1 : 0;
+
+/* ── Kalite borcu cırcırı ─────────────────────────────────────────────
+   Kapı BUGÜN bloklayıcıdır; bugünün açık ihlalleri izin listesinde
+   yazılıdır ve liste yalnız küçülebilir (arac/kalite-borcu.json).
+   Kırık tarama İZİN LİSTESİNE GİRMEZ: ölçülemeyen bir rota "borç" değil,
+   ölçümün kendisinin kırılmasıdır. */
+const bulgular = rapor.flatMap((r) => r.ihlaller
+  .filter((i) => i.impact === 'serious' || i.impact === 'critical')
+  .map((i) => ({
+    kapi: 'axe', tur: i.id, rota: r.rota, bant: r.bantEn,
+    olcum: i.dugum, birim: 'düğüm', not: i.ornek?.[0],
+  })));
+const borcKapali = borcuUygula(bulgular, { kapi: 'axe' });
+if (kirik.length > 0) {
+  console.error(`\nKIRIK TARAMA · ${kirik.length} rota ölçülemedi — izin listesine giremez.`);
+}
+process.exitCode = borcKapali || kirik.length > 0 ? 1 : 0;

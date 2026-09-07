@@ -1,0 +1,71 @@
+{
+  "_ne": "Bugün açık olan ve düzeltilmemiş kalite bulgularının İZİN LİSTESİ.",
+  "_nicin": [
+    "Kapılar bloklayıcı olsun diye bulguların BİTMESİNİ beklemek, kapıları",
+    "aylarca isteğe bağlı bırakır ve bu arada borç sessizce büyür. Bunun",
+    "yerine bugünkü borç yazıya dökülür, kapılar BUGÜN bloklayıcı olur ve",
+    "liste bir CIRCIRLA korunur: yalnız küçülebilir.",
+    "Liste bir MAZERET değil, bir TAVANDIR. Listedeki bir bulgu düzeldiğinde",
+    "satırı silinir; silinen satır geri gelemez."
+  ],
+  "_circir": [
+    "1 · TAVAN — listedeki ölçüm `azami`yi aşarsa kapı kırmızı.",
+    "2 · ALT KÜME — listede olmayan her bulgu kapıyı kırmızı yakar.",
+    "3 · TABAN DAL — dal listesi `origin/main` listesinin ALT KÜMESİ olmalı;",
+    "    satır eklemek ya da tavan yükseltmek kırmızıdır.",
+    "4 · OKUNAMAZSA KIRMIZI — taban dal okunamıyorsa CI'da kapı kırmızıdır;",
+    "    yerelde yalnız `--circir-atla=\"<gerekçe>\"` ile atlanır."
+  ],
+  "_olculdu": "2026-09-07 · 50 kanonik rota × 2 bant (taşma) · 51 rota × 3 bant (axe)",
+  "_birim": "tasma/sayfa-kayiyor: px · tasma/kirpilan-icerik: erişilemeyen öğe · axe: ihlal düğümü",
+  "bulgular": [
+    {
+      "kapi": "tasma",
+      "tur": "sayfa-kayiyor",
+      "rota": "/omur",
+      "bant": 375,
+      "azami": 4,
+      "not": "span.ad \">1 yıl\" sayfayı yana kaydırıyor"
+    },
+    {
+      "kapi": "tasma",
+      "tur": "sayfa-kayiyor",
+      "rota": "/omur",
+      "bant": 768,
+      "azami": 3,
+      "not": "span.ad \">1 yıl\" sayfayı yana kaydırıyor"
+    },
+    {
+      "kapi": "tasma",
+      "tur": "kirpilan-icerik",
+      "rota": "/sistem/bilesenler",
+      "bant": 375,
+      "azami": 4,
+      "not": "topoloji düğümleri (button.dugum) tuvalin kenarında kesiliyor · 39-55px"
+    },
+    {
+      "kapi": "tasma",
+      "tur": "kirpilan-icerik",
+      "rota": "/sistem/bilesenler",
+      "bant": 768,
+      "azami": 2,
+      "not": "topoloji düğümleri (button.dugum) tuvalin kenarında kesiliyor · 16px"
+    },
+    {
+      "kapi": "axe",
+      "tur": "scrollable-region-focusable",
+      "rota": "/saklama",
+      "bant": 375,
+      "azami": 1,
+      "not": ".ab-vt-sar tablo kabı klavyeyle odaklanamıyor"
+    },
+    {
+      "kapi": "axe",
+      "tur": "scrollable-region-focusable",
+      "rota": "/sistem",
+      "bant": 375,
+      "azami": 2,
+      "not": ".ab-sistem-kaydir kapları klavyeyle odaklanamıyor"
+    }
+  ]
+}

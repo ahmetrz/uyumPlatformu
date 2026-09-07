@@ -17,6 +17,14 @@ jobs:
     steps:
       - name: Depoyu al
         uses: actions/checkout@v7
+        with:
+          # Kalite borcu cırcırı dal listesini `origin/main` ile
+          # karşılaştırır (DİŞ 3). Sığ klonda taban dal okunamaz ve kapı
+          # bilerek KIRMIZI yanar (DİŞ 4) — o yüzden tam geçmiş gerekir.
+          fetch-depth: 0
+
+      - name: Taban dalı getir (kalite borcu cırcırı · DİŞ 3)
+        run: git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main
 
       - name: Node kur
         uses: actions/setup-node@v7
@@ -63,6 +71,51 @@ jobs:
       - name: Üretim derlemesi
         working-directory: web
         run: npm run build
+
+      # ── Tarayıcılı kapılar ────────────────────────────────────────────
+      # Bu iki kapı canlı sunucu ister ve uzun süre "elle koşulur" diye
+      # CI'nın dışında kaldı; dışarıda kalan kapı, kusuru kalıcılaştırır
+      # (ölçüldü: /omur taşması ve 49 rotadaki durum şeridi kırpılması
+      # aylarca kimsenin koşmadığı bir kapının arkasında durdu).
+      #
+      # Bugün BLOKLAYICIDIR. Bugünün açık bulguları `arac/kalite-borcu.json`
+      # izin listesindedir ve liste bir CIRCIRLA korunur: yalnız küçülebilir.
+      # Listede olmayan ya da tavanı aşan her bulgu kapıyı kırmızı yakar.
+      #
+      # Tarayıcı runner imajına bırakılmaz: Playwright'ın kendi chromium'u
+      # kurulur, böylece kapı imaj değişikliğiyle sessizce kaymaz.
+      - name: Tarayıcıyı kur (kalite kapıları)
+        working-directory: web
+        run: node node_modules/playwright-core/cli.js install --with-deps --no-shell chromium
+
+      - name: Sunucuyu başlat (3210)
+        working-directory: web
+        run: |
+          nohup npx next start -p 3210 > /tmp/kapi-sunucu.log 2>&1 &
+          for i in $(seq 1 60); do
+            if curl -sf -o /dev/null http://localhost:3210/giris; then
+              echo "sunucu hazır ($((i * 2))sn)"; exit 0
+            fi
+            sleep 2
+          done
+          echo "sunucu 120sn içinde açılmadı"; cat /tmp/kapi-sunucu.log; exit 1
+
+      - name: Yatay taşma ve kırpılan içerik kapısı
+        working-directory: web
+        env:
+          PORT: '3210'
+        run: node arac/yatay-tasma.mjs
+
+      - name: Erişilebilirlik kapısı · axe · üç bant
+        working-directory: web
+        env:
+          PORT: '3210'
+        run: node arac/erisim-axe.mjs
+
+      # Statik demo derlemesi `.next`'i devralır; sunucu önce durmalı.
+      - name: Sunucuyu durdur
+        if: always()
+        run: pkill -f 'next start' || true
 
       - name: Statik demo derlemesi
         working-directory: web

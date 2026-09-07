@@ -78,10 +78,19 @@ Değişmezler:
 
 Statik kapılar (`npm run lint` · `npx tsc --noEmit` · `npm test` ·
 `npm run tasarim:kapi` · `npm run build`) `.github/workflows/pr-kapisi.yml`
-içinde her PR'da koşar. Aşağıdaki araçlar **canlı sunucu ister** ve CI'da
-koşmaz; port 3210'da elle koşulur (`PORT=3210 next dev` başka bir kabukta).
-Hepsi tohum geliştirme girişiyle oturum açar (`kosu-ortak.mjs`); gerçek
-kurum sistemine giden hiçbir şey yoktur.
+içinde her PR'da koşar.
+
+**İki tarayıcılı kapı da CI'da koşar ve BLOKLAYICIDIR:**
+`yatay-tasma.mjs` ve `erisim-axe.mjs`. CI üretim derlemesini 3210'da
+ayağa kaldırır (`next start`), Playwright'ın kendi chromium'unu kurar
+(runner imajına bırakılmaz) ve ikisini koşar. Ölçüldü: taşma 89sn, axe
+130sn. Bugünün açık bulguları `kalite-borcu.json` izin listesindedir ve
+liste bir CIRCIRLA korunur — aşağıda.
+
+Geri kalan tarayıcılı araçlar hâlâ **canlı sunucu ister** ve CI'da
+koşmaz; port 3210'da elle koşulur (`PORT=3210 next dev` başka bir
+kabukta). Hepsi tohum geliştirme girişiyle oturum açar
+(`kosu-ortak.mjs`); gerçek kurum sistemine giden hiçbir şey yoktur.
 
 | Betik | npm | Ne ölçer | Çıkış 1 |
 | --- | --- | --- | --- |
@@ -90,8 +99,8 @@ kurum sistemine giden hiçbir şey yoktur.
 | `tarama.mjs` | `tasarim:rota` | yatay taşma · eski sınıf · boş ekran · sayfa hatası (`EN=1440,1024,768,375` çok bant) | kusurlu rota |
 | `lighthouse.mjs` | `kalite:lighthouse` | 4 kategori puanı, `/giris` + 4 kanonik rota | eşik (90) altı |
 | `gorsel-regresyon.mjs` | `tasarim:gorsel` | 8 rota × 2 bant, altın görüntüyle piksel farkı | fark > %0,5 ya da altın yok |
-| `erisim-axe.mjs` | `tasarim:axe` | axe-core WCAG 2 A/AA, rotalar.json'daki tüm rotalar, **üç bant** (1440 · 768 · 375) | ciddi/kritik ihlal |
-| `yatay-tasma.mjs` | `tasarim:tasma` | 375 + 768'de **iki kusur türü**: sayfa yana kayıyor mu · `overflow: hidden` kabında sessizce kırpılan içerik var mı | taşan rota **ya da** kırpılan içerik |
+| `erisim-axe.mjs` **(CI · bloklayıcı)** | `tasarim:axe` | axe-core WCAG 2 A/AA, rotalar.json'daki tüm rotalar, **üç bant** (1440 · 768 · 375) | izin listesinde olmayan ya da tavanı aşan ciddi/kritik ihlal |
+| `yatay-tasma.mjs` **(CI · bloklayıcı)** | `tasarim:tasma` | 375 + 768'de **iki kusur türü**: sayfa yana kayıyor mu · `overflow: hidden` kabında sessizce kırpılan içerik var mı | izin listesinde olmayan ya da tavanı aşan bulgu |
 | `dizustu.mjs` | `tasarim:dizustu` | 1366×768'de kaydırılamayan (kırpılan) içerik var mı | kırpılan öğe |
 | `marka-kapisi.mjs` | `marka:kapi` | ürün adı tek kaynaktan mı geliyor: nöbetçi adla statik demo derlemesi koşar, üretilen çıktıya bakar (tarayıcı istemez) | varsayılan ad işlenmiş yüzeyde geçiyor **ya da** nöbetçi görünmesi gereken yüzeyde yok |
 | `turkiye-siniri.mjs` | `harita:sinir` | üretir (kapı değil): Natural Earth'ten Türkiye silüeti | kaynak/öznitelik bulunamadı |
@@ -202,6 +211,65 @@ node arac/xlsx-fikstur.mjs --yaz    # ikiliyi yeniden üretir
 
 Tarayıcı istemez; `npm test` içinde `tests/xlsx-ayristirma.test.ts` onu
 okur.
+
+### `kalite-borcu.json` — kapıyı BUGÜN bloklayıcı yapan cırcır
+
+Bir kapıyı "bütün bulgular bitince bloklayıcı yaparız" diye bekletmek,
+kapıyı aylarca isteğe bağlı bırakır ve o arada borç sessizce büyür.
+Bunun kanıtı bu depoda var: `/omur` taşması ve 49 rotadaki durum şeridi
+kırpılması, aylarca kimsenin koşmadığı bir kapının arkasında durdu.
+
+Alternatif: bugünkü borcu YAZIYA DÖK, kapıyı BUGÜN bloklayıcı yap,
+listeyi bir cırcırla koru. Liste bir mazeret değil bir **tavandır**.
+
+Satır biçimi — anahtar `kapi + tur + rota + bant`, tavan `azami`:
+
+```json
+{ "kapi": "tasma", "tur": "kirpilan-icerik", "rota": "/sistem/bilesenler",
+  "bant": 375, "azami": 4, "not": "topoloji düğümleri … 39-55px" }
+```
+
+**Dört diş.** Biri gevşerse ötekiler kâğıttan kalır:
+
+| Diş | Ne engeller | Kırmızı olduğu an |
+| --- | --- | --- |
+| **1 · TAVAN** | Var olan borcun büyümesi | ölçüm `azami`yi aşar |
+| **2 · ALT KÜME** | Yeni borç açılması | bulgu listede yok |
+| **3 · TABAN DAL** | Listeye satır eklenmesi / tavan yükseltilmesi | dal listesi `origin/main` listesinin alt kümesi değil |
+| **4 · OKUNAMAZSA KIRMIZI** | Cırcırın sessizce atlanması | taban dal okunamıyor **ve** CI'dayız |
+
+Üçüncü diş olmasaydı ilk ikisi kâğıttan olurdu: bulguyu düzeltmek yerine
+listeye bir satır eklemek kapıyı yeşile döndürürdü. Taban dal **dalın
+kendisi değil `origin/main`'dir** — dalın kendi listesine bakmak, dalın
+kendi eklemesini meşrulaştırırdı. Dördüncü diş de aynı sebeple sert:
+karşılaştırılamayan bir izin listesi, listenin büyümediğini KANITLAMAZ,
+o yüzden sığ klonda CI kırmızıdır (`fetch-depth: 0` şart).
+
+Yerelde taban dal yoksa **gerekçeli** atlanır; CI'da gerekçe işe yaramaz:
+
+```bash
+PORT=3210 node arac/yatay-tasma.mjs --circir-atla="taban dal bu klonda yok"
+```
+
+Taban dal erişilebilir ama listeyi **henüz taşımıyorsa** (listeyi kuran
+commit) o tur muaftır ve "İLK KURULUM" diye yazar — bu, sığ klondan
+ayrıdır ve ayrımı önemlidir: ilki muaf olmalı, ikincisi kırmızı.
+
+Kararlar `kalite-kurallari.mjs → borcSuzgeci · circirKarari` içinde SAF
+işlevlerdir ve `tests/kalite-kapilari.test.ts` ile tarayıcısız
+doğrulanır; `kalite-borcu.mjs` yalnız dosya/git okur ve raporlar.
+
+> **Dört dişin de ISIRDIĞI denenerek doğrulandı.** DİŞ 1: `/omur` 375
+> tavanı 4→3 düşürüldü, kapı kırmızı (`4 > 3 px`). DİŞ 2: aynı satır
+> silindi, kapı kırmızı ("izin listesinde OLMAYAN 1 bulgu"). DİŞ 3:
+> listeye satır eklendi ve tavan yükseltildi, ikisi de kırmızı. DİŞ 4:
+> taban dal olmayan bir dala çevrildi — CI'da kırmızı, yerelde gerekçesiz
+> kırmızı, gerekçeli yeşil, CI'da gerekçeyle yine kırmızı. Deneme
+> değişiklikleri geri alındı.
+
+**Bir satır düzeldiğinde silinir.** Kapı zaten söyler: "DÜZELMİŞ BORÇ · N
+satır — kalite-borcu.json içinden SİLİN". Silinen satır DİŞ 3 yüzünden
+geri gelemez.
 
 ### `yatay-tasma.mjs` — İKİ kusur türü
 

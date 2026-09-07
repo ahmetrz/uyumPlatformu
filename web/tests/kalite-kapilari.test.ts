@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
+import { readFileSync } from 'node:fs';
 import {
-  KIRPILMA_TOLERANSI, altinDosyaAdi, axeCiddiMi, axeOzeti, enDistakiKirpilmalar,
-  esikAltindakiler, gorselFark, kirpilmaKarari, rotaAdi, yuzPuan,
+  KIRPILMA_TOLERANSI, altinDosyaAdi, axeCiddiMi, axeOzeti, borcAnahtari, borcSuzgeci,
+  circirKarari, enDistakiKirpilmalar, esikAltindakiler, gorselFark, kirpilmaKarari,
+  rotaAdi, yuzPuan,
 } from '../arac/kalite-kurallari.mjs';
 
 /* Kalite kapılarının SAF kuralları — tarayıcısız doğrulanır.
@@ -151,5 +153,105 @@ describe('en dıştaki kırpılma', () => {
   it('yolu olmayan aday listeye girmez', () => {
     expect(enDistakiKirpilmalar([{ yol: undefined, etiket: 'div' }])).toEqual([]);
     expect(enDistakiKirpilmalar(undefined)).toEqual([]);
+  });
+});
+
+/* ── Kalite borcu cırcırı — liste yalnız KÜÇÜLEBİLİR ──────────────────
+   Dört diş ayrı ayrı sınanır; biri gevşerse ötekiler kâğıttan kalır. */
+
+const BORC = { kapi: 'tasma', tur: 'kirpilan-icerik', rota: '/sistem/bilesenler', bant: 375, azami: 4 };
+const BULGU = { kapi: 'tasma', tur: 'kirpilan-icerik', rota: '/sistem/bilesenler', bant: 375, olcum: 4 };
+
+describe('borç anahtarı', () => {
+  it('kapı + tür + rota + bant birlikte kimliktir', () => {
+    expect(borcAnahtari(BORC)).toBe(borcAnahtari(BULGU));
+    expect(borcAnahtari({ ...BULGU, bant: 768 })).not.toBe(borcAnahtari(BORC));
+    expect(borcAnahtari({ ...BULGU, rota: '/omur' })).not.toBe(borcAnahtari(BORC));
+  });
+});
+
+describe('DİŞ 1 · tavan · DİŞ 2 · alt küme', () => {
+  it('tavanın altı ve tam tavan izinlidir, kapıyı yakmaz', () => {
+    expect(borcSuzgeci([{ ...BULGU, olcum: 3 }], [BORC]).kapiKapali).toBe(false);
+    expect(borcSuzgeci([BULGU], [BORC]).kapiKapali).toBe(false);
+    expect(borcSuzgeci([BULGU], [BORC]).kalan).toHaveLength(1);
+  });
+
+  it('DİŞ 1 — tavanın bir üstü kapıyı yakar', () => {
+    const s = borcSuzgeci([{ ...BULGU, olcum: 5 }], [BORC]);
+    expect(s.kapiKapali).toBe(true);
+    expect(s.asan).toHaveLength(1);
+    expect(s.asan[0].azami).toBe(4);
+  });
+
+  it('DİŞ 2 — listede olmayan bulgu kapıyı yakar', () => {
+    const s = borcSuzgeci([{ ...BULGU, rota: '/uyum' }], [BORC]);
+    expect(s.kapiKapali).toBe(true);
+    expect(s.yeni).toHaveLength(1);
+  });
+
+  it('DİŞ 2 — aynı rotanın BAŞKA bandı yeni bulgudur', () => {
+    expect(borcSuzgeci([{ ...BULGU, bant: 768 }], [BORC]).yeni).toHaveLength(1);
+  });
+
+  it('düzelmiş borç kapıyı yakmaz ama SİLİNMESİ gerektiğini söyler', () => {
+    const s = borcSuzgeci([], [BORC]);
+    expect(s.kapiKapali).toBe(false);
+    expect(s.duzelmis).toHaveLength(1);
+  });
+
+  it('boş liste her bulguyu yeni sayar', () => {
+    expect(borcSuzgeci([BULGU], []).kapiKapali).toBe(true);
+    expect(borcSuzgeci([], []).kapiKapali).toBe(false);
+  });
+});
+
+describe('DİŞ 3 · taban dal — liste yalnız küçülebilir', () => {
+  it('aynı liste geçer', () => {
+    expect(circirKarari([BORC], [BORC]).kapiKapali).toBe(false);
+  });
+
+  it('satır SİLMEK serbesttir — cırcır bu yöne döner', () => {
+    expect(circirKarari([], [BORC]).kapiKapali).toBe(false);
+  });
+
+  it('tavan DÜŞÜRMEK serbesttir', () => {
+    expect(circirKarari([{ ...BORC, azami: 2 }], [BORC]).kapiKapali).toBe(false);
+  });
+
+  it('satır EKLEMEK kırmızıdır — yoksa DİŞ 1 ve 2 kâğıttan olurdu', () => {
+    const c = circirKarari([BORC, { ...BORC, rota: '/uyum' }], [BORC]);
+    expect(c.kapiKapali).toBe(true);
+    expect(c.eklenen).toHaveLength(1);
+    expect(c.eklenen[0].rota).toBe('/uyum');
+  });
+
+  it('tavan YÜKSELTMEK kırmızıdır', () => {
+    const c = circirKarari([{ ...BORC, azami: 9 }], [BORC]);
+    expect(c.kapiKapali).toBe(true);
+    expect(c.yukseltilen[0].tabanAzami).toBe(4);
+    expect(c.yukseltilen[0].azami).toBe(9);
+  });
+});
+
+describe('kalite-borcu.json', () => {
+  const borc = JSON.parse(readFileSync(new URL('../arac/kalite-borcu.json', import.meta.url), 'utf8'));
+
+  it('her satır cırcırın anahtar alanlarını ve bir tavan taşır', () => {
+    expect(borc.bulgular.length).toBeGreaterThan(0);
+    for (const b of borc.bulgular) {
+      expect(['tasma', 'axe']).toContain(b.kapi);
+      expect(typeof b.tur).toBe('string');
+      expect(b.rota.startsWith('/')).toBe(true);
+      expect([375, 768, 1440]).toContain(b.bant);
+      expect(Number.isInteger(b.azami)).toBe(true);
+      expect(b.azami).toBeGreaterThan(0);
+      expect(b.not.length).toBeGreaterThan(0);
+    }
+  });
+
+  it('aynı anahtar iki kez yazılamaz — ikinci satır ilkini gölgelerdi', () => {
+    const anahtarlar = borc.bulgular.map(borcAnahtari);
+    expect(new Set(anahtarlar).size).toBe(anahtarlar.length);
   });
 });

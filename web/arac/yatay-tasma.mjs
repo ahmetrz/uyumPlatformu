@@ -48,6 +48,7 @@
 import { chromium } from 'playwright-core';
 import { KOK, girisYap, rotaBayragi, rotalarOku, tarayiciYolu } from './kosu-ortak.mjs';
 import { KAYDIRAN_KAPLAR, enDistakiKirpilmalar, kirpilmaKarari } from './kalite-kurallari.mjs';
+import { borcuUygula } from './kalite-borcu.mjs';
 
 /* İki bant yeter: 375 telefon (en sıkı), 768 dikey tablet (kırılma
    noktasının hemen üstü — 700px kuralları burada HENÜZ geçerli
@@ -215,7 +216,7 @@ try {
         if (tasma <= tolerans) return null;
         return { tasma, suclular: window.__suclulariBul() };
       }, TOLERANS);
-      if (olcum) kusurlar.push({ bant: bant.ad, yol, ...olcum });
+      if (olcum) kusurlar.push({ bant: bant.ad, bantEn: bant.en, yol, ...olcum });
 
       /* İkinci kusur türü: taşma sayfayı kaydırmasa da içerik kayıp mı. */
       await sayfa.addScriptTag({ content: `window.__kirpilmaOlcumleri = ${kirpilmaOlcumleri.toString()};` });
@@ -223,7 +224,7 @@ try {
       const kirpilan = enDistakiKirpilmalar(
         adaylar.map((a) => ({ ...a, karar: kirpilmaKarari(a) })).filter((a) => a.karar.kusur),
       );
-      if (kirpilan.length > 0) kirpilmalar.push({ bant: bant.ad, yol, ogeler: kirpilan });
+      if (kirpilan.length > 0) kirpilmalar.push({ bant: bant.ad, bantEn: bant.en, yol, ogeler: kirpilan });
     }
     await baglam.close();
   }
@@ -232,13 +233,10 @@ try {
 }
 
 const bas = `yatay-tasma: ${olculen} ölçüm · ${BANTLAR.length} bant × ${ROTALAR.length} rota`;
+console.log(`${bas} · taşan rota ${kusurlar.length} · kırpılan içerik ${kirpilmalar.length}`);
 
-if (kusurlar.length === 0 && kirpilmalar.length === 0) {
-  console.log(`${bas} · taşan rota 0 · kırpılan içerik 0`);
-  process.exit(0);
-}
-
-console.error(`${bas} · taşan rota ${kusurlar.length} · kırpılan içerik ${kirpilmalar.length}\n`);
+/* Ham bulgular her zaman YAZILIR — izin listesi bulguyu gizlemez,
+   yalnız kapıyı yakıp yakmayacağını söyler. */
 
 for (const k of kusurlar) {
   console.error(`  [SAYFA KAYIYOR] ${k.bant} · ${k.yol} → ${k.tasma}px`);
@@ -258,4 +256,20 @@ for (const k of kirpilmalar) {
     console.error(`          "${o.metin}"`);
   }
 }
-process.exit(1);
+
+/* ── Kalite borcu cırcırı ─────────────────────────────────────────────
+   Kapı BUGÜN bloklayıcıdır; bugünün açık bulguları izin listesinde
+   yazılıdır ve liste yalnız küçülebilir (arac/kalite-borcu.json). */
+const bulgular = [
+  ...kusurlar.map((k) => ({
+    kapi: 'tasma', tur: 'sayfa-kayiyor', rota: k.yol, bant: k.bantEn,
+    olcum: k.tasma, birim: 'px',
+    not: k.suclular[0] ? `${k.suclular[0].etiket} "${k.suclular[0].metin}"` : undefined,
+  })),
+  ...kirpilmalar.map((k) => ({
+    kapi: 'tasma', tur: 'kirpilan-icerik', rota: k.yol, bant: k.bantEn,
+    olcum: k.ogeler.length, birim: 'öğe',
+    not: k.ogeler[0]?.etiket,
+  })),
+];
+process.exit(borcuUygula(bulgular, { kapi: 'tasma' }) ? 1 : 0);

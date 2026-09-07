@@ -162,3 +162,73 @@ export function enDistakiKirpilmalar(adaylar) {
     return true;
   });
 }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   KALİTE BORCU CIRCIRI — liste yalnız KÜÇÜLEBİLİR
+
+   Bir kapıyı "bütün bulgular bitince bloklayıcı yaparız" diye beklet-
+   mek, kapıyı aylarca isteğe bağlı bırakır; o arada borç sessizce
+   büyür ve kimse fark etmez. Alternatif: bugünkü borcu YAZIYA DÖK,
+   kapıyı BUGÜN bloklayıcı yap, listeyi bir cırcırla koru.
+
+   Liste bir mazeret değil bir TAVANDIR. Dört diş geri dönmeyi engeller:
+
+     1 · TAVAN     — listedeki ölçüm `azami`yi aşarsa kırmızı.
+     2 · ALT KÜME  — listede olmayan her bulgu kırmızı.
+     3 · TABAN DAL — dal listesi `origin/main` listesinin alt kümesi
+                     olmalı: satır eklemek ya da tavan yükseltmek kırmızı.
+     4 · OKUNAMAZSA KIRMIZI — taban dal okunamıyorsa CI'da kırmızı;
+                     yerelde yalnız gerekçeli atlama.
+
+   Üçüncü diş olmasaydı ilk ikisi kâğıttan olurdu: bulguyu düzeltmek
+   yerine listeye bir satır eklemek kapıyı yeşile döndürürdü. Taban dal
+   DAL DEĞİL `origin/main`'dir — dalın kendi listesine bakmak, dalın
+   kendi eklemesini meşrulaştırırdı. */
+
+/** Bir bulgunun ya da borç satırının kimliği: kapı + tür + rota + bant. */
+export function borcAnahtari(k) {
+  return [k?.kapi, k?.tur, k?.rota, k?.bant].join('|');
+}
+
+/**
+ * DİŞ 1 + DİŞ 2 — bulguları izin listesine karşı süzer.
+ * @param {{kapi:string,tur:string,rota:string,bant:number,olcum:number,birim?:string}[]} bulgular
+ * @param {{kapi:string,tur:string,rota:string,bant:number,azami:number}[]} borc
+ */
+export function borcSuzgeci(bulgular, borc) {
+  const liste = new Map((borc ?? []).map((b) => [borcAnahtari(b), b]));
+  const yeni = [];
+  const asan = [];
+  const kalan = [];
+  for (const b of bulgular ?? []) {
+    const satir = liste.get(borcAnahtari(b));
+    if (!satir) { yeni.push(b); continue; }                       // DİŞ 2
+    if (Number(b.olcum) > Number(satir.azami)) {                  // DİŞ 1
+      asan.push({ ...b, azami: satir.azami });
+      continue;
+    }
+    kalan.push({ ...b, azami: satir.azami });
+  }
+  /* Düzelmiş satır: listede var ama artık bulunmuyor. Kapıyı kırmızı
+     yakmaz — silinmesi gerektiğini SÖYLER. */
+  const gorulen = new Set((bulgular ?? []).map(borcAnahtari));
+  const duzelmis = (borc ?? []).filter((b) => !gorulen.has(borcAnahtari(b)));
+  return { yeni, asan, kalan, duzelmis, kapiKapali: yeni.length > 0 || asan.length > 0 };
+}
+
+/**
+ * DİŞ 3 — dal listesi taban dal listesinin ALT KÜMESİ mi.
+ * Satır eklemek ya da tavan yükseltmek kırmızıdır; satır silmek ve
+ * tavan düşürmek serbesttir (cırcır bu yöne döner).
+ */
+export function circirKarari(dalBorcu, tabanBorcu) {
+  const taban = new Map((tabanBorcu ?? []).map((b) => [borcAnahtari(b), b]));
+  const eklenen = [];
+  const yukseltilen = [];
+  for (const b of dalBorcu ?? []) {
+    const t = taban.get(borcAnahtari(b));
+    if (!t) { eklenen.push(b); continue; }
+    if (Number(b.azami) > Number(t.azami)) yukseltilen.push({ ...b, tabanAzami: t.azami });
+  }
+  return { eklenen, yukseltilen, kapiKapali: eklenen.length > 0 || yukseltilen.length > 0 };
+}

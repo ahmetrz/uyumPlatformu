@@ -503,6 +503,26 @@
 .ab-durum .kalem .mono { color: var(--murekkep); font-size: 11px; }
 .ab-durum .sag { margin-left: auto; }
 
+/* ── ÖLÇÜLDÜ: 375px'te İKİ KALEM KESİLİYORDU ────────────────────────
+   Durum şeridi ayağın (`.ab-alt`) ta kendisiyle aynı kalıbı taşıyordu:
+   `white-space: nowrap` + `overflow: hidden`. Ayak sardırılarak
+   düzeltilmişti; şerit o turda atlanmış. Yatay taşma kapısı kırpılan
+   içeriği görmeye başlayınca çıktı: 49 rotanın hepsinde, 375px'te
+   "yapılandırılmamış N" 113px'i ve "Son başarılı koşu <damga>" 271px'i
+   kesiliyordu — kaydırılamıyordu, KESİLİYORDU. Bağlayıcıların kaç
+   tanesinin yapılandırılmadığı ve son koşunun ne zaman olduğu, yani
+   şeridin taşıdığı iki sağlık bilgisi, telefonda hiç görünmüyordu.
+
+   Çözüm ayağınkiyle aynı: şerit SARAR. İki satır birkaç piksel yer
+   alır; iki ölçünün yok olmasından iyidir. */
+@media (max-width: 700px) {
+  .ab-durum {
+    flex-wrap: wrap; white-space: normal; overflow: visible;
+    gap: 6px 16px; padding: 8px 16px;
+  }
+  .ab-durum .sag { margin-left: 0; }
+}
+
 /* Ayak — kurumsal künye. Sabit metin; sürüm package.json'dan. */
 .ab-alt {
   display: flex; align-items: center; gap: 24px; padding: 0 20px; min-height: var(--ayak-h);
@@ -3410,6 +3430,66 @@ details:not([open]) > *:not(summary) { display: none !important; }
   .ab-b-ikili { grid-template-columns: minmax(0, 1fr); }
   .ab-b-ikili .uniteler { border-right: 0; border-bottom: 1px solid var(--hr); }
 
+  /* ── Hero plakası · dar bant ────────────────────────────────────────
+     Plaka masaüstünde SABİT YÜKSEKLİKLİ bir tuvaldir: künye ve ölçü
+     şeridi mutlak konumla sol tarafa, 420px veri paneli sağa oturur.
+     Dar bantta bu üç mutlak kutu birbirinin üstüne biner ve ölçüldü:
+
+       375px · künye `right: 460px` ile 0px kutuya çöküyordu — tesis adı,
+               kurulu güç, kritiklik sınıfı üst üste binmiş hayalet
+               olarak kalıyor, hiçbiri okunmuyordu.
+             · panel `left: -45px`'e oturuyor; kendi sol 45px'i plakanın
+               `overflow: hidden` kenarında kesiliyordu ("UYUM ENDEKSİ"
+               → "UM ENDEKSİ", "Ağ Güvenliği" → "Güvenliği").
+       768px · beş ölçü 42px'lik sütunlara sıkışıp komşusunun üstüne
+               biniyordu ("165 M" · "Yüksek 3").
+
+     İki kapı da bunu GÖRMÜYORDU: taşmayı plakanın `overflow: hidden`
+     tarafı yutuyor, axe yalnız 1440'ta koşuyordu. Önce kapılar açıldı
+     (yatay-tasma.mjs kırpılan içerik ölçüsü · erisim-axe.mjs üç bant),
+     düzeltme sonra geldi ve ikisiyle doğrulandı.
+
+     Çözüm kabuğun KENDİ kalıbı: `.ab-a-calisma` (≤820) ve `.ab-b-alan`
+     (≤1100) sabit yan panelini nasıl akışa indiriyorsa plaka da öyle
+     iner. Tuval üç satırlı bir ızgaraya döner — künye · ölçüler · panel;
+     fotoğraf ve perdesi ilk iki satırda kalır (mutlak konumlu ızgara
+     çocuğu kendi hücresini kap alır), panel üçüncü satırda kendi
+     zeminiyle oturur. Hiçbir ölçü DÜŞMEZ, hiçbir kap yatay kaydırmaz. */
+  .ab-b-plaka {
+    height: auto;
+    display: grid; grid-template-rows: auto auto auto;
+  }
+  /* Fotoğraf ve perde künye + ölçü satırlarını kaplar; panelin ardına
+     geçmez — akışta panel yükseklik alır ve `cover` fotoğrafı oraya
+     kadar germek zorunda kalırdı. */
+  .ab-b-plaka > img, .ab-b-plaka > .perde { grid-row: 1 / 3; }
+  /* Sağ perde 420px'lik panel kenarını yumuşatıyordu; panel artık
+     yanda değil, altta. */
+  .ab-b-plaka > .sagperde { display: none; }
+  /* Mutlak konumdan akışa. `z-index` şart: fotoğraf ve perde konumlu
+     kaldığı için akıştaki kardeşlerini boyar (aynı çözüm `.ab-b-alan`
+     içinde de var). */
+  .ab-b-plaka .kimlik,
+  .ab-b-plaka .olcuolar,
+  .ab-b-plaka .ab-b-panel { position: relative; z-index: 1; inset: auto; }
+  .ab-b-plaka .kimlik { grid-row: 1; padding: 26px 24px 0; }
+  .ab-b-plaka .olcuolar {
+    grid-row: 2; padding: 18px 24px 24px; margin-top: 20px;
+    /* 124px tabanı ÖLÇÜYLE seçildi, göz kararıyla değil: 768'de iç alan
+       720px ve dört 20px oluk düşünce beş ölçüye 128px kalır — taban
+       bunun altında olmalı ki beş ölçü TEK SATIRDA dursun. 132px ve
+       148px denendi, ikisi de 4+1'e bölünüyordu (ölçüldü). 375'te aynı
+       taban ikişerli sardırır (335px → 2 × 159px). */
+    grid-template-columns: repeat(auto-fit, minmax(124px, 1fr));
+    gap: 18px 20px;
+  }
+  .ab-b-panel {
+    grid-row: 3; width: auto; padding: 22px 24px;
+    /* Yarı saydam zemin fotoğrafın ÜSTÜNDE anlamlıydı; akışta panel
+       kendi bandıdır ve zemini doludur. */
+    background: var(--panel); border-left: 0; border-top: 1px solid var(--hr2);
+  }
+
   /* Düzenleyici bant: 430px takvim + akış yan yana sığmaz. */
 }
 /* ═══ Telefon — HİÇBİR ALAN ERİŞİLEMEZ OLAMAZ ═════════════════════════
@@ -3481,6 +3561,16 @@ details:not([open]) > *:not(summary) { display: none !important; }
 
   /* Üniteler + bulgular telefonda: 32px yan dolgu şeridin telefon
      ritmine (20px) iner — kazanılan 24px doğrudan konuya gider. */
+  /* Hero telefonda: 60px başlık ve 34px ölçü değeri 335px'lik iç alanda
+     tek sözcüğü bile taşırıyordu. Ölçek düşer, İÇERİK DÜŞMEZ — beş ölçü
+     iki sütuna sarar. Dolgu şeridin telefon ritmine (20px) iner. */
+  .ab-b-plaka .kimlik { padding: 22px 20px 0; }
+  .ab-b-plaka .kimlik h1 { font-size: clamp(38px, 11vw, 60px); }
+  .ab-b-plaka .olcuolar { padding: 16px 20px 22px; margin-top: 16px; gap: 14px 16px; }
+  .ab-b-plaka .olcuolar .deger { font-size: 26px; }
+  .ab-b-plaka .olcuolar .birim { font-size: 12px; }
+  .ab-b-panel { padding: 20px; }
+
   .ab-b-ikili .uniteler, .ab-b-ikili .bulgular { padding: 24px 20px; }
 
   /* Bulgu başlığı ile sayaç özeti yan yana durunca İKİSİ DE satır

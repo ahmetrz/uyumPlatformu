@@ -16,73 +16,9 @@
     "4 · OKUNAMAZSA KIRMIZI — taban dal okunamıyorsa CI'da kapı kırmızıdır;",
     "    yerelde yalnız `--circir-atla=\"<gerekçe>\"` ile atlanır."
   ],
-  "_olculdu": "2026-09-07 · TAZE tohumla (npm run db:hazirla), üretim sunucusuna karşı · 68 rota (50 statik + 18 dinamik varyant) × 2 bant (taşma) · 69 rota × 3 bant (axe)",
+  "_olculdu": "2026-09-07 · TAZE tohumla (npm run db:hazirla), üretim sunucusuna karşı · 68 rota (50 statik + 18 dinamik varyant) × 2 bant (taşma) · 69 rota × 3 bant (axe). LİSTE BUGÜN BOŞ: taşan rota 0 · kırpılan içerik 0 · axe ciddi/kritik 0. Boş liste kapıyı gevşetmez — TERSİNE, artık her yeni bulgu kırmızıdır.",
   "_birim": "tasma/sayfa-kayiyor: px · tasma/kirpilan-icerik: VARLIK (1 — \"bu hedef burada kırpılıyor\"; örnek sayısı satır sayısına yani tohuma bağlı olurdu) · axe: o hedefteki ihlal düğümü",
-  "bulgular": [
-    {
-      "kapi": "tasma",
-      "tur": "sayfa-kayiyor",
-      "rota": "/omur",
-      "bant": 375,
-      "hedef": "span.ad@21px",
-      "azami": 4,
-      "not": "span.ad@21px sayfayı yana kaydırıyor"
-    },
-    {
-      "kapi": "tasma",
-      "tur": "sayfa-kayiyor",
-      "rota": "/riskler/[id]",
-      "bant": 375,
-      "hedef": "aside@400px",
-      "azami": 49,
-      "not": "aside@400px sayfayı yana kaydırıyor"
-    },
-    {
-      "kapi": "tasma",
-      "tur": "sayfa-kayiyor",
-      "rota": "/omur",
-      "bant": 768,
-      "hedef": "span.ad@21px",
-      "azami": 3,
-      "not": "span.ad@21px sayfayı yana kaydırıyor"
-    },
-    {
-      "kapi": "tasma",
-      "tur": "kirpilan-icerik",
-      "rota": "/sistem/bilesenler",
-      "bant": 375,
-      "hedef": "button.dugum@168px",
-      "azami": 1,
-      "not": "topoloji düğümleri tuvalin kenarında kesiliyor"
-    },
-    {
-      "kapi": "tasma",
-      "tur": "kirpilan-icerik",
-      "rota": "/sistem/bilesenler",
-      "bant": 768,
-      "hedef": "button.dugum@168px",
-      "azami": 1,
-      "not": "topoloji düğümleri tuvalin kenarında kesiliyor"
-    },
-    {
-      "kapi": "axe",
-      "tur": "scrollable-region-focusable",
-      "rota": "/sistem",
-      "bant": 375,
-      "hedef": "div.ab-icerik > main.ab-ekran-govde.ab-sistem > section.bolum > div.ab-sistem-kaydir#1",
-      "azami": 1,
-      "not": "Scrollable region must have keyboard access"
-    },
-    {
-      "kapi": "axe",
-      "tur": "scrollable-region-focusable",
-      "rota": "/sistem",
-      "bant": 375,
-      "hedef": "div.ab-icerik > main.ab-ekran-govde.ab-sistem > section.bolum > div.ab-sistem-kaydir#2",
-      "azami": 1,
-      "not": "Scrollable region must have keyboard access"
-    }
-  ],
+  "bulgular": [],
   "_dinamik": "Dinamik rota satırları KALIBA anahtarlanır (`/tesisler/[id]`), somut URL'e değil: tohum kimlikleri `@default(cuid())` ile her seed'de değişir. Her kalıptan üç kayıt VARYANTI taranır ve tavan EN KÖTÜ varyanta göre tutulur — tek kayıt ölçmek içeriğe bağlı kusuru kaçırırdı (ölçüldü: Tesis 360'ın 768px kusuru 17 tesisin yalnız 5'inde çıkıyordu).",
   "_tavan_nasil": "Tavanlar ÖLÇÜMDEN üretilir, elle yazılmaz. Ölçüm birimi kusur TÜRÜDÜR, öğe sayısı değil: satır sayısına bağlı bir tavan tohum verisi değişince kayar (ölçüldü: /saglik yerelde 8, CI'da 23 öğe — aynı iki kusur türü). Yeniden ölçerken tohum TAZE olmalı: `rm prisma/dev.db && npm run db:hazirla`.",
   "_anahtar": "kapi + tur + rota + bant + HEDEF. Hedef kimliği olmadan bir PR izinli hedefi kaldırıp aynı rotada aynı kuralla başkasını getirebilir ve ihlal \"mevcut borç\" sayılırdı — bloklayıcı kapının içinde bir bypass. Hedef: taşmada etiket@kutuEni, axe'ta normalize seçici (`:nth-child(n)` gibi kırılgan parçalar atılır). Sözleşme `tests/kalite-kapilari.test.ts` ile İKİ kapıya birden sınanır.",

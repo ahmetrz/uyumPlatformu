@@ -92,6 +92,16 @@ koşmaz; port 3210'da elle koşulur (`PORT=3210 next dev` başka bir
 kabukta). Hepsi tohum geliştirme girişiyle oturum açar
 (`kosu-ortak.mjs`); gerçek kurum sistemine giden hiçbir şey yoktur.
 
+> **Yerelde ölçerken sunucu TAZE DERLEMEDEN gelmeli.** Ölçüldü (7 Eylül
+> 2026): kaynak değiştikten sonra ayakta duran eski `next start`
+> süreciyle koşulan kapı, DEĞİŞMEMİŞ sayfayı ölçtü ve yedi bulgunun
+> yedisini de aynen tekrarladı — düzeltme çalışmıyor sanıldı. İkinci
+> tuzak aynı ailedendir: yeni sunucu `EADDRINUSE` ile bağlanamazken
+> `curl` eskisini görüp "hazır" der. Sıra şudur: eski süreçleri PID ile
+> öldür → portun GERÇEKTEN kapalı olduğunu doğrula → `npm run build` →
+> `next start`. `marka:kapi` `.next`i sildiği için bu adım onun ardından
+> zaten zorunludur.
+
 | Betik | npm | Ne ölçer | Çıkış 1 |
 | --- | --- | --- | --- |
 | `rota-duman.mjs` | `rota:duman` | her `page.tsx` → HTTP 200, doğru kabuk, tek aktif öğe | kusurlu / test edilemeyen rota |
@@ -221,6 +231,14 @@ kırpılması, aylarca kimsenin koşmadığı bir kapının arkasında durdu.
 
 Alternatif: bugünkü borcu YAZIYA DÖK, kapıyı BUGÜN bloklayıcı yap,
 listeyi bir cırcırla koru. Liste bir mazeret değil bir **tavandır**.
+
+> **Liste bugün BOŞ** (7 Eylül 2026 · ölçüldü): taşan rota 0 · kırpılan
+> içerik 0 · axe ciddi/kritik 0. Cırcır 100 satırdan sıfıra indi; her
+> satır SİLİNDİ, hiçbiri tavan yükseltilerek kapatılmadı. Boş liste
+> kapıyı gevşetmez, TERSİNE sıkar: artık her bulgu "listede yok"
+> demektir, yani kırmızıdır. Listenin boşalabildiği ayrıca sınanır
+> (`tests/kalite-borcu-listesi.test.ts`) — boş dizi ile dosyanın
+> SİLİNMESİ aynı şey değildir ve ikincisi kapıyı kırmızı yakar.
 
 Satır biçimi — anahtar `kapi + tur + rota + bant + **hedef**`, tavan
 `azami` (dinamik rotalarda `rota` KALIPTIR, somut URL değil):
@@ -518,6 +536,76 @@ yalnız ham geometri toplar.
 > `/tesisler/[id]` hero plakası (ayrı düzeltildi). `.ab-alt` ayağında
 > AYNI kalıp daha önce ölçülüp düzeltilmişti (aşağıda); `.ab-durum` o
 > turda atlanmış.
+
+#### Kapanan son üç bulgu — ve ikisinin kök sebebi dar bant DEĞİLDİ
+
+**1 · `/omur` · bir yıl bandı (375'te 4px, 768'de 3px).** Suçlu `span.ad
+· ">1 yıl"` idi; ilk okuma "dar bantta etiket sığmıyor" der. Ölçüm başka
+bir şey söyledi: `>1 yıl` bandı **her ende 1px**tir (1440 · 768 · 375),
+etiketi şeridin 27px dışındadır ve sayfa **1440'ta da** 3px kayar. Kapı
+1440'ta koşmadığı için kusur yıllarca dar bandın kusuru sanılabilirdi.
+
+Kök sebep bir birim uyuşmazlığı: ufuk TAM AY adımlarıyla kuantalanır ve
+tabanı 12 aydır (12 × 30,44 = **365,28 gün**), eşik ise **365 gün**.
+Taban ufuk eşiği 0,28 gün AŞIYOR, yani `>1 yıl` bandı her zaman
+çiziliyor — şeridin %0,08'i kadar, kendi adını taşıyamayan bir kıl payı.
+12 ay tabanında bir yılın ötesinde gösterilecek bir şey de yoktur. Bant
+artık ufuk bir yılı BİR AY aşınca belirir (`tests/omur-ufuk.test.ts`;
+düzeltme geri alındığında iki test kırmızıya döner — sınandı).
+
+> **Bir sonraki adım ölçüldü ve kusur DEĞİL.** 13 aylık ufukta bant
+> şeridin %7,8'i olur: 1440'ta 108px, 768'de 56px, 375'te 25px. 375'te
+> etiket şeridin 3px dışına taşar ama sayfayı kaydırmaz ve kırpan ata
+> olmadığı için kırpılmaz da — iki ölçüde de kusur yok, oluk payına
+> giren bir çıkıntı var. 14 aydan itibaren tam olarak 0. Bu yüzden
+> "etiketi eşik çizgisinin soluna çevir" gibi bir kural YAZILMADI:
+> ölçülmüş kusuru olmayan bir kural, bakımı olmayan bir tahmindir.
+
+**2 · `/riskler/[id]` · bağlam paneli (375'te 49px).** Izgara
+`minmax(0, 1fr) 400px` idi; dar bantta içerik sütunu 0px'e çöküyor,
+400px panel şeridi taşırıyordu. Asıl mesele şu: yerleşim ekranın içinde
+**satır içi `style`** ile yazılmıştı ve satır içi stil bir medya
+sorgusuyla EZİLEMEZ — ekran yapısı gereği düzelemiyordu. Yerleşim kabuk
+gramerine taşındı (`.ab-kayit-ikili`) ve dar bant kararı `.ab-a-calisma`
+ile aynı: panel GİZLENMEZ, içeriğin ALTINA iner, kenarlığını sola değil
+üste alır; eşik yine 820px.
+
+**3 · `/sistem/bilesenler` · topoloji düğümleri (375'te 4 düğüm/39px,
+768'de 2 düğüm/16px).** Düğüm kutusu SABİT 168px, konumu YÜZDE — uçtaki
+düğüm kenardan 84px içeride durmak zorunda. `x=16%` tuvalin ≥525px,
+`x=90%` ≥840px olmasını ister; altında `overflow: hidden` sessizce
+keser. Şema küçültülerek çözülemez: kenarlar SVG'de düğümün yüzde
+koordinatına çizilir, düğümü kenara çivilemek çizgiyi düğüme YALANCI
+bağlar — olmayan bir bağlantı gösterirdi. Tuval kendi içsel enini
+(840px) korur ve KAYDIRILIR; kap `role="region"` + ad + `tabIndex`
+taşır, çünkü kaydıran ama odaklanamayan kap klavyede erişilemezdir.
+`/sistem`'in iki kontrast/tipografi matrisi de aynı grameri aldı ve son
+iki axe satırı böyle kapandı.
+
+
+#### Kapıların GÖRMEDİĞİ bir kusur — ölçüm bunu görsel doğrulamada buldu
+
+Yedi satır kapandıktan sonra `/riskler/[id]` 375px'te gözle bakıldı ve
+metin metnin üstüne binmiş hâlde bulundu. **İki kapı da bunu göremez**:
+sayfa kaymıyor (`sayfa-kayiyor` sessiz), kırpan ata yok
+(`kirpilan-icerik` sessiz), axe örtüşmeyi ölçmez. Kusur "eksik bir şey"
+de değildi — iki metin de ORADA, üst üste, ikisi de okunmuyor.
+
+Kök sebep: `.ab-baglam` `nowrap` bir flex satırı. `.yol` kırıntı
+şeridinde `min-width: 0` var (orta kırıntının üç noktası için) ve dar
+bantta şerit kendi min-content eninin ALTINA eziliyor; son kırıntı
+kutusundan taşıp eylem düğmelerinin üstüne biniyor.
+
+> **ÖLÇÜLDÜ · 375px · dört rota:** `/riskler/[id]` son kırıntı `.yol`dan
+> **34px** kaçıyor, düğmeyle **18px** örtüşüyor; `/sistem/bilesenler`
+> 24px / 8px. Çubuk ≤700px'te SARINCA kaçış 0'a düşer ve örtüşme 375 ·
+> 768 · 1440'ın üçünde de 0'dır. `.ab-durum` ve `.ab-alt` ile aynı
+> karar, aynı eşik.
+
+Ders kapıya değil YORDAMA yazılır: kapı yeşil olduğu için ekran doğru
+değildir. `enterprise-interaction-simplification-auditor` bunu kural
+olarak söylüyor — "axe geçti, taşma yok" bir kullanılabilirlik kanıtı
+değildir. ÖRTÜŞME ölçen bir kapı bugün yoktur; yazılırsa yeri budur.
 
 #### Detektörün kendi kör noktaları — üçü inceleme ile bulundu
 

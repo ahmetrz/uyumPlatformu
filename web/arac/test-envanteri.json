@@ -1,7 +1,7 @@
 {
-  "imza": "5768583b756ec37ca3e68378bafbaabb",
-  "dosya": 141,
-  "vaka": 2967,
+  "imza": "a0031e8cc6143f7c47688e14fb7173c6",
+  "dosya": 142,
+  "vaka": 2973,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -342,6 +342,10 @@
     },
     "tests/olculmemis-gosterimi.test.ts": {
       "vaka": 12,
+      "atlanan": 0
+    },
+    "tests/omur-ufuk.test.ts": {
+      "vaka": 6,
       "atlanan": 0
     },
     "tests/operasyon-mantik.test.ts": {

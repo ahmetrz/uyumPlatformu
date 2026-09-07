@@ -140,7 +140,13 @@ export default async function TasarimSistemi() {
             ))}
           </div>
 
-          <div className="ab-sistem-kaydir">
+          {/* Kaydırma kabı klavyeyle ERİŞİLEBİLİR olmak zorundadır: matris
+              375px'te gerçekten kayar (`min-width: 460px`) ve odaklanamayan
+              bir kaydırma bölgesi fareyi olmayan kullanıcı için erişilemez
+              içeriktir — ölçüldü, axe `serious · scrollable-region-focusable`.
+              `.ab-vt-sar` ile aynı gramer: rol + ad + odak durağı. */}
+          <div className="ab-sistem-kaydir" role="region"
+            aria-label={`${y.ad} · kontrast matrisi`} tabIndex={0}>
           <table className="ab-sistem-tablo">
             <thead>
               <tr>
@@ -186,7 +192,8 @@ export default async function TasarimSistemi() {
 
       <section className="bolum">
         <h2 className="ab-bolum-basligi">Tipografi kademeleri</h2>
-        <div className="ab-sistem-kaydir">
+        <div className="ab-sistem-kaydir" role="region"
+          aria-label="Tipografi kademeleri" tabIndex={0}>
           <table className="ab-sistem-tablo">
           <thead>
             <tr>

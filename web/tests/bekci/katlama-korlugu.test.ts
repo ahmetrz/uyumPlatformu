@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { TERIMLER, eslesmeSayisi } from './terimler';
+import { TERIMLER, eslesmeSayisi, taranacakDosyalar } from './terimler';
+import { readFileSync } from 'node:fs';
 
 /* ═══════════════════════════════════════════════════════════════════════
    BEKÇİNİN KÖRLÜK VAKALARI (P1 · URN-ALN-003)
@@ -113,5 +114,79 @@ describe('Bekçi körlüğü · Unicode sözcük sınırı', () => {
     expect(eslesmeSayisi(/jeotermal|rüzgâr|hidroelektrik/gi, 'Rüzgar santrali'),
       'eski kalıp şapkasız yazımı görüyordu').toBe(0);
     expect(bugun('üretim tipi', 'Rüzgar santrali')).toBe(1);
+  });
+});
+
+/* ═══════════════════════════════════════════════════════════════════════
+   KÜÇÜK HARFLİ KOD BİÇİMLERİ
+
+   Kodlar (`JES` · `RES` · `HES` · `GES` · `DGKÇ`) HAM metinde, büyük
+   harfle aranır. Gerekçe sağlam: küçültülmüş metinde `res` "süresi",
+   `hes` "hesap", `jes` "jest", `ges` "gerekli" içine düşer ve bekçi
+   yanlış pozitif üretir. Ayrım büyük/küçük harf SINIRINDADIR, katlamada
+   değil.
+
+   Bunun bedeli: küçük harfle yazılmış kod biçimleri görünmez. İki şekil
+   ayrı ayrı ölçüldü ve ayrı kararlar verildi.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/** camelCase kod biçimi — `hesId`, `resKapasite`, `jesSayisi`, `gesTipi`. */
+const CAMEL_ORTA = /(?<=[a-z])(Jes|Res|Hes|Ges)(?=[A-Z0-9]|$)/g;
+const CAMEL_BAS = /\b(jes|res|hes|ges)(?=[A-Z])/g;
+
+describe('Bekçi körlüğü · küçük harfli kod biçimi', () => {
+  it('camelCase kod biçimi depoda HİÇ geçmiyor (ölçüm) [URN-ALN-007]', () => {
+    /* Karar bu ölçüme dayanıyor: eşleşme OLSAYDI bunlar bekçinin
+       göremediği gerçek borç olurdu ve izin listesine gerekçesiyle
+       eklenmeleri gerekirdi (alt küme dişini meşru ihlal eden ikinci
+       durum). Eşleşme YOK — o yüzden kalıp bekçiye EKLENMEDİ ve körlük
+       burada, ölçülebilir biçimde tutuluyor.
+
+       Bu iddia ileriye dönüktür: biri yarın `hesId` yazarsa test
+       KIRMIZI döner. O gün iki seçenek vardır — tanımlayıcıyı sektörsüz
+       adlandırmak (yeğlenen) ya da kalıbı bekçiye ekleyip yanlış
+       pozitifleri ayrı ayrı elemek. */
+    const bulunan: string[] = [];
+    for (const d of taranacakDosyalar()) {
+      const metin = readFileSync(d, 'utf8');
+      for (const re of [CAMEL_ORTA, CAMEL_BAS]) {
+        for (const m of metin.matchAll(new RegExp(re.source, re.flags))) {
+          bulunan.push(`${d} → ${m[0]}`);
+        }
+      }
+    }
+    expect(bulunan,
+      'camelCase kod biçimi belirdi: ya tanımlayıcıyı sektörsüz adlandırın '
+      + 'ya da bekçiye kalıbı ekleyip yanlış pozitifleri eleyin')
+      .toEqual([]);
+  });
+
+  it('bugünkü bekçi camelCase kod biçimini GÖRMÜYOR — bilinçli [URN-ALN-007]', () => {
+    for (const yazim of ['hesId', 'resKapasite', 'jesSayisi', 'gesTipi', 'santralHes']) {
+      expect(bugun('tip kodu', `const ${yazim} = 1;`), yazim).toBe(0);
+    }
+  });
+
+  it('küçük harf araması neden yapılmıyor — yanlış pozitif kanıtı [URN-ALN-007]', () => {
+    /* "Kodları küçültülmüş metinde de arayalım" önerisi bu satırda düşer:
+       dört sıradan Türkçe sözcük eşleşir. */
+    const duzKucuk = /\b(jes|res|hes|ges)\b/g;
+    const tuzak = 'hesap resim jest gerekli süresi';
+    expect(eslesmeSayisi(duzKucuk, tuzak), 'sınırlı kalıp yakalamadı').toBe(0);
+    const sinirsiz = /(jes|res|hes|ges)/g;
+    expect(eslesmeSayisi(sinirsiz, tuzak),
+      'sınırsız küçük harf araması masum sözcükleri yakalar').toBeGreaterThan(3);
+  });
+
+  it('CSS jetonu (`--hes`) — öncesi 0, sonrası 1 [URN-ALN-007]', () => {
+    /* İkinci şekil ölçümde VAR çıktı: 12 geçiş, 3 dosya. Üçü de zaten
+       izin listesindeydi, o yüzden kalıbı eklemek listeye satır
+       EKLEMEDİ (236 → 236) ve alt küme dişi ihlal edilmedi. */
+    const once = /(?<![\p{L}\p{N}_])(?:JES|JEO|RES|HES|GES|DGKC|DGKÇ|TERMIK|TERMİK)(?![\p{L}\p{N}_])/gu;
+    expect(eslesmeSayisi(once, 'color: var(--hes);'), 'eski kalıp CSS jetonunu görüyordu').toBe(0);
+    expect(bugun('kod jetonu', 'color: var(--hes);')).toBe(1);
+    expect(bugun('kod jetonu', '--jesd: #333;'), '--jesd de kod jetonudur').toBe(1);
+    // `--resim` bir kod jetonu DEĞİLDİR: sınır `-` dâhil.
+    expect(bugun('kod jetonu', '--resim: url(x);'), '--resim yanlış eşleşti').toBe(0);
   });
 });

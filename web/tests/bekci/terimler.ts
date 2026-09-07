@@ -66,6 +66,21 @@ export const TERIMLER: { ad: string; kaliplar: { re: RegExp; hedef: Hedef }[] }[
     { re: /jeotermal|rüzgâr|rüzgar|hidroelektrik/g, hedef: 'kucuk' },
   ] },
   { ad: 'plant', kaliplar: [{ re: /plant/gi, hedef: 'ham' }] },
+  /* ── KÜÇÜK HARFLİ KOD BİÇİMİ · CSS JETONU ──────────────────────────
+     Kodlar ham metinde BÜYÜK harfle aranır; küçültülmüşte `res` Türkçe
+     sözcüklerin içine düşerdi. Bu, küçük harfle yazılmış kod
+     biçimlerini kör bırakıyordu ve depoda BİR TANESİ gerçekten var:
+     CSS özel özellikleri (`--jes` · `--hes` · `--res` · `--ges` ·
+     `--jesd`) — 12 geçiş, 3 dosya. Üçü de zaten izin listesindeydi
+     (başka terimlerden), ama o terimler temizlenince bekçi dosyayı
+     TEMİZ sayacaktı: renk kimliği hâlâ enerji koduna bağlıyken.
+
+     Sondaki isteğe bağlı `d`, eski koyu yüzey jetonlarıdır (`--jesd`;
+     `components/kabuk/tip.ts` yorumunda anılıyor). Sınır `-` dâhil ve
+     başka harfe izin yok: `--resim` bir kod jetonu DEĞİLDİR. */
+  { ad: 'kod jetonu', kaliplar: [
+    { re: /--(?:jes|jeo|res|hes|ges|dgkc|termik)d?(?![\p{L}\p{N}_-])/gu, hedef: 'ham' },
+  ] },
 ];
 
 /** Bir kalıbın metindeki eşleşme sayısı. */

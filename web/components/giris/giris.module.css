@@ -27,6 +27,7 @@
 .root[data-mod='hareketli'] .canvas { visibility: visible; }
 .root[data-mod='hareketli'] .staticCore { display: none; }
 .root[data-mod='hareketli'] .destination { margin-top: calc(-1 * var(--ekran)); transform: translateY(calc(-1 * var(--mesafe))); visibility: hidden; }
+.root[data-metinsiz='true'] .editorial { visibility: hidden; }
 .root[data-tamam='true'] .stage { visibility: hidden; }
 .root[data-tamam='true'] .destination { z-index: auto; }
 .root[data-mod='dogrudan'] .runway { display: none; }

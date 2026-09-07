@@ -38,7 +38,7 @@ function Giris({ children }: { children: ReactNode }) {
       el.dataset.mod = atlandi ? 'dogrudan' : 'statik';
       el.style.removeProperty('--mesafe');
       el.style.removeProperty('--metin'); el.style.removeProperty('--ilerleme');
-      el.dataset.tamam = 'false'; ui.style.cssText = '';
+      el.dataset.tamam = 'false'; el.dataset.metinsiz = 'false'; ui.style.cssText = '';
       temizle();
     }
     let goruldu = false;
@@ -76,6 +76,7 @@ function Giris({ children }: { children: ReactNode }) {
       el.dataset.ilerleme = p.toFixed(5);
       el.dataset.tamam = String(tamam);
       el.style.setProperty('--metin', String(s.metin));
+      el.dataset.metinsiz = String(s.metin === 0);
       el.style.setProperty('--ilerleme', `${p * 100}%`);
       const i = Math.min(5, Math.floor(p * 6));
       etiket.textContent = `${String(i + 1).padStart(2, '0')} / ${KATMANLAR[i]}`;

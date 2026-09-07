@@ -18,8 +18,8 @@ import {
   ASAMALAR, GORUNUR_BUTCE,
   altSatir, asamaEtiketi, asamaIndeksi, baslikMetni, bolumle, degisiklikImi,
   dipNot, eksikKapilar, gecikmeGunu, kapandiMi, kapiHucresi, kapilar,
-  kimlikCumlesi, kimlikSozu, mercekten, metrikleriHesapla, santralMetni,
-  sirala, toplanabilir,
+  kimlikCumlesi, kimlikSozu, mercekten, metrikleriHesapla,
+  sirala, tesisHucresi, toplanabilir,
   type D,
 } from '@/app/(kabuk)/(operasyonel)/operasyon/mantik';
 
@@ -193,10 +193,12 @@ describe('Satır metinleri', () => {
     expect(altSatir(d())).toBe('DGS-0001');
   });
 
-  it('santralsiz değişiklik portföy geneli sayılır', () => {
-    expect(santralMetni(d())).toBe('portföy');
-    expect(santralMetni(d({ tesis: { id: 't', kod: 'KZD-3', ad: 'Saha A-3' } })))
-      .toBe('Saha A-3');
+  it('tesissiz değişiklik portföy geneli sayılır', () => {
+    /* Mantık artık OLGU döner, cümle kurmaz: iddia dile bağlı değil.
+       Sözcüğün kendisi `lib/dil/hucre.ts` vakalarında sınanıyor. */
+    expect(tesisHucresi(d())).toEqual({ tur: 'portfoy' });
+    expect(tesisHucresi(d({ tesis: { id: 't', kod: 'KZD-3', ad: 'Saha A-3' } })))
+      .toEqual({ tur: 'ad', ad: 'Saha A-3' });
   });
 });
 

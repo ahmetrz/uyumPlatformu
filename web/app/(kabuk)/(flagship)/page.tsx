@@ -29,7 +29,7 @@ export default async function Sayfa() {
       kuyruk={veri.kuyruk}
       toplamKayit={veri.toplamKayit}
       kapsamli={veri.kapsamli}
-      santraller={veri.santraller}
+      tesisler={veri.tesisler}
       tipler={veri.tipler}
       risk={veri.risk}
       takvim={veri.takvim}

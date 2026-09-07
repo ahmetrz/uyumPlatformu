@@ -1,4 +1,5 @@
 import type { Durum } from '@/components/kabuk/temel';
+import type { TesisHucresi } from '@/lib/dil/hucre';
 
 /* O · Değişiklik yönetimi — saf mantık.
 
@@ -195,9 +196,13 @@ export function altSatir(d: D): string {
   return [d.kod, ...olgular].join(' · ');
 }
 
-/** Santral hücresi: tek tesis · yoksa portföy (grup çapında değişiklik). */
-export function santralMetni(d: Pick<D, 'tesis'>): string {
-  return d.tesis?.ad ?? 'portföy';
+/** Tesis hücresi: tek tesis · yoksa portföy (grup çapında değişiklik).
+
+    Eskiden adı bir enerji sözcüğü taşıyordu ve 'portföy' dizesini
+    doğrudan yazıyordu; ikisi de sözlüğün konusu. Bkz.
+    `lib/dil/hucre.ts`; eski ad git geçmişinde. */
+export function tesisHucresi(d: Pick<D, 'tesis'>): TesisHucresi {
+  return d.tesis ? { tur: 'ad', ad: d.tesis.ad } : { tur: 'portfoy' };
 }
 
 /** Kapı hücresi: OT'de tamamlanan kapı kesri, BT'de kapı YOKTUR. */

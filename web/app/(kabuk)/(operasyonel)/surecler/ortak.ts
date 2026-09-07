@@ -1,4 +1,5 @@
 import type { Durum } from '@/components/kabuk/temel';
+import type { TesisHucresi } from '@/lib/dil/hucre';
 import { DURUM_ETIKET, SUREC_DURUM_ETIKET, uyumYuzdesi, type SurecDurum } from '@/lib/sabitler';
 
 /* Uyum süreci kütüğü — sunucu ve istemcinin PAYLAŞTIĞI tipler ve saf hesaplar.
@@ -201,11 +202,16 @@ export function altSatir(s: S): string {
   return `${s.kod} · ${s.regulasyon.kod}`;
 }
 
-/** Satırın santral hücresi: tek tesis · birden çoksa sayı · yoksa kapsam boş. */
-export function santralMetni(s: Pick<S, 'tesisler'>): string {
-  if (s.tesisler.length === 1) return s.tesisler[0].ad;
-  if (s.tesisler.length > 1) return `${s.tesisler.length} santral`;
-  return 'kapsam boş';
+/** Satırın tesis hücresi — OLGU döner, cümle kurmaz.
+
+    Eskiden adı da çıktısı da bir enerji sözcüğü taşıyordu ("sayı +
+    sektör sözcüğü" diye METİN üretiyordu): terim çekirdek mantığa
+    gömülüydü ve çeviriye kapalıydı. Sözcüğü artık dil katmanı koyuyor
+    (`lib/dil/hucre.ts`); eski ad git geçmişinde. */
+export function tesisHucresi(s: Pick<S, 'tesisler'>): TesisHucresi {
+  if (s.tesisler.length === 1) return { tur: 'ad', ad: s.tesisler[0].ad };
+  if (s.tesisler.length > 1) return { tur: 'coklu', sayi: s.tesisler.length };
+  return { tur: 'bos' };
 }
 
 /** Denetim hücresi: aşılmış tarih gün olarak, yaklaşan gün, uzağı ay olarak. */

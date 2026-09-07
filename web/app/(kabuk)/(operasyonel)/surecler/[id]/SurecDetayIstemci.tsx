@@ -15,6 +15,8 @@ import { DENKLIK_ETIKET, DURUM_ETIKET, GUVEN_ETIKET, ONEM_ETIKET, tarihTR } from
 import { Ara, DisaAktar, Kapsam } from '../Kontroller';
 import { useEylem } from '@/components/useEylem';
 import { an } from '@/lib/an';
+import { useSozluk } from '@/lib/dil/SozlukSaglayici';
+import { tesisHucresiMetni } from '@/lib/dil/hucre';
 import { degerlendirmeDogrula, kontrolEkibiAta } from '@/lib/eylemler2/uyumSahiplik';
 import { kontrolTestiKaydet, olgunlukKaydet } from '@/lib/eylemler2/uyumOlcum';
 import {
@@ -34,7 +36,7 @@ import {
 import {
   butcele, degerlendirmeAlti, degerlendirmeCumlesi, degerlendirmeImi,
   degerlendirmeSirasi, degerlendirmeSozu, gecikti, gunAy, kalanGun,
-  kanitMetni, kanitYok, santralMetni, takipte,
+  kanitMetni, kanitYok, takipte, tesisHucresi,
   type Degerlendirme, type Kisi, type S,
 } from '../ortak';
 
@@ -84,6 +86,9 @@ const Bos = () => <span style={{ color: 'var(--i3)' }}>—</span>;
 
 export default function SurecDetayIstemci({ veri }: { veri: DetayVerisi }) {
   const { surec: s, simdi, kayitlar } = veri;
+  /* Tesis hücresinin sözcüğü SÖZLÜKTEN gelir; mantık olguyu döner.
+     Bkz. `lib/dil/hucre.ts` — sektör sözcüğü çekirdeğe girmez. */
+  const sozluk = useSozluk();
   const [mercek, setMercek] = useUrlDurumu<string>('mercek', 'takip');
   const [tesisF, setTesisF] = useUrlDurumuBos('tesis');
   const [alanF, setAlanF] = useState<string | null>(null);
@@ -193,7 +198,7 @@ export default function SurecDetayIstemci({ veri }: { veri: DetayVerisi }) {
         />
 
         <EkranBasligi
-          eyebrow={`${s.ad} · ${santralMetni(s)} kapsamda`}
+          eyebrow={`${s.ad} · ${tesisHucresiMetni(tesisHucresi(s), sozluk)} kapsamda`}
           vurgu={baslik.vurgu}
           vurguDurumu={baslik.durum}
           baslik={baslik.ad}

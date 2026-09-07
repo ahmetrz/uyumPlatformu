@@ -186,7 +186,6 @@
     "app/(kabuk)/(operasyonel)/omur/veri.ts",
     "app/(kabuk)/(operasyonel)/operasyon/Formlar.tsx",
     "app/(kabuk)/(operasyonel)/operasyon/OperasyonIstemci.tsx",
-    "app/(kabuk)/(operasyonel)/operasyon/mantik.ts",
     "app/(kabuk)/(operasyonel)/operasyon/page.tsx",
     "app/(kabuk)/(operasyonel)/prosesler/ProseslerIstemci.tsx",
     "app/(kabuk)/(operasyonel)/prosesler/mantik.ts",

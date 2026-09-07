@@ -8,12 +8,14 @@ import {
   Cekmece, CekmeceKimlik, CekmeceAlanlar, CekmeceBagli, CekmeceEylemler,
 } from '@/components/kabuk/panel';
 import { tarihTR } from '@/lib/sabitler';
+import { useSozluk } from '@/lib/dil/SozlukSaglayici';
+import { tesisHucresiMetni } from '@/lib/dil/hucre';
 import { AsamaEylemleri, DegisiklikFormu, KapiListesi, OlayBagi } from './Formlar';
 import {
   ASAMALAR, GORUNUR_BUTCE, MERCEKLER,
   altSatir, asamaEtiketi, asamaIndeksi, baslikMetni, bolumle, degisiklikImi,
   dipNot, gecikmeGunu, kapiHucresi, kimlikCumlesi, kimlikSozu,
-  metrikleriHesapla, mercekten, santralMetni, sirala,
+  metrikleriHesapla, mercekten, sirala, tesisHucresi,
   type D, type Kodlu, type Mercek, type OlayAdayi,
 } from './mantik';
 
@@ -41,6 +43,9 @@ export default function OperasyonIstemci({
   degisiklikler: D[]; tesisler: Kodlu[]; olaylar: OlayAdayi[];
   simdi: number; yazabilir: boolean;
 }) {
+  /* Tesis hücresinin sözcüğü SÖZLÜKTEN gelir; mantık olguyu döner.
+     Bkz. `lib/dil/hucre.ts` — sektör sözcüğü çekirdeğe girmez. */
+  const sozluk = useSozluk();
   const [mercek, setMercek] = useUrlDurumu<Mercek>('mercek', 'acik');
   const [tesisF, setTesisF] = useUrlDurumuBos('tesis');
   const [tipF, setTipF] = useUrlDurumuBos('tip');
@@ -85,7 +90,7 @@ export default function OperasyonIstemci({
           : !d.planTarihi ? { color: 'var(--i3)' } : undefined}>
           {gec !== null ? `+${gec} gün` : d.planTarihi ? tarihTR(d.planTarihi) : 'tarih yok'}
         </span>,
-        santralMetni(d),
+        tesisHucresiMetni(tesisHucresi(d), sozluk),
       ],
     };
   });
@@ -215,6 +220,7 @@ function Ozet({ d, olaylar, simdi, duzenle }: {
 }) {
   const im = degisiklikImi(d, simdi);
   const ix = asamaIndeksi(d.durum);
+  const sozluk = useSozluk();
 
   /* Zincir değişikliğin dokunduğu kayıtları anlatır: doğurduğu ya da
      kapattığı olaylar. Olmayan halka uydurulmaz. */
@@ -231,7 +237,7 @@ function Ozet({ d, olaylar, simdi, duzenle }: {
         { etiket: 'Tip', deger: d.otMu ? 'OT değişikliği' : 'BT değişikliği' },
         {
           etiket: 'Kapsam',
-          deger: `${santralMetni(d)}${d.varlikEtiketi ? ` · ${d.varlikEtiketi}` : ''}`,
+          deger: `${tesisHucresiMetni(tesisHucresi(d), sozluk)}${d.varlikEtiketi ? ` · ${d.varlikEtiketi}` : ''}`,
         },
         {
           etiket: 'Plan tarihi',

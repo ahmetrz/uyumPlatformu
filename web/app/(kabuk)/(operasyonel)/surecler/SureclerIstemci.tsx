@@ -12,11 +12,13 @@ import {
 } from '@/components/kabuk/panel';
 import { ZamanCizelgesi, type ZamanKarti } from '@/components/kabuk/zaman';
 import { tarihTR } from '@/lib/sabitler';
+import { useSozluk } from '@/lib/dil/SozlukSaglayici';
+import { tesisHucresiMetni } from '@/lib/dil/hucre';
 import { Ara, DisaAktar, Kapsam } from './Kontroller';
 import { DurumFormu, KapsamPaneli, SurecFormu } from './Formlar';
 import {
   altSatir, butcele, capa, denetimMetni, donemler, gecikti, geriMetni, kalanGun,
-  kapandiMi, kimlikCumlesi, konum, santralMetni, surecEtiketi, surecImi, ufuk,
+  kapandiMi, kimlikCumlesi, konum, surecEtiketi, surecImi, tesisHucresi, ufuk,
   type Kodlu, type S,
 } from './ortak';
 
@@ -69,6 +71,9 @@ export default function SureclerIstemci({
   yazabilir: boolean;
   onaylayabilir: boolean;
 }) {
+  /* Tesis hücresinin sözcüğü SÖZLÜKTEN gelir; mantık olguyu döner.
+     Bkz. `lib/dil/hucre.ts` — sektör sözcüğü çekirdeğe girmez. */
+  const sozluk = useSozluk();
   const [mercek, setMercek] = useUrlDurumu<string>('mercek', 'yuruyen');
   const [regF, setRegF] = useState<string | null>(null);
   const [arama, setArama] = useState('');
@@ -164,10 +169,10 @@ export default function SureclerIstemci({
       geri: geriMetni(k.capa, simdi),
       // Kart 208px: kimlik zaten başlıkta, kapsam satırına yalnız çerçeve
       // ve yayılım sığar.
-      kapsam: `${k.s.regulasyon.kod} · ${santralMetni(k.s)}`,
+      kapsam: `${k.s.regulasyon.kod} · ${tesisHucresiMetni(tesisHucresi(k.s), sozluk)}`,
       durum: k.im,
       konum: konum(k.capa, eksen),
-    })), [suzulmus, eksen, simdi]);
+    })), [suzulmus, eksen, simdi, sozluk]);
 
   const secilen = kayitlar.find((k) => k.s.id === secili) ?? null;
   const filtreAktif = mercek !== 'yuruyen' || regF !== null || arama.trim() !== '';
@@ -187,7 +192,7 @@ export default function SureclerIstemci({
       <span key="d" style={k.denetim.durum ? { color: `var(--${k.denetim.durum})` } : undefined}>
         {k.denetim.metin}
       </span>,
-      santralMetni(k.s),
+      tesisHucresiMetni(tesisHucresi(k.s), sozluk),
     ],
   }));
 
@@ -405,6 +410,7 @@ function Ozet({ kayit, simdi, yazabilir, onaylayabilir, duzenle, kapsam, durum }
 }) {
   const { s, im, denetim } = kayit;
   const kalan = kalanGun(s, simdi);
+  const sozluk = useSozluk();
 
   /* Zincir kampanyanın bağlandığı halkaları anlatır: çerçeve (uyum kontrol
      odası), yürüyen denetim ve açık bulgular. Olmayan halka uydurulmaz. */
@@ -455,7 +461,7 @@ function Ozet({ kayit, simdi, yazabilir, onaylayabilir, duzenle, kapsam, durum }
         },
         {
           etiket: 'Kapsam',
-          deger: `${santralMetni(s)}${s.sayim.toplam > 0 ? ` · ${s.sayim.toplam} madde` : ''}`,
+          deger: `${tesisHucresiMetni(tesisHucresi(s), sozluk)}${s.sayim.toplam > 0 ? ` · ${s.sayim.toplam} madde` : ''}`,
           durum: s.tesisler.length === 0 ? 'unk' : undefined,
         },
       ]} />

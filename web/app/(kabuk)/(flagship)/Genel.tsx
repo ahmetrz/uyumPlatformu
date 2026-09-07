@@ -5,7 +5,7 @@ import { kucukGorsel } from '@/lib/gorsel';
 import { SahaArkaPlani } from './SahaArkaPlani';
 import { tipAdi, tipRengi, uygunRengi } from '@/components/kabuk/tip';
 import type {
-  AkisHaftasi, RiskIzgarasi, SantralKarti, TakvimKalemi, TipKatmani,
+  AkisHaftasi, RiskIzgarasi, TesisKarti, TakvimKalemi, TipKatmani,
 } from './veri';
 import { SAHA_YERLESIM_VARSAYILAN, gorunur, kpiSirasi, type SahaYerlesimi } from '@/lib/yonetim/sahaModulleri';
 import {
@@ -106,8 +106,8 @@ const KALAN_SATIR_PX = 20;
 /* Değerlendirilmemişler GÜCE göre sıralı; gücü bilinmeyen sona düşer —
    "0 MW" diye sıralanmaz. Sıra hem özetteki ilk adlarda hem panelde
    aynıdır: kullanıcı özette gördüğü üç adı panelin başında yeniden bulur. */
-function olculmemisSirali(santraller: SantralKarti[]): SantralKarti[] {
-  return santraller.filter((s) => s.endeks === null)
+function olculmemisSirali(tesisler: TesisKarti[]): TesisKarti[] {
+  return tesisler.filter((s) => s.endeks === null)
     .sort((a, b) => (b.gucMw ?? -1) - (a.gucMw ?? -1));
 }
 
@@ -117,7 +117,7 @@ const ONEM_SINIF: Record<string, string> = {
 
 export default function Genel({
   bugun, ozet, odak, kuyruk, toplamKayit, kapsamli = false,
-  santraller, tipler, risk, egilim, yerlesim = SAHA_YERLESIM_VARSAYILAN,
+  tesisler, tipler, risk, egilim, yerlesim = SAHA_YERLESIM_VARSAYILAN,
   olculmemisGosterimi = OLCULMEMIS_VARSAYILAN,
 }: {
   /* Sunum katmanı yerleşimi — yönetim konsolu `saha.yerlesim` (A sınıfı).
@@ -140,7 +140,7 @@ export default function Genel({
   kuyruk: Kayit[];
   toplamKayit: number;
   kapsamli?: boolean;
-  santraller: SantralKarti[];
+  tesisler: TesisKarti[];
   tipler: TipKatmani[];
   risk: RiskIzgarasi;
   /* Sunucu hesaplar, ana ekran ÇİZMEZ (tek ekran sözleşmesi, yukarıda).
@@ -152,7 +152,7 @@ export default function Genel({
 }) {
   const dikkat = odak ? [odak, ...kuyruk] : kuyruk;
   const katmanVar = gorunur(yerlesim, 'katman');
-  const olculmemisSerit = olculmemisSirali(santraller);
+  const olculmemisSerit = olculmemisSirali(tesisler);
   const [olculmemisAcik, setOlculmemisAcik] = useState(false);
 
   return (
@@ -193,7 +193,7 @@ export default function Genel({
         </aside>
 
         {/* ── Takımyıldız — koordinat DEĞİL, endeks × güç ───────────── */}
-        <Takimyildizi santraller={santraller} gosterim={olculmemisGosterimi}
+        <Takimyildizi tesisler={tesisler} gosterim={olculmemisGosterimi}
           serit={olculmemisSerit} panelAcik={olculmemisAcik} setPanelAcik={setOlculmemisAcik} />
 
         {/* ── Katman paneli · 320px — gizlenebilir (saha.yerlesim) ────── */}
@@ -208,8 +208,8 @@ export default function Genel({
                     <span className="ad">{tipAdi(t.kod, t.ad)}</span>
                     <span className="mono deger">{t.endeks === null ? '—' : `%${t.endeks}`}</span>
                   </div>
-                  <p className="mono meta" title={`${t.santralSayisi} santral · ${t.gucMw} MWe · ${t.kontrolSayisi} kontrol`}>
-                    {t.santralSayisi} santral · {t.gucMw} MWe
+                  <p className="mono meta" title={`${t.tesisSayisi} santral · ${t.gucMw} MWe · ${t.kontrolSayisi} kontrol`}>
+                    {t.tesisSayisi} santral · {t.gucMw} MWe
                   </p>
                   <Yigin uygun={t.uygun} kismi={t.kismi} uygunsuz={t.uygunsuz}
                     bilinmeyen={t.bilinmeyen} tip={t.kod} kontrol={t.kontrolSayisi} />
@@ -218,7 +218,7 @@ export default function Genel({
               {tipler.length > KATMAN_TAVANI && (
                 <p className="mono kalan">
                   {tipler.slice(KATMAN_TAVANI).map((t) => tipAdi(t.kod, t.ad)).join(' · ')}
-                  {' — '}{tipler.slice(KATMAN_TAVANI).reduce((a, t) => a + t.santralSayisi, 0)} santral
+                  {' — '}{tipler.slice(KATMAN_TAVANI).reduce((a, t) => a + t.tesisSayisi, 0)} santral
                 </p>
               )}
             </div>
@@ -241,7 +241,7 @@ export default function Genel({
           </span>
         </header>
         <div className="kartlar">
-          {santraller.map((s) => <SahaKarti key={s.id} s={s} />)}
+          {tesisler.map((s) => <SahaKarti key={s.id} s={s} />)}
         </div>
       </section>
 
@@ -539,8 +539,8 @@ function Mudahale({ dikkat, toplamKayit, kapsamli }: {
   );
 }
 
-function Takimyildizi({ santraller, gosterim = OLCULMEMIS_VARSAYILAN, serit, panelAcik, setPanelAcik }: {
-  santraller: SantralKarti[];
+function Takimyildizi({ tesisler, gosterim = OLCULMEMIS_VARSAYILAN, serit, panelAcik, setPanelAcik }: {
+  tesisler: TesisKarti[];
   /** Değerlendirilmemiş özetinin ayrıntı düzeyi — konsol `saha.olculmemis`. */
   gosterim?: OlculmemisGosterimi;
   /* Liste ve panelin AÇIKLIĞI yukarıda tutulur. Sebep ölçüldü: panel bu
@@ -549,16 +549,16 @@ function Takimyildizi({ santraller, gosterim = OLCULMEMIS_VARSAYILAN, serit, pan
      bağlamın içinde kalır; DOM'da sonra gelen kardeş `.ab-b-katman` (aynı
      z-index) onun üstüne boyanır. Panel `.ab-b-alan`ın DIŞINDA, `Genel`in
      kökünde çizilerek bağlamdan çıkarıldı. */
-  serit: SantralKarti[];
+  serit: TesisKarti[];
   panelAcik: boolean;
   setPanelAcik: (a: boolean) => void;
 }) {
-  const olculen = santraller.filter((s) => s.endeks !== null);
-  const olculmemis = santraller.filter((s) => s.endeks === null);
+  const olculen = tesisler.filter((s) => s.endeks !== null);
+  const olculmemis = tesisler.filter((s) => s.endeks === null);
   /* Ölçek TÜM portföyden gelir: eksen ve panel aynı dikey ölçeği
      paylaşmazsa iki taraf karşılaştırılamaz hâle gelir. */
-  const enGuc = Math.max(1, ...santraller.map((s) => s.gucMw ?? 0));
-  const dikey = (s: SantralKarti) => 8 + Math.sqrt((s.gucMw ?? 0) / enGuc) * 100 * 0.78;
+  const enGuc = Math.max(1, ...tesisler.map((s) => s.gucMw ?? 0));
+  const dikey = (s: TesisKarti) => 8 + Math.sqrt((s.gucMw ?? 0) / enGuc) * 100 * 0.78;
   const mweToplam = olculmemis.reduce((a, s) => a + (s.gucMw ?? 0), 0).toFixed(1);
   const { gosterilen: ilkAdlar, kalan } = ozetKur(serit.map((s) => s.ad), gosterim);
 
@@ -575,7 +575,7 @@ function Takimyildizi({ santraller, gosterim = OLCULMEMIS_VARSAYILAN, serit, pan
   /* Eksene yakın işaretin künyesi YUKARI açılır: "Demo Enerji Genel Müdürlük" (0 MW)
      künyesi x ekseninin adıyla üst üste biniyordu (ölçüldü, 1366×768).
      Eşik %14 = künye yüksekliği (28px) / tuval yüksekliği (~300px) payı. */
-  const yukari = (s: SantralKarti) => dikey(s) < 14;
+  const yukari = (s: TesisKarti) => dikey(s) < 14;
 
   return (
     <div className="ab-b-takim" aria-label="Santral takımyıldızı">
@@ -601,7 +601,7 @@ function Takimyildizi({ santraller, gosterim = OLCULMEMIS_VARSAYILAN, serit, pan
             <span className="ad">Değerlendirilmemiş</span>
             <span className="sayi mono"
               title={`${olculmemis.length} santralin uyum endeksi ölçülmedi — sıfır değil. Toplam ${mweToplam} MWe.`}>
-              {olculmemis.length}<span className="bolu">/{santraller.length}</span>
+              {olculmemis.length}<span className="bolu">/{tesisler.length}</span>
             </span>
             <span className="mwe mono">{mweToplam} MWe</span>
             {ilkAdlar.length > 0 && (
@@ -621,7 +621,7 @@ function Takimyildizi({ santraller, gosterim = OLCULMEMIS_VARSAYILAN, serit, pan
           </div>
         )}
       </div>
-      {santraller.length === 0 ? (
+      {tesisler.length === 0 ? (
         <p className="bos">Kapsamda santral yok.</p>
       ) : (
         <div className="ab-tuval-sar">
@@ -704,7 +704,7 @@ function Yigin({ uygun, kismi, uygunsuz, bilinmeyen, tip, kontrol }: {
 }
 
 /* ── Saha kartı ─────────────────────────────────────────────────────── */
-function SahaKarti({ s }: { s: SantralKarti }) {
+function SahaKarti({ s }: { s: TesisKarti }) {
   const foto = kucukGorsel(s.gorselAnahtari);
   const uygunsuz = s.sayim.uyumsuz ?? 0;
   return (

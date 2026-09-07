@@ -12,7 +12,7 @@ import {
   BOS_SAYIM, degerlendirmeCumlesi, degerlendirmeImi, degerlendirmeSirasi,
   degerlendirmeSozu, denetimMetni, gecikti, kanitMetni, kanitYok,
   kisaKod as surecKisaKod,
-  santralMetni, sayimla, sayimTopla, surecImi, takipte,
+  sayimla, sayimTopla, surecImi, takipte, tesisHucresi,
   type Degerlendirme, type S,
 } from '@/app/(kabuk)/(operasyonel)/surecler/ortak';
 
@@ -144,10 +144,13 @@ describe('denetim hücresi', () => {
     expect(denetimMetni(s, SIMDI).metin).not.toContain('gün');
   });
 
-  it('kapsam metni tesis sayısını, boş kapsamı ayrı söyler', () => {
-    expect(santralMetni(surec())).toBe('Saha A-3 JES');
-    expect(santralMetni(surec({ tesisler: [] }))).toBe('kapsam boş');
-    expect(santralMetni(surec({ tesisler: [TESIS, { ...TESIS, id: 't2' }] }))).toBe('2 santral');
+  it('kapsam hücresi tek tesisi, sayıyı ve boş kapsamı AYRI olgular sayar', () => {
+    /* Mantık OLGU döner; sözcüğü dil katmanı koyar. Boş kapsam ile
+       portföy geneli ayrı değerlerdir ve birleştirilemez. */
+    expect(tesisHucresi(surec())).toEqual({ tur: 'ad', ad: 'Saha A-3 JES' });
+    expect(tesisHucresi(surec({ tesisler: [] }))).toEqual({ tur: 'bos' });
+    expect(tesisHucresi(surec({ tesisler: [TESIS, { ...TESIS, id: 't2' }] })))
+      .toEqual({ tur: 'coklu', sayi: 2 });
   });
 });
 

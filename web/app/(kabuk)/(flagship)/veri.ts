@@ -47,7 +47,7 @@ import {
    aynı kuralı uygular, iki ekran ayrışamaz. */
 
 /** Saha kartı — B yüzeyinin santral şeridi (b-executive prototipi). */
-export type SantralKarti = {
+export type TesisKarti = {
   id: string; kod: string; ad: string;
   tipKod: string | null; tipAd: string | null;
   gucMw: number | null; konum: string | null; gorselAnahtari: string | null;
@@ -61,7 +61,7 @@ export type SantralKarti = {
 /** Üretim tipine göre uyum katmanı — prototipin sağ sütunu. */
 export type TipKatmani = {
   kod: string; ad: string;
-  santralSayisi: number; gucMw: number; kontrolSayisi: number;
+  tesisSayisi: number; gucMw: number; kontrolSayisi: number;
   endeks: number | null;
   uygun: number; kismi: number; uygunsuz: number; bilinmeyen: number;
 };
@@ -104,7 +104,7 @@ export type EkranVerisi = {
   toplamKayit: number;
   /** true = özet bir santral kapsamıyla daraltıldı */
   kapsamli: boolean;
-  santraller: SantralKarti[];
+  tesisler: TesisKarti[];
   tipler: TipKatmani[];
   risk: RiskIzgarasi;
   takvim: TakvimKalemi[];
@@ -309,7 +309,9 @@ export async function genelEkranVerisi(k: AktifKullanici): Promise<EkranVerisi> 
     tesisSayimi.set(d.tesisId, kayitlar);
   }
 
-  const santraller: SantralKarti[] = tesisler.map((t) => {
+  /* Sıralı ham tesisler ile karta çevrilmiş hâli AYRI adlar taşır:
+     ikisi de `tesisler` olsaydı biri öbürünü gölgelerdi. */
+  const kartlar: TesisKarti[] = tesisler.map((t) => {
     const s = tesisSayimi.get(t.id) ?? {};
     const o = uyumOzeti(s);
     return {
@@ -323,14 +325,14 @@ export async function genelEkranVerisi(k: AktifKullanici): Promise<EkranVerisi> 
   /* Üretim tipi katmanları — tipi tanımsız santral KENDİ grubunda kalır,
      rastgele bir tipe atanmaz. */
   const tipHarita = new Map<string, TipKatmani>();
-  for (const s of santraller) {
+  for (const s of kartlar) {
     const kod = s.tipKod ?? '—';
     const kat = tipHarita.get(kod) ?? {
       kod, ad: s.tipAd ?? 'Tipi tanımsız',
-      santralSayisi: 0, gucMw: 0, kontrolSayisi: 0,
+      tesisSayisi: 0, gucMw: 0, kontrolSayisi: 0,
       endeks: null, uygun: 0, kismi: 0, uygunsuz: 0, bilinmeyen: 0,
     };
-    kat.santralSayisi += 1;
+    kat.tesisSayisi += 1;
     kat.gucMw += s.gucMw ?? 0;
     kat.uygun += s.sayim.uyumlu ?? 0;
     kat.kismi += s.sayim.kismi ?? 0;
@@ -410,7 +412,7 @@ export async function genelEkranVerisi(k: AktifKullanici): Promise<EkranVerisi> 
   const egilim = anlikEgilimi(anliklar);
 
   const kapsamOzeti = {
-    santraller, tipler,
+    tesisler: kartlar, tipler,
     risk: { hucreler, enYuksek: Math.max(0, ...hucreler.flat()), kritik, yuksek, olculemeyen },
     takvim, akis: akis.map(({ etiket, acilan, kapanan }) => ({ etiket, acilan, kapanan })),
     egilim,

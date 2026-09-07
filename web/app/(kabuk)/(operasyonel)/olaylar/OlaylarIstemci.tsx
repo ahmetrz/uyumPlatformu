@@ -1,5 +1,6 @@
 'use client';
 import { useSozluk, useTerim } from '@/lib/dil/SozlukSaglayici';
+import { t } from '@/lib/dil/terimler';
 import { useMemo, useState } from 'react';
 import { useUrlDurumu, useUrlDurumuBos } from '@/components/kabuk/urlDurumu';
 import { BosIlk, BosFiltre, Dugme, Im, Ipucu, type Durum } from '@/components/kabuk/temel';
@@ -319,7 +320,7 @@ function Detay({
   dogrulayabilir: boolean;
   duzenle: () => void;
 }) {
-  const { t: terim } = useTerim();
+  const { t: terim, tBas: terimBas } = useTerim();
   const im = olayImi(o);
   const bekleyen = bekleyenAlanlar(o);
 
@@ -335,7 +336,8 @@ function Detay({
           durum: o.tespitKaynagi ? undefined : 'unk',
         },
         { etiket: 'Şiddet', deger: `${KADEME[o.siddet] ?? '—'} · ${o.siddet}` },
-        { etiket: 'Tesis', deger: o.tesisAd ?? '—', durum: o.tesisAd ? undefined : 'unk' },
+        { etiket: terimBas('tesis'), deger: o.tesisAd ?? '—',
+          durum: o.tesisAd ? undefined : 'unk' },
         { etiket: 'Başlangıç', deger: zamanTR(o.baslangic) },
         {
           etiket: 'Bildirim',
@@ -505,10 +507,10 @@ function Halka({ h }: { h: HalkaGorunumu }) {
     h.varlik ? { ad: h.varlik.etiket, alt: `varlık · ${h.varlik.kritiklik}` } : null,
     h.sistem ? { ad: h.sistem.kod, alt: `sistem · ${h.sistem.kritiklik}` } : null,
     ...h.surecler.map((s) => ({ ad: s.kod, alt: `süreç · ${seviyeSozu(s.uretimEtkisi)}` })),
-    ...h.tesisler.map((t) => ({
-      ad: t.kod,
-      alt: `tesis · ${t.kritikAltyapi === true ? 'kritik altyapı'
-        : t.kritiklikSinifi ? `sınıf ${t.kritiklikSinifi}` : 'sınıf kaydı yok'}`,
+    ...h.tesisler.map((x) => ({
+      ad: x.kod,
+      alt: `${t(sozluk, 'tesis')} · ${x.kritikAltyapi === true ? 'kritik altyapı'
+        : x.kritiklikSinifi ? `sınıf ${x.kritiklikSinifi}` : 'sınıf kaydı yok'}`,
     })),
   ].filter((x): x is { ad: string; alt: string } => x !== null);
 

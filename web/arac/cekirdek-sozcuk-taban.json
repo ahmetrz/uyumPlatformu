@@ -15,29 +15,6 @@
     "",
     "Taban güncelleme: npx tsx arac/cekirdek-sozcuk-taramasi.mjs --taban"
   ],
-  "toplam": 33,
-  "dosyalar": {
-    "app/(kabuk)/(operasyonel)/aktivite/veri.ts": 2,
-    "app/(kabuk)/(operasyonel)/olaylar/OlaylarIstemci.tsx": 2,
-    "app/(kabuk)/(operasyonel)/olaylar/mantik.ts": 1,
-    "app/(kabuk)/(operasyonel)/projeler/ProjelerIstemci.tsx": 1,
-    "app/(kabuk)/(operasyonel)/saglik/mantik.ts": 2,
-    "app/(kabuk)/(operasyonel)/saglik/page.tsx": 2,
-    "app/(kabuk)/(operasyonel)/sistem/bilesenler/Galeri.tsx": 2,
-    "app/(kabuk)/(operasyonel)/sistem/page.tsx": 2,
-    "app/(kabuk)/(operasyonel)/surecler/Formlar.tsx": 1,
-    "app/(kabuk)/(operasyonel)/surecler/ortak.ts": 2,
-    "app/(kabuk)/(operasyonel)/tedarikciler/TedarikcilerIstemci.tsx": 1,
-    "app/(kabuk)/(operasyonel)/uyum/page.tsx": 1,
-    "app/(kabuk)/(operasyonel)/varlik-aktarim/VarlikAktarimIstemci.tsx": 1,
-    "app/(kabuk)/(operasyonel)/yonetim-tezgahi/konsolOrtak.ts": 2,
-    "app/(tam)/harita/HaritaIstemci.tsx": 1,
-    "components/kabuk/tip.ts": 1,
-    "components/kabuk/yonler.ts": 1,
-    "lib/uyum/degerlendirmeAktarimi.ts": 2,
-    "lib/uyum/degisiklikEtkisi.ts": 1,
-    "lib/uyum/denetciErisimi.ts": 3,
-    "lib/varlik/pasifKesif.ts": 1,
-    "lib/yonetim/moduller.ts": 1
-  }
+  "toplam": 0,
+  "dosyalar": {}
 }

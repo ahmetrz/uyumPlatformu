@@ -161,7 +161,9 @@ export function surecImi(s: S, simdi: number): Durum {
 }
 
 /** Çekmece kimlik cümlesi — durumun neden o renkte olduğunu bir cümlede söyler. */
-export function kimlikCumlesi(s: S, simdi: number): string {
+export function kimlikCumlesi(
+  s: S, simdi: number, tesis: Terim = CEKIRDEK_TERIMLER.tesis,
+): string {
   if (kapandiMi(s)) {
     return s.sayim.toplam === 0
       ? 'Kampanya kapandı; kapsamında hiç değerlendirme açılmamıştı.'
@@ -171,10 +173,12 @@ export function kimlikCumlesi(s: S, simdi: number): string {
     return 'Kampanya askıya alındı — takvim işlemiyor, değerlendirmeler olduğu yerde duruyor.';
   }
   if (s.tesisler.length === 0) {
-    return 'Kapsama tesis eklenmedi — madde değerlendirmesi açılmadı, uyum ölçülemiyor.';
+    return `Kapsama ${tesis.tekil} eklenmedi — madde değerlendirmesi açılmadı, `
+      + 'uyum ölçülemiyor.';
   }
   if (s.sayim.toplam === 0) {
-    return 'Kapsamda tesis var ama değerlendirme kaydı yok — regülasyonun yaprak maddesi yok.';
+    return `Kapsamda ${tesis.tekil} var ama değerlendirme kaydı yok — `
+      + 'regülasyonun yaprak maddesi yok.';
   }
   if (gecikti(s, simdi)) {
     const b = an(s.bitis) as number;

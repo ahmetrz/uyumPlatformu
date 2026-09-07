@@ -8,9 +8,10 @@ import { Tablo, type Kolon, type Satir } from '@/components/kabuk/tablo';
 import { Cekmece, CekmeceKimlik, CekmeceAlanlar, CekmeceEylemler } from '@/components/kabuk/panel';
 import { zamanTR } from '@/lib/sabitler';
 import {
-  kapsamaOzeti, modulAyarlari, modulSozlugu, modulleriCoz, terimSeti,
+  kapsamaOzeti, modulAyarlari, modulSozlugu, modulleriCoz,
   type Modul, type Sinif, type Yer,
 } from '@/lib/yonetim/moduller';
+import { terimSeti } from '@/lib/dil/terimSeti';
 import {
   AYAR_SOZLUGU, GRUP_ETIKETI, GRUP_SIRASI, ayarSozlugu, degerMetni, type AyarGrubu,
 } from '@/lib/yapilandirma/tanimlar';

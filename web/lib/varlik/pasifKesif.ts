@@ -220,7 +220,7 @@ export const KESIF_GRUP_ACIKLAMASI: Record<KesifGrubu, string> = {
   gorulmuyor: 'Kayıt eşiği aşan süredir hiçbir kaynakta görülmedi. '
     + 'SİLİNMEDİ: "görülmüyor" bir gözlemdir, bir silme kararı değil.',
   yeri_belirsiz: 'Kaydın hangi tesise ait olduğu çözülemedi. '
-    + 'Tesissiz kayıt gizlenmez; gizlenseydi kimse incelemezdi.',
+    + 'Tesis bağı olmayan kayıt gizlenmez; gizlenseydi kimse incelemezdi.',
   envanterde_sahipli: 'Gözlem envanterle örtüşüyor ve sorumlusu belli. '
     + 'Bu satırlar için yapılacak bir şey yok.',
 };
@@ -229,8 +229,11 @@ export const KESIF_GRUP_ACIKLAMASI: Record<KesifGrubu, string> = {
 export function kesifGrupAciklamasi(sozluk: Sozluk | null): Record<KesifGrubu, string> {
   return {
     ...KESIF_GRUP_ACIKLAMASI,
+    /* "…siz" EKLENMEZ: yoksunluk eki ünlü uyumuna göre değişir ve sözlükte
+       o biçim yok. Cümle, sözlükte VAR OLAN biçimlerle yeniden yazılır. */
     yeri_belirsiz: `Kaydın hangi ${t(sozluk, 'tesis', 'yonelme')} ait olduğu çözülemedi. `
-      + `${tBas(sozluk, 'tesis')}siz kayıt gizlenmez; gizlenseydi kimse incelemezdi.`,
+      + `${tBas(sozluk, 'tesis')} bağı olmayan kayıt gizlenmez; `
+      + 'gizlenseydi kimse incelemezdi.',
   };
 }
 

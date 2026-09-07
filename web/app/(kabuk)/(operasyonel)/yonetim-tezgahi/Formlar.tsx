@@ -19,7 +19,7 @@ import {
   type Anahtar, type Is, type Katalog, type Kisi, type Kodlu, type Tanim,
 } from './ortak';
 import { useTerim } from '@/lib/dil/SozlukSaglayici';
-import { terimSeti, type Metin } from '@/lib/yonetim/moduller';
+import { terimSeti, type Metin } from '@/lib/dil/terimSeti';
 import { tBas, type Sozluk } from '@/lib/dil/terimler';
 import { useSozluk } from '@/lib/dil/SozlukSaglayici';
 

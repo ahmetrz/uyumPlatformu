@@ -19,6 +19,8 @@
 
    Bu dosya veritabanı ve React bilmez. */
 
+import { CEKIRDEK_TERIMLER, type Terim } from '@/lib/dil/terimler';
+
 /** Aktarımda kabul edilen durumlar — `lib/sabitler.ts` sözlüğüyle birebir. */
 export const AKTARILABILIR_DURUMLAR = [
   'uyumlu', 'kismi', 'uyumsuz', 'degerlendirilmedi', 'incelemede', 'kapsamdisi',
@@ -51,14 +53,42 @@ export const ELEME_SEBEPLERI = [
 ] as const;
 export type ElemeSebebi = (typeof ELEME_SEBEPLERI)[number];
 
-export const ELEME_SOZU: Record<ElemeSebebi, string> = {
-  kod_bos: 'Madde kodu boş',
-  kod_bulunamadi: 'Bu kodda madde yok (regülasyon ya da sürüm eşleşmiyor)',
-  kod_yinelendi: 'Aynı madde kodu dosyada birden çok kez var',
-  durum_gecersiz: 'Durum sözlükte yok',
-  kapsam_disi_madde: 'Maddede AKTİF istisna var — bu tesis için kapsam dışı',
-  gerekce_eksik: 'Uyumsuz/kapsam dışı karar gerekçe ister',
-};
+/** Eleme sözleri; yalnız `kapsam_disi_madde` sektör terimi taşır.
+    Çağıran kapsamın terimini geçirir, geçmezse çekirdek sözcük yazılır. */
+export function elemeSozu(
+  tesis: Terim = CEKIRDEK_TERIMLER.tesis,
+): Record<ElemeSebebi, string> {
+  return {
+    kod_bos: 'Madde kodu boş',
+    kod_bulunamadi: 'Bu kodda madde yok (regülasyon ya da sürüm eşleşmiyor)',
+    kod_yinelendi: 'Aynı madde kodu dosyada birden çok kez var',
+    durum_gecersiz: 'Durum sözlükte yok',
+    kapsam_disi_madde: `Maddede AKTİF istisna var — bu ${tesis.tekil} için kapsam dışı`,
+    gerekce_eksik: 'Uyumsuz/kapsam dışı karar gerekçe ister',
+  };
+}
+
+/** Çekirdek varsayılanı — sözlüksüz çağıran (test, kuru koşu) için. */
+export const ELEME_SOZU: Record<ElemeSebebi, string> = elemeSozu();
+
+/* Gömülü VERİ taşımayan sebepler: açıklamaları tamamen sözlükten
+   üretilebilir. `durum_gecersiz` ve `gerekce_eksik` dosyadan okunan
+   durum dizesini içerir — onlar kayıt hâliyle kalır (ve zaten sektör
+   terimi taşımazlar). */
+const SABIT_SEBEPLER = new Set<ElemeSebebi>([
+  'kod_bos', 'kod_bulunamadi', 'kod_yinelendi', 'kapsam_disi_madde',
+]);
+
+/** Kaydedilmiş eleme açıklamasını EKRAN diline çevirir.
+
+    `raporJson` ÇEKİRDEK sözcükle yazılır (R0-9: kalıcı kayda kiracıya
+    göre değişen sözcük gömülmez — sözlük değişince eski kayıt yalan
+    söylerdi). Terim burada, render sınırında geri konur. */
+export function elemeAciklamasi(
+  s: { sebep: ElemeSebebi; aciklama: string }, tesis: Terim,
+): string {
+  return SABIT_SEBEPLER.has(s.sebep) ? elemeSozu(tesis)[s.sebep] : s.aciklama;
+}
 
 export type OnizlemeSatiri =
   | {
@@ -238,7 +268,11 @@ export const SATIR_TAVANI = 5000;
 export function uygulamaKapisi(o: {
   sayimlar: AktarimSayimlari;
   kuruKosuVar: boolean;
+  /** Kapsamın terimi; verilmezse çekirdek sözcük yazılır. Karar metni
+      kullanıcıya döner, KAYDEDİLMEZ — o yüzden terim burada geçebilir. */
+  tesis?: Terim;
 }): UygulamaKarari {
+  const tesis = o.tesis ?? CEKIRDEK_TERIMLER.tesis;
   if (!o.kuruKosuVar) {
     return {
       ok: false,
@@ -262,7 +296,7 @@ export function uygulamaKapisi(o: {
       ok: false,
       sebep: `${o.sayimlar.elenen}/${o.sayimlar.okunan} satır elendi `
         + `(%${Math.round(elemeOrani * 100)}). Bu oran, dosyanın yanlış `
-        + 'regülasyona ya da yanlış tesise aktarıldığını gösterir; '
+        + `regülasyona ya da yanlış ${tesis.yonelme} aktarıldığını gösterir; `
         + 'kalan satırlar uygulanmaz.',
     };
   }

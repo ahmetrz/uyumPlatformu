@@ -54,8 +54,10 @@ export default function HaritaIstemci({
           <BosIlk
             cumle={kapsamli
               ? `${tBas('tesis')} kapsamınız boş; harita gösterilecek kayıt bulamadı.`
-              : `Portföyde aktif ${terim('tesis')} yok.`}
-            eylem={<Link href="/portfoy" className="ab-dugme">Portföyü aç</Link>} />
+              : `${tBas('portfoy', 'bulunma')} aktif ${terim('tesis')} yok.`}
+            eylem={<Link href="/portfoy" className="ab-dugme">
+              {tBas('portfoy', 'belirtme')} aç
+            </Link>} />
         </section>
       </main>
     );

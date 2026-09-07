@@ -149,7 +149,9 @@ export default function Portfoy({ satirlar, toplamGuc, endeks, kapsamli = false 
               ? 'Kurulu güç bir zayıflık ölçüsü değil — en zayıf işareti bu sıralamada yok.'
               : anahtar === 'uyum'
                 ? `Hiçbir görünen ${terim('tesis')} değerlendirilmemiş — en zayıf seçilemiyor.`
-                : `Görünen ${terim('tesis', 'cogul')}de`
+                /* Çoğulun BULUNMA hâli sözlükte yok ("-de" ünlü uyumuna
+                   göre değişir); cümle var olan hâlle yazılır. */
+                : `Görünen ${terim('tesis', 'cogul')} arasında`
                   + ` ${siralamaAdi.toLocaleLowerCase('tr-TR')} yok.`}
         </p>
       </div>

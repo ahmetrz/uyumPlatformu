@@ -378,6 +378,7 @@ export function KanitFormu({ kayit, kapat }: { kayit: Degerlendirme; kapat: () =
 
 export function IstisnaFormu({ kayit, kapat }: { kayit: Degerlendirme; kapat: () => void }) {
   const { bekliyor, hata, calistir } = useEylem();
+  const { t: terim } = useTerim();
   const [f, setF] = useState({ bitis: '', gerekce: '' });
   // Bitiş gelecekte olmak zorunda; alt sınır ilk çizimde sabitlenir.
   // Anı `an()` verir, ham saat DEĞİL — sunucu ile istemci ayrışmasın.
@@ -396,7 +397,7 @@ export function IstisnaFormu({ kayit, kapat }: { kayit: Degerlendirme; kapat: ()
         hata={f.gerekce.trim() && f.gerekce.trim().length < 10
           ? 'Gerekçe en az 10 karakter olmalı' : null}>
         <textarea className="ab-gr" rows={3} value={f.gerekce}
-          placeholder="Bu madde bu tesiste neden karşılanamıyor?"
+          placeholder={`Bu madde bu ${terim('tesis', 'bulunma')} neden karşılanamıyor?`}
           onChange={(e) => setF({ ...f, gerekce: e.target.value })} />
       </Alan>
 

@@ -436,7 +436,8 @@ function Ozet({ kayit, simdi, yazabilir, onaylayabilir, duzenle, kapsam, durum }
 
   return (
     <>
-      <CekmeceKimlik durum={im} soz={soz} baslik={s.ad} cumle={kimlikCumlesi(s, simdi)} />
+      <CekmeceKimlik durum={im} soz={soz} baslik={s.ad}
+        cumle={kimlikCumlesi(s, simdi, tesisTerimi)} />
 
       <CekmeceAlanlar alanlar={[
         {

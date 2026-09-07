@@ -13,7 +13,7 @@ it('kapsam dışı varlığa yazılamaz [ENV-YAZ-003]', …)
 Ayrı bir eşleme tablosu tutulsaydı, tablo ilk yeniden adlandırmada
 testten ayrışır ve kimse görmezdi.
 
-Senaryo: **282** · testli: **282** · GAP: **0**
+Senaryo: **283** · testli: **283** · GAP: **0**
 
 ## Aktivite · 2 senaryo
 
@@ -30,7 +30,7 @@ Senaryo: **282** · testli: **282** · GAP: **0**
 | `API-KIM-002` | — | API istemcisi · yok | Anahtar iptal ya da süresi dolmuş · bayat | Bir ucu çağırır | 401 döner | — | yazma yok | yok | `api.test.ts` |
 | `API-KIM-003` | — | güvenlik denetçisi · kurum geneli | Anahtarlar üretilmiş · normal | Anahtar tablosunu inceler | Yalnız SHA-256 özeti ve kısa ön ek saklanır | — | yazma yok | yok | `api.test.ts` |
 | `API-KPS-001` | — | API istemcisi · salt okunur | Anahtar salt okunur işaretli · normal | Bir yazma ucunu çağırır | Reddedilir | — | yazma yok | yok | `faz-f-eylem.test.ts` |
-| `API-KPS-002` | — | API istemcisi · tek santral | Kurumda başka santraller de var · normal | Varlık listesini okur | Yalnız kendi santralinin kayıtları döner | — | yazma yok | yok | `api.test.ts` |
+| `API-KPS-002` | — | API istemcisi · tek tesis | Kurumda başka tesisler de var · normal | Varlık listesini okur | Yalnız kendi tesisinin kayıtları döner | — | yazma yok | yok | `api.test.ts` |
 | `API-KPS-003` | — | geliştirici / denetçi · kurum geneli | — · normal | Uç dosyaları, kapsam listesi ve OpenAPI karşılaştırılır | Üçü de AYNI uç kümesini söyler | — | yazma yok | yok | `faz-f-api-kapsam.test.ts` |
 | `API-DGR-001` | — | API istemcisi · anahtarın kapsamı | Zorunlu bir alan eksik · kısmi | Eksik gövdeyle gönderir | 400 döner ve eksik alan adlandırılır | — | yazma yok | yok | `api.test.ts` |
 | `API-IDM-001` | — | API istemcisi · anahtarın kapsamı | Aynı kaynak kaydı iki kez gönderiliyor · yinelenen | İkinci isteği gönderir | Kayıt tazelenir, yeni satır açılmaz | — | Köken kaydı | yok | `entegrasyon-cekirdek.test.ts` |
@@ -48,46 +48,46 @@ Senaryo: **282** · testli: **282** · GAP: **0**
 
 | ID | Rota | Rol · kapsam | Ön koşul · veri | Eylem | Beklenen sonuç | Ekran | Denetim izi | Görev/bildirim | Test |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `BUL-LST-001` | /bulgular | uyum uzmanı · kendi santrali | Açık bulgular var · normal | Bulgular ekranını açar | Son tarihi geçen ve yüksek şiddetli bulgular önde | Sürükleyici satırlar kuyruğa inmez | yazma yok | yok | `senaryo-uyum.test.ts` |
-| `BUL-LST-002` | /bulgular | uyum uzmanı · kendi santrali | Kapsamda açık bulgu yok · yok | Bulgular ekranını açar | Boş durum "denetlenmedi" ile karıştırılmaz | Boş ilk-durum cümlesi | yazma yok | yok | `senaryo-uyum.test.ts` |
-| `BUL-DTY-001` | /bulgular/[id] | uyum uzmanı · kendi santrali | Bulgu kullanıcının kapsamında · normal | Bulgu detayını açar | Zaman çizelgesi, kanıtlar ve aksiyonlar görünür | Denetim izi kronolojik | yazma yok | yok | `senaryo-uyum.test.ts` |
-| `BUL-DTY-002` | /bulgular/[id] | uyum uzmanı · tek santral | Bulgu başka santrale ait · normal | Doğrudan adresle açmayı dener | Kayıt bulunamaz olarak döner | Bulunamadı sayfası | yazma yok | yok | `kapsam-ekranlari.test.ts` |
-| `BUL-KAP-001` | /bulgular/[id] | uyum uzmanı · kendi santrali | Bulgunun doğrulama kanıtı yok · kısmi | Bulguyu kapatmayı dener | Doğrulama kanıtı olmadan kapatılamaz | Eksik kanıt açıkça yazılır | yazma yok | yok | `capa-dogrulama.test.ts` |
+| `BUL-LST-001` | /bulgular | uyum uzmanı · kendi tesisi | Açık bulgular var · normal | Bulgular ekranını açar | Son tarihi geçen ve yüksek şiddetli bulgular önde | Sürükleyici satırlar kuyruğa inmez | yazma yok | yok | `senaryo-uyum.test.ts` |
+| `BUL-LST-002` | /bulgular | uyum uzmanı · kendi tesisi | Kapsamda açık bulgu yok · yok | Bulgular ekranını açar | Boş durum "denetlenmedi" ile karıştırılmaz | Boş ilk-durum cümlesi | yazma yok | yok | `senaryo-uyum.test.ts` |
+| `BUL-DTY-001` | /bulgular/[id] | uyum uzmanı · kendi tesisi | Bulgu kullanıcının kapsamında · normal | Bulgu detayını açar | Zaman çizelgesi, kanıtlar ve aksiyonlar görünür | Denetim izi kronolojik | yazma yok | yok | `senaryo-uyum.test.ts` |
+| `BUL-DTY-002` | /bulgular/[id] | uyum uzmanı · tek tesis | Bulgu başka tesise ait · normal | Doğrudan adresle açmayı dener | Kayıt bulunamaz olarak döner | Bulunamadı sayfası | yazma yok | yok | `kapsam-ekranlari.test.ts` |
+| `BUL-KAP-001` | /bulgular/[id] | uyum uzmanı · kendi tesisi | Bulgunun doğrulama kanıtı yok · kısmi | Bulguyu kapatmayı dener | Doğrulama kanıtı olmadan kapatılamaz | Eksik kanıt açıkça yazılır | yazma yok | yok | `capa-dogrulama.test.ts` |
 | `BUL-KAP-002` | /bulgular/[id] | uyum yöneticisi · kurum geneli | Aynı kök nedenle bulgu tekrar açılmış · yinelenen | Tekrar motoru koşar | Tekrar işaretlenir ve görev açılır | Tekrar rozeti | Aktivite kaydı | Görev | `faz-e-uyum.test.ts` |
-| `BUL-ANL-001` | /bulgular/[id] | uyum uzmanı · kendi santrali | Bulgu kritik, analiz yok · kısmi | Bulguyu kapatmayı dener | Reddedilir; kategori seçmek analiz DEĞİLDİR | Eksik olanın ne olduğu yazılır | yazma yok | yok | `faz-e-eylem.test.ts` |
+| `BUL-ANL-001` | /bulgular/[id] | uyum uzmanı · kendi tesisi | Bulgu kritik, analiz yok · kısmi | Bulguyu kapatmayı dener | Reddedilir; kategori seçmek analiz DEĞİLDİR | Eksik olanın ne olduğu yazılır | yazma yok | yok | `faz-e-eylem.test.ts` |
 | `BUL-UYG-001` | /bulgular | sistem (motor) · kurum geneli | Aynı tesis ve kural için açık bulgu var · yinelenen | Motor tekrar koşar | Açık bulgu ÇOĞALTILMAZ | Kapatılmış bulgu koşuyu engellemez | yazma yok | yok | `uygulanabilirlik-bulgu.test.ts` |
-| `BUL-KAP-003` | /bulgular/[id] | uyum uzmanı · kendi santrali | Bulgunun bir adımı eksik · kısmi | Kapanış şeridindeki bir adıma tıklar | O adımın işine gidilir — şerit navigatördür, ilerleme süsü değil | Sıradaki iş tek cümleyle ve birincil eylemle yan yana durur | yazma yok | yok | `kapanis-yolu.test.ts` |
-| `BUL-KAP-004` | /bulgular/[id] | uyum uzmanı · kendi santrali | Ekranda kök nedene yazan iki ayrı form vardı · çelişen | Kök nedeni kaydeder | Tek yol vardır; kategori ve asgari uzunluk isteyen kapıdan geçilir | Kapının reddettiği hâli üretebilen ikinci form YOKTUR | Bulgu · guncelleme (kokNeden) | yok | `kapanis-yolu.test.ts` |
-| `BUL-KAP-005` | /bulgular/[id] | uyum uzmanı · kendi santrali | Kullanıcı düzenleme istemedi · normal | Bulgu kaydını açar | Düzenleme formu KENDİLİĞİNDEN açılmaz; okunabilir özet gelir | Düzenle düğmesi formu açar; geçmiş ana yüzeyde durmaz | yazma yok | yok | `kapanis-yolu.test.ts` |
+| `BUL-KAP-003` | /bulgular/[id] | uyum uzmanı · kendi tesisi | Bulgunun bir adımı eksik · kısmi | Kapanış şeridindeki bir adıma tıklar | O adımın işine gidilir — şerit navigatördür, ilerleme süsü değil | Sıradaki iş tek cümleyle ve birincil eylemle yan yana durur | yazma yok | yok | `kapanis-yolu.test.ts` |
+| `BUL-KAP-004` | /bulgular/[id] | uyum uzmanı · kendi tesisi | Ekranda kök nedene yazan iki ayrı form vardı · çelişen | Kök nedeni kaydeder | Tek yol vardır; kategori ve asgari uzunluk isteyen kapıdan geçilir | Kapının reddettiği hâli üretebilen ikinci form YOKTUR | Bulgu · guncelleme (kokNeden) | yok | `kapanis-yolu.test.ts` |
+| `BUL-KAP-005` | /bulgular/[id] | uyum uzmanı · kendi tesisi | Kullanıcı düzenleme istemedi · normal | Bulgu kaydını açar | Düzenleme formu KENDİLİĞİNDEN açılmaz; okunabilir özet gelir | Düzenle düğmesi formu açar; geçmiş ana yüzeyde durmaz | yazma yok | yok | `kapanis-yolu.test.ts` |
 
 ## Canlı duruş · 9 senaryo
 
 | ID | Rota | Rol · kapsam | Ön koşul · veri | Eylem | Beklenen sonuç | Ekran | Denetim izi | Görev/bildirim | Test |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `DUR-TAZ-001` | /envanter | BT yöneticisi · kendi santrali | Kaynak bağlı, son koşu başarılı, veri poll aralığı içinde · normal | Varlık çekmecesinde Duruş sekmesini açar | Alan "CANLI" olarak işaretlenir | Değer, kaynak adı ve yaş birlikte görünür | yazma yok | yok | `canli-durus.test.ts` |
-| `DUR-TAZ-002` | /envanter | BT yöneticisi · kendi santrali | Hiçbir kaynak sistem bağlı değil · yok | Duruş sekmesini açar | "KAYNAK BAĞLI DEĞİL" yazılır; "canlı" YAZILMAZ | Kusur rengi değil, bekleyen kurulum işaretçisi | yazma yok | yok | `canli-durus.test.ts` |
-| `DUR-TAZ-003` | /envanter | BT yöneticisi · kendi santrali | Kaynağın sorgu aralığı tanımsız · kısmi | Duruş sekmesini açar | Tazelik "ölçülmedi" der; canlı sayılmaz | Bilinmeyen işaretçisi | yazma yok | yok | `canli-durus.test.ts` |
-| `DUR-TAZ-004` | /envanter | BT yöneticisi · kendi santrali | Connector durumu hatalı · kısmi | Duruş sekmesini açar | Alan "kaynak HATALI" der | Hata işaretçisi ve son hata metni | yazma yok | yok | `canli-durus.test.ts` |
-| `DUR-CAK-001` | /envanter | BT yöneticisi · kendi santrali | İki kaynak aynı alan için farklı değer bildirmiş · çelişen | Duruş sekmesini açar | En YENİ ölçüm kazanır; öncelik yalnız berabere bozar | Kaybeden kaynaklar çakışma satırında listelenir | yazma yok | yok | `canli-durus.test.ts` |
-| `DUR-CAK-002` | /envanter | BT yöneticisi · kendi santrali | Elle girilen değer ile gözlem farklı · çelişen | Duruş sekmesini açar | Ürün envanteri KENDİLİĞİNDEN değiştirmez, çelişkiyi yazar | İki değer yan yana + uyarı cümlesi | yazma yok | yok | `senaryo-envanter.test.ts` |
+| `DUR-TAZ-001` | /envanter | BT yöneticisi · kendi tesisi | Kaynak bağlı, son koşu başarılı, veri poll aralığı içinde · normal | Varlık çekmecesinde Duruş sekmesini açar | Alan "CANLI" olarak işaretlenir | Değer, kaynak adı ve yaş birlikte görünür | yazma yok | yok | `canli-durus.test.ts` |
+| `DUR-TAZ-002` | /envanter | BT yöneticisi · kendi tesisi | Hiçbir kaynak sistem bağlı değil · yok | Duruş sekmesini açar | "KAYNAK BAĞLI DEĞİL" yazılır; "canlı" YAZILMAZ | Kusur rengi değil, bekleyen kurulum işaretçisi | yazma yok | yok | `canli-durus.test.ts` |
+| `DUR-TAZ-003` | /envanter | BT yöneticisi · kendi tesisi | Kaynağın sorgu aralığı tanımsız · kısmi | Duruş sekmesini açar | Tazelik "ölçülmedi" der; canlı sayılmaz | Bilinmeyen işaretçisi | yazma yok | yok | `canli-durus.test.ts` |
+| `DUR-TAZ-004` | /envanter | BT yöneticisi · kendi tesisi | Connector durumu hatalı · kısmi | Duruş sekmesini açar | Alan "kaynak HATALI" der | Hata işaretçisi ve son hata metni | yazma yok | yok | `canli-durus.test.ts` |
+| `DUR-CAK-001` | /envanter | BT yöneticisi · kendi tesisi | İki kaynak aynı alan için farklı değer bildirmiş · çelişen | Duruş sekmesini açar | En YENİ ölçüm kazanır; öncelik yalnız berabere bozar | Kaybeden kaynaklar çakışma satırında listelenir | yazma yok | yok | `canli-durus.test.ts` |
+| `DUR-CAK-002` | /envanter | BT yöneticisi · kendi tesisi | Elle girilen değer ile gözlem farklı · çelişen | Duruş sekmesini açar | Ürün envanteri KENDİLİĞİNDEN değiştirmez, çelişkiyi yazar | İki değer yan yana + uyarı cümlesi | yazma yok | yok | `senaryo-envanter.test.ts` |
 | `DUR-API-001` | — | API istemcisi · anahtarın kapsamı | Anahtar `asset-state` kapsamı taşıyor · normal | POST /api/v1/asset-state çağırır | Gözlem yazılır; `Varlik` satırına DOKUNULMAZ | — | VarlikDurusGozlemi · olusturma + köken kaydı | yok | `api.test.ts` |
 | `DUR-API-002` | — | API istemcisi · anahtarın kapsamı | Gönderilen ölçüm anı kayıttakinden eski · bayat | Eski `observedAt` ile gönderir | Yazma atlanır ve cevapta `stale` olarak SAYILIR | — | yazma yok | yok | `api.test.ts` |
-| `DUR-API-003` | — | API istemcisi · tek santral | Hedef varlık başka santralde · normal | Kapsam dışı varlık anahtarıyla gönderir | Reddedilir; hiçbir gözlem yazılmaz | — | yazma yok | yok | `api.test.ts` |
+| `DUR-API-003` | — | API istemcisi · tek tesis | Hedef varlık başka tesiste · normal | Kapsam dışı varlık anahtarıyla gönderir | Reddedilir; hiçbir gözlem yazılmaz | — | yazma yok | yok | `api.test.ts` |
 
 ## Değerlendirme aktarımı · 1 senaryo
 
 | ID | Rota | Rol · kapsam | Ön koşul · veri | Eylem | Beklenen sonuç | Ekran | Denetim izi | Görev/bildirim | Test |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `DGA-AKT-001` | /degerlendirme-aktarim | uyum uzmanı · kendi santrali | İki kullanıcı aynı anda aktarıyor · yinelenen | Eşzamanlı iki aktarım denemesi yapılır | Tam biri yazar; kaybeden ize HİÇBİR ŞEY yazmaz | Karara bağlanmış kayıt yeniden karara açılmaz | Tek karar satırı | yok | `yaris-onay-aktarim.test.ts` |
+| `DGA-AKT-001` | /degerlendirme-aktarim | uyum uzmanı · kendi tesisi | İki kullanıcı aynı anda aktarıyor · yinelenen | Eşzamanlı iki aktarım denemesi yapılır | Tam biri yazar; kaybeden ize HİÇBİR ŞEY yazmaz | Karara bağlanmış kayıt yeniden karara açılmaz | Tek karar satırı | yok | `yaris-onay-aktarim.test.ts` |
 
 ## Denetim · 5 senaryo
 
 | ID | Rota | Rol · kapsam | Ön koşul · veri | Eylem | Beklenen sonuç | Ekran | Denetim izi | Görev/bildirim | Test |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `DEN-LST-001` | /denetimler | uyum yöneticisi · kendi santrali | Denetimler tanımlı · normal | Denetimler ekranını açar | Aşamasıyla birlikte listelenir | Aşama şeridi | yazma yok | yok | `denetim-asama-kanit.test.ts` |
-| `DEN-ASM-001` | /denetimler/[id] | uyum yöneticisi · kendi santrali | Aşamanın zorunlu kanıtı eksik · kısmi | Aşamayı ilerletmeyi dener | Zorunlu kanıt olmadan ilerlemez | Eksik kanıt listelenir | yazma yok | yok | `denetim-asama-kanit.test.ts` |
-| `DEN-ASM-002` | /denetimler/[id] | uyum uzmanı · tek santral | Denetim başka santrale ait · normal | Aşama değiştirmeyi dener | Reddedilir | Denetim listede yok | yazma yok | yok | `denetim-kapsam.test.ts` |
-| `DEN-GRV-001` | /yonetim-tezgahi | görev sorumlusu · kendi santrali | Görev başkasına ait · normal | Başkasının görevini kapatmayı dener | Yazma yetkisi TEK BAŞINA yetmez | Sorumlusu kendi görevini kapatabilir | yazma yok | yok | `gorev-eylem.test.ts` |
+| `DEN-LST-001` | /denetimler | uyum yöneticisi · kendi tesisi | Denetimler tanımlı · normal | Denetimler ekranını açar | Aşamasıyla birlikte listelenir | Aşama şeridi | yazma yok | yok | `denetim-asama-kanit.test.ts` |
+| `DEN-ASM-001` | /denetimler/[id] | uyum yöneticisi · kendi tesisi | Aşamanın zorunlu kanıtı eksik · kısmi | Aşamayı ilerletmeyi dener | Zorunlu kanıt olmadan ilerlemez | Eksik kanıt listelenir | yazma yok | yok | `denetim-asama-kanit.test.ts` |
+| `DEN-ASM-002` | /denetimler/[id] | uyum uzmanı · tek tesis | Denetim başka tesise ait · normal | Aşama değiştirmeyi dener | Reddedilir | Denetim listede yok | yazma yok | yok | `denetim-kapsam.test.ts` |
+| `DEN-GRV-001` | /yonetim-tezgahi | görev sorumlusu · kendi tesisi | Görev başkasına ait · normal | Başkasının görevini kapatmayı dener | Yazma yetkisi TEK BAŞINA yetmez | Sorumlusu kendi görevini kapatabilir | yazma yok | yok | `gorev-eylem.test.ts` |
 | `DEN-LST-002` | /denetimler | uyum yöneticisi · kurum geneli | Kapsamda hiç denetim planlanmamış · yok | Denetimler ekranını açar | Boş liste "denetlendi ve temiz" ile KARIŞTIRILMAZ | Boş ilk-durum; süzgeç boşluğundan ayrı | yazma yok | yok | `ters-kapsam-ekran.test.ts` |
 
 ## Dış denetçi · 3 senaryo
@@ -117,32 +117,32 @@ Senaryo: **282** · testli: **282** · GAP: **0**
 
 | ID | Rota | Rol · kapsam | Ön koşul · veri | Eylem | Beklenen sonuç | Ekran | Denetim izi | Görev/bildirim | Test |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `ENV-LST-001` | /envanter | BT yöneticisi · kendi santrali | Kullanıcı giriş yapmış ve en az bir santrale yetkili · normal | Envanter ekranını açar | Yalnız yetkili olduğu santrallerin varlıkları listelenir | Metrik şeridi + tablo; başka santralin kaydı görünmez | yazma yok | yok | `envanter-mantik.test.ts` |
-| `ENV-LST-002` | /envanter | BT yöneticisi · kendi santrali | Kapsamda hiç varlık yok · yok | Envanter ekranını açar | Boş durum, ilk adımı söyleyen bir cümleyle gösterilir | Boş ilk-durum bloğu; sıfır dolu tablo DEĞİL | yazma yok | yok | `senaryo-envanter.test.ts` |
-| `ENV-LST-003` | /envanter | BT yöneticisi · kendi santrali | Varlık var ama seçilen mercek hiçbirine uymuyor · kısmi | Sonuç vermeyen bir mercek seçer | Boş süzgeç durumu ve süzgeci temizleme yolu gösterilir | Boş süzgeç bloğu; "kayıt yok" ile "süzgeç boş" ayrı | yazma yok | yok | `senaryo-envanter.test.ts` |
+| `ENV-LST-001` | /envanter | BT yöneticisi · kendi tesisi | Kullanıcı giriş yapmış ve en az bir tesise yetkili · normal | Envanter ekranını açar | Yalnız yetkili olduğu tesislerin varlıkları listelenir | Metrik şeridi + tablo; başka tesisin kaydı görünmez | yazma yok | yok | `envanter-mantik.test.ts` |
+| `ENV-LST-002` | /envanter | BT yöneticisi · kendi tesisi | Kapsamda hiç varlık yok · yok | Envanter ekranını açar | Boş durum, ilk adımı söyleyen bir cümleyle gösterilir | Boş ilk-durum bloğu; sıfır dolu tablo DEĞİL | yazma yok | yok | `senaryo-envanter.test.ts` |
+| `ENV-LST-003` | /envanter | BT yöneticisi · kendi tesisi | Varlık var ama seçilen mercek hiçbirine uymuyor · kısmi | Sonuç vermeyen bir mercek seçer | Boş süzgeç durumu ve süzgeci temizleme yolu gösterilir | Boş süzgeç bloğu; "kayıt yok" ile "süzgeç boş" ayrı | yazma yok | yok | `senaryo-envanter.test.ts` |
 | `ENV-LST-004` | /envanter | BT yöneticisi · kurum geneli | Kapsamda görünür tavandan çok varlık var · yüksek | Envanter ekranını açar | Sürükleyici satırlar önde kalır, gerisi kuyruğa iner | Görünür satır tavanı aşılmaz; kuyruk sayısı yazılı | yazma yok | yok | `envanter-mantik.test.ts` |
-| `ENV-LST-005` | /envanter | BT yöneticisi · kendi santrali | EOS tarihi girilmemiş varlık var · bilinmiyor | Varlık listesine bakar | Ömrü ölçülmemiş varlık "sağlıklı" sayılmaz | Bilinmeyen işaretçisi; sıfır ya da yeşil DEĞİL | yazma yok | yok | `envanter-mantik.test.ts` |
-| `ENV-YAZ-001` | /envanter | BT yöneticisi · kendi santrali | Kullanıcı varlığın santraline yazma yetkili · normal | Varlık formunu açıp bir alanı değiştirir ve kaydeder | Değişiklik kaydedilir | Çekmece açık kalır, güncel değer görünür | Varlik · guncelleme · önceki ve yeni değerle | yok | `envanter-eylem.test.ts` |
-| `ENV-YAZ-002` | /envanter | salt okuyucu · kendi santrali | Kullanıcının envanter yazma yetkisi yok · normal | Sunucu eylemini doğrudan çağırmayı dener | Eylem reddedilir; hiçbir satır değişmez | Yazma yüzeyi hiç açılmaz | yazma yok | yok | `envanter-eylem.test.ts` |
-| `ENV-YAZ-003` | /envanter | BT yöneticisi · tek santral | Hedef varlık başka bir santralde · normal | Kapsam dışı varlığın kimliğiyle güncelleme çağırır | Kapsam kapısı reddeder | Kayıt zaten listede görünmez | yazma yok | yok | `envanter-eylem.test.ts` |
-| `ENV-YAZ-004` | /envanter | BT yöneticisi · kendi santrali | Kullanıcının onay yetkisi yok · normal | Varlığı emekliye çıkarmayı dener | Onay yetkisi istenir, geçiş yapılmaz | Yaşam döngüsü formu açılmaz | yazma yok | yok | `envanter-eylem.test.ts` |
-| `ENV-DIS-001` | /envanter | BT yöneticisi · kendi santrali | Bir mercek seçili · normal | CSV düğmesine basar | Dosya, ekranda görünen SÜZÜLMÜŞ kümeyi taşır | İndirme başlar; liste değişmez | yazma yok | yok | `senaryo-envanter.test.ts` |
-| `ENV-DIS-002` | /envanter | BT yöneticisi · kendi santrali | Kayıtlarda Türkçe karakter, virgül ve tırnak var · normal | CSV dışa aktarır | BOM yazılır, hücreler kaçırılır, satır sonu CRLF olur | Dosya Excel ve LibreOffice'te aynı okunur | yazma yok | yok | `disa-aktarim-csv.test.ts` |
-| `ENV-DIS-003` | /envanter | BT yöneticisi · kendi santrali | Bir alan "=" ile başlıyor · kısmi | CSV dışa aktarır | Tehlikeli başlangıç tek tırnakla kaçırılır | Sayı gibi görünen değerler kalkandan muaf | yazma yok | yok | `disa-aktarim-csv.test.ts` |
-| `ENV-DIS-004` | /envanter | BT yöneticisi · tek santral | Kurumda başka santrallerin varlıkları da var · normal | Dışa aktarır | Dosyada yalnız görmeye yetkili olduğu kayıtlar bulunur | Satır sayısı ekrandaki ile aynı | yazma yok | yok | `senaryo-envanter.test.ts` |
+| `ENV-LST-005` | /envanter | BT yöneticisi · kendi tesisi | EOS tarihi girilmemiş varlık var · bilinmiyor | Varlık listesine bakar | Ömrü ölçülmemiş varlık "sağlıklı" sayılmaz | Bilinmeyen işaretçisi; sıfır ya da yeşil DEĞİL | yazma yok | yok | `envanter-mantik.test.ts` |
+| `ENV-YAZ-001` | /envanter | BT yöneticisi · kendi tesisi | Kullanıcı varlığın tesisine yazma yetkili · normal | Varlık formunu açıp bir alanı değiştirir ve kaydeder | Değişiklik kaydedilir | Çekmece açık kalır, güncel değer görünür | Varlik · guncelleme · önceki ve yeni değerle | yok | `envanter-eylem.test.ts` |
+| `ENV-YAZ-002` | /envanter | salt okuyucu · kendi tesisi | Kullanıcının envanter yazma yetkisi yok · normal | Sunucu eylemini doğrudan çağırmayı dener | Eylem reddedilir; hiçbir satır değişmez | Yazma yüzeyi hiç açılmaz | yazma yok | yok | `envanter-eylem.test.ts` |
+| `ENV-YAZ-003` | /envanter | BT yöneticisi · tek tesis | Hedef varlık başka bir tesiste · normal | Kapsam dışı varlığın kimliğiyle güncelleme çağırır | Kapsam kapısı reddeder | Kayıt zaten listede görünmez | yazma yok | yok | `envanter-eylem.test.ts` |
+| `ENV-YAZ-004` | /envanter | BT yöneticisi · kendi tesisi | Kullanıcının onay yetkisi yok · normal | Varlığı emekliye çıkarmayı dener | Onay yetkisi istenir, geçiş yapılmaz | Yaşam döngüsü formu açılmaz | yazma yok | yok | `envanter-eylem.test.ts` |
+| `ENV-DIS-001` | /envanter | BT yöneticisi · kendi tesisi | Bir mercek seçili · normal | CSV düğmesine basar | Dosya, ekranda görünen SÜZÜLMÜŞ kümeyi taşır | İndirme başlar; liste değişmez | yazma yok | yok | `senaryo-envanter.test.ts` |
+| `ENV-DIS-002` | /envanter | BT yöneticisi · kendi tesisi | Kayıtlarda Türkçe karakter, virgül ve tırnak var · normal | CSV dışa aktarır | BOM yazılır, hücreler kaçırılır, satır sonu CRLF olur | Dosya Excel ve LibreOffice'te aynı okunur | yazma yok | yok | `disa-aktarim-csv.test.ts` |
+| `ENV-DIS-003` | /envanter | BT yöneticisi · kendi tesisi | Bir alan "=" ile başlıyor · kısmi | CSV dışa aktarır | Tehlikeli başlangıç tek tırnakla kaçırılır | Sayı gibi görünen değerler kalkandan muaf | yazma yok | yok | `disa-aktarim-csv.test.ts` |
+| `ENV-DIS-004` | /envanter | BT yöneticisi · tek tesis | Kurumda başka tesislerin varlıkları da var · normal | Dışa aktarır | Dosyada yalnız görmeye yetkili olduğu kayıtlar bulunur | Satır sayısı ekrandaki ile aynı | yazma yok | yok | `senaryo-envanter.test.ts` |
 | `ENV-DIS-005` | /envanter | kurum yöneticisi · kurum geneli | Çok sayıda kayıt var · yüksek | Dışa aktarır | Dosya bozulmadan üretilir | İndirme tamamlanır | yazma yok | yok | `disa-aktarim-csv.test.ts` |
-| `ENV-KML-001` | /envanter | BT yöneticisi · kendi santrali | Bazı kimlik alanları boş · kısmi | Kimlik alanları bloğuna bakar | Boş alan "ölçülmedi" der; "yok" DEMEZ | Doluluk oranı uygulanamaz alanları paydaya katmaz | yazma yok | yok | `kimlik-envanteri.test.ts` |
-| `ENV-KML-002` | /envanter | BT yöneticisi · kendi santrali | Alan bu cihaz tipinde anlamsız · kısmi | Alanı gerekçesiyle "uygulanamaz" işaretler | Gerekçesiz işaretleme reddedilir | Alan orandan çıkar, ölçüm borcu sayılmaz | Varlik alanı · guncelleme · gerekçeyle | yok | `varlik-durusu-eylem.test.ts` |
-| `ENV-YAS-001` | /envanter | BT yöneticisi · kendi santrali | SBOM belgesi yüklenmiş · normal | Yazılım listesi bloğunu açar | Bileşenler ve sürümleri listelenir; sürüm UYDURULMAZ | Okunamayan satır sebebiyle raporlanır, öbürleri kalır | SBOM · olusturma | yok | `varlik-sbom-kapsam-ag.test.ts` |
-| `ENV-FRM-001` | /envanter | OT mühendisi · kendi santrali | Taban sürüm tanımlı değil · yok | Firmware bloğuna bakar | Taban yoksa UYUMLU sayılmaz | "Taban tanımlı değil" ayrı bir durumdur | yazma yok | yok | `varlik-durus.test.ts` |
-| `ENV-ZAF-001` | /envanter | güvenlik uzmanı · kendi santrali | Cihazın SBOM belgesi yok · bilinmiyor | Zafiyet korelasyonuna bakar | Bileşen zafiyetinden ETKİLENMİŞ sayılmaz | Karar verilemedi; motor insanın kararını ezmez | yazma yok | yok | `varlik-durusu-motor.test.ts` |
-| `ENV-AG-001` | /envanter | ağ sorumlusu · kendi santrali | Girilen adres bloğu bozuk · çelişen | Geçersiz bir adres bloğu girer | Reddedilir | Neyin beklendiği yazılır | yazma yok | yok | `varlik-durusu-eylem.test.ts` |
-| `ENV-ETK-001` | /envanter | santral sorumlusu · kendi santrali | Varlığın kendi etkisi girilmemiş · bilinmiyor | Üretim etkisine bakar | Etki proses adımından MİRAS alınır; hiçbiri yoksa BİLİNMİYOR | "Yok" ile "bilinmiyor" ayrı yazılır | yazma yok | yok | `faz-b-alan.test.ts` |
-| `ENV-SUR-001` | /prosesler | süreç sorumlusu · kendi santrali | Bağın tek noktalığı değerlendirilmemiş · bilinmiyor | Süreç zincirine bakar | Değerlendirilmemiş bağ TEK NOKTA sayılmaz ama ölçüm borcuna girer | Dört hâl dört ayrı sözle yazılır | yazma yok | yok | `faz-b-ekran.test.ts` |
-| `ENV-YRS-001` | /envanter | BT yöneticisi · kendi santrali | İki onaylayan aynı geçişi aynı anda deniyor · yinelenen | Eşzamanlı iki geçiş denenir | Yalnız biri yazar; kaybeden AÇIK hata alır | İzde TEK satır kalır | Tek geçiş satırı | yok | `yaris-kosullari.test.ts` |
-| `ENV-UYG-001` | /envanter | santral kullanıcısı · tek santral | Varlık başka santralde · normal | Kapsam dışı varlığın işaretini kaldırmayı dener | Reddedilir; işaret DURUR | Yetki cümlesi | yazma yok | yok | `ters-kapsam-eylem.test.ts` |
-| `ENV-FRM-010` | /envanter | BT yöneticisi · kendi santrali | Cihaz eski firmware'de · normal | İstisna gerekçesini kaydeder | Uyum DURUMU DEĞİŞMEZ — cihaz hâlâ eski sürümdedir; istisna yalnız "biliniyor ve kabul edildi" der | İstisna rozeti; durum rengi aynı kalır | Varlik · onay (firmwareIstisnasi) | yok | `ters-kapsam-eylem.test.ts` |
-| `ENV-PRS-001` | /prosesler | santral kullanıcısı · tek santral | Bağın varlığı başka santralde · normal | Kapsam dışı bağı kaldırmayı dener | Reddedilir; bağ DURUR | Yetki cümlesi | yazma yok | yok | `ters-kapsam-eylem.test.ts` |
+| `ENV-KML-001` | /envanter | BT yöneticisi · kendi tesisi | Bazı kimlik alanları boş · kısmi | Kimlik alanları bloğuna bakar | Boş alan "ölçülmedi" der; "yok" DEMEZ | Doluluk oranı uygulanamaz alanları paydaya katmaz | yazma yok | yok | `kimlik-envanteri.test.ts` |
+| `ENV-KML-002` | /envanter | BT yöneticisi · kendi tesisi | Alan bu cihaz tipinde anlamsız · kısmi | Alanı gerekçesiyle "uygulanamaz" işaretler | Gerekçesiz işaretleme reddedilir | Alan orandan çıkar, ölçüm borcu sayılmaz | Varlik alanı · guncelleme · gerekçeyle | yok | `varlik-durusu-eylem.test.ts` |
+| `ENV-YAS-001` | /envanter | BT yöneticisi · kendi tesisi | SBOM belgesi yüklenmiş · normal | Yazılım listesi bloğunu açar | Bileşenler ve sürümleri listelenir; sürüm UYDURULMAZ | Okunamayan satır sebebiyle raporlanır, öbürleri kalır | SBOM · olusturma | yok | `varlik-sbom-kapsam-ag.test.ts` |
+| `ENV-FRM-001` | /envanter | OT mühendisi · kendi tesisi | Taban sürüm tanımlı değil · yok | Firmware bloğuna bakar | Taban yoksa UYUMLU sayılmaz | "Taban tanımlı değil" ayrı bir durumdur | yazma yok | yok | `varlik-durus.test.ts` |
+| `ENV-ZAF-001` | /envanter | güvenlik uzmanı · kendi tesisi | Cihazın SBOM belgesi yok · bilinmiyor | Zafiyet korelasyonuna bakar | Bileşen zafiyetinden ETKİLENMİŞ sayılmaz | Karar verilemedi; motor insanın kararını ezmez | yazma yok | yok | `varlik-durusu-motor.test.ts` |
+| `ENV-AG-001` | /envanter | ağ sorumlusu · kendi tesisi | Girilen adres bloğu bozuk · çelişen | Geçersiz bir adres bloğu girer | Reddedilir | Neyin beklendiği yazılır | yazma yok | yok | `varlik-durusu-eylem.test.ts` |
+| `ENV-ETK-001` | /envanter | tesis sorumlusu · kendi tesisi | Varlığın kendi etkisi girilmemiş · bilinmiyor | Üretim etkisine bakar | Etki proses adımından MİRAS alınır; hiçbiri yoksa BİLİNMİYOR | "Yok" ile "bilinmiyor" ayrı yazılır | yazma yok | yok | `faz-b-alan.test.ts` |
+| `ENV-SUR-001` | /prosesler | süreç sorumlusu · kendi tesisi | Bağın tek noktalığı değerlendirilmemiş · bilinmiyor | Süreç zincirine bakar | Değerlendirilmemiş bağ TEK NOKTA sayılmaz ama ölçüm borcuna girer | Dört hâl dört ayrı sözle yazılır | yazma yok | yok | `faz-b-ekran.test.ts` |
+| `ENV-YRS-001` | /envanter | BT yöneticisi · kendi tesisi | İki onaylayan aynı geçişi aynı anda deniyor · yinelenen | Eşzamanlı iki geçiş denenir | Yalnız biri yazar; kaybeden AÇIK hata alır | İzde TEK satır kalır | Tek geçiş satırı | yok | `yaris-kosullari.test.ts` |
+| `ENV-UYG-001` | /envanter | tesis kullanıcısı · tek tesis | Varlık başka tesiste · normal | Kapsam dışı varlığın işaretini kaldırmayı dener | Reddedilir; işaret DURUR | Yetki cümlesi | yazma yok | yok | `ters-kapsam-eylem.test.ts` |
+| `ENV-FRM-010` | /envanter | BT yöneticisi · kendi tesisi | Cihaz eski firmware'de · normal | İstisna gerekçesini kaydeder | Uyum DURUMU DEĞİŞMEZ — cihaz hâlâ eski sürümdedir; istisna yalnız "biliniyor ve kabul edildi" der | İstisna rozeti; durum rengi aynı kalır | Varlik · onay (firmwareIstisnasi) | yok | `ters-kapsam-eylem.test.ts` |
+| `ENV-PRS-001` | /prosesler | tesis kullanıcısı · tek tesis | Bağın varlığı başka tesiste · normal | Kapsam dışı bağı kaldırmayı dener | Reddedilir; bağ DURUR | Yetki cümlesi | yazma yok | yok | `ters-kapsam-eylem.test.ts` |
 | `ENV-FRM-011` | — | sistem (motor) · kurum geneli | Karar önceki koşuyla aynı · yinelenen | Motor tekrar koşar | Aynı karar YENİDEN YAZILMAZ — "bu karar ne zaman değişti" sorusu cevapsız kalmasın | — | yazma yok | yok | `ters-kapsam-eylem.test.ts` |
 | `ENV-AGT-001` | — | sistem (motor) · kurum geneli | Bazı varlığın IP adresi ölçülmemiş · bilinmiyor | Motor koşar | Ölçüm borcu AYRI bir kural adıyla yazılır — "ölçemedik" ile "sorun yok" aynı sayılmaz | — | VeriKalitesiBulgusu · olusturma (…_olculemedi) | yok | `ters-kapsam-eylem.test.ts` |
 | `ENV-GRN-001` | — | sistem (motor) · kurum geneli | Varlık hiç keşifte görülmemiş · yok | Motor koşar | "Hiç görülmedi" ile "eşikten uzun süre görülmedi" AYRI kurallardır | — | VeriKalitesiBulgusu · olusturma | yok | `ters-kapsam-eylem.test.ts` |
@@ -177,41 +177,41 @@ Senaryo: **282** · testli: **282** · GAP: **0**
 
 | ID | Rota | Rol · kapsam | Ön koşul · veri | Eylem | Beklenen sonuç | Ekran | Denetim izi | Görev/bildirim | Test |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `HRT-KNM-001` | /harita | kurum yöneticisi · kurum geneli | Koordinatı olmayan santral var · kısmi | Haritayı açar | Koordinatsız santral uydurma bir yere KONMAZ | Listede ayrıca sayılır | yazma yok | yok | `harita-mantik.test.ts` |
-| `KNM-KRD-001` | /tesisler/[id] | santral sorumlusu · kendi santrali | Yalnız enlem girildi · kısmi | Koordinatı kaydetmeyi dener | YARIM koordinat reddedilir | Silme meşrudur; iki alan birlikte boşaltılabilir | Tesis · guncelleme | yok | `konum-apianahtar-eylem.test.ts` |
+| `HRT-KNM-001` | /harita | kurum yöneticisi · kurum geneli | Koordinatı olmayan tesis var · kısmi | Haritayı açar | Koordinatsız tesis uydurma bir yere KONMAZ | Listede ayrıca sayılır | yazma yok | yok | `harita-mantik.test.ts` |
+| `KNM-KRD-001` | /tesisler/[id] | tesis sorumlusu · kendi tesisi | Yalnız enlem girildi · kısmi | Koordinatı kaydetmeyi dener | YARIM koordinat reddedilir | Silme meşrudur; iki alan birlikte boşaltılabilir | Tesis · guncelleme | yok | `konum-apianahtar-eylem.test.ts` |
 
 ## İçe aktarım · 2 senaryo
 
 | ID | Rota | Rol · kapsam | Ön koşul · veri | Eylem | Beklenen sonuç | Ekran | Denetim izi | Görev/bildirim | Test |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `IMP-XLS-001` | /ice-aktarim | BT yöneticisi · kendi santrali | Dosya geçerli · normal | Dosyayı yükler | Kayıtlar ayrıştırılır ve önizlenir | Yazmadan önce ne olacağı gösterilir | yazma yok | yok | `varlik-aktarim.test.ts` |
-| `IMP-XLS-002` | /ice-aktarim | BT yöneticisi · kendi santrali | Dosyada eksik/bozuk satır var · kısmi | Dosyayı yükler | Bozuk satır reddedilir ve sebebi yazılır | Kaç satır kabul, kaç satır ret — ayrı | Reddedilen kayıt | yok | `varlik-aktarim.test.ts` |
+| `IMP-XLS-001` | /ice-aktarim | BT yöneticisi · kendi tesisi | Dosya geçerli · normal | Dosyayı yükler | Kayıtlar ayrıştırılır ve önizlenir | Yazmadan önce ne olacağı gösterilir | yazma yok | yok | `varlik-aktarim.test.ts` |
+| `IMP-XLS-002` | /ice-aktarim | BT yöneticisi · kendi tesisi | Dosyada eksik/bozuk satır var · kısmi | Dosyayı yükler | Bozuk satır reddedilir ve sebebi yazılır | Kaç satır kabul, kaç satır ret — ayrı | Reddedilen kayıt | yok | `varlik-aktarim.test.ts` |
 
 ## Kanıt · 8 senaryo
 
 | ID | Rota | Rol · kapsam | Ön koşul · veri | Eylem | Beklenen sonuç | Ekran | Denetim izi | Görev/bildirim | Test |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `KNT-LST-001` | /kanitlar | uyum uzmanı · kendi santrali | Kanıt tazelik eşiği aşılmış · bayat | Kanıtlar ekranını açar | Bayat kanıt ayrı işaretlenir | Eşik konsoldan gelir | yazma yok | Görev | `kanitlar-mantik.test.ts` |
-| `KNT-YUK-001` | /kanitlar | uyum uzmanı · kendi santrali | Kullanıcı yazma yetkili · normal | Kanıt ekler | Kanıt kaydedilir ve özeti alınır | Kanıt listesinde görünür | Kanit · olusturma | yok | `faz-d-eylem.test.ts` |
-| `KNT-YUK-002` | /kanitlar | uyum uzmanı · tek santral | Kanıt başka santrale ait · normal | Kanıt listesine bakar | Kayıt listede yoktur | Sayaçlar da kapsamla sınırlı | yazma yok | yok | `kanit-kapsam.test.ts` |
+| `KNT-LST-001` | /kanitlar | uyum uzmanı · kendi tesisi | Kanıt tazelik eşiği aşılmış · bayat | Kanıtlar ekranını açar | Bayat kanıt ayrı işaretlenir | Eşik konsoldan gelir | yazma yok | Görev | `kanitlar-mantik.test.ts` |
+| `KNT-YUK-001` | /kanitlar | uyum uzmanı · kendi tesisi | Kullanıcı yazma yetkili · normal | Kanıt ekler | Kanıt kaydedilir ve özeti alınır | Kanıt listesinde görünür | Kanit · olusturma | yok | `faz-d-eylem.test.ts` |
+| `KNT-YUK-002` | /kanitlar | uyum uzmanı · tek tesis | Kanıt başka tesise ait · normal | Kanıt listesine bakar | Kayıt listede yoktur | Sayaçlar da kapsamla sınırlı | yazma yok | yok | `kanit-kapsam.test.ts` |
 | `KNT-SHP-001` | /kanitlar | uyum yöneticisi · kurum geneli | Kanıtın sahibi de yükleyeni de yok · kısmi | Veri kalitesi motoru koşar | Sahipsiz kanıt bulgusu açılır | Sağlık ekranında görünür | Bulgu | Veri kalitesi bulgusu | `senaryo-uyum.test.ts` |
-| `KNT-PKT-001` | /raporlar/kanit-paketi | uyum yöneticisi · kendi santrali | Kanıtlar seçili · normal | Paket üretir | Paket üretilir ve içindekiler listelenir | İmza yoksa paket "imzasız" der | Paket kaydı | yok | `disa-aktarim-paketi.test.ts` |
-| `KNT-PKT-002` | /raporlar/kanit-paketi | uyum yöneticisi · kendi santrali | İmzalama altyapısı bağlı değil · yok | Paket üretir | Paket "imzasız" olarak işaretlenir | Bağlı değil cümlesi ve ürünün ne yaptığı yazılı | Paket kaydı | yok | `senaryo-uyum.test.ts` |
-| `KNT-DEP-001` | /kanitlar | uyum uzmanı · kendi santrali | Dosya diskte değiştirilmiş · çelişen | Kanıt dosyasını okur | Sessizce sağlam DÖNMEZ; özet doğrulaması düşer | Boş dosya reddedilir | yazma yok | yok | `faz-d-kanit-deposu.test.ts` |
+| `KNT-PKT-001` | /raporlar/kanit-paketi | uyum yöneticisi · kendi tesisi | Kanıtlar seçili · normal | Paket üretir | Paket üretilir ve içindekiler listelenir | İmza yoksa paket "imzasız" der | Paket kaydı | yok | `disa-aktarim-paketi.test.ts` |
+| `KNT-PKT-002` | /raporlar/kanit-paketi | uyum yöneticisi · kendi tesisi | İmzalama altyapısı bağlı değil · yok | Paket üretir | Paket "imzasız" olarak işaretlenir | Bağlı değil cümlesi ve ürünün ne yaptığı yazılı | Paket kaydı | yok | `senaryo-uyum.test.ts` |
+| `KNT-DEP-001` | /kanitlar | uyum uzmanı · kendi tesisi | Dosya diskte değiştirilmiş · çelişen | Kanıt dosyasını okur | Sessizce sağlam DÖNMEZ; özet doğrulaması düşer | Boş dosya reddedilir | yazma yok | yok | `faz-d-kanit-deposu.test.ts` |
 | `KNT-TAZ-001` | /ayarlar | kurum yöneticisi · kurum geneli | Eşik B sınıfı bir ayardır · normal | Eşiği doğrudan yazmayı dener | B sınıfı ayar doğrudan yazılamaz; öneri–onay ister | Konsolda sınıf ve hedef görünür | Değişiklik önerisi | Onay merkezi | `kanit-tazelik-ayar.test.ts` |
 
 ## Kimlik · 2 senaryo
 
 | ID | Rota | Rol · kapsam | Ön koşul · veri | Eylem | Beklenen sonuç | Ekran | Denetim izi | Görev/bildirim | Test |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `KIM-HSP-001` | /kimlik | BT yöneticisi · tek santral | Hesap başka santralde açılmak isteniyor · normal | Hesap açmayı dener | Reddedilir; santralsiz hesap kapsamsız yetki ister | Ayrıcalık ÜÇ DURUMLUDUR — null "yok" değildir | yazma yok | yok | `kimlik-eylem.test.ts` |
-| `KIM-ERS-001` | /kimlik | güvenlik uzmanı · kendi santrali | Bazı alanlar ölçülmemiş · bilinmiyor | Erişim değerlendirmesine bakar | null ile false KARIŞTIRILMAZ — biri ihlal, öteki boşluk | Kritik olmamak "kritikliği düşük" demek değildir | yazma yok | Görev | `erisim-degerlendirme.test.ts` |
+| `KIM-HSP-001` | /kimlik | BT yöneticisi · tek tesis | Hesap başka tesiste açılmak isteniyor · normal | Hesap açmayı dener | Reddedilir; tesissiz hesap kapsamsız yetki ister | Ayrıcalık ÜÇ DURUMLUDUR — null "yok" değildir | yazma yok | yok | `kimlik-eylem.test.ts` |
+| `KIM-ERS-001` | /kimlik | güvenlik uzmanı · kendi tesisi | Bazı alanlar ölçülmemiş · bilinmiyor | Erişim değerlendirmesine bakar | null ile false KARIŞTIRILMAZ — biri ihlal, öteki boşluk | Kritik olmamak "kritikliği düşük" demek değildir | yazma yok | Görev | `erisim-degerlendirme.test.ts` |
 
 ## Konfigürasyon tabanı · 2 senaryo
 
 | ID | Rota | Rol · kapsam | Ön koşul · veri | Eylem | Beklenen sonuç | Ekran | Denetim izi | Görev/bildirim | Test |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `TAB-KNF-001` | /tabanlar | OT mühendisi · kendi santrali | Hiç yedek kaydı yok · yok | Sapma durumuna bakar | Sonuç "bilinmiyor" — "yok" DEĞİL | Kaynak bağlı değilken motor temiz kapanır | Koşu kaydı | yok | `konfig-yedek.test.ts` |
+| `TAB-KNF-001` | /tabanlar | OT mühendisi · kendi tesisi | Hiç yedek kaydı yok · yok | Sapma durumuna bakar | Sonuç "bilinmiyor" — "yok" DEĞİL | Kaynak bağlı değilken motor temiz kapanır | Koşu kaydı | yok | `konfig-yedek.test.ts` |
 | `TAB-DRF-001` | /tabanlar | sistem (motor) · kurum geneli | Yedeğin içerik özeti yok · bilinmiyor | Motor koşar | Karar verilemeyen durum sapma AÇMAZ — özet hesaplayamayan bir kaynak bütün filoyu kırmızıya boyamaz | "Ölçülmedi" yazılır | yazma yok | yok | `ters-kapsam-eylem.test.ts` |
 
 ## Mevzuat · 1 senaryo
@@ -224,18 +224,18 @@ Senaryo: **282** · testli: **282** · GAP: **0**
 
 | ID | Rota | Rol · kapsam | Ön koşul · veri | Eylem | Beklenen sonuç | Ekran | Denetim izi | Görev/bildirim | Test |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `OLY-ETK-001` | /olaylar | olay sorumlusu · kendi santrali | Varlığın sistemi tanımlı değil · kısmi | Etki önerisine bakar | Zincir kopar ve "bilinmiyor" der; "etki yok" DEMEZ | Motor etki alanlarına YAZMAZ, yalnız öneri üretir | yazma yok | yok | `olay-etki.test.ts` |
-| `OLY-ETK-002` | /olaylar | olay sorumlusu · tek santral | Olay başka santrale taşınmak isteniyor · normal | Olayın santralini değiştirmeyi dener | Hedef santralde de yetki aranır ve reddedilir | Santral seçimi kapsamla sınırlı | yazma yok | yok | `olay-konfigyedek-eylem.test.ts` |
+| `OLY-ETK-001` | /olaylar | olay sorumlusu · kendi tesisi | Varlığın sistemi tanımlı değil · kısmi | Etki önerisine bakar | Zincir kopar ve "bilinmiyor" der; "etki yok" DEMEZ | Motor etki alanlarına YAZMAZ, yalnız öneri üretir | yazma yok | yok | `olay-etki.test.ts` |
+| `OLY-ETK-002` | /olaylar | olay sorumlusu · tek tesis | Olay başka tesise taşınmak isteniyor · normal | Olayın tesisini değiştirmeyi dener | Hedef tesiste de yetki aranır ve reddedilir | Tesis seçimi kapsamla sınırlı | yazma yok | yok | `olay-konfigyedek-eylem.test.ts` |
 | `OLY-BLD-001` | /olaylar | uyum yöneticisi · kurum geneli | Kural geçmiş olaylarda kullanılmış · normal | Bildirim kuralını siler | Kayıt SİLİNMEZ, pasifleştirilir — geçmiş olayın hangi kurala göre değerlendirildiği kalır | Kural pasif olarak görünür | BildirimYukumlulugu · guncelleme (aktif: true→false) | yok | `ters-kapsam-eylem.test.ts` |
-| `OLY-ETK-003` | /olaylar | santral kullanıcısı · tek santral | Olay başka santralde · normal | Kapsam dışı olayın etki önerisini yenilemeyi dener | Reddedilir; hiçbir öneri yazılmaz | Yetki cümlesi | yazma yok | yok | `ters-kapsam-eylem.test.ts` |
+| `OLY-ETK-003` | /olaylar | tesis kullanıcısı · tek tesis | Olay başka tesiste · normal | Kapsam dışı olayın etki önerisini yenilemeyi dener | Reddedilir; hiçbir öneri yazılmaz | Yetki cümlesi | yazma yok | yok | `ters-kapsam-eylem.test.ts` |
 
 ## Operasyon · 3 senaryo
 
 | ID | Rota | Rol · kapsam | Ön koşul · veri | Eylem | Beklenen sonuç | Ekran | Denetim izi | Görev/bildirim | Test |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `OPR-DEG-001` | /operasyon | operasyon sorumlusu · tek santral | Değişiklik başka santrale ait · normal | Değişiklik kaydetmeyi dener | Reddedilir | Kaydın GERÇEK santrali güncellemede de bağlayıcıdır | yazma yok | yok | `operasyon-tedarikci-eylem.test.ts` |
-| `OPR-DEG-002` | /operasyon | operasyon sorumlusu · kendi santrali | Değişiklik BT tarafında · normal | Kapı sayacına bakar | BT değişikliğinin kapısı YOKTUR — "0/5" uydurulmaz | OT değişikliği beş kapı taşır | yazma yok | yok | `operasyon-mantik.test.ts` |
-| `OPR-DEG-003` | /operasyon | operasyon sorumlusu · kendi santrali | Değişiklik geri alındı · kısmi | Aşama şeridine bakar | Geri alma döngünün ADIMI DEĞİLDİR — indeksi yoktur | Kapanış hem doğrulanmayı hem geri alınmayı kapsar | yazma yok | yok | `operasyon-mantik.test.ts` |
+| `OPR-DEG-001` | /operasyon | operasyon sorumlusu · tek tesis | Değişiklik başka tesise ait · normal | Değişiklik kaydetmeyi dener | Reddedilir | Kaydın GERÇEK tesisi güncellemede de bağlayıcıdır | yazma yok | yok | `operasyon-tedarikci-eylem.test.ts` |
+| `OPR-DEG-002` | /operasyon | operasyon sorumlusu · kendi tesisi | Değişiklik BT tarafında · normal | Kapı sayacına bakar | BT değişikliğinin kapısı YOKTUR — "0/5" uydurulmaz | OT değişikliği beş kapı taşır | yazma yok | yok | `operasyon-mantik.test.ts` |
+| `OPR-DEG-003` | /operasyon | operasyon sorumlusu · kendi tesisi | Değişiklik geri alındı · kısmi | Aşama şeridine bakar | Geri alma döngünün ADIMI DEĞİLDİR — indeksi yoktur | Kapanış hem doğrulanmayı hem geri alınmayı kapsar | yazma yok | yok | `operasyon-mantik.test.ts` |
 
 ## Oturum · 6 senaryo
 
@@ -252,23 +252,23 @@ Senaryo: **282** · testli: **282** · GAP: **0**
 
 | ID | Rota | Rol · kapsam | Ön koşul · veri | Eylem | Beklenen sonuç | Ekran | Denetim izi | Görev/bildirim | Test |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `OMR-EOL-001` | /omur | BT yöneticisi · kendi santrali | Bazı cihazların EOS tarihi girilmemiş · bilinmiyor | Ömür ekranını açar | Tarihi olmayan cihaz "ömrü bitmedi" sayılmaz | Bilinmeyen ayrı sayılır | yazma yok | yok | `envanter-mantik.test.ts` |
+| `OMR-EOL-001` | /omur | BT yöneticisi · kendi tesisi | Bazı cihazların EOS tarihi girilmemiş · bilinmiyor | Ömür ekranını açar | Tarihi olmayan cihaz "ömrü bitmedi" sayılmaz | Bilinmeyen ayrı sayılır | yazma yok | yok | `envanter-mantik.test.ts` |
 
 ## Pasif keşif · 13 senaryo
 
 | ID | Rota | Rol · kapsam | Ön koşul · veri | Eylem | Beklenen sonuç | Ekran | Denetim izi | Görev/bildirim | Test |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `KES-GRP-001` | /kesif | BT yöneticisi · kendi santrali | Gözlemde eşleşmeyen kayıt var · normal | Keşif ekranını açar | Kayıt "envanterde yok" grubunda sayılır | Yedi grup özeti; sayıların toplamı kayıt sayısına eşit | yazma yok | yok | `pasif-kesif.test.ts` |
-| `KES-GRP-002` | /kesif | BT yöneticisi · kendi santrali | Eşleşen varlığın sahibi yok · kısmi | Keşif özetine bakar | Kayıt "sahibi yok" grubuna düşer | Grup tıklanınca liste süzülür | yazma yok | yok | `pasif-kesif.test.ts` |
-| `KES-GRP-003` | /kesif | BT yöneticisi · kendi santrali | Kayıt birden çok varlığa uyuyor · çelişen | Keşif özetine bakar | Kayıt "kimlik çakışması" grubuna düşer ve önceliklidir | Çakışma en üstte; güven skoru "ölçülmedi" | yazma yok | yok | `pasif-kesif.test.ts` |
-| `KES-GRP-004` | /kesif | BT yöneticisi · kendi santrali | Kayıt eşiği aşan süredir görülmemiş · bayat | Keşif özetine bakar | Kayıt "artık görülmüyor" grubunda; SİLİNMEZ | Eşik konsoldan gelir, koda gömülü değildir | yazma yok | yok | `pasif-kesif.test.ts` |
-| `KES-GRP-005` | /kesif | BT yöneticisi · tek santral | Kaydın santrali çözülememiş · bilinmiyor | Keşif ekranını açar | Kayıt görünür ve "yeri belirsiz" grubuna düşer | Santral süzgecinde ayrı bir seçenek | yazma yok | yok | `pasif-kesif.test.ts` |
+| `KES-GRP-001` | /kesif | BT yöneticisi · kendi tesisi | Gözlemde eşleşmeyen kayıt var · normal | Keşif ekranını açar | Kayıt "envanterde yok" grubunda sayılır | Yedi grup özeti; sayıların toplamı kayıt sayısına eşit | yazma yok | yok | `pasif-kesif.test.ts` |
+| `KES-GRP-002` | /kesif | BT yöneticisi · kendi tesisi | Eşleşen varlığın sahibi yok · kısmi | Keşif özetine bakar | Kayıt "sahibi yok" grubuna düşer | Grup tıklanınca liste süzülür | yazma yok | yok | `pasif-kesif.test.ts` |
+| `KES-GRP-003` | /kesif | BT yöneticisi · kendi tesisi | Kayıt birden çok varlığa uyuyor · çelişen | Keşif özetine bakar | Kayıt "kimlik çakışması" grubuna düşer ve önceliklidir | Çakışma en üstte; güven skoru "ölçülmedi" | yazma yok | yok | `pasif-kesif.test.ts` |
+| `KES-GRP-004` | /kesif | BT yöneticisi · kendi tesisi | Kayıt eşiği aşan süredir görülmemiş · bayat | Keşif özetine bakar | Kayıt "artık görülmüyor" grubunda; SİLİNMEZ | Eşik konsoldan gelir, koda gömülü değildir | yazma yok | yok | `pasif-kesif.test.ts` |
+| `KES-GRP-005` | /kesif | BT yöneticisi · tek tesis | Kaydın tesisi çözülememiş · bilinmiyor | Keşif ekranını açar | Kayıt görünür ve "yeri belirsiz" grubuna düşer | Tesis süzgecinde ayrı bir seçenek | yazma yok | yok | `pasif-kesif.test.ts` |
 | `KES-ESL-001` | /kesif | sistem (eşleştirme) · kurum geneli | Gözlemde yalnız IP var · kısmi | Eşleştirme koşar | IP TEK BAŞINA eşleşme kurmaz | Kayıt eşleşmemiş kalır | yazma yok | yok | `pasif-kesif.test.ts` |
-| `KES-ONY-001` | /kesif | BT yöneticisi · kendi santrali | Yüksek güvenli bir eşleşme var · normal | Eşleştirme geçişi koşar | CMDB'ye YAZILMAZ; kayıt insan onayı bekler | Beş adımlı tezgâh hattı; karar adımı aktif | yazma yok | yok | `pasif-kesif.test.ts` |
-| `KES-ONY-002` | /kesif | BT yöneticisi · kendi santrali | Kullanıcının onay yetkisi yok · normal | Kaydı onaylamayı dener | Reddedilir | Karar düğmeleri açılmaz | yazma yok | yok | `kesif-karar.test.ts` |
-| `KES-YSK-001` | /kesif | OT mühendisi · kendi santrali | — · normal | Keşif ekranındaki pasiflik bölümünü açar | Yapılmayan aktif işlemler gerekçeleriyle listelenir | Port tarama · SNMP · Modbus · PLC · aktif paket | yazma yok | yok | `pasif-kesif.test.ts` |
+| `KES-ONY-001` | /kesif | BT yöneticisi · kendi tesisi | Yüksek güvenli bir eşleşme var · normal | Eşleştirme geçişi koşar | CMDB'ye YAZILMAZ; kayıt insan onayı bekler | Beş adımlı tezgâh hattı; karar adımı aktif | yazma yok | yok | `pasif-kesif.test.ts` |
+| `KES-ONY-002` | /kesif | BT yöneticisi · kendi tesisi | Kullanıcının onay yetkisi yok · normal | Kaydı onaylamayı dener | Reddedilir | Karar düğmeleri açılmaz | yazma yok | yok | `kesif-karar.test.ts` |
+| `KES-YSK-001` | /kesif | OT mühendisi · kendi tesisi | — · normal | Keşif ekranındaki pasiflik bölümünü açar | Yapılmayan aktif işlemler gerekçeleriyle listelenir | Port tarama · SNMP · Modbus · PLC · aktif paket | yazma yok | yok | `pasif-kesif.test.ts` |
 | `KES-YSK-002` | — | güvenlik denetçisi · kurum geneli | — · normal | Adaptör yetenek kütüğünü inceler | Kütükte aktif tarama karşılığı bir kod YOKTUR | — | yazma yok | yok | `adaptor-yetenekleri.test.ts` |
-| `KES-KYT-001` | /kesif | BT yöneticisi · kendi santrali | Birden çok kayıt seçili · yüksek | Toplu karar verir | Hepsi tek gerekçeyle kapanır ve iz TOPLU işaretlenir | Tekrarlanan kimlik iki kez işlenmez | Keşif kaydı · karar · toplu | yok | `kesif-karar.test.ts` |
+| `KES-KYT-001` | /kesif | BT yöneticisi · kendi tesisi | Birden çok kayıt seçili · yüksek | Toplu karar verir | Hepsi tek gerekçeyle kapanır ve iz TOPLU işaretlenir | Tekrarlanan kimlik iki kez işlenmez | Keşif kaydı · karar · toplu | yok | `kesif-karar.test.ts` |
 | `KES-KYT-002` | /kesif | platform yöneticisi · kurum geneli | Yapılandırmaya bir adres giriliyor · çelişen | Bulut metadata adresi girer | HER KOŞULDA reddedilir | Düz HTTP de açık izin olmadan reddedilir | yazma yok | yok | `ot40-toplama.test.ts` |
 | `KES-ESL-002` | /kesif | sistem (eşleştirme) · kurum geneli | Gözlem seri numarası taşıyor · normal | Eşleştirme koşar | Seri numarasıyla eşleşir ve EN YÜKSEK güveni alır | MAC yazımı farkları aynı kabul edilir | yazma yok | yok | `kesif.test.ts` |
 
@@ -276,34 +276,34 @@ Senaryo: **282** · testli: **282** · GAP: **0**
 
 | ID | Rota | Rol · kapsam | Ön koşul · veri | Eylem | Beklenen sonuç | Ekran | Denetim izi | Görev/bildirim | Test |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `PRT-OZT-001` | /portfoy | kurum yöneticisi · kurum geneli | Santraller tanımlı · normal | Portföy ekranını açar | Santral başına özet görünür | Ölçülmemiş değer sıfıra çekilmez | yazma yok | yok | `senaryo-platform.test.ts` |
-| `PRT-OZT-002` | /tesisler/[id] | santral sorumlusu · kendi santrali | Santral kimliği geçerli · normal | Santral detayını açar | Varlık, uyum, risk ve olay özetleri birlikte görünür | Fotoğrafı olmayan santral tipografik karşılık alır | yazma yok | yok | `plant360-profil.test.ts` |
-| `TES-PRF-001` | /tesisler/[id] | santral sorumlusu · kendi santrali | Bazı alanlar boş bırakıldı · kısmi | Profili kaydeder | Boş metin NULL olur — "" ile "bilinmiyor" ayrıdır | Üç durumlu alanlarda false ile null ayrı saklanır | Profil · guncelleme | yok | `tesis360-eylem.test.ts` |
-| `TES-PRF-002` | /tesisler/[id] | santral sorumlusu · kendi santrali | İnsan kararı gerekçesiyle yazılmış · çelişen | Uygulanabilirlik motoru yeniden koşar | İnsanın kararı KORUNUR | Elle değiştirildi işareti görünür | Karar satırı | yok | `tesis360-eylem.test.ts` |
-| `TES-PRF-003` | /tesisler/[id] | uyum uzmanı · kurum geneli | Yeni santral açıldı, profili yok · yok | Uygulanabilirlik motoru koşar | Karar VERİLMEZ ve veri kalitesi bulgusu açılır | Profil gelince kapsam kendiliğinden hesaplanır | Bulgu | Veri kalitesi bulgusu | `yeniTesis.test.ts` |
+| `PRT-OZT-001` | /portfoy | kurum yöneticisi · kurum geneli | Tesisler tanımlı · normal | Portföy ekranını açar | Tesis başına özet görünür | Ölçülmemiş değer sıfıra çekilmez | yazma yok | yok | `senaryo-platform.test.ts` |
+| `PRT-OZT-002` | /tesisler/[id] | tesis sorumlusu · kendi tesisi | Tesis kimliği geçerli · normal | Tesis detayını açar | Varlık, uyum, risk ve olay özetleri birlikte görünür | Fotoğrafı olmayan tesis tipografik karşılık alır | yazma yok | yok | `tesis360-profil.test.ts` |
+| `TES-PRF-001` | /tesisler/[id] | tesis sorumlusu · kendi tesisi | Bazı alanlar boş bırakıldı · kısmi | Profili kaydeder | Boş metin NULL olur — "" ile "bilinmiyor" ayrıdır | Üç durumlu alanlarda false ile null ayrı saklanır | Profil · guncelleme | yok | `tesis360-eylem.test.ts` |
+| `TES-PRF-002` | /tesisler/[id] | tesis sorumlusu · kendi tesisi | İnsan kararı gerekçesiyle yazılmış · çelişen | Uygulanabilirlik motoru yeniden koşar | İnsanın kararı KORUNUR | Elle değiştirildi işareti görünür | Karar satırı | yok | `tesis360-eylem.test.ts` |
+| `TES-PRF-003` | /tesisler/[id] | uyum uzmanı · kurum geneli | Yeni tesis açıldı, profili yok · yok | Uygulanabilirlik motoru koşar | Karar VERİLMEZ ve veri kalitesi bulgusu açılır | Profil gelince kapsam kendiliğinden hesaplanır | Bulgu | Veri kalitesi bulgusu | `yeniTesis.test.ts` |
 
 ## Proje · 2 senaryo
 
 | ID | Rota | Rol · kapsam | Ön koşul · veri | Eylem | Beklenen sonuç | Ekran | Denetim izi | Görev/bildirim | Test |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `PRJ-LST-001` | /projeler | proje sorumlusu · kendi santrali | Projeler tanımlı · normal | Projeler ekranını açar | Durum ve son tarihle listelenir | Geciken proje ayrı işaretlenir | yazma yok | yok | `proje-bagimliligi.test.ts` |
-| `PRJ-BAG-001` | /projeler | proje sorumlusu · kendi santrali | Bağımlılık döngü yaratacak · çelişen | Bağımlılık ekler | Döngü reddedilir | Neden reddedildiği yazılır | yazma yok | yok | `proje-bagimliligi.test.ts` |
+| `PRJ-LST-001` | /projeler | proje sorumlusu · kendi tesisi | Projeler tanımlı · normal | Projeler ekranını açar | Durum ve son tarihle listelenir | Geciken proje ayrı işaretlenir | yazma yok | yok | `proje-bagimliligi.test.ts` |
+| `PRJ-BAG-001` | /projeler | proje sorumlusu · kendi tesisi | Bağımlılık döngü yaratacak · çelişen | Bağımlılık ekler | Döngü reddedilir | Neden reddedildiği yazılır | yazma yok | yok | `proje-bagimliligi.test.ts` |
 
 ## Rapor · 3 senaryo
 
 | ID | Rota | Rol · kapsam | Ön koşul · veri | Eylem | Beklenen sonuç | Ekran | Denetim izi | Görev/bildirim | Test |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `RAP-URT-001` | /raporlar | uyum yöneticisi · kendi santrali | Veri var · normal | Raporu dışa aktarır | Sayfa başına Excel ve CSV üretilir | Hangi sayfanın indirileceği açık | yazma yok | yok | `senaryo-platform.test.ts` |
-| `RAP-URT-002` | /raporlar | uyum uzmanı · tek santral | Kurumda başka santraller var · normal | Rapor üretir | Yalnız kendi kapsamı raporlanır | Sayılar ekranla aynı | yazma yok | yok | `disa-aktarim-paketi.test.ts` |
-| `RAP-URT-003` | /raporlar | uyum yöneticisi · kendi santrali | Hücrenin yarısından çoğu değerlendirilmemiş · bilinmiyor | Rapor matrisine bakar | Yüzde artık hücreyi TEMSİL ETMEZ ve hücre bilinmeyen işareti alır | Bilinmeyen oranı ayrıca yazılır | yazma yok | yok | `senaryo-platform.test.ts` |
+| `RAP-URT-001` | /raporlar | uyum yöneticisi · kendi tesisi | Veri var · normal | Raporu dışa aktarır | Sayfa başına Excel ve CSV üretilir | Hangi sayfanın indirileceği açık | yazma yok | yok | `senaryo-platform.test.ts` |
+| `RAP-URT-002` | /raporlar | uyum uzmanı · tek tesis | Kurumda başka tesisler var · normal | Rapor üretir | Yalnız kendi kapsamı raporlanır | Sayılar ekranla aynı | yazma yok | yok | `disa-aktarim-paketi.test.ts` |
+| `RAP-URT-003` | /raporlar | uyum yöneticisi · kendi tesisi | Hücrenin yarısından çoğu değerlendirilmemiş · bilinmiyor | Rapor matrisine bakar | Yüzde artık hücreyi TEMSİL ETMEZ ve hücre bilinmeyen işareti alır | Bilinmeyen oranı ayrıca yazılır | yazma yok | yok | `senaryo-platform.test.ts` |
 
 ## Risk · 3 senaryo
 
 | ID | Rota | Rol · kapsam | Ön koşul · veri | Eylem | Beklenen sonuç | Ekran | Denetim izi | Görev/bildirim | Test |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `RSK-LST-001` | /riskler | risk sorumlusu · kendi santrali | Riskler tanımlı · normal | Riskler ekranını açar | Artık risk sıralamasıyla listelenir | Eşikler konsoldan gelir | yazma yok | yok | `risk-eylem.test.ts` |
-| `RSK-LST-002` | /riskler | risk sorumlusu · kendi santrali | Artık risk hesaplanmamış · bilinmiyor | Listeye bakar | "Hesaplanmadı" yazılır; 0 DEĞİL | Bilinmeyen işaretçisi | yazma yok | yok | `risk-eylem.test.ts` |
-| `RSK-DTY-001` | /riskler/[id] | risk sorumlusu · kendi santrali | Kullanıcı yazma yetkili · normal | Risk detayında kontrol bağlar | Zincir kurulur | Risk → kontrol → bulgu zinciri görünür | Risk · guncelleme | yok | `risk-eylem.test.ts` |
+| `RSK-LST-001` | /riskler | risk sorumlusu · kendi tesisi | Riskler tanımlı · normal | Riskler ekranını açar | Artık risk sıralamasıyla listelenir | Eşikler konsoldan gelir | yazma yok | yok | `risk-eylem.test.ts` |
+| `RSK-LST-002` | /riskler | risk sorumlusu · kendi tesisi | Artık risk hesaplanmamış · bilinmiyor | Listeye bakar | "Hesaplanmadı" yazılır; 0 DEĞİL | Bilinmeyen işaretçisi | yazma yok | yok | `risk-eylem.test.ts` |
+| `RSK-DTY-001` | /riskler/[id] | risk sorumlusu · kendi tesisi | Kullanıcı yazma yetkili · normal | Risk detayında kontrol bağlar | Zincir kurulur | Risk → kontrol → bulgu zinciri görünür | Risk · guncelleme | yok | `risk-eylem.test.ts` |
 
 ## Sağlık · 22 senaryo
 
@@ -321,7 +321,7 @@ Senaryo: **282** · testli: **282** · GAP: **0**
 | `SAG-MOT-001` | /saglik | platform yöneticisi · kurum geneli | Motor kütüğü dolu · normal | Sağlık ekranını açar | Her motorun son koşusu ve sonucu görünür | Hiç koşmamış motor ayrı gösterilir | yazma yok | yok | `saglik-mantik.test.ts` |
 | `SAG-MOT-002` | — | geliştirici / denetçi · kurum geneli | — · normal | Kütük, sözlük ve iş tanımları karşılaştırılır | Üçü de AYNI motor kümesini söyler | — | yazma yok | yok | `saglik-mantik.test.ts` |
 | `SAG-KOK-001` | /saglik | platform yöneticisi · kurum geneli | Kaydın köken satırı yok · bilinmiyor | Köken bölümüne bakar | Kayıt MANUEL sayılır; "otomatik" kovasına GİRMEZ | null "ölçülmedi" yazar, 0 "%0" yazar — ikisi ayrı | yazma yok | yok | `koken.test.ts` |
-| `SAG-KOK-002` | /saglik | BT yöneticisi · tek santral | Parti içinde kapsam dışı bir kayıt var · kısmi | Toplu doğrulama yapar | Kapsam dışı TEK kayıt bütün partiyi durdurur | Yarım onay bırakılmaz | yazma yok | yok | `koken-kapsam.test.ts` |
+| `SAG-KOK-002` | /saglik | BT yöneticisi · tek tesis | Parti içinde kapsam dışı bir kayıt var · kısmi | Toplu doğrulama yapar | Kapsam dışı TEK kayıt bütün partiyi durdurur | Yarım onay bırakılmaz | yazma yok | yok | `koken-kapsam.test.ts` |
 | `SAG-SRT-001` | /saglik | platform yöneticisi · kurum geneli | Adaptör bağlı değil · yok | Sertifikasyon raporuna bakar | Bağlantı isteyen kontroller "uygulanamaz"dır, "kaldı" DEĞİL | Eksik sır bir kusur değil, kurulum adımıdır | yazma yok | yok | `connector-sertifika.test.ts` |
 | `SAG-YAP-001` | /saglik | platform yöneticisi · kurum geneli | Sır referansı biçimi bozuk · çelişen | Yapılandırmayı kaydetmeyi dener | Reddedilir; sır DEĞERİ hiç istenmez | Form kayıtlı referansı geri doldurmaz | yazma yok | yok | `entegrasyon-yapilandirma.test.ts` |
 | `SAG-ESL-001` | /esleme | platform yöneticisi · kurum geneli | Hiçbir güven kuralı tanımlı değil · bilinmiyor | Önizleme çalıştırır | Güven ÖLÇÜLMEDİ (null) — sıfır DEĞİL | Varsayılan bir ÖLÇÜM DEĞİLDİR | yazma yok | yok | `esleme.test.ts` |
@@ -336,7 +336,7 @@ Senaryo: **282** · testli: **282** · GAP: **0**
 
 | ID | Rota | Rol · kapsam | Ön koşul · veri | Eylem | Beklenen sonuç | Ekran | Denetim izi | Görev/bildirim | Test |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `SAH-GRS-001` | / | herhangi bir kullanıcı · kendi kapsamı | Bazı santralin fotoğrafı yok · kısmi | Saha ekranını açar | Fotoğrafı olmayan santral BAŞKA santralin görselini almaz | Tipografik geri düşüş; görsel ödünç alınmaz | yazma yok | yok | `ters-kapsam-ekran.test.ts` |
+| `SAH-GRS-001` | / | herhangi bir kullanıcı · kendi kapsamı | Bazı tesisin fotoğrafı yok · kısmi | Saha ekranını açar | Fotoğrafı olmayan tesis BAŞKA tesisin görselini almaz | Tipografik geri düşüş; görsel ödünç alınmaz | yazma yok | yok | `ters-kapsam-ekran.test.ts` |
 | `SAH-GRS-002` | / | herhangi bir kullanıcı · kendi kapsamı | Hiç anlık görüntü alınmamış · yok | Saha ekranını açar | Eğilim şeridi null kalır — düz sıfır çizgisi ÇİZİLMEZ | "Ölçülmedi" yazılır; eğilim uydurulmaz | yazma yok | yok | `ters-kapsam-eylem.test.ts` |
 
 ## Saklama · 1 senaryo
@@ -349,8 +349,8 @@ Senaryo: **282** · testli: **282** · GAP: **0**
 
 | ID | Rota | Rol · kapsam | Ön koşul · veri | Eylem | Beklenen sonuç | Ekran | Denetim izi | Görev/bildirim | Test |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `SAY-KMP-001` | /sayim | BT yöneticisi · kendi santrali | Kapsamda hiç varlık yok · yok | Sayım açmayı dener | Açılmaz — sıfır paydalı kampanya olamaz | Neden açılmadığı yazılır | yazma yok | yok | `faz-g-varlik.test.ts` |
-| `SAY-KMP-002` | /sayim | BT yöneticisi · kendi santrali | Satır "bulunamadı" işaretlendi · kısmi | Sonucu kaydeder | Varlık SİLİNMEZ — envanterden düşürme ayrı bir karardır | "Sayılmadı" ile "bulunamadı" ayrı durumlardır | Sayım satırı · guncelleme | yok | `faz-g-eylem.test.ts` |
+| `SAY-KMP-001` | /sayim | BT yöneticisi · kendi tesisi | Kapsamda hiç varlık yok · yok | Sayım açmayı dener | Açılmaz — sıfır paydalı kampanya olamaz | Neden açılmadığı yazılır | yazma yok | yok | `faz-g-varlik.test.ts` |
+| `SAY-KMP-002` | /sayim | BT yöneticisi · kendi tesisi | Satır "bulunamadı" işaretlendi · kısmi | Sonucu kaydeder | Varlık SİLİNMEZ — envanterden düşürme ayrı bir karardır | "Sayılmadı" ile "bulunamadı" ayrı durumlardır | Sayım satırı · guncelleme | yok | `faz-g-eylem.test.ts` |
 
 ## Sistem · 36 senaryo
 
@@ -359,11 +359,11 @@ Senaryo: **282** · testli: **282** · GAP: **0**
 | `SIS-HTA-001` | — | herhangi bir kullanıcı · kendi kapsamı | Adres yok · yok | Geçersiz bir adres açar | Bulunamadı sayfası ve dönüş yolu gösterilir | Ana ekrana bağ | yazma yok | yok | `senaryo-platform.test.ts` |
 | `SIS-KBK-001` | — | herhangi bir kullanıcı · kendi kapsamı | Kullanıcı giriş yapmış · normal | Rotalar arasında gezinir | Aktif bölüm gezinmede işaretlidir | Her sayfada tek bir ana bölge bulunur | yazma yok | yok | `yardim.test.ts` |
 | `SIS-ERS-001` | — | klavye kullanıcısı · kendi kapsamı | Fare kullanılmıyor · normal | Sekme ile gezinir | Odak görünür ve sıra mantıklıdır | Çekmecede odak tuzağı ve ESC çalışır | yazma yok | yok | `yardim.test.ts` |
-| `SIS-RSP-001` | — | sahadaki kullanıcı · kendi kapsamı | Ekran dar · normal | Ekranı daraltır | Sayfa yatay kaymaz; içerik yeniden akar | Kritik bilgi gizlenmez | yazma yok | yok | `senaryo-platform.test.ts` |
+| `SIS-RSP-001` | — | sahadaki kullanıcı · kendi kapsamı | Ekran dar · normal | Ekranı daraltır | Sayfa yatay kaymaz; içerik yeniden akar | Kritik bilgi gizlenmez | yazma yok | yok | `senaryo-platform.test.ts` · `senaryo-platform.test.ts` · `senaryo-platform.test.ts` |
 | `SIS-DIL-001` | — | son kullanıcı · kendi kapsamı | — · normal | Ekranlardaki metinleri okur | Kullanıcıya dönük metinlerde teknik jargon yoktur | Türkçe, kısa, kurumsal | yazma yok | yok | `senaryo-platform.test.ts` |
 | `SIS-KPS-001` | — | geliştirici / denetçi · kurum geneli | — · normal | Ekran kapısı ile sunucu kapısı karşılaştırılır | İki kapı AYNI yanıtı verir | Ekran sunucudan dar da geniş de değildir | yazma yok | yok | `ekran-yazma-kapisi.test.ts` |
 | `SIS-KPS-002` | — | geliştirici / denetçi · kurum geneli | — · normal | Kapsam sonrası bildiren her eylem taranır | Ön kapı TEK BAŞINA yetki VERMEZ; ikinci aşama zorunludur | — | yazma yok | yok | `kapsam-kapisi.test.ts` |
-| `SIS-GVN-001` | — | güvenlik denetçisi · tek santral | Kapsam dışı kayıt veritabanında GERÇEKTEN var · normal | Liste, filtre ve yazma yolları denenir | Hiçbiri kaydı döndürmez, ima etmez ya da yazdırmaz | Açıkça istenen kapsam dışı sorgu 403 döner | yazma yok | yok | `guvenlik-negatif.test.ts` |
+| `SIS-GVN-001` | — | güvenlik denetçisi · tek tesis | Kapsam dışı kayıt veritabanında GERÇEKTEN var · normal | Liste, filtre ve yazma yolları denenir | Hiçbiri kaydı döndürmez, ima etmez ya da yazdırmaz | Açıkça istenen kapsam dışı sorgu 403 döner | yazma yok | yok | `guvenlik-negatif.test.ts` |
 | `SIS-SIR-001` | — | güvenlik denetçisi · kurum geneli | Sır referansı tanımlı · normal | Sır katmanı çözümlenir | Yalnız referans saklanır; tanınmayan sağlayıcı denetimden GEÇMEZ | Bağlı olup olmadığı ayrıca bildirilir | yazma yok | yok | `sir-katmani.test.ts` |
 | `SIS-ALT-001` | /saglik | platform yöneticisi · kurum geneli | Zorunlu bir kontrol ölçülemedi · bilinmiyor | Hazırlık özetine bakar | HAZIR cümlesi KURULMAZ | Ölçülemeyen zorunlu kontrol ayrı sayılır | yazma yok | yok | `ot48-49-altyapi.test.ts` |
 | `SIS-KPS-003` | — | geliştirici / denetçi · kurum geneli | — · normal | Bütün sunucu eylemleri taranır | Kapsam sonrası bildiren her eylem ikinci aşamayı GERÇEKTEN çağırır | — | yazma yok | yok | `kapsam-kapisi-nobetci.test.ts` |
@@ -374,14 +374,14 @@ Senaryo: **282** · testli: **282** · GAP: **0**
 | `SIS-KPS-004` | — | kimliksiz ziyaretçi · yok | Oturum yok · yok | Bir sunucu eylemini doğrudan çağırır | Kapı "oturum gerekli" diye reddeder | — | yazma yok | yok | `yetki-kapisi.test.ts` |
 | `SIS-KPS-005` | — | salt okuyucu · kurum geneli | Rolün modülde yazma izni yok · normal | Bir yazma eylemi çağırır | İlk kapı TEK BAŞINA reddeder — ikinci aşamaya kalmaz | Yazma yüzeyi hiç açılmaz | yazma yok | yok | `yetki-kapisi.test.ts` |
 | `SIS-KPS-006` | — | uyum uzmanı · kurum geneli | Yetki yalnız uyum modülüne verilmiş · normal | Envanter modülünde yazma dener | Reddedilir | Modül kısıtı diğer modülleri kapatır | yazma yok | yok | `yetki-kapisi.test.ts` |
-| `SIS-KPS-007` | — | BT yöneticisi · tek santral | Kaydın santrali kullanıcının kapsamı dışında · normal | Kayıt okunduktan sonra kapsam kapısı sorulur | Eyleme özel mesajla reddedilir | Kullanıcı neyin eksik olduğunu okur | yazma yok | yok | `yetki-kapisi.test.ts` |
+| `SIS-KPS-007` | — | BT yöneticisi · tek tesis | Kaydın tesisi kullanıcının kapsamı dışında · normal | Kayıt okunduktan sonra kapsam kapısı sorulur | Eyleme özel mesajla reddedilir | Kullanıcı neyin eksik olduğunu okur | yazma yok | yok | `yetki-kapisi.test.ts` |
 | `SIS-KBK-010` | /uyum | uyum uzmanı · kurum geneli | Uyum alanı açık · normal | İkincil gezinme sırasına bakar | Sıra sarar; 16 bağın hepsi görünür | İkinci satır çizilir, hiçbir bağ ekran dışında kalmaz | yazma yok | yok | `kabuk-gezinme.test.ts` |
 | `SIS-KBK-011` | /uyum | uyum uzmanı · kurum geneli | Geniş ekran · normal | Sıranın taşma davranışı okunur | Kaydırma çubuğu gizlenerek taşma saklanmaz | Kayan ama ipucu vermeyen sıra YOK | yazma yok | yok | `kabuk-gezinme.test.ts` |
 | `SIS-KBK-012` | /uyum | uyum uzmanı · kurum geneli | Sıra iki satıra sarmış · normal | Sıranın yüksekliği okunur | Yükseklik içerikle büyür (sabit değil) | İkinci satır tam görünür | yazma yok | yok | `kabuk-gezinme.test.ts` |
-| `SIS-KBK-013` | /uyum | saha kullanıcısı · tek santral | Ekran eni 375px · normal | Sırayı parmakla yana kaydırır | Sıra yatay kayar — dar bantta sarma çözüm değildir | Bağlar kırpılmadan kaydırılabilir | yazma yok | yok | `kabuk-gezinme.test.ts` |
+| `SIS-KBK-013` | /uyum | saha kullanıcısı · tek tesis | Ekran eni 375px · normal | Sırayı parmakla yana kaydırır | Sıra yatay kayar — dar bantta sarma çözüm değildir | Bağlar kırpılmadan kaydırılabilir | yazma yok | yok | `kabuk-gezinme.test.ts` |
 | `SIS-KBK-014` | /uyum | uyum uzmanı · kurum geneli | Pencere 1440px · yüksek hacim | Bağların toplam eni hesaplanır | Toplam en pencereyi aşar | Tek satır bu alanı taşıyamaz | yazma yok | yok | `kabuk-gezinme.test.ts` |
 | `SIS-KBK-015` | /uyum | uyum uzmanı · kurum geneli | Pencere 1280px · yüksek hacim | Sıranın kaç satıra sardığı hesaplanır | Hiçbir alan iki satırı aşmaz | Gövdenin yeri korunur | yazma yok | yok | `kabuk-gezinme.test.ts` |
-| `SIS-KBK-016` | /uyum | saha kullanıcısı · tek santral | Dar bant · uzun içerik | En uzun bağ adı ölçülür | Hiçbir bağ dar bandın yarısını aşmaz | Gezinme etiketi yarım okunmaz | yazma yok | yok | `kabuk-gezinme.test.ts` |
+| `SIS-KBK-016` | /uyum | saha kullanıcısı · tek tesis | Dar bant · uzun içerik | En uzun bağ adı ölçülür | Hiçbir bağ dar bandın yarısını aşmaz | Gezinme etiketi yarım okunmaz | yazma yok | yok | `kabuk-gezinme.test.ts` |
 | `SIS-KBK-017` | /envanter | BT yöneticisi · kurum geneli | Pencere 1024px · Varlık grubu açık · normal | Grubun alt ekranlarının toplam eni hesaplanır | Sıra sığar — saramadığı için sığmak zorundadır | Alt ekranların hepsi görünür | yazma yok | yok | `kabuk-gezinme.test.ts` |
 | `SIS-KBK-018` | — | ürün ekibi · kurum geneli | Yeni bir ekran eklendi · normal | Rota envanteri sayfa ağacıyla karşılaştırılır | Kabuklu her statik sayfa envanterde | Listede olmayan ekran hiçbir kapıdan geçmez | yazma yok | yok | `kabuk-gezinme.test.ts` |
 | `SIS-BSL-001` | — | herhangi bir kullanıcı · kendi kapsamı | Ekranın vurgusu boş kalabiliyor · yok | Ekran açılır ve H1 okunur | Başlık cümle parçası değil | Ekran okuyucu ve arama sonucu anlamlı bir ad görür | yazma yok | yok | `ekran-basligi.test.ts` |
@@ -397,55 +397,55 @@ Senaryo: **282** · testli: **282** · GAP: **0**
 
 | ID | Rota | Rol · kapsam | Ön koşul · veri | Eylem | Beklenen sonuç | Ekran | Denetim izi | Görev/bildirim | Test |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `MED-KRT-001` | /tasinabilir-medya | güvenlik uzmanı · kendi santrali | Medya zararlı bulundu · normal | Tarama sonucunu kaydeder | Medya kendiliğinden KARANTİNAYA alınır | Karantinadaki medyaya kullanım kaydı girilemez | Medya · guncelleme | yok | `faz-g-eylem.test.ts` |
-| `MED-KRT-002` | /tasinabilir-medya | güvenlik uzmanı · kendi santrali | Şifreleme durumu girilmemiş · bilinmiyor | Medya kaydına bakar | Şifreleme ÜÇ DEĞERLİDİR; ölçülmemiş `null` kalır | Onaysız kullanım reddedilmez, UYARIYLA kaydedilir | Medya · guncelleme | yok | `faz-g-eylem.test.ts` |
+| `MED-KRT-001` | /tasinabilir-medya | güvenlik uzmanı · kendi tesisi | Medya zararlı bulundu · normal | Tarama sonucunu kaydeder | Medya kendiliğinden KARANTİNAYA alınır | Karantinadaki medyaya kullanım kaydı girilemez | Medya · guncelleme | yok | `faz-g-eylem.test.ts` |
+| `MED-KRT-002` | /tasinabilir-medya | güvenlik uzmanı · kendi tesisi | Şifreleme durumu girilmemiş · bilinmiyor | Medya kaydına bakar | Şifreleme ÜÇ DEĞERLİDİR; ölçülmemiş `null` kalır | Onaysız kullanım reddedilmez, UYARIYLA kaydedilir | Medya · guncelleme | yok | `faz-g-eylem.test.ts` |
 
 ## Tedarikçi · 1 senaryo
 
 | ID | Rota | Rol · kapsam | Ön koşul · veri | Eylem | Beklenen sonuç | Ekran | Denetim izi | Görev/bildirim | Test |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `TED-OTR-001` | /tedarikciler | güvenlik uzmanı · kendi santrali | Hiç kayıt yok · yok | Tedarikçi oturumlarına bakar | Durum "kaynak bağlı değil" — "oturum yok" DEĞİL | Uyumsuz ile bilinmeyen ayrı sayılır | yazma yok | yok | `tedarikci-oturum.test.ts` |
+| `TED-OTR-001` | /tedarikciler | güvenlik uzmanı · kendi tesisi | Hiç kayıt yok · yok | Tedarikçi oturumlarına bakar | Durum "kaynak bağlı değil" — "oturum yok" DEĞİL | Uyumsuz ile bilinmeyen ayrı sayılır | yazma yok | yok | `tedarikci-oturum.test.ts` |
 
 ## Tesis · 1 senaryo
 
 | ID | Rota | Rol · kapsam | Ön koşul · veri | Eylem | Beklenen sonuç | Ekran | Denetim izi | Görev/bildirim | Test |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `TES-YON-001` | /tesisler | herhangi bir kullanıcı · kendi kapsamı | Eski adres yer imlerinde · yok | /tesisler adresini açar | Kanon listeye yönlendirilir; derin bağ kırılmaz | İki ayrı santral listesi tutulmaz | yazma yok | yok | `ters-kapsam-ekran.test.ts` |
+| `TES-YON-001` | /tesisler | herhangi bir kullanıcı · kendi kapsamı | Eski adres yer imlerinde · yok | /tesisler adresini açar | Kanon listeye yönlendirilir; derin bağ kırılmaz | İki ayrı tesis listesi tutulmaz | yazma yok | yok | `ters-kapsam-ekran.test.ts` |
 
 ## Topoloji · 4 senaryo
 
 | ID | Rota | Rol · kapsam | Ön koşul · veri | Eylem | Beklenen sonuç | Ekran | Denetim izi | Görev/bildirim | Test |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `TOP-SAP-001` | /topoloji | ağ sorumlusu · kendi santrali | Onaylı taban anlık yok · yok | Sapma hesabına bakar | Taban yokken sapma HESAPLANMAZ | İlk anlık kendiliğinden taban olmaz | yazma yok | yok | `topoloji-sapma.test.ts` |
-| `TOP-SAP-002` | /topoloji | ağ sorumlusu · kendi santrali | Kullanıcının onay yetkisi yok · normal | Sapmayı karara bağlamayı dener | Reddedilir; sapma AÇIK kalır | Düğme etkinleşmez, gerekçe alanı eşik ister | yazma yok | yok | `topoloji-tezgah.test.ts` |
-| `TOP-TML-001` | /topoloji | santral kullanıcısı · tek santral | Anlık başka santralin · normal | Kapsam dışı anlığı temel onaylamayı dener | Reddedilir; yürürlükteki temel DEĞİŞMEZ | Yetki cümlesi tesisi adlandırır | yazma yok | yok | `ters-kapsam-eylem.test.ts` |
-| `TOP-BUL-001` | /topoloji | uyum uzmanı · kendi santrali | Madde durumu seçilmemiş · kısmi | Madde durumu bağlamadan bulgu açmayı dener | Reddedilir — bağsız bulgu hangi maddeyi ihlal ettiğini söyleyemez | Eksik alan adlandırılır | yazma yok | yok | `ters-kapsam-eylem.test.ts` |
+| `TOP-SAP-001` | /topoloji | ağ sorumlusu · kendi tesisi | Onaylı taban anlık yok · yok | Sapma hesabına bakar | Taban yokken sapma HESAPLANMAZ | İlk anlık kendiliğinden taban olmaz | yazma yok | yok | `topoloji-sapma.test.ts` |
+| `TOP-SAP-002` | /topoloji | ağ sorumlusu · kendi tesisi | Kullanıcının onay yetkisi yok · normal | Sapmayı karara bağlamayı dener | Reddedilir; sapma AÇIK kalır | Düğme etkinleşmez, gerekçe alanı eşik ister | yazma yok | yok | `topoloji-tezgah.test.ts` |
+| `TOP-TML-001` | /topoloji | tesis kullanıcısı · tek tesis | Anlık başka tesisin · normal | Kapsam dışı anlığı temel onaylamayı dener | Reddedilir; yürürlükteki temel DEĞİŞMEZ | Yetki cümlesi tesisi adlandırır | yazma yok | yok | `ters-kapsam-eylem.test.ts` |
+| `TOP-BUL-001` | /topoloji | uyum uzmanı · kendi tesisi | Madde durumu seçilmemiş · kısmi | Madde durumu bağlamadan bulgu açmayı dener | Reddedilir — bağsız bulgu hangi maddeyi ihlal ettiğini söyleyemez | Eksik alan adlandırılır | yazma yok | yok | `ters-kapsam-eylem.test.ts` |
 
 ## Uyum · 19 senaryo
 
 | ID | Rota | Rol · kapsam | Ön koşul · veri | Eylem | Beklenen sonuç | Ekran | Denetim izi | Görev/bildirim | Test |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `UYU-CRC-001` | /uyum | uyum uzmanı · kendi santrali | En az bir regülasyon tanımlı · normal | Uyum ekranını açar | Çerçeve başına uyum oranı ve açık madde sayısı görünür | Oran payda ile birlikte; çıplak yüzde değil | yazma yok | yok | `uyum-grubu-mantik.test.ts` |
-| `UYU-CRC-002` | /uyum | uyum uzmanı · kendi santrali | Bazı maddeler hiç değerlendirilmemiş · bilinmiyor | Uyum oranına bakar | Değerlendirilmemiş madde paydada kalır, payda sayılmaz | Bilinmeyen dilimi ayrı taramayla çizilir | yazma yok | yok | `uyum-grubu-mantik.test.ts` |
-| `UYU-CRC-003` | /uyum/[cerceve] | uyum uzmanı · kendi santrali | Çerçeve kodu geçerli · normal | Çerçeve detayını açar | Maddeler hiyerarşisiyle listelenir | Madde durumu ve kanıt bağı görünür | yazma yok | yok | `senaryo-uyum.test.ts` |
-| `UYU-UYG-001` | /uyum | uyum uzmanı · kendi santrali | Tesis profiline göre madde uygulanamaz · kısmi | Uygulanabilirlik hesabına bakar | Madde payda dışına çıkar; kusur olarak sayılmaz | "Uygulanamaz" ayrı bir durum olarak yazılır | yazma yok | yok | `uygulanabilirlik.test.ts` |
-| `UYU-UYG-002` | /uyum | uyum uzmanı · kendi santrali | Tesisin profili yok · yok | Uygulanabilirlik hesabına bakar | Hesap yapılamaz ve bu AÇIKÇA yazılır | "Hesaplanamaz" cümlesi; sıfır DEĞİL | yazma yok | Veri kalitesi bulgusu | `uygulanabilirlik.test.ts` |
-| `UYU-OLC-001` | /surecler/[id] | uyum uzmanı · kendi santrali | Kullanıcı yazma yetkili · normal | Madde durumunu değiştirir | Ölçüm kaydedilir | Yeni durum ve ölçen kişi görünür | Uyum ölçümü · guncelleme | yok | `faz-g-eylem.test.ts` |
-| `UYU-OLC-002` | /surecler/[id] | uyum uzmanı · tek santral | Süreç başka santrale ait · normal | Ölçüm kaydetmeyi dener | Kapsam kapısı reddeder | Süreç listede görünmez | yazma yok | yok | `surec-kapsam-eylem.test.ts` |
+| `UYU-CRC-001` | /uyum | uyum uzmanı · kendi tesisi | En az bir regülasyon tanımlı · normal | Uyum ekranını açar | Çerçeve başına uyum oranı ve açık madde sayısı görünür | Oran payda ile birlikte; çıplak yüzde değil | yazma yok | yok | `uyum-grubu-mantik.test.ts` |
+| `UYU-CRC-002` | /uyum | uyum uzmanı · kendi tesisi | Bazı maddeler hiç değerlendirilmemiş · bilinmiyor | Uyum oranına bakar | Değerlendirilmemiş madde paydada kalır, payda sayılmaz | Bilinmeyen dilimi ayrı taramayla çizilir | yazma yok | yok | `uyum-grubu-mantik.test.ts` |
+| `UYU-CRC-003` | /uyum/[cerceve] | uyum uzmanı · kendi tesisi | Çerçeve kodu geçerli · normal | Çerçeve detayını açar | Maddeler hiyerarşisiyle listelenir | Madde durumu ve kanıt bağı görünür | yazma yok | yok | `senaryo-uyum.test.ts` |
+| `UYU-UYG-001` | /uyum | uyum uzmanı · kendi tesisi | Tesis profiline göre madde uygulanamaz · kısmi | Uygulanabilirlik hesabına bakar | Madde payda dışına çıkar; kusur olarak sayılmaz | "Uygulanamaz" ayrı bir durum olarak yazılır | yazma yok | yok | `uygulanabilirlik.test.ts` |
+| `UYU-UYG-002` | /uyum | uyum uzmanı · kendi tesisi | Tesisin profili yok · yok | Uygulanabilirlik hesabına bakar | Hesap yapılamaz ve bu AÇIKÇA yazılır | "Hesaplanamaz" cümlesi; sıfır DEĞİL | yazma yok | Veri kalitesi bulgusu | `uygulanabilirlik.test.ts` |
+| `UYU-OLC-001` | /surecler/[id] | uyum uzmanı · kendi tesisi | Kullanıcı yazma yetkili · normal | Madde durumunu değiştirir | Ölçüm kaydedilir | Yeni durum ve ölçen kişi görünür | Uyum ölçümü · guncelleme | yok | `faz-g-eylem.test.ts` |
+| `UYU-OLC-002` | /surecler/[id] | uyum uzmanı · tek tesis | Süreç başka tesise ait · normal | Ölçüm kaydetmeyi dener | Kapsam kapısı reddeder | Süreç listede görünmez | yazma yok | yok | `surec-kapsam-eylem.test.ts` |
 | `UYU-SHP-001` | /uyum | uyum yöneticisi · kurum geneli | Maddenin sahibi yok · kısmi | Sahiplik atar | Sahiplik kaydedilir | Sahipsiz madde sayısı düşer | Sahiplik · olusturma | yok | `faz-d-uyum.test.ts` |
 | `UYU-SUR-001` | /regulasyonlar | uyum yöneticisi · kurum geneli | Yeni sürüm hazırlanıyor · normal | Regülasyonun yeni sürümünü etkinleştirir | Eski değerlendirmeler SİLİNMEZ; fark listesi çıkar | Yarım sürüm oluşmaz — kopyalama ya tamdır ya hiç | Sürüm · olusturma + fark satırları | yok | `surum.test.ts` |
-| `UYU-IST-001` | /uyum | uyum uzmanı · kendi santrali | Gerekçe kısa ya da bitiş tarihi geçmiş · çelişen | İstisna talep eder | Reddedilir — süresiz ya da gerekçesiz istisna olmaz | Madde durumu talepten SONRA da aynı kalır | yazma yok | yok | `istisna-eylem.test.ts` |
+| `UYU-IST-001` | /uyum | uyum uzmanı · kendi tesisi | Gerekçe kısa ya da bitiş tarihi geçmiş · çelişen | İstisna talep eder | Reddedilir — süresiz ya da gerekçesiz istisna olmaz | Madde durumu talepten SONRA da aynı kalır | yazma yok | yok | `istisna-eylem.test.ts` |
 | `UYU-IST-002` | /uyum | uyum yöneticisi · kurum geneli | İstisna onay bekliyor · normal | İstisnayı onaylar | Madde kapsam dışına çıkar; süre dolunca geri döner | Yan etki patlarsa istisna da aktif KALMAZ | İstisna + durum + tarihçe + iz birlikte | Onay merkezine talep | `istisna.test.ts` |
-| `UYU-TRN-001` | /uyum | uyum yöneticisi · tek santral | Aynı gün hem süreç geneli hem santral kaydı var · yinelenen | Eğilim çizgisine bakar | Aynı gün için tek nokta sayılır; kapsam daraltması korunur | Başka santralin noktası sızmaz | yazma yok | yok | `uyum-trend.test.ts` |
-| `UYU-BLG-001` | /uyum | uyum uzmanı · tek santral | Belge başka santrale bağlı · kısmi | Matris hücresine bakar | Belge ÖTEKİ santralin hücresine SIZMAZ | Kurumsal belge her santralin hücresine düşer | yazma yok | yok | `uyum-belge-bagi.test.ts` |
-| `UYU-PRS-001` | /prosesler | uyum uzmanı · tek santral | Süreç başka santrale ait olacak · normal | Süreç açmayı dener | Reddedilir; süreç başka santrale KAÇIRILAMAZ | Santral seçimi kapsamla sınırlı | yazma yok | yok | `faz-b-eylem.test.ts` |
-| `UYU-OLG-001` | /surecler/[id] | uyum uzmanı · kendi santrali | Olgunluk hiç ölçülmemiş · bilinmiyor | Olgunluk dağılımına bakar | Ölçülmemiş `olculmedi`dir; SIFIR ölçülmüş bir sonuçtur | Ortalama diye bir alan YOKTUR | yazma yok | yok | `faz-g-uyum.test.ts` |
-| `UYU-SRC-001` | /surecler | uyum uzmanı · kendi santrali | Hiçbir madde değerlendirilmemiş · yok | Süreç listesini açar | Yüzde null kalır — %0 GÖSTERİLMEZ | "Ölçülmedi" yazılır | yazma yok | yok | `ters-kapsam-ekran.test.ts` |
-| `UYU-SRC-002` | /surecler | uyum uzmanı · kendi santrali | Bazı maddeler kapsam dışı · kısmi | Süreç toplamına bakar | Kapsam dışı maddeler paydaya GİRMEZ; toplam alt sayımların toplamıdır | Kapsam dışı ayrı sayılır | yazma yok | yok | `ters-kapsam-ekran.test.ts` |
-| `UYU-CRC-004` | /uyum/[cerceve] | uyum uzmanı · kendi santrali | Çerçevenin bazı maddeleri hiç değerlendirilmemiş · kısmi | Madde satırını genişletir | Değerlendirilmemiş madde "uyumlu" ya da "uyumsuz" SAYILMAZ | Genişleyen satırda "ölçülmedi" ayrı okunur | yazma yok | yok | `ters-kapsam-ekran.test.ts` |
+| `UYU-TRN-001` | /uyum | uyum yöneticisi · tek tesis | Aynı gün hem süreç geneli hem tesis kaydı var · yinelenen | Eğilim çizgisine bakar | Aynı gün için tek nokta sayılır; kapsam daraltması korunur | Başka tesisin noktası sızmaz | yazma yok | yok | `uyum-trend.test.ts` |
+| `UYU-BLG-001` | /uyum | uyum uzmanı · tek tesis | Belge başka tesise bağlı · kısmi | Matris hücresine bakar | Belge ÖTEKİ tesisin hücresine SIZMAZ | Kurumsal belge her tesisin hücresine düşer | yazma yok | yok | `uyum-belge-bagi.test.ts` |
+| `UYU-PRS-001` | /prosesler | uyum uzmanı · tek tesis | Süreç başka tesise ait olacak · normal | Süreç açmayı dener | Reddedilir; süreç başka tesise KAÇIRILAMAZ | Tesis seçimi kapsamla sınırlı | yazma yok | yok | `faz-b-eylem.test.ts` |
+| `UYU-OLG-001` | /surecler/[id] | uyum uzmanı · kendi tesisi | Olgunluk hiç ölçülmemiş · bilinmiyor | Olgunluk dağılımına bakar | Ölçülmemiş `olculmedi`dir; SIFIR ölçülmüş bir sonuçtur | Ortalama diye bir alan YOKTUR | yazma yok | yok | `faz-g-uyum.test.ts` |
+| `UYU-SRC-001` | /surecler | uyum uzmanı · kendi tesisi | Hiçbir madde değerlendirilmemiş · yok | Süreç listesini açar | Yüzde null kalır — %0 GÖSTERİLMEZ | "Ölçülmedi" yazılır | yazma yok | yok | `ters-kapsam-ekran.test.ts` |
+| `UYU-SRC-002` | /surecler | uyum uzmanı · kendi tesisi | Bazı maddeler kapsam dışı · kısmi | Süreç toplamına bakar | Kapsam dışı maddeler paydaya GİRMEZ; toplam alt sayımların toplamıdır | Kapsam dışı ayrı sayılır | yazma yok | yok | `ters-kapsam-ekran.test.ts` |
+| `UYU-CRC-004` | /uyum/[cerceve] | uyum uzmanı · kendi tesisi | Çerçevenin bazı maddeleri hiç değerlendirilmemiş · kısmi | Madde satırını genişletir | Değerlendirilmemiş madde "uyumlu" ya da "uyumsuz" SAYILMAZ | Genişleyen satırda "ölçülmedi" ayrı okunur | yazma yok | yok | `ters-kapsam-ekran.test.ts` |
 | `UYU-ANL-001` | — | sistem (motor) · kurum geneli | Aynı gün zaten anlık alınmış · yinelenen | Motor aynı gün ikinci kez koşar | İkinci anlık YAZILMAZ — günde bir | — | yazma yok | yok | `ters-kapsam-eylem.test.ts` |
 
-## Ürünleştirme · 9 senaryo
+## Ürünleştirme · 10 senaryo
 
 | ID | Rota | Rol · kapsam | Ön koşul · veri | Eylem | Beklenen sonuç | Ekran | Denetim izi | Görev/bildirim | Test |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -455,17 +455,18 @@ Senaryo: **282** · testli: **282** · GAP: **0**
 | `URN-KUR-004` | — | ürünü sürdüren geliştirici · depo geneli | Ad geçici; kalıcı ad sonra verilecek. Kaynak taraması sözcük-olan adlarda yanlış alarm verdiği için davranış ölçümüne çevrildi · çelişen | Nöbetçi bir adla statik demo derlemesi koşar ve üretilen çıktıya bakar | Varsayılan ad işlenmiş hiçbir yüzeyde geçmez (JS demeti taranmaz — oradaki varsayılan yedeğin kendisidir); nöbetçi ad sekme başlıklarında ve kabuk sözcük markasında görünür. Belgelerdeki başlıklar da varsayılandan sapmaz | Sekme başlığı ve kabuk sözcük markası nöbetçi adı gösterir | yazma yok | yok | `marka-adi.test.ts` |
 | `URN-ALN-001` | — | ürünü sürdüren geliştirici · depo geneli | Kurulu güç bir kolondu; öznitelik satırına taşınıyor · kısmi | Göç koşulduktan sonra kolon ile öznitelik satırı karşılaştırılır | Değeri olan her tesis ve birim aynı sayıyı öznitelik satırında taşır; değeri OLMAYAN satır almaz ve göç ölçüm zamanı uydurmaz | Ekran yok — veri göçü | yazma yok (göç betiği) | yok | `p1-oznitelik-gocu.test.ts` · `p1-oznitelik-gocu.test.ts` |
 | `URN-ALN-002` | — | uyum sorumlusu · kiracı geneli | Uygulanabilirlik kuralı artık öznitelik anahtarı okuyor · kısmi | Bütün tesisler için kapsam yeniden hesaplanır | Kapsama giren tesis kümesi göç öncesiyle AYNI kalır; elle değiştirilmiş karar korunur; özniteliği ÖLÇÜLMEMİŞ tesis "kapsam dışı" değil "bilinmiyor" döner ve sağlanan başka bir koşulu engellemez | Uygulanabilirlik kararı gerekçesiyle; ölçülmemiş nitelik "bilinmiyor" yazar | hesaplama | yok | `p1-oznitelik-gocu.test.ts` · `uygulanabilirlik.test.ts` · `uygulanabilirlik.test.ts` |
-| `URN-ALN-004` | /tesisler/[id] | enerji kiracısının uyum sorumlusu · tek tesis | Tesisin tipi bir sektöre bağlı; o sektörün terim sözlüğü kurulu · dolu | Tesis 360 ekranı açılır; sonra sektör sözlüğü kaldırılıp aynı ekran yeniden açılır | Sözlük kuruluyken ekran adı "Santral 360" ve birim şeridi "üretim üniteleri"; sözlük yokken AYNI bileşen "Tesis 360" ve "birimler" der. Eksik biçim çekirdeğe düşer, ekran boş kalmaz | Tesis 360 — sekme başlığı, ölçü şeridi, birim bölümü ve saha şeridi sözlükten | yazma yok | yok | `p1-ikinci-sozluk.test.ts` · `p1-kabuk-sozluk.test.ts` · `p1-kabuk-sozluk.test.ts` · `p1-kabuk-sozluk.test.ts` · `p1-terim-sozlugu.test.ts` · `p1-terim-sozlugu.test.ts` · `p1-tesis360-sozluk.test.ts` · `p1-tesis360-sozluk.test.ts` |
-| `URN-ALN-003` | — | ürünü sürdüren geliştirici · depo geneli | Bugün 258 dosya hâlâ gömülü terim taşıyor; borç kütüğe yazıldı · kısmi | Bekçi test app/, components/ ve lib/ altındaki .ts/.tsx/.css dosyalarını (adları dâhil) tarar | İzin listesinde OLMAYAN dosyada sektör terimi varsa kırmızı; listedeki bir dosyada terim kalmamışsa kırmızı (listeden düşürülür); liste tavanı aşamaz. Tarama metin literaliyle sınırlı değildir — tanımlayıcılar, yorumlar, CSS sınıfları ve dosya adları da sayılır | Ekran yok — kapı | yazma yok | yok | `bekci/sektor-terimi.test.ts` · `bekci/sektor-terimi.test.ts` |
-| `URN-ALN-007` | — | ürünü sürdüren geliştirici · depo geneli | Terim araması iki küçültmenin (tr-TR ve değişmez) birleşimi üzerinde yapılır · yok | Bugün depoda geçmeyen yazımlar (ÜNİTE · TERMİK · TERMIK · UNITE · DGKÇ · şapkasız rüzgar) bekçi kalıbına verilir | Her yazım için düzeltme ÖNCESİ kalıp 0, bugünkü kalıp 1 eşleşme verir. Katlama mantığı tek küçültmeye sadeleştirilirse ya da Unicode sözcük sınırı `\b`ye döndürülürse vakalar kırmızıya döner; körlük sessizce geri gelemez | Ekran yok — kapı | yazma yok | yok | `bekci/katlama-korlugu.test.ts` · `bekci/katlama-korlugu.test.ts` · `bekci/katlama-korlugu.test.ts` · `bekci/katlama-korlugu.test.ts` · `bekci/katlama-korlugu.test.ts` · `bekci/katlama-korlugu.test.ts` · `bekci/katlama-korlugu.test.ts` · `bekci/katlama-korlugu.test.ts` |
+| `URN-ALN-004` | /tesisler/[id] | enerji kiracısının uyum sorumlusu · tek tesis | Tesisin tipi bir sektöre bağlı; o sektörün terim sözlüğü kurulu · dolu | Tesis 360 ekranı açılır; sonra sektör sözlüğü kaldırılıp aynı ekran yeniden açılır | Sözlük kuruluyken ekran adı "Tesis 360" ve birim şeridi "üretim üniteleri"; sözlük yokken AYNI bileşen "Tesis 360" ve "birimler" der. Eksik biçim çekirdeğe düşer, ekran boş kalmaz | Tesis 360 — sekme başlığı, ölçü şeridi, birim bölümü ve saha şeridi sözlükten | yazma yok | yok | `bekci/muafiyet-canli.test.ts` · `bekci/muafiyet-canli.test.ts` · `bekci/muafiyet-canli.test.ts` · `bekci/muafiyet-canli.test.ts` · `p1-ikinci-sozluk.test.ts` · `p1-kabuk-sozluk.test.ts` · `p1-kabuk-sozluk.test.ts` · `p1-kabuk-sozluk.test.ts` · `p1-terim-sozlugu.test.ts` · `p1-terim-sozlugu.test.ts` · `p1-tesis360-sozluk.test.ts` · `p1-tesis360-sozluk.test.ts` |
+| `URN-ALN-003` | — | ürünü sürdüren geliştirici · depo geneli | Aşama E sonunda 12 dosya hâlâ gömülü terim taşıyor (258'den indi); kalanların her biri kütükte YAZILI bir kalıcı ya da ertelenmiş gerekçe taşıyor · kısmi | Bekçi test app/, components/ ve lib/ altındaki .ts/.tsx/.css dosyalarını (adları dâhil) tarar | İzin listesinde OLMAYAN dosyada sektör terimi varsa kırmızı; listedeki bir dosyada terim kalmamışsa kırmızı (listeden düşürülür); liste tavanı aşamaz. Tarama metin literaliyle sınırlı değildir — tanımlayıcılar, yorumlar, CSS sınıfları ve dosya adları da sayılır | Ekran yok — kapı | yazma yok | yok | `bekci/cekirdek-taban.test.ts` · `bekci/cekirdek-taban.test.ts` · `bekci/cekirdek-taban.test.ts` · `bekci/cekirdek-taban.test.ts` · `bekci/sektor-terimi.test.ts` · `bekci/sektor-terimi.test.ts` · `bekci/sektor-terimi.test.ts` |
+| `URN-ALN-007` | — | ürünü sürdüren geliştirici · depo geneli | Terim araması iki küçültmenin (tr-TR ve değişmez) birleşimi üzerinde yapılır · yok | Bugün depoda geçmeyen yazımlar (ÜNİTE · TERMİK · TERMIK · UNITE · DGKÇ · şapkasız rüzgar) bekçi kalıbına verilir | Her yazım için düzeltme ÖNCESİ kalıp 0, bugünkü kalıp 1 eşleşme verir. Katlama mantığı tek küçültmeye sadeleştirilirse ya da Unicode sözcük sınırı `\b`ye döndürülürse vakalar kırmızıya döner; körlük sessizce geri gelemez | Ekran yok — kapı | yazma yok | yok | `bekci/cekirdek-tarayici.test.ts` · `bekci/cekirdek-tarayici.test.ts` · `bekci/cekirdek-tarayici.test.ts` · `bekci/cekirdek-tarayici.test.ts` · `bekci/cekirdek-tarayici.test.ts` · `bekci/cekirdek-tarayici.test.ts` · `bekci/cekirdek-tarayici.test.ts` · `bekci/cekirdek-tarayici.test.ts` · `bekci/cekirdek-tarayici.test.ts` · `bekci/cekirdek-tarayici.test.ts` · `bekci/cekirdek-tarayici.test.ts` · `bekci/cekirdek-tarayici.test.ts` · `bekci/katlama-korlugu.test.ts` · `bekci/katlama-korlugu.test.ts` · `bekci/katlama-korlugu.test.ts` · `bekci/katlama-korlugu.test.ts` · `bekci/katlama-korlugu.test.ts` · `bekci/katlama-korlugu.test.ts` · `bekci/katlama-korlugu.test.ts` · `bekci/katlama-korlugu.test.ts` · `bekci/katlama-korlugu.test.ts` · `bekci/katlama-korlugu.test.ts` · `bekci/katlama-korlugu.test.ts` · `bekci/katlama-korlugu.test.ts` · `bekci/katlama-korlugu.test.ts` · `bekci/katlama-korlugu.test.ts` · `bekci/terim-dogrulama.test.ts` · `bekci/terim-dogrulama.test.ts` · `bekci/terim-dogrulama.test.ts` · `bekci/terim-dogrulama.test.ts` · `bekci/terim-dogrulama.test.ts` |
+| `URN-ALN-008` | — | ürünü sürdüren geliştirici · depo geneli | Sözlük altı hâl verir (tekil · çoğul · iyelik · belirtme · bulunma · yönelme); yoksunluk (-siz) ve ayrılma (-den) hâlleri YOKTUR · yok | Bekçi, kaynakta `${…sözlük çağrısı…}` hemen ardından küçük harf gelen yazımları arar (`${terim('tesis')}siz`) | Tek bir örnek bile kırmızı verir; tavan sıfırdır ve borç kütüğü yoktur. Ek ünlü uyumuna göre değişir ("saha" → "sahasız", "istasyon" → "istasyonsuz"): çekirdek sözlükte doğru görünen yazım sektör paketiyle bozulur. Aşama E'de üç gerçek örnek bu kalıpla bulundu ve cümleler var olan hâllerle yeniden yazıldı; kalıcı vakalar o üçünü tutuyor | Ekran yok — kapı | yazma yok | yok | `bekci/ek-eklemesi.test.ts` · `bekci/ek-eklemesi.test.ts` · `bekci/ek-eklemesi.test.ts` · `bekci/ek-eklemesi.test.ts` |
 
 ## Varlık aktarımı · 3 senaryo
 
 | ID | Rota | Rol · kapsam | Ön koşul · veri | Eylem | Beklenen sonuç | Ekran | Denetim izi | Görev/bildirim | Test |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `VAK-YUK-001` | /varlik-aktarim | BT yöneticisi · kendi santrali | Dosya desteklenmeyen türde · çelişen | Desteklenmeyen uzantılı dosya yükler | Reddedilir; aktarım kaydı AÇILMAZ | Hata uzantıyı adlandırır | yazma yok | yok | `ters-kapsam-eylem.test.ts` · `ters-kapsam-eylem.test.ts` |
-| `VAK-ESL-001` | /varlik-aktarim | BT yöneticisi · kendi santrali | Zorunlu hedef alan eşlenmemiş · kısmi | Eksik eşlemeyle ilerlemeyi dener | Reddedilir; eksik alan adlandırılır | Aşama hattı eşleşme adımında kalır | yazma yok | yok | `ters-kapsam-eylem.test.ts` |
-| `VAK-RED-001` | /varlik-aktarim | BT yöneticisi · kendi santrali | Aktarım zaten onaylanmış · normal | Onaylanmış aktarımı reddetmeyi dener | Reddedilir — karara bağlanmış aktarım yeniden karara açılmaz | Durum değişmez | yazma yok | yok | `ters-kapsam-eylem.test.ts` |
+| `VAK-YUK-001` | /varlik-aktarim | BT yöneticisi · kendi tesisi | Dosya desteklenmeyen türde · çelişen | Desteklenmeyen uzantılı dosya yükler | Reddedilir; aktarım kaydı AÇILMAZ | Hata uzantıyı adlandırır | yazma yok | yok | `ters-kapsam-eylem.test.ts` · `ters-kapsam-eylem.test.ts` |
+| `VAK-ESL-001` | /varlik-aktarim | BT yöneticisi · kendi tesisi | Zorunlu hedef alan eşlenmemiş · kısmi | Eksik eşlemeyle ilerlemeyi dener | Reddedilir; eksik alan adlandırılır | Aşama hattı eşleşme adımında kalır | yazma yok | yok | `ters-kapsam-eylem.test.ts` |
+| `VAK-RED-001` | /varlik-aktarim | BT yöneticisi · kendi tesisi | Aktarım zaten onaylanmış · normal | Onaylanmış aktarımı reddetmeyi dener | Reddedilir — karara bağlanmış aktarım yeniden karara açılmaz | Durum değişmez | yazma yok | yok | `ters-kapsam-eylem.test.ts` |
 
 ## Yardım · 2 senaryo
 
@@ -478,22 +479,22 @@ Senaryo: **282** · testli: **282** · GAP: **0**
 
 | ID | Rota | Rol · kapsam | Ön koşul · veri | Eylem | Beklenen sonuç | Ekran | Denetim izi | Görev/bildirim | Test |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `YDP-STK-001` | /yedek-parca | bakım sorumlusu · kendi santrali | Tedarik süresi ölçülmemiş · bilinmiyor | Parça kaydına bakar | Süre BOŞ kalır; sıfır REDDEDİLİR | Kritik varlığa bağlı parçasızlık AÇIK RİSK olur | yazma yok | yok | `faz-g-eylem.test.ts` |
-| `YDP-BAG-001` | /yedek-parca | santral kullanıcısı · tek santral | Bağın varlığı başka santralde · normal | Kapsam dışı bağı çözmeyi dener | Reddedilir; bağ DURUR | Yetki cümlesi | yazma yok | yok | `ters-kapsam-eylem.test.ts` |
+| `YDP-STK-001` | /yedek-parca | bakım sorumlusu · kendi tesisi | Tedarik süresi ölçülmemiş · bilinmiyor | Parça kaydına bakar | Süre BOŞ kalır; sıfır REDDEDİLİR | Kritik varlığa bağlı parçasızlık AÇIK RİSK olur | yazma yok | yok | `faz-g-eylem.test.ts` |
+| `YDP-BAG-001` | /yedek-parca | tesis kullanıcısı · tek tesis | Bağın varlığı başka tesiste · normal | Kapsam dışı bağı çözmeyi dener | Reddedilir; bağ DURUR | Yetki cümlesi | yazma yok | yok | `ters-kapsam-eylem.test.ts` |
 
 ## Yedekleme · 2 senaryo
 
 | ID | Rota | Rol · kapsam | Ön koşul · veri | Eylem | Beklenen sonuç | Ekran | Denetim izi | Görev/bildirim | Test |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `YED-POL-001` | /yedekleme | BT yöneticisi · kendi santrali | Politika tanımlı · normal | Geri yükleme testi kaydeder | Test koşuya bağlanır ve iz bırakır | Testi olmayan yedek "kanıtlanmadı" der | Restore testi · olusturma | yok | `operasyon-yedekleme-sertifika.test.ts` |
-| `YED-POL-002` | /yedekleme | BT yöneticisi · kendi santrali | Saklama süresi negatif · çelişen | Politikayı kaydetmeyi dener | Reddedilir | Hata cümlesi alanı adlandırır | yazma yok | yok | `operasyon-yedekleme-sertifika.test.ts` |
+| `YED-POL-001` | /yedekleme | BT yöneticisi · kendi tesisi | Politika tanımlı · normal | Geri yükleme testi kaydeder | Test koşuya bağlanır ve iz bırakır | Testi olmayan yedek "kanıtlanmadı" der | Restore testi · olusturma | yok | `operasyon-yedekleme-sertifika.test.ts` |
+| `YED-POL-002` | /yedekleme | BT yöneticisi · kendi tesisi | Saklama süresi negatif · çelişen | Politikayı kaydetmeyi dener | Reddedilir | Hata cümlesi alanı adlandırır | yazma yok | yok | `operasyon-yedekleme-sertifika.test.ts` |
 
 ## Yetkiler · 4 senaryo
 
 | ID | Rota | Rol · kapsam | Ön koşul · veri | Eylem | Beklenen sonuç | Ekran | Denetim izi | Görev/bildirim | Test |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `YTK-LST-001` | /yetkiler | kurum yöneticisi · kurum geneli | Kullanıcılar tanımlı · normal | Yetkiler ekranını açar | Rol ve santral kapsamıyla listelenir | Sahiplik yükü ve bekleyen zimmet görünür | yazma yok | yok | `kabuk-kapsami.test.ts` |
-| `YTK-LST-002` | /yetkiler | BT yöneticisi · tek santral | Kullanıcı kurum yöneticisi değil · normal | Yetki değiştirmeyi dener | Reddedilir | Yazma yüzeyi açılmaz | yazma yok | yok | `yonetim-konsolu-eylem.test.ts` |
+| `YTK-LST-001` | /yetkiler | kurum yöneticisi · kurum geneli | Kullanıcılar tanımlı · normal | Yetkiler ekranını açar | Rol ve tesis kapsamıyla listelenir | Sahiplik yükü ve bekleyen zimmet görünür | yazma yok | yok | `kabuk-kapsami.test.ts` |
+| `YTK-LST-002` | /yetkiler | BT yöneticisi · tek tesis | Kullanıcı kurum yöneticisi değil · normal | Yetki değiştirmeyi dener | Reddedilir | Yazma yüzeyi açılmaz | yazma yok | yok | `yonetim-konsolu-eylem.test.ts` |
 | `YTK-ATM-001` | /yetkiler | kurum yöneticisi · kurum geneli | Aynı atama zaten var · yinelenen | Aynı atamayı tekrar yapar | İkinci satır AÇILMAZ | Farklı seviye de ikinci satır açmaz — aynı erişimin değişimidir | Yetki · guncelleme | yok | `erisim.test.ts` |
 | `YTK-EKP-001` | /yetkiler | kurum yöneticisi · kurum geneli | Üyelik zaten yok · yok | Olmayan üyeliği kaldırmayı dener | Hata döner; sessizce başarılı SAYILMAZ | Ekip listesi değişmez | yazma yok | yok | `ters-kapsam-eylem.test.ts` |
 
@@ -519,13 +520,13 @@ Senaryo: **282** · testli: **282** · GAP: **0**
 
 | ID | Rota | Rol · kapsam | Ön koşul · veri | Eylem | Beklenen sonuç | Ekran | Denetim izi | Görev/bildirim | Test |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `ZIM-ACT-001` | /envanter | BT yöneticisi · kendi santrali | Varlığın açık zimmet talebi yok · normal | Sahiplik bloğundan zimmet açar | Talep açılır; varlığın sahibi HENÜZ DEĞİŞMEZ | Sahiplik alanında "cevap bekliyor" cümlesi | VarlikAtamaTalebi · olusturma | Zimmetlenen kişiye bildirim | `zimmet-eylem.test.ts` |
-| `ZIM-ACT-002` | /envanter | BT yöneticisi · kendi santrali | Varlığın zaten bekleyen bir talebi var · yinelenen | İkinci bir zimmet açmayı dener | Reddedilir; tek aktif talep kuralı korunur | Açık talep gösterilir, yeni form açılmaz | yazma yok | yok | `zimmet-eylem.test.ts` |
+| `ZIM-ACT-001` | /envanter | BT yöneticisi · kendi tesisi | Varlığın açık zimmet talebi yok · normal | Sahiplik bloğundan zimmet açar | Talep açılır; varlığın sahibi HENÜZ DEĞİŞMEZ | Sahiplik alanında "cevap bekliyor" cümlesi | VarlikAtamaTalebi · olusturma | Zimmetlenen kişiye bildirim | `zimmet-eylem.test.ts` |
+| `ZIM-ACT-002` | /envanter | BT yöneticisi · kendi tesisi | Varlığın zaten bekleyen bir talebi var · yinelenen | İkinci bir zimmet açmayı dener | Reddedilir; tek aktif talep kuralı korunur | Açık talep gösterilir, yeni form açılmaz | yazma yok | yok | `zimmet-eylem.test.ts` |
 | `ZIM-CVP-001` | /zimmetlerim | herhangi bir kullanıcı · kendi kaydı | Kişinin bekleyen bir talebi var · normal | Kabul eder | Sahiplik kesinleşir | Talep "kabul ettiklerim" sekmesine geçer | İki kayıt: talep durumu + Varlik sahibi | yok | `zimmet-eylem.test.ts` |
 | `ZIM-CVP-002` | /zimmetlerim | herhangi bir kullanıcı · kendi kaydı | Kişinin bekleyen bir talebi var · normal | Gerekçe yazıp reddeder | Sahiplik önceki sahibine döner | Gerekçe yazılmadan red düğmesi açılmaz | VarlikAtamaTalebi · red · gerekçeyle | yok | `zimmet-eylem.test.ts` |
 | `ZIM-CVP-003` | /zimmetlerim | herhangi bir kullanıcı · kendi kaydı | Varlığın önceki sahibi yok ya da pasif · kısmi | Reddeder | Varlık sahipsiz kalır ve veri kalitesi bulgusu açılır | Sahiplik alanı "sahipsiz" der, boş değil | Bulgu kaydı açılır | Veri kalitesi bulgusu | `zimmet-eylem.test.ts` |
 | `ZIM-CVP-004` | /zimmetlerim | BT yöneticisi · kurum geneli | Talep başka bir kişiye ait · normal | Başkasının talebini cevaplamayı dener | Reddedilir — kimlik kapısı geçilemez | Talep o kişinin ekranında görünmez | yazma yok | yok | `zimmet-eylem.test.ts` |
-| `ZIM-CVP-005` | /envanter | BT yöneticisi · kendi santrali | Bekleyen bir talep var · normal | Talebi iptal eder | Talep iptal olur; sahiplik DEĞİŞMEZ | Sahiplik alanı eski sahibi göstermeye devam eder | VarlikAtamaTalebi · iptal | yok | `zimmet-eylem.test.ts` |
+| `ZIM-CVP-005` | /envanter | BT yöneticisi · kendi tesisi | Bekleyen bir talep var · normal | Talebi iptal eder | Talep iptal olur; sahiplik DEĞİŞMEZ | Sahiplik alanı eski sahibi göstermeye devam eder | VarlikAtamaTalebi · iptal | yok | `zimmet-eylem.test.ts` |
 | `ZIM-SUR-001` | — | sistem (motor) · kurum geneli | Talebin son tarihi geçmiş · bayat | Zimmet süresi motoru koşar | Talep "süresi doldu" olur; KİMSE ADINA KABUL EDİLMEZ | Varlığın sahibi değişmemiş görünür | Aktivite kaydı · kaynak: iş koşusu | Görev açılır | `zimmet-eylem.test.ts` |
 | `ZIM-SUR-002` | — | sistem (motor) · kurum geneli | Zimmetlenen kullanıcı pasifleştirilmiş · kısmi | Motor koşar | Talep iptal olur | Bekleyen listede görünmez | Aktivite kaydı | Görev | `zimmet-eylem.test.ts` |
 | `ZIM-SUR-003` | — | sistem (motor) · kurum geneli | Talebin son tarihi yaklaşıyor · normal | Motor iki kez koşar | Uyarı BİR KEZ üretilir; ikinci koşuda tekrar etmez | Bildirim kutusu gürültüyle dolmaz | Aktivite kaydı | Görev · bir kez | `zimmet-eylem.test.ts` |

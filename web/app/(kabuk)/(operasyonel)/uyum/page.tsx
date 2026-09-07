@@ -1,6 +1,8 @@
 import { Suspense } from 'react';
 import type { Metadata } from 'next';
 import { girisZorunlu, izinVar, izinliTesisIdleri } from '@/lib/erisim';
+import { kapsamAnahtari, kapsamSozlugu } from '@/lib/dil/sozlukOku';
+import { t } from '@/lib/dil/terimler';
 import { Yetkisiz } from '@/components/kabuk/temel';
 import { cerceveleriYukle, uyumTrendiYukle } from './veri';
 import UyumIstemci from './UyumIstemci';
@@ -26,8 +28,9 @@ export default async function Sayfa() {
   const izinli = izinliTesisIdleri(kullanici, 'uyum');
   /* C15 · Eğilim ayrı sorgudur: `CerceveVerisi` sözleşmesine dokunulmaz
      (O2 aynı tipi okur), anlıklar yalnız bu ekranın şeridine gider. */
-  const [cerceveler, trend] = await Promise.all([
+  const [cerceveler, trend, sozluk] = await Promise.all([
     cerceveleriYukle(izinli), uyumTrendiYukle(izinli),
+    kapsamSozlugu(kapsamAnahtari(izinli)),
   ]);
   /* KAPSAMSIZ sorulur ve bilinçlidir: `Denetim` şemada `tesisId` TAŞIMAZ,
      `denetimKaydet` kapısı da kapsamsızdır. Ekranı gevşetmek tesis
@@ -40,7 +43,9 @@ export default async function Sayfa() {
     <Suspense
       fallback={
         <MatrisIskeleti
-          eyebrow={ilk ? `${ilk.gorunenAd} · ${ilk.satirlar.length} tesis kapsamda` : 'UYUM'}
+          eyebrow={ilk
+            ? `${ilk.gorunenAd} · ${ilk.satirlar.length} ${t(sozluk, 'tesis')} kapsamda`
+            : 'UYUM'}
           adlar={ilk?.satirlar.map((s) => ({ ad: s.ad, alt: s.alt })) ?? []}
           kolonlar={ilk?.aileler.map((a) => a.kisa) ?? []}
         />

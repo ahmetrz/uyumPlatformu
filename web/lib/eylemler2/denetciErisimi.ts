@@ -24,7 +24,7 @@ import { db } from '../db';
 import { yetkiZorunlu } from '../erisim';
 import { AZAMI_SURE_GUN, davetKapisi } from '../uyum/denetciErisimi';
 import { type Sonuc, tamam, hata, iz, bosluksuz } from './ortak';
-import { kapsamTerimi } from './kapsamMesaji';
+import { eylemTerimi, kapsamTerimi } from './kapsamMesaji';
 
 /** Kapsamdaki tesisler için `dis_denetci` yetki satırlarını yazar. */
 async function yetkileriAc(kullaniciId: string, tesisIdler: string[]): Promise<void> {
@@ -86,6 +86,7 @@ export async function denetciDavetEt(girdi: {
     const kapi = davetKapisi({
       baslangic: simdi, bitis: bitis.getTime(), simdi,
       kapsamSayisi: new Set(v.tesisIdler).size,
+      tesis: await eylemTerimi(k, 'yonetim'),
     });
     if (!kapi.ok) return { ok: false, hata: kapi.sebep };
 

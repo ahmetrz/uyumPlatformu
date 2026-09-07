@@ -4,13 +4,13 @@ import { KIRACI_AD, MARKA_AD } from '@/lib/marka';
 import { SozlukSaglayici } from '@/lib/dil/SozlukSaglayici';
 import { t, type Sozluk } from '@/lib/dil/terimler';
 import { usePathname } from 'next/navigation';
-import type { ReactNode } from 'react';
+import { useMemo, type ReactNode } from 'react';
 import HesapMenusu from '@/components/kabuk/HesapMenusu';
 import AramaDugmesi from '@/components/AramaDugmesi';
 import KomutPaleti from '@/components/KomutPaleti';
 import YardimKatmani from '@/components/YardimKatmani';
 import {
-  ALANLAR, aktifMi, alanAktif, ikincilSec, ogeAktif, sayacEtiketi, sayacMetni, ucunculSec,
+  aktifMi, alanAktif, alanlariCoz, ikincilSec, ogeAktif, sayacEtiketi, sayacMetni, ucunculSec,
   yogunlukSec,
 } from './yonler';
 
@@ -81,6 +81,9 @@ export default function Kabuk({ veri, children }: { veri: KabukVerisi; children:
   const yogunluk = yogunlukSec(patika);
   const ikincil = ikincilSec(patika);
   const ucuncul = ucunculSec(patika);
+  /* Kabuk, sağlayıcının KENDİSİDİR: `useTerim()` burada çağrılamaz
+     (bağlam bir alt katmanda başlar), sözlük doğrudan veriden okunur. */
+  const alanlar = useMemo(() => alanlariCoz(veri.sozluk), [veri.sozluk]);
   return (
     /* Sözlük kabuğun KÖKÜNDE verilir: altındaki her istemci bileşen —
        ekranların kendileri dâhil — `useTerim()` ile aynı sözcüğü okur ve
@@ -97,7 +100,7 @@ export default function Kabuk({ veri, children }: { veri: KabukVerisi; children:
           {KIRACI_AD.toLocaleUpperCase('tr-TR')}<span className="ikinci">{MARKA_AD}</span>
         </Link>
         <nav aria-label="Alanlar">
-          {ALANLAR.map((o) => (
+          {alanlar.map((o) => (
             <Link key={o.yol} href={o.yol}
               aria-current={alanAktif(o, patika) ? 'page' : undefined}>
               {o.ad}

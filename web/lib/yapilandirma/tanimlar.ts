@@ -8,7 +8,7 @@ import {
 import { ZIMMET_AZAMI_GUN, ZIMMET_VARSAYILAN_GUN } from '../varlik/zimmet';
 import { CANLI_KAT, GUNCEL_KAT, KAYNAK_ONCELIGI_VARSAYILAN } from '../varlik/canliDurus';
 import { GORUNMEZ_GUN_VARSAYILAN } from '../varlik/pasifKesif';
-import { CEKIRDEK_TERIM_SETI, type Metin, type TerimSeti } from '../yonetim/moduller';
+import { CEKIRDEK_TERIM_SETI, type Metin, type TerimSeti } from '../dil/terimSeti';
 
 /* ═══ Yapılandırma anahtar sözlüğü — TEK doğruluk kaynağı ═══════════════
 

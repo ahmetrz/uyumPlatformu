@@ -355,7 +355,7 @@ const ozet = (kodlar: string[]) =>
 function Onizleme({ a, butce, kapsamli }: {
   a: Aktarim; butce: number; kapsamli: boolean;
 }) {
-  const { t } = useTerim();
+  const { t, tBas } = useTerim();
   /* Kapsam yüzünden boşalan önizleme "satır yok" DEMEZ: dosyada satır
      olabilir, sen göremiyorsundur — ikisi farklı şeydir ve ikincisi
      kullanıcıyı hata listesine bakmaya göndermez. */
@@ -377,7 +377,7 @@ function Onizleme({ a, butce, kapsamli }: {
   return (
     <>
       <DuzTablo
-        basliklar={['#', 'Etiket', 'Ad', 'Tür', 'Tesis', 'Kritiklik', 'İşlem']}
+        basliklar={['#', 'Etiket', 'Ad', 'Tür', tBas('tesis'), 'Kritiklik', 'İşlem']}
         genislikler="52px 1.2fr 1.4fr 90px 120px 90px 130px"
         satirlar={a.onizleme.map((s) => [
           <Mono key="n">{s.satirNo}</Mono>,

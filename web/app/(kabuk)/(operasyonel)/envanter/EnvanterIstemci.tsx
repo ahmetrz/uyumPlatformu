@@ -189,7 +189,9 @@ export default function EnvanterIstemci({
           {suzulmus.length} / {m.kullanimdaki} varlık
           {m.bilinmeyen > 0 && ` · ${m.bilinmeyen} ölçülmemiş`}
           {sahipsiz > 0 && ` · ${sahipsiz} sahipsiz`}
-          {tesissiz > 0 && ` · ${tesissiz} ${terim('tesis')}siz`}
+          {/* "…siz" EKLENMEZ: yoksunluk eki ünlü uyumuna göre değişir ve
+              sözlükte o biçim yok. Sayaç var olan biçimle yazılır. */}
+          {tesissiz > 0 && ` · ${tesissiz} ${terim('tesis', 'iyelik')} yok`}
           {m.emekli > 0 && ` · ${m.emekli} emekli`}
         </span>
         <span className="mono kunye" title={kaynakCumlesi}>

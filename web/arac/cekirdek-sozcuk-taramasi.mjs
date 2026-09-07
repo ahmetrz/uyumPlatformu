@@ -130,18 +130,33 @@ export function gorunenMetin(dize) {
     ayracı değil. Kural olduğu gibi kalsaydı bu iki mesaj sınıf
     taramasının kalıcı kör noktası olurdu.
 
+    ── İKİNCİ EKSİK HÂL: CÜMLE SONUNDAKİ NOKTA (ölçüldü) ─────────────────
+    Kural 1 "koşuda `.` varsa tanımlayıcı" diyordu ve CÜMLE SONUNU da
+    tanımlayıcı sanıyordu: `"Sahipliğin devredilebilir birimi."` içinde
+    koşu `birimi.` olur, nokta görülür ve terim taranmadan geçer. Bu tek
+    başına bir yazım hatası değil, bir SINIF körlüğüdür — sektör
+    teriminin cümle sonuna düştüğü her yer görünmezdi
+    (`lib/yonetim/moduller.ts` OT-09 böyle kaçmıştı).
+
+    Ayrım: `.` bir NİTELİKLİ AD noktasıdır ancak İKİ YANINDA da sözcük
+    karakteri varsa (`Connector.kapsam…`, `tesis.csv`). Cümle sonundaki
+    nokta boşlukla ya da dizenin sonuyla komşudur ve prozadır.
+
     ── AYIRT EDİCİ ───────────────────────────────────────────────────────
-    1. Eşleşmeyi çevreleyen BOŞLUKSUZ koşu `.` ya da `_` taşıyorsa
-       tanımlayıcıdır (uzantı, nitelikli ad, snake_case).
+    1. Eşleşmeyi çevreleyen BOŞLUKSUZ koşuda İKİ YANI sözcük karakteri
+       olan bir `.` ya da herhangi bir `_` varsa tanımlayıcıdır (uzantı,
+       nitelikli ad, snake_case).
     2. Komşu `-` ise tanımlayıcıdır (slug: `yardimci-tesis`).
     3. Komşu `/` ise: çizginin ÖTESİ harfse seçenek bağıdır (proza);
        değilse yol ayracıdır (`/tesisler/`).
     4. Başka her hâl ekran metnidir. */
+const NITELIKLI_AD = /[\p{L}\p{N}]\.[\p{L}\p{N}]|_/u;
+
 export function tanimlayiciMi(metin, bas, uzunluk) {
   const son = bas + uzunluk;
   let sol = bas; while (sol > 0 && !/\s/.test(metin[sol - 1])) sol -= 1;
   let sag = son; while (sag < metin.length && !/\s/.test(metin[sag])) sag += 1;
-  if (/[._]/.test(metin.slice(sol, sag))) return true;
+  if (NITELIKLI_AD.test(metin.slice(sol, sag))) return true;
   const once = metin[bas - 1] ?? ' ';
   const sonra = metin[son] ?? ' ';
   if (once === '-' || sonra === '-') return true;

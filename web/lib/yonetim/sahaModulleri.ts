@@ -1,5 +1,5 @@
 import { basHarf } from '../dil/terimler';
-import { CEKIRDEK_TERIM_SETI, type Metin, type TerimSeti } from './moduller';
+import { CEKIRDEK_TERIM_SETI, type Metin, type TerimSeti } from '../dil/terimSeti';
 /* ═══ Saha modül kütüğü — dashboard görünürlük / sıra GÜVENLİ BEYAZ LİSTE ══
 
    Yönetim konsolu (`moduleGorunurluk`, A sınıfı, anahtar `saha.yerlesim`)

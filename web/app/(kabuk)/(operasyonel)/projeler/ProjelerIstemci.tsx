@@ -287,7 +287,11 @@ export default function ProjelerIstemci({
                   tablonun üstüne biner. Aradaki boşluk o riski kapatır. */}
               <div style={{ marginTop: 'var(--s26)', borderTop: 'var(--bw-strong) solid var(--hr2)' }}>
                 <VeriTablosu<P>
-                  etiket="Proje portföyü"
+                  /* Ekran adı `terim('portfoy')` ile yazılır (yukarıdaki
+                     eyebrow); tablonun ekran okuyucu etiketi ise evin
+                     "… kütüğü" kalıbını izler — sözcük iki anlama
+                     gelmesin diye terim burada tekrarlanmaz. */
+                  etiket="Proje kütüğü"
                   kolonlar={vtKolonlar}
                   satirlar={gosterilen}
                   secili={seciliId}

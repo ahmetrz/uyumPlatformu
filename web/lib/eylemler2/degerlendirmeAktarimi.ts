@@ -30,7 +30,7 @@ import {
   type HamSatir, type OnizlemeSatiri,
 } from '../uyum/degerlendirmeAktarimi';
 import { type Sonuc, tamam, hata, iz, bosluksuz } from './ortak';
-import { eylemSozlugu, kapsamTerimi } from './kapsamMesaji';
+import { eylemSozlugu, eylemTerimi, kapsamTerimi } from './kapsamMesaji';
 import { t, tBas } from '../dil/terimler';
 
 const SatirSemasi = z.object({
@@ -218,7 +218,10 @@ export async function degerlendirmeAktarimiUygula(girdi: {
     });
     const sayimlar = aktarimSayimlari(taze);
 
-    const kapi = uygulamaKapisi({ sayimlar, kuruKosuVar: true });
+    const kapi = uygulamaKapisi({
+      sayimlar, kuruKosuVar: true,
+      tesis: await eylemTerimi(k, 'uyum', kuru.tesisId),
+    });
     if (!kapi.ok) return hata(new Error(kapi.sebep));
 
     const uygulanacak = taze

@@ -4,12 +4,12 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 282 |
-| Testi olan senaryo | 282 |
+| Senaryo | 283 |
+| Testi olan senaryo | 283 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
-| Taranan test dosyası | 147 |
+| Taranan test dosyası | 153 |
 
 ## Katman başına kapsam
 
@@ -18,7 +18,7 @@
 | ACCESSIBILITY | 8 | 8 | 0 |
 | API | 12 | 12 | 0 |
 | CONCURRENCY | 7 | 7 | 0 |
-| DOMAIN | 149 | 149 | 0 |
+| DOMAIN | 150 | 150 | 0 |
 | ENGINE | 33 | 33 | 0 |
 | INTEGRATION | 26 | 26 | 0 |
 | MIGRATION | 3 | 3 | 0 |
@@ -26,7 +26,7 @@
 | RESPONSIVE | 8 | 8 | 0 |
 | SCOPE | 30 | 30 | 0 |
 | SERVER | 104 | 104 | 0 |
-| UI | 79 | 79 | 0 |
+| UI | 80 | 80 | 0 |
 | VISUAL | 4 | 4 | 0 |
 | WORKFLOW | 32 | 32 | 0 |
 
@@ -190,7 +190,7 @@
 | `BLD-KTU-001` | Bildirim | DOMAIN · SCOPE | `bildirim-kutusu.test.ts` | kullanıcı KENDİ bildirimini okundu işaretleyebilir | evet | geçti |
 | `BLD-KTU-002` | Bildirim | SERVER · SCOPE | `bildirim-kutusu.test.ts` | BAŞKASININ bildirimini okundu işaretleme denemesi REDDEDİLİR | evet | geçti |
 | `RAP-URT-001` | Rapor | DOMAIN · UI | `senaryo-platform.test.ts` | kapsam dışı hücre "0 uyum" DEĞİL, kapsam dışıdır | evet | geçti |
-| `RAP-URT-002` | Rapor | DOMAIN · SCOPE | `disa-aktarim-paketi.test.ts` | kapsam dışı santral istenirse istek REDDEDİLİR, sessizce daraltılmaz | evet | geçti |
+| `RAP-URT-002` | Rapor | DOMAIN · SCOPE | `disa-aktarim-paketi.test.ts` | kapsam dışı tesis istenirse istek REDDEDİLİR, sessizce daraltılmaz | evet | geçti |
 | `IMP-XLS-001` | İçe aktarım | SERVER · DOMAIN | `varlik-aktarim.test.ts` | etiket eşleşmesi güncelleme, eşleşmeyen yeni | evet | geçti |
 | `IMP-XLS-002` | İçe aktarım | SERVER · DOMAIN | `varlik-aktarim.test.ts` | sözlük dışı değer ve okunamayan tarih satırı reddeder — uydurulmaz | evet | geçti |
 | `ESL-PRF-001` | Eşleme | SERVER · DOMAIN | `esleme-tezgahi.test.ts` | ikinci yayın v2 açar, v1 arşive geçer ve v1 kuralları AYNEN kalır | evet | geçti |
@@ -199,9 +199,11 @@
 | `SIS-KBK-001` | Sistem | UI · ACCESSIBILITY | `yardim.test.ts` | atla bağı kabuğun ilk çocuğu; tek kabukta TEK `#icerik` sarmalayıcısı var, kabuk main AÇMAZ | evet | geçti |
 | `SIS-ERS-001` | Sistem | ACCESSIBILITY · UI | `yardim.test.ts` | dialog rolü, modal, başlık bağı ve odak tuzağı var | evet | geçti |
 | `SIS-RSP-001` | Sistem | RESPONSIVE · UI | `senaryo-platform.test.ts` | yatay taşma kapısı ölçülen genişlikleri koda gömer | evet | geçti |
+| `SIS-RSP-001` | Sistem | RESPONSIVE · UI | `senaryo-platform.test.ts` | düzen kapıları İKİ sektör sözlüğüyle koşabilir | evet | geçti |
+| `SIS-RSP-001` | Sistem | RESPONSIVE · UI | `senaryo-platform.test.ts` | iki-sözlük kuralının istisnası BELGELİDİR | evet | geçti |
 | `SIS-DIL-001` | Sistem | UI | `senaryo-platform.test.ts` | kullanıcıya dönük hiçbir metinde jargon geçmez | evet | geçti |
 | `PRT-OZT-001` | Portföy | DOMAIN · UI | `senaryo-platform.test.ts` | ölçülmemiş uyum yüzdesi SIFIRA çekilmez | evet | geçti |
-| `PRT-OZT-002` | Portföy | DOMAIN · UI | `plant360-profil.test.ts` | profil kaydı yokken her alan tanımsızdır; gruplar tüm alanları kapsar | evet | geçti |
+| `PRT-OZT-002` | Portföy | DOMAIN · UI | `tesis360-profil.test.ts` | profil kaydı yokken her alan tanımsızdır; gruplar tüm alanları kapsar | evet | geçti |
 | `HRT-KNM-001` | Harita | DOMAIN · UI | `harita-mantik.test.ts` | koordinatı olan yerleşir, ili olan YAKLAŞIK, ikisi de yoksa haritada YOK | evet | geçti |
 | `YRD-SOR-001` | Yardım | DOMAIN · UI | `yardim.test.ts` | listedeki genel kısayolların her biri kaynakta bağlıdır | evet | geçti |
 | `OTR-HSP-001` | Oturum | SERVER · DOMAIN | `hesap.test.ts` | alt sınır 12 karakter; kısa parola kusur cümlesi üretir, boş alan susar | evet | geçti |
@@ -317,6 +319,10 @@
 | `URN-ALN-002` | Ürünleştirme | DOMAIN · UI | `p1-oznitelik-gocu.test.ts` | kural öznitelik üzerinden AYNI kararları üretir | evet | geçti |
 | `URN-ALN-002` | Ürünleştirme | DOMAIN · UI | `uygulanabilirlik.test.ts` | öznitelik ÖLÇÜLMEMİŞSE karar verilmez, kapsam dışı sayılmaz | evet | geçti |
 | `URN-ALN-002` | Ürünleştirme | DOMAIN · UI | `uygulanabilirlik.test.ts` | ölçülmemiş öznitelik, sağlanan başka bir koşulu ENGELLEMEZ | evet | geçti |
+| `URN-ALN-004` | Ürünleştirme | DOMAIN · UI | `bekci/muafiyet-canli.test.ts` | her VERİ muafiyeti kaynağını taşır ve gerekçesi vardır | evet | geçti |
+| `URN-ALN-004` | Ürünleştirme | DOMAIN · UI | `bekci/muafiyet-canli.test.ts` | muaf dize kaynağında HÂLÂ geçiyor — ölü muafiyet yok | evet | geçti |
+| `URN-ALN-004` | Ürünleştirme | DOMAIN · UI | `bekci/muafiyet-canli.test.ts` | her DOSYA muafiyeti var olan dosyayı gösterir ve gerekçelidir | evet | geçti |
+| `URN-ALN-004` | Ürünleştirme | DOMAIN · UI | `bekci/muafiyet-canli.test.ts` | DİZE muafiyeti kaynağında HÂLÂ geçiyor ve boş değil | evet | geçti |
 | `URN-ALN-004` | Ürünleştirme | DOMAIN · UI | `p1-ikinci-sozluk.test.ts` | $ad — üç sözlükte de kurulur | evet | geçti |
 | `URN-ALN-004` | Ürünleştirme | DOMAIN · UI | `p1-kabuk-sozluk.test.ts` | tek sektörlü kapsamda sektörün sözcüğü iner | evet | geçti |
 | `URN-ALN-004` | Ürünleştirme | DOMAIN · UI | `p1-kabuk-sozluk.test.ts` | sektörün sözlüğü yoksa ÇEKİRDEK sözcük iner | evet | geçti |
@@ -325,8 +331,25 @@
 | `URN-ALN-004` | Ürünleştirme | DOMAIN · UI | `p1-terim-sozlugu.test.ts` | çekirdek karşılıklar hiçbir sektör sözcüğü taşımaz | evet | geçti |
 | `URN-ALN-004` | Ürünleştirme | DOMAIN · UI | `p1-tesis360-sozluk.test.ts` | enerji sözlüğü kuruluyken ekran adı "Santral 360" | evet | geçti |
 | `URN-ALN-004` | Ürünleştirme | DOMAIN · UI | `p1-tesis360-sozluk.test.ts` | sözlük kaldırılınca AYNI ekran "Tesis 360" der | evet | geçti |
+| `URN-ALN-003` | Ürünleştirme | DOMAIN · UI | `bekci/cekirdek-taban.test.ts` | YENİ DOSYA eklenemez — çakılı sözcük yeni bir yere giremez | evet | geçti |
+| `URN-ALN-003` | Ürünleştirme | DOMAIN · UI | `bekci/cekirdek-taban.test.ts` | dosya başına sayı ARTAMAZ | evet | geçti |
+| `URN-ALN-003` | Ürünleştirme | DOMAIN · UI | `bekci/cekirdek-taban.test.ts` | DÜŞEN sayı tabana yazılmalı — bayat taban gösterge değildir | evet | geçti |
+| `URN-ALN-003` | Ürünleştirme | DOMAIN · UI | `bekci/cekirdek-taban.test.ts` | toplam taban ölçümle tutuyor | evet | geçti |
 | `URN-ALN-003` | Ürünleştirme | DOMAIN · UI | `bekci/sektor-terimi.test.ts` | izin listesinde OLMAYAN dosyada sektör terimi yok | evet | geçti |
 | `URN-ALN-003` | Ürünleştirme | DOMAIN · UI | `bekci/sektor-terimi.test.ts` | liste taban daldaki listenin ALT KÜMESİ | evet | geçti |
+| `URN-ALN-003` | Ürünleştirme | DOMAIN · UI | `bekci/sektor-terimi.test.ts` | terim toplamı `terimTavani`yi aşmıyor | evet | geçti |
+| `URN-ALN-007` | Ürünleştirme | DOMAIN | `bekci/cekirdek-tarayici.test.ts` | YORUMLAR sökülür — render edilmeyen metin aranmaz | evet | geçti |
+| `URN-ALN-007` | Ürünleştirme | DOMAIN | `bekci/cekirdek-tarayici.test.ts` | GÜRÜLTÜ 1: sözlük ÇAĞRISI bulgu sayılmaz | evet | geçti |
+| `URN-ALN-007` | Ürünleştirme | DOMAIN | `bekci/cekirdek-tarayici.test.ts` | GÜRÜLTÜ 2: anahtar argümanı ekran metni değildir | evet | geçti |
+| `URN-ALN-007` | Ürünleştirme | DOMAIN | `bekci/cekirdek-tarayici.test.ts` | GÜRÜLTÜ 3: kod jetonu ekran metni değildir | evet | geçti |
+| `URN-ALN-007` | Ürünleştirme | DOMAIN | `bekci/cekirdek-tarayici.test.ts` | POZİTİF: gerçek ekran metni yakalanır | evet | geçti |
+| `URN-ALN-007` | Ürünleştirme | DOMAIN | `bekci/cekirdek-tarayici.test.ts` | POZİTİF: çakılı sözcük, sözlük çağrısıyla AYNI satırdaysa da görünür | evet | geçti |
+| `URN-ALN-007` | Ürünleştirme | DOMAIN | `bekci/cekirdek-tarayici.test.ts` | GÜRÜLTÜ 5: model adı alanlarının DEĞERİ saklanan kimliktir | evet | geçti |
+| `URN-ALN-007` | Ürünleştirme | DOMAIN | `bekci/cekirdek-tarayici.test.ts` | GÜRÜLTÜ 5 KONUMLUDUR: aynı dosyadaki ekran etiketi yakalanır | evet | geçti |
+| `URN-ALN-007` | Ürünleştirme | DOMAIN | `bekci/cekirdek-tarayici.test.ts` | GÜRÜLTÜ 4: dosya adı ve nitelikli ad tanımlayıcıdır | evet | geçti |
+| `URN-ALN-007` | Ürünleştirme | DOMAIN | `bekci/cekirdek-tarayici.test.ts` | GÜRÜLTÜ 4: eğik çizgi SEÇENEK bağıysa ekran metnidir | evet | geçti |
+| `URN-ALN-007` | Ürünleştirme | DOMAIN | `bekci/cekirdek-tarayici.test.ts` | GÜRÜLTÜ 5: cümle sonundaki nokta tanımlayıcı DEĞİLDİR | evet | geçti |
+| `URN-ALN-007` | Ürünleştirme | DOMAIN | `bekci/cekirdek-tarayici.test.ts` | GÜRÜLTÜ 5: nitelikli ad noktası hâlâ tanımlayıcıdır | evet | geçti |
 | `URN-ALN-007` | Ürünleştirme | DOMAIN | `bekci/katlama-korlugu.test.ts` | ÜNİTE — değişmez katlamada GÖRÜNMEZ, Türkçe katlamada görünür | evet | geçti |
 | `URN-ALN-007` | Ürünleştirme | DOMAIN | `bekci/katlama-korlugu.test.ts` | TERMİK — yalnız Türkçe katlamada görünür | evet | geçti |
 | `URN-ALN-007` | Ürünleştirme | DOMAIN | `bekci/katlama-korlugu.test.ts` | TERMIK (ASCII I) — yalnız DEĞİŞMEZ katlamada görünür | evet | geçti |
@@ -335,12 +358,28 @@
 | `URN-ALN-007` | Ürünleştirme | DOMAIN | `bekci/katlama-korlugu.test.ts` | DGKÇ — ASCII `\\b` sondaki Ç yüzünden HİÇ görmüyordu | evet | geçti |
 | `URN-ALN-007` | Ürünleştirme | DOMAIN | `bekci/katlama-korlugu.test.ts` | RES — ASCII `\\b` Türkçe sözcüğün ORTASINDA eşleşiyordu | evet | geçti |
 | `URN-ALN-007` | Ürünleştirme | DOMAIN | `bekci/katlama-korlugu.test.ts` | şapkasız rüzgar — yazım varyantı da sektör sözcüğüdür | evet | geçti |
+| `URN-ALN-007` | Ürünleştirme | DOMAIN | `bekci/katlama-korlugu.test.ts` | camelCase kod biçimi depoda HİÇ geçmiyor (ölçüm) | evet | geçti |
+| `URN-ALN-007` | Ürünleştirme | DOMAIN | `bekci/katlama-korlugu.test.ts` | bugünkü bekçi camelCase kod biçimini GÖRMÜYOR — bilinçli | evet | geçti |
+| `URN-ALN-007` | Ürünleştirme | DOMAIN | `bekci/katlama-korlugu.test.ts` | küçük harf araması neden yapılmıyor — yanlış pozitif kanıtı | evet | geçti |
+| `URN-ALN-007` | Ürünleştirme | DOMAIN | `bekci/katlama-korlugu.test.ts` | ölçüm sondası: `/…/i` kör, `katlamaliVarMi` görür | evet | geçti |
+| `URN-ALN-007` | Ürünleştirme | DOMAIN | `bekci/katlama-korlugu.test.ts` | `plant` sınırsız aranınca "toplantı"yı yakalıyordu | evet | geçti |
+| `URN-ALN-007` | Ürünleştirme | DOMAIN | `bekci/katlama-korlugu.test.ts` | CSS jetonu (`--hes`) — öncesi 0, sonrası 1 | evet | geçti |
+| `URN-ALN-007` | Ürünleştirme | DOMAIN | `bekci/terim-dogrulama.test.ts` | TERIMLER içindeki HER terimin fikstürde karşılığı var | evet | geçti |
+| `URN-ALN-007` | Ürünleştirme | DOMAIN | `bekci/terim-dogrulama.test.ts` | fikstürde TERIMLER dışında kayıt yok | evet | geçti |
+| `URN-ALN-007` | Ürünleştirme | DOMAIN | `bekci/terim-dogrulama.test.ts` | ${ad}: EŞLEŞMELİ olanların hepsi yakalanır | evet | geçti |
+| `URN-ALN-007` | Ürünleştirme | DOMAIN | `bekci/terim-dogrulama.test.ts` | ${ad}: EŞLEŞMEMELİ olanların hiçbiri yakalanmaz | evet | geçti |
+| `URN-ALN-007` | Ürünleştirme | DOMAIN | `bekci/terim-dogrulama.test.ts` | ${ad}: bilinçli körlükler HÂLÂ kör | evet | geçti |
+| `URN-ALN-008` | Ürünleştirme | DOMAIN · UI | `bekci/ek-eklemesi.test.ts` | hiçbir kaynak dosyada sözlük terimine elle ek eklenmiyor | evet | geçti |
+| `URN-ALN-008` | Ürünleştirme | DOMAIN · UI | `bekci/ek-eklemesi.test.ts` | düzeltilen gerçek yazımları görür | evet | geçti |
+| `URN-ALN-008` | Ürünleştirme | DOMAIN · UI | `bekci/ek-eklemesi.test.ts` | ayrı sözcüğü ve büyük harfi ekleme saymaz | evet | geçti |
+| `URN-ALN-008` | Ürünleştirme | DOMAIN · UI | `bekci/ek-eklemesi.test.ts` | alan erişimiyle yazılan eki de görür | evet | geçti |
 
 ## Gerekçesiyle kütüksüz kalan dosyalar
 
 | Dosya | Neden senaryosu yok |
 | --- | --- |
 | `belge-sayimlari.test.ts` | Belgelerdeki sayıların koda karşı doğrulaması |
+| `tasarim-belgesi.test.ts` | DESIGN.md jeton değerlerinin kabuk.css'e karşı doğrulaması |
 | `senaryo-kutugu.test.ts` | Kütüğün kendi nöbetçisi |
 | `ters-kapsam.test.ts` | Ters kapsamanın nöbetçisi — davranış envanterini kütüğe karşı sayar |
 | `eylem-dili.test.ts` | Bozuk durum bloklarının eylem/beklenen-durum nöbetçisi |

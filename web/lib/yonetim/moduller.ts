@@ -1,7 +1,11 @@
 import { AYARLAR, type AyarGrubu } from '../yapilandirma/tanimlar';
-import {
-  CEKIRDEK_TERIMLER, basHarf, terim, type Sozluk, type Terim,
-} from '../dil/terimler';
+import { basHarf } from '../dil/terimler';
+/* `TerimSeti` · `Metin` · `CEKIRDEK_TERIM_SETI` bu dosyada TANIMLIYDI ve
+   `yapilandirma/tanimlar` ile `sahaModulleri` onları buradan okuyordu;
+   sonuç ölçülmüş bir modül döngüsüydü (bkz. `lib/dil/terimSeti.ts`).
+   Yeniden dışa aktarım, çağıranların yolunu değiştirmeden bağı keser. */
+import { CEKIRDEK_TERIM_SETI, coz, type Metin, type TerimSeti }
+  from '../dil/terimSeti';
 import {
   ESKALASYON_KAYNAKLARI, HEDEF_SOZU, HEDEF_TURLERI, KAYNAK_SOZU,
 } from '../uyum/eskalasyon';
@@ -73,8 +77,6 @@ export type FormAlani = {
    Yazım tarafı `ModulTanimi`, okuma tarafı `Modul`: çözüm bir kez yapılır
    (`modulleriCoz`) ve tüketiciler yalnız dize görür — kütüğü okuyan
    ölçüm araçları (`kapsamaOzeti` · `kutukTutarli`) işlevle uğraşmaz. */
-export type TerimSeti = Record<'tesis' | 'birim' | 'portfoy' | 'tesis360', Terim>;
-export type Metin = string | ((x: TerimSeti) => string);
 
 /** Yazım tarafı: metin alanları işlev OLABİLİR. */
 export type FormAlaniTanimi = Omit<FormAlani, 'etiket' | 'aciklama'> & {
@@ -583,21 +585,6 @@ const MODUL_TANIMLARI: ModulTanimi[] = [
     aciklama: 'Tablolar, kısıtlar, tetikleyiciler.', neden: 'Veri modeli; konsoldan değişmesi denetim izini ve testleri geçersiz kılar.' },
 ];
 
-/** Çekirdek terim seti — sözlüksüz bağlam (test, ölçüm aracı, e-posta). */
-export const CEKIRDEK_TERIM_SETI: TerimSeti = {
-  tesis: CEKIRDEK_TERIMLER.tesis, birim: CEKIRDEK_TERIMLER.birim,
-  portfoy: CEKIRDEK_TERIMLER.portfoy, tesis360: CEKIRDEK_TERIMLER.tesis360,
-};
-
-/** Sözlükten terim seti kurar. */
-export function terimSeti(sozluk: Sozluk | null | undefined): TerimSeti {
-  return {
-    tesis: terim(sozluk, 'tesis'), birim: terim(sozluk, 'birim'),
-    portfoy: terim(sozluk, 'portfoy'), tesis360: terim(sozluk, 'tesis360'),
-  };
-}
-
-const coz = (m: Metin, x: TerimSeti) => (typeof m === 'string' ? m : m(x));
 
 /** Kütüğü verilen terim setiyle çözer; sonuç tümüyle dizedir. */
 export function modulleriCoz(x: TerimSeti): Modul[] {

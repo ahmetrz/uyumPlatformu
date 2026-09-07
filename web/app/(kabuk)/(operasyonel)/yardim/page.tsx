@@ -47,11 +47,13 @@ const alanlar = (sozluk: Sozluk | null) => [
   { ad: 'Risk', yol: '/riskler', kabuk: 'C · defter', ne: 'Risk kütüğü, denetimler, bulgu & CAPA, projeler.' },
 ] as const;
 
-const KABUKLAR = [
+/* `alanlar` gibi: kabuk tarifi de alan ADINI anar, o ad sözlükten gelir. */
+const kabuklar = (sozluk: Sozluk | null) => [
   { ad: 'A · Tezgâh', ne: 'Sol ikon rayı + üstte kapsam çubuğu. Varlık alanı, yönetim ve kurulum ekranları burada.' },
-  { ad: 'B · Saha', ne: 'Yatay sekme, ray yok, fotoğrafik alan. Ana ekran ve portföy.' },
+  { ad: 'B · Saha', ne: 'Yatay sekme, ray yok, fotoğrafik alan. Ana ekran ve '
+    + `${t(sozluk, 'portfoy')}.` },
   { ad: 'C · Defter', ne: 'Serif sekme + sol dizin. Uyum, risk, denetim ve kayıt ekranları — okunacak, imzalanacak şeyler.' },
-] as const;
+];
 
 /* Sık sorulanlar. Her cevabın dayandığı kural dosyası parantezle anılır;
    belge koddan bağımsız YAŞAYAMAZ. */
@@ -123,6 +125,7 @@ export default async function YardimEkrani() {
   const k = await girisZorunlu();
   const sozluk = await kapsamSozlugu(kapsamAnahtari(izinliTesisIdleri(k, 'uyum')));
   const ALANLAR = alanlar(sozluk);
+  const KABUKLAR = kabuklar(sozluk);
   const SSS = sss(sozluk);
   return (
     <main className="ab-ekran-govde ab-yardim-ekran">

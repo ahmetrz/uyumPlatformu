@@ -24,7 +24,7 @@ import {
   type IzKaydi, type KonsolAyar, type KonsolKayit, type KonsolVerisi, type Talep,
 } from './konsolOrtak';
 import { useSozluk, useTerim } from '@/lib/dil/SozlukSaglayici';
-import { terimSeti } from '@/lib/yonetim/moduller';
+import { terimSeti } from '@/lib/dil/terimSeti';
 
 /* ═══ Konsol çekmeceleri — form, fark, etki, geçmiş ═══════════════════════
 

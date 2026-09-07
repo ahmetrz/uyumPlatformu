@@ -11,10 +11,11 @@ import { kontrolleriSirala } from '@/lib/altyapi/hazirlikKarari';
 import { SAGLAYICILAR } from '@/lib/altyapi/saglayicilar';
 import { DIS_SAGLAYICILAR } from '@/lib/uyum/disSaglayicilar';
 import { ADAPTORLER, ADAPTOR_TIPLERI } from '@/lib/entegrasyon/adaptorler';
-import { etiketle } from '@/lib/sabitler';
+import { etiketle, etiketTerimleri } from '@/lib/sabitler';
+import { kapsamAnahtari, kapsamSozlugu } from '@/lib/dil/sozlukOku';
 import SaglikIstemci from './SaglikIstemci';
 import {
-  BAYAT_KOKEN_GUN, BEKLEYEN_SINIRI, GECMIS_DERINLIGI, IS_TANIMLARI,
+  BAYAT_KOKEN_GUN, BEKLEYEN_SINIRI, GECMIS_DERINLIGI, IS_TANIMLARI, isTanimlariCoz,
   type BayatSatiri, type BekleyenSatiri, type KaliteBulgusu, type KaynakSatiri,
   type KokenOzeti, type KokenSayimSatiri, type Motor,
 } from './mantik';
@@ -131,16 +132,23 @@ export default async function Sayfa() {
 
   /* Katalogda olmayan ama koşu bırakmış bir motor GİZLENMEZ: kayıt varsa
      ekranda karşılığı da olmalı. */
-  const kosanAdlar = await db.isKosusu.findMany({
-    distinct: ['isAdi'], select: { isAdi: true }, orderBy: { isAdi: 'asc' },
-  });
+  const [kosanAdlar, sozluk] = await Promise.all([
+    db.isKosusu.findMany({
+      distinct: ['isAdi'], select: { isAdi: true }, orderBy: { isAdi: 'asc' },
+    }),
+    /* Motor açıklamaları kullanıcının GÖRDÜĞÜ kayıtların diliyle yazılır;
+       kapsam envanterdir çünkü bu ekranın kütüğü envanter kapsamıyla
+       daralır (yukarıda `kokenOzetiGetir` aynı kapsamı okur). */
+    kapsamSozlugu(kapsamAnahtari(izinliTesisIdleri(k, 'envanter'))),
+  ]);
+  const terimler = etiketTerimleri(sozluk);
   const tanimlar = [
-    ...IS_TANIMLARI,
+    ...isTanimlariCoz(terimler.tesis),
     ...kosanAdlar
       .map((x) => x.isAdi)
       .filter((ad) => !IS_TANIMLARI.some((t) => t.ad === ad))
       .map((ad) => ({
-        ad, etiket: etiketle(ad), elleCalisir: false,
+        ad, etiket: etiketle(ad, undefined, terimler), elleCalisir: false,
         aciklama: 'Motor kataloğunda tanımlı değil — koşu kaydı bulunduğu için gösteriliyor',
       })),
   ];

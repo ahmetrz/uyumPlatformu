@@ -36,66 +36,96 @@
     "okumuyor, yani kütükteki sözcük hiçbir iddianın dayanağı değil."
   ],
   "dosyalar": {
-    "lib/motorlar/olayEtki.ts": "R0-9 · gerekçe metni `Olay.etkiOnerisiJson`a YAZILIR. Saklanan artefakta kiracıya göre değişen sözcük gömmek değişmez denetim izini deler.",
-    "lib/api/sozlesme.ts": "R0-9 · OpenAPI `summary`. Entegratörün okuduğu sözleşme iki kiracıda iki türlü okunamaz.",
-    "lib/api/kapsam.ts": "R0-9 · `UC_ETIKETI` sözleşme etiketi; ekran etiketi ayrı işlevde (`ucEtiketi`).",
-    "lib/api/yetki.ts": "R0-9 · API yetki/kapsam sözleşmesi; uç kimlikleri ve kapsam adları kod anahtarıdır.",
-    "lib/api/uclar/erisimler.ts": "R0-9 · API yanıt alan adları sözleşmedir.",
-    "lib/api/uclar/kosular.ts": "R0-9 · API yanıt alan adları sözleşmedir; entegratörün okuduğu alan iki kiracıda iki türlü adlandırılamaz.",
-    "lib/api/uclar/varlikGozlemleri.ts": "R0-9 · API yanıt alan adları sözleşmedir; entegratörün okuduğu alan iki kiracıda iki türlü adlandırılamaz.",
-    "lib/api/uclar/varlikYazma.ts": "R0-9 · API yanıt alan adları sözleşmedir; entegratörün okuduğu alan iki kiracıda iki türlü adlandırılamaz.",
-    "lib/disaAktarim/paket.ts": "R0-9 · dışa aktarım paketinin alan adları denetim artefaktıdır, kod anahtarıdır.",
-    "app/(kabuk)/(operasyonel)/tedarikciler/loading.tsx": "R0-8 · Suspense yedeği anında render edilir; `async` olamaz, `useTerim()` istemci bağlamı ister. Karar dosyada yazılı.",
-    "app/(kabuk)/(operasyonel)/envanter/Yonetisim.tsx": "YANLIŞ POZİTİF · \"Kaybın birimi\" ÖLÇÜ BİRİMİdir (MW · m³/gün), `birim` sözlük anahtarı (üretim ünitesi / arıtma hattı) DEĞİL.",
-    "app/(kabuk)/(operasyonel)/denetimler/DenetimlerIstemci.tsx": "KOD · `'Tesis'` burada kolon EŞLEŞTİRME ANAHTARI (`k.baslik !== 'Tesis'`); görünen başlık `tBas('tesis')` ile üretiliyor.",
-    "app/(kabuk)/(operasyonel)/riskler/RisklerIstemci.tsx": "KOD · aynı desen: sabit dizideki `'Tesis'` eşleştirme anahtarı, görünen başlık sözlükten.",
-    "app/(kabuk)/(operasyonel)/kesif/Karar.tsx": "KOD · sabit dizideki `'Tesis'` bir kolon/alan EŞLEŞTİRME ANAHTARIDIR; ekranda görünen etiket `tBas('tesis')` ile üretiliyor.",
-    "lib/senaryo/kapsama.ts": "SENARYO KÜTÜĞÜ · DAVRANIŞ ANLATIMI. Kütük ürünün davranışını anlatır ve SEKTÖRSÜZ olmak zorundadır — çekirdek sözcük burada doğru olandır, çakılı değil. Ölçüldü: sözlük kapılarının hiçbiri (`iki-sozluk` · `sozluk-farki` · `yatay-tasma` · `dizustu` · `erisim-axe`) kütüğü OKUMUYOR; kütüğü okuyanlar kapsam muhasebesi araçları. Kütük ekran metni ALINTILAMAZ; alıntılarsa hangi kiracıyı anlattığını söylemek zorundadır (bkz. `urunlestirme.ts`, terim katmanının kendisini anlatıyor ve iki yazımı da alıntılıyor).",
-    "lib/senaryo/platform.ts": "SENARYO KÜTÜĞÜ · DAVRANIŞ ANLATIMI. Kütük ürünün davranışını anlatır ve SEKTÖRSÜZ olmak zorundadır — çekirdek sözcük burada doğru olandır, çakılı değil. Ölçüldü: sözlük kapılarının hiçbiri (`iki-sozluk` · `sozluk-farki` · `yatay-tasma` · `dizustu` · `erisim-axe`) kütüğü OKUMUYOR; kütüğü okuyanlar kapsam muhasebesi araçları. Kütük ekran metni ALINTILAMAZ; alıntılarsa hangi kiracıyı anlattığını söylemek zorundadır (bkz. `urunlestirme.ts`, terim katmanının kendisini anlatıyor ve iki yazımı da alıntılıyor).",
-    "lib/senaryo/uyum.ts": "SENARYO KÜTÜĞÜ · DAVRANIŞ ANLATIMI. Kütük ürünün davranışını anlatır ve SEKTÖRSÜZ olmak zorundadır — çekirdek sözcük burada doğru olandır, çakılı değil. Ölçüldü: sözlük kapılarının hiçbiri (`iki-sozluk` · `sozluk-farki` · `yatay-tasma` · `dizustu` · `erisim-axe`) kütüğü OKUMUYOR; kütüğü okuyanlar kapsam muhasebesi araçları. Kütük ekran metni ALINTILAMAZ; alıntılarsa hangi kiracıyı anlattığını söylemek zorundadır (bkz. `urunlestirme.ts`, terim katmanının kendisini anlatıyor ve iki yazımı da alıntılıyor).",
-    "lib/senaryo/varlik.ts": "SENARYO KÜTÜĞÜ · DAVRANIŞ ANLATIMI. Kütük ürünün davranışını anlatır ve SEKTÖRSÜZ olmak zorundadır — çekirdek sözcük burada doğru olandır, çakılı değil. Ölçüldü: sözlük kapılarının hiçbiri (`iki-sozluk` · `sozluk-farki` · `yatay-tasma` · `dizustu` · `erisim-axe`) kütüğü OKUMUYOR; kütüğü okuyanlar kapsam muhasebesi araçları. Kütük ekran metni ALINTILAMAZ; alıntılarsa hangi kiracıyı anlattığını söylemek zorundadır (bkz. `urunlestirme.ts`, terim katmanının kendisini anlatıyor ve iki yazımı da alıntılıyor).",
-    "lib/senaryo/urunlestirme.ts": "SENARYO KÜTÜĞÜ · DAVRANIŞ ANLATIMI. Kütük ürünün davranışını anlatır ve SEKTÖRSÜZ olmak zorundadır — çekirdek sözcük burada doğru olandır, çakılı değil. Ölçüldü: sözlük kapılarının hiçbiri (`iki-sozluk` · `sozluk-farki` · `yatay-tasma` · `dizustu` · `erisim-axe`) kütüğü OKUMUYOR; kütüğü okuyanlar kapsam muhasebesi araçları. Kütük ekran metni ALINTILAMAZ; alıntılarsa hangi kiracıyı anlattığını söylemek zorundadır (bkz. `urunlestirme.ts`, terim katmanının kendisini anlatıyor ve iki yazımı da alıntılıyor).",
-    "lib/eylemler2/disaAktarim.ts": {
-      "sebep": "R0-8 · zod şeması MODÜL DÜZEYİNDE ve `parse` bilerek oturumdan ÖNCE koşuyor (dosyanın kendi denetim gerekçesi: yetkinin girdisi kapsamın kendisi). Sözlük kullanıcının kapsamından çözülür; o an kimin sorduğu henüz bilinmiyor. Aynı dosyanın oturum SONRASI mesajı sözlükten geliyor — muafiyet o tek satırla sınırlı.",
-      "dizeler": [
-        "En az bir tesis seçin"
-      ]
-    },
-    "lib/eylemler2/varlikYonetisim.ts": {
-      "sebep": "YANLIŞ POZİTİF · `kayipBirim` bir ÖLÇÜ BİRİMİdir (MW · m³/gün · ton/saat), `birim` sözlük anahtarı (üretim ünitesi / arıtma hattı) DEĞİL. Aynı ayrım `envanter/Yonetisim.tsx` kaydında da yapıldı; orası ekranın alan etiketi, burası aynı alanın sunucu şeması ve denetim izi yazımı. Dosyanın geri kalanı taranmaya devam ediyor.",
-      "dizeler": [
-        "(birim belirtilmedi)",
-        "Birim",
-        "Birim en fazla 16 karakter"
-      ]
-    },
-    "app/(kabuk)/(operasyonel)/yonetim-tezgahi/Formlar.tsx": {
-      "sebep": "YANLIŞ POZİTİF · buradaki \"Birim\" bir ÖLÇÜ BİRİMİdir (MW · m³/gün · ton/saat), `birim` sözlük anahtarı (üretim ünitesi / arıtma hattı) DEĞİL. Ayrım aynı sınıfın dördüncü kaydı: `envanter/Yonetisim.tsx` (ekran etiketi), `eylemler2/varlikYonetisim.ts` (sunucu şeması), burası (kurulu güç birimi alanı). Dosyanın geri kalanı taranmaya devam ediyor.",
-      "dizeler": [
-        "Birim"
-      ]
-    },
-    "lib/eylemler.ts": {
-      "sebep": "YANLIŞ POZİTİF · buradaki \"Birim\" bir ÖLÇÜ BİRİMİdir (MW · m³/gün · ton/saat), `birim` sözlük anahtarı (üretim ünitesi / arıtma hattı) DEĞİL. Ayrım aynı sınıfın dördüncü kaydı: `envanter/Yonetisim.tsx` (ekran etiketi), `eylemler2/varlikYonetisim.ts` (sunucu şeması), burası (kurulu güç birimi alanı). Dosyanın geri kalanı taranmaya devam ediyor. AYRICA R0-9 · iki dize `AktiviteKaydi.sonra` alanına YAZILIR (uyum süreci kapsam değişikliği izi) ve aylar sonra kendi başına okunur; saklanan ize kiracıya göre değişen sözcük gömmek eski satırın anlamını kaydırırdı.",
-      "dizeler": [
-        "Birim en fazla 16 karakter",
-        "tesis eklendi (  madde açıldı)",
-        "tesis çıkarıldı (durum kayıtları tarihçede)"
-      ]
-    },
-    "lib/yonetim/moduller.ts": {
-      "sebep": "YANLIŞ POZİTİF · buradaki \"Birim\" bir ÖLÇÜ BİRİMİdir (MW · m³/gün · ton/saat), `birim` sözlük anahtarı (üretim ünitesi / arıtma hattı) DEĞİL. Ayrım aynı sınıfın dördüncü kaydı: `envanter/Yonetisim.tsx` (ekran etiketi), `eylemler2/varlikYonetisim.ts` (sunucu şeması), burası (kurulu güç birimi alanı). Dosyanın geri kalanı taranmaya devam ediyor.",
-      "dizeler": [
-        "Birim",
-        "ölçünün birimi — boşsa sayı birimsiz yazılır"
-      ]
-    },
     "app/(kabuk)/(flagship)/Genel.tsx": {
       "sebep": "YANLIŞ POZİTİF · buradaki \"Birim\" bir ÖLÇÜ BİRİMİdir (MW · m³/gün · ton/saat), `birim` sözlük anahtarı (üretim ünitesi / arıtma hattı) DEĞİL. Ayrım aynı sınıfın dördüncü kaydı: `envanter/Yonetisim.tsx` (ekran etiketi), `eylemler2/varlikYonetisim.ts` (sunucu şeması), burası (kurulu güç birimi alanı). Dosyanın geri kalanı taranmaya devam ediyor. Buradaki cümle güç TOPLAMININ neden yazılmadığını söylüyor: ölçü birimleri farklı.",
       "dizeler": [
         "birimler karışık, toplanmadı"
       ]
     },
+    "app/(kabuk)/(operasyonel)/aktivite/veri.ts": {
+      "sebep": "R0-9 · KAYITLI MODEL ADI. `AktiviteKaydi.varlikTipi` sütununda duran Prisma model adı ('Tesis'); denetim izi satırları bu değerle yazıldı ve sorgu onunla eşleşir. Kiracı sözlüğü değişince eski satırlar bulunamaz olurdu — saklanan anahtar çevrilmez. Ekran etiketi ayrı yerde (`lib/sabitler.ts → etiketle`) ve sözlükten gelir.",
+      "dizeler": [
+        "Tesis"
+      ]
+    },
+    "app/(kabuk)/(operasyonel)/denetimler/DenetimlerIstemci.tsx": "KOD · `'Tesis'` burada kolon EŞLEŞTİRME ANAHTARI (`k.baslik !== 'Tesis'`); görünen başlık `tBas('tesis')` ile üretiliyor.",
+    "app/(kabuk)/(operasyonel)/envanter/Yonetisim.tsx": "YANLIŞ POZİTİF · \"Kaybın birimi\" ÖLÇÜ BİRİMİdir (MW · m³/gün), `birim` sözlük anahtarı (üretim ünitesi / arıtma hattı) DEĞİL.",
+    "app/(kabuk)/(operasyonel)/kesif/Karar.tsx": "KOD · sabit dizideki `'Tesis'` bir kolon/alan EŞLEŞTİRME ANAHTARIDIR; ekranda görünen etiket `tBas('tesis')` ile üretiliyor.",
+    "app/(kabuk)/(operasyonel)/olaylar/mantik.ts": {
+      "sebep": "ÇEKİRDEK VARSAYILANI · `KOPUKLUK_SOZU` sabiti sözlüksüz çağıran (test, sunucu) için duruyor; EKRAN `kopuklukSozu(sozluk)` çözücüsünü okur ve terimi oradan alır. Sabiti kaldırmak sözlüksüz çağıranı metinsiz bırakırdı; sözlüğe bağlamak modül sabitine `await` sokmak olurdu.",
+      "dizeler": [
+        "iş sürecinin tesisi kayıtlı değil"
+      ]
+    },
+    "app/(kabuk)/(operasyonel)/riskler/RisklerIstemci.tsx": "KOD · aynı desen: sabit dizideki `'Tesis'` eşleştirme anahtarı, görünen başlık sözlükten.",
+    "app/(kabuk)/(operasyonel)/saglik/page.tsx": {
+      "sebep": "R0-9 · KAYITLI MODEL ADI ve ondan türeyen harita anahtarı. 'Tesis' değeri `VeriKalitesiBulgusu.kaynakTipi` sütununda duruyor; `Tesis|<id>` ise o değerden kurulan bellek içi anahtar (ekrana basılmaz). Motor açıklamaları aynı dosyada sözlükten geliyor (`isTanimlariCoz`).",
+      "dizeler": [
+        "Tesis",
+        "Tesis|"
+      ]
+    },
+    "app/(kabuk)/(operasyonel)/sistem/bilesenler/Galeri.tsx": {
+      "sebep": "TASARIM SİSTEMİ GALERİSİ · bileşen fikstürü. Bu dizeler bir bileşenin (bağlam çubuğu, matris) NASIL GÖRÜNDÜĞÜNÜ göstermek için duran örneklerdir; ürünün kullanıcıya söylediği bir şey değil. Sözlüğe bağlansalardı galeri kiracıdan kiracıya farklı ölçülür ve bileşenin kendi kanıtı kayardı. Aynı sınıf `sistem/page.tsx` tipografi künyeleriyle; ikisi de A listesinde de aynı gerekçeyle duruyor.",
+      "dizeler": [
+        "Portföy",
+        "3 tesis"
+      ]
+    },
+    "app/(kabuk)/(operasyonel)/sistem/page.tsx": {
+      "sebep": "TASARIM SİSTEMİ GALERİSİ · örnek metinler. Bu satırlar tipografi jetonlarının NASIL GÖRÜNDÜĞÜNÜ göstermek için duran ÖRNEKLERDİR; ürünün kullanıcıya söylediği bir şey değil, bir jeton künyesi. `--t-hero` satırı hangi ekranın hero'su olduğunu söylüyor (Tesis 360) ve `--t-colhead` bir kolon başlığı örneği veriyor; ikisi de değişken bir sözcük değil, sabit bir örnek olmalı ki jetonun ölçüsü turdan tura kaymasın. Aynı sınıf `bilesenler/Galeri.tsx` fikstürleriyle.",
+      "dizeler": [
+        "Hero başlığı (Tesis 360)",
+        "TESİS · SAHİP · HEDEF",
+        "Pano başlığı (portföy)",
+        "Enerji portföyü"
+      ]
+    },
+    "app/(kabuk)/(operasyonel)/tedarikciler/TedarikcilerIstemci.tsx": {
+      "sebep": "ÇEKİRDEK VARSAYILANI · `KOLONLAR` bir MODÜL SABİTİDİR ve React bilmez (`useTerim()` orada çağrılamaz). Bileşen tesis kolonunun başlığını `tBas('tesis')` ile ezer (`kolonlar` useMemo'su); sabiti bileşen içine taşımak her render'da yeni dizi üretir ve tablonun sütun kimliğini gereksiz değiştirirdi.",
+      "dizeler": [
+        "Tesis"
+      ]
+    },
+    "app/(kabuk)/(operasyonel)/tedarikciler/loading.tsx": "R0-8 · Suspense yedeği anında render edilir; `async` olamaz, `useTerim()` istemci bağlamı ister. Karar dosyada yazılı.",
+    "app/(kabuk)/(operasyonel)/yonetim-tezgahi/Formlar.tsx": {
+      "sebep": "YANLIŞ POZİTİF · buradaki \"Birim\" bir ÖLÇÜ BİRİMİdir (MW · m³/gün · ton/saat), `birim` sözlük anahtarı (üretim ünitesi / arıtma hattı) DEĞİL. Ayrım aynı sınıfın dördüncü kaydı: `envanter/Yonetisim.tsx` (ekran etiketi), `eylemler2/varlikYonetisim.ts` (sunucu şeması), burası (kurulu güç birimi alanı). Dosyanın geri kalanı taranmaya devam ediyor.",
+      "dizeler": [
+        "Birim"
+      ]
+    },
+    "app/(kabuk)/(operasyonel)/yonetim-tezgahi/konsolOrtak.ts": {
+      "sebep": "R0-9 · KAYITLI MODEL ADI. Konsolun okuduğu model defteri ve `AktiviteKaydi.varlikTipi` eşlemesi; ikisi de Prisma model adıdır, ekran metni değil. Konsol bu adları kayıt bulmak için kullanır — çevrilirlerse kayıt bulunamaz.",
+      "dizeler": [
+        "Tesis"
+      ]
+    },
+    "components/kabuk/tip.ts": {
+      "sebep": "MERKEZ TASARIM KARARI · P4'e ertelendi. 'üretim tesisi değil' cümlesi MERKEZ tipinin ne OLMADIĞINI söylüyor ve tip kütüğünün kendi sözlüğü P4'te öznitelik şemasına taşınacak (aynı dosya A listesinde de bu gerekçeyle duruyor). Bugün sözlüğe bağlamak, yarın şemaya taşınacak bir metni iki kez yazmak olurdu.",
+      "dizeler": [
+        "üretim tesisi değil"
+      ]
+    },
+    "components/kabuk/yonler.ts": {
+      "sebep": "ÇEKİRDEK VARSAYILANI · `ALANLAR` bir MODÜL SABİTİDİR (React bilmez) ve sözlük yokken ekranda görünen addır. Kabuk `alanlariCoz(veri.sozluk)` ile ezer; kabuk sağlayıcının KENDİSİ olduğu için `useTerim()` orada çağrılamaz ve sözlük doğrudan veriden okunur.",
+      "dizeler": [
+        "Portföy"
+      ]
+    },
+    "lib/altyapi/kimlikSaglayici.ts": {
+      "sebep": "MODEL ADI LİSTESİ · cümle yük ölçümü için gereken KAYIT TÜRLERİNİ sayıyor: \"kaç tesis, kaç varlık, kaç kontrol, kaç kanıt, kaç denetim izi satırı\". Kardeşlerinin hepsi çekirdek model adı (Varlık · Kontrol · Kanıt · AktiviteKaydi); biri kiracı sözcüğüne çevrilirse liste iki ayrı dilde konuşur. Ekran metni değil, bir hazırlık künyesi.",
+      "dizeler": [
+        "Gerçek veri hacmi ve gerçek eşzamanlılık: kaç tesis, kaç"
+      ]
+    },
+    "lib/api/kapsam.ts": "R0-9 · `UC_ETIKETI` sözleşme etiketi; ekran etiketi ayrı işlevde (`ucEtiketi`).",
+    "lib/api/sozlesme.ts": "R0-9 · OpenAPI `summary`. Entegratörün okuduğu sözleşme iki kiracıda iki türlü okunamaz.",
+    "lib/api/uclar/erisimler.ts": "R0-9 · API yanıt alan adları sözleşmedir.",
+    "lib/api/uclar/kosular.ts": "R0-9 · API yanıt alan adları sözleşmedir; entegratörün okuduğu alan iki kiracıda iki türlü adlandırılamaz.",
+    "lib/api/uclar/varlikGozlemleri.ts": "R0-9 · API yanıt alan adları sözleşmedir; entegratörün okuduğu alan iki kiracıda iki türlü adlandırılamaz.",
+    "lib/api/uclar/varlikYazma.ts": "R0-9 · API yanıt alan adları sözleşmedir; entegratörün okuduğu alan iki kiracıda iki türlü adlandırılamaz.",
+    "lib/api/yetki.ts": "R0-9 · API yetki/kapsam sözleşmesi; uç kimlikleri ve kapsam adları kod anahtarıdır.",
+    "lib/disaAktarim/paket.ts": "R0-9 · dışa aktarım paketinin alan adları denetim artefaktıdır, kod anahtarıdır.",
     "lib/entegrasyon/cekirdek.ts": {
       "sebep": "R0-9 · bu yedi dize KOŞU KAYDINA YAZILIR (`EntegrasyonKosusu.hata` · `.ayrinti` · ret sebepleri) ve sağlık ekranı onları aylar sonra okur. Saklanan iz kiracıya göre değişen sözcük taşırsa sözlük değiştiğinde eski kaydın anlamı kayar. Dosyanın geri kalanı (900+ satır motor) taranmaya devam ediyor.",
       "dizeler": [
@@ -120,20 +150,34 @@
         "ölçülmedi (şemada Tesis↔YedeklemePolitikasi yabancı anahtarı yok)."
       ]
     },
+    "lib/entegrasyon/sertifika.ts": "CONNECTOR SERTİFİKASYON KOŞUMU · ürün ekranı değil, geliştirici/CI artefaktı. Ölçüldü: dosyayı YALNIZ `tests/` içindeki fikstürler ve sertifikasyon testi okuyor; hiçbir rota, sunucu eylemi ya da API ucu import etmiyor. Kontrol kodları (`tesis_kapsami`) eşleştirme anahtarıdır, başlıklar ise raporun kendi dili — `lib/senaryo/*` ile aynı sınıf: davranış anlatımı, ekran metni değil.",
     "lib/entegrasyon/varlikAktarim.ts": {
       "sebep": "ÇEKİRDEK YEDEĞİ · `HEDEF_ALANLAR` tablosundaki `etiket`, sözlük okunamadığı yerde kullanılan çekirdek karşılıktır; ekrana giden etiket `alanEtiketi(a, tesis)` ile sözlükten yazılıyor ve satır `terim: 'tesis'` taşıyor.",
       "dizeler": [
         "Tesis kodu → tesis"
       ]
     },
-    "lib/entegrasyon/sertifika.ts": "CONNECTOR SERTİFİKASYON KOŞUMU · ürün ekranı değil, geliştirici/CI artefaktı. Ölçüldü: dosyayı YALNIZ `tests/` içindeki fikstürler ve sertifikasyon testi okuyor; hiçbir rota, sunucu eylemi ya da API ucu import etmiyor. Kontrol kodları (`tesis_kapsami`) eşleştirme anahtarıdır, başlıklar ise raporun kendi dili — `lib/senaryo/*` ile aynı sınıf: davranış anlatımı, ekran metni değil.",
     "lib/entegrasyon/zincir.ts": "MOTOR ZİNCİRİ TANIMI · `neden` alanları hangi MODEL değişikliğinin hangi adımı tetiklediğini anlatır ve model adlarını (Varlık · Tesis · Kanıt) anar; bunlar şema kimlikleridir, ekran sözcüğü değil. Ölçüldü: `ZINCIR_SIRASI` yalnız `tests/motor-zinciri.test.ts` tarafından okunuyor ve adım `gerekce` metni SAKLANMIYOR (`IsKosusu.hata` yalnız toplu notu alır). `lib/senaryo/*` ile aynı sınıf.",
-    "lib/motorlar/veriKalitesi.ts": {
-      "sebep": "R0-9 · bu cümleler `VeriKalitesiBulgusu.aciklama` alanına YAZILIR ve bulgu aylar sonra kendi başına okunur. `lib/motorlar/olayEtki.ts` ile aynı sınıf: saklanan artefakta kiracıya göre değişen sözcük gömmek, sözlük değiştiğinde eski bulgunun anlamını kaydırır. Motorun geri kalanı taranmaya devam ediyor.",
+    "lib/eylemler.ts": {
+      "sebep": "YANLIŞ POZİTİF · buradaki \"Birim\" bir ÖLÇÜ BİRİMİdir (MW · m³/gün · ton/saat), `birim` sözlük anahtarı (üretim ünitesi / arıtma hattı) DEĞİL. Ayrım aynı sınıfın dördüncü kaydı: `envanter/Yonetisim.tsx` (ekran etiketi), `eylemler2/varlikYonetisim.ts` (sunucu şeması), burası (kurulu güç birimi alanı). Dosyanın geri kalanı taranmaya devam ediyor. AYRICA R0-9 · iki dize `AktiviteKaydi.sonra` alanına YAZILIR (uyum süreci kapsam değişikliği izi) ve aylar sonra kendi başına okunur; saklanan ize kiracıya göre değişen sözcük gömmek eski satırın anlamını kaydırırdı.",
       "dizeler": [
-        "( ) aktif tesisin profili yok — uygulanabilirlik hesaplanamaz.",
-        "( ) aktif tesisin envanterinde hiç varlık yok.",
-        "' ' kaynağından gelen   kaydının tesisi"
+        "Birim en fazla 16 karakter",
+        "tesis eklendi (  madde açıldı)",
+        "tesis çıkarıldı (durum kayıtları tarihçede)"
+      ]
+    },
+    "lib/eylemler2/disaAktarim.ts": {
+      "sebep": "R0-8 · zod şeması MODÜL DÜZEYİNDE ve `parse` bilerek oturumdan ÖNCE koşuyor (dosyanın kendi denetim gerekçesi: yetkinin girdisi kapsamın kendisi). Sözlük kullanıcının kapsamından çözülür; o an kimin sorduğu henüz bilinmiyor. Aynı dosyanın oturum SONRASI mesajı sözlükten geliyor — muafiyet o tek satırla sınırlı.",
+      "dizeler": [
+        "En az bir tesis seçin"
+      ]
+    },
+    "lib/eylemler2/varlikYonetisim.ts": {
+      "sebep": "YANLIŞ POZİTİF · `kayipBirim` bir ÖLÇÜ BİRİMİdir (MW · m³/gün · ton/saat), `birim` sözlük anahtarı (üretim ünitesi / arıtma hattı) DEĞİL. Aynı ayrım `envanter/Yonetisim.tsx` kaydında da yapıldı; orası ekranın alan etiketi, burası aynı alanın sunucu şeması ve denetim izi yazımı. Dosyanın geri kalanı taranmaya devam ediyor.",
+      "dizeler": [
+        "(birim belirtilmedi)",
+        "Birim",
+        "Birim en fazla 16 karakter"
       ]
     },
     "lib/motorlar/erisimDegerlendirme.ts": {
@@ -142,17 +186,34 @@
         "oturumunun varlık/sistem/tesis bağı ÇÖZÜLEMEDİ."
       ]
     },
-    "app/(kabuk)/(operasyonel)/sistem/page.tsx": {
-      "sebep": "TASARIM SİSTEMİ GALERİSİ · örnek metinler. Bu satırlar tipografi jetonlarının NASIL GÖRÜNDÜĞÜNÜ göstermek için duran ÖRNEKLERDİR; ürünün kullanıcıya söylediği bir şey değil, bir jeton künyesi. `--t-hero` satırı hangi ekranın hero'su olduğunu söylüyor (Tesis 360) ve `--t-colhead` bir kolon başlığı örneği veriyor; ikisi de değişken bir sözcük değil, sabit bir örnek olmalı ki jetonun ölçüsü turdan tura kaymasın. Aynı sınıf `bilesenler/Galeri.tsx` fikstürleriyle.",
+    "lib/motorlar/olayEtki.ts": "R0-9 · gerekçe metni `Olay.etkiOnerisiJson`a YAZILIR. Saklanan artefakta kiracıya göre değişen sözcük gömmek değişmez denetim izini deler.",
+    "lib/motorlar/veriKalitesi.ts": {
+      "sebep": "R0-9 · bu cümleler `VeriKalitesiBulgusu.aciklama` alanına YAZILIR ve bulgu aylar sonra kendi başına okunur. `lib/motorlar/olayEtki.ts` ile aynı sınıf: saklanan artefakta kiracıya göre değişen sözcük gömmek, sözlük değiştiğinde eski bulgunun anlamını kaydırır. Motorun geri kalanı taranmaya devam ediyor.",
       "dizeler": [
-        "Hero başlığı (Tesis 360)",
-        "TESİS · SAHİP · HEDEF"
+        "( ) aktif tesisin profili yok — uygulanabilirlik hesaplanamaz.",
+        "( ) aktif tesisin envanterinde hiç varlık yok.",
+        "' ' kaynağından gelen   kaydının tesisi"
       ]
     },
-    "lib/altyapi/kimlikSaglayici.ts": {
-      "sebep": "MODEL ADI LİSTESİ · cümle yük ölçümü için gereken KAYIT TÜRLERİNİ sayıyor: \"kaç tesis, kaç varlık, kaç kontrol, kaç kanıt, kaç denetim izi satırı\". Kardeşlerinin hepsi çekirdek model adı (Varlık · Kontrol · Kanıt · AktiviteKaydi); biri kiracı sözcüğüne çevrilirse liste iki ayrı dilde konuşur. Ekran metni değil, bir hazırlık künyesi.",
+    "lib/senaryo/kapsama.ts": "SENARYO KÜTÜĞÜ · DAVRANIŞ ANLATIMI. Kütük ürünün davranışını anlatır ve SEKTÖRSÜZ olmak zorundadır — çekirdek sözcük burada doğru olandır, çakılı değil. Ölçüldü: sözlük kapılarının hiçbiri (`iki-sozluk` · `sozluk-farki` · `yatay-tasma` · `dizustu` · `erisim-axe`) kütüğü OKUMUYOR; kütüğü okuyanlar kapsam muhasebesi araçları. Kütük ekran metni ALINTILAMAZ; alıntılarsa hangi kiracıyı anlattığını söylemek zorundadır (bkz. `urunlestirme.ts`, terim katmanının kendisini anlatıyor ve iki yazımı da alıntılıyor).",
+    "lib/senaryo/platform.ts": "SENARYO KÜTÜĞÜ · DAVRANIŞ ANLATIMI. Kütük ürünün davranışını anlatır ve SEKTÖRSÜZ olmak zorundadır — çekirdek sözcük burada doğru olandır, çakılı değil. Ölçüldü: sözlük kapılarının hiçbiri (`iki-sozluk` · `sozluk-farki` · `yatay-tasma` · `dizustu` · `erisim-axe`) kütüğü OKUMUYOR; kütüğü okuyanlar kapsam muhasebesi araçları. Kütük ekran metni ALINTILAMAZ; alıntılarsa hangi kiracıyı anlattığını söylemek zorundadır (bkz. `urunlestirme.ts`, terim katmanının kendisini anlatıyor ve iki yazımı da alıntılıyor).",
+    "lib/senaryo/urunlestirme.ts": "SENARYO KÜTÜĞÜ · DAVRANIŞ ANLATIMI. Kütük ürünün davranışını anlatır ve SEKTÖRSÜZ olmak zorundadır — çekirdek sözcük burada doğru olandır, çakılı değil. Ölçüldü: sözlük kapılarının hiçbiri (`iki-sozluk` · `sozluk-farki` · `yatay-tasma` · `dizustu` · `erisim-axe`) kütüğü OKUMUYOR; kütüğü okuyanlar kapsam muhasebesi araçları. Kütük ekran metni ALINTILAMAZ; alıntılarsa hangi kiracıyı anlattığını söylemek zorundadır (bkz. `urunlestirme.ts`, terim katmanının kendisini anlatıyor ve iki yazımı da alıntılıyor).",
+    "lib/senaryo/uyum.ts": "SENARYO KÜTÜĞÜ · DAVRANIŞ ANLATIMI. Kütük ürünün davranışını anlatır ve SEKTÖRSÜZ olmak zorundadır — çekirdek sözcük burada doğru olandır, çakılı değil. Ölçüldü: sözlük kapılarının hiçbiri (`iki-sozluk` · `sozluk-farki` · `yatay-tasma` · `dizustu` · `erisim-axe`) kütüğü OKUMUYOR; kütüğü okuyanlar kapsam muhasebesi araçları. Kütük ekran metni ALINTILAMAZ; alıntılarsa hangi kiracıyı anlattığını söylemek zorundadır (bkz. `urunlestirme.ts`, terim katmanının kendisini anlatıyor ve iki yazımı da alıntılıyor).",
+    "lib/senaryo/varlik.ts": "SENARYO KÜTÜĞÜ · DAVRANIŞ ANLATIMI. Kütük ürünün davranışını anlatır ve SEKTÖRSÜZ olmak zorundadır — çekirdek sözcük burada doğru olandır, çakılı değil. Ölçüldü: sözlük kapılarının hiçbiri (`iki-sozluk` · `sozluk-farki` · `yatay-tasma` · `dizustu` · `erisim-axe`) kütüğü OKUMUYOR; kütüğü okuyanlar kapsam muhasebesi araçları. Kütük ekran metni ALINTILAMAZ; alıntılarsa hangi kiracıyı anlattığını söylemek zorundadır (bkz. `urunlestirme.ts`, terim katmanının kendisini anlatıyor ve iki yazımı da alıntılıyor).",
+    "lib/varlik/pasifKesif.ts": {
+      "sebep": "ÇEKİRDEK VARSAYILANI · `KESIF_GRUP_ACIKLAMASI` sabiti sözlüksüz çağıran (test, sunucu) için duruyor; EKRAN `kesifGrupAciklamasi(sozluk)` çözücüsünü okur. Aynı sınıf `olaylar/mantik.ts → KOPUKLUK_SOZU` ile.",
       "dizeler": [
-        "Gerçek veri hacmi ve gerçek eşzamanlılık: kaç tesis, kaç"
+        "Kaydın hangi tesise ait olduğu çözülemedi.",
+        "Tesis bağı olmayan kayıt gizlenmez; gizlenseydi kimse incelemezdi."
+      ]
+    },
+    "lib/yonetim/moduller.ts": {
+      "sebep": "YANLIŞ POZİTİF · burada \"birim\" sözlük anahtarı (`birim` = tesis içindeki işletme birimi) DEĞİL, iki ayrı başka anlamdır: (1) ÖLÇÜ BİRİMİ (MW · m³/gün · ton/saat) — aynı sınıfın dördüncü kaydı: `envanter/Yonetisim.tsx` (ekran etiketi), `eylemler2/varlikYonetisim.ts` (sunucu şeması), burası (kurulu güç birimi alanı); (2) SOYUT BÖLÜNME BİRİMİ — OT-11'de ağ adreslemesinin, OT-09'da sahipliğin en küçük parçası. İkisi de kiracı sözlüğüyle değişmez; sözlüğe bağlanırlarsa cümle \"adresleme hattı\" gibi yanlış bir şey söyler. Dosyanın geri kalanı taranmaya devam ediyor.",
+      "dizeler": [
+        "Birim",
+        "ölçünün birimi — boşsa sayı birimsiz yazılır",
+        "OT-11 · Adresleme birimi: VLAN + CIDR + ağ geçidi. Bölgeden AYRIDIR — bölge güvenlik sınırıdır, bir bölge birden çok segment taşır. Tanım `tanimlar/onay` ister; CIDR sunucuda çözümlenir.",
+        "OT-09 · Sahipliğin devredilebilir birimi. Kişi sahipliğinin yerine geçmez, tamamlar: kişi ayrıldığında varlık öksüz kalmasın. Pasif kullanıcı ekibe eklenemez."
       ]
     }
   }

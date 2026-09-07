@@ -104,4 +104,45 @@ describe('Çekirdek sözcük tarayıcısı · kendi vakaları [URN-ALN-007]', ()
     expect(yerBul('Bu tesis/süreç kapsamında doğrulama yetkiniz yok', 'tesis')).toBe(false);
     expect(yerBul('Bu tesis kapsamında yetkiniz yok', 'tesis')).toBe(false);
   });
+
+  /* ── GÜRÜLTÜ 5 · CÜMLE SONUNDAKİ NOKTA (7 Eyl 2026'da ölçüldü) ───────
+     Kural "boşluksuz koşuda `.` varsa tanımlayıcı" diyordu ve cümlenin
+     son noktasını da nitelikli ad sanıyordu: sektör teriminin CÜMLE
+     SONUNA düştüğü her yer taramaya görünmez oluyordu. Bu bir yazım
+     hatası değil bir SINIF körlüğüdür — `lib/yonetim/moduller.ts`
+     OT-09 kaydı ("… devredilebilir birimi.") tam da böyle kaçmıştı ve
+     ancak nokta kuralı daraltılınca göründü.
+
+     Ayrım: nitelikli ad noktasının İKİ YANINDA da sözcük karakteri var.
+     Aşağıdaki iki iddia birlikte durur — yalnız "sonrası false" demek,
+     kuralın hiç bozuk olmadığı ihtimalini dışarıda bırakmaz. */
+  it('GÜRÜLTÜ 5: cümle sonundaki nokta tanımlayıcı DEĞİLDİR [URN-ALN-007]', () => {
+    /* Düzeltmeden önceki kural: koşuda nokta arıyordu, ikisine de `true`. */
+    const once = (metin: string, sozcuk: string) => {
+      const bas = metin.indexOf(sozcuk);
+      const son = bas + sozcuk.length;
+      let sol = bas; while (sol > 0 && !/\s/.test(metin[sol - 1])) sol -= 1;
+      let sag = son; while (sag < metin.length && !/\s/.test(metin[sag])) sag += 1;
+      return /[._]/.test(metin.slice(sol, sag));
+    };
+    const CUMLE = 'OT-09 · Sahipliğin devredilebilir birimi. Kişi yerine geçmez';
+    expect(once(CUMLE, 'birimi')).toBe(true);        // ÖNCESİ: kör
+    expect(yerBul(CUMLE, 'birimi')).toBe(false);     // SONRASI: görüyor
+
+    /* Dizenin en sonundaki nokta da aynı: komşusu yok, proza. */
+    expect(yerBul('Kaydın hangi tesise ait olduğu çözülemedi.', 'tesise')).toBe(false);
+    /* Üç nokta ve virgül de cümle noktalamasıdır. */
+    expect(yerBul('Kapsamda tesis…', 'tesis')).toBe(false);
+    expect(yerBul('Önce tesis, sonra birim', 'tesis')).toBe(false);
+  });
+
+  it('GÜRÜLTÜ 5: nitelikli ad noktası hâlâ tanımlayıcıdır [URN-ALN-007]', () => {
+    /* Daraltma yanlış POZİTİFLERİ geri getirmemeli: iki yanı sözcük
+       karakteri olan nokta hâlâ nitelikli addır. */
+    expect(yerBul('kaynak sahabjes-yardimci-tesis.csv okundu', 'tesis')).toBe(true);
+    expect(yerBul('alan Connector.kapsamTesisleriJson içinde', 'Tesisleri')).toBe(true);
+    expect(yerBul('künye public/tesisler/KUNYE.md içinde', 'tesisler')).toBe(true);
+    /* snake_case: `_` tek başına yeter, komşu aranmaz. */
+    expect(yerBul('anahtar kurulu_tesis_gucu okundu', 'tesis')).toBe(true);
+  });
 });

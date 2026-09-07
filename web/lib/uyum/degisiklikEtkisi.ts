@@ -22,6 +22,8 @@
    indirilmez — "42 kayıt etkilenir" cümlesi, 40'ı kanıt bağı 2'si açık
    bulgu olduğunda yanıltıcıdır. */
 
+import { CEKIRDEK_TERIMLER, type Terim } from '@/lib/dil/terimler';
+
 export const DEGISIM_TIPLERI = ['yeni', 'degisti', 'kaldirildi', 'ayni'] as const;
 export type DegisimTipi = (typeof DEGISIM_TIPLERI)[number];
 
@@ -177,10 +179,15 @@ export function etkiAgirligi(o: {
 export function etkiSonucu(o: {
   degisimTipi: DegisimTipi;
   ayakIzi: MaddeAyakIzi;
+  /** Kapsamın terimi; verilmezse çekirdek sözcük yazılır. Cümle
+      ÖNİZLEMEDİR, kaydedilmez — terim burada geçebilir. */
+  tesis?: Terim;
 }): string {
   const iz = o.ayakIzi;
   if (o.degisimTipi === 'yeni') {
-    return 'Yeni madde: kapsamdaki her tesiste değerlendirilmemiş olarak açılır.';
+    const tesis = o.tesis ?? CEKIRDEK_TERIMLER.tesis;
+    return `Yeni madde: kapsamdaki her ${tesis.bulunma} `
+      + 'değerlendirilmemiş olarak açılır.';
   }
   if (o.degisimTipi === 'kaldirildi') {
     const parca: string[] = [];

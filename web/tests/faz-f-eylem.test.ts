@@ -55,6 +55,8 @@ const {
 const { GET: tesisleriGetir } = await import('@/app/api/v1/facilities/route.api');
 const { POST: zafiyetYaz } = await import('@/app/api/v1/vulnerabilities/route.api');
 const { oranSayaclariniSifirla } = await import('@/lib/api/oranSinir');
+const { kapsamSozlugu } = await import('@/lib/dil/sozlukOku');
+const { t } = await import('@/lib/dil/terimler');
 
 type Sonuc = { ok: true } | { ok: false; hata: string };
 const hataMetni = (s: Sonuc) => (s.ok ? '' : s.hata);
@@ -442,11 +444,16 @@ describe('UY-57 · Davet GERÇEK yetki satırı yazar', () => {
   });
 
   it('KAPSAMSIZ davet reddedilir', async () => {
+    /* Ret gerekçesi artık KİRACININ sözcüğünü taşıyor (`davetKapisi`
+       terimi `eylemTerimi`den alıyor). İddia sabit bir sözcüğe değil,
+       sözlüğün O KOŞUDA verdiği sözcüğe bağlanır: `/en az bir tesis/`
+       yazmak, çevirinin çalışmasını kırmızı göstermek olurdu. */
+    const tesis = t(await kapsamSozlugu(null), 'tesis');
     expect(hataMetni(await denetciDavetEt({
       kullaniciId: denetciId, firma: 'X Denetim',
       bitis: new Date(Date.now() + 30 * 86_400_000).toISOString(),
       tesisIdler: [],
-    }))).toMatch(/en az bir tesis/i);
+    }))).toContain(`En az bir ${tesis} seçilmeli`);
   });
 
   it('SÜRESİZ davet yoktur: geçmiş bitiş reddedilir', async () => {

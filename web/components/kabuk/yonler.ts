@@ -17,6 +17,8 @@
    Bu dosya SALT SUNUMDUR: URL'ler, RBAC, kapsam ve veri sözleşmeleri
    değişmez. */
 
+import { tBas, type Sozluk } from '@/lib/dil/terimler';
+
 export type Yogunluk = 'amiral' | 'operasyonel' | 'tezgah';
 
 /* `alt`: öğenin ÜÇÜNCÜL ekranları (yalnız Varlık'ta). Grubun kendi yolu
@@ -29,6 +31,10 @@ export type Oge = { ad: string; yol: string; kod?: string; ayrik?: boolean; alt?
    rayının bir öğesiydi, iki yerde birden). Beş alan ürünün beş sorusudur:
    ne oluyor (Saha) · nasıl karşılaştırılır (Portföy) · uygun muyuz (Uyum)
    · neyimiz var (Varlık) · ne ters gidebilir (Risk). */
+/* Adlar ÇEKİRDEK varsayılanıdır: sözlük yokken (sektör paketi kurulu
+   değil ya da kapsam tek sektöre inmiyor) ekranda görünen budur.
+   Kiracının sözlüğü varsa kabuk `alanlariCoz` ile ezer — modül sabiti
+   React bilmez, `useTerim()` burada çağrılamaz. */
 export const ALANLAR: Oge[] = [
   { ad: 'Saha', yol: '/' },
   { ad: 'Portföy', yol: '/portfoy' },
@@ -36,6 +42,13 @@ export const ALANLAR: Oge[] = [
   { ad: 'Varlık', yol: '/envanter' },
   { ad: 'Risk', yol: '/riskler' },
 ];
+
+/** Alan adlarının sözlükle çözülmüş hâli. Yalnız `/portfoy` terimlidir;
+    diğer dördü çekirdek kavramdır ve sektör paketi onları değiştirmez. */
+export function alanlariCoz(sozluk: Sozluk | null | undefined): Oge[] {
+  return ALANLAR.map((o) => (o.yol === '/portfoy'
+    ? { ...o, ad: tBas(sozluk, 'portfoy') } : o));
+}
 
 /* Rota → alan. Kanonik yol dışındaki her rota buradan alanına bağlanır;
    listede olmayan rota (ayarlar, yardım, bildirimler, sistem, yönetim

@@ -105,7 +105,8 @@ export const URUNLESTIRME_SENARYOLARI: Senaryo[] = [
     id: 'URN-ALN-003', alan: 'Ürünleştirme', rota: '—', eksen: 'akis',
     amac: 'Çekirdek koda sektör teriminin geri sızmasını engellemek',
     rol: 'ürünü sürdüren geliştirici', kapsam: 'depo geneli',
-    onkosul: 'Bugün 258 dosya hâlâ gömülü terim taşıyor; borç kütüğe yazıldı',
+    onkosul: 'Aşama E sonunda 12 dosya hâlâ gömülü terim taşıyor (258\'den indi); '
+      + 'kalanların her biri kütükte YAZILI bir kalıcı ya da ertelenmiş gerekçe taşıyor',
     veriHali: 'kısmi',
     eylem: 'Bekçi test app/, components/ ve lib/ altındaki .ts/.tsx/.css dosyalarını (adları dâhil) tarar',
     beklenenSonuc: 'İzin listesinde OLMAYAN dosyada sektör terimi varsa kırmızı; listedeki bir dosyada terim kalmamışsa kırmızı (listeden düşürülür); liste tavanı aşamaz. Tarama metin literaliyle sınırlı değildir — tanımlayıcılar, yorumlar, CSS sınıfları ve dosya adları da sayılır',
@@ -124,5 +125,23 @@ export const URUNLESTIRME_SENARYOLARI: Senaryo[] = [
     beklenenEkran: 'Ekran yok — kapı',
     beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
     katmanlar: ['DOMAIN'],
+  },
+  {
+    id: 'URN-ALN-008', alan: 'Ürünleştirme', rota: '—', eksen: 'akis',
+    amac: 'Sözlük terimine Türkçe ekinin ELLE eklenmesini engellemek',
+    rol: 'ürünü sürdüren geliştirici', kapsam: 'depo geneli',
+    onkosul: 'Sözlük altı hâl verir (tekil · çoğul · iyelik · belirtme · bulunma · '
+      + 'yönelme); yoksunluk (-siz) ve ayrılma (-den) hâlleri YOKTUR',
+    veriHali: 'yok',
+    eylem: 'Bekçi, kaynakta `${…sözlük çağrısı…}` hemen ardından küçük harf gelen '
+      + 'yazımları arar (`${terim(\'tesis\')}siz`)',
+    beklenenSonuc: 'Tek bir örnek bile kırmızı verir; tavan sıfırdır ve borç kütüğü '
+      + 'yoktur. Ek ünlü uyumuna göre değişir ("saha" → "sahasız", "istasyon" → '
+      + '"istasyonsuz"): çekirdek sözlükte doğru görünen yazım sektör paketiyle bozulur. '
+      + 'Aşama E\'de üç gerçek örnek bu kalıpla bulundu ve cümleler var olan hâllerle '
+      + 'yeniden yazıldı; kalıcı vakalar o üçünü tutuyor',
+    beklenenEkran: 'Ekran yok — kapı',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['DOMAIN', 'UI'],
   },
 ];

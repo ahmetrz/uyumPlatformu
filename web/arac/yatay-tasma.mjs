@@ -52,6 +52,7 @@ import {
 } from './kosu-ortak.mjs';
 import { KAYDIRAN_KAPLAR, enDistakiKirpilmalar, kirpilmaKarari } from './kalite-kurallari.mjs';
 import { borcuUygula } from './kalite-borcu.mjs';
+import { yonlendirmeKarari } from './rota-kurallari.mjs';
 
 /* İki bant yeter: 375 telefon (en sıkı), 768 dikey tablet (kırılma
    noktasının hemen üstü — 700px kuralları burada HENÜZ geçerli
@@ -181,6 +182,8 @@ function kirpilmaOlcumleri(kaydiranKaplar) {
           disari: Math.round(disari),
           tasma: Math.round(tasma),
           kendiOverflow: st.overflowX,
+          metinTasmasi: st.textOverflow,
+          satirKirpma: Number(st.webkitLineClamp) || 0,
           kapTuru: kap.tur,
           erisilir: kap.erisilir,
           metin: metin === ''
@@ -216,6 +219,7 @@ function kirpilmaOlcumleri(kaydiranKaplar) {
 const tarayici = await chromium.launch({ executablePath: tarayiciYolu() });
 const kusurlar = [];
 const kirpilmalar = [];
+const yuzeyKirigi = [];
 let olculen = 0;
 
 try {
@@ -225,7 +229,13 @@ try {
     await girisYap(sayfa, KOK);
 
     for (const yol of ROTALAR) {
-      await sayfa.goto(`${KOK}${yol}`, { waitUntil: 'networkidle' });
+      const yanit = await sayfa.goto(`${KOK}${yol}`, { waitUntil: 'networkidle' });
+      /* Yanlış yüzeyi ölçmek, ölçmemekten beterdir: 404/500 gövdesi ya da
+         giriş ekranı taşmaz ve kapı yeşil kalır (axe kapısıyla aynı kural). */
+      const kod = yanit?.status() ?? 0;
+      const karar = yonlendirmeKarari(yol, new URL(sayfa.url()).pathname);
+      const yuzeyHatasi = kod !== 200 ? `HTTP ${kod}` : (karar.kusur ?? null);
+      if (yuzeyHatasi) { yuzeyKirigi.push({ bant: bant.ad, yol, sebep: yuzeyHatasi }); continue; }
       /* Yerleşim istemcide oturuyor; ölçmeden önce bir kare beklenir. */
       await sayfa.waitForTimeout(150);
       olculen += 1;
@@ -252,7 +262,14 @@ try {
          etiket + aynı kırpılma türü tek imzadır. */
       const imzalar = new Map();
       for (const o of kirpilan) {
-        const anahtar = `${o.etiket}|${o.karar.tur}`;
+        /* İmzaya kutu ENİ de girer. Yalnız etiket + tür olsaydı, aynı
+           etiketle kırpılan YENİ bir sütun mevcut imzanın arkasına
+           saklanırdı. Kutu eni yerleşimden gelir (`table-layout: fixed`
+           sütun genişliği), satır SAYISINDAN değil: tekrarlayan satırlar
+           tek imzada birleşir, yapısal olarak yeni bir kırpma ayrı imza
+           olur. Kırpılan px imzaya GİRMEZ — o, metin uzunluğuyla yani
+           veriyle değişir. */
+        const anahtar = `${o.etiket}|${o.karar.tur}|${o.genislik}`;
         const v = imzalar.get(anahtar) ?? { ...o, adet: 0 };
         v.adet += 1;
         imzalar.set(anahtar, v);
@@ -328,4 +345,8 @@ if (DINAMIK_KIRIK) {
   console.error(`\nKIRIK TARAMA · ${DINAMIK.atlanan.length} dinamik rota ölçülemedi`
     + ' — izin listesine giremez, kapı KIRMIZIDIR.');
 }
-process.exit(borcKapali || DINAMIK_KIRIK ? 1 : 0);
+if (yuzeyKirigi.length > 0) {
+  console.error(`\nKIRIK TARAMA · ${yuzeyKirigi.length} rota YANLIŞ YÜZEY döndürdü`);
+  for (const k of yuzeyKirigi) console.error(`  ${k.bant} · ${k.yol} · ${k.sebep}`);
+}
+process.exit(borcKapali || DINAMIK_KIRIK || yuzeyKirigi.length > 0 ? 1 : 0);

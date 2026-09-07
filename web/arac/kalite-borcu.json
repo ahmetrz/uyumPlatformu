@@ -17,7 +17,7 @@
     "    yerelde yalnız `--circir-atla=\"<gerekçe>\"` ile atlanır."
   ],
   "_olculdu": "2026-09-07 · TAZE tohumla (npm run db:hazirla), üretim sunucusuna karşı · 56 rota × 2 bant (taşma) · 57 rota × 3 bant (axe)",
-  "_birim": "tasma/sayfa-kayiyor: px · tasma/kirpilan-icerik: KUSUR TÜRÜ (aynı etiket + aynı kırpılma türü tek imzadır) · axe: ihlal düğümü",
+  "_birim": "tasma/sayfa-kayiyor: px · tasma/kirpilan-icerik: KUSUR TÜRÜ (etiket + kırpılma türü + kutu eni tek imzadır; kutu eni yerleşimden gelir, satır sayısından değil) · axe: ihlal düğümü",
   "bulgular": [
     {
       "kapi": "tasma",
@@ -48,7 +48,7 @@
       "tur": "kirpilan-icerik",
       "rota": "/bulgular",
       "bant": 375,
-      "azami": 3,
+      "azami": 4,
       "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
     },
     {
@@ -88,7 +88,7 @@
       "tur": "kirpilan-icerik",
       "rota": "/dokumanlar",
       "bant": 375,
-      "azami": 3,
+      "azami": 4,
       "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
     },
     {
@@ -96,7 +96,7 @@
       "tur": "kirpilan-icerik",
       "rota": "/dokumanlar",
       "bant": 768,
-      "azami": 2,
+      "azami": 4,
       "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
     },
     {
@@ -136,7 +136,7 @@
       "tur": "kirpilan-icerik",
       "rota": "/kanitlar",
       "bant": 375,
-      "azami": 3,
+      "azami": 8,
       "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
     },
     {
@@ -144,7 +144,7 @@
       "tur": "kirpilan-icerik",
       "rota": "/kanitlar",
       "bant": 768,
-      "azami": 2,
+      "azami": 7,
       "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
     },
     {
@@ -248,7 +248,7 @@
       "tur": "kirpilan-icerik",
       "rota": "/saklama",
       "bant": 375,
-      "azami": 2,
+      "azami": 3,
       "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
     },
     {
@@ -272,7 +272,7 @@
       "tur": "kirpilan-icerik",
       "rota": "/surecler",
       "bant": 375,
-      "azami": 2,
+      "azami": 3,
       "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
     },
     {
@@ -288,7 +288,7 @@
       "tur": "kirpilan-icerik",
       "rota": "/surecler/[id]",
       "bant": 375,
-      "azami": 2,
+      "azami": 3,
       "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
     },
     {
@@ -304,7 +304,7 @@
       "tur": "kirpilan-icerik",
       "rota": "/tedarikciler",
       "bant": 375,
-      "azami": 3,
+      "azami": 4,
       "not": "kütük tablosu · `table-layout: fixed` dar bantta sütunu 0 genişliğe çöktürüyor, `.ab-vt th/td { overflow: hidden }` kesiyor"
     },
     {
@@ -312,7 +312,7 @@
       "tur": "kirpilan-icerik",
       "rota": "/tedarikciler",
       "bant": 768,
-      "azami": 1,
+      "azami": 2,
       "not": "ipucu balonu kabından taşıyor"
     },
     {

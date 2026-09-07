@@ -41,6 +41,7 @@ import {
   rotalarOku, tarayiciYolu,
 } from './kosu-ortak.mjs';
 import { axeOzeti } from './kalite-kurallari.mjs';
+import { yonlendirmeKarari } from './rota-kurallari.mjs';
 import { borcuUygula } from './kalite-borcu.mjs';
 
 const GIRIS_ROTASI = '/giris';
@@ -99,13 +100,25 @@ async function tara(s, rota) {
     };
   }, ETIKETLER);
   const ozet = axeOzeti(sonuc.ihlaller);
+  /* Yanlış YÜZEYİ taramak, taramamaktan beterdir: 404/500 gövdesi ya da
+     giriş ekranı "yeni ciddi ihlal yok" der ve kapı yeşil kalır. Bu,
+     tohumdan somutlaşan detay rotalarında özellikle kritiktir — geçerli
+     bir kimlik + bozuk bir işleyici tam olarak bu tuzağı kurar.
+     `rota-duman.mjs`'in kuralı burada da geçerlidir: yalnız yazılı
+     yönlendirme kabul edilir. */
+  const kod = y?.status() ?? 0;
+  const karar = yonlendirmeKarari(rota, varilan);
+  const yuzeyHatasi = kod !== 200
+    ? `HTTP ${kod} — yanlış yüzey tarandı`
+    : (karar.kusur ?? null);
   return {
     rota,
-    kod: y?.status() ?? 0,
+    kod,
     varilan: varilan === rota ? null : varilan,
     ...sonuc,
     ciddi: ozet.ciddi.length,
     diger: ozet.diger.length,
+    yuzeyHatasi,
   };
 }
 
@@ -164,10 +177,10 @@ for (const bant of BANTLAR) {
   for (const r of bantRapor) {
     ciddiToplam += r.ciddi;
     digerToplam += r.diger;
-    if (r.hata) kirik.push(r);
+    if (r.hata || r.yuzeyHatasi) kirik.push(r);
     const kusur = [];
     if (r.hata) kusur.push(`tarama kırıldı: ${r.hata}`);
-    if (r.varilan?.startsWith('/giris')) kusur.push('girişe atıldı');
+    if (r.yuzeyHatasi) kusur.push(`KIRIK: ${r.yuzeyHatasi}`);
     const ihlalOzet = r.ihlaller.map((i) => `${i.id}[${i.impact}]×${i.dugum}`).join(' ');
     console.log(
       `${r.rota.padEnd(26)} ${String(r.kod).padEnd(6)} ${String(r.ciddi).padStart(5)}  ${String(r.diger).padStart(5)}`

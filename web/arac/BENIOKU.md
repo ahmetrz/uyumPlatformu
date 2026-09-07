@@ -280,7 +280,11 @@ geri gelemez.
 #### Tavan VERİYE BAĞIMLI olamaz
 
 `kirpilan-icerik` ölçüsünün birimi **kusur TÜRÜDÜR**, kırpılan öğe sayısı
-değil: aynı etiket + aynı kırpılma türü tek imzadır. Sebep ölçüldü —
+değil: **etiket + kırpılma türü + kutu eni** tek imzadır. Kutu eni imzaya
+girer çünkü aynı etiketle kırpılan YENİ bir sütun, yoksa mevcut imzanın
+arkasına saklanırdı; kutu eni yerleşimden gelir (`table-layout: fixed`
+sütun genişliği), satır sayısından değil. Kırpılan px imzaya GİRMEZ — o,
+metin uzunluğuyla yani veriyle değişir. Sebep ölçüldü —
 kütük tablosunda her SATIR ayrı öğe sayılıyordu ve tavan tohum verisiyle
 oynuyordu:
 
@@ -364,9 +368,16 @@ kullanır:
 Ayrım "kaydırılabiliyor mu" DEĞİL, **"erişilebiliyor mu"**: yol üstünde
 `auto`/`scroll` bir kap varsa içerik kaydırılarak görülür, kusur değildir;
 `hidden`/`clip` kabında görülemez, kusurdur. Kırpan kap hiç yoksa taşma
-belgeye çıkar ve birinci ölçü onu zaten yakalar. `tasma` için öğe KENDİ
-kırpmasını yönetiyorsa (üç nokta, kendi kaydırma kabı) suçlanmaz — kırpma
-orada görünür bir işaret taşır. `disari` için böyle bir muafiyet yoktur.
+belgeye çıkar ve birinci ölçü onu zaten yakalar. `tasma` için öğenin KENDİ kırpması ancak
+GÖRÜNÜR bir işaret taşıyorsa muaftır: `text-overflow` (üç nokta) ya da
+`-webkit-line-clamp`. İşaretsiz kırpma — `overflow: hidden` +
+`white-space: nowrap`, üç nokta yok — kusurdur ve `işaretsiz kırpma`
+diye raporlanır; metin düğümleri ağaçta gezilmediği için o kayıp başka
+hiçbir ölçüde görünmezdi. `disari` için böyle bir muafiyet yoktur.
+
+> Bugün bu kalıptan **0 bulgu** çıkıyor (ölçüldü): kod tabanındaki
+> kendi kırpmasını yöneten öğelerin hepsi ya üç nokta gösteriyor ya da
+> taşmıyor. Kural yine de kapıdadır — kalıp yarın girerse yakalanır.
 
 Karar `kalite-kurallari.mjs → kirpilmaKarari` içindedir ve
 `tests/kalite-kapilari.test.ts` ile TARAYICISIZ doğrulanır; araç sayfada
@@ -440,6 +451,18 @@ istenmemiştir; orada kırık sayılmaz.
 > **Denendi:** `DB_YOL=/olmayan/dev.db` ile iki kapı da altı dinamik
 > rotayı çözemedi ve ikisi de exit 1 verdi; `--rota=/uyum` ile aynı
 > koşu exit 0.
+
+**Yanlış YÜZEYİ taramak, taramamaktan beterdir.** 404/500 gövdesi ya da
+giriş ekranı taşmaz ve "yeni ciddi ihlal yok" der; kapı yeşil kalır.
+Tohumdan somutlaşan detay rotalarında bu özellikle kritiktir — geçerli
+bir kimlik + bozuk bir işleyici tam olarak bu tuzağı kurar. İki kapı da
+artık HTTP durumunu ve varışı denetler; `rota-duman.mjs`'in kuralı
+geçerlidir (`BILINCLI_YONLENDIRME`: yalnız yazılı yönlendirme kabul
+edilir, bugün tek satır `/tesisler → /portfoy`).
+
+> **Denendi:** `--rota=/boyle-bir-rota-yok` ile axe `KIRIK: HTTP 404 —
+> yanlış yüzey tarandı` yazıp exit 1, taşma kapısı `KIRIK TARAMA · 2
+> rota YANLIŞ YÜZEY döndürdü` yazıp exit 1 verdi.
 
 ```bash
 PORT=3210 npm run tasarim:tasma

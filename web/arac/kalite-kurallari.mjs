@@ -117,6 +117,10 @@ export const KIRPILMA_TOLERANSI = 4;
 /** Erişilebilirliği koruyan kap türleri — bunların içindeki taşma kusur değildir. */
 export const KAYDIRAN_KAPLAR = new Set(['auto', 'scroll', 'overlay']);
 
+/** Kırpmayı GÖSTEREN işaretler: üç nokta ve satır kırpma. */
+const KESME_ISARETI = (o) => String(o?.metinTasmasi ?? 'clip') !== 'clip'
+  || Number(o?.satirKirpma ?? 0) > 0;
+
 /**
  * Tek bir ölçümün kararı. Eksik/bozuk ölçüm kusur ÜRETMEZ — ölçülemeyen
  * bir şey "kusurlu" da olamaz (bkz. bilinmeyen ≠ sıfır).
@@ -137,8 +141,18 @@ export function kirpilmaKarari(olcum, tolerans = KIRPILMA_TOLERANSI) {
 
   const tasma = Number(olcum?.tasma);
   if (!Number.isFinite(tasma) || tasma <= tolerans) return { kusur: false, sebep: null };
+  /* Öğenin KENDİ kırpması ancak GÖRÜNÜR bir işaret taşıyorsa muaftır.
+     Eskiden yalnız `overflow-x !== visible` bakılıyordu ve bu, işaretsiz
+     kırpmayı da aklıyordu: `overflow: hidden` + `white-space: nowrap`,
+     üç nokta OLMADAN, metni sessizce keser. Metin düğümleri ağaçta
+     gezilmediği için o kayıp başka hiçbir yerde de görünmezdi. */
   if (String(olcum?.kendiOverflow ?? 'visible') !== 'visible') {
-    return { kusur: false, sebep: 'öğe kendi kırpmasını yönetiyor' };
+    if (KESME_ISARETI(olcum)) return { kusur: false, sebep: 'öğe kırpmayı GÖSTEREREK yönetiyor' };
+    return {
+      kusur: true,
+      tur: 'işaretsiz kırpma',
+      sebep: `öğe kendi içeriğinin ${Math.round(tasma)}px'ini İŞARETSİZ kesiyor`,
+    };
   }
   return { kusur: true, tur: 'kutuya sığmıyor', sebep: `kap ${kap} · içeriğin ${Math.round(tasma)}px'i kutunun dışında` };
 }

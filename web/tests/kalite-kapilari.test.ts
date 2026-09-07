@@ -113,10 +113,29 @@ describe('kırpılma kararı', () => {
     expect(k.tur).toBe('kutuya sığmıyor');
   });
 
-  it('öğe kendi kırpmasını yönetiyorsa (üç nokta) taşma kusur değildir', () => {
-    const k = kirpilmaKarari({ ...temel, tasma: 112, kendiOverflow: 'hidden' });
+  it('öğe kırpmayı GÖSTEREREK yönetiyorsa (üç nokta) kusur değildir', () => {
+    const k = kirpilmaKarari({
+      ...temel, tasma: 112, kendiOverflow: 'hidden', metinTasmasi: 'ellipsis',
+    });
     expect(k.kusur).toBe(false);
-    expect(k.sebep).toContain('kendi kırpmasını');
+    expect(k.sebep).toContain('GÖSTEREREK');
+  });
+
+  it('satır kırpma (line-clamp) da görünür bir işarettir', () => {
+    expect(kirpilmaKarari({
+      ...temel, tasma: 112, kendiOverflow: 'hidden', satirKirpma: 2,
+    }).kusur).toBe(false);
+  });
+
+  it('İŞARETSİZ kendi kırpması KUSURDUR — sessizce kesip hiç söylemez', () => {
+    /* `overflow: hidden` + `white-space: nowrap`, üç nokta yok. Metin
+       düğümleri ağaçta gezilmediği için bu kayıp başka hiçbir ölçüde
+       görünmezdi; muafiyeti "kendi yönetiyor" diye vermek onu aklardı. */
+    const k = kirpilmaKarari({
+      ...temel, tasma: 112, kendiOverflow: 'hidden', metinTasmasi: 'clip',
+    });
+    expect(k.kusur).toBe(true);
+    expect(k.tur).toBe('işaretsiz kırpma');
   });
 
   it('tolerans altı kusur değil, üstü kusurdur', () => {

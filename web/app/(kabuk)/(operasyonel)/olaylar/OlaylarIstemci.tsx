@@ -1,4 +1,5 @@
 'use client';
+import { useSozluk, useTerim } from '@/lib/dil/SozlukSaglayici';
 import { useMemo, useState } from 'react';
 import { useUrlDurumu, useUrlDurumuBos } from '@/components/kabuk/urlDurumu';
 import { BosIlk, BosFiltre, Dugme, Im, Ipucu, type Durum } from '@/components/kabuk/temel';
@@ -17,7 +18,7 @@ import {
   olayImi, olgu, seviyeDurumu, seviyeSozu, sirala, surukleyici,
   zincirKopuk, zincirOzeti,
   type BagAdayi, type BagTipi, type EtkiAlani, type HalkaGorunumu,
-  type OlayKaydi, type Santral,
+  type OlayKaydi, type Tesis,
 } from './mantik';
 import { BILDIRIM_SINIFI, BILDIRIM_SOZU } from '@/lib/uyum/bildirimSuresi';
 
@@ -51,14 +52,15 @@ const MERCEKLER = [
 type Kip = 'ozet' | 'duzenle';
 
 export default function OlaylarIstemci({
-  olaylar, santraller, adaylar, yazabilir, dogrulayabilir,
+  olaylar, tesisler, adaylar, yazabilir, dogrulayabilir,
 }: {
   olaylar: OlayKaydi[];
-  santraller: Santral[];
+  tesisler: Tesis[];
   adaylar: Record<BagTipi, BagAdayi[]>;
   yazabilir: boolean;
   dogrulayabilir: boolean;
 }) {
+  const sozluk = useSozluk();
   const [mercek, setMercek] = useUrlDurumu<string>('mercek', 'acik');
   const [seciliId, setSeciliId] = useUrlDurumuBos('sec');
   const [kuyrukAcik, setKuyrukAcik] = useState(false);
@@ -111,7 +113,7 @@ export default function OlaylarIstemci({
               <p className="etiket" style={{ margin: '0 0 var(--s12)' }}>Olay aç</p>
             </div>
             <div className="ab-panel-blok">
-              <YeniOlayFormu santraller={santraller} kapat={() => setYeniAcik(false)} />
+              <YeniOlayFormu tesisler={tesisler} kapat={() => setYeniAcik(false)} />
             </div>
           </Cekmece>
         )}
@@ -145,7 +147,7 @@ export default function OlaylarIstemci({
           ? TESPIT_SOZU[o.tespitKaynagi] ?? o.tespitKaynagi
           : <BilinmeyenHucre key="t" ad="Tespit kaynağı kaydedilmemiş" />,
         <span key="z" style={{ color: zincirKopuk(o) ? 'var(--unk)' : 'var(--i2)' }}>
-          {zincirOzeti(o)}
+          {zincirOzeti(o, sozluk)}
         </span>,
         <UretimHucresi key="u" o={o} />,
       ],
@@ -241,7 +243,7 @@ export default function OlaylarIstemci({
                 <p className="etiket" style={{ margin: '0 0 var(--s12)' }}>Olayı düzenle</p>
               </div>
               <div className="ab-panel-blok">
-                <OlayDuzenleFormu olay={secili} santraller={santraller}
+                <OlayDuzenleFormu olay={secili} tesisler={tesisler}
                   kapat={() => setKip('ozet')} />
               </div>
             </>
@@ -255,7 +257,7 @@ export default function OlaylarIstemci({
             <p className="etiket" style={{ margin: '0 0 var(--s12)' }}>Olay aç</p>
           </div>
           <div className="ab-panel-blok">
-            <YeniOlayFormu santraller={santraller} kapat={() => setYeniAcik(false)} />
+            <YeniOlayFormu tesisler={tesisler} kapat={() => setYeniAcik(false)} />
           </div>
         </Cekmece>
       )}
@@ -317,6 +319,7 @@ function Detay({
   dogrulayabilir: boolean;
   duzenle: () => void;
 }) {
+  const { t: terim } = useTerim();
   const im = olayImi(o);
   const bekleyen = bekleyenAlanlar(o);
 
@@ -332,7 +335,7 @@ function Detay({
           durum: o.tespitKaynagi ? undefined : 'unk',
         },
         { etiket: 'Şiddet', deger: `${KADEME[o.siddet] ?? '—'} · ${o.siddet}` },
-        { etiket: 'Santral', deger: o.tesisAd ?? '—', durum: o.tesisAd ? undefined : 'unk' },
+        { etiket: 'Tesis', deger: o.tesisAd ?? '—', durum: o.tesisAd ? undefined : 'unk' },
         { etiket: 'Başlangıç', deger: zamanTR(o.baslangic) },
         {
           etiket: 'Bildirim',
@@ -386,7 +389,8 @@ function Detay({
         ikincil={o.yazilabilir ? <Dugme onClick={duzenle}>Kaydı düzenle</Dugme> : undefined}
         dipNot={o.yazilabilir
           ? 'Durum, müdahale ve öğrenme alanları düzenleme formunda; etki alanları orada YOKTUR.'
-          : 'Bu olayın santral kapsamında yazma yetkiniz yok — kayıt okunabilir, değiştirilemez.'}
+          : `Bu olayın ${terim('tesis')} kapsamında yazma yetkiniz yok`
+            + ' — kayıt okunabilir, değiştirilemez.'}
       />
       <OneriYenile olayId={o.id} yazabilir={o.yazilabilir}
         uretilme={o.oneri?.uretilme ?? null} />
@@ -468,7 +472,8 @@ function EtkiSatiri({
   );
 }
 
-/** Zincir görünümü: varlık → sistem → süreç → tesis. Kopan halka
+/** Zincir görünümü: varlık → sistem → süreç → tesis (sözcükler sözlükten).
+    Kopan halka
     NEREDE koptuğunu yazar; boş bırakılıp "yok" gibi görünmez. */
 function ZincirBlogu({ o }: { o: OlayKaydi }) {
   const zincir = o.oneri?.zincir ?? [];

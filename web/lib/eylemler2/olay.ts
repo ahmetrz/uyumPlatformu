@@ -3,7 +3,9 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { db } from '../db';
-import { yetkiZorunlu, izinVar, kapsamZorunlu, KAPSAM_SONRA } from '../erisim';
+import { yetkiZorunlu, izinVar, izinliTesisIdleri, kapsamZorunlu, KAPSAM_SONRA } from '../erisim';
+import { kapsamAnahtari, kapsamSozlugu, tesisSozlugu } from '../dil/sozlukOku';
+import { t } from '../dil/terimler';
 import {
   etkiOnerisiUret, oneriOku, dayanak,
   ETKI_ALANLARI, ETKI_ALAN_ETIKET, SEVIYE_ETIKET, SEVIYE_KUMESI,
@@ -24,7 +26,7 @@ import { tamam, hata, iz, tarihAlani, bosluksuz, type Sonuc } from './ortak';
      dokunur; alan doluysa arkasında bir insan kararı ve bir iz kaydı vardır.
    · Doğrulanmamış öneri "etki" değildir — raporlar boş alanı okur.
    · Yetki: okuma/yazma `envanter`, etki doğrulama `yonetim/onay`.
-     Santral kapsamı olayın tesisi üzerinden uygulanır. */
+     Tesis kapsamı olayın tesisi üzerinden uygulanır. */
 
 const YOLLAR = ['/olaylar', '/operasyon'];
 const tazele = () => YOLLAR.forEach((y) => revalidatePath(y));
@@ -49,9 +51,9 @@ const BAG_ETIKET: Record<BagTipi, string> = {
 };
 
 /** Olayı ve kapsam yetkisini birlikte çözer. Olayın tesisi varsa kapsam
-    kontrolü ZORUNLU: başka santralin olayına yazılamaz. */
+    kontrolü ZORUNLU: başka tesisin olayına yazılamaz. */
 async function olayKapisi(olayId: string, modul: 'envanter' | 'yonetim', islem: 'yazma' | 'onay') {
-  /* İKİ AŞAMALI KAPI (`KAPSAM_SONRA`, bkz. erisim.ts): olayın santrali
+  /* İKİ AŞAMALI KAPI (`KAPSAM_SONRA`, bkz. erisim.ts): olayın tesisi
      kayıt okunmadan bilinemez. Ön kapı kapsamsız çağrılırsa tesise kısıtlı
      rol daha ilk adımda reddedilir ve kendi sahasının olayına dokunamaz. */
   const k = await yetkiZorunlu(modul, islem, KAPSAM_SONRA);
@@ -64,11 +66,16 @@ async function olayKapisi(olayId: string, modul: 'envanter' | 'yonetim', islem: 
     },
   });
   if (!olay) throw new Error('Olay bulunamadı');
-  /* KOŞULSUZ: santrali olmayan olay kurumsaldır ve kapsamsız yetki ister.
-     "Santral yoksa atla" yazılsaydı, tesise kısıtlı rol kurumun bütün
-     santralsiz olaylarını düzenleyebilirdi. */
+  /* KOŞULSUZ: tesisi olmayan olay kurumsaldır ve kapsamsız yetki ister.
+     "Tesis yoksa atla" yazılsaydı, tesise kısıtlı rol kurumun bütün
+     tesissiz olaylarını düzenleyebilirdi. */
+  /* Mesaj sözlükten; bağlam en dar yerden: olayın tesisi BİLİNİYORSA
+     kaydın kendi sözlüğü, bilinmiyorsa kullanıcının kapsamı. */
+  const sozluk = olay.tesisId
+    ? await tesisSozlugu(olay.tesisId)
+    : await kapsamSozlugu(kapsamAnahtari(izinliTesisIdleri(k, modul)));
   kapsamZorunlu(k, modul, islem, { tesisId: olay.tesisId },
-    'Bu santral kapsamında yetkiniz yok');
+    `Bu ${t(sozluk, 'tesis')} kapsamında yetkiniz yok`);
   return { k, olay };
 }
 
@@ -111,10 +118,14 @@ export async function olayGuncelle(girdi: {
     }).parse(girdi);
 
     const { k, olay } = await olayKapisi(v.id, 'envanter', 'yazma');
-    // Tesis DEĞİŞTİRİLİYORSA hedef santralde de yetki aranır.
+    /* Tesis DEĞİŞTİRİLİYORSA hedef tesiste de yetki aranır. Mesajın
+       sözlüğü HEDEFİN sözlüğüdür, kaynağınki değil: kullanıcı hedefe
+       yazamıyor ve okuduğu sözcük hedefin sözcüğü olmalı. */
     if (v.tesisId && v.tesisId !== olay.tesisId
-      && !izinVar(k, 'envanter', 'yazma', { tesisId: v.tesisId }))
-      return { ok: false, hata: 'Hedef santral kapsamında yetkiniz yok' };
+      && !izinVar(k, 'envanter', 'yazma', { tesisId: v.tesisId })) {
+      const hedefSozluk = await tesisSozlugu(v.tesisId);
+      return { ok: false, hata: `Hedef ${t(hedefSozluk, 'tesis')} kapsamında yetkiniz yok` };
+    }
 
     const eski = await db.olay.findUniqueOrThrow({ where: { id: v.id } });
     const yaz = <T,>(deger: T | undefined, mevcut: T): T => (deger === undefined ? mevcut : deger);

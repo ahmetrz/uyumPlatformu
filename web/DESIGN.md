@@ -194,8 +194,9 @@ gecikmiş". Bilinmeyen sıfır değildir ve kendi diliminde durur.
 ## Colors
 
 Tek palet `.ab` altında tanımlıdır (`--zemin --panel --panel2 --murekkep --i2
---i3 --hr --hr2 --aksan --aksan-uzeri --secim --ok --md --bd --pl --unk --jes
---hes --res --ges`); Eylül 2026 denetiminden sonra A (kehribar/Archivo) ve C
+--i3 --hr --hr2 --aksan --aksan-uzeri --secim --ok --md --bd --pl --unk
+--tip-a --tip-b --tip-c --tip-d`); Eylül 2026 denetiminden sonra A
+(kehribar/Archivo) ve C
 (oxblood/Newsreader) paletleri kaldırıldı, Saha (B) paleti tek kaynak oldu.
 Yoğunluk (`data-yogunluk="amiral|operasyonel|tezgah"`) renk değil ölçü değiştirir
 (`--gutter --ayak-h --durum-h --satir-h`).
@@ -207,7 +208,8 @@ Yoğunluk (`data-yogunluk="amiral|operasyonel|tezgah"`) renk değil ölçü değ
 - **Durum ailesi**: `--ok` uygun (`#6FA07E`), `--md` kısmi / uyarı (`#D9A03C`), `--bd` uygunsuz / kritik (`#DB5A48`), `--pl` planlı (`#7A8B93`), `--unk` değerlendirilmedi (`#8D9497`). `--bd` prototipte 3,45:1 kalıyordu; ton korunarak 4,76:1'e açıldı — kritik durumun rengi okunamıyorsa kritikliği taşımıyor demektir.
 
 ### Tertiary
-- **Üretim tipi kimliği** (`--jes` `#C47A3F` · `--hes` `#5F8FA8` · `--res` `#9DB3A8` · `--ges` `#C9A24C`): jeotermal / hidro / rüzgâr / güneş. Renk **kimliktir, durum değil**: yalnız işaretçi ölçeğinde (portföy düzlemi, santral seçici), asla metinde ya da durum yerine.
+- **Tip kimlik yuvaları** (`--tip-a` `#B7734A` · `--tip-b` `#5A87A3` · `--tip-c` `#93A6AD` · `--tip-d` `#C9A24C`): tesis tipinin kimliği. Yuvalar **sektörsüzdür** — hangi tipin hangi yuvayı aldığını CSS bilmez, eşleme `components/kabuk/tip.ts` içindedir ve P4'te sektör paketine taşınır. Renk **kimliktir, durum değil**: yalnız işaretçi ölçeğinde (portföy düzlemi, tesis seçici), asla metinde ya da durum yerine.
+- **Kapasite dörttür ve bir sınırdır.** Yuvası olmayan tip nötr mürekkebe (`--i2`) düşer; yuva **sarılmaz** — aynı rengi iki tipe vermek "bunlar aynı" demek olurdu ve renk burada kimliktir. Renksiz kalmanın iki ayrı sebebi `/sistem` sayfasında ayrı cümlelerde yazılır (kapasite eksiği ≠ tasarım gereği).
 
 ### Neutral
 - **Zemin** (`#0A0C0D`): sayfanın kendisi; soğuk çelik.
@@ -222,6 +224,10 @@ Yoğunluk (`data-yogunluk="amiral|operasyonel|tezgah"`) renk değil ölçü değ
 **The Renk Tek Kanal Değil Rule.** Durum daima ikinci bir kanalla gelir: glif biçimi, sözcük, uzunluk (tik şeridi) ya da erişilebilir ad. Renk göremeyen okuyucu için 22 ile 4 aynı görünmez.
 
 **The Aksan Seyrek Rule.** Aksan seçimi, aktif öğeyi ve birincil eylemi işaretler; ekranın yüzde birkaçından fazlasını kaplamaz. Metinde aksan kullanılmaz.
+
+**The Aksan Kimlik Değildir Rule.** Aksan bir **durum** rengidir — aktif, seçili, odakta. **Kimlik rengi değildir**; kimlik `--tip-*` yuvalarından gelir. İkisini karıştırmak, bir tesis tipini "aktif" gibi gösterir ve aksanın tek anlamını da tüketir.
+
+> Bu kural bir kez çiğnendi: `JEO` tipi kimlik rengi olarak `--aksan`ı kullanıyordu (P1'de `--tip-a`ya alındı). Kod düzeltildi; kural buraya yazıldı ki birkaç ay sonra "boşta duran güzel bir renk" diye geri gelmesin.
 
 ## Typography
 

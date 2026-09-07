@@ -41,7 +41,8 @@
     "/yetkiler": 5,
     "/ayarlar": 3,
     "/varlik-aktarim": 0,
-    "/denetimler": 7
+    "/denetimler": 7,
+    "/dokumanlar": 8
   },
   "muafiyetler": {
     "İç Denetim Birimi": "Denetçi ADI — tohum verisi (`prisma/seed-denetim-proje.ts`). Buradaki 'Birimi' kurumsal bir departmandır, `birim` sözlük anahtarı (üretim ünitesi / arıtma hattı) DEĞİL."

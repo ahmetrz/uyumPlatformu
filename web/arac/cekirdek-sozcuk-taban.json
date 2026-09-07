@@ -15,7 +15,7 @@
     "",
     "Taban güncelleme: npx tsx arac/cekirdek-sozcuk-taramasi.mjs --taban"
   ],
-  "toplam": 35,
+  "toplam": 33,
   "dosyalar": {
     "app/(kabuk)/(operasyonel)/aktivite/veri.ts": 2,
     "app/(kabuk)/(operasyonel)/olaylar/OlaylarIstemci.tsx": 2,
@@ -34,7 +34,6 @@
     "app/(tam)/harita/HaritaIstemci.tsx": 1,
     "components/kabuk/tip.ts": 1,
     "components/kabuk/yonler.ts": 1,
-    "lib/sabitler.ts": 2,
     "lib/uyum/degerlendirmeAktarimi.ts": 2,
     "lib/uyum/degisiklikEtkisi.ts": 1,
     "lib/uyum/denetciErisimi.ts": 3,

@@ -12,14 +12,13 @@ import { csvAktar, damgaliAd, exceleAktar, pdfYazdir } from '@/components/disaAk
 import { an } from '@/lib/an';
 import {
   ONEM_DERECELERI, ONEM_ETIKET, AKSIYON_ETIKET, BULGU_DURUM_ETIKET,
-  etiketle, eylemCumlesi, tarihTR, zamanTR, type Onem,
-} from '@/lib/sabitler';
+  etiketle, eylemCumlesi, tarihTR, zamanTR, type Onem, etiketTerimleri } from '@/lib/sabitler';
 import {
   acikMi, aksiyonAcikMi, aksiyonImi, bulguImi, dogrulamaBekliyorMu,
   dogrulamaHucresi, gecikmeGunu, kalanGun, kisaTarih, surukleyenAksiyon,
   type AksiyonOzeti, type DogrulamaHucresi as DogrulamaVerisi,
 } from './mantik';
-import { useTerim } from '@/lib/dil/SozlukSaglayici';
+import { useSozluk, useTerim } from '@/lib/dil/SozlukSaglayici';
 
 export type IzKaydi = {
   id: string; aktor: string; eylem: string; varlikTipi: string;
@@ -535,6 +534,7 @@ const SOZ: Record<Durum, string> = {
 };
 
 function BulguCekmecesi({ veri, kapat }: { veri: Secim; kapat: () => void }) {
+  const ET = etiketTerimleri(useSozluk());
   const { tBas } = useTerim();
   const { b, im, gecikme, dogrulama, sahip, biten } = veri;
   const acikAksiyon = b.aksiyonlar.filter(aksiyonAcikMi).length;
@@ -592,7 +592,7 @@ function BulguCekmecesi({ veri, kapat }: { veri: Secim; kapat: () => void }) {
                 borderLeft: 'var(--bw-edge) solid var(--hr2)', paddingLeft: 'var(--s12)' }}>
                 <span style={{ fontSize: 'var(--t-field)' }}>
                   <b style={{ fontWeight: 600 }}>{k.aktor}</b>{' '}
-                  {eylemCumlesi(k.eylem, k.varlikTipi === 'Bulgu' ? null : k.varlikTipi, k.alan)}
+                  {eylemCumlesi(k.eylem, k.varlikTipi === 'Bulgu' ? null : k.varlikTipi, k.alan, ET)}
                 </span>
                 <span style={{ fontFamily: 'var(--veri)', fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
                   {zamanTR(k.zaman)}

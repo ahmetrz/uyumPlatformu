@@ -28,8 +28,7 @@ import {
 } from '@/lib/eylemler';
 import {
   ONEM_DERECELERI, ONEM_ETIKET, BULGU_DURUMLARI, BULGU_DURUM_ETIKET,
-  AKSIYON_DURUMLARI, AKSIYON_ETIKET, KANIT_ESIK_VARSAYILAN, kanitTazelik, etiketle, eylemCumlesi, zamanTR, type KanitEsik,
-} from '@/lib/sabitler';
+  AKSIYON_DURUMLARI, AKSIYON_ETIKET, KANIT_ESIK_VARSAYILAN, kanitTazelik, etiketle, eylemCumlesi, zamanTR, type KanitEsik, etiketTerimleri } from '@/lib/sabitler';
 import {
   aksiyonAcikMi, aksiyonDogrulamaHucresi, aksiyonImi, bugunAn, bulguImi,
   dogrulamaBekliyorMu, dogrulamaHucresi, gecikmeGunu,
@@ -37,7 +36,7 @@ import {
   surukleyenAksiyon,
   type AksiyonOzeti,
 } from '../mantik';
-import { useTerim } from '@/lib/dil/SozlukSaglayici';
+import { useSozluk, useTerim } from '@/lib/dil/SozlukSaglayici';
 
 /** Kayıt ekranındaki aksiyon: özet + görev ayrılığı için sorumlu kimliği. */
 export type AksiyonKaydi = AksiyonOzeti & { sorumluId: string | null };
@@ -789,6 +788,7 @@ function AksiyonPaneli({
 /* ── Denetim izi ────────────────────────────────────────────────────── */
 
 function DenetimIzi({ kayitlar }: { kayitlar: Veri['aktiviteler'] }) {
+  const ET = etiketTerimleri(useSozluk());
   if (kayitlar.length === 0) {
     return (
       <div className="ab-panel-blok">
@@ -804,7 +804,7 @@ function DenetimIzi({ kayitlar }: { kayitlar: Veri['aktiviteler'] }) {
           borderLeft: 'var(--bw-edge) solid var(--hr2)', paddingLeft: 'var(--s12)' }}>
           <span style={{ fontSize: 'var(--t-field)' }}>
             <b style={{ fontWeight: 600 }}>{k.aktor}</b>{' '}
-            {eylemCumlesi(k.eylem, k.varlikTipi === 'Bulgu' ? null : k.varlikTipi, k.alan)}
+            {eylemCumlesi(k.eylem, k.varlikTipi === 'Bulgu' ? null : k.varlikTipi, k.alan, ET)}
           </span>
           <span style={{ fontFamily: 'var(--veri)', fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
             {zamanTR(k.zaman)}

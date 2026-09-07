@@ -142,7 +142,7 @@
     "ADI ile İDDİASI ayrışırsa kapı yaşarken ölür."
   ],
   "tavan": 12,
-  "terimTavani": 90,
+  "terimTavani": 86,
   "dosyalar": [
     "app/(kabuk)/(operasyonel)/sistem/bilesenler/Galeri.tsx",
     "app/(kabuk)/(operasyonel)/sistem/page.tsx",

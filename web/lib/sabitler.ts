@@ -1,5 +1,8 @@
 import { z } from 'zod';
 import { an } from './an';
+import {
+  CEKIRDEK_TERIMLER, basHarf, terim, type Sozluk, type Terim,
+} from './dil/terimler';
 
 // Sözlük değerleri: veri panelden tanımlanır (Sektor, TesisTipi, Regulasyon,
 // KapsamAlani, UyumSureci); burada yalnızca DURUM makine adları ve Türkçe
@@ -244,8 +247,10 @@ export const EK_ETIKET: Record<string, string> = {
   onaylandi: 'Onaylandı', kaldirilsin: 'Kaldırılsın', degistirilsin: 'Değiştirilsin',
   // veri kalitesi kuralları
   sahipsiz_varlik: 'Sahipsiz varlık', kritikligi_bilinmeyen: 'Kritikliği bilinmeyen',
-  bayat_kayit: 'Bayat kayıt', eksik_profil: 'Eksik santral profili',
-  envanteri_bos_tesis: 'Envanteri boş santral', sahipsiz_kanit: 'Sahipsiz kanıt',
+  /* `eksik_profil` ve `envanteri_bos_tesis` TERİM taşır; karşılıkları
+     `TERIM_ETIKET` katmanındadır ve buradan çıkarıldı — iki yerde
+     durmaları, birinin sessizce bayatlaması demekti. */
+  bayat_kayit: 'Bayat kayıt', sahipsiz_kanit: 'Sahipsiz kanıt',
   // OT-40 · kaynakta artık görünmeyen kayıt (SİLME DEĞİL, bulgu)
   kaynakta_kayboldu: 'Kaynakta kayboldu',
   // varlık yaşam döngüsü
@@ -275,7 +280,7 @@ export const EK_ETIKET: Record<string, string> = {
   // varlık (kayıt) tipleri — aktivite izi ve görev kaynakları
   Madde: 'Madde', MaddeDurumu: 'Madde durumu', Bulgu: 'Bulgu', Aksiyon: 'Aksiyon',
   Kanit: 'Kanıt', KanitTalebi: 'Kanıt talebi', Proje: 'Proje', ProjeAdayi: 'Proje adayı',
-  Yetki: 'Yetki', Tesis: 'Santral', TesisProfili: 'Santral profili',
+  Yetki: 'Yetki',
   UyumSureci: 'Uyum süreci', Regulasyon: 'Regülasyon', Risk: 'Risk',
   Denetim: 'Denetim', Varlik: 'Varlık', VarlikIliskisi: 'Varlık ilişkisi',
   KimlikHesabi: 'Kimlik hesabı', ErisimAtamasi: 'Erişim ataması',
@@ -283,15 +288,9 @@ export const EK_ETIKET: Record<string, string> = {
   YedekPolitikasi: 'Yedek politikası', OnayTalebi: 'Onay talebi',
   Istisna: 'İstisna', UygulanabilirlikKarari: 'Uygulanabilirlik kararı',
   Degisiklik: 'Değişiklik', Olay: 'Olay', Gorev: 'Görev', Kullanici: 'Kullanıcı',
-  Sistem: 'Sistem', Unite: 'Ünite', AgBolgesi: 'Ağ bölgesi',
-  /* ── ESKİ MODEL ADLARI ANAHTAR OLARAK KALIR ───────────────────────
-     `Unite` ve `UretimUnitesi` P1'de `OperasyonelBirim` oldu. ANAHTARLAR
-     silinmez: o adla YAZILMIŞ denetim izi satırları değişmez ve etiketsiz
-     kalmamalıdır. Anahtar bir sektör sözcüğü taşıyor ama o sözcük
-     BUGÜNÜN ürününün değil, GEÇMİŞ kayıtların adıdır — çevrilirse eski
-     satırlar etiketini kaybeder. Bu yüzden dosya bekçi listesinde kalır
-     ve bu KALICI bir kayıttır, erimeyecek bir borç değil. */
-  OperasyonelBirim: 'Operasyonel birim', UretimUnitesi: 'Operasyonel birim',
+  Sistem: 'Sistem', AgBolgesi: 'Ağ bölgesi',
+  /* `Tesis` · `TesisProfili` · `Unite` · `OperasyonelBirim` ·
+     `UretimUnitesi` TERİM taşır ve `TERIM_ETIKET` katmanındadır. */
   VeriKalitesiBulgusu: 'Veri kalitesi bulgusu',
 };
 
@@ -321,16 +320,60 @@ const ETIKET_TABLOSU: Record<string, string> = {
   ...EK_ETIKET,
 };
 
+/* ── TERİM TAŞIYAN ETİKETLER ───────────────────────────────────────────
+   Bu yedi anahtarın karşılığı kiracıya göre DEĞİŞİR. Tablodaki değerleri
+   ÇEKİRDEK YEDEĞİDİR: sözlük verilmediğinde (test, teşhis, e-posta)
+   ekran boş kalmaz. Sözlük verildiğinde buradan yazılır.
+
+   Anahtarların kendisi SAKLANAN kimliklerdir (`AktiviteKaydi.varlikTipi`,
+   `VeriKalitesiBulgusu.kural`) ve ASLA çevrilmez — çevrilirse eski
+   kayıtlar etiketini kaybeder. */
+/* ── ESKİ MODEL ADLARI ANAHTAR OLARAK KALIR ───────────────────────────
+   `Unite` ve `UretimUnitesi` P1'de `OperasyonelBirim` oldu. ANAHTARLAR
+   silinmez: o adla YAZILMIŞ denetim izi satırları değişmez ve etiketsiz
+   kalmamalıdır. Anahtar bir sektör sözcüğü taşıyor ama o sözcük BUGÜNÜN
+   ürününün değil, GEÇMİŞ kayıtların adıdır — çevrilirse eski satırlar
+   etiketini kaybeder. Bu yüzden dosya bekçi listesinde KALIR ve bu
+   kalıcı bir kayıttır, erimeyecek bir borç değil. */
+const TERIM_ETIKET: Record<string, (x: Terim2) => string> = {
+  Tesis: (x) => basHarf(x.tesis.tekil),
+  TesisProfili: (x) => `${basHarf(x.tesis.tekil)} profili`,
+  Unite: (x) => basHarf(x.birim.tekil),
+  OperasyonelBirim: (x) => basHarf(x.birim.tekil),
+  UretimUnitesi: (x) => basHarf(x.birim.tekil),
+  eksik_profil: (x) => `Eksik ${x.tesis.tekil} profili`,
+  envanteri_bos_tesis: (x) => `Envanteri boş ${x.tesis.tekil}`,
+};
+
+/** Terim seti — `lib/yonetim/moduller.ts` ile aynı şekil; buraya
+    import etmek döngü kurardı, o yüzden yerel tip. */
+export type EtiketTerimleri = { tesis: Terim; birim: Terim };
+type Terim2 = EtiketTerimleri;
+
+const CEKIRDEK_IKILI: Terim2 = {
+  tesis: CEKIRDEK_TERIMLER.tesis, birim: CEKIRDEK_TERIMLER.birim,
+};
+
+/** Sözlükten ikili terim seti. */
+export const etiketTerimleri = (sozluk: Sozluk | null | undefined): Terim2 => ({
+  tesis: terim(sozluk, 'tesis'), birim: terim(sozluk, 'birim'),
+});
+
 /**
  * Ham makine değerini Türkçe etikete çevirir.
+ * - Terim taşıyan anahtarda SÖZLÜKTEN yazar (verilmişse; yoksa çekirdek).
  * - Sözlükte varsa Türkçe karşılığı döner.
  * - Yoksa `varsayilan` (verilmişse) döner.
  * - O da yoksa alt tire/tire boşluğa çevrilir ve ilk harf Türkçe kurallarıyla
  *   büyütülür — ekranda asla `snake_case` görünmez.
  */
-export function etiketle(deger: string | null | undefined, varsayilan?: string): string {
+export function etiketle(
+  deger: string | null | undefined, varsayilan?: string, terimler: Terim2 = CEKIRDEK_IKILI,
+): string {
   const ham = typeof deger === 'string' ? deger.trim() : '';
   if (!ham) return varsayilan ?? '—';
+  const terimli = TERIM_ETIKET[ham];
+  if (terimli) return terimli(terimler);
   const bulunan = ETIKET_TABLOSU[ham];
   if (bulunan) return bulunan;
   if (varsayilan !== undefined) return varsayilan;
@@ -339,9 +382,13 @@ export function etiketle(deger: string | null | undefined, varsayilan?: string):
 }
 
 /** Aktivite cümlesi: "<kullanıcı> <varlık> <eylem>" — hepsi Türkçe. */
-export function eylemCumlesi(eylem: string, varlikTipi?: string | null, alan?: string | null): string {
+export function eylemCumlesi(
+  eylem: string, varlikTipi?: string | null, alan?: string | null,
+  terimler: Terim2 = CEKIRDEK_IKILI,
+): string {
   const fiil = EYLEM_ETIKET[eylem] ?? etiketle(eylem).toLocaleLowerCase('tr-TR');
-  const ozne = alan ? etiketle(alan) : varlikTipi ? etiketle(varlikTipi) : '';
+  const ozne = alan ? etiketle(alan, undefined, terimler)
+    : varlikTipi ? etiketle(varlikTipi, undefined, terimler) : '';
   if (eylem === 'durum_degisimi' || eylem === 'dosya_ekleme' || eylem === 'kapsam_degisimi') return fiil;
   return ozne ? `${ozne.toLocaleLowerCase('tr-TR')} ${fiil}` : fiil;
 }

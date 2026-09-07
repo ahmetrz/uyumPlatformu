@@ -12,6 +12,8 @@ import {
   type BayatSatiri, type BekleyenSatiri, type KaynakSatiri, type KokenOzeti,
   type KokenSayimSatiri,
 } from './mantik';
+import { etiketTerimleri } from '@/lib/sabitler';
+import { useSozluk } from '@/lib/dil/SozlukSaglayici';
 
 /* Veri kökeni çekmeceleri — "bu kaydı nereden biliyoruz?" (§12 + §18)
 
@@ -34,10 +36,11 @@ const pasifStil = (pasif: boolean) =>
 /* ── Çekmece · kayıt tipi ───────────────────────────────────────────── */
 
 export function KokenTipiOzeti({ s }: { s: KokenSayimSatiri }) {
+  const ET = etiketTerimleri(useSozluk());
   const im = kokenImi(s);
   return (
     <>
-      <CekmeceKimlik durum={im} soz={kokenSozu(s)} baslik={etiketle(s.varlikTipi)}
+      <CekmeceKimlik durum={im} soz={kokenSozu(s)} baslik={etiketle(s.varlikTipi, undefined, ET)}
         cumle={kokenCumlesi(s)} />
 
       <CekmeceAlanlar alanlar={[

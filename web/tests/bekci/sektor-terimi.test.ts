@@ -34,14 +34,22 @@ import path from 'node:path';
    cırcır sessizce yana kayar. (d) listeyi taban daldaki (`origin/main`)
    hâliyle karşılaştırır; yeni bir yol eklenmişse adıyla söyler.
 
-   ── ÖLÇÜLEMEYEN "GEÇTİ" DEĞİLDİR ──────────────────────────────────────
-   Taban dal her yerde yok: sığ bir klon, `origin` uzağı olmayan bir
-   çalışma kopyası, ya da listenin henüz taban dala girmemiş olması. O
-   durumda diş (d) KOŞMAZ ve vitest raporunda ATLANMIŞ görünür; yeşil
-   yazılmaz. Atlama ÇALIŞMA ZAMANINDA yapılır (`ctx.skip`), `it.skipIf`
-   ile değil: statik atlama vitest'in keşif çıktısını ortama göre
-   değiştirir ve `arac/test-envanteri.mjs` anlık görüntüsü CI ile yerelde
-   ayrışırdı.
+   ── ÖLÇÜLEMEYEN "GEÇTİ" DEĞİLDİR — AMA CI'DA "ÖLÇÜLEMEDİ" DE DEĞİL ────
+   Taban dal YERELDE haklı sebeplerle yok olabilir: sığ bir klon, `origin`
+   uzağı olmayan bir çalışma kopyası, listenin henüz taban dala girmemiş
+   olması. Orada diş (d) KOŞMAZ, vitest raporunda ATLANMIŞ görünür ve
+   gerekçesi yazılır; yeşil yazılmaz.
+
+   CI'DA aynı şey KIRMIZIDIR. Orada taban dalın okunamamasının meşru bir
+   sebebi yok: iş akışı onu ayrı bir adımda getiriyor. "Ölçülmedi" demek,
+   cırcırın sessizce kapanması olurdu — üstelik o adım `continue-on-error`
+   taşıdığı için boru hattı yeşil kalır ve kimse koruma kalktığını fark
+   etmezdi. Bir kapının en tehlikeli hâli kırmızı olması değil, sessizce
+   yokluğudur.
+
+   Atlama ÇALIŞMA ZAMANINDA yapılır (`ctx.skip`), `it.skipIf` ile değil:
+   statik atlama vitest'in keşif çıktısını ortama göre değiştirir ve
+   `arac/test-envanteri.mjs` anlık görüntüsü CI ile yerelde ayrışırdı.
 
    Taban dal `BEKCI_TABAN` ile değiştirilebilir (varsayılan `origin/main`).
    ═══════════════════════════════════════════════════════════════════════ */
@@ -99,8 +107,30 @@ const izinKumesi = new Set(izin.dosyalar);
 
 const TABAN_DAL = process.env.BEKCI_TABAN?.trim() || 'origin/main';
 
-/** Taban daldaki izin listesi; okunamıyorsa NEDENİYLE birlikte `null`. */
-function tabanListesi(): { dosyalar: string[] } | { yok: string } {
+/* GitHub Actions ikisini de kurar; öbür koşucuların çoğu `CI`yi kurar.
+   Yerelde `CI=1` ile koşan biri bilerek CI sözleşmesini seçmiş olur. */
+const KOSUCU = Boolean(process.env.CI || process.env.GITHUB_ACTIONS);
+
+/** Taban listesinin okunamama nedeni — ikisi AYNI ŞEY DEĞİLDİR:
+
+    `dal`   — taban dalın kendisi yok (sığ klon, `origin` uzağı yok, fetch
+              düştü). CI'da bunun meşru bir sebebi yoktur ve kusurdur.
+    `liste` — dal var ama listeyi HENÜZ taşımıyor. Bu yalnız cırcırın
+              KURULDUĞU birleştirmede olur: karşılaştırılacak önceki hâl
+              yoktur. Kalıcı bir kaçış yolu değildir, çünkü listeyi taban
+              daldan silmek için önce çalışma ağacından silmek gerekir ve
+              o durumda bu dosya baştan okunamayacağı için bütün bekçi
+              çöker. */
+type TabanYok = { yok: string; tur: 'dal' | 'liste' };
+
+/** Taban daldaki izin listesi; okunamıyorsa NEDENİ ve TÜRÜYLE. */
+function tabanListesi(): { dosyalar: string[] } | TabanYok {
+  try {
+    execFileSync('git', ['rev-parse', '--verify', '--quiet', `${TABAN_DAL}^{commit}`],
+      { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+  } catch {
+    return { tur: 'dal', yok: `${TABAN_DAL} dalı okunamadı (sığ klon ya da eksik fetch)` };
+  }
   /* `<ref>:./yol` biçimi yolu ÇALIŞMA DİZİNİNE göre çözer; depo kökü
      `web/`in bir üstünde olduğu için düz `<ref>:tests/...` bulunamazdı. */
   let ham: string;
@@ -108,14 +138,16 @@ function tabanListesi(): { dosyalar: string[] } | { yok: string } {
     ham = execFileSync('git', ['show', `${TABAN_DAL}:./${IZIN_DOSYASI}`],
       { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
   } catch {
-    return { yok: `${TABAN_DAL} okunamadı (dal ya da dosya yok, sığ klon olabilir)` };
+    return { tur: 'liste', yok: `${TABAN_DAL} listeyi henüz taşımıyor (cırcır ilk kurulum)` };
   }
   try {
     const j = JSON.parse(ham) as { dosyalar?: unknown };
-    if (!Array.isArray(j.dosyalar)) return { yok: `${TABAN_DAL} sürümünde 'dosyalar' dizisi yok` };
+    if (!Array.isArray(j.dosyalar)) {
+      return { tur: 'dal', yok: `${TABAN_DAL} sürümünde 'dosyalar' dizisi yok` };
+    }
     return { dosyalar: j.dosyalar as string[] };
   } catch {
-    return { yok: `${TABAN_DAL} sürümü çözümlenemedi (bozuk JSON)` };
+    return { tur: 'dal', yok: `${TABAN_DAL} sürümü çözümlenemedi (bozuk JSON)` };
   }
 }
 
@@ -162,8 +194,23 @@ describe('Bekçi · sektör terimi (cırcır)', () => {
   it('liste taban daldaki listenin ALT KÜMESİ [URN-ALN-003]', (ctx) => {
     const taban = tabanListesi();
     if ('yok' in taban) {
-      /* ÖLÇÜLMEDİ — geçti değil. Rapor bunu atlanmış gösterir. */
-      ctx.skip(`ölçülmedi: ${taban.yok}`);
+      if (taban.tur === 'dal' && KOSUCU) {
+        /* CI'da taban dalın okunamamasının meşru sebebi yok: iş akışı onu
+           getirmekle yükümlü. Burada "ölçülmedi" demek cırcırı SESSİZCE
+           kapatırdı — üstelik getirme adımı `continue-on-error` taşıdığı
+           için boru hattı yeşil kalır ve kimse korumanın kalktığını fark
+           etmezdi. Bir kapının en tehlikeli hâli kırmızı olması değil,
+           sessizce yokluğudur. */
+        expect.fail(
+          `CI'da taban dal okunamadı: ${taban.yok}. Bu diş CI'da ATLANMAZ. `
+          + "İş akışındaki \"Taban dalı al\" adımını (git fetch --depth=1 "
+          + 'origin main:refs/remotes/origin/main) kontrol edin.',
+        );
+      }
+      /* ÖLÇÜLMEDİ — geçti değil. Rapor bunu gerekçesiyle atlanmış gösterir.
+         İki hâl: yerelde taban dal yok, ya da (her ortamda) taban dal
+         listeyi henüz taşımıyor — karşılaştırılacak önceki hâl yoktur. */
+      ctx.skip(`ölçülmedi${taban.tur === 'liste' ? '' : ' (yerel)'}: ${taban.yok}`);
       return;
     }
     const tabanKumesi = new Set(taban.dosyalar);

@@ -24,9 +24,13 @@ jobs:
       # yakalanmalı. `checkout` PR'da yalnız birleşme commit'ini sığ alır,
       # `origin/main` ref'i olmaz; bu adım onu getirir.
       #
-      # Adım başarısız olursa iş DURMAZ: bekçi o dişi koşmaz ve raporda
-      # "ölçülmedi" der (yeşil yazmaz). Ölçemediğini geçti sayan bir kapı,
-      # olmayan bir güvence verir.
+      # `continue-on-error` adımı SESSİZ YAPMAZ: bu adım düşerse bekçi
+      # CI'da KIRMIZI yanar ("CI'da taban dal okunamadı"). Bayrağın tek
+      # işi, hatayı ham bir git çıktısı olarak işi durdurmak yerine öbür
+      # kapılar da koştuktan sonra bekçinin gerekçeli mesajıyla
+      # göstermek. Yerelde (CI değişkeni yokken) diş atlanır ve
+      # "ölçülmedi" denir — orada taban dalın yokluğunun meşru sebepleri
+      # var, CI'da yok.
       - name: Taban dalı al (bekçi cırcırı)
         continue-on-error: true
         run: git fetch --depth=1 origin main:refs/remotes/origin/main

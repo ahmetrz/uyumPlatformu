@@ -324,10 +324,19 @@ görür, su kiracısı "tesis / m³/gün".
   > eklendi, sayı 258'de kaldı — (a), (b), (c) yeşil kaldı, **yalnız (d)**
   > kırmızı verdi.
   >
-  > Taban dal okunamıyorsa (sığ klon, `origin` yok, liste henüz taban
-  > dala girmemiş) (d) **koşmaz** ve raporda **atlanmış** görünür;
-  > "geçti" yazılmaz. CI taban dalı ayrı bir adımda getirir
-  > (`.github/workflows/pr-kapisi.yml`, `continue-on-error`).
+  > **Atlama yolu ortama göre ayrık.** *Yerelde* taban dal okunamıyorsa
+  > (sığ klon, `origin` yok) diş **koşmaz**, raporda **atlanmış** görünür
+  > ve gerekçesi yazılır; "geçti" yazılmaz. *CI'da* aynı şey
+  > **KIRMIZIDIR**: orada taban dalın okunamamasının meşru sebebi yok, iş
+  > akışı onu ayrı bir adımda getiriyor. "Ölçülmedi" demek, cırcırın
+  > sessizce kapanması olurdu — üstelik o adım `continue-on-error`
+  > taşıdığı için boru hattı yeşil kalırdı.
+  >
+  > Ayrı tutulan tek hâl: **taban dal listeyi henüz taşımıyorsa**
+  > (cırcırın kurulduğu birleştirme) karşılaştırılacak önceki hâl yoktur;
+  > diş her ortamda atlanır. Kalıcı bir kaçış yolu değildir — listeyi
+  > taban daldan silmek için önce çalışma ağacından silmek gerekir, o
+  > durumda bekçi baştan çöker.
 
   `arac/sabotaj.mjs` kapının gerçekten ısırdığını ölçer (25. sabotaj:
   listede olmayan dosyaya terim). (d) git geçmişine baktığı için kaynak

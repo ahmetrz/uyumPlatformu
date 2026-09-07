@@ -271,6 +271,42 @@ doğrulanır; `kalite-borcu.mjs` yalnız dosya/git okur ve raporlar.
 satır — kalite-borcu.json içinden SİLİN". Silinen satır DİŞ 3 yüzünden
 geri gelemez.
 
+#### Listenin KENDİSİ silinirse
+
+En sinsi kaçış yolu bir satırı değil DOSYANIN TAMAMINI silmektir: liste
+yoksa "muaf değil" diye okunacak bir şey de yoktur. Bu yol iki yerden
+kapatılır ve ikisi de ÖLÇÜLDÜ.
+
+**Liste modül seviyesinde okunur.** `kalite-borcu.mjs` listeyi
+`borcuUygula` içinde çağrı anında değil, modül yüklenirken okur. Yani
+modülü içe aktaran her yol — iki kapı ve testler — liste okunamıyorsa
+ilk satırda düşer. Liste kapının PARÇASIDIR, muafiyet defteri değil;
+silmek kapıyı susturmaz, kapının kendisini yıkar.
+
+> **Ölçüldü, önce ve sonra.** Okuma çağrı anındayken liste silinince kapı
+> gerçekten kırmızı yanıyordu — ama ham bir `ENOENT` yığın iziyle ve
+> tarayıcı koşusunun **90 saniyesi harcandıktan sonra**. Şimdi **1
+> saniyede** ve adıyla düşüyor:
+> `BORÇ LİSTESİ OKUNAMADI · web/arac/kalite-borcu.json`.
+>
+> Asıl tehlike de ölçüldü: *taban dalda liste yok + çalışma ağacında
+> liste yok* kombinasyonu "İLK KURULUM" diye OKUNMUYOR — okuma
+> `tabanBorcOku`dan önce patlıyor. Eski hâlde bu, iki satırın SIRASINA
+> bağlı bir güvenceydi; şimdi yapıdan geliyor.
+
+**Listenin varlığı AYRI bir iddiadır.** `tests/kalite-borcu-listesi.test.ts`
+muafiyet mantığından bağımsız koşar ve `kalite-kurallari.mjs`'i bilerek
+içe aktarmaz. Dosya okuması `describe` gövdesinde değil TEST GÖVDESİNDE
+yapılır — aradaki fark ölçüldü:
+
+| Liste silinince | `describe` gövdesinde okuma | test gövdesinde okuma |
+| --- | --- | --- |
+| vitest sonucu | dosya TOPLANAMIYOR · "Tests: **no tests**" | **6 vaka ADIYLA** düşüyor |
+| cırcırın 34 birim vakası | hepsi birden adsız hataya dönüşüyor | koşuyor ve geçiyor |
+
+Kaçış yolunun kapalı olduğunu söyleyecek iddia, kaçış denendiğinde
+susmamalı.
+
 ### `yatay-tasma.mjs` — İKİ kusur türü
 
 **1 · Sayfa yana kayıyor.** Dar bantta sayfanın yana kaymasını ölçer ve

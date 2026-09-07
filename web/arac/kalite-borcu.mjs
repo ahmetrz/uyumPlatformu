@@ -29,8 +29,57 @@ function atlamaGerekcesi(argv) {
   return a ? a.slice('--circir-atla='.length).trim() : null;
 }
 
+/* ── LİSTE MODÜL SEVİYESİNDE OKUNUR ────────────────────────────────
+   Okuma `borcuUygula` içinde, çağrı anında yapılıyordu ve bu bir kaçış
+   yolu bırakıyordu — ölçüldü: liste silinince kapı gerçekten kırmızı
+   yanıyordu, ama (a) ham bir ENOENT yığın iziyle, (b) tarayıcı
+   koşusunun 90 saniyesi harcandıktan SONRA.
+
+   Asıl tehlike ölçülüp elendi: taban dalda liste yok + çalışma ağacında
+   liste yok kombinasyonu "İLK KURULUM" diye OKUNMUYOR, çünkü okuma
+   `tabanBorcOku`dan önce patlıyor. Ama bu, iki satırın SIRASINA bağlı
+   bir güvenceydi; sıra değişirse liste silmek kalıcı bir kaçış olurdu.
+
+   Şimdi güvence sıradan değil YAPIDAN geliyor: liste modül seviyesinde
+   okunur, yani bu modülü içe aktaran her yol — kapılar, testler — liste
+   okunamıyorsa daha ilk satırda düşer. Liste yoksa HİÇBİR bulgu muaf
+   değildir ve kapı zaten kırmızı olmalıdır; listeyi silmek kapıyı
+   susturmaz, kapının kendisini yıkar. */
+function listeyiOku(yol) {
+  const kunye = path.relative(path.dirname(WEB), yol);
+  const patla = (sebep) => {
+    throw new Error(
+      `BORÇ LİSTESİ OKUNAMADI · ${kunye}\n`
+      + '  Liste yoksa HİÇBİR bulgu muaf değildir ve kapı zaten kırmızı\n'
+      + '  olmalıdır. Listeyi silmek bir kaçış yolu DEĞİLDİR: bu dosya\n'
+      + '  kapının parçasıdır, muafiyet defteri değil.\n'
+      + `  Sebep: ${sebep}`,
+    );
+  };
+  let ham;
+  try {
+    ham = readFileSync(yol, 'utf8');
+  } catch (e) {
+    patla(`dosya okunamadı — ${e.code ?? e.message}`);
+  }
+  let belge;
+  try {
+    belge = JSON.parse(ham);
+  } catch (e) {
+    patla(`JSON ayrıştırılamadı — ${e.message}`);
+  }
+  /* `bulgular` yoksa sessizce boş listeye düşmek, bozuk bir dosyayı
+     "borç yok" diye okumak olurdu — bozukluk kusur gibi görünmeli. */
+  if (!Array.isArray(belge?.bulgular)) patla('`bulgular` dizisi yok');
+  return belge.bulgular;
+}
+
+/** Bu daldaki borç listesi. Modül yüklenirken okunur; okunamazsa atar. */
+export const BORC = listeyiOku(BORC_YOLU);
+
+/** Test ve araçlar için: başka bir yoldan da okunabilir, aynı sertlikle. */
 export function borcOku(yol = BORC_YOLU) {
-  return JSON.parse(readFileSync(yol, 'utf8')).bulgular ?? [];
+  return yol === BORC_YOLU ? BORC : listeyiOku(yol);
 }
 
 /**
@@ -57,7 +106,11 @@ export function tabanBorcOku() {
     const ham = execFileSync('git', ['show', `${TABAN_DAL}:${BORC_GIT_YOLU}`], {
       cwd: WEB, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'],
     });
-    return { durum: 'var', bulgular: JSON.parse(ham).bulgular ?? [] };
+    const bulgular = JSON.parse(ham).bulgular;
+    /* Taban daldaki liste BOZUKSA muafiyet üretemez: `?? []` deseydik
+       bozuk bir taban, dalın her eklemesini "yeni değil" gösterirdi. */
+    if (!Array.isArray(bulgular)) return { durum: 'okunamadi' };
+    return { durum: 'var', bulgular };
   } catch {
     return { durum: 'kurulum' };
   }
@@ -73,7 +126,7 @@ function satir(b) {
  * @returns {boolean} kapı kapalı mı (true → çıkış kodu 1)
  */
 export function borcuUygula(bulgular, { kapi, yaz = console.error, bilgi = console.log } = {}) {
-  const dalBorcu = borcOku().filter((b) => !kapi || b.kapi === kapi);
+  const dalBorcu = BORC.filter((b) => !kapi || b.kapi === kapi);
   const s = borcSuzgeci(bulgular, dalBorcu);
 
   /* ── DİŞ 3 + DİŞ 4 · taban dal karşılaştırması ───────────────────── */

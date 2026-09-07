@@ -34,6 +34,8 @@ export const KUTUKSUZ_DOSYALAR = {
   'eylem-dili.test.ts': 'Bozuk durum bloklarının eylem/beklenen-durum nöbetçisi',
   'bagimlilik-guvenligi.test.ts': 'Bağımlılık ağacının güvenlik taraması',
   'kalite-kapilari.test.ts': 'Kapı betiklerinin varlığı',
+  'kalite-borcu-listesi.test.ts': 'Kalite borcu izin listesinin okunabilirliği — '
+    + 'muafiyet mantığından BAĞIMSIZ iddia, bilerek ayrı dosyada',
   'semantik.test.ts': 'Ortak durum sözlüğünün tutarlılığı',
   'alan-metin.test.ts': 'Metin yardımcılarının saf davranışı',
   'alan-surum.test.ts': 'Sürüm karşılaştırma yardımcısı',

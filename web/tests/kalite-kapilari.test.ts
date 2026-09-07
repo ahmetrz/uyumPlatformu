@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest';
-import { readFileSync } from 'node:fs';
 import {
   KIRPILMA_TOLERANSI, altinDosyaAdi, axeCiddiMi, axeOzeti, borcAnahtari, borcSuzgeci,
   circirKarari, enDistakiKirpilmalar, esikAltindakiler, gorselFark, kirpilmaKarari,
@@ -234,24 +233,7 @@ describe('DİŞ 3 · taban dal — liste yalnız küçülebilir', () => {
   });
 });
 
-describe('kalite-borcu.json', () => {
-  const borc = JSON.parse(readFileSync(new URL('../arac/kalite-borcu.json', import.meta.url), 'utf8'));
-
-  it('her satır cırcırın anahtar alanlarını ve bir tavan taşır', () => {
-    expect(borc.bulgular.length).toBeGreaterThan(0);
-    for (const b of borc.bulgular) {
-      expect(['tasma', 'axe']).toContain(b.kapi);
-      expect(typeof b.tur).toBe('string');
-      expect(b.rota.startsWith('/')).toBe(true);
-      expect([375, 768, 1440]).toContain(b.bant);
-      expect(Number.isInteger(b.azami)).toBe(true);
-      expect(b.azami).toBeGreaterThan(0);
-      expect(b.not.length).toBeGreaterThan(0);
-    }
-  });
-
-  it('aynı anahtar iki kez yazılamaz — ikinci satır ilkini gölgelerdi', () => {
-    const anahtarlar = borc.bulgular.map(borcAnahtari);
-    expect(new Set(anahtarlar).size).toBe(anahtarlar.length);
-  });
-});
+/* Listenin KENDİSİNE dair iddialar `kalite-borcu-listesi.test.ts`
+   içindedir ve bilerek ayrı dosyadadır: liste silindiğinde bu dosyanın
+   toplanması kırılıyordu ve cırcırın 36 birim vakası, adsız bir modül
+   yükleme hatasına dönüşüyordu (ölçüldü). */

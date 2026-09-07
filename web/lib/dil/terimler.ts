@@ -1,12 +1,12 @@
 /* ═══════════════════════════════════════════════════════════════════════
    TERİM SÖZLÜĞÜ — çekirdek anahtar, sektör karşılığı (P1 · URN-ALN-004)
 
-   Çekirdek "tesis" der; enerji kiracısı ekranda "santral" görür, su
+   Çekirdek "tesis" der; enerji kiracısı ekranda "tesis" görür, su
    kiracısı "tesis", otel kiracısı "otel". Aynı bileşen, farklı sözcük.
 
    ── EK BİRLEŞTİRME YOK ────────────────────────────────────────────────
    Türkçede ek, sözcüğün son ünlüsüne ve son sesine göre değişir:
-   "santralin" ama "üretim ünitesinin"; "tesisi" ama "hattı". `{tesis}+in`
+   "tesisin" ama "üretim biriminin"; "tesisi" ama "hattı". `{tesis}+in`
    gibi bir birleştirme İLK sektörde çalışır, ikincisinde sessizce bozulur
    ve kimse fark etmez. Bu yüzden biçimler ALANDIR: her sözcük kendi
    iyelik ve belirtme hâlini yazılı taşır (`SektorSozlugu` şeması da

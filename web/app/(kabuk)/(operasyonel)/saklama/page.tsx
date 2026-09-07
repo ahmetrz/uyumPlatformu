@@ -13,12 +13,12 @@ export const metadata: Metadata = { title: 'Saklama ve imha' };
    Kabuk (ray + çekmece kolonu) (operasyonel)/layout.tsx'ten gelir.
 
    ── KAPSAMSIZ BİR EKRAN ───────────────────────────────────────────────
-   Saklama politikası kayıt AİLESİNE konur, santrale değil: "bulguları kaç
-   yıl tutuyoruz" sorusunun santral bazlı bir cevabı yoktur. Bu yüzden
+   Saklama politikası kayıt AİLESİNE konur, tesise değil: "bulguları kaç
+   yıl tutuyoruz" sorusunun tesis bazlı bir cevabı yoktur. Bu yüzden
    ekran `kapsamKosulu` KULLANMAZ ve kullanmaması bilinçlidir — kapsam
    filtresi olmayan her ekran gibi bu da gerekçesini yazar.
 
-   Legal hold bir santrale bağlanabilir; o zaman kaydın kendi `tesisId`
+   Legal hold bir tesise bağlanabilir; o zaman kaydın kendi `tesisId`
    alanı dolar ama ekran yine kurum çapındadır: hukuki muhafaza kurumun
    kararıdır. */
 

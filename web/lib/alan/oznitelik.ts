@@ -96,18 +96,29 @@ export function metinOzellik(
 /** Bir öznitelik listesinin sayısal toplamı; ölçülmemişler ATLANIR.
     Toplam, ölçülmüş olanların toplamıdır — eksikler sıfır sayılmaz.
     `olculen` kaç kayıttan geldiğini söyler ki ekran "17 tesisin 16'sı"
-    diyebilsin. */
+    diyebilsin.
+
+    TOPLAMIN BİRİMİ de döner ve satırlardan gelir, koda gömülmez.
+    Satırlar FARKLI birimler taşıyorsa `birim` `null`dur: karışık bir
+    toplamı tek birimle etiketlemek, onu tek birimmiş gibi gösterirdi.
+    Aynı kural `/portfoy` ekranında elle yazılmıştı; buraya taşındı ki
+    ikinci nüsha kalmasın. */
 export function ozellikToplami(
   kayitlar: readonly { ozellikler: readonly OzellikSatiri[] }[],
   anahtar: string,
-): { toplam: number; olculen: number; toplamKayit: number } {
+): { toplam: number; olculen: number; toplamKayit: number; birim: string | null } {
   let toplam = 0;
   let olculen = 0;
+  const birimler = new Set<string>();
   for (const k of kayitlar) {
-    const d = sayisalOzellik(k.ozellikler, anahtar);
-    if (d !== null) { toplam += d; olculen += 1; }
+    const { deger, birim } = birimliOzellik(k.ozellikler, anahtar);
+    if (deger !== null) { toplam += deger; olculen += 1; }
+    if (birim) birimler.add(birim);
   }
-  return { toplam, olculen, toplamKayit: kayitlar.length };
+  return {
+    toplam, olculen, toplamKayit: kayitlar.length,
+    birim: birimler.size === 1 ? [...birimler][0]! : null,
+  };
 }
 
 /** Sayısal özniteliğe göre AZALAN, eşitlikte ada göre artan sıralama.

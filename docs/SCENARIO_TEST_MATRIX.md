@@ -9,7 +9,7 @@
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
-| Taranan test dosyası | 158 |
+| Taranan test dosyası | 159 |
 
 ## Katman başına kapsam
 
@@ -402,4 +402,5 @@
 | `kapi-farki.test.ts` | Kapı farkı ölçüsünün saf kuralları — hangi betik CI'da koşuyor |
 | `tek-nusha.test.ts` | Tek nüsha değişmezi — ortak davranışın ikinci tanımı ve ikiz liste dosyası |
 | `tesis-hucresi.test.ts` | Tesis hücresi sözcüğünün sözlükten çözülmesi |
+| `kesif-karari.test.ts` | Test keşfi sıfır dönerse ölçüm değil kırık sayılır |
 

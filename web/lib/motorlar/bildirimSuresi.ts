@@ -66,8 +66,8 @@ export async function bildirimSurelerini(): Promise<BildirimSuresiKosusu> {
   let uretilen = 0;
 
   for (const o of olaylar) {
-    /* Santralin tabi olduğu regülasyonlar: kurala bağlı yükümlülük
-       yalnız o regülasyon santralin kapsamındaysa uyar. */
+    /* Tesisin tabi olduğu regülasyonlar: kurala bağlı yükümlülük
+       yalnız o regülasyon tesisin kapsamındaysa uyar. */
     const regulasyonIdleri = o.tesisId
       ? (await db.uygulanabilirlikKarari.findMany({
         where: { tesisId: o.tesisId, uygulanabilir: true },

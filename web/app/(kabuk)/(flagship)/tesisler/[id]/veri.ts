@@ -6,7 +6,7 @@ import { kapsamda, modulKapisi } from '@/app/kapsam';
 import { uyumOzeti, gecikmisMi, gecenGun } from '@/lib/sabitler';
 import type { Tesis360Veri, TesisOzeti } from './Tesis360';
 import type { OtProfili } from './mantik';
-import { KURULU_GUC, sayisalOzellik } from '@/lib/alan/oznitelik';
+import { KURULU_GUC, birimliOzellik, olculenYazi, sayisalOzellik } from '@/lib/alan/oznitelik';
 import type { Sozluk } from '@/lib/dil/terimler';
 import { sektorSozlugu } from '@/lib/dil/sozlukOku';
 
@@ -311,8 +311,9 @@ export async function tesis360Verisi(
     sozluk,
     tesisler: tumTesisler.map((x) => ({
       id: x.id, kod: x.kod, ad: x.ad,
-      /* Ölçülmemiş güç "—" gösterir, 0 değil (bilinmeyen ≠ sıfır). */
-      alt: ((g) => (g === null ? '—' : `${g} MWe`))(sayisalOzellik(x.ozellikler, KURULU_GUC)),
+      /* Ölçülmemiş güç "—" gösterir, 0 değil (bilinmeyen ≠ sıfır).
+         Birim VERİDEN gelir; eskiden elektrik eki koda gömülüydü. */
+      alt: olculenYazi(birimliOzellik(x.ozellikler, KURULU_GUC)) ?? '—',
       tip: x.tip?.ad ?? 'Diğer',
       gorselAnahtari: x.gorselAnahtari,
     })),

@@ -28,7 +28,7 @@ export const metadata: Metadata = { title: 'Bildirimler' };
       başkasının bildirimini okundu işaretleme denemesi HİÇBİR SATIR
       GÜNCELLEMEZ (tests/bildirim-kutusu.test.ts bunu dondurur).
 
-   2. KAYNAK KAPSAMI: bildirimin işaret ettiği KAYIT bir santrale ait
+   2. KAYNAK KAPSAMI: bildirimin işaret ettiği KAYIT bir tesise ait
       olabilir. Bildirim kullanıcıya yazıldığı için listeden düşürülmez,
       ama kayda giden bağ `izinliTesisIdleri` ile denetlenir. Yetki
       bildirim yazıldıktan SONRA daraltılmış olabilir; o durumda kullanıcı
@@ -36,17 +36,17 @@ export const metadata: Metadata = { title: 'Bildirimler' };
 
    Modül kapısı `uyum` okuma iznidir ve `mantik.ts → kutuKapisiAcik` ile
    kurulur — `izinVar(k, 'uyum', 'okuma')` ile DEĞİL. Gerekçe o fonksiyonun
-   başında yazılı: `izinVar` kapsamsız bir işlem sorar ve santrale kısıtlı
-   yetkiyi geçirmez; oysa bildirimi asıl alanlar (bir santralin bulgu ve
-   aksiyon sorumluları) tam da santrale kısıtlı kullanıcılardır. `izinVar`
+   başında yazılı: `izinVar` kapsamsız bir işlem sorar ve tesise kısıtlı
+   yetkiyi geçirmez; oysa bildirimi asıl alanlar (bir tesisin bulgu ve
+   aksiyon sorumluları) tam da tesise kısıtlı kullanıcılardır. `izinVar`
    kapısı, uyarıyı gönderdiğimiz insanları kutudan dışarıda bırakırdı. */
 
 /** Kutu tavanı — en yeni bu kadar bildirim okunur (tek yönlü büyüyen tablo). */
 const TAVAN = 200;
 
-/** Kaynak türü → kaydın santrali ve (varsa) ekran yolu.
-    Santral taşımayan tür `tesisId: undefined` döner: kapsam dışı DEĞİL,
-    santral kavramı olmayan kayıt demektir. */
+/** Kaynak türü → kaydın tesisi ve (varsa) ekran yolu.
+    Tesis taşımayan tür `tesisId: undefined` döner: kapsam dışı DEĞİL,
+    tesis kavramı olmayan kayıt demektir. */
 type Cozum = { tesisId: string | null | undefined; yol: string | null };
 
 export default async function Sayfa() {
@@ -64,10 +64,10 @@ export default async function Sayfa() {
     take: TAVAN,
   });
 
-  /* Kaynak kayıtların santrali TÜRE GÖRE TEK SORGUDA çözülür (N+1 yok).
+  /* Kaynak kayıtların tesisi TÜRE GÖRE TEK SORGUDA çözülür (N+1 yok).
      Motorun bildirim yazdığı türler: Bulgu, Aksiyon, Sertifika, Risk
      (`lib/motorlar/sonTarih.ts`). Listede olmayan bir tür gelirse kaynak
-     "bilinmiyor" kalır — uydurma bir santral atanmaz. */
+     "bilinmiyor" kalır — uydurma bir tesis atanmaz. */
   const idler = (tip: string) => [...new Set(ham
     .filter((b) => b.kaynakTipi === tip && b.kaynakId)
     .map((b) => b.kaynakId as string))];

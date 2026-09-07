@@ -12,6 +12,8 @@ import {
   OLCULMEMIS_VARSAYILAN, ozetKur, type OlculmemisGosterimi,
 } from '@/lib/yonetim/olculmemisGosterimi';
 import { Cekmece } from '@/components/kabuk/panel';
+import { useTerim } from '@/lib/dil/SozlukSaglayici';
+import { olculenYazi } from '@/lib/alan/oznitelik';
 
 /* ═══════════════════════════════════════════════════════════════════════
    SAHA — ANA EKRAN · ENERGY INTELLIGENCE
@@ -89,7 +91,7 @@ type Ozet = {
   uyumYuzde: number | null; bilinmeyenOran: number | null;
   kritikRisk: number; gecikmisAksiyon: number;
   yaklasanDenetim: { kod: string; ad: string; tarih: string; kalanGun: number } | null;
-  tesisSayisi: number; toplamGucMw: number;
+  tesisSayisi: number; toplamGucMw: number; toplamGucBirim: string | null;
 };
 
 /** Katman panelinde çizilen tip sayısı — kalanı sayıyla söylenir. */
@@ -154,6 +156,11 @@ export default function Genel({
   const katmanVar = gorunur(yerlesim, 'katman');
   const olculmemisSerit = olculmemisSirali(tesisler);
   const [olculmemisAcik, setOlculmemisAcik] = useState(false);
+  const { t: terim, tBas } = useTerim();
+  /* Güç yazısı: sayı + VERİDEN gelen birim. Karışık birimde birim
+     yazılmaz — karışık bir toplamı tek birimle etiketlemek onu tek
+     birimmiş gibi gösterirdi (`ozellikToplami` aynı kuralı uyguluyor). */
+  const gucYazi = olculenYazi({ deger: ozet.toplamGucMw, birim: ozet.toplamGucBirim }) ?? '—';
 
   return (
     <main className="ab-b-saha ab-b-genel">
@@ -235,9 +242,12 @@ export default function Genel({
           {/* "Tesise geçmek için seçin · yatay kaydırın" yönlendirmesi
               kaldırıldı: kartlar bağdır, şerit kesilerek biter — davranış
               kendini gösterir; sözle tekrar karar taşımıyordu. */}
+          {/* Güç birimi VERİDEN gelir; karışık birimde sayı birimsiz
+              yazılır (`olculenYazi`). Eskiden "MWe" koda gömülüydü ve su
+              kiracısının m³/gün'ünü elektrik birimiyle etiketlerdi. */}
           <span className="etiket"
-            title={`Saha seçici · ${ozet.tesisSayisi} üretim tesisi · ${ozet.toplamGucMw} MWe`}>
-            Santraller · {ozet.tesisSayisi} · {ozet.toplamGucMw} MWe
+            title={`Saha seçici · ${ozet.tesisSayisi} üretim ${terim('tesis')} · ${gucYazi}`}>
+            {tBas('tesis', 'cogul')} · {ozet.tesisSayisi} · {gucYazi}
           </span>
         </header>
         <div className="kartlar">

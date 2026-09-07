@@ -5,7 +5,7 @@ import type { Durum } from '@/components/kabuk/temel';
 
 export type Kodlu = { id: string; kod: string; ad: string };
 
-/** Katalog kaydı (grup, tüzel kişi, ünite, varlık türü, ağ bölgesi, kural, santral görseli). */
+/** Katalog kaydı (grup, tüzel kişi, birim, varlık türü, ağ bölgesi, kural, tesis görseli). */
 export type KonsolKayit = {
   id: string;
   kod: string;

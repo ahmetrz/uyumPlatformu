@@ -1,6 +1,6 @@
 'use server';
 
-/* Santral 360 eylemleri: tesis profili (uygulanabilirlik motorunun girdisi),
+/* Tesis 360 eylemleri: tesis profili (uygulanabilirlik motorunun girdisi),
    kapsam yeniden hesaplama ve onaylı uygulanabilirlik override'ı.
    Kalıp: her eylem yetkiZorunlu → zod → db → iz → revalidatePath → Sonuc. */
 

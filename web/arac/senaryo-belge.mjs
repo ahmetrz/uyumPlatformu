@@ -57,6 +57,7 @@ export const KUTUKSUZ_DOSYALAR = {
   'kapi-farki.test.ts': 'Kapı farkı ölçüsünün saf kuralları — hangi betik CI\'da koşuyor',
   'tek-nusha.test.ts': 'Tek nüsha değişmezi — ortak davranışın ikinci tanımı ve ikiz liste dosyası',
   'tesis-hucresi.test.ts': 'Tesis hücresi sözcüğünün sözlükten çözülmesi',
+  'kesif-karari.test.ts': 'Test keşfi sıfır dönerse ölçüm değil kırık sayılır',
 };
 
 /* Vitest'in globuyla AYNI küme: `tests/**\/*.test.ts` — yani ALT

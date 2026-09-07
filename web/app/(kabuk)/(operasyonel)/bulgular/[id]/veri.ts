@@ -11,7 +11,7 @@ import type { Veri } from './BulguDetayIstemci';
    ═══ KAPSAM SIZINTISI ══════════════════════════════════════════════════
    Rota `db.bulgu.findUnique({ where: { id } })` diyordu: kapsam dışı bir
    bulgunun id'sini deneyen herkes kaydı TAM hâliyle açabiliyordu — madde
-   metni, santral kimliği/kodu/adı, kanıtlar, bağlı riskler, bağlı projeler
+   metni, tesis kimliği/kodu/adı, kanıtlar, bağlı riskler, bağlı projeler
    ve BÜTÜN denetim izi dahil. Liste ekranındaki süzgeç bu rotayı korumaz;
    liste kapsamlı, detay kapsamsızsa sınır yalnız görünüşte vardır.
 
@@ -19,7 +19,7 @@ import type { Veri } from './BulguDetayIstemci';
 
    ── VARLIĞI DOĞRULAMAK DA BİR SIZINTIDIR ───────────────────────────────
    Kapsam dışı kayıt `null` döner ve rota `notFound()` çağırır. Hangi
-   santralin dışarıda kaldığı SÖYLENMEZ: "B santrali kapsamınızda değil"
+   tesisin dışarıda kaldığı SÖYLENMEZ: "B tesisi kapsamınızda değil"
    demek, B'de o id'de bir bulgunun VAR OLDUĞUNU doğrulamak olurdu. */
 
 /** Kapsam dışı ya da olmayan kayıt için `null` — çağıran `notFound()` der. */

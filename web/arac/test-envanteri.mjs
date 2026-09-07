@@ -123,6 +123,29 @@ export function imza() {
   return h.digest('hex').slice(0, 32);
 }
 
+/** Keşif sonucu ÖLÇÜM MÜ, KIRIK MI — saf karar.
+
+    `null` = ölçüm geçerli · dize = kırık, sebebi yazılı.
+
+    Ayrı ve saf olması bilerek: kararın kendisi tarayıcısız, disksiz,
+    vitest'siz sınanabilmeli. Yoksa "sıfır vaka" hâlini üretmek için
+    diski gerçekten doldurmak gerekirdi. */
+export function kesifKarari(dosyalar) {
+  const adlar = Object.keys(dosyalar);
+  if (adlar.length === 0) {
+    return 'KEŞİF BOŞ: hiç test modülü bulunamadı. Bu bir ölçüm değil, kırık bir '
+      + 'keşiftir — `vitest.config.ts` include kalıbını ve diskte boş alan olup '
+      + 'olmadığını kontrol edin.';
+  }
+  const bos = adlar.filter((ad) => dosyalar[ad].vaka === 0);
+  if (bos.length) {
+    return `KEŞİF KIRIK: ${bos.length}/${adlar.length} modül SIFIR vaka bildirdi. `
+      + 'Sıfır vaka bir ölçüm değildir; en olası sebep diskte yer kalmaması '
+      + `(her test dev.db kopyası açar). İlk üç: ${bos.slice(0, 3).join(', ')}`;
+  }
+  return null;
+}
+
 /** Vitest'in kendi keşfi. Test gövdeleri KOŞMAZ, yalnız kayıtlar kurulur. */
 export async function kesfet() {
   const { createVitest } = await import('vitest/node');
@@ -147,6 +170,20 @@ export async function kesfet() {
       vaka += v;
       atlanan += a;
     }
+    /* ── KEŞİF SIFIR DÖNERSE ÖLÇÜM DEĞİL, KIRIK ────────────────────
+       ÖLÇÜLDÜ (7 Eyl 2026): disk dolunca vitest her modülü topladı ama
+       hiçbirinin gövdesini çözemedi — `unhandledErrors` BOŞ geldi ve
+       keşif "158 dosya · 0 vaka" döndürdü. `--yaz` bu sıfırı anlık
+       görüntüye YAZDI, `--denetle` de onu okuyup "taze · 0 vaka · gerçek
+       keşifle doğrulandı" dedi. Kapı, hiçbir şeyi ölçmediği hâlde
+       YEŞİL yandı — kapının en tehlikeli hâli.
+
+       Sıfır vaka bildiren bir test modülü depoda YOKTUR: içinde `it`
+       olmayan bir `.test.ts` zaten vitest'in kendi hatasıdır. O yüzden
+       "modül var ama vakası yok" ölçüm değil, kırık keşiftir ve ADIYLA
+       atar. */
+    const kirik = kesifKarari(dosyalar);
+    if (kirik) throw new Error(kirik);
     return {
       imza: imza(),
       dosya: testModules.length,

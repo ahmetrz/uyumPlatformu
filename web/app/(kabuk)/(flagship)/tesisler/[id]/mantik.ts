@@ -1,7 +1,7 @@
-/* F3 · Plant 360 — OT mimari profili, SAF katman.
+/* F3 · Tesis 360 — OT mimari profili, SAF katman.
 
    `TesisProfili` uygulanabilirlik motorunun girdisidir (lib/motorlar/
-   uygulanabilirlik.ts) ve /uyum ekranı "profil Plant 360'tan tamamlanır"
+   uygulanabilirlik.ts) ve /uyum ekranı "profil Tesis 360'tan tamamlanır"
    der. Bu dosya profilin iki yönünü tek tanımdan türetir:
      · GÖSTERİM — her alan bir satır, boş alan "tanımsız" SÖZCÜĞÜYLE
        (boş bırakılmaz: bilinmeyen ≠ yok);

@@ -19,8 +19,8 @@ export async function generateStaticParams() {
    (bulguGuncelle · aksiyonEkle · aksiyonDurumDegistir · kanitEkle) ve tam
    denetim izi burada yaşar. Yerleşim: BaglamCubugu + içerik + 420px panel.
 
-   Santral kapsamı `veri.ts`te uygulanır (modül: `uyum`); kapsam dışı kayıt
-   `notFound()` ile kapanır ve hangi santralin dışarıda kaldığı söylenmez. */
+   Tesis kapsamı `veri.ts`te uygulanır (modül: `uyum`); kapsam dışı kayıt
+   `notFound()` ile kapanır ve hangi tesisin dışarıda kaldığı söylenmez. */
 
 export default async function Sayfa({ params }: { params: Promise<{ id: string }> }) {
   const k = await girisZorunlu();

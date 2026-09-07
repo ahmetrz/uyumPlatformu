@@ -49,7 +49,7 @@ export async function gorevOlustur(girdi: {
   try {
     /* İKİ AŞAMALI KAPI (`KAPSAM_SONRA`, bkz. erisim.ts): ön kapı kapsamsız
        çağrılırsa tesise kısıtlı rol daha ilk adımda reddedilir ve kendi
-       santraline görev açamaz. Gerçek denetim KOŞULSUZ: tesissiz görev
+       tesisine görev açamaz. Gerçek denetim KOŞULSUZ: tesissiz görev
        kurumsaldır, tesise kısıtlı rol onu da açamaz. */
     const k = await yetkiZorunlu('uyum', 'yazma', KAPSAM_SONRA);
     const v = GorevGirdisi.parse(girdi);
@@ -91,11 +91,11 @@ export async function gorevDurum(girdi: { id: string; durum: string }): Promise<
     if (!g) throw new Error('Görev bulunamadı');
     /* Kapsam denetimi HER ŞEYDEN ÖNCE. İki sebebi var:
        · Ön kapı `KAPSAM_SONRA` ile gevşetildi; görevin kendi tesisi burada
-         sorulmazsa tesise kısıtlı rol başka santralin görevini kapatır.
+         sorulmazsa tesise kısıtlı rol başka tesisin görevini kapatır.
        · "Zaten bu durumda" kısa yolundan da önce gelmeli: sonra gelseydi
          kapsam dışı bir çağrı, durumu DOĞRU tahmin ettiğinde `tamam()`,
          yanlış tahmin ettiğinde yetki hatası alırdı — eylem başka
-         santralin görevleri için bir DURUM KEHANETİNE dönerdi.
+         tesisin görevleri için bir DURUM KEHANETİNE dönerdi.
          Ölçüldü (2026-09-02, gözden geçirme).
        Aşağıdaki sahiplik kuralı bundan AYRI bir sorudur, yerine geçmez. */
     kapsamZorunlu(k, 'uyum', 'yazma', { tesisId: g.tesisId },

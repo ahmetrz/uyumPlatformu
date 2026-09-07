@@ -60,7 +60,7 @@ const SECIM = {
 
 /* ═══ Tesis çözücü kayıt defteri ══════════════════════════════════════
    Köken satırı tesise doğrudan bağlı değildir (varlikTipi + varlikId taşır),
-   bu yüzden santral kapsamı tip başına çözülür. Buraya yalnız tesise GERÇEK
+   bu yüzden tesis kapsamı tip başına çözülür. Buraya yalnız tesise GERÇEK
    bir yolu olan tipler yazılır: uydurma bir yol, kapsam sızıntısı demektir.
    Listede olmayan tip, tesis filtresi etkinken rapordan düşer ve
    `kapsanamayanTipler` içinde görünür. */
@@ -112,7 +112,7 @@ const TIP_COZUCU: Record<string, TipCozucu> = {
     evren: async (t) => ({
       kapsamda: await db.erisimAtamasi.count({
         where: t ? { varlik: { tesisId: { in: t } } } : {} }),
-      // varlığı olmayan atama hiçbir santrale bağlanamaz — kapsama giremez.
+      // varlığı olmayan atama hiçbir tesise bağlanamaz — kapsama giremez.
       tesisiBilinmeyen: t ? await db.erisimAtamasi.count({
         where: { OR: [{ varlikId: null }, { varlik: { tesisId: null } }] } }) : 0,
     }),
@@ -142,16 +142,16 @@ const TIP_COZUCU: Record<string, TipCozucu> = {
     })).map((r) => [r.id, r.tesisId])),
   },
   KesifKaydi: {
-    /* Keşif kaydının santrali iki yerden bilinebilir: eşleştiği varlıktan
+    /* Keşif kaydının tesisi iki yerden bilinebilir: eşleştiği varlıktan
        ya da kaynağın beyanından (`tesisId`). Eşleşme önceliklidir —
-       kayıt bir varlığa bağlandıysa artık o varlığın santralindedir. */
+       kayıt bir varlığa bağlandıysa artık o varlığın tesisindedir. */
     evren: async (t) => ({
       kapsamda: await db.kesifKaydi.count({
         where: t ? { OR: [
           { eslesenVarlik: { tesisId: { in: t } } },
           { eslesenVarlikId: null, tesisId: { in: t } },
         ] } : {} }),
-      // ne eşleşmesi ne beyanı santral veren kayıt: santrali BİLİNMİYOR.
+      // ne eşleşmesi ne beyanı tesis veren kayıt: tesisi BİLİNMİYOR.
       tesisiBilinmeyen: t ? await db.kesifKaydi.count({
         where: { OR: [
           { eslesenVarlikId: null, tesisId: null },

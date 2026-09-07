@@ -18,7 +18,7 @@ export async function istisnaTalep(girdi: {
     /* İKİ AŞAMALI KAPI (`KAPSAM_SONRA`, bkz. erisim.ts). Kapsam madde
        durumundan gelir ve okunmadan bilinemez; ön kapı kapsamsız
        çağrılırsa tesise kısıtlı rol daha ilk adımda reddedilirdi —
-       santral yöneticisi KENDİ santrali için istisna talep edemezdi.
+       tesis yöneticisi KENDİ tesisi için istisna talep edemezdi.
        Gerçek denetim aşağıda, kayıt okunduktan sonra ve KOŞULSUZ. */
     const k = await yetkiZorunlu('uyum', 'yazma', KAPSAM_SONRA);
     const v = z.object({

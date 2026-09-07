@@ -467,7 +467,7 @@ export async function sbomYukle(girdi: {
 
    Duyuru bir KÜTÜK kaydıdır — tek varlığa değil, bir ürün SINIFINA
    bağlanır — bu yüzden `tanimlar/onay` ister; tesis kapsamı yoktur
-   (Siemens duyurusu bütün santralleri ilgilendirir).
+   (Siemens duyurusu bütün tesisleri ilgilendirir).
 
    BU EYLEM HİÇBİR DIŞ KAYNAĞA BAĞLANMAZ. ICS-CERT, üretici PSIRT ya da
    NVD akışına bağlanmak bir dış bağımlılıktır ve bu ürün onu taklit

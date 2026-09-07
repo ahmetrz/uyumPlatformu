@@ -97,7 +97,7 @@ export type EkranVerisi = {
     kritikRisk: number; gecikmisAksiyon: number;
     /** En yakın planlı denetim: ad ve tarih ekranda YAZILIR, yalnız kod değil. */
     yaklasanDenetim: { kod: string; ad: string; tarih: string; kalanGun: number } | null;
-    tesisSayisi: number; toplamGucMw: number;
+    tesisSayisi: number; toplamGucMw: number; toplamGucBirim: string | null;
   };
   odak: Kayit | null;
   kuyruk: Kayit[];
@@ -459,7 +459,11 @@ export async function genelEkranVerisi(k: AktifKullanici): Promise<EkranVerisi> 
         }
         : null,
       tesisSayisi,
-      toplamGucMw: Math.round(ozellikToplami(gucToplami, KURULU_GUC).toplam * 10) / 10,
+      /* Birim VERİDEN gelir (`TesisOzellik.birim`); ekran onu koda
+         gömmüyor. Karışık birimde `null` gelir ve sayı birimsiz yazılır. */
+      ...((o) => ({
+        toplamGucMw: Math.round(o.toplam * 10) / 10, toplamGucBirim: o.birim,
+      }))(ozellikToplami(gucToplami, KURULU_GUC)),
     },
     odak: sirali[0] ? kayit(sirali[0]) : null,
     kuyruk: sirali.slice(1, 4).map(kayit),

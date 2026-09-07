@@ -9,11 +9,11 @@ import {
   type OtProfili as OtProfilKaydi, type ProfilAlani, type ProfilFormu,
 } from './mantik';
 
-/* F3 · Plant 360 — OT MİMARİ PROFİLİ bloğu (B6/B9).
+/* F3 · Tesis 360 — OT MİMARİ PROFİLİ bloğu (B6/B9).
 
    `TesisProfili` uygulanabilirlik motorunun girdisidir; /uyum ekranı
-   "santral profili eksik — karar Plant 360'tan tamamlanır" diyordu ama
-   Plant 360'ta form YOKTU ve yalnız kritiklik sınıfı okunuyordu. Bu blok
+   "tesis profili eksik — karar Tesis 360'tan tamamlanır" diyordu ama
+   Tesis 360'ta form YOKTU ve yalnız kritiklik sınıfı okunuyordu. Bu blok
    profilin tamamını satır satır gösterir, yetkisi olana düzenletir.
 
    Sözleşme:
@@ -24,7 +24,7 @@ import {
      · kayıt `profilKaydet` (yetkiZorunlu tanimlar/yazma, iz, revalidate).
        Uygulanabilirlik kapsamı KENDİLİĞİNDEN yeniden hesaplanmaz; bunu
        `kapsamYenidenHesapla` ile insan tetikler (bu blokta düğme yok:
-       hangi santralde motorun koşacağına o karar süreci karar verir). */
+       hangi tesiste motorun koşacağına o karar süreci karar verir). */
 
 export default function OtProfili({ tesisId, profil, duzenlenebilir }: {
   tesisId: string;

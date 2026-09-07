@@ -10,7 +10,7 @@ import type { KanitPaketi } from '@/lib/disaAktarim/paket';
    Burada kanıtlanan dört sözleşme:
    · pakete sır girerse paket ÜRETİLMEZ (maskelenip geçilmez),
    · bütünlük damgası içerik değişince değişir,
-   · yetki kapsamı dışındaki santral pakete GİRMEZ (ve istek reddedilir),
+   · yetki kapsamı dışındaki tesis pakete GİRMEZ (ve istek reddedilir),
    · kökeni olmayan kayıt gizlenmez, `kökeni yok` diye işaretlenir.
 
    TEST_DB, db'ye dokunan HER importtan ÖNCE ayarlanır (proje kalıbı). */
@@ -39,7 +39,7 @@ const { kanitPaketiUretEylem } = await import('@/lib/eylemler2/disaAktarim');
 const { kokenYaz } = await import('@/lib/entegrasyon/koken');
 const { sirMaskesi } = await import('@/lib/entegrasyon/sir');
 
-/** Kapsam: EPDK-SYM × SAHA-A3. Yetkisiz santral: SAHA-A2. */
+/** Kapsam: EPDK-SYM × SAHA-A3. Yetkisiz tesis: SAHA-A2. */
 let regulasyonId = '';
 let izinliTesisId = '';
 let yasakTesisId = '';
@@ -171,7 +171,7 @@ describe('Bütünlük damgası', () => {
 
 /* ═══ 3 · RBAC kapsamı ════════════════════════════════════════════════ */
 
-describe('RBAC — yetki dışındaki santral pakete girmez', () => {
+describe('RBAC — yetki dışındaki tesis pakete girmez', () => {
   it('yetkili kapsam üretilir ve denetim izine yazılır [KNT-PKT-001]', async () => {
     const once = await db.aktiviteKaydi.count({ where: { varlikTipi: 'KanitPaketi' } });
     const sonuc = await kanitPaketiUretEylem({
@@ -193,7 +193,7 @@ describe('RBAC — yetki dışındaki santral pakete girmez', () => {
     expect(iz.gerekce).toContain('SAHA-A3');
   });
 
-  it('kapsam dışı santral istenirse istek REDDEDİLİR, sessizce daraltılmaz [RAP-URT-002]', async () => {
+  it('kapsam dışı tesis istenirse istek REDDEDİLİR, sessizce daraltılmaz [RAP-URT-002]', async () => {
     const sonuc = await kanitPaketiUretEylem({
       regulasyonId, tesisIdleri: [izinliTesisId, yasakTesisId],
       baslangic: ARALIK.baslangic.toISOString(), bitis: ARALIK.bitis.toISOString(),
@@ -201,7 +201,7 @@ describe('RBAC — yetki dışındaki santral pakete girmez', () => {
     expect(sonuc.ok).toBe(false);
     if (sonuc.ok) return;
     expect(sonuc.hata).toMatch(/kapsamı dışında/);
-    // Hata metni HANGİ santralin dışarıda kaldığını söylemez.
+    // Hata metni HANGİ tesisin dışarıda kaldığını söylemez.
     expect(sonuc.hata).not.toContain(yasakTesisId);
     expect(JSON.stringify(sonuc)).not.toContain('SAHA-A2');
   });
@@ -217,7 +217,7 @@ describe('RBAC — yetki dışındaki santral pakete girmez', () => {
       where: { varlikTipi: 'KanitPaketi', eylem: 'red' } })).toBe(once + 1);
   });
 
-  it('yetkili kapsamın paketi başka santralin tek satırını taşımaz', async () => {
+  it('yetkili kapsamın paketi başka tesisin tek satırını taşımaz', async () => {
     const sonuc = await kanitPaketiUretEylem({
       regulasyonId, tesisIdleri: [izinliTesisId],
       baslangic: ARALIK.baslangic.toISOString(), bitis: ARALIK.bitis.toISOString(),
@@ -229,7 +229,7 @@ describe('RBAC — yetki dışındaki santral pakete girmez', () => {
     expect(paket.baslik.kapsam.tesisler.map((t) => t.kod)).toEqual(['SAHA-A3']);
     expect(paket.maddeler.every((m) => m.tesisKodu === 'SAHA-A3')).toBe(true);
     expect(paket.bulgular.every((b) => b.tesisKodu === 'SAHA-A3')).toBe(true);
-    // Yasak santralin kimliği hiçbir alanda geçmez (iz satırları dahil).
+    // Yasak tesisin kimliği hiçbir alanda geçmez (iz satırları dahil).
     expect(sonuc.json).not.toContain(yasakTesisId);
     expect(sonuc.json).not.toContain('SAHA-A2');
     expect(paket.maddeler.length).toBeGreaterThan(0);
@@ -307,6 +307,6 @@ describe('Paket içeriği', () => {
       kapsam: { regulasyonId, tesisIdleri: [], ...ARALIK },
       ureten: { id: kullaniciId, adSoyad: 'Paket Testi' },
       urunSurumu: '0.0.0-test',
-    })).rejects.toThrow(/en az bir santral/);
+    })).rejects.toThrow(/en az bir tesis/);
   });
 });

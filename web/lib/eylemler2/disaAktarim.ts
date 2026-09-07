@@ -6,7 +6,7 @@
    bulgu, köken ve denetim izi satırı tek dosyada kurumun dışına çıkar.
    Bu yüzden üç kural:
 
-   1. KAPSAM YETKİDEN GELİR. Kullanıcının istediği santral kümesi
+   1. KAPSAM YETKİDEN GELİR. Kullanıcının istediği tesis kümesi
       `izinliTesisIdleri` ile KESİŞTİRİLMEZ, DENETLENİR: kapsam dışı bir id
       istendiğinde istek sessizce daraltılmaz, REDDEDİLİR. Sessiz daraltma,
       denetçiye eksik bir paketi tam sanarak vermek olurdu.
@@ -17,11 +17,13 @@
       süzgeç orada fırlatırsa paket üretilmez ve eylem hatayı olduğu gibi
       taşır — yutmaz.
 
-   Kalıp: zod → oturum → kapsam denetimi (santral başına) → paket → iz. */
+   Kalıp: zod → oturum → kapsam denetimi (tesis başına) → paket → iz. */
 
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import { aktifKullanici } from '../auth';
+import { kapsamAnahtari, kapsamSozlugu } from '../dil/sozlukOku';
+import { t } from '../dil/terimler';
 import { DEMO } from '../demo';
 import { izinVar, izinliTesisIdleri } from '../erisim';
 import {
@@ -46,7 +48,14 @@ export type PaketSonucu =
 
 const Sema = z.object({
   regulasyonId: z.string().trim().min(1, 'Regülasyon seçin'),
-  tesisIdleri: z.array(z.string().trim().min(1)).min(1, 'En az bir santral seçin'),
+  /* Bu mesaj ÇEKİRDEK sözcüğü taşır ve bu bilinçli: zod, oturumdan ÖNCE
+     koşuyor (aşağıdaki sıra notu) ve sözlük kullanıcının KAPSAMINDAN
+     çözülüyor — henüz kimin sorduğunu bilmiyoruz. Sırayı sözlük için
+     değiştirmek, bu dosyanın denetim gerekçesiyle seçtiği bir sıralamayı
+     bozardı. Ekran zaten tek tesisle çağırıyor (`KanitPaketiIstemci`:
+     `tesisIdleri: [kapsam.tesisId]`); bu satır doğrudan çağrıya karşı
+     sözleşme kapısıdır, ürün yüzeyinde görünmez. */
+  tesisIdleri: z.array(z.string().trim().min(1)).min(1, 'En az bir tesis seçin'),
   baslangic: z.string().min(1, 'Başlangıç tarihi zorunlu'),
   bitis: z.string().min(1, 'Bitiş tarihi zorunlu'),
 });
@@ -63,7 +72,7 @@ function tarihCoz(deger: string, ad: string): Date {
  *
  * `denetim/okuma` yeter — dış denetçi rolü de bu yetkiyi taşır ve kendi
  * kapsamının kanıtını alabilmelidir. Yetkinin YAPTIĞI iş kapsam daraltmadır:
- * kullanıcı yalnız izinli olduğu santrallerin verisini alır.
+ * kullanıcı yalnız izinli olduğu tesislerin verisini alır.
  */
 export async function kanitPaketiUretEylem(girdi: {
   regulasyonId: string;
@@ -83,10 +92,10 @@ export async function kanitPaketiUretEylem(girdi: {
     }
 
     /* Sıra bilerek ters: önce zod, sonra yetki. Bu eylemde YETKİNİN GİRDİSİ
-       kapsamın kendisidir — santrale kısıtlı bir rol `izinVar`ın kapsamUyar
+       kapsamın kendisidir — tesise kısıtlı bir rol `izinVar`ın kapsamUyar
        kuralı gereği KAPSAMSIZ okumayı geçemez, dolayısıyla önce hangi
-       santrallerin istendiğini bilmemiz gerekir. Kapsamsız bir kapı koysaydık
-       tesis yetkili denetçi kendi santralinin kanıtını bile alamazdı. */
+       tesislerin istendiğini bilmemiz gerekir. Kapsamsız bir kapı koysaydık
+       tesis yetkili denetçi kendi tesisinin kanıtını bile alamazdı. */
     const v = Sema.parse(girdi);
     const istenen = [...new Set(v.tesisIdleri)];
 
@@ -94,7 +103,7 @@ export async function kanitPaketiUretEylem(girdi: {
        kapsam kararından ÖNCE bilinmek zorunda. yetkiZorunlu kapsam dışı bir
        istekte fırlatır ve geriye yazacak aktör bırakmaz — reddedilen dışa
        aktarım denetim izinde görünmez olurdu. Kapının kendisi kaybolmuyor:
-       aşağıda istenen HER santral için izinVar koşuyor. */
+       aşağıda istenen HER tesis için izinVar koşuyor. */
     const k = await aktifKullanici();
     if (!k) throw new Error('Oturum gerekli');
     kullaniciId = k.id;
@@ -103,13 +112,20 @@ export async function kanitPaketiUretEylem(girdi: {
     if (izinli !== null && izinli.length === 0) {
       throw new Error('Denetim modülünde okuma yetkiniz yok — kanıt paketi üretilemez');
     }
-    /* Her santral TEK TEK denetlenir; ilk santralin geçmesi kalanını
-       geçirmez. Kapsam dışı id'nin var olup olmadığı sızmaz: kaç tanesinin
-       dışarıda kaldığı söylenir, hangisi olduğu değil. */
+    /* Her tesis TEK TEK denetlenir; ilkinin geçmesi kalanını geçirmez.
+       Kapsam dışı id'nin var olup olmadığı sızmaz: kaç tanesinin dışarıda
+       kaldığı söylenir, hangisi olduğu değil.
+
+       Bu mesaj oturum AÇILDIKTAN sonra kurulduğu için sözlükten gelebilir:
+       kapsam artık belli. Sözlük kullanıcının İZİNLİ kapsamından çözülür,
+       istenen kümeden değil — istenenin bir kısmı kapsam dışı ve o kısmın
+       sektörünü öğrenmek kullanıcının hakkı değil. */
     const disarida = istenen.filter((t) => !izinVar(k, 'denetim', 'okuma', { tesisId: t }));
     if (disarida.length > 0) {
+      const sozluk = await kapsamSozlugu(kapsamAnahtari(izinli));
+      const sozcuk = t(sozluk, 'tesis', disarida.length === 1 ? 'tekil' : 'cogul');
       throw new Error(
-        `İstenen ${disarida.length} santral yetkinizin kapsamı dışında — paket üretilmedi`);
+        `İstenen ${disarida.length} ${sozcuk} yetkinizin kapsamı dışında — paket üretilmedi`);
     }
 
     const baslangic = tarihCoz(v.baslangic, 'Başlangıç tarihi');

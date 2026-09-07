@@ -1,8 +1,6 @@
-import { readdirSync, statSync } from 'node:fs';
-import path from 'node:path';
 import { chromium } from 'playwright-core';
 import { yonlendirmeKarari } from './rota-kurallari.mjs';
-import { tarayiciYolu, tohumDegeri } from './kosu-ortak.mjs';
+import { sayfaEnvanteri, tarayiciYolu, tohumDegeri } from './kosu-ortak.mjs';
 
 /* Rota duman testi — KAPSAM DOSYA SİSTEMİNDEN TÜRER.
 
@@ -41,34 +39,15 @@ import { tarayiciYolu, tohumDegeri } from './kosu-ortak.mjs';
      npm run rota:duman
 */
 
-const WEB = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
 const KOK = `http://localhost:${process.env.PORT || 3111}`;
 const JSON_CIKTI = process.argv.includes('--json');
 
 /* ── 1. Rota envanteri ─────────────────────────────────────────────── */
 
-/** `app` altındaki her `page.tsx` → rota yolu. Grup segmentleri `(x)` düşer. */
-function rotaEnvanteri() {
-  const app = path.join(WEB, 'app');
-  const cikti = [];
-  const gez = (d) => {
-    for (const ad of readdirSync(d).sort()) {
-      const tam = path.join(d, ad);
-      if (statSync(tam).isDirectory()) { gez(tam); continue; }
-      if (ad !== 'page.tsx') continue;
-      const bagil = path.relative(app, path.dirname(tam));
-      const segmentler = bagil === '' ? [] : bagil.split(path.sep).filter((s) => !/^\(.*\)$/.test(s));
-      cikti.push({
-        kaynak: path.relative(WEB, tam),
-        rota: `/${segmentler.join('/')}`.replace(/\/$/, '') || '/',
-        grup: (bagil.match(/\(([^)]+)\)/g) ?? []).join(''),
-        dinamik: segmentler.filter((s) => /^\[.*\]$/.test(s)),
-      });
-    }
-  };
-  gez(app);
-  return cikti.sort((a, b) => a.rota.localeCompare(b.rota));
-}
+/* `rotaEnvanteri` `kosu-ortak.mjs`e TAŞINDI: oturumsuz liste çapraz
+   kontrolü de aynı envanteri istiyor ve iki kopya birbirinden
+   uzaklaşırdı. Burada yalnız çağrılır (`sayfaEnvanteri`). */
+const rotaEnvanteri = sayfaEnvanteri;
 
 /* ── 2. Dinamik segmentlerin gerçek değerleri ──────────────────────── */
 

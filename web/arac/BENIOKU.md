@@ -678,6 +678,39 @@ seçici taşır: oturum çerezi sızarsa `/giris` panoya yönlenir ve kapı
 sessizce PANOYU ölçmeye başlardı. Yönlendirme denetimi "başka yere gitti
 mi" der, nöbetçi "doğru yere geldi mi" der; ikisi ayrı kilittir.
 
+**Liste ÇAPRAZ KONTROL edilir — elle tutulan liste yetmez.** `rotalar.json`
+da elle tutuluyordu, dinamik rotaları kaçırdı ve altı kayıt detayı ekranı
+aylarca taranmadı; aynı hatanın tekrarı beklenmelidir. Liste TÜRETİLEMEZ
+(koruma bir middleware'de değil, sayfa başına `lib/erisim.ts` içindedir
+ve statik okunamaz) ama ÖLÇÜLEBİLİR: **diskten** türeyen her `page.tsx`
+oturumsuz istenir ve `/giris`e yönlenmesi beklenir. Yönlenmeyen ve beyan
+edilmemiş her yüzey kapıyı KIRMIZI yakar ve izin listesine giremez —
+ölçülmeyen bir yüzey "borç" değildir.
+
+> **Kapsamın diskten gelmesi ŞARTTIR ve bu denendi.** İlk uygulama
+> kapsamı `rotalar.json`dan alıyordu, yani elle tutulan bir listeyi elle
+> tutulan başka bir listeye karşı kontrol ediyordu: `/giris` ikisinde de
+> yok, diş ısırmadı (beyan silindiğinde kapı yeşil kaldı). Kapsam
+> `sayfaEnvanteri()`ye — `app` altındaki her `page.tsx`e — çevrilince diş
+> ilk koşuda **`/bakim`**'ı buldu: kodunda "kabuk yok, oturum şartı yok"
+> yazılı, `rotalar.json`da yok, iki kapının da dışındaydı.
+>
+> İki ölçüm kusuru daha yolda elendi: (a) `domcontentloaded` ile
+> `/tedarikciler` "oturumsuz açık" görünüyordu — yakalanan şey
+> `loading.tsx` iskeletiydi, sunucu yönlendirmesi henüz inmemişti;
+> `networkidle` şart. Yanlış bir güvenlik alarmı, kaçırılan bir yüzey
+> kadar zararlıdır. (b) "Giriş ekranına varmak korunma kanıtıdır" kuralı
+> giriş ekranının KENDİSİ için geçerli değildir; yazılmasaydı `/giris`
+> beyandan düştüğünde çapraz kontrol tam da kaçırdığı yüzeyi kaçırmaya
+> devam ederdi.
+
+Bugün beyanda üç yüzey var: `/giris`, **404** (yanlış adres yazan herkes
+görür; bir rota değil, rotasızlığın ekranı) ve `/bakim`. Her satır bir
+BEKLENEN HTTP KODU taşır — 404 yüzeyinde 404 doğru cevaptır, 200 yanlış
+yüzeydir. `global-error.tsx` bilerek dışarıdadır: göstermek için kök
+düzende istek üzerine istisna fırlatmanın deterministik bir yolu yok ve
+ölçülemeyen bir yüzey için kapı yazmak, tahmini kapı diye satmak olurdu.
+
 > **İlk oturumsuz ölçüm ne buldu:** `/giris` 375px'te sayfayı 25px
 > kaydırıyor, kendi `<h1>`ini %100 kırpıyordu. Kök sebep daha ağırdı:
 > ekran `className="ab"`ı belirteç ve tipografi için kullanıyor ama

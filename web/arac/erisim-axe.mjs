@@ -86,7 +86,7 @@ const ETIKETLER = ['wcag2a', 'wcag2aa'];
 
 const b = await chromium.launch({ executablePath: tarayiciYolu() });
 
-async function tara(s, rota, nobetci = null) {
+async function tara(s, rota, nobetci = null, beklenenKod = 200) {
   const y = await s.goto(KOK + rota, { waitUntil: 'load' });
   await s.waitForTimeout(450);
   const varilan = new URL(s.url()).pathname;
@@ -158,8 +158,10 @@ async function tara(s, rota, nobetci = null) {
      yönlendirme kabul edilir. */
   const kod = y?.status() ?? 0;
   const karar = yonlendirmeKarari(rota, varilan);
-  let yuzeyHatasi = kod !== 200
-    ? `HTTP ${kod} — yanlış yüzey tarandı`
+  /* Beklenen kod BEYAN EDİLİR: 404 yüzeyinin kendisi taranırken 404
+     doğru cevaptır, 200 ise yanlış yüzey demektir. */
+  let yuzeyHatasi = kod !== beklenenKod
+    ? `HTTP ${kod} (beklenen ${beklenenKod}) — yanlış yüzey tarandı`
     : (karar.kusur ?? null);
   /* Oturumsuz yüzeyde NÖBETÇİ aranır: yönlendirme denetimi "başka yere
      gitti mi" der, nöbetçi "doğru yere geldi mi" der. Oturum çerezi
@@ -190,7 +192,7 @@ try {
       /* Oturumsuz yüzeyler ÖNCE taranır: bir kez giriş yapıldıktan sonra
          bu bağlam `/giris`i hiç göremez, sunucu panoya yönlendirir. */
       for (const r of OTURUMSUZ.filter((x) => ROTALAR.includes(x.yol))) {
-        rapor.push({ bant: bant.ad, bantEn: bant.en, ...await tara(s, r.yol, r.nobetci) });
+        rapor.push({ bant: bant.ad, bantEn: bant.en, ...await tara(s, r.yol, r.nobetci, r.kod ?? 200) });
       }
       await girisYap(s, KOK);
       for (const rota of ROTALAR.filter((r) => !OTURUMSUZ_YOLLAR.includes(r))) {

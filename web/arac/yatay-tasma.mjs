@@ -47,8 +47,8 @@
 
 import { chromium } from 'playwright-core';
 import {
-  KOK, dinamikRotalar, girisYap, kalipCozucu, oturumsuzRotalar, rotaBayragi, rotaBayragiVar,
-  rotalarOku, tarayiciYolu,
+  KOK, dinamikRotalar, girisYap, kalipCozucu, oturumsuzAcikYuzeyler, oturumsuzRotalar,
+  rotaBayragi, rotaBayragiVar, rotalarOku, tarayiciYolu,
 } from './kosu-ortak.mjs';
 import {
   KAYDIRAN_KAPLAR, borcAnahtari, enDistakiKirpilmalar, kirpilmaKarari, ortusmeHedefi,
@@ -372,18 +372,22 @@ const kusurlar = [];
 const kirpilmalar = [];
 const ortusmeler = [];
 const yuzeyKirigi = [];
+/** Beyan edilmemiş ama oturumsuz açık yüzeyler — `null` = henüz koşmadı. */
+let capraz = null;
 let olculen = 0;
 
 /** Tek rotayı tek bantta ölçer. `nobetci` verilirse yüzeyin GERÇEKTEN o
     yüzey olduğu ayrıca kanıtlanır (oturumsuz taramada oturum çerezi
     sızarsa `/giris` panoya yönlenir ve kapı sessizce panoyu ölçerdi). */
-async function rotayiOlc(sayfa, bant, yol, nobetci = null) {
+async function rotayiOlc(sayfa, bant, yol, nobetci = null, beklenenKod = 200) {
   const yanit = await sayfa.goto(`${KOK}${yol}`, { waitUntil: 'networkidle' });
   /* Yanlış yüzeyi ölçmek, ölçmemekten beterdir: 404/500 gövdesi ya da
-     giriş ekranı taşmaz ve kapı yeşil kalır (axe kapısıyla aynı kural). */
+     giriş ekranı taşmaz ve kapı yeşil kalır (axe kapısıyla aynı kural).
+     Beklenen kod BEYAN EDİLİR: 404 yüzeyinin kendisi ölçülürken 404
+     doğru cevaptır, 200 ise yanlış yüzeydir. */
   const kod = yanit?.status() ?? 0;
   const karar = yonlendirmeKarari(yol, new URL(sayfa.url()).pathname);
-  let yuzeyHatasi = kod !== 200 ? `HTTP ${kod}` : (karar.kusur ?? null);
+  let yuzeyHatasi = kod !== beklenenKod ? `HTTP ${kod} (beklenen ${beklenenKod})` : (karar.kusur ?? null);
   if (!yuzeyHatasi && nobetci && (await sayfa.locator(nobetci).count()) === 0) {
     yuzeyHatasi = `nöbetçi yok (${nobetci}) — yanlış yüzey`;
   }
@@ -475,7 +479,13 @@ try {
     if (OTURUMSUZ.length > 0) {
       const temiz = await tarayici.newContext({ viewport: { width: bant.en, height: bant.boy } });
       const s2 = await temiz.newPage();
-      for (const r of OTURUMSUZ) await rotayiOlc(s2, bant, r.yol, r.nobetci);
+      for (const r of OTURUMSUZ) await rotayiOlc(s2, bant, r.yol, r.nobetci, r.kod ?? 200);
+      /* ÇAPRAZ KONTROL bir kez koşar (yetki banda bağlı değildir):
+         beyan edilmemiş bir yüzey oturumsuz açık mı? Elle tutulan bir
+         liste, elle tutulan `rotalar.json`ın hatasını tekrar eder. */
+      if (!capraz && !rotaBayragiVar()) {
+        capraz = await oturumsuzAcikYuzeyler(s2, DINAMIK.url, KOK);
+      }
       await temiz.close();
     }
   }
@@ -587,4 +597,14 @@ if (yuzeyKirigi.length > 0) {
   console.error(`\nKIRIK TARAMA · ${yuzeyKirigi.length} rota YANLIŞ YÜZEY döndürdü`);
   for (const k of yuzeyKirigi) console.error(`  ${k.bant} · ${k.yol} · ${k.sebep}`);
 }
-process.exit(borcKapali || DINAMIK_KIRIK || yuzeyKirigi.length > 0 ? 1 : 0);
+/* Beyan edilmemiş açık yüzey, listenin EKSİK olduğunun kanıtıdır ve
+   izin listesine giremez: ölçülmeyen bir yüzey "borç" değildir. */
+if (capraz && capraz.length > 0) {
+  console.error(`\nOTURUMSUZ LİSTE EKSİK · ${capraz.length} yüzey beyan edilmeden açık`);
+  for (const a of capraz) console.error(`  ${a.yol} → HTTP ${a.kod} · varılan ${a.varilan}`);
+  console.error('  Bu yüzeyler oturum istemiyor ama iki kapı da onları oturumlu');
+  console.error('  tarıyor, yani hiç ölçmüyor. `kosu-ortak.mjs → OTURUMSUZ_ROTALAR`.');
+}
+process.exit(
+  borcKapali || DINAMIK_KIRIK || yuzeyKirigi.length > 0 || (capraz?.length ?? 0) > 0 ? 1 : 0,
+);

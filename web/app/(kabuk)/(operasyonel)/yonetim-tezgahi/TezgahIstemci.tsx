@@ -25,6 +25,7 @@ import {
   tanimSozu,
   type Anahtar, type Is, type Katalog, type Kisi, type Kodlu, type SonIstek, type Tanim,
 } from './ortak';
+import { useTerim } from '@/lib/dil/SozlukSaglayici';
 
 /* M1/M2/P1-3 · Yönetim tezgâhı — "bugün ne karar bekliyor, katalog doğru
    mu, dışarıdan kim girebiliyor?"
@@ -136,6 +137,7 @@ export default function TezgahIstemci({
   gorevAcabilir: boolean;
   anahtarYazabilir: boolean;
 }) {
+  const { tBas } = useTerim();
   const router = useRouter();
   const [kip, setKip] = useState<Kip>(
     baslangicKipi ?? (isOkuyabilir ? 'is' : tanimOkuyabilir ? 'tanim' : 'anahtar'));
@@ -472,7 +474,7 @@ export default function TezgahIstemci({
                   sec={(id) => { setSorumluF(id); setKuyrukAcik(false); }}
                   secenekler={[...kullanicilar.map((u) => ({ id: u.id, ad: u.ad })),
                     { id: 'yok', ad: 'atanmadı' }]} />
-                <Kapsam etiket="Santral" aktif={tesisF}
+                <Kapsam etiket={tBas('tesis')} aktif={tesisF}
                   sec={(id) => { setTesisF(id); setKuyrukAcik(false); }}
                   secenekler={tesisSecenekleri.map((t) => ({ id: t.id, ad: t.ad }))} />
                 {gorevAcabilir && (
@@ -737,6 +739,7 @@ function anahtarKodu(a: Anahtar): string {
 /* ── Çekmece · iş ───────────────────────────────────────────────────── */
 
 function IsOzeti({ is, simdi }: { is: Is; simdi: number }) {
+  const { tBas } = useTerim();
   const im = isImi(is, simdi);
   const gun = kalanGun(is.sonTarih, simdi);
   const bekleme = gecenGun(is.olusturuldu, simdi);
@@ -769,7 +772,7 @@ function IsOzeti({ is, simdi }: { is: Is; simdi: number }) {
           durum: is.tur === 'gorev' && !is.kisi ? 'md' : undefined,
         },
         ...(is.tur === 'gorev' ? [{
-          etiket: 'Santral',
+          etiket: tBas('tesis'),
           deger: is.tesis ? `${is.tesis.kod} — ${is.tesis.ad}` : 'portföy',
         }] : []),
         {
@@ -947,7 +950,7 @@ function AnahtarOzeti({ anahtar, simdi, yazabilir }: {
   );
 }
 
-/* ── Kapsam kontrolü (SORUMLU ▾ / SANTRAL ▾ / KATALOG ▾ / SAHİP ▾) ────
+/* ── Kapsam kontrolü (SORUMLU ▾ / TESİS ▾ / KATALOG ▾ / SAHİP ▾) ────
    Referans ekranlardaki kalıbın aynısı: kutu yok, 9.5px mono açılır liste;
    dışarı tık ve Esc kapatır — açık kalan menü tabloyu örter. */
 

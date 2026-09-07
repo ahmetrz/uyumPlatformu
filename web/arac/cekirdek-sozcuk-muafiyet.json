@@ -141,6 +141,13 @@
       "dizeler": [
         "oturumunun varlık/sistem/tesis bağı ÇÖZÜLEMEDİ."
       ]
+    },
+    "app/(kabuk)/(operasyonel)/sistem/page.tsx": {
+      "sebep": "TASARIM SİSTEMİ GALERİSİ · örnek metinler. Bu satırlar tipografi jetonlarının NASIL GÖRÜNDÜĞÜNÜ göstermek için duran ÖRNEKLERDİR; ürünün kullanıcıya söylediği bir şey değil, bir jeton künyesi. `--t-hero` satırı hangi ekranın hero'su olduğunu söylüyor (Tesis 360) ve `--t-colhead` bir kolon başlığı örneği veriyor; ikisi de değişken bir sözcük değil, sabit bir örnek olmalı ki jetonun ölçüsü turdan tura kaymasın. Aynı sınıf `bilesenler/Galeri.tsx` fikstürleriyle.",
+      "dizeler": [
+        "Hero başlığı (Tesis 360)",
+        "TESİS · SAHİP · HEDEF"
+      ]
     }
   }
 }

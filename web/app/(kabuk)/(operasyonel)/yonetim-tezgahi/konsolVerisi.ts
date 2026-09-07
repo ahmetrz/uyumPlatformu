@@ -8,7 +8,7 @@ import { HEDEF_SOZU, matrisKusurlari } from '@/lib/uyum/eskalasyon';
 import { KURULU_GUC, birimliOzellik, olculenYazi } from '@/lib/alan/oznitelik';
 import { kapsamAnahtari, kapsamSozlugu } from '@/lib/dil/sozlukOku';
 import { izinliTesisIdleri } from '@/lib/erisim';
-import { tBas } from '@/lib/dil/terimler';
+import { tBas, terim } from '@/lib/dil/terimler';
 import {
   KONSOL_VARLIK_TIPLERI, type EtkiSatiri, type KonsolKayit, type KonsolVerisi,
   type Talep, type TalepDurumu,
@@ -65,13 +65,19 @@ export async function konsolVerisi(kullanici: AktifKullanici, simdi: number): Pr
   const acikTalepSayisi = (hedefTipi: string, hedefId: string) =>
     talepler.filter((t) => t.hedefTipi === hedefTipi && t.hedefId === hedefId && ['incelemede', 'onaylandi'].includes(t.durum)).length;
 
+  /* Kayıt alt satırları terim taşır; sözlük kullanıcının kapsamından
+     BİR kez çözülür ve hem burada hem talep listesinde kullanılır. */
+  const sozluk = await kapsamSozlugu(
+    kapsamAnahtari(izinliTesisIdleri(kullanici, 'yonetim')));
+  const tesisTerimi = terim(sozluk, 'tesis');
+
   const kayitlar: Record<string, KonsolKayit[]> = {
     grup: gruplar.map((g) => ({
       id: g.id, kod: g.kod, ad: g.ad, durum: 'ok', bagli: g._count.tuzelKisiler,
       alt: `${g._count.tuzelKisiler} tüzel kişi`, degerler: { kod: g.kod, ad: g.ad } })),
     tuzelKisi: tuzelKisiler.map((t) => ({
       id: t.id, kod: t.kod, ad: t.ad, durum: 'ok', bagli: t._count.tesisler,
-      alt: `${t.grup.kod} · ${t._count.tesisler} santral · ${t._count.yetkiler} yetki`,
+      alt: `${t.grup.kod} · ${t._count.tesisler} ${tesisTerimi.tekil} · ${t._count.yetkiler} yetki`,
       degerler: { kod: t.kod, ad: t.ad, grupId: t.grupId, vergiNo: t.vergiNo ?? '' } })),
     operasyonelBirim: birimler.map((u) => ({
       id: u.id, kod: `${u.tesis.kod}/${u.kod}`, ad: u.ad,
@@ -150,8 +156,6 @@ export async function konsolVerisi(kullanici: AktifKullanici, simdi: number): Pr
   /* SAKLANAN etki satırı çekirdek sözcük taşır (R0-9); ekranda kiracının
      sözcüğü görünsün diye başlık terim ANAHTARINDAN yeniden yazılır.
      Anahtarsız satır (sayım etiketi) olduğu gibi kalır. */
-  const sozluk = await kapsamSozlugu(
-    kapsamAnahtari(izinliTesisIdleri(kullanici, 'yonetim')));
   const etkiyiSozlukleYaz = (satirlar: EtkiSatiri[]): EtkiSatiri[] => satirlar.map((e) => (
     e.terim ? { ...e, baslik: `${tBas(sozluk, e.terim)}${e.ek ?? ''}` } : e));
 

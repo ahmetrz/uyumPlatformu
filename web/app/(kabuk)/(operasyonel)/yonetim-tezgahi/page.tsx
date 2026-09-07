@@ -29,7 +29,7 @@ export const metadata: Metadata = { title: 'Yönetim tezgâhı' };
    TANIM KATALOGLARI ve API ANAHTARLARI bölümleri BİLEREK kapsamsızdır,
    çünkü ikisi de kurum geneli sicillerdir: `Sektor`, `TesisTipi`,
    `VarlikTuru`, `Alan`, `Regulasyon` şemada `tesisId` taşımaz (bir varlık
-   TÜRÜ tek bir santralin malı değildir), `ApiAnahtari` ise bir kullanıcıya
+   TÜRÜ tek bir tesisin malı değildir), `ApiAnahtari` ise bir kullanıcıya
    bağlıdır ve kapsamını zaten o kullanıcının yetkilerinden alır
    (lib/api/yetki.ts → okumaKapsami). Kapsamla daraltılan yalnız görev/onay
    akışıdır; o da yukarıdaki `izinliIs` ile. */
@@ -163,8 +163,8 @@ export default async function Sayfa({ searchParams }: { searchParams: Promise<{ 
         kod: t.kod, ad: t.ad,
         kullanim: t._count.surecKapsamlari, ikincilKullanim: null,
         devreDisi: t.durum === 'kapali',
-        // Kırılımı olmayan AKTİF santralde uygulanabilirlik motoru karar
-        // üretemez — zinciri kıran tek eksik budur. Kapalı santralde aranmaz.
+        // Kırılımı olmayan AKTİF tesiste uygulanabilirlik motoru karar
+        // üretemez — zinciri kıran tek eksik budur. Kapalı tesiste aranmaz.
         eksik: t.durum === 'aktif' && !t.tipId ? 'kırılım atanmadı' : null,
         /* Kurulu güç girilmemişse "bilinmiyor" yazılır, sıfır uydurulmaz
            (§19); BİRİM satırdan gelir, ekrana gömülmez (§0.5). */

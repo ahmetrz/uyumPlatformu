@@ -8,6 +8,7 @@ import {
 import { olayBagla, olayBagKaldir } from '@/lib/eylemler2/olay';
 import { ASAMALAR, asamaEtiketi, asamaIndeksi, eksikKapilar, kapandiMi, kapilar,
   type D, type Kodlu, type OlayAdayi } from './mantik';
+import { useTerim } from '@/lib/dil/SozlukSaglayici';
 
 /* Değişiklik yazma yüzeyleri — MODAL YOK (06 §B4), `prompt()` YOK.
    Hepsi 420px çekmecede render edilir. Mutasyonlar
@@ -59,6 +60,7 @@ export function DegisiklikFormu({ degisiklik, tesisler, kapat }: {
     uretimEtkisi: degisiklik?.uretimEtkisi ?? '',
   });
 
+  const { t: terim, tBas } = useTerim();
   const gecerli = v.baslik.trim().length > 0;
 
   /* Eksik kapılar formun İÇİNDE önceden söylenir: kullanıcı kaydedip
@@ -85,10 +87,10 @@ export function DegisiklikFormu({ degisiklik, tesisler, kapat }: {
           placeholder="Örn. OT güvenlik duvarı kural seti güncellemesi"
           onChange={(e) => setV({ ...v, baslik: e.target.value })} />
       </Alan>
-      <Alan etiket="Santral">
+      <Alan etiket={tBas('tesis')}>
         <select className="ab-gr" value={v.tesisId}
           onChange={(e) => setV({ ...v, tesisId: e.target.value })}>
-          <option value="">portföy (santral bağı yok)</option>
+          <option value="">{terim('portfoy')} ({terim('tesis')} bağı yok)</option>
           {tesisler.map((t) => <option key={t.id} value={t.id}>{t.kod} — {t.ad}</option>)}
         </select>
       </Alan>
@@ -339,8 +341,8 @@ export function KapiListesi({ d }: { d: D }) {
    borcunu geri getirirdi.
 
    Bağ `olayBagla`/`olayBagKaldir` ile kurulur ve kapsam denetimi OLAYIN
-   santralinden gelir — değişikliğin değil. Portföy geneli (santralsiz) bir
-   değişikliğe, kullanıcının yetkisi olmayan bir santralin olayı
+   tesisinden gelir — değişikliğin değil. Portföy geneli (tesissiz) bir
+   değişikliğe, kullanıcının yetkisi olmayan bir tesisin olayı
    bağlanamaz; sunucu reddeder. */
 
 export function OlayBagi({ d, adaylar }: { d: D; adaylar: OlayAdayi[] }) {

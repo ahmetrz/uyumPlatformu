@@ -12,7 +12,7 @@ export const metadata: Metadata = { title: 'Uyum süreçleri' };
    UstCubuk ya da .icerik sarmalayıcısı YOK.
 
    Kapsam VERİ seviyesinde daraltılır: uyum okuma yetkisi tesise kısıtlıysa
-   yalnız o santralleri kapsayan kampanyalar görünür ve sayaçlar da yalnız
+   yalnız o tesisleri kapsayan kampanyalar görünür ve sayaçlar da yalnız
    o tesislerin değerlendirmelerinden toplanır. Kapsamı hiç girilmemiş
    kampanya gizlenmez — aksi hâlde kapsam eksikliği kaydı görünmez kılardı. */
 
@@ -22,8 +22,8 @@ export default async function Sayfa() {
 
   const izinli = izinliTesisIdleri(kullanici, 'uyum');
   /* Tesise kısıtlı rol kapsamsız (global) yazma yapamaz ama KENDİ
-     santralinde yazabilir — kapsam düğmesi bu yüzden `modulYazabilir` ile
-     sorulur ("yazabildiğin santral var mı"), `izinVar` ile değil.
+     tesisinde yazabilir — kapsam düğmesi bu yüzden `modulYazabilir` ile
+     sorulur ("yazabildiğin tesis var mı"), `izinVar` ile değil.
      Bu ekran o soruyu üç dosyada ayrı ayrı elle yazıyordu; yüklem
      `app/kapsam.ts` içinde tek yere indi. Sunucu her çağrıda tesis
      kapsamını yeniden doğrular. */

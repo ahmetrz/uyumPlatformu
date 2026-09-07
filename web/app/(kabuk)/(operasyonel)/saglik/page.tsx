@@ -37,7 +37,7 @@ export const metadata: Metadata = { title: 'Platform sağlığı' };
 
    Köken bölümü (§12 + §18) aynı sözü GELEN VERİ için verir: hangi kaynak
    sistem kaç kaydı besliyor, hangi kayıt insan doğrulaması bekliyor, hangi
-   köken bayatlamış. Kapsamı `envanter/okuma` belirler ve santral kapsamı
+   köken bayatlamış. Kapsamı `envanter/okuma` belirler ve tesis kapsamı
    `izinliTesisIdleri` ile daraltılır; doğrulama eylemi ayrıca
    `envanter/onay` ister. Kökeni OLMAYAN kayıt bu bölümde gizlenmez —
    `kokenSayimlari` onu `manuel` kovasında sayar ve ekran "kökeni yok"
@@ -174,7 +174,7 @@ export default async function Sayfa() {
   const [varliklar, tesisler, kanitlar, agSegmentleri] = await Promise.all([
     db.varlik.findMany({ where: { id: { in: idler('Varlik') } },
       /* `tesisId` yalnız etiket için değil KARAR KAPSAMI için okunur:
-         bir varlığa ait bulguyu ancak o santralde onay yetkisi olan
+         bir varlığa ait bulguyu ancak o tesiste onay yetkisi olan
          kapatabilir (OT-44). */
       select: { id: true, etiket: true, tesisId: true } }),
     db.tesis.findMany({ where: { id: { in: idler('Tesis') } },
@@ -217,7 +217,7 @@ export default async function Sayfa() {
       kaynakTipi: b.kaynakTipi, olusturuldu: b.olusturuldu.toISOString(),
       // Kayıt bulunamadıysa null: "boş etiket" değil, DOĞRULANAMAYAN bulgu.
       kayitEtiket: bilgi?.etiket ?? null, href: bilgi?.href ?? null,
-      /* Kaynağı varlık olan bulgu O SANTRALİN onayını ister; kaynağı
+      /* Kaynağı varlık olan bulgu O TESİSİN onayını ister; kaynağı
          segment ya da tesis olan kayıt kurumsaldır ve `envanter/onay`
          yeterlidir (lib/eylemler2/varlikDurusu.ts ile aynı kural). */
       kapatilabilir: bulguOnaylanabilir && (

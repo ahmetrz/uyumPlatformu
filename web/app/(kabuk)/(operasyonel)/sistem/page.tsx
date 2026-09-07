@@ -21,7 +21,7 @@ export const metadata: Metadata = { title: 'Tasarım sistemi' };
    tasarım sistemi belgesinin yapabileceği en kötü şey budur. Şimdi
    kaynak tek: CSS dosyası.
 
-   SANTRAL KAPSAMI: bu ekran bilerek kapsamsızdır çünkü hiç KAYIT okumaz;
+   TESİS KAPSAMI: bu ekran bilerek kapsamsızdır çünkü hiç KAYIT okumaz;
    içeriğinin tamamı stil dosyasından gelir, daraltılacak bir veri yok.
 
    OTURUM KAPISI: kapsamsız olması oturumsuz olması demek değildir. Ekran
@@ -148,7 +148,7 @@ async function YuvaDagilimi() {
 }
 
 const TIPOGRAFI = [
-  ['--t-hero', 'Hero başlığı (Santral 360)', 'Saha A-3 JES'],
+  ['--t-hero', 'Hero başlığı (Tesis 360)', 'Saha A-3 JES'],
   ['--t-board', 'Pano başlığı (portföy)', 'Enerji portföyü'],
   ['--t-screen', 'Ekran başlığı', 'Risk kütüğü'],
   ['--t-metric', 'Ölçüt değeri', '78'],
@@ -160,7 +160,7 @@ const TIPOGRAFI = [
   ['--t-caption', 'Alt yazı', 'Bilinmeyen %18'],
   ['--t-label', 'Bölüm etiketi', 'ŞU AN ÖNEMLİ OLAN'],
   ['--t-code', 'Kod (küçük)', 'EPDK-SYM-4.2.1'],
-  ['--t-colhead', 'Kolon başlığı', 'SANTRAL · SAHİP · HEDEF'],
+  ['--t-colhead', 'Kolon başlığı', 'TESİS · SAHİP · HEDEF'],
 ] as const;
 
 const OLCEK_SIRASI = [

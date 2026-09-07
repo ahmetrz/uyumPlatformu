@@ -729,6 +729,7 @@ function YerlesimDuzenleyici({ tanim, bugun, vazgec, bitti }: {
 function OlculmemisDuzenleyici({ tanim, bugun, vazgec, bitti }: {
   tanim: AyarTanimi; bugun: OlculmemisGosterimi; vazgec: () => void; bitti: () => void;
 }) {
+  const { t: terim } = useTerim();
   const [taslak, setTaslak] = useState<OlculmemisGosterimi>(bugun);
   const [gerekce, setGerekce] = useState('');
   const { bekliyor, hata, setHata, calistir } = useEylem();
@@ -749,11 +750,12 @@ function OlculmemisDuzenleyici({ tanim, bugun, vazgec, bitti }: {
       <Alan etiket="Gösterim" zorunlu>
         <select className="ab-gr" value={taslak.gosterim}
           onChange={(e) => setTaslak({ ...taslak, gosterim: e.target.value as 'ozet' | 'sayi' })}>
-          <option value="ozet">Özet — sayı, oran, güç toplamı ve ilk santral adları</option>
+          <option value="ozet">Özet — sayı, oran, güç toplamı ve ilk tesis adları</option>
           <option value="sayi">Yalnız sayı — sayı ve oran</option>
         </select>
       </Alan>
-      <Alan etiket={`İlk görünümde yazılan santral adı (0–${OLCULMEMIS_ILK_KAC_TAVAN})`}>
+      <Alan etiket={`İlk görünümde yazılan ${terim('tesis')} adı `
+        + `(0–${OLCULMEMIS_ILK_KAC_TAVAN})`}>
         <input className="ab-gr" type="number" min={0} max={OLCULMEMIS_ILK_KAC_TAVAN} step={1}
           disabled={!adYazilir} value={taslak.ilkKac}
           onChange={(e) => setTaslak({ ...taslak, ilkKac: Number(e.target.value) })} />
@@ -781,7 +783,9 @@ function OlculmemisDuzenleyici({ tanim, bugun, vazgec, bitti }: {
         <li><span className="ad">Sayı ve oran</span><span className="sayi mono">her zaman</span>
           <span className="not">Kapatılamaz — &quot;bilinmeyen ≠ sıfır&quot; kuralı ayara bağlanmaz.</span></li>
         <li><span className="ad">Yazılan ad</span><span className="sayi mono">{adYazilir ? taslak.ilkKac : 0}</span>
-          <span className="not">{adYazilir ? 'güce göre sıralı ilk santraller' : 'yalnız sayı kipinde ad yazılmaz'}</span></li>
+          <span className="not">
+            {adYazilir ? `güce göre sıralı ilk ${terim('tesis', 'cogul')}` : 'yalnız sayı kipinde ad yazılmaz'}
+          </span></li>
         <li><span className="ad">Tek ekran sözleşmesi</span><span className="sayi mono">korunur</span>
           <span className="not">Özet başlık bloğundadır, detay `position: fixed` paneldedir; ızgara itilmez.</span></li>
       </ul>
@@ -885,7 +889,7 @@ export function TalepCekmecesi({ talep, veri, kapat, tazele, gecmis }: {
 
       {uygulaAcik && (
         <p className="ab-dip ab-konsol-uyari" role="status">
-          Uygulama geri alınamaz: değer yazılır, iz oluşur{talep.hedefTipi === 'uygulanabilirlikKurali' ? ' ve tüm santrallerin kapsam kararı yeniden hesaplanır' : ''}.
+          Uygulama geri alınamaz: değer yazılır, iz oluşur{talep.hedefTipi === 'uygulanabilirlikKurali' ? ' ve tüm tesislerin kapsam kararı yeniden hesaplanır' : ''}.
         </p>
       )}
 

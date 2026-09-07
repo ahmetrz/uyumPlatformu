@@ -195,8 +195,8 @@ export function altSatir(d: D): string {
   return [d.kod, ...olgular].join(' · ');
 }
 
-/** Santral hücresi: tek tesis · yoksa portföy (grup çapında değişiklik). */
-export function santralMetni(d: Pick<D, 'tesis'>): string {
+/** Tesis hücresi: tek tesis · yoksa portföy (grup çapında değişiklik). */
+export function tesisMetni(d: Pick<D, 'tesis'>): string {
   return d.tesis?.ad ?? 'portföy';
 }
 

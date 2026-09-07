@@ -1,5 +1,4 @@
 'use client';
-import { useSozluk } from '@/lib/dil/SozlukSaglayici';
 import { AZAMI_ANAHTAR_GUN, VARSAYILAN_ANAHTAR_GUN } from '@/lib/apiAnahtariKurallari';
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
@@ -19,6 +18,10 @@ import {
   GOREV_DURUMLARI, GOREV_DURUM_ETIKET, KATALOG_ETIKET,
   type Anahtar, type Is, type Katalog, type Kisi, type Kodlu, type Tanim,
 } from './ortak';
+import { useTerim } from '@/lib/dil/SozlukSaglayici';
+import { terimSeti, type Metin } from '@/lib/yonetim/moduller';
+import type { Sozluk } from '@/lib/dil/terimler';
+import { useSozluk } from '@/lib/dil/SozlukSaglayici';
 
 /* Yönetim tezgâhının yazma yüzeyleri — MODAL YOK (06 §B4). Eski iki ekranın
    dokuz <dialog> kipi buraya, 420px çekmecenin içine indi. Mutasyonlar
@@ -32,6 +35,7 @@ const BOS_GOREV = { baslik: '', tip: 'manuel', sorumluId: '', tesisId: '', sonTa
 export function GorevFormu({ kullanicilar, tesisler, kapat }: {
   kullanicilar: Kisi[]; tesisler: Kodlu[]; kapat: () => void;
 }) {
+  const { tBas } = useTerim();
   const { bekliyor, hata, calistir } = useEylem();
   const [f, setF] = useState(BOS_GOREV);
 
@@ -64,10 +68,10 @@ export function GorevFormu({ kullanicilar, tesisler, kapat }: {
             onChange={(e) => setF({ ...f, sonTarih: e.target.value })} />
         </Alan>
       </div>
-      <Alan etiket="Santral">
+      <Alan etiket={tBas('tesis')}>
         <select className="ab-gr" value={f.tesisId}
           onChange={(e) => setF({ ...f, tesisId: e.target.value })}>
-          <option value="">santral bağı yok</option>
+          <option value="">tesis bağı yok</option>
           {tesisler.map((t) => <option key={t.id} value={t.id}>{t.kod} — {t.ad}</option>)}
         </select>
       </Alan>
@@ -193,6 +197,7 @@ export function TanimFormu({
   katalogDegistir?: (k: Katalog) => void;
   kapat: () => void;
 }) {
+  const sozluk = useSozluk();
   const { bekliyor, hata, calistir } = useEylem();
   const [f, setF] = useState({
     kod: tanim?.kod ?? '',
@@ -325,7 +330,7 @@ export function TanimFormu({
           onClick={() => calistir(kaydet, kapat)}>Kaydet</Dugme>
         <Dugme onClick={kapat} disabled={bekliyor}>Vazgeç</Dugme>
       </div>
-      <p className="ab-panel-dip" style={{ margin: 0 }}>{DIP_NOT[katalog]}</p>
+      <p className="ab-panel-dip" style={{ margin: 0 }}>{dipNot(katalog, sozluk)}</p>
     </div>
   );
 }
@@ -335,13 +340,21 @@ const ORNEK_KOD: Record<Katalog, string> = {
   kirilim: 'JEO', sektor: 'ELEKTRIK-URETIM',
 };
 
-const DIP_NOT: Record<Katalog, string> = {
-  tesis: 'Yeni santral kaydedilince uygulanabilirlik kuralları hemen değerlendirilir; profil yoksa karar bilinmiyor kalır.',
+/* Dip not terim taşıyabilir; değer ya dize ya da terimlerin işlevidir
+   (bkz. `lib/yonetim/moduller.ts` — `Metin`). */
+const DIP_NOT: Record<Katalog, Metin> = {
+  tesis: (x) => `Yeni ${x.tesis.tekil} kaydedilince uygulanabilirlik kuralları hemen `
+    + 'değerlendirilir; profil yoksa karar bilinmiyor kalır.',
   regulasyon: 'Yeni uyum yükümlülüğü buradan eklenir; maddeler içe aktarımla gelir.',
   alan: 'Maddeler bu alanlarla eşleştirilir; içe aktarımda eşleşmeyen satır elenir.',
-  kirilim: 'Kırılım santralin portföy kesitini belirler — sektörsüz kırılım kesite düşmez.',
+  kirilim: (x) => `Kırılım ${x.tesis.iyelik} ${x.portfoy.tekil} kesitini belirler — `
+    + 'sektörsüz kırılım kesite düşmez.',
   sektor: 'Yeni sektör yeni iş kolu demektir; kırılımlar sektöre bağlanır.',
 };
+
+/** Dip notu ekranın kendi sözlüğüyle çözer. */
+const dipNot = (k: Katalog, sozluk: Sozluk | null) => (
+  (m) => (typeof m === 'string' ? m : m(terimSeti(sozluk))))(DIP_NOT[k]);
 
 /* ── Katalog durumu ─────────────────────────────────────────────────────
    Kapatma/pasifleştirme/silme tanimlar/onay ister; sunucu da arar. Silme
@@ -389,12 +402,12 @@ export function TanimEylemleri({ tanim, onaylayabilir }: {
             <Dugme tur="ret" disabled={bekliyor}
               onClick={() => calistir(() => tesisKapat({ id: tanim.kayitId, neden }),
                 () => setKapatmaAcik(false))}>
-              Santrali kapat
+              Tesisi kapat
             </Dugme>
             <Dugme onClick={() => setKapatmaAcik(false)} disabled={bekliyor}>Vazgeç</Dugme>
           </div>
           <p className="ab-panel-dip" style={{ margin: 0 }}>
-            Uyum kayıtları tarihçe olarak saklanır; santral aktif süreç kapsamından düşer.
+            Uyum kayıtları tarihçe olarak saklanır; tesis aktif süreç kapsamından düşer.
           </p>
         </>
       ) : (

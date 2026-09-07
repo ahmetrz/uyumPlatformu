@@ -9,10 +9,10 @@ import { kisaKod, sayimla, type Degerlendirme, type S } from '../ortak';
 
 export const metadata: Metadata = { title: 'Uyum kampanyası' };
 
-/* Kampanya kaydı — "bu kampanyada hangi madde hangi santralde takılı?"
+/* Kampanya kaydı — "bu kampanyada hangi madde hangi tesiste takılı?"
 
-   Ekranın atomu bir DEĞERLENDİRMEDİR (kampanya × madde × santral). /uyum
-   aynı veriden santral × kontrol ailesi ÖZETİ üretir; burada tek tek
+   Ekranın atomu bir DEĞERLENDİRMEDİR (kampanya × madde × tesis). /uyum
+   aynı veriden tesis × kontrol ailesi ÖZETİ üretir; burada tek tek
    kayıtlar yönetilir (durum, sorumlu, kanıt, bulgu, istisna). İki ekran
    aynı satırı iki farklı soruyla okur, biri diğerinin matrisini tekrar
    etmez. */
@@ -29,14 +29,14 @@ export default async function Sayfa({ params }: { params: Promise<{ id: string }
 
   const izinli = izinliTesisIdleri(kullanici, 'uyum');
   /* Tesise kısıtlı rol kapsamsız (global) yazma yapamaz ama KENDİ
-     santralinde yazabilir — düğmeler bu yüzden `modulYazabilir` ile
-     sorulur ("yazabildiğin santral var mı"), `izinVar` ile değil.
+     tesisinde yazabilir — düğmeler bu yüzden `modulYazabilir` ile
+     sorulur ("yazabildiğin tesis var mı"), `izinVar` ile değil.
      Bu ekran o soruyu üç dosyada ayrı ayrı elle yazıyordu; yüklem
      `app/kapsam.ts` içinde tek yere indi. Sunucu her kayıtta tesis
      kapsamını yeniden doğrular. */
   const yazabilir = izinVar(kullanici, 'uyum', 'yazma');
   /* UY-07 · Doğrulama `uyum/onay` ister. Kaba kapı `modulYazabilir` ile
-     sorulur ("onay verebildiğin santral var mı"); satır kararı ayrıca
+     sorulur ("onay verebildiğin tesis var mı"); satır kararı ayrıca
      `kapsamdaYetkili` ile verilir — ekran sunucudan gevşek olamaz. */
   const onaylayabilir = modulYazabilir(kullanici, 'uyum', 'onay');
 
@@ -162,8 +162,8 @@ export default async function Sayfa({ params }: { params: Promise<{ id: string }
       durum: d.durum,
       guven: d.guven,
       kanitBayat: d.kanitBayat,
-      /* UY-59 · ÖLÇÜLEN olgunluk santral başına; HEDEF madde üzerinde ve
-         bütün santraller için ortak. `null` = ölçülmedi, sıfır DEĞİL. */
+      /* UY-59 · ÖLÇÜLEN olgunluk tesis başına; HEDEF madde üzerinde ve
+         bütün tesisler için ortak. `null` = ölçülmedi, sıfır DEĞİL. */
       olgunluk: d.olgunlukSeviyesi,
       hedefOlgunluk: d.madde.olgunlukSeviyesi,
       /* UY-64 · Kontrol testleri — en yeniden eskiye. */

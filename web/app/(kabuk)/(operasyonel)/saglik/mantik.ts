@@ -1,4 +1,5 @@
 import type { Durum } from '@/components/kabuk/temel';
+import { CEKIRDEK_TERIMLER, type Terim } from '@/lib/dil/terimler';
 // YALNIZ TİP: `saglikOzeti` server-only bir modüldür, `import type` derlemede
 // silinir ve istemci paketine hiçbir sunucu kodu sızmaz.
 import type {
@@ -697,7 +698,7 @@ export function ortamGerekcesiEksik(f: ConnectorFormu, once: string | null): boo
   return once !== null && f.ortam !== once && !f.gerekce.trim();
 }
 
-/* ── Santral kapsamı ────────────────────────────────────────────────────
+/* ── Tesis kapsamı ────────────────────────────────────────────────────
 
    Kapsam formun geri kalanından AYRI bir alandır ve ayrı kaydedilir; sebebi
    `lib/eylemler2/entegrasyon.ts` başındaki kapsam notunda yazılı. Buradaki
@@ -725,23 +726,27 @@ export type KapsamGorunumu = {
   secenekler: { kod: string; ad: string }[];
 };
 
-/** Yürürlükteki kapsamın tek cümlesi. BOŞ liste "hiçbir santral" DEĞİL,
+/** Yürürlükteki kapsamın tek cümlesi. BOŞ liste "hiçbir tesis" DEĞİL,
     "sınır yok" demektir — çekirdek de öyle okur ve bu ayrım ekranın
     yanlış okunmaması için sözcükle söylenir. */
-export function kapsamCumlesi(kodlar: string[]): string {
+export function kapsamCumlesi(
+  kodlar: string[], tesis: Terim = CEKIRDEK_TERIMLER.tesis,
+): string {
   return kodlar.length === 0
-    ? 'Sınır yok — bu bağlantı her santral adına kayıt yazabilir'
-    : `${kodlar.length} santral · ${kodlar.join(', ')}`;
+    ? `Sınır yok — bu bağlantı her ${tesis.tekil} adına kayıt yazabilir`
+    : `${kodlar.length} ${tesis.tekil} · ${kodlar.join(', ')}`;
 }
 
 /** Kaydetmeden önce gösterilecek uyarılar. Boş liste dönerse kaydetmenin
     sürprizi yoktur; dolu liste kaydetmeyi ENGELLEMEZ, yalnız sonucu önden
     söyler (biri hariç: varsayılan tesis çelişkisini sunucu reddeder). */
-export function kapsamUyarilari(secili: string[], g: KapsamGorunumu): string[] {
+export function kapsamUyarilari(
+  secili: string[], g: KapsamGorunumu, tesis: Terim = CEKIRDEK_TERIMLER.tesis,
+): string[] {
   const uyarilar: string[] = [];
   if (secili.length === 0) {
-    uyarilar.push('Hiçbir santral seçili değil: bu, "hiçbirine yazamaz" değil '
-      + '"SINIR YOK" demektir. Bağlantıyı durdurmak için etkinliği kapatın.');
+    uyarilar.push(`Hiçbir ${tesis.tekil} seçili değil: bu, "hiçbirine yazamaz" `
+      + 'değil "SINIR YOK" demektir. Bağlantıyı durdurmak için etkinliği kapatın.');
   }
   if (g.varsayilanTesisKodu && secili.length > 0
     && !secili.includes(g.varsayilanTesisKodu)) {

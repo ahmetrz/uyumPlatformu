@@ -3,6 +3,8 @@ import { useCallback, useEffect, useState, useTransition } from 'react';
 import { Alan, Dugme, Im } from '@/components/kabuk/temel';
 import { CekmeceEylemler } from '@/components/kabuk/panel';
 import { useEylem } from '@/components/useEylem';
+import { useSozluk } from '@/lib/dil/SozlukSaglayici';
+import { terim } from '@/lib/dil/terimler';
 import {
   connectorEtkinlik, connectorKapsamGorunumu, connectorKapsamKaydet,
   connectorKaydet, connectorKuruKosu, connectorSenkronize, connectorTest,
@@ -40,7 +42,7 @@ import {
       demek değildir; bağlanmayı yalnız `baglandi` alanı söyler.
    3. ORTAM BİR GÜVENLİK ALANIDIR. Değiştirmek gerekçe ister ve kendi
       denetim izi satırını bırakır (lib/eylemler2/connectorCalisma.ts).
-   4. SANTRAL KAPSAMI DA BİR GÜVENLİK ALANIDIR ve artık BU EKRANDAN
+   4. TESİS KAPSAMI DA BİR GÜVENLİK ALANIDIR ve artık BU EKRANDAN
       yazılabilir. Şemadaki `Connector.kapsamTesisleriJson` kolonunu
       çekirdek okuyordu ama ona yazan hiçbir yüzey yoktu; kapsamı
       ayarlamanın tek yolu belgelenmemiş bir yapılandırma anahtarıydı.
@@ -248,9 +250,9 @@ export function ConnectorYapilandirma({
   );
 }
 
-/* ── Santral kapsamı ───────────────────────────────────────────────────
+/* ── Tesis kapsamı ───────────────────────────────────────────────────
 
-   Kapsam, connector'ın YAZABİLECEĞİ santrallerin listesidir; bir güvenlik
+   Kapsam, connector'ın YAZABİLECEĞİ tesislerin listesidir; bir güvenlik
    sınırıdır ve yapılandırmanın geri kalanından ayrı kaydedilir. Ayrı
    olmasının sebebi kayıt sırasının güvenliği: bu blok kaydedilmezse
    yukarıdaki alanların kaydı da kapsamı DEĞİŞTİRMEZ.
@@ -258,6 +260,7 @@ export function ConnectorYapilandirma({
    Blok yalnız KAYITLI connector'da görünür — kapsam bir kimliğe bağlanır,
    henüz var olmayan kayda değil. */
 function KapsamAlani({ c }: { c: ConnectorSagligi }) {
+  const tesisTerimi = terim(useSozluk(), 'tesis');
   const [gorunum, setGorunum] = useState<KapsamGorunumu | null>(null);
   const [okumaHatasi, setOkumaHatasi] = useState<string | null>(null);
   const [secili, setSecili] = useState<string[]>([]);
@@ -312,7 +315,7 @@ function KapsamAlani({ c }: { c: ConnectorSagligi }) {
   if (yukleniyor) {
     return (
       <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
-        <p className="etiket" style={{ margin: 0 }}>Santral kapsamı</p>
+        <p className="etiket" style={{ margin: 0 }}>Tesis kapsamı</p>
         <p className="ab-panel-dip" style={{ margin: 'var(--s8) 0 0' }}>Okunuyor…</p>
       </div>
     );
@@ -321,7 +324,7 @@ function KapsamAlani({ c }: { c: ConnectorSagligi }) {
   if (!gorunum) {
     return (
       <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
-        <p className="etiket" style={{ margin: 0 }}>Santral kapsamı</p>
+        <p className="etiket" style={{ margin: 0 }}>Tesis kapsamı</p>
         <p role="alert" style={{ margin: 'var(--s8) 0 0',
           fontSize: 'var(--t-field)', color: 'var(--bd)' }}>
           Kapsam okunamadı: {okumaHatasi ?? 'bilinmeyen sebep'}
@@ -331,7 +334,7 @@ function KapsamAlani({ c }: { c: ConnectorSagligi }) {
   }
 
   const degisti = kapsamDegisti(gorunum.kodlar, secili);
-  const uyarilar = kapsamUyarilari(secili, gorunum);
+  const uyarilar = kapsamUyarilari(secili, gorunum, tesisTerimi);
   const pasif = bekliyor || !degisti;
 
   const cevir = (kod: string) => setSecili((o) =>
@@ -339,9 +342,9 @@ function KapsamAlani({ c }: { c: ConnectorSagligi }) {
 
   return (
     <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
-      <p className="etiket" style={{ margin: '0 0 var(--s8)' }}>Santral kapsamı</p>
+      <p className="etiket" style={{ margin: '0 0 var(--s8)' }}>Tesis kapsamı</p>
       <p style={{ margin: 0, fontSize: 'var(--t-field)', color: 'var(--md)' }}>
-        Kayıtlı: {kapsamCumlesi(gorunum.kodlar)}
+        Kayıtlı: {kapsamCumlesi(gorunum.kodlar, tesisTerimi)}
       </p>
       <p style={{ margin: 'var(--s4) 0 var(--s12)',
         fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
@@ -351,7 +354,7 @@ function KapsamAlani({ c }: { c: ConnectorSagligi }) {
       <div style={{ display: 'grid', gap: 'var(--s6)' }}>
         {gorunum.secenekler.length === 0 && (
           <p style={{ margin: 0, fontSize: 'var(--t-field)', color: 'var(--md)' }}>
-            Tanımlı santral yok.
+            Tanımlı tesis yok.
           </p>
         )}
         {gorunum.secenekler.map((t) => (
@@ -399,9 +402,9 @@ function KapsamAlani({ c }: { c: ConnectorSagligi }) {
       )}
 
       <p className="ab-panel-dip" style={{ margin: 'var(--s14) 0 0' }}>
-        Kapsam connector&apos;ın YAZABİLECEĞİ santralleri sınırlar: kapsam dışı
-        santral adına gelen kayıt reddedilir, koşu sayacında görünür ve tek
-        satır bile yazılmaz. Hiçbir santral seçmemek sınırı KALDIRIR.
+        Kapsam connector&apos;ın YAZABİLECEĞİ tesisleri sınırlar: kapsam dışı
+        tesis adına gelen kayıt reddedilir, koşu sayacında görünür ve tek
+        satır bile yazılmaz. Hiçbir tesis seçmemek sınırı KALDIRIR.
       </p>
     </div>
   );

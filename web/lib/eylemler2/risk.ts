@@ -47,8 +47,8 @@ function skorHesapla(
 
 /* İKİ AŞAMALI KAPI (`KAPSAM_SONRA`, bkz. erisim.ts). Ön kapı kapsamsız
    çağrılırsa `kapsamUyar` tesise kısıtlı rolü daha ilk adımda reddeder:
-   ekran "yazabilirsin" derken sunucu "yetkiniz yok" der ve santral
-   yöneticisi KENDİ santralinin riskini bile açamaz. Ölçüldü; `risk.ts`
+   ekran "yazabilirsin" derken sunucu "yetkiniz yok" der ve tesis
+   yöneticisi KENDİ tesisinin riskini bile açamaz. Ölçüldü; `risk.ts`
    test görmediği için görünmüyordu.
 
    Ön kapı yalnız "bu modülde bu işlem için bir rolü var mı" sorusunu

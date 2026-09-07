@@ -1,3 +1,4 @@
+import { t, type Sozluk } from '@/lib/dil/terimler';
 import type { Durum } from '@/components/kabuk/temel';
 import { ETKI_BOYUTLARI } from '@/lib/sabitler';
 import { an } from '@/lib/an';
@@ -42,8 +43,8 @@ export type R = {
   projeler: { id: string; kod: string; ad: string; durum: string; ilerleme: number | null }[];
   /** bağlı varlıkların sınıfı OT / BT-OT köprüsü içeriyor mu (O3 "OT" filtresi) */
   ot: boolean;
-  /** tesis alanı boşsa varlıkların yayıldığı santral sayısı — "4 santral" */
-  santralSayisi: number;
+  /** tesis alanı boşsa varlıkların yayıldığı tesis sayısı — "4 <tesis>" */
+  tesisSayisi: number;
 };
 
 /* ── Skor ───────────────────────────────────────────────────────────── */
@@ -214,9 +215,9 @@ const OT_SINIFLARI = new Set(['OT', 'BT_OT_KOPRU']);
 /**
  * Prisma satırını R'ye indirger.
  *
- * `gorulebilir` bir SANTRAL KAPSAMI süzgecidir ve riske bağlı varlıklara
+ * `gorulebilir` bir TESİS KAPSAMI süzgecidir ve riske bağlı varlıklara
  * uygulanır: kapsam dışı bir varlığın etiketi/adı ekrana çıkmaz. Süzgeç
- * burada — türetmelerden ÖNCE — çalışır ki `ot` ve `santralSayisi` de
+ * burada — türetmelerden ÖNCE — çalışır ki `ot` ve `tesisSayisi` de
  * daraltılmış kümeden hesaplansın; satırı gizleyip sayacı bırakmak, sayıyı
  * sızıntıya çevirirdi.
  *
@@ -229,7 +230,7 @@ export function riskeCevir(
   gorulebilir: (tesisId: string | null) => boolean = () => true,
 ): R {
   const varliklar = r.varliklar.map((v) => v.varlik).filter((v) => gorulebilir(v.tesisId));
-  const santraller = new Set(varliklar.map((v) => v.tesisId).filter((x): x is string => !!x));
+  const tesisler = new Set(varliklar.map((v) => v.tesisId).filter((x): x is string => !!x));
   return {
     id: r.id, kod: r.kod, baslik: r.baslik, aciklama: r.aciklama, kaynak: r.kaynak,
     tehdit: r.tehdit, zayiflik: r.zayiflik, mevcutKontroller: r.mevcutKontroller,
@@ -268,7 +269,7 @@ export function riskeCevir(
       };
     }),
     ot: varliklar.some((v) => OT_SINIFLARI.has(v.tur.sinif)),
-    santralSayisi: santraller.size,
+    tesisSayisi: tesisler.size,
   };
 }
 
@@ -304,11 +305,16 @@ export const RISK_ICERIK = {
 
 /* ── Görüntü metinleri ──────────────────────────────────────────────── */
 
-/** Satırın santral hücresi: tesis · yoksa varlıkların yayılımı · yoksa portföy. */
-export function santralMetni(r: Pick<R, 'tesis' | 'santralSayisi'>): string {
+/** Satırın tesis hücresi: tesis · yoksa varlıkların yayılımı · yoksa portföy.
+
+    Sözlük PARAMETRE: bu modül saf hesap, React bilmez; sunucudan da
+    çağrılır. Sözlüksüz çağrı çekirdek sözcüğü yazar. */
+export function tesisMetni(
+  r: Pick<R, 'tesis' | 'tesisSayisi'>, sozluk: Sozluk | null = null,
+): string {
   if (r.tesis) return r.tesis.ad;
-  if (r.santralSayisi > 1) return `${r.santralSayisi} santral`;
-  return 'portföy';
+  if (r.tesisSayisi > 1) return `${r.tesisSayisi} ${t(sozluk, 'tesis')}`;
+  return t(sozluk, 'portfoy');
 }
 
 /** Satır alt satırı: kayıt kimliği + EN FAZLA bir olgu. Durum tekrar edilmez. */

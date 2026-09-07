@@ -8,7 +8,7 @@ import { riskEkranVerisi } from './veri';
    (operasyonel)/layout.tsx tarafından verilir; burada UstCubuk ya da
    .icerik sarmalayıcısı YOK.
 
-   Santral kapsamı, satır tavanı ve metrik sayımları `veri.ts`tedir
+   Tesis kapsamı, satır tavanı ve metrik sayımları `veri.ts`tedir
    (modül: `risk`); bu dosya yalnız oturumu doğrular ve sonucu istemciye
    verir. */
 

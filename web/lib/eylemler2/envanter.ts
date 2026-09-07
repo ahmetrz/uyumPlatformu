@@ -114,8 +114,8 @@ export async function varlikKaydet(girdi: {
 }): Promise<Sonuc> {
   try {
     /* İKİ AŞAMALI KAPI (`KAPSAM_SONRA`, bkz. erisim.ts): ön kapı kapsamsız
-       çağrılırsa tesise kısıtlı rol daha ilk adımda reddedilir ve santral
-       yöneticisi KENDİ santraline varlık yazamaz. Gerçek kapsam denetimi
+       çağrılırsa tesise kısıtlı rol daha ilk adımda reddedilir ve tesis
+       yöneticisi KENDİ tesisine varlık yazamaz. Gerçek kapsam denetimi
        aşağıda ve `kapsamZorunlu` ile — kapsamsız kayıt da denetlenir. */
     const k = await yetkiZorunlu('envanter', 'yazma', KAPSAM_SONRA);
     const v = VarlikSemasi.parse(girdi);

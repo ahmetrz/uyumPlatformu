@@ -5,6 +5,7 @@ import { useEylem } from '@/components/useEylem';
 import {
   varlikKaydet, iliskiEkle, iliskiSil, varlikYasamDongusu,
 } from '@/lib/eylemler2/envanter';
+import { useTerim } from '@/lib/dil/SozlukSaglayici';
 import { etiketle, tarihTR } from '@/lib/sabitler';
 import {
   ILISKI_CUMLE, ILISKI_TIPLERI, KRITIKLIKLER, MARUZIYET_SECENEK,
@@ -93,6 +94,7 @@ export function VarlikFormu({
   varlik: V | null; turler: Tur[]; tesisler: Kodlu[]; birimler: Birim[];
   sistemler: Kodlu[]; bolgeler: Bolge[]; kullanicilar: Kisi[]; kapat: () => void;
 }) {
+  const { tBas } = useTerim();
   const { bekliyor, hata, calistir } = useEylem();
   const [f, setF] = useState<FormDurumu>(() => formBaslat(varlik));
   const uygunBirimler = birimler.filter((u) => u.tesisId === f.tesisId);
@@ -173,14 +175,14 @@ export function VarlikFormu({
           <input className="ab-gr" value={f.ad} onChange={(e) => yaz('ad', e.target.value)} />
         </Alan>
         <div style={ikili}>
-          <Alan etiket="Santral">
+          <Alan etiket={tBas('tesis')}>
             <select className="ab-gr" value={f.tesisId}
               onChange={(e) => setF({ ...f, tesisId: e.target.value, birimId: '' })}>
               <option value="">—</option>
               {tesisler.map((t) => <option key={t.id} value={t.id}>{t.kod}</option>)}
             </select>
           </Alan>
-          <Alan etiket="Ünite">
+          <Alan etiket={tBas('birim')}>
             <select className="ab-gr" value={f.birimId} disabled={!f.tesisId}
               onChange={(e) => yaz('birimId', e.target.value)}>
               <option value="">—</option>

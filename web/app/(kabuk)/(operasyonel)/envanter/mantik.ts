@@ -1,5 +1,6 @@
 import type { Durum } from '@/components/kabuk/temel';
 import { etiketle, tarihTR } from '@/lib/sabitler';
+import { tBas, type Sozluk } from '@/lib/dil/terimler';
 
 /* O10/O11 · Varlık zekâsı — sunucu ve istemcinin PAYLAŞTIĞI tipler ve saf
    hesaplar. Burada veritabanı, React ve server-only bağımlılığı YOKTUR.
@@ -675,7 +676,7 @@ export type GrafikKenari = {
 export type Grafik = {
   dugumler: GrafikDugumu[];
   kenarlar: GrafikKenari[];
-  /** santral kapsamındaki toplam varlık — bölge sayaçlarının paydası */
+  /** tesis kapsamındaki toplam varlık — bölge sayaçlarının paydası */
   kapsamdaki: number;
   /** kapsamdaki varlıklardan mercekten geçenler */
   aday: number;
@@ -684,8 +685,8 @@ export type Grafik = {
 };
 
 /**
- * Santral öneki tekrar etmesin: grafik zaten tek santrale daraltılmıştır,
- * her düğümde santral kodunu yeniden yazmak düğümü genişletir ve okumayı
+ * Tesis öneki tekrar etmesin: grafik zaten tek tesise daraltılmıştır,
+ * her düğümde tesis kodunu yeniden yazmak düğümü genişletir ve okumayı
  * zorlaştırır. `SAHA-A3-SCADA-01` → `SCADA-01`.
  */
 export function kisaEtiket(etiket: string, tesisKod: string | null | undefined): string {
@@ -736,12 +737,12 @@ function ustEtiketi(v: V, simdi: number): string | undefined {
 /**
  * Varlık ↔ ağ bölgesi ↔ sistem üçlü grafiği.
  *
- * Kapsam ZORUNLUDUR: 347 düğüm aynı anda çizilmez, yalnız seçili santral
- * çizilir ve o santralin varlıkları da şiddet sırasına göre tavana kadar
+ * Kapsam ZORUNLUDUR: 347 düğüm aynı anda çizilmez, yalnız seçili tesis
+ * çizilir ve o tesisin varlıkları da şiddet sırasına göre tavana kadar
  * alınır. Kapsam dışındaki hiçbir düğüm ya da kenar üretilmez — grafikte
  * görünen her şey seçili kapsamın içindedir.
  *
- * `varliklar` santralin TAMAMIDIR, `adaylar` mercekten geçenlerdir. Bölge
+ * `varliklar` tesisin TAMAMIDIR, `adaylar` mercekten geçenlerdir. Bölge
  * sayaçları tamam üzerinden okunur: mercek daraldığında "0 varlık" yazan
  * bir bölge düğümü, o bölgenin boş olduğu yalanını söylerdi.
  */
@@ -761,8 +762,8 @@ export function grafigiKur(girdi: {
   const secilen = sirala(aday, simdi).slice(0, tavan);
   const secilenIdler = new Set(secilen.map((v) => v.id));
 
-  /* Bölgeler santralin tanımından gelir; kapsamdaki varlıkların bağlı
-     olduğu ama santrale ait GÖRÜNMEYEN bölge varsa o da alınır — düğümü
+  /* Bölgeler tesisin tanımından gelir; kapsamdaki varlıkların bağlı
+     olduğu ama tesise ait GÖRÜNMEYEN bölge varsa o da alınır — düğümü
      olmayan bir kenar çizilemez. */
   const bolgeHavuzu = new Map<string, Bolge>();
   for (const b of bolgeler) if (b.tesisId === tesis.id) bolgeHavuzu.set(b.id, b);
@@ -779,7 +780,7 @@ export function grafigiKur(girdi: {
     .slice(0, GRAFIK_BOLGE_TAVANI);
 
   /* Sistem düğümü yalnız ÇİZİLEN bir varlık ona bağlıysa görünür: kenarsız
-     düğüm ilişki grafiğinde kopuk bir kutudur. Sayaç yine santralin
+     düğüm ilişki grafiğinde kopuk bir kutudur. Sayaç yine tesisin
      tamamından okunur — düğüm "26 varlık" derken 26 varlığı kastediyordur. */
   const sistemSayaci = new Map<string, { s: Kodlu; sayi: number }>();
   for (const v of kapsam) {
@@ -877,8 +878,8 @@ export function grafigiKur(girdi: {
 }
 
 /**
- * Grafiğin varsayılan kapsamı: süzülmüş kümede en çok varlığı olan santral.
- * Kapsam seçilmeden grafik çizilmez; kullanıcı Santral kapsamıyla değiştirir.
+ * Grafiğin varsayılan kapsamı: süzülmüş kümede en çok varlığı olan tesis.
+ * Kapsam seçilmeden grafik çizilmez; kullanıcı tesis kapsamıyla değiştirir.
  */
 export function varsayilanTesis(varliklar: V[], tesisler: Kodlu[]): Kodlu | null {
   if (tesisler.length === 0) return null;
@@ -898,7 +899,7 @@ export function varsayilanTesis(varliklar: V[], tesisler: Kodlu[]): Kodlu | null
 
    Dışa aktarım ekrandaki SÜZÜLMÜŞ ve SIRALANMIŞ diziyi alır: kullanıcı
    ne görüyorsa onu indirir. Kapsam kısıtı zaten sunucuda uygulanmıştır —
-   ekranda görünmeyen bir santral diziye hiç girmez.
+   ekranda görünmeyen bir tesis diziye hiç girmez.
 
    Boş hücre BOŞ kalır. Ekranda "—" gösteren bir alan dosyada da tire
    yazsaydı, o tireyi bir başka sistem "değer" sanırdı. */
@@ -913,9 +914,18 @@ function disaEtiket(d: string | null | undefined): string {
   return d ? etiketle(d) : '';
 }
 
-export const ENVANTER_DISA_BASLIKLARI = [
-  'Etiket', 'Ad', 'Tür', 'Sınıf',
-  'Santral', 'Ünite', 'Sistem/Servis', 'Ağ bölgesi',
+/* ── BAŞLIK SATIRI SÖZLÜKTEN GELİR ─────────────────────────────────
+   Karar raporlar diliminde verildi: ekran "Arıtma tesisi" diyorsa dosya
+   da öyle der. Sabit dizi bir İŞLEVE çevrildi — modül React bilmez,
+   sözlüğü çağıran geçirir.
+
+   Sözlüksüz çağrı (`null`) çekirdek sözcüğü yazar; testler ve doğrudan
+   çağrılar böyle koşar. Kolon SAYISI ve SIRASI sözlükten bağımsızdır ve
+   `envanterDisaSatiri` ile birebir eşleşmesi testle sabitlidir. */
+export function envanterDisaBasliklari(sozluk: Sozluk | null): string[] {
+  return [
+    'Etiket', 'Ad', 'Tür', 'Sınıf',
+    tBas(sozluk, 'tesis'), tBas(sozluk, 'birim'), 'Sistem/Servis', 'Ağ bölgesi',
   'Segment', 'VLAN', 'Subnet',
   'Üretici', 'Model', 'Seri no', 'IP', 'IPv6', 'MAC',
   'İşletim sistemi', 'OS sürümü', 'Firmware',
@@ -927,7 +937,8 @@ export const ENVANTER_DISA_BASLIKLARI = [
   'Sahada görülen OS', 'Sahada görülen yama seviyesi', 'Sahada görülen firmware',
   'Duruş kaynağı', 'Duruş kaynağı bağlı mı', 'Son duruş ölçümü',
   'Koruma açığı', 'Bilinmeyen alanlar', 'İşaret',
-] as const;
+  ];
+}
 
 /**
  * Bir varlığın dışa aktarım satırı.
@@ -977,7 +988,7 @@ export function envanterDisaSatiri(v: V, simdi: number): (string | number)[] {
 
 /** Başlık satırı + veri satırları — Excel ve CSV bunu paylaşır. */
 export function envanterDisaAktarimi(
-  varliklar: readonly V[], simdi: number,
+  varliklar: readonly V[], simdi: number, sozluk: Sozluk | null = null,
 ): (string | number)[][] {
-  return [[...ENVANTER_DISA_BASLIKLARI], ...varliklar.map((v) => envanterDisaSatiri(v, simdi))];
+  return [envanterDisaBasliklari(sozluk), ...varliklar.map((v) => envanterDisaSatiri(v, simdi))];
 }

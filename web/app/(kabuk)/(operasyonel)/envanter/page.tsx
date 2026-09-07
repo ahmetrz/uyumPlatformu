@@ -22,7 +22,7 @@ export const metadata: Metadata = { title: 'Varlık zekâsı' };
 /**
  * Envanter okuma kapsamı.
  *
- * Santrali BİLİNEN varlık, o santrale yetkisi olana görünür. Santrali
+ * Tesisi BİLİNEN varlık, o tesise yetkisi olana görünür. Tesisi
  * OLMAYAN varlık (henüz bir sahaya atanmamış kayıt) herkese görünür:
  * gizlemek onu kimsenin düzeltmeyeceği anlamına gelirdi ve envanterin
  * boşluğu tam da orada durur. Yazma yetkisi ayrıca satır satır hesaplanır.
@@ -86,7 +86,7 @@ export default async function Sayfa({ searchParams }: {
           uzaktanErisim: true, yasamDongusu: true,
           kurulumTarihi: true, garantiBitis: true, destekBitis: true,
           eolTarihi: true, eosTarihi: true, guncellendi: true,
-          /* Boyut tabloları (tür, santral, ünite, sistem, bölge, kişi,
+          /* Boyut tabloları (tür, tesis, birim, sistem, bölge, kişi,
              tedarikçi, sözleşme) ilişki olarak DEĞİL, yalnız yabancı
              anahtar olarak okunur. Nedeni ölçüm: Prisma her ilişkiyi
              `id IN (…)` ile 999'luk parçalar hâlinde çeker, yani 10.000
@@ -130,7 +130,7 @@ export default async function Sayfa({ searchParams }: {
       }),
       /* Açılır listeler AKTİF kayıtları gösterir; satır eşlemesi ise
          TÜMÜNÜ ister — pasifleştirilmiş bir türe ya da kapatılmış bir
-         santrale bağlı varlığın türü/santrali ekranda kaybolmamalı.
+         tesise bağlı varlığın türü/tesisi ekranda kaybolmamalı.
          Bu yüzden tablo bir kez tam okunur, ayrım JS'te yapılır. */
       db.varlikTuru.findMany({
         select: { id: true, kod: true, ad: true, sinif: true, aktif: true },
@@ -390,7 +390,7 @@ export default async function Sayfa({ searchParams }: {
   );
 
   /* ── Yönetişim zinciri ────────────────────────────────────────────────
-     Prototipin (a-assets) omurgası SANTRAL → SİSTEM → VARLIK → ZAFİYET →
+     Prototipin (a-assets) omurgası TESİS → SİSTEM → VARLIK → ZAFİYET →
      RİSK → KONTROL → PROJE. Son iki halka varlıkta yok; risk üzerinden
      KÜME sorgusuyla çekilir — varlık başına sorgu açmak envanterin
      boyutunda N+1 olurdu (aynı gerekçe boyut tabloları için de geçerli,
@@ -572,7 +572,7 @@ export default async function Sayfa({ searchParams }: {
     const yedek = sonYedekler.get(v.id) ?? null;
     const kesif = sonKesifler.get(v.id) ?? null;
     const zimmet = acikZimmetler.get(v.id) ?? null;
-    /* Yazma kapsamı satır satır: tesise kısıtlı rol yalnız kendi santralinin
+    /* Yazma kapsamı satır satır: tesise kısıtlı rol yalnız kendi tesisinin
        varlığını yazabilir. Kural lib/eylemler2/envanter.ts ile aynıdır —
        ekran yalnız düğmeyi kapatır, sunucu ayrıca reddeder. */
     const tur = turHaritasi.get(v.turId);

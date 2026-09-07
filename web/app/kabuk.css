@@ -270,8 +270,18 @@
   --ui: 'Inter', system-ui, sans-serif;
   --veri: 'JetBrains Mono', ui-monospace, monospace;
   --gorunum: 'Barlow Condensed', 'Inter', sans-serif;
-  /* Üretim tipi kimliği — YALNIZ işaretçi ölçeğinde */
-  --jes: #B7734A; --hes: #5A87A3; --res: #93A6AD; --ges: #C9A24C;
+  /* ── TİP KİMLİK YUVALARI — YALNIZ işaretçi ölçeğinde ────────────────
+     Yuvalar SEKTÖRSÜZDÜR: eskiden üretim tipinin kısaltmasını taşıyan
+     jetonlar `--tip-a…d` oldu. Hangi tesis tipinin hangi yuvayı
+     aldığını CSS bilmez; eşleme
+     `components/kabuk/tip.ts` içindedir ve P4'te sektör paketine taşınır.
+
+     KAPASİTE DÖRTTÜR ve bu bir sınırdır, dolgu değil: dört değer de
+     kontrast kapısından geçmiş (IRI 3:1, dört zemin). Beşinci tipe
+     yuva SARILMAZ — aynı rengi iki tipe vermek "bunlar aynı" demektir
+     ve renk burada KİMLİKTİR. Yuvası olmayan tip nötr mürekkebe düşer;
+     kural `tip.ts` içinde yazılı, sonuç `/sistem` sayfasında görünür. */
+  --tip-a: #B7734A; --tip-b: #5A87A3; --tip-c: #93A6AD; --tip-d: #C9A24C;
   /* Açık satırın zemini — aksanın çok soluk tonu. */
   --secim: #171211;
   /* Aksan dolgusunun ÜZERİNE yazılan mürekkep. */

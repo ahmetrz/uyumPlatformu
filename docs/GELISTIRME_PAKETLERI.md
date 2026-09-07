@@ -359,6 +359,22 @@ görür, su kiracısı "tesis / m³/gün".
   Kapsam dışı bırakılan iki terim, gerekçesiyle izin dosyasının
   başlığında yazılıdır: `üretim` (Türkçede genel eylem — yanlış pozitif
   üretir) ve `enerji` (kurulum adı yapılandırmadan gelir).
+- *Tip kimlik renkleri:* CSS jetonları üretim tipi kısaltmalarını taşıyordu
+  (dört jeton, 12 geçiş, 3 dosya). P1'de **sektörsüz yuvalara** çevrildi:
+  `--tip-a` … `--tip-d`. Kapasite dörttür ve bir sınırdır; yuvası olmayan
+  tip **nötr mürekkebe** düşer, yuva **sarılmaz** — aynı rengi iki tipe
+  vermek "bunlar aynı" demek olurdu ve renk burada kimliktir. Kural sessiz
+  değil: `/sistem` sayfası hangi kodun yuvası olduğunu ve kaçının nötre
+  düştüğünü veriden okuyup yazar (bugün 6 tip · 4 yuvalı · 2 nötr).
+  Kontrast kapısı yuvalar üzerinde koştu: dördü de IRI 3:1 eşiğinin
+  üstünde (en düşük 4,62:1, dört zemin).
+
+  Tip kodu → yuva eşlemesi GEÇİCİDİR ve `components/kabuk/tip.ts` içinde
+  tek bir tablodadır; **kalıcı yeri sektör paketidir (P4)**. P1'de oraya
+  konmadı: paket biçimi henüz yok, şimdi tasarlanırsa iki kez tasarlanır.
+  Tablo `lib/` yerine `components/`te, çünkü yeni bir `lib/` dosyası enerji
+  kodları taşıyacağı için bekçinin izin listesine EKLENMESİ gerekirdi;
+  cırcırın tek kuralı listeye ekleme yapılmamasıdır.
 - *Enerji sözlüğü:* ilk sektör paketi `SEKTOR-ENERJI-URETIM` (P4 paket
   biçimiyle): öznitelik şeması (`kuruluGucMw`, `uretimTipi`,
   `sebekeBaglantisi`…), sözlük (santral, üretim ünitesi…), tesis tipleri

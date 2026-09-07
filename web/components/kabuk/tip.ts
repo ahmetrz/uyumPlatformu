@@ -1,12 +1,12 @@
 /* Tesis tipi kimliği — SUNUM tarafı.
 
    Renk KİMLİKTİR, durum değil: bir tip her yüzeyde aynı rengi taşır,
-   "iyi" ya da "kötü" demez. Ton kararı CSS'e bırakılır (`--jes` üç yönde
-   üç değer taşır); bu dosya yalnız "hangi token" sorusunu yanıtlar.
+   "iyi" ya da "kötü" demez. Ton kararı CSS'e bırakılır; bu dosya yalnız
+   "hangi yuva" sorusunu yanıtlar.
 
-   Önceki arayüz katmanındaki eşdeğeri eski token'lara (`--jesd`)
-   bağlıydı ve koyu/açık yüzeyi çağıranın bilmesini istiyordu. Yeni kabukta
-   yüzeyi YÖN belirler, ekran değil.
+   Önceki arayüz katmanındaki eşdeğeri eski token'lara bağlıydı ve
+   koyu/açık yüzeyi çağıranın bilmesini istiyordu. Yeni kabukta yüzeyi
+   YÖN belirler, ekran değil.
 
    ── TİP ADI ARTIK BURADA DEĞİL (P1 · Aşama E) ─────────────────────────
    Burada bir `TIP_ADI` sözlüğü vardı ve `TesisTipi.ad` ile AYNI bilgiyi
@@ -16,26 +16,73 @@
    `DGKC` tipinin yazımı değişti ("Doğal gaz kombine çevrim" → tohumdaki
    "Doğal Gaz Kombine Çevrim").
 
-   ── RENK EŞLEMESİ NEDEN KALDI ─────────────────────────────────────────
-   `TOKEN` hâlâ enerji tip kodlarına bakıyor ve bu dosyayı bekçinin izin
-   listesinde tutan tek şey odur. Rengi de veriye taşımak `TesisTipi`ye
-   bir kimlik alanı eklemeyi gerektirir; o karar sektör paketiyle
-   birlikte verilir (Aşama G). Tanımadığı kod için nötr mürekkebe
-   düşüyor: yanlış renk basmıyor, renksiz kalıyor. */
+   ── YUVA SİSTEMİ (P1) ─────────────────────────────────────────────────
+   CSS artık üretim tipi kısaltmalarını jeton adı olarak taşımıyor;
+   SEKTÖRSÜZ dört yuva var: `--tip-a` … `--tip-d`. Hangi tip hangi
+   yuvayı alır, YALNIZ aşağıdaki tabloda yazılıdır.
 
-const TOKEN: Record<string, string> = {
-  JEO: 'var(--aksan)', HES: 'var(--hes)', RES: 'var(--res)', GES: 'var(--ges)',
+   ── BU TABLO GEÇİCİDİR ────────────────────────────────────────────────
+   `TIP_YUVASI` enerji kodlarına bakıyor ve bu dosyayı bekçinin izin
+   listesinde tutan tek şey odur. Kalıcı yeri SEKTÖR PAKETİDİR (P4):
+   paketin tip tanımı kendi yuvasını söyler. P1'de oraya konmadı, çünkü
+   paket biçimi henüz yok — şimdi tasarlansaydı P4'te ikinci kez
+   tasarlanırdı.
+
+   Tablo `lib/` yerine BURADA duruyor: yeni bir `lib/` dosyası enerji
+   kodları taşıyacağı için bekçinin izin listesine EKLENMESİ gerekirdi ve
+   cırcırın tek kuralı listeye ekleme yapılmamasıdır. Bu dosya zaten
+   listede ve zaten tip sunumunun sahibi; borç büyümüyor, yer değiştirmiyor.
+
+   ── KAPASİTE AŞILIRSA NE OLUR ─────────────────────────────────────────
+   Dört yuva var, tohumda ALTI tesis tipi (`JEO` `RES` `HES` `GES` `DGKC`
+   `MERKEZ`). Dördü yuvalı, ikisi (`DGKC` · `MERKEZ`) NÖTR mürekkebe
+   düşüyor — ölçüm `/sistem` sayfasında, veriden okunuyor.
+
+   Yuva SARILMAZ. Sarma, beşinci tipe birinci tipin rengini verirdi ve
+   renk burada kimlik olduğu için bu "bu ikisi aynı şeydir" demek olurdu
+   — sessizce yanlış. Nötre düşmek ise doğru bir cümle kurar: "bu tipin
+   ayırt edici bir kimlik rengi yok." Ayrıca sessiz değil: `/sistem`
+   tasarım sayfası hangi kodun yuvası olduğunu ve kaçının nötre düştüğünü
+   listeler, `tipYuvasi()` de `null` döndürerek çağırana söyler. */
+
+/** Tip kodu → kimlik yuvası. GEÇİCİ; P4'te sektör paketine taşınır. */
+const TIP_YUVASI: Record<string, 'a' | 'b' | 'c' | 'd'> = {
+  JEO: 'a', HES: 'b', RES: 'c', GES: 'd',
 };
 
-/** Kimlik rengi; tanımsız tip için nötr mürekkep. */
+/** Yuvanın CSS değişkeni — adlar TAM YAZILIR, birleştirilmez.
+
+    Önce yuva harfi şablon dizesiyle sona ekleniyordu ve tasarım kapısı
+    (`arac/iz-tarama.mjs`) bunu haklı olarak kusur saydı: statik tarayıcı
+    çalışma zamanında kurulan bir jeton adını doğrulayamaz, dolayısıyla
+    dört jetonu ÖLÜ, gövdeyi de TANIMSIZ gördü. Tam yazılmış adlar hem
+    kapıyı çalışır tutar hem de bir yuva silindiğinde derlemeyi kırar.
+
+    (Bu yorum da o birleştirmeyi ÖRNEK OLARAK yazmıyor: yazsaydı tarayıcı
+    onu kaynakta bulur ve aynı kusuru bildirirdi.) */
+const YUVA_DEGISKENI: Record<'a' | 'b' | 'c' | 'd', string> = {
+  a: 'var(--tip-a)', b: 'var(--tip-b)', c: 'var(--tip-c)', d: 'var(--tip-d)',
+};
+
+/** Tipin kimlik yuvası; yoksa `null` (kapasite dışı ya da tanımsız tip). */
+export function tipYuvasi(kod: string | null | undefined): 'a' | 'b' | 'c' | 'd' | null {
+  return TIP_YUVASI[(kod ?? '').toUpperCase()] ?? null;
+}
+
+/** Yuvası olan bütün tip kodları — `/sistem` sayfası bunu listeler. */
+export const YUVALI_TIPLER = Object.keys(TIP_YUVASI);
+
+/** Kimlik rengi; yuvası olmayan tip için nötr mürekkep. */
 export function tipRengi(kod: string | null | undefined): string {
-  return TOKEN[(kod ?? '').toUpperCase()] ?? 'var(--i2)';
+  const yuva = tipYuvasi(kod);
+  return yuva ? YUVA_DEGISKENI[yuva] : 'var(--i2)';
 }
 
 /** Yığın çubuğunun "uygun" parçası: kimliği olmayan tipte durum rengine
     düşer, yoksa nötr gri "bilinmeyen" tarama deseniyle karışırdı. */
 export function uygunRengi(kod: string | null | undefined): string {
-  return TOKEN[(kod ?? '').toUpperCase()] ?? 'var(--ok)';
+  const yuva = tipYuvasi(kod);
+  return yuva ? YUVA_DEGISKENI[yuva] : 'var(--ok)';
 }
 
 /** Tipin görünen adı. Ad VERİDEN gelir (`TesisTipi.ad`, çağıranın

@@ -4,6 +4,8 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { kontrast, bicimle, aaGecer } from '@/lib/kontrast';
 import { girisZorunlu } from '@/lib/erisim';
+import { db } from '@/lib/db';
+import { YUVALI_TIPLER, tipYuvasi } from '@/components/kabuk/tip';
 
 export const metadata: Metadata = { title: 'Tasarım sistemi' };
 
@@ -71,13 +73,38 @@ const MUREKKEPLER: { anahtar: string; rol: string; esik: 'metin' | 'bilesen' }[]
   { anahtar: '--pl', rol: 'Taslak · aday · süreli', esik: 'metin' },
   { anahtar: '--unk', rol: 'Değerlendirilmedi — bilinmeyen', esik: 'metin' },
   { anahtar: '--aksan', rol: 'Aktif kenar, işaret, odak halkası', esik: 'bilesen' },
-  { anahtar: '--jes', rol: 'Jeotermal kimliği', esik: 'bilesen' },
-  { anahtar: '--hes', rol: 'Hidroelektrik kimliği', esik: 'bilesen' },
-  { anahtar: '--res', rol: 'Rüzgâr kimliği', esik: 'bilesen' },
-  { anahtar: '--ges', rol: 'Güneş kimliği', esik: 'bilesen' },
+  { anahtar: '--tip-a', rol: 'Tip kimlik yuvası A', esik: 'bilesen' },
+  { anahtar: '--tip-b', rol: 'Tip kimlik yuvası B', esik: 'bilesen' },
+  { anahtar: '--tip-c', rol: 'Tip kimlik yuvası C', esik: 'bilesen' },
+  { anahtar: '--tip-d', rol: 'Tip kimlik yuvası D', esik: 'bilesen' },
 ];
 
 const ZEMINLER = ['--zemin', '--panel', '--panel2', '--secim'] as const;
+
+/* ── YUVA DAĞILIMI ───────────────────────────────────────────────────
+   Kimlik yuvası dörttür ve tesis tipi sayısı bundan çoktur. Yuvası
+   olmayan tip nötr mürekkebe düşer — bu bir kusur değil, yazılı bir
+   karar (`components/kabuk/tip.ts`). Ama SESSİZ olmamalı: paleti
+   sürdüren kişi hangi tipin kimliği olduğunu ve kaçının nötre düştüğünü
+   burada görür. Eşlemenin kendisi P4'te sektör paketine taşınacak. */
+async function YuvaDagilimi() {
+  const tipler = await db.tesisTipi.findMany({
+    select: { kod: true, ad: true }, orderBy: { sira: 'asc' },
+  }).catch(() => []);
+  const yuvali = tipler.filter((t) => tipYuvasi(t.kod));
+  const notr = tipler.filter((t) => !tipYuvasi(t.kod));
+  return (
+    <p className="mono ab-dip">
+      Kimlik yuvası: <b>{YUVALI_TIPLER.length}</b> · tanımlı tesis tipi:{' '}
+      <b>{tipler.length}</b>
+      {yuvali.length > 0 && <> · yuvalı: {yuvali.map((t) => `${t.kod}→${tipYuvasi(t.kod)}`).join(' ')}</>}
+      {notr.length > 0 && (
+        <> · nötre düşen: {notr.map((t) => t.kod).join(' ')} — yuva SARILMAZ,
+          aynı rengi iki tipe vermek &quot;bunlar aynı&quot; demek olurdu.</>
+      )}
+    </p>
+  );
+}
 
 const TIPOGRAFI = [
   ['--t-hero', 'Hero başlığı (Santral 360)', 'Saha A-3 JES'],
@@ -181,6 +208,7 @@ export default async function TasarimSistemi() {
             Eşik: metin 4.5:1 · grafik ve büyük tipografi 3.0:1. Kapı
             <code> arac/kontrast.mjs</code> ile her derlemede koşar.
           </p>
+          <YuvaDagilimi />
         </section>
       ))}
 

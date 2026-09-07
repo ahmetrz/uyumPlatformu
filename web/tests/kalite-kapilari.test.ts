@@ -283,22 +283,23 @@ describe('DİŞ 3 · taban dal — liste yalnız küçülebilir', () => {
 
 describe('YENİ KUSUR TÜRÜ · beyanlı ve KENDİNİ EMEKLİYE AYIRAN yol', () => {
   const YENI = { kapi: 'tasma', tur: 'ortusen-icerik', rota: '/denetimler/[id]', bant: 375, hedef: 'a ↔ b', azami: 1 };
+  const DEFTER = ['tasma/sayfa-kayiyor', 'tasma/kirpilan-icerik', 'tasma/ortusen-icerik'];
+  /** Taban henüz defteri taşımıyor (önyükleme) ve borcu boş. */
+  const acik = { dalBeyan: ['tasma/ortusen-icerik'], tabanBeyan: [], dalKayit: DEFTER, tabanKayit: [] };
 
-  it('dal BEYAN eder, taban etmezse satır "eklendi" saymaz', () => {
-    const c = circirKarari([YENI], [], { dal: ['tasma/ortusen-icerik'], taban: [] });
+  it('dal BEYAN eder, taban ölçmemişse satır "eklendi" saymaz', () => {
+    const c = circirKarari([YENI], [], acik);
     expect(c.kapiKapali).toBe(false);
     expect(c.eklenen).toHaveLength(0);
     expect(c.yeniTur).toHaveLength(1);
   });
 
   it('GİZLENMEZ — ayrı başlıkta raporlanmak üzere döner', () => {
-    const c = circirKarari([YENI], [], { dal: ['tasma/ortusen-icerik'], taban: [] });
-    expect(c.yeniTur[0].tur).toBe('ortusen-icerik');
+    expect(circirKarari([YENI], [], acik).yeniTur[0].tur).toBe('ortusen-icerik');
   });
 
-  it('TABAN da beyan ettiği an yol KAPANIR — bir kez kullanılır', () => {
-    /* Beyan main'e girdikten sonra aynı türe satır eklemek kırmızıdır. */
-    const c = circirKarari([YENI], [], { dal: ['tasma/ortusen-icerik'], taban: ['tasma/ortusen-icerik'] });
+  it('TABAN defterine girdiği an yol KAPANIR — bir kez kullanılır', () => {
+    const c = circirKarari([YENI], [], { ...acik, tabanKayit: DEFTER });
     expect(c.kapiKapali).toBe(true);
     expect(c.eklenen).toHaveLength(1);
     expect(c.yeniTur).toHaveLength(0);
@@ -306,16 +307,31 @@ describe('YENİ KUSUR TÜRÜ · beyanlı ve KENDİNİ EMEKLİYE AYIRAN yol', () 
 
   it('BEYANSIZ satır muaf DEĞİLDİR', () => {
     expect(circirKarari([YENI], []).kapiKapali).toBe(true);
-    expect(circirKarari([YENI], [], { dal: [], taban: [] }).kapiKapali).toBe(true);
+    expect(circirKarari([YENI], [], { ...acik, dalBeyan: [] }).kapiKapali).toBe(true);
+  });
+
+  it('UYDURMA tür adı geçmez — defterde olmayan tür beyan edilemez', () => {
+    const sahte = { ...YENI, tur: 'uydurma-olcu' };
+    const c = circirKarari([sahte], [], { ...acik, dalBeyan: ['tasma/uydurma-olcu'] });
+    expect(c.kapiKapali).toBe(true);
+    expect(c.yeniTur).toHaveLength(0);
+  });
+
+  it('ÇOKTAN ÖLÇÜLEN bir tür beyan edilemez — tabanın BORCUNDA satırı varsa', () => {
+    /* İncelemenin bulduğu kaldıraç: `_yeni_tur` bu değişiklikle geldiği
+       için TABAN BEYANI boştur; o hâliyle `kirpilan-icerik` gibi çoktan
+       ölçülen bir tür beyan edilip o türde istenildiği kadar satır
+       eklenebiliyordu. Önyükleme kilidi tabanın BORCUNA bakar. */
+    const eskiTur = { ...YENI, tur: 'kirpilan-icerik', rota: '/yeni', hedef: 'x@1px' };
+    const tabandaVar = { ...BORC, tur: 'kirpilan-icerik' };
+    const c = circirKarari([eskiTur], [tabandaVar], { ...acik, dalBeyan: ['tasma/kirpilan-icerik'] });
+    expect(c.kapiKapali).toBe(true);
+    expect(c.eklenen).toHaveLength(1);
+    expect(c.yeniTur).toHaveLength(0);
   });
 
   it('KALDIRAÇ DEĞİLDİR — beyan `kapi/tur` çiftine bakar, satıra değil', () => {
-    /* Yeni bir tür beyan etmek, VAR OLAN bir türe satır eklemenin yolu
-       olamaz: aşağıdaki satır beyan edilen türden değildir. */
-    const c = circirKarari(
-      [{ ...BORC, rota: '/uyum' }, YENI], [BORC],
-      { dal: ['tasma/ortusen-icerik'], taban: [] },
-    );
+    const c = circirKarari([{ ...BORC, rota: '/uyum' }, YENI], [BORC], acik);
     expect(c.kapiKapali).toBe(true);
     expect(c.eklenen).toHaveLength(1);
     expect(c.eklenen[0].rota).toBe('/uyum');
@@ -323,9 +339,13 @@ describe('YENİ KUSUR TÜRÜ · beyanlı ve KENDİNİ EMEKLİYE AYIRAN yol', () 
   });
 
   it('beyan başka bir KAPIYA sızmaz', () => {
-    const axeSatiri = { ...YENI, kapi: 'axe' };
-    const c = circirKarari([axeSatiri], [], { dal: ['tasma/ortusen-icerik'], taban: [] });
+    expect(circirKarari([{ ...YENI, kapi: 'axe' }], [], acik).kapiKapali).toBe(true);
+  });
+
+  it('KAYIT DEFTERİ küçülemez — düşürüp yeniden beyan yolu kapalı', () => {
+    const c = circirKarari([], [], { ...acik, tabanKayit: DEFTER, dalKayit: ['tasma/sayfa-kayiyor'] });
     expect(c.kapiKapali).toBe(true);
+    expect(c.dusenTur).toContain('tasma/kirpilan-icerik');
   });
 });
 

@@ -80,7 +80,12 @@ function listeyiOku(yol) {
      yazılmışsa sessizce yutulmaz. */
   const yeniTurler = belge?._yeni_tur ?? [];
   if (!Array.isArray(yeniTurler)) patla('`_yeni_tur` bir dizi değil');
-  return { bulgular: belge.bulgular, yeniTurler };
+  /* `_olculen_turler` araçların ÜRETEBİLDİĞİ kusur türlerinin kayıt
+     defteridir ve cırcırın dördüncü dişini besler (bkz. `circirKarari`).
+     Bozuk yazılmışsa sessizce boşa düşmez. */
+  const kayitliTurler = belge?._olculen_turler ?? [];
+  if (!Array.isArray(kayitliTurler)) patla('`_olculen_turler` bir dizi değil');
+  return { bulgular: belge.bulgular, yeniTurler, kayitliTurler };
 }
 
 const BELGE = listeyiOku(BORC_YOLU);
@@ -90,6 +95,9 @@ export const BORC = BELGE.bulgular;
 
 /** Bu dalın BEYAN ettiği yeni kusur türleri (`kapi/tur`). */
 export const YENI_TURLER = BELGE.yeniTurler;
+
+/** Araçların ÜRETEBİLDİĞİ kusur türleri — kayıt defteri, yalnız büyür. */
+export const KAYITLI_TURLER = BELGE.kayitliTurler;
 
 /** Test ve araçlar için: başka bir yoldan da okunabilir, aynı sertlikle. */
 export function borcOku(yol = BORC_YOLU) {
@@ -140,7 +148,11 @@ export function tabanBorcOku() {
        üretmemeli, o yüzden dizi değilse taban okunamadı sayılır. */
     const tabanTurler = belge?._yeni_tur ?? [];
     if (!Array.isArray(tabanTurler)) return { durum: 'okunamadi' };
-    return { durum: 'var', bulgular: belge.bulgular, yeniTurler: tabanTurler };
+    const tabanKayit = belge?._olculen_turler ?? [];
+    if (!Array.isArray(tabanKayit)) return { durum: 'okunamadi' };
+    return {
+      durum: 'var', bulgular: belge.bulgular, yeniTurler: tabanTurler, kayitliTurler: tabanKayit,
+    };
   } catch {
     /* Yol VAR ama okunamadı ya da ayrıştırılamadı → DİŞ 4. */
     return { durum: 'okunamadi' };
@@ -196,8 +208,18 @@ export function borcuUygula(bulgular, { kapi, yaz = console.error, bilgi = conso
     circir = circirKarari(
       dalBorcu,
       taban.bulgular.filter((b) => !kapi || b.kapi === kapi),
-      { dal: YENI_TURLER, taban: taban.yeniTurler },
+      {
+        dalBeyan: YENI_TURLER,
+        dalKayit: KAYITLI_TURLER,
+        tabanKayit: taban.kayitliTurler,
+      },
     );
+    if (circir.dusenTur?.length > 0) {
+      yaz(`\nKAYIT DEFTERİ KÜÇÜLDÜ — ${circir.dusenTur.length} tür düştü`);
+      for (const t of circir.dusenTur) yaz(`  ${t}`);
+      yaz('  `_olculen_turler` yalnız BÜYÜR. Küçülebilseydi bir PR türü defterden');
+      yaz('  düşürür, bir sonrakinde onu "yeni tür" diye yeniden beyan ederdi.');
+    }
     if (circir.yeniTur?.length > 0) {
       bilgi(`\nYENİ KUSUR TÜRÜ · ${circir.yeniTur.length} satır — bu tür İLK KEZ ölçülüyor`);
       for (const b of circir.yeniTur) bilgi(`  ${satir(b)}`);

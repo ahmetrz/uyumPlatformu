@@ -93,32 +93,22 @@ async function tara(s, rota, nobetci = null, beklenenKod = 200) {
   await s.addScriptTag({ path: AXE_YOLU });
   const sonuc = await s.evaluate(async (etiketler) => {
     /* `axe` az önce `addScriptTag` ile sayfaya enjekte edildi; burada
-       tarayıcı bağlamında küresel olarak vardır. */
-    const r = await globalThis.axe.run(document, { runOnly: { type: 'tag', values: etiketler } });
-    /* Yalnız gereken alanlar: tam sonuç HTML parçalarıyla şişer. */
-    return {
-      ihlaller: r.violations.map((v) => ({
-        id: v.id,
-        impact: v.impact,
-        help: v.help,
-        helpUrl: v.helpUrl,
-        dugum: v.nodes.length,
-        ornek: v.nodes.slice(0, 3).map((n) => n.target.join(' ')),
-        /* Hedef kimliği düğüm BAŞINA gerekir: üç örnek, "hangi düğüm
-           hangisinin yerine geçti" sorusunu cevaplayamaz. Üst sınır
-           rapor şişmesin diye. */
-        hedefler: v.nodes.slice(0, 200).map((n) => n.target.join(' ')),
-      })),
-      gecen: r.passes.length,
-      belirsiz: r.incomplete.length,
-    };
-  }, ETIKETLER);
-  /* Kimlik SAYFANIN YAPISINDAN üretilir, axe'ın seçicisinden değil:
-     axe hedefi düğümü DOM'da benzersiz kılan en kısa seçicidir ve
-     ölçüldü — bir kayıt eklenince hem seçici hem eşleşme sayısı
-     değişiyor (bkz. `kalite-kurallari.mjs`). Yapısal yol + sıra ikisine
-     de bağlı değildir. */
-  const kimlikler = await s.evaluate((hedefler) => {
+       tarayıcı bağlamında küresel olarak vardır.
+
+       `elementRef: true` ŞART: kimlik düğümün KENDİSİNDEN üretilir.
+       Önceki hâl hedef SEÇİCİSİNİ tekilleştirip `querySelector` ile
+       geri çözüyordu ve bu, seçici tekilliğine güvenen sessiz bir
+       varsayımdı — iki ihlal düğümü aynı ham seçiciyi taşısa ikisi de
+       İLK eşleşen öğeye çözülür, aynı yapısal kimliği ve aynı sırayı
+       alır, tek borç hedefinde toplanırdı: bir ihlal düğümünün yerine
+       başkasının geçmesi izinli kalırdı (PR #29 incelemesi). Düğümden
+       üretilen kimlik o varsayımı hiç kurmaz. */
+    const r = await globalThis.axe.run(document, {
+      runOnly: { type: 'tag', values: etiketler }, elementRef: true,
+    });
+
+    /* Yapısal kimlik — en fazla dört kademe `etiket`+sıralı sınıf yolu
+       (`:nth-child` YOK) + aynı yola uyan düğümler arasındaki sıra. */
     const parca = (e) => e.tagName.toLowerCase()
       + [...e.classList].sort().map((c) => `.${c}`).join('');
     const yolu = (e) => {
@@ -135,20 +125,32 @@ async function tara(s, rota, nobetci = null, beklenenKod = 200) {
       if (!kova.has(y)) kova.set(y, []);
       kova.get(y).push(e);
     }
-    const cikti = {};
-    for (const hedef of hedefler) {
-      let e = null;
-      try { e = document.querySelector(hedef); } catch { e = null; }
-      if (!e) { cikti[hedef] = { yol: hedef, sira: 1, bulunamadi: true }; continue; }
+    const kimlik = (n) => {
+      const ham = n.target.join(' ');
+      const e = n.element;
+      if (!e || !e.tagName) return { ham, yol: ham, sira: 1, bulunamadi: true };
       const y = yolu(e);
-      cikti[hedef] = { yol: y, sira: (kova.get(y) ?? []).indexOf(e) + 1 };
-    }
-    return cikti;
-  }, [...new Set(sonuc.ihlaller.flatMap((i) => i.hedefler ?? []))]);
-  for (const i of sonuc.ihlaller) {
-    i.kimlikler = (i.hedefler ?? []).map((ham) => ({ ham, ...(kimlikler[ham] ?? { yol: ham, sira: 1 }) }));
-  }
+      return { ham, yol: y, sira: (kova.get(y) ?? []).indexOf(e) + 1 };
+    };
 
+    /* Yalnız gereken alanlar: tam sonuç HTML parçalarıyla şişer. */
+    return {
+      ihlaller: r.violations.map((v) => ({
+        id: v.id,
+        impact: v.impact,
+        help: v.help,
+        helpUrl: v.helpUrl,
+        dugum: v.nodes.length,
+        ornek: v.nodes.slice(0, 3).map((n) => n.target.join(' ')),
+        /* Kimlik düğüm BAŞINA üretilir ve TEKİLLEŞTİRİLMEZ: üç örnek,
+           "hangi düğüm hangisinin yerine geçti" sorusunu cevaplayamaz.
+           Üst sınır rapor şişmesin diye. */
+        kimlikler: v.nodes.slice(0, 200).map(kimlik),
+      })),
+      gecen: r.passes.length,
+      belirsiz: r.incomplete.length,
+    };
+  }, ETIKETLER);
   const ozet = axeOzeti(sonuc.ihlaller);
   /* Yanlış YÜZEYİ taramak, taramamaktan beterdir: 404/500 gövdesi ya da
      giriş ekranı "yeni ciddi ihlal yok" der ve kapı yeşil kalır. Bu,

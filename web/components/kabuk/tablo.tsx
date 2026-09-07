@@ -198,8 +198,17 @@ export function VeriTablosu<T extends { id: string }>({
 
         `role="region"` + ad: adsız bir odak durağı ekran okuyucuya
         "nereye geldim" sorusunu bırakırdı; tablo zaten `etiket` taşıyor,
-        kap da onu taşır. */}
-    <div className="ab-vt-sar" role="region" aria-label={etiket} tabIndex={0}
+        kap da onu taşır.
+
+        ODAK DURAĞI KOŞULLUDUR. Kayıtsız verildiğinde seçilebilir tabloda
+        klavye kullanıcısı önce hiçbir seçim davranışı olmayan bir bölgeye,
+        SONRA ızgaraya basıyordu — her kütükte fazladan bir durak, üstelik
+        geniş bantta kap hiç kaydırmadığı için tümüyle atıl (PR #29
+        incelemesi). Satırlar odak alabiliyorsa kaydırma bölgesi kuralı
+        onlarla zaten sağlanır; kap yalnız BAŞKA odak durağı kalmadığında
+        odaklanır. */}
+    <div className="ab-vt-sar" role="region" aria-label={etiket}
+      tabIndex={sec ? undefined : 0}
       style={yukseklik ? ({ '--vt-h': yukseklik } as CSSProperties) : undefined}>
       {/* ── ÖLÇÜLDÜ: SEÇİLEMEYEN TABLO "grid" DİYORDU ────────────────
           `role="grid"` bir SÖZDÜR: "buraya Tab ile girilir, ok tuşlarıyla

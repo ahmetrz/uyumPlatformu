@@ -311,6 +311,19 @@ Kimlik bunun yerine **sayfanın yapısından** üretilir:
 Aynı yapısal yolu paylaşan düğümler `AYRIŞTIRILDI` diye raporlanır —
 "birleştirildi" değil.
 
+**Kimlik DÜĞÜMÜN KENDİSİNDEN üretilir** (`axe.run(..., { elementRef: true })`),
+hedef seçicisi geri çözülerek değil. İlk hâl hedef seçicilerini
+tekilleştirip `document.querySelector` ile öğeye çeviriyordu ve bu,
+seçici tekilliğine güvenen SESSİZ bir varsayımdı: iki ihlal düğümü aynı
+ham seçiciyi taşısa ikisi de İLK eşleşen öğeye çözülür, aynı yapısal yolu
+ve aynı sırayı alır, tek borç hedefinde toplanırdı — bir ihlal düğümünün
+yerine başkasının geçmesi izinli kalırdı. Düğümden üretilen kimlik o
+varsayımı hiç kurmaz (PR #29 incelemesi).
+
+> **Uçtan uca doğrulandı:** `/sistem`in düzeltmesi geçici geri alınıp iki
+> bilinen ihlal yeniden üretildi; kimlikler `#1` ve `#2` çıktı ve kapı
+> ikisini AYRI bulgu olarak raporladı.
+
 ##### YORDAM · yeni bir axe borç satırı eklerken
 
 Kimliğin veri altında kararlı olduğunu **ÖLÇ**; varsayma. Bugün
@@ -351,11 +364,31 @@ biçiminde) ve kaldıraç değildir, çünkü açılma koşulu yine **TABANIN
 main'e girdiği an bu yol o tür için kalıcı olarak ölür — anahtar şeması
 geçişiyle aynı sınır.
 
-Var olan bir türe satır eklemenin yolu da değildir: beyan `kapi/tur`
-çiftine bakar, satırın kendisine değil. Uydurma bir tür adı yazmak da
-işe yaramaz — bulgular gerçek `tur` ile üretilir, uydurma türe yazılan
-satır hiçbir bulguyu karşılamaz ve DÜZELMİŞ raporunda ölü satır olarak
-görünür. Altı birim vakası bunların hepsini ayrı ayrı sınar.
+Kapı ÜÇ koşulun birden sağlanmasını ister ve üçü de dalın elinde
+değildir:
+
+1. Dal `_yeni_tur` ile BEYAN etmiş olacak.
+2. Tür, dalın KAYIT DEFTERİNDE (`_olculen_turler`) olacak — aracın
+   gerçekten ürettiği bir tür. Uydurma ad buradan geçemez.
+3. Taban o türü HİÇ ÖLÇMEMİŞ olacak: ne kayıt defterinde ne borcunda.
+
+> **Üçüncü koşul PR incelemesinde eklendi ve eklenmeden önce beyan bir
+> KALDIRAÇTI.** `_yeni_tur` alanı bu turda geldiği için tabanın beyanı
+> zorunlu olarak BOŞTUR; kapı yalnız "taban beyan etmiş mi" diye sorsaydı
+> `tasma/kirpilan-icerik` gibi ÇOKTAN ÖLÇÜLEN bir tür beyan edilip o
+> türde istenildiği kadar satır eklenebilirdi — cırcırın engellemek için
+> var olduğu büyümenin ta kendisi. Kapıyı kapatan şey artık türün
+> ölçülmüş OLMASIDIR; beyan bir niyettir, ölçüm değil.
+>
+> Kayıt defteri tabana girene kadar (yani bu değişiklik main'e alınana
+> kadar) ÖNYÜKLEME kilidi tabanın BORCUNA bakar: bir türün tabanda satırı
+> varsa o tür ölçülmüştür.
+
+**Kayıt defteri yalnız BÜYÜR.** Küçülebilseydi bir PR türü defterden
+düşürür, bir sonrakinde onu "yeni tür" diye yeniden beyan ederdi; düşen
+tür kapıyı kırmızı yakar. axe kural kimlikleri açık uçludur ve deftere
+girmez: yeni bir axe kuralının ilk bulgusu yeni bir ÖLÇÜ değil, yeni bir
+İHLALDİR. Dokuz birim vakası bunların hepsini ayrı ayrı sınar.
 
 #### Anahtar şeması geçişi — kaldıraç değil, kanıt
 
@@ -670,6 +703,14 @@ değildir. ÖRTÜŞME ölçen bir kapı bugün yoktur; yazılırsa yeri budur.
 bu yüzden ayrıca, girişten önce tarıyordu; taşma kapısı ise listeyi hiç
 bilmiyordu ve `rotalar.json` da `/giris`i taşımaz — yani ürünün İLK
 gördüğü yüzey taşma kapısının dışındaydı.
+
+> **Çapraz kontrol BEYANDAN BAĞIMSIZ koşar.** İlk hâli
+> `if (OTURUMSUZ.length > 0)` koşuluna bağlıydı: listeyi BOŞALTMAK
+> kontrolü de susturuyor, iki kapı da her oturumsuz yüzeyi atlayıp yeşil
+> çıkıyordu — listeyi silmenin kapıyı yıkması gerekirken susturması, borç
+> listesinde kapatılan kaçışın aynısı (PR #29 incelemesi). Kontrol listeye
+> değil DİSKE bakar; boş liste onun cevabını değiştirmez, yalnız "beyan
+> edilmemiş" sayısını büyütür.
 
 Liste artık tek kaynaktadır (`kosu-ortak.mjs → OTURUMSUZ_ROTALAR`) ve
 iki kapı da onu okur; bir sonraki oturumsuz yüzeyin birinde ölçülüp

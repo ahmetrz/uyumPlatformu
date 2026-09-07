@@ -476,13 +476,18 @@ try {
     /* Oturumsuz yüzeyler TEMİZ bir bağlamda ölçülür — aynı bağlamda
        kalsaydı çerez `/giris`i panoya yönlendirir ve ölçüm yine
        yapılamazdı. */
-    if (OTURUMSUZ.length > 0) {
+    /* Bağlam BEYANDAN BAĞIMSIZ açılır. `OTURUMSUZ.length > 0` koşuluna
+       bağlanmış hâli bir kaçış yoluydu: listeyi BOŞALTMAK çapraz kontrolü
+       de susturuyor, iki kapı da her oturumsuz yüzeyi atlayıp yeşil
+       çıkıyordu — listeyi silmenin kapıyı yıkması gerekirken susturması,
+       borç listesinde kapatılan kaçışın aynısı. Çapraz kontrol listeye
+       DEĞİL, diske bakar; boş liste onun cevabını değiştirmez, yalnız
+       "beyan edilmemiş" sayısını büyütür. */
+    if (!rotaBayragiVar() || OTURUMSUZ.length > 0) {
       const temiz = await tarayici.newContext({ viewport: { width: bant.en, height: bant.boy } });
       const s2 = await temiz.newPage();
       for (const r of OTURUMSUZ) await rotayiOlc(s2, bant, r.yol, r.nobetci, r.kod ?? 200);
-      /* ÇAPRAZ KONTROL bir kez koşar (yetki banda bağlı değildir):
-         beyan edilmemiş bir yüzey oturumsuz açık mı? Elle tutulan bir
-         liste, elle tutulan `rotalar.json`ın hatasını tekrar eder. */
+      /* ÇAPRAZ KONTROL bir kez koşar (yetki banda bağlı değildir). */
       if (!capraz && !rotaBayragiVar()) {
         capraz = await oturumsuzAcikYuzeyler(s2, DINAMIK.url, KOK);
       }

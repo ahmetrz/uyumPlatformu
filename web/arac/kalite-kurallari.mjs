@@ -421,13 +421,37 @@ export function circirKarari(dalBorcu, tabanBorcu, turBeyani = {}) {
      satır yazmak da işe yaramaz — bulgular gerçek `tur` ile üretilir,
      uydurma türe yazılan satır hiçbir bulguyu karşılamaz ve ölü satır
      olarak DÜZELMİŞ raporunda görünür. */
-  const beyan = (l) => new Set((l ?? []).map(String));
-  const dalTurler = beyan(turBeyani.dal);
-  const tabanTurler = beyan(turBeyani.taban);
+  const kume = (l) => new Set((l ?? []).map(String));
+  const dalBeyan = kume(turBeyani.dalBeyan);
+  const dalKayit = kume(turBeyani.dalKayit);
+  const tabanKayit = kume(turBeyani.tabanKayit);
+  /* Tabanın ZATEN ÖLÇTÜĞÜ türler: kayıt defteri + tabanda satırı olan
+     her tür. İkincisi ÖNYÜKLEME kilidi — kayıt defteri tabana girene
+     kadar (yani bu değişiklik main'e alınana kadar) `tabanKayit` boştur
+     ve tek başına hiçbir şeyi engellemezdi.
+
+     Tabanın BEYANINA (`_yeni_tur`) bakılmaz ve bakılmamalı: beyan bir
+     NİYETTİR, ölçüm değil. Kapıyı kapatan şey türün ölçülmüş OLMASIDIR;
+     defter + borç bunu söyler, beyan söylemez. */
+  const tabandaOlculen = new Set([
+    ...tabanKayit,
+    ...(tabanBorcu ?? []).map((b) => `${b?.kapi}/${b?.tur}`),
+  ]);
   const yeniTurMu = (b) => {
     const ad = `${b?.kapi}/${b?.tur}`;
-    return dalTurler.has(ad) && !tabanTurler.has(ad);
+    /* 1 · Dal BEYAN etmiş olmalı (`_yeni_tur`).
+       2 · Dalın KAYIT DEFTERİNDE olmalı: aracın gerçekten ürettiği bir
+           tür. Uydurma ad buradan geçemez.
+       3 · Taban onu ÖLÇMEMİŞ olmalı — ne kayıt defterinde ne borcunda.
+           Bu diş olmadan beyan bir KALDIRAÇTI: `_yeni_tur` bu değişiklikle
+           geldiği için taban beyanı BOŞTUR ve o hâliyle `kirpilan-icerik`
+           gibi ÇOKTAN ÖLÇÜLEN bir tür beyan edilip o türde istediğin
+           kadar satır eklenebilirdi. */
+    return dalBeyan.has(ad) && dalKayit.has(ad) && !tabandaOlculen.has(ad);
   };
+  /* 4 · KAYIT DEFTERİ KÜÇÜLEMEZ. Küçülebilseydi bir PR türü defterden
+     düşürür, bir sonraki PR onu "yeni" diye yeniden beyan ederdi. */
+  const dusenTur = [...tabanKayit].filter((t) => !dalKayit.has(t));
   const taban = new Map((tabanBorcu ?? []).map((b) => [borcAnahtari(b), b]));
   /* ── ANAHTAR ŞEMASI GEÇİŞİ ──────────────────────────────────────────
      Anahtara HEDEF eklendiğinde her satırın anahtarı değişir ve cırcır
@@ -483,8 +507,9 @@ export function circirKarari(dalBorcu, tabanBorcu, turBeyani = {}) {
     eklenen: gercekEklenen,
     yukseltilen,
     yeniTur,
+    dusenTur,
     gecis: [...gecis.values()].flat().length,
-    kapiKapali: gercekEklenen.length > 0 || yukseltilen.length > 0,
+    kapiKapali: gercekEklenen.length > 0 || yukseltilen.length > 0 || dusenTur.length > 0,
   };
 }
 

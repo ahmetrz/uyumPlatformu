@@ -1,7 +1,7 @@
 {
-  "imza": "b47d04647c875846d09d98a3e38f7a44",
+  "imza": "8405958d4e01a7fb16f3c10294bdcc54",
   "dosya": 140,
-  "vaka": 2908,
+  "vaka": 2919,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -245,7 +245,7 @@
       "atlanan": 0
     },
     "tests/kalite-kapilari.test.ts": {
-      "vaka": 11,
+      "vaka": 22,
       "atlanan": 0
     },
     "tests/kanit-kapsam.test.ts": {

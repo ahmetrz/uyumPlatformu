@@ -90,8 +90,8 @@ kurum sistemine giden hiçbir şey yoktur.
 | `tarama.mjs` | `tasarim:rota` | yatay taşma · eski sınıf · boş ekran · sayfa hatası (`EN=1440,1024,768,375` çok bant) | kusurlu rota |
 | `lighthouse.mjs` | `kalite:lighthouse` | 4 kategori puanı, `/giris` + 4 kanonik rota | eşik (90) altı |
 | `gorsel-regresyon.mjs` | `tasarim:gorsel` | 8 rota × 2 bant, altın görüntüyle piksel farkı | fark > %0,5 ya da altın yok |
-| `erisim-axe.mjs` | `tasarim:axe` | axe-core WCAG 2 A/AA, rotalar.json'daki tüm rotalar | ciddi/kritik ihlal |
-| `yatay-tasma.mjs` | `tasarim:tasma` | 375 + 768'de her rota yana kayıyor mu, taşmayı üreten öğe kim | taşan rota |
+| `erisim-axe.mjs` | `tasarim:axe` | axe-core WCAG 2 A/AA, rotalar.json'daki tüm rotalar, **üç bant** (1440 · 768 · 375) | ciddi/kritik ihlal |
+| `yatay-tasma.mjs` | `tasarim:tasma` | 375 + 768'de **iki kusur türü**: sayfa yana kayıyor mu · `overflow: hidden` kabında sessizce kırpılan içerik var mı | taşan rota **ya da** kırpılan içerik |
 | `dizustu.mjs` | `tasarim:dizustu` | 1366×768'de kaydırılamayan (kırpılan) içerik var mı | kırpılan öğe |
 | `marka-kapisi.mjs` | `marka:kapi` | ürün adı tek kaynaktan mı geliyor: nöbetçi adla statik demo derlemesi koşar, üretilen çıktıya bakar (tarayıcı istemez) | varsayılan ad işlenmiş yüzeyde geçiyor **ya da** nöbetçi görünmesi gereken yüzeyde yok |
 | `turkiye-siniri.mjs` | `harita:sinir` | üretir (kapı değil): Natural Earth'ten Türkiye silüeti | kaynak/öznitelik bulunamadı |
@@ -203,17 +203,58 @@ node arac/xlsx-fikstur.mjs --yaz    # ikiliyi yeniden üretir
 Tarayıcı istemez; `npm test` içinde `tests/xlsx-ayristirma.test.ts` onu
 okur.
 
-### `yatay-tasma.mjs`
+### `yatay-tasma.mjs` — İKİ kusur türü
 
-Dar bantta sayfanın yana kaymasını ölçer ve **taşmayı üreten öğeyi**
-adlandırır: taşan ama atası taşmayan, ve yol üstünde kaydırma/kırpma kabı
-bulunmayan öğe. Kaydırma kabı içindeki taşma kusur DEĞİLDİR — üst çubuklar
-dar bantta bilerek yatay kaydırılır.
+**1 · Sayfa yana kayıyor.** Dar bantta sayfanın yana kaymasını ölçer ve
+**taşmayı üreten öğeyi** adlandırır: taşan ama atası taşmayan, ve yol
+üstünde kaydırma/kırpma kabı bulunmayan öğe. Kaydırma kabı içindeki taşma
+kusur DEĞİLDİR — üst çubuklar dar bantta bilerek yatay kaydırılır.
 
 `tarama.mjs` de taşma ölçer ama tek bir sayı olarak ve varsayılan olarak
 tek bantta (`EN=` verilmezse 1440); dar bant kusurları o yüzden yıllarca
 görünmedi. Bu araç iki dar bandı (375 · 768) tüm rotalarda VARSAYILAN
 koşar ve suçluyu yazar; ikisi birbirinin yerine geçmez.
+
+**2 · Kırpılan içerik.** Birinci ölçü tek başına KÖRDÜ. `overflow:
+hidden` bir kap taşmayı yutunca sayfa kaymaz, kapı "0 kusur" der — oysa
+içerik ekranda yoktur ve hiçbir jestle geri gelmez. Bu, `dizustu.mjs`'in
+DİKEY eksende ölçtüğü kusurun yatay eşleniğidir ve aynı iki alt ölçüyü
+kullanır:
+
+| Ölçü | Ne der | Ölçülen örnek |
+| --- | --- | --- |
+| `disari` | Öğenin KUTUSU, kırpan atanın görünür kutusunun dışında kalıyor | `/tesisler/[id]` · 375px: 420px veri paneli `left: -45px`'e oturuyor, sol 45px'i plakanın kenarında kesiliyor ("UYUM ENDEKSİ" → "UM ENDEKSİ") |
+| `tasma` | Öğenin AKIŞ İÇİ ve GÖRÜNÜR içeriği kendi kutusuna sığmıyor | aynı rota · 375px: künye ve ölçü şeridi 0px kutuya çöküyor · 768px: beş ölçü 42px sütunlara sıkışıp komşusunun üstüne biniyor |
+
+Ayrım "kaydırılabiliyor mu" DEĞİL, **"erişilebiliyor mu"**: yol üstünde
+`auto`/`scroll` bir kap varsa içerik kaydırılarak görülür, kusur değildir;
+`hidden`/`clip` kabında görülemez, kusurdur. Kırpan kap hiç yoksa taşma
+belgeye çıkar ve birinci ölçü onu zaten yakalar. `tasma` için öğe KENDİ
+kırpmasını yönetiyorsa (üç nokta, kendi kaydırma kabı) suçlanmaz — kırpma
+orada görünür bir işaret taşır. `disari` için böyle bir muafiyet yoktur.
+
+Karar `kalite-kurallari.mjs → kirpilmaKarari` içindedir ve
+`tests/kalite-kapilari.test.ts` ile TARAYICISIZ doğrulanır; araç sayfada
+yalnız ham geometri toplar.
+
+> **Ölçülen ve elenen yanlış alarm.** İlk uygulama `scrollWidth -
+> clientWidth` kullanıyordu ve 8 rotada 60'tan çok yanlış bulgu üretti:
+> `scrollWidth` konumlandırılmış ve gizli soyları da sayar, yani her ipucu
+> balonu ve her tuval künyesi "kırpılmış" görünüyordu. Ölçü akış içi +
+> görünür geometriye çevrildi; yanlış alarmların tamamı düştü.
+> `dizustu.mjs`'in kendi dersiyle (ekran okuyucuya bırakılmış görünmez
+> metin kırpma değildir) aynı eleme burada da yapılır: `clip-path`
+> taşıyan öğe listeye girmez.
+
+> **Bant eklendiği gün ölçüldü** (50 rota × 2 bant): taşan rota **2**
+> (`/omur`, `span.ad` ">1 yıl" · 4px / 3px) · kırpılan içerik **51 rota ·
+> 106 öğe**. Kök sebep üç tanedir: (a) `.ab-durum` durum şeridi
+> `white-space: nowrap` + `overflow: hidden` ile 375'te iki kalemi
+> kesiyor — 49 rota × 2 öğe; (b) `/sistem/bilesenler` topoloji düğümleri
+> tuvalin kenarında kesiliyor (6 öğe · 375, 2 öğe · 768); (c)
+> `/tesisler/[id]` hero plakası (ayrı düzeltildi). `.ab-alt` ayağında
+> AYNI kalıp daha önce ölçülüp düzeltilmişti (aşağıda); `.ab-durum` o
+> turda atlanmış.
 
 ```bash
 PORT=3210 npm run tasarim:tasma
@@ -319,8 +360,24 @@ etiketli kuralları `rotalar.json`'daki her rotada ve oturumsuz `/giris`'te
 koşar. `serious`/`critical` ihlal çıkış kodu 1; `minor`/`moderate`
 listelenir, engellemez.
 
+**Üç bant koşar** (1440×900 · 768×1024 · 375×780). Uzun süre yalnız
+1440'ta koştu ve bu onu dar bantta KÖR bırakıyordu: erişilebilirlik
+ihlallerinin bir kısmı ancak yerleşim değişince doğar — dar bantta
+beliren kaydırma kapları, sarılan başlıklar, küçülen dokunma hedefleri.
+Görmediği kusuru "yok" diye raporlayan bir kapı, kusuru kalıcılaştırır.
+
+> **Ölçüldü** (bant eklendiği gün, 51 rota × 3 bant = 153 tarama):
+> 1440'ta 0, 768'de 0, **375'te 2 ciddi ihlal** — ikisi de
+> `scrollable-region-focusable`: `/saklama` (`.ab-vt-sar`, 1 düğüm) ve
+> `/sistem` (`.ab-sistem-kaydir`, 2 düğüm). Yani telefonda üç kaydırma
+> bölgesi klavyeyle erişilemiyordu ve kapı bunu hiç görmemişti.
+
+Bant seçimi `yatay-tasma.mjs` ile bilerek AYNIDIR: iki araç aynı kusuru
+aynı koşulda görsün. Tek bant koşmak için `--bant=375`.
+
 ```bash
 PORT=3210 node arac/erisim-axe.mjs --json /tmp/axe.json
+PORT=3210 node arac/erisim-axe.mjs --bant=375 --rota=/uyum
 ```
 
 ### Bantlar

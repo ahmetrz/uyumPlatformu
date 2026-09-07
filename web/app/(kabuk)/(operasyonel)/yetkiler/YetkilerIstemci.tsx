@@ -71,6 +71,7 @@ export default function YetkilerIstemci({
   /** Sahiplik devri `envanter/onay` ister. */
   devredebilir: boolean;
 }) {
+  const { t: terim } = useTerim();
   const sozluk = useSozluk();
   const { bekliyor, hata, calistir } = useEylem();
   const [mercek, setMercek] = useUrlDurumu<string>('mercek', 'hepsi');
@@ -176,7 +177,8 @@ export default function YetkilerIstemci({
     : m.artik > 0
       ? { vurgu: `${m.artik} artık yetki`, ad: 'kapalı hesapta duruyor', durum: 'bd' as Durum }
       : m.ayricalikli > 0
-        ? { vurgu: `${m.ayricalikli} hesap`, ad: 'portföyün tamamında yetkili', durum: 'md' as Durum }
+        ? { vurgu: `${m.ayricalikli} hesap`,
+          ad: `${terim('portfoy', 'iyelik')} tamamında yetkili`, durum: 'md' as Durum }
         : { vurgu: `${m.aktif} hesap`, ad: 'kapsamıyla sınırlı', durum: undefined };
 
   return (

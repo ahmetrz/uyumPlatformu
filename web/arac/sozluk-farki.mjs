@@ -135,6 +135,18 @@ const AVLANAN = Object.entries(CEKIRDEK_TERIMLER)
       .map((f) => sinirKalibi(kacir(kanonik(f)), 'gu')),
   }));
 
+/* VERİ İÇİNDEKİ çekirdek sözcük çakılı DEĞİLDİR.
+
+   Ölçüldü: `/varlik-aktarim` ekranında "sahabjes-yardimci-tesis.csv"
+   dosya adı `tesis` taşıyor ve av onu çakılı sandı. Dosya adı KULLANICI
+   VERİSİDİR; sözlükten beslenmez ve beslenmemeli — kayıt neyse odur.
+
+   Ayırt eden şey komşu karakter: sözcüğün hemen yanında `-` `.` `/` `_`
+   varsa o bir tanımlayıcı/dosya adı parçasıdır, cümle içindeki sözcük
+   değil. Bekçinin `--hes` (CSS jetonu) ile sıradan sözcüğü ayırdığı
+   ayrımın aynısı. */
+const VERI_KOMSUSU = /[-./_]/;
+
 /** Enerji render'ında çekirdek sözcük taşıyan satırlar — SABİT ÇAKILI yerler.
 
     Sektör karşılığı ÖNCE satırdan silinir. Sebep ölçüldü: enerji
@@ -148,7 +160,16 @@ function cakiliSatirlar(metin) {
     for (const { anahtar, kaliplar, sektor } of AVLANAN) {
       let kalan = kanonik(ham);
       for (const re of sektor) kalan = kalan.replace(re, ' ');
-      if (kaliplar.some((re) => re.test(kalan))) {
+      const vuran = kaliplar.map((re) => {
+        const g = new RegExp(re.source, 'gu');
+        const m = g.exec(kalan);
+        if (!m) return null;
+        const onceki = kalan[m.index - 1] ?? ' ';
+        const sonraki = kalan[m.index + m[0].length] ?? ' ';
+        /* Dosya adı / tanımlayıcı parçasıysa VERİDİR, çakılı değil. */
+        return VERI_KOMSUSU.test(onceki) || VERI_KOMSUSU.test(sonraki) ? null : m;
+      }).filter(Boolean);
+      if (vuran.length > 0) {
         bulgu.push({ anahtar, satir: ham.trim() });
         break;
       }

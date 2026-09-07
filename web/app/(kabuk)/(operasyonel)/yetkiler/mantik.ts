@@ -129,10 +129,10 @@ export const girisYapamaz = (h: Hesap) => h.aktif && !h.parolaVar;
    istemciyi ayrıştırır ve saf işlevi gizli duruma bağlardı. Parametre
    çirkin ama dürüst: işlevin çıktısı yalnız girdisine bağlı kalır. */
 
-/** Kapsam metni: "Tüm portföy" ya da "2 süreç · 1 tesis". */
+/** Kapsam metni: "Tüm <portföy>" ya da "2 süreç · 1 <tesis>". */
 export function kapsamMetni(h: Hesap, sozluk: Sozluk | null): string {
   if (h.yetkiler.length === 0) return 'kapsam yok';
-  if (h.yetkiler.some(kapsamsiz)) return 'Tüm portföy';
+  if (h.yetkiler.some(kapsamsiz)) return `Tüm ${t(sozluk, 'portfoy')}`;
   const surecler = new Set(h.yetkiler.map((y) => y.surec?.id).filter(Boolean));
   const tesisler = new Set(h.yetkiler.map((y) => y.tesis?.id).filter(Boolean));
   const parcalar: string[] = [];

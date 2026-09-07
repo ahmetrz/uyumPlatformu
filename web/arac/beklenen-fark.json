@@ -27,6 +27,10 @@
     "/harita": 5,
     "/portfoy": 2,
     "/uyum": 4,
-    "/riskler": 3
+    "/riskler": 3,
+    "/kimlik": 8,
+    "/yetkiler": 5,
+    "/ayarlar": 3,
+    "/varlik-aktarim": 0
   }
 }

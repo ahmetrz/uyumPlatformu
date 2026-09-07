@@ -1,3 +1,4 @@
+import { t, type Sozluk } from '@/lib/dil/terimler';
 import type { Durum } from '@/components/kabuk/temel';
 
 /* O15 · Kimlik & Erişim İncelemesi — saf türetme katmanı.
@@ -259,12 +260,12 @@ function benzersiz<T>(liste: (T | null)[]): T[] {
   return [...new Set(liste.filter((x): x is T => x !== null && x !== undefined))];
 }
 
-export function kapsamMetni(hesaplar: Hesap[]): string {
+export function kapsamMetni(hesaplar: Hesap[], sozluk: Sozluk | null = null): string {
   const tesisler = benzersiz(hesaplar.map((h) => h.tesisAd));
   const kapsamlar = benzersiz(hesaplar.flatMap((h) => acikYetkiler(h).map((y) => y.kapsam)));
-  const yer = tesisler.length === 0 ? 'portföy'
+  const yer = tesisler.length === 0 ? t(sozluk, 'portfoy')
     : tesisler.length === 1 ? tesisler[0]
-      : `${tesisler.length} santral`;
+      : `${tesisler.length} ${t(sozluk, 'tesis')}`;
   const ne = kapsamlar.length === 0 ? 'atama yok'
     : kapsamlar.length === 1 ? kapsamlar[0]
       : `${kapsamlar.length} sistem`;
@@ -383,11 +384,11 @@ export function grupCumlesi(onek: string, uyeler: Hesap[]): string {
 }
 
 /** Veriliş yolu: yetki nereden geldi? */
-export function verilisYolu(h: Hesap, y: Yetki): string {
+export function verilisYolu(h: Hesap, y: Yetki, sozluk: Sozluk | null = null): string {
   return [
     h.kaynakSistem ?? 'kaynak yok',
     h.hesapAdi,
     y.kapsam ?? 'kapsam yok',
-    y.varlikEtiketi ?? h.tesisKod ?? 'portföy',
+    y.varlikEtiketi ?? h.tesisKod ?? t(sozluk, 'portfoy'),
   ].join(' ▸ ');
 }

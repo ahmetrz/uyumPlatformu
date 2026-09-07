@@ -26,7 +26,7 @@ export type BagSatiri = {
   /** null = DEĞERLENDİRİLMEDİ; "yedeği yok" anlamına gelmez. */
   yedekli: boolean | null;
   aciklama: string | null;
-  /** Bağı düzenlemek varlığın santral kapsamına tabidir. */
+  /** Bağı düzenlemek varlığın tesis kapsamına tabidir. */
   duzenlenebilir: boolean;
 };
 
@@ -51,7 +51,7 @@ export type SurecSatiri = {
   tesisAd: string | null;
   uretimEtkisi: string;
   adimlar: AdimSatiri[];
-  /** Süreci ve adımlarını düzenlemek `tanimlar/onay` + santral kapsamı ister. */
+  /** Süreci ve adımlarını düzenlemek `tanimlar/onay` + tesis kapsamı ister. */
   duzenlenebilir: boolean;
 };
 

@@ -206,11 +206,13 @@ export function aciliyetSirasi(a: Omur, b: Omur): number {
 
 /* ── gruplama ─────────────────────────────────────────────────────────── */
 
-export type GrupAnahtari = 'aciliyet' | 'santral' | 'tedarikci' | 'tur';
+export type GrupAnahtari = 'aciliyet' | 'tesis' | 'tedarikci' | 'tur';
 
-export const GRUPLAR: { id: GrupAnahtari; ad: string }[] = [
+/* Gruplama adı terim taşır; kütük işlevdir ve ekran kendi sözlüğüyle
+   çözer (bkz. `lib/yonetim/moduller.ts` aynı desen). */
+export const gruplar = (tesis: string): { id: GrupAnahtari; ad: string }[] => [
   { id: 'aciliyet', ad: 'Aciliyet' },
-  { id: 'santral', ad: 'Santral' },
+  { id: 'tesis', ad: tesis },
   { id: 'tedarikci', ad: 'Tedarikçi' },
   { id: 'tur', ad: 'Tür' },
 ];
@@ -228,7 +230,7 @@ export type Grup = {
 
 export function grupla(satirlar: Omur[], anahtar: GrupAnahtari, simdi: number): Grup[] {
   if (anahtar === 'aciliyet') return [];
-  const ad = (o: Omur) => (anahtar === 'santral' ? o.v.tesisAd
+  const ad = (o: Omur) => (anahtar === 'tesis' ? o.v.tesisAd
     : anahtar === 'tedarikci' ? o.v.tedarikciAd : o.v.turAd) ?? '—';
   const kova = new Map<string, Omur[]>();
   for (const o of satirlar) {
@@ -320,7 +322,7 @@ export function ufukBantlari(uzunluk: number): Bant[] {
   return bantlar;
 }
 
-/** Kart başlığı: santral öneki kapsam satırında zaten var (`MERKEZ-SRV-14` → `SRV-14`). */
+/** Kart başlığı: tesis öneki kapsam satırında zaten var (`MERKEZ-SRV-14` → `SRV-14`). */
 export function kisaEtiket(etiket: string): string {
   const parcalar = etiket.split('-');
   return parcalar.length > 2 ? parcalar.slice(-2).join('-') : etiket;

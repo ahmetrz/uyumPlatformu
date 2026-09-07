@@ -9,6 +9,7 @@ import {
   BOLGE_TIP_SOZU, bolgeImi, envanterBagi,
   type BolgeGeciti, type BolgeGrafigi, type BolgeSatiri,
 } from './mantik';
+import { useTerim } from '@/lib/dil/SozlukSaglayici';
 
 /* B8/B10 · Bölge–geçit görünümü — topoloji tezgâhının OKUMA yüzeyi.
 
@@ -79,6 +80,7 @@ export function BolgeCekmecesi({ bolge, gecitler, kapat }: {
   gecitler: BolgeGeciti[];
   kapat: () => void;
 }) {
+  const { t: terim, tBas } = useTerim();
   const im = bolgeImi(gecitler);
   const giden = gecitler.filter((g) => g.yon === 'giden').length;
   const gelen = gecitler.length - giden;
@@ -101,7 +103,7 @@ export function BolgeCekmecesi({ bolge, gecitler, kapat }: {
           { etiket: 'Seviye',
             deger: bolge.seviye === null ? 'tanımsız' : `SL${bolge.seviye}`,
             durum: bolge.seviye === null ? 'unk' : undefined },
-          { etiket: 'Santral', deger: bolge.tesisKodu ?? 'tesissiz · grup düzeyi',
+          { etiket: tBas('tesis'), deger: bolge.tesisKodu ?? `${terim('tesis')} bağı yok · grup düzeyi`,
             durum: bolge.tesisKodu ? undefined : 'unk' },
           { etiket: 'Varlık', deger: `${bolge.varlikSayisi}` },
           { etiket: 'Geçit', deger: `${gecitler.length} · ${giden} giden · ${gelen} gelen` },

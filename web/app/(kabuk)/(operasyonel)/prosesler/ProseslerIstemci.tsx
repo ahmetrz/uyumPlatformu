@@ -15,6 +15,7 @@ import {
   bagImi, bagSozu, saat, sayaclar, surecImi, surecSozu,
   type AdimSatiri, type BagSatiri, type SurecSatiri,
 } from './mantik';
+import { useTerim } from '@/lib/dil/SozlukSaglayici';
 
 /* ═══ OT-05 · Proses zinciri ═══════════════════════════════════════════
 
@@ -36,8 +37,10 @@ const ROL_ETIKET: Record<string, string> = {
 };
 const ROLLER = Object.keys(ROL_ETIKET);
 
-const KOLONLAR: Kolon[] = [
-  { baslik: 'Santral', genislik: '168px' },
+/* Kolon başlığı terim taşır; kütük İŞLEVDİR ve ekran kendi sözlüğüyle
+   çözer (bkz. `lib/yonetim/moduller.ts` aynı desen). */
+const kolonlar = (tesis: string): Kolon[] => [
+  { baslik: tesis, genislik: '168px' },
   { baslik: 'Adım', genislik: '68px', sag: true },
   { baslik: 'Bağ', genislik: '62px', sag: true },
   { baslik: 'Tek nokta', genislik: '96px', sag: true },
@@ -82,6 +85,7 @@ function SurecFormAlanlari({ f, setF, tesisler, kapat }: {
   f: SurecFormu; setF: (f: SurecFormu) => void;
   tesisler: { id: string; ad: string }[]; kapat: () => void;
 }) {
+  const { t: terim, tBas } = useTerim();
   const { bekliyor, hata, calistir } = useEylem();
   const gecerli = f.kod.trim().length > 0 && f.ad.trim().length > 0;
 
@@ -96,10 +100,10 @@ function SurecFormAlanlari({ f, setF, tesisler, kapat }: {
         <input className="ab-gr" value={f.ad}
           onChange={(e) => setF({ ...f, ad: e.target.value })} />
       </Alan>
-      <Alan etiket="Santral">
+      <Alan etiket={tBas('tesis')}>
         <select className="ab-gr" value={f.tesisId}
           onChange={(e) => setF({ ...f, tesisId: e.target.value })}>
-          <option value="">— grup çapında (santralsiz) —</option>
+          <option value="">— grup çapında (tesissiz) —</option>
           {tesisler.map((t) => <option key={t.id} value={t.id}>{t.ad}</option>)}
         </select>
       </Alan>
@@ -123,7 +127,7 @@ function SurecFormAlanlari({ f, setF, tesisler, kapat }: {
         <Dugme tur="ret" onClick={kapat} disabled={bekliyor}>Vazgeç</Dugme>
       </div>
       <p className="ab-panel-dip" style={{ margin: 0 }}>
-        Süreç kodu oluşturulduktan sonra değişmez. Santralsiz süreç grup
+        Süreç kodu oluşturulduktan sonra değişmez. Hiçbir {terim('tesis', 'yonelme')} bağlı olmayan süreç grup
         çapındadır ve tesise kısıtlı bir rol onu düzenleyemez.
       </p>
     </div>
@@ -317,6 +321,8 @@ export default function ProseslerIstemci({
   /** Adım ↔ varlık bağı `envanter/yazma` ister — ayrı bir yetkidir. */
   bagYazabilir: boolean;
 }) {
+  const { tBas } = useTerim();
+  const KOLONLAR = useMemo(() => kolonlar(tBas('tesis')), [tBas]);
   const [mercek, setMercek] = useUrlDurumu<string>('mercek', 'hepsi');
   const [secili, setSecili] = useUrlDurumuBos('surec');
   const [yeniSurec, setYeniSurec] = useState<SurecFormu | null>(null);
@@ -450,7 +456,7 @@ export default function ProseslerIstemci({
           />
 
           <CekmeceAlanlar alanlar={[
-            { etiket: 'Santral', deger: surec.tesisAd ?? 'grup çapında',
+            { etiket: tBas('tesis'), deger: surec.tesisAd ?? 'grup çapında',
               durum: surec.tesisAd ? undefined : 'unk' },
             { etiket: 'Üretim etkisi',
               deger: ETKI_ETIKETI[etkiDuzeyi(surec.uretimEtkisi)],
@@ -549,7 +555,7 @@ export default function ProseslerIstemci({
             )}
             {!bagYazabilir && (
               <p className="ab-panel-dip" style={{ margin: 'var(--s12) 0 0' }}>
-                Varlık bağlamak envanter yazma yetkisi ve varlığın santral
+                Varlık bağlamak envanter yazma yetkisi ve varlığın tesis
                 kapsamını ister.
               </p>
             )}

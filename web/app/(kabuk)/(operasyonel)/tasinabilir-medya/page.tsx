@@ -16,7 +16,7 @@ export const metadata: Metadata = { title: 'Taşınabilir medya' };
    ekran onun yaptığını yapıyormuş gibi göstermez.
 
    ── KAPSAM ────────────────────────────────────────────────────────────
-   Santrale bağlı medya o santralin kapsamına tabidir; santrali olmayan
+   Tesise bağlı medya o tesisin kapsamına tabidir; tesisi olmayan
    medya (havuz) herkese görünür — kayıtsız dolaşan bir belleğin
    görünmez olması, kaydın kendisini anlamsız kılardı. */
 

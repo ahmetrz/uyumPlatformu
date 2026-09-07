@@ -15,12 +15,12 @@ import {
 import { ucEtiketi, UC_KIMLIKLERI, YAZMA_UCLARI } from '@/lib/api/kapsam';
 import { GOREV_TIP_ETIKET, etiketle, tarihTR, zamanTR } from '@/lib/sabitler';
 import {
-  GOREV_DURUMLARI, GOREV_DURUM_ETIKET, KATALOG_ETIKET,
+  GOREV_DURUMLARI, GOREV_DURUM_ETIKET, katalogEtiket,
   type Anahtar, type Is, type Katalog, type Kisi, type Kodlu, type Tanim,
 } from './ortak';
 import { useTerim } from '@/lib/dil/SozlukSaglayici';
 import { terimSeti, type Metin } from '@/lib/yonetim/moduller';
-import type { Sozluk } from '@/lib/dil/terimler';
+import { tBas, type Sozluk } from '@/lib/dil/terimler';
 import { useSozluk } from '@/lib/dil/SozlukSaglayici';
 
 /* Yönetim tezgâhının yazma yüzeyleri — MODAL YOK (06 §B4). Eski iki ekranın
@@ -198,6 +198,7 @@ export function TanimFormu({
   kapat: () => void;
 }) {
   const sozluk = useSozluk();
+  const KATALOG_ETIKET = katalogEtiket(tBas(sozluk, 'tesis'));
   const { bekliyor, hata, calistir } = useEylem();
   const [f, setF] = useState({
     kod: tanim?.kod ?? '',

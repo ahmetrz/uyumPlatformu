@@ -15,7 +15,7 @@ import {
   GorevFormu, GorevDurumEylemleri, OnayKarariFormu, TanimEylemleri, TanimFormu,
 } from './Formlar';
 import {
-  GORUNUR_BUTCE, KATALOG_ETIKET, SON_ISTEK_TAVANI, UFUK_GUN,
+  GORUNUR_BUTCE, katalogEtiket, SON_ISTEK_TAVANI, UFUK_GUN,
   anahtarAltSatiri, anahtarBittiMi, anahtarEtkinMi, anahtarImi,
   anahtarKuyrukEtiketi, anahtarSabit, anahtarSirala, anahtarSozu,
   gecenGun, gecikmisMi, isAcikMi, isAltSatiri, isDurumSozu, isImi, isSabit,
@@ -138,6 +138,7 @@ export default function TezgahIstemci({
   anahtarYazabilir: boolean;
 }) {
   const { tBas } = useTerim();
+  const KATALOG_ETIKET = katalogEtiket(tBas('tesis'));
   const router = useRouter();
   const [kip, setKip] = useState<Kip>(
     baslangicKipi ?? (isOkuyabilir ? 'is' : tanimOkuyabilir ? 'tanim' : 'anahtar'));
@@ -822,6 +823,8 @@ function IsOzeti({ is, simdi }: { is: Is; simdi: number }) {
 function TanimOzeti({ tanim, yazabilir, onaylayabilir, duzenle }: {
   tanim: Tanim; yazabilir: boolean; onaylayabilir: boolean; duzenle: () => void;
 }) {
+  const { tBas } = useTerim();
+  const KATALOG_ETIKET = katalogEtiket(tBas('tesis'));
   const im = tanimImi(tanim);
 
   const cumle = tanim.eksik

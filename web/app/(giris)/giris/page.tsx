@@ -35,7 +35,7 @@ export default async function Giris({ searchParams }: {
        Route /giris ... couldn't be rendered statically because it used
        `await searchParams`
      2026-09-02'de yayın koşusu tam buradan düştü ve canlı demo bir gün
-     önceki derlemede dondu (yeni santral görselleri görünmedi). Kusur
+     önceki derlemede dondu (yeni tesis görselleri görünmedi). Kusur
      üründe değil, ürünün demo ikizindeydi; ama kütüğe girmesi PR
      kapısının demo derlemesini hiç koşmamasıydı — kapı düzeltildi.
 
@@ -80,7 +80,7 @@ export default async function Giris({ searchParams }: {
             </h1>
             <p style={{ margin: 'var(--s16) 0 0', maxWidth: 560,
               fontSize: 'var(--t-cell)', color: 'rgba(246,244,238,.76)' }}>
-              Regülasyon maddeleri, santral kapsamı, bulgu ve kanıt zinciri ile
+              Regülasyon maddeleri, tesis kapsamı, bulgu ve kanıt zinciri ile
               değişmez denetim izi.
             </p>
           </div>

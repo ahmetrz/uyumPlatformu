@@ -11,10 +11,11 @@ import {
 import { OmurUfku } from '@/components/kabuk/zaman';
 import { tarihTR } from '@/lib/sabitler';
 import {
-  aciliyetSirasi, ayYil, buyuk, donemler, geriMetni, grupla, GRUPLAR, kisaEtiket,
+  aciliyetSirasi, ayYil, buyuk, donemler, geriMetni, grupla, gruplar as grupSecenekleri, kisaEtiket,
   konumlariAyir, omruCoz, sureMetni, ufkaYay, ufukBantlari, ufukKonumu, ufukUzunlugu,
   type GrupAnahtari, type Omur, type VarlikKaydi,
 } from './mantik';
+import { useTerim } from '@/lib/dil/SozlukSaglayici';
 
 /* O13 · EOL / EOS & Ömür yönetimi — "önce neyi değiştiriyoruz?"
    İki canvas modülü (06 §A1): ömür ufku zaman çizelgesi + öncelik tablosu.
@@ -28,7 +29,7 @@ const GORUNUR_BUTCE = 9;
 const KART_BUTCESI = 4;
 
 const KOLONLAR: Kolon[] = [
-  { genislik: '150px', ikincil: true },  // santral — çekmece açıkken düşer
+  { genislik: '150px', ikincil: true },  // tesis — çekmece açıkken düşer
   { genislik: '150px' },                 // telafi edici kontrol — sert sinyal, düşmez
   { genislik: '140px' },                 // bağlı proje
 ];
@@ -50,9 +51,10 @@ export default function OmurIstemci({
   kuyrukToplami: number;
   /** kesilmemiş kuyruk üzerinde sayılmış metrikler (sunucuda `count`) */
   metrikler: { destekBitti: number; yaklasan: number; projeyeBagli: number };
-  /** kuyruk bir santral kapsamıyla daraltıldı mı — boş ekranın SÖZÜ değişir */
+  /** kuyruk bir tesis kapsamıyla daraltıldı mı — boş ekranın SÖZÜ değişir */
   kapsamli?: boolean;
 }) {
+  const { tBas } = useTerim();
   const [gruplama, setGruplama] = useState<GrupAnahtari>('aciliyet');
   const [secili, setSecili] = useUrlDurumuBos('sec');
   const [kuyrukAcik, setKuyrukAcik] = useState(false);
@@ -203,7 +205,7 @@ export default function OmurIstemci({
 
         <div style={{ padding: '0 var(--gutter-op)' }}>
           <Filtreler
-            secenekler={GRUPLAR}
+            secenekler={grupSecenekleri(tBas('tesis'))}
             aktif={gruplama}
             sec={(id) => setGruplama(id as GrupAnahtari)}
           />
@@ -286,6 +288,7 @@ function kuyrukMetni(toplanan: Omur[]): string {
    Durum sözcüğü yalnız burada geçer (06 §A2). */
 
 function OmurCekmecesi({ o, simdi, kapat }: { o: Omur; simdi: number; kapat: () => void }) {
+  const { tBas } = useTerim();
   const { v } = o;
   const soz = o.durum === 'bd' ? 'Desteksiz'
     : o.durum === 'unk' ? 'Ömür tarihi yok' : 'Ömür sonu yakın';
@@ -315,7 +318,7 @@ function OmurCekmecesi({ o, simdi, kapat }: { o: Omur; simdi: number; kapat: () 
       <CekmeceAlanlar alanlar={[
         { etiket: 'Tür', deger: <TurAlani v={v} />,
           durum: KRITIKLIK[v.kritiklik] ? undefined : 'unk' },
-        { etiket: 'Santral', deger: v.tesisAd ?? '—' },
+        { etiket: tBas('tesis'), deger: v.tesisAd ?? '—' },
         { etiket: 'Tedarikçi', deger: v.tedarikciAd ?? '—' },
         { etiket: 'Yaşam döngüsü', deger: <YasamDongusu o={o} />,
           durum: o.eolEksik ? 'unk' : undefined },

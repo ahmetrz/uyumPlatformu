@@ -16,7 +16,7 @@ export const metadata: Metadata = { title: 'Ömür yönetimi' };
    risk→proje / varlık→proje (bağlı proje). Hiçbir eşik sabit yazılmaz;
    kuyruk seed değiştiğinde kendiliğinden değişir.
 
-   Kapı iki katmanlıdır: modül izni burada (`envanter/okuma`), santral
+   Kapı iki katmanlıdır: modül izni burada (`envanter/okuma`), tesis
    kapsamı `veri.ts`te. Kuyruk ölçütü ve satır tavanı da `veri.ts`tedir —
    ekran artık `Varlik` tablosunun tamamını belleğe almaz. */
 

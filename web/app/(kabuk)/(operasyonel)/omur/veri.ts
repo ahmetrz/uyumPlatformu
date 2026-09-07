@@ -13,9 +13,9 @@ import { omruCoz, type Proje, type VarlikKaydi } from './mantik';
        (ör. `risk_sahibi`) kurumun tüm cihaz envanterini — etiket, ad,
        üretici, destek bitişi — bu ekrandan görebiliyordu. Kapı artık
        kardeş ekranlarla aynı: `izinVar(k, 'envanter', 'okuma')`.
-   (2) SANTRAL KAPSAMI HİÇ UYGULANMIYORDU: `Varlik.tesisId` var, süzgeç
-       yoktu. A santraline kısıtlı kullanıcı B'nin varlık etiketlerini ve
-       santral adını görüyordu; `toplamVarlik` sayacı da kapsamsız
+   (2) TESİS KAPSAMI HİÇ UYGULANMIYORDU: `Varlik.tesisId` var, süzgeç
+       yoktu. A tesisine kısıtlı kullanıcı B'nin varlık etiketlerini ve
+       tesis adını görüyordu; `toplamVarlik` sayacı da kapsamsız
        sayıyordu — satır gizlense bile sayaç "başka bir yerde 400 varlık
        var" diyordu.
 
@@ -46,9 +46,9 @@ import { omruCoz, type Proje, type VarlikKaydi } from './mantik';
    /topoloji aynı modülü kullanır ve `lib/eylemler2/envanter.ts`teki
    eylemler de `yetkiZorunlu('envanter', …)` çağırır.
 
-   ── SANTRALİ BİLİNMEYEN KAYIT ──────────────────────────────────────────
+   ── TESİSİ BİLİNMEYEN KAYIT ──────────────────────────────────────────
    `app/kapsam.ts → kapsamKosulu` (= `lib/api/yetki.ts → tesisKapsamda`
-   kuralı): santrali null olan varlık YALNIZ kapsamsız kullanıcıya görünür.
+   kuralı): tesisi null olan varlık YALNIZ kapsamsız kullanıcıya görünür.
    NOT: /envanter bugün bunun tersini yapıyor (tesissiz varlığı herkese
    gösteriyor) ve gerekçesini kendi yorumunda yazıyor; o davranış bu
    görevin kapsamı dışındadır ve DEĞİŞTİRİLMEDİ. Ömür kuyruğunda ise
@@ -83,7 +83,7 @@ export type EkranVerisi = {
   satirTavani: number;
   metrikler: OmurMetrikleri;
   simdi: number;
-  /** true = kuyruk bir santral kapsamıyla daraltıldı */
+  /** true = kuyruk bir tesis kapsamıyla daraltıldı */
   kapsamli: boolean;
 };
 
@@ -141,7 +141,7 @@ export async function omurEkranVerisi(k: AktifKullanici): Promise<EkranVerisi> {
       select: {
         id: true, etiket: true, ad: true, kritiklik: true, yasamDongusu: true,
         destekBitis: true, eolTarihi: true, eosTarihi: true,
-        /* Tür / santral / tedarikçi ilişki olarak DEĞİL, yabancı anahtar
+        /* Tür / tesis / tedarikçi ilişki olarak DEĞİL, yabancı anahtar
            olarak okunur ve aşağıda bellekte eşlenir. Nedeni ölçüm: Prisma
            her ilişkiyi `id IN (…)` ile 999'luk parçalar hâlinde çeker —
            10.000 varlıkta üç ilişki için 33 sorgu ve ~54ms, oysa üç
@@ -207,8 +207,8 @@ export async function omurEkranVerisi(k: AktifKullanici): Promise<EkranVerisi> {
   ]);
 
   /* Boyut tabloları TAM okunur (filtresiz) ve İSTEMCİYE GİTMEZ: yalnız
-     görünen satırın tür/santral/tedarikçi adını çözmek için kullanılır.
-     Pasifleştirilmiş bir türe ya da kapatılmış bir santrale bağlı varlık
+     görünen satırın tür/tesis/tedarikçi adını çözmek için kullanılır.
+     Pasifleştirilmiş bir türe ya da kapatılmış bir tesise bağlı varlık
      ömür kuyruğundan düşmemeli — bu yüzden süzgeç yok. */
   const [turAdlari, tesisAdlari, tedarikciAdlari] = await Promise.all([
     db.varlikTuru.findMany({ select: { id: true, ad: true } }),

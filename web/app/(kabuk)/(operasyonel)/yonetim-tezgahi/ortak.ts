@@ -16,14 +16,14 @@ import { GOREV_TIP_ETIKET, etiketle, tarihTR } from '@/lib/sabitler';
        Satırların ortak ekseni KULLANIM'dır (kaça bağlı, zinciri kırıyor mu).
 
    Tek tabloya indirmek için ortak bir öncelik ekseni uydurmak gerekirdi:
-   gecikmiş bir görev ile kırılımı atanmamış bir santral kaydını aynı
+   gecikmiş bir görev ile kırılımı atanmamış bir tesis kaydını aynı
    sıralamaya sokan sayı yok. Yoğunluk sözleşmesi de (4 metrik, 5–9 satır)
    iki popülasyonu tek şeritte anlatmayı imkânsız kılıyor — metrik bütçesi
    tek başına dolardı. Bu yüzden kip ayrımı; buna karşılık HER KİPİN İÇİNDE
    gerçek bir birleştirme yapıldı:
      · İş kuyruğunda görev + onay talebi TEK tabloda (ikisi de "birinin
        eylemini bekleyen iş"; eski ekranda 2 tablo + 1 kart ızgarasıydı),
-     · Tanımlarda beş katalog (santral, regülasyon, kapsam alanı, kırılım,
+     · Tanımlarda beş katalog (tesis, regülasyon, kapsam alanı, kırılım,
        sektör) TEK tabloda (eski ekranda 4 sekme + 2 kart ızgarası +
        2 tabloydu).
    Eski ekranların 9 <dialog> kipi ve 25 pill/kart kullanımı kalktı; yazma
@@ -147,7 +147,7 @@ export function isDurumSozu(i: Is): string {
 }
 
 /** Satır alt satırı: tip + EN FAZLA BİR olgu (referans ekranların kuralı).
-    Görevde santral kapsamı olguyu hak eder; kapsamı yoksa kaydın kökeni
+    Görevde tesis kapsamı olguyu hak eder; kapsamı yoksa kaydın kökeni
     (motor mu, elle mi) yazılır — ikisi birden değil. */
 export function isAltSatiri(i: Is, simdi: number): string {
   if (i.tur === 'onay') {
@@ -215,15 +215,18 @@ export function isSirala(liste: Is[], simdi: number): Is[] {
 
 export type Katalog = 'tesis' | 'regulasyon' | 'alan' | 'kirilim' | 'sektor';
 
-export const KATALOG_ETIKET: Record<Katalog, string> = {
-  tesis: 'Santral', regulasyon: 'Regülasyon', alan: 'Kapsam alanı',
+/* Katalog etiketi terim taşır; kütük işlevdir ve ekran kendi sözlüğüyle
+   çözer. Anahtarlar (`tesis` · `regulasyon` …) SABİTTİR: adres ve durum
+   onları taşır, çevrilirse kayıtlı bağlantı kırılır. */
+export const katalogEtiket = (tesis: string): Record<Katalog, string> => ({
+  tesis, regulasyon: 'Regülasyon', alan: 'Kapsam alanı',
   kirilim: 'Kırılım', sektor: 'Sektör',
-};
+});
 
 /** Kataloğun kullanım biriminin adı — "12 süreç", "48 madde" … */
 export const KATALOG_BIRIM: Record<Katalog, string> = {
   tesis: 'süreç', regulasyon: 'madde', alan: 'madde',
-  kirilim: 'santral', sektor: 'kırılım',
+  kirilim: 'tesis', sektor: 'kırılım',
 };
 
 /** Beş katalog tek satır tipine indirgenir; tablo bunu konuşur. */
@@ -238,7 +241,7 @@ export type Tanim = {
   kullanim: number;
   /** ikinci bir sayaç — regülasyonun süreçleri gibi; yoksa null */
   ikincilKullanim: { sayi: number; birim: string } | null;
-  /** kasıtlı devre dışı: kapalı santral, pasif regülasyon */
+  /** kasıtlı devre dışı: kapalı tesis, pasif regülasyon */
   devreDisi: boolean;
   /** zinciri kıran eksik — kritik; yoksa null */
   eksik: string | null;

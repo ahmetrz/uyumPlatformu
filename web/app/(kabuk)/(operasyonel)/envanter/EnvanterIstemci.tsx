@@ -14,7 +14,7 @@ import {
   korumaAcigi, kullanimda, kuyrukMetni, metrikleriHesapla, olgu, omurGunu,
   sirala, suz, varlikDurumu,
   type Bolge, type CanliAyar, type Kisi, type Kodlu, type Mercek, type Segment, type Tur,
-  type Unite, type V,
+  type Birim, type V,
 } from './mantik';
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -67,11 +67,11 @@ type Dugum = {
 };
 
 export default function EnvanterIstemci({
-  varliklar, turler, tesisler, uniteler, sistemler, bolgeler, kullanicilar,
+  varliklar, turler, tesisler, birimler, sistemler, bolgeler, kullanicilar,
   segmentler, ekipler, yazabilir, onaylayabilir, simdi, canliAyar,
   baslangicArama = '',
 }: {
-  varliklar: V[]; turler: Tur[]; tesisler: Kodlu[]; uniteler: Unite[];
+  varliklar: V[]; turler: Tur[]; tesisler: Kodlu[]; birimler: Birim[];
   sistemler: Kodlu[]; bolgeler: Bolge[]; kullanicilar: Kisi[];
   /** OT-11 · varlığa atanabilecek adresleme segmentleri */
   segmentler: Segment[];
@@ -270,7 +270,7 @@ export default function EnvanterIstemci({
               </header>
               <div className="govde">
                 <VarlikFormu varlik={null} turler={turler} tesisler={tesisler}
-                  uniteler={uniteler} sistemler={sistemler} bolgeler={bolgeler}
+                  birimler={birimler} sistemler={sistemler} bolgeler={bolgeler}
                   kullanicilar={kullanicilar} kapat={() => setYeniAcik(false)} />
               </div>
             </>
@@ -321,7 +321,7 @@ export default function EnvanterIstemci({
                 )}
                 {panelKipi === 'form' && (
                   <VarlikFormu varlik={secili} turler={turler} tesisler={tesisler}
-                    uniteler={uniteler} sistemler={sistemler} bolgeler={bolgeler}
+                    birimler={birimler} sistemler={sistemler} bolgeler={bolgeler}
                     kullanicilar={kullanicilar} kapat={() => setPanelKipi('ozet')} />
                 )}
                 {panelKipi === 'iliski' && (
@@ -631,7 +631,7 @@ function Ozet({ v, simdi }: { v: V; simdi: number }) {
   const d = varlikDurumu(v, simdi);
   const gun = omurGunu(v, simdi);
   const bilinmeyen = bilinmeyenAlanlar(v);
-  const konum = [v.tesis?.ad, v.unite?.kod, v.bolge?.kod].filter(Boolean).join(' · ') || '—';
+  const konum = [v.tesis?.ad, v.birim?.kod, v.bolge?.kod].filter(Boolean).join(' · ') || '—';
 
   const kimlik: [string, string | null][] = [
     ['Hostname', v.hostname], ['IP', v.ipAdresi], ['MAC', v.macAdresi],

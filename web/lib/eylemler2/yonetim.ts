@@ -38,7 +38,7 @@ import { sayisalOzellikYaz } from '../alan/oznitelikYazma';
    `yetkiZorunlu('yonetim', …)` ile kapılanır; okuyucu rolü 'okuma' alır,
    yazma/onay alamaz (lib/erisim.ts ROL_IZINLERI). */
 
-const KATALOG_TIPLERI = ['grup', 'tuzelKisi', 'uretimUnitesi', 'varlikTuru',
+const KATALOG_TIPLERI = ['grup', 'tuzelKisi', 'operasyonelBirim', 'varlikTuru',
   'agBolgesi', 'eskalasyonKurali'] as const;
 type KatalogTipi = typeof KATALOG_TIPLERI[number];
 
@@ -61,7 +61,7 @@ const SEMALAR = {
     kod: bosluksuz('Kod'), ad: bosluksuz('Ad'), grupId: bosluksuz('Grup'),
     vergiNo: z.preprocess(bosaNull, z.string().nullable().optional()),
   }),
-  uretimUnitesi: z.object({
+  operasyonelBirim: z.object({
     tesisId: bosluksuz('Santral'), kod: bosluksuz('Kod'), ad: bosluksuz('Ad'),
     kuruluGucMw: sayiYaNull.optional(),
     durum: z.enum(['aktif', 'bakim', 'devre_disi']).optional(),
@@ -97,7 +97,7 @@ const SEMALAR = {
 } satisfies Record<KatalogTipi, z.ZodTypeAny>;
 
 const VARLIK_TIPI: Record<KatalogTipi, string> = {
-  grup: 'Grup', tuzelKisi: 'TuzelKisi', uretimUnitesi: 'UretimUnitesi',
+  grup: 'Grup', tuzelKisi: 'TuzelKisi', operasyonelBirim: 'OperasyonelBirim',
   varlikTuru: 'VarlikTuru', agBolgesi: 'AgBolgesi',
   eskalasyonKurali: 'EskalasyonKurali',
 };
@@ -111,7 +111,7 @@ async function katalogOku(tip: KatalogTipi, id: string): Promise<Record<string, 
   switch (tip) {
     case 'grup': return db.grup.findUnique({ where: { id } });
     case 'tuzelKisi': return db.tuzelKisi.findUnique({ where: { id } });
-    case 'uretimUnitesi': return db.uretimUnitesi.findUnique({ where: { id } });
+    case 'operasyonelBirim': return db.operasyonelBirim.findUnique({ where: { id } });
     case 'varlikTuru': return db.varlikTuru.findUnique({ where: { id } });
     case 'agBolgesi': return db.agBolgesi.findUnique({ where: { id } });
     case 'eskalasyonKurali': return db.eskalasyonKurali.findUnique({ where: { id } });
@@ -155,14 +155,14 @@ export async function katalogKaydet(girdi: {
           : (await db.tuzelKisi.create({ data: { kod: d.kod, ...data } })).id;
         break;
       }
-      case 'uretimUnitesi': {
-        const d = v as z.infer<typeof SEMALAR.uretimUnitesi>;
+      case 'operasyonelBirim': {
+        const d = v as z.infer<typeof SEMALAR.operasyonelBirim>;
         const tesis = await db.tesis.findUnique({ where: { id: d.tesisId } });
         if (!tesis) return { ok: false, hata: 'Seçilen santral bulunamadı' };
         const data = { ad: d.ad, durum: d.durum ?? 'aktif' };
         id = girdi.id
-          ? (await db.uretimUnitesi.update({ where: { id: girdi.id }, data })).id
-          : (await db.uretimUnitesi.create({ data: { tesisId: d.tesisId, kod: d.kod, ...data } })).id;
+          ? (await db.operasyonelBirim.update({ where: { id: girdi.id }, data })).id
+          : (await db.operasyonelBirim.create({ data: { tesisId: d.tesisId, kod: d.kod, ...data } })).id;
         /* P1: birimin gücü de öznitelik satırı. Boş bırakılan güç satırı
            siler; `null` yazıp "ölçtük, sonucu yok" demez. */
         await sayisalOzellikYaz({ tip: 'birim', id }, KURULU_GUC, d.kuruluGucMw ?? null,
@@ -254,8 +254,8 @@ export async function katalogArsivle(girdi: { tip: string; id: string; gerekce: 
         await db.tuzelKisi.delete({ where: { id: girdi.id } });
         break;
       }
-      case 'uretimUnitesi': {
-        await db.uretimUnitesi.update({ where: { id: girdi.id }, data: { durum: 'devre_disi' } });
+      case 'operasyonelBirim': {
+        await db.operasyonelBirim.update({ where: { id: girdi.id }, data: { durum: 'devre_disi' } });
         break;
       }
       case 'varlikTuru': {
@@ -389,10 +389,10 @@ async function etkiSatirlari(hedefTipi: HedefTipi, hedefId: string | null, sonra
         db.tesis.count({ where: { tuzelKisiId: hedefId } }), db.yetki.count({ where: { tuzelKisiId: hedefId } })]);
       return [{ baslik: 'Santral', deger: t }, { baslik: 'Yetki kapsamı', deger: y, not: 'Bu tüzel kişiye kısıtlı roller' }];
     }
-    case 'uretimUnitesi': {
+    case 'operasyonelBirim': {
       if (!hedefId) return [{ baslik: 'Varlık', deger: 0, not: 'Yeni kayıt — bağ yok' }];
       const [v, s] = await Promise.all([
-        db.varlik.count({ where: { uniteId: hedefId } }), db.sistemServis.count({ where: { uniteId: hedefId } })]);
+        db.varlik.count({ where: { birimId: hedefId } }), db.sistemServis.count({ where: { birimId: hedefId } })]);
       return [{ baslik: 'Varlık', deger: v }, { baslik: 'Sistem / servis', deger: s }];
     }
     case 'varlikTuru': {

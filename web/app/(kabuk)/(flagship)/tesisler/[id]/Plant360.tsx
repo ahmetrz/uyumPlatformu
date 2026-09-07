@@ -51,7 +51,7 @@ export type ZincirDuragi = {
   varlik: number; risk: number;
 };
 
-export type Unite = {
+export type Birim = {
   id: string; kod: string; ad: string; gucMw: number | null; durum: string;
   sistemSayisi: number; varlikSayisi: number;
 };
@@ -82,7 +82,7 @@ export type Plant360Veri = {
   digerEksikler: { id: string; baslik: string; alt: string }[];
   katmanlar: Katman[];
   zincir: ZincirDuragi[];
-  uniteler: Unite[];
+  birimler: Birim[];
   sistemSayisi: number;
   bulguSayilari: { acik: number; aksiyonda: number; kapali: number; kabulEdildi: number };
   acikBulgular: AcikBulgu[];
@@ -281,12 +281,12 @@ export default function Plant360({ veri, santraller }: {
 
       {/* ═══ Üniteler + açık bulgular ══════════════════════════════════ */}
       <section className="ab-b-ikili">
-        <div className="uniteler">
+        <div className="birimler">
           <p className="etiket">Üretim üniteleri</p>
-          {veri.uniteler.length === 0 ? (
+          {veri.birimler.length === 0 ? (
             <p className="bos">Kayıtlı üretim ünitesi yok.</p>
-          ) : veri.uniteler.map((u) => (
-            <div key={u.id} className="unite">
+          ) : veri.birimler.map((u) => (
+            <div key={u.id} className="birim">
               <span className="kod">{u.kod}</span>
               <span className="ad">
                 <span className="baslik">{u.ad}</span>

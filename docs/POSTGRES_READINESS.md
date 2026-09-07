@@ -179,10 +179,22 @@ kalır. Doğrulama sorgusu e.4'te.
 
 ### a.6 Tip eşlemeleri
 
-**`Float` → `double precision`.** Dokuz alan: `Tesis.kuruluGucMw:50`,
-`UretimUnitesi.kuruluGucMw:569`, `Lisans.maliyet:1161`, `Zafiyet.cvss:1189`,
-`YedeklemeKosusu.boyutMb:1229`, `Butce.planlanan:1328`, `Butce.harcanan:1329`,
-`VeriKokeni.guven:1607`, `KesifKaydi.guvenSkoru:1645`.
+**`Float` → `double precision`.** On dokuz alan (7 Eylül 2026'da yeniden
+sayıldı; önceki sayım dokuz diyordu ve o günden beri hem yeni modeller
+eklendi hem P1 `kuruluGucMw` kolonlarını düşürdü):
+`TesisOzellik.sayisalDeger:114`, `BirimOzellik.sayisalDeger:134`,
+`Tesis.enlem:159`, `Tesis.boylam:160`, `Lisans.maliyet:1992`,
+`Zafiyet.cvss:2020`, `Zafiyet.epss:2036`, `YedeklemeKosusu.boyutMb:2083`,
+`Butce.planlanan:2182`, `Butce.harcanan:2183`, `VeriKokeni.guven:2590`,
+`KesifKaydi.guvenSkoru:2638`, `ZafiyetKorelasyonu.guven:3262`,
+`ProsesAdimi.rtoSaat:3394`, `ProsesAdimi.rpoSaat:3396`,
+`EtkiDegerlendirmesi.uretimKaybiMw:3442`, `EtkiDegerlendirmesi.rtoSaat:3446`,
+`EtkiDegerlendirmesi.rpoSaat:3447`, `VarlikDurusGozlemi.guven:4034`.
+
+Sektöre özgü nitelikler (kurulu güç…) artık kolon değil `TesisOzellik` /
+`BirimOzellik` satırıdır; `Float` alanların ikisi bu iki tablodadır ve
+sayısı sektör paketi büyüdükçe ARTMAZ — satır sayısı artar, alan sayısı
+sabit kalır.
 
 SQLite `REAL` de IEEE-754 çift duyarlıktır; **değer kaybı yoktur**. Fark
 davranıştadır: SQLite tip yakınlığı (affinity) gereği `'9.8'` metnini sessizce

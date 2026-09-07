@@ -59,7 +59,7 @@ export async function operasyonKayitlari(db: PrismaClient) {
     ['SAHA-L-HES', ['Türbin 1']],
     ['SAHA-B-GES', ['Dizi 1']],
   ];
-  let unite = 0;
+  let birim = 0;
   for (const [tesisKod, adlar] of uniteTanim) {
     const tesisId = tesisler[tesisKod];
     if (!tesisId) continue;
@@ -76,10 +76,10 @@ export async function operasyonKayitlari(db: PrismaClient) {
       ? Math.round((tesisGuc / adlar.length) * 100) / 100 : null;
     for (let i = 0; i < adlar.length; i++) {
       const kod = `U${i + 1}`;
-      const varOlan = await db.uretimUnitesi.findUnique({
+      const varOlan = await db.operasyonelBirim.findUnique({
         where: { tesisId_kod: { tesisId, kod } } });
       if (varOlan) continue;
-      await db.uretimUnitesi.create({
+      await db.operasyonelBirim.create({
         data: {
           tesisId, kod, ad: adlar[i],
           ozellikler: pay === null ? undefined : { create: [{
@@ -92,7 +92,7 @@ export async function operasyonKayitlari(db: PrismaClient) {
           durum: tesisKod === 'SAHA-A2' && i === 1 ? 'bakim' : 'aktif',
         },
       });
-      unite++;
+      birim++;
     }
   }
 
@@ -377,7 +377,7 @@ export async function operasyonKayitlari(db: PrismaClient) {
   }
 
   console.log(
-    `Operasyon kayıtları: ${unite} üretim ünitesi · ${degisiklik} değişiklik · `
+    `Operasyon kayıtları: ${birim} üretim ünitesi · ${degisiklik} değişiklik · `
     + `${olay} olay (${bag} varlık bağı) · ${istisna} istisna · ${onay} onay talebi`,
   );
 }

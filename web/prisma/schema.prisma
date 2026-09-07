@@ -1,10 +1,11 @@
 // Uyum Platformu veri şeması — docs/ICERIK_MODELI.md'yi birebir izler.
 //
 // Temel ilke (kullanıcı kararı): hiçbir tanım koda gömülü değildir.
-// Sektörler, tesis tipleri (doğalgaz, jeotermal, HES, RES...), tesisler,
-// regülasyonlar, kapsam alanları (BT/OT...) ve uyum süreçleri (denetimler)
-// panelden tanımlanır, eşleştirilir ve yaşam döngüsü yönetilir
-// (santral kapanır/satılır, süreç pasifleşir, kapsam değişir).
+// Sektörler, tesis tipleri, tesisler, regülasyonlar, kapsam alanları
+// (BT/OT...) ve uyum süreçleri (denetimler) panelden tanımlanır,
+// eşleştirilir ve yaşam döngüsü yönetilir (tesis kapanır/devredilir,
+// süreç pasifleşir, kapsam değişir). Sektöre özgü tip adları ve
+// nitelikler ÇEKİRDEKTE DEĞİL, sektör paketindedir.
 //
 // Sağlayıcı SQLite (kurulumsuz); Postgres'e geçişte yalnızca datasource değişir.
 // Enum kullanılmaz: değerler String + web/lib/sabitler.ts'te zod ile doğrulanır.
@@ -83,7 +84,7 @@ model SektorOznitelikSemasi {
 
 /// Çekirdek terim anahtarının bir sektördeki karşılığı. Türkçe ekler
 /// için biçim ALANLARI vardır ("{tesis}in" gibi dize birleştirme
-/// yapılmaz — o yol "santralin" ile "üretim ünitesinin" arasında
+/// yapılmaz — o yol "hattın" ile "arıtma ünitesinin" arasında
 /// sessizce bozulur).
 model SektorSozlugu {
   id       String  @id @default(cuid())
@@ -94,9 +95,9 @@ model SektorSozlugu {
   dil      String  @default("tr")
   tekil    String
   cogul    String?
-  /// İyelik biçimi — "santralin", "tesisin".
+  /// İyelik biçimi — "hattın", "tesisin".
   iyelik   String?
-  /// Belirtme biçimi — "santrali", "tesisi".
+  /// Belirtme biçimi — "hattı", "tesisi".
   belirtme String?
 
   sektor Sektor @relation(fields: [sektorId], references: [id], onDelete: Cascade)
@@ -137,13 +138,13 @@ model BirimOzellik {
   olcumZamani  DateTime?
   guncellendi  DateTime  @updatedAt
 
-  operasyonelBirim UretimUnitesi @relation(fields: [birimId], references: [id], onDelete: Cascade)
+  operasyonelBirim OperasyonelBirim @relation(fields: [birimId], references: [id], onDelete: Cascade)
 
   @@unique([birimId, anahtar])
   @@index([anahtar])
 }
 
-/// Santral / lokasyon. Yaşam döngüsü: aktif → kapali (satış, kapanış).
+/// Tesis / lokasyon. Yaşam döngüsü: aktif → kapali (devir, kapanış).
 model Tesis {
   id          String  @id @default(cuid())
   kod         String  @unique
@@ -151,7 +152,7 @@ model Tesis {
   tipId       String?
   konum       String?
 
-  /// Coğrafi konum (WGS84). NULL = GİRİLMEDİ; harita bu santrali ilinin
+  /// Coğrafi konum (WGS84). NULL = GİRİLMEDİ; harita bu tesisi bölgesinin
   /// merkezine YAKLAŞIK olarak koyar ve bunu ekranda söyler. Uydurma
   /// koordinat yazılmaz: yanlış bir nokta, boş bir noktadan daha
   /// pahalıdır (saha ekibi oraya gider).
@@ -166,7 +167,7 @@ model Tesis {
   /// ekibinin ölçtüğü koordinat şemada BİRBİRİNDEN AYIRT EDİLEMİYORDU.
   /// İkisi de `enlem`/`boylam` kolonuna aynı biçimde yazılıyor, ekran
   /// ikisini de kesin konum gibi gösteriyordu. Aynı adı taşıyan iki
-  /// santral, santral yerine merkez ofis, kapanmış bir tesisin eski
+  /// tesis, tesis yerine merkez ofis, kapanmış bir tesisin eski
   /// koordinatı — hepsi sessizce girerdi.
   konumKaynagi String?
 
@@ -189,10 +190,10 @@ model Tesis {
   kapanisNedeni        String? // satis | kapanis | birlesme ...
   olusturuldu          DateTime  @default(now())
 
-  /// Santral fotoğrafının anahtarı (05-photography §5): eşleme bileşen
-  /// kodunda değil VERİDE tutulur ki yeni bir santral yanlış varsayılanı
+  /// Tesis fotoğrafının anahtarı (05-photography §5): eşleme bileşen
+  /// kodunda değil VERİDE tutulur ki yeni bir tesis yanlış varsayılanı
   /// miras almasın. null ise tipografik fallback render edilir — asla
-  /// "yakın" bir başka santralin fotoğrafı kullanılmaz.
+  /// "yakın" bir başka tesisin fotoğrafı kullanılmaz.
   gorselAnahtari String?
 
   tuzelKisiId String?
@@ -207,7 +208,7 @@ model Tesis {
 
   // hedef mimari genişlemesi
   profil                    TesisProfili?
-  uniteler                  UretimUnitesi[]
+  birimler                  OperasyonelBirim[]
   sistemler                 SistemServis[]
   isSurecleri               IsSureci[]
   uygulanabilirlikKararlari UygulanabilirlikKarari[]
@@ -397,10 +398,10 @@ model MaddeDurumu {
   dogrulayanId     String?
   dogrulamaZamani  DateTime?
   not              String?
-  /// UY-59 · Bu santralde ÖLÇÜLEN olgunluk seviyesi (0-5).
+  /// UY-59 · Bu tesiste ÖLÇÜLEN olgunluk seviyesi (0-5).
   ///
-  /// Hedef seviye `Madde.olgunlukSeviyesi`tedir ve bütün santraller için
-  /// ortaktır; ölçülen seviye santralden santrale değişir. İkisini tek
+  /// Hedef seviye `Madde.olgunlukSeviyesi`tedir ve bütün tesisler için
+  /// ortaktır; ölçülen seviye tesisten tesise değişir. İkisini tek
   /// alana sıkıştırmak "hedefimiz neydi" sorusunu cevapsız bırakırdı.
   ///
   /// `null` = ÖLÇÜLMEDİ. Sıfır ayrı bir şeydir: "uygulama başlamadı".
@@ -867,8 +868,11 @@ model TuzelKisi {
   yetkiler Yetki[]
 }
 
-/// Üretim ünitesi (generation_units) — santral içindeki üretim birimi.
-model UretimUnitesi {
+/// Operasyonel birim — tesis içindeki işletme birimi. Ne olduğunu sektör
+/// paketi söyler: enerjide üretim ünitesi (türbin, blok), suda arıtma
+/// hattı, sağlıkta servis. Çekirdek yalnız "tesisin altındaki birim"
+/// olduğunu bilir.
+model OperasyonelBirim {
   id           String    @id @default(cuid())
   tesisId      String
   kod          String
@@ -878,17 +882,17 @@ model UretimUnitesi {
 
   tesis      Tesis          @relation(fields: [tesisId], references: [id])
   sistemler  SistemServis[]
-  varliklar  Varlik[]       @relation("UniteVarliklari")
+  varliklar  Varlik[]       @relation("BirimVarliklari")
   ozellikler BirimOzellik[]
 
   @@unique([tesisId, kod])
 }
 
-/// Sistem/Servis (systems/services) — üretim ünitesi veya tesis seviyesinde.
+/// Sistem/Servis (systems/services) — operasyonel birim ya da tesis seviyesinde.
 model SistemServis {
   id        String  @id @default(cuid())
   tesisId   String?
-  uniteId   String?
+  birimId   String?
   kod       String  @unique
   ad        String
   tip       String  @default("sistem") // sistem | servis | uygulama
@@ -899,7 +903,7 @@ model SistemServis {
   ekipId    String?
 
   tesis            Tesis?                   @relation(fields: [tesisId], references: [id])
-  unite            UretimUnitesi?           @relation(fields: [uniteId], references: [id])
+  birim            OperasyonelBirim?        @relation(fields: [birimId], references: [id])
   sahip            Kullanici?               @relation("SistemSahibi", fields: [sahipId], references: [id])
   ekip             Ekip?                    @relation("SistemEkibi", fields: [ekipId], references: [id])
   surecler         IsSureciSistemi[]
@@ -933,7 +937,7 @@ model IsSureciSistemi {
   @@unique([surecId, sistemId])
 }
 
-/// Santral profili (§5.1) — uygulanabilirlik motorunun girdisi. Tesis 1:1.
+/// Tesis profili (§5.1) — uygulanabilirlik motorunun girdisi. Tesis 1:1.
 model TesisProfili {
   id                   String    @id @default(cuid())
   tesisId              String    @unique
@@ -1004,7 +1008,7 @@ model SurumFarki {
   maddeKodu   String
   degisimTipi String // yeni | degisti | kaldirildi | ayni
   ozet        String?
-  etkiNotu    String? // hangi santral/assessment etkilenir
+  etkiNotu    String? // hangi tesis/assessment etkilenir
   olusturuldu DateTime @default(now())
 
   eskiSurum FrameworkSurumu? @relation("EskiSurum", fields: [eskiSurumId], references: [id])
@@ -1113,7 +1117,7 @@ model RegulasyonKaynagi {
 /// Değerlendirme içe aktarımı (UY-43).
 ///
 /// `IceAktarim` MADDE metnini aktarır; bu model DEĞERLENDİRME SONUCUNU
-/// (hangi santralde hangi madde ne durumda) aktarır. İkisi ayrı
+/// (hangi tesiste hangi madde ne durumda) aktarır. İkisi ayrı
 /// modellerdir çünkü ayrı şeylerdir: biri regülasyonun kendisi, öteki
 /// kurumun o regülasyona verdiği cevap.
 ///
@@ -1124,7 +1128,7 @@ model RegulasyonKaynagi {
 model DegerlendirmeAktarimi {
   id           String    @id @default(cuid())
   regulasyonId String
-  /// Hangi santrale aktarılıyor. Kapsam kapısı bu alandan sorulur.
+  /// Hangi tesise aktarılıyor. Kapsam kapısı bu alandan sorulur.
   tesisId      String
   surecId      String?
   kaynakAdi    String
@@ -1197,7 +1201,7 @@ model SaklamaPolitikasi {
 /// sunucu bunu reddeder.
 ///
 /// Kapsam BİLEREK geniş tutuldu (varlık tipi + isteğe bağlı kimlik):
-/// bir soruşturma çoğu zaman "şu santralin şu dönemdeki bütün bulguları"
+/// bir soruşturma çoğu zaman "şu tesisin şu dönemdeki bütün bulguları"
 /// gibi bir kümeyi kapsar ve tek tek kayıt işaretlemek pratikte
 /// uygulanmaz.
 model LegalHold {
@@ -1207,7 +1211,7 @@ model LegalHold {
   varlikTipi        String
   /// Tek bir kayda mı bağlı; `null` = o ailenin TAMAMI.
   varlikId          String?
-  /// Santral kapsamı; `null` = bütün santraller.
+  /// Tesis kapsamı; `null` = bütün tesisler.
   tesisId           String?
   gerekce           String
   /// `aktif` | `kaldirildi`. Kayıt SİLİNMEZ: bir hold'un ne zaman
@@ -1305,12 +1309,12 @@ model DenetciErisimi {
   @@index([durum, bitis])
 }
 
-/// Dış denetçinin santral kapsamı (UY-57).
+/// Dış denetçinin tesis kapsamı (UY-57).
 ///
-/// Bir dış denetçi kurumun TAMAMINI görmez: hangi santrallerin
+/// Bir dış denetçi kiracının TAMAMINI görmez: hangi tesislerin
 /// denetimine geldiyse yalnız onları görür. Kapsam boşsa erişim
-/// hiçbir santrali kapsamaz — "boş kapsam = her şey" varsayımı, bir
-/// dış denetçiye kurumun tamamını açmak olurdu.
+/// hiçbir tesisi kapsamaz — "boş kapsam = her şey" varsayımı, bir
+/// dış denetçiye kiracının tamamını açmak olurdu.
 model DenetciKapsami {
   id       String @id @default(cuid())
   erisimId String
@@ -1324,8 +1328,9 @@ model DenetciKapsami {
 
 // ---------------------------------------------------- uygulanabilirlik
 
-/// Uygulanabilirlik kuralı (applicability_rules): santral profilinden
-/// kapsam türetir. Koşul JSON olarak saklanır, motor değerlendirir.
+/// Uygulanabilirlik kuralı (applicability_rules): tesis profilinden ve
+/// tesisin öznitelik satırlarından kapsam türetir. Koşul JSON olarak
+/// saklanır, motor değerlendirir.
 model UygulanabilirlikKurali {
   id           String   @id @default(cuid())
   regulasyonId String
@@ -1596,8 +1601,8 @@ model Dokuman {
 }
 
 /// Belge ↔ Madde: belge hangi KONTROL GEREĞİNİ karşılıyor.
-/// Bağ madde durumuna (santral bazlı) değil MADDEYE kurulur: kurumsal bir
-/// politika gereğin kendisini karşılar, santral santral tekrarlanmaz.
+/// Bağ madde durumuna (tesis bazlı) değil MADDEYE kurulur: kurumsal bir
+/// politika gereğin kendisini karşılar, tesis tesis tekrarlanmaz.
 model DokumanMadde {
   id        String   @id @default(cuid())
   dokumanId String
@@ -1611,8 +1616,8 @@ model DokumanMadde {
   @@index([maddeId])
 }
 
-/// Belge ↔ Tesis: yalnız BELİRLİ santralleri bağlayan belgeler için.
-/// Bağ yoksa belge KURUMSALDIR (tüm portföy) — boş liste "hiçbir santral"
+/// Belge ↔ Tesis: yalnız BELİRLİ tesisleri bağlayan belgeler için.
+/// Bağ yoksa belge KURUMSALDIR (tüm portföy) — boş liste "hiçbir tesis"
 /// değil "ayrım yok" demektir; ekran bunu sözcükle yazar.
 model DokumanTesis {
   id        String @id @default(cuid())
@@ -1651,7 +1656,7 @@ model Varlik {
   ad                   String
   turId                String
   tesisId              String?
-  uniteId              String?
+  birimId              String?
   sistemId             String?
   hostname             String?
   seriNo               String?
@@ -1726,7 +1731,7 @@ model Varlik {
 
   tur             VarlikTuru           @relation(fields: [turId], references: [id])
   tesis           Tesis?               @relation(fields: [tesisId], references: [id])
-  unite           UretimUnitesi?       @relation("UniteVarliklari", fields: [uniteId], references: [id])
+  birim           OperasyonelBirim?    @relation("BirimVarliklari", fields: [birimId], references: [id])
   sistem          SistemServis?        @relation(fields: [sistemId], references: [id])
   sahip           Kullanici?           @relation("VarlikSahibi", fields: [sahipId], references: [id])
   emanetci        Kullanici?           @relation("VarlikEmanetcisi", fields: [emanetciId], references: [id])
@@ -2461,9 +2466,9 @@ model Connector {
   ardisikHataSiniri   Int?
   /// Şu ana kadarki ardışık başarısızlık sayısı (başarıda sıfırlanır).
   ardisikHata         Int     @default(0)
-  /// Bu connector'ın YAZABİLECEĞİ santraller. Boş = kapsam sınırı yok.
+  /// Bu connector'ın YAZABİLECEĞİ tesisler. Boş = kapsam sınırı yok.
   /// Kapsam connector düzeyinde de tutulur, çünkü bir OT keşif ürünü
-  /// yalnız kendi sahasını görür; kaydın beyan ettiği santrale güvenmek
+  /// yalnız kendi sahasını görür; kaydın beyan ettiği tesise güvenmek
   /// yanlış yapılandırılmış bir kaynağın başka sahaya yazmasına izin verir.
   kapsamTesisleriJson String?
   /// Etkin eşleme profili — null ise adaptörün gömülü eşlemesi kullanılır.
@@ -2615,10 +2620,10 @@ model KesifKaydi {
   /// vendor_export | csv
   kaynak            String
   kaynakKayitId     String
-  /// Kaydın BEYAN EDİLEN santrali: gözlemdeki tesis kodundan ya da
+  /// Kaydın BEYAN EDİLEN tesisi: gözlemdeki tesis kodundan ya da
   /// connector yapılandırmasından çözülür. Henüz bir varlığa eşlenmemiş
-  /// kaydın kapsamı buradan bilinir; null = santral BİLİNMİYOR (hiçbir
-  /// santrale ait değil demek DEĞİL).
+  /// kaydın kapsamı buradan bilinir; null = tesis BİLİNMİYOR (hiçbir
+  /// tesise ait değil demek DEĞİL).
   tesisId           String?
   /// ham gözlem — dokunulmaz, denetim izinin girdisi
   hamJson           String
@@ -2741,7 +2746,7 @@ model TopolojiSapmasi {
   @@index([durum, siddet])
 }
 
-/// Varlık seviyesinde konfigürasyon yedeği. YedeklemePolitikasi santral
+/// Varlık seviyesinde konfigürasyon yedeği. YedeklemePolitikasi tesis
 /// seviyesindedir ve yerini almaz — bu onu tamamlar.
 model KonfigurasyonYedegi {
   id              String    @id @default(cuid())
@@ -3012,7 +3017,7 @@ model Yapilandirma {
 // üzerinde saklanır; uygulama AktiviteKaydi'na da iz düşer.
 model DegisiklikTalebi {
   id          String    @id @default(cuid())
-  hedefTipi   String // ayar | grup | tuzelKisi | uretimUnitesi | varlikTuru | agBolgesi | uygulanabilirlikKurali | tesisGorsel
+  hedefTipi   String // ayar | grup | tuzelKisi | operasyonelBirim | varlikTuru | agBolgesi | uygulanabilirlikKurali | tesisGorsel
   hedefId     String?
   hedefEtiket String
   onceJson    String?

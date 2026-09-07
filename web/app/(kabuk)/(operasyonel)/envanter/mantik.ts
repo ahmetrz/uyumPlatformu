@@ -26,7 +26,7 @@ export const GRAFIK_SISTEM_TAVANI = 3;
 export type Kisi = { id: string; ad: string };
 export type Kodlu = { id: string; kod: string; ad: string };
 export type Tur = Kodlu & { sinif: string };
-export type Unite = Kodlu & { tesisId: string };
+export type Birim = Kodlu & { tesisId: string };
 export type Bolge = Kodlu & { tip: string; seviye: number | null; tesisId: string | null };
 export type Sistem = Kodlu & { tesisId: string | null };
 /** OT-11 · adresleme segmenti — bölgeden AYRIDIR (bir bölge N segment). */
@@ -203,7 +203,7 @@ export const BOS_DURUS: Durus = {
 export type V = {
   id: string; etiket: string; ad: string;
   tur: Tur;
-  tesis: Kodlu | null; unite: Kodlu | null; sistem: Kodlu | null; bolge: Bolge | null;
+  tesis: Kodlu | null; birim: Kodlu | null; sistem: Kodlu | null; bolge: Bolge | null;
   sahip: Kisi | null; emanetci: Kisi | null;
   tedarikci: { id: string; ad: string } | null; sozlesme: Kodlu | null;
   hostname: string | null; seriNo: string | null; uretici: string | null;
@@ -950,7 +950,7 @@ export function envanterDisaSatiri(v: V, simdi: number): (string | number)[] {
   })[0] ?? null;
   return [
     v.etiket, v.ad, v.tur.ad, disaEtiket(v.tur.sinif),
-    v.tesis?.kod ?? '', v.unite?.kod ?? '', v.sistem?.kod ?? '', v.bolge?.kod ?? '',
+    v.tesis?.kod ?? '', v.birim?.kod ?? '', v.sistem?.kod ?? '', v.bolge?.kod ?? '',
     seg?.kod ?? '', seg?.vlanId ?? '', seg?.cidr ?? '',
     v.uretici ?? '', v.model ?? '', v.seriNo ?? '',
     v.ipAdresi ?? '', v.ipv6Adresi ?? '', v.macAdresi ?? '',

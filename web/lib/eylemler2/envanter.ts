@@ -33,7 +33,7 @@ const VarlikSemasi = z.object({
   etiket: bosluksuz('Etiket'),
   ad: bosluksuz('Ad'),
   turId: bosluksuz('Tür'),
-  tesisId: kimlik, uniteId: kimlik, sistemId: kimlik, bolgeId: kimlik,
+  tesisId: kimlik, birimId: kimlik, sistemId: kimlik, bolgeId: kimlik,
   sahipId: kimlik, emanetciId: kimlik,
   hostname: metin, seriNo: metin, uretici: metin, model: metin,
   ipAdresi: metin, macAdresi: metin, isletimSistemi: metin,
@@ -98,7 +98,7 @@ async function dogrulamalariDusur(
 /** Varlık oluştur/güncelle (upsert). Etiket benzersizdir; tesis kapsamı denetlenir. */
 export async function varlikKaydet(girdi: {
   id?: string; etiket: string; ad: string; turId: string;
-  tesisId?: string | null; uniteId?: string | null; sistemId?: string | null;
+  tesisId?: string | null; birimId?: string | null; sistemId?: string | null;
   bolgeId?: string | null; sahipId?: string | null; emanetciId?: string | null;
   hostname?: string | null; seriNo?: string | null; uretici?: string | null;
   model?: string | null; ipAdresi?: string | null; macAdresi?: string | null;
@@ -128,7 +128,7 @@ export async function varlikKaydet(girdi: {
 
     const veri = {
       etiket: v.etiket, ad: v.ad, turId: v.turId,
-      tesisId: v.tesisId ?? null, uniteId: v.uniteId ?? null,
+      tesisId: v.tesisId ?? null, birimId: v.birimId ?? null,
       sistemId: v.sistemId ?? null, bolgeId: v.bolgeId ?? null,
       sahipId: v.sahipId ?? null, emanetciId: v.emanetciId ?? null,
       hostname: v.hostname ?? null, seriNo: v.seriNo ?? null,

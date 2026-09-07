@@ -284,6 +284,9 @@ export const EK_ETIKET: Record<string, string> = {
   Istisna: 'İstisna', UygulanabilirlikKarari: 'Uygulanabilirlik kararı',
   Degisiklik: 'Değişiklik', Olay: 'Olay', Gorev: 'Görev', Kullanici: 'Kullanıcı',
   Sistem: 'Sistem', Unite: 'Ünite', AgBolgesi: 'Ağ bölgesi',
+  /* `UretimUnitesi` P1'de `OperasyonelBirim` oldu. Eski anahtar KALIR:
+     o adla yazılmış iz satırları değişmez ve etiketsiz kalmamalı. */
+  OperasyonelBirim: 'Operasyonel birim', UretimUnitesi: 'Operasyonel birim',
   VeriKalitesiBulgusu: 'Veri kalitesi bulgusu',
 };
 

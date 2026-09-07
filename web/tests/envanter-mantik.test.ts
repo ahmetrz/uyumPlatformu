@@ -39,7 +39,7 @@ const YABANCI_BOLGE: Bolge = {
 function varlik(ek: Partial<V> = {}): V {
   return {
     id: ek.id ?? 'v1', etiket: ek.etiket ?? 'SAHA-A3-PLC-01', ad: ek.ad ?? 'Saha PLC',
-    tur: TUR_OT, tesis: SAHA_A, unite: null, sistem: null, bolge: OT_BOLGE,
+    tur: TUR_OT, tesis: SAHA_A, birim: null, sistem: null, bolge: OT_BOLGE,
     sahip: { id: 'k1', ad: 'Kullanıcı C' }, emanetci: null, tedarikci: null, sozlesme: null,
     hostname: null, seriNo: null, uretici: null, model: null, ipAdresi: null,
     macAdresi: null, isletimSistemi: null, firmware: null, surum: null,

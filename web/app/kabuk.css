@@ -1256,23 +1256,23 @@
 
 /* ── Üniteler + açık bulgular ──────────────────────────────────────── */
 .ab-b-ikili { display: grid; grid-template-columns: 560px minmax(0, 1fr); border-bottom: 1px solid var(--hr); }
-.ab-b-ikili .uniteler { padding: 24px 32px; border-right: 1px solid var(--hr); }
+.ab-b-ikili .birimler { padding: 24px 32px; border-right: 1px solid var(--hr); }
 .ab-b-ikili .bulgular { padding: 24px 32px; min-width: 0; }
 .ab-b-ikili .bos { margin: 14px 0 0; font-size: 13px; color: var(--i3); }
 .ab-b-ikili > div > .etiket { display: block; margin-bottom: 4px; }
-.ab-b-ikili .unite {
+.ab-b-ikili .birim {
   display: flex; align-items: center; gap: 16px;
   padding: 12px 0; border-bottom: 1px solid var(--hr);
 }
-.ab-b-ikili .unite .kod {
+.ab-b-ikili .birim .kod {
   flex: none; width: 66px; font-family: var(--gorunum); font-size: 24px;
   line-height: 1; text-transform: uppercase;
 }
-.ab-b-ikili .unite .ad { flex: 1; min-width: 0; display: grid; gap: 3px; }
-.ab-b-ikili .unite .baslik { font-size: 13px; }
-.ab-b-ikili .unite .guc { font-size: 11px; color: var(--i3); }
-.ab-b-ikili .unite .kayit { flex: none; font-size: 11px; color: var(--i3); }
-.ab-b-ikili .unite .durum {
+.ab-b-ikili .birim .ad { flex: 1; min-width: 0; display: grid; gap: 3px; }
+.ab-b-ikili .birim .baslik { font-size: 13px; }
+.ab-b-ikili .birim .guc { font-size: 11px; color: var(--i3); }
+.ab-b-ikili .birim .kayit { flex: none; font-size: 11px; color: var(--i3); }
+.ab-b-ikili .birim .durum {
   flex: none; width: 96px; display: flex; align-items: center; gap: 8px;
   justify-content: flex-end; font-size: 11px; color: var(--i2);
 }

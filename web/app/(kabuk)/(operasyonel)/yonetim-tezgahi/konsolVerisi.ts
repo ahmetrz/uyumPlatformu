@@ -17,14 +17,14 @@ import {
 const GECMIS_TAVANI = 300;
 
 export async function konsolVerisi(kullanici: AktifKullanici, simdi: number): Promise<KonsolVerisi> {
-  const [ayarlar, talepler, gruplar, tuzelKisiler, uniteler, turler, bolgeler, kurallar, tesisler,
+  const [ayarlar, talepler, gruplar, tuzelKisiler, birimler, turler, bolgeler, kurallar, tesisler,
     regulasyonlar, eskalasyonKurallari, gecmis] = await Promise.all([
     tumAyarlar(),
     db.degisiklikTalebi.findMany({ orderBy: { olusturuldu: 'desc' }, take: 200 }),
     db.grup.findMany({ include: { _count: { select: { tuzelKisiler: true } } }, orderBy: { kod: 'asc' } }),
     db.tuzelKisi.findMany({ include: { grup: true, _count: { select: { tesisler: true, yetkiler: true } } },
       orderBy: { kod: 'asc' } }),
-    db.uretimUnitesi.findMany({ include: { tesis: true,
+    db.operasyonelBirim.findMany({ include: { tesis: true,
       ozellikler: { select: { anahtar: true, sayisalDeger: true } },
       _count: { select: { varliklar: true, sistemler: true } } },
       orderBy: [{ tesis: { kod: 'asc' } }, { kod: 'asc' }] }),
@@ -69,7 +69,7 @@ export async function konsolVerisi(kullanici: AktifKullanici, simdi: number): Pr
       id: t.id, kod: t.kod, ad: t.ad, durum: 'ok', bagli: t._count.tesisler,
       alt: `${t.grup.kod} · ${t._count.tesisler} santral · ${t._count.yetkiler} yetki`,
       degerler: { kod: t.kod, ad: t.ad, grupId: t.grupId, vergiNo: t.vergiNo ?? '' } })),
-    uretimUnitesi: uniteler.map((u) => ({
+    operasyonelBirim: birimler.map((u) => ({
       id: u.id, kod: `${u.tesis.kod}/${u.kod}`, ad: u.ad,
       durum: u.durum === 'devre_disi' ? 'pl' : u.durum === 'bakim' ? 'md' : 'ok',
       pasif: u.durum === 'devre_disi', bagli: u._count.varliklar,

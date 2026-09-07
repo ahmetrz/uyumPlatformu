@@ -90,15 +90,23 @@ export const EYLEM_ETIKET: Record<string, string> = {
   onay: 'onay', red: 'red', iptal: 'iptal', hesaplama: 'hesaplama',
 };
 
-/** İz tablosunda konsolun izlediği varlık tipleri. */
+/** İz tablosunda konsolun izlediği varlık tipleri.
+
+    `UretimUnitesi` LİSTEDE KALIR: model `OperasyonelBirim` diye yeniden
+    adlandırıldı ama eski adla yazılmış iz satırları DEĞİŞTİRİLMEDİ —
+    denetim izi değişmez. Eski adı listeden çıkarmak, o satırları
+    konsoldan silmezdi ama GÖRÜNMEZ kılardı; geçmişi görünmez kılmak,
+    onu silmenin sessiz hâlidir. */
 export const KONSOL_VARLIK_TIPLERI = [
-  'Yapilandirma', 'DegisiklikTalebi', 'Grup', 'TuzelKisi', 'UretimUnitesi',
+  'Yapilandirma', 'DegisiklikTalebi', 'Grup', 'TuzelKisi', 'OperasyonelBirim',
+  'UretimUnitesi',
   'VarlikTuru', 'AgBolgesi', 'UygulanabilirlikKurali', 'Tesis',
 ] as const;
 
-/** Katalog hedef tipi → iz tablosundaki varlık tipi. */
+/** Katalog hedef tipi → iz tablosundaki varlık tipi. YENİ yazımlar için;
+    okuma tarafı eski adı da tanır (yukarı). */
 export const HEDEF_VARLIK_TIPI: Record<string, string> = {
-  grup: 'Grup', tuzelKisi: 'TuzelKisi', uretimUnitesi: 'UretimUnitesi',
+  grup: 'Grup', tuzelKisi: 'TuzelKisi', operasyonelBirim: 'OperasyonelBirim',
   varlikTuru: 'VarlikTuru', agBolgesi: 'AgBolgesi',
   uygulanabilirlikKurali: 'UygulanabilirlikKurali', tesisGorsel: 'Tesis', ayar: 'Yapilandirma',
 };

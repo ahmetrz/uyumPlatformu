@@ -41,7 +41,7 @@ const ONEM_SECENEKLERI = [
 ];
 
 export type HedefTipi =
-  | 'grup' | 'tuzelKisi' | 'uretimUnitesi' | 'varlikTuru' | 'agBolgesi'
+  | 'grup' | 'tuzelKisi' | 'operasyonelBirim' | 'varlikTuru' | 'agBolgesi'
   | 'uygulanabilirlikKurali' | 'tesisGorsel' | 'ayar' | 'eskalasyonKurali';
 
 export type AlanTipi = 'metin' | 'sayi' | 'secim' | 'mantik' | 'json';
@@ -85,7 +85,7 @@ const BOLGE_TIPLERI = [
   { id: 'bt', ad: 'BT' }, { id: 'ot', ad: 'OT' }, { id: 'dmz', ad: 'DMZ' },
   { id: 'ot_dmz', ad: 'OT DMZ' }, { id: 'kurumsal', ad: 'Kurumsal' }, { id: 'internet', ad: 'İnternet' },
 ];
-const UNITE_DURUMLARI = [
+const BIRIM_DURUMLARI = [
   { id: 'aktif', ad: 'Aktif' }, { id: 'bakim', ad: 'Bakımda' }, { id: 'devre_disi', ad: 'Devre dışı' },
 ];
 
@@ -107,14 +107,14 @@ export const MODULLER: Modul[] = [
     ], etki: ['santral', 'yetki kapsamı'] },
   { kod: 'tesis', grup: 'organizasyon', ad: 'Santral', sinif: 'A', yer: 'mevcut_ekran', rota: '/yonetim-tezgahi?bolum=tanim',
     aciklama: 'Santral kimliği, tipi, kurulu güç, konum, tüzel kişi; kapatma gerekçeli.' },
-  { kod: 'uretimUnitesi', grup: 'organizasyon', ad: 'Üretim ünitesi', sinif: 'A', yer: 'konsol', hedefTipi: 'uretimUnitesi',
+  { kod: 'operasyonelBirim', grup: 'organizasyon', ad: 'Üretim ünitesi', sinif: 'A', yer: 'konsol', hedefTipi: 'operasyonelBirim',
     aciklama: 'Santral içi ünite (türbin, blok); varlık ve sistem bağları buraya iner.',
     alanlar: [
       { ad: 'tesisId', etiket: 'Santral', tip: 'secim', zorunlu: true, secenekler: 'tesis', kimlik: true },
       { ad: 'kod', etiket: 'Kod', tip: 'metin', zorunlu: true, kimlik: true },
       { ad: 'ad', etiket: 'Ad', tip: 'metin', zorunlu: true },
       { ad: 'kuruluGucMw', etiket: 'Kurulu güç (MW)', tip: 'sayi' },
-      { ad: 'durum', etiket: 'Durum', tip: 'secim', secenekler: UNITE_DURUMLARI },
+      { ad: 'durum', etiket: 'Durum', tip: 'secim', secenekler: BIRIM_DURUMLARI },
     ], etki: ['varlık', 'sistem/servis'] },
   { kod: 'tesisTipi', grup: 'organizasyon', ad: 'Üretim tipi (kırılım)', sinif: 'A', yer: 'mevcut_ekran', rota: '/yonetim-tezgahi?bolum=tanim',
     aciklama: 'JES / RES / HES / GES / DGKÇ / Merkez — sektöre bağlı üretim tipleri.' },

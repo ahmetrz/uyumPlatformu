@@ -92,7 +92,7 @@ export async function tesis360Verisi(
   if (!tesis) return null;
 
   const simdi = new Date();
-  const [durumlar, bulgular, riskler, varliklar, denetimler, surecler, bolgeler, uniteListesi,
+  const [durumlar, bulgular, riskler, varliklar, denetimler, surecler, bolgeler, birimListesi,
     tumTesisler, katmanKayitlari, sistemler, bulguSayimi] =
     await Promise.all([
       db.maddeDurumu.groupBy({ by: ['durum'], where: { tesisId: id }, _count: { _all: true } }),
@@ -121,7 +121,7 @@ export async function tesis360Verisi(
         include: { surec: { include: { regulasyon: { select: { kod: true } } } } },
       }),
       db.agBolgesi.count({ where: { tesisId: id } }),
-      db.uretimUnitesi.findMany({
+      db.operasyonelBirim.findMany({
         where: { tesisId: id },
         select: {
           id: true, kod: true, ad: true, durum: true,
@@ -161,7 +161,7 @@ export async function tesis360Verisi(
       db.sistemServis.findMany({
         where: { tesisId: id },
         select: {
-          id: true, kod: true, ad: true, tip: true, kritiklik: true, uniteId: true,
+          id: true, kod: true, ad: true, tip: true, kritiklik: true, birimId: true,
           _count: { select: { varliklar: true, riskler: true } },
         },
       }),
@@ -235,7 +235,7 @@ export async function tesis360Verisi(
       /* Düzenleme kapısı sunucu eylemiyle AYNI soru: tanimlar/yazma, bu
          santral kapsamında (lib/eylemler2/tesis360.ts → profilKaydet). */
       profilDuzenlenebilir: izinVar(k, 'tanimlar', 'yazma', { tesisId: id }),
-      uniteSayisi: uniteListesi.length || null,
+      uniteSayisi: birimListesi.length || null,
       // Uyum: bilinmeyen ASLA 0 sayılmaz — yüzde yalnız değerlendirilenden,
       // bilinmeyen oranı ayrıca taşınır (lib/sabitler.ts:uyumOzeti).
       uyumYuzde: ozet.yuzde,
@@ -257,7 +257,7 @@ export async function tesis360Verisi(
       surecSayisi: surecler.length,
       katmanlar,
       zincir,
-      uniteler: uniteListesi.map((u) => ({
+      birimler: birimListesi.map((u) => ({
         id: u.id, kod: u.kod, ad: u.ad,
         gucMw: sayisalOzellik(u.ozellikler, KURULU_GUC), durum: u.durum,
         sistemSayisi: u._count.sistemler, varlikSayisi: u._count.varliklar,

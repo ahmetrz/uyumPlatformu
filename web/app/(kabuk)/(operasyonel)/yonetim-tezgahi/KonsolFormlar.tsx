@@ -392,7 +392,7 @@ export function KayitCekmecesi({ modul, kayit, veri, kapat, tazele, gecmis, acik
           {arsivAcik && (
             <p className="ab-dip ab-konsol-uyari" role="status">
               Yıkıcı işlem: <strong>{kayit.ad}</strong>{' '}
-              {modul.hedefTipi === 'uretimUnitesi' ? 'devre dışına alınır' : modul.hedefTipi === 'varlikTuru' ? 'pasife alınır' : 'silinir'}.
+              {modul.hedefTipi === 'operasyonelBirim' ? 'devre dışına alınır' : modul.hedefTipi === 'varlikTuru' ? 'pasife alınır' : 'silinir'}.
               Bağlı kayıt varsa sunucu işlemi reddeder ({kayit.bagli === null ? 'bağlı sayısı bilinmiyor' : `${kayit.bagli} bağlı kayıt`}).
             </p>
           )}

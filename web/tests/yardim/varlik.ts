@@ -15,7 +15,7 @@ export function ornekVarlik(ek: Partial<V> = {}): V {
     id: 'v1', etiket: 'SAHA-A3-PLC-01', ad: 'Saha PLC',
     tur: TUR,
     tesis: { id: 'tesis-1', kod: 'SAHA-A3', ad: 'Saha A-3 JES' },
-    unite: { id: 'u1', kod: 'UNITE-1', ad: '1. Ünite' },
+    birim: { id: 'u1', kod: 'UNITE-1', ad: '1. Ünite' },
     sistem: { id: 's1', kod: 'SCADA', ad: 'SCADA' },
     bolge: {
       id: 'b-ot', kod: 'SAHA-A3-OT', ad: 'Süreç Kontrol Ağı',

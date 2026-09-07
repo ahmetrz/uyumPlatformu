@@ -63,6 +63,12 @@ jobs:
         working-directory: web
         run: npm test
 
+      # Test envanteri (`arac/test-envanteri.json`) elle tutulan bir sayı
+      # değil, keşifle doğrulanan bir kayıttır: bayatlarsa kapı kırmızı.
+      - name: Test envanteri tazeliği
+        working-directory: web
+        run: npm run sayimlar:denetle
+
       - name: Ters kapsam kapısı
         working-directory: web
         run: npm run ters:kapsam
@@ -75,17 +81,27 @@ jobs:
         working-directory: web
         run: npm run tasarim:kapi
 
+      # Her `package.json` betiği ya bu iş akışında koşar ya
+      # `arac/kapi-farki.mjs` BEYAN tablosunda gerekçesiyle durur.
+      # Beyansız betik kapıyı kırmızı yakar: yeni bir kapı yazıp CI'ya
+      # bağlamayı unutmak bir daha sessiz olmasın.
+      - name: Kapı farkı kapısı
+        working-directory: web
+        run: npm run kapi:farki
+
       - name: Üretim derlemesi
         working-directory: web
         run: npm run build
 
       # ── Tarayıcılı kapılar ────────────────────────────────────────────
-      # Bu iki kapı canlı sunucu ister ve uzun süre "elle koşulur" diye
-      # CI'nın dışında kaldı; dışarıda kalan kapı, kusuru kalıcılaştırır
-      # (ölçüldü: /omur taşması ve 49 rotadaki durum şeridi kırpılması
-      # aylarca kimsenin koşmadığı bir kapının arkasında durdu).
+      # Dördü de canlı sunucu ister ve uzun süre "elle koşulur" diye CI'nın
+      # dışında kaldı; dışarıda kalan kapı, kusuru kalıcılaştırır (ölçüldü:
+      # /omur taşması ve 49 rotadaki durum şeridi kırpılması aylarca
+      # kimsenin koşmadığı bir kapının arkasında durdu; rota duman ve
+      # gezinme kapıları ise KIRIK hâlde main'e girdi ve kimse görmedi).
       #
-      # Bugün BLOKLAYICIDIR. Bugünün açık bulguları `arac/kalite-borcu.json`
+      # Bugün BLOKLAYICIDIR. Taşma ve axe kapılarının açık bulguları
+      # `arac/kalite-borcu.json`
       # izin listesindedir ve liste bir CIRCIRLA korunur: yalnız küçülebilir.
       # Listede olmayan ya da tavanı aşan her bulgu kapıyı kırmızı yakar.
       #
@@ -107,6 +123,23 @@ jobs:
           done
           echo "sunucu 120sn içinde açılmadı"; cat /tmp/kapi-sunucu.log; exit 1
 
+      # İşlevsel duman testleri ÖNCE koşar: bir rota 404 veriyorsa ya da
+      # gezinme kırıksa, aynı sayfadaki piksel ölçümleri gürültüdür.
+      # İkisi de aylarca CI dışında kaldı ve #28 ortak `girisYap`a bir adım
+      # ekleyince ikisi de sessizce kırıldı — koşmayan kapı, kırıldığını da
+      # söyleyemez. Fark `npm run kapi:farki` ile sayılır.
+      - name: Rota duman testi · 58 rota
+        working-directory: web
+        env:
+          PORT: '3210'
+        run: npm run rota:duman
+
+      - name: Gezinme kapısı · yedi bant
+        working-directory: web
+        env:
+          PORT: '3210'
+        run: npm run gezinme:test
+
       - name: Yatay taşma ve kırpılan içerik kapısı
         working-directory: web
         env:
@@ -126,11 +159,15 @@ jobs:
         if: always()
         run: pkill -f 'next start' || true
 
-      - name: Statik demo derlemesi
+      # `npx next build` DEĞİL: o, zincirin yalnız ilk halkasıdır ve
+      # demo-yol · yayin-kontrol · statik-kontrol · kolon-hizasi kapılarını
+      # atlıyordu. Dördü de `publish.yml` içinde, yani main'e GİRDİKTEN
+      # sonra koşuyordu; bir PR'ı bloklamayan kapı kapı değildir.
+      - name: Statik demo derlemesi ve doğrulaması
         working-directory: web
         env:
           NEXT_PUBLIC_DEMO: '1'
-        run: npx next build
+        run: npm run demo:build
 
       # Ürün adının tek kaynaktan geldiğini DAVRANIŞLA ölçer: nöbetçi bir
       # adla derler ve üretilen çıktıya bakar. Kendi derlemesini yaptığı

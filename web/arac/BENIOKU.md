@@ -80,17 +80,31 @@ Statik kapılar (`npm run lint` · `npx tsc --noEmit` · `npm test` ·
 `npm run tasarim:kapi` · `npm run build`) `.github/workflows/pr-kapisi.yml`
 içinde her PR'da koşar.
 
-**İki tarayıcılı kapı da CI'da koşar ve BLOKLAYICIDIR:**
-`yatay-tasma.mjs` ve `erisim-axe.mjs`. CI üretim derlemesini 3210'da
-ayağa kaldırır (`next start`), Playwright'ın kendi chromium'unu kurar
-(runner imajına bırakılmaz) ve ikisini koşar. Ölçüldü: taşma 89sn, axe
-130sn. Bugünün açık bulguları `kalite-borcu.json` izin listesindedir ve
-liste bir CIRCIRLA korunur — aşağıda.
+**DÖRT tarayıcılı kapı CI'da koşar ve BLOKLAYICIDIR:**
+`rota-duman.mjs` · `gezinme-testi.mjs` · `yatay-tasma.mjs` ·
+`erisim-axe.mjs`. CI üretim derlemesini 3210'da ayağa kaldırır
+(`next start`), Playwright'ın kendi chromium'unu kurar (runner imajına
+bırakılmaz) ve dördünü bu sırayla koşar: işlevsel duman testleri ÖNCE —
+bir rota 404 veriyorsa ya da gezinme kırıksa aynı sayfadaki piksel
+ölçümleri gürültüdür. Ölçüldü: duman 32sn, gezinme 45sn, taşma 89sn,
+axe 130sn. Taşma ve axe kapılarının açık bulguları `kalite-borcu.json`
+izin listesindedir ve liste bir CIRCIRLA korunur — aşağıda.
+
+> **Duman ve gezinme kapıları 7 Eylül 2026'da bağlandı, bir kusur
+> ölçüldükten sonra.** İkisi de KENDİ `girisYap` kopyasını taşıyordu;
+> PR #28 sinematik girişi eklerken ortak işleve bir CTA adımı verdi,
+> kopyalar almadı ve iki araç da giriş yapamaz oldu — `main`'e KIRIK
+> girdiler ve kimse görmedi. Kopyaları silmek o günkü örneği kapatır;
+> sınıfı kapatan şey CI'ya bağlanmalarıdır: koşmayan bir kapı,
+> kırıldığını da bildiremez. Farkın kendisi artık ölçülüyor —
+> `npm run kapi:farki`.
 
 Geri kalan tarayıcılı araçlar hâlâ **canlı sunucu ister** ve CI'da
 koşmaz; port 3210'da elle koşulur (`PORT=3210 next dev` başka bir
 kabukta). Hepsi tohum geliştirme girişiyle oturum açar
 (`kosu-ortak.mjs`); gerçek kurum sistemine giden hiçbir şey yoktur.
+Hangileri olduğu tahmin değil ölçüm: `npm run kapi:farki` sayar ve her
+biri gerekçesiyle beyan edilmiştir.
 
 > **Yerelde ölçerken sunucu TAZE DERLEMEDEN gelmeli.** Ölçüldü (7 Eylül
 > 2026): kaynak değiştikten sonra ayakta duran eski `next start`
@@ -104,8 +118,8 @@ kabukta). Hepsi tohum geliştirme girişiyle oturum açar
 
 | Betik | npm | Ne ölçer | Çıkış 1 |
 | --- | --- | --- | --- |
-| `rota-duman.mjs` | `rota:duman` | her `page.tsx` → HTTP 200, doğru kabuk, tek aktif öğe | kusurlu / test edilemeyen rota |
-| `gezinme-testi.mjs` | `gezinme:test` | yedi bantta kabuk içi + kabuklar arası gezinme, dokunmatik + klavye | gezinme kusuru |
+| `rota-duman.mjs` **(CI · bloklayıcı)** | `rota:duman` | her `page.tsx` → HTTP 200, doğru kabuk, tek aktif öğe | kusurlu / test edilemeyen rota |
+| `gezinme-testi.mjs` **(CI · bloklayıcı)** | `gezinme:test` | yedi bantta kabuk içi + kabuklar arası gezinme, dokunmatik + klavye | gezinme kusuru |
 | `tarama.mjs` | `tasarim:rota` | yatay taşma · eski sınıf · boş ekran · sayfa hatası (`EN=1440,1024,768,375` çok bant) | kusurlu rota |
 | `lighthouse.mjs` | `kalite:lighthouse` | 4 kategori puanı, `/giris` + 4 kanonik rota | eşik (90) altı |
 | `gorsel-regresyon.mjs` | `tasarim:gorsel` | 8 rota × 2 bant, altın görüntüyle piksel farkı | fark > %0,5 ya da altın yok |
@@ -113,6 +127,7 @@ kabukta). Hepsi tohum geliştirme girişiyle oturum açar
 | `yatay-tasma.mjs` **(CI · bloklayıcı)** | `tasarim:tasma` | 375 + 768'de **üç kusur türü**: sayfa yana kayıyor mu · `overflow: hidden` kabında sessizce kırpılan içerik var mı · akış içi iki taşıyıcı üst üste biniyor mu | izin listesinde olmayan ya da tavanı aşan bulgu |
 | `dizustu.mjs` | `tasarim:dizustu` | 1366×768'de kaydırılamayan (kırpılan) içerik var mı | kırpılan öğe |
 | `marka-kapisi.mjs` | `marka:kapi` | ürün adı tek kaynaktan mı geliyor: nöbetçi adla statik demo derlemesi koşar, üretilen çıktıya bakar (tarayıcı istemez) | varsayılan ad işlenmiş yüzeyde geçiyor **ya da** nöbetçi görünmesi gereken yüzeyde yok |
+| `kapi-farki.mjs` **(CI · bloklayıcı)** | `kapi:farki` | `package.json` betikleri ile PR kapısında koşanların farkı — tarayıcı istemez | beyansız betik (ne koşuyor ne gerekçeli) ya da bayat beyan |
 | `turkiye-siniri.mjs` | `harita:sinir` | üretir (kapı değil): Natural Earth'ten Türkiye silüeti | kaynak/öznitelik bulunamadı |
 | — | `test:kapsam` | vitest V8 kapsamı (`lib/**`, ekran `mantik.ts`/`ortak.ts`, `components/**`) | test kırığı |
 
@@ -145,6 +160,58 @@ her zaman dolu), gövdesi boş çıkar; giriş ekranının hero metni bu kapıda
 **Yan etki.** Derleme nöbetçi adla yapıldığı için kapı bitince `out/` ve
 `.next` silinir — nöbetçi bir derlemenin yayımlanması ürün adının yanlış
 görünmesi demektir. Sonraki gerçek derleme sıfırdan koşar.
+
+### `kapi-farki.mjs` — koşmayan kapı, kırıldığını bildiremez
+
+`package.json`'daki her betiği PR kapısında GERÇEKTEN koşanla
+karşılaştırır. Üç durumdan biri:
+
+| Durum | Ne demek |
+| --- | --- |
+| `adıyla` | iş akışında `npm run <ad>` (ya da `test` için `npm test`) geçiyor |
+| `kapsanıyor` | betiğin BÜTÜN araç çağrıları CI'da koşuyor (`tasarim:kontrast` `tasarim:kapi` içinde koşar) |
+| `koşmuyor` | ikisi de değil — o zaman BEYAN edilmiş olmalı |
+
+Beyansız betik kapıyı KIRMIZI yakar. Yeni bir kapı yazıp CI'ya bağlamayı
+unutmak artık sessiz değil; unutmak da bir karar hâline geldi ve
+gerekçesi yazılıyor.
+
+**Kimlik dosya + BAYRAK'tır.** Ölçüldü: `sayimlar:yenile` (`--yaz`) ile
+`sayimlar:denetle` (`--denetle`) aynı dosyayı çağırır ama biri envanteri
+YAZAR, öbürü DENETLER. Yalnız dosya adına bakan ilk kural, denetleyici
+CI'ya bağlandığı anda yazıcıyı da "koşuyor" saydı — kapsama kuralının
+kendi yanlış pozitifi. `tests/kapi-farki.test.ts` bunu vaka olarak tutar.
+
+**Yorum satırları ayıklanır.** Yorumlanmış bir `npm run` satırı "koşuyor"
+sayılsaydı, bir kapıyı yorum içine alıp beyandan da kaçırmak mümkün
+olurdu.
+
+**Elle sayım yanlış çıktı — o yüzden araç var.** Bu araç yazılmadan önce
+fark elle sayıldı: 21. Yapısal ölçüm "kapı olup PR kapısında koşmayan"
+için 18 buldu ve elle sayımın üç ayrı hatasını gösterdi:
+
+  · `tasarim:kontrast` · `tasarim:font` · `tasarim:iz` **koşmuyor**
+    sayılmıştı — üçü de `tasarim:kapi` zincirinde koşuyor, yalnız iş
+    akışında ADLARI geçmiyor;
+  · `sayimlar:yenile` · `harita:sinir` **kapı** sayılmıştı — ikisi de
+    üretici, ölçmez;
+  · `demo:build` · `olcum:yuk` listede hiç yoktu.
+
+"Tahmin değil sayı" demek, sayının da ölçülmüş olmasını gerektiriyor.
+
+**BUGÜNKÜ SAYI** (7 Eylül 2026, iki duman kapısı bağlandıktan sonra):
+
+    betik toplamı            40
+    PR kapısında koşuyor     20   (12 adıyla · 8 kapsanıyor)
+    koşmuyor · KAPI DEĞİL     9   (üretici · işletim · geliştirme)
+    koşmuyor · KAPI          11   ← ölçülen fark
+
+On birin dokuzu canlı sunucu ister; ikisi (`test:kapsam` ·
+`tasarim:erisim`) başka gerekçeyle bekliyor. Her biri
+`arac/kapi-farki.mjs` BEYAN tablosunda, gerekçesiyle. Liste yalnız
+küçülmeli: bir satırın silinmesi o betiğin CI'ya bağlandığı anlamına
+gelir, ve bağlanmışsa beyanı kalırsa kapı "BAYAT BEYAN" diye kırmızı
+yanar.
 
 ### `kosu-ortak.mjs` · `kalite-kurallari.mjs`
 

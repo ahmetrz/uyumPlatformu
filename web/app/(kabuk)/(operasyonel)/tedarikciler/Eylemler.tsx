@@ -166,7 +166,7 @@ function OturumKarari({ oturum }: { oturum: OturumSatiri }) {
   if (!oturum.kararVerebilir) {
     return (
       <p className="ab-panel-dip" style={{ margin: 0 }}>
-        Bu oturumun santral kapsamında karar yetkiniz yok.
+        Bu oturumun tesis kapsamında karar yetkiniz yok.
       </p>
     );
   }
@@ -271,7 +271,7 @@ export function ErisimOturumlari({ t }: { t: T }) {
                 </span>
                 <span style={{ fontSize: 'var(--t-label)', color: 'var(--i3)',
                   marginLeft: 'auto' }}>
-                  {s.tesisKod ?? 'santral kaydı yok'} · {s.kaynakSistem} · {s.durum}
+                  {s.tesisKod ?? 'tesis kaydı yok'} · {s.kaynakSistem} · {s.durum}
                 </span>
               </div>
 

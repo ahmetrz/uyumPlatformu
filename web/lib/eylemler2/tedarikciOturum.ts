@@ -3,7 +3,9 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { db } from '../db';
-import { yetkiZorunlu, kapsamZorunlu, KAPSAM_SONRA } from '../erisim';
+import { yetkiZorunlu, kapsamZorunlu, izinliTesisIdleri, KAPSAM_SONRA } from '../erisim';
+import { kapsamAnahtari, kapsamSozlugu, tesisSozlugu } from '../dil/sozlukOku';
+import { t, tBas } from '../dil/terimler';
 import { tamam, hata, bosluksuz, type Sonuc } from './ortak';
 
 /* Tedarikçi erişim oturumu — İNSAN KARARI YÜZEYİ.
@@ -41,7 +43,7 @@ const KARAR_SOZU: Record<OturumKarari, string> = {
 /**
  * Uyumsuz bir oturum hakkında verilen insan kararını kaydeder.
  *
- * Kapsam: oturumun santralinde `envanter/yazma`. Santrali BİLİNMEYEN
+ * Kapsam: oturumun tesisinde `envanter/yazma`. Tesisi BİLİNMEYEN
  * (tesisId = null) oturum, ancak kapsamı sınırsız olan kullanıcının
  * kararına açıktır — `uyumsuzOturumlar` görünürlük kuralıyla birebir aynı.
  */
@@ -73,10 +75,18 @@ export async function oturumKarariKaydet(girdi: {
        ederken kapı onu uygulamıyordu. `kapsamZorunlu` normalleştirmeyi
        kendi yapar; mesaj iki durumda ayrı kalsın diye önden seçiliyor. */
     try {
+      /* Mesajlar sözlükten: ikisi de yetki kapısından SONRA kuruluyor,
+         kapsam belli. Bilinen tesiste KAYDIN kendi sözlüğü kullanılır
+         (`tesisSozlugu`) — en dar ve en doğru bağlam; tesisi bilinmeyen
+         oturumda böyle bir bağlam yok, kullanıcının KAPSAMI kullanılır. */
+      const sozluk = oturum.tesisId
+        ? await tesisSozlugu(oturum.tesisId)
+        : await kapsamSozlugu(kapsamAnahtari(izinliTesisIdleri(k, 'envanter')));
       kapsamZorunlu(k, 'envanter', 'yazma', { tesisId: oturum.tesisId },
         oturum.tesisId
-          ? 'Bu santral kapsamında yetkiniz yok'
-          : 'Santrali bilinmeyen oturumda karar vermek kapsamsız yetki ister');
+          ? `Bu ${t(sozluk, 'tesis')} kapsamında yetkiniz yok`
+          : `${tBas(sozluk, 'tesis', 'belirtme')} bilinmeyen oturumda karar vermek `
+            + 'kapsamsız yetki ister');
     } catch (e) {
       return { ok: false, hata: e instanceof Error ? e.message : 'Yetkiniz yok' };
     }

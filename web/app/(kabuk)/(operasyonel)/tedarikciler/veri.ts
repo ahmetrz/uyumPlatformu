@@ -5,7 +5,7 @@ import type { AktifKullanici } from '@/lib/auth';
 import { tumTedarikciOturumOzetleri } from '@/lib/entegrasyon/tedarikciOturum';
 import {
   UFUK,
-  type Bag, type OturumSatiri, type SantralBagi, type SertifikaOzeti, type T,
+  type Bag, type OturumSatiri, type TesisBagi, type SertifikaOzeti, type T,
 } from './ortak';
 
 /* O16 · Tedarikçiler — SUNUCU VERİSİ. Sayfadan ayrı bir modülde durur ki
@@ -15,8 +15,8 @@ import {
    Bu ekran daha önce `girisZorunlu()` dışında hiçbir kapsam uygulamıyordu:
    `db.tedarikci.findMany` tedarikçilerin BÜTÜN varlıklarını (ve o
    varlıkların tesislerini), `db.risk.findMany` de bütün açık riskleri
-   çekiyordu. Sonuç: yalnız A santraline yetkili bir kullanıcı, tedarikçi
-   ekranı üzerinden B santralinin varlık sayısını, santral adını/kodunu ve
+   çekiyordu. Sonuç: yalnız A tesisine yetkili bir kullanıcı, tedarikçi
+   ekranı üzerinden B tesisinin varlık sayısını, tesis adını/kodunu ve
    risk kayıtlarını görüyordu. Üç metrik de aynı kapsamsız sorgudan
    türediği için sayılar da sızıyordu — satır gizlense bile metrik
    "başka bir yerde bir şey var" diyordu.
@@ -24,18 +24,18 @@ import {
    Düzeltme TEK YERDE: her ilişki `izinliTesisIdleri(k, 'envanter')` ile
    daraltılır ve metrikler bu daraltılmış veriden hesaplanır.
 
-   ── SANTRALİ BİLİNMEYEN KAYIT ──────────────────────────────────────────
-   `lib/api/yetki.ts → tesisKapsamda` ile aynı kural: santrali `null` olan
+   ── TESİSİ BİLİNMEYEN KAYIT ──────────────────────────────────────────
+   `lib/api/yetki.ts → tesisKapsamda` ile aynı kural: tesisi `null` olan
    bir kayıt YALNIZ kapsamı sınırsız kullanıcıya görünür. Kapsamı
-   daraltılmış birine "hangi santralde olduğu bilinmeyen" bir varlığı ya da
+   daraltılmış birine "hangi tesiste olduğu bilinmeyen" bir varlığı ya da
    erişim oturumunu göstermek, sınırı sessizce delmek olurdu.
 
    ── TEDARİKÇİ KAYDININ KENDİSİ ─────────────────────────────────────────
-   `Tedarikci` şemada santrale bağlı DEĞİLDİR; grup seviyesinde bir
+   `Tedarikci` şemada tesise bağlı DEĞİLDİR; grup seviyesinde bir
    sisahak (ad, sözleşme, uzaktan erişim beyanı). Bu yüzden sicil satırı
-   gizlenmez; santrale bağlı olan HER ŞEY (varlık, santral bağı, sertifika,
+   gizlenmez; tesise bağlı olan HER ŞEY (varlık, tesis bağı, sertifika,
    risk, kontrol, erişim oturumu) daraltılır. Kapsam dışı bir tedarikçi
-   ekranda "bağlı varlık kaydı yok" olarak görünür — başka santralin
+   ekranda "bağlı varlık kaydı yok" olarak görünür — başka tesisin
    verisiyle değil. */
 
 const GUN = 86_400_000;
@@ -51,18 +51,18 @@ export type EkranVerisi = {
 
 export async function tedarikciEkranVerisi(k: AktifKullanici): Promise<EkranVerisi> {
   /* KAPSAMSIZ sorulur ve bu bilinçlidir — `modulYazabilir` DEĞİL.
-     `Tedarikci` şemada `tesisId` TAŞIMAZ: bir tedarikçi birçok santralin
+     `Tedarikci` şemada `tesisId` TAŞIMAZ: bir tedarikçi birçok tesisin
      varlığına bağlanır, yani kurumsal bir kayıttır. `tedarikciKaydet` de
      bu yüzden kapsamsız `yetkiZorunlu` ile korunur. Ekran gevşetilseydi
-     santral yöneticisine kaydedilmeyecek bir düğme gösterilirdi; ekranın
+     tesis yöneticisine kaydedilmeyecek bir düğme gösterilirdi; ekranın
      sunucudan GEVŞEK olması, dardan daha kötüdür.
      (Aynı bayrak sertifika formunu da açar; `sertifikaKaydet` kapısı da
      kapsamsızdır, yani ikisi ayrışmıyor.) */
   const yazabilir = izinVar(k, 'envanter', 'yazma');
   const izinli = izinliTesisIdleri(k, 'envanter');
 
-  /* İlişki süzgeci. `null` = tüm santraller; aksi hâlde yalnız izinli küme.
-     Santrali null olan varlık kapsamı daraltılmış kullanıcıya GÖRÜNMEZ. */
+  /* İlişki süzgeci. `null` = tüm tesisler; aksi hâlde yalnız izinli küme.
+     Tesisi null olan varlık kapsamı daraltılmış kullanıcıya GÖRÜNMEZ. */
   const varlikKapsami = izinli === null ? {} : { tesisId: { in: izinli } };
 
   const [tedarikciler, sertifikalar, riskler, oturumOzetleri] = await Promise.all([
@@ -114,8 +114,8 @@ export async function tedarikciEkranVerisi(k: AktifKullanici): Promise<EkranVeri
     (d === null ? null : Math.ceil((d.getTime() - simdi.getTime()) / GUN));
 
   const veri: T[] = tedarikciler.map((t) => {
-    /* Santraller varlıklardan türetilir: aynı tesise düşen varlıklar toplanır. */
-    const tesisHarita = new Map<string, SantralBagi>();
+    /* Tesisler varlıklardan türetilir: aynı tesise düşen varlıklar toplanır. */
+    const tesisHarita = new Map<string, TesisBagi>();
     for (const v of t.varliklar) {
       if (!v.tesis) continue;
       const mevcut = tesisHarita.get(v.tesis.id);
@@ -200,7 +200,7 @@ export async function tedarikciEkranVerisi(k: AktifKullanici): Promise<EkranVeri
         bilinmeyenler: d.bilinmeyenler,
         talepReferansi: d.oturum.talepReferansi,
         kayitReferansi: d.oturum.kayitReferansi,
-        // Karar eylemi ile AYNI kapı: envanter/yazma + oturumun santral kapsamı.
+        // Karar eylemi ile AYNI kapı: envanter/yazma + oturumun tesis kapsamı.
         kararVerebilir: izinVar(k, 'envanter', 'yazma', { tesisId: d.oturum.tesisId }),
       }));
 
@@ -212,7 +212,7 @@ export async function tedarikciEkranVerisi(k: AktifKullanici): Promise<EkranVeri
       uzaktanErisimVar: t.uzaktanErisimVar,
       uzaktanErisimYontemi: t.uzaktanErisimYontemi,
       oturumKaydiVar: t.oturumKaydiVar,
-      santraller: [...tesisHarita.values()],
+      tesisler: [...tesisHarita.values()],
       varlikSayisi: t.varliklar.length,
       kritikVarlikSayisi: t.varliklar.filter((v) => v.kritiklik === 'kritik').length,
       sozlesmeler: t.sozlesmeler.map((s) => ({

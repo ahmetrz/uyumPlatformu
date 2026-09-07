@@ -93,6 +93,7 @@ kurum sistemine giden hiçbir şey yoktur.
 | `erisim-axe.mjs` | `tasarim:axe` | axe-core WCAG 2 A/AA, rotalar.json'daki tüm rotalar | ciddi/kritik ihlal |
 | `yatay-tasma.mjs` | `tasarim:tasma` | 375 + 768'de her rota yana kayıyor mu, taşmayı üreten öğe kim | taşan rota |
 | `dizustu.mjs` | `tasarim:dizustu` | 1366×768'de kaydırılamayan (kırpılan) içerik var mı | kırpılan öğe |
+| `iki-sozluk.mjs` | `kapi:iki-sozluk` | üç düzen kapısını (tasma · dizüstü · axe) İKİ sektör sözlüğüyle koşar; kusurun hangi sözlükte çıktığını söyler | herhangi bir sözlükte kusur |
 | `marka-kapisi.mjs` | `marka:kapi` | ürün adı tek kaynaktan mı geliyor: nöbetçi adla statik demo derlemesi koşar, üretilen çıktıya bakar (tarayıcı istemez) | varsayılan ad işlenmiş yüzeyde geçiyor **ya da** nöbetçi görünmesi gereken yüzeyde yok |
 | `turkiye-siniri.mjs` | `harita:sinir` | üretir (kapı değil): Natural Earth'ten Türkiye silüeti | kaynak/öznitelik bulunamadı |
 | — | `test:kapsam` | vitest V8 kapsamı (`lib/**`, ekran `mantik.ts`/`ortak.ts`, `components/**`) | test kırığı |
@@ -310,6 +311,54 @@ Bugünkü ölçüm: **38 rota · kırpılan öğe 0 · yatay taşan rota 0.**
 PORT=3210 npm run tasarim:dizustu
 PORT=3210 node arac/dizustu.mjs --rota=/,/portfoy
 ```
+
+### `iki-sozluk.mjs` · `sozluk-takas.mjs` · `sozluk-kipi.mjs`
+
+Bir yüzey ailesi terim sözlüğüne geçtiğinde (P1 · Aşama E) **render edilen
+metin değişir**. Elle tıklayıp bakmak değerli ama taşmayı gözle değil
+ÖLÇEREK görüyoruz — ve bugüne kadarki bütün düzen ölçümleri referans
+kiracının KISA sözlüğüyle yapıldı: "santral" 7 harf, "arıtma tesisi" 13.
+Yani düzeni iki sözlüğün kolayına karşı doğruluyorduk. **Uzun sözlükte
+taşan bir düzen bugün kusurludur**; kısa sözlükle yeşil görünmesi kusuru
+düzeltmez, ikinci kiracıya erteler.
+
+```
+PORT=3210 npm run kapi:iki-sozluk -- --rota=/yedekleme
+```
+
+Üç kapıyı her sözlük için ayrı koşar ve şunu yazar:
+
+| Sonuç | Okuması |
+| --- | --- |
+| yalnız `su` kusurlu | sözcük uzunluğunun ürettiği kusur — o dilimin işi |
+| iki sözlükte de kusurlu | sözlükten bağımsız kusur (çoğu zaman eski) |
+
+`dizustu` bu üçlüde ayrı bir kapı, çünkü uzun sözlüğün en olası kusur
+biçimi yatay kayma DEĞİL **sessiz kırpılmadır**: `table-layout: fixed` +
+`overflow: hidden` taşan sözcüğü keser, sayfa yana kaymaz, `yatay-tasma`
+yeşil kalır. `rota-duman` bilerek dışarıda: rota süzgeci yok ve ölçtüğü
+şey düzen değil, rotanın ayakta olup olmadığı.
+
+**Takas nerede olur.** `SektorSozlugu` satırlarında ve yalnız ölçüm
+süresince (`sozluk-takas.mjs`; geri yükleme `finally` içinde). Kiracı,
+tesis, tip ve sektör kayıtlarına dokunulmaz — ölçülen şey aynı veri, aynı
+rota, yalnız daha uzun sözcük. Ürün kodunda sözlüğü ezen bir ortam
+değişkeni **yoktur ve olmamalıdır**: kiracının dilini bir bayrakla
+değiştirebilmek, yanlış sözcükle çalışan bir kurulum demektir.
+
+Rapor her koşumda `'tesis'` teriminin o an veritabanındaki hâlini yazar.
+Takas ekrana ulaşmadıysa "temiz" yanlış sözlüğü ölçmüş olurdu; kapı bunu
+görür ve ölçümü geçersiz sayar (çıkış 2).
+
+`sozluk-kipi.mjs` tek sözlükle ad-hoc koşum için ince kabuktur
+(`npx tsx arac/sozluk-kipi.mjs su -- node arac/dizustu.mjs --rota=/x`).
+
+**Ölçüldü (7 Eyl 2026).** Gerçek su sözlüğü ve 51 harflik kurgusal bir
+gövde düzeni bozmadı: eyebrow sarıyor, tablo kolonu esniyor, kutusuna
+sığmayan metin öğesi 0. Kapının kırmızı yanabildiği ayrıca ölçüldü:
+**boşluksuz** 31 harflik gövdeyle `/sistem/bilesenler` 375px'te 48px yana
+kaydı ve rapor "YALNIZ su" dedi. Düzen, sektör teriminin **sarılabilir**
+olmasına bağlı — bugün sevk edilen bir kusur değil, kayıtlı bir bağımlılık.
 
 ### `erisim-axe.mjs`
 

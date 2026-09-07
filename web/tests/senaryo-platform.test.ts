@@ -144,6 +144,35 @@ describe('Duyarlı yerleşim kapısı', () => {
     expect(paket.scripts['tasarim:tasma']).toContain('yatay-tasma');
     expect(paket.scripts['tasarim:dizustu']).toContain('dizustu');
   });
+
+  it('düzen kapıları İKİ sektör sözlüğüyle koşabilir [SIS-RSP-001]', () => {
+    /* Düzen bugüne kadar hep referans kiracının KISA sözlüğüyle ölçüldü
+       ("santral" 7 harf); ikinci sözlük bileşik gövde kullanır ("arıtma
+       tesisi" 13 harf) ve aynı yerde ~%60 fazla yer ister. Kısa sözlükle
+       yeşil bir düzen, uzun sözlükte taşıyorsa BUGÜN kusurludur.
+
+       Tarayıcı ölçümünün kendisi burada koşmaz; vitest'in ölçebileceği
+       şey kapının var olduğu ve İKİ sözlüğü de gerçekten koştuğudur.
+       Kapı listeden düşerse ya da tek sözlüğe inerse ölçüm sessizce
+       kısalır ve kimse fark etmez. */
+    const iki = readFileSync(path.join(KOK, 'arac/iki-sozluk.mjs'), 'utf8');
+    for (const kapi of ['yatay-tasma', 'dizustu', 'erisim-axe']) {
+      expect(iki, `${kapi} iki-sözlük kapısında yok`).toContain(kapi);
+    }
+    for (const sozluk of ['enerji', 'su']) {
+      expect(iki, `${sozluk} sözlüğü kapıda yok`).toContain(sozluk);
+    }
+
+    /* Takas ürün koduna SIZMAZ: sözlüğü ezen bir ortam değişkeni yok.
+       Olsaydı yanlış sözcükle çalışan bir kurulum mümkün olurdu. */
+    const takas = readFileSync(path.join(KOK, 'arac/sozluk-takas.mjs'), 'utf8');
+    expect(takas).toContain('finally');
+    const okuyucu = readFileSync(path.join(KOK, 'lib/dil/sozlukOku.ts'), 'utf8');
+    expect(okuyucu).not.toMatch(/process\.env/);
+
+    const paket = JSON.parse(readFileSync(path.join(KOK, 'package.json'), 'utf8'));
+    expect(paket.scripts['kapi:iki-sozluk']).toContain('iki-sozluk');
+  });
 });
 
 /* ── Ekran dili ─────────────────────────────────────────────────────── */

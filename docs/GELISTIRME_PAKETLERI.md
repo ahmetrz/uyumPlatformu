@@ -389,6 +389,42 @@ görür, su kiracısı "tesis / m³/gün".
   (`JEO` · `RES` · `HES` · `GES` · `DGKC` · `MERKEZ`; sunumda `TERMIK`). İkinci sözlük **iskeleti** (su/atıksu ya da
   kullanıcının seçtiği sektör) yalnız anahtar listesiyle.
 
+- *Düzen kapıları İKİ SÖZLÜKLE koşar (Aşama E · aile başına):* bir yüzey
+  ailesi sözlüğe geçtiğinde render edilen metin değişir; elle tıklayıp
+  bakmak değerli ama **taşmayı gözle değil ölçerek** görüyoruz. Üstelik
+  bugüne kadarki bütün düzen ölçümleri referans kiracının **kısa**
+  sözlüğüyle yapıldı ("santral", 7 harf); ikinci sözlük bileşik gövde
+  kullanır ("arıtma tesisi", 13 harf) ve aynı yerde ~%60 daha fazla yer
+  ister. Yani düzeni iki sözlüğün KOLAYINA karşı doğruluyorduk. Uzun
+  sözlükte taşan bir düzen **bugün kusurludur**; kısa sözlükle yeşil
+  görünmesi kusuru düzeltmez, ikinci kiracıya erteler.
+
+  `npm run kapi:iki-sozluk -- --rota=…` üç düzen kapısını (`yatay-tasma` ·
+  `dizustu` · `erisim-axe`) her sözlük için ayrı koşar ve kusurun **hangi
+  sözlükte** çıktığını yazar: yalnız uzun sözlükte → sözcük uzunluğunun
+  ürettiği kusur, o dilimin işi; iki sözlükte de → sözlükten bağımsız.
+  Takas `SektorSozlugu` satırlarında ve **yalnız ölçüm süresince** olur
+  (`arac/sozluk-takas.mjs`); ürün kodunda sözlüğü ezen bir bayrak yok ve
+  olmamalı — kiracının dilini ortam değişkeniyle değiştirebilmek, yanlış
+  sözcükle çalışan bir kurulum demektir. Rapor her koşumda takasın
+  gerçekten **ekrana ulaştığını** da yazar; ulaşmadıysa "temiz" yanlış
+  sözlüğü ölçmüş olurdu ve kapı ölçümü geçersiz sayar.
+
+  `dizustu` bu üçlüde ayrı bir kapı olarak duruyor, çünkü uzun sözlüğün en
+  olası kusur biçimi yatay kayma değil **sessiz kırpılmadır**:
+  `table-layout: fixed` + `overflow: hidden` taşan sözcüğü keser, sayfa
+  yana kaymaz ve `yatay-tasma` yeşil kalır.
+
+  > **Ölçüldü (7 Eyl 2026).** Düzen, gerçek su sözlüğünü ve 51 harflik
+  > kurgusal bir gövdeyi taşıyor: eyebrow sarıyor, tablo kolonu esniyor,
+  > kutusuna sığmayan metin öğesi 0. Kapının kırmızı yanabildiği de
+  > ölçüldü: **boşluksuz** 31 harflik bir gövdeyle `/sistem/bilesenler`
+  > 375px'te 48px yana kaydı (`div.sag`) ve rapor "YALNIZ su" dedi.
+  > Yani düzen sektör teriminin **sarılabilir** olmasına bağlı; bugün
+  > sevk edilen bir kusur değil, kayıtlı bir bağımlılık. Boşluksuz
+  > bileşik ad kullanan bir sektör paketi gelirse (Almanca tarzı) o rota
+  > önce kırılır.
+
 **Kapsam dışı.** Sektöre özgü motor mantığı (yok — motorlar özniteliğe
 bakar); tesis tipi görselleri (P8); dil çevirisi (P3 — bu paket yalnız TR
 sözlük katmanını kurar).

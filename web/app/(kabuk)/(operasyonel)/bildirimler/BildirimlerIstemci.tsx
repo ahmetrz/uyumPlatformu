@@ -1,6 +1,7 @@
 'use client';
 import { useMemo, useState } from 'react';
-import { useTerim } from '@/lib/dil/SozlukSaglayici';
+import { useSozluk, useTerim } from '@/lib/dil/SozlukSaglayici';
+import { terim } from '@/lib/dil/terimler';
 import { useUrlDurumu, useUrlDurumuBos } from '@/components/kabuk/urlDurumu';
 import Link from 'next/link';
 import { BosFiltre, BosIlk, Dugme } from '@/components/kabuk/temel';
@@ -13,7 +14,7 @@ import { useEylem } from '@/components/useEylem';
 import { bildirimOkundu } from '@/lib/eylemler2/bildirim';
 import { tarihTR, zamanTR } from '@/lib/sabitler';
 import {
-  GORUNUR_TAVAN, KAYNAK_HAL_SOZU, KAYNAK_SOZU, MERCEKLER, TIP_SOZU,
+  GORUNUR_TAVAN, KAYNAK_SOZU, MERCEKLER, TIP_SOZU, kaynakHalSozu,
   bekleyenGun, bildirimImi, bildirimKenari, ekranHali, mercekten, okunmamisMi,
   sayimHesapla, sirala, toplanabilir,
   type BildirimSatiri, type Mercek,
@@ -55,6 +56,7 @@ export default function BildirimlerIstemci({
   /** sunucu saati — "kaç gündür okunmadı" tek yerden ölçülür */
   simdi: number;
 }) {
+  const halSozu = kaynakHalSozu(terim(useSozluk(), 'tesis'));
   const { t } = useTerim();
   const { bekliyor, hata, calistir } = useEylem();
   const [mercek, setMercek] = useUrlDurumu<Mercek>('mercek', 'okunmamis');
@@ -209,7 +211,7 @@ export default function BildirimlerIstemci({
               { etiket: `Kaynağın bağlı olduğu ${t('tesis')}`,
                 deger: secim.kaynakHali === 'kapsamda'
                   ? secim.tesisKodu ?? `${t('tesis')} taşımıyor`
-                  : KAYNAK_HAL_SOZU[secim.kaynakHali],
+                  : halSozu[secim.kaynakHali],
                 durum: secim.kaynakHali === 'kapsamda' ? undefined : 'unk' },
               { etiket: 'Yazıldı', deger: zamanTR(secim.olusturuldu) },
               { etiket: 'Okundu',
@@ -235,7 +237,7 @@ export default function BildirimlerIstemci({
               </Link>
             ) : (
               <p className="ab-dip" style={{ margin: 0 }}>
-                {KAYNAK_HAL_SOZU[secim.kaynakHali]} — bildirim size yazıldığı için
+                {halSozu[secim.kaynakHali]} — bildirim size yazıldığı için
                 listede kalır, kayda giden bağ verilmez.
               </p>
             )}

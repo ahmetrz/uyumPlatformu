@@ -14,11 +14,11 @@ export const metadata: Metadata = { title: 'Çapraz eşleme' };
    `tanimlar` modülünden gelir. Yalnız YAPRAK maddeler eşleştirilir: bir
    bölüm başlığı kanıt taşımaz, dolayısıyla denkliği de olmaz.
 
-   SANTRAL KAPSAMI: bu ekran BİLEREK kapsamsızdır, çünkü madde–madde denkliği
+   TESİS KAPSAMI: bu ekran BİLEREK kapsamsızdır, çünkü madde–madde denkliği
    iki regülasyon arasındaki kurum geneli bir iddiadır — `MaddeEslestirmesi`
    şemada `tesisId` taşımaz ve "ISO 27001 A.8.1 ≙ EPDK 5.2" cümlesi
-   santralden santrale değişmez; santrale bağlanan şey denklik değil, o
-   maddelerin santraldeki değerlendirmesidir. */
+   tesisten tesise değişmez; tesise bağlanan şey denklik değil, o
+   maddelerin tesisteki değerlendirmesidir. */
 
 export default async function Sayfa() {
   const kullanici = await girisZorunlu();

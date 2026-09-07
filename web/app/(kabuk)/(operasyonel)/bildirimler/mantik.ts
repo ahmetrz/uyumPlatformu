@@ -1,4 +1,5 @@
 import type { Durum } from '@/components/kabuk/temel';
+import { CEKIRDEK_TERIMLER, type Terim } from '@/lib/dil/terimler';
 
 /* O25 · Bildirim kutusu — saf türetme katmanı.
 
@@ -12,12 +13,12 @@ import type { Durum } from '@/components/kabuk/temel';
       aynı kuralı yeniden uygular; buradaki hiçbir hesap güvenlik sınırı
       değildir.
    2. KAYNAK KAPSAMI AYRI BİR SORUDUR. Bildirimin kendisi kullanıcıya
-      yazılmıştır, ama işaret ettiği KAYIT bir santrale ait olabilir ve
-      kullanıcının o santral için okuma yetkisi bugün olmayabilir (yetki
+      yazılmıştır, ama işaret ettiği KAYIT bir tesise ait olabilir ve
+      kullanıcının o tesis için okuma yetkisi bugün olmayabilir (yetki
       bildirimden sonra daraltılmış olabilir). O durumda satır listede
       KALIR — kullanıcıya gerçekten gönderilmiş bir uyarıyı silmek kaydı
       yok saymak olurdu — ama kayda GİDEN BAĞ verilmez.
-   3. BİLİNMEYEN ≠ SIFIR. Kaynağı çözülemeyen bildirimin santrali
+   3. BİLİNMEYEN ≠ SIFIR. Kaynağı çözülemeyen bildirimin tesisi
       "kapsam dışı" DEĞİL, "bilinmiyor"dur; okunmamış bildirim yokken
       "en eski okunmamış" sıfır gün değil, ölçülecek bir şey yok demektir. */
 
@@ -41,19 +42,23 @@ export const KAYNAK_SOZU: Record<string, string> = {
 };
 
 /**
- * Kaynak kaydın santral kapsamı karşısındaki hâli — ÜÇ değer, ikisi değil.
+ * Kaynak kaydın tesis kapsamı karşısındaki hâli — ÜÇ değer, ikisi değil.
  * `kapsamda`  = kayıt çözüldü ve kullanıcının kapsamında,
  * `kapsamDisi`= kayıt çözüldü ve kapsamın dışında (bağ verilmez),
- * `bilinmiyor`= kaynak hiç çözülemedi (tür yok, kayıt silinmiş, santral
+ * `bilinmiyor`= kaynak hiç çözülemedi (tür yok, kayıt silinmiş, tesis
  *               taşımayan tür). Bu SIFIR ya da "kapsam dışı" DEĞİLDİR.
  */
 export type KaynakHali = 'kapsamda' | 'kapsamDisi' | 'bilinmiyor';
 
-export const KAYNAK_HAL_SOZU: Record<KaynakHali, string> = {
+/** Kaynak hâli sözü; terim ÇAĞIRANDAN gelir (modül `db` bilmez).
+    Varsayılan çekirdek — sözlüksüz çağrı metni boş bırakmaz. */
+export const kaynakHalSozu = (
+  tesis: Terim = CEKIRDEK_TERIMLER.tesis,
+): Record<KaynakHali, string> => ({
   kapsamda: 'kayda gidilebilir',
-  kapsamDisi: 'kaynak kayıt santral kapsamınız dışında',
-  bilinmiyor: 'kaynak kayıt çözülemedi — santrali bilinmiyor',
-};
+  kapsamDisi: `kaynak kayıt ${tesis.tekil} kapsamınız dışında`,
+  bilinmiyor: `kaynak kayıt çözülemedi — ${tesis.belirtme} bilinmiyor`,
+});
 
 /* ═══ Serileştirilmiş kayıt ═══════════════════════════════════════════ */
 
@@ -70,7 +75,7 @@ export type BildirimSatiri = {
   kaynakHali: KaynakHali;
   /** yalnız `kaynakHali === 'kapsamda'` iken dolar */
   kaynakYolu: string | null;
-  /** kaynağın santral kodu — bilinmiyorsa null (sıfır değil) */
+  /** kaynağın tesis kodu — bilinmiyorsa null (sıfır değil) */
   tesisKodu: string | null;
 };
 
@@ -193,13 +198,13 @@ export function ekranHali(sayim: Sayim, toplam: number): {
  *
  * Girdi `lib/erisim.ts → izinliTesisIdleri(k, 'uyum')` çıktısıdır:
  *   null = kapsam sınırı yok · [] = hiçbir kapsamda uyum okuma yok ·
- *   dolu dizi = o santrallerde okuma var.
+ *   dolu dizi = o tesislerde okuma var.
  *
  * NEDEN `izinVar(k, 'uyum', 'okuma')` DEĞİL: o çağrı KAPSAMSIZ (kurum
- * geneli) bir işlem sorar ve `lib/erisim.ts → kapsamUyar` gereği santrale
- * KISITLI bir yetkiyi geçirmez. Bildirimin santrali yoktur — kutu kişiseldir
- * — ve bildirimleri asıl alan kullanıcılar (bir santralin bulgu/aksiyon
- * sorumluları) tam da santrale kısıtlı olanlardır. Kapıyı `izinVar` ile
+ * geneli) bir işlem sorar ve `lib/erisim.ts → kapsamUyar` gereği tesise
+ * KISITLI bir yetkiyi geçirmez. Bildirimin tesisi yoktur — kutu kişiseldir
+ * — ve bildirimleri asıl alan kullanıcılar (bir tesisin bulgu/aksiyon
+ * sorumluları) tam da tesise kısıtlı olanlardır. Kapıyı `izinVar` ile
  * kurmak, uyarıyı gönderdiğimiz insanları kutudan dışarıda bırakırdı.
  *
  * Yetki MODELİ burada değişmez: karar yine `izinliTesisIdleri`in, bu yalnız

@@ -24,17 +24,17 @@ export const metadata: Metadata = { title: 'Eşleme profilleri' };
    Kabuk (ray + çekmece kolonu) (operasyonel)/layout.tsx'ten gelir; burada
    UstCubuk ya da .icerik sarmalayıcısı YOK.
 
-   ─ YETKİ VE SANTRAL KAPSAMI ─────────────────────────────────────────────
+   ─ YETKİ VE TESİS KAPSAMI ─────────────────────────────────────────────
 
    Kapı `yonetim/okuma`; yayın `yonetim/yazma`. Eylemlerin kendisi de aynı
    izinleri ister — buradaki kontrol ekranı susturmak içindir, sınır orada.
 
-   SANTRAL KAPSAMI: eşleme profili KURUM GENELİ bir tanımdır; `EslemeProfili`
-   şemada `tesisId` TAŞIMAZ ve bir profil tüm santrallerin verisini
+   TESİS KAPSAMI: eşleme profili KURUM GENELİ bir tanımdır; `EslemeProfili`
+   şemada `tesisId` TAŞIMAZ ve bir profil tüm tesislerin verisini
    yorumlar. Bu yüzden burada `izinliTesisIdleri` ile daraltılacak bir
    sorgu yoktur — ve kapsam sessizce atlanmış da değildir: `izinVar` kapısı
-   `lib/erisim.ts → kapsamUyar` gereği santrale KISITLI bir yetkiyi
-   kapsamsız (global) `yonetim` işleminde zaten geçirmez. Yani A santraline
+   `lib/erisim.ts → kapsamUyar` gereği tesise KISITLI bir yetkiyi
+   kapsamsız (global) `yonetim` işleminde zaten geçirmez. Yani A tesisine
    kısıtlı bir kullanıcı bu ekranı hiç açamaz. Aynı gerekçe
    `/api/v1/integration-runs` ucunda da yazılıdır. */
 

@@ -68,7 +68,7 @@ export default function AktiviteIstemci({
   kayitlar: Kayit[]; simdi: number; pencere: number;
   /** kütüğün gerçek büyüklüğü — kesme SESSİZ kalmasın diye taşınır */
   toplam: number;
-  /** kütük bir santral kapsamıyla daraltıldı mı — boş ekranın SÖZÜ değişir */
+  /** kütük bir tesis kapsamıyla daraltıldı mı — boş ekranın SÖZÜ değişir */
   kapsamli?: boolean;
 }) {
   const [mercek, setMercek] = useUrlDurumu<string>('mercek', 'hepsi');

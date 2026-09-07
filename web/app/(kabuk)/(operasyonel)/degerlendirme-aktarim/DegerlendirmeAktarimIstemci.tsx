@@ -19,6 +19,7 @@ import {
   AKTARIM_IM, AKTARIM_SOZU, SUTUNLAR, aktarimOzeti, metniAyristir,
   ozetCumlesi, satirAlti, type AktarimSatiri,
 } from './mantik';
+import { useTerim } from '@/lib/dil/SozlukSaglayici';
 
 /* ═══ UY-43 · Değerlendirme aktarımı ekranı ═══════════════════════════
 
@@ -151,6 +152,7 @@ function KuruKosuFormu({ regulasyonlar, tesisler, kapat }: {
   tesisler: { id: string; kod: string; ad: string }[];
   kapat: () => void;
 }) {
+  const { tBas } = useTerim();
   const yenile = useRouter().refresh;
   const [bekliyor, basla] = useTransition();
   const [hata, setHata] = useState<string | null>(null);
@@ -194,7 +196,7 @@ function KuruKosuFormu({ regulasyonlar, tesisler, kapat }: {
             ))}
           </select>
         </Alan>
-        <Alan etiket="Santral" zorunlu>
+        <Alan etiket={tBas('tesis')} zorunlu>
           <select className="ab-gr" value={tesisId} disabled={bekliyor}
             onChange={(e) => setTesisId(e.target.value)}>
             {tesisler.map((t) => (

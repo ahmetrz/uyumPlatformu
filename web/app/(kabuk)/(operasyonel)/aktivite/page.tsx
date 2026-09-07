@@ -18,7 +18,7 @@ export const metadata: Metadata = { title: 'Denetim izi' };
 
    ERİŞİM KARARI ve gerekçesi `veri.ts`in başındadır — kısaca: modül kapısı
    `denetim/okuma` (denetçiyi ve yönetimi içeride tutar, operatör rollerini
-   dışarıda bırakır), santral kapsamı ise kaydın işaret ettiği santral
+   dışarıda bırakır), tesis kapsamı ise kaydın işaret ettiği tesis
    türetilebildiğinde uygulanır. Karar sessizce uygulanmasın diye orada
    uzun uzun yazılıdır. */
 

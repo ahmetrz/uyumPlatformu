@@ -33,18 +33,18 @@ import type { Kayit } from './mantik';
       dar olurdu ve dış denetçiyi (`dis_denetci`) dışarıda bırakırdı — yani
       kütüğü tam da onun için var olduğu kişiden alırdı.
 
-   2. SANTRAL KAPSAMI: kaydın işaret ettiği santral TÜRETİLEBİLİYORSA
+   2. TESİS KAPSAMI: kaydın işaret ettiği tesis TÜRETİLEBİLİYORSA
       kapsama uyulur; TÜRETİLEMİYORSA satır yalnız kapsamsız kullanıcıya
       görünür. Kural `lib/api/yetki.ts → tesisKapsamda` ile aynıdır
       (`app/kapsam.ts → kapsamda` onu aynen çağırır).
       Bu, "gizli olan gizli kalsın" tarafında hata yapar: bir madde ya da
-      regülasyon değişikliği santral taşımadığı için santrale kısıtlı bir
+      regülasyon değişikliği tesis taşımadığı için tesise kısıtlı bir
       denetçiye görünmez. Alternatifi — türetilemeyeni herkese göstermek —
-      kütüğü kapsam sınırından kaçmanın yolu yapardı: santralsiz bir
+      kütüğü kapsam sınırından kaçmanın yolu yapardı: tesissiz bir
       varlık tipi seçen her kayıt sınırın dışına düşerdi.
 
    `AktiviteKaydi` şemada `tesisId` TAŞIMAZ (varlikTipi + varlikId ile
-   işaret eder). Santral aşağıdaki TURETICILER tablosuyla, kayıt tipine
+   işaret eder). Tesis aşağıdaki TURETICILER tablosuyla, kayıt tipine
    göre tek sorguda çözülür.
    ═══════════════════════════════════════════════════════════════════════ */
 
@@ -57,11 +57,11 @@ export type EkranVerisi = {
   pencere: number;
   /** kütüğün gerçek büyüklüğü — pencerenin "hepsi bu" demesini engeller */
   toplam: number;
-  /** true = kütük bir santral kapsamıyla daraltıldı */
+  /** true = kütük bir tesis kapsamıyla daraltıldı */
   kapsamli: boolean;
 };
 
-/** Kayıt tipi → o tipteki id'lerin santralleri. `null` = türetilemedi. */
+/** Kayıt tipi → o tipteki id'lerin tesisleri. `null` = türetilemedi. */
 async function tesisleriCoz(
   kayitlar: { varlikTipi: string; varlikId: string }[],
 ): Promise<Map<string, (string | null)[]>> {
@@ -79,7 +79,7 @@ async function tesisleriCoz(
   };
 
   await Promise.all([
-    /* 'Tesis' kaydında varlikId SANTRALİN KENDİSİDİR — ayrı sorgu gerekmez,
+    /* 'Tesis' kaydında varlikId TESİSİN KENDİSİDİR — ayrı sorgu gerekmez,
        ama kaydın gerçekten var olduğunu doğrulamaya da gerek yoktur:
        kapsam kararı id üzerinden verilir. */
     (async () => {
@@ -125,9 +125,9 @@ async function tesisleriCoz(
     (async () => {
       const idler = id('Denetim');
       if (!idler.length) return;
-      /* Denetim birden çok santrali kapsayabilir: satır, kapsamındaki
-         santrallerden HERHANGİ BİRİ görünür olduğunda görünür. Kapsam
-         satırı hiç olmayan denetim ise santralsizdir — /denetimler'in
+      /* Denetim birden çok tesisi kapsayabilir: satır, kapsamındaki
+         tesislerden HERHANGİ BİRİ görünür olduğunda görünür. Kapsam
+         satırı hiç olmayan denetim ise tesissizdir — /denetimler'in
          "portföy geneli" istisnası kütüğe TAŞINMAZ, çünkü orada istisnanın
          gerekçesi kaydın kaybolmaması, burada ise kütüğün kapsam
          sınırından kaçış yolu olmamasıdır. */
@@ -155,13 +155,13 @@ async function tesisleriCoz(
   return sonuc;
 }
 
-/** Satır görünür mü? Türetilemeyen santral `tesisKapsamda(kapsam, null)` gibi işlenir. */
+/** Satır görünür mü? Türetilemeyen tesis `tesisKapsamda(kapsam, null)` gibi işlenir. */
 function satirGorunur(
   kapsam: TesisKapsami,
   tesisler: (string | null)[] | undefined,
 ): boolean {
   if (kapsam === null) return true;
-  // Türetilemeyen (tanınmayan tip / silinmiş hedef) kayıt: santrali BİLİNMİYOR.
+  // Türetilemeyen (tanınmayan tip / silinmiş hedef) kayıt: tesisi BİLİNMİYOR.
   if (!tesisler || tesisler.length === 0) return kapsamda(kapsam, null);
   return tesisler.some((t) => kapsamda(kapsam, t));
 }

@@ -16,9 +16,9 @@ export const metadata: Metadata = { title: 'Değerlendirme aktarımı' };
 
    ── /ice-aktarim'DAN NEDEN AYRI ───────────────────────────────────────
    O ekran regülasyonun MADDE metnini aktarır ve BİLEREK kapsamsızdır:
-   madde kataloğu bütün santraller için ortaktır. Bu ekran kurumun o
-   maddelere verdiği CEVABI aktarır ve cevap santrale özeldir — bu yüzden
-   santral kapsamına tabidir. İkisini aynı ekrana koymak, kapsamsız bir
+   madde kataloğu bütün tesisler için ortaktır. Bu ekran kurumun o
+   maddelere verdiği CEVABI aktarır ve cevap tesise özeldir — bu yüzden
+   tesis kapsamına tabidir. İkisini aynı ekrana koymak, kapsamsız bir
    yüzeyle kapsamlı bir yüzeyi aynı kapının arkasına almak olurdu.
 
    ── KURU KOŞU BİR SEÇENEK DEĞİL, BİR ADIMDIR ──────────────────────────
@@ -27,7 +27,7 @@ export const metadata: Metadata = { title: 'Değerlendirme aktarımı' };
    bir işlem, sonucu görülmeden yapılamaz.
 
    ── KAPSAM ────────────────────────────────────────────────────────────
-   Kütük yalnız kullanıcının kapsamındaki santrallerin aktarımlarını
+   Kütük yalnız kullanıcının kapsamındaki tesislerin aktarımlarını
    gösterir; kapsam dışı kayıt SAYILMAZ ve gösterilmez. Sunucu eylemi
    kapıyı ayrıca uygular — ekranın filtrelemesi bir kolaylıktır, kapı
    değildir. */

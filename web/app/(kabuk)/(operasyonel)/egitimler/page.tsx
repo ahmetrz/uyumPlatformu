@@ -12,7 +12,7 @@ export const metadata: Metadata = { title: 'Eğitim kütüğü' };
 /* ═══ UY-66 · Eğitim ve farkındalık ═══════════════════════════════════
 
    ── EKRAN KAPSAMSIZDIR ────────────────────────────────────────────────
-   Eğitim kişiye bağlıdır, santrale değil: bir kişi birden çok santralde
+   Eğitim kişiye bağlıdır, tesise değil: bir kişi birden çok tesiste
    çalışabilir ve eğitimi hepsinde geçerlidir. Bu yüzden `kapsamKosulu`
    KULLANILMAZ; kapsam filtresi olmayan her ekran gibi gerekçesi burada.
 

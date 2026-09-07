@@ -37,6 +37,7 @@ import {
   surukleyenAksiyon,
   type AksiyonOzeti,
 } from '../mantik';
+import { useTerim } from '@/lib/dil/SozlukSaglayici';
 
 /** Kayıt ekranındaki aksiyon: özet + görev ayrılığı için sorumlu kimliği. */
 export type AksiyonKaydi = AksiyonOzeti & { sorumluId: string | null };
@@ -91,6 +92,7 @@ export default function BulguDetayIstemci({ veri, esik = KANIT_ESIK_VARSAYILAN }
   /** kanıt tazelik eşiği — sunucudan (`kanitEsikleri()`), Kanıt kütüphanesiyle aynı kaynak */
   esik?: KanitEsik;
 }) {
+  const { tBas } = useTerim();
   const { bekliyor, hata, calistir } = useEylem();
   const [panel, setPanel] = useState(true);
   const [kip, setKip] = useState<'kayit' | 'iz'>('kayit');
@@ -312,7 +314,7 @@ export default function BulguDetayIstemci({ veri, esik = KANIT_ESIK_VARSAYILAN }
 
                   <CekmeceAlanlar alanlar={[
                     { etiket: 'Madde', deger: veri.madde.kod },
-                    { etiket: 'Santral', deger: veri.tesis.ad },
+                    { etiket: tBas('tesis'), deger: veri.tesis.ad },
                     { etiket: 'Kök neden', deger: veri.kokNeden ?? 'kayıt yok' },
                     { etiket: 'Retest', deger: veri.retestGerekli
                       ? (veri.retestSonucu ? 'Gerekli · sonuç girildi' : 'Gerekli · sonuç bekliyor')
@@ -1031,7 +1033,7 @@ function KokNedenBlogu({ veri, bekliyor, calistir, acik, ac }: {
 
 /* ═══ UY-28 · Tekrar zinciri ═════════════════════════════════════════
 
-   Zincir aynı KONTROL (madde × santral) üzerindeki bütün bulgulardan
+   Zincir aynı KONTROL (madde × tesis) üzerindeki bütün bulgulardan
    kurulur, bulgunun kendi bağını yukarı yürüyerek DEĞİL: motorun ya da
    insanın bağ kurmayı atladığı bir halka da görünsün.
 

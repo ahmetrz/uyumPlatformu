@@ -12,7 +12,7 @@ export const metadata: Metadata = { title: 'Yönetim gözden geçirme' };
 /* ═══ UY-65 · Yönetim gözden geçirmesi ════════════════════════════════
 
    ── EKRAN KAPSAMSIZDIR ────────────────────────────────────────────────
-   Yönetim gözden geçirmesi kurum çapında bir toplantıdır; santral
+   Yönetim gözden geçirmesi kurum çapında bir toplantıdır; tesis
    kapsamı yoktur. Bu yüzden `kapsamKosulu` KULLANILMAZ ve bu bilinçli:
    kapsam filtresi olmayan her ekran gibi bu da gerekçesini yazar.
 

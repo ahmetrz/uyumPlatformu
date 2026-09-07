@@ -149,7 +149,7 @@ function Giris({ children }: { children: ReactNode }) {
         <section className={styles.stage} aria-label="Platforma giriş">
           <canvas ref={canvas} className={styles.canvas} aria-hidden="true" />
           <div className={styles.staticCore} aria-hidden="true">
-            {KATMANLAR.map((label, i) => <span key={label} style={{ '--katman': i } as React.CSSProperties} />)}
+            {KATMANLAR.map(label => <span key={label} />)}
           </div>
           <header className={styles.header}>
             <span className={styles.brand}>{MARKA_AD}</span>

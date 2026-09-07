@@ -22,8 +22,12 @@
 .progress { position: absolute; bottom: 0; left: 0; height: 2px; width: var(--ilerleme); background: #c2703e; }
 .destination { position: relative; z-index: 2; min-height: 100svh; background: #0a0c0d; outline: none; }
 .staticCore { position: absolute; top: 48%; left: 65%; width: 300px; height: 240px; perspective: 850px; }
-.staticCore span { position: absolute; inset: 0; border: 22px solid #3b4547; outline: 1px solid #697475; transform: translate(-50%, -50%) rotateY(-28deg) rotateZ(-8deg) translateZ(calc(var(--katman) * -38px)); }
-.staticCore span:nth-child(3) { border-color: #985933; }
+.staticCore span { --katman: 0; position: absolute; inset: 0; border: 22px solid #3b4547; outline: 1px solid #697475; transform: translate(-50%, -50%) rotateY(-28deg) rotateZ(-8deg) translateZ(calc(var(--katman) * -38px)); }
+.staticCore span:nth-child(2) { --katman: 1; }
+.staticCore span:nth-child(3) { --katman: 2; border-color: #985933; }
+.staticCore span:nth-child(4) { --katman: 3; }
+.staticCore span:nth-child(5) { --katman: 4; }
+.staticCore span:nth-child(6) { --katman: 5; }
 .root[data-mod='hareketli'] .canvas { visibility: visible; }
 .root[data-mod='hareketli'] .staticCore { display: none; }
 .root[data-mod='hareketli'] .destination { margin-top: calc(-1 * var(--ekran)); transform: translateY(calc(-1 * var(--mesafe))); visibility: hidden; }

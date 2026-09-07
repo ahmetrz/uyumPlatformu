@@ -44,6 +44,13 @@ function playwrightTarayicilari(kok) {
 /* Tarayıcı revision'ı Playwright sürümüyle değişir; sabit revision yolu tutulmaz. */
 export function tarayiciYolu() {
   if (process.env.CHROME) return process.env.CHROME;
+  /* `CHROMIUM` ve `CHROME_PATH`, `statik-kontrol.mjs`in kendi
+     kopyasından geldi (birleşmede silindi). İki kopya çoktan ayrışmıştı:
+     o kopya `PLAYWRIGHT_BROWSERS_PATH`i ve `chrome-linux64` /
+     headless-shell yollarını GÖRMÜYORDU, bu kopya da o iki ortam
+     değişkenini. Birleşim alındı; kaybolan davranış yok. */
+  if (process.env.CHROMIUM) return process.env.CHROMIUM;
+  if (process.env.CHROME_PATH) return process.env.CHROME_PATH;
   const adaylar = [
     ...playwrightTarayicilari(process.env.PLAYWRIGHT_BROWSERS_PATH),
     ...playwrightTarayicilari('/opt/pw-browsers'),

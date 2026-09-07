@@ -60,7 +60,15 @@ const BEYAN = {
   sabotaj: { kapi: false, sebep: 'kapıların kendini sınadığı el aracı; bilerek KIRMIZI üretir, CI\'da koşarsa kapıyı yalancı yakar' },
   'harita:sinir': { kapi: false, sebep: 'üretici: Natural Earth\'ten silüet çizer, ağ ister; çıktısı depoda' },
   'sayimlar:yenile': { kapi: false, sebep: 'üretici: envanteri YAZAR; CI okuyanı (`sayimlar:denetle`) koşmalı' },
-  'konsol:olcum': { kapi: false, sebep: 'ölçüm sondası: konsol gürültüsünü RAPORLAR, eşiği yok' },
+  /* DÜZELTİLDİ · beyan yanlıştı. "Eşiği yok" denmişti; oysa araç
+     `tekEkran && modullerMevcut && hata === 0` koşuluyla çıkış kodu
+     üretiyor — yani KAPI. Yanlış beyan, aracın kendi kopyası yüzünden
+     hiç koşamamasından geliyordu: kendi `girisYap`ı #28'in CTA adımını
+     almamıştı ve araç giriş ekranını geçemiyordu. Ortak işleve
+     bağlandıktan sonra İLK KEZ ölçtü ve KIRMIZI çıktı. */
+  'konsol:olcum': { kapi: true, sebep: 'canlı sunucu · BUGÜN KIRMIZI: `/` saha ekranı 1366·1440·1280'
+    + ' bantlarının üçünde de 3px kayıyor (scrollHeight 771/903/803 · innerHeight 768/900/800);'
+    + ' tek ekran sözleşmesi ihlali, bağlanmadan önce düzeltilmeli' },
 
   'test:kapsam': { kapi: true, sebep: 'CI `npm test` koşuyor; kapsam raporu eşiksiz ve süreyi ikiye katlıyor — eşik konduğu gün bağlanır' },
   'tasarim:rota': { kapi: true, sebep: 'canlı sunucu · 4 bant × 58 rota; `rota:duman` ile örtüşüyor, ayrıştırılmadan bağlanırsa süre iki katına çıkar' },

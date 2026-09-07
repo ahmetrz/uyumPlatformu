@@ -9,7 +9,7 @@
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
-| Taranan test dosyası | 156 |
+| Taranan test dosyası | 157 |
 
 ## Katman başına kapsam
 
@@ -395,4 +395,5 @@
 | `uc-deger-kurali.test.ts` | Üç değerli mantığın sözlüğü |
 | `omur-ufuk.test.ts` | Ömür şeridinin aciliyet bantları — ölçek işaretinin saf mantığı |
 | `kapi-farki.test.ts` | Kapı farkı ölçüsünün saf kuralları — hangi betik CI'da koşuyor |
+| `tek-nusha.test.ts` | Tek nüsha değişmezi — ortak davranışın ikinci tanımı ve ikiz liste dosyası |
 

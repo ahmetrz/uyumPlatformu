@@ -224,6 +224,56 @@ küçülmeli: bir satırın silinmesi o betiğin CI'ya bağlandığı anlamına
 gelir, ve bağlanmışsa beyanı kalırsa kapı "BAYAT BEYAN" diye kırmızı
 yanar.
 
+### TEK NÜSHA DEĞİŞMEZİ — `tests/tek-nusha.test.ts`
+
+> Kapının okuduğu şey — liste ya da kod — tek yerde tutulur; ikinci
+> nüsha kırmızıdır.
+
+Bu projede tekrar tekrar batan sınıf buydu ve her seferinde başka kılıkta
+geldi. Ölçülen beş örnek:
+
+| Nerede | İkinci nüsha | Ne oldu |
+| --- | --- | --- |
+| `rota-duman` · `gezinme-testi` | kendi `girisYap` | #28 ortak işleve CTA adımı ekledi, kopyalar almadı; ikisi de main'e KIRIK girdi |
+| `konsol-olcum` | üçüncü `girisYap` | aynı sebep; araç giriş ekranını geçemiyordu, o yüzden HİÇ ölçmüyordu |
+| `statik-kontrol` | kendi `tarayiciYolu` | kopya `PLAYWRIGHT_BROWSERS_PATH`i, `chrome-linux64`ü ve headless-shell yollarını görmüyordu |
+| `kabuk.css` | `unite`/`uniteler` sınıf adları | JSX `birim`/`birimler`e geçmişti; dar bant yerleşimi ölü koddu, 375px'te iki öğe üst üste bindi |
+| oturumsuz rota listesi | elle tutulan ikinci liste | elle liste, elle listeyle doğrulanamaz — kapsam artık diskten türüyor |
+
+Kural DAR ve YAPISAL — kopya ARAMASI değil:
+
+**1 · Ortak davranış yeniden tanımlanamaz.** `arac/kosu-ortak.mjs`in
+İŞLEV olarak dışa verdiği hiçbir ad, `arac/` altındaki başka bir dosyada
+yeniden tanımlanamaz. Korunan ad kümesi **modülün kendisinden türer**:
+oraya yeni bir işlev eklendiği anda kural onu da kapsar; elle liste yok
+(elle liste olsaydı, bu dosyanın anlattığı kusurun aynısını üretirdi).
+
+`export const` DEĞERLER kapsam dışıdır ve bu bilerek böyle: `KOK` gibi
+yerel yol sabitlerini her araç kendi bağlamıyla tanımlar. Kopya olarak
+sürüklenip ayrışan şey DAVRANIŞTIR, sabit değil. Kural bu yüzden
+`export function`la sınırlı — dar tutulmazsa yanlış pozitif üretir ve
+sezgisel alete dönerdi.
+
+**2 · İkiz liste dosyası yok.** `arac/*.json` ve `tests/bekci/*.json`
+diskten taranır (kapsam elle yazılmaz); ikisi aynı içeriği taşıyamaz —
+karşılaştırma ada değil İÇERİĞE bakar, yani bir listeyi başka adla
+kopyalamak da yakalanır. Her listenin en az bir okuyucusu olmalı:
+okunmayan liste ölü koddur.
+
+**Kuralın kendisi de sınanır.** "Bugün ihlal yok" diyen bir iddia, kural
+bozulduğunda da yeşil kalır. Vaka, sahte bir ikinci tanımın yakalandığını
+ve `import` · çağrı · yorum içindeki örneklerin yakalanmadığını gösterir.
+
+**İlk koşuda iki gerçek ihlal buldu** (`konsol-olcum` → `girisYap`,
+`statik-kontrol` → `tarayiciYolu`); ikisi de ortak işleve bağlandı ve
+kopyaların tek fazlası (`CHROMIUM` · `CHROME_PATH`) ortak işleve taşındı.
+
+**Sessiz düşüş ölçüldü, bulunmadı.** Dokuz liste dosyasının okuyucuları
+tarandı: hiçbiri `?? []` · `|| []` ya da yutan bir `catch` ile boş
+listeye düşmüyor; hepsi `JSON.parse(readFileSync(...))` ile ADIYLA atıyor.
+Borç listesinin kendi vakası bunu ayrıca sabitliyor
+(`kalite-borcu-listesi.test.ts`).
+
 ### `kosu-ortak.mjs` · `kalite-kurallari.mjs`
 
 Yeni araçların ortak parçaları. `kosu-ortak` tarayıcı yolu, oturum açma

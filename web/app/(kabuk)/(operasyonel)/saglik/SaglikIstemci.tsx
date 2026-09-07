@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useTerim } from '@/lib/dil/SozlukSaglayici';
 import { useUrlDurumu, useUrlDurumuBos } from '@/components/kabuk/urlDurumu';
 import Link from 'next/link';
 import { BosIlk, Im, TikSeridi, Yetkisiz } from '@/components/kabuk/temel';
@@ -551,6 +552,7 @@ function KokenBolumu({ ozet, kaynakBolum, tipBolum, secili, sec, kuyrugaAc }: {
   tipBolum: { gorunur: KokenSayimSatiri[]; toplanan: KokenSayimSatiri[] };
   secili: string | null; sec: (id: string) => void; kuyrugaAc: () => void;
 }) {
+  const { t } = useTerim();
   if (!ozet.yetkili) return <Yetkisiz rol="envanter okuma" />;
 
   const kaynakSatirlari: Satir[] = kaynakBolum.gorunur.map((k) => {
@@ -584,11 +586,12 @@ function KokenBolumu({ ozet, kaynakBolum, tipBolum, secili, sec, kuyrugaAc }: {
     `bayat eşiği ${ozet.esikGun} gün`,
   ];
   if (ozet.kapsanamayanTipler.length > 0) {
-    kaynakNotu.push(`santral kapsamına daraltılamayan tipler rapordan düştü: `
+    kaynakNotu.push(`${t('tesis')} kapsamına daraltılamayan tipler rapordan düştü: `
       + ozet.kapsanamayanTipler.join(', '));
   }
   if (ozet.tesisiBilinmeyen > 0) {
-    kaynakNotu.push(`${ozet.tesisiBilinmeyen} köken satırının santrali belirlenemedi`);
+    kaynakNotu.push(`${ozet.tesisiBilinmeyen} köken satırında `
+      + `${t('tesis')} belirlenemedi`);
   }
 
   return (

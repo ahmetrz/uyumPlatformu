@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import { useTerim } from '@/lib/dil/SozlukSaglayici';
 import { useMemo, useState, useTransition } from 'react';
 import { Alan, BosIlk, Dugme, Kesir, type Durum } from '@/components/kabuk/temel';
 import { Tablo, type Satir } from '@/components/kabuk/tablo';
@@ -57,6 +58,7 @@ export default function KanitPaketiIstemci({
   /** Bugünün tarihi SUNUCUDA damgalanır: istemcide üretilse hidrasyonda kayardı. */
   bugun: string;
 }) {
+  const { t } = useTerim();
   const [secim, setSecim] = useState<string | null>(null);
   const [hepsi, setHepsi] = useState(false);
 
@@ -113,7 +115,8 @@ export default function KanitPaketiIstemci({
             <div style={{ marginTop: 'var(--s26)' }}>
               <BosIlk
                 cumle={kisitliKapsam
-                  ? 'Yetkinizin kapsamındaki santraller için değerlendirilmiş madde yok — paketlenecek kanıt bulunmuyor.'
+                  ? `Yetkinizin kapsamındaki ${t('tesis', 'cogul')} için değerlendirilmiş `
+                    + 'madde yok — paketlenecek kanıt bulunmuyor.'
                   : 'Hiçbir süreçte madde durumu yok — kanıt paketi üretilecek kapsam bulunmuyor.'}
                 eylem={<Link href="/uyum" className="ab-dugme">Uyum matrisini aç</Link>} />
             </div>

@@ -67,11 +67,23 @@ const IZIN_DOSYASI = 'tests/bekci/sektor-terimi-izin.json';
    · `türbin`, `jeotermal`, `rüzgâr`, `hidroelektrik` — üretim teknolojisi.
    · `plant` — aynı sözcüğün İngilizcesi; `Plant360` gibi bileşen adları.
    Kapsam dışı bırakılanlar ve nedenleri izin dosyasının başlığındadır. */
+/* ── SÖZCÜK SINIRI `\b` DEĞİL ─────────────────────────────────────────
+   JavaScript'te `\b` ASCII tanımlıdır: `Ü`, `İ`, `ğ`, `ş` sözcük
+   KARAKTERİ SAYILMAZ ve Türkçe sözcükleri ortadan böler. `\bRES\b`
+   kalıbı bu yüzden "SÜRESİ" içinde eşleşiyordu (S | Ü | RES | İ) ve
+   bekçi, sektör terimi taşımayan bir dosyayı kirli gösteriyordu.
+
+   Yanlış pozitif üreten kapı kapatılır; sınır Unicode harflerine göre
+   yazıldı. `kuruluGucMw` gibi bileşik tanımlayıcılar da doğru şekilde
+   DIŞARIDA kalır — `Mw` küçük harfli ve sınırsızdır. */
+const sinir = (govde: string) => new RegExp(
+  `(?<![\\p{L}\\p{N}_])(?:${govde})(?![\\p{L}\\p{N}_])`, 'gu');
+
 const TERIMLER: { ad: string; kalip: RegExp }[] = [
   { ad: 'santral', kalip: /santral/gi },
-  { ad: 'ünite', kalip: /ünite|\bunite\b/gi },
-  { ad: 'MW', kalip: /\bMW[ep]?\b/g },
-  { ad: 'tip kodu', kalip: /\b(JES|JEO|RES|HES|GES|DGKC|DGKÇ|TERMIK)\b/g },
+  { ad: 'ünite', kalip: new RegExp(`ünite|${sinir('unite').source}`, 'giu') },
+  { ad: 'MW', kalip: sinir('MW[ep]?') },
+  { ad: 'tip kodu', kalip: sinir('JES|JEO|RES|HES|GES|DGKC|DGKÇ|TERMIK') },
   { ad: 'türbin', kalip: /türbin/gi },
   { ad: 'üretim tipi', kalip: /jeotermal|rüzgâr|hidroelektrik/gi },
   { ad: 'plant', kalip: /plant/gi },

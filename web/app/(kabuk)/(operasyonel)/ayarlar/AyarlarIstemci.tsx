@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import { useTerim } from '@/lib/dil/SozlukSaglayici';
 import Link from 'next/link';
 import { Alan, Dugme, EntegrasyonYok } from '@/components/kabuk/temel';
 import { EkranBasligi } from '@/components/kabuk/ekran';
@@ -252,6 +253,7 @@ function Oturum({ oturum, simdi }: { oturum: AyarlarVerisi['oturum']; simdi: num
 function Yetki({ hesap, yonetimOkuyabilir }: {
   hesap: AyarlarVerisi['hesap']; yonetimOkuyabilir: boolean;
 }) {
+  const { t } = useTerim();
   const rol = enGenisRol(hesap);
   return (
     <section className="ab-ayar-bolum" aria-labelledby="ayar-yetki">
@@ -260,7 +262,7 @@ function Yetki({ hesap, yonetimOkuyabilir }: {
         {hesap.yetkiler.length === 0
           ? 'Hesabınızda tanımlı yetki yok: giriş yaparsınız, hiçbir ekran açılmaz.'
           : kapsamsizYonetici(hesap)
-            ? 'Yönetici yetkiniz kapsamsız: tüm süreçler ve tüm santraller.'
+            ? `Yönetici yetkiniz kapsamsız: tüm süreçler ve tüm ${t('tesis', 'cogul')}.`
             : `Yetkiniz ${kapsamMetni(hesap).toLocaleLowerCase('tr-TR')} kapsamıyla sınırlı.`}
       </p>
       <CekmeceAlanlar alanlar={[

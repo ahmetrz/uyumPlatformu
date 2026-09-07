@@ -1,5 +1,6 @@
 'use client';
 import { useMemo, useState } from 'react';
+import { useTerim } from '@/lib/dil/SozlukSaglayici';
 import { useUrlDurumu, useUrlDurumuBos } from '@/components/kabuk/urlDurumu';
 import Link from 'next/link';
 import { BosFiltre, BosIlk, Dugme } from '@/components/kabuk/temel';
@@ -28,7 +29,7 @@ import {
    ÜÇ AYRI SIFIR birbirine karıştırılmaz:
      · hiç bildirim yok      → motor size hiç uyarı yazmadı
      · hepsi okunmuş         → ÖLÇÜLMÜŞ sıfır, "okunmamış yok" denir
-     · kaynağı bilinmeyen    → kaydın santrali BİLİNMİYOR, kapsam dışı DEĞİL */
+     · kaynağı bilinmeyen    → kaydın tesisi BİLİNMİYOR, kapsam dışı DEĞİL */
 
 const KOLONLAR: Kolon[] = [
   { baslik: 'Tip', genislik: '110px' },
@@ -37,8 +38,8 @@ const KOLONLAR: Kolon[] = [
   { baslik: 'Yazıldı', genislik: '120px', sag: true, ikincil: true },
 ];
 
-/** Kaynak hücresi: tür + (çözülebildiyse) santral kodu. Çözülemeyen kaynak
-    boş bırakılmaz — boşluk "santrali yok" diye okunurdu. */
+/** Kaynak hücresi: tür + (çözülebildiyse) tesis kodu. Çözülemeyen kaynak
+    boş bırakılmaz — boşluk "tesisi yok" diye okunurdu. */
 function kaynakHucresi(b: BildirimSatiri): string {
   const tur = b.kaynakTipi ? KAYNAK_SOZU[b.kaynakTipi] ?? b.kaynakTipi : 'kaynak yok';
   if (b.kaynakHali === 'kapsamda') return b.tesisKodu ? `${tur} · ${b.tesisKodu}` : tur;
@@ -54,6 +55,7 @@ export default function BildirimlerIstemci({
   /** sunucu saati — "kaç gündür okunmadı" tek yerden ölçülür */
   simdi: number;
 }) {
+  const { t } = useTerim();
   const { bekliyor, hata, calistir } = useEylem();
   const [mercek, setMercek] = useUrlDurumu<Mercek>('mercek', 'okunmamis');
   const [secili, setSecili] = useUrlDurumuBos('sec');
@@ -79,7 +81,7 @@ export default function BildirimlerIstemci({
   const dipNot = [
     `Kutunuzda ${satirlar.length} bildirim · ${sayim.okunmamis} okunmadı`,
     sayim.kaynagiKapsamDisi > 0
-      && `${sayim.kaynagiKapsamDisi} bildirimin kaydı santral kapsamınız dışında`,
+      && `${sayim.kaynagiKapsamDisi} bildirimin kaydı ${t('tesis')} kapsamınız dışında`,
     sayim.kaynagiBilinmeyen > 0
       && `${sayim.kaynagiBilinmeyen} bildirimin kaynağı çözülemedi`,
     satirlar.length >= tavan && `en yeni ${tavan} bildirim gösteriliyor`,
@@ -204,9 +206,9 @@ export default function BildirimlerIstemci({
                   ? KAYNAK_SOZU[secim.kaynakTipi] ?? secim.kaynakTipi
                   : 'kaynak bildirilmedi',
                 durum: secim.kaynakTipi ? undefined : 'unk' },
-              { etiket: 'Kaynağın santrali',
+              { etiket: `Kaynağın bağlı olduğu ${t('tesis')}`,
                 deger: secim.kaynakHali === 'kapsamda'
-                  ? secim.tesisKodu ?? 'santral taşımıyor'
+                  ? secim.tesisKodu ?? `${t('tesis')} taşımıyor`
                   : KAYNAK_HAL_SOZU[secim.kaynakHali],
                 durum: secim.kaynakHali === 'kapsamda' ? undefined : 'unk' },
               { etiket: 'Yazıldı', deger: zamanTR(secim.olusturuldu) },

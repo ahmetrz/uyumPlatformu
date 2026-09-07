@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import { useTerim } from '@/lib/dil/SozlukSaglayici';
 import { Alan, BosIlk, Dugme } from '@/components/kabuk/temel';
 import { EkranBasligi } from '@/components/kabuk/ekran';
 import { Tablo, type Satir } from '@/components/kabuk/tablo';
@@ -129,6 +130,7 @@ function MedyaFormu({ tesisler, kisiler, kapat }: {
   kisiler: { id: string; adSoyad: string }[];
   kapat: () => void;
 }) {
+  const { t, tBas } = useTerim();
   const { bekliyor, hata, calistir } = useEylem();
   const [f, setF] = useState({ kod: '', ad: '', tip: 'usb_bellek', seriNo: '', tesisId: '', sahibiId: '' });
   /* Şifreleme ÜÇ değerlidir; tek bir onay kutusu "ölçülmedi" hâlini
@@ -158,9 +160,9 @@ function MedyaFormu({ tesisler, kisiler, kapat }: {
       <Alan etiket="Seri numarası">
         <input className="ab-gr" value={f.seriNo} onChange={g('seriNo')} />
       </Alan>
-      <Alan etiket="Santral">
+      <Alan etiket={tBas('tesis')}>
         <select className="ab-gr" value={f.tesisId} onChange={g('tesisId')}>
-          <option value="">havuz (santrale bağlı değil)</option>
+          <option value="">havuz ({t('tesis', 'yonelme')} bağlı değil)</option>
           {tesisler.map((t) => <option key={t.id} value={t.id}>{t.kod} · {t.ad}</option>)}
         </select>
       </Alan>

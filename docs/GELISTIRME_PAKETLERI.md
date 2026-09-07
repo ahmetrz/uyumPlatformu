@@ -310,7 +310,10 @@ görür, su kiracısı "tesis / m³/gün".
   > sınıfı ve dosya adı dâhil.
 
   İstisna listesi ayrı bir dosyadadır — `tests/bekci/sektor-terimi-izin.json`
-  — ve **borç kütüğüdür**: kapı kurulduğu gün kirli olan **258 dosya**.
+  — ve **borç kütüğüdür**: kapı kurulduğu gün kirli sayılan **258 dosya**.
+  *(Bunların dördü aslında temizdi: `\b` ASCII tanımlı olduğu için
+  `\bRES\b` kalıbı "SÜRESİ" içinde eşleşiyordu. Sınır Unicode harflerine
+  çevrildi ve o dört dosya düştü — Aşama E · aile 1.)*
   Kural: **listeye dosya EKLENMEZ, yalnız çıkarılır.** Bekçi dört yönlü
   ölçer: (a) listede olmayan dosyada terim → kırmızı, (b) listedeki
   dosyada terim kalmamış → kırmızı (listeden düşür), (c) liste `tavan`ı

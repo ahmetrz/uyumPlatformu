@@ -13,7 +13,7 @@ it('kapsam dışı varlığa yazılamaz [ENV-YAZ-003]', …)
 Ayrı bir eşleme tablosu tutulsaydı, tablo ilk yeniden adlandırmada
 testten ayrışır ve kimse görmezdi.
 
-Senaryo: **279** · testli: **279** · GAP: **0**
+Senaryo: **280** · testli: **280** · GAP: **0**
 
 ## Aktivite · 2 senaryo
 
@@ -445,7 +445,7 @@ Senaryo: **279** · testli: **279** · GAP: **0**
 | `UYU-CRC-004` | /uyum/[cerceve] | uyum uzmanı · kendi santrali | Çerçevenin bazı maddeleri hiç değerlendirilmemiş · kısmi | Madde satırını genişletir | Değerlendirilmemiş madde "uyumlu" ya da "uyumsuz" SAYILMAZ | Genişleyen satırda "ölçülmedi" ayrı okunur | yazma yok | yok | `ters-kapsam-ekran.test.ts` |
 | `UYU-ANL-001` | — | sistem (motor) · kurum geneli | Aynı gün zaten anlık alınmış · yinelenen | Motor aynı gün ikinci kez koşar | İkinci anlık YAZILMAZ — günde bir | — | yazma yok | yok | `ters-kapsam-eylem.test.ts` |
 
-## Ürünleştirme · 6 senaryo
+## Ürünleştirme · 7 senaryo
 
 | ID | Rota | Rol · kapsam | Ön koşul · veri | Eylem | Beklenen sonuç | Ekran | Denetim izi | Görev/bildirim | Test |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -455,6 +455,7 @@ Senaryo: **279** · testli: **279** · GAP: **0**
 | `URN-KUR-004` | — | ürünü sürdüren geliştirici · depo geneli | Ad geçici; kalıcı ad sonra verilecek. Kaynak taraması sözcük-olan adlarda yanlış alarm verdiği için davranış ölçümüne çevrildi · çelişen | Nöbetçi bir adla statik demo derlemesi koşar ve üretilen çıktıya bakar | Varsayılan ad işlenmiş hiçbir yüzeyde geçmez (JS demeti taranmaz — oradaki varsayılan yedeğin kendisidir); nöbetçi ad sekme başlıklarında ve kabuk sözcük markasında görünür. Belgelerdeki başlıklar da varsayılandan sapmaz | Sekme başlığı ve kabuk sözcük markası nöbetçi adı gösterir | yazma yok | yok | `marka-adi.test.ts` |
 | `URN-ALN-001` | — | ürünü sürdüren geliştirici · depo geneli | Kurulu güç bir kolondu; öznitelik satırına taşınıyor · kısmi | Göç koşulduktan sonra kolon ile öznitelik satırı karşılaştırılır | Değeri olan her tesis ve birim aynı sayıyı öznitelik satırında taşır; değeri OLMAYAN satır almaz ve göç ölçüm zamanı uydurmaz | Ekran yok — veri göçü | yazma yok (göç betiği) | yok | `p1-oznitelik-gocu.test.ts` · `p1-oznitelik-gocu.test.ts` |
 | `URN-ALN-002` | — | uyum sorumlusu · kiracı geneli | Uygulanabilirlik kuralı artık öznitelik anahtarı okuyor · kısmi | Bütün tesisler için kapsam yeniden hesaplanır | Kapsama giren tesis kümesi göç öncesiyle AYNI kalır; elle değiştirilmiş karar korunur; özniteliği ÖLÇÜLMEMİŞ tesis "kapsam dışı" değil "bilinmiyor" döner ve sağlanan başka bir koşulu engellemez | Uygulanabilirlik kararı gerekçesiyle; ölçülmemiş nitelik "bilinmiyor" yazar | hesaplama | yok | `p1-oznitelik-gocu.test.ts` · `uygulanabilirlik.test.ts` · `uygulanabilirlik.test.ts` |
+| `URN-ALN-004` | /tesisler/[id] | enerji kiracısının uyum sorumlusu · tek tesis | Tesisin tipi bir sektöre bağlı; o sektörün terim sözlüğü kurulu · dolu | Tesis 360 ekranı açılır; sonra sektör sözlüğü kaldırılıp aynı ekran yeniden açılır | Sözlük kuruluyken ekran adı "Santral 360" ve birim şeridi "üretim üniteleri"; sözlük yokken AYNI bileşen "Tesis 360" ve "birimler" der. Eksik biçim çekirdeğe düşer, ekran boş kalmaz | Tesis 360 — sekme başlığı, ölçü şeridi, birim bölümü ve saha şeridi sözlükten | yazma yok | yok | `p1-terim-sozlugu.test.ts` · `p1-terim-sozlugu.test.ts` · `p1-tesis360-sozluk.test.ts` · `p1-tesis360-sozluk.test.ts` |
 
 ## Varlık aktarımı · 3 senaryo
 

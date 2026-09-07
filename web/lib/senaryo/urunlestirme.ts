@@ -89,4 +89,16 @@ export const URUNLESTIRME_SENARYOLARI: Senaryo[] = [
     beklenenIz: 'hesaplama', beklenenBildirim: 'yok',
     katmanlar: ['DOMAIN', 'UI'],
   },
+  {
+    id: 'URN-ALN-004', alan: 'Ürünleştirme', rota: '/tesisler/[id]', eksen: 'arayuz',
+    amac: 'Ekran metninin kiracının sektörüne göre değişmesi, kodun değişmemesi',
+    rol: 'enerji kiracısının uyum sorumlusu', kapsam: 'tek tesis',
+    onkosul: 'Tesisin tipi bir sektöre bağlı; o sektörün terim sözlüğü kurulu',
+    veriHali: 'dolu',
+    eylem: 'Tesis 360 ekranı açılır; sonra sektör sözlüğü kaldırılıp aynı ekran yeniden açılır',
+    beklenenSonuc: 'Sözlük kuruluyken ekran adı "Santral 360" ve birim şeridi "üretim üniteleri"; sözlük yokken AYNI bileşen "Tesis 360" ve "birimler" der. Eksik biçim çekirdeğe düşer, ekran boş kalmaz',
+    beklenenEkran: 'Tesis 360 — sekme başlığı, ölçü şeridi, birim bölümü ve saha şeridi sözlükten',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['DOMAIN', 'UI'],
+  },
 ];

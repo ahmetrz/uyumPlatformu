@@ -99,6 +99,12 @@ model SektorSozlugu {
   iyelik   String?
   /// Belirtme biçimi — "hattı", "tesisi".
   belirtme String?
+  /// Bulunma biçimi — "hatta", "tesiste". Ekran cümlesi ("bu tesiste açık
+  /// risk yok") bu hâli ister; cümleyi hâlden kaçınmak için yeniden
+  /// yazmak, dili sözlüğe uydurmak olurdu.
+  bulunma  String?
+  /// Yönelme biçimi — "hatta", "tesise".
+  yonelme  String?
 
   sektor Sektor @relation(fields: [sektorId], references: [id], onDelete: Cascade)
 

@@ -701,7 +701,7 @@ describe('/tesisler/[id] · kapsam', () => {
     const veri = await tesis360Verisi(kA, kimlik.tesisA);
     expect(veri).not.toBeNull();
     icermiyor(veri, bIzleri());
-    expect(veri!.santraller.map((s) => s.id)).toEqual([kimlik.tesisA]);
+    expect(veri!.tesisler.map((s) => s.id)).toEqual([kimlik.tesisA]);
   });
 });
 

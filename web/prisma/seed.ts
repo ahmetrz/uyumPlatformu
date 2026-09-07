@@ -63,6 +63,27 @@ async function main() {
       data: { kod: kod as string, ad: ad as string, sira: sira as number, sektorId: elektrik.id } })]),
   )) as Record<string, { id: string }>;
 
+  /* ---- enerji sektörü terim sözlüğü (P1 · URN-ALN-004)
+
+     Çekirdek "tesis" der; bu satırlar enerji kiracısının ekranda ne
+     göreceğini söyler. Sözlük SİLİNİRSE ekran bozulmaz, çekirdek
+     sözcüğe döner — kurulu sektör paketi olmayan bir kiracının hâli
+     budur ve test tam olarak bunu ölçer. */
+  await db.sektorSozlugu.createMany({ data: [
+    { sektorId: elektrik.id, anahtar: 'tesis', tekil: 'santral', cogul: 'santraller',
+      iyelik: 'santralin', belirtme: 'santrali', bulunma: 'santralde', yonelme: 'santrale' },
+    { sektorId: elektrik.id, anahtar: 'birim', tekil: 'üretim ünitesi',
+      cogul: 'üretim üniteleri', iyelik: 'üretim ünitesinin', belirtme: 'üretim ünitesini',
+      bulunma: 'üretim ünitesinde', yonelme: 'üretim ünitesine' },
+    { sektorId: elektrik.id, anahtar: 'portfoy', tekil: 'enerji portföyü',
+      cogul: 'enerji portföyleri', iyelik: 'enerji portföyünün',
+      belirtme: 'enerji portföyünü', bulunma: 'enerji portföyünde',
+      yonelme: 'enerji portföyüne' },
+    { sektorId: elektrik.id, anahtar: 'tesis360', tekil: 'Santral 360',
+      cogul: 'Santral 360', iyelik: 'Santral 360', belirtme: 'Santral 360',
+      bulunma: 'Santral 360', yonelme: 'Santral 360' },
+  ] });
+
   // ---- tesisler: Demo Enerji üretim portföyü (biri kapalı: devir örneği)
   const t = Object.fromEntries(await Promise.all(([
     ['SAHA-A1', 'Saha A-1 JES', 'JEO', 15, 'Denizli', 'aktif', null, null, -15570, 'sahaa1'],

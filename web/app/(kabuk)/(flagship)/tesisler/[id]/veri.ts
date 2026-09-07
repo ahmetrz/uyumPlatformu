@@ -4,9 +4,11 @@ import { izinVar, izinliTesisIdleri } from '@/lib/erisim';
 import type { AktifKullanici } from '@/lib/auth';
 import { kapsamda, modulKapisi } from '@/app/kapsam';
 import { uyumOzeti, gecikmisMi, gecenGun } from '@/lib/sabitler';
-import type { Plant360Veri, Santral } from './Plant360';
+import type { Plant360Veri, TesisOzeti } from './Plant360';
 import type { OtProfili } from './mantik';
 import { KURULU_GUC, sayisalOzellik } from '@/lib/alan/oznitelik';
+import type { Sozluk } from '@/lib/dil/terimler';
+import { sektorSozlugu } from '@/lib/dil/sozlukOku';
 
 /* F3 · Plant 360 — SUNUCU VERİSİ.
 
@@ -37,7 +39,14 @@ import { KURULU_GUC, sayisalOzellik } from '@/lib/alan/oznitelik';
    "Bu santral kapsamınızda değil" demek, o id'de bir santralin VAR
    OLDUĞUNU doğrulamak olurdu. */
 
-export type EkranVerisi = { veri: Plant360Veri; santraller: Santral[] };
+export type EkranVerisi = {
+  veri: Plant360Veri;
+  tesisler: TesisOzeti[];
+  /* Terim sözlüğü ekran verisiyle birlikte iner: `t()` saf kalsın ve
+     sunucu ile istemci AYNI sözcüğü versin (hidrasyon). `null` = tesisin
+     sektörü ya da sektörün sözlüğü yok → ekran çekirdek sözcüğü kullanır. */
+  sozluk: Sozluk | null;
+};
 
 /* OT mimari profili (B6/B9). `profil: true` include'u zaten vardı ama
    yalnız kritiklik sınıfı okunuyordu; alanların tamamı serileştirilir.
@@ -90,6 +99,11 @@ export async function tesis360Verisi(
     },
   });
   if (!tesis) return null;
+
+  /* Sözlük tesisin KENDİ sektöründen çözülür, kiracının "ana"
+     sektöründen değil: iki sektörde tesisi olan bir kiracıda her tesis
+     kendi sözcüğüyle anılmalıdır. */
+  const sozluk = tesis.tip?.sektorId ? await sektorSozlugu(tesis.tip.sektorId) : null;
 
   const simdi = new Date();
   const [durumlar, bulgular, riskler, varliklar, denetimler, surecler, bolgeler, birimListesi,
@@ -294,7 +308,8 @@ export async function tesis360Verisi(
         alt: `${b.maddeDurumu.madde.kod} · ${b.sorumlu?.adSoyad ?? 'sahipsiz'}`,
       })),
     },
-    santraller: tumTesisler.map((x) => ({
+    sozluk,
+    tesisler: tumTesisler.map((x) => ({
       id: x.id, kod: x.kod, ad: x.ad,
       /* Ölçülmemiş güç "—" gösterir, 0 değil (bilinmeyen ≠ sıfır). */
       alt: ((g) => (g === null ? '—' : `${g} MWe`))(sayisalOzellik(x.ozellikler, KURULU_GUC)),

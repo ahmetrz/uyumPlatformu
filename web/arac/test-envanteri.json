@@ -1,7 +1,7 @@
 {
-  "imza": "d22bde3629a31ab2ad5749e4ce9e7eee",
-  "dosya": 141,
-  "vaka": 2913,
+  "imza": "6f3d45cd8c18a21bdd2ca33e9d409299",
+  "dosya": 143,
+  "vaka": 2924,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -370,6 +370,14 @@
     },
     "tests/p1-oznitelik-gocu.test.ts": {
       "vaka": 3,
+      "atlanan": 0
+    },
+    "tests/p1-terim-sozlugu.test.ts": {
+      "vaka": 9,
+      "atlanan": 0
+    },
+    "tests/p1-tesis360-sozluk.test.ts": {
+      "vaka": 2,
       "atlanan": 0
     },
     "tests/pasif-kesif.test.ts": {

@@ -379,8 +379,17 @@ let olculen = 0;
 /** Tek rotayı tek bantta ölçer. `nobetci` verilirse yüzeyin GERÇEKTEN o
     yüzey olduğu ayrıca kanıtlanır (oturumsuz taramada oturum çerezi
     sızarsa `/giris` panoya yönlenir ve kapı sessizce panoyu ölçerdi). */
-async function rotayiOlc(sayfa, bant, yol, nobetci = null, beklenenKod = 200) {
+async function rotayiOlc(sayfa, bant, yol, { nobetci = null, beklenenKod = 200, ctaTakip = false } = {}) {
   const yanit = await sayfa.goto(`${KOK}${yol}`, { waitUntil: 'networkidle' });
+  /* Sinematik giriş formdan ÖNCE durur (PR #28); kullanıcının izlediği
+     yolu izleriz. Bu adım OLMADAN kapı giriş yüzeyini ölçer ve FORMU hiç
+     görmez — oysa ölçülüp düzeltilen yerleşim kusuru formdaydı. */
+  if (ctaTakip) {
+    const platformaGir = sayfa.getByRole('link', { name: 'Platforma Gir' });
+    if (await platformaGir.isVisible()) await platformaGir.click();
+    await sayfa.locator('input[type=email]').waitFor({ state: 'visible' }).catch(() => {});
+    await sayfa.waitForTimeout(250);
+  }
   /* Yanlış yüzeyi ölçmek, ölçmemekten beterdir: 404/500 gövdesi ya da
      giriş ekranı taşmaz ve kapı yeşil kalır (axe kapısıyla aynı kural).
      Beklenen kod BEYAN EDİLİR: 404 yüzeyinin kendisi ölçülürken 404
@@ -486,7 +495,15 @@ try {
     if (!rotaBayragiVar() || OTURUMSUZ.length > 0) {
       const temiz = await tarayici.newContext({ viewport: { width: bant.en, height: bant.boy } });
       const s2 = await temiz.newPage();
-      for (const r of OTURUMSUZ) await rotayiOlc(s2, bant, r.yol, r.nobetci, r.kod ?? 200);
+      for (const r of OTURUMSUZ) {
+        await rotayiOlc(s2, bant, r.yol, { nobetci: r.nobetci, beklenenKod: r.kod ?? 200 });
+        /* İki yüzeyli rota: CTA'dan sonraki hâl AYRI ölçülür. */
+        if (r.ctaTakip) {
+          await rotayiOlc(s2, bant, r.yol, {
+            nobetci: r.formNobetci, beklenenKod: r.kod ?? 200, ctaTakip: true,
+          });
+        }
+      }
       /* ÇAPRAZ KONTROL bir kez koşar (yetki banda bağlı değildir). */
       if (!capraz && !rotaBayragiVar()) {
         capraz = await oturumsuzAcikYuzeyler(s2, DINAMIK.url, KOK);

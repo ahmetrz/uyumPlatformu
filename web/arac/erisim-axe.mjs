@@ -86,9 +86,16 @@ const ETIKETLER = ['wcag2a', 'wcag2aa'];
 
 const b = await chromium.launch({ executablePath: tarayiciYolu() });
 
-async function tara(s, rota, nobetci = null, beklenenKod = 200) {
+async function tara(s, rota, { nobetci = null, beklenenKod = 200, ctaTakip = false } = {}) {
   const y = await s.goto(KOK + rota, { waitUntil: 'load' });
   await s.waitForTimeout(450);
+  /* Sinematik giriş formdan ÖNCE durur; kullanıcının izlediği yolu izleriz
+     (`kosu-ortak.mjs → girisYap` ile aynı adım). */
+  if (ctaTakip) {
+    const platformaGir = s.getByRole('link', { name: 'Platforma Gir' });
+    if (await platformaGir.isVisible()) await platformaGir.click();
+    await s.locator('input[type=email]').waitFor({ state: 'visible' });
+  }
   const varilan = new URL(s.url()).pathname;
   await s.addScriptTag({ path: AXE_YOLU });
   const sonuc = await s.evaluate(async (etiketler) => {
@@ -192,9 +199,18 @@ try {
     const s = await ctx.newPage();
     try {
       /* Oturumsuz yüzeyler ÖNCE taranır: bir kez giriş yapıldıktan sonra
-         bu bağlam `/giris`i hiç göremez, sunucu panoya yönlendirir. */
+         bu bağlam `/giris`i hiç göremez, sunucu panoya yönlendirir.
+         `/giris` İKİ yüzeydir (sinematik giriş + CTA'dan sonraki form) ve
+         ikisi de taranır — beyan hangisinin ne beklediğini söyler. */
       for (const r of OTURUMSUZ.filter((x) => ROTALAR.includes(x.yol))) {
-        rapor.push({ bant: bant.ad, bantEn: bant.en, ...await tara(s, r.yol, r.nobetci, r.kod ?? 200) });
+        rapor.push({
+          bant: bant.ad, bantEn: bant.en, ...await tara(s, r.yol, { nobetci: r.nobetci, beklenenKod: r.kod ?? 200 }),
+        });
+        if (r.ctaTakip) {
+          rapor.push({
+            bant: bant.ad, bantEn: bant.en, ...await tara(s, r.yol, { nobetci: r.formNobetci, beklenenKod: r.kod ?? 200, ctaTakip: true }),
+          });
+        }
       }
       await girisYap(s, KOK);
       for (const rota of ROTALAR.filter((r) => !OTURUMSUZ_YOLLAR.includes(r))) {

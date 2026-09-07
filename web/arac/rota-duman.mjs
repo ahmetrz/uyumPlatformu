@@ -1,6 +1,6 @@
 import { chromium } from 'playwright-core';
 import { yonlendirmeKarari } from './rota-kurallari.mjs';
-import { sayfaEnvanteri, tarayiciYolu, tohumDegeri } from './kosu-ortak.mjs';
+import { girisYap, sayfaEnvanteri, tarayiciYolu, tohumDegeri } from './kosu-ortak.mjs';
 
 /* Rota duman testi — KAPSAM DOSYA SİSTEMİNDEN TÜRER.
 
@@ -116,26 +116,11 @@ const s = await b.newPage({ viewport: { width: 1440, height: 1000 } });
 const hatalar = [];
 s.on('pageerror', (e) => hatalar.push(`${s.url()} :: ${e.message.slice(0, 120)}`));
 
-/* Giriş: form React ile KONTROLLÜ bir bileşendir. `domcontentloaded`
-   sonrası doldurmak yeterli değil — hidrasyon henüz olmamışsa React
-   alanı kendi (boş) durumuyla geri yazar ve sunucuya BOŞ e-posta gider.
-   Belirtisi kafa karıştırıcıdır: denetim izine "tanımsız e-posta" düşer
-   ve kimlik bilgileri yanlış sanılır. Bu yüzden doldurduktan sonra
-   değerin GERÇEKTEN durduğu doğrulanır. */
-async function girisYap(sayfa, kok) {
-  await sayfa.goto(`${kok}/giris`, { waitUntil: 'load' });
-  if (!sayfa.url().includes('/giris')) return;
-  for (let deneme = 1; deneme <= 3; deneme += 1) {
-    await sayfa.fill('input[type=email]', 'kullanici.a@demo.local');
-    await sayfa.fill('input[type=password]', 'Enerji!2026');
-    const yerlesti = await sayfa.inputValue('input[type=email]') === 'kullanici.a@demo.local'
-      && (await sayfa.inputValue('input[type=password]')).length > 0;
-    if (yerlesti) break;
-    await sayfa.waitForTimeout(300 * deneme);
-  }
-  await sayfa.click('button[type=submit]');
-  await sayfa.waitForURL((u) => !u.pathname.startsWith('/giris'), { timeout: 25000 });
-}
+/* Giriş `kosu-ortak.mjs → girisYap` ile YAPILIR, burada kopyalanmaz.
+   Kopya vardı ve tam da beklenen şekilde ıraksadı: sinematik giriş
+   eklendiğinde (PR #28) ortak işlev CTA adımını aldı, bu kopya almadı ve
+   bu araç giriş yapamaz oldu — `page.fill` "element is not visible" ile
+   düştü. Kusur CI'da görünmedi, çünkü bu araç CI'da koşmuyor. */
 
 async function yokla(giris, url, envanter) {
   const y = await s.goto(KOK + url, { waitUntil: 'domcontentloaded' });

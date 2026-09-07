@@ -1,0 +1,89 @@
+.root { --mesafe: 0px; --ekran: max(100svh, 580px); --metin: 1; --ilerleme: 0%; position: relative; isolation: isolate; background: #0a0c0d; color: #edeeec; }
+.runway { height: calc(var(--ekran) + var(--mesafe)); position: relative; z-index: 1; }
+.stage { position: sticky; top: 0; height: var(--ekran); overflow: hidden; background: #0a0c0d; }
+.canvas { position: absolute; inset: 0; width: 100%; height: 100%; visibility: hidden; }
+.header { position: absolute; top: 0; inset-inline: 0; display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 30px 4.5%; border-bottom: 1px solid #272d2f; z-index: 2; }
+.brand { max-width: 65%; font: 500 14px/1.5 'Inter', sans-serif; letter-spacing: .04em; }
+.skip { color: #b9bebc; text-decoration: none; font-size: 12px; padding: 12px 0 12px 12px; white-space: nowrap; }
+.skip span { padding-left: 18px; color: #c2703e; }
+.editorial { position: absolute; left: 7%; top: 25%; z-index: 1; opacity: var(--metin); }
+.eyebrow { color: #b9bebc; font: 10px/1.5 'JetBrains Mono', monospace; letter-spacing: .1em; margin: 0 0 26px; }
+.editorial h1 { font: 500 clamp(52px, 5.7vw, 88px)/.98 'Barlow Condensed', sans-serif; letter-spacing: -.015em; margin: 0; }
+.editorial h1 span { color: #c2703e; }
+.description { color: #b9bebc; font-size: 13px; line-height: 1.8; margin: 26px 0 24px; }
+.cta { display: inline-flex; align-items: center; justify-content: space-between; gap: 40px; min-height: 48px; padding: 0 18px; background: #c2703e; color: #0a0c0d; text-decoration: none; font-weight: 600; font-size: 12px; }
+.cta:hover { background: #d18a5f; }
+.skip:focus-visible, .cta:focus-visible { outline: 2px solid #edeeec; outline-offset: 5px; }
+.footer { position: absolute; bottom: 32px; inset-inline: 4.5%; display: flex; align-items: center; justify-content: space-between; gap: 20px; color: #b9bebc; font: 10px/1.6 'JetBrains Mono', monospace; }
+.scroll { opacity: var(--metin); }
+.scroll span { margin-left: 20px; color: #c2703e; }
+.current { color: #edeeec; }
+.caption { font-size: 9px; letter-spacing: .08em; }
+.progress { position: absolute; bottom: 0; left: 0; height: 2px; width: var(--ilerleme); background: #c2703e; }
+.destination { position: relative; z-index: 2; min-height: 100svh; background: #0a0c0d; outline: none; }
+.staticCore { position: absolute; top: 48%; left: 65%; width: 300px; height: 240px; perspective: 850px; }
+.staticCore span { --katman: 0; position: absolute; inset: 0; border: 22px solid #3b4547; outline: 1px solid #697475; transform: translate(-50%, -50%) rotateY(-28deg) rotateZ(-8deg) translateZ(calc(var(--katman) * -38px)); }
+.staticCore span:nth-child(2) { --katman: 1; }
+.staticCore span:nth-child(3) { --katman: 2; border-color: #985933; }
+.staticCore span:nth-child(4) { --katman: 3; }
+.staticCore span:nth-child(5) { --katman: 4; }
+.staticCore span:nth-child(6) { --katman: 5; }
+.root[data-mod='hareketli'] .canvas { visibility: visible; }
+.root[data-mod='hareketli'] .staticCore { display: none; }
+.root[data-mod='hareketli'] .destination { margin-top: calc(-1 * var(--ekran)); transform: translateY(calc(-1 * var(--mesafe))); visibility: hidden; }
+.root[data-metinsiz='true'] .editorial { visibility: hidden; }
+.root[data-tamam='true'] .stage { visibility: hidden; }
+.root[data-tamam='true'] .destination { z-index: auto; }
+.root[data-mod='dogrudan'] .runway { display: none; }
+.root[data-mod='dogrudan'] .destination, .root[data-mod='statik'] .destination { margin-top: 0; transform: none; visibility: visible; clip-path: none; }
+.root[data-mod='statik'] .runway { height: var(--ekran); }
+.root[data-mod='statik'] .stage { visibility: visible; }
+@media (max-width: 699px) {
+  .root { --ekran: max(100svh, 560px); }
+  .header { padding: 15px 6%; gap: 12px; }
+  .brand { font-size: 11px; max-width: 62%; }
+  .skip { font-size: 11px; }
+  .skip span { padding-left: 4px; }
+  .editorial { top: 15%; left: 7%; }
+  .eyebrow { font-size: 8px; margin-bottom: 14px; }
+  .editorial h1 { font-size: clamp(44px, 11.5vw, 66px); }
+  .description { font-size: 11px; margin: 14px 0; }
+  .cta { min-height: 44px; }
+  .footer { inset-inline: 7%; bottom: 22px; font-size: 8px; gap: 12px; }
+  .caption { display: none; }
+  .scroll { max-width: 160px; }
+  .scroll span { margin-left: 4px; }
+  .staticCore { top: 72%; left: 54%; width: 160px; height: 120px; }
+  .staticCore span { border-width: 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .root .runway { height: var(--ekran); }
+  .root .canvas { display: none; }
+  .root .staticCore { display: block; }
+  .root .destination { margin-top: 0; transform: none; clip-path: none; visibility: visible; }
+}
+@media print {
+  .root .runway { display: none; }
+  .root .destination { margin: 0; transform: none !important; clip-path: none !important; visibility: visible !important; }
+}
+
+/* Satır şablonu SIFIRLANIR. `/giris` `.ab` sınıfını belirteç ve tipografi
+   için kullanıyor ama uygulama KABUĞU değil: başlık çubuğu, durum şeridi,
+   ayak yok. `.ab` ise kabuğun altı satırını dayatıyor
+   (`56px auto auto minmax(0, 1fr) auto auto`) ve giriş ekranının iki paneli
+   kabuğun 56 piksellik BAŞLIK satırına çakılıyordu.
+
+   ÖLÇÜLDÜ (bu satır yazılmadan önce, CTA izlendikten sonra): görsel alanı
+   1440'ta 1040×56 · 1024'te 624×56 · 768'de 368×56 ve e-posta alanının üst
+   kenarı y885 — yani 900px'lik görüntü alanının en altında, form fiilen
+   ekran dışında. 375'te y1011 (görünür alan 780). Kusur her endeydi ve
+   hiçbir kapı ölçmüyordu: axe "form görünür mü" diye sormaz.
+
+   Sütun kuralı satır içi `style` ile ezilemezdi, satır kuralı da öyle;
+   ikisi de burada durur. */
+.login { grid-template-columns: minmax(0, 1fr) var(--drawer-w); grid-template-rows: minmax(0, 1fr); }
+@media (max-width: 699px) {
+  .login { grid-template-columns: minmax(0, 1fr); }
+  .login > section { min-height: 320px; }
+  .login > main { min-height: 460px; border-left: 0 !important; }
+}

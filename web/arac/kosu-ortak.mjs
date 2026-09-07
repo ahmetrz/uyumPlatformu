@@ -228,7 +228,17 @@ export function sayfaEnvanteri() {
    (oturum çerezi sızarsa `/giris` panoya yönlenir ve kapı sessizce
    PANOYU ölçmeye başlardı). */
 export const OTURUMSUZ_ROTALAR = [
-  { yol: '/giris', nobetci: 'input[type=email]', kod: 200 },
+  /* `/giris` İKİ yüzeydir: sinematik giriş (PR #28) ve CTA'dan sonraki
+     gerçek form. İkisi de oturumsuzdur ve ikisi de ölçülür — `nobetci`
+     giriş yüzeyini, `formNobetci` formu kanıtlar. Tek nöbetçiyle
+     kalsaydı ölçüm ya girişte takılır ya formu hiç görmezdi. */
+  {
+    yol: '/giris',
+    nobetci: 'a[href="#platform-arayuzu"], input[type=email]',
+    formNobetci: 'input[type=email]',
+    ctaTakip: true,
+    kod: 200,
+  },
   /* 404 da bir YÜZEYDİR ve oturum istemez: yanlış adres yazan ya da
      taşınmış bir bağlantıya tıklayan herkes onu görür. `rotalar.json`da
      olamaz (bir rota değil, rotasızlığın ekranı), o yüzden burada
@@ -315,6 +325,9 @@ export async function oturumsuzAcikYuzeyler(sayfa, ekRotalar = [], kok = KOK) {
 export async function girisYap(sayfa, kok = KOK) {
   await sayfa.goto(`${kok}/giris`, { waitUntil: 'load' });
   if (!sayfa.url().includes('/giris')) return false;
+  // Yeni girişte formdan önce kullanıcının gördüğü CTA'yı izleriz.
+  const platformaGir = sayfa.getByRole('link', { name: 'Platforma Gir' });
+  if (await platformaGir.isVisible()) await platformaGir.click();
   const eposta = sayfa.locator('input[type=email]');
   if (!(await eposta.count())) return false;
   for (let deneme = 1; deneme <= 3; deneme += 1) {

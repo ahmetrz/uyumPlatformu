@@ -4,12 +4,12 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 277 |
-| Testi olan senaryo | 277 |
+| Senaryo | 278 |
+| Testi olan senaryo | 278 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
-| Taranan test dosyası | 140 |
+| Taranan test dosyası | 142 |
 
 ## Katman başına kapsam
 
@@ -18,7 +18,7 @@
 | ACCESSIBILITY | 8 | 8 | 0 |
 | API | 12 | 12 | 0 |
 | CONCURRENCY | 7 | 7 | 0 |
-| DOMAIN | 144 | 144 | 0 |
+| DOMAIN | 145 | 145 | 0 |
 | ENGINE | 33 | 33 | 0 |
 | INTEGRATION | 26 | 26 | 0 |
 | MIGRATION | 2 | 2 | 0 |
@@ -262,6 +262,9 @@
 | `SIS-BSL-002` | Sistem | UI | `ekran-basligi.test.ts` | künyede ister kodu geçmiyor | evet | geçti |
 | `SIS-ERS-002` | Sistem | ACCESSIBILITY · UI | `senaryo-platform.test.ts` | seçilemeyen tablo grid demez, işaretçi imleci taşımaz | evet | geçti |
 | `SIS-ERS-003` | Sistem | ACCESSIBILITY | `senaryo-platform.test.ts` | sekme rolü yalnız gerçek sekmelerde kullanılır | evet | geçti |
+| `SIS-SNG-001` | Sistem | DOMAIN | `giris-zaman.test.ts` | ileri ve geri aynı kaydırma noktasında aynı pozu verir | evet | geçti |
+| `SIS-SNG-001` | Sistem | DOMAIN | `giris-zaman.test.ts` | kamerayı son düzleme ulaşmadan tam ekran açıklığa taşır | evet | geçti |
+| `SIS-SNG-001` | Sistem | DOMAIN | `giris-zaman.test.ts` | açıklık açılmadan önce katmanlar hizalanır; zaman çizgisi süreksizlik taşımaz | evet | geçti |
 | `SAH-GRS-001` | Saha | DOMAIN · UI | `ters-kapsam-ekran.test.ts` | fotoğrafı olmayan santral BAŞKA santralin görselini almaz | evet | geçti |
 | `SAH-GRS-002` | Saha | SERVER · DOMAIN | `ters-kapsam-eylem.test.ts` | hiç anlık görüntü yoksa eğilim null kalır — düz sıfır çizgisi çizilmez | evet | geçti |
 | `AKT-IZL-001` | Aktivite | DOMAIN · UI | `ters-kapsam-ekran.test.ts` | mercek hiçbir kayda uymayınca boş SÜZGEÇ sonucu doğar | evet | geçti |
@@ -323,6 +326,7 @@
 | `eylem-dili.test.ts` | Bozuk durum bloklarının eylem/beklenen-durum nöbetçisi |
 | `bagimlilik-guvenligi.test.ts` | Bağımlılık ağacının güvenlik taraması |
 | `kalite-kapilari.test.ts` | Kapı betiklerinin varlığı |
+| `kalite-borcu-listesi.test.ts` | Kalite borcu izin listesinin okunabilirliği — muafiyet mantığından BAĞIMSIZ iddia, bilerek ayrı dosyada |
 | `semantik.test.ts` | Ortak durum sözlüğünün tutarlılığı |
 | `alan-metin.test.ts` | Metin yardımcılarının saf davranışı |
 | `alan-surum.test.ts` | Sürüm karşılaştırma yardımcısı |

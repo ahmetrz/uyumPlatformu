@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { aktifKullanici } from '@/lib/auth';
 import GirisFormu from './GirisFormu';
+import SinematikGiris from '@/components/giris/SinematikGiris';
+import styles from '@/components/giris/giris.module.css';
 import { DEMO, TEMEL } from '@/lib/demo';
 import { MARKA_AD } from '@/lib/marka';
 import { guvenliHedef, VARSAYILAN_HEDEF } from './mantik';
@@ -46,12 +48,12 @@ export default async function Giris({ searchParams }: {
   if (await aktifKullanici()) redirect(hedef);
 
   return (
-    /* Yerleşim kabuk gramerindedir (`.ab-giris`, kabuk.css). Satır içi
-       `style` bir medya sorgusuyla ezilemez; bu ekran o yüzden 375px'te
-       25px taşıyor ve kendi h1'ini %100 kırpıyordu. ≤820px'te fotoğraf
-       ve perde kalkar, söz kalır. */
-    <div className="ab ab-giris" data-yogunluk="amiral">
-      <section className="alan">
+    <SinematikGiris>
+    <div className={`ab ${styles.login}`} data-yogunluk="amiral" style={{
+      minHeight: '100dvh', display: 'grid',
+    }}>
+      <section style={{ position: 'relative', overflow: 'hidden',
+        background: 'var(--panel2)', color: 'var(--murekkep)' }}>
         {/* eslint-disable-next-line @next/next/no-img-element -- statik dışa aktarım: optimizasyon kapalı */}
         <img
           src={`${TEMEL}/gorseller/giris-genis.webp`}
@@ -61,12 +63,16 @@ export default async function Giris({ searchParams }: {
              gereksiz bir görsel tarifiyle oyalanmaz. */
           alt=""
           aria-hidden
-          className="foto"
           decoding="async"
           fetchPriority="high"
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%',
+            objectFit: 'cover', opacity: 0.62 }}
         />
-        <span aria-hidden className="perde" />
-        <div className="soz">
+        <span aria-hidden style={{ position: 'absolute', inset: 0,
+          background: 'linear-gradient(180deg, rgba(24,26,24,.52) 0%, rgba(24,26,24,.10) 44%, rgba(24,26,24,.72) 100%)' }} />
+        <div style={{ position: 'relative', height: '100%', display: 'flex',
+          flexDirection: 'column', justifyContent: 'space-between',
+          padding: 'var(--s40) var(--s44)' }}>
           <p className="etiket" style={{ margin: 0, color: 'rgba(246,244,238,.72)' }}>
             {MARKA_AD}
           </p>
@@ -86,11 +92,15 @@ export default async function Giris({ searchParams }: {
         </div>
       </section>
 
-      <main className="form">
+      <main style={{ background: 'var(--panel2)',
+        borderLeft: 'var(--bw-strong) solid var(--hr2)',
+        display: 'flex', flexDirection: 'column', justifyContent: 'center',
+        padding: 'var(--s40) var(--s34)' }}>
         <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Kurum hesabı</p>
         <h2 className="ab-bolum-basligi" style={{ margin: '0 0 var(--s26)' }}>Oturum aç</h2>
         <GirisFormu next={hedef === VARSAYILAN_HEDEF ? null : hedef} />
       </main>
     </div>
+    </SinematikGiris>
   );
 }

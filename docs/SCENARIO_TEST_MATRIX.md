@@ -4,12 +4,12 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 281 |
-| Testi olan senaryo | 281 |
+| Senaryo | 282 |
+| Testi olan senaryo | 282 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
-| Taranan test dosyası | 146 |
+| Taranan test dosyası | 147 |
 
 ## Katman başına kapsam
 
@@ -18,7 +18,7 @@
 | ACCESSIBILITY | 8 | 8 | 0 |
 | API | 12 | 12 | 0 |
 | CONCURRENCY | 7 | 7 | 0 |
-| DOMAIN | 148 | 148 | 0 |
+| DOMAIN | 149 | 149 | 0 |
 | ENGINE | 33 | 33 | 0 |
 | INTEGRATION | 26 | 26 | 0 |
 | MIGRATION | 3 | 3 | 0 |
@@ -327,6 +327,14 @@
 | `URN-ALN-004` | Ürünleştirme | DOMAIN · UI | `p1-tesis360-sozluk.test.ts` | sözlük kaldırılınca AYNI ekran "Tesis 360" der | evet | geçti |
 | `URN-ALN-003` | Ürünleştirme | DOMAIN · UI | `bekci/sektor-terimi.test.ts` | izin listesinde OLMAYAN dosyada sektör terimi yok | evet | geçti |
 | `URN-ALN-003` | Ürünleştirme | DOMAIN · UI | `bekci/sektor-terimi.test.ts` | liste taban daldaki listenin ALT KÜMESİ | evet | geçti |
+| `URN-ALN-007` | Ürünleştirme | DOMAIN | `bekci/katlama-korlugu.test.ts` | ÜNİTE — değişmez katlamada GÖRÜNMEZ, Türkçe katlamada görünür | evet | geçti |
+| `URN-ALN-007` | Ürünleştirme | DOMAIN | `bekci/katlama-korlugu.test.ts` | TERMİK — yalnız Türkçe katlamada görünür | evet | geçti |
+| `URN-ALN-007` | Ürünleştirme | DOMAIN | `bekci/katlama-korlugu.test.ts` | TERMIK (ASCII I) — yalnız DEĞİŞMEZ katlamada görünür | evet | geçti |
+| `URN-ALN-007` | Ürünleştirme | DOMAIN | `bekci/katlama-korlugu.test.ts` | UNITE (ASCII I) — yalnız DEĞİŞMEZ katlamada görünür | evet | geçti |
+| `URN-ALN-007` | Ürünleştirme | DOMAIN | `bekci/katlama-korlugu.test.ts` | BIRIM — katlama yönünün kendisi sabitlenir | evet | geçti |
+| `URN-ALN-007` | Ürünleştirme | DOMAIN | `bekci/katlama-korlugu.test.ts` | DGKÇ — ASCII `\\b` sondaki Ç yüzünden HİÇ görmüyordu | evet | geçti |
+| `URN-ALN-007` | Ürünleştirme | DOMAIN | `bekci/katlama-korlugu.test.ts` | RES — ASCII `\\b` Türkçe sözcüğün ORTASINDA eşleşiyordu | evet | geçti |
+| `URN-ALN-007` | Ürünleştirme | DOMAIN | `bekci/katlama-korlugu.test.ts` | şapkasız rüzgar — yazım varyantı da sektör sözcüğüdür | evet | geçti |
 
 ## Gerekçesiyle kütüksüz kalan dosyalar
 

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { execFileSync } from 'node:child_process';
-import { readFileSync, readdirSync } from 'node:fs';
-import path from 'node:path';
+import { readFileSync } from 'node:fs';
+import { taranacakDosyalar, terimleriBul } from './terimler';
 
 /* ═══════════════════════════════════════════════════════════════════════
    BEKÇİ · sektör terimi (P1 · URN-ALN-003) — CIRCIR
@@ -54,8 +54,6 @@ import path from 'node:path';
    Taban dal `BEKCI_TABAN` ile değiştirilebilir (varsayılan `origin/main`).
    ═══════════════════════════════════════════════════════════════════════ */
 
-const KOKLER = ['app', 'components', 'lib'] as const;
-const UZANTI = /\.(ts|tsx|css)$/;
 const IZIN_DOSYASI = 'tests/bekci/sektor-terimi-izin.json';
 
 /* Terimler ve neden bu terimler:
@@ -67,81 +65,6 @@ const IZIN_DOSYASI = 'tests/bekci/sektor-terimi-izin.json';
    · `türbin`, `jeotermal`, `rüzgâr`, `hidroelektrik` — üretim teknolojisi.
    · `plant` — aynı sözcüğün İngilizcesi; `Plant360` gibi bileşen adları.
    Kapsam dışı bırakılanlar ve nedenleri izin dosyasının başlığındadır. */
-/* ── İKİ AYRI TÜRKÇE TUZAĞI ───────────────────────────────────────────
-
-   1 · SÖZCÜK SINIRI. JavaScript'te `\b` ASCII tanımlıdır: `Ü`, `İ`, `Ç`,
-       `ş` sözcük KARAKTERİ SAYILMAZ ve Türkçe sözcükleri ortadan böler.
-       İki yönde de bozuyordu:
-         · `\bRES\b` "SÜRESİ" içinde EŞLEŞİYORDU (S | Ü | RES | İ) —
-           sektör terimi taşımayan dört dosya listeye böyle girmişti;
-         · `\bDGKÇ\b` gerçek `DGKÇ` kodunu HİÇ görmüyordu, çünkü sondaki
-           `Ç`den sonra `\b` bir sözcük karakteri istiyor.
-       Sınır artık Unicode harflerine göre.
-
-   2 · BÜYÜK HARF KATLAMASI. `/ünite/i` kalıbı `ÜNİTE` ile EŞLEŞMEZ:
-       Türkçe `İ` (U+0130) Unicode basit katlamada `i`ye inmez. Aynı
-       nedenle `TERMİK` kalıpta yoktu, yalnız ASCII `TERMIK` vardı.
-       Türkçe sözcükler bu yüzden `i` bayrağıyla değil, metnin TÜRKÇE
-       YEREL AYARLA küçültülmüş kopyası üzerinde aranır.
-
-       Kodlar (`JES` · `RES` · `MW`) küçültülmüş metinde ARANMAZ:
-       `toLocaleLowerCase('tr-TR')` `I`yı `ı` yapar ve `TERMIK` → `termık`
-       olurdu. Kodlar ham metinde, olduğu gibi aranır.
-
-   Bugün depoda `ÜNİTE`, `TERMİK` ya da şapkasız `rüzgar` GEÇMİYOR (üçü de
-   0 eşleşme); bu düzeltmeler bulunan borcu değil, bekçinin körlüğünü
-   kapatıyor. */
-const sinir = (govde: string) => new RegExp(
-  `(?<![\\p{L}\\p{N}_])(?:${govde})(?![\\p{L}\\p{N}_])`, 'gu');
-
-/** `ham` = kaynağın kendisi · `kucuk` = Türkçe yerel ayarla küçültülmüş kopya */
-type Hedef = 'ham' | 'kucuk';
-
-const TERIMLER: { ad: string; kaliplar: { re: RegExp; hedef: Hedef }[] }[] = [
-  { ad: 'santral', kaliplar: [{ re: /santral/g, hedef: 'kucuk' }] },
-  { ad: 'ünite', kaliplar: [
-    { re: /ünite/g, hedef: 'kucuk' },
-    // ASCII yazım: küçültülmüş metinde `UNITE` → `unıte` olurdu, ham metinde aranır.
-    { re: new RegExp(sinir('unite').source, 'giu'), hedef: 'ham' },
-  ] },
-  { ad: 'MW', kaliplar: [{ re: sinir('MW[ep]?'), hedef: 'ham' }] },
-  { ad: 'tip kodu', kaliplar: [
-    { re: sinir('JES|JEO|RES|HES|GES|DGKC|DGKÇ|TERMIK|TERMİK'), hedef: 'ham' },
-  ] },
-  { ad: 'türbin', kaliplar: [{ re: /türbin/g, hedef: 'kucuk' }] },
-  { ad: 'üretim tipi', kaliplar: [
-    // Şapkasız `rüzgar` da yazımda geçer; ikisi de sektör sözcüğüdür.
-    { re: /jeotermal|rüzgâr|rüzgar|hidroelektrik/g, hedef: 'kucuk' },
-  ] },
-  { ad: 'plant', kaliplar: [{ re: /plant/gi, hedef: 'ham' }] },
-];
-
-function* kaynakDosyalari(kok: string): Generator<string> {
-  for (const e of readdirSync(kok, { withFileTypes: true })) {
-    const p = path.join(kok, e.name);
-    if (e.isDirectory()) {
-      // Üretilen Prisma istemcisi kaynak değildir; şemadan türer.
-      if (e.name === 'prisma-client') continue;
-      yield* kaynakDosyalari(p);
-    } else if (UZANTI.test(e.name)) yield p;
-  }
-}
-
-/** Dosyada (adı dâhil) geçen sektör terimleri — hangi terim, kaç kez. */
-function terimleriBul(yol: string): { terim: string; sayi: number }[] {
-  const ham = `${readFileSync(yol, 'utf8')}\n${yol}`;
-  const kucuk = ham.toLocaleLowerCase('tr-TR');
-  const bulunan: { terim: string; sayi: number }[] = [];
-  for (const { ad, kaliplar } of TERIMLER) {
-    let sayi = 0;
-    for (const { re, hedef } of kaliplar) {
-      const metin = hedef === 'kucuk' ? kucuk : ham;
-      sayi += metin.match(new RegExp(re.source, re.flags))?.length ?? 0;
-    }
-    if (sayi > 0) bulunan.push({ terim: ad, sayi });
-  }
-  return bulunan;
-}
 
 const izin = JSON.parse(readFileSync(IZIN_DOSYASI, 'utf8')) as {
   tavan: number; dosyalar: string[];
@@ -194,7 +117,7 @@ function tabanListesi(): { dosyalar: string[] } | TabanYok {
   }
 }
 
-const taranan = KOKLER.flatMap((k) => [...kaynakDosyalari(k)]);
+const taranan = taranacakDosyalar();
 const kirli = taranan
   .map((yol) => ({ yol, terimler: terimleriBul(yol) }))
   .filter((x) => x.terimler.length > 0);

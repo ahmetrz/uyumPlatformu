@@ -113,4 +113,16 @@ export const URUNLESTIRME_SENARYOLARI: Senaryo[] = [
     beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
     katmanlar: ['DOMAIN', 'UI'],
   },
+  {
+    id: 'URN-ALN-007', alan: 'Ürünleştirme', rota: '—', eksen: 'akis',
+    amac: 'Bekçinin Türkçe yazım biçimlerine kör kalmaması',
+    rol: 'ürünü sürdüren geliştirici', kapsam: 'depo geneli',
+    onkosul: 'Terim araması iki küçültmenin (tr-TR ve değişmez) birleşimi üzerinde yapılır',
+    veriHali: 'yok',
+    eylem: 'Bugün depoda geçmeyen yazımlar (ÜNİTE · TERMİK · TERMIK · UNITE · DGKÇ · şapkasız rüzgar) bekçi kalıbına verilir',
+    beklenenSonuc: 'Her yazım için düzeltme ÖNCESİ kalıp 0, bugünkü kalıp 1 eşleşme verir. Katlama mantığı tek küçültmeye sadeleştirilirse ya da Unicode sözcük sınırı `\\b`ye döndürülürse vakalar kırmızıya döner; körlük sessizce geri gelemez',
+    beklenenEkran: 'Ekran yok — kapı',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['DOMAIN'],
+  },
 ];

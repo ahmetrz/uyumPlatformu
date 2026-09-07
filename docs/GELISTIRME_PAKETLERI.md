@@ -314,6 +314,17 @@ görür, su kiracısı "tesis / m³/gün".
   *(Bunların dördü aslında temizdi: `\b` ASCII tanımlı olduğu için
   `\bRES\b` kalıbı "SÜRESİ" içinde eşleşiyordu. Sınır Unicode harflerine
   çevrildi ve o dört dosya düştü — Aşama E · aile 1.)*
+
+  > **Türkçe iki tuzak taşır.** (1) `\b` ASCII tanımlıdır: hem Türkçe
+  > sözcüğün ORTASINDA eşleşir (`RES` ⊂ "SÜRESİ") hem de sonu Türkçe
+  > harfle biten kodu HİÇ görmez (`DGKÇ`). (2) Tek büyük-harf katlaması
+  > her iki yönde de kördür: `ÜNİTE` yalnız `tr-TR` katlamasında,
+  > `TERMIK` yalnız değişmez katlamada görünür. Arama bu yüzden **iki
+  > küçültmenin birleşimi** üzerinde yapılır. Altı yazım kalıcı vaka
+  > olarak `tests/bekci/katlama-korlugu.test.ts` içinde tutulur
+  > (URN-ALN-007): her biri için "düzeltme öncesi 0, sonrası 1" iddiası
+  > vardır, böylece katlama mantığı sadeleştirilirse körlük sessizce geri
+  > gelemez.
   Kural: **listeye dosya EKLENMEZ, yalnız çıkarılır.** Bekçi dört yönlü
   ölçer: (a) listede olmayan dosyada terim → kırmızı, (b) listedeki
   dosyada terim kalmamış → kırmızı (listeden düşür), (c) liste `tavan`ı

@@ -25,7 +25,9 @@ import { taranacakDosyalar, terimleriBul } from './terimler';
    (b) Listede OLAN dosyada terim kalmamış → kırmızı. Dişli geri
        kaymasın diye: temizlenen dosya listeden DÜŞMEK zorundadır, yoksa
        liste bir gün sadece eski bir hikâye olur ve kimse eritmez.
-   (c) Liste `tavan`ı aşamaz.
+   (c) Liste `tavan`ı (DOSYA sayısı) aşamaz ve tavan listeden uzaklaşamaz.
+   (e) Ölçülen TERİM TOPLAMI `terimTavani`yi aşamaz — dosya sayısı sabitken
+       bir dosyanın derinleşmesini yalnız bu diş görür.
    (d) Liste, TABAN DALDAKİ listenin ALT KÜMESİ olmalı.
 
    ── (d) NEDEN GEREKLİ ─────────────────────────────────────────────────
@@ -67,7 +69,7 @@ const IZIN_DOSYASI = 'tests/bekci/sektor-terimi-izin.json';
    Kapsam dışı bırakılanlar ve nedenleri izin dosyasının başlığındadır. */
 
 const izin = JSON.parse(readFileSync(IZIN_DOSYASI, 'utf8')) as {
-  tavan: number; dosyalar: string[];
+  tavan: number; terimTavani: number; dosyalar: string[];
 };
 const izinKumesi = new Set(izin.dosyalar);
 
@@ -194,9 +196,28 @@ describe('Bekçi · sektör terimi (cırcır)', () => {
        okunur tutar: eklenen bir satır göze batar. */
     expect(izin.dosyalar.length, 'izin listesi büyümüş — dosya EKLENEMEZ')
       .toBeLessThanOrEqual(izin.tavan);
+    /* TAVANIN ADI İDDİASIYLA UYUŞMALI. Bir turda `tavan` yanlışlıkla
+       terim toplamına çekilmişti: 111 dosya için 780'lik bir tavan hiçbir
+       şey tutmuyordu ve test yine yeşil yanıyordu. Tavan, listenin BUGÜNKÜ
+       boyundan uzak olamaz — uzaklaşırsa cırcır yaşarken ölmüş demektir. */
+    expect(izin.tavan - izin.dosyalar.length,
+      'tavan listeden çok büyük: cırcır gevşemiş. Tavanı bugünkü dosya '
+      + 'sayısına çekin (tavan YALNIZ düşer).')
+      .toBeLessThanOrEqual(0);
     expect(izin.dosyalar, 'izin listesi sıralı değil')
       .toEqual([...izin.dosyalar].sort());
     expect(new Set(izin.dosyalar).size, 'izin listesinde tekrar var')
       .toBe(izin.dosyalar.length);
+  });
+
+  it('terim toplamı `terimTavani`yi aşmıyor [URN-ALN-003]', () => {
+    /* İKİNCİ DİŞ: dosya sayısı tek başına DERİNLEŞMEYİ görmez. Listedeki
+       bir dosyada terim sayısı ikiye katlansa dosya sayısı değişmez ve
+       cırcır sessizce geri kayardı. Toplam da yalnız DÜŞER. */
+    const toplam = kirli.reduce(
+      (a, x) => a + x.terimler.reduce((b, t) => b + t.sayi, 0), 0);
+    expect(toplam, `terim toplamı ${toplam} > tavan ${izin.terimTavani}: `
+      + 'bir dosya derinleşmiş. Terimi sözlükten çözün; tavanı YÜKSELTMEYİN.')
+      .toBeLessThanOrEqual(izin.terimTavani);
   });
 });

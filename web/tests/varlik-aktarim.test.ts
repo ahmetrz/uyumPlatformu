@@ -3,6 +3,7 @@ import { copyFileSync, mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { createHash, randomBytes } from 'node:crypto';
+import { CEKIRDEK_TERIMLER } from '../lib/dil/terimler';
 
 // ENV, db'ye dokunan HER importtan önce ayarlanmalı (izolasyon kalıbı)
 const dizin = mkdtempSync(path.join(tmpdir(), 'uyum-varlik-aktarim-'));
@@ -39,7 +40,9 @@ type AktifKullanici = import('@/lib/auth').AktifKullanici;
      · santral kapsamı — yetkisiz tesise satır yazılamaz
      · boş hücre 'bilinmiyor'/null olur, 0/false OLMAZ */
 
-const KAPSAMSIZ = { izinliTesisler: null, yazabilir: () => true };
+const KAPSAMSIZ = {
+  izinliTesisler: null, yazabilir: () => true, terim: CEKIRDEK_TERIMLER.tesis,
+};
 const BOS_REF = {
   turler: new Map<string, string>(), tesisler: new Map<string, string>(),
   sistemler: new Map<string, string>(), bolgeler: new Map<string, string>(),
@@ -405,13 +408,13 @@ describe('Santral kapsamı — yetkisiz tesise yazılamaz', () => {
     expect(v.kritiklik).toBe('bilinmiyor'); // 'kritik' yazılmadı
   });
 
-  it('kapsamsız doğrulama: santral kısıtlı kullanıcı için izinliTesisIdleri daraltır', () => {
-    const kapsam = kapsamKur(tesisliA);
+  it('kapsamsız doğrulama: tesis kısıtlı kullanıcı için izinliTesisIdleri daraltır', async () => {
+    const kapsam = await kapsamKur(tesisliA);
     expect(kapsam.izinliTesisler).toEqual([tesisA.id]);
     expect(kapsam.yazabilir(tesisA.id)).toBe(true);
     expect(kapsam.yazabilir(tesisB.id)).toBe(false);
     expect(kapsam.yazabilir(null)).toBe(false);
-    expect(kapsamKur(global).izinliTesisler).toBeNull();
+    expect((await kapsamKur(global)).izinliTesisler).toBeNull();
   });
 });
 

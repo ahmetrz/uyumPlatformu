@@ -243,7 +243,7 @@ const ZINCIR: AdimTanimi[] = [
       + 'koşuya kadar iş kuyruğuna girmez. `varlik` ve `tesis` de tetikler, '
       + 'çünkü bir oturumun ÖNEM DERECESİ eriştiği hedefin kritikliğinden gelir '
       + '(Varlik.kritiklik → SistemServis.kritiklik → TesisProfili); yeni CMDB '
-      + 'ya da santral profili verisi, HÂLÂ AÇIK bir erişim görevinin şiddetini '
+      + 'ya da tesis profili verisi, HÂLÂ AÇIK bir erişim görevinin şiddetini '
       + 'değiştirebilir ve "kritikliği bilinmiyor" bulgusunu çözebilir. '
       + 'SIRA: topoloji_sapma\'dan SONRA, çünkü ikisi de "gözlem ile beklenen '
       + 'durumu karşılaştıran" adımlardır ve ağ tarafı önce oturur; '
@@ -257,7 +257,7 @@ const ZINCIR: AdimTanimi[] = [
     asama: 'olay etkisi',
     tetikleyenler: ['varlik', 'tesis'],
     neden: 'Etki önerisi VARLIK → SİSTEM → SÜREÇ → TESİS zincirini yürür; '
-      + 'zincirin girdileri varlık kayıtları ve santral profilidir. Yeni CMDB '
+      + 'zincirin girdileri varlık kayıtları ve tesis profilidir. Yeni CMDB '
       + 'verisi geldiğinde "bilinmiyor" kalan etki alanları çözülebilir hâle '
       + 'gelir. Motor yalnız ÖNERİ yazar; olayın etki alanlarını doldurmak '
       + 'insanın kararıdır (etkiDogrulayanId).',

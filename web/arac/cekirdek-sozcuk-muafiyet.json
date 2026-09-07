@@ -93,6 +93,38 @@
       "dizeler": [
         "birimler karışık, toplanmadı"
       ]
-    }
+    },
+    "lib/entegrasyon/cekirdek.ts": {
+      "sebep": "R0-9 · bu yedi dize KOŞU KAYDINA YAZILIR (`EntegrasyonKosusu.hata` · `.ayrinti` · ret sebepleri) ve sağlık ekranı onları aylar sonra okur. Saklanan iz kiracıya göre değişen sözcük taşırsa sözlük değiştiğinde eski kaydın anlamı kayar. Dosyanın geri kalanı (900+ satır motor) taranmaya devam ediyor.",
+      "dizeler": [
+        "kapsam dışı: beyan edilen tesis kodu tanımsız ( )",
+        "kapsam dışı: kayıt tesis beyan etmiyor ve connector varsayılan tesisi yok",
+        "kapsam dışı: connector varsayılan tesisi kapsam dışında",
+        "Yapılandırmadaki tesis kodu tanımlı değil:",
+        "Tesis çözülemedi",
+        "Kapsam tesis kodu tanımlı değil:",
+        "Yapılandırmadaki varsayılan tesis kodu ( )"
+      ]
+    },
+    "lib/entegrasyon/esleme.ts": {
+      "sebep": "ÇEKİRDEK YEDEĞİ · `OZEL_HEDEFLER.tesisKodu.ad` sözlük okunamadığı yerde (test, teşhis) ekranın boş kalmaması için duran çekirdek karşılıktır; ekrana giden etiket `eslemeSozlugu` içinde `tBas(sozluk, terim)` ile yazılıyor. Aynı satır `terim: 'tesis'` taşıyor — yedek ile canlı yol kodda yan yana.",
+      "dizeler": [
+        "Tesis"
+      ]
+    },
+    "lib/entegrasyon/konfigYedek.ts": {
+      "sebep": "ŞEMA KİMLİĞİ · cümle Prisma MODEL adlarını anıyor (`Tesis` ↔ `YedeklemePolitikasi` yabancı anahtarı); model adı kiracıya göre değişmez ve çevrilirse cümle yanlış bir şemayı anlatır.",
+      "dizeler": [
+        "ölçülmedi (şemada Tesis↔YedeklemePolitikasi yabancı anahtarı yok)."
+      ]
+    },
+    "lib/entegrasyon/varlikAktarim.ts": {
+      "sebep": "ÇEKİRDEK YEDEĞİ · `HEDEF_ALANLAR` tablosundaki `etiket`, sözlük okunamadığı yerde kullanılan çekirdek karşılıktır; ekrana giden etiket `alanEtiketi(a, tesis)` ile sözlükten yazılıyor ve satır `terim: 'tesis'` taşıyor.",
+      "dizeler": [
+        "Tesis kodu → tesis"
+      ]
+    },
+    "lib/entegrasyon/sertifika.ts": "CONNECTOR SERTİFİKASYON KOŞUMU · ürün ekranı değil, geliştirici/CI artefaktı. Ölçüldü: dosyayı YALNIZ `tests/` içindeki fikstürler ve sertifikasyon testi okuyor; hiçbir rota, sunucu eylemi ya da API ucu import etmiyor. Kontrol kodları (`tesis_kapsami`) eşleştirme anahtarıdır, başlıklar ise raporun kendi dili — `lib/senaryo/*` ile aynı sınıf: davranış anlatımı, ekran metni değil.",
+    "lib/entegrasyon/zincir.ts": "MOTOR ZİNCİRİ TANIMI · `neden` alanları hangi MODEL değişikliğinin hangi adımı tetiklediğini anlatır ve model adlarını (Varlık · Tesis · Kanıt) anar; bunlar şema kimlikleridir, ekran sözcüğü değil. Ölçüldü: `ZINCIR_SIRASI` yalnız `tests/motor-zinciri.test.ts` tarafından okunuyor ve adım `gerekce` metni SAKLANMIYOR (`IsKosusu.hata` yalnız toplu notu alır). `lib/senaryo/*` ile aynı sınıf."
   }
 }

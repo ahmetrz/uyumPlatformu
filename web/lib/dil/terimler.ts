@@ -100,12 +100,16 @@ export function terim(sozluk: Sozluk | null | undefined, anahtar: TerimAnahtari)
   };
 }
 
-/** Aynı terimin cümle başındaki hâli. Türkçe yerel ayarla büyütür:
-    `i` → `İ` (varsayılan `toUpperCase` `I` üretir ve "Işletme" yazar). */
+/** Cümle başı büyütmesi — TÜRKÇE yerel ayarla: `i` → `İ`. Varsayılan
+    `toUpperCase` `I` üretir ve "Işletme" yazar. Ayrı dışa vurulur çünkü
+    elde yalnız `Terim` olan yerler de (sözlük nesnesi olmadan) aynı
+    kuralı kullanmak zorunda. */
+export const basHarf = (s: string) => s.charAt(0).toLocaleUpperCase('tr-TR') + s.slice(1);
+
+/** Aynı terimin cümle başındaki hâli. */
 export function tBas(sozluk: Sozluk | null | undefined, anahtar: TerimAnahtari,
   bicim: Bicim = 'tekil'): string {
-  const s = t(sozluk, anahtar, bicim);
-  return s.charAt(0).toLocaleUpperCase('tr-TR') + s.slice(1);
+  return basHarf(t(sozluk, anahtar, bicim));
 }
 
 /** Veritabanı satırlarını sözlüğe çevirir. Boş dize DEĞER SAYILMAZ:

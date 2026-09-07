@@ -63,9 +63,9 @@ export function icerikOzeti(icerik: string): string {
 
 /** Çekirdeğin okuduğu ortak yapılandırma anahtarları. */
 export const ORTAK_YAPILANDIRMA = {
-  /** connector'ın varsayılan santrali */
+  /** connector'ın varsayılan tesisi */
   tesisKodu: z.string().min(1).optional(),
-  /** connector'ın YAZABİLECEĞİ santraller — kapsam sınırı */
+  /** connector'ın YAZABİLECEĞİ tesisler — kapsam sınırı */
   kapsamTesisKodlari: z.array(z.string().min(1)).optional(),
 } as const;
 

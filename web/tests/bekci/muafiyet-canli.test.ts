@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync, existsSync } from 'node:fs';
 import path from 'node:path';
+import { metinParcalari, yorumsuz } from '../../arac/cekirdek-sozcuk-taramasi.mjs';
 
 /* ═══════════════════════════════════════════════════════════════════════
    MUAFİYET KAYITLARI CANLI MI (URN-ALN-004)
@@ -53,14 +54,23 @@ describe('Muafiyet kayıtları canlı [URN-ALN-004]', () => {
     }
   });
 
+  /* CANLILIK, TARAYICININ GÖRDÜĞÜ METİNDE ölçülür — ham kaynakta değil.
+     Tarayıcı yorumları söküyor ve `${…}` içini boşlukla değiştiriyor;
+     muafiyet dizeleri de o hâliyle yazılıyor ("… tanımsız ( )"). Ham
+     kaynakta arasaydık kayıt canlıyken ÖLÜ görünürdü — ölçüm ile
+     iddianın ayrıştığı klasik hâl. */
   it('DİZE muafiyeti kaynağında HÂLÂ geçiyor ve boş değil [URN-ALN-004]', () => {
     for (const [dosya, kayit] of Object.entries(dosyalar)) {
       if (typeof kayit === 'string') continue;
       expect(kayit.dizeler.length, `${dosya}: boş dize listesi bütün dosyayı muaf eder`)
         .toBeGreaterThan(0);
-      const kaynak = readFileSync(path.join(KOK, dosya), 'utf8');
+      const parcalar = new Set(
+        metinParcalari(yorumsuz(readFileSync(path.join(KOK, dosya), 'utf8')))
+          .map((x: string) => x.trim()),
+      );
       for (const dize of kayit.dizeler) {
-        expect(kaynak, `${dosya}: "${dize}" artık geçmiyor — kaydı düşürün`).toContain(dize);
+        expect([...parcalar], `${dosya}: "${dize}" artık taranan metinde yok — kaydı düşürün`)
+          .toContain(dize);
       }
     }
   });

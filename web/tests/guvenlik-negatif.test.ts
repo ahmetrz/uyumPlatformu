@@ -642,7 +642,7 @@ describe('9 · İçe aktarım eşlemesi yetkisiz santralı HEDEFLEYEMEZ', () => 
         { tag: `${ONEK}-IMP-A`, tur: `${ONEK}-TUR`, tesis: `${ONEK}-A` },
         { tag: `${ONEK}-IMP-B`, tur: `${ONEK}-TUR`, tesis: `${ONEK}-B` },
       ],
-      esleme, referanslar, mevcutlar, kapsam: kapsamKur(k),
+      esleme, referanslar, mevcutlar, kapsam: await kapsamKur(k),
     });
     expect(cozum.satirlar.map((s) => s.etiket)).toEqual([`${ONEK}-IMP-A`]);
     expect(cozum.hatalar).toHaveLength(1);
@@ -658,7 +658,7 @@ describe('9 · İçe aktarım eşlemesi yetkisiz santralı HEDEFLEYEMEZ', () => 
     const cozum = satirlariCoz({
       // tesis kolonu YOK: hedef, mevcut varlığın kendi santralinden gelir
       satirlar: [{ tag: `${ONEK}-B-1`, tur: `${ONEK}-TUR` }],
-      esleme: { tag: 'etiket', tur: 'turKodu' }, referanslar, mevcutlar, kapsam: kapsamKur(k),
+      esleme: { tag: 'etiket', tur: 'turKodu' }, referanslar, mevcutlar, kapsam: await kapsamKur(k),
     });
     expect(cozum.satirlar).toHaveLength(0);
     expect(cozum.hatalar).toHaveLength(1);

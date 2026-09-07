@@ -11,7 +11,9 @@ import {
   kapsamaOzeti, modulAyarlari, modulSozlugu, modulleriCoz, terimSeti,
   type Modul, type Sinif, type Yer,
 } from '@/lib/yonetim/moduller';
-import { AYAR_SOZLUGU, GRUP_ETIKETI, GRUP_SIRASI, degerMetni, type AyarGrubu } from '@/lib/yapilandirma/tanimlar';
+import {
+  AYAR_SOZLUGU, GRUP_ETIKETI, GRUP_SIRASI, ayarSozlugu, degerMetni, type AyarGrubu,
+} from '@/lib/yapilandirma/tanimlar';
 import {
   AyarCekmecesi, KayitCekmecesi, TalepCekmecesi, YeniKayitCekmecesi,
 } from './KonsolFormlar';
@@ -89,6 +91,8 @@ export default function KonsolIstemci({ veri }: { veri: KonsolVerisi }) {
   const terimler = useMemo(() => terimSeti(sozluk), [sozluk]);
   const moduller = useMemo(() => modulleriCoz(terimler), [terimler]);
   const modulSoz = useMemo(() => modulSozlugu(terimler), [terimler]);
+  /* Ayar açıklamaları da terim taşıyor; ekran kendi sözlüğüyle çözüyor. */
+  const ayarSoz = useMemo(() => ayarSozlugu(terimler), [terimler]);
 
   const kapsama = useMemo(() => kapsamaOzeti(), []);
   const acikTalepler = veri.talepler.filter((t) => t.durum === 'incelemede');
@@ -155,7 +159,7 @@ export default function KonsolIstemci({ veri }: { veri: KonsolVerisi }) {
 
   const ayarAnahtarlari = modul?.hedefTipi === 'ayar' ? modulAyarlari(modul.kod) : [];
   const ayarSatirlari: Satir[] = ayarAnahtarlari
-    .map((a) => ({ tanim: AYAR_SOZLUGU[a], okuma: veri.ayarlar.find((x) => x.anahtar === a) }))
+    .map((a) => ({ tanim: ayarSoz[a], okuma: veri.ayarlar.find((x) => x.anahtar === a) }))
     .filter(({ tanim }) => aramaGecer(`${tanim.anahtar} ${tanim.etiket}`))
     .map(({ tanim, okuma }) => {
       const acik = acikTalepSayisi('ayar', tanim.anahtar);
@@ -204,7 +208,7 @@ export default function KonsolIstemci({ veri }: { veri: KonsolVerisi }) {
   /* ── Seçili nesne çözümü (çekmece) ──────────────────────────────────── */
   const seciliModul: Modul | null = !modul && secili && bolum !== 'onay' && bolum !== 'gecmis' ? modulSoz[secili] ?? null : null;
   const seciliKayit = modul && secili && secili !== 'yeni' ? kayitlar.find((k) => k.id === secili) ?? null : null;
-  const seciliAyar = modul?.hedefTipi === 'ayar' && secili ? AYAR_SOZLUGU[secili] ?? null : null;
+  const seciliAyar = modul?.hedefTipi === 'ayar' && secili ? ayarSoz[secili] ?? null : null;
   const seciliTalep = bolum === 'onay' && secili ? veri.talepler.find((t) => t.id === secili) ?? null : null;
   const seciliIz = bolum === 'gecmis' && secili ? veri.gecmis.find((g) => g.id === secili) ?? null : null;
   const yeniAcik = modul?.hedefTipi && modul.hedefTipi !== 'ayar' && modul.hedefTipi !== 'tesisGorsel' && secili === 'yeni';

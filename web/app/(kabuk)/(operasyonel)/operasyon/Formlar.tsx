@@ -142,7 +142,7 @@ export function DegisiklikFormu({ degisiklik, tesisler, kapat }: {
               onChange={(e) => setV({ ...v, bakimPenceresi: e.target.value })} />
           </Alan>
           <Alan etiket="Üretim etkisi">
-            <input className="ab-gr" value={v.uretimEtkisi} placeholder="Ünite-2 30 dk yedekte"
+            <input className="ab-gr" value={v.uretimEtkisi} placeholder="Birim-2 30 dk yedekte"
               onChange={(e) => setV({ ...v, uretimEtkisi: e.target.value })} />
           </Alan>
           <Alan etiket="Geri alma planı">

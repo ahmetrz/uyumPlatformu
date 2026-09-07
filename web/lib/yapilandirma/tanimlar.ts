@@ -8,6 +8,7 @@ import {
 import { ZIMMET_AZAMI_GUN, ZIMMET_VARSAYILAN_GUN } from '../varlik/zimmet';
 import { CANLI_KAT, GUNCEL_KAT, KAYNAK_ONCELIGI_VARSAYILAN } from '../varlik/canliDurus';
 import { GORUNMEZ_GUN_VARSAYILAN } from '../varlik/pasifKesif';
+import { CEKIRDEK_TERIM_SETI, type Metin, type TerimSeti } from '../yonetim/moduller';
 
 /* ═══ Yapılandırma anahtar sözlüğü — TEK doğruluk kaynağı ═══════════════
 
@@ -36,6 +37,7 @@ export type AyarTanimi = {
   grup: AyarGrubu;
   sinif: AyarSinifi;
   etiket: string;
+  /** ÇÖZÜLMÜŞ açıklama; yazım tarafında terimlerin işlevi olabilir. */
   aciklama: string;
   /** motor / ekran adı — değişiklik nereyi yeniden hesaplatır */
   etki: string[];
@@ -46,7 +48,11 @@ export type AyarTanimi = {
 
 const tamSayi = (min: number, max: number) => z.number().int().min(min).max(max);
 
-const T: AyarTanimi[] = [
+/* Yazım tarafı: açıklama terim taşıyabilir (bkz. `lib/yonetim/moduller.ts`
+   — `Metin`). Okuma tarafı `AyarTanimi` ve tümüyle dizedir. */
+type AyarTanimiYazim = Omit<AyarTanimi, 'aciklama'> & { aciklama: Metin };
+
+const T: AyarTanimiYazim[] = [
   /* ── Canlı duruş (OT-21b) ──────────────────────────────────────────── */
   {
     anahtar: 'durus.canli_kat', grup: 'varlik', sinif: 'A',
@@ -82,11 +88,11 @@ const T: AyarTanimi[] = [
   {
     anahtar: 'kesif.gorunmez_gun', grup: 'varlik', sinif: 'A',
     etiket: 'Görülmüyor eşiği', birim: 'gün',
-    aciklama: 'Bir keşif kaydı bu kadar gündür hiçbir kaynakta görülmediyse '
-      + '"artık görülmüyor" sayılır. Eşik santralden santrale değişir: ayda '
-      + 'bir enerjilendirilen bir yedek panoyla sürekli çalışan bir sunucu '
-      + 'aynı ölçüye vurulamaz. Eşiğin aşılması kaydı SİLMEZ — "görülmüyor" '
-      + 'bir gözlemdir, bir silme kararı değil.',
+    aciklama: (x) => 'Bir keşif kaydı bu kadar gündür hiçbir kaynakta '
+      + `görülmediyse "artık görülmüyor" sayılır. Eşik ${x.tesis.bulunma} `
+      + 'değişir: ayda bir enerjilendirilen bir yedek panoyla sürekli çalışan '
+      + 'bir sunucu aynı ölçüye vurulamaz. Eşiğin aşılması kaydı SİLMEZ — '
+      + '"görülmüyor" bir gözlemdir, bir silme kararı değil.',
     etki: ['Varlık keşfi · gruplar', 'Keşif dışa aktarımı'],
     varsayilan: GORUNMEZ_GUN_VARSAYILAN, sema: tamSayi(1, 365),
   },
@@ -228,7 +234,10 @@ const T: AyarTanimi[] = [
   {
     anahtar: 'saha.olculmemis', grup: 'gorunum', sinif: 'A',
     etiket: 'Saha · değerlendirilmemiş özeti',
-    aciklama: 'Değerlendirilmemiş santral özetinin ayrıntı düzeyi: yalnız sayı mı, sayı + ilk adlar mı; detay listesi panelde açılabilsin mi. Sayının KENDİSİ kapatılamaz — "bilinmeyen ≠ sıfır" kuralı ayara bağlanmaz.',
+    aciklama: (x) => `Değerlendirilmemiş ${x.tesis.tekil} özetinin ayrıntı `
+      + 'düzeyi: yalnız sayı mı, sayı + ilk adlar mı; detay listesi panelde '
+      + 'açılabilsin mi. Sayının KENDİSİ kapatılamaz — "bilinmeyen ≠ sıfır" '
+      + 'kuralı ayara bağlanmaz.',
     etki: ['Saha ekranı'],
     varsayilan: OLCULMEMIS_VARSAYILAN,
     sema: z.unknown().superRefine((v, ctx) => {
@@ -288,9 +297,22 @@ for (const ad of MOTOR_ADLARI_SOZLUK) {
   });
 }
 
-export const AYARLAR: readonly AyarTanimi[] = T;
+/** Kütüğü verilen terim setiyle çözer. */
+export function ayarlariCoz(x: TerimSeti): AyarTanimi[] {
+  return T.map((a) => ({
+    ...a, aciklama: typeof a.aciklama === 'string' ? a.aciklama : a.aciklama(x),
+  }));
+}
+
+/** ÇEKİRDEK çözümlü kütük — sözlüğü olmayan tüketiciler için. */
+export const AYARLAR: readonly AyarTanimi[] = ayarlariCoz(CEKIRDEK_TERIM_SETI);
 export const AYAR_SOZLUGU: Record<string, AyarTanimi> =
-  Object.fromEntries(T.map((a) => [a.anahtar, a]));
+  Object.fromEntries(AYARLAR.map((a) => [a.anahtar, a]));
+
+/** Ekranın kendi sözlüğüyle çözülmüş ayar sözlüğü. */
+export function ayarSozlugu(x: TerimSeti): Record<string, AyarTanimi> {
+  return Object.fromEntries(ayarlariCoz(x).map((a) => [a.anahtar, a]));
+}
 
 export function ayarTanimi(anahtar: string): AyarTanimi | null {
   return AYAR_SOZLUGU[anahtar] ?? null;

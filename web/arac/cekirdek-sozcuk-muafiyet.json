@@ -148,6 +148,12 @@
         "Hero başlığı (Tesis 360)",
         "TESİS · SAHİP · HEDEF"
       ]
+    },
+    "lib/altyapi/kimlikSaglayici.ts": {
+      "sebep": "MODEL ADI LİSTESİ · cümle yük ölçümü için gereken KAYIT TÜRLERİNİ sayıyor: \"kaç tesis, kaç varlık, kaç kontrol, kaç kanıt, kaç denetim izi satırı\". Kardeşlerinin hepsi çekirdek model adı (Varlık · Kontrol · Kanıt · AktiviteKaydi); biri kiracı sözcüğüne çevrilirse liste iki ayrı dilde konuşur. Ekran metni değil, bir hazırlık künyesi.",
+      "dizeler": [
+        "Gerçek veri hacmi ve gerçek eşzamanlılık: kaç tesis, kaç"
+      ]
     }
   }
 }

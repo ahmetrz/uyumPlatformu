@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { TERIMLER, eslesmeSayisi, taranacakDosyalar } from './terimler';
 import { readFileSync } from 'node:fs';
-import { katlamaliVarMi } from '../../arac/turkce-arama.mjs';
+import { camelKalibi, katlamaliVarMi, sinirKalibi } from '../../arac/turkce-arama.mjs';
 
 /* ═══════════════════════════════════════════════════════════════════════
    BEKÇİNİN KÖRLÜK VAKALARI (P1 · URN-ALN-003)
@@ -134,6 +134,72 @@ describe('Bekçi körlüğü · Unicode sözcük sınırı', () => {
 /** camelCase kod biçimi — `hesId`, `resKapasite`, `jesSayisi`, `gesTipi`. */
 const CAMEL_ORTA = /(?<=[a-z])(Jes|Res|Hes|Ges)(?=[A-Z0-9]|$)/g;
 const CAMEL_BAS = /\b(jes|res|hes|ges)(?=[A-Z])/g;
+
+/* ═══════════════════════════════════════════════════════════════════════
+   camelCase İÇİNE GÖMÜLÜ MW — ölçüm SIFIR demedi, kalıp EKLENDİ
+
+   Aşağıdaki `küçük harfli kod biçimi` bloğu, camelCase tip kodu
+   (`hesId` · `resKapasite`) için kalıp EKLEMEME kararını taşıyor ve
+   gerekçesi ölçümdür: depoda sıfır geçiş. MW'de aynı ölçüm SIFIR
+   DEMEDİ — `gucMw` on bir dosyada, 37 geçişle duruyordu ve bekçi
+   hiçbirini görmüyordu (izin listesi 135 diyordu, gerçek 146).
+
+   İki karar aynı ilkeden çıkıyor: kalıp, ÖLÇÜM gösterdiğinde eklenir.
+   Bu blok MW kalıbının körlüğünü kalıcı tutuyor — biri
+   `camelKalibi`yi "sözcük sınırı zaten yeter" diye kaldırırsa, o gün
+   depoda `gucMw` bulunsa bile bekçi yeşil kalırdı.
+   ═══════════════════════════════════════════════════════════════════════ */
+describe('Bekçi körlüğü · camelCase içine gömülü MW', () => {
+  /** Düzeltmeden ÖNCEKİ MW kalıbı: yalnız sözcük sınırlı. */
+  const ONCE_MW = (m: string) => eslesmeSayisi(sinirKalibi('MW[ep]?'), m);
+
+  it('`gucMw` — öncesi 0, sonrası 1 [URN-ALN-007]', () => {
+    const kod = 'const gucMw = birim.gucMw ?? null;';
+    expect(ONCE_MW(kod), 'sözcük sınırı camelCase içini GÖRMEMELİ').toBe(0);
+    expect(bugun('MW', kod), 'bugünkü kalıp görmeli').toBeGreaterThan(0);
+  });
+
+  it('birim sonekli yazımlar da görünür (`Mwe` · `MWe` · `Mwp`) [URN-ALN-007]', () => {
+    for (const yazim of ['gucMwe', 'gucMWe', 'gucMwp', 'gucMW']) {
+      expect(ONCE_MW(`const ${yazim} = 1;`), `${yazim} · öncesi`).toBe(0);
+      expect(bugun('MW', `const ${yazim} = 1;`), `${yazim} · sonrası`).toBeGreaterThan(0);
+    }
+  });
+
+  it('YANLIŞ POZİTİF YOK — küçük harfli ve sınırsız yazımlar sessiz [URN-ALN-007]', () => {
+    /* Kalıp camelCase'in BÜYÜK harfine dayanıyor; `mw` ya da `gucMwx`
+       gibi yazımlar onun konusu değil. Bu vaka, kalıbın genişletilip
+       masum tanımlayıcıları yakalamaya başlamasını engelliyor. */
+    for (const yazim of ['const mw = 1;', 'const gucMwx = 1;', 'const homework = 1;']) {
+      expect(bugun('MW', yazim), yazim).toBe(0);
+    }
+  });
+
+  it('sözcük sınırlı yazım HÂLÂ görünüyor — eski kalıp kaybolmadı [URN-ALN-007]', () => {
+    /* İki kalıp yan yana duruyor; yenisi eskisinin yerine GEÇMEDİ. */
+    expect(bugun('MW', 'kapasite: 120 MW'), 'sınırlı yazım').toBeGreaterThan(0);
+    expect(bugun('MW', '54 MWe kurulu'), 'birim sonekli sınırlı yazım').toBeGreaterThan(0);
+  });
+
+  it('depodaki 11 dosya İZİN LİSTESİNDE — sayı ölçüldü [URN-ALN-007]', () => {
+    /* Ölçümün kendisi: körlük kapandığında listeye giren dosya sayısı.
+       Liste eridikçe bu sayı DÜŞER; artması, camelCase MW'nin yeni bir
+       dosyaya girdiği anlamına gelir ve bekçinin kaçak vakası onu zaten
+       kırmızı yakar. Burada tutulan şey ölçünün ÇALIŞTIĞIDIR. */
+    const camelli = taranacakDosyalar().filter((d) => {
+      const ham = `${readFileSync(d, 'utf8')}\n${d}`;
+      return eslesmeSayisi(camelKalibi('MW[EPep]?|Mw[ep]?'), ham) > 0;
+    });
+    expect(camelli.length, 'camelCase MW taşıyan dosya bulunamadı — kalıp bozuldu mu?')
+      .toBeGreaterThan(0);
+    const izin: string[] = JSON.parse(
+      readFileSync('tests/bekci/sektor-terimi-izin.json', 'utf8'),
+    ).dosyalar;
+    const kacak = camelli.filter((d) => !izin.includes(d));
+    expect(kacak, `camelCase MW izin listesinde olmayan dosyada: ${kacak.join(', ')}`)
+      .toEqual([]);
+  });
+});
 
 describe('Bekçi körlüğü · küçük harfli kod biçimi', () => {
   it('camelCase kod biçimi depoda HİÇ geçmiyor (ölçüm) [URN-ALN-007]', () => {

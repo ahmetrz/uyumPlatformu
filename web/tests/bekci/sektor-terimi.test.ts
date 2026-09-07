@@ -41,11 +41,19 @@ import { taranacakDosyalar, terimleriBul } from './terimler';
    gerekçesi yazılır; yeşil yazılmaz.
 
    CI'DA aynı şey KIRMIZIDIR. Orada taban dalın okunamamasının meşru bir
-   sebebi yok: iş akışı onu ayrı bir adımda getiriyor. "Ölçülmedi" demek,
-   cırcırın sessizce kapanması olurdu — üstelik o adım `continue-on-error`
-   taşıdığı için boru hattı yeşil kalır ve kimse koruma kalktığını fark
-   etmezdi. Bir kapının en tehlikeli hâli kırmızı olması değil, sessizce
-   yokluğudur.
+   sebebi yok: iş akışı onu ayrı bir adımda getiriyor ("Taban commit'i
+   getir" · `fetch-depth: 0`). "Ölçülmedi" demek, cırcırın sessizce
+   kapanması olurdu. Bir kapının en tehlikeli hâli kırmızı olması değil,
+   sessizce yokluğudur.
+
+   NOT (#29 birleşmesi): bekçinin KENDİ getirme adımı vardı ve
+   `continue-on-error` taşıyordu — yani düşse bile boru hattı yeşil
+   kalıyor, koruma yalnız buradaki iddia sayesinde kırmızıya dönüyordu.
+   O adım SİLİNDİ: `git fetch --depth=1`, borç cırcırının aldığı TAM
+   klonu sığlaştırıp onun taban geçmişini kesiyordu. Artık tek bir adım
+   ikisini de besliyor ve `continue-on-error` TAŞIMIYOR: getirme düşerse
+   iş akışı orada durur. Buradaki iddia yine de gerekli — adım sessizce
+   kaldırılırsa onu söyleyecek olan bu.
 
    Atlama ÇALIŞMA ZAMANINDA yapılır (`ctx.skip`), `it.skipIf` ile değil:
    statik atlama vitest'in keşif çıktısını ortama göre değiştirir ve
@@ -163,14 +171,16 @@ describe('Bekçi · sektör terimi (cırcır)', () => {
       if (taban.tur === 'dal' && KOSUCU) {
         /* CI'da taban dalın okunamamasının meşru sebebi yok: iş akışı onu
            getirmekle yükümlü. Burada "ölçülmedi" demek cırcırı SESSİZCE
-           kapatırdı — üstelik getirme adımı `continue-on-error` taşıdığı
-           için boru hattı yeşil kalır ve kimse korumanın kalktığını fark
-           etmezdi. Bir kapının en tehlikeli hâli kırmızı olması değil,
+           kapatırdı. Bir kapının en tehlikeli hâli kırmızı olması değil,
            sessizce yokluğudur. */
         expect.fail(
           `CI'da taban dal okunamadı: ${taban.yok}. Bu diş CI'da ATLANMAZ. `
-          + "İş akışındaki \"Taban dalı al\" adımını (git fetch --depth=1 "
-          + 'origin main:refs/remotes/origin/main) kontrol edin.',
+          + 'İş akışındaki "Taban commit\'i getir" adımını kontrol edin '
+          + '(checkout `fetch-depth: 0` + `git fetch origin '
+          + '+refs/heads/main:refs/remotes/origin/main`). Bekçinin kendi '
+          + '`--depth=1` adımı #29 birleşmesinde SİLİNDİ: sığ getirme, borç '
+          + 'cırcırının aldığı TAM klonu sığlaştırıp onun taban geçmişini '
+          + 'kesiyordu — iki cırcır aynı ref\'i farklı derinlikte isteyemez.',
         );
       }
       /* ÖLÇÜLMEDİ — geçti değil. Rapor bunu gerekçesiyle atlanmış gösterir.

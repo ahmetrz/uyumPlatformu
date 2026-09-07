@@ -10,7 +10,7 @@ import path from 'node:path';
    sondalarını da vuruyor ve onları hiçbir test korumuyor (bkz.
    `arac/turkce-arama.mjs` başlığı). Kalıp tek yerde durur; bu dosyanın
    kalıcı vakaları (`katlama-korlugu.test.ts`) onu koruyor. */
-import { eslesmeSayisi, katlamaliSayi, sinirKalibi } from '../../arac/turkce-arama.mjs';
+import { camelKalibi, eslesmeSayisi, katlamaliSayi, sinirKalibi } from '../../arac/turkce-arama.mjs';
 
 export { eslesmeSayisi };
 
@@ -62,7 +62,24 @@ export const TERIMLER: { ad: string; kaliplar: { re: RegExp; hedef: Hedef }[] }[
     // ASCII yazım (`UNITE` · `unite`): değişmez katlama bunu görür.
     { re: new RegExp(sinir('unite').source, 'gu'), hedef: 'kucuk' },
   ] },
-  { ad: 'MW', kaliplar: [{ re: sinir('MW[ep]?'), hedef: 'ham' }] },
+  /* ── camelCase İÇİNE GÖMÜLÜ MW ─────────────────────────────────────
+     Sözcük sınırlı kalıp `gucMw` içindeki `Mw`yi GÖREMEZ ve görmemesi
+     kendi tanımı gereğidir: solunda `c` var. Ama tanımlayıcı adları
+     sektör terimini tam da böyle taşıyor. ÖLÇÜLDÜ (7 Eyl 2026): `gucMw`
+     ON BİR dosyada geçiyordu (`Birim.gucMw` alanı ve onu okuyan ekranlar)
+     ve bekçi hiçbirini görmüyordu — izin listesi 135 dosyaydı, gerçek
+     146. Kalıp eklendi; on bir dosya listeye GEREKÇESİYLE girdi.
+
+     Yalnız MW eklendi. camelCase TİP KODU (`hesId` · `resKapasite`) için
+     ayrı ve ÖLÇÜLMÜŞ bir karar var: depoda sıfır geçiş, o yüzden kalıp
+     eklenmedi ve körlük `katlama-korlugu.test.ts` içinde ileriye dönük
+     bir vakayla tutuluyor (biri `hesId` yazdığı gün kırmızı). Ölçüm
+     sıfır dediğinde kalıp eklemek, elemesi gereken yanlış pozitifi de
+     beraberinde getirir; MW'de ölçüm sıfır DEMEDİ. */
+  { ad: 'MW', kaliplar: [
+    { re: sinir('MW[ep]?'), hedef: 'ham' },
+    { re: camelKalibi('MW[EPep]?|Mw[ep]?'), hedef: 'ham' },
+  ] },
   { ad: 'tip kodu', kaliplar: [
     { re: sinir('JES|JEO|RES|HES|GES|DGKC|DGKÇ|TERMIK|TERMİK'), hedef: 'ham' },
   ] },

@@ -353,6 +353,11 @@
 | `URN-ALN-007` | Ürünleştirme | DOMAIN | `bekci/katlama-korlugu.test.ts` | DGKÇ — ASCII `\\b` sondaki Ç yüzünden HİÇ görmüyordu | evet | geçti |
 | `URN-ALN-007` | Ürünleştirme | DOMAIN | `bekci/katlama-korlugu.test.ts` | RES — ASCII `\\b` Türkçe sözcüğün ORTASINDA eşleşiyordu | evet | geçti |
 | `URN-ALN-007` | Ürünleştirme | DOMAIN | `bekci/katlama-korlugu.test.ts` | şapkasız rüzgar — yazım varyantı da sektör sözcüğüdür | evet | geçti |
+| `URN-ALN-007` | Ürünleştirme | DOMAIN | `bekci/katlama-korlugu.test.ts` | `gucMw` — öncesi 0, sonrası 1 | evet | geçti |
+| `URN-ALN-007` | Ürünleştirme | DOMAIN | `bekci/katlama-korlugu.test.ts` | birim sonekli yazımlar da görünür (`Mwe` · `MWe` · `Mwp`) | evet | geçti |
+| `URN-ALN-007` | Ürünleştirme | DOMAIN | `bekci/katlama-korlugu.test.ts` | YANLIŞ POZİTİF YOK — küçük harfli ve sınırsız yazımlar sessiz | evet | geçti |
+| `URN-ALN-007` | Ürünleştirme | DOMAIN | `bekci/katlama-korlugu.test.ts` | sözcük sınırlı yazım HÂLÂ görünüyor — eski kalıp kaybolmadı | evet | geçti |
+| `URN-ALN-007` | Ürünleştirme | DOMAIN | `bekci/katlama-korlugu.test.ts` | depodaki 11 dosya İZİN LİSTESİNDE — sayı ölçüldü | evet | geçti |
 | `URN-ALN-007` | Ürünleştirme | DOMAIN | `bekci/katlama-korlugu.test.ts` | camelCase kod biçimi depoda HİÇ geçmiyor (ölçüm) | evet | geçti |
 | `URN-ALN-007` | Ürünleştirme | DOMAIN | `bekci/katlama-korlugu.test.ts` | bugünkü bekçi camelCase kod biçimini GÖRMÜYOR — bilinçli | evet | geçti |
 | `URN-ALN-007` | Ürünleştirme | DOMAIN | `bekci/katlama-korlugu.test.ts` | küçük harf araması neden yapılmıyor — yanlış pozitif kanıtı | evet | geçti |

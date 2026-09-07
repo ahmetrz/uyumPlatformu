@@ -52,6 +52,22 @@ export function sinirKalibi(govde, bayraklar = 'gu') {
   return new RegExp(`(?<![\\p{L}\\p{N}_])(?:${govde})(?![\\p{L}\\p{N}_])`, bayraklar);
 }
 
+/** camelCase İÇİNE GÖMÜLÜ gövde: solunda küçük harf ya da rakam, gövde
+    Büyük harfle başlıyor, sağında küçük harf yok.
+
+    `sinirKalibi` bunu GÖREMEZ ve görmemesi doğru: sözcük sınırı iki
+    yanında da harf istemiyor, `gucMw` içindeki `Mw`nin solunda `c` var.
+    Ama tanımlayıcı adları sektör terimini tam da böyle taşıyor —
+    `gucMw` · `tesisJes` · `birimUnite`. Ölçüldü (7 Eyl 2026): depoda
+    `gucMw` on bir dosyada geçiyordu ve bekçi hiçbirini görmüyordu.
+
+    Gövde BÜYÜK HARFLE BAŞLAYAN yazımlarıyla verilir (`Mw|MW`), çünkü
+    ayırt edici olan tam da camelCase'in büyük harfidir; küçük harfli
+    biçim (`gucmw`) bu kalıbın konusu değildir. */
+export function camelKalibi(govde, bayraklar = 'gu') {
+  return new RegExp(`(?<=[\\p{Ll}\\p{N}])(?:${govde})(?![\\p{Ll}])`, bayraklar);
+}
+
 /** Kalıbın metindeki eşleşme sayısı. Kalıp `g` taşımalı. */
 export function eslesmeSayisi(re, metin) {
   return metin.match(new RegExp(re.source, re.flags))?.length ?? 0;

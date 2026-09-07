@@ -1,7 +1,7 @@
 {
-  "imza": "c5c4fa57cd7be20d5d9e24d195cf03f2",
+  "imza": "5b3cc436bd8fcf57b73ef437201849c1",
   "dosya": 148,
-  "vaka": 2988,
+  "vaka": 2989,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -157,7 +157,7 @@
       "atlanan": 0
     },
     "tests/faz-b-eylem.test.ts": {
-      "vaka": 55,
+      "vaka": 56,
       "atlanan": 0
     },
     "tests/faz-d-eylem.test.ts": {

@@ -230,6 +230,15 @@ export async function adimVarligiKaldir(girdi: {
 const KAYIP_TIPLERI = ['tam', 'kismi', 'yok', 'bilinmiyor'] as const;
 const ETKI_SIDDETLERI = ['yok', 'dusuk', 'orta', 'yuksek', 'bilinmiyor'] as const;
 
+/** Denetim izi değeri: sayı + birim; birim yoksa EKSİKLİĞİ yazar.
+
+    `yok` parametresi, değerin hiç olmadığı hâlin sözcüğüdür ("hesaplanmadı").
+    Değer varsa ve birim yoksa sayı çıplak DEĞİL, eksikliğiyle yazılır. */
+function izDegeri(deger: number | null, birim: string | null, yok?: string): string | null {
+  if (deger === null) return yok ?? null;
+  return birim ? `${deger} ${birim}` : `${deger} (birim belirtilmedi)`;
+}
+
 export async function etkiDegerlendirmesiKaydet(girdi: unknown): Promise<Sonuc> {
   try {
     const k = await yetkiZorunlu('envanter', 'yazma', KAPSAM_SONRA);
@@ -278,17 +287,17 @@ export async function etkiDegerlendirmesiKaydet(girdi: unknown): Promise<Sonuc> 
     await iz({
       aktorId: k.id, varlikTipi: 'Varlik', varlikId: v.varlikId, eylem: 'guncelleme',
       alan: 'etkiDegerlendirmesi',
-      /* Denetim izi SAYIYI ve BİRİMİ birlikte yazar. Sayıyı tek başına
-         yazmak, birimi ileride değişen bir kaydı altı ay sonra yanlış
-         okuturdu ("12.5" neyin 12.5'i?). Birim yoksa sayı çıplak yazılır
-         ve iz de öyle der — R0-9: saklanan iz kendi başına okunabilir,
-         hiçbir sözlüğe bağlı değildir. */
-      once: eski?.uretimKaybiMw === null || eski === null
-        ? null
-        : [String(eski.uretimKaybiMw), eski.kayipBirim].filter(Boolean).join(' '),
-      sonra: v.uretimKaybiMw === null || v.uretimKaybiMw === undefined
-        ? 'hesaplanmadı'
-        : [String(v.uretimKaybiMw), v.kayipBirim].filter(Boolean).join(' '),
+      /* Denetim izi SAYIYI ve BİRİMİ birlikte yazar; birim YOKSA
+         eksikliği OLGU olarak yazar.
+
+         Ekranda çıplak sayı doğrudur — gürültü eklemez. Denetim izinde
+         değil: "12,5" tek başına altı ay sonra "neyin 12,5'i?" sorusunu
+         doğurur ve kaçınılan belirsizlik ekrandan İZE taşınmış olurdu.
+         Burada "ölçülmedi ≠ sıfır" kuralının aynısı geçerli: eksik olan
+         şey görünür olmalı, sessiz değil. İz kendi başına okunabilir
+         kalır (R0-9) — birim yoksa bunu da kendisi söyler. */
+      once: izDegeri(eski?.uretimKaybiMw ?? null, eski?.kayipBirim ?? null),
+      sonra: izDegeri(v.uretimKaybiMw ?? null, v.kayipBirim ?? null, 'hesaplanmadı'),
       gerekce: v.gerekce ?? null,
     });
     revalidatePath('/envanter');

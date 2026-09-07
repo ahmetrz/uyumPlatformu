@@ -95,6 +95,7 @@ kurum sistemine giden hiçbir şey yoktur.
 | `dizustu.mjs` | `tasarim:dizustu` | 1366×768'de kaydırılamayan (kırpılan) içerik var mı | kırpılan öğe |
 | `iki-sozluk.mjs` | `kapi:iki-sozluk` | üç düzen kapısını (tasma · dizüstü · axe) ÜÇ sözlükle koşar (enerji · su · stres); kusurun hangi sözlükte çıktığını söyler | herhangi bir sözlükte kusur |
 | `kolon-hizasi.mjs` | `tasarim:kolon` | statik çıktıda başlık/hücre sayısı, sol kenar hizası (±1px), kaydırma kabını aşma — 1440 · 1366 · 1280. **İki sözlükle ölçülmedi** (istisna, aşağıda) | hiza kusuru |
+| — (prisma) | `kapi:sema-sapmasi` | göç sonrası: veritabanı `schema.prisma` ile birebir mi | sapma varsa çıkış 2 |
 | `sozluk-farki.mjs` | (iki-sozluk içinde) | **pozitif ölçü**: sözlük ekrana ulaşıyor mu — aynı rotanın metni iki sözlükle alınır, fark çıkarılır | çevrilmiş rotada fark yoksa çıkış 1 |
 | `sozluk-metni.mjs` | — (yardımcı) | render edilen `main` metnini JSON'a yazar; sözlüğü bilmez | — |
 | `rota-dizini.mjs` | — (kütüphane) | rota → kaynak dizini, `app/` ağacından türetilir | — |
@@ -318,6 +319,21 @@ Bugünkü ölçüm: **38 rota · kırpılan öğe 0 · yatay taşan rota 0.**
 PORT=3210 npm run tasarim:dizustu
 PORT=3210 node arac/dizustu.mjs --rota=/,/portfoy
 ```
+
+### `kapi:sema-sapmasi` — göç sonrası şema/veritabanı sapması
+
+Bir şema göçünden sonra `schema.prisma` ile veritabanının birebir aynı
+olduğunu doğrular. Göç dosyası yazılıp uygulanmamış ya da elle bir kolon
+eklenmiş olabilir; ikisi de testlerde görünmez, çünkü testler kendi
+kopyalarını `prisma/dev.db`den alır — sapma o kopyaya da taşınır ve
+"yeşil" olur.
+
+```
+npm run kapi:sema-sapmasi     # "No difference detected." · çıkış 0
+```
+
+Şema dokunan her dilimde koşulur. `--exit-code` sapmada 2 döner, yani
+komut kapı olarak kullanılabilir.
 
 ### `sozluk-farki.mjs` — sözlük ekrana ULAŞIYOR mu (pozitif ölçü)
 

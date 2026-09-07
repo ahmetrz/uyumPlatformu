@@ -305,6 +305,22 @@ describe('P1 · etki değerlendirmesi birimi [URN-ALN-004]', () => {
     expect(e?.kayipBirim).toBe('m³/gün');
   });
 
+  it('DENETİM İZİ birim yoksa EKSİKLİĞİ yazar', async () => {
+    /* Ekranda çıplak sayı doğru; izde değil. "3" tek başına altı ay
+       sonra "neyin 3'ü?" sorusunu doğurur ve kaçınılan belirsizlik
+       ekrandan İZE taşınmış olurdu. Eksik olan şey görünür olmalı. */
+    await etkiDegerlendirmesiKaydet({
+      varlikId: varlikA, uretimKaybiMw: 3, kayipBirim: null,
+      gerekce: 'birim henüz kararlaştırılmadı',
+    });
+    const iz = await db.aktiviteKaydi.findFirst({
+      where: { varlikId: varlikA, alan: 'etkiDegerlendirmesi' },
+      orderBy: { zaman: 'desc' },
+    });
+    expect(iz?.yeniDeger).toBe('3 (birim belirtilmedi)');
+    expect(iz?.yeniDeger).not.toBe('3');
+  });
+
   it('birim BOŞ bırakılabilir — uydurulmaz', async () => {
     /* Birimsiz kayıt geçerlidir ve ekran sayıyı çıplak yazar. Eksik
        birimi "MW" saymak, "bilinmeyen ≠ sıfır" kuralının birim

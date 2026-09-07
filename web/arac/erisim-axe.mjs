@@ -37,8 +37,8 @@ import { chromium } from 'playwright-core';
 import { writeFileSync } from 'node:fs';
 import path from 'node:path';
 import {
-  KOK, WEB, bayrakDegeri, dinamikRotalar, girisYap, kalipCozucu, rotaBayragi, rotalarOku,
-  tarayiciYolu,
+  KOK, WEB, bayrakDegeri, dinamikRotalar, girisYap, kalipCozucu, rotaBayragi, rotaBayragiVar,
+  rotalarOku, tarayiciYolu,
 } from './kosu-ortak.mjs';
 import { axeOzeti } from './kalite-kurallari.mjs';
 import { borcuUygula } from './kalite-borcu.mjs';
@@ -137,8 +137,12 @@ try {
   await b.close();
 }
 
-/* Değeri çözülemeyen dinamik rota SESSİZCE düşmez: taranmayan bir rota
-   "kusursuz" demek değildir. */
+/* Çözülemeyen dinamik rota bir UYARI DEĞİL, KIRIK TARAMADIR: taranmayan
+   bir ekran "kusursuz" demek değildir ve tam da bu kapının kapatmak için
+   var olduğu kör noktadır (tablo/kolon yeniden adlandırılır, tohum tablosu
+   boşalır, veritabanı okunamaz — kapı yeşil kalırdı). `--rota=` ile kapsam
+   ELLE daraltıldıysa dinamikler zaten istenmemiştir; orada kırık sayılmaz. */
+const DINAMIK_KIRIK = !rotaBayragiVar() && DINAMIK.atlanan.length > 0;
 for (const a of DINAMIK.atlanan) {
   console.error(`  DİNAMİK ROTA TARANMADI · ${a.rota} · ${a.sebep}`);
 }
@@ -222,4 +226,8 @@ const borcKapali = borcuUygula(bulgular, { kapi: 'axe' });
 if (kirik.length > 0) {
   console.error(`\nKIRIK TARAMA · ${kirik.length} rota ölçülemedi — izin listesine giremez.`);
 }
-process.exitCode = borcKapali || kirik.length > 0 ? 1 : 0;
+if (DINAMIK_KIRIK) {
+  console.error(`\nKIRIK TARAMA · ${DINAMIK.atlanan.length} dinamik rota ölçülemedi`
+    + ' — izin listesine giremez, kapı KIRMIZIDIR.');
+}
+process.exitCode = borcKapali || kirik.length > 0 || DINAMIK_KIRIK ? 1 : 0;

@@ -143,6 +143,11 @@ export function kalipCozucu(dinamik) {
   return (rota) => eslesme.get(rota) ?? rota;
 }
 
+/** `--rota=` verilmiş mi — kapılar varsayılan kapsamı bilmek ister. */
+export function rotaBayragiVar() {
+  return process.argv.some((a) => a.startsWith('--rota='));
+}
+
 /** `--rota=/a,/b` bayrağı varsa onu, yoksa verilen varsayılanı döner. */
 export function rotaBayragi(varsayilan) {
   const arg = process.argv.find((a) => a.startsWith('--rota='));

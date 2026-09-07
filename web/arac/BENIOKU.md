@@ -246,7 +246,12 @@ kendi eklemesini meşrulaştırırdı. Dördüncü diş de aynı sebeple sert:
 karşılaştırılamayan bir izin listesi, listenin büyümediğini KANITLAMAZ,
 o yüzden sığ klonda CI kırmızıdır (`fetch-depth: 0` şart).
 
-Yerelde taban dal yoksa **gerekçeli** atlanır; CI'da gerekçe işe yaramaz:
+Yerelde taban dal yoksa **gerekçeli** atlanır; CI'da gerekçe işe yaramaz.
+`CI` değişkeni AYRIŞTIRILIR (`ciMi`): kabuklar `CI=false` / `CI=0` ihraç
+eder ve `Boolean()` ikisini de doğru sayardı — yerel kabuk kendini CI
+sanar, belgelenmiş çıkış sessizce kaybolurdu (ölçüldü: `CI=false` +
+gerekçe → yeşil, `CI=true` + gerekçe → kırmızı).
+
 
 ```bash
 PORT=3210 node arac/yatay-tasma.mjs --circir-atla="taban dal bu klonda yok"
@@ -423,6 +428,18 @@ tohumdan somutlaşan rotaları da tarar (56 rota · 112 ölçüm).
 > (`/riskler/[id]`): tohum kimlikleri `@default(cuid())` ile her seed
 > koşusunda değişir, somut URL yazılsaydı CI'daki kimlik yerelde
 > ölçülene hiç uymaz ve liste kilitlenirdi.
+
+**Çözülemeyen dinamik rota bir uyarı değil, KIRIK TARAMADIR.** Tablo ya
+da kolon yeniden adlandırılırsa, tohum tablosu boşalırsa veya
+veritabanı okunamazsa rota listeden sessizce düşerdi ve kapı yeşil
+kalırdı — kapatılan kör nokta geri açılırdı. Böyle bir rota kapıyı
+KIRMIZI yakar ve izin listesine GİREMEZ: ölçülemeyen bir şey "borç"
+değildir. `--rota=` ile kapsam elle daraltıldıysa dinamikler zaten
+istenmemiştir; orada kırık sayılmaz.
+
+> **Denendi:** `DB_YOL=/olmayan/dev.db` ile iki kapı da altı dinamik
+> rotayı çözemedi ve ikisi de exit 1 verdi; `--rota=/uyum` ile aynı
+> koşu exit 0.
 
 ```bash
 PORT=3210 npm run tasarim:tasma

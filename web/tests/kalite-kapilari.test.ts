@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   KIRPILMA_TOLERANSI, altinDosyaAdi, axeCiddiMi, axeOzeti, borcAnahtari, borcSuzgeci,
-  circirKarari, enDistakiKirpilmalar, esikAltindakiler, gorselFark, kirpilmaKarari,
+  ciMi, circirKarari, enDistakiKirpilmalar, esikAltindakiler, gorselFark, kirpilmaKarari,
   rotaAdi, yuzPuan,
 } from '../arac/kalite-kurallari.mjs';
 
@@ -237,3 +237,21 @@ describe('DİŞ 3 · taban dal — liste yalnız küçülebilir', () => {
    içindedir ve bilerek ayrı dosyadadır: liste silindiğinde bu dosyanın
    toplanması kırılıyordu ve cırcırın 36 birim vakası, adsız bir modül
    yükleme hatasına dönüşüyordu (ölçüldü). */
+
+describe('CI ortam değişkeni AYRIŞTIRILIR', () => {
+  it('CI olduğunu söyleyen değerler', () => {
+    for (const v of ['1', 'true', 'TRUE', 'yes', 'github']) expect(ciMi(v)).toBe(true);
+  });
+
+  it('CI OLMADIĞINI söyleyen değerler — `Boolean()` bunları kaçırırdı', () => {
+    /* Kabuklar ve araçlar `CI=false` / `CI=0` ihraç eder; dizge olarak
+       ikisi de doğrudur. Ayrıştırılmasaydı yerel bir kabuk kendini CI
+       sanar ve belgelenmiş `--circir-atla` çıkışı sessizce kaybolurdu. */
+    for (const v of ['0', 'false', 'FALSE', 'no', 'off', '', '  ']) expect(ciMi(v)).toBe(false);
+  });
+
+  it('tanımsızlık CI değildir', () => {
+    expect(ciMi(undefined)).toBe(false);
+    expect(ciMi(null)).toBe(false);
+  });
+});

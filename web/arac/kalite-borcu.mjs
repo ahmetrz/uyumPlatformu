@@ -13,7 +13,7 @@ import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { WEB } from './kosu-ortak.mjs';
-import { borcAnahtari, borcSuzgeci, circirKarari } from './kalite-kurallari.mjs';
+import { borcAnahtari, borcSuzgeci, ciMi, circirKarari } from './kalite-kurallari.mjs';
 
 export const BORC_YOLU = path.join(WEB, 'arac', 'kalite-borcu.json');
 /* Taban DALIN KENDİSİ DEĞİL: dalın kendi eklemesi kendini
@@ -147,7 +147,7 @@ export function borcuUygula(bulgular, { kapi, yaz = console.error, bilgi = conso
 
   /* ── DİŞ 3 + DİŞ 4 · taban dal karşılaştırması ───────────────────── */
   const taban = tabanBorcOku();
-  const ciDe = Boolean(process.env.CI);
+  const ciDe = ciMi(process.env.CI);
   const gerekce = atlamaGerekcesi();
   let circir = { eklenen: [], yukseltilen: [], kapiKapali: false };
   let circirNotu = null;

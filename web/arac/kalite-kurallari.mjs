@@ -232,3 +232,17 @@ export function circirKarari(dalBorcu, tabanBorcu) {
   }
   return { eklenen, yukseltilen, kapiKapali: eklenen.length > 0 || yukseltilen.length > 0 };
 }
+
+/**
+ * `CI` ortam değişkeni GERÇEKTEN CI'yı mı söylüyor.
+ *
+ * `Boolean(process.env.CI)` yetmez: kabuklar ve araçlar `CI=false` ya da
+ * `CI=0` ihraç eder ve dizge olarak ikisi de doğrudur. O hâlde yerel bir
+ * kabuk kendini CI sanır ve belgelenmiş `--circir-atla` çıkışı sessizce
+ * kaybolurdu. Değer AYRIŞTIRILIR; tanımsızlık CI değildir.
+ */
+export function ciMi(deger) {
+  const v = String(deger ?? '').trim().toLowerCase();
+  if (v === '') return false;
+  return !['0', 'false', 'no', 'off'].includes(v);
+}

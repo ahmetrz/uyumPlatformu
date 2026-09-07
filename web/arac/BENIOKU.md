@@ -260,14 +260,40 @@ burada kırpılıyor". Örnek sayısı satır sayısına, yani tohuma bağlı
 olurdu; büyümeyi ALT KÜME dişi yakalar — yeni bir hedef, yeni bir satır
 demektir.
 
-**Normalizasyon ayırt ediciliği azaltabilir; o nokta ÖLÇÜLÜR.** İki farklı
-ham seçici aynı kimliğe düşerse kapı her koşuda yazar ve satırın notuna
-işlenir; sessizce birleştirilmez.
+**Normalizasyon AGRESİFTİR, ama ÇAKIŞMAYA KADAR.** Çakışan bir kimlik
+kapının içinde dar bir bypass'tır: iki düğüm tek anahtardaysa ve tavan
+2 ise, biri düzelip yerine aynı kimliğe düşen BAŞKASI geldiğinde sayı
+2'yi aşmaz ve geçer. Çözüm birleştirmek değil **AYRIŞTIRMAK**: çakışan
+grupta konum bilgisi (`:nth-child`) geri konur. Yaygın durumda kararlı,
+çakışan durumda kesin.
 
-> **Bugün bir çakışma var, ölçüldü:** `/sistem` · 375px ·
-> `scrollable-region-focusable` → `.bolum > .ab-sistem-kaydir`; ham
-> seçiciler `.bolum:nth-child(2)` ve `:nth-child(3)`. O satırda kimlik
-> iki düğümü AYIRT ETMEZ.
+Belirsizlik **iki** kaynaktan sorulur ve ikincisi bilerek daha geniştir:
+
+| Kaynak | Sorusu |
+| --- | --- |
+| (a) | aynı taramada iki FARKLI ham hedef tek kimliğe düşüyor mu |
+| (b) | normalize seçici SAYFADA birden çok öğeyle eşleşiyor mu |
+
+Yalnız (a) sorulsaydı kimlik, o an İHLAL EDEN düğüm sayısına bağlı
+olurdu: iki çakışan ihlalden biri düzelince kalanın kimliği ham'dan
+normale DÖNER, satır "yeni" görünür ve DİŞ 3 yüzünden yeniden yazılamaz
+— düzeltmeyi yapan kişi kilitlenirdi. (b) sayfanın YAPISINA bakar; bir
+ihlalin düzelmesi eşleşme sayısını değiştirmez. Eşleşme, ihlallerle aynı
+sayfa durumunda ölçülür; normalizasyon tek yerdedir (`axeHedefi`),
+sayfaya yalnız hesaplanmış seçiciler gider.
+
+> **Bugün bir ayrıştırma var, ölçüldü:** `/sistem` · 375px ·
+> `scrollable-region-focusable` · `.bolum > .ab-sistem-kaydir` →
+> `.bolum:nth-child(2) > .ab-sistem-kaydir` ve `:nth-child(3) > …`.
+> Rapor "birleştirildi" değil **AYRIŞTIRILDI** yazar; izin listesinde de
+> tek satır (azami 2) yerine iki satır (azami 1) durur — toplam
+> değişmedi, kesinlik arttı.
+
+**Taşma kapısında aynı soru sorulamaz ve bu bilerek böyledir.** Oradaki
+kimlik `etiket@kutuEni`dir ve tekrarlayan tablo satırlarını BİLEREK tek
+hedefte toplar; onları ayrıştırmak ölçüyü satır sayısına, yani tohuma
+geri bağlardı. Yapısal olarak farklı bir kırpma zaten farklı kutu eni
+verir ve ayrı hedef olur.
 
 #### Anahtar şeması geçişi — kaldıraç değil, kanıt
 

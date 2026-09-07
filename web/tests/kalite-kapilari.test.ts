@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   KIRPILMA_TOLERANSI, altinDosyaAdi, axeCiddiMi, axeHedefi, axeOzeti, borcAnahtari,
   borcSuzgeci, ciMi, circirKarari, enDistakiKirpilmalar, esikAltindakiler, gorselFark,
-  hedefCakismalari, kirpilmaKarari, rotaAdi, tasmaHedefi, yuzPuan,
+  axeHedefleri, ayristirilanHedefler, kirpilmaKarari, rotaAdi, tasmaHedefi, yuzPuan,
 } from '../arac/kalite-kurallari.mjs';
 
 /* Kalite kapılarının SAF kuralları — tarayıcısız doğrulanır.
@@ -349,17 +349,79 @@ describe('axe hedef kimliği · normalizasyon', () => {
     expect(axeHedefi(undefined)).toBe('‹seçicisiz›');
   });
 
-  it('normalizasyondan sonra çakışan FARKLI ham seçiciler ÖLÇÜLÜR', () => {
-    /* Normalize etmek kimliği kararlı yapar ama ayırt ediciliğini
-       azaltabilir. O nokta sessizce birleştirilmez, raporlanır. */
-    const c = hedefCakismalari(['.a:nth-child(1) .b', '.a:nth-child(7) .b', '.c']);
-    expect(c).toHaveLength(1);
-    expect(c[0].hedef).toBe('.a .b');
-    expect(c[0].hamlar).toHaveLength(2);
+});
+
+/* ═══════════════════════════════════════════════════════════════════════
+   UYARLANABİLİR NORMALİZASYON — agresif, ama ÇAKIŞMAYA KADAR
+
+   Çakışan bir kimlik dar bir bypass'tır: iki düğüm tek anahtarda, tavan
+   2; biri düzelip yerine aynı kimliğe düşen BAŞKASI gelirse sayı 2'yi
+   aşmaz ve geçer. Çözüm birleştirmek değil AYRIŞTIRMAK: çakışan grupta
+   konum bilgisi geri konur.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+describe('uyarlanabilir hedef kimliği', () => {
+  it('çakışma YOKSA normalize kimlik kullanılır — kararlı hâl', () => {
+    const c = axeHedefleri([{ ham: '.bolum:nth-child(2) > .k', domEslesme: 1 }]);
+    expect(c[0].hedef).toBe('.bolum > .k');
+    expect(c[0].ayristirildi).toBe(false);
   });
 
-  it('çakışma yoksa liste boştur', () => {
-    expect(hedefCakismalari(['.a', '.b'])).toEqual([]);
+  it('iki ham hedef tek kimliğe düşüyorsa KONUM GERİ KONUR', () => {
+    const c = axeHedefleri([
+      { ham: '.bolum:nth-child(2) > .k', domEslesme: 2 },
+      { ham: '.bolum:nth-child(3) > .k', domEslesme: 2 },
+    ]);
+    expect(c.map((x) => x.hedef)).toEqual([
+      '.bolum:nth-child(2) > .k', '.bolum:nth-child(3) > .k',
+    ]);
+    expect(c.every((x) => x.ayristirildi)).toBe(true);
+    /* Ve ayrışan kimlikler birbirinden GERÇEKTEN ayrı. */
+    expect(new Set(c.map((x) => x.hedef)).size).toBe(2);
+  });
+
+  it('TEK ihlal olsa da normalize seçici sayfada çok eşleşiyorsa ayrıştırılır', () => {
+    /* Kimlik "kaç düğüm ihlal ediyor"a bağlansaydı, iki çakışan
+       ihlalden biri düzelince kalanın kimliği ham'dan normale DÖNER,
+       satır "yeni" görünür ve DİŞ 3 yüzünden yeniden yazılamazdı —
+       düzeltme yapan kişi kilitlenirdi. Sayfanın YAPISI sorulur. */
+    const c = axeHedefleri([{ ham: '.bolum:nth-child(3) > .k', domEslesme: 2 }]);
+    expect(c[0].hedef).toBe('.bolum:nth-child(3) > .k');
+    expect(c[0].ayristirildi).toBe(true);
+  });
+
+  it('ayrıştırma bir ihlal düzelince KAYMAZ — kimlik kararlıdır', () => {
+    const ikisi = axeHedefleri([
+      { ham: '.b:nth-child(2) > .k', domEslesme: 2 },
+      { ham: '.b:nth-child(3) > .k', domEslesme: 2 },
+    ]);
+    const biri = axeHedefleri([{ ham: '.b:nth-child(3) > .k', domEslesme: 2 }]);
+    expect(biri[0].hedef).toBe(ikisi[1].hedef);
+  });
+
+  it('ayrıştırma RAPORLANIR — "birleştirildi" değil "ayrıştırıldı"', () => {
+    const a = ayristirilanHedefler([
+      { ham: '.a:nth-child(1) .b', domEslesme: 2 },
+      { ham: '.a:nth-child(7) .b', domEslesme: 2 },
+      { ham: '.c', domEslesme: 1 },
+    ]);
+    expect(a).toHaveLength(1);
+    expect(a[0].norm).toBe('.a .b');
+    expect(a[0].hedefler).toHaveLength(2);
+  });
+
+  it('ayrıştırma yoksa rapor boştur', () => {
+    expect(ayristirilanHedefler([{ ham: '.a', domEslesme: 1 }])).toEqual([]);
+  });
+
+  it('ayrıştırılan kimlikler ANAHTARDA da ayrışır', () => {
+    const c = axeHedefleri([
+      { ham: '.b:nth-child(2) > .k', domEslesme: 2 },
+      { ham: '.b:nth-child(3) > .k', domEslesme: 2 },
+    ]);
+    const ortak = { kapi: 'axe', tur: 'scrollable-region-focusable', rota: '/sistem', bant: 375 };
+    expect(borcAnahtari({ ...ortak, hedef: c[0].hedef }))
+      .not.toBe(borcAnahtari({ ...ortak, hedef: c[1].hedef }));
   });
 });
 

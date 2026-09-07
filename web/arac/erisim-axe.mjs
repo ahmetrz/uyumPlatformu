@@ -41,7 +41,7 @@ import {
   rotalarOku, tarayiciYolu,
 } from './kosu-ortak.mjs';
 import {
-  axeHedefi, axeOzeti, borcAnahtari, hedefCakismalari,
+  axeHedefi, axeHedefleri, axeOzeti, ayristirilanHedefler, borcAnahtari,
 } from './kalite-kurallari.mjs';
 import { yonlendirmeKarari } from './rota-kurallari.mjs';
 import { borcuUygula } from './kalite-borcu.mjs';
@@ -105,6 +105,24 @@ async function tara(s, rota) {
       belirsiz: r.incomplete.length,
     };
   }, ETIKETLER);
+  /* Normalize seçicinin SAYFADA kaç öğeyle eşleştiği burada, ihlallerle
+     AYNI sayfa durumunda ölçülür. Kimlik böylece "kaç düğüm ihlal
+     ediyor"a değil sayfanın YAPISINA bağlanır: bir ihlalin düzelmesi
+     eşleşme sayısını değiştirmez, yani kalan satırın kimliği kaymaz.
+     Normalizasyon tek yerdedir (`axeHedefi`); sayfaya yalnız hesaplanmış
+     seçiciler gider. */
+  const seciciler = [...new Set(sonuc.ihlaller.flatMap((i) => (i.hedefler ?? []).map(axeHedefi)))];
+  const eslesme = seciciler.length === 0 ? {} : await s.evaluate((liste) => {
+    const cikti = {};
+    for (const sec of liste) {
+      try { cikti[sec] = document.querySelectorAll(sec).length; } catch { cikti[sec] = -1; }
+    }
+    return cikti;
+  }, seciciler);
+  for (const i of sonuc.ihlaller) {
+    i.dugumler = (i.hedefler ?? []).map((ham) => ({ ham, domEslesme: eslesme[axeHedefi(ham)] }));
+  }
+
   const ozet = axeOzeti(sonuc.ihlaller);
   /* Yanlış YÜZEYİ taramak, taramamaktan beterdir: 404/500 gövdesi ya da
      giriş ekranı "yeni ciddi ihlal yok" der ve kapı yeşil kalır. Bu,
@@ -258,9 +276,8 @@ const bulgular = rapor.flatMap((r) => r.ihlaller
   .filter((i) => i.impact === 'serious' || i.impact === 'critical')
   .flatMap((i) => {
     const sayac = new Map();
-    for (const ham of i.hedefler ?? []) {
-      const h = axeHedefi(ham);
-      sayac.set(h, (sayac.get(h) ?? 0) + 1);
+    for (const c of axeHedefleri(i.dugumler)) {
+      sayac.set(c.hedef, (sayac.get(c.hedef) ?? 0) + 1);
     }
     return [...sayac.entries()].map(([hedef, adet]) => ({
       kapi: 'axe', tur: i.id, rota: kalip(r.rota), bant: r.bantEn,
@@ -268,19 +285,19 @@ const bulgular = rapor.flatMap((r) => r.ihlaller
     }));
   }));
 
-/* Normalizasyondan sonra aynı kimliğe düşen FARKLI ham seçiciler:
-   kimlik orada gerçekten ayırt etmiyordur. Sessizce birleştirmek, tam
-   da kapatılmaya çalışılan bypass'ı küçük ölçekte geri açardı. */
-const cakismalar = rapor.flatMap((r) => r.ihlaller.flatMap((i) => hedefCakismalari(i.hedefler)
+/* Çakışan kimlikler BİRLEŞTİRİLMEZ, AYRIŞTIRILIR: konum bilgisi o grup
+   için geri konur. Rapor bunu yazar — hangi normalize seçici, hangi
+   kesin hedeflere bölündü. */
+const ayrisan = rapor.flatMap((r) => r.ihlaller.flatMap((i) => ayristirilanHedefler(i.dugumler)
   .map((c) => ({ rota: r.rota, bant: r.bant, kural: i.id, ...c }))));
-if (cakismalar.length > 0) {
-  console.log(`\nHEDEF KİMLİĞİ ÇAKIŞMASI · ${cakismalar.length} — normalize seçici ayırt etmiyor`);
-  for (const c of cakismalar) {
-    console.log(`  ${c.bant} · ${c.rota} · ${c.kural} → "${c.hedef}"`);
-    for (const h of c.hamlar) console.log(`      ham: ${h}`);
+if (ayrisan.length > 0) {
+  console.log(`\nHEDEF KİMLİĞİ AYRIŞTIRILDI · ${ayrisan.length} — normalize seçici ayırt etmiyordu`);
+  for (const c of ayrisan) {
+    console.log(`  ${c.bant} · ${c.rota} · ${c.kural} · "${c.norm}" →`);
+    for (const h of c.hedefler) console.log(`      ${h}`);
   }
 } else {
-  console.log('\nhedef kimliği çakışması: 0 — normalize seçiciler ayırt ediyor');
+  console.log('\nhedef kimliği ayrıştırması: 0 — normalize seçiciler zaten ayırt ediyor');
 }
 const borcKapali = borcuUygula(enKotuyeIndirge(bulgular), { kapi: 'axe' });
 if (kirik.length > 0) {

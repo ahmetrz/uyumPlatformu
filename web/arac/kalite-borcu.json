@@ -906,12 +906,22 @@
       "tur": "scrollable-region-focusable",
       "rota": "/sistem",
       "bant": 375,
-      "hedef": ".bolum > .ab-sistem-kaydir",
-      "azami": 2,
-      "not": "Scrollable region must have keyboard access · HEDEF KİMLİĞİ ÇAKIŞIYOR: iki ayrı düğüm (.bolum:nth-child(2) ve (3)) normalize edilince tek kimliğe düşüyor — bu satırda kimlik ikisini AYIRT ETMEZ, kapı bunu her koşuda yazar"
+      "hedef": ".bolum:nth-child(2) > .ab-sistem-kaydir",
+      "azami": 1,
+      "not": ".ab-sistem-kaydir kabı klavyeyle odaklanamıyor · normalize seçici (\".bolum > .ab-sistem-kaydir\") iki düğümü ayırt etmediği için konum bilgisi GERİ KONDU — çakışan kimlik dar bir bypass olurdu"
+    },
+    {
+      "kapi": "axe",
+      "tur": "scrollable-region-focusable",
+      "rota": "/sistem",
+      "bant": 375,
+      "hedef": ".bolum:nth-child(3) > .ab-sistem-kaydir",
+      "azami": 1,
+      "not": ".ab-sistem-kaydir kabı klavyeyle odaklanamıyor · normalize seçici (\".bolum > .ab-sistem-kaydir\") iki düğümü ayırt etmediği için konum bilgisi GERİ KONDU — çakışan kimlik dar bir bypass olurdu"
     }
   ],
   "_dinamik": "Dinamik rota satırları KALIBA anahtarlanır (`/tesisler/[id]`), somut URL'e değil: tohum kimlikleri `@default(cuid())` ile her seed'de değişir. Her kalıptan üç kayıt VARYANTI taranır ve tavan EN KÖTÜ varyanta göre tutulur — tek kayıt ölçmek içeriğe bağlı kusuru kaçırırdı (ölçüldü: Tesis 360'ın 768px kusuru 17 tesisin yalnız 5'inde çıkıyordu).",
   "_tavan_nasil": "Tavanlar ÖLÇÜMDEN üretilir, elle yazılmaz. Ölçüm birimi kusur TÜRÜDÜR, öğe sayısı değil: satır sayısına bağlı bir tavan tohum verisi değişince kayar (ölçüldü: /saglik yerelde 8, CI'da 23 öğe — aynı iki kusur türü). Yeniden ölçerken tohum TAZE olmalı: `rm prisma/dev.db && npm run db:hazirla`.",
-  "_anahtar": "kapi + tur + rota + bant + HEDEF. Hedef kimliği olmadan bir PR izinli hedefi kaldırıp aynı rotada aynı kuralla başkasını getirebilir ve ihlal \"mevcut borç\" sayılırdı — bloklayıcı kapının içinde bir bypass. Hedef: taşmada etiket@kutuEni, axe'ta normalize seçici (`:nth-child(n)` gibi kırılgan parçalar atılır). Sözleşme `tests/kalite-kapilari.test.ts` ile İKİ kapıya birden sınanır."
+  "_anahtar": "kapi + tur + rota + bant + HEDEF. Hedef kimliği olmadan bir PR izinli hedefi kaldırıp aynı rotada aynı kuralla başkasını getirebilir ve ihlal \"mevcut borç\" sayılırdı — bloklayıcı kapının içinde bir bypass. Hedef: taşmada etiket@kutuEni, axe'ta normalize seçici (`:nth-child(n)` gibi kırılgan parçalar atılır). Sözleşme `tests/kalite-kapilari.test.ts` ile İKİ kapıya birden sınanır.",
+  "_hedef": "Hedef kimliği UYARLANABİLİR normalize edilir: yaygın durumda agresif (`:nth-child(n)` gibi konum bağlı sözde sınıflar atılır), ÇAKIŞAN durumda kesin (o grup için konum geri konur). Belirsizlik iki kaynaktan sorulur: aynı taramada iki farklı ham hedefin tek kimliğe düşmesi, VE normalize seçicinin sayfada birden çok öğeyle eşleşmesi. İkincisi şart: yalnız ilki sorulsaydı kimlik ihlal EDEN düğüm sayısına bağlanır, iki çakışan ihlalden biri düzelince kalanın kimliği kayar ve DİŞ 3 yüzünden yeniden yazılamazdı."
 }

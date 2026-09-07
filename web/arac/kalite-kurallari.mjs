@@ -253,20 +253,74 @@ export function axeHedefi(secici) {
     .trim() || '‹seçicisiz›';
 }
 
+/* ── UYARLANABİLİR NORMALİZASYON ────────────────────────────────────
+   Normalize etmek kimliği kararlı yapar ama ayırt ediciliğini azaltır.
+   Çakışan bir kimlik, KAPININ İÇİNDE dar bir bypass'tır: `.bolum >
+   .ab-sistem-kaydir` altında iki düğüm varsa ve tavan 2 ise, biri
+   düzelip yerine aynı kimliğe düşen BAŞKASI geldiğinde sayı 2'yi aşmaz
+   ve geçer.
+
+   Kural: AGRESİF normalize et, ama ÇAKIŞMAYA KADAR değil. Çakışan
+   grupta konum bilgisi (`:nth-child`) geri konur — yaygın durumda
+   kararlı, çakışan durumda kesin.
+
+   Belirsizlik İKİ kaynaktan sorulur ve ikincisi bilerek daha geniştir:
+
+     (a) aynı taramada iki FARKLI ham hedef tek kimliğe düşüyor;
+     (b) normalize seçici SAYFADA birden çok öğeyle eşleşiyor.
+
+   Yalnız (a) sorulsaydı kimlik, o an İHLAL EDEN düğüm sayısına bağlı
+   olurdu: iki çakışan ihlalden biri düzelince kalanın kimliği ham'dan
+   normale DÖNER, borç satırı "yeni" görünür ve DİŞ 3 yüzünden yeniden
+   yazılamaz — düzeltme yapan kişi kilitlenirdi. (b) sayfanın yapısına
+   bakar; bir ihlalin düzelmesi eşleşme sayısını değiştirmez. */
+
+/** Tek bir düğümün kimliği: belirsizse ham, değilse normalize. */
+export function axeHedefSecimi({ ham, belirsiz }) {
+  return belirsiz ? String(ham ?? '') || '‹seçicisiz›' : axeHedefi(ham);
+}
+
 /**
- * Normalizasyondan sonra AYNI kimliğe düşen FARKLI ham seçiciler.
- * Kimlik o noktada gerçekten ayırt etmiyordur; kapı bunu yazar.
+ * Bir kuralın düğümleri için kimlikleri hesaplar.
+ * @param {{ham:string, domEslesme?:number}[]} dugumler
+ * @returns {{ham:string, norm:string, hedef:string, ayristirildi:boolean}[]}
  */
-export function hedefCakismalari(hamSeciciler) {
+export function axeHedefleri(dugumler) {
+  const liste = (dugumler ?? []).map((d) => ({
+    ham: String(d?.ham ?? ''),
+    norm: axeHedefi(d?.ham),
+    domEslesme: Number(d?.domEslesme),
+  }));
   const grup = new Map();
-  for (const ham of hamSeciciler ?? []) {
-    const h = axeHedefi(ham);
-    if (!grup.has(h)) grup.set(h, new Set());
-    grup.get(h).add(String(ham));
+  for (const d of liste) {
+    if (!grup.has(d.norm)) grup.set(d.norm, new Set());
+    grup.get(d.norm).add(d.ham);
   }
-  return [...grup.entries()]
-    .filter(([, hamlar]) => hamlar.size > 1)
-    .map(([hedef, hamlar]) => ({ hedef, hamlar: [...hamlar] }));
+  return liste.map((d) => {
+    const belirsiz = grup.get(d.norm).size > 1
+      || (Number.isFinite(d.domEslesme) && d.domEslesme > 1);
+    return {
+      ham: d.ham,
+      norm: d.norm,
+      hedef: axeHedefSecimi({ ham: d.ham, belirsiz }),
+      ayristirildi: belirsiz,
+    };
+  });
+}
+
+/**
+ * Ayrıştırılan kimlikler: hangi normalize seçici, hangi ham hedeflere
+ * bölündü. Kapı bunu yazar — "birleştirildi" değil, "AYRIŞTIRILDI".
+ */
+export function ayristirilanHedefler(dugumler) {
+  const cozum = axeHedefleri(dugumler);
+  const grup = new Map();
+  for (const c of cozum) {
+    if (!c.ayristirildi) continue;
+    if (!grup.has(c.norm)) grup.set(c.norm, new Set());
+    grup.get(c.norm).add(c.hedef);
+  }
+  return [...grup.entries()].map(([norm, hedefler]) => ({ norm, hedefler: [...hedefler] }));
 }
 
 /**

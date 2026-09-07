@@ -1,4 +1,5 @@
 'use client';
+import { useSozluk } from '@/lib/dil/SozlukSaglayici';
 import { AZAMI_ANAHTAR_GUN, VARSAYILAN_ANAHTAR_GUN } from '@/lib/apiAnahtariKurallari';
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
@@ -12,7 +13,7 @@ import { gorevOlustur, gorevDurum, onayKarar } from '@/lib/eylemler2/gorev';
 import {
   apiAnahtariUret, apiAnahtariIptal, apiAnahtariKapsamGuncelle,
 } from '@/lib/eylemler2/apiAnahtari';
-import { UC_ETIKETI, UC_KIMLIKLERI, YAZMA_UCLARI } from '@/lib/api/kapsam';
+import { ucEtiketi, UC_KIMLIKLERI, YAZMA_UCLARI } from '@/lib/api/kapsam';
 import { GOREV_TIP_ETIKET, etiketle, tarihTR, zamanTR } from '@/lib/sabitler';
 import {
   GOREV_DURUMLARI, GOREV_DURUM_ETIKET, KATALOG_ETIKET,
@@ -444,6 +445,7 @@ type Uretilen = { onEk: string; token: string; bitis: string | null };
 export function ApiAnahtarFormu({ kullanicilar, aktifId, kapat }: {
   kullanicilar: Kisi[]; aktifId: string; kapat: () => void;
 }) {
+  const sozluk = useSozluk();
   const router = useRouter();
   const [bekliyor, baslat] = useTransition();
   const [hata, setHata] = useState<string | null>(null);
@@ -497,7 +499,7 @@ export function ApiAnahtarFormu({ kullanicilar, aktifId, kapat }: {
                   onChange={(e) => setUclar(e.target.checked
                     ? [...uclar, uc]
                     : uclar.filter((x) => x !== uc))} />
-                <span>{UC_ETIKETI[uc]}</span>
+                <span>{ucEtiketi(sozluk, uc)}</span>
                 <code style={{ fontFamily: 'var(--veri)', opacity: 0.6 }}>{uc}</code>
               </label>
             );
@@ -641,6 +643,7 @@ export function ApiAnahtarIptal({ anahtar, yazabilir }: {
 export function ApiAnahtarKapsam({ anahtar, yazabilir }: {
   anahtar: Anahtar; yazabilir: boolean;
 }) {
+  const sozluk = useSozluk();
   const { bekliyor, hata, calistir } = useEylem();
   const [uclar, setUclar] = useState<string[]>(anahtar.kapsam ?? []);
   const [saltOkunur, setSaltOkunur] = useState(anahtar.saltOkunur);
@@ -654,7 +657,8 @@ export function ApiAnahtarKapsam({ anahtar, yazabilir }: {
         <p className="ab-panel-dip" style={{ margin: 0 }}>
           {anahtar.kapsam === null
             ? 'Kapsam tanımsız. Değiştirmek yönetim yazma yetkisi gerektiriyor.'
-            : anahtar.kapsam.map((u) => UC_ETIKETI[u as keyof typeof UC_ETIKETI] ?? u)
+            : anahtar.kapsam.map((u) => (UC_KIMLIKLERI.includes(u as never)
+              ? ucEtiketi(sozluk, u as (typeof UC_KIMLIKLERI)[number]) : u))
               .join(' · ')}
         </p>
       </div>
@@ -682,7 +686,7 @@ export function ApiAnahtarKapsam({ anahtar, yazabilir }: {
                 onChange={(e) => setUclar(e.target.checked
                   ? [...uclar, uc]
                   : uclar.filter((x) => x !== uc))} />
-              <span>{UC_ETIKETI[uc]}</span>
+              <span>{ucEtiketi(sozluk, uc)}</span>
             </label>
           );
         })}

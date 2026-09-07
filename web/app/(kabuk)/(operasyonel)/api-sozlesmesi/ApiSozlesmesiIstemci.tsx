@@ -1,11 +1,12 @@
 'use client';
+import { useSozluk } from '@/lib/dil/SozlukSaglayici';
 import Link from 'next/link';
 import { useState } from 'react';
 import { BosIlk, Im } from '@/components/kabuk/temel';
 import { EkranBasligi } from '@/components/kabuk/ekran';
 import { Tablo, type Satir } from '@/components/kabuk/tablo';
 import {
-  anahtarCumlesi, UC_ETIKETI, UC_KIMLIKLERI, yazmaUcuMu,
+  anahtarCumlesi, ucEtiketi, UC_KIMLIKLERI, yazmaUcuMu,
   type AnahtarOzeti,
 } from '@/lib/api/kapsam';
 import { SOZLESME_SURUMU, UC_YOLU } from '@/lib/api/sozlesme';
@@ -36,6 +37,7 @@ export default function ApiSozlesmesiIstemci({
   ucKullanimi: Record<string, number>;
   mirasli: number;
 }) {
+  const sozluk = useSozluk();
   const [acik, setAcik] = useState(false);
 
   const satirlar: Satir[] = UC_KIMLIKLERI.map((uc) => {
@@ -47,7 +49,7 @@ export default function ApiSozlesmesiIstemci({
          ayrılması gereken şey. Hiç anahtarın erişmediği uç 'unk' —
          ölçülmüş sıfır, ama yine de "kimse kullanmıyor" bilgisi. */
       durum: yazan ? 'md' : sayi === 0 ? 'unk' : 'ok',
-      konu: UC_ETIKETI[uc],
+      konu: ucEtiketi(sozluk, uc),
       alt: uc,
       hucreler: [
         UC_YOLU[uc],

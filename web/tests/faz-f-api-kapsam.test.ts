@@ -1,8 +1,10 @@
+import { sozlukKur } from '../lib/dil/terimler';
+import { ENERJI_SOZLUGU, SU_SOZLUGU } from '../prisma/sozlukler';
 import { describe, expect, it } from 'vitest';
 import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import {
-  KAPSAM_SINIFI, KAPSAM_SOZU, UC_ETIKETI, UC_KIMLIKLERI, UC_MODULU,
+  KAPSAM_SINIFI, KAPSAM_SOZU, UC_ETIKETI, ucEtiketi, UC_KIMLIKLERI, UC_MODULU,
   YAZMA_UCLARI, anahtarCumlesi, anahtarOzeti, kapsamKapisi, kapsamiCoz,
   ucaErisim, yazmaUcuMu, type UcKimligi,
 } from '@/lib/api/kapsam';
@@ -240,5 +242,39 @@ describe('OpenAPI sözleşmesi ÜRÜNDEN türetilir', () => {
   it('OpenAPI 3.1 ve bearer güvenlik şeması bildirilir', () => {
     expect(belge.openapi).toBe('3.1.0');
     expect(JSON.stringify(belge)).toContain('bearerAuth');
+  });
+});
+
+/* ═══ R0-9 · SÖZLEŞME ARTEFAKTI ile EKRAN ETİKETİ AYRI ═══════════════════
+   `UC_ETIKETI` OpenAPI belgesinin `summary` alanına gider: entegratörün
+   okuduğu sözleşmedir ve kiracıya göre DEĞİŞMEMELİ. Ekranda gösterilen
+   etiket ise kiracının sözcüğünü izlemeli. Aynı sabitin iki işi görmesi
+   ikisinden birini yanlış yapardı. */
+describe('R0-9 · uç etiketi: sözleşme çekirdekte, ekran sözlükte', () => {
+  const enerji = sozlukKur(ENERJI_SOZLUGU);
+  const su = sozlukKur(SU_SOZLUGU);
+
+  it('SÖZLEŞME etiketi sözlükten BAĞIMSIZDIR', () => {
+    /* Sabit olduğu için sözlük parametresi bile almıyor; vaka, ileride
+       birinin onu sözlüğe bağlamasına karşı duruyor. */
+    expect(UC_ETIKETI.facilities).toBe('Tesisler (okuma)');
+    expect(JSON.stringify(openapiBelgesi())).toContain('Tesisler (okuma)');
+  });
+
+  it('EKRAN etiketi sözlüğü izler', () => {
+    expect(ucEtiketi(null, 'facilities')).toBe('Tesisler (okuma)');
+    expect(ucEtiketi(enerji, 'facilities')).toBe('Santraller (okuma)');
+    expect(ucEtiketi(su, 'facilities')).toBe('Arıtma tesisleri (okuma)');
+  });
+
+  it('terim taşımayan uçlar iki hâlde de aynıdır', () => {
+    for (const uc of ['evidence', 'vulnerabilities', 'integration-runs'] as const) {
+      expect(ucEtiketi(su, uc)).toBe(UC_ETIKETI[uc]);
+    }
+  });
+
+  it('uç KİMLİĞİ hiçbir sözlükte çevrilmez — kapsam dizesi anahtarda saklanır', () => {
+    expect(UC_KIMLIKLERI).toContain('facilities');
+    for (const uc of UC_KIMLIKLERI) expect(uc).toMatch(/^[a-z.-]+$/);
   });
 });

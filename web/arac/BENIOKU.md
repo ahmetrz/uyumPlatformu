@@ -572,6 +572,26 @@ katmanlanmıştır.
 > Kalan 3 bulgu tek gerçek kusurdur (`/denetimler/[id]`'nin üç kayıt
 > varyantı): `.ab-ikili` bölmeli denetim kendi kutusunu 59px aşıyor ve
 > "Bulgu 0/0" komşu düğmenin altına 43×26px giriyor.
+>
+> **İnceleme sonrası üçüncü aile:** `transform` ve offsetli
+> `position: relative` MUAF SAYILAMAZ (ikisi de öğeyi akıştan çıkarmaz,
+> yalnız boyandığı yeri kaydırır) — muafiyet kalkınca `/harita`'da 9
+> "bulgu" çıktı ve hepsi birbirine yakın şehirlerin harita işaretiydi.
+> Eleme SVG'ye kondu: `<svg>`in KENDİSİ akıştadır ve ölçülür, İÇİ ise
+> SVG koordinat sistemiyle (cx/cy, viewBox) yerleşir — onları "aynı
+> yerleşim algoritması koydu" diye karşılaştırmak kategori hatasıdır.
+> Grafik etiketlerinin çakışması ayrı bir ölçünün konusudur ve bu kapı
+> onu iddia etmez.
+
+**Aday tanımı KIRPILMA ölçüsüyle aynıdır** ve olmalıdır: girdi, seçim
+kutusu, metin alanı ve yalnız simge taşıyan düğme doğrudan metin
+taşımaz, ama bir girdinin komşusunun altına girmesi tam olarak kusurdur.
+
+**Çiftler TOPLANIRKEN tekilleştirilir.** Ham liste tutulup sonra
+tekilleştirilseydi tekrarlayan satırlar tavanı tek başına doldurur ve
+sayfanın aşağısındaki gerçekten yeni bir örtüşme hiç ölçülmezdi. Tavan
+artık AYRI hedef çifti sayar ve ona ulaşmak KIRIK TARAMADIR — kısmi bir
+sonucu "başarılı" diye döndürmek, ölçmediğini ölçtüm demektir.
 
 **Örtüşme hedefi YAPISAL yoldur, `etiket@kutuEni` DEĞİL.** Öteki iki
 ölçüde en yerleşimden gelir (sabit sütun, sabit panel); örtüşmede iki
@@ -592,6 +612,12 @@ hiçbir ölçüde görünmezdi. `disari` için muafiyet öğenin KENDİSİNE de�
 **KIRPAN ATAYA** bakar: ata görünür bir kesme işareti taşıyorsa kesme
 duyurulmuştur ve ata kutusunun kestiği çocuk da o işaretin kapsamındadır;
 işaretsiz kırpan ata suçlu kalır.
+
+Muafiyet YALNIZ **satır içi metne** uygulanır. `text-overflow` ancak
+kendi satır kutusundaki taşan satır içi içeriği temsil eder; blok bir
+çocuk, bir düğme, bir görsel ya da SVG o üç noktanın kapsamında
+DEĞİLDİR ve sessizce kesilmeye devam eder. İlk hâl ata üç noktasının
+altındaki HER şeyi aklıyordu (PR #29 incelemesi).
 
 > **Ölçüldü · `/kanitlar` · 375px:** kırpan ata `text-overflow: ellipsis`
 > VE `title` taşıyordu — kesme kenarında üç nokta çizilir ve "devamı var"

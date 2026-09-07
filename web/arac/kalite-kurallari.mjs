@@ -127,6 +127,7 @@ const KESME_ISARETI = (o) => String(o?.metinTasmasi ?? 'clip') !== 'clip'
  * @param {{disari?:number, tasma?:number, kendiOverflow?:string,
  *          metinTasmasi?:string, satirKirpma?:number,
  *          kapMetinTasmasi?:string, kapSatirKirpma?:number,
+ *          kendiGorunum?:string, yerGecen?:boolean,
  *          kapTuru?:string|null, erisilir?:boolean}|null|undefined} olcum
  * @param {number} [tolerans]
  */
@@ -145,7 +146,15 @@ export function kirpilmaKarari(olcum, tolerans = KIRPILMA_TOLERANSI) {
        `text-overflow: ellipsis` VE `title` taşıyordu; 12 borç satırı bu
        yüzden yanlış alarmdı. İşaretsiz kırpan ata (hero plakası gibi)
        muaf DEĞİLDİR ve suçlu kalır. */
-    if (KESME_ISARETI({ metinTasmasi: olcum?.kapMetinTasmasi, satirKirpma: olcum?.kapSatirKirpma })) {
+    /* Muafiyet YALNIZ satır içi metne uygulanır. `text-overflow` ancak
+       kendi satır kutusundaki taşan SATIR İÇİ içeriği temsil eder; blok
+       bir çocuk, bir düğme, bir görsel ya da SVG o üç noktanın kapsamında
+       DEĞİLDİR ve sessizce kesilmeye devam eder (PR #29 incelemesi).
+       `-webkit-line-clamp` de aynı: kırptığı şey satırlardır. */
+    const satirIci = String(olcum?.kendiGorunum ?? '').startsWith('inline')
+      && !olcum?.yerGecen;
+    if (satirIci
+      && KESME_ISARETI({ metinTasmasi: olcum?.kapMetinTasmasi, satirKirpma: olcum?.kapSatirKirpma })) {
       return { kusur: false, sebep: 'kırpan ata kesmeyi GÖSTEREREK yönetiyor' };
     }
     return { kusur: true, tur: 'kap dışı', sebep: `kap ${kap} · kutunun ${Math.round(disari)}px'i kırpılıyor` };

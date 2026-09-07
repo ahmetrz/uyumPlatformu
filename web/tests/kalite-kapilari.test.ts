@@ -108,18 +108,39 @@ describe('kırpılma kararı', () => {
     expect(kirpilmaKarari({ ...temel, disari: 45, kendiOverflow: 'auto' }).kusur).toBe(true);
   });
 
-  it('kırpan ATA kesmeyi GÖSTERİYORSA kutu dışı kusur değildir', () => {
+  it('kırpan ATA kesmeyi GÖSTERİYORSA SATIR İÇİ metin muaftır', () => {
     /* ÖLÇÜLDÜ · /kanitlar · 375px: kırpan ata `text-overflow: ellipsis`
        VE `title` taşıyordu — kesme kenarında üç nokta çizilir ve "devamı
-       var" der. O kutunun kestiği çocuk da o işaretin kapsamındadır.
-       12 borç satırı bu yüzden yanlış alarmdı. */
-    const k = kirpilmaKarari({ ...temel, disari: 45, kapMetinTasmasi: 'ellipsis' });
+       var" der. 12 borç satırı bu yüzden yanlış alarmdı. */
+    const k = kirpilmaKarari({
+      ...temel, disari: 45, kapMetinTasmasi: 'ellipsis', kendiGorunum: 'inline',
+    });
     expect(k.kusur).toBe(false);
     expect(k.sebep).toContain('GÖSTEREREK');
   });
 
   it('ATA satır kırpması (line-clamp) da görünür bir işarettir', () => {
-    expect(kirpilmaKarari({ ...temel, disari: 45, kapSatirKirpma: 2 }).kusur).toBe(false);
+    expect(kirpilmaKarari({
+      ...temel, disari: 45, kapSatirKirpma: 2, kendiGorunum: 'inline',
+    }).kusur).toBe(false);
+  });
+
+  it('ata üç noktası BLOK çocuğu aklamaz — kapsamı satır kutusudur', () => {
+    /* `text-overflow` ancak kendi satır kutusundaki taşan SATIR İÇİ
+       içeriği temsil eder; blok bir çocuk o üç noktanın kapsamında
+       değildir ve sessizce kesilmeye devam eder (PR #29 incelemesi). */
+    const k = kirpilmaKarari({
+      ...temel, disari: 45, kapMetinTasmasi: 'ellipsis', kendiGorunum: 'block',
+    });
+    expect(k.kusur).toBe(true);
+    expect(k.tur).toBe('kap dışı');
+  });
+
+  it('ata üç noktası YER DEĞİŞTİREN öğeyi de aklamaz — görsel, SVG, girdi', () => {
+    const k = kirpilmaKarari({
+      ...temel, disari: 45, kapMetinTasmasi: 'ellipsis', kendiGorunum: 'inline-block', yerGecen: true,
+    });
+    expect(k.kusur).toBe(true);
   });
 
   it('İŞARETSİZ kırpan ata SUÇLU kalır — muafiyet atanın işaretine bağlıdır', () => {

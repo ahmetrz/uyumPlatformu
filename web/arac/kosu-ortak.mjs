@@ -227,6 +227,9 @@ export function sayfaEnvanteri() {
    ölçmek ölçmemekten beterdir" kuralının oturumsuz karşılığıdır
    (oturum çerezi sızarsa `/giris` panoya yönlenir ve kapı sessizce
    PANOYU ölçmeye başlardı). */
+/** 404 yüzeyini uyandıran sentetik yol — hiçbir `page.tsx`e karşılık gelmez. */
+export const BILINMEYEN_ROTA = '/boyle-bir-rota-yok';
+
 export const OTURUMSUZ_ROTALAR = [
   /* `/giris` İKİ yüzeydir: sinematik giriş (PR #28) ve CTA'dan sonraki
      gerçek form. İkisi de oturumsuzdur ve ikisi de ölçülür — `nobetci`
@@ -243,7 +246,7 @@ export const OTURUMSUZ_ROTALAR = [
      taşınmış bir bağlantıya tıklayan herkes onu görür. `rotalar.json`da
      olamaz (bir rota değil, rotasızlığın ekranı), o yüzden burada
      yaşar. Yol bilerek var olmayan bir adrestir. */
-  { yol: '/boyle-bir-rota-yok', nobetci: '.ab-sistem-sayfa p.kod', kod: 404 },
+  { yol: BILINMEYEN_ROTA, nobetci: '.ab-sistem-sayfa p.kod', kod: 404 },
   /* `/bakim` — yük dengeleyicinin bakım sırasında yönlendirdiği ekran.
      Kodunda yazılı: "kabuk yok, oturum şartı yok". `rotalar.json`da
      değildi, beyanda değildi; ÇAPRAZ KONTROL onu ilk koşuda buldu —
@@ -288,6 +291,14 @@ export async function oturumsuzAcikYuzeyler(sayfa, ekRotalar = [], kok = KOK) {
   const yollar = [
     ...sayfaEnvanteri().filter((r) => r.dinamik.length === 0).map((r) => r.rota),
     ...ekRotalar,
+    /* SENTETİK BİLİNMEYEN ROTA kapsamın İÇİNDEDİR ve beyandan gelmez.
+       Beyandan gelseydi denetim, denetlediği şeye bağlı olurdu: 404
+       yüzeyinin satırı listeden silinince onu yeniden keşfedecek hiçbir
+       şey kalmazdı — iki kapı da 404'ü taramayı bırakır, çapraz kontrol
+       de "eksik yok" derdi (PR #29 incelemesi). 404 bir `page.tsx`
+       DEĞİLDİR, o yüzden diskten türeyen kapsama kendiliğinden girmez;
+       sonda burada, kapsamın yanında durur. */
+    BILINMEYEN_ROTA,
   ];
   const acik = [];
   for (const yol of [...new Set(yollar)]) {

@@ -107,7 +107,7 @@ function suclulariBul() {
     }
     if (kapali) continue;
     liste.push({
-      etiket: `${e.tagName.toLowerCase()}${e.className ? `.${String(e.className).trim().split(/\s+/).join('.')}` : ''}`,
+      etiket: `${e.tagName.toLowerCase()}${[...e.classList].map((c) => `.${c}`).join('')}`,
       genislik: Math.round(r.width),
       sag: Math.round(r.right),
       metin: (e.textContent || '').trim().slice(0, 32),
@@ -190,7 +190,9 @@ function kirpilmaOlcumleri(kaydiranKaplar) {
       if (disari > 0 || tasma > 0) {
         adaylar.push({
           yol,
-          etiket: `${e.tagName.toLowerCase()}${e.className ? `.${String(e.className).trim().split(/\s+/).join('.')}` : ''}`,
+          /* `classList` SVG'de de çalışır; `className` orada bir
+             `SVGAnimatedString`tir ve etikete `[object ...]` diye düşer. */
+          etiket: `${e.tagName.toLowerCase()}${[...e.classList].map((c) => `.${c}`).join('')}`,
           genislik: Math.round(r.width),
           disari: Math.round(disari),
           tasma: Math.round(tasma),
@@ -200,6 +202,12 @@ function kirpilmaOlcumleri(kaydiranKaplar) {
           kapTuru: kap.tur,
           kapMetinTasmasi: kap.metinTasmasi,
           kapSatirKirpma: kap.satirKirpma,
+          /* Ata üç noktası YALNIZ satır içi metni yönetir; blok çocuk ya
+             da yer değiştiren öğe (img/svg/canvas/video/iframe/object,
+             form denetimi) onun kapsamında değildir. */
+          kendiGorunum: st.display,
+          yerGecen: TASIYICI_ETIKET.includes(e.tagName.toLowerCase())
+            || e.matches('input, select, textarea, button'),
           erisilir: kap.erisilir,
           metin: metin === ''
             ? `‹metinsiz ${e.tagName.toLowerCase()}${e.getAttribute('aria-label') ? ` · ${e.getAttribute('aria-label')}` : ''}›`
@@ -258,8 +266,13 @@ function ortusmeOlcumleri(tasiyiciEtiket) {
      yazıldığı için. Kimliği ene bağlamak satırı her tohumda "yeni"
      gösterirdi. Kural `erisim-axe.mjs`'teki ile AYNIDIR ve aynı
      sebepten: en fazla dört kademe, `etiket` + sıralı sınıflar. */
+  /* `classList` SVG'de de çalışır; `className` ÇALIŞMAZ — orada bir
+     `SVGAnimatedString` nesnesidir ve etikete `[object SVGAnimatedString]`
+     diye düşer (ölçüldü, /harita). */
   const parca = (e) => e.tagName.toLowerCase()
     + [...e.classList].sort().map((c) => `.${c}`).join('');
+  const etiketle = (e) => e.tagName.toLowerCase()
+    + [...e.classList].map((c) => `.${c}`).join('');
   const yapisalYol = (e) => {
     const p = [];
     for (let n = e, i = 0; n && n !== document.body && i < 4; n = n.parentElement, i += 1) {
@@ -267,13 +280,17 @@ function ortusmeOlcumleri(tasiyiciEtiket) {
     }
     return p.join(' > ');
   };
+  /* AKIŞTAN ÇIKAN yalnız KONUMLANDIRILMIŞ ve KAYAN kutulardır.
+     `transform` ve offsetli `position: relative` BU LİSTEDE DEĞİLDİR ve
+     olmamalı: ikisi de öğeyi akıştan çıkarmaz — yerini korur, yalnız
+     BOYANDIĞI yeri kaydırır. Tam da bu yüzden komşusunun üstüne binerler
+     ve bu, kapının görmesi gereken kusurun ta kendisidir. İlk hâl ikisini
+     de muaf sayıyordu; `transform` yaygın olduğu için (ortalamada
+     `translate(-50%)`, animasyon) koca bir aile kör kalıyordu — örneğin
+     topoloji düğümlerinin hepsi ayrı bağlama düşüp hiç karşılaştırılmıyordu
+     (PR #29 incelemesi). */
   const AKIS_DISI = ['absolute', 'fixed', 'sticky'];
-  const kaydirildi = (st) => [st.top, st.left, st.right, st.bottom]
-    .some((v) => v !== 'auto' && Math.abs(parseFloat(v) || 0) > 0.5);
-  const akistanCikar = (st) => AKIS_DISI.includes(st.position)
-    || st.float !== 'none'
-    || st.transform !== 'none'
-    || (st.position === 'relative' && kaydirildi(st));
+  const akistanCikar = (st) => AKIS_DISI.includes(st.position) || st.float !== 'none';
 
   const adaylar = [];
   let baglamSayaci = 0;
@@ -292,12 +309,27 @@ function ortusmeOlcumleri(tasiyiciEtiket) {
       if (d.nodeType === 3) dogrudanMetin += d.nodeValue;
     }
     dogrudanMetin = dogrudanMetin.trim();
-    const tasiyici = dogrudanMetin !== '' || tasiyiciEtiket.includes(etiketAdi);
+    /* Taşıyıcı tanımı KIRPILMA ölçüsüyle aynıdır. Yalnız "doğrudan metin
+       ya da görsel" deseydik girdi, seçim kutusu, metin alanı ve yalnız
+       simge taşıyan düğme aday olmazdı — oysa bir girdinin komşusunun
+       altına girmesi tam olarak kusurdur (PR #29 incelemesi). */
+    /* SVG'NİN İÇİ CSS AKIŞI DEĞİLDİR. `<svg>` öğesinin kendisi akıştadır
+       ve komşusuyla örtüşmesi ölçülür; İÇİNDEKİLER ise SVG koordinat
+       sistemiyle (cx/cy, viewBox) yerleşir — onları "aynı yerleşim
+       algoritması koydu" diye karşılaştırmak kategori hatasıdır.
+       ÖLÇÜLDÜ: bu eleme olmadan /harita'da 9 "bulgu" çıkıyor ve hepsi
+       birbirine yakın şehirlerin harita işaretleri; kusur değil, haritanın
+       kendisi. Grafik etiketlerinin çakışması ayrı bir ölçünün konusudur
+       ve bu kapı onu iddia etmez. */
+    const svgIcinde = etiketAdi !== 'svg' && !!e.closest?.('svg');
+    const tasiyici = !svgIcinde && (dogrudanMetin !== ''
+      || tasiyiciEtiket.includes(etiketAdi)
+      || e.matches('a[href], button, input, select, textarea, [role], [tabindex]'));
     if (tasiyici && r.width > 0 && r.height > 0) {
       adaylar.push({
         el: e,
         baglam: kendiBaglam,
-        etiket: `${etiketAdi}${e.className ? `.${String(e.className).trim().split(/\s+/).join('.')}` : ''}`,
+        etiket: etiketle(e),
         genislik: Math.round(r.width),
         kutu: { s: r.left, sg: r.right, u: r.top, a: r.bottom },
         /* SATIR PARÇALARI. Satır içi bir öğenin `getBoundingClientRect`i
@@ -327,8 +359,16 @@ function ortusmeOlcumleri(tasiyiciEtiket) {
     if (!gruplar.has(a.baglam)) gruplar.set(a.baglam, []);
     gruplar.get(a.baglam).push(a);
   }
-  const ciftler = [];
+  /* Çiftler TOPLANIRKEN yapısal hedefe göre tekilleştirilir. Ham liste
+     tutulup sonra tekilleştirilseydi tekrarlayan satırlar tavanı tek
+     başına doldurur ve sayfanın aşağısındaki GERÇEKTEN YENİ bir örtüşme
+     hiç ölçülmezdi (PR #29 incelemesi). Tavan artık AYRI hedef çifti
+     sayar; ona ulaşmak olağan değildir ve KIRIK TARAMA sayılır — kısmi
+     bir sonucu "başarılı" diye döndürmek, ölçmediğini ölçtüm demektir. */
+  const kova = new Map();
+  let dolu = false;
   for (const grup of gruplar.values()) {
+    if (dolu) break;
     grup.sort((x, y) => x.kutu.u - y.kutu.u);
     for (let i = 0; i < grup.length; i += 1) {
       for (let j = i + 1; j < grup.length; j += 1) {
@@ -353,18 +393,29 @@ function ortusmeOlcumleri(tasiyiciEtiket) {
           }
         }
         if (en <= 0 || boy <= 0) continue;
-        ciftler.push({
+        const anahtar = [a.yapisal, b.yapisal].sort().join(' ↔ ');
+        const onceki = kova.get(anahtar);
+        if (onceki) {
+          onceki.adet += 1;
+          /* En kötü kesişme raporlanır; tavan VARLIK olduğu için bu sayı
+             yalnız insana bakar. */
+          if (en * boy > onceki.en * onceki.boy) { onceki.en = Math.round(en); onceki.boy = Math.round(boy); }
+          continue;
+        }
+        kova.set(anahtar, {
           akisDisi: false,
+          adet: 1,
           en: Math.round(en),
           boy: Math.round(boy),
           a: { etiket: a.etiket, genislik: a.genislik, yapisal: a.yapisal, metin: a.metin },
           b: { etiket: b.etiket, genislik: b.genislik, yapisal: b.yapisal, metin: b.metin },
         });
-        if (ciftler.length >= 400) return ciftler;
+        if (kova.size >= 400) { dolu = true; break; }
       }
+      if (dolu) break;
     }
   }
-  return ciftler;
+  return { ciftler: [...kova.values()], dolu };
 }
 
 const tarayici = await chromium.launch({ executablePath: tarayiciYolu() });
@@ -447,26 +498,27 @@ async function rotayiOlc(sayfa, bant, yol, { nobetci = null, beklenenKod = 200, 
 
   /* Üçüncü kusur türü: içerik KAYIP değil, ama okunmuyor. */
   await sayfa.addScriptTag({ content: `window.__ortusmeOlcumleri = ${ortusmeOlcumleri.toString()};` });
-  const ciftler = await sayfa.evaluate(
+  const ortusme = await sayfa.evaluate(
     (t) => window.__ortusmeOlcumleri(t), TASIYICI_ETIKETLER,
   );
-  /* Ölçü birimi VARLIK: aynı çiftin kaç kez çıktığı tekrarlayan satır
-     sayısına, yani tohuma bağlıdır; "bu çift burada örtüşüyor" değildir. */
-  const ortusmeImza = new Map();
-  for (const c of ciftler) {
-    const karar = ortusmeKarari(c);
-    if (!karar.kusur) continue;
-    const hedef = ortusmeHedefi(c.a, c.b);
-    const v = ortusmeImza.get(hedef) ?? { hedef, ...c, karar, adet: 0 };
-    v.adet += 1;
-    /* En kötü kesişme raporlanır; tavan VARLIK olduğu için bu sayı
-       yalnız insana bakar, karara girmez. */
-    if (c.en * c.boy > v.en * v.boy) { v.en = c.en; v.boy = c.boy; }
-    ortusmeImza.set(hedef, v);
+  /* Tavana ulaşmak KIRIK TARAMADIR: kısmi bir sonucu "başarılı" diye
+     saymak, ölçmediğini ölçtüm demektir. */
+  if (ortusme.dolu) {
+    yuzeyKirigi.push({ bant: bant.ad, yol, sebep: 'örtüşme tavanı doldu — tarama eksik' });
   }
-  if (ortusmeImza.size > 0) {
+  /* Ölçü birimi VARLIK: aynı çiftin kaç kez çıktığı tekrarlayan satır
+     sayısına, yani tohuma bağlıdır; "bu çift burada örtüşüyor" değildir.
+     Tekilleştirme sayfa bağlamında YAPILDI; burada yalnız karar süzülür. */
+  const kusurlu = ortusme.ciftler
+    .map((c) => ({ ...c, karar: ortusmeKarari(c), hedef: ortusmeHedefi(c.a, c.b) }))
+    .filter((c) => c.karar.kusur);
+  if (kusurlu.length > 0) {
     ortusmeler.push({
-      bant: bant.ad, bantEn: bant.en, yol, ogeler: [...ortusmeImza.values()], ornek: ciftler.length,
+      bant: bant.ad,
+      bantEn: bant.en,
+      yol,
+      ogeler: kusurlu,
+      ornek: kusurlu.reduce((t, c) => t + c.adet, 0),
     });
   }
 }

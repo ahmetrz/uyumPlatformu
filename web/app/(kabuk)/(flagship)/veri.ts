@@ -10,6 +10,9 @@ import { uyumOzeti, gecikmisMi, gecenGun } from '@/lib/sabitler';
 import { maxEtki } from '@/app/(kabuk)/(operasyonel)/riskler/ortak';
 import { anlikSayimi } from '@/app/(kabuk)/(operasyonel)/uyum/mantik';
 import type { Kayit } from './Genel';
+import {
+  KURULU_GUC, ozelligeGoreSirala, ozellikToplami, sayisalOzellik,
+} from '@/lib/alan/oznitelik';
 
 /* F1 · Executive Overview — SUNUCU VERİSİ.
 
@@ -190,8 +193,13 @@ export async function genelEkranVerisi(k: AktifKullanici): Promise<EkranVerisi> 
         orderBy: { planBitis: 'asc' }, take: 1,
       }),
       db.tesis.count({ where: { durum: 'aktif', ...tesisKosulu } }),
-      db.tesis.aggregate({
-        _sum: { kuruluGucMw: true }, where: { durum: 'aktif', ...tesisKosulu },
+      /* Kurulu güç artık kolon değil öznitelik satırı (P1): toplama
+         veritabanında `_sum` ile yapılamıyor, satırlar çekilip JS'te
+         toplanıyor. Anlam AYNI: `_sum` NULL'ları atlıyordu,
+         `ozellikToplami` da ölçülmemişi atlıyor. */
+      db.tesis.findMany({
+        where: { durum: 'aktif', ...tesisKosulu },
+        select: { ozellikler: { select: { anahtar: true, sayisalDeger: true } } },
       }),
     ]);
 
@@ -206,15 +214,21 @@ export async function genelEkranVerisi(k: AktifKullanici): Promise<EkranVerisi> 
   const akisBaslangic = new Date(simdi.getTime() - AKIS_HAFTA * HAFTA_MS);
   const takvimSonu = new Date(simdi.getTime() + TAKVIM_GUN * 86_400_000);
 
-  const [tesisler, tesisDurumlari, riskKayitlari, takvimDenetimleri, takvimSurecleri,
+  const [tesisSirasiz, tesisDurumlari, riskKayitlari, takvimDenetimleri, takvimSurecleri,
     akisBulgulari, anliklar] = await Promise.all([
     db.tesis.findMany({
       where: { durum: 'aktif', ...tesisKosulu },
       select: {
-        id: true, kod: true, ad: true, konum: true, kuruluGucMw: true,
+        id: true, kod: true, ad: true, konum: true,
+        ozellikler: { select: { anahtar: true, sayisalDeger: true } },
         gorselAnahtari: true, tip: { select: { kod: true, ad: true, sira: true } },
       },
-      orderBy: [{ kuruluGucMw: 'desc' }, { ad: 'asc' }],
+      /* Sıralama JS'te: öznitelik bir ilişki, `orderBy` ona bakamaz.
+         Sorgu `take` almıyor (tesis kümesinin tamamı geliyor), bu yüzden
+         JS sıralaması veritabanınınkiyle birebir aynı sonucu verir.
+         SQLite'ta `DESC` NULL'ları SONA koyar; `gucSirasi` de ölçülmemişi
+         sona koyar — ölçülmemiş tesis listenin başına çıkmaz. */
+      orderBy: { ad: 'asc' },
     }),
     db.maddeDurumu.groupBy({
       by: ['tesisId', 'durum'], _count: { _all: true },
@@ -282,6 +296,10 @@ export async function genelEkranVerisi(k: AktifKullanici): Promise<EkranVerisi> 
     }),
   ]);
 
+  /* Sıra JS'te kuruluyor (öznitelik bir ilişki; `orderBy` ona bakamaz).
+     Ölçülmemiş güç sona iner — kolon devrindeki `DESC` davranışı. */
+  const tesisler = ozelligeGoreSirala(tesisSirasiz, KURULU_GUC);
+
   /* Santral × durum sayımı — tek groupBy'dan haritaya. */
   const tesisSayimi = new Map<string, Record<string, number>>();
   for (const d of tesisDurumlari) {
@@ -297,7 +315,7 @@ export async function genelEkranVerisi(k: AktifKullanici): Promise<EkranVerisi> 
     return {
       id: t.id, kod: t.kod, ad: t.ad,
       tipKod: t.tip?.kod ?? null, tipAd: t.tip?.ad ?? null,
-      gucMw: t.kuruluGucMw, konum: t.konum, gorselAnahtari: t.gorselAnahtari,
+      gucMw: sayisalOzellik(t.ozellikler, KURULU_GUC), konum: t.konum, gorselAnahtari: t.gorselAnahtari,
       sayim: s, endeks: o.yuzde, bilinmeyen: o.bilinmeyen,
     };
   });
@@ -439,7 +457,7 @@ export async function genelEkranVerisi(k: AktifKullanici): Promise<EkranVerisi> 
         }
         : null,
       tesisSayisi,
-      toplamGucMw: Math.round((gucToplami._sum.kuruluGucMw ?? 0) * 10) / 10,
+      toplamGucMw: Math.round(ozellikToplami(gucToplami, KURULU_GUC).toplam * 10) / 10,
     },
     odak: sirali[0] ? kayit(sirali[0]) : null,
     kuyruk: sirali.slice(1, 4).map(kayit),

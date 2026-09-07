@@ -14,6 +14,8 @@ import { SAHA_MODUL_SOZLUGU, sozlesmeKontrol, yerlesimDogrula, yerlesimFarki, ye
 import { GORSEL_ANAHTARLARI } from '../gorsel';
 import { kuralDegerlendir, tesisKapsaminiHesapla } from '../motorlar/uygulanabilirlik';
 import { MODUL_SOZLUGU, ayarinModulu, type HedefTipi } from '../yonetim/moduller';
+import { KURULU_GUC } from '../alan/oznitelik';
+import { sayisalOzellikYaz } from '../alan/oznitelikYazma';
 
 /* ═══ Yönetim konsolu sunucu eylemleri ═══════════════════════════════════
 
@@ -157,10 +159,14 @@ export async function katalogKaydet(girdi: {
         const d = v as z.infer<typeof SEMALAR.uretimUnitesi>;
         const tesis = await db.tesis.findUnique({ where: { id: d.tesisId } });
         if (!tesis) return { ok: false, hata: 'Seçilen santral bulunamadı' };
-        const data = { ad: d.ad, kuruluGucMw: d.kuruluGucMw ?? null, durum: d.durum ?? 'aktif' };
+        const data = { ad: d.ad, durum: d.durum ?? 'aktif' };
         id = girdi.id
           ? (await db.uretimUnitesi.update({ where: { id: girdi.id }, data })).id
           : (await db.uretimUnitesi.create({ data: { tesisId: d.tesisId, kod: d.kod, ...data } })).id;
+        /* P1: birimin gücü de öznitelik satırı. Boş bırakılan güç satırı
+           siler; `null` yazıp "ölçtük, sonucu yok" demez. */
+        await sayisalOzellikYaz({ tip: 'birim', id }, KURULU_GUC, d.kuruluGucMw ?? null,
+          { birim: 'MW' });
         break;
       }
       case 'varlikTuru': {
@@ -462,18 +468,18 @@ async function etkiSatirlari(hedefTipi: HedefTipi, hedefId: string | null, sonra
           { baslik: 'Mevcut kapsam kararı', deger: karar, not: 'yeniden hesaplanır' },
           { baslik: 'El ile değiştirilmiş karar', deger: elle, not: 'DOKUNULMAZ (override)' });
       }
-      /* Önizleme: yeni koşul bugünkü santrallere uygulanırsa ne çıkar? */
+      /* Önizleme: yeni koşul bugünkü tesislere uygulanırsa ne çıkar? */
       const kosul = typeof sonra?.kosulJson === 'string' ? sonra.kosulJson : mevcut?.kosulJson;
       if (kosul) {
         try {
-          const tesisler = await db.tesis.findMany({ include: { profil: true } });
+          const tesisler = await db.tesis.findMany({ include: { profil: true, ozellikler: true } });
           let evet = 0, hayir = 0, bilinmiyor = 0;
           for (const t of tesisler) {
             const profil = t.profil ? JSON.parse(JSON.stringify(t.profil)) as Record<string, unknown> : null;
-            const s = kuralDegerlendir(kosul, t, profil);
+            const s = kuralDegerlendir(kosul, t.ozellikler, profil);
             if (s.uygulanabilir === true) evet++; else if (s.uygulanabilir === false) hayir++; else bilinmiyor++;
           }
-          satirlar.push({ baslik: 'Önizleme · kapsama girer', deger: evet, not: `${tesisler.length} santral` },
+          satirlar.push({ baslik: 'Önizleme · kapsama girer', deger: evet, not: `${tesisler.length} tesis` },
             { baslik: 'Önizleme · kapsam dışı', deger: hayir },
             { baslik: 'Önizleme · karar verilemez', deger: bilinmiyor, not: 'profil eksik — bilinmiyor ≠ hayır' });
         } catch {

@@ -5,6 +5,7 @@ import type { AktifKullanici } from '@/lib/auth';
 import { tumAyarlar } from '@/lib/yapilandirma/oku';
 import { GORSEL_ANAHTARLARI } from '@/lib/gorsel';
 import { HEDEF_SOZU, matrisKusurlari } from '@/lib/uyum/eskalasyon';
+import { KURULU_GUC, sayisalOzellik } from '@/lib/alan/oznitelik';
 import {
   KONSOL_VARLIK_TIPLERI, type KonsolKayit, type KonsolVerisi, type Talep, type TalepDurumu,
 } from './konsolOrtak';
@@ -23,7 +24,9 @@ export async function konsolVerisi(kullanici: AktifKullanici, simdi: number): Pr
     db.grup.findMany({ include: { _count: { select: { tuzelKisiler: true } } }, orderBy: { kod: 'asc' } }),
     db.tuzelKisi.findMany({ include: { grup: true, _count: { select: { tesisler: true, yetkiler: true } } },
       orderBy: { kod: 'asc' } }),
-    db.uretimUnitesi.findMany({ include: { tesis: true, _count: { select: { varliklar: true, sistemler: true } } },
+    db.uretimUnitesi.findMany({ include: { tesis: true,
+      ozellikler: { select: { anahtar: true, sayisalDeger: true } },
+      _count: { select: { varliklar: true, sistemler: true } } },
       orderBy: [{ tesis: { kod: 'asc' } }, { kod: 'asc' }] }),
     db.varlikTuru.findMany({ include: { _count: { select: { varliklar: true } } }, orderBy: { kod: 'asc' } }),
     db.agBolgesi.findMany({ include: { tesis: true,
@@ -70,8 +73,11 @@ export async function konsolVerisi(kullanici: AktifKullanici, simdi: number): Pr
       id: u.id, kod: `${u.tesis.kod}/${u.kod}`, ad: u.ad,
       durum: u.durum === 'devre_disi' ? 'pl' : u.durum === 'bakim' ? 'md' : 'ok',
       pasif: u.durum === 'devre_disi', bagli: u._count.varliklar,
-      alt: `${u.tesis.ad} · ${u.kuruluGucMw !== null ? `${u.kuruluGucMw} MW` : 'güç bilinmiyor'} · ${u._count.varliklar} varlık`,
-      degerler: { tesisId: u.tesisId, kod: u.kod, ad: u.ad, kuruluGucMw: u.kuruluGucMw ?? '', durum: u.durum } })),
+      alt: ((g) => `${u.tesis.ad} · ${g !== null ? `${g} MW` : 'güç bilinmiyor'} · ${u._count.varliklar} varlık`)(sayisalOzellik(u.ozellikler, KURULU_GUC)),
+      degerler: {
+        tesisId: u.tesisId, kod: u.kod, ad: u.ad,
+        kuruluGucMw: sayisalOzellik(u.ozellikler, KURULU_GUC) ?? '', durum: u.durum,
+      } })),
     varlikTuru: turler.map((v) => ({
       id: v.id, kod: v.kod, ad: v.ad, durum: v.aktif ? 'ok' : 'pl', pasif: !v.aktif, bagli: v._count.varliklar,
       alt: `${v.sinif} · ${v._count.varliklar} varlık`,

@@ -64,10 +64,16 @@ export async function operasyonKayitlari(db: PrismaClient) {
     const tesisId = tesisler[tesisKod];
     if (!tesisId) continue;
     const tesis = await db.tesis.findUniqueOrThrow({
-      where: { id: tesisId }, select: { kuruluGucMw: true, devreyeGiris: true } });
-    // Toplam güç ünitelere eşit paylaştırılır; santral gücü yoksa null kalır.
-    const pay = tesis.kuruluGucMw != null
-      ? Math.round((tesis.kuruluGucMw / adlar.length) * 100) / 100 : null;
+      where: { id: tesisId },
+      select: {
+        devreyeGiris: true,
+        ozellikler: { where: { anahtar: 'kuruluGucMw' }, select: { sayisalDeger: true } },
+      } });
+    /* Toplam güç ünitelere eşit paylaştırılır; tesisin gücü ÖLÇÜLMEMİŞSE
+       (öznitelik satırı yok) birim de satır almaz — pay `null` kalır. */
+    const tesisGuc = tesis.ozellikler[0]?.sayisalDeger ?? null;
+    const pay = tesisGuc !== null
+      ? Math.round((tesisGuc / adlar.length) * 100) / 100 : null;
     for (let i = 0; i < adlar.length; i++) {
       const kod = `U${i + 1}`;
       const varOlan = await db.uretimUnitesi.findUnique({
@@ -75,7 +81,10 @@ export async function operasyonKayitlari(db: PrismaClient) {
       if (varOlan) continue;
       await db.uretimUnitesi.create({
         data: {
-          tesisId, kod, ad: adlar[i], kuruluGucMw: pay,
+          tesisId, kod, ad: adlar[i],
+          ozellikler: pay === null ? undefined : { create: [{
+            anahtar: 'kuruluGucMw', sayisalDeger: pay, birim: 'MW', kaynak: 'tohum',
+          }] },
           devreyeGiris: tesis.devreyeGiris,
           /* Bir ünite planlı bakımda: "hepsi aktif" bir portföy gerçekçi
              değil ve bakımdaki ünite değişiklik penceresi kararlarını

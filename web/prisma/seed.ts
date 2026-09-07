@@ -84,7 +84,13 @@ async function main() {
     ['SAHA-M-DGKC', 'Saha M DGKÇ (devredildi)', 'DGKC', 82, 'Kırklareli', 'kapali', -300, 'satis', -9950, 'saham'],
   ] as const).map(async ([kod, ad, tipKod, guc, konum, durum, kapanis, neden, giris, gorsel]) => [kod,
     await db.tesis.create({ data: {
-      kod, ad, tipId: tip[tipKod].id, kuruluGucMw: guc, konum, durum,
+      kod, ad, tipId: tip[tipKod].id, konum, durum,
+      /* P1 · kurulu güç KOLON DEĞİL öznitelik satırı. `guc === null` olan
+         tesis (MERKEZ-BT) satır ALMAZ: ölçülmemiş değer sıfırla ya da boş
+         bir satırla temsil edilmez (URN-ALN-001). */
+      ozellikler: guc === null ? undefined : { create: [{
+        anahtar: 'kuruluGucMw', sayisalDeger: guc, birim: 'MW', kaynak: 'tohum',
+      }] },
       kapanisTarihi: kapanis === null ? null : gun(kapanis), kapanisNedeni: neden,
       devreyeGiris: gun(giris),
       // 05-photography §2: yalnız fotoğrafı SAĞLANMIŞ santral anahtar alır.

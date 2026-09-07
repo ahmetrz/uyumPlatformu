@@ -1,7 +1,7 @@
 {
-  "imza": "d8aeb9a67a5a106b9b93e7728f7fdd90",
+  "imza": "34c44d0beb05d2f7f9481488faf147e2",
   "dosya": 141,
-  "vaka": 2911,
+  "vaka": 2913,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -481,7 +481,7 @@
       "atlanan": 0
     },
     "tests/uygulanabilirlik.test.ts": {
-      "vaka": 5,
+      "vaka": 7,
       "atlanan": 0
     },
     "tests/uyum-belge-bagi.test.ts": {

@@ -77,4 +77,16 @@ export const URUNLESTIRME_SENARYOLARI: Senaryo[] = [
     beklenenIz: 'yazma yok (göç betiği)', beklenenBildirim: 'yok',
     katmanlar: ['MIGRATION', 'DOMAIN'],
   },
+  {
+    id: 'URN-ALN-002', alan: 'Ürünleştirme', rota: '—', eksen: 'akis',
+    amac: 'Niteliğin kolondan satıra geçmesinin kapsam kararını kaydırmaması',
+    rol: 'uyum sorumlusu', kapsam: 'kiracı geneli',
+    onkosul: 'Uygulanabilirlik kuralı artık öznitelik anahtarı okuyor',
+    veriHali: 'kısmi',
+    eylem: 'Bütün tesisler için kapsam yeniden hesaplanır',
+    beklenenSonuc: 'Kapsama giren tesis kümesi göç öncesiyle AYNI kalır; elle değiştirilmiş karar korunur; özniteliği ÖLÇÜLMEMİŞ tesis "kapsam dışı" değil "bilinmiyor" döner ve sağlanan başka bir koşulu engellemez',
+    beklenenEkran: 'Uygulanabilirlik kararı gerekçesiyle; ölçülmemiş nitelik "bilinmiyor" yazar',
+    beklenenIz: 'hesaplama', beklenenBildirim: 'yok',
+    katmanlar: ['DOMAIN', 'UI'],
+  },
 ];

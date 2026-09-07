@@ -5,6 +5,7 @@ import type { AktifKullanici } from '@/lib/auth';
 import { kapsamDaraltildi, kapsamKosulu, modulKapisi } from '@/app/kapsam';
 import { uyumOzeti } from '@/lib/sabitler';
 import type { PortfoyEndeksi, PortfoySatiri } from './mantik';
+import { KURULU_GUC, ozelligeGoreSirala, sayisalOzellik } from '@/lib/alan/oznitelik';
 
 /* F2 · Enerji Portföyü — SUNUCU VERİSİ.
 
@@ -49,11 +50,16 @@ export async function portfoyEkranVerisi(k: AktifKullanici): Promise<EkranVerisi
   modulKapisi(k, 'uyum');
   const izinli = izinliTesisIdleri(k, 'uyum');
 
-  const [tesisler, durumSayimlari, bulguSayimlari, riskSayimlari] = await Promise.all([
+  const [tesisSirasiz, durumSayimlari, bulguSayimlari, riskSayimlari] = await Promise.all([
     db.tesis.findMany({
       where: { durum: 'aktif', ...(izinli === null ? {} : { id: { in: izinli } }) },
-      include: { tip: true, tuzelKisi: true, profil: { select: { kritiklikSinifi: true } } },
-      orderBy: [{ kuruluGucMw: 'desc' }, { ad: 'asc' }],
+      include: {
+        tip: true, tuzelKisi: true, profil: { select: { kritiklikSinifi: true } },
+        ozellikler: { select: { anahtar: true, sayisalDeger: true } },
+      },
+      /* Sıra JS'te: kurulu güç artık öznitelik satırı (P1). Sorgu `take`
+         almıyor, küme tamamı geliyor — sonuç veritabanı sırasıyla aynı. */
+      orderBy: { ad: 'asc' },
     }),
     db.maddeDurumu.groupBy({
       by: ['tesisId', 'durum'], _count: { _all: true },
@@ -73,6 +79,8 @@ export async function portfoyEkranVerisi(k: AktifKullanici): Promise<EkranVerisi
       },
     }),
   ]);
+
+  const tesisler = ozelligeGoreSirala(tesisSirasiz, KURULU_GUC);
 
   // Bulgu sayısı tesise madde durumu üzerinden bağlanır
   const bulguDurumIdleri = bulguSayimlari.map((b) => b.maddeDurumuId);
@@ -102,7 +110,7 @@ export async function portfoyEkranVerisi(k: AktifKullanici): Promise<EkranVerisi
       tipAdi: t.tip?.ad ?? 'Diğer',
       tuzelKisi: t.tuzelKisi?.ad ?? null,
       konum: t.konum,
-      gucMw: t.kuruluGucMw,
+      gucMw: sayisalOzellik(t.ozellikler, KURULU_GUC),
       gorselAnahtari: t.gorselAnahtari,
       enlem: t.enlem, boylam: t.boylam,
       konumKaynagi: t.konumKaynagi, konumDogrulandi: t.konumDogrulandi,

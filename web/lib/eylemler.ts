@@ -15,6 +15,8 @@ import {
   RolSemasi, DenklikSemasi,
 } from './sabitler';
 import { z } from 'zod';
+import { KURULU_GUC } from './alan/oznitelik';
+import { sayisalOzellikYaz } from './alan/oznitelikYazma';
 
 type Sonuc = { ok: true } | { ok: false; hata: string };
 
@@ -88,16 +90,22 @@ export async function tesisKaydet(girdi: {
       kuruluGucMw: z.coerce.number().positive().nullable().optional(),
       konum: z.string().nullable().optional(),
     }).parse(girdi);
-    const veri = {
-      kod: v.kod, ad: v.ad, tipId: v.tipId ?? null,
-      kuruluGucMw: v.kuruluGucMw ?? null, konum: v.konum ?? null,
-    };
-    if (v.id) await db.tesis.update({ where: { id: v.id }, data: veri });
-    else {
+    const veri = { kod: v.kod, ad: v.ad, tipId: v.tipId ?? null, konum: v.konum ?? null };
+    /* P1: kurulu güç artık kolon değil öznitelik satırı. Boş bırakılırsa
+       satır silinir — `null` yazılmaz, çünkü "ölçtük, sonucu yok" ile
+       "ölçmedik" aynı şey değildir (`lib/alan/oznitelikYazma.ts`). */
+    const guc = v.kuruluGucMw ?? null;
+    if (v.id) {
+      await db.tesis.update({ where: { id: v.id }, data: veri });
+      await sayisalOzellikYaz({ tip: 'tesis', id: v.id }, KURULU_GUC, guc, { birim: 'MW' });
+    } else {
       const yeni = await db.tesis.create({ data: veri });
+      await sayisalOzellikYaz({ tip: 'tesis', id: yeni.id }, KURULU_GUC, guc, { birim: 'MW' });
       await iz({ aktorId: k.id, varlikTipi: 'Tesis', varlikId: yeni.id, eylem: 'olusturma' });
-      // Kabul testi 1: yeni santral → uygulanabilirlik kuralları hemen değerlendirilir.
-      // Profil henüz yoksa karar 'bilinmiyor' kalır ve veri kalitesi bulgusu düşer.
+      /* Kabul testi 1: yeni santral → uygulanabilirlik kuralları hemen
+         değerlendirilir. Öznitelik satırı BU ÇAĞRIDAN ÖNCE yazılır; motor
+         gücü artık satırdan okuyor, sonra yazılsa ilk karar gücü
+         "ölçülmemiş" görürdü. */
       const { tesisKapsaminiHesapla } = await import('./motorlar/uygulanabilirlik');
       await tesisKapsaminiHesapla(yeni.id, k.id);
     }

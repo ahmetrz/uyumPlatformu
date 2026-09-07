@@ -9,6 +9,7 @@ import TezgahIstemci from './TezgahIstemci';
 import KonsolIstemci from './KonsolIstemci';
 import { konsolVerisi } from './konsolVerisi';
 import { SON_ISTEK_TAVANI, type Anahtar, type Is, type SonIstek, type Tanim } from './ortak';
+import { KURULU_GUC, sayisalOzellik } from '@/lib/alan/oznitelik';
 
 export const metadata: Metadata = { title: 'Yönetim tezgâhı' };
 
@@ -125,7 +126,9 @@ export default async function Sayfa({ searchParams }: { searchParams: Promise<{ 
       orderBy: { kod: 'asc' } }),
     db.tesisTipi.findMany({ include: { sektor: true, _count: { select: { tesisler: true } } },
       orderBy: { sira: 'asc' } }),
-    db.tesis.findMany({ include: { tip: true, _count: { select: { surecKapsamlari: true } } },
+    db.tesis.findMany({ include: { tip: true,
+      ozellikler: { select: { anahtar: true, sayisalDeger: true } },
+      _count: { select: { surecKapsamlari: true } } },
       orderBy: { kod: 'asc' } }),
     db.regulasyon.findMany({ include: { _count: { select: { maddeler: true, surecler: true } } },
       orderBy: { kod: 'asc' } }),
@@ -163,8 +166,8 @@ export default async function Sayfa({ searchParams }: { searchParams: Promise<{ 
         // üretemez — zinciri kıran tek eksik budur. Kapalı santralde aranmaz.
         eksik: t.durum === 'aktif' && !t.tipId ? 'kırılım atanmadı' : null,
         // Kurulu güç girilmemişse "bilinmiyor" yazılır, 0 MW uydurulmaz (§19).
-        not: t.konum ?? (t.kuruluGucMw !== null ? `${t.kuruluGucMw} MW` : 'konum bilinmiyor'),
-        tipId: t.tipId, guc: t.kuruluGucMw, konum: t.konum,
+        not: t.konum ?? ((g) => (g !== null ? `${g} MW` : 'konum bilinmiyor'))(sayisalOzellik(t.ozellikler, KURULU_GUC)),
+        tipId: t.tipId, guc: sayisalOzellik(t.ozellikler, KURULU_GUC), konum: t.konum,
         kapanisNedeni: t.kapanisNedeni,
         kapanisTarihi: t.kapanisTarihi?.toISOString() ?? null,
       })),

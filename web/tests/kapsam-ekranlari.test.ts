@@ -117,10 +117,12 @@ const gelecek = new Date(Date.now() + 30 * GUN);
 beforeAll(async () => {
   const tip = await db.tesisTipi.create({ data: { kod: `${ONEK}-TIP`, ad: 'Kapsam tipi' } });
   const tesisA = await db.tesis.create({
-    data: { kod: `${ONEK}-A`, ad: 'Kapsam Santral A', tipId: tip.id, kuruluGucMw: 11 },
+    data: { kod: `${ONEK}-A`, ad: 'Kapsam Santral A', tipId: tip.id,
+      ozellikler: { create: [{ anahtar: 'kuruluGucMw', sayisalDeger: 11, birim: 'MW' }] } },
   });
   const tesisB = await db.tesis.create({
-    data: { kod: `${ONEK}-B`, ad: 'Kapsam Santral B', tipId: tip.id, kuruluGucMw: 22 },
+    data: { kod: `${ONEK}-B`, ad: 'Kapsam Santral B', tipId: tip.id,
+      ozellikler: { create: [{ anahtar: 'kuruluGucMw', sayisalDeger: 22, birim: 'MW' }] } },
   });
   kimlik.tesisA = tesisA.id;
   kimlik.tesisB = tesisB.id;

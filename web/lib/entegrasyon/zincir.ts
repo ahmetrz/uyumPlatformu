@@ -167,7 +167,7 @@ const ZINCIR: AdimTanimi[] = [
     ad: 'uygulanabilirlik',
     asama: 'uygulanabilirlik',
     tetikleyenler: ['tesis'],
-    neden: 'Kapsam kararı YALNIZ tesis profiline ve kuruluGucMw alanına bağlı. '
+    neden: 'Kapsam kararı YALNIZ tesis profiline ve tesisin öznitelik satırlarına bağlı. '
       + 'CMDB\'ye varlık yazılması profili değiştirmez — bu yüzden sadece varlık '
       + 'değiştiyse bu motor KOŞMAZ (gereksiz yeniden hesaplama + gereksiz '
       + 'AktiviteKaydi üretmez).',

@@ -6,6 +6,7 @@ import { kapsamda, modulKapisi } from '@/app/kapsam';
 import { uyumOzeti, gecikmisMi, gecenGun } from '@/lib/sabitler';
 import type { Plant360Veri, Santral } from './Plant360';
 import type { OtProfili } from './mantik';
+import { KURULU_GUC, sayisalOzellik } from '@/lib/alan/oznitelik';
 
 /* F3 · Plant 360 — SUNUCU VERİSİ.
 
@@ -83,7 +84,10 @@ export async function tesis360Verisi(
 
   const tesis = await db.tesis.findUnique({
     where: { id },
-    include: { tip: true, tuzelKisi: true, profil: true },
+    include: {
+      tip: true, tuzelKisi: true, profil: true,
+      ozellikler: { select: { anahtar: true, sayisalDeger: true } },
+    },
   });
   if (!tesis) return null;
 
@@ -120,7 +124,8 @@ export async function tesis360Verisi(
       db.uretimUnitesi.findMany({
         where: { tesisId: id },
         select: {
-          id: true, kod: true, ad: true, kuruluGucMw: true, durum: true,
+          id: true, kod: true, ad: true, durum: true,
+          ozellikler: { select: { anahtar: true, sayisalDeger: true } },
           _count: { select: { sistemler: true, varliklar: true } },
         },
         orderBy: { kod: 'asc' },
@@ -130,7 +135,8 @@ export async function tesis360Verisi(
          anılmaz. */
       db.tesis.findMany({
         where: { durum: 'aktif', ...(izinli === null ? {} : { id: { in: izinli } }) },
-        select: { id: true, kod: true, ad: true, kuruluGucMw: true, gorselAnahtari: true,
+        select: { id: true, kod: true, ad: true, gorselAnahtari: true,
+          ozellikler: { select: { anahtar: true, sayisalDeger: true } },
           tip: { select: { kod: true, ad: true } } },
         orderBy: { ad: 'asc' },
       }),
@@ -222,7 +228,7 @@ export async function tesis360Verisi(
       tipAdi: tesis.tip?.ad ?? 'Tesis',
       tuzelKisi: tesis.tuzelKisi?.ad ?? null,
       konum: tesis.konum,
-      gucMw: tesis.kuruluGucMw,
+      gucMw: sayisalOzellik(tesis.ozellikler, KURULU_GUC),
       gorselAnahtari: tesis.gorselAnahtari,
       kritiklik: tesis.profil?.kritiklikSinifi ?? null,
       profil: profilSerisi(tesis.profil),
@@ -252,7 +258,8 @@ export async function tesis360Verisi(
       katmanlar,
       zincir,
       uniteler: uniteListesi.map((u) => ({
-        id: u.id, kod: u.kod, ad: u.ad, gucMw: u.kuruluGucMw, durum: u.durum,
+        id: u.id, kod: u.kod, ad: u.ad,
+        gucMw: sayisalOzellik(u.ozellikler, KURULU_GUC), durum: u.durum,
         sistemSayisi: u._count.sistemler, varlikSayisi: u._count.varliklar,
       })),
       sistemSayisi: sistemler.length,
@@ -289,7 +296,8 @@ export async function tesis360Verisi(
     },
     santraller: tumTesisler.map((x) => ({
       id: x.id, kod: x.kod, ad: x.ad,
-      alt: x.kuruluGucMw ? `${x.kuruluGucMw} MWe` : '—',
+      /* Ölçülmemiş güç "—" gösterir, 0 değil (bilinmeyen ≠ sıfır). */
+      alt: ((g) => (g === null ? '—' : `${g} MWe`))(sayisalOzellik(x.ozellikler, KURULU_GUC)),
       tip: x.tip?.ad ?? 'Diğer',
       gorselAnahtari: x.gorselAnahtari,
     })),

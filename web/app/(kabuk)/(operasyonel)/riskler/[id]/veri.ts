@@ -6,6 +6,7 @@ import { kapsamKosulu, kapsamda, modulKapisi } from '@/app/kapsam';
 import { kucukGorsel } from '@/lib/gorsel';
 import { RISK_ICERIK, riskeCevir } from '../ortak';
 import type { DetayVerisi } from './RiskDetayIstemci';
+import { KURULU_GUC, sayisalOzellik } from '@/lib/alan/oznitelik';
 
 /* O4 · Risk Detail — SUNUCU VERİSİ (kapsam kuralı JSX'ten ayrı test edilsin).
 
@@ -86,7 +87,7 @@ export async function riskDetayVerisi(
        formda seçilemeyen bir santral şeritte de anılmaz. */
     db.tesis.findMany({
       where: { durum: 'aktif', ...(izinli === null ? {} : { id: { in: izinli } }) },
-      include: { tip: true },
+      include: { tip: true, ozellikler: { select: { anahtar: true, sayisalDeger: true } } },
       orderBy: { kod: 'asc' },
     }),
     db.sistemServis.findMany({ orderBy: { kod: 'asc' } }),
@@ -158,7 +159,7 @@ export async function riskDetayVerisi(
     santraller: tesisler.map((t) => ({
       id: t.id,
       ad: t.ad,
-      alt: [t.kuruluGucMw ? `${t.kuruluGucMw} MWe` : null, t.konum]
+      alt: [((g) => (g === null ? null : `${g} MWe`))(sayisalOzellik(t.ozellikler, KURULU_GUC)), t.konum]
         .filter(Boolean).join(' · ') || t.kod,
       tip: t.tip?.kod ?? '—',
       gorsel: kucukGorsel(t.gorselAnahtari),

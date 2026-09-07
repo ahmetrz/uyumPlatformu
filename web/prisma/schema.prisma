@@ -62,7 +62,9 @@ model TesisTipi {
 model SektorOznitelikSemasi {
   id                String  @id @default(cuid())
   sektorId          String
-  /// Öznitelik anahtarı — `kuruluGucMw`, `gunlukDebiM3`, `yatakSayisi`.
+  /// Öznitelik anahtarı — sektör paketi belirler (`gunlukDebiM3`,
+  /// `yatakSayisi`, `rafKapasitesi`…). Çekirdek hiçbir anahtarı adıyla
+  /// bilmez; buradaki örnekler de çekirdeğin sektörü olmadığını gösterir.
   anahtar           String
   /// Etiketin sözlük anahtarı; ekran metni buradan çözülür.
   etiketAnahtari    String
@@ -147,7 +149,6 @@ model Tesis {
   kod         String  @unique
   ad          String
   tipId       String?
-  kuruluGucMw Float?
   konum       String?
 
   /// Coğrafi konum (WGS84). NULL = GİRİLMEDİ; harita bu santrali ilinin
@@ -872,7 +873,6 @@ model UretimUnitesi {
   tesisId      String
   kod          String
   ad           String
-  kuruluGucMw  Float?
   devreyeGiris DateTime?
   durum        String    @default("aktif") // aktif | bakim | devre_disi
 
@@ -1330,7 +1330,10 @@ model UygulanabilirlikKurali {
   id           String   @id @default(cuid())
   regulasyonId String
   ad           String
-  kosulJson    String // {"herhangi":[{"alan":"kuruluGucMw","islec":">=","deger":100},...]}
+  /// Kural bir ÖZNİTELİK ANAHTARINA bakar; anahtarı sektör paketi
+  /// tanımlar, çekirdek değil:
+  /// `{"herhangi":[{"alan":"<oznitelikAnahtari>","islec":">=","deger":100},…]}`
+  kosulJson    String
   surum        Int      @default(1)
   aktif        Boolean  @default(true)
   aciklama     String?

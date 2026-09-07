@@ -11,6 +11,7 @@ import type {
   TrendNoktasi, Zincir,
 } from './mantik';
 import { ORTU_KISA, belgeOrtusu } from '../dokumanlar/mantik';
+import { KURULU_GUC, ozelligeGoreSirala, sayisalOzellik } from '@/lib/alan/oznitelik';
 
 /* O1 · O2 sunucu yükleyicisi.
 
@@ -76,9 +77,12 @@ const SUREC_ONCELIGI: Record<string, number> = {
 };
 
 function tesisAlt(
-  t: { kuruluGucMw: number | null; tip: { kod: string } | null; konum: string | null },
+  t: {
+    ozellikler: readonly { anahtar: string; sayisalDeger: number | null }[];
+    tip: { kod: string } | null; konum: string | null;
+  },
 ): string {
-  const mw = guc(t.kuruluGucMw);
+  const mw = guc(sayisalOzellik(t.ozellikler, KURULU_GUC));
   if (mw) return mw;
   const yedek = [t.tip?.kod.toLocaleLowerCase('tr-TR'), t.konum].filter(Boolean).join(' · ');
   return yedek || '—';
@@ -107,7 +111,7 @@ export async function cerceveleriYukle(
 ): Promise<CerceveVerisi[]> {
   const simdi = Date.now();
 
-  const [regulasyonlar, tesisler, riskler, projeBaglantilari, eslestirmeler, denetimler,
+  const [regulasyonlar, tesisSirasiz, riskler, projeBaglantilari, eslestirmeler, denetimler,
     belgeKayitlari] =
     await Promise.all([
       db.regulasyon.findMany({
@@ -126,8 +130,9 @@ export async function cerceveleriYukle(
       }),
       db.tesis.findMany({
         where: { durum: 'aktif' },
-        include: { tip: true, profil: true },
-        orderBy: [{ kuruluGucMw: 'desc' }, { ad: 'asc' }],
+        include: { tip: true, profil: true, ozellikler: true },
+        /* Sıra JS'te: kurulu güç öznitelik satırı (P1). */
+        orderBy: { ad: 'asc' },
       }),
       db.risk.findMany({
         where: { silindi: null },
@@ -167,6 +172,10 @@ export async function cerceveleriYukle(
         },
       }),
     ]);
+
+  /* Sıra JS'te: kurulu güç öznitelik satırı (P1); `orderBy` ilişkiye
+     bakamıyor. Sorgu `take` almıyor, sonuç veritabanı sırasıyla aynı. */
+  const tesisler = ozelligeGoreSirala(tesisSirasiz, KURULU_GUC);
 
   const regKodlari = new Map(regulasyonlar.map((r) => [r.id, r.kod]));
 
@@ -501,7 +510,7 @@ export async function cerceveleriYukle(
         }
         const profil = t.profil
           ? JSON.parse(JSON.stringify(t.profil)) as Record<string, unknown> : null;
-        const sonuc = kuralDegerlendir(kuralKaydi.kosulJson, t, profil);
+        const sonuc = kuralDegerlendir(kuralKaydi.kosulJson, t.ozellikler, profil);
         if (sonuc.uygulanabilir === null) {
           return {
             tesisId: t.id, ad: t.ad, kod: t.kod, sonuc: 'kararsiz',

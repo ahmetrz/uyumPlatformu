@@ -9,7 +9,7 @@
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
-| Taranan test dosyası | 160 |
+| Taranan test dosyası | 162 |
 
 ## Katman başına kapsam
 
@@ -265,8 +265,8 @@
 | `SIS-ERS-002` | Sistem | ACCESSIBILITY · UI | `senaryo-platform.test.ts` | seçilemeyen tablo grid demez, işaretçi imleci taşımaz | evet | geçti |
 | `SIS-ERS-003` | Sistem | ACCESSIBILITY | `senaryo-platform.test.ts` | sekme rolü yalnız gerçek sekmelerde kullanılır | evet | geçti |
 | `SIS-SNG-001` | Sistem | DOMAIN | `giris-zaman.test.ts` | ileri ve geri aynı kaydırma noktasında aynı pozu verir | evet | geçti |
-| `SIS-SNG-001` | Sistem | DOMAIN | `giris-zaman.test.ts` | kamerayı son düzleme ulaşmadan tam ekran açıklığa taşır | evet | geçti |
-| `SIS-SNG-001` | Sistem | DOMAIN | `giris-zaman.test.ts` | açıklık açılmadan önce katmanlar hizalanır; zaman çizgisi süreksizlik taşımaz | evet | geçti |
+| `SIS-SNG-001` | Sistem | DOMAIN | `giris-zaman.test.ts` | ekran geçişi sonunda gerçek arayüzü ölçek ve konum sıçraması olmadan teslim eder | evet | geçti |
+| `SIS-SNG-001` | Sistem | DOMAIN | `giris-zaman.test.ts` | kamerayı odanın önünde tutar; ekran yaklaşmadan oda açılır ve hareket süreklidir | evet | geçti |
 | `SAH-GRS-001` | Saha | DOMAIN · UI | `ters-kapsam-ekran.test.ts` | fotoğrafı olmayan santral BAŞKA santralin görselini almaz | evet | geçti |
 | `SAH-GRS-002` | Saha | SERVER · DOMAIN | `ters-kapsam-eylem.test.ts` | hiç anlık görüntü yoksa eğilim null kalır — düz sıfır çizgisi çizilmez | evet | geçti |
 | `AKT-IZL-001` | Aktivite | DOMAIN · UI | `ters-kapsam-ekran.test.ts` | mercek hiçbir kayda uymayınca boş SÜZGEÇ sonucu doğar | evet | geçti |
@@ -340,7 +340,11 @@
 | `URN-ALN-003` | Ürünleştirme | DOMAIN · UI | `bekci/cekirdek-taban.test.ts` | toplam taban ölçümle tutuyor | evet | geçti |
 | `URN-ALN-003` | Ürünleştirme | DOMAIN · UI | `bekci/sektor-terimi.test.ts` | izin listesinde OLMAYAN dosyada sektör terimi yok | evet | geçti |
 | `URN-ALN-003` | Ürünleştirme | DOMAIN · UI | `bekci/sektor-terimi.test.ts` | liste taban daldaki listenin ALT KÜMESİ | evet | geçti |
+| `URN-ALN-003` | Ürünleştirme | DOMAIN · UI | `bekci/sektor-terimi.test.ts` | her satır SINIFLANDIRILMIŞ — kalıcı mı, ertelenmiş mi | evet | geçti |
+| `URN-ALN-003` | Ürünleştirme | DOMAIN · UI | `bekci/sektor-terimi.test.ts` | ERTELENMİŞ satır hangi aşamada kapanacağını YAZAR | evet | geçti |
+| `URN-ALN-003` | Ürünleştirme | DOMAIN · UI | `bekci/sektor-terimi.test.ts` | ERTELENMİŞ terim toplamı `ertelenmisTavani`yi aşmıyor | evet | geçti |
 | `URN-ALN-003` | Ürünleştirme | DOMAIN · UI | `bekci/sektor-terimi.test.ts` | terim toplamı `terimTavani`yi aşmıyor | evet | geçti |
+| `URN-ALN-003` | Ürünleştirme | DOMAIN · UI | `bekci/sektor-terimi.test.ts` | tavan YÜKSELTMESİ gerekçe ister | evet | geçti |
 | `URN-ALN-007` | Ürünleştirme | DOMAIN | `bekci/cekirdek-tarayici.test.ts` | YORUMLAR sökülür — render edilmeyen metin aranmaz | evet | geçti |
 | `URN-ALN-007` | Ürünleştirme | DOMAIN | `bekci/cekirdek-tarayici.test.ts` | GÜRÜLTÜ 1: sözlük ÇAĞRISI bulgu sayılmaz | evet | geçti |
 | `URN-ALN-007` | Ürünleştirme | DOMAIN | `bekci/cekirdek-tarayici.test.ts` | GÜRÜLTÜ 2: anahtar argümanı ekran metni değildir | evet | geçti |
@@ -415,4 +419,6 @@
 | `uc-deger-kurali.test.ts` | Üç değerli mantığın sözlüğü |
 | `omur-ufuk.test.ts` | Ömür şeridinin aciliyet bantları — ölçek işaretinin saf mantığı |
 | `kapi-farki.test.ts` | Kapı farkı ölçüsünün saf kuralları — hangi betik CI'da koşuyor |
+| `kirpan-ata.test.ts` | Düzen kapısının kırpan-ata yürüyüşü — kaydırılabilen içerik kayıp sayılmaz |
+| `inceleme-30.test.ts` | Bir inceleme turunun beş bulgusunun düzeltme kanıtı — birlikte okunmaları gerekir |
 

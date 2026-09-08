@@ -160,6 +160,12 @@ jobs:
           done
           echo "sunucu 120sn içinde açılmadı"; cat /tmp/kapi-sunucu.log; exit 1
 
+      - name: Giriş kaydırma sonrası tıklama kontrolü
+        working-directory: web
+        env:
+          PORT: '3210'
+        run: node arac/giris-gecis.mjs
+
       # İşlevsel duman testleri ÖNCE koşar: bir rota 404 veriyorsa ya da
       # gezinme kırıksa, aynı sayfadaki piksel ölçümleri gürültüdür.
       # İkisi de aylarca CI dışında kaldı ve #28 ortak `girisYap`a bir adım

@@ -341,6 +341,7 @@
 | `URN-KUR-006` | Ürünleştirme | DOMAIN | `bekci/kurgusal-adlar.test.ts` | VARLIK modelleri tek kaynaktan gelir | evet | geçti |
 | `URN-KUR-006` | Ürünleştirme | DOMAIN | `bekci/kurgusal-adlar.test.ts` | İŞLETİM SİSTEMİ adları tek kaynaktan gelir | evet | geçti |
 | `URN-KUR-006` | Ürünleştirme | DOMAIN | `bekci/kurgusal-adlar.test.ts` | CONNECTOR kaynak sistemi beyanlıdır | evet | geçti |
+| `URN-KUR-006` | Ürünleştirme | DOMAIN | `bekci/kurgusal-adlar.test.ts` | KİMLİK HESABI kaynak sistemi beyanlıdır | evet | geçti |
 | `URN-KUR-006` | Ürünleştirme | DOMAIN | `bekci/kurgusal-adlar.test.ts` | SERTİFİKAYI VEREN beyanlıdır | evet | geçti |
 | `URN-KUR-007` | Ürünleştirme | DOMAIN | `bekci/kurgusal-adlar.test.ts` | her beyan KAYNAK ve GEREKÇE taşır | evet | geçti |
 | `URN-KUR-007` | Ürünleştirme | DOMAIN | `bekci/kurgusal-adlar.test.ts` | KULLANILMAYAN beyan bırakılmaz | evet | geçti |

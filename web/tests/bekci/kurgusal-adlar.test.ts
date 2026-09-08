@@ -148,6 +148,20 @@ describe('Kurgusal ad bekçisi · ürünler [URN-KUR-006]', () => {
         && !TUM_KURULUS_ADLARI.has(ad) && !jenerik.has(ad))).toEqual([]);
   });
 
+  it('KİMLİK HESABI kaynak sistemi beyanlıdır [URN-KUR-006]', async () => {
+    /* Ölçüldü (8 Eyl 2026): bekçi ilk yazıldığında bu alanı görmüyordu
+       ve `KimlikHesabi.kaynakSistem` içinde beyansız bir gerçek ad
+       ("Entra") duruyordu. Alan listesi elle sayıldığı için eksikti;
+       eksiği bulan şey bekçi değil, veritabanının tamamını tarayan bir
+       ölçüm oldu. */
+    const k = await db.kimlikHesabi.findMany({ select: { kaynakSistem: true } });
+    expect(k.length).toBeGreaterThan(0);
+    const jenerik = new Set<string>(JENERIK_SISTEMLER);
+    expect([...new Set(k.map((x) => x.kaynakSistem).filter((x): x is string => !!x))]
+      .filter((ad) => !TUM_URUN_ADLARI.has(ad) && !BEYANLI_GERCEK_ADLAR.has(ad)
+        && !TUM_KURULUS_ADLARI.has(ad) && !jenerik.has(ad))).toEqual([]);
+  });
+
   it('SERTİFİKAYI VEREN beyanlıdır [URN-KUR-006]', async () => {
     /* "Demo " ÖN EKİ BİR KAYNAK DEĞİLDİR. İlk yazımda bu kontrol
        `ad.startsWith('Demo ')` ile geçiyordu ve o kaçak tam olarak bu
@@ -192,6 +206,10 @@ describe('Kurgusal ad bekçisi · beyan disiplini [URN-KUR-007]', () => {
       ...(await db.sertifika.findMany({ select: { veren: true } })).map((x) => x.veren),
       ...(await db.varlik.findMany({ select: { isletimSistemi: true } })).map((x) => x.isletimSistemi),
       ...(await db.yazilimUrunu.findMany({ select: { ad: true } })).map((x) => x.ad),
+      ...(await db.kimlikHesabi.findMany({ select: { kaynakSistem: true } }))
+        .map((x) => x.kaynakSistem),
+      ...(await db.risk.findMany({ select: { mevcutKontroller: true } }))
+        .map((x) => x.mevcutKontroller),
     ].filter((x): x is string => !!x);
     const olu = GERCEK_AD_BEYANLARI
       .filter((b) => !metinler.some((m) => m.includes(b.ad)))
@@ -218,6 +236,13 @@ describe('Kurgusal ad bekçisi · beyan disiplini [URN-KUR-007]', () => {
       ...(await db.connector.findMany({ select: { ad: true, kaynakSistem: true } }))
         .flatMap((x) => [x.ad, x.kaynakSistem]),
       ...(await db.zafiyet.findMany({ select: { baslik: true } })).map((x) => x.baslik),
+      /* SERBEST KONTROL METNİ BİLEREK DIŞARIDA. Karışım yasağının
+         gerekçesi dar ve nettir: ATIF YAPAN bir kayıt, atıf yaptığı adı
+         bozamaz. Bir kontrolü anlatan cümlede ise ikisi meşru olarak yan
+         yana gelir — "kurgusal tedarikçinin hesapları Entra ID koşullu
+         erişimiyle yönetiliyor" doğru bir cümledir ve kimseyi
+         yanlışlamaz. Buraya eklenseydi kapı, ancak kuralı zayıflatarak
+         susturulabilecek bir kırmızı üretirdi. */
     ].filter((x): x is string => !!x);
     const karisik = metinler
       .map((m) => [m, karisikAd(m)] as const)

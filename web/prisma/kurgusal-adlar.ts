@@ -214,7 +214,11 @@ const CVE_KAYDI =
   + 'varlığımızın etkilendiğini söyleriz.';
 
 export const GERCEK_AD_BEYANLARI: GercekAdBeyani[] = [
-  { ad: 'Entra ID', alan: 'Connector.kaynakSistem',
+  { ad: 'Entra ID', alan: 'Connector.ad · Connector.kaynakSistem · '
+      + 'KimlikHesabi.kaynakSistem · Risk.mevcutKontroller',
+    kaynak: 'Microsoft Graph v1.0 — kamuya açık API belgesi',
+    gerekce: ENTEGRASYON_HEDEFI },
+  { ad: 'Entra', alan: 'KimlikHesabi.kaynakSistem',
     kaynak: 'Microsoft Graph v1.0 — kamuya açık API belgesi',
     gerekce: ENTEGRASYON_HEDEFI },
   { ad: 'CrowdStrike Falcon', alan: 'Connector.ad · Connector.kaynakSistem',
@@ -318,7 +322,15 @@ export const BEYANLI_GERCEK_ADLAR: ReadonlySet<string> =
     olmayan bir ürün uydurmak olurdu. Bekçi bunları ayrı bir küme olarak
     tanır; kaçış kapısı değildir, çünkü her biri bir MARKAYI DEĞİL bir
     TİPİ adlandırır ve tipler bu dosyada sayılıdır. */
-export const JENERIK_SISTEMLER = ['dosya', 'OT keşif ürünü'] as const;
+export const JENERIK_SISTEMLER = [
+  'dosya', 'OT keşif ürünü',
+  /* Kimlik hesabının kaynağı çoğu satırda bir ürün değil bir TİPTİR:
+     dizin servisi (AD), makinenin kendi yerel hesabı, SCADA'nın kendi
+     hesap deposu. Bunları markalaştırmak olmayan bir ürün uydurmak
+     olurdu — "yerel hesap" bir ürün adı değil, bir hesabın nerede
+     durduğudur. */
+  'AD', 'yerel', 'SCADA yerel', 'Historian yerel',
+] as const;
 
 /* ── KARIŞIM YASAĞI ────────────────────────────────────────────────────
    Bir kaydın metninde HEM kurgusal bir ad HEM beyan edilmiş gerçek bir

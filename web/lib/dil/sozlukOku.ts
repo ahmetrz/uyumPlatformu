@@ -1,6 +1,7 @@
 import 'server-only';
 import { cache } from 'react';
 import { db } from '@/lib/db';
+import { eksikSozlukMesaji, kapsamKarari, sozlukKarari } from './sozlukDurumu';
 import { sozlukKur, type Sozluk } from './terimler';
 
 /* Sektör sözlüğünün SUNUCU tarafı. Ayrı dosya: `terimler.ts` veritabanı
@@ -36,7 +37,14 @@ export const sektorSozlugu = cache(async (sektorId: string, dil = 'tr'): Promise
       bulunma: true, yonelme: true,
     },
   });
-  if (satirlar.length === 0) return null;
+  /* SESSİZ DÜŞÜŞ YOK. `satirlar.length === 0` iken sektör VAR demektir —
+     kurulu bir sektör paketinin dili eksik. Bu "sözlük yok" değil,
+     "sözlük BOŞ"tur ve kusurdur; çağıran yine `null` alır (ekran çalışır,
+     çekirdek sözcük kullanır) ama durum artık kütüğe geçer. */
+  if (sozlukKarari(sektorId, satirlar.length) === 'eksik') {
+    console.error(eksikSozlukMesaji(sektorId));
+    return null;
+  }
   return sozlukKur(satirlar);
 });
 
@@ -61,11 +69,21 @@ export const kapsamSozlugu = cache(async (
     where: { durum: 'aktif', ...(idler === null ? {} : { id: { in: idler } }) },
     select: { tip: { select: { sektorId: true } } },
   });
-  const sektorler = new Set(
-    tesisler.map((t) => t.tip?.sektorId).filter((x): x is string => Boolean(x)),
-  );
-  if (sektorler.size !== 1) return null;
-  return sektorSozlugu([...sektorler][0], dil);
+  /* ÜÇ DEĞERLİ MANTIK — BİLİNMEYEN ≠ TEK. Eski kod sektörsüz tesisi
+     `.filter(Boolean)` ile ATIYOR, sonra kalanlara "tek sektör" diyordu:
+     bir sınıflı + bir sınıfsız tesis içeren kapsamda kabuk enerji
+     sözlüğünü seçiyor ve SINIFSIZ kayda da o sektörün sözcüğünü
+     veriyordu. Oysa
+     `Tesis.tipId` de `TesisTipi.sektorId` de nullable; sınıfsız tesisin
+     sektörü YANLIŞ değil, BİLİNMİYOR.
+
+     Bilinmeyeni yok sayıp kalana bakmak, "bilinmeyen ≠ sıfır" kuralının
+     tam ihlalidir. Kapsamda sektörü bilinmeyen tek bir tesis varsa
+     çekirdeğe düşülür — çok sektörlü kapsamla aynı gerekçe: birinin
+     sözcüğünü seçmek öbürü için yanlış olur. */
+  const sektorId = kapsamKarari(tesisler.map((t) => t.tip?.sektorId ?? null));
+  if (sektorId === null) return null;
+  return sektorSozlugu(sektorId, dil);
 });
 
 /** Kapsam dizisini `kapsamSozlugu` anahtarına çevirir (sıralı, tekrarsız). */

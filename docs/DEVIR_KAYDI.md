@@ -162,3 +162,70 @@ değil.
 
 **Ardıl oturum bu bölümü okumakla yetinmez, komutları koşar.**
 
+### Ölçüm künyesi
+
+| | |
+| --- | --- |
+| **Ölçüm commit'i** | `fc35a38` — `Merge pull request #30 from ahmetrz/paket/p1-sektor-bagimsiz-model` |
+| Ölçüm tarihi | 8 Eylül 2026 |
+| Ölçülen ağaç | `origin/main` (P1 birleştirildikten SONRA) |
+
+### Sayılar
+
+```
+A · KALICI      :  3 dosya /  13 terim
+A · ERTELENMİŞ  :  8 dosya /  72 terim
+A · TOPLAM      : 11 dosya /  85 terim
+B               :  0 bulgu /   0 dosya   (65/65 muafiyet kullanıldı)
+ölçüm commit'i  : fc35a38
+```
+
+Cırcır tavanları aynı uçta: `tavan` 11 · `terimTavani` 85 ·
+`ertelenmisTavani` 72. Üçü de ölçümün ÜSTÜNDE değil, TAM ÜSTÜNDE —
+gevşeklik dişi bunu zorunlu tutuyor.
+
+### Nasıl yeniden ölçülür
+
+**A (sektör terimi izin listesi)** — sınıf başına dosya ve terim:
+
+```sh
+cd web
+npx tsx -e "
+import { readFileSync } from 'node:fs';
+import { terimleriBul } from './tests/bekci/terimler';
+const izin = JSON.parse(readFileSync('tests/bekci/sektor-terimi-izin.json','utf8'));
+const say = (d) => terimleriBul(d).reduce((a,x)=>a+x.sayi,0);
+let k={d:0,t:0}, e={d:0,t:0};
+for (const d of izin.dosyalar) {
+  const n = say(d), s = izin.siniflandirma[d];
+  if (s.tur==='kalici') { k.d++; k.t+=n; } else { e.d++; e.t+=n; }
+}
+console.log('KALICI', k.d, '/', k.t, '· ERTELENMİŞ', e.d, '/', e.t);
+"
+```
+
+**B (çekirdek sözcük taraması)**:
+
+```sh
+cd web && npx tsx arac/cekirdek-sozcuk-taramasi.mjs
+```
+
+**Cırcırın kendisi** (on iki diş, ikisi taban dal ister):
+
+```sh
+cd web && npx vitest run tests/bekci/sektor-terimi.test.ts
+```
+
+### Tutmazsa ne demektir
+
+Sayı **büyükse**: ya uç bu commit'ten geride, ya da yeni bir sızıntı
+girmiş — bekçi zaten kırmızı yanar, önce onu okuyun.
+
+Sayı **küçükse**: birileri temizlemiş ama tavanı indirmemiş olabilir;
+gevşeklik dişi bunu kırmızı yakar ve tavanı ölçüme çekmenizi ister.
+
+**Hiç ölçülemiyorsa** (komut çöküyor, 0 dönüyor): bu bir "geçti" değil.
+Önce ölçüm ortamının tazeliğini doğrulayın (`web/arac/BENIOKU.md` →
+ORTAM TAZELİĞİ); bu oturumda dolu disk yüzünden test keşfi "0 vaka"
+dönmüş ve kapı "doğrulandı" demişti.
+

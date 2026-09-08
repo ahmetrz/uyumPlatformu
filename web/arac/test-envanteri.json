@@ -1,7 +1,7 @@
 {
-  "imza": "94452b6f2fc538a48bfa4b8d34298dcc",
+  "imza": "8a021db810c1fc526457c9fffc74032b",
   "dosya": 162,
-  "vaka": 3216,
+  "vaka": 3218,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -229,7 +229,7 @@
       "atlanan": 0
     },
     "tests/giris-zaman.test.ts": {
-      "vaka": 3,
+      "vaka": 5,
       "atlanan": 0
     },
     "tests/gorev-eylem.test.ts": {

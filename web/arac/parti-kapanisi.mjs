@@ -27,7 +27,7 @@ import { spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { adimlar } from './kapi-farki.mjs';
+import { adimlar, isOrtami } from './kapi-farki.mjs';
 
 const WEB = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DEPO = path.resolve(WEB, '..');
@@ -166,10 +166,33 @@ console.log('\n══ PARTİ KAPANIŞ RAPORU ═══════════�
 for (const s of sonuc) {
   console.log(`  ${s.durum.padEnd(10)} ${s.ad}${s.not ? `  · ${s.not}` : ''}`);
 }
-if (dusenler.length) {
-  console.log('\n  ORTAM FARKI (CI ile birebir DEĞİL):');
-  for (const d of dusenler) console.log(`    · ${d}`);
+/* ── ORTAM FARKI · TAM LİSTE ──────────────────────────────────────────
+   "Aynı kümeyi koştum" cümlesi ancak FARKI yazınca dürüst olur. Araç
+   iş akışının yalnız dört adım anahtarını uygular (`name` · `run` ·
+   `working-directory` · `env`); geri kalan her şey — adım anahtarları,
+   iş düzeyi ortamı, kurulum adımları — burada ADIYLA sayılır.
+
+   `env:` körlüğü bu sınıfın İLK örneğiydi ve sessizce atlandığı için
+   bir kapıyı yanlış ortamda koşturmuştu. İkincisini beklemek yerine
+   sınıfın tamamı rapora alındı: tanımadığını sessizce atlayan bir araç,
+   ne kadarını ölçtüğünü de bilemez. */
+const ortam = isOrtami(metin);
+const adimFarklari = tumAdimlar
+  .flatMap((a) => Object.entries(a.bilinmeyen ?? {}).map(([k, v]) => `${a.ad} · ${k}: ${v}`));
+
+console.log('\n  ORTAM FARKI (CI ile birebir DEĞİL) — uygulanan adım anahtarları:'
+  + ' name · run · working-directory · env');
+for (const [k, v] of Object.entries(ortam.bulunan)) {
+  console.log(`    · iş düzeyi ${k}: ${v} — yerelde taklit EDİLMEZ`);
 }
+if (ortam.nodeSurumu) {
+  console.log(`    · node: CI ${ortam.nodeSurumu} · yerel ${process.version}`);
+}
+for (const k of ortam.kurulumlar) {
+  console.log(`    · kurulum adımı koşulmadı: ${k}`);
+}
+for (const d of adimFarklari) console.log(`    · UYGULANMAYAN adım anahtarı — ${d}`);
+for (const d of dusenler) console.log(`    · ${d}`);
 
 const kirmizi = sonuc.filter((s) => s.durum === 'KIRMIZI');
 const olculmeyen = sonuc.filter((s) => s.durum === 'ÖLÇÜLMEDİ');

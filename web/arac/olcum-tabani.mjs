@@ -84,7 +84,8 @@ export function tabanKarari(anahtar, olculen, tabanlar) {
     return `ÖLÇÜM KAPSAMI DÜŞTÜ: ${anahtar} = ${olculen} < taban ${taban}. `
       + 'Kapı daha AZ şey ölçüyor ve yine de geçebilirdi. Düşüş meşruysa '
       + '(rota silindi, bant emekliye ayrıldı) tabanı ÖLÇÜMLE indirin: '
-      + 'node arac/olcum-tabani.mjs --taban-yaz — ve sebebini commit mesajına yazın.';
+      + 'kendi kapısının `--taban-yaz --sebep="..."` bayrağıyla indirin. '
+      + 'Gerekçe DOSYAYA yazılır; gerekçesiz düşüş reddedilir.';
   }
   return null;
 }
@@ -96,10 +97,61 @@ export function tabanDogrula(anahtar, olculen, yol = TABAN_YOLU) {
   return olculen;
 }
 
-/** Ölçülen değeri tabana YAZAR — yalnız `--taban-yaz` ile. */
-export function tabanYaz(anahtar, olculen, yol = TABAN_YOLU) {
+/** SAF KARAR: bu taban yazımı gerekçe istiyor mu, gerekçe yeterli mi?
+
+    `null` = yazılabilir · dize = reddedildi, sebebi yazılı.
+
+    DÜŞÜŞ gerekçe ister, YÜKSELİŞ istemez. Sebep asimetriktir: tabanın
+    yükselmesi kapsamın büyümesidir ve kimseyi korumasız bırakmaz;
+    düşmesi kapının daha AZ şey ölçmesine izin vermektir ve bir karardır.
+    Gerekçenin commit mesajında olması yetmiyordu — commit mesajı dosyayı
+    okuyanın önünde durmaz ve altı ay sonra kimse `git log` kazmaz. */
+export function yazimKarari(anahtar, olculen, onceki, sebep) {
+  if (!Number.isFinite(olculen) || olculen < 0) {
+    return `ÖLÇÜM GEÇERSİZ: ${anahtar} = ${olculen}. Sayı olmayan bir ölçüm yazılamaz.`;
+  }
+  if (onceki === undefined || olculen >= onceki) return null;   /* ilk yazım · yükseliş */
+  const s = String(sebep ?? '').trim();
+  if (s.length < 40) {
+    return `TABAN DÜŞÜŞÜ GEREKÇESİZ: ${anahtar} ${onceki} → ${olculen}. `
+      + 'Tabanın inmesi bir KARARDIR ve kararın gerekçesi dosyada durur, '
+      + 'commit mesajında değil. Kullanım:\n'
+      + `  node arac/<kapi>.mjs --taban-yaz --sebep="kapsam neden küçüldü"\n`
+      + 'Gerekçe KAPSAMIN neden daraldığını anlatmalı (rota silindi, bant '
+      + 'emekliye ayrıldı) — ölçmenin maliyetini değil.';
+  }
+  return null;
+}
+
+/** `--sebep=...` ya da `--sebep ...` — TEK yerde ayrıştırılır.
+
+    Dört kapı da aynı bayrağı okuyor; ikinci bir nüsha yazılsaydı biri
+    tırnaklı biçimi, öbürü boşluklu biçimi desteklerdi ve gerekçe
+    "yazdım ama tutmadı" diye kaybolurdu. */
+export function sebepBayragi(argv) {
+  const esit = argv.find((a) => a.startsWith('--sebep='));
+  if (esit) return esit.slice('--sebep='.length);
+  const i = argv.indexOf('--sebep');
+  return i >= 0 ? (argv[i + 1] ?? '') : '';
+}
+
+/** Ölçülen değeri tabana YAZAR — yalnız `--taban-yaz` ile.
+
+    Düşüşte gerekçe ZORUNLUDUR ve dosyaya işlenir; reddedilirse hiçbir
+    şey yazılmaz. */
+export function tabanYaz(anahtar, olculen, { sebep = '', yol = TABAN_YOLU } = {}) {
   const belge = tabanOku(yol);
   const onceki = belge.tabanlar[anahtar];
+  const hata = yazimKarari(anahtar, olculen, onceki, sebep);
+  if (hata) throw new Error(hata);
+
+  if (onceki !== undefined && olculen < onceki) {
+    belge.dususler ??= {};
+    belge.dususler[anahtar] = {
+      eski: onceki, yeni: olculen, sebep: String(sebep).trim(),
+      tarih: new Date().toISOString().slice(0, 10),
+    };
+  }
   belge.tabanlar[anahtar] = olculen;
   writeFileSync(yol, `${JSON.stringify(belge, null, 2)}\n`);
   return { onceki, yeni: olculen };

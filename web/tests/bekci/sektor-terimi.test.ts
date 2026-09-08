@@ -68,10 +68,31 @@ const IZIN_DOSYASI = 'tests/bekci/sektor-terimi-izin.json';
    · `plant` — aynı sözcüğün İngilizcesi; bileşen ve jeton adlarında.
    Kapsam dışı bırakılanlar ve nedenleri izin dosyasının başlığındadır. */
 
+type Sinif = { tur: 'kalici' | 'ertelenmis'; sebep: string; kapanis?: string };
+
 const izin = JSON.parse(readFileSync(IZIN_DOSYASI, 'utf8')) as {
-  tavan: number; terimTavani: number; dosyalar: string[];
+  tavan: number; terimTavani: number; ertelenmisTavani: number;
+  dosyalar: string[]; siniflandirma: Record<string, Sinif>;
+  tavanGerekceleri?: Record<string, { eski: number; yeni: number; sebep: string }>;
 };
 const izinKumesi = new Set(izin.dosyalar);
+
+/* ── KALICI ve ERTELENMİŞ: TEK KARIŞIK SAYI BIRAKILMAZ ────────────────
+   Bir borç kütüğünde "11 dosya kaldı" cümlesi iki AYRI şeyi topluyordu:
+   ilkesel gerekçeyle orada duran satırlar (sıfır beklenmiyor) ile
+   kapanacağı gün belli olan satırlar. Toplanınca ikisi de okunamaz hâle
+   gelir: sayı düşmüyor diye alarm verilir ama düşmesi beklenmeyen bir
+   taban vardır; ya da tersine, ertelenmiş bir satır "zaten kalıcı" diye
+   sessizce unutulur.
+
+   KALICI, ERTELENMİŞ'in kaçış kapısıdır: bir dosyayı "kalıcı" ilan etmek
+   onu bütün cırcırdan çıkarır. Bu yüzden KALICI kümesi de ALT KÜME
+   dişiyle korunur (diş (i)): taban dalda ertelenmiş olan bir dosya bu
+   dalda kalıcıya TERFİ EDEMEZ; ederse adıyla söylenir. */
+const siniflar = izin.siniflandirma ?? {};
+const sinifi = (yol: string): Sinif | undefined => siniflar[yol];
+const yollar = (tur: Sinif['tur']) =>
+  izin.dosyalar.filter((d) => sinifi(d)?.tur === tur);
 
 const TABAN_DAL = process.env.BEKCI_TABAN?.trim() || 'origin/main';
 
@@ -92,7 +113,13 @@ const KOSUCU = Boolean(process.env.CI || process.env.GITHUB_ACTIONS);
 type TabanYok = { yok: string; tur: 'dal' | 'liste' };
 
 /** Taban daldaki izin listesi; okunamıyorsa NEDENİ ve TÜRÜYLE. */
-function tabanListesi(): { dosyalar: string[] } | TabanYok {
+type Tavanlar = Partial<Record<'tavan' | 'terimTavani' | 'ertelenmisTavani', number>>;
+
+function tabanListesi(): {
+  dosyalar: string[];
+  siniflandirma: Record<string, Sinif> | null;
+  tavanlar: Tavanlar;
+} | TabanYok {
   try {
     execFileSync('git', ['rev-parse', '--verify', '--quiet', `${TABAN_DAL}^{commit}`],
       { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
@@ -109,11 +136,24 @@ function tabanListesi(): { dosyalar: string[] } | TabanYok {
     return { tur: 'liste', yok: `${TABAN_DAL} listeyi henüz taşımıyor (cırcır ilk kurulum)` };
   }
   try {
-    const j = JSON.parse(ham) as { dosyalar?: unknown };
+    const j = JSON.parse(ham) as { dosyalar?: unknown; siniflandirma?: unknown };
     if (!Array.isArray(j.dosyalar)) {
       return { tur: 'dal', yok: `${TABAN_DAL} sürümünde 'dosyalar' dizisi yok` };
     }
-    return { dosyalar: j.dosyalar as string[] };
+    return {
+      dosyalar: j.dosyalar as string[],
+      /* Tavanların TABAN DALDAKİ değeri: yükseltme ancak buna göre
+         anlaşılır. Taşımayan bir taban `undefined` bırakır ve o tavan
+         için karşılaştırma yapılmaz (ölçülmedi — geçti değil). */
+      tavanlar: {
+        tavan: (j as Record<string, unknown>).tavan as number | undefined,
+        terimTavani: (j as Record<string, unknown>).terimTavani as number | undefined,
+        ertelenmisTavani: (j as Record<string, unknown>).ertelenmisTavani as number | undefined,
+      },
+      /* Taban dal sınıflandırmayı henüz taşımıyor olabilir (bu dilimin
+         KENDİSİ onu getiriyor); diş (i) o hâlde ayrıca atlanır. */
+      siniflandirma: (j.siniflandirma ?? null) as Record<string, Sinif> | null,
+    };
   } catch {
     return { tur: 'dal', yok: `${TABAN_DAL} sürümü çözümlenemedi (bozuk JSON)` };
   }
@@ -210,6 +250,91 @@ describe('Bekçi · sektör terimi (cırcır)', () => {
       .toBe(izin.dosyalar.length);
   });
 
+  it('her satır SINIFLANDIRILMIŞ — kalıcı mı, ertelenmiş mi [URN-ALN-003]', () => {
+    /* Diş (f). Sınıfsız bir satır "11 dosya kaldı" cümlesini yeniden tek
+       karışık sayıya çevirir: okuyan kişi hangisinin kapanacağını, hangisinin
+       zaten kapanmayacağını bilemez. */
+    const sinifsiz = izin.dosyalar.filter((d) => !sinifi(d));
+    expect(sinifsiz, `Sınıflandırılmamış satır. ${IZIN_DOSYASI} → `
+      + "`siniflandirma` altına 'kalici' ya da 'ertelenmis' olarak yazın.")
+      .toEqual([]);
+
+    const oksuz = Object.keys(siniflar).filter((d) => !izinKumesi.has(d));
+    expect(oksuz, 'Listede olmayan yol için sınıflandırma kaydı var — '
+      + 'dosya temizlendiyse kaydı da düşürün.')
+      .toEqual([]);
+  });
+
+  it('ERTELENMİŞ satır hangi aşamada kapanacağını YAZAR [URN-ALN-003]', () => {
+    /* Diş (g) — "süresiz beyan yoktur" kuralının bu kütükteki karşılığı.
+       Kapanış aşaması yazılmamış bir erteleme, ertelenmiş değil unutulmuş
+       demektir. Simetrik olarak KALICI bir satır kapanış TAŞIYAMAZ: kapanışı
+       olan şey kalıcı değildir, yanlış sınıflandırılmıştır. */
+    const kapanissiz = yollar('ertelenmis')
+      .filter((d) => !(sinifi(d)?.kapanis ?? '').trim());
+    expect(kapanissiz, "ERTELENMİŞ satırda `kapanis` yok: hangi aşamada "
+      + 'kapanacağı yazılmadan erteleme süresiz beyandır.')
+      .toEqual([]);
+
+    const yanlisKalici = yollar('kalici').filter((d) => sinifi(d)?.kapanis);
+    expect(yanlisKalici, 'KALICI satırda `kapanis` var — kapanışı olan satır '
+      + "kalıcı değildir, 'ertelenmis' olarak yazın.")
+      .toEqual([]);
+
+    const sebepsiz = izin.dosyalar.filter((d) => (sinifi(d)?.sebep ?? '').trim().length < 40);
+    expect(sebepsiz, 'Gerekçe yok ya da bir cümle bile değil. Gerekçe KUSURU '
+      + 'anlatır (CLAUDE.md); `npm run gerekce:tarama` bu alanları da tarar.')
+      .toEqual([]);
+  });
+
+  it('KALICI kümesi taban daldakinin ALT KÜMESİ — terfi sessiz olamaz', (ctx) => {
+    /* Diş (i). KALICI, cırcırın kaçış kapısıdır: bir satırı kalıcı ilan
+       etmek onu ERTELENMİŞ tavanından ve kapanış zorunluluğundan birden
+       çıkarır. (d) dişinin aynısı sınıf üstünde koşar — taban dalda
+       ertelenmiş olan bu dalda kalıcıya terfi edemez. */
+    const taban = tabanListesi();
+    if ('yok' in taban) {
+      if (taban.tur === 'dal' && KOSUCU) {
+        expect.fail(`CI'da taban dal okunamadı: ${taban.yok}. Bu diş CI'da ATLANMAZ.`);
+      }
+      ctx.skip(`ölçülmedi${taban.tur === 'liste' ? '' : ' (yerel)'}: ${taban.yok}`);
+      return;
+    }
+    if (!taban.siniflandirma) {
+      /* Sınıflandırmayı bu dilim GETİRİYOR: taban dalda karşılaştırılacak
+         önceki hâl yok. (d) dişinin 'liste' hâliyle aynı gerekçe. */
+      ctx.skip(`ölçülmedi: ${TABAN_DAL} sınıflandırmayı henüz taşımıyor (ilk kurulum)`);
+      return;
+    }
+    const tabanKalici = new Set(
+      Object.entries(taban.siniflandirma)
+        .filter(([, v]) => v.tur === 'kalici').map(([k]) => k));
+    const terfi = yollar('kalici').filter((d) => !tabanKalici.has(d));
+    expect(terfi.map((d) => `ERTELENMİŞ → KALICI terfisi: ${d}`),
+      `KALICI kümesi ${TABAN_DAL} sürümünün alt kümesi değil. Bir satırı `
+      + 'kalıcı ilan etmek onu cırcırdan çıkarır; terfi ayrı bir karardır ve '
+      + 'gerekçesi taban dalda yazılı olmalıdır.')
+      .toEqual([]);
+  });
+
+  it('ERTELENMİŞ terim toplamı `ertelenmisTavani`yi aşmıyor [URN-ALN-003]', () => {
+    /* Cırcırın ASIL ölçüsü budur: eriyecek olan sayı. Toplam tavan
+       (`terimTavani`) kalıcıları da içerdiği için sıfıra inemez ve
+       "kaç kaldı" sorusuna yanlış cevap verir. */
+    const kirliHarita = new Map(kirli.map((x) => [x.yol, x.terimler]));
+    const say = (yol: string) =>
+      (kirliHarita.get(yol) ?? []).reduce((a, t) => a + t.sayi, 0);
+    const ertelenmisToplam = yollar('ertelenmis').reduce((a, d) => a + say(d), 0);
+    expect(ertelenmisToplam,
+      `ertelenmiş terim toplamı ${ertelenmisToplam} > tavan ${izin.ertelenmisTavani}: `
+      + 'kapanacak borç derinleşmiş. Tavanı YÜKSELTMEYİN.')
+      .toBeLessThanOrEqual(izin.ertelenmisTavani);
+    expect(izin.ertelenmisTavani - ertelenmisToplam,
+      'ertelenmiş tavanı ölçümden uzaklaşmış: cırcır gevşemiş. Tavanı '
+      + 'bugünkü toplama çekin (tavan YALNIZ düşer).')
+      .toBeLessThanOrEqual(0);
+  });
+
   it('terim toplamı `terimTavani`yi aşmıyor [URN-ALN-003]', () => {
     /* İKİNCİ DİŞ: dosya sayısı tek başına DERİNLEŞMEYİ görmez. Listedeki
        bir dosyada terim sayısı ikiye katlansa dosya sayısı değişmez ve
@@ -219,5 +344,60 @@ describe('Bekçi · sektör terimi (cırcır)', () => {
     expect(toplam, `terim toplamı ${toplam} > tavan ${izin.terimTavani}: `
       + 'bir dosya derinleşmiş. Terimi sözlükten çözün; tavanı YÜKSELTMEYİN.')
       .toBeLessThanOrEqual(izin.terimTavani);
+
+    /* GEVŞEKLİK DİŞİ — ÖLÇÜLDÜ VE EKSİKTİ. `tavan` bu kontrolü taşıyordu
+       (`tavan - dosya sayısı <= 0`), `terimTavani` taşımıyordu: 85 → 500
+       yazıp koştum, ONBİR VAKA DA YEŞİL kaldı. Bir tavanı ölçümün
+       üstüne çekmek cırcırı kırmadan öldürür. Tavan, ölçülen sayının
+       BUGÜNKÜ değerinden uzaklaşamaz. */
+    expect(izin.terimTavani - toplam,
+      `terim tavanı ölçümden ${izin.terimTavani - toplam} uzakta: cırcır `
+      + 'gevşemiş. Tavanı bugünkü toplama çekin (tavan YALNIZ düşer).')
+      .toBeLessThanOrEqual(0);
+  });
+
+  it('tavan YÜKSELTMESİ gerekçe ister [URN-ALN-003]', (ctx) => {
+    /* Kural: "taban yazımı ve tavan yükseltmesi gerekçe ister." Gevşeklik
+       dişi bir tavanı ölçümün ÜSTÜNE çekmeyi engeller; bu diş ölçümün
+       KENDİSİ büyüdüğünde sorulması gereken soruyu sorar — kapsam mı
+       genişledi, yoksa borç mu derinleşti? İkisi aynı sayıyı üretir ve
+       yalnız yazılı bir gerekçe ayırır.
+
+       Düşüş ve sabit kalma serbesttir: cırcırın gitmesi gereken yön odur. */
+    const taban = tabanListesi();
+    if ('yok' in taban) {
+      if (taban.tur === 'dal' && KOSUCU) {
+        expect.fail(`CI'da taban dal okunamadı: ${taban.yok}. Bu diş CI'da ATLANMAZ.`);
+      }
+      ctx.skip(`ölçülmedi${taban.tur === 'liste' ? '' : ' (yerel)'}: ${taban.yok}`);
+      return;
+    }
+    const adlar = ['tavan', 'terimTavani', 'ertelenmisTavani'] as const;
+    const olculebilir = adlar.filter((ad) => typeof taban.tavanlar[ad] === 'number');
+    if (olculebilir.length === 0) {
+      ctx.skip(`ölçülmedi: ${TABAN_DAL} bu tavanları henüz taşımıyor (ilk kurulum)`);
+      return;
+    }
+    const kusurlar: string[] = [];
+    for (const ad of olculebilir) {
+      const eski = taban.tavanlar[ad] as number;
+      const yeni = izin[ad];
+      if (yeni <= eski) continue;                    /* düşüş / sabit — serbest */
+      const g = izin.tavanGerekceleri?.[ad];
+      if (!g) {
+        kusurlar.push(`${ad}: ${eski} → ${yeni} yükseltilmiş, gerekçesi yok`);
+      } else if (g.eski !== eski || g.yeni !== yeni) {
+        /* Gerekçe BU yükseltmeyi anlatmalı. Eski bir gerekçe yeni bir
+           yükseltmeyi kapatamaz, yoksa bir kez yazılan cümle sonsuza
+           kadar geçerli olur. */
+        kusurlar.push(`${ad}: gerekçe ${g.eski} → ${g.yeni} diyor, ölçülen ${eski} → ${yeni}`);
+      } else if ((g.sebep ?? '').trim().length < 40) {
+        kusurlar.push(`${ad}: gerekçe bir cümle bile değil`);
+      }
+    }
+    expect(kusurlar, 'Tavan yükseltmesi gerekçesiz. `tavanGerekceleri` altına '
+      + "{ eski, yeni, sebep } yazın; sebep KAPSAMIN neden büyüdüğünü anlatmalı "
+      + '(yeni yüzey ailesi, yeni tarama kökü), düzeltmenin maliyetini değil.')
+      .toEqual([]);
   });
 });

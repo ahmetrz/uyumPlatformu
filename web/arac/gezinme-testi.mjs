@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { tabanDogrula, tabanYaz } from './olcum-tabani.mjs';
+import { sebepBayragi, tabanDogrula, tabanYaz } from './olcum-tabani.mjs';
 /* Duyarlı gezinme testi — HİÇBİR ROTA ERİŞİLEMEZ OLMAMALI.
 
    ── Kapatılan kusur ("bazı sayfalar arası geçiş yapılamıyor") ─────────
@@ -216,7 +216,7 @@ if (kusurlar.length) {
    (`arac/olcum-tabani.mjs` başlığındaki ölçülmüş olay). Taban ÖNCE
    bakılır: geçersiz bir ölçümün borç kararı da geçersizdir. */
 if (process.argv.includes('--taban-yaz')) {
-  const { onceki, yeni } = tabanYaz('gezinme.bant', notlar.length);
+  const { onceki, yeni } = tabanYaz('gezinme.bant', notlar.length, { sebep: sebepBayragi(process.argv) });
   console.log(`taban güncellendi: gezinme.bant ${onceki ?? '(yok)'} → ${yeni}`);
 } else {
   try {

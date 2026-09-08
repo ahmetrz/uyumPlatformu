@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { tabanDogrula, tabanYaz } from './olcum-tabani.mjs';
+import { sebepBayragi, tabanDogrula, tabanYaz } from './olcum-tabani.mjs';
 /* Yatay taşma kapısı — DAR EKRANDA SAYFA YANA KAYMAZ.
 
    ── NİÇİN VAR ─────────────────────────────────────────────────────────
@@ -587,7 +587,7 @@ const ROTA_SAYISI = ROTALAR.filter((y) => !OTURUMSUZ_YOLLAR.has(y)).length + OTU
    (`arac/olcum-tabani.mjs` başlığındaki ölçülmüş olay). Taban ÖNCE
    bakılır: geçersiz bir ölçümün borç kararı da geçersizdir. */
 if (process.argv.includes('--taban-yaz')) {
-  const { onceki, yeni } = tabanYaz('tasma.olcum', olculen);
+  const { onceki, yeni } = tabanYaz('tasma.olcum', olculen, { sebep: sebepBayragi(process.argv) });
   console.log(`taban güncellendi: tasma.olcum ${onceki ?? '(yok)'} → ${yeni}`);
   process.exit(0);
 }

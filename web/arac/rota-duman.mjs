@@ -1,5 +1,5 @@
 import { chromium } from 'playwright-core';
-import { tabanDogrula, tabanYaz } from './olcum-tabani.mjs';
+import { sebepBayragi, tabanDogrula, tabanYaz } from './olcum-tabani.mjs';
 import { yonlendirmeKarari } from './rota-kurallari.mjs';
 import { girisYap, sayfaEnvanteri, tarayiciYolu, tohumDegeri } from './kosu-ortak.mjs';
 
@@ -260,7 +260,7 @@ if (JSON_CIKTI) {
    (`arac/olcum-tabani.mjs` başlığındaki ölçülmüş olay). Taban ÖNCE
    bakılır: geçersiz bir ölçümün borç kararı da geçersizdir. */
 if (process.argv.includes('--taban-yaz')) {
-  const { onceki, yeni } = tabanYaz('duman.rota', sonuclar.length);
+  const { onceki, yeni } = tabanYaz('duman.rota', sonuclar.length, { sebep: sebepBayragi(process.argv) });
   console.log(`taban güncellendi: duman.rota ${onceki ?? '(yok)'} → ${yeni}`);
 } else {
   try {

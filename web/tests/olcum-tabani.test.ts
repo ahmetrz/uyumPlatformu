@@ -2,7 +2,7 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import { tabanKarari, tabanOku } from '../arac/olcum-tabani.mjs';
+import { sebepBayragi, tabanKarari, tabanOku, yazimKarari } from '../arac/olcum-tabani.mjs';
 
 /* ═══════════════════════════════════════════════════════════════════════
    ÖLÇÜM TABANI — cırcırın simetriği
@@ -105,5 +105,94 @@ describe('ölçüm tabanı · dosya', () => {
       }
     }
     expect(eksik, `taban beyanı eksik: ${eksik.join(', ')}`).toEqual([]);
+  });
+});
+
+/* ═══ TABAN YAZIMI GEREKÇE İSTER ═══════════════════════════════════════
+   Kural: "taban yazımı ve tavan yükseltmesi gerekçe ister." Cırcır bir
+   turda iki kez zayıflatıldı ve ikisi de elle yakalandı; üçüncüsü
+   yakalanmayabilir. Yakalamayı insana bırakmak kapı değildir.
+
+   Asimetri bilinçli: taban YÜKSELİRSE kimse korumasız kalmaz (kapsam
+   büyüdü), DÜŞERSE kapı daha az şey ölçmeye başlar. Gerekçe yalnız
+   düşüşte istenir ve DOSYAYA yazılır — commit mesajı dosyayı okuyanın
+   önünde durmaz. */
+describe('yazimKarari — taban düşüşü gerekçe ister', () => {
+  const SEBEP = '/eski-rota silindi; kapsamdan bir rota düştü, bant sayısı aynı.';
+
+  it('DÜŞÜŞ gerekçesizse reddedilir', () => {
+    const k = yazimKarari('duman.rota', 50, 58, '');
+    expect(k).toMatch(/TABAN DÜŞÜŞÜ GEREKÇESİZ/);
+    expect(k).toContain('58 → 50');
+  });
+
+  it('DÜŞÜŞ gerekçeliyse geçer', () => {
+    expect(yazimKarari('duman.rota', 50, 58, SEBEP)).toBeNull();
+  });
+
+  it('bir cümle bile olmayan gerekçe gerekçe sayılmaz', () => {
+    expect(yazimKarari('duman.rota', 50, 58, 'azaldı')).toMatch(/GEREKÇESİZ/);
+  });
+
+  it('YÜKSELİŞ gerekçe istemez — kapsamın büyümesi engellenmez', () => {
+    expect(yazimKarari('duman.rota', 70, 58, '')).toBeNull();
+  });
+
+  it('EŞİT kalmak da gerekçe istemez', () => {
+    expect(yazimKarari('duman.rota', 58, 58, '')).toBeNull();
+  });
+
+  it('İLK yazım gerekçe istemez — karşılaştırılacak önceki yok', () => {
+    expect(yazimKarari('yeni.olcu', 12, undefined, '')).toBeNull();
+  });
+
+  it('sayı olmayan ölçüm hiçbir gerekçeyle yazılamaz', () => {
+    expect(yazimKarari('duman.rota', Number.NaN, 58, SEBEP)).toMatch(/ÖLÇÜM GEÇERSİZ/);
+  });
+});
+
+describe('sebepBayragi — tek ayrıştırma', () => {
+  it('`--sebep=...` biçimini okur', () => {
+    expect(sebepBayragi(['--taban-yaz', '--sebep=rota silindi'])).toBe('rota silindi');
+  });
+
+  it('`--sebep ...` biçimini de okur', () => {
+    expect(sebepBayragi(['--sebep', 'rota silindi'])).toBe('rota silindi');
+  });
+
+  it('bayrak yoksa boş döner — "yok" ile "boş" ayrışmaz, ikisi de gerekçesizdir', () => {
+    expect(sebepBayragi(['--taban-yaz'])).toBe('');
+  });
+
+  it('değer verilmemiş `--sebep` boş döner, çökmez', () => {
+    expect(sebepBayragi(['--sebep'])).toBe('');
+  });
+});
+
+describe('taban yazan her kapı gerekçeyi GEÇİRİYOR', () => {
+  /* İkinci nüsha değil, ATLAMA aranıyor: bir kapı `sebepBayragi`yi
+     çağırmayı unutursa gerekçe zorunluluğu o kapıda sessizce kalkar —
+     kullanıcı `--sebep` yazar, kapı okumaz, düşüş gerekçesiz geçer. */
+  const kapilar = readdirSync(path.resolve(__dirname, '../arac'))
+    .filter((a) => a.endsWith('.mjs'))
+    .map((a) => ({ ad: a, kod: readFileSync(path.resolve(__dirname, '../arac', a), 'utf8') }))
+    /* `olcum-tabani.mjs` TANIMLAYAN modüldür, çağıran değil: tek nüshanın
+       kendisi taranırsa kendi imzasıyla eşleşir ve listeyi kirletir. */
+    .filter((x) => x.ad !== 'olcum-tabani.mjs' && /\btabanYaz\(/.test(x.kod));
+
+  it('taban yazan kapı bulundu (tarama boş değil)', () => {
+    expect(kapilar.map((k) => k.ad).sort()).toEqual(
+      ['erisim-axe.mjs', 'gezinme-testi.mjs', 'rota-duman.mjs', 'yatay-tasma.mjs']);
+  });
+
+  it('her biri `sebep` geçiriyor', () => {
+    const atlayan = kapilar
+      /* `s` bayrağı yerine `[^)]`: çağrı tek satırda da çok satırda da
+         aynı kalıba uyar ve derleme hedefi es2017'de de geçerlidir. */
+      .filter((k) => !/tabanYaz\([^)]*sebep[\s\S]*?:/.test(k.kod))
+      .map((k) => k.ad);
+    expect(atlayan, 'Bu kapı `tabanYaz`a gerekçe geçirmiyor: `--sebep` yazılsa '
+      + 'bile okunmaz ve düşüş gerekçesiz geçer.')
+      .toEqual([]);
   });
 });

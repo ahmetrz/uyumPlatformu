@@ -85,6 +85,11 @@ const BEYAN = {
      kapanmamış hâli. `erisim-axe` üç sözlükte de temizdi. Düzeltme bu
      birleşmeyle geldi; kapı CI'ya bağlanmadan önce YEŞİL görülmeli. */
   'kapi:iki-sozluk': { kapi: true, sebep: 'canlı sunucu · üç düzen kapısını ÜÇ sözlükle koşar (9 koşum, ~25 dk); tarayıcılı bloğu üçe katlar — süre bütçesi ayrılınca bağlanır' },
+  /* Bu beyan bir ERTELEME DEĞİL, bir totolojidir: `kapi:parti` iş
+     akışının KENDİSİNDEN türetilir ve onu birebir koşar. CI'ya
+     bağlanması, iş akışının kendi kendini çağırması olurdu — ölçtüğü
+     şeyin içine konan bir ölçü. Yeri PR öncesidir, PR sırası değil. */
+  'kapi:parti': { kapi: false, sebep: 'PR kapı kümesini `pr-kapisi.yml`den TÜRETİP koşar; iş akışına bağlanması iş akışının kendini çağırması olur — ölçen, ölçtüğünün içine konamaz' },
 };
 
 /* ── Betiklerin çağırdığı araçlar ──────────────────────────────────── */
@@ -120,6 +125,45 @@ function isAkisiKomutlari(yol) {
     .split('\n')
     .filter((s) => !s.trimStart().startsWith('#'))
     .join('\n');
+}
+
+/** İş akışının `run:` ADIMLARI — SIRAYLA, adıyla ve dizini ile.
+
+    `fark()` kapıların KÜMESİNE bakar; parti kapanışı ise SIRAYA ve
+    adımın kendisine ihtiyaç duyar (`arac/parti-kapanisi.mjs`). İkisi
+    aynı dosyayı okur ve aynı yorum kuralına uyar; ikinci bir ayrıştırıcı
+    yazılsaydı biri yorumlanmış satırı sayar öbürü saymazdı.
+
+    Yorum satırları burada da atılır: `isAkisiKomutlari` ile aynı gerekçe. */
+export function adimlar(isAkisiMetni) {
+  const satirlar = isAkisiMetni.split('\n');
+  const cikti = [];
+  let simdiki = null;
+  let blok = null;                       /* `run: |` gövdesinin girintisi */
+  for (const ham of satirlar) {
+    if (blok !== null) {
+      if (ham.trim() === '' || ham.search(/\S/) >= blok) {
+        simdiki.komut += `${simdiki.komut ? '\n' : ''}${ham.trim()}`;
+        continue;
+      }
+      blok = null;
+    }
+    const ad = ham.match(/^\s*-\s+name:\s*(.+?)\s*$/);
+    if (ad) {
+      if (simdiki?.komut) cikti.push(simdiki);
+      simdiki = { ad: ad[1].replace(/^['"]|['"]$/g, ''), komut: '', dizin: '.' };
+      continue;
+    }
+    if (!simdiki) continue;
+    const dizin = ham.match(/^\s*working-directory:\s*(\S+)/);
+    if (dizin) { simdiki.dizin = dizin[1]; continue; }
+    const kosBlok = ham.match(/^(\s*)run:\s*\|\s*$/);
+    if (kosBlok) { blok = kosBlok[1].length + 2; continue; }
+    const kos = ham.match(/^\s*run:\s*(.+?)\s*$/);
+    if (kos) { simdiki.komut = kos[1]; continue; }
+  }
+  if (simdiki?.komut) cikti.push(simdiki);
+  return cikti;
 }
 
 export function fark({ betikler, isAkisiMetni, beyan = BEYAN }) {

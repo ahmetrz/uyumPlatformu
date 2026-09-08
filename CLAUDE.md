@@ -103,6 +103,33 @@ söyleyen bir gerekçeyle birlikte ölü bir kural girecekti. Aynı ölçüt
 kapı düzeltmeleri için de geçerlidir: düzeltilmiş kapı, kusurun ESKİ
 hâlinde hâlâ kırmızı yanmalıdır — yoksa düzeltme değil, delik açtın.
 
+
+**Parti kapanış kapı kümesi = PR kapı kümesi.** Bir parti, PR'da koşan
+kapıların TAMAMI koşulmadan "kapandı" diye yazılmaz. Ölçüldü: statik
+demo derlemesi (`demo:build`) parti sonunda koşmadığı için modül döngüsü
+İKİ PARTİ boyunca kırmızı kaldı ve kusur ancak PR açılınca göründü.
+Küme elle sayılmaz, `pr-kapisi.yml`den türetilir: `npm run kapi:parti`
+(`--liste` ile koşmadan görülür). Koşulmayan kapı "geçti" yazılmaz —
+"ölçülmedi" yazılır ve kapanış kırmızıdır.
+
+**Taban indirmesi ve tavan yükseltmesi gerekçe ister — DOSYADA.** Cırcır
+bir turda iki kez zayıflatıldı; ikisi de elle yakalandı, üçüncüsü
+yakalanmayabilir. Ölçüldü: `terimTavani` 85'ten 500'e çekildiğinde bekçinin
+on bir vakası da yeşil kalıyordu. Bugün: ölçüm tabanı yalnız
+`--taban-yaz --sebep="..."` ile iner ve gerekçe `olcum-tabani.json`
+içine işlenir; tavan ölçülen sayının üstüne çıkamaz ve yükselme
+`tavanGerekceleri` altında o yükselmeyi (`eski` → `yeni`) adıyla
+anlatan bir gerekçe ister. Commit mesajı yetmez: commit mesajı dosyayı
+okuyanın önünde durmaz.
+
+**Borç kütüğünde tek karışık sayı bırakılmaz.** İzin listesinin her
+satırı KALICI (ilkesel gerekçe, sıfır beklenmiyor) ya da ERTELENMİŞ
+(hangi aşamada kapanacağı yazılı) olarak sınıflanır; erteleme kapanış
+aşaması taşımak zorundadır ("süresiz beyan yoktur"), kalıcı satır
+kapanış taşıyamaz. KALICI cırcırın kaçış kapısı olduğu için kendi alt
+küme dişini taşır: taban dalda ertelenmiş olan bir satır bu dalda
+kalıcıya sessizce terfi edemez.
+
 **Dosyayı değiştirmeden önce güncel hâlini oku.**
 
 ### Değişen kurallar

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { tabanDogrula, tabanYaz } from './olcum-tabani.mjs';
+import { sebepBayragi, tabanDogrula, tabanYaz } from './olcum-tabani.mjs';
 /* axe-core kapısı — WCAG 2.x A/AA ihlal listesi, tüm rotalarda.
 
    ── NİÇİN VAR ─────────────────────────────────────────────────────────
@@ -302,7 +302,7 @@ if (kuralSayaci.size > 0) {
    (`arac/olcum-tabani.mjs` başlığındaki ölçülmüş olay). Taban ÖNCE
    bakılır: geçersiz bir ölçümün borç kararı da geçersizdir. */
 if (process.argv.includes('--taban-yaz')) {
-  const { onceki, yeni } = tabanYaz('axe.tarama', rapor.length);
+  const { onceki, yeni } = tabanYaz('axe.tarama', rapor.length, { sebep: sebepBayragi(process.argv) });
   console.log(`taban güncellendi: axe.tarama ${onceki ?? '(yok)'} → ${yeni}`);
   process.exit(0);
 }

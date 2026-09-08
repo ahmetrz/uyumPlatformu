@@ -45,6 +45,16 @@ const kaynaklar = [
   ['arac/cekirdek-sozcuk-muafiyet.json', (d) => Object.entries(d.dosyalar).map(([k, v]) => [k, typeof v === 'string' ? v : v.sebep])],
   ['arac/beklenen-fark.json', (d) => Object.entries(d.muafiyetler ?? {}).map(([k, v]) => [k, typeof v === 'string' ? v : v.sebep])],
   ['tests/bekci/terim-fikstur.json', (d) => Object.entries(d.terimler).flatMap(([t, x]) => Object.entries(x.bilincli_kor ?? {}).map(([k, v]) => [`${t}/${k}`, v]))],
+  /* Sektör terimi izin listesinin SINIFLANDIRMA gerekçeleri. Bunlar
+     muafiyetin ta kendisidir: bir satırın neden hâlâ listede olduğunu
+     söylerler. Tarama dışında kalsalardı kuralın en çok gerektiği yer
+     denetlenmemiş olurdu. ERTELENMİŞ satırların `kapanis` metni de
+     taranır — "sonra bakarız" bir kapanış aşaması değildir. */
+  ['tests/bekci/sektor-terimi-izin.json', (d) => Object.entries(d.siniflandirma ?? {})
+    .flatMap(([k, v]) => [
+      [`${k} · sebep`, v.sebep],
+      ...(v.kapanis ? [[`${k} · kapanış`, v.kapanis]] : []),
+    ])],
 ];
 
 let sayac = 0;

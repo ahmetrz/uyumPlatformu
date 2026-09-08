@@ -143,6 +143,7 @@
   ],
   "tavan": 11,
   "terimTavani": 85,
+  "ertelenmisTavani": 72,
   "dosyalar": [
     "app/(kabuk)/(operasyonel)/sistem/bilesenler/Galeri.tsx",
     "app/(kabuk)/(operasyonel)/sistem/page.tsx",
@@ -155,5 +156,59 @@
     "lib/sabitler.ts",
     "lib/sahaArkaPlan.ts",
     "lib/senaryo/urunlestirme.ts"
-  ]
+  ],
+  "siniflandirma": {
+    "app/(kabuk)/(operasyonel)/sistem/bilesenler/Galeri.tsx": {
+      "tur": "ertelenmis",
+      "sebep": "Bileşen galerisi her bileşeni ÖRNEK İÇERİKLE çizer; örnekler bugün enerji kiracısının sözcükleriyle yazılı (kolon başlığı, arama ipucu, örnek satır).",
+      "kapanis": "Sözlük yayılımı `/sistem` ailesine geldiğinde: örnek içerik de sözlükten üretilir ve galeri kiracının sözcüğünü gösterir."
+    },
+    "app/(kabuk)/(operasyonel)/sistem/page.tsx": {
+      "tur": "ertelenmis",
+      "sebep": "Tasarım jetonu tablosu jetonun ne işe yaradığını ÖRNEK DEĞERLE gösteriyor ('Hero başlığı (Tesis 360)' → 'Saha A-3 JES').",
+      "kapanis": "Sözlük yayılımı `/sistem` ailesine geldiğinde — Galeri.tsx ile aynı dilim."
+    },
+    "app/(kabuk)/(operasyonel)/yonetim-tezgahi/Formlar.tsx": {
+      "tur": "ertelenmis",
+      "sebep": "Form VARSAYILANI (`kirilim: 'JEO'`): yeni kayıt açılırken önerilen değer enerji kiracısının tip kodundan geliyor.",
+      "kapanis": "P2 · kiracı yapılandırması: varsayılanlar kiracının tip kümesinden okunduğunda sabit düşer."
+    },
+    "components/kabuk/tip.ts": {
+      "tur": "ertelenmis",
+      "sebep": "Tesis tipi kodu → kimlik yuvası eşlemesi kodda sabit (JEO/HES/RES/GES). Eşlemenin kendisi veri işidir: hangi tipin hangi yuvayı aldığı kiracının tip kümesine bağlıdır.",
+      "kapanis": "P4 · öznitelik ve sektör şeması: eşleme `TesisTipi` satırından okunduğunda sabit düşer."
+    },
+    "lib/dil/terimler.ts": {
+      "tur": "kalici",
+      "sebep": "Sözlük katmanının KENDİSİ. Hâl eklerinin neden sözcüğe bağlı olduğunu anlatmak için kiracının sözcüğünü ALINTILAMAK zorunda ('santralin' ama 'üretim ünitesinin'). Alıntıyı sözlüğe bağlamak açıklamayı yok eder."
+    },
+    "lib/entegrasyon/adaptorler/elleAktarim.ts": {
+      "tur": "ertelenmis",
+      "sebep": "İçe aktarım sütun EŞADLARI: müşterinin elle hazırladığı tabloda sütun 'santral' ya da 'plant' yazar ve çekirdek o girdiyi TANIMAK zorunda. Sözcük ekrana çıkmaz, girdi sözlüğüdür — ama yeri çekirdek olmamalı.",
+      "kapanis": "P4 · sektör paketi: eşad sözlüğü içerik paketinden geldiğinde çekirdekten düşer."
+    },
+    "lib/entegrasyon/varlikAktarim.ts": {
+      "tur": "ertelenmis",
+      "sebep": "Aynı sınıf: dışa/içe aktarım sütun eşadları. Kiracı 'santral kodu' görür, çekirdek 'tesis kodu' yazar; eşad listesi ikisini bağlıyor.",
+      "kapanis": "P4 · sektör paketi — elleAktarim.ts ile aynı dilim."
+    },
+    "lib/gorsel.ts": {
+      "tur": "ertelenmis",
+      "sebep": "Kiracı görsel DOSYA ADLARI (`sahaa1-jes` · `sahac-res`). Ad diskteki dosyanın kendisidir; çekirdek kodu bugün o adları biliyor.",
+      "kapanis": "P2 · kiracı yapılandırması: görsel künyesi kiracıya taşındığında eşleme koddan düşer."
+    },
+    "lib/sabitler.ts": {
+      "tur": "ertelenmis",
+      "sebep": "`Unite` ve `UretimUnitesi` PRİSMA MODEL ADLARIDIR ve denetim izinde varlık adı olarak SAKLANIR. Kod adları P1'de `OperasyonelBirim` oldu; saklanan anahtarlar kaldı — değiştirmek veri göçü ister.",
+      "kapanis": "P4 · şema göçü — R0-11 (`kuruluGucMw`) ile AYNI dilim ve aynı gün kapanır."
+    },
+    "lib/sahaArkaPlan.ts": {
+      "tur": "kalici",
+      "sebep": "Görsel künyesi FOTOĞRAFIN KENDİSİNİ anlatır: karede rüzgâr türbini varsa künye 'türbin' der. Sözlükten gelen bir sözcük burada görseli yanlış tanımlar; erişilebilir ad yanlış olur."
+    },
+    "lib/senaryo/urunlestirme.ts": {
+      "tur": "kalici",
+      "sebep": "Senaryolar terim katmanının kendisini anlatıyor ve bekçi kalıbına verilen sektör yazımlarını ALINTILIYOR ('ÜNİTE · TERMİK · UNITE · DGKÇ · şapkasız rüzgar'). Alıntıyı çevirmek senaryonun ne sınadığını bozar."
+    }
+  }
 }

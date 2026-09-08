@@ -2,13 +2,15 @@
 
 import { useLayoutEffect, useRef, type ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
+import Image from 'next/image';
 import { MARKA_AD } from '@/lib/marka';
 import { TEMEL } from '@/lib/demo';
-import { KATMANLAR, poz, sinirla } from './zaman';
+import { SAHNELER, ekranYerlestir, kaydirmaTamam, poz, sinirla } from './zaman';
+import { fotografKur } from './fotograf';
 import type { Sahne } from './cekirdek';
 import styles from './giris.module.css';
 
-const HATIRLA = 'uyum-cekirdek-goruldu-v1';
+const HATIRLA = 'uyum-jeotermal-goruldu-v2';
 
 export default function SinematikGiris({ children, sadeceAnaSayfa = false }: {
   children: ReactNode; sadeceAnaSayfa?: boolean;
@@ -36,6 +38,7 @@ function Giris({ children }: { children: ReactNode }) {
       hareketli = false; cancelAnimationFrame(raf); raf = 0;
       ui.inert = false; ui.removeAttribute('aria-hidden');
       el.dataset.mod = atlandi ? 'dogrudan' : 'statik';
+      el.dataset.cizim = '';
       el.style.removeProperty('--mesafe');
       el.style.removeProperty('--metin'); el.style.removeProperty('--ilerleme');
       el.dataset.tamam = 'false'; el.dataset.metinsiz = 'false'; ui.style.cssText = '';
@@ -64,7 +67,7 @@ function Giris({ children }: { children: ReactNode }) {
       raf = 0;
       if (!hareketli || !sahne || document.hidden) return;
       const offset = -el.getBoundingClientRect().top;
-      const p = sinirla(offset / mesafe), tamam = p >= 1;
+      const tamam = kaydirmaTamam(offset, mesafe), p = tamam ? 1 : sinirla(offset / mesafe);
       if (p === sonP) return;
       sonP = p;
       const s = poz(p), w = window.innerWidth, h = tuval.clientHeight;
@@ -74,13 +77,14 @@ function Giris({ children }: { children: ReactNode }) {
       el.style.setProperty('--metin', String(s.metin));
       el.dataset.metinsiz = String(s.metin === 0);
       el.style.setProperty('--ilerleme', `${p * 100}%`);
-      const i = Math.min(5, Math.floor(p * 6));
-      etiket.textContent = `${String(i + 1).padStart(2, '0')} / ${KATMANLAR[i]}`;
+      etiket.textContent = `${String(s.asama + 1).padStart(2, '0')} / ${SAHNELER[s.asama]}`;
       ui.inert = !tamam;
       if (tamam) ui.removeAttribute('aria-hidden'); else ui.setAttribute('aria-hidden', 'true');
-      ui.style.transform = tamam ? 'none' : `translateY(${Math.min(mesafe, Math.max(0, offset)) - mesafe}px)`;
-      ui.style.clipPath = tamam ? 'none' : `inset(${Math.max(0, rect.ust)}px ${Math.max(0, w - rect.sag)}px ${Math.max(0, ui.offsetHeight - Math.min(h, rect.alt))}px ${Math.max(0, rect.sol)}px)`;
-      ui.style.visibility = s.aciklik > 0 || tamam ? 'visible' : 'hidden';
+      const ekran = ekranYerlestir(rect, w, h);
+      ui.style.transform = tamam ? 'none' : `translate(${ekran.x}px, ${Math.min(mesafe, Math.max(0, offset)) - mesafe + ekran.y}px) scale(${ekran.k})`;
+      ui.style.clipPath = tamam ? 'none' : `inset(${ekran.ust}px ${ekran.sag}px ${Math.max(0, ui.offsetHeight - ekran.boy)}px ${ekran.sol}px)`;
+      ui.style.opacity = String(s.arayuz);
+      ui.style.visibility = s.arayuz > 0 || tamam ? 'visible' : 'hidden';
       if (tamam && !sonTamam) hatirla();
       // Moving backwards must not strand keyboard focus inside an inert subtree.
       if (!tamam && sonTamam && ui.contains(document.activeElement)) {
@@ -102,27 +106,39 @@ function Giris({ children }: { children: ReactNode }) {
     }
     function baglamKaybi(e: Event) {
       e.preventDefault();
+      if (!hareketli) return;
       const ilerlemisti = sonP > 0;
       statik(ilerlemisti);
       if (ilerlemisti) { ui.scrollIntoView({ behavior: 'instant' }); ui.focus({ preventScroll: true }); }
     }
     if (!dogrudan && !motion.matches) {
-      import('./cekirdek').then(({ cekirdekKur }) => {
+      async function baslat() {
         if (kapandi || motion.matches || el.dataset.mod === 'dogrudan') return;
         // Late code must not move a visitor who already scrolled into the static UI.
         if (window.scrollY > 8) return;
         try {
-          sahne = cekirdekKur(tuval);
+          let yeni: Sahne, cizim = 'webgl';
+          try {
+            const { cekirdekKur } = await import('./cekirdek');
+            yeni = await cekirdekKur(tuval);
+          } catch {
+            cizim = 'fotograf';
+            if (kapandi || el.dataset.mod === 'dogrudan') return;
+            yeni = await fotografKur(el);
+          }
+          if (kapandi || motion.matches || el.dataset.mod === 'dogrudan' || window.scrollY > 8) {
+            yeni.temizle(); return;
+          }
+          sahne = yeni;
+          el.dataset.cizim = cizim;
           hareketli = true; el.dataset.mod = 'hareketli';
           boyutla();
         } catch (error) {
           if (process.env.NODE_ENV !== 'production') console.warn('Giriş sahnesi statik moda geçti:', error);
-          statik();
+          if (!kapandi && el.dataset.mod !== 'dogrudan') statik();
         }
-      }).catch((error) => {
-        if (process.env.NODE_ENV !== 'production') console.warn('Giriş sahnesi yüklenemedi:', error);
-        if (!kapandi) statik();
-      });
+      }
+      void baslat();
     }
     window.addEventListener('scroll', planla, { passive: true });
     window.addEventListener('resize', boyutla);
@@ -144,23 +160,24 @@ function Giris({ children }: { children: ReactNode }) {
       <div className={styles.runway}>
         <section className={styles.stage} aria-label="Platforma giriş">
           <canvas ref={canvas} className={styles.canvas} aria-hidden="true" />
-          <div className={styles.staticCore} aria-hidden="true">
-            {KATMANLAR.map(label => <span key={label} />)}
-          </div>
+          <Image data-fotograf="oda" className={styles.roomPoster} src={`${TEMEL}/gorseller/jeotermal/kontrol-odasi.webp`} alt="" fill sizes="100vw" loading="eager" unoptimized />
+          <Image data-fotograf="bina" className={styles.roomPoster} src={`${TEMEL}/gorseller/jeotermal/yaklasma.webp`} alt="" fill sizes="100vw" loading="eager" unoptimized />
+          <Image data-fotograf="dis" className={styles.poster} src={`${TEMEL}/gorseller/jeotermal/santral.webp`} alt="" fill sizes="100vw" priority unoptimized />
+          <div className={styles.shade} aria-hidden="true" />
           <header className={styles.header}>
             <span className={styles.brand}>{MARKA_AD}</span>
             <a className={styles.skip} href="#platform-arayuzu" onClick={e => { e.preventDefault(); atla.current(); }}>Girişi atla <span aria-hidden="true">↗</span></a>
           </header>
           <div className={styles.editorial}>
-            <p className={styles.eyebrow}>BT/OT YÖNETİŞİM · UYUM · DÖNÜŞÜM</p>
-            <h1>Regülasyondan<br />kanıta.<br /><span>Kanıttan güvene.</span></h1>
-            <p className={styles.description}>Kontroller, kanıtlar ve riskler.<br />Aynı sistemin birbirine bağlı katmanları.</p>
+            <p className={styles.eyebrow}>JEOTERMAL ENERJİ · YÖNETİŞİM · UYUM</p>
+            <h1>Enerjinin<br /><span>kalbine doğru.</span></h1>
+            <p className={styles.description}>Sahadan kontrol odasına.<br />Operasyondan güvenilir yönetişime.</p>
             <a className={styles.cta} href="#platform-arayuzu" onClick={e => { e.preventDefault(); atla.current(); }}>Platforma Gir <span aria-hidden="true">↗</span></a>
           </div>
           <footer className={styles.footer}>
-            <span className={styles.scroll}>Sistemin içine ilerlemek için kaydır <span aria-hidden="true">↓</span></span>
-            <span className={styles.current}>01 / Regülasyon</span>
-            <span className={styles.caption}>ALTI KATMAN. TEK UYUM ZİNCİRİ.</span>
+            <span className={styles.scroll}>Santrale yaklaşmak için kaydır <span aria-hidden="true">↓</span></span>
+            <span className={styles.current}>01 / Santrale yaklaşma</span>
+            <span className={styles.caption}>SAHA. KONTROL. GÜVEN.</span>
           </footer>
           <div className={styles.progress} aria-hidden="true" />
         </section>

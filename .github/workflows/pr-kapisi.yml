@@ -107,6 +107,12 @@ jobs:
           done
           echo "sunucu 120sn içinde açılmadı"; cat /tmp/kapi-sunucu.log; exit 1
 
+      - name: Giriş kaydırma sonrası tıklama kontrolü
+        working-directory: web
+        env:
+          PORT: '3210'
+        run: node arac/giris-gecis.mjs
+
       - name: Yatay taşma ve kırpılan içerik kapısı
         working-directory: web
         env:

@@ -154,7 +154,7 @@ function Giris({ children }: { children: ReactNode }) {
           </div>
           <footer className={styles.footer}>
             <span className={styles.scroll}>İlerlemek için kaydır <span aria-hidden="true">↓</span></span>
-            <span className={styles.current}>01 / Tesise yaklaşma</span>
+            <span className={styles.current}>01 / Dışarıdan yaklaşma</span>
             <span className={styles.caption}>SAHA. KONTROL. GÜVEN.</span>
           </footer>
           <div className={styles.progress} aria-hidden="true" />

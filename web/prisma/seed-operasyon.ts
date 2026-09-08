@@ -341,14 +341,26 @@ export async function operasyonVerisi(db: PrismaClient) {
   }
 
   /* ═══ Zafiyetler ══════════════════════════════════════════════════════ */
+  /* ── BAŞLIKLAR YAYIMLANMIŞ KAYITTAN ALINTIDIR ───────────────────────
+     ÖLÇÜLDÜ (8 Eyl 2026): kuruluş adlarını kurgusallaştıran geçiş, CVE
+     başlıklarının İÇİNDEKİ üretici adlarını da değiştirmişti — satır
+     "Demo Endüstriyel Kontrol ControlLogix" diyor ama CVE-2023-3595'e
+     atıf yapıyordu. Bu temizlik değildi: NVD'den doğrulanabilir bir
+     kaydı, kendi kaynağıyla ÇELİŞİR hâle getirmekti. Uydurma bir CVE
+     kimliği yazmak daha da kötüsü olurdu ("uydurma veri yok").
+
+     Doğru ayrım: gerçek bir kuruluş hakkında UYDURMA İDDİA yasaktır;
+     kamuya açık bir kaydın ANILMASI meşrudur ve `CLAUDE.md` §0.2 NVD'yi
+     adıyla sayar. Ürün adları bu yüzden yayımlandığı gibidir ve
+     `prisma/kurgusal-adlar.ts` içinde gerekçesiyle BEYAN EDİLİR. */
   const zafiyetTanim: [string, string, number][] = [
-    ['CVE-2023-3595', 'Demo Endüstriyel Kontrol ControlLogix üzerinde uzaktan kod çalıştırma', 9.8],
-    ['CVE-2022-38465', 'Demo Türbin Sistemleri Demo Kontrol Ailesi S7-1200/1500 global özel anahtar ifşası', 9.3],
+    ['CVE-2023-3595', 'Rockwell Automation ControlLogix üzerinde uzaktan kod çalıştırma', 9.8],
+    ['CVE-2022-38465', 'Siemens SIMATIC S7-1200/1500 global özel anahtar ifşası', 9.3],
     ['CVE-2021-44228', 'Apache Log4j uzaktan kod çalıştırma (Log4Shell)', 10.0],
-    ['CVE-2024-21762', 'Demo Güvenlik Duvarı OS SSL-VPN sınır dışı yazma', 9.8],
+    ['CVE-2024-21762', 'FortiOS SSL-VPN sınır dışı yazma', 9.8],
     ['CVE-2023-34362', 'MOVEit Transfer SQL enjeksiyonu', 9.8],
     ['CVE-2020-1472', 'Netlogon ayrıcalık yükseltme (Zerologon)', 10.0],
-    ['CVE-2023-20198', 'Demo Ağ İşletim Sistemi XE web arayüzü yetkisiz erişim', 10.0],
+    ['CVE-2023-20198', 'Cisco IOS XE web arayüzü yetkisiz erişim', 10.0],
     ['CVE-2022-31814', 'pfSense komut enjeksiyonu', 9.8],
     ['CVE-2024-3400', 'PAN-OS GlobalProtect komut enjeksiyonu', 10.0],
     ['CVE-2019-0708', 'Uzak masaüstü hizmetinde uzaktan kod çalıştırma', 9.8],

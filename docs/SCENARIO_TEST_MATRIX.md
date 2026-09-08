@@ -4,8 +4,8 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 287 |
-| Testi olan senaryo | 287 |
+| Senaryo | 289 |
+| Testi olan senaryo | 289 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
@@ -18,7 +18,7 @@
 | ACCESSIBILITY | 8 | 8 | 0 |
 | API | 12 | 12 | 0 |
 | CONCURRENCY | 7 | 7 | 0 |
-| DOMAIN | 154 | 154 | 0 |
+| DOMAIN | 156 | 156 | 0 |
 | ENGINE | 33 | 33 | 0 |
 | INTEGRATION | 26 | 26 | 0 |
 | MIGRATION | 3 | 3 | 0 |
@@ -335,6 +335,15 @@
 | `URN-KUR-005` | Ürünleştirme | DOMAIN | `bekci/kurgusal-adlar.test.ts` | DENETLEYİCİ adları tek kaynaktan gelir | evet | geçti |
 | `URN-KUR-005` | Ürünleştirme | DOMAIN | `bekci/kurgusal-adlar.test.ts` | TÜZEL KİŞİ adları tek kaynaktan gelir | evet | geçti |
 | `URN-KUR-005` | Ürünleştirme | DOMAIN | `bekci/kurgusal-adlar.test.ts` | KİŞİ adları rol taşır, gerçek ad taşımaz | evet | geçti |
+| `URN-KUR-006` | Ürünleştirme | DOMAIN | `bekci/kurgusal-adlar.test.ts` | YAZILIM ÜRÜNÜ adları tek kaynaktan gelir | evet | geçti |
+| `URN-KUR-006` | Ürünleştirme | DOMAIN | `bekci/kurgusal-adlar.test.ts` | VARLIK modelleri tek kaynaktan gelir | evet | geçti |
+| `URN-KUR-006` | Ürünleştirme | DOMAIN | `bekci/kurgusal-adlar.test.ts` | İŞLETİM SİSTEMİ adları tek kaynaktan gelir | evet | geçti |
+| `URN-KUR-006` | Ürünleştirme | DOMAIN | `bekci/kurgusal-adlar.test.ts` | CONNECTOR kaynak sistemi beyanlıdır | evet | geçti |
+| `URN-KUR-006` | Ürünleştirme | DOMAIN | `bekci/kurgusal-adlar.test.ts` | SERTİFİKAYI VEREN beyanlıdır | evet | geçti |
+| `URN-KUR-007` | Ürünleştirme | DOMAIN | `bekci/kurgusal-adlar.test.ts` | her beyan KAYNAK ve GEREKÇE taşır | evet | geçti |
+| `URN-KUR-007` | Ürünleştirme | DOMAIN | `bekci/kurgusal-adlar.test.ts` | KULLANILMAYAN beyan bırakılmaz | evet | geçti |
+| `URN-KUR-007` | Ürünleştirme | DOMAIN | `bekci/kurgusal-adlar.test.ts` | her ZAFİYET kamuya açık bir kaynağa atıf yapar | evet | geçti |
+| `URN-KUR-007` | Ürünleştirme | DOMAIN | `bekci/kurgusal-adlar.test.ts` | KURGUSAL ad ile GERÇEK ad aynı kayıtta karışmaz | evet | geçti |
 | `URN-ALN-001` | Ürünleştirme | MIGRATION · DOMAIN | `p1-oznitelik-gocu.test.ts` | göç betiği kurulu gücü kayıpsız taşır; ölçülmemiş satır almaz | evet | geçti |
 | `URN-ALN-001` | Ürünleştirme | MIGRATION · DOMAIN | `p1-oznitelik-gocu.test.ts` | uygulama veritabanında ölçülmemiş nitelik SATIRSIZ durur | evet | geçti |
 | `URN-ALN-002` | Ürünleştirme | DOMAIN · UI | `p1-oznitelik-gocu.test.ts` | kural öznitelik üzerinden AYNI kararları üretir | evet | geçti |

@@ -114,8 +114,17 @@ export default function Karne({ satirlar: ham, endeks: genel, endeksSektor = {},
              Ölçüldü: 375px'te tablo 413px genişliğinde ve sayfayı 86px
              kaydırıyordu. Kolon atmak bilgi kaybıdır — karne bir denetim
              çıktısıdır ve satırın hangi sütunu eksikse o soru
-             cevapsızdır; kaydırılabilen içerik ise kayıp sayılmaz. */
-          <div className="ab-karne-kaydir">
+             cevapsızdır; kaydırılabilen içerik ise kayıp sayılmaz.
+
+             ÖLÇÜLDÜ (8 Eyl 2026): kap `tabIndex` olmadan eklenmişti ve
+             axe kapısı 375px'te `scrollable-region-focusable` yaktı —
+             fareyle kaydırılabilen bir kap, klavyeyle kaydırılamıyorsa
+             içeriğin bir bölümü klavye kullanıcısına ULAŞMAZ. Kaydırma
+             kabı odaklanabilir olmalı ve odaklandığında NEYE
+             odaklanıldığı söylenmeli; ad olmadan odak, boş bir kutuya
+             düşer. */
+          <div className="ab-karne-kaydir" tabIndex={0} role="group"
+            aria-label="En zayıf kayıtlar tablosu — yatay kaydırılabilir">
           <table className="ab-karne-tablo">
             <thead>
               <tr>

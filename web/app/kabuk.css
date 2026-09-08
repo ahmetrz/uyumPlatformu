@@ -468,8 +468,23 @@
     border-radius: 2px; padding: 4px 6px; max-width: 150px;
   }
 }
-/* Çok dar bantta etiket düşer, kontrol kalır. */
-@media (max-width: 1100px) { .ab-mercek-dar .etiket { display: none; } }
+/* ── ÇOK DAR BANTTA ETİKET GÖRÜNMEZ, AMA OKUNUR KALIR ─────────────────
+   ÖLÇÜLDÜ (8 Eyl 2026): burada `display: none` yazılıydı ve axe kapısı
+   `select-name`[critical] ile 768 ve 375 bantlarında 58 rotanın HEPSİNDE
+   kırmızı yandı — gizlenen `<label>` erişilebilirlik ağacından da
+   düşünce `<select>`in adı kalmadı. Kuralı bu dosya zaten yazıyordu
+   (`.ab-gizli-okuma`: "`display:none` OLMAZ — o, yardımcı teknolojiden
+   de gizler") ve kural bir ekran ötede çiğnendi.
+
+   Doğru davranış: etiket GÖZDEN düşer, AĞAÇTAN düşmez. Yerine
+   `aria-label` koymak da adı verirdi ama görünen etiketle ikinci bir
+   ad kaynağı doğururdu; tek kaynak `<label>`dir. */
+@media (max-width: 1100px) {
+  .ab-mercek-dar .etiket {
+    position: absolute; width: 1px; height: 1px; margin: -1px;
+    padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap;
+  }
+}
 
 /* ── DAR BANT ÜST ÇUBUK YERLEŞİMİ (R0-13 · kapandı) ───────────────────
    ÖLÇÜLDÜ (8 Eyl 2026): üst çubuk 1024px altında ZATEN taşıyordu —

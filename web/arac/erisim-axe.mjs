@@ -41,6 +41,7 @@ import {
   KOK, WEB, bayrakDegeri, dinamikRotalar, girisYap, kalipCozucu, oturumsuzRotalar,
   rotaBayragi, rotaBayragiVar,
   rotalarOku, tarayiciYolu,
+  perdeyiAc,
 } from './kosu-ortak.mjs';
 import {
   axeKimlikBicimi, axeOzeti, ayristirilanHedefler, borcAnahtari,
@@ -92,11 +93,7 @@ async function tara(s, rota, { nobetci = null, beklenenKod = 200, ctaTakip = fal
   await s.waitForTimeout(450);
   /* Sinematik giriş formdan ÖNCE durur; kullanıcının izlediği yolu izleriz
      (`kosu-ortak.mjs → girisYap` ile aynı adım). */
-  if (ctaTakip) {
-    const platformaGir = s.getByRole('link', { name: 'Platforma Gir' });
-    if (await platformaGir.isVisible()) await platformaGir.click();
-    await s.locator('input[type=email]').waitFor({ state: 'visible' });
-  }
+  if (ctaTakip) await perdeyiAc(s);
   const varilan = new URL(s.url()).pathname;
   await s.addScriptTag({ path: AXE_YOLU });
   const sonuc = await s.evaluate(async (etiketler) => {

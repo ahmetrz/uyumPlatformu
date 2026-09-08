@@ -50,6 +50,7 @@ import { chromium } from 'playwright-core';
 import {
   KOK, dinamikRotalar, girisYap, kalipCozucu, oturumsuzAcikYuzeyler, oturumsuzRotalar,
   rotaBayragi, rotaBayragiVar, rotalarOku, tarayiciYolu,
+  perdeyiAc,
 } from './kosu-ortak.mjs';
 import {
   KAYDIRAN_KAPLAR, borcAnahtari, enDistakiKirpilmalar, kirpilmaKarari, ortusmeHedefi,
@@ -437,9 +438,7 @@ async function rotayiOlc(sayfa, bant, yol, { nobetci = null, beklenenKod = 200, 
      yolu izleriz. Bu adım OLMADAN kapı giriş yüzeyini ölçer ve FORMU hiç
      görmez — oysa ölçülüp düzeltilen yerleşim kusuru formdaydı. */
   if (ctaTakip) {
-    const platformaGir = sayfa.getByRole('link', { name: 'Platforma Gir' });
-    if (await platformaGir.isVisible()) await platformaGir.click();
-    await sayfa.locator('input[type=email]').waitFor({ state: 'visible' }).catch(() => {});
+    await perdeyiAc(sayfa);
     await sayfa.waitForTimeout(250);
   }
   /* Yanlış yüzeyi ölçmek, ölçmemekten beterdir: 404/500 gövdesi ya da

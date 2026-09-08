@@ -186,7 +186,17 @@ function Giris({ children, sektorler }: {
                 </div>
               </div>
             )}
-            <a className={styles.cta} href="#platform-arayuzu" onClick={e => { e.preventDefault(); atla.current(); }}>Demoyu Başlat <span aria-hidden="true">↗</span></a>
+            {/* `data-cta` KARARLI KANCADIR, görünen ad değil.
+                ÖLÇÜLDÜ (8 Eyl 2026): `arac/kosu-ortak.mjs` bu bağı
+                ADIYLA arıyordu ("Platforma Gir"); metin "Demoyu Başlat"
+                olunca giriş yardımcısı CTA'yı bulamadı, perde açılmadı,
+                e-posta alanı görünmez kaldı ve rota duman kapısı 58
+                rotanın hepsinde düştü. Depo bu sınıfı zaten yaşamıştı
+                (#28: sinematik giriş eklendiğinde iki araç da giriş
+                yapamaz olmuştu) — görünen metin bir ÜRÜN kararıdır ve
+                değişir; kapının tutunduğu şey değişmeyen bir kanca
+                olmalı. */}
+            <a className={styles.cta} data-cta="platforma-gir" href="#platform-arayuzu" onClick={e => { e.preventDefault(); atla.current(); }}>Demoyu Başlat <span aria-hidden="true">↗</span></a>
           </div>
           <footer className={styles.footer}>
             <span className={styles.scroll}>Sistemin içine ilerlemek için kaydır <span aria-hidden="true">↓</span></span>

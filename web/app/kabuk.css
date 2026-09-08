@@ -350,6 +350,28 @@
   grid-template-rows: 56px auto auto minmax(0, 1fr) auto auto;
   grid-template-columns: minmax(0, 1fr);
 }
+/* ── SATIRLAR AÇIKÇA BAĞLANIR (R0-10) ─────────────────────────────────
+   ÖLÇÜLDÜ: `/` ekranı tek ekran sözleşmesini üç bantta da TAM 3px
+   ihlal ediyordu (1366×768 → 771/768 · 1440×900 → 903/900 · 1280×800 →
+   803/800). Sabit 3px, banttan bağımsız.
+
+   SEBEP: ikincil ve üçüncül gezinme sıraları KOŞULLU render ediliyor ve
+   `/` ekranında hiç basılmıyor. Otomatik yerleşim çocukları sırayla
+   dizince içerik `minmax(0,1fr)` satırına değil, ondan ÖNCEKİ `auto`
+   satırına düşüyordu; `auto` satır içeriğe göre büyüdüğü için ızgara
+   `min-height`ı aşıyordu. Ölçülen satırlar bunu açıkça söylüyordu:
+   `56px 664px 26px 25px 0px 0px` — son iki satır BOŞ, yani herkes bir
+   yukarı kaymış.
+
+   Yerleşimi çocuk SAYISINA bırakan bir ızgara, koşullu bir çocuk
+   eklendiği ya da çıkarıldığı gün sessizce kayar. Satırlar artık adıyla
+   bağlı: olmayan sıra 0px kalır, içerik her zaman esneyen satırdadır. */
+.ab > .ab-ust { grid-row: 1; }
+.ab > .ab-ikincil { grid-row: 2; }
+.ab > .ab-ucuncul { grid-row: 3; }
+.ab > .ab-icerik { grid-row: 4; }
+.ab > .ab-durum { grid-row: 5; }
+.ab > .ab-alt { grid-row: 6; }
 .ab-ust {
   display: flex; align-items: stretch;
   background: var(--zemin); border-bottom: 1px solid var(--hr);
@@ -384,6 +406,19 @@
    dört eş düğme yok. Bildirim çerçevesiz bir bağ, dikkat yalnız sayaç
    rozetinde; hesap bir menü düğmesi (ad + ▾). Her ikisi 56px'in tamamını
    hedef alır (WCAG 2.2 24px). */
+/* ── ÖRNEK VERİ İŞARETİ ───────────────────────────────────────────────
+   Markanın hemen yanında, kendi kutusunda. Uyarı rengi DEĞİL: bu bir
+   hata değil, bir künyedir — kırmızı yapmak ekranı sürekli alarmda
+   gösterirdi. Dar bantta da DÜŞMEZ: işaretin görünmediği bir ekran
+   görüntüsü, işaretin hiç olmadığı bir ekran görüntüsüyle aynıdır. */
+.ab-ornek-veri {
+  align-self: center; margin-left: 12px; padding: 3px 8px;
+  font-family: var(--veri); font-size: 10px; font-weight: 600;
+  letter-spacing: .12em; text-transform: uppercase; white-space: nowrap;
+  color: var(--aksan); border: 1px solid var(--aksan); border-radius: 2px;
+  flex: none;
+}
+
 /* ── SEKTÖR MERCEĞİ ───────────────────────────────────────────────────
    Bağlam kontrolü; yardımcı eylemlerle ağırlık yarıştırmaz ama onlardan
    AYRIŞIR: solunda bir ayırıcı, etiketi mono-küçük. Etkin seçenek hem
@@ -410,7 +445,45 @@
 .ab-mercek button[aria-pressed='true'] {
   color: var(--murekkep); border-bottom-color: var(--aksan);
 }
-@media (max-width: 1100px) { .ab-mercek .etiket { display: none; } }
+/* Dar bant eşiği ÖLÇÜMLE seçildi: şeritli hâlde sağ küme 757px ve üst
+   çubuk 1366'da 1395px, 1280'de 1367px oluyordu. 1500 altında şerit
+   yerini `<select>`e bırakır; ikisi asla birlikte görünmez. */
+.ab-mercek-dar { display: none; }
+@media (max-width: 1500px) {
+  .ab-mercek { display: none; }
+  .ab-mercek-dar {
+    display: inline-flex; align-items: center; align-self: center; gap: 6px;
+    border-left: 1px solid var(--hr); padding-left: 12px; margin-left: 0;
+  }
+  .ab-mercek-dar .etiket {
+    font-family: var(--veri); font-size: 10px; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--i3);
+  }
+  .ab-mercek-dar select {
+    font-family: var(--veri); font-size: 11px; color: var(--murekkep);
+    background: var(--panel); border: 1px solid var(--hr);
+    border-radius: 2px; padding: 4px 6px; max-width: 150px;
+  }
+}
+/* Çok dar bantta etiket düşer, kontrol kalır. */
+@media (max-width: 1100px) { .ab-mercek-dar .etiket { display: none; } }
+
+/* ── DOKUNMATİK BANTLARDA MERCEK ÜST ÇUBUKTA DEĞİL ────────────────────
+   ÖLÇÜLDÜ (8 Eyl 2026): üst çubuk 1024px altında ZATEN taşıyor —
+   viewport 768 iken `.ab-ust` 999px, 375 iken 938px. Bu benden önce de
+   böyleydi (`.sag` kümesi bilerek hiçbir genişlikte düşmez) ve çubuk
+   kendi içinde kırpılıyordu. Mercek `.sag`ı 160px büyütünce çakışma
+   ANA GEZİNME BAĞININ üstüne düştü: gezinme kapısı `/envanter` bağına
+   dokunamadı ve KIRMIZI yandı — kapı haklıydı, örtüşen bir bağ
+   tıklanamaz.
+
+   Mercek bu bantlarda gizlenir ama SEÇİM KAYBOLMAZ: `localStorage`da
+   durur, yani telefonda açılan bir demo, masaüstünde seçilmiş merceği
+   aynen gösterir. Gizlemenin bedeli yazılı: dokunmatik bantta mercek
+   DEĞİŞTİRİLEMEZ. Bu bir kör noktadır ve R0'a yazıldı (R0-13); doğru
+   çözüm üst çubuğun dar bant yerleşimini yeniden ele almaktır, mercek
+   için tek seferlik bir yama değil. */
+@media (max-width: 1024px) { .ab-mercek-dar { display: none; } }
 
 .ab-ust .bildirim {
   display: inline-flex; align-items: center; align-self: stretch; padding: 0 14px;
@@ -670,8 +743,33 @@
    `minmax(0,1fr)` satırında 0'a eziliyor, zincir/şerit üstüne biniyordu
    (ölçüldü: zincir top 56, şerit 690, scrollH 829). Tesis 360 akar. */
 @media (min-width: 1025px) and (min-height: 680px) {
+  /* ── R0-10 · YÜKSEKLİK JETONDAN DEĞİL IZGARADAN GELİR ───────────────
+     ÖNCEKİ HÂL: `height: calc(100dvh - 56px - var(--durum-h) -
+     var(--ayak-h))`. Üç sayının üçü de İKİNCİ NÜSHAYDI ve biri
+     gerçeği takip etmiyordu: `--ayak-h` amiral yoğunlukta 22px diyor,
+     ayak GERÇEKTE 25px render ediliyor (min-height 22 + üst kenarlık +
+     satır yüksekliği). Fark tam 3px'ti ve üç bantta da aynen çıkıyordu
+     (1366×768 → 771/768 · 1440×900 → 903/900 · 1280×800 → 803/800) —
+     banttan bağımsız olması zaten "bu bir kırılma noktası değil, sabit
+     bir artık" diyordu.
+
+     Jetonu 25'e çekmek kusuru bugün kapatır, yarın açardı: ayak
+     yüksekliğini değiştiren herkes bu `calc`ı da güncellemek zorunda
+     kalırdı ve unutulduğu gün kimse fark etmezdi. Sayı ARTIK İKİ YERDE
+     DEĞİL: kabuk ızgarası zaten üst çubuğu, durumu ve ayağı kendi
+     satırlarında ölçüyor; içerik satırı `minmax(0,1fr)`. Tek eksik,
+     ızgaranın KESİN bir yüksekliğe sahip olmasıydı — `min-height` ile
+     `1fr` "boş alanı paylaş" diyemez, çünkü boş alan yoktur.
+
+     `:has()` ile YALNIZ Saha kabuğu kesinleşir; Tesis 360 ve öbür
+     amiral rotalar (`/tesisler` · `/portfoy` · `/harita`) akmaya devam
+     eder — sözleşme onlara ait değil. */
+  .ab:has(> .ab-icerik > .ab-b-saha.ab-b-genel) { height: 100dvh; }
+  /* Izgara öğesinin varsayılan `min-height: auto`su, içeriği taşsa bile
+     satırı küçültmez; sözleşmenin uygulanabilmesi için sıfırlanır. */
+  .ab:has(> .ab-icerik > .ab-b-saha.ab-b-genel) > .ab-icerik { min-height: 0; }
   .ab-b-saha.ab-b-genel {
-    height: calc(100dvh - 56px - var(--durum-h, 0px) - var(--ayak-h, 0px));
+    height: 100%;
     display: grid; grid-template-rows: minmax(0, 1fr) auto auto;
   }
 }

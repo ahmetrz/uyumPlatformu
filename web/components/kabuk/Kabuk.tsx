@@ -102,6 +102,24 @@ export default function Kabuk({ veri, children }: { veri: KabukVerisi; children:
         <Link href="/" className="marka" aria-label={`${MARKA_AD} — ana ekran`}>
           {KIRACI_AD.toLocaleUpperCase('tr-TR')}<span className="ikinci">{MARKA_AD}</span>
         </Link>
+        {/* ── ÖRNEK VERİ İŞARETİ ────────────────────────────────────────
+            Depodaki bütün kayıtlar KURGUSALDIR: hiçbir gerçek kurum,
+            tesis ya da kişi yoktur. İşaret ayakta küçük puntoyla
+            duruyordu; ayağı gören yok. Bir demo ekranının ekran
+            görüntüsü alınıp sunuma konduğunda, o görüntünün üstünde
+            "örnek veri" yazmalı — yoksa kurgusal bir sayı gerçek bir
+            iddiaya dönüşür.
+
+            ÜRETİMDE GÖSTERİLMEZ: gerçek kiracının kendi verisine "örnek"
+            demek, ürünün söylediği her şeyi şüpheli yapardı. Koşul
+            bu yüzden "demo mu" değil "üretim DEĞİL mi" — geliştirme
+            ortamında da görünür, çünkü orada da veri kurgusaldır ve
+            işaretin kapalı unutulması tam olarak böyle başlar. */}
+        {veri.ortam !== 'uretim' && (
+          <span className="ab-ornek-veri" title="Bu kurulumdaki bütün kayıtlar kurgusaldır">
+            Örnek veri
+          </span>
+        )}
         <nav aria-label="Alanlar">
           {alanlar.map((o) => (
             <Link key={o.yol} href={o.yol}

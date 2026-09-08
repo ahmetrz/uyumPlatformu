@@ -93,7 +93,7 @@ sahibi ve kapanış aşaması.
 
 | No | Kusur | Sahip | Kapanış |
 | --- | --- | --- | --- |
-| R0-10 | `/` saha ekranı tek ekran sözleşmesini **3px** ihlal ediyor (`konsol:olcum` kırmızı; 1366×768 → 771/768 · 1440×900 → 903/900 · 1280×800 → 803/800 — sabit 3px, banttan bağımsız) | saha ekranı (F1) · UX dilimi | `konsol:olcum` CI'ya bağlanmadan **önce** |
+| ~~R0-10~~ | **KAPANDI** (8 Eyl 2026) — jetondan hesaplanan yükseklik ızgaraya devredildi; üç bantta da tam oturuyor, sabotajla doğrulandı | — | kapandı |
 | R0-11 | `KURULU_GUC = 'kuruluGucMw'` — bir KAYIT ANAHTARI (`TesisOzellik.anahtar` sütununda duruyor), kod adı değil; değiştirmek veri göçü ister | P4 · öznitelik şeması | ekranlar özniteliği adıyla bilmeyi bıraktığında |
 | R0-12 | Bloklayıcı erişilebilirlik kapısı **1366×768'i hiç taramıyor** (axe 1440×900 · 768×1024 · 375×780) | kalite kapıları dilimi | `tasarim:dizustu` CI'ya bağlandığı gün |
 

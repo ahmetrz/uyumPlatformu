@@ -14,7 +14,7 @@ import { dokumanKutugu } from './seed-dokuman';
 import { entegrasyonVerisi } from './seed-entegrasyon';
 import { operasyonKayitlari } from './seed-operasyon-kayitlari';
 import { dolulukKatmani } from './seed-doluluk';
-import { GUNLUK_DEBI, suSektoru } from './seed-su';
+import { GUNLUK_DEBI, suSektoru, suUyumu } from './seed-su';
 import { KURULU_GUC } from '../lib/alan/oznitelik';
 
 const parolaUret = (parola: string) => {
@@ -800,6 +800,15 @@ async function main() {
     },
   });
   console.log(`Su sektörü: ${su.tesisSayisi} tesis · sözlük ve öznitelik şeması kuruldu`);
+
+  /* Su kiracısının uyum katmanı — maddeler ve regülasyonlar kurulduktan
+     SONRA koşar (CBDDÖ ve ISO 27001 satırlarını arar). Su için ayrı bir
+     mevzuat uydurulmadı: iki çerçeve de kamuya açık ve gerçekten sektör
+     üstüdür. Enerjiye özgü EPDK-SYM su kapsamına GİRMEZ — gerçek bir
+     düzenlemeye yanlış kapsam atfetmek, mevzuat uydurmakla aynı kusur. */
+  const suUyum = await suUyumu(db);
+  console.log(`Su uyumu: ${suUyum.surec} süreç · ${suUyum.kapsam} tesis kapsamda`
+    + ` · ${suUyum.bulgu} bulgu (CBDDÖ + ISO 27001)`);
 
   await dolulukKatmani(db);
 

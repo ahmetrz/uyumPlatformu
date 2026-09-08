@@ -245,9 +245,10 @@ değil.
 
 | | |
 | --- | --- |
-| **Ölçüm commit'i** | `fc35a38` — `Merge pull request #30 from ahmetrz/paket/p1-sektor-bagimsiz-model` |
+| **Ölçüm commit'i** | `640c837` — `Merge pull request #32 from ahmetrz/duzeltme/inceleme-30` |
 | Ölçüm tarihi | 8 Eylül 2026 |
-| Ölçülen ağaç | `origin/main` (P1 birleştirildikten SONRA) |
+| Ölçülen ağaç | `origin/main` (P1 **ve** inceleme düzeltmeleri birleştirildikten SONRA) |
+| Önceki ölçüm | `fc35a38` (yalnız P1) — sayılar AYNI çıktı; düzeltmeler terim borcuna dokunmadı |
 
 ### Sayılar
 
@@ -256,7 +257,7 @@ A · KALICI      :  3 dosya /  13 terim
 A · ERTELENMİŞ  :  8 dosya /  72 terim
 A · TOPLAM      : 11 dosya /  85 terim
 B               :  0 bulgu /   0 dosya   (65/65 muafiyet kullanıldı)
-ölçüm commit'i  : fc35a38
+ölçüm commit'i  : 640c837
 ```
 
 Cırcır tavanları aynı uçta: `tavan` 11 · `terimTavani` 85 ·

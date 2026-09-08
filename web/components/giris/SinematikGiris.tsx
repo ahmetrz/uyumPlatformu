@@ -9,7 +9,7 @@ import { KARELER, SAHNELER, ekranYerlestir, kaydirmaKatsayisi, kaydirmaTamam, si
 import { sahneKur, type Sahne } from './sahne';
 import styles from './giris.module.css';
 
-const HATIRLA = 'uyum-sahne-goruldu-v4';
+const HATIRLA = 'uyum-sahne-goruldu-v5';
 const DOSYALAR = ['sahne-01-uzak', 'sahne-02-yaklasma', 'sahne-03-bina', 'sahne-04-ekran'] as const;
 
 export default function SinematikGiris({ children, sadeceAnaSayfa = false, sektorler = [] }: {
@@ -28,6 +28,7 @@ function Giris({ children, sektorler }: {
   const root = useRef<HTMLDivElement>(null);
   const hedef = useRef<HTMLDivElement>(null);
   const atla = useRef<() => void>(() => {});
+  const tempoDegistir = useRef<(carpan: number) => void>(() => {});
 
   useLayoutEffect(() => {
     const el = root.current!, ui = hedef.current!;
@@ -35,7 +36,7 @@ function Giris({ children, sektorler }: {
     const motion = matchMedia('(prefers-reduced-motion: reduce)');
     const etiket = el.querySelector<HTMLElement>(`.${styles.current}`)!;
     let sahne: Sahne | undefined, kapandi = false, raf = 0, mesafe = 0;
-    let hareketli = false, sonP = -1, sonTamam = false;
+    let hareketli = false, sonP = -1, sonTamam = false, tempo = 1;
     const hatirla = () => { try { sessionStorage.setItem(HATIRLA, '1'); } catch { /* Depolama isteğe bağlı. */ } };
     const temizle = () => { sahne?.temizle(); sahne = undefined; };
     function statik(atlandi = false) {
@@ -58,10 +59,20 @@ function Giris({ children, sektorler }: {
       ui.focus({ preventScroll: true });
     };
     function boyutla() {
-      mesafe = stage.clientHeight * kaydirmaKatsayisi(window.innerWidth);
+      mesafe = stage.clientHeight * kaydirmaKatsayisi(window.innerWidth) * tempo;
       el.style.setProperty('--mesafe', `${mesafe}px`);
       sahne?.boyutla(); sonP = -1; guncelle();
     }
+    tempoDegistir.current = carpan => {
+      tempo = carpan;
+      if (!hareketli || sonTamam) return;
+      // Hız seçimi kamerayı başka konuma atmaz; mevcut ilerleme korunur.
+      const p = Math.max(0, sonP), ust = el.getBoundingClientRect().top + window.scrollY;
+      mesafe = stage.clientHeight * kaydirmaKatsayisi(window.innerWidth) * tempo;
+      el.style.setProperty('--mesafe', `${mesafe}px`);
+      window.scrollTo({ top: ust + p * mesafe, behavior: 'instant' });
+      sonP = -1; guncelle();
+    };
     function guncelle() {
       raf = 0;
       if (!hareketli || !sahne || document.hidden) return;
@@ -158,8 +169,8 @@ function Giris({ children, sektorler }: {
           </header>
           <div className={styles.editorial}>
             <p className={styles.eyebrow}>SAHA · YÖNETİŞİM · UYUM</p>
-            <h1>Enerjinin<br /><span>kalbine doğru.</span></h1>
-            <p className={styles.description}>Sahadan kontrol odasına.<br />Operasyondan güvenilir yönetişime.</p>
+            <h1>Büyük resmi<br /><span>görün.</span></h1>
+            <p className={styles.description}>Sahadan kontrol odasına.<br />Her kararın arkasındaki bütüne.</p>
             {/* ── SEKTÖR SEÇİMİ AÇILIŞTA ─────────────────────────────────
                 Yabancı bir ziyaretçinin ilk on beş saniyede alması gereken
                 cevap "bu ürün BENİM işim için mi". Merceği kabuğun içine
@@ -198,7 +209,11 @@ function Giris({ children, sektorler }: {
           <footer className={styles.footer}>
             <span className={styles.scroll}>İlerlemek için kaydır <span aria-hidden="true">↓</span></span>
             <span className={styles.current}>01 / Dışarıdan yaklaşma</span>
-            <span className={styles.caption}>SAHA. KONTROL. GÜVEN.</span>
+            <label className={styles.tempo}>Yolculuk temposu
+              <select aria-label="Yolculuk temposu" defaultValue="1" onChange={e => tempoDegistir.current(Number(e.target.value))}>
+                <option value="1.35">Sakin</option><option value="1">Dengeli</option><option value="0.72">Hızlı</option>
+              </select>
+            </label>
           </footer>
           <div className={styles.progress} aria-hidden="true" />
         </section>

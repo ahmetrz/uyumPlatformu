@@ -218,3 +218,16 @@ export function ekranYerlestir(rect: Cerceve, w: number, h: number) {
     sag: Math.max(0, (x + w * k - rect.sag) / k),
     ust: Math.max(0, (rect.ust - y) / k), boy: Math.min(h, (rect.alt - y) / k) };
 }
+
+/** Alt kare tam opak kalır: ortada iki yarım saydam katmanın ışık kaybı oluşmaz.
+ * Üst kare hedef merkezinden açılır; yalnız yumuşak sınırda iki mimari görülür.
+ * Koordinatlar görselin taban kutusundadır, kamera ölçeği maskeyi de taşır. */
+export function gecisMaskesi(pay: number, merkezX: number, merkezY: number, en: number, boy: number) {
+  const t = sinirla(pay);
+  if (t >= 1) return 'none';
+  const uzak = Math.hypot(Math.max(merkezX, en - merkezX), Math.max(merkezY, boy - merkezY));
+  const kenar = uzak * .17;
+  const yaricap = -kenar + t * (uzak + 2 * kenar);
+  const ic = Math.max(0, yaricap - kenar), dis = Math.max(.01, yaricap + kenar);
+  return `radial-gradient(circle at ${merkezX}px ${merkezY}px, #000 ${ic}px, transparent ${dis}px)`;
+}

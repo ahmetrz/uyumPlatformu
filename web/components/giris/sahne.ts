@@ -1,4 +1,4 @@
-import { KARELER, poz, type Kare, type Poz } from './zaman';
+import { BAGLAR, KARELER, gecisMaskesi, poz, type Kare, type Poz } from './zaman';
 
 export type Sahne = { ciz: (p: number) => Poz; boyutla: () => void; temizle: () => void };
 
@@ -34,11 +34,19 @@ export async function sahneKur(root: HTMLElement): Promise<Sahne> {
     ciz(p) {
       const s = poz(p, w, h);
       const taban = Math.max(w, h * 16 / 9);
+      const gorunen = KARELER.filter(ad => s.kareler[ad].opaklik > .0005);
       for (const ad of KARELER) {
         const img = imgs[ad], yer = s.kareler[ad];
         if (yer.opaklik <= 0.0005) { img.style.visibility = 'hidden'; img.style.opacity = '0'; continue; }
         img.style.visibility = 'visible';
-        img.style.opacity = yer.opaklik.toFixed(4);
+        // Alt kare görüntüyü kaplar. Üst kare, fiziksel hedef çevresinden açılır.
+        const icKare = gorunen.length === 2 && ad === gorunen[1];
+        const bag = BAGLAR[KARELER.indexOf(ad) - 1];
+        const maske = icKare && CSS.supports('mask-image', 'radial-gradient(black, transparent)');
+        img.style.opacity = icKare && !maske ? yer.opaklik.toFixed(4) : '1';
+        img.style.maskImage = maske ? gecisMaskesi(yer.opaklik,
+          (bag.ic.sol + bag.ic.sag) / 2 * taban,
+          (bag.ic.ust + bag.ic.alt) / 2 * taban * 9 / 16, taban, taban * 9 / 16) : 'none';
         img.style.transform = `translate3d(${yer.x.toFixed(2)}px, ${yer.y.toFixed(2)}px, 0) scale(${(yer.en / taban).toFixed(5)})`;
       }
       return s;
@@ -46,7 +54,7 @@ export async function sahneKur(root: HTMLElement): Promise<Sahne> {
     temizle() {
       for (const ad of KARELER) {
         const img = imgs[ad];
-        for (const prop of ['width', 'height', 'transform', 'opacity', 'visibility']) img.style.removeProperty(prop);
+        for (const prop of ['width', 'height', 'transform', 'opacity', 'visibility', 'mask-image']) img.style.removeProperty(prop);
       }
     },
   };

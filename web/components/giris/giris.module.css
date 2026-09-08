@@ -1,9 +1,9 @@
-.root { --mesafe: 0px; --ekran: max(100svh, 580px); --metin: 1; --ilerleme: 0%; position: relative; isolation: isolate; background: #0a0c0d; color: #edeeec; }
+.root { --mesafe: 0px; --ekran: max(100svh, 580px); --metin: 1; --arayuz: 0; --ilerleme: 0%; position: relative; isolation: isolate; background: #0a0c0d; color: #edeeec; }
 .runway { height: calc(var(--ekran) + var(--mesafe)); position: relative; z-index: 1; }
 .stage { position: sticky; top: 0; height: var(--ekran); overflow: hidden; background: #0a0c0d; }
-.canvas { position: absolute; inset: 0; width: 100%; height: 100%; visibility: hidden; }
-.poster, .roomPoster { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; pointer-events: none; will-change: width, height, left, top, opacity; backface-visibility: hidden; }
-.roomPoster { visibility: hidden; opacity: 0; }
+.kare { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; pointer-events: none; opacity: 0; visibility: hidden; }
+.kare[data-kare='uzak'] { opacity: 1; visibility: visible; }
+.vignette { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse 88% 78% at 50% 46%, transparent 55%, #07101d99 100%); }
 .shade { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(90deg, #07101de8 0%, #07101d88 27%, transparent 62%), linear-gradient(180deg, #07101d99, transparent 25%, transparent 75%, #07101dd9); opacity: var(--metin); }
 .header { position: absolute; top: 0; inset-inline: 0; display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 24px 4.5%; z-index: 2; background: linear-gradient(#07101dcc, transparent); }
 .brand { max-width: 65%; font: 500 13px/1.5 'Inter', sans-serif; letter-spacing: .04em; }
@@ -24,11 +24,14 @@
 .caption { font-size: 9px; letter-spacing: .08em; opacity: var(--metin); }
 .progress { position: absolute; bottom: 0; left: 0; height: 2px; width: var(--ilerleme); background: #e1a36b; }
 .destination { position: relative; z-index: 2; min-height: 100svh; background: #0a0c0d; outline: none; transform-origin: top left; }
-.root[data-cizim='fotograf'] .roomPoster { visibility: visible; }
+.root[data-mod='hareketli'] .kare { inset: auto; left: 0; top: 0; transform-origin: 0 0; will-change: transform, opacity; backface-visibility: hidden; }
 .root[data-mod='hareketli'] .destination { margin-top: calc(-1 * var(--ekran)); transform: translateY(calc(-1 * var(--mesafe))); visibility: hidden; }
 .root[data-metinsiz='true'] .editorial { visibility: hidden; }
+/* Arayüz ekran yüzeyinde belirdikçe sahne kabuğu (başlık, alt şerit, ilerleme) söner; tamamen görününce erişim ağacından da çıkar. */
+.root[data-mod='hareketli'] .header, .root[data-mod='hareketli'] .footer, .root[data-mod='hareketli'] .progress { opacity: calc(1 - var(--arayuz)); }
+.root[data-arayuz='1'] .header, .root[data-arayuz='1'] .footer, .root[data-arayuz='1'] .progress { visibility: hidden; }
 .root[data-tamam='true'] .runway { pointer-events: none; }
-.root[data-tamam='true'] .stage, .root[data-tamam='true'] .stage * { visibility: hidden; }
+.root[data-tamam='true'] .stage, .root[data-tamam='true'] .stage * { visibility: hidden !important; }
 .root[data-tamam='true'] .destination { z-index: auto; }
 .root[data-mod='dogrudan'] .runway { display: none; }
 .root[data-mod='dogrudan'] .destination, .root[data-mod='statik'] .destination { margin-top: 0; transform: none; visibility: visible; clip-path: none; }
@@ -54,9 +57,8 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .root .runway { height: var(--ekran); }
-  .root .canvas { display: none; }
-  .root .poster { visibility: visible; }
-  .root .roomPoster { visibility: hidden; }
+  .root .kare { inset: 0; width: 100%; height: 100%; transform: none !important; opacity: 0 !important; visibility: hidden !important; }
+  .root .kare[data-kare='uzak'] { opacity: 1 !important; visibility: visible !important; }
   .root .destination { margin-top: 0; transform: none; clip-path: none; visibility: visible; }
 }
 @media print {

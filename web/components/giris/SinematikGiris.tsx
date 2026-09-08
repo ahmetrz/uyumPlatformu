@@ -2,16 +2,15 @@
 
 import { useLayoutEffect, useRef, type ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
-import Image from 'next/image';
 import { MARKA_AD } from '@/lib/marka';
 import { TEMEL } from '@/lib/demo';
 import { mercegiSec } from '@/lib/dil/SozlukSaglayici';
-import { SAHNELER, ekranYerlestir, kaydirmaTamam, poz, sinirla } from './zaman';
-import { fotografKur } from './fotograf';
-import type { Sahne } from './cekirdek';
+import { KARELER, SAHNELER, ekranYerlestir, kaydirmaKatsayisi, kaydirmaTamam, sinirla } from './zaman';
+import { sahneKur, type Sahne } from './sahne';
 import styles from './giris.module.css';
 
-const HATIRLA = 'uyum-sahne-goruldu-v3';
+const HATIRLA = 'uyum-sahne-goruldu-v4';
+const DOSYALAR = ['sahne-01-uzak', 'sahne-02-yaklasma', 'sahne-03-bina', 'sahne-04-ekran'] as const;
 
 export default function SinematikGiris({ children, sadeceAnaSayfa = false, sektorler = [] }: {
   children: ReactNode; sadeceAnaSayfa?: boolean;
@@ -32,24 +31,24 @@ function Giris({ children, sektorler }: {
 
   useLayoutEffect(() => {
     const el = root.current!, ui = hedef.current!;
+    const stage = el.querySelector<HTMLElement>(`.${styles.stage}`)!;
     const motion = matchMedia('(prefers-reduced-motion: reduce)');
     const etiket = el.querySelector<HTMLElement>(`.${styles.current}`)!;
     let sahne: Sahne | undefined, kapandi = false, raf = 0, mesafe = 0;
     let hareketli = false, sonP = -1, sonTamam = false;
-    const hatirla = () => { try { sessionStorage.setItem(HATIRLA, '1'); } catch { /* Storage is optional. */ } };
+    const hatirla = () => { try { sessionStorage.setItem(HATIRLA, '1'); } catch { /* Depolama isteğe bağlı. */ } };
     const temizle = () => { sahne?.temizle(); sahne = undefined; };
     function statik(atlandi = false) {
       hareketli = false; cancelAnimationFrame(raf); raf = 0;
       ui.inert = false; ui.removeAttribute('aria-hidden');
       el.dataset.mod = atlandi ? 'dogrudan' : 'statik';
-      el.dataset.cizim = '';
       el.style.removeProperty('--mesafe');
-      el.style.removeProperty('--metin'); el.style.removeProperty('--ilerleme');
-      el.dataset.tamam = 'false'; el.dataset.metinsiz = 'false'; ui.style.cssText = '';
+      el.style.removeProperty('--metin'); el.style.removeProperty('--arayuz'); el.style.removeProperty('--ilerleme');
+      el.dataset.tamam = 'false'; el.dataset.metinsiz = 'false'; el.dataset.asama = '0'; el.dataset.arayuz = '0'; ui.style.cssText = '';
       temizle();
     }
     let goruldu = false;
-    try { goruldu = sessionStorage.getItem(HATIRLA) === '1'; } catch { /* No persistence available. */ }
+    try { goruldu = sessionStorage.getItem(HATIRLA) === '1'; } catch { /* Kalıcılık yok. */ }
     const dogrudan = goruldu || !!location.hash || new URLSearchParams(location.search).has('next');
     statik(dogrudan);
     atla.current = () => {
@@ -59,31 +58,32 @@ function Giris({ children, sektorler }: {
       ui.focus({ preventScroll: true });
     };
     function boyutla() {
-      const stage = el.querySelector<HTMLElement>(`.${styles.stage}`)!;
-      const katsayi = window.innerWidth < 700 ? 5.6 : window.innerWidth < 1100 ? 6 : 6.6;
-      mesafe = stage.clientHeight * katsayi;
+      mesafe = stage.clientHeight * kaydirmaKatsayisi(window.innerWidth);
       el.style.setProperty('--mesafe', `${mesafe}px`);
       sahne?.boyutla(); sonP = -1; guncelle();
     }
     function guncelle() {
       raf = 0;
       if (!hareketli || !sahne || document.hidden) return;
-      const stage = el.querySelector<HTMLElement>(`.${styles.stage}`)!;
       const offset = -el.getBoundingClientRect().top;
       const tamam = kaydirmaTamam(offset, mesafe), p = tamam ? 1 : sinirla(offset / mesafe);
       if (p === sonP) return;
       sonP = p;
-      const s = poz(p), w = stage.clientWidth, h = stage.clientHeight;
-      const rect = sahne.ciz(p);
+      const w = stage.clientWidth, h = stage.clientHeight;
+      const s = sahne.ciz(p);
       el.dataset.ilerleme = p.toFixed(5);
       el.dataset.tamam = String(tamam);
+      el.dataset.asama = String(s.asama);
       el.style.setProperty('--metin', String(s.metin));
       el.dataset.metinsiz = String(s.metin === 0);
+      el.style.setProperty('--arayuz', String(s.arayuz));
+      el.dataset.arayuz = s.arayuz >= 1 ? '1' : '0';
       el.style.setProperty('--ilerleme', `${p * 100}%`);
       etiket.textContent = `${String(s.asama + 1).padStart(2, '0')} / ${SAHNELER[s.asama]}`;
       ui.inert = !tamam;
       if (tamam) ui.removeAttribute('aria-hidden'); else ui.setAttribute('aria-hidden', 'true');
-      const ekran = ekranYerlestir(rect, w, h);
+      // Fiziksel ekran yüzeyi → canlı arayüz: aynı dikdörtgen, aynı ölçek, aynı konum.
+      const ekran = ekranYerlestir(s.ekran, w, h);
       ui.style.transform = tamam ? 'none' : `translate(${ekran.x}px, ${Math.min(mesafe, Math.max(0, offset)) - mesafe + ekran.y}px) scale(${ekran.k})`;
       ui.style.clipPath = tamam ? 'none' : `inset(${ekran.ust}px ${ekran.sag}px ${Math.max(0, ui.offsetHeight - ekran.boy)}px ${ekran.sol}px)`;
       ui.style.opacity = String(s.arayuz);
@@ -110,12 +110,11 @@ function Giris({ children, sektorler }: {
       async function baslat() {
         if (kapandi || motion.matches || el.dataset.mod === 'dogrudan' || window.scrollY > 8) return;
         try {
-          const yeni = await fotografKur(el);
+          const yeni = await sahneKur(el);
           if (kapandi || motion.matches || el.dataset.mod === 'dogrudan' || window.scrollY > 8) {
             yeni.temizle(); return;
           }
           sahne = yeni;
-          el.dataset.cizim = 'fotograf';
           hareketli = true; el.dataset.mod = 'hareketli';
           boyutla();
         } catch (error) {
@@ -139,13 +138,19 @@ function Giris({ children, sektorler }: {
   }, []);
 
   return (
-    <div ref={root} className={styles.root} data-mod="statik">
+    <div ref={root} className={styles.root} data-mod="statik" data-asama="0" data-arayuz="0">
       <div className={styles.runway}>
         <section className={styles.stage} aria-label="Platforma giriş">
-          <Image data-fotograf="uzak" className={styles.poster} src={`${TEMEL}/gorseller/giris/sahne-01-uzak.webp`} alt="" aria-hidden="true" fill sizes="100vw" priority unoptimized />
-          <Image data-fotograf="yaklasma" className={styles.roomPoster} src={`${TEMEL}/gorseller/giris/sahne-02-yaklasma.webp`} alt="" aria-hidden="true" fill sizes="100vw" loading="eager" unoptimized />
-          <Image data-fotograf="bina" className={styles.roomPoster} src={`${TEMEL}/gorseller/giris/sahne-03-bina.webp`} alt="" aria-hidden="true" fill sizes="100vw" loading="eager" unoptimized />
-          <Image data-fotograf="ekran" className={styles.roomPoster} src={`${TEMEL}/gorseller/giris/sahne-04-ekran.webp`} alt="" aria-hidden="true" fill sizes="100vw" loading="eager" unoptimized />
+          {/* Dört onaylı kare tek optik eksende ilerler; dekoratiftir (alt="", aria-hidden).
+              Statik dışa aktarımda görsel optimizasyonu kapalı; düz <img> kullanılır. */}
+          {KARELER.map((ad, i) => (
+            // eslint-disable-next-line @next/next/no-img-element -- statik dışa aktarım: optimizasyon kapalı
+            <img key={ad} data-kare={ad} className={styles.kare}
+              src={`${TEMEL}/gorseller/giris/${DOSYALAR[i]}.webp`} alt="" aria-hidden="true"
+              width={1600} height={900} decoding="async" loading="eager"
+              fetchPriority={i === 0 ? 'high' : 'auto'} />
+          ))}
+          <div className={styles.vignette} aria-hidden="true" />
           <div className={styles.shade} aria-hidden="true" />
           <header className={styles.header}>
             <span className={styles.brand}>{MARKA_AD}</span>

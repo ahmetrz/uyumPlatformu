@@ -1259,7 +1259,7 @@ export const PLATFORM_SENARYOLARI_6: Senaryo[] = [
     rol: 'ilk kez gelen ziyaretçi', kapsam: 'giriş deneyimi',
     onkosul: 'Hareketli giriş kullanılabilir', veriHali: 'ileri ve geri kaydırma',
     eylem: 'Aynı ilerleme noktasına ileri ve geri yönden ulaşılır',
-    beklenenSonuc: 'Poz aynıdır; oda açıldıktan sonra ekrana yaklaşılır; kamera ekranın önünde kalır; DOM ve 3B izdüşümü eşleşir',
+    beklenenSonuc: 'Poz aynıdır; dört kare tek dünya koordinatında ilerler; çözünmede ortak hedef aynı piksel dikdörtgenindedir; arayüz ekran yüzeyinden sıçramasız devralır',
     beklenenEkran: 'Görsel süreklilik ayrıca tarayıcıda doğrulanmalıdır',
     beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
     katmanlar: ['DOMAIN'],

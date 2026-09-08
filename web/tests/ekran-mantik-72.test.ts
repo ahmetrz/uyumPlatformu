@@ -24,6 +24,9 @@ function santral(kismi: Partial<PortfoySatiri> & { id: string }): PortfoySatiri 
     enlem: null, boylam: null,
   konumKaynagi: null, konumDogrulandi: false,
     uyumYuzde: 80, bilinmeyenOran: 0, acikBulgu: 0, acikRisk: 0,
+    /* Fikstürde sektör BİLİNMİYOR: bu ekranların saf mantığı sektöre
+       bakmaz ve bakmamalı; süzme merceğin işidir. */
+    sektorId: null,
     ...kismi,
   };
 }

@@ -47,6 +47,8 @@ vi.mock('@/lib/auth', async (asil) => {
 });
 
 const { db } = await import('@/lib/db');
+const { kapsamSozlugu } = await import('@/lib/dil/sozlukOku');
+const { t } = await import('@/lib/dil/terimler');
 const {
   adimVarligiAta, ekipKaydet, ekipUyeligiKaydet, etkiDegerlendirmesiKaydet,
   hesapTipiKaydet, kesifYetkiKarari, konfigSapmasiKarari, konfigTemeliOnayla,
@@ -161,7 +163,14 @@ describe('OT-05 · iş süreci kütük yetkisi ve santral kapsamı ister', () =>
       kod: benzersiz('IS'), ad: 'Hayalet', tesisId: 'yok-boyle-tesis',
     });
     expect(s.ok).toBe(false);
-    expect(hataMetni(s)).toMatch(/santral/i);
+    /* Mesaj KAPSAMIN sözcüğünü kullanmalı — hangi sözcük olduğu
+       kurulumun kaç sektörlü olduğuna bağlıdır ve buraya SABİT
+       yazılamaz. Önce `/santral/i` yazıyordu; tohuma ikinci sektör
+       eklenince kapsam çok sektörlü oldu, doğru cevap çekirdek sözcüğe
+       ("tesis") döndü ve vaka kırmızı yandı. Kural değişmedi, sabit
+       yanlıştı: iddia artık sözlüğün kendisinden türetiliyor. */
+    const beklenen = t(await kapsamSozlugu(null), 'tesis');
+    expect(hataMetni(s)).toContain(beklenen);
   });
 
   it('üretim etkisi girilmezse "bilinmiyor" kalır — "yok" DEĞİL', async () => {

@@ -658,10 +658,27 @@ describe('/portfoy · kapsam', () => {
 
   it('toplam kurulu güç de daraltılmış satırlardan toplanıyor', async () => {
     const a = await portfoyEkranVerisi(kA);
-    const g = await portfoyEkranVerisi(kGlobal);
     expect(a.toplamGuc.toplam).toBe(11);
-    expect(g.toplamGuc.toplam!).toBeGreaterThan(a.toplamGuc.toplam!);
     expect(a.satirlar).toHaveLength(1);
+  });
+
+  it('kapsam İKİ BİRİME yayılıyorsa toplam üretilmez', async () => {
+    /* Önce burada `g.toplam > a.toplam` yazıyordu ve tek birimli bir
+       dünya varsayıyordu. Depoya ikinci sektör girince kapsam MW ile
+       m³/gün'ü birlikte gördü, `birimliToplam` toplamayı REDDETTİ ve
+       vaka kırmızı yandı — kural işledi, iddia eskiydi.
+
+       Reddetmek doğrudur: iki farklı birimi toplayıp tek birimle
+       etiketlemek, yanlış bir sayıyı doğru gibi göstermekti. Sayı da
+       yazılmaz, birim de: ikisinden birini bırakmak okuyucuya
+       toplanabilir bir büyüklük olduğunu söylerdi. */
+    const g = await portfoyEkranVerisi(kGlobal);
+    const birimler = new Set(g.satirlar.map((s) => s.gucBirim).filter(Boolean));
+    expect(birimler.size, 'fikstür tek birime düşmüş — vaka artık bunu ölçmüyor')
+      .toBeGreaterThan(1);
+    expect(g.toplamGuc.karisikBirim).toBe(true);
+    expect(g.toplamGuc.toplam).toBeNull();
+    expect(g.toplamGuc.birim).toBeNull();
   });
 
   it('kapsamsız kullanıcı iki santrali de görüyor', async () => {

@@ -6,7 +6,7 @@ import { kapsamDaraltildi, kapsamKosulu, modulKapisi } from '@/app/kapsam';
 import { uyumOzeti } from '@/lib/sabitler';
 import type { PortfoyEndeksi, PortfoySatiri } from './mantik';
 import {
-  KURULU_GUC, birimliOzellik, birimliToplam, ozelligeGoreSirala,
+  KURULU_GUC, birimliOzellik, birimliToplam,
 } from '@/lib/alan/oznitelik';
 
 /* F2 · Enerji Portföyü — SUNUCU VERİSİ.
@@ -46,6 +46,10 @@ export type EkranVerisi = {
   /** Portföy geneli uyum endeksi — kök ekranla AYNI formül (`uyumOzeti`),
       aynı kapsam. Değerlendirilmiş kontrol yoksa `yuzde: null`. */
   endeks: PortfoyEndeksi;
+  /** Sektör başına endeks — mercek uygulandığında ekran bunu gösterir.
+      Anahtar `Sektor.id`; kapsamda madde durumu OLMAYAN sektör listede
+      hiç bulunmaz ve ekran "ölçülmedi" der (sıfır DEĞİL). */
+  endeksSektor: Record<string, PortfoyEndeksi>;
   /** true = portföy bir tesis kapsamıyla daraltıldı */
   kapsamli: boolean;
 };
@@ -84,7 +88,29 @@ export async function portfoyEkranVerisi(k: AktifKullanici): Promise<EkranVerisi
     }),
   ]);
 
-  const tesisler = ozelligeGoreSirala(tesisSirasiz, KURULU_GUC);
+  /* ── SEKTÖRÜN BİRİNCİL ÖLÇÜSÜ ───────────────────────────────────────
+     Ekran artık bir öznitelik anahtarını ADIYLA bilmez. Hangi
+     özniteliğin "kapasite" olduğunu ve hangi birimi taşıdığını SEKTÖR
+     ŞEMASI söyler; iki sektörde aynı çekirdek anahtar bambaşka bir
+     büyüklüğe bağlanır. Şeması olmayan sektör ve sektörü bilinmeyen
+     tesis için eski sabite düşülür — şema yoksa davranış değişmez.
+
+     Bu, §0.5'in çekirdekten silmek istediği son sektör bilgisiydi
+     (R0-11). Anahtarın kendisi hâlâ bir KAYIT anahtarıdır ve göç ister;
+     ama ekran artık onu bilmiyor. */
+  const semaSatirlari = await db.sektorOznitelikSemasi.findMany({
+    select: { sektorId: true, anahtar: true },
+  });
+  const sektorAnahtari = new Map(semaSatirlari.map((s) => [s.sektorId, s.anahtar]));
+  const olcuAnahtari = (sektorId: string | null | undefined) =>
+    (sektorId ? sektorAnahtari.get(sektorId) : undefined) ?? KURULU_GUC;
+
+  /* Sıralama artık TEK bir anahtara göre yapılamaz: iki sektörün ölçüsü
+     iki ayrı anahtarda durur. Satırlar önce kurulur (her biri kendi
+     ölçüsüyle), sonra o ölçüye göre sıralanır. `ozelligeGoreSirala` ile
+     AYNI yüklem: azalan, ölçülmemiş SONA — ölçülmemişi başa almak onu
+     "en büyük" göstermek olurdu. */
+  const tesisler = tesisSirasiz;
 
   // Bulgu sayısı tesise madde durumu üzerinden bağlanır
   const bulguDurumIdleri = bulguSayimlari.map((b) => b.maddeDurumuId);
@@ -118,7 +144,10 @@ export async function portfoyEkranVerisi(k: AktifKullanici): Promise<EkranVerisi
          çekirdeğe enerji birimi gömerdi (§0.5). `birimliOzellik` satırda
          ne yazıyorsa onu verir; yoksa birimsiz yazılır, uydurulmaz. */
       ...((o) => ({ guc: o.deger, gucBirim: o.birim }))(
-        birimliOzellik(t.ozellikler, KURULU_GUC)),
+        birimliOzellik(t.ozellikler, olcuAnahtari(t.tip?.sektorId))),
+      /* Mercek bunun üstünden süzer; `null` = sektörü BİLİNMEYEN tesis
+         (yanlış değil, bilinmiyor) ve hiçbir merceğe girmez. */
+      sektorId: t.tip?.sektorId ?? null,
       gorselAnahtari: t.gorselAnahtari,
       enlem: t.enlem, boylam: t.boylam,
       konumKaynagi: t.konumKaynagi, konumDogrulandi: t.konumDogrulandi,
@@ -128,6 +157,14 @@ export async function portfoyEkranVerisi(k: AktifKullanici): Promise<EkranVerisi
       acikBulgu: bulguTesise.get(t.id) ?? 0,
       acikRisk: riskTesise.get(t.id) ?? 0,
     };
+  });
+
+  satirlar.sort((a, b) => {
+    if (a.guc === null && b.guc === null) return a.ad.localeCompare(b.ad, 'tr');
+    if (a.guc === null) return 1;
+    if (b.guc === null) return -1;
+    if (a.guc !== b.guc) return b.guc - a.guc;
+    return a.ad.localeCompare(b.ad, 'tr');
   });
 
   /* Toplam kurulu güç GÖRÜNEN satırlardan toplanır: kapsam dışı tesisin
@@ -148,8 +185,33 @@ export async function portfoyEkranVerisi(k: AktifKullanici): Promise<EkranVerisi
   for (const d of durumSayimlari) genelSayim[d.durum] = (genelSayim[d.durum] ?? 0) + d._count._all;
   const genel = uyumOzeti(genelSayim);
 
+  /* ── SEKTÖR BAŞINA ENDEKS ───────────────────────────────────────────
+     Mercek listeyi daraltıyorsa endeks de daralmalı: daraltılmış bir
+     listenin yanında kapsam geneli bir yüzde göstermek, iki farklı
+     kümeyi tek cümlede birleştirmek olurdu. Havuz yine MADDE
+     DURUMLARIDIR (tesis yüzdelerinin ortalaması değil) — genel endeksle
+     aynı formül, yalnız havuz sektöre göre süzülü. */
+  const tesisSektoru = new Map(satirlar.map((s) => [s.id, s.sektorId]));
+  const sektorSayimlari = new Map<string, Record<string, number>>();
+  for (const d of durumSayimlari) {
+    const sid = tesisSektoru.get(d.tesisId ?? '');
+    if (!sid) continue;
+    const kova = sektorSayimlari.get(sid) ?? {};
+    kova[d.durum] = (kova[d.durum] ?? 0) + d._count._all;
+    sektorSayimlari.set(sid, kova);
+  }
+  const endeksSektor: Record<string, PortfoyEndeksi> = {};
+  for (const [sid, sayim] of sektorSayimlari) {
+    const o = uyumOzeti(sayim);
+    endeksSektor[sid] = {
+      yuzde: o.yuzde, bilinmeyenOran: o.bilinmeyenOran,
+      degerlendirilen: o.degerlendirilen, kapsam: o.kapsam,
+    };
+  }
+
   return {
     satirlar,
+    endeksSektor,
     toplamGuc: {
       toplam: toplamGuc.toplam === null ? null : Math.round(toplamGuc.toplam * 10) / 10,
       birim: toplamGuc.birim,

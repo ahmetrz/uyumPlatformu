@@ -60,6 +60,56 @@ export const URUNLESTIRME_SENARYOLARI: Senaryo[] = [
     beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
     katmanlar: ['DOMAIN', 'UI'],
   },
+  {
+    id: 'URN-KUR-005', alan: 'Ürünleştirme', rota: '—', eksen: 'veri',
+    amac: 'Depoda gerçek bir kuruluş adının bulunmaması',
+    rol: 'ürünü sürdüren geliştirici', kapsam: 'depo geneli',
+    onkosul: 'Depo public ve demo dışarıya gösteriliyor; tohumda on sekiz '
+      + 'gerçek şirket adı vardı ve bazılarına uydurma güvenlik zafiyeti bağlıydı',
+    veriHali: 'aykiri',
+    eylem: 'Tohum koşulur ve veritabanındaki kuruluş, üretici, denetleyici, '
+      + 'tüzel kişi ve kişi adları okunur',
+    beklenenSonuc: 'Hepsi `prisma/kurgusal-adlar.ts` kümesinden gelir; kara liste '
+      + 'değil TEK KAYNAK ölçülür, böylece yarın eklenecek yeni bir gerçek ad da yakalanır',
+    beklenenEkran: 'Ekranda hiçbir gerçek firma adı görünmez',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['DOMAIN'],
+  },
+  {
+    id: 'URN-KUR-006', alan: 'Ürünleştirme', rota: '—', eksen: 'veri',
+    amac: 'Depoda beyansız bir gerçek ÜRÜN adının bulunmaması',
+    rol: 'ürünü sürdüren geliştirici', kapsam: 'depo geneli',
+    onkosul: 'Kuruluş adları kurgusallaştırıldı ama ürün/yazılım adı alanları '
+      + 'kapsam dışındaydı; ürün adı da bir iddia taşır — "şu üründe oturum '
+      + 'kaydı yok" cümlesi, ürünün adı gerçekse o ürün hakkındadır',
+    veriHali: 'aykiri',
+    eylem: 'Tohum koşulur ve veritabanındaki yazılım adı, varlık modeli, '
+      + 'işletim sistemi, connector kaynak sistemi ve sertifika veren alanları okunur',
+    beklenenSonuc: 'Her değer ya `prisma/kurgusal-adlar.ts` kurgusal kümesinden '
+      + 'gelir, ya bir TİP sözcüğüdür, ya da `GERCEK_AD_BEYANLARI` içinde kaynağı '
+      + 've gerekçesiyle beyan edilmiştir; beyansız gerçek ad kırmızıdır',
+    beklenenEkran: 'Ekranda beyan edilmemiş hiçbir gerçek ürün adı görünmez',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['DOMAIN'],
+  },
+  {
+    id: 'URN-KUR-007', alan: 'Ürünleştirme', rota: '—', eksen: 'veri',
+    amac: 'İstisnanın sessiz bir beyaz listeye çürümemesi',
+    rol: 'ürünü sürdüren geliştirici', kapsam: 'depo geneli',
+    onkosul: 'Gerçek ad istisnası meşrudur (entegrasyon hedefi, yayımlanmış CVE) '
+      + 'ama beyan tablosu, kara liste yazmamak için kurulan kapının tersinden '
+      + 'bir beyaz listeye dönüşmesinin en kolay yoludur',
+    veriHali: 'aykiri',
+    eylem: 'Beyan tablosu ile veritabanı karşılaştırılır: beyanların kaynağı ve '
+      + 'gerekçesi, kullanımda olup olmadıkları, zafiyet satırlarının kaynak '
+      + 'referansı ve kurgusal/gerçek ad karışımı ölçülür',
+    beklenenSonuc: 'Kaynaksız ya da gerekçesiz beyan kırmızıdır; veritabanında '
+      + 'geçmeyen beyan kırmızıdır; kaynak referansı olmayan zafiyet kırmızıdır; '
+      + 'kurgusal bir adı gerçek bir adla aynı kayıtta birleştiren metin kırmızıdır',
+    beklenenEkran: 'ekran yok — depo kapısı',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['DOMAIN'],
+  },
   /* ── P1 · URN-ALN ────────────────────────────────────────────────────
      Kütüğe yalnız TESTİ OLAN senaryo girer: kayıtlı ama testsiz senaryo
      `senaryo-belge` aracında GAP olur ve kütük "kapsanıyor" diye yalan

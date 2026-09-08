@@ -1,5 +1,5 @@
 'use client';
-import { useSozluk, useTerim } from '@/lib/dil/SozlukSaglayici';
+import { useSektorSecimi, useSozluk, useTerim } from '@/lib/dil/SozlukSaglayici';
 import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useUrlDurumu, useUrlDurumuBos } from '@/components/kabuk/urlDurumu';
@@ -98,10 +98,41 @@ export default function RisklerIstemci({
      sunucu satırları bir tavanla kestiği anda hepsi sessizce küçülürdü.
      Artık sunucuda `count`/`aggregate` ile ölçülüyorlar (bkz. veri.ts):
      satır için `take`, sayım için `count`. */
+  const { gorunur: sektordeGorunur, etkinId: mercekEtkin } = useSektorSecimi();
+
+  /* ── MERCEK BİR SÜZGEÇ DEĞİL, KAPSAMDIR ─────────────────────────────
+     Ekranın kendi süzgeç şeritleri (Aktif · Kritik · OT…) başlık
+     sayılarını DEĞİŞTİRMEZ ve bu doğrudur: bir sekmeye tıklamak kütüğün
+     büyüklüğünü değiştirmez. Sektör merceği farklıdır — kullanıcının
+     hangi portföye baktığını söyler. Sunucunun kütük geneli sayısını
+     mercekli bir listenin başında göstermek, iki farklı kümeyi tek
+     cümlede birleştirmek olurdu (ölçüldü: su merceğinde 7 satır
+     görünürken başlık "23 aktif" diyordu).
+
+     Mercek etkinken sayılar ELDEKİ satırlardan yeniden hesaplanır.
+     Sunucu tavanı kütüğü kesmişse (`kesildi`) bu alt sayım olur ve
+     başlık bunu zaten söylüyor ("gösterilen X / Y"). */
+  const mercekli = useMemo(
+    () => riskler.filter((r) => sektordeGorunur(r.tesis?.id)),
+    [riskler, sektordeGorunur],
+  );
+  const mercekMetrikleri = useMemo(() => {
+    const aktifler = mercekli.filter(aktifMi);
+    const skorlar = mercekli.map((r) => r.artikRisk).filter((x): x is number => x !== null);
+    return {
+      aktif: aktifler.length,
+      enYuksek: skorlar.length ? Math.max(...skorlar) : null,
+      kritik: aktifler.filter((r) => r.artikRisk !== null && r.artikRisk >= 15).length,
+      gecikmis: mercekli.filter(gecikmis).length,
+      kabul: mercekli.filter((r) => r.durum === 'kabul_edildi').length,
+      sahipsiz: aktifler.filter((r) => !r.sahip).length,
+      skorsuz: mercekli.filter((r) => r.artikRisk === null).length,
+    };
+  }, [mercekli]);
   const {
     aktif: aktifSayisi, enYuksek, kritik: kritikSayisi, gecikmis: gecikmisSayisi,
     kabul: kabulSayisi, sahipsiz: sahipsizSayisi, skorsuz: skorsuzSayisi,
-  } = metrikler;
+  } = mercekEtkin ? mercekMetrikleri : metrikler;
   /** Sunucu tavanı kütüğü kesti mi — kesme SESSİZ kalmaz. */
   const kesildi = toplam > riskler.length;
 
@@ -110,7 +141,12 @@ export default function RisklerIstemci({
      süzgeci uygulanmamış küme. Harita bu kümeden sayılır ki bir hücreye
      tıklayınca diğer hücrelerin sayıları sıfırlanmasın — okuyucu haritada
      gezinirken bağlamı kaybetmez. */
+  /* Sektör merceği: kayıt listeleri de mercekten geçer. Yalnız sözcüğü
+     değiştirip listeyi bırakmak, su merceğinde enerji kayıtları
+     göstermek olurdu — portföyde ölçülüp düzeltilen kusurun aynısı.
+     Yüklem `SozlukSaglayici`da TEK NÜSHADIR. */
   const haritaTabani = useMemo(() => riskler.filter((r) => {
+    if (!sektordeGorunur(r.tesis?.id)) return false;
     if (filtre === 'aktif' && !aktifMi(r)) return false;
     if (filtre === 'kritik' && !(aktifMi(r) && r.artikRisk !== null && r.artikRisk >= 15)) return false;
     if (filtre === 'ot' && !(aktifMi(r) && r.ot)) return false;
@@ -119,7 +155,7 @@ export default function RisklerIstemci({
     if (tesisF && r.tesis?.id !== tesisF) return false;
     if (sahipF === 'yok' ? !!r.sahip : sahipF !== null && r.sahip?.id !== sahipF) return false;
     return true;
-  }), [riskler, filtre, tesisF, sahipF]);
+  }), [riskler, filtre, tesisF, sahipF, sektordeGorunur]);
   const harita = useMemo(() => isiHaritasi(haritaTabani), [haritaTabani]);
   const taban = useMemo(
     () => (hucre ? haritaTabani.filter((r) => hucredeMi(r, hucre)) : haritaTabani),

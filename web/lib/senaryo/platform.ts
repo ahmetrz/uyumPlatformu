@@ -382,6 +382,29 @@ export const PLATFORM_SENARYOLARI: Senaryo[] = [
 
   /* ── Rapor ──────────────────────────────────────────────────────── */
   {
+    id: 'RAP-KRN-001', alan: 'Rapor', rota: '/raporlar/karne', eksen: 'veri',
+    amac: 'Denetime ya da yönetime bırakılacak tek sayfayı almak',
+    rol: 'uyum yöneticisi', kapsam: 'kendi tesisi',
+    onkosul: 'Kapsamda en az bir kayıt var', veriHali: 'normal',
+    eylem: 'Uyum karnesini açıp yazdırır',
+    beklenenSonuc: 'Endeks, kapsam büyüklüğü, açık bulgu/risk ve en zayıf beş '
+      + 'kayıt tek sayfada; sayılar portföy ekranıyla AYNI formülden gelir',
+    beklenenEkran: 'Yüzdenin yanında bilinmeyen payı; ölçülmemiş değer "—"',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['DOMAIN', 'UI'],
+  },
+  {
+    id: 'RAP-KRN-002', alan: 'Rapor', rota: '/raporlar/karne', eksen: 'veri',
+    amac: 'Farklı ölçülerin toplanmaması',
+    rol: 'uyum yöneticisi', kapsam: 'tümü',
+    onkosul: 'Kapsam iki sektöre yayılıyor', veriHali: 'aykiri',
+    eylem: 'Karneyi mercek seçmeden açar',
+    beklenenSonuc: 'Toplam kapasite ÜRETİLMEZ; sebebi yazılır',
+    beklenenEkran: '"ortak ölçü yok — toplanmaz"; çıplak bir sayı yok',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['DOMAIN', 'UI'],
+  },
+  {
     id: 'RAP-URT-001', alan: 'Rapor', rota: '/raporlar', eksen: 'veri',
     amac: 'Yönetime sunulacak özeti almak',
     rol: 'uyum yöneticisi', kapsam: 'kendi tesisi',

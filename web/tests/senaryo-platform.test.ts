@@ -60,7 +60,7 @@ describe('Portföy özeti', () => {
     konum: null, guc: 100, gucBirim: 'MW', gorselAnahtari: null,
     enlem: null, boylam: null, konumKaynagi: null, konumDogrulandi: false,
     kritiklik: null, uyumYuzde: null, bilinmeyenOran: null,
-    acikBulgu: 0, acikRisk: 0, ...ek,
+    acikBulgu: 0, acikRisk: 0, sektorId: null, ...ek,
   });
 
   it('ölçülmemiş uyum yüzdesi SIFIRA çekilmez [PRT-OZT-001]', () => {

@@ -55,3 +55,4 @@ yedek/
 # repoya ASLA girmez. Kurulumda `KANIT_DEPO_KOKU` ile ürün dizininin
 # dışına alınması beklenir; verilmezse burası kullanılır.
 /veri/
+.parti/

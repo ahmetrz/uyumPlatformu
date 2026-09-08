@@ -340,12 +340,35 @@ export async function oturumsuzAcikYuzeyler(sayfa, ekRotalar = [], kok = KOK) {
 
    Dönüş: `true` oturum açıldı · `false` giriş formu yok (oturum zaten
    açık ya da sunucu bu uygulama değil — çağıran karar verir). */
+/** Sinematik giriş perdesini açar — CTA'yı izler, formu bekler.
+
+    TEK NÜSHA. Üç araç bu adımı AYRI AYRI yazıyordu (`girisYap`,
+    `erisim-axe.mjs`, `yatay-tasma.mjs`) ve üçü de CTA'yı GÖRÜNEN ADIYLA
+    arıyordu. Ölçüldü (8 Eyl 2026): ad "Platforma Gir"den "Demoyu
+    Başlat"a değişince üçü de CTA'yı bulamadı — rota duman, gezinme ve
+    taşma kapıları aynı anda kırmızı yandı. Depo bu sınıfı #28'de zaten
+    yaşamıştı: ortak işleve bir adım eklenmişti, KOPYALAR almamıştı.
+
+    İki karar birlikte alınır: adım tek yerde durur VE değişmeyen bir
+    kancaya (`data-cta`) tutunur. Yalnız biri yapılsaydı sınıf açık
+    kalırdı — tek nüsha da olsa görünen ada tutunan bir kapı, ürün
+    metnini değiştiren herkesin ayağına dolanır.
+
+    `formuBekle` false ise yalnız perde açılır: giriş yüzeyini OTURUMSUZ
+    ölçen kapılar formun görünmesini beklemek zorunda değil. */
+export async function perdeyiAc(sayfa, { formuBekle = true } = {}) {
+  const cta = sayfa.locator('[data-cta="platforma-gir"]');
+  if (await cta.isVisible().catch(() => false)) await cta.click();
+  if (formuBekle) {
+    await sayfa.locator('input[type=email]')
+      .waitFor({ state: 'visible' }).catch(() => {});
+  }
+}
+
 export async function girisYap(sayfa, kok = KOK) {
   await sayfa.goto(`${kok}/giris`, { waitUntil: 'load' });
   if (!sayfa.url().includes('/giris')) return false;
-  // Yeni girişte formdan önce kullanıcının gördüğü CTA'yı izleriz.
-  const platformaGir = sayfa.getByRole('link', { name: 'Platforma Gir' });
-  if (await platformaGir.isVisible()) await platformaGir.click();
+  await perdeyiAc(sayfa);
   const eposta = sayfa.locator('input[type=email]');
   if (!(await eposta.count())) return false;
   for (let deneme = 1; deneme <= 3; deneme += 1) {

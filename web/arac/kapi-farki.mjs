@@ -139,6 +139,11 @@ export function adimlar(isAkisiMetni) {
   const satirlar = isAkisiMetni.split('\n');
   const cikti = [];
   let simdiki = null;
+  /* HANGİ İŞE AİT. Kapı kümesi hızlı/yavaş diye ikiye bölündüğünde,
+     adımın hangi işte koştuğu bir ADIM ÖZELLİĞİDİR — çağıranın elinde
+     tuttuğu ayrı bir liste değil. Liste tutulsaydı iş akışına yeni bir
+     iş eklendiği gün liste yalan söylerdi. */
+  let is = null;
   let blok = null;                       /* `run: |` gövdesinin girintisi */
   let cevre = null;                      /* `env:` bloğunun girintisi */
   let adimGirinti = null;                /* adım anahtarlarının girintisi */
@@ -164,12 +169,16 @@ export function adimlar(isAkisiMetni) {
       }
       cevre = null;
     }
+    /* `jobs:` altındaki iki boşluklu anahtar = bir İŞ adı. */
+    const isAdi = ham.match(/^ {2}([a-z][\w-]*):\s*$/);
+    if (isAdi) { is = isAdi[1]; }
     const ad = ham.match(/^(\s*)-\s+name:\s*(.+?)\s*$/);
     if (ad) {
       if (simdiki?.komut) cikti.push(simdiki);
       adimGirinti = ad[1].length + 2;
       simdiki = {
         ad: ad[2].replace(/^['"]|['"]$/g, ''),
+        is,
         komut: '', dizin: '.', cevre: {}, bilinmeyen: {}, bloklamaz: false,
       };
       continue;
@@ -204,6 +213,68 @@ export function adimlar(isAkisiMetni) {
   }
   if (simdiki?.komut) cikti.push(simdiki);
   return cikti;
+}
+
+/** DURDURMA ADIMININ KARARI — saf: komut metnini alır, kusurları döner.
+
+    Saf olması SABOTAJI mümkün kılar: kusurun ESKİ hâli
+    (`pkill -f 'next start' || true`) fikstür olarak verilebilir ve
+    kapının onda hâlâ kırmızı yandığı görülebilir. Düzeltilmiş bir kapı,
+    kusurun eski hâlinde hâlâ kırmızı yanmalıdır — yoksa düzeltme değil,
+    delik açılmış olur.
+
+    Üç kusur ayrı ayrı sayılır çünkü üçü ayrı ayrı yeterlidir:
+    ad eşleştirme yanlış şeyi öldürür, `|| true` yanlışı gizler, son
+    koşulu doğrulamayan adım da ikisini birden görünmez yapar. */
+export function durdurmaKarari(komut) {
+  const kusurlar = [];
+  if (/\b(pkill|killall|pgrep)\b/.test(komut)) {
+    kusurlar.push('süreç ADIYLA öldürüyor — ad öldürdüğümüz programın iç'
+      + ' detayıdır ve sürümle kayar (ölçüldü: `next start` → `next-server`)');
+  }
+  if (/\|\|\s*true/.test(komut)) {
+    kusurlar.push('`|| true` sonucu yutuyor — başarısız OLAMAYAN adım, adım değildir');
+  }
+  const sonda = /curl|\bnc\b|fuser\s+-s/.test(komut);
+  const kirmiziYolu = /exit\s+1/.test(komut);
+  if (!sonda || !kirmiziYolu) {
+    kusurlar.push('SON KOŞULU doğrulamıyor — öldürdükten sonra portu yoklayıp'
+      + ' kırmızı yakabileceği bir yol yok');
+  }
+  return { saglam: kusurlar.length === 0, kusurlar };
+}
+
+/** SUNUCU YAŞAM DÖNGÜSÜ — iş akışındaki başlatma ve durdurma adımlarının
+    sıra numaraları, adımların kendisiyle birlikte.
+
+    TEK NÜSHA BURADA. `arac/parti-kapanisi.mjs` bu adımları KOŞAR,
+    `tests/bekci/sunucu-durdurma.test.ts` bunları SINAR. İkisi ayrı ayrı
+    arasaydı biri düzeltilir öbürü bayatlardı — kapının okuduğu şey tek
+    yerde tutulur.
+
+    Adım ADIYLA değil YAPTIĞI İŞLE tanınır; ama tanınan dizge BİZİM
+    yazdığımız komut olmalıdır. ÖLÇÜLDÜ: durdurma adımı bir zamanlar
+    YABANCI bir dizgeyle tanınıyordu (`pkill` → Next'in süreç adı) ve
+    Next açılışta adını `next-server (vX.Y.Z)` yapınca kalıp hiçbir şeye
+    eşleşmedi. `next start` ve `fuser -k` iş akışının kendi metnidir.
+
+    BAŞLATAN VAR DA DURDURAN TANINMIYORSA BU BİR KUSURDUR — sessiz bir
+    `-1` değil. Sessiz kalsaydı çağıran durdurmayı hiç koşmaz, sunucuyu
+    ayakta bırakır ve bir sonraki ölçümü bayat sunucuya yaptırırdı. */
+export function sunucuYasamDongusu(isAkisiMetni) {
+  const tum = adimlar(isAkisiMetni);
+  const baslar = tum.findIndex((a) => /next start/.test(a.komut));
+  const durur = tum.findIndex((a) => /fuser\s+-k/.test(a.komut));
+  if (baslar >= 0 && durur < 0) {
+    throw new Error('İş akışı sunucu BAŞLATIYOR ama durduran adım tanınamadı'
+      + ' (`fuser -k` aranıyor). Durdurma adımı değiştiyse tanıma da burada'
+      + ' güncellenmeli — yoksa sunucu ayakta kalır ve sonraki ölçüm bayat olur.');
+  }
+  if (baslar >= 0 && durur >= 0 && durur < baslar) {
+    throw new Error('Durdurma adımı başlatma adımından ÖNCE geliyor —'
+      + ' tarayıcılı kapıların hangileri olduğu bu sıradan türetiliyor.');
+  }
+  return { baslar, durur, adimlar: tum };
 }
 
 /** İŞ DÜZEYİNDEKİ ortam anahtarları — araç bunların HİÇBİRİNİ uygulamaz.

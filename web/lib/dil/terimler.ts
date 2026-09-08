@@ -37,7 +37,13 @@ export type TerimAnahtari =
   | 'sistem'
   | 'varlik'
   | 'portfoy'
-  | 'tesis360';
+  | 'tesis360'
+  /* Tesisin BİRİNCİL ÖLÇÜSÜ. Çekirdek "kapasite" der ve hangi büyüklük
+     olduğunu BİLMEZ: enerjide kurulu güç, suda günlük debi, depoda hacim.
+     Sektör paketi hem sözcüğü (bu sözlük) hem anahtarı ve birimi
+     (`SektorOznitelikSemasi`) verir. Ekranın bir öznitelik anahtarını
+     adıyla bilmesi §0.5'in yasakladığı şeydi; bu anahtar onu kaldırır. */
+  | 'kapasite';
 
 export type Terim = Record<Bicim, string>;
 
@@ -57,6 +63,8 @@ export const CEKIRDEK_TERIMLER: Record<TerimAnahtari, Terim> = {
     bulunma: 'varlıkta', yonelme: 'varlığa' },
   portfoy: { tekil: 'portföy', cogul: 'portföyler', iyelik: 'portföyün', belirtme: 'portföyü',
     bulunma: 'portföyde', yonelme: 'portföye' },
+  kapasite: { tekil: 'kapasite', cogul: 'kapasiteler', iyelik: 'kapasitenin',
+    belirtme: 'kapasiteyi', bulunma: 'kapasitede', yonelme: 'kapasiteye' },
   /* Ekran adı; "tesis" + " 360" diye BİRLEŞTİRİLMEZ. Sözcük sırası her
      dilde aynı değildir ve sektör paketi bu adı bir bütün olarak verir. */
   /* Ekran adı çekimlenmez: altı biçim de aynıdır ve bu bilinçlidir —

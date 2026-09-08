@@ -32,7 +32,20 @@ const { t } = await import('@/lib/dil/terimler');
 
 describe('Kabuk · kapsam sözlüğü', () => {
   it('tek sektörlü kapsamda sektörün sözcüğü iner [URN-ALN-004]', async () => {
-    const sozluk = await kapsamSozlugu(null);
+    /* Kapsam BURADA kurulur, `null` (=tümü) ile değil. Önce tohumun tek
+       sektörlü olmasına yaslanıyordu; ikinci sektör eklenince vaka
+       kırmızı yandı — ve HAKLIYDI: `null` kapsamda artık iki sektör var,
+       doğru cevap çekirdek sözcüktür. Kırmızının sebebi kuralın değil
+       FİKSTÜRÜN varsayımıydı: "tek sektörlü kapsam" demek isteyip
+       "bütün kapsam" yazmıştı. Vaka artık kendi kapsamını kurar ve
+       tohuma kaç sektör eklenirse eklensin aynı şeyi ölçer. */
+    const enerji = await db.sektor.findFirstOrThrow({
+      where: { kod: 'ELEKTRIK-URETIM' }, select: { id: true } });
+    const tesisler = await db.tesis.findMany({
+      where: { durum: 'aktif', tip: { sektorId: enerji.id } }, select: { id: true } });
+    expect(tesisler.length, 'enerji kapsamı boş — fikstür bozuk').toBeGreaterThan(0);
+
+    const sozluk = await kapsamSozlugu(kapsamAnahtari(tesisler.map((x) => x.id)));
     expect(sozluk, 'kapsam sözlüğü çözülmedi').not.toBeNull();
     expect(t(sozluk, 'tesis')).toBe('santral');
     expect(t(sozluk, 'tesis', 'cogul')).toBe('santraller');
@@ -51,11 +64,17 @@ describe('Kabuk · kapsam sözlüğü', () => {
     /* İkinci bir sektör + tipi + tesisi kurulur ve YALNIZ ilk sektörün
        sözlüğü doldurulur: kural "sözlüğü olanı seç" değil, "sektör tek
        değilse seçme"dir. İkisi ayrı şeydir. */
-    const enerji = await db.sektor.findFirstOrThrow({ select: { id: true } });
+    const enerji = await db.sektor.findFirstOrThrow({
+      where: { kod: 'ELEKTRIK-URETIM' }, select: { id: true } });
     await db.sektorSozlugu.create({ data: {
       sektorId: enerji.id, anahtar: 'tesis', tekil: 'santral', cogul: 'santraller' } });
-    expect(t(await kapsamSozlugu(null), 'tesis'), 'tek sektörde önce çalışmalı')
-      .toBe('santral');
+    /* Ön koşul da DAR kapsamda ölçülür (yukarıdaki vakayla aynı gerekçe):
+       önce tek sektörün sözcüğü indiği görülür, sonra kapsam genişletilip
+       seçimin DÜŞTÜĞÜ görülür. İkisi arasındaki fark kuralın kendisidir. */
+    const enerjiTesisleri = await db.tesis.findMany({
+      where: { durum: 'aktif', tip: { sektorId: enerji.id } }, select: { id: true } });
+    expect(t(await kapsamSozlugu(kapsamAnahtari(enerjiTesisleri.map((x) => x.id))), 'tesis'),
+      'tek sektörde önce çalışmalı').toBe('santral');
 
     const su = await db.sektor.create({ data: { kod: 'TEST-SU', ad: 'Su ve Atıksu' } });
     const tip = await db.tesisTipi.create({ data: {

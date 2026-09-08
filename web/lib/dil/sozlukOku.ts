@@ -90,3 +90,56 @@ export const kapsamSozlugu = cache(async (
 export function kapsamAnahtari(tesisIdleri: string[] | null): string | null {
   return tesisIdleri === null ? null : [...new Set(tesisIdleri)].sort().join(',');
 }
+
+/** Bir kapsamda GEÇEN sektörler — sözlükleriyle birlikte.
+
+    ── NİÇİN VAR ─────────────────────────────────────────────────────────
+    `kapsamSozlugu` çok sektörlü kapsamda `null` döner ve bu DOĞRUDUR:
+    kabuk kendi başına sektörlerden birini seçemez, seçerse portföyün
+    öbür yarısı için yalan söyler. Ama kullanıcı seçebilir. Bu okuma o
+    seçimin malzemesini verir: kapsamda hangi sektörler var, her birinin
+    sözcükleri ne.
+
+    Karar hâlâ kabuğun değil KULLANICININ: araç sıralı bir liste döner,
+    hangisinin etkin olduğunu söylemez.
+
+    ── SÖZLÜĞÜ OLMAYAN SEKTÖR LİSTEYE GİRMEZ ─────────────────────────────
+    Sözlüğü boş bir sektörü seçeneğe koymak, seçildiğinde hiçbir sözcüğü
+    değiştirmeyen bir düğme çizmek olurdu — kullanıcı ürünün bozuk
+    olduğunu düşünür. `sektorSozlugu` zaten "boş sözlük" hâlini kütüğe
+    yazıyor; burada o sektör sessizce değil, GEREKÇELİ olarak dışarıda
+    kalır.
+
+    ── ÖLÇÜM SÖZLÜKLERİ BURADA YOKTUR ────────────────────────────────────
+    `iki-sozluk` kapısının `stres` sözlüğü bir ÖLÇÜM ARACIDIR ve
+    veritabanına hiç ekilmez; bu okuma yalnız kurulu sektör paketlerini
+    görür. Yani ölçüm sözlüğünün arayüzde görünmesi için ayrı bir
+    filtreye gerek yok — hiç var olmuyor. */
+export const kapsamSektorleri = cache(async (
+  tesisAnahtari: string | null, dil = 'tr',
+): Promise<{ id: string; kod: string; ad: string; sozluk: Sozluk }[]> => {
+  const idler = tesisAnahtari === null ? null : tesisAnahtari.split(',').filter(Boolean);
+  const tesisler = await db.tesis.findMany({
+    where: { durum: 'aktif', ...(idler === null ? {} : { id: { in: idler } }) },
+    select: { tip: { select: { sektorId: true } } },
+  });
+  /* Sektörü BİLİNMEYEN tesis bir sektör seçeneği üretmez; onu bir
+     kovaya atmak "bilinmeyen ≠ sıfır"ın seçici tarafındaki ihlali
+     olurdu. Böyle bir tesis varsa kullanıcı hangi merceği seçerse
+     seçsin o kayıt çekirdek sözcükle anılır — doğrusu budur. */
+  const idKumesi = [...new Set(
+    tesisler.map((t) => t.tip?.sektorId ?? null).filter((x): x is string => x !== null),
+  )];
+  if (idKumesi.length === 0) return [];
+  const sektorler = await db.sektor.findMany({
+    where: { id: { in: idKumesi }, aktif: true },
+    select: { id: true, kod: true, ad: true },
+    orderBy: { ad: 'asc' },
+  });
+  const cikti: { id: string; kod: string; ad: string; sozluk: Sozluk }[] = [];
+  for (const s of sektorler) {
+    const sozluk = await sektorSozlugu(s.id, dil);
+    if (sozluk) cikti.push({ ...s, sozluk });
+  }
+  return cikti;
+});

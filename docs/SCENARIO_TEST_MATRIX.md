@@ -4,12 +4,12 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 284 |
-| Testi olan senaryo | 284 |
+| Senaryo | 289 |
+| Testi olan senaryo | 289 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
-| Taranan test dosyası | 162 |
+| Taranan test dosyası | 165 |
 
 ## Katman başına kapsam
 
@@ -18,7 +18,7 @@
 | ACCESSIBILITY | 8 | 8 | 0 |
 | API | 12 | 12 | 0 |
 | CONCURRENCY | 7 | 7 | 0 |
-| DOMAIN | 151 | 151 | 0 |
+| DOMAIN | 156 | 156 | 0 |
 | ENGINE | 33 | 33 | 0 |
 | INTEGRATION | 26 | 26 | 0 |
 | MIGRATION | 3 | 3 | 0 |
@@ -26,7 +26,7 @@
 | RESPONSIVE | 8 | 8 | 0 |
 | SCOPE | 30 | 30 | 0 |
 | SERVER | 104 | 104 | 0 |
-| UI | 80 | 80 | 0 |
+| UI | 82 | 82 | 0 |
 | VISUAL | 4 | 4 | 0 |
 | WORKFLOW | 32 | 32 | 0 |
 
@@ -189,6 +189,16 @@
 | `API-IDM-001` | API | API · CONCURRENCY | `entegrasyon-cekirdek.test.ts` | bayat "calisiyor" koşusu kapatılır; TAZE koşu ikinci koşuyu engeller | evet | geçti |
 | `BLD-KTU-001` | Bildirim | DOMAIN · SCOPE | `bildirim-kutusu.test.ts` | kullanıcı KENDİ bildirimini okundu işaretleyebilir | evet | geçti |
 | `BLD-KTU-002` | Bildirim | SERVER · SCOPE | `bildirim-kutusu.test.ts` | BAŞKASININ bildirimini okundu işaretleme denemesi REDDEDİLİR | evet | geçti |
+| `RAP-KRN-001` | Rapor | DOMAIN · UI | `karne.test.ts` | ölçülmemiş uyum yüzdesi ORTALAMAYA katılmaz, ayrıca sayılır | evet | geçti |
+| `RAP-KRN-001` | Rapor | DOMAIN · UI | `karne.test.ts` | açık bulgu ve risk kapsamdaki satırlardan toplanır | evet | geçti |
+| `RAP-KRN-001` | Rapor | DOMAIN · UI | `karne.test.ts` | tek ölçüde kapasite toplanır ve ölçüsünü taşır | evet | geçti |
+| `RAP-KRN-001` | Rapor | DOMAIN · UI | `karne.test.ts` | ölçülmemiş kayıt "en zayıf" listesine GİRMEZ | evet | geçti |
+| `RAP-KRN-001` | Rapor | DOMAIN · UI | `karne.test.ts` | artan yüzde sırası; eşitlikte ada göre | evet | geçti |
+| `RAP-KRN-001` | Rapor | DOMAIN · UI | `karne.test.ts` | en fazla beş kayıt döner | evet | geçti |
+| `RAP-KRN-002` | Rapor | DOMAIN · UI | `karne.test.ts` | iki sektöre yayılan kapsamda TOPLAM ÜRETİLMEZ | evet | geçti |
+| `RAP-KRN-002` | Rapor | DOMAIN · UI | `karne.test.ts` | ölçülmemiş kapasite sıfır sayılmaz — sayım ayrı raporlanır | evet | geçti |
+| `RAP-KRN-002` | Rapor | DOMAIN · UI | `karne.test.ts` | mercek yokken bütün kayıtlar görünür | evet | geçti |
+| `RAP-KRN-002` | Rapor | DOMAIN · UI | `karne.test.ts` | mercek varken YALNIZ o sektörün kayıtları kalır | evet | geçti |
 | `RAP-URT-001` | Rapor | DOMAIN · UI | `senaryo-platform.test.ts` | kapsam dışı hücre "0 uyum" DEĞİL, kapsam dışıdır | evet | geçti |
 | `RAP-URT-002` | Rapor | DOMAIN · SCOPE | `disa-aktarim-paketi.test.ts` | kapsam dışı tesis istenirse istek REDDEDİLİR, sessizce daraltılmaz | evet | geçti |
 | `IMP-XLS-001` | İçe aktarım | SERVER · DOMAIN | `varlik-aktarim.test.ts` | etiket eşleşmesi güncelleme, eşleşmeyen yeni | evet | geçti |
@@ -321,6 +331,22 @@
 | `URN-KUR-002` | Ürünleştirme | DOMAIN | `marka-adi.test.ts` | PRODUCT.md ürünleştirme kurgusunu anlatır | evet | geçti |
 | `URN-KUR-003` | Ürünleştirme | DOMAIN | `marka-adi.test.ts` | CLAUDE.md yönlendirme tablosunda ölü atıf yoktur | evet | geçti |
 | `URN-KUR-004` | Ürünleştirme | DOMAIN · UI | `marka-adi.test.ts` | belge başlıkları marka.ts varsayılanından sapmaz | evet | geçti |
+| `URN-KUR-005` | Ürünleştirme | DOMAIN | `bekci/kurgusal-adlar.test.ts` | TEDARİKÇİ adları tek kaynaktan gelir | evet | geçti |
+| `URN-KUR-005` | Ürünleştirme | DOMAIN | `bekci/kurgusal-adlar.test.ts` | VARLIK üreticileri tek kaynaktan gelir | evet | geçti |
+| `URN-KUR-005` | Ürünleştirme | DOMAIN | `bekci/kurgusal-adlar.test.ts` | YAZILIM üreticileri tek kaynaktan gelir | evet | geçti |
+| `URN-KUR-005` | Ürünleştirme | DOMAIN | `bekci/kurgusal-adlar.test.ts` | DENETLEYİCİ adları tek kaynaktan gelir | evet | geçti |
+| `URN-KUR-005` | Ürünleştirme | DOMAIN | `bekci/kurgusal-adlar.test.ts` | TÜZEL KİŞİ adları tek kaynaktan gelir | evet | geçti |
+| `URN-KUR-005` | Ürünleştirme | DOMAIN | `bekci/kurgusal-adlar.test.ts` | KİŞİ adları rol taşır, gerçek ad taşımaz | evet | geçti |
+| `URN-KUR-006` | Ürünleştirme | DOMAIN | `bekci/kurgusal-adlar.test.ts` | YAZILIM ÜRÜNÜ adları tek kaynaktan gelir | evet | geçti |
+| `URN-KUR-006` | Ürünleştirme | DOMAIN | `bekci/kurgusal-adlar.test.ts` | VARLIK modelleri tek kaynaktan gelir | evet | geçti |
+| `URN-KUR-006` | Ürünleştirme | DOMAIN | `bekci/kurgusal-adlar.test.ts` | İŞLETİM SİSTEMİ adları tek kaynaktan gelir | evet | geçti |
+| `URN-KUR-006` | Ürünleştirme | DOMAIN | `bekci/kurgusal-adlar.test.ts` | CONNECTOR kaynak sistemi beyanlıdır | evet | geçti |
+| `URN-KUR-006` | Ürünleştirme | DOMAIN | `bekci/kurgusal-adlar.test.ts` | KİMLİK HESABI kaynak sistemi beyanlıdır | evet | geçti |
+| `URN-KUR-006` | Ürünleştirme | DOMAIN | `bekci/kurgusal-adlar.test.ts` | SERTİFİKAYI VEREN beyanlıdır | evet | geçti |
+| `URN-KUR-007` | Ürünleştirme | DOMAIN | `bekci/kurgusal-adlar.test.ts` | her beyan KAYNAK ve GEREKÇE taşır | evet | geçti |
+| `URN-KUR-007` | Ürünleştirme | DOMAIN | `bekci/kurgusal-adlar.test.ts` | KULLANILMAYAN beyan bırakılmaz | evet | geçti |
+| `URN-KUR-007` | Ürünleştirme | DOMAIN | `bekci/kurgusal-adlar.test.ts` | her ZAFİYET kamuya açık bir kaynağa atıf yapar | evet | geçti |
+| `URN-KUR-007` | Ürünleştirme | DOMAIN | `bekci/kurgusal-adlar.test.ts` | KURGUSAL ad ile GERÇEK ad aynı kayıtta karışmaz | evet | geçti |
 | `URN-ALN-001` | Ürünleştirme | MIGRATION · DOMAIN | `p1-oznitelik-gocu.test.ts` | göç betiği kurulu gücü kayıpsız taşır; ölçülmemiş satır almaz | evet | geçti |
 | `URN-ALN-001` | Ürünleştirme | MIGRATION · DOMAIN | `p1-oznitelik-gocu.test.ts` | uygulama veritabanında ölçülmemiş nitelik SATIRSIZ durur | evet | geçti |
 | `URN-ALN-002` | Ürünleştirme | DOMAIN · UI | `p1-oznitelik-gocu.test.ts` | kural öznitelik üzerinden AYNI kararları üretir | evet | geçti |
@@ -425,4 +451,5 @@
 | `kapi-farki.test.ts` | Kapı farkı ölçüsünün saf kuralları — hangi betik CI'da koşuyor |
 | `kirpan-ata.test.ts` | Düzen kapısının kırpan-ata yürüyüşü — kaydırılabilen içerik kayıp sayılmaz |
 | `inceleme-30.test.ts` | Bir inceleme turunun beş bulgusunun düzeltme kanıtı — birlikte okunmaları gerekir |
+| `sunucu-durdurma.test.ts` | Başarısız OLAMAYAN temizlik adımı sınıfı — süreç adıyla öldürme, sonucu yutan `|| true` ve son koşulunu doğrulamayan adım |
 

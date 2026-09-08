@@ -23,6 +23,11 @@ export type PortfoySatiri = {
   kritiklik: string | null;
   uyumYuzde: number | null; bilinmeyenOran: number | null;
   acikBulgu: number; acikRisk: number;
+  /** Tesisin sektörü; `null` = BİLİNMİYOR (yanlış değil). Sektör
+      merceği bunun üstünden süzer ve bilinmeyeni hiçbir merceğe
+      koymaz — bir kovaya atmak "bilinmeyen ≠ sıfır"ın süzgeç
+      tarafındaki ihlali olurdu. */
+  sektorId: string | null;
 };
 
 /** Portföy geneli uyum endeksi — `uyumOzeti` çıktısının ekrana giden yüzü. */
@@ -79,11 +84,16 @@ export function sirala(satirlar: PortfoySatiri[], anahtar: SiralamaAnahtari): Po
 
 export function suz(
   satirlar: PortfoySatiri[],
-  { tip = HEPSI, tuzelKisi = HEPSI }: { tip?: string; tuzelKisi?: string },
+  { tip = HEPSI, tuzelKisi = HEPSI, sektor = null }:
+  { tip?: string; tuzelKisi?: string; sektor?: string | null },
 ): PortfoySatiri[] {
   return satirlar.filter((s) => {
     if (tip !== HEPSI && (s.tipKod ?? 'DIGER') !== tip) return false;
     if (tuzelKisi !== HEPSI && (s.tuzelKisi ?? TUZEL_YOK) !== tuzelKisi) return false;
+    /* Mercek yoksa (`null`) hiçbir şey süzülmez: çekirdek görünümü
+       portföyün TAMAMIDIR — sektör paketi kurulu olmayan kiracının
+       gördüğü ekran budur. */
+    if (sektor !== null && s.sektorId !== sektor) return false;
     return true;
   });
 }

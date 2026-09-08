@@ -37,7 +37,7 @@ export async function denetimVeProje(db: PrismaClient) {
      iç denetim eklenir. Aşamalar gerçek: biri kanıt topluyor, biri sahada,
      biri planda. */
   const denetimTanim: [string, string, string, string, string, number, number, string[]][] = [
-    ['DEN-2026-ISO-GOZ', 'ISO 27001 Gözetim Denetimi', 'dis_denetim', 'BSI Türkiye',
+    ['DEN-2026-ISO-GOZ', 'ISO 27001 Gözetim Denetimi', 'dis_denetim', 'Demo Belgelendirme Kuruluşu',
       'saha', -3, 4, ['MERKEZ-BT', 'SAHA-A3']],
     ['DEN-2026-IC-OT', 'OT Güvenliği İç Denetimi', 'ic_denetim', 'İç Denetim Birimi',
       'plan', 62, 74, ['SAHA-C-RES', 'SAHA-D-RES', 'SAHA-A2']],

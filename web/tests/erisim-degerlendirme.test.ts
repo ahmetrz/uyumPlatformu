@@ -266,7 +266,7 @@ describe('Erişim değerlendirme motoru — veritabanı davranışı', () => {
     await db.veriKalitesiBulgusu.deleteMany({ where: { kural: { in: [...ERISIM_KURALLARI] } } });
 
     const t = await db.tedarikci.findFirstOrThrow({
-      where: { ad: 'Siemens Energy' }, select: { id: true } });
+      where: { ad: 'Demo Türbin Sistemleri' }, select: { id: true } });
     tedarikciId = t.id;
 
     const v = await db.varlik.findFirstOrThrow({

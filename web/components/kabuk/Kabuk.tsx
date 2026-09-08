@@ -1,7 +1,8 @@
 'use client';
 import Link from 'next/link';
 import { KIRACI_AD, MARKA_AD } from '@/lib/marka';
-import { SozlukSaglayici } from '@/lib/dil/SozlukSaglayici';
+import { SozlukSaglayici, type SektorSecenegi } from '@/lib/dil/SozlukSaglayici';
+import SektorMercegi from './SektorMercegi';
 import { t, type Sozluk } from '@/lib/dil/terimler';
 import { usePathname } from 'next/navigation';
 import { useMemo, type ReactNode } from 'react';
@@ -63,6 +64,10 @@ export type KabukVerisi = {
       çekirdek sözcük. Kabuğun altındaki her istemci bileşen buna
       `useTerim()` ile erişir (`lib/dil/SozlukSaglayici.tsx`). */
   sozluk: Sozluk | null;
+  /** Kapsamda geçen sektörler; ikiden azsa mercek çizilmez. */
+  sektorler: SektorSecenegi[];
+  /** Tesis → sektör eşlemesi; kayıt listeleri mercekle bunu süzer. */
+  tesisSektoru: Record<string, string>;
 };
 
 const TARIH = new Intl.DateTimeFormat('tr-TR', {
@@ -88,7 +93,8 @@ export default function Kabuk({ veri, children }: { veri: KabukVerisi; children:
     /* Sözlük kabuğun KÖKÜNDE verilir: altındaki her istemci bileşen —
        ekranların kendileri dâhil — `useTerim()` ile aynı sözcüğü okur ve
        hiçbir katman prop taşımak zorunda kalmaz. */
-    <SozlukSaglayici sozluk={veri.sozluk}>
+    <SozlukSaglayici sozluk={veri.sozluk} sektorler={veri.sektorler}
+      tesisSektoru={veri.tesisSektoru}>
     <div className="ab" data-yogunluk={yogunluk}>
       {/* İÇERİĞE ATLA — belgenin İLK odaklanabilir öğesi. Görünmez; klavye
           odağı gelince görünür (`.ab-atla`). Hedef `#icerik` sarmalayıcısı
@@ -99,6 +105,24 @@ export default function Kabuk({ veri, children }: { veri: KabukVerisi; children:
         <Link href="/" className="marka" aria-label={`${MARKA_AD} — ana ekran`}>
           {KIRACI_AD.toLocaleUpperCase('tr-TR')}<span className="ikinci">{MARKA_AD}</span>
         </Link>
+        {/* ── ÖRNEK VERİ İŞARETİ ────────────────────────────────────────
+            Depodaki bütün kayıtlar KURGUSALDIR: hiçbir gerçek kurum,
+            tesis ya da kişi yoktur. İşaret ayakta küçük puntoyla
+            duruyordu; ayağı gören yok. Bir demo ekranının ekran
+            görüntüsü alınıp sunuma konduğunda, o görüntünün üstünde
+            "örnek veri" yazmalı — yoksa kurgusal bir sayı gerçek bir
+            iddiaya dönüşür.
+
+            ÜRETİMDE GÖSTERİLMEZ: gerçek kiracının kendi verisine "örnek"
+            demek, ürünün söylediği her şeyi şüpheli yapardı. Koşul
+            bu yüzden "demo mu" değil "üretim DEĞİL mi" — geliştirme
+            ortamında da görünür, çünkü orada da veri kurgusaldır ve
+            işaretin kapalı unutulması tam olarak böyle başlar. */}
+        {veri.ortam !== 'uretim' && (
+          <span className="ab-ornek-veri" title="Bu kurulumdaki bütün kayıtlar kurgusaldır">
+            Örnek veri
+          </span>
+        )}
         <nav aria-label="Alanlar">
           {alanlar.map((o) => (
             <Link key={o.yol} href={o.yol}
@@ -107,6 +131,13 @@ export default function Kabuk({ veri, children }: { veri: KabukVerisi; children:
             </Link>
           ))}
         </nav>
+        {/* Mercek yardımcı bir eylem DEĞİL bağlam kontrolüdür ("neye
+            bakıyorum") ve üst çubuğun DOĞRUDAN çocuğudur — yardımcı
+            kümenin (`.sag`) içinde değil. Ölçüldü (8 Eyl 2026): içinde
+            durduğunda dar bant sıralaması (`order`) `.sag`ın içine
+            hapsoluyordu ve mercek gezinmeden önce yerleştirilemiyordu;
+            oysa öncelik sırası marka → mercek → gezinme → hesaptır. */}
+        <SektorMercegi />
         <div className="sag">
           <AramaDugmesi />
           {veri.kullanici && <BildirimBagi n={veri.okunmamis} patika={patika} />}
@@ -149,6 +180,23 @@ export default function Kabuk({ veri, children }: { veri: KabukVerisi; children:
             </Link>
           ))}
         </nav>
+      )}
+
+      {/* ── BASKI KÜNYESİ — YALNIZ YAZDIRMADA GÖRÜNÜR ──────────────────
+          `@media print` üst çubuğu gizliyor; "Örnek veri" rozeti orada
+          durduğu için YAZDIRILAN sayfada kayboluyordu. Bir demo
+          ekranının çıktısı toplantı masasına konduğunda üstünde kurgusal
+          olduğu YAZMALI — ekranda görünüp kâğıtta kaybolan bir uyarı,
+          en çok ihtiyaç duyulan yerde yok demektir.
+
+          Ayrı bir öğe: rozeti baskıda göstermek için üst çubuğu açmak,
+          gezinmeyi de kâğıda basardı. */}
+      {veri.ortam !== 'uretim' && (
+        <div className="ab-baski-kunye" aria-hidden>
+          <strong>ÖRNEK VERİ</strong>
+          <span>{veri.kunye} · bu çıktıdaki bütün kayıtlar kurgusaldır ve
+            gerçek bir kuruma ait değildir</span>
+        </div>
       )}
 
       {/* Atla bağının hedefi. `tabIndex={-1}`: bağ tıklanınca odak buraya

@@ -4,6 +4,7 @@ import { useLayoutEffect, useRef, type ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
 import { MARKA_AD } from '@/lib/marka';
 import { TEMEL } from '@/lib/demo';
+import { mercegiSec } from '@/lib/dil/SozlukSaglayici';
 import { KARELER, SAHNELER, ekranYerlestir, kaydirmaKatsayisi, kaydirmaTamam, sinirla } from './zaman';
 import { sahneKur, type Sahne } from './sahne';
 import styles from './giris.module.css';
@@ -11,15 +12,19 @@ import styles from './giris.module.css';
 const HATIRLA = 'uyum-sahne-goruldu-v4';
 const DOSYALAR = ['sahne-01-uzak', 'sahne-02-yaklasma', 'sahne-03-bina', 'sahne-04-ekran'] as const;
 
-export default function SinematikGiris({ children, sadeceAnaSayfa = false }: {
+export default function SinematikGiris({ children, sadeceAnaSayfa = false, sektorler = [] }: {
   children: ReactNode; sadeceAnaSayfa?: boolean;
+  /** Kurulu sektör paketleri — açılışta mercek seçilebilsin diye. */
+  sektorler?: { id: string; kod: string; ad: string }[];
 }) {
   const pathname = usePathname();
   const uygun = !sadeceAnaSayfa || pathname === '/' || pathname === TEMEL || pathname === `${TEMEL}/`;
-  return uygun ? <Giris key={pathname}>{children}</Giris> : children;
+  return uygun ? <Giris key={pathname} sektorler={sektorler}>{children}</Giris> : children;
 }
 
-function Giris({ children }: { children: ReactNode }) {
+function Giris({ children, sektorler }: {
+  children: ReactNode; sektorler: { id: string; kod: string; ad: string }[];
+}) {
   const root = useRef<HTMLDivElement>(null);
   const hedef = useRef<HTMLDivElement>(null);
   const atla = useRef<() => void>(() => {});
@@ -155,7 +160,40 @@ function Giris({ children }: { children: ReactNode }) {
             <p className={styles.eyebrow}>SAHA · YÖNETİŞİM · UYUM</p>
             <h1>Enerjinin<br /><span>kalbine doğru.</span></h1>
             <p className={styles.description}>Sahadan kontrol odasına.<br />Operasyondan güvenilir yönetişime.</p>
-            <a className={styles.cta} href="#platform-arayuzu" onClick={e => { e.preventDefault(); atla.current(); }}>Platforma Gir <span aria-hidden="true">↗</span></a>
+            {/* ── SEKTÖR SEÇİMİ AÇILIŞTA ─────────────────────────────────
+                Yabancı bir ziyaretçinin ilk on beş saniyede alması gereken
+                cevap "bu ürün BENİM işim için mi". Merceği kabuğun içine
+                saklamak, o cevabı ekranın ikinci dakikasına erteliyordu.
+
+                Açılış kabuğu SARAR, yani sözlük sağlayıcısının DIŞINDADIR
+                ve `useSektorSecimi()` buradan görünmez; seçim ortak
+                `mercegiSec()` ile yazılır. Kabuk `useSyncExternalStore`
+                ile dinlediği için değişiklik anında iner — bu ekranın
+                sözcükleri değişmez (henüz kabuk yok), ARDINDAKİ ekran
+                zaten seçilmiş mercekle açılır.
+
+                İkiden az seçenek varsa çizilmez: tek seçenekli bir seçim,
+                seçim değildir. */}
+            {sektorler.length >= 2 && (
+              <div className={styles.sektor}>
+                <span>Sektörünüzü seçin</span>
+                <div>
+                  {sektorler.map(s => (
+                    <button key={s.id} type="button"
+                      onClick={() => mercegiSec(s.id)}>{s.ad}</button>
+                  ))}
+                  <button type="button" onClick={() => mercegiSec(null)}>Sektörsüz</button>
+                </div>
+              </div>
+            )}
+            {/* `data-cta` KARARLI KANCADIR, görünen ad değil. ÖLÇÜLDÜ (8 Eyl
+                2026): `arac/kosu-ortak.mjs` bu bağı ADIYLA arıyordu ve
+                metin değişince giriş yardımcısı CTA'yı bulamadı; perde
+                açılmadı, rota duman kapısı 58 rotanın hepsinde düştü.
+                Depo bu sınıfı #28'de zaten yaşamıştı. Görünen metin bir
+                ÜRÜN kararıdır ve değişir; kapı değişmeyen bir şeye
+                tutunur. */}
+            <a className={styles.cta} data-cta="platforma-gir" href="#platform-arayuzu" onClick={e => { e.preventDefault(); atla.current(); }}>Platforma Gir <span aria-hidden="true">↗</span></a>
           </div>
           <footer className={styles.footer}>
             <span className={styles.scroll}>İlerlemek için kaydır <span aria-hidden="true">↓</span></span>

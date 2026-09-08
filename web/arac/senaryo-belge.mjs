@@ -60,6 +60,7 @@ export const KUTUKSUZ_DOSYALAR = {
   'kapi-farki.test.ts': 'Kapı farkı ölçüsünün saf kuralları — hangi betik CI\'da koşuyor',
   'kirpan-ata.test.ts': 'Düzen kapısının kırpan-ata yürüyüşü — kaydırılabilen içerik kayıp sayılmaz',
   'inceleme-30.test.ts': 'Bir inceleme turunun beş bulgusunun düzeltme kanıtı — birlikte okunmaları gerekir',
+  'sunucu-durdurma.test.ts': 'Başarısız OLAMAYAN temizlik adımı sınıfı — süreç adıyla öldürme, sonucu yutan `|| true` ve son koşulunu doğrulamayan adım',
 };
 
 /* Vitest'in globuyla AYNI küme: `tests/**\/*.test.ts` — yani ALT

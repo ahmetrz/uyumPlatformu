@@ -8,6 +8,16 @@ import { kabukVerisi } from '@/components/kabuk/kabukVerisi';
    Yön seçimi rotadan türer (yonler.ts). */
 
 export default async function FlagshipYerlesim({ children }: { children: React.ReactNode }) {
-  const arayuz = <Kabuk veri={await kabukVerisi()}>{children}</Kabuk>;
-  return DEMO ? <SinematikGiris sadeceAnaSayfa>{arayuz}</SinematikGiris> : arayuz;
+  /* Veri BİR KEZ okunur: `kabukVerisi()` iki kez çağrılsaydı açılışın
+     gördüğü sektör listesiyle kabuğunki ayrışabilirdi. */
+  const veri = await kabukVerisi();
+  const arayuz = <Kabuk veri={veri}>{children}</Kabuk>;
+  return DEMO
+    ? (
+      <SinematikGiris sadeceAnaSayfa
+        sektorler={veri.sektorler.map(({ id, kod, ad }) => ({ id, kod, ad }))}>
+        {arayuz}
+      </SinematikGiris>
+      )
+    : arayuz;
 }

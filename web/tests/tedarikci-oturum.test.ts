@@ -56,9 +56,9 @@ describe('Tedarikçi erişim oturumu — üç değerli uyum', () => {
     sahteKullanici.id = yonetici.id;
     await db.tedarikciErisimOturumu.deleteMany();
     [siemens, ormat, vestas] = await Promise.all([
-      db.tedarikci.findFirstOrThrow({ where: { ad: 'Siemens Energy' }, select: { id: true } }),
-      db.tedarikci.findFirstOrThrow({ where: { ad: 'Ormat Technologies' }, select: { id: true } }),
-      db.tedarikci.findFirstOrThrow({ where: { ad: 'Vestas' }, select: { id: true } }),
+      db.tedarikci.findFirstOrThrow({ where: { ad: 'Demo Türbin Sistemleri' }, select: { id: true } }),
+      db.tedarikci.findFirstOrThrow({ where: { ad: 'Demo Jeotermal Teknoloji' }, select: { id: true } }),
+      db.tedarikci.findFirstOrThrow({ where: { ad: 'Demo Rüzgâr Türbini' }, select: { id: true } }),
     ]);
   });
 
@@ -186,7 +186,7 @@ describe('Tedarikçi erişim oturumu — üç değerli uyum', () => {
   it('her oturum için köken kaydı düşer; doğrulama insana bırakılır', async () => {
     const { id } = await oturumYaz({
       koken: { kaynakSistem: 'vpn-test', kaynakKayitId: 'VPN-77', toplanma: new Date(), guven: null },
-      tedarikciAdi: 'Vestas',   // ad üzerinden çözüm
+      tedarikciAdi: 'Demo Rüzgâr Türbini',   // ad üzerinden çözüm
       baslangic: new Date(Date.now() - 2 * SAAT), izlendi: true, mfaVar: true, onayli: true,
     });
     const k = await db.veriKokeni.findFirstOrThrow({
@@ -225,7 +225,7 @@ describe('Tedarikçi erişim oturumu — üç değerli uyum', () => {
 
   it('kaynak bağlıyken kaydı olmayan tedarikçi için "oturum yok" denmez', async () => {
     const bosTedarikci = await db.tedarikci.findFirstOrThrow({
-      where: { ad: 'Honeywell' }, select: { id: true } });
+      where: { ad: 'Demo Proses Otomasyonu' }, select: { id: true } });
     const ozet = await tedarikciOturumOzeti(bosTedarikci.id);
     expect(ozet.kapsam).toBe('kayit_yok');
     expect(ozet.toplam).toBe(0);
@@ -309,7 +309,7 @@ describe('§18 · Uyumsuz oturum bir ÖNERİdir — otomasyon kapatmaz', () => {
     expect(iz?.oncekiDeger).not.toMatch(/izlenmemiş/);
 
     const gorev = await db.gorev.findFirst({
-      where: { tip: 'erisim_incelemesi', baslik: { contains: 'Vestas' } },
+      where: { tip: 'erisim_incelemesi', baslik: { contains: 'Demo Rüzgâr Türbini' } },
       orderBy: { olusturuldu: 'desc' },
     });
     expect(gorev).not.toBeNull();

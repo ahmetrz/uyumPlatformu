@@ -27,7 +27,7 @@ type Tanim = {
 const CONNECTORLAR: Tanim[] = [
   {
     kod: 'AD-01',
-    ad: 'Demo Entra ID',
+    ad: 'Entra ID',
     tip: 'ad_entra',
     kaynakSistem: 'Entra ID',
     kimlikTipi: 'oauth2_client_credentials',
@@ -105,7 +105,7 @@ const CONNECTORLAR: Tanim[] = [
     kod: 'FW-01',
     ad: 'OT güvenlik duvarı yapılandırması',
     tip: 'network_firewall',
-    kaynakSistem: 'Fortinet FortiManager',
+    kaynakSistem: 'FortiManager',
     kimlikTipi: 'api_key',
     sirReferansi: 'env:FORTIMANAGER_API_ANAHTARI',
     pollAralikDk: 1440,

@@ -81,6 +81,13 @@ export class AgGuvenlikDuvariAdaptoru extends BaglanmamisAdaptor {
      içindeki yazılım hakkında hiçbir şey söylemez. */
   readonly yetenekler: Yetenek[] = ['asset_inventory', 'topology', 'passive_asset_discovery'];
 
+  /* Bağlanılacak gerçek ürünler — beyanları
+     `prisma/kurgusal-adlar.ts` içinde kaynağı ve gerekçesiyle durur.
+     Beyansız bir ad bekçiyi kırmızı yakar. */
+  readonly hedefUrunler = [
+    'Palo Alto PAN-OS', 'Cisco IOS-XE', 'Fortinet FortiOS',
+  ] as const;
+
   readonly gerekenSirlar = ['env:FW_API_ANAHTARI'];
   readonly gereken =
     'Ağ ekipmanında SALT OKUNUR yönetim hesabı ve API erişimi: Palo Alto ' +

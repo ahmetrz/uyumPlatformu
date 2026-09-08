@@ -71,6 +71,13 @@ export class ZafiyetTarayiciAdaptoru extends BaglanmamisAdaptor {
      yapılandırmada durur ve güven ona göre yazılır. */
   readonly yetenekler: Yetenek[] = ['asset_inventory', 'asset_state', 'vulnerability'];
 
+  /* Bağlanılacak gerçek ürünler — beyanları
+     `prisma/kurgusal-adlar.ts` içinde kaynağı ve gerekçesiyle durur.
+     Beyansız bir ad bekçiyi kırmızı yakar. */
+  readonly hedefUrunler = [
+    'Tenable.io', 'Qualys', 'Rapid7', 'Tenable.ot',
+  ] as const;
+
   readonly gerekenSirlar = ['env:VULN_API_ANAHTARI'];
   readonly gereken =
     'Tenable.io/Qualys/Rapid7 salt okunur API anahtarı (access + secret key, ' +

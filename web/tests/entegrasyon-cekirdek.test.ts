@@ -245,6 +245,11 @@ describe('Connector senkronizasyon çekirdeği (izole DB kopyası)', () => {
          beyan üretirdi. */
       readonly yapilandirmaSemasi = z.looseObject({});
       readonly gerekenSirlar = ['env:TEST_AD_PAROLA'];
+      /* Kurgusal fikstürün hedefi de kurgusaldır: bekçi yalnız GERÇEK
+         adları beyanda arar, bu liste boş kalabilir ama VARLIĞI
+         zorunludur — yeni bir adaptörün alanı doldurmayı unutmasını
+         engelleyen şey tam olarak bu. */
+      readonly hedefUrunler = [] as const;
       /* OT-50 · İhtiyaç listesi de zorunludur ve `abstract`tır: varsayılan
          boş liste verilseydi yeni bir adaptör onu doldurmayı unutur ve
          ekranda "hiçbir şey gerekmiyor" yazardı — bağlanmamış bir

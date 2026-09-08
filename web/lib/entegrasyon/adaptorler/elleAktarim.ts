@@ -205,6 +205,11 @@ export class ElleAktarimAdaptoru implements Adaptor {
      iddiası ancak periyodik bir kaynaktan doğar. Dosyayla gelen sürüm
      bilgisi envanter kaydını besler, "canlı" etiketi almaz. */
   readonly yetenekler: Yetenek[] = ['asset_inventory', 'passive_asset_discovery'];
+  /* HİÇBİR dış ürünü hedeflemez ve bu bir EKSİKLİK DEĞİL, bir beyandır:
+     bu adaptör dosyadan okur, ağa paket yollamaz, kimlik bilgisi
+     istemez. Boş liste "hedef yok" der; alanın hiç yazılmaması
+     "söylemedim" derdi ve ikisi aynı şey değildir. */
+  readonly hedefUrunler = [] as const;
 
   /* Kaynağı olmayan bir elle aktarım connector'ı, ilk koşusunda
      "kaynağı tanımlı değil" diye patlıyordu — yani yapılandırma hatası

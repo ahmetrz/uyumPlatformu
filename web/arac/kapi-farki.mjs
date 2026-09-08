@@ -141,6 +141,13 @@ export function adimlar(isAkisiMetni) {
   let simdiki = null;
   let blok = null;                       /* `run: |` gövdesinin girintisi */
   let cevre = null;                      /* `env:` bloğunun girintisi */
+  let adimGirinti = null;                /* adım anahtarlarının girintisi */
+  /* Aracın GERÇEKTEN uyguladığı adım anahtarları. Bu kümenin dışındaki
+     her anahtar `bilinmeyen`e düşer ve raporda ORTAM FARKI olarak
+     görünür — sessizce atlanmaz. `env:` körlüğü tam olarak buradan
+     doğdu: anahtar okunmuyordu, kimse fark etmiyordu, kapı yanlış
+     ortamda koşuyordu ve rapor "koştu" diyordu. */
+  const UYGULANAN = new Set(['name', 'run', 'working-directory', 'env', 'continue-on-error']);
   for (const ham of satirlar) {
     if (blok !== null) {
       if (ham.trim() === '' || ham.search(/\S/) >= blok) {
@@ -157,13 +164,24 @@ export function adimlar(isAkisiMetni) {
       }
       cevre = null;
     }
-    const ad = ham.match(/^\s*-\s+name:\s*(.+?)\s*$/);
+    const ad = ham.match(/^(\s*)-\s+name:\s*(.+?)\s*$/);
     if (ad) {
       if (simdiki?.komut) cikti.push(simdiki);
-      simdiki = { ad: ad[1].replace(/^['"]|['"]$/g, ''), komut: '', dizin: '.', cevre: {} };
+      adimGirinti = ad[1].length + 2;
+      simdiki = {
+        ad: ad[2].replace(/^['"]|['"]$/g, ''),
+        komut: '', dizin: '.', cevre: {}, bilinmeyen: {}, bloklamaz: false,
+      };
       continue;
     }
     if (!simdiki) continue;
+    /* Adım düzeyindeki HER anahtar görülür; uygulanmayanlar kaydedilir. */
+    const anahtar = adimGirinti === null ? null
+      : ham.match(new RegExp(`^\\s{${adimGirinti}}([a-z][a-z0-9-]*):\\s*(.*?)\\s*$`));
+    if (anahtar && !UYGULANAN.has(anahtar[1])) {
+      simdiki.bilinmeyen[anahtar[1]] = anahtar[2] || '(blok)';
+      continue;
+    }
     /* ADIMIN `env:` BLOĞU DA ADIMIN PARÇASIDIR. Ölçüldü: `env:` atlanınca
        `demo:build` KIRMIZI yandı — `NEXT_PUBLIC_DEMO=1` olmadan statik
        çıktı üretilmiyor ("çıktı dizini yok → web/out"). Kusur kodda değil
@@ -171,6 +189,12 @@ export function adimlar(isAkisiMetni) {
        kapısını kopyalamış olmaz. */
     const cevreBas = ham.match(/^(\s*)env:\s*$/);
     if (cevreBas) { cevre = cevreBas[1].length + 2; continue; }
+    /* `continue-on-error: true` = ADIM CI'DA BLOKLAMAZ. Bunu okumayan bir
+       ayna kendi yorumunu ekler: yerelde kırmızı, CI'da yeşil bir kapı
+       önce görmezden gelinir, sonra atlanır. Kümeleri eşitlemek için
+       kurulan araç, ilk aşınmayı tam oradan yaşar. */
+    const hosgoru = ham.match(/^\s*continue-on-error:\s*(\S+)/);
+    if (hosgoru) { simdiki.bloklamaz = hosgoru[1] === 'true'; continue; }
     const dizin = ham.match(/^\s*working-directory:\s*(\S+)/);
     if (dizin) { simdiki.dizin = dizin[1]; continue; }
     const kosBlok = ham.match(/^(\s*)run:\s*\|\s*$/);
@@ -180,6 +204,26 @@ export function adimlar(isAkisiMetni) {
   }
   if (simdiki?.komut) cikti.push(simdiki);
   return cikti;
+}
+
+/** İŞ DÜZEYİNDEKİ ortam anahtarları — araç bunların HİÇBİRİNİ uygulamaz.
+
+    Adım anahtarları `adimlar()` içinde toplanıyor; ama ortamı asıl
+    belirleyen katman iş düzeyidir: hangi işletim sistemi, hangi node,
+    hangi servis kabı. Yerel makine bunların hiçbirini taklit etmez ve
+    etmeyi de iddia etmemeli — raporun görevi farkı SÖYLEMEK. */
+export function isOrtami(isAkisiMetni) {
+  const ilgi = ['runs-on', 'container', 'services', 'strategy', 'defaults', 'timeout-minutes'];
+  const bulunan = {};
+  for (const ad of ilgi) {
+    const m = isAkisiMetni.match(new RegExp(`^\\s{4,6}${ad}:\\s*(.*?)\\s*$`, 'm'));
+    if (m) bulunan[ad] = m[1] || '(blok)';
+  }
+  /* `uses:` adımları kurulumdur (checkout, setup-node, cache); araç
+     onları koşmaz — yerel node ve yerel bağımlılıklar kullanılır. */
+  const kurulumlar = [...isAkisiMetni.matchAll(/^\s*uses:\s*(\S+)/gm)].map((m) => m[1]);
+  const nodeSurumu = isAkisiMetni.match(/node-version:\s*['"]?([\d.]+)/);
+  return { bulunan, kurulumlar, nodeSurumu: nodeSurumu?.[1] ?? null };
 }
 
 export function fark({ betikler, isAkisiMetni, beyan = BEYAN }) {

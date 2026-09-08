@@ -192,7 +192,7 @@ export function HesapTipiFormu({ hesap }: { hesap: Hesap }) {
 
       {!hesap.duzenlenebilir ? (
         <p className="ab-panel-dip" style={{ margin: 'var(--s10) 0 0' }}>
-          Hesap tipi düzenlemek envanter yazma yetkisi ve hesabın santral
+          Hesap tipi düzenlemek envanter yazma yetkisi ve hesabın tesis
           kapsamı ister.
         </p>
       ) : !acik ? (

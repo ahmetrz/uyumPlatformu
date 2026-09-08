@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { db } from '../db';
 import { yetkiZorunlu, kapsamZorunlu, KAPSAM_SONRA } from '../erisim';
 import { tamam, hata, iz, bosluksuz, type Sonuc } from './ortak';
+import { kapsamMesaji, kapsamTerimi } from './kapsamMesaji';
 
 /* Kimlik ve erişim yönetimi (§9): kişi/servis/paylaşımlı/acil durum hesapları,
    erişim atamaları ve DÖNEMSEL erişim incelemesi. Servis hesapları parola
@@ -17,7 +18,7 @@ export async function hesapKaydet(girdi: {
 }): Promise<Sonuc> {
   try {
     /* İKİ AŞAMALI KAPI. `KimlikHesabi.tesisId` şemada VAR: bir hesap bir
-       santrale ait olabilir. Hangi santral olduğu girdiden VE kaydın
+       tesise ait olabilir. Hangi tesis olduğu girdiden VE kaydın
        kendisinden gelir, ikisi de sorulur. */
     const k = await yetkiZorunlu('envanter', 'yazma', KAPSAM_SONRA);
     const v = z.object({
@@ -38,15 +39,16 @@ export async function hesapKaydet(girdi: {
       parolaRotasyon: v.parolaRotasyon ? new Date(v.parolaRotasyon) : null,
       ...(v.durum ? { durum: v.durum } : {}),
     };
-    // HEDEF santral: hesabın açılacağı/taşınacağı yer.
+    // HEDEF tesis: hesabın açılacağı/taşınacağı yer.
     kapsamZorunlu(k, 'envanter', 'yazma', { tesisId: v.tesisId },
-      'Bu santral kapsamında hesap yönetme yetkiniz yok');
+      await kapsamMesaji(k, 'envanter', 'hesap yönetme yetkiniz yok', v.tesisId));
     if (v.id) {
       const eski = await db.kimlikHesabi.findUniqueOrThrow({ where: { id: v.id } });
-      /* KAYDIN KENDİ santrali de sorulur. Yalnız hedef denetlenseydi,
-         yabancı bir hesap "kendi santralime al" denerek ele geçirilirdi. */
+      /* KAYDIN KENDİ tesisi de sorulur. Yalnız hedef denetlenseydi,
+         yabancı bir hesap "kendi kapsamıma taşı" denerek ele geçirilirdi. */
       kapsamZorunlu(k, 'envanter', 'yazma', { tesisId: eski.tesisId },
-        'Bu hesabın santrali kapsamınızda değil');
+        `Bu hesabın ${await kapsamTerimi(k, 'envanter', eski.tesisId, 'belirtme')} `
+        + 'kapsamınızda değil');
       await db.kimlikHesabi.update({ where: { id: v.id }, data: veri });
       if (v.durum && v.durum !== eski.durum)
         await iz({ aktorId: k.id, varlikTipi: 'KimlikHesabi', varlikId: v.id,
@@ -92,7 +94,7 @@ export async function erisimAta(girdi: {
       kapsam: z.string().nullable().optional(),
       yetkiSeviyesi: z.enum(['okuma', 'yazma', 'yonetici']),
     }).parse(girdi);
-    /* Kapsam HESAPTAN okunur: atama hesaba bağlıdır, santralini ondan
+    /* Kapsam HESAPTAN okunur: atama hesaba bağlıdır, tesisini ondan
        alır. Kayıt okunması ayrıca "hesap bulunamadı"yı yabancı anahtar
        hatası yerine düzgün bir cümleye çevirir. */
     const hesap = await db.kimlikHesabi.findUnique({
@@ -100,7 +102,8 @@ export async function erisimAta(girdi: {
     });
     if (!hesap) throw new Error('Hesap bulunamadı');
     kapsamZorunlu(k, 'envanter', 'yazma', { tesisId: hesap.tesisId },
-      'Bu hesabın santrali kapsamınızda değil');
+      `Bu hesabın ${await kapsamTerimi(k, 'envanter', hesap.tesisId, 'belirtme')} `
+      + 'kapsamınızda değil');
     const zatenVar = 'Bu hesabın aynı varlık ve kapsam için erişim ataması zaten var; '
       + 'ikinci satır açılmaz. Seviyeyi değiştirmek için erişim incelemesini kullanın.';
     const mevcut = await db.erisimAtamasi.findFirst({
@@ -138,13 +141,14 @@ export async function erisimIncele(girdi: {
       sonuc: z.enum(['onaylandi', 'kaldirilsin', 'degistirilsin']),
       not: z.string().nullable().optional(),
     }).parse(girdi);
-    // Kapsam atamanın HESABINDAN gelir (atama → hesap → santral).
+    // Kapsam atamanın HESABINDAN gelir (atama → hesap → tesis).
     const atama = await db.erisimAtamasi.findUnique({
       where: { id: v.atamaId }, select: { hesap: { select: { tesisId: true } } },
     });
     if (!atama) throw new Error('Erişim ataması bulunamadı');
     kapsamZorunlu(k, 'envanter', 'onay', { tesisId: atama.hesap.tesisId },
-      'Bu atamanın santrali kapsamınızda değil');
+      `Bu atamanın ${await kapsamTerimi(k, 'envanter', atama.hesap.tesisId, 'belirtme')} `
+      + 'kapsamınızda değil');
     await db.erisimIncelemesi.create({ data: {
       atamaId: v.atamaId, inceleyenId: k.id, sonuc: v.sonuc, not: v.not ?? null } });
     if (v.sonuc === 'kaldirilsin')

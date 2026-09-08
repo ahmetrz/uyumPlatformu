@@ -13,7 +13,7 @@ export const metadata: Metadata = { title: 'Bulgu & CAPA' };
    Yerleşim kabuğu (ray + çekmece kolonu) üst katmandan gelir; bu sayfa
    yalnız <main> ve seçim varsa <aside class="cekmece"> render eder.
 
-   Santral kapsamı, satır tavanı ve metrik sayımları `veri.ts`tedir
+   Tesis kapsamı, satır tavanı ve metrik sayımları `veri.ts`tedir
    (modül: `uyum`). */
 
 export default async function Sayfa() {

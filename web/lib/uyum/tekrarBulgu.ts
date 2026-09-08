@@ -28,7 +28,7 @@ export const TEKRAR_KAYNAK_SOZU: Record<TekrarKaynagi, string> = {
 
 export type AdayBulgu = {
   id: string;
-  /** Kontrol × santral kimliği — tekrar TANIMI budur. */
+  /** Kontrol × tesis kimliği — tekrar TANIMI budur. */
   maddeDurumuId: string;
   durum: string;
   onemDerecesi: string;
@@ -45,7 +45,7 @@ export type TekrarKarari =
 /**
  * Bu bulgu bir öncekinin tekrarı mı?
  *
- * Tekrar tanımı DAR tutuldu ve bilerek: **aynı kontrol, aynı santral**
+ * Tekrar tanımı DAR tutuldu ve bilerek: **aynı kontrol, aynı tesis**
  * (yani aynı `maddeDurumuId`) üzerinde daha önce KAPANMIŞ bir bulgu
  * varsa ve yeni bulgu o kapanıştan sonra açıldıysa, bu bir tekrardır.
  *

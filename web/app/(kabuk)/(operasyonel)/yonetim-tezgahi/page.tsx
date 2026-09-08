@@ -9,6 +9,7 @@ import TezgahIstemci from './TezgahIstemci';
 import KonsolIstemci from './KonsolIstemci';
 import { konsolVerisi } from './konsolVerisi';
 import { SON_ISTEK_TAVANI, type Anahtar, type Is, type SonIstek, type Tanim } from './ortak';
+import { KURULU_GUC, birimliOzellik, olculenYazi } from '@/lib/alan/oznitelik';
 
 export const metadata: Metadata = { title: 'Yönetim tezgâhı' };
 
@@ -28,7 +29,7 @@ export const metadata: Metadata = { title: 'Yönetim tezgâhı' };
    TANIM KATALOGLARI ve API ANAHTARLARI bölümleri BİLEREK kapsamsızdır,
    çünkü ikisi de kurum geneli sicillerdir: `Sektor`, `TesisTipi`,
    `VarlikTuru`, `Alan`, `Regulasyon` şemada `tesisId` taşımaz (bir varlık
-   TÜRÜ tek bir santralin malı değildir), `ApiAnahtari` ise bir kullanıcıya
+   TÜRÜ tek bir tesisin malı değildir), `ApiAnahtari` ise bir kullanıcıya
    bağlıdır ve kapsamını zaten o kullanıcının yetkilerinden alır
    (lib/api/yetki.ts → okumaKapsami). Kapsamla daraltılan yalnız görev/onay
    akışıdır; o da yukarıdaki `izinliIs` ile. */
@@ -125,7 +126,9 @@ export default async function Sayfa({ searchParams }: { searchParams: Promise<{ 
       orderBy: { kod: 'asc' } }),
     db.tesisTipi.findMany({ include: { sektor: true, _count: { select: { tesisler: true } } },
       orderBy: { sira: 'asc' } }),
-    db.tesis.findMany({ include: { tip: true, _count: { select: { surecKapsamlari: true } } },
+    db.tesis.findMany({ include: { tip: true,
+      ozellikler: { select: { anahtar: true, sayisalDeger: true, birim: true } },
+      _count: { select: { surecKapsamlari: true } } },
       orderBy: { kod: 'asc' } }),
     db.regulasyon.findMany({ include: { _count: { select: { maddeler: true, surecler: true } } },
       orderBy: { kod: 'asc' } }),
@@ -146,7 +149,8 @@ export default async function Sayfa({ searchParams }: { searchParams: Promise<{ 
   /* ── M1 · beş katalog tek satır tipine iner ─────────────────────────── */
 
   const bos = {
-    tipId: null, guc: null, konum: null, kapanisNedeni: null, kapanisTarihi: null,
+    tipId: null, guc: null, gucBirimi: null, konum: null,
+    kapanisNedeni: null, kapanisTarihi: null,
     surum: null, kaynakUrl: null, aciklama: null, sektorId: null,
   };
 
@@ -159,12 +163,17 @@ export default async function Sayfa({ searchParams }: { searchParams: Promise<{ 
         kod: t.kod, ad: t.ad,
         kullanim: t._count.surecKapsamlari, ikincilKullanim: null,
         devreDisi: t.durum === 'kapali',
-        // Kırılımı olmayan AKTİF santralde uygulanabilirlik motoru karar
-        // üretemez — zinciri kıran tek eksik budur. Kapalı santralde aranmaz.
+        // Kırılımı olmayan AKTİF tesiste uygulanabilirlik motoru karar
+        // üretemez — zinciri kıran tek eksik budur. Kapalı tesiste aranmaz.
         eksik: t.durum === 'aktif' && !t.tipId ? 'kırılım atanmadı' : null,
-        // Kurulu güç girilmemişse "bilinmiyor" yazılır, 0 MW uydurulmaz (§19).
-        not: t.konum ?? (t.kuruluGucMw !== null ? `${t.kuruluGucMw} MW` : 'konum bilinmiyor'),
-        tipId: t.tipId, guc: t.kuruluGucMw, konum: t.konum,
+        /* Kurulu güç girilmemişse "bilinmiyor" yazılır, sıfır uydurulmaz
+           (§19); BİRİM satırdan gelir, ekrana gömülmez (§0.5). */
+        not: t.konum ?? (olculenYazi(birimliOzellik(t.ozellikler, KURULU_GUC))
+          ?? 'konum bilinmiyor'),
+        tipId: t.tipId,
+        ...((o) => ({ guc: o.deger, gucBirimi: o.birim }))(
+          birimliOzellik(t.ozellikler, KURULU_GUC)),
+        konum: t.konum,
         kapanisNedeni: t.kapanisNedeni,
         kapanisTarihi: t.kapanisTarihi?.toISOString() ?? null,
       })),

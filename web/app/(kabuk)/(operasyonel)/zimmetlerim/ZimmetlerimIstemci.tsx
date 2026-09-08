@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Alan, BosIlk, Dugme } from '@/components/kabuk/temel';
 import { EkranBasligi } from '@/components/kabuk/ekran';
 import { Tablo, type Satir } from '@/components/kabuk/tablo';
@@ -11,6 +11,7 @@ import {
 } from '@/lib/varlik/zimmet';
 import { an } from '@/lib/an';
 import { tarihTR } from '@/lib/sabitler';
+import { useTerim } from '@/lib/dil/SozlukSaglayici';
 
 /* ═══ OT-09b · Bana atanan varlıklar ══════════════════════════════════
 
@@ -22,8 +23,10 @@ import { tarihTR } from '@/lib/sabitler';
    Red GEREKÇE ister. Gerekçesiz bir red, atayan kişiye ne yapacağını
    söylemez ve aynı talep ertesi gün yeniden açılır. */
 
-const KOLONLAR = [
-  { baslik: 'Santral', genislik: '120px' },
+/* Kolon başlığı terim taşır; kütük İŞLEVDİR ve ekran kendi sözlüğüyle
+   çözer (bkz. `lib/yonetim/moduller.ts` aynı desen). */
+const kolonlar = (tesis: string) => [
+  { baslik: tesis, genislik: '120px' },
   { baslik: 'Tür', genislik: '130px' },
   { baslik: 'Atayan', genislik: '150px' },
   { baslik: 'Son tarih', genislik: '112px', sag: true, ikincil: true },
@@ -58,6 +61,8 @@ function sekmeye(s: ZimmetSatiri): Sekme {
 export default function ZimmetlerimIstemci({
   satirlar, ozet,
 }: { satirlar: ZimmetSatiri[]; ozet: ZimmetOzeti }) {
+  const { tBas } = useTerim();
+  const KOLONLAR = useMemo(() => kolonlar(tBas('tesis')), [tBas]);
   const [sekme, setSekme] = useState<Sekme>(
     satirlar.some((s) => s.durum === 'bekliyor') ? 'bekleyen' : 'kabul');
   const [acikId, setAcikId] = useState<string | null>(null);
@@ -78,7 +83,7 @@ export default function ZimmetlerimIstemci({
           : '')
         + (s.not ? ` · ${s.not.slice(0, 100)}` : ''),
       hucreler: [
-        s.tesisKod ?? 'santralsiz',
+        s.tesisKod ?? 'tesissiz',
         s.tur,
         s.atayan,
         tarihTR(s.sonTarih),
@@ -163,7 +168,7 @@ function Cekmece({ satir, kapat }: { satir: ZimmetSatiri; kapat: () => void }) {
       <h2 className="ab-bolum-basligi">{satir.varlikEtiket}</h2>
       <dl className="ab-ciftler">
         <div><dt>Varlık</dt><dd>{satir.varlikAd} · {satir.tur}</dd></div>
-        <div><dt>Santral</dt><dd>{satir.tesisKod ?? 'santralsiz'}</dd></div>
+        <div><dt>Tesis</dt><dd>{satir.tesisKod ?? 'tesissiz'}</dd></div>
         <div><dt>Atayan</dt><dd>{satir.atayan}</dd></div>
         <div><dt>Talep tarihi</dt><dd>{tarihTR(satir.olusturuldu)}</dd></div>
         <div><dt>Cevap için son tarih</dt><dd>{tarihTR(satir.sonTarih)}</dd></div>

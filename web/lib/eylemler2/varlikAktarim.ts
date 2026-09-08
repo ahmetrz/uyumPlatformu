@@ -109,7 +109,7 @@ export async function varlikAktarimEsle(girdi: {
     ]);
     const cozum = satirlariCoz({
       satirlar: rapor.ham, esleme: v.esleme,
-      referanslar, mevcutlar, kapsam: kapsamKur(k),
+      referanslar, mevcutlar, kapsam: await kapsamKur(k),
     });
 
     await db.varlikAktarimi.update({ where: { id: v.id }, data: {

@@ -3,6 +3,8 @@ import { db } from '../db';
 import { izinVar, izinliTesisIdleri } from '../erisim';
 import { parcala } from '../sorguParcala';
 import type { AktifKullanici } from '../auth';
+import { eylemTerimi } from '../eylemler2/kapsamMesaji';
+import { basHarf, type Terim, type TerimAnahtari } from '../dil/terimler';
 import type { Prisma } from '../prisma-client/client';
 
 /* CMDB toplu aktarımı — ayrıştırma, kolon eşleme, doğrulama, commit.
@@ -55,7 +57,18 @@ export type AlanTanimi = {
   bos: 'bilinmiyor' | 'null' | 'atla';
   /** kolon eşleme önerisinin dayandığı yaygın başlıklar */
   esAdlar: readonly string[];
+  /** Etiketi sözlükten yazılan alan; `etiket` ÇEKİRDEK yedeğidir. */
+  terim?: TerimAnahtari;
 };
+
+/** Alanın EKRAN etiketi. Sözlük terimi taşıyan alanın etiketi sabit
+    değildir: kiracı "santral kodu" görür, çekirdek "tesis kodu". Statik
+    tablodaki `etiket` çekirdek yedeği olarak durur — sözlük okunamadığı
+    yerde (test, teşhis) ekran boş kalmaz. */
+export function alanEtiketi(a: AlanTanimi, tesis: Terim): string {
+  if (a.terim !== 'tesis') return a.etiket;
+  return `${basHarf(tesis.tekil)} kodu → ${tesis.tekil}`;
+}
 
 /* Öneri sözlüğü: dosya başlıkları tr/en karışık gelir. Buradaki eşleşme
    yalnız ÖNERİdir — eşlemeyi kullanıcı onaylar (sözleşme maddesi 2). */
@@ -74,8 +87,14 @@ export const HEDEF_ALANLAR: readonly AlanTanimi[] = [
     esAdlar: ['model', 'modelno', 'modelname', 'urunmodeli', 'producttype'] },
   { anahtar: 'turKodu', etiket: 'Tür kodu → tür', tip: 'referans', bos: 'atla',
     esAdlar: ['turkodu', 'tur', 'tip', 'type', 'assettype', 'category', 'kategori', 'varliktipi', 'varlikturu'] },
-  { anahtar: 'tesisKodu', etiket: 'Tesis kodu → santral', tip: 'referans', bos: 'atla',
-    esAdlar: ['tesiskodu', 'tesis', 'santral', 'site', 'sitecode', 'plant', 'location', 'lokasyon', 'facility'] },
+  /* `esAdlar` MÜŞTERİNİN başlık sözcüklerini sayar, bizimkileri değil:
+     `santral` ve `plant` burada kalır — enerji kiracısının dışa aktardığı
+     dosyanın başlığı budur ve tanımamak içe aktarımı sessizce boş
+     bırakırdı. BORÇ: nihai hâlde sektör içerik paketinden gelir (§0.5). */
+  { anahtar: 'tesisKodu', etiket: 'Tesis kodu → tesis', tip: 'referans', bos: 'atla',
+    terim: 'tesis',
+    esAdlar: ['tesiskodu', 'tesis', 'santral', 'site', 'sitecode', 'plant',
+      'location', 'lokasyon', 'facility'] },
   { anahtar: 'sistemKodu', etiket: 'Sistem kodu → sistem', tip: 'referans', bos: 'atla',
     esAdlar: ['sistemkodu', 'sistem', 'system', 'systemcode', 'servis', 'service', 'application', 'uygulama'] },
   { anahtar: 'sahipEposta', etiket: 'Sahip e-postası → sahip', tip: 'referans', bos: 'atla',
@@ -307,17 +326,22 @@ export type Kapsam = {
   /** null = tüm tesisler; [] = hiçbiri */
   izinliTesisler: string[] | null;
   yazabilir: (tesisId: string | null) => boolean;
+  /* Kapsam mesajları KULLANICIYA görünür ("bu tesise yazma yetkiniz
+     yok") ve terim sözlükten gelmeli. Terim burada taşınır: satır satır
+     çözüm sırasında `k` elde yok, kapsam nesnesi ise var. */
+  terim: Terim;
 };
 
 /**
- * Santral kapsamı: kullanıcının yazma yetkisi olmayan tesise satır yazılamaz.
+ * Tesis kapsamı: kullanıcının yazma yetkisi olmayan tesise satır yazılamaz.
  * Tesissiz (global) satır ancak kapsamsız yazma yetkisi olan kullanıcıda geçer —
  * tesise kısıtlı rol global kayıt açamaz (lib/erisim `kapsamUyar`).
  */
-export function kapsamKur(k: AktifKullanici): Kapsam {
+export async function kapsamKur(k: AktifKullanici): Promise<Kapsam> {
   const izinli = izinliTesisIdleri(k, 'envanter');
   return {
     izinliTesisler: izinli,
+    terim: await eylemTerimi(k, 'envanter'),
     yazabilir(tesisId) {
       if (!tesisId) return izinVar(k, 'envanter', 'yazma');
       if (izinli !== null && !izinli.includes(tesisId)) return false;
@@ -477,13 +501,20 @@ export function satirlariCoz(girdi: {
           const aranan = tanim.anahtar === 'sahipEposta'
             ? deger.trim().toLowerCase() : anahtarla(deger);
           const id = kaynak.get(aranan);
-          if (!id) { sorunlar.push(`${tanim.etiket}: "${deger}" tanımlı değil`); break; }
+          if (!id) {
+            sorunlar.push(`${alanEtiketi(tanim, kapsam.terim)}: "${deger}" tanımlı değil`);
+            break;
+          }
           (veri as Record<string, unknown>)[VARLIK_ALANI[tanim.anahtar]] = id;
           break;
         }
         case 'tarih': {
           const t = tarihCoz(deger);
-          if (!t.ok) { sorunlar.push(`${tanim.etiket}: "${deger}" tarih olarak okunamadı (GG.AA.YYYY ya da YYYY-AA-GG)`); break; }
+          if (!t.ok) {
+            sorunlar.push(`${alanEtiketi(tanim, kapsam.terim)}: "${deger}" tarih olarak `
+              + 'okunamadı (GG.AA.YYYY ya da YYYY-AA-GG)');
+            break;
+          }
           (veri as Record<string, unknown>)[tanim.anahtar] = t.deger;
           break;
         }
@@ -539,16 +570,21 @@ export function satirlariCoz(girdi: {
     const hedef = farkli.length === 1 ? adaylar[0].v : null;
     const islem: 'yeni' | 'guncelleme' = hedef ? 'guncelleme' : 'yeni';
 
-    /* ── santral kapsamı ─────────────────────────────────────────────────
+    /* ── tesis kapsamı ─────────────────────────────────────────────────
        İki yön de denetlenir: satırın gittiği tesis VE (güncellemeyse)
        varlığın hâlihazırda bulunduğu tesis. */
     const hedefTesis = (veri.tesisId as string | undefined) ?? hedef?.tesisId ?? null;
     if (!kapsam.yazabilir(hedefTesis)) {
       sorunlar.push(hedefTesis
-        ? 'Kapsam dışı: bu tesise envanter yazma yetkiniz yok'
-        : 'Kapsam dışı: tesissiz (global) varlık yazma yetkiniz yok — tesis kodu verin');
+        ? `Kapsam dışı: bu ${kapsam.terim.yonelme} envanter yazma yetkiniz yok`
+        /* "…siz" ÜRETİLMEZ: yokluk eki ünlü uyumuna göre değişir
+           ("hatsız", "otelsiz") ve sözlükte o hâl yok. Cümle var olan
+           hâlle kuruldu. */
+        : `Kapsam dışı: ${kapsam.terim.tekil} bağı olmayan (global) varlık `
+          + `yazma yetkiniz yok — ${kapsam.terim.tekil} kodu verin`);
     } else if (hedef?.tesisId && hedef.tesisId !== hedefTesis && !kapsam.yazabilir(hedef.tesisId)) {
-      sorunlar.push('Kapsam dışı: eşleşen varlık yetkiniz olmayan bir tesiste');
+      sorunlar.push(
+        `Kapsam dışı: eşleşen varlık yetkiniz olmayan bir ${kapsam.terim.bulunma}`);
     }
 
     // Yeni kayıt için tür zorunlu (Varlik.turId NOT NULL).
@@ -794,7 +830,7 @@ export async function aktarimiUygula(girdi: {
   if (eslemeSorunlari.length > 0) throw new Error(`Kolon eşlemesi geçersiz: ${eslemeSorunlari.join(' · ')}`);
 
   const kaynakSistem = `dosya:${kayit.dosyaAdi}`;
-  const kapsam = kapsamKur(onaylayan);
+  const kapsam = await kapsamKur(onaylayan);
   const simdi = new Date();
 
   try {

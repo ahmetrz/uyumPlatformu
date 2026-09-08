@@ -6,7 +6,7 @@ import { ayar } from '@/lib/yapilandirma/oku';
 import { DEMO } from '@/lib/demo';
 import { ilkiniEsle } from '@/lib/sorguParcala';
 import EnvanterIstemci from './EnvanterIstemci';
-import type { Bolge, Durus, Iliski, Kodlu, Tur, Unite, V, Yonetisim } from './mantik';
+import type { Bolge, Durus, Iliski, Kodlu, Tur, Birim, V, Yonetisim } from './mantik';
 
 export const metadata: Metadata = { title: 'Varlık zekâsı' };
 
@@ -22,7 +22,7 @@ export const metadata: Metadata = { title: 'Varlık zekâsı' };
 /**
  * Envanter okuma kapsamı.
  *
- * Santrali BİLİNEN varlık, o santrale yetkisi olana görünür. Santrali
+ * Tesisi BİLİNEN varlık, o tesise yetkisi olana görünür. Tesisi
  * OLMAYAN varlık (henüz bir sahaya atanmamış kayıt) herkese görünür:
  * gizlemek onu kimsenin düzeltmeyeceği anlamına gelirdi ve envanterin
  * boşluğu tam da orada durur. Yazma yetkisi ayrıca satır satır hesaplanır.
@@ -60,7 +60,7 @@ export default async function Sayfa({ searchParams }: {
   const onayYetkisi = modulYazabilir(k, 'envanter', 'onay');
 
   const [
-    varliklar, tumTurler, tumTesisler, uniteler, sistemler, bolgeler,
+    varliklar, tumTurler, tumTesisler, birimler, sistemler, bolgeler,
     tumKullanicilar, tedarikciler, sozlesmeler,
     firmwareSatirlari, yamaSatirlari, kapsamSatirlari, korelasyonSatirlari,
     uygulanamazSatirlari, sbomSatirlari, segmentler, yazilimSatirlari,
@@ -86,14 +86,14 @@ export default async function Sayfa({ searchParams }: {
           uzaktanErisim: true, yasamDongusu: true,
           kurulumTarihi: true, garantiBitis: true, destekBitis: true,
           eolTarihi: true, eosTarihi: true, guncellendi: true,
-          /* Boyut tabloları (tür, santral, ünite, sistem, bölge, kişi,
+          /* Boyut tabloları (tür, tesis, birim, sistem, bölge, kişi,
              tedarikçi, sözleşme) ilişki olarak DEĞİL, yalnız yabancı
              anahtar olarak okunur. Nedeni ölçüm: Prisma her ilişkiyi
              `id IN (…)` ile 999'luk parçalar hâlinde çeker, yani 10.000
              varlıkta ilişki başına 11 sorgu — dokuz ilişki için 99 sorgu.
              Bu tabloların TAMAMI zaten aşağıda birer kez okunuyor (filtre
              açılırları için); satırlar bellekte eşlenir. */
-          turId: true, tesisId: true, uniteId: true, sistemId: true,
+          turId: true, tesisId: true, birimId: true, sistemId: true,
           bolgeId: true, sahipId: true, emanetciId: true,
           tedarikciId: true, sozlesmeId: true,
           kaynakIliskiler: {
@@ -130,7 +130,7 @@ export default async function Sayfa({ searchParams }: {
       }),
       /* Açılır listeler AKTİF kayıtları gösterir; satır eşlemesi ise
          TÜMÜNÜ ister — pasifleştirilmiş bir türe ya da kapatılmış bir
-         santrale bağlı varlığın türü/santrali ekranda kaybolmamalı.
+         tesise bağlı varlığın türü/tesisi ekranda kaybolmamalı.
          Bu yüzden tablo bir kez tam okunur, ayrım JS'te yapılır. */
       db.varlikTuru.findMany({
         select: { id: true, kod: true, ad: true, sinif: true, aktif: true },
@@ -140,7 +140,7 @@ export default async function Sayfa({ searchParams }: {
         select: { id: true, kod: true, ad: true, durum: true },
         orderBy: { kod: 'asc' },
       }),
-      db.uretimUnitesi.findMany({
+      db.operasyonelBirim.findMany({
         select: { id: true, kod: true, ad: true, tesisId: true },
         orderBy: { kod: 'asc' },
       }),
@@ -227,7 +227,7 @@ export default async function Sayfa({ searchParams }: {
       }),
       db.etkiDegerlendirmesi.findMany({
         select: {
-          varlikId: true, uretimKaybiMw: true, kayipTipi: true,
+          varlikId: true, uretimKaybi: true, kayipBirim: true, kayipTipi: true,
           rtoSaat: true, rpoSaat: true, emniyetEtkisi: true, cevreEtkisi: true,
           gerekce: true, zaman: true,
           degerlendiren: { select: { adSoyad: true } },
@@ -257,7 +257,7 @@ export default async function Sayfa({ searchParams }: {
   /* Boyut haritaları: satır eşlemesi sözlük araması olur, sorgu değil. */
   const turHaritasi = new Map(tumTurler.map((t) => [t.id, t]));
   const tesisHaritasi = new Map(tumTesisler.map((t) => [t.id, t]));
-  const uniteHaritasi = new Map(uniteler.map((u) => [u.id, u]));
+  const birimHaritasi = new Map(birimler.map((u) => [u.id, u]));
   const sistemHaritasi = new Map(sistemler.map((x) => [x.id, x]));
   const bolgeHaritasi = new Map(bolgeler.map((b) => [b.id, b]));
   const kisiHaritasi = new Map(tumKullanicilar.map((u) => [u.id, u]));
@@ -390,7 +390,7 @@ export default async function Sayfa({ searchParams }: {
   );
 
   /* ── Yönetişim zinciri ────────────────────────────────────────────────
-     Prototipin (a-assets) omurgası SANTRAL → SİSTEM → VARLIK → ZAFİYET →
+     Prototipin (a-assets) omurgası TESİS → SİSTEM → VARLIK → ZAFİYET →
      RİSK → KONTROL → PROJE. Son iki halka varlıkta yok; risk üzerinden
      KÜME sorgusuyla çekilir — varlık başına sorgu açmak envanterin
      boyutunda N+1 olurdu (aynı gerekçe boyut tabloları için de geçerli,
@@ -534,7 +534,7 @@ export default async function Sayfa({ searchParams }: {
         .sort((a, b) => a.sira - b.sira),
       etki: e
         ? {
-          uretimKaybiMw: e.uretimKaybiMw, kayipTipi: e.kayipTipi,
+          uretimKaybi: e.uretimKaybi, kayipBirim: e.kayipBirim, kayipTipi: e.kayipTipi,
           rtoSaat: e.rtoSaat, rpoSaat: e.rpoSaat,
           emniyetEtkisi: e.emniyetEtkisi, cevreEtkisi: e.cevreEtkisi,
           gerekce: e.gerekce,
@@ -572,12 +572,12 @@ export default async function Sayfa({ searchParams }: {
     const yedek = sonYedekler.get(v.id) ?? null;
     const kesif = sonKesifler.get(v.id) ?? null;
     const zimmet = acikZimmetler.get(v.id) ?? null;
-    /* Yazma kapsamı satır satır: tesise kısıtlı rol yalnız kendi santralinin
+    /* Yazma kapsamı satır satır: tesise kısıtlı rol yalnız kendi tesisinin
        varlığını yazabilir. Kural lib/eylemler2/envanter.ts ile aynıdır —
        ekran yalnız düğmeyi kapatır, sunucu ayrıca reddeder. */
     const tur = turHaritasi.get(v.turId);
     const tesis = v.tesisId === null ? null : tesisHaritasi.get(v.tesisId) ?? null;
-    const unite = v.uniteId === null ? null : uniteHaritasi.get(v.uniteId) ?? null;
+    const birim = v.birimId === null ? null : birimHaritasi.get(v.birimId) ?? null;
     const sistem = v.sistemId === null ? null : sistemHaritasi.get(v.sistemId) ?? null;
     const bolge = v.bolgeId === null ? null : bolgeHaritasi.get(v.bolgeId) ?? null;
     const sahip = v.sahipId === null ? null : kisiHaritasi.get(v.sahipId) ?? null;
@@ -593,7 +593,7 @@ export default async function Sayfa({ searchParams }: {
         ? { id: tur.id, kod: tur.kod, ad: tur.ad, sinif: tur.sinif }
         : { id: v.turId, kod: '—', ad: 'bilinmiyor', sinif: 'bilinmiyor' },
       tesis: tesis ? { id: tesis.id, kod: tesis.kod, ad: tesis.ad } : null,
-      unite: unite ? { id: unite.id, kod: unite.kod, ad: unite.ad } : null,
+      birim: birim ? { id: birim.id, kod: birim.kod, ad: birim.ad } : null,
       sistem: sistem ? { id: sistem.id, kod: sistem.kod, ad: sistem.ad } : null,
       bolge: bolge
         ? {
@@ -699,7 +699,7 @@ export default async function Sayfa({ searchParams }: {
       varliklar={veri}
       turler={turler as Tur[]}
       tesisler={tesisler as Kodlu[]}
-      uniteler={uniteler as Unite[]}
+      birimler={birimler as Birim[]}
       sistemler={sistemler as Kodlu[]}
       bolgeler={bolgeler.map((b): Bolge => ({
         id: b.id, kod: b.kod, ad: b.ad, tip: b.tip,

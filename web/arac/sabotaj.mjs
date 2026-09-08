@@ -246,6 +246,49 @@ const SABOTAJLAR = [
     yaz: '  const kapi = { ok: true } as const;',
     testler: ['tests/kapanis-yolu.test.ts'],
   },
+  {
+    ad: 'Sektör terimi izin listesi dışında bir dosyaya sızdı',
+    kural: 'Çekirdek kod sektör terimi taşımaz; borç kütüğü YALNIZ erir',
+    dosya: 'lib/alan/ag.ts',
+    ara: '/* ═══ IP · subnet · CIDR — SAF MANTIK ══════════════════════════════════',
+    yaz: '/* ═══ IP · subnet · CIDR — SAF MANTIK (santral ağı) ════════════════════',
+    testler: ['tests/bekci/sektor-terimi.test.ts'],
+  },
+  {
+    /* Bekçinin GÖREMEDİĞİ kusur: sektör sözcüğü gitti ama yerine sözlük
+       değil ÇEKİRDEK SÖZCÜK çakıldı. Dosya bekçiye temiz görünür; ekran
+       her kiracıda aynı sözcüğü gösterir. Gerçekten oldu (7 Eyl 2026). */
+    ad: 'Zincir halkası çekirdek sözcüğe çakıldı',
+    kural: 'Ekrandaki sektör sözcüğü sözlükten gelir, sabit değildir',
+    dosya: 'app/(kabuk)/(operasyonel)/envanter/EnvanterIstemci.tsx',
+    ara: "  tBas(sozluk, 'tesis'), 'Sistem / servis', 'Varlık', 'Zafiyet', 'Risk',",
+    yaz: "  'Tesis', 'Sistem / servis', 'Varlık', 'Zafiyet', 'Risk',",
+    testler: ['tests/envanter-mantik.test.ts'],
+  },
+  {
+    ad: 'Türkçe arama tek katlamaya düşürüldü',
+    kural: 'Türkçe metin İKİ küçültmenin birleşiminde aranır',
+    dosya: 'arac/turkce-arama.mjs',
+    ara: "  return [metin.toLocaleLowerCase('tr-TR'), metin.toLowerCase()];",
+    yaz: "  return [metin.toLowerCase()];",
+    testler: ['tests/bekci/katlama-korlugu.test.ts'],
+  },
+  {
+    ad: 'Terimin kırılma fırsatı garantisi kaldırıldı',
+    kural: 'Kırılamayan bir terim düzeni BOZMAZ, yalnız çirkin görünür',
+    dosya: 'app/kabuk.css',
+    ara: '.ab .terim-sar { min-width: 0; overflow-wrap: anywhere; }',
+    yaz: '.ab .terim-sar { min-width: auto; }',
+    testler: ['tests/senaryo-platform.test.ts'],
+  },
+  {
+    ad: 'Tasarım belgesindeki jeton değeri koddan sapıyor',
+    kural: 'DESIGN.md jeton değerleri kabuk.css\'ten SAPAMAZ',
+    dosya: 'DESIGN.md',
+    ara: '- **Bakır** (`--aksan` `#C2703E`)',
+    yaz: '- **Bakır** (`--aksan` `#C2703F`)',
+    testler: ['tests/tasarim-belgesi.test.ts'],
+  },
 ];
 
 function testKos(testler) {

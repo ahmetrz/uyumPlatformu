@@ -8,10 +8,11 @@ import { VeriTablosu, type VtKolon } from '@/components/kabuk/tablo';
 import {
   Cekmece, CekmeceKimlik, CekmeceAlanlar, CekmeceBagli,
 } from '@/components/kabuk/panel';
+import { useTerim } from '@/lib/dil/SozlukSaglayici';
 import { etiketle, tarihTR } from '@/lib/sabitler';
 import { ErisimOturumlari, TedarikciEylemleri, SertifikaYenile } from './Eylemler';
 import {
-  asilSozlesme, ayYil, degerlendir, erisimAciklamasi, santralOzeti, sirala,
+  asilSozlesme, ayYil, degerlendir, erisimAciklamasi, tesisOzeti, sirala,
   GORUNUR_TAVAN, KADEME, UFUK, YONTEM_ETIKET,
   type SertifikaOzeti, type T,
 } from './ortak';
@@ -19,21 +20,24 @@ import {
 /* O16 · Tedarikçiler / üçüncü taraf — "hangi tedarikçi bizi açıkta bırakıyor?"
    Tek tablo, üç metrik, 420px çekmece (03-screens O16).
 
-   Satır <button> değil <div>: santral hücresi Plant 360'a giden
-   GERÇEK bağlantı taşır, düğme içine bağlantı yerleştirilemez. Klavye için
+   Satır <button> değil <div>: tesis hücresi tesis künyesine (`tesis360`)
+   giden GERÇEK bağlantı taşır, düğme içine bağlantı yerleştirilemez. Klavye için
    satırın etkinleştirme hedefi konu hücresindeki düğmedir; tıklama satırın
    tamamında çalışır, hücre içi bağlantılar yayılımı durdurur.
 
    `izlenmiyor` kesikli alt çizgi + popover taşır ama KRİTİK BİLGİ HOVER'DA
    KALMAZ: satır işaretçisi zaten durumu söyler, çekmece boşluğu açar. */
 
-/* A5 kütük grameri (Faz 3): semantik tablo. Santral kolonu dar bantta
-   düşer — bilgi çekmeceye iner, sıkışmaz. Santral bağları satır İÇİ
+/* A5 kütük grameri (Faz 3): semantik tablo. Tesis kolonu dar bantta
+   düşer — bilgi çekmeceye iner, sıkışmaz. Tesis bağları satır İÇİ
    bağdır; tıklanmaları satırı seçmez (çekirdek bunu ayırır). */
 const KOLONLAR: VtKolon<T>[] = [
   { anahtar: 'tedarikci', baslik: 'Tedarikçi', hucre: (t) => <KimlikHucresi t={t} /> },
-  { anahtar: 'santral', baslik: 'Santral', genislik: '190px', ikincil: true,
-    hucre: (t) => <SantralHucresi t={t} /> },
+  /* Başlık sözlükten gelir; kolon TANIMI modül seviyesinde durduğu için
+     `baslik` bir işlev olarak değil, bileşen içinde kurulan kopyada
+     yazılır (aşağıda `kolonlar`). Modül sabiti React bilmez. */
+  { anahtar: 'tesis', baslik: 'Tesis', genislik: '190px', ikincil: true,
+    hucre: (t) => <TesisHucresi t={t} /> },
   { anahtar: 'erisim', baslik: 'Uzak erişim', genislik: '150px',
     hucre: (t) => <ErisimHucresi t={t} /> },
   { anahtar: 'sozlesme', baslik: 'Sözleşme', genislik: '150px',
@@ -49,6 +53,15 @@ export default function TedarikcilerIstemci({
 }) {
   const [seciliId, setSeciliId] = useUrlDurumuBos('sec');
   const [kuyrukAcik, setKuyrukAcik] = useState(false);
+  const { tBas } = useTerim();
+
+  /* Kolon TANIMI modül sabitidir (React bilmez); yalnız tesis kolonunun
+     başlığı sözlükten gelir ve o yüzden burada kopyalanır. Tanımı bileşen
+     içine taşımak her render'da yeni bir dizi üretir ve tablonun sütun
+     kimliğini gereksiz yere değiştirirdi. */
+  const kolonlar = useMemo(
+    () => KOLONLAR.map((k) => (k.anahtar === 'tesis' ? { ...k, baslik: tBas('tesis') } : k)),
+    [tBas]);
 
   const secili = tedarikciler.find((t) => t.id === seciliId) ?? null;
 
@@ -162,7 +175,7 @@ export default function TedarikcilerIstemci({
         <section className="ab-ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
           <VeriTablosu<T>
             etiket="Tedarikçi kütüğü"
-            kolonlar={KOLONLAR}
+            kolonlar={kolonlar}
             satirlar={gosterilen}
             secili={seciliId}
             sec={setSeciliId}
@@ -218,28 +231,29 @@ function KimlikHucresi({ t }: { t: T }) {
   );
 }
 
-function SantralHucresi({ t }: { t: T }) {
-  const santral = santralOzeti(t.santraller);
+function TesisHucresi({ t }: { t: T }) {
+  const { tBas } = useTerim();
+  const tesis = tesisOzeti(t.tesisler);
   return (
     <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--s6)', minWidth: 0,
       fontSize: 'var(--t-cell)', color: 'var(--i2)' }}>
-      {santral.gorunen.length === 0 ? (
+      {tesis.gorunen.length === 0 ? (
         <span style={{ color: 'var(--i3)' }} title="bağlı varlık kaydı yok">—</span>
       ) : (
         <>
-          {santral.gorunen.map((s) => (
+          {tesis.gorunen.map((s) => (
             <Link key={s.id} href={`/tesisler/${s.id}`}
-              title={`${s.ad} · ${s.varlikSayisi} varlık · Plant 360`}
+              title={`${s.ad} · ${s.varlikSayisi} varlık · ${tBas('tesis360')}`}
               style={{ position: 'relative', minWidth: 0, overflow: 'hidden',
                 textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {s.ad}
             </Link>
           ))}
-          {santral.ekSayi > 0 && (
-            <Ipucu genis metin={santral.tam}>
+          {tesis.ekSayi > 0 && (
+            <Ipucu genis metin={tesis.tam}>
               <button type="button" className="ab-dugme satir"
                 style={{ fontSize: 'var(--t-cell)', color: 'var(--i2)', whiteSpace: 'nowrap' }}>
-                +{santral.ekSayi}
+                +{tesis.ekSayi}
               </button>
             </Ipucu>
           )}
@@ -341,6 +355,7 @@ function ErisimHucresi({ t }: { t: T }) {
 /* ── Çekmece özeti ────────────────────────────────────────────────────── */
 
 function Ozet({ t, yazabilir }: { t: T; yazabilir: boolean }) {
+  const { t: terim, tBas } = useTerim();
   const d = degerlendir(t);
   const soz = asilSozlesme(t);
   const sertifikalar = [...t.sertifikalar].sort((a, b) => a.kalanGun - b.kalanGun);
@@ -357,7 +372,7 @@ function Ozet({ t, yazabilir }: { t: T; yazabilir: boolean }) {
       : t.oturumKaydiVar === false ? { deger: 'Alınmıyor', durum: 'bd' }
         : { deger: 'Bilinmiyor', durum: 'unk' };
 
-  const santralBaglari = [...t.santraller]
+  const tesisBaglari = [...t.tesisler]
     .sort((a, b) => b.varlikSayisi - a.varlikSayisi || a.ad.localeCompare(b.ad, 'tr'))
     .slice(0, 6)
     .map((s) => ({
@@ -430,21 +445,22 @@ function Ozet({ t, yazabilir }: { t: T; yazabilir: boolean }) {
         </div>
       )}
 
-      {santralBaglari.length > 0 ? (
+      {tesisBaglari.length > 0 ? (
         <>
-          <CekmeceBagli baslik={`Santral · ${t.santraller.length}`} kayitlar={santralBaglari} />
-          {t.santraller.length > santralBaglari.length && (
+          <CekmeceBagli baslik={`${tBas('tesis')} · ${t.tesisler.length}`}
+            kayitlar={tesisBaglari} />
+          {t.tesisler.length > tesisBaglari.length && (
             <p className="ab-panel-dip" style={{ margin: 'var(--s10) 0 0' }}>
-              {t.santraller.length - santralBaglari.length} santral daha
+              {t.tesisler.length - tesisBaglari.length} {terim('tesis')} daha
             </p>
           )}
         </>
       ) : (
         <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
-          <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Santral</p>
+          <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>{tBas('tesis')}</p>
           <p className="ab-panel-dip" style={{ margin: 0 }}>
-            Bu tedarikçiye bağlanmış varlık kaydı yok — hizmet verdiği santral
-            envanterden türetilemiyor.
+            Bu tedarikçiye bağlanmış varlık kaydı yok — hizmet verdiği
+            {' '}{terim('tesis')} envanterden türetilemiyor.
           </p>
         </div>
       )}

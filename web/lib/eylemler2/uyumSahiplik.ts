@@ -24,6 +24,7 @@ import { db } from '../db';
 import { yetkiZorunlu, kapsamZorunlu, KAPSAM_SONRA } from '../erisim';
 import { dogrulayabilirMi } from '../uyum/kontrolSahipligi';
 import { type Sonuc, tamam, hata, iz, bosluksuz } from './ortak';
+import { kapsamTerimi } from './kapsamMesaji';
 
 const gerekceAlani = z.string().trim().min(10, 'Gerekçe en az 10 karakter olmalı');
 
@@ -54,7 +55,8 @@ export async function degerlendirmeDogrula(girdi: {
     });
     if (!kayit) return hata(new Error('Madde durumu bulunamadı'));
     kapsamZorunlu(k, 'uyum', 'onay', { tesisId: kayit.tesisId, surecId: kayit.surecId },
-      'Bu tesis/süreç kapsamında doğrulama yetkiniz yok');
+      `Bu ${await kapsamTerimi(k, 'uyum', kayit.tesisId)}/süreç `
+      + 'kapsamında doğrulama yetkiniz yok');
 
     if (!v.onay) {
       if (kayit.dogrulayanId === null) {
@@ -126,7 +128,8 @@ export async function kontrolEkibiAta(girdi: {
     });
     if (!kayit) return hata(new Error('Madde durumu bulunamadı'));
     kapsamZorunlu(k, 'uyum', 'yazma', { tesisId: kayit.tesisId, surecId: kayit.surecId },
-      'Bu tesis/süreç kapsamında sorumluluk atama yetkiniz yok');
+      `Bu ${await kapsamTerimi(k, 'uyum', kayit.tesisId)}/süreç `
+      + 'kapsamında sorumluluk atama yetkiniz yok');
 
     if (v.ekipId) {
       const e = await db.ekip.findUnique({

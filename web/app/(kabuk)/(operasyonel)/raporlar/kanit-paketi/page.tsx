@@ -12,7 +12,7 @@ export const metadata: Metadata = { title: 'Kanıt paketi' };
 
    Ekran bir şey ÜRETMEZ; hangi kapsamların paketlenebilir olduğunu gösterir
    ve üretimi sunucu eylemine (lib/eylemler2/disaAktarim.ts) devreder. Kapsam
-   VERİ seviyesinde daraltılır: `izinliTesisIdleri` dışındaki santral bu
+   VERİ seviyesinde daraltılır: `izinliTesisIdleri` dışındaki tesis bu
    listeye hiç girmez — ekranda göstermeyip eylemde reddetmek, kullanıcıya
    var olmayan bir düğme göstermek olurdu.
 

@@ -186,6 +186,48 @@
 /* ═══ Ortak taban ═════════════════════════════════════════════════════ */
 
 .ab, .ab *, .ab *::before, .ab *::after { border-radius: 0; box-sizing: border-box; }
+
+/* ── KIRILMA FIRSATI GARANTİSİ (P1 · terim sözlüğü) ──────────────────
+   Ekranda okunan sektör sözcüğü kiracının paketinden gelir ("tesis" ·
+   "arıtma tesisi" · yarın başka bir dilde bilinmeyen bir bileşik). O
+   sözcük ürünün yazdığı bir sabit DEĞİL, MÜŞTERİ İÇERİĞİDİR ve nereye
+   düşeceğini `t()` çağrısı belirler — yani her yere düşebilir.
+
+   Ölçüldü (7 Eyl 2026, `arac/iki-sozluk.mjs`): BOŞLUKSUZ 31 harflik bir
+   gövde `/sistem/bilesenler` rotasını 375px'te 48px yana kaydırıyordu.
+   Kusur bizim CI'mızda değil, o paketi yazan müşterinin ekranında
+   çıkardı ve hiçbir koşumuz onu görmezdi.
+
+   `break-word`, `anywhere` DEĞİL — ve bu fark ÖLÇÜLDÜ. İkisi de uzun
+   sözcüğü kırar; `anywhere` bunu min-content ölçüsüne de yansıtır, yani
+   her öğenin en dar hâli TEK HARFE iner. Genel kural olarak denendi
+   (7 Eyl 2026) ve `/bulgular` 375px'te dağıldı: üst gezinme
+   ("SAHA PORTFÖY UYUM") harf harf alt alta düştü, kolon başlıkları
+   dikey sütuna döndü. Düzeni korumak için konan kural düzeni bozdu.
+   `break-word` min-content'e dokunmaz: mevcut sarma davranışı
+   DEĞİŞMEZ (altın karşılaştırmada tek piksel fark yok), yalnız kutusuna
+   sığmayan sözcük kırılır.
+
+   `anywhere` gereken tekil yerler (uzun kimlik, hash, dosya adı) zaten
+   kendi kurallarını taşıyor; bu taban onları ezmez, altlarında kalır.
+
+   Kural ürünün kendi ilkesiyle aynı: içerik sessizce KAYBOLMAZ.
+   Kırılamayan bir terim düzeni bozmasın, yalnız çirkin görünsün. */
+.ab, .ab * { overflow-wrap: break-word; }
+
+/* Taban tek başına YETMEZ ve bu da ölçüldü: `break-word` min-content'e
+   dokunmadığı için, genişliği İÇERİĞİNDEN gelen bir esnek/ızgara izi
+   (`min-width: auto`) yine sözcüğün bölünemez genişliğine kadar büyür ve
+   kabından taşar. Terimin düştüğü SLOT bu yüzden ayrıca işaretlenir:
+   `min-width: 0` izin daralmasına izin verir, `anywhere` daralınca
+   sözcüğün kırılmasını sağlar. İkisi bir arada olmadan hiçbiri yetmez.
+
+   Sınıf ELLE konur ve konması gereken yer bellidir: sözlükten gelen bir
+   sözcüğün render edildiği, genişliği içeriğinden türeyen slot. Yeni bir
+   yüzey unutulursa kapı söyler — `arac/iki-sozluk.mjs` `stres` sözlüğü
+   (boşluksuz uzun gövde) bütün rotalarda koşar ve taşan öğeyi adıyla
+   yazar. Savunma kalkarsa o kapı kırmızı yanar. */
+.ab .terim-sar { min-width: 0; overflow-wrap: anywhere; }
 /* Tek istisna: durum daireleri ve avatar. Yarıçap SÜS DEĞİL, ŞEKİL
    KODLAMASININ parçası — dolu daire ile dolu kare farklı şey söyler. */
 .ab .daire { border-radius: 50%; }
@@ -270,8 +312,18 @@
   --ui: 'Inter', system-ui, sans-serif;
   --veri: 'JetBrains Mono', ui-monospace, monospace;
   --gorunum: 'Barlow Condensed', 'Inter', sans-serif;
-  /* Üretim tipi kimliği — YALNIZ işaretçi ölçeğinde */
-  --jes: #B7734A; --hes: #5A87A3; --res: #93A6AD; --ges: #C9A24C;
+  /* ── TİP KİMLİK YUVALARI — YALNIZ işaretçi ölçeğinde ────────────────
+     Yuvalar SEKTÖRSÜZDÜR: eskiden üretim tipinin kısaltmasını taşıyan
+     jetonlar `--tip-a…d` oldu. Hangi tesis tipinin hangi yuvayı
+     aldığını CSS bilmez; eşleme
+     `components/kabuk/tip.ts` içindedir ve P4'te sektör paketine taşınır.
+
+     KAPASİTE DÖRTTÜR ve bu bir sınırdır, dolgu değil: dört değer de
+     kontrast kapısından geçmiş (IRI 3:1, dört zemin). Beşinci tipe
+     yuva SARILMAZ — aynı rengi iki tipe vermek "bunlar aynı" demektir
+     ve renk burada KİMLİKTİR. Yuvası olmayan tip nötr mürekkebe düşer;
+     kural `tip.ts` içinde yazılı, sonuç `/sistem` sayfasında görünür. */
+  --tip-a: #B7734A; --tip-b: #5A87A3; --tip-c: #93A6AD; --tip-d: #C9A24C;
   /* Açık satırın zemini — aksanın çok soluk tonu. */
   --secim: #171211;
   /* Aksan dolgusunun ÜZERİNE yazılan mürekkep. */
@@ -279,7 +331,7 @@
 }
 
 /* ═══ Yoğunluk — ölçü, renk değil ════════════════════════════════════
-   amiral: Saha · Portföy · Harita · Santral 360. Fotoğrafik, tek ekrana
+   amiral: Saha · Portföy · Harita · Tesis 360. Fotoğrafik, tek ekrana
    sığar; durum 26 + ayak 22 (iki ayrı satır), oluk 0 (ekran kendi kenarını kurar).
    operasyonel: tablo / matris / kütük; 24px oluk, 32+32px durum + ayak.
    tezgâh: mühendislik ekranları; aynı, satır daha sıkı. */
@@ -570,10 +622,10 @@
 
 /* ═══ Saha ana ekranı — b-executive grameri, tek ekran bütçesi ════════
    Fotoğrafik alan (solda 400px dikkat, sağda 300px katman) + öncelik
-   şeridi + kartlı santral şeridi. Üçü birlikte ilk ekrana SIĞAR:
+   şeridi + kartlı tesis şeridi. Üçü birlikte ilk ekrana SIĞAR:
    `height = 100dvh − 56 (üst) − 26 (durum) − 22 (ayak)`; fotoğrafik alan
    kalan yeri alır, şerit ve KPI kendi yüksekliğini. Eylül 2026 denetimi
-   eski 648 + 91 + 203 + 342 = 1340px'i ölçtü; santral şeridi 795px'te
+   eski 648 + 91 + 203 + 342 = 1340px'i ölçtü; tesis şeridi 795px'te
    başlıyordu, üç çözünürlükte de ekran dışındaydı.
 
    Bütçe (üst 56 + durum 26 + ayak 22 düşülmüş):
@@ -581,14 +633,14 @@
      1280×800 → 696 = alan 464 + KPI 62 + şerit 34+136
      1440×900 → 796 = alan 540 + KPI 62 + şerit 34+160
    Kart yüksekliği `clamp(132px, 18dvh, 168px)`: 900'de prototipin 168'ine
-   yaklaşır, 768'de 132'ye iner; santral fotoğrafı hiçbir bantta kaybolmaz.
+   yaklaşır, 768'de 132'ye iner; tesis fotoğrafı hiçbir bantta kaybolmaz.
    Dar/kısa bantta (≤1024px ya da <680px yüksek) sözleşme kalkar, sayfa
    akar — sığdırmak için içeriği kırpmak kaybettirir. */
 .ab-b-saha { min-width: 0; }
 /* Yükseklik sözleşmesi YALNIZCA Saha'ya (`.ab-b-genel`). `.ab-b-saha`
-   sınıfını Santral 360 da taşır; ızgara ona uygulanınca hero plakası
+   sınıfını Tesis 360 da taşır; ızgara ona uygulanınca hero plakası
    `minmax(0,1fr)` satırında 0'a eziliyor, zincir/şerit üstüne biniyordu
-   (ölçüldü: zincir top 56, şerit 690, scrollH 829). Santral 360 akar. */
+   (ölçüldü: zincir top 56, şerit 690, scrollH 829). Tesis 360 akar. */
 @media (min-width: 1025px) and (min-height: 680px) {
   .ab-b-saha.ab-b-genel {
     height: calc(100dvh - 56px - var(--durum-h, 0px) - var(--ayak-h, 0px));
@@ -754,7 +806,7 @@
   animation: ab-halka 3.6s ease-out infinite;
 }
 /* Süpürme yarıçapı 2,4 idi: halka 38px'e çıkıp KOMŞU işaretin künyesini
-   siliyordu (ölçüldü: 1440px'te "Saha C RES" satırı Saha A-3'ün
+   siliyordu (ölçüldü: 1440px'te iki komşu tesisin künyesi üst üste
    halkası altında okunmuyordu). 1,6 aynı sinyali verir, komşuya girmez. */
 @keyframes ab-halka {
   0% { transform: scale(.6); opacity: .8; }
@@ -775,13 +827,13 @@
 .ab-b-takim .isaret.sola .kunye::before { left: auto; right: -13px; }
 .ab-b-takim .kunye .ad { font-family: var(--gorunum); font-size: 15px; line-height: 1; color: var(--i2); }
 .ab-b-takim .kunye .alt { font-size: 11px; color: var(--i3); }
-/* Odak sırası: uygunsuzu olan santral tam mürekkep — önce ona bakılır. */
+/* Odak sırası: uygunsuzu olan tesis tam mürekkep — önce ona bakılır. */
 .ab-b-takim .isaret.oncelik .kunye .ad { color: var(--murekkep); }
 .ab-b-takim .isaret.oncelik .kunye .alt { color: var(--i2); }
 .ab-b-takim .isaret:hover .kunye .ad { color: var(--aksan); }
 
 /* ── Değerlendirilmemiş şeridi ──────────────────────────────────────
-   Hiç değerlendirilmemiş santralin uyum endeksi YOKTUR; eksende bir yere
+   Hiç değerlendirilmemiş tesisin uyum endeksi YOKTUR; eksende bir yere
    konamaz (bkz. Genel.tsx · Takimyildizi). Bu yüzden tuvalin YANINDA
    kendi sütununda durur — tuvalin İÇİNDE mutlak konumla değil.
 
@@ -790,11 +842,11 @@
    genişlik verilince de 375px'te tuvalden taşıyordu. Normal akışta bir
    liste, iki bantta da doğru davranıyor ve piksel aritmetiği gerekmiyor. */
 /* Tuval sarmalayıcı TEK KOLONDUR. Önce 176px'lik bir liste kolonu daha
-   vardı: değerlendirilmemiş on bir santral orada eşit ağırlıkta satırlar
+   vardı: değerlendirilmemiş on bir tesis orada eşit ağırlıkta satırlar
    hâlinde diziliyordu. Kolon, ekranın asıl karar yüzeyi olan takımyıldızın
    genişliğinin altıda birini alıyordu — üstelik o satırların hiçbirinin
    endeksi YOK, yani sıralanacak/karşılaştırılacak bir şey taşımıyorlardı;
-   liste bir yoklamaydı ve aynı santraller alttaki plaka şeridinde ikinci
+   liste bir yoklamaydı ve aynı tesisler alttaki plaka şeridinde ikinci
    kez görünüyordu. Yerine başlık satırındaki özet geçti (`.ab-olculmemis`),
    ayrıntı doklu panelde açılır. */
 .ab-b-takim .ab-tuval-sar {
@@ -817,7 +869,7 @@
 
 /* ── Değerlendirilmemiş özeti ──────────────────────────────────────────
    Hiyerarşi bilinçli: SAYI en güçlü, oran onun hemen yanında daha sessiz,
-   MWe ve adlar üçüncül. Sayı kendi başına "11" der; oran "11/16" onun
+   güç toplamı ve adlar üçüncül. Sayı kendi başına "11" der; oran "11/16" onun
    söylemediğini söyler — portföyün üçte ikisi hiç ölçülmemiş. */
 .ab-olculmemis {
   display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 10px;
@@ -841,7 +893,7 @@
   font-variant-numeric: tabular-nums; cursor: help;
 }
 .ab-olculmemis .sayi .bolu { font-size: 12px; color: var(--i3); }
-.ab-olculmemis .mwe { flex: none; font-size: 11px; color: var(--i3); white-space: nowrap; }
+.ab-olculmemis .guc-toplam { flex: none; font-size: 11px; color: var(--i3); white-space: nowrap; }
 /* Adlar KESİLMEZ ve bu bir doğruluk kuralıdır, estetik tercih değil:
    "+8 diğer" sayısı "3 ad yazıldı" varsayımıyla hesaplanır. CSS adlardan
    birini üç noktayla yutarsa ekranda 1 ad görünür ama yanında hâlâ "+8"
@@ -896,6 +948,13 @@
   background: color-mix(in srgb, var(--zemin) 70%, transparent);
   display: flex; flex-direction: column; overflow-y: auto; min-height: 0;
 }
+/* Panel KAYDIRILABİLİR bir bölgedir (`overflow-y: auto` yukarıda) ve
+   kaydırılabilir ama odaklanamayan bölge klavye kullanıcısı için
+   ERİŞİLEMEZDİR (axe · serious · scrollable-region-focusable). Bölge
+   `tabindex=0` ile odak alır (Genel.tsx); halka İÇERİ alınır çünkü
+   `.ab-b-alan` `overflow: hidden` ve dışarıdaki pay kırpılırdı —
+   `.ab-b-panel` ile aynı gerekçe. */
+.ab-b-katman:focus-visible { outline-offset: -2px; }
 .ab-b-katman .katmanlar { margin-top: 16px; display: grid; gap: 14px; }
 .ab-b-katman .bos { font-size: 12.5px; color: var(--i3); }
 .ab-b-katman .katman .bas { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
@@ -1016,7 +1075,7 @@
 }
 .ab-portfoy-denetim .secim { display: inline-flex; align-items: center; gap: 10px; }
 .ab-portfoy-denetim .secim select { min-width: 160px; font-size: 12.5px; }
-/* Sonuç cümlesi (`aria-live`): "N santral · en zayıf: …" — sağa yaslı,
+/* Sonuç cümlesi (`aria-live`): "N tesis · en zayıf: …" — sağa yaslı,
    telefonda kendi satırına düşer. */
 .ab-portfoy-denetim .cumle { margin: 0 0 0 auto; font-size: 11px; color: var(--i2); }
 .ab-portfoy-denetim .cumle .unk { color: var(--unk); }
@@ -1104,11 +1163,11 @@
   color: var(--bd); border: 1px solid var(--bd);
 }
 
-/* ═══ B · Santral 360 — b-plant360 grameri ═══════════════════════════
+/* ═══ B · Tesis 360 — hero plakası grameri ═══════════════════════════
    560px hero plakası: solda künye + 92px dar başlık, altta ölçü şeridi,
    sağda 420px veri paneli. */
 /* Yükseklik viewport'a bağlı: 1366×768'de 560 sabit plaka, "Kapsamındaki
-   santraller" şeridini 690'a itiyordu ve kartlar kesiliyordu (ölçüldü:
+   tesisler" şeridini 690'a itiyordu ve kartlar kesiliyordu (ölçüldü:
    scrollH 829). clamp ile 768'de ≈476, 900'de 560; iç düzen (künye, ölçüler,
    veri paneli) mutlak konumlu olduğundan kırılmaz. */
 .ab-b-plaka {
@@ -1130,7 +1189,7 @@
   position: absolute; inset: 0 0 0 auto; width: 420px;
   background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--zemin) 93%, transparent));
 }
-/* Fotoğrafı olmayan santral: sahte görsel UYDURULMAZ (harita §7-3) */
+/* Fotoğrafı olmayan tesis: sahte görsel UYDURULMAZ (harita §7-3) */
 .ab-b-plaka.fotosuz { background: var(--panel); }
 
 .ab-b-plaka .kimlik { position: absolute; left: 32px; top: 28px; right: 460px; }
@@ -1169,7 +1228,7 @@
    bölge klavye kullanıcısı için ERİŞİLEMEZDİR; sayaçlar ve sonraki
    denetim satırı fareyle görülüp klavyeyle görülemiyordu (axe ·
    serious · scrollable-region-focusable). Bölge `tabindex=0` ile odak
-   alır (Plant360.tsx); halka İÇERİ alınır çünkü plaka `overflow:
+   alır (Tesis360.tsx); halka İÇERİ alınır çünkü plaka `overflow:
    hidden` ve dışarıdaki 2px'lik pay kırpılırdı. */
 .ab-b-panel:focus-visible { outline-offset: -2px; }
 
@@ -1283,25 +1342,25 @@
 }
 .ab-otprofil-eylem .dip { font-size: var(--t-code-lg); color: var(--i3); }
 
-/* ── Üniteler + açık bulgular ──────────────────────────────────────── */
+/* ── Birimler + açık bulgular ──────────────────────────────────────── */
 .ab-b-ikili { display: grid; grid-template-columns: 560px minmax(0, 1fr); border-bottom: 1px solid var(--hr); }
-.ab-b-ikili .uniteler { padding: 24px 32px; border-right: 1px solid var(--hr); }
+.ab-b-ikili .birimler { padding: 24px 32px; border-right: 1px solid var(--hr); }
 .ab-b-ikili .bulgular { padding: 24px 32px; min-width: 0; }
 .ab-b-ikili .bos { margin: 14px 0 0; font-size: 13px; color: var(--i3); }
 .ab-b-ikili > div > .etiket { display: block; margin-bottom: 4px; }
-.ab-b-ikili .unite {
+.ab-b-ikili .birim {
   display: flex; align-items: center; gap: 16px;
   padding: 12px 0; border-bottom: 1px solid var(--hr);
 }
-.ab-b-ikili .unite .kod {
+.ab-b-ikili .birim .kod {
   flex: none; width: 66px; font-family: var(--gorunum); font-size: 24px;
   line-height: 1; text-transform: uppercase;
 }
-.ab-b-ikili .unite .ad { flex: 1; min-width: 0; display: grid; gap: 3px; }
-.ab-b-ikili .unite .baslik { font-size: 13px; }
-.ab-b-ikili .unite .guc { font-size: 11px; color: var(--i3); }
-.ab-b-ikili .unite .kayit { flex: none; font-size: 11px; color: var(--i3); }
-.ab-b-ikili .unite .durum {
+.ab-b-ikili .birim .ad { flex: 1; min-width: 0; display: grid; gap: 3px; }
+.ab-b-ikili .birim .baslik { font-size: 13px; }
+.ab-b-ikili .birim .guc { font-size: 11px; color: var(--i3); }
+.ab-b-ikili .birim .kayit { flex: none; font-size: 11px; color: var(--i3); }
+.ab-b-ikili .birim .durum {
   flex: none; width: 96px; display: flex; align-items: center; gap: 8px;
   justify-content: flex-end; font-size: 11px; color: var(--i2);
 }
@@ -1323,7 +1382,7 @@
 .ab-b-ikili .bulgular .termin { flex: none; width: 92px; text-align: right; font-size: 11px; }
 .ab-b-ikili .bulgular .termin.gecikmis { color: var(--bd); }
 
-/* Yalın saha kartı — fotoğrafsız, yalnız künye (santral seçici şeridi) */
+/* Yalın saha kartı — fotoğrafsız, yalnız künye (tesis seçici şeridi) */
 .ab-b-serit .kart.yalin { background: var(--panel); height: 104px; }
 .ab-b-serit .kart.yalin .icerik { top: 18px; bottom: auto; }
 .ab-b-serit .kart.yalin .ad { font-size: 19px; }
@@ -1355,7 +1414,7 @@
   opacity: .38; filter: grayscale(.45); transition: opacity .5s ease;
 }
 .ab-b-serit .kart:hover > img { opacity: .66; }
-/* Fotoğrafı olmayan santral için sahte görsel UYDURULMAZ (harita §7-3) */
+/* Fotoğrafı olmayan tesis için sahte görsel UYDURULMAZ (harita §7-3) */
 .ab-b-serit .kart .fotoyok { position: absolute; inset: 0; background: var(--panel2); }
 .ab-b-serit .kart > .perde {
   position: absolute; inset: 0;
@@ -1726,7 +1785,7 @@
 }
 
 /* Envanter kaynağı ayağı KALDIRILDI (denetim §9: kabuğun sistem durumu
-   satırıyla çift ayak). Kaynak künyesi kip çubuğuna, sahipsiz/santralsiz
+   satırıyla çift ayak). Kaynak künyesi kip çubuğuna, sahipsiz/tesissiz
    sayımı süzgeç sayacına taşındı. */
 
 /* ═══ Ortak gramer — 5×5 ısı haritası (risk kütüğü) ═════════════════
@@ -1804,7 +1863,7 @@
 }
 .ab-isi .hucre:focus-visible { outline: 2px solid var(--aksan); outline-offset: 1px; }
 
-/* ═══ A4 · Santral haritası ═══════════════════════════════════════════
+/* ═══ A4 · Tesis haritası ═══════════════════════════════════════════
    Tuval bir ÖLÇÜM YÜZEYİDİR, dekoratif bir harita değil: kılavuz saç
    teli inceliğinde, eksen etiketleri mono, işaret dolgusu durumu taşır.
    Yaklaşık konum KESİK ÇİZGİYLE ve boş içle ayrılır — renk tek kanal
@@ -1891,7 +1950,7 @@
 .ab-harita-gosterge .ornek.d-bd { border-color: var(--bd); background: color-mix(in srgb, var(--bd) 50%, transparent); }
 .ab-harita-gosterge .ornek.k-il { background: none; border-style: dashed; border-color: var(--i2); }
 
-/* Seçili santral künyesi — çekmece değil, tuvalin altında duran şerit. */
+/* Seçili tesis künyesi — çekmece değil, tuvalin altında duran şerit. */
 .ab-harita-kunye {
   margin: 0 0 var(--s24); padding: var(--s14) var(--s16);
   background: var(--panel); border-left: 2px solid var(--aksan);
@@ -2060,6 +2119,9 @@
    hücre zemini kabuk zeminidir; saydam kalsa altındaki satır metni
    başlığın içinden görünürdü. */
 .ab-vt-sar { overflow: auto; max-height: var(--vt-h, none); min-width: 0; }
+/* Kap odak durağıdır (tablo.tsx); halka İÇERİ alınır — dışarıdaki pay
+   yapışkan başlığın ve komşu kabuk kenarının altında kalırdı. */
+.ab-vt-sar:focus-visible { outline: 2px solid var(--aksan); outline-offset: -2px; }
 /* table-layout: fixed — eski grid kütüğünden semantik tabloya geçişte eklendi.
    Grid sütun genişliklerini kesin kılar; <table width="100%"> ise içerik
    iticidir ve hücre minimum genişliklerinin toplamı kabı aştığında tablo
@@ -2148,6 +2210,37 @@
 .ab-vt tbody tr.iskelet { cursor: default; }
 .ab-vt tbody tr.iskelet:hover > * { background: transparent; }
 .ab-vt tbody tr.iskelet .ab-iskelet { display: block; height: 12px; }
+/* ── DAR BANTTA KÜTÜK · bileşenin KENDİ niyeti geri veriliyor ────────
+   `.ab-vt-sar` bir kaydırma kabıdır ve ilk sütun (kimlik) yatay
+   kaydırmada YAPIŞKAN kalsın diye yazılmıştır — yani bu kütük yatay
+   kaydırma için TASARLANMIŞ. `width: 100%` + `table-layout: fixed` bunu
+   hiç gerçekleşmeden öldürüyordu: tablo kabını asla aşmadığı için
+   kaydırma HİÇ olmuyor, sütunlar sıfıra doğru eziliyor ve
+   `overflow: hidden` içeriği sessizce kesiyordu.
+
+   ÖLÇÜLDÜ · /aktivite · 375px: ekranda yalnız ZAMAN ve DEĞİŞİM sütunları
+   görünüyordu; "KAYIT" başlığı ve her satırın ne olduğu ("Kullanıcı A
+   giriş oluşturdu") TÜMÜYLE yoktu. Kullanıcı eksiği bir hata olarak bile
+   göremiyordu, çünkü eksik olan şey görünmüyordu.
+
+   Dar bantta düzen niyete döner: sütunlar İÇERİĞE göre ölçülür, tablo
+   kabı aşar, kap kaydırır, kimlik sütunu yapışkan kalır. Bilgi
+   GİZLENMEZ, hiçbir sütun DÜŞMEZ.
+
+   `kolon-hizasi.mjs` ("tablo kabını aşmıyor") 1440 · 1366 · 1280'de
+   koşar; bu kural onların ALTINDA açılır ve o kapıyı ilgilendirmez. */
+@media (max-width: 900px) {
+  .ab-vt { width: auto; min-width: 100%; table-layout: auto; }
+  /* Uzun metin sütunu ölçüsüz genişletmesin: hücre SARAR, kırpılmaz.
+     Sınırsız bırakılsaydı tek bir bulgu başlığı tabloyu metrelerce
+     uzatırdı. */
+  .ab-vt td { max-width: 34ch; }
+  .ab-vt th { max-width: 22ch; }
+  /* Sütunlar artık içerik enindedir; kırpma gereksiz ve zaten SESSİZ
+     bilgi kaybının kendisiydi. */
+  .ab-vt th, .ab-vt td { overflow: visible; }
+}
+
 /* Dokunmatik / dar bant: sıralı başlıklar sarar, kırpılmaz. */
 @media (max-width: 1366px) {
   .ab-vt thead th { white-space: normal; }
@@ -2529,6 +2622,39 @@
 .ab-panel-eylem .ikincil { margin-top: 10px; }
 .ab-panel-eylem .dip { margin: 16px 0 0; font-size: var(--t-label); line-height: 1.7; color: var(--i3); }
 
+/* ── Kayıt detayı: içerik + bağlam paneli ───────────────────────────
+   Yerleşim kabuk gramerine TAŞINDI; daha önce `RiskDetayIstemci` içinde
+   satır içi `style` ile yazılıydı ve satır içi stil bir medya sorgusuyla
+   ezilemez — yani ekran yapısı gereği dar bantta düzelemiyordu.
+
+   ÖLÇÜLDÜ · /riskler/[id] · 375px: ızgara `minmax(0, 1fr) 400px`,
+   içerik sütunu 0px'e çöküyor, 400px panel şeridi 49px taşırıyor ve
+   sayfa yana kayıyor.
+
+   Dar bantta karar `.ab-a-calisma` ile AYNIDIR ve o karar bu depoda
+   zaten kabul edilmiştir: panel GİZLENMEZ — bağlam orada yaşıyor —
+   içeriğin ALTINA iner ve kenarlığını sola değil ÜSTE alır. Eşik de
+   aynı: 820px. 768'de panel 400px kalsaydı içeriğe 320px kalırdı, yani
+   bağlam ana içerikten geniş olurdu. */
+.ab-kayit-ikili { display: grid; grid-template-columns: minmax(0, 1fr) var(--drawer-w); }
+.ab-kayit-ikili > .govde {
+  min-width: 0;
+  padding: var(--s36) var(--s40) var(--sec-pad-bot) var(--gutter-op);
+  border-right: var(--bw-hair) solid var(--hr);
+}
+.ab-kayit-ikili > .baglam {
+  min-width: 0; background: var(--panel2);
+  padding: var(--s36) var(--gutter-op) var(--sec-pad-bot) var(--s32);
+}
+@media (max-width: 820px) {
+  .ab-kayit-ikili { grid-template-columns: minmax(0, 1fr); }
+  .ab-kayit-ikili > .govde { border-right: 0; padding-right: var(--gutter-op); }
+  .ab-kayit-ikili > .baglam {
+    border-top: var(--bw-hair) solid var(--hr);
+    padding-left: var(--gutter-op);
+  }
+}
+
 /* ── Grafik tuvali ─────────────────────────────────────────────────── */
 .ab-tuval {
   position: relative; min-height: 420px; overflow: hidden;
@@ -2555,6 +2681,24 @@
 }
 .ab-tuval .dugum .ad { font-size: 12.5px; line-height: 1.25; overflow-wrap: anywhere; }
 .ab-tuval .dugum .alt { font-size: var(--t-label); color: var(--i3); }
+/* ── Tuvalin İÇSEL EN AZ ENİ ─────────────────────────────────────────
+   Düğüm kutusu SABİT 168px, konumu ise YÜZDE (`left: x%` + `translate
+   (-50%)`). Yani uçtaki düğüm kenardan 84px içeride durmak zorundadır:
+   `x=16%` için tuval ≥ 525px, `x=90%` için ≥ 840px ister. Altında
+   `overflow: hidden` düğümü SESSİZCE keser — ÖLÇÜLDÜ · /sistem/bilesenler:
+   375px'te 4 düğüm (en kötüsü 39px), 768px'te 2 düğüm (16px).
+
+   Şema küçültülerek çözülemez: kenarlar SVG'de düğümün YÜZDE koordinatına
+   çizilir, düğümü kenara çivilemek çizgiyi düğüme YALANCI bağlardı —
+   şema olmayan bir bağlantıyı gösterirdi. O yüzden kaydırılır: bilgi
+   gizlenmez, ERİŞİLİR. Tablolarda ve `/sistem` matrislerinde kabul
+   edilmiş gramerin aynısı.
+
+   Kaydırma kabı klavyeyle erişilebilir olmak ZORUNDADIR (axe ·
+   `scrollable-region-focusable`); `role`+ad+`tabIndex` kullanan yerdedir. */
+.ab-tuval-kaydir { overflow-x: auto; }
+.ab-tuval-kaydir > .ab-tuval { min-width: 840px; }
+.ab-tuval-kaydir:focus-visible { outline: 2px solid var(--aksan); outline-offset: -2px; }
 .ab-tuval .dip {
   position: absolute; left: 14px; bottom: 10px; font-size: var(--t-label); color: var(--i3);
 }
@@ -2658,7 +2802,24 @@
   text-overflow: ellipsis; white-space: nowrap;
 }
 .ab-baglam .yol .son { color: var(--murekkep); font-weight: 500; }
-.ab-baglam .sag { margin-left: auto; display: flex; align-items: center; gap: 14px; }
+/* Sağ slot terimi taşır (kapsam seçici düğmesi) — daralabilmeli. */
+.ab-baglam .sag { margin-left: auto; display: flex; align-items: center; gap: 14px; min-width: 0; }
+.ab-baglam .secici { min-width: 0; }
+/* ── Dar bantta bağlam çubuğu SARAR ─────────────────────────────────
+   `nowrap` bir flex satırında `.yol` kendi min-content enine kadar
+   ezilir (`min-width: 0`, `.kisalt` üç noktası için orada) ve SON
+   kırıntı kutusundan taşıp eylem düğmelerinin ÜSTÜNE biner: metin
+   metnin üstünde, ikisi de okunmaz. Kapıların ikisi de bunu göremez —
+   sayfa kaymıyor, kırpan ata yok, axe örtüşmeyi ölçmez.
+
+   ÖLÇÜLDÜ · 375px: /riskler/[id] son kırıntı `.yol`dan 34px kaçıyor ve
+   düğmeyle 18px örtüşüyor; /sistem/bilesenler 24px / 8px — dört rota.
+   Sararken `.yol` tam satırı alır, kırıntı kutusuna sığar ve hiçbir şey
+   GİZLENMEZ. `.ab-durum` ve `.ab-alt` ayağıyla aynı karar, aynı eşik. */
+@media (max-width: 700px) {
+  .ab-baglam { flex-wrap: wrap; row-gap: 10px; }
+  .ab-baglam .sag { margin-left: 0; }
+}
 .ab-baglam .secici { position: relative; }
 .ab-baglam .menu {
   position: absolute; top: calc(100% + 6px); right: 0; z-index: 25;
@@ -2875,7 +3036,7 @@ details:not([open]) > *:not(summary) { display: none !important; }
 .ab .g-disi { width: 10px; height: 0; border-top: 1.5px solid var(--i3); background: none; }
 
 /* ═══ Ortak gramer — defter matrisi (C · c-compliance) ════════════════
-   Ölçüler prototipten: 92px kod · 1fr başlık · santral başına 88px (proto 68) ·
+   Ölçüler prototipten: 92px kod · 1fr başlık · tesis başına 88px (proto 68) ·
    78px kapsam; başlık satırı 7px alt boşluk + KALIN mürekkep kuralı,
    veri satırı 9px/9px + ince kural, endeks satırı 11px üst boşluk +
    kalın üst kural. Sütun sayısı veriden gelir: `--mtx-kolon`.
@@ -2886,7 +3047,7 @@ details:not([open]) > *:not(summary) { display: none !important; }
      kontrol başlıkları kısa;
    · hücre gerçek bir <button>: prototipte tıklanabilirlik yalnız imleç
      değişimiyle anlatılıyordu (kusur 4/5);
-   · çok santralli çerçevede matris yatay kayar (`.kayar`, bileşen
+   · çok tesisli çerçevede matris yatay kayar (`.kayar`, bileşen
      ölçer), açılan gerekçe sola yapışık kalır — prototip tek genişlik
      için çizilmişti (kusur 8). Sığdığı sürece kap taşmasızdır ki başlık
      satırı sayfaya YAPIŞABİLSİN: overflow'lu kapta sticky kaba yapışır
@@ -2919,10 +3080,10 @@ details:not([open]) > *:not(summary) { display: none !important; }
   position: sticky; top: 0; z-index: 2; background: var(--zemin);
 }
 .ab-mtx.kayar .bas > * { position: static; }
-/* Santral başlığı: kısa ad, 11px, EN FAZLA İKİ SATIR; tam etiket (ad ·
+/* Tesis başlığı: kısa ad, 11px, EN FAZLA İKİ SATIR; tam etiket (ad ·
    kod · künye) `title`da. Kesik satır "…" ile biter, 3. satır yok. */
-.ab-mtx .bas .santral { text-align: center; font-size: 11px; color: var(--i2); line-height: 1.25; min-width: 0; }
-.ab-mtx .bas .santral .ad {
+.ab-mtx .bas .tesis { text-align: center; font-size: 11px; color: var(--i2); line-height: 1.25; min-width: 0; }
+.ab-mtx .bas .tesis .ad {
   display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
   overflow: hidden; overflow-wrap: anywhere;
 }
@@ -3062,7 +3223,7 @@ details:not([open]) > *:not(summary) { display: none !important; }
    yetkisiz kullanıcıya düğmeyi göstermek zorunda (nedenini yanına
    yazarak), o yüzden `:disabled` burada tanımlı. */
 /* EYLEM ≥11px. Düğme bir eylemdir; 10px'te `Çıkış`, `Ayarlar`, `Yardım`
-   santral BT odasının aydınlatmasında okunmuyordu. Ürünün kendi kuralı
+   tesis BT odasının aydınlatmasında okunmuyordu. Ürünün kendi kuralı
    ("işlevsel metin 11px'in altına inmez") en çok burada çiğneniyordu. */
 .ab-dugme {
   display: inline-block;
@@ -3276,6 +3437,8 @@ details:not([open]) > *:not(summary) { display: none !important; }
    sığmaz. Sütun düşürmek bir kapı çıktısını gizlemek olurdu; tablo
    kendi kabında kayar, sayfa kaymaz. */
 .ab-sistem-kaydir { overflow-x: auto; max-width: 100%; }
+/* Kap odak durağıdır (sistem/page.tsx); halka İÇERİ alınır. */
+.ab-sistem-kaydir:focus-visible { outline: 2px solid var(--aksan); outline-offset: -2px; }
 .ab-sistem-kaydir > .ab-sistem-tablo { min-width: 460px; }
 .ab-sistem-tablo { width: 100%; border-collapse: collapse; font-size: 12px; }
 .ab-sistem-tablo th { text-align: left; padding: 0 12px 8px 0; border-bottom: 1px solid var(--murekkep); }
@@ -3416,7 +3579,7 @@ details:not([open]) > *:not(summary) { display: none !important; }
   .ab-b-takim .isaret.sola-dar .kunye::before { left: auto; right: -13px; }
   .ab-b-takim .kunye .ad { font-size: 13px; }
 
-  /* Üniteler + açık bulgular: 560px SABİT kolon tek başına telefondan
+  /* Birimler + açık bulgular: 560px SABİT kolon tek başına telefondan
      geniştir. Izgara izini sığdıramayınca sağdaki `minmax(0, 1fr)` sıfıra
      çöküyor, bulgu satırının sabit sütunları da belgeye taşıyordu —
      ölçüldü: 375px bandında 17 tesis rotasının 17'sinde sayfa 359-541px,
@@ -3428,7 +3591,7 @@ details:not([open]) > *:not(summary) { display: none !important; }
      sütununun genişliği 768'de 0px, 1024'te 76px'ti (ölçüldü) — satırın
      asıl bilgisi görünmüyordu. Tek kolonda 768'de 380px olur. */
   .ab-b-ikili { grid-template-columns: minmax(0, 1fr); }
-  .ab-b-ikili .uniteler { border-right: 0; border-bottom: 1px solid var(--hr); }
+  .ab-b-ikili .birimler { border-right: 0; border-bottom: 1px solid var(--hr); }
 
   /* ── Hero plakası · dar bant ────────────────────────────────────────
      Plaka masaüstünde SABİT YÜKSEKLİKLİ bir tuvaldir: künye ve ölçü
@@ -3559,7 +3722,7 @@ details:not([open]) > *:not(summary) { display: none !important; }
   }
   .ab-b-serit > header .sag { margin-left: 0; flex-basis: 100%; }
 
-  /* Üniteler + bulgular telefonda: 32px yan dolgu şeridin telefon
+  /* Birimler + bulgular telefonda: 32px yan dolgu şeridin telefon
      ritmine (20px) iner — kazanılan 24px doğrudan konuya gider. */
   /* Hero telefonda: 60px başlık ve 34px ölçü değeri 335px'lik iç alanda
      tek sözcüğü bile taşırıyordu. Ölçek düşer, İÇERİK DÜŞMEZ — beş ölçü
@@ -3571,7 +3734,7 @@ details:not([open]) > *:not(summary) { display: none !important; }
   .ab-b-plaka .olcuolar .birim { font-size: 12px; }
   .ab-b-panel { padding: 20px; }
 
-  .ab-b-ikili .uniteler, .ab-b-ikili .bulgular { padding: 24px 20px; }
+  .ab-b-ikili .birimler, .ab-b-ikili .bulgular { padding: 24px 20px; }
 
   /* Bulgu başlığı ile sayaç özeti yan yana durunca İKİSİ DE satır
      ortasından kırılıyordu ("AÇIK / BULGULAR" + "2 AÇIK · 4 AKSİYONDA ·
@@ -3596,18 +3759,18 @@ details:not([open]) > *:not(summary) { display: none !important; }
   .ab-b-ikili .bulgular .kontrol { grid-column: 2; grid-row: 2; width: auto; }
   .ab-b-ikili .bulgular .termin { grid-column: 3; grid-row: 2; width: auto; }
 
-  /* Ünite satırı aynı gerekçeyle kırılır: 66px kod + kayıt sayıları +
-     96px durum, üniteyi TANIYAN ada yer bırakmıyordu (160px → 242px).
+  /* Birim satırı aynı gerekçeyle kırılır: 66px kod + kayıt sayıları +
+     96px durum, birimi TANIYAN ada yer bırakmıyordu (160px → 242px).
      Kayıt sayıları alt satıra iner; durum glifi üst satırda kalır —
-     "hangi ünite, ne durumda" tek bakışta okunur. */
-  .ab-b-ikili .unite {
+     "hangi birim, ne durumda" tek bakışta okunur. */
+  .ab-b-ikili .birim {
     display: grid; grid-template-columns: auto minmax(0, 1fr) auto;
     gap: 4px 12px; align-items: center;
   }
-  .ab-b-ikili .unite .kod { grid-column: 1; grid-row: 1; width: auto; }
-  .ab-b-ikili .unite .ad { grid-column: 2; grid-row: 1; }
-  .ab-b-ikili .unite .durum { grid-column: 3; grid-row: 1; width: auto; }
-  .ab-b-ikili .unite .kayit { grid-column: 2 / -1; grid-row: 2; }
+  .ab-b-ikili .birim .kod { grid-column: 1; grid-row: 1; width: auto; }
+  .ab-b-ikili .birim .ad { grid-column: 2; grid-row: 1; }
+  .ab-b-ikili .birim .durum { grid-column: 3; grid-row: 1; width: auto; }
+  .ab-b-ikili .birim .kayit { grid-column: 2 / -1; grid-row: 2; }
 
   /* Kütük hücre dolgusu telefonda daralır: 335px'lik iç alanda dört
      sütunun yatay dolgusu konu sütununu dört satıra kırıyordu. */

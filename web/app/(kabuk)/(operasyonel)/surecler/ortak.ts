@@ -1,4 +1,5 @@
 import type { Durum } from '@/components/kabuk/temel';
+import { CEKIRDEK_TERIMLER, type Terim } from '@/lib/dil/terimler';
 import { DURUM_ETIKET, SUREC_DURUM_ETIKET, uyumYuzdesi, type SurecDurum } from '@/lib/sabitler';
 
 /* Uyum süreci kütüğü — sunucu ve istemcinin PAYLAŞTIĞI tipler ve saf hesaplar.
@@ -160,7 +161,9 @@ export function surecImi(s: S, simdi: number): Durum {
 }
 
 /** Çekmece kimlik cümlesi — durumun neden o renkte olduğunu bir cümlede söyler. */
-export function kimlikCumlesi(s: S, simdi: number): string {
+export function kimlikCumlesi(
+  s: S, simdi: number, tesis: Terim = CEKIRDEK_TERIMLER.tesis,
+): string {
   if (kapandiMi(s)) {
     return s.sayim.toplam === 0
       ? 'Kampanya kapandı; kapsamında hiç değerlendirme açılmamıştı.'
@@ -170,10 +173,12 @@ export function kimlikCumlesi(s: S, simdi: number): string {
     return 'Kampanya askıya alındı — takvim işlemiyor, değerlendirmeler olduğu yerde duruyor.';
   }
   if (s.tesisler.length === 0) {
-    return 'Kapsama tesis eklenmedi — madde değerlendirmesi açılmadı, uyum ölçülemiyor.';
+    return `Kapsama ${tesis.tekil} eklenmedi — madde değerlendirmesi açılmadı, `
+      + 'uyum ölçülemiyor.';
   }
   if (s.sayim.toplam === 0) {
-    return 'Kapsamda tesis var ama değerlendirme kaydı yok — regülasyonun yaprak maddesi yok.';
+    return `Kapsamda ${tesis.tekil} var ama değerlendirme kaydı yok — `
+      + 'regülasyonun yaprak maddesi yok.';
   }
   if (gecikti(s, simdi)) {
     const b = an(s.bitis) as number;
@@ -201,10 +206,12 @@ export function altSatir(s: S): string {
   return `${s.kod} · ${s.regulasyon.kod}`;
 }
 
-/** Satırın santral hücresi: tek tesis · birden çoksa sayı · yoksa kapsam boş. */
-export function santralMetni(s: Pick<S, 'tesisler'>): string {
+/** Satırın tesis hücresi: tek tesis · birden çoksa sayı · yoksa kapsam boş. */
+export function tesisMetni(
+  s: Pick<S, 'tesisler'>, tesis: Terim = CEKIRDEK_TERIMLER.tesis,
+): string {
   if (s.tesisler.length === 1) return s.tesisler[0].ad;
-  if (s.tesisler.length > 1) return `${s.tesisler.length} santral`;
+  if (s.tesisler.length > 1) return `${s.tesisler.length} ${tesis.tekil}`;
   return 'kapsam boş';
 }
 
@@ -351,8 +358,8 @@ export type Degerlendirme = {
   gecerliKanit: number;
   acikBulgu: number;
   /* ── UY-59 · olgunluk ───────────────────────────────────────────────
-     `olgunluk` bu santralde ÖLÇÜLEN, `hedefOlgunluk` maddenin bütün
-     santraller için ortak hedefi. İkisi de `null` olabilir ve `null`
+     `olgunluk` bu tesiste ÖLÇÜLEN, `hedefOlgunluk` maddenin bütün
+     tesisler için ortak hedefi. İkisi de `null` olabilir ve `null`
      "ölçülmedi/tanımsız" demektir — sıfır ayrı bir şeydir ("uygulama
      başlamadı"). Uyum durumundan da AYRIDIR: bir kontrol uyumlu olup
      olgunluk 1'de olabilir (çalışıyor ama tek kişiye bağlı). */
@@ -440,13 +447,16 @@ export function degerlendirmeSozu(d: Degerlendirme): string {
 /** Çekmece kimlik cümlesi — işaretçinin neden o renkte olduğunu söyler.
     Ham durum sözcüğü burada TEKRAR EDİLMEZ; kelime kimlik bloğunun kendi
     `soz` alanında bir kez geçer. */
-export function degerlendirmeCumlesi(d: Degerlendirme): string {
+export function degerlendirmeCumlesi(
+  d: Degerlendirme, tesis: Terim = CEKIRDEK_TERIMLER.tesis,
+): string {
   const not = d.not?.trim() ? ` Not: ${d.not.trim()}` : '';
   if (d.durum === 'kapsamdisi') {
     return `Bu madde ${d.tesis.ad} için kapsam dışı sayıldı; uyum paydasına girmiyor.${not}`;
   }
   if (d.acikBulgu > 0) {
-    return `${d.acikBulgu} bulgu açık; madde kapanmadan bu santralde uyum sayılmaz.${not}`;
+    return `${d.acikBulgu} bulgu açık; madde kapanmadan bu ${tesis.bulunma} `
+      + `uyum sayılmaz.${not}`;
   }
   if (d.durum === 'uyumsuz') {
     return `Madde ${d.tesis.ad} tesisinde karşılanmıyor; kapanış için bulgu açılmalı.${not}`;

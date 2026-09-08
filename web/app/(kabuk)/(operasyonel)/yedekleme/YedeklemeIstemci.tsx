@@ -10,6 +10,8 @@ import { EkranBasligi, Filtreler } from '@/components/kabuk/ekran';
 import {
   Cekmece, CekmeceKimlik, CekmeceAlanlar, CekmeceBagli, CekmeceEylemler,
 } from '@/components/kabuk/panel';
+import { useSozluk, useTerim } from '@/lib/dil/SozlukSaglayici';
+import { t, type Sozluk } from '@/lib/dil/terimler';
 import { gorevOlustur } from '@/lib/eylemler2/gorev';
 import { etiketle, tarihTR } from '@/lib/sabitler';
 import {
@@ -20,10 +22,10 @@ import {
   BAR_OK_ESIGI, KAPSAMA_ESIGI, TEST_ESIGI,
   barDurumu, bilinmeyenPayi, filoOzeti, haricListesi, hazirlik, kapsama, karsilastir,
   kirilimMetni, kritikHucresi, sonKosu, sonTest, testGunu, testHucresi, toplanabilir,
-  yuzde, type DriftSatiri, type Santral,
+  yuzde, type DriftSatiri, type Tesis,
 } from './mantik';
 
-/* O14 istemcisi. Tek canvas modülü: hazırlığa göre sıralı santral tablosu.
+/* O14 istemcisi. Tek canvas modülü: hazırlığa göre sıralı tesis tablosu.
    Detay asla modalda değil 420px çekmecede açılır (06 §B4).
 
    ── EKRANIN SERT KURALI ────────────────────────────────────────────────
@@ -33,7 +35,7 @@ import {
    ve bağlanacak bir kaynaktır. Aynı şey restore testinde de geçerli:
    "test yok" ile "test başarısız" iki ayrı hücre metnidir. */
 
-/* Tasarım sözleşmesi: 22px işaretçi · 1fr santral · 200px kapsama barı ·
+/* Tasarım sözleşmesi: 22px işaretçi · 1fr tesis · 200px kapsama barı ·
    190px son restore testi · 170px kritik varlık · 26px ▸
    (işaretçi ve chevron kolonlarını Tablo'nun kendisi ekler).             */
 const KAPSAMA_KOL = 200;
@@ -67,41 +69,43 @@ const SOZ: Record<Durum, string> = {
 };
 
 export default function YedeklemeIstemci({
-  santraller, politikaSayisi,
-}: { santraller: Santral[]; politikaSayisi: number }) {
+  tesisler, politikaSayisi,
+}: { tesisler: Tesis[]; politikaSayisi: number }) {
   const [mercek, setMercek] = useUrlDurumu<string>('mercek', 'hepsi');
   const [secili, setSecili] = useUrlDurumuBos('sec');
   const [kuyrukAcik, setKuyrukAcik] = useState(false);
+  const sozluk = useSozluk();
+  const { t: terim, tBas } = useTerim();
 
-  const filo = useMemo(() => filoOzeti(santraller), [santraller]);
+  const filo = useMemo(() => filoOzeti(tesisler), [tesisler]);
 
-  const suzulmus = useMemo(() => santraller.filter((s) => {
+  const suzulmus = useMemo(() => tesisler.filter((s) => {
     if (mercek === 'hazirDegil') return hazirlik(s) === 'bd';
     if (mercek === 'testYok') return Boolean(s.politika) && testGunu(s) === null;
     if (mercek === 'kritikAcik') return s.varlikKatmani.yedeksiz.length > 0;
     if (mercek === 'olculmemis') return s.varlikKatmani.bilinmeyen.length > 0;
     if (mercek === 'haric') return haricListesi(s.politika).length > 0;
     return true;
-  }), [santraller, mercek]);
+  }), [tesisler, mercek]);
 
   /* Hazırlığa göre en kötü üstte. Sağlıklı olanlar (yalnız onlar) kuyruğa
      toplanır; hazır olmayan satır sıralamadan bağımsız üstte kalır. */
   const { gorunur, toplanan } = useMemo(() => {
     const sirali = [...suzulmus].sort(karsilastir);
-    if (kuyrukAcik) return { gorunur: sirali, toplanan: [] as Santral[] };
+    if (kuyrukAcik) return { gorunur: sirali, toplanan: [] as Tesis[] };
     return {
       gorunur: sirali.filter((s) => !toplanabilir(s)),
       toplanan: sirali.filter(toplanabilir),
     };
   }, [suzulmus, kuyrukAcik]);
 
-  const secilen = santraller.find((s) => s.id === secili) ?? null;
+  const secilen = tesisler.find((s) => s.id === secili) ?? null;
 
   const satirlar: Satir[] = gorunur.map((s) => {
     const oran = kapsama(s);
     const bilinmeyen = s.bilinmeyen;
     const test = testHucresi(s);
-    const kritik = kritikHucresi(s);
+    const kritik = kritikHucresi(s, sozluk);
     const im = hazirlik(s);
     return {
       id: s.id,
@@ -112,13 +116,13 @@ export default function YedeklemeIstemci({
       alt: `${s.kod} · ${s.toplam} varlık${bilinmeyen > 0 ? ` · ${bilinmeyen} beyan bilinmiyor` : ''}`
         + (s.bulgular.length > 0 ? ` · ${s.bulgular.length} açık yedek bulgusu` : ''),
       hucreler: [
-        <KapsamaHucresi key="k" santral={s} oran={oran} />,
+        <KapsamaHucresi key="k" tesis={s} oran={oran} />,
         <span key="t" style={{ fontWeight: test.renk ? 600 : 400,
           color: test.renk ? `var(--${test.renk})` : 'var(--i2)' }}>{test.yazi}</span>,
         /* Hücrenin KENDİSİ "ölçülmedi" diyor; yanına ikinci bir işaretçi
            konmaz (06 §A2: durum işaretçiyle gösteriliyorsa metinde tekrar
            edilmez — burada tersi geçerli, metin taşıyorsa işaret tekrar
-           etmez). Satırın sol kenarındaki işaretçi zaten santralin
+           etmez). Satırın sol kenarındaki işaretçi zaten tesisin
            hazırlığını söylüyor ve o AYRI bir yargı. */
         <Ipucu key="v" genis metin={kritik.ipucu}>
           <span style={{ whiteSpace: 'nowrap', fontWeight: kritik.renk ? 600 : 400,
@@ -134,22 +138,23 @@ export default function YedeklemeIstemci({
   const baslik = filo.kritikYedeksiz > 0
     ? { vurgu: `${filo.kritikYedeksiz} kritik varlığın`, ad: 'kullanılabilir yedeği yok' }
     : filo.testYok > 0
-      ? { vurgu: `${filo.testYok} santral`, ad: 'hiç restore testi görmedi' }
+      ? { vurgu: `${filo.testYok} ${terim('tesis')}`, ad: 'hiç restore testi görmedi' }
       : filo.hazirDegil > 0
-        ? { vurgu: `${filo.hazirDegil} santral`, ad: 'kurtarmaya hazır değil' }
+        ? { vurgu: `${filo.hazirDegil} ${terim('tesis')}`, ad: 'kurtarmaya hazır değil' }
         : filo.kismi > 0
-          ? { vurgu: `${filo.kismi} santral`, ad: 'kısmi hazırlıkta' }
-          : { vurgu: `${santraller.length} santral`, ad: 'kurtarmaya hazır' };
+          ? { vurgu: `${filo.kismi} ${terim('tesis')}`, ad: 'kısmi hazırlıkta' }
+          : { vurgu: `${tesisler.length} ${terim('tesis')}`, ad: 'kurtarmaya hazır' };
 
   const filtreAktif = mercek !== 'hepsi';
 
-  if (santraller.length === 0) {
+  if (tesisler.length === 0) {
     return (
       <main data-yuzey="tezgah" style={{ minWidth: 0 }}>
         <EkranBasligi eyebrow="Yedekleme & kurtarma" baslik="Yedekleme & kurtarma" />
         <section className="ab-ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
           <BosIlk
-            cumle={'Kapsamınızda aktif santral yok — yedekleme kaydı gösterilecek santral bulunamadı.'}
+            cumle={`Kapsamınızda aktif ${terim('tesis')} yok — yedekleme kaydı `
+              + `gösterilecek ${terim('tesis')} bulunamadı.`}
             eylem={<Link href="/portfoy" className="ab-dugme">Portföyü aç</Link>} />
         </section>
       </main>
@@ -160,7 +165,7 @@ export default function YedeklemeIstemci({
     <>
       <main data-yuzey="tezgah" style={{ minWidth: 0 }}>
         <EkranBasligi
-          eyebrow={`Yedekleme & kurtarma · ${santraller.length} santral`}
+          eyebrow={`Yedekleme & kurtarma · ${tesisler.length} ${terim('tesis')}`}
           vurgu={baslik.vurgu}
           baslik={baslik.ad}
           vurguDurumu={filo.kritikYedeksiz > 0 ? 'bd' : undefined}
@@ -198,8 +203,8 @@ export default function YedeklemeIstemci({
         <div className="ab-ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
           {politikaSayisi === 0 ? (
             <BosIlk
-              cumle="Yedekleme politikası kaydı yok. Kayıtlar dışarıdan aktarılabilir ya da
-                santral çekmecesinden elle tanımlanabilir."
+              cumle={'Yedekleme politikası kaydı yok. Kayıtlar dışarıdan aktarılabilir '
+                + `ya da ${terim('tesis')} çekmecesinden elle tanımlanabilir.`}
               eylem={
                 <Link href="/ice-aktarim" className="ab-dugme birincil"
                   style={{ display: 'inline-block' }}>
@@ -218,15 +223,16 @@ export default function YedeklemeIstemci({
           ) : (
             <Tablo
               kolonlar={KOLONLAR}
-              konuBasligi="Santral"
+              konuBasligi={tBas('tesis')}
               satirlar={satirlar}
               secili={secili}
               sec={(id) => setSecili((o) => (o === id ? null : id))}
               kuyruk={toplanan.length > 0
-                ? { metin: `+${toplanan.length} santral · kapsama tam, restore kanıtı güncel`,
+                ? { metin: `+${toplanan.length} ${terim('tesis')} · kapsama tam, `
+                  + 'restore kanıtı güncel',
                   ac: () => setKuyrukAcik(true) }
                 : null}
-              dipNot={dipNot(filo)}
+              dipNot={dipNot(filo, sozluk)}
             />
           )}
           {kuyrukAcik && (
@@ -238,14 +244,17 @@ export default function YedeklemeIstemci({
         </div>
       </main>
 
-      {secilen && <SantralCekmecesi santral={secilen} kapat={() => setSecili(null)} />}
+      {secilen && <TesisCekmecesi tesis={secilen} kapat={() => setSecili(null)} />}
     </>
   );
 }
 
-function dipNot(filo: ReturnType<typeof filoOzeti>): string {
+function dipNot(filo: ReturnType<typeof filoOzeti>, sozluk: Sozluk | null): string {
   const parcalar = ['Satıra tıklayınca çekmece · kapsama barında tür kırılımı'];
-  if (filo.testYok > 0) parcalar.push(`${filo.testYok} santralde hiç restore testi kaydı yok`);
+  if (filo.testYok > 0) {
+    parcalar.push(`${filo.testYok} ${t(sozluk, 'tesis', 'bulunma')} hiç restore `
+      + 'testi kaydı yok');
+  }
   if (!filo.varlikKaynagiBagli) {
     /* Kaynak hiç bağlı değilse "kritik varlıkların yedeği yok" DENMEZ. Bu
        cümle olmadan gri sayı sessizce sıfır gibi okunurdu. */
@@ -255,7 +264,9 @@ function dipNot(filo: ReturnType<typeof filoOzeti>): string {
   if (filo.bilinmeyen > 0) {
     parcalar.push(`${filo.bilinmeyen} varlığın envanter beyanı bilinmiyor — paydada, kapsamada değil`);
   }
-  if (filo.politikasiz > 0) parcalar.push(`${filo.politikasiz} santralin politikası yok`);
+  if (filo.politikasiz > 0) {
+    parcalar.push(`${filo.politikasiz} ${t(sozluk, 'tesis', 'iyelik')} politikası yok`);
+  }
   if (filo.acikBulgu > 0) parcalar.push(`${filo.acikBulgu} açık yedek bulgusu insan kararı bekliyor`);
   if (filo.celiski > 0) parcalar.push(`${filo.celiski} katman çelişkisi`);
   return parcalar.join(' · ');
@@ -263,7 +274,8 @@ function dipNot(filo: ReturnType<typeof filoOzeti>): string {
 
 /* ── Hücreler ─────────────────────────────────────────────────────────── */
 
-function KapsamaHucresi({ santral, oran }: { santral: Santral; oran: number | null }) {
+function KapsamaHucresi({ tesis, oran }: { tesis: Tesis; oran: number | null }) {
+  const sozluk = useSozluk();
   if (oran === null) {
     // unknown ≠ zero: %0 barı değil bilinmeyen elması + em tire.
     return (
@@ -274,7 +286,7 @@ function KapsamaHucresi({ santral, oran }: { santral: Santral; oran: number | nu
     );
   }
   return (
-    <Ipucu genis metin={kirilimMetni(santral)}>
+    <Ipucu genis metin={kirilimMetni(tesis, sozluk)}>
       {/* blok kutu: `.ilerleme` esnek öğe olarak değil, kutunun tamamını
           kaplayan blok olarak açılsın ki iz (`flex:1`) genişleyebilsin. */}
       <span style={{ display: 'block', width: BAR_KUTU }}>
@@ -288,17 +300,18 @@ function KapsamaHucresi({ santral, oran }: { santral: Santral; oran: number | nu
 
 type Kip = 'ozet' | 'politika';
 
-function SantralCekmecesi({ santral, kapat }: { santral: Santral; kapat: () => void }) {
+function TesisCekmecesi({ tesis, kapat }: { tesis: Tesis; kapat: () => void }) {
   const [kip, setKip] = useUrlDurumu<Kip>('kip', 'ozet');
-  const im = hazirlik(santral);
-  const oran = kapsama(santral);
-  const bilinmeyen = bilinmeyenPayi(santral);
-  const gun = testGunu(santral);
-  const haric = haricListesi(santral.politika);
-  const p = santral.politika;
-  const test = sonTest(santral);
-  const kosu = sonKosu(santral);
-  const vk = santral.varlikKatmani;
+  const { t: terim, tBas } = useTerim();
+  const im = hazirlik(tesis);
+  const oran = kapsama(tesis);
+  const bilinmeyen = bilinmeyenPayi(tesis);
+  const gun = testGunu(tesis);
+  const haric = haricListesi(tesis.politika);
+  const p = tesis.politika;
+  const test = sonTest(tesis);
+  const kosu = sonKosu(tesis);
+  const vk = tesis.varlikKatmani;
 
   /* Kimlik bloğu durumu KELİMEYLE söyleyebilen tek yer; sözcük mümkün olan
      en dar gerekçeyi taşır ki satırdaki işaretçiyle örtüşsün. */
@@ -311,27 +324,27 @@ function SantralCekmecesi({ santral, kapat }: { santral: Santral; kapat: () => v
 
   if (kip === 'politika') {
     return (
-      <Cekmece kod={`${santral.kod} · Yedekleme politikası`} kapat={kapat}>
+      <Cekmece kod={`${tesis.kod} · Yedekleme politikası`} kapat={kapat}>
         <div className="ab-panel-blok">
           <p className="etiket" style={{ margin: '0 0 var(--s12)' }}>
             {p ? 'Politikayı düzenle' : 'Politika tanımla'}
           </p>
         </div>
         <div className="ab-panel-blok">
-          <PolitikaFormu santral={santral} kapat={() => setKip('ozet')} />
+          <PolitikaFormu tesis={tesis} kapat={() => setKip('ozet')} />
         </div>
       </Cekmece>
     );
   }
 
   return (
-    <Cekmece kod={`${santral.kod} · Yedekleme & DR`} kapat={kapat}>
+    <Cekmece kod={`${tesis.kod} · Yedekleme & DR`} kapat={kapat}>
       <CekmeceKimlik
         durum={im}
         soz={soz}
-        baslik={santral.ad}
-        cumle={`Envanter beyanı: ${santral.yedekli} varlık kapsamda, ${santral.yedeksiz} `
-          + `dışında, ${santral.bilinmeyen} bilinmiyor. Ölçüm: ${vk.yedegiVar}/${vk.toplamKritik} `
+        baslik={tesis.ad}
+        cumle={`Envanter beyanı: ${tesis.yedekli} varlık kapsamda, ${tesis.yedeksiz} `
+          + `dışında, ${tesis.bilinmeyen} bilinmiyor. Ölçüm: ${vk.yedegiVar}/${vk.toplamKritik} `
           + `kritik varlığın kullanılabilir yedeği doğrulandı.`}
       />
 
@@ -351,13 +364,13 @@ function SantralCekmecesi({ santral, kapat }: { santral: Santral; kapat: () => v
         { etiket: 'Hedef', deger: p?.hedef ? etiketle(p.hedef) : '—' },
       ]} />
 
-      {/* ── Santral katmanı ── */}
+      {/* ── Tesis katmanı ── */}
       <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
         <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>
-          Santral katmanı · politika → koşu → geri yükleme testi
+          {tBas('tesis')} katmanı · politika → koşu → geri yükleme testi
         </p>
         <p className="ab-panel-dip" style={{ margin: '0 0 var(--s12)' }}>
-          {santral.santralKatmani.gerekce}
+          {tesis.tesisKatmani.gerekce}
         </p>
 
         {test ? (
@@ -373,17 +386,19 @@ function SantralCekmecesi({ santral, kapat }: { santral: Santral; kapat: () => v
           </div>
         ) : (
           <p style={{ margin: 0, fontSize: 'var(--t-field)',
-            color: santral.santralKatmani.bagli ? 'var(--bd)' : 'var(--unk)' }}>
-            {santral.santralKatmani.bagli
-              ? 'Geri yükleme testi kaydı yok — bu santralde yedeğin geri döndüğü hiç kanıtlanmadı.'
-              : 'Politika bağı olmadığı için santral katmanı ölçülmedi — "test yok" DEĞİL.'}
+            color: tesis.tesisKatmani.bagli ? 'var(--bd)' : 'var(--unk)' }}>
+            {tesis.tesisKatmani.bagli
+              ? `Geri yükleme testi kaydı yok — bu ${terim('tesis', 'bulunma')} yedeğin `
+                + 'geri döndüğü hiç kanıtlanmadı.'
+              : `Politika bağı olmadığı için ${terim('tesis')} katmanı ölçülmedi — `
+                + '"test yok" DEĞİL.'}
           </p>
         )}
 
         {kosu && (
           <>
-            <Segment ok={santral.kosuOzeti.basarili} md={santral.kosuOzeti.kismi}
-              bd={santral.kosuOzeti.basarisiz} />
+            <Segment ok={tesis.kosuOzeti.basarili} md={tesis.kosuOzeti.kismi}
+              bd={tesis.kosuOzeti.basarisiz} />
             <p className="mono" style={{ margin: 'var(--s10) 0 0', fontSize: 'var(--t-label)',
               color: 'var(--i3)' }}>
               Son koşu {tarihTR(kosu.zaman)} · {etiketle(kosu.durum)}
@@ -396,10 +411,10 @@ function SantralCekmecesi({ santral, kapat }: { santral: Santral; kapat: () => v
           </>
         )}
 
-        {santral.yazabilir && (
+        {tesis.yazabilir && (
           <div style={{ display: 'grid', gap: 'var(--s12)', marginTop: 'var(--s14)' }}>
-            {p ? <KosuKaydet santral={santral} /> : null}
-            {p ? <RestoreTestiKaydet santral={santral} /> : null}
+            {p ? <KosuKaydet tesis={tesis} /> : null}
+            {p ? <RestoreTestiKaydet tesis={tesis} /> : null}
             <Dugme onClick={() => setKip('politika')}>
               {p ? 'Politikayı düzenle' : 'Politika tanımla'}
             </Dugme>
@@ -465,16 +480,16 @@ function SantralCekmecesi({ santral, kapat }: { santral: Santral; kapat: () => v
         )}
       </div>
 
-      <DriftBlogu santral={santral} />
+      <DriftBlogu tesis={tesis} />
 
       {/* ── Çelişkiler: iki katman birbirini yalanlıyorsa örtülmez ── */}
-      {santral.celiskiler.length > 0 && (
+      {tesis.celiskiler.length > 0 && (
         <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
           <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>
-            Katman çelişkisi · {santral.celiskiler.length}
+            Katman çelişkisi · {tesis.celiskiler.length}
           </p>
           <div style={{ display: 'grid', gap: 'var(--s10)' }}>
-            {santral.celiskiler.map((c) => (
+            {tesis.celiskiler.map((c) => (
               <div key={c} style={{ display: 'grid', gridTemplateColumns: '22px 1fr',
                 alignItems: 'start', gap: 'var(--s8)' }}>
                 <span style={{ paddingTop: 3 }}><Im durum="md" ad="Katman çelişkisi" /></span>
@@ -486,14 +501,14 @@ function SantralCekmecesi({ santral, kapat }: { santral: Santral; kapat: () => v
       )}
 
       {/* ── Motorun ürettiği, insan kararı bekleyen bulgular ── */}
-      {santral.bulgular.length > 0 && (
+      {tesis.bulgular.length > 0 && (
         <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
           <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>
-            Açık yedek bulgusu · {santral.bulgular.length}
+            Açık yedek bulgusu · {tesis.bulgular.length}
           </p>
           <div style={{ display: 'grid', gap: 'var(--s14)' }}>
-            {santral.bulgular.slice(0, 6).map((b) => (
-              <BulguIsle key={b.id} bulgu={b} yetkili={santral.bulguIsleyebilir} />
+            {tesis.bulgular.slice(0, 6).map((b) => (
+              <BulguIsle key={b.id} bulgu={b} yetkili={tesis.bulguIsleyebilir} />
             ))}
           </div>
           <p className="ab-panel-dip" style={{ margin: 'var(--s12) 0 0' }}>
@@ -526,11 +541,11 @@ function SantralCekmecesi({ santral, kapat }: { santral: Santral; kapat: () => v
       </div>
 
       <CekmeceBagli kayitlar={[
-        { id: 'tesis', kod: santral.kod, alt: santral.ad, yol: `/tesisler/${santral.id}` },
-        { id: 'envanter', kod: 'Varlık envanteri', alt: `${santral.toplam} kayıt`, yol: '/envanter' },
+        { id: 'tesis', kod: tesis.kod, alt: tesis.ad, yol: `/tesisler/${tesis.id}` },
+        { id: 'envanter', kod: 'Varlık envanteri', alt: `${tesis.toplam} kayıt`, yol: '/envanter' },
       ]} />
 
-      <TestPlanla santral={santral} />
+      <TestPlanla tesis={tesis} />
     </Cekmece>
   );
 }
@@ -547,8 +562,9 @@ function SantralCekmecesi({ santral, kapat }: { santral: Santral; kapat: () => v
    "sapma yok" kutusuna koymak, hiç bakılmamış cihazı temiz göstermek
    olurdu; oranın PAYDASINA da girmez. */
 
-function DriftBlogu({ santral }: { santral: Santral }) {
-  const d = santral.drift;
+function DriftBlogu({ tesis }: { tesis: Tesis }) {
+  const { t: terim } = useTerim();
+  const d = tesis.drift;
   const [hepsi, setHepsi] = useState(false);
   const gorunur = hepsi ? d.satirlar : d.satirlar.slice(0, 6);
 
@@ -560,8 +576,9 @@ function DriftBlogu({ santral }: { santral: Santral }) {
 
       {d.satirlar.length === 0 ? (
         <p style={{ margin: 0, fontSize: 'var(--t-field)', color: 'var(--unk)' }}>
-          Bu santralde onaylı konfigürasyon tabanı da, özeti hesaplanmış
-          konfigürasyon yedeği de yok — sapma ÖLÇÜLMEDİ, &quot;yok&quot; değil.
+          Bu {terim('tesis', 'bulunma')} onaylı konfigürasyon tabanı da, özeti
+          hesaplanmış konfigürasyon yedeği de yok — sapma ÖLÇÜLMEDİ,
+          &quot;yok&quot; değil.
         </p>
       ) : (
         <>
@@ -582,7 +599,7 @@ function DriftBlogu({ santral }: { santral: Santral }) {
           <div style={{ display: 'grid', gap: 'var(--s16)' }}>
             {gorunur.map((x) => (
               <DriftSatiriGorunumu key={x.varlikId} satir={x}
-                yetkili={santral.onaylayabilir} />
+                yetkili={tesis.onaylayabilir} />
             ))}
           </div>
           {d.satirlar.length > gorunur.length && (
@@ -611,6 +628,7 @@ function driftDurumu(x: DriftSatiri): Durum {
 function DriftSatiriGorunumu({ satir, yetkili }: {
   satir: DriftSatiri; yetkili: boolean;
 }) {
+  const { t: terim } = useTerim();
   const im = driftDurumu(satir);
   const acik = satir.sapmalar.filter((s) => s.durum === 'acik');
   const kapali = satir.sapmalar.filter((s) => s.durum !== 'acik');
@@ -654,7 +672,8 @@ function DriftSatiriGorunumu({ satir, yetkili }: {
           <TemelOnayla satir={satir} />
         ) : (
           <span className="ab-panel-dip">
-            Taban onaylamak envanter onay yetkisi ve bu santralin kapsamını ister.
+            Taban onaylamak envanter onay yetkisi ve bu {terim('tesis', 'iyelik')}
+            {' '}kapsamını ister.
           </span>
         )}
       </div>
@@ -665,15 +684,16 @@ function DriftSatiriGorunumu({ satir, yetkili }: {
 /* `Test planla` yeni bir mutasyon yazmaz: var olan gorevOlustur server
    action'ını `dogrulama` tipiyle çağırır. Yetki (uyum/yazma + tesis kapsamı)
    sunucuda zaten kontrol edilir; burada yalnız yüzeyi kapatıyoruz. */
-function TestPlanla({ santral }: { santral: Santral }) {
+function TestPlanla({ tesis }: { tesis: Tesis }) {
+  const { t: terim } = useTerim();
   const [tarih, setTarih] = useState('');
   const [calisiyor, setCalisiyor] = useState(false);
   const [sonuc, setSonuc] = useState<{ ok: boolean; mesaj: string } | null>(null);
 
-  if (!santral.planlanabilir) {
+  if (!tesis.planlanabilir) {
     return (
       <CekmeceEylemler dipNot={'Restore testi planlamak uyum yazma yetkisi ister; '
-        + 'bu santral kapsamında yetkiniz yok.'} />
+        + `bu ${terim('tesis')} kapsamında yetkiniz yok.`} />
     );
   }
 
@@ -681,9 +701,9 @@ function TestPlanla({ santral }: { santral: Santral }) {
     setCalisiyor(true);
     setSonuc(null);
     const r = await gorevOlustur({
-      baslik: `Restore testi · ${santral.ad}`,
+      baslik: `Restore testi · ${tesis.ad}`,
       tip: 'dogrulama',
-      tesisId: santral.id,
+      tesisId: tesis.id,
       sonTarih: tarih || null,
     });
     setCalisiyor(false);
@@ -712,7 +732,7 @@ function TestPlanla({ santral }: { santral: Santral }) {
         </div>
       }
       dipNot={'Görev doğrulama kuyruğuna düşer; test yürütülüp sonucu kaydedilene kadar '
-        + 'bu santralin restore kanıtı değişmez.'}
+        + `bu ${terim('tesis', 'iyelik')} restore kanıtı değişmez.`}
     />
   );
 }

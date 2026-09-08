@@ -3,6 +3,8 @@ import { useMemo, useState } from 'react';
 import { useUrlDurumu, useUrlDurumuBos } from '@/components/kabuk/urlDurumu';
 import Link from 'next/link';
 import { csvAktar, damgaliAd, exceleAktar, pdfYazdir } from '@/components/disaAktar';
+import { useSozluk, useTerim } from '@/lib/dil/SozlukSaglayici';
+import { tBas, type Sozluk } from '@/lib/dil/terimler';
 import { VARLIK_SINIF_ETIKET, etiketle, tarihTR, zamanTR } from '@/lib/sabitler';
 import { IliskiEditoru, VarlikFormu, YasamFormu } from './Formlar';
 import { DurusPaneli } from './Durus';
@@ -14,7 +16,7 @@ import {
   korumaAcigi, kullanimda, kuyrukMetni, metrikleriHesapla, olgu, omurGunu,
   sirala, suz, varlikDurumu,
   type Bolge, type CanliAyar, type Kisi, type Kodlu, type Mercek, type Segment, type Tur,
-  type Unite, type V,
+  type Birim, type V,
 } from './mantik';
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -31,7 +33,7 @@ import {
    Eski ekran ilişki grafiğini "varlık ↔ ağ bölgesi ↔ sistem" olarak
    çiziyordu: teknik bir yerleşim şeması. Prototip YEDİ HALKALI bir
    YÖNETİŞİM zinciri çiziyor —
-     SANTRAL → SİSTEM → VARLIK → ZAFİYET → RİSK → KONTROL → PROJE
+     TESİS → SİSTEM → VARLIK → ZAFİYET → RİSK → KONTROL → PROJE
    — yani "bu kutu hangi regülasyon maddesini kırıyor ve kim düzeltiyor".
    Zincirin son üç halkası veride vardı ama bu ekranda HİÇ GÖRÜNMÜYORDU.
 
@@ -56,10 +58,17 @@ import {
 type Kip = 'zincir' | 'tablo';
 type PanelKipi = 'ozet' | 'durus' | 'yonetisim' | 'form' | 'iliski' | 'yasam';
 
-/** Zincirin halkaları — prototipin sütun başlıkları. */
-const HALKALAR = [
-  'Santral', 'Sistem / servis', 'Varlık', 'Zafiyet', 'Risk', 'Kontrol', 'Proje / CAPA',
-] as const;
+/** Zincirin halkaları — prototipin sütun başlıkları.
+
+    İLK halka sözlükten gelir; sabit dizi bir İŞLEVE çevrildi. Kaçırılmıştı
+    ve ölçüm buldu: iki sözlükte de "TESİS" yazıyordu, yani çekirdek sözcük
+    ekrana çakılı kalmıştı. Bekçi bunu göremezdi — dosya artık sektör
+    sözcüğü taşımıyordu ve TEMİZ görünüyordu. Metni ölçmek yetmiyor;
+    ekranı ölçmek gerekiyor. */
+export const halkalar = (sozluk: Sozluk | null) => [
+  tBas(sozluk, 'tesis'), 'Sistem / servis', 'Varlık', 'Zafiyet', 'Risk',
+  'Kontrol', 'Proje / CAPA',
+];
 
 type Dugum = {
   id: string; ad: string; alt: string; durum: string;
@@ -67,11 +76,11 @@ type Dugum = {
 };
 
 export default function EnvanterIstemci({
-  varliklar, turler, tesisler, uniteler, sistemler, bolgeler, kullanicilar,
+  varliklar, turler, tesisler, birimler, sistemler, bolgeler, kullanicilar,
   segmentler, ekipler, yazabilir, onaylayabilir, simdi, canliAyar,
   baslangicArama = '',
 }: {
-  varliklar: V[]; turler: Tur[]; tesisler: Kodlu[]; uniteler: Unite[];
+  varliklar: V[]; turler: Tur[]; tesisler: Kodlu[]; birimler: Birim[];
   sistemler: Kodlu[]; bolgeler: Bolge[]; kullanicilar: Kisi[];
   /** OT-11 · varlığa atanabilecek adresleme segmentleri */
   segmentler: Segment[];
@@ -86,6 +95,8 @@ export default function EnvanterIstemci({
   /** `?bolge=KOD` bağından gelen başlangıç arama metni (topoloji çekmecesi). */
   baslangicArama?: string;
 }) {
+  const sozluk = useSozluk();
+  const { t: terim, tBas: tBasIst } = useTerim();
   const [kip, setKip] = useUrlDurumu<Kip>('kip', 'zincir');
   const [mercek, setMercek] = useUrlDurumu<Mercek>('mercek', 'sinyal');
   const [tesisF, setTesisF] = useUrlDurumuBos('tesis');
@@ -123,9 +134,14 @@ export default function EnvanterIstemci({
   }
 
   /* ── Zincir: yedi halka, seçili varlıktan türetilir ─────────────── */
+  /* `sozluk` bağımlılıkta: zincir artık sözlükten METİN üretiyor
+     ("Tesis girilmemiş" düğümü). Bağımlılık olmadan sözlük değiştiğinde
+     halka eski sözcükle çizilmeye devam ederdi — bekçi bu dosyayı temiz
+     görürdü, çünkü bekçi METNİ ölçer, DAVRANIŞI değil. Lint yakaladı;
+     aynı sınıf `yetkiler` diliminde de çıkmıştı. */
   const zincir = useMemo(
-    () => zinciriKur(sirali, secili, tesisler, sistemler, simdi),
-    [sirali, secili, tesisler, sistemler, simdi],
+    () => zinciriKur(sirali, secili, tesisler, sistemler, simdi, sozluk),
+    [sirali, secili, tesisler, sistemler, simdi, sozluk],
   );
 
   /* Envanter kaynağı UYDURULMAZ: gerçek keşif kayıtlarının kaynakları. */
@@ -142,7 +158,7 @@ export default function EnvanterIstemci({
   }, [varliklar]);
 
   const sahipsiz = varliklar.filter((v) => kullanimda(v) && !v.sahip).length;
-  const santralsiz = varliklar.filter((v) => kullanimda(v) && !v.tesis).length;
+  const tesissiz = varliklar.filter((v) => kullanimda(v) && !v.tesis).length;
   const kaynakCumlesi = kaynaklar.length === 0
     ? 'Kaynak: bağlı kaynak yok — kayıtlar elle girildi'
     : `Kaynak: ${kaynaklar.map(([k]) => k).join(' · ')} · son görülme ${zamanTR(kaynaklar[0][1])}`;
@@ -173,7 +189,9 @@ export default function EnvanterIstemci({
           {suzulmus.length} / {m.kullanimdaki} varlık
           {m.bilinmeyen > 0 && ` · ${m.bilinmeyen} ölçülmemiş`}
           {sahipsiz > 0 && ` · ${sahipsiz} sahipsiz`}
-          {santralsiz > 0 && ` · ${santralsiz} santralsiz`}
+          {/* "…siz" EKLENMEZ: yoksunluk eki ünlü uyumuna göre değişir ve
+              sözlükte o biçim yok. Sayaç var olan biçimle yazılır. */}
+          {tesissiz > 0 && ` · ${tesissiz} ${terim('tesis', 'iyelik')} yok`}
           {m.emekli > 0 && ` · ${m.emekli} emekli`}
         </span>
         <span className="mono kunye" title={kaynakCumlesi}>
@@ -197,7 +215,7 @@ export default function EnvanterIstemci({
         <input className="ab-a-ara" type="search" value={arama} placeholder="Etiket, ad, IP, seri no"
           aria-label="Varlık ara"
           onChange={(e) => { setArama(e.target.value); setKuyrukAcik(false); }} />
-        <Sec etiket="Santral" aktif={tesisF} sec={setTesisF}
+        <Sec etiket={tBasIst('tesis')} aktif={tesisF} sec={setTesisF}
           secenekler={tesisler.map((t) => ({ id: t.id, ad: t.ad }))} />
         <Sec etiket="Tür" aktif={turF} sec={setTurF}
           secenekler={[
@@ -270,7 +288,7 @@ export default function EnvanterIstemci({
               </header>
               <div className="govde">
                 <VarlikFormu varlik={null} turler={turler} tesisler={tesisler}
-                  uniteler={uniteler} sistemler={sistemler} bolgeler={bolgeler}
+                  birimler={birimler} sistemler={sistemler} bolgeler={bolgeler}
                   kullanicilar={kullanicilar} kapat={() => setYeniAcik(false)} />
               </div>
             </>
@@ -321,7 +339,7 @@ export default function EnvanterIstemci({
                 )}
                 {panelKipi === 'form' && (
                   <VarlikFormu varlik={secili} turler={turler} tesisler={tesisler}
-                    uniteler={uniteler} sistemler={sistemler} bolgeler={bolgeler}
+                    birimler={birimler} sistemler={sistemler} bolgeler={bolgeler}
                     kullanicilar={kullanicilar} kapat={() => setPanelKipi('ozet')} />
                 )}
                 {panelKipi === 'iliski' && (
@@ -347,10 +365,11 @@ export default function EnvanterIstemci({
    kümeden dolar ve son dördü BOŞ kalır — sahte bir zincir çizilmez. */
 function zinciriKur(
   sirali: V[], secili: V | null, tesisler: Kodlu[], sistemler: Kodlu[], simdi: number,
+  sozluk: Sozluk | null,
 ): Dugum[][] {
   const say = (fn: (v: V) => boolean) => sirali.filter(fn).length;
 
-  const santraller: Dugum[] = tesisler
+  const tesisDugumleri: Dugum[] = tesisler
     .filter((t) => sirali.some((v) => v.tesis?.id === t.id))
     .sort((a, b) => say((v) => v.tesis?.id === b.id) - say((v) => v.tesis?.id === a.id))
     .map((t) => ({
@@ -358,15 +377,15 @@ function zinciriKur(
       durum: secili?.tesis?.id === t.id ? 'on' : 'dim',
     }));
   if (sirali.some((v) => !v.tesis)) {
-    santraller.push({
-      id: 't-yok', ad: 'Santrali girilmemiş',
+    tesisDugumleri.push({
+      id: 't-yok', ad: `${tBas(sozluk, 'tesis')} girilmemiş`,
       alt: `${say((v) => !v.tesis)} varlık`,
       durum: secili && !secili.tesis ? 'on' : 'dim',
     });
   }
 
-  const santralId = secili?.tesis?.id ?? null;
-  const kapsam = santralId ? sirali.filter((v) => v.tesis?.id === santralId) : sirali;
+  const tesisId = secili?.tesis?.id ?? null;
+  const kapsam = tesisId ? sirali.filter((v) => v.tesis?.id === tesisId) : sirali;
 
   const sistemDugumleri: Dugum[] = sistemler
     .filter((sx) => kapsam.some((v) => v.sistem?.id === sx.id))
@@ -393,7 +412,7 @@ function zinciriKur(
     secilebilir: true,
   }));
 
-  if (!secili) return [santraller, sistemDugumleri, varlikDugumleri, [], [], [], []].map(kirp);
+  if (!secili) return [tesisDugumleri, sistemDugumleri, varlikDugumleri, [], [], [], []].map(kirp);
 
   const zafiyetler: Dugum[] = secili.zafiyetler.slice(0, ZINCIR_TAVANI).map((z) => ({
     id: `z-${z.id}`, ad: z.baslik,
@@ -433,7 +452,7 @@ function zinciriKur(
     });
   }
 
-  return [santraller, sistemDugumleri, varlikDugumleri, zafiyetler, riskler, kontroller, projeler]
+  return [tesisDugumleri, sistemDugumleri, varlikDugumleri, zafiyetler, riskler, kontroller, projeler]
     .map(kirp);
 }
 
@@ -468,6 +487,8 @@ const ZINCIR_TAVANI = 8;
 function Zincir({ zincir, secili, sec }: {
   zincir: Dugum[][]; secili: V | null; sec: (id: string | null) => void;
 }) {
+  const sozluk = useSozluk();
+  const HALKALAR = halkalar(sozluk);
   /* Seçim yokken son dört halka hiç dolmaz (bkz. `zinciriKur`). */
   const kisali = !secili;
   const gorunur = kisali ? zincir.slice(0, 3) : zincir;
@@ -535,7 +556,7 @@ function Zincir({ zincir, secili, sec }: {
    Semantik kütük (`VeriTablosu`): gerçek `<table>`, yapışkan başlık ve
    kod sütunu, `aria-sort`, ok tuşuyla dolaşım. Görsel gramer aynı:
    sol kenar durum çubuğu, mono kod, olgu alt satırı ("yamasız", "yedek
-   yok"). Sıralanabilir sütunlar: etiket, varlık, tür, santral, zafiyet,
+   yok"). Sıralanabilir sütunlar: etiket, varlık, tür, tesis, zafiyet,
    destek sonu. Bilinmeyen tarih/sayı SONA gider, sıfır sayılmaz. */
 const sonaAt = <T,>(a: T | null | undefined, b: T | null | undefined, kiyas: (x: T, y: T) => number) =>
   a == null && b == null ? 0 : a == null ? 1 : b == null ? -1 : kiyas(a, b);
@@ -545,6 +566,7 @@ function VarlikTablosu({ satirlar, secili, sec, simdi, sira, siraDegistir }: {
   satirlar: V[]; secili: string | null; sec: (id: string | null) => void; simdi: number;
   sira: VtSira | null; siraDegistir: (s: VtSira | null) => void;
 }) {
+  const { tBas } = useTerim();
   const kolonlar: VtKolon<V>[] = [
     { anahtar: 'etiket', baslik: 'Etiket', genislik: '168px',
       sirala: (a, b) => tr(a.etiket, b.etiket),
@@ -558,7 +580,7 @@ function VarlikTablosu({ satirlar, secili, sec, simdi, sira, siraDegistir }: {
     { anahtar: 'tur', baslik: 'Tür', genislik: '120px', ikincil: true,
       sirala: (a, b) => tr(a.tur.ad, b.tur.ad),
       hucre: (v) => <span className="mono ikincil">{v.tur.ad}</span> },
-    { anahtar: 'tesis', baslik: 'Santral', genislik: '140px',
+    { anahtar: 'tesis', baslik: tBas('tesis'), genislik: '140px',
       sirala: (a, b) => sonaAt(a.tesis?.ad, b.tesis?.ad, tr),
       hucre: (v) => <span className="ikincil">{v.tesis?.ad ?? '—'}</span> },
     { anahtar: 'bolge', baslik: 'Ağ bölgesi', genislik: '124px', ikincil: true,
@@ -628,10 +650,11 @@ function korumaMetni(v: V): string {
 }
 
 function Ozet({ v, simdi }: { v: V; simdi: number }) {
+  const { t: terim } = useTerim();
   const d = varlikDurumu(v, simdi);
   const gun = omurGunu(v, simdi);
   const bilinmeyen = bilinmeyenAlanlar(v);
-  const konum = [v.tesis?.ad, v.unite?.kod, v.bolge?.kod].filter(Boolean).join(' · ') || '—';
+  const konum = [v.tesis?.ad, v.birim?.kod, v.bolge?.kod].filter(Boolean).join(' · ') || '—';
 
   const kimlik: [string, string | null][] = [
     ['Hostname', v.hostname], ['IP', v.ipAdresi], ['MAC', v.macAdresi],
@@ -736,7 +759,7 @@ function Ozet({ v, simdi }: { v: V; simdi: number }) {
           v.tedarikci ? `tedarikçi ${v.tedarikci.ad}` : null,
           bilinmeyen.length > 0 ? `${bilinmeyen.length} alan bilinmiyor` : null,
           !kullanimda(v) ? 'kayıt silinmedi, yaşam döngüsü kapandı' : null,
-          !v.yazilabilir ? 'bu santralde yazma yetkiniz yok' : null,
+          !v.yazilabilir ? `bu ${terim('tesis', 'bulunma')} yazma yetkiniz yok` : null,
         ].filter(Boolean).join(' · ')}
       </p>
     </>
@@ -783,12 +806,15 @@ function Sec({ etiket, secenekler, aktif, sec }: {
    ya da eksik sütun taşıyamaz.
 
    Dizi ekrandaki süzülmüş ve sıralanmış listedir — kullanıcı ne
-   görüyorsa onu indirir. Santral kapsamı zaten sunucuda uygulanmıştır;
-   ekranda görünmeyen bir santral bu diziye hiç girmez. */
+   görüyorsa onu indirir. Tesis kapsamı zaten sunucuda uygulanmıştır;
+   ekranda görünmeyen bir tesis bu diziye hiç girmez. */
 function DisaAktar({ varliklar, simdi }: { varliklar: V[]; simdi: number }) {
+  /* Başlık satırı sözlükten gelir (karar: P1 · raporlar dilimi); kolon
+     sayısı ve sırası sözlükten BAĞIMSIZDIR ve testle sabitlidir. */
+  const sozluk = useSozluk();
   const sayfa = () => ({
     ad: 'Envanter',
-    satirlar: envanterDisaAktarimi(varliklar, simdi),
+    satirlar: envanterDisaAktarimi(varliklar, simdi, sozluk),
   });
 
   return (

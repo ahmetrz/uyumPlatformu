@@ -6,6 +6,7 @@ import { useEylem } from '@/components/useEylem';
 import { tumIsleriCalistir, tekIsCalistir } from '@/lib/eylemler2/isler';
 import { veriKalitesiBulgusuKapat } from '@/lib/eylemler2/varlikDurusu';
 import { sonKosu, type KaliteBulgusu, type Motor } from './mantik';
+import { useTerim } from '@/lib/dil/SozlukSaglayici';
 
 /* Motor tetikleme yüzeyleri. Mutasyonlar lib/eylemler2/isler.ts'ten AYNEN
    çağrılır: motor çalıştırmak `yonetim/yazma` ister ve yetki sunucuda
@@ -89,6 +90,7 @@ export function MotorCalistir({ motor, yazabilir }: { motor: Motor; yazabilir: b
    ÇÖZEMEDİĞİ bulgular içindir. */
 
 export function KaliteKarari({ bulgu }: { bulgu: KaliteBulgusu }) {
+  const { t: terim } = useTerim();
   const { bekliyor, hata, calistir } = useEylem();
   const [acik, setAcik] = useState(false);
   const [karar, setKarar] = useState<'giderildi' | 'kabul_edildi'>('giderildi');
@@ -97,7 +99,7 @@ export function KaliteKarari({ bulgu }: { bulgu: KaliteBulgusu }) {
   if (!bulgu.kapatilabilir) {
     return (
       <CekmeceEylemler dipNot={'Bu bulguyu karara bağlamak envanter onay '
-        + 'yetkisi ve kaydın santral kapsamı ister.'} />
+        + `yetkisi ve kaydın ${terim('tesis')} kapsamı ister.`} />
     );
   }
 

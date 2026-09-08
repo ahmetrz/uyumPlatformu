@@ -4,6 +4,11 @@ import path from 'node:path';
 export default defineConfig({
   test: {
     include: ['tests/**/*.test.ts'],
+    /* Koşumdan ÖNCE boş alan ölçülür. Testler gerçek SQLite kopyası
+       açtığı için alan bitince ONLARCA dosya ENOSPC ile kırmızı yanar ve
+       kod gerilemesi gibi okunur; kapı sebebi önden söyler. Koşumu
+       ENGELLEMEZ — bkz. `tests/kurulum/disk-kapisi.ts`. */
+    globalSetup: ['tests/kurulum/disk-kapisi.ts'],
     environment: 'node',
     /* ── ZAMAN BÜTÇESİ ─────────────────────────────────────────────────
        Vitest'in 5 sn'lik varsayılanı bu depo için gerçekçi değil ve bir

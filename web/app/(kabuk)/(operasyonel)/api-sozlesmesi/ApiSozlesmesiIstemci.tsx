@@ -1,11 +1,12 @@
 'use client';
+import { useSozluk } from '@/lib/dil/SozlukSaglayici';
 import Link from 'next/link';
 import { useState } from 'react';
 import { BosIlk, Im } from '@/components/kabuk/temel';
 import { EkranBasligi } from '@/components/kabuk/ekran';
 import { Tablo, type Satir } from '@/components/kabuk/tablo';
 import {
-  anahtarCumlesi, UC_ETIKETI, UC_KIMLIKLERI, yazmaUcuMu,
+  anahtarCumlesi, ucEtiketi, UC_KIMLIKLERI, yazmaUcuMu,
   type AnahtarOzeti,
 } from '@/lib/api/kapsam';
 import { SOZLESME_SURUMU, UC_YOLU } from '@/lib/api/sozlesme';
@@ -36,6 +37,7 @@ export default function ApiSozlesmesiIstemci({
   ucKullanimi: Record<string, number>;
   mirasli: number;
 }) {
+  const sozluk = useSozluk();
   const [acik, setAcik] = useState(false);
 
   const satirlar: Satir[] = UC_KIMLIKLERI.map((uc) => {
@@ -47,7 +49,7 @@ export default function ApiSozlesmesiIstemci({
          ayrılması gereken şey. Hiç anahtarın erişmediği uç 'unk' —
          ölçülmüş sıfır, ama yine de "kimse kullanmıyor" bilgisi. */
       durum: yazan ? 'md' : sayi === 0 ? 'unk' : 'ok',
-      konu: UC_ETIKETI[uc],
+      konu: ucEtiketi(sozluk, uc),
       alt: uc,
       hucreler: [
         UC_YOLU[uc],
@@ -78,6 +80,24 @@ export default function ApiSozlesmesiIstemci({
             durum: ozet.kapsamsiz > 0 ? 'bd' : undefined },
         ]}
       />
+
+      {/* K24 · taslak uyarısı. Bu ekran statik demoya giriyor ve açık bir
+          adreste yayımlanıyor; orada duran bir sözleşme tarifi, kimse söz
+          vermemiş olsa da örtük bir taahhüt gibi okunur. Uyarı o örtüyü
+          kaldırır. Sözcük ("TASLAK") rengin YANINDA durur: durum yalnız
+          renkle anlatılmaz. K23 kapandığında (erişilebilir dağıtım ya da
+          ilk dış anahtar) bu satır kalkar. */}
+      <p
+        className="ab-panel-dip"
+        style={{
+          margin: '0 0 var(--s16)', paddingLeft: 'var(--s12)',
+          borderLeft: '3px solid var(--md)',
+        }}
+      >
+        <b>TASLAK.</b>{' '}
+        <code>v{SOZLESME_SURUMU.split('.')[0]}</code> taslaktır; ilk dış
+        tüketiciye kadar haber verilmeden değişebilir.
+      </p>
 
       <p className="ab-panel-dip" style={{ margin: '0 0 var(--s16)' }}>
         {anahtarCumlesi(ozet)}

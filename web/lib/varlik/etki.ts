@@ -18,7 +18,7 @@
    ve sonuç `kaynak` alanıyla hangisinin geçerli olduğunu söyler.
 
    ── SIFIR YOK, BİLİNMİYOR VAR ─────────────────────────────────────────
-   MW kaybı `null` ise "kayıp yok" değil "hesaplanmadı"dır. Toplama
+   Üretim kaybı `null` ise "kayıp yok" değil "hesaplanmadı"dır. Toplama
    girmez ve toplam da bu yüzden `null` olabilir — kısmi bir toplamı tam
    gibi göstermek, kapasite kararını yanlış sayıya dayandırırdı. */
 
@@ -114,11 +114,15 @@ export function gecerliEtki(
 }
 
 export type EtkiOzeti = {
-  /** MW kaybı toplamı; `null` = hiçbir varlıkta hesaplanmamış. */
-  toplamMw: number | null;
+  /** Üretim kaybı toplamı; `null` = toplanamadı (bkz. `karisikBirim`). */
+  toplam: number | null;
+  /** Toplamın birimi — satırlardan gelir, koda gömülü değildir. */
+  birim: string | null;
+  /** Ölçülen satırlar TEK birimde değil: toplam anlamsız olurdu. */
+  karisikBirim: boolean;
   /** Toplama giren varlık sayısı. */
   olculen: number;
-  /** MW kaybı hesaplanmamış varlık sayısı — ÖLÇÜM BORCU. */
+  /** Kaybı hesaplanmamış varlık sayısı — ÖLÇÜM BORCU. */
   olculmeyen: number;
   /** Üretimi durduran varlık sayısı (miras dâhil). */
   uretimDurduran: number;
@@ -129,30 +133,49 @@ export type EtkiOzeti = {
 /**
  * Filo düzeyinde etki özeti.
  *
- * `toplamMw` yalnız ölçülmüş satırları toplar ve `olculmeyen` sayısı
+ * `toplam` yalnız ölçülmüş satırları toplar ve `olculmeyen` sayısı
  * yanında durur: kısmi bir toplamı tam gibi göstermek, kapasite kararını
  * yanlış sayıya dayandırırdı. Hiçbir satır ölçülmemişse toplam `null`'dır
- * — `0 MW` yazmak "kayıp yok" demek olurdu.
+ * — sıfır yazmak "kayıp yok" demek olurdu.
+ *
+ * ── FARKLI BİRİMLER TOPLANMAZ ─────────────────────────────────────────
+ * Kayıp miktarının birimi artık satırla birlikte saklanıyor ve sektöre
+ * göre değişiyor (elektrik gücü · debi · kütle akışı). Önceki hâl birimi hiç
+ * sormadan topluyordu; bir kiracının portföyünde iki farklı birim
+ * bulunduğu anda bu, anlamsız bir sayıyı anlamlı gibi gösterirdi —
+ * "bilinmeyen ≠ sıfır" kuralının birim tarafındaki karşılığı.
+ *
+ * Karışık birimde `toplam` `null` döner ve `karisikBirim` `true` olur:
+ * ekran "toplanamadı, birimler farklı" der. BİRİMSİZ satır (birimi
+ * kaydedilmemiş ölçüm) da karışık sayılır — birimi bilinmeyen bir sayıyı
+ * bilinen birimli bir toplama katmak, o birimi UYDURMAK olurdu.
  */
 export function etkiOzeti(
   satirlar: readonly {
-    uretimKaybiMw: number | null;
+    uretimKaybi: number | null;
+    kayipBirim: string | null;
     etki: EtkiSonucu;
   }[],
 ): EtkiOzeti {
   let toplam = 0; let olculen = 0; let olculmeyen = 0;
   let durduran = 0; let bilinmeyen = 0;
+  const birimler = new Set<string | null>();
   for (const s of satirlar) {
-    if (typeof s.uretimKaybiMw === 'number' && Number.isFinite(s.uretimKaybiMw)) {
-      toplam += s.uretimKaybiMw; olculen += 1;
+    if (typeof s.uretimKaybi === 'number' && Number.isFinite(s.uretimKaybi)) {
+      toplam += s.uretimKaybi; olculen += 1;
+      birimler.add(s.kayipBirim);
     } else {
       olculmeyen += 1;
     }
     if (s.etki.duzey === 'uretim_durur') durduran += 1;
     if (s.etki.duzey === 'bilinmiyor') bilinmeyen += 1;
   }
+  const tekBirim = birimler.size === 1 ? [...birimler][0] : null;
+  const karisik = olculen > 0 && (birimler.size > 1 || tekBirim === null);
   return {
-    toplamMw: olculen === 0 ? null : Math.round(toplam * 100) / 100,
+    toplam: olculen === 0 || karisik ? null : Math.round(toplam * 100) / 100,
+    birim: karisik ? null : tekBirim,
+    karisikBirim: karisik,
     olculen, olculmeyen, uretimDurduran: durduran, etkisiBilinmeyen: bilinmeyen,
   };
 }

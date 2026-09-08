@@ -16,13 +16,13 @@ export const metadata: Metadata = { title: 'Kullanıcı ve yetki' };
    yazma olmadan kullanıcı kaydı, onay olmadan yetki verilmez/kaldırılmaz
    (lib/eylemler.ts aynı kapıları sunucu tarafında da uygular).
 
-   Santral seçenekleri VERİ seviyesinde daraltılır: yetkisi tesise kısıtlı
-   bir yönetici, kapsamı dışındaki santral için yetki öneremez.
+   Tesis seçenekleri VERİ seviyesinde daraltılır: yetkisi tesise kısıtlı
+   bir yönetici, kapsamı dışındaki tesis için yetki öneremez.
 
-   KULLANICI LİSTESİ ise BİLEREK kapsamsızdır, çünkü `Kullanici` bir santral
+   KULLANICI LİSTESİ ise BİLEREK kapsamsızdır, çünkü `Kullanici` bir tesis
    kaydı değil kurum kaydıdır ve bu ekranın sorusu tam olarak "kimin fazla
-   yetkisi var" — bir kullanıcıyı santraline göre gizlemek, aynı kişinin
-   başka santraldeki yetkisini de gizlerdi ve ekran kendi sorusunu
+   yetkisi var" — bir kullanıcıyı tesisine göre gizlemek, aynı kişinin
+   başka tesisteki yetkisini de gizlerdi ve ekran kendi sorusunu
    yanıtlayamaz hâle gelirdi. Daraltılan şey ATANABİLİR kapsamdır, görünen
    kişi kümesi değil. */
 
@@ -34,12 +34,12 @@ export default async function Sayfa() {
 
   /* OT-09 · devir kapsamı ERİŞİM kapsamından ayrıdır: yetki ekranı
      `yonetim` modülüne tabidir ama sahiplik devri `envanter/onay` ister
-     ve kendi santral kapsamına bakar. İkisini tek `izinli` üzerinden
+     ve kendi tesis kapsamına bakar. İkisini tek `izinli` üzerinden
      yürütmek, yönetim yetkisi olan birine envanterde yetkisi olmayan
-     santralin varlıklarını devrettirirdi. */
+     tesisin varlıklarını devrettirirdi. */
   const envanterKapsami = izinliTesisIdleri(k, 'envanter');
-  /* KABA kapı: "onay verebildiğin bir santral var mı". `izinVar(...)`
-     kapsamsız sorulsaydı tesise kısıtlı bir yönetici KENDİ santralinin
+  /* KABA kapı: "onay verebildiğin bir tesis var mı". `izinVar(...)`
+     kapsamsız sorulsaydı tesise kısıtlı bir yönetici KENDİ tesisinin
      varlıklarını da devredemezdi — sunucu ona izin verirken ekran
      düğmeyi gizlerdi. Satır kararı zaten `kapsamda()` ile ayrıca
      veriliyor. */
@@ -61,9 +61,9 @@ export default async function Sayfa() {
       orderBy: { kod: 'asc' },
     }),
     db.tesis.findMany({ where: { durum: 'aktif' }, orderBy: { kod: 'asc' } }),
-    /* Ekip listesi BİLEREK kapsamsız okunur — kurumsal (santralsiz)
+    /* Ekip listesi BİLEREK kapsamsız okunur — kurumsal (tesissiz)
        ekipler de burada görünür. Daraltılan şey DÜZENLEME kapsamıdır:
-       `ekipKaydet` ekibin santralini ayrıca sorar. */
+       `ekipKaydet` ekibin tesisini ayrıca sorar. */
     db.ekip.findMany({
       include: {
         uyeler: {

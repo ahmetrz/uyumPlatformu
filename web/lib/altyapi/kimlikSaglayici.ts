@@ -78,7 +78,7 @@ export const yukOlcumSaglayici: PlatformSaglayici = {
   ad: 'gercek_hacim',
   aile: 'yuk_olcumu',
   bagli: false,
-  gereken: 'Gerçek veri hacmi ve gerçek eşzamanlılık: kaç santral, kaç '
+  gereken: 'Gerçek veri hacmi ve gerçek eşzamanlılık: kaç tesis, kaç '
     + 'varlık, kaç kontrol, kaç kanıt, kaç denetim izi satırı; eşzamanlı '
     + 'kullanıcı sayısı ve kabul edilebilir gecikme hedefi. Bir de '
     + 'ölçümün koşacağı ortam — üretim yapısına yakın bir kurulum.',

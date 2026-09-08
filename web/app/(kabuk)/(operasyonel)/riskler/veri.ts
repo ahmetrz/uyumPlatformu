@@ -14,9 +14,9 @@ import {
    ═══ KAPSAM SIZINTISI — NE OLDU, NEDEN BÖYLE DÜZELDİ ═══════════════════
    Ekran `girisZorunlu()` dışında hiçbir kapsam uygulamıyordu:
    `db.risk.findMany({ where: { silindi: null } })` — `Risk.tesisId` şemada
-   VAR, süzgeç yoktu. Yalnız A santraline yetkili bir kullanıcı B
-   santralinin risk kodunu, başlığını, sahibini ve santral adını görüyordu.
-   Santral açılırı (`db.tesis.findMany`) ise B'nin kimliğini ve kodunu
+   VAR, süzgeç yoktu. Yalnız A tesisine yetkili bir kullanıcı B
+   tesisinin risk kodunu, başlığını, sahibini ve tesis adını görüyordu.
+   Tesis açılırı (`db.tesis.findMany`) ise B'nin kimliğini ve kodunu
    doğrudan taşıyordu — satır hiç olmasa bile.
 
    ═══ SINIRSIZ OKUMA (P1) ═══════════════════════════════════════════════
@@ -39,12 +39,12 @@ import {
    göremediği kaydı yazabilir olurdu. Kardeş ekranların kalıbı da budur:
    /envanter → envanter, /surecler → uyum, /denetimler → denetim.
 
-   Ekrandaki HER santrale bağlı küme aynı `risk` kapsamıyla daraltılır —
-   risk satırları, riske bağlı varlıklar, santral açılırı ve bulgu seçenekleri.
+   Ekrandaki HER tesise bağlı küme aynı `risk` kapsamıyla daraltılır —
+   risk satırları, riske bağlı varlıklar, tesis açılırı ve bulgu seçenekleri.
    İkisi ayrışsaydı ekran, göremediği bir riske bağlayabileceği bir bulgu
    önerirdi.
 
-   ── SANTRALİ BİLİNMEYEN KAYIT ──────────────────────────────────────────
+   ── TESİSİ BİLİNMEYEN KAYIT ────────────────────────────────────────────
    `app/kapsam.ts → kapsamda` (= `lib/api/yetki.ts → tesisKapsamda`):
    `tesisId` null olan risk YALNIZ kapsamı sınırsız kullanıcıya görünür.
    Risk kütüğünde tesissiz kayıt "portföy riski" demektir; portföyün
@@ -86,7 +86,7 @@ export type EkranVerisi = {
   tesisler: Kodlu[];
   sistemler: Kodlu[];
   bulgular: BulguSecenegi[];
-  /** true = liste bir santral kapsamıyla daraltıldı (boş ekranın sözü değişir) */
+  /** true = liste bir tesis kapsamıyla daraltıldı (boş ekranın sözü değişir) */
   kapsamli: boolean;
 };
 
@@ -131,8 +131,8 @@ export async function riskEkranVerisi(k: AktifKullanici): Promise<EkranVerisi> {
     db.risk.count({ where: { ...aktifKutuk, sahipId: null } }),
     db.risk.count({ where: { ...aktifKutuk, artikRisk: null } }),
     /* Kod önerisi BİLEREK kapsamsızdır ve bir sızıntı değildir: `RSK-<yıl>-NNN`
-       bir sayaçtır, santral kimliği taşımaz. Kapsamla daraltılsaydı iki farklı
-       santralin sorumlusu aynı kodu üretir ve ikincisi benzersizlik ihlaline
+       bir sayaçtır, tesis kimliği taşımaz. Kapsamla daraltılsaydı iki farklı
+       tesisin sorumlusu aynı kodu üretir ve ikincisi benzersizlik ihlaline
        çarpardı — kapsam, kayıt açmayı engelleyen bir kusura dönüşürdü. */
     db.risk.findMany({ select: { kod: true } }), // silinenler dahil — kod çakışmasın
     db.kullanici.findMany({ where: { aktif: true }, orderBy: { adSoyad: 'asc' } }),
@@ -141,9 +141,9 @@ export async function riskEkranVerisi(k: AktifKullanici): Promise<EkranVerisi> {
       orderBy: { kod: 'asc' },
     }),
     db.sistemServis.findMany({ orderBy: { kod: 'asc' } }),
-    /* Bulgu seçenekleri riskin bağlanabileceği kayıtlardır; bulgu santrale
+    /* Bulgu seçenekleri riskin bağlanabileceği kayıtlardır; bulgu tesise
        `maddeDurumu.tesisId` üzerinden bağlıdır. Aynı `risk` kapsamı: bu
-       ekranda görünmeyen bir santralin bulgusu seçenek olarak da anılmaz. */
+       ekranda görünmeyen bir tesisin bulgusu seçenek olarak da anılmaz. */
     db.bulgu.findMany({
       where: {
         silindi: null,
@@ -167,7 +167,7 @@ export async function riskEkranVerisi(k: AktifKullanici): Promise<EkranVerisi> {
     /* `gorulebilir` süzgeci riske BAĞLI VARLIKLARA da uygulanır: kapsam içi
        bir riske kapsam dışı bir varlık bağlıysa o varlığın etiketi/adı
        ekrana çıkmaz. Süzgeç `riskeCevir` içinde çalıştığı için `ot` ve
-       `santralSayisi` türetmeleri — yani satırın METRİKLERİ — de daraltılmış
+       `tesisSayisi` türetmeleri — yani satırın METRİKLERİ — de daraltılmış
        kümeden hesaplanır; satırı gizleyip sayacı bırakmak, sayının kendisini
        sızıntıya çevirirdi. */
     riskler: riskler.map((r) => riskeCevir(r, (t) => kapsamda(izinli, t))),

@@ -1,4 +1,6 @@
 'use client';
+import { useSozluk, useTerim } from '@/lib/dil/SozlukSaglayici';
+import type { Sozluk } from '@/lib/dil/terimler';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useUrlDurumu, useUrlDurumuBos } from '@/components/kabuk/urlDurumu';
 import { Bar, BosIlk, BosFiltre, Dugme, Im, type Durum } from '@/components/kabuk/temel';
@@ -14,7 +16,7 @@ import {
   aktifMi, altSatir, bagMetni, barDurumu, butceAsimi, butceOzeti, buyuk, ceyrek,
   donemler, engelleyenler, etkilenenler, fazGecikmesi, gecikenFazlar,
   gecikmisEngeller, gunFarki, hedefMetni, ilerleme,
-  kapatilanSayisi, kartDurumu, kisaAd, riskteMi, santralMetni,
+  kapatilanSayisi, kartDurumu, kisaAd, riskteMi, tesisMetni,
   sapmaMetni, ufkaYay, ufukKonumu, ufukUzunlugu,
   GORUNUR_BUTCE, KART_BUTCESI, KART_BUTCESI_DAR,
   type Faz, type Kisi, type P, type Secenek,
@@ -29,13 +31,13 @@ import {
 /* A5 kütük grameri (Faz 3): semantik tablo. Marker YOK: portföyde şiddeti
    taşıyan şey ilerleme çubuğudur; renk tek sinyal değil — yüzde ve gecikme
    günü yazılıdır. `simdi` satır hücresine kapanışla girer (kolonlar()). */
-function kolonlar(simdi: number): VtKolon<P>[] {
+function kolonlar(simdi: number, sozluk: Sozluk | null): VtKolon<P>[] {
   return [
     { anahtar: 'proje', baslik: 'Proje',
       hucre: (p) => (
         <span className="kimlik-metin">
           <span className="konu">{p.ad}</span>
-          <span className="alt">{altSatir(p)}</span>
+          <span className="alt">{altSatir(p, sozluk)}</span>
         </span>
       ) },
     { anahtar: 'bag', baslik: 'Bağ', genislik: '200px', ikincil: true,
@@ -72,6 +74,8 @@ export default function ProjelerIstemci({
   projeler: P[]; simdi: number; yeniKod: string; yazabilir: boolean;
   kullanicilar: Kisi[]; maddeler: Secenek[]; bulgular: Secenek[];
 }) {
+  const { t: terim, tBas } = useTerim();
+  const sozluk = useSozluk();
   const [filtre, setFiltre] = useUrlDurumu<string>('mercek', 'aktif');
   const [tesisF, setTesisF] = useUrlDurumuBos('tesis');
   const [kuyrukAcik, setKuyrukAcik] = useState(false);
@@ -141,7 +145,7 @@ export default function ProjelerIstemci({
 
   /* Kart başlığı proje KODUDUR: 208px'lik gövdede uzun ad iki üç satıra
      sarar ve şeridin altındaki tabloya taşar. Kapsam satırı adı DEĞİL
-     santral + ilerlemeyi yazar — ad zaten hemen altındaki tabloda tam
+     tesis + ilerlemeyi yazar — ad zaten hemen altındaki tabloda tam
      hâliyle duruyor, kartta kırpılmış bir kopyası tekrar olurdu. */
   const kartlar = useMemo(() => {
     const adaylar = sirali.map((p) => ({
@@ -157,21 +161,23 @@ export default function ProjelerIstemci({
         id: k.p.id,
         ad: k.p.kod,
         geri: hedefMetni(k.p, simdi).metin,
-        kapsam: buyuk(`${kisaAd(santralMetni(k.p))}`
+        kapsam: buyuk(`${kisaAd(tesisMetni(k.p, sozluk))}`
           + `${oran !== null ? ` · %${oran}` : ' · FAZ YOK'}`),
         durum: kartDurumu(k.p, simdi),
         konum: ufukKonumu(k.an, simdi, uzunluk),
       };
     });
-  }, [sirali, simdi, uzunluk, dar]);
+  /* `sozluk` bağımlılıkta: kart kapsamı sözlükten METİN üretiyor
+     (`tesisMetni`). §0.5 dönüşüm tarifi adım 4. */
+  }, [sirali, simdi, uzunluk, dar, sozluk]);
 
-  const santraller = useMemo(() => {
+  const tesisSecenekleri = useMemo(() => {
     const kova = new Map<string, string>();
     for (const p of projeler) for (const t of p.tesisler) kova.set(t.id, t.ad);
     return [...kova].map(([id, ad]) => ({ id, ad })).sort((a, b) => a.ad.localeCompare(b.ad, 'tr'));
   }, [projeler]);
 
-  const vtKolonlar = useMemo(() => kolonlar(simdi), [simdi]);
+  const vtKolonlar = useMemo(() => kolonlar(simdi, sozluk), [simdi, sozluk]);
 
   function sec(id: string) {
     setSeciliId((o) => (o === id ? null : id));
@@ -191,7 +197,8 @@ export default function ProjelerIstemci({
     return (
       <>
         <main data-yuzey="defter" style={{ minWidth: 0 }}>
-          <EkranBasligi eyebrow="Dönüşüm portföyü" baslik="Portföy boş" />
+          <EkranBasligi eyebrow={`Dönüşüm ${terim('portfoy')}`}
+            baslik={`${tBas('portfoy')} boş`} />
           <div className="ab-ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
             <BosIlk cumle="Kayıtlı proje yok."
               eylem={yazabilir
@@ -218,7 +225,7 @@ export default function ProjelerIstemci({
     <>
       <main data-yuzey="defter" style={{ minWidth: 0 }}>
         <EkranBasligi
-          eyebrow={`Dönüşüm portföyü · ${projeler.length} proje`}
+          eyebrow={`Dönüşüm ${terim('portfoy')} · ${projeler.length} proje`}
           vurgu={baslik.vurgu}
           baslik={baslik.metin}
           metrikler={[
@@ -246,8 +253,8 @@ export default function ProjelerIstemci({
             sec={(id) => { setFiltre(id); setKuyrukAcik(false); }}
             kapsam={
               <>
-                <Kapsam etiket="Santral" aktif={tesisF} sec={setTesisF}
-                  secenekler={santraller} />
+                <Kapsam etiket={tBas('tesis')} aktif={tesisF} sec={setTesisF}
+                  secenekler={tesisSecenekleri} />
                 {yazabilir && (
                   <button type="button" className="ab-dugme"
                     onClick={() => { setYeniAcik(true); setSeciliId(null); }}>
@@ -280,7 +287,11 @@ export default function ProjelerIstemci({
                   tablonun üstüne biner. Aradaki boşluk o riski kapatır. */}
               <div style={{ marginTop: 'var(--s26)', borderTop: 'var(--bw-strong) solid var(--hr2)' }}>
                 <VeriTablosu<P>
-                  etiket="Proje portföyü"
+                  /* Ekran adı `terim('portfoy')` ile yazılır (yukarıdaki
+                     eyebrow); tablonun ekran okuyucu etiketi ise evin
+                     "… kütüğü" kalıbını izler — sözcük iki anlama
+                     gelmesin diye terim burada tekrarlanmaz. */
+                  etiket="Proje kütüğü"
                   kolonlar={vtKolonlar}
                   satirlar={gosterilen}
                   secili={seciliId}
@@ -371,7 +382,7 @@ function kuyrukOlgusu(toplanan: P[]): string {
   return asan > 0 ? `${asan} bütçesini aştı` : 'planlandığı gibi';
 }
 
-/* ── Kapsam kontrolü (SANTRAL ▾) ────────────────────────────────────── */
+/* ── Kapsam kontrolü (TESİS ▾) ──────────────────────────────────────── */
 
 function Kapsam({ etiket, secenekler, aktif, sec }: {
   etiket: string;

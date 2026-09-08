@@ -5,9 +5,10 @@ import { db } from '@/lib/db';
 import { tesisYedekGorunumu } from '@/lib/entegrasyon/konfigYedek';
 import { YEDEK_KURALLARI } from '@/lib/motorlar/yedekDogrulama';
 import { driftKarsilastir, driftOzeti } from '@/lib/varlik/konfigDrift';
+import { kapsamAnahtari, kapsamSozlugu } from '@/lib/dil/sozlukOku';
 import YedeklemeIstemci from './YedeklemeIstemci';
 import type {
-  DriftSatiri, Politika, Santral, Sapma, TurKirilimi, YedekBulgusu,
+  DriftSatiri, Politika, Sapma, Tesis, TurKirilimi, YedekBulgusu,
 } from './mantik';
 
 export const metadata: Metadata = { title: 'Yedekleme & kurtarma' };
@@ -18,7 +19,7 @@ export const metadata: Metadata = { title: 'Yedekleme & kurtarma' };
    render eder — UstCubuk ya da .icerik sarmalayıcısı YOK.
 
    ── YARGIYI SAYFA VERMEZ ────────────────────────────────────────────
-   Santral katmanı (politika → koşu → geri yükleme testi) ve varlık
+   Tesis katmanı (politika → koşu → geri yükleme testi) ve varlık
    katmanı (kritik varlıkların konfigürasyon yedeği)
    `lib/entegrasyon/konfigYedek.ts → tesisYedekGorunumu()` tarafından
    ÜRETİLİR. Sayfa onu yalnız serileştirir. Önceki sürüm aynı soruyu ham
@@ -28,8 +29,8 @@ export const metadata: Metadata = { title: 'Yedekleme & kurtarma' };
    değil, ayrı bir sorudur ("insan ne diyor") ve ekranda öyle etiketlenir.
 
    ── KAPSAM ──────────────────────────────────────────────────────────
-   Santraller kullanıcının envanter kapsamıyla daraltılır. Daha önce
-   `girisZorunlu()` dışında hiçbir kapsam yoktu: tek santrale yetkili bir
+   Tesisler kullanıcının envanter kapsamıyla daraltılır. Daha önce
+   `girisZorunlu()` dışında hiçbir kapsam yoktu: tek tesise yetkili bir
    kullanıcı bütün filonun DR hazırlığını görebiliyordu. */
 
 /* Sayaç `driftOzeti`den gelir; sayfa kendi başına saymaz. Satır listesi
@@ -59,6 +60,13 @@ export default async function Sayfa() {
   if (!izinVar(k, 'envanter', 'okuma')) return <Yetkisiz rol="envanter okuma" />;
 
   const izinli = izinliTesisIdleri(k, 'envanter');
+
+  /* Sözlük KAPSAMIN dili — ekran bütün filoyu birden çiziyor, tek bir
+     kaydın değil. Kapsamda iki sektör varsa `null` gelir ve çekirdek
+     sözcük yazılır; birinin sözcüğünü seçmek öbür yarısı için yanlış
+     olurdu. `cache()`li olduğu için kabuğun aynı turdaki çağrısıyla
+     aynı sonucu paylaşır, ikinci sorgu açmaz. */
+  const sozluk = await kapsamSozlugu(kapsamAnahtari(izinli));
 
   const [tesisler, varliklar, turAdlari, politikalar, hamBulgular] = await Promise.all([
     db.tesis.findMany({
@@ -98,7 +106,7 @@ export default async function Sayfa() {
   /* ── OT-28 · konfigürasyon tabanı ve sapması ─────────────────────────
      Bu üç sorgu BİLEREK ikinci turda: süzgeçleri kapsam içi varlık
      kimlikleri kurar. İlk turla birlikte koşsalardı `varliklar` henüz
-     çözülmemiş olurdu ve süzgeçsiz okuma, tek santrale yetkili bir
+     çözülmemiş olurdu ve süzgeçsiz okuma, tek tesise yetkili bir
      kullanıcıya bütün filonun sapmalarını gösterirdi. */
   const varlikIdleri = varliklar.map((v) => v.id);
   const [temeller, yedekler, sapmalar] = await Promise.all([
@@ -129,12 +137,13 @@ export default async function Sayfa() {
 
   const turHaritasi = new Map(turAdlari.map((x) => [x.id, x.ad]));
 
-  /* Politika ↔ santral bağı şemada yabancı anahtarla değil, politika ADINDA
+  /* Politika ↔ tesis bağı şemada yabancı anahtarla değil, politika ADINDA
      kurulmuş (`${tesis.ad} — kontrol sistemi yedeklemesi`). `kapsam` alanı
-     ayırt edici değil — santrallerin çoğunda aynı metin. Bu yüzden ad
-     önekiyle eşleştiriyoruz; ÖNCE UZUN ADLAR denenir ki "Saha A-1 JES"
-     kendinden uzun adlı "Saha A-2 JES"in politikasını kapmasın. Eşleşen
-     politika havuzdan düşer, iki santral aynı kaydı paylaşamaz.
+     ayırt edici değil — tesislerin çoğunda aynı metin. Bu yüzden ad
+     önekiyle eşleştiriyoruz; ÖNCE UZUN ADLAR denenir ki bir tesis,
+     adı kendi adıyla başlayan daha uzun adlı bir tesisin politikasını
+     kapmasın. Eşleşen politika havuzdan düşer, iki tesis aynı kaydı
+     paylaşamaz.
 
      `tesisYedekGorunumu` bu kırılgan eşlemeyi bilerek TEKRARLAMIYOR —
      hangi politikanın kastedildiğini çağıran söyler. Eşleme bu yüzden
@@ -147,9 +156,9 @@ export default async function Sayfa() {
     }
   }
 
-  /* Bulgu → santral eşlemesi varlık üzerinden kurulur (motor `kaynakId`ye
+  /* Bulgu → tesis eşlemesi varlık üzerinden kurulur (motor `kaynakId`ye
      varlık kimliği yazar). Kapsam dışı varlığa asılı bir bulgu hiçbir
-     santrale düşmez ve ekranda görünmez. */
+     tesise düşmez ve ekranda görünmez. */
   const varlikTesisi = new Map(varliklar.map((v) => [v.id, v.tesisId]));
   const bulguHaritasi = new Map<string, YedekBulgusu[]>();
   for (const b of hamBulgular) {
@@ -222,7 +231,7 @@ export default async function Sayfa() {
     driftSatirlari.set(v.tesisId ?? '', liste);
   }
 
-  const santraller: Santral[] = await Promise.all(tesisler.map(async (t) => {
+  const tesisSatirlari: Tesis[] = await Promise.all(tesisler.map(async (t) => {
     const kendi = varliklar.filter((v) => v.tesisId === t.id);
 
     // Tür bazında kırılım — kapsama barının popover'ı ve çekmece bunu kullanır.
@@ -244,7 +253,7 @@ export default async function Sayfa() {
     };
 
     // İKİ KATMANIN TEK KAYNAĞI. Ekran burada yalnız serileştirir.
-    const gorunum = await tesisYedekGorunumu(t.id, ham?.id);
+    const gorunum = await tesisYedekGorunumu(t.id, ham?.id, sozluk);
 
     const kosular = ham?.kosular ?? [];
 
@@ -263,19 +272,19 @@ export default async function Sayfa() {
         basarisiz: kosular.filter((x) => x.durum === 'basarisiz').length,
       },
       sonKosuId: kosular[0]?.id ?? null,
-      santralKatmani: {
-        bagli: gorunum.santralKatmani.bagli,
-        gerekce: gorunum.santralKatmani.gerekce,
-        politikaAdi: gorunum.santralKatmani.politikaAdi,
-        sonKosu: gorunum.santralKatmani.sonKosu && {
-          zaman: gorunum.santralKatmani.sonKosu.zaman.toISOString(),
-          durum: gorunum.santralKatmani.sonKosu.durum,
-          hata: gorunum.santralKatmani.sonKosu.hata,
+      tesisKatmani: {
+        bagli: gorunum.tesisKatmani.bagli,
+        gerekce: gorunum.tesisKatmani.gerekce,
+        politikaAdi: gorunum.tesisKatmani.politikaAdi,
+        sonKosu: gorunum.tesisKatmani.sonKosu && {
+          zaman: gorunum.tesisKatmani.sonKosu.zaman.toISOString(),
+          durum: gorunum.tesisKatmani.sonKosu.durum,
+          hata: gorunum.tesisKatmani.sonKosu.hata,
         },
-        sonRestoreTesti: gorunum.santralKatmani.sonRestoreTesti && {
-          zaman: gorunum.santralKatmani.sonRestoreTesti.zaman.toISOString(),
-          sonuc: gorunum.santralKatmani.sonRestoreTesti.sonuc,
-          sureDk: gorunum.santralKatmani.sonRestoreTesti.sureDk,
+        sonRestoreTesti: gorunum.tesisKatmani.sonRestoreTesti && {
+          zaman: gorunum.tesisKatmani.sonRestoreTesti.zaman.toISOString(),
+          sonuc: gorunum.tesisKatmani.sonRestoreTesti.sonuc,
+          sureDk: gorunum.tesisKatmani.sonRestoreTesti.sureDk,
         },
       },
       varlikKatmani: {
@@ -307,6 +316,6 @@ export default async function Sayfa() {
   }));
 
   return (
-    <YedeklemeIstemci santraller={santraller} politikaSayisi={politikalar.length} />
+    <YedeklemeIstemci tesisler={tesisSatirlari} politikaSayisi={politikalar.length} />
   );
 }

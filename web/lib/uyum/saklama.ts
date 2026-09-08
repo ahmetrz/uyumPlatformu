@@ -101,8 +101,8 @@ export type Hold = {
  * Bu kayıt hukuki muhafaza altında mı?
  *
  * Hold kapsamı GENİŞTEN DARA doğru eşleşir: aile geneli (varlıkId
- * null), santral geneli, tek kayıt. Bir soruşturma çoğu zaman "şu
- * santralin bütün bulguları" gibi bir kümeyi kapsar ve tek tek kayıt
+ * null), tesis geneli, tek kayıt. Bir soruşturma çoğu zaman "şu
+ * tesisin bütün bulguları" gibi bir kümeyi kapsar ve tek tek kayıt
  * işaretlemek pratikte uygulanmaz.
  */
 export function holdAltindaMi(o: {

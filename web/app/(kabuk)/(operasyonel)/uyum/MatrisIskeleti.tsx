@@ -1,7 +1,7 @@
 import type { CSSProperties } from 'react';
 import { Iskelet } from '@/components/kabuk/temel';
 
-/* 03-screens O1 · loading: "matrix grid with real plant names, cells as 11px
+/* 03-screens O1 · loading: "matrix grid with real facility names, cells as 11px
    dots". Boş kutu değil — ızgara ve satır etiketleri gerçek, yalnız hücreler
    beklemede. Böylece yükleme sırasında ekranın iskeleti oynamaz. */
 
@@ -31,7 +31,7 @@ export default function MatrisIskeleti({
 
         <div className="ab-matris" style={{ ...stil, marginTop: 'var(--s22)' }} role="table">
           <div className="bas" role="row">
-            <span className="kolonbas">Santral</span>
+            <span className="kolonbas">Tesis</span>
             {kolonlar.map((k) => <span key={k} className="kolonbas kesik">{k}</span>)}
           </div>
           {adlar.map((s) => (

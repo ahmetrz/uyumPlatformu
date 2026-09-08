@@ -1,5 +1,6 @@
 import type { BildirimDurumu } from '@/lib/uyum/bildirimSuresi';
 import type { Durum } from '@/components/kabuk/temel';
+import { t as terim, type Sozluk } from '@/lib/dil/terimler';
 
 /* O · Olay → etki zinciri — saf türetme katmanı.
 
@@ -44,11 +45,22 @@ const SIRA: Record<string, number> = {
   bilinmiyor: -1, yok: 0, dusuk: 1, orta: 2, yuksek: 3, kritik: 4, uretim_durdu: 5,
 };
 
+/* Çekirdek metinler; EKRANDA `kopuklukSozu(sozluk)` kullanılır — yalnız
+   `tesis_yok` sektör terimi taşıyor. Sabit burada durur ki sözlüksüz
+   çağıran (test, sunucu) da okuyabilsin. */
 export const KOPUKLUK_SOZU: Record<string, string> = {
   sistem_yok: 'varlık bir sisteme bağlı değil',
   surec_yok: 'sistem hiçbir iş sürecine bağlı değil',
   tesis_yok: 'iş sürecinin tesisi kayıtlı değil',
 };
+
+/** Ekran sözü — sözlüğü izleyen tek kopukluk `tesis_yok`. */
+export function kopuklukSozu(sozluk: Sozluk | null): Record<string, string> {
+  return {
+    ...KOPUKLUK_SOZU,
+    tesis_yok: `iş sürecinin ${terim(sozluk, 'tesis', 'iyelik')} kayıtlı değil`,
+  };
+}
 
 /** Şiddet kademesi — canvas'ta sözcük yerine harf durur (06 §A2). */
 export const KADEME: Record<string, string> = {
@@ -97,8 +109,8 @@ export const BAG_ETIKET: Record<BagTipi, string> = {
 /** Bağlanabilecek kayıt — sunucu kapsamla daralttıktan sonra taşınır. */
 export type BagAdayi = { id: string; kod: string; alt: string };
 
-/** Santral seçimi (yeni olay formu). */
-export type Santral = { id: string; kod: string; ad: string };
+/** Tesis seçimi (yeni olay formu). */
+export type Tesis = { id: string; kod: string; ad: string };
 
 /* ── serileştirilmiş kayıtlar ─────────────────────────────────────────── */
 
@@ -151,7 +163,7 @@ export type OlayKaydi = {
   bildirimGerekli: boolean | null;
   bildirimTarihi: string | null;
   /* UY-63 · Bildirim SÜRESİ. Karar sunucuda verilir (kural kütüğü +
-     santralin regülasyon kapsamı); istemci kendi saatine göre
+     tesisin regülasyon kapsamı); istemci kendi saatine göre
      "geciktiniz" demez. Kural tanımlı değilse `durum` daima
      `yukumluluk_yok`tur ve ürün bir süre UYDURMAZ. */
   bildirim: {
@@ -169,7 +181,7 @@ export type OlayKaydi = {
   bulgular: Bag[];
   projeler: Bag[];
   degisiklikler: Bag[];
-  /** Kullanıcı bu olayın santral kapsamında yazabiliyor mu (satır bazlı). */
+  /** Kullanıcı bu olayın tesis kapsamında yazabiliyor mu (satır bazlı). */
   yazilabilir: boolean;
 };
 
@@ -253,18 +265,21 @@ export function imSozu(o: OlayKaydi): string {
   return durum;
 }
 
-/** Satırın alt satırı: durumu TEKRAR ETMEZ, olguyu yazar. */
-export function olgu(o: OlayKaydi): string {
+/** Satırın alt satırı: durumu TEKRAR ETMEZ, olguyu yazar.
+
+    Sözlük PARAMETRE: bu modül saf hesap, React bilmez ve sunucudan da
+    çağrılır. Sözlüksüz çağrı çekirdek sözcüğü yazar. */
+export function olgu(o: OlayKaydi, sozluk: Sozluk | null = null): string {
   const parcalar = [
     o.kod,
     `şiddet ${KADEME[o.siddet] ?? '—'}`,
-    o.tesisKod ?? 'santral kaydı yok',
+    o.tesisKod ?? `${terim(sozluk, 'tesis')} kaydı yok`,
   ];
   if (bildirimBekliyor(o)) parcalar.push('bildirim tarihi girilmemiş');
   else if (zincirKopuk(o)) {
     const ilk = o.oneri?.zincir.find((h) => h.kopukluk !== null);
     parcalar.push(ilk
-      ? `zincir kopuk · ${KOPUKLUK_SOZU[ilk.kopukluk as string] ?? ilk.kopukluk}`
+      ? `zincir kopuk · ${kopuklukSozu(sozluk)[ilk.kopukluk as string] ?? ilk.kopukluk}`
       : o.oneriBozuk ? 'öneri kaydı okunamadı'
         : o.oneri === null ? 'etki önerisi üretilmedi'
           : 'zincir kurulmadı · varlık/sistem bağı yok');
@@ -275,8 +290,18 @@ export function olgu(o: OlayKaydi): string {
   return parcalar.join(' · ');
 }
 
-/** Zincir hücresi: `3 varlık → 2 sistem → 1 süreç → 1 tesis`. */
-export function zincirOzeti(o: OlayKaydi): string {
+/** Zincir hücresi: `3 varlık → 2 sistem → 1 süreç → 1 <tesis>`.
+
+    Sözlük PARAMETRE (modül React bilmez). Bu metin OKUMA anında
+    üretiliyor ve saklanmıyor — `olayEtki.ts` gerekçelerinin aksine
+    sözlüğü izlemesi gerekir, ve izlemiyordu: bekçi dosyayı temiz
+    görüyordu çünkü çekirdek sözcük yazılıydı. `arac/sozluk-farki.mjs`
+    yakaladı.
+
+    `varlık` · `sistem` · `süreç` bugünkü sektör paketlerinde çekirdekle
+    aynı; yine de sözlükten geçiyorlar ki bir paket onları değiştirdiğinde
+    burası kendiliğinden izlesin. */
+export function zincirOzeti(o: OlayKaydi, sozluk: Sozluk | null = null): string {
   // Öneri hiç üretilmediyse "bağ yok" DENMEZ — ölçülmemiş ile boş ayrıdır.
   if (o.oneriBozuk) return 'öneri okunamadı';
   if (o.oneri === null) return 'öneri üretilmedi';
@@ -291,10 +316,10 @@ export function zincirOzeti(o: OlayKaydi): string {
   const p = surecSayisi(o);
   const t = tesisSayisi(o);
   return [
-    v > 0 ? `${v} varlık` : null,
-    `${s} sistem`,
+    v > 0 ? `${v} ${terim(sozluk, 'varlik')}` : null,
+    `${s} ${terim(sozluk, 'sistem')}`,
     `${p} süreç`,
-    `${t} tesis`,
+    `${t} ${terim(sozluk, 'tesis')}`,
   ].filter(Boolean).join(' → ');
 }
 

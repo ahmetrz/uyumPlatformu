@@ -1,5 +1,6 @@
 'use server';
 
+import { kapsamMesaji, kapsamTerimi } from './kapsamMesaji';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { db } from '../db';
@@ -17,7 +18,7 @@ export async function istisnaTalep(girdi: {
     /* İKİ AŞAMALI KAPI (`KAPSAM_SONRA`, bkz. erisim.ts). Kapsam madde
        durumundan gelir ve okunmadan bilinemez; ön kapı kapsamsız
        çağrılırsa tesise kısıtlı rol daha ilk adımda reddedilirdi —
-       santral yöneticisi KENDİ santrali için istisna talep edemezdi.
+       tesis yöneticisi KENDİ tesisi için istisna talep edemezdi.
        Gerçek denetim aşağıda, kayıt okunduktan sonra ve KOŞULSUZ. */
     const k = await yetkiZorunlu('uyum', 'yazma', KAPSAM_SONRA);
     const v = z.object({
@@ -31,12 +32,16 @@ export async function istisnaTalep(girdi: {
     const durum = await db.maddeDurumu.findUniqueOrThrow({
       where: { id: v.maddeDurumuId }, include: { madde: true, tesis: true } });
     if (!izinVar(k, 'uyum', 'yazma', { tesisId: durum.tesisId, surecId: durum.surecId }))
-      return { ok: false, hata: 'Bu tesis kapsamında yetkiniz yok' };
+      return { ok: false, hata: await kapsamMesaji(k, 'uyum', 'yetkiniz yok') };
 
     const acikIstisna = await db.istisna.findFirst({ where: {
       maddeId: durum.maddeId, tesisId: durum.tesisId,
       durum: { in: ['onay_bekliyor', 'aktif'] } } });
-    if (acikIstisna) return { ok: false, hata: 'Bu madde/tesis için açık bir istisna zaten var' };
+    if (acikIstisna) {
+      return { ok: false,
+        hata: `Bu madde/${await kapsamTerimi(k, 'uyum', durum.tesisId)} için `
+          + 'açık bir istisna zaten var' };
+    }
 
     const istisna = await db.istisna.create({ data: {
       maddeId: durum.maddeId, tesisId: durum.tesisId,

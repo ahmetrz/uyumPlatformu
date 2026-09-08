@@ -15,8 +15,8 @@ export const metadata: Metadata = { title: 'Reddedilen kayıtlar' };
 
    Kuyruk `yonetim/okuma` ister; kapatmak `yonetim/yazma`. Ham kayıt
    çekirdek tarafından SIRLARI MASKELENEREK yazılır; bu sayfa ham JSON'a
-   ayrıca dokunmaz. Santral kapsamı `veri.ts`te uygulanır (modül: `yonetim`);
-   satırın santrali ham yükün `tesisKodu` beyanından ya da connector'ın
+   ayrıca dokunmaz. Tesis kapsamı `veri.ts`te uygulanır (modül: `yonetim`);
+   satırın tesisi ham yükün `tesisKodu` beyanından ya da connector'ın
    yazma kapsamından türetilir. */
 
 export default async function Sayfa() {

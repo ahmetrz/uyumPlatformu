@@ -1,4 +1,7 @@
 import { describe, expect, it } from 'vitest';
+import { halkalar } from '../app/(kabuk)/(operasyonel)/envanter/EnvanterIstemci';
+import { sozlukKur } from '../lib/dil/terimler';
+import { ENERJI_SOZLUGU, SU_SOZLUGU } from '../prisma/sozlukler';
 
 /* O10/O11 · Varlık zekâsının saf mantığı. Bu modül veritabanına, React'e
    ve server-only'ye dokunmaz; testi de dokunmaz — izole DB kopyası
@@ -39,7 +42,7 @@ const YABANCI_BOLGE: Bolge = {
 function varlik(ek: Partial<V> = {}): V {
   return {
     id: ek.id ?? 'v1', etiket: ek.etiket ?? 'SAHA-A3-PLC-01', ad: ek.ad ?? 'Saha PLC',
-    tur: TUR_OT, tesis: SAHA_A, unite: null, sistem: null, bolge: OT_BOLGE,
+    tur: TUR_OT, tesis: SAHA_A, birim: null, sistem: null, bolge: OT_BOLGE,
     sahip: { id: 'k1', ad: 'Kullanıcı C' }, emanetci: null, tedarikci: null, sozlesme: null,
     hostname: null, seriNo: null, uretici: null, model: null, ipAdresi: null,
     macAdresi: null, isletimSistemi: null, firmware: null, surum: null,
@@ -407,5 +410,32 @@ describe('Karar bloklayan bilinmeyen', () => {
     // EDR ölçülmemiş olması kararı bloklamaz ama kayıtta görünür kalır.
     expect(karariBloklayanBilinmeyen(varlik({ edrDurumu: 'bilinmiyor' }))).toBe(false);
     expect(bilinmeyenAlanlar(varlik({ edrDurumu: 'bilinmiyor' }))).toEqual(['EDR']);
+  });
+});
+
+/* ═══ P1 · SÖZLÜK EKRANA ULAŞIYOR MU — MODÜL SABİTLERİ ═══════════════════
+   Bekçi "sektör sözcüğü kalmadı" der; "sözlükten geliyor" DEMEZ. Aradaki
+   boşluk ölçüldü (7 Eyl 2026): zincir halka etiketi çekirdek sözcüğe
+   ÇAKILMIŞTI, bekçi dosyayı TEMİZ görüyordu.
+
+   `arac/sozluk-farki.mjs` bunu ekranda ölçer ama yalnız rotada HİÇ fark
+   kalmadığında kırmızı yanar. Buradaki vakalar kısmi kaçağı da yakalar:
+   tek tek her sabitin sözlüğü izlediğini sorar ve tarayıcı istemez. */
+describe('Envanter · modül sabitleri sözlüğü izler [URN-ALN-004]', () => {
+  const enerji = sozlukKur(ENERJI_SOZLUGU);
+  const su = sozlukKur(SU_SOZLUGU);
+
+  it('zincirin ilk halkası sözlükten gelir', () => {
+    expect(halkalar(null)[0]).toBe('Tesis');
+    expect(halkalar(enerji)[0]).toBe('Santral');
+    expect(halkalar(su)[0]).toBe('Arıtma tesisi');
+  });
+
+  it('geri kalan altı halka sözlükten BAĞIMSIZDIR', () => {
+    /* Halka sayısı prototipin omurgasıdır; sözlük yalnız ilk halkanın
+       SÖZCÜĞÜNÜ değiştirir, zincirin şeklini değil. */
+    expect(halkalar(su)).toHaveLength(halkalar(null).length);
+    expect(halkalar(su).slice(1)).toEqual(halkalar(null).slice(1));
+    expect(halkalar(enerji).slice(1)).toEqual(halkalar(null).slice(1));
   });
 });

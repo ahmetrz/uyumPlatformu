@@ -18,7 +18,7 @@ const TUR: V['tur'] = { id: 't', kod: 'PLC', ad: 'PLC', sinif: 'OT' };
 function varlik(ek: Partial<V> = {}, durus: Partial<Durus> = {}): V {
   return {
     id: 'v1', etiket: 'KIZ-PLC-01', ad: 'Saha PLC', tur: TUR,
-    tesis: null, unite: null, sistem: null, bolge: null,
+    tesis: null, birim: null, sistem: null, bolge: null,
     sahip: null, emanetci: null, tedarikci: null, sozlesme: null,
     hostname: null, seriNo: null, uretici: null, model: null, ipAdresi: null,
     macAdresi: null, isletimSistemi: null, firmware: null, surum: null,

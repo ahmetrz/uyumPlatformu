@@ -34,14 +34,16 @@ import {
 import {
   butcele, degerlendirmeAlti, degerlendirmeCumlesi, degerlendirmeImi,
   degerlendirmeSirasi, degerlendirmeSozu, gecikti, gunAy, kalanGun,
-  kanitMetni, kanitYok, santralMetni, takipte,
+  kanitMetni, kanitYok, tesisMetni, takipte,
   type Degerlendirme, type Kisi, type S,
 } from '../ortak';
+import { useSozluk, useTerim } from '@/lib/dil/SozlukSaglayici';
+import { terim as terim2 } from '@/lib/dil/terimler';
 
-/* Kampanya kaydı — "bu kampanyada hangi madde hangi santralde takılı?"
+/* Kampanya kaydı — "bu kampanyada hangi madde hangi tesiste takılı?"
 
    Tek canvas modülü vardır: öncelik tablosu. Kayıt ekranı bir matris
-   KURMAZ — santral × kontrol matrisi /uyum'un işi; burada satır bir
+   KURMAZ — tesis × kontrol matrisi /uyum'un işi; burada satır bir
    değerlendirme kaydıdır ve sahibi, kanıtı, bulgusu ile yönetilir.
 
    Durum sözcüğü canvasta geçmez; yalnız çekmecenin kimlik bloğunda. */
@@ -50,8 +52,10 @@ import {
     delmez — kuyruk kaç takip kaydı taşıdığını sayıyla söyler. */
 const GORUNUR_BUTCE = 8;
 
-const KOLONLAR: Kolon[] = [
-  { baslik: 'Santral', genislik: '132px', siraAnahtari: 'santral' },
+/* Kolon başlığı terim taşır; kütük işlevdir, ekran kendi sözlüğüyle
+   çözer (bkz. `lib/yonetim/moduller.ts` aynı desen). */
+const kolonlar = (tesis: string): Kolon[] => [
+  { baslik: tesis, genislik: '132px', siraAnahtari: 'tesis' },
   { baslik: 'Sorumlu', genislik: '140px', ikincil: true },
   { baslik: 'Kanıt', genislik: '106px' },
   { baslik: 'Değerlendirme', genislik: '116px', siraAnahtari: 'zaman' },
@@ -76,13 +80,16 @@ export type DetayVerisi = {
   ekipler: { id: string; kod: string; ad: string; aktifUye: number }[];
 };
 
-type Anahtar = 'konu' | 'santral' | 'zaman';
+type Anahtar = 'konu' | 'tesis' | 'zaman';
 type SiraYonu = 'artan' | 'azalan';
 type Kip = 'ozet' | 'degerlendir' | 'bulgu' | 'kanit' | 'istisna';
 
 const Bos = () => <span style={{ color: 'var(--i3)' }}>—</span>;
 
 export default function SurecDetayIstemci({ veri }: { veri: DetayVerisi }) {
+  const { t: terim, tBas } = useTerim();
+  const tesisTerimi = terim2(useSozluk(), 'tesis');
+  const KOLONLAR = useMemo(() => kolonlar(tBas('tesis')), [tBas]);
   const { surec: s, simdi, kayitlar } = veri;
   const [mercek, setMercek] = useUrlDurumu<string>('mercek', 'takip');
   const [tesisF, setTesisF] = useUrlDurumuBos('tesis');
@@ -118,7 +125,7 @@ export default function SurecDetayIstemci({ veri }: { veri: DetayVerisi }) {
       if (!sira) return degerlendirmeSirasi(x, y);
       const yon = sira.yon === 'artan' ? 1 : -1;
       switch (sira.anahtar) {
-        case 'santral':
+        case 'tesis':
           return x.tesis.kod.localeCompare(y.tesis.kod, 'tr') * yon;
         case 'zaman': {
           // Hiç değerlendirilmemiş kayıt en sona iner; "eski" sayılmaz.
@@ -193,7 +200,7 @@ export default function SurecDetayIstemci({ veri }: { veri: DetayVerisi }) {
         />
 
         <EkranBasligi
-          eyebrow={`${s.ad} · ${santralMetni(s)} kapsamda`}
+          eyebrow={`${s.ad} · ${tesisMetni(s, tesisTerimi)} kapsamda`}
           vurgu={baslik.vurgu}
           vurguDurumu={baslik.durum}
           baslik={baslik.ad}
@@ -227,9 +234,9 @@ export default function SurecDetayIstemci({ veri }: { veri: DetayVerisi }) {
             sec={(id) => { setMercek(id); setKuyrukAcik(false); }}
             kapsam={
               <>
-                <Ara etiket="Madde, bölüm ya da santral ara" deger={arama}
+                <Ara etiket={`Madde, bölüm ya da ${terim('tesis')} ara`} deger={arama}
                   degistir={(v) => { setArama(v); setKuyrukAcik(false); }} />
-                <Kapsam etiket="Santral" aktif={tesisF}
+                <Kapsam etiket={tBas('tesis')} aktif={tesisF}
                   sec={(id) => { setTesisF(id); setKuyrukAcik(false); }}
                   secenekler={s.tesisler.map((t) => ({ id: t.id, ad: t.ad }))} />
                 <Kapsam etiket="Alan" aktif={alanF}
@@ -281,7 +288,7 @@ export default function SurecDetayIstemci({ veri }: { veri: DetayVerisi }) {
                 <DisaAktar
                   dosya={s.kod}
                   sayfaAdi="Madde durumları"
-                  basliklar={['Madde', 'Başlık', 'Bölüm', 'Santral', 'Durum', 'Sorumlu',
+                  basliklar={['Madde', 'Başlık', 'Bölüm', tBas('tesis'), 'Durum', 'Sorumlu',
                     'Son değerlendirme', 'Açık bulgu', 'Kanıt']}
                   satirlar={suzulmus.map((d) => [
                     d.madde.kod, d.madde.baslik, d.madde.bolum, d.tesis.kod,
@@ -300,7 +307,7 @@ export default function SurecDetayIstemci({ veri }: { veri: DetayVerisi }) {
             <div style={{ marginTop: 'var(--s26)' }}>
               <BosIlk
                 cumle={s.tesisler.length === 0
-                  ? 'Kapsamda santral yok — değerlendirme açılmadı.'
+                  ? `Kapsamda ${terim('tesis')} yok — değerlendirme açılmadı.`
                   : 'Bu kampanyada değerlendirme kaydı yok; regülasyonun yaprak maddesi bulunmuyor.'}
                 eylem={
                   <Link className="ab-dugme birincil" href="/surecler">
@@ -380,6 +387,8 @@ function Ozet({ kayit, yazabilir, ekipler, git }: {
   ekipler: { id: string; kod: string; ad: string; aktifUye: number }[];
   git: (k: Kip) => void;
 }) {
+  const { tBas } = useTerim();
+  const tesisTerimi = terim2(useSozluk(), 'tesis');
   const im = degerlendirmeImi(kayit);
   const kanit = kanitMetni(kayit);
 
@@ -398,11 +407,11 @@ function Ozet({ kayit, yazabilir, ekipler, git }: {
         durum={im}
         soz={degerlendirmeSozu(kayit)}
         baslik={`${kayit.madde.kisaKod} — ${kayit.madde.baslik}`}
-        cumle={degerlendirmeCumlesi(kayit)}
+        cumle={degerlendirmeCumlesi(kayit, tesisTerimi)}
       />
 
       <CekmeceAlanlar alanlar={[
-        { etiket: 'Santral', deger: kayit.tesis.ad },
+        { etiket: tBas('tesis'), deger: kayit.tesis.ad },
         {
           etiket: 'Sorumlu',
           deger: kayit.sorumlu?.ad ?? 'atanmadı',

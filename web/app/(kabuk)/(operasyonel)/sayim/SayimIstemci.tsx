@@ -10,6 +10,7 @@ import {
 } from '@/lib/varlik/sayim';
 import { tarihTR } from '@/lib/sabitler';
 import type { Durum } from '@/components/kabuk/temel';
+import { useTerim } from '@/lib/dil/SozlukSaglayici';
 
 /* ═══ OT-55 · Envanter sayımı ekranı ══════════════════════════════════
 
@@ -126,6 +127,7 @@ function SayimFormu({ tesisler, turler, bolgeler, kapat }: {
   bolgeler: { id: string; kod: string }[];
   kapat: () => void;
 }) {
+  const { tBas } = useTerim();
   const { bekliyor, hata, calistir } = useEylem();
   const [ad, setAd] = useState('');
   const [tesisId, setTesisId] = useState(tesisler[0]?.id ?? '');
@@ -140,7 +142,7 @@ function SayimFormu({ tesisler, turler, bolgeler, kapat }: {
         <input className="ab-gr" value={ad} placeholder="Örn. 2026 yılı OT sayımı"
           onChange={(e) => setAd(e.target.value)} />
       </Alan>
-      <Alan etiket="Santral" zorunlu>
+      <Alan etiket={tBas('tesis')} zorunlu>
         <select className="ab-gr" value={tesisId} onChange={(e) => setTesisId(e.target.value)}>
           {tesisler.map((t) => <option key={t.id} value={t.id}>{t.kod} · {t.ad}</option>)}
         </select>

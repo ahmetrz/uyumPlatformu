@@ -14,6 +14,8 @@ import {
   kritikEylem, mercekUyar, metrikleriHesapla,
   type Kayit,
 } from './mantik';
+import { etiketTerimleri, type EtiketTerimleri } from '@/lib/sabitler';
+import { useSozluk } from '@/lib/dil/SozlukSaglayici';
 
 /* Denetim izi — "kim neyi ne zaman değiştirdi?"
    Tek canvas modülü: kütük. Satır Tablo bileşeni yerine .tbl gramerinin
@@ -28,7 +30,9 @@ const GORUNUR_BUTCE = 8;
 
 /* Zaman ilk (satır başlığı) — kütük zaman sıralı bir defterdir. "Kaynak"
    ikincil: ≤1366px bantta düşer; Değişim sabit genişlikte kalır. */
-const KOLONLAR: VtKolon<Kayit>[] = [
+/* Kolon hücreleri terim taşıyan etiket yazıyor; kütük İŞLEVDİR ve ekran
+   kendi sözlüğüyle çözer (bkz. `lib/yonetim/moduller.ts` aynı desen). */
+const kolonlar = (ET: EtiketTerimleri): VtKolon<Kayit>[] => [
   {
     anahtar: 'zaman', baslik: 'Zaman', genislik: '104px',
     hucre: (k) => <span className="mono" style={{ color: 'var(--i3)' }}>{kisaZaman(k.zaman)}</span>,
@@ -40,10 +44,10 @@ const KOLONLAR: VtKolon<Kayit>[] = [
         <span className="konu">
           <b style={{ fontWeight: 700 }}>{aktorMetni(k)}</b>{' '}
           <span style={{ fontWeight: 400, color: 'var(--i2)' }}>
-            {eylemCumlesi(k.eylem, k.varlikTipi, k.alan)}
+            {eylemCumlesi(k.eylem, k.varlikTipi, k.alan, ET)}
           </span>
         </span>
-        <span className="alt">{etiketle(k.varlikTipi)}</span>
+        <span className="alt">{etiketle(k.varlikTipi, undefined, ET)}</span>
       </span>
     ),
   },
@@ -68,9 +72,13 @@ export default function AktiviteIstemci({
   kayitlar: Kayit[]; simdi: number; pencere: number;
   /** kütüğün gerçek büyüklüğü — kesme SESSİZ kalmasın diye taşınır */
   toplam: number;
-  /** kütük bir santral kapsamıyla daraltıldı mı — boş ekranın SÖZÜ değişir */
+  /** kütük bir tesis kapsamıyla daraltıldı mı — boş ekranın SÖZÜ değişir */
   kapsamli?: boolean;
 }) {
+  /* Etiket terimleri: `varlikTipi` ve veri kalitesi kuralı adları
+     kiracıya göre değişir; sözlük bir kez çözülür. */
+  const ET = etiketTerimleri(useSozluk());
+  const KOLONLAR = useMemo(() => kolonlar(ET), [ET]);
   const [mercek, setMercek] = useUrlDurumu<string>('mercek', 'hepsi');
   const [tipF, setTipF] = useUrlDurumuBos('tip');
   const [aktorF, setAktorF] = useState<string | null>(null);
@@ -92,12 +100,12 @@ export default function AktiviteIstemci({
     if (tipF && k.varlikTipi !== tipF) return false;
     if (aktorF && aktorMetni(k) !== aktorF) return false;
     if (arama) {
-      const havuz = `${aktorMetni(k)} ${etiketle(k.varlikTipi)} `
-        + `${eylemCumlesi(k.eylem, k.varlikTipi, k.alan)} ${degisimMetni(k) ?? ''}`;
+      const havuz = `${aktorMetni(k)} ${etiketle(k.varlikTipi, undefined, ET)} `
+        + `${eylemCumlesi(k.eylem, k.varlikTipi, k.alan, ET)} ${degisimMetni(k) ?? ''}`;
       if (!havuz.toLocaleLowerCase('tr-TR').includes(arama.toLocaleLowerCase('tr-TR'))) return false;
     }
     return true;
-  }), [kayitlar, mercek, tipF, aktorF, arama]);
+  }), [kayitlar, mercek, tipF, aktorF, arama, ET]);
 
   /* Geri alınamaz eylemler (silme, ret) sıralamadan bağımsız üste sabitlenir
      ve ASLA toplanmaz; kalan kütük zaman sırasında kuyrukta toplanır. */
@@ -147,7 +155,7 @@ export default function AktiviteIstemci({
                 <Ara deger={arama} degistir={(v) => { setArama(v); setKuyrukAcik(false); }} />
                 <Kapsam etiket="Varlık" aktif={tipF}
                   sec={(id) => { setTipF(id); setKuyrukAcik(false); }}
-                  secenekler={tipler.map((t) => ({ id: t, ad: etiketle(t) }))} />
+                  secenekler={tipler.map((t) => ({ id: t, ad: etiketle(t, undefined, ET) }))} />
                 <Kapsam etiket="Aktör" aktif={aktorF}
                   sec={(id) => { setAktorF(id); setKuyrukAcik(false); }}
                   secenekler={aktorler.map((a) => ({ id: a, ad: a }))} />
@@ -216,14 +224,15 @@ function dipNot(gorunur: number, m: ReturnType<typeof metrikleriHesapla>): strin
 function IzCekmecesi({ kayit, komsular, kapat }: {
   kayit: Kayit; komsular: Kayit[]; kapat: () => void;
 }) {
+  const ET = etiketTerimleri(useSozluk());
   const degisim = degisimMetni(kayit);
   return (
-    <Cekmece kod={`${etiketle(kayit.varlikTipi)} · ${kayit.varlikId.slice(-6)}`} kapat={kapat}>
+    <Cekmece kod={`${etiketle(kayit.varlikTipi, undefined, ET)} · ${kayit.varlikId.slice(-6)}`} kapat={kapat}>
       <div className="ab-panel-blok">
         <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Kayıt</p>
         <p className="ab-bolum-basligi" style={{ margin: 0 }}>
           <b style={{ fontWeight: 700 }}>{aktorMetni(kayit)}</b>{' '}
-          {eylemCumlesi(kayit.eylem, kayit.varlikTipi, kayit.alan)}
+          {eylemCumlesi(kayit.eylem, kayit.varlikTipi, kayit.alan, ET)}
         </p>
         <p style={{ margin: 'var(--s10) 0 0', fontSize: 'var(--t-cell)', color: 'var(--i2)' }}>
           {zamanTR(kayit.zaman)}
@@ -231,7 +240,7 @@ function IzCekmecesi({ kayit, komsular, kapat }: {
       </div>
 
       <CekmeceAlanlar alanlar={[
-        { etiket: 'Varlık', deger: etiketle(kayit.varlikTipi) },
+        { etiket: 'Varlık', deger: etiketle(kayit.varlikTipi, undefined, ET) },
         { etiket: 'Eylem', deger: etiketle(kayit.eylem) },
         { etiket: 'Alan', deger: kayit.alan ? etiketle(kayit.alan) : 'kayıt geneli' },
         { etiket: 'Kaynak', deger: kaynakEtiketi(kayit.kaynak) },
@@ -262,7 +271,7 @@ function IzCekmecesi({ kayit, komsular, kapat }: {
               paddingLeft: 'var(--s12)' }}>
               <span style={{ fontSize: 'var(--t-field)' }}>
                 <b style={{ fontWeight: 600 }}>{aktorMetni(k)}</b>{' '}
-                {eylemCumlesi(k.eylem, k.varlikTipi === kayit.varlikTipi ? null : k.varlikTipi, k.alan)}
+                {eylemCumlesi(k.eylem, k.varlikTipi === kayit.varlikTipi ? null : k.varlikTipi, k.alan, ET)}
               </span>
               <span style={{ fontFamily: 'var(--veri)', fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
                 {zamanTR(k.zaman)}
@@ -368,6 +377,7 @@ function Kapsam({ etiket, secenekler, aktif, sec }: {
 
 /** Dışa aktarım filtre bütçesinin dışında, tabloyu izleyen tek sessiz bağlantı. */
 function DisaAktar({ kayitlar }: { kayitlar: Kayit[] }) {
+  const ET = etiketTerimleri(useSozluk());
   const kok = useRef<HTMLDetailsElement | null>(null);
   useEffect(() => disariKapat(kok), []);
 
@@ -384,7 +394,7 @@ function DisaAktar({ kayitlar }: { kayitlar: Kayit[] }) {
             satirlar: [
               ['Zaman', 'Aktör', 'Varlık', 'Eylem', 'Alan', 'Önceki', 'Yeni', 'Dosya', 'Kaynak'],
               ...kayitlar.map((k) => [
-                zamanTR(k.zaman), aktorMetni(k), etiketle(k.varlikTipi), etiketle(k.eylem),
+                zamanTR(k.zaman), aktorMetni(k), etiketle(k.varlikTipi, undefined, ET), etiketle(k.eylem),
                 k.alan ? etiketle(k.alan) : '', etiketle(k.once, ''), etiketle(k.sonra, ''),
                 k.dosya ?? '', kaynakEtiketi(k.kaynak),
               ]),

@@ -1,20 +1,29 @@
 import type { Metadata } from 'next';
 import { girisZorunlu, izinVar, izinliTesisIdleri } from '@/lib/erisim';
 import { db } from '@/lib/db';
+import { kapsamAnahtari, kapsamSozlugu } from '@/lib/dil/sozlukOku';
+import { tBas } from '@/lib/dil/terimler';
 import { Yetkisiz } from '@/components/kabuk/temel';
 import { gecenGun, tarihTR } from '@/lib/sabitler';
 import RaporlarIstemci from './RaporlarIstemci';
 import { kanitEsikleri } from '@/lib/yapilandirma/kanitEsik';
-import { hucreOzeti, kapsamDisiHucre, type Bulgu, type Kanit, type Santral, type Sayilar, type Surec } from './mantik';
+import { hucreOzeti, kapsamDisiHucre, type Bulgu, type Kanit, type Tesis, type Sayilar, type Surec } from './mantik';
 
-export const metadata: Metadata = { title: 'Portföy raporu' };
+/* Sekme başlığı SÖZLÜKTEN. Sabit `metadata` kiracı bağlamını
+   bekleyemezdi (R0-8); `generateMetadata` async olabildiği için burada o
+   sınır YOK — bağlam kullanıcının kapsamı. */
+export async function generateMetadata(): Promise<Metadata> {
+  const k = await girisZorunlu();
+  const sozluk = await kapsamSozlugu(kapsamAnahtari(izinliTesisIdleri(k, 'uyum')));
+  return { title: `${tBas(sozluk, 'portfoy')} raporu` };
+}
 
-/* Portföy raporu — "hangi santral × süreç hücresi zayıf, rapor nereye gidiyor?"
+/* Portföy raporu — "hangi tesis × süreç hücresi zayıf, rapor nereye gidiyor?"
    Kabuk (ray + çekmece kolonu) (operasyonel)/layout.tsx'ten gelir; burada
    UstCubuk ya da .icerik sarmalayıcısı YOK.
 
    Kapsam VERİ seviyesinde daraltılır: uyum okuma yetkisi tesise kısıtlıysa
-   matriste yalnız o santraller ve onların bulguları görünür. Yetki dışında
+   matriste yalnız o tesisler ve onların bulguları görünür. Yetki dışında
    kalan kayıt dışa aktarıma da girmez. */
 
 export default async function Sayfa() {
@@ -50,19 +59,19 @@ export default async function Sayfa() {
     id: s.id, kod: s.kod, regKod: s.regulasyon.kod, ad: s.ad,
   }));
 
-  /* Satırlar süreçlerin kapsamındaki santrallerin BİRLEŞİMİ; bir santral
+  /* Satırlar süreçlerin kapsamındaki tesislerin BİRLEŞİMİ; bir tesis
      yalnız bazı süreçlerde olabilir, kalan hücreleri kapsam dışı kalır. */
-  const santralHavuzu = new Map<string, { id: string; kod: string; ad: string }>();
+  const tesisHavuzu = new Map<string, { id: string; kod: string; ad: string }>();
   for (const s of surecler) {
     for (const kap of s.kapsam) {
       if (!gorulebilir(kap.tesisId)) continue;
-      santralHavuzu.set(kap.tesisId, { id: kap.tesisId, kod: kap.tesis.kod, ad: kap.tesis.ad });
+      tesisHavuzu.set(kap.tesisId, { id: kap.tesisId, kod: kap.tesis.kod, ad: kap.tesis.ad });
     }
   }
   const kapsamKumesi = new Set(
     surecler.flatMap((s) => s.kapsam.map((kap) => `${s.id}|${kap.tesisId}`)));
 
-  const santraller: Santral[] = [...santralHavuzu.values()].map((t) => ({
+  const tesisler: Tesis[] = [...tesisHavuzu.values()].map((t) => ({
     id: t.id,
     kod: t.kod,
     ad: t.ad,
@@ -95,7 +104,7 @@ export default async function Sayfa() {
     <RaporlarIstemci
       kanitEsik={kanitEsik.esik}
       surecler={surecListesi}
-      santraller={santraller}
+      tesisler={tesisler}
       bulgular={bulguVeri}
       kanitlar={kanitVeri}
       kisitliKapsam={izinli !== null}

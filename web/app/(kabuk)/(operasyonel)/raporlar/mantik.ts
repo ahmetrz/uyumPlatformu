@@ -16,7 +16,7 @@ export type Surec = { id: string; kod: string; regKod: string; ad: string };
 
 export type Hucre = {
   surecId: string;
-  /** kapsam dışı hücre: bu santral bu süreçte hiç yok */
+  /** kapsam dışı hücre: bu tesis bu süreçte hiç yok */
   kapsamda: boolean;
   sayilar: Sayilar;
   yuzde: number | null;
@@ -26,7 +26,7 @@ export type Hucre = {
   kapsam: number;
 };
 
-export type Santral = {
+export type Tesis = {
   id: string;
   kod: string;
   ad: string;
@@ -93,17 +93,17 @@ export function hucreSozu(h: Hucre): string {
   return 'Eşiğin altında';
 }
 
-export function hucreIpucu(h: Hucre, surec: Surec, santral: string): string {
-  if (!h.kapsamda) return `${santral} · ${surec.kod} kapsamı dışında`;
+export function hucreIpucu(h: Hucre, surec: Surec, tesis: string): string {
+  if (!h.kapsamda) return `${tesis} · ${surec.kod} kapsamı dışında`;
   if (h.yuzde === null) {
-    return `${santral} · ${surec.kod} · ${h.kapsam} madde, hiçbiri değerlendirilmedi`;
+    return `${tesis} · ${surec.kod} · ${h.kapsam} madde, hiçbiri değerlendirilmedi`;
   }
   const ek = h.bilinmeyen > 0 ? ` · ${h.bilinmeyen} madde bilinmiyor` : '';
-  return `${santral} · ${surec.kod} · %${h.yuzde}${ek}`;
+  return `${tesis} · ${surec.kod} · %${h.yuzde}${ek}`;
 }
 
 /** Satırın en zayıf hücresi — sıralamayı ve "sakin" kararını sürükler. */
-export function enZayif(s: Santral): Durum | null {
+export function enZayif(s: Tesis): Durum | null {
   for (const d of ['bd', 'md', 'unk'] as Durum[]) {
     if (s.hucreler.some((h) => hucreDurumu(h) === d)) return d;
   }
@@ -111,12 +111,12 @@ export function enZayif(s: Santral): Durum | null {
 }
 
 /** Kapsamındaki her hücresi sağlıklı olan satır sakinleşir (%58 opaklık). */
-export const sakin = (s: Santral) => enZayif(s) === 'ok';
+export const sakin = (s: Tesis) => enZayif(s) === 'ok';
 
 const AGIRLIK: Record<string, number> = { bd: 0, md: 1, unk: 2, ok: 3 };
 
-export function siralaSantraller(santraller: Santral[]): Santral[] {
-  return [...santraller].sort((a, b) => {
+export function siralaTesisler(tesisler: Tesis[]): Tesis[] {
+  return [...tesisler].sort((a, b) => {
     const f = (AGIRLIK[enZayif(a) ?? 'ok'] ?? 4) - (AGIRLIK[enZayif(b) ?? 'ok'] ?? 4);
     return f !== 0 ? f : a.kod.localeCompare(b.kod, 'tr');
   });
@@ -124,9 +124,9 @@ export function siralaSantraller(santraller: Santral[]): Santral[] {
 
 /* ── Portföy toplamı ────────────────────────────────────────────────── */
 
-export function portfoyOzeti(santraller: Santral[]) {
+export function portfoyOzeti(tesisler: Tesis[]) {
   const toplam: Record<string, number> = {};
-  for (const s of santraller) {
+  for (const s of tesisler) {
     for (const h of s.hucreler) {
       for (const [k, v] of Object.entries(h.sayilar)) toplam[k] = (toplam[k] ?? 0) + (v ?? 0);
     }
@@ -134,8 +134,8 @@ export function portfoyOzeti(santraller: Santral[]) {
   return uyumOzeti(toplam);
 }
 
-export function zayifHucreSayisi(santraller: Santral[]): number {
-  return santraller.reduce(
+export function zayifHucreSayisi(tesisler: Tesis[]): number {
+  return tesisler.reduce(
     (a, s) => a + s.hucreler.filter((h) => hucreDurumu(h) === 'bd').length, 0);
 }
 

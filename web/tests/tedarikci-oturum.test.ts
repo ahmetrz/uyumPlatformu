@@ -36,7 +36,7 @@ const { tedarikciEkranVerisi } =
 
 /** Kapsamı tek santrale kısıtlı kullanıcı — gerçek `izinVar` bunu okur. */
 const tekSantralKullanicisi = (tesisId: string, id: string) => ({
-  id, adSoyad: 'A Santral Yöneticisi', eposta: 'a@test', unvan: null,
+  id, adSoyad: 'A Tesis Yöneticisi', eposta: 'a@test', unvan: null,
   yetkiler: [{ rol: 'tesis_yoneticisi', surecId: null, tesisId,
     tuzelKisiId: null, regulasyonId: null, modul: null }],
 });
@@ -259,7 +259,7 @@ describe('Tedarikçi erişim oturumu — üç değerli uyum', () => {
       oturumu kapattığını sanan bir kayıt, kapanmadığını fark etmemekten
       daha tehlikelidir.
    2. Karar denetim izine düşer: kim, ne zaman, ne karar, hangi gerekçe.
-   3. Kapsam dışı santralin verisi ekrana SIZMAZ — ne satırda ne metrikte.
+   3. Kapsam dışı tesisin verisi ekrana SIZMAZ — ne satırda ne metrikte.
    ═══════════════════════════════════════════════════════════════════════ */
 
 describe('§18 · Uyumsuz oturum bir ÖNERİdir — otomasyon kapatmaz', () => {
@@ -339,8 +339,8 @@ describe('§18 · Uyumsuz oturum bir ÖNERİdir — otomasyon kapatmaz', () => {
   });
 });
 
-describe('§18 · Tedarikçi ekranı kapsamı — çapraz santral okuma sızmaz', () => {
-  it('tek santrale yetkili kullanıcıya diğer santralin varlığı, riski, oturumu GÖRÜNMEZ',
+describe('§18 · Tedarikçi ekranı kapsamı — çapraz tesis okuma sızmaz', () => {
+  it('tek santrale yetkili kullanıcıya diğer tesisin varlığı, riski, oturumu GÖRÜNMEZ',
     async () => {
       const [tesisA, tesisB] = await db.tesis.findMany({
         where: { durum: 'aktif' }, take: 2, orderBy: { kod: 'asc' } });
@@ -368,14 +368,14 @@ describe('§18 · Tedarikçi ekranı kapsamı — çapraz santral okuma sızmaz'
       const { tedarikciler, sertifikaUfku } = await tedarikciEkranVerisi(kisitli);
 
       /* (a) Hiçbir satır B santralini adıyla, koduyla ya da kimliğiyle
-         taşımıyor — santral bağı, sertifika ve risk dâhil. */
+         taşımıyor — tesis bağı, sertifika ve risk dâhil. */
       const seri = JSON.stringify(tedarikciler);
       expect(seri).not.toContain(tesisB.id);
       expect(seri).not.toContain(tesisB.kod);
       expect(seri).not.toContain(bVarligi!.etiket);
 
       for (const t of tedarikciler) {
-        for (const s of t.santraller) expect(s.id).toBe(tesisA.id);
+        for (const s of t.tesisler) expect(s.id).toBe(tesisA.id);
         // (b) Metrikler de daraltılmış veriden: B'nin uyumsuz oturumu sayılmaz.
         for (const o of t.oturumlar) {
           expect(o.tesisId === null || o.tesisId === tesisA.id).toBe(true);
@@ -434,7 +434,7 @@ describe('§18 · Tedarikçi ekranı kapsamı — çapraz santral okuma sızmaz'
       const genis = await tedarikciOturumOzeti(vestas.id, { tesisIdler: null });
 
       // Seed oturumlarının tesisId'si null; kapsamı daraltılmış kullanıcı
-      // "santrali bilinmeyen" oturumu GÖRMEZ (lib/api/yetki.ts ile aynı kural).
+      // "tesisi bilinmeyen" oturumu GÖRMEZ (lib/api/yetki.ts ile aynı kural).
       expect(dar.toplam).toBe(0);
       expect(genis.toplam).toBeGreaterThan(0);
       expect(dar.kaynakSistemler).toHaveLength(0);

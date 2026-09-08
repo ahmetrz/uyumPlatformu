@@ -1,3 +1,4 @@
+import { t, type Sozluk } from '@/lib/dil/terimler';
 import type { Durum } from '@/components/kabuk/temel';
 import { DENETIM_ASAMALARI, DENETIM_ASAMA_ETIKET, DENETIM_TIP_ETIKET, etiketle } from '@/lib/sabitler';
 
@@ -162,11 +163,15 @@ export function altSatir(d: D): string {
   return `${d.kod} · ${tipEtiketi(d.tip).toLocaleLowerCase('tr-TR')}`;
 }
 
-/** Satırın santral hücresi: tek tesis · birden çoksa sayı · yoksa portföy. */
-export function santralMetni(d: Pick<D, 'tesisler'>): string {
+/** Satırın tesis hücresi: tek tesis · birden çoksa sayı · yoksa portföy.
+
+    Sözlük PARAMETRE: modül saf hesap, React bilmez ve sunucudan da
+    çağrılır. `portföy` de sözlük anahtarıdır (enerji "enerji portföyü",
+    su "su portföyü") — çekirdek sözcüğü yazmak onu ekrana çakardı. */
+export function tesisMetni(d: Pick<D, 'tesisler'>, sozluk: Sozluk | null = null): string {
   if (d.tesisler.length === 1) return d.tesisler[0].ad;
-  if (d.tesisler.length > 1) return `${d.tesisler.length} santral`;
-  return 'portföy';
+  if (d.tesisler.length > 1) return `${d.tesisler.length} ${t(sozluk, 'tesis')}`;
+  return t(sozluk, 'portfoy');
 }
 
 /** Plan hücresi: aşılmış bitiş gün olarak, aksi hâlde takvim penceresi. */

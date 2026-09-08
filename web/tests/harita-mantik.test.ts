@@ -1,3 +1,5 @@
+import { sozlukKur } from '@/lib/dil/terimler';
+import { ENERJI_SOZLUGU, SU_SOZLUGU } from '@/prisma/sozlukler';
 import { describe, expect, it } from 'vitest';
 import {
   CERCEVE, IL_MERKEZI, TUVAL,
@@ -22,7 +24,7 @@ function santral(ek: Partial<PortfoySatiri> & { id: string }): PortfoySatiri {
   return {
     kod: ek.id.toUpperCase(), ad: ek.id,
     tipKod: 'JES', tipAdi: 'Jeotermal', tuzelKisi: 'Demo Jeotermal',
-    konum: null, gucMw: 100, gorselAnahtari: null, kritiklik: null,
+    konum: null, guc: 100, gucBirim: 'MW', gorselAnahtari: null, kritiklik: null,
     enlem: null, boylam: null,
     konumKaynagi: null, konumDogrulandi: false,
     uyumYuzde: 80, bilinmeyenOran: 0, acikBulgu: 0, acikRisk: 0,
@@ -215,7 +217,9 @@ describe('Ölçü ve başlık', () => {
     expect(baslikMetni(olcu(y4)))
       .toMatchObject({ ad: 'doğrulanmış konumuyla haritada', durum: 'ok' });
 
-    expect(baslikMetni(olcu(yerlesimKur([]))).ad).toBe('Kapsamınızda santral yok');
+    /* Sözlüksüz çağrı ÇEKİRDEK sözcüğü yazar; sektör karşılığı aşağıda
+       ayrıca ölçülüyor. */
+    expect(baslikMetni(olcu(yerlesimKur([]))).ad).toBe('Kapsamınızda tesis yok');
   });
 
   it('ölçü ölçülmemiş uyumu ayrı sayar', () => {
@@ -247,5 +251,22 @@ describe('Koordinat doğrulaması', () => {
 
   it('koordinat yazısı saha çözünürlüğünde (4 ondalık)', () => {
     expect(koordinatYazisi(37.8, 29.09)).toBe('37.8000° K · 29.0900° D');
+  });
+});
+
+/* Başlık sözlüğü izler — `arac/sozluk-farki.mjs`in tarayıcıda ölçtüğü
+   şeyin tarayıcısız vakası (P1 · URN-ALN-004). */
+describe('Harita başlığı sözlüğü izler [URN-ALN-004]', () => {
+  it('sayı sabit, sözcük sözlükten', () => {
+    const bos = olcu(yerlesimKur([]));
+    expect(baslikMetni(bos, sozlukKur(ENERJI_SOZLUGU)).ad).toBe('Kapsamınızda santral yok');
+    expect(baslikMetni(bos, sozlukKur(SU_SOZLUGU)).ad).toBe('Kapsamınızda arıtma tesisi yok');
+
+    const y = olcu(yerlesimKur([santral({ id: 'konumsuz', konum: null })]));
+    expect(baslikMetni(y, sozlukKur(ENERJI_SOZLUGU)).vurgu).toBe('1 santral');
+    expect(baslikMetni(y, sozlukKur(SU_SOZLUGU)).vurgu).toBe('1 arıtma tesisi');
+    // Ad (olgu) sözlükten BAĞIMSIZ: değişen yalnız sözcük.
+    expect(baslikMetni(y, sozlukKur(SU_SOZLUGU)).ad)
+      .toBe(baslikMetni(y, sozlukKur(ENERJI_SOZLUGU)).ad);
   });
 });

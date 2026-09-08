@@ -512,7 +512,12 @@ async function senaryoB(db, n, ol, yeniden = false) {
      aynısı, aynı girdilerle. Commit'in kendi çağrısına dokunulmaz. */
   const referanslar = await VA.referanslariYukle();
   const mevcutlar = await VA.mevcutVarliklariYukle();
-  const kapsam = VA.kapsamKur(onaylayan);
+  /* `kapsamKur` ASENKRONDUR (varlikAktarim.ts). `await` düşünce
+     `satirlariCoz` bir Promise alıyor ve `kapsam.yazabilir(...)`
+     tanımsız diye atıyordu; commit yolu (satır 833) await ediyor, ölçek
+     yolu etmiyordu. Bu araç beyanla CI dışında olduğu için kapı görmedi
+     — beyan bir çözüm değil, borçtur. */
+  const kapsam = await VA.kapsamKur(onaylayan);
   const esl = olcSaf(() => VA.satirlariCoz({
     satirlar: ham, esleme: B_ESLEME, referanslar, mevcutlar, kapsam }));
   if (esl.sonuc.sayac.gecerli !== n) {

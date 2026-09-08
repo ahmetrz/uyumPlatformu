@@ -1,7 +1,9 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { DURUM_SOZU, Im, Segment, TikSeridi, type Durum } from '@/components/kabuk/temel';
-import { girisZorunlu } from '@/lib/erisim';
+import { girisZorunlu, izinliTesisIdleri } from '@/lib/erisim';
+import { kapsamAnahtari, kapsamSozlugu } from '@/lib/dil/sozlukOku';
+import { t, tBas, type Sozluk } from '@/lib/dil/terimler';
 import { KISAYOLLAR } from './mantik';
 
 export const metadata: Metadata = { title: 'Yardım' };
@@ -17,7 +19,7 @@ export const metadata: Metadata = { title: 'Yardım' };
        değişince burası yalan söylerdi);
      · kısayollar `mantik.ts`teki `KISAYOLLAR`dan gelir — `?` katmanıyla
        aynı liste;
-     · iş kuralları (bulgu kapanış kapısı, OT emniyet kapıları, santral
+     · iş kuralları (bulgu kapanış kapısı, OT emniyet kapıları, tesis
        kapsamı) `lib/eylemler.ts`, `operasyon/mantik.ts` ve `app/kapsam.ts`
        içindeki gerçek kurallardan ÖZETLENMİŞTİR; oradaki kural değişirse
        buradaki cümle de değişmeli — dosya başına not düşüldü.
@@ -33,23 +35,29 @@ export const metadata: Metadata = { title: 'Yardım' };
    aynı glifi paylaşır; kişi "aynı işaret, iki sözcük" görünce şaşırmasın. */
 const DURUMLAR: Durum[] = ['ok', 'md', 'bd', 'pl', 'unk', 'tamam'];
 
-const ALANLAR = [
-  { ad: 'Saha', yol: '/', kabuk: 'B · saha', ne: 'Yönetici bakışı: bugün santrallerde ne oluyor, en kötü ne, ne bekliyor.' },
-  { ad: 'Portföy', yol: '/portfoy', kabuk: 'B · saha', ne: 'Santral listesi ve her santralin 360° künyesi.' },
+/* Alan ve soru metinleri terim taşıyor; kütükler İŞLEVDİR ve ekran
+   kendi sözlüğüyle çözer. Ekran `async`; sözlüğü kapsamdan okuyor. */
+const alanlar = (sozluk: Sozluk | null) => [
+  { ad: 'Saha', yol: '/', kabuk: 'B · saha', ne: `Yönetici bakışı: bugün ${t(sozluk, 'tesis', 'cogul')} arasında ne oluyor, en kötü ne, ne bekliyor.` },
+  { ad: tBas(sozluk, 'portfoy'), yol: '/portfoy', kabuk: 'B · saha',
+    ne: `${tBas(sozluk, 'tesis')} listesi ve her ${t(sozluk, 'tesis', 'iyelik')} `
+      + `${t(sozluk, 'tesis360')} künyesi.` },
   { ad: 'Uyum', yol: '/uyum', kabuk: 'C · defter', ne: 'Regülasyon maddeleri, süreçler, çapraz eşleme, kanıt ve raporlar.' },
   { ad: 'Varlık', yol: '/envanter', kabuk: 'A · tezgâh', ne: 'IT/OT envanteri, keşif, topoloji, ömür, yedek, erişim, tedarikçi, olay, değişim, sağlık.' },
   { ad: 'Risk', yol: '/riskler', kabuk: 'C · defter', ne: 'Risk kütüğü, denetimler, bulgu & CAPA, projeler.' },
 ] as const;
 
-const KABUKLAR = [
+/* `alanlar` gibi: kabuk tarifi de alan ADINI anar, o ad sözlükten gelir. */
+const kabuklar = (sozluk: Sozluk | null) => [
   { ad: 'A · Tezgâh', ne: 'Sol ikon rayı + üstte kapsam çubuğu. Varlık alanı, yönetim ve kurulum ekranları burada.' },
-  { ad: 'B · Saha', ne: 'Yatay sekme, ray yok, fotoğrafik alan. Ana ekran ve portföy.' },
+  { ad: 'B · Saha', ne: 'Yatay sekme, ray yok, fotoğrafik alan. Ana ekran ve '
+    + `${t(sozluk, 'portfoy')}.` },
   { ad: 'C · Defter', ne: 'Serif sekme + sol dizin. Uyum, risk, denetim ve kayıt ekranları — okunacak, imzalanacak şeyler.' },
-] as const;
+];
 
 /* Sık sorulanlar. Her cevabın dayandığı kural dosyası parantezle anılır;
    belge koddan bağımsız YAŞAYAMAZ. */
-const SSS: { soru: string; cevap: string; kaynak: string }[] = [
+const sss = (sozluk: Sozluk | null): { soru: string; cevap: string; kaynak: string }[] => [
   {
     soru: 'Bir maddeye kanıt nasıl bağlanır?',
     cevap: 'Uyum matrisinde ilgili maddenin durum satırını açın; "Kanıt ekle" ile bir kanıt kaydı oluşturulur (tip: politika, kayıt, konfigürasyon, ekran görüntüsü, rapor) ve o madde durumuna bağlanır. Bir kanıt birden çok maddeye bağlanabilir; bağlantı da kayıt da denetim izine düşer. Bağlı kanıtların tamamı Kanıt kütüphanesinde listelenir.',
@@ -66,8 +74,14 @@ const SSS: { soru: string; cevap: string; kaynak: string }[] = [
     kaynak: 'operasyon/mantik.ts · emniyet kapıları',
   },
   {
-    soru: 'Santral kapsamı nedir, neden bazı kayıtları göremiyorum?',
-    cevap: 'Her kullanıcının modül başına (uyum, envanter, risk, denetim) izinli santral kümesi vardır. Sınırsız yetki tüm santralleri, kısıtlı yetki yalnız o kümeyi gösterir; sayılar ve listeler bu kümeye göre daraltılır — kabuktaki "N santral" sayısı da dâhil. Santrala bağlı olmayan (grup geneli) kayıtlar yalnız sınırsız kapsamda görünür. Göremediğiniz kayıt yok değildir; kapsam dışıdır.',
+    soru: `${tBas(sozluk, 'tesis')} kapsamı nedir, neden bazı kayıtları göremiyorum?`,
+    cevap: 'Her kullanıcının modül başına (uyum, envanter, risk, denetim) izinli '
+      + `${t(sozluk, 'tesis')} kümesi vardır. Sınırsız yetki tüm `
+      + `${t(sozluk, 'tesis', 'cogul')}, kısıtlı yetki yalnız o kümeyi gösterir; `
+      + 'sayılar ve listeler bu kümeye göre daraltılır — kabuktaki '
+      + `"N ${t(sozluk, 'tesis')}" sayısı da dâhil. ${t(sozluk, 'tesis', 'yonelme')} `
+      + 'bağlı olmayan (grup geneli) kayıtlar yalnız sınırsız kapsamda görünür. '
+      + 'Göremediğiniz kayıt yok değildir; kapsam dışıdır.',
     kaynak: 'app/kapsam.ts · izinliTesisIdleri',
   },
   {
@@ -108,7 +122,11 @@ const SSS: { soru: string; cevap: string; kaynak: string }[] = [
 ];
 
 export default async function YardimEkrani() {
-  await girisZorunlu();
+  const k = await girisZorunlu();
+  const sozluk = await kapsamSozlugu(kapsamAnahtari(izinliTesisIdleri(k, 'uyum')));
+  const ALANLAR = alanlar(sozluk);
+  const KABUKLAR = kabuklar(sozluk);
+  const SSS = sss(sozluk);
   return (
     <main className="ab-ekran-govde ab-yardim-ekran">
       <header className="ab-lede">
@@ -261,7 +279,7 @@ export default async function YardimEkrani() {
       <section className="bolum" aria-labelledby="yardim-destek">
         <h2 id="yardim-destek" className="ab-bolum-basligi">Destek</h2>
         <p className="cumle">
-          Hesap, yetki ve santral kapsamı için <strong>kurumunuzun BT destek
+          Hesap, yetki ve {t(sozluk, 'tesis')} kapsamı için <strong>kurumunuzun BT destek
           kanalına</strong> başvurun; bu platform kendi başına hesap açmaz ve
           yetki genişletmez. Yetkinizi ve kapsamınızı{' '}
           <Link href="/ayarlar">Ayarlar</Link> ekranından görebilirsiniz.

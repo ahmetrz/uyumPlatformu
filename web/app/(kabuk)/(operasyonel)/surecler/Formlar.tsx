@@ -13,6 +13,7 @@ import {
   SUREC_DURUMLARI, SUREC_DURUM_ETIKET,
 } from '@/lib/sabitler';
 import type { Degerlendirme, Kisi, Kodlu, S } from './ortak';
+import { useTerim } from '@/lib/dil/SozlukSaglayici';
 
 /* Süreç yazma yüzeyleri — MODAL YOK (06 §B4). Hepsi 420px çekmecede
    render edilir. Mutasyonlar lib/eylemler.ts ve lib/eylemler2/istisna.ts'ten
@@ -142,6 +143,7 @@ export function KapsamPaneli({ surec, tesisler, kilitli }: {
   tesisler: Kodlu[];
   kilitli: boolean;
 }) {
+  const { t: terim, tBas } = useTerim();
   const { bekliyor, hata, calistir } = useEylem();
   const [tesisId, setTesisId] = useState('');
 
@@ -152,7 +154,7 @@ export function KapsamPaneli({ surec, tesisler, kilitli }: {
       <div>
         {surec.tesisler.length === 0 ? (
           <p className="ab-panel-dip" style={{ margin: 0 }}>
-            Kapsamda tesis yok — bu kampanyada hiç değerlendirme açılmadı.
+            Kapsamda {terim('tesis')} yok — bu kampanyada hiç değerlendirme açılmadı.
           </p>
         ) : surec.tesisler.map((t) => (
           <div key={t.id} className="ab-panel-alan">
@@ -175,7 +177,7 @@ export function KapsamPaneli({ surec, tesisler, kilitli }: {
 
       {!kilitli && (
         <>
-          <Alan etiket="Santral ekle">
+          <Alan etiket={`${tBas('tesis')} ekle`}>
             <select className="ab-gr" value={tesisId}
               onChange={(e) => setTesisId(e.target.value)}>
               <option value="">—</option>
@@ -376,6 +378,7 @@ export function KanitFormu({ kayit, kapat }: { kayit: Degerlendirme; kapat: () =
 
 export function IstisnaFormu({ kayit, kapat }: { kayit: Degerlendirme; kapat: () => void }) {
   const { bekliyor, hata, calistir } = useEylem();
+  const { t: terim } = useTerim();
   const [f, setF] = useState({ bitis: '', gerekce: '' });
   // Bitiş gelecekte olmak zorunda; alt sınır ilk çizimde sabitlenir.
   // Anı `an()` verir, ham saat DEĞİL — sunucu ile istemci ayrışmasın.
@@ -394,7 +397,7 @@ export function IstisnaFormu({ kayit, kapat }: { kayit: Degerlendirme; kapat: ()
         hata={f.gerekce.trim() && f.gerekce.trim().length < 10
           ? 'Gerekçe en az 10 karakter olmalı' : null}>
         <textarea className="ab-gr" rows={3} value={f.gerekce}
-          placeholder="Bu madde bu tesiste neden karşılanamıyor?"
+          placeholder={`Bu madde bu ${terim('tesis', 'bulunma')} neden karşılanamıyor?`}
           onChange={(e) => setF({ ...f, gerekce: e.target.value })} />
       </Alan>
 

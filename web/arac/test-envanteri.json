@@ -1,7 +1,7 @@
 {
-  "imza": "3c365c7c0b548583623ec3996ec16853",
-  "dosya": 142,
-  "vaka": 2946,
+  "imza": "94452b6f2fc538a48bfa4b8d34298dcc",
+  "dosya": 162,
+  "vaka": 3216,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -36,6 +36,34 @@
       "vaka": 5,
       "atlanan": 0
     },
+    "tests/bekci/cekirdek-taban.test.ts": {
+      "vaka": 4,
+      "atlanan": 0
+    },
+    "tests/bekci/cekirdek-tarayici.test.ts": {
+      "vaka": 12,
+      "atlanan": 0
+    },
+    "tests/bekci/ek-eklemesi.test.ts": {
+      "vaka": 4,
+      "atlanan": 0
+    },
+    "tests/bekci/katlama-korlugu.test.ts": {
+      "vaka": 19,
+      "atlanan": 0
+    },
+    "tests/bekci/muafiyet-canli.test.ts": {
+      "vaka": 4,
+      "atlanan": 0
+    },
+    "tests/bekci/sektor-terimi.test.ts": {
+      "vaka": 12,
+      "atlanan": 0
+    },
+    "tests/bekci/terim-dogrulama.test.ts": {
+      "vaka": 21,
+      "atlanan": 0
+    },
     "tests/belge-sayimlari.test.ts": {
       "vaka": 5,
       "atlanan": 0
@@ -65,7 +93,7 @@
       "atlanan": 0
     },
     "tests/disa-aktarim-csv.test.ts": {
-      "vaka": 41,
+      "vaka": 42,
       "atlanan": 0
     },
     "tests/disa-aktarim-paketi.test.ts": {
@@ -85,7 +113,7 @@
       "atlanan": 0
     },
     "tests/ekran-mantik-72.test.ts": {
-      "vaka": 22,
+      "vaka": 24,
       "atlanan": 0
     },
     "tests/ekran-yazma-kapisi.test.ts": {
@@ -117,7 +145,7 @@
       "atlanan": 0
     },
     "tests/envanter-mantik.test.ts": {
-      "vaka": 38,
+      "vaka": 40,
       "atlanan": 0
     },
     "tests/erisim-degerlendirme.test.ts": {
@@ -141,7 +169,7 @@
       "atlanan": 0
     },
     "tests/faz-b-alan.test.ts": {
-      "vaka": 73,
+      "vaka": 76,
       "atlanan": 0
     },
     "tests/faz-b-ekran.test.ts": {
@@ -149,7 +177,7 @@
       "atlanan": 0
     },
     "tests/faz-b-eylem.test.ts": {
-      "vaka": 52,
+      "vaka": 56,
       "atlanan": 0
     },
     "tests/faz-d-eylem.test.ts": {
@@ -173,7 +201,7 @@
       "atlanan": 0
     },
     "tests/faz-f-api-kapsam.test.ts": {
-      "vaka": 28,
+      "vaka": 32,
       "atlanan": 0
     },
     "tests/faz-f-eylem.test.ts": {
@@ -213,11 +241,15 @@
       "atlanan": 0
     },
     "tests/harita-mantik.test.ts": {
-      "vaka": 22,
+      "vaka": 23,
       "atlanan": 0
     },
     "tests/hesap.test.ts": {
       "vaka": 25,
+      "atlanan": 0
+    },
+    "tests/inceleme-30.test.ts": {
+      "vaka": 20,
       "atlanan": 0
     },
     "tests/isler-eylem.test.ts": {
@@ -249,11 +281,11 @@
       "atlanan": 0
     },
     "tests/kalite-borcu-listesi.test.ts": {
-      "vaka": 7,
+      "vaka": 11,
       "atlanan": 0
     },
     "tests/kalite-kapilari.test.ts": {
-      "vaka": 39,
+      "vaka": 85,
       "atlanan": 0
     },
     "tests/kanit-kapsam.test.ts": {
@@ -272,6 +304,10 @@
       "vaka": 29,
       "atlanan": 0
     },
+    "tests/kapi-farki.test.ts": {
+      "vaka": 12,
+      "atlanan": 0
+    },
     "tests/kapsam-ekranlari.test.ts": {
       "vaka": 47,
       "atlanan": 0
@@ -288,6 +324,10 @@
       "vaka": 18,
       "atlanan": 0
     },
+    "tests/kesif-karari.test.ts": {
+      "vaka": 5,
+      "atlanan": 0
+    },
     "tests/kesif.test.ts": {
       "vaka": 31,
       "atlanan": 0
@@ -298,6 +338,10 @@
     },
     "tests/kimlik-eylem.test.ts": {
       "vaka": 14,
+      "atlanan": 0
+    },
+    "tests/kirpan-ata.test.ts": {
+      "vaka": 7,
       "atlanan": 0
     },
     "tests/kisit-mesaji.test.ts": {
@@ -348,6 +392,14 @@
       "vaka": 12,
       "atlanan": 0
     },
+    "tests/olcum-tabani.test.ts": {
+      "vaka": 23,
+      "atlanan": 0
+    },
+    "tests/omur-ufuk.test.ts": {
+      "vaka": 6,
+      "atlanan": 0
+    },
     "tests/operasyon-mantik.test.ts": {
       "vaka": 36,
       "atlanan": 0
@@ -376,12 +428,28 @@
       "vaka": 7,
       "atlanan": 0
     },
-    "tests/pasif-kesif.test.ts": {
-      "vaka": 30,
+    "tests/p1-ikinci-sozluk.test.ts": {
+      "vaka": 16,
       "atlanan": 0
     },
-    "tests/plant360-profil.test.ts": {
-      "vaka": 12,
+    "tests/p1-kabuk-sozluk.test.ts": {
+      "vaka": 4,
+      "atlanan": 0
+    },
+    "tests/p1-oznitelik-gocu.test.ts": {
+      "vaka": 3,
+      "atlanan": 0
+    },
+    "tests/p1-terim-sozlugu.test.ts": {
+      "vaka": 9,
+      "atlanan": 0
+    },
+    "tests/p1-tesis360-sozluk.test.ts": {
+      "vaka": 2,
+      "atlanan": 0
+    },
+    "tests/pasif-kesif.test.ts": {
+      "vaka": 31,
       "atlanan": 0
     },
     "tests/proje-bagimliligi.test.ts": {
@@ -425,7 +493,7 @@
       "atlanan": 0
     },
     "tests/senaryo-platform.test.ts": {
-      "vaka": 19,
+      "vaka": 21,
       "atlanan": 0
     },
     "tests/senaryo-uyum.test.ts": {
@@ -444,8 +512,16 @@
       "vaka": 7,
       "atlanan": 0
     },
+    "tests/tasarim-belgesi.test.ts": {
+      "vaka": 5,
+      "atlanan": 0
+    },
     "tests/tedarikci-oturum.test.ts": {
       "vaka": 18,
+      "atlanan": 0
+    },
+    "tests/tek-nusha.test.ts": {
+      "vaka": 6,
       "atlanan": 0
     },
     "tests/ters-kapsam-ekran.test.ts": {
@@ -464,6 +540,10 @@
       "vaka": 12,
       "atlanan": 0
     },
+    "tests/tesis360-profil.test.ts": {
+      "vaka": 12,
+      "atlanan": 0
+    },
     "tests/topoloji-sapma.test.ts": {
       "vaka": 21,
       "atlanan": 0
@@ -477,7 +557,7 @@
       "atlanan": 0
     },
     "tests/uc-deger-kurali.test.ts": {
-      "vaka": 3,
+      "vaka": 7,
       "atlanan": 0
     },
     "tests/uygulanabilirlik-bulgu.test.ts": {
@@ -485,7 +565,7 @@
       "atlanan": 0
     },
     "tests/uygulanabilirlik.test.ts": {
-      "vaka": 5,
+      "vaka": 7,
       "atlanan": 0
     },
     "tests/uyum-belge-bagi.test.ts": {

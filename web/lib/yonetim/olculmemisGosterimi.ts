@@ -1,11 +1,11 @@
-/* ═══ Değerlendirilmemiş santral özeti — sunum ayarı ══════════════════
+/* ═══ Değerlendirilmemiş tesis özeti — sunum ayarı ════════════════════
 
-   Saha ekranında değerlendirilmemiş santraller ÖNCE tuvalin solunda
+   Saha ekranında değerlendirilmemiş tesisler ÖNCE tuvalin solunda
    176px'lik dikey bir liste kolonuydu. Kolon, takımyıldızın (ekranın asıl
    karar yüzeyi) genişliğinin altıda birini alıyor ve on bir satırı eşit
    ağırlıkta diziyordu. Oysa o satırların hiçbirinin endeksi YOKTUR —
    yani sıralanacak, karşılaştırılacak, taranacak bir şey taşımıyorlardı:
-   liste bir yoklamaydı. Aynı santraller alttaki plaka şeridinde ikinci
+   liste bir yoklamaydı. Aynı tesisler alttaki plaka şeridinde ikinci
    kez zaten görünüyordu.
 
    Yerine geçen: başlık altında tek satırlık ÖZET + istenirse açılan
@@ -16,16 +16,16 @@
    yönetilmez. Bu yüzden "tamamen gizle" seçeneği BİLEREK YOKTUR.
 
    Değerlendirilmemiş sayısı, "bilinmeyen ≠ sıfır" kuralının ekrandaki
-   karşılığıdır: bugün portföyün on altı santralinden on biri hiç
+   karşılığıdır: bugün portföyün on altı tesisinden on biri hiç
    ölçülmemiştir. Bu sayıyı kapatılabilir yapmak, ekranın söylemek
    zorunda olduğu tek şeyi bir ayara bağlamak olurdu — ölçülmemiş bir
    portföy, ölçülmüş gibi görünürdü. Sayı her yerleşimde durur; yönetilen
    yalnız ne kadar AYRINTI eşlik ettiğidir. */
 
 export type OlculmemisGosterimi = {
-  /** `ozet` sayı + oran + MWe + ilk adlar · `sayi` yalnız sayı + oran. */
+  /** `ozet` sayı + oran + güç toplamı + ilk adlar · `sayi` yalnız sayı + oran. */
   gosterim: 'ozet' | 'sayi';
-  /** İlk görünümde yazılan santral adı sayısı (0–5). `sayi` kipinde yok sayılır. */
+  /** İlk görünümde yazılan tesis adı sayısı (0–5). `sayi` kipinde yok sayılır. */
   ilkKac: number;
   /** Detay listesi doklu panelde açılabilsin mi. */
   detay: 'panel' | 'kapali';

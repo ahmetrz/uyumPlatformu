@@ -16,13 +16,15 @@ import { Ara, DisaAktar, Kapsam } from './Kontroller';
 import { DurumFormu, KapsamPaneli, SurecFormu } from './Formlar';
 import {
   altSatir, butcele, capa, denetimMetni, donemler, gecikti, geriMetni, kalanGun,
-  kapandiMi, kimlikCumlesi, konum, santralMetni, surecEtiketi, surecImi, ufuk,
+  kapandiMi, kimlikCumlesi, konum, tesisMetni, surecEtiketi, surecImi, ufuk,
   type Kodlu, type S,
 } from './ortak';
+import { useSozluk, useTerim } from '@/lib/dil/SozlukSaglayici';
+import { terim as terim2 } from '@/lib/dil/terimler';
 
 /* Uyum süreç kütüğü — "hangi kampanya denetim tarihine yetişmiyor?"
 
-   /uyum ile ÇAKIŞMAZ: orada santral × kontrol ailesi matrisi kalıcı
+   /uyum ile ÇAKIŞMAZ: orada tesis × kontrol ailesi matrisi kalıcı
    çerçeveyi anlatır, burada takvimi olan bir kampanya kütüğü var. Bu ekran
    ikinci bir matris kurmaz; iki canvas modülü taşır (06 §A1): denetim
    takvimi (zaman çizelgesi) + öncelik tablosu.
@@ -69,6 +71,8 @@ export default function SureclerIstemci({
   yazabilir: boolean;
   onaylayabilir: boolean;
 }) {
+  const { t: terim, tBas } = useTerim();
+  const tesisTerimi = terim2(useSozluk(), 'tesis');
   const [mercek, setMercek] = useUrlDurumu<string>('mercek', 'yuruyen');
   const [regF, setRegF] = useState<string | null>(null);
   const [arama, setArama] = useState('');
@@ -164,10 +168,10 @@ export default function SureclerIstemci({
       geri: geriMetni(k.capa, simdi),
       // Kart 208px: kimlik zaten başlıkta, kapsam satırına yalnız çerçeve
       // ve yayılım sığar.
-      kapsam: `${k.s.regulasyon.kod} · ${santralMetni(k.s)}`,
+      kapsam: `${k.s.regulasyon.kod} · ${tesisMetni(k.s, tesisTerimi)}`,
       durum: k.im,
       konum: konum(k.capa, eksen),
-    })), [suzulmus, eksen, simdi]);
+    })), [suzulmus, eksen, simdi, tesisTerimi]);
 
   const secilen = kayitlar.find((k) => k.s.id === secili) ?? null;
   const filtreAktif = mercek !== 'yuruyen' || regF !== null || arama.trim() !== '';
@@ -187,7 +191,7 @@ export default function SureclerIstemci({
       <span key="d" style={k.denetim.durum ? { color: `var(--${k.denetim.durum})` } : undefined}>
         {k.denetim.metin}
       </span>,
-      santralMetni(k.s),
+      tesisMetni(k.s, tesisTerimi),
     ],
   }));
 
@@ -226,7 +230,7 @@ export default function SureclerIstemci({
             sec={(id) => { setMercek(id); setKuyrukAcik(false); }}
             kapsam={
               <>
-                <Ara etiket="Kampanya, çerçeve ya da santral ara" deger={arama}
+                <Ara etiket={`Kampanya, çerçeve ya da ${terim('tesis')} ara`} deger={arama}
                   degistir={(v) => { setArama(v); setKuyrukAcik(false); }} />
                 <Kapsam etiket="Çerçeve" aktif={regF}
                   sec={(id) => { setRegF(id); setKuyrukAcik(false); }}
@@ -290,7 +294,7 @@ export default function SureclerIstemci({
                   dosya="uyum-surecleri"
                   sayfaAdi="Kampanyalar"
                   basliklar={['Kod', 'Ad', 'Çerçeve', 'Durum', 'Başlangıç', 'Denetim tarihi',
-                    'Santraller', 'Uyumlu', 'Kısmi', 'Uyumsuz', 'Bilinmeyen', 'Açık bulgu']}
+                    tBas('tesis', 'cogul'), 'Uyumlu', 'Kısmi', 'Uyumsuz', 'Bilinmeyen', 'Açık bulgu']}
                   satirlar={suzulmus.map((k) => [
                     k.s.kod, k.s.ad, k.s.regulasyon.kod, surecEtiketi(k.s.durum),
                     k.s.baslangic ? tarihTR(k.s.baslangic) : '',
@@ -344,7 +348,7 @@ export default function SureclerIstemci({
             <>
               <div className="ab-panel-blok">
                 <p className="etiket" style={{ margin: '0 0 var(--s12)' }}>
-                  Kapsam · {secilen.s.tesisler.length} santral
+                  Kapsam · {secilen.s.tesisler.length} tesis
                 </p>
               </div>
               <div className="ab-panel-blok">
@@ -403,6 +407,7 @@ function Ozet({ kayit, simdi, yazabilir, onaylayabilir, duzenle, kapsam, durum }
   kapsam: () => void;
   durum: () => void;
 }) {
+  const tesisTerimi = terim2(useSozluk(), 'tesis');
   const { s, im, denetim } = kayit;
   const kalan = kalanGun(s, simdi);
 
@@ -431,7 +436,8 @@ function Ozet({ kayit, simdi, yazabilir, onaylayabilir, duzenle, kapsam, durum }
 
   return (
     <>
-      <CekmeceKimlik durum={im} soz={soz} baslik={s.ad} cumle={kimlikCumlesi(s, simdi)} />
+      <CekmeceKimlik durum={im} soz={soz} baslik={s.ad}
+        cumle={kimlikCumlesi(s, simdi, tesisTerimi)} />
 
       <CekmeceAlanlar alanlar={[
         {
@@ -455,7 +461,7 @@ function Ozet({ kayit, simdi, yazabilir, onaylayabilir, duzenle, kapsam, durum }
         },
         {
           etiket: 'Kapsam',
-          deger: `${santralMetni(s)}${s.sayim.toplam > 0 ? ` · ${s.sayim.toplam} madde` : ''}`,
+          deger: `${tesisMetni(s, tesisTerimi)}${s.sayim.toplam > 0 ? ` · ${s.sayim.toplam} madde` : ''}`,
           durum: s.tesisler.length === 0 ? 'unk' : undefined,
         },
       ]} />
@@ -469,7 +475,7 @@ function Ozet({ kayit, simdi, yazabilir, onaylayabilir, duzenle, kapsam, durum }
           </Link>
         }
         ikincil={
-          /* Kapsam listesi salt okunur da olsa görünür: hangi santrallerin
+          /* Kapsam listesi salt okunur da olsa görünür: hangi tesislerin
              kapsamda olduğu okuma yetkisiyle de sorulabilir bir sorudur;
              panel yazma yetkisi yokken kilitli açılır. */
           <div style={{ display: 'flex', gap: 'var(--s10)', flexWrap: 'wrap' }}>

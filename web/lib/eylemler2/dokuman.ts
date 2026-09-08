@@ -1,9 +1,12 @@
 'use server';
 
+import { kapsamAnahtari, kapsamSozlugu } from '../dil/sozlukOku';
+import { t } from '../dil/terimler';
+import type { AktifKullanici } from '../auth';
 import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
 import { db } from '../db';
-import { yetkiZorunlu, izinVar, KAPSAM_SONRA } from '../erisim';
+import { yetkiZorunlu, izinVar, KAPSAM_SONRA, izinliTesisIdleri } from '../erisim';
 import { hata, iz, tamam, type Sonuc } from './ortak';
 import {
   DURUMLAR, TURLER, gecisGecerli, sonrakiGozdenGecirme, ONAY_ISTEYEN,
@@ -17,11 +20,11 @@ import {
    YÜRÜRLÜĞE ALMA `uyum/onay` ister: bir politikayı yürürlükte ilan etmek
    bulgu kapatmakla aynı ağırlıktadır, ikisi de "artık bu doğru" der.
 
-   KAPSAM: belge kurumsal olabildiği için (santral bağı yok) kapsamlı yetki
+   KAPSAM: belge kurumsal olabildiği için (tesis bağı yok) kapsamlı yetki
    kapısı `KAPSAM_SONRA` ile iki aşamalıdır — tesise kısıtlı bir kullanıcı
-   ön kapıdan geçer, sonra bağlı santrallerin HEPSİ kapsamındaysa yazabilir.
+   ön kapıdan geçer, sonra bağlı tesislerin HEPSİ kapsamındaysa yazabilir.
    Kurumsal belgeye (bağsız) yalnız kapsamsız yetkisi olan dokunabilir:
-   tek santralin sorumlusu tüm portföyü bağlayan bir politikayı değiştiremez.
+   tek tesisin sorumlusu tüm portföyü bağlayan bir politikayı değiştiremez.
 
    DOSYA: yüklenmez. `disKaynak` yalnız kaydedilir, ürün o adrese İSTEK
    ATMAZ — dış sistemlere bağlanmama sınırı burada da geçerlidir.
@@ -31,7 +34,7 @@ const metin = (ad: string, en = 200) => z.string().trim().min(1, `${ad} boş ola
 const serbest = z.string().trim().transform((s) => (s ? s : null)).nullable().optional();
 const tarih = z.string().trim().transform((s) => (s ? new Date(s) : null)).nullable().optional();
 
-/** Kapsam kapısı: belgenin bağlı olduğu santrallerin hepsi kullanıcının
+/** Kapsam kapısı: belgenin bağlı olduğu tesislerin hepsi kullanıcının
     kapsamında mı? Bağ yoksa belge kurumsaldır ve kapsamsız yetki ister. */
 function kapsamYetkisi(
   k: Parameters<typeof izinVar>[0], islem: 'yazma' | 'onay', tesisIdleri: string[],
@@ -40,8 +43,16 @@ function kapsamYetkisi(
   return tesisIdleri.every((tesisId) => izinVar(k, 'uyum', islem, { tesisId, surecId: null }));
 }
 
-const KAPSAM_HATASI = 'Bu belgenin kapsamı yetkinizin dışında; kurumsal belgeler '
-  + 'santral kısıtı olmayan yetki ister.';
+/* Mesaj sözlükten; bağlam kullanıcının KAPSAMI (belgenin tek bir tesisi
+   olmayabilir — kurumsal belge tüm portföyü bağlar). */
+/* Mesaj sözlükten; bağlam kullanıcının KAPSAMI. Belgenin tek bir tesisi
+   olmayabilir — kurumsal belge tüm portföyü bağlar — o yüzden kaydın
+   sözlüğü değil kullanıcının kapsamı doğru bağlamdır. */
+async function kapsamHatasi(k: AktifKullanici): Promise<string> {
+  const sozluk = await kapsamSozlugu(kapsamAnahtari(izinliTesisIdleri(k, 'uyum')));
+  return 'Bu belgenin kapsamı yetkinizin dışında; kurumsal belgeler '
+    + `${t(sozluk, 'tesis')} kısıtı olmayan yetki ister.`;
+}
 
 export async function dokumanKaydet(girdi: {
   id?: string;
@@ -74,11 +85,11 @@ export async function dokumanKaydet(girdi: {
       : null;
 
     /* Kapsam ESKİ ve YENİ bağın birleşimine bakar: kullanıcı kapsamı
-       dışındaki bir santrali listeden çıkararak belgeyi ele geçiremesin. */
+       dışındaki bir tesisi listeden çıkararak belgeyi ele geçiremesin. */
     const eskiTesisler = eski?.tesisBaglantilari.map((b) => b.tesisId) ?? [];
     const yeniTesisler = v.tesisIdleri ?? eskiTesisler;
     const birlesim = [...new Set([...eskiTesisler, ...yeniTesisler])];
-    if (!kapsamYetkisi(k, 'yazma', birlesim)) return { ok: false, hata: KAPSAM_HATASI };
+    if (!kapsamYetkisi(k, 'yazma', birlesim)) return { ok: false, hata: await kapsamHatasi(k) };
 
     const sonraki = sonrakiGozdenGecirme(
       v.gozdenGecirmeAy ?? eski?.gozdenGecirmeAy ?? null,
@@ -163,7 +174,7 @@ export async function dokumanDurumDegistir(girdi: {
     });
     const tesisler = eski.tesisBaglantilari.map((b) => b.tesisId);
     const islem = ONAY_ISTEYEN.includes(v.durum) ? 'onay' as const : 'yazma' as const;
-    if (!kapsamYetkisi(k, islem, tesisler)) return { ok: false, hata: KAPSAM_HATASI };
+    if (!kapsamYetkisi(k, islem, tesisler)) return { ok: false, hata: await kapsamHatasi(k) };
 
     if (eski.durum === v.durum) return { ok: false, hata: 'Belge zaten bu durumda' };
     if (!gecisGecerli(eski.durum, v.durum)) {
@@ -218,7 +229,7 @@ export async function dokumanGozdenGecirildi(girdi: {
       where: { id: v.id }, include: { tesisBaglantilari: true },
     });
     if (!kapsamYetkisi(k, 'onay', eski.tesisBaglantilari.map((b) => b.tesisId))) {
-      return { ok: false, hata: KAPSAM_HATASI };
+      return { ok: false, hata: await kapsamHatasi(k) };
     }
     if (eski.durum !== 'yururlukte') {
       return { ok: false, hata: 'Yalnız yürürlükteki belge gözden geçirilmiş sayılır' };

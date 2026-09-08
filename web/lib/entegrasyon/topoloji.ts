@@ -347,13 +347,13 @@ export type TemelDurumu = {
  * NEDEN AYRI: şerit kapsam (tesis) başına bir satır çizer ve `temelDurumu()`
  * kapsam başına DÖRT sorgu koşar; biri de temelin bütün gözlemlerini
  * yükleyen `temelAnlik()`tır. Şerit bu gözlemlerin tek birini bile
- * göstermez — yalnız dört skaler okur. Yirmi santralli bir kurulumda bu
+ * göstermez — yalnız dört skaler okur. Yirmi tesisli bir kurulumda bu
  * seksen sorgu ve yirmi tam topoloji okuması demekti; burada sorgu sayısı
- * SANTRAL SAYISINDAN BAĞIMSIZ üçe iner ve gözlemler hiç yüklenmez.
+ * TESİS SAYISINDAN BAĞIMSIZ üçe iner ve gözlemler hiç yüklenmez.
  *
  * `tesisIdler` — `izinliTesisIdleri` sözleşmesiyle aynı: `null` = sınır yok
- * (santrali BİLİNMEYEN/global kapsam da dâhil), `[]` = hiçbiri. Kapsamı
- * daraltılmış kullanıcıya santrali null olan kayıt GÖRÜNMEZ; koşul
+ * (tesisi BİLİNMEYEN/global kapsam da dâhil), `[]` = hiçbiri. Kapsamı
+ * daraltılmış kullanıcıya tesisi null olan kayıt GÖRÜNMEZ; koşul
  * `tesisId: { in: [...] }` NULL ile eşleşmediği için bu kendiliğinden olur.
  *
  * Anahtar: `tesisId ?? '__global__'`.
@@ -951,7 +951,7 @@ export async function sapmaKarari(girdi: {
     // Temel taşıma da koşullu: eski temel hâlâ temelken düşer, yeni anlık
     // hâlâ temel DEĞİLKEN yükselir. Aynı anlığın iki sapması aynı anda kabul
     // edilirse ikinci geçiş burada etkisiz kalır — çift "temel oldu" notu ve
-    // iki temelli santral oluşmaz.
+    // iki temelli tesis oluşmaz.
     if (eski) await tx.topolojiAnlik.updateMany({
       where: { id: eski.id, temelMi: true }, data: { temelMi: false } });
     await tx.topolojiAnlik.updateMany({

@@ -9,9 +9,9 @@
    ── KANIT KAPSAMI NEREDEN GELİR ───────────────────────────────────────
    Bir kanıt kaydının kendi `tesisId` alanı YOKTUR; kapsamı bağlı olduğu
    `MaddeDurumu` satırlarından gelir. Bir kanıt birden çok maddeye
-   bağlanabilir (crosswalk) ve o zaman kapsamı BİRDEN ÇOK santraldir.
-   Kural sert: kullanıcı, kanıtın bağlı olduğu santrallerin HEPSİNDE
-   yetkili olmalıdır. Tek santralde yetkili olmak yetseydi, iki santrale
+   bağlanabilir (crosswalk) ve o zaman kapsamı BİRDEN ÇOK tesistir.
+   Kural sert: kullanıcı, kanıtın bağlı olduğu tesislerin HEPSİNDE
+   yetkili olmalıdır. Tek tesiste yetkili olmak yetseydi, iki tesise
    bağlı bir kanıtı A'ya yetkili biri değiştirir ve B'nin uyum kaydını
    sessizce etkilerdi.
 
@@ -24,6 +24,7 @@
    katmanı (`lib/uyum/kanitDeposu.ts`) onu bir bayt dizisi olarak saklar
    ve özetini alır. */
 
+import { eylemTerimi, kapsamMesaji } from './kapsamMesaji';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { db } from '../db';
@@ -42,7 +43,7 @@ const gerekceAlani = z.string().trim().min(10, 'Gerekçe en az 10 karakter olmal
 /**
  * Kanıtın kapsamını çözer ve yetkiyi dayatır.
  *
- * Dönen değer bağlı santral kimlikleridir; boşsa kanıt ÖKSÜZDÜR.
+ * Dönen değer bağlı tesis kimlikleridir; boşsa kanıt ÖKSÜZDÜR.
  */
 async function kanitKapsamiDayat(
   k: Awaited<ReturnType<typeof yetkiZorunlu>>,
@@ -64,9 +65,10 @@ async function kanitKapsamiDayat(
   }
   const tesisler = [...new Set(baglar.map((b) => b.maddeDurumu.tesisId))];
   for (const bag of baglar) {
+    const x = await eylemTerimi(k, 'uyum', bag.maddeDurumu.tesisId);
     kapsamZorunlu(k, 'uyum', islem,
       { tesisId: bag.maddeDurumu.tesisId, surecId: bag.maddeDurumu.surecId },
-      'Bu kanıt birden çok santrale bağlı olabilir; hepsinde yetkili olmalısınız');
+      `Bu kanıt birden çok ${x.yonelme} bağlı olabilir; hepsinde yetkili olmalısınız`);
   }
   return tesisler;
 }
@@ -165,7 +167,8 @@ export async function kanitKaydet(girdi: {
     });
     if (!md) return hata(new Error('Madde durumu bulunamadı'));
     kapsamZorunlu(k, 'uyum', 'yazma', { tesisId: md.tesisId, surecId: md.surecId },
-      'Bu tesis kapsamında kanıt ekleme yetkiniz yok');
+
+      await kapsamMesaji(k, 'uyum', 'kanıt ekleme yetkiniz yok', md.tesisId));
 
     const kanit = await db.kanit.create({
       data: {
@@ -309,7 +312,8 @@ export async function kanitBaglantisiEkle(girdi: {
     });
     if (!md) return hata(new Error('Madde durumu bulunamadı'));
     kapsamZorunlu(k, 'uyum', 'yazma', { tesisId: md.tesisId, surecId: md.surecId },
-      'Bu tesis kapsamında kanıt bağlama yetkiniz yok');
+
+      await kapsamMesaji(k, 'uyum', 'kanıt bağlama yetkiniz yok', md.tesisId));
 
     await db.kanitBaglantisi.upsert({
       where: {

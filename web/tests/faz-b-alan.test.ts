@@ -85,31 +85,66 @@ describe('OT-08 · Etki miras alınır ama ÖLÇÜLMÜŞ değeri ezmez', () => {
   });
 });
 
-describe('OT-08 · MW toplamı kısmi ölçümü tam gibi göstermez', () => {
-  it('hiçbir satır ölçülmemişse toplam NULL — "0 MW" yazılmaz', () => {
+describe('OT-08 · Kayıp toplamı kısmi ölçümü tam gibi göstermez', () => {
+  it('hiçbir satır ölçülmemişse toplam NULL — sıfır yazılmaz', () => {
     const o = etkiOzeti([
-      { uretimKaybiMw: null, etki: gecerliEtki(null, []) },
-      { uretimKaybiMw: null, etki: gecerliEtki(null, []) },
+      { uretimKaybi: null, kayipBirim: null, etki: gecerliEtki(null, []) },
+      { uretimKaybi: null, kayipBirim: null, etki: gecerliEtki(null, []) },
     ]);
-    expect(o.toplamMw).toBeNull();
+    expect(o.toplam).toBeNull();
     expect(o.olculmeyen).toBe(2);
+    expect(o.karisikBirim).toBe(false);
   });
 
   it('ölçülen satırlar toplanır, ölçülmeyenler ayrı sayılır', () => {
     const o = etkiOzeti([
-      { uretimKaybiMw: 12.5, etki: gecerliEtki('yuksek', []) },
-      { uretimKaybiMw: 7.25, etki: gecerliEtki('orta', []) },
-      { uretimKaybiMw: null, etki: gecerliEtki(null, []) },
+      { uretimKaybi: 12.5, kayipBirim: 'MW', etki: gecerliEtki('yuksek', []) },
+      { uretimKaybi: 7.25, kayipBirim: 'MW', etki: gecerliEtki('orta', []) },
+      { uretimKaybi: null, kayipBirim: null, etki: gecerliEtki(null, []) },
     ]);
-    expect(o.toplamMw).toBe(19.75);
+    expect(o.toplam).toBe(19.75);
+    expect(o.birim).toBe('MW');
     expect(o.olculen).toBe(2);
     expect(o.olculmeyen).toBe(1);
     expect(o.etkisiBilinmeyen).toBe(1);
   });
 
+  it('FARKLI BİRİMLER TOPLANMAZ — sayı üretmek yerine karışık denir', () => {
+    /* Bir kiracının portföyünde iki sektör olabilir; MW ile m³/gün
+       toplamak anlamsız bir sayıyı anlamlı gibi gösterirdi. */
+    const o = etkiOzeti([
+      { uretimKaybi: 12.5, kayipBirim: 'MW', etki: gecerliEtki('yuksek', []) },
+      { uretimKaybi: 400, kayipBirim: 'm³/gün', etki: gecerliEtki('orta', []) },
+    ]);
+    expect(o.toplam).toBeNull();
+    expect(o.birim).toBeNull();
+    expect(o.karisikBirim).toBe(true);
+    expect(o.olculen).toBe(2);
+  });
+
+  it('BİRİMSİZ ölçüm de karışık sayılır — birim uydurulmaz', () => {
+    /* Birimi kaydedilmemiş bir sayıyı birimli toplama katmak, o birimi
+       o satır için varsaymak olurdu. */
+    const o = etkiOzeti([
+      { uretimKaybi: 12.5, kayipBirim: 'MW', etki: gecerliEtki('yuksek', []) },
+      { uretimKaybi: 3, kayipBirim: null, etki: gecerliEtki('orta', []) },
+    ]);
+    expect(o.toplam).toBeNull();
+    expect(o.karisikBirim).toBe(true);
+  });
+
+  it('TEK satır birimsizse de toplam verilmez', () => {
+    const o = etkiOzeti([
+      { uretimKaybi: 5, kayipBirim: null, etki: gecerliEtki('orta', []) },
+    ]);
+    expect(o.toplam).toBeNull();
+    expect(o.karisikBirim).toBe(true);
+  });
+
   it('üretimi durduran satırlar ayrı sayılır (miras dâhil)', () => {
     const o = etkiOzeti([
-      { uretimKaybiMw: null, etki: gecerliEtki(null, [bag({ adimEtkisi: 'uretim_durur' })]) },
+      { uretimKaybi: null, kayipBirim: null,
+        etki: gecerliEtki(null, [bag({ adimEtkisi: 'uretim_durur' })]) },
     ]);
     expect(o.uretimDurduran).toBe(1);
   });

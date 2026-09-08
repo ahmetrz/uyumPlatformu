@@ -7,7 +7,7 @@ import path from 'node:path';
    Denetim kapsamı — GERÇEK veritabanı, GERÇEK yetki kapısı
 
    `kapsamEkle` / `kapsamCikar` bir denetimin NEYİ kapsadığını belirler:
-   hangi santraller, hangi maddeler. Kapsam, denetimin bulgularının nereye
+   hangi tesisler, hangi maddeler. Kapsam, denetimin bulgularının nereye
    yazılacağını ve hangi tesisin uyum oranının etkileneceğini tayin eder —
    yani denetimin sınırı buradan çizilir.
 
@@ -102,7 +102,11 @@ describe('Kapsam ekleme', () => {
   it('TESİS DE MADDE DE verilmezse reddedilir', async () => {
     // Boş kapsam kaydı, denetimin sınırını belirsizleştirir.
     const d = await denetimAc();
-    expect(hataMetni(await kapsamEkle({ denetimId: d.id }))).toMatch(/tesis veya madde/i);
+    /* Mesajdaki terim SÖZLÜKTEN gelir; tohum kiracısı enerji olduğu için
+       "santral" yazar. Çekirdek sözcüğe göre iddia kurmak, terim
+       katmanının çalıştığı anda kırmızı yanardı — iddia ÇERÇEVEYE
+       kurulur, sözcüğe değil. */
+    expect(hataMetni(await kapsamEkle({ denetimId: d.id }))).toMatch(/ veya madde seçin$/);
   });
 
   it('olmayan denetime kapsam eklenemez', async () => {

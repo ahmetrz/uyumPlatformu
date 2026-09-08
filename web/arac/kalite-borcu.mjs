@@ -75,15 +75,33 @@ function listeyiOku(yol) {
   /* `bulgular` yoksa sessizce boş listeye düşmek, bozuk bir dosyayı
      "borç yok" diye okumak olurdu — bozukluk kusur gibi görünmeli. */
   if (!Array.isArray(belge?.bulgular)) patla('`bulgular` dizisi yok');
-  return belge.bulgular;
+  /* `_yeni_tur` bir kusur TÜRÜNÜN ilk kez ölçülmeye başladığını
+     BEYAN eder (bkz. `circirKarari`). Yoksa boş liste demektir; bozuk
+     yazılmışsa sessizce yutulmaz. */
+  const yeniTurler = belge?._yeni_tur ?? [];
+  if (!Array.isArray(yeniTurler)) patla('`_yeni_tur` bir dizi değil');
+  /* `_olculen_turler` araçların ÜRETEBİLDİĞİ kusur türlerinin kayıt
+     defteridir ve cırcırın dördüncü dişini besler (bkz. `circirKarari`).
+     Bozuk yazılmışsa sessizce boşa düşmez. */
+  const kayitliTurler = belge?._olculen_turler ?? [];
+  if (!Array.isArray(kayitliTurler)) patla('`_olculen_turler` bir dizi değil');
+  return { bulgular: belge.bulgular, yeniTurler, kayitliTurler };
 }
 
+const BELGE = listeyiOku(BORC_YOLU);
+
 /** Bu daldaki borç listesi. Modül yüklenirken okunur; okunamazsa atar. */
-export const BORC = listeyiOku(BORC_YOLU);
+export const BORC = BELGE.bulgular;
+
+/** Bu dalın BEYAN ettiği yeni kusur türleri (`kapi/tur`). */
+export const YENI_TURLER = BELGE.yeniTurler;
+
+/** Araçların ÜRETEBİLDİĞİ kusur türleri — kayıt defteri, yalnız büyür. */
+export const KAYITLI_TURLER = BELGE.kayitliTurler;
 
 /** Test ve araçlar için: başka bir yoldan da okunabilir, aynı sertlikle. */
 export function borcOku(yol = BORC_YOLU) {
-  return yol === BORC_YOLU ? BORC : listeyiOku(yol);
+  return yol === BORC_YOLU ? BORC : listeyiOku(yol).bulgular;
 }
 
 /**
@@ -121,11 +139,20 @@ export function tabanBorcOku() {
     const ham = execFileSync('git', ['show', `${TABAN_DAL}:${BORC_GIT_YOLU}`], {
       cwd: WEB, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'],
     });
-    const bulgular = JSON.parse(ham).bulgular;
+    const belge = JSON.parse(ham);
     /* Taban daldaki liste BOZUKSA muafiyet üretemez: `?? []` deseydik
        bozuk bir taban, dalın her eklemesini "yeni değil" gösterirdi. */
-    if (!Array.isArray(bulgular)) return { durum: 'okunamadi' };
-    return { durum: 'var', bulgular };
+    if (!Array.isArray(belge?.bulgular)) return { durum: 'okunamadi' };
+    /* Tabanın BEYANI da okunur: yeni tür kapısı yalnız taban o türü
+       HENÜZ beyan etmemişken açılır (aşağıda). Bozuk beyan muafiyet
+       üretmemeli, o yüzden dizi değilse taban okunamadı sayılır. */
+    const tabanTurler = belge?._yeni_tur ?? [];
+    if (!Array.isArray(tabanTurler)) return { durum: 'okunamadi' };
+    const tabanKayit = belge?._olculen_turler ?? [];
+    if (!Array.isArray(tabanKayit)) return { durum: 'okunamadi' };
+    return {
+      durum: 'var', bulgular: belge.bulgular, yeniTurler: tabanTurler, kayitliTurler: tabanKayit,
+    };
   } catch {
     /* Yol VAR ama okunamadı ya da ayrıştırılamadı → DİŞ 4. */
     return { durum: 'okunamadi' };
@@ -133,7 +160,9 @@ export function tabanBorcOku() {
 }
 
 function satir(b) {
-  return `${b.kapi} · ${b.tur} · ${b.rota} · ${b.bant}px`;
+  /* Hedef kimliği anahtarın parçasıdır; raporda GÖRÜNMELİ, yoksa
+     "hangi hedef ötekinin yerine geçti" sorusu çıktıdan okunamaz. */
+  return `${b.kapi} · ${b.tur} · ${b.rota} · ${b.bant}px · ${b.hedef ?? '‹hedefsiz›'}`;
 }
 
 /**
@@ -176,7 +205,35 @@ export function borcuUygula(bulgular, { kapi, yaz = console.error, bilgi = conso
     circirNotu = 'ilk kurulum';
     bilgi(`\ncırcır: ${TABAN_DAL} listeyi henüz taşımıyor — İLK KURULUM turu`);
   } else {
-    circir = circirKarari(dalBorcu, taban.bulgular.filter((b) => !kapi || b.kapi === kapi));
+    circir = circirKarari(
+      dalBorcu,
+      taban.bulgular.filter((b) => !kapi || b.kapi === kapi),
+      {
+        dalBeyan: YENI_TURLER,
+        dalKayit: KAYITLI_TURLER,
+        tabanKayit: taban.kayitliTurler,
+      },
+    );
+    if (circir.dusenTur?.length > 0) {
+      yaz(`\nKAYIT DEFTERİ KÜÇÜLDÜ — ${circir.dusenTur.length} tür düştü`);
+      for (const t of circir.dusenTur) yaz(`  ${t}`);
+      yaz('  `_olculen_turler` yalnız BÜYÜR. Küçülebilseydi bir PR türü defterden');
+      yaz('  düşürür, bir sonrakinde onu "yeni tür" diye yeniden beyan ederdi.');
+    }
+    if (circir.yeniTur?.length > 0) {
+      bilgi(`\nYENİ KUSUR TÜRÜ · ${circir.yeniTur.length} satır — bu tür İLK KEZ ölçülüyor`);
+      for (const b of circir.yeniTur) bilgi(`  ${satir(b)}`);
+      bilgi('  Taban dalın aracı bu türü hiç ölçmemişti; satırlar bir BÜYÜME');
+      bilgi('  değil, yeni bir kapının ilk fotoğrafıdır. Koşul TABANIN beyanıdır');
+      bilgi('  ve dal onu belirleyemez: beyan main\'e girdiği an bu yol o tür');
+      bilgi('  için kalıcı olarak kapanır.');
+    }
+    if (circir.gecis > 0) {
+      bilgi(`\nANAHTAR ŞEMASI GEÇİŞİ · ${circir.gecis} satır — tabandaki HEDEFSİZ satırlar`);
+      bilgi('  daha kesin yazıldı. Bu bir büyüme DEĞİLDİR ve bir kaldıraç da değildir:');
+      bilgi('  koşul TABANIN şeklidir, dal onu belirleyemez. Taban hedefli satır');
+      bilgi('  taşımaya başladığında bu yol kalıcı olarak kapanır.');
+    }
   }
 
   /* ── Rapor ────────────────────────────────────────────────────────── */
@@ -191,7 +248,15 @@ export function borcuUygula(bulgular, { kapi, yaz = console.error, bilgi = conso
 
   if (s.yeni.length > 0) {
     yaz(`\nDİŞ 2 · ALT KÜME — izin listesinde OLMAYAN ${s.yeni.length} bulgu`);
-    for (const b of s.yeni) yaz(`  ${satir(b)} → ${b.olcum} ${b.birim ?? ''}${b.not ? ` · ${b.not}` : ''}`);
+    for (const b of s.yeni) {
+      yaz(`  ${satir(b)} → ${b.olcum} ${b.birim ?? ''}${b.not ? ` · ${b.not}` : ''}`);
+      /* Aynı rota + bant + kuralda listede BAŞKA hedef var: bu bir yeni
+         kusur değil, bir YER DEĞİŞTİRME olabilir — bypass'ın tam kendisi.
+         İki iş farklıdır, ayrı yazılır. */
+      if (b.hedefDegisti) {
+        yaz(`      ↔ HEDEF DEĞİŞMİŞ olabilir — listedeki: ${b.hedefDegisti.join(' , ')}`);
+      }
+    }
     yaz('  Bunlar YENİDİR: düzeltin. Listeye eklemek DİŞ 3\'e takılır.');
   }
   if (s.asan.length > 0) {
@@ -211,7 +276,8 @@ export function borcuUygula(bulgular, { kapi, yaz = console.error, bilgi = conso
   const kapali = s.kapiKapali || circir.kapiKapali;
   bilgi(`\nkalite borcu (${kapi ?? 'tümü'}): izinli ${s.kalan.length} · yeni ${s.yeni.length}`
     + ` · tavan aşan ${s.asan.length} · düzelmiş ${s.duzelmis.length}`
-    + ` · cırcır ${circirNotu ?? `${circir.eklenen.length} eklenen · ${circir.yukseltilen.length} yükseltilen`}`);
+    + ` · cırcır ${circirNotu ?? `${circir.eklenen.length} eklenen · ${circir.yukseltilen.length} yükseltilen`
+      + `${circir.gecis ? ` · ${circir.gecis} şema geçişi` : ''}`}`);
   return kapali;
 }
 

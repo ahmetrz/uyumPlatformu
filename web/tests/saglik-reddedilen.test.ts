@@ -99,13 +99,13 @@ describe('Aşama sözlüğü: esleme ≠ eslesme', () => {
     expect(R.asamaYazisi('esleme')).toMatch(/alan çevirisi/);
     expect(R.asamaYazisi('eslesme')).toMatch(/CMDB/);
     // Düzeltmenin NEREDE yapılacağı da ayrıdır.
-    expect(R.ASAMA_ACIKLAMA.esleme).toMatch(/profil kural/);
-    expect(R.ASAMA_ACIKLAMA.eslesme).toMatch(/envanter/);
+    expect(R.asamaAciklamasi('esleme', null)).toMatch(/profil kural/);
+    expect(R.asamaAciklamasi('eslesme', null)).toMatch(/envanter/);
   });
 
   it('sözlükte olmayan aşama uydurulmaz, kendi adıyla yazılır', () => {
     expect(R.asamaYazisi('bilinmeyen_asama')).toBe('bilinmeyen_asama');
-    expect(R.ASAMA_ACIKLAMA.bilinmeyen_asama).toBeUndefined();
+    expect(R.asamaAciklamasi('bilinmeyen_asama', null)).toBeNull();
   });
 });
 

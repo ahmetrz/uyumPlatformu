@@ -1,17 +1,26 @@
 import type { Metadata } from 'next';
-import { girisZorunlu } from '@/lib/erisim';
+import { girisZorunlu, izinliTesisIdleri } from '@/lib/erisim';
+import { kapsamAnahtari, kapsamSozlugu } from '@/lib/dil/sozlukOku';
+import { tBas } from '@/lib/dil/terimler';
 import { Yetkisiz } from '@/components/kabuk/temel';
 import { modulOkuyabilir } from '@/app/kapsam';
 import Portfoy from './Portfoy';
 import { portfoyEkranVerisi } from './veri';
 
-export const metadata: Metadata = { title: 'Enerji portföyü' };
+/* Sekme başlığı SÖZLÜKTEN. Sabit `metadata` kiracı bağlamını
+   bekleyemezdi (R0-8); `generateMetadata` async olabildiği için burada o
+   sınır YOK — bağlam kullanıcının kapsamı. */
+export async function generateMetadata(): Promise<Metadata> {
+  const k = await girisZorunlu();
+  const sozluk = await kapsamSozlugu(kapsamAnahtari(izinliTesisIdleri(k, 'uyum')));
+  return { title: `${tBas(sozluk, 'portfoy')}` };
+}
 
-/* F2 · Enerji Portföyü — "hangi santral beni istiyor ve nasıl bir santral bu?"
+/* F2 · Portföy — "hangi tesis beni istiyor ve nasıl bir tesis bu?"
    Kapsam yalnız ÜRETİM portföyüdür: dağıtım ve perakende tüzel kişileri
    bu kurulumun kapsamı dışındadır ve veriye de girmez.
 
-   Santral kapsamı `veri.ts`te uygulanır (modül: `uyum`). */
+   Tesis kapsamı `veri.ts`te uygulanır (modül: `uyum`). */
 
 export default async function Sayfa() {
   const k = await girisZorunlu();
@@ -24,7 +33,7 @@ export default async function Sayfa() {
   return (
     <Portfoy
       satirlar={veri.satirlar}
-      toplamGucMw={veri.toplamGucMw}
+      toplamGuc={veri.toplamGuc}
       endeks={veri.endeks}
       kapsamli={veri.kapsamli}
     />

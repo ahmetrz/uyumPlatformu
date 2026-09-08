@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import { useTerim } from '@/lib/dil/SozlukSaglayici';
 import { useMemo, useRef, useState } from 'react';
 import { useUrlDurumuBos } from '@/components/kabuk/urlDurumu';
 import { Dugme, BosIlk, Alan, type Durum } from '@/components/kabuk/temel';
@@ -89,7 +90,7 @@ export default function VarlikAktarimIstemci({
   yukleyebilir: boolean;
   onizlemeButcesi: number;
   tanimliKodlar: { tur: string[]; tesis: string[]; sistem: string[]; bolge: string[] };
-  /** listeler santral kapsamıyla daraltıldı mı — boş listenin SÖZÜ değişir */
+  /** listeler tesis kapsamıyla daraltıldı mı — boş listenin SÖZÜ değişir */
   kapsamli?: boolean;
 }) {
   const { bekliyor, hata, setHata, calistir } = useEylem();
@@ -354,14 +355,16 @@ const ozet = (kodlar: string[]) =>
 function Onizleme({ a, butce, kapsamli }: {
   a: Aktarim; butce: number; kapsamli: boolean;
 }) {
+  const { t, tBas } = useTerim();
   /* Kapsam yüzünden boşalan önizleme "satır yok" DEMEZ: dosyada satır
      olabilir, sen göremiyorsundur — ikisi farklı şeydir ve ikincisi
      kullanıcıyı hata listesine bakmaya göndermez. */
   if (a.onizleme.length === 0 && kapsamli && a.gecerli > 0) {
     return (
       <BosIlk
-        cumle={'Kapsamınızdaki santrallere yazacak satır yok — dosyadaki satırlar'
-          + ' başka santrallere ait. Yetkiniz genişlemeden bu aktarım hiçbir kayıt yazmaz.'}
+        cumle={`Kapsamınızdaki ${t('tesis', 'cogul')} için yazacak satır yok — `
+          + 'dosyadaki satırlar kapsamınız dışında kalıyor. Yetkiniz genişlemeden'
+          + ' bu aktarım hiçbir kayıt yazmaz.'}
         eylem={<Link href="/yetkiler" className="ab-dugme">Yetki kapsamını gör</Link>} />
     );
   }
@@ -374,7 +377,7 @@ function Onizleme({ a, butce, kapsamli }: {
   return (
     <>
       <DuzTablo
-        basliklar={['#', 'Etiket', 'Ad', 'Tür', 'Tesis', 'Kritiklik', 'İşlem']}
+        basliklar={['#', 'Etiket', 'Ad', 'Tür', tBas('tesis'), 'Kritiklik', 'İşlem']}
         genislikler="52px 1.2fr 1.4fr 90px 120px 90px 130px"
         satirlar={a.onizleme.map((s) => [
           <Mono key="n">{s.satirNo}</Mono>,

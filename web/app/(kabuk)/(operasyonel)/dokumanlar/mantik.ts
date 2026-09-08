@@ -12,10 +12,11 @@
    2. Yürürlükte olmayan belge kontrol KARŞILAMAZ. Taslak bir politikayı
       "var" saymak denetimde en pahalı yalandır — karşılıksız kontrol
       sayımı yalnız `yururlukte` belgelere bakar.
-   3. Kapsam bağı yoksa belge KURUMSALDIR. Boş liste "hiçbir santral"
-      değil "santral ayrımı yok" demektir.
+   3. Kapsam bağı yoksa belge KURUMSALDIR. Boş liste "hiçbir tesis"
+      değil "tesis ayrımı yok" demektir.
    ═══════════════════════════════════════════════════════════════════════ */
 
+import { t, type Sozluk } from '@/lib/dil/terimler';
 import type { Durum } from '@/components/kabuk/temel';
 
 /** Belge türleri — kütüğün tamamı bu altı türden biridir. */
@@ -176,15 +177,20 @@ export type BelgeSatiri = {
   aciklama: string | null;
   /** Bağlı kontrol maddeleri (kod + başlık + regülasyon kodu). */
   maddeler: { id: string; kod: string; baslik: string; regulasyon: string }[];
-  /** Kapsamdaki santraller; boş = kurumsal (tüm portföy). */
+  /** Kapsamdaki tesisler; boş = kurumsal (tüm portföy). */
   tesisler: { id: string; kod: string; ad: string }[];
   /** Bu belgeden üretilmiş kanıt sayısı. */
   kanitSayisi: number;
 };
 
-/** Kapsam cümlesi — boş liste "hiçbiri" değil "ayrım yok" demektir. */
-export function kapsamYazisi(tesisler: BelgeSatiri['tesisler']): string {
-  if (tesisler.length === 0) return 'kurumsal · tüm portföy';
+/** Kapsam cümlesi — boş liste "hiçbiri" değil "ayrım yok" demektir.
+
+    `portföy` bir sözlük anahtarıdır (enerji "enerji portföyü", su
+    "su portföyü"); çekirdek sözcüğü yazmak onu ekrana çakardı. */
+export function kapsamYazisi(
+  tesisler: BelgeSatiri['tesisler'], sozluk: Sozluk | null = null,
+): string {
+  if (tesisler.length === 0) return `kurumsal · tüm ${t(sozluk, 'portfoy')}`;
   if (tesisler.length <= 3) return tesisler.map((t) => t.kod).join(' · ');
   return `${tesisler.slice(0, 3).map((t) => t.kod).join(' · ')} +${tesisler.length - 3}`;
 }
@@ -223,7 +229,7 @@ export function mercekUygula(
   }
 }
 
-/* Arama havuzu: kod, başlık, tür sözcüğü, sahip, bağlı madde kodu, santral
+/* Arama havuzu: kod, başlık, tür sözcüğü, sahip, bağlı madde kodu, tesis
    kodu. Katlama `tr-TR` yereliyle yapılır — ev kuralı (`lib/aramaKosulu.ts`
    § Türkçe uyarısı): UYDURMA ASCII katlaması YOK. Yani "SAHA-A" içindeki
    I küçüldüğünde 'ı' olur ve ASCII 'i' ile yazılan sorgu eşleşmez. Bu bilinen

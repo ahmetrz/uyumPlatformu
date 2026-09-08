@@ -1,4 +1,5 @@
 'use client';
+import { useSozluk, useTerim } from '@/lib/dil/SozlukSaglayici';
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { useUrlDurumu, useUrlDurumuBos } from '@/components/kabuk/urlDurumu';
@@ -12,7 +13,7 @@ import { Im } from '@/components/kabuk/temel';
 import { csvAktar, damgaliAd, exceleAktar } from '@/components/disaAktar';
 import { tarihTR, zamanTR } from '@/lib/sabitler';
 import {
-  AKTIF_ISLEM_YASAKLARI, KESIF_ADIMLARI, KESIF_GRUPLARI, KESIF_GRUP_ACIKLAMASI,
+  AKTIF_ISLEM_YASAKLARI, KESIF_ADIMLARI, KESIF_GRUPLARI, kesifGrupAciklamasi,
   KESIF_GRUP_ADI, KESIF_GRUP_SINIFI, kesifCumlesi,
   type KesifDagilimi, type KesifGrubu,
 } from '@/lib/varlik/pasifKesif';
@@ -45,24 +46,25 @@ const KOLONLAR: Kolon[] = [
   { baslik: 'Son görülme', genislik: '120px', sag: true, ikincil: true },
 ];
 
-/* ═══ OT-16b · Santral süzgeci ═══════════════════════════════════════
+/* ═══ OT-16b · Tesis süzgeci ══════════════════════════════════════════
 
-   "Yeri belirsiz" ayrı bir seçenektir ve GİZLENMEZ: santrali çözülemeyen
-   kayıt tam da incelenmesi gereken kayıttır. Bir santral seçildiğinde
-   özet de o santrale daralır — bir santrale bakan kişi kurumun toplamını
-   değil kendi sayısını görmelidir. */
+   "Yeri belirsiz" ayrı bir seçenektir ve GİZLENMEZ: tesisi çözülemeyen
+   kayıt tam da incelenmesi gereken kayıttır. Bir tesis seçildiğinde özet
+   de o tesise daralır — bir tesise bakan kişi kurumun toplamını değil
+   kendi sayısını görmelidir. */
 
-function SantralSuzgeci({ tesisler, aktif, sec, yerisiz }: {
+function TesisSuzgeci({ tesisler, aktif, sec, yerisiz }: {
   tesisler: Tesis[];
   aktif: string | null;
   sec: (id: string | null) => void;
   yerisiz: number;
 }) {
+  const { t: terim, tBas } = useTerim();
   return (
     <div className="ab-suzgec" style={{ marginBottom: 'var(--s12)' }}>
-      <div className="mercekler" role="group" aria-label="Santral">
+      <div className="mercekler" role="group" aria-label={tBas('tesis')}>
         <button type="button" aria-pressed={aktif === null} onClick={() => sec(null)}>
-          Tüm santraller
+          Tüm {terim('tesis', 'cogul')}
         </button>
         {tesisler.map((t) => (
           <button key={t.id} type="button" className="tasma"
@@ -106,6 +108,7 @@ function GrupSuzgeci({ dagilim, aktif, sec, disaAktar }: {
   sec: (g: KesifGrubu | null) => void;
   disaAktar: { excel: () => void; csv: () => void; sayi: number };
 }) {
+  const grupAciklamasi = kesifGrupAciklamasi(useSozluk());
   return (
     <div className="ab-suzgec ab-kesif-suzgec">
       <div className="mercekler" role="group" aria-label="Keşif grubu">
@@ -114,7 +117,7 @@ function GrupSuzgeci({ dagilim, aktif, sec, disaAktar }: {
             key={g}
             type="button"
             aria-pressed={aktif === g}
-            title={KESIF_GRUP_ACIKLAMASI[g]}
+            title={grupAciklamasi[g]}
             disabled={dagilim[g] === 0 && aktif !== g}
             onClick={() => sec(aktif === g ? null : g)}
           >
@@ -134,7 +137,7 @@ function GrupSuzgeci({ dagilim, aktif, sec, disaAktar }: {
         <button type="button" className="ab-dugme mini" onClick={disaAktar.csv}>CSV</button>
       </div>
       {aktif !== null && (
-        <p className="ab-dip aciklama">{KESIF_GRUP_ACIKLAMASI[aktif]}</p>
+        <p className="ab-dip aciklama">{grupAciklamasi[aktif]}</p>
       )}
     </div>
   );
@@ -194,6 +197,7 @@ export default function KesifIstemci({
   /** Sunucuda istek başına bir kez okunan an — dosya damgası buradan. */
   simdi: number;
 }) {
+  const sozluk = useSozluk();
   const [mercek, setMercek] = useUrlDurumu<Mercek>('mercek', 'hepsi');
   /* OT-16b · Grup merceği ile iş akışı merceği AYNI ANDA açılmaz: ikisi
      aynı listeye iki farklı soru sorar ve birlikte uygulanınca ekran
@@ -205,16 +209,16 @@ export default function KesifIstemci({
   const [kuyrukAcik, setKuyrukAcik] = useState(false);
   const [toplu, setToplu] = useState<string[]>([]);
 
-  /* Santral süzgeci metriklerden ÖNCE uygulanır: bir santrale bakan kişi
-     kendi santralinin sayısını görmelidir, kurumun toplamını değil.
-     `yeri_belirsiz` ayrı bir seçenektir — santralsiz kayıt gizlenmez. */
+  /* Tesis süzgeci metriklerden ÖNCE uygulanır: bir tesise bakan kişi
+     kendi tesisinin sayısını görmelidir, kurumun toplamını değil.
+     `yeri_belirsiz` ayrı bir seçenektir — tesissiz kayıt gizlenmez. */
   const kapsamli = useMemo(() => {
     if (tesisF === null) return satirlar;
     if (tesisF === 'yok') return satirlar.filter((s) => s.tesisId === null);
     return satirlar.filter((s) => s.tesisId === tesisF);
   }, [satirlar, tesisF]);
 
-  /* Metrikler mercekten BAĞIMSIZ: seçilen santral kapsamının tamamını
+  /* Metrikler mercekten BAĞIMSIZ: seçilen tesis kapsamının tamamını
      anlatır. */
   const m = useMemo(
     () => metrikleriHesapla(kapsamli, gorunmezEsikGun), [kapsamli, gorunmezEsikGun]);
@@ -231,7 +235,7 @@ export default function KesifIstemci({
   /* Dosya EKRANDA GÖRÜNEN kümeyi taşır: dışa aktarılan liste ile bakılan
      liste ayrışırsa dosyayı açan kişi başka bir gerçeği okur. */
   const disaSayfa = () => ({
-    ad: 'Keşif', satirlar: kesifDisaAktarimi(suzulmus, gorunmezEsikGun),
+    ad: 'Keşif', satirlar: kesifDisaAktarimi(suzulmus, gorunmezEsikGun, sozluk),
   });
   const disaAd = (uzanti: string) => damgaliAd('kesif', simdi, uzanti);
 
@@ -317,10 +321,10 @@ export default function KesifIstemci({
           />
 
           {/* ── SÜZGEÇLER · üç şerit, arka arkaya ──────────────────────
-              Santral → grup → iş akışı merceği. Üçü de aynı gramerde
+              Tesis → grup → iş akışı merceği. Üçü de aynı gramerde
               (`.ab-suzgec`) ve toplamda ~150px; eskiden yalnız grup
               özeti 560px tutuyordu (UX-0004). */}
-          <SantralSuzgeci
+          <TesisSuzgeci
             tesisler={tesisler} aktif={tesisF} sec={setTesisF}
             yerisiz={satirlar.filter((x) => x.tesisId === null).length}
           />

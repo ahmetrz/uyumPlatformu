@@ -1,4 +1,5 @@
 import type { Durum } from '@/components/kabuk/temel';
+import { t, type Sozluk } from '@/lib/dil/terimler';
 
 /* O14 · "kurtarabilir miyiz?" sorusunun TEK türetme yeri.
    Sunucu (page.tsx) ve istemci (YedeklemeIstemci.tsx) aynı kuralları
@@ -6,7 +7,7 @@ import type { Durum } from '@/components/kabuk/temel';
    bloğu birbirinden ayrışamaz.
 
    ─ İKİ KATMAN, TEK DOĞRULUK KAYNAĞI ────────────────────────────────────
-   Ekran ARTIK KENDİ YEDEK YARGISINI KURMUYOR. Santral katmanı (politika →
+   Ekran ARTIK KENDİ YEDEK YARGISINI KURMUYOR. Tesis katmanı (politika →
    koşu → geri yükleme testi) ile varlık katmanı (kritik varlıkların
    konfigürasyon yedeği) `lib/entegrasyon/konfigYedek.ts →
    tesisYedekGorunumu()` tarafından üretilir; buradaki tipler onun
@@ -47,8 +48,8 @@ export type Politika = {
   rpoSaat: number | null; rtoSaat: number | null; haricTutulan: string | null;
 };
 
-/** `SantralKatmani` ikizi — politika/koşu/geri yükleme testi zinciri. */
-export type SantralKatmani = {
+/** `TesisKatmani` ikizi — politika/koşu/geri yükleme testi zinciri. */
+export type TesisKatmani = {
   /** Politika bağı verilmediyse false: ölçülmedi, "boş" ya da "başarısız" DEĞİL. */
   bagli: boolean;
   gerekce: string;
@@ -127,7 +128,7 @@ export type DriftKatmani = {
   oran: number | null;
 };
 
-export type Santral = {
+export type Tesis = {
   id: string; kod: string; ad: string; tip: string | null;
   /* Envanter BEYANI katmanı — kapsama barı. Ölçüm değil, insan cevabı. */
   toplam: number; yedekli: number; yedeksiz: number; bilinmeyen: number;
@@ -136,12 +137,12 @@ export type Santral = {
   kosuOzeti: KosuOzeti;
   /** Restore testi kaydı bu koşuya asılır; koşu yoksa test de kaydedilemez. */
   sonKosuId: string | null;
-  santralKatmani: SantralKatmani;
+  tesisKatmani: TesisKatmani;
   varlikKatmani: VarlikKatmani;
   /** İki katmanın birbirini yalanladığı yerler — örtülmez, listelenir. */
   celiskiler: string[];
   bulgular: YedekBulgusu[];
-  /** Kullanıcının bu santralde görev açma (uyum/yazma) yetkisi var mı. */
+  /** Kullanıcının bu tesiste görev açma (uyum/yazma) yetkisi var mı. */
   planlanabilir: boolean;
   /** Yedekleme kaydı yazma (envanter/yazma) yetkisi. */
   yazabilir: boolean;
@@ -159,21 +160,21 @@ export function gunOnce(iso: string | null | undefined, simdi = Date.now()): num
 }
 
 /** Son restore testinin üzerinden geçen gün. null = HİÇ test edilmemiş. */
-export function testGunu(s: Santral): number | null {
-  return gunOnce(s.santralKatmani.sonRestoreTesti?.zaman);
+export function testGunu(s: Tesis): number | null {
+  return gunOnce(s.tesisKatmani.sonRestoreTesti?.zaman);
 }
 
-export const sonTest = (s: Santral): SonTest | null => s.santralKatmani.sonRestoreTesti;
-export const sonKosu = (s: Santral): SonKosu | null => s.santralKatmani.sonKosu;
+export const sonTest = (s: Tesis): SonTest | null => s.tesisKatmani.sonRestoreTesti;
+export const sonKosu = (s: Tesis): SonKosu | null => s.tesisKatmani.sonKosu;
 
 /** Kapsama = yedekDurumu 'var' olan varlık / toplam varlık (ENVANTER BEYANI).
     'bilinmiyor' olanlar PAYDADA kalır ama kapsamaya sayılmaz — bu yüzden
     yüzdeyi gösteren her yerde bilinmeyen payı da gösterilir (06 §A3). */
-export function kapsama(s: Santral): number | null {
+export function kapsama(s: Tesis): number | null {
   return s.toplam > 0 ? (s.yedekli / s.toplam) * 100 : null;
 }
 
-export function bilinmeyenPayi(s: Santral): number | null {
+export function bilinmeyenPayi(s: Tesis): number | null {
   return s.toplam > 0 ? (s.bilinmeyen / s.toplam) * 100 : null;
 }
 
@@ -183,7 +184,7 @@ export function haricListesi(p: Politika | null): string[] {
   return p.haricTutulan.split(';').map((x) => x.trim()).filter(Boolean);
 }
 
-export function hazirlik(s: Santral): Durum {
+export function hazirlik(s: Tesis): Durum {
   if (!s.politika) return 'unk';                       // ölçüm yok ≠ sıfır
   // Kanıtlı açık her şeyden önce gelir: kritik varlığın kullanılabilir
   // yedeği YOK. Bu bir "ölçülmedi" değil, bir "yok".
@@ -212,8 +213,8 @@ export function barDurumu(oran: number | null): Durum {
   return 'bd';
 }
 
-/** Sağlıklı kuyruğa yalnız tam hazır santraller toplanır (06 §A3). */
-export function toplanabilir(s: Santral): boolean {
+/** Sağlıklı kuyruğa yalnız tam hazır tesisler toplanır (06 §A3). */
+export function toplanabilir(s: Tesis): boolean {
   return hazirlik(s) === 'ok';
 }
 
@@ -221,7 +222,7 @@ const RUTBE: Record<Durum, number> = { bd: 0, md: 1, unk: 2, pl: 3, ok: 4, tamam
 
 /** Sıralama hazırlığa göre, en kötü üstte: rütbe → hiç test edilmemiş →
     testi en eski → kapsaması en düşük → ad. */
-export function karsilastir(a: Santral, b: Santral): number {
+export function karsilastir(a: Tesis, b: Tesis): number {
   const fark = RUTBE[hazirlik(a)] - RUTBE[hazirlik(b)];
   if (fark !== 0) return fark;
   const ta = testGunu(a);
@@ -236,7 +237,7 @@ export function karsilastir(a: Santral, b: Santral): number {
 
 /** "SON RESTORE TESTİ" hücresi — hiç test edilmemişse `0 gün` DEĞİL
     `test yok` yazar; bu bir sıfır değil, kanıt yokluğudur. */
-export function testHucresi(s: Santral): { yazi: string; renk: Durum | null } {
+export function testHucresi(s: Tesis): { yazi: string; renk: Durum | null } {
   if (!s.politika) return { yazi: 'politika yok', renk: 'unk' };
   const gun = testGunu(s);
   if (gun === null) return { yazi: 'test yok', renk: 'bd' };
@@ -244,6 +245,12 @@ export function testHucresi(s: Santral): { yazi: string; renk: Durum | null } {
   if (gun > TEST_ESIGI) return { yazi: `${gun} gün önce`, renk: 'bd' };
   return { yazi: `${gun} gün önce`, renk: null };
 }
+
+/* ── SÖZLÜK SAF İŞLEVE PARAMETREYLE GİRER ─────────────────────────────
+   Bu modül React bilmez; `useTerim()` çağıramaz. Sektör sözcüğü üreten
+   iki işlev (`kritikHucresi` · `kirilimMetni`) sözlüğü SON PARAMETRE
+   olarak alır ve çağıran ekran onu `useSozluk()`ten geçirir. Öteki
+   işlevler sözcük değil DEĞER üretir; sözlük onlara verilmez. */
 
 /**
  * "KRİTİK VARLIK" hücresi — kanıtlı açık ile ölçüm boşluğu AYRI YAZILIR.
@@ -253,13 +260,14 @@ export function testHucresi(s: Santral): { yazi: string; renk: Durum | null } {
  * kapatılacak bir açık, öteki bağlanacak bir kaynak. Tek sayıya
  * indirgemek ikisini de yanlış gösterir.
  */
-export function kritikHucresi(s: Santral): {
+export function kritikHucresi(s: Tesis, sozluk: Sozluk | null): {
   yazi: string; renk: Durum | null; ipucu: string;
 } {
   const v = s.varlikKatmani;
   if (v.toplamKritik === 0) {
     return { yazi: 'kritik varlık yok', renk: null,
-      ipucu: 'Bu santralde kritik/yüksek kritiklikte kayıtlı varlık yok.' };
+      ipucu: `Bu ${t(sozluk, 'tesis', 'bulunma')} kritik/yüksek kritiklikte `
+        + 'kayıtlı varlık yok.' };
   }
   if (v.yedeksiz.length > 0) {
     return {
@@ -284,37 +292,37 @@ export function kritikHucresi(s: Santral): {
     ipucu: 'Kritik ve yüksek kritiklikteki varlıkların tamamının kullanılabilir yedeği var.' };
 }
 
-/** Filo geneli — metrik şeridi. Kapsama tek tek santrallerin ortalaması
+/** Filo geneli — metrik şeridi. Kapsama tek tek tesislerin ortalaması
     değil, varlık sayısına göre ağırlıklı gerçek orandır. */
-export function filoOzeti(santraller: Santral[]) {
-  const toplam = santraller.reduce((a, s) => a + s.toplam, 0);
-  const yedekli = santraller.reduce((a, s) => a + s.yedekli, 0);
-  const bilinmeyen = santraller.reduce((a, s) => a + s.bilinmeyen, 0);
-  const testYok = santraller.filter((s) => s.politika && testGunu(s) === null).length;
-  const bayatTest = santraller.filter((s) => {
+export function filoOzeti(tesisler: Tesis[]) {
+  const toplam = tesisler.reduce((a, s) => a + s.toplam, 0);
+  const yedekli = tesisler.reduce((a, s) => a + s.yedekli, 0);
+  const bilinmeyen = tesisler.reduce((a, s) => a + s.bilinmeyen, 0);
+  const testYok = tesisler.filter((s) => s.politika && testGunu(s) === null).length;
+  const bayatTest = tesisler.filter((s) => {
     const g = testGunu(s);
     return g !== null && g > TEST_ESIGI;
   }).length;
-  const haricSistem = santraller.reduce((a, s) => a + haricListesi(s.politika).length, 0);
-  const haricSantral = santraller.filter((s) => haricListesi(s.politika).length > 0).length;
-  const politikasiz = santraller.filter((s) => !s.politika).length;
+  const haricSistem = tesisler.reduce((a, s) => a + haricListesi(s.politika).length, 0);
+  const haricTesis = tesisler.filter((s) => haricListesi(s.politika).length > 0).length;
+  const politikasiz = tesisler.filter((s) => !s.politika).length;
   /* İki sayaç AYRI: kanıtlı açık (yedeksiz) ile ölçüm boşluğu (bilinmeyen)
      toplanmaz. Toplasaydık "12 kritik varlıkta sorun var" derdik ve
      kaçının kapatılacak, kaçının ölçülecek olduğu kaybolurdu. */
-  const kritikYedeksiz = santraller.reduce((a, s) => a + s.varlikKatmani.yedeksiz.length, 0);
-  const kritikBilinmeyen = santraller.reduce((a, s) => a + s.varlikKatmani.bilinmeyen.length, 0);
-  const kritikToplam = santraller.reduce((a, s) => a + s.varlikKatmani.toplamKritik, 0);
-  const acikBulgu = santraller.reduce((a, s) => a + s.bulgular.length, 0);
-  const celiski = santraller.reduce((a, s) => a + s.celiskiler.length, 0);
+  const kritikYedeksiz = tesisler.reduce((a, s) => a + s.varlikKatmani.yedeksiz.length, 0);
+  const kritikBilinmeyen = tesisler.reduce((a, s) => a + s.varlikKatmani.bilinmeyen.length, 0);
+  const kritikToplam = tesisler.reduce((a, s) => a + s.varlikKatmani.toplamKritik, 0);
+  const acikBulgu = tesisler.reduce((a, s) => a + s.bulgular.length, 0);
+  const celiski = tesisler.reduce((a, s) => a + s.celiskiler.length, 0);
   /** Konfigürasyon yedeği kaynağı hiç bağlı değilse varlık katmanı ÖLÇÜLMEDİ. */
-  const varlikKaynagiBagli = santraller.some((s) => s.varlikKatmani.kaynakBagli);
+  const varlikKaynagiBagli = tesisler.some((s) => s.varlikKatmani.kaynakBagli);
   return {
-    toplam, yedekli, bilinmeyen, testYok, bayatTest, haricSistem, haricSantral, politikasiz,
+    toplam, yedekli, bilinmeyen, testYok, bayatTest, haricSistem, haricTesis, politikasiz,
     kritikYedeksiz, kritikBilinmeyen, kritikToplam, acikBulgu, celiski, varlikKaynagiBagli,
     kapsama: toplam > 0 ? (yedekli / toplam) * 100 : null,
     bilinmeyenPayi: toplam > 0 ? (bilinmeyen / toplam) * 100 : null,
-    hazirDegil: santraller.filter((s) => hazirlik(s) === 'bd').length,
-    kismi: santraller.filter((s) => hazirlik(s) === 'md').length,
+    hazirDegil: tesisler.filter((s) => hazirlik(s) === 'bd').length,
+    kismi: tesisler.filter((s) => hazirlik(s) === 'md').length,
   };
 }
 
@@ -324,8 +332,8 @@ export function yuzde(oran: number | null): string {
 
 /** Kapsama barının popover metni — tür bazında yedeklenmiş / toplam.
     Yalnız yardımcı metadata: aynı boşluk çekmecede varlık adıyla listelenir. */
-export function kirilimMetni(s: Santral): string {
-  if (s.kirilim.length === 0) return 'Bu santralde kayıtlı varlık yok.';
+export function kirilimMetni(s: Tesis, sozluk: Sozluk | null): string {
+  if (s.kirilim.length === 0) return `Bu ${t(sozluk, 'tesis', 'bulunma')} kayıtlı varlık yok.`;
   const eksik = s.kirilim.filter((g) => g.yedekli < g.toplam);
   if (eksik.length === 0) return `${s.kirilim.length} varlık türünün tamamı yedekleme kapsamında.`;
   const parcalar = eksik.slice(0, 5).map((g) =>

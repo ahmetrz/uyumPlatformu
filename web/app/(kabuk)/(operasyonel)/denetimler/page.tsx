@@ -12,7 +12,7 @@ export const metadata: Metadata = { title: 'Denetim programı' };
    UstCubuk ya da .icerik sarmalayıcısı YOK.
 
    Kapsam VERİ seviyesinde daraltılır: kullanıcının denetim okuma yetkisi
-   tesise kısıtlıysa yalnız o santralleri kapsayan denetimler görünür.
+   tesise kısıtlıysa yalnız o tesisleri kapsayan denetimler görünür.
    Kapsamı hiç girilmemiş denetim portföy geneli sayılır ve gizlenmez —
    aksi hâlde kapsam eksikliği kaydı görünmez kılar. */
 
@@ -22,7 +22,7 @@ export default async function Sayfa() {
 
   const izinli = izinliTesisIdleri(kullanici, 'denetim');
   /* KAPSAMSIZ sorulur ve bilinçlidir: `Denetim` şemada `tesisId` TAŞIMAZ,
-     `denetimKaydet` kapısı da kapsamsızdır. Ekranı gevşetmek santral
+     `denetimKaydet` kapısı da kapsamsızdır. Ekranı gevşetmek tesis
      yöneticisine kaydedilmeyecek düğme göstermek olurdu. */
   const yazabilir = izinVar(kullanici, 'denetim', 'yazma');
 

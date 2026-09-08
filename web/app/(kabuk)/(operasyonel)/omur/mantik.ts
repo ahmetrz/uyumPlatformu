@@ -206,11 +206,13 @@ export function aciliyetSirasi(a: Omur, b: Omur): number {
 
 /* ── gruplama ─────────────────────────────────────────────────────────── */
 
-export type GrupAnahtari = 'aciliyet' | 'santral' | 'tedarikci' | 'tur';
+export type GrupAnahtari = 'aciliyet' | 'tesis' | 'tedarikci' | 'tur';
 
-export const GRUPLAR: { id: GrupAnahtari; ad: string }[] = [
+/* Gruplama adı terim taşır; kütük işlevdir ve ekran kendi sözlüğüyle
+   çözer (bkz. `lib/yonetim/moduller.ts` aynı desen). */
+export const gruplar = (tesis: string): { id: GrupAnahtari; ad: string }[] => [
   { id: 'aciliyet', ad: 'Aciliyet' },
-  { id: 'santral', ad: 'Santral' },
+  { id: 'tesis', ad: tesis },
   { id: 'tedarikci', ad: 'Tedarikçi' },
   { id: 'tur', ad: 'Tür' },
 ];
@@ -228,7 +230,7 @@ export type Grup = {
 
 export function grupla(satirlar: Omur[], anahtar: GrupAnahtari, simdi: number): Grup[] {
   if (anahtar === 'aciliyet') return [];
-  const ad = (o: Omur) => (anahtar === 'santral' ? o.v.tesisAd
+  const ad = (o: Omur) => (anahtar === 'tesis' ? o.v.tesisAd
     : anahtar === 'tedarikci' ? o.v.tedarikciAd : o.v.turAd) ?? '—';
   const kova = new Map<string, Omur[]>();
   for (const o of satirlar) {
@@ -291,7 +293,7 @@ export function ufukKonumu(karar: number | null, simdi: number, uzunluk: number)
    okuma sırasını bozmadan ölçeği görünür kılar.
 
    Ufuk 12 aydan kısa olamadığı için (`ufukUzunlugu` tabanı) <1 YIL bandı
-   daima çizilir; >1 YIL bandı ufuk 12 ayı geçtiğinde belirir. */
+   daima çizilir; >1 YIL bandı ufuk bir yılı BİR AY aşınca belirir. */
 export const BANT_90 = 90 * GUN;
 export const BANT_1Y = 365 * GUN;
 
@@ -314,13 +316,22 @@ export function ufukBantlari(uzunluk: number): Bant[] {
   if (uzunluk > BANT_90) {
     bantlar.push({ ad: '<1 yıl', bas: o(BANT_90), son: o(BANT_1Y), sinif: 'bant-1y' });
   }
-  if (uzunluk > BANT_1Y) {
+  /* Eşik `> BANT_1Y` DEĞİL, `>= BANT_1Y + AY`. Ufuk TAM AY adımlarıyla
+     kuantalanır ve tabanı 12 aydır: 12 × 30,44 = 365,28 gün, yani 365
+     günlük `BANT_1Y`i 0,28 gün AŞAR. Ham karşılaştırma bu yüzden 12 aylık
+     ufukta da bandı çiziyordu — şeridin %0,08'i, kendi adını taşıyamayan
+     bir kıl payı. ÖLÇÜLDÜ: bant her ende 1px çıkıyor, etiketi şeridin
+     27px dışına taşıyor ve sayfayı 1440'ta 3px, 768'de 3px, 375'te 4px
+     kaydırıyordu. 12 ay tabanında bir yılın ötesinde gösterilecek bir şey
+     de yoktur (`ufukUzunlugu` tabanı 12'yse en uzak karar ≤ 11 ay).
+     Bir ölçek işareti, işaret ettiği yer yoksa ölçek değil gürültüdür. */
+  if (uzunluk >= BANT_1Y + AY) {
     bantlar.push({ ad: '>1 yıl', bas: o(BANT_1Y), son: 1, sinif: 'bant-uzak' });
   }
   return bantlar;
 }
 
-/** Kart başlığı: santral öneki kapsam satırında zaten var (`MERKEZ-SRV-14` → `SRV-14`). */
+/** Kart başlığı: tesis öneki kapsam satırında zaten var (`MERKEZ-SRV-14` → `SRV-14`). */
 export function kisaEtiket(etiket: string): string {
   const parcalar = etiket.split('-');
   return parcalar.length > 2 ? parcalar.slice(-2).join('-') : etiket;

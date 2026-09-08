@@ -18,8 +18,8 @@ import type { Bag, Hesap } from './mantik';
        yetki atamalarını görebiliyordu. Kapı artık kardeş ekranlarla aynı:
        `izinVar(k, 'envanter', 'okuma')` → `<Yetkisiz />` (bkz.
        /projeler, /denetimler, /varlik-aktarim).
-   (2) SANTRAL KAPSAMI HİÇ UYGULANMIYORDU. `KimlikHesabi.tesisId` şemada
-       var; A santraline kısıtlı kullanıcı B'nin hesap adlarını, santral
+   (2) TESİS KAPSAMI HİÇ UYGULANMIYORDU. `KimlikHesabi.tesisId` şemada
+       var; A tesisine kısıtlı kullanıcı B'nin hesap adlarını, tesis
        kodunu/adını ve B'deki varlıklara verilmiş yetkileri görüyordu.
 
    MODÜL SEÇİMİ: `envanter`. Gerekçe kaydın konusudur: hesap yetkileri
@@ -33,10 +33,10 @@ import type { Bag, Hesap } from './mantik';
    daraltılır, kendi modülleriyle değil. Nedeni "bilinmeyen ≠ sıfır"dır:
    riski hiç okuyamayan bir kullanıcı için `izinliTesisIdleri(k,'risk')`
    boş küme döner ve çekmece "bağlı kayıt yok" diye YALAN söylerdi. Kapsam
-   bir SANTRAL sınırıdır; modül izni ayrı bir eksendir ve boş liste
+   bir TESİS sınırıdır; modül izni ayrı bir eksendir ve boş liste
    göstererek anlatılamaz.
 
-   ── SANTRALİ BİLİNMEYEN KAYIT ──────────────────────────────────────────
+   ── TESİSİ BİLİNMEYEN KAYIT ──────────────────────────────────────────
    `app/kapsam.ts → kapsamda` (= `lib/api/yetki.ts → tesisKapsamda`):
    `tesisId` null olan hesap (hangi sahaya ait olduğu bilinmeyen dizin
    hesabı) YALNIZ kapsamsız kullanıcıya görünür. */
@@ -47,7 +47,7 @@ export type EkranVerisi = {
   hesaplar: Hesap[];
   tesisler: { id: string; ad: string }[];
   kaynaklar: string[];
-  /** true = liste bir santral kapsamıyla daraltıldı */
+  /** true = liste bir tesis kapsamıyla daraltıldı */
   kapsamli: boolean;
 };
 
@@ -63,7 +63,7 @@ export async function kimlikEkranVerisi(k: AktifKullanici): Promise<EkranVerisi>
         kullanici: true,
         tesis: true,
         atamalar: {
-          /* Atama santrale VARLIK üzerinden bağlıdır. Kapsam içi bir hesaba
+          /* Atama tesise VARLIK üzerinden bağlıdır. Kapsam içi bir hesaba
              kapsam dışı bir varlık için yetki verilmişse o varlığın etiketi
              ve adı ekrana çıkmaz — ama atamanın KENDİSİ görünür kalır,
              çünkü "bu hesabın göremediğim bir yerde yetkisi var" bilgisi
@@ -107,7 +107,7 @@ export async function kimlikEkranVerisi(k: AktifKullanici): Promise<EkranVerisi>
 
   /* Bağlı kayıt iki yoldan kurulur ve hangisi olduğu satırda YAZILIR:
      (a) atamanın varlığı üzerinden — kesin bağ,
-     (b) hesabın santralindeki açık risk/bulgu — bağlam bağı.
+     (b) hesabın tesisindeki açık risk/bulgu — bağlam bağı.
      Uydurma ilişki kurulmaz; ikisi de yoksa çekmece bunu söyler. */
   const varlikRiski = new Map<string, typeof riskler>();
   for (const r of riskler) {
@@ -128,7 +128,7 @@ export async function kimlikEkranVerisi(k: AktifKullanici): Promise<EkranVerisi>
         yol: `/riskler/${r.id}`, suren: r.durum === 'islemde',
       }));
 
-    const santralRiski: Bag[] = h.tesisId
+    const tesisRiski: Bag[] = h.tesisId
       ? riskler
         .filter((r) => r.tesisId === h.tesisId && !kesin.some((x) => x.id === `r-${r.id}`))
         .slice(0, 2)
@@ -138,7 +138,7 @@ export async function kimlikEkranVerisi(k: AktifKullanici): Promise<EkranVerisi>
         }))
       : [];
 
-    const santralBulgusu: Bag[] = h.tesisId
+    const tesisBulgusu: Bag[] = h.tesisId
       ? bulgular
         .filter((b) => b.maddeDurumu.tesisId === h.tesisId)
         .slice(0, 2)
@@ -168,7 +168,7 @@ export async function kimlikEkranVerisi(k: AktifKullanici): Promise<EkranVerisi>
       mfaVar: h.mfaVar,
       sonaErme: h.sonaErme?.toISOString() ?? null,
       parolaPolitikasi: h.parolaPolitikasi,
-      /* Yazma yetkisi SATIR SATIR hesaplanır: hesabın santral kapsamı
+      /* Yazma yetkisi SATIR SATIR hesaplanır: hesabın tesis kapsamı
          dışında kalan kullanıcı formu görmez. Sunucu ayrıca reddeder. */
       duzenlenebilir: yazabilir && kapsamda(izinli, h.tesisId),
       yetkiler: h.atamalar.map((a) => {
@@ -192,12 +192,12 @@ export async function kimlikEkranVerisi(k: AktifKullanici): Promise<EkranVerisi>
             : null))(sonIncelemeler.get(a.id)),
         };
       }),
-      bagli: [...kesin, ...santralRiski, ...santralBulgusu].slice(0, BAG_BUTCESI),
+      bagli: [...kesin, ...tesisRiski, ...tesisBulgusu].slice(0, BAG_BUTCESI),
     };
   });
 
-  /* Santral süzgeci açılırı GÖRÜNEN hesaplardan türetilir — kapsam dışı bir
-     santral süzgeç seçeneği olarak da anılmaz. */
+  /* Tesis süzgeci açılırı GÖRÜNEN hesaplardan türetilir — kapsam dışı bir
+     tesis süzgeç seçeneği olarak da anılmaz. */
   const tesisler = [...new Map(
     hesaplar
       .filter((h) => h.tesis)

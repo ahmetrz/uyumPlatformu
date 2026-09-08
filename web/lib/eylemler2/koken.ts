@@ -12,9 +12,9 @@
    Kalıp: yetkiZorunlu(KAPSAM_SONRA) → zod → gerçek kullanıcı → kayıt +
    kapsam (kokenGetirVeKapsamDenetle) → db → iz → revalidatePath.
 
-   Ön kapı KAPSAM_SONRA ile açılır çünkü hangi santralin sorulacağı ancak
+   Ön kapı KAPSAM_SONRA ile açılır çünkü hangi tesisin sorulacağı ancak
    köken kaydı okunduktan sonra bilinir; kapsamsız çağrılsaydı tesise
-   kısıtlı rol KENDİ santralinin kökenini bile doğrulayamazdı. Gerçek
+   kısıtlı rol KENDİ tesisinin kökenini bile doğrulayamazdı. Gerçek
    denetim `kokenGetirVeKapsamDenetle` içindedir ve kapsamsız kaydı `{}`
    ile sorar — yani kısıtlı rol kurumsal kayda uzanamaz. */
 
@@ -26,6 +26,7 @@ import { kokenDogrula } from '../entegrasyon/koken';
 import { kokenTesisi } from '../entegrasyon/kokenRapor';
 import type { AktifKullanici } from '../auth';
 import { type Sonuc, tamam, hata, iz, bosluksuz } from './ortak';
+import { eylemTerimi } from './kapsamMesaji';
 
 const SONUCLAR = ['dogrulandi', 'reddedildi'] as const;
 
@@ -70,7 +71,7 @@ async function gercekKullanici(k: AktifKullanici): Promise<{ id: string; adSoyad
   return { id: kisi.id, adSoyad: kisi.adSoyad };
 }
 
-/** Köken satırını getirir ve santral kapsamını denetler. */
+/** Köken satırını getirir ve tesis kapsamını denetler. */
 async function kokenGetirVeKapsamDenetle(
   k: AktifKullanici, kokenId: string,
 ): Promise<KokenSatiri> {
@@ -81,15 +82,17 @@ async function kokenGetirVeKapsamDenetle(
   if (!koken) throw new Error('Köken kaydı bulunamadı');
 
   const { bilinen, tesisId } = await kokenTesisi(koken.varlikTipi, koken.varlikId);
+  const tesis = await eylemTerimi(k, 'envanter', tesisId);
   // Kapsamı çözülemeyen kayıt "kapsam dışı" değil, "kapsamı bilinmiyor"dur:
-  // bilinmeyeni serbest saymak, santral kapsamını sessizce delmek olurdu.
+  // bilinmeyeni serbest saymak, kapsamı sessizce delmek olurdu.
   if (!bilinen)
-    throw new Error(
-      `${koken.varlikTipi} kaydının santrali çözülemedi — kapsam denetlenmeden köken doğrulanamaz`);
+    throw new Error(`${koken.varlikTipi} kaydının ${tesis.belirtme} çözülemedi`
+      + ' — kapsam denetlenmeden köken doğrulanamaz');
   if (!izinVar(k, 'envanter', 'onay', tesisId ? { tesisId } : {}))
     throw new Error(tesisId
-      ? 'Bu tesis kapsamında köken doğrulama yetkiniz yok'
-      : 'Tesise bağlı olmayan kaydın kökenini doğrulamak kapsamsız envanter onay yetkisi ister');
+      ? `Bu ${tesis.tekil} kapsamında köken doğrulama yetkiniz yok`
+      : `${tesis.yonelme} bağlı olmayan kaydın kökenini doğrulamak `
+        + 'kapsamsız envanter onay yetkisi ister');
   return koken;
 }
 

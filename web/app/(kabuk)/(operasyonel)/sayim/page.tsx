@@ -12,8 +12,8 @@ export const metadata: Metadata = { title: 'Envanter sayımı' };
    Kabuk (ray + çekmece kolonu) (operasyonel)/layout.tsx'ten gelir.
 
    ── KAPSAM ────────────────────────────────────────────────────────────
-   Sayım bir santralin işidir ve kütük yalnız kullanıcının kapsamındaki
-   santrallerin sayımlarını gösterir. Sunucu eylemi kapıyı AYRICA
+   Sayım bir tesisin işidir ve kütük yalnız kullanıcının kapsamındaki
+   tesislerin sayımlarını gösterir. Sunucu eylemi kapıyı AYRICA
    uygular: ekranın filtrelemesi bir kolaylıktır, kapı değildir. */
 
 export default async function Sayfa() {

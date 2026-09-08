@@ -17,8 +17,8 @@ export async function cekirdekKur(canvas: HTMLCanvasElement): Promise<Sahne> {
   try {
     // Keep the static first frame until all scenic textures are decoded.
     const loader = new THREE.TextureLoader();
-    const loaded = await Promise.allSettled(['santral', 'yaklasma', 'kontrol-odasi'].map(async name => {
-      const t = await loader.loadAsync(`${TEMEL}/gorseller/jeotermal/${name}.webp`);
+    const loaded = await Promise.allSettled(['dis', 'yaklasma', 'kontrol-odasi'].map(async name => {
+      const t = await loader.loadAsync(`${TEMEL}/gorseller/giris/${name}.webp`);
       t.colorSpace = THREE.SRGBColorSpace; textures.push(t); return t;
     }));
     if (loaded.some(r => r.status === 'rejected')) throw new Error('Sahne görselleri yüklenemedi');

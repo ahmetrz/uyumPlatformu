@@ -28,7 +28,11 @@ const BELGE_DIZINI = path.join(KOK, '..', 'docs');
    Bunlar bir kullanıcı senaryosunu değil, kütüğün/kodun kendi
    tutarlılığını ölçer; bir senaryo kimliği taşımaları anlamsız olurdu. */
 export const KUTUKSUZ_DOSYALAR = {
+  'olcum-tabani.test.ts': 'Ölçüm kapsamı tabanı — sıfır ölçümle geçen kapı sınıfı',
+  'tek-nusha.test.ts': 'Tek nüsha değişmezi — ortak davranışın ikinci tanımı ve ikiz liste dosyası',
+  'kesif-karari.test.ts': 'Test keşfi sıfır dönerse ölçüm değil kırık sayılır',
   'belge-sayimlari.test.ts': 'Belgelerdeki sayıların koda karşı doğrulaması',
+  'tasarim-belgesi.test.ts': 'DESIGN.md jeton değerlerinin kabuk.css\'e karşı doğrulaması',
   'senaryo-kutugu.test.ts': 'Kütüğün kendi nöbetçisi',
   'ters-kapsam.test.ts': 'Ters kapsamanın nöbetçisi — davranış envanterini kütüğe karşı sayar',
   'eylem-dili.test.ts': 'Bozuk durum bloklarının eylem/beklenen-durum nöbetçisi',
@@ -52,21 +56,45 @@ export const KUTUKSUZ_DOSYALAR = {
   'kabuk-inceleme.test.ts': 'Kabuk gramerinin statik incelemesi',
   'ekran-mantik-72.test.ts': 'Ekran mantığı toplu regresyonu',
   'uc-deger-kurali.test.ts': 'Üç değerli mantığın sözlüğü',
+  'omur-ufuk.test.ts': 'Ömür şeridinin aciliyet bantları — ölçek işaretinin saf mantığı',
+  'kapi-farki.test.ts': 'Kapı farkı ölçüsünün saf kuralları — hangi betik CI\'da koşuyor',
+  'kirpan-ata.test.ts': 'Düzen kapısının kırpan-ata yürüyüşü — kaydırılabilen içerik kayıp sayılmaz',
+  'inceleme-30.test.ts': 'Bir inceleme turunun beş bulgusunun düzeltme kanıtı — birlikte okunmaları gerekir',
 };
 
+/* Vitest'in globuyla AYNI küme: `tests/**\/*.test.ts` — yani ALT
+   DİZİNLER DE. Düz `readdirSync` yalnız kökü görüyordu; `tests/bekci/`
+   gibi bir alt dizin açıldığında oradaki testler kütük ölçümünün dışında
+   kalır, senaryoları GAP görünür ve araç kendi körlüğünü kusur diye
+   raporlardı. Ölçüm aracının kapsamı, ölçtüğü kümenin kapsamıyla aynı
+   olmak zorundadır. Dosya adı `tests/` köküne GÖRELİ tutulur ki iki
+   dizindeki aynı ad birbirini ezmesin. */
 function testDosyalari() {
-  return readdirSync(TEST_DIZINI)
-    .filter((d) => d.endsWith('.test.ts'))
-    .map((d) => ({ ad: d, metin: readFileSync(path.join(TEST_DIZINI, d), 'utf8') }));
+  const cikti = [];
+  const gez = (d) => {
+    for (const ad of readdirSync(d, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
+      const tam = path.join(d, ad.name);
+      if (ad.isDirectory()) gez(tam);
+      else if (ad.name.endsWith('.test.ts')) {
+        cikti.push({ ad: path.relative(TEST_DIZINI, tam), metin: readFileSync(tam, 'utf8') });
+      }
+    }
+  };
+  gez(TEST_DIZINI);
+  return cikti;
 }
 
 /** Bir dosyadaki `[KIMLIK]` işaretlerini ve taşıdıkları test başlığını çıkarır. */
 function isaretler(metin) {
   const bulunan = [];
-  const kalip = /\b(it|test)\(\s*(['"`])((?:\\.|(?!\2)[\s\S])*?)\2/g;
+  /* `it(`, `test(`, `it.skip(`, `it.only(`, `it.each(...)(` … hepsi.
+     Önce yalnız `it(` aranıyordu; `it.each(TABLO)('… [KIMLIK]')` biçimindeki
+     başlıklar TARANMIYOR ve senaryoları GAP görünüyordu. Ölçüm aracının
+     göremediği bir test, kütükte olmayan bir test gibi davranır. */
+  const kalip = /\b(?:it|test)(?:\.\w+)*\s*(?:\([\s\S]*?\)\s*)?\(\s*(['"`])((?:\\.|(?!\1)[\s\S])*?)\1/g;
   let m;
   while ((m = kalip.exec(metin)) !== null) {
-    const baslik = m[3];
+    const baslik = m[2];
     for (const k of baslik.matchAll(/\[([A-Z]{3}-[A-Z0-9]{2,10}-\d{3})\]/g)) {
       bulunan.push({ id: k[1], baslik: baslik.replace(/\s*\[[^\]]+\]/g, '').trim() });
     }

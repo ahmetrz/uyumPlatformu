@@ -1,4 +1,5 @@
 'use client';
+import { useTerim } from '@/lib/dil/SozlukSaglayici';
 import { an } from '@/lib/an';
 import { useState } from 'react';
 import { Alan, Dugme } from '@/components/kabuk/temel';
@@ -68,6 +69,7 @@ export function RiskFormu({
   risk: R | null; yeniKod: string; kullanicilar: Kisi[]; tesisler: Kodlu[];
   sistemler: Kodlu[]; bulgular: BulguSecenegi[]; kapat: () => void; genis?: boolean;
 }) {
+  const { tBas } = useTerim();
   const { bekliyor, hata, calistir } = useEylem();
   const [f, setF] = useState<FormDurumu>(() => formBaslat(risk, yeniKod));
   const skor = skorHesapla(f.olasilik, f.etkiler);
@@ -127,7 +129,7 @@ export function RiskFormu({
       </Alan>
 
       <div style={izgara}>
-        <Alan etiket="Santral">
+        <Alan etiket={tBas('tesis')}>
           <select className="ab-gr" value={f.tesisId}
             onChange={(e) => setF({ ...f, tesisId: e.target.value })}>
             <option value="">—</option>

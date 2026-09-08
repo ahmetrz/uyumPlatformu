@@ -9,10 +9,10 @@ import { acikMi, bulguImi, dogrulamaBekliyorMu, gecikmeGunu } from './mantik';
 
    ═══ KAPSAM SIZINTISI ══════════════════════════════════════════════════
    Ekran `db.bulgu.findMany({ where: { silindi: null } })` diyordu. Bulgunun
-   kendi `tesisId`si yoktur; santrale `maddeDurumu.tesisId` üzerinden
+   kendi `tesisId`si yoktur; tesise `maddeDurumu.tesisId` üzerinden
    bağlıdır ve ekran o alanı (id · kod · ad) satıra da yazıyordu. Yalnız A
-   santraline yetkili bir kullanıcı B'nin bulgu başlığını, sorumlusunu,
-   santral kodunu ve — çekmecedeki denetim izi üzerinden — kim neyi ne zaman
+   tesisine yetkili bir kullanıcı B'nin bulgu başlığını, sorumlusunu,
+   tesis kodunu ve — çekmecedeki denetim izi üzerinden — kim neyi ne zaman
    değiştirdiğini görüyordu.
 
    ═══ SINIRSIZ OKUMA (P1) ═══════════════════════════════════════════════
@@ -37,9 +37,9 @@ import { acikMi, bulguImi, dogrulamaBekliyorMu, gecikmeGunu } from './mantik';
    `denetim` seçmek yanlış olurdu — bulgu denetim dışında da (olaydan,
    iç incelemeden) doğar.
 
-   ── SANTRALİ BİLİNMEYEN KAYIT ──────────────────────────────────────────
+   ── TESİSİ BİLİNMEYEN KAYIT ──────────────────────────────────────────
    `MaddeDurumu.tesisId` şemada ZORUNLUDUR (String, null değil): bu ekranda
-   santrali bilinmeyen bulgu YOKTUR. Kural yine de tek yerden gelir
+   tesisi bilinmeyen bulgu YOKTUR. Kural yine de tek yerden gelir
    (`app/kapsam.ts → kapsamKosulu`), çünkü şema değişirse davranışın
    `lib/api/yetki.ts → tesisKapsamda` ile aynı kalması gerekir. */
 
@@ -81,7 +81,7 @@ export type EkranVerisi = {
   satirTavani: number;
   metrikler: BulguMetrikleri;
   yazabilir: boolean;
-  /** true = liste bir santral kapsamıyla daraltıldı (boş ekranın sözü değişir) */
+  /** true = liste bir tesis kapsamıyla daraltıldı (boş ekranın sözü değişir) */
   kapsamli: boolean;
 };
 

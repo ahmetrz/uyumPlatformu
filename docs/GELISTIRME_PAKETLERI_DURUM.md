@@ -238,7 +238,33 @@ istisna listesi buna göre kurulmalı.
 Şema tarafı ayrıca: `prisma/seed.ts` 83 satır, `prisma/schema.prisma`
 46 satır, `prisma/seed-operasyon-kayitlari.ts` 36 satır.
 
-### 4.4 P1'in bekçi testi bugünkü tarifiyle işi kaçırır
+### 4.4 P1'in bekçi testi bugünkü tarifiyle işi kaçırır — **kapandı (7 Eyl 2026)**
+
+> **Çözüm.** Tarif düzeltildi ve kapı kuruldu:
+> `tests/bekci/sektor-terimi.test.ts` artık **ham metni ve dosya adını**
+> tarıyor — literal, tanımlayıcı, yorum ve CSS sınıfı dâhil. Aşama F,
+> Aşama E'den **önce** yapıldı: kapı önce kuruldu, temizlik sonra.
+> Biçim **cırcır** (ratchet): `tests/bekci/sektor-terimi-izin.json`
+> kapı kurulduğu gün kirli olan **258 dosyayı** borç olarak taşıyordu;
+> listeye dosya eklenemez, yalnız çıkarılır. Aşama E o listeyi
+> **12 dosyaya** indirdi (7 Eyl 2026) ve kalan 12'nin her biri yazılı
+> bir gerekçe taşıyor — liste artık bir borç kütüğü değil, gerekçeli
+> kalıntı kütüğüdür. Dört diş: listede olmayan dosyada terim ·
+> listedeki dosyada terim kalmaması · `tavan` · **taban daldaki listenin
+> alt kümesi olma**. Sonuncusu takası yakalar (bir dosyayı temizleyip
+> yerine başkasını koymak); taban dal okunamıyorsa "ölçülmedi" diye
+> raporlanır, "geçti" değil. Dördü de elle sabote edilip kırmızı verdiği
+> doğrulandı; birincisi `arac/sabotaj.mjs`'e 25. giriş olarak eklendi.
+> Kapsam dışı bırakılan `üretim` ve `enerji` terimlerinin gerekçesi izin
+> dosyasının başlığındadır.
+>
+> Yan bulgu: `arac/senaryo-belge.mjs` test dosyalarını **düz**
+> `readdirSync` ile arıyordu; `tests/bekci/` gibi bir alt dizin açılınca
+> oradaki testler ölçümün dışında kalıp senaryoları GAP gösteriyordu.
+> Araç vitest globuyla (`tests/**/*.test.ts`) aynı kümeyi tarayacak
+> şekilde düzeltildi.
+
+*Bulgunun özgün hâli:*
 
 `GELISTIRME_PAKETLERI.md:254-256` bekçi testi "**JSX/metin
 literalinde**" arıyor. Oysa terim kodda üç yerde daha yaşıyor:
@@ -248,10 +274,17 @@ literalinde**" arıyor. Oysa terim kodda üç yerde daha yaşıyor:
   eşleşme veriyor (`Santral` 245 · `santraller` 193 · `santralId` 10).
   Hiçbiri metin literali değildir.
 - **CSS jetonlarında ve yorumlarda:** `app/kabuk.css` 28 satır.
-- **Yayınlanmış API sözleşmesinde:** `/api/v1/plants` ucu ve
-  `capacityMw` yanıt alanı (`lib/api/sozlesme.ts`, `SOZLESME_SURUMU =
-  '1.0.0'`). Yeniden adlandırma **kırıcı değişikliktir** ve P1 kapsamında
-  yazılı değil — P9'un sözleşme dondurma kararıyla çakışır.
+- **Yayınlanmış API sözleşmesinde:** ~~`/api/v1/plants` ucu ve
+  `capacityMw` yanıt alanı~~ → **P1'de çözüldü.** Ürün sahibi kararıyla
+  `v1` içinde yeniden adlandırıldı (`facilities`, `facilityCode`,
+  `facilityId`, `attributes` haritası); `v2` açılmadı. Dayanak §8 K23:
+  sözleşme, erişilebilir bir dağıtım ya da ilk dış `ApiAnahtari` ortaya
+  çıkana kadar **taslaktır**. Karar öncesi üç şart ölçüldü — dağıtılmış
+  anahtar yok (3 kayıt da seed), canlı entegrasyon yok (7 connector'ın
+  hepsi `kimlik_bekleniyor`), ama v1'i tarifleyen **yayımlanmış bir sayfa
+  vardı** (`gh-pages`/`api-sozlesmesi`); ürün sahibi bunu tüketici
+  saymadı ve §8 K24 ile ekrana taslak uyarısı konarak örtük taahhüt
+  kaldırıldı.
 
 Ayrıca `lib/cografya/turkiyeSiniri.ts` çekirdekte bir **ülke** sabitidir
 (Türkiye sınır poligonu, `SINIR_CERCEVESI`); §0.5 "çekirdeğe ülke
@@ -272,7 +305,7 @@ Sayılar grep ölçümüdür, tahmin değil; ölçülemeyen yere "—" yazıldı
 | Paket | Bugün doğru mu | Bağımlılık | Açık karar (§8) | İlk adım | Dosya |
 |---|---|---|---|---|---|
 | **P0** `URN-KUR` | **Uygulandı (6 Eyl 2026).** *Doğrulama anındaki hâli:* **Kısmen — bayat.** "Seed gerçek santral adları taşır" bugün YANLIŞ (6 Eyl `5363920` ile kurgusala çevrildi). "Bir gerçek fotoğraf" DOĞRU (§3.2 K1). "CLAUDE.md tek ürün adı" kısmen — CLAUDE.md zaten "geçici ad, P0 `MARKA_AD`'a taşıyacak" diyor. "grup içi kurumsal araç, pazarlama dili yok" cümlesi CLAUDE.md'de YOK, `web/PRODUCT.md:158`'de. | yok (zincirin başı) | K14 ürün adı: görünen ad geçici ve tanımlayıcı; `Regula` iç çalışma adı, arayüzde geçmez; K22 koyu tek tema | ~~`CLAUDE.md`'deki 13 ölü belge atfını temizlemek~~ → **yapıldı**; sıradaki paket P2 + R5 | **19 mevcut + 3 yeni** (ölçülen: 8 kod + 6 belge + kütük/testler) |
-| **P1** `URN-ALN` | **Doğru.** `Sektor`, `TesisTipi`, `Tesis.kuruluGucMw`, `TesisProfili`, `UretimUnitesi.kuruluGucMw`, `kosulJson`→`kuruluGucMw`, "Santral haritası", "Enerji portföyü" hepsi kodda. İki küçük sapma: tip kodu **JES değil `JEO`** (+`MERKEZ`, sunumda `TERMIK`); "Santral 360" bugün **render edilen bir başlık değil**, yalnız yorumlarda ve `sistem` demo şeridinde geçiyor. | P0 (başlık) · §7'ye göre P2/R5 sonrası | Tablo yeniden adlandırma (varsayılan: evet, `@@map` yok); K21 ikinci sektör = su/atıksu | `lib/dil/terimler.ts` + `tests/bekci/sektor-terimi.test.ts`'i **kırmızı** taban ölçüm olarak kurmak | 263 mevcut (app+components+lib) · depo geneli ~339 · + ~14 yeni |
+| **P1** `URN-ALN` | **Uygulanıyor (7 Eyl 2026) — Aşama A–F bitti.** *Doğrulama anındaki hâli:* **Doğru.** `Sektor`, `TesisTipi`, `Tesis.kuruluGucMw`, `TesisProfili`, `UretimUnitesi.kuruluGucMw`, `kosulJson`→`kuruluGucMw`, "Santral haritası", "Enerji portföyü" hepsi koddaydı. İki küçük sapma: tip kodu **JES değil `JEO`** (+`MERKEZ`, sunumda `TERMIK`); "Santral 360" render edilen bir başlık **değildi**. **Bugün:** `kuruluGucMw` kolonları düştü (`TesisOzellik`/`BirimOzellik` satırı), `UretimUnitesi` → `OperasyonelBirim`, `uniteId` → `birimId`; şemada `kuruluGucMw` · `UretimUnitesi` · `santral` **0 eşleşme**; terim sözlüğü (`lib/dil/terimler.ts` + `SektorSozlugu`) kuruldu ve `/tesisler/[id]` sekme başlığı sözlükten geliyor ("Santral 360" / "Tesis 360"). Bekçi test (`tests/bekci/sektor-terimi.test.ts`) **cırcır** biçiminde kuruldu: borç kütüğünde **258 dosya**, listeye ekleme yok. **Aşama E bitti (7 Eyl 2026).** Borç kütüğü **258 → 12 dosya** (86 terim); kalan 12'nin her biri kütükte YAZILI bir kalıcı ya da ertelenmiş gerekçe taşıyor (tasarım sistemi fikstürleri, sözlüğün kendi belge örneği, eski denetim izi anahtarları, `components/kabuk/tip.ts` → P4). Yani sayı artık "erimeyi bekleyen borç" DEĞİL, gerekçeli kalıntı — anlamı değişti. İkinci ölçü (`arac/cekirdek-sozcuk-taramasi.mjs`, çekirdek sözcüğe ÇAKILMA) **187 → 0**. Üçüncü kapı kuruldu: **URN-ALN-008** — sözlük terimine Türkçe eki elle eklenemez (`tests/bekci/ek-eklemesi.test.ts`, tavan sıfır). **Kalan:** G (sektör paketi) · URN-ALN-005 (kanıt paketi şema sürümü). | P0 (bitti) · §7'ye göre P2/R5 sonrası | Tablo yeniden adlandırma **yapıldı** (`@@map` yok); K21 ikinci sektör = su/atıksu **açık** | Aşama G: sektör paketi (ikinci sözlük gerçek bir pakete bağlanır) | Aşama A–F'de **46 dosya** · Aşama E'de **~250 dosya** (izin listesi 258 → 12) |
 | **P2** `URN-KIR` | **Doğru.** `Kiraci` modeli ve `kiraciId` şemada **hiç yok** (grep 0). `Grup` en üst düğüm (`schema.prisma`), `Kullanici`/`Yetki`/`Oturum` var, RBAC × kapsam `lib/erisim.ts` + `tests/kapsam-kapisi-nobetci.test.ts`, `ApiAnahtari` var, `IsKilidi.ad` tek `@id` (tek küme). | P0; R5 ile birlikte (RLS) | K15 kullanıcı tek kiracılı; K16 RLS PostgreSQL'de zorunlu | `Kiraci` modeli + "kiracısız tablo istisna listesi" şema testi (bugün 146 modelin tamamı kiracısız) | **211 mevcut + ~18 yeni** (şema + 10 seed + 48 eylem modülü + 10 API ucu + kapsam kapısı çağıran 62 dosya + testler) |
 | **R5** `ALT-PG` | **Çoğu doğru, biri bayat.** `docs/POSTGRES_READINESS.md` gerçekten "on bir bağımlılık" sayıyor (satır 10); değişmezlik tetikleyicisi **6** (`20260830190000` 4 + `20260903192431` 2) — paketin "6" sayısı doğru; yarış koşulları kapalı; test izolasyonu gerçekten dosya kopyası (`tests/sahte/db.ts:23-44`). **Ama "yük testi yapılmamış" YANLIŞ**: `arac/yuk.mjs` + `arac/olcek.mjs` var ve `arac/performans-tabani.json` 3 Eylül 2026 ölçümünü taşıyor ("TOHUM VERİSİYLE ölçüldü; gerçek veri hacmini temsil etmez"). Eksik olan **10⁵ ölçeğinde** ölçüm ve `docs/PERFORMANS_TABANI.md` belgesi. | Dalga 0, P2 ile birlikte | K12 iki datasource (SQLite dev/demo + PG üretim) | Taban göçünü açıp dört + iki tetikleyiciyi PostgreSQL fonksiyonuna çevirmek | **134 mevcut + ~2 yeni** (33 göç · `lib/db.ts` · `prisma.config.ts` · `aramaKosulu.ts` · `tests/sahte/db.ts` · sağlayıcıya bağlı testler) |
 | **P3** `URN-DIL` | **Doğru.** Yalnız Türkçe; `İ/ı` testli (`tests/alan-metin.test.ts`, `lib/alan/metin.ts`); `lib/an.ts` tek "an" kaynağı; metinler JSX içinde sabit; `lib/dil/` yok. | P1 (terim sözlüğü) | K17 hafif kendi katman + ICU · ikinci dil EN | `lib/dil/mesajlar/tr.json` + `t()` ve kabuk ekranlarının aşama-1 geçişi | 263+ (P1 ile aynı yüzey) + ~5 yeni |
@@ -372,10 +405,13 @@ Sıra: paket açılmadan düzeltilmesi gerekenler önce.
   biçimiyle**" istiyor (`:257`); P4'ün bağımlılığı ise "**P1, P2**"
   (`:465`). Biri gevşetilmeli — öneri: P1 sözlüğü düz TS sabiti olarak
   kursun, P4 onu paket biçimine taşısın.
-- **P1 kapsamı yayınlanmış API sözleşmesini görmüyor.** `/api/v1/plants`
-  ucu ve `capacityMw` alanı (`lib/api/sozlesme.ts`, sürüm `1.0.0`)
-  sektör terimi taşıyor; yeniden adlandırma kırıcı değişikliktir ve
-  P9'un "`v1` dondurulur" kararıyla çakışır. Karar gerekiyor.
+- ~~**P1 kapsamı yayınlanmış API sözleşmesini görmüyor.**~~
+  **Çözüldü (6 Eyl 2026):** §8 K23/K24 eklendi, `v1` içinde yeniden
+  adlandırıldı, P9'un "`v1` dondurulur / kıranı `v2`'ye at" varsayımı
+  düzeltildi. Sektör terimi taşıyan yüzeyin tamamı tarandı: `plants` ·
+  `plantId` · `plantCode` · `plantIds` · `capacityMw` + `uclar/santraller.ts`
+  dosya adı + `ApiAnahtari.kapsamJson` içindeki kapsam değeri (veri
+  göçüyle).
 
 ---
 

@@ -43,7 +43,7 @@ export const KONTROL_KODLARI = [
   'bilinmeyen_yanlis_degil',
   'yinelenen_tespiti',
   'idempotency',
-  'santral_kapsami',
+  'tesis_kapsami',
   'bozuk_reddi',
   'kismi_basarisizlik',
   'retry_backoff',
@@ -63,7 +63,7 @@ export const KONTROL_BASLIKLARI: Record<KontrolKodu, string> = {
   bilinmeyen_yanlis_degil: 'Bilinmeyen alan null kalıyor (false/0/boş değil)',
   yinelenen_tespiti: 'Yinelenen tespiti (kararlı kaynak kayıt kimliği)',
   idempotency: 'Idempotency — aynı fikstür iki kez, tek kayıt',
-  santral_kapsami: 'Santral kapsamı korunuyor',
+  tesis_kapsami: 'Tesis kapsamı korunuyor',
   bozuk_reddi: 'Bozuk payload reddediliyor (sessizce atılmıyor)',
   kismi_basarisizlik: 'Kısmî başarısızlık denetime düşüyor',
   retry_backoff: 'Retry / geri çekilme davranışı',
@@ -114,9 +114,9 @@ export type KosumFiksturu = {
   kapsam: {
     yapilandirma: Record<string, unknown>;
     kapsamKodlari: string[];
-    /** kapsam İÇİNDEKİ santral kodu (kabul edilmeli) */
+    /** kapsam İÇİNDEKİ tesis kodu (kabul edilmeli) */
     icKod: string;
-    /** kapsam DIŞINDAKİ santral kodu (reddedilmeli) */
+    /** kapsam DIŞINDAKİ tesis kodu (reddedilmeli) */
     disKod: string;
   };
   /** kaynağı okunamayan yapılandırma — KALICI hata üretmeli */
@@ -618,23 +618,23 @@ async function kontrolIdempotency(
         + `${ikinci.yinelenen}/${ikinci.kabulEdilen}.`);
 }
 
-/* 8 — Santral kapsamı */
+/* 8 — Tesis kapsamı */
 async function kontrolKapsam(
   a: Adaptor, f: FiksturSeti, ortam: SertifikaOrtami, yaz: Yazici,
 ): Promise<void> {
   const kosucu = ortam.kosucu;
   if (!a.baglanabilir) {
-    yaz('santral_kapsami', 'uygulanamaz',
+    yaz('tesis_kapsami', 'uygulanamaz',
       bagliDegilGerekce(a, 'kayıt yazılmadığı için kapsam denetimi hiç çalışmaz'));
     return;
   }
 
-  /* Platformda TANIMSIZ bir santral kodu bildiren kayıt düşürülmez ve kodu
+  /* Platformda TANIMSIZ bir tesis kodu bildiren kayıt düşürülmez ve kodu
      silinmez: kapsam kararı çekirdeğindir, ama karar verebilmesi için
      beyanın adaptörden kayıpsız geçmesi gerekir. */
   const eksik = normalizeCalistir(a, f, f.eksikReferans.satirlar);
   if (eksik.hata || eksik.gozlemler.length !== f.eksikReferans.satirlar.length) {
-    yaz('santral_kapsami', 'kaldi',
+    yaz('tesis_kapsami', 'kaldi',
       'Referansı tanımsız kayıt normalize aşamasında düştü: '
       + (eksik.hata ?? `${f.eksikReferans.satirlar.length} satır → ${eksik.gozlemler.length} gözlem`));
     return;
@@ -642,18 +642,18 @@ async function kontrolKapsam(
   const korunmayan = eksik.gozlemler.filter((g) =>
     bilinmiyorMu((g as unknown as Record<string, unknown>)[f.eksikReferans.korunanAlan]));
   if (korunmayan.length > 0) {
-    yaz('santral_kapsami', 'kaldi',
+    yaz('tesis_kapsami', 'kaldi',
       `Tanımsız referans '${f.eksikReferans.korunanAlan}' alanından silindi `
       + `(${korunmayan.length} kayıt) — kapsam denetimi kör kalır.`);
     return;
   }
   if (!f.disBaglantiGerekmez) {
-    yaz('santral_kapsami', 'uygulanamaz',
+    yaz('tesis_kapsami', 'uygulanamaz',
       'Fikstür dış bağlantı gerektiriyor — sertifikasyon gerçek sisteme bağlanmaz.');
     return;
   }
   if (!kosucu || !f.kosum) {
-    yaz('santral_kapsami', 'uygulanamaz',
+    yaz('tesis_kapsami', 'uygulanamaz',
       'Sandbox koşucusu ya da koşum fikstürü verilmedi; kapsam çekirdekte '
       + 'uygulandığı için koşusuz ölçülemez.');
     return;
@@ -667,13 +667,13 @@ async function kontrolKapsam(
     && `${sonuc.hata ?? ''} ${sonuc.ayrinti}`.includes('kapsam dışı');
   const icKayit = sonuc.kesifKayitlari.some((r) => r.tesisKodu === k.icKod);
   const sorunlar: string[] = [];
-  if (disKayit) sorunlar.push(`kapsam dışı santral (${k.disKod}) adına kayıt YAZILDI`);
+  if (disKayit) sorunlar.push(`kapsam dışı tesis (${k.disKod}) adına kayıt YAZILDI`);
   if (!kapsamRedVar) sorunlar.push('kapsam dışı kayıt reddedilmedi ya da sebebi koşuya yazılmadı');
-  if (!icKayit) sorunlar.push(`kapsam içi santral (${k.icKod}) kaydı yazılmadı`);
-  yaz('santral_kapsami', sorunlar.length === 0 ? 'gecti' : 'kaldi',
+  if (!icKayit) sorunlar.push(`kapsam içi tesis (${k.icKod}) kaydı yazılmadı`);
+  yaz('tesis_kapsami', sorunlar.length === 0 ? 'gecti' : 'kaldi',
     sorunlar.length === 0
       ? `Kapsam ${k.kapsamKodlari.join(', ')} ile sınırlıyken ${k.icKod} kaydı yazıldı, `
-        + `${k.disKod} kaydı reddedildi (sebep koşu kaydında); tanımsız santral `
+        + `${k.disKod} kaydı reddedildi (sebep koşu kaydında); tanımsız tesis `
         + 'kodu bildiren kayıt düşürülmedi, kodu korundu.'
       : sorunlar.join(' · '));
 }

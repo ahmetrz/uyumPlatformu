@@ -1,5 +1,6 @@
 'use client';
 import { useMemo, useState } from 'react';
+import { useSozluk, useTerim } from '@/lib/dil/SozlukSaglayici';
 import { useUrlDurumuBos } from '@/components/kabuk/urlDurumu';
 import Link from 'next/link';
 import { Alan, BosIlk, Dugme, Yetkisiz } from '@/components/kabuk/temel';
@@ -13,7 +14,7 @@ import { redKaydiIncele } from '@/lib/eylemler2/reddedilenKayit';
 import { zamanTR } from '@/lib/sabitler';
 import { bolumle, kisalt } from '../mantik';
 import {
-  ASAMA_ACIKLAMA, RED_DURUM_SOZU, asamaYazisi, redImi, redKararPasif,
+  RED_DURUM_SOZU, asamaAciklamasi, asamaYazisi, redImi, redKararPasif,
   redMetrikleri, redSirala, redToplanabilir, type RedSatiri,
 } from './mantik';
 
@@ -42,7 +43,7 @@ export default function ReddedilenlerIstemci({
 }: {
   satirlar: RedSatiri[]; yetkili: boolean; yazabilir: boolean;
   toplam: number; sinir: number;
-  /** kuyruk bir santral kapsamıyla daraltıldı mı — boş ekranın SÖZÜ değişir */
+  /** kuyruk bir tesis kapsamıyla daraltıldı mı — boş ekranın SÖZÜ değişir */
   kapsamli?: boolean;
 }) {
   const [secili, setSecili] = useUrlDurumuBos('sec');
@@ -56,13 +57,15 @@ export default function ReddedilenlerIstemci({
 
   const secilen = satirlar.find((r) => r.id === secili) ?? null;
 
+  const { t } = useTerim();
+
   const govde = () => {
     if (!yetkili) return <Yetkisiz rol="yönetim okuma" />;
     if (satirlar.length === 0) {
       return (
         /* Kuyruğun boş olması ile kuyruğu görememek AYNI ŞEY DEĞİLDİR. */
         <BosIlk iyiHaber={!kapsamli} cumle={kapsamli
-          ? 'Kapsamınızdaki santrallere ait reddedilen kayıt yok.'
+          ? `Kapsamınızdaki ${t('tesis', 'cogul')} için reddedilen kayıt yok.`
           : 'Reddedilen kayıt yok. Bir connector koşusunda düşen her '
             + 'kayıt — şemadan, eşlemeden, doğrulamadan ya da kapsamdan — burada '
             + 'ham hâliyle görünür.'} />
@@ -153,23 +156,25 @@ export default function ReddedilenlerIstemci({
 function RedOzeti({ r, yazabilir, kapat }: {
   r: RedSatiri; yazabilir: boolean; kapat: () => void;
 }) {
+  const sozluk = useSozluk();
   const { bekliyor, hata, calistir } = useEylem();
   const [durum, setDurum] = useState<string>('incelendi');
   const [not, setNot] = useState('');
 
   const im = redImi(r);
   const pasif = redKararPasif([r.id], durum, not, yazabilir, bekliyor);
+  const aciklama = asamaAciklamasi(r.asama, sozluk);
 
   return (
     <>
       <CekmeceKimlik durum={im} soz={RED_DURUM_SOZU[r.durum] ?? r.durum}
         baslik={r.sebep}
-        cumle={ASAMA_ACIKLAMA[r.asama] ?? 'Bu aşama sözlükte tanımlı değil — '
+        cumle={aciklama ?? 'Bu aşama sözlükte tanımlı değil — '
           + 'kaydın hangi adımda düştüğü yorumlanamıyor.'} />
 
       <CekmeceAlanlar alanlar={[
         { etiket: 'Aşama', deger: asamaYazisi(r.asama),
-          durum: ASAMA_ACIKLAMA[r.asama] ? undefined : 'unk' },
+          durum: aciklama ? undefined : 'unk' },
         { etiket: 'Kaynak sistem', deger: r.kaynakSistem },
         { etiket: 'Kaynak kayıt kimliği', deger: r.kaynakKayitId ?? 'kaynak vermedi',
           durum: r.kaynakKayitId ? undefined : 'unk' },

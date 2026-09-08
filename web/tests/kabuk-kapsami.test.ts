@@ -61,13 +61,13 @@ describe('Kabuk kapsam çubuğu santral sayısını sızdırmaz', () => {
   it('kapsamsız yetki bütün aktif santralleri sayar', async () => {
     await oturumAc('yonetici', null);
     const v = await kabukVerisi();
-    expect(v.kapsam?.santral).toBe(aktifToplam);
+    expect(v.kapsam?.tesis).toBe(aktifToplam);
   });
 
   it('tek santrale kısıtlı kullanıcı YALNIZ onu sayar [YTK-LST-001]', async () => {
     await oturumAc('denetim_sorumlusu', sahaa3);
     const v = await kabukVerisi();
-    expect(v.kapsam?.santral).toBe(1);
+    expect(v.kapsam?.tesis).toBe(1);
     /* Tüzel kişi de aynı kapsamdan türer: bir santral en fazla bir tüzel
        kişiye bağlıdır, dolayısıyla sayı 1'i geçemez. Kapsamsız
        `tuzelKisi.count()` aynı sızıntının başka biçimiydi. */
@@ -78,7 +78,7 @@ describe('Kabuk kapsam çubuğu santral sayısını sızdırmaz', () => {
     oturum.token = null;
     const v = await kabukVerisi();
     expect(v.kullanici).toBeNull();
-    expect(v.kapsam?.santral ?? 0).toBe(0);
+    expect(v.kapsam?.tesis ?? 0).toBe(0);
   });
 });
 

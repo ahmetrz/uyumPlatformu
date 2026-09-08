@@ -33,7 +33,7 @@ export const KADEME: Record<string, string> = {
 
 /* ── Taşınan biçimler ─────────────────────────────────────────────────── */
 
-export type SantralBagi = {
+export type TesisBagi = {
   id: string; kod: string; ad: string; varlikSayisi: number;
 };
 
@@ -108,7 +108,7 @@ export type OturumSatiri = {
   bilinmeyenler: string[];
   talepReferansi: string | null;
   kayitReferansi: string | null;
-  /** Kullanıcı bu oturumun santral kapsamında karar verebilir mi. */
+  /** Kullanıcı bu oturumun tesis kapsamında karar verebilir mi. */
   kararVerebilir: boolean;
 };
 
@@ -121,7 +121,7 @@ export type T = {
   uzaktanErisimYontemi: string | null;
   /** true kayıt var · false izlenmiyor · null bilinmiyor — üçü ayrı gösterilir. */
   oturumKaydiVar: boolean | null;
-  santraller: SantralBagi[];
+  tesisler: TesisBagi[];
   varlikSayisi: number;
   kritikVarlikSayisi: number;
   sozlesmeler: SozlesmeOzeti[];
@@ -306,14 +306,14 @@ export function ayYil(iso: string | null): string {
   return AY_YIL.format(new Date(iso)).replace('.', '');
 }
 
-/** Santral hücresi: birden fazlası `Saha A-3 JES +14` biçiminde kısalır.
+/** Tesis hücresi: birden fazlası `<ad> +14` biçiminde kısalır.
     Tamamı ipucunda ve çekmecede — kısaltma bilgi saklamaz, taşır.
     Üç ad 190px kolona sığmıyor ve üçü birden kırpılıyordu; en çok varlığı
-    olan santral yazılır, kalanı sayıya iner. */
-export function santralOzeti(santraller: SantralBagi[]): {
-  gorunen: SantralBagi[]; ekSayi: number; tam: string;
+    olan tesis yazılır, kalanı sayıya iner. */
+export function tesisOzeti(tesisler: TesisBagi[]): {
+  gorunen: TesisBagi[]; ekSayi: number; tam: string;
 } {
-  const sirali = [...santraller].sort((a, b) =>
+  const sirali = [...tesisler].sort((a, b) =>
     b.varlikSayisi - a.varlikSayisi || a.ad.localeCompare(b.ad, 'tr'));
   const gorunen = sirali.length > 1 ? sirali.slice(0, 1) : sirali;
   return {

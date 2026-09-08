@@ -24,8 +24,8 @@ export const metadata: Metadata = { title: 'Firmware tabanları' };
    — motor defteri (Sağlık ekranı) tetiklemenin tek yeridir.
 
    ── KAPSAM ────────────────────────────────────────────────────────────
-   Taban santrale bağlı DEĞİLDİR (bir Siemens S7-1500 tabanı bütün
-   santrallerde aynıdır); bu yüzden tesis kapsamı süzgeci YOKTUR. Etki
+   Taban tesise bağlı DEĞİLDİR (bir Siemens S7-1500 tabanı bütün
+   tesislerde aynıdır); bu yüzden tesis kapsamı süzgeci YOKTUR. Etki
    sayacı ise kapsamdan bağımsız TÜM eşleşen varlıkları sayar, çünkü
    tabanın etkisi de kapsamdan bağımsızdır. */
 

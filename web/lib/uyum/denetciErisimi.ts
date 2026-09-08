@@ -6,7 +6,7 @@
        dis_denetci: { denetim: ['okuma'], uyum: ['okuma'] }
 
    ve yalnız bir rol adıydı. Süresi, kapsamı, kim davet etti, ne zaman
-   biter, hangi santralleri kapsar — hiçbiri kayıtlı değildi. Bir dış
+   biter, hangi tesisleri kapsar — hiçbiri kayıtlı değildi. Bir dış
    denetçiye kalıcı hesap açmak, denetim bittikten sonra da açık kalan
    bir kapı bırakır ve o kapıyı kimse kapatmayı hatırlamaz.
 
@@ -15,11 +15,13 @@
    yoktur: denetimin bir bitiş tarihi vardır ve erişim onunla biter.
 
    ── BOŞ KAPSAM = HİÇBİR ŞEY ───────────────────────────────────────────
-   Kapsamı boş bir denetçi erişimi hiçbir santrali kapsamaz. "Boş kapsam
+   Kapsamı boş bir denetçi erişimi hiçbir tesisi kapsamaz. "Boş kapsam
    = her şey" varsayımı, ürünün öteki yerlerinde de reddedilen bir
    kalıptır ve burada bir dış denetçiye kurumun tamamını açmak olurdu.
 
    Bu dosya veritabanı ve React bilmez. */
+
+import { CEKIRDEK_TERIMLER, type Terim } from '@/lib/dil/terimler';
 
 export const ERISIM_DURUMLARI = ['aktif', 'suresi_doldu', 'iptal'] as const;
 export type ErisimDurumu = (typeof ERISIM_DURUMLARI)[number];
@@ -37,16 +39,25 @@ export type YasayanDurum =
   | 'aktif' | 'bitmek_uzere' | 'suresi_doldu' | 'iptal'
   | 'kapsamsiz' | 'hic_kullanilmadi';
 
-export const YASAYAN_SOZU: Record<YasayanDurum, string> = {
-  aktif: 'erişim açık',
-  bitmek_uzere: 'süresi bitmek üzere',
-  suresi_doldu: 'süresi doldu — erişim kapalı',
-  iptal: 'iptal edildi',
-  /* Kapsamı olmayan aktif erişim: hesap açık ama hiçbir santral
-     görmüyor. Bir kusur değil ama bir kurulum eksiğidir ve gizlenmez. */
-  kapsamsiz: 'kapsam tanımlanmadı — hiçbir santral görünmüyor',
-  hic_kullanilmadi: 'açık ama HİÇ kullanılmadı',
-};
+/** Yaşayan durum sözleri; yalnız `kapsamsiz` sektör terimi taşır.
+    Çağıran kapsamın terimini geçirir, geçmezse çekirdek sözcük yazılır. */
+export function yasayanSozu(
+  tesis: Terim = CEKIRDEK_TERIMLER.tesis,
+): Record<YasayanDurum, string> {
+  return {
+    aktif: 'erişim açık',
+    bitmek_uzere: 'süresi bitmek üzere',
+    suresi_doldu: 'süresi doldu — erişim kapalı',
+    iptal: 'iptal edildi',
+    /* Kapsamı olmayan aktif erişim: hesap açık ama hiçbir kayıt
+       görmüyor. Bir kusur değil ama bir kurulum eksiğidir ve gizlenmez. */
+    kapsamsiz: `kapsam tanımlanmadı — hiçbir ${tesis.tekil} görünmüyor`,
+    hic_kullanilmadi: 'açık ama HİÇ kullanılmadı',
+  };
+}
+
+/** Çekirdek varsayılanı — sözlüksüz çağıran (test, sunucu) için. */
+export const YASAYAN_SOZU: Record<YasayanDurum, string> = yasayanSozu();
 
 export const YASAYAN_SINIFI: Record<YasayanDurum, 'ok' | 'md' | 'bd' | 'unk' | 'pl'> = {
   aktif: 'ok',
@@ -117,6 +128,9 @@ export function davetKapisi(o: {
   simdi: number;
   kapsamSayisi: number;
   azamiGun?: number;
+  /** Kapsamın terimi; verilmezse çekirdek sözcük yazılır. Ret gerekçesi
+      kullanıcıya döner, KAYDEDİLMEZ — terim burada geçebilir. */
+  tesis?: Terim;
 }): DavetKarari {
   if (o.bitis <= o.simdi) {
     return { ok: false, sebep: 'Bitiş tarihi gelecekte olmalı.' };
@@ -136,8 +150,9 @@ export function davetKapisi(o: {
   if (o.kapsamSayisi === 0) {
     return {
       ok: false,
-      sebep: 'En az bir santral seçilmeli. Kapsamsız bir dış erişim hiçbir '
-        + 'şey göstermez; "boş kapsam = her şey" DEĞİLDİR.',
+      sebep: `En az bir ${(o.tesis ?? CEKIRDEK_TERIMLER.tesis).tekil} seçilmeli. `
+        + 'Kapsamsız bir dış erişim hiçbir şey göstermez; '
+        + '"boş kapsam = her şey" DEĞİLDİR.',
     };
   }
   return { ok: true };
@@ -168,11 +183,13 @@ export function denetciOzeti(durumlar: readonly YasayanDurum[]): DenetciOzeti {
   };
 }
 
-export function denetciCumlesi(o: DenetciOzeti): string {
+export function denetciCumlesi(
+  o: DenetciOzeti, tesis: Terim = CEKIRDEK_TERIMLER.tesis,
+): string {
   if (o.toplam === 0) return 'Tanımlı dış denetçi erişimi yok.';
   if (o.kapsamsiz > 0) {
     return `${o.kapsamsiz} erişimin kapsamı boş: hesap açık ama hiçbir `
-      + 'santral görünmüyor.';
+      + `${tesis.tekil} görünmüyor.`;
   }
   if (o.bitmekUzere > 0) {
     return `${o.bitmekUzere} erişimin süresi ${BITIS_UYARI_GUN} gün içinde doluyor.`;

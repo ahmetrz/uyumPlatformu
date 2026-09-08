@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import { useTerim } from '@/lib/dil/SozlukSaglayici';
 import { Alan, BosIlk, Dugme } from '@/components/kabuk/temel';
 import { EkranBasligi } from '@/components/kabuk/ekran';
 import { Tablo, type Satir } from '@/components/kabuk/tablo';
@@ -296,6 +297,7 @@ function PolitikaFormu({ kapat }: { kapat: () => void }) {
 function HoldFormu({ tesisler, kapat }: {
   tesisler: { id: string; kod: string; ad: string }[]; kapat: () => void;
 }) {
+  const { t, tBas } = useTerim();
   const { bekliyor, hata, calistir } = useEylem();
   const [ad, setAd] = useState('');
   const [tip, setTip] = useState<string>(SAKLANABILIR_TIPLER[0]);
@@ -316,12 +318,12 @@ function HoldFormu({ tesisler, kapat }: {
           ))}
         </select>
       </Alan>
-      {/* Santral seçimi İSTEĞE BAĞLIDIR ve boş bırakılırsa hold BÜTÜN
-          santralleri kapsar. Burada "boş = hiçbiri" olsaydı, en sık
+      {/* Tesis seçimi İSTEĞE BAĞLIDIR ve boş bırakılırsa hold BÜTÜN
+          tesisleri kapsar. Burada "boş = hiçbiri" olsaydı, en sık
           ihtiyaç olan kurum çapında muhafaza yazılamazdı. */}
-      <Alan etiket="Santral · boş = bütün santraller">
+      <Alan etiket={`${tBas('tesis')} · boş = bütün ${t('tesis', 'cogul')}`}>
         <select className="ab-gr" value={tesisId} onChange={(e) => setTesisId(e.target.value)}>
-          <option value="">bütün santraller</option>
+          <option value="">bütün {t('tesis', 'cogul')}</option>
           {tesisler.map((t) => <option key={t.id} value={t.id}>{t.kod} · {t.ad}</option>)}
         </select>
       </Alan>

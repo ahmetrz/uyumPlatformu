@@ -1,4 +1,5 @@
 'use client';
+import { useSozluk, useTerim } from '@/lib/dil/SozlukSaglayici';
 import Link from 'next/link';
 import { useState, type CSSProperties, type ReactNode } from 'react';
 import { Im, Ipucu, Metrikler, Dugme, type Durum } from '@/components/kabuk/temel';
@@ -7,7 +8,7 @@ import { CekmeceAlanlar } from '@/components/kabuk/panel';
 import { etiketle, tarihTR } from '@/lib/sabitler';
 import { RiskFormu, KararFormu } from '../Formlar';
 import {
-  gunFarki, kabulDoldu, maxEtki, santralMetni, skorDurumu, SKOR_TAVANI,
+  gunFarki, kabulDoldu, maxEtki, tesisMetni, skorDurumu, SKOR_TAVANI,
   type BulguSecenegi, type Kisi, type Kodlu, type R,
 } from '../ortak';
 
@@ -35,7 +36,7 @@ export type DetayVerisi = {
   tesisler: Kodlu[];
   sistemler: Kodlu[];
   bulgular: BulguSecenegi[];
-  santraller: SeciciOgesi[];
+  tesisSeridi: SeciciOgesi[];
 };
 
 /** Uyum durumu → durum işaretçisi. Değerlendirilmemiş madde BİLİNMEYEN kalır. */
@@ -51,6 +52,8 @@ const AKSIYON_DURUMU: Record<string, Durum> = {
 type Halka = { anahtar: string; durum: Durum; kod: string; not: string; yol?: string; suren?: boolean };
 
 export default function RiskDetayIstemci({ veri }: { veri: DetayVerisi }) {
+  const { tBas } = useTerim();
+  const sozluk = useSozluk();
   const { risk } = veri;
   const [duzenle, setDuzenle] = useState(false);
   const [karar, setKarar] = useState(false);
@@ -136,8 +139,7 @@ export default function RiskDetayIstemci({ veri }: { veri: DetayVerisi }) {
     <main data-yuzey="defter" style={{ minWidth: 0 }}>
       <BaglamCubugu
         kirintiler={[{ ad: 'Risk', yol: '/riskler' }, { ad: risk.kod }]}
-        seciciEtiketi="Santral"
-        secici={veri.santraller}
+        secici={veri.tesisSeridi}
         sag={
           <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--s12)' }}>
             <Dugme tur="satir"
@@ -152,13 +154,12 @@ export default function RiskDetayIstemci({ veri }: { veri: DetayVerisi }) {
         }
       />
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) var(--drawer-w)' }}>
+      {/* Yerleşim kabuk gramerindedir (`.ab-kayit-ikili`, kabuk.css).
+          Satır içi `style` bir medya sorgusuyla ezilemez; bu ekran o
+          yüzden 375px'te 49px taşıyordu (400px panel + 0px içerik). */}
+      <div className="ab-kayit-ikili">
         {/* ── İçerik ────────────────────────────────────────────────── */}
-        <div style={{
-          minWidth: 0,
-          padding: 'var(--s36) var(--s40) var(--sec-pad-bot) var(--gutter-op)',
-          borderRight: 'var(--bw-hair) solid var(--hr)',
-        }}>
+        <div className="govde">
           <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--s8)' }}>
             <Im durum={durum} ad={`Artık skor ${risk.artikRisk ?? 'bilinmiyor'}`} />
             <span className="etiket">
@@ -300,12 +301,8 @@ export default function RiskDetayIstemci({ veri }: { veri: DetayVerisi }) {
           )}
         </div>
 
-        {/* ── Yan panel 420px ───────────────────────────────────────── */}
-        <aside style={{
-          minWidth: 0, background: 'var(--panel2)',
-          padding: 'var(--s36) var(--gutter-op) var(--sec-pad-bot) var(--s32)',
-        }}
-          aria-label="Risk bağlamı">
+        {/* ── Bağlam paneli · dar bantta içeriğin ALTINA iner ──────── */}
+        <aside className="baglam" aria-label="Risk bağlamı">
           {karar ? (
             <>
               <p className="etiket" style={{ margin: '0 0 var(--s16)' }}>Karar kaydet</p>
@@ -318,7 +315,7 @@ export default function RiskDetayIstemci({ veri }: { veri: DetayVerisi }) {
 
               <div style={{ marginTop: 'var(--s20)' }}>
                 <CekmeceAlanlar alanlar={[
-                  { etiket: 'Santral', deger: santralMetni(risk) },
+                  { etiket: tBas('tesis'), deger: tesisMetni(risk, sozluk) },
                   { etiket: 'Sistem', deger: risk.sistem ? `${risk.sistem.kod} · ${risk.sistem.ad}` : '—' },
                   {
                     etiket: 'Sahip',

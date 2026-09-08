@@ -30,6 +30,8 @@ import {
   type HamSatir, type OnizlemeSatiri,
 } from '../uyum/degerlendirmeAktarimi';
 import { type Sonuc, tamam, hata, iz, bosluksuz } from './ortak';
+import { eylemSozlugu, eylemTerimi, kapsamTerimi } from './kapsamMesaji';
+import { t, tBas } from '../dil/terimler';
 
 const SatirSemasi = z.object({
   satirNo: z.number().int().min(1),
@@ -66,9 +68,13 @@ export async function degerlendirmeKuruKosu(girdi: {
 }): Promise<KuruKosuSonucu> {
   try {
     const k = await yetkiZorunlu('uyum', 'yazma', KAPSAM_SONRA);
+    /* Sözlük BİR kez okunur: hem zod etiketi hem kapsam mesajı aynı
+       terimi ister (`cache()` zaten tekrarı ucuzlatır, ama iki ayrı
+       okuma yazmak niyeti bulanıklaştırır). */
+    const sozluk = await eylemSozlugu(k, 'uyum');
     const v = z.object({
       regulasyonId: bosluksuz('Regülasyon'),
-      tesisId: bosluksuz('Santral'),
+      tesisId: bosluksuz(tBas(sozluk, 'tesis')),
       surecId: z.string().trim().transform((s) => s || null).nullable().optional(),
       kaynakAdi: bosluksuz('Kaynak adı'),
       satirlar: z.array(SatirSemasi)
@@ -76,11 +82,11 @@ export async function degerlendirmeKuruKosu(girdi: {
         .max(SATIR_TAVANI, `Tek koşuda en çok ${SATIR_TAVANI} satır okunur`),
     }).parse(girdi);
 
-    /* Kapsam kapısı HEDEF santrale sorulur: aktarım o santralin
+    /* Kapsam kapısı HEDEF tesise sorulur: aktarım o tesisin
        değerlendirmelerini değiştirecek. */
     kapsamZorunlu(k, 'uyum', 'yazma',
       { tesisId: v.tesisId, surecId: v.surecId ?? null },
-      'Bu santralde değerlendirme aktarma yetkiniz yok');
+      `Bu ${t(sozluk, 'tesis', 'bulunma')} değerlendirme aktarma yetkiniz yok`);
 
     const mevcutKayitlar = await db.maddeDurumu.findMany({
       where: {
@@ -95,7 +101,7 @@ export async function degerlendirmeKuruKosu(girdi: {
     });
 
     /* AKTİF istisnası olan maddeler ayrı okunur: kurum o maddeyi bu
-       santral için bilinçli olarak kapsam dışı bırakmıştır ve toplu bir
+       tesis için bilinçli olarak kapsam dışı bırakmıştır ve toplu bir
        aktarımın o kararı sessizce ezmesi, onaylı bir istisnayı bir
        elektronik tablo satırıyla geçersiz kılmak olurdu. */
     const istisnalar = await db.istisna.findMany({
@@ -175,7 +181,8 @@ export async function degerlendirmeAktarimiUygula(girdi: {
     }
     kapsamZorunlu(k, 'uyum', 'onay',
       { tesisId: kuru.tesisId, surecId: kuru.surecId },
-      'Bu santralde değerlendirme aktarımı uygulama yetkiniz yok');
+      `Bu ${await kapsamTerimi(k, 'uyum', kuru.tesisId, 'bulunma')} `
+      + 'değerlendirme aktarımı uygulama yetkiniz yok');
 
     const rapor = JSON.parse(kuru.raporJson ?? '{"satirlar":[]}') as {
       satirlar: OnizlemeSatiri[];
@@ -211,7 +218,10 @@ export async function degerlendirmeAktarimiUygula(girdi: {
     });
     const sayimlar = aktarimSayimlari(taze);
 
-    const kapi = uygulamaKapisi({ sayimlar, kuruKosuVar: true });
+    const kapi = uygulamaKapisi({
+      sayimlar, kuruKosuVar: true,
+      tesis: await eylemTerimi(k, 'uyum', kuru.tesisId),
+    });
     if (!kapi.ok) return hata(new Error(kapi.sebep));
 
     const uygulanacak = taze
@@ -286,7 +296,7 @@ export async function degerlendirmeAktarimiReddet(girdi: {
     }
     kapsamZorunlu(k, 'uyum', 'yazma',
       { tesisId: kuru.tesisId, surecId: kuru.surecId },
-      'Bu santralde aktarım reddetme yetkiniz yok');
+      `Bu ${await kapsamTerimi(k, 'uyum', kuru.tesisId, 'bulunma')} aktarım reddetme yetkiniz yok`);
 
     await db.degerlendirmeAktarimi.update({
       where: { id: v.kuruKosuId }, data: { durum: 'reddedildi' },

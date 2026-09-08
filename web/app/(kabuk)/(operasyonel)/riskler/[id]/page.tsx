@@ -11,9 +11,9 @@ import { riskDetayVerisi } from './veri';
    eğilimi GERÇEK veriden türetilir; olmayan halka uydurulmaz, bilinmeyen
    elmasıyla ve "yok" notuyla gösterilir (06 §19).
 
-   Santral kapsamı `veri.ts`te uygulanır (modül: `risk`). Kapsam dışı kayıt
+   Tesis kapsamı `veri.ts`te uygulanır (modül: `risk`). Kapsam dışı kayıt
    `notFound()` ile kapanır — ayrı bir yetki mesajı VERİLMEZ, çünkü "bu
-   santral senin dışında" demek o santralde kaydın var olduğunu doğrulamak
+   tesis senin dışında" demek o tesiste kaydın var olduğunu doğrulamak
    olurdu. */
 
 export async function generateStaticParams() {

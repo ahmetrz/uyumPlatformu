@@ -56,7 +56,7 @@ export async function girisZorunlu(): Promise<AktifKullanici> {
   return k;
 }
 
-/** İKİ AŞAMALI KAPI için ön kapsam. Kaydın santrali/süreci okunmadan
+/** İKİ AŞAMALI KAPI için ön kapsam. Kaydın tesisi/süreci okunmadan
     bilinemeyen eylemlerde (bulgu güncelle, aksiyon ekle/durum/doğrula)
     `yetkiZorunlu(modul, islem, KAPSAM_SONRA)` yalnız oturum + demo kilidi
     + "bu modülde bu işlem için BİR rolü var mı" sorusunu yanıtlar; tesise

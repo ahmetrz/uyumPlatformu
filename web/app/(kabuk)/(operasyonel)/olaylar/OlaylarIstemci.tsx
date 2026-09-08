@@ -1,4 +1,6 @@
 'use client';
+import { useSozluk, useTerim } from '@/lib/dil/SozlukSaglayici';
+import { t } from '@/lib/dil/terimler';
 import { useMemo, useState } from 'react';
 import { useUrlDurumu, useUrlDurumuBos } from '@/components/kabuk/urlDurumu';
 import { BosIlk, BosFiltre, Dugme, Im, Ipucu, type Durum } from '@/components/kabuk/temel';
@@ -12,12 +14,12 @@ import {
   EtkiDogrulama, OlayBaglari, OlayDuzenleFormu, OneriYenile, YeniOlayFormu,
 } from './Eylemler';
 import {
-  ETKI_ALANLARI, ETKI_ALAN_ETIKET, KADEME, KOPUKLUK_SOZU, TESPIT_SOZU,
+  ETKI_ALANLARI, ETKI_ALAN_ETIKET, KADEME, kopuklukSozu, TESPIT_SOZU,
   acikMi, bekleyenAlanlar, bildirimBekliyor, dogrulanmisAlanlar, imSozu,
   olayImi, olgu, seviyeDurumu, seviyeSozu, sirala, surukleyici,
   zincirKopuk, zincirOzeti,
   type BagAdayi, type BagTipi, type EtkiAlani, type HalkaGorunumu,
-  type OlayKaydi, type Santral,
+  type OlayKaydi, type Tesis,
 } from './mantik';
 import { BILDIRIM_SINIFI, BILDIRIM_SOZU } from '@/lib/uyum/bildirimSuresi';
 
@@ -51,14 +53,15 @@ const MERCEKLER = [
 type Kip = 'ozet' | 'duzenle';
 
 export default function OlaylarIstemci({
-  olaylar, santraller, adaylar, yazabilir, dogrulayabilir,
+  olaylar, tesisler, adaylar, yazabilir, dogrulayabilir,
 }: {
   olaylar: OlayKaydi[];
-  santraller: Santral[];
+  tesisler: Tesis[];
   adaylar: Record<BagTipi, BagAdayi[]>;
   yazabilir: boolean;
   dogrulayabilir: boolean;
 }) {
+  const sozluk = useSozluk();
   const [mercek, setMercek] = useUrlDurumu<string>('mercek', 'acik');
   const [seciliId, setSeciliId] = useUrlDurumuBos('sec');
   const [kuyrukAcik, setKuyrukAcik] = useState(false);
@@ -111,7 +114,7 @@ export default function OlaylarIstemci({
               <p className="etiket" style={{ margin: '0 0 var(--s12)' }}>Olay aç</p>
             </div>
             <div className="ab-panel-blok">
-              <YeniOlayFormu santraller={santraller} kapat={() => setYeniAcik(false)} />
+              <YeniOlayFormu tesisler={tesisler} kapat={() => setYeniAcik(false)} />
             </div>
           </Cekmece>
         )}
@@ -145,7 +148,7 @@ export default function OlaylarIstemci({
           ? TESPIT_SOZU[o.tespitKaynagi] ?? o.tespitKaynagi
           : <BilinmeyenHucre key="t" ad="Tespit kaynağı kaydedilmemiş" />,
         <span key="z" style={{ color: zincirKopuk(o) ? 'var(--unk)' : 'var(--i2)' }}>
-          {zincirOzeti(o)}
+          {zincirOzeti(o, sozluk)}
         </span>,
         <UretimHucresi key="u" o={o} />,
       ],
@@ -241,7 +244,7 @@ export default function OlaylarIstemci({
                 <p className="etiket" style={{ margin: '0 0 var(--s12)' }}>Olayı düzenle</p>
               </div>
               <div className="ab-panel-blok">
-                <OlayDuzenleFormu olay={secili} santraller={santraller}
+                <OlayDuzenleFormu olay={secili} tesisler={tesisler}
                   kapat={() => setKip('ozet')} />
               </div>
             </>
@@ -255,7 +258,7 @@ export default function OlaylarIstemci({
             <p className="etiket" style={{ margin: '0 0 var(--s12)' }}>Olay aç</p>
           </div>
           <div className="ab-panel-blok">
-            <YeniOlayFormu santraller={santraller} kapat={() => setYeniAcik(false)} />
+            <YeniOlayFormu tesisler={tesisler} kapat={() => setYeniAcik(false)} />
           </div>
         </Cekmece>
       )}
@@ -317,6 +320,7 @@ function Detay({
   dogrulayabilir: boolean;
   duzenle: () => void;
 }) {
+  const { t: terim, tBas: terimBas } = useTerim();
   const im = olayImi(o);
   const bekleyen = bekleyenAlanlar(o);
 
@@ -332,7 +336,8 @@ function Detay({
           durum: o.tespitKaynagi ? undefined : 'unk',
         },
         { etiket: 'Şiddet', deger: `${KADEME[o.siddet] ?? '—'} · ${o.siddet}` },
-        { etiket: 'Santral', deger: o.tesisAd ?? '—', durum: o.tesisAd ? undefined : 'unk' },
+        { etiket: terimBas('tesis'), deger: o.tesisAd ?? '—',
+          durum: o.tesisAd ? undefined : 'unk' },
         { etiket: 'Başlangıç', deger: zamanTR(o.baslangic) },
         {
           etiket: 'Bildirim',
@@ -386,7 +391,8 @@ function Detay({
         ikincil={o.yazilabilir ? <Dugme onClick={duzenle}>Kaydı düzenle</Dugme> : undefined}
         dipNot={o.yazilabilir
           ? 'Durum, müdahale ve öğrenme alanları düzenleme formunda; etki alanları orada YOKTUR.'
-          : 'Bu olayın santral kapsamında yazma yetkiniz yok — kayıt okunabilir, değiştirilemez.'}
+          : `Bu olayın ${terim('tesis')} kapsamında yazma yetkiniz yok`
+            + ' — kayıt okunabilir, değiştirilemez.'}
       />
       <OneriYenile olayId={o.id} yazabilir={o.yazilabilir}
         uretilme={o.oneri?.uretilme ?? null} />
@@ -468,7 +474,8 @@ function EtkiSatiri({
   );
 }
 
-/** Zincir görünümü: varlık → sistem → süreç → tesis. Kopan halka
+/** Zincir görünümü: varlık → sistem → süreç → tesis (sözcükler sözlükten).
+    Kopan halka
     NEREDE koptuğunu yazar; boş bırakılıp "yok" gibi görünmez. */
 function ZincirBlogu({ o }: { o: OlayKaydi }) {
   const zincir = o.oneri?.zincir ?? [];
@@ -495,14 +502,15 @@ function ZincirBlogu({ o }: { o: OlayKaydi }) {
 }
 
 function Halka({ h }: { h: HalkaGorunumu }) {
+  const sozluk = useSozluk();
   const adimlar = [
     h.varlik ? { ad: h.varlik.etiket, alt: `varlık · ${h.varlik.kritiklik}` } : null,
     h.sistem ? { ad: h.sistem.kod, alt: `sistem · ${h.sistem.kritiklik}` } : null,
     ...h.surecler.map((s) => ({ ad: s.kod, alt: `süreç · ${seviyeSozu(s.uretimEtkisi)}` })),
-    ...h.tesisler.map((t) => ({
-      ad: t.kod,
-      alt: `tesis · ${t.kritikAltyapi === true ? 'kritik altyapı'
-        : t.kritiklikSinifi ? `sınıf ${t.kritiklikSinifi}` : 'sınıf kaydı yok'}`,
+    ...h.tesisler.map((x) => ({
+      ad: x.kod,
+      alt: `${t(sozluk, 'tesis')} · ${x.kritikAltyapi === true ? 'kritik altyapı'
+        : x.kritiklikSinifi ? `sınıf ${x.kritiklikSinifi}` : 'sınıf kaydı yok'}`,
     })),
   ].filter((x): x is { ad: string; alt: string } => x !== null);
 
@@ -527,7 +535,7 @@ function Halka({ h }: { h: HalkaGorunumu }) {
         <p style={{ margin: 'var(--s8) 0 0', display: 'flex', alignItems: 'center',
           gap: 'var(--s6)', fontSize: 'var(--t-label)', color: 'var(--unk)' }}>
           <Im durum="unk" ad="Zincir kopuk" />
-          zincir burada kopuyor — {KOPUKLUK_SOZU[h.kopukluk] ?? h.kopukluk}
+          zincir burada kopuyor — {kopuklukSozu(sozluk)[h.kopukluk] ?? h.kopukluk}
         </p>
       )}
     </div>

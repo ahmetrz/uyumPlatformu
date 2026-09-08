@@ -1,5 +1,6 @@
 'use server';
 
+import { kapsamMesaji } from './kapsamMesaji';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { db } from '../db';
@@ -39,7 +40,8 @@ async function yedegeErisim(yedekId: string) {
   });
   if (!yedek) throw new Error('Yedek kaydı bulunamadı');
   kapsamZorunlu(k, 'envanter', 'yazma', { tesisId: yedek.varlik.tesisId },
-    'Bu tesis kapsamında yetkiniz yok');
+
+    await kapsamMesaji(k, 'envanter', 'yetkiniz yok', yedek.varlik.tesisId));
   return { k, yedek };
 }
 
@@ -47,7 +49,7 @@ async function yedegeErisim(yedekId: string) {
  * Yedeğin OKUNABİLİRLİĞİNİ insan doğrular.
  *
  * Bu bir geri yükleme testi DEĞİLDİR ("yedek açılabiliyor" ≠ "sistem geri
- * dönüyor") — restore testi santral katmanında `GeriYuklemeTesti` olarak
+ * dönüyor") — restore testi tesis katmanında `GeriYuklemeTesti` olarak
  * durur ve `restoreTestId` ile buraya bağlanır. Motor bu alanı kendisi
  * dolduramaz: kendi topladığı veriyi doğrulayamaz.
  */
@@ -188,7 +190,7 @@ export async function yedekBulgusunuIsle(girdi: {
 /* ═══ Okuma yüzeyi — çekmecenin tembel yüklediği varlık yedek detayı ═══
 
    NEDEN EYLEM KATMANINDA BİR OKUMA VAR
-   /yedekleme sayfası 17 santrali birden çiziyor; her santralin her kritik
+   /yedekleme sayfası 17 tesisi birden çiziyor; her tesisin her kritik
    varlığı için `yedekVarMi + sonBilinenIyi + konfigurasyonDegistiMi +
    yedekKontrolBagi` koşturmak yüzlerce sorgu eder ve ekranın %99'u hiç
    açılmayan çekmece için harcanır. Detay bu yüzden ÇEKMECE AÇILINCA
@@ -226,7 +228,7 @@ export type VarlikYedekDetayi = {
  * Bir varlığın yedek durumunu ve uyum bağı ÖNERİSİNİ okur.
  *
  * Yalnız okur; hiçbir alanı yazmaz. Yetki: `envanter/okuma` ve varlığın
- * santral kapsamı. Kapsam dışı varlık için kayıt DÖNMEZ — çekmece bir
+ * tesis kapsamı. Kapsam dışı varlık için kayıt DÖNMEZ — çekmece bir
  * yetki kaçağı yüzeyi olamaz.
  */
 export async function varlikYedekDurumu(
@@ -242,9 +244,10 @@ export async function varlikYedekDurumu(
     if (!varlik || varlik.silindi) return { ok: false, hata: 'Varlık bulunamadı' };
     try {
       kapsamZorunlu(k, 'envanter', 'okuma', { tesisId: varlik.tesisId },
-        'Bu tesis kapsamında yetkiniz yok');
+        await kapsamMesaji(k, 'envanter', 'yetkiniz yok', varlik.tesisId));
     } catch {
-      return { ok: false, hata: 'Bu tesis kapsamında yetkiniz yok' };
+      return { ok: false,
+        hata: await kapsamMesaji(k, 'envanter', 'yetkiniz yok', varlik.tesisId) };
     }
 
     const [varligiVar, iyi, degisim, kontroller, kayitlar] = await Promise.all([

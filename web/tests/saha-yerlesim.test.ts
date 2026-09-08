@@ -91,7 +91,7 @@ describe('kütük — beyaz liste, kritik yüzeyler required', () => {
     }
   });
   it('kritik karar yüzeyleri required: uyum endeksi, müdahale, takımyıldız, kritik risk, gecikmiş aksiyon, yaklaşan denetim, santral şeridi', () => {
-    for (const id of ['uyumEndeksi', 'mudahale', 'takimyildizi', 'kpiKritikRisk', 'kpiGecikmisAksiyon', 'kpiYaklasanDenetim', 'santralSeridi']) {
+    for (const id of ['uyumEndeksi', 'mudahale', 'takimyildizi', 'kpiKritikRisk', 'kpiGecikmisAksiyon', 'kpiYaklasanDenetim', 'tesisSeridi']) {
       expect(SAHA_MODUL_SOZLUGU[id]?.required).toBe(true);
     }
   });
@@ -124,7 +124,7 @@ describe('yerlesimDogrula — saf kurallar', () => {
     expect(yerlesimDogrula({ gizli: ['kpiRiskYogunlugu'], kpiSira: ucKpi }).ok).toBe(true);
   });
   it('required gizleme reddi', () => {
-    for (const id of ['uyumEndeksi', 'mudahale', 'santralSeridi', 'kpiKritikRisk']) {
+    for (const id of ['uyumEndeksi', 'mudahale', 'tesisSeridi', 'kpiKritikRisk']) {
       const d = yerlesimDogrula({ gizli: [id], kpiSira: VARSAYILAN_SIRA });
       expect(d.ok).toBe(false);
       if (!d.ok) expect(d.hata).toMatch(/zorunlu/);
@@ -159,17 +159,17 @@ describe('yerlesimDogrula — saf kurallar', () => {
     expect(v.ihlal).toBe(false);
     expect(v.alanYukseklik).not.toBeNull();
     expect(v.alanYukseklik!).toBeGreaterThanOrEqual(360);
-    const i = sozlesmeKontrol({ gizli: ['santralSeridi'], kpiSira: VARSAYILAN_SIRA });
+    const i = sozlesmeKontrol({ gizli: ['tesisSeridi'], kpiSira: VARSAYILAN_SIRA });
     expect(i.ihlal).toBe(true);
     expect(i.nedenler.length).toBeGreaterThan(0);
     // Doğrulama zinciri sözleşme ihlalini reddeder (required kapısı önce yakalar)
-    expect(yerlesimDogrula({ gizli: ['santralSeridi'], kpiSira: VARSAYILAN_SIRA }).ok).toBe(false);
+    expect(yerlesimDogrula({ gizli: ['tesisSeridi'], kpiSira: VARSAYILAN_SIRA }).ok).toBe(false);
   });
   it('fallback: bozuk kayıt kod varsayılanına düşer; ekran boş kalmaz', () => {
     expect(yerlesimNormalle(undefined)).toEqual(SAHA_YERLESIM_VARSAYILAN);
     expect(yerlesimNormalle({ gizli: ['uyumEndeksi'], kpiSira: VARSAYILAN_SIRA })).toEqual(SAHA_YERLESIM_VARSAYILAN);
     expect(yerlesimNormalle('x')).toEqual(SAHA_YERLESIM_VARSAYILAN);
-    for (const id of ['uyumEndeksi', 'santralSeridi']) expect(gorunur(yerlesimNormalle(null), id)).toBe(true);
+    for (const id of ['uyumEndeksi', 'tesisSeridi']) expect(gorunur(yerlesimNormalle(null), id)).toBe(true);
   });
   it('kpiSirasi / yerlesimFarki / yerlesimMetni tutarlı', () => {
     const sonra = { gizli: ['katman', 'kpiRiskYogunlugu'], kpiSira: VARSAYILAN_SIRA.slice(0, 3) };

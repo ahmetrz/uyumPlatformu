@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { Alan, Dugme, Im } from '@/components/kabuk/temel';
 import { CekmeceEylemler } from '@/components/kabuk/panel';
+import { useTerim } from '@/lib/dil/SozlukSaglayici';
 import { useEylem } from '@/components/useEylem';
 import { zamanTR } from '@/lib/sabitler';
 import {
@@ -14,7 +15,7 @@ import {
   SEVIYE_KUMESI, SIDDETLER, SIDDET_SOZU, TESPIT_KAYNAKLARI, TESPIT_SOZU,
   TIPLER, TIP_SOZU,
   baglar, bagSayisi, dogrulanmisAlanlar, seviyeSozu,
-  type BagAdayi, type BagTipi, type EtkiAlani, type OlayKaydi, type Santral,
+  type BagAdayi, type BagTipi, type EtkiAlani, type OlayKaydi, type Tesis,
 } from './mantik';
 
 /* Etki doğrulama yüzeyi — otomasyonun İNSAN KAPISIdır.
@@ -221,8 +222,8 @@ export function OneriYenile({
      o üretir ve 'olusturma' izini o düşer. Ürünün içinde olay açmanın
      başka bir yolu yoktu; bu form o boşluğu kapatır.
    · GÜNCELLEME → `olayGuncelle` (lib/eylemler2/olay.ts). Müdahale ve
-     öğrenme alanlarını yalnız o bilir, hedef santral kapsamını da yalnız o
-     denetler (olay başka santrale taşınıyorsa İKİ tarafta yetki arar).
+     öğrenme alanlarını yalnız o bilir, hedef tesis kapsamını da yalnız o
+     denetler (olay başka tesise taşınıyorsa İKİ tarafta yetki arar).
 
    `olayKaydet` güncelleme de yapabilir; kullanmıyoruz. İki yazma yolu aynı
    satıra dokunursa hangisinin hangi alanı ezdiği ekrandan okunamaz hâle
@@ -237,8 +238,9 @@ const BOS_YENI = {
 };
 
 export function YeniOlayFormu({
-  santraller, kapat,
-}: { santraller: Santral[]; kapat: () => void }) {
+  tesisler, kapat,
+}: { tesisler: Tesis[]; kapat: () => void }) {
+  const { t: terim, tBas: terimBas } = useTerim();
   const { bekliyor, hata, calistir } = useEylem();
   const [v, setV] = useState(BOS_YENI);
   const gecerli = v.baslik.trim().length > 0;
@@ -265,11 +267,11 @@ export function YeniOlayFormu({
         </select>
       </Alan>
 
-      <Alan etiket="Santral">
+      <Alan etiket={terimBas('tesis')}>
         <select className="ab-gr" value={v.tesisId}
           onChange={(e) => setV({ ...v, tesisId: e.target.value })}>
-          <option value="">santral kaydı yok</option>
-          {santraller.map((t) => <option key={t.id} value={t.id}>{t.kod} — {t.ad}</option>)}
+          <option value="">{terim('tesis')} kaydı yok</option>
+          {tesisler.map((t) => <option key={t.id} value={t.id}>{t.kod} — {t.ad}</option>)}
         </select>
       </Alan>
 
@@ -295,8 +297,8 @@ export function YeniOlayFormu({
 
       <p className="ab-panel-dip" style={{ margin: 0 }}>
         Açılış denetim izine düşer. Etki alanları BOŞ açılır — etki motorun
-        önerisiyle değil, insan doğrulamasıyla dolar. Santral seçilmezse
-        kayıt &quot;etkisiz&quot; değil, &quot;santrali yazılmamış&quot; sayılır.
+        önerisiyle değil, insan doğrulamasıyla dolar. Tesis seçilmezse
+        kayıt &quot;etkisiz&quot; değil, &quot;{terim('tesis','belirtme')} yazılmamış&quot; sayılır.
       </p>
     </div>
   );
@@ -309,9 +311,10 @@ const BILDIRIM = [
   { id: 'hayir', ad: 'Gerekmiyor' },
 ];
 
-export function OlayDuzenleFormu({ olay, santraller, kapat }: {
-  olay: OlayKaydi; santraller: Santral[]; kapat: () => void;
+export function OlayDuzenleFormu({ olay, tesisler, kapat }: {
+  olay: OlayKaydi; tesisler: Tesis[]; kapat: () => void;
 }) {
+  const { t: terim, tBas: terimBas } = useTerim();
   const { bekliyor, hata, calistir } = useEylem();
   const [v, setV] = useState({
     baslik: olay.baslik,
@@ -353,11 +356,11 @@ export function OlayDuzenleFormu({ olay, santraller, kapat }: {
         </select>
       </Alan>
 
-      <Alan etiket="Santral">
+      <Alan etiket={terimBas('tesis')}>
         <select className="ab-gr" value={v.tesisId}
           onChange={(e) => setV({ ...v, tesisId: e.target.value })}>
-          <option value="">santral kaydı yok</option>
-          {santraller.map((t) => <option key={t.id} value={t.id}>{t.kod} — {t.ad}</option>)}
+          <option value="">{terim('tesis')} kaydı yok</option>
+          {tesisler.map((t) => <option key={t.id} value={t.id}>{t.kod} — {t.ad}</option>)}
         </select>
       </Alan>
 

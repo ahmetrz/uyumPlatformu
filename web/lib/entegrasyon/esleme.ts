@@ -2,6 +2,7 @@ import 'server-only';
 import { db } from '../db';
 import { anahtarla, HEDEF_ALANLAR, type AlanTanimi, type HedefAlan } from './varlikAktarim';
 import type { Gozlem } from './sozlesme';
+import type { TerimAnahtari } from '../dil/terimler';
 
 /* ═══════════════════════════════════════════════════════════════════════
    EŞLEME TEZGÂHI — sürümlü eşleme profili motoru (§7)
@@ -80,17 +81,19 @@ export type EslemeProfilTanimi = {
   kurallar: EslemeKurali[];
 };
 
-/* Özel eşlemeler (§7): santral · varlık tipi · sahip · ağ bölgesi.
+/* Özel eşlemeler (§7): tesis · varlık tipi · sahip · ağ bölgesi.
    Bunlar KOD taşır, kimlik değil: profil motoru saf kalır, kod→kimlik
    çözümü veritabanına dokunan katmanın işidir. Ayrı bir kural tipi
    değiller — hedef alan sözlüğünde `tip: 'referans'` olarak zaten
    varlar; burada yalnız hangi dördünün "özel" olduğu adlandırılır ki
    ekran onları ayrı bir bölümde toplasın. */
-export const OZEL_HEDEFLER: Record<string, string> = {
-  tesisKodu: 'Santral',
-  turKodu: 'Varlık tipi',
-  sahipEposta: 'Sahip',
-  bolgeKodu: 'Ağ bölgesi',
+export const OZEL_HEDEFLER: Record<string, { ad: string; terim?: TerimAnahtari }> = {
+  /* `ad` ÇEKİRDEK yedeğidir; `terim` taşıyan satırın etiketi sözlükten
+     yazılır (`lib/eylemler2/esleme.ts → eslemeSozlugu`). */
+  tesisKodu: { ad: 'Tesis', terim: 'tesis' },
+  turKodu: { ad: 'Varlık tipi' },
+  sahipEposta: { ad: 'Sahip' },
+  bolgeKodu: { ad: 'Ağ bölgesi' },
 };
 
 const ALAN_INDEKSI = new Map<string, AlanTanimi>(HEDEF_ALANLAR.map((a) => [a.anahtar, a]));

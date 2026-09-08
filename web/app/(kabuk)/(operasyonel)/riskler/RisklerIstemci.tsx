@@ -1,4 +1,5 @@
 'use client';
+import { useSozluk, useTerim } from '@/lib/dil/SozlukSaglayici';
 import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useUrlDurumu, useUrlDurumuBos } from '@/components/kabuk/urlDurumu';
@@ -12,7 +13,7 @@ import { RISK_DURUM_ETIKET, etiketle, tarihTR } from '@/lib/sabitler';
 import { RiskFormu, KararFormu } from './Formlar';
 import {
   aktifMi, altSatir, gecikmis, gunFarki, hucreEsigi, hucredeMi, isiHaritasi, kabulDoldu,
-  maxEtki, santralMetni, skorDurumu, skorAgirligi, SKOR_TAVANI, SKOR_TIK,
+  maxEtki, tesisMetni, skorDurumu, skorAgirligi, SKOR_TAVANI, SKOR_TIK,
   type BulguSecenegi, type IsiHucresi, type Kisi, type Kodlu, type R,
 } from './ortak';
 
@@ -38,8 +39,11 @@ const KOLONLAR: VtKolon<R>[] = [
         <span className="alt">{altSatir(r)}</span>
       </span>
     ) },
-  { anahtar: 'santral', baslik: 'Santral', genislik: '190px', ikincil: true,
-    hucre: (r) => <span className="ikincil">{santralMetni(r)}</span> },
+  /* Başlık ve hücre sözlüğü izler; sabit dizi modül seviyesinde durduğu
+     için bileşende KOPYALANIR (envanter dilimindeki desen: her render'da
+     yeni dizi üretmek tablonun sütun kimliğini gereksiz değiştirirdi). */
+  { anahtar: 'tesis', baslik: 'Tesis', genislik: '190px', ikincil: true,
+    hucre: (r) => <span className="ikincil">{tesisMetni(r)}</span> },
   { anahtar: 'sahip', baslik: 'Sahip', genislik: '130px',
     hucre: (r) => (
       <span style={!r.sahip ? { color: 'var(--md)' } : undefined}>{r.sahip?.ad ?? 'atanmadı'}</span>
@@ -63,9 +67,20 @@ export default function RisklerIstemci({
     aktif: number; enYuksek: number | null; kritik: number; gecikmis: number;
     kabul: number; sahipsiz: number; skorsuz: number;
   };
-  /** liste bir santral kapsamıyla daraltıldı mı — boş ekranın SÖZÜ değişir */
+  /** liste bir tesis kapsamıyla daraltıldı mı — boş ekranın SÖZÜ değişir */
   kapsamli?: boolean;
 }) {
+  const { t: terim, tBas } = useTerim();
+  const sozluk = useSozluk();
+  /* Yalnız tesis kolonunun başlığı ve hücresi sözlüğe bağlı; gerisi
+     modül sabitinden gelir. `useMemo` bağımlılığında `sozluk` VAR —
+     yoksa sözlük değişince tablo eski sözcükle çizilmeye devam ederdi
+     (`yetkiler` ve `envanter` dilimlerinde çıkan sınıf). */
+  const kolonlar = useMemo(() => KOLONLAR.map((k) => (k.anahtar !== 'tesis' ? k : {
+    ...k,
+    baslik: tBas('tesis'),
+    hucre: (r: R) => <span className="ikincil">{tesisMetni(r, sozluk)}</span>,
+  })), [tBas, sozluk]);
   const [filtre, setFiltre] = useUrlDurumu<string>('mercek', 'aktif');
   const [tesisF, setTesisF] = useUrlDurumuBos('tesis');
   const [sahipF, setSahipF] = useUrlDurumuBos('sahip');
@@ -91,7 +106,7 @@ export default function RisklerIstemci({
   const kesildi = toplam > riskler.length;
 
   /* ── Filtre + kapsam ────────────────────────────────────────────────── */
-  /* Harita tabanı: sekme + santral + sahip süzgeçleri uygulanmış, HÜCRE
+  /* Harita tabanı: sekme + tesis + sahip süzgeçleri uygulanmış, HÜCRE
      süzgeci uygulanmamış küme. Harita bu kümeden sayılır ki bir hücreye
      tıklayınca diğer hücrelerin sayıları sıfırlanmasın — okuyucu haritada
      gezinirken bağlamı kaybetmez. */
@@ -189,7 +204,7 @@ export default function RisklerIstemci({
             sec={(id) => { setFiltre(id); setKuyrukAcik(false); }}
             kapsam={
               <>
-                <Kapsam etiket="Santral" aktif={tesisF} sec={setTesisF}
+                <Kapsam etiket={tBas('tesis')} aktif={tesisF} sec={setTesisF}
                   secenekler={tesisler.map((t) => ({ id: t.id, ad: t.ad }))} />
                 <Kapsam etiket="Sahip" aktif={sahipF} sec={setSahipF}
                   secenekler={[
@@ -236,14 +251,15 @@ export default function RisklerIstemci({
               <div style={{ borderTop: 'var(--bw-strong) solid var(--hr2)' }}>
                 <VeriTablosu<R>
                   etiket="Risk kütüğü"
-                  kolonlar={KOLONLAR}
+                  kolonlar={kolonlar}
                   satirlar={gosterilen}
                   secili={seciliId}
                   sec={(id) => { if (id) sec(id); else cekmeceyiKapat(); }}
                   durum={(r) => skorDurumu(r.artikRisk)}
                   bosCumle={null}
                   kuyruk={toplanan.length > 0
-                    ? { metin: `${kuyrukSkorlari.length ? `≤${Math.max(...kuyrukSkorlari)}` : '—'} · ${kuyrukEtiketi} · portföy`,
+                    ? { metin: `${kuyrukSkorlari.length ? `≤${Math.max(...kuyrukSkorlari)}` : '—'}`
+                      + ` · ${kuyrukEtiketi} · ${terim('portfoy')}`,
                       ac: () => setKuyrukAcik(true) }
                     : null}
                   dipNot={<>
@@ -420,7 +436,7 @@ function SkorHucresi({ risk }: { risk: R }) {
   );
 }
 
-/* ── Kapsam kontrolü (SANTRAL ▾ / SAHİP ▾) ──────────────────────────── */
+/* ── Kapsam kontrolü (TESİS ▾ / SAHİP ▾) ────────────────────────────── */
 
 function Kapsam({ etiket, secenekler, aktif, sec }: {
   etiket: string;
@@ -484,6 +500,8 @@ function Kapsam({ etiket, secenekler, aktif, sec }: {
 function Ozet({ risk, duzenle, karar }: {
   risk: R; duzenle: () => void; karar: () => void;
 }) {
+  const { tBas } = useTerim();
+  const sozluk = useSozluk();
   const durum = skorDurumu(risk.artikRisk);
   const doldu = kabulDoldu(risk);
   const etki = maxEtki(risk.etkiler);
@@ -551,8 +569,8 @@ function Ozet({ risk, duzenle, karar }: {
           deger: risk.olasilik !== null && etki !== null ? `${risk.olasilik} × ${etki}` : '—',
         },
         {
-          etiket: 'Santral',
-          deger: `${santralMetni(risk)}${risk.sistem ? ` · ${risk.sistem.kod}` : ''}`,
+          etiket: tBas('tesis'),
+          deger: `${tesisMetni(risk, sozluk)}${risk.sistem ? ` · ${risk.sistem.kod}` : ''}`,
         },
         {
           etiket: 'Sahip',

@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import { useSozluk, useTerim } from '@/lib/dil/SozlukSaglayici';
 import { useMemo, useState } from 'react';
 import { useUrlDurumu, useUrlDurumuBos } from '@/components/kabuk/urlDurumu';
 import { Im, Metrikler, BosIlk, BosFiltre, Dugme, type Durum } from '@/components/kabuk/temel';
@@ -53,7 +54,7 @@ const KOLONLAR: VtKolon<DuzSatir>[] = [
   },
   {
     anahtar: 'kapsam', baslik: 'Kapsam', ikincil: true, genislik: '170px',
-    hucre: ({ satir }) => kapsamMetni(satir.hesaplar),
+    hucre: ({ satir }) => kapsamMetni(satir.hesaplar),  // sözlük bileşende bağlanır
   },
   {
     anahtar: 'kullanim', baslik: 'Son kullanım', genislik: '160px',
@@ -79,9 +80,20 @@ export default function KimlikIstemci({ hesaplar, tesisler, kaynaklar, kapsamli 
   hesaplar: Hesap[];
   tesisler: { id: string; ad: string }[];
   kaynaklar: string[];
-  /** liste bir santral kapsamıyla daraltıldı mı — boş ekranın SÖZÜ değişir */
+  /** liste bir tesis kapsamıyla daraltıldı mı — boş ekranın SÖZÜ değişir */
   kapsamli?: boolean;
 }) {
+  const sozluk = useSozluk();
+  /* Kapsam hücresi sözlükten metin üretiyor; sabit modülde kalır, yalnız
+     o kolon kopyalanır (envanter/riskler dilimlerindeki desen). */
+  const kolonlar: VtKolon<DuzSatir>[] = useMemo(
+    () => KOLONLAR.map((k) => (k.anahtar !== 'kapsam' ? k : {
+      ...k,
+      hucre: (d: DuzSatir) => kapsamMetni(d.satir.hesaplar, sozluk),
+    })),
+    [sozluk],
+  );
+  const { tBas } = useTerim();
   const [mercek, setMercek] = useUrlDurumu<string>('mercek', 'hepsi');
   const [tesisF, setTesisF] = useUrlDurumuBos('tesis');
   const [kaynakF, setKaynakF] = useUrlDurumuBos('kaynak');
@@ -217,7 +229,7 @@ export default function KimlikIstemci({ hesaplar, tesisler, kaynaklar, kapsamli 
             sec={(id) => { setMercek(id); setKuyrukAcik(false); }}
             kapsam={
               <>
-                <Kapsam etiket="Santral" aktif={tesisF} sec={setTesisF}
+                <Kapsam etiket={tBas('tesis')} aktif={tesisF} sec={setTesisF}
                   secenekler={tesisler.map((t) => ({ id: t.id, ad: t.ad }))} />
                 <Kapsam etiket="Kaynak" aktif={kaynakF} sec={setKaynakF}
                   secenekler={kaynaklar.map((k) => ({ id: k, ad: k }))} />
@@ -232,7 +244,7 @@ export default function KimlikIstemci({ hesaplar, tesisler, kaynaklar, kapsamli 
             <div style={{ marginTop: 'var(--s22)', borderTop: 'var(--bw-strong) solid var(--hr2)' }}>
               <VeriTablosu<DuzSatir>
                 etiket="Erişim incelemesi kütüğü"
-                kolonlar={KOLONLAR}
+                kolonlar={kolonlar}
                 satirlar={duzSatirlar}
                 secili={seciliId}
                 sec={(id) => {
@@ -290,7 +302,7 @@ function DurumluHucre({ metin, durum }: { metin: string; durum?: Durum }) {
   return <span style={durum ? { color: `var(--${durum})` } : undefined}>{metin}</span>;
 }
 
-/* ── kapsam kontrolü (SANTRAL ▾ / KAYNAK ▾) ────────────────────────────── */
+/* ── kapsam kontrolü (TESİS ▾ / KAYNAK ▾) ──────────────────────────────── */
 
 function Kapsam({ etiket, secenekler, aktif, sec }: {
   etiket: string;
@@ -352,6 +364,8 @@ function yetkiAltSatiri(y: Yetki): string {
 function HesapOzeti({ hesap, yetki, secYetki }: {
   hesap: Hesap; yetki: Yetki | null; secYetki: (id: string) => void;
 }) {
+  const { t: terim, tBas } = useTerim();
+  const sozluk = useSozluk();
   const durum = hesapDurumu(hesap);
   const rotasyon = rotasyonAlani(hesap);
   const kullanim = gunFarki(hesap.sonKullanim);
@@ -373,7 +387,7 @@ function HesapOzeti({ hesap, yetki, secYetki }: {
           deger: hesap.kaynakSistem ?? '—',
           durum: hesap.kaynakSistem ? undefined : 'unk',
         },
-        { etiket: 'Santral', deger: hesap.tesisAd ?? 'portföy' },
+        { etiket: tBas('tesis'), deger: hesap.tesisAd ?? terim('portfoy') },
         { etiket: 'Parola rotasyonu', ...rotasyon },
         {
           etiket: 'Son kullanım',
@@ -434,7 +448,7 @@ function HesapOzeti({ hesap, yetki, secYetki }: {
         )}
         {yetki && (
           <p className="ab-panel-dip" style={{ margin: 'var(--s12) 0 0' }}>
-            Veriliş yolu · {verilisYolu(hesap, yetki)}
+            Veriliş yolu · {verilisYolu(hesap, yetki, sozluk)}
           </p>
         )}
       </div>
@@ -445,7 +459,8 @@ function HesapOzeti({ hesap, yetki, secYetki }: {
         <div className="ab-panel-blok" style={{ marginTop: 'var(--s24)' }}>
           <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Bağlı kayıtlar</p>
           <p className="ab-panel-dip" style={{ margin: 0 }}>
-            Bu hesabın varlıkları ve santrali üzerinden açık risk ya da bulgu bağı kurulmadı.
+            Bu hesabın varlıkları ve bağlı olduğu {terim('tesis')} üzerinden açık risk ya da
+            bulgu bağı kurulmadı.
           </p>
         </div>
       )}
@@ -460,6 +475,7 @@ function HesapOzeti({ hesap, yetki, secYetki }: {
 function GrupOzeti({ grup, sec }: {
   grup: Extract<TabloSatiri, { tur: 'grup' }>; sec: (id: string) => void;
 }) {
+  const sozluk = useSozluk();
   const durum = satirDurumu(grup);
   const uyeler = grup.hesaplar;
   const ayricalikli = uyeler.filter((h) => h.ayricalikli).length;
@@ -480,7 +496,7 @@ function GrupOzeti({ grup, sec }: {
           durum: ayricalikli > 0 ? 'bd' : undefined,
         },
         { etiket: 'Kaynak sistem', deger: kaynak.join(' · ') },
-        { etiket: 'Kapsam', deger: kapsamMetni(uyeler) },
+        { etiket: 'Kapsam', deger: kapsamMetni(uyeler, sozluk) },
         { etiket: 'En eski kullanım', deger: kullanim.metin, durum: kullanim.durum },
         { etiket: 'Sahip', deger: sahip.metin, durum: sahip.durum },
       ]} />

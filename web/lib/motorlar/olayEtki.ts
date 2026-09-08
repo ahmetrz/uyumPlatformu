@@ -276,9 +276,23 @@ function emniyetKarari(zincir: ZincirHalkasi[]): Karar {
   };
 }
 
-/** Regülasyon etkisi santral profilinden gelir: kritik altyapı statüsü,
+/** Regülasyon etkisi tesis profilinden gelir: kritik altyapı statüsü,
     yoksa EPDK kritiklik sınıfı. Profil yoksa `bilinmiyor` —
-    "kritik altyapı değil" ile "sınıflandırılmadı" aynı şey değildir. */
+    "kritik altyapı değil" ile "sınıflandırılmadı" aynı şey değildir.
+
+    ── GEREKÇE METNİ ÇEKİRDEK SÖZCÜKTE KALIR ──────────────────────────
+    Bu dizeler ekrana yazılmadan ÖNCE veritabanına yazılıyor
+    (`Olay.etkiOnerisiJson`, aşağıda). Saklanan bir artefakta kiracıya
+    göre DEĞİŞEN sözcük gömmek, "değişmez denetim izi" kuralını sessizce
+    deler: sözlük satırı bugün düzenlenirse dün kaydedilmiş gerekçe
+    başka bir sözcükle okunur, ama kayıt değişmemiş görünür.
+
+    Bu sınır R0-8'den AYRIDIR ve karıştırılmamalı: R0-8 kiracı bağlamını
+    BEKLEYEMEYEN yüzeylerdir; burası bekleyebilir (motor sunucuda, async,
+    `tesisId` elinde). Buradaki sebep saklamadır. Doğru uzun çözüm
+    gerekçeyi YAPISAL tutmak (kod anahtarı + değerler) ve sözcüğü OKUMA
+    anında sözlükten üretmek; o, artefakt biçimini değiştirir ve kendi
+    dilimidir. Bugün: çekirdek sözcük, sebebi yazılı. */
 function regulasyonKarari(zincir: ZincirHalkasi[], olayTesisi: ZincirTesisi | null): Karar {
   const adaylar: { s: EtkiSeviyesi; dayanak: string }[] = [];
 
@@ -286,14 +300,14 @@ function regulasyonKarari(zincir: ZincirHalkasi[], olayTesisi: ZincirTesisi | nu
     for (const t of h.tesisler) {
       const yol = zincirMetni(h, h.surecler[0], t);
       if (t.kritikAltyapi === true) {
-        adaylar.push({ s: 'yuksek', dayanak: `${yol} · santral profili kritik altyapı statüsünde` });
+        adaylar.push({ s: 'yuksek', dayanak: `${yol} · tesis profili kritik altyapı statüsünde` });
         continue;
       }
       const sinif = seviye(t.kritiklikSinifi);
       if (sinif !== null) {
         adaylar.push({
           s: sinif,
-          dayanak: `${yol} · santral profili kritiklik sınıfı ${ham(t.kritiklikSinifi)}`,
+          dayanak: `${yol} · tesis profili kritiklik sınıfı ${ham(t.kritiklikSinifi)}`,
         });
       }
     }
@@ -324,7 +338,7 @@ function regulasyonKarari(zincir: ZincirHalkasi[], olayTesisi: ZincirTesisi | nu
     return {
       seviye: 'bilinmiyor',
       dayanak: tesisVar
-        ? 'ulaşılan tesislerde santral profili / kritiklik sınıfı kaydı yok'
+        ? 'ulaşılan tesislerde tesis profili / kritiklik sınıfı kaydı yok'
         : kopuklukGerekcesi(zincir, 'regülasyon etkisi'),
     };
   }

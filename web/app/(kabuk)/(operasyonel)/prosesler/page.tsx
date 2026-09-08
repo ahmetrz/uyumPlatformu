@@ -27,9 +27,9 @@ export const metadata: Metadata = { title: 'Proses zinciri' };
    DEĞİL.
 
    ── KAPSAM ────────────────────────────────────────────────────────────
-   Santrali olan süreç kullanıcının envanter kapsamına tabidir; santralsiz
+   Tesisi olan süreç kullanıcının envanter kapsamına tabidir; tesissiz
    (grup çapında) süreç herkese görünür — onu gizlemek, kimsenin
-   görmemesi demek olurdu. Düzenleme yetkisi ayrıca sorulur ve santral
+   görmemesi demek olurdu. Düzenleme yetkisi ayrıca sorulur ve tesis
    bazında verilir. */
 
 export default async function Sayfa() {

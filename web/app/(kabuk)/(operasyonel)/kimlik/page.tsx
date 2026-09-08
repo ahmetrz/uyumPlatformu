@@ -15,7 +15,7 @@ export const metadata: Metadata = { title: 'Erişim incelemesi' };
    ErisimIncelemesi üçlüsünden hesaplanır (bkz. mantik.ts) ve kaynağı
    `veri.ts`teki DARALTILMIŞ sorgudur.
 
-   Kapı iki katmanlıdır: modül izni burada (`envanter/okuma`), santral
+   Kapı iki katmanlıdır: modül izni burada (`envanter/okuma`), tesis
    kapsamı `veri.ts`te. Yalnız oturum kontrolü yeterli DEĞİLDİ — envanterde
    hiç okuma izni olmayan bir rol kurumdaki bütün ayrıcalıklı hesapları
    görebiliyordu. */

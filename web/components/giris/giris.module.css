@@ -64,7 +64,22 @@
   .root .runway { display: none; }
   .root .destination { margin: 0; transform: none !important; clip-path: none !important; visibility: visible !important; }
 }
-.login { grid-template-columns: minmax(0, 1fr) var(--drawer-w); }
+
+/* Satır şablonu SIFIRLANIR. `/giris` `.ab` sınıfını belirteç ve tipografi
+   için kullanıyor ama uygulama KABUĞU değil: başlık çubuğu, durum şeridi,
+   ayak yok. `.ab` ise kabuğun altı satırını dayatıyor
+   (`56px auto auto minmax(0, 1fr) auto auto`) ve giriş ekranının iki paneli
+   kabuğun 56 piksellik BAŞLIK satırına çakılıyordu.
+
+   ÖLÇÜLDÜ (bu satır yazılmadan önce, CTA izlendikten sonra): görsel alanı
+   1440'ta 1040×56 · 1024'te 624×56 · 768'de 368×56 ve e-posta alanının üst
+   kenarı y885 — yani 900px'lik görüntü alanının en altında, form fiilen
+   ekran dışında. 375'te y1011 (görünür alan 780). Kusur her endeydi ve
+   hiçbir kapı ölçmüyordu: axe "form görünür mü" diye sormaz.
+
+   Sütun kuralı satır içi `style` ile ezilemezdi, satır kuralı da öyle;
+   ikisi de burada durur. */
+.login { grid-template-columns: minmax(0, 1fr) var(--drawer-w); grid-template-rows: minmax(0, 1fr); }
 @media (max-width: 699px) {
   .login { grid-template-columns: minmax(0, 1fr); }
   .login > section { min-height: 320px; }

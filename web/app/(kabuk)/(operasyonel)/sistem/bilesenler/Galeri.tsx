@@ -340,6 +340,13 @@ export default function Galeri() {
         </B>
 
         <B no="13" ad="Grafik tuvali" not="İlk render yalnız bölgeleri ve kritik düğümleri gösterir. Akış yalnız yön anlatır; azaltılmış harekette durur, kesik çizgi kalır.">
+          {/* Şema kendi İÇSEL enini ister (168px sabit düğüm + yüzde konum
+              ⇒ ≥840px, bkz. kabuk.css `.ab-tuval-kaydir`). Dar bantta
+              küçültülemez: kenarlar düğümün yüzde koordinatına çizilir,
+              düğümü kenara çivilemek çizgiyi yalancı bağlardı. Kaydırılır
+              ve kap klavyeyle erişilebilir olur. */}
+          <div className="ab-tuval-kaydir" role="region"
+            aria-label="Ağ topolojisi şeması" tabIndex={0}>
           <Tuval
             odak={odak} odakla={(id) => setOdak(odak === id ? null : id)}
             dipNot="Düğüme tıkla · ilgisiz kenarlar söner"
@@ -359,6 +366,7 @@ export default function Galeri() {
               { kaynak: 'scada', hedef: 'sep' },
             ]}
           />
+          </div>
         </B>
 
         <B no="14" ad="Veri kökeni" not="Bu bir durum rozeti değildir: kaydın DOĞRULUĞUNU değil KÖKENİNİ söyler. Zemin, kenarlık, yarıçap yok. Kökeni olmayan kayıt sessizce kaybolmaz, 'Elle girildi' der; güven ölçülmemişse '%0' değil 'ölçülmedi' yazar.">

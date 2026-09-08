@@ -1,4 +1,5 @@
 'use client';
+import { useSozluk, useTerim } from '@/lib/dil/SozlukSaglayici';
 import { useMemo, useState, useSyncExternalStore } from 'react';
 import { useUrlDurumu, useUrlDurumuBos } from '@/components/kabuk/urlDurumu';
 import Link from 'next/link';
@@ -90,6 +91,8 @@ export default function DokumanlarIstemci({
   onaylayabilir: boolean;
   kapsamli?: boolean;
 }) {
+  const { t: terim } = useTerim();
+  const sozluk = useSozluk();
   const [mercek, setMercek] = useUrlDurumu<Mercek>('mercek', 'tumu');
   const [turF, setTurF] = useUrlDurumuBos('tur');
   const [arama, setArama] = useState('');
@@ -173,7 +176,7 @@ export default function DokumanlarIstemci({
       durum: enKotu,
       kenar: enKotu,
       konu: b.baslik,
-      alt: `${b.kod} · sürüm ${b.surum} · ${kapsamYazisi(b.tesisler)}`,
+      alt: `${b.kod} · sürüm ${b.surum} · ${kapsamYazisi(b.tesisler, sozluk)}`,
       hucreler: [
         TUR_SOZU[b.tur as Tur] ?? b.tur,
         <DurumHucresi key="d" belge={b} />,
@@ -267,7 +270,7 @@ export default function DokumanlarIstemci({
               />
               <p className="ab-dip" style={{ margin: 'var(--s14) 0 0' }}>
                 {dipNot({ gorunur: gorunur.length, toplam, yuklenen: belgeler.length })}
-                {kapsamDisi > 0 && ` · ${kapsamDisi} belge santral kapsamınız dışında`}
+                {kapsamDisi > 0 && ` · ${kapsamDisi} belge ${terim('tesis')} kapsamınız dışında`}
               </p>
               <DysNotu />
             </div>
@@ -276,7 +279,8 @@ export default function DokumanlarIstemci({
           ) : (
             <BosIlk
               cumle={kapsamli
-                ? 'Kapsamınızda belge kaydı yok. Kurumsal belgeler santral ayrımı olmadan herkese görünür; demek ki kütük gerçekten boş.'
+                ? `Kapsamınızda belge kaydı yok. Kurumsal belgeler ${terim('tesis')} ayrımı`
+                  + ' olmadan herkese görünür; demek ki kütük gerçekten boş.'
                 : 'Belge kütüğü boş. Politika, prosedür ve planlar buraya kaydedilir; dosyanın kendisi kurumun doküman sisteminde kalır.'}
               eylem={yazabilir && !formAcik
                 ? <Dugme tur="ikincil" onClick={() => setFormAcik(true)}>Belge ekle</Dugme>
@@ -449,6 +453,8 @@ function BelgeCekmecesi({ belge, simdi, yazabilir, onaylayabilir, duzenle, kapat
   yazabilir: boolean; onaylayabilir: boolean;
   duzenle: () => void; kapat: () => void;
 }) {
+  const { tBas } = useTerim();
+  const sozluk = useSozluk();
   const { bekliyor, hata, calistir } = useEylem();
   const [gerekce, setGerekce] = useState('');
   const [hedef, setHedef] = useState<string>('');
@@ -466,7 +472,7 @@ function BelgeCekmecesi({ belge, simdi, yazabilir, onaylayabilir, duzenle, kapat
       yol: `/uyum/${encodeURIComponent(m.regulasyon)}`,
     })),
     ...belge.tesisler.map((t) => ({
-      id: `tesis-${t.id}`, kod: t.kod, alt: `Santral · ${t.ad}`, yol: `/tesisler/${t.id}`,
+      id: `tesis-${t.id}`, kod: t.kod, alt: `${tBas('tesis')} · ${t.ad}`, yol: `/tesisler/${t.id}`,
     })),
   ];
 
@@ -494,7 +500,7 @@ function BelgeCekmecesi({ belge, simdi, yazabilir, onaylayabilir, duzenle, kapat
           durum: h.durum },
         { etiket: 'Sahip', deger: belge.sahip ?? 'kayıt yok' },
         { etiket: 'Onaylayan', deger: belge.onaylayan ?? 'kayıt yok' },
-        { etiket: 'Kapsam', deger: kapsamYazisi(belge.tesisler) },
+        { etiket: 'Kapsam', deger: kapsamYazisi(belge.tesisler, sozluk) },
         { etiket: 'Gizlilik', deger: etiketle(belge.gizlilik) },
         { etiket: 'Bağlı kanıt', deger: belge.kanitSayisi > 0 ? `${belge.kanitSayisi} kanıt` : 'yok',
           durum: belge.kanitSayisi > 0 ? undefined : 'unk' },
@@ -593,6 +599,7 @@ function BelgeFormu({ belge, maddeSecenekleri, tesisSecenekleri, kisiler, mevcut
   mevcutKodlar: string[];
   kapat: () => void;
 }) {
+  const { t: terim } = useTerim();
   const { bekliyor, hata, calistir } = useEylem();
   const [tur, setTur] = useState<Tur>((belge?.tur as Tur) ?? 'politika');
   const [kod, setKod] = useState(belge?.kod ?? '');
@@ -699,7 +706,9 @@ function BelgeFormu({ belge, maddeSecenekleri, tesisSecenekleri, kisiler, mevcut
 
       <fieldset className="ab-dok-secim">
         <legend className="etiket">
-          Kapsam · {tesisler.length === 0 ? 'kurumsal (tüm portföy)' : `${tesisler.length} santral`}
+          Kapsam · {tesisler.length === 0
+            ? `kurumsal (tüm ${terim('portfoy')})`
+            : `${tesisler.length} ${terim('tesis')}`}
         </legend>
         <div className="kutu kisa">
           {tesisSecenekleri.map((t) => (
@@ -712,7 +721,7 @@ function BelgeFormu({ belge, maddeSecenekleri, tesisSecenekleri, kisiler, mevcut
           ))}
         </div>
         <p className="ab-dip" style={{ margin: 'var(--s8) 0 0' }}>
-          Hiçbiri seçilmezse belge kurumsaldır ve tüm portföyü bağlar.
+          Hiçbiri seçilmezse belge kurumsaldır ve tüm {terim('portfoy', 'belirtme')} bağlar.
         </p>
       </fieldset>
 
@@ -747,10 +756,11 @@ function BelgeFormu({ belge, maddeSecenekleri, tesisSecenekleri, kisiler, mevcut
 /* ── Arama (kardeş ekranlarla aynı gramer) ───────────────────────────── */
 
 function Ara({ deger, degistir }: { deger: string; degistir: (v: string) => void }) {
+  const { t: terim } = useTerim();
   return (
     <input
       className="ab-gr"
-      aria-label="Belge, kod, kontrol ya da santral ara"
+      aria-label={`Belge, kod, kontrol ya da ${terim('tesis')} ara`}
       placeholder="Ara"
       value={deger}
       onChange={(e) => degistir(e.target.value)}

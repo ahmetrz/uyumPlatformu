@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import { useTerim } from '@/lib/dil/SozlukSaglayici';
 import { Alan as AlanKutusu, Dugme } from '@/components/kabuk/temel';
 import { useEylem } from '@/components/useEylem';
 import { maddeAlanAta, maddeKaydet, maddeSil } from '@/lib/eylemler';
@@ -183,6 +184,7 @@ export function TaslakFormu({ reg, kapat }: { reg: Reg; kapat: () => void }) {
 
 /** Aktifleştirme onaylı ve geri alınamazdır: iki adımlı satır içi onay. */
 export function AktiflestirmeOnayi({ surum, kapat }: { surum: Surum; kapat: () => void }) {
+  const { t } = useTerim();
   const { bekliyor, hata, calistir } = useEylem();
 
   return (
@@ -190,7 +192,7 @@ export function AktiflestirmeOnayi({ surum, kapat }: { surum: Surum; kapat: () =
       <p style={{ margin: 0, fontSize: 'var(--t-field)', color: 'var(--i2)' }}>
         {surum.etiket} yürürlüğe girecek: yürürlükteki sürüm arşive iner, kod
         bazında diff üretilir ve değişen maddeler için aktif kampanyaların
-        kapsamındaki santrallere yeni değerlendirme açılır.
+        kapsamındaki her {t('tesis')} için yeni değerlendirme açılır.
       </p>
 
       {hata && <p className="ab-gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}

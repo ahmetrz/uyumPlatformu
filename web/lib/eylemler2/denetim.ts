@@ -4,6 +4,8 @@
    kapanışa geçiş onay yetkisi ister ve açık kanıt talebi ya da açık bulgu
    varken REDDEDİLİR), gerekçeli geri alma, kanıt talepleri ve kapsam yönetimi. */
 
+import { eylemSozlugu, kapsamMesaji } from './kapsamMesaji';
+import { tBas } from '../dil/terimler';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { db } from '../db';
@@ -273,11 +275,15 @@ export async function kanitTalebiDurum(girdi: {
 
 // ------------------------------------------------------------------ kapsam
 
-const KapsamGirdisi = z.object({
+/* Şema İŞLEVDİR, modül sabiti değil: `refine` mesajı sözlükten gelen
+   terimi taşıyor ve terim oturum açıldıktan sonra çözülüyor. Modül
+   düzeyinde sabit olsaydı R0-8 sınırına girer ve çekirdek sözcüğe
+   çakılırdı — burada böyle bir zorunluluk yok, şema kurulumu ucuz. */
+const kapsamGirdisi = (tesis: string) => z.object({
   denetimId: z.string(),
   tesisId: z.string().nullable().optional(),
   maddeId: z.string().nullable().optional(),
-}).refine((g) => g.tesisId || g.maddeId, { message: 'Tesis veya madde seçin' });
+}).refine((g) => g.tesisId || g.maddeId, { message: `${tesis} veya madde seçin` });
 
 /** Denetim kapsamına tesis ya da madde ekler. Tesis eklerken kullanıcının o
     tesis kapsamında denetim yazma yetkisi aranır. */
@@ -287,21 +293,23 @@ export async function kapsamEkle(girdi: {
   try {
     /* İKİ AŞAMALI KAPI (`KAPSAM_SONRA`, bkz. erisim.ts): ön kapı kapsamsız
        çağrılırsa tesise kısıtlı rol daha ilk adımda reddedilir ve kendi
-       santralini denetim kapsamına ekleyemez. Gerçek denetim aşağıda ve
+       tesisini denetim kapsamına ekleyemez. Gerçek denetim aşağıda ve
        KOŞULSUZ: madde eklemek tesissiz (kurumsal) bir işlemdir, bütün
        denetimi etkiler, tesise kısıtlı rol onu da yapamaz. */
     const k = await yetkiZorunlu('denetim', 'yazma', KAPSAM_SONRA);
-    const v = KapsamGirdisi.parse(girdi);
+    const sozluk = await eylemSozlugu(k, 'denetim');
+    const v = kapsamGirdisi(tBas(sozluk, 'tesis')).parse(girdi);
     const d = await db.denetim.findUnique({ where: { id: v.denetimId } });
     if (!d || d.silindi) throw new Error('Denetim bulunamadı');
     if (d.durum === 'kapanis') throw new Error('Kapanmış denetimin kapsamı değiştirilemez');
     kapsamZorunlu(k, 'denetim', 'yazma', { tesisId: v.tesisId },
-      'Bu tesis kapsamında denetim yazma yetkiniz yok');
+
+      await kapsamMesaji(k, 'denetim', 'denetim yazma yetkiniz yok', v.tesisId));
 
     let etiket = '';
     if (v.tesisId) {
       const tesis = await db.tesis.findUnique({ where: { id: v.tesisId } });
-      if (!tesis) throw new Error('Tesis bulunamadı');
+      if (!tesis) throw new Error(`${tBas(sozluk, 'tesis')} bulunamadı`);
       etiket = tesis.kod;
     }
     if (v.maddeId) {
@@ -337,7 +345,8 @@ export async function kapsamCikar(girdi: { id: string }): Promise<Sonuc> {
     if (kapsam.denetim.durum === 'kapanis')
       throw new Error('Kapanmış denetimin kapsamı değiştirilemez');
     kapsamZorunlu(k, 'denetim', 'yazma', { tesisId: kapsam.tesisId },
-      'Bu tesis kapsamında denetim yazma yetkiniz yok');
+
+      await kapsamMesaji(k, 'denetim', 'denetim yazma yetkiniz yok', kapsam.tesisId));
 
     await db.denetimKapsami.delete({ where: { id } });
     await iz({ aktorId: k.id, varlikTipi: 'Denetim', varlikId: kapsam.denetimId,

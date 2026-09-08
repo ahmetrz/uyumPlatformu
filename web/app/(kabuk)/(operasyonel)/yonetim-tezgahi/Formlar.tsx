@@ -12,12 +12,16 @@ import { gorevOlustur, gorevDurum, onayKarar } from '@/lib/eylemler2/gorev';
 import {
   apiAnahtariUret, apiAnahtariIptal, apiAnahtariKapsamGuncelle,
 } from '@/lib/eylemler2/apiAnahtari';
-import { UC_ETIKETI, UC_KIMLIKLERI, YAZMA_UCLARI } from '@/lib/api/kapsam';
+import { ucEtiketi, UC_KIMLIKLERI, YAZMA_UCLARI } from '@/lib/api/kapsam';
 import { GOREV_TIP_ETIKET, etiketle, tarihTR, zamanTR } from '@/lib/sabitler';
 import {
-  GOREV_DURUMLARI, GOREV_DURUM_ETIKET, KATALOG_ETIKET,
+  GOREV_DURUMLARI, GOREV_DURUM_ETIKET, katalogEtiket,
   type Anahtar, type Is, type Katalog, type Kisi, type Kodlu, type Tanim,
 } from './ortak';
+import { useTerim } from '@/lib/dil/SozlukSaglayici';
+import { terimSeti, type Metin } from '@/lib/dil/terimSeti';
+import { tBas, type Sozluk } from '@/lib/dil/terimler';
+import { useSozluk } from '@/lib/dil/SozlukSaglayici';
 
 /* Yönetim tezgâhının yazma yüzeyleri — MODAL YOK (06 §B4). Eski iki ekranın
    dokuz <dialog> kipi buraya, 420px çekmecenin içine indi. Mutasyonlar
@@ -31,6 +35,7 @@ const BOS_GOREV = { baslik: '', tip: 'manuel', sorumluId: '', tesisId: '', sonTa
 export function GorevFormu({ kullanicilar, tesisler, kapat }: {
   kullanicilar: Kisi[]; tesisler: Kodlu[]; kapat: () => void;
 }) {
+  const { tBas } = useTerim();
   const { bekliyor, hata, calistir } = useEylem();
   const [f, setF] = useState(BOS_GOREV);
 
@@ -63,10 +68,10 @@ export function GorevFormu({ kullanicilar, tesisler, kapat }: {
             onChange={(e) => setF({ ...f, sonTarih: e.target.value })} />
         </Alan>
       </div>
-      <Alan etiket="Santral">
+      <Alan etiket={tBas('tesis')}>
         <select className="ab-gr" value={f.tesisId}
           onChange={(e) => setF({ ...f, tesisId: e.target.value })}>
-          <option value="">santral bağı yok</option>
+          <option value="">tesis bağı yok</option>
           {tesisler.map((t) => <option key={t.id} value={t.id}>{t.kod} — {t.ad}</option>)}
         </select>
       </Alan>
@@ -192,12 +197,15 @@ export function TanimFormu({
   katalogDegistir?: (k: Katalog) => void;
   kapat: () => void;
 }) {
+  const sozluk = useSozluk();
+  const KATALOG_ETIKET = katalogEtiket(tBas(sozluk, 'tesis'));
   const { bekliyor, hata, calistir } = useEylem();
   const [f, setF] = useState({
     kod: tanim?.kod ?? '',
     ad: tanim?.ad ?? '',
     tipId: tanim?.tipId ?? '',
     guc: tanim?.guc?.toString() ?? '',
+    gucBirimi: tanim?.gucBirimi ?? '',
     konum: tanim?.konum ?? '',
     surum: tanim?.surum ?? '',
     kaynakUrl: tanim?.kaynakUrl ?? '',
@@ -212,7 +220,8 @@ export function TanimFormu({
       case 'tesis':
         return tesisKaydet({
           id, kod: f.kod, ad: f.ad, tipId: f.tipId || null,
-          kuruluGucMw: f.guc ? Number(f.guc) : null, konum: f.konum || null,
+          kuruluGuc: f.guc ? Number(f.guc) : null,
+          kuruluGucBirimi: f.gucBirimi || null, konum: f.konum || null,
         });
       case 'regulasyon':
         return regulasyonKaydet({
@@ -262,12 +271,20 @@ export function TanimFormu({
               ))}
             </select>
           </Alan>
+          {/* BİRİM AYRI ALAN: ekrana sabit yazılamaz (§0.5) — ölçülen
+              nicelik sektöre göre değişir. Boş bırakılırsa sayı birimsiz
+              yazılır; bir birim VARSAYILMAZ. */}
           <div style={{ display: 'grid', gap: 'var(--s12)',
-            gridTemplateColumns: 'repeat(2, minmax(0, 1fr))' }}>
-            <Alan etiket="Kurulu güç · MW">
+            gridTemplateColumns: 'repeat(3, minmax(0, 1fr))' }}>
+            <Alan etiket="Kurulu güç">
               <input className="ab-gr" type="number" value={f.guc}
                 placeholder="bilinmiyor"
                 onChange={(e) => setF({ ...f, guc: e.target.value })} />
+            </Alan>
+            <Alan etiket="Birim">
+              <input className="ab-gr" value={f.gucBirimi} maxLength={16}
+                placeholder="birimsiz"
+                onChange={(e) => setF({ ...f, gucBirimi: e.target.value })} />
             </Alan>
             <Alan etiket="Konum">
               <input className="ab-gr" value={f.konum}
@@ -314,7 +331,7 @@ export function TanimFormu({
           onClick={() => calistir(kaydet, kapat)}>Kaydet</Dugme>
         <Dugme onClick={kapat} disabled={bekliyor}>Vazgeç</Dugme>
       </div>
-      <p className="ab-panel-dip" style={{ margin: 0 }}>{DIP_NOT[katalog]}</p>
+      <p className="ab-panel-dip" style={{ margin: 0 }}>{dipNot(katalog, sozluk)}</p>
     </div>
   );
 }
@@ -324,13 +341,21 @@ const ORNEK_KOD: Record<Katalog, string> = {
   kirilim: 'JEO', sektor: 'ELEKTRIK-URETIM',
 };
 
-const DIP_NOT: Record<Katalog, string> = {
-  tesis: 'Yeni santral kaydedilince uygulanabilirlik kuralları hemen değerlendirilir; profil yoksa karar bilinmiyor kalır.',
+/* Dip not terim taşıyabilir; değer ya dize ya da terimlerin işlevidir
+   (bkz. `lib/yonetim/moduller.ts` — `Metin`). */
+const DIP_NOT: Record<Katalog, Metin> = {
+  tesis: (x) => `Yeni ${x.tesis.tekil} kaydedilince uygulanabilirlik kuralları hemen `
+    + 'değerlendirilir; profil yoksa karar bilinmiyor kalır.',
   regulasyon: 'Yeni uyum yükümlülüğü buradan eklenir; maddeler içe aktarımla gelir.',
   alan: 'Maddeler bu alanlarla eşleştirilir; içe aktarımda eşleşmeyen satır elenir.',
-  kirilim: 'Kırılım santralin portföy kesitini belirler — sektörsüz kırılım kesite düşmez.',
+  kirilim: (x) => `Kırılım ${x.tesis.iyelik} ${x.portfoy.tekil} kesitini belirler — `
+    + 'sektörsüz kırılım kesite düşmez.',
   sektor: 'Yeni sektör yeni iş kolu demektir; kırılımlar sektöre bağlanır.',
 };
+
+/** Dip notu ekranın kendi sözlüğüyle çözer. */
+const dipNot = (k: Katalog, sozluk: Sozluk | null) => (
+  (m) => (typeof m === 'string' ? m : m(terimSeti(sozluk))))(DIP_NOT[k]);
 
 /* ── Katalog durumu ─────────────────────────────────────────────────────
    Kapatma/pasifleştirme/silme tanimlar/onay ister; sunucu da arar. Silme
@@ -378,12 +403,12 @@ export function TanimEylemleri({ tanim, onaylayabilir }: {
             <Dugme tur="ret" disabled={bekliyor}
               onClick={() => calistir(() => tesisKapat({ id: tanim.kayitId, neden }),
                 () => setKapatmaAcik(false))}>
-              Santrali kapat
+              Tesisi kapat
             </Dugme>
             <Dugme onClick={() => setKapatmaAcik(false)} disabled={bekliyor}>Vazgeç</Dugme>
           </div>
           <p className="ab-panel-dip" style={{ margin: 0 }}>
-            Uyum kayıtları tarihçe olarak saklanır; santral aktif süreç kapsamından düşer.
+            Uyum kayıtları tarihçe olarak saklanır; tesis aktif süreç kapsamından düşer.
           </p>
         </>
       ) : (
@@ -444,6 +469,7 @@ type Uretilen = { onEk: string; token: string; bitis: string | null };
 export function ApiAnahtarFormu({ kullanicilar, aktifId, kapat }: {
   kullanicilar: Kisi[]; aktifId: string; kapat: () => void;
 }) {
+  const sozluk = useSozluk();
   const router = useRouter();
   const [bekliyor, baslat] = useTransition();
   const [hata, setHata] = useState<string | null>(null);
@@ -497,7 +523,7 @@ export function ApiAnahtarFormu({ kullanicilar, aktifId, kapat }: {
                   onChange={(e) => setUclar(e.target.checked
                     ? [...uclar, uc]
                     : uclar.filter((x) => x !== uc))} />
-                <span>{UC_ETIKETI[uc]}</span>
+                <span>{ucEtiketi(sozluk, uc)}</span>
                 <code style={{ fontFamily: 'var(--veri)', opacity: 0.6 }}>{uc}</code>
               </label>
             );
@@ -641,6 +667,7 @@ export function ApiAnahtarIptal({ anahtar, yazabilir }: {
 export function ApiAnahtarKapsam({ anahtar, yazabilir }: {
   anahtar: Anahtar; yazabilir: boolean;
 }) {
+  const sozluk = useSozluk();
   const { bekliyor, hata, calistir } = useEylem();
   const [uclar, setUclar] = useState<string[]>(anahtar.kapsam ?? []);
   const [saltOkunur, setSaltOkunur] = useState(anahtar.saltOkunur);
@@ -654,7 +681,8 @@ export function ApiAnahtarKapsam({ anahtar, yazabilir }: {
         <p className="ab-panel-dip" style={{ margin: 0 }}>
           {anahtar.kapsam === null
             ? 'Kapsam tanımsız. Değiştirmek yönetim yazma yetkisi gerektiriyor.'
-            : anahtar.kapsam.map((u) => UC_ETIKETI[u as keyof typeof UC_ETIKETI] ?? u)
+            : anahtar.kapsam.map((u) => (UC_KIMLIKLERI.includes(u as never)
+              ? ucEtiketi(sozluk, u as (typeof UC_KIMLIKLERI)[number]) : u))
               .join(' · ')}
         </p>
       </div>
@@ -682,7 +710,7 @@ export function ApiAnahtarKapsam({ anahtar, yazabilir }: {
                 onChange={(e) => setUclar(e.target.checked
                   ? [...uclar, uc]
                   : uclar.filter((x) => x !== uc))} />
-              <span>{UC_ETIKETI[uc]}</span>
+              <span>{ucEtiketi(sozluk, uc)}</span>
             </label>
           );
         })}

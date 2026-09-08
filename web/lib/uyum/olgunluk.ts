@@ -16,8 +16,8 @@
    kademeler tanımlıyorsa eşleme kurumun kararıdır.
 
    ── HEDEF İLE ÖLÇÜLEN AYRI ALANLARDIR ─────────────────────────────────
-   Hedef seviye MADDENİN kendisinde (bütün santraller için ortak),
-   ölçülen seviye MADDE DURUMUNDA (santral başına) durur. İkisini tek
+   Hedef seviye MADDENİN kendisinde (bütün tesisler için ortak),
+   ölçülen seviye MADDE DURUMUNDA (tesis başına) durur. İkisini tek
    alana sıkıştırmak, "hedefimiz neydi" sorusunu cevapsız bırakırdı.
 
    ── ORTALAMA ALINMAZ ──────────────────────────────────────────────────

@@ -10,7 +10,7 @@ import { fotografKur } from './fotograf';
 import type { Sahne } from './cekirdek';
 import styles from './giris.module.css';
 
-const HATIRLA = 'uyum-jeotermal-goruldu-v2';
+const HATIRLA = 'uyum-sahne-goruldu-v2';
 
 export default function SinematikGiris({ children, sadeceAnaSayfa = false }: {
   children: ReactNode; sadeceAnaSayfa?: boolean;
@@ -160,23 +160,23 @@ function Giris({ children }: { children: ReactNode }) {
       <div className={styles.runway}>
         <section className={styles.stage} aria-label="Platforma giriş">
           <canvas ref={canvas} className={styles.canvas} aria-hidden="true" />
-          <Image data-fotograf="oda" className={styles.roomPoster} src={`${TEMEL}/gorseller/jeotermal/kontrol-odasi.webp`} alt="" fill sizes="100vw" loading="eager" unoptimized />
-          <Image data-fotograf="bina" className={styles.roomPoster} src={`${TEMEL}/gorseller/jeotermal/yaklasma.webp`} alt="" fill sizes="100vw" loading="eager" unoptimized />
-          <Image data-fotograf="dis" className={styles.poster} src={`${TEMEL}/gorseller/jeotermal/santral.webp`} alt="" fill sizes="100vw" priority unoptimized />
+          <Image data-fotograf="oda" className={styles.roomPoster} src={`${TEMEL}/gorseller/giris/kontrol-odasi.webp`} alt="" fill sizes="100vw" loading="eager" unoptimized />
+          <Image data-fotograf="bina" className={styles.roomPoster} src={`${TEMEL}/gorseller/giris/yaklasma.webp`} alt="" fill sizes="100vw" loading="eager" unoptimized />
+          <Image data-fotograf="dis" className={styles.poster} src={`${TEMEL}/gorseller/giris/dis.webp`} alt="" fill sizes="100vw" priority unoptimized />
           <div className={styles.shade} aria-hidden="true" />
           <header className={styles.header}>
             <span className={styles.brand}>{MARKA_AD}</span>
             <a className={styles.skip} href="#platform-arayuzu" onClick={e => { e.preventDefault(); atla.current(); }}>Girişi atla <span aria-hidden="true">↗</span></a>
           </header>
           <div className={styles.editorial}>
-            <p className={styles.eyebrow}>JEOTERMAL ENERJİ · YÖNETİŞİM · UYUM</p>
+            <p className={styles.eyebrow}>SAHA · YÖNETİŞİM · UYUM</p>
             <h1>Enerjinin<br /><span>kalbine doğru.</span></h1>
             <p className={styles.description}>Sahadan kontrol odasına.<br />Operasyondan güvenilir yönetişime.</p>
             <a className={styles.cta} href="#platform-arayuzu" onClick={e => { e.preventDefault(); atla.current(); }}>Platforma Gir <span aria-hidden="true">↗</span></a>
           </div>
           <footer className={styles.footer}>
-            <span className={styles.scroll}>Santrale yaklaşmak için kaydır <span aria-hidden="true">↓</span></span>
-            <span className={styles.current}>01 / Santrale yaklaşma</span>
+            <span className={styles.scroll}>Tesise yaklaşmak için kaydır <span aria-hidden="true">↓</span></span>
+            <span className={styles.current}>01 / Tesise yaklaşma</span>
             <span className={styles.caption}>SAHA. KONTROL. GÜVEN.</span>
           </footer>
           <div className={styles.progress} aria-hidden="true" />

@@ -25,10 +25,10 @@ import { tamam, hata, type Sonuc } from './ortak';
 
    ─ KAPI NEDEN `yetkiZorunlu` DEĞİL ──────────────────────────────────────
    Önceki hâli `yetkiZorunlu('uyum', 'okuma')` idi ve bu, kapsamsız (kurum
-   geneli) bir işlem sorar: `lib/erisim.ts → kapsamUyar` gereği santrale
-   KISITLI bir yetki bu kapıdan geçemez. Bildirimin santrali yoktur — kutu
-   kişiseldir — ve bildirimi asıl alanlar (bir santralin bulgu/aksiyon
-   sorumluları) tam da santrale kısıtlı kullanıcılardır. Yani eski kapı,
+   geneli) bir işlem sorar: `lib/erisim.ts → kapsamUyar` gereği tesise
+   KISITLI bir yetki bu kapıdan geçemez. Bildirimin tesisi yoktur — kutu
+   kişiseldir — ve bildirimi asıl alanlar (bir tesisin bulgu/aksiyon
+   sorumluları) tam da tesise kısıtlı kullanıcılardır. Yani eski kapı,
    uyarıyı gönderdiğimiz insanların kendi bildirimlerini okundu
    işaretlemesini engelliyordu.
 

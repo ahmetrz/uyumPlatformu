@@ -30,7 +30,7 @@ import { Im, Iskelet, type Durum } from './temel';
      `aria-selected` ve dolaşan odak (`tabIndex` 0 / −1) taşır.
    · Ok tuşları satırlar arasında gezer (↑ ↓ Home End), Enter/Boşluk
      seçer; fare tıklaması aynı `sec`i çağırır. Hücre içindeki bağ ya da
-     düğme tıklaması satırı SEÇMEZ (tedarikçi → santral bağı gibi).
+     düğme tıklaması satırı SEÇMEZ (tedarikçi → tesis bağı gibi).
    · Başlık YAPIŞKAN (`position: sticky; top: 0`), ilk sütun (kimlik) da
      yatay kaydırmada yapışkan kalır — `.ab-vt-sar` kaydırma kabıdır.
    · Sıralama sütun başlığındaki DÜĞMEDEDİR ve `<th aria-sort>` ile
@@ -187,7 +187,29 @@ export function VeriTablosu<T extends { id: string }>({
 
   return (
     <>
-    <div className="ab-vt-sar" style={yukseklik ? ({ '--vt-h': yukseklik } as CSSProperties) : undefined}>
+    {/* ── KAYDIRMA KABI KLAVYEYLE ERİŞİLEBİLİR ─────────────────────
+        Dar bantta kütük artık gerçekten yatay kaydırılıyor (kabuk.css
+        ≤900: sütunlar içeriğe göre ölçülür, tablo kabı aşar). Kaydırılan
+        ama odaklanamayan bir bölge klavye kullanıcısı için ERİŞİLEMEZDİR
+        — ölçüldü: /api-sozlesmesi · 375px'te axe `serious ·
+        scrollable-region-focusable` verdi. Seçilebilir tabloda satırlar
+        odak alır ve kural sağlanır; seçilemeyen tabloda tek odak durağı
+        kalmaz, o yüzden kabın kendisi odaklanır.
+
+        `role="region"` + ad: adsız bir odak durağı ekran okuyucuya
+        "nereye geldim" sorusunu bırakırdı; tablo zaten `etiket` taşıyor,
+        kap da onu taşır.
+
+        ODAK DURAĞI KOŞULLUDUR. Kayıtsız verildiğinde seçilebilir tabloda
+        klavye kullanıcısı önce hiçbir seçim davranışı olmayan bir bölgeye,
+        SONRA ızgaraya basıyordu — her kütükte fazladan bir durak, üstelik
+        geniş bantta kap hiç kaydırmadığı için tümüyle atıl (PR #29
+        incelemesi). Satırlar odak alabiliyorsa kaydırma bölgesi kuralı
+        onlarla zaten sağlanır; kap yalnız BAŞKA odak durağı kalmadığında
+        odaklanır. */}
+    <div className="ab-vt-sar" role="region" aria-label={etiket}
+      tabIndex={sec ? undefined : 0}
+      style={yukseklik ? ({ '--vt-h': yukseklik } as CSSProperties) : undefined}>
       {/* ── ÖLÇÜLDÜ: SEÇİLEMEYEN TABLO "grid" DİYORDU ────────────────
           `role="grid"` bir SÖZDÜR: "buraya Tab ile girilir, ok tuşlarıyla
           gezilir". Satır seçilebilir olmadığında `tabIndex` de basılmıyor
@@ -480,7 +502,7 @@ export function Matris({
 }
 
 /* ── Genişleyen satır ─────────────────────────────────────────────────
-   Kontrol aileleri ve santral katmanları. Aynı anda TEK aile açık kalır;
+   Kontrol aileleri ve tesis katmanları. Aynı anda TEK aile açık kalır;
    `<details name>` bunu tarayıcıya yaptırır. `c-compliance`ın satır içi
    açılımıyla aynı fikir: detay ÇEKMECEDE değil, yerinde açılır. */
 export function GenisleyenSatir({

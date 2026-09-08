@@ -174,7 +174,7 @@ describe('sektör öznitelikleri (B2) — paketin şeması çekirdeğin adını 
     expect(deger('oz:ruhsatNo').etiket).toBe('Ruhsat numarası');
   });
 
-  it('tanımsız sayısı çekirdek + paket alanı: 12 + 7 = 19; su gibi şemasız sektörde 12 [K4]', () => {
+  it('tanımsız sayısı çekirdek + paket alanı: 12 + 7 = 19; su gibi şemasız sektörde 12 (K4)', () => {
     expect(tanimsizSayisi(DOLU, SEKTOR)).toEqual({ tanimsiz: 6 + 2, toplam: 19 });
     expect(tanimsizSayisi(DOLU, BOS_SEKTOR_PROFILI)).toEqual({ tanimsiz: 6, toplam: 12 });
     expect(profilGruplari(BOS_SEKTOR_PROFILI).map((g) => g.ad)).toEqual(PROFIL_GRUPLARI.map((g) => g.ad));

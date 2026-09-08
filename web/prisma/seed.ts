@@ -16,7 +16,7 @@ import { operasyonKayitlari } from './seed-operasyon-kayitlari';
 import { dolulukKatmani } from './seed-doluluk';
 import { GUNLUK_DEBI, suSektoru, suUyumu } from './seed-su';
 import { suVeriSeti } from './seed-su-veri';
-import { enerjiOznitelikSemasiniKur, kapsamTurleriniKur, profiliAyir, tesislerdenOgeler } from './kapsam-ogesi';
+import { enerjiOznitelikSemasiniKur, kapsamTurleriniKur, profiliAyir, TEIAS_SERI_OLMAYAN_KOSULU, tesislerdenOgeler } from './kapsam-ogesi';
 import { KURULU_GUC } from '../lib/alan/oznitelik';
 
 const parolaUret = (parola: string) => {
@@ -565,11 +565,8 @@ async function main() {
       { alan: 'kuruluGuc', islec: '>=', deger: 100 },
       { alan: 'blackStart', islec: '=', deger: true },
       /* Türetim ÇEKİRDEKTE değil KURALDA: "TEİAŞ SCADA/EMS var VE seri
-         değil" iç içe `hepsi` ile söylenir (B2). */
-      { hepsi: [
-        { alan: 'teiasScadaEms', islec: '=', deger: true },
-        { alan: 'seriHaberlesme', islec: '!=', deger: true },
-      ] },
+         değil" iç içe `hepsi` ile söylenir (B2); göçle aynı nesne. */
+      TEIAS_SERI_OLMAYAN_KOSULU,
     ] }) } });
   const kapsamda = [
     ['SAHA-A3', true, 'kuruluGuc=165 ≥ 100 VE TEİAŞ SCADA/EMS (seri değil)'],

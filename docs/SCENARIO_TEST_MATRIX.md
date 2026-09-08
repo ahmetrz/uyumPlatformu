@@ -4,12 +4,12 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 290 |
-| Testi olan senaryo | 290 |
+| Senaryo | 295 |
+| Testi olan senaryo | 295 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
-| Taranan test dosyası | 165 |
+| Taranan test dosyası | 168 |
 
 ## Katman başına kapsam
 
@@ -18,15 +18,15 @@
 | ACCESSIBILITY | 8 | 8 | 0 |
 | API | 12 | 12 | 0 |
 | CONCURRENCY | 7 | 7 | 0 |
-| DOMAIN | 157 | 157 | 0 |
+| DOMAIN | 162 | 162 | 0 |
 | ENGINE | 33 | 33 | 0 |
 | INTEGRATION | 26 | 26 | 0 |
-| MIGRATION | 3 | 3 | 0 |
+| MIGRATION | 5 | 5 | 0 |
 | RBAC | 32 | 32 | 0 |
 | RESPONSIVE | 8 | 8 | 0 |
 | SCOPE | 30 | 30 | 0 |
-| SERVER | 104 | 104 | 0 |
-| UI | 83 | 83 | 0 |
+| SERVER | 105 | 105 | 0 |
+| UI | 84 | 84 | 0 |
 | VISUAL | 4 | 4 | 0 |
 | WORKFLOW | 32 | 32 | 0 |
 
@@ -213,7 +213,7 @@
 | `SIS-RSP-001` | Sistem | RESPONSIVE · UI | `senaryo-platform.test.ts` | iki-sözlük kuralının istisnası BELGELİDİR | evet | geçti |
 | `SIS-DIL-001` | Sistem | UI | `senaryo-platform.test.ts` | kullanıcıya dönük hiçbir metinde jargon geçmez | evet | geçti |
 | `PRT-OZT-001` | Portföy | DOMAIN · UI | `senaryo-platform.test.ts` | ölçülmemiş uyum yüzdesi SIFIRA çekilmez | evet | geçti |
-| `PRT-OZT-002` | Portföy | DOMAIN · UI | `tesis360-profil.test.ts` | profil kaydı yokken her alan tanımsızdır; gruplar tüm alanları kapsar | evet | geçti |
+| `PRT-OZT-002` | Portföy | DOMAIN · UI | `tesis360-profil.test.ts` | profil kaydı yokken her alan tanımsızdır; gruplar tüm çekirdek alanları kapsar | evet | geçti |
 | `PRT-OZT-003` | Portföy | DOMAIN · UI | `ekran-mantik-72.test.ts` | sözlükten işaretli satır sektörün sözcüğünü alır, ötekiler kendi adını | evet | geçti |
 | `PRT-OZT-003` | Portföy | DOMAIN · UI | `ekran-mantik-72.test.ts` | hiçbir sıralama satırı sektör sözcüğünü SABİT taşımaz | evet | geçti |
 | `HRT-KNM-001` | Harita | DOMAIN · UI | `harita-mantik.test.ts` | koordinatı olan yerleşir, ili olan YAKLAŞIK, ikisi de yoksa haritada YOK | evet | geçti |
@@ -229,6 +229,8 @@
 | `TES-PRF-001` | Portföy | SERVER · DOMAIN | `tesis360-eylem.test.ts` | boş metin NULL olur — "" ile "bilinmiyor" aynı şey değildir | evet | geçti |
 | `TES-PRF-002` | Portföy | ENGINE · SERVER | `tesis360-eylem.test.ts` | MOTOR insanın kararını ezmez — override sonrası yeniden hesap kararı korur | evet | geçti |
 | `TES-PRF-003` | Portföy | ENGINE · DOMAIN | `yeniTesis.test.ts` | profilsiz santral: karar verilmez + veri kalitesi bulgusu; profil gelince kapsam kararı gerekçeli yazılır | evet | geçti |
+| `TES-PRF-004` | Portföy | SERVER · DOMAIN | `tesis360-eylem.test.ts` | şemanın seçenek listesi dışındaki öznitelik değeri reddedilir; beyansız anahtar da | evet | geçti |
+| `TES-PRF-005` | Portföy | UI · DOMAIN | `tesis360-profil.test.ts` | şema tipi alan türüne çevrilir: mantık → üç durum, seçenekli metin → seçim, tarih, sayı | evet | geçti |
 | `KNM-KRD-001` | Harita | SERVER · DOMAIN | `konum-apianahtar-eylem.test.ts` | YARIM koordinat reddedilir — tek başına enlem haritada bir yer değildir | evet | geçti |
 | `SAG-KOK-001` | Sağlık | DOMAIN · UI | `koken.test.ts` | köken satırı olmayan varlık MANUEL sayılır, "otomatik" kovasına girmez | evet | geçti |
 | `SAG-KOK-002` | Sağlık | SERVER · SCOPE | `koken-kapsam.test.ts` | KAPSAM DIŞI tek kayıt bütün partiyi durdurur — yarım onay bırakmaz | evet | geçti |
@@ -418,6 +420,27 @@
 | `URN-ALN-008` | Ürünleştirme | DOMAIN · UI | `bekci/ek-eklemesi.test.ts` | düzeltilen gerçek yazımları görür | evet | geçti |
 | `URN-ALN-008` | Ürünleştirme | DOMAIN · UI | `bekci/ek-eklemesi.test.ts` | ayrı sözcüğü ve büyük harfi ekleme saymaz | evet | geçti |
 | `URN-ALN-008` | Ürünleştirme | DOMAIN · UI | `bekci/ek-eklemesi.test.ts` | alan erişimiyle yazılan eki de görür | evet | geçti |
+| `URN-KAP-001` | Ürünleştirme | DOMAIN · MIGRATION | `bekci/kapsam-omurga.test.ts` | omurga tanımı şemadan türer ve dokuz tabloyu kapsar | evet | geçti |
+| `URN-KAP-001` | Ürünleştirme | DOMAIN · MIGRATION | `bekci/kapsam-omurga.test.ts` | omurga tablosunda doğrudan tesisId YOK — listede olmayan kolon adıyla kırmızı | evet | geçti |
+| `URN-KAP-001` | Ürünleştirme | DOMAIN · MIGRATION | `bekci/kapsam-omurga.test.ts` | ölü satır yok — listedeki model artık tesisId taşımıyorsa liste küçülmeli | evet | geçti |
+| `URN-KAP-001` | Ürünleştirme | DOMAIN · MIGRATION | `bekci/kapsam-omurga.test.ts` | her satır sınıflı ve kusuru anlatan gerekçeli; ertelenmiş kapanış taşır, kalıcı taşımaz | evet | geçti |
+| `URN-KAP-001` | Ürünleştirme | DOMAIN · MIGRATION | `bekci/kapsam-omurga.test.ts` | liste taban dalın ALT KÜMESİDİR — cırcır yalnız küçülür | evet | geçti |
+| `URN-KAP-001` | Ürünleştirme | DOMAIN · MIGRATION | `bekci/kapsam-omurga.test.ts` | kalıcı vaka: omurga tablosuna eklenen tesisId ayrıştırıcıda görünür | evet | geçti |
+| `URN-KAP-002` | Ürünleştirme | DOMAIN | `bekci/sema-sektorsuz.test.ts` | paket anahtarları ölçülüyor — liste sessizce kısalamaz | evet | geçti |
+| `URN-KAP-002` | Ürünleştirme | DOMAIN | `bekci/sema-sektorsuz.test.ts` | paketin beyan ettiği anahtarla aynı adlı çekirdek kolon YOK | evet | geçti |
+| `URN-KAP-002` | Ürünleştirme | DOMAIN | `bekci/sema-sektorsuz.test.ts` | model ve alan adlarında sektör terimi YOK | evet | geçti |
+| `URN-KAP-002` | Ürünleştirme | DOMAIN | `bekci/sema-sektorsuz.test.ts` | kalıcı vaka: geri eklenen `blackStart` kolonu ve `santralKodu` alanı kırmızı, temiz şema yeşil | evet | geçti |
+| `URN-KAP-003` | Ürünleştirme | MIGRATION · DOMAIN | `kapsam-ogesi-gocu.test.ts` | çekirdek türler göçte aynı kimlik, kod, ad, etiket, sıra ile yazılır | evet | geçti |
+| `URN-KAP-003` | Ürünleştirme | MIGRATION · DOMAIN | `kapsam-ogesi-gocu.test.ts` | öğe kimlik kuralı `ko-<tesisId>` dört yerde aynı: göç · tohum · sunucu · test yardımcısı | evet | geçti |
+| `URN-KAP-003` | Ürünleştirme | MIGRATION · DOMAIN | `kapsam-ogesi-gocu.test.ts` | kurum eşlemesi: MERKEZ ve SU-MERKEZ tipleri göçte ve tohumda `kurum` türüne gider | evet | geçti |
+| `URN-KAP-003` | Ürünleştirme | MIGRATION · DOMAIN | `kapsam-ogesi-gocu.test.ts` | kapalı tesisin öğesi pasif — göç ve tohum aynı kararı verir | evet | geçti |
+| `URN-KAP-003` | Ürünleştirme | MIGRATION · DOMAIN | `kapsam-ogesi-gocu.test.ts` | şema satırları alan alan aynı (anahtar · tip · kuralda · sıra · rol · grup · seçenekler) | evet | geçti |
+| `URN-KAP-003` | Ürünleştirme | MIGRATION · DOMAIN | `kapsam-ogesi-gocu.test.ts` | kritiklik ROLÜ tek anahtarda ve iki kaynakta aynı | evet | geçti |
+| `URN-KAP-003` | Ürünleştirme | MIGRATION · DOMAIN | `kapsam-ogesi-gocu.test.ts` | etiketler: altı hâlin hepsi göçte, yalnız enerji sektörüne, NOT EXISTS korumalı | evet | geçti |
+| `URN-KAP-003` | Ürünleştirme | MIGRATION · DOMAIN | `kapsam-ogesi-gocu.test.ts` | profil kolonları öznitelik satırına aynı kuralla taşınır: mantık → sayısal 0/1, kalanı metin, NULL satır açmaz | evet | geçti |
+| `URN-KAP-003` | Ürünleştirme | MIGRATION · DOMAIN | `kapsam-ogesi-gocu.test.ts` | türetilmiş alan kuraldan çıkar: göçün REPLACE hedefi tohumun bileşik koşuluyla birebir | evet | geçti |
+| `URN-KAP-003` | Ürünleştirme | MIGRATION · DOMAIN | `kapsam-ogesi-gocu.test.ts` | ortak sayısal anahtarların hepsi eşit; ölçüm dosyaları boş değil | evet | geçti |
+| `URN-KAP-003` | Ürünleştirme | MIGRATION · DOMAIN | `kapsam-ogesi-gocu.test.ts` | her tesis bir öğe aldı; tür dağılımı öğe sayısına toplanır | evet | geçti |
 
 ## Gerekçesiyle kütüksüz kalan dosyalar
 

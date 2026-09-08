@@ -69,6 +69,15 @@ export const ENERJI_PROFIL_OZNITELIKLERI = [
   { anahtar: 'kritiklikSinifi', tip: 'metin', kuraldaKullanilir: true, sira: 130, rol: 'kritiklik', grup: KRITIKLIK, secenekler: KRITIKLIK_SECENEKLERI },
 ] as const;
 
+/** "TEİAŞ SCADA/EMS var VE seri değil" — çekirdek TÜRETİLMİŞ alanı değil,
+    kuralın kendi bileşimi (B2). Göç `UygulanabilirlikKurali.kosulJson`
+    içindeki eski `teiasScadaEmsSeriOlmayan` koşulunu tam bu JSON ile
+    değiştirir; tohum kuralı bununla yazar. */
+export const TEIAS_SERI_OLMAYAN_KOSULU = { hepsi: [
+  { alan: 'teiasScadaEms', islec: '=', deger: true },
+  { alan: 'seriHaberlesme', islec: '!=', deger: true },
+] } as const;
+
 export async function enerjiOznitelikSemasiniKur(db: PrismaClient, sektorId: string) {
   for (const o of ENERJI_PROFIL_OZNITELIKLERI) {
     await db.sektorOznitelikSemasi.upsert({

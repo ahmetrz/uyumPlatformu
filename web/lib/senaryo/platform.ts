@@ -723,6 +723,34 @@ export const PLATFORM_SENARYOLARI_2: Senaryo[] = [
     katmanlar: ['ENGINE', 'DOMAIN'],
   },
   {
+    id: 'TES-PRF-004', alan: 'Portföy', rota: '/tesisler/[id]', eksen: 'veri',
+    amac: 'Şemanın seçenek listesi dışındaki öznitelik değerinin sessizce girmemesi',
+    rol: 'tesis sorumlusu', kapsam: 'kendi tesisi',
+    onkosul: 'Sektör paketi `kritiklikSinifi` için dört seçenek beyan etmiş; olay etki '
+      + 'motoru bu değeri rolüyle okur',
+    veriHali: 'aykiri',
+    eylem: 'Profil formu listede olmayan bir değer ya da beyan edilmemiş bir anahtar gönderir',
+    beklenenSonuc: 'Kayıt reddedilir; hata seçenekleri adıyla sayar; beyansız anahtar için '
+      + 'satır açılmaz',
+    beklenenEkran: 'Form hata satırı',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['SERVER', 'DOMAIN'],
+  },
+  {
+    id: 'TES-PRF-005', alan: 'Portföy', rota: '/tesisler/[id]', eksen: 'arayuz',
+    amac: 'Profil bloğunun sektör paketinin özniteliklerini adını bilmeden çizmesi',
+    rol: 'uyum uzmanı', kapsam: 'kendi tesisi',
+    onkosul: 'Paket şeması tip (mantık · metin · tarih · sayı), seçenek, grup ve birim '
+      + 'beyan eder; su paketi profil özniteliği beyan etmez',
+    veriHali: 'normal',
+    eylem: 'Tesis 360 profil bloğu açılır ve düzenlenir',
+    beklenenSonuc: 'Enerjide çekirdek 12 + paket 8 alan, suda yalnız çekirdek 12; aynı kod, '
+      + 'aynı sözleşme (boş alan "tanımsız", üç durum, boş giden null)',
+    beklenenEkran: 'Gruplar: çekirdek + paket grupları; çekirdekle aynı adlı grup birleşir',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['UI', 'DOMAIN'],
+  },
+  {
     id: 'KNM-KRD-001', alan: 'Harita', rota: '/tesisler/[id]', eksen: 'veri',
     amac: 'Tesisin konumunu düzeltmek',
     rol: 'tesis sorumlusu', kapsam: 'kendi tesisi',

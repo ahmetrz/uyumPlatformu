@@ -1,11 +1,12 @@
 # Demo yolu — sekiz ekran, sekiz dakika
 
 Bu belge **satış materyalidir**: hangi ekran, ne söylenecek, hangi
-tıklama. Ekran adları ve sayılar depodaki kurgusal tohumdan gelir.
+tıklama, kaç saniye.
 
-> **Her ekranda üst çubukta "ÖRNEK VERİ" rozeti durur.** Rozet
-> kaldırılmaz ve ekran görüntüsü alınırken kırpılmaz: kurgusal bir sayı,
-> üstündeki işaret olmadan gerçek bir iddiaya dönüşür.
+> **Her ekranda üst çubukta "ÖRNEK VERİ" rozeti durur** ve yazdırılan
+> her sayfanın başında da bir künye olarak çıkar. Rozet kaldırılmaz,
+> ekran görüntüsü alınırken kırpılmaz: kurgusal bir sayı, üstündeki
+> işaret olmadan gerçek bir iddiaya dönüşür.
 
 ## Demonun tek cümlesi
 
@@ -16,122 +17,131 @@ tıklama. Ekran adları ve sayılar depodaki kurgusal tohumdan gelir.
 ## Kanıtlanacak üç şey
 
 1. **Sektör bağımsızlığı gerçek.** Aynı kurulum, aynı ekranlar, iki
-   sektör — sözcük de ölçü birimi de değişiyor.
+   sektör — sözcük, ölçü birimi, kayıtlar ve mevzuat çerçevesi değişiyor.
 2. **Bilinmeyen ≠ sıfır.** Ölçülmemiş alan "—" der; ürün bilmediğini
    bildiğini söylemez.
-3. **Motor önerir, insan karar verir.** Hiçbir ekran kendi başına durum
-   değiştirmez.
+3. **Müşteri bir şey götürüyor.** Sekizinci ekran yazdırılabilir bir
+   karnedir.
+
+---
+
+## Demo öncesi kontrol listesi
+
+- [ ] Tarayıcı ≥1280px (mercek şeridi rahat okunur; her bantta çalışır).
+- [ ] Mercek **Çekirdek**te başlasın — 2. adımın etkisi oradan doğar.
+- [ ] "ÖRNEK VERİ" rozeti görünüyor.
+- [ ] Sekiz rota da açılıyor (`npm run rota:duman`).
 
 ---
 
 ## Sıra
 
-Sıra **portföyden tekile, tekilden karara** gider: önce "neye sahibim",
-sonra "burada ne var", sonra "ne yapmam gerekiyor". Ters sıra (önce
-bulgu) dinleyiciyi bağlamsız bırakır.
+Portföyden tekile, tekilden karara, karardan **bırakılacak belgeye**.
 
 | # | Ekran | Süre | Birincil soru |
 | --- | --- | --- | --- |
-| 1 | `/` Saha | 45 sn | Portföyümde bugün ne var? |
-| 2 | Sektör merceği (üst çubuk) | 60 sn | Bu ürün bizim sektörümüz için mi? |
-| 3 | `/portfoy` | 60 sn | Hangi tesis en zayıf? |
-| 4 | `/tesisler/[id]` (Tesis 360) | 90 sn | Bu tesiste ne var, ne eksik? |
-| 5 | `/uyum` | 90 sn | Hangi yükümlülükte neredeyiz? |
-| 6 | `/bulgular` | 75 sn | Açık iş ne, kim sorumlu, ne zaman? |
-| 7 | `/riskler` | 60 sn | Neyi kabul ettik, neyi etmedik? |
-| 8 | `/raporlar` | 60 sn | Denetime ne göstereceğiz? |
+| 1 | `/` Saha | 40 sn | Portföyümde bugün ne var? |
+| 2 | Sektör merceği (üst çubuk) | 80 sn | Bu ürün bizim sektörümüz için mi? |
+| 3 | `/portfoy` | 60 sn | Hangi kayıt en zayıf? |
+| 4 | `/tesisler/[id]` | 80 sn | Burada ne var, ne eksik? |
+| 5 | `/uyum` | 80 sn | Hangi yükümlülükte neredeyiz? |
+| 6 | `/bulgular` | 70 sn | Açık iş ne, kim sorumlu, ne zaman? |
+| 7 | `/riskler` | 50 sn | Neyi kabul ettik, neyi etmedik? |
+| 8 | `/raporlar/karne` | 60 sn | Denetime ne göstereceğiz? |
 
-Toplam ~8 dakika, geçişler dâhil.
+Toplam **8 dakika 0 saniye**, geçişler dâhil.
 
 ---
 
-### 1 · `/` Saha · 45 sn
+### 1 · `/` Saha · 40 sn
 
-**Söylenecek:** "Bu, sabah açtığınızda gördüğünüz ekran. Tek ekrana
-sığar — kaydırma yok."
+**Söyle:** "Sabah açtığınızda gördüğünüz ekran. Tek ekrana sığar —
+kaydırma yok."
 
-**Tıklama:** yok, sadece göster.
+**Tıklama:** yok.
 
-**Vurgu:** ekran tam olarak pencereye oturuyor (üç bantta da ölçüldü).
-Kaydırmak zorunda kalmadığınız bir özet, gerçekten bir özettir.
+**Vurgu:** ekran üç bantta da pencereye TAM oturur (768/768 · 900/900 ·
+800/800 ölçüldü). Kaydırmak zorunda kalmadığınız bir özet, gerçekten
+bir özettir.
 
-### 2 · Sektör merceği · 60 sn — **demonun kalbi**
+### 2 · Sektör merceği · 80 sn — **demonun kalbi**
 
-**Söylenecek:** "Şimdi bu kurulumun bir su işletmesine ait olduğunu
+**Söyle:** "Şimdi bu kurulumun bir su işletmesine ait olduğunu
 varsayalım."
 
-**Tıklama:** üst çubuk → **Sektör: Su ve Atıksu**.
+**Tıklama:** üst çubuk → **Sektör: Su ve Atıksu**. Sonra **Elektrik
+Üretimi**. Sonra **Çekirdek**.
 
-**Vurgu:** sayfa yenilenmedi. Değişenler:
-- "santral" → "arıtma tesisi", "enerji portföyü" → "su portföyü";
-- ölçü birimi **MW → m³/gün** — aynı alan, başka büyüklük;
-- liste artık yalnız su tesislerini gösteriyor.
+**Vurgu — sayfa yenilenmedi.** Değişenler:
 
-**Sonra "Çekirdek"e tıklayın:** "Hiçbir sektör paketi kurulu değilken
+| | Çekirdek | Elektrik | Su |
+| --- | --- | --- | --- |
+| Sözcük | tesis | santral | arıtma tesisi |
+| Ölçü | — | MW | m³/gün |
+| Portföy | 24 kayıt | 16 kayıt · 643 MW | 8 kayıt · 342.700 m³/gün |
+| Çerçeve | — | EPDK SYM | ISO 27001 / CBDDÖ |
+
+**"Çekirdek"te dur ve söyle:** "Hiçbir sektör paketi kurulu değilken
 ürün böyle görünür — 'tesis' der. Sektör sözcüğü çekirdek koda gömülü
-değil; içerik paketinden geliyor."
+değil."
 
-> Bu, ürünün en pahalı ve en kolay kaybedilen özelliğidir. Bir sonraki
-> ekrana geçmeden önce dinleyiciye merceği bir kez daha değiştirtin.
+**Çekirdekte portföy toplamı boştur** ve bu bir kusur değil: iki farklı
+ölçü toplanmaz. "Yanlış bir toplamı doğru göstermektense hiç
+göstermiyoruz."
 
-**Sınır (dürüstçe söylenir):** mercek 1024px altında gizlidir; demo
-dizüstü ya da masaüstünde gösterilir (R0-13).
+> Bir sonraki ekrana geçmeden dinleyiciye merceği **bir kez daha**
+> değiştirtin. Ürünün en pahalı ve en kolay kaybedilen özelliği budur.
 
 ### 3 · `/portfoy` · 60 sn
 
-**Söylenecek:** "Portföyü tek ölçüde değil, sizin sorduğunuz ölçüde
-sıralıyor."
+**Tıklama:** Sırala → **Uyum endeksi**, sonra **Açık bulgu**.
 
-**Tıklama:** Sırala → **Uyum endeksi**. Sonra **Açık bulgu**.
+**Vurgu:** "en zayıf" sözcükle işaretlenir, yalnız renkle değil. Su
+merceğinde bir kaydın debisi "ölçülmedi" der — telemetri hattı yok.
+"Sıfır yazmıyoruz."
 
-**Vurgu:** "en zayıf" sözcükle işaretleniyor, yalnız renkle değil.
-Toplam satırında iki sektör birlikteyken **sayı yazılmıyor** — farklı
-birimler toplanmaz. Ürün yanlış bir toplamı doğru göstermektense hiç
-göstermiyor.
+### 4 · `/tesisler/[id]` · 80 sn
 
-### 4 · `/tesisler/[id]` — Tesis 360 · 90 sn
-
-**Tıklama:** portföyden en zayıf tesise girin.
+**Tıklama:** en zayıf kayda gir.
 
 **Vurgu:** tek kayıt, tek ekran: kimlik, kapasite, uyum, bulgu, risk,
-varlık, olay. Fotoğrafı olmayan tesis **başka bir tesisin fotoğrafını
+varlık, olay. Fotoğrafı olmayan kayıt **başka bir kaydın fotoğrafını
 ödünç almaz** — tipografik döşeme alır.
 
-**Ölçülmemiş alanı gösterin:** su portföyünde bir tesisin debisi
-"ölçülmedi" der. "Sıfır yazmıyoruz. Telemetri hattı yoksa ürün bunu
-saklamıyor."
-
-### 5 · `/uyum` · 90 sn
-
-**Söylenecek:** "Yükümlülükler burada; madde madde, tesis tesis."
+### 5 · `/uyum` · 80 sn
 
 **Vurgu:**
-- Su kiracısı **CBDDÖ** ve **ISO 27001** çerçevelerinde değerlendiriliyor
-  — enerjiye özgü EPDK-SYM su kapsamında **değil**. Aynı platform, aynı
-  kontrol çatısı, sektöre uygun kapsam.
-- "Kapsam dışı" gerçek bir durumdur ve uygunsuzlukla karıştırılmaz.
+- Su merceğinde ekran **ISO 27001 / CBDDÖ** açar; enerjiye özgü EPDK
+  SYM su kapsamında **değildir**. "Aynı platform, aynı kontrol çatısı,
+  sektöre uygun kapsam."
+- "Kapsam dışı" gerçek bir durumdur, uygunsuzlukla karıştırılmaz.
 - Yüzdenin yanında **bilinmeyen payı** yazılıdır.
 
-### 6 · `/bulgular` · 75 sn
+### 6 · `/bulgular` · 70 sn
 
-**Tıklama:** kritik bulguya girin.
+**Tıklama:** kritik bulguya gir.
 
 **Vurgu:** bulgu bir cümle değil bir zincirdir: madde → bulgu → kök neden
 → aksiyon → doğrulama. Aksiyonu tamamlanmış ama doğrulanmamış bulgu
-**retest bekliyor** der — "tamamlandı" demez.
+**retest bekliyor** der. Su tarafında bir olayın kök nedeni boştur —
+inceleme sürüyor, uydurulmuş bir sebep yazılmaz.
 
-### 7 · `/riskler` · 60 sn
+### 7 · `/riskler` · 50 sn
 
-**Vurgu:** skor **olasılık × en yüksek etki**; etkisi girilmemiş riskin
-skoru **yok**, sıfır değil. Kabul edilen risk sahibiyle ve süresiyle
-kayıtlıdır.
+**Vurgu:** skor **olasılık × en yüksek etki**. Su kütüğünde bir riskin
+etkisi henüz değerlendirilmedi: skoru **yok**, sıfır değil. Kabul
+edilen risk sahibiyle ve süresiyle kayıtlıdır.
 
-### 8 · `/raporlar` · 60 sn
+### 8 · `/raporlar/karne` · 60 sn — **bırakılacak şey**
 
-**Söylenecek:** "Denetçi geldiğinde gösterilecek şey burada."
+**Tıklama:** `/raporlar` → "Uyum karnesi" → tarayıcıdan **Yazdır**.
 
-**Vurgu:** rapor ekranda üretilen bir özet değil, kayda bağlı bir
-çıktıdır; her satır kaynağına kadar izlenebilir.
+**Söyle:** "Ve müşteri bunu yanında götürüyor."
+
+**Vurgu:** tek sayfa; endeks, kapsam, açık iş ve en zayıf beş kayıt.
+Sözcük ve ölçü mercekten gelir. Çıktının başında "ÖRNEK VERİ" künyesi
+kalır. Sayılar portföy ekranıyla **aynı formülden** gelir — iki ekran
+birbirini tutar.
 
 ---
 
@@ -139,48 +149,27 @@ kayıtlıdır.
 
 **"Bizim sektörümüz listede yok."**
 Sektör bir içerik paketidir: sözlük + öznitelik şeması + kontrol çatısı.
-Depoda ikisi kurulu (enerji, su); üçüncüsü veri işidir, kod işi değil.
+Depoda ikisi kurulu; üçüncüsü veri işidir, kod işi değil.
 
 **"Gerçek sistemlerimize bağlanıyor mu?"**
 Bu demoda hiçbir sisteme bağlanmıyor ve bağlanmadığını **söylüyor** —
 bağlı olmayan sağlayıcı "bağlı değil" der, sessizce boş göstermez.
-Bağlayıcılar ayrı bir pakettir.
 
 **"Bu sayılar gerçek mi?"**
-Hayır ve ekran bunu her yüzeyde yazıyor. Kurgusal veri kurgusal
+Hayır ve ekran bunu her yüzeyde yazıyor. Kurgusal veri, kurgusal
 olduğunu söylediği sürece dürüsttür.
-
----
-
-## Demo öncesi kontrol listesi
-
-- [ ] Tarayıcı ≥1280px genişlikte (mercek üst çubukta görünsün).
-- [ ] Mercek **Çekirdek**te başlasın — 2. adımın etkisi oradan doğar.
-- [ ] "ÖRNEK VERİ" rozeti görünür.
-- [ ] Sekiz rotanın sekizi de açılıyor (`npm run rota:duman`).
 
 ---
 
 ## Yapılmayanlar ve gerekçeleri
 
-**Üçüncü sözlük (imalat/fabrika) EKLENMEDİ.** Maliyeti ölçüldü: ikinci
-sektör yalnız "sözlük" değildi — kendi tesis tipleri, kendi öznitelik
-şeması ve birimi, sekiz tesis, iki uyum süreci, kapsam satırları ve
-sektöre ait dört bulgu demekti; ayrıca dört bekçi testinin fikstür
-varsayımını kırdı. Üçüncüsü aynı işi bir kez daha ister.
+**Üçüncü sözlük (imalat) EKLENMEDİ.** Maliyeti ölçüldü: ikinci sektör
+yalnız sözlük değildi — kendi tipleri, öznitelik şeması ve birimi, sekiz
+tesis, iki uyum süreci, beş risk, dört olay, beş doküman, iki denetim,
+üç proje; ayrıca beş bekçinin fikstür varsayımını kırdı. Üçüncüsü aynı
+işi bir kez daha ister. Kazancı küçük: merceğin kanıtladığı cümle iki
+sektörle zaten kanıtlanır. Mercek üç ve daha fazla seçeneği hâlihazırda
+taşıyor; sektör eklemek kod işi değil veri işidir.
 
-Kazancı ise küçük: merceğin kanıtladığı şey "sözcük ve ölçü birimi
-sektörden geliyor" cümlesidir ve bu **iki** sektörle zaten kanıtlanır —
-üçüncüsü aynı cümleyi tekrar eder. Mercek şeridi üç ve daha fazla
-seçeneği hâlihazırda taşıyor; bir sektör paketi eklemek kod işi değil
-veri işidir ve demo sırasında sorulursa cevap budur.
-
-**Sektör merceği 1024px altında yok.** Üst çubuk o bantlarda zaten
-taşıyor (ölçüldü: 768'de 999px, 375'te 938px) ve mercek eklenince
-örtüşme ana gezinme bağının üstüne düştü. Seçim `localStorage`da
-korunur, yani telefonda açılan demo masaüstünde seçilmiş merceği
-gösterir; ama telefonda **değiştirilemez**. Kayıt: R0-13.
-
-**Canlı yayın linki `main`'e merge ile tazelenir.** Yayın iş akışı
-(`publish.yml`) yalnız `main`'e push ile tetiklenir; dal korumaları
-gereği bu bir PR'dan geçer.
+**Canlı yayın `main`'e merge ile tazelenir.** `publish.yml` yalnız
+`main`'e push ile tetiklenir; dal koruması gereği bu bir PR'dan geçer.

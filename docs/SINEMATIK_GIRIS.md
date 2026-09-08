@@ -1,41 +1,63 @@
-# Sinematik giriş
+# Jeotermal sinematik giriş
 
-Giriş deneyimi mevcut koyu paleti, bakır vurguyu ve yerel yazı tiplerini kullanır. Regülasyon, kontrol, kanıt, risk, denetim ve uyum; aynı açıklığı paylaşan altı mimari katmanla temsil edilir.
+İlk ziyaret, aynı jeotermal tesis içinde tek bir fiziksel hedefe doğru ilerleyen dört kareli bir kamera yoludur: uzak tesis → boru koridoru → cam kontrol binası → ana operatör ekranı → gerçek uygulama.
 
-## Nerede çalışır?
+## Görsel yöntem
 
-- Oturumsuz `/giris`: mevcut giriş formuna geçer. Oturum kontrolü ve sunucuda süzülen `next` hedefi aynen korunur.
-- Statik demo `/`: mevcut, sunucuda hazırlanmış gerçek `Kabuk` ve `Genel` bileşenlerine geçer.
-- Üretimde oturum açmış kullanıcılar ve bütün iç rotalar doğrudan mevcut ekranı kullanır.
-- `next` parametresi veya hash taşıyan bağlantılar giriş deneyimini atlar.
-- Tamamlanan/atlanan deneyim sekme oturumu boyunca hatırlanır. Depolama kullanılamazsa CTA ve uygulama çalışmaya devam eder.
+Kullanıcının sağladığı dört fotogerçekçi kare içerikleri yeniden çizilmeden web için optimize edilir ve `public/gorseller/giris/` altında tutulur:
 
-## Hareket ve geçiş
+1. `sahne-01-uzak.webp` — tesisin uzak genel görünüşü,
+2. `sahne-02-yaklasma.webp` — borular arasından kontrol binasına yaklaşma,
+3. `sahne-03-bina.webp` — aynı cam binanın ön cephesi,
+4. `sahne-04-ekran.webp` — aynı kontrol odasındaki ana ekran.
 
-`components/giris/zaman.ts` kaydırma oranından deterministik bir poz üretir. Saat, otomatik oynatma, yay veya yumuşatma döngüsü yoktur. Aynı kaydırma noktası aynı pozu verir.
+Bu sürümde fotoğraf yolu bir fallback değildir; ana sinematik motordur. Her kare bağımsız bir slayt gibi değil, kendi görsel hedefi çevresinde büyütülür. Büyütme ilerledikçe hedef ortak kamera eksenine kilitlenir. Komşu kareler yalnız kısa ve kontrollü bir bantta birlikte görünür; üç geçiş birbirine binmez.
 
-`cekirdek.ts` gerçek Three.js katmanlarını çizer. Arka katmanın fiziksel açıklığı kamera üzerinden ekran koordinatlarına yansıtılır. Bu sınırlar, önceden render edilmiş gerçek HTML arayüzünün kırpma alanıdır. Merkezdeki iki kapak kaydırmayla açılır; kamera yaklaştıkça açıklık tüm ekranı kapsar. Arayüz aynı DOM ağacında kalır; ekran görüntüsü, ikinci dashboard veya geçiş sırasında veri isteği yoktur.
+## Zaman ve hız
 
-Geçiş bittiğinde arayüz normal belge akışındadır. Kaydırma mesafesi korunur; geri kaydırma aynı geometrik geçişi yeniden kurar. Kullanıcı açık CTA ile doğrudan sona geçebilir.
+Kaydırma mesafesi masaüstünde yaklaşık **6,6 ekran**, tablette **6 ekran**, mobilde **5,6 ekran**dır. Önceki kısa akışa göre kullanıcının her konumu okuyabileceği bilinçli bir seyir mesafesi ayrılmıştır.
 
-## Performans ve erişim
+Normalize zaman çizgisi:
 
-- Three.js dinamik olarak, yalnız uygun girişte yüklenir. GSAP veya başka bir animasyon motoru eklenmez.
-- Ortak düşük karmaşıklıklı geometri; doku, parçacık, gölge haritası veya postprocessing yoktur.
-- DPR masaüstünde 1,6; mobilde 1,25 ile sınırlandırılır. Mobil kamera ve kaydırma mesafesi ayrıdır.
-- Sürekli render döngüsü yoktur. Kaydırma, yeniden boyutlandırma ve görünürlük değişimi en fazla tek bekleyen frame oluşturur.
-- Geometri, malzeme, renderer ve olay dinleyicileri temizlenir.
-- Geçiş boyunca gerçek arayüz `inert` ve `aria-hidden` durumundadır; sonunda kullanılabilir olur. Atla eylemi odağı arayüze taşır.
-- Reduced motion, WebGL/yükleme hatası ve JavaScript yokluğunda statik giriş ve gerçek ekran sunulur. Hareket tercihi çalışırken değişirse statik moda dönülür.
+- **0–20%** — uzak karede yavaş yaklaşma,
+- **20–30%** — uzak → boru koridoru kontrollü cross-dissolve,
+- **30–46%** — ikinci kare tek başına ilerler,
+- **46–57%** — yaklaşma → kontrol binası,
+- **57–69%** — kontrol binası tek başına ilerler,
+- **69–81%** — cam cephe → kontrol odası,
+- **81–90%** — ana ekrana yaklaşma,
+- **90–99,2%** — fiziksel ekranın içinde gerçek DOM arayüzü kademeli görünür,
+- **100%** — sahne hit-testing'den tamamen çıkar ve gerçek arayüz normal belge akışını devralır.
 
-## Geliştirme
+Hareket scroll oranından deterministik türetilir. Saat tabanlı autoplay, atalet döngüsü veya kendi kendine ilerleme yoktur. Scroll durduğunda kamera da tam olarak durur; geri kaydırma aynı yolu ters yönde kurar.
 
-Normal `npm run dev` Next.js geliştirme sunucusunu açar. `arac/dev.mjs`, denetimli önizlemenin `--host` / `--strictPort` parametrelerini Next.js parametrelerine çevirir. Yalnız `--strictPort` kullanılan önizleme modu demo verisiyle çalışır; normal komutun oturum davranışı değişmez.
+## Ekrandan gerçek siteye teslim
 
-## Doğrulama sınırı
+Final karedeki ana ekranın normalize sınırları `zaman.ts` içindeki `EKRAN` ile tanımlıdır. `fotograf.ts` bu ekranın gerçek piksel dikdörtgenini her scroll konumunda hesaplar. `SinematikGiris.tsx`, canlı uygulamayı aynı dikdörtgene ölçekleyip kırpar; final yaklaşımında ekran viewport'u doldurunca `transform` ve `clip-path` kaldırılır.
 
-Kaydırma pozlarının tersinirliği, kamera son konumu ve hizalama/açılma sırası `tests/giris-zaman.test.ts` ile doğrulanır.
+Bu nedenle geçiş “fotoğraf bitti, site açıldı” şeklinde bir kesme değildir: fiziksel ekran yüzeyi aynı konumda gerçek arayüze dönüşür.
 
-Tarayıcıda masaüstü ve 375 × 812 çerçevede statik giriş, CTA'nın gerçek arayüze bağlantısı ve `/uyum` rotası görüldü. Denetimli Next.js geliştirme sunucusunun `uv_resident_set_memory` hatası, aynı önizlemede derlenmiş gerçek uygulamanın geçici QA dosyalarıyla açılması yoluyla aşıldı. Derlenmiş sürümde giriş atlama, odağın `platform-arayuzu` öğesine taşınması ve gerçek genel arama penceresinin açılması doğrulandı.
+## Akış ve erişim
 
-Bu tarayıcı WebGL bağlamı sağlayamıyor (`GL_RENDERER = Disabled`). Uygulamanın bu hatadan statik alternatife geçtiği doğrulandı. Hareketli WebGL akışı, scroll-stop, ters kaydırma, 3D → DOM geçişinin görsel sürekliliği ve tarayıcıda reduced-motion emülasyonu henüz doğrulanmış değildir. Bu kontroller tamamlanmadan sürüm yayın onayı almış sayılmaz. QA dosyaları kaynak sürümüne dahil edilmez.
+- Oturumsuz `/giris` ve demo `/` ilk ziyarette giriş deneyimini gösterir.
+- Üretimde oturumlu kullanıcılar, iç rotalar, hash ve `next` hedefleri doğrudan uygulamaya gider.
+- `Platforma Gir` ve `Girişi atla` sahneyi kapatır, odağı gerçek arayüze taşır.
+- Tamamlanma `v3` oturum anahtarıyla hatırlanır; yeni dört kareli sürüm eski deneyimi görmüş kullanıcılara da bir kez gösterilir.
+- Arayüz geçiş tamamlanana kadar `inert` ve `aria-hidden`; tamamlanınca normal belge akışındadır.
+- Azaltılmış hareket tercihi ilk kareyi statik gösterir ve çalışan CTA sunar.
+- Görsel yükleme başarısız olursa statik giriş ve gerçek arayüz kullanılabilir.
+
+## Performans ve doğrulama
+
+Dört WebP toplamı yaklaşık **615 KB**dır; video ve yeni animasyon paketi yoktur. Kaydırma sırasında yalnız dört mutlak konumlu görselin konum, boyut ve opaklık değerleri güncellenir.
+
+`tests/giris-zaman.test.ts` şunları korur:
+
+- ileri/geri deterministik poz,
+- aynı anda en fazla iki komşu karenin görünmesi,
+- üç geçiş arasında tek-kare bekleme bölgeleri,
+- her karede yalnız ileri zoom,
+- kamera sürekliliği,
+- final ekran → gerçek DOM geometrik teslimi.
+
+Tarayıcıdaki doğal scroll sonrası tıklanabilirlik ayrıca `arac/giris-gecis.mjs` ile masaüstü ve mobil genişlikte doğrulanır.

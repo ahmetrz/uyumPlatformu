@@ -2,14 +2,16 @@
 
 import { useLayoutEffect, useRef, type ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
+import Image from 'next/image';
 import { MARKA_AD } from '@/lib/marka';
 import { TEMEL } from '@/lib/demo';
 import { mercegiSec } from '@/lib/dil/SozlukSaglayici';
-import { KATMANLAR, poz, sinirla } from './zaman';
+import { SAHNELER, ekranYerlestir, kaydirmaTamam, poz, sinirla } from './zaman';
+import { fotografKur } from './fotograf';
 import type { Sahne } from './cekirdek';
 import styles from './giris.module.css';
 
-const HATIRLA = 'uyum-cekirdek-goruldu-v1';
+const HATIRLA = 'uyum-sahne-goruldu-v3';
 
 export default function SinematikGiris({ children, sadeceAnaSayfa = false, sektorler = [] }: {
   children: ReactNode; sadeceAnaSayfa?: boolean;
@@ -25,12 +27,11 @@ function Giris({ children, sektorler }: {
   children: ReactNode; sektorler: { id: string; kod: string; ad: string }[];
 }) {
   const root = useRef<HTMLDivElement>(null);
-  const canvas = useRef<HTMLCanvasElement>(null);
   const hedef = useRef<HTMLDivElement>(null);
   const atla = useRef<() => void>(() => {});
 
   useLayoutEffect(() => {
-    const el = root.current!, tuval = canvas.current!, ui = hedef.current!;
+    const el = root.current!, ui = hedef.current!;
     const motion = matchMedia('(prefers-reduced-motion: reduce)');
     const etiket = el.querySelector<HTMLElement>(`.${styles.current}`)!;
     let sahne: Sahne | undefined, kapandi = false, raf = 0, mesafe = 0;
@@ -41,6 +42,7 @@ function Giris({ children, sektorler }: {
       hareketli = false; cancelAnimationFrame(raf); raf = 0;
       ui.inert = false; ui.removeAttribute('aria-hidden');
       el.dataset.mod = atlandi ? 'dogrudan' : 'statik';
+      el.dataset.cizim = '';
       el.style.removeProperty('--mesafe');
       el.style.removeProperty('--metin'); el.style.removeProperty('--ilerleme');
       el.dataset.tamam = 'false'; el.dataset.metinsiz = 'false'; ui.style.cssText = '';
@@ -48,46 +50,45 @@ function Giris({ children, sektorler }: {
     }
     let goruldu = false;
     try { goruldu = sessionStorage.getItem(HATIRLA) === '1'; } catch { /* No persistence available. */ }
-    // Explicit destinations and restored history never acquire a new entrance.
     const dogrudan = goruldu || !!location.hash || new URLSearchParams(location.search).has('next');
     statik(dogrudan);
     atla.current = () => {
       hatirla();
-      // Explicit entry ends the scene so native form scrolling cannot reopen it.
       statik(true);
       ui.scrollIntoView({ behavior: 'instant', block: 'start' });
       ui.focus({ preventScroll: true });
     };
     function boyutla() {
-      // svh avoids a moving timeline when mobile browser chrome expands/collapses.
       const stage = el.querySelector<HTMLElement>(`.${styles.stage}`)!;
-      mesafe = stage.clientHeight * (window.innerWidth < 700 ? 2.1 : 3.2);
+      const katsayi = window.innerWidth < 700 ? 5.6 : window.innerWidth < 1100 ? 6 : 6.6;
+      mesafe = stage.clientHeight * katsayi;
       el.style.setProperty('--mesafe', `${mesafe}px`);
       sahne?.boyutla(); sonP = -1; guncelle();
     }
     function guncelle() {
       raf = 0;
       if (!hareketli || !sahne || document.hidden) return;
+      const stage = el.querySelector<HTMLElement>(`.${styles.stage}`)!;
       const offset = -el.getBoundingClientRect().top;
-      const p = sinirla(offset / mesafe), tamam = p >= 1;
+      const tamam = kaydirmaTamam(offset, mesafe), p = tamam ? 1 : sinirla(offset / mesafe);
       if (p === sonP) return;
       sonP = p;
-      const s = poz(p), w = window.innerWidth, h = tuval.clientHeight;
+      const s = poz(p), w = stage.clientWidth, h = stage.clientHeight;
       const rect = sahne.ciz(p);
       el.dataset.ilerleme = p.toFixed(5);
       el.dataset.tamam = String(tamam);
       el.style.setProperty('--metin', String(s.metin));
       el.dataset.metinsiz = String(s.metin === 0);
       el.style.setProperty('--ilerleme', `${p * 100}%`);
-      const i = Math.min(5, Math.floor(p * 6));
-      etiket.textContent = `${String(i + 1).padStart(2, '0')} / ${KATMANLAR[i]}`;
+      etiket.textContent = `${String(s.asama + 1).padStart(2, '0')} / ${SAHNELER[s.asama]}`;
       ui.inert = !tamam;
       if (tamam) ui.removeAttribute('aria-hidden'); else ui.setAttribute('aria-hidden', 'true');
-      ui.style.transform = tamam ? 'none' : `translateY(${Math.min(mesafe, Math.max(0, offset)) - mesafe}px)`;
-      ui.style.clipPath = tamam ? 'none' : `inset(${Math.max(0, rect.ust)}px ${Math.max(0, w - rect.sag)}px ${Math.max(0, ui.offsetHeight - Math.min(h, rect.alt))}px ${Math.max(0, rect.sol)}px)`;
-      ui.style.visibility = s.aciklik > 0 || tamam ? 'visible' : 'hidden';
+      const ekran = ekranYerlestir(rect, w, h);
+      ui.style.transform = tamam ? 'none' : `translate(${ekran.x}px, ${Math.min(mesafe, Math.max(0, offset)) - mesafe + ekran.y}px) scale(${ekran.k})`;
+      ui.style.clipPath = tamam ? 'none' : `inset(${ekran.ust}px ${ekran.sag}px ${Math.max(0, ui.offsetHeight - ekran.boy)}px ${ekran.sol}px)`;
+      ui.style.opacity = String(s.arayuz);
+      ui.style.visibility = s.arayuz > 0 || tamam ? 'visible' : 'hidden';
       if (tamam && !sonTamam) hatirla();
-      // Moving backwards must not strand keyboard focus inside an inert subtree.
       if (!tamam && sonTamam && ui.contains(document.activeElement)) {
         el.querySelector<HTMLAnchorElement>(`.${styles.skip}`)?.focus({ preventScroll: true });
       }
@@ -105,41 +106,34 @@ function Giris({ children, sektorler }: {
         if (sonP > 0) window.scrollBy({ top: ui.getBoundingClientRect().top - eskiY, behavior: 'instant' });
       }
     }
-    function baglamKaybi(e: Event) {
-      e.preventDefault();
-      const ilerlemisti = sonP > 0;
-      statik(ilerlemisti);
-      if (ilerlemisti) { ui.scrollIntoView({ behavior: 'instant' }); ui.focus({ preventScroll: true }); }
-    }
     if (!dogrudan && !motion.matches) {
-      import('./cekirdek').then(({ cekirdekKur }) => {
-        if (kapandi || motion.matches || el.dataset.mod === 'dogrudan') return;
-        // Late code must not move a visitor who already scrolled into the static UI.
-        if (window.scrollY > 8) return;
+      async function baslat() {
+        if (kapandi || motion.matches || el.dataset.mod === 'dogrudan' || window.scrollY > 8) return;
         try {
-          sahne = cekirdekKur(tuval);
+          const yeni = await fotografKur(el);
+          if (kapandi || motion.matches || el.dataset.mod === 'dogrudan' || window.scrollY > 8) {
+            yeni.temizle(); return;
+          }
+          sahne = yeni;
+          el.dataset.cizim = 'fotograf';
           hareketli = true; el.dataset.mod = 'hareketli';
           boyutla();
         } catch (error) {
           if (process.env.NODE_ENV !== 'production') console.warn('Giriş sahnesi statik moda geçti:', error);
-          statik();
+          if (!kapandi && el.dataset.mod !== 'dogrudan') statik();
         }
-      }).catch((error) => {
-        if (process.env.NODE_ENV !== 'production') console.warn('Giriş sahnesi yüklenemedi:', error);
-        if (!kapandi) statik();
-      });
+      }
+      void baslat();
     }
     window.addEventListener('scroll', planla, { passive: true });
     window.addEventListener('resize', boyutla);
     document.addEventListener('visibilitychange', gorunurluk);
     motion.addEventListener('change', hareketTercihi);
-    tuval.addEventListener('webglcontextlost', baglamKaybi);
     return () => {
       kapandi = true; cancelAnimationFrame(raf);
       window.removeEventListener('scroll', planla); window.removeEventListener('resize', boyutla);
       document.removeEventListener('visibilitychange', gorunurluk);
       motion.removeEventListener('change', hareketTercihi);
-      tuval.removeEventListener('webglcontextlost', baglamKaybi);
       temizle();
     };
   }, []);
@@ -148,18 +142,19 @@ function Giris({ children, sektorler }: {
     <div ref={root} className={styles.root} data-mod="statik">
       <div className={styles.runway}>
         <section className={styles.stage} aria-label="Platforma giriş">
-          <canvas ref={canvas} className={styles.canvas} aria-hidden="true" />
-          <div className={styles.staticCore} aria-hidden="true">
-            {KATMANLAR.map(label => <span key={label} />)}
-          </div>
+          <Image data-fotograf="uzak" className={styles.poster} src={`${TEMEL}/gorseller/giris/sahne-01-uzak.webp`} alt="" aria-hidden="true" fill sizes="100vw" priority unoptimized />
+          <Image data-fotograf="yaklasma" className={styles.roomPoster} src={`${TEMEL}/gorseller/giris/sahne-02-yaklasma.webp`} alt="" aria-hidden="true" fill sizes="100vw" loading="eager" unoptimized />
+          <Image data-fotograf="bina" className={styles.roomPoster} src={`${TEMEL}/gorseller/giris/sahne-03-bina.webp`} alt="" aria-hidden="true" fill sizes="100vw" loading="eager" unoptimized />
+          <Image data-fotograf="ekran" className={styles.roomPoster} src={`${TEMEL}/gorseller/giris/sahne-04-ekran.webp`} alt="" aria-hidden="true" fill sizes="100vw" loading="eager" unoptimized />
+          <div className={styles.shade} aria-hidden="true" />
           <header className={styles.header}>
             <span className={styles.brand}>{MARKA_AD}</span>
             <a className={styles.skip} href="#platform-arayuzu" onClick={e => { e.preventDefault(); atla.current(); }}>Girişi atla <span aria-hidden="true">↗</span></a>
           </header>
           <div className={styles.editorial}>
-            <p className={styles.eyebrow}>BT/OT YÖNETİŞİM · UYUM · DÖNÜŞÜM</p>
-            <h1>Regülasyondan<br />kanıta.<br /><span>Kanıttan güvene.</span></h1>
-            <p className={styles.description}>Kontroller, kanıtlar ve riskler.<br />Aynı sistemin birbirine bağlı katmanları.</p>
+            <p className={styles.eyebrow}>SAHA · YÖNETİŞİM · UYUM</p>
+            <h1>Enerjinin<br /><span>kalbine doğru.</span></h1>
+            <p className={styles.description}>Sahadan kontrol odasına.<br />Operasyondan güvenilir yönetişime.</p>
             {/* ── SEKTÖR SEÇİMİ AÇILIŞTA ─────────────────────────────────
                 Yabancı bir ziyaretçinin ilk on beş saniyede alması gereken
                 cevap "bu ürün BENİM işim için mi". Merceği kabuğun içine
@@ -186,22 +181,19 @@ function Giris({ children, sektorler }: {
                 </div>
               </div>
             )}
-            {/* `data-cta` KARARLI KANCADIR, görünen ad değil.
-                ÖLÇÜLDÜ (8 Eyl 2026): `arac/kosu-ortak.mjs` bu bağı
-                ADIYLA arıyordu ("Platforma Gir"); metin "Demoyu Başlat"
-                olunca giriş yardımcısı CTA'yı bulamadı, perde açılmadı,
-                e-posta alanı görünmez kaldı ve rota duman kapısı 58
-                rotanın hepsinde düştü. Depo bu sınıfı zaten yaşamıştı
-                (#28: sinematik giriş eklendiğinde iki araç da giriş
-                yapamaz olmuştu) — görünen metin bir ÜRÜN kararıdır ve
-                değişir; kapının tutunduğu şey değişmeyen bir kanca
-                olmalı. */}
-            <a className={styles.cta} data-cta="platforma-gir" href="#platform-arayuzu" onClick={e => { e.preventDefault(); atla.current(); }}>Demoyu Başlat <span aria-hidden="true">↗</span></a>
+            {/* `data-cta` KARARLI KANCADIR, görünen ad değil. ÖLÇÜLDÜ (8 Eyl
+                2026): `arac/kosu-ortak.mjs` bu bağı ADIYLA arıyordu ve
+                metin değişince giriş yardımcısı CTA'yı bulamadı; perde
+                açılmadı, rota duman kapısı 58 rotanın hepsinde düştü.
+                Depo bu sınıfı #28'de zaten yaşamıştı. Görünen metin bir
+                ÜRÜN kararıdır ve değişir; kapı değişmeyen bir şeye
+                tutunur. */}
+            <a className={styles.cta} data-cta="platforma-gir" href="#platform-arayuzu" onClick={e => { e.preventDefault(); atla.current(); }}>Platforma Gir <span aria-hidden="true">↗</span></a>
           </div>
           <footer className={styles.footer}>
-            <span className={styles.scroll}>Sistemin içine ilerlemek için kaydır <span aria-hidden="true">↓</span></span>
-            <span className={styles.current}>01 / Regülasyon</span>
-            <span className={styles.caption}>ALTI KATMAN. TEK UYUM ZİNCİRİ.</span>
+            <span className={styles.scroll}>İlerlemek için kaydır <span aria-hidden="true">↓</span></span>
+            <span className={styles.current}>01 / Dışarıdan yaklaşma</span>
+            <span className={styles.caption}>SAHA. KONTROL. GÜVEN.</span>
           </footer>
           <div className={styles.progress} aria-hidden="true" />
         </section>

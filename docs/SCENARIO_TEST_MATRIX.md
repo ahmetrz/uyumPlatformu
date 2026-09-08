@@ -275,8 +275,10 @@
 | `SIS-ERS-002` | Sistem | ACCESSIBILITY · UI | `senaryo-platform.test.ts` | seçilemeyen tablo grid demez, işaretçi imleci taşımaz | evet | geçti |
 | `SIS-ERS-003` | Sistem | ACCESSIBILITY | `senaryo-platform.test.ts` | sekme rolü yalnız gerçek sekmelerde kullanılır | evet | geçti |
 | `SIS-SNG-001` | Sistem | DOMAIN | `giris-zaman.test.ts` | ileri ve geri aynı kaydırma noktasında aynı pozu verir | evet | geçti |
-| `SIS-SNG-001` | Sistem | DOMAIN | `giris-zaman.test.ts` | kamerayı son düzleme ulaşmadan tam ekran açıklığa taşır | evet | geçti |
-| `SIS-SNG-001` | Sistem | DOMAIN | `giris-zaman.test.ts` | açıklık açılmadan önce katmanlar hizalanır; zaman çizgisi süreksizlik taşımaz | evet | geçti |
+| `SIS-SNG-001` | Sistem | DOMAIN | `giris-zaman.test.ts` | dört kare uzun beklemeler ve yalnız komşu cross-dissolve ile tek yol oluşturur | evet | geçti |
+| `SIS-SNG-001` | Sistem | DOMAIN | `giris-zaman.test.ts` | her kare kendi hedef noktasına yalnız ileri doğru yaklaşır | evet | geçti |
+| `SIS-SNG-001` | Sistem | DOMAIN | `giris-zaman.test.ts` | ekran geçişi sonunda gerçek arayüzü ölçek ve konum sıçraması olmadan teslim eder | evet | geçti |
+| `SIS-SNG-001` | Sistem | DOMAIN | `giris-zaman.test.ts` | kamerayı odanın önünde tutar; ekran yaklaşmadan oda açılır ve hareket süreklidir | evet | geçti |
 | `SAH-GRS-001` | Saha | DOMAIN · UI | `ters-kapsam-ekran.test.ts` | fotoğrafı olmayan santral BAŞKA santralin görselini almaz | evet | geçti |
 | `SAH-GRS-002` | Saha | SERVER · DOMAIN | `ters-kapsam-eylem.test.ts` | hiç anlık görüntü yoksa eğilim null kalır — düz sıfır çizgisi çizilmez | evet | geçti |
 | `AKT-IZL-001` | Aktivite | DOMAIN · UI | `ters-kapsam-ekran.test.ts` | mercek hiçbir kayda uymayınca boş SÜZGEÇ sonucu doğar | evet | geçti |

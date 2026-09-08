@@ -37,6 +37,7 @@ kabul kriteridir (P0 · URN-KUR-003); ölü atıf eklemeyin.
 | Ölçüm kapsamı tabanı | `web/arac/olcum-tabani.json` |
 | Görsel künyeleri | `web/public/gorseller/KUNYE.md` · `web/public/tesisler/KUNYE.md` |
 | Demo yolu · satış gezintisi | `docs/DEMO_YOLU.md` |
+| Tesis-dışı sektör (bankacılık) model uyum testi | `docs/TESIS_DISI_SEKTOR_UYUM_TESTI.md` |
 | Açılış ekranı devir notu · ürün şartı | `docs/ACILIS_DEVIR_NOTU.md` |
 | Zorunlu UX / ürün tasarımı skill seti | `.claude/skills/` |
 

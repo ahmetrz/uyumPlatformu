@@ -1,7 +1,7 @@
 {
-  "imza": "9cb94e96a0ffd9eb5311025e2492052e",
+  "imza": "40c44060f165de9efa8cdef4e8d808c2",
   "dosya": 165,
-  "vaka": 3259,
+  "vaka": 3261,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -117,7 +117,7 @@
       "atlanan": 0
     },
     "tests/ekran-mantik-72.test.ts": {
-      "vaka": 24,
+      "vaka": 26,
       "atlanan": 0
     },
     "tests/ekran-yazma-kapisi.test.ts": {

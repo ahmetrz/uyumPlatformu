@@ -8,6 +8,38 @@ describe('Kaydırma ile jeotermal giriş', () => {
     expect([...ilerleme].reverse().map(poz).reverse()).toEqual(ilerleme.map(poz));
     expect(poz(-1)).toEqual(poz(0)); expect(poz(2)).toEqual(poz(1));
   });
+
+  it('dört kare uzun beklemeler ve yalnız komşu cross-dissolve ile tek yol oluşturur [SIS-SNG-001]', () => {
+    expect(poz(.10).katmanlar).toEqual({ uzak: 1, yaklasma: 0, bina: 0, ekran: 0 });
+    expect(poz(.38).katmanlar.yaklasma).toBe(1);
+    expect(poz(.63).katmanlar.bina).toBe(1);
+    expect(poz(.86).katmanlar.ekran).toBe(1);
+
+    for (let i = 0; i <= 1000; i++) {
+      const s = poz(i / 1000);
+      const opasiteler = Object.values(s.katmanlar);
+      expect(opasiteler.reduce((a, b) => a + b, 0)).toBeCloseTo(1, 7);
+      expect(opasiteler.filter(v => v > 0.0001).length).toBeLessThanOrEqual(2);
+    }
+
+    // Geçiş bantları birbirine yapışmaz: her kare en az bir süre tek başına görünür.
+    expect(poz(.34).katmanlar.yaklasma).toBe(1);
+    expect(poz(.42).katmanlar.yaklasma).toBe(1);
+    expect(poz(.61).katmanlar.bina).toBe(1);
+    expect(poz(.66).katmanlar.bina).toBe(1);
+  });
+
+  it('her kare kendi hedef noktasına yalnız ileri doğru yaklaşır [SIS-SNG-001]', () => {
+    const alanlar = ['uzak', 'yaklasma', 'bina', 'ekran'] as const;
+    let once = poz(0).zoomlar;
+    for (let i = 1; i <= 1000; i++) {
+      const simdi = poz(i / 1000).zoomlar;
+      for (const alan of alanlar) expect(simdi[alan]).toBeGreaterThanOrEqual(once[alan]);
+      once = simdi;
+    }
+    expect(poz(1).zoomlar.ekran).toBeGreaterThan(3.5);
+  });
+
   it('ekran geçişi sonunda gerçek arayüzü ölçek ve konum sıçraması olmadan teslim eder [SIS-SNG-001]', () => {
     expect(kaydirmaTamam(2995, 2995.2)).toBe(true);
     expect(kaydirmaTamam(2993, 2995.2)).toBe(false);
@@ -30,6 +62,7 @@ describe('Kaydırma ile jeotermal giriş', () => {
       }
     }
   });
+
   it('kamerayı odanın önünde tutar; ekran yaklaşmadan oda açılır ve hareket süreklidir [SIS-SNG-001]', () => {
     for (let i = 1; i <= 1000; i++) {
       const s = poz(i / 1000), once = poz((i - 1) / 1000);

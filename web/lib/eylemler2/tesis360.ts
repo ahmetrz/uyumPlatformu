@@ -72,7 +72,8 @@ async function oznitelikleriYaz(tesisId: string, girdi: Record<string, string | 
     await db.tesisOzellik.upsert({
       where: { tesisId_anahtar: { tesisId, anahtar } },
       update: { ...veri, kaynak: 'elle' },
-      create: { tesisId, anahtar, ...veri, kaynak: 'elle' },
+      /* Birim şemadan gelir (ekrana gömülmez, §0.5); güncellemede korunur. */
+      create: { tesisId, anahtar, ...veri, birim: o.birim, kaynak: 'elle' },
     });
   }
 }

@@ -751,6 +751,21 @@ export const PLATFORM_SENARYOLARI_2: Senaryo[] = [
     katmanlar: ['UI', 'DOMAIN'],
   },
   {
+    id: 'TES-PRF-006', alan: 'Portföy', rota: '/tesisler/[id]', eksen: 'veri',
+    amac: 'Paketin rol beyan etmeyen özniteliklerinin veri yolunda düşmemesi',
+    rol: 'uyum uzmanı', kapsam: 'kendi tesisi',
+    onkosul: 'Şemada rolü boş (lisans, kabul, şebeke) ve rolü dolu (kapasite, kritiklik) '
+      + 'satırlar bir arada; kapasite rolü kimlik kartında çizilir, profilde değil',
+    veriHali: 'aykiri',
+    eylem: 'Tesis 360 sunucu verisi paketin şemasını okur',
+    beklenenSonuc: 'Kapasite dışı HER şema satırı alan olur — rolü NULL olanlar dahil; '
+      + 'SQL üç değerli mantığı (`NOT rol = x` NULL\'ı düşürür) satır eksiltmez; '
+      + 'yalnız kapasite beyan eden paket boş profil verir',
+    beklenenEkran: 'Enerjide "N/20 alan tanımsız", suda "N/12"',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['SERVER', 'INTEGRATION'],
+  },
+  {
     id: 'KNM-KRD-001', alan: 'Harita', rota: '/tesisler/[id]', eksen: 'veri',
     amac: 'Tesisin konumunu düzeltmek',
     rol: 'tesis sorumlusu', kapsam: 'kendi tesisi',

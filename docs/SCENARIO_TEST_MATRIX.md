@@ -4,12 +4,12 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 295 |
-| Testi olan senaryo | 295 |
+| Senaryo | 296 |
+| Testi olan senaryo | 296 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
-| Taranan test dosyası | 168 |
+| Taranan test dosyası | 169 |
 
 ## Katman başına kapsam
 
@@ -20,12 +20,12 @@
 | CONCURRENCY | 7 | 7 | 0 |
 | DOMAIN | 162 | 162 | 0 |
 | ENGINE | 33 | 33 | 0 |
-| INTEGRATION | 26 | 26 | 0 |
+| INTEGRATION | 27 | 27 | 0 |
 | MIGRATION | 5 | 5 | 0 |
 | RBAC | 32 | 32 | 0 |
 | RESPONSIVE | 8 | 8 | 0 |
 | SCOPE | 30 | 30 | 0 |
-| SERVER | 105 | 105 | 0 |
+| SERVER | 106 | 106 | 0 |
 | UI | 84 | 84 | 0 |
 | VISUAL | 4 | 4 | 0 |
 | WORKFLOW | 32 | 32 | 0 |
@@ -231,6 +231,7 @@
 | `TES-PRF-003` | Portföy | ENGINE · DOMAIN | `yeniTesis.test.ts` | profilsiz santral: karar verilmez + veri kalitesi bulgusu; profil gelince kapsam kararı gerekçeli yazılır | evet | geçti |
 | `TES-PRF-004` | Portföy | SERVER · DOMAIN | `tesis360-eylem.test.ts` | şemanın seçenek listesi dışındaki öznitelik değeri reddedilir; beyansız anahtar da | evet | geçti |
 | `TES-PRF-005` | Portföy | UI · DOMAIN | `tesis360-profil.test.ts` | şema tipi alan türüne çevrilir: mantık → üç durum, seçenekli metin → seçim, tarih, sayı | evet | geçti |
+| `TES-PRF-006` | Portföy | SERVER · INTEGRATION | `tesis360-sektor-profili.test.ts` | rolü boş öznitelikler de alan olur; kapasite rolü çizilmez; sayı şemadan ölçülür | evet | geçti |
 | `KNM-KRD-001` | Harita | SERVER · DOMAIN | `konum-apianahtar-eylem.test.ts` | YARIM koordinat reddedilir — tek başına enlem haritada bir yer değildir | evet | geçti |
 | `SAG-KOK-001` | Sağlık | DOMAIN · UI | `koken.test.ts` | köken satırı olmayan varlık MANUEL sayılır, "otomatik" kovasına girmez | evet | geçti |
 | `SAG-KOK-002` | Sağlık | SERVER · SCOPE | `koken-kapsam.test.ts` | KAPSAM DIŞI tek kayıt bütün partiyi durdurur — yarım onay bırakmaz | evet | geçti |
@@ -435,6 +436,7 @@
 | `URN-KAP-003` | Ürünleştirme | MIGRATION · DOMAIN | `kapsam-ogesi-gocu.test.ts` | kurum eşlemesi: MERKEZ ve SU-MERKEZ tipleri göçte ve tohumda `kurum` türüne gider | evet | geçti |
 | `URN-KAP-003` | Ürünleştirme | MIGRATION · DOMAIN | `kapsam-ogesi-gocu.test.ts` | kapalı tesisin öğesi pasif — göç ve tohum aynı kararı verir | evet | geçti |
 | `URN-KAP-003` | Ürünleştirme | MIGRATION · DOMAIN | `kapsam-ogesi-gocu.test.ts` | şema satırları alan alan aynı (anahtar · tip · kuralda · sıra · rol · grup · seçenekler) | evet | geçti |
+| `URN-KAP-003` | Ürünleştirme | MIGRATION · DOMAIN | `kapsam-ogesi-gocu.test.ts` | kapasite ROLÜ: göç rolsüz kapasite satırını işaretler, tohum rolle yazar | evet | geçti |
 | `URN-KAP-003` | Ürünleştirme | MIGRATION · DOMAIN | `kapsam-ogesi-gocu.test.ts` | kritiklik ROLÜ tek anahtarda ve iki kaynakta aynı | evet | geçti |
 | `URN-KAP-003` | Ürünleştirme | MIGRATION · DOMAIN | `kapsam-ogesi-gocu.test.ts` | etiketler: altı hâlin hepsi göçte, yalnız enerji sektörüne, NOT EXISTS korumalı | evet | geçti |
 | `URN-KAP-003` | Ürünleştirme | MIGRATION · DOMAIN | `kapsam-ogesi-gocu.test.ts` | profil kolonları öznitelik satırına aynı kuralla taşınır: mantık → sayısal 0/1, kalanı metin, NULL satır açmaz | evet | geçti |

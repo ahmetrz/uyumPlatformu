@@ -1,7 +1,7 @@
 {
-  "imza": "955b4c5ea1b4b2d2961e26e3201d25a2",
-  "dosya": 168,
-  "vaka": 3289,
+  "imza": "c150a3e2896f1ff228b2f7e0ac935b97",
+  "dosya": 169,
+  "vaka": 3292,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -333,7 +333,7 @@
       "atlanan": 0
     },
     "tests/kapsam-ogesi-gocu.test.ts": {
-      "vaka": 11,
+      "vaka": 12,
       "atlanan": 0
     },
     "tests/karne.test.ts": {
@@ -566,6 +566,10 @@
     },
     "tests/tesis360-profil.test.ts": {
       "vaka": 18,
+      "atlanan": 0
+    },
+    "tests/tesis360-sektor-profili.test.ts": {
+      "vaka": 2,
       "atlanan": 0
     },
     "tests/topoloji-sapma.test.ts": {

@@ -65,7 +65,8 @@ görsel sözleşme `web/DESIGN.md`.
 ### Next.js App Router — `web/app`
 Her ekran aynı kalıbı izler: `page.tsx` oturumu doğrular (`girisZorunlu()`),
 `veri.ts` Prisma'dan okur ve **kapsamı veri seviyesinde** daraltır
-(`izinliTesisIdleri`), `mantik.ts` / `ortak.ts` saf kararları taşır ve
+(`izinliKapsamOgesiIdleri`; tesis ekranlarında köprü `izinliTesisIdleri` /
+`kopruKosulu`), `mantik.ts` / `ortak.ts` saf kararları taşır ve
 tarayıcısız test edilir, `*Istemci.tsx` sonucu çizer. Rota grupları
 (`(giris)`, `(kabuk)/(flagship)`, `(kabuk)/(operasyonel)`, `(tam)`) URL'e
 yansımaz; yalnız hangi yerleşimin sarmalayacağını belirler. Rota listesi:
@@ -81,7 +82,8 @@ modül yerine ikizi bağlar ve eksik ikizde derleme durur.
 
 ### Kimlik ve erişim — `lib/auth.ts`, `lib/erisim.ts`
 Oturum tabanlı kimlik (mutlak 12 saat, atıl 2 saat); RBAC modül × işlem
-(okuma / yazma / onay) ve tesis / süreç kapsamı. Sayfa koruması
+(okuma / yazma / onay) ve kapsam öğesi / süreç kapsamı (tesis, öğenin
+köprüsüdür). Sayfa koruması
 `girisZorunlu()` (oturum yoksa `/giris`), eylem koruması `yetkiZorunlu()`
 (yetki yoksa hata döner). Giriş ucunda hesap ve kaynak adres başına oran
 sınırı (`lib/girisKorumasi.ts`, `lib/istemciAdresi.ts`).
@@ -138,5 +140,10 @@ ayrışmasın. Derleme sonrası kontroller `arac/demo-yol.mjs`,
   demez, hiç görünmez (`notFound()`).
 - Bilinmeyen ≠ sıfır: ölçülmemiş alan `null` taşır ve ekranda "—" ya da
   "ölçülmedi" olarak yazılır.
+- Uyum zincirinin öznesi `KapsamOgesi`dir; omurga tablosu doğrudan `tesisId`
+  taşımaz (bekçi `tests/bekci/kapsam-omurga.test.ts`, URN-KAP-001).
+- Sektöre özgü alan çekirdek kolonu değil, paketin beyan ettiği özniteliktir
+  (`SektorOznitelikSemasi`; bekçi `tests/bekci/sema-sektorsuz.test.ts`,
+  URN-KAP-002). Enerji ve su aynı kodla çalışır; kanıt `docs/kanit/faz-b-k4/`.
 - Bağlanmamış kaynak "canlı" gösterilmez; durum `kimlik_bekleniyor`,
   `yapılandırılmamış`, `bilinmiyor`, `hatalı` sözcükleriyle ayrışır.

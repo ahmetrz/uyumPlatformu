@@ -106,7 +106,12 @@ paketi** (çerçeve, yükümlülük, kaynak kataloğu, form, sözlük — P4),
 P2) ve **sektör öznitelik şeması** (P1). Bir özelliğin çekirdeğe sektör
 terimi sokması gerekiyorsa tasarım yanlıştır; terim sözlük anahtarına,
 nitelik öznitelik şemasına gider. Bekçi testler bunu ölçer
-(`tests/bekci/`). Demo Enerji **referans kiracı**dır; adı ve verisi
+(`tests/bekci/`). **Kalıcı kural (B2, 8 Eylül 2026):** sektöre özgü hiçbir
+alan çekirdek KOLONU olmaz; paketin beyan ettiği ÖZNİTELİKTİR
+(`SektorOznitelikSemasi`: tip · rol · grup · seçenek) — bekçi
+`tests/bekci/sema-sektorsuz.test.ts`. Uyum zincirinin öznesi `Tesis` değil
+`KapsamOgesi`dir (B1); omurga tablosu doğrudan `tesisId` taşımaz — bekçi
+`tests/bekci/kapsam-omurga.test.ts`. Demo Enerji **referans kiracı**dır; adı ve verisi
 yalnız kendi kurulumunda bulunur, depoda yalnız kurgusal demo kiracısı
 vardır (P8).
 
@@ -2056,6 +2061,8 @@ alınan kararlar.
 | K22 | Tema | Koyu tek tema kalır | Kiracı teması |
 | K23 | **`v1` ne zaman donar?** | Yayımlanmış bir belge değil, **erişilebilir dağıtım + dağıtılmış kimlik**. `v1` şu iki olaydan **ilki** gerçekleştiğinde donar: (a) API'yi servis eden bir dağıtım dışarıdan erişilebilir hâle gelir, (b) ilk **dış** `ApiAnahtari` düzenlenir. O ana kadar sözleşme **taslaktır** ve `v2` açılmadan değiştirilebilir. Gerekçe: kıran değişikliğin maliyeti kırılan tüketici sayısıdır ve o sayı bugün sıfırdır | İlk olay gerçekleşince K23 kapanır; sonraki kıran değişiklik `v2` ister |
 | K24 | Taslak sözleşme **görünür** olmalı | `/api-sozlesmesi` ekranı, açık adreste duran tarifin örtük bir taahhüt sayılmaması için başında tek satır uyarı taşır: "`v1` taslaktır; ilk dış tüketiciye kadar haber verilmeden değişebilir." Statik demo bu ekranı yayımladığı için uyarı da yayımlanır | K23 kapanınca uyarı kalkar |
+| K25 | **Ürün sektör-ülke PAKETLERİYLE satılır** (8 Eyl 2026) | Çekirdek sektör bilmez; paket çerçeve, yükümlülük, kapsam türü, öznitelik şeması, form ve sözlük getirir (`docs/SEKTOR_PAKETI_SOZLESMESI.md`). **Kalıcı:** sektöre özgü alan çekirdek kolonu OLMAZ, paketin beyan ettiği özniteliktir; bekçi `tests/bekci/sema-sektorsuz.test.ts` (URN-KAP-002) | — (kalıcı) |
+| K26 | Uyum zincirinin öznesi (B1) | `KapsamOgesi`; tür katalog (`KapsamOgesiTuru`: çekirdek `tesis` · `kurum`, paket ekler). Dokuz omurga tablosu `kapsamOgesiId`; tesis `tesisId` köprüsüyle bağlı. Yetki ekseni de öğe. Bekçi `tests/bekci/kapsam-omurga.test.ts` (URN-KAP-001), istisna listesi yalnız küçülür | — (kalıcı) |
 
 ---
 

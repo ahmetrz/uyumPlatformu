@@ -91,6 +91,8 @@ async function main() {
   await db.sektorOznitelikSemasi.create({
     data: {
       sektorId: elektrik.id, anahtar: KURULU_GUC, etiketAnahtari: 'kapasite',
+      /* B2: çekirdek anahtarı değil ROLÜ bilir — kapasite rolü (portföy, karne, Tesis 360 kimlik kartı). */
+      rol: 'kapasite',
       tip: 'sayi', birim: 'MW', kuraldaKullanilir: true,
     },
   });
@@ -819,6 +821,7 @@ async function main() {
   await db.sektorOznitelikSemasi.create({
     data: {
       sektorId: su.sektorId, anahtar: GUNLUK_DEBI, etiketAnahtari: 'kapasite',
+      rol: 'kapasite',
       tip: 'sayi', birim: 'm³/gün', kuraldaKullanilir: true,
     },
   });

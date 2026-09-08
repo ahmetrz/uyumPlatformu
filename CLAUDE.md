@@ -39,6 +39,8 @@ kabul kriteridir (P0 · URN-KUR-003); ölü atıf eklemeyin.
 | Demo yolu · satış gezintisi | `docs/DEMO_YOLU.md` |
 | Tesis-dışı sektör (bankacılık) model uyum testi | `docs/TESIS_DISI_SEKTOR_UYUM_TESTI.md` |
 | Açılış ekranı devir notu · ürün şartı | `docs/ACILIS_DEVIR_NOTU.md` |
+| Sektör-ülke paketi sözleşmesi | `docs/SEKTOR_PAKETI_SOZLESMESI.md` |
+| Enerji–su parite kanıtı (K4) | `docs/kanit/faz-b-k4/OZET.md` · `web/arac/k4-enerji-su.mjs` |
 | Zorunlu UX / ürün tasarımı skill seti | `.claude/skills/` |
 
 Terim sözlüğü belgesi (`docs/TERIMLER_SOZLUGU.md`) **henüz yok**: terim
@@ -202,6 +204,13 @@ gerçek bir tesise bağlanmaz.
 **girmez**; bunlar içerik paketinden, kiracı yapılandırmasından ve
 öznitelik şemasından gelir (`docs/GELISTIRME_PAKETLERI.md` §0.5). P1
 öncesi mevcut "santral" metinleri **yeni** kodda çoğaltılmaz.
+**Sektöre özgü hiçbir alan çekirdek kolonu olmaz** — paketin beyan ettiği
+özniteliktir (`SektorOznitelikSemasi`: tip · rol · grup · seçenek); ölçüldü:
+sekiz enerji profil kolonu B2 ile öznitelik oldu. Uyum zincirinin öznesi
+`Tesis` değil `KapsamOgesi`dir; omurga tablosu doğrudan `tesisId` taşımaz.
+İkisi de bekçilidir (`web/tests/bekci/sema-sektorsuz.test.ts` ·
+`web/tests/bekci/kapsam-omurga.test.ts`); istisna yalnız küçülen gerekçe
+listesinde durur, sabotaj kanıtı zorunludur.
 
 ## Zorunlu UX / ürün tasarımı skill seti
 

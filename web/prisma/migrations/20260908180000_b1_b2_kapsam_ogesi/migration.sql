@@ -34,11 +34,24 @@
 -- TAZE KURULUMDA ZARARSIZ: göçler tohumdan önce koşar; `Tesis` boştur,
 -- `SELECT`ler satır üretmez, dolum tohuma kalır (tohum aynı kimlikleri
 -- yazar).
+--
+-- B2 ŞEMA SÜTUNLARI (`SektorOznitelikSemasi`): `rol` (çekirdeğin bildiği
+-- tek şey — `kapasite` · `kritiklik`), `grup` (Tesis 360'ta hangi başlığın
+-- altına çizileceği; çekirdek grupla aynı ad ona eklenir), `secenekler`
+-- (JSON `[{deger, ad}]`; sunucu değeri listeye karşı doğrular). Enerji
+-- profil kolonları bu sütunlarla öznitelik satırı olur; su paketi profil
+-- özniteliği beyan etmez ve aynı ekran yalnız çekirdeği çizer (K4).
 
 -- AlterTable
 ALTER TABLE "SektorOznitelikSemasi" ADD COLUMN "rol" TEXT;
 ALTER TABLE "SektorOznitelikSemasi" ADD COLUMN "grup" TEXT;
 ALTER TABLE "SektorOznitelikSemasi" ADD COLUMN "secenekler" TEXT;
+
+-- B2 · ROL: P1 kapasite özniteliğini `etiketAnahtari = 'kapasite'` deseniyle
+-- işaretliyordu; rol sütunu gelince aynı satır rolünü de taşır (tohum
+-- `rol: 'kapasite'` yazar). Yeniden koşulabilir: yalnız rolsüz satır.
+UPDATE "SektorOznitelikSemasi" SET "rol" = 'kapasite'
+WHERE "etiketAnahtari" = 'kapasite' AND "rol" IS NULL;
 
 -- CreateTable
 CREATE TABLE "KapsamOgesiTuru" (

@@ -82,6 +82,12 @@ describe('B2 · enerji profil öznitelikleri — tohum ↔ göç [URN-KAP-003]',
     expect(GOC).toContain('AND NOT EXISTS (SELECT 1 FROM "SektorOznitelikSemasi" x WHERE x."sektorId" = s."id" AND x."anahtar" = v."anahtar")');
   });
 
+  it('kapasite ROLÜ: göç rolsüz kapasite satırını işaretler, tohum rolle yazar [URN-KAP-003]', () => {
+    expect(GOC).toContain(`UPDATE "SektorOznitelikSemasi" SET "rol" = 'kapasite'\nWHERE "etiketAnahtari" = 'kapasite' AND "rol" IS NULL;`);
+    const tohum = oku('prisma/seed.ts');
+    expect(tohum.match(/etiketAnahtari: 'kapasite',\s*(?:\/\*[^*]*\*\/\s*)?rol: 'kapasite'/g)?.length, 'tohumda kapasite satırı rolsüz').toBe(2);
+  });
+
   it('kritiklik ROLÜ tek anahtarda ve iki kaynakta aynı [URN-KAP-003]', () => {
     const tohum = ENERJI_PROFIL_OZNITELIKLERI.filter((o) => o.rol === 'kritiklik').map((o) => o.anahtar);
     expect(tohum).toEqual(['kritiklikSinifi']);

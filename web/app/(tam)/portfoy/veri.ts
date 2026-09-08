@@ -117,7 +117,7 @@ export async function portfoyEkranVerisi(k: AktifKullanici): Promise<EkranVerisi
       /* Sayı ve BİRİM birlikte taşınır: birimi ekranda sabit yazmak
          çekirdeğe enerji birimi gömerdi (§0.5). `birimliOzellik` satırda
          ne yazıyorsa onu verir; yoksa birimsiz yazılır, uydurulmaz. */
-      ...((o) => ({ gucMw: o.deger, gucBirim: o.birim }))(
+      ...((o) => ({ guc: o.deger, gucBirim: o.birim }))(
         birimliOzellik(t.ozellikler, KURULU_GUC)),
       gorselAnahtari: t.gorselAnahtari,
       enlem: t.enlem, boylam: t.boylam,
@@ -137,7 +137,7 @@ export async function portfoyEkranVerisi(k: AktifKullanici): Promise<EkranVerisi
      Toplama kararı `birimliToplam`ın: farklı birimler TOPLANMAZ. Bu ekran
      eskiden toplamı yine üretip yalnız birimi gizliyordu — sayı ekranda
      kalıyordu ve karışık bir toplam tek birimlik gibi okunabiliyordu. */
-  const toplamGuc = birimliToplam(satirlar.map((s) => ({ deger: s.gucMw, birim: s.gucBirim })));
+  const toplamGuc = birimliToplam(satirlar.map((s) => ({ deger: s.guc, birim: s.gucBirim })));
 
   /* Portföy endeksi tesis yüzdelerinin ORTALAMASI değildir: 900 kontrollü
      bir tesisle 40 kontrollü bir tesisi eşit ağırlıkta toplamak yanlış

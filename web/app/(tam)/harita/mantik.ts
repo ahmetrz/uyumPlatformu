@@ -135,7 +135,7 @@ export type Isaret = {
   id: string; kod: string; ad: string;
   tipKod: string | null; tipAdi: string;
   konum: string | null; il: string | null;
-  gucMw: number | null;
+  guc: number | null;
   /** Birim satırdan gelir; ekranda sabit yazılmaz (§0.5). */
   gucBirim: string | null;
   uyumYuzde: number | null;
@@ -177,9 +177,9 @@ export function uyumDurumu(yuzde: number | null): Durum {
 }
 
 /** Yarıçap: kurulu güç kökü (alan güçle orantılı olsun), 4–16 px arası. */
-export function yaricap(gucMw: number | null): number {
-  if (!gucMw || gucMw <= 0) return 4;
-  return Math.min(16, 4 + Math.sqrt(gucMw) * 0.9);
+export function yaricap(guc: number | null): number {
+  if (!guc || guc <= 0) return 4;
+  return Math.min(16, 4 + Math.sqrt(guc) * 0.9);
 }
 
 export function yerlesimKur(satirlar: PortfoySatiri[]): Yerlesim {
@@ -212,7 +212,7 @@ export function yerlesimKur(satirlar: PortfoySatiri[]): Yerlesim {
     isaretler.push({
       id: s.id, kod: s.kod, ad: s.ad, tipKod: s.tipKod, tipAdi: s.tipAdi,
       konum: s.konum, il: ilAyikla(s.konum),
-      gucMw: s.gucMw, gucBirim: s.gucBirim, uyumYuzde: s.uyumYuzde,
+      guc: s.guc, gucBirim: s.gucBirim, uyumYuzde: s.uyumYuzde,
       acikBulgu: s.acikBulgu, acikRisk: s.acikRisk,
       kaynak,
       // `il` kaynağında nokta tesisin kendisi değil il merkezi; künye
@@ -220,7 +220,7 @@ export function yerlesimKur(satirlar: PortfoySatiri[]): Yerlesim {
       konumKaynagi: kaynak === 'il' ? null : s.konumKaynagi,
       enlem, boylam, x, y,
       durum: uyumDurumu(s.uyumYuzde),
-      r: yaricap(s.gucMw),
+      r: yaricap(s.guc),
       etiketDx: 0, etiketDy: 0, etiketHiza: 'start',
     });
   }

@@ -1,7 +1,7 @@
 {
-  "imza": "82704ae48c3bc12ac1ff787684e8f9f1",
-  "dosya": 153,
-  "vaka": 3039,
+  "imza": "b2f5dfa2a716fa10acbcc019553a17dd",
+  "dosya": 156,
+  "vaka": 3065,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -49,7 +49,7 @@
       "atlanan": 0
     },
     "tests/bekci/katlama-korlugu.test.ts": {
-      "vaka": 14,
+      "vaka": 19,
       "atlanan": 0
     },
     "tests/bekci/muafiyet-canli.test.ts": {
@@ -308,6 +308,10 @@
       "vaka": 18,
       "atlanan": 0
     },
+    "tests/kesif-karari.test.ts": {
+      "vaka": 5,
+      "atlanan": 0
+    },
     "tests/kesif.test.ts": {
       "vaka": 31,
       "atlanan": 0
@@ -366,6 +370,10 @@
     },
     "tests/olculmemis-gosterimi.test.ts": {
       "vaka": 12,
+      "atlanan": 0
+    },
+    "tests/olcum-tabani.test.ts": {
+      "vaka": 10,
       "atlanan": 0
     },
     "tests/operasyon-mantik.test.ts": {
@@ -486,6 +494,10 @@
     },
     "tests/tedarikci-oturum.test.ts": {
       "vaka": 18,
+      "atlanan": 0
+    },
+    "tests/tek-nusha.test.ts": {
+      "vaka": 6,
       "atlanan": 0
     },
     "tests/ters-kapsam-ekran.test.ts": {

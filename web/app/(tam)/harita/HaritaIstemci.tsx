@@ -288,7 +288,7 @@ function SeciliKunye({ isaret, yazabilir, duzenle, kapat }: {
         </div>
         <div>
           <dt>Kurulu güç</dt>
-          <dd>{olculenYazi({ deger: isaret.gucMw, birim: isaret.gucBirim }) ?? 'kayıt yok'}</dd>
+          <dd>{olculenYazi({ deger: isaret.guc, birim: isaret.gucBirim }) ?? 'kayıt yok'}</dd>
         </div>
         <div>
           <dt>Uyum</dt>

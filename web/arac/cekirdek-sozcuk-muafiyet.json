@@ -101,7 +101,7 @@
       ]
     },
     "components/kabuk/tip.ts": {
-      "sebep": "MERKEZ TASARIM KARARI · P4'e ertelendi. 'üretim tesisi değil' cümlesi MERKEZ tipinin ne OLMADIĞINI söylüyor ve tip kütüğünün kendi sözlüğü P4'te öznitelik şemasına taşınacak (aynı dosya A listesinde de bu gerekçeyle duruyor). Bugün sözlüğe bağlamak, yarın şemaya taşınacak bir metni iki kez yazmak olurdu.",
+      "sebep": "KATMAN · sözlüğün değil ÖZNİTELİK ŞEMASININ konusu. 'üretim tesisi değil' cümlesi MERKEZ tipinin ne OLMADIĞINI söyler; bu bir TİP TANIMIDIR ve tip kütüğünün kendi sözlüğü öznitelik şemasına aittir. Terim sözlüğüne bağlamak metni YANLIŞ KATMANA koyardı — sözlük terimleri çevirir, tip tanımlarını değil. Sahip: P4 · öznitelik şeması dilimi. Kapanış: tip kütüğü şemaya taşındığında düşer.",
       "dizeler": [
         "üretim tesisi değil"
       ]

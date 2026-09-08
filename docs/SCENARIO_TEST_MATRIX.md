@@ -9,7 +9,7 @@
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
-| Taranan test dosyası | 153 |
+| Taranan test dosyası | 156 |
 
 ## Katman başına kapsam
 
@@ -358,6 +358,11 @@
 | `URN-ALN-007` | Ürünleştirme | DOMAIN | `bekci/katlama-korlugu.test.ts` | DGKÇ — ASCII `\\b` sondaki Ç yüzünden HİÇ görmüyordu | evet | geçti |
 | `URN-ALN-007` | Ürünleştirme | DOMAIN | `bekci/katlama-korlugu.test.ts` | RES — ASCII `\\b` Türkçe sözcüğün ORTASINDA eşleşiyordu | evet | geçti |
 | `URN-ALN-007` | Ürünleştirme | DOMAIN | `bekci/katlama-korlugu.test.ts` | şapkasız rüzgar — yazım varyantı da sektör sözcüğüdür | evet | geçti |
+| `URN-ALN-007` | Ürünleştirme | DOMAIN | `bekci/katlama-korlugu.test.ts` | `gucMw` NUMUNESİ — öncesi 0, sonrası 1 | evet | geçti |
+| `URN-ALN-007` | Ürünleştirme | DOMAIN | `bekci/katlama-korlugu.test.ts` | birim sonekli yazımlar da görünür (`Mwe` · `MWe` · `Mwp`) | evet | geçti |
+| `URN-ALN-007` | Ürünleştirme | DOMAIN | `bekci/katlama-korlugu.test.ts` | YANLIŞ POZİTİF YOK — küçük harfli ve sınırsız yazımlar sessiz | evet | geçti |
+| `URN-ALN-007` | Ürünleştirme | DOMAIN | `bekci/katlama-korlugu.test.ts` | sözcük sınırlı yazım HÂLÂ görünüyor — eski kalıp kaybolmadı | evet | geçti |
+| `URN-ALN-007` | Ürünleştirme | DOMAIN | `bekci/katlama-korlugu.test.ts` | KÖRLÜK KAPANINCA BEŞ DOSYA ÇIKTI — ölçüm, temizlikten sonra | evet | geçti |
 | `URN-ALN-007` | Ürünleştirme | DOMAIN | `bekci/katlama-korlugu.test.ts` | camelCase kod biçimi depoda HİÇ geçmiyor (ölçüm) | evet | geçti |
 | `URN-ALN-007` | Ürünleştirme | DOMAIN | `bekci/katlama-korlugu.test.ts` | bugünkü bekçi camelCase kod biçimini GÖRMÜYOR — bilinçli | evet | geçti |
 | `URN-ALN-007` | Ürünleştirme | DOMAIN | `bekci/katlama-korlugu.test.ts` | küçük harf araması neden yapılmıyor — yanlış pozitif kanıtı | evet | geçti |
@@ -378,6 +383,9 @@
 
 | Dosya | Neden senaryosu yok |
 | --- | --- |
+| `olcum-tabani.test.ts` | Ölçüm kapsamı tabanı — sıfır ölçümle geçen kapı sınıfı |
+| `tek-nusha.test.ts` | Tek nüsha değişmezi — ortak davranışın ikinci tanımı ve ikiz liste dosyası |
+| `kesif-karari.test.ts` | Test keşfi sıfır dönerse ölçüm değil kırık sayılır |
 | `belge-sayimlari.test.ts` | Belgelerdeki sayıların koda karşı doğrulaması |
 | `tasarim-belgesi.test.ts` | DESIGN.md jeton değerlerinin kabuk.css'e karşı doğrulaması |
 | `senaryo-kutugu.test.ts` | Kütüğün kendi nöbetçisi |

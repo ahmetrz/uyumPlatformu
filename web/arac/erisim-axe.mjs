@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { tabanDogrula, tabanYaz } from './olcum-tabani.mjs';
 /* axe-core kapısı — WCAG 2.x A/AA ihlal listesi, tüm rotalarda.
 
    ── NİÇİN VAR ─────────────────────────────────────────────────────────
@@ -118,4 +119,21 @@ if (JSON_YOLU) {
   writeFileSync(JSON_YOLU, JSON.stringify({ kok: KOK, etiketler: ETIKETLER, rotalar: rapor }, null, 2));
   console.log(`JSON → ${JSON_YOLU}`);
 }
-process.exitCode = ciddiToplam > 0 || kirik.length > 0 ? 1 : 0;
+
+/* ── ÖLÇÜM KAPSAMI TABANI ─────────────────────────────────────────────
+   Kusur sayısı sıfır olabilir; ÖLÇÜM sayısı olamaz. Sıfır ölçümle
+   "0 kusur" demek, hiçbir şeye bakmadan temiz raporlamaktır
+   (`arac/olcum-tabani.mjs` başlığındaki ölçülmüş olay). */
+if (process.argv.includes('--taban-yaz')) {
+  const { onceki, yeni } = tabanYaz('axe.rota', rapor.length);
+  console.log(`taban güncellendi: axe.rota ${onceki ?? '(yok)'} → ${yeni}`);
+} else {
+  try {
+    tabanDogrula('axe.rota', rapor.length);
+  } catch (e) {
+    console.error(`\n${e.message}`);
+    process.exitCode = 1;
+  }
+}
+
+process.exitCode = process.exitCode || (ciddiToplam > 0 || kirik.length > 0 ? 1 : 0);

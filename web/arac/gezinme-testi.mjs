@@ -28,7 +28,13 @@
 */
 
 import { chromium } from 'playwright-core';
-import { tarayiciYolu } from './kosu-ortak.mjs';
+/* Giriş ORTAK işlevden gelir; bu dosyanın kendi kopyası SİLİNDİ.
+   Ölçüldü: üç ayrı `girisYap` kopyası vardı ve #28 ortak işleve bir CTA
+   adımı eklediğinde kopyalar almadı — iki araç main'e KIRIK girdi ve
+   hiçbir şey söylemedi. `tests/tek-nusha.test.ts` dördüncüsünü
+   engelliyor. */
+import { girisYap, tarayiciYolu } from './kosu-ortak.mjs';
+import { tabanDogrula, tabanYaz } from './olcum-tabani.mjs';
 
 const KOK = `http://localhost:${process.env.PORT || 3000}`;
 
@@ -90,21 +96,6 @@ const bildir = (bant, m) => kusurlar.push(`${bant} · ${m}`);
 
 const b = await chromium.launch({ executablePath: tarayiciYolu() });
 
-async function girisYap(s) {
-  await s.goto(`${KOK}/giris`, { waitUntil: 'load' });
-  if (!s.url().includes('/giris')) return;
-  for (let d = 1; d <= 3; d += 1) {
-    await s.fill('input[type=email]', 'kullanici.a@demo.local');
-    await s.fill('input[type=password]', 'Enerji!2026');
-    const ok = (await s.inputValue('input[type=email]')) === 'kullanici.a@demo.local'
-      && (await s.inputValue('input[type=password]')).length > 0;
-    if (ok) break;
-    await s.waitForTimeout(300 * d);
-  }
-  await s.click('button[type=submit]');
-  await s.waitForURL((u) => !u.pathname.startsWith('/giris'), { timeout: 25000 });
-}
-
 /** Tek `aria-current="page"` sözleşmesi. */
 async function aktifSayisi(s) {
   return s.evaluate(() => document.querySelectorAll('[aria-current="page"]').length);
@@ -139,7 +130,7 @@ for (const bant of BANTLAR) {
   s.on('pageerror', (e) => sayfaHatalari.push(e.message.slice(0, 120)));
 
   try {
-    await girisYap(s);
+    await girisYap(s, KOK);
     await s.setViewportSize({ width: bant.en, height: bant.boy });
 
     /* ── 1 · KARDEŞ rota, dokunmatik ─────────────────────────────────── */
@@ -217,4 +208,20 @@ if (kusurlar.length) {
   process.exitCode = 1;
 } else {
   console.log(`\ngezinme kusuru: 0 · ${BANTLAR.length} bant · kabuk içi + kabuklar arası`);
+}
+
+/* ── ÖLÇÜM KAPSAMI TABANI ─────────────────────────────────────────────
+   Kusur sayısı sıfır olabilir; ÖLÇÜM sayısı olamaz. Sıfır ölçümle
+   "kusurlu 0" demek, hiçbir şeye bakmadan temiz raporlamaktır
+   (`arac/olcum-tabani.mjs` başlığındaki ölçülmüş olay). */
+if (process.argv.includes('--taban-yaz')) {
+  const { onceki, yeni } = tabanYaz('gezinme.bant', notlar.length);
+  console.log(`taban güncellendi: gezinme.bant ${onceki ?? '(yok)'} → ${yeni}`);
+} else {
+  try {
+    tabanDogrula('gezinme.bant', notlar.length);
+  } catch (e) {
+    console.error(`\n${e.message}`);
+    process.exitCode = 1;
+  }
 }

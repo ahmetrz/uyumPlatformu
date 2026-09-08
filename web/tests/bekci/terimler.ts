@@ -10,7 +10,7 @@ import path from 'node:path';
    sondalarını da vuruyor ve onları hiçbir test korumuyor (bkz.
    `arac/turkce-arama.mjs` başlığı). Kalıp tek yerde durur; bu dosyanın
    kalıcı vakaları (`katlama-korlugu.test.ts`) onu koruyor. */
-import { eslesmeSayisi, katlamaliSayi, sinirKalibi } from '../../arac/turkce-arama.mjs';
+import { camelKalibi, eslesmeSayisi, katlamaliSayi, sinirKalibi } from '../../arac/turkce-arama.mjs';
 
 export { eslesmeSayisi };
 
@@ -62,7 +62,20 @@ export const TERIMLER: { ad: string; kaliplar: { re: RegExp; hedef: Hedef }[] }[
     // ASCII yazım (`UNITE` · `unite`): değişmez katlama bunu görür.
     { re: new RegExp(sinir('unite').source, 'gu'), hedef: 'kucuk' },
   ] },
-  { ad: 'MW', kaliplar: [{ re: sinir('MW[ep]?'), hedef: 'ham' }] },
+  /* ── camelCase İÇİNE GÖMÜLÜ MW ─────────────────────────────────────
+     Sözcük sınırlı kalıp `gucMw` içindeki `Mw`yi GÖREMEZ ve görmemesi
+     kendi tanımı gereğidir: solunda `c` var. Ama tanımlayıcı adları
+     sektör terimini tam da böyle taşıyor. ÖLÇÜLDÜ (7 Eyl 2026): `gucMw`
+     on bir dosyada, 37 geçişle duruyordu ve bekçi hiçbirini görmüyordu.
+
+     O geçişler bu dalda ayrıca temizlendi (`gucMw` → `guc`), ama
+     TEMİZLİK KÖRLÜĞÜ KAPATMAZ: kalıp eklenmezse yarın yazılan bir
+     `gucMw` yine görünmez. İzin listesi sıfıra inerken açık bir körlük,
+     kapının "bitti" demesini yalan yapar. */
+  { ad: 'MW', kaliplar: [
+    { re: sinir('MW[ep]?'), hedef: 'ham' },
+    { re: camelKalibi('MW[EPep]?|Mw[ep]?'), hedef: 'ham' },
+  ] },
   { ad: 'tip kodu', kaliplar: [
     { re: sinir('JES|JEO|RES|HES|GES|DGKC|DGKÇ|TERMIK|TERMİK'), hedef: 'ham' },
   ] },
@@ -83,7 +96,18 @@ export const TERIMLER: { ad: string; kaliplar: { re: RegExp; hedef: Hedef }[] }[
      yakalanmamalı, ama "toplantı" da yakalanmamalı. Kalıp `i` bayrağı
      TAŞIMAZ ve `ham` metinde aranır — İngilizce sözcük, Türkçe katlama
      tuzağına girmez. */
-  { ad: 'plant', kaliplar: [{ re: sinirKalibi('plant|Plant|PLANT'), hedef: 'ham' }] },
+  { ad: 'plant', kaliplar: [
+    /* SAĞ SINIR RAKAMA AÇIK — `Plant360` bir dönem GÖRÜNMÜYORDU.
+       Çelişki bekçinin kendi tüzüğündeydi: başlık "tarama ham metin
+       üstündedir: literal, TANIMLAYICI, yorum, CSS sınıfı ve DOSYA ADI
+       dâhil" diyor ve örnek olarak tam da `Plant360Veri`yi anıyor; oysa
+       `sinirKalibi` sağda rakam da yasaklıyordu. Muafiyetin gerekçesi
+       ilkesel değil MALİYETTİ ("yakalamak dosya adı değişikliği ister")
+       — ve bir gerekçe kusuru değil düzeltme maliyetini anlatıyorsa, o
+       bir gerekçe değildir. Sol sınır sözcük sınırı olarak KALDI:
+       "toplantı" ve "toplantı360" hâlâ görünmez. */
+    { re: /(?<![\p{L}\p{N}_])(?:plant|Plant|PLANT)(?![\p{L}_])/gu, hedef: 'ham' },
+  ] },
   /* ── KÜÇÜK HARFLİ KOD BİÇİMİ · CSS JETONU ──────────────────────────
      Kodlar ham metinde BÜYÜK harfle aranır; küçültülmüşte `res` Türkçe
      sözcüklerin içine düşerdi. Bu, küçük harfle yazılmış kod

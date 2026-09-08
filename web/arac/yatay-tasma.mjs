@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { tabanDogrula, tabanYaz } from './olcum-tabani.mjs';
 /* Yatay taşma kapısı — DAR EKRANDA SAYFA YANA KAYMAZ.
 
    ── NİÇİN VAR ─────────────────────────────────────────────────────────
@@ -107,6 +108,23 @@ try {
   }
 } finally {
   await tarayici.close();
+}
+
+
+/* ── ÖLÇÜM KAPSAMI TABANI ─────────────────────────────────────────────
+   Kusur sayısı sıfır olabilir; ÖLÇÜM sayısı olamaz. Sıfır ölçümle
+   "0 kusur" demek, hiçbir şeye bakmadan temiz raporlamaktır
+   (`arac/olcum-tabani.mjs` başlığındaki ölçülmüş olay). */
+if (process.argv.includes('--taban-yaz')) {
+  const { onceki, yeni } = tabanYaz('tasma.olcum', olculen);
+  console.log(`taban güncellendi: tasma.olcum ${onceki ?? '(yok)'} → ${yeni}`);
+  process.exit(0);
+}
+try {
+  tabanDogrula('tasma.olcum', olculen);
+} catch (e) {
+  console.error(`\n${e.message}`);
+  process.exit(1);
 }
 
 if (kusurlar.length === 0) {

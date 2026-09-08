@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { TERIMLER, eslesmeSayisi, taranacakDosyalar } from './terimler';
 import { readFileSync } from 'node:fs';
-import { katlamaliVarMi } from '../../arac/turkce-arama.mjs';
+import { camelKalibi, katlamaliVarMi, sinirKalibi } from '../../arac/turkce-arama.mjs';
 
 /* ═══════════════════════════════════════════════════════════════════════
    BEKÇİNİN KÖRLÜK VAKALARI (P1 · URN-ALN-003)
@@ -135,6 +135,51 @@ describe('Bekçi körlüğü · Unicode sözcük sınırı', () => {
 const CAMEL_ORTA = /(?<=[a-z])(Jes|Res|Hes|Ges)(?=[A-Z0-9]|$)/g;
 const CAMEL_BAS = /\b(jes|res|hes|ges)(?=[A-Z])/g;
 
+describe('Bekçi körlüğü · camelCase içine gömülü MW', () => {
+  /* Düzeltmeden ÖNCEKİ MW kalıbı: yalnız sözcük sınırlı. */
+  const ONCE_MW = (m: string) => eslesmeSayisi(sinirKalibi('MW[ep]?'), m);
+
+  it('`gucMw` NUMUNESİ — öncesi 0, sonrası 1 [URN-ALN-007]', () => {
+    /* Aşağıdaki dizeler NUMUNEDİR, kod tanımlayıcısı değil: depoda o
+       yazım artık YOK (`gucMw` → `guc`). Numuneyi "temizlemek",
+       kalıbın ne gördüğünü sınayan tek şeyi silerdi. */
+    const kod = 'const gucMw = birim.gucMw ?? null;';
+    expect(ONCE_MW(kod), 'sözcük sınırı camelCase içini GÖRMEMELİ').toBe(0);
+    expect(bugun('MW', kod), 'bugünkü kalıp görmeli').toBeGreaterThan(0);
+  });
+
+  it('birim sonekli yazımlar da görünür (`Mwe` · `MWe` · `Mwp`) [URN-ALN-007]', () => {
+    for (const yazim of ['gucMwe', 'gucMWe', 'gucMwp', 'gucMW']) {
+      expect(ONCE_MW(`const ${yazim} = 1;`), `${yazim} · öncesi`).toBe(0);
+      expect(bugun('MW', `const ${yazim} = 1;`), `${yazim} · sonrası`).toBeGreaterThan(0);
+    }
+  });
+
+  it('YANLIŞ POZİTİF YOK — küçük harfli ve sınırsız yazımlar sessiz [URN-ALN-007]', () => {
+    for (const yazim of ['const mw = 1;', 'const gucMwx = 1;', 'const homework = 1;']) {
+      expect(bugun('MW', yazim), yazim).toBe(0);
+    }
+  });
+
+  it('sözcük sınırlı yazım HÂLÂ görünüyor — eski kalıp kaybolmadı [URN-ALN-007]', () => {
+    expect(bugun('MW', 'kapasite: 120 MW'), 'sınırlı yazım').toBeGreaterThan(0);
+    expect(bugun('MW', '54 MWe kurulu'), 'birim sonekli sınırlı yazım').toBeGreaterThan(0);
+  });
+
+  it('KÖRLÜK KAPANINCA BEŞ DOSYA ÇIKTI — ölçüm, temizlikten sonra [URN-ALN-007]', () => {
+    /* Bu dalda `gucMw` geçişleri zaten temizlenmişti — ama YALNIZ
+       `(kabuk)/(flagship)` altında. Kalıp eklenince `(tam)/harita` ve
+       `(tam)/portfoy` altında BEŞ dosya, 17 geçiş ortaya çıktı: izin
+       listesi 12 diyordu, gerçek 17 idi. Örnekleri temizlemek körlüğü
+       kapatmaz; kapatan şey kalıptır. */
+    const camelli = taranacakDosyalar().filter((d) => {
+      const ham = `${readFileSync(d, 'utf8')}\n${d}`;
+      return eslesmeSayisi(camelKalibi('MW[EPep]?|Mw[ep]?'), ham) > 0;
+    });
+    expect(camelli, `camelCase MW hâlâ var: ${camelli.join(', ')}`).toEqual([]);
+  });
+});
+
 describe('Bekçi körlüğü · küçük harfli kod biçimi', () => {
   it('camelCase kod biçimi depoda HİÇ geçmiyor (ölçüm) [URN-ALN-007]', () => {
     /* Karar bu ölçüme dayanıyor: eşleşme OLSAYDI bunlar bekçinin
@@ -222,7 +267,21 @@ describe('Bekçi körlüğü · küçük harfli kod biçimi', () => {
     /* Bitişik yazım kod tanımlayıcısıdır, sözcük değil. Örnek DEPODAKİ
        bir bileşen değil (ekran artık `Tesis360`); ölçülen şey kalıbın
        kendisi — bitişik yazım her zaman böyle davranmalı. */
-    expect(bugun('plant', 'Plant360'), 'bitişik yazım sözcük değildir').toBe(0);
+    /* BİTİŞİK YAZIM DA YAKALANIR — eski vaka bunun TERSİNİ sabitliyordu
+       ve bekçinin kendi tüzüğüyle çelişiyordu: "tarama ham metin
+       üstündedir: literal, TANIMLAYICI, yorum, CSS sınıfı ve DOSYA ADI
+       dâhil" (bkz. `sektor-terimi.test.ts` başlığı; orada örnek olarak
+       tam da `Plant360Veri` anılıyor). Muafiyetin gerekçesi ilkesel
+       değil MALİYETTİ ("tanımlayıcıyı yakalamak dosya adlarını da kirli
+       sayardı") — bir gerekçe kusuru değil düzeltme maliyetini
+       anlatıyorsa, o bir gerekçe değildir.
+
+       Sınır SOLDA sözcük sınırı, SAĞDA yalnız harf/alt çizgi yasağı:
+       rakam serbest. "toplantı" ve "toplantı360" hâlâ görünmez. */
+    expect(bugun('plant', 'Plant360'), 'bitişik yazım da tanımlayıcıdır').toBe(1);
+    expect(bugun('plant', 'b-plant360'), 'jeton yazımı da').toBe(1);
+    expect(bugun('plant', 'plants'), 'İngilizce çoğul sağ sınıra takılır').toBe(0);
+    expect(bugun('plant', 'toplantı360'), 'Türkçe sözcük + rakam yine görünmez').toBe(0);
   });
 
   it('CSS jetonu (`--hes`) — öncesi 0, sonrası 1 [URN-ALN-007]', () => {

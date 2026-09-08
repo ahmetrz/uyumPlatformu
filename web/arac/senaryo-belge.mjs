@@ -28,6 +28,9 @@ const BELGE_DIZINI = path.join(KOK, '..', 'docs');
    Bunlar bir kullanıcı senaryosunu değil, kütüğün/kodun kendi
    tutarlılığını ölçer; bir senaryo kimliği taşımaları anlamsız olurdu. */
 export const KUTUKSUZ_DOSYALAR = {
+  'olcum-tabani.test.ts': 'Ölçüm kapsamı tabanı — sıfır ölçümle geçen kapı sınıfı',
+  'tek-nusha.test.ts': 'Tek nüsha değişmezi — ortak davranışın ikinci tanımı ve ikiz liste dosyası',
+  'kesif-karari.test.ts': 'Test keşfi sıfır dönerse ölçüm değil kırık sayılır',
   'belge-sayimlari.test.ts': 'Belgelerdeki sayıların koda karşı doğrulaması',
   'tasarim-belgesi.test.ts': 'DESIGN.md jeton değerlerinin kabuk.css\'e karşı doğrulaması',
   'senaryo-kutugu.test.ts': 'Kütüğün kendi nöbetçisi',

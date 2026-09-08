@@ -3,7 +3,13 @@ import path from 'node:path';
 import Database from 'better-sqlite3';
 import { chromium } from 'playwright-core';
 import { yonlendirmeKarari } from './rota-kurallari.mjs';
-import { tarayiciYolu } from './kosu-ortak.mjs';
+/* Giriş ORTAK işlevden gelir; bu dosyanın kendi kopyası SİLİNDİ.
+   Ölçüldü: üç ayrı `girisYap` kopyası vardı ve #28 ortak işleve bir CTA
+   adımı eklediğinde kopyalar almadı — iki araç main'e KIRIK girdi ve
+   hiçbir şey söylemedi. `tests/tek-nusha.test.ts` dördüncüsünü
+   engelliyor. */
+import { girisYap, tarayiciYolu } from './kosu-ortak.mjs';
+import { tabanDogrula, tabanYaz } from './olcum-tabani.mjs';
 
 /* Rota duman testi — KAPSAM DOSYA SİSTEMİNDEN TÜRER.
 
@@ -168,21 +174,6 @@ s.on('pageerror', (e) => hatalar.push(`${s.url()} :: ${e.message.slice(0, 120)}`
    Belirtisi kafa karıştırıcıdır: denetim izine "tanımsız e-posta" düşer
    ve kimlik bilgileri yanlış sanılır. Bu yüzden doldurduktan sonra
    değerin GERÇEKTEN durduğu doğrulanır. */
-async function girisYap(sayfa, kok) {
-  await sayfa.goto(`${kok}/giris`, { waitUntil: 'load' });
-  if (!sayfa.url().includes('/giris')) return;
-  for (let deneme = 1; deneme <= 3; deneme += 1) {
-    await sayfa.fill('input[type=email]', 'kullanici.a@demo.local');
-    await sayfa.fill('input[type=password]', 'Enerji!2026');
-    const yerlesti = await sayfa.inputValue('input[type=email]') === 'kullanici.a@demo.local'
-      && (await sayfa.inputValue('input[type=password]')).length > 0;
-    if (yerlesti) break;
-    await sayfa.waitForTimeout(300 * deneme);
-  }
-  await sayfa.click('button[type=submit]');
-  await sayfa.waitForURL((u) => !u.pathname.startsWith('/giris'), { timeout: 25000 });
-}
-
 async function yokla(giris, url, envanter) {
   const y = await s.goto(KOK + url, { waitUntil: 'domcontentloaded' });
   await s.waitForTimeout(450);
@@ -310,6 +301,23 @@ if (JSON_CIKTI) {
     for (const r of edilemeyen) console.log(`  ${r.rota} → ${r.sebep}`);
   }
   if (hatalar.length) console.log(hatalar.slice(0, 6));
+}
+
+
+/* ── ÖLÇÜM KAPSAMI TABANI ─────────────────────────────────────────────
+   Kusur sayısı sıfır olabilir; ÖLÇÜM sayısı olamaz. Sıfır ölçümle
+   "kusurlu 0" demek, hiçbir şeye bakmadan temiz raporlamaktır
+   (`arac/olcum-tabani.mjs` başlığındaki ölçülmüş olay). */
+if (process.argv.includes('--taban-yaz')) {
+  const { onceki, yeni } = tabanYaz('duman.rota', sonuclar.length);
+  console.log(`taban güncellendi: duman.rota ${onceki ?? '(yok)'} → ${yeni}`);
+} else {
+  try {
+    tabanDogrula('duman.rota', sonuclar.length);
+  } catch (e) {
+    console.error(`\n${e.message}`);
+    process.exitCode = 1;
+  }
 }
 
 if (kusurlu.length || edilemeyen.length || hatalar.length) process.exitCode = 1;

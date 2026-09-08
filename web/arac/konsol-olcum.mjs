@@ -1,5 +1,10 @@
 import { chromium } from 'playwright-core';
-import { tarayiciYolu } from './kosu-ortak.mjs';
+/* Giriş ORTAK işlevden gelir. Burada kendi kopyası vardı ve #28
+   sinematik girişi eklerken ortak işleve verilen CTA adımını ALMAMIŞTI —
+   yani bu sonda da sessizce giriş yapamaz hâldeydi. Üçüncü kopya; ilk
+   ikisi (`rota-duman` · `gezinme-testi`) main'e KIRIK girmişti.
+   `tests/tek-nusha.test.ts` dördüncüsünü engelliyor. */
+import { girisYap, tarayiciYolu } from './kosu-ortak.mjs';
 
 /* Yönetim konsolu + Saha ölçümü — ÇEKMECE AÇILARAK ölçülür.
 
@@ -40,26 +45,11 @@ const SAHA_EKRANLARI = [[1366, 768], [1440, 900], [1280, 800]];
 
 /* Giriş — rota-duman.mjs ile aynı gerekçe: form kontrollü bileşendir,
    hidrasyondan önce doldurulan değer geri yazılabilir; yerleştiği doğrulanır. */
-async function girisYap(sayfa) {
-  await sayfa.goto(`${KOK}/giris`, { waitUntil: 'load' });
-  if (!sayfa.url().includes('/giris')) return;
-  for (let deneme = 1; deneme <= 3; deneme += 1) {
-    await sayfa.fill('input[type=email]', 'kullanici.a@demo.local');
-    await sayfa.fill('input[type=password]', 'Enerji!2026');
-    const yerlesti = await sayfa.inputValue('input[type=email]') === 'kullanici.a@demo.local'
-      && (await sayfa.inputValue('input[type=password]')).length > 0;
-    if (yerlesti) break;
-    await sayfa.waitForTimeout(300 * deneme);
-  }
-  await sayfa.click('button[type=submit]');
-  await sayfa.waitForURL((u) => !u.pathname.startsWith('/giris'), { timeout: 25000 });
-}
-
 const b = await chromium.launch({ executablePath: tarayiciYolu() });
 const s = await b.newPage({ viewport: { width: 1366, height: 768 } });
 const hatalar = [];
 s.on('pageerror', (e) => hatalar.push(`${s.url()} :: ${e.message.slice(0, 160)}`));
-await girisYap(s);
+await girisYap(s, KOK);
 
 const sonuc = { kok: KOK, saha: {}, konsol: {}, moduller: {}, hatalar };
 

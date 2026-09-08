@@ -70,6 +70,25 @@ sürüm aktifleştirmez, kanıtı "yeterli" işaretlemez.
 **Değişiklikler PR ile gelir.** `main`'e doğrudan push yok, otomatik
 merge yok.
 
+**Gerekçe kusuru anlatır, maliyeti değil.** Bir muafiyet, beyan ya da
+"bilinçli körlük" kaydının gerekçesi, kusurun neden kusur OLMADIĞINI
+söylemelidir. Düzeltmenin neye mal olacağını anlatan bir cümle gerekçe
+değildir — ölçüldü: `Plant360` üç yerde "yakalamak dosya adlarını da
+kirli sayardı" diye muaf tutulmuştu; düzeltme yapılınca muafiyet
+buharlaştı. Tarama: `node arac/gerekce-tarama.mjs` (kapı değil, kusur
+avı — çıktısı elle sınıflandırılır).
+
+**Süresiz beyan yoktur.** Ertelenen her kırmızı, R0 kütüğüne SAHİBİ ve
+HANGİ AŞAMADA kapanacağı yazılarak geçer (`docs/GELISTIRME_PAKETLERI.md`
+§6). Sahipsiz bir erteleme üç hafta sonra sebebi bilinmeyen bir
+istisnadır.
+
+**Kırmızıyı koda yazmadan önce ölçüm ortamının tazeliğini doğrula.**
+Bayat bir `next start` süreci, dolu bir disk ya da kapatılmış bir port,
+kod kusuru gibi görünen kırmızılar üretir (üçü de ölçüldü). Sıra:
+süreçleri öldür → portun kapandığını doğrula → derle → başlat → ölç.
+Ayrıntı `web/arac/BENIOKU.md`.
+
 **Dosyayı değiştirmeden önce güncel hâlini oku.**
 
 ### Değişen kurallar
@@ -164,3 +183,11 @@ derlemesi. Tarayıcı isteyen kapılar canlı sunucu ister ve elle koşulur
 (`PORT=3210 npm run dev` başka bir kabukta); listesi ve gerekçeleri
 `web/arac/BENIOKU.md` içindedir. Koşulmayan kapı "geçti" diye
 yazılmaz — "ölçülmedi" yazılır.
+
+Sayı raporlayan her kapı bir **ölçüm tabanı** taşır
+(`web/arac/olcum-tabani.json`): cırcır borç için TAVAN tutar, taban
+kapsam için TABAN. Kusur sayısı sıfır olabilir; ölçüm sayısı olamaz —
+sıfır ölçümle "kusur yok" demek, hiçbir şeye bakmadan temiz
+raporlamaktır (ölçüldü: disk dolunca test keşfi 0 vaka döndü ve sayım
+kapısı "gerçek keşifle doğrulandı" diyerek geçti). Taban ancak ÖLÇÜMLE
+indirilir (`--taban-yaz`) ve düşüşün sebebi commit mesajına yazılır.

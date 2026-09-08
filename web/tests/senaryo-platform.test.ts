@@ -57,7 +57,7 @@ describe('Portföy özeti', () => {
   const satir = (ek: Partial<PortfoySatiri> = {}): PortfoySatiri => ({
     id: 's1', kod: 'SAN-1', ad: 'Santral 1',
     tipKod: 'HES', tipAdi: 'Hidroelektrik', tuzelKisi: 'A',
-    konum: null, gucMw: 100, gucBirim: 'MW', gorselAnahtari: null,
+    konum: null, guc: 100, gucBirim: 'MW', gorselAnahtari: null,
     enlem: null, boylam: null, konumKaynagi: null, konumDogrulandi: false,
     kritiklik: null, uyumYuzde: null, bilinmeyenOran: null,
     acikBulgu: 0, acikRisk: 0, ...ek,
@@ -71,7 +71,7 @@ describe('Portföy özeti', () => {
   });
 
   it('kurulu güçte "zayıflık" tanımsızdır — küçük santral kötü santral değildir', () => {
-    expect(enZayif([satir({ gucMw: 1 })], 'guc')).toBeNull();
+    expect(enZayif([satir({ guc: 1 })], 'guc')).toBeNull();
   });
 
   it('açık bulgusu olmayan kümede zayıf yoktur', () => {

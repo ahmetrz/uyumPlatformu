@@ -54,7 +54,7 @@ export default function Portfoy({ satirlar, toplamGuc, endeks, kapsamli = false 
     for (const s of satirlar) {
       const k = s.tipKod ?? 'DIGER';
       const v = m.get(k) ?? { kod: k, ad: s.tipAdi, adet: 0, guc: 0 };
-      v.adet += 1; v.guc += s.gucMw ?? 0; m.set(k, v);
+      v.adet += 1; v.guc += s.guc ?? 0; m.set(k, v);
     }
     return [...m.values()].sort((a, b) => b.adet - a.adet);
   }, [satirlar]);
@@ -76,7 +76,7 @@ export default function Portfoy({ satirlar, toplamGuc, endeks, kapsamli = false 
      Süzgeçten geçen alt küme AYRI hesaplanır: süzgeç tek birime indirmiş
      olabilir ve o zaman görünen toplam anlamlıdır. */
   const gorunenToplam = useMemo(
-    () => birimliToplam(gorunen.map((s) => ({ deger: s.gucMw, birim: s.gucBirim }))),
+    () => birimliToplam(gorunen.map((s) => ({ deger: s.guc, birim: s.gucBirim }))),
     [gorunen]);
   const yaz = (x: { toplam: number | null; birim: string | null }) => olculenYazi({
     deger: x.toplam === null ? null : Math.round(x.toplam * 10) / 10, birim: x.birim });
@@ -173,7 +173,7 @@ export default function Portfoy({ satirlar, toplamGuc, endeks, kapsamli = false 
               </p>
               <dl className="olgular">
                 <Olgu ad="Kurulu güç"
-                  deger={olculenYazi({ deger: secili.gucMw, birim: secili.gucBirim }) ?? '—'} />
+                  deger={olculenYazi({ deger: secili.guc, birim: secili.gucBirim }) ?? '—'} />
                 <Olgu ad="Uyum endeksi"
                   deger={secili.uyumYuzde === null ? '—' : `%${secili.uyumYuzde}`}
                   not={secili.bilinmeyenOran != null && secili.bilinmeyenOran > 0
@@ -271,7 +271,7 @@ export default function Portfoy({ satirlar, toplamGuc, endeks, kapsamli = false 
                   <span className="olcu">
                     <span className="mono guc">
                       {[s.tuzelKisi,
-                        olculenYazi({ deger: s.gucMw, birim: s.gucBirim }) ?? 'kurulu güç kayıtsız']
+                        olculenYazi({ deger: s.guc, birim: s.gucBirim }) ?? 'kurulu güç kayıtsız']
                         .filter(Boolean).join(' · ')}
                       {/* Güç dışı bir anahtarla sıralanırken ölçü satırda da yazılır;
                           "ölçülmedi" sözcüğü sıfırla karışmaz. */}

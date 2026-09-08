@@ -74,6 +74,37 @@ Değişmezler:
   `--tekrar N` ortanca koşuyu seçer. Sorgu sayısı deterministtir, süre
   gürültülüdür, zirve yığın (GC zamanlamasına bağlı) en gürültülüsüdür.
 
+## ÖLÇÜMDEN ÖNCE: ORTAM TAZELİĞİ — atlanamaz adım
+
+Bir kırmızıyı koda yazmadan önce ölçüm ortamının taze olduğu
+DOĞRULANIR. Bu bir öneri değil, ölçümün ön koşuludur; atlandığında
+üretilen şey kod kusuru gibi görünen bir yanlış alarmdır. Üç tuzak da
+ÖLÇÜLDÜ, üçü de aynı oturumda:
+
+| Tuzak | Nasıl görünür | Gerçek sebep |
+| --- | --- | --- |
+| Bayat `next start` | `rota-duman`: "`/` ← kabuk yok" · sayfa `__next_error__` döner | Yeni derleme yapıldı ama eski süreç ayakta; süreç SİLİNMİŞ inode'u tutuyor |
+| Dolu disk | Vitest keşfi "158 dosya · **0 vaka**" döner, kapı "doğrulandı" der | Test kopyaları `/tmp`i doldurdu (8 188 dizin · 27 GB); ENOSPC bile görünmedi |
+| Kapatılmış port | `ERR_CONNECTION_REFUSED` · "sözlükle metin yakalanamadı" | Uzun koşan bir kapı arka plandayken port başka bir iş için kapatıldı |
+
+**SIRA:**
+
+```
+1  eski süreçleri öldür     fuser -k -n tcp <port>
+2  portun KAPANDIĞINI doğrula   curl -sf localhost:<port> && echo AYAKTA
+3  boş alanı gör            df -h .        (< 512 MB ise önce temizle)
+4  derle                    npm run build
+5  başlat + hazır bekle     next start & → curl döngüsü
+6  ÖLÇ
+```
+
+Adım 2 atlanamaz: `next start` port doluysa `EADDRINUSE` ile ölür ama
+`curl` ESKİ sunucuyu görüp "hazır" der. "Hazır" cevabı yeni sunucudan
+geldiğini kanıtlamaz.
+
+Uzun koşan bir kapı varken (`kapi:iki-sozluk` ~25 dk) portu BAŞKA bir iş
+için kapatmak, o kapıyı kod kusuru gibi görünen bir hatayla düşürür.
+
 ## Kalite kapıları (KK-1…KK-8)
 
 Statik kapılar (`npm run lint` · `npx tsc --noEmit` · `npm test` ·

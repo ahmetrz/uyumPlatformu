@@ -81,7 +81,8 @@ function terminKisa(gecikmisGun: number | null, hedefTarih: string | null): stri
 
 export type Kayit = {
   id: string; baslik: string; aciklama: string | null;
-  tesisAd: string; tesisId: string; kontrolKodu: string; cerceve: string;
+  /** kapsam öğesinin adı ve tesis köprüsü (köprüsüz öğede null) */
+  tesisAd: string; tesisId: string | null; kontrolKodu: string; cerceve: string;
   onem: string; durum: string; sorumlu: string | null;
   hedefTarih: string | null; gecikmisGun: number | null;
   aksiyonTamam: number; aksiyonToplam: number;

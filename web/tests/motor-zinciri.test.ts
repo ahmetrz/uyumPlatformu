@@ -2,6 +2,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import { copyFileSync, mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import { ogeIdAl } from './yardim/kapsam';
 
 /* Motor zinciri testleri (§68 + entegrasyon).
 
@@ -232,11 +233,12 @@ describe('Motor zinciri — sıra, koşul, dayanıklılık, otomasyon sınırı'
     // el ile değiştirilmiş bir karar kur — zincir buna dokunmamalı
     const tesis = await db.tesis.findFirstOrThrow({ where: { durum: 'aktif' } });
     const reg = await db.regulasyon.findFirstOrThrow();
+    const ogeId = await ogeIdAl(tesis.id);
     const elIle = await db.uygulanabilirlikKarari.upsert({
-      where: { tesisId_regulasyonId: { tesisId: tesis.id, regulasyonId: reg.id } },
+      where: { kapsamOgesiId_regulasyonId: { kapsamOgesiId: ogeId, regulasyonId: reg.id } },
       update: { uygulanabilir: false, gerekce: 'EL İLE: kapsam dışı bırakıldı',
         elIleDegistirildi: true, degistirmeGerekcesi: 'zincir testi' },
-      create: { tesisId: tesis.id, regulasyonId: reg.id, uygulanabilir: false,
+      create: { kapsamOgesiId: ogeId, regulasyonId: reg.id, uygulanabilir: false,
         gerekce: 'EL İLE: kapsam dışı bırakıldı', elIleDegistirildi: true,
         degistirmeGerekcesi: 'zincir testi' } });
 

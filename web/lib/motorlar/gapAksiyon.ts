@@ -38,7 +38,7 @@ export async function gapAksiyonIsle(): Promise<{ islenen: number; uretilen: num
     where: { durum: 'uyumsuz', bulgular: { some: kritikBulguFiltresi } },
     include: {
       madde: { select: { kod: true } },
-      tesis: { select: { kod: true } },
+      kapsamOgesi: { select: { kod: true, tesisId: true } },
       bulgular: {
         where: kritikBulguFiltresi,
         orderBy: { onemDerecesi: 'asc' }, // 'kritik' alfabetik önce gelir
@@ -53,11 +53,11 @@ export async function gapAksiyonIsle(): Promise<{ islenen: number; uretilen: num
     if (!bulgu) continue;
     const risk = bulgu.riskler[0];
     uretilen += await adayGuvenceyeAl({
-      baslik: `Uyum açığı kapatma: ${md.madde.kod} · ${md.tesis.kod}`,
-      gerekce: `${md.madde.kod} ${md.tesis.kod} için uyumsuz; `
+      baslik: `Uyum açığı kapatma: ${md.madde.kod} · ${md.kapsamOgesi.kod}`,
+      gerekce: `${md.madde.kod} ${md.kapsamOgesi.kod} için uyumsuz; `
         + `${bulgu.onemDerecesi === 'yuksek' ? 'yüksek önemde' : 'kritik'} bulgu: ${bulgu.baslik}`
         + (risk ? `; risk: ${risk.kod} ${risk.baslik}` : ''),
-      kaynak: 'regulatory_gap', kaynakRef: md.id, tesisId: md.tesisId,
+      kaynak: 'regulatory_gap', kaynakRef: md.id, tesisId: md.kapsamOgesi.tesisId,
     });
   }
 
@@ -82,7 +82,7 @@ export async function gapAksiyonIsle(): Promise<{ islenen: number; uretilen: num
     where: { silindi: null, durum: { in: ['acik', 'aksiyonda'] }, tekrarBulguId: { not: null } },
     include: {
       maddeDurumu: { include: {
-        madde: { select: { kod: true } }, tesis: { select: { kod: true } } } },
+        madde: { select: { kod: true } }, kapsamOgesi: { select: { kod: true, tesisId: true } } } },
       tekrarBulgu: { select: { baslik: true, tespitTarihi: true } },
     },
   });
@@ -90,12 +90,12 @@ export async function gapAksiyonIsle(): Promise<{ islenen: number; uretilen: num
     islenen++;
     uretilen += await adayGuvenceyeAl({
       baslik: `Tekrar eden bulgu için yapısal çözüm: ${b.baslik}`,
-      gerekce: `${b.maddeDurumu.madde.kod} ${b.maddeDurumu.tesis.kod} için tekrar eden bulgu: ${b.baslik}`
+      gerekce: `${b.maddeDurumu.madde.kod} ${b.maddeDurumu.kapsamOgesi.kod} için tekrar eden bulgu: ${b.baslik}`
         + (b.tekrarBulgu
           ? `; ilk tespit: "${b.tekrarBulgu.baslik}" (${tarihTR(b.tekrarBulgu.tespitTarihi)})`
           : '')
         + ' — düzeltici aksiyon kalıcı olmamış, yapısal proje gerekir.',
-      kaynak: 'tekrar_bulgu', kaynakRef: b.id, tesisId: b.maddeDurumu.tesisId,
+      kaynak: 'tekrar_bulgu', kaynakRef: b.id, tesisId: b.maddeDurumu.kapsamOgesi.tesisId,
     });
   }
 

@@ -30,7 +30,8 @@ const pasifStil = (pasif: boolean) =>
   (pasif ? { opacity: 0.45, cursor: 'not-allowed' } : undefined);
 
 export type Tesis = { id: string; kod: string; ad: string };
-export type MaddeSecenegi = { id: string; tesisId: string; etiket: string };
+/** `tesisId` kapsam öğesinin tesis köprüsüdür (B1); köprüsüz öğede null. */
+export type MaddeSecenegi = { id: string; tesisId: string | null; etiket: string };
 
 /* ═══ Sapma kararı ════════════════════════════════════════════════════ */
 

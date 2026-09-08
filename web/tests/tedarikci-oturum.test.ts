@@ -2,6 +2,7 @@ import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { copyFileSync, mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import { ogeKimligi } from './yardim/kapsam';
 
 // TEST_DB'yi importlardan ÖNCE ayarla (db modülü ilk erişimde okur)
 const dizin = mkdtempSync(path.join(tmpdir(), 'uyum-oturum-'));
@@ -16,7 +17,7 @@ process.env.TEST_DB = testDb;
    üzerinden değiştiriyoruz — gerçek `izinVar` onları okuyor. */
 const sahteKullanici: import('@/lib/auth').AktifKullanici = {
   id: '', adSoyad: 'Test Erişim Sorumlusu', eposta: 'e@test', unvan: null,
-  yetkiler: [{ rol: 'yonetici', surecId: null, tesisId: null,
+  yetkiler: [{ rol: 'yonetici', surecId: null, kapsamOgesiId: null, tesisId: null,
     tuzelKisiId: null, regulasyonId: null, modul: null }],
 };
 
@@ -37,7 +38,7 @@ const { tedarikciEkranVerisi } =
 /** Kapsamı tek santrale kısıtlı kullanıcı — gerçek `izinVar` bunu okur. */
 const tekSantralKullanicisi = (tesisId: string, id: string) => ({
   id, adSoyad: 'A Tesis Yöneticisi', eposta: 'a@test', unvan: null,
-  yetkiler: [{ rol: 'tesis_yoneticisi', surecId: null, tesisId,
+  yetkiler: [{ rol: 'tesis_yoneticisi', surecId: null, kapsamOgesiId: ogeKimligi(tesisId), tesisId,
     tuzelKisiId: null, regulasyonId: null, modul: null }],
 });
 
@@ -410,7 +411,8 @@ describe('§18 · Tedarikçi ekranı kapsamı — çapraz tesis okuma sızmaz', 
 
     const eskiYetkiler = sahteKullanici.yetkiler;
     sahteKullanici.yetkiler = [{ rol: 'tesis_yoneticisi', surecId: null,
-      tesisId: tesisA.id, tuzelKisiId: null, regulasyonId: null, modul: null }];
+      kapsamOgesiId: ogeKimligi(tesisA.id), tesisId: tesisA.id,
+      tuzelKisiId: null, regulasyonId: null, modul: null }];
     try {
       const sonuc = await oturumKarariKaydet({
         oturumId: bOturumu.id, karar: 'istisna',

@@ -63,7 +63,7 @@ export default async function Sayfa() {
     }),
     db.uygulanabilirlikKarari.findMany({
       where: { uygulanabilir: true },
-      select: { tesisId: true, regulasyonId: true },
+      select: { kapsamOgesi: { select: { tesisId: true } }, regulasyonId: true },
     }),
   ]);
 
@@ -224,7 +224,7 @@ export default async function Sayfa() {
           bildirimGerekli: o.bildirimGerekli,
           bildirimTarihi: o.bildirimTarihi?.getTime() ?? null,
           regulasyonIdleri: uygulanabilirlikler
-            .filter((u) => u.tesisId === o.tesisId)
+            .filter((u) => u.kapsamOgesi.tesisId !== null && u.kapsamOgesi.tesisId === o.tesisId)
             .map((u) => u.regulasyonId),
           kurallar: bildirimKurallari,
         });

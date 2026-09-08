@@ -1,6 +1,6 @@
 import 'server-only';
 import { tesisKapsamda } from '@/lib/api/yetki';
-import { izinVar, izinliTesisIdleri, KAPSAM_SONRA, type Islem, type Modul } from '@/lib/erisim';
+import { izinVar, izinliKapsamOgesiIdleri, izinliTesisIdleri, KAPSAM_SONRA, type Islem, type Modul } from '@/lib/erisim';
 import type { AktifKullanici } from '@/lib/auth';
 
 /* ═══ EKRAN KAPSAMI — tesis sınırının TEK yeri ══════════════════════════
@@ -142,3 +142,52 @@ export function kapsamdaYetkili(
 ): boolean {
   return izinVar(k, modul, islem, tesisId ? { tesisId } : {});
 }
+
+/* ═══ KAPSAM ÖĞESİ EKSENİ (B1) ═══════════════════════════════════════════
+   Omurga tabloları (madde durumu · süreç kapsamı · uygulanabilirlik kararı
+   · istisna · kanıt bağı · denetçi kapsamı · aktarım · anlık · yetki) B1'den
+   beri TESİSE değil KAPSAM ÖĞESİNE bağlıdır. Onları okuyan ekran kapsamı
+   `ogeKapsami` ile öğe kümesi olarak alır ve aşağıdaki yardımcılarla
+   sorgular. Tesis tabanlı tablolar (varlık · olay · risk · ağ bölgesi …)
+   yukarıdaki `kapsamKosulu` ile süzülmeye devam eder. İki eksen
+   KARIŞTIRILMAZ: öğe kümesiyle `tesisId` süzmek ya da tesis kümesiyle
+   `kapsamOgesiId` süzmek sessizce boş küme verir ("kapsamınızda kayıt
+   yok" görünür, kusur görünmez). Kural `tesisKapsamda` ile aynıdır:
+   öğesi olmayan kayıt yalnız kapsamı sınırsız kullanıcıya görünür. */
+
+/** `izinliKapsamOgesiIdleri` çıktısı: null = tümü · [] = hiçbiri · dizi = o küme. */
+export type OgeKapsami = string[] | null;
+
+export const ogeKapsami = izinliKapsamOgesiIdleri;
+
+/** Omurga tablosu için Prisma `where` parçası. */
+export function ogeKosulu(kapsam: OgeKapsami): { kapsamOgesiId?: { in: string[] } } {
+  return kapsam === null ? {} : { kapsamOgesiId: { in: kapsam } };
+}
+
+/** Omurga tablosu TESİS kapsamıyla süzülür — tesis merkezli ekranlar
+    (portföy, tesis kartları, rapor matrisi) için: öğenin tesis köprüsü
+    kapsamda olmalı. Köprüsüz öğenin satırı kapsamı sınırlı kullanıcıya
+    görünmez (`tesisKapsamda` kuralı: tesisi bilinmeyen kayıt yalnız
+    sınırsız kapsama görünür). */
+export function kopruKosulu(kapsam: TesisKapsami): { kapsamOgesi?: { tesisId: { in: string[] } } } {
+  return kapsam === null ? {} : { kapsamOgesi: { tesisId: { in: kapsam } } };
+}
+
+/** Satır kararı — `tesisKapsamda` kuralının öğe ekseni. */
+export function ogeKapsamda(kapsam: OgeKapsami, kapsamOgesiId: string | null): boolean {
+  if (kapsamOgesiId === null) return kapsam === null;
+  return kapsam === null || kapsam.includes(kapsamOgesiId);
+}
+
+/** `kapsamdaYetkili`nin öğe ekseni: öğesiz kayıt kapsamsız `{}` sorulur. */
+export function ogeYetkili(
+  k: AktifKullanici, modul: Modul, islem: Islem, kapsamOgesiId: string | null | undefined,
+): boolean {
+  return izinVar(k, modul, islem, kapsamOgesiId ? { kapsamOgesiId } : {});
+}
+
+/** Ekranların öğe görünümü: kod ve ad öğeden; `tesisId` köprüsü tesis
+    sayfasına bağlantı içindir (köprüsüz öğede null → bağlantı yok). */
+export const OGE_GORUNUMU = { select: { id: true, kod: true, ad: true, tesisId: true } } as const;
+export type OgeGorunumu = { id: string; kod: string; ad: string; tesisId: string | null };

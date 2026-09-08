@@ -55,7 +55,7 @@ export async function sonTarihleriIsle(): Promise<{ islenen: number; uretilen: n
   const bulgular = await db.bulgu.findMany({
     where: { silindi: null, durum: { in: ['acik', 'aksiyonda'] }, hedefTarih: { lte: gun14 } },
     include: { maddeDurumu: { include: {
-      madde: { select: { kod: true } }, tesis: { select: { kod: true } } } } },
+      madde: { select: { kod: true } }, kapsamOgesi: { select: { kod: true, tesisId: true } } } } },
   });
   for (const b of bulgular) {
     islenen++;
@@ -63,8 +63,8 @@ export async function sonTarihleriIsle(): Promise<{ islenen: number; uretilen: n
     uretilen += await gorevGuvenceyeAl({
       kaynakTipi: 'Bulgu', kaynakId: b.id,
       baslik: `Bulgu hedef tarihi ${gecti ? 'geçti' : 'yaklaşıyor'}: ${b.baslik}`,
-      sorumluId: b.sorumluId, tesisId: b.maddeDurumu.tesisId, sonTarih: b.hedefTarih,
-      bildirimGovde: `${b.maddeDurumu.madde.kod} · ${b.maddeDurumu.tesis.kod} — hedef: ${tarihTR(b.hedefTarih)}`,
+      sorumluId: b.sorumluId, tesisId: b.maddeDurumu.kapsamOgesi.tesisId, sonTarih: b.hedefTarih,
+      bildirimGovde: `${b.maddeDurumu.madde.kod} · ${b.maddeDurumu.kapsamOgesi.kod} — hedef: ${tarihTR(b.hedefTarih)}`,
     });
   }
 
@@ -72,14 +72,14 @@ export async function sonTarihleriIsle(): Promise<{ islenen: number; uretilen: n
   const aksiyonlar = await db.aksiyon.findMany({
     where: { durum: { in: ['planlandi', 'devam'] }, hedef: { lt: simdi } },
     include: { bulgu: { select: { baslik: true,
-      maddeDurumu: { select: { tesisId: true } } } } },
+      maddeDurumu: { select: { kapsamOgesi: { select: { tesisId: true } } } } } } },
   });
   for (const a of aksiyonlar) {
     islenen++;
     uretilen += await gorevGuvenceyeAl({
       kaynakTipi: 'Aksiyon', kaynakId: a.id,
       baslik: `Aksiyon hedefi geçti: ${a.baslik}`,
-      sorumluId: a.sorumluId, tesisId: a.bulgu.maddeDurumu.tesisId, sonTarih: a.hedef,
+      sorumluId: a.sorumluId, tesisId: a.bulgu.maddeDurumu.kapsamOgesi.tesisId, sonTarih: a.hedef,
       bildirimGovde: `"${a.bulgu.baslik}" bulgusunun aksiyonu — hedef: ${tarihTR(a.hedef)}`,
     });
   }
@@ -146,7 +146,8 @@ export async function sonTarihleriIsle(): Promise<{ islenen: number; uretilen: n
     islenen++;
     await db.istisna.update({ where: { id: ist.id }, data: { durum: 'suresi_doldu' } });
     const durumlar = await db.maddeDurumu.findMany({
-      where: { maddeId: ist.maddeId, tesisId: ist.tesisId, durum: 'kapsamdisi' } });
+      where: { maddeId: ist.maddeId, kapsamOgesiId: ist.kapsamOgesiId, durum: 'kapsamdisi' },
+      include: { kapsamOgesi: { select: { tesisId: true } } } });
     for (const d of durumlar) {
       await db.degerlendirmeTarihcesi.create({ data: {
         maddeDurumuId: d.id, eskiDurum: 'kapsamdisi', yeniDurum: 'degerlendirilmedi',
@@ -160,7 +161,7 @@ export async function sonTarihleriIsle(): Promise<{ islenen: number; uretilen: n
         await db.gorev.create({ data: {
           baslik: 'İstisna süresi doldu — maddeyi yeniden değerlendirin',
           tip: 'dogrulama', kaynakTipi: 'MaddeDurumu', kaynakId: d.id,
-          tesisId: d.tesisId, sorumluId: d.sorumluId,
+          tesisId: d.kapsamOgesi.tesisId, sorumluId: d.sorumluId,
           otomatikUretildi: true } });
         uretilen++;
       }

@@ -1,7 +1,7 @@
 /* Başlangıç verisi — Demo Enerji portföyü. Tüm sözlükler (sektör, tip, alan,
    regülasyon, süreç) panelden yönetilebilir; burası yalnızca ilk kurulum setidir. */
 import { PrismaClient } from '../lib/prisma-client/client';
-import { ENERJI_SOZLUGU } from './sozlukler';
+import { ENERJI_OZNITELIK_ETIKETLERI, ENERJI_SOZLUGU } from './sozlukler';
 import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
 import path from 'node:path';
 import { randomBytes, scryptSync } from 'node:crypto';
@@ -16,6 +16,7 @@ import { operasyonKayitlari } from './seed-operasyon-kayitlari';
 import { dolulukKatmani } from './seed-doluluk';
 import { GUNLUK_DEBI, suSektoru, suUyumu } from './seed-su';
 import { suVeriSeti } from './seed-su-veri';
+import { enerjiOznitelikSemasiniKur, kapsamTurleriniKur, profiliAyir, tesislerdenOgeler } from './kapsam-ogesi';
 import { KURULU_GUC } from '../lib/alan/oznitelik';
 
 const parolaUret = (parola: string) => {
@@ -59,12 +60,17 @@ async function main() {
 
   // ---- sektör ve tesis tipleri (panelden genişletilebilir)
   const elektrik = await db.sektor.create({ data: { kod: 'ELEKTRIK-URETIM', ad: 'Elektrik Üretimi' } });
+  /* Kapsam öğesi TÜRLERİ — katalog (B1). Çekirdek iki tür getirir;
+     kimlikler göçle aynı ('kot-…') ki taze kurulum ve yükseltme aynı
+     satırı yazsın. "Merkez BT" tipi kurumun kendisidir → `kurum`. */
+  const kapsamTuru = await kapsamTurleriniKur(db);
   const tip = Object.fromEntries(await Promise.all(
     [
       ['JEO', 'Jeotermal', 1], ['RES', 'Rüzgâr', 2], ['HES', 'Hidroelektrik', 3],
       ['GES', 'Güneş', 4], ['DGKC', 'Doğal Gaz Kombine Çevrim', 5], ['MERKEZ', 'Merkez BT', 9],
     ].map(async ([kod, ad, sira]) => [kod, await db.tesisTipi.create({
-      data: { kod: kod as string, ad: ad as string, sira: sira as number, sektorId: elektrik.id } })]),
+      data: { kod: kod as string, ad: ad as string, sira: sira as number, sektorId: elektrik.id,
+        varsayilanKapsamTuruId: kod === 'MERKEZ' ? kapsamTuru.kurum.id : kapsamTuru.tesis.id } })]),
   )) as Record<string, { id: string }>;
 
   /* ---- enerji sektörü terim sözlüğü (P1 · URN-ALN-004)
@@ -74,7 +80,7 @@ async function main() {
      sözcüğe döner — kurulu sektör paketi olmayan bir kiracının hâli
      budur ve test tam olarak bunu ölçer. */
   await db.sektorSozlugu.createMany({
-    data: ENERJI_SOZLUGU.map((r) => ({ ...r, sektorId: elektrik.id })) });
+    data: [...ENERJI_SOZLUGU, ...ENERJI_OZNITELIK_ETIKETLERI].map((r) => ({ ...r, sektorId: elektrik.id })) });
 
   /* ---- öznitelik şeması: sektörün BİRİNCİL ÖLÇÜSÜ
 
@@ -124,6 +130,10 @@ async function main() {
       // asla "yakın" başka bir santralin fotoğrafı kullanılmaz (§1.3).
       gorselAnahtari: gorsel,
     } })]))) as Record<string, { id: string }>;
+
+  /* Her tesis için bir KAPSAM ÖĞESİ (B1): uyum zinciri artık `ko[kod]`
+     ile bağlanır, `t[kod]` ile değil. Kod ve ad tesisinki. */
+  const ko = await tesislerdenOgeler(db, t);
 
   // ---- kapsam alanları (panelden genişletilebilir)
   const alanBT = await db.kapsamAlani.create({ data: { kod: 'BT', ad: 'Bilgi Teknolojileri' } });
@@ -265,12 +275,12 @@ async function main() {
   // ---- süreç kapsamları
   const epdkTesisler = ['SAHA-A3', 'SAHA-A2', 'SAHA-C-RES', 'SAHA-D-RES', 'MERKEZ-BT'];
   for (const tk of epdkTesisler)
-    await db.surecKapsami.create({ data: { surecId: surecEpdk.id, tesisId: t[tk].id } });
+    await db.surecKapsami.create({ data: { surecId: surecEpdk.id, kapsamOgesiId: ko[tk].id } });
   for (const tk of ['MERKEZ-BT', 'SAHA-A3'])
-    await db.surecKapsami.create({ data: { surecId: surecCbddo.id, tesisId: t[tk].id } });
+    await db.surecKapsami.create({ data: { surecId: surecCbddo.id, kapsamOgesiId: ko[tk].id } });
   for (const tk of ['MERKEZ-BT', 'SAHA-A3'])
-    await db.surecKapsami.create({ data: { surecId: surecIso.id, tesisId: t[tk].id } });
-  await db.surecKapsami.create({ data: { surecId: surecSpk.id, tesisId: t['MERKEZ-BT'].id } });
+    await db.surecKapsami.create({ data: { surecId: surecIso.id, kapsamOgesiId: ko[tk].id } });
+  await db.surecKapsami.create({ data: { surecId: surecSpk.id, kapsamOgesiId: ko['MERKEZ-BT'].id } });
 
   // ---- madde durumları: EPDK süreci (5 tesis × yaprak maddeler)
   const yapraklar = ['EPDK-SYM-4.1.1', 'EPDK-SYM-4.1.2', 'EPDK-SYM-4.2.1', 'EPDK-SYM-4.2.2',
@@ -289,7 +299,7 @@ async function main() {
   for (const tk of epdkTesisler) {
     for (const mk of yapraklar) {
       const d = await db.maddeDurumu.create({ data: {
-        surecId: surecEpdk.id, maddeId: maddeIdx[mk].id, tesisId: t[tk].id,
+        surecId: surecEpdk.id, maddeId: maddeIdx[mk].id, kapsamOgesiId: ko[tk].id,
         durum: durumMatrisi[tk][mk] ?? 'incelemede',
         sorumluId: sorumluSirasi[si++ % 3].id,
         sonDegerlendirme: gun(-(si % 45) - 2),
@@ -301,7 +311,7 @@ async function main() {
   for (const tk of ['MERKEZ-BT', 'SAHA-A3']) {
     for (const m of digerMaddeler['CBDDO']) {
       await db.maddeDurumu.create({ data: {
-        surecId: surecCbddo.id, maddeId: maddeIdx[`CBDDO-${m.kod}`].id, tesisId: t[tk].id,
+        surecId: surecCbddo.id, maddeId: maddeIdx[`CBDDO-${m.kod}`].id, kapsamOgesiId: ko[tk].id,
         durum: tk === 'MERKEZ-BT' ? 'uyumlu' : m.kod.startsWith('3') ? 'kismi' : 'incelemede',
         sorumluId: k['kullanici.d'].id, sonDegerlendirme: gun(-12),
       } });
@@ -310,7 +320,7 @@ async function main() {
   for (const tk of ['MERKEZ-BT', 'SAHA-A3']) {
     for (const m of digerMaddeler['ISO-27001']) {
       await db.maddeDurumu.create({ data: {
-        surecId: surecIso.id, maddeId: maddeIdx[`ISO-27001-${m.kod}`].id, tesisId: t[tk].id,
+        surecId: surecIso.id, maddeId: maddeIdx[`ISO-27001-${m.kod}`].id, kapsamOgesiId: ko[tk].id,
         durum: tk === 'MERKEZ-BT' ? 'uyumlu' : 'incelemede',
         sorumluId: k['kullanici.a'].id, sonDegerlendirme: gun(-5),
       } });
@@ -378,7 +388,7 @@ async function main() {
   await db.kanitBaglantisi.create({ data: { kanitId: k1.id, maddeDurumuId: durumKaydi['SAHA-A3|EPDK-SYM-4.1.1'].id } });
   await db.kanitBaglantisi.create({ data: { kanitId: k1.id, maddeDurumuId: durumKaydi['SAHA-A2|EPDK-SYM-4.1.1'].id } });
   const isoDurum = await db.maddeDurumu.findFirst({ where: {
-    surecId: surecIso.id, maddeId: maddeIdx['ISO-27001-A.5.9'].id, tesisId: t['MERKEZ-BT'].id } });
+    surecId: surecIso.id, maddeId: maddeIdx['ISO-27001-A.5.9'].id, kapsamOgesiId: ko['MERKEZ-BT'].id } });
   if (isoDurum) await db.kanitBaglantisi.create({ data: { kanitId: k1.id, maddeDurumuId: isoDurum.id } });
   await db.kanitBaglantisi.create({ data: { kanitId: k2.id, maddeDurumuId: durumKaydi['SAHA-A3|EPDK-SYM-4.2.1'].id } });
   await db.kanitBaglantisi.create({ data: { kanitId: k3.id, maddeDurumuId: durumKaydi['SAHA-C-RES|EPDK-SYM-7.2'].id } });
@@ -403,7 +413,7 @@ async function main() {
   await db.projeBaglantisi.create({ data: { projeId: p3.id, maddeId: maddeIdx['EPDK-SYM-7.1.4'].id } });
   await db.projeBaglantisi.create({ data: { projeId: p3.id, bulguId: b3.id } });
 
-  // ---- yetkiler (süreç × tesis kapsamlı)
+  // ---- yetkiler (süreç × kapsam öğesi kapsamlı; tesis kodu → öğe)
   const yetkiler: [string, { id: string } | null, string | null, string][] = [
     ['kullanici.a', null, null, 'yonetici'],
     ['kullanici.b', null, null, 'denetim_sorumlusu'],
@@ -414,7 +424,7 @@ async function main() {
   for (const [e, surec, tesisKod, rol] of yetkiler)
     await db.yetki.create({ data: {
       kullaniciId: k[e].id, surecId: surec?.id ?? null,
-      tesisId: tesisKod ? t[tesisKod].id : null, rol } });
+      kapsamOgesiId: tesisKod ? ko[tesisKod].id : null, rol } });
 
   // ---- aktivite kaydı (bulgu zaman çizelgeleri)
   const aktiviteler: [number, string, string, string, string, string | null, string | null, string | null][] = [
@@ -526,8 +536,18 @@ async function main() {
       grupOrtakServisler: 'merkezi_ad;soc;edr;siem' }],
     // SAHA-K-HES ve SAHA-L-HES profilsiz: veri kalitesi motoru "eksik_profil" üretir.
   ];
-  for (const [kod, profil] of profiller)
-    await db.tesisProfili.create({ data: { tesisId: t[kod].id, ...profil } });
+  /* B2 · Enerjiye özgü alanlar (lisans, kabul, black start, TEİAŞ, seri
+     haberleşme, EPDK kritiklik sınıfı) ÇEKİRDEK KOLONU DEĞİL, enerji
+     paketinin beyan ettiği ÖZNİTELİKTİR: şema satırı + tesis başına
+     `TesisOzellik`. Kalanlar OT genel profil kolonu olarak kalır. */
+  await enerjiOznitelikSemasiniKur(db, elektrik.id);
+  for (const [kod, profil] of profiller) {
+    const { ozellikler, kalan } = profiliAyir(profil as Record<string, unknown>);
+    await db.tesisProfili.create({ data: { tesisId: t[kod].id, ...kalan } });
+    for (const o of ozellikler) {
+      await db.tesisOzellik.create({ data: { tesisId: t[kod].id, kaynak: 'tohum', ...o } });
+    }
+  }
 
   // Framework sürümleri: mevcut maddeler aktif sürüme bağlanır (backfill)
   for (const [kod, r] of Object.entries(reg)) {
@@ -544,7 +564,12 @@ async function main() {
     kosulJson: JSON.stringify({ herhangi: [
       { alan: 'kuruluGuc', islec: '>=', deger: 100 },
       { alan: 'blackStart', islec: '=', deger: true },
-      { alan: 'teiasScadaEmsSeriOlmayan', islec: '=', deger: true },
+      /* Türetim ÇEKİRDEKTE değil KURALDA: "TEİAŞ SCADA/EMS var VE seri
+         değil" iç içe `hepsi` ile söylenir (B2). */
+      { hepsi: [
+        { alan: 'teiasScadaEms', islec: '=', deger: true },
+        { alan: 'seriHaberlesme', islec: '!=', deger: true },
+      ] },
     ] }) } });
   const kapsamda = [
     ['SAHA-A3', true, 'kuruluGuc=165 ≥ 100 VE TEİAŞ SCADA/EMS (seri değil)'],
@@ -563,11 +588,11 @@ async function main() {
   ] as const;
   for (const [kod, uygulanabilir, gerekce] of kapsamda)
     await db.uygulanabilirlikKarari.create({ data: {
-      tesisId: t[kod].id, regulasyonId: reg['EPDK-SYM'].id,
+      kapsamOgesiId: ko[kod].id, regulasyonId: reg['EPDK-SYM'].id,
       uygulanabilir, gerekce, kuralId: epdkKural.id, kuralSurumu: 1 } });
   // Örnek onaylı override: Saha D RES sözleşme gereği gönüllü kapsamda
   await db.uygulanabilirlikKarari.update({
-    where: { tesisId_regulasyonId: { tesisId: t['SAHA-D-RES'].id, regulasyonId: reg['EPDK-SYM'].id } },
+    where: { kapsamOgesiId_regulasyonId: { kapsamOgesiId: ko['SAHA-D-RES'].id, regulasyonId: reg['EPDK-SYM'].id } },
     data: { uygulanabilir: true, elIleDegistirildi: true,
       degistirmeGerekcesi: 'Saha C ile ortak şalt sahası ve TEİAŞ bağlantı anlaşması gereği gönüllü uyum taahhüdü',
       onaylayanId: k['kullanici.a'].id } });

@@ -54,7 +54,7 @@ export async function kanitVerisi(db: PrismaClient) {
   const durumlar = await db.maddeDurumu.findMany({
     include: {
       madde: { select: { kod: true, baslik: true, kanitTipi: true } },
-      tesis: { select: { kod: true, ad: true } },
+      kapsamOgesi: { select: { kod: true, ad: true } },
       kanitBaglantilari: { select: { id: true } },
     },
   });
@@ -72,7 +72,7 @@ export async function kanitVerisi(db: PrismaClient) {
 
     const tip = d.madde.kanitTipi ?? (rnd() > 0.5 ? 'kayit' : 'konfigurasyon');
     const kalip = AD_KALIBI[tip] ?? '%s kaydı';
-    const ad = kalip.replace('%s', `${d.madde.kod} · ${d.tesis.kod}`);
+    const ad = kalip.replace('%s', `${d.madde.kod} · ${d.kapsamOgesi.kod}`);
 
     /* Bayat kanıt yalnız durum kaydı da bayat işaretliyse yazılır; ikisini
        ayrı yazmak kanıt tazelik motorunun değişmezini bozuyor. */

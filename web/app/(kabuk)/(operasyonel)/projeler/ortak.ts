@@ -360,7 +360,7 @@ type HamProje = {
     id: string;
     madde: { id: string; kod: string; baslik: string } | null;
     bulgu: { id: string; baslik: string; durum: string;
-      maddeDurumu: { tesis: { id: string; kod: string; ad: string } } } | null;
+      maddeDurumu: { kapsamOgesi: { id: string; kod: string; ad: string; tesisId: string | null } } } | null;
     risk: { id: string; kod: string; baslik: string; artikRisk: number | null } | null;
     varlik: { id: string; etiket: string; ad: string } | null;
     tesis: { id: string; kod: string; ad: string } | null;
@@ -389,10 +389,12 @@ export function projeyeCevir(p: HamProje): P {
     } else if (b.bulgu) {
       baglantilar.push({
         id: b.id, hedefId: b.bulgu.id, tur: 'bulgu', kod: kisalt(b.bulgu.baslik),
-        alt: `bulgu · ${b.bulgu.maddeDurumu.tesis.kod}`, yol: `/bulgular/${b.bulgu.id}`,
+        alt: `bulgu · ${b.bulgu.maddeDurumu.kapsamOgesi.kod}`, yol: `/bulgular/${b.bulgu.id}`,
       });
-      const t = b.bulgu.maddeDurumu.tesis;
-      tesisler.set(t.id, t);
+      /* Bulgunun kapsam hücresi bir ÖĞEDİR (B1); tesis kapsamına yalnız
+         tesise köprülü öğe girer — kurum/sistem öğesi tesis değildir. */
+      const o = b.bulgu.maddeDurumu.kapsamOgesi;
+      if (o.tesisId) tesisler.set(o.tesisId, { id: o.tesisId, kod: o.kod, ad: o.ad });
     } else if (b.risk) {
       baglantilar.push({
         id: b.id, hedefId: b.risk.id, tur: 'risk', kod: b.risk.kod,
@@ -500,7 +502,7 @@ export const PROJE_ICERIK = {
       bulgu: {
         select: {
           id: true, baslik: true, durum: true,
-          maddeDurumu: { select: { tesis: { select: { id: true, kod: true, ad: true } } } },
+          maddeDurumu: { select: { kapsamOgesi: { select: { id: true, kod: true, ad: true, tesisId: true } } } },
         },
       },
       risk: { select: { id: true, kod: true, baslik: true, artikRisk: true } },

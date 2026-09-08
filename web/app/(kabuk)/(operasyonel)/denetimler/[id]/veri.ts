@@ -88,9 +88,9 @@ export async function denetimDetayVerisi(
           sorumlu: { select: { adSoyad: true } },
           maddeDurumu: {
             select: {
-              tesisId: true,
               madde: { select: { kod: true } },
-              tesis: { select: { kod: true } },
+              /* Bulgunun kapsam hücresi bir ÖĞEDİR (B1); tesis köprüsü daraltma için. */
+              kapsamOgesi: { select: { kod: true, tesisId: true } },
             },
           },
         },
@@ -109,7 +109,8 @@ export async function denetimDetayVerisi(
     : ham.kapsamlar.filter((x) => x.tesis === null || izinli.includes(x.tesis.id));
   const gorunurBulgular = izinli === null
     ? ham.bulgular
-    : ham.bulgular.filter((b) => izinli.includes(b.maddeDurumu.tesisId));
+    : ham.bulgular.filter((b) => b.maddeDurumu.kapsamOgesi.tesisId !== null
+      && izinli.includes(b.maddeDurumu.kapsamOgesi.tesisId));
 
   /* Madde havuzu denetimin çerçevesiyle daraltılır: EPDK denetiminin
      kapsamına ISO maddesi eklenmesi anlamsız olur. */
@@ -158,7 +159,7 @@ export async function denetimDetayVerisi(
     bulgular: gorunurBulgular.map((b) => ({
       id: b.id, baslik: b.baslik, onem: b.onemDerecesi, durum: b.durum,
       maddeKod: b.maddeDurumu.madde.kod,
-      tesisKod: b.maddeDurumu.tesis.kod,
+      tesisKod: b.maddeDurumu.kapsamOgesi.kod,
       sorumlu: b.sorumlu?.adSoyad ?? null,
       hedef: b.hedefTarih?.toISOString() ?? null,
     })),

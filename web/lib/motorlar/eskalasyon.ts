@@ -71,7 +71,7 @@ export async function eskalasyonlariIsle(o?: { simdi?: Date }): Promise<Eskalasy
       select: {
         id: true, baslik: true, onemDerecesi: true, hedefTarih: true, sorumluId: true,
         maddeDurumu: {
-          select: { madde: { select: { kod: true } }, tesis: { select: { kod: true } } },
+          select: { madde: { select: { kod: true } }, kapsamOgesi: { select: { kod: true } } },
         },
       },
     });
@@ -79,7 +79,7 @@ export async function eskalasyonlariIsle(o?: { simdi?: Date }): Promise<Eskalasy
       adaylar.push({
         kaynakTipi: 'bulgu', kaynakId: b.id, baslik: b.baslik,
         onemDerecesi: b.onemDerecesi, hedefTarih: b.hedefTarih, sorumluId: b.sorumluId,
-        baglam: `${b.maddeDurumu.madde.kod} · ${b.maddeDurumu.tesis.kod}`,
+        baglam: `${b.maddeDurumu.madde.kod} · ${b.maddeDurumu.kapsamOgesi.kod}`,
       });
     }
   }

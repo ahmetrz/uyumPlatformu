@@ -26,8 +26,11 @@ export type Hucre = {
   kapsam: number;
 };
 
+/** Matris satırı bir KAPSAM ÖĞESİDİR (B1): `id` öğenin; `tesisId` tesis
+    köprüsü — tesis sayfasına bağlantı için, köprüsüz öğede null. */
 export type Tesis = {
   id: string;
+  tesisId: string | null;
   kod: string;
   ad: string;
   hucreler: Hucre[];

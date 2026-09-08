@@ -239,9 +239,9 @@ export async function sapmadanBulguAc(girdi: {
     }).parse(girdi);
 
     const durum = await db.maddeDurumu.findUniqueOrThrow({
-      where: { id: v.maddeDurumuId }, select: { tesisId: true, surecId: true } });
+      where: { id: v.maddeDurumuId }, select: { kapsamOgesiId: true, surecId: true } });
     const k = await yetkiZorunlu('uyum', 'yazma',
-      { tesisId: durum.tesisId, surecId: durum.surecId });
+      { kapsamOgesiId: durum.kapsamOgesiId, surecId: durum.surecId });
 
     const { bulguId } = await bulguKaydiAc(v.sapmaId, k.id, {
       maddeDurumuId: v.maddeDurumuId, baslik: v.baslik,

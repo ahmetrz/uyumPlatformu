@@ -24,12 +24,12 @@ async function durumKapsami(k: AktifKullanici, id: string, mesaj: string) {
   const d = await db.maddeDurumu.findUnique({
     where: { id },
     select: {
-      id: true, tesisId: true, surecId: true, olgunlukSeviyesi: true,
+      id: true, kapsamOgesiId: true, surecId: true, olgunlukSeviyesi: true,
       madde: { select: { kod: true, olgunlukSeviyesi: true } },
     },
   });
   if (!d) throw new Error('Kontrol durumu bulunamadı');
-  kapsamZorunlu(k, 'uyum', 'yazma', { tesisId: d.tesisId, surecId: d.surecId }, mesaj);
+  kapsamZorunlu(k, 'uyum', 'yazma', { kapsamOgesiId: d.kapsamOgesiId, surecId: d.surecId }, mesaj);
   return d;
 }
 

@@ -4,6 +4,7 @@ import path from 'node:path';
 import { izinVar, type Islem, type Modul } from '@/lib/erisim';
 import { modulYazabilir, kapsamdaYetkili } from '@/app/kapsam';
 import type { AktifKullanici } from '@/lib/auth';
+import { ogeKimligi } from './yardim/kapsam';
 
 /* ═══════════════════════════════════════════════════════════════════════
    EKRANIN YAZMA KAPISI — sunucuyla aynı soru
@@ -30,7 +31,7 @@ import type { AktifKullanici } from '@/lib/auth';
 
 type Yetki = AktifKullanici['yetkiler'][number];
 const yetki = (rol: string, tesisId: string | null = null): Yetki => ({
-  rol, surecId: null, tesisId, tuzelKisiId: null, regulasyonId: null, modul: null,
+  rol, surecId: null, kapsamOgesiId: ogeKimligi(tesisId), tesisId, tuzelKisiId: null, regulasyonId: null, modul: null,
 });
 const kisi = (...yetkiler: Yetki[]): AktifKullanici => ({
   id: 'k1', adSoyad: 'Test', eposta: 't@x', unvan: null, yetkiler,

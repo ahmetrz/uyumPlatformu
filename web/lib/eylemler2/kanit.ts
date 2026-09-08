@@ -52,7 +52,7 @@ async function kanitKapsamiDayat(
 ): Promise<string[]> {
   const baglar = await db.kanitBaglantisi.findMany({
     where: { kanitId },
-    select: { maddeDurumu: { select: { tesisId: true, surecId: true } } },
+    select: { maddeDurumu: { select: { kapsamOgesiId: true, surecId: true } } },
   });
   if (baglar.length === 0) {
     /* Öksüz kanıt: kapsamı bilinmiyor. Dar kapsamlı bir rol ona
@@ -63,11 +63,11 @@ async function kanitKapsamiDayat(
     }
     return [];
   }
-  const tesisler = [...new Set(baglar.map((b) => b.maddeDurumu.tesisId))];
+  const tesisler = [...new Set(baglar.map((b) => b.maddeDurumu.kapsamOgesiId))];
   for (const bag of baglar) {
-    const x = await eylemTerimi(k, 'uyum', bag.maddeDurumu.tesisId);
+    const x = await eylemTerimi(k, 'uyum', bag.maddeDurumu.kapsamOgesiId);
     kapsamZorunlu(k, 'uyum', islem,
-      { tesisId: bag.maddeDurumu.tesisId, surecId: bag.maddeDurumu.surecId },
+      { kapsamOgesiId: bag.maddeDurumu.kapsamOgesiId, surecId: bag.maddeDurumu.surecId },
       `Bu kanıt birden çok ${x.yonelme} bağlı olabilir; hepsinde yetkili olmalısınız`);
   }
   return tesisler;
@@ -163,12 +163,12 @@ export async function kanitKaydet(girdi: {
       return hata(new Error('Yeni kanıt en az bir madde durumuna bağlanmalı.'));
     }
     const md = await db.maddeDurumu.findUnique({
-      where: { id: v.maddeDurumuId }, select: { tesisId: true, surecId: true },
+      where: { id: v.maddeDurumuId }, select: { kapsamOgesiId: true, surecId: true },
     });
     if (!md) return hata(new Error('Madde durumu bulunamadı'));
-    kapsamZorunlu(k, 'uyum', 'yazma', { tesisId: md.tesisId, surecId: md.surecId },
+    kapsamZorunlu(k, 'uyum', 'yazma', { kapsamOgesiId: md.kapsamOgesiId, surecId: md.surecId },
 
-      await kapsamMesaji(k, 'uyum', 'kanıt ekleme yetkiniz yok', md.tesisId));
+      await kapsamMesaji(k, 'uyum', 'kanıt ekleme yetkiniz yok', md.kapsamOgesiId));
 
     const kanit = await db.kanit.create({
       data: {
@@ -308,12 +308,12 @@ export async function kanitBaglantisiEkle(girdi: {
     await kanitKapsamiDayat(k, v.kanitId, 'yazma');
 
     const md = await db.maddeDurumu.findUnique({
-      where: { id: v.maddeDurumuId }, select: { tesisId: true, surecId: true },
+      where: { id: v.maddeDurumuId }, select: { kapsamOgesiId: true, surecId: true },
     });
     if (!md) return hata(new Error('Madde durumu bulunamadı'));
-    kapsamZorunlu(k, 'uyum', 'yazma', { tesisId: md.tesisId, surecId: md.surecId },
+    kapsamZorunlu(k, 'uyum', 'yazma', { kapsamOgesiId: md.kapsamOgesiId, surecId: md.surecId },
 
-      await kapsamMesaji(k, 'uyum', 'kanıt bağlama yetkiniz yok', md.tesisId));
+      await kapsamMesaji(k, 'uyum', 'kanıt bağlama yetkiniz yok', md.kapsamOgesiId));
 
     await db.kanitBaglantisi.upsert({
       where: {

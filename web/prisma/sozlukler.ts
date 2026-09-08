@@ -53,6 +53,39 @@ export const ENERJI_SOZLUGU: SozlukSatiri[] = [
   { anahtar: 'kapasite', tekil: 'kurulu güç', cogul: 'kurulu güçler',
     iyelik: 'kurulu gücün', belirtme: 'kurulu gücü',
     bulunma: 'kurulu güçte', yonelme: 'kurulu güce' },
+
+];
+
+/** B2 · Enerji profil ÖZNİTELİKLERİNİN etiketleri — `ENERJI_SOZLUGU`ndan
+    AYRI: çekirdek terim listesinde OLMAYAN anahtarlardır (`sozlukKur`
+    onları terim olarak çözmez; Tesis 360 `oznitelikEtiketleri` ile okur).
+    Anahtar paketin, sözcük sözlüğün. Göç `20260908180000` ile aynı
+    satırlar (`tests/kapsam-ogesi-gocu.test.ts`). */
+export const ENERJI_OZNITELIK_ETIKETLERI: SozlukSatiri[] = [
+  { anahtar: 'lisansTipi', tekil: 'lisans tipi', cogul: 'lisans tipleri',
+    iyelik: 'lisans tipinin', belirtme: 'lisans tipini',
+    bulunma: 'lisans tipinde', yonelme: 'lisans tipine' },
+  { anahtar: 'lisansNo', tekil: 'lisans numarası', cogul: 'lisans numaraları',
+    iyelik: 'lisans numarasının', belirtme: 'lisans numarasını',
+    bulunma: 'lisans numarasında', yonelme: 'lisans numarasına' },
+  { anahtar: 'kabulDurumu', tekil: 'kabul durumu', cogul: 'kabul durumları',
+    iyelik: 'kabul durumunun', belirtme: 'kabul durumunu',
+    bulunma: 'kabul durumunda', yonelme: 'kabul durumuna' },
+  { anahtar: 'kabulTarihi', tekil: 'kabul tarihi', cogul: 'kabul tarihleri',
+    iyelik: 'kabul tarihinin', belirtme: 'kabul tarihini',
+    bulunma: 'kabul tarihinde', yonelme: 'kabul tarihine' },
+  { anahtar: 'blackStart', tekil: 'black start', cogul: 'black startlar',
+    iyelik: "black start'ın", belirtme: "black start'ı",
+    bulunma: "black start'ta", yonelme: "black start'a" },
+  { anahtar: 'teiasScadaEms', tekil: 'TEİAŞ SCADA/EMS haberleşmesi', cogul: 'TEİAŞ SCADA/EMS haberleşmeleri',
+    iyelik: 'TEİAŞ SCADA/EMS haberleşmesinin', belirtme: 'TEİAŞ SCADA/EMS haberleşmesini',
+    bulunma: 'TEİAŞ SCADA/EMS haberleşmesinde', yonelme: 'TEİAŞ SCADA/EMS haberleşmesine' },
+  { anahtar: 'seriHaberlesme', tekil: 'seri haberleşme', cogul: 'seri haberleşmeler',
+    iyelik: 'seri haberleşmenin', belirtme: 'seri haberleşmeyi',
+    bulunma: 'seri haberleşmede', yonelme: 'seri haberleşmeye' },
+  { anahtar: 'kritiklikSinifi', tekil: 'kritiklik sınıfı', cogul: 'kritiklik sınıfları',
+    iyelik: 'kritiklik sınıfının', belirtme: 'kritiklik sınıfını',
+    bulunma: 'kritiklik sınıfında', yonelme: 'kritiklik sınıfına' },
 ];
 
 /** `SEKTOR-SU-ARITMA` — ikinci sözlük İSKELETİ. Yalnız bugüne kadar

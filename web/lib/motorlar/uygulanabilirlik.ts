@@ -5,8 +5,14 @@ import { db } from '../db';
    Kural JSON'u: { herhangi?: Kosul[], hepsi?: Kosul[] }
    Kosul: { alan, islec: '='|'!='|'>='|'<='|'>'|'<', deger } */
 
-type Kosul = { alan: string; islec: string; deger: unknown };
+/* Koşul YA bir alan karşılaştırmasıdır YA da iç içe bir bileşimdir
+   (B2): "TEİAŞ SCADA/EMS var VE seri değil" gibi bir sektör türetimi
+   çekirdek motorda hesaplanmaz, PAKETİN kuralı iç içe `hepsi` ile
+   söyler. Motor türetilmiş alan bilmez. */
+type AlanKosulu = { alan: string; islec: string; deger: unknown };
 type Kural = { herhangi?: Kosul[]; hepsi?: Kosul[] };
+type Kosul = AlanKosulu | Kural;
+const alanKosulu = (k: Kosul): k is AlanKosulu => 'alan' in k;
 
 /** Kuralın okuyabileceği bir tesis özniteliği. */
 export type Oznitelik = {
@@ -28,10 +34,7 @@ export type Oznitelik = {
     ayrımı bağlamda da korumak, ileride "tanınmayan anahtar" ile
     "ölçülmemiş nitelik" ayrı raporlanmak istendiğinde işi kolaylaştırır. */
 /** Bağlam kurulurken düşürülen çakışmalar — çağıran raporlayabilsin. */
-export type BaglamCakismasi = { anahtar: string; sebep: 'profil' | 'turetilmis' };
-
-/** Türetilmiş alan adları: öznitelik bunları da ezemez. */
-const TURETILMIS_ALANLAR = new Set(['teiasScadaEmsSeriOlmayan']);
+export type BaglamCakismasi = { anahtar: string; sebep: 'profil' };
 
 /* Dışa AÇILMADI: çakışma davranışı `kuralDegerlendir`in gerekçesinden
    sınanır. Yalnız test için genel yüzeyi büyütmek, ters kapsama ölçüsüne
@@ -63,31 +66,22 @@ function baglamKur(ozellikler: readonly Oznitelik[],
   for (const o of ozellikler) {
     const deger = o.sayisalDeger ?? o.metinDeger;
     if (deger === null) continue;
-    if (TURETILMIS_ALANLAR.has(o.anahtar)) {
-      cakismalar.push({ anahtar: o.anahtar, sebep: 'turetilmis' });
-      continue;
-    }
     if (Object.prototype.hasOwnProperty.call(p, o.anahtar)) {
       cakismalar.push({ anahtar: o.anahtar, sebep: 'profil' });
       continue;
     }
     nitelikler[o.anahtar] = deger;
   }
-  return {
-    baglam: {
-      ...nitelikler,
-      ...p,
-      // türetilmiş alan: TEİAŞ SCADA/EMS bağlantısı seri OLMAYAN haberleşmeyle
-      teiasScadaEmsSeriOlmayan:
-        p['teiasScadaEms'] === true && p['seriHaberlesme'] !== true,
-    },
-    cakismalar,
-  };
+  return { baglam: { ...nitelikler, ...p }, cakismalar };
 }
 
 function kosulSagla(baglam: Record<string, unknown>, k: Kosul): boolean | null {
-  const deger = baglam[k.alan];
+  if (!alanKosulu(k)) return bilesimSagla(baglam, k);
+  let deger = baglam[k.alan];
   if (deger === null || deger === undefined) return null; // BİLİNMİYOR — false değil
+  /* `mantik` tipli öznitelik satırda 0/1 durur (`TesisOzellik.sayisalDeger`);
+     kural `true/false` yazar. İkisi aynı şeyi söyler. */
+  if (typeof k.deger === 'boolean' && typeof deger === 'number') deger = deger !== 0;
   switch (k.islec) {
     case '=': return deger === k.deger;
     case '!=': return deger !== k.deger;
@@ -97,6 +91,23 @@ function kosulSagla(baglam: Record<string, unknown>, k: Kosul): boolean | null {
     case '<': return typeof deger === 'number' && deger < (k.deger as number);
     default: return null;
   }
+}
+
+/** İç içe bileşim: `hepsi` → biri sağlanmadıysa false, biri bilinmiyorsa
+    null, hepsi sağlandıysa true; `herhangi` → biri sağlandıysa true,
+    biri bilinmiyorsa null, hiçbiri değilse false. */
+function bilesimSagla(baglam: Record<string, unknown>, k: Kural): boolean | null {
+  if (k.hepsi) {
+    const s = k.hepsi.map((x) => kosulSagla(baglam, x));
+    if (s.some((x) => x === false)) return false;
+    return s.some((x) => x === null) ? null : true;
+  }
+  if (k.herhangi) {
+    const s = k.herhangi.map((x) => kosulSagla(baglam, x));
+    if (s.some((x) => x === true)) return true;
+    return s.some((x) => x === null) ? null : false;
+  }
+  return null;
 }
 
 export type KuralSonucu = {
@@ -112,10 +123,12 @@ export function kuralDegerlendir(kuralJson: string, ozellikler: readonly Oznitel
      kişi hangi verinin KULLANILMADIĞINI görmeli. */
   const cakismaNotu = cakismalar.length === 0 ? ''
     : ` [öznitelik yok sayıldı — ${cakismalar
-      .map((c) => `${c.anahtar} (${c.sebep === 'profil' ? 'profil alanı' : 'türetilmiş alan'})`)
+      .map((c) => `${c.anahtar} (profil alanı)`)
       .join(', ')}]`;
-  const acikla = (k: Kosul, s: boolean | null) =>
-    `${k.alan}${k.islec}${JSON.stringify(k.deger)}=${s === null ? 'bilinmiyor' : s ? 'sağlandı' : 'sağlanmadı'}`;
+  const acikla = (k: Kosul, s: boolean | null): string =>
+    (alanKosulu(k) ? `${k.alan}${k.islec}${JSON.stringify(k.deger)}`
+      : `(${(k.hepsi ?? k.herhangi ?? []).map((x) => acikla(x, kosulSagla(baglam, x))).join(k.hepsi ? ' VE ' : ' VEYA ')})`)
+    + `=${s === null ? 'bilinmiyor' : s ? 'sağlandı' : 'sağlanmadı'}`;
 
   if (kural.herhangi) {
     const sonuclar = kural.herhangi.map((k) => ({ k, s: kosulSagla(baglam, k) }));
@@ -145,12 +158,26 @@ export function kuralDegerlendir(kuralJson: string, ozellikler: readonly Oznitel
 export async function tesisKapsaminiHesapla(tesisId: string, aktorId?: string | null):
   Promise<{ hesaplanan: number; atlanianOverride: number }> {
   const tesis = await db.tesis.findUniqueOrThrow({
-    where: { id: tesisId }, include: { profil: true, ozellikler: true } });
+    where: { id: tesisId }, include: { profil: true, ozellikler: true, kapsamOgesi: true } });
+  /* Karar KAPSAM ÖĞESİNE yazılır (B1). Tesisin öğesi yoksa karar
+     yazılamaz — bilinmeyen bir özneye karar uydurulmaz (K2); veri
+     kalitesi bulgusu düşer ve motor çıkar. */
+  const oge = tesis.kapsamOgesi;
+  if (!oge) {
+    const acik = await db.veriKalitesiBulgusu.findFirst({
+      where: { kural: 'kapsam_ogesi_yok', kaynakTipi: 'Tesis', kaynakId: tesisId, durum: 'acik' } });
+    if (!acik) {
+      await db.veriKalitesiBulgusu.create({ data: {
+        kural: 'kapsam_ogesi_yok', kaynakTipi: 'Tesis', kaynakId: tesisId,
+        aciklama: 'Kapsam öğesi yok — uygulanabilirlik kararı yazılamadı' } });
+    }
+    return { hesaplanan: 0, atlanianOverride: 0 };
+  }
   const kurallar = await db.uygulanabilirlikKurali.findMany({ where: { aktif: true } });
   let hesaplanan = 0, atlanianOverride = 0;
   for (const kural of kurallar) {
     const mevcut = await db.uygulanabilirlikKarari.findUnique({
-      where: { tesisId_regulasyonId: { tesisId, regulasyonId: kural.regulasyonId } } });
+      where: { kapsamOgesiId_regulasyonId: { kapsamOgesiId: oge.id, regulasyonId: kural.regulasyonId } } });
     if (mevcut?.elIleDegistirildi) { atlanianOverride++; continue; }
     const profilKaydi = tesis.profil
       ? JSON.parse(JSON.stringify(tesis.profil)) as Record<string, unknown> : null;
@@ -179,16 +206,16 @@ export async function tesisKapsaminiHesapla(tesisId: string, aktorId?: string | 
     }
     if (sonuc.uygulanabilir === null) continue;
     await db.uygulanabilirlikKarari.upsert({
-      where: { tesisId_regulasyonId: { tesisId, regulasyonId: kural.regulasyonId } },
+      where: { kapsamOgesiId_regulasyonId: { kapsamOgesiId: oge.id, regulasyonId: kural.regulasyonId } },
       update: { uygulanabilir: sonuc.uygulanabilir, gerekce: sonuc.gerekce,
         kuralId: kural.id, kuralSurumu: kural.surum, hesaplandi: new Date() },
-      create: { tesisId, regulasyonId: kural.regulasyonId,
+      create: { kapsamOgesiId: oge.id, regulasyonId: kural.regulasyonId,
         uygulanabilir: sonuc.uygulanabilir, gerekce: sonuc.gerekce,
         kuralId: kural.id, kuralSurumu: kural.surum },
     });
     hesaplanan++;
     await db.aktiviteKaydi.create({ data: {
-      aktorId: aktorId ?? null, varlikTipi: 'UygulanabilirlikKarari', varlikId: tesisId,
+      aktorId: aktorId ?? null, varlikTipi: 'UygulanabilirlikKarari', varlikId: oge.id,
       eylem: 'guncelleme', alan: kural.ad,
       yeniDeger: sonuc.uygulanabilir ? 'kapsamda' : 'kapsam dışı',
       gerekce: sonuc.gerekce, kaynak: 'is_kosusu' } });

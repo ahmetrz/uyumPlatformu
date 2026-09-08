@@ -97,7 +97,7 @@ export async function uyumKatalogu(db: PrismaClient) {
 
   // Kapsam: uygulanabilirlik motorunun kararı + sürecin kapsam listesi.
   const kapsam = await db.surecKapsami.findMany({
-    where: { surecId: surec.id }, include: { tesis: true },
+    where: { surecId: surec.id }, include: { kapsamOgesi: true },
   });
 
   const idx: Record<string, { id: string }> = {};
@@ -137,7 +137,7 @@ export async function uyumKatalogu(db: PrismaClient) {
   const yapraklar = YENI_MADDELER.filter(([kod]) => kod.split('.').length === 3).map(([kod]) => kod);
   let eklenen = 0;
   for (const k of kapsam) {
-    const satir = DURUM[k.tesis.kod];
+    const satir = DURUM[k.kapsamOgesi.kod];
     if (!satir) continue; // kapsamda ama matriste yoksa uydurma durum yazma
     for (const maddeKod of yapraklar) {
       const durum = satir[maddeKod];
@@ -145,12 +145,12 @@ export async function uyumKatalogu(db: PrismaClient) {
       const madde = idx[maddeKod];
       if (!madde) continue;
       const zatenVar = await db.maddeDurumu.findFirst({
-        where: { surecId: surec.id, maddeId: madde.id, tesisId: k.tesisId },
+        where: { surecId: surec.id, maddeId: madde.id, kapsamOgesiId: k.kapsamOgesiId },
       });
       if (zatenVar) continue;
       await db.maddeDurumu.create({
         data: {
-          surecId: surec.id, maddeId: madde.id, tesisId: k.tesisId,
+          surecId: surec.id, maddeId: madde.id, kapsamOgesiId: k.kapsamOgesiId,
           durum,
           /* Değişmez: kanıtı bayat olan kayıt 'bayat_kanit' güvenindedir.
              İkisini ayrı yazmak, kanıt tazelik motorunun kabul testini

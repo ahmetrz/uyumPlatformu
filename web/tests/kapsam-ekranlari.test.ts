@@ -29,6 +29,7 @@ const { genelEkranVerisi } = await import('@/app/(kabuk)/(flagship)/veri');
 const { tesis360Verisi } = await import('@/app/(kabuk)/(flagship)/tesisler/[id]/veri');
 
 import type { AktifKullanici } from '@/lib/auth';
+import { ogeAc } from './yardim/kapsam';
 
 /* ═══════════════════════════════════════════════════════════════════════
    SANTRAL KAPSAMI — EKRAN SEVİYESİ NEGATİF TESTLER
@@ -83,12 +84,13 @@ let kRiskSahibi: AktifKullanici;
 /** AktifKullanici şeklini DB'deki GERÇEK yetki satırlarından kurar. */
 async function aktifKullaniciYukle(id: string): Promise<AktifKullanici> {
   const k = await db.kullanici.findUniqueOrThrow({
-    where: { id }, include: { yetkiler: true },
+    where: { id }, include: { yetkiler: { include: { kapsamOgesi: { select: { tesisId: true } } } } },
   });
   return {
     id: k.id, adSoyad: k.adSoyad, eposta: k.eposta, unvan: k.unvan,
     yetkiler: k.yetkiler.map((y) => ({
-      rol: y.rol, surecId: y.surecId, tesisId: y.tesisId,
+      rol: y.rol, surecId: y.surecId, kapsamOgesiId: y.kapsamOgesiId,
+      tesisId: y.kapsamOgesi?.tesisId ?? null,
       tuzelKisiId: y.tuzelKisiId, regulasyonId: y.regulasyonId, modul: y.modul,
     })),
   };
@@ -152,6 +154,9 @@ beforeAll(async () => {
 
   /* Uyum zinciri: regülasyon → madde → süreç → (santral × madde) durumu. */
   const reg = await db.regulasyon.create({ data: { kod: `${ONEK}-REG`, ad: 'Kapsam regülasyonu' } });
+  /* Uyum zinciri KAPSAM ÖĞESİNE bağlı (B1): test tesislerinin öğesi açılır. */
+  const ogeA = await ogeAc(tesisA);
+  const ogeB = await ogeAc(tesisB);
   const madde = await db.madde.create({
     data: {
       regulasyonId: reg.id, kod: `${ONEK}-M1`, baslik: 'Kapsam maddesi', metin: 'metin',
@@ -161,14 +166,14 @@ beforeAll(async () => {
   const surec = await db.uyumSureci.create({
     data: {
       kod: `${ONEK}-SUREC`, ad: 'Kapsam süreci', regulasyonId: reg.id, durum: 'aktif',
-      kapsam: { create: [{ tesisId: tesisA.id }, { tesisId: tesisB.id }] },
+      kapsam: { create: [{ kapsamOgesiId: ogeA.id }, { kapsamOgesiId: ogeB.id }] },
     },
   });
   const mdA = await db.maddeDurumu.create({
-    data: { surecId: surec.id, maddeId: madde.id, tesisId: tesisA.id, durum: 'uyumsuz' },
+    data: { surecId: surec.id, maddeId: madde.id, kapsamOgesiId: ogeA.id, durum: 'uyumsuz' },
   });
   const mdB = await db.maddeDurumu.create({
-    data: { surecId: surec.id, maddeId: madde.id, tesisId: tesisB.id, durum: 'uyumsuz' },
+    data: { surecId: surec.id, maddeId: madde.id, kapsamOgesiId: ogeB.id, durum: 'uyumsuz' },
   });
 
   const bA = await db.bulgu.create({
@@ -321,13 +326,13 @@ beforeAll(async () => {
   const uA = await db.kullanici.create({
     data: {
       eposta: `${ONEK}-a@test.local`, adSoyad: 'A Santral Yoneticisi',
-      yetkiler: { create: [{ rol: 'yonetici', tesisId: tesisA.id }] },
+      yetkiler: { create: [{ rol: 'yonetici', kapsamOgesiId: ogeA.id }] },
     },
   });
   const uB = await db.kullanici.create({
     data: {
       eposta: `${ONEK}-b@test.local`, adSoyad: 'B Santral Yoneticisi',
-      yetkiler: { create: [{ rol: 'yonetici', tesisId: tesisB.id }] },
+      yetkiler: { create: [{ rol: 'yonetici', kapsamOgesiId: ogeB.id }] },
     },
   });
   const uG = await db.kullanici.create({
@@ -365,7 +370,7 @@ describe('kurulum', () => {
   it('yasak veri VERİTABANINDA gerçekten var — "dönmedi" ile "yoktu" karışmasın', async () => {
     expect(await db.risk.count({ where: { tesisId: kimlik.tesisB, silindi: null } }))
       .toBeGreaterThan(0);
-    expect(await db.bulgu.count({ where: { maddeDurumu: { tesisId: kimlik.tesisB } } }))
+    expect(await db.bulgu.count({ where: { maddeDurumu: { kapsamOgesi: { tesisId: kimlik.tesisB } } } }))
       .toBeGreaterThan(0);
     expect(await db.kimlikHesabi.count({ where: { tesisId: kimlik.tesisB } })).toBeGreaterThan(0);
     expect(await db.varlik.count({ where: { tesisId: kimlik.tesisB } })).toBeGreaterThan(0);

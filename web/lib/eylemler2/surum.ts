@@ -279,7 +279,7 @@ export async function surumAktiflestir(girdi: { surumId: string }): Promise<Sonu
          yeni satır da doğamaz. */
       const surecler = await tx.uyumSureci.findMany({
         where: { regulasyonId: yeni.regulasyonId, durum: 'aktif' },
-        include: { kapsam: { select: { tesisId: true } } } });
+        include: { kapsam: { select: { kapsamOgesiId: true } } } });
       const altSahipler = new Set(yeniMaddeler.map((m) => m.ustMaddeId).filter(Boolean));
       const yaprakIdler = degisenYeniIdler.filter((id) => !altSahipler.has(id));
       const surecIdler = surecler.map((s) => s.id);
@@ -297,8 +297,8 @@ export async function surumAktiflestir(girdi: { surumId: string }): Promise<Sonu
         for (const p of parcala(yaprakIdler, 2)) {
           const satirlar = await tx.maddeDurumu.findMany({
             where: { maddeId: { in: p }, ...surecFiltresi },
-            select: { surecId: true, maddeId: true, tesisId: true } });
-          for (const s of satirlar) mevcut.add(anahtar(s.surecId, s.maddeId, s.tesisId));
+            select: { surecId: true, maddeId: true, kapsamOgesiId: true } });
+          for (const s of satirlar) mevcut.add(anahtar(s.surecId, s.maddeId, s.kapsamOgesiId));
         }
       }
 
@@ -306,10 +306,10 @@ export async function surumAktiflestir(girdi: { surumId: string }): Promise<Sonu
       for (const surec of surecler) {
         for (const maddeId of yaprakIdler) {
           for (const kapsamKaydi of surec.kapsam) {
-            const a = anahtar(surec.id, maddeId, kapsamKaydi.tesisId);
+            const a = anahtar(surec.id, maddeId, kapsamKaydi.kapsamOgesiId);
             if (mevcut.has(a)) continue;
             mevcut.add(a); // aynı üçlü iki kez planlanmasın
-            acilacak.push({ surecId: surec.id, maddeId, tesisId: kapsamKaydi.tesisId,
+            acilacak.push({ surecId: surec.id, maddeId, kapsamOgesiId: kapsamKaydi.kapsamOgesiId,
               durum: 'degerlendirilmedi', guven: 'kanit_yok' });
           }
         }

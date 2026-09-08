@@ -2,7 +2,9 @@ import 'server-only';
 import { db } from '@/lib/db';
 import { izinliTesisIdleri } from '@/lib/erisim';
 import type { AktifKullanici } from '@/lib/auth';
-import { kapsamDaraltildi, kapsamKosulu, modulKapisi } from '@/app/kapsam';
+import { kapsamDaraltildi, kapsamKosulu, kopruKosulu, modulKapisi } from '@/app/kapsam';
+import { ogeTesisKoprusu } from '@/lib/kapsam/db';
+import { rolDegeri } from '@/lib/kapsam/rol';
 import { uyumOzeti } from '@/lib/sabitler';
 import type { PortfoyEndeksi, PortfoySatiri } from './mantik';
 import {
@@ -62,22 +64,24 @@ export async function portfoyEkranVerisi(k: AktifKullanici): Promise<EkranVerisi
     db.tesis.findMany({
       where: { durum: 'aktif', ...(izinli === null ? {} : { id: { in: izinli } }) },
       include: {
-        tip: true, tuzelKisi: true, profil: { select: { kritiklikSinifi: true } },
-        ozellikler: { select: { anahtar: true, sayisalDeger: true, birim: true } },
+        tip: true, tuzelKisi: true,
+        ozellikler: { select: { anahtar: true, sayisalDeger: true, metinDeger: true, birim: true } },
       },
       /* Sıra JS'te: kurulu güç artık öznitelik satırı (P1). Sorgu `take`
          almıyor, küme tamamı geliyor — sonuç veritabanı sırasıyla aynı. */
       orderBy: { ad: 'asc' },
     }),
+    /* Uyum zinciri KAPSAM ÖĞESİNE bağlı (B1): öğe başına sayılır, tesise
+       köprüden bağlanır. */
     db.maddeDurumu.groupBy({
-      by: ['tesisId', 'durum'], _count: { _all: true },
-      where: kapsamKosulu(izinli),
+      by: ['kapsamOgesiId', 'durum'], _count: { _all: true },
+      where: kopruKosulu(izinli),
     }),
     db.bulgu.groupBy({
       by: ['maddeDurumuId'], _count: { _all: true },
       where: {
         durum: { in: ['acik', 'aksiyonda'] }, silindi: null,
-        maddeDurumu: kapsamKosulu(izinli),
+        maddeDurumu: kopruKosulu(izinli),
       },
     }),
     db.risk.groupBy({
@@ -116,20 +120,23 @@ export async function portfoyEkranVerisi(k: AktifKullanici): Promise<EkranVerisi
   const bulguDurumIdleri = bulguSayimlari.map((b) => b.maddeDurumuId);
   const durumTesis = bulguDurumIdleri.length
     ? await db.maddeDurumu.findMany({
-        where: { id: { in: bulguDurumIdleri } }, select: { id: true, tesisId: true },
+        where: { id: { in: bulguDurumIdleri } },
+        select: { id: true, kapsamOgesi: { select: { tesisId: true } } },
       })
     : [];
   const bulguTesise = new Map<string, number>();
   for (const b of bulguSayimlari) {
-    const t = durumTesis.find((d) => d.id === b.maddeDurumuId)?.tesisId;
+    const t = durumTesis.find((d) => d.id === b.maddeDurumuId)?.kapsamOgesi.tesisId;
     if (t) bulguTesise.set(t, (bulguTesise.get(t) ?? 0) + b._count._all);
   }
   const riskTesise = new Map(riskSayimlari.map((r) => [r.tesisId ?? '', r._count._all]));
 
-  const satirlar: PortfoySatiri[] = tesisler.map((t) => {
+  /* Öğe → tesis köprüsü: sayım öğe başına geldi, kart tesis başına. */
+  const kopru = await ogeTesisKoprusu(durumSayimlari.map((d) => d.kapsamOgesiId));
+  const satirlar: PortfoySatiri[] = await Promise.all(tesisler.map(async (t) => {
     const sayim: Record<string, number> = {};
     for (const d of durumSayimlari) {
-      if (d.tesisId === t.id) sayim[d.durum] = d._count._all;
+      if (kopru.get(d.kapsamOgesiId) === t.id) sayim[d.durum] = (sayim[d.durum] ?? 0) + d._count._all;
     }
     const ozet = uyumOzeti(sayim);
     return {
@@ -151,13 +158,15 @@ export async function portfoyEkranVerisi(k: AktifKullanici): Promise<EkranVerisi
       gorselAnahtari: t.gorselAnahtari,
       enlem: t.enlem, boylam: t.boylam,
       konumKaynagi: t.konumKaynagi, konumDogrulandi: t.konumDogrulandi,
-      kritiklik: t.profil?.kritiklikSinifi ?? null,
+      /* Kritiklik çekirdek kolon DEĞİL, sektörün `kritiklik` rolündeki
+         özniteliği (B2); rolü beyan etmeyen sektörde null. */
+      kritiklik: await rolDegeri(t, 'kritiklik'),
       uyumYuzde: ozet.yuzde,
       bilinmeyenOran: ozet.bilinmeyenOran,
       acikBulgu: bulguTesise.get(t.id) ?? 0,
       acikRisk: riskTesise.get(t.id) ?? 0,
     };
-  });
+  }));
 
   satirlar.sort((a, b) => {
     if (a.guc === null && b.guc === null) return a.ad.localeCompare(b.ad, 'tr');
@@ -194,7 +203,7 @@ export async function portfoyEkranVerisi(k: AktifKullanici): Promise<EkranVerisi
   const tesisSektoru = new Map(satirlar.map((s) => [s.id, s.sektorId]));
   const sektorSayimlari = new Map<string, Record<string, number>>();
   for (const d of durumSayimlari) {
-    const sid = tesisSektoru.get(d.tesisId ?? '');
+    const sid = tesisSektoru.get(kopru.get(d.kapsamOgesiId) ?? '');
     if (!sid) continue;
     const kova = sektorSayimlari.get(sid) ?? {};
     kova[d.durum] = (kova[d.durum] ?? 0) + d._count._all;

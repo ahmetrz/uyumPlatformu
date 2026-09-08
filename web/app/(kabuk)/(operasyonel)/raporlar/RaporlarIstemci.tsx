@@ -65,7 +65,7 @@ export default function RaporlarIstemci({
     id: s.id,
     ad: s.ad,
     alt: s.kod,
-    yol: `/tesisler/${s.id}`,
+    yol: s.tesisId ? `/tesisler/${s.tesisId}` : undefined,
     sakin: sakin(s),
     hucreler: s.hucreler.map((h, i) => ({
       durum: hucreDurumu(h),

@@ -64,6 +64,13 @@ export class EdrAdaptoru extends BaglanmamisAdaptor {
      gelmeyebilir; gelmeyen alan BOŞ kalır, uydurulmaz. */
   readonly yetenekler: Yetenek[] = ['asset_inventory', 'asset_state', 'passive_asset_discovery'];
 
+  /* Bağlanılacak gerçek ürünler — beyanları
+     `prisma/kurgusal-adlar.ts` içinde kaynağı ve gerekçesiyle durur.
+     Beyansız bir ad bekçiyi kırmızı yakar. */
+  readonly hedefUrunler = [
+    'CrowdStrike Falcon', 'Microsoft Defender for Endpoint', 'SentinelOne',
+  ] as const;
+
   readonly gerekenSirlar = ['env:EDR_ISTEMCI_SIRRI'];
   readonly gereken =
     'EDR konsolunda salt okunur API istemcisi: CrowdStrike için client id + ' +

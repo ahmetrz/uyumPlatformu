@@ -211,11 +211,33 @@ describe('Kurgusal ad bekçisi · beyan disiplini [URN-KUR-007]', () => {
       ...(await db.risk.findMany({ select: { mevcutKontroller: true } }))
         .map((x) => x.mevcutKontroller),
     ].filter((x): x is string => !!x);
+    const { ADAPTORLER } = await import('@/lib/entegrasyon/adaptorler');
+    metinler.push(...Object.values(ADAPTORLER).flatMap((a) => [...a.hedefUrunler]));
     const olu = GERCEK_AD_BEYANLARI
       .filter((b) => !metinler.some((m) => m.includes(b.ad)))
       .map((b) => b.ad);
     expect(olu, 'veritabanında geçmeyen beyan: silin — beyan tablosu ' +
       'ihtiyaç olur diye ad biriktirilen bir liste değildir').toEqual([]);
+  });
+
+  it('ADAPTÖR hedef ürünleri beyanlıdır [URN-KUR-007]', async () => {
+    /* Bekçinin ilk hâli VERİTABANINI okuyordu ve adaptör metinlerini
+       görmüyordu; yayımlanmış çıktıda Splunk · Qualys · Rapid7 ·
+       Palo Alto · Fortinet beyansız duruyordu. Bunlar meşru entegrasyon
+       hedefleridir — kusur gerçek olmaları değil, SESSİZ geçmeleriydi.
+
+       Boşluğu bulan şey bekçi değil, yayımlanan çıktının kendisini
+       tarayan bir ölçüm oldu; kapı o ölçümün yerine geçsin diye
+       yazıldı. */
+    const { ADAPTORLER } = await import('@/lib/entegrasyon/adaptorler');
+    const hedefler = Object.values(ADAPTORLER)
+      .flatMap((a) => [...a.hedefUrunler]);
+    expect(hedefler.length,
+      'hiçbir adaptör hedef ürün beyan etmiyor — bekçi ölçmüyor')
+      .toBeGreaterThan(0);
+    expect([...new Set(hedefler)].filter((ad) => !BEYANLI_GERCEK_ADLAR.has(ad)),
+      'adaptör beyansız bir gerçek ürün adı taşıyor: kurulum talimatı '
+      + 'olduğu için meşru, ama gerekçesiyle beyan edilmeli').toEqual([]);
   });
 
   it('her ZAFİYET kamuya açık bir kaynağa atıf yapar [URN-KUR-007]', async () => {

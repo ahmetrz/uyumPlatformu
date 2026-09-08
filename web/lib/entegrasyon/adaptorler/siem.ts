@@ -73,6 +73,13 @@ export class SiemAdaptoru extends BaglanmamisAdaptor {
      beyanı değildir. */
   readonly yetenekler: Yetenek[] = ['asset_inventory', 'access_observation', 'passive_asset_discovery'];
 
+  /* Bağlanılacak gerçek ürünler — beyanları
+     `prisma/kurgusal-adlar.ts` içinde kaynağı ve gerekçesiyle durur.
+     Beyansız bir ad bekçiyi kırmızı yakar. */
+  readonly hedefUrunler = [
+    'Splunk', 'Microsoft Sentinel', 'IBM QRadar', 'Elastic',
+  ] as const;
+
   readonly gerekenSirlar = ['env:SIEM_TOKEN'];
   readonly gereken =
     'SIEM üzerinde salt okunur arama hesabı ve token: Splunk için ' +

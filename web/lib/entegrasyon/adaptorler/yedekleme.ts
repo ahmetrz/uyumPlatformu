@@ -64,6 +64,13 @@ export class YedeklemeAdaptoru extends BaglanmamisAdaptor {
      da firmware seviyesini BİLMEZ. */
   readonly yetenekler: Yetenek[] = ['asset_inventory', 'backup_result'];
 
+  /* Bağlanılacak gerçek ürünler — beyanları
+     `prisma/kurgusal-adlar.ts` içinde kaynağı ve gerekçesiyle durur.
+     Beyansız bir ad bekçiyi kırmızı yakar. */
+  readonly hedefUrunler = [
+    'Veeam', 'Commvault', 'NetBackup', 'Acronis',
+  ] as const;
+
   readonly gerekenSirlar = ['env:YEDEK_API_SIRRI'];
   readonly gereken =
     'Yedekleme konsolunda salt okunur (Backup Viewer / Restore Operator ' +

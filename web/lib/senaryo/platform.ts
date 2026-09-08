@@ -556,6 +556,22 @@ export const PLATFORM_SENARYOLARI: Senaryo[] = [
     katmanlar: ['DOMAIN', 'UI'],
   },
   {
+    id: 'PRT-OZT-003', alan: 'Portföy', rota: '/portfoy', eksen: 'veri',
+    amac: 'Sıralama etiketinin sektörün sözcüğünü söylemesi',
+    rol: 'kurum yöneticisi', kapsam: 'kurum geneli',
+    onkosul: 'Mercek su sektöründe; birincil ölçü "günlük debi" — ölçüldü '
+      + '(8 Eyl 2026, yayında): sıralama seçeneği ve kimlik paneli her mercekte '
+      + '"Kurulu güç" yazıyordu; ölçünün DEĞERİ sektörden çözülüyor, ADI çekirdeğe gömülüydü',
+    veriHali: 'normal',
+    eylem: 'Sıralama listesi ve kimlik panelindeki birincil ölçü etiketi okunur',
+    beklenenSonuc: 'Etiket sözlüğün `kapasite` anahtarından gelir: elektrik "kurulu güç", '
+      + 'su "günlük debi", çekirdek "kapasite"; hiçbir sıralama satırı sektör sözcüğünü '
+      + 'sabit taşımaz (çekirdek sözcük cırcırı taban 0)',
+    beklenenEkran: 'Su merceğinde "Günlük debi", çekirdekte "Kapasite"',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['DOMAIN', 'UI'],
+  },
+  {
     id: 'HRT-KNM-001', alan: 'Harita', rota: '/harita', eksen: 'veri',
     amac: 'Tesislerin coğrafi dağılımını görmek',
     rol: 'kurum yöneticisi', kapsam: 'kurum geneli',

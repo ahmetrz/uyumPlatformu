@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
-  HEPSI, TUZEL_YOK, enZayif, olcuYazisi, sirala, suz, tuzelKisiler,
-  type PortfoySatiri,
+  HEPSI, SIRALAMALAR, TUZEL_YOK, enZayif, olcuYazisi, sirala, siralamaEtiketi, suz,
+  tuzelKisiler, type PortfoySatiri,
 } from '@/app/(tam)/portfoy/mantik';
 import {
   hucreEsigi, hucredeMi, isiHaritasi, isiKonumu,
@@ -216,5 +216,29 @@ describe('C15 · uyum eğilimi', () => {
     expect(trendFarki([nokta('a', null), nokta('b', 40), nokta('c', null), nokta('d', 55)])).toBe(15);
     expect(trendFarki([nokta('a', 40)])).toBeNull();
     expect(trendFarki([nokta('a', null), nokta('b', null)])).toBeNull();
+  });
+});
+
+/* ═══ Sıralama etiketi sektörün sözcüğünü söyler ═══════════════════════
+   ÖLÇÜLDÜ (8 Eyl 2026, yayında): su merceğinde de "Kurulu güç"
+   yazıyordu. Birincil ölçünün DEĞERİ sektör şemasından çözülüyor, ADI
+   çekirdeğe gömülüydü. Hiçbir kapı görmedi; canlı ölçüm buldu. */
+describe('Portföy · sıralama etiketi sözlükten [PRT-OZT-003]', () => {
+  it('sözlükten işaretli satır sektörün sözcüğünü alır, ötekiler kendi adını [PRT-OZT-003]', () => {
+    const guc = SIRALAMALAR.find((s) => s.anahtar === 'guc')!;
+    expect(guc.sozlukten, '`guc` sıralaması sözlüğe bağlı olmalı').toBe(true);
+    expect(siralamaEtiketi(guc, 'Günlük debi')).toBe('Günlük debi');
+    expect(siralamaEtiketi(guc, 'Kurulu güç')).toBe('Kurulu güç');
+    expect(siralamaEtiketi(guc, 'Kapasite')).toBe('Kapasite');
+    const bulgu = SIRALAMALAR.find((s) => s.anahtar === 'bulgu')!;
+    expect(siralamaEtiketi(bulgu, 'Günlük debi')).toBe('Açık bulgu');
+  });
+
+  it('hiçbir sıralama satırı sektör sözcüğünü SABİT taşımaz [PRT-OZT-003]', () => {
+    /* Sabit "Kurulu güç" tam olarak ölçülen kusurdu: ekran onu her
+       mercekte aynen basıyordu. */
+    for (const s of SIRALAMALAR) {
+      expect(s.ad, `${s.anahtar}: sektör sözcüğü sabit yazılmış`).not.toMatch(/kurulu güç|debi|MW/i);
+    }
   });
 });

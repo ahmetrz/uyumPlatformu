@@ -49,10 +49,10 @@ export async function sahneKur(root: HTMLElement): Promise<Sahne> {
         const odakMaskesi = maske ? gecisMaskesi(yer.opaklik,
           (bag.ic.sol + bag.ic.sag) / 2 * taban,
           (bag.ic.ust + bag.ic.alt) / 2 * taban * 9 / 16, taban, taban * 9 / 16) : 'none';
-        const ufuk = [35, 28, 20][KARELER.indexOf(ad)];
+        const ufuk = [38.9, 32.4, 24.25][KARELER.indexOf(ad)];
         const derinlik = ad !== 'ekran' && CSS.supports('mask-composite', 'intersect');
         img.style.maskImage = derinlik
-          ? `linear-gradient(to bottom, transparent ${ufuk}%, #000 ${ufuk + 4}%), ${odakMaskesi === 'none' ? 'linear-gradient(#000, #000)' : odakMaskesi}`
+          ? `linear-gradient(to bottom, transparent ${ufuk}%, #000 ${ufuk + .25}%), ${odakMaskesi === 'none' ? 'linear-gradient(#000, #000)' : odakMaskesi}`
           : odakMaskesi;
         img.style.maskComposite = derinlik ? 'intersect' : 'add';
         img.style.transform = `translate3d(${yer.x.toFixed(2)}px, ${yer.y.toFixed(2)}px, 0) scale(${(yer.en / taban).toFixed(5)})`;

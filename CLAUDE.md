@@ -19,6 +19,7 @@ kabul kriteridir (P0 · URN-KUR-003); ölü atıf eklemeyin.
 | --- | --- |
 | Ürün ne, ne değil · hangi kural değişti | `docs/URUN_VIZYONU.md` |
 | İş listesi · paketler · kararlar defteri | `docs/GELISTIRME_PAKETLERI.md` |
+| TR sektör paketleri · v1 kapsamı · efor ölçümü | `docs/TR_SEKTOR_PAKETLERI.md` |
 | Paketlerin koda karşı durumu · çelişki kütüğü | `docs/GELISTIRME_PAKETLERI_DURUM.md` |
 | Ürün / kod kuralları | `web/CLAUDE.md` → `web/AGENTS.md` (Next.js sürüm uyarısı) |
 | Ürün bağlamı ve sözlük | `web/PRODUCT.md` |

@@ -123,12 +123,21 @@ export const KISILER = [
   'Kullanıcı A', 'Kullanıcı B', 'Kullanıcı C', 'Kullanıcı D', 'Kullanıcı E',
 ] as const;
 
+/** Kiracının KENDİ iç hizmetleri — dışarıdan alınmayan, kurum içinde
+    işletilen birimler. Sertifikayı veren "iç PKI mi kamu CA'sı mı"
+    ayrımı uyum ekranının okuduğu sinyaldir; iç tarafın da bir adı
+    olmalı ve o ad da buradan gelmeli. */
+export const IC_BIRIMLER: KurgusalKurulus[] = [
+  { ad: 'Demo Enerji İç PKI', kategori: 'Kurum içi sertifika otoritesi' },
+];
+
 /** Bütün kurgusal kuruluş adları — bekçinin karşılaştırdığı küme. */
 export const TUM_KURULUS_ADLARI: ReadonlySet<string> = new Set([
   ...TEDARIKCILER.map((x) => x.ad),
   ...URETICILER.map((x) => x.ad),
   ...DENETLEYICILER.map((x) => x.ad),
   ...TUZEL_KISILER.map((x) => x.ad),
+  ...IC_BIRIMLER.map((x) => x.ad),
 ]);
 
 /* ═══════════════════════════════════════════════════════════════════════

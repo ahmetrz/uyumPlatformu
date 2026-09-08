@@ -149,11 +149,17 @@ describe('Kurgusal ad bekçisi · ürünler [URN-KUR-006]', () => {
   });
 
   it('SERTİFİKAYI VEREN beyanlıdır [URN-KUR-006]', async () => {
+    /* "Demo " ÖN EKİ BİR KAYNAK DEĞİLDİR. İlk yazımda bu kontrol
+       `ad.startsWith('Demo ')` ile geçiyordu ve o kaçak tam olarak bu
+       turda düzeltilen kusuru üretirdi: "Demo Ağ Güvenliği FortiManager"
+       ve "Demo Entra ID" ikisi de "Demo " ile başlıyordu ve ikisi de
+       gerçek bir ürünü kurgusal bir adla birleştiriyordu. Ön ek
+       yazılabilir, kaynak yazılamaz; kaynak tektir ve o dosyadır. */
     const s = await db.sertifika.findMany({ select: { veren: true } });
     expect(s.length).toBeGreaterThan(0);
     expect([...new Set(s.map((x) => x.veren).filter((x): x is string => !!x))]
-      .filter((ad) => !TUM_KURULUS_ADLARI.has(ad) && !BEYANLI_GERCEK_ADLAR.has(ad)
-        && !ad.startsWith('Demo '))).toEqual([]);
+      .filter((ad) => !TUM_KURULUS_ADLARI.has(ad) && !BEYANLI_GERCEK_ADLAR.has(ad)))
+      .toEqual([]);
   });
 });
 

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { sebepBayragi, tabanDogrula, tabanYaz } from './olcum-tabani.mjs';
 /* Yatay taşma kapısı — DAR EKRANDA SAYFA YANA KAYMAZ.
 
    ── NİÇİN VAR ─────────────────────────────────────────────────────────
@@ -578,6 +579,25 @@ for (const a of DINAMIK.atlanan) {
 }
 
 const ROTA_SAYISI = ROTALAR.filter((y) => !OTURUMSUZ_YOLLAR.has(y)).length + OTURUMSUZ.length;
+
+/* ── ÖLÇÜM KAPSAMI TABANI ─────────────────────────────────────────────
+   Cırcır BORÇ için tavan tutar; bu taban KAPSAM için taban tutar. Kusur
+   sayısı sıfır olabilir; ÖLÇÜM sayısı olamaz — sıfır ölçümle "kusur yok"
+   demek, hiçbir şeye bakmadan temiz raporlamaktır
+   (`arac/olcum-tabani.mjs` başlığındaki ölçülmüş olay). Taban ÖNCE
+   bakılır: geçersiz bir ölçümün borç kararı da geçersizdir. */
+if (process.argv.includes('--taban-yaz')) {
+  const { onceki, yeni } = tabanYaz('tasma.olcum', olculen, { sebep: sebepBayragi(process.argv) });
+  console.log(`taban güncellendi: tasma.olcum ${onceki ?? '(yok)'} → ${yeni}`);
+  process.exit(0);
+}
+try {
+  tabanDogrula('tasma.olcum', olculen);
+} catch (e) {
+  console.error(`\n${e.message}`);
+  process.exit(1);
+}
+
 const bas = `yatay-tasma: ${olculen} ölçüm · ${BANTLAR.length} bant × ${ROTA_SAYISI} rota`
   + (OTURUMSUZ.length > 0 ? ` (${OTURUMSUZ.length} oturumsuz)` : '');
 console.log(`${bas} · taşan rota ${kusurlar.length} · kırpılan içerik ${kirpilmalar.length}`

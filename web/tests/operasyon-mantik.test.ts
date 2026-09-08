@@ -18,7 +18,7 @@ import {
   ASAMALAR, GORUNUR_BUTCE,
   altSatir, asamaEtiketi, asamaIndeksi, baslikMetni, bolumle, degisiklikImi,
   dipNot, eksikKapilar, gecikmeGunu, kapandiMi, kapiHucresi, kapilar,
-  kimlikCumlesi, kimlikSozu, mercekten, metrikleriHesapla, santralMetni,
+  kimlikCumlesi, kimlikSozu, mercekten, metrikleriHesapla, tesisMetni,
   sirala, toplanabilir,
   type D,
 } from '@/app/(kabuk)/(operasyonel)/operasyon/mantik';
@@ -194,8 +194,8 @@ describe('Satır metinleri', () => {
   });
 
   it('santralsiz değişiklik portföy geneli sayılır', () => {
-    expect(santralMetni(d())).toBe('portföy');
-    expect(santralMetni(d({ tesis: { id: 't', kod: 'KZD-3', ad: 'Saha A-3' } })))
+    expect(tesisMetni(d())).toBe('portföy');
+    expect(tesisMetni(d({ tesis: { id: 't', kod: 'KZD-3', ad: 'Saha A-3' } })))
       .toBe('Saha A-3');
   });
 });

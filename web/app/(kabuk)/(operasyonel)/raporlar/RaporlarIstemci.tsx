@@ -9,16 +9,18 @@ import {
   Cekmece, CekmeceKimlik, CekmeceAlanlar, CekmeceBagli, CekmeceEylemler,
 } from '@/components/kabuk/panel';
 import { csvAktar, damgaliAd, exceleAktar, pdfYazdir, type Sayfa } from '@/components/disaAktar';
+import { useSozluk, useTerim } from '@/lib/dil/SozlukSaglayici';
+import { t, tBas, type Sozluk } from '@/lib/dil/terimler';
 import { an } from '@/lib/an';
 import { DURUM_ETIKET, KANIT_ESIK_VARSAYILAN, ONEM_ETIKET, etiketle, type KanitEsik } from '@/lib/sabitler';
 import {
   ALT_ESIK, HEDEF_ESIK, baglantisizKanit, hucreDurumu, hucreIpucu, hucreSozu,
-  portfoyOzeti, sakin, siralaSantraller, tazelikKovalari, yasKovalari, zayifHucreSayisi,
-  type Bulgu, type Kanit, type Santral, type Surec,
+  portfoyOzeti, sakin, siralaTesisler, tazelikKovalari, yasKovalari, zayifHucreSayisi,
+  type Bulgu, type Kanit, type Tesis, type Surec,
 } from './mantik';
 
-/* Portföy raporu — "hangi santral × süreç hücresi zayıf?"
-   İki canvas modülü (06 §A1): santral × süreç uyum matrisi ve tek bir
+/* Portföy raporu — "hangi tesis × süreç hücresi zayıf?"
+   İki canvas modülü (06 §A1): tesis × süreç uyum matrisi ve tek bir
    dağılım tablosu (bulgu yaşı / kanıt tazeliği kiple değişir).
 
    Durum sözcüğü canvasta GEÇMEZ: matris hücresinde YALNIZ işaretçi vardır,
@@ -32,12 +34,12 @@ import {
 type Kip = 'bulgu' | 'kanit';
 
 export default function RaporlarIstemci({
-  surecler, santraller, bulgular, kanitlar, kisitliKapsam, raporZamani, kanitEsik = KANIT_ESIK_VARSAYILAN,
+  surecler, tesisler, bulgular, kanitlar, kisitliKapsam, raporZamani, kanitEsik = KANIT_ESIK_VARSAYILAN,
 }: {
   surecler: Surec[];
   /** kanıt tazelik eşiği — sunucudan (`kanitEsikleri()`), Kanıt kütüphanesiyle aynı kaynak */
   kanitEsik?: KanitEsik;
-  santraller: Santral[];
+  tesisler: Tesis[];
   bulgular: Bulgu[];
   kanitlar: Kanit[];
   kisitliKapsam: boolean;
@@ -45,11 +47,13 @@ export default function RaporlarIstemci({
   raporZamani: string;
 }) {
   const [kip, setKip] = useUrlDurumu<Kip>('kip', 'bulgu');
-  const [secim, setSecim] = useState<{ santralId: string; kolon: number } | null>(null);
+  const [secim, setSecim] = useState<{ tesisId: string; kolon: number } | null>(null);
 
-  const sirali = useMemo(() => siralaSantraller(santraller), [santraller]);
-  const portfoy = useMemo(() => portfoyOzeti(santraller), [santraller]);
-  const zayif = useMemo(() => zayifHucreSayisi(santraller), [santraller]);
+  const sozluk = useSozluk();
+  const { t: terim, tBas: terimBas } = useTerim();
+  const sirali = useMemo(() => siralaTesisler(tesisler), [tesisler]);
+  const portfoy = useMemo(() => portfoyOzeti(tesisler), [tesisler]);
+  const zayif = useMemo(() => zayifHucreSayisi(tesisler), [tesisler]);
   const kovalar = useMemo(() => yasKovalari(bulgular), [bulgular]);
   const tazelik = useMemo(() => tazelikKovalari(kanitlar, kanitEsik), [kanitlar, kanitEsik]);
 
@@ -71,10 +75,10 @@ export default function RaporlarIstemci({
 
   const secilen = secim
     ? (() => {
-      const santral = santraller.find((s) => s.id === secim.santralId);
+      const tesis = tesisler.find((s) => s.id === secim.tesisId);
       const surec = surecler[secim.kolon];
-      const hucre = santral?.hucreler[secim.kolon];
-      return santral && surec && hucre ? { santral, surec, hucre } : null;
+      const hucre = tesis?.hucreler[secim.kolon];
+      return tesis && surec && hucre ? { tesis, surec, hucre } : null;
     })()
     : null;
 
@@ -83,14 +87,15 @@ export default function RaporlarIstemci({
   const baslik = zayif > 0
     ? { vurgu: `${zayif} hücre`, ad: 'eşiğin altında', durum: 'bd' as Durum }
     : portfoy.yuzde !== null
-      ? { vurgu: `%${portfoy.yuzde}`, ad: 'portföy uyumu', durum: undefined }
-      : { vurgu: undefined, ad: 'Portföy uyumu henüz ölçülmedi', durum: undefined };
+      ? { vurgu: `%${portfoy.yuzde}`, ad: `${terim('portfoy')} uyumu`, durum: undefined }
+      : { vurgu: undefined, ad: `${terimBas('portfoy')} uyumu henüz ölçülmedi`, durum: undefined };
 
   return (
     <>
       <main data-yuzey="defter" style={{ minWidth: 0 }}>
         <EkranBasligi
-          eyebrow={`Portföy raporu · ${raporZamani} · ${santraller.length} santral × ${surecler.length} süreç`}
+          eyebrow={`${terimBas('portfoy')} raporu · ${raporZamani}`
+            + ` · ${tesisler.length} ${terim('tesis')} × ${surecler.length} süreç`}
           vurgu={baslik.vurgu}
           vurguDurumu={baslik.durum}
           baslik={baslik.ad}
@@ -114,12 +119,13 @@ export default function RaporlarIstemci({
         />
 
         <section className="ab-ekran-govde">
-          {/* ── Modül 1 · santral × süreç uyum matrisi ─────────────────── */}
+          {/* ── Modül 1 · tesis × süreç uyum matrisi ─────────────────── */}
           {satirlar.length === 0 ? (
             <div style={{ marginTop: 'var(--s26)' }}>
               <BosIlk
                 cumle={kisitliKapsam
-                  ? 'Yetkinizin kapsamındaki santraller için tanımlı uyum süreci yok.'
+                  ? `Yetkinizin kapsamındaki ${terim('tesis', 'cogul')} için tanımlı `
+                    + 'uyum süreci yok.'
                   : 'Uyum süreçlerinin kapsamı boş — matris çizilemiyor.'}
                 eylem={<Link href="/surecler" className="ab-dugme">Uyum kampanyalarını aç</Link>} />
             </div>
@@ -130,12 +136,12 @@ export default function RaporlarIstemci({
                   ad: s.regKod, yol: `/uyum/${encodeURIComponent(s.regKod)}`,
                 }))}
                 satirlar={satirlar}
-                secili={secim?.santralId ?? null}
-                sec={(santralId, kolon) => setSecim((o) => (
-                  o && o.santralId === santralId && o.kolon === kolon
+                secili={secim?.tesisId ?? null}
+                sec={(tesisId, kolon) => setSecim((o) => (
+                  o && o.tesisId === tesisId && o.kolon === kolon
                     ? null
-                    : { santralId, kolon }))}
-                dipNot={matrisDipNot(santraller, portfoy.bilinmeyen, kisitliKapsam)}
+                    : { tesisId, kolon }))}
+                dipNot={matrisDipNot(tesisler, portfoy.bilinmeyen, kisitliKapsam, sozluk)}
               />
             </div>
           )}
@@ -170,7 +176,7 @@ export default function RaporlarIstemci({
                   denetim izini ve bütünlük damgasını taşır. */}
               <Link href="/raporlar/kanit-paketi">denetim kanıt paketi</Link>
             </p>
-            <DisaAktar surecler={surecler} santraller={santraller}
+            <DisaAktar surecler={surecler} tesisler={tesisler} sozluk={sozluk}
               bulgular={bulgular} kanitlar={kanitlar} />
           </div>
         </section>
@@ -178,7 +184,7 @@ export default function RaporlarIstemci({
 
       {secilen && (
         <HucreCekmecesi
-          santral={secilen.santral}
+          tesis={secilen.tesis}
           surec={secilen.surec}
           hucre={secilen.hucre}
           bulgular={bulgular}
@@ -189,10 +195,11 @@ export default function RaporlarIstemci({
   );
 }
 
-function matrisDipNot(santraller: Santral[], bilinmeyen: number, kisitli: boolean): string {
-  const kapsamDisi = santraller.reduce(
+function matrisDipNot(tesisler: Tesis[], bilinmeyen: number, kisitli: boolean,
+  sozluk: Sozluk | null): string {
+  const kapsamDisi = tesisler.reduce(
     (a, s) => a + s.hucreler.filter((h) => !h.kapsamda).length, 0);
-  const parcalar = [`${santraller.length} santral · sütun başlığı çerçeveyi açar`];
+  const parcalar = [`${tesisler.length} ${t(sozluk, 'tesis')} · sütun başlığı çerçeveyi açar`];
   // Boş hücre kapsam dışıdır; bilinmeyenle karıştırılmasın diye ayrı yazılır.
   if (kapsamDisi > 0) parcalar.push(`${kapsamDisi} hücre kapsam dışı (boş)`);
   if (bilinmeyen > 0) parcalar.push(`${bilinmeyen} madde değerlendirilmedi`);
@@ -287,28 +294,28 @@ function KanitTazeligi({ kovalar, toplam, baglantisiz, esik }: {
   );
 }
 
-/* ── Çekmece · seçili santral × süreç hücresi ────────────────────────── */
+/* ── Çekmece · seçili tesis × süreç hücresi ────────────────────────── */
 
-function HucreCekmecesi({ santral, surec, hucre, bulgular, kapat }: {
-  santral: Santral;
+function HucreCekmecesi({ tesis, surec, hucre, bulgular, kapat }: {
+  tesis: Tesis;
   surec: Surec;
-  hucre: Santral['hucreler'][number];
+  hucre: Tesis['hucreler'][number];
   bulgular: Bulgu[];
   kapat: () => void;
 }) {
   const d = hucreDurumu(hucre) ?? 'unk';
   const ilgiliBulgu = bulgular.filter(
-    (b) => b.tesisKod === santral.kod && b.regKod === surec.regKod && b.acik);
+    (b) => b.tesisKod === tesis.kod && b.regKod === surec.regKod && b.acik);
 
   const cumle = !hucre.kapsamda
-    ? `${santral.ad} bu sürecin kapsamında değil; hücre boş bırakıldı, sıfır sayılmadı.`
+    ? `${tesis.ad} bu sürecin kapsamında değil; hücre boş bırakıldı, sıfır sayılmadı.`
     : hucre.yuzde === null
       ? `${hucre.kapsam} madde tanımlı, hiçbiri değerlendirilmedi — yüzde hesaplanmaz.`
       : `Değerlendirilen ${hucre.degerlendirilen} madde üzerinden %${hucre.yuzde}`
         + (hucre.bilinmeyen > 0 ? ` · ${hucre.bilinmeyen} madde bilinmiyor.` : '.');
 
   return (
-    <Cekmece kod={`${santral.kod} · ${surec.kod}`} kapat={kapat}>
+    <Cekmece kod={`${tesis.kod} · ${surec.kod}`} kapat={kapat}>
       <CekmeceKimlik durum={d} soz={hucreSozu(hucre)} baslik={surec.ad} cumle={cumle} />
 
       <div className="ab-panel-blok" style={{ marginTop: 'var(--s18)' }}>
@@ -361,7 +368,7 @@ function HucreCekmecesi({ santral, surec, hucre, bulgular, kapat }: {
       />
 
       <CekmeceEylemler
-        dipNot={`${santral.ad} · ${hucre.kapsam} madde kapsamda`
+        dipNot={`${tesis.ad} · ${hucre.kapsam} madde kapsamda`
           + (ilgiliBulgu.length > 3 ? ` · ${ilgiliBulgu.length - 3} açık bulgu daha` : '')
           + ` · eşik %${HEDEF_ESIK} hedef, %${ALT_ESIK} alt sınır`
           + ' · bilinmeyen madde yüzdenin paydasına girmez'}
@@ -372,8 +379,21 @@ function HucreCekmecesi({ santral, surec, hucre, bulgular, kapat }: {
 
 /* ── Dışa aktarım — tabloyu izleyen tek sessiz bağlantı ──────────────── */
 
-function DisaAktar({ surecler, santraller, bulgular, kanitlar }: {
-  surecler: Surec[]; santraller: Santral[]; bulgular: Bulgu[]; kanitlar: Kanit[];
+/* ── DIŞA AKTARIM BAŞLIKLARI SÖZLÜKTEN GELİR ────────────────────────
+   Karar (7 Eyl 2026): ekran "Arıtma tesisi" diyorsa dosya da öyle der.
+   `components/disaAktar.ts` ilkeyi zaten yazmıştı — bir ekranın Excel'i
+   ile CSV'si farklı sütun kümesi taşırsa okuyan kişi ürünün yalan
+   söylediğini düşünür; ekranla dosya arasındaki sözcük farkı da aynı
+   şeyi yapar.
+
+   Denetim artefaktı bu karardan ETKİLENMEZ: kanıt paketi
+   (`lib/disaAktarim/paket.ts`) etiket değil KOD anahtarı yazar
+   (`maddeBasligi`, `baslik`) ve kendi şema sürümünü taşır
+   (`PAKET_SEMA_SURUMU`). İçe aktarım da başlık metnine göre eşleşmez —
+   sütunları insan eşler (`lib/entegrasyon/varlikAktarim.ts`). */
+function DisaAktar({ surecler, tesisler, bulgular, kanitlar, sozluk }: {
+  surecler: Surec[]; tesisler: Tesis[]; bulgular: Bulgu[]; kanitlar: Kanit[];
+  sozluk: Sozluk | null;
 }) {
   const kok = useRef<HTMLDetailsElement | null>(null);
 
@@ -407,9 +427,9 @@ function DisaAktar({ surecler, santraller, bulgular, kanitlar }: {
       {
         ad: 'Uyum matrisi',
         satirlar: [
-          ['Süreç', 'Regülasyon', 'Santral', 'Uyum %', 'Uyumlu', 'Kısmi', 'Uyumsuz',
-            'Bilinmeyen', 'Kapsam dışı'],
-          ...santraller.flatMap((t) => t.hucreler.flatMap((h, i) => (h.kapsamda ? [[
+          ['Süreç', 'Regülasyon', tBas(sozluk, 'tesis'), 'Uyum %', 'Uyumlu', 'Kısmi',
+            'Uyumsuz', 'Bilinmeyen', 'Kapsam dışı'],
+          ...tesisler.flatMap((t) => t.hucreler.flatMap((h, i) => (h.kapsamda ? [[
             surecler[i].kod, surecler[i].regKod, t.kod,
             h.yuzde ?? '', h.sayilar.uyumlu ?? 0, h.sayilar.kismi ?? 0,
             h.sayilar.uyumsuz ?? 0, h.bilinmeyen, h.sayilar.kapsamdisi ?? 0,
@@ -419,7 +439,7 @@ function DisaAktar({ surecler, santraller, bulgular, kanitlar }: {
       {
         ad: 'Bulgular',
         satirlar: [
-          ['Bulgu', 'Durum', 'Önem', 'Santral', 'Regülasyon', 'Yaş (gün)'],
+          ['Bulgu', 'Durum', 'Önem', tBas(sozluk, 'tesis'), 'Regülasyon', 'Yaş (gün)'],
           ...bulgular.map((b) => [
             b.baslik, etiketle(b.durum), etiketle(b.onem), b.tesisKod, b.regKod, b.yasGun,
           ]),

@@ -24,7 +24,7 @@ export function tesisKapsamda(kapsam: string[] | null, tesisId: string | null): 
 
 export function tesisKapsamZorunlu(kapsam: string[] | null, tesisId: string | null): void {
   if (!tesisKapsamda(kapsam, tesisId)) {
-    throw new ApiHata('kapsam_disi', 'İstenen santral bu anahtarın kapsamı dışında');
+    throw new ApiHata('kapsam_disi', 'İstenen tesis bu anahtarın kapsamı dışında');
   }
 }
 
@@ -42,8 +42,8 @@ export function yazmaIzniZorunlu(k: AktifKullanici, modul: Modul, tesisId: strin
     throw new ApiHata(
       'kapsam_disi',
       tesisId
-        ? 'Hedef santral bu anahtarın yazma kapsamı dışında'
-        : `Bu anahtarın ${modul} modülünde santral kapsamı olmayan yazma izni yok`,
+        ? 'Hedef tesis bu anahtarın yazma kapsamı dışında'
+        : `Bu anahtarın ${modul} modülünde tesis kapsamı olmayan yazma izni yok`,
     );
   }
 }

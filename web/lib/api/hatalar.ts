@@ -13,7 +13,7 @@ export const HATA_DURUMU = {
   gecersiz_istek: 400,
   /** kimlik yok, geçersiz, süresi dolmuş ya da iptal edilmiş */
   yetkisiz: 401,
-  /** kimlik geçerli ama modül/işlem izni yok ya da santral kapsamı dışı */
+  /** kimlik geçerli ama modül/işlem izni yok ya da tesis kapsamı dışı */
   kapsam_disi: 403,
   bulunamadi: 404,
   /** idempotency çakışması ya da eşzamanlı yazma */

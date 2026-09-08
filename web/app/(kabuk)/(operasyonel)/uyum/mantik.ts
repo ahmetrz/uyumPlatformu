@@ -104,10 +104,16 @@ export function kisaTarih(iso: string | Date | null | undefined): string {
     ? AY_GUN.format(d) : AY_GUN_YIL.format(d);
 }
 
-/** Ondalık ayracı virgül — 150.6 → "150,6". */
-export function guc(mw: number | null | undefined): string | null {
-  if (mw == null) return null;
-  return `${mw.toLocaleString('tr-TR', { maximumFractionDigits: 2 })} MWe`;
+/** Ondalık ayracı virgül + BİRİM SATIRDAN — 150.6 → "150,6 <birim>".
+
+    Birim eskiden burada sabitti; sektöre göre değişen bir birimi
+    çekirdeğe yazmak §0.5'in yasağı. Artık `TesisOzellik.birim`den gelir
+    ve satırda yoksa UYDURULMAZ — sayı çıplak yazılır (`olculenYazi` ile
+    aynı kural, aynı yardımcı ailesi). */
+export function guc(deger: number | null | undefined, birim: string | null): string | null {
+  if (deger == null) return null;
+  const sayi = deger.toLocaleString('tr-TR', { maximumFractionDigits: 2 });
+  return birim ? `${sayi} ${birim}` : sayi;
 }
 
 /** Tek cümleye indirger; nokta yoksa kelime sınırında keser. */
@@ -137,11 +143,11 @@ export type KontrolBelgesi = {
   kod: string;
   baslik: string;
   durum: string;                // BelgeDurumu (ham)
-  /** Santral bağı yok → kurumsal, tüm portföyü bağlar. */
+  /** Tesis bağı yok → kurumsal, tüm portföyü bağlar. */
   kurumsal: boolean;
 };
 
-/** (Santral × yaprak kontrol) kesişimi — matrisin ve çekmecenin atomu. */
+/** (Tesis × yaprak kontrol) kesişimi — matrisin ve çekmecenin atomu. */
 export type Kontrol = {
   anahtar: string;              // tesisId::maddeId
   maddeId: string;
@@ -161,7 +167,7 @@ export type Kontrol = {
   guven: string;
   sonDegerlendirme: string | null;
   zincir: Zincir[];
-  /** Bu santral × kontrol kesişimine düşen yönetişim belgeleri. */
+  /** Bu tesis × kontrol kesişimine düşen yönetişim belgeleri. */
   belgeler: KontrolBelgesi[];
   ipucu: string;                // tek satırlık hücre ipucu
 };
@@ -180,7 +186,7 @@ export type TesisSatiri = {
   id: string;
   kod: string;
   ad: string;
-  alt: string;                  // 165 MWe · merkez · BT
+  alt: string;                  // "165 <birim> · merkez · BT"
   kontroller: Kontrol[];        // yaprak sırasına göre, aileId ile gruplanır
 };
 

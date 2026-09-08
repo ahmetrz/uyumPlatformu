@@ -12,7 +12,7 @@ export const metadata: Metadata = { title: 'Tedarikçiler' };
    Veri toplama ve KAPSAM KURALLARI `veri.ts` içindedir; bu dosya yalnız
    yetki kapısını açar ve sunumu çağırır. Ayrım bilinçli: kapsam sızıntısı
    JSX olmadan, doğrudan test edilebilsin diye (bkz. tests/tedarikci-oturum
-   → "kapsam dışı santralin verisi ekrana sızmaz"). */
+   → "kapsam dışı tesisin verisi ekrana sızmaz"). */
 
 export default async function Sayfa() {
   const kullanici = await girisZorunlu();

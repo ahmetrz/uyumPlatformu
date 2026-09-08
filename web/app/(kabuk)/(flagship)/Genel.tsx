@@ -5,13 +5,15 @@ import { kucukGorsel } from '@/lib/gorsel';
 import { SahaArkaPlani } from './SahaArkaPlani';
 import { tipAdi, tipRengi, uygunRengi } from '@/components/kabuk/tip';
 import type {
-  AkisHaftasi, RiskIzgarasi, SantralKarti, TakvimKalemi, TipKatmani,
+  AkisHaftasi, RiskIzgarasi, TesisKarti, TakvimKalemi, TipKatmani,
 } from './veri';
 import { SAHA_YERLESIM_VARSAYILAN, gorunur, kpiSirasi, type SahaYerlesimi } from '@/lib/yonetim/sahaModulleri';
 import {
   OLCULMEMIS_VARSAYILAN, ozetKur, type OlculmemisGosterimi,
 } from '@/lib/yonetim/olculmemisGosterimi';
 import { Cekmece } from '@/components/kabuk/panel';
+import { birimliToplam, olculenYazi } from '@/lib/alan/oznitelik';
+import { useTerim } from '@/lib/dil/SozlukSaglayici';
 
 /* ═══════════════════════════════════════════════════════════════════════
    SAHA — ANA EKRAN · ENERGY INTELLIGENCE
@@ -22,9 +24,9 @@ import { Cekmece } from '@/components/kabuk/panel';
 
    ── TEK EKRAN SÖZLEŞMESİ ──────────────────────────────────────────────
    1366×768 / 1440×900 / 1280×800'de `scrollHeight === innerHeight`:
-   kritik içerik VE santral şeridi aynı anda görünür. Denetim ölçtü:
+   kritik içerik VE tesis şeridi aynı anda görünür. Denetim ölçtü:
    eski ekran 1340px'ti, şerit 795px'te başlıyordu — üç çözünürlükte de
-   santral görselleri ilk ekranın altındaydı. Yükseklik bütçesi CSS'te
+   tesis görselleri ilk ekranın altındaydı. Yükseklik bütçesi CSS'te
    (`.ab-b-saha.ab-b-genel` ızgarası: `minmax(0,1fr) auto auto`), içerik ondan taşmaz.
 
    Bunun için EKRANDAN ÇIKANLAR (uzman ekranlarında yaşamaya devam eder):
@@ -36,12 +38,12 @@ import { Cekmece } from '@/components/kabuk/panel';
    bileşen yalnız çizmez.
 
    ── PROTOTİPTEN AYRILAN NOKTA VE NEDENİ ───────────────────────────────
-   Prototipin merkezinde Türkiye haritası ve enlem/boylama oturmuş santral
+   Prototipin merkezinde Türkiye haritası ve enlem/boylama oturmuş tesis
    işaretçileri var. ŞEMADA KOORDİNAT YOK — `Tesis.konum` serbest metin.
    İşaretçileri göz kararı yerleştirmek, ekranda GERÇEK OLMAYAN bir coğrafya
    çizmek olurdu. Bunun yerine aynı işaretçi grameri (45° döndürülmüş kare,
    kritikte halka, sağında iki satırlık künye) GERÇEK iki eksene oturtuldu:
-   yatay uyum endeksi, dikey kurulu güç. Ölçülmemiş santral eksene KONMAZ,
+   yatay uyum endeksi, dikey kurulu güç. Ölçülmemiş tesis eksene KONMAZ,
    yanında kendi şeridinde listelenir (UNKNOWN ≠ ZERO).
 
    Kalan bölümler gerçek veriyle:
@@ -51,7 +53,7 @@ import { Cekmece } from '@/components/kabuk/panel';
 
    ── BİLGİ KATMANI (Faz 3 kapanış, 2026-09) ─────────────────────────────
    Varsayılan görünümde yalnız BİRİNCİL katman yazılır: endeks, ilk 3
-   müdahale, takımyıldız, 4 öncelik sayısı, santral şeridi. İKİNCİL katman
+   müdahale, takımyıldız, 4 öncelik sayısı, tesis şeridi. İKİNCİL katman
    (kontrol kodu, çerçeve, tanım cümleleri, yöntem notları, toplamlar)
    ekrandan silinmez; `title`a ve hedef ekrana taşınır. Ölçüt: "bu metin
    ilk bakışta karar verdiriyor mu?" — hayırsa varsayılan görünümde yok.
@@ -89,11 +91,30 @@ type Ozet = {
   uyumYuzde: number | null; bilinmeyenOran: number | null;
   kritikRisk: number; gecikmisAksiyon: number;
   yaklasanDenetim: { kod: string; ad: string; tarih: string; kalanGun: number } | null;
-  tesisSayisi: number; toplamGucMw: number;
+  tesisSayisi: number; gucYazi: string | null;
 };
 
 /** Katman panelinde çizilen tip sayısı — kalanı sayıyla söylenir. */
 const KATMAN_TAVANI = 3;
+
+/* ── GÜÇ YAZISI TEK YERDEN ────────────────────────────────────────────
+   Bu ekran gücü DÖRT yerde yazıyor (katman meta, panel listesi, plaka,
+   künye) ve hepsi birimi dizeye gömüyordu. Birim artık veriden gelir ve
+   sektöre göre değişir; ekran birim SEÇMEZ. Yazım tek yardımcıya bağlı
+   ki dördü ayrışmasın — aynı verinin iki türlü yazılması bu depoda
+   ölçülmüş bir kusurdu (`lib/alan/oznitelik.ts`). */
+const kartGucu = (s: { guc: number | null; gucBirim: string | null }) =>
+  olculenYazi({ deger: s.guc, birim: s.gucBirim });
+
+const gucYazisi = (t: { guc: number | null; gucBirim: string | null }) =>
+  olculenYazi({ deger: t.guc, birim: t.gucBirim });
+
+/** Bir tesis kümesinin güç toplamı; birimler karışıksa `null`. */
+const olculmemisToplami = (
+  liste: readonly { guc: number | null; gucBirim: string | null }[],
+) => ((x) => olculenYazi({
+  deger: x.toplam === null ? null : Math.round(x.toplam * 10) / 10, birim: x.birim,
+}))(birimliToplam(liste.map((s) => ({ deger: s.guc, birim: s.gucBirim }))));
 /** Müdahale listesinde çizilebilecek EN ÇOK bulgu; kaçının çizileceğini
     yükseklik bütçesi belirler (aşağıda `Mudahale`). Toplam başlıkta
     sayıyla durur, sığmayanlar "+N diğer" ile söylenir. */
@@ -104,11 +125,11 @@ const MUDAHALE_TAVANI = 4;
 const KALAN_SATIR_PX = 20;
 
 /* Değerlendirilmemişler GÜCE göre sıralı; gücü bilinmeyen sona düşer —
-   "0 MW" diye sıralanmaz. Sıra hem özetteki ilk adlarda hem panelde
+   gücü 0 sayılarak sıralanmaz. Sıra hem özetteki ilk adlarda hem panelde
    aynıdır: kullanıcı özette gördüğü üç adı panelin başında yeniden bulur. */
-function olculmemisSirali(santraller: SantralKarti[]): SantralKarti[] {
-  return santraller.filter((s) => s.endeks === null)
-    .sort((a, b) => (b.gucMw ?? -1) - (a.gucMw ?? -1));
+function olculmemisSirali(tesisler: TesisKarti[]): TesisKarti[] {
+  return tesisler.filter((s) => s.endeks === null)
+    .sort((a, b) => (b.guc ?? -1) - (a.guc ?? -1));
 }
 
 const ONEM_SINIF: Record<string, string> = {
@@ -117,7 +138,7 @@ const ONEM_SINIF: Record<string, string> = {
 
 export default function Genel({
   bugun, ozet, odak, kuyruk, toplamKayit, kapsamli = false,
-  santraller, tipler, risk, egilim, yerlesim = SAHA_YERLESIM_VARSAYILAN,
+  tesisler, tipler, risk, egilim, yerlesim = SAHA_YERLESIM_VARSAYILAN,
   olculmemisGosterimi = OLCULMEMIS_VARSAYILAN,
 }: {
   /* Sunum katmanı yerleşimi — yönetim konsolu `saha.yerlesim` (A sınıfı).
@@ -140,7 +161,7 @@ export default function Genel({
   kuyruk: Kayit[];
   toplamKayit: number;
   kapsamli?: boolean;
-  santraller: SantralKarti[];
+  tesisler: TesisKarti[];
   tipler: TipKatmani[];
   risk: RiskIzgarasi;
   /* Sunucu hesaplar, ana ekran ÇİZMEZ (tek ekran sözleşmesi, yukarıda).
@@ -152,7 +173,8 @@ export default function Genel({
 }) {
   const dikkat = odak ? [odak, ...kuyruk] : kuyruk;
   const katmanVar = gorunur(yerlesim, 'katman');
-  const olculmemisSerit = olculmemisSirali(santraller);
+  const { t: terim, tBas } = useTerim();
+  const olculmemisSerit = olculmemisSirali(tesisler);
   const [olculmemisAcik, setOlculmemisAcik] = useState(false);
 
   return (
@@ -193,23 +215,48 @@ export default function Genel({
         </aside>
 
         {/* ── Takımyıldız — koordinat DEĞİL, endeks × güç ───────────── */}
-        <Takimyildizi santraller={santraller} gosterim={olculmemisGosterimi}
+        <Takimyildizi tesisler={tesisler} gosterim={olculmemisGosterimi}
           serit={olculmemisSerit} panelAcik={olculmemisAcik} setPanelAcik={setOlculmemisAcik} />
 
-        {/* ── Katman paneli · 320px — gizlenebilir (saha.yerlesim) ────── */}
+        {/* ── Katman paneli · 320px — gizlenebilir (saha.yerlesim) ──────
+            Panel içeriği KAP BOYUNU AŞABİLİR ve kendi içinde kayar; ne
+            kadarı sözlüğe bağlıdır, çünkü katman adı terimden gelir.
+            Ölçüldü (1366×768, kap 427px): `enerji` 427 → kaymıyor ·
+            `su` 437 → 10px · `stres` 471 → 44px kayıyor. Kaydırılabilir
+            bölge klavyeyle odaklanabilir OLMAK ZORUNDA — panelde
+            odaklanabilir tek bir çocuk yok, yani kaydırma yalnız fareye
+            açık kalırdı (axe · serious · scrollable-region-focusable;
+            tesis ekranının `.ab-b-panel`i ile aynı gerekçe).
+
+            Bu kusuru axe KAPISI bulmadı, elle ölçüldü: axe 1440×900,
+            768×1024 ve 375×780 tarar; panel bu üç bantta kaymıyor
+            (535/535 · dar bantta `overflow-y: visible`). Kaydığı bant
+            olan 1366×768 yalnız düzen kapısının bandıdır. Kapının
+            ölçmediği bant kapının "temiz" dediği bant değildir —
+            boşluk R0 kütüğüne yazıldı. */}
         {katmanVar && (
-          <aside className="ab-b-katman" aria-label="Üretim tipine göre uyum">
+          <aside className="ab-b-katman" aria-label="Üretim tipine göre uyum" tabIndex={0}>
             <p className="etiket" title="Üretim tipine göre uyum katmanları">Üretim tipi · uyum</p>
             <div className="katmanlar">
-              {tipler.length === 0 && <p className="bos">Kapsamında santral yok.</p>}
+              {/* Boş durum tohumlu veride hiç oluşmaz: sözlük kapısı bu satıra
+                  UĞRAYAMADI, sızıntı bir üstteki kardeşi düzeltilirken elle
+                  görüldü. Kapının erişemediği durum kapının temiz dediği durum
+                  değildir. */}
+              {tipler.length === 0 && <p className="bos">Kapsamında {terim('tesis')} yok.</p>}
               {tipler.slice(0, KATMAN_TAVANI).map((t) => (
                 <div key={t.kod} className="katman">
                   <div className="bas">
                     <span className="ad">{tipAdi(t.kod, t.ad)}</span>
                     <span className="mono deger">{t.endeks === null ? '—' : `%${t.endeks}`}</span>
                   </div>
-                  <p className="mono meta" title={`${t.santralSayisi} santral · ${t.gucMw} MWe · ${t.kontrolSayisi} kontrol`}>
-                    {t.santralSayisi} santral · {t.gucMw} MWe
+                  {/* Güç YAZISI birimiyle veriden gelir; birimler
+                      karışıksa toplam hiç yazılmaz (`birimliToplam`). */}
+                  <p className="mono meta"
+                    title={`${t.tesisSayisi} ${terim('tesis')}`
+                      + `${gucYazisi(t) ? ` · ${gucYazisi(t)}` : ''}`
+                      + ` · ${t.kontrolSayisi} kontrol`}>
+                    {t.tesisSayisi} {terim('tesis')}
+                    {gucYazisi(t) && ` · ${gucYazisi(t)}`}
                   </p>
                   <Yigin uygun={t.uygun} kismi={t.kismi} uygunsuz={t.uygunsuz}
                     bilinmeyen={t.bilinmeyen} tip={t.kod} kontrol={t.kontrolSayisi} />
@@ -218,7 +265,7 @@ export default function Genel({
               {tipler.length > KATMAN_TAVANI && (
                 <p className="mono kalan">
                   {tipler.slice(KATMAN_TAVANI).map((t) => tipAdi(t.kod, t.ad)).join(' · ')}
-                  {' — '}{tipler.slice(KATMAN_TAVANI).reduce((a, t) => a + t.santralSayisi, 0)} santral
+                  {' — '}{tipler.slice(KATMAN_TAVANI).reduce((a, t) => a + t.tesisSayisi, 0)}{' '}{terim('tesis')}
                 </p>
               )}
             </div>
@@ -235,13 +282,19 @@ export default function Genel({
           {/* "Tesise geçmek için seçin · yatay kaydırın" yönlendirmesi
               kaldırıldı: kartlar bağdır, şerit kesilerek biter — davranış
               kendini gösterir; sözle tekrar karar taşımıyordu. */}
+          {/* Güç YAZISI sunucudan birimiyle gelir; birim ekranda
+              seçilmez. Ölçülmemişte ya da birimler karışıkken sayı hiç
+              yazılmaz — karışık bir toplamı tek birimle etiketlemek
+              yanlış bir sayıyı doğru gibi gösterirdi. */}
           <span className="etiket"
-            title={`Saha seçici · ${ozet.tesisSayisi} üretim tesisi · ${ozet.toplamGucMw} MWe`}>
-            Santraller · {ozet.tesisSayisi} · {ozet.toplamGucMw} MWe
+            title={`Saha seçici · ${ozet.tesisSayisi} ${terim('tesis')}`
+              + (ozet.gucYazi ? ` · ${ozet.gucYazi}` : '')}>
+            {tBas('tesis', 'cogul')} · {ozet.tesisSayisi}
+            {ozet.gucYazi && ` · ${ozet.gucYazi}`}
           </span>
         </header>
         <div className="kartlar">
-          {santraller.map((s) => <SahaKarti key={s.id} s={s} />)}
+          {tesisler.map((s) => <SahaKarti key={s.id} s={s} />)}
         </div>
       </section>
 
@@ -260,23 +313,25 @@ export default function Genel({
           yerleşimi hiç etkilemez; arkadaki takımyıldız okunur kalır. */}
       {olculmemisAcik && olculmemisSerit.length > 0 && (
         <div id="olculmemis-panel">
-          <Cekmece kod={`${olculmemisSerit.length} santral`} etiket="Değerlendirilmemiş"
-            ad="Değerlendirilmemiş santraller" kapat={() => setOlculmemisAcik(false)}>
+          <Cekmece kod={`${olculmemisSerit.length} ${terim('tesis')}`}
+            etiket="Değerlendirilmemiş"
+            ad={`Değerlendirilmemiş ${terim('tesis', 'cogul')}`}
+            kapat={() => setOlculmemisAcik(false)}>
             <p className="ab-olculmemis-not">
-              Bu santrallerin uyum endeksi <strong>ölçülmedi</strong> — sıfır değil.
+              Bu {terim('tesis', 'cogul')} için uyum endeksi <strong>ölçülmedi</strong> — sıfır değil.
               Güce göre sıralı; toplam{' '}
-              {olculmemisSerit.reduce((a, s) => a + (s.gucMw ?? 0), 0).toFixed(1)} MWe.
+              {olculmemisToplami(olculmemisSerit) ?? 'birimler karışık, toplanmadı'}.
             </p>
             <ul className="ab-olculmemis-liste">
               {olculmemisSerit.map((s) => (
                 <li key={s.id}>
                   <Link href={`/tesisler/${s.id}`}
-                    aria-label={`${s.ad} · ${s.gucMw ?? 'güç kaydı yok'} MW · değerlendirilmedi`}>
+                    aria-label={`${s.ad} · ${kartGucu(s) ?? 'güç kaydı yok'} · değerlendirilmedi`}>
                     {/* `color` veriyoruz: tarama deseni de kenarlık da
                         `currentColor` okur, ikisi tek yerden gelsin. */}
                     <span className="kare" aria-hidden style={{ color: tipRengi(s.tipKod) }} />
                     <span className="ad">{s.ad}</span>
-                    <span className="mono guc">{s.gucMw ?? '—'} MW</span>
+                    <span className="mono guc">{kartGucu(s) ?? '—'}</span>
                   </Link>
                 </li>
               ))}
@@ -421,22 +476,22 @@ function Egilim({ seri }: { seri: { etiket: string; yuzde: number }[] | null }) 
 
 /* ── Takımyıldız ──────────────────────────────────────────────────────
    Yatay: uyum endeksi (0–100). Dikey: kurulu güç (karekök ölçek, çünkü
-   1800 MW'lık bir HES ile 15 MW'lık bir GES aynı eksende doğrusal
+   1800 güçlük bir tesis ile 15 güçlük bir tesis aynı eksende doğrusal
    konursa küçükler tek şeride yığılır).
 
    ── DEĞERLENDİRİLMEMİŞ ŞERİDİ ─────────────────────────────────────────
-   Hiç değerlendirilmemiş santralin uyum endeksi YOKTUR. Onu ekseninde
+   Hiç değerlendirilmemiş tesisin uyum endeksi YOKTUR. Onu ekseninde
    bir yere koymak — 0'a, ortalamaya, herhangi bir yere — uydurmaktır ve
    "bilinmeyen ≠ sıfır" kuralının en pahalı ihlali olurdu: %0 uyumlu
-   görünen bir santral, aslında henüz hiç bakılmamış santraldir.
+   görünen bir tesis, aslında henüz hiç bakılmamış tesisdir.
 
-   Bunlar önceden tuvalin ALTINDA düz bir kod dizisiydi; on bir santral,
+   Bunlar önceden tuvalin ALTINDA düz bir kod dizisiydi; on bir tesis,
    yani portföyün üçte ikisi, ana ekranda görünmüyordu. Artık tuvalin
    İÇİNDE, eksenin solunda kendi şeridinde duruyorlar.
 
    Şerit ÖLÇEKLİ DEĞİL SIRALIDIR ve bu bilinçli bir karardır. Önce güce
-   göre ölçekli denendi ve ölçüldü: değerlendirilmemiş on bir santralin
-   dokuzu 15–25 MW bandında toplanıyor, künyeler üst üste biniyor ve
+   göre ölçekli denendi ve ölçüldü: değerlendirilmemiş on bir tesisin
+   dokuzu 15–25 bandında toplanıyor, künyeler üst üste biniyor ve
    yirmi sekiz çakışma çıkıyordu — yani "gerçek dikey konum" okunabilir
    hiçbir şey üretmiyordu. Şimdi güce göre sıralı, eşit aralıklı
    duruyorlar; SIRA gerçektir, büyüklük künyede rakamla yazılıdır.
@@ -510,7 +565,7 @@ function Mudahale({ dikkat, toplamKayit, kapsamli }: {
       {cizilecek === 0 ? (
         <p className="bos">
           {kapsamli
-            ? 'Kapsamındaki santrallerde açık bulgu yok.'
+            ? 'Kapsamındaki tesislerde açık bulgu yok.'
             : 'Açık bulgu yok.'}
         </p>
       ) : dikkat.slice(0, cizilecek).map((b, i) => (
@@ -539,8 +594,8 @@ function Mudahale({ dikkat, toplamKayit, kapsamli }: {
   );
 }
 
-function Takimyildizi({ santraller, gosterim = OLCULMEMIS_VARSAYILAN, serit, panelAcik, setPanelAcik }: {
-  santraller: SantralKarti[];
+function Takimyildizi({ tesisler, gosterim = OLCULMEMIS_VARSAYILAN, serit, panelAcik, setPanelAcik }: {
+  tesisler: TesisKarti[];
   /** Değerlendirilmemiş özetinin ayrıntı düzeyi — konsol `saha.olculmemis`. */
   gosterim?: OlculmemisGosterimi;
   /* Liste ve panelin AÇIKLIĞI yukarıda tutulur. Sebep ölçüldü: panel bu
@@ -549,21 +604,22 @@ function Takimyildizi({ santraller, gosterim = OLCULMEMIS_VARSAYILAN, serit, pan
      bağlamın içinde kalır; DOM'da sonra gelen kardeş `.ab-b-katman` (aynı
      z-index) onun üstüne boyanır. Panel `.ab-b-alan`ın DIŞINDA, `Genel`in
      kökünde çizilerek bağlamdan çıkarıldı. */
-  serit: SantralKarti[];
+  serit: TesisKarti[];
   panelAcik: boolean;
   setPanelAcik: (a: boolean) => void;
 }) {
-  const olculen = santraller.filter((s) => s.endeks !== null);
-  const olculmemis = santraller.filter((s) => s.endeks === null);
+  const { t: terim, tBas } = useTerim();
+  const olculen = tesisler.filter((s) => s.endeks !== null);
+  const olculmemis = tesisler.filter((s) => s.endeks === null);
   /* Ölçek TÜM portföyden gelir: eksen ve panel aynı dikey ölçeği
      paylaşmazsa iki taraf karşılaştırılamaz hâle gelir. */
-  const enGuc = Math.max(1, ...santraller.map((s) => s.gucMw ?? 0));
-  const dikey = (s: SantralKarti) => 8 + Math.sqrt((s.gucMw ?? 0) / enGuc) * 100 * 0.78;
-  const mweToplam = olculmemis.reduce((a, s) => a + (s.gucMw ?? 0), 0).toFixed(1);
+  const enGuc = Math.max(1, ...tesisler.map((s) => s.guc ?? 0));
+  const dikey = (s: TesisKarti) => 8 + Math.sqrt((s.guc ?? 0) / enGuc) * 100 * 0.78;
+  const gucToplami = olculmemisToplami(olculmemis);
   const { gosterilen: ilkAdlar, kalan } = ozetKur(serit.map((s) => s.ad), gosterim);
 
-  /* Künye çakışması — ÖLÇÜLDÜ, varsayılmadı: Saha A-3 (%56 · 165 MW)
-     ile Saha C (%67 · 135 MW) dikeyde 31px, künye ise 28px yüksek;
+  /* Künye çakışması — ÖLÇÜLDÜ, varsayılmadı: Saha A-3 (%56 · güç 165)
+     ile Saha C (%67 · güç 135) dikeyde 31px, künye ise 28px yüksek;
      ikisi birbirinin üstüne biniyordu. Nokta yerini DEĞİŞTİRMEK veriyi
      bozar, o yüzden yalnız künye kayar: yakın komşusu olan işaret
      künyesini işaretin altına açar. */
@@ -572,13 +628,13 @@ function Takimyildizi({ santraller, gosterim = OLCULMEMIS_VARSAYILAN, serit, pan
     && Math.abs((o.endeks ?? 0) - (s.endeks ?? 0)) < 20
     && Math.abs(dikey(o) - dikey(s)) < 11
   )));
-  /* Eksene yakın işaretin künyesi YUKARI açılır: "Demo Enerji Genel Müdürlük" (0 MW)
+  /* Eksene yakın işaretin künyesi YUKARI açılır: "Demo Enerji Genel Müdürlük" (güç 0)
      künyesi x ekseninin adıyla üst üste biniyordu (ölçüldü, 1366×768).
      Eşik %14 = künye yüksekliği (28px) / tuval yüksekliği (~300px) payı. */
-  const yukari = (s: SantralKarti) => dikey(s) < 14;
+  const yukari = (s: TesisKarti) => dikey(s) < 14;
 
   return (
-    <div className="ab-b-takim" aria-label="Santral takımyıldızı">
+    <div className="ab-b-takim" aria-label={`${tBas('tesis')} takımyıldızı`}>
       {/* Yön bilgisi ÜÇ kanaldan söyleniyordu (başlık kuyruğu, eksen
           adları, hedef köşesi); ikisi kaldı: eksen okları ("uyum endeksi →",
           "↑ kurulu güç") ve "↗ güçlü ve uyumlu" köşesi. Başlık kuyruğu
@@ -589,7 +645,7 @@ function Takimyildizi({ santraller, gosterim = OLCULMEMIS_VARSAYILAN, serit, pan
           hem enine (eski 176px kolon kalktı) hem boyuna kazanıyor. */}
       <div className="ab-takim-bas">
         <p className="etiket ust" title="Yatay: uyum endeksi (sağa → daha uyumlu) · Dikey: kurulu güç (yukarı ↑ daha büyük)">
-          Santraller · uyum × güç
+          {tBas('tesis', 'cogul')} · uyum × güç
         </p>
         {olculmemis.length > 0 && (
           /* Özet satırı: sayı ÖNCE ve tek başına okunur; oran ("11/16")
@@ -600,10 +656,12 @@ function Takimyildizi({ santraller, gosterim = OLCULMEMIS_VARSAYILAN, serit, pan
             <span className="im" aria-hidden style={{ color: 'var(--i3)' }} />
             <span className="ad">Değerlendirilmemiş</span>
             <span className="sayi mono"
-              title={`${olculmemis.length} santralin uyum endeksi ölçülmedi — sıfır değil. Toplam ${mweToplam} MWe.`}>
-              {olculmemis.length}<span className="bolu">/{santraller.length}</span>
+              title={`${olculmemis.length} ${terim('tesis')} için uyum endeksi `
+                + 'ölçülmedi — sıfır değil.'
+                + (gucToplami ? ` Toplam ${gucToplami}.` : '')}>
+              {olculmemis.length}<span className="bolu">/{tesisler.length}</span>
             </span>
-            <span className="mwe mono">{mweToplam} MWe</span>
+            {gucToplami && <span className="guc-toplam mono">{gucToplami}</span>}
             {ilkAdlar.length > 0 && (
               <span className="adlar">{ilkAdlar.join(' · ')}</span>
             )}
@@ -621,8 +679,8 @@ function Takimyildizi({ santraller, gosterim = OLCULMEMIS_VARSAYILAN, serit, pan
           </div>
         )}
       </div>
-      {santraller.length === 0 ? (
-        <p className="bos">Kapsamda santral yok.</p>
+      {tesisler.length === 0 ? (
+        <p className="bos">Kapsamda tesis yok.</p>
       ) : (
         <div className="ab-tuval-sar">
           <div className="ab-tuval">
@@ -631,8 +689,8 @@ function Takimyildizi({ santraller, gosterim = OLCULMEMIS_VARSAYILAN, serit, pan
               const uygunsuz = s.sayim.uyumsuz ?? 0;
               return (
                 <Link key={s.id} href={`/tesisler/${s.id}`}
-                  title={`${s.ad} · ${s.gucMw ?? '—'} MW · %${s.endeks}${uygunsuz > 0 ? ` · ${uygunsuz} uygunsuz` : ''}`}
-                  /* Odak sırası: uygunsuzu olan santral öne (`oncelik`, tam
+                  title={`${s.ad} · ${kartGucu(s) ?? '—'} · %${s.endeks}${uygunsuz > 0 ? ` · ${uygunsuz} uygunsuz` : ''}`}
+                  /* Odak sırası: uygunsuzu olan tesis öne (`oncelik`, tam
                      mürekkep + halka), temiz olan arkaya (ikincil mürekkep).
                      Künye yönü: %58'in sağında sola, komşusu varsa alta,
                      eksene yakınsa üste; `sola-dar` dar bantta erken sola
@@ -647,7 +705,7 @@ function Takimyildizi({ santraller, gosterim = OLCULMEMIS_VARSAYILAN, serit, pan
                   <span className="kunye">
                     <span className="ad">{s.ad}</span>
                     {/* Güç dikey eksende ve kartta okunur; künye yalnız
-                        endeks ve uygunsuz sayısını yazar (MW `title`ta). */}
+                        endeks ve uygunsuz sayısını yazar (güç `title`ta). */}
                     <span className="mono alt">
                       %{s.endeks}
                       {uygunsuz > 0 && ` · ${uygunsuz} uygunsuz`}
@@ -704,7 +762,7 @@ function Yigin({ uygun, kismi, uygunsuz, bilinmeyen, tip, kontrol }: {
 }
 
 /* ── Saha kartı ─────────────────────────────────────────────────────── */
-function SahaKarti({ s }: { s: SantralKarti }) {
+function SahaKarti({ s }: { s: TesisKarti }) {
   const foto = kucukGorsel(s.gorselAnahtari);
   const uygunsuz = s.sayim.uyumsuz ?? 0;
   return (
@@ -722,7 +780,7 @@ function SahaKarti({ s }: { s: SantralKarti }) {
         </span>
         <span className="ad">{s.ad}</span>
         <span className="olcu">
-          <span className="mono guc">{s.gucMw ?? '—'} MW</span>
+          <span className="mono guc">{kartGucu(s) ?? '—'}</span>
           <span className="mono skor">{s.endeks === null ? '—' : `%${s.endeks}`}</span>
         </span>
         <Yigin uygun={s.sayim.uyumlu ?? 0} kismi={s.sayim.kismi ?? 0}

@@ -139,7 +139,7 @@ describe('3 · Güvenilmeyen modda taklit edilmiş XFF ETKİSİZDİR', () => {
     basliklariAyarla({ 'x-forwarded-for': '198.51.100.5', 'x-real-ip': '198.51.100.9' });
     expect(await istemciAdresi()).toBeNull();
 
-    const istek = new Request('https://uyum.test/api/v1/plants', {
+    const istek = new Request('https://uyum.test/api/v1/facilities', {
       headers: { 'x-forwarded-for': '198.51.100.5' } });
     expect(istekAdresi(istek)).toBeNull();
   });

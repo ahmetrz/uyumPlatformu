@@ -1,4 +1,5 @@
 import { chromium } from 'playwright-core';
+import { sebepBayragi, tabanDogrula, tabanYaz } from './olcum-tabani.mjs';
 import { yonlendirmeKarari } from './rota-kurallari.mjs';
 import { girisYap, sayfaEnvanteri, tarayiciYolu, tohumDegeri } from './kosu-ortak.mjs';
 
@@ -249,6 +250,25 @@ if (JSON_CIKTI) {
     for (const r of edilemeyen) console.log(`  ${r.rota} → ${r.sebep}`);
   }
   if (hatalar.length) console.log(hatalar.slice(0, 6));
+}
+
+
+/* ── ÖLÇÜM KAPSAMI TABANI ─────────────────────────────────────────────
+   Cırcır BORÇ için tavan tutar; bu taban KAPSAM için taban tutar. Kusur
+   sayısı sıfır olabilir; ÖLÇÜM sayısı olamaz — sıfır ölçümle "kusur yok"
+   demek, hiçbir şeye bakmadan temiz raporlamaktır
+   (`arac/olcum-tabani.mjs` başlığındaki ölçülmüş olay). Taban ÖNCE
+   bakılır: geçersiz bir ölçümün borç kararı da geçersizdir. */
+if (process.argv.includes('--taban-yaz')) {
+  const { onceki, yeni } = tabanYaz('duman.rota', sonuclar.length, { sebep: sebepBayragi(process.argv) });
+  console.log(`taban güncellendi: duman.rota ${onceki ?? '(yok)'} → ${yeni}`);
+} else {
+  try {
+    tabanDogrula('duman.rota', sonuclar.length);
+  } catch (e) {
+    console.error(`\n${e.message}`);
+    process.exitCode = 1;
+  }
 }
 
 if (kusurlu.length || edilemeyen.length || hatalar.length) process.exitCode = 1;

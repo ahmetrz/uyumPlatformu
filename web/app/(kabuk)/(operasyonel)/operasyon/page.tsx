@@ -17,9 +17,9 @@ export const metadata: Metadata = { title: 'Değişiklik yönetimi' };
    istemcide. Emniyet kapısı kuralının kendisi lib/eylemler2/operasyon.ts'te
    yaşar — ekran onu yalnız ÖNCEDEN söyler, uygulamaz. */
 
-/** Kapsam koşulu: santrali olan değişiklik kullanıcının envanter kapsamına
-    tabidir; santralsiz (grup çapında) değişiklik herkese görünür. Grup
-    değişikliğini gizlemek onu kimsenin görmemesi demek olurdu — "santral
+/** Kapsam koşulu: tesisi olan değişiklik kullanıcının envanter kapsamına
+    tabidir; tesissiz (grup çapında) değişiklik herkese görünür. Grup
+    değişikliğini gizlemek onu kimsenin görmemesi demek olurdu — "tesis
     yok" burada "yasak" değil "portföy geneli"dir. */
 function kapsamKosulu(gorulebilir: string[] | null) {
   if (gorulebilir === null) return {};
@@ -51,11 +51,11 @@ export default async function Sayfa() {
       select: { id: true, kod: true, ad: true },
       orderBy: { kod: 'asc' },
     }),
-    /* Bağlanabilecek olaylar. Kapsam OLAYIN kendi santralinden gelir ve
-       `olayBagla` sunucuda aynı kapıyı ikinci kez uygular — santrali
+    /* Bağlanabilecek olaylar. Kapsam OLAYIN kendi tesisinden gelir ve
+       `olayBagla` sunucuda aynı kapıyı ikinci kez uygular — tesisi
        yazılmamış olay kapsamı daraltılmış kullanıcıya GÖSTERİLMEZ
-       (değişiklikteki "santralsiz = portföy geneli" kuralı olayda geçmez;
-       olayda santralsizlik bir kayıt boşluğudur). */
+       (değişiklikteki "tesissiz = portföy geneli" kuralı olayda geçmez;
+       olayda tesissizlik bir kayıt boşluğudur). */
     db.olay.findMany({
       where: gorulebilir === null ? {} : { tesisId: { in: gorulebilir } },
       select: { id: true, kod: true, baslik: true, durum: true, siddet: true },
@@ -90,8 +90,8 @@ export default async function Sayfa() {
     olaylar: d.olaylar.map((o): Bagli => ({
       id: o.olay.id, kod: o.olay.kod, alt: o.olay.baslik, yol: '/olaylar',
     })),
-    // Satır bazlı yetki: santral kapsamı daraltılmış kullanıcı grup
-    // değişikliğini GÖRÜR ama santrali olan kaydı yazamayabilir.
+    // Satır bazlı yetki: tesis kapsamı daraltılmış kullanıcı grup
+    // değişikliğini GÖRÜR ama tesisi olan kaydı yazamayabilir.
     yazilabilir: yazmaYetkisi && kapsamdaYetkili(k, 'envanter', 'yazma', d.tesisId),
     onaylanabilir: kapsamdaYetkili(k, 'envanter', 'onay', d.tesisId),
   }));

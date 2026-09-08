@@ -19,10 +19,10 @@ export const metadata: Metadata = { title: 'Madde içe aktarımı' };
    metni ekranda yaşamaz. Yalnız önizleme (ilk 20), elenen listesi ve
    sayılar taşınır — kalanı raporda durur.
 
-   SANTRAL KAPSAMI: bu ekran BİLEREK kapsamsızdır, çünkü aktarılan şey
-   REGÜLASYON MADDESİDİR, santral verisi değil — `IceAktarim` ve hedefi olan
+   TESİS KAPSAMI: bu ekran BİLEREK kapsamsızdır, çünkü aktarılan şey
+   REGÜLASYON MADDESİDİR, tesis verisi değil — `IceAktarim` ve hedefi olan
    `Madde` şemada `tesisId` taşımaz, dosya bir çerçevenin katalogunu kütüğe
-   alır ve o katalog bütün santraller için ortaktır. (Santral verisi taşıyan
+   alır ve o katalog bütün tesisler için ortaktır. (Tesis verisi taşıyan
    kardeşi /varlik-aktarim'dır ve O kapsamla daraltılır.) */
 
 /** Önizlemenin ekrana taşınan satır sayısı; kalanı sayıyla anılır. */

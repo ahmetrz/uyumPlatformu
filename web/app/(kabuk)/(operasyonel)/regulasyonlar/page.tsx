@@ -18,10 +18,10 @@ export const metadata: Metadata = { title: 'Regülasyon kütüphanesi' };
    dönemi kayıtlarının) maddelerini getirir — arşiv sürümlerin maddeleri
    silinmez ama kütüphanede iki kez listelenmez.
 
-   SANTRAL KAPSAMI: bu ekran BİLEREK kapsamsızdır, çünkü regülasyon ve madde
+   TESİS KAPSAMI: bu ekran BİLEREK kapsamsızdır, çünkü regülasyon ve madde
    kataloğu kurum geneli bir TANIMdır — `Regulasyon`/`Madde` şemada
-   `tesisId` taşımaz ve aynı EPDK maddesi bütün santraller için aynıdır;
-   santrale bağlanan şey maddenin kendisi değil, o maddenin bir santraldeki
+   `tesisId` taşımaz ve aynı EPDK maddesi bütün tesisler için aynıdır;
+   tesise bağlanan şey maddenin kendisi değil, o maddenin bir tesisteki
    DEĞERLENDİRMESİdir (`MaddeDurumu`) ve o /uyum ile /bulgular ekranlarında
    kapsamla daraltılır. */
 

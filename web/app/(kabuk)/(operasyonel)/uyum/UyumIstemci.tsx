@@ -1,4 +1,5 @@
 'use client';
+import { useTerim } from '@/lib/dil/SozlukSaglayici';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
@@ -25,9 +26,9 @@ import {
    Bu bir yeniden STİLLENDİRME değil. Orijinal tasarım ürünün eski
    ekranından üç noktada MADDİ olarak ayrılıyor ve üçü de burada uygulandı:
 
-   1 · MATRİS DEVRİKTİR. Eskiden satır = santral, sütun = kontrol ailesiydi
+   1 · MATRİS DEVRİKTİR. Eskiden satır = tesis, sütun = kontrol ailesiydi
        ve hücre bir AİLEYİ temsil ettiği için "hangi kontrol?" sorusu
-       hücreden okunamıyordu. Prototipte satır = KONTROL, sütun = SANTRAL:
+       hücreden okunamıyordu. Prototipte satır = KONTROL, sütun = TESİS:
        defterin sorusu "bu kontrolde kim uygunsuz" hâline gelir.
 
    2 · DETAY ÇEKMECEDE DEĞİL SATIR İÇİNDE AÇILIR. 420px çekmece defteri
@@ -45,7 +46,7 @@ import {
      Esc kapatır) — prototipte yalnız ipucu metni vardı;
    · `aria-expanded` / `aria-controls` sözleşmesi;
    · ölçülmemiş hücre "—" gösterir, SIFIR DEĞİL (UNKNOWN ≠ ZERO);
-   · kapsam dışı ve kararsız santraller matrisin altında sessiz satırda —
+   · kapsam dışı ve kararsız tesisler matrisin altında sessiz satırda —
      gizlenmez, çünkü "kapsam dışı" bir KARARDIR.
 
    İŞ MANTIĞI DEĞİŞMEDİ: veri sözleşmesi (`CerceveVerisi`), `mantik.ts`
@@ -87,7 +88,7 @@ function acilisOdagi(
 }
 
 /* ── Devrik matris ────────────────────────────────────────────────────
-   Veri santral başına gelir (`satirlar[].kontroller[]`); defter kontrol
+   Veri tesis başına gelir (`satirlar[].kontroller[]`); defter kontrol
    başına okur. Çevrim burada, TEK YERDE yapılır ve veri sözleşmesine
    dokunmaz. */
 type MaddeSatiri = {
@@ -97,7 +98,7 @@ type MaddeSatiri = {
   baslik: string;
   aileId: string;
   aileKod: string;
-  /** tesisId → o santraldeki kontrol; santral kapsam dışıysa yok. */
+  /** tesisId → o tesisteki kontrol; tesis kapsam dışıysa yok. */
   hucreler: Map<string, Kontrol>;
   /** kapsam içi hücre sayısı — "6 / 6" kapsam sütunu */
   kapsamda: number;
@@ -156,6 +157,7 @@ const OKUMA_ANAHTARI: { sinif: string; yazi: string }[] = [
 export default function UyumIstemci({
   cerceveler, trend, yazabilir,
 }: { cerceveler: CerceveVerisi[]; trend: TrendNoktasi[]; yazabilir: boolean }) {
+  const { t: terim } = useTerim();
   const parametreler = useSearchParams();
   const kontrolParam = parametreler.get('kontrol');
   const cerceveParam = parametreler.get('cerceve');
@@ -191,7 +193,7 @@ export default function UyumIstemci({
     };
   }, [satirlar]);
 
-  const santraller: TesisSatiri[] = cerceve?.satirlar ?? [];
+  const tesisler: TesisSatiri[] = cerceve?.satirlar ?? [];
 
   /* C15 · Eğilim çerçevenin YÜRÜYEN sürecine bağlıdır: anlık görüntü
      sürecin kaydıdır, çerçevenin değil. Süreci olmayan çerçevede şerit
@@ -291,7 +293,7 @@ export default function UyumIstemci({
             ayrı bant değil tek satır; matris 1366×768'de ~260px'te başlar. */}
         <div className="ab-c-giris">
           <p className="cumle">
-            Satır = kontrol · sütun = santral · satıra tıklayınca gerekçe aynı defterde açılır
+            Satır = kontrol · sütun = {terim('tesis')} · satıra tıklayınca gerekçe aynı defterde açılır
           </p>
           <EgilimSeridi noktalar={egilim} surecVar={surecId !== null} bugun={m.endeks} />
         </div>
@@ -304,7 +306,7 @@ export default function UyumIstemci({
           <UyumMatrisi
             cerceve={cerceve}
             satirlar={gorunur}
-            santraller={santraller}
+            tesisler={tesisler}
             acik={acik}
             setAcik={setAcik}
             yazabilir={yazabilir}
@@ -404,27 +406,28 @@ function EgilimSeridi({ noktalar, surecVar, bugun }: {
 
 /* ── Matris + satır içi genişleme ────────────────────────────────────── */
 
-function UyumMatrisi({ cerceve, satirlar, santraller, acik, setAcik, yazabilir }: {
+function UyumMatrisi({ cerceve, satirlar, tesisler, acik, setAcik, yazabilir }: {
   cerceve: CerceveVerisi;
   satirlar: MaddeSatiri[];
-  santraller: TesisSatiri[];
+  tesisler: TesisSatiri[];
   acik: Acik;
   setAcik: (a: Acik) => void;
   yazabilir: boolean;
 }) {
-  /* Santral sütunu 68→88px: "Saha A-3 JES" ve "Demo Enerji Genel
-     Müdürlük" 68px'te 3–4 satıra kırılıyor, altındaki kod da sarıyordu
+  const { t: terim, tBas } = useTerim();
+  /* Tesis sütunu 68→88px: uzun tesis adları ("Saha A-3" ve "Demo Enerji Genel
+     Müdürlük") 68px'te 3–4 satıra kırılıyor, altındaki kod da sarıyordu
      (ölçüldü, 1366×768: başlık satırı 5 satır/64px). Başlıkta yalnız
      kısa ad kalır, EN FAZLA 2 satır (`line-clamp`); kod ve künye `title`a
      ve hücrenin `aria-label`ına gider — bilgi kaybolmaz, satır sayısı
      denetim altına girer (ürün sahibi kabulü 2026-09, madde 2). */
-  const kolonlar = `92px minmax(220px, 1fr) repeat(${santraller.length}, 88px) 78px`;
+  const kolonlar = `92px minmax(220px, 1fr) repeat(${tesisler.length}, 88px) 78px`;
   const genel = uyumOzeti(sayHam(satirlar)).yuzde;
   /* Yapışkan başlık ↔ yatay kaydırma çelişkisi: `overflow-x:auto` olan
      bir kap içinde `position:sticky` sayfaya değil kaba yapışır (etkisiz).
      Bu yüzden kaydırma yalnız GEREKİNCE açılır: içerik sığıyorsa kap
      taşmasız kalır ve başlık sayfa kaydırılırken üstte durur; sığmıyorsa
-     (çok santralli çerçeve) kap yatay kayar, başlık akışta kalır. Ölçüm
+     (çok tesisli çerçeve) kap yatay kayar, başlık akışta kalır. Ölçüm
      ResizeObserver ile; sunum kararı, veri akışına dokunmaz. */
   const kap = useRef<HTMLDivElement>(null);
   const [tasar, setTasar] = useState(false);
@@ -441,13 +444,13 @@ function UyumMatrisi({ cerceve, satirlar, santraller, acik, setAcik, yazabilir }
     const ro = new ResizeObserver(olc);
     ro.observe(el);
     return () => ro.disconnect();
-  }, [santraller.length]);
+  }, [tesisler.length]);
   return (
     <div
       ref={kap}
       className={`ab-mtx${tasar ? ' kayar' : ''}`}
       role="table"
-      aria-label={`${cerceve.gorunenAd} uyum matrisi: kontrol × santral`}
+      aria-label={`${cerceve.gorunenAd} uyum matrisi: kontrol × ${terim('tesis')}`}
       aria-rowcount={satirlar.length + 2}
       style={{ ['--mtx-kolon' as string]: kolonlar }}
       onKeyDown={(e) => { if (e.key === 'Escape' && acik) { e.stopPropagation(); setAcik(null); } }}
@@ -455,8 +458,8 @@ function UyumMatrisi({ cerceve, satirlar, santraller, acik, setAcik, yazabilir }
       <div className="bas" role="row">
         <span className="kolonbas" role="columnheader">Kontrol</span>
         <span className="kolonbas" role="columnheader">Başlık</span>
-        {santraller.map((t) => (
-          <span key={t.id} className="santral" role="columnheader" title={`${t.ad} · ${t.kod} · ${t.alt}`}>
+        {tesisler.map((t) => (
+          <span key={t.id} className="tesis" role="columnheader" title={`${t.ad} · ${t.kod} · ${t.alt}`}>
             <span className="ad">{t.ad}</span>
           </span>
         ))}
@@ -470,7 +473,7 @@ function UyumMatrisi({ cerceve, satirlar, santraller, acik, setAcik, yazabilir }
             <div className={`satir${satirAcik ? ' acik' : ''}`} role="row">
               <span className="mono kod" role="rowheader">{s.kisaKod || s.kod}</span>
               <span className="baslik" role="cell">{s.baslik}</span>
-              {santraller.map((t) => {
+              {tesisler.map((t) => {
                 const k = s.hucreler.get(t.id);
                 const g = glif(k);
                 const bu = satirAcik && acik?.tesisId === t.id;
@@ -489,16 +492,16 @@ function UyumMatrisi({ cerceve, satirlar, santraller, acik, setAcik, yazabilir }
                   </span>
                 );
               })}
-              <span className="mono kapsam" role="cell">{s.kapsamda} / {santraller.length}</span>
+              <span className="mono kapsam" role="cell">{s.kapsamda} / {tesisler.length}</span>
             </div>
 
             {satirAcik && acik && (
               <div role="row" className="acilankap">
-                <div role="cell" className="acilanhucre" aria-colspan={santraller.length + 3}>
+                <div role="cell" className="acilanhucre" aria-colspan={tesisler.length + 3}>
                   <Gerekce
                     cerceve={cerceve}
                     satir={s}
-                    tesis={santraller.find((t) => t.id === acik.tesisId)!}
+                    tesis={tesisler.find((t) => t.id === acik.tesisId)!}
                     kontrol={s.hucreler.get(acik.tesisId)!}
                     kapat={() => setAcik(null)}
                     yazabilir={yazabilir}
@@ -510,17 +513,17 @@ function UyumMatrisi({ cerceve, satirlar, santraller, acik, setAcik, yazabilir }
         );
       })}
 
-      {/* Santral endeksi — matrisin altında, prototipteki gibi */}
+      {/* Tesis endeksi — matrisin altında, prototipteki gibi */}
       {/* Sütun özeti — prototipteki gibi matrisin ALTINDA, kalın kuralla.
           Ölçülmemiş sütun "—" gösterir: 0 uyum ile hiç değerlendirilmemiş
           aynı şey değildir (UNKNOWN ≠ ZERO). */}
       <div className="satir endeks" role="row">
         <span className="etiket" role="rowheader">Endeks</span>
         <span role="cell" style={{ fontSize: 11.5, color: 'var(--i3)' }}>
-          Santral bazında ağırlıklı uyum
+          {tBas('tesis')} bazında ağırlıklı uyum
         </span>
-        {santraller.map((t) => {
-          const e = santralEndeksi(satirlar, t.id);
+        {tesisler.map((t) => {
+          const e = tesisEndeksi(satirlar, t.id);
           return (
             <span key={t.id} className="mono num deger" role="cell"
               style={e === null ? { color: 'var(--i3)' } : undefined}>
@@ -551,8 +554,8 @@ function sayHam(satirlar: MaddeSatiri[], tesisId?: string): Record<string, numbe
   return sayilar;
 }
 
-/** Santral sütununun endeksi. Hiç DEĞERLENDİRİLMEMİŞSE null — sıfır değil. */
-function santralEndeksi(satirlar: MaddeSatiri[], tesisId: string): number | null {
+/** Tesis sütununun endeksi. Hiç DEĞERLENDİRİLMEMİŞSE null — sıfır değil. */
+function tesisEndeksi(satirlar: MaddeSatiri[], tesisId: string): number | null {
   return uyumOzeti(sayHam(satirlar, tesisId)).yuzde;
 }
 
@@ -571,6 +574,7 @@ function Gerekce({ cerceve, satir, tesis, kontrol, kapat, yazabilir }: {
   kapat: () => void;
   yazabilir: boolean;
 }) {
+  const { t: terim, tBas } = useTerim();
   const { bekliyor, hata, calistir } = useEylem();
   const [form, setForm] = useState(false);
   const [gonderildi, setGonderildi] = useState(false);
@@ -580,7 +584,7 @@ function Gerekce({ cerceve, satir, tesis, kontrol, kapat, yazabilir }: {
   });
 
   /* Aile sayacı çekmeceden devralındı: "bu ailede kaç kontrol takipte".
-     Sayım o SANTRALİN satırından gelir — matris devrildi, veri değil. */
+     Sayım o TESİSİN satırından gelir — matris devrildi, veri değil. */
   const aile = cerceve.aileler.find((a) => a.id === kontrol.aileId);
   const aileKontrolleri = tesis.kontroller.filter((k) => k.aileId === kontrol.aileId);
   const aileAcik = aileKontrolleri.filter((k) => acikMi(k.ham)).length;
@@ -629,7 +633,7 @@ function Gerekce({ cerceve, satir, tesis, kontrol, kapat, yazabilir }: {
             <Satirci ad="Takipte" deger={acikMi(kontrol.ham) ? 'evet' : 'hayır'} />
             <Satirci ad={`${aile?.kisa ?? 'Aile'} · takipte`}
               deger={`${aileAcik} / ${aileKontrolleri.length}`} mono />
-            <Satirci ad="Bu santralde kapsam"
+            <Satirci ad={`Bu ${terim('tesis', 'bulunma')} kapsam`}
               deger={`${satir.kapsamda} / ${cerceve.satirlar.length}`} mono />
           </dl>
         </div>
@@ -783,7 +787,7 @@ function Gerekce({ cerceve, satir, tesis, kontrol, kapat, yazabilir }: {
           <dl className="acilan-dl">
             <Satirci ad="Kontrol sahibi" deger={kontrol.sahip ?? 'atanmadı'} />
             <Satirci ad="Son tarih" deger={kontrol.termin || '—'} />
-            <Satirci ad="Santral" deger={tesis.kod} mono />
+            <Satirci ad={tBas('tesis')} deger={tesis.kod} mono />
           </dl>
           <p className="acilan-dip">{tesis.ad} · {tesis.alt}</p>
         </div>
@@ -813,7 +817,7 @@ function Satirci({ ad, deger, mono, im }: {
   );
 }
 
-/* ── Kapsam dışı ve kararsız santraller ──────────────────────────────
+/* ── Kapsam dışı ve kararsız tesisler ──────────────────────────────
    GİZLENMEZ: "kapsam dışı" bir karardır ve gerekçesi okunabilir olmalı. */
 function KapsamDisi({ cerceve }: { cerceve: CerceveVerisi }) {
   const disarida = cerceve.kapsam?.filter((k) => k.durum !== 'kapsamda') ?? [];
@@ -823,10 +827,20 @@ function KapsamDisi({ cerceve }: { cerceve: CerceveVerisi }) {
       <span className="etiket">Kapsam kararı</span>
       <ul style={{ margin: '10px 0 0', padding: 0, listStyle: 'none', display: 'grid', gap: 8 }}>
         {disarida.map((k) => (
-          <li key={k.tesisId} style={{ fontSize: 12, color: 'var(--i2)', display: 'flex', gap: 12 }}>
+          /* `flexWrap` + `terim-sar`: gerekçe metni sektör terimi taşıyor
+             ve uzun sözlükte satır daralamıyordu — 375px'te sayfa 70px
+             yana kayıyordu (ölçüldü, stres sözlüğü). Sabit `minWidth`ler
+             esnek izin daralmasını engelliyor; `terim-sar` (min-width:0 +
+             overflow-wrap) ikisini birden çözer. DESIGN.md: ikisi bir
+             arada olmadan hiçbiri yetmez. */
+          <li key={k.tesisId} style={{
+            fontSize: 12, color: 'var(--i2)', display: 'flex', gap: 12, flexWrap: 'wrap',
+          }}>
             <span className="mono" style={{ color: 'var(--i3)', minWidth: 96 }}>{k.kod}</span>
             <span style={{ minWidth: 120 }}>{k.durum === 'disarida' ? 'kapsam dışı' : 'karar verilmedi'}</span>
-            <span style={{ color: 'var(--i3)' }}>{k.gerekce}</span>
+            <span className="terim-sar" style={{ color: 'var(--i3)', flex: '1 1 180px' }}>
+              {k.gerekce}
+            </span>
           </li>
         ))}
       </ul>

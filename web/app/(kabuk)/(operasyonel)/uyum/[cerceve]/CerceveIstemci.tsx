@@ -1,4 +1,5 @@
 'use client';
+import { useTerim } from '@/lib/dil/SozlukSaglayici';
 import { an } from '@/lib/an';
 import { useMemo } from 'react';
 import { useUrlDurumu } from '@/components/kabuk/urlDurumu';
@@ -27,6 +28,7 @@ type Kip = 'kapsam' | 'kuru';
 export default function CerceveIstemci({
   veri, kapsamYazabilir,
 }: { veri: CerceveVerisi; kapsamYazabilir: boolean }) {
+  const { t: terim } = useTerim();
   const parametreler = useSearchParams();
   const aileParam = parametreler.get('aile');
   const kontrolParam = parametreler.get('kontrol');
@@ -35,7 +37,7 @@ export default function CerceveIstemci({
   /* ── aile ve alt madde durumları: matrisle AYNI kuraldan türer ────── */
   const aileler = useMemo(() => veri.aileler.map((a) => {
     const yapraklar = a.yapraklar.map((y) => {
-      /* Alt maddenin kapsam notu: hangi santralde takip gerektiriyor. */
+      /* Alt maddenin kapsam notu: hangi tesiste takip gerektiriyor. */
       const hucreler = veri.satirlar.flatMap((s) => {
         const k = s.kontroller.find((x) => x.maddeId === y.id);
         return k ? [{ tesisKodu: s.kod, ham: k.ham }] : [];
@@ -47,7 +49,8 @@ export default function CerceveIstemci({
         durum: aileDurumu(hucreler.map((h) => h.ham)),
         kapsamNotu: sorunlu.length > 0
           ? sorunlu.map((h) => h.tesisKodu).join(' · ')
-          : disarida.length > 0 ? `${disarida.length} tesiste kapsam dışı` : '',
+          : disarida.length > 0
+            ? `${disarida.length} ${terim('tesis', 'bulunma')} kapsam dışı` : '',
         odak: kontrolParam === y.kod || kontrolParam === y.kisaKod,
       };
     });
@@ -59,7 +62,13 @@ export default function CerceveIstemci({
       acik: aileParam === a.kod || aileParam === a.kisaKod
         || yapraklar.some((y) => y.odak),
     };
-  }), [veri, aileParam, kontrolParam]);
+  /* `terim` bağımlılıkta: bu `useMemo` sözlükten METİN üretiyor
+     ("N tesiste kapsam dışı"). Bağımlılık olmadan sözlük değişince
+     eski sözcük ekranda kalırdı — bu sınıfın BEŞİNCİ yakalanışı
+     (yetkiler · envanter · riskler · denetimler · şimdi burası) ve
+     her seferinde lint buldu. Tarif adımı olarak yazıldı:
+     `docs/GELISTIRME_PAKETLERI.md` §0.5 dönüşüm listesi. */
+  }), [veri, aileParam, kontrolParam, terim]);
 
   const m = veri.metrikler;
   const kapsamda = veri.kapsam.filter((k) => k.durum === 'kapsamda');
@@ -291,6 +300,7 @@ function KuruPanel({
   veri, yazabilir, bitti,
 }: { veri: CerceveVerisi; yazabilir: boolean; bitti: () => void }) {
   const { bekliyor, hata, calistir } = useEylem();
+  const { t: terim, tBas } = useTerim();
 
   if (!veri.kuru) {
     return (
@@ -366,7 +376,8 @@ function KuruPanel({
             : 'Hesaplama denetim izine yazılır; el ile değiştirilmiş kararlar korunur.'}
           {!yazabilir && ' · Kapsam hesaplaması için tanım yazma yetkisi gerekir.'}
           {dikkat.length > 0
-            && ` · ${dikkat.length} tesiste santral profili eksik — karar Plant 360'tan tamamlanır.`}
+            && ` · ${dikkat.length} ${terim('tesis', 'bulunma')} ${terim('tesis')} profili`
+              + ` eksik — karar ${tBas('tesis360')}'tan tamamlanır.`}
         </p>
       </div>
     </>

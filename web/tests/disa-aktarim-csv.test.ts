@@ -4,9 +4,11 @@ import {
   guvenliDosyaAdi, hucreMetni,
 } from '../lib/disaAktarim/csv';
 import {
-  ENVANTER_DISA_BASLIKLARI, envanterDisaAktarimi, envanterDisaSatiri,
+  envanterDisaBasliklari, envanterDisaAktarimi, envanterDisaSatiri,
 } from '../app/(kabuk)/(operasyonel)/envanter/mantik';
 import { ornekVarlik } from './yardim/varlik';
+import { sozlukKur } from '../lib/dil/terimler';
+import { ENERJI_SOZLUGU, SU_SOZLUGU } from '../prisma/sozlukler';
 
 /* ═══ OT-38 · CSV dışa aktarımı ════════════════════════════════════════
 
@@ -186,9 +188,12 @@ describe('Envanter sütun kümesi', () => {
   const simdi = new Date('2026-09-04T00:00:00Z').getTime();
 
   it('müşterinin istediği bütün alanları taşır', () => {
-    const b = ENVANTER_DISA_BASLIKLARI as readonly string[];
+    const b = envanterDisaBasliklari(null);
     for (const beklenen of [
-      'Etiket', 'Ad', 'Tür', 'Sınıf', 'Santral', 'Ünite', 'Sistem/Servis',
+      /* Sektör sözcüğü ÇEKİRDEK hâliyle beklenir: `envanterDisaBasliklari`
+         sözlüğü parametre alıyor ve `null` çekirdeği verir. Sektör
+         karşılığının gerçekten aktığı aşağıda ayrıca ölçülüyor. */
+      'Etiket', 'Ad', 'Tür', 'Sınıf', 'Tesis', 'Birim', 'Sistem/Servis',
       'Ağ bölgesi', 'Segment', 'VLAN', 'Subnet', 'Üretici', 'Model', 'Seri no',
       'IP', 'MAC', 'İşletim sistemi', 'OS sürümü', 'Firmware', 'Kritiklik',
       'Sahip', 'Ekip', 'Yaşam döngüsü', 'EOL', 'EOS', 'Garanti bitiş',
@@ -200,15 +205,39 @@ describe('Envanter sütun kümesi', () => {
     }
   });
 
+  it('başlık sözlüğü izler, kolon SAYISI ve SIRASI değişmez', () => {
+    /* Dışa aktarım kararı (P1 · raporlar): ekran hangi sözcüğü diyorsa
+       dosya da onu der. Değişen yalnız SÖZCÜKTÜR — kolon sayısı ve sırası
+       sabittir, yoksa dosyayı okuyan araç kırılırdı. */
+    const cekirdek = envanterDisaBasliklari(null);
+    const enerji = envanterDisaBasliklari(sozlukKur(ENERJI_SOZLUGU));
+    const su = envanterDisaBasliklari(sozlukKur(SU_SOZLUGU));
+
+    expect(enerji).toHaveLength(cekirdek.length);
+    expect(su).toHaveLength(cekirdek.length);
+
+    const i = cekirdek.indexOf('Tesis');
+    expect(i, 'çekirdek başlıkta tesis kolonu yok').toBeGreaterThan(-1);
+    expect(enerji[i]).toBe('Santral');
+    expect(su[i]).toBe('Arıtma tesisi');
+
+    /* Tesis kolonu DIŞINDA hiçbir başlık sözlükten etkilenmez: `birim`
+       de sözlükten gelir, o yüzden iki kolon ayrılıp gerisi eşitlenir. */
+    const j = cekirdek.indexOf('Birim');
+    const sabitler = (x: string[]) => x.filter((_, n) => n !== i && n !== j);
+    expect(sabitler(enerji)).toEqual(sabitler(cekirdek));
+    expect(sabitler(su)).toEqual(sabitler(cekirdek));
+  });
+
   it('satır uzunluğu başlık uzunluğuna EŞİT — sütun kayması olmaz', () => {
     const satir = envanterDisaSatiri(ornekVarlik(), simdi);
-    expect(satir).toHaveLength(ENVANTER_DISA_BASLIKLARI.length);
+    expect(satir).toHaveLength(envanterDisaBasliklari(null).length);
   });
 
   it('başlık satırı + veri satırları döner', () => {
     const t = envanterDisaAktarimi([ornekVarlik(), ornekVarlik()], simdi);
     expect(t).toHaveLength(3);
-    expect(t[0]).toEqual([...ENVANTER_DISA_BASLIKLARI]);
+    expect(t[0]).toEqual(envanterDisaBasliklari(null));
   });
 
   it('ölçülmemiş tarih BOŞ kalır, "—" yazmaz', () => {
@@ -219,7 +248,7 @@ describe('Envanter sütun kümesi', () => {
 
   it('keşif kaydı yoksa veri kaynağı "elle" yazar', () => {
     const satir = envanterDisaSatiri(ornekVarlik({ sonKesif: null }), simdi);
-    const i = (ENVANTER_DISA_BASLIKLARI as readonly string[]).indexOf('Veri kaynağı');
+    const i = envanterDisaBasliklari(null).indexOf('Veri kaynağı');
     expect(satir[i]).toBe('elle');
   });
 
@@ -227,7 +256,7 @@ describe('Envanter sütun kümesi', () => {
     const v = ornekVarlik({
       sonKesif: { id: 'k1', kaynak: 'ot-kesif', sonGorulme: '2026-09-01T00:00:00Z' },
     });
-    const i = (ENVANTER_DISA_BASLIKLARI as readonly string[]).indexOf('Veri kaynağı');
+    const i = envanterDisaBasliklari(null).indexOf('Veri kaynağı');
     expect(envanterDisaSatiri(v, simdi)[i]).toBe('ot-kesif');
   });
 

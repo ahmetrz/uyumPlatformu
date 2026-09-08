@@ -74,6 +74,37 @@ Değişmezler:
   `--tekrar N` ortanca koşuyu seçer. Sorgu sayısı deterministtir, süre
   gürültülüdür, zirve yığın (GC zamanlamasına bağlı) en gürültülüsüdür.
 
+## ÖLÇÜMDEN ÖNCE: ORTAM TAZELİĞİ — atlanamaz adım
+
+Bir kırmızıyı koda yazmadan önce ölçüm ortamının taze olduğu
+DOĞRULANIR. Bu bir öneri değil, ölçümün ön koşuludur; atlandığında
+üretilen şey kod kusuru gibi görünen bir yanlış alarmdır. Üç tuzak da
+ÖLÇÜLDÜ, üçü de aynı oturumda:
+
+| Tuzak | Nasıl görünür | Gerçek sebep |
+| --- | --- | --- |
+| Bayat `next start` | `rota-duman`: "`/` ← kabuk yok" · sayfa `__next_error__` döner | Yeni derleme yapıldı ama eski süreç ayakta; süreç SİLİNMİŞ inode'u tutuyor |
+| Dolu disk | Vitest keşfi "158 dosya · **0 vaka**" döner, kapı "doğrulandı" der | Test kopyaları `/tmp`i doldurdu (8 188 dizin · 27 GB); ENOSPC bile görünmedi |
+| Kapatılmış port | `ERR_CONNECTION_REFUSED` · "sözlükle metin yakalanamadı" | Uzun koşan bir kapı arka plandayken port başka bir iş için kapatıldı |
+
+**SIRA:**
+
+```
+1  eski süreçleri öldür     fuser -k -n tcp <port>
+2  portun KAPANDIĞINI doğrula   curl -sf localhost:<port> && echo AYAKTA
+3  boş alanı gör            df -h .        (< 512 MB ise önce temizle)
+4  derle                    npm run build
+5  başlat + hazır bekle     next start & → curl döngüsü
+6  ÖLÇ
+```
+
+Adım 2 atlanamaz: `next start` port doluysa `EADDRINUSE` ile ölür ama
+`curl` ESKİ sunucuyu görüp "hazır" der. "Hazır" cevabı yeni sunucudan
+geldiğini kanıtlamaz.
+
+Uzun koşan bir kapı varken (`kapi:iki-sozluk` ~25 dk) portu BAŞKA bir iş
+için kapatmak, o kapıyı kod kusuru gibi görünen bir hatayla düşürür.
+
 ## Kalite kapıları (KK-1…KK-8)
 
 Statik kapılar (`npm run lint` · `npx tsc --noEmit` · `npm test` ·
@@ -126,6 +157,17 @@ biri gerekçesiyle beyan edilmiştir.
 | `erisim-axe.mjs` **(CI · bloklayıcı)** | `tasarim:axe` | axe-core WCAG 2 A/AA, rotalar.json'daki tüm rotalar, **üç bant** (1440 · 768 · 375) | izin listesinde olmayan ya da tavanı aşan ciddi/kritik ihlal |
 | `yatay-tasma.mjs` **(CI · bloklayıcı)** | `tasarim:tasma` | 375 + 768'de **üç kusur türü**: sayfa yana kayıyor mu · `overflow: hidden` kabında sessizce kırpılan içerik var mı · akış içi iki taşıyıcı üst üste biniyor mu | izin listesinde olmayan ya da tavanı aşan bulgu |
 | `dizustu.mjs` | `tasarim:dizustu` | 1366×768'de kaydırılamayan (kırpılan) içerik var mı | kırpılan öğe |
+| `iki-sozluk.mjs` | `kapi:iki-sozluk` | üç düzen kapısını (tasma · dizüstü · axe) ÜÇ sözlükle koşar (enerji · su · stres); kusurun hangi sözlükte çıktığını söyler | herhangi bir sözlükte kusur |
+| `kolon-hizasi.mjs` | `tasarim:kolon` | statik çıktıda başlık/hücre sayısı, sol kenar hizası (±1px), kaydırma kabını aşma — 1440 · 1366 · 1280. **İki sözlükle ölçülmedi** (istisna, aşağıda) | hiza kusuru |
+| — (prisma) | `kapi:sema-sapmasi` | göç sonrası: veritabanı `schema.prisma` ile birebir mi | sapma varsa çıkış 2 |
+| `sozluk-farki.mjs` | (iki-sozluk içinde) | **pozitif ölçü**: sözlük ekrana ulaşıyor mu — aynı rotanın metni iki sözlükle alınır, fark çıkarılır | çevrilmiş rotada fark yoksa çıkış 1 |
+| `sozluk-metni.mjs` | — (yardımcı) | render edilen `main` metnini JSON'a yazar; sözlüğü bilmez | — |
+| `rota-dizini.mjs` | — (kütüphane) | rota → kaynak dizini, `app/` ağacından türetilir | — |
+| `izin-listesi.mjs` | — (kütüphane) | izin listesinde SÖZLÜK terimiyle duran dosyalar (şema terimleri ayrı) | — |
+| `cekirdek-sozcuk-taramasi.mjs` | — (elle) | bekçinin YAPISAL kör noktası: kaynakta sabit yazılmış ÇEKİRDEK sözcükler | ölü muafiyet varsa çıkış 1 |
+| `terim-adaylari.mjs` | — (elle) | terim kalıplarının yanlış pozitif yüzeyini DEPODAN türetir; fikstürün kaynağı | — |
+| `derleme-ortami.mjs` | — (kütüphane) | derlemeye dayanan kapıların önkoşulu: boş alan (derlemeden önce) + statik çıktının TAM olduğu (ölçmeden önce) | çağıran kapı düşer |
+| `turkce-arama.mjs` | — (kütüphane) | Türkçe metin araması: çift küçültme + Unicode sözcük sınırı. **Sondalarda düz `/…/i` KULLANMAYIN** | — |
 | `marka-kapisi.mjs` | `marka:kapi` | ürün adı tek kaynaktan mı geliyor: nöbetçi adla statik demo derlemesi koşar, üretilen çıktıya bakar (tarayıcı istemez) | varsayılan ad işlenmiş yüzeyde geçiyor **ya da** nöbetçi görünmesi gereken yüzeyde yok |
 | `kapi-farki.mjs` **(CI · bloklayıcı)** | `kapi:farki` | `package.json` betikleri ile PR kapısında koşanların farkı — tarayıcı istemez | beyansız betik (ne koşuyor ne gerekçeli) ya da bayat beyan |
 | `turkiye-siniri.mjs` | `harita:sinir` | üretir (kapı değil): Natural Earth'ten Türkiye silüeti | kaynak/öznitelik bulunamadı |
@@ -1051,6 +1093,305 @@ Bugünkü ölçüm: **38 rota · kırpılan öğe 0 · yatay taşan rota 0.**
 PORT=3210 npm run tasarim:dizustu
 PORT=3210 node arac/dizustu.mjs --rota=/,/portfoy
 ```
+
+### `kapi:sema-sapmasi` — göç sonrası şema/veritabanı sapması
+
+Bir şema göçünden sonra `schema.prisma` ile veritabanının birebir aynı
+olduğunu doğrular. Göç dosyası yazılıp uygulanmamış ya da elle bir kolon
+eklenmiş olabilir; ikisi de testlerde görünmez, çünkü testler kendi
+kopyalarını `prisma/dev.db`den alır — sapma o kopyaya da taşınır ve
+"yeşil" olur.
+
+```
+npm run kapi:sema-sapmasi     # "No difference detected." · çıkış 0
+```
+
+Şema dokunan her dilimde koşulur. `--exit-code` sapmada 2 döner, yani
+komut kapı olarak kullanılabilir.
+
+### `sozluk-farki.mjs` — sözlük ekrana ULAŞIYOR mu (pozitif ölçü)
+
+Bekçi (`tests/bekci/sektor-terimi.test.ts`) **negatif** ölçüdür ve kabul
+modelinde bir boşluk bırakır:
+
+> Bekçi "sektör sözcüğü kalmadı" der; **"sözlükten geliyor" demez.**
+
+Bir dosya `santral`ı çekirdek sözcük `tesis` ile **sabit** değiştirirse
+bekçi yeşil yanar ve hedef ıskalanır. Ölçüldü (7 Eyl 2026): `envanter`
+zincir halka etiketi tam olarak böyle kaçtı. Bu araç, o gün elle yazılan
+sondayı **ölçüye** çevirir; `kapi:iki-sozluk` içinde dördüncü iddia
+olarak koşar.
+
+**Ölçüm.** Aynı rotanın render edilen metni `enerji` ve `su` sözlükleriyle
+alınır. İki şey raporlanır:
+
+| Sinyal | Ne der | Kapı |
+| --- | --- | --- |
+| **fark sayısı** | kaç yer sözlüğü izliyor | bilgi (insan okur) |
+| **çakılı satır** | enerji altında ÇEKİRDEK sözcük görünen yer | çevrilmiş ailede **kusur** |
+
+**Neden fark sayısı tek başına yetmez.** İlk kurgu "çevrilmiş ailenin
+rotasında fark boş olamaz" idi ve ilk tam koşumda **üç yanlış alarm**
+verdi (`/bakim` · `/api-sozlesmesi` · `/yedek-parca` hiç terim taşımıyor)
+artı bir açıklanabilir vaka (`/raporlar/kanit-paketi` — tek sözlük
+çağrısı boş-durum dalında, demo veride hiç render edilmiyor). Üstelik
+**kısmi kaçağı hiç yakalamıyordu**: iki yerden biri çakılıysa fark yine
+> 0 olur ve kapı geçer.
+
+**Keskin sinyal.** Enerji sözlüğü kuruluyken ekranda çekirdek sözcük
+("tesis" · "portföy") görünmesi. Sözlükten beslenen hiçbir yer enerji
+altında çekirdek sözcüğü yazamaz — yazıyorsa o yer sabit çakılıdır.
+Koşula bağlı dallar render edilmedikleri için sessiz kalır; hiç terim
+taşımayan rota da öyle. Kısmi kaçak **yakalanır**.
+
+İki incelik ölçümden çıktı, ikisi de kalıcı:
+
+- **Yalnız `main`** ölçülür, gövde değil. Kabuk başlığı ("… · 16 SANTRAL")
+  her rotada sözlüğü izler; gövdeyi ölçmek tamamen çakılı bir sayfayı bile
+  geçirirdi.
+- **Sektör karşılığı önce satırdan silinir**, sonra çekirdek aranır. Enerji
+  karşılığı "enerji portföyü" ve içinde çekirdek "portföyü" geçiyor;
+  doğrudan aramak doğru çalışan bir yeri çakılı sanardı. Silme
+  `kanonik()` ile yapılır — `.replace` Türkçede `İ`'yi katlamaz ve
+  silinemeyen kopya yanlış alarm üretir (bu da ölçüldü).
+
+**"Aile çevrildi mi" elle tutulmaz.** İki kaynaktan türetilir: (1) ailenin
+bir dosyası izin listesinden **çıkarılmışsa** (git geçmişi), (2) ya da
+ailenin bir dosyası **sözlüğü çağırıyorsa**. "Listede değil" tek başına
+yetmez — `/bakim` hiç sektör sözcüğü taşımamıştı, çevrilmedi.
+
+İzin listesinde ayrıca **sözlükle ifade edilebilir** terim ayrımı yapılır:
+`MW` · `JES` · `türbin` · `--hes` sözlükte yoktur, şema/öznitelik işidir
+(`izin-listesi.mjs`). `envanter/Yonetisim.tsx` yalnız `MW` yüzünden
+listede duruyor; `/envanter` yine de çevrilmiş sayılır.
+
+**İlk koşumunda iki gerçek kaçak buldu**, ikisi de çevrilmiş `/raporlar`
+ailesinde ve ikisini de bekçi temiz görüyordu: `5 tesis × 3 süreç` ve
+`Portföy raporu` / `portföy uyumu`. Sabotajla da doğrulandı: zincir
+halkası çekirdeğe çakıldığında (iki yerden BİRİ) `1 fark · 1 ÇAKILI` deyip
+çıkış 1 verdi — eski kurgu bunu geçirirdi.
+
+**Beklenen fark sayısı.** "Çakılı 0" sözcüğün SABİT olmadığını söyler,
+ekrana ULAŞTIĞINI değil. Rota başına beklenen fark
+`arac/beklenen-fark.json`da durur ve HER koşumda denetlenir; ölçülen
+altındaysa kapı kırmızı yanar (`--bekle=/rota:N` üzerine yazar). Sayı bir
+tahmin değil, aile kapanırken yapılan ölçümdür.
+
+**Sınırı.** Yalnız o an render EDİLEN metni görür: koşula bağlı dallar
+(boş durum, yetki kısıtı, modal) ölçülmez. Modül sabitleri için tarayıcı
+istemeyen kendi vakaları vardır (`tests/envanter-mantik.test.ts` · zincir
+halkası) ve sabotaj kütüğü onları koruyor.
+
+### `cekirdek-sozcuk-taramasi.mjs` — bekçinin yapısal kör noktası
+
+Bekçi **negatif** kanıt üretir: "sektör sözcüğü kalmadı". Bir ekran
+`santral`ı çekirdek `tesis`/`portföy` ile **sabit** değiştirirse bekçi
+yeşil yanar. `sozluk-farki` bunu ekranda yakalar — ama yalnız **o an
+render edilen** metinde; koşula bağlı dallar (boş durum, yetki kısıtı,
+modal) görünmez.
+
+Aynı kusur **beş ailede** aynı şekilde bulundu (riskler · kimlik ·
+yetkiler · ayarlar · dokümanlar), hepsi `portfoy` anahtarında. Aile aile
+keşfetmek, her seferinde aynı dersi yeniden öğrenmek demek. Bu araç
+sınıfı **topluca** görünür kılar: kaynakta, dize ve JSX metni içinde.
+
+**İki eleme ölçümden çıktı** — ilk kurgu 554 "bulgu" veriyordu ve çoğu
+koddu; gürültü aradığı sinyali gizliyordu:
+
+- `${…}` içi sökülür. `` `${t(sozluk,'tesis')}siz` `` çekirdek sözcük
+  taşıyor görünür, oysa taşıdığı şey sözlük **çağrısının anahtarıdır**.
+- Ekran metni **prozadır**: boşluk taşır ya da büyük harfle başlar.
+  Alan adı ve anahtar küçük harfli tek jetondur (`tesisler`) ve ekranda
+  görünmez. JSX `>…<` kalıbı TypeScript'te güvenilmez (ok işlevi,
+  jenerik, karşılaştırma) — bırakıldı.
+
+**Muafiyetler gerekçelidir** (`cekirdek-sozcuk-muafiyet.json`): çekirdek
+sözcüğün DOĞRU olduğu yerler — R0-9 (saklanan artefakt, API sözleşmesi),
+R0-8 (Suspense yedeği), kod eşleştirme anahtarı, ölçü birimi. **Ölü
+muafiyet kırmızı verir**: dosya artık çekirdek sözcük taşımıyorsa kayıt
+düşmelidir. `rotalar.json` ve izin listesi bu dersi zaten verdi — elle
+tutulan liste sessizce bayatlar.
+
+### `terim-adaylari.mjs` — kalıpları TEPKİSEL değil sistematik doğrula
+
+Bekçinin terim kalıplarında bugüne kadar **üç** hata çıktı ve üçü de bir
+kusur patladıktan sonra düzeltildi:
+
+| Hata | Yön |
+| --- | --- |
+| `\bRES\b` "SÜRESİ" içinde eşleşiyordu | yanlış **pozitif** |
+| `/ünite/i` "ÜNİTE" ile eşleşmiyordu | yanlış **negatif** |
+| `/plant/gi` "toplantı" içinde eşleşiyordu | yanlış **pozitif** |
+
+Yani liste bir bütün olarak **hiç doğrulanmamıştı**; her terimin hangi
+yönde bozuk olduğu bilinmiyordu. Vakalar hep bir hata çıktıkça eklendi.
+
+Bu araç tahmin etmez, **depodaki gerçek Türkçe metni** kaynak alır: her
+terim için kalıbın gövdesini İÇEREN ama tam eşleşmeyen sözcükleri
+çıkarır. Yanlış pozitif yüzeyi tam olarak budur.
+
+```
+npx tsx arac/terim-adaylari.mjs
+  tip kodu   eşleşen 10 · yanlış pozitif adayı 45 → SÜRESİ · ADRES · HESAP …
+  plant      eşleşen  2 · yanlış pozitif adayı 11 → toplantı · Plant360 …
+```
+
+Çıktı `tests/bekci/terim-fikstur.json`e tasnif edilerek girer (gerçek
+yanlış pozitif mi, bilinçli körlük mü) ve
+`tests/bekci/terim-dogrulama.test.ts` her terimi **iki yönde** sınar.
+Test ayrıca **eksiksizlik** şartı koyar: `TERIMLER`deki her kaydın
+fikstürde karşılığı olmalı — doğrulanmamış bir terim sessizce listeye
+giremez.
+
+`eslesmemeli` listesi boş olan terimlerde bu bir atlama değil **ölçüm
+sonucudur**: tarama o terim için tek bir aday bulmadı.
+
+### `turkce-arama.mjs` — Türkçe metin ararken bunu kullanın
+
+**Düz `/…/i` kullanmayın.** `i` bayrağı Unicode BASİT katlama yapar ve
+Türkçede iki yönde de kördür: `ı` `I`'ya, `i` `İ`'ye katlanmaz.
+
+```js
+/arıtma/i.test('ARITMA TESİSİ')              // false  ✗ kör
+katlamaliVarMi(/arıtma/, 'ARITMA TESİSİ')    // true   ✓
+```
+
+Bu mantık bekçi testinde doğdu ve orada kalıcı vakalarla korunuyor
+(`tests/bekci/katlama-korlugu.test.ts` · URN-ALN-007). Ama tuzak yalnız
+bekçiyi vurmuyor: **ölçüm sondalarını da vuruyor ve onları hiçbir test
+korumuyor.** Gerçekten oldu (7 Eyl 2026): `/tedarikciler` çekmecesini iki
+sözlükle karşılaştıran tek seferlik bir sonda `/arıtma/i` kullandı ve
+ekranda AÇIKÇA duran `ARITMA TESİSİ · 7` satırını göremedi; "terim yok"
+dedi. Kalıcı test bunu koruyamaz — sonda her ölçümde kalıbı sıfırdan
+türetiyor. Çare test değil **araç**: kalıp bir kez burada durur.
+
+| İşlev | Ne yapar |
+| --- | --- |
+| `kucultmeler(m)` | `[tr-TR katlaması, değişmez katlama]` |
+| `katlamaliVarMi(re, m)` | ikisinin birleşiminde `test()` — `/…/i` yerine bu |
+| `katlamaliSayi(re, m)` | ikisinin BÜYÜK eşleşme sayısı (toplamaz) |
+| `katlamaliSatirlar(re, m)` | kalıbı taşıyan satırlar |
+| `sinirKalibi(govde)` | Unicode sözcük sınırı — `\b` ASCII'dir, `RES`i "SÜRESİ" içinde bulur |
+
+Büyük harfli KODLAR (`JES` · `MW`) ham metinde aranır: küçültülmüşte
+`res` "süresi"nin, `hes` "hesap"ın içine düşer.
+
+### `derleme-ortami.mjs` — ölçüm ortamı da ölçülür
+
+7 Eyl 2026'da oturumun yazılabilir disk payı %100'e dayandı. O turda kayıp
+olmadı ama sessiz bir **yanlış-yeşil** yolu açıyor: `next build` yer
+bitince YARIM bir `out/` bırakır, statik kapı o yarım siteyi ölçer ve
+"kusur yok" der. Kapı kırmızı yanmaz, çünkü ölçtüğü şey orada değildir.
+
+İki ayrı soru, iki ayrı işlev — ve ikisi de gerekli:
+
+| İşlev | Ne zaman | Niçin |
+| --- | --- | --- |
+| `yerVarMi(ad)` | derlemeden ÖNCE | Yeter alan yoksa derleme başlatılmaz; başlarsa yarım kalır ve kusur ölçüm anına taşınır. |
+| `ciktiyiDogrula(ad, out)` | ölçmeden ÖNCE | Elimizdeki `out/` GEÇMİŞ bir koşuda yarım kalmış olabilir; o an bol yer bulunur. Rota envanterindeki her rotanın karşılığı yoksa ölçüm geçersizdir. |
+
+Yalnız birincisini koymak geçmişten kalan yarım çıktıyı görmezdi.
+
+**Eşik ölçüldü, seçilmedi** (temiz ağaç, aynı gün):
+
+| Derleme | Net alan | Sonuç |
+| --- | --- | --- |
+| `npm run build` | 78 MB | `.next` 266 MB |
+| `NEXT_PUBLIC_DEMO=1 next build` | 185 MB | `.next` 426 MB · `out/` 26 MB |
+
+Tam bir çevrim ~450 MB istiyor; eşik **1024 MB** — ölçülenin iki katından
+biraz fazla, npm önbelleği ve ikinci derleme için pay bırakır.
+
+Kapıyı taşıyanlar: `statik-kontrol` · `kolon-hizasi` (çıktıyı ölçerler) ve
+`marka-kapisi` (kendi derlemesini yapar). Sabotajla doğrulandı: `out/`tan
+üç rota silindiğinde ikisi de eksikleri adıyla yazıp **çıkış 1** verdi.
+
+### `iki-sozluk.mjs` · `sozluk-takas.mjs` · `sozluk-kipi.mjs`
+
+Bir yüzey ailesi terim sözlüğüne geçtiğinde (P1 · Aşama E) **render edilen
+metin değişir**. Elle tıklayıp bakmak değerli ama taşmayı gözle değil
+ÖLÇEREK görüyoruz — ve bugüne kadarki bütün düzen ölçümleri referans
+kiracının KISA sözlüğüyle yapıldı: "santral" 7 harf, "arıtma tesisi" 13.
+Yani düzeni iki sözlüğün kolayına karşı doğruluyorduk. **Uzun sözlükte
+taşan bir düzen bugün kusurludur**; kısa sözlükle yeşil görünmesi kusuru
+düzeltmez, ikinci kiracıya erteler.
+
+```
+PORT=3210 npm run kapi:iki-sozluk -- --rota=/yedekleme
+```
+
+Üç kapıyı her sözlük için ayrı koşar ve şunu yazar:
+
+| Sonuç | Okuması |
+| --- | --- |
+| yalnız `su` kusurlu | sözcük uzunluğunun ürettiği kusur — o dilimin işi |
+| iki sözlükte de kusurlu | sözlükten bağımsız kusur (çoğu zaman eski) |
+
+`dizustu` bu üçlüde ayrı bir kapı, çünkü uzun sözlüğün en olası kusur
+biçimi yatay kayma DEĞİL **sessiz kırpılmadır**: `table-layout: fixed` +
+`overflow: hidden` taşan sözcüğü keser, sayfa yana kaymaz, `yatay-tasma`
+yeşil kalır. `rota-duman` bilerek dışarıda: rota süzgeci yok ve ölçtüğü
+şey düzen değil, rotanın ayakta olup olmadığı.
+
+**Takas nerede olur.** `SektorSozlugu` satırlarında ve yalnız ölçüm
+süresince (`sozluk-takas.mjs`; geri yükleme `finally` içinde). Kiracı,
+tesis, tip ve sektör kayıtlarına dokunulmaz — ölçülen şey aynı veri, aynı
+rota, yalnız daha uzun sözcük. Ürün kodunda sözlüğü ezen bir ortam
+değişkeni **yoktur ve olmamalıdır**: kiracının dilini bir bayrakla
+değiştirebilmek, yanlış sözcükle çalışan bir kurulum demektir.
+
+Rapor her koşumda `'tesis'` teriminin o an veritabanındaki hâlini yazar.
+Takas ekrana ulaşmadıysa "temiz" yanlış sözlüğü ölçmüş olurdu; kapı bunu
+görür ve ölçümü geçersiz sayar (çıkış 2).
+
+`sozluk-kipi.mjs` tek sözlükle ad-hoc koşum için ince kabuktur
+(`npx tsx arac/sozluk-kipi.mjs su -- node arac/dizustu.mjs --rota=/x`).
+
+#### Kuralın tek istisnası: `kolon-hizasi`
+
+"Düzen kapıları iki sözlükle koşar" kuralının **bugün bir istisnası var** ve
+burada yazılı olmasının sebebi tam olarak budur: yazılmazsa kural altı ay
+sonra "hepsi iki sözlükle koşuyor" diye okunur ve boşluk kimsenin aklına
+gelmez.
+
+`kolon-hizasi.mjs` **iki sözlükle ölçülmedi.** Sebep: canlı sunucuda değil
+**statik dışa aktarım** (`out/`) üzerinde koşuyor; veri ve sözlük derleme
+anında gömülüyor. İkinci sözlükle ölçmek `out/`u o sözlükle yeniden
+derlemeyi gerektirir (`npm run demo:build`), yani `sozluk-takas.mjs`'in
+çalışma zamanı takası oraya ulaşmaz. Ölçülmedi — "geçti" DEĞİL.
+
+Kapatma yolu (P4 ile birlikte değerlendirilecek): `demo:build`'i sözlük
+kipi altında koşturup `out/`u ikinci sözlükle üretmek. Bugün yapılmadı,
+çünkü tam derleme başına birkaç dakika ve kolon hizası sözcük
+uzunluğundan çok **sütun sayısına** duyarlı — ama bu bir varsayım, ölçüm
+değil; kapatıldığında ölçülecek.
+
+#### Kırılma fırsatı garantisi (`stres` sözlüğü)
+
+Üçüncü sözlük bir sektör değil, `kabuk.css` içindeki savunmanın **kalıcı
+vakasıdır**: boşluksuz uzun bir gövde, yani hiçbir kırılma fırsatı
+sunmayan terim. Sözcük ürünün sabiti değil **müşteri içeriğidir**; bir
+sektör paketi böyle bir ad gönderdiğinde kusur bizim CI'mızda değil o
+paketi yazanın ekranında çıkar.
+
+Savunma iki katmanlı ve **ikisi de ölçülerek** seçildi:
+
+| Katman | Kural | Niçin |
+| --- | --- | --- |
+| taban | `.ab, .ab * { overflow-wrap: break-word }` | Kutusuna sığmayan sözcüğü kırar; min-content'e dokunmadığı için mevcut sarma davranışı **değişmez**. |
+| slot | `.ab .terim-sar { min-width: 0; overflow-wrap: anywhere }` | Genişliği içeriğinden gelen esnek/ızgara izi ancak böyle daralabilir. Elle konur; unutulan yeri `stres` koşumu söyler. |
+
+Genel `overflow-wrap: anywhere` **denendi ve düzeni bozdu**: min-content
+tek harfe iner, `/bulgular` 375px'te üst gezinme ("SAHA PORTFÖY UYUM")
+harf harf alt alta düştü, kolon başlıkları dikey sütuna döndü. Düzeni
+korumak için konan kural düzeni bozuyordu; ölçüm olmasa fark edilmezdi.
+
+**Ölçüldü (7 Eyl 2026).** Boşluksuz 31 harflik gövde savunma konmadan
+önce `/sistem/bilesenler` rotasını 375px'te 48px yana kaydırıyordu
+(`div.ab-baglam > div.sag`); `.terim-sar` + `min-width: 0` ile
+temizlendi. Savunmadan sonra tam küme, üç sözlük: 3 kapı × 3 sözlük = 9
+koşum, tek kusur `/omur` (`span.ad`, `">1 yıl"`) ve o kusur **üç sözlükte
+de bit-bit aynı** — sözlükten bağımsız, bu dalda dokunulmamış.
 
 ### `erisim-axe.mjs`
 

@@ -22,11 +22,11 @@ import type { Senaryo } from './tipler';
 export const KAPSAMA_SENARYOLARI: Senaryo[] = [
   {
     id: 'SAH-GRS-001', alan: 'Saha', rota: '/', eksen: 'veri',
-    amac: 'Santralleri fotoğrafıyla tanımak',
+    amac: 'Tesisleri fotoğrafıyla tanımak',
     rol: 'herhangi bir kullanıcı', kapsam: 'kendi kapsamı',
-    onkosul: 'Bazı santralin fotoğrafı yok', veriHali: 'kısmi',
+    onkosul: 'Bazı tesisin fotoğrafı yok', veriHali: 'kısmi',
     eylem: 'Saha ekranını açar',
-    beklenenSonuc: 'Fotoğrafı olmayan santral BAŞKA santralin görselini almaz',
+    beklenenSonuc: 'Fotoğrafı olmayan tesis BAŞKA tesisin görselini almaz',
     beklenenEkran: 'Tipografik geri düşüş; görsel ödünç alınmaz',
     beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
     katmanlar: ['DOMAIN', 'UI'],
@@ -111,7 +111,7 @@ export const KAPSAMA_SENARYOLARI: Senaryo[] = [
   {
     id: 'UYU-SRC-001', alan: 'Uyum', rota: '/surecler', eksen: 'veri',
     amac: 'Sürecin uyum durumunu okumak',
-    rol: 'uyum uzmanı', kapsam: 'kendi santrali',
+    rol: 'uyum uzmanı', kapsam: 'kendi tesisi',
     onkosul: 'Hiçbir madde değerlendirilmemiş', veriHali: 'yok',
     eylem: 'Süreç listesini açar',
     beklenenSonuc: 'Yüzde null kalır — %0 GÖSTERİLMEZ',
@@ -122,7 +122,7 @@ export const KAPSAMA_SENARYOLARI: Senaryo[] = [
   {
     id: 'UYU-SRC-002', alan: 'Uyum', rota: '/surecler', eksen: 'veri',
     amac: 'Süreç toplamını doğru okumak',
-    rol: 'uyum uzmanı', kapsam: 'kendi santrali',
+    rol: 'uyum uzmanı', kapsam: 'kendi tesisi',
     onkosul: 'Bazı maddeler kapsam dışı', veriHali: 'kısmi',
     eylem: 'Süreç toplamına bakar',
     beklenenSonuc: 'Kapsam dışı maddeler paydaya GİRMEZ; toplam alt sayımların toplamıdır',
@@ -132,12 +132,12 @@ export const KAPSAMA_SENARYOLARI: Senaryo[] = [
   },
   {
     id: 'TES-YON-001', alan: 'Tesis', rota: '/tesisler', eksen: 'arayuz',
-    amac: 'Eski bir adresten santral listesine ulaşmak',
+    amac: 'Eski bir adresten tesis listesine ulaşmak',
     rol: 'herhangi bir kullanıcı', kapsam: 'kendi kapsamı',
     onkosul: 'Eski adres yer imlerinde', veriHali: 'yok',
     eylem: '/tesisler adresini açar',
     beklenenSonuc: 'Kanon listeye yönlendirilir; derin bağ kırılmaz',
-    beklenenEkran: 'İki ayrı santral listesi tutulmaz',
+    beklenenEkran: 'İki ayrı tesis listesi tutulmaz',
     beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
     katmanlar: ['UI'],
   },
@@ -155,7 +155,7 @@ export const KAPSAMA_SENARYOLARI: Senaryo[] = [
   {
     id: 'UYU-CRC-004', alan: 'Uyum', rota: '/uyum/[cerceve]', eksen: 'veri',
     amac: 'Çerçevenin madde başına durumunu görmek',
-    rol: 'uyum uzmanı', kapsam: 'kendi santrali',
+    rol: 'uyum uzmanı', kapsam: 'kendi tesisi',
     onkosul: 'Çerçevenin bazı maddeleri hiç değerlendirilmemiş', veriHali: 'kısmi',
     eylem: 'Madde satırını genişletir',
     beklenenSonuc: 'Değerlendirilmemiş madde "uyumlu" ya da "uyumsuz" SAYILMAZ',
@@ -279,8 +279,8 @@ export const KAPSAMA_SENARYOLARI: Senaryo[] = [
   {
     id: 'OLY-ETK-003', alan: 'Olay', rota: '/olaylar', eksen: 'yetki',
     amac: 'Olayın etki önerisini tazelemek',
-    rol: 'santral kullanıcısı', kapsam: 'tek santral',
-    onkosul: 'Olay başka santralde', veriHali: 'normal',
+    rol: 'tesis kullanıcısı', kapsam: 'tek tesis',
+    onkosul: 'Olay başka tesiste', veriHali: 'normal',
     eylem: 'Kapsam dışı olayın etki önerisini yenilemeyi dener',
     beklenenSonuc: 'Reddedilir; hiçbir öneri yazılmaz',
     beklenenEkran: 'Yetki cümlesi',
@@ -290,8 +290,8 @@ export const KAPSAMA_SENARYOLARI: Senaryo[] = [
   {
     id: 'TOP-TML-001', alan: 'Topoloji', rota: '/topoloji', eksen: 'yetki',
     amac: 'Bir anlığı yürürlükteki temel yapmak',
-    rol: 'santral kullanıcısı', kapsam: 'tek santral',
-    onkosul: 'Anlık başka santralin', veriHali: 'normal',
+    rol: 'tesis kullanıcısı', kapsam: 'tek tesis',
+    onkosul: 'Anlık başka tesisin', veriHali: 'normal',
     eylem: 'Kapsam dışı anlığı temel onaylamayı dener',
     beklenenSonuc: 'Reddedilir; yürürlükteki temel DEĞİŞMEZ',
     beklenenEkran: 'Yetki cümlesi tesisi adlandırır',
@@ -301,7 +301,7 @@ export const KAPSAMA_SENARYOLARI: Senaryo[] = [
   {
     id: 'TOP-BUL-001', alan: 'Topoloji', rota: '/topoloji', eksen: 'akis',
     amac: 'Sapmadan bulgu açmak',
-    rol: 'uyum uzmanı', kapsam: 'kendi santrali',
+    rol: 'uyum uzmanı', kapsam: 'kendi tesisi',
     onkosul: 'Madde durumu seçilmemiş', veriHali: 'kısmi',
     eylem: 'Madde durumu bağlamadan bulgu açmayı dener',
     beklenenSonuc: 'Reddedilir — bağsız bulgu hangi maddeyi ihlal ettiğini söyleyemez',
@@ -312,7 +312,7 @@ export const KAPSAMA_SENARYOLARI: Senaryo[] = [
   {
     id: 'VAK-YUK-001', alan: 'Varlık aktarımı', rota: '/varlik-aktarim', eksen: 'akis',
     amac: 'Varlık listesini dosyadan aktarmak',
-    rol: 'BT yöneticisi', kapsam: 'kendi santrali',
+    rol: 'BT yöneticisi', kapsam: 'kendi tesisi',
     onkosul: 'Dosya desteklenmeyen türde', veriHali: 'çelişen',
     eylem: 'Desteklenmeyen uzantılı dosya yükler',
     beklenenSonuc: 'Reddedilir; aktarım kaydı AÇILMAZ',
@@ -323,7 +323,7 @@ export const KAPSAMA_SENARYOLARI: Senaryo[] = [
   {
     id: 'VAK-ESL-001', alan: 'Varlık aktarımı', rota: '/varlik-aktarim', eksen: 'akis',
     amac: 'Kaynak sütunlarını hedef alanlara eşlemek',
-    rol: 'BT yöneticisi', kapsam: 'kendi santrali',
+    rol: 'BT yöneticisi', kapsam: 'kendi tesisi',
     onkosul: 'Zorunlu hedef alan eşlenmemiş', veriHali: 'kısmi',
     eylem: 'Eksik eşlemeyle ilerlemeyi dener',
     beklenenSonuc: 'Reddedilir; eksik alan adlandırılır',
@@ -334,7 +334,7 @@ export const KAPSAMA_SENARYOLARI: Senaryo[] = [
   {
     id: 'VAK-RED-001', alan: 'Varlık aktarımı', rota: '/varlik-aktarim', eksen: 'akis',
     amac: 'Hatalı aktarımı reddetmek',
-    rol: 'BT yöneticisi', kapsam: 'kendi santrali',
+    rol: 'BT yöneticisi', kapsam: 'kendi tesisi',
     onkosul: 'Aktarım zaten onaylanmış', veriHali: 'normal',
     eylem: 'Onaylanmış aktarımı reddetmeyi dener',
     beklenenSonuc: 'Reddedilir — karara bağlanmış aktarım yeniden karara açılmaz',
@@ -345,8 +345,8 @@ export const KAPSAMA_SENARYOLARI: Senaryo[] = [
   {
     id: 'ENV-UYG-001', alan: 'Envanter', rota: '/envanter', eksen: 'yetki',
     amac: 'Bir alanın uygulanamaz işaretini kaldırmak',
-    rol: 'santral kullanıcısı', kapsam: 'tek santral',
-    onkosul: 'Varlık başka santralde', veriHali: 'normal',
+    rol: 'tesis kullanıcısı', kapsam: 'tek tesis',
+    onkosul: 'Varlık başka tesiste', veriHali: 'normal',
     eylem: 'Kapsam dışı varlığın işaretini kaldırmayı dener',
     beklenenSonuc: 'Reddedilir; işaret DURUR',
     beklenenEkran: 'Yetki cümlesi',
@@ -356,7 +356,7 @@ export const KAPSAMA_SENARYOLARI: Senaryo[] = [
   {
     id: 'ENV-FRM-010', alan: 'Envanter', rota: '/envanter', eksen: 'akis',
     amac: 'Yükseltilemeyen firmware için istisna kaydetmek',
-    rol: 'BT yöneticisi', kapsam: 'kendi santrali',
+    rol: 'BT yöneticisi', kapsam: 'kendi tesisi',
     onkosul: 'Cihaz eski firmware\'de', veriHali: 'normal',
     eylem: 'İstisna gerekçesini kaydeder',
     beklenenSonuc: 'Uyum DURUMU DEĞİŞMEZ — cihaz hâlâ eski sürümdedir; istisna yalnız "biliniyor ve kabul edildi" der',
@@ -367,8 +367,8 @@ export const KAPSAMA_SENARYOLARI: Senaryo[] = [
   {
     id: 'ENV-PRS-001', alan: 'Envanter', rota: '/prosesler', eksen: 'yetki',
     amac: 'Yanlış bağlanmış proses adımı bağını kaldırmak',
-    rol: 'santral kullanıcısı', kapsam: 'tek santral',
-    onkosul: 'Bağın varlığı başka santralde', veriHali: 'normal',
+    rol: 'tesis kullanıcısı', kapsam: 'tek tesis',
+    onkosul: 'Bağın varlığı başka tesiste', veriHali: 'normal',
     eylem: 'Kapsam dışı bağı kaldırmayı dener',
     beklenenSonuc: 'Reddedilir; bağ DURUR',
     beklenenEkran: 'Yetki cümlesi',
@@ -389,8 +389,8 @@ export const KAPSAMA_SENARYOLARI: Senaryo[] = [
   {
     id: 'YDP-BAG-001', alan: 'Yedek parça', rota: '/yedek-parca', eksen: 'yetki',
     amac: 'Parça–varlık bağını çözmek',
-    rol: 'santral kullanıcısı', kapsam: 'tek santral',
-    onkosul: 'Bağın varlığı başka santralde', veriHali: 'normal',
+    rol: 'tesis kullanıcısı', kapsam: 'tek tesis',
+    onkosul: 'Bağın varlığı başka tesiste', veriHali: 'normal',
     eylem: 'Kapsam dışı bağı çözmeyi dener',
     beklenenSonuc: 'Reddedilir; bağ DURUR',
     beklenenEkran: 'Yetki cümlesi',
@@ -496,7 +496,7 @@ export const KAPSAMA_SENARYOLARI: Senaryo[] = [
   {
     id: 'BUL-KAP-003', alan: 'Bulgu', rota: '/bulgular/[id]', eksen: 'akis',
     amac: 'Bulgunun kapanması için eksik olan işi görüp ona gitmek',
-    rol: 'uyum uzmanı', kapsam: 'kendi santrali',
+    rol: 'uyum uzmanı', kapsam: 'kendi tesisi',
     onkosul: 'Bulgunun bir adımı eksik', veriHali: 'kısmi',
     eylem: 'Kapanış şeridindeki bir adıma tıklar',
     beklenenSonuc: 'O adımın işine gidilir — şerit navigatördür, ilerleme süsü değil',
@@ -507,7 +507,7 @@ export const KAPSAMA_SENARYOLARI: Senaryo[] = [
   {
     id: 'BUL-KAP-004', alan: 'Bulgu', rota: '/bulgular/[id]', eksen: 'veri',
     amac: 'Kök neden analizini yazmak',
-    rol: 'uyum uzmanı', kapsam: 'kendi santrali',
+    rol: 'uyum uzmanı', kapsam: 'kendi tesisi',
     onkosul: 'Ekranda kök nedene yazan iki ayrı form vardı', veriHali: 'çelişen',
     eylem: 'Kök nedeni kaydeder',
     beklenenSonuc: 'Tek yol vardır; kategori ve asgari uzunluk isteyen kapıdan geçilir',
@@ -518,7 +518,7 @@ export const KAPSAMA_SENARYOLARI: Senaryo[] = [
   {
     id: 'BUL-KAP-005', alan: 'Bulgu', rota: '/bulgular/[id]', eksen: 'arayuz',
     amac: 'Bulguya yalnız bakmak',
-    rol: 'uyum uzmanı', kapsam: 'kendi santrali',
+    rol: 'uyum uzmanı', kapsam: 'kendi tesisi',
     onkosul: 'Kullanıcı düzenleme istemedi', veriHali: 'normal',
     eylem: 'Bulgu kaydını açar',
     beklenenSonuc: 'Düzenleme formu KENDİLİĞİNDEN açılmaz; okunabilir özet gelir',

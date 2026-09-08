@@ -3,18 +3,18 @@ import { tesisKapsamda } from '@/lib/api/yetki';
 import { izinVar, izinliTesisIdleri, KAPSAM_SONRA, type Islem, type Modul } from '@/lib/erisim';
 import type { AktifKullanici } from '@/lib/auth';
 
-/* ═══ EKRAN KAPSAMI — santral sınırının TEK yeri ══════════════════════════
+/* ═══ EKRAN KAPSAMI — tesis sınırının TEK yeri ══════════════════════════
    `lib/erisim.ts → izinliTesisIdleri(k, modul)` kullanıcının bir modülde
-   görebildiği santral kümesini verir:
-     null  = kapsam sınırı yok (tüm santraller)
-     []    = hiçbir santral
-     dizi  = yalnız o santraller
+   görebildiği tesis kümesini verir:
+     null  = kapsam sınırı yok (tüm tesisler)
+     []    = hiçbir tesis
+     dizi  = yalnız o tesisler
 
    Bu dosya o sözleşmeyi Prisma `where` parçasına ve satır kararına çevirir.
    Yetki MODELİ burada DEĞİŞMEZ — `lib/erisim.ts` tek karar mercii kalır;
    burada yalnız aynı kararın ekran tarafındaki iki biçimi yaşar.
 
-   ── SANTRALİ BİLİNMEYEN KAYIT ─────────────────────────────────────────
+   ── TESİSİ BİLİNMEYEN KAYIT ─────────────────────────────────────────
    Kural `lib/api/yetki.ts → tesisKapsamda` ile AYNIDIR ve tekrarlanmaz,
    AYNEN o fonksiyon çağrılır: `tesisId === null` olan kayıt yalnız kapsamı
    sınırsız kullanıcıya görünür. API katmanı ile ekran katmanı bu noktada
@@ -43,13 +43,13 @@ export function kapsamKosulu(kapsam: TesisKapsami): { tesisId?: { in: string[] }
 }
 
 /**
- * Birden çok modülden okuyan ekranlar için birleşik kapsam (santral
- * portföyü yüzeyleri: F1 · F2 · F3). "Bu santrale HERHANGİ bir modülden
+ * Birden çok modülden okuyan ekranlar için birleşik kapsam (tesis
+ * portföyü yüzeyleri: F1 · F2 · F3). "Bu tesise HERHANGİ bir modülden
  * okuma hakkım var mı?" sorusunu yanıtlar.
  *
  * Kesişim DEĞİL birleşim alınır bilinçli olarak: kesişim, denetim modülüne
- * kapsamsız yetkili bir dış denetçiyi envanter kapsamı yüzünden santralden
- * tümüyle dışarı atardı. Birleşim yalnız "santral listesinde görünme"
+ * kapsamsız yetkili bir dış denetçiyi envanter kapsamı yüzünden tesisten
+ * tümüyle dışarı atardı. Birleşim yalnız "tesis listesinde görünme"
  * kapısıdır; panellerin İÇERİĞİ ayrıca kendi modülüyle daraltılır.
  */
 export function birlesikKapsam(...kapsamlar: TesisKapsami[]): TesisKapsami {
@@ -63,16 +63,16 @@ export function kapsamDaraltildi(kapsam: TesisKapsami): boolean {
 }
 
 /**
- * Kullanıcı bu modülü OKUYABİLİR mi? — santral kapsamından AYRI bir eksen
+ * Kullanıcı bu modülü OKUYABİLİR mi? — tesis kapsamından AYRI bir eksen
  * ve ikisi birbirinin yerini tutmaz: kapsamsız (`null`) ama yanlış modülde
  * yetkili bir kullanıcı, kapsam süzgecinden geçer ve her şeyi görürdü.
  *
  * NEDEN `izinVar(k, modul, 'okuma')` DEĞİL: `lib/erisim.ts → kapsamUyar`
  * kuralına göre kapsamsız (`{}`) bir işlem GLOBAL bir işlemdir ve tesise
  * KISITLI bir yetki onu geçemez. Yani `izinVar(k,'envanter','okuma')`
- * yalnız A santraline yetkili bir kullanıcı için `false` döner — bu doğru
- * yanıttır ama SORU yanlıştır: ekran "tüm santralleri okuyabilir misin"
- * diye sormamalı, "okuyabildiğin santral var mı" diye sormalıdır.
+ * yalnız A tesisine yetkili bir kullanıcı için `false` döner — bu doğru
+ * yanıttır ama SORU yanlıştır: ekran "tüm tesisleri okuyabilir misin"
+ * diye sormamalı, "okuyabildiğin tesis var mı" diye sormalıdır.
  * `izinVar` ile sorulsaydı kapsamı dar HER kullanıcı ekrandan tümüyle
  * atılırdı — sızıntıyı kapatırken ürünü kırmak olurdu.
  *
@@ -93,7 +93,7 @@ export function modulOkuyabilir(k: AktifKullanici, modul: Modul): boolean {
  *   · veri katmanı burada FIRLATIR (kapı atlanırsa veri yine de gelmesin).
  * Ekranı susturmak bir yetki kontrolü değildir; sınır veridedir.
  *
- * Hata metni yalnız MODÜLÜ söyler, hiçbir santralin adını/kodunu değil.
+ * Hata metni yalnız MODÜLÜ söyler, hiçbir tesisin adını/kodunu değil.
  */
 export function modulKapisi(k: AktifKullanici, modul: Modul): void {
   if (!modulOkuyabilir(k, modul)) {
@@ -115,9 +115,9 @@ export function modulKapisi(k: AktifKullanici, modul: Modul): void {
  *
  * NEDEN `izinVar(k, modul, islem)` DEĞİL: kapsamsız `{}` çağrı GLOBAL bir
  * işlem sorar ve `kapsamUyar` gereği tesise KISITLI her rolü reddeder.
- * Ekran o yanıtı "yazamazsın" diye okuyup düğmeyi gizliyordu; oysa santral
- * yöneticisi KENDİ santralinde pekâlâ yazabilir. Soru yanlıştı: ekran "tüm
- * santrallerde yazabilir misin" diye sormamalı, "yazabildiğin santral var
+ * Ekran o yanıtı "yazamazsın" diye okuyup düğmeyi gizliyordu; oysa tesis
+ * yöneticisi KENDİ tesisinde pekâlâ yazabilir. Soru yanlıştı: ekran "tüm
+ * tesislerde yazabilir misin" diye sormamalı, "yazabildiğin tesis var
  * mı" diye sormalıdır.
  *
  * Tek başına bir yetki kapısı DEĞİLDİR — satır kararı `kapsamdaYetkili`
@@ -133,7 +133,7 @@ export function modulYazabilir(k: AktifKullanici, modul: Modul, islem: Islem): b
  * tesise kısıtlı rol kurumsal kayda uzanamaz.
  *
  * Ekranlar bunu `!kayit.tesisId || izinVar(...)` diye yazıyordu; o biçim
- * santralsiz kaydı HERKESE yazılabilir gösteriyor, sunucu ise reddediyordu.
+ * tesissiz kaydı HERKESE yazılabilir gösteriyor, sunucu ise reddediyordu.
  * Ekranın sunucudan GEVŞEK olması, kullanıcıya kaydedilmeyecek bir düğme
  * göstermek demektir.
  */

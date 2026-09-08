@@ -25,7 +25,7 @@ export const POST = apiUcu(
     async (kosuId) => {
       const defter = new HataDefteri();
 
-      const tesisler = await tesisHaritasi(records.map((r) => r.plantCode ?? ''));
+      const tesisler = await tesisHaritasi(records.map((r) => r.facilityCode ?? ''));
       const gorulen = new Set<string>();
       const cozumler: {
         indeks: number; gozlem: ReturnType<typeof varlikGozlemine>;
@@ -47,15 +47,15 @@ export const POST = apiUcu(
         gorulen.add(tekil);
 
         let tesisId: string | null = null;
-        if (tel.plantCode) {
-          const tesis = tesisler.get(tel.plantCode);
-          if (!tesis) { defter.ekle(i, 'plantCode', 'bilinmeyen santral kodu'); continue; }
+        if (tel.facilityCode) {
+          const tesis = tesisler.get(tel.facilityCode);
+          if (!tesis) { defter.ekle(i, 'facilityCode', 'bilinmeyen tesis kodu'); continue; }
           tesisId = tesis.id;
         }
-        // plantCode yoksa KAPSAMSIZ yazma istenir; santrale kisitli anahtar gecemez.
+        // facilityCode yoksa KAPSAMSIZ yazma istenir; tesise kisitli anahtar gecemez.
         yazmaIzniZorunlu(kullanici, 'envanter', tesisId);
 
-        /* Cozulen santral kayda YAZILIR, yalnizca izin kontrolunde
+        /* Cozulen tesis kayda YAZILIR, yalnizca izin kontrolunde
            kullanilip atilmaz: eslesmemis keşif kaydinin kapsami baska
            turlu bilinemez. */
         cozumler.push({ indeks: i, gozlem, anahtar: anahtarlar[0].alan, tesisId });
@@ -89,7 +89,7 @@ export const POST = apiUcu(
           if (mevcut) {
             await tx.kesifKaydi.update({
               where: { id: mevcut.id },
-              // santral yalniz cozulebildiginde yazilir, asla silinmez
+              // tesis yalniz cozulebildiginde yazilir, asla silinmez
               data: c.tesisId ? { ...ortak, tesisId: c.tesisId } : ortak,
             });
             kayitId = mevcut.id;

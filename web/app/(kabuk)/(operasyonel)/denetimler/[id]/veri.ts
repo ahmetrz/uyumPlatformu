@@ -11,7 +11,7 @@ import type { DetayVerisi } from './DenetimDetayIstemci';
    ═══ KAPSAM SIZINTISI ══════════════════════════════════════════════════
    /denetimler LİSTESİ kapsamlıydı, detay rotası DEĞİLDİ: liste satırı
    gizlense bile `/denetimler/<id>` kapsam dışı denetimin kapsam
-   santrallerini (id · kod · ad), bulgularını, bulguların santral kodlarını
+   tesislerini (id · kod · ad), bulgularını, bulguların tesis kodlarını
    ve kanıt taleplerini tam hâliyle veriyordu. Liste kapsamlı, detay
    kapsamsızsa sınır yalnız görünüştedir.
 
@@ -24,14 +24,14 @@ import type { DetayVerisi } from './DenetimDetayIstemci';
    Liste ekranının kuralı AYNEN korunur ve tekrarlanmaz, tek yerden
    (`denetimGorunur`) gelir: kapsamı hiç girilmemiş denetim PORTFÖY geneli
    sayılır ve gizlenmez. Bu, `lib/api/yetki.ts → tesisKapsamda`nın
-   "santrali bilinmeyen kayıt yalnız kapsamsıza görünür" kuralından
+   "tesisi bilinmeyen kayıt yalnız kapsamsıza görünür" kuralından
    bilinçli bir SAPMADIR ve gerekçesi listede yazılıdır: aksi hâlde kapsam
    satırı unutulmuş bir denetim kimseye görünmez olur — yani veri
    eksikliği, kaydı yok etmenin yolu hâline gelirdi.
 
    ── VARLIĞI DOĞRULAMAK DA BİR SIZINTIDIR ───────────────────────────────
    Kapsam dışı denetim `null` döner, rota `notFound()` çağırır; hangi
-   santralin dışarıda kaldığı SÖYLENMEZ. */
+   tesisin dışarıda kaldığı SÖYLENMEZ. */
 
 /** Liste ve detayın PAYLAŞTIĞI görünürlük kuralı — iki rota ayrışamaz. */
 export function denetimGorunur(
@@ -102,8 +102,8 @@ export async function denetimDetayVerisi(
   if (!denetimGorunur(izinli, ham.kapsamlar.map((x) => x.tesis?.id ?? null))) return null;
 
   /* Denetim görünür olsa bile İÇİNDEKİ satırlar ayrıca daraltılır: çok
-     santralli bir denetimin kapsam satırı ve bulgusu, kullanıcının
-     göremediği bir santrali adıyla ve koduyla taşıyabilir. */
+     tesisli bir denetimin kapsam satırı ve bulgusu, kullanıcının
+     göremediği bir tesisi adıyla ve koduyla taşıyabilir. */
   const gorunurKapsamlar = izinli === null
     ? ham.kapsamlar
     : ham.kapsamlar.filter((x) => x.tesis === null || izinli.includes(x.tesis.id));
@@ -134,7 +134,7 @@ export async function denetimDetayVerisi(
     }),
   ]);
 
-  /* Başlık ölçüleri (kaç santral, kaç bulgu) DARALTILMIŞ kümeden hesaplanır:
+  /* Başlık ölçüleri (kaç tesis, kaç bulgu) DARALTILMIŞ kümeden hesaplanır:
      satırı gizleyip sayacı bırakmak, sayının kendisini sızıntıya çevirirdi. */
   const denetim = denetimeCevir(
     {
@@ -163,7 +163,7 @@ export async function denetimDetayVerisi(
       hedef: b.hedefTarih?.toISOString() ?? null,
     })),
     kullanicilar: kullanicilar.map((u) => ({ id: u.id, ad: u.adSoyad })),
-    /* Kapsama yalnız kullanıcının o santralde yazma yetkisi olan tesisler
+    /* Kapsama yalnız kullanıcının o tesiste yazma yetkisi olan tesisler
        önerilir; sunucu eylemi aynı kontrolü tekrar uygular. */
     tesisler: tesisler
       .filter((t) => izinVar(k, 'denetim', 'yazma', { tesisId: t.id }))
@@ -173,7 +173,7 @@ export async function denetimDetayVerisi(
     /* Kapsamsız: `Denetim` tesisId taşımaz (kapsam `DenetimKapsami`
        ilişkisiyle kurulur) ve aşama eylemleri de kapsamsız korunur.
        Yukarıdaki tesis listesi AYRI bir sorudur: denetimin kapsamına
-       hangi santrallerin eklenebileceğini santral santral sorar. */
+       hangi tesislerin eklenebileceğini tesis tesis sorar. */
     yazabilir: izinVar(k, 'denetim', 'yazma'),
     onaylayabilir: izinVar(k, 'denetim', 'onay'),
   };

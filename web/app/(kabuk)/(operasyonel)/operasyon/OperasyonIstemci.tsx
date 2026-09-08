@@ -13,9 +13,10 @@ import {
   ASAMALAR, GORUNUR_BUTCE, MERCEKLER,
   altSatir, asamaEtiketi, asamaIndeksi, baslikMetni, bolumle, degisiklikImi,
   dipNot, gecikmeGunu, kapiHucresi, kimlikCumlesi, kimlikSozu,
-  metrikleriHesapla, mercekten, santralMetni, sirala,
+  metrikleriHesapla, mercekten, tesisMetni, sirala,
   type D, type Kodlu, type Mercek, type OlayAdayi,
 } from './mantik';
+import { useSozluk, useTerim } from '@/lib/dil/SozlukSaglayici';
 
 /* O · Değişiklik yönetimi — "hangi değişiklik emniyet kanıtını taşımıyor?"
    Tek canvas modülü: önceliğe göre sıralı değişiklik tablosu. Durum sözcüğü
@@ -26,11 +27,13 @@ import {
    Yedekleme, kimlik ve tedarikçi sekmeleri bu ekranda YOKTUR; gerekçesi
    mantik.ts başındaki notta. */
 
-const KOLONLAR: Kolon[] = [
+/* Kolon başlığı terim taşıyor; kütük bir İŞLEV oldu ve ekran kendi
+   sözlüğüyle çözüyor (bkz. `lib/yonetim/moduller.ts` aynı desen). */
+const kolonlar = (tesis: string): Kolon[] => [
   { baslik: 'Aşama', genislik: '104px' },
   { baslik: 'Kapı', genislik: '72px', sag: true },
   { baslik: 'Plan', genislik: '108px', sag: true },
-  { baslik: 'Santral', genislik: '150px', ikincil: true },
+  { baslik: tesis, genislik: '150px', ikincil: true },
 ];
 
 type Kip = 'ozet' | 'form';
@@ -48,6 +51,10 @@ export default function OperasyonIstemci({
   const [kip, setKip] = useUrlDurumu<Kip>('kip', 'ozet');
   const [yeniAcik, setYeniAcik] = useState(false);
   const [kuyrukAcik, setKuyrukAcik] = useState(false);
+
+  const { tBas } = useTerim();
+  const sozluk = useSozluk();
+  const KOLONLAR = useMemo(() => kolonlar(tBas('tesis')), [tBas]);
 
   /* Metrikler filtreden BAĞIMSIZ: kütüğün tamamını anlatır (06 §A2). */
   const m = useMemo(() => metrikleriHesapla(degisiklikler, simdi), [degisiklikler, simdi]);
@@ -85,7 +92,7 @@ export default function OperasyonIstemci({
           : !d.planTarihi ? { color: 'var(--i3)' } : undefined}>
           {gec !== null ? `+${gec} gün` : d.planTarihi ? tarihTR(d.planTarihi) : 'tarih yok'}
         </span>,
-        santralMetni(d),
+        tesisMetni(d, sozluk),
       ],
     };
   });
@@ -124,7 +131,7 @@ export default function OperasyonIstemci({
             sec={(id) => { setMercek(id as Mercek); setKuyrukAcik(false); }}
             kapsam={
               <>
-                <Kapsam etiket="Santral" aktif={tesisF}
+                <Kapsam etiket={tBas('tesis')} aktif={tesisF}
                   sec={(id) => { setTesisF(id); setKuyrukAcik(false); }}
                   secenekler={tesisler.map((t) => ({ id: t.id, ad: t.ad }))} />
                 <Kapsam etiket="Tip" aktif={tipF}
@@ -215,6 +222,7 @@ function Ozet({ d, olaylar, simdi, duzenle }: {
 }) {
   const im = degisiklikImi(d, simdi);
   const ix = asamaIndeksi(d.durum);
+  const sozluk = useSozluk();
 
   /* Zincir değişikliğin dokunduğu kayıtları anlatır: doğurduğu ya da
      kapattığı olaylar. Olmayan halka uydurulmaz. */
@@ -231,7 +239,7 @@ function Ozet({ d, olaylar, simdi, duzenle }: {
         { etiket: 'Tip', deger: d.otMu ? 'OT değişikliği' : 'BT değişikliği' },
         {
           etiket: 'Kapsam',
-          deger: `${santralMetni(d)}${d.varlikEtiketi ? ` · ${d.varlikEtiketi}` : ''}`,
+          deger: `${tesisMetni(d, sozluk)}${d.varlikEtiketi ? ` · ${d.varlikEtiketi}` : ''}`,
         },
         {
           etiket: 'Plan tarihi',
@@ -320,7 +328,7 @@ function AsamaSeridi({ d, ix }: { d: D; ix: number }) {
   );
 }
 
-/* ── Kapsam kontrolü (SANTRAL ▾ / TİP ▾) ────────────────────────────────
+/* ── Kapsam kontrolü (TESİS ▾ / TİP ▾) ────────────────────────────────
    Kutu yok, kenarlık yok: 9.5px mono açılır liste (02-components §4). */
 
 function Kapsam({ etiket, secenekler, aktif, sec }: {

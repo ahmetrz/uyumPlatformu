@@ -20,15 +20,30 @@
    Bu dosya veritabanı ve React bilmez. */
 
 /** Uç kimlikleri — `lib/api/uclar/` ile BİREBİR. */
+import { tBas, type Sozluk, type TerimAnahtari } from '../dil/terimler';
+
 export const UC_KIMLIKLERI = [
-  'plants', 'assets', 'assets.upsert', 'assets.observations',
+  'facilities', 'assets', 'assets.upsert', 'assets.observations',
   'evidence', 'vulnerabilities', 'backup-results', 'integration-runs',
   'access-observations', 'asset-state',
 ] as const;
 export type UcKimligi = (typeof UC_KIMLIKLERI)[number];
 
+/* ── İKİ ETİKET, İKİ AYRI İŞ (R0-9) ────────────────────────────────────
+   `UC_ETIKETI` bir SÖZLEŞME ARTEFAKTIDIR: OpenAPI belgesinin `summary`
+   alanına gider (`lib/api/sozlesme.ts`) ve entegratörün okuduğu şey odur.
+   Artefakt kiracının sözlüğüne göre DEĞİŞMEZ — aynı ürünün sözleşmesi iki
+   kiracıda iki türlü okunursa entegratör hangisine göre kod yazacağını
+   bilemez. Çekirdek terimde kalır ve öyle kalmalı.
+
+   EKRANDA gösterilen etiket ise kiracının sözcüğünü izlemeli: API anahtarı
+   kapsamı seçen kullanıcı kendi sözlüğünü okur. O yüzden ayrı bir işlev
+   var (`ucEtiketi`), aynı sabit iki iş görmüyor.
+
+   Uç KİMLİĞİ (`facilities`) her iki hâlde de kod anahtarıdır ve asla
+   çevrilmez — kapsam dizesi anahtarda saklanıyor. */
 export const UC_ETIKETI: Record<UcKimligi, string> = {
-  plants: 'Santraller (okuma)',
+  facilities: 'Tesisler (okuma)',
   assets: 'Varlıklar (okuma)',
   'assets.upsert': 'Varlık yazma (upsert)',
   'assets.observations': 'Varlık gözlemi bildirimi (yazma)',
@@ -40,9 +55,21 @@ export const UC_ETIKETI: Record<UcKimligi, string> = {
   'asset-state': 'Canlı duruş bildirimi (yazma)',
 };
 
+/* Terim TAŞIYAN uçlar: ekran etiketi bunlarda sözlükten kurulur.
+   Ötekiler zaten sektörsüz ("Kanıtlar", "Zafiyet bildirimi"). */
+const UC_TERIMI: Partial<Record<UcKimligi, { anahtar: TerimAnahtari; kuyruk: string }>> = {
+  facilities: { anahtar: 'tesis', kuyruk: '(okuma)' },
+};
+
+/** EKRAN etiketi — kiracının sözlüğünü izler. Sözleşme için `UC_ETIKETI`. */
+export function ucEtiketi(sozluk: Sozluk | null, uc: UcKimligi): string {
+  const terim = UC_TERIMI[uc];
+  return terim ? `${tBas(sozluk, terim.anahtar, 'cogul')} ${terim.kuyruk}` : UC_ETIKETI[uc];
+}
+
 /** Ucun bağlı olduğu modül — rol kapısının sorduğu modülün AYNISI. */
 export const UC_MODULU: Record<UcKimligi, 'envanter' | 'uyum' | 'yonetim'> = {
-  plants: 'envanter',
+  facilities: 'envanter',
   assets: 'envanter',
   'assets.upsert': 'envanter',
   'assets.observations': 'envanter',

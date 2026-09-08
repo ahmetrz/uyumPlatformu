@@ -1,14 +1,16 @@
 'use client';
 import Link from 'next/link';
 import { KIRACI_AD, MARKA_AD } from '@/lib/marka';
+import { SozlukSaglayici } from '@/lib/dil/SozlukSaglayici';
+import { t, type Sozluk } from '@/lib/dil/terimler';
 import { usePathname } from 'next/navigation';
-import type { ReactNode } from 'react';
+import { useMemo, type ReactNode } from 'react';
 import HesapMenusu from '@/components/kabuk/HesapMenusu';
 import AramaDugmesi from '@/components/AramaDugmesi';
 import KomutPaleti from '@/components/KomutPaleti';
 import YardimKatmani from '@/components/YardimKatmani';
 import {
-  ALANLAR, aktifMi, alanAktif, ikincilSec, ogeAktif, sayacEtiketi, sayacMetni, ucunculSec,
+  aktifMi, alanAktif, alanlariCoz, ikincilSec, ogeAktif, sayacEtiketi, sayacMetni, ucunculSec,
   yogunlukSec,
 } from './yonler';
 
@@ -26,7 +28,7 @@ import {
      1fr   `#icerik`     ekranın kendi <main>'i
      32px  `.ab-durum`   sistem durumu: veri kesiti · bağlayıcı sayımları
      32px  `.ab-alt`     ayak: ürün · sürüm · yardım · destek · telif
-   Amiral yoğunlukta (Saha, Portföy, Harita, Santral 360) iki satır
+   Amiral yoğunlukta (Saha, Portföy, Harita, Tesis 360) iki satır
    sıkışır (durum 26 + ayak 22) ama BİRLEŞMEZ: ürün sahibi kabulü
    (2026-09) "footer ≠ sistem durumu" kuralının her ekranda iki ayrı
    semantik bölge olmasını ister; Saha'nın yükseklik bütçesi 48px'e
@@ -44,8 +46,8 @@ export type KabukKullanicisi = { ad: string; unvan: string | null; demo?: boolea
 
 export type KabukVerisi = {
   kullanici: KabukKullanicisi;
-  /** İkincil sıranın sağ ucu için: grup · tüzel kişi sayısı · santral sayısı. */
-  kapsam: { grup: string; tuzelKisi: number; santral: number } | null;
+  /** İkincil sıranın sağ ucu için: grup · tüzel kişi sayısı · tesis sayısı. */
+  kapsam: { grup: string; tuzelKisi: number; tesis: number } | null;
   /** Sistem durumu — yalnız yetkili kullanıcıya doldurulur, yoksa `null`. */
   ayak: { toplam: number; sayimlar: Record<string, number>; sonKosu: string | null } | null;
   /** Veri kesiti damgası (ISO). Uydurulmaz; yoksa `null`. */
@@ -57,6 +59,10 @@ export type KabukVerisi = {
   ortam: 'demo' | 'gelistirme' | 'uretim';
   /** Ayak künye metni — yönetim konsolundan (A sınıfı) ayarlanır; kod varsayılanı platform adı. */
   kunye: string;
+  /** Kapsamın terim sözlüğü; `null` = sektör tek değil ya da yok →
+      çekirdek sözcük. Kabuğun altındaki her istemci bileşen buna
+      `useTerim()` ile erişir (`lib/dil/SozlukSaglayici.tsx`). */
+  sozluk: Sozluk | null;
 };
 
 const TARIH = new Intl.DateTimeFormat('tr-TR', {
@@ -75,7 +81,14 @@ export default function Kabuk({ veri, children }: { veri: KabukVerisi; children:
   const yogunluk = yogunlukSec(patika);
   const ikincil = ikincilSec(patika);
   const ucuncul = ucunculSec(patika);
+  /* Kabuk, sağlayıcının KENDİSİDİR: `useTerim()` burada çağrılamaz
+     (bağlam bir alt katmanda başlar), sözlük doğrudan veriden okunur. */
+  const alanlar = useMemo(() => alanlariCoz(veri.sozluk), [veri.sozluk]);
   return (
+    /* Sözlük kabuğun KÖKÜNDE verilir: altındaki her istemci bileşen —
+       ekranların kendileri dâhil — `useTerim()` ile aynı sözcüğü okur ve
+       hiçbir katman prop taşımak zorunda kalmaz. */
+    <SozlukSaglayici sozluk={veri.sozluk}>
     <div className="ab" data-yogunluk={yogunluk}>
       {/* İÇERİĞE ATLA — belgenin İLK odaklanabilir öğesi. Görünmez; klavye
           odağı gelince görünür (`.ab-atla`). Hedef `#icerik` sarmalayıcısı
@@ -87,7 +100,7 @@ export default function Kabuk({ veri, children }: { veri: KabukVerisi; children:
           {KIRACI_AD.toLocaleUpperCase('tr-TR')}<span className="ikinci">{MARKA_AD}</span>
         </Link>
         <nav aria-label="Alanlar">
-          {ALANLAR.map((o) => (
+          {alanlar.map((o) => (
             <Link key={o.yol} href={o.yol}
               aria-current={alanAktif(o, patika) ? 'page' : undefined}>
               {o.ad}
@@ -116,7 +129,7 @@ export default function Kabuk({ veri, children }: { veri: KabukVerisi; children:
           ))}
           {veri.kapsam && (
             <span className="mono etiket sag dar-gizle">
-              {veri.kapsam.grup} · {veri.kapsam.santral} santral
+              {veri.kapsam.grup} · {veri.kapsam.tesis} {t(veri.sozluk, 'tesis')}
             </span>
           )}
         </nav>
@@ -152,6 +165,7 @@ export default function Kabuk({ veri, children }: { veri: KabukVerisi; children:
       <KomutPaleti />
       <YardimKatmani />
     </div>
+    </SozlukSaglayici>
   );
 }
 

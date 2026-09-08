@@ -5,11 +5,12 @@ import { useEylem } from '@/components/useEylem';
 import {
   varlikKaydet, iliskiEkle, iliskiSil, varlikYasamDongusu,
 } from '@/lib/eylemler2/envanter';
+import { useTerim } from '@/lib/dil/SozlukSaglayici';
 import { etiketle, tarihTR } from '@/lib/sabitler';
 import {
   ILISKI_CUMLE, ILISKI_TIPLERI, KRITIKLIKLER, MARUZIYET_SECENEK,
   VAR_YOK_SECENEK, YAMA_SECENEK, YASAM_DONGULERI, YASAM_ETIKET,
-  type Bolge, type Kisi, type Kodlu, type Tur, type Unite, type V,
+  type Bolge, type Kisi, type Kodlu, type Tur, type Birim, type V,
 } from './mantik';
 
 /* Varlık yazma yüzeyleri — MODAL YOK (06 §B4). Üçü de 420px çekmecede
@@ -35,7 +36,7 @@ function Bolum({ ad, children }: { ad: string; children: React.ReactNode }) {
 
 type FormDurumu = {
   id?: string; etiket: string; ad: string; turId: string;
-  tesisId: string; uniteId: string; sistemId: string; bolgeId: string;
+  tesisId: string; birimId: string; sistemId: string; bolgeId: string;
   sahipId: string; emanetciId: string;
   hostname: string; seriNo: string; uretici: string; model: string;
   ipAdresi: string; macAdresi: string; isletimSistemi: string;
@@ -55,7 +56,7 @@ const tarihe = (iso: string | null) => (iso ? iso.slice(0, 10) : '');
 
 function formBaslat(v: V | null): FormDurumu {
   if (!v) return {
-    etiket: '', ad: '', turId: '', tesisId: '', uniteId: '', sistemId: '', bolgeId: '',
+    etiket: '', ad: '', turId: '', tesisId: '', birimId: '', sistemId: '', bolgeId: '',
     sahipId: '', emanetciId: '', hostname: '', seriNo: '', uretici: '', model: '',
     ipAdresi: '', macAdresi: '', isletimSistemi: '', firmware: '', surum: '',
     rafOda: '', kimlikDogrulama: '',
@@ -67,7 +68,7 @@ function formBaslat(v: V | null): FormDurumu {
   };
   return {
     id: v.id, etiket: v.etiket, ad: v.ad, turId: v.tur.id,
-    tesisId: v.tesis?.id ?? '', uniteId: v.unite?.id ?? '', sistemId: v.sistem?.id ?? '',
+    tesisId: v.tesis?.id ?? '', birimId: v.birim?.id ?? '', sistemId: v.sistem?.id ?? '',
     bolgeId: v.bolge?.id ?? '', sahipId: v.sahip?.id ?? '', emanetciId: v.emanetci?.id ?? '',
     hostname: v.hostname ?? '', seriNo: v.seriNo ?? '', uretici: v.uretici ?? '',
     model: v.model ?? '', ipAdresi: v.ipAdresi ?? '', macAdresi: v.macAdresi ?? '',
@@ -88,14 +89,15 @@ function formBaslat(v: V | null): FormDurumu {
 }
 
 export function VarlikFormu({
-  varlik, turler, tesisler, uniteler, sistemler, bolgeler, kullanicilar, kapat,
+  varlik, turler, tesisler, birimler, sistemler, bolgeler, kullanicilar, kapat,
 }: {
-  varlik: V | null; turler: Tur[]; tesisler: Kodlu[]; uniteler: Unite[];
+  varlik: V | null; turler: Tur[]; tesisler: Kodlu[]; birimler: Birim[];
   sistemler: Kodlu[]; bolgeler: Bolge[]; kullanicilar: Kisi[]; kapat: () => void;
 }) {
+  const { tBas } = useTerim();
   const { bekliyor, hata, calistir } = useEylem();
   const [f, setF] = useState<FormDurumu>(() => formBaslat(varlik));
-  const uygunUniteler = uniteler.filter((u) => u.tesisId === f.tesisId);
+  const uygunBirimler = birimler.filter((u) => u.tesisId === f.tesisId);
   const gecerli = !!f.etiket.trim() && !!f.ad.trim() && !!f.turId;
 
   const yaz = (ad: keyof FormDurumu, deger: string) => setF({ ...f, [ad]: deger });
@@ -131,7 +133,7 @@ export function VarlikFormu({
   function kaydet() {
     calistir(() => varlikKaydet({
       id: f.id, etiket: f.etiket, ad: f.ad, turId: f.turId,
-      tesisId: f.tesisId || null, uniteId: f.uniteId || null,
+      tesisId: f.tesisId || null, birimId: f.birimId || null,
       sistemId: f.sistemId || null, bolgeId: f.bolgeId || null,
       sahipId: f.sahipId || null, emanetciId: f.emanetciId || null,
       hostname: f.hostname, seriNo: f.seriNo, uretici: f.uretici, model: f.model,
@@ -173,18 +175,18 @@ export function VarlikFormu({
           <input className="ab-gr" value={f.ad} onChange={(e) => yaz('ad', e.target.value)} />
         </Alan>
         <div style={ikili}>
-          <Alan etiket="Santral">
+          <Alan etiket={tBas('tesis')}>
             <select className="ab-gr" value={f.tesisId}
-              onChange={(e) => setF({ ...f, tesisId: e.target.value, uniteId: '' })}>
+              onChange={(e) => setF({ ...f, tesisId: e.target.value, birimId: '' })}>
               <option value="">—</option>
               {tesisler.map((t) => <option key={t.id} value={t.id}>{t.kod}</option>)}
             </select>
           </Alan>
-          <Alan etiket="Ünite">
-            <select className="ab-gr" value={f.uniteId} disabled={!f.tesisId}
-              onChange={(e) => yaz('uniteId', e.target.value)}>
+          <Alan etiket={tBas('birim')}>
+            <select className="ab-gr" value={f.birimId} disabled={!f.tesisId}
+              onChange={(e) => yaz('birimId', e.target.value)}>
               <option value="">—</option>
-              {uygunUniteler.map((u) => <option key={u.id} value={u.id}>{u.kod}</option>)}
+              {uygunBirimler.map((u) => <option key={u.id} value={u.id}>{u.kod}</option>)}
             </select>
           </Alan>
           <Alan etiket="Sistem / servis">

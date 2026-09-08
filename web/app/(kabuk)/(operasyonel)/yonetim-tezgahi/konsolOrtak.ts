@@ -1,11 +1,12 @@
 import type { Durum } from '@/components/kabuk/temel';
+import type { TerimAnahtari } from '@/lib/dil/terimler';
 
 /* Yönetim konsolu — istemciye giden veri sözleşmesi. `db` yok; sunucu
    tarafı konsolVerisi.ts bu tipleri doldurur. */
 
 export type Kodlu = { id: string; kod: string; ad: string };
 
-/** Katalog kaydı (grup, tüzel kişi, ünite, varlık türü, ağ bölgesi, kural, santral görseli). */
+/** Katalog kaydı (grup, tüzel kişi, birim, varlık türü, ağ bölgesi, kural, tesis görseli). */
 export type KonsolKayit = {
   id: string;
   kod: string;
@@ -27,6 +28,14 @@ export type KonsolAyar = {
   guncelleyen: string | null;
 };
 
+/* Saklanan etki satırı ÇEKİRDEK başlık taşır (R0-9, `lib/eylemler2/
+   yonetim.ts`); `terim` anahtarı varsa ekran başlığı sözlükten yeniden
+   yazar. Anahtarsız satırlar (sayım etiketleri) olduğu gibi görünür. */
+export type EtkiSatiri = {
+  baslik: string; deger: number | null; not?: string;
+  terim?: TerimAnahtari; ek?: string;
+};
+
 export type TalepDurumu = 'taslak' | 'incelemede' | 'onaylandi' | 'reddedildi' | 'uygulandi' | 'iptal';
 
 export type Talep = {
@@ -36,7 +45,7 @@ export type Talep = {
   hedefEtiket: string;
   once: Record<string, unknown> | null;
   sonra: Record<string, unknown>;
-  etki: { baslik: string; deger: number | null; not?: string }[] | null;
+  etki: EtkiSatiri[] | null;
   gerekce: string;
   durum: TalepDurumu;
   talepEden: { id: string; ad: string };
@@ -90,15 +99,23 @@ export const EYLEM_ETIKET: Record<string, string> = {
   onay: 'onay', red: 'red', iptal: 'iptal', hesaplama: 'hesaplama',
 };
 
-/** İz tablosunda konsolun izlediği varlık tipleri. */
+/** İz tablosunda konsolun izlediği varlık tipleri.
+
+    `UretimUnitesi` LİSTEDE KALIR: model `OperasyonelBirim` diye yeniden
+    adlandırıldı ama eski adla yazılmış iz satırları DEĞİŞTİRİLMEDİ —
+    denetim izi değişmez. Eski adı listeden çıkarmak, o satırları
+    konsoldan silmezdi ama GÖRÜNMEZ kılardı; geçmişi görünmez kılmak,
+    onu silmenin sessiz hâlidir. */
 export const KONSOL_VARLIK_TIPLERI = [
-  'Yapilandirma', 'DegisiklikTalebi', 'Grup', 'TuzelKisi', 'UretimUnitesi',
+  'Yapilandirma', 'DegisiklikTalebi', 'Grup', 'TuzelKisi', 'OperasyonelBirim',
+  'UretimUnitesi',
   'VarlikTuru', 'AgBolgesi', 'UygulanabilirlikKurali', 'Tesis',
 ] as const;
 
-/** Katalog hedef tipi → iz tablosundaki varlık tipi. */
+/** Katalog hedef tipi → iz tablosundaki varlık tipi. YENİ yazımlar için;
+    okuma tarafı eski adı da tanır (yukarı). */
 export const HEDEF_VARLIK_TIPI: Record<string, string> = {
-  grup: 'Grup', tuzelKisi: 'TuzelKisi', uretimUnitesi: 'UretimUnitesi',
+  grup: 'Grup', tuzelKisi: 'TuzelKisi', operasyonelBirim: 'OperasyonelBirim',
   varlikTuru: 'VarlikTuru', agBolgesi: 'AgBolgesi',
   uygulanabilirlikKurali: 'UygulanabilirlikKurali', tesisGorsel: 'Tesis', ayar: 'Yapilandirma',
 };

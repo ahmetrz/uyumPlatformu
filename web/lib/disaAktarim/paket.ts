@@ -444,9 +444,15 @@ export async function kanitPaketiUret(girdi: {
   const simdi = girdi.simdi ?? new Date();
 
   if (kapsam.tesisIdleri.length === 0) {
-    // Boş kapsam sessizce boş paket üretmez: denetçi eline geçen boş
-    // dosyayı "bu santralde kayıt yok" diye okur, oysa kapsam hiç yoktur.
-    throw new Error('Kanıt paketi için en az bir santral kapsama girmeli');
+    /* Boş kapsam sessizce boş paket üretmez: denetçi eline geçen boş
+       dosyayı "bu tesiste kayıt yok" diye okur, oysa kapsam hiç yoktur.
+
+       Bu iki mesaj ÇEKİRDEK sözcüğü taşır ve bu bilinçli: paket katmanı
+       kiracının sözlüğünü bilmez ve BİLMEMELİDİR — ürettiği şey denetim
+       artefaktıdır ve alanları kod anahtarıdır (`maddeBasligi`, `baslik`),
+       etiket değil. İkisi de sözleşme kapısıdır: çağıran eylem kapsamı
+       zaten doğruluyor, ürün yüzeyinde görünmezler. */
+    throw new Error('Kanıt paketi için en az bir tesis kapsama girmeli');
   }
   if (kapsam.bitis < kapsam.baslangic) {
     throw new Error('Kapsam bitişi başlangıçtan önce olamaz');
@@ -463,7 +469,7 @@ export async function kanitPaketiUret(girdi: {
     orderBy: { kod: 'asc' },
     select: { id: true, kod: true, ad: true },
   });
-  if (tesisler.length === 0) throw new Error('Kapsamdaki santraller bulunamadı');
+  if (tesisler.length === 0) throw new Error('Kapsamdaki tesisler bulunamadı');
 
   const maddeDurumlari = await db.maddeDurumu.findMany({
     where: {
@@ -507,7 +513,7 @@ export async function kanitPaketiUret(girdi: {
   const kokenAl = (tip: string, id: string): PaketKokeni =>
     kokenler.get(`${tip}|${id}`) ?? kokensiz();
 
-  /* Denetim izi: paketteki KAYITLARA ait satırlar + kapsamdaki santral ve
+  /* Denetim izi: paketteki KAYITLARA ait satırlar + kapsamdaki tesis ve
      regülasyon satırları. varlikId cuid olduğu için tip ayrıca eşlenmez. */
   const izHedefleri = [
     ...maddeDurumlari.map((m) => m.id),
@@ -533,7 +539,7 @@ export async function kanitPaketiUret(girdi: {
     }),
   ]);
 
-  /* Connector envanteri kapsam santralinden bağımsızdır: denetçi "bu
+  /* Connector envanteri kapsam tesisinden bağımsızdır: denetçi "bu
      veriyi hangi entegrasyonlar besliyor" sorusunu tüm envanter üzerinden
      sorar. Sağlık kararı saglikOzeti'nden gelir; burada yeniden üretilmez. */
   const connectorlar = await db.connector.findMany({

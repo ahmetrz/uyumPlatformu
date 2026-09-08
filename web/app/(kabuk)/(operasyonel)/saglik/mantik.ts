@@ -1,4 +1,5 @@
 import type { Durum } from '@/components/kabuk/temel';
+import { basHarf, CEKIRDEK_TERIMLER, type Terim } from '@/lib/dil/terimler';
 // YALNIZ TİP: `saglikOzeti` server-only bir modüldür, `import type` derlemede
 // silinir ve istemci paketine hiçbir sunucu kodu sızmaz.
 import type {
@@ -29,6 +30,12 @@ export type IsTanimi = {
   ad: string; etiket: string; aciklama: string; elleCalisir: boolean;
 };
 
+/* Katalog satırı çözülmemiş hâlidir: terim taşıyan açıklama bir İŞLEVDİR,
+   taşımayan düz dizedir. Modül sabiti sözlüğü bekleyemez (`await` yok);
+   çözüm çağıranda, veriyi zaten bekleyen sunucu bileşeninde olur. */
+type KatalogMetni = string | ((tesis: Terim) => string);
+type IsKatalogSatiri = Omit<IsTanimi, 'aciklama'> & { aciklama: KatalogMetni };
+
 /* Motor kataloğu — İNSAN İÇİN olan kısım.
 
    Motorların KENDİSİ `lib/motorlar/kayit.ts`'te yaşar; burası yalnız
@@ -42,7 +49,7 @@ export type IsTanimi = {
    motorun burada bir satırı olmak ZORUNDA. Buradaki fazla satırlar
    serbesttir — zincirden koşan işler (uygulanabilirlik, entegrasyon
    zinciri) ve bakım işi motor defterinde YOKTUR ve olmamalıdır. */
-export const IS_TANIMLARI: IsTanimi[] = [
+const IS_KATALOGU: IsKatalogSatiri[] = [
   { ad: 'kanit_tazelik', etiket: 'Kanıt tazeliği', elleCalisir: true,
     aciklama: 'Geçerliliği biten kanıtları bayatlar, yenileme görevi üretir' },
   { ad: 'deadline_motoru', etiket: 'Son tarih motoru', elleCalisir: true,
@@ -104,12 +111,25 @@ export const IS_TANIMLARI: IsTanimi[] = [
     aciklama: 'Süresi dolmuş oturum ve iş kilidi satırlarını siler (saatlik, zamanlayıcıdan) '
       + '— bulgu üretmez, veri yorumlamaz' },
   { ad: 'uygulanabilirlik', etiket: 'Uygulanabilirlik', elleCalisir: false,
-    aciklama: 'Tesis profili değiştiğinde madde kapsamını yeniden hesaplar (zincirden koşar)' },
+    aciklama: (tesis) => `${basHarf(tesis.tekil)} profili değiştiğinde madde `
+      + 'kapsamını yeniden hesaplar (zincirden koşar)' },
   { ad: 'entegrasyon_zinciri', etiket: 'Entegrasyon zinciri', elleCalisir: false,
     aciklama: 'Yeni veri aktarıldığında motorları doğru sırada koşturur (zincirden koşar)' },
   { ad: 'zincir_guvenlik_ihlali', etiket: 'Zincir güvenlik ihlali', elleCalisir: false,
     aciklama: 'Zincir otomasyon sınırını aştıysa başarısız koşu bırakır — boş olması iyi haberdir' },
 ];
+
+/** Kataloğun sözlükle çözülmüş hâli — ekran bunu okur. */
+export function isTanimlariCoz(tesis: Terim = CEKIRDEK_TERIMLER.tesis): IsTanimi[] {
+  return IS_KATALOGU.map((x) => ({
+    ...x,
+    aciklama: typeof x.aciklama === 'string' ? x.aciklama : x.aciklama(tesis),
+  }));
+}
+
+/** Çekirdek varsayılanı — sözlüksüz çağıran (test, defter denetimi) için.
+    Ekran `isTanimlariCoz(terim(sozluk, 'tesis'))` kullanır. */
+export const IS_TANIMLARI: IsTanimi[] = isTanimlariCoz();
 
 /** Her motorun çekmecede gösterilen koşu geçmişi derinliği.
     Önceki arayüz katmanında "son 20 koşu" TEK bir listede duruyordu ve çok koşan bir motor
@@ -697,7 +717,7 @@ export function ortamGerekcesiEksik(f: ConnectorFormu, once: string | null): boo
   return once !== null && f.ortam !== once && !f.gerekce.trim();
 }
 
-/* ── Santral kapsamı ────────────────────────────────────────────────────
+/* ── Tesis kapsamı ────────────────────────────────────────────────────
 
    Kapsam formun geri kalanından AYRI bir alandır ve ayrı kaydedilir; sebebi
    `lib/eylemler2/entegrasyon.ts` başındaki kapsam notunda yazılı. Buradaki
@@ -725,28 +745,33 @@ export type KapsamGorunumu = {
   secenekler: { kod: string; ad: string }[];
 };
 
-/** Yürürlükteki kapsamın tek cümlesi. BOŞ liste "hiçbir santral" DEĞİL,
+/** Yürürlükteki kapsamın tek cümlesi. BOŞ liste "hiçbir tesis" DEĞİL,
     "sınır yok" demektir — çekirdek de öyle okur ve bu ayrım ekranın
     yanlış okunmaması için sözcükle söylenir. */
-export function kapsamCumlesi(kodlar: string[]): string {
+export function kapsamCumlesi(
+  kodlar: string[], tesis: Terim = CEKIRDEK_TERIMLER.tesis,
+): string {
   return kodlar.length === 0
-    ? 'Sınır yok — bu bağlantı her santral adına kayıt yazabilir'
-    : `${kodlar.length} santral · ${kodlar.join(', ')}`;
+    ? `Sınır yok — bu bağlantı her ${tesis.tekil} adına kayıt yazabilir`
+    : `${kodlar.length} ${tesis.tekil} · ${kodlar.join(', ')}`;
 }
 
 /** Kaydetmeden önce gösterilecek uyarılar. Boş liste dönerse kaydetmenin
     sürprizi yoktur; dolu liste kaydetmeyi ENGELLEMEZ, yalnız sonucu önden
     söyler (biri hariç: varsayılan tesis çelişkisini sunucu reddeder). */
-export function kapsamUyarilari(secili: string[], g: KapsamGorunumu): string[] {
+export function kapsamUyarilari(
+  secili: string[], g: KapsamGorunumu, tesis: Terim = CEKIRDEK_TERIMLER.tesis,
+): string[] {
   const uyarilar: string[] = [];
   if (secili.length === 0) {
-    uyarilar.push('Hiçbir santral seçili değil: bu, "hiçbirine yazamaz" değil '
-      + '"SINIR YOK" demektir. Bağlantıyı durdurmak için etkinliği kapatın.');
+    uyarilar.push(`Hiçbir ${tesis.tekil} seçili değil: bu, "hiçbirine yazamaz" `
+      + 'değil "SINIR YOK" demektir. Bağlantıyı durdurmak için etkinliği kapatın.');
   }
   if (g.varsayilanTesisKodu && secili.length > 0
     && !secili.includes(g.varsayilanTesisKodu)) {
-    uyarilar.push(`Yapılandırmadaki varsayılan tesis kodu (${g.varsayilanTesisKodu}) `
-      + 'seçili kapsamın dışında — sunucu bu kaydı reddeder.');
+    uyarilar.push(`Yapılandırmadaki varsayılan ${tesis.tekil} kodu `
+      + `(${g.varsayilanTesisKodu}) seçili kapsamın dışında — `
+      + 'sunucu bu kaydı reddeder.');
   }
   if (g.mirasKodlari.length > 0) {
     uyarilar.push('Yapılandırmada eski kapsam anahtarı var '

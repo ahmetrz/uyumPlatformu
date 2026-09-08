@@ -4,6 +4,8 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { kontrast, bicimle, aaGecer } from '@/lib/kontrast';
 import { girisZorunlu } from '@/lib/erisim';
+import { db } from '@/lib/db';
+import { YUVALI_TIPLER, kimliksizlikNedeni, tipYuvasi } from '@/components/kabuk/tip';
 
 export const metadata: Metadata = { title: 'Tasarım sistemi' };
 
@@ -19,7 +21,7 @@ export const metadata: Metadata = { title: 'Tasarım sistemi' };
    tasarım sistemi belgesinin yapabileceği en kötü şey budur. Şimdi
    kaynak tek: CSS dosyası.
 
-   SANTRAL KAPSAMI: bu ekran bilerek kapsamsızdır çünkü hiç KAYIT okumaz;
+   TESİS KAPSAMI: bu ekran bilerek kapsamsızdır çünkü hiç KAYIT okumaz;
    içeriğinin tamamı stil dosyasından gelir, daraltılacak bir veri yok.
 
    OTURUM KAPISI: kapsamsız olması oturumsuz olması demek değildir. Ekran
@@ -71,16 +73,82 @@ const MUREKKEPLER: { anahtar: string; rol: string; esik: 'metin' | 'bilesen' }[]
   { anahtar: '--pl', rol: 'Taslak · aday · süreli', esik: 'metin' },
   { anahtar: '--unk', rol: 'Değerlendirilmedi — bilinmeyen', esik: 'metin' },
   { anahtar: '--aksan', rol: 'Aktif kenar, işaret, odak halkası', esik: 'bilesen' },
-  { anahtar: '--jes', rol: 'Jeotermal kimliği', esik: 'bilesen' },
-  { anahtar: '--hes', rol: 'Hidroelektrik kimliği', esik: 'bilesen' },
-  { anahtar: '--res', rol: 'Rüzgâr kimliği', esik: 'bilesen' },
-  { anahtar: '--ges', rol: 'Güneş kimliği', esik: 'bilesen' },
+  { anahtar: '--tip-a', rol: 'Tip kimlik yuvası A', esik: 'bilesen' },
+  { anahtar: '--tip-b', rol: 'Tip kimlik yuvası B', esik: 'bilesen' },
+  { anahtar: '--tip-c', rol: 'Tip kimlik yuvası C', esik: 'bilesen' },
+  { anahtar: '--tip-d', rol: 'Tip kimlik yuvası D', esik: 'bilesen' },
 ];
 
 const ZEMINLER = ['--zemin', '--panel', '--panel2', '--secim'] as const;
 
+/* ── YUVA DAĞILIMI ───────────────────────────────────────────────────
+   Kimlik yuvası dörttür ve tesis tipi sayısı bundan çoktur. Yuvası
+   olmayan tip nötr mürekkebe düşer — bu bir kusur değil, yazılı bir
+   karar (`components/kabuk/tip.ts`). Ama SESSİZ olmamalı: paleti
+   sürdüren kişi hangi tipin kimliği olduğunu burada görür.
+
+   ── İKİ AYRI SEBEP, İKİ AYRI CÜMLE ────────────────────────────────
+   Nötre düşenleri tek listede yazmak, satıra bakan herkese İKİ EKSİK
+   gösterirdi ve biri gerçek değil: `DGKC` yuva kalmadığı için renksiz
+   (gerçek eksik), `MERKEZ` üretim tesisi olmadığı için renksiz (karar).
+   `tipYuvasi()` ikisine de `null` döner ve doğru davranır; ayrım burada,
+   sunumda yapılır. Birleştirilmiş bir cümle sayıyı şişirir ve palet
+   sürdürücüsünü var olmayan bir borcun peşine düşürür. */
+async function YuvaDagilimi() {
+  const tipler = await db.tesisTipi.findMany({
+    select: { kod: true, ad: true }, orderBy: { sira: 'asc' },
+  }).catch(() => []);
+  const yuvali = tipler.filter((t) => tipYuvasi(t.kod));
+
+  /* Renksiz tipler ÜÇ kovaya ayrılır. Kovalar `tur` üzerinden seçilir,
+     metne bakılarak değil: sebep ayrık bir değer ve üçüncüsü (`null` =
+     bilinmiyor) bugün boş kalsa da kovası duruyor — üçüncü bir durum
+     çıktığında satır "bilinmiyor" der, sessizce başka kovaya düşmez. */
+  const renksiz = tipler.filter((t) => !tipYuvasi(t.kod))
+    .map((t) => ({ ...t, neden: kimliksizlikNedeni(t.kod) }));
+  const yuvasiz = renksiz.filter((t) => t.neden?.tur === 'kapasite');
+  const kimliksiz = renksiz.filter((t) => t.neden?.tur === 'tasarim');
+  const sebebiBilinmeyen = renksiz.filter((t) => t.neden === null);
+  return (
+    <>
+      <p className="mono ab-dip">
+        Kimlik yuvası: <b>{YUVALI_TIPLER.length}</b> · tanımlı tesis tipi:{' '}
+        <b>{tipler.length}</b>
+        {yuvali.length > 0 && (
+          <> · yuvalı: {yuvali.map((t) => `${t.kod}→${tipYuvasi(t.kod)}`).join(' ')}</>
+        )}
+      </p>
+      {yuvasiz.length > 0 && (
+        <p className="mono ab-dip">
+          Yuvasız (kapasite eksiği): {yuvasiz.map((t) => t.kod).join(' ')} — kimlik
+          rengini hak ediyor, yuva kalmadı. Yuva SARILMAZ: aynı rengi iki tipe
+          vermek &quot;bunlar aynı&quot; demek olurdu.
+        </p>
+      )}
+      {kimliksiz.length > 0 && (
+        <p className="mono ab-dip">
+          Kimlik rengi taşımayan (tasarım gereği):{' '}
+          {kimliksiz.map((t) => `${t.kod} — ${t.neden?.tur === 'tasarim'
+            ? t.neden.gerekce : ''}`).join(' · ')}.
+          Yuva açılsa da renk almaz; bu bir eksik değil.
+        </p>
+      )}
+      {sebebiBilinmeyen.length > 0 && (
+        /* Bugün boş. Boş olduğu için silmiyoruz: sebebi çözülemeyen bir
+           tip sessizce "kapasite eksiği" sayılırsa var olmayan bir borç
+           raporlanır. Bilinmeyen, sıfır değildir. */
+        <p className="mono ab-dip">
+          Renksiz, sebebi BİLİNMİYOR: {sebebiBilinmeyen.map((t) => t.kod).join(' ')} —
+          tip sicilinde çözülemedi; kapasite eksiği mi tasarım kararı mı
+          söylenemez.
+        </p>
+      )}
+    </>
+  );
+}
+
 const TIPOGRAFI = [
-  ['--t-hero', 'Hero başlığı (Santral 360)', 'Saha A-3 JES'],
+  ['--t-hero', 'Hero başlığı (Tesis 360)', 'Saha A-3 JES'],
   ['--t-board', 'Pano başlığı (portföy)', 'Enerji portföyü'],
   ['--t-screen', 'Ekran başlığı', 'Risk kütüğü'],
   ['--t-metric', 'Ölçüt değeri', '78'],
@@ -92,7 +160,7 @@ const TIPOGRAFI = [
   ['--t-caption', 'Alt yazı', 'Bilinmeyen %18'],
   ['--t-label', 'Bölüm etiketi', 'ŞU AN ÖNEMLİ OLAN'],
   ['--t-code', 'Kod (küçük)', 'EPDK-SYM-4.2.1'],
-  ['--t-colhead', 'Kolon başlığı', 'SANTRAL · SAHİP · HEDEF'],
+  ['--t-colhead', 'Kolon başlığı', 'TESİS · SAHİP · HEDEF'],
 ] as const;
 
 const OLCEK_SIRASI = [
@@ -187,6 +255,7 @@ export default async function TasarimSistemi() {
             Eşik: metin 4.5:1 · grafik ve büyük tipografi 3.0:1. Kapı
             <code> arac/kontrast.mjs</code> ile her derlemede koşar.
           </p>
+          <YuvaDagilimi />
         </section>
       ))}
 

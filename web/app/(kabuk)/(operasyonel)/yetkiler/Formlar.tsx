@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import { useTerim } from '@/lib/dil/SozlukSaglayici';
 import { Alan, Dugme } from '@/components/kabuk/temel';
 import { useEylem } from '@/components/useEylem';
 import { kullaniciKaydet, yetkiVer } from '@/lib/eylemler';
@@ -77,11 +78,13 @@ export function YetkiFormu({ hesap, surecler, tesisler, kisitliKapsam, kapat }: 
   kisitliKapsam: boolean;
   kapat: () => void;
 }) {
+  const { t, tBas } = useTerim();
   const { bekliyor, hata, calistir } = useEylem();
   const [f, setF] = useState({ surecId: '', tesisId: '', rol: 'okuyucu' });
 
   const surecAdi = surecler.find((s) => s.id === f.surecId)?.ad ?? 'tüm süreçler';
-  const tesisAdi = tesisler.find((t) => t.id === f.tesisId)?.ad ?? 'tüm santraller';
+  const tesisAdi = tesisler.find((t) => t.id === f.tesisId)?.ad
+    ?? `tüm ${t('tesis', 'cogul')}`;
 
   return (
     <div style={{ display: 'grid', gap: 'var(--s16)' }}>
@@ -98,10 +101,10 @@ export function YetkiFormu({ hesap, surecler, tesisler, kisitliKapsam, kapat }: 
           {surecler.map((s) => <option key={s.id} value={s.id}>{s.ad}</option>)}
         </select>
       </Alan>
-      <Alan etiket="Santral">
+      <Alan etiket={tBas('tesis')}>
         <select className="ab-gr" value={f.tesisId}
           onChange={(e) => setF({ ...f, tesisId: e.target.value })}>
-          <option value="">tüm santraller</option>
+          <option value="">tüm {t('tesis', 'cogul')}</option>
           {tesisler.map((t) => <option key={t.id} value={t.id}>{t.ad}</option>)}
         </select>
       </Alan>
@@ -122,8 +125,8 @@ export function YetkiFormu({ hesap, surecler, tesisler, kisitliKapsam, kapat }: 
       <p className="ab-panel-dip" style={{ margin: 0 }}>
         {`${hesap.ad} · ${ROL_ETIKET[f.rol as keyof typeof ROL_ETIKET]} · ${surecAdi} · ${tesisAdi}`}
         {!f.surecId && !f.tesisId
-          && ' — kapsam boş bırakıldı: yetki portföyün tamamına uygulanır.'}
-        {kisitliKapsam && ' Santral listesi kendi kapsamınızla sınırlıdır.'}
+          && ` — kapsam boş bırakıldı: yetki ${t('portfoy', 'iyelik')} tamamına uygulanır.`}
+        {kisitliKapsam && ` ${tBas('tesis')} listesi kendi kapsamınızla sınırlıdır.`}
       </p>
     </div>
   );
@@ -190,6 +193,7 @@ export function ParolaFormu({ hesap, kapat }: { hesap: Hesap; kapat: () => void 
 export function EkipFormu({ ekip, tesisler, kapat }: {
   ekip: Ekip | null; tesisler: Secenek[]; kapat: () => void;
 }) {
+  const { t, tBas } = useTerim();
   const { bekliyor, hata, calistir } = useEylem();
   const [f, setF] = useState({
     kod: ekip?.kod ?? '', ad: ekip?.ad ?? '', tip: ekip?.tip ?? 'diger',
@@ -217,10 +221,10 @@ export function EkipFormu({ ekip, tesisler, kapat }: {
           ))}
         </select>
       </Alan>
-      <Alan etiket="Santral">
+      <Alan etiket={tBas('tesis')}>
         <select className="ab-gr" value={f.tesisId}
           onChange={(e) => setF({ ...f, tesisId: e.target.value })}>
-          <option value="">— kurumsal ekip (santralsiz) —</option>
+          <option value="">— kurumsal ekip ({t('tesis', 'yonelme')} bağlı değil) —</option>
           {tesisler.map((t) => <option key={t.id} value={t.id}>{t.ad}</option>)}
         </select>
       </Alan>

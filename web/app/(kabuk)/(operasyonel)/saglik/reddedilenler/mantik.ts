@@ -1,4 +1,5 @@
 import type { Durum } from '@/components/kabuk/temel';
+import { t, type Sozluk } from '@/lib/dil/terimler';
 
 /* Reddedilen kayıt (dead-letter) kuyruğunun saf mantığı. Veritabanına,
    React'e ve server-only'ye dokunmaz.
@@ -43,18 +44,26 @@ export const ASAMA_SOZU: Record<string, string> = {
   yazma: 'Yazma',
 };
 
-export const ASAMA_ACIKLAMA: Record<string, string> = {
-  sema: 'Kaynağın gönderdiği yük beklenen şemaya uymadı.',
-  normalize: 'Ham kayıt normalize edilemedi — alan biçimi tanınmadı.',
-  esleme: 'Eşleme profili kaynağın alanını hedef alana çeviremedi; '
-    + 'düzeltme profil kuralındadır.',
-  dogrulama: 'Kayıt iş kuralı doğrulamasından geçemedi (eksik köken, '
-    + 'eşleme anahtarı yok…).',
-  eslesme: 'Kayıt normalleşti ama CMDB\'de eşleşecek bir varlık bulunamadı; '
-    + 'düzeltme veride ya da envanterdedir.',
-  kapsam: 'Kayıt connector\'ın yazma kapsamı dışındaki bir santrale aitti.',
-  yazma: 'Kayıt yazılırken hata alındı.',
-};
+/* Aşama açıklamaları SABİT HARİTA değil İŞLEVDİR: `kapsam` açıklaması bir
+   sektör terimi taşıyor ve o terim sözlükten gelmeli. Harita olarak
+   kalsaydı sözcük modül yüklenirken donardı; sözlük ise isteğe göre
+   değişir. Tanımsız aşamada `null` döner — çağıran "sözlükte yok" diyebilsin. */
+export function asamaAciklamasi(asama: string, sozluk: Sozluk | null): string | null {
+  switch (asama) {
+    case 'sema': return 'Kaynağın gönderdiği yük beklenen şemaya uymadı.';
+    case 'normalize': return 'Ham kayıt normalize edilemedi — alan biçimi tanınmadı.';
+    case 'esleme': return 'Eşleme profili kaynağın alanını hedef alana çeviremedi; '
+      + 'düzeltme profil kuralındadır.';
+    case 'dogrulama': return 'Kayıt iş kuralı doğrulamasından geçemedi (eksik köken, '
+      + 'eşleme anahtarı yok…).';
+    case 'eslesme': return 'Kayıt normalleşti ama CMDB\'de eşleşecek bir varlık bulunamadı; '
+      + 'düzeltme veride ya da envanterdedir.';
+    case 'kapsam': return 'Kayıt connector\'ın yazma kapsamı dışındaki bir '
+      + `${t(sozluk, 'tesis', 'yonelme')} aitti.`;
+    case 'yazma': return 'Kayıt yazılırken hata alındı.';
+    default: return null;
+  }
+}
 
 export function asamaYazisi(asama: string): string {
   return ASAMA_SOZU[asama] ?? asama;

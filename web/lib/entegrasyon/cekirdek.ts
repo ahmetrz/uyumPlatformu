@@ -331,7 +331,7 @@ async function denemeliCek(
   throw new Error('Çekim döngüsü beklenmedik biçimde sonlandı');
 }
 
-/* ═══ Santral çözümü ══════════════════════════════════════════════════ */
+/* ═══ Tesis çözümü ══════════════════════════════════════════════════ */
 
 /**
  * Bir tesis KODUNU tesis kimliğine çevirir. Sonuç koşu boyunca
@@ -339,9 +339,9 @@ async function denemeliCek(
  * her kayıt için tekrar sorgulanmasın.
  *
  * Çözülemeyen kod SESSİZ GEÇMEZ ama kaydı da düşürmez: keşif kaydının
- * santrali `null` (BİLİNMİYOR) kalır ve ham gözlemdeki kod inceleme
+ * tesisi `null` (BİLİNMİYOR) kalır ve ham gözlemdeki kod inceleme
  * ekranında "Tesis kodu" alanı olarak görünür. Platformda tanımlı olmayan
- * bir santralde cihaz bulmak, görmezden gelinecek değil GÖRÜLECEK bir
+ * bir tesiste cihaz bulmak, görmezden gelinecek değil GÖRÜLECEK bir
  * durumdur.
  */
 async function tesisKodunuCoz(
@@ -361,7 +361,7 @@ async function tesisKodunuCoz(
 /* ═══ Connector kapsamı ══════════════════════════════════════════════ */
 
 /**
- * Connector'ın YAZABİLECEĞİ santral kodları. `null` = kapsam sınırı YOK.
+ * Connector'ın YAZABİLECEĞİ tesis kodları. `null` = kapsam sınırı YOK.
  *
  * NEDEN gerekli: `yapilandirma.tesisKodu` bir VARSAYILANDIR, kapsam değil —
  * gözlemin kendi `tesisKodu` alanı onu ezer (bilinçli davranış, kendi testi
@@ -377,7 +377,7 @@ async function tesisKodunuCoz(
  *      kolon geldiğinde de geçerli kalan yapılandırma anahtarı.
  *
  * Boş dizi ile hiç tanımlı olmamak AYNI ŞEYDİR (ikisi de "sınır yok"):
- * "hiçbir santrale yazamaz" demek isteyen bir yapılandırma connector'ı
+ * "hiçbir tesise yazamaz" demek isteyen bir yapılandırma connector'ı
  * pasif eder, boş kapsam listesi bırakmaz.
  */
 export function connectorKapsamKodlari(
@@ -397,7 +397,7 @@ export function connectorKapsamKodlari(
       ayristirilan = JSON.parse(kapsamJson);
     } catch (e) {
       // Okunamayan kapsam SESSİZCE "sınır yok" sayılmaz — o, kapsamı silmek olurdu.
-      throw new Error(`Kapsam santralleri okunamadı: ${mesaj(e)}`);
+      throw new Error(`Kapsam tesisleri okunamadı: ${mesaj(e)}`);
     }
     const kodlar = topla(ayristirilan);
     if (kodlar) return kodlar;
@@ -409,10 +409,10 @@ export function connectorKapsamKodlari(
  * Gözlem connector kapsamını aşıyor mu? Aşıyorsa REDDEDİLME SEBEBİ döner
  * (null = kapsam içinde).
  *
- * Kapsam tanımlıyken "santrali bilinmeyen" kayıt kabul EDİLMEZ: kapsamsız
+ * Kapsam tanımlıyken "tesisi bilinmeyen" kayıt kabul EDİLMEZ: kapsamsız
  * yazılan keşif kaydı, kapsamı daraltılmış her kullanıcıya görünür
  * (bkz. keşif kuyruğu kapsam koşulu) — yani kapsam sınırından kaçmanın en
- * kolay yolu santral beyan etmemek olurdu.
+ * kolay yolu tesis beyan etmemek olurdu.
  */
 async function kapsamDisiSebep(
   g: Gozlem,
@@ -425,13 +425,13 @@ async function kapsamDisiSebep(
   if (kod) {
     const id = await tesisKodunuCoz(kod, onbellek);
     if (!id) return `kapsam dışı: beyan edilen tesis kodu tanımsız (${kod})`;
-    if (!kapsam.has(id)) return `kapsam dışı: kayıt '${kod}' santralini beyan ediyor, connector kapsamında değil`;
+    if (!kapsam.has(id)) return `kapsam dışı: kayıt '${kod}' tesisini beyan ediyor, connector kapsamında değil`;
     return null;
   }
   if (!varsayilanTesisId) {
-    return 'kapsam dışı: kayıt santral beyan etmiyor ve connector varsayılan santrali yok';
+    return 'kapsam dışı: kayıt tesis beyan etmiyor ve connector varsayılan tesisi yok';
   }
-  return kapsam.has(varsayilanTesisId) ? null : 'kapsam dışı: connector varsayılan santrali kapsam dışında';
+  return kapsam.has(varsayilanTesisId) ? null : 'kapsam dışı: connector varsayılan tesisi kapsam dışında';
 }
 
 /* ═══ Hedef kayıt (idempotent upsert) ═════════════════════════════════ */
@@ -482,10 +482,10 @@ async function gozlemYaz(
     where: { kaynak_kaynakKayitId: { kaynak, kaynakKayitId } },
     select: { id: true, durum: true },
   });
-  /* Kaydın BEYAN EDİLEN santrali: önce gözlemin kendi tesis kodu, yoksa
-     connector'ın bağlı olduğu santral. Eşleşmemiş kaydın kapsamı buradan
+  /* Kaydın BEYAN EDİLEN tesisi: önce gözlemin kendi tesis kodu, yoksa
+     connector'ın bağlı olduğu tesis. Eşleşmemiş kaydın kapsamı buradan
      bilinir — eşleşmeyi beklemek, kapsamı daraltılmış kullanıcıya başka
-     santralin keşif kuyruğunu göstermek demekti. */
+     tesisin keşif kuyruğunu göstermek demekti. */
   const beyanEdilenKod = 'tesisKodu' in g ? g.tesisKodu : null;
   const tesisId = (await tesisKodunuCoz(beyanEdilenKod, kapsam.onbellek))
     ?? kapsam.varsayilanTesisId;
@@ -505,8 +505,8 @@ async function gozlemYaz(
       update: {
         connectorId: connector.id, kosuId, hamJson, normalJson,
         guvenSkoru: guven, sonGorulme: simdi,
-        /* Santral yalnız ÇÖZÜLEBİLDİĞİNDE yazılır, asla silinmez: kaynak
-           bir kez santral bildirip sonra bildirmez olursa kaydı kapsamsız
+        /* Tesis yalnız ÇÖZÜLEBİLDİĞİNDE yazılır, asla silinmez: kaynak
+           bir kez tesis bildirip sonra bildirmez olursa kaydı kapsamsız
            bırakmak onu herkese görünür yapardı. */
         ...(tesisId ? { tesisId } : {}),
         // karar verilmiş kayıt başa döndürülmez
@@ -859,9 +859,9 @@ export async function senkronizasyonKos(
     return kapat('basarisiz', { hata: `Yapılandırma okunamadı: ${mesaj(e)}`, ayrinti: 'Yapılandırma geçersiz' });
   }
 
-  /* Connector bir santrale bağlıysa (OT keşfi gibi) gelen her kayıt o
-     santralindir. Kod tanımlı bir santrale çözülemiyorsa koşu BAŞLAMAZ:
-     yanlış santralin adına veri toplamak, kapsam denetimini sessizce
+  /* Connector bir tesise bağlıysa (OT keşfi gibi) gelen her kayıt o
+     tesisindir. Kod tanımlı bir tesise çözülemiyorsa koşu BAŞLAMAZ:
+     yanlış tesisin adına veri toplamak, kapsam denetimini sessizce
      delmek olurdu. */
   const tesisOnbellegi = new Map<string, string | null>();
   const yazilanKaynaklar = new Set<string>();
@@ -875,7 +875,7 @@ export async function senkronizasyonKos(
     if (!varsayilanTesisId) {
       return kapat('basarisiz', {
         hata: `Yapılandırmadaki tesis kodu tanımlı değil: ${yapilandirmaTesisKodu}`,
-        ayrinti: 'Santral çözülemedi',
+        ayrinti: 'Tesis çözülemedi',
       });
     }
   }
@@ -895,7 +895,7 @@ export async function senkronizasyonKos(
         const id = await tesisKodunuCoz(kod, tesisOnbellegi);
         if (!id) {
           return kapat('basarisiz', {
-            hata: `Kapsam santral kodu tanımlı değil: ${kod}`,
+            hata: `Kapsam tesis kodu tanımlı değil: ${kod}`,
             ayrinti: 'Kapsam çözülemedi',
           });
         }
@@ -909,7 +909,7 @@ export async function senkronizasyonKos(
           ayrinti: 'Kapsam çelişkisi',
         });
       }
-      /* Tek santralli kapsamda varsayılan da odur: aksi hâlde santral
+      /* Tek tesisli kapsamda varsayılan da odur: aksi hâlde tesis
          beyan etmeyen her kayıt kapsam dışı sayılıp reddedilirdi ve
          kapsam eklemek connector'ı sessizce çalışmaz hâle getirirdi. */
       if (!varsayilanTesisId && kapsamTesisIdleri.size === 1) {

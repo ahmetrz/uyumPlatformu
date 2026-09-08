@@ -16,7 +16,7 @@ export const metadata: Metadata = { title: 'Varlık aktarımı' };
    olabilir ve içeriği ekranda yaşamaz. Yalnız önizleme (ilk 20), hata listesi
    ve yinelenen listesi taşınır — kalanı raporda durur.
 
-   Santral kapsamı `veri.ts`te uygulanır (modül: `envanter`). */
+   Tesis kapsamı `veri.ts`te uygulanır (modül: `envanter`). */
 
 export default async function Sayfa() {
   const k = await girisZorunlu();

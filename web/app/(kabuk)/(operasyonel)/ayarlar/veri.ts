@@ -10,8 +10,8 @@ import type { Hesap } from '../yetkiler/mantik';
 /* D31 · Ayarlar — SUNUCU verisi (proje kalıbı: page.tsx → veri.ts).
 
    Bu ekran yalnız AKTİF KULLANICININ KENDİ kaydını okur; kimlik `k.id`
-   ile sabitlenir, hiçbir sorgu başka bir kullanıcıyı görmez. Santral
-   kapsamı yoktur: hesap bir santral kaydı değil kurum kaydıdır.
+   ile sabitlenir, hiçbir sorgu başka bir kullanıcıyı görmez. Tesis
+   kapsamı yoktur: hesap bir tesis kaydı değil kurum kaydıdır.
 
    PAROLA ÖZETİ EKRANA İNMEZ: yalnız "tanımlı mı" (boolean) gider.
    OTURUM JETONU EKRANA İNMEZ: "bu oturum" çerezin SHA-256 özetiyle DB'de

@@ -7,24 +7,24 @@ import type { BelgeSatiri, KontrolSatiri } from './mantik';
 
 /* C22 · C23 — Yönetişim belgesi kütüğü, SUNUCU VERİSİ.
 
-   ═══ BELGENİN SANTRALİ ÇOĞU ZAMAN YOKTUR ═══════════════════════════════
+   ═══ BELGENİN TESİSİ ÇOĞU ZAMAN YOKTUR ═════════════════════════════════
    Bir politika kurumsaldır: `DokumanTesis` bağı yoksa TÜM portföyü bağlar.
    Kapsamı daraltılmış kullanıcı için kural şudur:
      · bağsız (kurumsal) belge GÖRÜNÜR — onu da bağlar, gizlemek yanlış
-       olurdu; kendi santralinin uyacağı kuralı görmeyen kimse uyamaz.
-     · santral bağı olan belge, bağlarından biri kullanıcının kapsamına
+       olurdu; kendi tesisinin uyacağı kuralı görmeyen kimse uyamaz.
+     · tesis bağı olan belge, bağlarından biri kullanıcının kapsamına
        düşüyorsa görünür.
-     · çekmecedeki santral listesi kapsam dışı santralleri YAZMAZ; sayı
-       olarak "+N santral daha" der. Belgenin varlığı sır değildir, başka
-       santralin adı olabilir.
-   Bu, kanıt kütüphanesinin tersidir: kanıtın bağı yoksa santrali BİLİNMEZ
-   ve gizlenir; belgenin bağı yoksa santrali TÜMÜDÜR ve gösterilir.
+     · çekmecedeki tesis listesi kapsam dışı tesisleri YAZMAZ; sayı
+       olarak "+N tesis daha" der. Belgenin varlığı sır değildir, başka
+       tesisin adı olabilir.
+   Bu, kanıt kütüphanesinin tersidir: kanıtın bağı yoksa tesisi BİLİNMEZ
+   ve gizlenir; belgenin bağı yoksa tesisi TÜMÜDÜR ve gösterilir.
 
    ═══ KARŞILIKSIZ KONTROL ══════════════════════════════════════════════
    Ekranın asıl sorusu. Yalnız `yururlukte` belgeler karşılar; taslak bir
    politikayla "kapsandı" demek denetimde en pahalı yalandır. Kontrol
    listesi kapsamdan BAĞIMSIZ okunur: kontrol gereği kurumun tamamına
-   aittir, tek santralin sorumlusu da eksiği görmeli. */
+   aittir, tek tesisin sorumlusu da eksiği görmeli. */
 
 export const SATIR_TAVANI = 300;
 
@@ -105,7 +105,7 @@ export async function dokumanEkranVerisi(k: AktifKullanici): Promise<EkranVerisi
   ]);
 
   const belgeler: BelgeSatiri[] = kayitlar.map((d) => {
-    /* Kapsam dışı santral ADI yazılmaz; sayısı çekmecede söylenir. */
+    /* Kapsam dışı tesis ADI yazılmaz; sayısı çekmecede söylenir. */
     const gorunurTesisler = d.tesisBaglantilari
       .filter((b) => izinli === null || izinli.includes(b.tesisId))
       .map((b) => ({ id: b.tesis.id, kod: b.tesis.kod, ad: b.tesis.ad }));

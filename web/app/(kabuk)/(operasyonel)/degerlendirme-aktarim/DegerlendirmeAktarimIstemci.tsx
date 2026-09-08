@@ -11,7 +11,7 @@ import {
   degerlendirmeKuruKosu,
 } from '@/lib/eylemler2/degerlendirmeAktarimi';
 import {
-  AKTARILABILIR_DURUMLAR, aktarimCumlesi, aktarimSayimlari,
+  AKTARILABILIR_DURUMLAR, aktarimCumlesi, aktarimSayimlari, elemeAciklamasi,
   type OnizlemeSatiri,
 } from '@/lib/uyum/degerlendirmeAktarimi';
 import { tarihTR } from '@/lib/sabitler';
@@ -19,6 +19,8 @@ import {
   AKTARIM_IM, AKTARIM_SOZU, SUTUNLAR, aktarimOzeti, metniAyristir,
   ozetCumlesi, satirAlti, type AktarimSatiri,
 } from './mantik';
+import { useSozluk, useTerim } from '@/lib/dil/SozlukSaglayici';
+import { terim } from '@/lib/dil/terimler';
 
 /* ═══ UY-43 · Değerlendirme aktarımı ekranı ═══════════════════════════
 
@@ -151,6 +153,7 @@ function KuruKosuFormu({ regulasyonlar, tesisler, kapat }: {
   tesisler: { id: string; kod: string; ad: string }[];
   kapat: () => void;
 }) {
+  const { tBas } = useTerim();
   const yenile = useRouter().refresh;
   const [bekliyor, basla] = useTransition();
   const [hata, setHata] = useState<string | null>(null);
@@ -194,7 +197,7 @@ function KuruKosuFormu({ regulasyonlar, tesisler, kapat }: {
             ))}
           </select>
         </Alan>
-        <Alan etiket="Santral" zorunlu>
+        <Alan etiket={tBas('tesis')} zorunlu>
           <select className="ab-gr" value={tesisId} disabled={bekliyor}
             onChange={(e) => setTesisId(e.target.value)}>
             {tesisler.map((t) => (
@@ -388,6 +391,9 @@ function AktarimPaneli({ kayit, uygulayabilir }: {
    aynı hesabın çıktısı görünsün. */
 function OnizlemeListesi({ satirlar }: { satirlar: OnizlemeSatiri[] }) {
   const sayimlar = aktarimSayimlari(satirlar);
+  /* Eleme açıklaması kayda ÇEKİRDEK sözcükle yazılır (R0-9); kiracının
+     terimi burada, render sınırında konur. */
+  const tesis = terim(useSozluk(), 'tesis');
   const [hepsi, setHepsi] = useState(false);
   const [, basla] = useTransition();
   const gorunur = hepsi ? satirlar : satirlar.slice(0, 20);
@@ -408,7 +414,7 @@ function OnizlemeListesi({ satirlar }: { satirlar: OnizlemeSatiri[] }) {
               ? (s.degisiyor
                 ? `${s.eskiDurum} → ${s.yeniDurum}`
                 : `${s.yeniDurum} (değişmiyor)`)
-              : s.aciklama}
+              : elemeAciklamasi(s, tesis)}
           </span>
         </div>
       ))}

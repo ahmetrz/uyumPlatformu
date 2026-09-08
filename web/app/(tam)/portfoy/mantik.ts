@@ -1,20 +1,21 @@
 /* F2 · Enerji Portföyü — SAF MANTIK.
 
-   Sıralama, süzme ve "en zayıf santral" seçimi burada yaşar; React'e,
+   Sıralama, süzme ve "en zayıf tesis" seçimi burada yaşar; React'e,
    Prisma'ya ve `server-only`ye dokunmaz. Nedeni test edilebilirliktir:
-   "uyum oranına göre sıralarken ölçülmemiş santral en sona düşer" gibi
+   "uyum oranına göre sıralarken ölçülmemiş tesis en sona düşer" gibi
    bir kural JSX'in içinde kanıtlanamaz, burada bir satırlık testtir.
 
    ── ÖLÇÜLMEMİŞ ≠ SIFIR ────────────────────────────────────────────────
-   `uyumYuzde: null` hiç değerlendirilmemiş santraldır. Sıralamada onu
-   %0 saymak "en kötü santral" diye işaretlemek olurdu; %100 saymak
+   `uyumYuzde: null` hiç değerlendirilmemiş tesistir. Sıralamada onu
+   %0 saymak "en kötü tesis" diye işaretlemek olurdu; %100 saymak
    gizlemek. İkisi de yalan: ölçülmemiş satır HER anahtarda listenin
    sonuna gider ve "en zayıf" seçiminde aday bile olmaz. */
 
 export type PortfoySatiri = {
   id: string; kod: string; ad: string;
   tipKod: string | null; tipAdi: string; tuzelKisi: string | null;
-  konum: string | null; gucMw: number | null; gorselAnahtari: string | null;
+  konum: string | null; guc: number | null; gucBirim: string | null;
+  gorselAnahtari: string | null;
   /** Coğrafi konum; null = girilmedi (harita ili kullanır, A4). */
   enlem: number | null; boylam: number | null;
   /** Koordinat nereden geldi ve bir İNSAN doğruladı mı (P3-8). */
@@ -43,14 +44,14 @@ export const SIRALAMALAR: { anahtar: SiralamaAnahtari; ad: string }[] = [
 
 /** Süzgeçlerde "hepsi" değeri — üretim tipi ve tüzel kişi aynı sözcüğü kullanır. */
 export const HEPSI = 'hepsi';
-/** Tüzel kişisi kayıtlı olmayan santral için süzgeç anahtarı. */
+/** Tüzel kişisi kayıtlı olmayan tesis için süzgeç anahtarı. */
 export const TUZEL_YOK = '__yok';
 
 /* Sıralama anahtarının ölçtüğü değer. `null` = ölçülmedi; karşılaştırıcı
    onu daima sona atar, anahtardan bağımsız. */
 function olcu(s: PortfoySatiri, anahtar: SiralamaAnahtari): number | null {
   switch (anahtar) {
-    case 'guc': return s.gucMw;
+    case 'guc': return s.guc;
     case 'bulgu': return s.acikBulgu;
     case 'risk': return s.acikRisk;
     case 'uyum': return s.uyumYuzde;
@@ -87,7 +88,7 @@ export function suz(
   });
 }
 
-/** Süzgeç listesi: tüzel kişi başına santral sayısı, çoktan aza. */
+/** Süzgeç listesi: tüzel kişi başına tesis sayısı, çoktan aza. */
 export function tuzelKisiler(satirlar: PortfoySatiri[]): { anahtar: string; ad: string; adet: number }[] {
   const m = new Map<string, { anahtar: string; ad: string; adet: number }>();
   for (const s of satirlar) {
@@ -98,9 +99,9 @@ export function tuzelKisiler(satirlar: PortfoySatiri[]): { anahtar: string; ad: 
   return [...m.values()].sort((a, b) => b.adet - a.adet || a.ad.localeCompare(b.ad, 'tr-TR'));
 }
 
-/* "En zayıf santral" — sıralama anahtarına göre en kötü satır.
+/* "En zayıf tesis" — sıralama anahtarına göre en kötü satır.
 
-   Kurulu güçte zayıflık TANIMSIZDIR: küçük santral kötü santral değildir.
+   Kurulu güçte zayıflık TANIMSIZDIR: küçük tesis kötü tesis değildir.
    O anahtarda null döner ve ekran vurgu basmaz. Bulgu ve riskte sayı
    sıfırsa zayıf yoktur (hepsi temiz); uyumda hiçbir satır ölçülmemişse
    yine yoktur. Sıralama zaten kötüden iyiye olduğu için ilk satır adaydır;
@@ -126,7 +127,10 @@ export function olcuYazisi(s: PortfoySatiri, anahtar: SiralamaAnahtari): string 
   const o = olcu(s, anahtar);
   if (o === null) return 'ölçülmedi';
   switch (anahtar) {
-    case 'guc': return `${o} MWe`;
+    /* Birim SATIRDAN gelir; bir enerji birimini koda sabit yazmak
+       çekirdeğe sektör gömerdi (§0.5). Satırda birim yoksa sayı
+       birimsiz yazılır, uydurulmaz. */
+    case 'guc': return s.gucBirim ? `${o} ${s.gucBirim}` : `${o}`;
     case 'uyum': return `%${o}`;
     default: return String(o);
   }

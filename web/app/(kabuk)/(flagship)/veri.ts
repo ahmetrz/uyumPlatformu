@@ -10,15 +10,19 @@ import { uyumOzeti, gecikmisMi, gecenGun } from '@/lib/sabitler';
 import { maxEtki } from '@/app/(kabuk)/(operasyonel)/riskler/ortak';
 import { anlikSayimi } from '@/app/(kabuk)/(operasyonel)/uyum/mantik';
 import type { Kayit } from './Genel';
+import {
+  KURULU_GUC, birimliOzellik, birimliToplam, olculenYazi, ozelligeGoreSirala,
+  ozellikToplami,
+} from '@/lib/alan/oznitelik';
 
 /* F1 · Executive Overview — SUNUCU VERİSİ.
 
    ═══ KAPSAM SIZINTISI ══════════════════════════════════════════════════
    Yönetici özeti bütün sorgularını kapsamsız yapıyordu: odak kartı ve
-   kuyruk B santralinin bulgu başlığını, santral adını ve KİMLİĞİNİ
+   kuyruk B tesisinin bulgu başlığını, tesis adını ve KİMLİĞİNİ
    (`tesisId`) taşıyordu; dört metriğin dördü de (uyum yüzdesi, kritik
-   risk, gecikmiş aksiyon, yaklaşan denetim) ve bağlam şeridi (santral
-   sayısı + toplam MWe) kapsamsız sayıyordu. Bu ekranın tamamı zaten
+   risk, gecikmiş aksiyon, yaklaşan denetim) ve bağlam şeridi (tesis
+   sayısı + toplam kurulu güç) kapsamsız sayıyordu. Bu ekranın tamamı zaten
    metrikten ibarettir: burada satırı gizleyip sayacı bırakmak, ekranı
    olduğu gibi bırakmakla aynı şeydi.
 
@@ -31,23 +35,25 @@ import type { Kayit } from './Genel';
    daraltmak İLK BAKIŞTA daha ince görünür ama YANLIŞTIR: riski hiç
    okuyamayan bir kullanıcı için `izinliTesisIdleri(k,'risk')` boş küme
    döner ve sayaç `0` yazardı — "kritik risk yok" diye YALAN söylerdi.
-   Kapsam bir SANTRAL sınırıdır; modül izni ayrı bir eksendir ve bir sayıyı
+   Kapsam bir TESİS sınırıdır; modül izni ayrı bir eksendir ve bir sayıyı
    sıfıra çevirerek anlatılamaz ("bilinmeyen ≠ sıfır"). Aynı gerekçeyle
-   bağlam şeridi (santral sayısı + toplam MWe) de tek bir kapsamdan gelir:
-   "kaç santral" sorusunun modüle göre değişen iki yanıtı aynı cümlede yan
+   bağlam şeridi (tesis sayısı + toplam kurulu güç) de tek bir kapsamdan gelir:
+   "kaç tesis" sorusunun modüle göre değişen iki yanıtı aynı cümlede yan
    yana duramaz.
 
-   ── SANTRALİ BİLİNMEYEN KAYIT ──────────────────────────────────────────
+   ── TESİSİ BİLİNMEYEN KAYIT ──────────────────────────────────────────
    `app/kapsam.ts → kapsamKosulu` = `lib/api/yetki.ts → tesisKapsamda`.
    Denetim bunun İSTİSNASIDIR ve bilinçlidir: kapsam satırı hiç girilmemiş
    bir denetim portföy geneli sayılır ve gizlenmez — /denetimler ekranı da
    aynı kuralı uygular, iki ekran ayrışamaz. */
 
-/** Saha kartı — B yüzeyinin santral şeridi (b-executive prototipi). */
-export type SantralKarti = {
+/** Saha kartı — B yüzeyinin tesis şeridi (b-executive prototipi). */
+export type TesisKarti = {
   id: string; kod: string; ad: string;
   tipKod: string | null; tipAd: string | null;
-  gucMw: number | null; konum: string | null; gorselAnahtari: string | null;
+  /** Kurulu güç ve BİRİMİ — birim satırdan gelir, ekrana gömülmez. */
+  guc: number | null; gucBirim: string | null;
+  konum: string | null; gorselAnahtari: string | null;
   /** ham durum → adet; kapsam dışı SAYILMAZ */
   sayim: Record<string, number>;
   /** `uyumOzeti` ile; hiç değerlendirilmemişse null — sıfır DEĞİL */
@@ -58,7 +64,10 @@ export type SantralKarti = {
 /** Üretim tipine göre uyum katmanı — prototipin sağ sütunu. */
 export type TipKatmani = {
   kod: string; ad: string;
-  santralSayisi: number; gucMw: number; kontrolSayisi: number;
+  tesisSayisi: number;
+  /** Katmanın güç toplamı; `null` = ölçüm yok ya da birimler karışık. */
+  guc: number | null; gucBirim: string | null; gucKarisik: boolean;
+  kontrolSayisi: number;
   endeks: number | null;
   uygun: number; kismi: number; uygunsuz: number; bilinmeyen: number;
 };
@@ -94,14 +103,17 @@ export type EkranVerisi = {
     kritikRisk: number; gecikmisAksiyon: number;
     /** En yakın planlı denetim: ad ve tarih ekranda YAZILIR, yalnız kod değil. */
     yaklasanDenetim: { kod: string; ad: string; tarih: string; kalanGun: number } | null;
-    tesisSayisi: number; toplamGucMw: number;
+    tesisSayisi: number;
+    /** Toplam kurulu güç, BİRİMİYLE yazılmış; `null` = ölçülmedi ya da
+        birimler karışık (bkz. `birimliToplam`). Ekran birim seçmez. */
+    gucYazi: string | null;
   };
   odak: Kayit | null;
   kuyruk: Kayit[];
   toplamKayit: number;
-  /** true = özet bir santral kapsamıyla daraltıldı */
+  /** true = özet bir tesis kapsamıyla daraltıldı */
   kapsamli: boolean;
-  santraller: SantralKarti[];
+  tesisler: TesisKarti[];
   tipler: TipKatmani[];
   risk: RiskIzgarasi;
   takvim: TakvimKalemi[];
@@ -190,8 +202,13 @@ export async function genelEkranVerisi(k: AktifKullanici): Promise<EkranVerisi> 
         orderBy: { planBitis: 'asc' }, take: 1,
       }),
       db.tesis.count({ where: { durum: 'aktif', ...tesisKosulu } }),
-      db.tesis.aggregate({
-        _sum: { kuruluGucMw: true }, where: { durum: 'aktif', ...tesisKosulu },
+      /* Kurulu güç artık kolon değil öznitelik satırı (P1): toplama
+         veritabanında `_sum` ile yapılamıyor, satırlar çekilip JS'te
+         toplanıyor. Anlam AYNI: `_sum` NULL'ları atlıyordu,
+         `ozellikToplami` da ölçülmemişi atlıyor. */
+      db.tesis.findMany({
+        where: { durum: 'aktif', ...tesisKosulu },
+        select: { ozellikler: { select: { anahtar: true, sayisalDeger: true, birim: true } } },
       }),
     ]);
 
@@ -200,21 +217,27 @@ export async function genelEkranVerisi(k: AktifKullanici): Promise<EkranVerisi> 
   const yaklasan = denetimler[0] ?? null;
 
   /* ── B yüzeyinin saha katmanı ────────────────────────────────────────
-     Prototip (b-executive) santral şeridi, üretim tipi katmanları, 5×5
+     Prototip (b-executive) tesis şeridi, üretim tipi katmanları, 5×5
      risk yoğunluğu ve düzenleyici takvim ister. Hepsi KÜME SORGUSUYLA
-     çekilir: santral başına sorgu açmak 16 santralde N+1 üretirdi. */
+     çekilir: tesis başına sorgu açmak 16 tesiste N+1 üretirdi. */
   const akisBaslangic = new Date(simdi.getTime() - AKIS_HAFTA * HAFTA_MS);
   const takvimSonu = new Date(simdi.getTime() + TAKVIM_GUN * 86_400_000);
 
-  const [tesisler, tesisDurumlari, riskKayitlari, takvimDenetimleri, takvimSurecleri,
+  const [tesisSirasiz, tesisDurumlari, riskKayitlari, takvimDenetimleri, takvimSurecleri,
     akisBulgulari, anliklar] = await Promise.all([
     db.tesis.findMany({
       where: { durum: 'aktif', ...tesisKosulu },
       select: {
-        id: true, kod: true, ad: true, konum: true, kuruluGucMw: true,
+        id: true, kod: true, ad: true, konum: true,
+        ozellikler: { select: { anahtar: true, sayisalDeger: true, birim: true } },
         gorselAnahtari: true, tip: { select: { kod: true, ad: true, sira: true } },
       },
-      orderBy: [{ kuruluGucMw: 'desc' }, { ad: 'asc' }],
+      /* Sıralama JS'te: öznitelik bir ilişki, `orderBy` ona bakamaz.
+         Sorgu `take` almıyor (tesis kümesinin tamamı geliyor), bu yüzden
+         JS sıralaması veritabanınınkiyle birebir aynı sonucu verir.
+         SQLite'ta `DESC` NULL'ları SONA koyar; `gucSirasi` de ölçülmemişi
+         sona koyar — ölçülmemiş tesis listenin başına çıkmaz. */
+      orderBy: { ad: 'asc' },
     }),
     db.maddeDurumu.groupBy({
       by: ['tesisId', 'durum'], _count: { _all: true },
@@ -282,7 +305,11 @@ export async function genelEkranVerisi(k: AktifKullanici): Promise<EkranVerisi> 
     }),
   ]);
 
-  /* Santral × durum sayımı — tek groupBy'dan haritaya. */
+  /* Sıra JS'te kuruluyor (öznitelik bir ilişki; `orderBy` ona bakamaz).
+     Ölçülmemiş güç sona iner — kolon devrindeki `DESC` davranışı. */
+  const tesisler = ozelligeGoreSirala(tesisSirasiz, KURULU_GUC);
+
+  /* Tesis × durum sayımı — tek groupBy'dan haritaya. */
   const tesisSayimi = new Map<string, Record<string, number>>();
   for (const d of tesisDurumlari) {
     if (!d.tesisId) continue;
@@ -291,29 +318,37 @@ export async function genelEkranVerisi(k: AktifKullanici): Promise<EkranVerisi> 
     tesisSayimi.set(d.tesisId, kayitlar);
   }
 
-  const santraller: SantralKarti[] = tesisler.map((t) => {
+  /* Ham satırlar `tesisler`, ekran kartları `tesisKartlari`: ikisi ayrı
+     şekildir ve aynı adı taşımaları okumayı zorlaştırırdı. */
+  const tesisKartlari: TesisKarti[] = tesisler.map((t) => {
     const s = tesisSayimi.get(t.id) ?? {};
     const o = uyumOzeti(s);
     return {
       id: t.id, kod: t.kod, ad: t.ad,
       tipKod: t.tip?.kod ?? null, tipAd: t.tip?.ad ?? null,
-      gucMw: t.kuruluGucMw, konum: t.konum, gorselAnahtari: t.gorselAnahtari,
+      ...((o) => ({ guc: o.deger, gucBirim: o.birim }))(
+        birimliOzellik(t.ozellikler, KURULU_GUC)),
+      konum: t.konum, gorselAnahtari: t.gorselAnahtari,
       sayim: s, endeks: o.yuzde, bilinmeyen: o.bilinmeyen,
     };
   });
 
-  /* Üretim tipi katmanları — tipi tanımsız santral KENDİ grubunda kalır,
+  /* Üretim tipi katmanları — tipi tanımsız tesis KENDİ grubunda kalır,
      rastgele bir tipe atanmaz. */
   const tipHarita = new Map<string, TipKatmani>();
-  for (const s of santraller) {
+  /* Katmanın güç toplamı AYRI tutulur ve `birimliToplam` ile kapatılır:
+     bir katmanda iki farklı birim varsa toplam anlamsızdır ve sayı hiç
+     yazılmaz (bkz. `lib/alan/oznitelik.ts`). */
+  const katGucleri = new Map<string, { deger: number | null; birim: string | null }[]>();
+  for (const s of tesisKartlari) {
     const kod = s.tipKod ?? '—';
     const kat = tipHarita.get(kod) ?? {
       kod, ad: s.tipAd ?? 'Tipi tanımsız',
-      santralSayisi: 0, gucMw: 0, kontrolSayisi: 0,
+      tesisSayisi: 0, guc: null, gucBirim: null, gucKarisik: false, kontrolSayisi: 0,
       endeks: null, uygun: 0, kismi: 0, uygunsuz: 0, bilinmeyen: 0,
     };
-    kat.santralSayisi += 1;
-    kat.gucMw += s.gucMw ?? 0;
+    kat.tesisSayisi += 1;
+    katGucleri.set(kod, [...(katGucleri.get(kod) ?? []), { deger: s.guc, birim: s.gucBirim }]);
     kat.uygun += s.sayim.uyumlu ?? 0;
     kat.kismi += s.sayim.kismi ?? 0;
     kat.uygunsuz += s.sayim.uyumsuz ?? 0;
@@ -325,9 +360,12 @@ export async function genelEkranVerisi(k: AktifKullanici): Promise<EkranVerisi> 
       uyumlu: kat.uygun, kismi: kat.kismi, uyumsuz: kat.uygunsuz,
       degerlendirilmedi: kat.bilinmeyen,
     });
+    const g = birimliToplam(katGucleri.get(kat.kod) ?? []);
     return {
       ...kat,
-      gucMw: Math.round(kat.gucMw * 10) / 10,
+      guc: g.toplam === null ? null : Math.round(g.toplam * 10) / 10,
+      gucBirim: g.birim,
+      gucKarisik: g.karisikBirim,
       kontrolSayisi: o.kapsam,
       endeks: o.yuzde,
     };
@@ -392,7 +430,7 @@ export async function genelEkranVerisi(k: AktifKullanici): Promise<EkranVerisi> 
   const egilim = anlikEgilimi(anliklar);
 
   const kapsamOzeti = {
-    santraller, tipler,
+    tesisler: tesisKartlari, tipler,
     risk: { hucreler, enYuksek: Math.max(0, ...hucreler.flat()), kritik, yuksek, olculemeyen },
     takvim, akis: akis.map(({ etiket, acilan, kapanan }) => ({ etiket, acilan, kapanan })),
     egilim,
@@ -439,7 +477,10 @@ export async function genelEkranVerisi(k: AktifKullanici): Promise<EkranVerisi> 
         }
         : null,
       tesisSayisi,
-      toplamGucMw: Math.round((gucToplami._sum.kuruluGucMw ?? 0) * 10) / 10,
+      gucYazi: ((x) => olculenYazi({
+        deger: x.toplam === null ? null : Math.round(x.toplam * 10) / 10,
+        birim: x.birim,
+      }))(ozellikToplami(gucToplami, KURULU_GUC)),
     },
     odak: sirali[0] ? kayit(sirali[0]) : null,
     kuyruk: sirali.slice(1, 4).map(kayit),

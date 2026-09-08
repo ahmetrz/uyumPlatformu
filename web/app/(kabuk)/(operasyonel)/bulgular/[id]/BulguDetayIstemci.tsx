@@ -28,8 +28,7 @@ import {
 } from '@/lib/eylemler';
 import {
   ONEM_DERECELERI, ONEM_ETIKET, BULGU_DURUMLARI, BULGU_DURUM_ETIKET,
-  AKSIYON_DURUMLARI, AKSIYON_ETIKET, KANIT_ESIK_VARSAYILAN, kanitTazelik, etiketle, eylemCumlesi, zamanTR, type KanitEsik,
-} from '@/lib/sabitler';
+  AKSIYON_DURUMLARI, AKSIYON_ETIKET, KANIT_ESIK_VARSAYILAN, kanitTazelik, etiketle, eylemCumlesi, zamanTR, type KanitEsik, etiketTerimleri } from '@/lib/sabitler';
 import {
   aksiyonAcikMi, aksiyonDogrulamaHucresi, aksiyonImi, bugunAn, bulguImi,
   dogrulamaBekliyorMu, dogrulamaHucresi, gecikmeGunu,
@@ -37,6 +36,7 @@ import {
   surukleyenAksiyon,
   type AksiyonOzeti,
 } from '../mantik';
+import { useSozluk, useTerim } from '@/lib/dil/SozlukSaglayici';
 
 /** Kayıt ekranındaki aksiyon: özet + görev ayrılığı için sorumlu kimliği. */
 export type AksiyonKaydi = AksiyonOzeti & { sorumluId: string | null };
@@ -91,6 +91,7 @@ export default function BulguDetayIstemci({ veri, esik = KANIT_ESIK_VARSAYILAN }
   /** kanıt tazelik eşiği — sunucudan (`kanitEsikleri()`), Kanıt kütüphanesiyle aynı kaynak */
   esik?: KanitEsik;
 }) {
+  const { tBas } = useTerim();
   const { bekliyor, hata, calistir } = useEylem();
   const [panel, setPanel] = useState(true);
   const [kip, setKip] = useState<'kayit' | 'iz'>('kayit');
@@ -312,7 +313,7 @@ export default function BulguDetayIstemci({ veri, esik = KANIT_ESIK_VARSAYILAN }
 
                   <CekmeceAlanlar alanlar={[
                     { etiket: 'Madde', deger: veri.madde.kod },
-                    { etiket: 'Santral', deger: veri.tesis.ad },
+                    { etiket: tBas('tesis'), deger: veri.tesis.ad },
                     { etiket: 'Kök neden', deger: veri.kokNeden ?? 'kayıt yok' },
                     { etiket: 'Retest', deger: veri.retestGerekli
                       ? (veri.retestSonucu ? 'Gerekli · sonuç girildi' : 'Gerekli · sonuç bekliyor')
@@ -787,6 +788,7 @@ function AksiyonPaneli({
 /* ── Denetim izi ────────────────────────────────────────────────────── */
 
 function DenetimIzi({ kayitlar }: { kayitlar: Veri['aktiviteler'] }) {
+  const ET = etiketTerimleri(useSozluk());
   if (kayitlar.length === 0) {
     return (
       <div className="ab-panel-blok">
@@ -802,7 +804,7 @@ function DenetimIzi({ kayitlar }: { kayitlar: Veri['aktiviteler'] }) {
           borderLeft: 'var(--bw-edge) solid var(--hr2)', paddingLeft: 'var(--s12)' }}>
           <span style={{ fontSize: 'var(--t-field)' }}>
             <b style={{ fontWeight: 600 }}>{k.aktor}</b>{' '}
-            {eylemCumlesi(k.eylem, k.varlikTipi === 'Bulgu' ? null : k.varlikTipi, k.alan)}
+            {eylemCumlesi(k.eylem, k.varlikTipi === 'Bulgu' ? null : k.varlikTipi, k.alan, ET)}
           </span>
           <span style={{ fontFamily: 'var(--veri)', fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
             {zamanTR(k.zaman)}
@@ -1031,7 +1033,7 @@ function KokNedenBlogu({ veri, bekliyor, calistir, acik, ac }: {
 
 /* ═══ UY-28 · Tekrar zinciri ═════════════════════════════════════════
 
-   Zincir aynı KONTROL (madde × santral) üzerindeki bütün bulgulardan
+   Zincir aynı KONTROL (madde × tesis) üzerindeki bütün bulgulardan
    kurulur, bulgunun kendi bağını yukarı yürüyerek DEĞİL: motorun ya da
    insanın bağ kurmayı atladığı bir halka da görünsün.
 

@@ -9,11 +9,11 @@ import type { Aktarim } from './VarlikAktarimIstemci';
 /* CMDB toplu aktarımı — SUNUCU VERİSİ.
 
    ═══ KAPSAM SIZINTISI ══════════════════════════════════════════════════
-   Ekran `envanter/okuma` kapısını geçtikten sonra hiçbir SANTRAL kapsamı
+   Ekran `envanter/okuma` kapısını geçtikten sonra hiçbir TESİS kapsamı
    uygulamıyordu. Üç ayrı sızıntı vardı:
-     1. `tanimliKodlar.tesis` BÜTÜN santral kodlarını, eşleme yardımı diye
+     1. `tanimliKodlar.tesis` BÜTÜN tesis kodlarını, eşleme yardımı diye
         doğrudan istemciye gönderiyordu — hiç aktarım olmasa bile.
-     2. Önizleme satırları `cozum(s.veri.tesisId)` ile kapsam dışı santral
+     2. Önizleme satırları `cozum(s.veri.tesisId)` ile kapsam dışı tesis
         kodunu satır satır yazıyordu.
      3. Yinelenen listesi, dosyadaki satırın CMDB'de eşleştiği MEVCUT
         varlığın etiketini veriyordu; eşleşme adayları bilerek kapsamsız
@@ -27,15 +27,15 @@ import type { Aktarim } from './VarlikAktarimIstemci';
    gelmezse, yazamayacağın satırı önizleyebilir olurdun.
 
    ── AKTARIM KAYDININ KENDİSİ ───────────────────────────────────────────
-   `VarlikAktarimi` şemada santrale bağlı DEĞİLDİR: bir YÜKLEME kütüğü
+   `VarlikAktarimi` şemada tesise bağlı DEĞİLDİR: bir YÜKLEME kütüğü
    satırıdır (dosya adı, yükleyen, sayaçlar, onay). Gerekçe tedarikçi
-   siciliyle aynıdır — kayıt gizlenmez, santrale bağlı olan HER ŞEY
+   siciliyle aynıdır — kayıt gizlenmez, tesise bağlı olan HER ŞEY
    daraltılır. Kaydı gizlemek ayrıca çalışan bir akışı kırardı: `eslesme`
-   aşamasındaki yeni yüklemenin henüz çözülmüş satırı (dolayısıyla santrali)
-   yoktur; santral türetilemediği için gizlenseydi, kullanıcı kendi az önce
+   aşamasındaki yeni yüklemenin henüz çözülmüş satırı (dolayısıyla tesisi)
+   yoktur; tesis türetilemediği için gizlenseydi, kullanıcı kendi az önce
    yüklediği dosyayı bulamazdı.
 
-   ── SANTRALİ BİLİNMEYEN SATIR ──────────────────────────────────────────
+   ── TESİSİ BİLİNMEYEN SATIR ──────────────────────────────────────────
    `app/kapsam.ts → kapsamda` (= `lib/api/yetki.ts → tesisKapsamda`):
    `tesisId` çözülememiş önizleme satırı YALNIZ kapsamsız kullanıcıya
    görünür. Bu, eylem katmanıyla da tutarlıdır: `kapsamKur().yazabilir(null)`
@@ -53,7 +53,7 @@ export type EkranVerisi = {
   yukleyebilir: boolean;
   onizlemeButcesi: number;
   tanimliKodlar: { tur: string[]; tesis: string[]; sistem: string[]; bolge: string[] };
-  /** true = önizleme/yinelenen listeleri santral kapsamıyla daraltıldı */
+  /** true = önizleme/yinelenen listeleri tesis kapsamıyla daraltıldı */
   kapsamli: boolean;
 };
 
@@ -70,7 +70,7 @@ export async function varlikAktarimVerisi(k: AktifKullanici): Promise<EkranVeris
       },
     }),
     db.varlikTuru.findMany({ select: { id: true, kod: true, ad: true }, orderBy: { kod: 'asc' } }),
-    // Santral sözlüğü de daraltılır: kapsam dışı bir kod eşleme yardımında
+    // Tesis sözlüğü de daraltılır: kapsam dışı bir kod eşleme yardımında
     // bile anılmaz — "hangi kodlar var" sorusunun yanıtı bir portföy listesidir.
     db.tesis.findMany({
       where: izinli === null ? {} : { id: { in: izinli } },
@@ -90,7 +90,7 @@ export async function varlikAktarimVerisi(k: AktifKullanici): Promise<EkranVeris
 
   const raporlar = kayitlar.map((a) => (a.raporJson ? guvenliRapor(a.raporJson) : {}));
 
-  /* Yinelenen listesindeki HEDEF varlıkların santrali tek sorguda okunur:
+  /* Yinelenen listesindeki HEDEF varlıkların tesisi tek sorguda okunur:
      eşleşme adayları kapsamsız yüklendiği için hedefin kapsam içinde olup
      olmadığı ayrıca sorulmak zorundadır. */
   const hedefIdleri = [...new Set(
@@ -129,9 +129,9 @@ export async function varlikAktarimVerisi(k: AktifKullanici): Promise<EkranVeris
       onayZamani: a.onayZamani?.toISOString() ?? null,
       okunan: a.okunan, gecerli: a.gecerli, hatali: a.hatali,
       /* Yinelenen SAYACI da daraltılmış listeden gelir: satırı gizleyip
-         sayacı bırakmak, "görmediğin bir santralde şu kadar eşleşme var"
+         sayacı bırakmak, "görmediğin bir tesiste şu kadar eşleşme var"
          demek olurdu. `okunan/gecerli/hatali` dosyanın kendi sayaçlarıdır
-         ve santral taşımazlar — onlar olduğu gibi kalır. */
+         ve tesis taşımazlar — onlar olduğu gibi kalır. */
       yinelenen: izinli === null ? a.yinelenen : gorunurYinelenenler.length,
       eklenen: a.eklenen, guncellenen: a.guncellenen,
       basliklar: a.basliklarJson ? (JSON.parse(a.basliklarJson) as string[]) : [],
@@ -148,7 +148,7 @@ export async function varlikAktarimVerisi(k: AktifKullanici): Promise<EkranVeris
         eslesmeAlani: s.eslesmeAlani,
         bosAlanlar: s.bosAlanlar,
       })),
-      /* Hata listesi santral taşımaz: satır numarası, DOSYADAKİ etiket ve
+      /* Hata listesi tesis taşımaz: satır numarası, DOSYADAKİ etiket ve
          sebep metninden ibarettir — dolayısıyla daraltılmaz. */
       hatalar: hatalar.slice(0, LISTE_TAVANI),
       hataKalan: Math.max(0, hatalar.length - LISTE_TAVANI),

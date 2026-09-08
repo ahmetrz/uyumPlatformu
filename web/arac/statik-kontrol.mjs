@@ -18,10 +18,11 @@
 
    Kullanım: node arac/statik-kontrol.mjs [out dizini]
 */
-import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
+import { ciktiyiDogrula } from './derleme-ortami.mjs';
+import { tarayiciYolu } from './kosu-ortak.mjs';
 import path from 'node:path';
 import http from 'node:http';
-import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { createReadStream, statSync } from 'node:fs';
 import { chromium } from 'playwright-core';
@@ -31,10 +32,10 @@ const CIKTI = path.resolve(process.argv[2] ?? path.join(WEB, 'out'));
 const KOK = /export const YAYIN_KOKU = '([^']+)'/
   .exec(readFileSync(path.join(WEB, 'lib', 'demo.ts'), 'utf8'))[1];
 
-if (!existsSync(CIKTI)) {
-  console.error(`statik-kontrol: çıktı dizini yok → ${CIKTI}`);
-  process.exit(1);
-}
+/* Ölçmeden önce ÇIKTININ TAM olduğu doğrulanır: yer bitince `next build`
+   yarım bir `out/` bırakır ve bu kapı o yarım siteyi "kusursuz" ölçerdi
+   (`arac/derleme-ortami.mjs`). Ölçülmeyen "geçti" diye yazılmaz. */
+if (!ciktiyiDogrula('statik-kontrol', CIKTI)) process.exit(1);
 
 /** Ziyaretçi derlemeden bu kadar sonra bakıyor. */
 const SAPMA_GUN = 90;
@@ -66,35 +67,14 @@ const sunucu = http.createServer((istek, yanit) => {
 await new Promise((c) => sunucu.listen(0, c));
 const TABAN = `http://localhost:${sunucu.address().port}${KOK}`;
 
-/* Tarayıcıyı bul. `playwright-core` tarayıcı indirmez; ortam ne
-   veriyorsa onu kullanırız. Adaylar sırayla denenir ve BULUNAMAZSA kapı
-   sessizce geçmez, açıkça kırılır — "tarayıcı yoktu" bir doğrulama
-   değildir. CI'da iş akışı Chrome kurar (bkz. publish.yml). */
-function tarayiciYolu() {
-  const adaylar = [
-    process.env.CHROMIUM,
-    process.env.CHROME_PATH,
-    ...globSurucu('/opt/pw-browsers'),
-    ...globSurucu(path.join(os.homedir(), '.cache', 'ms-playwright')),
-    '/usr/bin/chromium', '/usr/bin/chromium-browser',
-    '/usr/bin/google-chrome', '/usr/bin/google-chrome-stable',
-  ].filter(Boolean);
-  for (const y of adaylar) if (existsSync(y)) return y;
-  console.error(
-    'statik-kontrol: çalıştırılabilir bir Chromium bulunamadı.\n'
-    + '  CHROMIUM ortam değişkeniyle yol verin ya da Chrome kurun.\n'
-    + `  Denenen yollar: ${adaylar.join(', ')}`,
-  );
-  process.exit(1);
-}
-
-/** `/opt/pw-browsers` altındaki chromium sürümlerinin yollarını üretir. */
-function globSurucu(kok) {
-  if (!existsSync(kok)) return [];
-  return readdirSync(kok)
-    .filter((ad) => ad.startsWith('chromium'))
-    .map((ad) => path.join(kok, ad, 'chrome-linux', 'chrome'));
-}
+/* Tarayıcı yolu ORTAK modülden gelir (`kosu-ortak.mjs`). Burada kendi
+   kopyası vardı ve İKİSİ ÇOKTAN AYRIŞMIŞTI: bu kopya
+   `PLAYWRIGHT_BROWSERS_PATH`i, `chrome-linux64`ü ve headless-shell
+   yollarını görmüyordu — ortam Playwright'ın tarayıcısını başka bir
+   düzende koyduğunda bu kapı "Chromium bulunamadı" diye düşerken öbür
+   kapılar sorunsuz koşuyordu. Kopyanın tek fazlası (`CHROMIUM` ·
+   `CHROME_PATH`) ortak işleve taşındı; kaybolan davranış yok.
+   `tests/tek-nusha.test.ts` bu kopyanın geri gelmesini engelliyor. */
 
 const tarayici = await chromium.launch({
   executablePath: tarayiciYolu(),

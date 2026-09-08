@@ -1,20 +1,43 @@
 import 'server-only';
 import { db } from '../db';
 
-/* Uygulanabilirlik motoru (§5): santral profilinden kural bazlı kapsam kararı.
+/* Uygulanabilirlik motoru (§5): tesis profilinden kural bazlı kapsam kararı.
    Kural JSON'u: { herhangi?: Kosul[], hepsi?: Kosul[] }
    Kosul: { alan, islec: '='|'!='|'>='|'<='|'>'|'<', deger } */
 
 type Kosul = { alan: string; islec: string; deger: unknown };
 type Kural = { herhangi?: Kosul[]; hepsi?: Kosul[] };
 
-/** Profil + tesis alanlarından kural değerlendirme bağlamı üretir. */
-function baglamKur(tesis: { kuruluGucMw: number | null },
+/** Kuralın okuyabileceği bir tesis özniteliği. */
+export type Oznitelik = {
+  anahtar: string;
+  sayisalDeger: number | null;
+  metinDeger: string | null;
+};
+
+/** Profil + ÖZNİTELİKLERDEN kural değerlendirme bağlamı üretir.
+
+    P1 · §0.5: "kurulu güç" bir sektör niteliğidir ve artık kolon değil,
+    `TesisOzellik` satırıdır. Kural bir öznitelik ANAHTARI okur; hangi
+    anahtarların var olduğunu sektör paketi söyler, çekirdek bilmez.
+
+    ÖZNİTELİK YOKSA BAĞLAMDA DA YOKTUR: anahtarı `undefined` bırakırız ve
+    `kosulSagla` onu `null` (bilinmiyor) sayar. Anahtarı `null` değerle
+    eklemek de aynı sonucu verirdi ama bir şey daha söylerdi — "bu
+    niteliği tanıyoruz, ölçülmedi". Oysa çekirdek o niteliği tanımıyor;
+    ayrımı bağlamda da korumak, ileride "tanınmayan anahtar" ile
+    "ölçülmemiş nitelik" ayrı raporlanmak istendiğinde işi kolaylaştırır. */
+function baglamKur(ozellikler: readonly Oznitelik[],
   profil: Record<string, unknown> | null): Record<string, unknown> {
   const p = profil ?? {};
+  const nitelikler: Record<string, unknown> = {};
+  for (const o of ozellikler) {
+    const deger = o.sayisalDeger ?? o.metinDeger;
+    if (deger !== null) nitelikler[o.anahtar] = deger;
+  }
   return {
     ...p,
-    kuruluGucMw: tesis.kuruluGucMw,
+    ...nitelikler,
     // türetilmiş alan: TEİAŞ SCADA/EMS bağlantısı seri OLMAYAN haberleşmeyle
     teiasScadaEmsSeriOlmayan:
       p['teiasScadaEms'] === true && p['seriHaberlesme'] !== true,
@@ -40,10 +63,10 @@ export type KuralSonucu = {
   gerekce: string;
 };
 
-export function kuralDegerlendir(kuralJson: string, tesis: { kuruluGucMw: number | null },
+export function kuralDegerlendir(kuralJson: string, ozellikler: readonly Oznitelik[],
   profil: Record<string, unknown> | null): KuralSonucu {
   const kural = JSON.parse(kuralJson) as Kural;
-  const baglam = baglamKur(tesis, profil);
+  const baglam = baglamKur(ozellikler, profil);
   const acikla = (k: Kosul, s: boolean | null) =>
     `${k.alan}${k.islec}${JSON.stringify(k.deger)}=${s === null ? 'bilinmiyor' : s ? 'sağlandı' : 'sağlanmadı'}`;
 
@@ -75,7 +98,7 @@ export function kuralDegerlendir(kuralJson: string, tesis: { kuruluGucMw: number
 export async function tesisKapsaminiHesapla(tesisId: string, aktorId?: string | null):
   Promise<{ hesaplanan: number; atlanianOverride: number }> {
   const tesis = await db.tesis.findUniqueOrThrow({
-    where: { id: tesisId }, include: { profil: true } });
+    where: { id: tesisId }, include: { profil: true, ozellikler: true } });
   const kurallar = await db.uygulanabilirlikKurali.findMany({ where: { aktif: true } });
   let hesaplanan = 0, atlanianOverride = 0;
   for (const kural of kurallar) {
@@ -84,7 +107,7 @@ export async function tesisKapsaminiHesapla(tesisId: string, aktorId?: string | 
     if (mevcut?.elIleDegistirildi) { atlanianOverride++; continue; }
     const profilKaydi = tesis.profil
       ? JSON.parse(JSON.stringify(tesis.profil)) as Record<string, unknown> : null;
-    const sonuc = kuralDegerlendir(kural.kosulJson, tesis, profilKaydi);
+    const sonuc = kuralDegerlendir(kural.kosulJson, tesis.ozellikler, profilKaydi);
     if (sonuc.uygulanabilir === null && !mevcut) {
       /* Karar verilemiyor: uygulanabilirlik kaydı AÇILMAZ (bilinmeyen bir
          karar uydurulamaz), veri kalitesi bulgusu düşülür.

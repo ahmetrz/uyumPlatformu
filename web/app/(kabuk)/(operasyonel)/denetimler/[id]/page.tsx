@@ -13,7 +13,7 @@ import { denetimDetayVerisi, denetimGorunur } from './veri';
    sayısından türer; sunucu eylemi (asamaIlerlet) aynı koşulu bir kez daha
    uygular — ekran yalnızca reddi önceden söyler, kuralı kendisi kurmaz.
 
-   Santral kapsamı `veri.ts`te uygulanır (modül: `denetim`, liste ekranıyla
+   Tesis kapsamı `veri.ts`te uygulanır (modül: `denetim`, liste ekranıyla
    aynı kural). Kapsam dışı denetim `notFound()` ile kapanır. */
 
 export async function generateStaticParams() {

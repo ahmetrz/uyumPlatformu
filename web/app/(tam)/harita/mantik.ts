@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════════
-   A4 · SANTRAL HARİTASI — saf kurallar
+   A4 · TESİS HARİTASI — saf kurallar
 
    ═══ ÜLKE SINIRI ═══════════════════════════════════════════════════════
    Tuval önce yalnız bir enlem/boylam çerçevesiydi (paraleller, meridyenler
@@ -22,22 +22,23 @@
 
    ═══ İKİ TÜR KONUM, ASLA KARIŞMAZ ═════════════════════════════════════
    · KESİN     — `Tesis.enlem/boylam` girilmiş; işaret dolu.
-   · YAKLAŞIK  — koordinat yok, santralin İLİ biliniyor; işaret il
+   · YAKLAŞIK  — koordinat yok, tesisin İLİ biliniyor; işaret il
                  merkezine konur, İÇİ BOŞ çizilir ve "il merkezi ·
                  kesin konum girilmedi" yazılır.
-   · YERLEŞTİRİLEMEZ — ne koordinat ne tanınan bir il var; santral haritaya
+   · YERLEŞTİRİLEMEZ — ne koordinat ne tanınan bir il var; tesis haritaya
                  KONMAZ, yanına listelenir. Uydurulmuş bir nokta, sahayı
                  yanlış yere gönderir.
    Bu, ürünün "bilinmeyen ≠ sıfır" kuralının coğrafi hâlidir.
    ═══════════════════════════════════════════════════════════════════════ */
 
+import { t, type Sozluk } from '@/lib/dil/terimler';
 import type { Durum } from '@/components/kabuk/temel';
 import { TURKIYE_SINIRI } from '@/lib/cografya/turkiyeSiniri';
 import type { PortfoySatiri } from '../portfoy/mantik';
 
 /* ── İl merkezleri ────────────────────────────────────────────────────
    Kamuya açık il merkezi koordinatları (ondalık derece, WGS84), YAKLAŞIK
-   yerleşim için. Bunlar santralin koordinatı DEĞİLDİR ve öyle sunulmaz:
+   yerleşim için. Bunlar tesisin koordinatı DEĞİLDİR ve öyle sunulmaz:
    işaret içi boş çizilir, künyede "il merkezi" yazar.
 
    Liste yalnız portföyde geçen illeri taşır; tanınmayan il "yerleştirilemez"
@@ -120,7 +121,7 @@ export function cercevede(enlem: number, boylam: number): boolean {
 /* ── İşaret ───────────────────────────────────────────────────────────── */
 
 /* ÜÇ durum, iki değil (P3-8). Eskiden `'kesin' | 'il'` idi ve
-   koordinatı olan her santral "kesin" sayılıyordu — kamuya açık bir
+   koordinatı olan her tesis "kesin" sayılıyordu — kamuya açık bir
    kaynaktan bulunmuş yaklaşık bir nokta da, saha ekibinin GPS'le
    ölçtüğü nokta da. Ekran ikisini de kesin gösteriyordu; "bilinmeyen ≠
    sıfır" kuralının koordinattaki ihlali buydu.
@@ -134,7 +135,9 @@ export type Isaret = {
   id: string; kod: string; ad: string;
   tipKod: string | null; tipAdi: string;
   konum: string | null; il: string | null;
-  gucMw: number | null;
+  guc: number | null;
+  /** Birim satırdan gelir; ekranda sabit yazılmaz (§0.5). */
+  gucBirim: string | null;
   uyumYuzde: number | null;
   acikBulgu: number; acikRisk: number;
   kaynak: KonumKaynagi;
@@ -156,7 +159,7 @@ export type Isaret = {
 
 export type Yerlesim = {
   isaretler: Isaret[];
-  /** Ne koordinatı ne tanınan ili olan santraller — haritada YOK, listede VAR. */
+  /** Ne koordinatı ne tanınan ili olan tesisler — haritada YOK, listede VAR. */
   yerlestirilemeyen: PortfoySatiri[];
   dogrulanmisSayisi: number;
   /** Koordinatı var ama doğrulanmamış — haritada "aday" olarak durur. */
@@ -165,7 +168,7 @@ export type Yerlesim = {
 };
 
 /* Uyum yüzdesi → durum. Eşikler kök ekranla aynı okumayı verir:
-   ölçülmemiş santral YEŞİL DEĞİL, bilinmeyendir. */
+   ölçülmemiş tesis YEŞİL DEĞİL, bilinmeyendir. */
 export function uyumDurumu(yuzde: number | null): Durum {
   if (yuzde === null) return 'unk';
   if (yuzde >= 85) return 'ok';
@@ -174,9 +177,9 @@ export function uyumDurumu(yuzde: number | null): Durum {
 }
 
 /** Yarıçap: kurulu güç kökü (alan güçle orantılı olsun), 4–16 px arası. */
-export function yaricap(gucMw: number | null): number {
-  if (!gucMw || gucMw <= 0) return 4;
-  return Math.min(16, 4 + Math.sqrt(gucMw) * 0.9);
+export function yaricap(guc: number | null): number {
+  if (!guc || guc <= 0) return 4;
+  return Math.min(16, 4 + Math.sqrt(guc) * 0.9);
 }
 
 export function yerlesimKur(satirlar: PortfoySatiri[]): Yerlesim {
@@ -209,15 +212,15 @@ export function yerlesimKur(satirlar: PortfoySatiri[]): Yerlesim {
     isaretler.push({
       id: s.id, kod: s.kod, ad: s.ad, tipKod: s.tipKod, tipAdi: s.tipAdi,
       konum: s.konum, il: ilAyikla(s.konum),
-      gucMw: s.gucMw, uyumYuzde: s.uyumYuzde,
+      guc: s.guc, gucBirim: s.gucBirim, uyumYuzde: s.uyumYuzde,
       acikBulgu: s.acikBulgu, acikRisk: s.acikRisk,
       kaynak,
-      // `il` kaynağında nokta santralin kendisi değil il merkezi; künye
+      // `il` kaynağında nokta tesisin kendisi değil il merkezi; künye
       // orada bir şeye işaret etmez, bu yüzden null.
       konumKaynagi: kaynak === 'il' ? null : s.konumKaynagi,
       enlem, boylam, x, y,
       durum: uyumDurumu(s.uyumYuzde),
-      r: yaricap(s.gucMw),
+      r: yaricap(s.guc),
       etiketDx: 0, etiketDy: 0, etiketHiza: 'start',
     });
   }
@@ -231,7 +234,7 @@ export function yerlesimKur(satirlar: PortfoySatiri[]): Yerlesim {
   };
 }
 
-/** Aynı noktaya düşen işaretler — il merkezine yığılan santraller. */
+/** Aynı noktaya düşen işaretler — il merkezine yığılan tesisler. */
 export function yiginlar(isaretler: Isaret[]): Map<string, Isaret[]> {
   const g = new Map<string, Isaret[]>();
   for (const i of isaretler) {
@@ -242,7 +245,7 @@ export function yiginlar(isaretler: Isaret[]): Map<string, Isaret[]> {
 }
 
 /* Yığındaki işaretler küçük bir çember üzerine dağıtılır: üst üste binen
-   iki nokta "tek santral" gibi okunurdu. Tek başına duran işaret KAYMAZ. */
+   iki nokta "tek tesis" gibi okunurdu. Tek başına duran işaret KAYMAZ. */
 export function yiginKaydir(isaretler: Isaret[]): Isaret[] {
   const g = yiginlar(isaretler);
   const cikti: Isaret[] = [];
@@ -323,24 +326,31 @@ export function olcu(y: Yerlesim): HaritaOlcusu {
   };
 }
 
-export function baslikMetni(o: HaritaOlcusu): { vurgu: string; ad: string; durum: Durum | undefined } {
-  if (o.toplam === 0) return { vurgu: '', ad: 'Kapsamınızda santral yok', durum: undefined };
+/* Sözlük PARAMETRE: bu modül saf kural, React bilmez. Sözlüksüz çağrı
+   çekirdek sözcüğü yazar. */
+export function baslikMetni(
+  o: HaritaOlcusu, sozluk: Sozluk | null = null,
+): { vurgu: string; ad: string; durum: Durum | undefined } {
+  const tesis = t(sozluk, 'tesis');
+  if (o.toplam === 0) {
+    return { vurgu: '', ad: `Kapsamınızda ${tesis} yok`, durum: undefined };
+  }
   if (o.yerlestirilemeyen > 0) {
-    return { vurgu: `${o.yerlestirilemeyen} santral`, ad: 'haritaya yerleştirilemedi', durum: 'unk' };
+    return { vurgu: `${o.yerlestirilemeyen} ${tesis}`, ad: 'haritaya yerleştirilemedi', durum: 'unk' };
   }
   /* Sıra bilinçli: en pahalı belirsizlik önce söylenir. Doğrulanmamış
      nokta, il merkezine yaklaştırılmış noktadan DAHA yanıltıcıdır —
      ikincisi zaten "yaklaşık" diyor, birincisi kesin görünüyor. */
   if (o.dogrulanmamis > 0) {
-    return { vurgu: `${o.dogrulanmamis} santral`, ad: 'koordinatı doğrulanmadı', durum: 'md' };
+    return { vurgu: `${o.dogrulanmamis} ${tesis}`, ad: 'koordinatı doğrulanmadı', durum: 'md' };
   }
   if (o.dogrulanmis === 0) {
-    return { vurgu: `${o.yaklasik} santral`, ad: 'il merkezine yaklaştırıldı', durum: 'md' };
+    return { vurgu: `${o.yaklasik} ${tesis}`, ad: 'il merkezine yaklaştırıldı', durum: 'md' };
   }
   if (o.yaklasik > 0) {
-    return { vurgu: `${o.yaklasik} santral`, ad: 'konumu girilmemiş', durum: 'md' };
+    return { vurgu: `${o.yaklasik} ${tesis}`, ad: 'konumu girilmemiş', durum: 'md' };
   }
-  return { vurgu: `${o.dogrulanmis} santral`, ad: 'doğrulanmış konumuyla haritada', durum: 'ok' };
+  return { vurgu: `${o.dogrulanmis} ${tesis}`, ad: 'doğrulanmış konumuyla haritada', durum: 'ok' };
 }
 
 /* ── Koordinat doğrulaması (form ve eylem aynı kuralı paylaşır) ──────── */

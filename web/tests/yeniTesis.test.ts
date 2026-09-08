@@ -20,14 +20,16 @@ describe('Kabul testi 1 — yeni santral kapsam akışı (izole DB)', () => {
     expect(await db.veriKalitesiBulgusu.count({
       where: { kaynakId: yeni.id, kural: 'eksik_profil' } })).toBeGreaterThan(0);
 
-    await db.tesis.update({ where: { id: yeni.id }, data: { kuruluGucMw: 150 } });
+    /* P1: kurulu güç kolon değil öznitelik satırı — motor da oradan okuyor. */
+    await db.tesisOzellik.create({ data: { tesisId: yeni.id,
+      anahtar: 'kuruluGuc', sayisalDeger: 150, birim: 'MW', kaynak: 'test' } });
     await db.tesisProfili.create({ data: { tesisId: yeni.id,
       blackStart: false, teiasScadaEms: false, seriHaberlesme: false } });
     await tesisKapsaminiHesapla(yeni.id);
     const karar = await db.uygulanabilirlikKarari.findFirstOrThrow({
       where: { tesisId: yeni.id } });
     expect(karar.uygulanabilir).toBe(true);
-    expect(karar.gerekce).toContain('kuruluGucMw');
+    expect(karar.gerekce).toContain('kuruluGuc');
     expect(karar.kuralSurumu).toBe(1);
   });
 });

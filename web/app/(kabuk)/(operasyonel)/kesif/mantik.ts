@@ -1,3 +1,4 @@
+import { tBas, type Sozluk } from '@/lib/dil/terimler';
 import type { Durum } from '@/components/kabuk/temel';
 import {
   KESIF_GRUP_ADI, KESIF_KAYNAK_SOZU, kesifDagilimi, kesifGrubu,
@@ -67,7 +68,7 @@ export type KesifSatiri = {
   ouiOnEki: string | null;
   ouiUretici: string | null;
   otProtokolu: string | null;
-  /** OT-16b · kaydın çözülebilen santrali; null = YERİ BİLİNMİYOR. */
+  /** OT-16b · kaydın çözülebilen tesisi; null = YERİ BİLİNMİYOR. */
   tesisId: string | null;
   tesisKod: string | null;
 };
@@ -218,15 +219,23 @@ export function kesifOzeti(
    Dosya, ekranda görünen SÜZÜLMÜŞ kümeyi taşır: dışa aktarılan liste ile
    bakılan liste ayrışırsa, dosyayı açan kişi başka bir gerçeği okur. */
 
-export const KESIF_DISA_BASLIKLARI = [
-  'Grup', 'Konu', 'Kaynak kategorisi', 'Connector', 'Kaynak kayıt kimliği',
-  'Santral', 'Durum', 'Yetki durumu', 'Yetki gerekçesi',
+/* Başlık satırı SÖZLÜKTEN (karar: P1 · raporlar dilimi) — kullanıcı ne
+   görüyorsa dosyada onu okur. Sabit dizi İŞLEVE çevrildi; modül React
+   bilmez, sözlüğü çağıran geçirir. Sözlüksüz çağrı çekirdeği yazar.
+
+   R0-9 DEĞİL: bu dosya kullanıcının indirdiği bir görünüm, saklanan bir
+   sözleşme artefaktı değil. Kolon SAYISI ve SIRASI sözlükten bağımsız. */
+export function kesifDisaBasliklari(sozluk: Sozluk | null): string[] {
+  return [
+    'Grup', 'Konu', 'Kaynak kategorisi', 'Connector', 'Kaynak kayıt kimliği',
+    tBas(sozluk, 'tesis'), 'Durum', 'Yetki durumu', 'Yetki gerekçesi',
   'Eşleşen varlık', 'Eşleşme anahtarı', 'Eşleşme güveni', 'Kaynak güveni',
   'Sahip', 'Aday sayısı', 'Çakışma',
   'Üretici (OUI)', 'MAC ön eki', 'OT protokolü',
   'İlk görülme', 'Son görülme', 'Kaç gündür görülmüyor',
   'İnceleyen', 'İnceleme zamanı', 'İnceleme notu',
-] as const;
+  ];
+}
 
 export function kesifDisaSatiri(
   s: KesifSatiri, gorunmezEsikGun: number,
@@ -264,9 +273,10 @@ export function kesifDisaSatiri(
 
 export function kesifDisaAktarimi(
   satirlar: readonly KesifSatiri[], gorunmezEsikGun: number,
+  sozluk: Sozluk | null = null,
 ): (string | number)[][] {
   return [
-    [...KESIF_DISA_BASLIKLARI],
+    kesifDisaBasliklari(sozluk),
     ...satirlar.map((s) => kesifDisaSatiri(s, gorunmezEsikGun)),
   ];
 }
@@ -276,17 +286,17 @@ export function kesifDisaAktarimi(
 /**
  * Keşif kuyruğunun kapsam koşulu (Prisma `where` parçası).
  *
- * Bir keşif kaydı üç yoldan bir santrale bağlanabilir: eşleştiği varlığın
- * santrali, kaynağın beyan ettiği santral (`tesisId`), ya da hiçbiri.
- * Kapsamı daraltılmış kullanıcı ilk ikisinden yalnız kendi santrallerini
- * görür; üçüncüsü — santrali BİLİNMEYEN kayıt — herkese görünür.
+ * Bir keşif kaydı üç yoldan bir tesise bağlanabilir: eşleştiği varlığın
+ * tesisi, kaynağın beyan ettiği tesis (`tesisId`), ya da hiçbiri.
+ * Kapsamı daraltılmış kullanıcı ilk ikisinden yalnız kendi tesislerini
+ * görür; üçüncüsü — tesisi BİLİNMEYEN kayıt — herkese görünür.
  *
  * Sonuncusu bilinçli bir karardır: bilinmeyeni gizlemek onu kimsenin
  * incelemeyeceği anlamına gelir ve keşif kuyruğunun varlık sebebi tam da
  * o kayıtlardır. "Bilinmiyor" burada "yasak" değil "henüz atanmadı"dır.
- * Buradaki risk — bilinmeyen kaydın BAŞKA santralin verisini taşıması —
+ * Buradaki risk — bilinmeyen kaydın BAŞKA tesisin verisini taşıması —
  * kuyruğun kendisinde değil, ÜRETİM tarafında kapatılır: kapsamı
- * yapılandırılmış bir connector kapsam dışı ya da santralsiz kayıt
+ * yapılandırılmış bir connector kapsam dışı ya da tesissiz kayıt
  * yazamaz (bkz. `lib/entegrasyon/cekirdek.ts → connectorKapsamKodlari`).
  *
  * Sayfadan BURAYA taşındı: kapsam kuralı bir sayfa detayı değil, negatif
@@ -297,7 +307,7 @@ export function kesifKapsamKosulu(gorulebilir: string[] | null) {
   return {
     OR: [
       { eslesenVarlik: { tesisId: { in: gorulebilir } } },
-      // santralsiz bir varlığa eşleşmiş kayıt da 'bilinmiyor' kümesindedir
+      // tesissiz bir varlığa eşleşmiş kayıt da 'bilinmiyor' kümesindedir
       { eslesenVarlik: { tesisId: null } },
       { eslesenVarlikId: null, tesisId: { in: gorulebilir } },
       { eslesenVarlikId: null, tesisId: null },

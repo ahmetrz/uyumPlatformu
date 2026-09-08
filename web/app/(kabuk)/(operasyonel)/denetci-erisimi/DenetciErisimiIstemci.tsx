@@ -1,5 +1,7 @@
 'use client';
 import { useState } from 'react';
+import { useSozluk, useTerim } from '@/lib/dil/SozlukSaglayici';
+import { terim } from '@/lib/dil/terimler';
 import { Alan, BosIlk, Dugme } from '@/components/kabuk/temel';
 import { EkranBasligi } from '@/components/kabuk/ekran';
 import { Tablo, type Satir } from '@/components/kabuk/tablo';
@@ -8,14 +10,14 @@ import {
   denetciDavetEt, denetciErisimiIptal, denetciSureleriniIsle,
 } from '@/lib/eylemler2/denetciErisimi';
 import {
-  AZAMI_SURE_GUN, YASAYAN_SINIFI, YASAYAN_SOZU, denetciCumlesi,
+  AZAMI_SURE_GUN, YASAYAN_SINIFI, denetciCumlesi, yasayanSozu,
   type DenetciOzeti, type YasayanDurum,
 } from '@/lib/uyum/denetciErisimi';
 import { tarihTR } from '@/lib/sabitler';
 
 /* ═══ UY-57 · Dış denetçi erişimi ekranı ══════════════════════════════
 
-   Kütük "kim, hangi denetim için, ne zamana kadar, hangi santralleri"
+   Kütük "kim, hangi denetim için, ne zamana kadar, hangi tesisleri"
    sorusunu tek satırda yanıtlar. Süresi dolan erişim listeden DÜŞMEZ:
    denetim bittikten sonra kimin baktığı da bir kayıttır.
 
@@ -52,12 +54,14 @@ export default function DenetciErisimiIstemci({
   isleneceklerSayisi: number;
 }) {
   const [formAcik, setFormAcik] = useState(false);
+  const tesis = terim(useSozluk(), 'tesis');
+  const yasayan = yasayanSozu(tesis);
 
   const tablo: Satir[] = satirlar.map((e) => ({
     id: e.id,
     durum: YASAYAN_SINIFI[e.durum],
     konu: e.kisi,
-    alt: `${YASAYAN_SOZU[e.durum]}${e.denetim ? ` · ${e.denetim}` : ' · denetime bağlı değil'}`
+    alt: `${yasayan[e.durum]}${e.denetim ? ` · ${e.denetim}` : ' · denetime bağlı değil'}`
       + `${e.iptalGerekcesi ? ` · ${e.iptalGerekcesi}` : ''}`,
     hucreler: [
       e.firma,
@@ -98,7 +102,7 @@ export default function DenetciErisimiIstemci({
       />
 
       <p className="ab-panel-dip" style={{ margin: '0 0 var(--s16)' }}>
-        {denetciCumlesi(ozet)} Süresiz dış erişim yoktur: bitiş tarihi
+        {denetciCumlesi(ozet, tesis)} Süresiz dış erişim yoktur: bitiş tarihi
         zorunludur ve en çok {AZAMI_SURE_GUN} gün olabilir. Erişim
         kapandığında `dis_denetci` yetki satırları da kaldırılır — ekranın
         yazdığı ile kapının yaptığı aynıdır.
@@ -153,12 +157,13 @@ function DavetFormu({ adaylar, denetimler, tesisler, kapat }: {
   tesisler: { id: string; kod: string; ad: string }[];
   kapat: () => void;
 }) {
+  const { t } = useTerim();
   const { bekliyor, hata, calistir } = useEylem();
   const [kullaniciId, setKullaniciId] = useState(adaylar[0]?.id ?? '');
   const [denetimId, setDenetimId] = useState('');
   const [firma, setFirma] = useState('');
   const [bitis, setBitis] = useState('');
-  /* Kapsam BOŞ BAŞLAR. Bütün santralleri işaretli getirmek, "sonra
+  /* Kapsam BOŞ BAŞLAR. Bütün tesisleri işaretli getirmek, "sonra
      daraltırım" denip hiç daraltılmayan bir kapsam bırakırdı. */
   const [secili, setSecili] = useState<string[]>([]);
 
@@ -192,7 +197,7 @@ function DavetFormu({ adaylar, denetimler, tesisler, kapat }: {
         <input className="ab-gr" type="date" value={bitis}
           onChange={(e) => setBitis(e.target.value)} />
       </Alan>
-      <Alan etiket="Görebileceği santraller" zorunlu>
+      <Alan etiket={`Görebileceği ${t('tesis', 'cogul')}`} zorunlu>
         <div style={{ display: 'grid', gap: 'var(--s6)', maxHeight: 220, overflow: 'auto' }}>
           {tesisler.map((t) => (
             <label key={t.id} style={{ display: 'flex', alignItems: 'center',
@@ -224,7 +229,7 @@ function DavetFormu({ adaylar, denetimler, tesisler, kapat }: {
         <Dugme onClick={kapat} disabled={bekliyor}>Vazgeç</Dugme>
       </div>
       <p className="ab-panel-dip" style={{ margin: 0 }}>
-        Davet, seçilen her santral için bir `dis_denetci` yetki satırı yazar.
+        Davet, seçilen her {t('tesis')} için bir `dis_denetci` yetki satırı yazar.
         Kapsam boş bırakılamaz: &quot;boş kapsam = her şey&quot; DEĞİLDİR ve bir dış
         denetçiye kurumun tamamını açmak olurdu.
       </p>

@@ -288,7 +288,7 @@ export function Hata({ cumle, teknik, yenidenDene }: {
    taşır; `.taramali` sol kenar 45° tarama = bilinmeyen dilimiyle aynı
    şekil kodu. */
 
-/** Kaynak var, ölçüm hiç YAPILMAMIŞ (denetlenmemiş santral, sorgulanmamış cihaz). */
+/** Kaynak var, ölçüm hiç YAPILMAMIŞ (denetlenmemiş tesis, sorgulanmamış cihaz). */
 export function Olculmedi({ ne, neden, eylem }: { ne: string; neden?: string; eylem?: ReactNode }) {
   return (
     <div className="ab-blok taramali" role="status">

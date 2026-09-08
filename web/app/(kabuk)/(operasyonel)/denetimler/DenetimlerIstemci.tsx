@@ -1,4 +1,5 @@
 'use client';
+import { useSozluk, useTerim } from '@/lib/dil/SozlukSaglayici';
 import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useUrlDurumu, useUrlDurumuBos, useUrlSira } from '@/components/kabuk/urlDurumu';
@@ -16,7 +17,7 @@ import { DenetimFormu } from './Formlar';
 import {
   altSatir, asamaEtiketi, asamaIndeksi, capa, denetimImi, donemler, geriMetni,
   kapandiMi, kimlikCumlesi, KISA_ASAMA, konum, planMetni,
-  santralMetni, tipEtiketi, ufuk,
+  tesisMetni, tipEtiketi, ufuk,
   type Asama, type D, type SurecSecenegi,
 } from './ortak';
 
@@ -37,7 +38,7 @@ const KOLONLAR: Kolon[] = [
   { baslik: 'Aşama', genislik: '112px', siraAnahtari: 'asama' },
   { baslik: 'Kanıt', genislik: '84px', sag: true, siraAnahtari: 'kanit' },
   { baslik: 'Plan', genislik: '132px', siraAnahtari: 'plan' },
-  { baslik: 'Santral', genislik: '140px', ikincil: true },
+  { baslik: 'Tesis', genislik: '140px', ikincil: true },
 ];
 
 const MERCEKLER = [
@@ -56,6 +57,15 @@ export default function DenetimlerIstemci({
   denetimler: D[]; simdi: number; yeniKod: string; yazabilir: boolean;
   surecler: SurecSecenegi[];
 }) {
+  const { tBas } = useTerim();
+  const sozluk = useSozluk();
+  /* Tesis kolonunun başlığı sözlükten; sabit dizi modülde kalır ve
+     yalnız o kolon kopyalanır (envanter/riskler/kimlik dilimlerindeki
+     desen). Bağımlılıkta `sozluk` var. */
+  const kolonlar = useMemo(
+    () => KOLONLAR.map((k) => (k.baslik !== 'Tesis' ? k : { ...k, baslik: tBas('tesis') })),
+    [tBas],
+  );
   const [mercek, setMercek] = useUrlDurumu<string>('mercek', 'yuruyen');
   const [asamaF, setAsamaF] = useState<string | null>(null);
   const [tipF, setTipF] = useUrlDurumuBos('tip');
@@ -151,11 +161,11 @@ export default function DenetimlerIstemci({
       geri: geriMetni(k.capa, simdi),
       // Kart 208px: kimlik zaten başlıkta, kapsam satırına yalnız yayılım
       // sığar — kod da eklenirse satır kırılır ve kart şeridi taşar.
-      kapsam: santralMetni(k.d),
+      kapsam: tesisMetni(k.d, sozluk),
       durum: k.im,
       konum: konum(k.capa, eksen),
     }));
-  }, [suzulmus, eksen, simdi]);
+  }, [suzulmus, eksen, simdi, sozluk]);
 
   const secilen = kayitlar.find((k) => k.d.id === secili) ?? null;
   const filtreAktif = mercek !== 'yuruyen' || asamaF !== null || tipF !== null
@@ -175,7 +185,7 @@ export default function DenetimlerIstemci({
       <span key="p" style={k.plan.durum ? { color: `var(--${k.plan.durum})` } : undefined}>
         {k.plan.metin}
       </span>,
-      santralMetni(k.d),
+      tesisMetni(k.d, sozluk),
     ],
   }));
 
@@ -244,7 +254,7 @@ export default function DenetimlerIstemci({
             <div style={{ marginTop: 'var(--s26)' }}>
               <Tablo
                 konuBasligi="Denetim"
-                kolonlar={KOLONLAR}
+                kolonlar={kolonlar}
                 satirlar={satirlar}
                 secili={secili}
                 sec={(id) => setSecili((o) => (o === id ? null : id))}
@@ -358,7 +368,7 @@ function Ozet({ kayit, simdi }: {
         { etiket: 'Plan', deger: plan.metin, durum: plan.durum },
         {
           etiket: 'Kapsam',
-          deger: `${santralMetni(d)}${d.maddeSayisi > 0 ? ` · ${d.maddeSayisi} madde` : ''}`,
+          deger: `${tesisMetni(d)}${d.maddeSayisi > 0 ? ` · ${d.maddeSayisi} madde` : ''}`,
         },
         { etiket: 'Denetleyen', deger: d.denetleyen ?? tipEtiketi(d.tip) },
       ]} />
@@ -392,10 +402,11 @@ function Ozet({ kayit, simdi }: {
    9.5px mono açılır liste (02-components §4). */
 
 function Ara({ deger, degistir }: { deger: string; degistir: (v: string) => void }) {
+  const { t: terim } = useTerim();
   return (
     <input
       className="ab-gr"
-      aria-label="Denetim, denetleyen ya da santral ara"
+      aria-label={`Denetim, denetleyen ya da ${terim('tesis')} ara`}
       placeholder="Ara"
       value={deger}
       onChange={(e) => degistir(e.target.value)}
@@ -468,6 +479,7 @@ function Kapsam({ etiket, secenekler, aktif, sec }: {
 
 /** Dışa aktarım filtre bütçesinin dışında, tabloyu izleyen tek sessiz bağlantı. */
 function DisaAktar({ satirlar }: { satirlar: (string | number)[][] }) {
+  const { tBas } = useTerim();
   const kok = useRef<HTMLDetailsElement | null>(null);
   useEffect(() => disariKapat(kok), []);
 
@@ -483,7 +495,7 @@ function DisaAktar({ satirlar }: { satirlar: (string | number)[][] }) {
             ad: 'Denetimler',
             satirlar: [
               ['Kod', 'Ad', 'Tip', 'Denetleyen', 'Aşama', 'Plan başlangıç', 'Plan bitiş',
-                'Santraller', 'Açık kanıt', 'Gecikmiş kanıt', 'Açık bulgu'],
+                tBas('tesis', 'cogul'), 'Açık kanıt', 'Gecikmiş kanıt', 'Açık bulgu'],
               ...satirlar,
             ],
           });

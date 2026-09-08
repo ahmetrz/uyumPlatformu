@@ -20,8 +20,8 @@ export const metadata: Metadata = { title: 'Dış denetçi erişimi' };
    API anahtarlarıyla aynı kapı, aynı sebep.
 
    ── EKRAN KAPSAMSIZDIR ────────────────────────────────────────────────
-   Erişimlerin kendisi santral kapsamı TAŞIR ama kütük kurum çapındadır:
-   "hangi santrale kim bakıyor" sorusunu yalnız kendi santralini gören
+   Erişimlerin kendisi tesis kapsamı TAŞIR ama kütük kurum çapındadır:
+   "hangi tesise kim bakıyor" sorusunu yalnız kendi tesisini gören
    biri yanıtlayamaz. */
 
 export default async function Sayfa() {

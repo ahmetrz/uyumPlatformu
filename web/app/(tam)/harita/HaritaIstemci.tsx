@@ -1,4 +1,6 @@
 'use client';
+import { useSozluk, useTerim } from '@/lib/dil/SozlukSaglayici';
+import { olculenYazi } from '@/lib/alan/oznitelik';
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { Alan, Dugme, Hata, Im, BosIlk } from '@/components/kabuk/temel';
@@ -12,15 +14,15 @@ import {
   olcu, yerlesimKur, yiginKaydir, type Isaret,
 } from './mantik';
 
-/* A4 · Santral haritası — İSTEMCİ.
+/* A4 · Tesis haritası — İSTEMCİ.
 
    Tuval bir enlem/boylam çerçevesidir, ülke sınırı ÇİZİLMEZ (gerekçe
    `mantik.ts` başında). İşaret dolu ise konum kesindir; içi boş ise il
    merkezine yaklaştırılmıştır ve künyede öyle yazar. Renk uyum durumunu
-   taşır ama TEK KANAL DEĞİLDİR: seçili santralin künyesi sözcükle yazar,
+   taşır ama TEK KANAL DEĞİLDİR: seçili tesisin künyesi sözcükle yazar,
    yaklaşık işaret kesik çizgiyle ayrılır.
 
-   Haritaya yerleştirilemeyen santral kaybolmaz: tuvalin altında kendi
+   Haritaya yerleştirilemeyen tesis kaybolmaz: tuvalin altında kendi
    listesinde durur ve koordinatı oradan girilir. */
 
 export default function HaritaIstemci({
@@ -30,6 +32,7 @@ export default function HaritaIstemci({
   yazabilir: boolean;
   kapsamli?: boolean;
 }) {
+  const { t: terim, tBas } = useTerim();
   const [secili, setSecili] = useState<string | null>(null);
   const [duzenlenen, setDuzenlenen] = useState<string | null>(null);
 
@@ -37,7 +40,7 @@ export default function HaritaIstemci({
   const isaretler = useMemo(() => yiginKaydir(yerlesim.isaretler), [yerlesim]);
   const olculer = useMemo(() => olcu(yerlesim), [yerlesim]);
   const izgara = useMemo(() => kilavuz(), []);
-  const baslik = baslikMetni(olculer);
+  const baslik = baslikMetni(olculer, useSozluk());
 
   const secilen = isaretler.find((i) => i.id === secili) ?? null;
   const duzenlenenSatir = satirlar.find((s) => s.id === duzenlenen) ?? null;
@@ -45,13 +48,16 @@ export default function HaritaIstemci({
   if (satirlar.length === 0) {
     return (
       <main className="ab-b-harita">
-        <EkranBasligi eyebrow="Santral haritası" baslik="Kapsamınızda santral yok" />
+        <EkranBasligi eyebrow={`${tBas('tesis')} haritası`}
+          baslik={`Kapsamınızda ${terim('tesis')} yok`} />
         <section className="ab-ekran-govde">
           <BosIlk
             cumle={kapsamli
-              ? 'Santral kapsamınız boş; harita gösterilecek kayıt bulamadı.'
-              : 'Portföyde aktif santral yok.'}
-            eylem={<Link href="/portfoy" className="ab-dugme">Portföyü aç</Link>} />
+              ? `${tBas('tesis')} kapsamınız boş; harita gösterilecek kayıt bulamadı.`
+              : `${tBas('portfoy', 'bulunma')} aktif ${terim('tesis')} yok.`}
+            eylem={<Link href="/portfoy" className="ab-dugme">
+              {tBas('portfoy', 'belirtme')} aç
+            </Link>} />
         </section>
       </main>
     );
@@ -60,7 +66,8 @@ export default function HaritaIstemci({
   return (
     <main className="ab-b-harita">
       <EkranBasligi
-        eyebrow={`Santral haritası · ${olculer.toplam} santral · enlem/boylam çerçevesi`}
+        eyebrow={`${tBas('tesis')} haritası · ${olculer.toplam} ${terim('tesis')}`
+          + ' · enlem/boylam çerçevesi'}
         vurgu={baslik.vurgu}
         vurguDurumu={baslik.durum}
         baslik={baslik.ad}
@@ -84,18 +91,18 @@ export default function HaritaIstemci({
               `nested-interactive`). Özet cümle görsel olarak gizli bir
               paragrafta durur, ekran okuyucu önce onu okur. */}
           <p className="ab-gizli-okuma">
-            {`${isaretler.length} santral enlem/boylam çerçevesine yerleştirildi. `
+            {`${isaretler.length} ${terim('tesis')} enlem/boylam çerçevesine yerleştirildi. `
               + `${olculer.dogrulanmis} doğrulanmış koordinat, `
               + `${olculer.dogrulanmamis} doğrulanmamış, `
               + `${olculer.yaklasik} il merkezine yaklaşık. `
               + 'Her işaret bir düğmedir; sekme ile gezilir, Enter ile künyesi açılır.'}
           </p>
           <svg viewBox={`0 0 ${TUVAL.en} ${TUVAL.boy}`} role="group"
-            aria-label="Santral konumları · enlem/boylam çerçevesi">
+            aria-label={`${tBas('tesis')} konumları · enlem/boylam çerçevesi`}>
 
             {/* Ülke sınırı — kılavuzun ÜSTÜNDE, işaretlerin ALTINDA.
                 Sırası bilinçli: kılavuz sınırın içinden geçmeye devam
-                eder (çerçeve hâlâ okunur), sınır ise hiçbir santral
+                eder (çerçeve hâlâ okunur), sınır ise hiçbir tesis
                 işaretini örtmez. Dekoratiftir; okuyucuya sunulmaz —
                 taşıdığı bilgi işaretlerin koordinatında zaten var. */}
             <g className="sinir" aria-hidden>
@@ -166,7 +173,7 @@ export default function HaritaIstemci({
             />
           ) : (
             <div className="ab-harita-bos">
-              <p className="etiket">Seçili santral</p>
+              <p className="etiket">Seçili {terim('tesis')}</p>
               <p className="cumle">
                 Bir işarete tıklayın: künye, koordinat kaynağı ve açık kayıt
                 sayıları burada açılır.
@@ -178,10 +185,10 @@ export default function HaritaIstemci({
         {yerlesim.yerlestirilemeyen.length > 0 && (
           <div className="ab-harita-eksik">
             <p className="etiket">
-              Haritaya yerleştirilemedi · {yerlesim.yerlestirilemeyen.length} santral
+              Haritaya yerleştirilemedi · {yerlesim.yerlestirilemeyen.length} {terim('tesis')}
             </p>
             <p className="cumle">
-              Bu santrallerin ne kesin koordinatı ne de tanınan bir il kaydı var.
+              Bu {terim('tesis', 'cogul')}in ne kesin koordinatı ne de tanınan bir il kaydı var.
               Haritanın ortasına konmadılar; uydurulmuş bir nokta sahayı yanlış
               yere gönderir.
             </p>
@@ -237,6 +244,7 @@ function IsaretDugumu({ isaret, secili, sec }: {
 }
 
 function Gosterge({ olculmeyen }: { olculmeyen: number }) {
+  const { t: terim } = useTerim();
   return (
     <ul className="ab-harita-gosterge" aria-label="Okuma anahtarı">
       <li><span className="ornek d-ok" /> uyum %85 ve üzeri</li>
@@ -244,21 +252,22 @@ function Gosterge({ olculmeyen }: { olculmeyen: number }) {
       <li><span className="ornek d-bd" /> %60 altı</li>
       <li>
         <span className="ornek d-unk" /> ölçülmedi
-        {olculmeyen > 0 && <span className="sayi"> · {olculmeyen} santral</span>}
+        {olculmeyen > 0 && <span className="sayi"> · {olculmeyen} {terim('tesis')}</span>}
       </li>
       <li><span className="ornek k-il" /> il merkezine yaklaşık</li>
     </ul>
   );
 }
 
-/* ── Seçili santral künyesi ─────────────────────────────────────────── */
+/* ── Seçili tesis künyesi ───────────────────────────────────────────── */
 function SeciliKunye({ isaret, yazabilir, duzenle, kapat }: {
   isaret: Isaret; yazabilir: boolean; duzenle: () => void; kapat: () => void;
 }) {
+  const { t: terim } = useTerim();
   return (
     <div className="ab-harita-kunye" role="status">
       <div className="bas">
-        <span className="etiket">Seçili santral</span>
+        <span className="etiket">Seçili {terim('tesis')}</span>
         <Dugme tur="satir" onClick={kapat}>Kapat</Dugme>
       </div>
       <p className="ad">
@@ -279,7 +288,7 @@ function SeciliKunye({ isaret, yazabilir, duzenle, kapat }: {
         </div>
         <div>
           <dt>Kurulu güç</dt>
-          <dd>{isaret.gucMw === null ? 'kayıt yok' : `${isaret.gucMw} MWe`}</dd>
+          <dd>{olculenYazi({ deger: isaret.guc, birim: isaret.gucBirim }) ?? 'kayıt yok'}</dd>
         </div>
         <div>
           <dt>Uyum</dt>
@@ -298,7 +307,7 @@ function SeciliKunye({ isaret, yazabilir, duzenle, kapat }: {
 }
 
 /* ── Koordinat formu ──────────────────────────────────────────────────
-   Boş bırakıp kaydetmek koordinatı SİLER ve santral yaklaşık işarete
+   Boş bırakıp kaydetmek koordinatı SİLER ve tesis yaklaşık işarete
    döner; yanlış girilmiş bir koordinatı geri almanın yolu budur. */
 function KonumFormu({ satir, kapat }: { satir: PortfoySatiri; kapat: () => void }) {
   const { bekliyor, hata, calistir } = useEylem();
@@ -326,7 +335,7 @@ function KonumFormu({ satir, kapat }: { satir: PortfoySatiri; kapat: () => void 
       </div>
       <p className="ab-dip" style={{ margin: 0 }}>
         WGS84 ondalık derece. İkisini de boş bırakıp kaydederseniz koordinat silinir
-        ve santral il merkezine yaklaştırılır. Değişiklik denetim izine yazılır.
+        ve tesis il merkezine yaklaştırılır. Değişiklik denetim izine yazılır.
       </p>
       {uyari && <p className="ab-dip" style={{ margin: 0, color: 'var(--md)' }}>{uyari}</p>}
       {!gecerli && !bosluk && (

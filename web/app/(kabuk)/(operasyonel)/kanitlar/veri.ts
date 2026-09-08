@@ -9,21 +9,21 @@ import type { KanitSatiri } from './mantik';
 
 /* C21 · Kanıt kütüphanesi — SUNUCU VERİSİ (kapsam kuralı JSX'ten ayrı).
 
-   ═══ KANITIN SANTRALİ YOKTUR — BAĞI VARDIR ═════════════════════════════
-   `Kanit` şemada `tesisId` taşımaz. Santrale üç yoldan bağlanır:
+   ═══ KANITIN TESİSİ YOKTUR — BAĞI VARDIR ═════════════════════════════
+   `Kanit` şemada `tesisId` taşımaz. Tesise üç yoldan bağlanır:
      · `baglantilar → maddeDurumu.tesisId`  (madde durumu; bulgular da
        aynı madde durumunun çocuğudur, yani bulgu bağı = madde bağı)
-     · `tesisBaglantilari.tesisId`           (doğrudan santral bağı)
-     · `varlikBaglantilari`                  (varlık; varlığın kendi santrali
+     · `tesisBaglantilari.tesisId`           (doğrudan tesis bağı)
+     · `varlikBaglantilari`                  (varlık; varlığın kendi tesisi
        envanter modülünün konusudur, bu ekranda yalnız SAYILIR)
-   Kapsamı daraltılmış kullanıcı yalnız bu bağlardan biri kendi santraline
+   Kapsamı daraltılmış kullanıcı yalnız bu bağlardan biri kendi tesisine
    düşen kanıtı görür; kanıtın kapsam DIŞI bağları da satıra yazılmaz
-   (`include` da aynı koşulla daraltılır — B santralinin madde kodu A'ya
+   (`include` da aynı koşulla daraltılır — B tesisinin madde kodu A'ya
    yetkili birinin çekmecesine sızmaz).
 
    ── BAĞLANTISIZ KANIT ────────────────────────────────────────────────
-   Hiçbir bağı olmayan kanıtın santrali BİLİNMEZ. Kural `app/kapsam.ts →
-   tesisKapsamda` ile aynıdır: santrali bilinmeyen kayıt yalnız kapsamı
+   Hiçbir bağı olmayan kanıtın tesisi BİLİNMEZ. Kural `app/kapsam.ts →
+   tesisKapsamda` ile aynıdır: tesisi bilinmeyen kayıt yalnız kapsamı
    sınırsız kullanıcıya görünür. Daraltılmış kullanıcı için bunlar
    listelenmez ama SAYILIR ve ekran "N bağlantısız kanıt kapsam dışında"
    der — sessizce yok saymak, kütüphanede olmayan bir şeyi yok göstermektir.
@@ -58,9 +58,9 @@ export type MaddeDurumuSecenegi = {
 /** Ekleme formunda listelenen en fazla madde durumu — form bir arama ekranı değildir. */
 const SECENEK_TAVANI = 300;
 
-/** Kanıt → santral kapsam koşulu: bağlarından biri izinli kümeye düşmeli.
-    Üç bağ yolu da sayılır — madde durumu, doğrudan santral, VARLIK (varlığın
-    santrali). Varlık yolu unutulsaydı yalnız varlığa bağlı kanıt ne listede
+/** Kanıt → tesis kapsam koşulu: bağlarından biri izinli kümeye düşmeli.
+    Üç bağ yolu da sayılır — madde durumu, doğrudan tesis, VARLIK (varlığın
+    tesisi). Varlık yolu unutulsaydı yalnız varlığa bağlı kanıt ne listede
     ne sayaçta görünürdü: üçüncü, görünmez bir sınıf. */
 function kanitKapsamKosulu(izinli: TesisKapsami) {
   if (izinli === null) return {};
@@ -151,8 +151,8 @@ async function kanitSatirlari(izinli: TesisKapsami): Promise<KanitSatiri[]> {
       zaman: sv.olusturuldu.toISOString(),
     })),
     /* Düzenleme kapsamı KANITIN BAĞLARINDAN gelir: kullanıcı kanıtın bağlı
-       olduğu santrallerin HEPSİNDE yetkili olmalı (sunucu da aynı kuralı
-       uygular). Tek santralde yetkili olmak yetseydi, iki santrale bağlı
+       olduğu tesislerin HEPSİNDE yetkili olmalı (sunucu da aynı kuralı
+       uygular). Tek tesiste yetkili olmak yetseydi, iki tesise bağlı
        bir kanıt A'dan değiştirilir ve B'nin uyum kaydı sessizce
        etkilenirdi. Bağı olmayan kanıt yalnız kapsamsız yetkiyle
        düzenlenir. */
@@ -176,7 +176,7 @@ async function kanitSatirlari(izinli: TesisKapsami): Promise<KanitSatiri[]> {
   }));
 }
 
-/** Ekleme formu: kapsam içi madde durumları (madde kodu · santral · süreç). */
+/** Ekleme formu: kapsam içi madde durumları (madde kodu · tesis · süreç). */
 async function maddeDurumuSecenekleri(izinli: TesisKapsami): Promise<MaddeDurumuSecenegi[]> {
   const durumlar = await db.maddeDurumu.findMany({
     where: kapsamKosulu(izinli),
@@ -197,7 +197,7 @@ export async function kanitEkranVerisi(k: AktifKullanici): Promise<EkranVerisi> 
     kanitSatirlari(izinli),
     db.kanit.count({ where: { silindi: null, ...kanitKapsamKosulu(izinli) } }),
     /* Kapsam dışı sayacı: silinmemiş kanıtlardan kapsam koşuluna GİRMEYEN
-       herkes — bağlantısız olanlar da, yalnız başka santrale bağlı olanlar
+       herkes — bağlantısız olanlar da, yalnız başka tesise bağlı olanlar
        da. Sınırsız kapsamda hepsi zaten listededir, sayı sıfırdır. Sayı
        yalnız daraltılmış kullanıcıya "görmediğin kayıt var" demek için. */
     izinli === null
@@ -214,8 +214,8 @@ export async function kanitEkranVerisi(k: AktifKullanici): Promise<EkranVerisi> 
     /* Form kapsam içi madde durumlarını listeler; asıl kapı `kanitEkle`
        içindedir ve 2026-09-03'te iki aşamalı yazıldı (`KAPSAM_SONRA` +
        maddenin tesisiyle `kapsamZorunlu`). Bayrak artık "yazabildiğin
-       madde var mı" diye sorabiliyor: sunucu santral yöneticisini kendi
-       santralinde kabul ediyor, ekran da öyle. */
+       madde var mı" diye sorabiliyor: sunucu tesis yöneticisini kendi
+       tesisinde kabul ediyor, ekran da öyle. */
     yazabilir: modulYazabilir(k, 'uyum', 'yazma'),
     kapsamli: kapsamDaraltildi(izinli),
   };

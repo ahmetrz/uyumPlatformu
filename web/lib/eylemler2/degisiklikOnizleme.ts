@@ -25,6 +25,7 @@ import {
   type EtkiOzeti, type EtkiSatiri, type MaddeAyakIzi,
 } from '../uyum/degisiklikEtkisi';
 import { hata, bosluksuz, type Sonuc } from './ortak';
+import { eylemTerimi } from './kapsamMesaji';
 
 export type OnizlemeSonucu = Sonuc & {
   satirlar?: EtkiSatiri[];
@@ -51,7 +52,7 @@ export async function surumEtkisiOnizle(girdi: {
   surumId: string;
 }): Promise<OnizlemeSonucu> {
   try {
-    await yetkiZorunlu('tanimlar', 'okuma');
+    const k = await yetkiZorunlu('tanimlar', 'okuma');
     const v = z.object({ surumId: bosluksuz('Sürüm') }).parse(girdi);
 
     const yeni = await db.frameworkSurumu.findUnique({
@@ -174,13 +175,16 @@ export async function surumEtkisiOnizle(girdi: {
       }
     }
 
+    /* Önizleme kapsam GENELİDİR (tek bir tesise değil, sürümün etkilediği
+       her kayda bakar); terim de kullanıcının uyum kapsamından okunur. */
+    const tesis = await eylemTerimi(k, 'uyum');
     const satirlar: EtkiSatiri[] = farklar.map((f) => {
       const ayakIzi = izler.get(f.maddeId) ?? BOS_IZ(f.maddeId);
       return {
         ...f,
         ayakIzi,
         agirlik: etkiAgirligi({ degisimTipi: f.degisimTipi, ayakIzi }),
-        sonuc: etkiSonucu({ degisimTipi: f.degisimTipi, ayakIzi }),
+        sonuc: etkiSonucu({ degisimTipi: f.degisimTipi, ayakIzi, tesis }),
       };
     });
     /* En ağır satır önde: kullanıcının ilk göreceği şey, kaybolacak

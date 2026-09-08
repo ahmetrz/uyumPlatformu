@@ -1,4 +1,5 @@
 'use client';
+import { useTerim } from '@/lib/dil/SozlukSaglayici';
 import { useState } from 'react';
 import { Alan, Dugme } from '@/components/kabuk/temel';
 import { CekmeceEylemler } from '@/components/kabuk/panel';
@@ -386,7 +387,7 @@ export function YetkiKarari({ satir }: { satir: KesifSatiri }) {
 
       {!satir.kararVerilebilir ? (
         <p className="ab-panel-dip" style={{ margin: 'var(--s10) 0 0' }}>
-          Yetki kararı envanter onay yetkisi ve kaydın santral kapsamı ister.
+          Yetki kararı envanter onay yetkisi ve kaydın tesis kapsamı ister.
         </p>
       ) : !acik ? (
         <Dugme className="ab-baskida-gizle" onClick={() => setAcik(true)}
@@ -440,6 +441,7 @@ export function YetkiKarari({ satir }: { satir: KesifSatiri }) {
 export function PasifGozlemFormu({ yazabilir, tesisler }: {
   yazabilir: boolean; tesisler: Tesis[];
 }) {
+  const { t: terim, tBas } = useTerim();
   const { bekliyor, hata, calistir } = useEylem();
   const [acik, setAcik] = useState<'gozlem' | 'oui' | null>(null);
   const [icerik, setIcerik] = useState('');
@@ -481,7 +483,7 @@ export function PasifGozlemFormu({ yazabilir, tesisler }: {
               onChange={(e) => setKaynak(e.target.value)} />
           </Alan>
           {acik === 'gozlem' && (
-            <Alan etiket="Santral (boş = santral bilinmiyor)">
+            <Alan etiket={`${tBas('tesis')} (boş = ${terim('tesis')} bilinmiyor)`}>
               <select className="ab-gr" value={tesisId}
                 onChange={(e) => setTesisId(e.target.value)}>
                 <option value="">—</option>

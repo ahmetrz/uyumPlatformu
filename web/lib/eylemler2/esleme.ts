@@ -16,14 +16,16 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { db } from '../db';
-import { yetkiZorunlu } from '../erisim';
+import { girisZorunlu, yetkiZorunlu } from '../erisim';
 import {
   connectorProfili, eslemeUygula, kurallariDogrula, profilSurumleri, profilSurumu,
   profilYayinla, DONUSUMLER, OZEL_HEDEFLER,
   type EslemeKurali, type EslemeUygulamasi, type ProfilKaydi,
 } from '../entegrasyon/esleme';
-import { HEDEF_ALANLAR } from '../entegrasyon/varlikAktarim';
+import { HEDEF_ALANLAR, alanEtiketi } from '../entegrasyon/varlikAktarim';
 import { tamam, hata, iz, bosluksuz, type Sonuc } from './ortak';
+import { eylemSozlugu } from './kapsamMesaji';
+import { tBas, terim } from '../dil/terimler';
 
 /** `hata()` ile aynı metni üretir, ama yalnız başarısız dalı taşır. */
 function basarisiz(e: unknown): { ok: false; hata: string } {
@@ -66,13 +68,20 @@ export type EslemeSozlugu = {
 /** Kural düzenleyicisinin hedef alan sözlüğü. `varlikAktarim` ile AYNI
     kaynaktan gelir: kullanıcı iki ekranda iki farklı alan listesi görmez. */
 export async function eslemeSozlugu(): Promise<EslemeSozlugu> {
+  /* Etiketler EKRANA gider; terim taşıyan alanlar sözlükten yazılır.
+     Kapsam kullanıcının kendi yetkisinden çözülür — bu eylem bir kayda
+     değil, alan sözlüğüne bakıyor. */
+  const k = await girisZorunlu();
+  const sozluk = await eylemSozlugu(k, 'envanter');
+  const tesis = terim(sozluk, 'tesis');
   return {
     hedefAlanlar: HEDEF_ALANLAR.map((a) => ({
       anahtar: a.anahtar,
-      etiket: a.etiket,
+      etiket: alanEtiketi(a, tesis),
       tip: a.tip,
       sozluk: a.sozluk ? [...a.sozluk] : null,
-      ozel: OZEL_HEDEFLER[a.anahtar] ?? null,
+      ozel: ((o) => (o ? (o.terim ? tBas(sozluk, o.terim) : o.ad) : null))(
+        OZEL_HEDEFLER[a.anahtar]),
     })),
     donusumler: [...DONUSUMLER],
   };

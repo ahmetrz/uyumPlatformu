@@ -1,4 +1,5 @@
 'use client';
+import { useTerim } from '@/lib/dil/SozlukSaglayici';
 import { useState } from 'react';
 import { Alan, Dugme } from '@/components/kabuk/temel';
 import { useEylem } from '@/components/useEylem';
@@ -272,7 +273,7 @@ export function TalepSonucFormu({ talep, kanitlar, kapat }: {
 
 /* ── Kapsam ─────────────────────────────────────────────────────────────
    Kapsam bir yapılandırmadır, iş kuyruğu değil: canvasta değil çekmecede
-   yaşar. Tesis eklemede sunucu ayrıca o santralin yazma yetkisini arar. */
+   yaşar. Tesis eklemede sunucu ayrıca o tesisin yazma yetkisini arar. */
 
 export function KapsamPaneli({
   denetimId, tesisler, maddeler, kapsamlar, kilitli,
@@ -288,6 +289,7 @@ export function KapsamPaneli({
   /** kapanmış denetimin kapsamı değiştirilemez (sunucu da reddeder) */
   kilitli: boolean;
 }) {
+  const { tBas } = useTerim();
   const { bekliyor, hata, calistir } = useEylem();
   const [tesisId, setTesisId] = useState('');
   const [maddeId, setMaddeId] = useState('');
@@ -323,7 +325,7 @@ export function KapsamPaneli({
 
       {!kilitli && (
         <>
-          <Alan etiket="Santral ekle">
+          <Alan etiket={`${tBas('tesis')} ekle`}>
             <select className="ab-gr" value={tesisId}
               onChange={(e) => { setTesisId(e.target.value); setMaddeId(''); }}>
               <option value="">—</option>

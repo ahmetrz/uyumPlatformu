@@ -5,8 +5,13 @@ import type { AktifKullanici } from '@/lib/auth';
 import { tumAyarlar } from '@/lib/yapilandirma/oku';
 import { GORSEL_ANAHTARLARI } from '@/lib/gorsel';
 import { HEDEF_SOZU, matrisKusurlari } from '@/lib/uyum/eskalasyon';
+import { KURULU_GUC, birimliOzellik, olculenYazi } from '@/lib/alan/oznitelik';
+import { kapsamAnahtari, kapsamSozlugu } from '@/lib/dil/sozlukOku';
+import { izinliTesisIdleri } from '@/lib/erisim';
+import { tBas, terim } from '@/lib/dil/terimler';
 import {
-  KONSOL_VARLIK_TIPLERI, type KonsolKayit, type KonsolVerisi, type Talep, type TalepDurumu,
+  KONSOL_VARLIK_TIPLERI, type EtkiSatiri, type KonsolKayit, type KonsolVerisi,
+  type Talep, type TalepDurumu,
 } from './konsolOrtak';
 
 /* Yönetim konsolu veri katmanı. Kapı: yonetim/okuma yoksa HİÇ sorgu
@@ -16,14 +21,16 @@ import {
 const GECMIS_TAVANI = 300;
 
 export async function konsolVerisi(kullanici: AktifKullanici, simdi: number): Promise<KonsolVerisi> {
-  const [ayarlar, talepler, gruplar, tuzelKisiler, uniteler, turler, bolgeler, kurallar, tesisler,
+  const [ayarlar, talepler, gruplar, tuzelKisiler, birimler, turler, bolgeler, kurallar, tesisler,
     regulasyonlar, eskalasyonKurallari, gecmis] = await Promise.all([
     tumAyarlar(),
     db.degisiklikTalebi.findMany({ orderBy: { olusturuldu: 'desc' }, take: 200 }),
     db.grup.findMany({ include: { _count: { select: { tuzelKisiler: true } } }, orderBy: { kod: 'asc' } }),
     db.tuzelKisi.findMany({ include: { grup: true, _count: { select: { tesisler: true, yetkiler: true } } },
       orderBy: { kod: 'asc' } }),
-    db.uretimUnitesi.findMany({ include: { tesis: true, _count: { select: { varliklar: true, sistemler: true } } },
+    db.operasyonelBirim.findMany({ include: { tesis: true,
+      ozellikler: { select: { anahtar: true, sayisalDeger: true, birim: true } },
+      _count: { select: { varliklar: true, sistemler: true } } },
       orderBy: [{ tesis: { kod: 'asc' } }, { kod: 'asc' }] }),
     db.varlikTuru.findMany({ include: { _count: { select: { varliklar: true } } }, orderBy: { kod: 'asc' } }),
     db.agBolgesi.findMany({ include: { tesis: true,
@@ -58,20 +65,31 @@ export async function konsolVerisi(kullanici: AktifKullanici, simdi: number): Pr
   const acikTalepSayisi = (hedefTipi: string, hedefId: string) =>
     talepler.filter((t) => t.hedefTipi === hedefTipi && t.hedefId === hedefId && ['incelemede', 'onaylandi'].includes(t.durum)).length;
 
+  /* Kayıt alt satırları terim taşır; sözlük kullanıcının kapsamından
+     BİR kez çözülür ve hem burada hem talep listesinde kullanılır. */
+  const sozluk = await kapsamSozlugu(
+    kapsamAnahtari(izinliTesisIdleri(kullanici, 'yonetim')));
+  const tesisTerimi = terim(sozluk, 'tesis');
+
   const kayitlar: Record<string, KonsolKayit[]> = {
     grup: gruplar.map((g) => ({
       id: g.id, kod: g.kod, ad: g.ad, durum: 'ok', bagli: g._count.tuzelKisiler,
       alt: `${g._count.tuzelKisiler} tüzel kişi`, degerler: { kod: g.kod, ad: g.ad } })),
     tuzelKisi: tuzelKisiler.map((t) => ({
       id: t.id, kod: t.kod, ad: t.ad, durum: 'ok', bagli: t._count.tesisler,
-      alt: `${t.grup.kod} · ${t._count.tesisler} santral · ${t._count.yetkiler} yetki`,
+      alt: `${t.grup.kod} · ${t._count.tesisler} ${tesisTerimi.tekil} · ${t._count.yetkiler} yetki`,
       degerler: { kod: t.kod, ad: t.ad, grupId: t.grupId, vergiNo: t.vergiNo ?? '' } })),
-    uretimUnitesi: uniteler.map((u) => ({
+    operasyonelBirim: birimler.map((u) => ({
       id: u.id, kod: `${u.tesis.kod}/${u.kod}`, ad: u.ad,
       durum: u.durum === 'devre_disi' ? 'pl' : u.durum === 'bakim' ? 'md' : 'ok',
       pasif: u.durum === 'devre_disi', bagli: u._count.varliklar,
-      alt: `${u.tesis.ad} · ${u.kuruluGucMw !== null ? `${u.kuruluGucMw} MW` : 'güç bilinmiyor'} · ${u._count.varliklar} varlık`,
-      degerler: { tesisId: u.tesisId, kod: u.kod, ad: u.ad, kuruluGucMw: u.kuruluGucMw ?? '', durum: u.durum } })),
+      /* Güç BİRİMİYLE satırdan gelir; ölçülmemişte sayı uydurulmaz. */
+      alt: ((y) => `${u.tesis.ad} · ${y ?? 'güç bilinmiyor'} · ${u._count.varliklar} varlık`)(
+        olculenYazi(birimliOzellik(u.ozellikler, KURULU_GUC))),
+      degerler: ((o) => ({
+        tesisId: u.tesisId, kod: u.kod, ad: u.ad,
+        kuruluGuc: o.deger ?? '', kuruluGucBirimi: o.birim ?? '', durum: u.durum,
+      }))(birimliOzellik(u.ozellikler, KURULU_GUC)) })),
     varlikTuru: turler.map((v) => ({
       id: v.id, kod: v.kod, ad: v.ad, durum: v.aktif ? 'ok' : 'pl', pasif: !v.aktif, bagli: v._count.varliklar,
       alt: `${v.sinif} · ${v._count.varliklar} varlık`,
@@ -135,11 +153,17 @@ export async function konsolVerisi(kullanici: AktifKullanici, simdi: number): Pr
       degerler: { gorselAnahtari: t.gorselAnahtari ?? '' } })),
   };
 
+  /* SAKLANAN etki satırı çekirdek sözcük taşır (R0-9); ekranda kiracının
+     sözcüğü görünsün diye başlık terim ANAHTARINDAN yeniden yazılır.
+     Anahtarsız satır (sayım etiketi) olduğu gibi kalır. */
+  const etkiyiSozlukleYaz = (satirlar: EtkiSatiri[]): EtkiSatiri[] => satirlar.map((e) => (
+    e.terim ? { ...e, baslik: `${tBas(sozluk, e.terim)}${e.ek ?? ''}` } : e));
+
   const talepListesi: Talep[] = talepler.map((t) => ({
     id: t.id, hedefTipi: t.hedefTipi, hedefId: t.hedefId, hedefEtiket: t.hedefEtiket,
     once: t.onceJson ? JSON.parse(t.onceJson) as Record<string, unknown> : null,
     sonra: JSON.parse(t.sonraJson) as Record<string, unknown>,
-    etki: t.etkiJson ? JSON.parse(t.etkiJson) as Talep['etki'] : null,
+    etki: t.etkiJson ? etkiyiSozlukleYaz(JSON.parse(t.etkiJson) as EtkiSatiri[]) : null,
     gerekce: t.gerekce, durum: t.durum as TalepDurumu,
     talepEden: { id: t.talepEdenId, ad: ad(t.talepEdenId) ?? 'bilinmeyen kullanıcı' },
     onaylayan: ad(t.onaylayanId), uygulayan: ad(t.uygulayanId), inceleyen: ad(t.inceleyenId),

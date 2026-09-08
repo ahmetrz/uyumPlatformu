@@ -165,8 +165,8 @@ export async function dogrulamayiGeriAl(kokenId: string): Promise<void> {
 /* `kokenDagilimi(varlikTipi)` buradaydı, hiçbir çağıranı yoktu (#27) ve
    SİLİNDİ — "belki lazım olur" diye bırakılmadı, çünkü bağlanması ZARARLI
    olurdu: yorumu "sağlık ekranı ve raporlar için" diyordu ama sorgusunda
-   santral kapsamı YOKTU. `/saglik` köken bölümü aynı dağılımı
+   tesis kapsamı YOKTU. `/saglik` köken bölümü aynı dağılımı
    `lib/entegrasyon/kokenRapor.ts → kokenSayimlari(kapsam)` ile, kapsamı
    uygulayarak üretiyor. İki tanımdan kapsamsız olanı bir gün ekrana
-   bağlansaydı, santrale kısıtlı bir kullanıcı tüm kurumun köken sayılarını
+   bağlansaydı, tesise kısıtlı bir kullanıcı tüm kurumun köken sayılarını
    görürdü. */

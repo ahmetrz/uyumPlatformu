@@ -173,17 +173,17 @@ export type OturumFiltresi = {
   tedarikciId?: string;
   tesisId?: string;
   /**
-   * SANTRAL KAPSAMI — `lib/erisim.ts → izinliTesisIdleri` sözleşmesiyle
-   * BİREBİR aynı: `null`/verilmemiş = tüm santraller, `[]` = hiçbiri.
+   * TESİS KAPSAMI — `lib/erisim.ts → izinliTesisIdleri` sözleşmesiyle
+   * BİREBİR aynı: `null`/verilmemiş = tüm tesisler, `[]` = hiçbiri.
    *
-   * `tesisId` bir FİLTREdir (kullanıcı bir santrale bakmak istiyor);
+   * `tesisId` bir FİLTREdir (kullanıcı bir tesise bakmak istiyor);
    * `tesisIdler` bir SINIRdır (kullanıcı ancak bunları görebilir). İkisi
    * birlikte verilirse ikisi de uygulanır: kapsam dışı bir `tesisId`
    * filtresi boş sonuç döndürür, kapsamı GENİŞLETMEZ.
    *
-   * Santrali `null` olan (BİLİNMEYEN) oturum, ancak kapsamı sınırsız olan
+   * Tesisi `null` olan (BİLİNMEYEN) oturum, ancak kapsamı sınırsız olan
    * kullanıcıya görünür — `lib/api/yetki.ts → tesisKapsamda` ile aynı
-   * kural: kapsamı daraltılmış birine "hangi santralde olduğu bilinmeyen"
+   * kural: kapsamı daraltılmış birine "hangi tesiste olduğu bilinmeyen"
    * bir erişim kaydını göstermek, kapsam sınırını sessizce delmek olurdu.
    */
   tesisIdler?: string[] | null;
@@ -265,7 +265,7 @@ function degerlendir(o: OturumSatiri): OturumDegerlendirmesi {
 export async function uyumsuzOturumlar(filtre: OturumFiltresi = {}): Promise<UyumsuzOturumRaporu> {
   const toplamKayit = await db.tedarikciErisimOturumu.count();
 
-  /* Kapsam sınırı ile santral filtresi TEK koşulda birleşir. Ayrı ayrı
+  /* Kapsam sınırı ile tesis filtresi TEK koşulda birleşir. Ayrı ayrı
      yayılsalardı ikinci `tesisId` anahtarı birincisini EZERDİ — yani
      kapsam dışı bir filtre kapsamı genişletirdi. Kesişim alınır:
      kapsam dışı bir filtre boş küme verir (`{ in: [] }`), asla geniş küme. */
@@ -389,10 +389,10 @@ export type TedarikciOturumOzeti = {
  * hiçbir durumda "bu tedarikçi hiç bağlanmadı" iddiası üretilmez.
  *
  * `kapsam.tesisIdler` — `izinliTesisIdleri` sözleşmesiyle aynı: null = tümü,
- * [] = hiçbiri. VERİLMEZSE ÖZET TÜM SANTRALLERİ SAYAR; bu yüzden ekran
+ * [] = hiçbiri. VERİLMEZSE ÖZET TÜM TESİSLERİ SAYAR; bu yüzden ekran
  * katmanı kullanıcının kapsamını GEÇMEK ZORUNDADIR. Parametresiz çağrı
  * bilerek "sistem geneli" anlamındadır (motor/rapor tarafı), ekran değil:
- * kapsamı daraltılmış bir kullanıcıya yetkisi olmayan santralin oturum
+ * kapsamı daraltılmış bir kullanıcıya yetkisi olmayan tesisin oturum
  * sayısını göstermek, satırı göstermeden veriyi sızdırmak olurdu.
  */
 export async function tedarikciOturumOzeti(
@@ -509,7 +509,7 @@ function ozetKur(
 
    KURALLAR DEĞİŞMEZ: hesaplama `raporKur`/`ozetKur` ile — yani tekil yolun
    kullandığı AYNI saf fonksiyonlarla — yapılır. Kapsam sınırı (`tesisIdler`)
-   burada da tek koşulda uygulanır: santrali `null` olan oturum, kapsamı
+   burada da tek koşulda uygulanır: tesisi `null` olan oturum, kapsamı
    daraltılmış kullanıcıya GÖRÜNMEZ. */
 export type TedarikciOturumSatiri = {
   ozet: TedarikciOturumOzeti;

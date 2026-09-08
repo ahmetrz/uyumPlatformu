@@ -31,7 +31,7 @@ let kapsamKisiti: string | null = null;
    ederdi ama hiçbir şey ölçmezdi.
 
    Bu yüzden artık kapının kendisi gerçek kodda koşuyor; `kapsamKisiti`
-   ayarlanınca oturum o santrale KISITLI bir rol taşır. */
+   ayarlanınca oturum o tesise KISITLI bir rol taşır. */
 vi.mock('@/lib/auth', async (asil) => {
   const gercek = await asil<typeof import('@/lib/auth')>();
   return {
@@ -59,7 +59,7 @@ const {
 } = await import('@/lib/eylemler2/konfigYedek');
 const { hazirlik, kritikHucresi, filoOzeti, testHucresi } =
   await import('@/app/(kabuk)/(operasyonel)/yedekleme/mantik');
-import type { Santral } from '@/app/(kabuk)/(operasyonel)/yedekleme/mantik';
+import type { Tesis } from '@/app/(kabuk)/(operasyonel)/yedekleme/mantik';
 
 const GUN = 86_400_000;
 
@@ -383,8 +383,10 @@ describe('Konfigürasyon yedeği — üç değerli kontrol', () => {
    ne de sayaçta.
    ═══════════════════════════════════════════════════════════════════════ */
 
-/** Ekran mantığı için iskelet santral — saf türetme testleri DB'ye dokunmaz. */
-function santral(ozel: Partial<Santral> = {}): Santral {
+/** Ekran mantığı için iskelet tesis satırı — saf türetme testleri DB'ye
+    dokunmaz. Kurgusal ad enerji sektöründendir: referans kiracının
+    sektörü budur ve `tipYuvasi` gibi eşlemeler onunla sınanır. */
+function tesisSatiri(ozel: Partial<Tesis> = {}): Tesis {
   return {
     id: 't1', kod: 'AAA', ad: 'A Santrali', tip: null,
     toplam: 10, yedekli: 10, yedeksiz: 0, bilinmeyen: 0, kirilim: [],
@@ -394,7 +396,7 @@ function santral(ozel: Partial<Santral> = {}): Santral {
     },
     kosuOzeti: { basarili: 5, kismi: 0, basarisiz: 0 },
     sonKosuId: 'k1',
-    santralKatmani: {
+    tesisKatmani: {
       bagli: true, gerekce: '5 koşu, 1 geri yükleme testi.', politikaAdi: 'A Santrali — yedekleme',
       sonKosu: { zaman: new Date().toISOString(), durum: 'basarili', hata: null },
       sonRestoreTesti: { zaman: new Date().toISOString(), sonuc: 'basarili', sureDk: 45 },
@@ -420,14 +422,14 @@ const eksik = (etiket: string, gerekce: string, kayitSayisi: number) => ({
 
 describe('§18 · Ekran mantığı — "ölçülmedi" ile "başarısız" ayrı görünür', () => {
   it('kanıtlı yedek açığı ile ölçüm boşluğu farklı renk, farklı metin, ayrı sayaç', () => {
-    const acik = santral({
+    const acik = tesisSatiri({
       varlikKatmani: {
         kaynakBagli: true,
         yedeksiz: [eksik('PLC-1', '3 yedek denemesinin tamamı başarısız.', 3)],
         bilinmeyen: [], yedegiVar: 3, toplamKritik: 4,
       },
     });
-    const olculmemis = santral({
+    const olculmemis = tesisSatiri({
       varlikKatmani: {
         kaynakBagli: false,
         yedeksiz: [],
@@ -436,8 +438,8 @@ describe('§18 · Ekran mantığı — "ölçülmedi" ile "başarısız" ayrı g
       },
     });
 
-    const a = kritikHucresi(acik);
-    const b = kritikHucresi(olculmemis);
+    const a = kritikHucresi(acik, null);
+    const b = kritikHucresi(olculmemis, null);
 
     // Renk: biri kanıtlı açık (bd), öteki kör nokta (unk). Asla aynı.
     expect(a.renk).toBe('bd');
@@ -459,11 +461,11 @@ describe('§18 · Ekran mantığı — "ölçülmedi" ile "başarısız" ayrı g
 
   it('filo sayaçları toplanmaz: açık ile ölçüm boşluğu iki ayrı metrik', () => {
     const filo = filoOzeti([
-      santral({ id: 'a', varlikKatmani: {
+      tesisSatiri({ id: 'a', varlikKatmani: {
         kaynakBagli: true,
         yedeksiz: [eksik('PLC-1', 'hepsi başarısız', 2)],
         bilinmeyen: [], yedegiVar: 1, toplamKritik: 2 } }),
-      santral({ id: 'b', varlikKatmani: {
+      tesisSatiri({ id: 'b', varlikKatmani: {
         kaynakBagli: false, yedeksiz: [],
         bilinmeyen: [eksik('PLC-2', 'ölçülmedi', 0), eksik('PLC-3', 'ölçülmedi', 0)],
         yedegiVar: 0, toplamKritik: 2 } }),
@@ -475,9 +477,9 @@ describe('§18 · Ekran mantığı — "ölçülmedi" ile "başarısız" ayrı g
   });
 
   it('"test yok" ile "test başarısız" farklı hücre metni ve farklı renk taşır', () => {
-    const testYok = santral({ santralKatmani: {
+    const testYok = tesisSatiri({ tesisKatmani: {
       bagli: true, gerekce: 'x', politikaAdi: 'p', sonKosu: null, sonRestoreTesti: null } });
-    const basarisiz = santral({ santralKatmani: {
+    const basarisiz = tesisSatiri({ tesisKatmani: {
       bagli: true, gerekce: 'x', politikaAdi: 'p',
       sonKosu: null,
       sonRestoreTesti: { zaman: new Date().toISOString(), sonuc: 'basarisiz', sureDk: 10 } } });

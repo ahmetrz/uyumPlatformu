@@ -86,7 +86,7 @@ export type KuruKayitEtkisi = {
   eslesmeGuveni: number | null;
   /** bellekte üretilen köken — hiçbir yere yazılmadı */
   koken: KuruKoken;
-  /** kaydın hangi santrale yazılacağı — kod düzeyinde; null = bilinmiyor */
+  /** kaydın hangi tesise yazılacağı — kod düzeyinde; null = bilinmiyor */
   tesisKodu: string | null;
   gerekce: string;
 };

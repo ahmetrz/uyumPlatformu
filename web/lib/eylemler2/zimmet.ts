@@ -28,6 +28,7 @@ import {
 } from '../varlik/zimmet';
 import { ayar } from '../yapilandirma/oku';
 import { type Sonuc, tamam, hata, iz, bosluksuz } from './ortak';
+import { kapsamTerimi } from './kapsamMesaji';
 
 const TAVAN = 200;
 
@@ -55,7 +56,8 @@ export async function zimmetAc(girdi: {
     });
     if (!varlik || varlik.silindi) return hata(new Error('Varlık bulunamadı'));
     kapsamZorunlu(k, 'envanter', 'yazma', { tesisId: varlik.tesisId },
-      'Bu santralde zimmet açma yetkiniz yok');
+      `Bu ${await kapsamTerimi(k, 'envanter', varlik.tesisId, 'bulunma')} `
+      + 'zimmet açma yetkiniz yok');
 
     const atanan = await db.kullanici.findUnique({
       where: { id: v.atananId }, select: { id: true, adSoyad: true, aktif: true },
@@ -128,7 +130,7 @@ export async function zimmetCevapla(girdi: {
 
        Kapı kimliğin KENDİSİDİR: `cevapKapisi` cevaplayanın talebin
        `atananId` alanıyla aynı kişi olmasını şart koşar. Bu yüzden ön
-       kapıda `KAPSAM_SONRA` da kullanılmaz — kapsam kapısı bir SANTRAL
+       kapıda `KAPSAM_SONRA` da kullanılmaz — kapsam kapısı bir TESİS
        sorusudur, buradaki soru "bu senin zimmetin mi" sorusudur. */
     const k = await girisZorunlu();
     const v = z.object({
@@ -236,7 +238,8 @@ export async function zimmetIptal(girdi: {
     });
     if (!talep) return hata(new Error('Zimmet talebi bulunamadı'));
     kapsamZorunlu(k, 'envanter', 'yazma', { tesisId: talep.varlik.tesisId },
-      'Bu santralde zimmet iptal etme yetkiniz yok');
+      `Bu ${await kapsamTerimi(k, 'envanter', talep.varlik.tesisId, 'bulunma')} `
+      + 'zimmet iptal etme yetkiniz yok');
 
     const kapi = iptalKapisi({
       durum: talep.durum, iptalEdenId: k.id, atayanId: talep.atayanId,
@@ -298,8 +301,9 @@ export async function topluZimmetAc(girdi: {
     if (varliklar.length === 0) return hata(new Error('Zimmetlenecek varlık bulunamadı'));
 
     for (const varlik of varliklar) {
+      const yer = await kapsamTerimi(k, 'envanter', varlik.tesisId, 'bulunma');
       kapsamZorunlu(k, 'envanter', 'onay', { tesisId: varlik.tesisId },
-        `Bu santralde zimmet yetkiniz yok (${varlik.etiket})`);
+        `Bu ${yer} zimmet yetkiniz yok (${varlik.etiket})`);
     }
 
     const acikOlanlar = new Set((await db.varlikAtamaTalebi.findMany({

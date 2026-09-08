@@ -9,13 +9,13 @@ import type { RedSatiri } from './mantik';
 /* Dead-letter kuyruğu — SUNUCU VERİSİ.
 
    ═══ KAPSAM SIZINTISI ══════════════════════════════════════════════════
-   Kuyruk `yonetim/okuma` kapısını geçtikten sonra hiçbir SANTRAL kapsamı
+   Kuyruk `yonetim/okuma` kapısını geçtikten sonra hiçbir TESİS kapsamı
    uygulamıyordu: `hamJson` reddedilen kaydın HAM YÜKÜdür ve içinde
-   gözlemin beyan ettiği santral kodu, cihaz etiketi, hostname, IP gibi
-   alanlar durur. Bir santrale kısıtlı `yonetici`, başka santralin
+   gözlemin beyan ettiği tesis kodu, cihaz etiketi, hostname, IP gibi
+   alanlar durur. Bir tesise kısıtlı `yonetici`, başka tesisin
    connector'ından düşen kayıtları ham hâliyle okuyabiliyordu — üstelik
-   `asama: 'kapsam'` redlerinin SEBEP metni santral kodunu düpedüz
-   yazıyor ("kayıt 'X' santralini beyan ediyor").
+   `asama: 'kapsam'` redlerinin SEBEP metni tesis kodunu düpedüz
+   yazıyor ("kayıt 'X' tesisini beyan ediyor").
 
    MODÜL SEÇİMİ: `yonetim`. Gerekçe kaydın konusudur: dead-letter satırı bir
    ENTEGRASYON işletim kaydıdır (connector, koşu, aşama), bir uyum/varlık
@@ -23,22 +23,22 @@ import type { RedSatiri } from './mantik';
    → `yetkiZorunlu('yonetim', 'yazma')` da aynı modülü kullanır; okuma ile
    yazma ayrışamaz.
 
-   ── SANTRAL NASIL TÜRETİLİR ────────────────────────────────────────────
+   ── TESİS NASIL TÜRETİLİR ────────────────────────────────────────────
    `ReddedilenKayit` şemada `tesisId` TAŞIMAZ (kayıt zaten hedefe
-   yazılamadığı için düşmüştür). Santral iki kaynaktan, bu sırayla türetilir:
+   yazılamadığı için düşmüştür). Tesis iki kaynaktan, bu sırayla türetilir:
      1. Ham yükün beyan ettiği `tesisKodu` — `lib/entegrasyon/sozlesme.ts`
-        Gözlem sözleşmesinin santral alanı, çekirdeğin de baktığı alan
+        Gözlem sözleşmesinin tesis alanı, çekirdeğin de baktığı alan
         (`cekirdek.ts → kapsamDisiSebep`).
      2. Connector'ın YAZMA kapsamı (`connectorKapsamKodlari`) — kayıt
-        beyan etmese bile o connector yalnız bu santrallere yazabilir.
-   İkisi de yoksa santral BİLİNMİYOR demektir.
+        beyan etmese bile o connector yalnız bu tesislere yazabilir.
+   İkisi de yoksa tesis BİLİNMİYOR demektir.
 
-   ── SANTRALİ BİLİNMEYEN KAYIT ──────────────────────────────────────────
+   ── TESİSİ BİLİNMEYEN KAYIT ──────────────────────────────────────────
    `app/kapsam.ts → kapsamda` (= `lib/api/yetki.ts → tesisKapsamda`):
-   santrali türetilemeyen satır YALNIZ kapsamsız kullanıcıya görünür.
+   tesisi türetilemeyen satır YALNIZ kapsamsız kullanıcıya görünür.
    Bu, çekirdeğin kendi kuralıyla da tutarlıdır: kapsamı tanımlı bir
-   connector'da "santral beyan etmeyen" kayıt zaten reddedilir, çünkü
-   santral beyan etmemek kapsam sınırından kaçmanın en kolay yolu olurdu. */
+   connector'da "tesis beyan etmeyen" kayıt zaten reddedilir, çünkü
+   tesis beyan etmemek kapsam sınırından kaçmanın en kolay yolu olurdu. */
 
 /** Kuyruktan çekilen en fazla satır. Sınır bilinçlidir ve ekranda söylenir:
     sessizce kırpılan bir kuyruk, olmayan bir kuyruktur. */
@@ -50,11 +50,11 @@ export type EkranVerisi = {
   yazabilir: boolean;
   toplam: number;
   sinir: number;
-  /** true = kuyruk bir santral kapsamıyla daraltıldı */
+  /** true = kuyruk bir tesis kapsamıyla daraltıldı */
   kapsamli: boolean;
 };
 
-/** Ham yükün beyan ettiği santral kodu; yoksa null. Bozuk JSON kaydı düşürmez. */
+/** Ham yükün beyan ettiği tesis kodu; yoksa null. Bozuk JSON kaydı düşürmez. */
 function beyanEdilenTesisKodu(hamJson: string | null): string | null {
   if (!hamJson) return null;
   try {
@@ -63,7 +63,7 @@ function beyanEdilenTesisKodu(hamJson: string | null): string | null {
     const kod = (h as { tesisKodu?: unknown }).tesisKodu;
     return typeof kod === 'string' && kod.trim() ? kod.trim() : null;
   } catch {
-    // Okunamayan ham yük "santralsiz" sayılır — yani yalnız kapsamsıza görünür.
+    // Okunamayan ham yük "tesissiz" sayılır — yani yalnız kapsamsıza görünür.
     return null;
   }
 }
@@ -83,7 +83,7 @@ export async function reddedilenlerVerisi(k: AktifKullanici): Promise<EkranVeris
   /* Okuma kapısı `modulOkuyabilir` ile sorulur, `izinVar(...,'okuma')` ile
      DEĞİL: ikincisi KAPSAMSIZ (global) bir okuma sorar ve `lib/erisim.ts →
      kapsamUyar` gereği tesise kısıtlı her yöneticiyi kuyruktan tümüyle
-     atardı. Doğru soru "okuyabildiğin santral var mı"dır (bkz.
+     atardı. Doğru soru "okuyabildiğin tesis var mı"dır (bkz.
      app/kapsam.ts ve lib/api/yetki.ts → okumaKapsami).
      YAZMA kapısı ise bilerek `izinVar` ile kalır: `redKaydiIncele` eylemi
      `yetkiZorunlu('yonetim','yazma')`i kapsamsız çağırır, yani karar
@@ -116,7 +116,7 @@ export async function reddedilenlerVerisi(k: AktifKullanici): Promise<EkranVeris
     db.reddedilenKayit.count(),
   ]);
 
-  /* Santral kodları TEK sorguda id'ye çevrilir; satır başına sorgu açmak
+  /* Tesis kodları TEK sorguda id'ye çevrilir; satır başına sorgu açmak
      300 satırlık bir kuyrukta 300 sorgu demek olurdu. */
   const kodlar = new Set<string>();
   for (const r of ham) {
@@ -135,9 +135,9 @@ export async function reddedilenlerVerisi(k: AktifKullanici): Promise<EkranVeris
 
   const gorunur = ham.filter((r) => {
     const beyan = beyanEdilenTesisKodu(r.hamJson);
-    /* Beyan VARSA connector kapsamına düşülmez: kayıt kendi santralini
+    /* Beyan VARSA connector kapsamına düşülmez: kayıt kendi tesisini
        söylüyorsa karar odur. Beyan edilen kod platformda tanımsızsa
-       (`kodIdleri`de yok) santral BİLİNMİYOR sayılır — uydurulmaz. */
+       (`kodIdleri`de yok) tesis BİLİNMİYOR sayılır — uydurulmaz. */
     if (beyan) return kapsamda(izinli, kodIdleri.get(beyan) ?? null);
 
     const connectorKodlari = connectorKapsamKodlari(

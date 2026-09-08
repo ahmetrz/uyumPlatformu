@@ -14,8 +14,8 @@ export const metadata: Metadata = { title: 'Belge kütüğü' };
    geçirme takvimi ve karşıladığı kontroller. Dosyanın kendisi kurumun
    doküman sisteminde kalır — ürün bir DYS değildir ve bunu ekranda yazar.
 
-   Kapsam kuralı `veri.ts`tedir: kurumsal (santral bağı olmayan) belge
-   herkese görünür, santrale bağlı belge yalnız kapsam içindekilere. */
+   Kapsam kuralı `veri.ts`tedir: kurumsal (tesis bağı olmayan) belge
+   herkese görünür, tesise bağlı belge yalnız kapsam içindekilere. */
 
 export default async function Sayfa() {
   const k = await girisZorunlu();

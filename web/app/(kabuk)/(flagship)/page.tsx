@@ -8,7 +8,7 @@ import { genelEkranVerisi } from './veri';
    Hiyerarşi: bir kart baskındır; şerit bağlamdır; kuyruk kuyruktur.
    Grup özeti şeritte yaşar, ayrı bir modül olarak DEĞİL (§F1).
 
-   Santral kapsamı `veri.ts`te uygulanır; her toplam kendi modülünün
+   Tesis kapsamı `veri.ts`te uygulanır; her toplam kendi modülünün
    kapsamıyla daraltılır (uyum · risk · denetim). */
 
 export default async function Sayfa() {
@@ -29,7 +29,7 @@ export default async function Sayfa() {
       kuyruk={veri.kuyruk}
       toplamKayit={veri.toplamKayit}
       kapsamli={veri.kapsamli}
-      santraller={veri.santraller}
+      tesisler={veri.tesisler}
       tipler={veri.tipler}
       risk={veri.risk}
       takvim={veri.takvim}

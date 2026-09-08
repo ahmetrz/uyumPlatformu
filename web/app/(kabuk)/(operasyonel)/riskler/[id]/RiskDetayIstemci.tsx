@@ -1,4 +1,5 @@
 'use client';
+import { useSozluk, useTerim } from '@/lib/dil/SozlukSaglayici';
 import Link from 'next/link';
 import { useState, type CSSProperties, type ReactNode } from 'react';
 import { Im, Ipucu, Metrikler, Dugme, type Durum } from '@/components/kabuk/temel';
@@ -7,7 +8,7 @@ import { CekmeceAlanlar } from '@/components/kabuk/panel';
 import { etiketle, tarihTR } from '@/lib/sabitler';
 import { RiskFormu, KararFormu } from '../Formlar';
 import {
-  gunFarki, kabulDoldu, maxEtki, santralMetni, skorDurumu, SKOR_TAVANI,
+  gunFarki, kabulDoldu, maxEtki, tesisMetni, skorDurumu, SKOR_TAVANI,
   type BulguSecenegi, type Kisi, type Kodlu, type R,
 } from '../ortak';
 
@@ -35,7 +36,7 @@ export type DetayVerisi = {
   tesisler: Kodlu[];
   sistemler: Kodlu[];
   bulgular: BulguSecenegi[];
-  santraller: SeciciOgesi[];
+  tesisSeridi: SeciciOgesi[];
 };
 
 /** Uyum durumu → durum işaretçisi. Değerlendirilmemiş madde BİLİNMEYEN kalır. */
@@ -51,6 +52,8 @@ const AKSIYON_DURUMU: Record<string, Durum> = {
 type Halka = { anahtar: string; durum: Durum; kod: string; not: string; yol?: string; suren?: boolean };
 
 export default function RiskDetayIstemci({ veri }: { veri: DetayVerisi }) {
+  const { tBas } = useTerim();
+  const sozluk = useSozluk();
   const { risk } = veri;
   const [duzenle, setDuzenle] = useState(false);
   const [karar, setKarar] = useState(false);
@@ -136,8 +139,7 @@ export default function RiskDetayIstemci({ veri }: { veri: DetayVerisi }) {
     <main data-yuzey="defter" style={{ minWidth: 0 }}>
       <BaglamCubugu
         kirintiler={[{ ad: 'Risk', yol: '/riskler' }, { ad: risk.kod }]}
-        seciciEtiketi="Santral"
-        secici={veri.santraller}
+        secici={veri.tesisSeridi}
         sag={
           <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--s12)' }}>
             <Dugme tur="satir"
@@ -313,7 +315,7 @@ export default function RiskDetayIstemci({ veri }: { veri: DetayVerisi }) {
 
               <div style={{ marginTop: 'var(--s20)' }}>
                 <CekmeceAlanlar alanlar={[
-                  { etiket: 'Santral', deger: santralMetni(risk) },
+                  { etiket: tBas('tesis'), deger: tesisMetni(risk, sozluk) },
                   { etiket: 'Sistem', deger: risk.sistem ? `${risk.sistem.kod} · ${risk.sistem.ad}` : '—' },
                   {
                     etiket: 'Sahip',

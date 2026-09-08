@@ -12,13 +12,13 @@ import { csvAktar, damgaliAd, exceleAktar, pdfYazdir } from '@/components/disaAk
 import { an } from '@/lib/an';
 import {
   ONEM_DERECELERI, ONEM_ETIKET, AKSIYON_ETIKET, BULGU_DURUM_ETIKET,
-  etiketle, eylemCumlesi, tarihTR, zamanTR, type Onem,
-} from '@/lib/sabitler';
+  etiketle, eylemCumlesi, tarihTR, zamanTR, type Onem, etiketTerimleri } from '@/lib/sabitler';
 import {
   acikMi, aksiyonAcikMi, aksiyonImi, bulguImi, dogrulamaBekliyorMu,
   dogrulamaHucresi, gecikmeGunu, kalanGun, kisaTarih, surukleyenAksiyon,
   type AksiyonOzeti, type DogrulamaHucresi as DogrulamaVerisi,
 } from './mantik';
+import { useSozluk, useTerim } from '@/lib/dil/SozlukSaglayici';
 
 export type IzKaydi = {
   id: string; aktor: string; eylem: string; varlikTipi: string;
@@ -75,7 +75,7 @@ export default function BulgularIstemci({
     acik: number; gecikmis: number; dogrulama: number;
     zamaninda: number; aksiyonsuz: number; kapali: number;
   };
-  /** liste bir santral kapsamıyla daraltıldı mı — boş ekranın SÖZÜ değişir */
+  /** liste bir tesis kapsamıyla daraltıldı mı — boş ekranın SÖZÜ değişir */
   kapsamli?: boolean;
 }) {
   const [mercek, setMercek] = useUrlDurumu<string>('mercek', 'acik');
@@ -391,6 +391,10 @@ function Kapsam({ etiket, secenekler, aktif, sec }: {
 
 /** Dışa aktarım filtre bütçesinin dışında, tabloyu izleyen tek sessiz bağlantı. */
 function DisaAktar({ satirlar }: { satirlar: (string | number)[][] }) {
+  /* Dışa aktarım başlığı KULLANICININ okuduğu dosyadır (Excel/CSV), bir
+     entegrasyon sözleşmesi değil — sözlükten yazılır. Alan adı sözleşmesi
+     olan paket `lib/disaAktarim/paket.ts`te ve o çekirdekte kalır. */
+  const { tBas } = useTerim();
   const kok = useRef<HTMLDetailsElement | null>(null);
   useEffect(() => {
     const kapat = (e: Event) => {
@@ -421,7 +425,7 @@ function DisaAktar({ satirlar }: { satirlar: (string | number)[][] }) {
   const sayfa = () => ({
             ad: 'Bulgular',
             satirlar: [
-              ['Bulgu', 'Madde', 'Tesis', 'Süreç', 'Önem', 'Durum', 'Aksiyon',
+              ['Bulgu', 'Madde', tBas('tesis'), 'Süreç', 'Önem', 'Durum', 'Aksiyon',
                 'Sahip', 'Son tarih', 'Gecikme (gün)', 'Doğrulama'],
               ...satirlar,
             ],
@@ -530,6 +534,8 @@ const SOZ: Record<Durum, string> = {
 };
 
 function BulguCekmecesi({ veri, kapat }: { veri: Secim; kapat: () => void }) {
+  const ET = etiketTerimleri(useSozluk());
+  const { tBas } = useTerim();
   const { b, im, gecikme, dogrulama, sahip, biten } = veri;
   const acikAksiyon = b.aksiyonlar.filter(aksiyonAcikMi).length;
 
@@ -546,7 +552,7 @@ function BulguCekmecesi({ veri, kapat }: { veri: Secim; kapat: () => void }) {
         { etiket: 'Önem', deger: ONEM_ETIKET[b.onem as Onem] ?? etiketle(b.onem) },
         { etiket: 'Kayıt durumu',
           deger: BULGU_DURUM_ETIKET[b.durum as keyof typeof BULGU_DURUM_ETIKET] ?? etiketle(b.durum) },
-        { etiket: 'Santral', deger: b.tesisAd },
+        { etiket: tBas('tesis'), deger: b.tesisAd },
         { etiket: 'Sahip', deger: sahip ?? '—' },
         { etiket: 'Son tarih',
           deger: b.hedef ? kisaTarih(b.hedef) : '—',
@@ -586,7 +592,7 @@ function BulguCekmecesi({ veri, kapat }: { veri: Secim; kapat: () => void }) {
                 borderLeft: 'var(--bw-edge) solid var(--hr2)', paddingLeft: 'var(--s12)' }}>
                 <span style={{ fontSize: 'var(--t-field)' }}>
                   <b style={{ fontWeight: 600 }}>{k.aktor}</b>{' '}
-                  {eylemCumlesi(k.eylem, k.varlikTipi === 'Bulgu' ? null : k.varlikTipi, k.alan)}
+                  {eylemCumlesi(k.eylem, k.varlikTipi === 'Bulgu' ? null : k.varlikTipi, k.alan, ET)}
                 </span>
                 <span style={{ fontFamily: 'var(--veri)', fontSize: 'var(--t-label)', color: 'var(--i3)' }}>
                   {zamanTR(k.zaman)}

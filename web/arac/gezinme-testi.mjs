@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { sebepBayragi, tabanDogrula, tabanYaz } from './olcum-tabani.mjs';
 /* Duyarlı gezinme testi — HİÇBİR ROTA ERİŞİLEMEZ OLMAMALI.
 
    ── Kapatılan kusur ("bazı sayfalar arası geçiş yapılamıyor") ─────────
@@ -206,4 +207,22 @@ if (kusurlar.length) {
   process.exitCode = 1;
 } else {
   console.log(`\ngezinme kusuru: 0 · ${BANTLAR.length} bant · kabuk içi + kabuklar arası`);
+}
+
+/* ── ÖLÇÜM KAPSAMI TABANI ─────────────────────────────────────────────
+   Cırcır BORÇ için tavan tutar; bu taban KAPSAM için taban tutar. Kusur
+   sayısı sıfır olabilir; ÖLÇÜM sayısı olamaz — sıfır ölçümle "kusur yok"
+   demek, hiçbir şeye bakmadan temiz raporlamaktır
+   (`arac/olcum-tabani.mjs` başlığındaki ölçülmüş olay). Taban ÖNCE
+   bakılır: geçersiz bir ölçümün borç kararı da geçersizdir. */
+if (process.argv.includes('--taban-yaz')) {
+  const { onceki, yeni } = tabanYaz('gezinme.bant', notlar.length, { sebep: sebepBayragi(process.argv) });
+  console.log(`taban güncellendi: gezinme.bant ${onceki ?? '(yok)'} → ${yeni}`);
+} else {
+  try {
+    tabanDogrula('gezinme.bant', notlar.length);
+  } catch (e) {
+    console.error(`\n${e.message}`);
+    process.exitCode = 1;
+  }
 }

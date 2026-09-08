@@ -2,7 +2,19 @@ import { Iskelet } from '@/components/kabuk/temel';
 
 /* Yükleme: gerçek kolon başlıklarıyla 7 iskelet satır (03-screens "loading:
    skeleton rows with real type labels"). Sayı uydurulmaz — metrik yerinde
-   iskelet durur, `0` yazılmaz. */
+   iskelet durur, `0` yazılmaz.
+
+   ── TESİS BAŞLIĞI SÖZLÜKTEN GELMEZ, ÇEKİRDEKTE KALIR ─────────────────
+   `loading.tsx` bir Suspense YEDEĞİDİR: anında render edilmek zorunda,
+   dolayısıyla `async` olamaz ve sunucuda sözlüğü bekleyemez. `useTerim()`
+   ise istemci bağlamı ister; bu 40 satırlık iskeleti tek sözcük için
+   istemci bileşenine çevirmek, demete karşılığı olmayan bir maliyet
+   yüklerdi (depodaki TEK `loading.tsx` bu ve hepsi sunucu bileşeni).
+
+   Sonuç kabul edilen bir kusurdur ve küçüktür: su kiracısı bir an "Tesis"
+   görür, tablo gelince "Arıtma tesisi" olur. Bekçi açısından temiz —
+   çekirdek sözcük sektör terimi değil. Kalıcı çözüm P3 ile gelebilir
+   (mesaj kataloğu derleme zamanında çözülürse yedek de sözcüğü bilir). */
 
 export default function Yukleniyor() {
   return (
@@ -27,7 +39,7 @@ export default function Yukleniyor() {
           <table className="ab-vt" aria-label="Tedarikçi kütüğü · yükleniyor">
             <thead>
               <tr>
-                {['Tedarikçi', 'Santral', 'Uzak erişim', 'Sözleşme'].map((b) => (
+                {['Tedarikçi', 'Tesis', 'Uzak erişim', 'Sözleşme'].map((b) => (
                   <th key={b} scope="col"><span className="kolonbas">{b}</span></th>
                 ))}
               </tr>

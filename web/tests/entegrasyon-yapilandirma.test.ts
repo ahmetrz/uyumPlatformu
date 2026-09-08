@@ -364,7 +364,8 @@ describe('3 · Kapsamın tek doğruluk kaynağı', () => {
 describe('4 · Kapsam yüzeyinin saf mantığı', () => {
   it('boş kapsam "hiçbiri" değil "sınır yok" diye okunur', () => {
     expect(M.kapsamCumlesi([])).toMatch(/sınır yok/i);
-    expect(M.kapsamCumlesi(['A', 'B'])).toBe('2 santral · A, B');
+    /* Terim ÇAĞIRANDAN gelir; sözlüksüz çağrı çekirdek sözcüğü yazar. */
+    expect(M.kapsamCumlesi(['A', 'B'])).toBe('2 tesis · A, B');
   });
 
   it('boş seçim, çelişkili varsayılan ve miras anahtar önden uyarılır', () => {

@@ -246,8 +246,9 @@ describe('Bildirim kutusu: bilinmeyen ≠ sıfır', () => {
   });
 
   it('kaynağı çözülemeyen satırın işaretçisi ve sözü BİLİNMİYOR der', () => {
-    expect(M.KAYNAK_HAL_SOZU.bilinmiyor).toContain('bilinmiyor');
-    expect(M.KAYNAK_HAL_SOZU.kapsamDisi).toContain('kapsam');
+    /* Söz artık terimle kuruluyor; sözlüksüz çağrı çekirdek sözcüğü yazar. */
+    expect(M.kaynakHalSozu().bilinmiyor).toContain('bilinmiyor');
+    expect(M.kaynakHalSozu().kapsamDisi).toContain('kapsam');
     // Ekranın sözlüğünde `bilinmiyor` diye bir DURUM yoktur; işaretçi 'unk'tur
     // ve onun sözü "değerlendirilmedi"dir.
     expect(M.bildirimImi(satir({ tip: 'bilgi' }))).toBe('unk');

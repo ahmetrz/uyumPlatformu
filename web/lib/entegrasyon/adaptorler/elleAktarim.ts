@@ -48,7 +48,16 @@ const KOLON_ADAYLARI: Record<string, string[]> = {
   model: ['model', 'modelno', 'modelnumber', 'urun', 'product', 'producttype'],
   isletimSistemi: ['isletimsistemi', 'os', 'operatingsystem', 'osname', 'osversion', 'platform'],
   firmware: ['firmware', 'firmwareversion', 'fw', 'fwversion', 'yazilimsurumu'],
-  tesisKodu: ['tesis', 'tesiskodu', 'site', 'sitecode', 'lokasyon', 'location', 'plant', 'santral'],
+  /* ── MÜŞTERİNİN SÖZCÜĞÜ, BİZİMKİ DEĞİL ─────────────────────────────
+     Bu liste bizim terimlerimizi değil, GELEN dosyanın başlık satırında
+     ne yazabileceğini sayar. `santral` ve `plant` burada kalır: enerji
+     kiracısının dışa aktardığı CSV'nin başlığı budur ve onu tanımamak
+     içe aktarımı sessizce boş bırakırdı. Liste sektör eklendikçe
+     BÜYÜR ("hat", "şube", "well"…).
+     BORÇ: nihai hâlde bu adaylar sektör İÇERİK PAKETİNDEN gelir, çekirdek
+     koddan değil (§0.5); o zamana kadar dosya bekçi listesinde durur. */
+  tesisKodu: ['tesis', 'tesiskodu', 'site', 'sitecode', 'lokasyon', 'location',
+    'plant', 'santral'],
   bolgeKodu: ['bolge', 'bolgekodu', 'zone', 'networkzone', 'agbolgesi', 'vlan', 'segment'],
   turKodu: ['tur', 'turkodu', 'tip', 'type', 'assettype', 'kategori', 'category', 'devicetype'],
   kaynakKayitId: ['kaynakkayitid', 'kayitid', 'recordid', 'assetid', 'uuid', 'guid', 'objectid'],

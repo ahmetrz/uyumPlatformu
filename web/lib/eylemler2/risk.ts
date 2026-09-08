@@ -5,6 +5,7 @@
    (null) boyutlar hesaba katılmaz; hepsi bilinmiyorsa skor null kalır —
    bilinmeyen asla 0 sayılmaz. */
 
+import { kapsamMesaji } from './kapsamMesaji';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { db } from '../db';
@@ -47,8 +48,8 @@ function skorHesapla(
 
 /* İKİ AŞAMALI KAPI (`KAPSAM_SONRA`, bkz. erisim.ts). Ön kapı kapsamsız
    çağrılırsa `kapsamUyar` tesise kısıtlı rolü daha ilk adımda reddeder:
-   ekran "yazabilirsin" derken sunucu "yetkiniz yok" der ve santral
-   yöneticisi KENDİ santralinin riskini bile açamaz. Ölçüldü; `risk.ts`
+   ekran "yazabilirsin" derken sunucu "yetkiniz yok" der ve tesis
+   yöneticisi KENDİ tesisinin riskini bile açamaz. Ölçüldü; `risk.ts`
    test görmediği için görünmüyordu.
 
    Ön kapı yalnız "bu modülde bu işlem için bir rolü var mı" sorusunu
@@ -70,7 +71,8 @@ export async function riskKaydet(girdi: {
   try {
     const k = await yetkiZorunlu('risk', 'yazma', KAPSAM_SONRA);
     const v = RiskGirdisi.parse(girdi);
-    kapsamZorunlu(k, 'risk', 'yazma', { tesisId: v.tesisId }, 'Bu tesis kapsamında risk yazma yetkiniz yok');
+    kapsamZorunlu(k, 'risk', 'yazma', { tesisId: v.tesisId },
+      await kapsamMesaji(k, 'risk', 'risk yazma yetkiniz yok', v.tesisId));
 
     const skor = skorHesapla(v.olasilik, [
       v.etkiUretim, v.etkiEmniyet, v.etkiRegulasyon, v.etkiFinans,
@@ -93,7 +95,8 @@ export async function riskKaydet(girdi: {
     if (v.id) {
       const eski = await db.risk.findUnique({ where: { id: v.id } });
       if (!eski) throw new Error('Risk bulunamadı');
-      kapsamZorunlu(k, 'risk', 'yazma', { tesisId: eski.tesisId }, 'Bu tesis kapsamında risk yazma yetkiniz yok');
+      kapsamZorunlu(k, 'risk', 'yazma', { tesisId: eski.tesisId },
+      await kapsamMesaji(k, 'risk', 'risk yazma yetkiniz yok', eski.tesisId));
       await db.risk.update({ where: { id: v.id }, data: { ...veri, durum: v.durum ?? eski.durum } });
       await iz({
         aktorId: k.id, varlikTipi: 'Risk', varlikId: v.id, eylem: 'guncelleme',
@@ -129,7 +132,8 @@ export async function riskIslem(girdi: {
     }).parse(girdi);
     const risk = await db.risk.findUnique({ where: { id: v.id } });
     if (!risk) throw new Error('Risk bulunamadı');
-    kapsamZorunlu(k, 'risk', 'yazma', { tesisId: risk.tesisId }, 'Bu tesis kapsamında risk yazma yetkiniz yok');
+    kapsamZorunlu(k, 'risk', 'yazma', { tesisId: risk.tesisId },
+      await kapsamMesaji(k, 'risk', 'risk yazma yetkiniz yok', risk.tesisId));
 
     await db.risk.update({ where: { id: v.id }, data: {
       islemTipi: v.islemTipi, islemTarihi: new Date(),
@@ -162,7 +166,8 @@ export async function riskKabul(girdi: {
     }).parse(girdi);
     const risk = await db.risk.findUnique({ where: { id: v.id } });
     if (!risk) throw new Error('Risk bulunamadı');
-    kapsamZorunlu(k, 'risk', 'onay', { tesisId: risk.tesisId }, 'Bu tesis kapsamında risk kabul onayı yetkiniz yok');
+    kapsamZorunlu(k, 'risk', 'onay', { tesisId: risk.tesisId },
+      await kapsamMesaji(k, 'risk', 'risk kabul onayı yetkiniz yok', risk.tesisId));
 
     await db.risk.update({ where: { id: v.id }, data: {
       islemTipi: 'kabul', islemTarihi: new Date(), kabulBitis: v.kabulBitis,

@@ -4,39 +4,51 @@ import { izinVar, izinliTesisIdleri } from '@/lib/erisim';
 import type { AktifKullanici } from '@/lib/auth';
 import { kapsamda, modulKapisi } from '@/app/kapsam';
 import { uyumOzeti, gecikmisMi, gecenGun } from '@/lib/sabitler';
-import type { Plant360Veri, Santral } from './Plant360';
+import type { Tesis360Veri, TesisOzeti } from './Tesis360';
 import type { OtProfili } from './mantik';
+import {
+  KURULU_GUC, birimliOzellik, olculenYazi,
+} from '@/lib/alan/oznitelik';
+import { tBas, type Sozluk } from '@/lib/dil/terimler';
+import { sektorSozlugu } from '@/lib/dil/sozlukOku';
 
-/* F3 · Plant 360 — SUNUCU VERİSİ.
+/* F3 · Tesis 360 — SUNUCU VERİSİ.
 
    ═══ KAPSAM SIZINTISI ══════════════════════════════════════════════════
    Rota `db.tesis.findUnique({ where: { id } })` diyordu: kapsam dışı bir
-   santralin id'sini bilen herkes o santralin TAM dosyasını açabiliyordu —
+   tesisin id'sini bilen herkes o tesisin TAM dosyasını açabiliyordu —
    kurulu güç, tüzel kişi, konum, uyum yüzdesi, açık bulgu başlıkları, en
    yüksek risk, varlık sayısı, denetim programı. Ayrıca alt gezinme şeridi
-   (`tumTesisler`) BÜTÜN aktif santralleri kod/ad/fotoğrafıyla taşıyordu:
-   kapsam dışı bir santral açılamasa bile listede DURUYORDU.
+   (`tumTesisler`) BÜTÜN aktif tesisleri kod/ad/fotoğrafıyla taşıyordu:
+   kapsam dışı bir tesis açılamasa bile listede DURUYORDU.
 
    MODÜL SEÇİMİ: `uyum` — /portfoy ile AYNI modül, bilerek. Bu ekrana
-   portföyden girilir; portföyde plakası görünen santralin dosyası
-   açılabilmeli, açılamayan bir santralin plakası da portföyde durmamalıdır.
+   portföyden girilir; portföyde plakası görünen tesisin dosyası
+   açılabilmeli, açılamayan bir tesisin plakası da portföyde durmamalıdır.
    İki ekran farklı modül seçseydi kullanıcı görebildiği bir plakaya
    tıklayıp "bulunamadı" alırdı.
 
-   PANELLER (risk · denetim · varlık · bölge) santral kapısını GEÇTİKTEN
+   PANELLER (risk · denetim · varlık · bölge) tesis kapısını GEÇTİKTEN
    sonra ayrıca kendi modül kapsamlarıyla daraltılmaz. Nedeni
    "bilinmeyen ≠ sıfır"dır: riski hiç okuyamayan bir kullanıcı için risk
    kapsamı boş küme döner ve panel "en yüksek risk yok", "0 açık risk"
    yazardı — yani ölçülmemiş olanı sıfır diye gösterirdi. Kapsam bir
-   SANTRAL sınırıdır; modül izni ayrı bir eksendir ve panelin sayısını
+   TESİS sınırıdır; modül izni ayrı bir eksendir ve panelin sayısını
    sıfıra çevirerek anlatılamaz.
 
    ── VARLIĞI DOĞRULAMAK DA BİR SIZINTIDIR ───────────────────────────────
-   Kapsam dışı santral için `null` döner, rota `notFound()` çağırır.
-   "Bu santral kapsamınızda değil" demek, o id'de bir santralin VAR
+   Kapsam dışı tesis için `null` döner, rota `notFound()` çağırır.
+   "Bu tesis kapsamınızda değil" demek, o id'de bir tesisin VAR
    OLDUĞUNU doğrulamak olurdu. */
 
-export type EkranVerisi = { veri: Plant360Veri; santraller: Santral[] };
+export type EkranVerisi = {
+  veri: Tesis360Veri;
+  tesisler: TesisOzeti[];
+  /* Terim sözlüğü ekran verisiyle birlikte iner: `t()` saf kalsın ve
+     sunucu ile istemci AYNI sözcüğü versin (hidrasyon). `null` = tesisin
+     sektörü ya da sektörün sözlüğü yok → ekran çekirdek sözcüğü kullanır. */
+  sozluk: Sozluk | null;
+};
 
 /* OT mimari profili (B6/B9). `profil: true` include'u zaten vardı ama
    yalnız kritiklik sınıfı okunuyordu; alanların tamamı serileştirilir.
@@ -70,7 +82,7 @@ function profilSerisi(p: {
 /** Açık bulgu listesinde gösterilen en fazla kayıt (prototipte 6). */
 const BULGU_PENCERESI = 8;
 
-/** Kapsam dışı ya da olmayan santral için `null` — çağıran `notFound()` der. */
+/** Kapsam dışı ya da olmayan tesis için `null` — çağıran `notFound()` der. */
 export async function tesis360Verisi(
   k: AktifKullanici,
   id: string,
@@ -78,17 +90,25 @@ export async function tesis360Verisi(
   modulKapisi(k, 'uyum');
   const izinli = izinliTesisIdleri(k, 'uyum');
   // Kural `lib/api/yetki.ts → tesisKapsamda` ile aynı; `app/kapsam.ts` onu
-  // aynen çağırır. Santral kaydı okunmadan ÖNCE karar verilir.
+  // aynen çağırır. Tesis kaydı okunmadan ÖNCE karar verilir.
   if (!kapsamda(izinli, id)) return null;
 
   const tesis = await db.tesis.findUnique({
     where: { id },
-    include: { tip: true, tuzelKisi: true, profil: true },
+    include: {
+      tip: true, tuzelKisi: true, profil: true,
+      ozellikler: { select: { anahtar: true, sayisalDeger: true, birim: true } },
+    },
   });
   if (!tesis) return null;
 
+  /* Sözlük tesisin KENDİ sektöründen çözülür, kiracının "ana"
+     sektöründen değil: iki sektörde tesisi olan bir kiracıda her tesis
+     kendi sözcüğüyle anılmalıdır. */
+  const sozluk = tesis.tip?.sektorId ? await sektorSozlugu(tesis.tip.sektorId) : null;
+
   const simdi = new Date();
-  const [durumlar, bulgular, riskler, varliklar, denetimler, surecler, bolgeler, uniteListesi,
+  const [durumlar, bulgular, riskler, varliklar, denetimler, surecler, bolgeler, birimListesi,
     tumTesisler, katmanKayitlari, sistemler, bulguSayimi] =
     await Promise.all([
       db.maddeDurumu.groupBy({ by: ['durum'], where: { tesisId: id }, _count: { _all: true } }),
@@ -117,20 +137,22 @@ export async function tesis360Verisi(
         include: { surec: { include: { regulasyon: { select: { kod: true } } } } },
       }),
       db.agBolgesi.count({ where: { tesisId: id } }),
-      db.uretimUnitesi.findMany({
+      db.operasyonelBirim.findMany({
         where: { tesisId: id },
         select: {
-          id: true, kod: true, ad: true, kuruluGucMw: true, durum: true,
+          id: true, kod: true, ad: true, durum: true,
+          ozellikler: { select: { anahtar: true, sayisalDeger: true, birim: true } },
           _count: { select: { sistemler: true, varliklar: true } },
         },
         orderBy: { kod: 'asc' },
       }),
-      /* Alt gezinme şeridi santral kapısıyla AYNI kapsamdan gelir: bu
-         ekranda açamayacağın bir santralin adı/kodu/fotoğrafı şeritte de
+      /* Alt gezinme şeridi tesis kapısıyla AYNI kapsamdan gelir: bu
+         ekranda açamayacağın bir tesisin adı/kodu/fotoğrafı şeritte de
          anılmaz. */
       db.tesis.findMany({
         where: { durum: 'aktif', ...(izinli === null ? {} : { id: { in: izinli } }) },
-        select: { id: true, kod: true, ad: true, kuruluGucMw: true, gorselAnahtari: true,
+        select: { id: true, kod: true, ad: true, gorselAnahtari: true,
+          ozellikler: { select: { anahtar: true, sayisalDeger: true, birim: true } },
           tip: { select: { kod: true, ad: true } } },
         orderBy: { ad: 'asc' },
       }),
@@ -155,7 +177,7 @@ export async function tesis360Verisi(
       db.sistemServis.findMany({
         where: { tesisId: id },
         select: {
-          id: true, kod: true, ad: true, tip: true, kritiklik: true, uniteId: true,
+          id: true, kod: true, ad: true, tip: true, kritiklik: true, birimId: true,
           _count: { select: { varliklar: true, riskler: true } },
         },
       }),
@@ -219,17 +241,20 @@ export async function tesis360Verisi(
       kod: tesis.kod,
       ad: tesis.ad,
       tipKod: tesis.tip?.kod ?? null,
-      tipAdi: tesis.tip?.ad ?? 'Tesis',
+      /* Tipi tanımsız kayıtta tip adı yerine TERİM yazılır: "Tesis"
+         çakılı sözcüktü ve kiracının okuduğu ad o değil. */
+      tipAdi: tesis.tip?.ad ?? tBas(sozluk, 'tesis'),
       tuzelKisi: tesis.tuzelKisi?.ad ?? null,
       konum: tesis.konum,
-      gucMw: tesis.kuruluGucMw,
+      ...((o) => ({ guc: o.deger, gucBirim: o.birim }))(
+        birimliOzellik(tesis.ozellikler, KURULU_GUC)),
       gorselAnahtari: tesis.gorselAnahtari,
       kritiklik: tesis.profil?.kritiklikSinifi ?? null,
       profil: profilSerisi(tesis.profil),
       /* Düzenleme kapısı sunucu eylemiyle AYNI soru: tanimlar/yazma, bu
-         santral kapsamında (lib/eylemler2/tesis360.ts → profilKaydet). */
+         tesis kapsamında (lib/eylemler2/tesis360.ts → profilKaydet). */
       profilDuzenlenebilir: izinVar(k, 'tanimlar', 'yazma', { tesisId: id }),
-      uniteSayisi: uniteListesi.length || null,
+      birimSayisi: birimListesi.length || null,
       // Uyum: bilinmeyen ASLA 0 sayılmaz — yüzde yalnız değerlendirilenden,
       // bilinmeyen oranı ayrıca taşınır (lib/sabitler.ts:uyumOzeti).
       uyumYuzde: ozet.yuzde,
@@ -251,8 +276,11 @@ export async function tesis360Verisi(
       surecSayisi: surecler.length,
       katmanlar,
       zincir,
-      uniteler: uniteListesi.map((u) => ({
-        id: u.id, kod: u.kod, ad: u.ad, gucMw: u.kuruluGucMw, durum: u.durum,
+      birimler: birimListesi.map((u) => ({
+        id: u.id, kod: u.kod, ad: u.ad,
+        ...((o) => ({ guc: o.deger, gucBirim: o.birim }))(
+          birimliOzellik(u.ozellikler, KURULU_GUC)),
+        durum: u.durum,
         sistemSayisi: u._count.sistemler, varlikSayisi: u._count.varliklar,
       })),
       sistemSayisi: sistemler.length,
@@ -287,9 +315,12 @@ export async function tesis360Verisi(
         alt: `${b.maddeDurumu.madde.kod} · ${b.sorumlu?.adSoyad ?? 'sahipsiz'}`,
       })),
     },
-    santraller: tumTesisler.map((x) => ({
+    sozluk,
+    tesisler: tumTesisler.map((x) => ({
       id: x.id, kod: x.kod, ad: x.ad,
-      alt: x.kuruluGucMw ? `${x.kuruluGucMw} MWe` : '—',
+      /* Ölçülmemiş güç "—" gösterir, 0 değil (bilinmeyen ≠ sıfır).
+         BİRİM satırdan gelir; ekran birim seçmez (§0.5). */
+      alt: olculenYazi(birimliOzellik(x.ozellikler, KURULU_GUC)) ?? '—',
       tip: x.tip?.ad ?? 'Diğer',
       gorselAnahtari: x.gorselAnahtari,
     })),

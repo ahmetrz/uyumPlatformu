@@ -12,10 +12,10 @@ export const metadata: Metadata = { title: 'Kanıt kütüphanesi' };
    karşılıyor?" (C defter yüzeyi).
 
    Tek tablo: kanıt · tip · tarih · bağlı kayıt · yükleyen. Satır seçilince
-   sağ çekmece künyeyi ve bağlı bulgu/madde/santral kayıtlarına giden
+   sağ çekmece künyeyi ve bağlı bulgu/madde/tesis kayıtlarına giden
    zinciri açar. Dosya yükleme bu sürümde YOKTUR; ekran bunu saklamaz.
 
-   Santral kapsamı, satır tavanı ve bağlantısız sayımı `veri.ts`tedir
+   Tesis kapsamı, satır tavanı ve bağlantısız sayımı `veri.ts`tedir
    (modül: `uyum`). */
 
 export default async function Sayfa() {

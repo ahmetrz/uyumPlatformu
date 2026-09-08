@@ -8,7 +8,7 @@ import { Im, DURUM_SOZU, type Durum } from './temel';
 
    Orijinal prototiplerde ÇEKMECE YOKTUR. Detay üç yerden birinde durur:
      A · a-assets   → 400px sağa DOKLU panel, sayfanın parçası;
-     B · b-plant360 → 420px hero paneli, aynı ekranın içinde;
+     B · b-tesis360 → 420px hero paneli, aynı ekranın içinde;
      C · c-compliance → satırın ALTINDA açılan blok.
    Ortak nokta: okuyucu kütüğü/tuvali GÖRMEYE DEVAM EDER. 420px'lik
    kayan bir çekmece bunun tam tersini yapıyordu.

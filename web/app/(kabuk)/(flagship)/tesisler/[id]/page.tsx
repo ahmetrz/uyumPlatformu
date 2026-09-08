@@ -1,17 +1,32 @@
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { girisZorunlu } from '@/lib/erisim';
 import { Yetkisiz } from '@/components/kabuk/temel';
 import { modulOkuyabilir } from '@/app/kapsam';
 import { db } from '@/lib/db';
-import Plant360 from './Plant360';
+import Tesis360 from './Tesis360';
 import { tesis360Verisi } from './veri';
+import { t } from '@/lib/dil/terimler';
+import { tesisSozlugu } from '@/lib/dil/sozlukOku';
 
-/* F3 · Plant 360 — "bu santral kontrol altında mı?" (5 saniyede okunur)
+/* F3 · Tesis 360 — "bu tesis kontrol altında mı?" (5 saniyede okunur)
    Sunucu tarafı yalnız veriyi toplar ve serileştirir; sunum istemcide.
 
-   Santral kapsamı `veri.ts`te uygulanır (modül: `uyum`, /portfoy ile aynı).
-   Kapsam dışı santral `notFound()` ile kapanır — hangi santralin dışarıda
-   kaldığı SÖYLENMEZ, çünkü söylemek o santralin var olduğunu doğrulamaktır. */
+   Tesis kapsamı `veri.ts`te uygulanır (modül: `uyum`, /portfoy ile aynı).
+   Kapsam dışı tesis `notFound()` ile kapanır — hangi tesisin dışarıda
+   kaldığı SÖYLENMEZ, çünkü söylemek o tesisin var olduğunu doğrulamaktır. */
+
+/* Ekran adı SÖZLÜKTEN gelir: enerji sözlüğü kuruluyken sekme "Tesis 360",
+   sözlük yokken "Tesis 360" yazar (URN-ALN-004). Sekme başlığı bu ekranda
+   ekranın adının göründüğü tek yerdir — hero plakası tesisin ADINI taşır,
+   ekranın adını değil; oraya bir de ekran adı koymak aynı soruyu
+   ("neredeyim") ikinci kez cevaplamak olurdu. */
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }):
+Promise<Metadata> {
+  const { id } = await params;
+  const sozluk = await tesisSozlugu(id);
+  return { title: t(sozluk, 'tesis360') };
+}
 
 export async function generateStaticParams() {
   const tesisler = await db.tesis.findMany({ select: { id: true } });
@@ -29,5 +44,5 @@ export default async function Sayfa({ params }: { params: Promise<{ id: string }
   const sonuc = await tesis360Verisi(k, id);
   if (!sonuc) notFound();
 
-  return <Plant360 veri={sonuc.veri} santraller={sonuc.santraller} />;
+  return <Tesis360 veri={sonuc.veri} tesisler={sonuc.tesisler} sozluk={sonuc.sozluk} />;
 }

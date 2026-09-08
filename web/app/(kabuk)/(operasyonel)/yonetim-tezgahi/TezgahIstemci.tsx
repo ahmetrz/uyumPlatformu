@@ -8,13 +8,14 @@ import { Tablo, type Kolon, type Satir } from '@/components/kabuk/tablo';
 import {
   Cekmece, CekmeceKimlik, CekmeceAlanlar, CekmeceBagli, CekmeceEylemler,
 } from '@/components/kabuk/panel';
+import { olculenYazi } from '@/lib/alan/oznitelik';
 import { etiketle, tarihTR, zamanTR } from '@/lib/sabitler';
 import {
   ApiAnahtarFormu, ApiAnahtarIptal, ApiAnahtarKapsam,
   GorevFormu, GorevDurumEylemleri, OnayKarariFormu, TanimEylemleri, TanimFormu,
 } from './Formlar';
 import {
-  GORUNUR_BUTCE, KATALOG_ETIKET, SON_ISTEK_TAVANI, UFUK_GUN,
+  GORUNUR_BUTCE, katalogEtiket, SON_ISTEK_TAVANI, UFUK_GUN,
   anahtarAltSatiri, anahtarBittiMi, anahtarEtkinMi, anahtarImi,
   anahtarKuyrukEtiketi, anahtarSabit, anahtarSirala, anahtarSozu,
   gecenGun, gecikmisMi, isAcikMi, isAltSatiri, isDurumSozu, isImi, isSabit,
@@ -24,6 +25,7 @@ import {
   tanimSozu,
   type Anahtar, type Is, type Katalog, type Kisi, type Kodlu, type SonIstek, type Tanim,
 } from './ortak';
+import { useTerim } from '@/lib/dil/SozlukSaglayici';
 
 /* M1/M2/P1-3 · Yönetim tezgâhı — "bugün ne karar bekliyor, katalog doğru
    mu, dışarıdan kim girebiliyor?"
@@ -135,6 +137,8 @@ export default function TezgahIstemci({
   gorevAcabilir: boolean;
   anahtarYazabilir: boolean;
 }) {
+  const { tBas } = useTerim();
+  const KATALOG_ETIKET = katalogEtiket(tBas('tesis'));
   const router = useRouter();
   const [kip, setKip] = useState<Kip>(
     baslangicKipi ?? (isOkuyabilir ? 'is' : tanimOkuyabilir ? 'tanim' : 'anahtar'));
@@ -471,7 +475,7 @@ export default function TezgahIstemci({
                   sec={(id) => { setSorumluF(id); setKuyrukAcik(false); }}
                   secenekler={[...kullanicilar.map((u) => ({ id: u.id, ad: u.ad })),
                     { id: 'yok', ad: 'atanmadı' }]} />
-                <Kapsam etiket="Santral" aktif={tesisF}
+                <Kapsam etiket={tBas('tesis')} aktif={tesisF}
                   sec={(id) => { setTesisF(id); setKuyrukAcik(false); }}
                   secenekler={tesisSecenekleri.map((t) => ({ id: t.id, ad: t.ad }))} />
                 {gorevAcabilir && (
@@ -736,6 +740,7 @@ function anahtarKodu(a: Anahtar): string {
 /* ── Çekmece · iş ───────────────────────────────────────────────────── */
 
 function IsOzeti({ is, simdi }: { is: Is; simdi: number }) {
+  const { tBas } = useTerim();
   const im = isImi(is, simdi);
   const gun = kalanGun(is.sonTarih, simdi);
   const bekleme = gecenGun(is.olusturuldu, simdi);
@@ -768,7 +773,7 @@ function IsOzeti({ is, simdi }: { is: Is; simdi: number }) {
           durum: is.tur === 'gorev' && !is.kisi ? 'md' : undefined,
         },
         ...(is.tur === 'gorev' ? [{
-          etiket: 'Santral',
+          etiket: tBas('tesis'),
           deger: is.tesis ? `${is.tesis.kod} — ${is.tesis.ad}` : 'portföy',
         }] : []),
         {
@@ -818,6 +823,8 @@ function IsOzeti({ is, simdi }: { is: Is; simdi: number }) {
 function TanimOzeti({ tanim, yazabilir, onaylayabilir, duzenle }: {
   tanim: Tanim; yazabilir: boolean; onaylayabilir: boolean; duzenle: () => void;
 }) {
+  const { tBas } = useTerim();
+  const KATALOG_ETIKET = katalogEtiket(tBas('tesis'));
   const im = tanimImi(tanim);
 
   const cumle = tanim.eksik
@@ -833,7 +840,7 @@ function TanimOzeti({ tanim, yazabilir, onaylayabilir, duzenle }: {
   // Katalog başına bir ek alan: kaydın kendi kimlik olgusu.
   const ekAlan = tanim.katalog === 'tesis'
     ? [{ etiket: 'Kurulu güç',
-      deger: tanim.guc !== null ? `${tanim.guc} MW` : 'bilinmiyor',
+      deger: olculenYazi({ deger: tanim.guc, birim: tanim.gucBirimi }) ?? 'bilinmiyor',
       durum: tanim.guc === null ? ('unk' as const) : undefined },
     { etiket: 'Konum', deger: tanim.konum ?? 'bilinmiyor',
       durum: tanim.konum ? undefined : ('unk' as const) }]
@@ -946,7 +953,7 @@ function AnahtarOzeti({ anahtar, simdi, yazabilir }: {
   );
 }
 
-/* ── Kapsam kontrolü (SORUMLU ▾ / SANTRAL ▾ / KATALOG ▾ / SAHİP ▾) ────
+/* ── Kapsam kontrolü (SORUMLU ▾ / TESİS ▾ / KATALOG ▾ / SAHİP ▾) ────
    Referans ekranlardaki kalıbın aynısı: kutu yok, 9.5px mono açılır liste;
    dışarı tık ve Esc kapatır — açık kalan menü tabloyu örter. */
 

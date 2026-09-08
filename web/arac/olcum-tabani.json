@@ -1,0 +1,27 @@
+{
+  "//": [
+    "ÖLÇÜM KAPSAMI TABANI — cırcırın simetriği.",
+    "",
+    "Kalite borcu cırcırı BORÇ için tavan tutar (sayı yukarı çıkamaz);",
+    "bu dosya KAPSAM için taban tutar (sayı aşağı düşemez). Bir kapının",
+    "sıfır ölçümle 'geçti' demesi, bu tabanın olmadığı hâlde mümkündü ve",
+    "GERÇEKTEN OLDU: disk dolunca test keşfi 0 vaka döndü, sayım kapısı",
+    "'taze · 0 vaka · gerçek keşifle doğrulandı' dedi.",
+    "",
+    "TABAN İNMESİ BİR KARARDIR. Kapsam meşru sebeplerle düşebilir (rota",
+    "silindi, bant emekliye ayrıldı, betik kaldırıldı); o gün taban",
+    "ÖLÇÜMLE indirilir ve sebep commit mesajına yazılır. Kendiliğinden",
+    "inmez. Yükselmesi serbesttir: kapsamın büyümesini engellemek,",
+    "kapsamı korumakla ilgisiz bir sürtünme olurdu.",
+    "",
+    "Değerler `node arac/olcum-tabani.mjs --taban-yaz` ile değil, her",
+    "kapının kendi `--taban-yaz` bayrağıyla yazılır: sayıyı ölçen kapı",
+    "yazar, üçüncü bir araç değil."
+  ],
+  "tabanlar": {
+    "duman.rota": 58,
+    "gezinme.bant": 7,
+    "tasma.olcum": 144,
+    "axe.tarama": 216
+  }
+}

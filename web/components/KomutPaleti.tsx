@@ -1,5 +1,6 @@
 'use client';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useTerim } from '@/lib/dil/SozlukSaglayici';
 import { useRouter } from 'next/navigation';
 import { ara, type AramaSonucu } from '@/lib/eylemler2/arama';
 
@@ -10,6 +11,7 @@ export const ARAMA_AC = 'arama:ac';
 /* Global arama (Ctrl+K): tek kutudan tüm varlık tipleri; sonuçlar
    sunucuda kullanıcının tesis kapsamına göre daraltılır. */
 export default function KomutPaleti() {
+  const { t } = useTerim();
   const [acik, setAcik] = useState(false);
   const [sorgu, setSorgu] = useState('');
   const [sonuclar, setSonuclar] = useState<AramaSonucu[]>([]);
@@ -52,7 +54,7 @@ export default function KomutPaleti() {
         role="dialog" aria-modal="true" aria-label="Genel arama">
         <div className="palet-giris">
           <input autoFocus className="ab-gr" style={{ width: '100%' }}
-            placeholder="Ara: santral, madde, bulgu, risk, varlık, proje, denetim…"
+            placeholder={`Ara: ${t('tesis')}, madde, bulgu, risk, ${t('varlik')}, proje, denetim…`}
             value={sorgu} onChange={(e) => arama(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === 'ArrowDown') { e.preventDefault(); setSecili((s) => Math.min(s + 1, sonuclar.length - 1)); }

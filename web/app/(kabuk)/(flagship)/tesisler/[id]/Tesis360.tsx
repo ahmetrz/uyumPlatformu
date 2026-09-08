@@ -3,26 +3,34 @@ import Link from 'next/link';
 import { heroGorseli, gorselAlt } from '@/lib/gorsel';
 import { tipAdi, tipRengi } from '@/components/kabuk/tip';
 import { etiketle } from '@/lib/sabitler';
+import { t, tBas, type Sozluk } from '@/lib/dil/terimler';
 import OtProfili from './OtProfili';
 import type { OtProfili as OtProfilKaydi } from './mantik';
+import { olculenYazi } from '@/lib/alan/oznitelik';
 
 /* ═══════════════════════════════════════════════════════════════════════
-   SANTRAL 360 — B · ENERGY INTELLIGENCE
+   TESİS 360 — B · ENERGY INTELLIGENCE
 
-   Görsel source of truth: `b-plant360.html`
+   Ekranın ADI sözlükten gelir (P1 · URN-ALN-004): enerji sözlüğü kurulu
+   kiracıda "Tesis 360", sözlüksüz kiracıda "Tesis 360". Bu dosyadaki
+   sektör sözcükleri de aynı sözlükten çözülür — bileşen tektir, sözcük
+   kiracıya göre değişir.
+
+   Görsel source of truth: `b-tesis360.html`
    (ORIGINAL_DESIGN_IMPLEMENTATION_MAP.md §2).
 
    Prototipin grameri: 560px hero plakası — solda üstte künye ve 92px dar
-   başlıklı santral adı, solda altta beş sayılık ölçü şeridi, sağda 420px
+   başlıklı tesis adı, solda altta beş sayılık ölçü şeridi, sağda 420px
    veri paneli (uyum endeksi · katmanlı durum · başlıca risk · dört sayaç);
-   altında üretim zinciri bandı; en altta 560px üretim üniteleri + açık
+   altında üretim zinciri bandı; en altta 560px üretim birimleri + açık
    bulgular.
 
    ── PROTOTİPTEN AYRILAN NOKTALAR VE NEDENLERİ ─────────────────────────
    1 · "ANLIK ÜRETİM" ve "KULLANILABİLİRLİK" ölçüleri prototipte vardı;
        ŞEMADA YOK ve gerçek üretim sistemine BAĞLANMADIK. Uydurulmuş bir
-       "148,3 MW" ekranın en inandırıcı yalanı olurdu. Yerlerine gerçek
-       alanlar kondu: kayıtlı varlık ve ünite sayısı.
+       uydurulmuş bir güç sayısı ekranın en inandırıcı yalanı olurdu.
+       Yerlerine gerçek
+       alanlar kondu: kayıtlı varlık ve birim sayısı.
    2 · Prototipin "KATMANLI DURUM" satırları (YÖNETİŞİM · BT · OT ·
        FİZİKSEL · TEDARİK) `Madde.alanAdi`ya benziyor ama o alan
        maddelerin çoğunda BOŞ. Katmanlar kontrol AİLESİNDEN kuruldu —
@@ -31,13 +39,13 @@ import type { OtProfili as OtProfilKaydi } from './mantik';
        sistemler arası SIRA YOK; uydurma bir akış çizmek, olmayan bir
        varlık ilişkisi iddia etmek olurdu. Duraklar kritiklik sırasına
        konuldu ve bunun ne olduğu başlıkta yazıyor.
-   4 · Ünite satırının tik şeridi prototipte uyum durumuydu; `MaddeDurumu`
-       ünite kırılımı TAŞIMIYOR. Şerit üniteye bağlı SİSTEMLERİN risk
-       durumundan çizilir; sistemi olmayan ünitede şerit yok, "—" var.
+   4 · Birim satırının tik şeridi prototipte uyum durumuydu; `MaddeDurumu`
+       birim kırılımı TAŞIMIYOR. Şerit birime bağlı SİSTEMLERİN risk
+       durumundan çizilir; sistemi olmayan birimde şerit yok, "—" var.
    5 · Prototipte olmayan "OT MİMARİ PROFİLİ" bloğu (B6/B9) eklendi:
        `TesisProfili` uygulanabilirlik motorunun girdisidir ve /uyum
-       "profil Plant 360'tan tamamlanır" der; tamamlanacağı yer burasıdır.
-       Blok zincir bandının altında, üniteler/bulgular ikilisinin üstünde
+       "profil Tesis 360'tan tamamlanır" der; tamamlanacağı yer burasıdır.
+       Blok zincir bandının altında, birimler/bulgular ikilisinin üstünde
        durur (OtProfili.tsx).
    ═══════════════════════════════════════════════════════════════════════ */
 
@@ -51,8 +59,9 @@ export type ZincirDuragi = {
   varlik: number; risk: number;
 };
 
-export type Unite = {
-  id: string; kod: string; ad: string; gucMw: number | null; durum: string;
+export type Birim = {
+  id: string; kod: string; ad: string;
+  guc: number | null; gucBirim: string | null; durum: string;
   sistemSayisi: number; varlikSayisi: number;
 };
 
@@ -61,11 +70,13 @@ export type AcikBulgu = {
   hedefTarih: string | null; gecikmis: boolean;
 };
 
-export type Plant360Veri = {
+export type Tesis360Veri = {
   id: string; kod: string; ad: string;
   tipKod: string | null; tipAdi: string; tuzelKisi: string | null;
-  konum: string | null; gucMw: number | null; gorselAnahtari: string | null;
-  kritiklik: string | null; uniteSayisi: number | null;
+  konum: string | null;
+  guc: number | null; gucBirim: string | null;
+  gorselAnahtari: string | null;
+  kritiklik: string | null; birimSayisi: number | null;
   /** OT mimari profili — null: kayıt hiç açılmamış (her alan tanımsız) */
   profil: OtProfilKaydi | null;
   profilDuzenlenebilir: boolean;
@@ -82,13 +93,13 @@ export type Plant360Veri = {
   digerEksikler: { id: string; baslik: string; alt: string }[];
   katmanlar: Katman[];
   zincir: ZincirDuragi[];
-  uniteler: Unite[];
+  birimler: Birim[];
   sistemSayisi: number;
   bulguSayilari: { acik: number; aksiyonda: number; kapali: number; kabulEdildi: number };
   acikBulgular: AcikBulgu[];
 };
 
-export type Santral = {
+export type TesisOzeti = {
   id: string; kod: string; ad: string; alt: string; tip: string;
   gorselAnahtari: string | null;
 };
@@ -107,12 +118,12 @@ const KRITIKLIK_SINIF: Record<string, string> = {
 const ONEM_SINIF: Record<string, string> = {
   kritik: 'bd', yuksek: 'bd', orta: 'md', dusuk: 'pl',
 };
-const UNITE_DURUM: Record<string, string> = {
+const BIRIM_DURUM: Record<string, string> = {
   aktif: 'ok', bakim: 'md', devre_disi: 'unk',
 };
 
-export default function Plant360({ veri, santraller }: {
-  veri: Plant360Veri; santraller: Santral[];
+export default function Tesis360({ veri, tesisler, sozluk }: {
+  veri: Tesis360Veri; tesisler: TesisOzeti[]; sozluk: Sozluk | null;
 }) {
   const foto = heroGorseli(veri.gorselAnahtari);
   const renk = tipRengi(veri.tipKod);
@@ -124,7 +135,7 @@ export default function Plant360({ veri, santraller }: {
       <section className={`ab-b-plaka${foto ? '' : ' fotosuz'}`}>
         {foto && (
           // eslint-disable-next-line @next/next/no-img-element -- statik dışa aktarım
-          <img src={foto} alt={gorselAlt(veri.ad, veri.tipAdi, veri.konum)}
+          <img src={foto} alt={gorselAlt(veri.ad, veri.tipAdi, veri.konum, t(sozluk, 'tesis'))}
             decoding="async" fetchPriority="high" />
         )}
         <span className="perde" aria-hidden />
@@ -148,8 +159,10 @@ export default function Plant360({ veri, santraller }: {
         {/* Prototipte beş ölçü vardı; ikisi (anlık üretim, kullanılabilirlik)
             gerçek üretim sistemine bağlanmadığı için UYDURULMADI. */}
         <div className="olcuolar">
-          <Olcu etiket="Kurulu güç" deger={veri.gucMw ?? '—'} birim="MWe" />
-          <Olcu etiket="Üretim ünitesi" deger={veri.uniteSayisi ?? 0} />
+          {/* BİRİM VERİDEN: `Olcu`nun `birim` desteği duruyor ama değeri
+              artık satırdan geliyor; ekran birim SEÇMEZ (§0.5). */}
+          <Olcu etiket="Kurulu güç" deger={veri.guc ?? '—'} birim={veri.gucBirim ?? undefined} />
+          <Olcu etiket={tBas(sozluk, 'birim')} deger={veri.birimSayisi ?? 0} />
           <Olcu etiket="Kayıtlı varlık" deger={veri.varlikSayisi} />
           <Olcu etiket="Kritiklik sınıfı"
             deger={veri.kritiklik ? etiketle(veri.kritiklik) : '—'}
@@ -163,8 +176,13 @@ export default function Plant360({ veri, santraller }: {
             klavyeyle odaklanabilir OLMAK ZORUNDA — aksi hâlde alt
             satırlar yalnız fareye açıktır (axe · serious ·
             scrollable-region-focusable). `aria-label` bölgeye zaten ad
-            veriyor; odak halkası kabuk.css'te içeri alınır. */}
-        <aside className="ab-b-panel" aria-label="Santral uyum özeti" tabIndex={0}>
+            veriyor; odak halkası kabuk.css'te içeri alınır. Ad SÖZLÜKTEN
+            gelir: sektör sözcüğü çekirdeğe girmez. */}
+        <aside
+          className="ab-b-panel"
+          aria-label={`${tBas(sozluk, 'tesis')} uyum özeti`}
+          tabIndex={0}
+        >
           <div className="tepe">
             <div>
               <p className="etiket">Uyum endeksi</p>
@@ -185,13 +203,14 @@ export default function Plant360({ veri, santraller }: {
           <div className="bolum">
             <p className="etiket">Katmanlı durum · kontrol ailesi</p>
             {/* "Ölçülmedi" doğru bir cevaptır ama TEK BAŞINA yetmez:
-                kullanıcı bu ekrana "bu santral kontrol altında mı"
+                kullanıcı bu ekrana "bu tesis kontrol altında mı"
                 sorusuyla gelir ve cevap "bilmiyoruz" ise sıradaki iş
                 ölçmeye başlamaktır. */}
             {veri.katmanlar.length === 0 ? (
               <p className="bos">
-                Bu santralde değerlendirilmiş kontrol yok — santral bir uyum
-                kampanyasına alındığında kontroller burada görünür.{' '}
+                Bu {t(sozluk, 'tesis', 'bulunma')} değerlendirilmiş kontrol yok —{' '}
+                {t(sozluk, 'tesis')} bir uyum kampanyasına alındığında kontroller
+                burada görünür.{' '}
                 <Link href="/surecler">Uyum kampanyaları →</Link>
               </p>
             ) : veri.katmanlar.slice(0, 6).map((kt) => (
@@ -219,8 +238,9 @@ export default function Plant360({ veri, santraller }: {
               </>
             ) : (
               <p className="bos">
-                Bu santralde açık risk kaydı yok. Risk kütüğüne bu santral için
-                hiç kayıt açılmamış olması da bir olasılıktır.{' '}
+                Bu {t(sozluk, 'tesis', 'bulunma')} açık risk kaydı yok. Risk
+                kütüğüne bu {t(sozluk, 'tesis')} için hiç kayıt açılmamış olması
+                da bir olasılıktır.{' '}
                 <Link href="/riskler">Risk kütüğü →</Link>
               </p>
             )}
@@ -251,13 +271,14 @@ export default function Plant360({ veri, santraller }: {
           </span>
           <span className="mono etiket sag">
             {veri.sistemSayisi} sistem · {veri.varlikSayisi} varlık ·{' '}
-            {veri.uniteSayisi ?? 0} üretim ünitesi
+            {veri.birimSayisi ?? 0} {t(sozluk, 'birim')}
           </span>
         </header>
         {veri.zincir.length === 0 ? (
           <p className="bos">
-            Bu santral için kayıtlı sistem yok — varlıklar envanterde bir
-            sisteme bağlandığında burada kritiklik sırasıyla listelenir.{' '}
+            Bu {t(sozluk, 'tesis')} için kayıtlı sistem yok — varlıklar
+            envanterde bir sisteme bağlandığında burada kritiklik sırasıyla
+            listelenir.{' '}
             <Link href="/envanter">Envanteri aç →</Link>
           </p>
         ) : (
@@ -285,24 +306,26 @@ export default function Plant360({ veri, santraller }: {
       <OtProfili tesisId={veri.id} profil={veri.profil}
         duzenlenebilir={veri.profilDuzenlenebilir} />
 
-      {/* ═══ Üniteler + açık bulgular ══════════════════════════════════ */}
+      {/* ═══ Birimler + açık bulgular ══════════════════════════════════ */}
       <section className="ab-b-ikili">
-        <div className="uniteler">
-          <p className="etiket">Üretim üniteleri</p>
-          {veri.uniteler.length === 0 ? (
-            <p className="bos">Kayıtlı üretim ünitesi yok.</p>
-          ) : veri.uniteler.map((u) => (
-            <div key={u.id} className="unite">
+        <div className="birimler">
+          <p className="etiket">{tBas(sozluk, 'birim', 'cogul')}</p>
+          {veri.birimler.length === 0 ? (
+            <p className="bos">Kayıtlı {t(sozluk, 'birim')} yok.</p>
+          ) : veri.birimler.map((u) => (
+            <div key={u.id} className="birim">
               <span className="kod">{u.kod}</span>
               <span className="ad">
                 <span className="baslik">{u.ad}</span>
-                <span className="mono guc">{u.gucMw ?? '—'} MW</span>
+                <span className="mono guc">
+                  {olculenYazi({ deger: u.guc, birim: u.gucBirim }) ?? '—'}
+                </span>
               </span>
               <span className="mono kayit">
                 {u.sistemSayisi} sistem · {u.varlikSayisi} varlık
               </span>
               <span className="durum">
-                <span className={`ab-glif g-${GLIF[UNITE_DURUM[u.durum] ?? 'unk']}`} aria-hidden />
+                <span className={`ab-glif g-${GLIF[BIRIM_DURUM[u.durum] ?? 'unk']}`} aria-hidden />
                 <span className="mono">{etiketle(u.durum)}</span>
               </span>
             </div>
@@ -334,14 +357,16 @@ export default function Plant360({ veri, santraller }: {
         </div>
       </section>
 
-      {/* ═══ Saha şeridi — kapsamdaki diğer santraller ═════════════════ */}
-      <section className="ab-b-serit" aria-label="Diğer santraller">
+      {/* ═══ Saha şeridi — kapsamdaki diğer tesisler ═══════════════════ */}
+      <section className="ab-b-serit" aria-label={`Diğer ${t(sozluk, 'tesis', 'cogul')}`}>
         <header>
-          <span className="etiket">Kapsamındaki santraller · {santraller.length}</span>
+          <span className="etiket">
+            Kapsamındaki {t(sozluk, 'tesis', 'cogul')} · {tesisler.length}
+          </span>
           <span className="etiket sag">Kapsam tüm uygulamada korunur</span>
         </header>
         <div className="kartlar">
-          {santraller.map((s) => (
+          {tesisler.map((s) => (
             <Link key={s.id} href={`/tesisler/${s.id}`}
               className={`kart yalin${s.id === veri.id ? ' secili' : ''}`}
               /* Kümedeki geçerli öğe "true"; "page" üst çubuktaki Saha'da

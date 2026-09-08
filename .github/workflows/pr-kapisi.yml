@@ -33,6 +33,23 @@ jobs:
           git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main
           git fetch --no-tags origin '${{ github.event.pull_request.base.sha }}'
 
+      # Sektör terimi bekçisinin (`tests/bekci/sektor-terimi.test.ts`) dördüncü
+      # dişi izin listesini TABAN DALDAKİ hâliyle karşılaştırır: liste yalnız
+      # erimeli, bir dosyayı temizleyip yerine başkasını koyma takası da
+      # yakalanmalı. `checkout` PR'da yalnız birleşme commit'ini sığ alır,
+      # `origin/main` ref'i olmaz; bu adım onu getirir.
+      #
+      # `continue-on-error` adımı SESSİZ YAPMAZ: bu adım düşerse bekçi
+      # CI'da KIRMIZI yanar ("CI'da taban dal okunamadı"). Bayrağın tek
+      # işi, hatayı ham bir git çıktısı olarak işi durdurmak yerine öbür
+      # kapılar da koştuktan sonra bekçinin gerekçeli mesajıyla
+      # göstermek. Yerelde (CI değişkeni yokken) diş atlanır ve
+      # "ölçülmedi" denir — orada taban dalın yokluğunun meşru sebepleri
+      # var, CI'da yok.
+      - name: Taban dalı al (bekçi cırcırı)
+        continue-on-error: true
+        run: git fetch --depth=1 origin main:refs/remotes/origin/main
+
       - name: Node kur
         uses: actions/setup-node@v7
         with:
@@ -85,6 +102,26 @@ jobs:
       # `arac/kapi-farki.mjs` BEYAN tablosunda gerekçesiyle durur.
       # Beyansız betik kapıyı kırmızı yakar: yeni bir kapı yazıp CI'ya
       # bağlamayı unutmak bir daha sessiz olmasın.
+      # P1'in getirdiği üç tarayıcısız kapı. `kapi:farki` üçünü de beyansız
+      # betik diye kırmızı yaktı; doğru cevap gerekçe yazmak değil,
+      # bağlamaktı. (`kapi:iki-sozluk` canlı sunucu ister ve ~25 dk sürer;
+      # o beyanda duruyor.)
+      - name: Sözlük kipi kapısı
+        working-directory: web
+        run: npm run sozluk:kip
+
+      - name: Şema sapması kapısı
+        working-directory: web
+        run: npm run kapi:sema-sapmasi
+
+      # Gerekçe taraması bir KAPI DEĞİL: sezgisel kalıp, çıktısı elle
+      # sınıflandırılır. CI'da koşması yine de değerli — maliyeti anlatan
+      # yeni bir gerekçe girdiğinde kayıtta görünür, kimseyi bloklamaz.
+      - name: Gerekçe taraması (bilgi)
+        working-directory: web
+        continue-on-error: true
+        run: npm run gerekce:tarama
+
       - name: Kapı farkı kapısı
         working-directory: web
         run: npm run kapi:farki

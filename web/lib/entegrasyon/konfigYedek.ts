@@ -3,6 +3,7 @@ import { db } from '../db';
 import type { Prisma } from '../prisma-client/client';
 import { kokenYaz } from './koken';
 import type { Koken } from './sozlesme';
+import { t, tBas, type Sozluk } from '../dil/terimler';
 
 /* ═══════════════════════════════════════════════════════════════════════
    KONFİGÜRASYON YEDEĞİ (PLC / DCS / SCADA) — İZLEME KATMANI
@@ -15,10 +16,10 @@ import type { Koken } from './sozlesme';
    üretmez — OT'de otomatik konfigürasyon değişikliği kesin yasaktır.
 
    ── İKİ KATMAN, İKİ AYRI SORU ────────────────────────────────────────
-   Üründe zaten SANTRAL seviyesinde bir yedekleme zinciri var:
+   Üründe zaten TESİS seviyesinde bir yedekleme zinciri var:
 
      YedeklemePolitikasi → YedeklemeKosusu → GeriYuklemeTesti
-       "Bu santralin bir yedekleme politikası var mı, koşuları geçiyor mu,
+       "Bu tesisin bir yedekleme politikası var mı, koşuları geçiyor mu,
         geri yükleme testi yapıldı mı?"  → /yedekleme ekranı (O14)
 
    `KonfigurasyonYedegi` ise VARLIK seviyesidir:
@@ -29,10 +30,10 @@ import type { Koken } from './sozlesme';
 
    Biri diğerinin yerini ALMAZ; ikisi farklı hataları yakalar:
      · Politika var + koşular başarılı, ama kritik PLC hiç kapsama
-       girmemiş  → santral katmanı 'yeşil', varlık katmanı boş. Yalnız bu
+       girmemiş  → tesis katmanı 'yeşil', varlık katmanı boş. Yalnız bu
        dosya görür.
      · Her varlığın yedeği var, ama hiç geri yükleme testi yapılmamış
-       → varlık katmanı dolu, santral katmanı kanıtsız. Yalnız O14 görür.
+       → varlık katmanı dolu, tesis katmanı kanıtsız. Yalnız O14 görür.
 
    Birleşme noktası `tesisYedekGorunumu()`: iki katmanı yan yana koyar ve
    ÇELİŞKİLERİ ayrıca listeler. Katmanları toplamaz, ortalamasını almaz —
@@ -40,7 +41,7 @@ import type { Koken } from './sozlesme';
 
    Uyum bağında da bölünme aynıdır:
      EPDK-SYM-8.1.1 (yedek kapsamı)     ← ağırlıklı olarak VARLIK katmanı
-     EPDK-SYM-8.1.2 (geri yükleme testi) ← ağırlıklı olarak SANTRAL katmanı
+     EPDK-SYM-8.1.2 (geri yükleme testi) ← ağırlıklı olarak TESİS katmanı
    `yedekKontrolBagi()` bu bağı ÖNERİ olarak döndürür; `MaddeDurumu`'na
    asla yazmaz (bkz. dosyanın sonu).
 
@@ -308,7 +309,7 @@ export type EksikYedekRaporu = {
  *
  * Beyan ('var') edilmiş ama otomatik kanıtı olmayan varlıklar hiçbir
  * listeye girmez — insan zaten bir cevap vermiştir; bunu "eksik" saymak
- * beyanı yok saymak olur. O boşluk santral katmanının işidir (O14).
+ * beyanı yok saymak olur. O boşluk tesis katmanının işidir (O14).
  */
 export async function kritikVarliklardaEksikYedek(tesisId?: string): Promise<EksikYedekRaporu> {
   const varliklar = await db.varlik.findMany({
@@ -361,7 +362,7 @@ export async function kritikVarliklardaEksikYedek(tesisId?: string): Promise<Eks
         gerekce: 'Envanterde yedeği "yok" olarak beyan edilmiş; otomatik kayıt da yok.' });
       continue;
     }
-    if (v.yedekDurumu === 'var') continue; // beyan var, otomatik kanıt yok — santral katmanının işi
+    if (v.yedekDurumu === 'var') continue; // beyan var, otomatik kanıt yok — tesis katmanının işi
     bilinmeyen.push({ ...temel,
       gerekce: 'Ne otomatik yedek kaydı ne de envanter beyanı var — durum ölçülmedi.' });
   }
@@ -375,7 +376,7 @@ export async function kritikVarliklardaEksikYedek(tesisId?: string): Promise<Eks
 
 /* ═══ 6 · İki katmanın birleşimi ══════════════════════════════════════ */
 
-export type SantralKatmani = {
+export type TesisKatmani = {
   bagli: boolean;
   gerekce: string;
   politikaAdi: string | null;
@@ -385,31 +386,36 @@ export type SantralKatmani = {
 
 export type YedekGorunumu = {
   tesisId: string;
-  santralKatmani: SantralKatmani;
+  tesisKatmani: TesisKatmani;
   varlikKatmani: EksikYedekRaporu;
   /** İki katmanın birbirini yalanladığı yerler — örtülmez, listelenir. */
   celiskiler: string[];
 };
 
 /**
- * Santral katmanı (politika/koşu/restore testi) ile varlık katmanını
+ * Tesis katmanı (politika/koşu/restore testi) ile varlık katmanını
  * (konfigürasyon yedeği) YAN YANA koyar. Toplamaz, ortalamasını almaz.
  *
  * `politikaId` isteğe bağlıdır: şemada Tesis↔YedeklemePolitikasi yabancı
  * anahtarı YOK; /yedekleme ekranı bu bağı politika ADI önekinden kuruyor.
  * O kırılgan eşlemeyi burada tekrarlamıyoruz — çağıran hangi politikayı
- * kastettiğini söyler. Verilmezse santral katmanı `bagli: false` döner
+ * kastettiğini söyler. Verilmezse tesis katmanı `bagli: false` döner
  * ("politika bağı verilmedi"), boş/başarısız gibi GÖSTERİLMEZ.
+ *
+ * `sozluk` üçüncü parametredir çünkü bu işlev EKRANDA OKUNAN cümleler
+ * üretiyor (`gerekce`, `celiskiler`). Modül React bilmez, `useTerim()`
+ * çağıramaz; sözlüğü çağıran geçirir. Verilmezse çekirdek sözcük
+ * kullanılır — cümle sektörsüz kurulur, boş kalmaz.
  */
 export async function tesisYedekGorunumu(
-  tesisId: string, politikaId?: string,
+  tesisId: string, politikaId?: string, sozluk?: Sozluk | null,
 ): Promise<YedekGorunumu> {
   const varlikKatmani = await kritikVarliklardaEksikYedek(tesisId);
 
-  let santralKatmani: SantralKatmani = {
+  let tesisKatmani: TesisKatmani = {
     bagli: false,
-    gerekce: 'Yedekleme politikası bağı verilmedi — santral katmanı ölçülmedi '
-      + '(şemada Tesis↔YedeklemePolitikasi yabancı anahtarı yok).',
+    gerekce: `Yedekleme politikası bağı verilmedi — ${t(sozluk, 'tesis')} katmanı `
+      + 'ölçülmedi (şemada Tesis↔YedeklemePolitikasi yabancı anahtarı yok).',
     politikaAdi: null, sonKosu: null, sonRestoreTesti: null,
   };
 
@@ -430,7 +436,7 @@ export async function tesisYedekGorunumu(
     const testler = politika.kosular.flatMap((k) => k.geriYuklemeler)
       .sort((a, b) => b.zaman.getTime() - a.zaman.getTime());
     const sonTest = testler[0] ?? null;
-    santralKatmani = {
+    tesisKatmani = {
       bagli: true,
       gerekce: `${politika.ad}: ${politika.kosular.length} koşu, ${testler.length} geri yükleme testi.`,
       politikaAdi: politika.ad,
@@ -440,12 +446,13 @@ export async function tesisYedekGorunumu(
   }
 
   const celiskiler: string[] = [];
-  if (santralKatmani.sonKosu?.durum === 'basarili' && varlikKatmani.yedeksiz.length > 0) {
+  if (tesisKatmani.sonKosu?.durum === 'basarili' && varlikKatmani.yedeksiz.length > 0) {
     celiskiler.push(
-      `Santral yedekleme koşusu başarılı görünüyor, ama ${varlikKatmani.yedeksiz.length} `
-      + 'kritik varlığın kullanılabilir konfigürasyon yedeği yok — koşu bu varlıkları kapsamıyor olabilir.');
+      `${tBas(sozluk, 'tesis')} yedekleme koşusu başarılı görünüyor, ama `
+      + `${varlikKatmani.yedeksiz.length} kritik varlığın kullanılabilir konfigürasyon `
+      + 'yedeği yok — koşu bu varlıkları kapsamıyor olabilir.');
   }
-  if (santralKatmani.bagli && !santralKatmani.sonRestoreTesti && varlikKatmani.yedegiVar > 0) {
+  if (tesisKatmani.bagli && !tesisKatmani.sonRestoreTesti && varlikKatmani.yedegiVar > 0) {
     celiskiler.push(
       `${varlikKatmani.yedegiVar} kritik varlığın yedeği var ama hiç geri yükleme testi kaydı yok — `
       + 'yedeğin geri dönebildiği kanıtlanmamış (EPDK-SYM-8.1.2).');
@@ -456,7 +463,7 @@ export async function tesisYedekGorunumu(
       + 'bu bir açık değil, bir kör nokta.');
   }
 
-  return { tesisId, santralKatmani, varlikKatmani, celiskiler };
+  return { tesisId, tesisKatmani, varlikKatmani, celiskiler };
 }
 
 /* ═══ 7 · Uyum bağı — ÖNERİ üretir, MaddeDurumu'na YAZMAZ ═════════════ */

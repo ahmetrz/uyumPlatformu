@@ -67,12 +67,29 @@ const BEYAN = {
   'tasarim:dizustu': { kapi: true, sebep: 'canlı sunucu · 1366×768 kırpılma; `yatay-tasma` üç bandı ölçüyor, dördüncü bant borç listesine girmedi' },
   'tasarim:erisim': { kapi: true, sebep: 'canlı sunucu · `erisim-axe` bunun yerini aldı (axe-core, üç bant, cırcırlı); bu araç emekliye ayrılacak' },
   'tasarim:gorsel': { kapi: true, sebep: 'canlı sunucu · altın görüntüler depoda yok; altınsız koşarsa "altın yok" diye kırmızı yanar' },
+  /* ÖLÇÜLDÜ 8 Eyl 2026, P1 ucunda: 9 koşum · ~25 dk · KUSURLU 6. Altısı
+     da AYNI kusur (`/omur` 375px 4px + 768px 3px) ve üç sözlükte de
+     birebir aynı — yani sözlük katmanının kendi kusuru DEĞİL, main'in
+     kapattığı taşma borcunun P1 ucunda henüz kapanmamış hâli. Düzeltme
+     bu birleşmeyle geldi; kapı bağlanmadan önce yeşil görülmeli. */
   'kalite:lighthouse': { kapi: true, sebep: 'canlı sunucu · runner\'da puanlar donanıma göre kayar; eşik CI\'da anlamsız' },
   'tasarim:ux': { kapi: true, sebep: 'canlı sunucu · bulguları borç listesine girmedi; cırcırsız bağlanırsa ilk turda kırmızı' },
   'tasarim:cekmece': { kapi: true, sebep: 'canlı sunucu · aynı gerekçe: borç listesi yok' },
   'tasarim:yuk': { kapi: true, sebep: 'canlı sunucu · bilişsel yük RAPORLAR, kusur eşiği yok (çıkış kodu hep 0)' },
   'tasarim:gorev': { kapi: true, sebep: 'canlı sunucu · görev akışı sayar, eşiği yok' },
   'olcum:yuk': { kapi: true, sebep: 'canlı sunucu · yük ölçümü; eşiği runner\'a bağlı' },
+  /* ÖLÇÜLDÜ 8 Eyl 2026, P1 ucunda (main birleşmeden ÖNCE): 9 koşum ·
+     ~25 dk · KUSURLU 6. Altısı da AYNI kusur (`/omur` 375px 4px +
+     768px 3px) ve üç sözlükte BİREBİR aynı — yani sözlük katmanının
+     kendi kusuru değil, main'in kapattığı taşma borcunun o uçta henüz
+     kapanmamış hâli. `erisim-axe` üç sözlükte de temizdi. Düzeltme bu
+     birleşmeyle geldi; kapı CI'ya bağlanmadan önce YEŞİL görülmeli. */
+  'kapi:iki-sozluk': { kapi: true, sebep: 'canlı sunucu · üç düzen kapısını ÜÇ sözlükle koşar (9 koşum, ~25 dk); tarayıcılı bloğu üçe katlar — süre bütçesi ayrılınca bağlanır' },
+  /* Bu beyan bir ERTELEME DEĞİL, bir totolojidir: `kapi:parti` iş
+     akışının KENDİSİNDEN türetilir ve onu birebir koşar. CI'ya
+     bağlanması, iş akışının kendi kendini çağırması olurdu — ölçtüğü
+     şeyin içine konan bir ölçü. Yeri PR öncesidir, PR sırası değil. */
+  'kapi:parti': { kapi: false, sebep: 'PR kapı kümesini `pr-kapisi.yml`den TÜRETİP koşar; iş akışına bağlanması iş akışının kendini çağırması olur — ölçen, ölçtüğünün içine konamaz' },
 };
 
 /* ── Betiklerin çağırdığı araçlar ──────────────────────────────────── */
@@ -108,6 +125,61 @@ function isAkisiKomutlari(yol) {
     .split('\n')
     .filter((s) => !s.trimStart().startsWith('#'))
     .join('\n');
+}
+
+/** İş akışının `run:` ADIMLARI — SIRAYLA, adıyla ve dizini ile.
+
+    `fark()` kapıların KÜMESİNE bakar; parti kapanışı ise SIRAYA ve
+    adımın kendisine ihtiyaç duyar (`arac/parti-kapanisi.mjs`). İkisi
+    aynı dosyayı okur ve aynı yorum kuralına uyar; ikinci bir ayrıştırıcı
+    yazılsaydı biri yorumlanmış satırı sayar öbürü saymazdı.
+
+    Yorum satırları burada da atılır: `isAkisiKomutlari` ile aynı gerekçe. */
+export function adimlar(isAkisiMetni) {
+  const satirlar = isAkisiMetni.split('\n');
+  const cikti = [];
+  let simdiki = null;
+  let blok = null;                       /* `run: |` gövdesinin girintisi */
+  let cevre = null;                      /* `env:` bloğunun girintisi */
+  for (const ham of satirlar) {
+    if (blok !== null) {
+      if (ham.trim() === '' || ham.search(/\S/) >= blok) {
+        simdiki.komut += `${simdiki.komut ? '\n' : ''}${ham.trim()}`;
+        continue;
+      }
+      blok = null;
+    }
+    if (cevre !== null) {
+      const g = ham.match(/^(\s*)([A-Z_][A-Z0-9_]*):\s*(.*?)\s*$/);
+      if (g && g[1].length >= cevre) {
+        simdiki.cevre[g[2]] = g[3].replace(/^['"]|['"]$/g, '');
+        continue;
+      }
+      cevre = null;
+    }
+    const ad = ham.match(/^\s*-\s+name:\s*(.+?)\s*$/);
+    if (ad) {
+      if (simdiki?.komut) cikti.push(simdiki);
+      simdiki = { ad: ad[1].replace(/^['"]|['"]$/g, ''), komut: '', dizin: '.', cevre: {} };
+      continue;
+    }
+    if (!simdiki) continue;
+    /* ADIMIN `env:` BLOĞU DA ADIMIN PARÇASIDIR. Ölçüldü: `env:` atlanınca
+       `demo:build` KIRMIZI yandı — `NEXT_PUBLIC_DEMO=1` olmadan statik
+       çıktı üretilmiyor ("çıktı dizini yok → web/out"). Kusur kodda değil
+       ölçen araçtaydı: aynı komutu FARKLI ortamda koşan bir araç, PR
+       kapısını kopyalamış olmaz. */
+    const cevreBas = ham.match(/^(\s*)env:\s*$/);
+    if (cevreBas) { cevre = cevreBas[1].length + 2; continue; }
+    const dizin = ham.match(/^\s*working-directory:\s*(\S+)/);
+    if (dizin) { simdiki.dizin = dizin[1]; continue; }
+    const kosBlok = ham.match(/^(\s*)run:\s*\|\s*$/);
+    if (kosBlok) { blok = kosBlok[1].length + 2; continue; }
+    const kos = ham.match(/^\s*run:\s*(.+?)\s*$/);
+    if (kos) { simdiki.komut = kos[1]; continue; }
+  }
+  if (simdiki?.komut) cikti.push(simdiki);
+  return cikti;
 }
 
 export function fark({ betikler, isAkisiMetni, beyan = BEYAN }) {

@@ -296,14 +296,215 @@ görür, su kiracısı "tesis / m³/gün".
   sözlük anahtarına; ekran adları (`Tesis 360`, `Portföy`); harita
   "tesis haritası"; kapsam ağacı etiketleri; CSV/XLSX başlıkları; kanıt
   paketi alan adları (şema sürümü artar).
-- *Bekçi test:* `tests/bekci/sektor-terimi.test.ts` — `app/`, `components/`,
-  `lib/` içinde JSX/metin literalinde `santral|ünite|MWe|JES|RES|HES`
-  geçerse kırmızı; istisna: enerji sözlüğü dosyası ve demo paketi.
+- *Bekçi test:* `tests/bekci/sektor-terimi.test.ts` — **kuruldu (7 Eyl
+  2026), CIRCIR (ratchet) biçiminde.** `app/`, `components/`, `lib/`
+  altındaki `.ts` · `.tsx` · `.css` dosyalarının HAM METNİNİ ve DOSYA
+  ADINI tarar: `santral · ünite · MW/MWe/MWp · JES/JEO/RES/HES/GES/DGKÇ/
+  TERMİK · türbin · jeotermal/rüzgâr/hidroelektrik · plant`.
+
+  > **Tarife düzeltmesi.** Bu satır önce "JSX/metin literalinde" diyordu.
+  > Öyle bir tarama `type Santral`, `santraller: Santral[]`, `santralId`,
+  > `Plant360Veri` gibi **406 tanımlayıcı eşleşmesini** görmez ve paketin
+  > iddiasını boşa çıkarırdı (`docs/GELISTIRME_PAKETLERI_DURUM.md` §4.4).
+  > Tarama artık ham metin üstündedir: literal, tanımlayıcı, yorum, CSS
+  > sınıfı ve dosya adı dâhil.
+
+  İstisna listesi ayrı bir dosyadadır — `tests/bekci/sektor-terimi-izin.json`
+  — ve **borç kütüğüdür**: kapı kurulduğu gün kirli sayılan **258 dosya**.
+  *(Bunların dördü aslında temizdi: `\b` ASCII tanımlı olduğu için
+  `\bRES\b` kalıbı "SÜRESİ" içinde eşleşiyordu. Sınır Unicode harflerine
+  çevrildi ve o dört dosya düştü — Aşama E · aile 1.)*
+
+  > **Türkçe iki tuzak taşır.** (1) `\b` ASCII tanımlıdır: hem Türkçe
+  > sözcüğün ORTASINDA eşleşir (`RES` ⊂ "SÜRESİ") hem de sonu Türkçe
+  > harfle biten kodu HİÇ görmez (`DGKÇ`). (2) Tek büyük-harf katlaması
+  > her iki yönde de kördür: `ÜNİTE` yalnız `tr-TR` katlamasında,
+  > `TERMIK` yalnız değişmez katlamada görünür. Arama bu yüzden **iki
+  > küçültmenin birleşimi** üzerinde yapılır. Altı yazım kalıcı vaka
+  > olarak `tests/bekci/katlama-korlugu.test.ts` içinde tutulur
+  > (URN-ALN-007): her biri için "düzeltme öncesi 0, sonrası 1" iddiası
+  > vardır, böylece katlama mantığı sadeleştirilirse körlük sessizce geri
+  > gelemez.
+  Kural: **listeye dosya EKLENMEZ, yalnız çıkarılır.** Bekçi dört yönlü
+  ölçer: (a) listede olmayan dosyada terim → kırmızı, (b) listedeki
+  dosyada terim kalmamış → kırmızı (listeden düşür), (c) liste `tavan`ı
+  (258) aşamaz, (d) liste **taban daldaki** (`origin/main`) listenin ALT
+  KÜMESİ olmalı — eklenen yol adıyla söylenir.
+
+  > **(d) neden ayrı bir diş.** (c) tek başına sayıyı sabit tutar ama
+  > **takası** görmez: bir dosyayı temizleyip yerine yenisini listeye
+  > koymak sayıyı değiştirmez. Denendi (7 Eyl 2026): listedeki bir dosya
+  > gerçekten temizlenip çıkarıldı, yerine yeni ve kirli bir dosya
+  > eklendi, sayı 258'de kaldı — (a), (b), (c) yeşil kaldı, **yalnız (d)**
+  > kırmızı verdi.
+  >
+  > **Atlama yolu ortama göre ayrık.** *Yerelde* taban dal okunamıyorsa
+  > (sığ klon, `origin` yok) diş **koşmaz**, raporda **atlanmış** görünür
+  > ve gerekçesi yazılır; "geçti" yazılmaz. *CI'da* aynı şey
+  > **KIRMIZIDIR**: orada taban dalın okunamamasının meşru sebebi yok, iş
+  > akışı onu ayrı bir adımda getiriyor. "Ölçülmedi" demek, cırcırın
+  > sessizce kapanması olurdu — üstelik o adım `continue-on-error`
+  > taşıdığı için boru hattı yeşil kalırdı.
+  >
+  > Ayrı tutulan tek hâl: **taban dal listeyi henüz taşımıyorsa**
+  > (cırcırın kurulduğu birleştirme) karşılaştırılacak önceki hâl yoktur;
+  > diş her ortamda atlanır. Kalıcı bir kaçış yolu değildir — listeyi
+  > taban daldan silmek için önce çalışma ağacından silmek gerekir, o
+  > durumda bekçi baştan çöker.
+
+  `arac/sabotaj.mjs` kapının gerçekten ısırdığını ölçer (25. sabotaj:
+  listede olmayan dosyaya terim). (d) git geçmişine baktığı için kaynak
+  dosyası bozarak sabote edilemez; elle doğrulaması yukarıdadır.
+
+  Kapsam dışı bırakılan iki terim, gerekçesiyle izin dosyasının
+  başlığında yazılıdır: `üretim` (Türkçede genel eylem — yanlış pozitif
+  üretir) ve `enerji` (kurulum adı yapılandırmadan gelir).
+- *Tip kimlik renkleri:* CSS jetonları üretim tipi kısaltmalarını taşıyordu
+  (dört jeton, 12 geçiş, 3 dosya). P1'de **sektörsüz yuvalara** çevrildi:
+  `--tip-a` … `--tip-d`. Kapasite dörttür ve bir sınırdır; yuvası olmayan
+  tip **nötr mürekkebe** düşer, yuva **sarılmaz** — aynı rengi iki tipe
+  vermek "bunlar aynı" demek olurdu ve renk burada kimliktir. Kural sessiz
+  değil: `/sistem` sayfası hangi kodun yuvası olduğunu veriden okuyup
+  yazar (bugün 6 tip · 4 yuvalı · 2 renksiz).
+
+  Renksiz kalanlar **iki ayrı cümlede** yazılır, çünkü sebepleri aynı
+  değil ve tek listede göstermek bakan kişiye iki eksik gösterirdi —
+  oysa biri eksik değil: `DGKC` **yuvasız (kapasite eksiği)**, üretim
+  tipi olduğu için kimlik rengini hak ediyor ama yuva kalmadı; `MERKEZ`
+  **kimlik rengi taşımayan (tasarım gereği)**, üretim tesisi olmadığı
+  için yuva açılsa da renk almaz. `tipYuvasi()` ikisine de `null` döner
+  ve doğru davranır; ayrım sunumdadır.
+  Kontrast kapısı yuvalar üzerinde koştu: dördü de IRI 3:1 eşiğinin
+  üstünde (en düşük 4,62:1, dört zemin).
+
+  Tip kodu → yuva eşlemesi GEÇİCİDİR ve `components/kabuk/tip.ts` içinde
+  tek bir tablodadır; **kalıcı yeri sektör paketidir (P4)**. P1'de oraya
+  konmadı: paket biçimi henüz yok, şimdi tasarlanırsa iki kez tasarlanır.
+  Tablo `lib/` yerine `components/`te, çünkü yeni bir `lib/` dosyası enerji
+  kodları taşıyacağı için bekçinin izin listesine EKLENMESİ gerekirdi;
+  cırcırın tek kuralı listeye ekleme yapılmamasıdır.
 - *Enerji sözlüğü:* ilk sektör paketi `SEKTOR-ENERJI-URETIM` (P4 paket
   biçimiyle): öznitelik şeması (`kuruluGucMw`, `uretimTipi`,
   `sebekeBaglantisi`…), sözlük (santral, üretim ünitesi…), tesis tipleri
   (`JEO` · `RES` · `HES` · `GES` · `DGKC` · `MERKEZ`; sunumda `TERMIK`). İkinci sözlük **iskeleti** (su/atıksu ya da
   kullanıcının seçtiği sektör) yalnız anahtar listesiyle.
+
+- *Düzen kapıları İKİ SÖZLÜKLE koşar (Aşama E · aile başına):* bir yüzey
+  ailesi sözlüğe geçtiğinde render edilen metin değişir; elle tıklayıp
+  bakmak değerli ama **taşmayı gözle değil ölçerek** görüyoruz. Üstelik
+  bugüne kadarki bütün düzen ölçümleri referans kiracının **kısa**
+  sözlüğüyle yapıldı ("santral", 7 harf); ikinci sözlük bileşik gövde
+  kullanır ("arıtma tesisi", 13 harf) ve aynı yerde ~%60 daha fazla yer
+  ister. Yani düzeni iki sözlüğün KOLAYINA karşı doğruluyorduk. Uzun
+  sözlükte taşan bir düzen **bugün kusurludur**; kısa sözlükle yeşil
+  görünmesi kusuru düzeltmez, ikinci kiracıya erteler.
+
+  `npm run kapi:iki-sozluk -- --rota=…` üç düzen kapısını (`yatay-tasma` ·
+  `dizustu` · `erisim-axe`) her sözlük için ayrı koşar ve kusurun **hangi
+  sözlükte** çıktığını yazar: yalnız uzun sözlükte → sözcük uzunluğunun
+  ürettiği kusur, o dilimin işi; iki sözlükte de → sözlükten bağımsız.
+  Takas `SektorSozlugu` satırlarında ve **yalnız ölçüm süresince** olur
+  (`arac/sozluk-takas.mjs`); ürün kodunda sözlüğü ezen bir bayrak yok ve
+  olmamalı — kiracının dilini ortam değişkeniyle değiştirebilmek, yanlış
+  sözcükle çalışan bir kurulum demektir. Rapor her koşumda takasın
+  gerçekten **ekrana ulaştığını** da yazar; ulaşmadıysa "temiz" yanlış
+  sözlüğü ölçmüş olurdu ve kapı ölçümü geçersiz sayar.
+
+  `dizustu` bu üçlüde ayrı bir kapı olarak duruyor, çünkü uzun sözlüğün en
+  olası kusur biçimi yatay kayma değil **sessiz kırpılmadır**:
+  `table-layout: fixed` + `overflow: hidden` taşan sözcüğü keser, sayfa
+  yana kaymaz ve `yatay-tasma` yeşil kalır.
+
+- *Aile dönüşüm TARİFİ (adım adım):* aynı adım dört ailede atlandı ve
+  dördünde de lint yakaladı — kodlama hatası değil TARİF eksikliğiydi.
+  Bir ekran ailesi sözlüğe geçerken:
+  1. Yorumlardaki ve tanımlayıcılardaki sektör sözcüğü çekirdeğe çevrilir.
+  2. Ekran metinleri sözlükten kurulur (`useTerim` · `t(sozluk, …)`).
+  3. Saf modüller sözlüğü **parametre** alır (React bilmezler).
+  4. **`useMemo`/`useCallback` bağımlılık listesine `sozluk`/`tBas`
+     EKLENİR.** Yardımcı sözlük parametresi alır almaz onu çağıran her
+     bellek kancası sözlüğe bağımlıdır; eklenmezse sözlük değişince
+     ekranda ESKİ sözcük kalır. Bekçi bunu göremez (metin doğru), lint
+     görür — bu sınıfın tek bekçisi odur ve CI'da bloklayıcıdır
+     (`--max-warnings=0`).
+  5. Modül seviyesindeki sabit diziler (`KOLONLAR` gibi) modülde kalır;
+     yalnız sözlüğe bağlı alan bileşende kopyalanır.
+  6. Kapılar: bekçi · `sozluk-farki` (beklenen fark) · vitest · build.
+
+  **KAPANIŞ KOŞULU — İKİ LİSTE.** Bir aile, **A ve B'nin İKİSİ de o aile
+  için temiz** olduğunda kapanır:
+    · A — bekçi izin listesi (`sektor-terimi-izin.json`): SEKTÖR sözcüğü.
+    · B — sınıf taraması (`cekirdek-sozcuk-taban.json`): sabit yazılmış
+      ÇEKİRDEK sözcük.
+  Biri temiz, öbürü ölçülmemişse aile KAPANMAZ. Bu koşul yazılmadan
+  kapatılan aileler yüzünden 41 dosyalık görünmeyen borç birikti
+  (ölçüldü, 7 Eyl 2026): hepsi "A temiz" diye kapatılmıştı. Koşul
+  yazılmazsa bir sonraki tarama yeni bir 41 bulur.
+
+- *Bekçi NEGATİF ölçüdür; yanına POZİTİF ölçü kondu (7 Eyl 2026):*
+  bekçi "sektör sözcüğü kalmadı" der, **"sözlükten geliyor" demez**. Bir
+  dosya `santral`ı çekirdek `tesis` ile SABİT değiştirirse bekçi yeşil
+  yanar ve hedef ıskalanır — kabul modelindeki boşluk buydu ve kalan 205
+  dosya onun altında çevriliyordu. `arac/sozluk-farki.mjs` rotanın
+  metnini iki sözlükle alır; **enerji sözlüğü kuruluyken ekranda çekirdek
+  sözcük görünmesi** kusurdur (sözlükten beslenen hiçbir yer enerji
+  altında "tesis" yazamaz). Aile başına `kapi:iki-sozluk` içinde koşar,
+  "aile çevrildi mi" bilgisi izin listesinin git geçmişinden ve sözlük
+  çağrılarından TÜRETİLİR — elle tutulan ikinci bir liste yok.
+
+  İlk koşumunda **iki gerçek kaçak** buldu, ikisi de çevrilmiş
+  `/raporlar` ailesinde ve ikisini de bekçi temiz görüyordu
+  (`5 tesis × 3 süreç` · `Portföy raporu`). Bir de gelecek dilime kalem
+  bıraktı: **`lib/api/kapsam.ts` · `UC_ETIKETI`** uç adlarını çekirdek
+  sözcükle yazıyor ("Tesisler (okuma)"). Uç KİMLİĞİ (`facilities`) doğru
+  şekilde kod anahtarıdır ve öyle kalmalı; sorulacak olan ETİKETİN
+  kiracının sözlüğünü izleyip izlemeyeceğidir — dosya veritabanı ve React
+  bilmiyor (R0-8 (b) ailesi), o yüzden karar API dilimine ait, bugünkü
+  aileye değil.
+
+  > **İstisna (yazılı olmasının sebebi budur).** `kolon-hizasi` **iki
+  > sözlükle ölçülmedi**: canlı sunucuda değil statik dışa aktarım
+  > (`out/`) üzerinde koşuyor, veri ve sözlük derleme anında gömülüyor;
+  > ikinci sözlükle ölçmek `out/`u o sözlükle yeniden derlemeyi
+  > gerektirir. Sebep meşru — ama yazılmazsa kural altı ay sonra "hepsi
+  > iki sözlükle koşuyor" diye okunur. Ölçülmedi, "geçti" değil
+  > (`web/arac/BENIOKU.md`; vakası `SIS-RSP-001`).
+
+- *Kırılma fırsatı garantisi (çekirdek savunma):* sektör sözcüğü ürünün
+  yazdığı bir sabit değil **MÜŞTERİ İÇERİĞİDİR**. Bir sektör paketi
+  boşluksuz uzun bir bileşik ad gönderdiğinde kusur bizim CI'mızda değil
+  o paketi yazanın ekranında çıkar ve hiçbir koşumuz onu görmez. Ölçüldü
+  (7 Eyl 2026): boşluksuz 31 harflik gövde `/sistem/bilesenler` rotasını
+  375px'te 48px yana kaydırıyordu (`div.ab-baglam > div.sag`).
+
+  Savunma iki katmanlı ve **ikisi de ölçülerek** seçildi:
+  `.ab, .ab * { overflow-wrap: break-word }` tabanı kutusuna sığmayan
+  sözcüğü kırar ve min-content'e dokunmadığı için mevcut sarma davranışını
+  değiştirmez; terimin düştüğü slot ayrıca `.terim-sar`
+  (`min-width: 0` + `overflow-wrap: anywhere`) taşır — genişliği
+  içeriğinden gelen bir esnek/ızgara izi ancak böyle daralabilir.
+
+  > Genel `overflow-wrap: anywhere` **denendi ve düzeni bozdu**:
+  > min-content tek harfe iner ve `/bulgular` 375px'te dağıldı — üst
+  > gezinme ("SAHA PORTFÖY UYUM") harf harf alt alta düştü, kolon
+  > başlıkları dikey sütuna döndü. Düzeni korumak için konan kural düzeni
+  > bozuyordu; ölçüm olmasa fark edilmezdi.
+
+  Kural ürünün kendi ilkesiyle aynı: **içerik sessizce kaybolmaz.**
+  Kırılamayan bir terim düzeni bozmasın, yalnız çirkin görünsün.
+
+  Kalıcı vaka: `arac/iki-sozluk.mjs` üçüncü bir **`stres`** sözlüğü koşar
+  (boşluksuz uzun gövde — sektör değil, sınav). Savunma kalkarsa o kapı
+  kırmızı yanar; `arac/sabotaj.mjs` (27.) bunu ayrıca ölçer. Savunmadan
+  sonra tam küme, üç sözlük: 3 kapı × 3 sözlük = 9 koşum, tek kusur
+  `/omur` (`span.ad`, `">1 yıl"`) ve o kusur **üç sözlükte de bit-bit
+  aynı** — sözlükten bağımsız, borç listesinde duruyor.
+
+  Paket tarafındaki karşılığı **P4'tedir** (`URN-PKT-007`): paket
+  kurulurken terim uzunluğu ölçülür, eşiğin üstünde ve kırılamayan terim
+  **uyarı** üretir, kurulumu bloklamaz. Eşik bugün seçilmedi — iki gerçek
+  paketle ölçülecek. Tip renklerinde yapılan bölmenin aynısı: çekirdek
+  savunması şimdi, paket sözleşmesi P4'te.
 
 **Kapsam dışı.** Sektöre özgü motor mantığı (yok — motorlar özniteliğe
 bakar); tesis tipi görselleri (P8); dil çevirisi (P3 — bu paket yalnız TR
@@ -327,7 +528,11 @@ sözlük katmanını kurar).
    `kapsamdisi` **değil** *(motor bugün de böyle davranıyor:
    `lib/motorlar/uygulanabilirlik.ts` eksik alanda `null` yayıyor —
    kriter mevcut davranışı korur, yenisini getirmez)*. [URN-ALN-002]
-3. Bekçi test yeşil: UI'da sabit sektör terimi yok. [URN-ALN-003]
+3. Bekçi test yeşil **ve izin listesi boş**: çekirdekte (`app/` ·
+   `components/` · `lib/`) sabit sektör terimi yok — metin literalinde de
+   tanımlayıcıda da. Kapı Aşama F'de **önce** kuruldu; kriter, listenin
+   erimesiyle karşılanır. Ara ölçü: kalan dosya sayısı (bugün **258**).
+   [URN-ALN-003]
 4. Enerji sözlüğü kuruluyken `/tesisler/[id]` başlığı "Santral 360",
    kurulu değilken "Tesis 360"; ikisi de aynı bileşenden. [URN-ALN-004]
 5. Kanıt paketi şema sürümü artmış; eski sürüm okuyucusu için alan adı
@@ -509,6 +714,18 @@ tek `t()`.
 5. Para birimi kiracıdan; R13 parasal etki kiracı para biriminde
    biçimlenir (ileri bağımlılık notu). [URN-DIL-005]
 
+> **P1'den devir · R0-8 burada karara bağlanır.** Kiracı bağlamını
+> bekleyemeyen yüzeyler kullanıcının diline de erişemez — dil tercihi,
+> sözlük gibi, oturumdadır. P1 aynı duvara SÖZLÜK için ÜÇ ayrı yerden
+> çarptı (zod şeması · paket sözleşme kapısı · Suspense yedeği) ve
+> mesajları çekirdek sözcükte bıraktı; bu paket aynı duvara DİL için
+> çarpacak. Karar burada verilir: sınır olduğu yerde mi kalır (bu
+> yüzeyler tek dilde), yoksa bağlamın çözülme ANI mı değişir? İki aday
+> var ve ikisi de ayrı gerekçe ister: doğrulama sırası (denetim
+> gerekçesiyle seçildi — reddedilen isteğin izi aktörsüz kalmasın) ve
+> derleme zamanında çözülen mesaj kataloğu (Suspense yedeğini de
+> kapsardı). Kalem R0-8'de; üç örnek orada listeli.
+
 **Kararlar.** *Kütüphane:* **Varsayılan** hafif kendi katman (ICU için
 `intl-messageformat`); alternatif `next-intl` (Next 16 uyumu
 doğrulanmalı). *İkinci dil:* EN.
@@ -558,6 +775,34 @@ kiracıya kurulur ve güncellenir; güncelleme fark motorunu besler.
 - *Ekran:* `/hub/paketler` (yayınla, sürümle, imzala), kiracıda
   `/paketler` (kurulu, güncelleme var, kur/güncelle → onay akışı, lisans
   notu, içerik dili).
+- *Sözlük doğrulaması (P1'den devir):* paket kurulurken **terim uzunluğu
+  ve kırılabilirliği ölçülür**; eşiğin üstünde VE kırılma fırsatı
+  taşımayan (boşluksuz/tiresiz) bir terim **UYARI üretir — kurulumu
+  BLOKLAMAZ.** Paket yazarı bilir, ürün çalışmaya devam eder.
+
+  Bloklamamanın sebebi ürünün kendi ilkesidir: motor önerir, insan karar
+  verir. Bir kiracının kendi sözcüğü uzun diye paketi reddetmek, ürünün
+  bilemeyeceği bir şeye karar vermek olurdu — belki o sektörde gerçekten
+  öyle deniyor.
+
+  Uyarı bir kusur değil, bir **ölçüm bildirimidir** ve "ölçülmedi ≠
+  sıfır" kuralına tabi: terim ölçülemiyorsa (dil paketi eksik, sözlük
+  yarım) uyarı üretilmez, "uzun değil" DENMEZ.
+
+  **Eşik bugün seçilmedi ve seçilmemeli.** P1'de tek bir kurgusal gövdeyle
+  (31 harf, boşluksuz) ölçüldü ve çekirdek savunması ona göre kuruldu;
+  bir eşik sayısı ancak İKİ GERÇEK paketle ölçülünce dürüst olur. P4'te
+  `SEKTOR-ENERJI-URETIM` ve ikinci gerçek sektör paketi elde olduğunda
+  ölçülür ve buraya yazılır. Bugün bir sayı yazmak, ölçmeden hedefe
+  uydurmak olurdu.
+
+  Çekirdek savunması P1'de **kuruldu** ve bu doğrulamanın önkoşuludur:
+  kırılamayan bir terim düzeni bozmaz, yalnız çirkin görünür
+  (`app/kabuk.css` · `.terim-sar`; kalıcı vaka `arac/iki-sozluk.mjs`
+  `stres` sözlüğü). Yani P4 uyarısı bir ÇÖKME riskini değil, bir
+  OKUNABİLİRLİK sorununu bildirir. Ayrım bilinçli: tip renklerinde
+  yapılan bölmenin aynısı — çekirdek savunması şimdi, paket sözleşmesi
+  P4'te.
 
 **Kapsam dışı.** Paket pazaryeri/ödeme; otomatik güncelleme (insan
 onayı şart); paket içeriğinin ürünle telif dışı gelmesi.
@@ -572,6 +817,10 @@ onayı şart); paket içeriğinin ürünle telif dışı gelmesi.
 5. OSCAL fikstürü içe alınıp tekrar dışa verildiğinde eşdeğer (gidiş-dönüş
    testi). [URN-PKT-005]
 6. Lisans notu kiracı ekranında ve kanıt paketinde görünür. [URN-PKT-006]
+7. Eşiğin üstünde ve kırılma fırsatı taşımayan terim içeren paket
+   **kurulur** ve kurulum raporunda uyarı olarak görünür; terimi
+   ölçülemeyen paket uyarı ÜRETMEZ ("uzun değil" demez). Eşik P4'te iki
+   gerçek paketle ölçülüp buraya yazılır. [URN-PKT-007]
 
 **Kararlar.** *İmza:* **Varsayılan** SHA-256 özet zorunlu, Ed25519 imza
 isteğe bağlı (hub anahtarı sır). *OSCAL dışı alanlar:* `props` ad alanı
@@ -677,7 +926,7 @@ CDN.
 **Bugün.** *(6 Eylül 2026'da doğrulandı.)* Seed portföyü
 **kurgusaldır**: 17 tesisin hepsi sentetik ad taşır (`Saha A-1 JES` …
 `Saha M DGKÇ`), tüzel kişiler de öyle. **Kalan iki iz:** (1) iller ve
-coğrafî tarifler gerçektir (`public/santraller/KUNYE.md`) ve tip +
+coğrafî tarifler gerçektir (`public/tesisler/KUNYE.md`) ve tip +
 kurulu güç + il üçlüsü portföyü tanınır kılar; (2) tesis
 fotoğraflarının tamamı ürün sahibinin sağladığı **gerçek tesis
 fotoğraflarıdır** — paketin hedefi "nötr lisanslı görsel", bugün öyle
@@ -717,16 +966,22 @@ depoda değil).
 **Bağımlılık:** P2, R4
 
 **Bugün.** Adaptör sözleşmesi (`lib/entegrasyon/sozlesme.ts`), 15 kontrollü
-sertifikasyon harness'ı, `/api-sozlesmesi` ekranı, 10 `v1` ucu,
+sertifikasyon harness'ı, `/api-sozlesmesi` ekranı, 10 `v1` ucu
+(P1'de sektör terimleri temizlendi: `plants` → `facilities`, `plantCode`
+→ `facilityCode`, `capacityMw` → `attributes` haritası),
 `ApiAnahtari`.
 
-**Hedef.** `v1` dondurulur ve OpenAPI belgesi sözleşmeden üretilir; giden
-webhook aboneliği; adaptör geliştirme kılavuzu ve harness dışa açılır;
-kiracı adaptörü politikası uygulanır.
+**Hedef.** OpenAPI belgesi sözleşmeden üretilir; giden webhook
+aboneliği; adaptör geliştirme kılavuzu ve harness dışa açılır; kiracı
+adaptörü politikası uygulanır. **`v1` dondurma kararı K23'e bağlıdır**:
+sözleşme, erişilebilir bir dağıtım ya da ilk dış `ApiAnahtari` ortaya
+çıkana kadar **taslaktır**. P9 bu yüzden `v2` açmaz — temiz bir `v1`'in
+üstüne SDK yayımlar.
 
 **Kapsam.** OpenAPI 3.1 üretimi (`lib/api/sozlesme.ts` → `openapi.json`,
 `/api-sozlesmesi` ekranı indirir); `v1` değişiklik bekçisi (sözleşme
-anlık görüntüsü; kırılma → `v2`); `WebhookAboneligi` (kiracı × olay
+anlık görüntüsü — K23 kapanana kadar değişikliği **bildirir**, kırmızı
+yakmaz; K23 kapandıktan sonra kırılma → `v2`); `WebhookAboneligi` (kiracı × olay
 türü × adres sır referansı × HMAC anahtarı sır referansı × etkin) +
 `WebhookTeslimi` (3 deneme, dead-letter — R4 kalıbı); adaptör geliştirme
 kılavuzu (`docs/ADAPTOR_GELISTIRME.md`) ve harness CLI (`arac/sertifika.mjs`);
@@ -1737,6 +1992,11 @@ birlikte ele alınır:
 | R0-5 | `.abacus.donotdelete` | 5 Eylül 2026 temizliğinde silindi; ürün deposuna geri alınmayacak. Arşivde duruyor (`ahmetrz/uyumPlatformu-arsiv`, `830c174` ile eklenmiş, 22 520 baytlık Fernet şifreli blob); içeriği anahtarsız okunamaz ve ne olduğu tek satırdan fazla belgelenmemiş (arşivdeki `docs/HAZIRLIK_DURUMU.md` §13: "şifreli blob, dokunulmadı"). İçeriği bilinmediği için arşiv deposu **private kalmalı**. | Kapandı |
 | R0-6 | Uygulanmamış tasarım teslimi | Eylül 2026'da ayrı bir depoda alternatif bir tasarım sistemi üretildi (`tokens.css`, `TASARIM_TOKENLARI.md`, `TASARIM_PLANI.md`, `mockups.html`); ürünün canlı jetonlarıyla yalnız 1 jetonu ortaktı. Değerlendirildi ve **terk edildi**: ürün `web/app/kabuk.css` dilinde devam eder. Kayıt: `ahmetrz/uyumPlatformu-arsiv` deposu, `arsiv/tasarim-denemesi-2026-09` dalı (public depodan kaldırıldı: mockup verisi gerçek filodan türetilmiş tesis adları ve kişi adları taşıyordu). | Kapandı |
 | R0-7 | Belge–kod bağı koptu | `web/arac/sayimlar.mjs` ve `web/tests/belge-sayimlari.test.ts` duruyor ama Eylül 2026 temizliğinde içleri boşaltıldı: araç 6 046 → 2 633 bayt (`--yaz`, `--tablo`, `blok()`, `BASLA`/`BITIS` işaretleri düştü), test 199 → 63 satır (belgelere bakan yarısı ile `KANONIK`/`TARIHSEL` listeleri düştü). Sonuç: belgeler yeniden elle yazılmış sayaç taşımaya açık — bu belgede bir günde iki örneği çıktı. Bu belgedeki `node arac/sayimlar.mjs --yaz` şartı da bu yüzden karşılıksız. Geri kurulacaksa kaynak: `ahmetrz/uyumPlatformu-arsiv` deposu. **6 Eyl 2026 doğrulaması:** araç gerçekten 2 633 bayt ve `--yaz` bayrağı yok; test 63 satır ve hiçbir belgeye bakmıyor. P0 bunu **kapsamına almadı** — ürün adı ve belge kurgusu ile aynı PR'a sığmıyor; ayrı kalem olarak açık kalır ve o gelene kadar bu belgedeki `arac/sayimlar.mjs --yaz` şartı geçersizdir (araç yalnız JSON basar). | açık — ayrı kalem |
+| R0-8 | Kiracı bağlamını bekleyemeyen yüzeyler | Kiracı bağlamı (sektör **SÖZLÜĞÜ** ve **DİLİ**) oturumdan ve kapsamdan çözülür. O bağlamı bekleyemeyen her yüzey ikisine de erişemez — sebepleri farklı, sınır aynı. Bugün **üç** örnek var ve üçü ayrı istisna gibi birikiyordu: (a) **zod şemaları** — doğrulama oturumdan ÖNCE koşuyor ve sıra denetim gerekçesiyle seçildi (`lib/eylemler2/disaAktarim.ts`: reddedilen isteğin izi aktörsüz kalmasın); (b) **paket sözleşme kapıları** — `lib/disaAktarim/paket.ts` kiracının sözlüğünü bilmez ve BİLMEMELİ, ürettiği denetim artefaktının alanları kod anahtarıdır; (c) **Suspense yedekleri** — `loading.tsx` anında render edilmek zorunda, `async` olamaz, `useTerim()` ise istemci bağlamı ister (`app/(kabuk)/(operasyonel)/tedarikciler/loading.tsx`). **SINIR DARALDI (7 Eyl 2026):** sayfa `metadata` SABİTİ de bu sınırdaydı, ama `generateMetadata` **async olabiliyor** ve orada sınır YOK — sekme başlıkları sözlüğe bağlandı (`harita` · `raporlar` · `portfoy` · `tesisler/[id]`). Yani sınır `metadata` sabitini kapsar, async yolu KAPSAMAZ. Kayıt daraltılmazsa P3 çok-dil turunda aynı yanlış sınır yeniden okunur ve çözümü olan bir yer çözümsüz sanılır. Üçü de bugün çekirdek sözcükte ve tek dilde. **P3 aynı sınıra DİL için çarpacak**; karar orada verilir: sınır olduğu yerde mi kalır, yoksa bağlamın çözülme anı mı değişir (doğrulama sırası, derleme zamanında çözülen mesaj kataloğu). Kalem burada ki dördüncü örnek çıktığında yeniden keşfedilmesin, her seferinde ayrı bir gerekçe yazılmasın. | açık — P3 ile karar |
+| R0-9 | Saklanan artefakta kiracı sözcüğü gömülmez | Bir metin ekrana çıkmadan **önce saklanıyorsa** (denetim izi, öneri gerekçesi, dışa aktarılan sözleşme) kiracının sözlüğüne göre değişen sözcük içeremez. Sözlük satırı bugün düzenlenirse dün kaydedilmiş kayıt başka sözcükle okunur ama **kayıt değişmemiş görünür** — "değişmez denetim izi" kuralı sessizce delinir. **R0-8'den AYRIDIR** ve karıştırılmamalı: R0-8 kiracı bağlamını BEKLEYEMEYEN yüzeylerdir; buradaki yüzeyler bekleyebilir (`lib/motorlar/olayEtki.ts` sunucuda, async, `tesisId` elinde), sebep **saklamadır**. Bugün üç örnek: (a) motor öneri gerekçeleri (`Olay.etkiOnerisiJson`); (b) OpenAPI sözleşmesinin `summary` alanı (`lib/api/kapsam.ts` · `UC_ETIKETI` → `lib/api/sozlesme.ts`) — entegratörün okuduğu sözleşme iki kiracıda iki türlü okunamaz; (c) dışa aktarım paketinin alan adları (`lib/disaAktarim/paket.ts`). **Ayrım şu**: aynı sabit hem sözleşmeye hem ekrana gidiyorsa İKİYE BÖLÜNÜR — `UC_ETIKETI` sözleşmede çekirdek kalır, `ucEtiketi(sozluk, uc)` ekranda sözlüğü izler (vakaları `tests/faz-f-api-kapsam.test.ts`). Uç KİMLİĞİ (`facilities`) her hâlde kod anahtarıdır. Doğru uzun çözüm saklanan metni **yapısal** tutmak (kod anahtarı + değerler) ve sözcüğü okuma anında üretmek; artefakt biçimini değiştirir, kendi dilimidir. | açık — (a) yapısal gerekçe dilimi |
+| R0-10 | `/` saha ekranı tek ekran sözleşmesini 3px ihlal ediyor | `konsol:olcum` kapısı KIRMIZI: `scrollHeight` üç bantta da `innerHeight`ı 3px aşıyor (1366×768 → 771/768 · 1440×900 → 903/900 · 1280×800 → 803/800). Sabit 3px, banttan bağımsız — yani kırılma noktası değil, tek bir kutu/kenarlık artığı. Kapı bugüne kadar hiç ölçmemişti: kendi `girisYap` kopyası #28'in CTA adımını almadığı için giriş ekranını geçemiyordu; kopya silinince İLK KEZ ölçtü ve kırmızı çıktı. **Sahip:** saha ekranı (F1) · UX dilimi — düzeltme üç zorunlu skill'i gerektirir (CLAUDE.md). **Kapanış:** `konsol:olcum` CI'ya bağlanmadan ÖNCE; kapı yeşil olmadan bağlanamaz. | açık — ölçüldü, düzeltilmedi |
+| R0-11 | `KURULU_GUC` veri anahtarı sektör birimi taşıyor | `lib/alan/oznitelik.ts` → `KURULU_GUC = 'kuruluGucMw'`. Değer bir KAYIT ANAHTARIDIR (`TesisOzellik.anahtar` sütununda duruyor), kod adı değil: değiştirmek veri göçü ister. Kod adları temizlendi (`gucMw` → `guc`) ve birim artık satırdan geliyor (`TesisOzellik.birim`); geriye yalnız anahtarın kendisi kaldı. Dosya bunu zaten "GEÇİCİ" diye işaretliyor. **Sahip:** P4 · öznitelik şeması dilimi. **Kapanış:** ekranlar özniteliği adıyla bilmeyi bıraktığında (sektör şemasından gelen etiketle çizdiğinde) sabit düşer; o gün anahtar da göçle sektörsüzleşir. | açık — P4 ile |
+| R0-12 | Bloklayıcı erişilebilirlik kapısı 1366×768'i hiç taramıyor | `erisim-axe` ÜÇ bant tarar: 1440×900 · 768×1024 · 375×780. Dizüstünün en yaygın bandı olan **1366×768 yalnız düzen kapısının** (`tasarim:dizustu`) bandıdır ve o kapı CI'da koşmuyor (beyanı `kapi-farki.mjs` içinde). Boşluk kuramsal değil, ÖLÇÜLDÜ: `/` saha ekranının katman paneli 1366×768'de sözlüğe göre kayıyor (`enerji` 427/427 → kaymıyor · `su` 437 → 10px · `stres` 471 → 44px), axe'ın taradığı üç bantta ise kaymıyor (1440×900'de 535/535, dar bantta `overflow-y: visible`). Kaydırılabilir ama odaklanamayan bölge klavye kullanıcısı için erişilemezdir (axe · serious · `scrollable-region-focusable`) — bu bulgu kapıdan değil ELLE ölçümden çıktı, düzeltmesi (`tabindex=0`) bu pakette yapıldı ama **kapı hâlâ o bandı görmüyor**: aynı sınıftan bir sonraki kusur yine sessiz geçer. Bant sayısını artırmak axe süresini üçte bir uzatır ve yeni borç açabilir; bu yüzden ölçülüp yazıldı, kapıya tek başına eklenmedi. **Sahip:** kalite kapıları dilimi (`arac/erisim-axe.mjs`). **Kapanış:** `tasarim:dizustu` CI'ya bağlandığı gün — dördüncü bant borç listesine girip cırcıra alındığında; o gün axe bandı da aynı listeyle 1366×768'e açılır. | açık — ölçüldü, kapı genişletilmedi |
 
 ---
 
@@ -1791,6 +2051,8 @@ alınan kararlar.
 | K20 | Kiracı adaptörü | Yalnız imzalı ürün adaptörleri; kiracı verisi CSV/API/webhook | Sandbox (ayrı karar) |
 | K21 | İlk enerji dışı sektör · ilk TR dışı ülke paketi | Su/atıksu · EU-NIS2 | Kullanıcı seçer |
 | K22 | Tema | Koyu tek tema kalır | Kiracı teması |
+| K23 | **`v1` ne zaman donar?** | Yayımlanmış bir belge değil, **erişilebilir dağıtım + dağıtılmış kimlik**. `v1` şu iki olaydan **ilki** gerçekleştiğinde donar: (a) API'yi servis eden bir dağıtım dışarıdan erişilebilir hâle gelir, (b) ilk **dış** `ApiAnahtari` düzenlenir. O ana kadar sözleşme **taslaktır** ve `v2` açılmadan değiştirilebilir. Gerekçe: kıran değişikliğin maliyeti kırılan tüketici sayısıdır ve o sayı bugün sıfırdır | İlk olay gerçekleşince K23 kapanır; sonraki kıran değişiklik `v2` ister |
+| K24 | Taslak sözleşme **görünür** olmalı | `/api-sozlesmesi` ekranı, açık adreste duran tarifin örtük bir taahhüt sayılmaması için başında tek satır uyarı taşır: "`v1` taslaktır; ilk dış tüketiciye kadar haber verilmeden değişebilir." Statik demo bu ekranı yayımladığı için uyarı da yayımlanır | K23 kapanınca uyarı kalkar |
 
 ---
 

@@ -57,7 +57,7 @@ describe('Portföy özeti', () => {
   const satir = (ek: Partial<PortfoySatiri> = {}): PortfoySatiri => ({
     id: 's1', kod: 'SAN-1', ad: 'Santral 1',
     tipKod: 'HES', tipAdi: 'Hidroelektrik', tuzelKisi: 'A',
-    konum: null, gucMw: 100, gorselAnahtari: null,
+    konum: null, guc: 100, gucBirim: 'MW', gorselAnahtari: null,
     enlem: null, boylam: null, konumKaynagi: null, konumDogrulandi: false,
     kritiklik: null, uyumYuzde: null, bilinmeyenOran: null,
     acikBulgu: 0, acikRisk: 0, ...ek,
@@ -71,7 +71,7 @@ describe('Portföy özeti', () => {
   });
 
   it('kurulu güçte "zayıflık" tanımsızdır — küçük santral kötü santral değildir', () => {
-    expect(enZayif([satir({ gucMw: 1 })], 'guc')).toBeNull();
+    expect(enZayif([satir({ guc: 1 })], 'guc')).toBeNull();
   });
 
   it('açık bulgusu olmayan kümede zayıf yoktur', () => {
@@ -143,6 +143,67 @@ describe('Duyarlı yerleşim kapısı', () => {
     const paket = JSON.parse(readFileSync(path.join(KOK, 'package.json'), 'utf8'));
     expect(paket.scripts['tasarim:tasma']).toContain('yatay-tasma');
     expect(paket.scripts['tasarim:dizustu']).toContain('dizustu');
+  });
+
+  it('düzen kapıları İKİ sektör sözlüğüyle koşabilir [SIS-RSP-001]', () => {
+    /* Düzen bugüne kadar hep referans kiracının KISA sözlüğüyle ölçüldü
+       ("santral" 7 harf); ikinci sözlük bileşik gövde kullanır ("arıtma
+       tesisi" 13 harf) ve aynı yerde ~%60 fazla yer ister. Kısa sözlükle
+       yeşil bir düzen, uzun sözlükte taşıyorsa BUGÜN kusurludur.
+
+       Tarayıcı ölçümünün kendisi burada koşmaz; vitest'in ölçebileceği
+       şey kapının var olduğu ve İKİ sözlüğü de gerçekten koştuğudur.
+       Kapı listeden düşerse ya da tek sözlüğe inerse ölçüm sessizce
+       kısalır ve kimse fark etmez. */
+    const iki = readFileSync(path.join(KOK, 'arac/iki-sozluk.mjs'), 'utf8');
+    for (const kapi of ['yatay-tasma', 'dizustu', 'erisim-axe']) {
+      expect(iki, `${kapi} iki-sözlük kapısında yok`).toContain(kapi);
+    }
+    /* `stres` bir sektör değil, KIRILMA FIRSATI GARANTİSİNİN kalıcı
+       vakası: boşluksuz uzun gövde. Listeden düşerse `kabuk.css`
+       içindeki `.terim-sar` savunması ölçülmez olur. */
+    for (const sozluk of ['enerji', 'su', 'stres']) {
+      expect(iki, `${sozluk} sözlüğü kapıda yok`).toContain(sozluk);
+    }
+
+    /* Savunmanın kendisi: taban `break-word` (min-content'e dokunmaz,
+       mevcut sarma değişmez) + terimin düştüğü slotta `.terim-sar`
+       (`min-width: 0` + `anywhere`). İkisi bir arada olmadan hiçbiri
+       yetmiyor; ölçüldü (7 Eyl 2026). */
+    const kabuk = readFileSync(path.join(KOK, 'app/kabuk.css'), 'utf8');
+    expect(kabuk, 'kırılma fırsatı tabanı yok').toMatch(/\.ab, \.ab \* \{ overflow-wrap: break-word; \}/);
+    expect(kabuk, '.terim-sar savunması yok')
+      .toMatch(/\.ab \.terim-sar \{[^}]*min-width: 0[^}]*overflow-wrap: anywhere/);
+    /* Genel `anywhere` DENENDİ ve düzeni bozdu: min-content tek harfe
+       iner, `/bulgular` 375px'te gezinme harf harf alt alta düştü. */
+    expect(kabuk, 'genel `anywhere` geri gelmiş — /bulgular 375px\'te dağılır')
+      .not.toMatch(/\.ab, \.ab \* \{ overflow-wrap: anywhere; \}/);
+
+    /* Takas ürün koduna SIZMAZ: sözlüğü ezen bir ortam değişkeni yok.
+       Olsaydı yanlış sözcükle çalışan bir kurulum mümkün olurdu. */
+    const takas = readFileSync(path.join(KOK, 'arac/sozluk-takas.mjs'), 'utf8');
+    expect(takas).toContain('finally');
+    const okuyucu = readFileSync(path.join(KOK, 'lib/dil/sozlukOku.ts'), 'utf8');
+    expect(okuyucu).not.toMatch(/process\.env/);
+
+    const paket = JSON.parse(readFileSync(path.join(KOK, 'package.json'), 'utf8'));
+    expect(paket.scripts['kapi:iki-sozluk']).toContain('iki-sozluk');
+  });
+
+  it('iki-sözlük kuralının istisnası BELGELİDİR [SIS-RSP-001]', () => {
+    /* "Düzen kapıları iki sözlükle koşar" kuralının bugün BİR istisnası
+       var: `kolon-hizasi.mjs` statik dışa aktarım (`out/`) üzerinde
+       koşuyor, yani ikinci sözlükle ölçmek `out/`u o sözlükle yeniden
+       derlemeyi gerektirir. Sebep meşru — ama yazılmazsa kural altı ay
+       sonra "hepsi iki sözlükle koşuyor" diye okunur ve o boşluk kimsenin
+       aklına gelmez.
+
+       Bu vaka istisnanın BELGEDE durduğunu ölçer, istisnayı kaldırmaz. */
+    const beniOku = readFileSync(path.join(KOK, 'arac/BENIOKU.md'), 'utf8');
+    expect(beniOku, 'kolon-hizasi istisnası BENIOKU.md kapı tablosunda yazılı değil')
+      .toMatch(/kolon-hizasi[\s\S]{0,600}iki sözlükle ölçülmedi/);
+    expect(beniOku, 'istisnanın SEBEBİ yazılı değil')
+      .toMatch(/kolon-hizasi[\s\S]{0,600}statik dışa aktarım/);
   });
 });
 

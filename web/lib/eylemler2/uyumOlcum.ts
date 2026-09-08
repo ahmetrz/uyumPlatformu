@@ -2,7 +2,7 @@
 
 /* ═══ UY-59 · Olgunluk seviyesi  ·  UY-64 · Kontrol testi ══════════════
 
-   İkisi de MADDE DURUMUNA (santral × kontrol) yazar ve ikisi de aynı
+   İkisi de MADDE DURUMUNA (tesis × kontrol) yazar ve ikisi de aynı
    kapsam kapısından geçer; bu yüzden aynı dosyada yaşarlar.
 
    ── OLGUNLUK BİR UYUM DURUMU DEĞİLDİR ─────────────────────────────────
@@ -78,8 +78,8 @@ export async function olgunlukKaydet(girdi: {
 /**
  * Maddenin HEDEF olgunluk seviyesini yazar.
  *
- * Hedef bütün santraller için ortaktır: bu yüzden kapsam kapısı
- * santral değil, `uyum/onay` yetkisidir. Bir santral sorumlusunun
+ * Hedef bütün tesisler için ortaktır: bu yüzden kapsam kapısı
+ * tesis değil, `uyum/onay` yetkisidir. Bir tesis sorumlusunun
  * kurum genelindeki hedefi değiştirmesi doğru olmazdı.
  */
 export async function hedefOlgunlukKaydet(girdi: {

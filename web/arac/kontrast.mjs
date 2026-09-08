@@ -106,10 +106,12 @@ const CIFTLER = [
   { ink: '--aksan', esik: IRI, not: 'aktif kenar, işaret, odak halkası' },
   /* Üretim tipi kimlik renkleri GRAFİKTİR (dolgu, işaretçi): 3:1 yeter.
      Ama görünmez olamazlar — zeminden ayrılmaları gerekir. */
-  { ink: '--jes', esik: IRI, not: 'jeotermal kimliği' },
-  { ink: '--hes', esik: IRI, not: 'hidro kimliği' },
-  { ink: '--res', esik: IRI, not: 'rüzgâr kimliği' },
-  { ink: '--ges', esik: IRI, not: 'güneş kimliği' },
+  /* Tip kimlik YUVALARI — hangi tesis tipinin hangi yuvayı aldığını bu
+     araç bilmez ve bilmemeli; ölçtüğü şey yuvanın okunabilirliğidir. */
+  { ink: '--tip-a', esik: IRI, not: 'tip kimlik yuvası A' },
+  { ink: '--tip-b', esik: IRI, not: 'tip kimlik yuvası B' },
+  { ink: '--tip-c', esik: IRI, not: 'tip kimlik yuvası C' },
+  { ink: '--tip-d', esik: IRI, not: 'tip kimlik yuvası D' },
   { ink: '--hr2', esik: 1.25, not: 'kart kenarı — görünür olmalı' },
 ];
 

@@ -8,7 +8,7 @@ import { simdiOku } from './veri';
 import { oneriOku, ETKI_ALANLARI } from '@/lib/motorlar/olayEtki';
 import OlaylarIstemci from './OlaylarIstemci';
 import type {
-  BagAdayi, BagTipi, EtkiAlani, OlayKaydi, OneriGorunumu, Santral,
+  BagAdayi, BagTipi, EtkiAlani, OlayKaydi, OneriGorunumu,
 } from './mantik';
 
 export const metadata: Metadata = { title: 'Olaylar' };
@@ -20,9 +20,9 @@ export const metadata: Metadata = { title: 'Olaylar' };
    `Olay.etkiOnerisiJson` alanında duran öneri okunur. Böylece ekran ile
    motor aynı zinciri iki farklı yerde iki farklı şekilde hesaplayamaz.
 
-   Kapsam: olaylar kullanıcının envanter kapsamındaki santrallerle
-   daraltılır (veri seviyesinde, ekranda değil). Santrali OLMAYAN olay
-   kapsamı daraltılmış kullanıcıya GÖSTERİLMEZ: "hangi santralde olduğu
+   Kapsam: olaylar kullanıcının envanter kapsamındaki tesislerle
+   daraltılır (veri seviyesinde, ekranda değil). Tesisi OLMAYAN olay
+   kapsamı daraltılmış kullanıcıya GÖSTERİLMEZ: "hangi tesiste olduğu
    yazılmamış" bir olayı dar kapsamlı birine açmak, kapsam sınırını
    sessizce delmek olurdu (aynı kural bağ adaylarında da geçerli).
 
@@ -43,10 +43,10 @@ export default async function Sayfa() {
   const yazabilir = modulYazabilir(kullanici, 'envanter', 'yazma');
   const dogrulayabilir = izinVar(kullanici, 'yonetim', 'onay');
 
-  /** Kapsam koşulu: null = tüm santraller; aksi hâlde yalnız izinli küme. */
+  /** Kapsam koşulu: null = tüm tesisler; aksi hâlde yalnız izinli küme. */
   const kapsam = izinli === null ? {} : { tesisId: { in: izinli } };
 
-  /* UY-63 · Bildirim yükümlülüğü kuralları ve santrallerin regülasyon
+  /* UY-63 · Bildirim yükümlülüğü kuralları ve tesislerin regülasyon
      kapsamı. Kural yoksa sayaç HİÇ işlemez ve ekran süre uydurmaz.
 
      "Şimdi" burada bir kez okunur ve BÜTÜN satırlar için aynıdır; her
@@ -108,7 +108,7 @@ export default async function Sayfa() {
         take: ADAY_TAVANI,
       }),
       db.sistemServis.findMany({
-        // Sistemin santrali null olabilir (grup çapında servis); kapsamı
+        // Sistemin tesisi null olabilir (grup çapında servis); kapsamı
         // daraltılmış kullanıcıya bu kayıt GÖSTERİLMEZ — bkz. dosya başı notu.
         where: kapsam,
         select: { id: true, kod: true, ad: true, kritiklik: true },
@@ -134,9 +134,9 @@ export default async function Sayfa() {
         take: ADAY_TAVANI,
       }),
       db.degisiklik.findMany({
-        /* Değişiklikte santralsiz kayıt PORTFÖY GENELİdir (bkz.
+        /* Değişiklikte tesissiz kayıt PORTFÖY GENELİdir (bkz.
            /operasyon kapsamKosulu) — gizlemek onu kimsenin görmemesi
-           demek olurdu. Olay ve varlıkta ise santralsizlik bir kayıt
+           demek olurdu. Olay ve varlıkta ise tesissizlik bir kayıt
            boşluğudur; ikisi aynı kural değildir. */
         where: izinli === null ? {} : { OR: [{ tesisId: { in: izinli } }, { tesisId: null }] },
         select: { id: true, kod: true, baslik: true, durum: true },
@@ -267,12 +267,10 @@ export default async function Sayfa() {
     };
   });
 
-  const santraller: Santral[] = tesisler;
-
   return (
     <OlaylarIstemci
       olaylar={kayitlar}
-      santraller={santraller}
+      tesisler={tesisler}
       adaylar={adaylar}
       yazabilir={yazabilir}
       dogrulayabilir={dogrulayabilir}

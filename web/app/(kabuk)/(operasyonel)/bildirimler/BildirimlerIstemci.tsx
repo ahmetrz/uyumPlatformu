@@ -1,5 +1,7 @@
 'use client';
 import { useMemo, useState } from 'react';
+import { useSozluk, useTerim } from '@/lib/dil/SozlukSaglayici';
+import { terim } from '@/lib/dil/terimler';
 import { useUrlDurumu, useUrlDurumuBos } from '@/components/kabuk/urlDurumu';
 import Link from 'next/link';
 import { BosFiltre, BosIlk, Dugme } from '@/components/kabuk/temel';
@@ -12,7 +14,7 @@ import { useEylem } from '@/components/useEylem';
 import { bildirimOkundu } from '@/lib/eylemler2/bildirim';
 import { tarihTR, zamanTR } from '@/lib/sabitler';
 import {
-  GORUNUR_TAVAN, KAYNAK_HAL_SOZU, KAYNAK_SOZU, MERCEKLER, TIP_SOZU,
+  GORUNUR_TAVAN, KAYNAK_SOZU, MERCEKLER, TIP_SOZU, kaynakHalSozu,
   bekleyenGun, bildirimImi, bildirimKenari, ekranHali, mercekten, okunmamisMi,
   sayimHesapla, sirala, toplanabilir,
   type BildirimSatiri, type Mercek,
@@ -28,7 +30,7 @@ import {
    ÜÇ AYRI SIFIR birbirine karıştırılmaz:
      · hiç bildirim yok      → motor size hiç uyarı yazmadı
      · hepsi okunmuş         → ÖLÇÜLMÜŞ sıfır, "okunmamış yok" denir
-     · kaynağı bilinmeyen    → kaydın santrali BİLİNMİYOR, kapsam dışı DEĞİL */
+     · kaynağı bilinmeyen    → kaydın tesisi BİLİNMİYOR, kapsam dışı DEĞİL */
 
 const KOLONLAR: Kolon[] = [
   { baslik: 'Tip', genislik: '110px' },
@@ -37,8 +39,8 @@ const KOLONLAR: Kolon[] = [
   { baslik: 'Yazıldı', genislik: '120px', sag: true, ikincil: true },
 ];
 
-/** Kaynak hücresi: tür + (çözülebildiyse) santral kodu. Çözülemeyen kaynak
-    boş bırakılmaz — boşluk "santrali yok" diye okunurdu. */
+/** Kaynak hücresi: tür + (çözülebildiyse) tesis kodu. Çözülemeyen kaynak
+    boş bırakılmaz — boşluk "tesisi yok" diye okunurdu. */
 function kaynakHucresi(b: BildirimSatiri): string {
   const tur = b.kaynakTipi ? KAYNAK_SOZU[b.kaynakTipi] ?? b.kaynakTipi : 'kaynak yok';
   if (b.kaynakHali === 'kapsamda') return b.tesisKodu ? `${tur} · ${b.tesisKodu}` : tur;
@@ -54,6 +56,8 @@ export default function BildirimlerIstemci({
   /** sunucu saati — "kaç gündür okunmadı" tek yerden ölçülür */
   simdi: number;
 }) {
+  const halSozu = kaynakHalSozu(terim(useSozluk(), 'tesis'));
+  const { t } = useTerim();
   const { bekliyor, hata, calistir } = useEylem();
   const [mercek, setMercek] = useUrlDurumu<Mercek>('mercek', 'okunmamis');
   const [secili, setSecili] = useUrlDurumuBos('sec');
@@ -79,7 +83,7 @@ export default function BildirimlerIstemci({
   const dipNot = [
     `Kutunuzda ${satirlar.length} bildirim · ${sayim.okunmamis} okunmadı`,
     sayim.kaynagiKapsamDisi > 0
-      && `${sayim.kaynagiKapsamDisi} bildirimin kaydı santral kapsamınız dışında`,
+      && `${sayim.kaynagiKapsamDisi} bildirimin kaydı ${t('tesis')} kapsamınız dışında`,
     sayim.kaynagiBilinmeyen > 0
       && `${sayim.kaynagiBilinmeyen} bildirimin kaynağı çözülemedi`,
     satirlar.length >= tavan && `en yeni ${tavan} bildirim gösteriliyor`,
@@ -204,10 +208,10 @@ export default function BildirimlerIstemci({
                   ? KAYNAK_SOZU[secim.kaynakTipi] ?? secim.kaynakTipi
                   : 'kaynak bildirilmedi',
                 durum: secim.kaynakTipi ? undefined : 'unk' },
-              { etiket: 'Kaynağın santrali',
+              { etiket: `Kaynağın bağlı olduğu ${t('tesis')}`,
                 deger: secim.kaynakHali === 'kapsamda'
-                  ? secim.tesisKodu ?? 'santral taşımıyor'
-                  : KAYNAK_HAL_SOZU[secim.kaynakHali],
+                  ? secim.tesisKodu ?? `${t('tesis')} taşımıyor`
+                  : halSozu[secim.kaynakHali],
                 durum: secim.kaynakHali === 'kapsamda' ? undefined : 'unk' },
               { etiket: 'Yazıldı', deger: zamanTR(secim.olusturuldu) },
               { etiket: 'Okundu',
@@ -233,7 +237,7 @@ export default function BildirimlerIstemci({
               </Link>
             ) : (
               <p className="ab-dip" style={{ margin: 0 }}>
-                {KAYNAK_HAL_SOZU[secim.kaynakHali]} — bildirim size yazıldığı için
+                {halSozu[secim.kaynakHali]} — bildirim size yazıldığı için
                 listede kalır, kayda giden bağ verilmez.
               </p>
             )}

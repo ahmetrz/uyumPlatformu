@@ -33,7 +33,8 @@ kabul kriteridir (P0 · URN-KUR-003); ölü atıf eklemeyin.
 | Senaryo kütüğü · test eşlemesi | `docs/MASTER_SCENARIO_REGISTRY.md` · `docs/SCENARIO_TEST_MATRIX.md` (`web/lib/senaryo/` üretir) |
 | Kalite araçları ve kapılar | `web/arac/BENIOKU.md` |
 | Kalite borcu izin listesi · cırcır | `web/arac/kalite-borcu.json` |
-| Görsel künyeleri | `web/public/gorseller/KUNYE.md` · `web/public/santraller/KUNYE.md` |
+| Ölçüm kapsamı tabanı | `web/arac/olcum-tabani.json` |
+| Görsel künyeleri | `web/public/gorseller/KUNYE.md` · `web/public/tesisler/KUNYE.md` |
 | Zorunlu UX / ürün tasarımı skill seti | `.claude/skills/` |
 
 Terim sözlüğü belgesi (`docs/TERIMLER_SOZLUGU.md`) **henüz yok**: terim
@@ -70,6 +71,64 @@ sürüm aktifleştirmez, kanıtı "yeterli" işaretlemez.
 
 **Değişiklikler PR ile gelir.** `main`'e doğrudan push yok, otomatik
 merge yok.
+
+**Gerekçe kusuru anlatır, maliyeti değil.** Bir muafiyet, beyan ya da
+"bilinçli körlük" kaydının gerekçesi, kusurun neden kusur OLMADIĞINI
+söylemelidir. Düzeltmenin neye mal olacağını anlatan bir cümle gerekçe
+değildir — ölçüldü: `Plant360` üç yerde "yakalamak dosya adlarını da
+kirli sayardı" diye muaf tutulmuştu; düzeltme yapılınca muafiyet
+buharlaştı. Tarama: `node arac/gerekce-tarama.mjs` (kapı değil, kusur
+avı — çıktısı elle sınıflandırılır).
+
+**Süresiz beyan yoktur.** Ertelenen her kırmızı, R0 kütüğüne SAHİBİ ve
+HANGİ AŞAMADA kapanacağı yazılarak geçer (`docs/GELISTIRME_PAKETLERI.md`
+§6). Sahipsiz bir erteleme üç hafta sonra sebebi bilinmeyen bir
+istisnadır.
+
+**Kırmızıyı koda yazmadan önce ölçüm ortamının tazeliğini doğrula.**
+Bayat bir `next start` süreci, dolu bir disk ya da kapatılmış bir port,
+kod kusuru gibi görünen kırmızılar üretir (üçü de ölçüldü). Sıra:
+süreçleri öldür → portun kapandığını doğrula → derle → başlat → ölç.
+Ayrıntı `web/arac/BENIOKU.md`.
+
+**Düzelttiğini iddia eden değişiklik SABOTAJLA kanıtlanır.** Bir
+kırmızıyı kapattığını söyleyen yama, geri alındığında kırmızıyı geri
+GETİRMELİDİR. Getirmiyorsa düzelttiği şey o değildi — kapı başka bir
+sebeple sustu, ya da kırmızı en baştan yanlış alarmdı. Ölçüldü: `/`
+saha ekranının 27px'lik "kaydırılamayan içerik" kırmızısı için yazılan
+`grid-template-rows` kısıtı, sabotaj turunda ETKİSİZ çıktı; asıl kusur
+kapının kendi yürüyüşündeydi (kaydıran atayı atlayıp üstündeki kırpan
+atayı suçluyordu). Sabotaj koşulmasaydı depoya, kusuru düzelttiğini
+söyleyen bir gerekçeyle birlikte ölü bir kural girecekti. Aynı ölçüt
+kapı düzeltmeleri için de geçerlidir: düzeltilmiş kapı, kusurun ESKİ
+hâlinde hâlâ kırmızı yanmalıdır — yoksa düzeltme değil, delik açtın.
+
+
+**Parti kapanış kapı kümesi = PR kapı kümesi.** Bir parti, PR'da koşan
+kapıların TAMAMI koşulmadan "kapandı" diye yazılmaz. Ölçüldü: statik
+demo derlemesi (`demo:build`) parti sonunda koşmadığı için modül döngüsü
+İKİ PARTİ boyunca kırmızı kaldı ve kusur ancak PR açılınca göründü.
+Küme elle sayılmaz, `pr-kapisi.yml`den türetilir: `npm run kapi:parti`
+(`--liste` ile koşmadan görülür). Koşulmayan kapı "geçti" yazılmaz —
+"ölçülmedi" yazılır ve kapanış kırmızıdır.
+
+**Taban indirmesi ve tavan yükseltmesi gerekçe ister — DOSYADA.** Cırcır
+bir turda iki kez zayıflatıldı; ikisi de elle yakalandı, üçüncüsü
+yakalanmayabilir. Ölçüldü: `terimTavani` 85'ten 500'e çekildiğinde bekçinin
+on bir vakası da yeşil kalıyordu. Bugün: ölçüm tabanı yalnız
+`--taban-yaz --sebep="..."` ile iner ve gerekçe `olcum-tabani.json`
+içine işlenir; tavan ölçülen sayının üstüne çıkamaz ve yükselme
+`tavanGerekceleri` altında o yükselmeyi (`eski` → `yeni`) adıyla
+anlatan bir gerekçe ister. Commit mesajı yetmez: commit mesajı dosyayı
+okuyanın önünde durmaz.
+
+**Borç kütüğünde tek karışık sayı bırakılmaz.** İzin listesinin her
+satırı KALICI (ilkesel gerekçe, sıfır beklenmiyor) ya da ERTELENMİŞ
+(hangi aşamada kapanacağı yazılı) olarak sınıflanır; erteleme kapanış
+aşaması taşımak zorundadır ("süresiz beyan yoktur"), kalıcı satır
+kapanış taşıyamaz. KALICI cırcırın kaçış kapısı olduğu için kendi alt
+küme dişini taşır: taban dalda ertelenmiş olan bir satır bu dalda
+kalıcıya sessizce terfi edemez.
 
 **Dosyayı değiştirmeden önce güncel hâlini oku.**
 
@@ -108,7 +167,7 @@ bir tesisin fotoğrafı; tesise bağlı gerçek güvenlik bulgusu koda
 
 **Görseller.** Tesis görselleri temsilîdir ve ödünç alınmaz: fotoğrafı
 olmayan tesise başka bir tesisin görseli konmaz, üretim tipleri
-birbirinin yerine geçmez (`web/public/santraller/KUNYE.md`). Giriş ve
+birbirinin yerine geçmez (`web/public/tesisler/KUNYE.md`). Giriş ve
 saha görselleri üçüncü taraf atıf yükümlülüğü taşımaz
 (`web/public/gorseller/KUNYE.md`). Kurgusal demo kiracısının kayıtları
 gerçek bir tesise bağlanmaz.
@@ -179,3 +238,11 @@ değil ölçüm: **`npm run kapi:farki`** her `package.json` betiğini PR
 kapısında gerçekten koşanla karşılaştırır; koşmayan her betik
 gerekçesiyle beyan edilmiş olmalı, beyansız betik kapıyı kırmızı yakar.
 Koşulmayan kapı "geçti" diye yazılmaz — "ölçülmedi" yazılır.
+
+Sayı raporlayan her kapı bir **ölçüm tabanı** taşır
+(`web/arac/olcum-tabani.json`): cırcır borç için TAVAN tutar, taban
+kapsam için TABAN. Kusur sayısı sıfır olabilir; ölçüm sayısı olamaz —
+sıfır ölçümle "kusur yok" demek, hiçbir şeye bakmadan temiz
+raporlamaktır (ölçüldü: disk dolunca test keşfi 0 vaka döndü ve sayım
+kapısı "gerçek keşifle doğrulandı" diyerek geçti). Taban ancak ÖLÇÜMLE
+indirilir (`--taban-yaz`) ve düşüşün sebebi commit mesajına yazılır.

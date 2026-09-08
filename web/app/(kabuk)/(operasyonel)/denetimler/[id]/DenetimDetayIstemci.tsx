@@ -14,7 +14,7 @@ import { DENETIM_ASAMALARI, tarihTR } from '@/lib/sabitler';
 import { AsamaEylemleri, KapsamPaneli, TalepFormu, TalepSonucFormu } from '../Formlar';
 import {
   asamaEtiketi, asamaIndeksi, denetimImi, gunAy, kapandiMi, kimlikCumlesi,
-  KISA_ASAMA, planMetni, santralMetni, talepGecikmesi, talepImi, talepSonucu,
+  KISA_ASAMA, planMetni, tesisMetni, talepGecikmesi, talepImi, talepSonucu,
   tipEtiketi, bulguImi,
   type BulguOzeti, type D, type Kisi, type Kodlu, type Talep,
 } from '../ortak';
@@ -167,7 +167,7 @@ export default function DenetimDetayIstemci({ veri }: { veri: DetayVerisi }) {
 
         <EkranBasligi
           eyebrow={`${tipEtiketi(d.tip)} · ${d.denetleyen ?? 'denetleyen girilmedi'}`}
-          vurgu={santralMetni(d)}
+          vurgu={tesisMetni(d)}
           baslik={`— ${d.ad}`}
           metrikler={[
             {
@@ -283,7 +283,7 @@ export default function DenetimDetayIstemci({ veri }: { veri: DetayVerisi }) {
                     { etiket: 'Plan', deger: plan.metin, durum: plan.durum },
                     {
                       etiket: 'Kapsam',
-                      deger: `${santralMetni(d)}${d.maddeSayisi > 0 ? ` · ${d.maddeSayisi} madde` : ''}`,
+                      deger: `${tesisMetni(d)}${d.maddeSayisi > 0 ? ` · ${d.maddeSayisi} madde` : ''}`,
                     },
                     { etiket: 'Çerçeve', deger: d.surec ? `${d.surec.regKod} · ${d.surec.kod}` : 'bağ yok' },
                     {

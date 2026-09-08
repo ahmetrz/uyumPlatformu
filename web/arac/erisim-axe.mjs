@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { sebepBayragi, tabanDogrula, tabanYaz } from './olcum-tabani.mjs';
 /* axe-core kapısı — WCAG 2.x A/AA ihlal listesi, tüm rotalarda.
 
    ── NİÇİN VAR ─────────────────────────────────────────────────────────
@@ -291,6 +292,25 @@ if (kuralSayaci.size > 0) {
     console.log(`  ${k.bant.padEnd(20)} ${k.id.padEnd(34)} ${k.impact.padEnd(9)}`
       + ` ${String(k.rota).padStart(3)} rota · ${String(k.dugum).padStart(4)} düğüm · örnek: ${k.ornek}`);
   }
+}
+
+
+/* ── ÖLÇÜM KAPSAMI TABANI ─────────────────────────────────────────────
+   Cırcır BORÇ için tavan tutar; bu taban KAPSAM için taban tutar. Kusur
+   sayısı sıfır olabilir; ÖLÇÜM sayısı olamaz — sıfır ölçümle "kusur yok"
+   demek, hiçbir şeye bakmadan temiz raporlamaktır
+   (`arac/olcum-tabani.mjs` başlığındaki ölçülmüş olay). Taban ÖNCE
+   bakılır: geçersiz bir ölçümün borç kararı da geçersizdir. */
+if (process.argv.includes('--taban-yaz')) {
+  const { onceki, yeni } = tabanYaz('axe.tarama', rapor.length, { sebep: sebepBayragi(process.argv) });
+  console.log(`taban güncellendi: axe.tarama ${onceki ?? '(yok)'} → ${yeni}`);
+  process.exit(0);
+}
+try {
+  tabanDogrula('axe.tarama', rapor.length);
+} catch (e) {
+  console.error(`\n${e.message}`);
+  process.exit(1);
 }
 
 console.log(`\naxe (${ETIKETLER.join(', ')}): ${BANTLAR.length} bant × ${rapor.length / BANTLAR.length} rota`

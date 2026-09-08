@@ -12,7 +12,7 @@ import {
   BOS_SAYIM, degerlendirmeCumlesi, degerlendirmeImi, degerlendirmeSirasi,
   degerlendirmeSozu, denetimMetni, gecikti, kanitMetni, kanitYok,
   kisaKod as surecKisaKod,
-  santralMetni, sayimla, sayimTopla, surecImi, takipte,
+  tesisMetni, sayimla, sayimTopla, surecImi, takipte,
   type Degerlendirme, type S,
 } from '@/app/(kabuk)/(operasyonel)/surecler/ortak';
 
@@ -145,9 +145,10 @@ describe('denetim hücresi', () => {
   });
 
   it('kapsam metni tesis sayısını, boş kapsamı ayrı söyler', () => {
-    expect(santralMetni(surec())).toBe('Saha A-3 JES');
-    expect(santralMetni(surec({ tesisler: [] }))).toBe('kapsam boş');
-    expect(santralMetni(surec({ tesisler: [TESIS, { ...TESIS, id: 't2' }] }))).toBe('2 santral');
+    expect(tesisMetni(surec())).toBe('Saha A-3 JES');
+    expect(tesisMetni(surec({ tesisler: [] }))).toBe('kapsam boş');
+    /* Terim ÇAĞIRANDAN gelir; sözlüksüz çağrı çekirdek sözcüğü yazar. */
+    expect(tesisMetni(surec({ tesisler: [TESIS, { ...TESIS, id: 't2' }] }))).toBe('2 tesis');
   });
 });
 

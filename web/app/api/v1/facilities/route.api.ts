@@ -4,7 +4,7 @@
    girmez - statik disa aktarim yalnizca GET + dynamic='force-static'
    kaldirir, bizimkiler Request'e bagli ve POST kabul ediyor. */
 
-export { GET } from '@/lib/api/uclar/santraller';
+export { GET } from '@/lib/api/uclar/tesisler';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';

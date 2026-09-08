@@ -53,7 +53,7 @@ export async function yedekParcaKaydet(girdi: {
     });
     if (!kapi.ok) return { ok: false, hata: kapi.sebep };
 
-    /* Depoya bağlı parça o santralin kapsamına tabidir; merkezî depo
+    /* Depoya bağlı parça o tesisin kapsamına tabidir; merkezî depo
        (tesisId null) kapsamsız yazma izni ister. */
     kapsamZorunlu(k, 'envanter', 'yazma',
       v.tesisId ? { tesisId: v.tesisId } : {},

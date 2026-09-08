@@ -43,7 +43,7 @@ import type {
 /** Bağlı olmayan adaptörlerde çalıştırılamayan kontroller. */
 const BAGLANTI_GEREKTIREN: KontrolKodu[] = [
   'payload_ayristirici', 'normalize_dogru', 'bilinmeyen_yanlis_degil',
-  'yinelenen_tespiti', 'idempotency', 'santral_kapsami', 'bozuk_reddi',
+  'yinelenen_tespiti', 'idempotency', 'tesis_kapsami', 'bozuk_reddi',
   'kismi_basarisizlik', 'retry_backoff', 'koken_eksiksiz',
 ];
 
@@ -189,7 +189,7 @@ describe('manual_import: gerçekten koşan tek adaptör', () => {
   });
 
   it('çekirdek kontrolleri (idempotency, kapsam, kısmî hata, retry) geçti', () => {
-    for (const kod of ['idempotency', 'santral_kapsami', 'kismi_basarisizlik',
+    for (const kod of ['idempotency', 'tesis_kapsami', 'kismi_basarisizlik',
       'retry_backoff'] as KontrolKodu[]) {
       expect(`${kod}=${durum(TIP, kod)}`).toBe(`${kod}=gecti`);
     }
@@ -342,7 +342,7 @@ describe('Harness kusurları yakalıyor mu (mutasyon sınaması)', () => {
       normalize: (h, b) => gercek.normalize(h, b).map((g) => ({ ...g, tesisKodu: null })),
     });
     const r = await sertifikaKos(bozuk, { fikstur: temelFikstur() });
-    const k = r.kontroller.find((x) => x.kod === 'santral_kapsami')!;
+    const k = r.kontroller.find((x) => x.kod === 'tesis_kapsami')!;
     expect(k.durum).toBe('kaldi');
     expect(k.gerekce).toContain('kapsam denetimi kör kalır');
   });

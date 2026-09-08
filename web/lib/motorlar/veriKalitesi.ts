@@ -15,7 +15,7 @@ import { ayarlar } from '../yapilandirma/oku';
    - kokensiz_dogrulama       → köken 'dogrulandi' ama koşu bağlamı yok
    - bayat_koken              → otomatik kaynak beslemeyi kesmiş
    - cakisan_kaynak_kaydi     → tek kaynak kaydı İKİ ayrı varlığa yazılmış
-   - kapsamsiz_kesif          → keşif kaydının santrali çözülememiş
+   - kapsamsiz_kesif          → keşif kaydının tesisi çözülememiş
    - sahipsiz_gorulen_varlik  → ağda görülen varlığın envanterde sahibi yok
    - bekleyen_kesif_yigilmasi → insan inceleme kuyruğu tıkanmış
 
@@ -184,9 +184,9 @@ export async function veriKalitesiniIsle(): Promise<{ islenen: number; uretilen:
     });
   }
 
-  /* B4 — Keşif kaydının santrali çözülememiş.
+  /* B4 — Keşif kaydının tesisi çözülememiş.
 
-     Santrali bilinmeyen kayıt, kapsam süzgecinden geçemez: hangi
+     Tesisi bilinmeyen kayıt, kapsam süzgecinden geçemez: hangi
      kullanıcının görmeye yetkili olduğu belirsizdir. Sessizce kuyrukta
      bırakmak, onu görünmez ama silinmemiş bir kayda çevirir. */
   const kapsamsiz = await db.kesifKaydi.findMany({
@@ -197,7 +197,7 @@ export async function veriKalitesiniIsle(): Promise<{ islenen: number; uretilen:
   for (const k of kapsamsiz)
     ihlaller.push({
       kural: 'kapsamsiz_kesif', kaynakTipi: 'KesifKaydi', kaynakId: k.id,
-      aciklama: `'${k.kaynak}' kaynağından gelen ${k.kaynakKayitId} kaydının santrali `
+      aciklama: `'${k.kaynak}' kaynağından gelen ${k.kaynakKayitId} kaydının tesisi `
         + 'çözülemedi — kapsam süzgecinden geçemez, kimse göremez.',
     });
 

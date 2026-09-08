@@ -31,7 +31,7 @@ export const SOZLESME_SURUMU = '1.0.0';
 
 /** Ucun HTTP yolu ve yöntemi — `app/api/v1/` ile birebir. */
 export const UC_YOLU: Record<UcKimligi, string> = {
-  plants: '/api/v1/plants',
+  facilities: '/api/v1/facilities',
   assets: '/api/v1/assets',
   'assets.upsert': '/api/v1/assets/upsert',
   'assets.observations': '/api/v1/assets/observations',
@@ -55,12 +55,12 @@ const GOVDE_SEMASI: Partial<Record<UcKimligi, z.ZodTypeAny>> = {
 
 /** Okuma ucunun kabul ettiği süzgeçler — uç dosyalarındaki `*Param` çağrıları. */
 const SUZGECLER: Partial<Record<UcKimligi, { ad: string; tip: string; not: string }[]>> = {
-  plants: [
+  facilities: [
     { ad: 'status', tip: 'string', not: 'aktif | kapali' },
   ],
   assets: [
-    { ad: 'plantId', tip: 'string', not: 'santral kimliği — kapsam dışıysa 403' },
-    { ad: 'plantCode', tip: 'string', not: 'santral kodu' },
+    { ad: 'facilityId', tip: 'string', not: 'tesis kimliği — kapsam dışıysa 403' },
+    { ad: 'facilityCode', tip: 'string', not: 'tesis kodu' },
     { ad: 'typeCode', tip: 'string', not: 'varlık türü kodu' },
     { ad: 'criticality', tip: 'string', not: 'dusuk | orta | yuksek | kritik | bilinmiyor' },
     { ad: 'lifecycle', tip: 'string', not: 'planlandi | aktif | bakim | emekli | imha' },
@@ -68,7 +68,7 @@ const SUZGECLER: Partial<Record<UcKimligi, { ad: string; tip: string; not: strin
   ],
   evidence: [
     { ad: 'type', tip: 'string', not: 'kanıt tipi' },
-    { ad: 'plantId', tip: 'string', not: 'santral kimliği' },
+    { ad: 'facilityId', tip: 'string', not: 'tesis kimliği' },
     { ad: 'collectedSince', tip: 'string', not: 'ISO 8601 zaman damgası' },
   ],
   'integration-runs': [
@@ -121,7 +121,7 @@ const ORTAK_HATALAR: Record<string, unknown> = {
   401: { description: 'Kimlik yok, geçersiz, süresi dolmuş ya da iptal edilmiş' },
   403: {
     description: 'Anahtarın kapsamında bu uç yok, salt okunur anahtarla yazma '
-      + 'denendi, ya da istenen santral kapsam dışı',
+      + 'denendi, ya da istenen tesis kapsam dışı',
   },
   429: { description: 'İstek sınırı aşıldı — `Retry-After` başlığına bakın' },
   500: { description: 'Beklenmeyen sunucu hatası (iç ayrıntı gövdeye girmez)' },

@@ -168,7 +168,7 @@ export default async function Sayfa() {
   /* Temel durumu KAPSAM BAŞINA DEĞİL toplu okunur. Eskiden şerit her
      kapsam için ayrı bir temel-durumu sorgusu koşuyordu: dört sorgu, biri de temelin
      BÜTÜN gözlemlerini yükleyen `temelAnlik()`. Şerit bu gözlemlerden tek
-     birini bile çizmez; yirmi santralde bu seksen sorgu ve yirmi tam
+     birini bile çizmez; yirmi tesiste bu seksen sorgu ve yirmi tam
      topoloji okuması ederdi. Örnek veride anlık tablosu boş olduğu için
      eski kısayol maliyeti gizliyordu — gerçek gözlem akmaya başladığı gün
      görünür olurdu. */

@@ -7,6 +7,7 @@ import { useEylem } from '@/components/useEylem';
 import { agSegmentiKaydet } from '@/lib/eylemler2/varlikDurusu';
 import { adresSayisi, subnetCozumle } from '@/lib/alan/ag';
 import type { BolgeSatiri, SegmentSatiri } from './mantik';
+import { useTerim } from '@/lib/dil/SozlukSaglayici';
 
 /* ═══ OT-11 · Adresleme segmentleri ════════════════════════════════════
 
@@ -221,6 +222,7 @@ export function SegmentGorunumu({ segmentler, bolgeler, yazabilir, secili, sec }
 export function SegmentCekmecesi({ segment, bolgeler, kapat }: {
   segment: SegmentSatiri; bolgeler: BolgeSatiri[]; kapat: () => void;
 }) {
+  const { t: terim, tBas } = useTerim();
   const [duzenle, setDuzenle] = useState<Form | null>(null);
   const adres = adresSayisi(segment.cidr);
 
@@ -254,7 +256,7 @@ export function SegmentCekmecesi({ segment, bolgeler, kapat }: {
           },
           { etiket: 'Bölge', deger: segment.bolgeKodu },
           {
-            etiket: 'Santral', deger: segment.tesisKodu ?? 'tesissiz',
+            etiket: tBas('tesis'), deger: segment.tesisKodu ?? `${terim('tesis')} bağı yok`,
             durum: segment.tesisKodu ? undefined : 'unk',
           },
           {

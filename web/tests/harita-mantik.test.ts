@@ -28,6 +28,8 @@ function santral(ek: Partial<PortfoySatiri> & { id: string }): PortfoySatiri {
     enlem: null, boylam: null,
     konumKaynagi: null, konumDogrulandi: false,
     uyumYuzde: 80, bilinmeyenOran: 0, acikBulgu: 0, acikRisk: 0,
+    /* Sektör BİLİNMİYOR: bu mantık sektöre bakmaz, süzme merceğin işi. */
+    sektorId: null,
     ...ek,
   };
 }

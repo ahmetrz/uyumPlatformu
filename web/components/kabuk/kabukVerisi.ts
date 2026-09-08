@@ -7,7 +7,7 @@ import { birlesikKapsam } from '@/app/kapsam';
 import { durumAyagiVerisi } from '@/components/kabuk/durumAyagiVerisi';
 import { DEMO } from '@/lib/demo';
 import { MARKA_AD } from '@/lib/marka';
-import { kapsamAnahtari, kapsamSozlugu } from '@/lib/dil/sozlukOku';
+import { kapsamAnahtari, kapsamSektorleri, kapsamSozlugu } from '@/lib/dil/sozlukOku';
 import paket from '../../package.json';
 import type { KabukVerisi } from './Kabuk';
 
@@ -48,7 +48,7 @@ export async function kabukVerisi(): Promise<KabukVerisi> {
      dilinden gelir. Kapsamda birden çok sektör varsa `null` iner ve
      çekirdek sözcük yazılır — birini seçmek öbür yarısı için yalan
      olurdu (`lib/dil/sozlukOku.ts`). */
-  const [ayak, grup, tesisler, okunmamis, sozluk] = await Promise.all([
+  const [ayak, grup, tesisler, okunmamis, sozluk, sektorler] = await Promise.all([
     durumAyagiVerisi(k).catch(() => null),
     db.grup.findFirst({ select: { ad: true } }).catch(() => null),
     db.tesis.findMany({
@@ -65,6 +65,10 @@ export async function kabukVerisi(): Promise<KabukVerisi> {
     k ? db.bildirim.count({ where: { kullaniciId: k.id, okundu: null } }).catch(() => 0)
       : Promise.resolve(0),
     kapsamSozlugu(kapsamAnahtari(kapsam)).catch(() => null),
+    /* Kapsamda geçen sektörler — merceğin seçenekleri. Sunucunun
+       `sozluk` kararını EZMEZ, yanına konur: mercek seçilmemişken
+       davranış aynen eskisi gibidir. */
+    kapsamSektorleri(kapsamAnahtari(kapsam)).catch(() => []),
   ]);
   const tesisSayisi = tesisler.length;
   /* Tüzel kişi de aynı kapsamdan türer: kapsamdaki tesislerin bağlı
@@ -98,6 +102,7 @@ export async function kabukVerisi(): Promise<KabukVerisi> {
     /* Ayak künyesi: sürüm package.json'dan OKUNUR (elle yazılmış sürüm
        ilk yayında yalan söylerdi); ortam demo bayrağı + NODE_ENV'den. */
     sozluk,
+    sektorler,
     surum: paket.version,
     kunye: await ayar<string>('kabuk.kunye').catch(() => MARKA_AD),
     ortam: DEMO ? 'demo' : process.env.NODE_ENV === 'production' ? 'uretim' : 'gelistirme',

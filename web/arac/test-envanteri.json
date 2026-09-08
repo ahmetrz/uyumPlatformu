@@ -1,7 +1,7 @@
 {
-  "imza": "06a9a1efc48e5b79054c93e14be48c48",
+  "imza": "941bc4b380322dc0160a505072c4017f",
   "dosya": 163,
-  "vaka": 3227,
+  "vaka": 3228,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -309,7 +309,7 @@
       "atlanan": 0
     },
     "tests/kapsam-ekranlari.test.ts": {
-      "vaka": 47,
+      "vaka": 48,
       "atlanan": 0
     },
     "tests/kapsam-kapisi-nobetci.test.ts": {

@@ -79,9 +79,19 @@ export function birimliOzellik(
     `null` dönüşü çağıranın kendi "—" ya da "ölçülmedi" sözcüğünü
     seçmesi içindir; buradan bir yer tutucu dönmek, ölçülmemiş değeri
     ekranda ölçülmüş gibi gösterme riskini araca taşırdı. */
+const SAYI = new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 2 });
+
 export function olculenYazi(o: { deger: number | null; birim: string | null }): string | null {
   if (o.deger === null) return null;
-  return o.birim ? `${o.deger} ${o.birim}` : `${o.deger}`;
+  /* Sayı TÜRKÇE biçimlenir: binlik ayracı nokta, ondalık virgül. Ölçüldü
+     (8 Eyl 2026): su portföyü toplamı ekranda `342700 m³/gün` diye
+     çıkıyordu — okunabilir bir büyüklük değil, bir rakam dizisi. Enerji
+     tarafında sayılar üç haneli olduğu için kusur görünmüyordu; ikinci
+     sektör onu görünür yaptı. Biçimleme BURADA yapılır çünkü "ölçülen
+     değerin ekran yazısı" tek kaynaktır; her çağıranda tekrarlansaydı
+     biri unutulurdu. */
+  const s = SAYI.format(o.deger);
+  return o.birim ? `${s} ${o.birim}` : s;
 }
 
 /** Metin özniteliği; satır yoksa `null`. */

@@ -50,6 +50,9 @@ export const ENERJI_SOZLUGU: SozlukSatiri[] = [
   { anahtar: 'tesis360', tekil: 'Santral 360', cogul: 'Santral 360',
     iyelik: 'Santral 360', belirtme: 'Santral 360',
     bulunma: 'Santral 360', yonelme: 'Santral 360' },
+  { anahtar: 'kapasite', tekil: 'kurulu güç', cogul: 'kurulu güçler',
+    iyelik: 'kurulu gücün', belirtme: 'kurulu gücü',
+    bulunma: 'kurulu güçte', yonelme: 'kurulu güce' },
 ];
 
 /** `SEKTOR-SU-ARITMA` — ikinci sözlük İSKELETİ. Yalnız bugüne kadar
@@ -67,4 +70,9 @@ export const SU_SOZLUGU: SozlukSatiri[] = [
   { anahtar: 'tesis360', tekil: 'Arıtma Tesisi 360', cogul: 'Arıtma Tesisi 360',
     iyelik: 'Arıtma Tesisi 360', belirtme: 'Arıtma Tesisi 360',
     bulunma: 'Arıtma Tesisi 360', yonelme: 'Arıtma Tesisi 360' },
+  /* Aynı çekirdek anahtar, bambaşka bir büyüklük: enerjide güç (MW),
+     burada debi (m³/gün). Ekran ikisini de "kapasite" diye bilir. */
+  { anahtar: 'kapasite', tekil: 'günlük debi', cogul: 'günlük debiler',
+    iyelik: 'günlük debinin', belirtme: 'günlük debiyi',
+    bulunma: 'günlük debide', yonelme: 'günlük debiye' },
 ];

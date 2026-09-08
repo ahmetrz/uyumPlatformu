@@ -1,7 +1,8 @@
 'use client';
 import Link from 'next/link';
 import { KIRACI_AD, MARKA_AD } from '@/lib/marka';
-import { SozlukSaglayici } from '@/lib/dil/SozlukSaglayici';
+import { SozlukSaglayici, type SektorSecenegi } from '@/lib/dil/SozlukSaglayici';
+import SektorMercegi from './SektorMercegi';
 import { t, type Sozluk } from '@/lib/dil/terimler';
 import { usePathname } from 'next/navigation';
 import { useMemo, type ReactNode } from 'react';
@@ -63,6 +64,8 @@ export type KabukVerisi = {
       çekirdek sözcük. Kabuğun altındaki her istemci bileşen buna
       `useTerim()` ile erişir (`lib/dil/SozlukSaglayici.tsx`). */
   sozluk: Sozluk | null;
+  /** Kapsamda geçen sektörler; ikiden azsa mercek çizilmez. */
+  sektorler: SektorSecenegi[];
 };
 
 const TARIH = new Intl.DateTimeFormat('tr-TR', {
@@ -88,7 +91,7 @@ export default function Kabuk({ veri, children }: { veri: KabukVerisi; children:
     /* Sözlük kabuğun KÖKÜNDE verilir: altındaki her istemci bileşen —
        ekranların kendileri dâhil — `useTerim()` ile aynı sözcüğü okur ve
        hiçbir katman prop taşımak zorunda kalmaz. */
-    <SozlukSaglayici sozluk={veri.sozluk}>
+    <SozlukSaglayici sozluk={veri.sozluk} sektorler={veri.sektorler}>
     <div className="ab" data-yogunluk={yogunluk}>
       {/* İÇERİĞE ATLA — belgenin İLK odaklanabilir öğesi. Görünmez; klavye
           odağı gelince görünür (`.ab-atla`). Hedef `#icerik` sarmalayıcısı
@@ -108,6 +111,10 @@ export default function Kabuk({ veri, children }: { veri: KabukVerisi; children:
           ))}
         </nav>
         <div className="sag">
+          {/* Mercek yardımcı bir eylem DEĞİL bağlam kontrolüdür: "neye
+              bakıyorum" sorusunu cevaplar, o yüzden arama ve bildirimden
+              ÖNCE, kendi ayırıcısıyla durur. */}
+          <SektorMercegi />
           <AramaDugmesi />
           {veri.kullanici && <BildirimBagi n={veri.okunmamis} patika={patika} />}
           {veri.kullanici && <HesapMenusu kullanici={veri.kullanici} patika={patika} />}

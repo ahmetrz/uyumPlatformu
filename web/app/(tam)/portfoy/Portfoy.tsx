@@ -1,5 +1,5 @@
 'use client';
-import { useTerim } from '@/lib/dil/SozlukSaglayici';
+import { useSektorSecimi, useTerim } from '@/lib/dil/SozlukSaglayici';
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { heroGorseli, kucukGorsel, gorselAlt } from '@/lib/gorsel';
@@ -37,12 +37,46 @@ export type { PortfoySatiri } from './mantik';
    yalnız durumu tutar ve sonucu çizer. En zayıf tesis SÖZCÜKLE
    işaretlenir ("en zayıf · 4 açık bulgu"), yalnız kenarlık rengiyle değil. */
 
-export default function Portfoy({ satirlar, toplamGuc, endeks, kapsamli = false }: {
+export default function Portfoy({
+  satirlar: hamSatirlar, toplamGuc: hamToplam, endeks: genelEndeks,
+  endeksSektor = {}, kapsamli = false,
+}: {
   satirlar: PortfoySatiri[];
   toplamGuc: { toplam: number | null; birim: string | null; karisikBirim: boolean };
   endeks: PortfoyEndeksi;
+  /** Sektör başına endeks; mercek uygulandığında bu kullanılır. */
+  endeksSektor?: Record<string, PortfoyEndeksi>;
   kapsamli?: boolean;
 }) {
+  /* ── SEKTÖR MERCEĞİ ────────────────────────────────────────────────
+     Mercek YALNIZ sözcüğü değiştirseydi ekran YALAN söylerdi: başlık
+     bir sektörün sözcükleriyle yazılırken liste ÖBÜR sektörün
+     kayıtlarını gösterir, toplam da onların biriminden okunurdu.
+     Ölçüldü (8 Eyl 2026, ekran görüntüsüyle) ve düzeltildi — mercek
+     sözcüğü de VERİYİ de kapsar.
+
+     Süzme burada, `suz()`den ÖNCE yapılır ki toplam, endeks, en zayıf
+     ve tip süzgeçleri hepsi aynı kümeden türesin. İki ayrı küme
+     üzerinden hesaplanan iki sayı aynı başlıkta yan yana durursa,
+     hangisinin neyi saydığı okunamaz. */
+  const { etkinId: mercek } = useSektorSecimi();
+  const satirlar = useMemo(
+    () => (mercek === null ? hamSatirlar : hamSatirlar.filter((s) => s.sektorId === mercek)),
+    [hamSatirlar, mercek],
+  );
+  /* Toplam da mercekten geçer: kapsam geneli toplamı daraltılmış bir
+     listenin başlığına yazmak, iki kümeyi tek cümlede birleştirmekti. */
+  const toplamGuc = useMemo(
+    () => (mercek === null ? hamToplam
+      : birimliToplam(satirlar.map((s) => ({ deger: s.guc, birim: s.gucBirim })))),
+    [mercek, hamToplam, satirlar],
+  );
+  /* Endeks sunucuda sektör başına hesaplandı: madde durumu havuzu
+     istemcide yok, ortalamayla türetilemez. Mercek altında o sektörün
+     endeksi YOKSA "ölçülmedi" gösterilir — sıfır değil. */
+  const endeks = mercek === null ? genelEndeks
+    : endeksSektor[mercek]
+      ?? { yuzde: null, bilinmeyenOran: null, degerlendirilen: 0, kapsam: 0 };
   const { t: terim, tBas } = useTerim();
   const [tip, setTip] = useState(HEPSI);
   const [tuzel, setTuzel] = useState(HEPSI);
@@ -92,7 +126,13 @@ export default function Portfoy({ satirlar, toplamGuc, endeks, kapsamli = false 
             Ekran okuyucu kullanıcısı sayfaya girdiğinde nerede olduğunu
             buradan öğrenir; başlık atlama (H) bu ekranda çalışmıyordu. */}
         <h1 className="etiket">
-          {tBas('portfoy')} · üretim · {satirlar.length} {terim('tesis')}
+          {/* "üretim" SABİTİ KALDIRILDI: bir enerji sözcüğüydü ve su
+              merceğinde "su portföyü · üretim · 8 arıtma tesisi" diye
+              yanlış okunuyordu (§0.5 — çekirdek sektör terimi taşımaz).
+              Ölçüldü ve ekran görüntüsüyle görüldü. Yerine bir şey
+              KONMADI: sözcük bilgi taşımıyordu, portföyün ne olduğunu
+              zaten `portfoy` terimi söylüyor. */}
+          {tBas('portfoy')} · {satirlar.length} {terim('tesis')}
           {toplamGucYazi && ` · ${toplamGucYazi}`}
         </h1>
         {/* Portföy endeksi: kök ekranla aynı havuz, aynı formül. Yüzde

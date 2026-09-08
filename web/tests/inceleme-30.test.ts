@@ -9,7 +9,7 @@
    ürünü ve birlikte okunmaları gerekiyor. Ayrı ayrı dağıtılsalardı
    "bir tur ne buldu" sorusu bir daha cevaplanamazdı. */
 import { describe, expect, it } from 'vitest';
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { ENERJI_SOZLUGU } from '../prisma/sozlukler';
@@ -17,7 +17,12 @@ import { kapsamKarari, sozlukKarari } from '@/lib/dil/sozlukDurumu';
 import { kuralDegerlendir } from '@/lib/motorlar/uygulanabilirlik';
 
 const KOK = process.cwd();
-const GOC = 'prisma/migrations/20260908080000_p1_sozluk_geri_dolgu/migration.sql';
+/* Geri dolgu TEK dosyada değildir ve olamaz: uygulanmış bir göç
+   değiştirilemez, yeni çekirdek anahtar yeni bir göç ister. İddia bu
+   yüzden dosyaya değil BİRLEŞİME bağlanır — "her satır bir yerde geri
+   dolduruluyor". Tek dosyaya bağlıyken ikinci göç yazıldığı an kırmızı
+   yanıyordu; kırmızının sebebi kuralın değil, iddianın kapsamıydı. */
+const GOC_DIZINI = 'prisma/migrations';
 
 /* ═══ P1 · Göç sözlüğü geri doldurmuyordu ═══════════════════════════════
    Dolu bir veritabanında `migrate deploy` sonrası `SektorSozlugu` boş
@@ -25,7 +30,14 @@ const GOC = 'prisma/migrations/20260908080000_p1_sozluk_geri_dolgu/migration.sql
    ise hiç koşmuyor. Sonuç, ürünün TEK İDDİASININ yükseltmede kaybolması —
    referans kiracı "santral" yerine çekirdek "tesis" görmeye başlıyordu. */
 describe('P1 · sözlük geri dolgusu', () => {
-  const sql = readFileSync(path.join(KOK, GOC), 'utf8');
+  /* `SektorSozlugu`ya yazan BÜTÜN göçler, dosya adına göre sıralı. */
+  const gocler = readdirSync(path.join(KOK, GOC_DIZINI))
+    .sort()
+    .map((d) => path.join(KOK, GOC_DIZINI, d, 'migration.sql'))
+    .filter((y) => existsSync(y))
+    .map((y) => readFileSync(y, 'utf8'))
+    .filter((s) => s.includes('INSERT INTO "SektorSozlugu"'));
+  const sql = gocler.join('\n');
 
   it('göç dosyası var ve SektorSozlugu\'na satır YAZIYOR', () => {
     const insertler = sql.match(/INSERT INTO "SektorSozlugu"/g) ?? [];

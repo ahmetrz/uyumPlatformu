@@ -35,6 +35,7 @@ export default async function Sayfa() {
       satirlar={veri.satirlar}
       toplamGuc={veri.toplamGuc}
       endeks={veri.endeks}
+      endeksSektor={veri.endeksSektor}
       kapsamli={veri.kapsamli}
     />
   );

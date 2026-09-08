@@ -14,6 +14,7 @@ import { dokumanKutugu } from './seed-dokuman';
 import { entegrasyonVerisi } from './seed-entegrasyon';
 import { operasyonKayitlari } from './seed-operasyon-kayitlari';
 import { dolulukKatmani } from './seed-doluluk';
+import { GUNLUK_DEBI, suSektoru } from './seed-su';
 import { KURULU_GUC } from '../lib/alan/oznitelik';
 
 const parolaUret = (parola: string) => {
@@ -73,6 +74,19 @@ async function main() {
      budur ve test tam olarak bunu ölçer. */
   await db.sektorSozlugu.createMany({
     data: ENERJI_SOZLUGU.map((r) => ({ ...r, sektorId: elektrik.id })) });
+
+  /* ---- öznitelik şeması: sektörün BİRİNCİL ÖLÇÜSÜ
+
+     Ekran artık `kuruluGuc` diye bir anahtarı adıyla BİLMEZ; sektörün
+     şemasına sorar ve etiketi sözlükten çözer. İki sektörde aynı
+     çekirdek anahtar (`kapasite`) bambaşka bir büyüklüğe bağlanır:
+     enerjide güç (MW), suda debi (m³/gün). §0.5'in istediği şey buydu. */
+  await db.sektorOznitelikSemasi.create({
+    data: {
+      sektorId: elektrik.id, anahtar: KURULU_GUC, etiketAnahtari: 'kapasite',
+      tip: 'sayi', birim: 'MW', kuraldaKullanilir: true,
+    },
+  });
 
   // ---- tesisler: Demo Enerji üretim portföyü (biri kapalı: devir örneği)
   const t = Object.fromEntries(await Promise.all(([
@@ -773,6 +787,20 @@ async function main() {
   /* Doluluk katmanı EN SONDA: kodun okuduğu ama seed'in yazmadığı
      tabloları (köken, keşif, red kuyruğu, olay etki zinciri, API kütüğü…)
      var olan kayıtlardan türetir, o yüzden hepsinden sonra gelir. */
+  /* ---- ikinci sektör: su ve atıksu (demo · sektör bağımsızlığının KANITI)
+
+     Enerji verisinin kopyası değildir: kendi tipleri, kendi ölçüsü
+     (m³/gün) ve kendi tesisleri var. Biri bilerek ölçümsüz — "bilinmeyen
+     ≠ sıfır" ekranda görünsün diye. */
+  const su = await suSektoru(db);
+  await db.sektorOznitelikSemasi.create({
+    data: {
+      sektorId: su.sektorId, anahtar: GUNLUK_DEBI, etiketAnahtari: 'kapasite',
+      tip: 'sayi', birim: 'm³/gün', kuraldaKullanilir: true,
+    },
+  });
+  console.log(`Su sektörü: ${su.tesisSayisi} tesis · sözlük ve öznitelik şeması kuruldu`);
+
   await dolulukKatmani(db);
 
   console.log('Seed tamam. Geliştirme girişi: kullanici.a@demo.local / ' + GELISTIRME_PAROLASI);

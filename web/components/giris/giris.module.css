@@ -2,8 +2,8 @@
 .runway { height: calc(var(--ekran) + var(--mesafe)); position: relative; z-index: 1; }
 .stage { position: sticky; top: 0; height: var(--ekran); overflow: hidden; background: #0a0c0d; }
 .canvas { position: absolute; inset: 0; width: 100%; height: 100%; visibility: hidden; }
-.poster, .roomPoster { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; pointer-events: none; }
-.roomPoster { visibility: hidden; }
+.poster, .roomPoster { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; pointer-events: none; will-change: width, height, left, top, opacity; backface-visibility: hidden; }
+.roomPoster { visibility: hidden; opacity: 0; }
 .shade { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(90deg, #07101de8 0%, #07101d88 27%, transparent 62%), linear-gradient(180deg, #07101d99, transparent 25%, transparent 75%, #07101dd9); opacity: var(--metin); }
 .header { position: absolute; top: 0; inset-inline: 0; display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 24px 4.5%; z-index: 2; background: linear-gradient(#07101dcc, transparent); }
 .brand { max-width: 65%; font: 500 13px/1.5 'Inter', sans-serif; letter-spacing: .04em; }
@@ -24,8 +24,6 @@
 .caption { font-size: 9px; letter-spacing: .08em; opacity: var(--metin); }
 .progress { position: absolute; bottom: 0; left: 0; height: 2px; width: var(--ilerleme); background: #e1a36b; }
 .destination { position: relative; z-index: 2; min-height: 100svh; background: #0a0c0d; outline: none; transform-origin: top left; }
-.root[data-cizim='webgl'] .canvas { visibility: visible; }
-.root[data-cizim='webgl'] .poster { visibility: hidden; }
 .root[data-cizim='fotograf'] .roomPoster { visibility: visible; }
 .root[data-mod='hareketli'] .destination { margin-top: calc(-1 * var(--ekran)); transform: translateY(calc(-1 * var(--mesafe))); visibility: hidden; }
 .root[data-metinsiz='true'] .editorial { visibility: hidden; }
@@ -58,6 +56,7 @@
   .root .runway { height: var(--ekran); }
   .root .canvas { display: none; }
   .root .poster { visibility: visible; }
+  .root .roomPoster { visibility: hidden; }
   .root .destination { margin-top: 0; transform: none; clip-path: none; visibility: visible; }
 }
 @media print {

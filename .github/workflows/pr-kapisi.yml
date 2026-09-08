@@ -191,7 +191,23 @@ jobs:
           KALITE_TABAN_DAL: ${{ github.event.pull_request.base.sha }}
         run: node arac/erisim-axe.mjs
 
-      # Statik demo derlemesi `.next`'i devralır; sunucu önce durmalı.
+      # NEDEN BURADA: bu bir TEMİZLİKTİR, demo derlemesinin ÖN KOŞULU
+      # değil. Bu yorum bir zamanlar "statik demo derlemesi `.next`'i
+      # devralır; sunucu önce durmalı" diyordu — ÖLÇÜLDÜ ve YANLIŞ çıktı
+      # (8 Eyl 2026). `demo:build` sunucu 3210'da AYAKTAYKEN geçti
+      # (çıkış 0), sunucu derlemeden sağ çıktı, 731 dosyalık çıktı
+      # eksiksizdi. Dört koşum karşılaştırıldı (biri sunucuyla, ÜÇÜ
+      # sunucusuz): her çiftte 592/731 dosya derleme kimliği yüzünden,
+      # 2-4 dosya da zamana bağlı içerik yüzünden (`new Date()` kullanan
+      # dört ekran) değişiyor — ve bu değişimin TAMAMI sunucusuz kontrol
+      # çiftlerinde de üretiliyor. Sunucuya ÖZGÜ tek bir fark yok.
+      # Linux'ta `next build` tutulan `.next` inode'unun üstüne yazar;
+      # ortada bir "devralma" çakışması yoktu.
+      #
+      # Adımın GERÇEK sebebi şudur: ayakta bırakılan sunucu bir sonraki
+      # ÖLÇÜMÜ kirletir — bayat `next start`, arac/BENIOKU.md → ORTAM
+      # TAZELİĞİ'nin 1. tuzağı. Aşağıdaki kusur tam olarak bunu yaşattı,
+      # yani sebep gerçek; yalnız gerekçesi yanlış yazılmıştı.
       # SÜREÇ ADIYLA ÖLDÜRME — ÖLÇÜLDÜ VE İŞLEMEDİ. Bu adım bir zamanlar
       # `pkill -f 'next start' || true` idi ve HİÇBİR ŞEYİ öldürmüyordu:
       # `next start` açılıştan sonra süreç adını `next-server (vX.Y.Z)`

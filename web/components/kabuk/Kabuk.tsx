@@ -66,6 +66,8 @@ export type KabukVerisi = {
   sozluk: Sozluk | null;
   /** Kapsamda geçen sektörler; ikiden azsa mercek çizilmez. */
   sektorler: SektorSecenegi[];
+  /** Tesis → sektör eşlemesi; kayıt listeleri mercekle bunu süzer. */
+  tesisSektoru: Record<string, string>;
 };
 
 const TARIH = new Intl.DateTimeFormat('tr-TR', {
@@ -91,7 +93,8 @@ export default function Kabuk({ veri, children }: { veri: KabukVerisi; children:
     /* Sözlük kabuğun KÖKÜNDE verilir: altındaki her istemci bileşen —
        ekranların kendileri dâhil — `useTerim()` ile aynı sözcüğü okur ve
        hiçbir katman prop taşımak zorunda kalmaz. */
-    <SozlukSaglayici sozluk={veri.sozluk} sektorler={veri.sektorler}>
+    <SozlukSaglayici sozluk={veri.sozluk} sektorler={veri.sektorler}
+      tesisSektoru={veri.tesisSektoru}>
     <div className="ab" data-yogunluk={yogunluk}>
       {/* İÇERİĞE ATLA — belgenin İLK odaklanabilir öğesi. Görünmez; klavye
           odağı gelince görünür (`.ab-atla`). Hedef `#icerik` sarmalayıcısı
@@ -128,11 +131,14 @@ export default function Kabuk({ veri, children }: { veri: KabukVerisi; children:
             </Link>
           ))}
         </nav>
+        {/* Mercek yardımcı bir eylem DEĞİL bağlam kontrolüdür ("neye
+            bakıyorum") ve üst çubuğun DOĞRUDAN çocuğudur — yardımcı
+            kümenin (`.sag`) içinde değil. Ölçüldü (8 Eyl 2026): içinde
+            durduğunda dar bant sıralaması (`order`) `.sag`ın içine
+            hapsoluyordu ve mercek gezinmeden önce yerleştirilemiyordu;
+            oysa öncelik sırası marka → mercek → gezinme → hesaptır. */}
+        <SektorMercegi />
         <div className="sag">
-          {/* Mercek yardımcı bir eylem DEĞİL bağlam kontrolüdür: "neye
-              bakıyorum" sorusunu cevaplar, o yüzden arama ve bildirimden
-              ÖNCE, kendi ayırıcısıyla durur. */}
-          <SektorMercegi />
           <AramaDugmesi />
           {veri.kullanici && <BildirimBagi n={veri.okunmamis} patika={patika} />}
           {veri.kullanici && <HesapMenusu kullanici={veri.kullanici} patika={patika} />}

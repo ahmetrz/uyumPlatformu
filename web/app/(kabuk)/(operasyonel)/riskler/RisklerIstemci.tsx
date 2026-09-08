@@ -1,5 +1,5 @@
 'use client';
-import { useSozluk, useTerim } from '@/lib/dil/SozlukSaglayici';
+import { useSektorSecimi, useSozluk, useTerim } from '@/lib/dil/SozlukSaglayici';
 import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useUrlDurumu, useUrlDurumuBos } from '@/components/kabuk/urlDurumu';
@@ -110,7 +110,13 @@ export default function RisklerIstemci({
      süzgeci uygulanmamış küme. Harita bu kümeden sayılır ki bir hücreye
      tıklayınca diğer hücrelerin sayıları sıfırlanmasın — okuyucu haritada
      gezinirken bağlamı kaybetmez. */
+  /* Sektör merceği: kayıt listeleri de mercekten geçer. Yalnız sözcüğü
+     değiştirip listeyi bırakmak, su merceğinde enerji kayıtları
+     göstermek olurdu — portföyde ölçülüp düzeltilen kusurun aynısı.
+     Yüklem `SozlukSaglayici`da TEK NÜSHADIR. */
+  const { gorunur: sektordeGorunur } = useSektorSecimi();
   const haritaTabani = useMemo(() => riskler.filter((r) => {
+    if (!sektordeGorunur(r.tesis?.id)) return false;
     if (filtre === 'aktif' && !aktifMi(r)) return false;
     if (filtre === 'kritik' && !(aktifMi(r) && r.artikRisk !== null && r.artikRisk >= 15)) return false;
     if (filtre === 'ot' && !(aktifMi(r) && r.ot)) return false;
@@ -119,7 +125,7 @@ export default function RisklerIstemci({
     if (tesisF && r.tesis?.id !== tesisF) return false;
     if (sahipF === 'yok' ? !!r.sahip : sahipF !== null && r.sahip?.id !== sahipF) return false;
     return true;
-  }), [riskler, filtre, tesisF, sahipF]);
+  }), [riskler, filtre, tesisF, sahipF, sektordeGorunur]);
   const harita = useMemo(() => isiHaritasi(haritaTabani), [haritaTabani]);
   const taban = useMemo(
     () => (hucre ? haritaTabani.filter((r) => hucredeMi(r, hucre)) : haritaTabani),

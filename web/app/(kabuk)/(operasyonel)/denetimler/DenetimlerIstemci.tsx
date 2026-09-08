@@ -1,5 +1,5 @@
 'use client';
-import { useSozluk, useTerim } from '@/lib/dil/SozlukSaglayici';
+import { useSektorSecimi, useSozluk, useTerim } from '@/lib/dil/SozlukSaglayici';
 import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useUrlDurumu, useUrlDurumuBos, useUrlSira } from '@/components/kabuk/urlDurumu';
@@ -95,7 +95,13 @@ export default function DenetimlerIstemci({
   const takvimsiz = yuruyen.filter((k) => k.im === 'unk').length;
 
   /* ── mercek + kapsam ───────────────────────────────────────────────── */
+  const { gorunur: sektordeGorunur } = useSektorSecimi();
   const suzulmus = useMemo(() => kayitlar.filter((k) => {
+    /* Denetim BİRDEN ÇOK tesis kapsayabilir: kapsamındaki tesislerden
+       biri bile mercekteyse denetim görünür. "Hepsi olmalı" deseydik
+       iki sektöre yayılan bir denetim hiçbir mercekte görünmezdi. */
+    if (k.d.tesisler.length > 0
+      && !k.d.tesisler.some((t) => sektordeGorunur(t.id))) return false;
     if (mercek === 'yuruyen' && kapandiMi(k.d)) return false;
     if (mercek === 'gecikmis' && !(k.im === 'bd' && !kapandiMi(k.d))) return false;
     if (mercek === 'kanit' && k.d.talep.acik === 0) return false;
@@ -108,7 +114,7 @@ export default function DenetimlerIstemci({
       if (!havuz.toLocaleLowerCase('tr-TR').includes(arama.toLocaleLowerCase('tr-TR'))) return false;
     }
     return true;
-  }), [kayitlar, mercek, asamaF, tipF, arama]);
+  }), [kayitlar, mercek, asamaF, tipF, arama, sektordeGorunur]);
 
   /* Takvimi kaçıran satırlar sıralamadan bağımsız üste sabitlenir (06 §A2)
      ve ASLA kuyruğa inmez; kapanmış ve zamanında ilerleyenler toplanabilir. */

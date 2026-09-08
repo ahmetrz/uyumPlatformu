@@ -40,10 +40,25 @@ type SecimBaglami = {
   secenekler: SektorSecenegi[];
   etkinId: string | null;
   sec: (id: string | null) => void;
+  /** Bir KAYIT bu mercekte görünmeli mi — tesisine göre.
+
+      TEK NÜSHA: risk, bulgu, denetim ve olay listeleri aynı kararı
+      verir; her ekran kendi yüklemini yazsaydı biri "tesissiz kayıt"
+      hâlini başka türlü ele alır ve iki ekran aynı kiracıda farklı
+      sayılar gösterirdi.
+
+      ÜÇ HÂL:
+      · mercek yok            → hepsi görünür (çekirdek görünümü)
+      · kaydın tesisi yok     → görünür; bu kayıt bir tesise değil
+                                KİRACIYA aittir (sektörü bilinmiyor
+                                değil, sektörü YOK)
+      · tesisin sektörü yok   → görünür; bilinmeyeni gizlemek onu
+                                "başka sektör" saymak olurdu */
+  gorunur: (tesisId: string | null | undefined) => boolean;
 };
 
 const SektorBaglami = createContext<SecimBaglami>({
-  secenekler: [], etkinId: null, sec: () => {},
+  secenekler: [], etkinId: null, sec: () => {}, gorunur: () => true,
 });
 
 /* Seçim tarayıcıda hatırlanır: statik demoda sert yenileme (F5) tüm React
@@ -97,11 +112,15 @@ export function mercegiSec(id: string | null): void {
   window.dispatchEvent(new Event(OLAY));
 }
 
-export function SozlukSaglayici({ sozluk, sektorler = [], children }: {
+export function SozlukSaglayici({
+  sozluk, sektorler = [], tesisSektoru = {}, children,
+}: {
   /** Kapsamdan sunucuda çözülen sözlük; çok sektörlü kapsamda `null`. */
   sozluk: Sozluk | null;
   /** Kapsamda geçen sektörler — boşsa seçici hiç çizilmez. */
   sektorler?: SektorSecenegi[];
+  /** Tesis → sektör eşlemesi; kayıt listelerinin süzgeci bunu kullanır. */
+  tesisSektoru?: Record<string, string>;
   children: ReactNode;
 }) {
   const hatirlanan = useSyncExternalStore(abone, anlikIstemci, anlikSunucu);
@@ -126,9 +145,17 @@ export function SozlukSaglayici({ sozluk, sektorler = [], children }: {
     return sektorler.find((s) => s.id === etkinId)?.sozluk ?? sozluk;
   }, [etkinId, sektorler, sozluk]);
 
+  const gorunur = useCallback((tesisId: string | null | undefined) => {
+    if (etkinId === null) return true;
+    if (!tesisId) return true;
+    const sid = tesisSektoru[tesisId];
+    if (sid === undefined) return true;
+    return sid === etkinId;
+  }, [etkinId, tesisSektoru]);
+
   const secim = useMemo(
-    () => ({ secenekler: sektorler, etkinId, sec }),
-    [sektorler, etkinId, sec],
+    () => ({ secenekler: sektorler, etkinId, sec, gorunur }),
+    [sektorler, etkinId, sec, gorunur],
   );
 
   return (

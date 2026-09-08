@@ -18,7 +18,7 @@ import {
   dogrulamaHucresi, gecikmeGunu, kalanGun, kisaTarih, surukleyenAksiyon,
   type AksiyonOzeti, type DogrulamaHucresi as DogrulamaVerisi,
 } from './mantik';
-import { useSozluk, useTerim } from '@/lib/dil/SozlukSaglayici';
+import { useSektorSecimi, useSozluk, useTerim } from '@/lib/dil/SozlukSaglayici';
 
 export type IzKaydi = {
   id: string; aktor: string; eylem: string; varlikTipi: string;
@@ -120,7 +120,11 @@ export default function BulgularIstemci({
   const kesildi = toplam > bulgular.length;
 
   /* ── mercek + kapsam ───────────────────────────────────────────────── */
+  const { gorunur: sektordeGorunur } = useSektorSecimi();
   const suzulmus = useMemo(() => satirVerisi.filter((s) => {
+    /* Sektör merceği — yüklem tek nüsha (`SozlukSaglayici`). Buradaki
+       `mercek` değişkeni EKRANIN kendi süzgeç şeridi; ikisi ayrı şey. */
+    if (!sektordeGorunur(s.b.tesisId)) return false;
     if (mercek === 'acik' && !acikMi(s.b.durum)) return false;
     if (mercek === 'gecikmis' && s.gecikme === null) return false;
     if (mercek === 'dogrulama' && !dogrulamaBekliyorMu(s.b)) return false;
@@ -132,7 +136,7 @@ export default function BulgularIstemci({
       if (!havuz.toLocaleLowerCase('tr-TR').includes(arama.toLocaleLowerCase('tr-TR'))) return false;
     }
     return true;
-  }), [satirVerisi, mercek, onemF, arama]);
+  }), [satirVerisi, mercek, onemF, arama, sektordeGorunur]);
 
   /* ── sıralama · gecikmiş satırlar sıralamadan bağımsız üste sabit ──── */
   const bolumler = useMemo(() => {

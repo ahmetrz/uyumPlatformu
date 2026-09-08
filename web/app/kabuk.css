@@ -427,8 +427,11 @@
    başlığı süs. */
 .ab-mercek {
   display: inline-flex; align-items: stretch; align-self: stretch;
-  border-left: 1px solid var(--hr); padding-left: 12px; gap: 2px;
+  margin-left: auto; border-left: 1px solid var(--hr); padding-left: 12px; gap: 2px;
 }
+/* `.sag` da `margin-left:auto` taşıyor; ikisi birlikte olduğunda boşluk
+   ikiye bölünürdü. Mercek soldaki boşluğu alır, yardımcılar sağa yapışır. */
+.ab-ust .sag { margin-left: 0; }
 .ab-mercek .etiket {
   display: inline-flex; align-items: center; padding-right: 6px;
   font-family: var(--veri); font-size: 11px; letter-spacing: .1em;
@@ -453,7 +456,7 @@
   .ab-mercek { display: none; }
   .ab-mercek-dar {
     display: inline-flex; align-items: center; align-self: center; gap: 6px;
-    border-left: 1px solid var(--hr); padding-left: 12px; margin-left: 0;
+    border-left: 1px solid var(--hr); padding-left: 12px; margin-left: auto;
   }
   .ab-mercek-dar .etiket {
     font-family: var(--veri); font-size: 10px; letter-spacing: .1em;
@@ -468,22 +471,58 @@
 /* Çok dar bantta etiket düşer, kontrol kalır. */
 @media (max-width: 1100px) { .ab-mercek-dar .etiket { display: none; } }
 
-/* ── DOKUNMATİK BANTLARDA MERCEK ÜST ÇUBUKTA DEĞİL ────────────────────
-   ÖLÇÜLDÜ (8 Eyl 2026): üst çubuk 1024px altında ZATEN taşıyor —
-   viewport 768 iken `.ab-ust` 999px, 375 iken 938px. Bu benden önce de
-   böyleydi (`.sag` kümesi bilerek hiçbir genişlikte düşmez) ve çubuk
-   kendi içinde kırpılıyordu. Mercek `.sag`ı 160px büyütünce çakışma
-   ANA GEZİNME BAĞININ üstüne düştü: gezinme kapısı `/envanter` bağına
-   dokunamadı ve KIRMIZI yandı — kapı haklıydı, örtüşen bir bağ
-   tıklanamaz.
+/* ── DAR BANT ÜST ÇUBUK YERLEŞİMİ (R0-13 · kapandı) ───────────────────
+   ÖLÇÜLDÜ (8 Eyl 2026): üst çubuk 1024px altında ZATEN taşıyordu —
+   viewport 768 iken `.ab-ust` 999px, 375 iken 938px. `.sag` kümesi
+   bilerek hiçbir genişlikte düşmüyordu ve fark gezinmeyle örtüşüyordu;
+   sektör merceği eklenince örtüşme ana gezinme bağının ÜSTÜNE düştü ve
+   gezinme kapısı kırmızı yandı. İlk çözüm merceği 1024 altında
+   gizlemekti — yama, çözüm değil: ürünün tek farklılaştırıcısının
+   kaybolduğu bir bant olamaz.
 
-   Mercek bu bantlarda gizlenir ama SEÇİM KAYBOLMAZ: `localStorage`da
-   durur, yani telefonda açılan bir demo, masaüstünde seçilmiş merceği
-   aynen gösterir. Gizlemenin bedeli yazılı: dokunmatik bantta mercek
-   DEĞİŞTİRİLEMEZ. Bu bir kör noktadır ve R0'a yazıldı (R0-13); doğru
-   çözüm üst çubuğun dar bant yerleşimini yeniden ele almaktır, mercek
-   için tek seferlik bir yama değil. */
-@media (max-width: 1024px) { .ab-mercek-dar { display: none; } }
+   ÖNCELİK SIRASI (yer daraldıkça sırayla feda edilir):
+     1. marka       — neredeyim
+     2. mercek      — hangi sektöre bakıyorum (ürünün ayırt edici yeteneği)
+     3. gezinme     — nereye gidebilirim
+     4. hesap       — kimim
+
+   YERLEŞİM: tek satır yerine SARAN iki satır. Üst satır marka + mercek +
+   yardımcılar, alt satır gezinme (yatay kaydırılabilir). Hiçbir öğe
+   GİZLENMEZ — gezinme kaydırılır, marka ve hesap daralır. Kaydırılabilen
+   içerik kayıp sayılmaz (`tests/kirpan-ata.test.ts` ile aynı ölçüt);
+   kırpılan içerik sayılır. */
+@media (max-width: 1024px) {
+  /* İLK SATIR SABİT DEĞİL. Kabuk ızgarası üst çubuğu 56px'e sabitliyor;
+     saran gezinme ikinci satıra inince fark ızgaranın dışına taşıyor ve
+     ikincil sıranın bağlarının ÜSTÜNE biniyordu. ÖLÇÜLDÜ: taşma kapısı
+     768px'te 168 yeni "örtüşen içerik" bulgusu saydı — iki tıklanabilir
+     bağ üst üste, ikisi de okunmuyor. Satır `auto` olunca çubuk kendi
+     yüksekliğini bildirir. */
+  .ab { grid-template-rows: auto auto auto minmax(0, 1fr) auto auto; }
+  .ab-ust { flex-wrap: wrap; align-items: center; }
+  .ab-ust .marka { order: 1; padding: 0 14px; border-right: 0; }
+  /* Markanın ikinci satırı (ürün adı) dar bantta düşer: kurulum adı
+     kimliği zaten taşıyor, ürün adı ayakta ve sekme başlığında da var. */
+  .ab-ust .marka .ikinci { display: none; }
+  .ab-mercek-dar { order: 2; border-left: 0; padding-left: 0; }
+  .ab-ust .sag { order: 3; margin-left: auto; padding-left: 0; }
+  /* Gezinme kendi satırına iner ve KAYDIRILIR: rota gizlemek, o rotaya
+     dokunmatik erişimi tamamen kapatmak olurdu. */
+  .ab-ust > nav {
+    order: 4; flex-basis: 100%; overflow-x: auto; scrollbar-width: none;
+    border-top: 1px solid var(--hr);
+  }
+  .ab-ust > nav::-webkit-scrollbar { display: none; }
+  .ab-ust > nav a { padding: 0 14px; min-height: 40px; }
+}
+
+/* Telefon: yardımcı kümede ad düşer, dokunma hedefi korunur (WCAG 2.2
+   24px). Mercek KALIR — öncelik sırası gereği hesaptan öncedir. */
+@media (max-width: 620px) {
+  .ab-hesap-dugme .kisi { display: none; }
+  .ab-mercek-dar select { max-width: 118px; }
+  .ab-ust .marka { font-size: 15px; padding: 0 10px; }
+}
 
 .ab-ust .bildirim {
   display: inline-flex; align-items: center; align-self: stretch; padding: 0 14px;

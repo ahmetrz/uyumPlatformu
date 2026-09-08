@@ -15,6 +15,7 @@ import { entegrasyonVerisi } from './seed-entegrasyon';
 import { operasyonKayitlari } from './seed-operasyon-kayitlari';
 import { dolulukKatmani } from './seed-doluluk';
 import { GUNLUK_DEBI, suSektoru, suUyumu } from './seed-su';
+import { suVeriSeti } from './seed-su-veri';
 import { KURULU_GUC } from '../lib/alan/oznitelik';
 
 const parolaUret = (parola: string) => {
@@ -809,6 +810,14 @@ async function main() {
   const suUyum = await suUyumu(db);
   console.log(`Su uyumu: ${suUyum.surec} süreç · ${suUyum.kapsam} tesis kapsamda`
     + ` · ${suUyum.bulgu} bulgu (CBDDÖ + ISO 27001)`);
+
+  /* Su kiracısının kalan ekranları: risk, olay, doküman, denetim, proje,
+     tedarikçi. Boş bir ekran satışta "bu modül yok" diye okunur; sektör
+     bağımsızlığı ikinci sektör de DOLU olduğunda kanıtlanır. */
+  const suVeri = await suVeriSeti(db);
+  console.log(`Su veri seti: ${suVeri.risk} risk · ${suVeri.olay} olay`
+    + ` · ${suVeri.dokuman} doküman · ${suVeri.denetim} denetim`
+    + ` · ${suVeri.proje} proje · ${suVeri.tedarikci} tedarikçi`);
 
   await dolulukKatmani(db);
 

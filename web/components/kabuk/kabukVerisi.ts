@@ -53,7 +53,11 @@ export async function kabukVerisi(): Promise<KabukVerisi> {
     db.grup.findFirst({ select: { ad: true } }).catch(() => null),
     db.tesis.findMany({
       where: { durum: 'aktif', ...(kapsam === null ? {} : { id: { in: kapsam } }) },
-      select: { tuzelKisiId: true },
+      /* `id` ve sektör de iniyor: sektör merceği kayıt listelerini
+         (risk, bulgu, denetim) tesis üstünden süzüyor ve bu eşlemeyi
+         her ekranın ayrı ayrı sorgulaması aynı veriyi beş kez okumak
+         olurdu. */
+      select: { id: true, tuzelKisiId: true, tip: { select: { sektorId: true } } },
     }).catch(() => []),
     /* ── OKUNMAMIŞ BİLDİRİM SAYACI (D30) ─────────────────────────────
        Kutu sahipliği sınırı burada da aynen geçerlidir: sayı YALNIZ
@@ -103,6 +107,12 @@ export async function kabukVerisi(): Promise<KabukVerisi> {
        ilk yayında yalan söylerdi); ortam demo bayrağı + NODE_ENV'den. */
     sozluk,
     sektorler,
+    /* Tesis → sektör eşlemesi. Sektörü BİLİNMEYEN tesis haritaya
+       girmez; `undefined` "bilinmiyor" demektir ve süzgeç onu bir
+       kovaya atmaz. */
+    tesisSektoru: Object.fromEntries(
+      tesisler.flatMap((t) => (t.tip?.sektorId ? [[t.id, t.tip.sektorId]] : [])),
+    ) as Record<string, string>,
     surum: paket.version,
     kunye: await ayar<string>('kabuk.kunye').catch(() => MARKA_AD),
     ortam: DEMO ? 'demo' : process.env.NODE_ENV === 'production' ? 'uretim' : 'gelistirme',

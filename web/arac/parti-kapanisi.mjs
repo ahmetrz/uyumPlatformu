@@ -24,7 +24,7 @@
      PORT=3211 npm run kapi:parti      (başka port)
 */
 import { spawnSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { isOrtami, sunucuYasamDongusu } from './kapi-farki.mjs';
@@ -33,6 +33,11 @@ const WEB = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DEPO = path.resolve(WEB, '..');
 const PR_KAPISI = path.join(DEPO, '.github/workflows/pr-kapisi.yml');
 const PORT = process.env.PORT || 3210;
+
+/* Kapı çıktılarının ve özetin yeri. `.parti/` gitignore'dadır: ölçüm
+   çıktısı depoya girmez, ama koşumdan SONRA okunabilir kalır. */
+const OZET_DIZIN = path.join(WEB, '.parti');
+mkdirSync(OZET_DIZIN, { recursive: true });
 
 /* Yorum satırları atılır — `kapi-farki.mjs` ile aynı gerekçe: yorumlanmış
    bir `npm run X` "koşuyor" sayılsaydı kapıyı yoruma alıp kaçmak mümkündü. */
@@ -65,10 +70,38 @@ const { baslar: sunucuBaslar, durur: sunucuDurur, adimlar: tumAdimlar } =
    (ölçmezler, hüküm vermezler) ama koşulmaları gerekir. */
 const yasamDongusu = new Set([sunucuBaslar, sunucuDurur].filter((i) => i >= 0));
 
+/* ── KÜME SEÇİMİ ──────────────────────────────────────────────────────
+   İş akışı ikiye bölündü: `kapi` (hızlı · her push) ve `kapi-yavas`
+   (tarayıcılı · taslak olmayan PR + gecelik). Kapanış VARSAYILAN olarak
+   İKİSİNİ birden koşar — "parti kapanış kümesi = PR kapı kümesi" kuralı
+   bölünmeyle gevşemez; bölünme neyin ne zaman koştuğunu değiştirir,
+   kapanışın neyi kanıtladığını değil.
+
+   Küme adı rapora YAZILIR. Yazılmasaydı `--hizli` ile koşan bir kapanış
+   da "tamamı yeşil" derdi ve tarayıcılı kapılar hiç ölçülmemiş olurdu —
+   koşulmayan kapı "geçti" diye yazılmaz. */
+const ISLER = { hizli: 'kapi', yavas: 'kapi-yavas' };
+const secilen = process.argv.includes('--hizli') ? ['hizli']
+  : process.argv.includes('--yavas') ? ['yavas'] : ['hizli', 'yavas'];
+const secilenIsler = new Set(secilen.map((s) => ISLER[s]));
+const KUME_ADI = secilen.length === 2 ? 'TAM (hızlı + yavaş)'
+  : secilen[0] === 'hizli' ? 'YALNIZ HIZLI' : 'YALNIZ YAVAŞ';
+
+/* Aynı kapı iki işte de duruyorsa (kurulum ve `npm run build` böyle)
+   BİR KEZ koşar: aynı komutu aynı ortamda ikinci kez koşmak yeni bir
+   şey ölçmez, yalnız süre yazar. Tekilleştirme komut+ortam üstünden
+   yapılır, ADA GÖRE değil — iki işte aynı adla farklı komut durabilir. */
+const gorulen = new Set();
 const kapilar = tumAdimlar
   .map((a, i) => ({ ...a, sira: i }))
   .filter((a) => !yasamDongusu.has(a.sira)
     && KAPI_KALIBI.test(a.komut) && !KURULUM_KALIBI.test(a.komut))
+  .filter((a) => secilenIsler.has(a.is))
+  .filter((a) => {
+    const anahtar = `${a.komut}\u0000${JSON.stringify(a.cevre)}`;
+    if (gorulen.has(anahtar)) return false;
+    gorulen.add(anahtar); return true;
+  })
   .map((a) => ({
     ...a,
     /* Sunucu isteyen kapı SIRADAN anlaşılır: sunucuyu başlatan adımla
@@ -120,16 +153,18 @@ function yasamAdimi(sira, etiket) {
    koşmadan önce görülebilmeli — aksi hâlde küme ancak 25 dakika sonra
    öğrenilir. */
 if (process.argv.includes('--liste')) {
-  console.log(`PARTİ KAPANIŞ KÜMESİ (${PR_KAPISI.replace(DEPO + '/', '')} dosyasından türetildi)\n`);
+  console.log(`PARTİ KAPANIŞ KÜMESİ · ${KUME_ADI}`);
+  console.log(`  (${PR_KAPISI.replace(DEPO + '/', '')} dosyasından türetildi)\n`);
   for (const k of kapilar) {
-    console.log(`  ${k.sunucuIster ? 'tarayıcılı' : 'statik    '}  ${k.ad}`);
+    console.log(`  ${k.is.padEnd(10)} ${k.sunucuIster ? 'tarayıcılı' : 'statik    '}  ${k.ad}`);
     console.log(`              ${k.komut.replace(/\n/g, ' ⏎ ')}`);
   }
   console.log(`\n  kapı ${kapilar.length} · tarayıcılı ${kapilar.filter((k) => k.sunucuIster).length}`);
   process.exit(0);
 }
 
-console.log(`PARTİ KAPANIŞI · kapı kümesi ${PR_KAPISI.replace(DEPO + '/', '')} dosyasından türetildi`);
+console.log(`PARTİ KAPANIŞI · ${KUME_ADI}`);
+console.log(`  kapı kümesi ${PR_KAPISI.replace(DEPO + '/', '')} dosyasından türetildi`);
 console.log(`  kapı: ${kapilar.length} · tarayıcılı: ${kapilar.filter((k) => k.sunucuIster).length}`
   + ` · port: ${PORT}\n`);
 
@@ -183,11 +218,21 @@ for (const k of kapilar) {
   }
   const bas = Date.now();
   /* Adımın `env:` bloğu komutla birlikte taşınır — aynı komut farklı
-     ortamda başka bir kapıdır (bkz. `demo:build` · NEXT_PUBLIC_DEMO). */
+     ortamda başka bir kapıdır (bkz. `demo:build` · NEXT_PUBLIC_DEMO).
+
+     ÇIKTI DOSYAYA, EKRANA ÖZET. Tam çıktı `.parti/` altında durur ve
+     kırmızı olan kapının SON satırları burada gösterilir — yeşil bir
+     kapının 600 satırı kimseye bir şey söylemez, kırmızı olanın son
+     kırk satırı her şeyi söyler. Çıktı atılmaz, taşınır: atılsaydı
+     kapanış "ölçtüm" der ama ölçümü gösteremezdi. */
   const r = spawnSync('sh', ['-c', k.komut], {
-    cwd: path.join(DEPO, k.dizin), stdio: 'inherit',
+    cwd: path.join(DEPO, k.dizin), stdio: ['ignore', 'pipe', 'pipe'],
+    encoding: 'utf8', maxBuffer: 64 * 1024 * 1024,
     env: { ...process.env, ...cevreCoz(k.cevre, k.ad), PORT: String(PORT) },
   });
+  const cikti = `${r.stdout ?? ''}${r.stderr ?? ''}`;
+  const dosyaAdi = `${k.ad.replace(/[^\p{L}\p{N}]+/gu, '-').toLowerCase()}.log`;
+  writeFileSync(path.join(OZET_DIZIN, dosyaAdi), cikti);
   const sn = Math.round((Date.now() - bas) / 1000);
   const gecti = r.status === 0;
   /* `continue-on-error: true` taşıyan adım CI'da BLOKLAMAZ; burada da
@@ -195,8 +240,14 @@ for (const k of kapilar) {
      görünür kalır, ama kapanışı düşürmez. Aksi hâlde araç iş akışını
      yansıtmayı bırakıp kendi kuralını koyardı. */
   const durum = gecti ? 'geçti' : (k.bloklamaz ? 'bilgi·kırmızı' : 'KIRMIZI');
-  sonuc.push({ ...k, durum, not: `${sn}sn${k.bloklamaz ? ' · CI\'da bloklamıyor' : ''}` });
-  console.log(`\n  ${durum}  ${k.ad}  (${sn}sn)\n`);
+  sonuc.push({ ...k, durum, sn, gunluk: dosyaAdi,
+    not: `${sn}sn${k.bloklamaz ? ' · CI\'da bloklamıyor' : ''}` });
+  console.log(`  ${durum.padEnd(13)} ${k.ad}  (${sn}sn)  → .parti/${dosyaAdi}`);
+  if (!gecti) {
+    console.log(`  ── ${k.ad} · son 40 satır ─────────────────────────────`);
+    for (const s of cikti.trimEnd().split('\n').slice(-40)) console.log(`  │ ${s}`);
+    console.log('  ──────────────────────────────────────────────────────\n');
+  }
 }
 
 /* DURDURMA ADIMININ SONUCU YUTULMAZ. Eskiden dönüş değeri atılıyordu:
@@ -256,6 +307,27 @@ if (bilgi.length) {
     + ' CI da bloklamıyor, kapanış da bloklamıyor)');
 }
 
+/* ── ÖZET DOSYASI ─────────────────────────────────────────────────────
+   Kapanışın makine okunur kaydı. Koşan küme ADIYLA yazılır: bir özet
+   dosyası hangi kümeyi ölçtüğünü söylemiyorsa, "yeşil" kelimesi neyi
+   kapsadığını da söylemiyor demektir. */
+writeFileSync(path.join(OZET_DIZIN, 'ozet.json'), `${JSON.stringify({
+  kume: KUME_ADI,
+  isler: [...secilenIsler],
+  zaman: new Date().toISOString(),
+  port: PORT,
+  kapilar: sonuc.map((s) => ({
+    ad: s.ad, is: s.is, durum: s.durum, saniye: s.sn ?? null,
+    tarayiciIster: s.sunucuIster, gunluk: s.gunluk ?? null,
+  })),
+  sayim: {
+    gecti: sonuc.filter((s) => s.durum === 'geçti').length,
+    kirmizi: kirmizi.length, bilgiKirmizi: bilgi.length, olculmedi: olculmeyen.length,
+  },
+  sunucuDurdu: !durdurmaKirmizi,
+}, null, 2)}\n`);
+console.log(`\n  özet: web/.parti/ozet.json · kapı günlükleri: web/.parti/*.log`);
+
 if (kirmizi.length || olculmeyen.length || durdurmaKirmizi) {
   console.log('\nPARTİ KAPANMADI.');
   if (olculmeyen.length) {
@@ -268,4 +340,9 @@ if (kirmizi.length || olculmeyen.length || durdurmaKirmizi) {
   }
   process.exit(1);
 }
-console.log('\nParti kapanış kümesi PR kapı kümesiyle AYNI ve tamamı yeşil.');
+if (secilen.length === 2) {
+  console.log('\nParti kapanış kümesi PR kapı kümesiyle AYNI ve tamamı yeşil.');
+} else {
+  console.log(`\n${KUME_ADI} kümesi yeşil — ama bu KAPANIŞ DEĞİLDİR:`
+    + ' koşulmayan küme "geçti" diye yazılmaz. Kapanış için `npm run kapi:parti`.');
+}

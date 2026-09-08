@@ -3,6 +3,12 @@ name: PR kapısı
 on:
   pull_request:
     branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+  # Gecelik: yavaş küme main üstünde kendi başına koşar. Taslak PR'da
+  # koşmayan bir kapı, hiç koşmayan bir kapı olmasın.
+  schedule:
+    - cron: '0 2 * * *'
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -12,7 +18,16 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # ── HIZLI KÜME · her push ────────────────────────────────────────────
+  # Adı `kapi` OLARAK KALIR: `main` dal korumasında zorunlu status check
+  # bu addır. Yeniden adlandırmak merge'i kilitlerdi — kapının adı bir
+  # depo ayarının içinde de duruyor ve o ayar koddan görünmez.
+  #
+  # Buraya yalnız TARAYICI İSTEMEYEN kapılar girer. Hedef 5 dakikanın
+  # altı: ölçüldü, tarayıcılı blok tek başına ~7 dakika sürüyordu ve her
+  # push'ta ödeniyordu.
   kapi:
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - name: Depoyu al
@@ -126,6 +141,91 @@ jobs:
         working-directory: web
         run: npm run kapi:farki
 
+      - name: Üretim derlemesi
+        working-directory: web
+        run: npm run build
+
+  # ── YAVAŞ KÜME · taslak olmayan PR + gecelik ─────────────────────────
+  # Tarayıcı isteyen ve kendi derlemesini yapan kapılar. Ölçüldü: duman
+  # 32sn · gezinme 45sn · taşma 180sn · axe 190sn · demo:build 150sn ·
+  # marka 12sn — kurulumla birlikte tek başına yedi dakikanın üstünde ve
+  # her push'ta ödeniyordu.
+  #
+  # NE ZAMAN KOŞAR: PR taslak DEĞİLKEN (merge'e hazırlandığında), her
+  # gece main üstünde, ve elle. Taslak PR'da koşmaz — iterasyonun
+  # maliyeti oradadır. Gecelik koşum bir gevşetme değil sigortadır:
+  # taslakta bırakılan bir dal bile ertesi sabah bu kümeden geçer.
+  #
+  # Bu iş dal korumasında ZORUNLU DEĞİLDİR: zorunlu status check `kapi`
+  # adını taşır ve o hızlı iştir. Bu kümeyi de zorunlu tutmak bir DEPO
+  # AYARIDIR (ruleset → required checks → `kapi-yavas`), kodla
+  # kapatılamaz.
+  #
+  # `kapi:iki-sozluk` bilerek BURADA DEĞİL: bugün bağlanırsa kırmızı
+  # yanar (kardeşi `tasarim:dizustu`nun 1366×768 bandı borç listesinde
+  # yok — R0-12) ve beyanı `kapi-farki.mjs`te durur. Kapı, hayal edilen
+  # değil ÖLÇÜLMÜŞ bir kusur için bağlanır.
+  kapi-yavas:
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    steps:
+      - name: Depoyu al
+        uses: actions/checkout@v7
+        with:
+          # Kalite borcu cırcırı dal listesini `origin/main` ile
+          # karşılaştırır (DİŞ 3). Sığ klonda taban dal okunamaz ve kapı
+          # bilerek KIRMIZI yanar (DİŞ 4) — o yüzden tam geçmiş gerekir.
+          fetch-depth: 0
+
+      # Cırcır, DALIN kendi listesini TABANLA karşılaştırır. Taban olarak
+      # `origin/main` HAREKETLİ ucu alınamaz: PR'ın merge ref'i oluştuktan
+      # sonra main ilerleyip bir borç satırını silerse, dalın DEĞİŞMEMİŞ
+      # listesi "eklenmiş" görünür ve CI yanlış yere kırmızı yanar. Taban,
+      # kontrol edilen merge'ün kurulduğu commit'tir: `base.sha`.
+      - name: Taban commit'i getir (kalite borcu cırcırı · DİŞ 3)
+        run: |
+          git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main
+          git fetch --no-tags origin '${{ github.event.pull_request.base.sha }}'
+
+      # Sektör terimi bekçisinin (`tests/bekci/sektor-terimi.test.ts`) dördüncü
+      # dişi izin listesini TABAN DALDAKİ hâliyle karşılaştırır: liste yalnız
+      # erimeli, bir dosyayı temizleyip yerine başkasını koyma takası da
+      # yakalanmalı. `checkout` PR'da yalnız birleşme commit'ini sığ alır,
+      # `origin/main` ref'i olmaz; bu adım onu getirir.
+      #
+      # `continue-on-error` adımı SESSİZ YAPMAZ: bu adım düşerse bekçi
+      # CI'da KIRMIZI yanar ("CI'da taban dal okunamadı"). Bayrağın tek
+      # işi, hatayı ham bir git çıktısı olarak işi durdurmak yerine öbür
+      # kapılar da koştuktan sonra bekçinin gerekçeli mesajıyla
+      # göstermek. Yerelde (CI değişkeni yokken) diş atlanır ve
+      # "ölçülmedi" denir — orada taban dalın yokluğunun meşru sebepleri
+      # var, CI'da yok.
+      - name: Taban dalı al (bekçi cırcırı)
+        continue-on-error: true
+        run: git fetch --depth=1 origin main:refs/remotes/origin/main
+
+      - name: Node kur
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Bağımlılıkları kur
+        working-directory: web
+        run: npm ci
+
+      - name: Veritabanını hazırla
+        working-directory: web
+        run: |
+          npx prisma migrate deploy
+          npx prisma generate
+          npx tsx prisma/seed.ts
+
+
+      # Yavaş küme KENDİ derlemesini yapar: sunucu taze derlemeden
+      # kalkmalı (arac/BENIOKU.md → ORTAM TAZELİĞİ). Hızlı işin
+      # derlemesi başka bir runner'da kaldı ve buraya taşınmaz.
       - name: Üretim derlemesi
         working-directory: web
         run: npm run build

@@ -139,6 +139,11 @@ export function adimlar(isAkisiMetni) {
   const satirlar = isAkisiMetni.split('\n');
   const cikti = [];
   let simdiki = null;
+  /* HANGİ İŞE AİT. Kapı kümesi hızlı/yavaş diye ikiye bölündüğünde,
+     adımın hangi işte koştuğu bir ADIM ÖZELLİĞİDİR — çağıranın elinde
+     tuttuğu ayrı bir liste değil. Liste tutulsaydı iş akışına yeni bir
+     iş eklendiği gün liste yalan söylerdi. */
+  let is = null;
   let blok = null;                       /* `run: |` gövdesinin girintisi */
   let cevre = null;                      /* `env:` bloğunun girintisi */
   let adimGirinti = null;                /* adım anahtarlarının girintisi */
@@ -164,12 +169,16 @@ export function adimlar(isAkisiMetni) {
       }
       cevre = null;
     }
+    /* `jobs:` altındaki iki boşluklu anahtar = bir İŞ adı. */
+    const isAdi = ham.match(/^ {2}([a-z][\w-]*):\s*$/);
+    if (isAdi) { is = isAdi[1]; }
     const ad = ham.match(/^(\s*)-\s+name:\s*(.+?)\s*$/);
     if (ad) {
       if (simdiki?.komut) cikti.push(simdiki);
       adimGirinti = ad[1].length + 2;
       simdiki = {
         ad: ad[2].replace(/^['"]|['"]$/g, ''),
+        is,
         komut: '', dizin: '.', cevre: {}, bilinmeyen: {}, bloklamaz: false,
       };
       continue;

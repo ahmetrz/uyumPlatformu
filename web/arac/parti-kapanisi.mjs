@@ -156,8 +156,13 @@ for (const k of kapilar) {
   });
   const sn = Math.round((Date.now() - bas) / 1000);
   const gecti = r.status === 0;
-  sonuc.push({ ...k, durum: gecti ? 'geçti' : 'KIRMIZI', not: `${sn}sn` });
-  console.log(`\n  ${gecti ? 'geçti' : 'KIRMIZI'}  ${k.ad}  (${sn}sn)\n`);
+  /* `continue-on-error: true` taşıyan adım CI'da BLOKLAMAZ; burada da
+     bloklamaz. Sonucu gizlenmez — "bilgi" olarak yazılır ve kırmızıysa
+     görünür kalır, ama kapanışı düşürmez. Aksi hâlde araç iş akışını
+     yansıtmayı bırakıp kendi kuralını koyardı. */
+  const durum = gecti ? 'geçti' : (k.bloklamaz ? 'bilgi·kırmızı' : 'KIRMIZI');
+  sonuc.push({ ...k, durum, not: `${sn}sn${k.bloklamaz ? ' · CI\'da bloklamıyor' : ''}` });
+  console.log(`\n  ${durum}  ${k.ad}  (${sn}sn)\n`);
 }
 
 if (ayakta) yasamAdimi(sunucuDurur, 'sunucu durduruluyor');
@@ -195,9 +200,15 @@ for (const d of adimFarklari) console.log(`    · UYGULANMAYAN adım anahtarı �
 for (const d of dusenler) console.log(`    · ${d}`);
 
 const kirmizi = sonuc.filter((s) => s.durum === 'KIRMIZI');
+const bilgi = sonuc.filter((s) => s.durum === 'bilgi·kırmızı');
 const olculmeyen = sonuc.filter((s) => s.durum === 'ÖLÇÜLMEDİ');
-console.log(`\n  geçti ${sonuc.length - kirmizi.length - olculmeyen.length}`
-  + ` · KIRMIZI ${kirmizi.length} · ÖLÇÜLMEDİ ${olculmeyen.length}`);
+console.log(`\n  geçti ${sonuc.length - kirmizi.length - bilgi.length - olculmeyen.length}`
+  + ` · KIRMIZI ${kirmizi.length} · bilgi·kırmızı ${bilgi.length}`
+  + ` · ÖLÇÜLMEDİ ${olculmeyen.length}`);
+if (bilgi.length) {
+  console.log('  (bilgi·kırmızı: iş akışında `continue-on-error: true` —'
+    + ' CI da bloklamıyor, kapanış da bloklamıyor)');
+}
 
 if (kirmizi.length || olculmeyen.length) {
   console.log('\nPARTİ KAPANMADI.');

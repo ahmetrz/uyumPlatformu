@@ -147,7 +147,7 @@ export function adimlar(isAkisiMetni) {
      görünür — sessizce atlanmaz. `env:` körlüğü tam olarak buradan
      doğdu: anahtar okunmuyordu, kimse fark etmiyordu, kapı yanlış
      ortamda koşuyordu ve rapor "koştu" diyordu. */
-  const UYGULANAN = new Set(['name', 'run', 'working-directory', 'env']);
+  const UYGULANAN = new Set(['name', 'run', 'working-directory', 'env', 'continue-on-error']);
   for (const ham of satirlar) {
     if (blok !== null) {
       if (ham.trim() === '' || ham.search(/\S/) >= blok) {
@@ -170,7 +170,7 @@ export function adimlar(isAkisiMetni) {
       adimGirinti = ad[1].length + 2;
       simdiki = {
         ad: ad[2].replace(/^['"]|['"]$/g, ''),
-        komut: '', dizin: '.', cevre: {}, bilinmeyen: {},
+        komut: '', dizin: '.', cevre: {}, bilinmeyen: {}, bloklamaz: false,
       };
       continue;
     }
@@ -189,6 +189,12 @@ export function adimlar(isAkisiMetni) {
        kapısını kopyalamış olmaz. */
     const cevreBas = ham.match(/^(\s*)env:\s*$/);
     if (cevreBas) { cevre = cevreBas[1].length + 2; continue; }
+    /* `continue-on-error: true` = ADIM CI'DA BLOKLAMAZ. Bunu okumayan bir
+       ayna kendi yorumunu ekler: yerelde kırmızı, CI'da yeşil bir kapı
+       önce görmezden gelinir, sonra atlanır. Kümeleri eşitlemek için
+       kurulan araç, ilk aşınmayı tam oradan yaşar. */
+    const hosgoru = ham.match(/^\s*continue-on-error:\s*(\S+)/);
+    if (hosgoru) { simdiki.bloklamaz = hosgoru[1] === 'true'; continue; }
     const dizin = ham.match(/^\s*working-directory:\s*(\S+)/);
     if (dizin) { simdiki.dizin = dizin[1]; continue; }
     const kosBlok = ham.match(/^(\s*)run:\s*\|\s*$/);

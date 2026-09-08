@@ -140,6 +140,7 @@ export function adimlar(isAkisiMetni) {
   const cikti = [];
   let simdiki = null;
   let blok = null;                       /* `run: |` gövdesinin girintisi */
+  let cevre = null;                      /* `env:` bloğunun girintisi */
   for (const ham of satirlar) {
     if (blok !== null) {
       if (ham.trim() === '' || ham.search(/\S/) >= blok) {
@@ -148,13 +149,28 @@ export function adimlar(isAkisiMetni) {
       }
       blok = null;
     }
+    if (cevre !== null) {
+      const g = ham.match(/^(\s*)([A-Z_][A-Z0-9_]*):\s*(.*?)\s*$/);
+      if (g && g[1].length >= cevre) {
+        simdiki.cevre[g[2]] = g[3].replace(/^['"]|['"]$/g, '');
+        continue;
+      }
+      cevre = null;
+    }
     const ad = ham.match(/^\s*-\s+name:\s*(.+?)\s*$/);
     if (ad) {
       if (simdiki?.komut) cikti.push(simdiki);
-      simdiki = { ad: ad[1].replace(/^['"]|['"]$/g, ''), komut: '', dizin: '.' };
+      simdiki = { ad: ad[1].replace(/^['"]|['"]$/g, ''), komut: '', dizin: '.', cevre: {} };
       continue;
     }
     if (!simdiki) continue;
+    /* ADIMIN `env:` BLOĞU DA ADIMIN PARÇASIDIR. Ölçüldü: `env:` atlanınca
+       `demo:build` KIRMIZI yandı — `NEXT_PUBLIC_DEMO=1` olmadan statik
+       çıktı üretilmiyor ("çıktı dizini yok → web/out"). Kusur kodda değil
+       ölçen araçtaydı: aynı komutu FARKLI ortamda koşan bir araç, PR
+       kapısını kopyalamış olmaz. */
+    const cevreBas = ham.match(/^(\s*)env:\s*$/);
+    if (cevreBas) { cevre = cevreBas[1].length + 2; continue; }
     const dizin = ham.match(/^\s*working-directory:\s*(\S+)/);
     if (dizin) { simdiki.dizin = dizin[1]; continue; }
     const kosBlok = ham.match(/^(\s*)run:\s*\|\s*$/);

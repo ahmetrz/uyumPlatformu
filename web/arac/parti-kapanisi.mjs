@@ -19,8 +19,9 @@
    kapatmak istediği kusurun ta kendisidir.
 
    Kullanım:
-     PORT=3210 npm run kapi:parti      (sunucu ayrı kabukta: next start)
-     npm run kapi:parti                (sunucusuz: tarayıcılı kapılar ÖLÇÜLMEDİ)
+     npm run kapi:parti                (sunucuyu KENDİ başlatır ve durdurur)
+     npm run kapi:parti -- --liste     (kümeyi göster, koşma)
+     PORT=3211 npm run kapi:parti      (başka port)
 */
 import { spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
@@ -48,9 +49,23 @@ const tumAdimlar = adimlar(metin);
 const sunucuBaslar = tumAdimlar.findIndex((a) => /next start/.test(a.komut));
 const sunucuDurur = tumAdimlar.findIndex((a) => /pkill/.test(a.komut));
 
+/* SUNUCU YAŞAM DÖNGÜSÜ ARACIN KENDİSİNDE. İlk tasarımda sunucunun
+   dışarıda başlatılmış olması bekleniyordu — ve bu doğrudan TAZELİK
+   TUZAĞINA açılıyordu: `kapi:parti` kendi içinde `npm run build` koşar,
+   ama sunucu ondan ÖNCE başlatılmışsa tarayıcılı kapılar ESKİ derlemeyi
+   ölçer. `next start` silinmiş inode'u tutmaya devam eder ve `curl`
+   "hazır" der (bkz. arac/BENIOKU.md → ORTAM TAZELİĞİ; bu oturumda üç
+   kez yanlış alarm üretti).
+
+   Çözüm CI'nın kendi sırasıdır: sunucuyu BAŞLATAN ve DURDURAN adımlar da
+   iş akışından türetilir ve aynı yerde koşulur. Bunlar kapı değildir
+   (ölçmezler, hüküm vermezler) ama koşulmaları gerekir. */
+const yasamDongusu = new Set([sunucuBaslar, sunucuDurur].filter((i) => i >= 0));
+
 const kapilar = tumAdimlar
   .map((a, i) => ({ ...a, sira: i }))
-  .filter((a) => KAPI_KALIBI.test(a.komut) && !KURULUM_KALIBI.test(a.komut))
+  .filter((a) => !yasamDongusu.has(a.sira)
+    && KAPI_KALIBI.test(a.komut) && !KURULUM_KALIBI.test(a.komut))
   .map((a) => ({
     ...a,
     /* Sunucu isteyen kapı SIRADAN anlaşılır: sunucuyu başlatan adımla
@@ -60,14 +75,42 @@ const kapilar = tumAdimlar
       && (sunucuDurur < 0 || a.sira < sunucuDurur),
   }));
 
-async function sunucuAyakta() {
-  try {
-    const c = new AbortController();
-    const z = setTimeout(() => c.abort(), 2000);
-    const y = await fetch(`http://localhost:${PORT}/`, { signal: c.signal });
-    clearTimeout(z);
-    return y.status > 0;
-  } catch { return false; }
+/* ── ÇÖZÜLEMEYEN İFADELER ─────────────────────────────────────────────
+   İş akışı `${{ github... }}` ifadeleri taşır; bunlar yalnız GitHub'da
+   çözülür. Düz metin olarak geçirmek sessiz bir kusurdur: kalite borcu
+   cırcırı `KALITE_TABAN_DAL` değerini `git show <ref>:...` ile okur ve
+   `${{ ... }}` dizesi ref değildir — kapı "taban okunamadı" der, biz
+   "koştu" yazarız.
+
+   Bilinen bir karşılığı olan tek ifade PR'ın taban commit'idir; yerelde
+   karşılığı `origin/main`tir. Karşılığı olmayan her ifade DÜŞÜRÜLÜR ve
+   raporda ADIYLA söylenir — "aynı kümeyi koştum" cümlesi ancak farkı
+   yazınca dürüst olur. */
+const IFADE = /\$\{\{/;
+const YEREL_KARSILIK = { '${{ github.event.pull_request.base.sha }}': 'origin/main' };
+const dusenler = [];
+
+function cevreCoz(cevre = {}, adAd = '') {
+  const cikti = {};
+  for (const [k, v] of Object.entries(cevre)) {
+    if (!IFADE.test(v)) { cikti[k] = v; continue; }
+    const karsilik = YEREL_KARSILIK[v.trim()];
+    if (karsilik) { cikti[k] = karsilik; dusenler.push(`${adAd} · ${k} → ${karsilik} (yerel karşılık)`); }
+    else dusenler.push(`${adAd} · ${k} DÜŞÜRÜLDÜ (yerelde çözülemez: ${v})`);
+  }
+  return cikti;
+}
+
+/** İş akışının kendi adımını koşar (sunucu başlat / durdur). */
+function yasamAdimi(sira, etiket) {
+  const a = tumAdimlar[sira];
+  if (!a) return false;
+  console.log(`  · ${etiket}: ${a.ad}`);
+  const r = spawnSync('sh', ['-c', a.komut.replace(/3210/g, String(PORT))], {
+    cwd: path.join(DEPO, a.dizin), stdio: 'inherit',
+    env: { ...process.env, ...cevreCoz(a.cevre, a.ad), PORT: String(PORT) },
+  });
+  return r.status === 0;
 }
 
 /* `--liste`: kümeyi göster, KOŞMA. Kapanışın hangi kapıları koşacağı
@@ -83,23 +126,33 @@ if (process.argv.includes('--liste')) {
   process.exit(0);
 }
 
-const ayakta = await sunucuAyakta();
-
 console.log(`PARTİ KAPANIŞI · kapı kümesi ${PR_KAPISI.replace(DEPO + '/', '')} dosyasından türetildi`);
 console.log(`  kapı: ${kapilar.length} · tarayıcılı: ${kapilar.filter((k) => k.sunucuIster).length}`
-  + ` · sunucu (${PORT}): ${ayakta ? 'AYAKTA' : 'yok'}\n`);
+  + ` · port: ${PORT}\n`);
+
+/* Bayat süreç kalmasın: derlemeden sonra başlatılacak sunucunun portu
+   ÖNCE boşaltılır. */
+spawnSync('sh', ['-c', `fuser -k -n tcp ${PORT} 2>/dev/null || true`], { stdio: 'ignore' });
 
 const sonuc = [];
+let ayakta = false;
 for (const k of kapilar) {
+  /* Sunucu, kendisini isteyen İLK kapıdan hemen önce başlatılır — yani
+     derlemeden SONRA. Sıra iş akışının sırasıdır. */
   if (k.sunucuIster && !ayakta) {
-    sonuc.push({ ...k, durum: 'ÖLÇÜLMEDİ', not: `canlı sunucu yok (PORT=${PORT})` });
-    console.log(`  ÖLÇÜLMEDİ  ${k.ad}`);
-    continue;
+    ayakta = yasamAdimi(sunucuBaslar, 'sunucu');
+    if (!ayakta) {
+      sonuc.push({ ...k, durum: 'ÖLÇÜLMEDİ', not: 'sunucu açılmadı' });
+      console.log(`  ÖLÇÜLMEDİ  ${k.ad}`);
+      continue;
+    }
   }
   const bas = Date.now();
+  /* Adımın `env:` bloğu komutla birlikte taşınır — aynı komut farklı
+     ortamda başka bir kapıdır (bkz. `demo:build` · NEXT_PUBLIC_DEMO). */
   const r = spawnSync('sh', ['-c', k.komut], {
     cwd: path.join(DEPO, k.dizin), stdio: 'inherit',
-    env: { ...process.env, PORT: String(PORT) },
+    env: { ...process.env, ...cevreCoz(k.cevre, k.ad), PORT: String(PORT) },
   });
   const sn = Math.round((Date.now() - bas) / 1000);
   const gecti = r.status === 0;
@@ -107,10 +160,17 @@ for (const k of kapilar) {
   console.log(`\n  ${gecti ? 'geçti' : 'KIRMIZI'}  ${k.ad}  (${sn}sn)\n`);
 }
 
+if (ayakta) yasamAdimi(sunucuDurur, 'sunucu durduruluyor');
+
 console.log('\n══ PARTİ KAPANIŞ RAPORU ══════════════════════════════════');
 for (const s of sonuc) {
   console.log(`  ${s.durum.padEnd(10)} ${s.ad}${s.not ? `  · ${s.not}` : ''}`);
 }
+if (dusenler.length) {
+  console.log('\n  ORTAM FARKI (CI ile birebir DEĞİL):');
+  for (const d of dusenler) console.log(`    · ${d}`);
+}
+
 const kirmizi = sonuc.filter((s) => s.durum === 'KIRMIZI');
 const olculmeyen = sonuc.filter((s) => s.durum === 'ÖLÇÜLMEDİ');
 console.log(`\n  geçti ${sonuc.length - kirmizi.length - olculmeyen.length}`
@@ -120,7 +180,6 @@ if (kirmizi.length || olculmeyen.length) {
   console.log('\nPARTİ KAPANMADI.');
   if (olculmeyen.length) {
     console.log(`  ${olculmeyen.length} kapı ölçülmedi — bu "geçti" DEĞİLDİR.`);
-    console.log(`  Sunucuyu ayrı bir kabukta başlatın: PORT=${PORT} npx next start -p ${PORT}`);
   }
   process.exit(1);
 }

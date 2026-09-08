@@ -91,11 +91,21 @@ export const TERIMLER: { ad: string; kaliplar: { re: RegExp; hedef: Hedef }[] }[
      Bu, `\bRES\b`in "SÜRESİ" içinde eşleşmesiyle aynı sınıf: sınır
      konmadan aranan kısa gövde, uzun sözcüğün içine düşer.
 
-     Sınır Unicode harflerine göre (`sinirKalibi`), ASCII `\b`ye göre
-     değil: "Plant360" ve "plant_kodu" gibi bitişik yazımlar yine
-     yakalanmamalı, ama "toplantı" da yakalanmamalı. Kalıp `i` bayrağı
-     TAŞIMAZ ve `ham` metinde aranır — İngilizce sözcük, Türkçe katlama
-     tuzağına girmez. */
+     Sınır Unicode harflerine göre, ASCII `\b`ye göre değil: "toplantı"
+     yakalanmamalı. Kalıp `i` bayrağı TAŞIMAZ ve `ham` metinde aranır —
+     İngilizce sözcük, Türkçe katlama tuzağına girmez.
+
+     BU PARAGRAF BİR KEZ YALAN SÖYLEDİ: "Plant360 yakalanmamalı" diyordu
+     ve hemen altındaki kalıp, tam tersini yapmak üzere düzeltilmişti.
+     Bir gerçeğin iki nüshası varsa biri bayatlar — kural yalnız listeler
+     için değil, onları anlatan cümleler için de geçerli. Bugünkü doğru
+     aşağıda, kalıbın kendi başlığında yazılı.
+
+     Alt çizgili yazım (`plant_kodu`) sağ sınırda BİLEREK dışarıdadır ve
+     bu bir körlüktür: depoda ölçüldü, `plant_` · `_plant` · `santral_` ·
+     `_santral` için 0 eşleşme. Kalıp eklenmedi — sıfır eşleşen bir kalıp
+     yalnız yanlış pozitif riski taşır; körlük burada YAZILI durur ki
+     depoya böyle bir yazım girdiği gün ölçüm yeniden yapılsın. */
   { ad: 'plant', kaliplar: [
     /* SAĞ SINIR RAKAMA AÇIK — `Plant360` bir dönem GÖRÜNMÜYORDU.
        Çelişki bekçinin kendi tüzüğündeydi: başlık "tarama ham metin

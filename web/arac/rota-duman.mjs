@@ -1,15 +1,7 @@
-import { readdirSync, statSync } from 'node:fs';
-import path from 'node:path';
-import Database from 'better-sqlite3';
 import { chromium } from 'playwright-core';
-import { yonlendirmeKarari } from './rota-kurallari.mjs';
-/* Giriş ORTAK işlevden gelir; bu dosyanın kendi kopyası SİLİNDİ.
-   Ölçüldü: üç ayrı `girisYap` kopyası vardı ve #28 ortak işleve bir CTA
-   adımı eklediğinde kopyalar almadı — iki araç main'e KIRIK girdi ve
-   hiçbir şey söylemedi. `tests/tek-nusha.test.ts` dördüncüsünü
-   engelliyor. */
-import { girisYap, tarayiciYolu } from './kosu-ortak.mjs';
 import { tabanDogrula, tabanYaz } from './olcum-tabani.mjs';
+import { yonlendirmeKarari } from './rota-kurallari.mjs';
+import { girisYap, sayfaEnvanteri, tarayiciYolu, tohumDegeri } from './kosu-ortak.mjs';
 
 /* Rota duman testi — KAPSAM DOSYA SİSTEMİNDEN TÜRER.
 
@@ -48,68 +40,21 @@ import { tabanDogrula, tabanYaz } from './olcum-tabani.mjs';
      npm run rota:duman
 */
 
-const WEB = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
 const KOK = `http://localhost:${process.env.PORT || 3111}`;
-const DB_YOL = process.env.DB_YOL || path.join(WEB, 'prisma', 'dev.db');
 const JSON_CIKTI = process.argv.includes('--json');
 
 /* ── 1. Rota envanteri ─────────────────────────────────────────────── */
 
-/** `app` altındaki her `page.tsx` → rota yolu. Grup segmentleri `(x)` düşer. */
-function rotaEnvanteri() {
-  const app = path.join(WEB, 'app');
-  const cikti = [];
-  const gez = (d) => {
-    for (const ad of readdirSync(d).sort()) {
-      const tam = path.join(d, ad);
-      if (statSync(tam).isDirectory()) { gez(tam); continue; }
-      if (ad !== 'page.tsx') continue;
-      const bagil = path.relative(app, path.dirname(tam));
-      const segmentler = bagil === '' ? [] : bagil.split(path.sep).filter((s) => !/^\(.*\)$/.test(s));
-      cikti.push({
-        kaynak: path.relative(WEB, tam),
-        rota: `/${segmentler.join('/')}`.replace(/\/$/, '') || '/',
-        grup: (bagil.match(/\(([^)]+)\)/g) ?? []).join(''),
-        dinamik: segmentler.filter((s) => /^\[.*\]$/.test(s)),
-      });
-    }
-  };
-  gez(app);
-  return cikti.sort((a, b) => a.rota.localeCompare(b.rota));
-}
+/* `rotaEnvanteri` `kosu-ortak.mjs`e TAŞINDI: oturumsuz liste çapraz
+   kontrolü de aynı envanteri istiyor ve iki kopya birbirinden
+   uzaklaşırdı. Burada yalnız çağrılır (`sayfaEnvanteri`). */
+const rotaEnvanteri = sayfaEnvanteri;
 
 /* ── 2. Dinamik segmentlerin gerçek değerleri ──────────────────────── */
 
-/* Her dinamik rota, değerini hangi tohum tablosundan alır. Uydurma değer
-   YOK: tablo boşsa rota test edilmez ve sebebi raporlanır. */
-const TOHUM_KAYNAGI = {
-  '/tesisler/[id]': { tablo: 'Tesis', kolon: 'id' },
-  '/bulgular/[id]': { tablo: 'Bulgu', kolon: 'id' },
-  '/denetimler/[id]': { tablo: 'Denetim', kolon: 'id' },
-  '/riskler/[id]': { tablo: 'Risk', kolon: 'id' },
-  '/surecler/[id]': { tablo: 'UyumSureci', kolon: 'id' },
-  /* Çerçeve detayının parametresi id değil regülasyon KODUDUR
-     (bkz. uyum/[cerceve]/page.tsx: bağlantı paylaşılabilir olsun diye). */
-  '/uyum/[cerceve]': { tablo: 'Regulasyon', kolon: 'kod' },
-};
-
-function tohumDegeri(rota) {
-  const kaynak = TOHUM_KAYNAGI[rota];
-  if (!kaynak) return { hata: `tohum kaynağı tanımsız (arac/rota-duman.mjs · TOHUM_KAYNAGI)` };
-  let db;
-  try { db = new Database(DB_YOL, { readonly: true }); } catch (e) {
-    return { hata: `tohum veritabanı açılamadı: ${e.message}` };
-  }
-  try {
-    const satir = db.prepare(`select ${kaynak.kolon} as v from ${kaynak.tablo} order by ${kaynak.kolon} limit 1`).get();
-    if (!satir?.v) return { hata: `tohumda ${kaynak.tablo} kaydı yok` };
-    return { deger: String(satir.v), kaynak: `${kaynak.tablo}.${kaynak.kolon}` };
-  } catch (e) {
-    return { hata: `tohum sorgusu başarısız (${kaynak.tablo}): ${e.message}` };
-  } finally {
-    db.close();
-  }
-}
+/* Eşleme ve tohum okuması `kosu-ortak.mjs` içindedir: aynı liste
+   tarayıcılı kapılarda da gerekiyor ve iki kopya birbirinden uzaklaşırdı
+   (o modülün var oluş gerekçesi). Burada yalnız çağrılır. */
 
 /** Dinamik rotayı gerçek değerle somutlaştırır. */
 function somutlastir(giris) {
@@ -117,9 +62,13 @@ function somutlastir(giris) {
   if (giris.dinamik.length > 1) return { hata: 'çok parametreli rota — eşleme tanımlı değil' };
   const t = tohumDegeri(giris.rota);
   if (t.hata) return { hata: t.hata };
+  /* Duman testi rotanın ÇİZİLDİĞİNİ yoklar; bir örnek yeter. İçeriğe
+     bağlı kusuru arayan tarayıcılı kapılar varyantların hepsini tarar
+     (`dinamikRotalar`). */
+  const deger = t.degerler[0];
   return {
-    url: giris.rota.replace(/\[[^\]]+\]/, encodeURIComponent(t.deger)),
-    not: `${t.kaynak}=${t.deger.slice(0, 12)}…`,
+    url: giris.rota.replace(/\[[^\]]+\]/, encodeURIComponent(deger)),
+    not: `${t.kaynak}=${deger.slice(0, 12)}…`,
   };
 }
 
@@ -168,12 +117,12 @@ const s = await b.newPage({ viewport: { width: 1440, height: 1000 } });
 const hatalar = [];
 s.on('pageerror', (e) => hatalar.push(`${s.url()} :: ${e.message.slice(0, 120)}`));
 
-/* Giriş: form React ile KONTROLLÜ bir bileşendir. `domcontentloaded`
-   sonrası doldurmak yeterli değil — hidrasyon henüz olmamışsa React
-   alanı kendi (boş) durumuyla geri yazar ve sunucuya BOŞ e-posta gider.
-   Belirtisi kafa karıştırıcıdır: denetim izine "tanımsız e-posta" düşer
-   ve kimlik bilgileri yanlış sanılır. Bu yüzden doldurduktan sonra
-   değerin GERÇEKTEN durduğu doğrulanır. */
+/* Giriş `kosu-ortak.mjs → girisYap` ile YAPILIR, burada kopyalanmaz.
+   Kopya vardı ve tam da beklenen şekilde ıraksadı: sinematik giriş
+   eklendiğinde (PR #28) ortak işlev CTA adımını aldı, bu kopya almadı ve
+   bu araç giriş yapamaz oldu — `page.fill` "element is not visible" ile
+   düştü. Kusur CI'da görünmedi, çünkü bu araç CI'da koşmuyor. */
+
 async function yokla(giris, url, envanter) {
   const y = await s.goto(KOK + url, { waitUntil: 'domcontentloaded' });
   await s.waitForTimeout(450);
@@ -305,9 +254,11 @@ if (JSON_CIKTI) {
 
 
 /* ── ÖLÇÜM KAPSAMI TABANI ─────────────────────────────────────────────
-   Kusur sayısı sıfır olabilir; ÖLÇÜM sayısı olamaz. Sıfır ölçümle
-   "kusurlu 0" demek, hiçbir şeye bakmadan temiz raporlamaktır
-   (`arac/olcum-tabani.mjs` başlığındaki ölçülmüş olay). */
+   Cırcır BORÇ için tavan tutar; bu taban KAPSAM için taban tutar. Kusur
+   sayısı sıfır olabilir; ÖLÇÜM sayısı olamaz — sıfır ölçümle "kusur yok"
+   demek, hiçbir şeye bakmadan temiz raporlamaktır
+   (`arac/olcum-tabani.mjs` başlığındaki ölçülmüş olay). Taban ÖNCE
+   bakılır: geçersiz bir ölçümün borç kararı da geçersizdir. */
 if (process.argv.includes('--taban-yaz')) {
   const { onceki, yeni } = tabanYaz('duman.rota', sonuclar.length);
   console.log(`taban güncellendi: duman.rota ${onceki ?? '(yok)'} → ${yeni}`);

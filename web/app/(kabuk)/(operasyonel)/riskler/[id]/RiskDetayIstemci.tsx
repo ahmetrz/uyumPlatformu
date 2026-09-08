@@ -154,13 +154,12 @@ export default function RiskDetayIstemci({ veri }: { veri: DetayVerisi }) {
         }
       />
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) var(--drawer-w)' }}>
+      {/* Yerleşim kabuk gramerindedir (`.ab-kayit-ikili`, kabuk.css).
+          Satır içi `style` bir medya sorgusuyla ezilemez; bu ekran o
+          yüzden 375px'te 49px taşıyordu (400px panel + 0px içerik). */}
+      <div className="ab-kayit-ikili">
         {/* ── İçerik ────────────────────────────────────────────────── */}
-        <div style={{
-          minWidth: 0,
-          padding: 'var(--s36) var(--s40) var(--sec-pad-bot) var(--gutter-op)',
-          borderRight: 'var(--bw-hair) solid var(--hr)',
-        }}>
+        <div className="govde">
           <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--s8)' }}>
             <Im durum={durum} ad={`Artık skor ${risk.artikRisk ?? 'bilinmiyor'}`} />
             <span className="etiket">
@@ -302,12 +301,8 @@ export default function RiskDetayIstemci({ veri }: { veri: DetayVerisi }) {
           )}
         </div>
 
-        {/* ── Yan panel 420px ───────────────────────────────────────── */}
-        <aside style={{
-          minWidth: 0, background: 'var(--panel2)',
-          padding: 'var(--s36) var(--gutter-op) var(--sec-pad-bot) var(--s32)',
-        }}
-          aria-label="Risk bağlamı">
+        {/* ── Bağlam paneli · dar bantta içeriğin ALTINA iner ──────── */}
+        <aside className="baglam" aria-label="Risk bağlamı">
           {karar ? (
             <>
               <p className="etiket" style={{ margin: '0 0 var(--s16)' }}>Karar kaydet</p>

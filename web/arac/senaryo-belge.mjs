@@ -38,6 +38,8 @@ export const KUTUKSUZ_DOSYALAR = {
   'eylem-dili.test.ts': 'Bozuk durum bloklarının eylem/beklenen-durum nöbetçisi',
   'bagimlilik-guvenligi.test.ts': 'Bağımlılık ağacının güvenlik taraması',
   'kalite-kapilari.test.ts': 'Kapı betiklerinin varlığı',
+  'kalite-borcu-listesi.test.ts': 'Kalite borcu izin listesinin okunabilirliği — '
+    + 'muafiyet mantığından BAĞIMSIZ iddia, bilerek ayrı dosyada',
   'semantik.test.ts': 'Ortak durum sözlüğünün tutarlılığı',
   'alan-metin.test.ts': 'Metin yardımcılarının saf davranışı',
   'alan-surum.test.ts': 'Sürüm karşılaştırma yardımcısı',
@@ -54,6 +56,8 @@ export const KUTUKSUZ_DOSYALAR = {
   'kabuk-inceleme.test.ts': 'Kabuk gramerinin statik incelemesi',
   'ekran-mantik-72.test.ts': 'Ekran mantığı toplu regresyonu',
   'uc-deger-kurali.test.ts': 'Üç değerli mantığın sözlüğü',
+  'omur-ufuk.test.ts': 'Ömür şeridinin aciliyet bantları — ölçek işaretinin saf mantığı',
+  'kapi-farki.test.ts': 'Kapı farkı ölçüsünün saf kuralları — hangi betik CI\'da koşuyor',
 };
 
 /* Vitest'in globuyla AYNI küme: `tests/**\/*.test.ts` — yani ALT

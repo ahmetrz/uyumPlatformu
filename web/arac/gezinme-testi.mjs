@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { tabanDogrula, tabanYaz } from './olcum-tabani.mjs';
 /* Duyarlı gezinme testi — HİÇBİR ROTA ERİŞİLEMEZ OLMAMALI.
 
    ── Kapatılan kusur ("bazı sayfalar arası geçiş yapılamıyor") ─────────
@@ -28,13 +29,7 @@
 */
 
 import { chromium } from 'playwright-core';
-/* Giriş ORTAK işlevden gelir; bu dosyanın kendi kopyası SİLİNDİ.
-   Ölçüldü: üç ayrı `girisYap` kopyası vardı ve #28 ortak işleve bir CTA
-   adımı eklediğinde kopyalar almadı — iki araç main'e KIRIK girdi ve
-   hiçbir şey söylemedi. `tests/tek-nusha.test.ts` dördüncüsünü
-   engelliyor. */
 import { girisYap, tarayiciYolu } from './kosu-ortak.mjs';
-import { tabanDogrula, tabanYaz } from './olcum-tabani.mjs';
 
 const KOK = `http://localhost:${process.env.PORT || 3000}`;
 
@@ -95,6 +90,10 @@ const notlar = [];
 const bildir = (bant, m) => kusurlar.push(`${bant} · ${m}`);
 
 const b = await chromium.launch({ executablePath: tarayiciYolu() });
+
+/* Giriş `kosu-ortak.mjs → girisYap` ile YAPILIR, burada kopyalanmaz —
+   kopya, sinematik giriş eklendiğinde (PR #28) ortak işlevin aldığı CTA
+   adımını almadı ve bu araç giriş yapamaz oldu. */
 
 /** Tek `aria-current="page"` sözleşmesi. */
 async function aktifSayisi(s) {
@@ -211,9 +210,11 @@ if (kusurlar.length) {
 }
 
 /* ── ÖLÇÜM KAPSAMI TABANI ─────────────────────────────────────────────
-   Kusur sayısı sıfır olabilir; ÖLÇÜM sayısı olamaz. Sıfır ölçümle
-   "kusurlu 0" demek, hiçbir şeye bakmadan temiz raporlamaktır
-   (`arac/olcum-tabani.mjs` başlığındaki ölçülmüş olay). */
+   Cırcır BORÇ için tavan tutar; bu taban KAPSAM için taban tutar. Kusur
+   sayısı sıfır olabilir; ÖLÇÜM sayısı olamaz — sıfır ölçümle "kusur yok"
+   demek, hiçbir şeye bakmadan temiz raporlamaktır
+   (`arac/olcum-tabani.mjs` başlığındaki ölçülmüş olay). Taban ÖNCE
+   bakılır: geçersiz bir ölçümün borç kararı da geçersizdir. */
 if (process.argv.includes('--taban-yaz')) {
   const { onceki, yeni } = tabanYaz('gezinme.bant', notlar.length);
   console.log(`taban güncellendi: gezinme.bant ${onceki ?? '(yok)'} → ${yeni}`);

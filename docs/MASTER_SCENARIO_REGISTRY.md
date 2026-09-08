@@ -13,7 +13,7 @@ it('kapsam dışı varlığa yazılamaz [ENV-YAZ-003]', …)
 Ayrı bir eşleme tablosu tutulsaydı, tablo ilk yeniden adlandırmada
 testten ayrışır ve kimse görmezdi.
 
-Senaryo: **283** · testli: **283** · GAP: **0**
+Senaryo: **284** · testli: **284** · GAP: **0**
 
 ## Aktivite · 2 senaryo
 
@@ -352,7 +352,7 @@ Senaryo: **283** · testli: **283** · GAP: **0**
 | `SAY-KMP-001` | /sayim | BT yöneticisi · kendi tesisi | Kapsamda hiç varlık yok · yok | Sayım açmayı dener | Açılmaz — sıfır paydalı kampanya olamaz | Neden açılmadığı yazılır | yazma yok | yok | `faz-g-varlik.test.ts` |
 | `SAY-KMP-002` | /sayim | BT yöneticisi · kendi tesisi | Satır "bulunamadı" işaretlendi · kısmi | Sonucu kaydeder | Varlık SİLİNMEZ — envanterden düşürme ayrı bir karardır | "Sayılmadı" ile "bulunamadı" ayrı durumlardır | Sayım satırı · guncelleme | yok | `faz-g-eylem.test.ts` |
 
-## Sistem · 36 senaryo
+## Sistem · 37 senaryo
 
 | ID | Rota | Rol · kapsam | Ön koşul · veri | Eylem | Beklenen sonuç | Ekran | Denetim izi | Görev/bildirim | Test |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -388,6 +388,7 @@ Senaryo: **283** · testli: **283** · GAP: **0**
 | `SIS-BSL-002` | — | herhangi bir kullanıcı · kendi kapsamı | Ekran bir isterden doğmuş · normal | Ekran künyesi okunur | Künyede UY-/OT- kodu geçmez | Kod ürün belgesinde kalır | yazma yok | yok | `ekran-basligi.test.ts` |
 | `SIS-ERS-002` | — | klavye kullanıcısı · kendi kapsamı | Tablo seçilebilir değil · normal | Satırın imlecine ve rolüne bakılır | Seçilemeyen satır işaretçi imleci taşımaz | Sahte tıklama çağrısı yok | yazma yok | yok | `senaryo-platform.test.ts` |
 | `SIS-ERS-003` | — | klavye kullanıcısı · kendi kapsamı | Ekranda grid ya da sekme listesi var · normal | Widget içinde odaklanabilir bir durak aranır | Rol varsa gezinen odak da vardır | Tab ile girilir, ok tuşlarıyla gezilir | yazma yok | yok | `senaryo-platform.test.ts` |
+| `SIS-SNG-001` | /giris | ilk kez gelen ziyaretçi · giriş deneyimi | Hareketli giriş kullanılabilir · ileri ve geri kaydırma | Aynı ilerleme noktasına ileri ve geri yönden ulaşılır | Poz aynıdır; katmanlar açılmadan hizalanır; kamera son katmanın önünde kalır | Görsel süreklilik ayrıca tarayıcıda doğrulanmalıdır | yazma yok | yok | `giris-zaman.test.ts` · `giris-zaman.test.ts` · `giris-zaman.test.ts` |
 | `SIS-BKM-001` | /bakim | herhangi bir ziyaretçi · yok | Bakım bitiş saati bilinmiyor · bilinmiyor | Bakım ekranını açar | Bitiş saati bilinmiyorsa "bilinmiyor" yazılır; süre TAHMİN EDİLMEZ | Kayıt okumaz; oturum istemez | yazma yok | yok | `ters-kapsam-ekran.test.ts` |
 | `SIS-TKN-001` | /sistem | tasarımcı / geliştirici · kurum geneli | Token değerleri stil dosyasında · normal | Tasarım sistemi ekranını açar | Değerler `app/kabuk.css` OKUNARAK gelir; ekranda elle yazılmış renk yoktur | Kaynak tek — ekran stil dosyasından ayrışamaz | yazma yok | yok | `ters-kapsam-ekran.test.ts` |
 | `SIS-BLS-001` | /sistem/bilesenler | tasarımcı / geliştirici · kurum geneli | Galeri bileşen kütüğü · yok | Bileşen galerisini açar | Boş · ölçülmedi · bağlı değil · kısmi · hata durumlarının HEPSİ galeride yer alır | Ekranlar bozuk durumu tutarsız çizemez | yazma yok | yok | `ters-kapsam-ekran.test.ts` |

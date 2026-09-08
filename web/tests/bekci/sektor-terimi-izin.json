@@ -141,13 +141,12 @@
     "tavan hiçbir şey tutmuyordu. Cırcır sessizce gevşemişti; ölçülen sayının",
     "ADI ile İDDİASI ayrışırsa kapı yaşarken ölür."
   ],
-  "tavan": 12,
-  "terimTavani": 86,
+  "tavan": 11,
+  "terimTavani": 85,
   "dosyalar": [
     "app/(kabuk)/(operasyonel)/sistem/bilesenler/Galeri.tsx",
     "app/(kabuk)/(operasyonel)/sistem/page.tsx",
     "app/(kabuk)/(operasyonel)/yonetim-tezgahi/Formlar.tsx",
-    "app/kabuk.css",
     "components/kabuk/tip.ts",
     "lib/dil/terimler.ts",
     "lib/entegrasyon/adaptorler/elleAktarim.ts",

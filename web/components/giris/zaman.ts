@@ -226,7 +226,7 @@ export function gecisMaskesi(pay: number, merkezX: number, merkezY: number, en: 
   const t = sinirla(pay);
   if (t >= 1) return 'none';
   const uzak = Math.hypot(Math.max(merkezX, en - merkezX), Math.max(merkezY, boy - merkezY));
-  const kenar = uzak * .17;
+  const kenar = uzak * .08;
   const yaricap = -kenar + t * (uzak + 2 * kenar);
   const ic = Math.max(0, yaricap - kenar), dis = Math.max(.01, yaricap + kenar);
   return `radial-gradient(circle at ${merkezX}px ${merkezY}px, #000 ${ic}px, transparent ${dis}px)`;

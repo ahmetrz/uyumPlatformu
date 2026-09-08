@@ -2,6 +2,8 @@
 
 Dört onaylı görsel korunur. v3'ün ortak hedef ve tek kamera matematiği üzerinde, fotoğrafların bütün ekranda üst üste çözünmesi kaldırıldı. Yakın kare ortak hedef merkezinden yumuşak bir maskeyle açılır; uzak kare altlık olarak tam opak kalır. Bu, iki yarım saydam katmanın ortada kararmasını engeller ve çift mimariyi dar bir geçiş sınırına indirir. Maske desteklenmiyorsa üst kare tam opak altlığın üzerine çözünür.
 
+Dış sahnelerin ufku ortak uzak manzaraya maskelenir. Arka plan en çok %8 büyürken ön plan kamerayla yaklaşır; dağların bina kadar hızlı büyümesi ve iki dağ silüetinin üst üste gelmesi önlenir. Cam cepheden sonra iç mekân tam kare olarak devralır.
+
 Bu bir fotoğraf tabanlı sahneleme yöntemidir; dört durağan görüntüden gerçek hareketli üç boyutlu çekim üretildiği iddia edilmez. Fotoğraflardaki mimari farklar tamamen ortadan kaldırılamaz.
 
 Açılış: görüntünün merkezindeki yapı serbest bırakılır; başlık, birincil giriş eylemi ve sektör seçimi alt bölümde gruplanır. Sektör seçimi ve gerçek uygulama korunur.

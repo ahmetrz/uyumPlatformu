@@ -11,6 +11,7 @@ export type Sahne = { ciz: (p: number) => Poz; boyutla: () => void; temizle: () 
 export async function sahneKur(root: HTMLElement): Promise<Sahne> {
   const imgs = Object.fromEntries(KARELER.map(ad => [ad, root.querySelector<HTMLImageElement>(`[data-kare="${ad}"]`)!])) as Record<Kare, HTMLImageElement>;
   const stage = imgs.uzak.parentElement!;
+  const arka = root.querySelector<HTMLImageElement>('[data-uzak-plan]')!;
   await Promise.all(KARELER.map(async ad => {
     const img = imgs[ad];
     if (!img.complete || img.naturalWidth === 0) await img.decode();
@@ -34,6 +35,7 @@ export async function sahneKur(root: HTMLElement): Promise<Sahne> {
     ciz(p) {
       const s = poz(p, w, h);
       const taban = Math.max(w, h * 16 / 9);
+      arka.style.transform = `scale(${1 + s.yol * .08})`;
       const gorunen = KARELER.filter(ad => s.kareler[ad].opaklik > .0005);
       for (const ad of KARELER) {
         const img = imgs[ad], yer = s.kareler[ad];
@@ -44,17 +46,24 @@ export async function sahneKur(root: HTMLElement): Promise<Sahne> {
         const bag = BAGLAR[KARELER.indexOf(ad) - 1];
         const maske = icKare && CSS.supports('mask-image', 'radial-gradient(black, transparent)');
         img.style.opacity = icKare && !maske ? yer.opaklik.toFixed(4) : '1';
-        img.style.maskImage = maske ? gecisMaskesi(yer.opaklik,
+        const odakMaskesi = maske ? gecisMaskesi(yer.opaklik,
           (bag.ic.sol + bag.ic.sag) / 2 * taban,
           (bag.ic.ust + bag.ic.alt) / 2 * taban * 9 / 16, taban, taban * 9 / 16) : 'none';
+        const ufuk = [35, 28, 20][KARELER.indexOf(ad)];
+        const derinlik = ad !== 'ekran' && CSS.supports('mask-composite', 'intersect');
+        img.style.maskImage = derinlik
+          ? `linear-gradient(to bottom, transparent ${ufuk}%, #000 ${ufuk + 4}%), ${odakMaskesi === 'none' ? 'linear-gradient(#000, #000)' : odakMaskesi}`
+          : odakMaskesi;
+        img.style.maskComposite = derinlik ? 'intersect' : 'add';
         img.style.transform = `translate3d(${yer.x.toFixed(2)}px, ${yer.y.toFixed(2)}px, 0) scale(${(yer.en / taban).toFixed(5)})`;
       }
       return s;
     },
     temizle() {
+      arka.style.removeProperty('transform');
       for (const ad of KARELER) {
         const img = imgs[ad];
-        for (const prop of ['width', 'height', 'transform', 'opacity', 'visibility', 'mask-image']) img.style.removeProperty(prop);
+        for (const prop of ['width', 'height', 'transform', 'opacity', 'visibility', 'mask-image', 'mask-composite']) img.style.removeProperty(prop);
       }
     },
   };

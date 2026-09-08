@@ -152,6 +152,9 @@ function Giris({ children, sektorler }: {
     <div ref={root} className={styles.root} data-mod="statik" data-asama="0" data-arayuz="0">
       <div className={styles.runway}>
         <section className={styles.stage} aria-label="Platforma giriş">
+          {/* Uzak manzara aynı kalır; yaklaşan yapıdan daha yavaş büyür. */}
+          {/* eslint-disable-next-line @next/next/no-img-element -- aynı yerel statik kaynak */}
+          <img data-uzak-plan className={styles.backdrop} src={`${TEMEL}/gorseller/giris/${DOSYALAR[0]}.webp`} alt="" aria-hidden="true" width={1600} height={900} />
           {/* Dört onaylı kare tek optik eksende ilerler; dekoratiftir (alt="", aria-hidden).
               Statik dışa aktarımda görsel optimizasyonu kapalı; düz <img> kullanılır. */}
           {KARELER.map((ad, i) => (

@@ -948,6 +948,13 @@
   background: color-mix(in srgb, var(--zemin) 70%, transparent);
   display: flex; flex-direction: column; overflow-y: auto; min-height: 0;
 }
+/* Panel KAYDIRILABİLİR bir bölgedir (`overflow-y: auto` yukarıda) ve
+   kaydırılabilir ama odaklanamayan bölge klavye kullanıcısı için
+   ERİŞİLEMEZDİR (axe · serious · scrollable-region-focusable). Bölge
+   `tabindex=0` ile odak alır (Genel.tsx); halka İÇERİ alınır çünkü
+   `.ab-b-alan` `overflow: hidden` ve dışarıdaki pay kırpılırdı —
+   `.ab-b-panel` ile aynı gerekçe. */
+.ab-b-katman:focus-visible { outline-offset: -2px; }
 .ab-b-katman .katmanlar { margin-top: 16px; display: grid; gap: 14px; }
 .ab-b-katman .bos { font-size: 12.5px; color: var(--i3); }
 .ab-b-katman .katman .bas { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }

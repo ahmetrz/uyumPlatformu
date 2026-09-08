@@ -91,6 +91,18 @@ kod kusuru gibi görünen kırmızılar üretir (üçü de ölçüldü). Sıra:
 süreçleri öldür → portun kapandığını doğrula → derle → başlat → ölç.
 Ayrıntı `web/arac/BENIOKU.md`.
 
+**Düzelttiğini iddia eden değişiklik SABOTAJLA kanıtlanır.** Bir
+kırmızıyı kapattığını söyleyen yama, geri alındığında kırmızıyı geri
+GETİRMELİDİR. Getirmiyorsa düzelttiği şey o değildi — kapı başka bir
+sebeple sustu, ya da kırmızı en baştan yanlış alarmdı. Ölçüldü: `/`
+saha ekranının 27px'lik "kaydırılamayan içerik" kırmızısı için yazılan
+`grid-template-rows` kısıtı, sabotaj turunda ETKİSİZ çıktı; asıl kusur
+kapının kendi yürüyüşündeydi (kaydıran atayı atlayıp üstündeki kırpan
+atayı suçluyordu). Sabotaj koşulmasaydı depoya, kusuru düzelttiğini
+söyleyen bir gerekçeyle birlikte ölü bir kural girecekti. Aynı ölçüt
+kapı düzeltmeleri için de geçerlidir: düzeltilmiş kapı, kusurun ESKİ
+hâlinde hâlâ kırmızı yanmalıdır — yoksa düzeltme değil, delik açtın.
+
 **Dosyayı değiştirmeden önce güncel hâlini oku.**
 
 ### Değişen kurallar

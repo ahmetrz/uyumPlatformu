@@ -58,6 +58,7 @@ export const KUTUKSUZ_DOSYALAR = {
   'uc-deger-kurali.test.ts': 'Üç değerli mantığın sözlüğü',
   'omur-ufuk.test.ts': 'Ömür şeridinin aciliyet bantları — ölçek işaretinin saf mantığı',
   'kapi-farki.test.ts': 'Kapı farkı ölçüsünün saf kuralları — hangi betik CI\'da koşuyor',
+  'kirpan-ata.test.ts': 'Düzen kapısının kırpan-ata yürüyüşü — kaydırılabilen içerik kayıp sayılmaz',
 };
 
 /* Vitest'in globuyla AYNI küme: `tests/**\/*.test.ts` — yani ALT

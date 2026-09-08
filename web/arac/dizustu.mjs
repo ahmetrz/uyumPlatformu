@@ -122,9 +122,35 @@ function olc(tolerans) {
      360'ın hero plakası 0'a ezilince zincir ve şerit üst üste bindi.
      Bu yüzden ikinci ölçü şart: kırpan en yakın atanın alt kenarını
      aşan, metin taşıyan öğe. */
+  /* Yürüyüş, KAYDIRAN ilk atada durur ve `null` döner. Ölçüldü
+     (1366×768 · `stres` sözlüğü · `/`): `div.katmanlar` 511'de bitiyor,
+     kırpan `section.ab-b-alan` 484'te — 27px "dışarıda" görünüyordu. Ama
+     aradaki `aside.ab-b-katman` `overflow-y: auto` ve 44px kayıyor;
+     panel dibine kaydırıldığında `.katmanlar` 467'ye, yani İÇERİ
+     geliyor. Kaydırılabilen içerik kayıp değildir — birinci ölçü bunu
+     zaten biliyordu (`overflowY !== 'hidden'` → geç), ikincisi bilmiyordu
+     ve kaydıran atanın üstündeki `hidden` atayı suçluyordu.
+
+     Ölçüt HESAPLANAN DEĞER DEĞİL, GERÇEKTEN KAYIYOR MU'dur ve bu ayrım
+     kapının kendisi kadar önemli: `overflow-y: auto` yazan ama
+     içeriğine kadar gerilmiş, dolayısıyla KAYMAYAN bir kap hiçbir şeyi
+     kurtarmaz — orada kayıp gerçektir ve kırpan ata yukarıda aranmaya
+     devam etmelidir. Yalnızca hesaplanan değere bakan bir yürüyüş o
+     kaybı sessizce gizlerdi. Sabotajla sınandı (`.ab-b-katman`a sabit
+     600px yükseklik: `auto`, kaymıyor, kırpanın altına taşıyor) —
+     kapı kırmızı yandı. Zincir mantığının kendisi tarayıcısız
+     sınanır: `tests/kirpan-ata.test.ts` bu kaynağı okur, saf ölçüte
+     indirger ve iki yönü de doğrular.
+
+     Delik açmaz: kaydıran kabın KENDİSİ kırpan bir atanın altına
+     taşıyorsa, o kap da metin taşıyan bir öğedir ve aynı döngüde
+     ölçülür — kayıp o zaman kabın adıyla bildirilir. */
   function kirpanAta(e) {
     for (let a = e.parentElement; a && a !== document.body; a = a.parentElement) {
-      if (getComputedStyle(a).overflowY === 'hidden') return a;
+      const oy = getComputedStyle(a).overflowY;
+      /* Kaydıran kap: içerik erişilebilir, arama burada BİTER. */
+      if ((oy === 'auto' || oy === 'scroll') && a.scrollHeight > a.clientHeight) return null;
+      if (oy === 'hidden') return a;
     }
     return null;
   }

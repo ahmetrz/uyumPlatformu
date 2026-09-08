@@ -218,12 +218,31 @@ export default function Genel({
         <Takimyildizi tesisler={tesisler} gosterim={olculmemisGosterimi}
           serit={olculmemisSerit} panelAcik={olculmemisAcik} setPanelAcik={setOlculmemisAcik} />
 
-        {/* ── Katman paneli · 320px — gizlenebilir (saha.yerlesim) ────── */}
+        {/* ── Katman paneli · 320px — gizlenebilir (saha.yerlesim) ──────
+            Panel içeriği KAP BOYUNU AŞABİLİR ve kendi içinde kayar; ne
+            kadarı sözlüğe bağlıdır, çünkü katman adı terimden gelir.
+            Ölçüldü (1366×768, kap 427px): `enerji` 427 → kaymıyor ·
+            `su` 437 → 10px · `stres` 471 → 44px kayıyor. Kaydırılabilir
+            bölge klavyeyle odaklanabilir OLMAK ZORUNDA — panelde
+            odaklanabilir tek bir çocuk yok, yani kaydırma yalnız fareye
+            açık kalırdı (axe · serious · scrollable-region-focusable;
+            tesis ekranının `.ab-b-panel`i ile aynı gerekçe).
+
+            Bu kusuru axe KAPISI bulmadı, elle ölçüldü: axe 1440×900,
+            768×1024 ve 375×780 tarar; panel bu üç bantta kaymıyor
+            (535/535 · dar bantta `overflow-y: visible`). Kaydığı bant
+            olan 1366×768 yalnız düzen kapısının bandıdır. Kapının
+            ölçmediği bant kapının "temiz" dediği bant değildir —
+            boşluk R0 kütüğüne yazıldı. */}
         {katmanVar && (
-          <aside className="ab-b-katman" aria-label="Üretim tipine göre uyum">
+          <aside className="ab-b-katman" aria-label="Üretim tipine göre uyum" tabIndex={0}>
             <p className="etiket" title="Üretim tipine göre uyum katmanları">Üretim tipi · uyum</p>
             <div className="katmanlar">
-              {tipler.length === 0 && <p className="bos">Kapsamında tesis yok.</p>}
+              {/* Boş durum tohumlu veride hiç oluşmaz: sözlük kapısı bu satıra
+                  UĞRAYAMADI, sızıntı bir üstteki kardeşi düzeltilirken elle
+                  görüldü. Kapının erişemediği durum kapının temiz dediği durum
+                  değildir. */}
+              {tipler.length === 0 && <p className="bos">Kapsamında {terim('tesis')} yok.</p>}
               {tipler.slice(0, KATMAN_TAVANI).map((t) => (
                 <div key={t.kod} className="katman">
                   <div className="bas">
@@ -246,7 +265,7 @@ export default function Genel({
               {tipler.length > KATMAN_TAVANI && (
                 <p className="mono kalan">
                   {tipler.slice(KATMAN_TAVANI).map((t) => tipAdi(t.kod, t.ad)).join(' · ')}
-                  {' — '}{tipler.slice(KATMAN_TAVANI).reduce((a, t) => a + t.tesisSayisi, 0)} tesis
+                  {' — '}{tipler.slice(KATMAN_TAVANI).reduce((a, t) => a + t.tesisSayisi, 0)}{' '}{terim('tesis')}
                 </p>
               )}
             </div>

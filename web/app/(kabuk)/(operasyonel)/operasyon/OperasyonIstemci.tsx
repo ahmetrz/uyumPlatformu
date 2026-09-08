@@ -16,7 +16,7 @@ import {
   metrikleriHesapla, mercekten, tesisMetni, sirala,
   type D, type Kodlu, type Mercek, type OlayAdayi,
 } from './mantik';
-import { useTerim } from '@/lib/dil/SozlukSaglayici';
+import { useSozluk, useTerim } from '@/lib/dil/SozlukSaglayici';
 
 /* O · Değişiklik yönetimi — "hangi değişiklik emniyet kanıtını taşımıyor?"
    Tek canvas modülü: önceliğe göre sıralı değişiklik tablosu. Durum sözcüğü
@@ -53,6 +53,7 @@ export default function OperasyonIstemci({
   const [kuyrukAcik, setKuyrukAcik] = useState(false);
 
   const { tBas } = useTerim();
+  const sozluk = useSozluk();
   const KOLONLAR = useMemo(() => kolonlar(tBas('tesis')), [tBas]);
 
   /* Metrikler filtreden BAĞIMSIZ: kütüğün tamamını anlatır (06 §A2). */
@@ -91,7 +92,7 @@ export default function OperasyonIstemci({
           : !d.planTarihi ? { color: 'var(--i3)' } : undefined}>
           {gec !== null ? `+${gec} gün` : d.planTarihi ? tarihTR(d.planTarihi) : 'tarih yok'}
         </span>,
-        tesisMetni(d),
+        tesisMetni(d, sozluk),
       ],
     };
   });
@@ -221,6 +222,7 @@ function Ozet({ d, olaylar, simdi, duzenle }: {
 }) {
   const im = degisiklikImi(d, simdi);
   const ix = asamaIndeksi(d.durum);
+  const sozluk = useSozluk();
 
   /* Zincir değişikliğin dokunduğu kayıtları anlatır: doğurduğu ya da
      kapattığı olaylar. Olmayan halka uydurulmaz. */
@@ -237,7 +239,7 @@ function Ozet({ d, olaylar, simdi, duzenle }: {
         { etiket: 'Tip', deger: d.otMu ? 'OT değişikliği' : 'BT değişikliği' },
         {
           etiket: 'Kapsam',
-          deger: `${tesisMetni(d)}${d.varlikEtiketi ? ` · ${d.varlikEtiketi}` : ''}`,
+          deger: `${tesisMetni(d, sozluk)}${d.varlikEtiketi ? ` · ${d.varlikEtiketi}` : ''}`,
         },
         {
           etiket: 'Plan tarihi',

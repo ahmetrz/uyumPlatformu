@@ -279,7 +279,7 @@ export default async function YardimEkrani() {
       <section className="bolum" aria-labelledby="yardim-destek">
         <h2 id="yardim-destek" className="ab-bolum-basligi">Destek</h2>
         <p className="cumle">
-          Hesap, yetki ve tesis kapsamı için <strong>kurumunuzun BT destek
+          Hesap, yetki ve {t(sozluk, 'tesis')} kapsamı için <strong>kurumunuzun BT destek
           kanalına</strong> başvurun; bu platform kendi başına hesap açmaz ve
           yetki genişletmez. Yetkinizi ve kapsamınızı{' '}
           <Link href="/ayarlar">Ayarlar</Link> ekranından görebilirsiniz.

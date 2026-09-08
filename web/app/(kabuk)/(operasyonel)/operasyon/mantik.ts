@@ -1,4 +1,5 @@
 import type { Durum } from '@/components/kabuk/temel';
+import { t, type Sozluk } from '@/lib/dil/terimler';
 
 /* O · Değişiklik yönetimi — saf mantık.
 
@@ -196,8 +197,8 @@ export function altSatir(d: D): string {
 }
 
 /** Tesis hücresi: tek tesis · yoksa portföy (grup çapında değişiklik). */
-export function tesisMetni(d: Pick<D, 'tesis'>): string {
-  return d.tesis?.ad ?? 'portföy';
+export function tesisMetni(d: Pick<D, 'tesis'>, sozluk: Sozluk | null = null): string {
+  return d.tesis?.ad ?? t(sozluk, 'portfoy');
 }
 
 /** Kapı hücresi: OT'de tamamlanan kapı kesri, BT'de kapı YOKTUR. */

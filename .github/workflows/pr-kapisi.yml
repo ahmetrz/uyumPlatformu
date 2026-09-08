@@ -192,9 +192,41 @@ jobs:
         run: node arac/erisim-axe.mjs
 
       # Statik demo derlemesi `.next`'i devralır; sunucu önce durmalı.
+      # SÜREÇ ADIYLA ÖLDÜRME — ÖLÇÜLDÜ VE İŞLEMEDİ. Bu adım bir zamanlar
+      # `pkill -f 'next start' || true` idi ve HİÇBİR ŞEYİ öldürmüyordu:
+      # `next start` açılıştan sonra süreç adını `next-server (vX.Y.Z)`
+      # yapar, kalıp eşleşmez, `|| true` de bunu sessizleştirir. Ölçüldü
+      # (8 Eyl 2026): parti kapanışından sonra sunucu PID 5777 · PPID 1
+      # olarak 3210'da ayakta kaldı, `pgrep -af 'next start'` sıfır
+      # eşleşme döndü. CI'da maskeliydi (runner atılıyor); YERELDE
+      # `kapi:parti` aynı adımı iş akışından türettiği için her parti
+      # kapanışı bayat bir sunucu bırakıyordu — yani ölçüm aracı devir
+      # kaydının 1 numaralı yanlış alarm tuzağını kendisi üretiyordu.
+      #
+      # Port BİZİM yazdığımız sabittir; süreç adı Next'in iç detayıdır ve
+      # sürümle kayar. Öldürme porttan yapılır.
+      #
+      # SON KOŞULUNU GARANTİ ETMEYEN ADIM, ADIM DEĞİLDİR: öldürmenin
+      # ardından portun KAPANDIĞI doğrulanır, kapanmadıysa kırmızı.
+      # Doğrulama öldürmeyle AYNI aracı kullanmaz (öldüren `fuser`,
+      # doğrulayan `curl`) — tek araca bakan bir kontrol, o araç ortamda
+      # yoksa "kapandı" der ve kandırılır.
+      #
+      # `fuser -k` portu tutan süreç YOKSA da sıfırdan farklı döner; bu
+      # iyi hâldir, hata değildir — bu yüzden onun çıkış kodu değil, son
+      # koşul ölçülür. (`if: always()` ile sunucu hiç açılmamışken de
+      # koşar.)
       - name: Sunucuyu durdur
         if: always()
-        run: pkill -f 'next start' || true
+        run: |
+          fuser -k -n tcp 3210 || echo "3210'u tutan süreç yok"
+          for i in $(seq 1 10); do
+            if ! curl -s -o /dev/null --max-time 2 http://localhost:3210/; then
+              echo "3210 kapandı (${i}sn)"; exit 0
+            fi
+            sleep 1
+          done
+          echo "3210 HÂLÂ AÇIK — sunucu durmadı"; exit 1
 
       # `npx next build` DEĞİL: o, zincirin yalnız ilk halkasıdır ve
       # demo-yol · yayin-kontrol · statik-kontrol · kolon-hizasi kapılarını

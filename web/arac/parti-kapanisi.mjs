@@ -27,7 +27,7 @@ import { spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { adimlar, isOrtami } from './kapi-farki.mjs';
+import { isOrtami, sunucuYasamDongusu } from './kapi-farki.mjs';
 
 const WEB = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DEPO = path.resolve(WEB, '..');
@@ -43,11 +43,14 @@ const metin = readFileSync(PR_KAPISI, 'utf8')
    adımları (bağımlılık, veritabanı, tarayıcı indirme, sunucu başlatma /
    durdurma) ölçmez; koşulmamaları bir kapının eksikliği değildir. */
 const KAPI_KALIBI = /(npm run [\w:-]+|npm test\b|npx tsc\b|node arac\/)/;
-const KURULUM_KALIBI = /(npm ci|prisma |playwright-core\/cli|git fetch|pkill|next start)/;
+const KURULUM_KALIBI = /(npm ci|prisma |playwright-core\/cli|git fetch|fuser -k|next start)/;
 
-const tumAdimlar = adimlar(metin);
-const sunucuBaslar = tumAdimlar.findIndex((a) => /next start/.test(a.komut));
-const sunucuDurur = tumAdimlar.findIndex((a) => /pkill/.test(a.komut));
+/* Başlatan/durduran adımların tespiti `kapi-farki.mjs`tedir — bekçi
+   testi de oradan okur. Burada ikinci bir arama yapılsaydı, biri
+   düzeltilip öbürü bayatlayabilirdi. Durduran adım tanınmazsa bu çağrı
+   ATAR: sessiz bir `-1`, sunucuyu ayakta bırakan sessiz bir kusurdu. */
+const { baslar: sunucuBaslar, durur: sunucuDurur, adimlar: tumAdimlar } =
+  sunucuYasamDongusu(metin);
 
 /* SUNUCU YAŞAM DÖNGÜSÜ ARACIN KENDİSİNDE. İlk tasarımda sunucunun
    dışarıda başlatılmış olması bekleniyordu — ve bu doğrudan TAZELİK
@@ -130,9 +133,40 @@ console.log(`PARTİ KAPANIŞI · kapı kümesi ${PR_KAPISI.replace(DEPO + '/', '
 console.log(`  kapı: ${kapilar.length} · tarayıcılı: ${kapilar.filter((k) => k.sunucuIster).length}`
   + ` · port: ${PORT}\n`);
 
+/** Portta HTTP konuşan bir şey var mı.
+
+    Öldürmeyle AYNI aracı KULLANMAZ: öldüren `fuser`, doğrulayan `curl`.
+    Tek araca bakan bir doğrulama, o araç ortamda yoksa "boş" der ve
+    kandırılır. `-f` YOK — 500 dönen bir sunucu da ayaktadır. */
+function portAcik() {
+  const r = spawnSync('sh', ['-c',
+    `curl -s -o /dev/null --max-time 2 http://localhost:${PORT}/`], { stdio: 'ignore' });
+  return r.status === 0;
+}
+
+/** Portun kapandığını `saniye` boyunca bekler; kapandıysa true. */
+function portKapandi(saniye = 10) {
+  for (let i = 0; i < saniye; i++) {
+    if (!portAcik()) return true;
+    spawnSync('sleep', ['1']);
+  }
+  return !portAcik();
+}
+
 /* Bayat süreç kalmasın: derlemeden sonra başlatılacak sunucunun portu
-   ÖNCE boşaltılır. */
-spawnSync('sh', ['-c', `fuser -k -n tcp ${PORT} 2>/dev/null || true`], { stdio: 'ignore' });
+   ÖNCE boşaltılır.
+
+   `fuser -k` portu TUTAN SÜREÇ YOKSA da sıfırdan farklı döner — bu iyi
+   hâldir, hata değildir. Bu yüzden onun çıkış kodu değil SON KOŞUL
+   ölçülür: port gerçekten boşaldı mı. Boşalmadan devam etmek, bayat bir
+   sunucuyu ölçmektir (arac/BENIOKU.md → ORTAM TAZELİĞİ, 1. tuzak) ve
+   çıkan kırmızı koda değil ortama aittir. */
+spawnSync('sh', ['-c', `fuser -k -n tcp ${PORT} 2>/dev/null`], { stdio: 'ignore' });
+if (!portKapandi()) {
+  console.error(`\n  PORT ${PORT} BOŞALMADI — ölçüm bayat bir sunucuya yapılırdı.`);
+  console.error(`  Elle: fuser -k -n tcp ${PORT}  ·  bkz. arac/BENIOKU.md → ORTAM TAZELİĞİ`);
+  process.exit(1);
+}
 
 const sonuc = [];
 let ayakta = false;
@@ -165,7 +199,19 @@ for (const k of kapilar) {
   console.log(`\n  ${durum}  ${k.ad}  (${sn}sn)\n`);
 }
 
-if (ayakta) yasamAdimi(sunucuDurur, 'sunucu durduruluyor');
+/* DURDURMA ADIMININ SONUCU YUTULMAZ. Eskiden dönüş değeri atılıyordu:
+   adım hiçbir şey öldürmese de kapanış "tamamı yeşil" yazıyordu. Kendi
+   sonucuna bakmayan bir temizlik adımı, temizlik yapmadığını da
+   söyleyemez. */
+let durdurmaKirmizi = false;
+if (ayakta) {
+  const durdu = yasamAdimi(sunucuDurur, 'sunucu durduruluyor');
+  if (!durdu || portAcik()) {
+    durdurmaKirmizi = true;
+    console.error(`\n  SUNUCU DURMADI · port ${PORT} hâlâ açık —`
+      + ' sonraki ölçüm bayat sunucuya yapılırdı.');
+  }
+}
 
 console.log('\n══ PARTİ KAPANIŞ RAPORU ══════════════════════════════════');
 for (const s of sonuc) {
@@ -210,10 +256,15 @@ if (bilgi.length) {
     + ' CI da bloklamıyor, kapanış da bloklamıyor)');
 }
 
-if (kirmizi.length || olculmeyen.length) {
+if (kirmizi.length || olculmeyen.length || durdurmaKirmizi) {
   console.log('\nPARTİ KAPANMADI.');
   if (olculmeyen.length) {
     console.log(`  ${olculmeyen.length} kapı ölçülmedi — bu "geçti" DEĞİLDİR.`);
+  }
+  /* Kapıların hepsi yeşilken de kapanmayabilir: ortamı arkasında bayat
+     bırakan bir koşum, bir sonraki ölçümü kendi kusuruyla kirletir. */
+  if (durdurmaKirmizi) {
+    console.log(`  Kapılar yeşil ama SUNUCU DURMADI — ortam bayat kaldı.`);
   }
   process.exit(1);
 }

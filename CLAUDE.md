@@ -110,6 +110,22 @@ kapı düzeltmeleri için de geçerlidir: düzeltilmiş kapı, kusurun ESKİ
 hâlinde hâlâ kırmızı yanmalıdır — yoksa düzeltme değil, delik açtın.
 
 
+**Temizlik adımı SON KOŞULUNU doğrular.** "Durdurdum · sildim ·
+boşalttım" diyen bir adım, dediğini yaptığını ÖLÇMELİDİR; başarısız
+olamayan bir adım adım değildir. Ölçüldü: `pkill -f 'next start' ||
+true` iki satırda üç kusur taşıyordu — `next start` açılışta süreç adını
+`next-server (vX.Y.Z)` yapıyor (öldürme YABANCI bir detaya bağlıydı ve
+sürümle kaymıştı), kalıp hiçbir şeye eşleşmiyor, `|| true` da bunu
+susturuyordu. CI'da runner atıldığı için maskeliydi; `kapi:parti` aynı
+adımı iş akışından türettiği için YERELDE her parti kapanışı 3210'da
+bayat bir sunucu bırakıyordu — yani ölçüm aracımız, "bayat `next start`"
+tuzağını kendi eliyle üretiyordu. Bugün: öldürme porttan yapılır, sonra
+portun kapandığı BAŞKA bir araçla doğrulanır (öldüren `fuser`,
+doğrulayan `curl` — tek araca bakan kontrol, o araç yoksa kandırılır) ve
+kapanmadıysa kırmızıdır. Dedektör: `durdurmaKarari` ·
+`sunucuYasamDongusu` (`web/arac/kapi-farki.mjs`), vakaları
+`web/tests/sunucu-durdurma.test.ts`.
+
 **Parti kapanış kapı kümesi = PR kapı kümesi.** Bir parti, PR'da koşan
 kapıların TAMAMI koşulmadan "kapandı" diye yazılmaz. Ölçüldü: statik
 demo derlemesi (`demo:build`) parti sonunda koşmadığı için modül döngüsü

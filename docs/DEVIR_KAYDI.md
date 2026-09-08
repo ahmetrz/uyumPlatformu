@@ -25,18 +25,44 @@ varsayım değil, **yapılacak iş**.
 3. `docs/GELISTIRME_PAKETLERI.md` §6 — R0 kütüğü (açık kalemler).
 4. Bu belgenin geri kalanı.
 
-### 0.2 · Sonra ÖLÇ (anlatılana güvenme)
+### 0.2 · Önce ORTAMI KUR (ölçüm bunsuz düşer)
+
+`npm ci` YETMEZ. Prisma istemcisi üretilmiş bir çıktıdır
+(`lib/prisma-client`, depoda yok) ve tohum verisi olmadan ekran kodu
+içe aktarılamaz. Eksikse ölçüm bir kod kusuru gibi düşer — ölçüldü
+(8 Eyl 2026): `cekirdek-sozcuk-taramasi.mjs`
+`Cannot find module '@/lib/prisma-client/client'` ile çöktü ve bu
+kırmızı KODA ait değildi. Sıra CI'nın kendi sırasıdır:
 
 ```sh
-cd web && npm ci
-npx vitest run                       # 162 dosya bekleniyor
+cd web
+npm ci
+npx prisma migrate deploy
+npx prisma generate            # lib/prisma-client — depoda YOK, üretilir
+npx tsx prisma/seed.ts
+```
+
+Tarayıcılı kapılar için ayrıca `arac/BENIOKU.md` → **ORTAM TAZELİĞİ**
+koşulur (süreçleri öldür → portun kapandığını doğrula → derle → başlat).
+
+### 0.3 · Sonra ÖLÇ (anlatılana güvenme)
+
+```sh
+cd web
+npx vitest run
+npm run sayimlar:denetle             # beklenen sayı BURADAN gelir
 npx tsx arac/cekirdek-sozcuk-taramasi.mjs
 npx vitest run tests/bekci/sektor-terimi.test.ts
 ```
 
+Beklenen test sayısı bu belgeye **yazılmaz**: tek kaynak
+`web/arac/test-envanteri.json` ve onu `sayimlar:denetle` doğrular
+(sıfır keşif "ölçüm" değil KIRIKTIR — `kesifKarari`). Belgeye elle
+yazılan bir sayı, ilk test eklendiğinde yalan söyler.
+
 Sayılar §B ile tutmuyorsa **eşitleme yapılmamıştır** — önce onu çöz.
 
-### 0.3 · Ölçüm ortamı tuzakları (üçü de yaşandı)
+### 0.4 · Ölçüm ortamı tuzakları (üçü de yaşandı)
 
 | Tuzak | Nasıl görünür |
 | --- | --- |
@@ -47,7 +73,7 @@ Sayılar §B ile tutmuyorsa **eşitleme yapılmamıştır** — önce onu çöz.
 Uzun koşan bir kapı varken portu BAŞKA bir iş için kapatmayın: o kapı
 kod kusuru gibi görünen bir hatayla düşer.
 
-### 0.4 · Depo düzeni
+### 0.5 · Depo düzeni
 
 - Ürün kodu `web/` altında. Kapılar `web/arac/`, bekçiler
   `web/tests/bekci/`.
@@ -189,12 +215,13 @@ Yedincisi bir merge hatasından doğdu:
 bulgu (ikisi P1) bildirdi, merge 07:00'de yalnız CI'ya bakılarak yapıldı
 ve beşi de `main`e girdi. Düzeltmeleri #32 kapattı.
 
-**AÇIK İŞ · depo ayarı:** kural `CLAUDE.md`ye yazıldı ama henüz
-YAPISAL DEĞİL. Elle yapılan kontrol bir gün yapılmaz — GitHub dal
-korumasında (`main` → Branch protection) "Require conversation
-resolution before merging" açılmalı. Bu bir depo AYARIDIR, kodla
-kapatılamaz; deposu olan kişinin bir kereliğine yapması gerekir. Ardıl
-oturum bunu ilk gün sormalı.
+**KAPANDI · depo ayarı (8 Eylül 2026).** Kural artık YAPISAL: `main`
+ruleset'inde PR zorunlu (0 onay) · **Require conversation resolution
+before merging** · status check `kapi` + **Require branches to be up to
+date** · force push engelli · silme kısıtlı. **Bypass listesi boş** —
+istisnası olan bir kural, kural değildir. Elle yapılan kontrol bir gün
+yapılmaz; artık yapılmasına gerek yok. Bu satır kalemi KAPATIR: ardıl
+oturum bunu bir daha sormaz.
 
 ---
 
@@ -212,6 +239,7 @@ dedektörü kapatmamak, borcu **görünmez** yapar — bu turda iki kez oldu.
 | `kesifKarari` | `web/arac/test-envanteri.mjs` + `tests/kesif-karari.test.ts` | Sıfır keşif ölçüm değil KIRIKTIR |
 | `kapi-farki` | `web/arac/kapi-farki.mjs` | `package.json` betikleri ile CI'da gerçekten koşanın farkı; beyansız betik kırmızı. `adimlar()` ve `isOrtami()` de burada |
 | `kapi:parti` | `web/arac/parti-kapanisi.mjs` | Parti kapanış kümesini iş akışından türetip koşar; tanımadığı her anahtarı **ORTAM FARKI** olarak sayar |
+| `durdurmaKarari` · `sunucuYasamDongusu` | `web/arac/kapi-farki.mjs` + `tests/sunucu-durdurma.test.ts` | "Başarısız OLAMAYAN temizlik adımı" sınıfı: süreç adıyla öldürme · `\|\| true` · son koşulu doğrulamayan adım. Yaşam döngüsü adımlarının tespiti de burada — **tek nüsha**; `parti-kapanisi.mjs` koşar, bekçi sınar. Başlatan var da duran tanınmıyorsa ATAR, sessiz `-1` dönmez |
 | `gerekce:tarama` | `web/arac/gerekce-tarama.mjs` | Muafiyet/beyan gerekçelerini maliyet diline karşı tarar. **Kapı değildir**, tarayıcıdır — kendi sınırı başlığında yazılı |
 | `kirpanAta` vakaları | `web/tests/kirpan-ata.test.ts` | Düzen kapısının kırpan-ata yürüyüşü; kaydırılabilen içerik kayıp sayılmaz, `auto` ama kaymayan kap yürüyüşü durdurmaz |
 | `sozlukDurumu` | `web/lib/dil/sozlukDurumu.ts` | "Sözlük yok" ile "sözlük BOŞ"u ayırır: SEKTÖRSÜZ (doğru cevap) · EKSİK (kusur) · VAR. `kapsamKarari` da burada — bilinmeyen sektör "tek sektör" sayılmaz |
@@ -245,10 +273,12 @@ değil.
 
 | | |
 | --- | --- |
-| **Ölçüm commit'i** | `640c837` — `Merge pull request #32 from ahmetrz/duzeltme/inceleme-30` |
+| **Ölçüm commit'i** | `85bd880` — `Merge pull request #31 from ahmetrz/kapanis-devir` |
 | Ölçüm tarihi | 8 Eylül 2026 |
-| Ölçülen ağaç | `origin/main` (P1 **ve** inceleme düzeltmeleri birleştirildikten SONRA) |
-| Önceki ölçüm | `fc35a38` (yalnız P1) — sayılar AYNI çıktı; düzeltmeler terim borcuna dokunmadı |
+| Ölçülen ağaç | `origin/main` (devir kaydı birleştirildikten SONRA) |
+| Önceki ölçüm | `640c837` (#32 · inceleme düzeltmeleri) — sayılar AYNI çıktı; #31 terim borcuna dokunmadı |
+| Kapı kümesi | `npm run kapi:parti` → **geçti 18 · KIRMIZI 0 · ÖLÇÜLMEDİ 0** |
+| Test keşfi | 162 dosya · 3215 vaka geçti · 1 atlandı |
 
 ### Sayılar
 
@@ -257,7 +287,7 @@ A · KALICI      :  3 dosya /  13 terim
 A · ERTELENMİŞ  :  8 dosya /  72 terim
 A · TOPLAM      : 11 dosya /  85 terim
 B               :  0 bulgu /   0 dosya   (65/65 muafiyet kullanıldı)
-ölçüm commit'i  : 640c837
+ölçüm commit'i  : 85bd880
 ```
 
 Cırcır tavanları aynı uçta: `tavan` 11 · `terimTavani` 85 ·

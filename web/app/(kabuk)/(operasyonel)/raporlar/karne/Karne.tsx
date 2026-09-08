@@ -110,6 +110,12 @@ export default function Karne({ satirlar: ham, endeks: genel, endeksSektor = {},
         {enZayif.length === 0 ? (
           <p className="bos">Hiçbir {terim('tesis')} için uyum yüzdesi ölçülmedi.</p>
         ) : (
+          /* Dar bantta tablo KENDİ kabında kaydırılır, sayfa kaymaz.
+             Ölçüldü: 375px'te tablo 413px genişliğinde ve sayfayı 86px
+             kaydırıyordu. Kolon atmak bilgi kaybıdır — karne bir denetim
+             çıktısıdır ve satırın hangi sütunu eksikse o soru
+             cevapsızdır; kaydırılabilen içerik ise kayıp sayılmaz. */
+          <div className="ab-karne-kaydir">
           <table className="ab-karne-tablo">
             <thead>
               <tr>
@@ -138,6 +144,7 @@ export default function Karne({ satirlar: ham, endeks: genel, endeksSektor = {},
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </section>
 

@@ -4145,7 +4145,10 @@ details:not([open]) > *:not(summary) { display: none !important; }
 }
 .ab-karne .ozet strong { font-size: 26px; font-weight: 600; line-height: 1.1; }
 .ab-karne .ozet .alt { font-size: var(--t-caption); color: var(--i3); }
-.ab-karne-tablo { width: 100%; border-collapse: collapse; font-size: var(--t-cell); }
+/* Tablo kendi kabında kaydırılır; sayfa gövdesi ASLA yana kaymaz.
+   Baskıda kaydırma yoktur ve gerek de yok — kâğıt A4 genişliğinde. */
+.ab-karne-kaydir { overflow-x: auto; }
+.ab-karne-tablo { width: 100%; min-width: 420px; border-collapse: collapse; font-size: var(--t-cell); }
 .ab-karne-tablo th, .ab-karne-tablo td {
   text-align: left; padding: var(--s8) var(--s10); border-bottom: 1px solid var(--hr);
 }
@@ -4173,7 +4176,8 @@ details:not([open]) > *:not(summary) { display: none !important; }
   .ab-karne .ozet > div { border-color: #999; padding: 6pt 8pt; }
   .ab-karne .ozet strong { font-size: 18pt; }
   .ab-karne h1 { font-size: 16pt; }
-  .ab-karne-tablo { font-size: 9pt; }
+  .ab-karne-kaydir { overflow-x: visible; }
+  .ab-karne-tablo { min-width: 0; font-size: 9pt; }
   .ab-karne-tablo th, .ab-karne-tablo td { border-bottom-color: #bbb; padding: 4pt 6pt; }
   .ab-karne-tablo tr { break-inside: avoid; }
 }

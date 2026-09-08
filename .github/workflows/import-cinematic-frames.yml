@@ -1,0 +1,65 @@
+name: Geçici sinematik kare aktarımı
+
+on:
+  push:
+    branches: [feat/cinematic-camera-journey-v2]
+    paths:
+      - '.github/workflows/import-cinematic-frames.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  import:
+    if: contains(github.event.head_commit.message, '[import-frames]')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: feat/cinematic-camera-journey-v2
+          fetch-depth: 0
+
+      - name: ffmpeg hazırla
+        run: |
+          if ! command -v ffmpeg >/dev/null; then
+            sudo apt-get update
+            sudo apt-get install -y ffmpeg
+          fi
+
+      - name: Kullanıcının dört karesini indir ve web için optimize et
+        env:
+          UZAK: "https://d2jqrm6oza8nb6.cloudfront.net/datasets/3477723f-8a74-4899-ba63-0a031708303e.png?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiN2ZmNmFkZGM1OGU5MzZlOCIsImJ1Y2tldCI6InJ1bndheS1kYXRhc2V0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc4OTAwMzk5Nn0.suAyMSwI7ZkgQXeH6M8VZkYXidXyJ2Q_D9x2Fr3sGek"
+          YAKLASMA: "https://d2jqrm6oza8nb6.cloudfront.net/datasets/61193571-9c35-45b5-b0e0-3ef29d6f4ca8.png?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiZTgzNjM0MjdiMTU5NjVkMSIsImJ1Y2tldCI6InJ1bndheS1kYXRhc2V0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc4OTAwMjQwN30.2W-FNMpddP8X3VpK-P4k6Z0j5mbn4Oc5cJ8AXFLXPPM"
+          BINA: "https://d2jqrm6oza8nb6.cloudfront.net/datasets/2d0f2dc9-c407-44b9-8518-cece821e4fcf.png?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiMDY5YTJkM2QwNGFkMDZjNCIsImJ1Y2tldCI6InJ1bndheS1kYXRhc2V0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc4OTAwMTAyMX0.zVYHkbJ8RSzhsUoWVTkpj7YDMEN5GlsEZe4t12pVg-k"
+          EKRAN: "https://d2jqrm6oza8nb6.cloudfront.net/datasets/9b8e290b-55eb-4d4a-b5de-bedc6428f7fc.png?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiYmNiY2E3MzMyZTRhYzRiZSIsImJ1Y2tldCI6InJ1bndheS1kYXRhc2V0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc4OTAwNDk3OX0.NmkmSFFHNkFApZoAEqJRVNfQ04lkc60V3XySJRPgBMU"
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/kareler web/public/gorseller/giris
+          curl --fail --location --retry 3 "$UZAK" -o /tmp/kareler/01.png
+          curl --fail --location --retry 3 "$YAKLASMA" -o /tmp/kareler/02.png
+          curl --fail --location --retry 3 "$BINA" -o /tmp/kareler/03.png
+          curl --fail --location --retry 3 "$EKRAN" -o /tmp/kareler/04.png
+
+          for n in 01 02 03 04; do
+            ffmpeg -loglevel error -y -i "/tmp/kareler/$n.png"               -vf 'scale=1600:-2' -frames:v 1 -c:v libwebp               -quality 76 -compression_level 6 -preset picture               "/tmp/kareler/$n.webp"
+          done
+
+          cp /tmp/kareler/01.webp web/public/gorseller/giris/sahne-01-uzak.webp
+          cp /tmp/kareler/02.webp web/public/gorseller/giris/sahne-02-yaklasma.webp
+          cp /tmp/kareler/03.webp web/public/gorseller/giris/sahne-03-bina.webp
+          cp /tmp/kareler/04.webp web/public/gorseller/giris/sahne-04-ekran.webp
+
+          for f in web/public/gorseller/giris/sahne-*.webp; do
+            test -s "$f"
+            echo "$(basename "$f"): $(wc -c < "$f") bytes"
+          done
+
+      - name: Kareleri dala işle ve geçici aktarıcıyı kaldır
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add web/public/gorseller/giris/sahne-*.webp
+          git rm .github/workflows/import-cinematic-frames.yml
+          git commit -m "Kullanıcının dört sinematik karesini optimize ederek ekle"
+          git push origin HEAD:feat/cinematic-camera-journey-v2

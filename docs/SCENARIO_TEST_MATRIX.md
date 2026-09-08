@@ -4,12 +4,12 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 286 |
-| Testi olan senaryo | 286 |
+| Senaryo | 287 |
+| Testi olan senaryo | 287 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
-| Taranan test dosyası | 164 |
+| Taranan test dosyası | 165 |
 
 ## Katman başına kapsam
 
@@ -18,7 +18,7 @@
 | ACCESSIBILITY | 8 | 8 | 0 |
 | API | 12 | 12 | 0 |
 | CONCURRENCY | 7 | 7 | 0 |
-| DOMAIN | 153 | 153 | 0 |
+| DOMAIN | 154 | 154 | 0 |
 | ENGINE | 33 | 33 | 0 |
 | INTEGRATION | 26 | 26 | 0 |
 | MIGRATION | 3 | 3 | 0 |
@@ -329,6 +329,12 @@
 | `URN-KUR-002` | Ürünleştirme | DOMAIN | `marka-adi.test.ts` | PRODUCT.md ürünleştirme kurgusunu anlatır | evet | geçti |
 | `URN-KUR-003` | Ürünleştirme | DOMAIN | `marka-adi.test.ts` | CLAUDE.md yönlendirme tablosunda ölü atıf yoktur | evet | geçti |
 | `URN-KUR-004` | Ürünleştirme | DOMAIN · UI | `marka-adi.test.ts` | belge başlıkları marka.ts varsayılanından sapmaz | evet | geçti |
+| `URN-KUR-005` | Ürünleştirme | DOMAIN | `bekci/kurgusal-adlar.test.ts` | TEDARİKÇİ adları tek kaynaktan gelir | evet | geçti |
+| `URN-KUR-005` | Ürünleştirme | DOMAIN | `bekci/kurgusal-adlar.test.ts` | VARLIK üreticileri tek kaynaktan gelir | evet | geçti |
+| `URN-KUR-005` | Ürünleştirme | DOMAIN | `bekci/kurgusal-adlar.test.ts` | YAZILIM üreticileri tek kaynaktan gelir | evet | geçti |
+| `URN-KUR-005` | Ürünleştirme | DOMAIN | `bekci/kurgusal-adlar.test.ts` | DENETLEYİCİ adları tek kaynaktan gelir | evet | geçti |
+| `URN-KUR-005` | Ürünleştirme | DOMAIN | `bekci/kurgusal-adlar.test.ts` | TÜZEL KİŞİ adları tek kaynaktan gelir | evet | geçti |
+| `URN-KUR-005` | Ürünleştirme | DOMAIN | `bekci/kurgusal-adlar.test.ts` | KİŞİ adları rol taşır, gerçek ad taşımaz | evet | geçti |
 | `URN-ALN-001` | Ürünleştirme | MIGRATION · DOMAIN | `p1-oznitelik-gocu.test.ts` | göç betiği kurulu gücü kayıpsız taşır; ölçülmemiş satır almaz | evet | geçti |
 | `URN-ALN-001` | Ürünleştirme | MIGRATION · DOMAIN | `p1-oznitelik-gocu.test.ts` | uygulama veritabanında ölçülmemiş nitelik SATIRSIZ durur | evet | geçti |
 | `URN-ALN-002` | Ürünleştirme | DOMAIN · UI | `p1-oznitelik-gocu.test.ts` | kural öznitelik üzerinden AYNI kararları üretir | evet | geçti |

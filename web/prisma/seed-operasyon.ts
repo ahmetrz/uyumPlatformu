@@ -12,6 +12,7 @@
    kurulumun kapsamı dışındadır ve veriye girmez. */
 
 import type { PrismaClient } from '../lib/prisma-client/client';
+import { TEDARIKCILER } from './kurgusal-adlar';
 
 const G = 86_400_000;
 const gun = (n: number) => new Date(Date.now() + n * G);
@@ -73,25 +74,30 @@ export async function operasyonVerisi(db: PrismaClient) {
   // [ad, tip, uzaktan erişim, kritiklik, yöntem, oturum kaydı]
   // oturumKaydi null = BİLİNMİYOR; false = kayıt alınmıyor. İkisi aynı şey
   // değildir ve ekranda da aynı gösterilmez (unknown ≠ zero).
+  /* Adlar `prisma/kurgusal-adlar.ts`ten GELİR; buraya doğrudan yazılan
+     bir ad bekçiyi kırmızı yakar (`tests/bekci/kurgusal-adlar.test.ts`).
+     Kaynak tek yerde olunca yarın eklenecek on dokuzuncu ad da aynı
+     kapıdan geçer. */
+  const A = Object.fromEntries(TEDARIKCILER.map((x) => [x.ad, x.ad]));
   const tedarikciTanim: [string, string, boolean, string, string | null, boolean | null][] = [
-    ['Siemens Energy', 'ot_saglayici', true, 'kritik', 'jump_host', true],
-    ['Ormat Technologies', 'ot_saglayici', true, 'kritik', 'saticiya_ozel', false],
-    ['GE Vernova', 'ot_saglayici', true, 'yuksek', 'vpn', true],
-    ['Vestas', 'ot_saglayici', true, 'yuksek', 'saticiya_ozel', null],
-    ['Enercon', 'ot_saglayici', true, 'orta', 'vpn', true],
-    ['Andritz Hydro', 'ot_saglayici', true, 'yuksek', 'jump_host', true],
-    ['Voith Hydro', 'ot_saglayici', false, 'orta', 'yok', null],
-    ['ABB', 'donanim', false, 'orta', 'yok', null],
-    ['Schneider Electric', 'donanim', true, 'yuksek', 'vpn', false],
-    ['Honeywell', 'ot_saglayici', false, 'orta', 'yok', null],
-    ['Emerson', 'ot_saglayici', false, 'orta', 'yok', null],
-    ['Cisco Systems', 'donanim', false, 'orta', 'yok', null],
-    ['Fortinet', 'donanim', false, 'yuksek', 'yok', null],
-    ['Microsoft', 'yazilim', false, 'yuksek', 'yok', null],
-    ['Broadcom (VMware)', 'yazilim', false, 'kritik', 'yok', null],
-    ['Türk Telekom', 'hizmet', true, 'orta', 'vpn', true],
-    ['Turkcell', 'hizmet', true, 'dusuk', 'vpn', true],
-    ['TÜBİTAK BİLGEM', 'hizmet', false, 'dusuk', 'yok', null],
+    [A['Demo Türbin Sistemleri'], 'ot_saglayici', true, 'kritik', 'jump_host', true],
+    [A['Demo Jeotermal Teknoloji'], 'ot_saglayici', true, 'kritik', 'saticiya_ozel', false],
+    [A['Demo Enerji Ekipmanları'], 'ot_saglayici', true, 'yuksek', 'vpn', true],
+    [A['Demo Rüzgâr Türbini'], 'ot_saglayici', true, 'yuksek', 'saticiya_ozel', null],
+    [A['Demo Rüzgâr Sistemleri'], 'ot_saglayici', true, 'orta', 'vpn', true],
+    [A['Demo Hidro Türbin'], 'ot_saglayici', true, 'yuksek', 'jump_host', true],
+    [A['Demo Hidro Ekipman'], 'ot_saglayici', false, 'orta', 'yok', null],
+    [A['Demo Elektrik Ekipmanları'], 'donanim', false, 'orta', 'yok', null],
+    [A['Demo Güç Otomasyonu'], 'donanim', true, 'yuksek', 'vpn', false],
+    [A['Demo Proses Otomasyonu'], 'ot_saglayici', false, 'orta', 'yok', null],
+    [A['Demo Ölçüm Sistemleri'], 'ot_saglayici', false, 'orta', 'yok', null],
+    [A['Demo Ağ Donanımı'], 'donanim', false, 'orta', 'yok', null],
+    [A['Demo Ağ Güvenliği'], 'donanim', false, 'yuksek', 'yok', null],
+    [A['Demo İşletim Sistemleri'], 'yazilim', false, 'yuksek', 'yok', null],
+    [A['Demo Sanallaştırma'], 'yazilim', false, 'kritik', 'yok', null],
+    [A['Demo Telekom Altyapı'], 'hizmet', true, 'orta', 'vpn', true],
+    [A['Demo Mobil Operatör'], 'hizmet', true, 'dusuk', 'vpn', true],
+    [A['Demo Ulusal Test Merkezi'], 'hizmet', false, 'dusuk', 'yok', null],
   ];
   const TD: Record<string, { id: string }> = {};
   for (const [ad, tip, uzak, krit, yontem, oturum] of tedarikciTanim) {
@@ -105,22 +111,22 @@ export async function operasyonVerisi(db: PrismaClient) {
 
   /* Sözleşmeler — destek bitişi O16'nın "1 destek bitiyor" metriğini besler. */
   const sozlesmeTanim: [string, string, string, number, string, boolean | null][] = [
-    ['Siemens Energy', 'SZL-2023-SIE-DCS', 'DCS/SCADA bakım ve destek', 41, '7×24 saha, 4 saat müdahale', true],
-    ['Ormat Technologies', 'SZL-2022-ORM-JES', 'Jeotermal ünite O&M', 128, 'Yıllık revizyon + uzaktan izleme', true],
-    ['GE Vernova', 'SZL-2024-GE-TRB', 'Türbin kontrol sistemi desteği', 402, '5×8 uzaktan', true],
-    ['Vestas', 'SZL-2021-VES-WTG', 'Rüzgâr türbini tam bakım', 19, 'Tam kapsam O&M', false],
-    ['Enercon', 'SZL-2024-ENR-WTG', 'Rüzgâr türbini yedek parça', 610, 'Parça + teknik destek', true],
-    ['Andritz Hydro', 'SZL-2023-AND-HES', 'Hidrolik ünite kontrol desteği', 233, 'Yıllık 2 saha ziyareti', true],
-    ['Voith Hydro', 'SZL-2020-VOI-HES', 'Türbin regülatör bakımı', -46, 'Süresi doldu, yenilenmedi', null],
-    ['Schneider Electric', 'SZL-2024-SCH-RTU', 'RTU ve saha ekipmanı', 520, 'Parça garantisi', true],
-    ['Fortinet', 'SZL-2025-FTN-FW', 'Güvenlik duvarı lisans ve destek', 296, 'Lisans + imza güncelleme', true],
-    ['Microsoft', 'SZL-2024-MS-EA', 'Kurumsal lisans anlaşması', 487, 'EA + Defender', true],
-    ['Broadcom (VMware)', 'SZL-2025-BRC-VS', 'Sanallaştırma abonelik', 174, 'VVF abonelik', true],
-    ['Türk Telekom', 'SZL-2023-TT-MPLS', 'Santral MPLS bağlantıları', 88, '%99,5 erişilebilirlik', false],
-    ['Turkcell', 'SZL-2024-TCL-APN', 'Özel APN / uzak saha', 355, 'Kapalı devre APN', false],
-    ['TÜBİTAK BİLGEM', 'SZL-2025-TBT-SOME', 'SOME danışmanlığı', 210, 'Yıllık 40 adam-gün', true],
-    ['Cisco Systems', 'SZL-2023-CSC-NET', 'Ağ donanımı bakım', 143, 'NBD parça', true],
-    ['ABB', 'SZL-2022-ABB-DRV', 'Sürücü ve motor bakımı', 66, 'Yıllık bakım', false],
+    ['Demo Türbin Sistemleri', 'SZL-2023-TRB-DCS', 'DCS/SCADA bakım ve destek', 41, '7×24 saha, 4 saat müdahale', true],
+    ['Demo Jeotermal Teknoloji', 'SZL-2022-JEO-JES', 'Jeotermal ünite O&M', 128, 'Yıllık revizyon + uzaktan izleme', true],
+    ['Demo Enerji Ekipmanları', 'SZL-2024-GE-TRB', 'Türbin kontrol sistemi desteği', 402, '5×8 uzaktan', true],
+    ['Demo Rüzgâr Türbini', 'SZL-2021-VES-WTG', 'Rüzgâr türbini tam bakım', 19, 'Tam kapsam O&M', false],
+    ['Demo Rüzgâr Sistemleri', 'SZL-2024-ENR-WTG', 'Rüzgâr türbini yedek parça', 610, 'Parça + teknik destek', true],
+    ['Demo Hidro Türbin', 'SZL-2023-AND-HES', 'Hidrolik ünite kontrol desteği', 233, 'Yıllık 2 saha ziyareti', true],
+    ['Demo Hidro Ekipman', 'SZL-2020-VOI-HES', 'Türbin regülatör bakımı', -46, 'Süresi doldu, yenilenmedi', null],
+    ['Demo Güç Otomasyonu', 'SZL-2024-SCH-RTU', 'RTU ve saha ekipmanı', 520, 'Parça garantisi', true],
+    ['Demo Ağ Güvenliği', 'SZL-2025-FTN-FW', 'Güvenlik duvarı lisans ve destek', 296, 'Lisans + imza güncelleme', true],
+    ['Demo İşletim Sistemleri', 'SZL-2024-MS-EA', 'Kurumsal lisans anlaşması', 487, 'EA + Defender', true],
+    ['Demo Sanallaştırma', 'SZL-2025-BRC-VS', 'Sanallaştırma abonelik', 174, 'VVF abonelik', true],
+    ['Demo Telekom Altyapı', 'SZL-2023-TT-MPLS', 'Santral MPLS bağlantıları', 88, '%99,5 erişilebilirlik', false],
+    ['Demo Mobil Operatör', 'SZL-2024-TCL-APN', 'Özel APN / uzak saha', 355, 'Kapalı devre APN', false],
+    ['Demo Ulusal Test Merkezi', 'SZL-2025-TBT-SOME', 'SOME danışmanlığı', 210, 'Yıllık 40 adam-gün', true],
+    ['Demo Ağ Donanımı', 'SZL-2023-CSC-NET', 'Ağ donanımı bakım', 143, 'NBD parça', true],
+    ['Demo Elektrik Ekipmanları', 'SZL-2022-Demo Elektrik Ekipmanları-DRV', 'Sürücü ve motor bakımı', 66, 'Yıllık bakım', false],
   ];
   const SZ: Record<string, { id: string }> = {};
   for (const [ted, kod, ad, bitisGun, sla, guvenlik] of sozlesmeTanim) {
@@ -135,22 +141,22 @@ export async function operasyonVerisi(db: PrismaClient) {
 
   /* ═══ Yazılım ürünleri — ömür ekranının (O13) gerçek EOL kaynağı ═══════ */
   const yazilimTanim: [string, string, string, number | null, number | null][] = [
-    ['Windows Server', 'Microsoft', '2012 R2', -1050, -1050],
-    ['Windows Server', 'Microsoft', '2016', 380, 380],
-    ['Windows Server', 'Microsoft', '2019', 1290, 1290],
-    ['Windows Server', 'Microsoft', '2022', 2380, 2380],
-    ['SIMATIC WinCC', 'Siemens', 'V7.4', -240, -240],
-    ['SIMATIC WinCC', 'Siemens', 'V7.5', 690, 690],
-    ['SIMATIC PCS 7', 'Siemens', 'V8.2', -520, -520],
-    ['SIMATIC PCS 7', 'Siemens', 'V9.1', 1120, 1120],
-    ['vSphere', 'Broadcom (VMware)', '6.7', -1010, -1010],
-    ['vSphere', 'Broadcom (VMware)', '8.0', 1460, 1460],
-    ['Cisco IOS', 'Cisco Systems', '15.2', -160, 95],
-    ['Cisco IOS-XE', 'Cisco Systems', '17.9', 1580, 1580],
-    ['FortiOS', 'Fortinet', '7.2', 540, 540],
-    ['RSLogix 5000', 'Rockwell', 'V20', -1400, -1400],
-    ['Ovation', 'Emerson', '3.7', 260, 260],
-    ['Oracle Database', 'Oracle', '12c', -890, -890],
+    ['Demo Sunucu OS', 'Demo İşletim Sistemleri', '2012 R2', -1050, -1050],
+    ['Demo Sunucu OS', 'Demo İşletim Sistemleri', '2016', 380, 380],
+    ['Demo Sunucu OS', 'Demo İşletim Sistemleri', '2019', 1290, 1290],
+    ['Demo Sunucu OS', 'Demo İşletim Sistemleri', '2022', 2380, 2380],
+    ['Demo SCADA HMI', 'Demo Türbin Sistemleri', 'V7.4', -240, -240],
+    ['Demo SCADA HMI', 'Demo Türbin Sistemleri', 'V7.5', 690, 690],
+    ['Demo DCS Paketi', 'Demo Türbin Sistemleri', 'V8.2', -520, -520],
+    ['Demo DCS Paketi', 'Demo Türbin Sistemleri', 'V9.1', 1120, 1120],
+    ['Demo Hipervizör', 'Demo Sanallaştırma', '6.7', -1010, -1010],
+    ['Demo Hipervizör', 'Demo Sanallaştırma', '8.0', 1460, 1460],
+    ['Demo Ağ İşletim Sistemi', 'Demo Ağ Donanımı', '15.2', -160, 95],
+    ['Demo Ağ İşletim Sistemi X', 'Demo Ağ Donanımı', '17.9', 1580, 1580],
+    ['Demo Güvenlik Duvarı OS', 'Demo Ağ Güvenliği', '7.2', 540, 540],
+    ['Demo PLC Programlama', 'Demo Endüstriyel Kontrol', 'V20', -1400, -1400],
+    ['Demo DCS Platformu', 'Demo Ölçüm Sistemleri', '3.7', 260, 260],
+    ['Demo Veritabanı', 'Demo Veritabanı Sistemleri', '12c', -890, -890],
   ];
   const YZ: Record<string, { id: string }> = {};
   for (const [ad, uretici, surum, eol, eos] of yazilimTanim) {
@@ -197,16 +203,16 @@ export async function operasyonVerisi(db: PrismaClient) {
     const jes = s.kod.includes('JES') || s.kod.startsWith('SAHA-A');
     const res = s.kod.includes('RES');
     const hes = s.kod.includes('HES');
-    /* Tedarikçi santralin teknolojisinden gelir: jeotermal ünitede Ormat,
-       rüzgârda Vestas/Enercon, hidroda Andritz/Voith. Rastgele atama
+    /* Tedarikçi santralin teknolojisinden gelir: jeotermal ünitede Demo Jeotermal Teknoloji,
+       rüzgârda Demo Rüzgâr Türbini/Demo Rüzgâr Sistemleri, hidroda hidro türbin sağlayıcıları. Rastgele atama
        tedarikçi ekranını anlamsız kılıyordu — zincir gerçek olmalı. */
     const havuz = jes
-      ? ['Ormat Technologies', 'Siemens Energy', 'Schneider Electric', 'Cisco Systems', 'Honeywell']
+      ? ['Demo Jeotermal Teknoloji', 'Demo Türbin Sistemleri', 'Demo Güç Otomasyonu', 'Demo Ağ Donanımı', 'Demo Proses Otomasyonu']
       : res
-        ? ['Vestas', 'Enercon', 'GE Vernova', 'Schneider Electric', 'Cisco Systems']
+        ? ['Demo Rüzgâr Türbini', 'Demo Rüzgâr Sistemleri', 'Demo Enerji Ekipmanları', 'Demo Güç Otomasyonu', 'Demo Ağ Donanımı']
         : hes
-          ? ['Andritz Hydro', 'Voith Hydro', 'ABB', 'Schneider Electric', 'Cisco Systems']
-          : ['Siemens Energy', 'GE Vernova', 'Schneider Electric', 'ABB', 'Cisco Systems'];
+          ? ['Demo Hidro Türbin', 'Demo Hidro Ekipman', 'Demo Elektrik Ekipmanları', 'Demo Güç Otomasyonu', 'Demo Ağ Donanımı']
+          : ['Demo Türbin Sistemleri', 'Demo Enerji Ekipmanları', 'Demo Güç Otomasyonu', 'Demo Elektrik Ekipmanları', 'Demo Ağ Donanımı'];
     // Ağ cihazı her sahada aynı sağlayıcıdan gelir, üretim ekipmanından bağımsız.
     const saglayici = (r: () => number) => havuz[Math.floor(r() * havuz.length)];
     for (const [turKod, ek, adKalibi, kritiklik, bolgeTipi, sayi] of SABLON) {
@@ -289,7 +295,7 @@ export async function operasyonVerisi(db: PrismaClient) {
             etiket, ad: `${ad} ${i}`, turId: turler[turKod].id, tesisId: merkez.id,
             bolgeId: bolgeIndeksi.get(`${merkez.id}|kurumsal`) ?? null,
             kritiklik, uretimEtkisi: 'yok',
-            uretici: turKod === 'AGCIHAZ' ? 'Cisco Systems' : 'Microsoft',
+            uretici: turKod === 'AGCIHAZ' ? 'Demo Ağ Donanımı' : 'Demo İşletim Sistemleri',
             kurulumTarihi: gun(-Math.floor(400 + rnd() * 2400)),
             destekBitis: eski ? gun(-Math.floor(20 + rnd() * 500)) : gun(Math.floor(200 + rnd() * 1500)),
             eolTarihi: eski ? gun(-Math.floor(30 + rnd() * 400)) : null,
@@ -299,7 +305,7 @@ export async function operasyonVerisi(db: PrismaClient) {
             internetMaruziyeti: turKod === 'AGCIHAZ' && ek === 'FW' ? 'var' : 'sinirli',
             uzaktanErisim: true,
             sahipId: K['kullanici.d'].id,
-            tedarikciId: TD[turKod === 'AGCIHAZ' ? 'Cisco Systems' : 'Microsoft'].id,
+            tedarikciId: TD[turKod === 'AGCIHAZ' ? 'Demo Ağ Donanımı' : 'Demo İşletim Sistemleri'].id,
           },
         });
         varliklar.push({ id: olusan.id, etiket, tesisId: merkez.id, kritiklik });
@@ -336,16 +342,16 @@ export async function operasyonVerisi(db: PrismaClient) {
 
   /* ═══ Zafiyetler ══════════════════════════════════════════════════════ */
   const zafiyetTanim: [string, string, number][] = [
-    ['CVE-2023-3595', 'Rockwell ControlLogix üzerinde uzaktan kod çalıştırma', 9.8],
-    ['CVE-2022-38465', 'Siemens SIMATIC S7-1200/1500 global özel anahtar ifşası', 9.3],
+    ['CVE-2023-3595', 'Demo Endüstriyel Kontrol ControlLogix üzerinde uzaktan kod çalıştırma', 9.8],
+    ['CVE-2022-38465', 'Demo Türbin Sistemleri Demo Kontrol Ailesi S7-1200/1500 global özel anahtar ifşası', 9.3],
     ['CVE-2021-44228', 'Apache Log4j uzaktan kod çalıştırma (Log4Shell)', 10.0],
-    ['CVE-2024-21762', 'FortiOS SSL-VPN sınır dışı yazma', 9.8],
+    ['CVE-2024-21762', 'Demo Güvenlik Duvarı OS SSL-VPN sınır dışı yazma', 9.8],
     ['CVE-2023-34362', 'MOVEit Transfer SQL enjeksiyonu', 9.8],
     ['CVE-2020-1472', 'Netlogon ayrıcalık yükseltme (Zerologon)', 10.0],
-    ['CVE-2023-20198', 'Cisco IOS XE web arayüzü yetkisiz erişim', 10.0],
+    ['CVE-2023-20198', 'Demo Ağ İşletim Sistemi XE web arayüzü yetkisiz erişim', 10.0],
     ['CVE-2022-31814', 'pfSense komut enjeksiyonu', 9.8],
     ['CVE-2024-3400', 'PAN-OS GlobalProtect komut enjeksiyonu', 10.0],
-    ['CVE-2019-0708', 'Windows RDP uzaktan kod çalıştırma (BlueKeep)', 9.8],
+    ['CVE-2019-0708', 'Uzak masaüstü hizmetinde uzaktan kod çalıştırma', 9.8],
   ];
   const zafiyetler = [] as { id: string }[];
   for (const [ref, baslik, cvss] of zafiyetTanim) {

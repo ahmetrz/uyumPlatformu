@@ -105,7 +105,7 @@ const CONNECTORLAR: Tanim[] = [
     kod: 'FW-01',
     ad: 'OT güvenlik duvarı yapılandırması',
     tip: 'network_firewall',
-    kaynakSistem: 'Fortinet FortiManager',
+    kaynakSistem: 'Demo Ağ Güvenliği FortiManager',
     kimlikTipi: 'api_key',
     sirReferansi: 'env:FORTIMANAGER_API_ANAHTARI',
     pollAralikDk: 1440,

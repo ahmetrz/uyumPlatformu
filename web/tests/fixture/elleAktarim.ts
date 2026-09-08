@@ -56,7 +56,7 @@ const GECERLI_SATIRLAR: Satir[] = [
     'Serial Number': 'ALS-SCADA-0003',
     'MAC Address': '00:1B:1B:CC:DD:03',
     'IP Address': '10.70.10.11',
-    Vendor: 'Honeywell',
+    Vendor: 'Demo Proses Otomasyonu',
     Model: 'Experion PKS',
     OS: 'Windows Server 2016',
     'Firmware Version': '9.5',

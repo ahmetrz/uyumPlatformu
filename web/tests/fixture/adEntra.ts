@@ -3,7 +3,7 @@ import { TANIMSIZ_TESIS_KODU, baglanmamisFikstur } from './ortak';
 
 /* AD / Entra ID fikstürü — SENTETİK.
 
-   Alan adları Microsoft Graph `users/delta` yanıtının ŞEKLİDİR; değerler
+   Alan adları Demo İşletim Sistemleri Graph `users/delta` yanıtının ŞEKLİDİR; değerler
    uydurmadır ve hiçbir dizinden gelmemiştir. Gerçek tenant kimliği,
    gerçek UPN ya da gerçek token BURADA YOKTUR ve olmayacaktır.
 

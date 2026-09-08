@@ -281,13 +281,13 @@ async function kesifKayitlari(
 
   /* b · Eşleşmeyenler — envanterde karşılığı yok. Ekranın asıl işi bu. */
   const yabancilar: [string, string, string, string, string][] = [
-    ['Rockwell', 'PLC', 'SAHA-A3', 'PLC-SAHA-07', 'Türbin sahasında etiketsiz denetleyici'],
-    ['Siemens', 'HMI', 'SAHA-A3', 'HMI-OPR-03', 'Operatör panosu — CMDB kaydı yok'],
-    ['Moxa', 'AGCIHAZ', 'SAHA-C-RES', 'GW-SERI-02', 'Seri-Ethernet dönüştürücü'],
-    ['Hirschmann', 'AGCIHAZ', 'SAHA-C-RES', 'SW-DOLAP-11', 'Yönetilmeyen anahtar, saha dolabı'],
-    ['Advantech', 'EWS', 'SAHA-B-JES', 'EWS-TASINIR-01', 'Taşınabilir mühendislik dizüstü'],
-    ['Schneider', 'PLC', 'SAHA-B-JES', 'PLC-YRD-04', 'Yardımcı tesis denetleyicisi'],
-    ['Dell', 'SSUNUCU', 'SAHA-A1', 'SRV-TARIH-01', 'Yerel tarih sunucusu — sahibi belirsiz'],
+    ['Demo Endüstriyel Kontrol', 'PLC', 'SAHA-A3', 'PLC-SAHA-07', 'Türbin sahasında etiketsiz denetleyici'],
+    ['Demo Türbin Sistemleri', 'HMI', 'SAHA-A3', 'HMI-OPR-03', 'Operatör panosu — CMDB kaydı yok'],
+    ['Demo Seri Dönüştürücü', 'AGCIHAZ', 'SAHA-C-RES', 'GW-SERI-02', 'Seri-Ethernet dönüştürücü'],
+    ['Demo Endüstriyel Ağ', 'AGCIHAZ', 'SAHA-C-RES', 'SW-DOLAP-11', 'Yönetilmeyen anahtar, saha dolabı'],
+    ['Demo Endüstriyel Bilgisayar', 'EWS', 'SAHA-B-JES', 'EWS-TASINIR-01', 'Taşınabilir mühendislik dizüstü'],
+    ['Demo Güç Otomasyonu', 'PLC', 'SAHA-B-JES', 'PLC-YRD-04', 'Yardımcı tesis denetleyicisi'],
+    ['Demo Sunucu Donanımı', 'SSUNUCU', 'SAHA-A1', 'SRV-TARIH-01', 'Yerel tarih sunucusu — sahibi belirsiz'],
   ];
   yabancilar.forEach(([vendor, tip, tesisKodu, hostname, not], i) => {
     const m = mac(r);
@@ -413,7 +413,7 @@ function ip(r: ReturnType<typeof uretec>) {
 function mac(r: ReturnType<typeof uretec>) {
   return Array.from({ length: 6 }, () => r.tam(256).toString(16).padStart(2, '0')).join(':');
 }
-const URETICILER = ['Siemens', 'Rockwell', 'Schneider', 'ABB', 'Moxa', 'Hirschmann', 'Advantech'];
+const URETICILER = ['Demo Türbin Sistemleri', 'Demo Endüstriyel Kontrol', 'Demo Güç Otomasyonu', 'Demo Elektrik Ekipmanları', 'Demo Seri Dönüştürücü', 'Demo Endüstriyel Ağ', 'Demo Endüstriyel Bilgisayar'];
 function uretici(r: ReturnType<typeof uretec>) { return r.sec(URETICILER); }
 
 /* ══════════════════════════════════════════════════════════════════════

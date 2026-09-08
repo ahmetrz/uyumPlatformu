@@ -60,6 +60,21 @@ export const URUNLESTIRME_SENARYOLARI: Senaryo[] = [
     beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
     katmanlar: ['DOMAIN', 'UI'],
   },
+  {
+    id: 'URN-KUR-005', alan: 'Ürünleştirme', rota: '—', eksen: 'veri',
+    amac: 'Depoda gerçek bir kuruluş adının bulunmaması',
+    rol: 'ürünü sürdüren geliştirici', kapsam: 'depo geneli',
+    onkosul: 'Depo public ve demo dışarıya gösteriliyor; tohumda on sekiz '
+      + 'gerçek şirket adı vardı ve bazılarına uydurma güvenlik zafiyeti bağlıydı',
+    veriHali: 'aykiri',
+    eylem: 'Tohum koşulur ve veritabanındaki kuruluş, üretici, denetleyici, '
+      + 'tüzel kişi ve kişi adları okunur',
+    beklenenSonuc: 'Hepsi `prisma/kurgusal-adlar.ts` kümesinden gelir; kara liste '
+      + 'değil TEK KAYNAK ölçülür, böylece yarın eklenecek yeni bir gerçek ad da yakalanır',
+    beklenenEkran: 'Ekranda hiçbir gerçek firma adı görünmez',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['DOMAIN'],
+  },
   /* ── P1 · URN-ALN ────────────────────────────────────────────────────
      Kütüğe yalnız TESTİ OLAN senaryo girer: kayıtlı ama testsiz senaryo
      `senaryo-belge` aracında GAP olur ve kütük "kapsanıyor" diye yalan

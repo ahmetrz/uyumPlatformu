@@ -481,35 +481,35 @@ async function main() {
   const profiller: [string, object][] = [
     ['SAHA-A3', { lisansTipi: 'uretim', lisansNo: 'EU/6521-3', kabulDurumu: 'kesin_kabul',
       blackStart: false, teiasScadaEms: true, seriHaberlesme: false, kritiklikSinifi: 'yuksek',
-      kritikAltyapiStatusu: true, otMimariTipi: 'dcs', dcsSaglayici: 'Siemens',
-      scadaSaglayici: 'Siemens', uzaktanErisim: true, internetMaruziyeti: 'sinirli',
+      kritikAltyapiStatusu: true, otMimariTipi: 'dcs', dcsSaglayici: 'Demo Türbin Sistemleri',
+      scadaSaglayici: 'Demo Türbin Sistemleri', uzaktanErisim: true, internetMaruziyeti: 'sinirli',
       yerelAdVar: true, yerelVeriMerkeziVar: true, veriIslemeProfili: 'uretim_telemetrisi',
       grupOrtakServisler: 'merkezi_ad;soc;edr' }],
     ['SAHA-A2', { lisansTipi: 'uretim', kabulDurumu: 'kesin_kabul', blackStart: false,
       teiasScadaEms: true, seriHaberlesme: false, kritiklikSinifi: 'orta',
-      kritikAltyapiStatusu: false, otMimariTipi: 'scada', scadaSaglayici: 'ABB',
+      kritikAltyapiStatusu: false, otMimariTipi: 'scada', scadaSaglayici: 'Demo Elektrik Ekipmanları',
       uzaktanErisim: true, internetMaruziyeti: 'yok', yerelAdVar: true,
       grupOrtakServisler: 'merkezi_ad;soc' }],
     ['SAHA-A1', { lisansTipi: 'uretim', kabulDurumu: 'kesin_kabul', blackStart: false,
       teiasScadaEms: false, kritiklikSinifi: 'dusuk', otMimariTipi: 'plc_scada' }],
     ['SAHA-B-JES', { lisansTipi: 'uretim', kabulDurumu: 'kesin_kabul', blackStart: false,
       teiasScadaEms: false, seriHaberlesme: true, kritiklikSinifi: 'dusuk',
-      otMimariTipi: 'plc_scada', plcAileleri: 'Siemens S7', internetMaruziyeti: 'yok' }],
+      otMimariTipi: 'plc_scada', plcAileleri: 'Demo Türbin Sistemleri S7', internetMaruziyeti: 'yok' }],
     ['SAHA-C-RES', { lisansTipi: 'uretim', kabulDurumu: 'kesin_kabul', blackStart: false,
       teiasScadaEms: true, seriHaberlesme: false, kritiklikSinifi: 'yuksek',
-      kritikAltyapiStatusu: true, otMimariTipi: 'scada', scadaSaglayici: 'Vestas',
+      kritikAltyapiStatusu: true, otMimariTipi: 'scada', scadaSaglayici: 'Demo Rüzgâr Türbini',
       uzaktanErisim: true, internetMaruziyeti: 'sinirli', iotVar: true,
       grupOrtakServisler: 'merkezi_ad;soc' }],
     ['SAHA-D-RES', { lisansTipi: 'uretim', kabulDurumu: 'kesin_kabul', blackStart: false,
       teiasScadaEms: true, seriHaberlesme: true, kritiklikSinifi: 'orta',
-      otMimariTipi: 'scada', scadaSaglayici: 'Vestas', uzaktanErisim: true,
+      otMimariTipi: 'scada', scadaSaglayici: 'Demo Rüzgâr Türbini', uzaktanErisim: true,
       internetMaruziyeti: 'sinirli', iotVar: true }],
     ['SAHA-E-RES', { lisansTipi: 'uretim', kabulDurumu: 'kesin_kabul', blackStart: false,
       teiasScadaEms: false, seriHaberlesme: true, kritiklikSinifi: 'dusuk',
       otMimariTipi: 'plc_scada' }],
     ['SAHA-F-HES', { lisansTipi: 'uretim', kabulDurumu: 'kesin_kabul', blackStart: false,
       teiasScadaEms: false, kritiklikSinifi: 'dusuk', otMimariTipi: 'plc_scada',
-      plcAileleri: 'Siemens S7', internetMaruziyeti: 'yok' }],
+      plcAileleri: 'Demo Türbin Sistemleri S7', internetMaruziyeti: 'yok' }],
     ['SAHA-G-HES', { lisansTipi: 'uretim', kabulDurumu: 'kesin_kabul', blackStart: false,
       teiasScadaEms: false, kritiklikSinifi: 'dusuk', otMimariTipi: 'plc_scada' }],
     ['SAHA-H-HES', { lisansTipi: 'uretim', kabulDurumu: 'kesin_kabul', blackStart: false,
@@ -633,44 +633,44 @@ async function main() {
 
   const varlikOtfw = await db.varlik.create({ data: {
     etiket: 'SAHA-A3-OTFW-01', ad: 'OT Güvenlik Duvarı (Saha A-3)', turId: tur['OTFW'].id,
-    tesisId: t['SAHA-A3'].id, sistemId: sistemDcs.id, uretici: 'Fortinet',
-    model: 'FG-200F', kritiklik: 'kritik', uretimEtkisi: 'yuksek',
+    tesisId: t['SAHA-A3'].id, sistemId: sistemDcs.id, uretici: 'Demo Ağ Güvenliği',
+    model: 'DEMO-FW-200', kritiklik: 'kritik', uretimEtkisi: 'yuksek',
     bolgeId: zonOtDmz.id, yasamDongusu: 'aktif', sahipId: k['kullanici.c'].id,
     emanetciId: k['kullanici.d'].id, eosTarihi: gun(500), yamaDurumu: 'guncel',
     izlemeDurumu: 'var', logKaynagi: 'var', internetMaruziyeti: 'yok' } });
   const varlikDcs = await db.varlik.create({ data: {
     etiket: 'SAHA-A3-DCS-01', ad: 'Türbin DCS Denetleyicisi', turId: tur['DCS'].id,
-    tesisId: t['SAHA-A3'].id, sistemId: sistemDcs.id, uretici: 'Siemens',
-    model: 'SPPA-T3000', firmware: 'R8.2 SP2', kritiklik: 'kritik',
+    tesisId: t['SAHA-A3'].id, sistemId: sistemDcs.id, uretici: 'Demo Türbin Sistemleri',
+    model: 'DEMO-DCS-3000', firmware: 'R8.2 SP2', kritiklik: 'kritik',
     emniyetEtkisi: 'yuksek', uretimEtkisi: 'uretim_durur', bolgeId: zonOt.id,
     sahipId: k['kullanici.c'].id, yamaDurumu: 'eksik', izlemeDurumu: 'yok',
     logKaynagi: 'yok', internetMaruziyeti: 'yok', eosTarihi: gun(900) } });
   const varlikScada = await db.varlik.create({ data: {
     etiket: 'SAHA-A3-SCADA-01', ad: 'Saha A-3 SCADA Sunucusu', turId: tur['SCADA-SRV'].id,
-    tesisId: t['SAHA-A3'].id, sistemId: sistemDcs.id, isletimSistemi: 'Windows Server 2012 R2',
-    uretici: 'Dell', model: 'PowerEdge R740', kritiklik: 'kritik', uretimEtkisi: 'yuksek',
+    tesisId: t['SAHA-A3'].id, sistemId: sistemDcs.id, isletimSistemi: 'Demo Sunucu OS 2012',
+    uretici: 'Demo Sunucu Donanımı', model: 'DEMO-SRV-740', kritiklik: 'kritik', uretimEtkisi: 'yuksek',
     bolgeId: zonOt.id, eolTarihi: gun(-800), eosTarihi: gun(-400), yamaDurumu: 'yamasiz',
     yedekDurumu: 'var', edrDurumu: 'yok', sahipId: k['kullanici.c'].id } });
   await db.varlik.create({ data: {
     etiket: 'SAHA-A3-EWS-01', ad: 'Mühendislik İstasyonu (Saha A-3)', turId: tur['EWS'].id,
     tesisId: t['SAHA-A3'].id, sistemId: sistemDcs.id, kritiklik: 'yuksek',
-    isletimSistemi: 'Windows 10 IoT Enterprise', bolgeId: zonOt.id,
+    isletimSistemi: 'Demo Uç OS 10 IoT', bolgeId: zonOt.id,
     yamaDurumu: 'eksik', uzaktanErisim: true, sahipId: k['kullanici.c'].id } });
   const varlikSahaC = await db.varlik.create({ data: {
     etiket: 'SAHA-C-SCADA-01', ad: 'Saha C Türbin SCADA Sunucusu', turId: tur['SCADA-SRV'].id,
-    tesisId: t['SAHA-C-RES'].id, sistemId: sistemTurbin.id, uretici: 'Vestas',
-    isletimSistemi: 'Windows Server 2016', bolgeId: zonSahaCOt.id,
+    tesisId: t['SAHA-C-RES'].id, sistemId: sistemTurbin.id, uretici: 'Demo Rüzgâr Türbini',
+    isletimSistemi: 'Demo Sunucu OS 2016', bolgeId: zonSahaCOt.id,
     uretimEtkisi: 'yuksek', logKaynagi: 'yok', izlemeDurumu: 'bilinmiyor',
     yamaDurumu: 'bilinmiyor' } }); // sahipsiz + kritikliği bilinmiyor: veri kalitesi örneği
   await db.varlik.create({ data: {
     etiket: 'MERKEZ-SSUNUCU-01', ad: 'Yönetişim Platformu Uygulama Sunucusu', turId: tur['SSUNUCU'].id,
-    tesisId: t['MERKEZ-BT'].id, sistemId: sistemSanal.id, isletimSistemi: 'Ubuntu 24.04 LTS',
+    tesisId: t['MERKEZ-BT'].id, sistemId: sistemSanal.id, isletimSistemi: 'Demo Linux 24.04 LTS',
     kritiklik: 'yuksek', bolgeId: zonMerkez.id, sahipId: k['kullanici.d'].id,
     yamaDurumu: 'guncel', edrDurumu: 'var', yedekDurumu: 'var', izlemeDurumu: 'var',
     logKaynagi: 'var', internetMaruziyeti: 'sinirli', eosTarihi: gun(1400) } });
   await db.varlik.create({ data: {
     etiket: 'MERKEZ-SSUNUCU-02', ad: 'Etki Alanı Denetleyicisi', turId: tur['SSUNUCU'].id,
-    tesisId: t['MERKEZ-BT'].id, sistemId: sistemSanal.id, isletimSistemi: 'Windows Server 2022',
+    tesisId: t['MERKEZ-BT'].id, sistemId: sistemSanal.id, isletimSistemi: 'Demo Sunucu OS 2022',
     kritiklik: 'kritik', bolgeId: zonMerkez.id, sahipId: k['kullanici.d'].id,
     yamaDurumu: 'guncel', edrDurumu: 'var', yedekDurumu: 'var', izlemeDurumu: 'var',
     logKaynagi: 'var', internetMaruziyeti: 'yok', eosTarihi: gun(1600) } });
@@ -682,7 +682,7 @@ async function main() {
   // Risk kaydı: EOS SCADA sunucusu → bulgu b1 ile bağlantılı üretim riski
   const risk1 = await db.risk.create({ data: {
     kod: 'RSK-2026-001', baslik: 'Desteksiz SCADA sunucusu üzerinden jeotermal üretim kesintisi',
-    aciklama: 'Saha A-3 SCADA sunucusu EOL/EOS geçmiş Windows Server 2012 R2 üzerinde; yama alamıyor. DCS ağının kurumsal ağdan ayrıştırılmamış olmasıyla (bulgu) birleşince fidye yazılımının 165 MW üretimi durdurma olasılığı yüksek.',
+    aciklama: 'Saha A-3 SCADA sunucusu EOL/EOS geçmiş Demo Sunucu OS 2012 üzerinde; yama alamıyor. DCS ağının kurumsal ağdan ayrıştırılmamış olmasıyla (bulgu) birleşince fidye yazılımının 165 MW üretimi durdurma olasılığı yüksek.',
     kaynak: 'eol', tesisId: t['SAHA-A3'].id, sistemId: sistemDcs.id, bulguId: b1.id,
     tehdit: 'Fidye yazılımı / yetkisiz erişim', zayiflik: 'EOS işletim sistemi + düz ağ',
     olasilik: 4, etkiUretim: 5, etkiEmniyet: 3, etkiRegulasyon: 4, etkiFinans: 4,
@@ -748,7 +748,7 @@ async function main() {
   // Proje adayı örneği: EOS varlıktan otomatik üretilmiş, onay bekliyor
   await db.projeAdayi.create({ data: {
     baslik: 'Saha A-3 SCADA sunucu modernizasyonu',
-    gerekce: 'SAHA-A3-SCADA-01 EOL/EOS geçti (Windows Server 2012 R2); RSK-2026-001 artık riski 16/25; EPDK-SYM-4.2.1 uyumsuz. Modernizasyon üç kaydı birden kapatır.',
+    gerekce: 'SAHA-A3-SCADA-01 EOL/EOS geçti (Demo Sunucu OS 2012); RSK-2026-001 artık riski 16/25; EPDK-SYM-4.2.1 uyumsuz. Modernizasyon üç kaydı birden kapatır.',
     kaynak: 'eol_eos', kaynakRef: varlikScada.id, tesisId: t['SAHA-A3'].id } });
 
   // Görev motoru örnekleri

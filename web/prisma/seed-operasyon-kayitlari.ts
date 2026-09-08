@@ -137,7 +137,7 @@ export async function operasyonKayitlari(db: PrismaClient) {
       pencere: '26.09.2026 · düşük rüzgâr penceresi',
       geriAlma: 'Eski sunucu iki hafta yerinde bekletilecek.',
       yedek: true, uretim: 'Düşük — saha B geçici olarak elle izlenecek',
-      aciklama: 'Destek süresi biten Windows Server sürümü yenileniyor.',
+      aciklama: 'Destek süresi biten Demo Sunucu OS sürümü yenileniyor.',
     },
     {
       kod: 'DEG-2026-055', baslik: 'Merkez sanallaştırma ana makinesi bellek artırımı',

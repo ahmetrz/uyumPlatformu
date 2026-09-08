@@ -13,7 +13,7 @@ it('kapsam dışı varlığa yazılamaz [ENV-YAZ-003]', …)
 Ayrı bir eşleme tablosu tutulsaydı, tablo ilk yeniden adlandırmada
 testten ayrışır ve kimse görmezdi.
 
-Senaryo: **286** · testli: **286** · GAP: **0**
+Senaryo: **287** · testli: **287** · GAP: **0**
 
 ## Aktivite · 2 senaryo
 
@@ -448,7 +448,7 @@ Senaryo: **286** · testli: **286** · GAP: **0**
 | `UYU-CRC-004` | /uyum/[cerceve] | uyum uzmanı · kendi tesisi | Çerçevenin bazı maddeleri hiç değerlendirilmemiş · kısmi | Madde satırını genişletir | Değerlendirilmemiş madde "uyumlu" ya da "uyumsuz" SAYILMAZ | Genişleyen satırda "ölçülmedi" ayrı okunur | yazma yok | yok | `ters-kapsam-ekran.test.ts` |
 | `UYU-ANL-001` | — | sistem (motor) · kurum geneli | Aynı gün zaten anlık alınmış · yinelenen | Motor aynı gün ikinci kez koşar | İkinci anlık YAZILMAZ — günde bir | — | yazma yok | yok | `ters-kapsam-eylem.test.ts` |
 
-## Ürünleştirme · 10 senaryo
+## Ürünleştirme · 11 senaryo
 
 | ID | Rota | Rol · kapsam | Ön koşul · veri | Eylem | Beklenen sonuç | Ekran | Denetim izi | Görev/bildirim | Test |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -456,6 +456,7 @@ Senaryo: **286** · testli: **286** · GAP: **0**
 | `URN-KUR-002` | — | ürünü sürdüren geliştirici · depo geneli | P0 uygulanmış · normal | `web/PRODUCT.md` kullanıcı tiplerini, konumlandırmayı ve marka bölümünü okur | Kiracı yöneticisi, ürün yöneticisi ve destek tipleri yazılıdır; konumlandırma beş mekanizma sayar; ürün adı düz metin geçmez, yapılandırmaya atıf yapar | Ekran yok — belge | yazma yok | yok | `marka-adi.test.ts` |
 | `URN-KUR-003` | — | ürünü sürdüren geliştirici · depo geneli | Vizyon belgesi depoda; tabloda temizlik öncesi 13 ölü atıf vardı · yok | `CLAUDE.md` "Nereye bakılır" tablosundaki her hedefi açmayı dener | Tablodaki her hedef diskte vardır; ölü atıf sayısı sıfırdır | Ekran yok — belge | yazma yok | yok | `marka-adi.test.ts` |
 | `URN-KUR-004` | — | ürünü sürdüren geliştirici · depo geneli | Ad geçici; kalıcı ad sonra verilecek. Kaynak taraması sözcük-olan adlarda yanlış alarm verdiği için davranış ölçümüne çevrildi · çelişen | Nöbetçi bir adla statik demo derlemesi koşar ve üretilen çıktıya bakar | Varsayılan ad işlenmiş hiçbir yüzeyde geçmez (JS demeti taranmaz — oradaki varsayılan yedeğin kendisidir); nöbetçi ad sekme başlıklarında ve kabuk sözcük markasında görünür. Belgelerdeki başlıklar da varsayılandan sapmaz | Sekme başlığı ve kabuk sözcük markası nöbetçi adı gösterir | yazma yok | yok | `marka-adi.test.ts` |
+| `URN-KUR-005` | — | ürünü sürdüren geliştirici · depo geneli | Depo public ve demo dışarıya gösteriliyor; tohumda on sekiz gerçek şirket adı vardı ve bazılarına uydurma güvenlik zafiyeti bağlıydı · aykiri | Tohum koşulur ve veritabanındaki kuruluş, üretici, denetleyici, tüzel kişi ve kişi adları okunur | Hepsi `prisma/kurgusal-adlar.ts` kümesinden gelir; kara liste değil TEK KAYNAK ölçülür, böylece yarın eklenecek yeni bir gerçek ad da yakalanır | Ekranda hiçbir gerçek firma adı görünmez | yazma yok | yok | `bekci/kurgusal-adlar.test.ts` · `bekci/kurgusal-adlar.test.ts` · `bekci/kurgusal-adlar.test.ts` · `bekci/kurgusal-adlar.test.ts` · `bekci/kurgusal-adlar.test.ts` · `bekci/kurgusal-adlar.test.ts` |
 | `URN-ALN-001` | — | ürünü sürdüren geliştirici · depo geneli | Kurulu güç bir kolondu; öznitelik satırına taşınıyor · kısmi | Göç koşulduktan sonra kolon ile öznitelik satırı karşılaştırılır | Değeri olan her tesis ve birim aynı sayıyı öznitelik satırında taşır; değeri OLMAYAN satır almaz ve göç ölçüm zamanı uydurmaz | Ekran yok — veri göçü | yazma yok (göç betiği) | yok | `p1-oznitelik-gocu.test.ts` · `p1-oznitelik-gocu.test.ts` |
 | `URN-ALN-002` | — | uyum sorumlusu · kiracı geneli | Uygulanabilirlik kuralı artık öznitelik anahtarı okuyor · kısmi | Bütün tesisler için kapsam yeniden hesaplanır | Kapsama giren tesis kümesi göç öncesiyle AYNI kalır; elle değiştirilmiş karar korunur; özniteliği ÖLÇÜLMEMİŞ tesis "kapsam dışı" değil "bilinmiyor" döner ve sağlanan başka bir koşulu engellemez | Uygulanabilirlik kararı gerekçesiyle; ölçülmemiş nitelik "bilinmiyor" yazar | hesaplama | yok | `p1-oznitelik-gocu.test.ts` · `uygulanabilirlik.test.ts` · `uygulanabilirlik.test.ts` |
 | `URN-ALN-004` | /tesisler/[id] | enerji kiracısının uyum sorumlusu · tek tesis | Tesisin tipi bir sektöre bağlı; o sektörün terim sözlüğü kurulu · dolu | Tesis 360 ekranı açılır; sonra sektör sözlüğü kaldırılıp aynı ekran yeniden açılır | Sözlük kuruluyken ekran adı "Tesis 360" ve birim şeridi "üretim üniteleri"; sözlük yokken AYNI bileşen "Tesis 360" ve "birimler" der. Eksik biçim çekirdeğe düşer, ekran boş kalmaz | Tesis 360 — sekme başlığı, ölçü şeridi, birim bölümü ve saha şeridi sözlükten | yazma yok | yok | `bekci/muafiyet-canli.test.ts` · `bekci/muafiyet-canli.test.ts` · `bekci/muafiyet-canli.test.ts` · `bekci/muafiyet-canli.test.ts` · `p1-ikinci-sozluk.test.ts` · `p1-kabuk-sozluk.test.ts` · `p1-kabuk-sozluk.test.ts` · `p1-kabuk-sozluk.test.ts` · `p1-terim-sozlugu.test.ts` · `p1-terim-sozlugu.test.ts` · `p1-tesis360-sozluk.test.ts` · `p1-tesis360-sozluk.test.ts` |

@@ -54,6 +54,24 @@ ikisini de silmek **kapıları kırar** ya da demonun kalbini kaldırır.
 **Metni istediğiniz gibi değiştirin — kancayı bırakın.** Kanca tam da
 metnin değişebilmesi için var.
 
+### Bu bir varsayım değil — bir kez oldu (ölçüldü · 8 Eylül 2026)
+
+Bu bölüm yazıldıktan **sonra** #36 açılışı v3'e taşıdı ve dosyayı
+baştan yazdı; **ikisi de silindi** — ne sektör seçici kaldı, ne
+`data-cta`. Silinme kötü niyetli değildi ve fark edilecek bir iz de
+bırakmadı: v3 kendi başına tutarlı bir dosyadır, kancanın yokluğu ancak
+**başka bir daldaki** kapılar koşunca görünür (`main`'de `perdeyiAc`
+henüz yok, o yüzden `main`'in CI'sı yeşil kaldı).
+
+Sonraki birleştirmede v3'ün motoru, kareleri, hero metni ve CSS'i
+**olduğu gibi** alındı; yalnız bu iki satır geri eklendi. Aynı şey
+tekrar olursa çözüm aynıdır — dosyayı yeniden yazan taraf haklıdır,
+kanca ise onun yazdığı metne bağlı değildir.
+
+Bir sonraki yeniden yazımda kaybolmaması için en ucuz yol: CTA'yı
+`data-cta` ile arayan kapıyı **açılışa dokunan PR'da** koşmak
+(§3'teki üç komut).
+
 Seçiciyi taşımak isterseniz: `sektorler` propu
 `app/(kabuk)/(flagship)/layout.tsx`ten geliyor ve `kabukVerisi()` tek
 kez okunuyor (iki kez okunsaydı açılışın gördüğü liste kabuğunkinden

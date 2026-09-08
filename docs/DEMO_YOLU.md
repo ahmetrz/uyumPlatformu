@@ -40,6 +40,7 @@ Portföyden tekile, tekilden karara, karardan **bırakılacak belgeye**.
 
 | # | Ekran | Süre | Birincil soru |
 | --- | --- | --- | --- |
+| 0 | Açılış (sinematik giriş) | — | *bu belgenin işi değil, aşağıya bakın* |
 | 1 | `/` Saha | 40 sn | Portföyümde bugün ne var? |
 | 2 | Sektör merceği (üst çubuk) | 80 sn | Bu ürün bizim sektörümüz için mi? |
 | 3 | `/portfoy` | 60 sn | Hangi kayıt en zayıf? |
@@ -52,6 +53,31 @@ Portföyden tekile, tekilden karara, karardan **bırakılacak belgeye**.
 Toplam **8 dakika 0 saniye**, geçişler dâhil.
 
 ---
+
+### 0 · Açılış — **öbür oturumun işi**
+
+Canlı bağlantıyı açan yabancı önce **sinematik açılışı** görür, saha
+ekranını değil. O ekranın metni, kareleri ve ritmi bu turda **başka bir
+oturumun** elindedir (`web/components/giris/`) ve **bu belge onun
+repliğini yazmaz** — yazsaydı, sahibi metni değiştirdiği gün burada bir
+yalan kalırdı.
+
+Burada duran tek şey, açılışın demoya karşı **taşıması gereken şart**
+ve devir notunun adresi:
+
+- Ürün şartı ve ölçütleri: `docs/ACILIS_DEVIR_NOTU.md` §1 — özeti:
+  *açılışta, hiçbir mercekte, o sektöre ait olmayan bir sözcük ya da
+  görsel bulunmamalı.* **Bugün karşılanmıyor**: kareler jeotermal, hero
+  metni sektöre özgü. Su merceğiyle demo yapacaksanız bunu bilerek yapın
+  — ya açılışı atlayın (`#platform-arayuzu` bağı) ya da ilk cümlede
+  söyleyin.
+- Açılıştaki **sektör seçici** ve **`data-cta`** kancası: aynı belgenin
+  §2'si. İkisi de demonun işleyişine bağlıdır; §2 niçin silinmemeleri
+  gerektiğini ölçümle anlatır (bir kez silindiler).
+
+Demoyu **açılıştan** başlatacaksanız 2. adımın merceği açılışta da
+seçilebilir; ekranın sözcükleri o anda değişmez (kabuk henüz yok),
+**ardındaki** ekran seçilmiş mercekle açılır.
 
 ### 1 · `/` Saha · 40 sn
 

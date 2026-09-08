@@ -1,5 +1,5 @@
 'use client';
-import { useTerim } from '@/lib/dil/SozlukSaglayici';
+import { useSektorSecimi, useTerim } from '@/lib/dil/SozlukSaglayici';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
@@ -158,7 +158,26 @@ export default function UyumIstemci({
   cerceveler, trend, yazabilir,
 }: { cerceveler: CerceveVerisi[]; trend: TrendNoktasi[]; yazabilir: boolean }) {
   const { t: terim } = useTerim();
+  const { gorunur: sektordeGorunur } = useSektorSecimi();
   const parametreler = useSearchParams();
+
+  /* ── SEKTÖR MERCEĞİ ────────────────────────────────────────────────
+     Çerçevenin satırları TESİSLERDİR; mercek onları süzer. Süzülmemiş
+     hâlde ekran bir sektörün merceğinde ÖBÜR sektöre özgü bir çerçeveyi
+     ve o çerçevenin kayıtlarını gösteriyordu — ölçüldü ve ekran
+     görüntüsüyle görüldü. Bir kiracıya kapsamında olmayan bir mevzuatı
+     göstermek, gerçek bir düzenlemeye yanlış kapsam atfetmektir.
+
+     SATIRSIZ KALAN ÇERÇEVE LİSTEDEN DÜŞMEZ, boş kalır: "bu çerçeve
+     senin kapsamında değil" bilgi taşır; çerçeveyi gizlemek onu hiç
+     yokmuş gibi gösterirdi. Açılış odağı ise satırı OLAN bir çerçeveyi
+     seçer — kullanıcı boş bir matrise düşmesin. */
+  const mercekliCerceveler = useMemo(
+    () => cerceveler.map((c) => ({
+      ...c, satirlar: c.satirlar.filter((s) => sektordeGorunur(s.id)),
+    })),
+    [cerceveler, sektordeGorunur],
+  );
   const kontrolParam = parametreler.get('kontrol');
   const cerceveParam = parametreler.get('cerceve');
 
@@ -167,7 +186,15 @@ export default function UyumIstemci({
   const [acik, setAcik] = useState<Acik>(null);
   const [aile, setAile] = useState<string | null>(null);
 
-  const cerceve = cerceveler.find((c) => c.kod === odak.cerceve) ?? cerceveler[0];
+  /* Odaktaki çerçeve mercekte SATIRSIZ kaldıysa, satırı olan ilkine
+     düşülür: kullanıcı merceği değiştirdiğinde boş bir matrisle
+     karşılaşmamalı. Adres çubuğundaki `?cerceve=` seçimi yine önceliklidir
+     ama satırsızsa o da devredilir — paylaşılan bir bağın boş açılması
+     bağın kendisini şüpheli yapar. */
+  const odakli = mercekliCerceveler.find((c) => c.kod === odak.cerceve);
+  const cerceve = (odakli && odakli.satirlar.length > 0 ? odakli : null)
+    ?? mercekliCerceveler.find((c) => c.satirlar.length > 0)
+    ?? odakli ?? mercekliCerceveler[0];
   const satirlar = useMemo(() => (cerceve ? devir(cerceve) : []), [cerceve]);
   const gorunur = useMemo(
     () => (aile ? satirlar.filter((s) => s.aileId === aile) : satirlar),

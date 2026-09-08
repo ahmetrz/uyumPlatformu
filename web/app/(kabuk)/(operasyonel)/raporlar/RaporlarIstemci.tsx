@@ -119,6 +119,15 @@ export default function RaporlarIstemci({
         />
 
         <section className="ab-ekran-govde">
+          {/* Karne bu ekranın YAZDIRMA GÖRÜNÜMÜ değil, ayrı bir soruya
+              cevap veren paylaşılabilir bir belgedir ("denetime ne
+              göstereceğim"). Bağ burada duruyor çünkü kullanıcı o soruyu
+              tam bu ekranda soruyor. */}
+          <p className="ab-baskida-gizle" style={{ margin: '0 0 var(--s16)' }}>
+            <Link href="/raporlar/karne" className="ab-dugme">
+              Uyum karnesi · tek sayfa, yazdırılabilir →
+            </Link>
+          </p>
           {/* ── Modül 1 · tesis × süreç uyum matrisi ─────────────────── */}
           {satirlar.length === 0 ? (
             <div style={{ marginTop: 'var(--s26)' }}>

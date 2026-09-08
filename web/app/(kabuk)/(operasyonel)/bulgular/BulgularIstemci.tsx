@@ -112,15 +112,35 @@ export default function BulgularIstemci({
      satırları bir tavanla kestiği anda hepsi sessizce küçülürdü. Artık
      sunucudaki hafif sayım geçişi ölçüyor (veri.ts → sayimGecisi):
      satır için `take`, sayım için ayrı bir tam geçiş. */
+  const { gorunur: sektordeGorunur, etkinId: mercekEtkin } = useSektorSecimi();
+
+  /* MERCEK BİR SÜZGEÇ DEĞİL, KAPSAMDIR: ekranın kendi şeritleri başlık
+     sayılarını değiştirmez (doğru), ama sektör merceği kullanıcının
+     hangi portföye baktığını söyler. Kütük geneli sayıyı mercekli bir
+     listenin başında göstermek iki kümeyi tek cümlede birleştirirdi —
+     ölçüldü: su merceğinde 4 satır görünürken başlık "20 açık" diyordu.
+     Kesme varsa başlık zaten "gösterilen X / Y" diyor. */
+  const mercekliSatirlar = useMemo(
+    () => satirVerisi.filter((s) => sektordeGorunur(s.b.tesisId)),
+    [satirVerisi, sektordeGorunur],
+  );
+  const mercekMetrikleri = useMemo(() => ({
+    acik: mercekliSatirlar.filter((s) => acikMi(s.b.durum)).length,
+    gecikmis: mercekliSatirlar.filter((s) => s.gecikme !== null).length,
+    dogrulama: mercekliSatirlar.filter((s) => dogrulamaBekliyorMu(s.b)).length,
+    zamaninda: mercekliSatirlar.filter((s) => acikMi(s.b.durum) && s.gecikme === null).length,
+    aksiyonsuz: mercekliSatirlar.filter(
+      (s) => acikMi(s.b.durum) && s.b.aksiyonlar.length === 0).length,
+    kapali: mercekliSatirlar.filter((s) => !acikMi(s.b.durum)).length,
+  }), [mercekliSatirlar]);
   const {
     acik: acikSayisi, gecikmis: gecikmisSayisi, dogrulama: dogrulamaSayisi,
     zamaninda: zamanindaSayisi, aksiyonsuz: aksiyonsuzSayisi, kapali: kapaliSayisi,
-  } = metrikler;
+  } = mercekEtkin ? mercekMetrikleri : metrikler;
   /** Sunucu tavanı kütüğü kesti mi — kesme SESSİZ kalmaz. */
   const kesildi = toplam > bulgular.length;
 
   /* ── mercek + kapsam ───────────────────────────────────────────────── */
-  const { gorunur: sektordeGorunur } = useSektorSecimi();
   const suzulmus = useMemo(() => satirVerisi.filter((s) => {
     /* Sektör merceği — yüklem tek nüsha (`SozlukSaglayici`). Buradaki
        `mercek` değişkeni EKRANIN kendi süzgeç şeridi; ikisi ayrı şey. */

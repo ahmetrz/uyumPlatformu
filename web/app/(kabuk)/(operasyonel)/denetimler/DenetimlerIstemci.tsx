@@ -85,17 +85,34 @@ export default function DenetimlerIstemci({
 
   type Kayit = (typeof kayitlar)[number];
 
-  /* ── metrikler · filtrelerden BAĞIMSIZ, programın tamamı ───────────── */
-  const yuruyen = kayitlar.filter((k) => !kapandiMi(k.d));
+  const { gorunur: sektordeGorunur } = useSektorSecimi();
+
+  /* ── metrikler · ekranın kendi süzgeçlerinden BAĞIMSIZ, MERCEKTEN değil
+     Süzgeç şeritleri programın büyüklüğünü değiştirmez (doğru). Sektör
+     merceği ise kullanıcının hangi portföye baktığını söyler: mercekli
+     bir listenin başında program geneli sayı göstermek iki kümeyi tek
+     cümlede birleştirirdi — ölçüldü, su merceğinde 1 satır görünürken
+     başlık "5 kayıt" diyordu. Denetim birden çok tesis kapsayabildiği
+     için "kapsamındakilerden biri bile mercekteyse sayılır". */
+  const mercekliKayitlar = useMemo(
+    () => kayitlar.filter((k) => k.d.tesisler.length === 0
+      || k.d.tesisler.some((t) => sektordeGorunur(t.id))),
+    [kayitlar, sektordeGorunur],
+  );
+  const mercekliDenetimler = useMemo(
+    () => denetimler.filter((d) => d.tesisler.length === 0
+      || d.tesisler.some((t) => sektordeGorunur(t.id))),
+    [denetimler, sektordeGorunur],
+  );
+  const yuruyen = mercekliKayitlar.filter((k) => !kapandiMi(k.d));
   const takvimiKacan = yuruyen.filter((k) => k.im === 'bd').length;
-  const gecikmisKanit = denetimler.reduce((a, d) => a + d.talep.gecikmis, 0);
-  const acikKanit = denetimler.reduce((a, d) => a + d.talep.acik, 0);
-  const acikBulgu = denetimler.reduce((a, d) => a + d.acikBulgu, 0);
-  const kapanan = kayitlar.length - yuruyen.length;
+  const gecikmisKanit = mercekliDenetimler.reduce((a, d) => a + d.talep.gecikmis, 0);
+  const acikKanit = mercekliDenetimler.reduce((a, d) => a + d.talep.acik, 0);
+  const acikBulgu = mercekliDenetimler.reduce((a, d) => a + d.acikBulgu, 0);
+  const kapanan = mercekliKayitlar.length - yuruyen.length;
   const takvimsiz = yuruyen.filter((k) => k.im === 'unk').length;
 
   /* ── mercek + kapsam ───────────────────────────────────────────────── */
-  const { gorunur: sektordeGorunur } = useSektorSecimi();
   const suzulmus = useMemo(() => kayitlar.filter((k) => {
     /* Denetim BİRDEN ÇOK tesis kapsayabilir: kapsamındaki tesislerden
        biri bile mercekteyse denetim görünür. "Hepsi olmalı" deseydik
@@ -205,7 +222,7 @@ export default function DenetimlerIstemci({
     <>
       <main data-yuzey="defter" style={{ minWidth: 0 }}>
         <EkranBasligi
-          eyebrow={`Denetim programı · ${kayitlar.length} kayıt`}
+          eyebrow={`Denetim programı · ${mercekliKayitlar.length} kayıt`}
           vurgu={baslik.vurgu}
           vurguDurumu={baslik.durum}
           baslik={baslik.ad}

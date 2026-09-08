@@ -98,10 +98,41 @@ export default function RisklerIstemci({
      sunucu satırları bir tavanla kestiği anda hepsi sessizce küçülürdü.
      Artık sunucuda `count`/`aggregate` ile ölçülüyorlar (bkz. veri.ts):
      satır için `take`, sayım için `count`. */
+  const { gorunur: sektordeGorunur, etkinId: mercekEtkin } = useSektorSecimi();
+
+  /* ── MERCEK BİR SÜZGEÇ DEĞİL, KAPSAMDIR ─────────────────────────────
+     Ekranın kendi süzgeç şeritleri (Aktif · Kritik · OT…) başlık
+     sayılarını DEĞİŞTİRMEZ ve bu doğrudur: bir sekmeye tıklamak kütüğün
+     büyüklüğünü değiştirmez. Sektör merceği farklıdır — kullanıcının
+     hangi portföye baktığını söyler. Sunucunun kütük geneli sayısını
+     mercekli bir listenin başında göstermek, iki farklı kümeyi tek
+     cümlede birleştirmek olurdu (ölçüldü: su merceğinde 7 satır
+     görünürken başlık "23 aktif" diyordu).
+
+     Mercek etkinken sayılar ELDEKİ satırlardan yeniden hesaplanır.
+     Sunucu tavanı kütüğü kesmişse (`kesildi`) bu alt sayım olur ve
+     başlık bunu zaten söylüyor ("gösterilen X / Y"). */
+  const mercekli = useMemo(
+    () => riskler.filter((r) => sektordeGorunur(r.tesis?.id)),
+    [riskler, sektordeGorunur],
+  );
+  const mercekMetrikleri = useMemo(() => {
+    const aktifler = mercekli.filter(aktifMi);
+    const skorlar = mercekli.map((r) => r.artikRisk).filter((x): x is number => x !== null);
+    return {
+      aktif: aktifler.length,
+      enYuksek: skorlar.length ? Math.max(...skorlar) : null,
+      kritik: aktifler.filter((r) => r.artikRisk !== null && r.artikRisk >= 15).length,
+      gecikmis: mercekli.filter(gecikmis).length,
+      kabul: mercekli.filter((r) => r.durum === 'kabul_edildi').length,
+      sahipsiz: aktifler.filter((r) => !r.sahip).length,
+      skorsuz: mercekli.filter((r) => r.artikRisk === null).length,
+    };
+  }, [mercekli]);
   const {
     aktif: aktifSayisi, enYuksek, kritik: kritikSayisi, gecikmis: gecikmisSayisi,
     kabul: kabulSayisi, sahipsiz: sahipsizSayisi, skorsuz: skorsuzSayisi,
-  } = metrikler;
+  } = mercekEtkin ? mercekMetrikleri : metrikler;
   /** Sunucu tavanı kütüğü kesti mi — kesme SESSİZ kalmaz. */
   const kesildi = toplam > riskler.length;
 
@@ -114,7 +145,6 @@ export default function RisklerIstemci({
      değiştirip listeyi bırakmak, su merceğinde enerji kayıtları
      göstermek olurdu — portföyde ölçülüp düzeltilen kusurun aynısı.
      Yüklem `SozlukSaglayici`da TEK NÜSHADIR. */
-  const { gorunur: sektordeGorunur } = useSektorSecimi();
   const haritaTabani = useMemo(() => riskler.filter((r) => {
     if (!sektordeGorunur(r.tesis?.id)) return false;
     if (filtre === 'aktif' && !aktifMi(r)) return false;

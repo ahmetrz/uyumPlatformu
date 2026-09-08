@@ -4,12 +4,12 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 284 |
-| Testi olan senaryo | 284 |
+| Senaryo | 286 |
+| Testi olan senaryo | 286 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
-| Taranan test dosyası | 160 |
+| Taranan test dosyası | 164 |
 
 ## Katman başına kapsam
 
@@ -18,7 +18,7 @@
 | ACCESSIBILITY | 8 | 8 | 0 |
 | API | 12 | 12 | 0 |
 | CONCURRENCY | 7 | 7 | 0 |
-| DOMAIN | 151 | 151 | 0 |
+| DOMAIN | 153 | 153 | 0 |
 | ENGINE | 33 | 33 | 0 |
 | INTEGRATION | 26 | 26 | 0 |
 | MIGRATION | 3 | 3 | 0 |
@@ -26,7 +26,7 @@
 | RESPONSIVE | 8 | 8 | 0 |
 | SCOPE | 30 | 30 | 0 |
 | SERVER | 104 | 104 | 0 |
-| UI | 80 | 80 | 0 |
+| UI | 82 | 82 | 0 |
 | VISUAL | 4 | 4 | 0 |
 | WORKFLOW | 32 | 32 | 0 |
 
@@ -189,6 +189,16 @@
 | `API-IDM-001` | API | API · CONCURRENCY | `entegrasyon-cekirdek.test.ts` | bayat "calisiyor" koşusu kapatılır; TAZE koşu ikinci koşuyu engeller | evet | geçti |
 | `BLD-KTU-001` | Bildirim | DOMAIN · SCOPE | `bildirim-kutusu.test.ts` | kullanıcı KENDİ bildirimini okundu işaretleyebilir | evet | geçti |
 | `BLD-KTU-002` | Bildirim | SERVER · SCOPE | `bildirim-kutusu.test.ts` | BAŞKASININ bildirimini okundu işaretleme denemesi REDDEDİLİR | evet | geçti |
+| `RAP-KRN-001` | Rapor | DOMAIN · UI | `karne.test.ts` | ölçülmemiş uyum yüzdesi ORTALAMAYA katılmaz, ayrıca sayılır | evet | geçti |
+| `RAP-KRN-001` | Rapor | DOMAIN · UI | `karne.test.ts` | açık bulgu ve risk kapsamdaki satırlardan toplanır | evet | geçti |
+| `RAP-KRN-001` | Rapor | DOMAIN · UI | `karne.test.ts` | tek ölçüde kapasite toplanır ve ölçüsünü taşır | evet | geçti |
+| `RAP-KRN-001` | Rapor | DOMAIN · UI | `karne.test.ts` | ölçülmemiş kayıt "en zayıf" listesine GİRMEZ | evet | geçti |
+| `RAP-KRN-001` | Rapor | DOMAIN · UI | `karne.test.ts` | artan yüzde sırası; eşitlikte ada göre | evet | geçti |
+| `RAP-KRN-001` | Rapor | DOMAIN · UI | `karne.test.ts` | en fazla beş kayıt döner | evet | geçti |
+| `RAP-KRN-002` | Rapor | DOMAIN · UI | `karne.test.ts` | iki sektöre yayılan kapsamda TOPLAM ÜRETİLMEZ | evet | geçti |
+| `RAP-KRN-002` | Rapor | DOMAIN · UI | `karne.test.ts` | ölçülmemiş kapasite sıfır sayılmaz — sayım ayrı raporlanır | evet | geçti |
+| `RAP-KRN-002` | Rapor | DOMAIN · UI | `karne.test.ts` | mercek yokken bütün kayıtlar görünür | evet | geçti |
+| `RAP-KRN-002` | Rapor | DOMAIN · UI | `karne.test.ts` | mercek varken YALNIZ o sektörün kayıtları kalır | evet | geçti |
 | `RAP-URT-001` | Rapor | DOMAIN · UI | `senaryo-platform.test.ts` | kapsam dışı hücre "0 uyum" DEĞİL, kapsam dışıdır | evet | geçti |
 | `RAP-URT-002` | Rapor | DOMAIN · SCOPE | `disa-aktarim-paketi.test.ts` | kapsam dışı tesis istenirse istek REDDEDİLİR, sessizce daraltılmaz | evet | geçti |
 | `IMP-XLS-001` | İçe aktarım | SERVER · DOMAIN | `varlik-aktarim.test.ts` | etiket eşleşmesi güncelleme, eşleşmeyen yeni | evet | geçti |
@@ -340,7 +350,11 @@
 | `URN-ALN-003` | Ürünleştirme | DOMAIN · UI | `bekci/cekirdek-taban.test.ts` | toplam taban ölçümle tutuyor | evet | geçti |
 | `URN-ALN-003` | Ürünleştirme | DOMAIN · UI | `bekci/sektor-terimi.test.ts` | izin listesinde OLMAYAN dosyada sektör terimi yok | evet | geçti |
 | `URN-ALN-003` | Ürünleştirme | DOMAIN · UI | `bekci/sektor-terimi.test.ts` | liste taban daldaki listenin ALT KÜMESİ | evet | geçti |
+| `URN-ALN-003` | Ürünleştirme | DOMAIN · UI | `bekci/sektor-terimi.test.ts` | her satır SINIFLANDIRILMIŞ — kalıcı mı, ertelenmiş mi | evet | geçti |
+| `URN-ALN-003` | Ürünleştirme | DOMAIN · UI | `bekci/sektor-terimi.test.ts` | ERTELENMİŞ satır hangi aşamada kapanacağını YAZAR | evet | geçti |
+| `URN-ALN-003` | Ürünleştirme | DOMAIN · UI | `bekci/sektor-terimi.test.ts` | ERTELENMİŞ terim toplamı `ertelenmisTavani`yi aşmıyor | evet | geçti |
 | `URN-ALN-003` | Ürünleştirme | DOMAIN · UI | `bekci/sektor-terimi.test.ts` | terim toplamı `terimTavani`yi aşmıyor | evet | geçti |
+| `URN-ALN-003` | Ürünleştirme | DOMAIN · UI | `bekci/sektor-terimi.test.ts` | tavan YÜKSELTMESİ gerekçe ister | evet | geçti |
 | `URN-ALN-007` | Ürünleştirme | DOMAIN | `bekci/cekirdek-tarayici.test.ts` | YORUMLAR sökülür — render edilmeyen metin aranmaz | evet | geçti |
 | `URN-ALN-007` | Ürünleştirme | DOMAIN | `bekci/cekirdek-tarayici.test.ts` | GÜRÜLTÜ 1: sözlük ÇAĞRISI bulgu sayılmaz | evet | geçti |
 | `URN-ALN-007` | Ürünleştirme | DOMAIN | `bekci/cekirdek-tarayici.test.ts` | GÜRÜLTÜ 2: anahtar argümanı ekran metni değildir | evet | geçti |
@@ -415,4 +429,7 @@
 | `uc-deger-kurali.test.ts` | Üç değerli mantığın sözlüğü |
 | `omur-ufuk.test.ts` | Ömür şeridinin aciliyet bantları — ölçek işaretinin saf mantığı |
 | `kapi-farki.test.ts` | Kapı farkı ölçüsünün saf kuralları — hangi betik CI'da koşuyor |
+| `kirpan-ata.test.ts` | Düzen kapısının kırpan-ata yürüyüşü — kaydırılabilen içerik kayıp sayılmaz |
+| `inceleme-30.test.ts` | Bir inceleme turunun beş bulgusunun düzeltme kanıtı — birlikte okunmaları gerekir |
+| `sunucu-durdurma.test.ts` | Başarısız OLAMAYAN temizlik adımı sınıfı — süreç adıyla öldürme, sonucu yutan `|| true` ve son koşulunu doğrulamayan adım |
 

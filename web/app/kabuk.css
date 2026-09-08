@@ -4112,3 +4112,68 @@ details:not([open]) > *:not(summary) { display: none !important; }
 }
 .ab-kesif-pasiflik .yasaklar li b { color: var(--murekkep); font-weight: 600; }
 
+
+/* ═══ UYUM KARNESİ — tek sayfa, yazdırılabilir ════════════════════════
+   Ekranda da kâğıtta da AYNI belge. Ayrı bir "yazdırma görünümü"
+   yazılsaydı ikisi ayrışırdı ve kimse fark etmezdi: kimse ekranı ve
+   çıktısını yan yana koymaz. Baskı kuralları yalnız rengi ve kenar
+   boşluğunu değiştirir, YERLEŞİMİ değiştirmez. */
+.ab-karne { padding: var(--s24) var(--s24) var(--s32); max-width: 1100px; }
+.ab-karne > header { border-bottom: 2px solid var(--hr2); padding-bottom: var(--s12); }
+.ab-karne h1 {
+  font-family: var(--gorunum); font-size: 22px; font-weight: 700;
+  letter-spacing: .04em; text-transform: uppercase; margin: 0;
+}
+.ab-karne .kunye { font-size: var(--t-caption); color: var(--i3); margin: var(--s6) 0 0; }
+.ab-karne h2 {
+  font-family: var(--veri); font-size: var(--t-label); font-weight: 600;
+  letter-spacing: .14em; text-transform: uppercase; color: var(--i3);
+  margin: var(--s24) 0 var(--s10);
+}
+/* Dört kutu tek satır: karnenin ilk üç saniyesi buradan okunur. */
+.ab-karne .ozet {
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--s16); margin-top: var(--s20);
+}
+.ab-karne .ozet > div {
+  display: flex; flex-direction: column; gap: var(--s4);
+  padding: var(--s12) var(--s14); border: 1px solid var(--hr); border-radius: 2px;
+}
+.ab-karne .ozet .etiket {
+  font-family: var(--veri); font-size: var(--t-label); letter-spacing: .12em;
+  text-transform: uppercase; color: var(--i3);
+}
+.ab-karne .ozet strong { font-size: 26px; font-weight: 600; line-height: 1.1; }
+.ab-karne .ozet .alt { font-size: var(--t-caption); color: var(--i3); }
+.ab-karne-tablo { width: 100%; border-collapse: collapse; font-size: var(--t-cell); }
+.ab-karne-tablo th, .ab-karne-tablo td {
+  text-align: left; padding: var(--s8) var(--s10); border-bottom: 1px solid var(--hr);
+}
+.ab-karne-tablo th {
+  font-family: var(--veri); font-size: var(--t-colhead); font-weight: 600;
+  letter-spacing: .1em; text-transform: uppercase; color: var(--i3);
+  border-bottom-color: var(--hr2);
+}
+.ab-karne-tablo .say { text-align: right; }
+.ab-karne-tablo .ikincil { color: var(--i3); font-size: var(--t-label); }
+.ab-karne .bos { color: var(--i3); font-size: var(--t-body); }
+.ab-karne-ayak {
+  margin-top: var(--s24); padding-top: var(--s12); border-top: 1px solid var(--hr);
+  font-size: var(--t-caption); color: var(--i3); max-width: 70ch;
+}
+@media (max-width: 900px) {
+  .ab-karne .ozet { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media print {
+  /* Kâğıtta yerleşim AYNI kalır; yalnız renk ve kenarlıklar baskıya
+     uyar. Dört kutu tek satırda kalmalı — alt alta inince karne iki
+     sayfaya taşardı. */
+  .ab-karne { padding: 0; max-width: none; }
+  .ab-karne .ozet { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8pt; }
+  .ab-karne .ozet > div { border-color: #999; padding: 6pt 8pt; }
+  .ab-karne .ozet strong { font-size: 18pt; }
+  .ab-karne h1 { font-size: 16pt; }
+  .ab-karne-tablo { font-size: 9pt; }
+  .ab-karne-tablo th, .ab-karne-tablo td { border-bottom-color: #bbb; padding: 4pt 6pt; }
+  .ab-karne-tablo tr { break-inside: avoid; }
+}

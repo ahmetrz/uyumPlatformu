@@ -28,7 +28,7 @@
 */
 
 import { chromium } from 'playwright-core';
-import { tarayiciYolu } from './kosu-ortak.mjs';
+import { girisYap, tarayiciYolu } from './kosu-ortak.mjs';
 
 const KOK = `http://localhost:${process.env.PORT || 3000}`;
 
@@ -90,20 +90,9 @@ const bildir = (bant, m) => kusurlar.push(`${bant} · ${m}`);
 
 const b = await chromium.launch({ executablePath: tarayiciYolu() });
 
-async function girisYap(s) {
-  await s.goto(`${KOK}/giris`, { waitUntil: 'load' });
-  if (!s.url().includes('/giris')) return;
-  for (let d = 1; d <= 3; d += 1) {
-    await s.fill('input[type=email]', 'kullanici.a@demo.local');
-    await s.fill('input[type=password]', 'Enerji!2026');
-    const ok = (await s.inputValue('input[type=email]')) === 'kullanici.a@demo.local'
-      && (await s.inputValue('input[type=password]')).length > 0;
-    if (ok) break;
-    await s.waitForTimeout(300 * d);
-  }
-  await s.click('button[type=submit]');
-  await s.waitForURL((u) => !u.pathname.startsWith('/giris'), { timeout: 25000 });
-}
+/* Giriş `kosu-ortak.mjs → girisYap` ile YAPILIR, burada kopyalanmaz —
+   kopya, sinematik giriş eklendiğinde (PR #28) ortak işlevin aldığı CTA
+   adımını almadı ve bu araç giriş yapamaz oldu. */
 
 /** Tek `aria-current="page"` sözleşmesi. */
 async function aktifSayisi(s) {
@@ -139,7 +128,7 @@ for (const bant of BANTLAR) {
   s.on('pageerror', (e) => sayfaHatalari.push(e.message.slice(0, 120)));
 
   try {
-    await girisYap(s);
+    await girisYap(s, KOK);
     await s.setViewportSize({ width: bant.en, height: bant.boy });
 
     /* ── 1 · KARDEŞ rota, dokunmatik ─────────────────────────────────── */

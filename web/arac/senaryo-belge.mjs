@@ -52,6 +52,8 @@ export const KUTUKSUZ_DOSYALAR = {
   'kabuk-inceleme.test.ts': 'Kabuk gramerinin statik incelemesi',
   'ekran-mantik-72.test.ts': 'Ekran mantığı toplu regresyonu',
   'uc-deger-kurali.test.ts': 'Üç değerli mantığın sözlüğü',
+  'omur-ufuk.test.ts': 'Ömür şeridinin aciliyet bantları — ölçek işaretinin saf mantığı',
+  'kapi-farki.test.ts': 'Kapı farkı ölçüsünün saf kuralları — hangi betik CI\'da koşuyor',
 };
 
 function testDosyalari() {

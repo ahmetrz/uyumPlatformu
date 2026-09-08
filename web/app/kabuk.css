@@ -2060,6 +2060,9 @@
    hücre zemini kabuk zeminidir; saydam kalsa altındaki satır metni
    başlığın içinden görünürdü. */
 .ab-vt-sar { overflow: auto; max-height: var(--vt-h, none); min-width: 0; }
+/* Kap odak durağıdır (tablo.tsx); halka İÇERİ alınır — dışarıdaki pay
+   yapışkan başlığın ve komşu kabuk kenarının altında kalırdı. */
+.ab-vt-sar:focus-visible { outline: 2px solid var(--aksan); outline-offset: -2px; }
 /* table-layout: fixed — eski grid kütüğünden semantik tabloya geçişte eklendi.
    Grid sütun genişliklerini kesin kılar; <table width="100%"> ise içerik
    iticidir ve hücre minimum genişliklerinin toplamı kabı aştığında tablo
@@ -2148,6 +2151,37 @@
 .ab-vt tbody tr.iskelet { cursor: default; }
 .ab-vt tbody tr.iskelet:hover > * { background: transparent; }
 .ab-vt tbody tr.iskelet .ab-iskelet { display: block; height: 12px; }
+/* ── DAR BANTTA KÜTÜK · bileşenin KENDİ niyeti geri veriliyor ────────
+   `.ab-vt-sar` bir kaydırma kabıdır ve ilk sütun (kimlik) yatay
+   kaydırmada YAPIŞKAN kalsın diye yazılmıştır — yani bu kütük yatay
+   kaydırma için TASARLANMIŞ. `width: 100%` + `table-layout: fixed` bunu
+   hiç gerçekleşmeden öldürüyordu: tablo kabını asla aşmadığı için
+   kaydırma HİÇ olmuyor, sütunlar sıfıra doğru eziliyor ve
+   `overflow: hidden` içeriği sessizce kesiyordu.
+
+   ÖLÇÜLDÜ · /aktivite · 375px: ekranda yalnız ZAMAN ve DEĞİŞİM sütunları
+   görünüyordu; "KAYIT" başlığı ve her satırın ne olduğu ("Kullanıcı A
+   giriş oluşturdu") TÜMÜYLE yoktu. Kullanıcı eksiği bir hata olarak bile
+   göremiyordu, çünkü eksik olan şey görünmüyordu.
+
+   Dar bantta düzen niyete döner: sütunlar İÇERİĞE göre ölçülür, tablo
+   kabı aşar, kap kaydırır, kimlik sütunu yapışkan kalır. Bilgi
+   GİZLENMEZ, hiçbir sütun DÜŞMEZ.
+
+   `kolon-hizasi.mjs` ("tablo kabını aşmıyor") 1440 · 1366 · 1280'de
+   koşar; bu kural onların ALTINDA açılır ve o kapıyı ilgilendirmez. */
+@media (max-width: 900px) {
+  .ab-vt { width: auto; min-width: 100%; table-layout: auto; }
+  /* Uzun metin sütunu ölçüsüz genişletmesin: hücre SARAR, kırpılmaz.
+     Sınırsız bırakılsaydı tek bir bulgu başlığı tabloyu metrelerce
+     uzatırdı. */
+  .ab-vt td { max-width: 34ch; }
+  .ab-vt th { max-width: 22ch; }
+  /* Sütunlar artık içerik enindedir; kırpma gereksiz ve zaten SESSİZ
+     bilgi kaybının kendisiydi. */
+  .ab-vt th, .ab-vt td { overflow: visible; }
+}
+
 /* Dokunmatik / dar bant: sıralı başlıklar sarar, kırpılmaz. */
 @media (max-width: 1366px) {
   .ab-vt thead th { white-space: normal; }
@@ -2529,6 +2563,39 @@
 .ab-panel-eylem .ikincil { margin-top: 10px; }
 .ab-panel-eylem .dip { margin: 16px 0 0; font-size: var(--t-label); line-height: 1.7; color: var(--i3); }
 
+/* ── Kayıt detayı: içerik + bağlam paneli ───────────────────────────
+   Yerleşim kabuk gramerine TAŞINDI; daha önce `RiskDetayIstemci` içinde
+   satır içi `style` ile yazılıydı ve satır içi stil bir medya sorgusuyla
+   ezilemez — yani ekran yapısı gereği dar bantta düzelemiyordu.
+
+   ÖLÇÜLDÜ · /riskler/[id] · 375px: ızgara `minmax(0, 1fr) 400px`,
+   içerik sütunu 0px'e çöküyor, 400px panel şeridi 49px taşırıyor ve
+   sayfa yana kayıyor.
+
+   Dar bantta karar `.ab-a-calisma` ile AYNIDIR ve o karar bu depoda
+   zaten kabul edilmiştir: panel GİZLENMEZ — bağlam orada yaşıyor —
+   içeriğin ALTINA iner ve kenarlığını sola değil ÜSTE alır. Eşik de
+   aynı: 820px. 768'de panel 400px kalsaydı içeriğe 320px kalırdı, yani
+   bağlam ana içerikten geniş olurdu. */
+.ab-kayit-ikili { display: grid; grid-template-columns: minmax(0, 1fr) var(--drawer-w); }
+.ab-kayit-ikili > .govde {
+  min-width: 0;
+  padding: var(--s36) var(--s40) var(--sec-pad-bot) var(--gutter-op);
+  border-right: var(--bw-hair) solid var(--hr);
+}
+.ab-kayit-ikili > .baglam {
+  min-width: 0; background: var(--panel2);
+  padding: var(--s36) var(--gutter-op) var(--sec-pad-bot) var(--s32);
+}
+@media (max-width: 820px) {
+  .ab-kayit-ikili { grid-template-columns: minmax(0, 1fr); }
+  .ab-kayit-ikili > .govde { border-right: 0; padding-right: var(--gutter-op); }
+  .ab-kayit-ikili > .baglam {
+    border-top: var(--bw-hair) solid var(--hr);
+    padding-left: var(--gutter-op);
+  }
+}
+
 /* ── Grafik tuvali ─────────────────────────────────────────────────── */
 .ab-tuval {
   position: relative; min-height: 420px; overflow: hidden;
@@ -2555,6 +2622,24 @@
 }
 .ab-tuval .dugum .ad { font-size: 12.5px; line-height: 1.25; overflow-wrap: anywhere; }
 .ab-tuval .dugum .alt { font-size: var(--t-label); color: var(--i3); }
+/* ── Tuvalin İÇSEL EN AZ ENİ ─────────────────────────────────────────
+   Düğüm kutusu SABİT 168px, konumu ise YÜZDE (`left: x%` + `translate
+   (-50%)`). Yani uçtaki düğüm kenardan 84px içeride durmak zorundadır:
+   `x=16%` için tuval ≥ 525px, `x=90%` için ≥ 840px ister. Altında
+   `overflow: hidden` düğümü SESSİZCE keser — ÖLÇÜLDÜ · /sistem/bilesenler:
+   375px'te 4 düğüm (en kötüsü 39px), 768px'te 2 düğüm (16px).
+
+   Şema küçültülerek çözülemez: kenarlar SVG'de düğümün YÜZDE koordinatına
+   çizilir, düğümü kenara çivilemek çizgiyi düğüme YALANCI bağlardı —
+   şema olmayan bir bağlantıyı gösterirdi. O yüzden kaydırılır: bilgi
+   gizlenmez, ERİŞİLİR. Tablolarda ve `/sistem` matrislerinde kabul
+   edilmiş gramerin aynısı.
+
+   Kaydırma kabı klavyeyle erişilebilir olmak ZORUNDADIR (axe ·
+   `scrollable-region-focusable`); `role`+ad+`tabIndex` kullanan yerdedir. */
+.ab-tuval-kaydir { overflow-x: auto; }
+.ab-tuval-kaydir > .ab-tuval { min-width: 840px; }
+.ab-tuval-kaydir:focus-visible { outline: 2px solid var(--aksan); outline-offset: -2px; }
 .ab-tuval .dip {
   position: absolute; left: 14px; bottom: 10px; font-size: var(--t-label); color: var(--i3);
 }
@@ -2659,6 +2744,21 @@
 }
 .ab-baglam .yol .son { color: var(--murekkep); font-weight: 500; }
 .ab-baglam .sag { margin-left: auto; display: flex; align-items: center; gap: 14px; }
+/* ── Dar bantta bağlam çubuğu SARAR ─────────────────────────────────
+   `nowrap` bir flex satırında `.yol` kendi min-content enine kadar
+   ezilir (`min-width: 0`, `.kisalt` üç noktası için orada) ve SON
+   kırıntı kutusundan taşıp eylem düğmelerinin ÜSTÜNE biner: metin
+   metnin üstünde, ikisi de okunmaz. Kapıların ikisi de bunu göremez —
+   sayfa kaymıyor, kırpan ata yok, axe örtüşmeyi ölçmez.
+
+   ÖLÇÜLDÜ · 375px: /riskler/[id] son kırıntı `.yol`dan 34px kaçıyor ve
+   düğmeyle 18px örtüşüyor; /sistem/bilesenler 24px / 8px — dört rota.
+   Sararken `.yol` tam satırı alır, kırıntı kutusuna sığar ve hiçbir şey
+   GİZLENMEZ. `.ab-durum` ve `.ab-alt` ayağıyla aynı karar, aynı eşik. */
+@media (max-width: 700px) {
+  .ab-baglam { flex-wrap: wrap; row-gap: 10px; }
+  .ab-baglam .sag { margin-left: 0; }
+}
 .ab-baglam .secici { position: relative; }
 .ab-baglam .menu {
   position: absolute; top: calc(100% + 6px); right: 0; z-index: 25;
@@ -3276,6 +3376,8 @@ details:not([open]) > *:not(summary) { display: none !important; }
    sığmaz. Sütun düşürmek bir kapı çıktısını gizlemek olurdu; tablo
    kendi kabında kayar, sayfa kaymaz. */
 .ab-sistem-kaydir { overflow-x: auto; max-width: 100%; }
+/* Kap odak durağıdır (sistem/page.tsx); halka İÇERİ alınır. */
+.ab-sistem-kaydir:focus-visible { outline: 2px solid var(--aksan); outline-offset: -2px; }
 .ab-sistem-kaydir > .ab-sistem-tablo { min-width: 460px; }
 .ab-sistem-tablo { width: 100%; border-collapse: collapse; font-size: 12px; }
 .ab-sistem-tablo th { text-align: left; padding: 0 12px 8px 0; border-bottom: 1px solid var(--murekkep); }

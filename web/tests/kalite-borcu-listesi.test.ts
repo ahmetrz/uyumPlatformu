@@ -89,6 +89,50 @@ describe('borç listesi satır biçimi', () => {
     }
   });
 
+  it('BEYAN edilen yeni türler bir dizidir ve `kapi/tur` biçimindedir', () => {
+    /* `_yeni_tur` cırcırın kendini emekliye ayıran yolunu açar; biçimi
+       bozuksa muafiyet SESSİZCE değil ADIYLA düşmeli. */
+    const belge = JSON.parse(readFileSync(LISTE, 'utf8'));
+    const turler = belge._yeni_tur ?? [];
+    expect(Array.isArray(turler)).toBe(true);
+    for (const t of turler) {
+      expect(typeof t).toBe('string');
+      expect(t.split('/')).toHaveLength(2);
+      expect(['tasma', 'axe']).toContain(t.split('/')[0]);
+    }
+  });
+
+  it('BEYAN edilen her yeni tür KAYIT DEFTERİNDE de olmalı', () => {
+    /* Defterde olmayan bir tür beyan etmek, uydurma bir ad üzerinden
+       muafiyet açmaya çalışmaktır; cırcır onu zaten reddeder ama liste
+       de tutarsız kalmamalı. */
+    const belge = JSON.parse(readFileSync(LISTE, 'utf8'));
+    const defter = new Set<string>(belge._olculen_turler ?? []);
+    for (const t of belge._yeni_tur ?? []) expect(defter.has(t)).toBe(true);
+  });
+
+  it('KAYIT DEFTERİ bir dizidir ve `kapi/tur` biçimindedir', () => {
+    const belge = JSON.parse(readFileSync(LISTE, 'utf8'));
+    const defter = belge._olculen_turler ?? [];
+    expect(Array.isArray(defter)).toBe(true);
+    for (const t of defter) {
+      expect(typeof t).toBe('string');
+      expect(t.split('/')).toHaveLength(2);
+      expect(['tasma', 'axe']).toContain(t.split('/')[0]);
+    }
+  });
+
+  it('listedeki her satırın türü DEFTERDE ya da axe kuralı olmalı', () => {
+    /* axe kural kimlikleri açık uçludur ve deftere girmez; taşma
+       kapısının türleri kapalı bir kümedir ve girmelidir. */
+    const belge = JSON.parse(readFileSync(LISTE, 'utf8'));
+    const defter = new Set<string>(belge._olculen_turler ?? []);
+    for (const b of belge.bulgular) {
+      if (b.kapi === 'axe') continue;
+      expect(defter.has(`${b.kapi}/${b.tur}`)).toBe(true);
+    }
+  });
+
   it('aynı anahtar iki kez yazılamaz — ikinci satır ilkini gölgelerdi', () => {
     const anahtarlar = satirlar().map(borcAnahtari);
     expect(new Set(anahtarlar).size).toBe(anahtarlar.length);

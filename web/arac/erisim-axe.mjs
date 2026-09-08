@@ -37,21 +37,31 @@ import { chromium } from 'playwright-core';
 import { writeFileSync } from 'node:fs';
 import path from 'node:path';
 import {
-  KOK, WEB, bayrakDegeri, dinamikRotalar, girisYap, kalipCozucu, rotaBayragi, rotaBayragiVar,
+  KOK, WEB, bayrakDegeri, dinamikRotalar, girisYap, kalipCozucu, oturumsuzRotalar,
+  rotaBayragi, rotaBayragiVar,
   rotalarOku, tarayiciYolu,
 } from './kosu-ortak.mjs';
-import { axeOzeti } from './kalite-kurallari.mjs';
+import {
+  axeKimlikBicimi, axeOzeti, ayristirilanHedefler, borcAnahtari,
+} from './kalite-kurallari.mjs';
 import { yonlendirmeKarari } from './rota-kurallari.mjs';
 import { borcuUygula } from './kalite-borcu.mjs';
 
-const GIRIS_ROTASI = '/giris';
-/* rotalar.json'daki '' ana ekrandır; giriş listede yoktur, ayrıca eklenir. */
+/* OTURUMSUZ yüzeyler (bugün yalnız `/giris`) tek kaynaktan gelir:
+   `kosu-ortak.mjs → OTURUMSUZ_ROTALAR`. Bu kapı onları uzun süre kendi
+   sabitinden okuyordu ve doğru ölçüyordu; taşma kapısı ise listeyi hiç
+   bilmiyordu, yani `/giris` orada HİÇ ölçülmedi. İki kapının aynı listeyi
+   okuması, bir sonraki oturumsuz yüzeyin birinde ölçülüp ötekinde
+   atlanmasını yapısal olarak imkânsız kılar. */
+const OTURUMSUZ = oturumsuzRotalar();
+const OTURUMSUZ_YOLLAR = OTURUMSUZ.map((r) => r.yol);
+/* rotalar.json'daki '' ana ekrandır; oturumsuz yüzeyler listede yoktur, ayrıca eklenir. */
 /* Statik liste + tohumdan somutlaşan dinamik rotalar. Dinamikler uzun
    süre dışarıdaydı ve bu, kapıyı KÖR bırakıyordu: altı kayıt detayı
    ekranının hiçbiri taranmıyordu (Tesis 360 dahil). */
 const DINAMIK = dinamikRotalar();
 const ROTALAR = rotaBayragi([
-  GIRIS_ROTASI,
+  ...OTURUMSUZ_YOLLAR,
   ...rotalarOku().map((r) => (r === '' ? '/' : r)),
   ...DINAMIK.url,
 ]);
@@ -76,10 +86,12 @@ const ETIKETLER = ['wcag2a', 'wcag2aa'];
 
 const b = await chromium.launch({ executablePath: tarayiciYolu() });
 
-async function tara(s, rota, girisFormu = false) {
+async function tara(s, rota, { nobetci = null, beklenenKod = 200, ctaTakip = false } = {}) {
   const y = await s.goto(KOK + rota, { waitUntil: 'load' });
   await s.waitForTimeout(450);
-  if (girisFormu) {
+  /* Sinematik giriş formdan ÖNCE durur; kullanıcının izlediği yolu izleriz
+     (`kosu-ortak.mjs → girisYap` ile aynı adım). */
+  if (ctaTakip) {
     const platformaGir = s.getByRole('link', { name: 'Platforma Gir' });
     if (await platformaGir.isVisible()) await platformaGir.click();
     await s.locator('input[type=email]').waitFor({ state: 'visible' });
@@ -88,8 +100,46 @@ async function tara(s, rota, girisFormu = false) {
   await s.addScriptTag({ path: AXE_YOLU });
   const sonuc = await s.evaluate(async (etiketler) => {
     /* `axe` az önce `addScriptTag` ile sayfaya enjekte edildi; burada
-       tarayıcı bağlamında küresel olarak vardır. */
-    const r = await globalThis.axe.run(document, { runOnly: { type: 'tag', values: etiketler } });
+       tarayıcı bağlamında küresel olarak vardır.
+
+       `elementRef: true` ŞART: kimlik düğümün KENDİSİNDEN üretilir.
+       Önceki hâl hedef SEÇİCİSİNİ tekilleştirip `querySelector` ile
+       geri çözüyordu ve bu, seçici tekilliğine güvenen sessiz bir
+       varsayımdı — iki ihlal düğümü aynı ham seçiciyi taşısa ikisi de
+       İLK eşleşen öğeye çözülür, aynı yapısal kimliği ve aynı sırayı
+       alır, tek borç hedefinde toplanırdı: bir ihlal düğümünün yerine
+       başkasının geçmesi izinli kalırdı (PR #29 incelemesi). Düğümden
+       üretilen kimlik o varsayımı hiç kurmaz. */
+    const r = await globalThis.axe.run(document, {
+      runOnly: { type: 'tag', values: etiketler }, elementRef: true,
+    });
+
+    /* Yapısal kimlik — en fazla dört kademe `etiket`+sıralı sınıf yolu
+       (`:nth-child` YOK) + aynı yola uyan düğümler arasındaki sıra. */
+    const parca = (e) => e.tagName.toLowerCase()
+      + [...e.classList].sort().map((c) => `.${c}`).join('');
+    const yolu = (e) => {
+      const p = [];
+      for (let n = e, i = 0; n && n !== document.body && i < 4; n = n.parentElement, i += 1) {
+        p.unshift(parca(n));
+      }
+      return p.join(' > ');
+    };
+    /* Yol → o yola uyan düğümler, TEK geçişte. */
+    const kova = new Map();
+    for (const e of document.querySelectorAll('body *')) {
+      const y = yolu(e);
+      if (!kova.has(y)) kova.set(y, []);
+      kova.get(y).push(e);
+    }
+    const kimlik = (n) => {
+      const ham = n.target.join(' ');
+      const e = n.element;
+      if (!e || !e.tagName) return { ham, yol: ham, sira: 1, bulunamadi: true };
+      const y = yolu(e);
+      return { ham, yol: y, sira: (kova.get(y) ?? []).indexOf(e) + 1 };
+    };
+
     /* Yalnız gereken alanlar: tam sonuç HTML parçalarıyla şişer. */
     return {
       ihlaller: r.violations.map((v) => ({
@@ -99,6 +149,10 @@ async function tara(s, rota, girisFormu = false) {
         helpUrl: v.helpUrl,
         dugum: v.nodes.length,
         ornek: v.nodes.slice(0, 3).map((n) => n.target.join(' ')),
+        /* Kimlik düğüm BAŞINA üretilir ve TEKİLLEŞTİRİLMEZ: üç örnek,
+           "hangi düğüm hangisinin yerine geçti" sorusunu cevaplayamaz.
+           Üst sınır rapor şişmesin diye. */
+        kimlikler: v.nodes.slice(0, 200).map(kimlik),
       })),
       gecen: r.passes.length,
       belirsiz: r.incomplete.length,
@@ -113,9 +167,18 @@ async function tara(s, rota, girisFormu = false) {
      yönlendirme kabul edilir. */
   const kod = y?.status() ?? 0;
   const karar = yonlendirmeKarari(rota, varilan);
-  const yuzeyHatasi = kod !== 200
-    ? `HTTP ${kod} — yanlış yüzey tarandı`
+  /* Beklenen kod BEYAN EDİLİR: 404 yüzeyinin kendisi taranırken 404
+     doğru cevaptır, 200 ise yanlış yüzey demektir. */
+  let yuzeyHatasi = kod !== beklenenKod
+    ? `HTTP ${kod} (beklenen ${beklenenKod}) — yanlış yüzey tarandı`
     : (karar.kusur ?? null);
+  /* Oturumsuz yüzeyde NÖBETÇİ aranır: yönlendirme denetimi "başka yere
+     gitti mi" der, nöbetçi "doğru yere geldi mi" der. Oturum çerezi
+     sızarsa `/giris` panoya yönlenir ve o yönlendirme zaten yakalanır;
+     nöbetçi ikinci kilittir ve yüzeyin İÇERİĞİNE bakar. */
+  if (!yuzeyHatasi && nobetci && (await s.locator(nobetci).count()) === 0) {
+    yuzeyHatasi = `nöbetçi yok (${nobetci}) — yanlış yüzey tarandı`;
+  }
   return {
     rota,
     kod,
@@ -135,13 +198,22 @@ try {
     const ctx = await b.newContext({ viewport: { width: bant.en, height: bant.boy }, locale: 'tr-TR' });
     const s = await ctx.newPage();
     try {
-      if (ROTALAR.includes(GIRIS_ROTASI)) {
-        rapor.push({ bant: bant.ad, bantEn: bant.en, ...await tara(s, GIRIS_ROTASI) });
-        // Hem sinematik giriş hem de CTA'dan sonraki gerçek form taranır.
-        rapor.push({ bant: bant.ad, bantEn: bant.en, ...await tara(s, GIRIS_ROTASI, true) });
+      /* Oturumsuz yüzeyler ÖNCE taranır: bir kez giriş yapıldıktan sonra
+         bu bağlam `/giris`i hiç göremez, sunucu panoya yönlendirir.
+         `/giris` İKİ yüzeydir (sinematik giriş + CTA'dan sonraki form) ve
+         ikisi de taranır — beyan hangisinin ne beklediğini söyler. */
+      for (const r of OTURUMSUZ.filter((x) => ROTALAR.includes(x.yol))) {
+        rapor.push({
+          bant: bant.ad, bantEn: bant.en, ...await tara(s, r.yol, { nobetci: r.nobetci, beklenenKod: r.kod ?? 200 }),
+        });
+        if (r.ctaTakip) {
+          rapor.push({
+            bant: bant.ad, bantEn: bant.en, ...await tara(s, r.yol, { nobetci: r.formNobetci, beklenenKod: r.kod ?? 200, ctaTakip: true }),
+          });
+        }
       }
       await girisYap(s, KOK);
-      for (const rota of ROTALAR.filter((r) => r !== GIRIS_ROTASI)) {
+      for (const rota of ROTALAR.filter((r) => !OTURUMSUZ_YOLLAR.includes(r))) {
         try {
           rapor.push({ bant: bant.ad, bantEn: bant.en, ...await tara(s, rota) });
         } catch (e) {
@@ -243,7 +315,7 @@ if (JSON_YOLU) {
 function enKotuyeIndirge(bulgular) {
   const en = new Map();
   for (const b of bulgular) {
-    const anahtar = [b.kapi, b.tur, b.rota, b.bant].join('|');
+    const anahtar = borcAnahtari(b);
     const v = en.get(anahtar);
     if (!v || b.olcum > v.olcum) en.set(anahtar, { ...b, ornek: (v?.ornek ?? 0) + 1 });
     else en.set(anahtar, { ...v, ornek: v.ornek + 1 });
@@ -254,12 +326,37 @@ function enKotuyeIndirge(bulgular) {
 /* Borç anahtarı KALIBA yazılır (`/tesisler/[id]`), somut URL'e değil:
    tohum kimlikleri her seed'de değişir. */
 const kalip = kalipCozucu(DINAMIK);
+/* Her HEDEF ayrı bulgudur. Kural + rota + bant tek anahtar olsaydı,
+   izinli bir düğümü kaldırıp aynı kuralla BAŞKA bir düğüm getirmek
+   toplam sayıyı değiştirmez ve ihlal "mevcut borç" sayılırdı. */
 const bulgular = rapor.flatMap((r) => r.ihlaller
   .filter((i) => i.impact === 'serious' || i.impact === 'critical')
-  .map((i) => ({
-    kapi: 'axe', tur: i.id, rota: kalip(r.rota), bant: r.bantEn,
-    olcum: i.dugum, birim: 'düğüm', not: i.ornek?.[0],
-  })));
+  .flatMap((i) => {
+    const sayac = new Map();
+    for (const k of i.kimlikler ?? []) {
+      const h = axeKimlikBicimi(k);
+      sayac.set(h, (sayac.get(h) ?? 0) + 1);
+    }
+    return [...sayac.entries()].map(([hedef, adet]) => ({
+      kapi: 'axe', tur: i.id, rota: kalip(r.rota), bant: r.bantEn,
+      hedef, olcum: adet, birim: 'düğüm', not: i.help,
+    }));
+  }));
+
+/* Çakışan kimlikler BİRLEŞTİRİLMEZ, AYRIŞTIRILIR: konum bilgisi o grup
+   için geri konur. Rapor bunu yazar — hangi normalize seçici, hangi
+   kesin hedeflere bölündü. */
+const ayrisan = rapor.flatMap((r) => r.ihlaller.flatMap((i) => ayristirilanHedefler(i.kimlikler)
+  .map((c) => ({ rota: r.rota, bant: r.bant, kural: i.id, ...c }))));
+if (ayrisan.length > 0) {
+  console.log(`\nHEDEF KİMLİĞİ AYRIŞTIRILDI · ${ayrisan.length} — aynı yapısal yolu paylaşan düğümler`);
+  for (const c of ayrisan) {
+    console.log(`  ${c.bant} · ${c.rota} · ${c.kural} · "${c.norm}" →`);
+    for (const h of c.hedefler) console.log(`      ${h}`);
+  }
+} else {
+  console.log('\nhedef kimliği ayrıştırması: 0 — yapısal yollar zaten ayırt ediyor');
+}
 const borcKapali = borcuUygula(enKotuyeIndirge(bulgular), { kapi: 'axe' });
 if (kirik.length > 0) {
   console.error(`\nKIRIK TARAMA · ${kirik.length} rota ölçülemedi — izin listesine giremez.`);

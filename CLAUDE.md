@@ -71,7 +71,12 @@ sürüm aktifleştirmez, kanıtı "yeterli" işaretlemez.
 **Koyu tema.** Bütün ekranlar koyu temadır; açık temaya geçiş yoktur.
 
 **Değişiklikler PR ile gelir.** `main`'e doğrudan push yok, otomatik
-merge yok.
+merge yok. **Merge ön koşulu İKİDİR: CI yeşil VE açık inceleme yorumu
+yok.** İkisi ayrı şeydir ve biri öbürünün yerine geçmez. Ölçüldü: #30'da
+inceleme 06:58'de düştü, merge 07:00'de yapıldı — yalnız CI'ya bakıldığı
+için beş bulgu (ikisi P1) doğrudan `main`e girdi. Elle yapılan kontrol
+bir gün yapılmaz; koşul dal korumasında da zorunlu tutulur
+(`docs/DEVIR_KAYDI.md` → depo ayarı).
 
 **Gerekçe kusuru anlatır, maliyeti değil.** Bir muafiyet, beyan ya da
 "bilinçli körlük" kaydının gerekçesi, kusurun neden kusur OLMADIĞINI

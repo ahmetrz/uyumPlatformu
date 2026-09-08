@@ -1,4 +1,4 @@
-export const SAHNELER = ['Tesise yaklaşma', 'Kontrol binasına yaklaşma', 'Kontrol odasına giriş', 'Yönetim ekranı'] as const;
+export const SAHNELER = ['Dışarıdan yaklaşma', 'Kontrol binasına yaklaşma', 'Kontrol odasına giriş', 'Yönetim ekranı'] as const;
 export const sinirla = (n: number) => Math.min(1, Math.max(0, n));
 export function aralik(p: number, a: number, b: number) {
   const t = sinirla((p - a) / (b - a));

@@ -137,10 +137,10 @@ function Giris({ children }: { children: ReactNode }) {
     <div ref={root} className={styles.root} data-mod="statik">
       <div className={styles.runway}>
         <section className={styles.stage} aria-label="Platforma giriş">
-          <Image data-fotograf="uzak" className={styles.poster} src={`${TEMEL}/gorseller/giris/sahne-01-uzak.webp`} alt="" fill sizes="100vw" priority unoptimized />
-          <Image data-fotograf="yaklasma" className={styles.roomPoster} src={`${TEMEL}/gorseller/giris/sahne-02-yaklasma.webp`} alt="" fill sizes="100vw" loading="eager" unoptimized />
-          <Image data-fotograf="bina" className={styles.roomPoster} src={`${TEMEL}/gorseller/giris/sahne-03-bina.webp`} alt="" fill sizes="100vw" loading="eager" unoptimized />
-          <Image data-fotograf="ekran" className={styles.roomPoster} src={`${TEMEL}/gorseller/giris/sahne-04-ekran.webp`} alt="" fill sizes="100vw" loading="eager" unoptimized />
+          <Image data-fotograf="uzak" className={styles.poster} src={`${TEMEL}/gorseller/giris/sahne-01-uzak.webp`} alt="" aria-hidden="true" fill sizes="100vw" priority unoptimized />
+          <Image data-fotograf="yaklasma" className={styles.roomPoster} src={`${TEMEL}/gorseller/giris/sahne-02-yaklasma.webp`} alt="" aria-hidden="true" fill sizes="100vw" loading="eager" unoptimized />
+          <Image data-fotograf="bina" className={styles.roomPoster} src={`${TEMEL}/gorseller/giris/sahne-03-bina.webp`} alt="" aria-hidden="true" fill sizes="100vw" loading="eager" unoptimized />
+          <Image data-fotograf="ekran" className={styles.roomPoster} src={`${TEMEL}/gorseller/giris/sahne-04-ekran.webp`} alt="" aria-hidden="true" fill sizes="100vw" loading="eager" unoptimized />
           <div className={styles.shade} aria-hidden="true" />
           <header className={styles.header}>
             <span className={styles.brand}>{MARKA_AD}</span>

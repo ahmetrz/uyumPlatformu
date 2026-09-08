@@ -108,6 +108,16 @@ const KALAN_SATIR_PX = 20;
 /* Değerlendirilmemişler GÜCE göre sıralı; gücü bilinmeyen sona düşer —
    "0 MW" diye sıralanmaz. Sıra hem özetteki ilk adlarda hem panelde
    aynıdır: kullanıcı özette gördüğü üç adı panelin başında yeniden bulur. */
+/* Güç yazısı — BİRİM SATIRDAN gelir, ekranda sabit yoktur.
+
+   `null` dönüşü "ölçülmedi" demektir ve çağıran kendi sözcüğünü seçer
+   ("—" · "güç kaydı yok"): buradan bir yer tutucu dönmek, ölçülmemiş
+   değeri ölçülmüş gibi gösterme riskini yardımcıya taşırdı. Kural
+   `lib/alan/oznitelik.ts → olculenYazi` ile aynı, ikinci nüsha değil:
+   bu iki sarmalayıcı yalnız hangi alanların okunacağını söylüyor. */
+const kartGuc = (s: TesisKarti) => olculenYazi({ deger: s.kuruluGuc, birim: s.gucBirim });
+const katmanGuc = (t: TipKatmani) => olculenYazi({ deger: t.kuruluGuc, birim: t.gucBirim }) ?? '—';
+
 function olculmemisSirali(tesisler: TesisKarti[]): TesisKarti[] {
   return tesisler.filter((s) => s.endeks === null)
     .sort((a, b) => (b.kuruluGuc ?? -1) - (a.kuruluGuc ?? -1));
@@ -161,6 +171,14 @@ export default function Genel({
      yazılmaz — karışık bir toplamı tek birimle etiketlemek onu tek
      birimmiş gibi gösterirdi (`ozellikToplami` aynı kuralı uyguluyor). */
   const gucYazi = olculenYazi({ deger: ozet.toplamKuruluGuc, birim: ozet.toplamGucBirim }) ?? '—';
+  /* Toplam güç yazısı: birim SATIRLARDAN gelir. Şeritteki tesisler
+     farklı birim taşıyorsa toplam birimsiz yazılır — karışık bir
+     toplamı tek birimle etiketlemek onu tek birimmiş gibi gösterirdi. */
+  const seritBirimleri = new Set(olculmemisSerit.map((s) => s.gucBirim).filter(Boolean));
+  const seritGucToplami = olculenYazi({
+    deger: Number(olculmemisSerit.reduce((a, s) => a + (s.kuruluGuc ?? 0), 0).toFixed(1)),
+    birim: seritBirimleri.size === 1 ? [...seritBirimleri][0]! : null,
+  }) ?? '—';
 
   return (
     <main className="ab-b-saha ab-b-genel">
@@ -208,15 +226,16 @@ export default function Genel({
           <aside className="ab-b-katman" aria-label="Üretim tipine göre uyum">
             <p className="etiket" title="Üretim tipine göre uyum katmanları">Üretim tipi · uyum</p>
             <div className="katmanlar">
-              {tipler.length === 0 && <p className="bos">Kapsamında santral yok.</p>}
+              {tipler.length === 0 && <p className="bos">Kapsamında {terim('tesis')} yok.</p>}
               {tipler.slice(0, KATMAN_TAVANI).map((t) => (
                 <div key={t.kod} className="katman">
                   <div className="bas">
                     <span className="ad">{tipAdi(t.kod, t.ad)}</span>
                     <span className="mono deger">{t.endeks === null ? '—' : `%${t.endeks}`}</span>
                   </div>
-                  <p className="mono meta" title={`${t.tesisSayisi} santral · ${t.kuruluGuc} MWe · ${t.kontrolSayisi} kontrol`}>
-                    {t.tesisSayisi} santral · {t.kuruluGuc} MWe
+                  <p className="mono meta"
+                    title={`${t.tesisSayisi} ${terim('tesis')} · ${katmanGuc(t)} · ${t.kontrolSayisi} kontrol`}>
+                    {t.tesisSayisi} {terim('tesis')} · {katmanGuc(t)}
                   </p>
                   <Yigin uygun={t.uygun} kismi={t.kismi} uygunsuz={t.uygunsuz}
                     bilinmeyen={t.bilinmeyen} tip={t.kod} kontrol={t.kontrolSayisi} />
@@ -225,7 +244,7 @@ export default function Genel({
               {tipler.length > KATMAN_TAVANI && (
                 <p className="mono kalan">
                   {tipler.slice(KATMAN_TAVANI).map((t) => tipAdi(t.kod, t.ad)).join(' · ')}
-                  {' — '}{tipler.slice(KATMAN_TAVANI).reduce((a, t) => a + t.tesisSayisi, 0)} santral
+                  {' — '}{tipler.slice(KATMAN_TAVANI).reduce((a, t) => a + t.tesisSayisi, 0)} {terim('tesis')}
                 </p>
               )}
             </div>
@@ -270,23 +289,26 @@ export default function Genel({
           yerleşimi hiç etkilemez; arkadaki takımyıldız okunur kalır. */}
       {olculmemisAcik && olculmemisSerit.length > 0 && (
         <div id="olculmemis-panel">
-          <Cekmece kod={`${olculmemisSerit.length} santral`} etiket="Değerlendirilmemiş"
-            ad="Değerlendirilmemiş santraller" kapat={() => setOlculmemisAcik(false)}>
+          <Cekmece kod={`${olculmemisSerit.length} ${terim('tesis')}`} etiket="Değerlendirilmemiş"
+            ad={`Değerlendirilmemiş ${terim('tesis', 'cogul')}`} kapat={() => setOlculmemisAcik(false)}>
             <p className="ab-olculmemis-not">
-              Bu santrallerin uyum endeksi <strong>ölçülmedi</strong> — sıfır değil.
+              {/* Özne çekmece başlığında zaten yazılı; burada yinelemek
+                  hem gereksiz hem de sözlükte olmayan bir çekim isterdi
+                  (çoğul iyelik). Cümle sözlüğün verdiği biçimlerle kurulur. */}
+              Uyum endeksi <strong>ölçülmedi</strong> — sıfır değil.
               Güce göre sıralı; toplam{' '}
-              {olculmemisSerit.reduce((a, s) => a + (s.kuruluGuc ?? 0), 0).toFixed(1)} MWe.
+              {seritGucToplami}.
             </p>
             <ul className="ab-olculmemis-liste">
               {olculmemisSerit.map((s) => (
                 <li key={s.id}>
                   <Link href={`/tesisler/${s.id}`}
-                    aria-label={`${s.ad} · ${s.kuruluGuc ?? 'güç kaydı yok'} MW · değerlendirilmedi`}>
+                    aria-label={`${s.ad} · ${kartGuc(s) ?? 'güç kaydı yok'} · değerlendirilmedi`}>
                     {/* `color` veriyoruz: tarama deseni de kenarlık da
                         `currentColor` okur, ikisi tek yerden gelsin. */}
                     <span className="kare" aria-hidden style={{ color: tipRengi(s.tipKod) }} />
                     <span className="ad">{s.ad}</span>
-                    <span className="mono guc">{s.kuruluGuc ?? '—'} MW</span>
+                    <span className="mono guc">{kartGuc(s) ?? '—'}</span>
                   </Link>
                 </li>
               ))}
@@ -519,9 +541,10 @@ function Mudahale({ dikkat, toplamKayit, kapsamli }: {
       </div>
       {cizilecek === 0 ? (
         <p className="bos">
-          {kapsamli
-            ? 'Kapsamındaki santrallerde açık bulgu yok.'
-            : 'Açık bulgu yok.'}
+          {/* Çoğul bulunma hâli ("santrallerde") sözlükte YOK ve kodda
+              ek üretmek, bu turda kapatılan kusurun ta kendisi olurdu.
+              Cümle kapsamı özne yaparak sözlüksüz kuruldu. */}
+          {kapsamli ? 'Kapsamınızda açık bulgu yok.' : 'Açık bulgu yok.'}
         </p>
       ) : dikkat.slice(0, cizilecek).map((b, i) => (
         <Link key={b.id} href={`/bulgular/${b.id}`}
@@ -563,13 +586,19 @@ function Takimyildizi({ tesisler, gosterim = OLCULMEMIS_VARSAYILAN, serit, panel
   panelAcik: boolean;
   setPanelAcik: (a: boolean) => void;
 }) {
+  const { t: terim, tBas } = useTerim();
   const olculen = tesisler.filter((s) => s.endeks !== null);
   const olculmemis = tesisler.filter((s) => s.endeks === null);
   /* Ölçek TÜM portföyden gelir: eksen ve panel aynı dikey ölçeği
      paylaşmazsa iki taraf karşılaştırılamaz hâle gelir. */
   const enGuc = Math.max(1, ...tesisler.map((s) => s.kuruluGuc ?? 0));
   const dikey = (s: TesisKarti) => 8 + Math.sqrt((s.kuruluGuc ?? 0) / enGuc) * 100 * 0.78;
-  const mweToplam = olculmemis.reduce((a, s) => a + (s.kuruluGuc ?? 0), 0).toFixed(1);
+  /* Birim satırlardan gelir; karışıksa yazılmaz (bkz. `kartGuc`). */
+  const olculmemisBirimleri = new Set(olculmemis.map((x) => x.gucBirim).filter(Boolean));
+  const olculmemisGuc = olculenYazi({
+    deger: Number(olculmemis.reduce((a, x) => a + (x.kuruluGuc ?? 0), 0).toFixed(1)),
+    birim: olculmemisBirimleri.size === 1 ? [...olculmemisBirimleri][0]! : null,
+  }) ?? '—';
   const { gosterilen: ilkAdlar, kalan } = ozetKur(serit.map((s) => s.ad), gosterim);
 
   /* Künye çakışması — ÖLÇÜLDÜ, varsayılmadı: Saha A-3 (%56 · 165 MW)
@@ -588,7 +617,7 @@ function Takimyildizi({ tesisler, gosterim = OLCULMEMIS_VARSAYILAN, serit, panel
   const yukari = (s: TesisKarti) => dikey(s) < 14;
 
   return (
-    <div className="ab-b-takim" aria-label="Santral takımyıldızı">
+    <div className="ab-b-takim" aria-label={`${tBas('tesis')} takımyıldızı`}>
       {/* Yön bilgisi ÜÇ kanaldan söyleniyordu (başlık kuyruğu, eksen
           adları, hedef köşesi); ikisi kaldı: eksen okları ("uyum endeksi →",
           "↑ kurulu güç") ve "↗ güçlü ve uyumlu" köşesi. Başlık kuyruğu
@@ -599,7 +628,7 @@ function Takimyildizi({ tesisler, gosterim = OLCULMEMIS_VARSAYILAN, serit, panel
           hem enine (eski 176px kolon kalktı) hem boyuna kazanıyor. */}
       <div className="ab-takim-bas">
         <p className="etiket ust" title="Yatay: uyum endeksi (sağa → daha uyumlu) · Dikey: kurulu güç (yukarı ↑ daha büyük)">
-          Santraller · uyum × güç
+          {tBas('tesis', 'cogul')} · uyum × güç
         </p>
         {olculmemis.length > 0 && (
           /* Özet satırı: sayı ÖNCE ve tek başına okunur; oran ("11/16")
@@ -610,10 +639,11 @@ function Takimyildizi({ tesisler, gosterim = OLCULMEMIS_VARSAYILAN, serit, panel
             <span className="im" aria-hidden style={{ color: 'var(--i3)' }} />
             <span className="ad">Değerlendirilmemiş</span>
             <span className="sayi mono"
-              title={`${olculmemis.length} santralin uyum endeksi ölçülmedi — sıfır değil. Toplam ${mweToplam} MWe.`}>
+              title={`${olculmemis.length} ${terim('tesis')}: uyum endeksi ölçülmedi`
+                + ` — sıfır değil. Toplam ${olculmemisGuc}.`}>
               {olculmemis.length}<span className="bolu">/{tesisler.length}</span>
             </span>
-            <span className="mwe mono">{mweToplam} MWe</span>
+            <span className="mwe mono">{olculmemisGuc}</span>
             {ilkAdlar.length > 0 && (
               <span className="adlar">{ilkAdlar.join(' · ')}</span>
             )}
@@ -632,7 +662,7 @@ function Takimyildizi({ tesisler, gosterim = OLCULMEMIS_VARSAYILAN, serit, panel
         )}
       </div>
       {tesisler.length === 0 ? (
-        <p className="bos">Kapsamda santral yok.</p>
+        <p className="bos">Kapsamda {terim('tesis')} yok.</p>
       ) : (
         <div className="ab-tuval-sar">
           <div className="ab-tuval">
@@ -641,7 +671,7 @@ function Takimyildizi({ tesisler, gosterim = OLCULMEMIS_VARSAYILAN, serit, panel
               const uygunsuz = s.sayim.uyumsuz ?? 0;
               return (
                 <Link key={s.id} href={`/tesisler/${s.id}`}
-                  title={`${s.ad} · ${s.kuruluGuc ?? '—'} MW · %${s.endeks}${uygunsuz > 0 ? ` · ${uygunsuz} uygunsuz` : ''}`}
+                  title={`${s.ad} · ${kartGuc(s) ?? '—'} · %${s.endeks}${uygunsuz > 0 ? ` · ${uygunsuz} uygunsuz` : ''}`}
                   /* Odak sırası: uygunsuzu olan santral öne (`oncelik`, tam
                      mürekkep + halka), temiz olan arkaya (ikincil mürekkep).
                      Künye yönü: %58'in sağında sola, komşusu varsa alta,
@@ -732,7 +762,7 @@ function SahaKarti({ s }: { s: TesisKarti }) {
         </span>
         <span className="ad">{s.ad}</span>
         <span className="olcu">
-          <span className="mono guc">{s.kuruluGuc ?? '—'} MW</span>
+          <span className="mono guc">{kartGuc(s) ?? '—'}</span>
           <span className="mono skor">{s.endeks === null ? '—' : `%${s.endeks}`}</span>
         </span>
         <Yigin uygun={s.sayim.uyumlu ?? 0} kismi={s.sayim.kismi ?? 0}

@@ -11,7 +11,7 @@ import { maxEtki } from '@/app/(kabuk)/(operasyonel)/riskler/ortak';
 import { anlikSayimi } from '@/app/(kabuk)/(operasyonel)/uyum/mantik';
 import type { Kayit } from './Genel';
 import {
-  KURULU_GUC, ozelligeGoreSirala, ozellikToplami, sayisalOzellik,
+  KURULU_GUC, birimliOzellik, ozelligeGoreSirala, ozellikToplami,
 } from '@/lib/alan/oznitelik';
 
 /* F1 · Executive Overview — SUNUCU VERİSİ.
@@ -50,7 +50,11 @@ import {
 export type TesisKarti = {
   id: string; kod: string; ad: string;
   tipKod: string | null; tipAd: string | null;
-  kuruluGuc: number | null; konum: string | null; gorselAnahtari: string | null;
+  kuruluGuc: number | null;
+  /** Gücün birimi — SATIRDAN gelir, koda gömülü sabit değil. `null` =
+      satırda birim yok; ekran sayıyı BİRİMSİZ yazar, uydurmaz. */
+  gucBirim: string | null;
+  konum: string | null; gorselAnahtari: string | null;
   /** ham durum → adet; kapsam dışı SAYILMAZ */
   sayim: Record<string, number>;
   /** `uyumOzeti` ile; hiç değerlendirilmemişse null — sıfır DEĞİL */
@@ -62,6 +66,10 @@ export type TesisKarti = {
 export type TipKatmani = {
   kod: string; ad: string;
   tesisSayisi: number; kuruluGuc: number; kontrolSayisi: number;
+  /** Katmandaki tesisler TEK birim taşıyorsa o birim, karışıksa `null`
+      — karışık bir toplamı tek birimle etiketlemek onu tek birimmiş
+      gibi gösterirdi. */
+  gucBirim: string | null;
   endeks: number | null;
   uygun: number; kismi: number; uygunsuz: number; bilinmeyen: number;
 };
@@ -317,7 +325,9 @@ export async function genelEkranVerisi(k: AktifKullanici): Promise<EkranVerisi> 
     return {
       id: t.id, kod: t.kod, ad: t.ad,
       tipKod: t.tip?.kod ?? null, tipAd: t.tip?.ad ?? null,
-      kuruluGuc: sayisalOzellik(t.ozellikler, KURULU_GUC), konum: t.konum, gorselAnahtari: t.gorselAnahtari,
+      ...((g) => ({ kuruluGuc: g.deger, gucBirim: g.birim }))(
+        birimliOzellik(t.ozellikler, KURULU_GUC)),
+      konum: t.konum, gorselAnahtari: t.gorselAnahtari,
       sayim: s, endeks: o.yuzde, bilinmeyen: o.bilinmeyen,
     };
   });
@@ -325,15 +335,23 @@ export async function genelEkranVerisi(k: AktifKullanici): Promise<EkranVerisi> 
   /* Üretim tipi katmanları — tipi tanımsız santral KENDİ grubunda kalır,
      rastgele bir tipe atanmaz. */
   const tipHarita = new Map<string, TipKatmani>();
+  const birimSayaci = new Map<string, Set<string>>();
   for (const s of kartlar) {
     const kod = s.tipKod ?? '—';
     const kat = tipHarita.get(kod) ?? {
       kod, ad: s.tipAd ?? 'Tipi tanımsız',
-      tesisSayisi: 0, kuruluGuc: 0, kontrolSayisi: 0,
+      tesisSayisi: 0, kuruluGuc: 0, kontrolSayisi: 0, gucBirim: null,
       endeks: null, uygun: 0, kismi: 0, uygunsuz: 0, bilinmeyen: 0,
     };
     kat.tesisSayisi += 1;
     kat.kuruluGuc += s.kuruluGuc ?? 0;
+    /* Katmanın birimi: hepsi aynıysa o, karışıksa `null`. İlk satır
+       birimi kurar; farklı bir birim gelince katman birimsizleşir. */
+    if (s.gucBirim) {
+      const kume = birimSayaci.get(kod) ?? new Set<string>();
+      kume.add(s.gucBirim);
+      birimSayaci.set(kod, kume);
+    }
     kat.uygun += s.sayim.uyumlu ?? 0;
     kat.kismi += s.sayim.kismi ?? 0;
     kat.uygunsuz += s.sayim.uyumsuz ?? 0;
@@ -348,6 +366,7 @@ export async function genelEkranVerisi(k: AktifKullanici): Promise<EkranVerisi> 
     return {
       ...kat,
       kuruluGuc: Math.round(kat.kuruluGuc * 10) / 10,
+      gucBirim: ((b) => (b && b.size === 1 ? [...b][0]! : null))(birimSayaci.get(kat.kod)),
       kontrolSayisi: o.kapsam,
       endeks: o.yuzde,
     };

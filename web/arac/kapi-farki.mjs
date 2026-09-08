@@ -81,7 +81,11 @@ const BEYAN = {
   'tasarim:yuk': { kapi: true, sebep: 'canlı sunucu · bilişsel yük RAPORLAR, kusur eşiği yok (çıkış kodu hep 0)' },
   'tasarim:gorev': { kapi: true, sebep: 'canlı sunucu · görev akışı sayar, eşiği yok' },
   'olcum:yuk': { kapi: true, sebep: 'canlı sunucu · yük ölçümü; eşiği runner\'a bağlı' },
-  'kapi:iki-sozluk': { kapi: true, sebep: 'canlı sunucu · üç kapıyı ÜÇ sözlükle koşar (9 koşum); tarayıcılı bloğu üçe katlar — süre bütçesi ayrılınca bağlanır' },
+  /* ÖLÇÜLDÜ 8 Eyl 2026: BUGÜN YEŞİL (exit 0 · 50 rota · çakılı 0 ·
+     eksik 0), süre ~25 dk. Dokuz koşum: üç düzen kapısı × üç sözlük
+     (enerji "santral" · su "arıtma tesisi" · stres boşluksuz uzun
+     gövde). Dışarıda kalma sebebi kusur değil SÜREDİR. */
+  'kapi:iki-sozluk': { kapi: true, sebep: 'canlı sunucu · üç kapıyı ÜÇ sözlükle koşar (9 koşum, ~25 dk); tarayıcılı bloğu üçe katlar — bugün YEŞİL, süre bütçesi ayrılınca bağlanır' },
 };
 
 /* ── Betiklerin çağırdığı araçlar ──────────────────────────────────── */

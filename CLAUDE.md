@@ -24,6 +24,7 @@ kabul kriteridir (P0 · URN-KUR-003); ölü atıf eklemeyin.
 | Ürün bağlamı ve sözlük | `web/PRODUCT.md` |
 | Tasarım sistemi | `web/DESIGN.md` |
 | Veri modeli | `docs/ICERIK_MODELI.md` · `web/prisma/schema.prisma` |
+| İçerik omurgası kararı (SCF · UCF · mevzuat) | `docs/ICERIK_OMURGASI_KARARI.md` |
 | Mimari | `docs/MIMARI.md` |
 | İsterlerin "nasıl" cevabı · veri yolları | `docs/VERI_NEREDEN_GELIR.md` |
 | Ekran envanteri | `docs/ROTA_HARITASI.md` · `web/arac/rotalar.json` |

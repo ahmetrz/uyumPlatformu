@@ -158,3 +158,29 @@ olduğunu söylediği sürece dürüsttür.
 - [ ] Mercek **Çekirdek**te başlasın — 2. adımın etkisi oradan doğar.
 - [ ] "ÖRNEK VERİ" rozeti görünür.
 - [ ] Sekiz rotanın sekizi de açılıyor (`npm run rota:duman`).
+
+---
+
+## Yapılmayanlar ve gerekçeleri
+
+**Üçüncü sözlük (imalat/fabrika) EKLENMEDİ.** Maliyeti ölçüldü: ikinci
+sektör yalnız "sözlük" değildi — kendi tesis tipleri, kendi öznitelik
+şeması ve birimi, sekiz tesis, iki uyum süreci, kapsam satırları ve
+sektöre ait dört bulgu demekti; ayrıca dört bekçi testinin fikstür
+varsayımını kırdı. Üçüncüsü aynı işi bir kez daha ister.
+
+Kazancı ise küçük: merceğin kanıtladığı şey "sözcük ve ölçü birimi
+sektörden geliyor" cümlesidir ve bu **iki** sektörle zaten kanıtlanır —
+üçüncüsü aynı cümleyi tekrar eder. Mercek şeridi üç ve daha fazla
+seçeneği hâlihazırda taşıyor; bir sektör paketi eklemek kod işi değil
+veri işidir ve demo sırasında sorulursa cevap budur.
+
+**Sektör merceği 1024px altında yok.** Üst çubuk o bantlarda zaten
+taşıyor (ölçüldü: 768'de 999px, 375'te 938px) ve mercek eklenince
+örtüşme ana gezinme bağının üstüne düştü. Seçim `localStorage`da
+korunur, yani telefonda açılan demo masaüstünde seçilmiş merceği
+gösterir; ama telefonda **değiştirilemez**. Kayıt: R0-13.
+
+**Canlı yayın linki `main`'e merge ile tazelenir.** Yayın iş akışı
+(`publish.yml`) yalnız `main`'e push ile tetiklenir; dal korumaları
+gereği bu bir PR'dan geçer.

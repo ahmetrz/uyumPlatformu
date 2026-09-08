@@ -83,6 +83,20 @@ function anlikIstemci(): string | null {
 /* Sunucuda mercek YOKTUR: kapsamın kendi kararı geçerlidir. */
 const anlikSunucu = (): string | null => null;
 
+/** Merceği KABUK DIŞINDAN seçmek için — açılış ekranı bunu kullanır.
+
+    Açılış (`SinematikGiris`) kabuğu SARAR, yani sağlayıcının DIŞINDADIR
+    ve `useSektorSecimi()` oradan görünmez. Yazma yolu yine de tektir:
+    aynı anahtar, aynı olay. İkinci bir mekanizma kurulsaydı iki yol
+    birbirini ezerdi ve hangisinin kazandığı ekrandan okunamazdı. */
+export function mercegiSec(id: string | null): void {
+  try {
+    if (id === null) window.localStorage.removeItem(ANAHTAR);
+    else window.localStorage.setItem(ANAHTAR, id);
+  } catch { /* site verisi kapalı */ }
+  window.dispatchEvent(new Event(OLAY));
+}
+
 export function SozlukSaglayici({ sozluk, sektorler = [], children }: {
   /** Kapsamdan sunucuda çözülen sözlük; çok sektörlü kapsamda `null`. */
   sozluk: Sozluk | null;
@@ -100,15 +114,10 @@ export function SozlukSaglayici({ sozluk, sektorler = [], children }: {
   const etkinId = hatirlanan !== null && sektorler.some((s) => s.id === hatirlanan)
     ? hatirlanan : null;
 
-  const sec = useCallback((id: string | null) => {
-    try {
-      if (id === null) window.localStorage.removeItem(ANAHTAR);
-      else window.localStorage.setItem(ANAHTAR, id);
-    } catch { /* site verisi kapalı — mercek bu oturumda da uygulanamaz */ }
-    /* `storage` olayı YALNIZ ÖBÜR sekmelerde tetiklenir; kendi sekmemizi
-       kendimiz uyandırırız, yoksa tıklayan kişi değişikliği görmez. */
-    window.dispatchEvent(new Event(OLAY));
-  }, []);
+  /* Yazma yolu `mercegiSec` ile TEK NÜSHA: kabuk içi seçici de açılış
+     ekranı da aynı işlevi çağırır. İki ayrı yazma kodu olsaydı biri
+     olayı yayınlamayı unuttuğunda seçim sessizce uygulanmazdı. */
+  const sec = useCallback((id: string | null) => { mercegiSec(id); }, []);
 
   /* Etkin sözlük: kullanıcının merceği > sunucunun kapsam kararı.
      Mercek seçilmemişse davranış AYNEN eskisi gibidir. */

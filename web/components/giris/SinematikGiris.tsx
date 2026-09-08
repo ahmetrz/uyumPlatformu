@@ -4,21 +4,26 @@ import { useLayoutEffect, useRef, type ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
 import { MARKA_AD } from '@/lib/marka';
 import { TEMEL } from '@/lib/demo';
+import { mercegiSec } from '@/lib/dil/SozlukSaglayici';
 import { KATMANLAR, poz, sinirla } from './zaman';
 import type { Sahne } from './cekirdek';
 import styles from './giris.module.css';
 
 const HATIRLA = 'uyum-cekirdek-goruldu-v1';
 
-export default function SinematikGiris({ children, sadeceAnaSayfa = false }: {
+export default function SinematikGiris({ children, sadeceAnaSayfa = false, sektorler = [] }: {
   children: ReactNode; sadeceAnaSayfa?: boolean;
+  /** Kurulu sektör paketleri — açılışta mercek seçilebilsin diye. */
+  sektorler?: { id: string; kod: string; ad: string }[];
 }) {
   const pathname = usePathname();
   const uygun = !sadeceAnaSayfa || pathname === '/' || pathname === TEMEL || pathname === `${TEMEL}/`;
-  return uygun ? <Giris key={pathname}>{children}</Giris> : children;
+  return uygun ? <Giris key={pathname} sektorler={sektorler}>{children}</Giris> : children;
 }
 
-function Giris({ children }: { children: ReactNode }) {
+function Giris({ children, sektorler }: {
+  children: ReactNode; sektorler: { id: string; kod: string; ad: string }[];
+}) {
   const root = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
   const hedef = useRef<HTMLDivElement>(null);
@@ -155,7 +160,33 @@ function Giris({ children }: { children: ReactNode }) {
             <p className={styles.eyebrow}>BT/OT YÖNETİŞİM · UYUM · DÖNÜŞÜM</p>
             <h1>Regülasyondan<br />kanıta.<br /><span>Kanıttan güvene.</span></h1>
             <p className={styles.description}>Kontroller, kanıtlar ve riskler.<br />Aynı sistemin birbirine bağlı katmanları.</p>
-            <a className={styles.cta} href="#platform-arayuzu" onClick={e => { e.preventDefault(); atla.current(); }}>Platforma Gir <span aria-hidden="true">↗</span></a>
+            {/* ── SEKTÖR SEÇİMİ AÇILIŞTA ─────────────────────────────────
+                Yabancı bir ziyaretçinin ilk on beş saniyede alması gereken
+                cevap "bu ürün BENİM işim için mi". Merceği kabuğun içine
+                saklamak, o cevabı ekranın ikinci dakikasına erteliyordu.
+
+                Açılış kabuğu SARAR, yani sözlük sağlayıcısının DIŞINDADIR
+                ve `useSektorSecimi()` buradan görünmez; seçim ortak
+                `mercegiSec()` ile yazılır. Kabuk `useSyncExternalStore`
+                ile dinlediği için değişiklik anında iner — bu ekranın
+                sözcükleri değişmez (henüz kabuk yok), ARDINDAKİ ekran
+                zaten seçilmiş mercekle açılır.
+
+                İkiden az seçenek varsa çizilmez: tek seçenekli bir seçim,
+                seçim değildir. */}
+            {sektorler.length >= 2 && (
+              <div className={styles.sektor}>
+                <span>Sektörünüzü seçin</span>
+                <div>
+                  {sektorler.map(s => (
+                    <button key={s.id} type="button"
+                      onClick={() => mercegiSec(s.id)}>{s.ad}</button>
+                  ))}
+                  <button type="button" onClick={() => mercegiSec(null)}>Sektörsüz</button>
+                </div>
+              </div>
+            )}
+            <a className={styles.cta} href="#platform-arayuzu" onClick={e => { e.preventDefault(); atla.current(); }}>Demoyu Başlat <span aria-hidden="true">↗</span></a>
           </div>
           <footer className={styles.footer}>
             <span className={styles.scroll}>Sistemin içine ilerlemek için kaydır <span aria-hidden="true">↓</span></span>

@@ -3610,10 +3610,26 @@ details:not([open]) > *:not(summary) { display: none !important; }
 
 /* ═══ Yazdırma — rapor ve denetim ekranları ═══════════════════════════
    Koyu yönler kâğıda GİTMEZ: beyaz zemin, siyah mürekkep, kabuk düşer. */
+/* Ekranda GÖRÜNMEZ; yalnız yazdırmada belirir. `display:none` yerine
+   `clip` kullanılmıyor — bu öğenin ekran okuyucuda da işi yok, rozet
+   zaten üst çubukta okunuyor (`aria-hidden`). */
+.ab-baski-kunye { display: none; }
+
 @media print {
   .ab { background: #fff !important; color: #000 !important; }
   .ab-ust, .ab-ikincil, .ab-baskida-gizle { display: none !important; }
-  .ab { grid-template-rows: minmax(0, 1fr); }
+  .ab { grid-template-rows: auto minmax(0, 1fr); }
+
+  /* Künye her sayfanın başında: çıktı birden çok sayfaysa ikinci sayfa
+     işaretsiz kalmamalı. */
+  .ab-baski-kunye {
+    display: flex; gap: 10px; align-items: baseline;
+    padding: 6px 0 8px; margin-bottom: 10px;
+    border-bottom: 2px solid #000; color: #000;
+    font-family: var(--veri); font-size: 9pt;
+  }
+  .ab-baski-kunye strong { letter-spacing: .14em; }
+  .ab-baski-kunye span { font-size: 8pt; }
 }
 
 /* ═══ Duyarlılık — prototipler tek genişlikte tasarlandı ══════════════

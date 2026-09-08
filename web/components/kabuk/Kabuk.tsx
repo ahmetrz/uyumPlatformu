@@ -176,6 +176,23 @@ export default function Kabuk({ veri, children }: { veri: KabukVerisi; children:
         </nav>
       )}
 
+      {/* ── BASKI KÜNYESİ — YALNIZ YAZDIRMADA GÖRÜNÜR ──────────────────
+          `@media print` üst çubuğu gizliyor; "Örnek veri" rozeti orada
+          durduğu için YAZDIRILAN sayfada kayboluyordu. Bir demo
+          ekranının çıktısı toplantı masasına konduğunda üstünde kurgusal
+          olduğu YAZMALI — ekranda görünüp kâğıtta kaybolan bir uyarı,
+          en çok ihtiyaç duyulan yerde yok demektir.
+
+          Ayrı bir öğe: rozeti baskıda göstermek için üst çubuğu açmak,
+          gezinmeyi de kâğıda basardı. */}
+      {veri.ortam !== 'uretim' && (
+        <div className="ab-baski-kunye" aria-hidden>
+          <strong>ÖRNEK VERİ</strong>
+          <span>{veri.kunye} · bu çıktıdaki bütün kayıtlar kurgusaldır ve
+            gerçek bir kuruma ait değildir</span>
+        </div>
+      )}
+
       {/* Atla bağının hedefi. `tabIndex={-1}`: bağ tıklanınca odak buraya
           iner, sonraki Tab içerikten devam eder (Safari/Firefox'ta
           `href="#…"` tek başına odağı taşımıyordu). */}

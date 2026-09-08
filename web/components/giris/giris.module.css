@@ -87,3 +87,24 @@
   .login > section { min-height: 320px; }
   .login > main { min-height: 460px; border-left: 0 !important; }
 }
+
+/* ── SEKTÖR SEÇİMİ · açılış ────────────────────────────────────────────
+   Ziyaretçinin ilk on beş saniyede alması gereken cevap "bu ürün benim
+   işim için mi". CTA'nın hemen üstünde durur: karar, girişten ÖNCE
+   verilir. Düğmeler eşit ağırlıkta — hiçbir sektör öbürünün varsayılanı
+   değildir. */
+.sektor { margin: 22px 0 26px; }
+.sektor > span {
+  display: block; margin-bottom: 9px;
+  font-family: var(--veri, ui-monospace, monospace); font-size: 10px;
+  letter-spacing: .18em; text-transform: uppercase; opacity: .62;
+}
+.sektor > div { display: flex; flex-wrap: wrap; gap: 8px; }
+.sektor button {
+  padding: 7px 14px; cursor: pointer;
+  font-family: var(--veri, ui-monospace, monospace); font-size: 11px;
+  letter-spacing: .08em; text-transform: uppercase;
+  color: inherit; background: transparent;
+  border: 1px solid currentColor; border-radius: 2px; opacity: .78;
+}
+.sektor button:hover, .sektor button:focus-visible { opacity: 1; }

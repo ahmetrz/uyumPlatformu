@@ -11,6 +11,53 @@ yapılmamıştır — belge yalan söylemez, ölçüm ortamı bayattır.
 
 ---
 
+## 0 · SIFIRDAN BAŞLAYAN OTURUM İÇİN — İLK YARIM SAAT
+
+Bu belgeyi yazan konuşmanın hafızası yok sayılacak. Aşağıdakiler
+varsayım değil, **yapılacak iş**.
+
+### 0.1 · Önce oku (sırayla)
+
+1. `CLAUDE.md` — bağlayıcı kurallar. Özellikle "Bağlayıcı kurallar"
+   bölümünün tamamı; yedi kural bu turlarda ÖLÇÜLMÜŞ kusurlardan doğdu.
+2. `web/arac/BENIOKU.md` → **ORTAM TAZELİĞİ** — ölçüm yapmadan önce
+   atlanamaz yordam. Bu oturumda üç kez yanlış alarm üretti.
+3. `docs/GELISTIRME_PAKETLERI.md` §6 — R0 kütüğü (açık kalemler).
+4. Bu belgenin geri kalanı.
+
+### 0.2 · Sonra ÖLÇ (anlatılana güvenme)
+
+```sh
+cd web && npm ci
+npx vitest run                       # 162 dosya bekleniyor
+npx tsx arac/cekirdek-sozcuk-taramasi.mjs
+npx vitest run tests/bekci/sektor-terimi.test.ts
+```
+
+Sayılar §B ile tutmuyorsa **eşitleme yapılmamıştır** — önce onu çöz.
+
+### 0.3 · Ölçüm ortamı tuzakları (üçü de yaşandı)
+
+| Tuzak | Nasıl görünür |
+| --- | --- |
+| Bayat `next start` | `rota-duman`: "`/` ← kabuk yok"; süreç SİLİNMİŞ inode tutuyor |
+| Dolu disk | Vitest keşfi "0 vaka" döner, kapı "doğrulandı" der |
+| Kendi kendini bekleyen `pgrep`/`pkill` | `pkill -f "next start"` KENDİ kabuğunu öldürür; `pgrep -f "x.mjs"` bekleyicinin kendi komut satırıyla eşleşir ve süreç hiç bitmez (ölçüldü: 1sa 42dk boşuna bekleme) |
+
+Uzun koşan bir kapı varken portu BAŞKA bir iş için kapatmayın: o kapı
+kod kusuru gibi görünen bir hatayla düşer.
+
+### 0.4 · Depo düzeni
+
+- Ürün kodu `web/` altında. Kapılar `web/arac/`, bekçiler
+  `web/tests/bekci/`.
+- Değişiklik PR ile gelir; `main`'e doğrudan push yok.
+- **Merge ön koşulu ikidir: CI yeşil VE açık inceleme yorumu yok.**
+- Uzun koşan elle kapı: `PORT=3211 npm run kapi:iki-sozluk` (~22 dk).
+- Parti kapanışı: `npm run kapi:parti` (`--liste` ile koşmadan görülür).
+
+---
+
 ## A · AÇIK KALEMLER
 
 ### A.1 · R0 kütüğündeki açık satırlar
@@ -23,6 +70,13 @@ sahibi ve kapanış aşaması.
 | R0-10 | `/` saha ekranı tek ekran sözleşmesini **3px** ihlal ediyor (`konsol:olcum` kırmızı; 1366×768 → 771/768 · 1440×900 → 903/900 · 1280×800 → 803/800 — sabit 3px, banttan bağımsız) | saha ekranı (F1) · UX dilimi | `konsol:olcum` CI'ya bağlanmadan **önce** |
 | R0-11 | `KURULU_GUC = 'kuruluGucMw'` — bir KAYIT ANAHTARI (`TesisOzellik.anahtar` sütununda duruyor), kod adı değil; değiştirmek veri göçü ister | P4 · öznitelik şeması | ekranlar özniteliği adıyla bilmeyi bıraktığında |
 | R0-12 | Bloklayıcı erişilebilirlik kapısı **1366×768'i hiç taramıyor** (axe 1440×900 · 768×1024 · 375×780) | kalite kapıları dilimi | `tasarim:dizustu` CI'ya bağlandığı gün |
+
+Kapanan bir kalem daha var ve buraya yazılıyor ki tekrar açılmasın:
+**inceleme turu #30'un beş bulgusu** (#32 ile kapandı) — göç sözlüğü
+doldurmuyordu (P1), öznitelik profil alanını eziyordu (P1), sınıfsız
+tesis "tek sektör" sayılıyordu, `olcek.mjs`de eksik `await`, disk
+temizliği başkasının dizinini siliyordu. Beşinin de düzeltme kanıtı
+`web/tests/inceleme-30.test.ts`te; beşi de sabotajla doğrulandı.
 
 ### A.2 · Sektör terimi izin listesi — ERTELENMİŞ satırların kapanışı
 
@@ -62,6 +116,16 @@ değildir ve karıştırılırsa bir kusur "süre sorunu" diye yıllarca bekler.
 
 - **SÜRE** = kapı çalışıyor, sonucu güvenilir; CI'ya bağlanmaması bütçe kararı.
 - **KUSUR** = kapı bugün bağlanırsa **kırmızı yanar**; önce kusurun kendisi kapanmalı.
+
+> **BEYAN BİR ÇÖZÜM DEĞİL, BORÇTUR — ve borcun faizi ÖLÇÜLDÜ.** Tek bir
+> inceleme turu (#30), beyanla CI dışında bırakılmış kapıların ARKASINDA
+> **iki** kusur buldu: `arac/olcek.mjs`de eksik bir `await` (`kapsamKur`
+> asenkron; ölçek yolu çağırıp beklemiyordu, `kapsam.yazabilir` tanımsız
+> diye atıyordu) ve `tasarim:dizustu`nun bandındaki erişilebilirlik
+> boşluğu (R0-12). İkisi de aylardır oradaydı; ikisini de kapı değil,
+> bir insan/bot okuması buldu. Beyan listesi uzadıkça, kapının
+> göremediği yüzey büyür. Listeye yeni satır eklerken bu ölçüm
+> hatırlansın.
 
 | Betik | Tür | Sebep |
 | --- | --- | --- |
@@ -119,6 +183,19 @@ Altıncısı bu turda eklendi ve aynı sınıfta:
 **Düzelttiğini iddia eden değişiklik SABOTAJLA kanıtlanır** — yama geri
 alındığında kırmızı geri gelmiyorsa düzelttiğin şey o değildi.
 
+Yedincisi bir merge hatasından doğdu:
+**Merge ön koşulu İKİDİR — CI yeşil VE açık inceleme yorumu yok.** Biri
+öbürünün yerine geçmez. ÖLÇÜLDÜ: #30'da otomatik inceleme 06:58'de beş
+bulgu (ikisi P1) bildirdi, merge 07:00'de yalnız CI'ya bakılarak yapıldı
+ve beşi de `main`e girdi. Düzeltmeleri #32 kapattı.
+
+**AÇIK İŞ · depo ayarı:** kural `CLAUDE.md`ye yazıldı ama henüz
+YAPISAL DEĞİL. Elle yapılan kontrol bir gün yapılmaz — GitHub dal
+korumasında (`main` → Branch protection) "Require conversation
+resolution before merging" açılmalı. Bu bir depo AYARIDIR, kodla
+kapatılamaz; deposu olan kişinin bir kereliğine yapması gerekir. Ardıl
+oturum bunu ilk gün sormalı.
+
 ---
 
 ## A.5 · DEDEKTÖRLER NEREDE
@@ -137,6 +214,8 @@ dedektörü kapatmamak, borcu **görünmez** yapar — bu turda iki kez oldu.
 | `kapi:parti` | `web/arac/parti-kapanisi.mjs` | Parti kapanış kümesini iş akışından türetip koşar; tanımadığı her anahtarı **ORTAM FARKI** olarak sayar |
 | `gerekce:tarama` | `web/arac/gerekce-tarama.mjs` | Muafiyet/beyan gerekçelerini maliyet diline karşı tarar. **Kapı değildir**, tarayıcıdır — kendi sınırı başlığında yazılı |
 | `kirpanAta` vakaları | `web/tests/kirpan-ata.test.ts` | Düzen kapısının kırpan-ata yürüyüşü; kaydırılabilen içerik kayıp sayılmaz, `auto` ama kaymayan kap yürüyüşü durdurmaz |
+| `sozlukDurumu` | `web/lib/dil/sozlukDurumu.ts` | "Sözlük yok" ile "sözlük BOŞ"u ayırır: SEKTÖRSÜZ (doğru cevap) · EKSİK (kusur) · VAR. `kapsamKarari` da burada — bilinmeyen sektör "tek sektör" sayılmaz |
+| İnceleme #30 vakaları | `web/tests/inceleme-30.test.ts` | Bir inceleme turunun beş bulgusunun düzeltme kanıtı; hepsi sabotajla doğrulandı |
 
 ---
 

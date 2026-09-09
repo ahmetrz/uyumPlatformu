@@ -115,8 +115,17 @@ function Giris({ children, sektorler }: {
     function statigeDon() {
       if (!hareketli) {
         const girisUst = window.scrollY + el.getBoundingClientRect().top;
+        const eskiAnchor = el.style.overflowAnchor;
+        // Runway çökerken tarayıcının scroll anchoring ile kullanıcıyı yeniden
+        // aşağı itmesini engelle; pending fallback her zaman girişte biter.
+        el.style.overflowAnchor = 'none';
         statik();
-        window.scrollTo({ top: Math.max(0, girisUst), behavior: 'instant' });
+        const giriseDon = () => window.scrollTo({ top: Math.max(0, girisUst), behavior: 'instant' });
+        giriseDon();
+        requestAnimationFrame(() => {
+          giriseDon();
+          el.style.overflowAnchor = eskiAnchor;
+        });
         return;
       }
       const referans = sonP > 0 ? ui : stage;

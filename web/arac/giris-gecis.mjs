@@ -69,7 +69,9 @@ try {
     } finally { boz(); }
     await page.locator('[data-mod="statik"]').waitFor();
     const kutu = await page.getByRole('region', { name: 'Platforma giriş' }).boundingBox();
-    assert.ok(kutu && Math.abs(kutu.y) < 2, 'yükleme hatası kullanıcıyı girişten aşağı düşürdü');
+    const scrollY = await page.evaluate(() => window.scrollY);
+    const kokKutu = await page.locator('[data-mod="statik"]').boundingBox();
+    assert.ok(kutu && Math.abs(kutu.y) < 2, `${durum}: yükleme fallback konumu bozuk (stageY=${kutu?.y}, rootY=${kokKutu?.y}, scrollY=${scrollY})`);
     await page.getByRole('link', { name: 'Girişi atla' }).click();
     assert.equal(await page.locator('#platform-arayuzu').evaluate(el => el.inert), false);
     await context.close();

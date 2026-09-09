@@ -769,7 +769,38 @@ doğrulanmalı). *İkinci dil:* EN.
 
 **Bugün.** `Regulasyon · FrameworkSurumu · SurumFarki · Madde`,
 `MaddeEslestirmesi`, `BildirimYukumlulugu`, `RegulasyonKaynagi`;
-`/ice-aktarim` madde aktarımı; içerik seed'de.
+`/ice-aktarim` madde aktarımı; içerik seed'de. **P4 ilk dilimi uygulandı
+(9 Eylül 2026):** paket biçimi + doğrulayıcı (`lib/paket/dogrula.ts`,
+`npm run paket:dogrula`), lisans sınırı alanda (`Regulasyon.lisansTuru ·
+metinDahil`), kurucu (`lib/paket/kur.ts`: tek transaction, çerçeve TASLAK,
+aktifleştirme insan onayıyla; sözlük · tür · öznitelik · çerçeve ·
+yükümlülük), köken (`koken · paketSurumId` yedi tabloda; kiracı satırı
+ezilmez), kaldırma = arşiv, katalog (`IcerikPaketi · IcerikPaketiSurumu`),
+iskelet paketler `paketler/TR-ENERJI` · `paketler/TR-BANKACILIK`, tohum
+taşınabilirlik ölçümü `docs/P4_TOHUM_TASIMA_OLCUMU.md`. **PR #41
+incelemesiyle sertleşti (9 Eylül 2026):** yükseltme uzlaştırması (yeni
+sürümün bırakmadığı paket türü/yükümlülüğü pasif, kendi taslak sürümü
+arşiv; sözlük/öznitelik "artık" raporlanır — URN-PKT-006), iz kaydı
+kurulum/arşivle AYNI transaction'da ve kaldırmada aktif sürüm kararı arşiv
+yazımıyla atomik (URN-PKT-007), taslak yenileme bağ listesi şemadan
+bekçiyle (`MaddeAlan` dâhil), dizin adı = manifest kodu, CSV'de tekrar
+başlık ve başlığı aşan dolu hücre red, sürüm yürürlük tarihi kalıcı.
+İkinci tur: kurulu sürüm değişmez (aynı numarayla farklı içerik SÜRÜM
+ile red — URN-PKT-008), bağımlılık kararı transaction içinde, telifli
+CSV'de `kanit_beklentisi` de red ve `dis_kontrol_id` sınırlı, sektörsüz
+paket sözlük/öznitelik beyan edemez, `seviye` 0–5, tarihler takvimde var
+olmalı, kapanmamış tırnak BİÇİM. Üçüncü tur: yapıda yeri olmayan dosya
+red, `ust_kod` öz-referansı red, sürüm değişmezliği manifest üstverisini
+de kapsar ve aynı içerik madde ağacına dokunmaz, kiracının madde
+düzenlemesi (denetim izi) de bağ sayılır, bağımlı kurulu paket varken
+kaldırma yok ve geri kurulum arşiv taslağı taslağa döndürür (URN-PKT-009),
+madde ağacı partilerle + 120 sn bütçeyle yazılır; bekçi NULL eşleşmesinde
+mantık dalını (OR kardeşi) ve izin listesinde dosya içi sırayı sayar.
+Kalan: form ve rapor şablonu, rol kataloğu, demo yükleyici, eşleme CSV,
+`/paketler` ekranı, OSCAL okuyucu (SCF için — hukuki görüş bekleniyor),
+sözlük ve öznitelik şemasında `aktif` alanı (uzlaştırmada pasifleştirme —
+bugün yalnız raporlanır; öznitelik satırının altında kiracı değeri
+olabileceği için silme değil, şema kararı).
 
 **Hedef.** Çerçeveler, eşlemeler, yükümlülükler, denetim form şablonları,
 mevzuat kaynak katalogları, sektör sözlükleri ve demo verisi **paket**
@@ -2087,7 +2118,7 @@ alınan kararlar.
 | K18 | Paket imzası | SHA-256 zorunlu, Ed25519 isteğe bağlı | — |
 | K19 | Dağıtım önceliği | On-prem (Compose) önce | SaaS önce |
 | K20 | Kiracı adaptörü | Yalnız imzalı ürün adaptörleri; kiracı verisi CSV/API/webhook | Sandbox (ayrı karar) |
-| K21 | İlk enerji dışı sektör · ilk TR dışı ülke paketi | Su/atıksu · EU-NIS2 | Kullanıcı seçer |
+| K21 | İlk enerji dışı sektör · ilk TR dışı ülke paketi | **Güncellendi (9 Eyl 2026):** ilk enerji dışı SATILABİLİR sektör bankacılık (`TR-BANKACILIK`; `docs/TR_SEKTOR_PAKETLERI.md`). Su/atıksu yalnız **demo sektörü** — sektörel düzenleyici bulunamadı, satılmaz, ürün vaadinde geçmez. İlk TR dışı ülke paketi (EU-NIS2) **ertelendi** (v1 TR, §2) | Kullanıcı seçer |
 | K22 | Tema | Koyu tek tema kalır | Kiracı teması |
 | K23 | **`v1` ne zaman donar?** | Yayımlanmış bir belge değil, **erişilebilir dağıtım + dağıtılmış kimlik**. `v1` şu iki olaydan **ilki** gerçekleştiğinde donar: (a) API'yi servis eden bir dağıtım dışarıdan erişilebilir hâle gelir, (b) ilk **dış** `ApiAnahtari` düzenlenir. O ana kadar sözleşme **taslaktır** ve `v2` açılmadan değiştirilebilir. Gerekçe: kıran değişikliğin maliyeti kırılan tüketici sayısıdır ve o sayı bugün sıfırdır | İlk olay gerçekleşince K23 kapanır; sonraki kıran değişiklik `v2` ister |
 | K24 | Taslak sözleşme **görünür** olmalı | `/api-sozlesmesi` ekranı, açık adreste duran tarifin örtük bir taahhüt sayılmaması için başında tek satır uyarı taşır: "`v1` taslaktır; ilk dış tüketiciye kadar haber verilmeden değişebilir." Statik demo bu ekranı yayımladığı için uyarı da yayımlanır | K23 kapanınca uyarı kalkar |

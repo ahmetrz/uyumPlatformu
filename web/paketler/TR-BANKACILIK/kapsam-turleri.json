@@ -1,0 +1,30 @@
+[
+  {
+    "kod": "sistem",
+    "ad": "Bilgi sistemi",
+    "etiketAnahtari": "sistem",
+    "tesiseBagli": false,
+    "sira": 10
+  },
+  {
+    "kod": "dis_hizmet",
+    "ad": "Dış hizmet sağlayıcı",
+    "etiketAnahtari": "disHizmet",
+    "tesiseBagli": false,
+    "sira": 20
+  },
+  {
+    "kod": "is_fonksiyonu",
+    "ad": "İş fonksiyonu",
+    "etiketAnahtari": "isFonksiyonu",
+    "tesiseBagli": false,
+    "sira": 30
+  },
+  {
+    "kod": "komite",
+    "ad": "Komite",
+    "etiketAnahtari": "komite",
+    "tesiseBagli": false,
+    "sira": 40
+  }
+]

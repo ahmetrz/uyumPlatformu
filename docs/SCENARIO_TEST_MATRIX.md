@@ -4,12 +4,12 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 296 |
-| Testi olan senaryo | 296 |
+| Senaryo | 306 |
+| Testi olan senaryo | 306 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
-| Taranan test dosyası | 169 |
+| Taranan test dosyası | 174 |
 
 ## Katman başına kapsam
 
@@ -18,14 +18,14 @@
 | ACCESSIBILITY | 8 | 8 | 0 |
 | API | 12 | 12 | 0 |
 | CONCURRENCY | 7 | 7 | 0 |
-| DOMAIN | 162 | 162 | 0 |
+| DOMAIN | 166 | 166 | 0 |
 | ENGINE | 33 | 33 | 0 |
-| INTEGRATION | 27 | 27 | 0 |
+| INTEGRATION | 35 | 35 | 0 |
 | MIGRATION | 5 | 5 | 0 |
 | RBAC | 32 | 32 | 0 |
 | RESPONSIVE | 8 | 8 | 0 |
 | SCOPE | 30 | 30 | 0 |
-| SERVER | 106 | 106 | 0 |
+| SERVER | 113 | 113 | 0 |
 | UI | 84 | 84 | 0 |
 | VISUAL | 4 | 4 | 0 |
 | WORKFLOW | 32 | 32 | 0 |
@@ -443,6 +443,80 @@
 | `URN-KAP-003` | Ürünleştirme | MIGRATION · DOMAIN | `kapsam-ogesi-gocu.test.ts` | türetilmiş alan kuraldan çıkar: göçün REPLACE hedefi tohumun bileşik koşuluyla birebir | evet | geçti |
 | `URN-KAP-003` | Ürünleştirme | MIGRATION · DOMAIN | `kapsam-ogesi-gocu.test.ts` | ortak sayısal anahtarların hepsi eşit; ölçüm dosyaları boş değil | evet | geçti |
 | `URN-KAP-003` | Ürünleştirme | MIGRATION · DOMAIN | `kapsam-ogesi-gocu.test.ts` | her tesis bir öğe aldı; tür dağılımı öğe sayısına toplanır | evet | geçti |
+| `URN-VER-001` | Ürünleştirme | DOMAIN · INTEGRATION | `bekci/null-olumsuzlama.test.ts` | ölçüm tabanı: tarama gerçekten dosya, çağrı ve bulgu görüyor | evet | geçti |
+| `URN-VER-001` | Ürünleştirme | DOMAIN · INTEGRATION | `bekci/null-olumsuzlama.test.ts` | beyan isteyen her olumsuzlama izin listesinde — olmayan adıyla kırmızı | evet | geçti |
+| `URN-VER-001` | Ürünleştirme | DOMAIN · INTEGRATION | `bekci/null-olumsuzlama.test.ts` | ölü satır yok — bulgusu kalmayan satır listeden düşmeli | evet | geçti |
+| `URN-VER-001` | Ürünleştirme | DOMAIN · INTEGRATION | `bekci/null-olumsuzlama.test.ts` | her satır sınıflı ve gerekçeli; beyan edilen model şemaya karşı doğru | evet | geçti |
+| `URN-VER-001` | Ürünleştirme | DOMAIN · INTEGRATION | `bekci/null-olumsuzlama.test.ts` | tavan satır sayısına EŞİT — gevşeklik yok | evet | geçti |
+| `URN-VER-001` | Ürünleştirme | DOMAIN · INTEGRATION | `bekci/null-olumsuzlama.test.ts` | liste taban dalın ALT KÜMESİDİR — cırcır yalnız küçülür | evet | geçti |
+| `URN-VER-001` | Ürünleştirme | DOMAIN · INTEGRATION | `bekci/null-olumsuzlama.test.ts` | kalıcı vaka: kusurun kendisi — nullable rol üzerinde NOT, NULL ele alınmamış → beyan | evet | geçti |
+| `URN-VER-001` | Ürünleştirme | DOMAIN · INTEGRATION | `bekci/null-olumsuzlama.test.ts` | kalıcı vaka: düzeltme — NULL OR dalıyla dâhil → güvenli | evet | geçti |
+| `URN-VER-001` | Ürünleştirme | DOMAIN · INTEGRATION | `bekci/null-olumsuzlama.test.ts` | kalıcı vaka: NULL\'un kendisini olumsuzlamak IS NOT NULL\'dır → güvenli | evet | geçti |
+| `URN-VER-001` | Ürünleştirme | DOMAIN · INTEGRATION | `bekci/null-olumsuzlama.test.ts` | kalıcı vaka: NOT NULL kolon → güvenli; ilişki zinciri hedef modelde çözülür | evet | geçti |
+| `URN-VER-001` | Ürünleştirme | DOMAIN · INTEGRATION | `bekci/null-olumsuzlama.test.ts` | kalıcı vaka: NULL açıkça DIŞLANMIŞSA (NOT null + notIn) → güvenli | evet | geçti |
+| `URN-VER-001` | Ürünleştirme | DOMAIN · INTEGRATION | `bekci/null-olumsuzlama.test.ts` | kalıcı vaka: NULL yalnız BAŞKA ilişki yolunda ele alınmışsa olumsuzlama temizlenmez; aynı yolda ele alınmışsa temizlenir | evet | geçti |
+| `URN-VER-001` | Ürünleştirme | DOMAIN · INTEGRATION | `bekci/null-olumsuzlama.test.ts` | kalıcı vaka: NULL dâhil etme yalnız OR KARDEŞİ olarak sayılır — başka bağlaçtaki `x: null` temizlemez; bilerek dışlama her yerde sayılır | evet | geçti |
+| `URN-VER-001` | Ürünleştirme | DOMAIN · INTEGRATION | `bekci/null-olumsuzlama.test.ts` | kalıcı vaka: aynı dosyada aynı alanın ikinci yüklemi AYRI anahtar taşır — eski izin satırı örtemez | evet | geçti |
+| `URN-VER-001` | Ürünleştirme | DOMAIN · INTEGRATION | `bekci/null-olumsuzlama.test.ts` | kalıcı vaka: dinamik NOT (çağrı/yayma) ve isNot → beyan | evet | geçti |
+| `URN-VER-001` | Ürünleştirme | DOMAIN · INTEGRATION | `bekci/null-olumsuzlama.test.ts` | kalıcı vaka: çağrı dışı süzgeç parçası beyan ister; tohum verisindeki Türkçe "not" istemez | evet | geçti |
+| `URN-VER-001` | Ürünleştirme | DOMAIN · INTEGRATION | `bekci/null-olumsuzlama.test.ts` | kalıcı vaka: yorum, dize ve veri nesnesi bulgu değildir | evet | geçti |
+| `URN-VER-001` | Ürünleştirme | DOMAIN · INTEGRATION | `bekci/null-olumsuzlama.test.ts` | kalıcı vaka: ham SQL NOT IN / != beyan ister; tırnak içindeki != göç JSON sabitidir | evet | geçti |
+| `URN-VER-001` | Ürünleştirme | DOMAIN · INTEGRATION | `bekci/null-olumsuzlama.test.ts` | kalıcı vaka: gevşek tavan kırmızı — tavan satır sayısından büyük olamaz | evet | geçti |
+| `URN-PKT-001` | Ürünleştirme | DOMAIN | `paket-dogrula.test.ts` | eksik alan → BIÇIM, konum adıyla; sürüm SemVer değilse SÜRÜM | evet | geçti |
+| `URN-PKT-001` | Ürünleştirme | DOMAIN | `paket-dogrula.test.ts` | bilinmeyen manifest alanı reddedilir — yazım hatası sessizce yutulmaz | evet | geçti |
+| `URN-PKT-001` | Ürünleştirme | DOMAIN | `paket-dogrula.test.ts` | özet uyuşmazlığı, listede olmayan dosya ve eksik dosya üçü de BIÇIM | evet | geçti |
+| `URN-PKT-001` | Ürünleştirme | DOMAIN | `paket-dogrula.test.ts` | tur=sektor sektör ister; yatay paket sektör, öznitelik ve sözlük taşıyamaz | evet | geçti |
+| `URN-PKT-001` | Ürünleştirme | DOMAIN | `paket-dogrula.test.ts` | madde ağacı: kod tekrarı ve sonra gelen üst madde KİMLİK — düzeltme cümlesi sözleşmedeki gibi | evet | geçti |
+| `URN-PKT-001` | Ürünleştirme | DOMAIN | `paket-dogrula.test.ts` | CSV başlığında zorunlu sütun eksikse ya da bilinmeyen sütun varsa BIÇIM | evet | geçti |
+| `URN-PKT-001` | Ürünleştirme | DOMAIN | `paket-dogrula.test.ts` | sözlükte boş hâl SÖZLÜK; bilinmeyen rol, metinde birim ve iki kapasite ÖZNİTELİK; tür kodu büyük harfse KAPSAM TÜRÜ | evet | geçti |
+| `URN-PKT-001` | Ürünleştirme | DOMAIN | `paket-dogrula.test.ts` | dizin adı manifest koduyla uyuşmalı — kopyalanmış dizin BAŞKA paketi kuramaz: KİMLİK | evet | geçti |
+| `URN-PKT-001` | Ürünleştirme | DOMAIN | `paket-dogrula.test.ts` | ust_kod kendisine eşit satır KİMLİK — öz-referans üst madde değildir, kurulumda köke düşmez | evet | geçti |
+| `URN-PKT-001` | Ürünleştirme | DOMAIN | `paket-dogrula.test.ts` | sektörsüz paket (uluslararasi, sektor=null) sözlük ve öznitelik beyan edemez — kurucu sessizce düşürmesin | evet | geçti |
+| `URN-PKT-001` | Ürünleştirme | DOMAIN | `paket-dogrula.test.ts` | seviye 0–5 dışındaysa BIÇIM (ürünün olgunluk ölçeği); 5 geçer | evet | geçti |
+| `URN-PKT-001` | Ürünleştirme | DOMAIN | `paket-dogrula.test.ts` | takvimde olmayan tarih (2025-02-30, 2025-13-01) BIÇIM — biçim yetmez, gidiş-dönüş eşitliği ister | evet | geçti |
+| `URN-PKT-001` | Ürünleştirme | DOMAIN | `paket-dogrula.test.ts` | kapanmamış tırnak BIÇIM — dosyanın kalanı tek hücreye yutulmaz, satır numarası söylenir | evet | geçti |
+| `URN-PKT-001` | Ürünleştirme | DOMAIN | `paket-dogrula.test.ts` | hata satırı biçimi: dosya:konum — SINIF: mesaj → düzeltme | evet | geçti |
+| `URN-PKT-001` | Ürünleştirme | DOMAIN | `paket-dogrula.test.ts` | paket dizini yoksa BIÇIM, çökme yok | evet | geçti |
+| `URN-PKT-002` | Ürünleştirme | DOMAIN · SERVER | `paket-dogrula.test.ts` | CSV: tekrar eden başlık ve başlığı aşan dolu hücre BIÇIM — telifli metin ikinci "metin" sütunundan ya da satır sonundan kaçamaz | evet | geçti |
+| `URN-PKT-002` | Ürünleştirme | DOMAIN · SERVER | `paket-dogrula.test.ts` | telifli çerçeve metin taşıyorsa LİSANS: "lisans sınırı: <kod> telifli, metin girilemez" | evet | geçti |
+| `URN-PKT-002` | Ürünleştirme | DOMAIN · SERVER | `paket-dogrula.test.ts` | telifli çerçevede başlık 120 karakteri aşamaz; metinsiz yapı GEÇER | evet | geçti |
+| `URN-PKT-002` | Ürünleştirme | DOMAIN · SERVER | `paket-dogrula.test.ts` | paket yapısında yeri olmayan dosya BIÇIM — özeti doğru olsa da hiçbir tanımlayıcı okumaz, lisans kontrolü göremezdi | evet | geçti |
+| `URN-PKT-002` | Ürünleştirme | DOMAIN · SERVER | `paket-dogrula.test.ts` | telifli çerçevede kanit_beklentisi serbest metindir → LİSANS; dis_kontrol_id 60 karakteri aşamaz; kısa kimlik geçer | evet | geçti |
+| `URN-PKT-002` | Ürünleştirme | DOMAIN · SERVER | `paket-dogrula.test.ts` | telifli + metinDahil=true çelişkisi hem manifestte hem çerçevede LİSANS | evet | geçti |
+| `URN-PKT-002` | Ürünleştirme | DOMAIN · SERVER | `paket-dogrula.test.ts` | kamuya açık ama metinDahil=false (iskelet) → metin taşıyan satır LİSANS; metinsiz geçer | evet | geçti |
+| `URN-PKT-003` | Ürünleştirme | SERVER · INTEGRATION | `paket-eylem.test.ts` | okuyucu rolü paket kuramaz | evet | geçti |
+| `URN-PKT-003` | Ürünleştirme | SERVER · INTEGRATION | `paket-eylem.test.ts` | paket yolu paketler/ dışına çıkamaz — kod deseni ve dizin çözümü | evet | geçti |
+| `URN-PKT-003` | Ürünleştirme | SERVER · INTEGRATION | `paket-eylem.test.ts` | olmayan paket doğrulayıcı diliyle reddedilir; veritabanına dokunulmaz | evet | geçti |
+| `URN-PKT-003` | Ürünleştirme | SERVER · INTEGRATION | `paket-eylem.test.ts` | yetkili kullanıcı iskelet paketi kurar: rapor döner, çerçeve taslak, iz sayılarla düşer | evet | geçti |
+| `URN-PKT-003` | Ürünleştirme | SERVER · INTEGRATION | `paket-kur.test.ts` | doğrulanmış paket yazılır: sayılar, taslak sürümler, köken, lisans alanı, metin sabitleri, sürüm tarihleri | evet | geçti |
+| `URN-PKT-003` | Ürünleştirme | SERVER · INTEGRATION | `paket-kur.test.ts` | aynı sürüm ikinci kez kurulunca idempotent: satır sayıları değişmez, ikinci sürüm kaydı açılmaz | evet | geçti |
+| `URN-PKT-003` | Ürünleştirme | SERVER · INTEGRATION | `paket-kur.test.ts` | kısmi yazma YOK: sonda patlayan kurulum hiçbir satır bırakmaz | evet | geçti |
+| `URN-PKT-003` | Ürünleştirme | SERVER · INTEGRATION | `paket-kur.test.ts` | doğrulayıcıdan geçmeyen paket veritabanına dokunmaz | evet | geçti |
+| `URN-PKT-003` | Ürünleştirme | SERVER · INTEGRATION | `paket-kur.test.ts` | kurulu olmayan bağımlılık kurulumu durdurur | evet | geçti |
+| `URN-PKT-003` | Ürünleştirme | SERVER · INTEGRATION | `paket-kur.test.ts` | 211 satır (kök + 150 kardeş + 60 halkalık zincir) doğru üst bağlarıyla yazılır | evet | geçti |
+| `URN-PKT-004` | Ürünleştirme | SERVER · INTEGRATION | `paket-eylem.test.ts` | gerekçesiz kaldırma reddedilir | evet | geçti |
+| `URN-PKT-004` | Ürünleştirme | SERVER · INTEGRATION | `paket-eylem.test.ts` | okuyucu kaldıramaz; yetkili gerekçeyle kaldırır → arşiv + iz, satır silinmez | evet | geçti |
+| `URN-PKT-004` | Ürünleştirme | SERVER · INTEGRATION | `paket-kur.test.ts` | aynı anahtarda kiracı satırı varsa dokunulmaz ve raporda çelişki olur; paket satırı güncellenir; yenilenen taslağın tarihi de yazılır | evet | geçti |
+| `URN-PKT-004` | Ürünleştirme | SERVER · INTEGRATION | `paket-kur.test.ts` | kiracının KAPSAM ALANI eşlemesi (MaddeAlan) bağlı taslak üzerine yazılamaz — deleteMany kaskatla silmez | evet | geçti |
+| `URN-PKT-004` | Ürünleştirme | SERVER · INTEGRATION | `paket-kur.test.ts` | bekçi: Madde\'nin şemadaki her liste ilişkisi ya bağ kontrolünde ya gerekçeli dışında — yeni ilişki sessizce atlanamaz | evet | geçti |
+| `URN-PKT-004` | Ürünleştirme | SERVER · INTEGRATION | `paket-kur.test.ts` | kiracı kaydı bağlı taslak üzerine yazılamaz — SÜRÜM hatası, hiçbir şey değişmez | evet | geçti |
+| `URN-PKT-004` | Ürünleştirme | SERVER · INTEGRATION | `paket-kur.test.ts` | kaldırma = arşiv: paket/sürüm arşiv, taslak çerçeve arşiv, tür ve yükümlülük pasif; HİÇBİR satır silinmez | evet | geçti |
+| `URN-PKT-004` | Ürünleştirme | SERVER · INTEGRATION | `paket-kur.test.ts` | aktif çerçeve sürümü taşıyan paket kaldırılamaz | evet | geçti |
+| `URN-PKT-004` | Ürünleştirme | SERVER · INTEGRATION | `paket-kur.test.ts` | hedef olgunluk gibi skaler düzenleme izi olan madde: yeni sürüm aynı etiketi yenileyemez (SÜRÜM); yeni etiket kurulur | evet | geçti |
+| `URN-PKT-005` | Ürünleştirme | DOMAIN · INTEGRATION | `paket-iskeletler.test.ts` | hiçbir maddede METİN yok; her çerçeve kamuya açık ama metinDahil=false (iskelet) | evet | geçti |
+| `URN-PKT-005` | Ürünleştirme | DOMAIN · INTEGRATION | `paket-iskeletler.test.ts` | EPDK-SGYM yapısı: 4 bölüm + 18 madde + 1 geçici, başlıklar birincil dosyadan; Ek-3: 13 aile + 565 kontrol, seviye 1–3 | evet | geçti |
+| `URN-PKT-006` | Ürünleştirme | SERVER · INTEGRATION | `paket-kur.test.ts` | v0.2.0 B\'yi bırakınca: tür B ve yükümlülük B pasif, YUK-B taslağı arşiv, A yeni sürüme geçer; hiçbir satır silinmez; sözlük/öznitelik B artık | evet | geçti |
+| `URN-PKT-006` | Ürünleştirme | SERVER · INTEGRATION | `paket-kur.test.ts` | uzlaştırma kiracı satırına dokunmaz: kiracı türü pasifleşmez; tekrar kurulumda uzlaştırma sıfır | evet | geçti |
+| `URN-PKT-007` | Ürünleştirme | SERVER · INTEGRATION | `paket-eylem.test.ts` | iz yazılamazsa kurulum da GERİ ALINIR — durum ve iz aynı transaction\'da | evet | geçti |
+| `URN-PKT-007` | Ürünleştirme | SERVER · INTEGRATION | `paket-eylem.test.ts` | iz yazılamazsa arşiv de GERİ ALINIR — paket kurulu kalır, iz yok | evet | geçti |
+| `URN-PKT-007` | Ürünleştirme | SERVER · INTEGRATION | `paket-kur.test.ts` | ayniIslemde (iz) patlarsa kurulum da geri alınır — durum ve iz aynı transaction\'da | evet | geçti |
+| `URN-PKT-007` | Ürünleştirme | SERVER · INTEGRATION | `paket-kur.test.ts` | kaldırmada "aktif sürüm var mı" kararı arşiv yazımıyla AYNI transaction\'da — kök istemciye dokunan kaldırma kırmızı | evet | geçti |
+| `URN-PKT-007` | Ürünleştirme | SERVER · INTEGRATION | `paket-kur.test.ts` | ayniIslemde (iz) patlarsa arşiv de geri alınır | evet | geçti |
+| `URN-PKT-007` | Ürünleştirme | SERVER · INTEGRATION | `paket-kur.test.ts` | bağımlılık kararı transaction İÇİNDE — transaction öncesi kök istemciye dokunan kurulum kırmızı | evet | geçti |
+| `URN-PKT-008` | Ürünleştirme | SERVER · INTEGRATION | `paket-kur.test.ts` | aynı sürüm numarasıyla İÇERİĞİ DEĞİŞMİŞ paket reddedilir (SÜRÜM); sürüm kaydı ve içerik değişmez; aynı içerik idempotent; yeni numara geçer | evet | geçti |
+| `URN-PKT-008` | Ürünleştirme | SERVER · INTEGRATION | `paket-kur.test.ts` | değişmez alan (sektör · lisans) aynı sürümde değişemez; betimleyici alan (ad) değişebilir ve madde kimlikleri korunur | evet | geçti |
+| `URN-PKT-009` | Ürünleştirme | SERVER · INTEGRATION | `paket-kur.test.ts` | kurulu bir paket bağımlıysa kaldırma reddedilir; bağımlı kaldırılınca kaldırılır | evet | geçti |
+| `URN-PKT-009` | Ürünleştirme | SERVER · INTEGRATION | `paket-kur.test.ts` | kaldırılan paket aynı içerikle geri kurulur: arşiv taslak taslağa döner, madde kimlikleri korunur, paket kurulu | evet | geçti |
 
 ## Gerekçesiyle kütüksüz kalan dosyalar
 

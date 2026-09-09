@@ -310,6 +310,18 @@ PORT=3210 node arac/gorsel-regresyon.mjs --rota=/uyum --bant=375
 Sunucu saatine bağlı metinler (veri kesiti damgası) %0,5'i aşarsa eşiği
 büyütmeyin; damgayı taşıyan öğeyi maskeleyin.
 
+### `paket-dogrula.ts` — paket yazarının aracı (P4)
+
+```sh
+npm run paket:dogrula -- paketler/TR-ENERJI              # yedi hata sınıfı; temizse çıkış 0
+npm run paket:dogrula -- paketler/TR-ENERJI --ozet-yaz   # manifest.icerikOzetleri'ni dosyalardan yazar, sonra doğrular
+```
+
+Tarayıcısız, saniyeler içinde; her hata bir satır: `dosya:konum — SINIF:
+ne yanlış → nasıl düzeltilir`. **Kapı değildir** (yazar aracıdır, `kapi-farki`
+beyanlı); iskelet paketlerin doğrulayıcıdan geçtiğini CI `npm test`
+içindeki `tests/paket-iskeletler.test.ts` ölçer. Biçim `paketler/BENIOKU.md`.
+
 ### `k4-enerji-su.mjs` — enerji ve su BİREBİR aynı davranır (Faz B · K4)
 
 Sekiz demo ekranını (`docs/DEMO_YOLU.md`; mercek adımı hariç yedi rota +

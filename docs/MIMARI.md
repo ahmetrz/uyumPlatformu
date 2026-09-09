@@ -80,6 +80,15 @@ işlemlerini statik yayında durdurur. `lib/eylemler2` altındaki **her**
 modülün `<ad>.demo.ts` ikizi vardır; `next.config.ts` statik derlemede gerçek
 modül yerine ikizi bağlar ve eksik ikizde derleme durur.
 
+### İçerik paketleri — `lib/paket/`
+Sektör-ülke paketi bir dizindir (`paketler/<KOD>`; biçim `bicim.ts`,
+sözleşme `docs/SEKTOR_PAKETI_SOZLESMESI.md`). `dogrula.ts` okur ve yedi hata
+sınıfıyla reddeder (çıktı `dosya:konum — SINIF: mesaj → düzeltme`);
+`kur.ts` yalnız doğrulanmış paketi, tek transaction'da yazar: sözlük, kapsam
+öğesi türü, öznitelik şeması, çerçeve (**taslak** sürüm — aktifleştirme
+insan onayıyla), yükümlülük. Yazılan satır `koken = paket` taşır; kiracı
+satırı ezilmez, kaldırma arşivdir. Eylem kapısı `lib/eylemler2/paket.ts`.
+
 ### Kimlik ve erişim — `lib/auth.ts`, `lib/erisim.ts`
 Oturum tabanlı kimlik (mutlak 12 saat, atıl 2 saat); RBAC modül × işlem
 (okuma / yazma / onay) ve kapsam öğesi / süreç kapsamı (tesis, öğenin

@@ -57,6 +57,10 @@ model KapsamOgesiTuru {
   tesiseBagli    Boolean @default(false)
   sira           Int     @default(0)
   aktif          Boolean @default(true)
+  /// P4 · KÖKEN: `paket` satırını paket güncellemesi değiştirir; `kiraci`
+  /// satırına DOKUNULMAZ (docs/SEKTOR_PAKETI_SOZLESMESI.md §4).
+  koken          String  @default("kiraci")
+  paketSurumId   String?
 
   sektor       Sektor?       @relation(fields: [sektorId], references: [id])
   ogeler       KapsamOgesi[]
@@ -166,6 +170,10 @@ model SektorOznitelikSemasi {
   /// reddeder; boşsa serbest metin. Paket içeriğidir, çekirdek seçenek
   /// bilmez.
   secenekler        String?
+  /// P4 · KÖKEN: `paket` satırını paket güncellemesi değiştirir; `kiraci`
+  /// satırına DOKUNULMAZ (docs/SEKTOR_PAKETI_SOZLESMESI.md §4).
+  koken             String  @default("kiraci")
+  paketSurumId      String?
 
   sektor Sektor @relation(fields: [sektorId], references: [id], onDelete: Cascade)
 
@@ -177,24 +185,28 @@ model SektorOznitelikSemasi {
 /// yapılmaz — o yol "hattın" ile "arıtma ünitesinin" arasında
 /// sessizce bozulur).
 model SektorSozlugu {
-  id       String  @id @default(cuid())
-  sektorId String
+  id           String  @id @default(cuid())
+  sektorId     String
   /// Çekirdek terim anahtarı — `tesis`, `birim`, `portfoy`, `tesis360`.
-  anahtar  String
+  anahtar      String
   /// Dil etiketi (BCP 47). Bugün yalnız `tr`; P3 ikinci dili ekler.
-  dil      String  @default("tr")
-  tekil    String
-  cogul    String?
+  dil          String  @default("tr")
+  tekil        String
+  cogul        String?
   /// İyelik biçimi — "hattın", "tesisin".
-  iyelik   String?
+  iyelik       String?
   /// Belirtme biçimi — "hattı", "tesisi".
-  belirtme String?
+  belirtme     String?
   /// Bulunma biçimi — "hatta", "tesiste". Ekran cümlesi ("bu tesiste açık
   /// risk yok") bu hâli ister; cümleyi hâlden kaçınmak için yeniden
   /// yazmak, dili sözlüğe uydurmak olurdu.
-  bulunma  String?
+  bulunma      String?
   /// Yönelme biçimi — "hatta", "tesise".
-  yonelme  String?
+  yonelme      String?
+  /// P4 · KÖKEN: `paket` satırını paket güncellemesi değiştirir; `kiraci`
+  /// satırına DOKUNULMAZ (docs/SEKTOR_PAKETI_SOZLESMESI.md §4).
+  koken        String  @default("kiraci")
+  paketSurumId String?
 
   sektor Sektor @relation(fields: [sektorId], references: [id], onDelete: Cascade)
 
@@ -341,6 +353,15 @@ model Regulasyon {
   yururlukTarih DateTime?
   kaynakUrl     String?
   aktif         Boolean   @default(true)
+  /// P4 · LİSANS SINIRI makine okunur (docs/SEKTOR_PAKETI_SOZLESMESI.md §2):
+  /// `kamuya_acik` → tam metin; `telifli` → yalnız yapı ve kimlikler,
+  /// `Madde.metin` = "lisans nedeniyle girilmedi". null = beyan edilmedi.
+  lisansTuru    String?
+  metinDahil    Boolean?
+  /// P4 · KÖKEN: `paket` satırını paket güncellemesi değiştirir; `kiraci`
+  /// satırına DOKUNULMAZ (docs/SEKTOR_PAKETI_SOZLESMESI.md §4).
+  koken         String    @default("kiraci")
+  paketSurumId  String?
 
   maddeler      Madde[]
   surecler      UyumSureci[]
@@ -701,11 +722,15 @@ model KanitBaglantisi {
 // -------------------------------------------------------------- eşleştirme
 
 model MaddeEslestirmesi {
-  id       String  @id @default(cuid())
-  kaynakId String
-  hedefId  String
-  denklik  String // tam | kismi | ilgili
-  aciklama String?
+  id           String  @id @default(cuid())
+  kaynakId     String
+  hedefId      String
+  denklik      String // tam | kismi | ilgili
+  aciklama     String?
+  /// P4 · KÖKEN: `paket` satırını paket güncellemesi değiştirir; `kiraci`
+  /// satırına DOKUNULMAZ (docs/SEKTOR_PAKETI_SOZLESMESI.md §4).
+  koken        String  @default("kiraci")
+  paketSurumId String?
 
   kaynak Madde @relation("EslestirmeKaynak", fields: [kaynakId], references: [id], onDelete: Cascade)
   hedef  Madde @relation("EslestirmeHedef", fields: [hedefId], references: [id], onDelete: Cascade)
@@ -842,6 +867,7 @@ model Kullanici {
   sahipOlduguMedya              TasinabilirMedya[]     @relation("MedyaSahibi")
   onayladigiMedyaKullanimlari   MedyaKullanimi[]       @relation("MedyaOnaylayan")
   guncelledigiBildirimKurallari BildirimYukumlulugu[]  @relation("BildirimKuraliGuncelleyen")
+  paketKurulumlari              IcerikPaketiSurumu[]   @relation("PaketKuran")
   yaptigiKontrolTestleri        KontrolTesti[]         @relation("KontrolTestEden")
   yurutuguGozdenGecirmeler      YonetimGozdenGecirme[] @relation("GozdenGecirmeYuruten")
   sorumluGozdenGecirmeKararlari GozdenGecirmeKarari[]  @relation("GozdenGecirmeSorumlusu")
@@ -1079,6 +1105,10 @@ model FrameworkSurumu {
   kaynakUrl     String?
   durum         String    @default("taslak") // taslak | aktif | arsiv
   olusturuldu   DateTime  @default(now())
+  /// P4 · KÖKEN: `paket` satırını paket güncellemesi değiştirir; `kiraci`
+  /// satırına DOKUNULMAZ (docs/SEKTOR_PAKETI_SOZLESMESI.md §4).
+  koken         String    @default("kiraci")
+  paketSurumId  String?
 
   regulasyon    Regulasyon   @relation(fields: [regulasyonId], references: [id])
   maddeler      Madde[]
@@ -3910,6 +3940,10 @@ model BildirimYukumlulugu {
   aktif         Boolean  @default(true)
   olusturuldu   DateTime @default(now())
   guncelleyenId String?
+  /// P4 · KÖKEN: `paket` satırını paket güncellemesi değiştirir; `kiraci`
+  /// satırına DOKUNULMAZ (docs/SEKTOR_PAKETI_SOZLESMESI.md §4).
+  koken         String   @default("kiraci")
+  paketSurumId  String?
 
   regulasyon  Regulasyon? @relation(fields: [regulasyonId], references: [id])
   guncelleyen Kullanici?  @relation("BildirimKuraliGuncelleyen", fields: [guncelleyenId], references: [id])
@@ -4156,4 +4190,44 @@ model VarlikDurusGozlemi {
 
   @@unique([varlikId, kaynakSistem])
   @@index([kaynakSistem, kaynakZamani])
+}
+
+/// ═══ P4 · İÇERİK PAKETİ KATALOĞU ═══════════════════════════════════════
+/// Paket VERİ getirir, kod getirmez (docs/SEKTOR_PAKETI_SOZLESMESI.md §5).
+/// Kurulum `lib/paket/kur.ts`: doğrulayıcıdan geçmeyen paket yazılmaz,
+/// yazma tek transaction'dır (kısmi yazma yok); çerçeve TASLAK sürüm olarak
+/// gelir, aktifleştirme insan onayıyla (`surumAktiflestir`). Kaldırma =
+/// arşiv, silme yok.
+model IcerikPaketi {
+  id          String   @id @default(cuid())
+  kod         String   @unique // TR-ENERJI · TR-BANKACILIK · TR-KVKK
+  ad          String
+  tur         String // sektor | yatay | demo | uluslararasi
+  ulke        String? // ISO 3166-1 alpha-2; uluslararası pakette null
+  sektorKod   String? // Sektor.kod — sektör ve demo paketlerinde
+  dil         String   @default("tr")
+  yayinci     String
+  durum       String   @default("kurulu") // kurulu | arsiv
+  olusturuldu DateTime @default(now())
+  guncellendi DateTime @updatedAt
+
+  surumler IcerikPaketiSurumu[]
+}
+
+model IcerikPaketiSurumu {
+  id            String   @id @default(cuid())
+  paketId       String
+  surum         String // SemVer (§4: majör = kaldırma/kod değişimi, minör = ekleme, yama = metin)
+  lisansJson    String // { tur, metinDahil, kaynak?, not? }
+  ozetJson      String // icerikOzetleri { dosya: sha256 }
+  manifestJson  String
+  durum         String   @default("kurulu") // kurulu | onceki | arsiv
+  kurulumZamani DateTime @default(now())
+  kuranId       String?
+  raporJson     String? // kurulum raporu: sayılar, çelişkiler (kiracı satırı korundu)
+
+  paket IcerikPaketi @relation(fields: [paketId], references: [id], onDelete: Cascade)
+  kuran Kullanici?   @relation("PaketKuran", fields: [kuranId], references: [id])
+
+  @@unique([paketId, surum])
 }

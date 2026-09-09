@@ -1,0 +1,17 @@
+{
+  "kod": "EPDK-SGYM-EK3",
+  "ad": "Ek-3 · Elektrik Üretim Sektörü Siber Güvenlik Yetkinlik Modeli Teknik Kontrol Maddeleri",
+  "surumEtiketi": "RG-2025-11-25-33088",
+  "yayimTarihi": "2023-06-06",
+  "yururlukTarih": null,
+  "kaynakUrl": "https://www.epdk.gov.tr/Detay/Icerik/3-33068/enerji-sektorunde-siber-guvenlik-yetkinlik-modeli-",
+  "lisans": {
+    "tur": "kamuya_acik",
+    "metinDahil": false,
+    "kaynak": "https://www.epdk.gov.tr/Detay/Icerik/3-33068/enerji-sektorunde-siber-guvenlik-yetkinlik-modeli-",
+    "not": "Resmî metin; iskelet — kontrol metni (Alt Kontrol sütunu) aktarılmadı"
+  },
+  "maddeDosyasi": "EPDK-SGYM-EK3.csv",
+  "zorunlulukTipi": "REGULATION",
+  "not": "13 kontrol ailesi + 565 kontrol: kimlik (No), kontrol grubu başlığı (Alt Kontrol sütunu) ve seviye (1–3) XLSX'ten okundu; 57 kontrol 'Ek Kontrol' (seviyesiz, seviye boş — sıfır değil). Kontrol sütunundaki madde METNİ bilerek alınmadı."
+}

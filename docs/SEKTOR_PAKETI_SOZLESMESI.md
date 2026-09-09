@@ -59,10 +59,12 @@ Yorumda değil, **alanda**. Manifestte paket düzeyi, her çerçeve dosyasında
 
 **Doğrulayıcı kuralı (§3):** `tur = telifli` iken herhangi bir `Madde.metin`
 120 karakteri aşarsa ya da `metinDahil = true` ise paket **reddedilir** —
-"lisans sınırı: `<kod>` telifli, metin girilemez". Bugün `Regulasyon`
-tablosunda lisans alanı **yok** (`grep -n lisans prisma/schema.prisma` →
-yalnız `TesisProfili.lisansTipi`); P4 `Regulasyon.lisansTuru` ve
-`metinDahil` ekler ve ekran çerçeve başlığında rozetle gösterir.
+"lisans sınırı: `<kod>` telifli, metin girilemez". **Bugün (9 Eylül 2026):** `Regulasyon.lisansTuru` ve `metinDahil` **var**
+(göç `20260909090000_p4_icerik_paketi`); doğrulayıcı telifli çerçevede
+metni ve 120 karakteri aşan başlığı LİSANS sınıfıyla reddeder; kurucu
+telifli maddede `Madde.metin = "lisans nedeniyle girilmedi"`, kamuya açık
+iskelette `"metin paketle gelmedi"` yazar (`lib/paket/kur.ts`). Ekran
+rozeti henüz yok.
 
 "Bellekten" işaretli PCI DSS / COBIT ayrıntıları (bkz.
 `docs/TESIS_DISI_SEKTOR_UYUM_TESTI.md`) birincil kaynaktan doğrulanmadan
@@ -81,9 +83,12 @@ yalnız `TesisProfili.lisansTipi`); P4 `Regulasyon.lisansTuru` ve
 | **Her hata bir satır, her satır düzeltme cümlesi taşır** | Doğrulayıcı "hata var" demez; nerede, ne, nasıl der. Kural, kapıların kendi kuralıdır: gerekçe kusuru anlatır |
 | **Kabul ölçütü** | Kodu olmayan bir kişi `ORNEK-SEKTOR` kopyasını Excel + metin düzenleyiciyle 1 günde geçerli pakete çevirebilir; ölçüm P4 kabulünde yapılır (kim, kaç saat, kaç doğrulayıcı turu) |
 
-Bugün: doğrulayıcı **yok**; `/ice-aktarim` yalnız madde CSV/XLSX alır ve
-elenen satırları sebebiyle raporlar (`lib/eylemler.ts`) — bu davranış
-doğrulayıcının çekirdeği olur.
+**Bugün (9 Eylül 2026):** doğrulayıcı **var** — `npm run paket:dogrula --
+<dizin> [--ozet-yaz]` (`lib/paket/dogrula.ts`): yedi hata sınıfı, çıktı
+`dosya:konum — SINIF: ne yanlış → nasıl düzeltilir`, tarayıcısız. Şablon
+paket `paketler/ORNEK-SEKTOR/` henüz yok; `paketler/BENIOKU.md` biçimi
+anlatır ve `paketler/TR-ENERJI` örnek alınır. Kabul ölçütü (kodsuz kişi, 1
+gün) **ölçülmedi**. `/ice-aktarim` eski yol olarak duruyor.
 
 ---
 
@@ -91,10 +96,14 @@ doğrulayıcının çekirdeği olur.
 
 | | Karar | Bugün |
 | --- | --- | --- |
-| Paket sürümü | SemVer. **Majör** = kapsam türü/öznitelik anahtarı kaldırıldı ya da madde kodu değişti; **minör** = madde/yükümlülük eklendi; **yama** = metin/çeviri | `FrameworkSurumu` + `SurumFarki` çerçeve sürümünü tutuyor; paket sürümü **yok** |
-| Kiracının kurulu sürümü | `KiraciPaketi(kiraci × paket × kuruluSurum × kurulumZamani × kuranId × durum)`; `durum ∈ {kurulu, guncelleme_var, kaldirildi}` | **yok** (P2 + P4) |
+| Paket sürümü | SemVer. **Majör** = kapsam türü/öznitelik anahtarı kaldırıldı ya da madde kodu değişti; **minör** = madde/yükümlülük eklendi; **yama** = metin/çeviri | `FrameworkSurumu` + `SurumFarki` çerçeve sürümünü tutuyor; paket sürümü **`IcerikPaketiSurumu`** (SemVer, `@@unique([paketId, surum])`) — 9 Eyl 2026 |
+| Kiracının kurulu sürümü | `KiraciPaketi(kiraci × paket × kuruluSurum × kurulumZamani × kuranId × durum)`; `durum ∈ {kurulu, guncelleme_var, kaldirildi}` | `IcerikPaketi(durum ∈ {kurulu, arsiv})` + `IcerikPaketiSurumu(durum ∈ {kurulu, onceki, arsiv}, kurulumZamani, kuranId, raporJson)` — kiracısız (tek kurulum); P2 kiracı boyutunu ekler |
 | "Güncelleme var" | Hub kataloğunda daha yeni sürüm → `guncelleme_var`; ekran fark özetini `SurumFarki` ile gösterir; **uygulama insan kararıdır** (motor önerir) | fark motoru var, katalog yok |
-| **Müşterinin eşlemeleri ezilmez** | Her eşleme/istisna/öznitelik satırı **köken** taşır: `koken ∈ {paket, kiraci}` + `paketSurumu?`. Güncelleme yalnız `koken = paket` satırlarını değiştirir; `kiraci` satırları dokunulmaz ve fark raporunda "sizin eşlemeniz, paket eşlemesiyle çelişiyor" diye **işaretlenir**, silinmez | `MaddeEslestirmesi`'nde köken alanı **yok** (`grep koken` → 0); `TesisOzellik.kaynak` var (`goc:P1 · elle · ice_aktarim`) — aynı desen genişletilir |
+| **Müşterinin eşlemeleri ezilmez** | Her eşleme/istisna/öznitelik satırı **köken** taşır: `koken ∈ {paket, kiraci}` + `paketSurumu?`. Güncelleme yalnız `koken = paket` satırlarını değiştirir; `kiraci` satırları dokunulmaz ve fark raporunda "sizin eşlemeniz, paket eşlemesiyle çelişiyor" diye **işaretlenir**, silinmez | `koken` + `paketSurumId` **yedi tabloda var** (`Regulasyon · FrameworkSurumu · MaddeEslestirmesi · SektorSozlugu · KapsamOgesiTuru · SektorOznitelikSemasi · BildirimYukumlulugu`); kurucu yalnız `paket` kökenli satırı değiştirir, aynı anahtardaki `kiraci` satırını kurulum raporuna **çelişki** olarak yazar ve dokunmaz; kiracı kaydı bağlı taslak sürüm üzerine yazılmaz — bağ listesi (`MADDE_BAG_ILISKILERI`: kapsam alanı, durum, eşleme, istisna, proje, risk, denetim kapsamı, belge, eğitim, yerine geçme) şemadaki her `Madde` liste ilişkisini kapsar ve bekçi bunu şemaya karşı ölçer (`tests/paket-kur.test.ts`; ölçüldü: `MaddeAlan` listede yoktu, kaskatla siliniyordu — PR #41 incelemesi). Eşleme CSV'si bu dilimde yok (R6 ile) |
+| **Yükseltmede bırakılan içerik** | Majör sürüm tür/öznitelik anahtarı kaldırabilir; kaldırılan içerik **silinmez**, pasifleşir; kiracı satırı yine dokunulmaz | **Uzlaştırma var (9 Eyl 2026, URN-PKT-006):** yeni sürümün beyan etmediği paket kökenli `KapsamOgesiTuru` ve `BildirimYukumlulugu` `aktif=false`, paketin kendi taslak `FrameworkSurumu`su `arsiv`; süzgeç `paketSurumId` (kiracı satırına dokunulmaz). `SektorSozlugu` ve `SektorOznitelikSemasi`nde aktif bayrağı yok → satır yerinde kalır, kurulum raporunda `artik` olarak listelenir (insan karar verir); `aktif` alanı P4'ün sonraki dilimi |
+| **Kurulu sürüm değişmez** | SemVer sürümü değişmezdir: içerik ya da kimlik üstverisi değiştiyse numara yükselir; aynı numarayla farklı içerik kurulamaz | **Var (9 Eyl 2026, URN-PKT-008):** sürüm kaydı manifest ve özetleri taşır; aynı `surum` ile değişmez alanları (`kod · tur · ulke · sektor · dil · yayinci · lisans · bagimliliklar · icerikOzetleri`) farklı paket SÜRÜM hatasıyla reddedilir, kayıt ve içerik olduğu gibi kalır; `ad`/`aciklama` değişebilir. Aynı içerikle yeniden kurulum idempotent ve madde ağacına dokunmaz (kimlikler korunur). Bağımlılık kararı da transaction içinde (URN-PKT-007). Kiracının madde DÜZENLEMESİ (denetim izinde `Madde` kaydı) de bağ sayılır: taslak yenilenmez, yeni etiket ister |
+| **Kaldırma bağımlıları korur · geri kurulum** | Bağımlı kurulu paket varken kaldırma yok; kaldırılan paket aynı içerikle geri kurulabilir | **Var (9 Eyl 2026, URN-PKT-009):** kurulu sürüm manifestlerinde bu pakete bağımlılık beyan eden paket varsa kaldırma reddedilir (adıyla); geri kurulumda paketin kendi arşiv taslağı taslağa döner, madde kimlikleri korunur. Madde ağacı 200'lük partilerle (`createManyAndReturn`) ve 120 sn transaction bütçesiyle yazılır |
+| Durum değişimi + iz | Kurulum/arşiv ve iz kaydı ya birlikte var ya ikisi de yok | **Aynı transaction (URN-PKT-007):** `paketiKur`/`paketiKaldir` `ayniIslemde` kancasıyla izi transaction içinde yazar; iz yazılamazsa kurulum/arşiv geri alınır. Kaldırmada "aktif sürüm var mı" sayımı da arşiv yazımıyla aynı transaction'da — arada aktifleştirme giremez |
 | Geri alma | Önceki sürüm paketi hub'da kalır; geri alma = önceki sürümü kurma; `kiraci` satırları yine korunur | — |
 
 ---
@@ -118,6 +127,7 @@ gerekçeli ve yalnız küçülür.
 | §1.2 kapsam türleri | `KapsamOgesiTuru` + `KapsamOgesi`; **dokuz** omurga tablosu `kapsamOgesiId` (`SurecKapsami · MaddeDurumu · UygulanabilirlikKarari · Istisna · KanitKapsami · DenetciKapsami · DegerlendirmeAktarimi · UyumAnlik · Yetki`); `TesisTipi.varsayilanKapsamTuru` (tip → tür, paket verisi); bekçi `tests/bekci/kapsam-omurga.test.ts` (URN-KAP-001) | türlerin paketten yüklenmesi |
 | §1.3 öznitelik | `tarih` tipi; `rol` alanı (`kapasite` deseni genelleşti: `kritiklik`); `grup` ve `secenekler`; enerji profil kolonları öznitelik; bekçi `tests/bekci/sema-sektorsuz.test.ts` (URN-KAP-002: paket anahtarı çekirdek şemada kolon olamaz) | kurum öznitelikleri (kapsam öğesine) |
 | §5 kalıcı kural | bekçi | — |
+| §1.1 · §1.2 · §1.3 · §1.4 · §1.5 kurulum | **P4 dilimi (9 Eyl 2026):** `lib/paket/` — `bicim.ts` (şemalar, CSV) · `dogrula.ts` (yedi hata sınıfı) · `kur.ts` (tek transaction, TASLAK sürüm, köken, çelişki raporu, arşiv). Eylemler `lib/eylemler2/paket.ts` (`paketKur` · `paketKaldir`, `tanimlar/yazma`, iz). İskeletler `paketler/TR-ENERJI` · `paketler/TR-BANKACILIK` (`tests/paket-iskeletler.test.ts`). Tohum taşınabilirliği `docs/P4_TOHUM_TASIMA_OLCUMU.md` | form (§1.6) · rapor (§1.7) · rol (§1.8) · demo (§1.9) · eşleme CSV · ekran (`/paketler`) |
 
 ---
 

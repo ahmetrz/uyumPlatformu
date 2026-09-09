@@ -42,6 +42,7 @@ kabul kriteridir (P0 · URN-KUR-003); ölü atıf eklemeyin.
 | Tesis-dışı sektör (bankacılık) model uyum testi | `docs/TESIS_DISI_SEKTOR_UYUM_TESTI.md` |
 | Açılış ekranı devir notu · ürün şartı | `docs/ACILIS_DEVIR_NOTU.md` |
 | Sektör-ülke paketi sözleşmesi | `docs/SEKTOR_PAKETI_SOZLESMESI.md` |
+| Paket dizinleri · doğrulayıcı · kurucu (P4) | `web/paketler/BENIOKU.md` · `web/lib/paket/` · `docs/P4_TOHUM_TASIMA_OLCUMU.md` |
 | Enerji–su parite kanıtı (K4) | `docs/kanit/faz-b-k4/OZET.md` · `web/arac/k4-enerji-su.mjs` |
 | Zorunlu UX / ürün tasarımı skill seti | `.claude/skills/` |
 
@@ -158,6 +159,16 @@ aşaması taşımak zorundadır ("süresiz beyan yoktur"), kalıcı satır
 kapanış taşıyamaz. KALICI cırcırın kaçış kapısı olduğu için kendi alt
 küme dişini taşır: taban dalda ertelenmiş olan bir satır bu dalda
 kalıcıya sessizce terfi edemez.
+
+**Nullable kolonda olumsuz yüklem NULL'u AÇIKÇA ele alır.** `NOT: { x: v }`,
+`{ not: v }`, `{ notIn: [...] }`, ham SQL `NOT IN`/`<>`/`!=` üç değerli
+mantıkta NULL satırı sessizce düşürür. Ölçüldü (8 Eylül 2026):
+`NOT: { rol: 'kapasite' }` enerji Tesis 360'ta rolü boş yedi özniteliği
+yok etti ve 3 292 yeşil test görmedi. Bugün: NULL ya `OR` dalıyla dâhil
+edilir (`OR: [{ x: null }, { x: { not: v } }]`) ya `NOT: { x: null }` ile
+bilerek dışlanır; ikisi de yoksa bekçi kırmızıdır
+(`web/tests/bekci/null-olumsuzlama.test.ts`, URN-VER-001); meşru istisna
+gerekçeli izin listesinde durur ve liste yalnız küçülür.
 
 **Dosyayı değiştirmeden önce güncel hâlini oku.**
 

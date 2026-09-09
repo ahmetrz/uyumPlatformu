@@ -1,0 +1,30 @@
+{
+  "kod": "TR-BANKACILIK",
+  "ad": "Türkiye · Bankacılık (BDDK) sektör paketi — iskelet",
+  "tur": "sektor",
+  "ulke": "TR",
+  "sektor": {
+    "kod": "BANKACILIK",
+    "ad": "Bankacılık"
+  },
+  "dil": "tr",
+  "surum": "0.1.0",
+  "yayinci": "Uyum ve Yönetişim Platformu (iskelet)",
+  "lisans": {
+    "tur": "kamuya_acik",
+    "metinDahil": false,
+    "kaynak": "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=34360&MevzuatTur=7&MevzuatTertip=5",
+    "not": "Resmî metin (RG 15.03.2020/31069) — birincil kaynak erişilemedi (503); yapı Lexpera konsolide metninden (ikincil). İskelet, madde metni yok"
+  },
+  "bagimliliklar": [],
+  "icerikOzetleri": {
+    "cerceve/BDDK-BS.csv": "7c3fdf10e07065147a9b1cc5ee90163f0c27d6d6c03d4b31837280fee2615487",
+    "cerceve/BDDK-BS.json": "43df7081305d6ddaebc78911cc8154be41daaa2db6a55c8bae05e687120794f3",
+    "kapsam-turleri.json": "cee29f60610409bb03d2af9582ff1fc8a41e4c19f9eed13a5394e104f1ba54b5",
+    "oznitelikler.json": "1fd83f51b5a9fbf77d275ff0f7a01ce44c91ac4ad79c7e6539cf7c4541392db0",
+    "sozluk.json": "74efe54c9fd4209567a1d7f0ef11a3c18b3995dbd8bb73a589462ea3daf81cbc",
+    "yukumlulukler.json": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+  },
+  "imza": null,
+  "aciklama": "İSKELET (P4 · 4.5): kapsam öğesi türleri (sistem · dış hizmet · iş fonksiyonu · komite), öznitelikler ve BDDK yönetmeliğinin kısım/bölüm yapısı + 47 madde numarası. Madde başlıkları ve madde–bölüm eşlemesi birincil metin erişilince doldurulur; uydurulmadı (docs/TR_SEKTOR_PAKETLERI.md §3.2)."
+}

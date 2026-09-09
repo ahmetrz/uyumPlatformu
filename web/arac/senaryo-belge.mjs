@@ -62,6 +62,7 @@ export const KUTUKSUZ_DOSYALAR = {
   'inceleme-30.test.ts': 'Bir inceleme turunun beş bulgusunun düzeltme kanıtı — birlikte okunmaları gerekir',
   'bekci/sunucu-eylem-ihraci.test.ts': "`'use server'` dosyasının ihraç kuralı —"
     + ' nesne ihracı çalışma zamanında 500 verir, tsc ve lint göremez',
+  'denetim-sablon.test.ts': 'Paket form şablonunun doldurulması — çekirdek yalnız doldurur; bağlanmayan şablon alanı formu dolu göstermez',
   'denetim-formu-eylem.test.ts': 'Denetim formu eyleminin kapsam denetimi ve iz kaydı — kapsam dışı istek reddedilir, sessizce daraltılmaz',
   'denetim-formu.test.ts': 'Denetim formunun saf kuralları — hiçbir hücre boş kalmaz, gerekçe uydurulmaz, hedef ile mevcut olgunluk karışmaz',
   'derleme-artefakti.test.ts': 'Paylaşılan derleme artefaktının ortam beyanı — beyansız tüketim ve gizli yol tuzağı',

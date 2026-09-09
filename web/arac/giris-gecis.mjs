@@ -15,7 +15,7 @@ try {
     const tempo = page.getByLabel('Yolculuk temposu');
     const kutu = await tempo.boundingBox();
     assert.ok(kutu && kutu.y >= 0 && kutu.y + kutu.height <= 480, `kısa ekranda tempo görünmüyor: ${JSON.stringify(kutu)}`);
-    await tempo.selectOption('.72');
+    await tempo.selectOption('0.72');
     await context.close();
   }
   for (const width of [375, 1440]) {

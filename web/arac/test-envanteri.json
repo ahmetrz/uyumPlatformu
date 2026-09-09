@@ -1,7 +1,7 @@
 {
-  "imza": "d45b4368259a4a7427af8c8d10eaa8da",
-  "dosya": 189,
-  "vaka": 3468,
+  "imza": "3c366a9b6cac99644c4f630913f1d23c",
+  "dosya": 190,
+  "vaka": 3475,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -521,7 +521,7 @@
       "atlanan": 0
     },
     "tests/paket-oscal.test.ts": {
-      "vaka": 10,
+      "vaka": 12,
       "atlanan": 0
     },
     "tests/paket-rol.test.ts": {
@@ -537,7 +537,7 @@
       "atlanan": 0
     },
     "tests/paketler-mantik.test.ts": {
-      "vaka": 5,
+      "vaka": 8,
       "atlanan": 0
     },
     "tests/paketler-veri.test.ts": {
@@ -681,6 +681,10 @@
       "atlanan": 0
     },
     "tests/uyum-metin-durumu.test.ts": {
+      "vaka": 2,
+      "atlanan": 0
+    },
+    "tests/uyum-taslak-serit.test.ts": {
       "vaka": 2,
       "atlanan": 0
     },

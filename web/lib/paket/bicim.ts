@@ -188,6 +188,10 @@ export const CerceveKimligiSemasi = z.object({
   zorunlulukTipi: z.enum(ZORUNLULUK_TIPLERI).default('REGULATION'),
   /** uygulanabilirlik beyanı (§1/9); yoksa çerçeve tür bağı beyan etmez — kiracı kuralı yazar */
   uygulanabilirlik: UygulanabilirlikBeyaniSemasi.nullable().optional(),
+  /** TEMSİLÎ metin: madde metni bir belgeye BENZETİLEREK yazılmıştır, o belgeden alınmamıştır
+      (demo içeriği). Beyan alanda durur, yorumda değil: kaynağı olmadığını SÖYLEYEN çerçeve
+      köken zorunluluğundan muaftır; söylemeyen çerçeve `kaynakUrl` beyan etmek zorundadır. */
+  temsili: z.boolean().optional(),
   not: z.string().max(500).optional(),
 }).strict();
 export type CerceveKimligi = z.infer<typeof CerceveKimligiSemasi>;
@@ -196,8 +200,15 @@ export type CerceveKimligi = z.infer<typeof CerceveKimligiSemasi>;
 export const MADDE_ZORUNLU_SUTUNLAR = ['kod', 'ust_kod', 'baslik'] as const;
 export const MADDE_SUTUNLARI = [
   ...MADDE_ZORUNLU_SUTUNLAR, 'metin', 'sira', 'seviye', 'zorunluluk_tipi', 'kanit_beklentisi', 'dis_kontrol_id', 'kanit_tipi',
-  'kaynak_url', 'kaynak_yeri', 'erisim_tarihi', 'yururluk_tarihi',
+  'kaynak_url', 'kaynak_yeri', 'erisim_tarihi', 'yururluk_tarihi', 'gereksinim_tipi',
 ] as const;
+/** `seviye` = ürünün HEDEF OLGUNLUĞU (0–5 merdiveni, `lib/uyum/olgunluk.ts`) — ekran
+    "hedef: Başlangıç" diye okur ve ölçülenle karşılaştırır. Çerçevenin KENDİ kademesi
+    (EPDK "Seviye 1/2/3", ISO ek sınıfı) bu değil: `gereksinim_tipi` sütunundadır.
+    Ölçüldü (bağımsız inceleme, PR #43 tur 2): EPDK kademesi `seviye`ye yazılınca 508
+    zorunlu kontrolün hedefi ürünün en alt üç kademesine çekiliyor ve kişiye bağlı
+    ad-hoc uygulama "hedefte" (yeşil) görünüyordu. */
+export const GEREKSINIM_TIPI_SINIRI = 60;
 /** Köken sütunları (içerik): `kaynak_url` resmî belge adresi · `kaynak_yeri` belge içi konum ·
     `erisim_tarihi` kaynağa erişim günü · `yururluk_tarihi` maddenin kendi yürürlüğü (değişiklik
     tarihi; boşsa çerçevenin yürürlüğü). Metin girilmiş kamuya açık maddede `kaynak_url` ve
@@ -212,6 +223,8 @@ export type MaddeSatiri = {
   seviye: number | null; zorunlulukTipi: string | null; kanitBeklentisi: string | null; disKontrolId: string | null;
   kanitTipi: string | null;
   kaynakUrl: string | null; kaynakYeri: string | null; erisimTarihi: string | null; yururlukTarihi: string | null;
+  /** çerçevenin kendi gereksinim sınıfı/kademesi ("Seviye 2", "Ek Kontrol") — hedef olgunluk DEĞİL */
+  gereksinimTipi: string | null;
 };
 
 export const YukumlulukSatiriSemasi = z.object({

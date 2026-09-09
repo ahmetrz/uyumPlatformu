@@ -189,6 +189,9 @@ async function maddeleriYaz(tx: Tx, regulasyonId: string, surumId: string, k: Ce
         // telifli çerçevede serbest metin alanı yazılmaz — doğrulayıcı reddeder, kurucu da yazmaz (iki kilit)
         kanitBeklentisi: k.lisans.tur === 'telifli' ? null : md.kanitBeklentisi, disKontrolId: md.disKontrolId,
         kanitTipi: md.kanitTipi,
+        /* Çerçevenin kendi kademesi ürünün hedef olgunluğuna YAZILMAZ (inceleme, PR #43 tur 2):
+           `seviye` → `olgunlukSeviyesi` (0–5 hedef merdiveni), `gereksinim_tipi` → `gereksinimTipi`. */
+        gereksinimTipi: md.gereksinimTipi,
         /* köken: metnin nereden ve ne zaman alındığı maddenin YANINDA durur (içerik kuralı) */
         maddeKaynakUrl: md.kaynakUrl, kaynakSayfa: md.kaynakYeri, kaynakErisimTarihi: tarih(md.erisimTarihi), gecerliBaslangic: tarih(md.yururlukTarihi),
       })),
@@ -367,7 +370,10 @@ async function yaz(tx: Tx, icerik: PaketIcerigi, kuranId: string | null, simdi: 
        ve mevzuat kütüphanesi "yürürlük yok" diyordu (inceleme bulgusu).
        Paketin kendi ARŞİV taslağı (kaldırma sonrası geri kurulum) taslağa
        döner — yeni etiket istemez (inceleme bulgusu). */
-    const surumVerisi = { kaynakUrl: k.kaynakUrl ?? null, yayimTarihi: tarih(k.yayimTarihi), yururlukTarih: tarih(k.yururlukTarih), durum: 'taslak', ...koken };
+    /* Paketin beyanı SÜRÜME iner: `not` (ör. "metin TEMSİLÎDİR") ve `temsili` bayrağı
+       kurulumda buharlaşıyordu — veritabanında kurgusal metin gerçek mevzuattan ayırt
+       edilemiyordu (bağımsız inceleme, PR #43 tur 2). Rozet henüz yok; veri artık var. */
+    const surumVerisi = { kaynakUrl: k.kaynakUrl ?? null, yayimTarihi: tarih(k.yayimTarihi), yururlukTarih: tarih(k.yururlukTarih), durum: 'taslak', paketNotu: k.not ?? null, temsili: k.temsili ?? false, ...koken };
     let surumId: string;
     if (surumMevcut && ayniIcerik) {
       /* Aynı sürüm, aynı içerik: madde ağacına DOKUNULMAZ — kimlikler,
@@ -419,6 +425,13 @@ async function yaz(tx: Tx, icerik: PaketIcerigi, kuranId: string | null, simdi: 
        hiç yok: ezilmez. Motor kararı ÖNERİR; hiçbir sürüm aktifleşmez. */
     const beyan = k.uygulanabilirlik ?? null;
     const eskiKural = await tx.uygulanabilirlikKurali.findFirst({ where: { regulasyonId, paketSurumId: { in: paketinSurumleri } }, orderBy: { olusturuldu: 'desc' } });
+    /* BAŞKA bir paketin aynı regülasyon için aktif kuralı varsa iki paket kuralı
+       yan yana durur ve motorda sıra belirsizleşir: çelişki RAPORLANIR (inceleme,
+       PR #43 tur 2). Kiracının kuralı bu sayıma girmez — o zaten üstündür. */
+    if (beyan) {
+      const baskaPaket = await tx.uygulanabilirlikKurali.count({ where: { regulasyonId, aktif: true, koken: 'paket', NOT: { paketSurumId: { in: paketinSurumleri } }, paketSurumId: { not: null } } });
+      if (baskaPaket > 0) celiskiler.push({ tablo: 'UygulanabilirlikKurali', anahtar: k.kod, sebep: `başka paketin ${baskaPaket} aktif kuralı var — iki paket kuralı yan yana, kararın hangisiyle verildiği belirsizleşebilir` });
+    }
     if (beyan) {
       const kosulJson = JSON.stringify(beyandanKural(beyan));
       const veri = { ad: `Paket beyanı · ${k.kod}`, kosulJson, aciklama: beyan.aciklama ?? null, aktif: true, ...koken };
@@ -643,7 +656,9 @@ async function yaz(tx: Tx, icerik: PaketIcerigi, kuranId: string | null, simdi: 
 }
 
 export type KaldirmaRaporu = { paketId: string; arsivlenen: {
-  surumler: number; cerceveSurumleri: number; turler: number; yukumlulukler: number; sozluk: number; oznitelikler: number; formlar: number; raporlar: number; roller: number; eslemeler: number; kurallar: number } };
+  surumler: number; cerceveSurumleri: number; turler: number; yukumlulukler: number; sozluk: number; oznitelikler: number; formlar: number; raporlar: number; roller: number; eslemeler: number; kurallar: number };
+  /** Pasifleşen paket kurallarıyla verilmiş kapsam kararı sayısı — kayıtlar SİLİNMEZ, sayılır. */
+  etkilenenKarar: number };
 export type KaldirmaSonucu = ({ ok: true } & KaldirmaRaporu) | { ok: false; hata: string };
 
 /** Kaldırma = arşiv. Hiçbir satır silinmez; aktif çerçeve sürümü taşıyan
@@ -687,9 +702,14 @@ export async function paketiKaldir(
     const rp = await tx.raporSablonu.updateMany({ where: { paketSurumId: { in: surumIdleri } }, data: { aktif: false } });
     const rl = await tx.rolKatalogu.updateMany({ where: { paketSurumId: { in: surumIdleri } }, data: { aktif: false } });
     const es = await tx.maddeEslestirmesi.updateMany({ where: { paketSurumId: { in: surumIdleri } }, data: { aktif: false } });
+    /* Kural pasifleşir ama onunla verilmiş KARARLAR yerinde kalır (R-C: silme yok).
+       Sayısı raporlanır: "geri çekilmiş bir kuralla verilmiş karar" sessiz kalmasın
+       (bağımsız inceleme, PR #43 tur 2). */
+    const kuralIdleri = (await tx.uygulanabilirlikKurali.findMany({ where: { paketSurumId: { in: surumIdleri } }, select: { id: true } })).map((x) => x.id);
     const kr = await tx.uygulanabilirlikKurali.updateMany({ where: { paketSurumId: { in: surumIdleri } }, data: { aktif: false } });
+    const etkilenenKarar = kuralIdleri.length ? await tx.uygulanabilirlikKarari.count({ where: { kuralId: { in: kuralIdleri } } }) : 0;
     const rapor: KaldirmaRaporu = { paketId: paket.id, arsivlenen: {
-      surumler: s.count, cerceveSurumleri: c.count, turler: t.count, yukumlulukler: y.count, sozluk: sz.count, oznitelikler: oz.count, formlar: fr.count, raporlar: rp.count, roller: rl.count, eslemeler: es.count, kurallar: kr.count } };
+      surumler: s.count, cerceveSurumleri: c.count, turler: t.count, yukumlulukler: y.count, sozluk: sz.count, oznitelikler: oz.count, formlar: fr.count, raporlar: rp.count, roller: rl.count, eslemeler: es.count, kurallar: kr.count }, etkilenenKarar };
     if (secenekler.ayniIslemde) await secenekler.ayniIslemde(tx, rapor);
     return { ok: true, ...rapor };
   }, TX_SECENEK);

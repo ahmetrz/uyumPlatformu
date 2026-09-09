@@ -2,7 +2,7 @@
   "kod": "EPDK-SGYM-EK3",
   "ad": "Ek-3 · Elektrik Üretim Sektörü Siber Güvenlik Yetkinlik Modeli Teknik Kontrol Maddeleri",
   "surumEtiketi": "RG-2025-11-25-33088",
-  "yayimTarihi": "2023-06-06",
+  "yayimTarihi": "2024-01-28",
   "yururlukTarih": "2024-01-28",
   "kaynakUrl": "https://www.epdk.gov.tr/Detay/Icerik/3-33068/enerji-sektorunde-siber-guvenlik-yetkinlik-modeli-",
   "lisans": {
@@ -13,7 +13,7 @@
   },
   "maddeDosyasi": "EPDK-SGYM-EK3.csv",
   "zorunlulukTipi": "REGULATION",
-  "not": "13 kontrol ailesi + 565 kontrol. Kimlik (No), kontrol grubu (Alt Kontrol) ve kontrol METNİ Ek-3 dosyasından okundu; seviye 1–3 `seviye` sütununda, 57 \"Ek Kontrol\" seviyesiz ve OPTIONAL (yönetmelik: \"zorunlu değildir\") — seviyesizlik sıfır değil, zorunluluk tipinde söylenir.",
+  "not": "13 kontrol ailesi + 565 kontrol. Kimlik (No), kontrol grubu (Alt Kontrol) ve kontrol METNİ Ek-3 dosyasından okundu; seviye 1–3 `seviye` sütununda, 57 \"Ek Kontrol\" seviyesiz ve OPTIONAL (yönetmelik: \"zorunlu değildir\") — seviyesizlik sıfır değil, zorunluluk tipinde söylenir. Ek-3 yönetmeliğe 28/1/2024 değişikliğiyle EKLENDİ (MADDE 8, \"Ek satır:RG-28/1/2024-32443\"); yayım ve yürürlük tarihi ekin kendi tarihidir, ana yönetmeliğinki (6/6/2023) değil.",
   "uygulanabilirlik": {
     "kapsamTurleri": [
       "tesis",

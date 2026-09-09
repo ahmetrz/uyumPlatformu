@@ -9,7 +9,7 @@
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
-| Taranan test dosyası | 189 |
+| Taranan test dosyası | 190 |
 
 ## Katman başına kapsam
 
@@ -489,6 +489,7 @@
 | `URN-PKT-002` | Ürünleştirme | DOMAIN · SERVER | `paket-dogrula.test.ts` | kamuya açık ama metinDahil=false (iskelet) → metin taşıyan satır LİSANS; metinsiz geçer | evet | geçti |
 | `URN-PKT-002` | Ürünleştirme | DOMAIN · SERVER | `paket-kur.test.ts` | kurulu regülasyon telifliyse kamuya açık beyanlı paket LİSANS ile reddedilir | evet | geçti |
 | `URN-PKT-002` | Ürünleştirme | DOMAIN · SERVER | `paket-oscal.test.ts` | telifli çerçevede OKUNMAYAN metin alanı (yabancı prose/prop) LİSANS ile reddedilir | evet | geçti |
+| `URN-PKT-002` | Ürünleştirme | DOMAIN · SERVER | `paket-oscal.test.ts` | telifli metin GRUP part\'ında ya da İÇ İÇE part\'ta saklanamaz — muafiyet ada değil YOLA bağlı | evet | geçti |
 | `URN-PKT-002` | Ürünleştirme | DOMAIN · SERVER | `paket-sablon.test.ts` | manifesti kamuya açık ama TELİFLİ ÇERÇEVE taşıyan pakette de XLSX yasak | evet | geçti |
 | `URN-PKT-003` | Ürünleştirme | SERVER · INTEGRATION | `paket-eylem.test.ts` | okuyucu rolü paket kuramaz | evet | geçti |
 | `URN-PKT-003` | Ürünleştirme | SERVER · INTEGRATION | `paket-eylem.test.ts` | paket yolu paketler/ dışına çıkamaz — kod deseni ve dizin çözümü | evet | geçti |
@@ -508,8 +509,8 @@
 | `URN-PKT-004` | Ürünleştirme | SERVER · INTEGRATION | `paket-kur.test.ts` | kaldırma = arşiv: paket/sürüm arşiv, taslak çerçeve arşiv, tür ve yükümlülük pasif; HİÇBİR satır silinmez | evet | geçti |
 | `URN-PKT-004` | Ürünleştirme | SERVER · INTEGRATION | `paket-kur.test.ts` | aktif çerçeve sürümü taşıyan paket kaldırılamaz | evet | geçti |
 | `URN-PKT-004` | Ürünleştirme | SERVER · INTEGRATION | `paket-kur.test.ts` | hedef olgunluk gibi skaler düzenleme izi olan madde: yeni sürüm aynı etiketi yenileyemez (SÜRÜM); yeni etiket kurulur | evet | geçti |
-| `URN-PKT-005` | Ürünleştirme | DOMAIN · INTEGRATION | `paket-iskeletler.test.ts` | hiçbir maddede METİN yok; her çerçeve kamuya açık ama metinDahil=false (iskelet) | evet | geçti |
-| `URN-PKT-005` | Ürünleştirme | DOMAIN · INTEGRATION | `paket-iskeletler.test.ts` | EPDK-SGYM yapısı: 4 bölüm + 18 madde + 1 geçici, başlıklar birincil dosyadan; Ek-3: 13 aile + 565 kontrol, seviye 1–3 | evet | geçti |
+| `URN-PKT-005` | Ürünleştirme | DOMAIN · INTEGRATION | `paket-iskeletler.test.ts` | TR-BANKACILIK hâlâ İSKELET: hiçbir maddede metin yok, metinDahil=false | evet | geçti |
+| `URN-PKT-005` | Ürünleştirme | DOMAIN · INTEGRATION | `paket-iskeletler.test.ts` | EPDK-SGYM yapısı: 4 bölüm + 18 madde + 1 geçici, başlıklar birincil dosyadan; Ek-3: 13 aile + 565 kontrol, kademe Seviye 1–3/Ek Kontrol | evet | geçti |
 | `URN-PKT-006` | Ürünleştirme | SERVER · INTEGRATION | `paket-kur.test.ts` | v0.2.0 B\'yi bırakınca: tür B ve yükümlülük B pasif, YUK-B taslağı arşiv, A yeni sürüme geçer; hiçbir satır silinmez; sözlük/öznitelik B artık | evet | geçti |
 | `URN-PKT-006` | Ürünleştirme | SERVER · INTEGRATION | `paket-kur.test.ts` | uzlaştırma kiracı satırına dokunmaz: kiracı türü pasifleşmez; tekrar kurulumda uzlaştırma sıfır | evet | geçti |
 | `URN-PKT-007` | Ürünleştirme | SERVER · INTEGRATION | `paket-eylem.test.ts` | iz yazılamazsa kurulum da GERİ ALINIR — durum ve iz aynı transaction\'da | evet | geçti |
@@ -576,17 +577,19 @@
 | `URN-PKT-017` | Ürünleştirme | DOMAIN | `paket-oscal.test.ts` | tekrar kod KİMLİK, katalog kodu kimlikle uyuşmazsa KİMLİK, bozuk katalog BIÇIM, seviye aralık dışı BIÇIM | evet | geçti |
 | `URN-PKT-017` | Ürünleştirme | DOMAIN | `paket-oscal.test.ts` | İÇ İÇE grup okunur: alt aile ve maddeleri sessizce düşmez | evet | geçti |
 | `URN-PKT-017` | Ürünleştirme | DOMAIN | `paket-oscal.test.ts` | telifli çerçevede OKUNMAYAN metin alanı (yabancı prose/prop) LİSANS ile reddedilir | evet | geçti |
+| `URN-PKT-017` | Ürünleştirme | DOMAIN | `paket-oscal.test.ts` | grup derinlik sınırı SESSİZ KAYIP üretmez: kendi kontrolleri okunur, aşan grup uyarıya düşer | evet | geçti |
 | `URN-PKT-017` | Ürünleştirme | DOMAIN | `paket-oscal.test.ts` | katalog SÜRÜMÜ kimlikle uyuşmalı; ns\'siz yabancı prop bizim sanılmaz | evet | geçti |
 | `URN-PKT-017` | Ürünleştirme | DOMAIN | `paket-oscal.test.ts` | yabancı katalog: kod prop\'u yok, gruplu — grup üst madde, id kod, sıra gezinti sırası | evet | geçti |
 | `URN-PKT-018` | Ürünleştirme | DOMAIN · SERVER · UI | `paketler-mantik.test.ts` | eylemler: düğme yetkisize gösterilir ve nedeni yazılır; bağımlı ve aktif çerçeve kaldırmayı engeller; diskte yok kurmayı engeller, kaldırmayı değil | evet | geçti |
 | `URN-PKT-018` | Ürünleştirme | DOMAIN · SERVER · UI | `paketler-veri.test.ts` | geçici kök: yeni sürüm → güncelleme var; bozuk manifest → doğrulanamadı (hatalar listelenir); dizin yok → diskte yok; paket kökü yok → kökHatasi | evet | geçti |
 | `URN-PKT-019` | Ürünleştirme | DOMAIN · SERVER | `paket-icerik.test.ts` | kaynağı olan çerçevede metinli madde kaynak_url + erisim_tarihi taşır; taşımayan KAYNAK | evet | geçti |
-| `URN-PKT-019` | Ürünleştirme | DOMAIN · SERVER | `paket-icerik.test.ts` | kaynağı OLMAYAN çerçeve (kiracı iç politikası) ve demo paketi muaftır | evet | geçti |
+| `URN-PKT-019` | Ürünleştirme | DOMAIN · SERVER | `paket-icerik.test.ts` | kaçış kapısı kapalı: kaynak adresini SİLMEK muafiyet vermez — çerçeve ya kaynağını ya temsilîliğini beyan eder | evet | geçti |
 | `URN-PKT-019` | Ürünleştirme | DOMAIN · SERVER | `paket-icerik.test.ts` | kaynak_url adres olmalı, tarihler takvimde olmalı, kaynak_yeri konumdur | evet | geçti |
 | `URN-PKT-019` | Ürünleştirme | DOMAIN · SERVER | `paket-icerik.test.ts` | metinsiz madde köken istemez — "metin girilmedi" hâli boş bırakılır, uydurulmaz | evet | geçti |
 | `URN-PKT-019` | Ürünleştirme | DOMAIN · SERVER | `paket-icerik.test.ts` | metinli her maddede kaynak adresi ve erişim tarihi var; metinsiz madde uydurma köken taşımaz | evet | geçti |
 | `URN-PKT-019` | Ürünleştirme | DOMAIN · SERVER | `paket-icerik.test.ts` | Ek-3: 565 kontrol, 57 "Ek Kontrol" seviyesiz ve OPTIONAL — seviyesizlik sıfır değil | evet | geçti |
 | `URN-PKT-019` | Ürünleştirme | DOMAIN · SERVER | `paket-icerik.test.ts` | lisans: kamuya açık, metin dâhil, FSEK md. 31 dayanağı kimliklerde yazılı | evet | geçti |
+| `URN-PKT-019` | Ürünleştirme | DOMAIN · SERVER | `paket-iskeletler.test.ts` | TR-ENERJI artık içerikli: iki çerçeve de metin taşır ve her metinli madde KÖKEN taşır | evet | geçti |
 | `URN-PKT-019` | Ürünleştirme | DOMAIN · SERVER | `paket-uygulanabilirlik.test.ts` | madde köken alanları veritabanına iner: kaynak adresi, belge içi konum, erişim ve yürürlük tarihi | evet | geçti |
 | `URN-PKT-019` | Ürünleştirme | DOMAIN · SERVER | `uyum-metin-durumu.test.ts` | notsuz hücrede sabit gerekçe olmaz; gerçek metin ilk cümlesiyle gerekçe olur | evet | geçti |
 | `URN-PKT-020` | Ürünleştirme | DOMAIN · SERVER | `paket-icerik.test.ts` | geçerli beyan: çekirdek ve paket türleri, kuralda kullanılan öznitelik | evet | geçti |
@@ -605,6 +608,9 @@
 | `URN-PKT-020` | Ürünleştirme | DOMAIN · SERVER | `uygulanabilirlik.test.ts` | paket beyanının türü, aynı adlı bir ÖZNİTELİKLE ezilemez | evet | geçti |
 | `URN-PKT-021` | Ürünleştirme | SERVER · UI | `paket-uygulanabilirlik.test.ts` | paket kurulur: iki çerçeve TASLAK, 601 madde, hiçbir sürüm aktif değil | evet | geçti |
 | `URN-PKT-021` | Ürünleştirme | SERVER · UI | `paket-uygulanabilirlik.test.ts` | /uyum: çerçeve görünür ve "aktif sürüm yok · N madde taslak" der — 0 kontrol demez | evet | geçti |
+| `URN-PKT-021` | Ürünleştirme | SERVER · UI | `paketler-mantik.test.ts` | seçilen TASLAK çerçeve gösterilir — satırı olan çerçeveye kaymaz | evet | geçti |
+| `URN-PKT-021` | Ürünleştirme | SERVER · UI | `uyum-taslak-serit.test.ts` | şerit taslak dalını tanır ve dört ölçütü de bilinmeyene çevirir | evet | geçti |
+| `URN-PKT-021` | Ürünleştirme | SERVER · UI | `uyum-taslak-serit.test.ts` | taslak dalı sayısal ölçüt taşımaz — "0 Uygunsuz" iyi haber gibi okunur | evet | geçti |
 | `URN-PKT-010` | Ürünleştirme | DOMAIN | `bekci/paket-silme.test.ts` | madde dışında HİÇBİR modelde delete/deleteMany yok — tavan sıfır, istisna listesi yok | evet | geçti |
 | `URN-PKT-010` | Ürünleştirme | DOMAIN | `bekci/paket-silme.test.ts` | madde silmesi yalnız paketin kendi taslağını (`surumId` süzgeci) hedefler ve bağ kontrolünden sonra gelir | evet | geçti |
 | `URN-PKT-010` | Ürünleştirme | DOMAIN | `bekci/paket-silme.test.ts` | şemada Madde\'den başka modele giden HER liste ilişkisi bağ kontrolünde; listede şemada olmayan ilişki yok | evet | geçti |

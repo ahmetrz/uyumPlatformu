@@ -23,7 +23,7 @@ import { SOZLUK_SATIRI, cerceve, paketYaz, type PaketDosyalari } from './yardim/
 const KOK = process.cwd();
 const KAYNAKLI = (ek: Record<string, unknown> = {}) => ({
   ...cerceve('KYN-REG', { tur: 'kamuya_acik', metinDahil: true }),
-  kaynakUrl: 'https://www.resmigazete.gov.tr/eskiler/2023/06/20230606-2.htm', ...ek,
+  temsili: false, kaynakUrl: 'https://www.resmigazete.gov.tr/eskiler/2023/06/20230606-2.htm', ...ek,
 });
 const BASLIK = 'kod;ust_kod;baslik;metin;sira;seviye;zorunluluk_tipi;kanit_beklentisi;dis_kontrol_id;kanit_tipi;kaynak_url;kaynak_yeri;erisim_tarihi;yururluk_tarihi';
 const OZNITELIK = (anahtar: string, kural: boolean) => ({
@@ -57,11 +57,17 @@ describe('köken sütunları: metnin nereden ve ne zaman alındığı [URN-PKT-0
     });
   });
 
-  it('kaynağı OLMAYAN çerçeve (kiracı iç politikası) ve demo paketi muaftır [URN-PKT-019]', () => {
-    const kaynaksiz = dogrula({ ...cerceve('KYN-REG', { tur: 'kamuya_acik', metinDahil: true }) }, SATIR(';;;'));
-    expect(hatalari(kaynaksiz)).toEqual([]);
-    const demo = dogrula(KAYNAKLI(), SATIR(';;;'), { tur: 'demo' });
-    expect(hatalari(demo)).toEqual([]);
+  it('kaçış kapısı kapalı: kaynak adresini SİLMEK muafiyet vermez — çerçeve ya kaynağını ya temsilîliğini beyan eder [URN-PKT-019]', () => {
+    /* Bağımsız inceleme (PR #43 tur 2): kural yalnız `kaynakUrl` beyan eden çerçeveyi
+       bağlıyordu; adresi kimlikten silen paket 565 satır resmî metni kökensiz taşıyabilirdi. */
+    const sade = { ...cerceve('KYN-REG', { tur: 'kamuya_acik', metinDahil: true }), temsili: false } as Record<string, unknown>;
+    expect(hatalari(dogrula({ ...sade }, SATIR(';;;'))).join('\n')).toMatch(/KAYNAK: KYN-REG metin taşıyor ama kaynak adresi beyan etmiyor/);
+    /* TEMSİLÎ beyanı muaf tutar — beyan alanda durur, yorumda değil. */
+    expect(hatalari(dogrula({ ...sade, temsili: true }, SATIR(';;;')))).toEqual([]);
+    /* İkisi birden olamaz: kaynağı olduğunu söyleyen çerçeve temsilî değildir. */
+    expect(hatalari(dogrula(KAYNAKLI({ temsili: true }), SATIR('https://x.gov.tr/y;;2026-09-09;'))).join('\n')).toMatch(/hem temsilî hem kaynak adresi/);
+    /* Kurgusal demo paketi muaf. */
+    expect(hatalari(dogrula(KAYNAKLI(), SATIR(';;;'), { tur: 'demo' }))).toEqual([]);
   });
 
   it('kaynak_url adres olmalı, tarihler takvimde olmalı, kaynak_yeri konumdur [URN-PKT-019]', () => {
@@ -141,10 +147,13 @@ describe('TR-ENERJI içeriği: resmî metin, köken, uygulanabilirlik [URN-PKT-0
     const ek3 = cerceveleri().find((c) => c.kimlik.kod === 'EPDK-SGYM-EK3')!;
     const kontroller = ek3.maddeler.filter((m) => m.ustKod);
     expect(kontroller.length).toBe(565);
-    const sayim = (s2: number | null) => kontroller.filter((m) => m.seviye === s2).length;
-    expect([sayim(1), sayim(2), sayim(3), sayim(null)]).toEqual([264, 213, 31, 57]);
-    expect(kontroller.filter((m) => m.seviye === null).every((m) => m.zorunlulukTipi === 'OPTIONAL')).toBe(true);
-    expect(kontroller.filter((m) => m.seviye !== null).every((m) => m.zorunlulukTipi === 'REGULATION')).toBe(true);
+    /* EPDK kademesi ürünün HEDEF OLGUNLUĞU değildir (inceleme, PR #43 tur 2):
+       `gereksinim_tipi` sütununda durur, `seviye` (olgunluk hedefi) boştur. */
+    const sayim = (t: string) => kontroller.filter((m) => m.gereksinimTipi === t).length;
+    expect([sayim('Seviye 1'), sayim('Seviye 2'), sayim('Seviye 3'), sayim('Ek Kontrol')]).toEqual([264, 213, 31, 57]);
+    expect(kontroller.filter((m) => m.seviye !== null), 'EPDK kademesi hedef olgunluğa yazılmış').toEqual([]);
+    expect(kontroller.filter((m) => m.gereksinimTipi === 'Ek Kontrol').every((m) => m.zorunlulukTipi === 'OPTIONAL')).toBe(true);
+    expect(kontroller.filter((m) => m.gereksinimTipi !== 'Ek Kontrol').every((m) => m.zorunlulukTipi === 'REGULATION')).toBe(true);
   });
 
   it('iki çerçeve de uygulanabilirlik beyan eder; beyan dayanağını (madde) yazar [URN-PKT-020]', () => {

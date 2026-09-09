@@ -1120,6 +1120,10 @@ model FrameworkSurumu {
   yururlukTarih DateTime?
   kaynakUrl     String?
   durum         String    @default("taslak") // taslak | aktif | arsiv
+  /// Paketin çerçeve kimliğindeki `not` alanı — kurulumda saklanır (ör. "metin TEMSİLÎDİR").
+  paketNotu     String?
+  /// Metin TEMSİLÎ mi: bir belgeye benzetilerek yazıldı, o belgeden alınmadı (demo içeriği).
+  temsili       Boolean   @default(false)
   olusturuldu   DateTime  @default(now())
   /// P4 · KÖKEN: `paket` satırını paket güncellemesi değiştirir; `kiraci`
   /// satırına DOKUNULMAZ (docs/SEKTOR_PAKETI_SOZLESMESI.md §4).

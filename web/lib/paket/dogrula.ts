@@ -18,7 +18,7 @@ import * as XLSX from 'xlsx';
 import { OLGUNLUK_ASGARI, OLGUNLUK_AZAMI } from '../uyum/olgunluk';
 import { oscalOku, oscalYabanciMetinler } from './oscal';
 import {
-  ACIKLAMA_SINIRI, BASLIK_SINIRI, CEKIRDEK_KAPSAM_TURLERI, CEKIRDEK_ROLLER, KAPSAM_TURU_ALANI, KAYNAK_YERI_SINIRI, takvimTarihi, type KosulBeyani, CerceveKimligiSemasi, DENKLIKLER, DIS_KIMLIK_SINIRI, DOSYALAR, ESLEME_SUTUNLARI,
+  ACIKLAMA_SINIRI, BASLIK_SINIRI, CEKIRDEK_KAPSAM_TURLERI, CEKIRDEK_ROLLER, GEREKSINIM_TIPI_SINIRI, KAPSAM_TURU_ALANI, KAYNAK_YERI_SINIRI, takvimTarihi, type KosulBeyani, CerceveKimligiSemasi, DENKLIKLER, DIS_KIMLIK_SINIRI, DOSYALAR, ESLEME_SUTUNLARI,
   ESLEME_ZORUNLU_SUTUNLAR, EslemeKimligiSemasi, FormSablonuSemasi, ISLEM_ONKOSULU, KANIT_TIPI_KODU, KapsamTuruSatiriSemasi, MADDE_SUTUNLARI,
   MADDE_ZORUNLU_SUTUNLAR, ManifestSemasi, OLCU_ALANI, OZET_DISI, OZNITELIK_ROLLERI, OznitelikSatiriSemasi, RaporSablonuSemasi,
   RolSatiriSemasi, SozlukSatiriSemasi, YukumlulukSatiriSemasi, ZORUNLULUK_TIPLERI, csvAyristir, sha256,
@@ -296,6 +296,10 @@ export function paketiDogrula(dizin: string): DogrulamaSonucu {
         if ('hata' in j) { hatalar.push({ sinif: 'BIÇIM', dosya: maddeDosya, mesaj: `JSON okunamadı: ${j.hata}`, duzeltme: 'OSCAL katalog JSON sözdizimini düzeltin' }); continue; }
         const o = oscalOku(j.deger);
         if (!o.ok) { hatalar.push({ sinif: 'BIÇIM', dosya: maddeDosya, konum: o.konum, mesaj: o.hata, duzeltme: 'OSCAL 1.1 katalog: catalog.metadata{title, version, oscal-version} + controls[] ya da groups[]' }); continue; }
+        for (const u of o.uyarilar) {
+          hatalar.push({ sinif: 'BIÇIM', dosya: maddeDosya, konum: 'catalog.groups', mesaj: `OSCAL yapısı okunamadı: ${u}`, duzeltme: 'grup ağacını sığlaştırın; okunmayan grup sessizce düşmez' });
+        }
+        if (o.uyarilar.length) continue;
         if (o.kod && o.kod !== kimlik.kod) {
           hatalar.push({ sinif: 'KİMLİK', dosya: maddeDosya, konum: 'catalog.metadata', mesaj: `katalog kodu "${o.kod}" kimlikle uyuşmuyor: "${kimlik.kod}"`, duzeltme: 'kimlik JSON ile katalog aynı çerçeveyi anmalı' });
           continue;
@@ -315,6 +319,9 @@ export function paketiDogrula(dizin: string): DogrulamaSonucu {
           for (const y of yabanci.slice(0, 5)) {
             hatalar.push({ sinif: 'LİSANS', dosya: maddeDosya, konum: y.split(' — ')[0], mesaj: `lisans sınırı: ${kimlik.kod} telifli, okunmayan metin alanı dolu — ${y}`, duzeltme: 'telifli çerçevede yalnız yapı ve kimlik taşınır: bu alanı boşaltın' });
           }
+          /* Kırpılan bulgunun SAYISI söylenir: "5 tanesini düzelt, sonra tekrar bak" demek,
+             kaç tane kaldığını gizlemek olurdu (inceleme, PR #43 tur 2). */
+          if (yabanci.length > 5) hatalar.push({ sinif: 'LİSANS', dosya: maddeDosya, mesaj: `… ve ${yabanci.length - 5} okunmayan metin alanı daha (toplam ${yabanci.length})`, duzeltme: 'hepsini boşaltın; liste ilk beşten sonra kırpıldı' });
           if (yabanci.length) continue;
         }
         basliklar = o.basliklar; satirlar = o.satirlar;
@@ -419,8 +426,24 @@ export function paketiDogrula(dizin: string): DogrulamaSonucu {
             duzeltme: 'kaynak_url (resmî belge adresi) ve erisim_tarihi (YYYY-AA-GG) sütunlarını doldurun; metni giremiyorsanız sütunu boş bırakın, kurulumda "metin girilmedi" yazılır' });
           return;
         }
-        maddeler.push({ kod, ustKod, baslik, metin, sira, seviye, zorunlulukTipi: zt, kanitBeklentisi, disKontrolId, kanitTipi, kaynakUrl, kaynakYeri, erisimTarihi, yururlukTarihi });
+        /* Çerçevenin kendi kademesi — ürünün hedef olgunluğu (`seviye`) DEĞİL. */
+        const gereksinimTipi = sutun(satir, 'gereksinim_tipi') || null;
+        if (gereksinimTipi && gereksinimTipi.length > GEREKSINIM_TIPI_SINIRI) { hatalar.push({ sinif: 'BIÇIM', dosya: maddeDosya, konum: no, mesaj: `gereksinim_tipi ${gereksinimTipi.length} karakter > ${GEREKSINIM_TIPI_SINIRI} (${kod}) — sınıf adıdır, açıklama değil`, duzeltme: 'kısa bir sınıf adı yazın ("Seviye 2", "Ek Kontrol")' }); return; }
+        maddeler.push({ kod, ustKod, baslik, metin, sira, seviye, zorunlulukTipi: zt, kanitBeklentisi, disKontrolId, kanitTipi, kaynakUrl, kaynakYeri, erisimTarihi, yururlukTarihi, gereksinimTipi });
       });
+      /* KAYNAK · kaçış kapısı kapalı (bağımsız inceleme, PR #43 tur 2): kural yalnız
+         `kaynakUrl` beyan eden çerçeveyi bağlıyordu — kimlikten adresi SİLEN paket
+         zorunluluktan kurtuluyordu. Bugün: metin taşıyan kamuya açık çerçeve ya
+         kaynağını beyan eder ya `temsili: true` der (kurgusal içerik). İkisi birden
+         olamaz: kaynağı olduğunu söyleyen çerçeve temsilî değildir. */
+      if (kimlik.temsili && kimlik.kaynakUrl) {
+        hatalar.push({ sinif: 'KAYNAK', dosya, konum: 'temsili', mesaj: `${kimlik.kod} hem temsilî hem kaynak adresi beyan ediyor — metin ya o belgeden alındı ya alınmadı`,
+          duzeltme: 'temsilî içerikte `kaynakUrl` alanını kaldırın; metin gerçekten o belgedense `temsili` alanını kaldırın' });
+      }
+      if (!kimlik.kaynakUrl && !kimlik.temsili && manifest.tur !== 'demo' && kimlik.lisans.tur !== 'telifli' && maddeler.some((md) => md.metin)) {
+        hatalar.push({ sinif: 'KAYNAK', dosya, konum: 'kaynakUrl', mesaj: `${kimlik.kod} metin taşıyor ama kaynak adresi beyan etmiyor — metnin nereden geldiği söylenmeli`,
+          duzeltme: 'kimliğe `kaynakUrl` yazın (ve her metinli maddeye kaynak_url + erisim_tarihi), ya da içerik kurgusalsa `temsili: true` deyin' });
+      }
       cerceveler.push({ dosya, kimlik, maddeler });
     }
   }

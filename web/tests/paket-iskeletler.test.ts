@@ -67,7 +67,7 @@ describe('iskelet paketler doğrulayıcıdan geçer [URN-PKT-005]', () => {
     }
   });
 
-  it('EPDK-SGYM yapısı: 4 bölüm + 18 madde + 1 geçici, başlıklar birincil dosyadan; Ek-3: 13 aile + 565 kontrol, seviye 1–3 [URN-PKT-005]', () => {
+  it('EPDK-SGYM yapısı: 4 bölüm + 18 madde + 1 geçici, başlıklar birincil dosyadan; Ek-3: 13 aile + 565 kontrol, kademe Seviye 1–3/Ek Kontrol [URN-PKT-005]', () => {
     const yon = csvSatirlari(path.join(ENERJI, 'cerceve', 'EPDK-SGYM.csv'));
     expect(yon.filter((r) => r[0].startsWith('BOLUM-'))).toHaveLength(4);
     expect(yon.filter((r) => /^\d+$/.test(r[0]))).toHaveLength(18);
@@ -79,12 +79,15 @@ describe('iskelet paketler doğrulayıcıdan geçer [URN-PKT-005]', () => {
     expect(aileler).toHaveLength(13);
     expect(kontroller).toHaveLength(565);
     expect(kontroller.every((r) => aileler.some((a) => a[0] === r[1]))).toBe(true);
-    /* Ölçüldü: 508 kontrol seviye 1–3 taşır, 57'si XLSX'te "Ek Kontrol"
-       (seviyesiz) — seviye BOŞ bırakılır, sıfır ya da 1 uydurulmaz. */
-    const seviyeler = new Set(kontroller.map((r) => r[5]));
-    expect([...seviyeler].sort()).toEqual(['', '1', '2', '3']);
-    expect(kontroller.filter((r) => r[5] === '')).toHaveLength(57);
-    expect(kontroller.filter((r) => r[5] !== '')).toHaveLength(508);
+    /* Ölçüldü: 508 kontrol EPDK kademesi 1–3 taşır, 57'si "Ek Kontrol".
+       Kademe `gereksinim_tipi` sütunundadır; ürünün HEDEF OLGUNLUĞU (`seviye`)
+       boş kalır — düzenleyicinin kademesi hedef olgunluk diye okunamaz
+       (bağımsız inceleme, PR #43 tur 2). */
+    const kademeler = new Set(kontroller.map((r) => r[14]));
+    expect([...kademeler].sort()).toEqual(['Ek Kontrol', 'Seviye 1', 'Seviye 2', 'Seviye 3']);
+    expect(new Set(kontroller.map((r) => r[5]))).toEqual(new Set(['']));
+    expect(kontroller.filter((r) => r[14] === 'Ek Kontrol')).toHaveLength(57);
+    expect(kontroller.filter((r) => r[14].startsWith('Seviye'))).toHaveLength(508);
   });
 
   it('4.6 ölçümü: TR-ENERJI sözlüğü ve öznitelikleri tohum sabitleriyle birebir — tohum bu parçada paket biçimine kayıpsız taşınır', () => {

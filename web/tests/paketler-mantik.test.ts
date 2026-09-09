@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { odaklananCerceve } from '@/app/(kabuk)/(operasyonel)/uyum/mantik';
 import { readFileSync } from 'node:fs';
 import { HAL_IMI, HAL_SOZU, eylemler, halCumlesi, paketHali, semverKarsilastir } from '@/app/(kabuk)/(operasyonel)/paketler/mantik';
 
@@ -76,5 +77,30 @@ describe('/paketler · hâl ve eylem mantığı [URN-PKT-016]', () => {
     const rotalar: string[] = JSON.parse(readFileSync('arac/rotalar.json', 'utf8'));
     expect(rotalar).toContain('/paketler');
     expect(readFileSync('../docs/ROTA_HARITASI.md', 'utf8')).toMatch(/\| `\/paketler` \| zorunlu \| tanımlar \|/);
+  });
+});
+
+describe('uyum defterinde odaklanan çerçeve — taslak "boş" değildir [URN-PKT-021]', () => {
+  /* Ölçüldü (tarayıcı kanıtı, 9 Eyl 2026): kullanıcı taslak çerçeveye
+     tıklıyor, ekran sessizce satırı olan başka bir çerçeveye kayıyordu ve
+     taslak bloğu hiç görünmüyordu. "Satırı yok" ile "aktifleştirme bekliyor"
+     aynı şey değildir. */
+  const c = (kod: string, satir: number, taslak: { surumEtiketi: string; maddeSayisi: number } | null) =>
+    ({ kod, satirlar: Array.from({ length: satir }), taslak });
+
+  it('seçilen TASLAK çerçeve gösterilir — satırı olan çerçeveye kaymaz [URN-PKT-021]', () => {
+    const liste = [c('AKTIF', 3, null), c('TASLAK', 0, { surumEtiketi: 'v1', maddeSayisi: 578 })];
+    expect(odaklananCerceve(liste, 'TASLAK')?.kod).toBe('TASLAK');
+  });
+
+  it('seçilen çerçeve ne satır ne taslak taşıyorsa satırı olana düşülür (boş matris gösterilmez)', () => {
+    const liste = [c('BOS', 0, null), c('AKTIF', 2, null)];
+    expect(odaklananCerceve(liste, 'BOS')?.kod).toBe('AKTIF');
+  });
+
+  it('seçim yoksa satırı olan ilk çerçeve; hiçbiri yoksa listenin ilki', () => {
+    expect(odaklananCerceve([c('BOS', 0, null), c('AKTIF', 2, null)], null)?.kod).toBe('AKTIF');
+    expect(odaklananCerceve([c('BOS', 0, null), c('BOS2', 0, null)], null)?.kod).toBe('BOS');
+    expect(odaklananCerceve([], 'YOK')).toBeUndefined();
   });
 });

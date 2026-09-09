@@ -190,6 +190,30 @@ export type TesisSatiri = {
   kontroller: Kontrol[];        // yaprak sırasına göre, aileId ile gruplanır
 };
 
+/** Defterde HANGİ çerçeve gösterilecek?
+
+    Kural üç adımdır ve sırası önemlidir:
+    1. Kullanıcının seçtiği çerçeve, GÖSTERİLEBİLİR ise o gösterilir.
+       Gösterilebilir = matris satırı var YA DA taslak (aktif sürümü yok;
+       ekran o zaman "aktifleştirme bekliyor" bloğunu basar).
+    2. Değilse satırı olan ilk çerçeveye düşülür — kullanıcı boş matrisle
+       karşılaşmasın.
+    3. O da yoksa seçilen, o da yoksa listenin ilki.
+
+    Ölçüldü (9 Eyl 2026, tarayıcı kanıtı): 2. adım TASLAK çerçeveyi de
+    yutuyordu — kullanıcı taslak çerçeveye tıklıyor, ekran sessizce başka
+    bir çerçeveye kayıyor ve taslak bloğu hiç görünmüyordu. Taslak "boş"
+    değildir: aktifleştirme bekleyen N madde demektir. */
+export function odaklananCerceve<T extends { kod: string; satirlar: unknown[]; taslak: unknown }>(
+  cerceveler: readonly T[], odakKodu: string | null,
+): T | undefined {
+  const odakli = cerceveler.find((c) => c.kod === odakKodu);
+  const gosterilebilir = (c: T) => c.satirlar.length > 0 || c.taslak !== null;
+  return (odakli && gosterilebilir(odakli) ? odakli : undefined)
+    ?? cerceveler.find((c) => c.satirlar.length > 0)
+    ?? odakli ?? cerceveler[0];
+}
+
 export type KapsamKaydi = {
   tesisId: string; kod: string; ad: string; alt: string;
   yol: string;

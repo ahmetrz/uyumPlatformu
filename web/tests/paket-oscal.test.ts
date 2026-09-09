@@ -3,7 +3,7 @@ import { execFileSync } from 'node:child_process';
 import { mkdtempSync, readFileSync, readdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { OSCAL_NS, OSCAL_SURUMU, oscalOku, oscalYaz, sabitUuid, type OscalControl, type OscalKatalog } from '@/lib/paket/oscal';
+import { GRUP_DERINLIGI, OSCAL_NS, OSCAL_SURUMU, oscalOku, oscalYabanciMetinler, oscalYaz, sabitUuid, type OscalControl, type OscalGroup, type OscalKatalog } from '@/lib/paket/oscal';
 import type { MaddeSatiri } from '@/lib/paket/bicim';
 import { hataSatiri, paketiDogrula } from '@/lib/paket/dogrula';
 import { SOZLUK_SATIRI, cerceve, paketYaz, type PaketDosyalari } from './yardim/paket';
@@ -84,7 +84,7 @@ describe('OSCAL gidiş-dönüş · iskelet çerçeveleri [URN-PKT-017]', () => {
   it('bilinmeyen değer prop olarak yazılmaz; tarih bilinmiyorsa last-modified uydurulmaz [URN-PKT-017]', () => {
     const k = oscalYaz(cerceve('X-REG', { tur: 'kamuya_acik', metinDahil: false }) as never, [
       { kod: '1', ustKod: null, baslik: 'Amaç', metin: null, sira: 0, seviye: null, zorunlulukTipi: null, kanitBeklentisi: null, disKontrolId: null, kanitTipi: null,
-        kaynakUrl: null, kaynakYeri: null, erisimTarihi: null, yururlukTarihi: null },
+        kaynakUrl: null, kaynakYeri: null, erisimTarihi: null, yururlukTarihi: null, gereksinimTipi: null },
     ]);
     expect(k.catalog.metadata['last-modified']).toBeUndefined();
     expect(k.catalog.controls![0].props!.map((p) => p.name)).toEqual(['kod', 'sira']);
@@ -93,6 +93,8 @@ describe('OSCAL gidiş-dönüş · iskelet çerçeveleri [URN-PKT-017]', () => {
 });
 
 describe('OSCAL paketi doğrulayıcıdan CSV ile aynı kurallardan geçer [URN-PKT-017]', () => {
+  /* Metin taşıyan kamuya açık çerçeve kaynağını ya da temsilîliğini beyan etmek
+     zorundadır (KAYNAK, tur 2); bu kümedeki kataloglar kurgusaldır → `temsili`. */
   const kimlik = (lisans: { tur: string; metinDahil: boolean }) => cerceve('OSC-REG', lisans) as Record<string, unknown> & { kod: string };
   const katalog = (controls: OscalControl[], ekMeta: Record<string, unknown> = {}): OscalKatalog => ({
     catalog: { uuid: sabitUuid('t'), metadata: { title: 'OSC-REG çerçevesi', version: 'test-1', 'oscal-version': OSCAL_SURUMU, ...ekMeta }, controls },
@@ -139,7 +141,10 @@ describe('OSCAL paketi doğrulayıcıdan CSV ile aynı kurallardan geçer [URN-P
       groups: [{ id: 'ac', title: 'Aile', groups: [{ id: 'ac-alt', title: 'Alt aile', controls: [{ id: 'gizli-1', title: 'Gizli' }] }], controls: [{ id: 'ac-1', title: 'Görünür' }] }] } });
     expect(o.ok).toBe(true);
     if (!o.ok) return;
-    expect(o.satirlar.map((s) => [s[0], s[1]])).toEqual([['ac', ''], ['ac-alt', 'ac'], ['gizli-1', 'ac-alt'], ['ac-1', 'ac']]);
+    /* Grubun KENDİ kontrolleri önce okunur; alt gruplar sonra (derinlik sınırı
+       ilk hâlde `return` ile kendi kontrollerini de düşürüyordu — tur 2). */
+    expect(o.satirlar.map((s) => [s[0], s[1]])).toEqual([['ac', ''], ['ac-1', 'ac'], ['ac-alt', 'ac'], ['gizli-1', 'ac-alt']]);
+    expect(o.uyarilar).toEqual([]);
   });
 
   it('telifli çerçevede OKUNMAYAN metin alanı (yabancı prose/prop) LİSANS ile reddedilir [URN-PKT-017] [URN-PKT-002]', () => {
@@ -154,6 +159,43 @@ describe('OSCAL paketi doğrulayıcıdan CSV ile aynı kurallardan geçer [URN-P
     expect(lisans.map((h) => h.mesaj).join('\n')).toMatch(/okunmayan metin alanı dolu/);
     // kamuya açık çerçevede aynı katalog geçer: kural LİSANS kuralıdır, biçim kuralı değil
     expect(oscalPaketi({ ...kimlik({ tur: 'kamuya_acik', metinDahil: true }) }, katalog).hatalar.filter((h) => h.sinif === 'LİSANS')).toEqual([]);
+  });
+
+  it('telifli metin GRUP part\'ında ya da İÇ İÇE part\'ta saklanamaz — muafiyet ada değil YOLA bağlı [URN-PKT-002]', () => {
+    /* Bağımsız inceleme (PR #43 tur 2): muafiyet `name === 'statement'` diye ADA
+       bakıyordu; `groups[i].parts[statement]` ve `parts[item].parts[statement]`
+       okunmaz ama pakete (ve public depoya) girerdi. */
+    const grupta = { catalog: { uuid: 'u', metadata: { title: 'T', version: 'test-1', 'oscal-version': OSCAL_SURUMU },
+      groups: [{ id: 'g1', title: 'Aile', parts: [{ name: 'statement', prose: 'TELİFLİ TAM METİN' }], controls: [kontrol('1')] }] } };
+    const icice = { catalog: { uuid: 'u', metadata: { title: 'T', version: 'test-1', 'oscal-version': OSCAL_SURUMU },
+      controls: [{ ...kontrol('1'), parts: [{ name: 'item', parts: [{ name: 'statement', prose: 'TELİFLİ TAM METİN' }] }] }] } };
+    for (const [ad, katalogVerisi] of [['grup', grupta], ['iç içe part', icice]] as const) {
+      const bulunan = oscalYabanciMetinler(katalogVerisi);
+      expect(bulunan.join('\n'), `${ad}: kaçak görülmedi`).toMatch(/TELİFLİ TAM METİN/);
+      const s = oscalPaketi({ ...kimlik({ tur: 'telifli', metinDahil: false }) }, katalogVerisi);
+      expect(s.hatalar.filter((h) => h.sinif === 'LİSANS').length, `${ad}: LİSANS hatası yok`).toBeGreaterThan(0);
+    }
+    /* Okunan yer muaf kalır: control'ün DOĞRUDAN parts çocuğundaki statement. */
+    expect(oscalYabanciMetinler({ catalog: { uuid: 'u', metadata: { title: 'T', version: 'test-1', 'oscal-version': OSCAL_SURUMU },
+      controls: [{ ...kontrol('1'), parts: [{ name: 'statement', prose: 'okunan metin' }] }] } })).toEqual([]);
+  });
+
+  it('grup derinlik sınırı SESSİZ KAYIP üretmez: kendi kontrolleri okunur, aşan grup uyarıya düşer [URN-PKT-017]', () => {
+    /* İlk hâl `return` ile sınırın İÇİNDEKİ grubun kontrollerini de düşürüyordu
+       ve okuma `ok:true` dönüyordu (inceleme, PR #43 tur 2). */
+    const derin = (n: number): OscalGroup => (n === 0
+      ? { id: 'g0', title: 'En derin', controls: [{ id: 'c0', title: 'Kontrol 0' }] }
+      : { id: `g${n}`, title: `Grup ${n}`, controls: [{ id: `c${n}`, title: `Kontrol ${n}` }], groups: [derin(n - 1)] });
+    const oku = (n: number) => oscalOku({ catalog: { uuid: 'u', metadata: { title: 'T', version: '1', 'oscal-version': OSCAL_SURUMU }, groups: [derin(n)] } });
+    const sig = oku(3);
+    expect(sig.ok && sig.uyarilar).toEqual([]);
+    expect(sig.ok && sig.satirlar.filter((r) => r[0].startsWith('c')).length).toBe(4);
+    const cok = oku(GRUP_DERINLIGI + 2);
+    expect(cok.ok).toBe(true);
+    if (!cok.ok) return;
+    expect(cok.uyarilar.length, 'derinlik sınırı sessizce yutuyor').toBeGreaterThan(0);
+    /* Sınırın içindeki her grubun KENDİ kontrolü okunmuş olmalı. */
+    expect(cok.satirlar.filter((r) => r[0].startsWith('c')).length).toBe(GRUP_DERINLIGI);
   });
 
   it('katalog SÜRÜMÜ kimlikle uyuşmalı; ns\'siz yabancı prop bizim sanılmaz [URN-PKT-017]', () => {
@@ -175,9 +217,9 @@ describe('OSCAL paketi doğrulayıcıdan CSV ile aynı kurallardan geçer [URN-P
     if (!o.ok) return;
     expect(o.kod).toBeNull();
     expect(o.satirlar).toEqual([
-      ['ac', '', 'Access Control', '', '0', '', '', '', '', '', '', '', '', ''],
-      ['ac-1', 'ac', 'Policy', 'x', '1', '', '', '', '', '', '', '', '', ''],
-      ['ac-1.1', 'ac-1', 'Review', '', '2', '', '', '', '', '', '', '', '', ''],
+      ['ac', '', 'Access Control', '', '0', '', '', '', '', '', '', '', '', '', ''],
+      ['ac-1', 'ac', 'Policy', 'x', '1', '', '', '', '', '', '', '', '', '', ''],
+      ['ac-1.1', 'ac-1', 'Review', '', '2', '', '', '', '', '', '', '', '', '', ''],
     ]);
   });
 });

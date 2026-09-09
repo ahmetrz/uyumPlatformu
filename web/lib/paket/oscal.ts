@@ -105,6 +105,7 @@ export function oscalYaz(kimlik: CerceveKimligi, satirlar: MaddeSatiri[]): Oscal
     if (s.zorunlulukTipi) props.push(prop('zorunluluk_tipi', s.zorunlulukTipi));
     if (s.disKontrolId) props.push(prop('dis_kontrol_id', s.disKontrolId));
     if (s.kanitTipi) props.push(prop('kanit_tipi', s.kanitTipi));
+    if (s.gereksinimTipi) props.push(prop('gereksinim_tipi', s.gereksinimTipi));
     /* köken sütunları prop olarak taşınır — gidiş-dönüş kayıpsız kalsın (CSV ile aynı düzen) */
     if (s.kaynakUrl) props.push(prop('kaynak_url', s.kaynakUrl));
     if (s.kaynakYeri) props.push(prop('kaynak_yeri', s.kaynakYeri));
@@ -125,7 +126,8 @@ export function oscalYaz(kimlik: CerceveKimligi, satirlar: MaddeSatiri[]): Oscal
 }
 
 export type OscalOkuma =
-  | { ok: true; basliklar: string[]; satirlar: string[][]; baslik: string; surumEtiketi: string; kod: string | null }
+  /** `uyarilar`: okunamayan yapı (derinlik sınırını aşan grup) — boş olmalı; doğrulayıcı BIÇIM yakar. */
+  | { ok: true; basliklar: string[]; satirlar: string[][]; baslik: string; surumEtiketi: string; kod: string | null; uyarilar: string[] }
   | { ok: false; hata: string; konum?: string };
 
 /** Okunan alanlar DIŞINDA metin taşıyan yerler: telifli çerçevede madde metni
@@ -133,23 +135,43 @@ export type OscalOkuma =
     girer; CSV'de "başlığı aşan dolu hücre" kuralının OSCAL karşılığı budur
     (bağımsız inceleme bulgusu, PR #43). Dönen liste: `konum — metnin başı`. */
 export function oscalYabanciMetinler(ham: unknown): string[] {
+  /* Muafiyet ADA değil YOLA bağlıdır: okunan tek yer bir `control`ün DOĞRUDAN
+     `parts` çocuğundaki `statement`/`guidance`. Ada bakan ilk hâl iki kaçak
+     bırakıyordu (bağımsız inceleme, PR #43 tur 2): grubun kendi
+     `parts[statement]`i ve `parts[item].parts[statement]` iç içe parçası —
+     ikisi de okunmaz ama pakete girerdi. */
   const OKUNAN_PART = new Set(['statement', 'guidance']);
-  const OKUNAN_PROP = new Set(['kod', 'sira', 'seviye', 'zorunluluk_tipi', 'dis_kontrol_id', 'kanit_tipi', 'kaynak_url', 'kaynak_yeri', 'erisim_tarihi', 'yururluk_tarihi']);
+  const OKUNAN_PROP = new Set(['kod', 'sira', 'seviye', 'zorunluluk_tipi', 'dis_kontrol_id', 'kanit_tipi',
+    'kaynak_url', 'kaynak_yeri', 'erisim_tarihi', 'yururluk_tarihi', 'gereksinim_tipi', 'lisans_tur', 'metin_dahil']);
   const bulunan: string[] = [];
-  const gez = (d: unknown, yol: string) => {
-    if (Array.isArray(d)) { d.forEach((x, i) => gez(x, `${yol}[${i}]`)); return; }
+  /** Düğümün YERİ: `control` mü, `group` mu, `control.parts` çocuğu mu. Yer
+      kaptan gelir — biçimden DEĞİL: grup da `id`+`title` taşır, şekle bakan
+      ilk hâl grubun `parts[statement]`ini okunmuş sanıyordu. */
+  type Yer = 'katalog' | 'control' | 'group' | 'control-parts' | 'diger';
+  const gez = (d: unknown, yol: string, yer: Yer) => {
+    if (Array.isArray(d)) { d.forEach((x, i) => gez(x, `${yol}[${i}]`, yer)); return; }
     if (!d || typeof d !== 'object') return;
     const n = d as Record<string, unknown>;
-    if (typeof n.prose === 'string' && n.prose.trim() && !(typeof n.name === 'string' && OKUNAN_PART.has(n.name))) {
+    const okunanPart = yer === 'control-parts' && typeof n.name === 'string' && OKUNAN_PART.has(n.name);
+    if (typeof n.prose === 'string' && n.prose.trim() && !okunanPart) {
       bulunan.push(`${yol}.prose (name=${String(n.name ?? '—')}) — ${n.prose.slice(0, 60)}`);
     }
     if (typeof n.name === 'string' && typeof n.value === 'string' && n.value.trim()
       && !(OKUNAN_PROP.has(n.name) && n.ns === OSCAL_NS)) {
       bulunan.push(`${yol} props[${n.name}] — ${n.value.slice(0, 60)}`);
     }
-    for (const [k, v] of Object.entries(n)) if (v && typeof v === 'object') gez(v, `${yol}.${k}`);
+    for (const [k, v] of Object.entries(n)) {
+      if (!v || typeof v !== 'object') continue;
+      /* Yalnız bir CONTROL'ün doğrudan `parts` çocuğu okunan kaptır: grubun
+         `parts`ı ve part'ın kendi `parts`ı okunmaz, dolayısıyla muaf değildir. */
+      const altYer: Yer = k === 'controls' ? 'control'
+        : k === 'groups' ? 'group'
+        : k === 'parts' && yer === 'control' ? 'control-parts'
+        : 'diger';
+      gez(v, `${yol}.${k}`, altYer);
+    }
   };
-  gez((ham as { catalog?: unknown })?.catalog ?? ham, 'catalog');
+  gez((ham as { catalog?: unknown })?.catalog ?? ham, 'catalog', 'katalog');
   return bulunan;
 }
 
@@ -172,6 +194,7 @@ export function oscalOku(ham: unknown): OscalOkuma {
   const bizim = (props: Prop[] | undefined, ad: string): string | null => props?.find((x) => x.name === ad && x.ns === OSCAL_NS)?.value ?? null;
   const satirlar: string[][] = [];
   let sira = 0;
+  const uyarilar: string[] = [];
   const gez = (c: OscalControl, ustKod: string | null) => {
     const kod = bizim(c.props, 'kod') ?? c.id;
     const s = bizim(c.props, 'sira');
@@ -185,20 +208,27 @@ export function oscalOku(ham: unknown): OscalOkuma {
       bizim(c.props, 'dis_kontrol_id') ?? '',
       bizim(c.props, 'kanit_tipi') ?? '',
       bizim(c.props, 'kaynak_url') ?? '', bizim(c.props, 'kaynak_yeri') ?? '', bizim(c.props, 'erisim_tarihi') ?? '', bizim(c.props, 'yururluk_tarihi') ?? '',
+      bizim(c.props, 'gereksinim_tipi') ?? '',
     ]);
     for (const alt of c.controls ?? []) gez(alt, kod);
   };
   /* Grup ağacı ÖZYİNELİ gezilir: alt grup, üst grubun altına düşer. */
   const grupGez = (g: OscalGroup, ustKod: string | null, derinlik: number) => {
     const gKod = bizim(g.props, 'kod') ?? g.id ?? `grup-${sira}`;
-    satirlar.push([gKod, ustKod ?? '', g.title, '', String(sira++), '', '', '', '', '', '', '', '', '']);
+    satirlar.push([gKod, ustKod ?? '', g.title, '', String(sira++), '', '', '', '', '', '', '', '', '', '']);
+    /* Grubun KENDİ kontrolleri her hâlükârda okunur: derinlik sınırı ilk hâlde
+       `return` ile onları da düşürüyordu (bağımsız inceleme, PR #43 tur 2). */
+    for (const c of g.controls ?? []) gez(c, gKod);
     for (const alt of g.groups ?? []) {
-      if (derinlik >= GRUP_DERINLIGI) return;
+      if (derinlik >= GRUP_DERINLIGI) {
+        /* Kayıp SESSİZ olmaz: okunmayan grup sayılır ve doğrulayıcı kırmızı yakar. */
+        uyarilar.push(`${gKod} altındaki grup derinlik sınırını (${GRUP_DERINLIGI}) aşıyor — okunmadı`);
+        continue;
+      }
       grupGez(alt, gKod, derinlik + 1);
     }
-    for (const c of g.controls ?? []) gez(c, gKod);
   };
   for (const g of catalog.groups ?? []) grupGez(g, null, 1);
   for (const c of catalog.controls ?? []) gez(c, null);
-  return { ok: true, basliklar: [...MADDE_SUTUNLARI], satirlar, baslik: catalog.metadata.title, surumEtiketi: catalog.metadata.version, kod: bizim(catalog.metadata.props, 'kod') };
+  return { ok: true, basliklar: [...MADDE_SUTUNLARI], satirlar, baslik: catalog.metadata.title, surumEtiketi: catalog.metadata.version, kod: bizim(catalog.metadata.props, 'kod'), uyarilar };
 }

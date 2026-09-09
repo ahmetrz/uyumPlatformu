@@ -141,8 +141,17 @@ describe('TR-ENERJI kurulumu · /uyum kanıtı [URN-PKT-021]', () => {
     expect(s.ok, JSON.stringify(s)).toBe(true);
     if (!s.ok) return;
     expect(s.rapor.sayilar).toMatchObject({ cerceveler: 2, maddeler: 601, kurallar: 2 });
-    const surumler = await db.frameworkSurumu.findMany({ where: { paketSurumId: s.rapor.surumId } });
+    const surumler = await db.frameworkSurumu.findMany({ where: { paketSurumId: s.rapor.surumId }, orderBy: { surumEtiketi: 'asc' } });
     expect(surumler.map((x) => x.durum)).toEqual(['taslak', 'taslak']);
+    /* Paketin beyanı SÜRÜME iner: kurulumda buharlaşınca veritabanında kurgusal metin
+       gerçek mevzuattan ayırt edilemiyordu (inceleme, PR #43 tur 2). */
+    expect(surumler.every((x) => (x.paketNotu ?? '').length > 0), 'paket notu kurulumda düştü').toBe(true);
+    expect(surumler.every((x) => x.temsili === false), 'resmî içerik temsilî işaretlendi').toBe(true);
+    /* Kıyas: tohumla kurulan DEMO çerçevesi TEMSİLÎ işaretlidir — kurgusal metin
+       veritabanında gerçek mevzuattan ayırt edilebilir. */
+    const demo = await db.frameworkSurumu.findFirst({ where: { regulasyon: { kod: 'CBDDO' } } });
+    expect(demo?.temsili, 'demo çerçevesi temsilî işaretlenmedi').toBe(true);
+    expect(demo?.paketNotu ?? '').toMatch(/TEMSİLÎ/);
     expect(await db.frameworkSurumu.count({ where: { paketSurumId: s.rapor.surumId, durum: 'aktif' } })).toBe(0);
   });
 
@@ -155,6 +164,14 @@ describe('TR-ENERJI kurulumu · /uyum kanıtı [URN-PKT-021]', () => {
     expect(m.metin.length).toBeGreaterThan(40);
     const bolum = await db.madde.findFirstOrThrow({ where: { kod: 'EPDK-SGYM-BOLUM-1' } });
     expect(bolum.metin).toBe('metin girilmedi'); // uydurulmaz, boş bırakılmaz, sıfır sayılmaz
+    /* EPDK kademesi ürünün HEDEF OLGUNLUĞUNA yazılmaz (bağımsız inceleme, PR #43 tur 2):
+       `gereksinimTipi` kademeyi taşır, `olgunlukSeviyesi` BOŞ kalır — yoksa 508 zorunlu
+       kontrolün hedefi ürünün en alt üç kademesine çekilir ve ad-hoc uygulama "hedefte"
+       (yeşil) görünür. */
+    expect(m.gereksinimTipi, 'kademe veritabanına inmedi').toBe('Seviye 1');
+    expect(m.olgunlukSeviyesi, 'düzenleyicinin kademesi hedef olgunluk diye yazıldı').toBeNull();
+    expect(await db.madde.count({ where: { kod: { startsWith: 'EPDK-SGYM-EK3-' }, gereksinimTipi: { not: null } } })).toBe(565);
+    expect(await db.madde.count({ where: { kod: { startsWith: 'EPDK-SGYM-EK3-' }, olgunlukSeviyesi: { not: null } } })).toBe(0);
   });
 
   it('/uyum: çerçeve görünür ve "aktif sürüm yok · N madde taslak" der — 0 kontrol demez [URN-PKT-021]', async () => {

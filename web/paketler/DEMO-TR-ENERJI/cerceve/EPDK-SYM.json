@@ -11,5 +11,6 @@
   },
   "maddeDosyasi": "EPDK-SYM.csv",
   "zorunlulukTipi": "REGULATION",
-  "not": "DEMO: madde metni TEMSİLÎDİR — EPDK Yetkinlik Modeli Yönetmeliği örnek alınarak yazılmıştır, o belgeden alınmamıştır. Bu yüzden çerçeve kaynak adresi BEYAN ETMEZ (kaynağı olduğunu söyleyen çerçevede her metinli madde kaynak adresi ve erişim tarihi taşımak zorundadır). Resmî metin ayrı pakette gelir."
+  "not": "DEMO: madde metni TEMSİLÎDİR — EPDK Yetkinlik Modeli Yönetmeliği örnek alınarak yazılmıştır, o belgeden alınmamıştır. Bu yüzden çerçeve kaynak adresi BEYAN ETMEZ (kaynağı olduğunu söyleyen çerçevede her metinli madde kaynak adresi ve erişim tarihi taşımak zorundadır). Resmî metin ayrı pakette gelir.",
+  "temsili": true
 }

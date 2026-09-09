@@ -32,6 +32,9 @@ try {
       await page.waitForFunction(() => window.scrollY > 8);
       const ilerleme = () => page.locator('[data-mod]').evaluate(el => -el.getBoundingClientRect().top / parseFloat(el.style.getPropertyValue('--mesafe')));
       const once = await ilerleme();
+      await page.setViewportSize({ width: 1000, height: 600 });
+      await page.waitForTimeout(100);
+      assert.ok(Math.abs(await ilerleme() - once) < .001, 'yüklemede ekran boyutu ilerlemeyi sıçrattı');
       await page.getByLabel('Yolculuk temposu').selectOption('0.72');
       assert.ok(Math.abs(await ilerleme() - once) < .001, 'yüklemede tempo ilerlemeyi sıçrattı');
     } finally { serbest(); }

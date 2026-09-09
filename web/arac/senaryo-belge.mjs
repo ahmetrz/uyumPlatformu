@@ -67,6 +67,7 @@ export const KUTUKSUZ_DOSYALAR = {
   'denetim-formu.test.ts': 'Denetim formunun saf kuralları — hiçbir hücre boş kalmaz, gerekçe uydurulmaz, hedef ile mevcut olgunluk karışmaz',
   'derleme-artefakti.test.ts': 'Paylaşılan derleme artefaktının ortam beyanı — beyansız tüketim ve gizli yol tuzağı',
   'disa-aktarim-xlsx.test.ts': 'XLSX üretiminin saf kuralları — formül hücresi üretilmez, kalkan CSV ile aynı',
+  'ithal-zinciri.test.ts': 'Araç zincirinin YAPISAL ölçüsü — bir aracın ihracı silinince ya da dosyası üzerine yazılınca kırmızı; modül ÇALIŞTIRILMADAN ölçülür',
   'kapi-is-kapsami.test.ts': 'Kapı kümesinin İŞ katmanı — iş adları türetilir, bölünmeyle hiçbir kapı düşmez',
   'sunucu-durdurma.test.ts': 'Başarısız OLAMAYAN temizlik adımı sınıfı — süreç adıyla öldürme, sonucu yutan `|| true` ve son koşulunu doğrulamayan adım',
 };

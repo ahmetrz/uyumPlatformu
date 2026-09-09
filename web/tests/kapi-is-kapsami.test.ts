@@ -104,6 +104,10 @@ const EKLENEN_KAPILAR = [
      üretir (düğmeye basar, iki dosyanın indiğini doğrular); tsc ve lintin
      göremediği bir sınıfı yakaladığı için CI'da durur. */
   'npm run kanit:denetim-formu',
+  /* Hızlı kümenin kör noktası: `arac/*.mjs` içe aktarım grafiği
+     `tsc`in kapsamında değil. Ölçüldü — bir aracın ihracı yok
+     olunca üç araç kırıldı ve hızlı küme görmedi. */
+  'npm run kapi:ithal-zinciri',
 ];
 
 describe('kapı kümesi bölünmeyle değişmez', () => {

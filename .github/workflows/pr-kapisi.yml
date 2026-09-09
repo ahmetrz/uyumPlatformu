@@ -164,6 +164,22 @@ jobs:
         working-directory: web
         run: npm run kapi:derleme-artefakti
 
+      # HIZLI KÜMENİN KÖR NOKTASI. `tsc --noEmit` proje TypeScript'ini
+      # denetler; `arac/*.mjs` içe aktarım grafiği onun kapsamında
+      # DEĞİLDİR. Ölçüldü (9 Eyl 2026): `derleme-ortami.mjs` tamamen
+      # değiştirildi, üç aracın (`kolon-hizasi` · `statik-kontrol` ·
+      # `marka-kapisi`) ondan aldığı ihraçlar yok oldu ve hızlı küme
+      # görmedi — kusur ancak YAVAŞ kümedeki `demo:build` koşunca, yani
+      # bir PR turu sonra görünürdü.
+      #
+      # Kapı YAPISALDIR ve hiçbir modülü YÜRÜTMEZ: bu araçların çoğu CLI
+      # ve içe aktarılınca koşar (`parti-kapanisi` bütün kümeyi başlatır,
+      # `compose-duman` docker yığını kaldırır). İçe aktarım deyimleri
+      # okunur, hedef çözülür, adlı bağların ihraç edildiği doğrulanır.
+      - name: İthal zinciri kapısı (arac/*.mjs)
+        working-directory: web
+        run: npm run kapi:ithal-zinciri
+
   # ── TEK DERLEME · artefakt olarak paylaşılır ─────────────────────────
   # Üretim derlemesi bir zamanlar İKİ işte birden koşuyordu (`kapi` ve
   # `kapi-yavas`); tarayıcılı kapılar dört işe bölününce aynı derleme

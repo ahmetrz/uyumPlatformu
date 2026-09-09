@@ -128,7 +128,12 @@ function Giris({ children, sektorler }: {
           boyutla();
         } catch (error) {
           if (process.env.NODE_ENV !== 'production') console.warn('Giriş sahnesi statik moda geçti:', error);
-          if (!kapandi && el.dataset.mod !== 'dogrudan') statik();
+          if (!kapandi && el.dataset.mod !== 'dogrudan') {
+            const eskiUst = stage.getBoundingClientRect().top;
+            statik();
+            // Kaydırma alanı daralırken görünür giriş karesi aynı yerde kalır.
+            window.scrollBy({ top: stage.getBoundingClientRect().top - eskiUst, behavior: 'instant' });
+          }
         }
       }
       void baslat();

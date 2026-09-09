@@ -1,0 +1,19 @@
+{
+  "kod": "ISO-27001-CBDDO",
+  "ad": "ISO 27001 → CBDDÖ denklikleri",
+  "kaynak": {
+    "cerceve": "ISO-27001",
+    "surumEtiketi": "2022"
+  },
+  "hedef": {
+    "cerceve": "CBDDO",
+    "surumEtiketi": "2.0"
+  },
+  "lisans": {
+    "tur": "kamuya_acik",
+    "metinDahil": false,
+    "not": "Demo tohumunun elle yazılmış denklikleri; açıklama yok"
+  },
+  "eslemeDosyasi": "ISO-27001-CBDDO.csv",
+  "kaynakBelge": "Demo tohumu (prisma/seed.ts, 2.5 öncesi)"
+}

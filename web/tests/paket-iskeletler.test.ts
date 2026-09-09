@@ -100,13 +100,19 @@ describe('iskeletler taze veritabanına kurulur — taslak çerçeve, madde = CS
   copyFileSync('prisma/dev.db', testDb);
   process.env.TEST_DB = testDb;
 
-  it('TR-ENERJI: tohumun sözlük ve öznitelik satırları KORUNUR (çelişki), çerçeveler taslak, 601 madde', async () => {
+  it('TR-ENERJI: tohumun (DEMO-TR-ENERJI paketinin) sözlük ve öznitelik satırları KORUNUR (çelişki), çerçeveler taslak, 601 madde', async () => {
     const { db } = await import('@/lib/db');
     const { paketiKur } = await import('@/lib/paket/kur');
     const kuranId = (await db.kullanici.findFirstOrThrow({ where: { aktif: true } })).id;
     const sektor = await db.sektor.findUniqueOrThrow({ where: { kod: 'ELEKTRIK-URETIM' } });
-    const tohumSozluk = await db.sektorSozlugu.count({ where: { sektorId: sektor.id, koken: 'kiraci' } });
-    const tohumOznitelik = await db.sektorOznitelikSemasi.count({ where: { sektorId: sektor.id, koken: 'kiraci' } });
+    /* 2.5: tohum satırları artık DEMO-TR-ENERJI paketinin (koken=paket); TR-ENERJI
+       için "başka paketin satırı"dır ve kiracı satırı gibi korunur. */
+    const demo = await db.icerikPaketi.findUniqueOrThrow({ where: { kod: 'DEMO-TR-ENERJI' }, include: { surumler: { select: { id: true } } } });
+    const demoSurumleri = demo.surumler.map((x) => x.id);
+    const tohumSozluk = await db.sektorSozlugu.count({ where: { sektorId: sektor.id, paketSurumId: { in: demoSurumleri } } });
+    const tohumOznitelik = await db.sektorOznitelikSemasi.count({ where: { sektorId: sektor.id, paketSurumId: { in: demoSurumleri } } });
+    expect(tohumSozluk).toBe(13);
+    expect(tohumOznitelik).toBe(9);
 
     const s = await paketiKur(ENERJI, { kuranId, istemci: db });
     expect(s.ok, JSON.stringify(s)).toBe(true);
@@ -116,7 +122,7 @@ describe('iskeletler taze veritabanına kurulur — taslak çerçeve, madde = CS
     const celiskiOznitelik = s.rapor.celiskiler.filter((c) => c.tablo === 'SektorOznitelikSemasi').length;
     expect(celiskiSozluk).toBe(tohumSozluk);
     expect(celiskiOznitelik).toBe(tohumOznitelik);
-    expect(await db.sektorSozlugu.count({ where: { sektorId: sektor.id, koken: 'kiraci' } })).toBe(tohumSozluk);
+    expect(await db.sektorSozlugu.count({ where: { sektorId: sektor.id, paketSurumId: { in: demoSurumleri }, aktif: true } })).toBe(tohumSozluk);
     // paketin tohumda olmayan satırları eklendi
     expect(s.rapor.sayilar.sozluk).toBe(17 - tohumSozluk);
     expect(s.rapor.sayilar.oznitelikler).toBe(12 - tohumOznitelik);

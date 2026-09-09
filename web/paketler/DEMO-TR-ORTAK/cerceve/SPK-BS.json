@@ -1,0 +1,17 @@
+{
+  "kod": "SPK-BS",
+  "ad": "SPK Bilgi Sistemleri Yönetimi Tebliği",
+  "surumEtiketi": "VII-128.9",
+  "yayimTarihi": null,
+  "yururlukTarih": "2024-09-19",
+  "kaynakUrl": "https://spk.gov.tr",
+  "lisans": {
+    "tur": "kamuya_acik",
+    "metinDahil": true,
+    "kaynak": "https://spk.gov.tr",
+    "not": "Demo tohumu: temsilî 3 madde, kısa özet cümleleri — tebliğin metni değil"
+  },
+  "maddeDosyasi": "SPK-BS.csv",
+  "zorunlulukTipi": "REGULATION",
+  "not": "Demo tohumundan taşındı (2.5); madde seçkisi temsilîdir"
+}

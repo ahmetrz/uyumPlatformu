@@ -1,0 +1,13 @@
+[
+  {
+    "anahtar": "gunlukDebi",
+    "tip": "sayi",
+    "birim": "m³/gün",
+    "etiketAnahtari": "kapasite",
+    "rol": "kapasite",
+    "grup": null,
+    "secenekler": null,
+    "kuraldaKullanilir": true,
+    "sira": 0
+  }
+]

@@ -188,6 +188,7 @@ async function maddeleriYaz(tx: Tx, regulasyonId: string, surumId: string, k: Ce
         olgunlukSeviyesi: md.seviye, zorunlulukTipi: md.zorunlulukTipi ?? k.zorunlulukTipi,
         // telifli çerçevede serbest metin alanı yazılmaz — doğrulayıcı reddeder, kurucu da yazmaz (iki kilit)
         kanitBeklentisi: k.lisans.tur === 'telifli' ? null : md.kanitBeklentisi, disKontrolId: md.disKontrolId,
+        kanitTipi: md.kanitTipi,
       })),
       select: { id: true, kod: true },
     });
@@ -322,7 +323,10 @@ async function yaz(tx: Tx, icerik: PaketIcerigi, kuranId: string | null, simdi: 
         await tx.regulasyon.update({ where: { id: regulasyonId }, data: { lisansTuru: k.lisans.tur, metinDahil: k.lisans.metinDahil } });
       }
     } else {
-      const veri = { ad: k.ad, kaynakUrl: k.kaynakUrl ?? null, lisansTuru: k.lisans.tur, metinDahil: k.lisans.metinDahil, ...koken };
+      /* `Regulasyon.surum` ve `yururlukTarih` ekranın gösterdiği kısa sürüm etiketi ve
+         yürürlük tarihidir (mevzuat listesi, uyum verisi — ölçüldü: paketle gelen
+         regülasyon "yürürlük yok" gösteriyordu); paket kimliğinden yazılır. */
+      const veri = { ad: k.ad, surum: k.surumEtiketi, yururlukTarih: tarih(k.yururlukTarih), kaynakUrl: k.kaynakUrl ?? null, lisansTuru: k.lisans.tur, metinDahil: k.lisans.metinDahil, ...koken };
       const reg = regMevcut
         ? await tx.regulasyon.update({ where: { id: regMevcut.id }, data: veri })
         : await tx.regulasyon.create({ data: { kod: k.kod, ...veri } });

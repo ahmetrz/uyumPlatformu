@@ -36,8 +36,11 @@ describe('Kabul testi 6 — regülasyon yeni sürüm', () => {
         sira: m.sira } });
       kodIdx.set(m.kod, k.id);
     }
+    /* Yeni madde kodu AKTİF sürümde OLMAYAN bir kod olmalı: 2.5'ten beri 6 ve 8
+       aileleri de aktif sürümdedir (`EPDK-SYM-8.1` "Yedekleme" artık var),
+       eskiden sürümsüz kaldıkları için burada 8.1 "yeni" sayılabiliyordu. */
     const yeniMadde = await db.madde.create({ data: {
-      regulasyonId: reg.id, surumId: taslak.id, kod: 'EPDK-SYM-8.1',
+      regulasyonId: reg.id, surumId: taslak.id, kod: 'EPDK-SYM-9',
       baslik: 'Tedarik zinciri güvenliği', metin: 'OT tedarikçileri değerlendirilir.' } });
 
     // --- aktifleştirme mantığı (surumAktiflestir ile birebir)
@@ -78,7 +81,7 @@ describe('Kabul testi 6 — regülasyon yeni sürüm', () => {
     expect(farklar.filter((f) => f.degisimTipi === 'degisti').map((f) => f.maddeKodu))
       .toContain('EPDK-SYM-4.2.1');
     expect(farklar.filter((f) => f.degisimTipi === 'yeni').map((f) => f.maddeKodu))
-      .toContain('EPDK-SYM-8.1');
+      .toContain('EPDK-SYM-9');
     // 3) yeni değerlendirme ihtiyacı: kapsam tesislerine 'degerlendirilmedi' açıldı
     const yeniDurumlar = await db.maddeDurumu.findMany({
       where: { maddeId: yeniMadde.id } });

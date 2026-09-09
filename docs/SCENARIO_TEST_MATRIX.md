@@ -4,12 +4,12 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 311 |
-| Testi olan senaryo | 311 |
+| Senaryo | 312 |
+| Testi olan senaryo | 312 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
-| Taranan test dosyası | 181 |
+| Taranan test dosyası | 182 |
 
 ## Katman başına kapsam
 
@@ -18,9 +18,9 @@
 | ACCESSIBILITY | 8 | 8 | 0 |
 | API | 12 | 12 | 0 |
 | CONCURRENCY | 7 | 7 | 0 |
-| DOMAIN | 171 | 171 | 0 |
+| DOMAIN | 172 | 172 | 0 |
 | ENGINE | 33 | 33 | 0 |
-| INTEGRATION | 39 | 39 | 0 |
+| INTEGRATION | 40 | 40 | 0 |
 | MIGRATION | 5 | 5 | 0 |
 | RBAC | 32 | 32 | 0 |
 | RESPONSIVE | 8 | 8 | 0 |
@@ -547,6 +547,13 @@
 | `URN-PKT-014` | Ürünleştirme | DOMAIN · SERVER · INTEGRATION | `paket-esleme.test.ts` | paketin KENDİ eşlemesi bağ değildir: aynı etiketle yenilenen taslak eşlemeleri yeniden yazar; kiracının eşlemesi bağdır: yenileme SÜRÜM | evet | geçti |
 | `URN-PKT-014` | Ürünleştirme | DOMAIN · SERVER · INTEGRATION | `paket-esleme.test.ts` | kurulu çerçeveye eşleme: yalnız eşleme taşıyan yatay paket; başka kökenli eşleme çelişki; bırakılan pasif, yeniden beyan aktif; kaldırma pasifler | evet | geçti |
 | `URN-PKT-014` | Ürünleştirme | DOMAIN · SERVER · INTEGRATION | `paket-esleme.test.ts` | kurulu çerçeve çözümü: yanlış sürüm etiketi KİMLİK, olmayan madde KİMLİK, telifli kurulu çerçeveye açıklama LİSANS — hiçbir satır yazılmaz | evet | geçti |
+| `URN-PKT-015` | Ürünleştirme | DOMAIN · INTEGRATION | `paket-demo.test.ts` | DEMO-TR-ORTAK · DEMO-TR-ENERJI · DEMO-TR-SU: 0 hata, sayılar, özetler dosyalarla eşit, bağımlılık ortak pakete | evet | geçti |
+| `URN-PKT-015` | Ürünleştirme | DOMAIN · INTEGRATION | `paket-demo.test.ts` | sözlük ve öznitelik şeması tohum sabitleriyle birebir: enerji 13 + 9, su 5 + 1 — sabit ile paket ayrışamaz | evet | geçti |
+| `URN-PKT-015` | Ürünleştirme | DOMAIN · INTEGRATION | `paket-demo.test.ts` | ÖLÇÜLEN KAYIP: ISO 27001 telifli — 4 madde metinsiz, kanıt tipi korunur; CBDDÖ/SPK/EPDK metinli; EPDK 27 madde, 15 kanıt tipi, 6 kanıt beklentisi | evet | geçti |
+| `URN-PKT-015` | Ürünleştirme | DOMAIN · INTEGRATION | `paket-demo.test.ts` | denklikler: ortak 2 + enerji 6 = tohumun 8 elle denkliği; ISO hedefli eşlemede açıklama yok | evet | geçti |
+| `URN-PKT-015` | Ürünleştirme | DOMAIN · INTEGRATION | `paket-demo.test.ts` | tohumun kiracı katmanı (madde → BT/OT alanı) paketlerin 38 maddesini kapsar — fazlası, eksiği yok | evet | geçti |
+| `URN-PKT-015` | Ürünleştirme | DOMAIN · INTEGRATION | `paket-demo.test.ts` | üç paket kurulu; sözlük 18 · öznitelik 10 · regülasyon 4 · eşleme 8 paket kökenli ve aktif; 4 çerçeve sürümü aktif, taslak yok; her madde sürümlü; ISO maddesi TELIFLI_METIN; kanıt tipi ve BT/OT bağı yerinde | evet | geçti |
+| `URN-PKT-015` | Ürünleştirme | DOMAIN · INTEGRATION | `paket-demo.test.ts` | kanit_tipi sütunu: kod olmayan değer BIÇIM; kurulumda Madde.kanitTipi, Regulasyon.surum ve yururlukTarih paket kimliğinden yazılır | evet | geçti |
 | `URN-PKT-010` | Ürünleştirme | DOMAIN | `bekci/paket-silme.test.ts` | madde dışında HİÇBİR modelde delete/deleteMany yok — tavan sıfır, istisna listesi yok | evet | geçti |
 | `URN-PKT-010` | Ürünleştirme | DOMAIN | `bekci/paket-silme.test.ts` | madde silmesi yalnız paketin kendi taslağını (`surumId` süzgeci) hedefler ve bağ kontrolünden sonra gelir | evet | geçti |
 | `URN-PKT-010` | Ürünleştirme | DOMAIN | `bekci/paket-silme.test.ts` | şemada Madde\'den başka modele giden HER liste ilişkisi bağ kontrolünde; listede şemada olmayan ilişki yok | evet | geçti |

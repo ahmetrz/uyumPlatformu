@@ -818,9 +818,18 @@ açıklama sınırlı ve yalnız metin izinliyken; `MaddeEslestirmesi.aktif`
 (göç `20260909150000_p4_esleme_aktif`): bırakılan eşleme pasif, okuyucular
 ve `madde.eslestirme*` içermeleri aktif süzer (bekçi genişledi); paketin
 kendi eşlemesi taslak yenilemesinde bağ sayılmaz, kiracınınki sayılır
-(URN-PKT-014). Kalan: demo yükleyici, `/paketler` ekranı, OSCAL okuyucu
-(SCF için — hukuki görüş bekleniyor), form/rapor ekranlarının şablonu
-okuması, rol önerisinin koda bağlanması, R6 ilişki türü/güç.
+(URN-PKT-014). **2.5 uygulandı:** tohum paket biçimine taşındı —
+`paketler/DEMO-TR-ORTAK` (CBDDÖ · ISO 27001 telifli · SPK BS · 2 denklik),
+`DEMO-TR-ENERJI` (sözlük 13, öznitelik 9, EPDK-SYM demo 27 madde, 6 denklik),
+`DEMO-TR-SU` (sözlük 5, öznitelik 1); `prisma/seed.ts` bunları `paketiKur`
+ile kurar ve ilk sürümleri aktif yapar; CSV'ye `kanit_tipi` sütunu (kayıp
+olmasın diye); ölçülen kayıp yalnız ISO 27001'in 4 kısa açıklama metni
+(`docs/P4_TOHUM_TASIMA_OLCUMU.md` §4); kiracı katmanı (BT/OT eşlemesi,
+aile adı, tesisler, tipler, süreçler) tohumda (URN-PKT-015). Kalan:
+`/paketler` ekranı, OSCAL okuyucu (SCF için — hukuki görüş bekleniyor),
+form/rapor ekranlarının şablonu okuması, rol önerisinin koda bağlanması,
+R6 ilişki türü/güç, demo verisinin (tesis · süreç · bulgu) JSON'dan
+yüklenmesi (P8).
 
 **Hedef.** Çerçeveler, eşlemeler, yükümlülükler, denetim form şablonları,
 mevzuat kaynak katalogları, sektör sözlükleri ve demo verisi **paket**

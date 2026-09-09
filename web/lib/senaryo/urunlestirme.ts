@@ -430,6 +430,19 @@ export const URUNLESTIRME_SENARYOLARI: Senaryo[] = [
     katmanlar: ['DOMAIN', 'SERVER', 'INTEGRATION'],
   },
   {
+    id: 'URN-PKT-015', alan: 'Ürünleştirme', rota: '—', eksen: 'veri',
+    amac: 'Demo tohumunun paket biçimine taşınması: sözlük, öznitelik şeması, çerçeve ve denklikler DEMO paketlerinden kurulur; telifli çerçevenin metni düşer, kayıp ölçülür',
+    rol: 'ürünü sürdüren geliştirici · tohumu kuran yönetici', kapsam: '`paketler/DEMO-TR-ORTAK · DEMO-TR-ENERJI · DEMO-TR-SU` · `prisma/seed.ts` · `kanit_tipi` sütunu',
+    onkosul: 'Tohum sabitleri (`prisma/sozlukler.ts`, `prisma/kapsam-ogesi.ts`) ve 2.5 öncesi madde ağaçları; ISO 27001 telifli',
+    veriHali: 'tipik',
+    eylem: 'Üç demo paketi doğrulanır ve özetleri ölçülür; sözlük/öznitelik paket–sabit birebir karşılaştırılır; taze tohum koşulur ve veritabanı sayılır',
+    beklenenSonuc: 'Paketler 0 hata; sözlük 13+5 ve öznitelik 9+1 sabitlerle birebir; ISO 27001 4 madde metinsiz ama kanıt tipi korunmuş (ölçülen kayıp: 4 kısa açıklama); '
+      + 'tohumlanmış veritabanında üç paket kurulu, sözlük/öznitelik/regülasyon/eşleme satırları paket kökenli, dört çerçeve sürümü aktif (taslak yok), her madde sürümlü, ISO maddesi TELIFLI_METIN, kanıt tipi ve BT/OT alan bağı yerinde',
+    beklenenEkran: 'Ekran değişmez — aynı sözcük, aynı çerçeveler, aynı denklikler',
+    beklenenIz: 'yok (tohum)', beklenenBildirim: 'yok',
+    katmanlar: ['DOMAIN', 'INTEGRATION'],
+  },
+  {
     id: 'URN-PKT-010', alan: 'Ürünleştirme', rota: '—', eksen: 'veri',
     amac: 'Paket işlemlerinin müşteri verisini SİLEMEMESİ (R-C): bekçi tavanı sıfır, gerekçeli istisna yok',
     rol: 'ürünü sürdüren geliştirici', kapsam: '`lib/paket/` · paket eylemleri · şema',

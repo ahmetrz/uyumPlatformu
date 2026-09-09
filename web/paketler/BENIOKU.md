@@ -21,7 +21,7 @@ hiçbir sürümü aktif yapmaz, hiçbir madde durumu yazmaz.
 | `kapsam-turleri.json` | JSON dizi | `kod` (küçük harf) · `ad` · `etiketAnahtari?` · `tesiseBagli` · `sira` |
 | `oznitelikler.json` | JSON dizi | `anahtar · tip (sayi · metin · mantik · tarih) · birim? · etiketAnahtari · rol? (kapasite · kritiklik) · grup? · secenekler? · kuraldaKullanilir · sira` |
 | `cerceve/<KOD>.json` | JSON | çerçeve kimliği: `kod · ad · surumEtiketi · yayimTarihi? · yururlukTarih? · kaynakUrl? · lisans · maddeDosyasi · zorunlulukTipi` |
-| `cerceve/<KOD>.csv` | CSV (`;`, UTF-8, başlık satırı) | madde ağacı: `kod;ust_kod;baslik;metin;sira;seviye;zorunluluk_tipi;kanit_beklentisi;dis_kontrol_id` — üst madde satırı alt maddeden ÖNCE gelir; her başlık **bir kez**, satırda başlığı aşan **dolu** hücre olamaz (okunmayan hücre içerik taşırdı — telifli metin kaçağı); tırnak kapanır (`""` kaçış); `seviye` 0–5 (ürünün olgunluk ölçeği); telifli çerçevede `kanit_beklentisi` boş, `dis_kontrol_id` ≤ 60 karakter |
+| `cerceve/<KOD>.csv` | CSV (`;`, UTF-8, başlık satırı) | madde ağacı: `kod;ust_kod;baslik;metin;sira;seviye;zorunluluk_tipi;kanit_beklentisi;dis_kontrol_id;kanit_tipi` — üst madde satırı alt maddeden ÖNCE gelir; `kanit_tipi` beklenen kanıt türünün KODU (`kayit`, `konfigurasyon`, `test_kaydi`…; küçük harf, ≤ 40, metin değil — 2.5); her başlık **bir kez**, satırda başlığı aşan **dolu** hücre olamaz (okunmayan hücre içerik taşırdı — telifli metin kaçağı); tırnak kapanır (`""` kaçış); `seviye` 0–5 (ürünün olgunluk ölçeği); telifli çerçevede `kanit_beklentisi` boş, `dis_kontrol_id` ≤ 60 karakter |
 
 Paket yapısında yeri olmayan dosya (hiçbir tanımlayıcının okumadığı
 `cerceve/başka.csv`, `notlar.txt`…) özeti doğru olsa da **reddedilir**:
@@ -101,7 +101,16 @@ ile iz kaydı aynı transaction'dadır: iz yazılamazsa işlem de geri alınır.
 | Paket | Durum | İçerik |
 | --- | --- | --- |
 | `TR-ENERJI` | **iskelet** (0.1.0) | sözlük (tohumla birebir), `kontrol_sistemi` türü, 12 öznitelik, `EPDK-SGYM` yönetmelik yapısı (4 bölüm, 18 + 1 geçici madde başlığı), `EPDK-SGYM-EK3` (13 aile, 565 kontrol kimliği ve seviyesi), `EPDK-SGYM-KARNE` rapor şablonu, 2 rol önerisi — **madde metni yok** |
+| `DEMO-TR-ORTAK` | **demo tohumu** (0.1.0, `yatay`) | sektör üstü üç çerçeve: `CBDDO` (4 temsilî madde, metinli), `ISO-27001` (**telifli** — 4 madde yalnız kimlik + başlık + kanıt tipi; tohumdaki 4 kısa açıklama metni bilinçli düşürüldü), `SPK-BS` (3); iki çerçeve arası 2 denklik. Kurgusal kiracılar bu paketi paylaşır |
+| `DEMO-TR-ENERJI` | **demo tohumu** (0.1.0, `demo`, `DEMO-TR-ORTAK`a bağımlı) | enerji sözlüğü (13 — `prisma/sozlukler.ts` ile birebir), öznitelik şeması (9: `kuruluGuc` + 8 profil), `EPDK-SYM` **demo** çerçevesi (5 aile, 27 madde; kodlar ve metinler kurgusal, gerçek yönetmelik `TR-ENERJI/cerceve/EPDK-SGYM*`), EPDK → ortak çerçeve 6 denklik. Tesisler, tipler, süreçler, bulgular tohumda (P8) |
+| `DEMO-TR-SU` | **demo tohumu** (0.1.0, `demo`, `DEMO-TR-ORTAK`a bağımlı) | su sözlüğü (5), öznitelik şeması (1: `gunlukDebi`, m³/gün); çerçeveler ortak paketten |
 | `TR-BANKACILIK` | **iskelet** (0.1.0) | 4 kapsam öğesi türü, 7 öznitelik, `BDDK-BS` yapısı (4 kısım, 7 bölüm, 47 madde numarası), `BDDK-BS-OZDEGERLENDIRME` form şablonu (JSON yapı), 3 rol önerisi — başlıklar birincil metin erişilince; **madde metni yok** |
+
+**Tohum bu paketlerden kurulur (2.5).** `prisma/seed.ts` sözlük, öznitelik
+şeması, çerçeve ve denklikleri `DEMO-TR-*` dizinlerinden `paketiKur` ile
+kurar, ilk kurulumun sürümlerini aktif yapar (tohumu kuran yönetici) ve
+kiracı katmanını (BT/OT kapsam alanı eşlemesi, aile adı, tesisler, tipler,
+süreçler, durumlar, bulgular) üstüne yazar. Ölçüm: `docs/P4_TOHUM_TASIMA_OLCUMU.md` §4.
 
 İskeletlerde eşleme dosyası **yok**: iki çerçeve arasında denklik iddiası
 madde metni gibi içerik işidir, uydurulmaz (biçim `tests/paket-esleme.test.ts`

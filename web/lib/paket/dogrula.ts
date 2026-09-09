@@ -18,7 +18,7 @@ import * as XLSX from 'xlsx';
 import { OLGUNLUK_ASGARI, OLGUNLUK_AZAMI } from '../uyum/olgunluk';
 import {
   ACIKLAMA_SINIRI, BASLIK_SINIRI, CEKIRDEK_ROLLER, CerceveKimligiSemasi, DENKLIKLER, DIS_KIMLIK_SINIRI, DOSYALAR, ESLEME_SUTUNLARI,
-  ESLEME_ZORUNLU_SUTUNLAR, EslemeKimligiSemasi, FormSablonuSemasi, ISLEM_ONKOSULU, KapsamTuruSatiriSemasi, MADDE_SUTUNLARI,
+  ESLEME_ZORUNLU_SUTUNLAR, EslemeKimligiSemasi, FormSablonuSemasi, ISLEM_ONKOSULU, KANIT_TIPI_KODU, KapsamTuruSatiriSemasi, MADDE_SUTUNLARI,
   MADDE_ZORUNLU_SUTUNLAR, ManifestSemasi, OLCU_ALANI, OZET_DISI, OZNITELIK_ROLLERI, OznitelikSatiriSemasi, RaporSablonuSemasi,
   RolSatiriSemasi, SozlukSatiriSemasi, YukumlulukSatiriSemasi, ZORUNLULUK_TIPLERI, csvAyristir, sha256,
   type CerceveKimligi, type EslemeKimligi, type EslemeSatiri, type FormSablonu, type KapsamTuruSatiri, type MaddeSatiri,
@@ -353,7 +353,9 @@ export function paketiDogrula(dizin: string): DogrulamaSonucu {
            tam sayı ekranda tanımsız etiket ve dağılımda kayıp üretirdi. */
         if (seviye !== null && (seviye < OLGUNLUK_ASGARI || seviye > OLGUNLUK_AZAMI)) { hatalar.push({ sinif: 'BIÇIM', dosya: maddeDosya, konum: no, mesaj: `seviye ${OLGUNLUK_ASGARI}–${OLGUNLUK_AZAMI} aralığında olmalı: ${seviyeHam} (${kod})`, duzeltme: `olgunluk seviyesini ${OLGUNLUK_ASGARI}–${OLGUNLUK_AZAMI} arası yazın ya da boş bırakın` }); return; }
         if (zt && !(ZORUNLULUK_TIPLERI as readonly string[]).includes(zt)) { hatalar.push({ sinif: 'BIÇIM', dosya: maddeDosya, konum: no, mesaj: `zorunluluk_tipi bilinmiyor: ${zt}`, duzeltme: `şunlardan biri: ${ZORUNLULUK_TIPLERI.join(', ')}` }); return; }
-        maddeler.push({ kod, ustKod, baslik, metin, sira, seviye, zorunlulukTipi: zt, kanitBeklentisi, disKontrolId });
+        const kanitTipi = sutun(satir, 'kanit_tipi') || null;
+        if (kanitTipi && !KANIT_TIPI_KODU.test(kanitTipi)) { hatalar.push({ sinif: 'BIÇIM', dosya: maddeDosya, konum: no, mesaj: `kanit_tipi kod olmalı (küçük harf, alt çizgi, ≤ 40): ${kanitTipi.slice(0, 50)}`, duzeltme: 'kanıt türünün kodunu yazın (kayit, konfigurasyon…); açıklama kanit_beklentisi sütununa' }); return; }
+        maddeler.push({ kod, ustKod, baslik, metin, sira, seviye, zorunlulukTipi: zt, kanitBeklentisi, disKontrolId, kanitTipi });
       });
       cerceveler.push({ dosya, kimlik, maddeler });
     }

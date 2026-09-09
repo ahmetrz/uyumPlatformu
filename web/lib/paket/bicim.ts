@@ -138,11 +138,16 @@ export type CerceveKimligi = z.infer<typeof CerceveKimligiSemasi>;
 /** Madde CSV sütunları — ilk üçü zorunlu, kalanı isteğe bağlı. */
 export const MADDE_ZORUNLU_SUTUNLAR = ['kod', 'ust_kod', 'baslik'] as const;
 export const MADDE_SUTUNLARI = [
-  ...MADDE_ZORUNLU_SUTUNLAR, 'metin', 'sira', 'seviye', 'zorunluluk_tipi', 'kanit_beklentisi', 'dis_kontrol_id',
+  ...MADDE_ZORUNLU_SUTUNLAR, 'metin', 'sira', 'seviye', 'zorunluluk_tipi', 'kanit_beklentisi', 'dis_kontrol_id', 'kanit_tipi',
 ] as const;
+/** `kanit_tipi` (2.5): maddenin beklediği kanıt TÜRÜNÜN kodu (`kayit`, `konfigurasyon`,
+    `test_kaydi`…) — `/ice-aktarim` ile aynı serbest kod; metin değil, ≤ 40 karakter.
+    Tohumun `Madde.kanitTipi` değeri paket biçimine kayıpsız taşınsın diye eklendi. */
+export const KANIT_TIPI_KODU = /^[a-z][a-z0-9_]{0,39}$/;
 export type MaddeSatiri = {
   kod: string; ustKod: string | null; baslik: string; metin: string | null; sira: number;
   seviye: number | null; zorunlulukTipi: string | null; kanitBeklentisi: string | null; disKontrolId: string | null;
+  kanitTipi: string | null;
 };
 
 export const YukumlulukSatiriSemasi = z.object({

@@ -1,0 +1,35 @@
+{
+  "kod": "DEMO-TR-ENERJI",
+  "ad": "Demo · Enerji (elektrik üretimi) kiracısı — tohum",
+  "tur": "demo",
+  "ulke": "TR",
+  "sektor": {
+    "kod": "ELEKTRIK-URETIM",
+    "ad": "Elektrik Üretimi"
+  },
+  "dil": "tr",
+  "surum": "0.1.0",
+  "yayinci": "Uyum ve Yönetişim Platformu (demo tohumu)",
+  "lisans": {
+    "tur": "kamuya_acik",
+    "metinDahil": true,
+    "not": "Demo tohumu: EPDK-SYM demo çerçevesi (kodlar ve metinler kurgusal)"
+  },
+  "bagimliliklar": [
+    "DEMO-TR-ORTAK"
+  ],
+  "icerikOzetleri": {
+    "cerceve/EPDK-SYM.csv": "c3f3508683210aef1556c63f132ee4b8a0ff98fba74c13dc9403b675bb304964",
+    "cerceve/EPDK-SYM.json": "578b93549eaa2f2b2cb78740fda117b99c4fe0936ef4f20d530e4d97ddd89a6c",
+    "esleme/EPDK-SYM-CBDDO.csv": "1b6730761a943d0cad746a0ccf9e3f909857b5c017a3ea9b576b0d66d5919f9e",
+    "esleme/EPDK-SYM-CBDDO.json": "99121ca0eb3b0c8ca1db1989c3dfa87dc427ad69d08de847564af5232388026f",
+    "esleme/EPDK-SYM-ISO-27001.csv": "3cc53fdb8d1bfccf7ba4bd5c3bb8dfbfd1bd19bdc70ddd6f5de17840daa51796",
+    "esleme/EPDK-SYM-ISO-27001.json": "4e719e791bba99843eb6da7dad7c71483dda46133e4d16ff74b454cc31a5bfb7",
+    "esleme/EPDK-SYM-SPK-BS.csv": "b753caa91821d9299d81b36d563f44909b4ba44ec266b4a4c8a63f494cd4c4e2",
+    "esleme/EPDK-SYM-SPK-BS.json": "d415fa5d59f05a8971fd660b1928487584d69d10f6ce938bca27b736da105270",
+    "oznitelikler.json": "94481c769214894c69706c0032e69363e63bb5d0a448cfbde52fff31b9886f00",
+    "sozluk.json": "7fc219741fb5e9b0a59ee32511b52ac274cf88282011920b053479b65b02108c"
+  },
+  "imza": null,
+  "aciklama": "DEMO (P4 · 2.5): tohumun enerji sözlüğü (13), öznitelik şeması (9), EPDK-SYM demo çerçevesi (27 madde) ve EPDK → ortak çerçeve denklikleri (6). Tesisler, tipler, süreçler ve bulgular tohumda (P8)."
+}

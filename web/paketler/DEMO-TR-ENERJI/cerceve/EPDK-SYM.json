@@ -1,0 +1,17 @@
+{
+  "kod": "EPDK-SYM",
+  "ad": "EPDK Siber Yetkinlik Modeli",
+  "surumEtiketi": "2024",
+  "yayimTarihi": null,
+  "yururlukTarih": "2024-09-19",
+  "kaynakUrl": "https://www.epdk.gov.tr",
+  "lisans": {
+    "tur": "kamuya_acik",
+    "metinDahil": true,
+    "kaynak": "https://www.epdk.gov.tr",
+    "not": "DEMO: madde kodları ve metinleri gerçek yönetmeliğin değil demo tohumunun (docs/P4_TOHUM_TASIMA_OLCUMU.md §1/4); gerçek çerçeve TR-ENERJI/cerceve/EPDK-SGYM*"
+  },
+  "maddeDosyasi": "EPDK-SYM.csv",
+  "zorunlulukTipi": "REGULATION",
+  "not": "Demo tohumundan taşındı (2.5): 5 aile, 27 madde; kanıt tipi sütunda"
+}

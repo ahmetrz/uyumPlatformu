@@ -61,6 +61,7 @@ const BEYAN = {
   'harita:sinir': { kapi: false, sebep: 'üretici: Natural Earth\'ten silüet çizer, ağ ister; çıktısı depoda' },
   'sayimlar:yenile': { kapi: false, sebep: 'üretici: envanteri YAZAR; CI okuyanı (`sayimlar:denetle`) koşmalı' },
   'konsol:olcum': { kapi: false, sebep: 'ölçüm sondası: konsol gürültüsünü RAPORLAR, eşiği yok' },
+  'paket:dogrula': { kapi: false, sebep: 'yazar aracı: bir paket dizinini doğrular; iskelet paketlerin doğrulayıcıdan geçtiğini CI `npm test` içindeki `tests/paket-iskeletler.test.ts` ölçer' },
 
   'test:kapsam': { kapi: true, sebep: 'CI `npm test` koşuyor; kapsam raporu eşiksiz ve süreyi ikiye katlıyor — eşik konduğu gün bağlanır' },
   'tasarim:rota': { kapi: true, sebep: 'canlı sunucu · 4 bant × 58 rota; `rota:duman` ile örtüşüyor, ayrıştırılmadan bağlanırsa süre iki katına çıkar' },

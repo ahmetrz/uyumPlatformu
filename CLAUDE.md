@@ -42,6 +42,7 @@ kabul kriteridir (P0 · URN-KUR-003); ölü atıf eklemeyin.
 | Tesis-dışı sektör (bankacılık) model uyum testi | `docs/TESIS_DISI_SEKTOR_UYUM_TESTI.md` |
 | Açılış ekranı devir notu · ürün şartı | `docs/ACILIS_DEVIR_NOTU.md` |
 | Sektör-ülke paketi sözleşmesi | `docs/SEKTOR_PAKETI_SOZLESMESI.md` |
+| Paket dizinleri · doğrulayıcı · kurucu (P4) | `web/paketler/BENIOKU.md` · `web/lib/paket/` · `docs/P4_TOHUM_TASIMA_OLCUMU.md` |
 | Enerji–su parite kanıtı (K4) | `docs/kanit/faz-b-k4/OZET.md` · `web/arac/k4-enerji-su.mjs` |
 | Zorunlu UX / ürün tasarımı skill seti | `.claude/skills/` |
 

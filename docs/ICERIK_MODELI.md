@@ -43,6 +43,12 @@ Kararlar kullanıcıyla yapılan netleştirmelere dayanır.
 - **Kanit** + **KanitBaglantisi**: çoktan-çoğa — tek kanıt birden çok regülasyonun maddesini
   karşılar (crosswalk). Tazelik türetilir: <90 gün taze, 90–180 yenilenmeli, >180 süresi doldu.
 - **MaddeEslestirmesi**: regülasyonlar arası denklik (tam | kismi | ilgili) — eşleştirme matrisi.
+- **IcerikPaketi** → **IcerikPaketiSurumu** (P4): kurulu sektör-ülke paketlerinin kataloğu (kod, tür,
+  ülke, sektör, dil, yayıncı; sürüm SemVer, lisans, özetler, kurulum raporu; durum kurulu | onceki |
+  arsiv). Paketin yazdığı satırlar `koken = paket` + `paketSurumId` taşır (`Regulasyon ·
+  FrameworkSurumu · MaddeEslestirmesi · SektorSozlugu · KapsamOgesiTuru · SektorOznitelikSemasi ·
+  BildirimYukumlulugu`); `kiraci` satırına paket dokunmaz. `Regulasyon.lisansTuru` (kamuya_acik |
+  telifli) + `metinDahil`: telifli çerçevede madde metni "lisans nedeniyle girilmedi".
 - **Proje** + **ProjeBaglantisi**: uyum projeleri ↔ madde/bulgu.
 
 ### Yetki ve iz

@@ -1,0 +1,105 @@
+[
+  {
+    "anahtar": "aktifBuyuklugu",
+    "tip": "sayi",
+    "birim": "milyon TL",
+    "etiketAnahtari": "aktifBuyuklugu",
+    "rol": "kapasite",
+    "grup": null,
+    "secenekler": null,
+    "kuraldaKullanilir": true,
+    "sira": 100
+  },
+  {
+    "anahtar": "calisanSayisi",
+    "tip": "sayi",
+    "birim": "kişi",
+    "etiketAnahtari": "calisanSayisi",
+    "rol": null,
+    "grup": "Kurum",
+    "secenekler": null,
+    "kuraldaKullanilir": true,
+    "sira": 110
+  },
+  {
+    "anahtar": "sistemSinifi",
+    "tip": "metin",
+    "birim": null,
+    "etiketAnahtari": "sistemSinifi",
+    "rol": null,
+    "grup": "Bilgi sistemi",
+    "secenekler": [
+      {
+        "deger": "birincil",
+        "ad": "Birincil sistem"
+      },
+      {
+        "deger": "ikincil",
+        "ad": "İkincil sistem"
+      }
+    ],
+    "kuraldaKullanilir": true,
+    "sira": 120
+  },
+  {
+    "anahtar": "yurtIcindeMi",
+    "tip": "mantik",
+    "birim": null,
+    "etiketAnahtari": "yurtIcindeMi",
+    "rol": null,
+    "grup": "Bilgi sistemi",
+    "secenekler": null,
+    "kuraldaKullanilir": true,
+    "sira": 121
+  },
+  {
+    "anahtar": "kritiklik",
+    "tip": "metin",
+    "birim": null,
+    "etiketAnahtari": "kritiklik",
+    "rol": "kritiklik",
+    "grup": "Kritiklik ve maruziyet",
+    "secenekler": [
+      {
+        "deger": "dusuk",
+        "ad": "Düşük"
+      },
+      {
+        "deger": "orta",
+        "ad": "Orta"
+      },
+      {
+        "deger": "yuksek",
+        "ad": "Yüksek"
+      },
+      {
+        "deger": "kritik",
+        "ad": "Kritik"
+      }
+    ],
+    "kuraldaKullanilir": true,
+    "sira": 130
+  },
+  {
+    "anahtar": "kritikHizmetMi",
+    "tip": "mantik",
+    "birim": null,
+    "etiketAnahtari": "kritikHizmetMi",
+    "rol": null,
+    "grup": "Dış hizmet",
+    "secenekler": null,
+    "kuraldaKullanilir": true,
+    "sira": 140
+  },
+  {
+    "anahtar": "altYukleniciVar",
+    "tip": "mantik",
+    "birim": null,
+    "etiketAnahtari": "altYukleniciVar",
+    "rol": null,
+    "grup": "Dış hizmet",
+    "secenekler": null,
+    "kuraldaKullanilir": false,
+    "sira": 141
+  }
+]

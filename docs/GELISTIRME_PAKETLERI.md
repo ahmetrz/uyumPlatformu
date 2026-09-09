@@ -769,7 +769,17 @@ doğrulanmalı). *İkinci dil:* EN.
 
 **Bugün.** `Regulasyon · FrameworkSurumu · SurumFarki · Madde`,
 `MaddeEslestirmesi`, `BildirimYukumlulugu`, `RegulasyonKaynagi`;
-`/ice-aktarim` madde aktarımı; içerik seed'de.
+`/ice-aktarim` madde aktarımı; içerik seed'de. **P4 ilk dilimi uygulandı
+(9 Eylül 2026):** paket biçimi + doğrulayıcı (`lib/paket/dogrula.ts`,
+`npm run paket:dogrula`), lisans sınırı alanda (`Regulasyon.lisansTuru ·
+metinDahil`), kurucu (`lib/paket/kur.ts`: tek transaction, çerçeve TASLAK,
+aktifleştirme insan onayıyla; sözlük · tür · öznitelik · çerçeve ·
+yükümlülük), köken (`koken · paketSurumId` yedi tabloda; kiracı satırı
+ezilmez), kaldırma = arşiv, katalog (`IcerikPaketi · IcerikPaketiSurumu`),
+iskelet paketler `paketler/TR-ENERJI` · `paketler/TR-BANKACILIK`, tohum
+taşınabilirlik ölçümü `docs/P4_TOHUM_TASIMA_OLCUMU.md`. Kalan: form ve
+rapor şablonu, rol kataloğu, demo yükleyici, eşleme CSV, `/paketler`
+ekranı, OSCAL okuyucu (SCF için — hukuki görüş bekleniyor).
 
 **Hedef.** Çerçeveler, eşlemeler, yükümlülükler, denetim form şablonları,
 mevzuat kaynak katalogları, sektör sözlükleri ve demo verisi **paket**

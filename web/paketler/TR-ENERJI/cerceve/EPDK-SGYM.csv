@@ -1,0 +1,24 @@
+kod;ust_kod;baslik;metin;sira;seviye;zorunluluk_tipi
+BOLUM-1;;Birinci Bölüm · Başlangıç Hükümleri;;0;;
+1;BOLUM-1;Amaç;;1;;
+2;BOLUM-1;Kapsam;;2;;
+3;BOLUM-1;Dayanak;;3;;
+4;BOLUM-1;Tanımlar;;4;;
+BOLUM-2;;İkinci Bölüm · İlişkili Düzenlemeler, Yetkinlik Modeli Ana Kontrolleri, Yetkinlik Seviyeleri, Sektörel Kritiklik Derecesi Belirleme;;5;;
+5;BOLUM-2;İlişkili düzenlemeler;;6;;
+6;BOLUM-2;Yetkinlik modeli ana kontrol başlıkları;;7;;
+7;BOLUM-2;Yetkinlik seviyeleri;;8;;
+8;BOLUM-2;Sektörel kritiklik derecesi belirleme;;9;;
+BOLUM-3;;Üçüncü Bölüm · Yetkinlik Modeli Uygulama, Uyumluluk ve Denetim;;10;;
+9;BOLUM-3;Uygulama;;11;;
+10;BOLUM-3;Uyumluluk ve denetim;;12;;
+11;BOLUM-3;Denetçi firma ve personelinde aranacak nitelikler;;13;;
+12;BOLUM-3;Denetçi firmanın yetki başvurusu sırasında Kuruma sunması gereken bilgi ve belgeler;;14;;
+13;BOLUM-3;Denetim yapma yetkisinin verilmesi;;15;;
+14;BOLUM-3;Denetim yapma yetkisinin kaldırılması;;16;;
+BOLUM-4;;Dördüncü Bölüm · Çeşitli ve Son Hükümler;;17;;
+15;BOLUM-4;Düzenlemeler;;18;;
+16;BOLUM-4;Yürürlükten kaldırılan yönetmelik ve atıflar;;19;;
+GECICI-1;BOLUM-4;Geçiş süreci;;20;;
+17;BOLUM-4;Yürürlük;;21;;
+18;BOLUM-4;Yürütme;;22;;

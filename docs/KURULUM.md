@@ -59,6 +59,18 @@ saklanmaz: entegrasyon sırları yalnız `sirReferansi` ile taşınır
 docker compose --env-file .env up -d --build
 ```
 
+**Kesici (TLS sonlandıran) kurumsal vekilin arkasındaysanız** CA demetini
+derlemeye verin; verilmezse hiçbir şey değişmez:
+
+```sh
+CA_DEMETI=/yol/ca-bundle.crt docker compose --env-file .env up -d --build
+```
+
+CA bir BuildKit **sırrıdır**: katmana yazılmaz, imajda kalmaz. Ölçüldü:
+CA olmadan kapsayıcıdaki `npm ci`, `SELF_SIGNED_CERT_IN_CHAIN` alıyor ve
+npm 10.9.8 bunu "Exit handler never called!" diye — yani kendi kusuru gibi —
+raporluyor.
+
 Sıra bellidir ve compose bunu zorlar:
 
 1. **veritabani** açılır; `pg_isready` geçene kadar uygulama BEKLER.
@@ -116,6 +128,31 @@ kanit_deposu: depo kökü yok
 
 Liveness'a bağımlılık koymak, veritabanı bir dakika düştüğünde sağlıklı
 bir süreci öldürüp kesintiyi UZATIR; bu yüzden ayrıdır.
+
+---
+
+## 3b · Kurulumun ÇALIŞTIĞINI ölç — duman kapısı
+
+Sağlık ucu "süreç ayakta ve bağımlılıklar erişilebilir" der; ekranların
+açıldığını söylemez. Onu ölçen kapı ayrıdır ve depoda koşar:
+
+```sh
+cd web
+CA_DEMETI=/yol/ca-bundle.crt npm run kapi:compose
+```
+
+Kapı sırayla: yığını kaldırır → readiness bekler (süreyi ölçer) →
+kurulumu **kapı fikstürü olarak** tohumlar → dinamik rota değerlerini
+**kurulumun kendi veritabanından** okur → `rota:duman`ı yayımlanan porta
+karşı koşar → yığını indirir ve **indiğini doğrular** (kapsayıcı listesi
+boş VE port kapalı; iki ayrı tanık).
+
+Dinamik rota değerleri neden kurulumdan okunur: kimlikler `cuid()` ile
+üretilir, ana makinenin `dev.db`sindeki `id`ler bu kurulumda **yoktur** ve
+onlarla kurulan her URL 404 olurdu — kapı, ürün sağlamken kırmızı yanardı.
+
+Kapı CI'da `kapi-compose` işi olarak koşar ve `npm run kapi:parti`
+kümesindedir.
 
 ---
 

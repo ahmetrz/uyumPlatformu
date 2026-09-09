@@ -41,7 +41,17 @@ if (!existsSync(gocDizini)) {
    `node_modules`tan çözülür ve `/tmp` altından çözülmez (ölçüldü:
    "Cannot find module 'prisma/config'"). */
 const yuva = path.join(WEB, '.gecici');
-mkdirSync(yuva, { recursive: true });
+try {
+  mkdirSync(yuva, { recursive: true });
+} catch (e) {
+  /* Kurulumda uygulama ROOT DEĞİLDİR ve kod dizinine yazamaz (bilerek).
+     Ham `EACCES` yığın izi operatöre "uygulama bozuk" gibi görünür;
+     eksik olan tek şey YAZILABİLİR BİR DİZİNDİR ve o söylenir. */
+  console.error(`göç için geçici dizin açılamadı: ${yuva} (${e.code ?? e.message}).`
+    + ' Bu dizin uygulama kullanıcısına yazılabilir olmalıdır'
+    + ' (imajda: mkdir -p /uygulama/.gecici && chown).');
+  process.exit(1);
+}
 const calisma = mkdtempSync(path.join(yuva, 'goc-'));
 try {
   const ham = readFileSync(path.join(WEB, 'prisma', 'schema.prisma'), 'utf8');

@@ -59,7 +59,34 @@ FROM node:22-bookworm-slim AS kosum
 WORKDIR /uygulama
 ENV NODE_ENV=production
 
-RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-certificates wget \
+# PostgreSQL İSTEMCİ ARAÇLARI: yedek ve geri yükleme bunlarsız ALINAMAZ
+# (`arac/yedek.mjs` → pg_dump / pg_restore). Araç eksikliği sessiz kalmaz,
+# ADIYLA durur — ama duran bir yedekleme, yedeği olmayan bir kurulum
+# demektir. Sürüm SUNUCUYLA UYUŞMALIDIR: bookworm'un kendi paketi 15'tir
+# ve 16 sunucuya karşı `pg_dump` "server version mismatch" diyerek
+# reddeder; bu yüzden 16 PGDG deposundan kurulur.
+#
+# CA sırrı burada da bağlanır (derleme aşamasındakiyle aynı gerekçe) ama
+# GÜVEN DEPOSUNA YAZILMAZ: yalnız bu `wget` çağrısına verilir. İmaja
+# kalıcı bir kurumsal CA gömmek, imajı o kuruma bağlar ve "CA imajda
+# kalmaz" cümlesini yalan yapardı.
+#
+# Anahtar ÖNCE DOSYAYA indirilir, sonra çözülür. Boru hattında (`wget |
+# gpg`) kabuk yalnız SON komutun çıkışını görür: ölçüldü — kesici vekil
+# yüzünden boş dönen `wget`, `gpg: no valid OpenPGP data found` diye
+# GPG'nin kusuru gibi göründü.
+RUN --mount=type=secret,id=ca_demeti,target=/tmp/ca-demeti.crt \
+  apt-get update \
+  && apt-get install -y --no-install-recommends openssl ca-certificates wget gnupg \
+  && if [ -s /tmp/ca-demeti.crt ]; then WGET_CA="--ca-certificate=/tmp/ca-demeti.crt"; else WGET_CA=""; fi \
+  && wget -q $WGET_CA -O /tmp/pgdg.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc \
+  && gpg --dearmor -o /usr/share/keyrings/pgdg.gpg /tmp/pgdg.asc \
+  && rm -f /tmp/pgdg.asc \
+  && echo "deb [signed-by=/usr/share/keyrings/pgdg.gpg] http://apt.postgresql.org/pub/repos/apt bookworm-pgdg main" \
+       > /etc/apt/sources.list.d/pgdg.list \
+  && apt-get update \
+  && apt-get install -y --no-install-recommends postgresql-client-16 \
+  && apt-get purge -y gnupg && apt-get autoremove -y \
   && rm -rf /var/lib/apt/lists/* \
   && useradd --system --uid 10001 --home /uygulama uyum \
   && mkdir -p /veri/kanit && chown -R uyum:uyum /veri
@@ -73,6 +100,15 @@ COPY --from=derleme /kaynak/web/arac ./arac
 COPY --from=derleme /kaynak/web/lib/prisma-client ./lib/prisma-client
 COPY --from=derleme /kaynak/web/paketler ./paketler
 COPY deploy/compose/giris.sh /giris.sh
+
+# YAZILABİLİR TEK DİZİN: göç aracının geçici çalışma yuvası.
+# `arac/goc-uygula.mjs` şemanın datasource satırını geçici bir kopyada
+# çevirir ve o kopya UYGULAMA AĞACININ İÇİNDE olmak zorundadır
+# (`prisma/config` içe aktarımı `/tmp` altından çözülmez — ölçüldü).
+# Ağacın tamamını yazılabilir yapmak yerine TEK dizin açılır: kod
+# dizinine yazamayan bir süreç, ele geçirildiğinde kendi kodunu
+# değiştiremez.
+RUN mkdir -p /uygulama/.gecici && chown uyum:uyum /uygulama/.gecici
 
 # UYGULAMA ROOT DEĞİLDİR. Kök olarak koşan bir uygulama, kanıt deposundaki
 # dosya izinlerini ve kapsayıcı kaçış yüzeyini gereksiz genişletir.

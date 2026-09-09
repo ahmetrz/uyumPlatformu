@@ -146,8 +146,40 @@ if (saglikJson.saglayici !== 'postgresql') {
    ekranları oturumlu ve kayıtlı ölçmek için tohuma ihtiyaç duyar ve bunu
    KENDİ FİKSTÜRÜ olarak kurar — ürünün kurulum davranışı değişmez. */
 yaz('\n3 · kurulum tohumlanıyor (kapı fikstürü)…');
-const tohum = komut('docker', [...composeArgs, 'exec', '-T', 'uygulama',
-  './node_modules/.bin/tsx', 'prisma/seed.ts'], { env: ortam, stdio: 'inherit', timeout: 20 * 60_000 });
+
+/* TOHUM ÜRETİM İMAJINDAN KOŞMAZ — ve bu bir engel değil, doğru sınırdır.
+   Üretim imajı `lib/` KAYNAĞINI taşımaz (taşımamalı: kaynak `.next` içine
+   derlenmiştir ve üretimde okunmaz), `prisma/seed.ts` ise `lib/`den okur.
+   Tohumu koşturabilmek için üretim imajına kaynak eklemek, bir KAPI
+   fikstürü uğruna müşteri imajını büyütmek olurdu.
+
+   Bunun yerine DERLEME AŞAMASI imajı kullanılır: tam kaynak ve PostgreSQL
+   için üretilmiş Prisma istemcisi zaten oradadır. Katmanlar aynı olduğu
+   için ek derleme maliyeti yoktur. */
+const tohumImaji = 'uyum-platformu-tohum:kapi';
+const derle = komut('docker', ['build', '--target', 'derleme', '-t', tohumImaji,
+  '-f', path.join(KOK, 'deploy', 'compose', 'Dockerfile'),
+  ...(CA ? ['--secret', `id=ca_demeti,src=${CA}`] : []), KOK],
+{ env: ortam, stdio: 'inherit', timeout: 30 * 60_000 });
+if (derle.status !== 0) { if (!TUT) indir(); kirmizi('tohum imajı derlenemedi'); }
+
+/* Ağ adı TAHMİN EDİLMEZ, kapsayıcıdan okunur: compose proje adı
+   değiştiğinde `<proje>_default` varsayımı sessizce yanlış ağa bağlanır
+   ve tohum "veritabanı bulunamadı" der — kusur kurulumda sanılırdı. */
+const dbKapsayici = (komut('docker', [...composeArgs, 'ps', '-q', 'veritabani'],
+  { env: ortam }).stdout || '').trim().split('\n')[0];
+const ag = (komut('docker', ['inspect', '-f',
+  '{{range $k, $v := .NetworkSettings.Networks}}{{$k}}{{end}}', dbKapsayici],
+{ env: ortam }).stdout || '').trim();
+if (!ag) { if (!TUT) indir(); kirmizi('compose ağı okunamadı'); }
+
+const envMetni = readFileSync(ENV_DOSYA, 'utf8');
+const envAl = (a) => envMetni.match(new RegExp(`^${a}=(.*)$`, 'm'))?.[1]?.trim() ?? '';
+const tohumUrl = `postgresql://${envAl('PG_KULLANICI')}:${encodeURIComponent(envAl('PG_PAROLA'))}`
+  + `@veritabani:5432/${envAl('PG_VERITABANI')}`;
+const tohum = komut('docker', ['run', '--rm', '--network', ag, '-e', `DATABASE_URL=${tohumUrl}`,
+  '-w', '/kaynak/web', tohumImaji, './node_modules/.bin/tsx', 'prisma/seed.ts'],
+{ env: ortam, stdio: 'inherit', timeout: 30 * 60_000 });
 if (tohum.status !== 0) { if (!TUT) indir(); kirmizi('kurulum tohumlanamadı'); }
 
 /* ── 5 · dinamik rota değerleri KURULUMDAN ────────────────────────── */
@@ -162,10 +194,8 @@ const SORGULAR = {
 };
 
 function pgSorgu(sql) {
-  const env = readFileSync(ENV_DOSYA, 'utf8');
-  const al = (a) => env.match(new RegExp(`^${a}=(.*)$`, 'm'))?.[1]?.trim() ?? '';
   const r = komut('docker', [...composeArgs, 'exec', '-T', 'veritabani',
-    'psql', '-U', al('PG_KULLANICI'), '-d', al('PG_VERITABANI'), '-At', '-c', sql], { env: ortam });
+    'psql', '-U', envAl('PG_KULLANICI'), '-d', envAl('PG_VERITABANI'), '-At', '-c', sql], { env: ortam });
   if (r.status !== 0) return null;
   return r.stdout.split('\n').map((x) => x.trim()).filter((x) => x.length > 0);
 }

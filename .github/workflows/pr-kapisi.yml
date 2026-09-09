@@ -482,9 +482,18 @@ jobs:
         run: npm run kapi:compose
 
       # Yığın kapının kendi temizliğiyle iner; iş düşerse (zaman aşımı,
-      # iptal) burada da indirilir. `if: always()` olmadan ayakta kalan
-      # bir yığın, runner'la birlikte gitse de yerel koşumda kalırdı.
-      - name: Yığını indir (her koşulda)
+      # iptal) burada da indirilir. Adım SONUCUNU DOĞRULAR: `|| true` ile
+      # susturulan bir temizlik, başarısız OLAMAYAN bir adımdır ve adım
+      # değildir. Kapının env dosyası mutlu yolda silinmiş olabilir; o
+      # yüzden `down` env dosyası olmadan, proje adıyla çağrılır.
+      - name: Yığını indir ve indiğini DOĞRULA (her koşulda)
         if: always()
         working-directory: deploy/compose
-        run: docker compose --env-file .env down -v --remove-orphans || true
+        run: |
+          docker compose -p uyum-kapi-duman down -v --remove-orphans
+          kalan=$(docker compose -p uyum-kapi-duman ps -q | wc -l)
+          if [ "$kalan" != "0" ]; then echo "$kalan kapsayıcı ayakta kaldı"; exit 1; fi
+          if curl -s -o /dev/null --max-time 2 http://127.0.0.1:3200/; then
+            echo "port 3200 hâlâ cevap veriyor"; exit 1
+          fi
+          echo "temiz · kapsayıcı 0 · port 3200 kapalı"

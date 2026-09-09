@@ -73,6 +73,10 @@ services:
       - "${UYGULAMA_PORTU:-3000}:3000"
     volumes:
       - kanit:/veri/kanit
+      # Yedek KALICI BİR BİRİMDE durur. Kapsayıcının yazılabilir katmanına
+      # alınan bir yedek, ilk `up -d --build` ile giderdi — yani hiç
+      # alınmamış olurdu (bağımsız inceleme bulgusu).
+      - yedek:/veri/yedek
     healthcheck:
       # READINESS ucu: veritabanı ya da kanıt deposu erişilemezken 503 döner
       # ve SEBEBİ yazar. `?kip=canli` liveness'tır ve bağımlılığa BAKMAZ —
@@ -87,6 +91,7 @@ services:
 volumes:
   veritabani:
   kanit:
+  yedek:
 
 secrets:
   # Varsayılan `/dev/null`: sır TANIMLIDIR ama BOŞTUR ve Dockerfile'daki

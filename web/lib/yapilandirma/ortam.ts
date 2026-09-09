@@ -50,10 +50,27 @@ const metin = (varsayilan?: string) => z.preprocess(
 );
 
 /** Veritabanı bağlantı dizesi — `file:` (SQLite) ya da `postgres(ql)://`. */
-const baglanti = z.string().min(1).refine(
-  (u) => /^file:/i.test(u) || /^postgres(ql)?:\/\//i.test(u) || u.startsWith('/') || u.startsWith('.'),
-  { message: 'desteklenen: file: (SQLite) · postgres:// · postgresql://' },
-);
+const baglanti = z.string().min(1)
+  .refine(
+    (u) => /^file:/i.test(u) || /^postgres(ql)?:\/\//i.test(u) || u.startsWith('/') || u.startsWith('.'),
+    { message: 'desteklenen: file: (SQLite) · postgres:// · postgresql://' },
+  )
+  /* PostgreSQL dizesi AYRICA AYRIŞTIRILABİLİR olmalıdır. Ölçüldü (bağımsız
+     inceleme): `openssl rand -base64 32` ile üretilen parola `/` içerdiğinde
+     URI otoritesi bölünür ve sürücü "Invalid URL" der. Kusur opaktır —
+     PostgreSQL parolayı KABUL eder, yalnız uygulama bağlanamaz — ve
+     operatör "uygulama bozuk" görür. Açılışta ADIYLA yakalanır. */
+  .refine(
+    (u) => {
+      if (!/^postgres(ql)?:\/\//i.test(u)) return true;
+      try { return new URL(u).hostname.length > 0; } catch { return false; }
+    },
+    {
+      message: 'PostgreSQL bağlantı dizesi ayrıştırılamıyor — parola URL-güvenli '
+        + 'olmayabilir (`+ / =` URI\'yi böler). Parolayı `openssl rand -hex 32` ile '
+        + 'üretin ya da URL kodlayın.',
+    },
+  );
 
 const OrtamAlanlari = z.object({
   /* ── veritabanı ──────────────────────────────────────────────────── */

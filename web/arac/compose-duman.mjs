@@ -34,7 +34,8 @@
      CA_DEMETI=/yol/ca.crt node arac/compose-duman.mjs   → kesici vekil arkasında
    ═══════════════════════════════════════════════════════════════════════ */
 import { spawnSync } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { randomBytes } from 'node:crypto';
@@ -42,7 +43,22 @@ import { randomBytes } from 'node:crypto';
 const WEB = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const KOK = path.resolve(WEB, '..');
 const COMPOSE = path.join(KOK, 'deploy', 'compose');
-const ENV_DOSYA = path.join(COMPOSE, '.env');
+/* KAPI KENDİ YIĞINIDIR — OPERATÖRÜN KURULUMU DEĞİL (bağımsız inceleme, P1).
+
+   İlk sürüm compose'un varsayılan proje adını (`uyum-platformu`) ve varsa
+   operatörün `deploy/compose/.env` dosyasını kullanıyordu; sonunda
+   `down -v` koşuyordu. `-v` ADLANDIRILMIŞ BİRİMLERİ siler — yani
+   `docs/KURULUM.md`yi sırayla izleyen operatörün veritabanını ve kanıt
+   deposunu. Üstelik kapı, silmeden önce o veritabanına kendi tohum
+   fikstürünü yazıyordu. Bir uyum ürününün kendi kapısının müşteri
+   verisini silmesi, R-C'nin koruduğu vaadin ta kendisini bozar.
+
+   Bugün: kapının AYRI bir proje adı (`uyum-kapi-duman`) ve AYRI bir env
+   dosyası vardır. Birimler proje adına göre isimlendiği için kurulumun
+   birimleriyle ADI BİLE ÇAKIŞMAZ; `down -v` yalnız kapının kendi
+   birimlerini siler. */
+const PROJE = 'uyum-kapi-duman';
+const ENV_DOSYA = path.join(COMPOSE, '.kapi.env');
 const TUT = process.argv.includes('--tut');
 const PORT = Number(process.env.COMPOSE_PORT || 3200);
 
@@ -74,22 +90,24 @@ if (!aracVar('docker', ['compose', 'version'])) {
    yazmak, depoya sır koymak olurdu; `ornek.env` de boş gelir ve boş
    bırakılan zorunlu değer kurulumu başlatmaz (bu kapının ölçtüğü
    davranışlardan biri). */
-let uretildi = false;
-if (!existsSync(ENV_DOSYA)) {
-  const ornek = readFileSync(path.join(COMPOSE, 'ornek.env'), 'utf8');
-  writeFileSync(ENV_DOSYA, ornek
-    .replace('PG_PAROLA=', `PG_PAROLA=${randomBytes(24).toString('base64url')}`)
-    .replace('KIRACI_AD=', 'KIRACI_AD=Duman Kapısı Kurulumu')
-    .replace('UYGULAMA_PORTU=3000', `UYGULAMA_PORTU=${PORT}`));
-  uretildi = true;
-  yaz(`· .env üretildi (parola rastgele, depoya girmez) · port ${PORT}`);
-} else {
-  yaz('· mevcut deploy/compose/.env kullanılıyor');
-}
+/* Env dosyası HER KOŞUDA YENİDEN üretilir ve koşum sonunda silinir.
+   Var olanı "kullanmak" iki kusur üretirdi: kapı operatörün parolasıyla
+   koşar (sır, kapı günlüğüne düşebilir) ve operatörün portunu bekler —
+   uyuşmazsa kapı readiness'te takılır ve KUSUR ÜRÜNDE sanılır. */
+const ornek = readFileSync(path.join(COMPOSE, 'ornek.env'), 'utf8');
+writeFileSync(ENV_DOSYA, ornek
+  /* Parola URL-GÜVENLİ üretilir: bağlantı dizesine kaçışsız gömüldüğü
+     için `+ / =` içeren bir değer URI'yi bozar (bağımsız inceleme, P1). */
+  .replace('PG_PAROLA=', `PG_PAROLA=${randomBytes(24).toString('base64url')}`)
+  .replace('KIRACI_AD=', 'KIRACI_AD=Duman Kapısı Kurulumu')
+  .replace('PG_VERITABANI=uyum', 'PG_VERITABANI=uyum_kapi')
+  .replace('PG_KULLANICI=uyum', 'PG_KULLANICI=uyum_kapi')
+  .replace('UYGULAMA_PORTU=3000', `UYGULAMA_PORTU=${PORT}`));
+yaz(`· kapı yığını: proje ${PROJE} · port ${PORT} · env ${path.basename(ENV_DOSYA)} (üretildi, depoya girmez)`);
 
 const CA = process.env.CA_DEMETI?.trim();
 const ortam = { ...process.env, ...(CA ? { CA_DEMETI: CA } : {}) };
-const composeArgs = ['compose', '--env-file', '.env'];
+const composeArgs = ['compose', '-p', PROJE, '--env-file', path.basename(ENV_DOSYA)];
 
 function indir() {
   komut('docker', [...composeArgs, 'down', '-v', '--remove-orphans'], { env: ortam, stdio: 'inherit' });
@@ -107,11 +125,13 @@ if (kalk.status !== 0) { indir(); kirmizi('yığın kalkmadı (docker compose up
 const SAGLIK = `http://127.0.0.1:${PORT}/api/v1/health`;
 const bekle = (ms) => spawnSync(process.execPath, ['-e', `setTimeout(()=>{}, ${ms})`]);
 
+/* Geçici dosya koşuma ÖZGÜDÜR: sabit bir `/tmp` yolu, aynı makinede iki
+   kapı koşarsa birinin gövdesini öbürüne okuturdu. */
+const SAGLIK_DOSYASI = path.join(mkdtempSync(path.join(tmpdir(), 'uyum-kapi-')), 'saglik.json');
 function saglikOku() {
-  const r = spawnSync('curl', ['-s', '-o', '/tmp/uyum-saglik.json', '-w', '%{http_code}', SAGLIK],
+  const r = spawnSync('curl', ['-s', '-o', SAGLIK_DOSYASI, '-w', '%{http_code}', SAGLIK],
     { encoding: 'utf8' });
-  const govde = existsSync('/tmp/uyum-saglik.json')
-    ? readFileSync('/tmp/uyum-saglik.json', 'utf8') : '';
+  const govde = existsSync(SAGLIK_DOSYASI) ? readFileSync(SAGLIK_DOSYASI, 'utf8') : '';
   return { kod: Number(r.stdout || 0), govde };
 }
 
@@ -247,7 +267,14 @@ if (TUT) {
   if (kalanSayi > 0) temizlikKusuru = `${kalanSayi} kapsayıcı ayakta kaldı`;
   else if (portKod !== 0) temizlikKusuru = `port ${PORT} hâlâ cevap veriyor (kod ${portKod})`;
   else yaz(`   temiz · kapsayıcı 0 · port ${PORT} kapalı`);
-  if (uretildi) rmSync(ENV_DOSYA, { force: true });
+}
+
+/* Kapının ürettiği tohum imajı bırakılmaz: yerel koşumda birikir ve
+   diski doldurur (ölçüldü: bu oturumda disk iki kez doldu). */
+if (!TUT) {
+  komut('docker', ['image', 'rm', '-f', tohumImaji], { env: ortam });
+  rmSync(ENV_DOSYA, { force: true });
+  if (existsSync(ENV_DOSYA)) temizlikKusuru = temizlikKusuru ?? `${ENV_DOSYA} silinemedi`;
 }
 
 if (duman.status !== 0) kirmizi(`rota duman testi düştü (çıkış ${duman.status})`);

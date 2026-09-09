@@ -1,7 +1,7 @@
 {
-  "imza": "a8d489009a6792e452c927564eeb333b",
-  "dosya": 193,
-  "vaka": 3519,
+  "imza": "129fdc05f6d816019d94189f1d6601d1",
+  "dosya": 194,
+  "vaka": 3527,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -74,6 +74,10 @@
     },
     "tests/bekci/null-olumsuzlama.test.ts": {
       "vaka": 19,
+      "atlanan": 0
+    },
+    "tests/bekci/ortam-semasi.test.ts": {
+      "vaka": 6,
       "atlanan": 0
     },
     "tests/bekci/paket-silme.test.ts": {
@@ -749,7 +753,7 @@
       "atlanan": 0
     },
     "tests/yedek-araci.test.ts": {
-      "vaka": 17,
+      "vaka": 19,
       "atlanan": 0
     },
     "tests/yeniTesis.test.ts": {

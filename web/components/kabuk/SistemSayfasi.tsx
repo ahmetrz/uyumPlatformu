@@ -1,5 +1,16 @@
 import Link from 'next/link';
-import { KIRACI_AD, MARKA_AD } from '@/lib/marka';
+/* HATA EKRANI ÜRÜNÜN ADINI BASAR, KİRACININ ADINI DEĞİL (P7 · ölçüldü).
+
+   Bu yüzey bir İSTEMCİ sınırından da çizilir (`app/error.tsx`,
+   `app/global-error.tsx`) ve orada `NEXT_PUBLIC_*` değeri İSTEMCİ
+   PAKETİNE DERLEME ANINDA gömülüdür. Kiracı adını basmak, `Ada Enerji`
+   kurulumundaki bir kullanıcıya hata anında BAŞKA bir kiracının adını
+   göstermek olurdu (bağımsız inceleme bulgusu).
+
+   Kiracı adı kurulumdan gelir ve sunucudan veri olarak iner
+   (`KabukVerisi.kiraciAd`); hata sınırında o veri YOKTUR — zaten hata
+   sınırının işi kurulumu tanıtmak değil, ürünü tanıtmaktır. */
+import { MARKA_AD } from '@/lib/marka';
 import type { ReactNode } from 'react';
 
 /* Sistem sayfası — 404 · 500 · bakım. Kabuğun DIŞINDA yaşar (kök
@@ -25,7 +36,7 @@ export default function SistemSayfasi({ kod, baslik, cumle, eylemler, teknik, di
       <div className="ab-sistem-sayfa">
         <header>
           <Link href="/" className="marka" aria-label={`${MARKA_AD} — ana ekran`}>
-            {KIRACI_AD.toLocaleUpperCase('tr-TR')}
+            {MARKA_AD.toLocaleUpperCase('tr-TR')}
           </Link>
           <span className="etiket">{MARKA_AD}</span>
         </header>

@@ -71,6 +71,13 @@ function sqliteDosyasiVar() {
   console.log('prisma/dev.db yok — testlerin kopyaladığı dosya kuruluyor (SQLite şeması + tohum)');
   const d = kos(path.join(WEB, 'node_modules', '.bin', 'prisma'), ['migrate', 'deploy']);
   if (d !== 0) return d;
+  /* Tohum ÜRETİLMİŞ istemciyi içe aktarır (`lib/prisma-client/client`) ve o
+     dizin TAZE BİR ÇEKİMDE YOKTUR: `npm ci` üretmez. Ölçüldü (CI,
+     `kapi-postgres`): tohum `Cannot find module '../lib/prisma-client/client'`
+     ile düştü. Yerelde dizin zaten durduğu için kusur görünmüyordu — kapının
+     ancak temiz bir çekimde ölçülebilen sınıfı. */
+  const u = kos('node', ['arac/pg-istemci.mjs', '--sqlite']);
+  if (u !== 0) return u;
   const t = kos(path.join(WEB, 'node_modules', '.bin', 'tsx'), ['prisma/seed.ts'], { DATABASE_URL: '' });
   if (t !== 0) return t;
   if (!existsSync(yol)) { console.error('prisma/dev.db kurulamadı'); return 1; }

@@ -579,6 +579,20 @@ export const URUNLESTIRME_SENARYOLARI: Senaryo[] = [
     katmanlar: ['DOMAIN'],
   },
   {
+    id: 'URN-KUR-012', alan: 'Kurulum', rota: '—', eksen: 'veri',
+    amac: 'Eksik ya da bozuk bir yapılandırma değeri AÇILIŞTA adıyla düşsün; sessiz varsayılana düşen bir kurulum yanlış çalışır ve bunu ancak müşteri fark eder',
+    rol: 'kurulumu yapan operatör', kapsam: 'lib/yapilandirma/ortam.ts · instrumentation.ts · /api/v1/health',
+    onkosul: 'Yapılandırma okuması koda dağılmıştı; "belirtilmedi" ile "yanlış yazıldı" aynı sonuca düşüyordu',
+    veriHali: 'aykiri',
+    eylem: 'Bozuk sayı, tanınmayan sağlayıcı ve AYRIŞTIRILAMAYAN PostgreSQL bağlantı dizesi verilir',
+    beklenenSonuc: 'Her hatalı değer ANAHTAR ADIYLA reddedilir ve sebebi okunabilirdir; bozuk sayı sessizce varsayılana DÜŞMEZ; tanınmayan sağlayıcı SQLite olmaz; '
+      + 'ayrıştırılamayan PostgreSQL dizesi (URL-güvenli olmayan parola: `+ / =` URI\'yi böler) açılışta yakalanır — PostgreSQL parolayı kabul ettiği için kusur aksi hâlde OPAKTIR; '
+      + 'URL kodlanmış parola kabul edilir (kural dizeye bakar, parolaya değil); bilerek serbest bırakılan alan (TRUST_PROXY) reddedilmez ve bu ayrım YAZILIDIR',
+    beklenenEkran: 'yok (açılış ve sağlık ucu)',
+    beklenenIz: 'yazma yok (doğrulama)', beklenenBildirim: 'yok',
+    katmanlar: ['DOMAIN'],
+  },
+  {
     id: 'URN-PKT-022', alan: 'Ürünleştirme', rota: '—', eksen: 'veri',
     amac: 'Kaynak belgenin bir alanı ürünün YANLIŞ alanına yazıldığında biçim doğru kalır ve hiçbir kapı göremez; savunma paketin ALAN EŞLEME BEYANIDIR',
     rol: 'paket yazarı · bağımsız inceleyici', kapsam: 'manifest.json `alanEslemesi` · lib/paket/dogrula.ts',

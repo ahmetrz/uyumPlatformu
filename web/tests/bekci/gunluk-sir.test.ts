@@ -23,10 +23,17 @@ import { GIZLI, maskele, satir, sirAnahtari, SIR_ANAHTARLARI } from '@/lib/gunlu
 
 const WEB = process.cwd();
 
-/** Ürün kodu: `lib/` ve `app/`. Araçlar (`arac/`) ve testler kapsam dışıdır —
-    onlar bir insana konuşur, toplayıcıya değil. */
+/** Ürün kodu: `lib/` · `app/` · `components/` ve kök `instrumentation.ts`.
+    Araçlar (`arac/`) ve testler kapsam dışıdır — onlar bir insana konuşur,
+    toplayıcıya değil.
+
+    Kapsam `components/` ve `instrumentation.ts` ile büyütüldü (bağımsız
+    inceleme bulgusu): ikisi de ürün kodudur, taranmıyorlardı ve
+    `instrumentation.ts` gerçekten çıplak bir `console.error` taşıyordu —
+    yani bekçi sınıfı kapatmıyordu, örneği kapatıyordu. */
 function urunDosyalari(): string[] {
-  const cikti = execFileSync('git', ['ls-files', 'lib', 'app'], { cwd: WEB, encoding: 'utf8' });
+  const cikti = execFileSync('git', ['ls-files', 'lib', 'app', 'components', 'instrumentation.ts'],
+    { cwd: WEB, encoding: 'utf8' });
   return cikti.split('\n').filter((f) => /\.(ts|tsx)$/.test(f) && !f.endsWith('.d.ts'));
 }
 
@@ -36,7 +43,7 @@ const istemci = (kaynak: string) => /^\s*['"]use client['"]/m.test(kaynak);
 describe('ürün kodu yapısal günlük yazar [URN-KUR-010]', () => {
   it('sunucu kodunda çıplak console.* çağrısı yok [URN-KUR-010]', () => {
     const dosyalar = urunDosyalari();
-    expect(dosyalar.length, 'ürün dosyası bulunamadı — tarama boş bakıyor').toBeGreaterThan(100);
+    expect(dosyalar.length, 'ürün dosyası bulunamadı — tarama boş bakıyor').toBeGreaterThan(200);
     const suclu: string[] = [];
     for (const f of dosyalar) {
       if (f === 'lib/gunluk.ts') continue;                       // yazan modülün kendisi

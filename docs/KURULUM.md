@@ -34,9 +34,15 @@ cp ornek.env .env
 başlatmaz**; sessiz varsayılan yoktur:
 
 ```sh
-# parolayı ÜRETİN, seçmeyin
-openssl rand -base64 32
+# parolayı ÜRETİN, seçmeyin — ve URL-GÜVENLİ üretin
+openssl rand -hex 32
 ```
+
+**`-base64` kullanmayın.** Parola bağlantı dizesine (`postgresql://kullanici:PAROLA@…`)
+kaçışsız gömülür; base64 çıktısındaki `/` URI'yi böler ve uygulama
+bağlanamaz. Kusur opaktır: PostgreSQL parolayı kabul eder, yalnız uygulama
+bağlanamaz ve operatör "uygulama bozuk" görür. Kurulum bunu artık
+açılışta yakalar ve **adıyla** söyler.
 
 | Anahtar | Zorunlu | Ne |
 | --- | --- | --- |
@@ -141,7 +147,10 @@ cd web
 CA_DEMETI=/yol/ca-bundle.crt npm run kapi:compose
 ```
 
-Kapı sırayla: yığını kaldırır → readiness bekler (süreyi ölçer) →
+Kapı **kendi geçici yığınını** kaldırır (ayrı compose proje adı
+`uyum-kapi-duman`, ayrı `.kapi.env`, ayrı birimler): kurulumunuzun
+veritabanına ve kanıt deposuna **dokunmaz**. Sırayla: yığını kaldırır →
+readiness bekler (süreyi ölçer) →
 kurulumu **kapı fikstürü olarak** tohumlar → dinamik rota değerlerini
 **kurulumun kendi veritabanından** okur → `rota:duman`ı yayımlanan porta
 karşı koşar → yığını indirir ve **indiğini doğrular** (kapsayıcı listesi
@@ -200,12 +209,20 @@ taşır (3 691 kontrol, tam metin). Ayrıntı: `web/paketler/BENIOKU.md`.
 Yedek alma ve geri yükleme `docs/URUN_YEDEKLEME.md`'dedir. Kısaca:
 
 ```sh
-docker compose exec uygulama node arac/yedek.mjs --al --hedef /veri/yedek
-docker compose exec uygulama node arac/yedek.mjs --karsilastir --kaynak /veri/yedek
+docker compose exec uygulama node arac/yedek.mjs --al /veri/yedek/uyum-2026-09-09
+docker compose exec uygulama node arac/yedek.mjs --karsilastir /veri/yedek/uyum-2026-09-09
 ```
 
 `--karsilastir` manifest özetlerini `Kanit.dosyaHash` ile karşılaştırır;
 eksik ya da çürük dosyayı ADIYLA listeler ve sıfır dışı çıkar.
+
+`/veri/yedek` **kalıcı bir birimdir** (`compose.yaml` → `yedek`). Kapsayıcının
+kendi yazılabilir katmanına alınan bir yedek, ilk `docker compose up -d
+--build` ile giderdi — yani hiç alınmamış olurdu.
+
+**Yedek makinenin DIŞINA da kopyalanmalıdır** (`docs/URUN_YEDEKLEME.md` §6
+politikası: en az iki yer, biri bu makinenin dışında). Tek yerdeki yedek,
+makineyi kaybettiğinizde yedek değildir.
 
 ---
 

@@ -1,7 +1,8 @@
 'use client';
 import { useEffect } from 'react';
 import Link from 'next/link';
-import { KIRACI_AD, MARKA_AD } from '@/lib/marka';
+/* Kiracı adı BASILMAZ — gerekçe `components/kabuk/SistemSayfasi.tsx`. */
+import { MARKA_AD } from '@/lib/marka';
 import './globals.css';
 import './kabuk.css';
 
@@ -17,7 +18,7 @@ export default function KokHata({ error, reset }: {
         <div className="ab" data-yogunluk="operasyonel">
           <div className="ab-sistem-sayfa">
             <header>
-              <Link href="/" className="marka">{KIRACI_AD.toLocaleUpperCase('tr-TR')}</Link>
+              <Link href="/" className="marka">{MARKA_AD.toLocaleUpperCase('tr-TR')}</Link>
               <span className="etiket">{MARKA_AD}</span>
             </header>
             <main>

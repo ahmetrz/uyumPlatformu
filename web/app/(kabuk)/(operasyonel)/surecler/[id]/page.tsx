@@ -18,29 +18,29 @@ export const metadata: Metadata = { title: 'Uyum kampanyası' };
    aynı satırı iki farklı soruyla okur, biri diğerinin matrisini tekrar
    etmez. */
 
-/* ROTA İSTEK ANINDA RENDER EDİLİR (P7 · ölçüldü).
+/* PARAMETRE LİSTESİ SUNUCU DERLEMESİNDE HİÇ DIŞA AKTARILMAZ (P7 · ölçüldü).
 
-   `generateStaticParams` bir rotayı SSG yapar. Sunucu derlemesinde liste
-   BOŞTUR (`lib/statikDerleme.ts`) ve Next o rotayı hiç render etmeden
-   "statik" sayar; istek geldiğinde ON-DEMAND statik üretim dener, orada
+   `generateStaticParams` VARSA Next rotayı SSG sayar. Sunucu derlemesinde
+   liste boş döndürmek YETMEZ: Next rotayı hiç render etmeden "statik"
+   kabul eder ve istek geldiğinde on-demand statik üretim dener; orada
    `cookies()` yasaktır ve sayfa 500 döner. Ölçüldü (compose duman kapısı):
-   oturumsuz `/tesisler/x` 307 yerine 500 veriyordu — yani KİMLİK KAPISI
-   bir sunucu hatasına dönüşmüştü.
+   oturumsuz `/tesisler/x` 307 yerine 500 veriyordu — KİMLİK KAPISI bir
+   sunucu hatasına dönüşmüştü.
 
-   `force-dynamic` bunu kapatır ve statik demoyu BOZMAZ: `output: 'export'`
-   altında Next `generateStaticParams` listesini kullanmaya devam eder
-   (ölçüldü: demo dışa aktarımı 27 tesis detay sayfası üretti, çıkış 0).
-   Bu yüzden kip koşullu yazılmak zorunda değil — literal kalabilir. */
-export const dynamic = 'force-dynamic';
+   `force-dynamic` bunu çözer ama statik demoyu BOZAR: `output: 'export'`
+   sunucusuzdur ve o kipi reddeder (ölçüldü, CI · `demo:build`). Rota
+   kesiti ayarları literal olmak zorunda olduğu için koşullu da yazılamaz.
 
-export async function generateStaticParams() {
-  /* Sunucu derlemesinde liste BOŞTUR: parametreleri üretmek derleyen
-     makinede veritabanı sorgulamak olurdu (`lib/statikDerleme.ts`).
-     Sayfa istek anında render edilir. */
-  if (!STATIK_DEMO) return [];
+   Çözüm işlevin KENDİSİNİ koşullu dışa aktarmaktır: `generateStaticParams`
+   bir yapılandırma literali değil, derlenmiş modülden okunan bir İŞLEVDİR;
+   yoksa rota dinamiktir. Sunucu derlemesinde `undefined`, statik demoda
+   gerçek işlev. Ölçüldü: sunucu derlemesinde rota `ƒ`, demo dışa
+   aktarımında parametreler üretiliyor. */
+async function parametreler() {
   const surecler = await db.uyumSureci.findMany({ select: { id: true } });
   return surecler.map((s) => ({ id: s.id }));
 }
+export const generateStaticParams = STATIK_DEMO ? parametreler : undefined;
 
 export default async function Sayfa({ params }: { params: Promise<{ id: string }> }) {
   const kullanici = await girisZorunlu();

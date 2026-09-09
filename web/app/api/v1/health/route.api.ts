@@ -35,7 +35,14 @@ export const runtime = 'nodejs';
    saldırgana bir şey vermez.
    ═══════════════════════════════════════════════════════════════════════ */
 
-type Durum = 'saglikli' | 'saglıksız' | 'bilinmiyor';
+/* Durum değerleri MAKİNE OKUNUR alanlardır ve ASCII yazılır: `saglikli` /
+   `sagliksiz`. Karışık yazım (`saglıksız`) bir toplayıcının süzgecini
+   sessizce boşa düşürür. `bilinmiyor` KALDIRILDI: hiçbir kod yolu onu
+   üretmiyordu ve üretilmeyen bir durumu tipte tutmak, ürünün "bilinmeyen
+   ≠ sıfır" iddiasını KAĞIT ÜZERİNDE tutmak olurdu (bağımsız inceleme
+   bulgusu). Ölçülemeyen bir bağımlılık bugün `sagliksiz`tir ve SEBEBİ
+   yazılır. */
+type Durum = 'saglikli' | 'sagliksiz';
 type Bagimlilik = { ad: string; durum: Durum; sebep?: string };
 
 /** Ölçer, hüküm vermez. Hata METNİ dışarı çıkmaz — sınıfı çıkar. */
@@ -44,7 +51,7 @@ async function veritabani(): Promise<Bagimlilik> {
     await db.$queryRawUnsafe('SELECT 1');
     return { ad: 'veritabani', durum: 'saglikli' };
   } catch {
-    return { ad: 'veritabani', durum: 'saglıksız', sebep: `bağlantı kurulamadı (${SAGLAYICI})` };
+    return { ad: 'veritabani', durum: 'sagliksiz', sebep: `bağlantı kurulamadı (${SAGLAYICI})` };
   }
 }
 
@@ -57,7 +64,7 @@ async function kanitDeposu(): Promise<Bagimlilik> {
     const kod = (e as NodeJS.ErrnoException).code;
     return {
       ad: 'kanit_deposu',
-      durum: 'saglıksız',
+      durum: 'sagliksiz',
       sebep: kod === 'ENOENT' ? 'depo kökü yok' : kod === 'EACCES' ? 'depo köküne yazılamıyor' : 'depo kökü okunamadı',
     };
   }
@@ -67,7 +74,7 @@ function ortam(): Bagimlilik {
   const o = ortamiCoz();
   return o.ok
     ? { ad: 'ortam', durum: 'saglikli' }
-    : { ad: 'ortam', durum: 'saglıksız', sebep: `geçersiz anahtar: ${o.hatalar.map((h) => h.anahtar).join(', ')}` };
+    : { ad: 'ortam', durum: 'sagliksiz', sebep: `geçersiz anahtar: ${o.hatalar.map((h) => h.anahtar).join(', ')}` };
 }
 
 export async function GET(istek: Request): Promise<NextResponse> {
@@ -82,7 +89,7 @@ export async function GET(istek: Request): Promise<NextResponse> {
   const saglikli = bagimliliklar.every((b) => b.durum === 'saglikli');
   return NextResponse.json(
     {
-      durum: saglikli ? 'saglikli' : 'saglıksız',
+      durum: saglikli ? 'saglikli' : 'sagliksiz',
       kip: 'hazir',
       /* SAĞLAYICI HER YANITTA YAZILIR: `DATABASE_URL` verilmeyen bir kurulum
          geliştirme veritabanına düşer ve "sağlıklı" görünür. Operatör

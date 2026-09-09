@@ -140,6 +140,18 @@ const dusenler = [];
    ve "PostgreSQL'e bağlanılamadı" derdi — kusur kodda değil, araçta olurdu. */
 const KABUK_EZER = new Set(['PG_URL', 'TEST_PG_URL', 'TEST_PG_SABLON']);
 
+/* BEYAN EDİLMEYEN DEĞİŞKEN ADIMA SIZMAZ (ölçüldü, 9 Eylül 2026).
+
+   Alt süreç varsayılan olarak bütün `process.env`i devralır. Kabukta
+   duran bir `TEST_PG_URL`, onu BEYAN ETMEYEN adıma da geçiyordu: SQLite
+   birim testleri PostgreSQL sürücüsünü seçti ve "adaptör uyumsuz" diye
+   KIRMIZI yandı — kusur kodda değil, ölçüm ortamındaydı. Bu tam olarak
+   deponun "bayat ölçüm ortamı" tuzağının bir başka yüzü.
+
+   Bugün: `KABUK_EZER` değişkeni bir adımın ortamına ANCAK o adımın işi
+   onu beyan ediyorsa girer. Beyan etmeyen adımda SİLİNİR ve silinme
+   raporda ADIYLA yazılır — sessizce silmek, sessizce sızdırmak kadar
+   kötü olurdu: koşan kişi hangi ortamda ölçtüğünü bilmelidir. */
 function cevreCoz(cevre = {}, adAd = '') {
   const cikti = {};
   for (const [k, v] of Object.entries(cevre)) {
@@ -148,6 +160,11 @@ function cevreCoz(cevre = {}, adAd = '') {
     const karsilik = YEREL_KARSILIK[v.trim()];
     if (karsilik) { cikti[k] = karsilik; dusenler.push(`${adAd} · ${k} → ${karsilik} (yerel karşılık)`); }
     else dusenler.push(`${adAd} · ${k} DÜŞÜRÜLDÜ (yerelde çözülemez: ${v})`);
+  }
+  for (const k of KABUK_EZER) {
+    if (k in cevre || !process.env[k]) continue;
+    cikti[k] = undefined;   // spawn: `undefined` değer değişkeni SİLER
+    dusenler.push(`${adAd} · ${k} KABUKTAN SİLİNDİ (bu adımın işi onu beyan etmiyor)`);
   }
   return cikti;
 }

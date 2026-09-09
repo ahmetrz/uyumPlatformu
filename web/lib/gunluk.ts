@@ -32,6 +32,9 @@ export const SIR_ANAHTARLARI = [
   'cookie', 'cerez', 'çerez', 'oturum',
   'credential', 'kimlikbilgisi',
   'bind', 'dsn', 'connectionstring', 'databaseurl', 'database_url',
+  /* Türkçe adlar da korunur: kaçırılan bir `baglantiDizesi`, korunmak
+     istenen şeyin ta kendisidir (bağımsız inceleme bulgusu). */
+  'baglantidizesi', 'bağlantıdizesi', 'dburl',
 ] as const;
 
 export const GIZLI = '[gizlendi]';

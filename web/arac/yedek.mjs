@@ -107,15 +107,41 @@ function pgAraci(ad) {
   return (r.stdout || '').trim();
 }
 
+/* PAROLA SÜREÇ ARGÜMANINA KONMAZ (bağımsız inceleme, P2).
+
+   Bağlantı dizesi parolayı taşır ve argüman olarak verildiğinde Linux'ta
+   `/proc/<pid>/cmdline` üzerinden aynı makinedeki HER kullanıcıya
+   görünür: yedek alınırken `ps auxww` koşan biri üretim parolasını okur.
+   "Sır değeri saklanmaz" kuralı sırrın nerede DURDUĞUYLA ilgilidir ve
+   süreç tablosu da bir yerdir.
+
+   Bu yüzden parola ortam değişkeniyle (`PGPASSWORD`) verilir ve URL'in
+   kalanı ayrı argümanlara bölünür. */
+function pgBaglanti(url) {
+  const u = new URL(url);
+  const args = ['-h', u.hostname, '-p', u.port || '5432',
+    '-U', decodeURIComponent(u.username), '-d', decodeURIComponent(u.pathname.slice(1))];
+  const cevre = { ...process.env };
+  if (u.password) cevre.PGPASSWORD = decodeURIComponent(u.password);
+  return { args, cevre };
+}
+
 /** Alan ayracı: birim ayracı (U+001F). Metin alanlarında (kanıt adı) virgül,
     sekme ve boru işareti geçebilir; birim ayracı geçemez. */
 const AYRAC = String.fromCharCode(31);
+/** Satır ayracı: kayıt ayracı (U+001E). Kanıt adında satır sonu geçebilir
+    ve `\n`e göre bölmek o kaydı ikiye bölerdi — bölünen kaydın gerçek
+    depo anahtarı başka bir sütuna kayar ve o kanıt HİÇ denetlenmezdi
+    (bağımsız inceleme bulgusu). */
+const SATIR_AYRACI = String.fromCharCode(30);
 
 function pgSorgu(url, sql) {
   pgAraci('psql');
-  const r = spawnSync('psql', [url, '-At', '-F', AYRAC, '-c', sql], { encoding: 'utf8' });
+  const { args, cevre } = pgBaglanti(url);
+  const r = spawnSync('psql', [...args, '-At', '-F', AYRAC, '-R', SATIR_AYRACI, '-c', sql],
+    { encoding: 'utf8', env: cevre });
   if (r.status !== 0) throw new Error(`psql başarısız: ${(r.stderr || '').trim()}`);
-  return r.stdout.split('\n').filter((s) => s.length > 0).map((s) => s.split(AYRAC));
+  return r.stdout.split(SATIR_AYRACI).filter((x) => x.length > 0).map((x) => x.split(AYRAC));
 }
 
 /* ── canlı veritabanından KANIT KAYITLARI ────────────────────────────── */
@@ -138,17 +164,24 @@ const KANIT_SQL_PG = `
   select 'KanitSurumu', id, coalesce("dosyaAdi", id), "depoAnahtari", coalesce("dosyaHash", '')
     from "KanitSurumu" where "depoAnahtari" is not null`;
 
+/* Özet NORMALLENİR: boş dize ile NULL aynı şeydir (özet yok) ve iki
+   sağlayıcı aynı veriden AYNI kararı vermelidir. Ölçüldü (bağımsız
+   inceleme): PostgreSQL dalı `coalesce(...,'')` sonucunu null'a çeviriyor,
+   SQLite dalı boş dizeyi taşıyordu — aynı kayıt SQLite'ta "ÇÜRÜK",
+   PostgreSQL'de "sağlam" görünüyordu. */
+const ozetNormal = (h) => (typeof h === 'string' && /^[0-9a-f]{64}$/.test(h) ? h : null);
+
 /** Veritabanının BEKLEDİĞİ kanıt dosyaları. Yedeğin tamlığı bu listeye göre
     ölçülür — diskteki dosyaları saymak, eksik dosyayı göstermez. */
 export function kanitKayitlari(url = process.env.DATABASE_URL) {
   if (saglayiciCoz(url) === 'postgresql') {
     return pgSorgu(url, KANIT_SQL_PG)
-      .map(([kaynak, id, ad, anahtar, hash]) => ({ kaynak, id, ad, anahtar, hash: hash || null }));
+      .map(([kaynak, id, ad, anahtar, hash]) => ({ kaynak, id, ad, anahtar, hash: ozetNormal(hash) }));
   }
   const d = new Database(sqliteYolu(url), { readonly: true });
   try {
     return d.prepare(KANIT_SQL_SQLITE).all().map((r) => ({
-      kaynak: r.kaynak, id: r.id, ad: r.ad, anahtar: r.depoAnahtari, hash: r.dosyaHash,
+      kaynak: r.kaynak, id: r.id, ad: r.ad, anahtar: r.depoAnahtari, hash: ozetNormal(r.dosyaHash),
     }));
   } finally { d.close(); }
 }
@@ -225,11 +258,13 @@ function pgRaporu(url) {
   const [kullanici, iz] = pgSorgu(url,
     'select (select count(*) from "Kullanici"), (select count(*) from "AktiviteKaydi")')[0];
   return {
-    /* `pg_dump` tutarsız bir anlık görüntü yazmaz (tek işlem içinde okur);
-       ayrı bir bütünlük komutu yoktur ve olmayan bir ölçümü "ok" diye
-       raporlamamak için bu satır BEYANDIR, ölçüm değil. */
-    butunluk: 'ok',
-    yabanciAnahtarKusuru: 0,
+    /* BİLİNMEYEN ≠ SIFIR (bağımsız inceleme, P2). PostgreSQL'de SQLite'ın
+       `integrity_check`/`foreign_key_check` karşılığı bir tek komut
+       yoktur; ikisi de ÖLÇÜLMEDİ. Manifeste `'ok'` ve `0` yazmak, aylar
+       sonra manifesti okuyan denetçiye yapılmamış bir ölçümü yapılmış
+       gibi gösterirdi. `null` yazılır ve çıktı "ölçülmedi" der. */
+    butunluk: null,
+    yabanciAnahtarKusuru: null,
     tablo: tablolar.length,
     icerikOzeti: kisaOzet(sayim.map(([t, c]) => `${t}:${c}`).join('\n')),
     gocSayisi: gocler.length,
@@ -265,8 +300,9 @@ export function al(hedefDizin, url = process.env.DATABASE_URL) {
   } else {
     pgAraci('pg_dump');
     dbDosyasi = 'veritabani.dump';
-    const r = spawnSync('pg_dump', ['--format=custom', '--no-owner', '--no-privileges',
-      '--file', path.join(hedefDizin, dbDosyasi), url], { encoding: 'utf8' });
+    const { args, cevre } = pgBaglanti(url);
+    const r = spawnSync('pg_dump', [...args, '--format=custom', '--no-owner', '--no-privileges',
+      '--file', path.join(hedefDizin, dbDosyasi)], { encoding: 'utf8', env: cevre });
     if (r.status !== 0) throw new Error(`pg_dump başarısız: ${(r.stderr || '').trim()}`);
   }
   const dbYolu = path.join(hedefDizin, dbDosyasi);
@@ -357,7 +393,13 @@ export function denetle(dizin) {
     veritabani: { ...m.veritabani, yol: dbYolu },
     ozetler,
     kanit: { ...m.kanit, eksikDosyalar: eksik, curukDosyalar: curuk },
-    saglam: eksik.length === 0 && curuk.length === 0,
+    /* DEPOSU ÖLÇÜLEMEYEN YEDEK DOĞRULANMIŞ DEĞİLDİR (bağımsız inceleme, P2).
+       İlk sürümde depo dizini hiç yokken `dosyalar` boş kalıyor, `eksik`
+       ve `curuk` da boş çıkıyor ve yedek "DOĞRULANDI" damgasıyla sıfır
+       çıkış koduyla arşive giriyordu — kanıt dosyası bekleyen bir
+       veritabanının yanında sıfır dosyalı bir yedek. Boş sonuç "geçti"
+       sayılmaz. */
+    saglam: eksik.length === 0 && curuk.length === 0 && m.kanit.depoVarMi !== false,
   };
 }
 
@@ -435,8 +477,25 @@ export function geriYukle(dizin, o = {}) {
     copyFileSync(y.veritabani.yol, hedef);
   } else {
     pgAraci('pg_restore');
-    const r = spawnSync('pg_restore', ['--dbname', url, '--no-owner', '--no-privileges',
-      ...(o.ustuneYaz ? ['--clean', '--if-exists'] : []), y.veritabani.yol], { encoding: 'utf8' });
+    /* BOŞ ORTAM KONTROLÜ POSTGRESQL'DE DE VARDIR (bağımsız inceleme, P1).
+       İlk sürümde yalnız SQLite dalı kontrol ediyordu; kurulumun
+       sağlayıcısı PostgreSQL olduğu için vaat tam da müşteri yolunda
+       tutulmuyordu. Kontrolsüz `pg_restore` dolu bir veritabanına COPY
+       bölümlerini işler: A kurulumunun satırları B'nin canlı tablolarına
+       KARIŞIR ve araç ancak sonunda "başarısız" der. */
+    const [[tabloSayisi]] = pgSorgu(url,
+      "select count(*) from pg_tables where schemaname='public'");
+    if (Number(tabloSayisi) > 0 && !o.ustuneYaz) {
+      throw new Error(`Hedef veritabanı dolu: ${Number(tabloSayisi)} tablo var. `
+        + 'Geri yükleme veri kaybettirir; üstüne yazmak İNSAN kararıdır (--ustune-yaz).');
+    }
+    const { args, cevre } = pgBaglanti(url);
+    /* `--single-transaction`: yarım kalan bir geri yükleme GERİ ALINIR.
+       Aksi hâlde hata anında veritabanı yarı dolu kalır ve o hâl, ne
+       eski ne yeni — geri dönülecek bir yer bırakmaz. */
+    const r = spawnSync('pg_restore', [...args, '--no-owner', '--no-privileges',
+      '--single-transaction', ...(o.ustuneYaz ? ['--clean', '--if-exists'] : []),
+      y.veritabani.yol], { encoding: 'utf8', env: cevre });
     if (r.status !== 0) throw new Error(`pg_restore başarısız: ${(r.stderr || '').trim()}`);
   }
 
@@ -463,6 +522,8 @@ function yazOzet(b) {
   console.log(`  alındı       : ${b.alindi}`);
   console.log(`  veritabanı   : ${b.veritabani.dosya} · `
     + `${(b.veritabani.boyutBayt / 1024 / 1024).toFixed(2)} MB · ${b.veritabani.ozet.slice(0, 16)}…`);
+  console.log(`  bütünlük     : ${b.ozetler.butunluk ?? 'ölçülmedi (PostgreSQL)'}`);
+  console.log(`  yabancı anahtar kusuru: ${b.ozetler.yabanciAnahtarKusuru ?? 'ölçülmedi (PostgreSQL)'}`);
   console.log(`  tablo        : ${b.ozetler.tablo}`);
   console.log(`  göç          : ${b.ozetler.gocSayisi} (son: ${b.ozetler.sonGoc})`);
   console.log(`  içerik özeti : ${b.ozetler.icerikOzeti}`);
@@ -480,7 +541,12 @@ function yazOzet(b) {
 
 const bu = path.resolve(process.argv[1] ?? '');
 if (bu === path.resolve(new URL(import.meta.url).pathname)) {
-  const [kip, arg] = process.argv.slice(2);
+  /* Bayraklar konumdan AYRILIR: `--geri-yukle --ustune-yaz /yol` yazan
+     operatör, konumsal okumada `--ustune-yaz`ı dizin sanan bir araca
+     çarpardı (bağımsız inceleme bulgusu). */
+  const argumanlar = process.argv.slice(2);
+  const kip = argumanlar.find((a) => a.startsWith('--'));
+  const arg = argumanlar.find((a) => !a.startsWith('--'));
   try {
     if (kip === '--al') {
       const damga = new Date().toISOString().replace(/[:.]/g, '-');

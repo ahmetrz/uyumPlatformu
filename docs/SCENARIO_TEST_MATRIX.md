@@ -4,12 +4,12 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 323 |
-| Testi olan senaryo | 323 |
+| Senaryo | 324 |
+| Testi olan senaryo | 324 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
-| Taranan test dosyası | 193 |
+| Taranan test dosyası | 194 |
 
 ## Katman başına kapsam
 
@@ -18,7 +18,7 @@
 | ACCESSIBILITY | 8 | 8 | 0 |
 | API | 12 | 12 | 0 |
 | CONCURRENCY | 7 | 7 | 0 |
-| DOMAIN | 182 | 182 | 0 |
+| DOMAIN | 183 | 183 | 0 |
 | ENGINE | 33 | 33 | 0 |
 | INTEGRATION | 40 | 40 | 0 |
 | MIGRATION | 5 | 5 | 0 |
@@ -636,6 +636,8 @@
 | `URN-KUR-011` | Kurulum | DOMAIN | `yedek-araci.test.ts` | sağlayıcı bağlantıdan çözülür; tanınmayan şema HATADIR | evet | geçti |
 | `URN-KUR-011` | Kurulum | DOMAIN | `yedek-araci.test.ts` | kanıt dosyalarını ALIR ve manifeste anahtar · boyut · özet yazar | evet | geçti |
 | `URN-KUR-011` | Kurulum | DOMAIN | `yedek-araci.test.ts` | BOŞ depoda "dosya: 0" ölçülür — "kanıt dosyası yok" denmez | evet | geçti |
+| `URN-KUR-011` | Kurulum | DOMAIN | `yedek-araci.test.ts` | DEPOSU ÖLÇÜLEMEYEN yedek DOĞRULANMIŞ sayılmaz | evet | geçti |
+| `URN-KUR-011` | Kurulum | DOMAIN | `yedek-araci.test.ts` | BOŞ DİZE `dosyaHash` iki sağlayıcıda da "özet yok" sayılır | evet | geçti |
 | `URN-KUR-011` | Kurulum | DOMAIN | `yedek-araci.test.ts` | yedekten SİLİNEN kanıt dosyası doğrulamada ADIYLA çıkar | evet | geçti |
 | `URN-KUR-011` | Kurulum | DOMAIN | `yedek-araci.test.ts` | yedekte DEĞİŞTİRİLEN kanıt dosyası ÇÜRÜK diye çıkar | evet | geçti |
 | `URN-KUR-011` | Kurulum | DOMAIN | `yedek-araci.test.ts` | veritabanının BEKLEDİĞİ ama yedekte olmayan dosya EKSİK diye çıkar | evet | geçti |
@@ -644,6 +646,12 @@
 | `URN-KUR-011` | Kurulum | DOMAIN | `yedek-araci.test.ts` | BOŞ ortama geri yükler: veritabanı ve kanıt dosyaları geri gelir | evet | geçti |
 | `URN-KUR-011` | Kurulum | DOMAIN | `yedek-araci.test.ts` | DOLU ortama üstüne yazmaz — geri yükleme veri kaybettirir | evet | geçti |
 | `URN-KUR-011` | Kurulum | DOMAIN | `yedek-araci.test.ts` | SAĞLAYICILAR ARASI geri yükleme reddedilir | evet | geçti |
+| `URN-KUR-012` | Kurulum | DOMAIN | `bekci/ortam-semasi.test.ts` | geçerli ortam çözülür ve hata listesi BOŞTUR | evet | geçti |
+| `URN-KUR-012` | Kurulum | DOMAIN | `bekci/ortam-semasi.test.ts` | AYRIŞTIRILAMAYAN PostgreSQL dizesi ADIYLA reddedilir | evet | geçti |
+| `URN-KUR-012` | Kurulum | DOMAIN | `bekci/ortam-semasi.test.ts` | URL kodlanmış parola KABUL edilir — kural dizeye, parolaya değil | evet | geçti |
+| `URN-KUR-012` | Kurulum | DOMAIN | `bekci/ortam-semasi.test.ts` | TANINMAYAN sağlayıcı sessizce SQLite olmaz | evet | geçti |
+| `URN-KUR-012` | Kurulum | DOMAIN | `bekci/ortam-semasi.test.ts` | BOZUK sayı ve mantık değeri varsayılana DÜŞMEZ, hata verir | evet | geçti |
+| `URN-KUR-012` | Kurulum | DOMAIN | `bekci/ortam-semasi.test.ts` | kurulumda verilmesi gereken anahtarlar ADIYLA sayılıdır | evet | geçti |
 | `URN-PKT-022` | Ürünleştirme | DOMAIN | `paket-alan-eslemesi.test.ts` | tam beyan temizdir; kaynakta karşılığı olmayan alan null ile beyan edilir | evet | geçti |
 | `URN-PKT-022` | Ürünleştirme | DOMAIN | `paket-alan-eslemesi.test.ts` | beyanı hiç olmayan çerçeve kırmızıdır ve dolu sütunları sayar | evet | geçti |
 | `URN-PKT-022` | Ürünleştirme | DOMAIN | `paket-alan-eslemesi.test.ts` | dolu ama BEYANSIZ sütun kırmızıdır — kusurun ölçülmüş hâli | evet | geçti |

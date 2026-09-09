@@ -16,6 +16,8 @@
    kaçırırdı. Tik yalnız ÇÖZÜNÜRLÜKTÜR: vadesi gelmemiş hiçbir şey
    koşmaz, tik ucuzdur (birkaç indeksli sorgu). */
 
+import { gunluk } from '@/lib/gunluk';
+
 export async function register() {
   if (process.env.NEXT_RUNTIME !== 'nodejs') return;
 
@@ -46,7 +48,7 @@ export async function register() {
          ölmesi, kaçırılan bir tikten çok daha kötüdür. Tikin kendi
          hatasının kaydı yok (henüz koşu satırı açılmamıştır), bu yüzden
          tek yer stderr'dir. */
-      console.error('[zamanlayıcı] tik başarısız:', e instanceof Error ? e.message : e);
+      gunluk.hata('zamanlayici.tik_basarisiz', { hata: e });
     }
   };
 

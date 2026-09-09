@@ -189,6 +189,41 @@ describe('yedek aracı · kanıt dosyaları [URN-KUR-011]', () => {
     expect(depoyuTara(yokDepo)).toEqual({ kok: yokDepo, varMi: false, dosyalar: [] });
   });
 
+  it('DEPOSU ÖLÇÜLEMEYEN yedek DOĞRULANMIŞ sayılmaz [URN-KUR-011]', () => {
+    /* Depo dizini hiç yokken `dosyalar` boş kalır, `eksik`/`curuk` de boş
+       çıkar ve yedek sessizce "sağlam" görünürdü — kanıt dosyası bekleyen
+       bir veritabanının yanında sıfır dosyalı bir yedek. Boş sonuç "geçti"
+       sayılmaz (bağımsız inceleme, P2). */
+    const o = ortam('olcumsuz');
+    const yokDepo = path.join(dizin, 'hic-kurulmayan-depo');
+    const hedef = path.join(dizin, 'olcumsuz-yedek');
+    const r = depoyla(yokDepo, () => al(hedef, o.url));
+    expect(r.kanit.depoVarMi).toBe(false);
+    expect(r.kanit.dosyaSayisi).toBe(0);
+    expect(r.saglam, 'depo ölçülemedi — yedek doğrulanmış sayılamaz').toBe(false);
+    expect(denetle(hedef).saglam).toBe(false);
+  });
+
+  it('BOŞ DİZE `dosyaHash` iki sağlayıcıda da "özet yok" sayılır [URN-KUR-011]', () => {
+    /* PostgreSQL dalı `coalesce(...,'')` döndürüyor, SQLite dalı boş dizeyi
+       taşıyordu: aynı kayıt bir sağlayıcıda ÇÜRÜK, öbüründe sağlam
+       görünürdü (bağımsız inceleme, P3). */
+    const o = ortam('bosozet');
+    const a = depoyaKoy(o.depo, 'özeti boş yazılmış kanıt');
+    const d = new Database(o.db);
+    d.prepare('insert into Kanit (id, ad, tip, depoAnahtari, dosyaHash) values (?, ?, ?, ?, ?)')
+      .run('kanit-bos-ozet', 'Boş Özet', 'politika', a.anahtar, '');
+    d.close();
+    const kayit = kanitKayitlari(o.url)
+      .find((k: { id: string }) => k.id === 'kanit-bos-ozet') as { hash: string | null } | undefined;
+    expect(kayit, 'kayıt okunamadı').toBeTruthy();
+    expect(kayit?.hash, 'boş dize özet DEĞİLDİR').toBeNull();
+    const hedef = path.join(dizin, 'bosozet-yedek');
+    depoyla(o.depo, () => al(hedef, o.url));
+    // Özet yoksa doğrulama ANAHTARIN kendisinden yapılır ve kayıt sağlamdır.
+    expect(depoyla(o.depo, () => karsilastir(hedef, o.url)).kanitCuruk).toHaveLength(0);
+  });
+
   it('yedekten SİLİNEN kanıt dosyası doğrulamada ADIYLA çıkar [URN-KUR-011]', () => {
     const o = ortam('eksik');
     const a = depoyaKoy(o.depo, 'silinecek kanıt');

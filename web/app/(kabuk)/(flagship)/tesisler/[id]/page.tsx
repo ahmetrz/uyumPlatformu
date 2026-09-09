@@ -29,29 +29,11 @@ Promise<Metadata> {
   return { title: t(sozluk, 'tesis360') };
 }
 
-/* ROTA İSTEK ANINDA RENDER EDİLİR (P7 · ölçüldü).
-
-   `generateStaticParams` bir rotayı SSG yapar. Sunucu derlemesinde liste
-   BOŞTUR (`lib/statikDerleme.ts`) ve Next o rotayı hiç render etmeden
-   "statik" sayar; istek geldiğinde ON-DEMAND statik üretim dener, orada
-   `cookies()` yasaktır ve sayfa 500 döner. Ölçüldü (compose duman kapısı):
-   oturumsuz `/tesisler/x` 307 yerine 500 veriyordu — yani KİMLİK KAPISI
-   bir sunucu hatasına dönüşmüştü.
-
-   `force-dynamic` bunu kapatır ve statik demoyu BOZMAZ: `output: 'export'`
-   altında Next `generateStaticParams` listesini kullanmaya devam eder
-   (ölçüldü: demo dışa aktarımı 27 tesis detay sayfası üretti, çıkış 0).
-   Bu yüzden kip koşullu yazılmak zorunda değil — literal kalabilir. */
-export const dynamic = 'force-dynamic';
-
-export async function generateStaticParams() {
-  /* Sunucu derlemesinde liste BOŞTUR: parametreleri üretmek derleyen
-     makinede veritabanı sorgulamak olurdu (`lib/statikDerleme.ts`).
-     Sayfa istek anında render edilir. */
-  if (!STATIK_DEMO) return [];
+async function parametreler() {
   const tesisler = await db.tesis.findMany({ select: { id: true } });
   return tesisler.map((t) => ({ id: t.id }));
 }
+export const generateStaticParams = STATIK_DEMO ? parametreler : undefined;
 
 export default async function Sayfa({ params }: { params: Promise<{ id: string }> }) {
   const k = await girisZorunlu();

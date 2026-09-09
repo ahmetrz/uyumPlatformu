@@ -56,9 +56,21 @@ const calisma = mkdtempSync(path.join(yuva, 'goc-'));
 try {
   const ham = readFileSync(path.join(WEB, 'prisma', 'schema.prisma'), 'utf8');
   const sema = path.join(calisma, 'schema.prisma');
-  writeFileSync(sema, postgres
-    ? ham.replace('datasource db {\n  provider = "sqlite"\n}', 'datasource db {\n  provider = "postgresql"\n}')
-    : ham);
+  /* Birebir dize değişimi SESSİZ NO-OP olabilir: şemanın datasource
+     bloğuna bir satır eklenirse `.replace` hiçbir şey yapmaz ve şema
+     SQLite kalır. Kusur sonradan `migration_lock.toml` uyuşmazlığıyla
+     patlar ve sebebi görünmez — o yüzden değişim ÖLÇÜLÜR. */
+  let icerik = ham;
+  if (postgres) {
+    icerik = ham.replace('datasource db {\n  provider = "sqlite"\n}',
+      'datasource db {\n  provider = "postgresql"\n}');
+    if (icerik === ham) {
+      console.error('şemanın datasource bloğu beklenen biçimde değil — sağlayıcı '
+        + 'çevrilemedi; araç sessizce SQLite şemasıyla göç uygulamamak için durdu.');
+      process.exit(1);
+    }
+  }
+  writeFileSync(sema, icerik);
   const ayar = path.join(calisma, 'prisma.config.ts');
   writeFileSync(ayar, [
     "import { defineConfig } from 'prisma/config';",

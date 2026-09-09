@@ -55,9 +55,16 @@ function Giris({ children, sektorler }: {
       ui.focus({ preventScroll: true });
     };
     function boyutla() {
+      const offset = -el.getBoundingClientRect().top, eskiMesafe = mesafe;
+      const p = eskiMesafe > 0 ? sinirla(offset / eskiMesafe) : 0;
+      const ust = window.scrollY - offset, fazlalik = Math.max(0, offset - eskiMesafe);
       mesafe = stage.clientHeight * kaydirmaKatsayisi(window.innerWidth) * tempo;
       el.style.setProperty('--mesafe', `${mesafe}px`);
-      sahne?.boyutla(); sonP = -1; guncelle();
+      sahne?.boyutla();
+      if (eskiMesafe > 0 && el.dataset.mod === 'hareketli') {
+        window.scrollTo({ top: ust + p * mesafe + fazlalik, behavior: 'instant' });
+      }
+      sonP = -1; guncelle();
     }
     tempoDegistir.current = carpan => {
       tempo = carpan;

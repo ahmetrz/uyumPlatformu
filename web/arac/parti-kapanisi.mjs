@@ -80,12 +80,15 @@ const yasamDongusu = new Set([sunucuBaslar, sunucuDurur].filter((i) => i >= 0));
    Küme adı rapora YAZILIR. Yazılmasaydı `--hizli` ile koşan bir kapanış
    da "tamamı yeşil" derdi ve tarayıcılı kapılar hiç ölçülmemiş olurdu —
    koşulmayan kapı "geçti" diye yazılmaz. */
-const ISLER = { hizli: 'kapi', yavas: 'kapi-yavas' };
+const ISLER = { hizli: 'kapi', yavas: 'kapi-yavas', postgres: 'kapi-postgres' };
+const KUME_ADLARI = { hizli: 'HIZLI', yavas: 'YAVAŞ', postgres: 'POSTGRESQL' };
 const secilen = process.argv.includes('--hizli') ? ['hizli']
-  : process.argv.includes('--yavas') ? ['yavas'] : ['hizli', 'yavas'];
+  : process.argv.includes('--yavas') ? ['yavas']
+    : process.argv.includes('--postgres') ? ['postgres'] : ['hizli', 'yavas', 'postgres'];
 const secilenIsler = new Set(secilen.map((s) => ISLER[s]));
-const KUME_ADI = secilen.length === 2 ? 'TAM (hızlı + yavaş)'
-  : secilen[0] === 'hizli' ? 'YALNIZ HIZLI' : 'YALNIZ YAVAŞ';
+const KUME_ADI = secilen.length === Object.keys(ISLER).length
+  ? 'TAM (hızlı + yavaş + postgresql)'
+  : `YALNIZ ${secilen.map((s) => KUME_ADLARI[s]).join(' + ')}`;
 
 /* Aynı kapı iki işte de duruyorsa (kurulum ve `npm run build` böyle)
    BİR KEZ koşar: aynı komutu aynı ortamda ikinci kez koşmak yeni bir
@@ -126,9 +129,17 @@ const IFADE = /\$\{\{/;
 const YEREL_KARSILIK = { '${{ github.event.pull_request.base.sha }}': 'origin/main' };
 const dusenler = [];
 
+/* GERÇEK ortam, iş akışının BEYAN ETTİĞİ ortamı EZER. Sebep ölçüldü:
+   `kapi-postgres` işi bağlantı dizesini `127.0.0.1:5432` diye beyan eder
+   (CI servisinin adresi); yerelde PostgreSQL başka portta olabilir.
+   İş akışının değeri kabuktakini ezseydi kapı olmayan bir sunucuya bağlanır
+   ve "PostgreSQL'e bağlanılamadı" derdi — kusur kodda değil, araçta olurdu. */
+const KABUK_EZER = new Set(['PG_URL', 'TEST_PG_URL', 'TEST_PG_SABLON']);
+
 function cevreCoz(cevre = {}, adAd = '') {
   const cikti = {};
   for (const [k, v] of Object.entries(cevre)) {
+    if (KABUK_EZER.has(k) && process.env[k]) { cikti[k] = process.env[k]; continue; }
     if (!IFADE.test(v)) { cikti[k] = v; continue; }
     const karsilik = YEREL_KARSILIK[v.trim()];
     if (karsilik) { cikti[k] = karsilik; dusenler.push(`${adAd} · ${k} → ${karsilik} (yerel karşılık)`); }

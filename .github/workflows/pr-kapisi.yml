@@ -428,22 +428,17 @@ jobs:
         working-directory: web
         run: npm ci
 
-      # Prisma istemcisi SAĞLAYICIYA BAĞLIDIR: SQLite şemasından üretilmiş
-      # istemci `@prisma/adapter-pg` ile ÇALIŞMAZ (ölçüldü, R5).
-      - name: PostgreSQL istemcisi üret
-        working-directory: web
-        run: npm run pg:istemci
-
       # Göç + değişmezlik + NESNE ENVANTERİ kapısı: SQLite'ta olup
-      # PostgreSQL'de olmayan tetikleyici/indeks KIRMIZIDIR.
+      # PostgreSQL'de olmayan tetikleyici/indeks KIRMIZIDIR. Üretilen
+      # istemciye ihtiyaç duymaz (prisma CLI + psql).
       - name: PostgreSQL göç ve değişmezlik kapısı
         working-directory: web
         run: npm run kapi:pg-goc
 
-      - name: PostgreSQL test şablonu (taban göçü + tohum)
-        working-directory: web
-        run: npm run pg:test-sablonu
-
+      # Sağlayıcı yaşam döngüsü ARACIN KENDİSİNDE: istemciyi PostgreSQL için
+      # üretir, şablonu kurar, testleri koşar, istemciyi SQLite'a GERİ ALIR ve
+      # geri aldığını ÖLÇER. Üç ayrı adım olsaydı `kapi:parti` onları kapı
+      # sanar ve dizini PostgreSQL istemcisiyle bırakırdı.
       - name: Birim ve entegrasyon testleri (PostgreSQL)
         working-directory: web
-        run: npx vitest run
+        run: npm run test:pg

@@ -17,7 +17,7 @@
 | Arama duyarlılığı | `web/lib/aramaKosulu.ts` | kip sağlayıcıdan; PostgreSQL'de `mode: 'insensitive'` |
 | Test izolasyonu | `web/tests/sahte/db.ts` · `arac/pg-test-sablonu.mjs` | PostgreSQL'de test dosyası başına ŞABLONDAN klon veritabanı |
 | CI | `.github/workflows/pr-kapisi.yml` → `kapi-postgres` | postgres:16 servisi; PG istemcisi üretilir, kapı ve TAM test kümesi koşar |
-| **Tam test kümesi (PostgreSQL)** | ölçüldü 9 Eyl 2026 | **191/191 dosya · 3 489 vaka geçti · 1 atlandı** (SQLite ile AYNI; atlanan artmadı) |
+| **Tam test kümesi (PostgreSQL)** | ölçüldü 9 Eyl 2026, bağımsız inceleme sonrası | **192/192 dosya · 3 503 vaka geçti · 1 atlandı** (aynı gün SQLite koşusu birebir aynı; atlanan artmadı). Koşum `npm run test:pg` — istemciyi üretir, şablonu kurar, koşar, SQLite'a geri alır |
 
 ### 0.1 · Raporun SAYMADIĞI, ölçümde çıkan beş şey
 
@@ -42,7 +42,33 @@
    ürün garantisi değil, tek bağlantının yan etkisidir. PostgreSQL'de başka
    birinin yazdığı commit'lenir ve geri ALINMAZ — doğru olan budur.
 
-### 0.2 · Kapanmayan kalem: nullable kolonda tekillik
+### 0.2 · TABAN GÖÇÜ YERİNDE YENİDEN YAZILIR — kural bunu sınırlar
+
+`node arac/pg-taban.mjs --yaz` `00000000000000_pg_taban/migration.sql`
+dosyasının ÜZERİNE yazar. Prisma uygulanan göçün sağlama toplamını
+`_prisma_migrations` tablosunda tutar: dosya değişince MEVCUT bir müşteri
+veritabanında `migrate deploy` şu hatayla düşer —
+
+> The migration `00000000000000_pg_taban` was modified after it was applied.
+
+Kural (bağımsız inceleme bulgusu, P2):
+
+1. **Taban göçü yalnız HİÇBİR KURULUM YOKKEN yeniden üretilebilir.** Bu,
+   ürün henüz yayımlanmamışken geçerlidir ve bugün öyledir.
+2. **İlk müşteri kurulumundan sonra taban DONAR.** Sonraki her şema
+   değişikliği `prisma/postgres/migrations/` altına EKLEMELİ yeni bir göç
+   dizini olarak yazılır; taban dosyasına dokunulmaz.
+3. Donmuş tabanı değiştirmek zorunda kalan bir kurulum için tek yol
+   `prisma migrate resolve --applied 00000000000000_pg_taban`tır ve bu bir
+   RUNBOOK adımıdır, otomatik değildir.
+
+**Bugünkü durum:** kurulum yok, taban serbestçe üretilir. Bu kalem P7'de
+(dağıtım) kapanır: sürüm etiketi konduğu gün taban dosyasının değişmesi
+kapıyla yasaklanır.
+
+---
+
+### 0.3 · Kapanmayan kalem: nullable kolonda tekillik
 
 §a.5'teki `NULLS NOT DISTINCT` adayları KAPANMADI ve bilerek kapanmadı: iki
 sağlayıcıda AYNI kural dursun diye `ErisimAtamasi` ifade indeksiyle çözüldü

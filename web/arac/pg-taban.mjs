@@ -18,6 +18,13 @@
    PostgreSQL tabanı güncellenmemiş demektir; bu, "yeni kurulum ile mevcut
    kurulum ayrışır" kusurunun PostgreSQL tarafındaki hâlidir.
 
+   SINIR: `--yaz` taban dosyasının ÜZERİNE yazar. Prisma uygulanan göçün
+   sağlama toplamını tutar; taban değişince MEVCUT bir kurulumda
+   `migrate deploy` "migration was modified after it was applied" ile düşer.
+   Bu yüzden taban yalnız HİÇBİR KURULUM YOKKEN yeniden üretilir; ilk
+   müşteri kurulumundan sonra DONAR ve değişiklikler eklemeli göç olur
+   (`docs/POSTGRES_READINESS.md` §0.2 — kapanış aşaması P7).
+
    Kullanım: node arac/pg-taban.mjs           (tazelik kapısı · çıkış 0/1)
              node arac/pg-taban.mjs --yaz     (taban göçünü yeniden yaz)
              node arac/pg-taban.mjs --json    (ölçüm, karar yok)
@@ -91,11 +98,19 @@ export function tabanMetni({ web = WEB } = {}) {
 }
 
 export function taze({ web = WEB } = {}) {
-  const beklenen = tabanMetni({ web });
+  const ddl = ddlUret({ web }).trimEnd();
+  const elle = readFileSync(DEGISMEZLIK_YOLU, 'utf8').trimEnd();
+  const beklenen = `${BASLIK}${ddl}\n\n${elle}\n`;
   const mevcut = existsSync(TABAN_YOLU) ? readFileSync(TABAN_YOLU, 'utf8') : null;
+  /* HANGİ PARÇA KAYDI — mesaj "şema değişti" diye tek bir teşhis koyamaz:
+     taban iki parçadan oluşur (şemadan ÜRETİLEN DDL + ELLE yazılan DDL) ve
+     ikisi ayrı sebeplerle bayatlar. Yanlış teşhis, düzeltmeyi yanlış yere
+     gönderir (bağımsız inceleme, P2). */
   return {
     var: mevcut !== null,
     taze: mevcut === beklenen,
+    ddlKaydi: mevcut !== null && !mevcut.includes(ddl),
+    elleKaydi: mevcut !== null && !mevcut.includes(elle),
     beklenenSatir: beklenen.split('\n').length,
     mevcutSatir: mevcut === null ? 0 : mevcut.split('\n').length,
     beklenen,
@@ -113,8 +128,13 @@ export function yaz({ web = WEB } = {}) {
 export function karar(olcum) {
   if (!olcum.var) return { kirmizi: true, mesaj: `PostgreSQL taban göçü YOK: ${path.relative(WEB, TABAN_YOLU)} — \`node arac/pg-taban.mjs --yaz\`` };
   if (!olcum.taze) {
-    return { kirmizi: true, mesaj: `PostgreSQL taban göçü BAYAT: şemadan üretilen ${olcum.beklenenSatir} satır, depodaki ${olcum.mevcutSatir} satır. `
-      + 'Şema değişti ama PostgreSQL tabanı güncellenmedi — yeni PostgreSQL kurulumu şemadan AYRIŞIR. `node arac/pg-taban.mjs --yaz`' };
+    const kayan = olcum.ddlKaydi && olcum.elleKaydi ? 'ŞEMA ve ELLE YAZILAN DDL'
+      : olcum.ddlKaydi ? 'ŞEMA (prisma/schema.prisma)'
+        : olcum.elleKaydi ? 'ELLE YAZILAN DDL (prisma/postgres/elle-yazilan.sql)'
+          : 'başlık ya da biçim';
+    return { kirmizi: true, mesaj: `PostgreSQL taban göçü BAYAT — kayan parça: ${kayan}. `
+      + `Beklenen ${olcum.beklenenSatir} satır, depodaki ${olcum.mevcutSatir} satır. `
+      + 'Yeni PostgreSQL kurulumu bugünkü şemadan AYRIŞIR. `node arac/pg-taban.mjs --yaz`' };
   }
   const tetik = (readFileSync(DEGISMEZLIK_YOLU, 'utf8').match(/^CREATE TRIGGER/gm) ?? []).length;
   const indeks = (readFileSync(DEGISMEZLIK_YOLU, 'utf8').match(/^CREATE UNIQUE INDEX/gm) ?? []).length;

@@ -54,9 +54,11 @@ export const TEST_KOSUMU = process.env.VITEST === 'true' || process.env.NODE_ENV
     (R5, parti kapanışı): marka kapısının derlemesi tam olarak bu yüzden
     kırmızı yandı. Bu yüzden test değişkeni YALNIZ test koşumunda okunur;
     üretimde tek söz sahibi `DATABASE_URL`dir. */
-export const SAGLAYICI: Saglayici = saglayiciCoz(
-  (TEST_KOSUMU ? process.env.TEST_PG_URL : undefined) ?? process.env.DATABASE_URL,
-);
+export const BAGLANTI: string | undefined =
+  (TEST_KOSUMU ? process.env.TEST_PG_URL : undefined) ?? process.env.DATABASE_URL;
+
+/** Sağlayıcı, BAĞLANTININ KENDİSİNDEN çözülür — iki ayrı kaynaktan değil. */
+export const SAGLAYICI: Saglayici = saglayiciCoz(BAGLANTI);
 
 /** PostgreSQL'de `contains` DUYARLIDIR ve `mode: 'insensitive'` gerekir;
     SQLite'ta `LIKE` zaten ASCII için duyarsızdır ve o kip KABUL EDİLMEZ

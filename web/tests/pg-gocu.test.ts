@@ -71,6 +71,18 @@ describe('PostgreSQL taban göçü [URN-KUR-009]', () => {
     expect((taban.match(/FOR EACH ROW EXECUTE FUNCTION denetim_izi_degismez/g) ?? []).length).toBe(6);
   });
 
+  it('canlı kapı ÜÇ değişmez tabloyu da sınar — DDL\'i olup sınanmayan tablo kalmaz [URN-KUR-009]', () => {
+    /* Bağımsız inceleme (P2): `KanitSurumu` tetikleyicileri taban göçünde
+       vardı ama canlı kapı onlara HİÇ dokunmuyordu; başlık da "sekiz vaka"
+       diyordu (6 + 1 = 7). DDL'i olan her tablo canlı olarak sınanmalıdır,
+       yoksa "değişmezlik 6/6" eksik bir kümenin tam puanıdır. */
+    const taban = readFileSync(TABAN_YOLU, 'utf8');
+    const ddlTablolari = [...new Set([...taban.matchAll(/BEFORE (?:UPDATE|DELETE|TRUNCATE) ON "([A-Za-z]+)"/g)].map((m) => m[1]))].sort();
+    const sinanan = [...new Set(DEGISMEZLIK_VAKALARI.map((v: { tablo: string }) => v.tablo))].sort();
+    expect(sinanan, 'DDL\'i olup canlı sınanmayan tablo var').toEqual(ddlTablolari);
+    expect(DEGISMEZLIK_VAKALARI).toHaveLength(ddlTablolari.length * 3); // UPDATE · DELETE · TRUNCATE
+  });
+
   it('SQLite zincirindeki elle yazılan DDL, PostgreSQL tarafında KARŞILIKSIZ kalmaz [URN-KUR-009]', () => {
     /* Kaynak SQLite göçlerinden okunur: yeni bir tetikleyici/kısmi indeks
        eklenip PostgreSQL'e taşınmazsa bu vaka kırmızı yanar. */

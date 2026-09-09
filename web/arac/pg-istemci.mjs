@@ -27,9 +27,18 @@ import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const WEB = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+export const WEB = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SEMA = path.join(WEB, 'prisma', 'schema.prisma');
 const SQLITE_BLOK = 'datasource db {\n  provider = "sqlite"\n}';
+
+/** ÜRETİLMİŞ istemcinin sağlayıcısı — dosyadan OKUNUR, tahmin edilmez.
+    Üreteç `activeProvider` alanını istemcinin içine yazar; geri alma
+    adımının "gerçekten geri aldım" iddiası ancak bununla ölçülebilir. */
+export function aktifSaglayici() {
+  const yol = path.join(WEB, 'lib', 'prisma-client', 'internal', 'class.ts');
+  if (!existsSync(yol)) return null;
+  return readFileSync(yol, 'utf8').match(/activeProvider"?:\s*"([a-z]+)"/)?.[1] ?? null;
+}
 
 function uret(saglayici) {
   const ham = readFileSync(SEMA, 'utf8');
@@ -68,6 +77,13 @@ function uret(saglayici) {
   }
 }
 
-const saglayici = process.argv.includes('--sqlite') ? 'sqlite' : 'postgresql';
-uret(saglayici);
-console.log(`Prisma istemcisi yeniden üretildi · sağlayıcı: ${saglayici}`);
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  const saglayici = process.argv.includes('--sqlite') ? 'sqlite' : 'postgresql';
+  uret(saglayici);
+  const olculen = aktifSaglayici();
+  if (olculen !== saglayici) {
+    console.error(`istemci ÜRETİLDİ ama sağlayıcı ${olculen} çıktı (beklenen ${saglayici})`);
+    process.exit(1);
+  }
+  console.log(`Prisma istemcisi yeniden üretildi · sağlayıcı: ${olculen}`);
+}

@@ -125,7 +125,7 @@ sayı 3 691'dir.
 | Paket | Madde / kontrol (ölçülen) | Metin | İçe aktarım yolu — bugün | İş türü |
 | --- | --- | --- | --- | --- |
 | TR-ENERJI yönetmelik | 18 (+1 geçici) · **aktarıldı (9 Eyl 2026)** | resmî metin, serbest | paket `cerceve/EPDK-SGYM.csv` (4 bölüm + 19 madde, tam metin, köken sütunlu) | **içerik** |
-| TR-ENERJI ekleri | 3 691 kontrol, 7 ek · **YEDİSİ DE aktarıldı (9 Eyl 2026, 0.3.0)** | resmî metin, serbest | paket `cerceve/EPDK-SGYM-EK1…EK7.csv` (88 aile + 3 691 kontrol, tam metin; metni girilmemiş kontrol 0); kademe (`Seviye 1/2/3 · Ek Kontrol`) `gereksinim_tipi` sütununda — `seviye` (hedef olgunluk) BOŞ, alan eşleme beyanı manifestte | **bitti** — aktarım aracı depoya girmedi (tek seferlik XLSX okuma) |
+| TR-ENERJI ekleri | 3 691 kontrol, 7 ek · **YEDİSİ DE aktarıldı (9 Eyl 2026, 0.3.0)** | resmî metin, serbest | paket `cerceve/EPDK-SGYM-EK1…EK7.csv` (89 aile + 3 691 kontrol, tam metin; metni girilmemiş kontrol 0); kademe (`Seviye 1/2/3 · Ek Kontrol`) `gereksinim_tipi` sütununda — `seviye` (hedef olgunluk) BOŞ, alan eşleme beyanı manifestte | **bitti** — aktarım aracı depoya girmedi (tek seferlik XLSX okuma) |
 | TR-BANKACILIK | 47 | resmî metin — birincil erişim gerekli | XLSX/`/ice-aktarim` | **içerik** (kaynak erişimi ön koşul) |
 | TR-ODEME | 34 | resmî metin (PDF elde) | aynı | **içerik** |
 | TR-SERMAYE | 34 (+1 geçici + Ek) | resmî metin | aynı | **içerik** |

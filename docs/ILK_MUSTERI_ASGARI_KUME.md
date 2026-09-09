@@ -68,7 +68,7 @@ yapılmaz: eşzamanlı yazma, yedek/geri yükleme ve satır düzeyi güvenlik
 (P2/RLS) buna dayanır.
 
 **Bugün (9 Eylül 2026 · R5 · UYGULANDI).** Ürün İKİ sağlayıcıda da
-koşuyor ve tam test kümesi ikisinde de yeşil: **191/191 dosya · 3 489
+koşuyor ve tam test kümesi ikisinde de yeşil: **192/192 dosya · 3 503
 vaka · 1 atlandı** (atlanan sayısı artmadı). Tek taban göçü, dokuz
 tetikleyici ve üç elle indeks yerinde; kapılar `kapi:pg-taban` ve
 `kapi:pg-goc`, CI'da `kapi-postgres` işi postgres:16 servisiyle koşuyor.

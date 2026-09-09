@@ -39,6 +39,16 @@ if (ozetYaz) {
 const s = paketiDogrula(dizin);
 const oz = s.sayilar;
 console.log(`${dizin}: sözlük ${oz.sozluk} · tür ${oz.kapsamTurleri} · öznitelik ${oz.oznitelikler} · çerçeve ${oz.cerceveler} · madde ${oz.maddeler} · eşleme ${oz.eslemeler} · yükümlülük ${oz.yukumlulukler} · form ${oz.formlar} · rapor ${oz.raporlar} · rol ${oz.roller}`);
+/* MUAFİYET ADIYLA GÖRÜNÜR. Alan eşleme beyanının tek kaçış kapısı
+   `temsili: true`dir (kaynak belgesi yok → beyan istenmez) ve bayrağı
+   paketin KENDİ yazarı koyar. Hiçbir yerde okunmuyorsa kaçış kapısı
+   sessizdir; okuyanın önüne çıkması gerekir (bağımsız inceleme, P2). */
+if (s.icerik) {
+  const muaf = s.icerik.cerceveler.filter((c) => c.kimlik.temsili);
+  console.log(muaf.length
+    ? `  alan eşleme beyanından MUAF (temsilî · kaynak belgesi yok): ${muaf.map((c) => c.kimlik.kod).join(', ')}`
+    : '  alan eşleme beyanından muaf çerçeve yok — her çerçeve beyanlı');
+}
 if (s.ok) {
   console.log('GEÇERLİ — paket kurulabilir (çerçeveler TASLAK gelir; aktifleştirme insan kararıdır)');
   if (oscalDizini && s.icerik) {

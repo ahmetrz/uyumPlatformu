@@ -69,7 +69,9 @@ let pgAdi: string | null = null;
 function psql(url: string, sql: string): string {
   return execFileSync('psql', [url, '-v', 'ON_ERROR_STOP=1', '-tAc', sql], { encoding: 'utf8' }).trim();
 }
-function pgUrl(url: string, db: string): string { return url.replace(/\/[^/?]*(\?|$)/, `/${db}$1`); }
+/* URL ayrıştırıcısıyla: yolu olmayan bir bağlantı dizesinde regex ana
+   bilgisayarı eziyordu (bağımsız inceleme, P2). */
+function pgUrl(url: string, db: string): string { const u = new URL(url); u.pathname = `/${db}`; return u.toString(); }
 
 function pgIstemciAl(): PrismaClient {
   if (gercekIstemci) return gercekIstemci;
@@ -77,13 +79,28 @@ function pgIstemciAl(): PrismaClient {
   pgAdi = `uyum_test_${process.pid}_${Math.floor(Math.random() * 1e9)}`;
   psql(yonetim, `CREATE DATABASE "${pgAdi}" TEMPLATE "${PG_SABLON}"`);
   gercekIstemci = new PrismaClient({ adapter: new PrismaPg({ connectionString: pgUrl(yonetim, pgAdi) }) });
+  /* TEMİZLİK SON KOŞULUNU DOĞRULAR (bağımsız inceleme, P1): ilk sürüm önce
+     `pgAdi`'yi boşaltıp DROP sonucunu hiç ölçmüyordu — silinmeyen veritabanı
+     sessizce sızıyordu ve tekrar denenmiyordu. Bugün: bağlantı kapatılır,
+     DROP koşulur, SİLİNDİĞİ ayrı bir sorguyla ölçülür ve silinmediyse
+     GÜRÜLTÜLÜ düşülür; ad ancak doğrulandıktan sonra bırakılır. */
   const birak = () => {
     if (!pgAdi) return;
-    const ad = pgAdi; pgAdi = null;
-    try { psql(yonetim, `DROP DATABASE IF EXISTS "${ad}" WITH (FORCE)`); } catch { /* süreç kapanışında sessiz */ }
+    const ad = pgAdi;
+    try { void gercekIstemci?.$disconnect(); } catch { /* kapanışta bağlantı zaten düşmüş olabilir */ }
+    try {
+      psql(yonetim, `DROP DATABASE IF EXISTS "${ad}" WITH (FORCE)`);
+      const kalan = psql(yonetim, `SELECT count(*) FROM pg_database WHERE datname = '${ad}'`);
+      if (kalan !== '0') { console.error(`TEMİZLİK KIRIK: test veritabanı silinemedi: ${ad} (kalan ${kalan})`); return; }
+      pgAdi = null;
+    } catch (e) {
+      console.error(`TEMİZLİK KIRIK: test veritabanı silinemedi: ${ad} — ${(e as Error).message.split('\n')[0]}`);
+    }
   };
   process.once('exit', birak);
   process.once('beforeExit', birak);
+  /* Sinyalle öldürülen işçi de temizlensin: `exit` kancası SIGINT/SIGTERM'de koşmaz. */
+  for (const sinyal of ['SIGINT', 'SIGTERM'] as const) process.once(sinyal, () => { birak(); process.exit(130); });
   return gercekIstemci;
 }
 

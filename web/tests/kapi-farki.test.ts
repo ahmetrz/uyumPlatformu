@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import { fark } from '../arac/kapi-farki.mjs';
+import { adimlar, fark } from '../arac/kapi-farki.mjs';
 
 /* ═══════════════════════════════════════════════════════════════════════
    KAPI FARKI — "yerelde koşan ama CI'da koşmayan" ölçüsünün kuralları
@@ -141,5 +141,41 @@ describe('kapı farkı · gerçek depo', () => {
     const s = satirlar();
     expect(durum(s, 'rota:duman')).toBe('adıyla');
     expect(durum(s, 'gezinme:test')).toBe('adıyla');
+  });
+});
+
+/* ═══════════════════════════════════════════════════════════════════════
+   PARTİ KÜMESİ = PR KAPI KÜMESİ · İŞ BAZINDA [URN-KUR-009]
+
+   Ölçüldü (9 Eylül 2026): iş akışı ÜÇ iş taşıyordu (`kapi` · `kapi-yavas` ·
+   `kapi-postgres`) ama `arac/parti-kapanisi.mjs` yalnız İKİSİNDEN küme
+   türetiyordu. Sonuç: PostgreSQL göç ve değişmezlik kapısı ile nesne
+   envanteri karşılaştırması parti kapanışında HİÇ koşmuyordu ve kapanış
+   yine "tamamı yeşil" diyordu. Bir kez koşan ölçüm ölçüm değildir.
+
+   Bu bekçi iş akışındaki HER işin parti kümesinde karşılığı olmasını ölçer:
+   yeni bir iş eklenip küme güncellenmezse KIRMIZI yanar.
+   ═══════════════════════════════════════════════════════════════════════ */
+describe('parti kümesi iş akışındaki HER işi kapsar [URN-KUR-009]', () => {
+  const isAkisi = readFileSync(new URL('../../.github/workflows/pr-kapisi.yml', import.meta.url), 'utf8');
+  const parti = readFileSync(new URL('../arac/parti-kapanisi.mjs', import.meta.url), 'utf8');
+
+  it('iş akışının komut taşıyan her işi ISLER tablosunda var', () => {
+    const temiz = isAkisi.split('\n').filter((x) => !x.trimStart().startsWith('#')).join('\n');
+    const isler = [...new Set(adimlar(temiz).map((a: { is: string }) => a.is))].filter(Boolean);
+    expect(isler.length, 'iş akışında komut taşıyan iş bulunamadı — tarama boş bakıyor').toBeGreaterThanOrEqual(3);
+    for (const is of isler) {
+      expect(parti, `parti kümesi "${is}" işini tanımıyor — o işin kapıları kapanışta HİÇ koşmaz`).toContain(`'${is}'`);
+    }
+  });
+
+  it('PostgreSQL işi kümeye ADIYLA girer ve iki kapısı vardır', () => {
+    const temiz = isAkisi.split('\n').filter((x) => !x.trimStart().startsWith('#')).join('\n');
+    const pg = adimlar(temiz).filter((a: { is: string }) => a.is === 'kapi-postgres');
+    const komutlar = pg.map((a: { komut: string }) => a.komut).join(' ');
+    expect(komutlar, 'PostgreSQL göç kapısı iş akışında yok').toContain('kapi:pg-goc');
+    expect(komutlar, 'PostgreSQL test koşumu iş akışında yok').toContain('test:pg');
+    /* İş DÜZEYİ ortam adımlara iner — okunmasaydı kapı yanlış ortamda koşardı. */
+    expect(pg.every((a: { cevre: Record<string, string> }) => a.cevre.TEST_PG_URL), 'iş düzeyi env adımlara inmiyor').toBe(true);
   });
 });

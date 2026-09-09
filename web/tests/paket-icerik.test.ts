@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import path from 'node:path';
 import { hataSatiri, paketiDogrula } from '@/lib/paket/dogrula';
-import { maddeMetniDurumu } from '@/lib/paket/bicim';
+import { kademeAnahtari, maddeMetniDurumu } from '@/lib/paket/bicim';
 import { SOZLUK_SATIRI, cerceve, fiksturEslemesi, paketYaz, type PaketDosyalari } from './yardim/paket';
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -180,6 +180,23 @@ describe('TR-ENERJI içeriği: resmî metin, köken, uygulanabilirlik [URN-PKT-0
       toplamKontrol += kontrol.length;
     }
     expect(toplamKontrol, 'yedi ekin toplam kontrolü').toBe(3691);
+  });
+
+  it('kademe DÖRT kanonik sınıftır: ham dize sadık, gruplama anahtarı tek [URN-PKT-019]', () => {
+    /* Kaynak aynı kademeyi iki yazımla taşıyor ("Ek Kontrol" / "Ek kontrol").
+       Ham dize korunur (kaynağa sadakat); anahtar tekleştirilir, yoksa
+       gruplayan ilk ekran tek kademeyi iki sınıf gösterir. */
+    const s = paketiDogrula(path.join(KOK, 'paketler', 'TR-ENERJI'));
+    const kontroller = s.icerik!.cerceveler
+      .filter((c) => /^EPDK-SGYM-EK\d$/.test(c.kimlik.kod))
+      .flatMap((c) => c.maddeler.filter((m) => m.ustKod !== null));
+    const hamYazimlar = new Set(kontroller.map((m) => m.gereksinimTipi));
+    const anahtarlar = new Set(kontroller.map((m) => kademeAnahtari(m.gereksinimTipi)));
+    expect(hamYazimlar.size, 'kaynakta iki yazım bekleniyordu').toBeGreaterThan(anahtarlar.size);
+    expect([...anahtarlar].sort()).toEqual(['ek kontrol', 'seviye 1', 'seviye 2', 'seviye 3']);
+    expect(kademeAnahtari('  Ek   Kontrol ')).toBe('ek kontrol');
+    expect(kademeAnahtari('')).toBeNull();
+    expect(kademeAnahtari(null)).toBeNull();
   });
 
   it('Ek-3: 565 kontrol, 57 "Ek Kontrol" seviyesiz ve OPTIONAL — seviyesizlik sıfır değil [URN-PKT-019]', () => {

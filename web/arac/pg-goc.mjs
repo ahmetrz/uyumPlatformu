@@ -8,9 +8,10 @@
      → şema farkı ÖLÇÜLÜR (0 olmalı) → DEĞİŞMEZLİK SINANIR → veritabanı
      silinir ve silindiği DOĞRULANIR.
 
-   Değişmezlik sınaması sekiz vakadır, altısı yasak biri serbest:
+   Değişmezlik sınaması ON vakadır, dokuzu yasak biri serbest:
      · AktiviteKaydi UPDATE · DELETE · TRUNCATE → reddedilmeli
      · DegerlendirmeTarihcesi UPDATE · DELETE · TRUNCATE → reddedilmeli
+     · KanitSurumu UPDATE · DELETE · TRUNCATE → reddedilmeli
      · Hiçbir satıra dokunmayan UPDATE → GEÇMELİ. Bu vaka `FOR EACH ROW`
        ile `FOR EACH STATEMENT` farkını ölçer: ifade seviyesinde yazılmış
        bir tetikleyici bu UPDATE'i de reddeder ve SQLite'tan sessizce
@@ -57,10 +58,26 @@ export const DEGISMEZLIK_VAKALARI = [
   { ad: 'DegerlendirmeTarihcesi UPDATE', tablo: 'DegerlendirmeTarihcesi', sql: (t) => `UPDATE "${t}" SET gerekce = 'sabotaj'`, bekle: 'degistirilemez' },
   { ad: 'DegerlendirmeTarihcesi DELETE', tablo: 'DegerlendirmeTarihcesi', sql: (t) => `DELETE FROM "${t}"`, bekle: 'silinemez' },
   { ad: 'DegerlendirmeTarihcesi TRUNCATE', tablo: 'DegerlendirmeTarihcesi', sql: (t) => `TRUNCATE "${t}"`, bekle: 'bosaltilamaz' },
+  { ad: 'KanitSurumu UPDATE', tablo: 'KanitSurumu', sql: (t) => `UPDATE "${t}" SET "dosyaAdi" = 'sabotaj'`, bekle: 'degistirilemez' },
+  { ad: 'KanitSurumu DELETE', tablo: 'KanitSurumu', sql: (t) => `DELETE FROM "${t}"`, bekle: 'silinemez' },
+  { ad: 'KanitSurumu TRUNCATE', tablo: 'KanitSurumu', sql: (t) => `TRUNCATE "${t}"`, bekle: 'bosaltilamaz' },
 ];
 
+/** Sınama satırı gereken tablolar — `FOR EACH ROW` boş tabloda ateşlenmez. */
+export const SINAMA_TABLOLARI = ['AktiviteKaydi', 'DegerlendirmeTarihcesi', 'KanitSurumu'];
+
+/* Bağlantı dizesinde VERİTABANINI değiştirir. Regexle yapılan ilk sürüm,
+   yolu olmayan bir URL'de (`postgresql://u:p@h:5432`) ana bilgisayarı
+   eziyordu ve kusur "PostgreSQL'e bağlanılamadı" diye görünüyordu
+   (bağımsız inceleme, P2). URL ayrıştırıcısı bu tuzağı taşımaz. */
+export function veritabaniniDegistir(url, db) {
+  const u = new URL(url);
+  u.pathname = `/${db}`;
+  return u.toString();
+}
+
 function psql(url, sql, { db } = {}) {
-  const hedef = db ? url.replace(/\/[^/?]*(\?|$)/, `/${db}$1`) : url;
+  const hedef = db ? veritabaniniDegistir(url, db) : url;
   const r = spawnSync('psql', [hedef, '-v', 'ON_ERROR_STOP=1', '-tAc', sql], { encoding: 'utf8' });
   return { durum: r.status, cikti: (r.stdout ?? '').trim(), hata: (r.stderr ?? '').trim(), yokArac: r.error?.code === 'ENOENT' };
 }
@@ -123,7 +140,7 @@ export function pgGocOlc({ web = WEB, url = process.env.PG_URL } = {}) {
   const yuva = path.join(web, '.parti');
   mkdirSync(yuva, { recursive: true });
   const calisma = mkdtempSync(path.join(yuva, 'pg-goc-'));
-  const hedefUrl = url.replace(/\/[^/?]*(\?|$)/, `/${db}$1`);
+  const hedefUrl = veritabaniniDegistir(url, db);
   try {
     const sema = pgSemasiYaz(calisma);
     const ayar = path.join(calisma, 'prisma.config.ts');
@@ -175,14 +192,18 @@ export function pgGocOlc({ web = WEB, url = process.env.PG_URL } = {}) {
        `DegerlendirmeTarihcesi` yabancı anahtar taşır; sınama satırı için
        kısıtlar bu ATILACAK veritabanında kaldırılır — şema farkı bundan
        ÖNCE ölçüldü. */
+    const fkDusur = (t) => psql(hedefUrl, `DO $$ DECLARE k text; BEGIN
+        FOR k IN SELECT conname FROM pg_constraint WHERE conrelid = '"${t}"'::regclass AND contype = 'f'
+        LOOP EXECUTE format('ALTER TABLE %I DROP CONSTRAINT %I', '${t}', k); END LOOP; END $$;`);
     psql(hedefUrl, `INSERT INTO "AktiviteKaydi" (id, "varlikTipi", "varlikId", eylem, kaynak, zaman)
       VALUES ('kapi-1', 'Kapi', 'x', 'olusturma', 'ui', now())`);
-    psql(hedefUrl, `DO $$ DECLARE k text; BEGIN
-        FOR k IN SELECT conname FROM pg_constraint WHERE conrelid = '"DegerlendirmeTarihcesi"'::regclass AND contype = 'f'
-        LOOP EXECUTE format('ALTER TABLE %I DROP CONSTRAINT %I', 'DegerlendirmeTarihcesi', k); END LOOP; END $$;`);
+    fkDusur('DegerlendirmeTarihcesi');
     psql(hedefUrl, `INSERT INTO "DegerlendirmeTarihcesi" (id, "maddeDurumuId", "eskiDurum", "yeniDurum", zaman)
       VALUES ('kapi-1', 'yok', 'a', 'b', now())`);
-    for (const t of ['AktiviteKaydi', 'DegerlendirmeTarihcesi']) {
+    fkDusur('KanitSurumu');
+    psql(hedefUrl, `INSERT INTO "KanitSurumu" (id, "kanitId", surum, gerekce, olusturuldu)
+      VALUES ('kapi-1', 'yok', 1, 'kapı sınaması', now())`);
+    for (const t of SINAMA_TABLOLARI) {
       const n = psql(hedefUrl, `SELECT count(*) FROM "${t}"`);
       if (n.cikti !== '1') { olcum.hata = `sınama satırı kurulamadı (${t}: ${n.cikti || n.hata.slice(0, 200)}) — boş tabloda değişmezlik ölçülemez`; return olcum; }
     }

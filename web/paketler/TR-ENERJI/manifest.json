@@ -23,7 +23,7 @@
     "cerceve/EPDK-SGYM-EK2.csv": "574e600d7ae342d949de16a68c4707fefa1a5e878cf9281bc2ce01ef1fb15768",
     "cerceve/EPDK-SGYM-EK2.json": "130ccd4d1ed2d11a65a5fb3fda709ff8a6c7f6de62f78a2de3f7827f09e734f4",
     "cerceve/EPDK-SGYM-EK3.csv": "010e66ac7fec070522ec02becc3274cb6ad7412a3343381044c830bb88335137",
-    "cerceve/EPDK-SGYM-EK3.json": "2d3a970a4b346e324d2c25ce02793f5f583a23479b5a330b03083eeac1d79850",
+    "cerceve/EPDK-SGYM-EK3.json": "85005c4252bb6db23fdd5edbbea5531d97936e0b0fdf516e7e1dc27adee2e0b1",
     "cerceve/EPDK-SGYM-EK4.csv": "81d9c7b030fd28304812aed7034a9a72de842098af9224faeb485971c98f10ba",
     "cerceve/EPDK-SGYM-EK4.json": "c2e1b0732f874d421873797c5fbd63b81440ad7c8b8cee53ca83bca2bbbb9705",
     "cerceve/EPDK-SGYM-EK5.csv": "4e66f1365de1bc4a6ec2038662d5eeef19518b5f740c7ec253a3bc5a56e64d7c",
@@ -123,9 +123,9 @@
         "gerekce": "Ürünün `sira` alanı maddenin listede GÖRÜNTÜLENME sırasıdır; önem, öncelik ya da risk sırası değildir ve hiçbir hesaba girmez. Kaynakta böyle bir alan yoktur: belgedeki okuma sırası (sayfa sırası, sonra satır sırası) korunsun diye değeri aktarımı yapan verir."
       },
       {
-        "kaynakAlan": null,
+        "kaynakAlan": "Seviye (Seviye 1/2/3 · Ek Kontrol)",
         "urunAlani": "zorunluluk_tipi",
-        "gerekce": "Ürünün `zorunluluk_tipi` alanı yükümlülüğün HUKUKİ DAYANAK TÜRÜDÜR (kanun · yönetmelik · sözleşme · en iyi uygulama); yaptırımın ağırlığı ya da maddenin önceliği değildir. Kaynakta ayrı bir alan yoktur: ek yönetmeliğin eki olduğu için satırlar REGULATION, kaynağın \"Ek kontrol\" dediği kademe ise OPTIONAL olur — yönetmelik o kontrolleri zorunlu saymaz."
+        "gerekce": "Ürünün `zorunluluk_tipi` alanı yükümlülüğün HUKUKİ DAYANAK TÜRÜDÜR (kanun · yönetmelik · sözleşme · en iyi uygulama); yaptırımın ağırlığı ya da maddenin önceliği değildir. Kaynakta bu adla bir alan yoktur ama değer UYDURULMAZ: kaynağın \"Seviye\" sütunundan TÜRETİLİR — \"Ek kontrol\" kademesi OPTIONAL, kalan kademeler REGULATION olur (yönetmelik ek kontrolleri zorunlu saymaz, ek yönetmeliğin ekidir). Aynı kaynak sütunu İKİ ürün alanını besler ve ikisi AYRI şeydir: `gereksinim_tipi` kademenin kendisidir, bu alan o kademenin hukuki karşılığıdır."
       },
       {
         "kaynakAlan": "EPDK sitesindeki Ek-1 dosyasının indirme adresi",
@@ -145,12 +145,12 @@
       {
         "kaynakAlan": "Ek-1'i yürürlüğe koyan Resmî Gazete tarihi",
         "urunAlani": "yururluk_tarihi",
-        "gerekce": "Ürünün `yururluk_tarihi` alanı MADDENİN KENDİ yürürlüğüdür; denetim kontrolün hangi günden beri arandığını sorar. Ek yönetmeliğe kendi Resmî Gazete tarihiyle eklenmiştir ve bu tarih ana yönetmeliğinkinden farklıdır; çerçevenin yürürlüğüyle karışmasın diye madde satırında ayrı durur."
+        "gerekce": "Ürünün `yururluk_tarihi` alanı MADDENİN KENDİ yürürlüğüdür; denetim kontrolün hangi günden beri arandığını sorar. Bu eklerde SATIR BAZINDA tarihlenmiş bir kaynak yoktur: her kontrol ekin kendi Resmî Gazete tarihini taşır ve bu tarih ana yönetmeliğinkinden farklıdır. 25/11/2025 konsolide değişikliğinin tek tek kontrollere etkisi ÖLÇÜLMEDİ — ölçülmedi, \"değişmedi\" değil."
       },
       {
         "kaynakAlan": "Seviye (Seviye 1 · Seviye 2 · Seviye 3 · Ek Kontrol)",
         "urunAlani": "gereksinim_tipi",
-        "gerekce": "Kaynağın \"Seviye\" sütunu KONTROLÜN KENDİ kademesidir: EPDK modelinin hangi yetkinlik kademesinde o kontrolün ARANDIĞINI söyler — kuruluşun bugünkü ya da hedeflenen olgunluğunu değil. Ürünün `gereksinim_tipi` alanı tam olarak budur: çerçevenin kendi gereksinim sınıfı, ekranda kontrolün yanında rozet olarak durur ve hiçbir hesaba girmez. Ürünün `seviye` alanı ise BAŞKA bir şeydir — kuruluş için HEDEFLENEN olgunluktur (0–5 merdiveni, `lib/uyum/olgunluk.ts`) ve ekran onu ölçülen olgunlukla karşılaştırıp \"hedefte / hedefin altında\" der. İkisi de geçerli veridir, biçimleri uyumludur, hiçbir kapı ayırt edemez: \"Seviye\" `seviye` alanına yazılınca 508 zorunlu kontrolün hedefi ürünün en alt üç kademesine çekilmiş, kişiye bağlı ad-hoc uygulama \"hedefte\" (yeşil) görünmüştü (ölçüldü: bağımsız inceleme, PR #43 tur 2). Bu satır o kusurun beyanla kapatılmış hâlidir."
+        "gerekce": "Kaynağın \"Seviye\" sütunu KONTROLÜN KENDİ kademesidir: EPDK modelinin hangi yetkinlik kademesinde o kontrolün ARANDIĞINI söyler — kuruluşun bugünkü ya da hedeflenen olgunluğunu değil. Ürünün `gereksinim_tipi` alanı tam olarak budur: çerçevenin kendi gereksinim sınıfı; kurulumda `Madde.gereksinimTipi` alanında durur ve hiçbir hesaba girmez. Ekran rozeti HENÜZ YOK — alan kuruluyor, gösterilmiyor. Ürünün `seviye` alanı ise BAŞKA bir şeydir — kuruluş için HEDEFLENEN olgunluktur (0–5 merdiveni, `lib/uyum/olgunluk.ts`) ve ekran onu ölçülen olgunlukla karşılaştırıp \"hedefte / hedefin altında\" der. İkisi de geçerli veridir, biçimleri uyumludur, hiçbir kapı ayırt edemez: \"Seviye\" `seviye` alanına yazılınca 508 zorunlu kontrolün hedefi ürünün en alt üç kademesine çekilmiş, kişiye bağlı ad-hoc uygulama \"hedefte\" (yeşil) görünmüştü (ölçüldü: bağımsız inceleme, PR #43 tur 2). Bu satır o kusurun beyanla kapatılmış hâlidir."
       }
     ],
     "EPDK-SGYM-EK2": [
@@ -180,9 +180,9 @@
         "gerekce": "Ürünün `sira` alanı maddenin listede GÖRÜNTÜLENME sırasıdır; önem, öncelik ya da risk sırası değildir ve hiçbir hesaba girmez. Kaynakta böyle bir alan yoktur: belgedeki okuma sırası (sayfa sırası, sonra satır sırası) korunsun diye değeri aktarımı yapan verir."
       },
       {
-        "kaynakAlan": null,
+        "kaynakAlan": "Seviye (Seviye 1/2/3 · Ek Kontrol)",
         "urunAlani": "zorunluluk_tipi",
-        "gerekce": "Ürünün `zorunluluk_tipi` alanı yükümlülüğün HUKUKİ DAYANAK TÜRÜDÜR (kanun · yönetmelik · sözleşme · en iyi uygulama); yaptırımın ağırlığı ya da maddenin önceliği değildir. Kaynakta ayrı bir alan yoktur: ek yönetmeliğin eki olduğu için satırlar REGULATION, kaynağın \"Ek kontrol\" dediği kademe ise OPTIONAL olur — yönetmelik o kontrolleri zorunlu saymaz."
+        "gerekce": "Ürünün `zorunluluk_tipi` alanı yükümlülüğün HUKUKİ DAYANAK TÜRÜDÜR (kanun · yönetmelik · sözleşme · en iyi uygulama); yaptırımın ağırlığı ya da maddenin önceliği değildir. Kaynakta bu adla bir alan yoktur ama değer UYDURULMAZ: kaynağın \"Seviye\" sütunundan TÜRETİLİR — \"Ek kontrol\" kademesi OPTIONAL, kalan kademeler REGULATION olur (yönetmelik ek kontrolleri zorunlu saymaz, ek yönetmeliğin ekidir). Aynı kaynak sütunu İKİ ürün alanını besler ve ikisi AYRI şeydir: `gereksinim_tipi` kademenin kendisidir, bu alan o kademenin hukuki karşılığıdır."
       },
       {
         "kaynakAlan": "EPDK sitesindeki Ek-2 dosyasının indirme adresi",
@@ -202,12 +202,12 @@
       {
         "kaynakAlan": "Ek-2'i yürürlüğe koyan Resmî Gazete tarihi",
         "urunAlani": "yururluk_tarihi",
-        "gerekce": "Ürünün `yururluk_tarihi` alanı MADDENİN KENDİ yürürlüğüdür; denetim kontrolün hangi günden beri arandığını sorar. Ek yönetmeliğe kendi Resmî Gazete tarihiyle eklenmiştir ve bu tarih ana yönetmeliğinkinden farklıdır; çerçevenin yürürlüğüyle karışmasın diye madde satırında ayrı durur."
+        "gerekce": "Ürünün `yururluk_tarihi` alanı MADDENİN KENDİ yürürlüğüdür; denetim kontrolün hangi günden beri arandığını sorar. Bu eklerde SATIR BAZINDA tarihlenmiş bir kaynak yoktur: her kontrol ekin kendi Resmî Gazete tarihini taşır ve bu tarih ana yönetmeliğinkinden farklıdır. 25/11/2025 konsolide değişikliğinin tek tek kontrollere etkisi ÖLÇÜLMEDİ — ölçülmedi, \"değişmedi\" değil."
       },
       {
         "kaynakAlan": "Seviye (Seviye 1 · Seviye 2 · Seviye 3 · Ek Kontrol)",
         "urunAlani": "gereksinim_tipi",
-        "gerekce": "Kaynağın \"Seviye\" sütunu KONTROLÜN KENDİ kademesidir: EPDK modelinin hangi yetkinlik kademesinde o kontrolün ARANDIĞINI söyler — kuruluşun bugünkü ya da hedeflenen olgunluğunu değil. Ürünün `gereksinim_tipi` alanı tam olarak budur: çerçevenin kendi gereksinim sınıfı, ekranda kontrolün yanında rozet olarak durur ve hiçbir hesaba girmez. Ürünün `seviye` alanı ise BAŞKA bir şeydir — kuruluş için HEDEFLENEN olgunluktur (0–5 merdiveni, `lib/uyum/olgunluk.ts`) ve ekran onu ölçülen olgunlukla karşılaştırıp \"hedefte / hedefin altında\" der. İkisi de geçerli veridir, biçimleri uyumludur, hiçbir kapı ayırt edemez: \"Seviye\" `seviye` alanına yazılınca 508 zorunlu kontrolün hedefi ürünün en alt üç kademesine çekilmiş, kişiye bağlı ad-hoc uygulama \"hedefte\" (yeşil) görünmüştü (ölçüldü: bağımsız inceleme, PR #43 tur 2). Bu satır o kusurun beyanla kapatılmış hâlidir."
+        "gerekce": "Kaynağın \"Seviye\" sütunu KONTROLÜN KENDİ kademesidir: EPDK modelinin hangi yetkinlik kademesinde o kontrolün ARANDIĞINI söyler — kuruluşun bugünkü ya da hedeflenen olgunluğunu değil. Ürünün `gereksinim_tipi` alanı tam olarak budur: çerçevenin kendi gereksinim sınıfı; kurulumda `Madde.gereksinimTipi` alanında durur ve hiçbir hesaba girmez. Ekran rozeti HENÜZ YOK — alan kuruluyor, gösterilmiyor. Ürünün `seviye` alanı ise BAŞKA bir şeydir — kuruluş için HEDEFLENEN olgunluktur (0–5 merdiveni, `lib/uyum/olgunluk.ts`) ve ekran onu ölçülen olgunlukla karşılaştırıp \"hedefte / hedefin altında\" der. İkisi de geçerli veridir, biçimleri uyumludur, hiçbir kapı ayırt edemez: \"Seviye\" `seviye` alanına yazılınca 508 zorunlu kontrolün hedefi ürünün en alt üç kademesine çekilmiş, kişiye bağlı ad-hoc uygulama \"hedefte\" (yeşil) görünmüştü (ölçüldü: bağımsız inceleme, PR #43 tur 2). Bu satır o kusurun beyanla kapatılmış hâlidir."
       }
     ],
     "EPDK-SGYM-EK3": [
@@ -237,9 +237,9 @@
         "gerekce": "Ürünün `sira` alanı maddenin listede GÖRÜNTÜLENME sırasıdır; önem, öncelik ya da risk sırası değildir ve hiçbir hesaba girmez. Kaynak belgede böyle bir alan yoktur: belgedeki okuma sırası korunsun diye değeri aktarımı yapan verir."
       },
       {
-        "kaynakAlan": null,
+        "kaynakAlan": "Seviye (Seviye 1/2/3 · Ek Kontrol)",
         "urunAlani": "zorunluluk_tipi",
-        "gerekce": "Ürünün `zorunluluk_tipi` alanı yükümlülüğün HUKUKİ DAYANAK TÜRÜDÜR (kanun · yönetmelik · sözleşme · en iyi uygulama); yaptırımın ağırlığı ya da maddenin önceliği değildir. Kaynakta ayrı bir alan olarak yoktur; değeri belgenin kendi türünden çıkar ve aktarımı yapan yazar. Ek-3 yönetmeliğin ekidir ve onunla aynı hukuki güçtedir; bütün satırlar REGULATION."
+        "gerekce": "Ürünün `zorunluluk_tipi` alanı yükümlülüğün HUKUKİ DAYANAK TÜRÜDÜR (kanun · yönetmelik · sözleşme · en iyi uygulama); yaptırımın ağırlığı ya da maddenin önceliği değildir. Kaynakta bu adla bir alan yoktur ama değer UYDURULMAZ: kaynağın \"Seviye\" sütunundan TÜRETİLİR — \"Ek kontrol\" kademesi OPTIONAL, kalan kademeler REGULATION olur (yönetmelik ek kontrolleri zorunlu saymaz, ek yönetmeliğin ekidir). Aynı kaynak sütunu İKİ ürün alanını besler ve ikisi AYRI şeydir: `gereksinim_tipi` kademenin kendisidir, bu alan o kademenin hukuki karşılığıdır."
       },
       {
         "kaynakAlan": "EPDK resmî sitesindeki belge indirme adresi",
@@ -259,12 +259,12 @@
       {
         "kaynakAlan": "Ek-3'ü yürürlüğe koyan Resmî Gazete tarihi",
         "urunAlani": "yururluk_tarihi",
-        "gerekce": "Ürünün `yururluk_tarihi` alanı MADDENİN KENDİ yürürlüğüdür; denetim kontrolün hangi günden beri arandığını sorar. Çerçevenin yürürlüğüyle karışmasın diye madde satırında ayrı durur."
+        "gerekce": "Ürünün `yururluk_tarihi` alanı MADDENİN KENDİ yürürlüğüdür; denetim kontrolün hangi günden beri arandığını sorar. Bu eklerde SATIR BAZINDA tarihlenmiş bir kaynak yoktur: her kontrol ekin kendi Resmî Gazete tarihini taşır ve bu tarih ana yönetmeliğinkinden farklıdır. 25/11/2025 konsolide değişikliğinin tek tek kontrollere etkisi ÖLÇÜLMEDİ — ölçülmedi, \"değişmedi\" değil."
       },
       {
         "kaynakAlan": "Seviye (Seviye 1 · Seviye 2 · Seviye 3 · Ek Kontrol)",
         "urunAlani": "gereksinim_tipi",
-        "gerekce": "Kaynağın \"Seviye\" sütunu KONTROLÜN KENDİ kademesidir: EPDK modelinin hangi yetkinlik kademesinde o kontrolün ARANDIĞINI söyler — kuruluşun bugünkü ya da hedeflenen olgunluğunu değil. Ürünün `gereksinim_tipi` alanı tam olarak budur: çerçevenin kendi gereksinim sınıfı, ekranda kontrolün yanında rozet olarak durur ve hiçbir hesaba girmez. Ürünün `seviye` alanı ise BAŞKA bir şeydir — kuruluş için HEDEFLENEN olgunluktur (0–5 merdiveni, `lib/uyum/olgunluk.ts`) ve ekran onu ölçülen olgunlukla karşılaştırıp \"hedefte / hedefin altında\" der. İkisi de geçerli veridir, biçimleri uyumludur, hiçbir kapı ayırt edemez: \"Seviye\" `seviye` alanına yazılınca 508 zorunlu kontrolün hedefi ürünün en alt üç kademesine çekilmiş, kişiye bağlı ad-hoc uygulama \"hedefte\" (yeşil) görünmüştü (ölçüldü: bağımsız inceleme, PR #43 tur 2). Bu satır o kusurun beyanla kapatılmış hâlidir."
+        "gerekce": "Kaynağın \"Seviye\" sütunu KONTROLÜN KENDİ kademesidir: EPDK modelinin hangi yetkinlik kademesinde o kontrolün ARANDIĞINI söyler — kuruluşun bugünkü ya da hedeflenen olgunluğunu değil. Ürünün `gereksinim_tipi` alanı tam olarak budur: çerçevenin kendi gereksinim sınıfı; kurulumda `Madde.gereksinimTipi` alanında durur ve hiçbir hesaba girmez. Ekran rozeti HENÜZ YOK — alan kuruluyor, gösterilmiyor. Ürünün `seviye` alanı ise BAŞKA bir şeydir — kuruluş için HEDEFLENEN olgunluktur (0–5 merdiveni, `lib/uyum/olgunluk.ts`) ve ekran onu ölçülen olgunlukla karşılaştırıp \"hedefte / hedefin altında\" der. İkisi de geçerli veridir, biçimleri uyumludur, hiçbir kapı ayırt edemez: \"Seviye\" `seviye` alanına yazılınca 508 zorunlu kontrolün hedefi ürünün en alt üç kademesine çekilmiş, kişiye bağlı ad-hoc uygulama \"hedefte\" (yeşil) görünmüştü (ölçüldü: bağımsız inceleme, PR #43 tur 2). Bu satır o kusurun beyanla kapatılmış hâlidir."
       }
     ],
     "EPDK-SGYM-EK4": [
@@ -294,9 +294,9 @@
         "gerekce": "Ürünün `sira` alanı maddenin listede GÖRÜNTÜLENME sırasıdır; önem, öncelik ya da risk sırası değildir ve hiçbir hesaba girmez. Kaynakta böyle bir alan yoktur: belgedeki okuma sırası (sayfa sırası, sonra satır sırası) korunsun diye değeri aktarımı yapan verir."
       },
       {
-        "kaynakAlan": null,
+        "kaynakAlan": "Seviye (Seviye 1/2/3 · Ek Kontrol)",
         "urunAlani": "zorunluluk_tipi",
-        "gerekce": "Ürünün `zorunluluk_tipi` alanı yükümlülüğün HUKUKİ DAYANAK TÜRÜDÜR (kanun · yönetmelik · sözleşme · en iyi uygulama); yaptırımın ağırlığı ya da maddenin önceliği değildir. Kaynakta ayrı bir alan yoktur: ek yönetmeliğin eki olduğu için satırlar REGULATION, kaynağın \"Ek kontrol\" dediği kademe ise OPTIONAL olur — yönetmelik o kontrolleri zorunlu saymaz."
+        "gerekce": "Ürünün `zorunluluk_tipi` alanı yükümlülüğün HUKUKİ DAYANAK TÜRÜDÜR (kanun · yönetmelik · sözleşme · en iyi uygulama); yaptırımın ağırlığı ya da maddenin önceliği değildir. Kaynakta bu adla bir alan yoktur ama değer UYDURULMAZ: kaynağın \"Seviye\" sütunundan TÜRETİLİR — \"Ek kontrol\" kademesi OPTIONAL, kalan kademeler REGULATION olur (yönetmelik ek kontrolleri zorunlu saymaz, ek yönetmeliğin ekidir). Aynı kaynak sütunu İKİ ürün alanını besler ve ikisi AYRI şeydir: `gereksinim_tipi` kademenin kendisidir, bu alan o kademenin hukuki karşılığıdır."
       },
       {
         "kaynakAlan": "EPDK sitesindeki Ek-4 dosyasının indirme adresi",
@@ -316,12 +316,12 @@
       {
         "kaynakAlan": "Ek-4'i yürürlüğe koyan Resmî Gazete tarihi",
         "urunAlani": "yururluk_tarihi",
-        "gerekce": "Ürünün `yururluk_tarihi` alanı MADDENİN KENDİ yürürlüğüdür; denetim kontrolün hangi günden beri arandığını sorar. Ek yönetmeliğe kendi Resmî Gazete tarihiyle eklenmiştir ve bu tarih ana yönetmeliğinkinden farklıdır; çerçevenin yürürlüğüyle karışmasın diye madde satırında ayrı durur."
+        "gerekce": "Ürünün `yururluk_tarihi` alanı MADDENİN KENDİ yürürlüğüdür; denetim kontrolün hangi günden beri arandığını sorar. Bu eklerde SATIR BAZINDA tarihlenmiş bir kaynak yoktur: her kontrol ekin kendi Resmî Gazete tarihini taşır ve bu tarih ana yönetmeliğinkinden farklıdır. 25/11/2025 konsolide değişikliğinin tek tek kontrollere etkisi ÖLÇÜLMEDİ — ölçülmedi, \"değişmedi\" değil."
       },
       {
         "kaynakAlan": "Seviye (Seviye 1 · Seviye 2 · Seviye 3 · Ek Kontrol)",
         "urunAlani": "gereksinim_tipi",
-        "gerekce": "Kaynağın \"Seviye\" sütunu KONTROLÜN KENDİ kademesidir: EPDK modelinin hangi yetkinlik kademesinde o kontrolün ARANDIĞINI söyler — kuruluşun bugünkü ya da hedeflenen olgunluğunu değil. Ürünün `gereksinim_tipi` alanı tam olarak budur: çerçevenin kendi gereksinim sınıfı, ekranda kontrolün yanında rozet olarak durur ve hiçbir hesaba girmez. Ürünün `seviye` alanı ise BAŞKA bir şeydir — kuruluş için HEDEFLENEN olgunluktur (0–5 merdiveni, `lib/uyum/olgunluk.ts`) ve ekran onu ölçülen olgunlukla karşılaştırıp \"hedefte / hedefin altında\" der. İkisi de geçerli veridir, biçimleri uyumludur, hiçbir kapı ayırt edemez: \"Seviye\" `seviye` alanına yazılınca 508 zorunlu kontrolün hedefi ürünün en alt üç kademesine çekilmiş, kişiye bağlı ad-hoc uygulama \"hedefte\" (yeşil) görünmüştü (ölçüldü: bağımsız inceleme, PR #43 tur 2). Bu satır o kusurun beyanla kapatılmış hâlidir."
+        "gerekce": "Kaynağın \"Seviye\" sütunu KONTROLÜN KENDİ kademesidir: EPDK modelinin hangi yetkinlik kademesinde o kontrolün ARANDIĞINI söyler — kuruluşun bugünkü ya da hedeflenen olgunluğunu değil. Ürünün `gereksinim_tipi` alanı tam olarak budur: çerçevenin kendi gereksinim sınıfı; kurulumda `Madde.gereksinimTipi` alanında durur ve hiçbir hesaba girmez. Ekran rozeti HENÜZ YOK — alan kuruluyor, gösterilmiyor. Ürünün `seviye` alanı ise BAŞKA bir şeydir — kuruluş için HEDEFLENEN olgunluktur (0–5 merdiveni, `lib/uyum/olgunluk.ts`) ve ekran onu ölçülen olgunlukla karşılaştırıp \"hedefte / hedefin altında\" der. İkisi de geçerli veridir, biçimleri uyumludur, hiçbir kapı ayırt edemez: \"Seviye\" `seviye` alanına yazılınca 508 zorunlu kontrolün hedefi ürünün en alt üç kademesine çekilmiş, kişiye bağlı ad-hoc uygulama \"hedefte\" (yeşil) görünmüştü (ölçüldü: bağımsız inceleme, PR #43 tur 2). Bu satır o kusurun beyanla kapatılmış hâlidir."
       }
     ],
     "EPDK-SGYM-EK5": [
@@ -351,9 +351,9 @@
         "gerekce": "Ürünün `sira` alanı maddenin listede GÖRÜNTÜLENME sırasıdır; önem, öncelik ya da risk sırası değildir ve hiçbir hesaba girmez. Kaynakta böyle bir alan yoktur: belgedeki okuma sırası (sayfa sırası, sonra satır sırası) korunsun diye değeri aktarımı yapan verir."
       },
       {
-        "kaynakAlan": null,
+        "kaynakAlan": "Seviye (Seviye 1/2/3 · Ek Kontrol)",
         "urunAlani": "zorunluluk_tipi",
-        "gerekce": "Ürünün `zorunluluk_tipi` alanı yükümlülüğün HUKUKİ DAYANAK TÜRÜDÜR (kanun · yönetmelik · sözleşme · en iyi uygulama); yaptırımın ağırlığı ya da maddenin önceliği değildir. Kaynakta ayrı bir alan yoktur: ek yönetmeliğin eki olduğu için satırlar REGULATION, kaynağın \"Ek kontrol\" dediği kademe ise OPTIONAL olur — yönetmelik o kontrolleri zorunlu saymaz."
+        "gerekce": "Ürünün `zorunluluk_tipi` alanı yükümlülüğün HUKUKİ DAYANAK TÜRÜDÜR (kanun · yönetmelik · sözleşme · en iyi uygulama); yaptırımın ağırlığı ya da maddenin önceliği değildir. Kaynakta bu adla bir alan yoktur ama değer UYDURULMAZ: kaynağın \"Seviye\" sütunundan TÜRETİLİR — \"Ek kontrol\" kademesi OPTIONAL, kalan kademeler REGULATION olur (yönetmelik ek kontrolleri zorunlu saymaz, ek yönetmeliğin ekidir). Aynı kaynak sütunu İKİ ürün alanını besler ve ikisi AYRI şeydir: `gereksinim_tipi` kademenin kendisidir, bu alan o kademenin hukuki karşılığıdır."
       },
       {
         "kaynakAlan": "EPDK sitesindeki Ek-5 dosyasının indirme adresi",
@@ -373,12 +373,12 @@
       {
         "kaynakAlan": "Ek-5'i yürürlüğe koyan Resmî Gazete tarihi",
         "urunAlani": "yururluk_tarihi",
-        "gerekce": "Ürünün `yururluk_tarihi` alanı MADDENİN KENDİ yürürlüğüdür; denetim kontrolün hangi günden beri arandığını sorar. Ek yönetmeliğe kendi Resmî Gazete tarihiyle eklenmiştir ve bu tarih ana yönetmeliğinkinden farklıdır; çerçevenin yürürlüğüyle karışmasın diye madde satırında ayrı durur."
+        "gerekce": "Ürünün `yururluk_tarihi` alanı MADDENİN KENDİ yürürlüğüdür; denetim kontrolün hangi günden beri arandığını sorar. Bu eklerde SATIR BAZINDA tarihlenmiş bir kaynak yoktur: her kontrol ekin kendi Resmî Gazete tarihini taşır ve bu tarih ana yönetmeliğinkinden farklıdır. 25/11/2025 konsolide değişikliğinin tek tek kontrollere etkisi ÖLÇÜLMEDİ — ölçülmedi, \"değişmedi\" değil."
       },
       {
         "kaynakAlan": "Seviye (Seviye 1 · Seviye 2 · Seviye 3 · Ek Kontrol)",
         "urunAlani": "gereksinim_tipi",
-        "gerekce": "Kaynağın \"Seviye\" sütunu KONTROLÜN KENDİ kademesidir: EPDK modelinin hangi yetkinlik kademesinde o kontrolün ARANDIĞINI söyler — kuruluşun bugünkü ya da hedeflenen olgunluğunu değil. Ürünün `gereksinim_tipi` alanı tam olarak budur: çerçevenin kendi gereksinim sınıfı, ekranda kontrolün yanında rozet olarak durur ve hiçbir hesaba girmez. Ürünün `seviye` alanı ise BAŞKA bir şeydir — kuruluş için HEDEFLENEN olgunluktur (0–5 merdiveni, `lib/uyum/olgunluk.ts`) ve ekran onu ölçülen olgunlukla karşılaştırıp \"hedefte / hedefin altında\" der. İkisi de geçerli veridir, biçimleri uyumludur, hiçbir kapı ayırt edemez: \"Seviye\" `seviye` alanına yazılınca 508 zorunlu kontrolün hedefi ürünün en alt üç kademesine çekilmiş, kişiye bağlı ad-hoc uygulama \"hedefte\" (yeşil) görünmüştü (ölçüldü: bağımsız inceleme, PR #43 tur 2). Bu satır o kusurun beyanla kapatılmış hâlidir."
+        "gerekce": "Kaynağın \"Seviye\" sütunu KONTROLÜN KENDİ kademesidir: EPDK modelinin hangi yetkinlik kademesinde o kontrolün ARANDIĞINI söyler — kuruluşun bugünkü ya da hedeflenen olgunluğunu değil. Ürünün `gereksinim_tipi` alanı tam olarak budur: çerçevenin kendi gereksinim sınıfı; kurulumda `Madde.gereksinimTipi` alanında durur ve hiçbir hesaba girmez. Ekran rozeti HENÜZ YOK — alan kuruluyor, gösterilmiyor. Ürünün `seviye` alanı ise BAŞKA bir şeydir — kuruluş için HEDEFLENEN olgunluktur (0–5 merdiveni, `lib/uyum/olgunluk.ts`) ve ekran onu ölçülen olgunlukla karşılaştırıp \"hedefte / hedefin altında\" der. İkisi de geçerli veridir, biçimleri uyumludur, hiçbir kapı ayırt edemez: \"Seviye\" `seviye` alanına yazılınca 508 zorunlu kontrolün hedefi ürünün en alt üç kademesine çekilmiş, kişiye bağlı ad-hoc uygulama \"hedefte\" (yeşil) görünmüştü (ölçüldü: bağımsız inceleme, PR #43 tur 2). Bu satır o kusurun beyanla kapatılmış hâlidir."
       }
     ],
     "EPDK-SGYM-EK6": [
@@ -408,9 +408,9 @@
         "gerekce": "Ürünün `sira` alanı maddenin listede GÖRÜNTÜLENME sırasıdır; önem, öncelik ya da risk sırası değildir ve hiçbir hesaba girmez. Kaynakta böyle bir alan yoktur: belgedeki okuma sırası (sayfa sırası, sonra satır sırası) korunsun diye değeri aktarımı yapan verir."
       },
       {
-        "kaynakAlan": null,
+        "kaynakAlan": "Seviye (Seviye 1/2/3 · Ek Kontrol)",
         "urunAlani": "zorunluluk_tipi",
-        "gerekce": "Ürünün `zorunluluk_tipi` alanı yükümlülüğün HUKUKİ DAYANAK TÜRÜDÜR (kanun · yönetmelik · sözleşme · en iyi uygulama); yaptırımın ağırlığı ya da maddenin önceliği değildir. Kaynakta ayrı bir alan yoktur: ek yönetmeliğin eki olduğu için satırlar REGULATION, kaynağın \"Ek kontrol\" dediği kademe ise OPTIONAL olur — yönetmelik o kontrolleri zorunlu saymaz."
+        "gerekce": "Ürünün `zorunluluk_tipi` alanı yükümlülüğün HUKUKİ DAYANAK TÜRÜDÜR (kanun · yönetmelik · sözleşme · en iyi uygulama); yaptırımın ağırlığı ya da maddenin önceliği değildir. Kaynakta bu adla bir alan yoktur ama değer UYDURULMAZ: kaynağın \"Seviye\" sütunundan TÜRETİLİR — \"Ek kontrol\" kademesi OPTIONAL, kalan kademeler REGULATION olur (yönetmelik ek kontrolleri zorunlu saymaz, ek yönetmeliğin ekidir). Aynı kaynak sütunu İKİ ürün alanını besler ve ikisi AYRI şeydir: `gereksinim_tipi` kademenin kendisidir, bu alan o kademenin hukuki karşılığıdır."
       },
       {
         "kaynakAlan": "EPDK sitesindeki Ek-6 dosyasının indirme adresi",
@@ -430,12 +430,12 @@
       {
         "kaynakAlan": "Ek-6'i yürürlüğe koyan Resmî Gazete tarihi",
         "urunAlani": "yururluk_tarihi",
-        "gerekce": "Ürünün `yururluk_tarihi` alanı MADDENİN KENDİ yürürlüğüdür; denetim kontrolün hangi günden beri arandığını sorar. Ek yönetmeliğe kendi Resmî Gazete tarihiyle eklenmiştir ve bu tarih ana yönetmeliğinkinden farklıdır; çerçevenin yürürlüğüyle karışmasın diye madde satırında ayrı durur."
+        "gerekce": "Ürünün `yururluk_tarihi` alanı MADDENİN KENDİ yürürlüğüdür; denetim kontrolün hangi günden beri arandığını sorar. Bu eklerde SATIR BAZINDA tarihlenmiş bir kaynak yoktur: her kontrol ekin kendi Resmî Gazete tarihini taşır ve bu tarih ana yönetmeliğinkinden farklıdır. 25/11/2025 konsolide değişikliğinin tek tek kontrollere etkisi ÖLÇÜLMEDİ — ölçülmedi, \"değişmedi\" değil."
       },
       {
         "kaynakAlan": "Seviye (Seviye 1 · Seviye 2 · Seviye 3 · Ek Kontrol)",
         "urunAlani": "gereksinim_tipi",
-        "gerekce": "Kaynağın \"Seviye\" sütunu KONTROLÜN KENDİ kademesidir: EPDK modelinin hangi yetkinlik kademesinde o kontrolün ARANDIĞINI söyler — kuruluşun bugünkü ya da hedeflenen olgunluğunu değil. Ürünün `gereksinim_tipi` alanı tam olarak budur: çerçevenin kendi gereksinim sınıfı, ekranda kontrolün yanında rozet olarak durur ve hiçbir hesaba girmez. Ürünün `seviye` alanı ise BAŞKA bir şeydir — kuruluş için HEDEFLENEN olgunluktur (0–5 merdiveni, `lib/uyum/olgunluk.ts`) ve ekran onu ölçülen olgunlukla karşılaştırıp \"hedefte / hedefin altında\" der. İkisi de geçerli veridir, biçimleri uyumludur, hiçbir kapı ayırt edemez: \"Seviye\" `seviye` alanına yazılınca 508 zorunlu kontrolün hedefi ürünün en alt üç kademesine çekilmiş, kişiye bağlı ad-hoc uygulama \"hedefte\" (yeşil) görünmüştü (ölçüldü: bağımsız inceleme, PR #43 tur 2). Bu satır o kusurun beyanla kapatılmış hâlidir."
+        "gerekce": "Kaynağın \"Seviye\" sütunu KONTROLÜN KENDİ kademesidir: EPDK modelinin hangi yetkinlik kademesinde o kontrolün ARANDIĞINI söyler — kuruluşun bugünkü ya da hedeflenen olgunluğunu değil. Ürünün `gereksinim_tipi` alanı tam olarak budur: çerçevenin kendi gereksinim sınıfı; kurulumda `Madde.gereksinimTipi` alanında durur ve hiçbir hesaba girmez. Ekran rozeti HENÜZ YOK — alan kuruluyor, gösterilmiyor. Ürünün `seviye` alanı ise BAŞKA bir şeydir — kuruluş için HEDEFLENEN olgunluktur (0–5 merdiveni, `lib/uyum/olgunluk.ts`) ve ekran onu ölçülen olgunlukla karşılaştırıp \"hedefte / hedefin altında\" der. İkisi de geçerli veridir, biçimleri uyumludur, hiçbir kapı ayırt edemez: \"Seviye\" `seviye` alanına yazılınca 508 zorunlu kontrolün hedefi ürünün en alt üç kademesine çekilmiş, kişiye bağlı ad-hoc uygulama \"hedefte\" (yeşil) görünmüştü (ölçüldü: bağımsız inceleme, PR #43 tur 2). Bu satır o kusurun beyanla kapatılmış hâlidir."
       }
     ],
     "EPDK-SGYM-EK7": [
@@ -465,9 +465,9 @@
         "gerekce": "Ürünün `sira` alanı maddenin listede GÖRÜNTÜLENME sırasıdır; önem, öncelik ya da risk sırası değildir ve hiçbir hesaba girmez. Kaynakta böyle bir alan yoktur: belgedeki okuma sırası (sayfa sırası, sonra satır sırası) korunsun diye değeri aktarımı yapan verir."
       },
       {
-        "kaynakAlan": null,
+        "kaynakAlan": "Seviye (Seviye 1/2/3 · Ek Kontrol)",
         "urunAlani": "zorunluluk_tipi",
-        "gerekce": "Ürünün `zorunluluk_tipi` alanı yükümlülüğün HUKUKİ DAYANAK TÜRÜDÜR (kanun · yönetmelik · sözleşme · en iyi uygulama); yaptırımın ağırlığı ya da maddenin önceliği değildir. Kaynakta ayrı bir alan yoktur: ek yönetmeliğin eki olduğu için satırlar REGULATION, kaynağın \"Ek kontrol\" dediği kademe ise OPTIONAL olur — yönetmelik o kontrolleri zorunlu saymaz."
+        "gerekce": "Ürünün `zorunluluk_tipi` alanı yükümlülüğün HUKUKİ DAYANAK TÜRÜDÜR (kanun · yönetmelik · sözleşme · en iyi uygulama); yaptırımın ağırlığı ya da maddenin önceliği değildir. Kaynakta bu adla bir alan yoktur ama değer UYDURULMAZ: kaynağın \"Seviye\" sütunundan TÜRETİLİR — \"Ek kontrol\" kademesi OPTIONAL, kalan kademeler REGULATION olur (yönetmelik ek kontrolleri zorunlu saymaz, ek yönetmeliğin ekidir). Aynı kaynak sütunu İKİ ürün alanını besler ve ikisi AYRI şeydir: `gereksinim_tipi` kademenin kendisidir, bu alan o kademenin hukuki karşılığıdır."
       },
       {
         "kaynakAlan": "EPDK sitesindeki Ek-7 dosyasının indirme adresi",
@@ -487,12 +487,12 @@
       {
         "kaynakAlan": "Ek-7'i yürürlüğe koyan Resmî Gazete tarihi",
         "urunAlani": "yururluk_tarihi",
-        "gerekce": "Ürünün `yururluk_tarihi` alanı MADDENİN KENDİ yürürlüğüdür; denetim kontrolün hangi günden beri arandığını sorar. Ek yönetmeliğe kendi Resmî Gazete tarihiyle eklenmiştir ve bu tarih ana yönetmeliğinkinden farklıdır; çerçevenin yürürlüğüyle karışmasın diye madde satırında ayrı durur."
+        "gerekce": "Ürünün `yururluk_tarihi` alanı MADDENİN KENDİ yürürlüğüdür; denetim kontrolün hangi günden beri arandığını sorar. Bu eklerde SATIR BAZINDA tarihlenmiş bir kaynak yoktur: her kontrol ekin kendi Resmî Gazete tarihini taşır ve bu tarih ana yönetmeliğinkinden farklıdır. 25/11/2025 konsolide değişikliğinin tek tek kontrollere etkisi ÖLÇÜLMEDİ — ölçülmedi, \"değişmedi\" değil."
       },
       {
         "kaynakAlan": "Seviye (Seviye 1 · Seviye 2 · Seviye 3 · Ek Kontrol)",
         "urunAlani": "gereksinim_tipi",
-        "gerekce": "Kaynağın \"Seviye\" sütunu KONTROLÜN KENDİ kademesidir: EPDK modelinin hangi yetkinlik kademesinde o kontrolün ARANDIĞINI söyler — kuruluşun bugünkü ya da hedeflenen olgunluğunu değil. Ürünün `gereksinim_tipi` alanı tam olarak budur: çerçevenin kendi gereksinim sınıfı, ekranda kontrolün yanında rozet olarak durur ve hiçbir hesaba girmez. Ürünün `seviye` alanı ise BAŞKA bir şeydir — kuruluş için HEDEFLENEN olgunluktur (0–5 merdiveni, `lib/uyum/olgunluk.ts`) ve ekran onu ölçülen olgunlukla karşılaştırıp \"hedefte / hedefin altında\" der. İkisi de geçerli veridir, biçimleri uyumludur, hiçbir kapı ayırt edemez: \"Seviye\" `seviye` alanına yazılınca 508 zorunlu kontrolün hedefi ürünün en alt üç kademesine çekilmiş, kişiye bağlı ad-hoc uygulama \"hedefte\" (yeşil) görünmüştü (ölçüldü: bağımsız inceleme, PR #43 tur 2). Bu satır o kusurun beyanla kapatılmış hâlidir."
+        "gerekce": "Kaynağın \"Seviye\" sütunu KONTROLÜN KENDİ kademesidir: EPDK modelinin hangi yetkinlik kademesinde o kontrolün ARANDIĞINI söyler — kuruluşun bugünkü ya da hedeflenen olgunluğunu değil. Ürünün `gereksinim_tipi` alanı tam olarak budur: çerçevenin kendi gereksinim sınıfı; kurulumda `Madde.gereksinimTipi` alanında durur ve hiçbir hesaba girmez. Ekran rozeti HENÜZ YOK — alan kuruluyor, gösterilmiyor. Ürünün `seviye` alanı ise BAŞKA bir şeydir — kuruluş için HEDEFLENEN olgunluktur (0–5 merdiveni, `lib/uyum/olgunluk.ts`) ve ekran onu ölçülen olgunlukla karşılaştırıp \"hedefte / hedefin altında\" der. İkisi de geçerli veridir, biçimleri uyumludur, hiçbir kapı ayırt edemez: \"Seviye\" `seviye` alanına yazılınca 508 zorunlu kontrolün hedefi ürünün en alt üç kademesine çekilmiş, kişiye bağlı ad-hoc uygulama \"hedefte\" (yeşil) görünmüştü (ölçüldü: bağımsız inceleme, PR #43 tur 2). Bu satır o kusurun beyanla kapatılmış hâlidir."
       }
     ]
   }

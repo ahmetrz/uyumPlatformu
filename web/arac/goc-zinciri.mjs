@@ -123,7 +123,12 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   const o = gocZinciriOlc();
   if (process.argv.includes('--json')) { console.log(JSON.stringify(o, null, 2)); process.exit(0); }
   const k = karar(o);
-  console.log(`Göç zinciri: ${o.gocler.length} göç dizinde · ${o.uygulanan.length} göç boş veritabanına uygulandı · şema farkı ${o.fark === null ? 'ÖLÇÜLMEDİ' : o.fark === '' ? '0' : 'VAR'}`);
+  /* SAĞLAYICI ADIYLA YAZILIR: iki zincir var (SQLite `prisma/migrations`,
+     PostgreSQL `prisma/postgres/migrations`) ve bu kapı YALNIZ SQLite'ı
+     ölçer. Yazmasaydı çıktısı "göç zinciri geçti" diye okunur, PostgreSQL
+     zincirinin hiç ölçülmediği görünmezdi (ölçüldü: `kapi:pg-goc` uzun süre
+     `kapi:parti` kümesinin DIŞINDAYDI). */
+  console.log(`Göç zinciri · sağlayıcı SQLite (PostgreSQL zinciri: kapi:pg-goc): ${o.gocler.length} göç dizinde · ${o.uygulanan.length} göç boş veritabanına uygulandı · şema farkı ${o.fark === null ? 'ÖLÇÜLMEDİ' : o.fark === '' ? '0' : 'VAR'}`);
   for (const satir of k) console.log(`KIRMIZI  ${satir}`);
   console.log(k.length ? `Göç zinciri kapısı: KIRMIZI (${k.length})` : 'Göç zinciri kapısı: geçti');
   process.exit(k.length ? 1 : 0);

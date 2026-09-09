@@ -20,6 +20,7 @@ import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:
 import { execFileSync, spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { GOC_DIZINI, WEB, pgSemasiYaz } from './pg-taban.mjs';
+import { veritabaniniDegistir } from './pg-goc.mjs';
 
 const url = process.env.PG_URL;
 if (!url) { console.error('PG_URL ayarlı değil'); process.exit(1); }
@@ -27,7 +28,7 @@ const i = process.argv.indexOf('--ad');
 const ad = i > -1 ? process.argv[i + 1] : 'uyum_test_sablonu';
 
 const psql = (hedef, sql) => execFileSync('psql', [hedef, '-v', 'ON_ERROR_STOP=1', '-tAc', sql], { encoding: 'utf8' }).trim();
-const hedefUrl = url.replace(/\/[^/?]*(\?|$)/, `/${ad}$1`);
+const hedefUrl = veritabaniniDegistir(url, ad);
 
 psql(url, `UPDATE pg_database SET datallowconn = true WHERE datname = '${ad}'`);
 psql(url, `DROP DATABASE IF EXISTS "${ad}" WITH (FORCE)`);

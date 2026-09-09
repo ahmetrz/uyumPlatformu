@@ -163,10 +163,10 @@ paket başlıklarındaki "Bugün" paragrafları ayrıntıyı taşır.
 | **P4 · İçerik paketi mimarisi** | **bitti** | `web/lib/paket/` (biçim · doğrulayıcı · kurucu · OSCAL), `/paketler` ekranı, `IcerikPaketi*` katalogları, beş paket dizini | `98b50c6` → `c31ee45` · PR #41 · #43 |
 | **P8 · Demo verisi** | **bitti (kurgusal ad kısmı)** | tohum paketlerden kurulur (`DEMO-TR-ORTAK · DEMO-TR-ENERJI · DEMO-TR-SU`); kurgusal ad bekçisi `prisma/kurgusal-adlar.ts` | `a100df8` (kurgusal ad) · `16d20fd` (paket biçimi) |
 | **Kapı altyapısı** | **bitti ve büyüyor** | 20 kapı (PR kapısından türetilir, `npm run kapi:parti`), 60 araç betiği, göç zinciri kapısı (`kapi:goc-zinciri`) | `5928944` · PR #43 |
-| **TR-ENERJI içeriği** | **bitti (0.3.0)** — yönetmelik + YEDİ ekin tamamı tam metin: 8 çerçeve · 3 803 madde (88 aile + 3 691 kontrol + 23 yönetmelik satırı) · metni girilmemiş kontrol 0 | `web/paketler/TR-ENERJI` | `9535808` · PR #43 · ek aktarımı bu dal |
+| **TR-ENERJI içeriği** | **bitti (0.3.0)** — yönetmelik + YEDİ ekin tamamı tam metin: 8 çerçeve · 3 803 madde (89 aile + 3 691 kontrol + 23 yönetmelik satırı) · metni girilmemiş kontrol 0 | `web/paketler/TR-ENERJI` | `9535808` · PR #43 · ek aktarımı bu dal |
 
 Ölçüm tabanı (aynı gün): **3 467 test vakası · 189 dosya · 319 senaryo ·
-GAP 0 · 51 göç · şema farkı 0 · 157 model · 20 kapı**.
+GAP 0 · 52 göç (SQLite zinciri) + 1 taban göçü (PostgreSQL) · şema farkı 0 · 157 model · 23 kapı**.
 
 **Kardeş belgelerdeki bayat sayılar (9 Eyl 2026'da ölçüldü, düzeltilecek):**
 `docs/GELISTIRME_PAKETLERI_DURUM.md` 139 dosya · 2 903 vaka · 273 senaryo
@@ -690,8 +690,8 @@ zorunlu**, SQLite (geliştirme/demo) yalnız uygulama kapısı.
 **Dalga:** 0 (P2 ile birlikte — kiracı izolasyonunun RLS ayağı)
 
 **Bugün (9 Eylül 2026 · UYGULANDI, yük ölçümü hariç).** Ürün iki
-sağlayıcıda da koşuyor; tam test kümesi ikisinde de yeşil (191/191 dosya ·
-3 489 vaka · 1 atlandı, atlanan artmadı). Tek taban göçü şemadan üretilir
+sağlayıcıda da koşuyor; tam test kümesi ikisinde de yeşil (192/192 dosya ·
+3 503 vaka · 1 atlandı, atlanan artmadı). Tek taban göçü şemadan üretilir
 ve bayatlarsa kırmızıdır; dokuz tetikleyici ve üç elle indeks yerinde;
 kapı iki sağlayıcının NESNE ENVANTERİNİ karşılaştırır. Test izolasyonu
 PostgreSQL'de şablondan klon veritabanıdır (dosya kopyası SQLite'ta
@@ -874,7 +874,7 @@ alımı hukuki görüşe bağlı kalır — okuyucu hazır, içerik yok.
 **İÇERİK uygulandı (9 Eylül 2026):** `TR-ENERJI` 0.3.0 artık iskelet değil —
 EPDK Yetkinlik Modeli Yönetmeliği (4 bölüm + 18 madde + 1 geçici madde) ve
 YEDİ sektör ekinin tamamı (Ek-1 476 · Ek-2 505 · Ek-3 565 · Ek-4 552 · Ek-5 551 ·
-Ek-6 578 · Ek-7 464 = 3 691 kontrol, 88 kontrol ailesi) TAM
+Ek-6 578 · Ek-7 464 = 3 691 kontrol, 89 kontrol ailesi) TAM
 METİNLE pakette; metni girilmemiş kontrol SIFIR; metin EPDK resmî sitesinden (birincil kaynak) indirildi,
 `mevzuat.gov.tr` ve `resmigazete.gov.tr` yine erişilemedi (HTTP 000; ikincil
 kaynak içeriğe girmedi). Madde CSV'sine köken sütunları eklendi (`kaynak_url ·
@@ -2184,7 +2184,7 @@ Excel'inden daha az şey bilir.
 
 | Kalem | Ölçülmüş büyüklük | Bugün nerede |
 | --- | --- | --- |
-| **R5 · PostgreSQL** | **BİTTİ (9 Eyl 2026)** — tek taban göçü (4 149 satır, şemadan üretilir), 9 tetikleyici + 3 elle indeks, sağlayıcı tek kaynağı (`lib/veritabani.ts`), sürücü ve arama kipi sağlayıcıdan, test izolasyonu PostgreSQL'de ŞABLONDAN klon veritabanı | Kapılar `kapi:pg-taban` · `kapi:pg-goc`; CI'da `kapi-postgres` işi (postgres:16). **Tam küme iki sağlayıcıda da yeşil: 191/191 dosya · 3 489 vaka · 1 atlandı.** Ölçüm beş sürpriz çıkardı (istemci sağlayıcıya bağlı · `migrate diff` elle DDL'i görmez · 63 bayt ad kısaltması · sırasız `take` · testin tek bağlantı varsayımı) — `docs/POSTGRES_READINESS.md` §0 |
+| **R5 · PostgreSQL** | **BİTTİ (9 Eyl 2026)** — tek taban göçü (4 149 satır, şemadan üretilir), 9 tetikleyici + 3 elle indeks, sağlayıcı tek kaynağı (`lib/veritabani.ts`), sürücü ve arama kipi sağlayıcıdan, test izolasyonu PostgreSQL'de ŞABLONDAN klon veritabanı | Kapılar `kapi:pg-taban` · `kapi:pg-goc`; CI'da `kapi-postgres` işi (postgres:16). **Tam küme iki sağlayıcıda da yeşil: 192/192 dosya · 3 503 vaka · 1 atlandı.** Ölçüm beş sürpriz çıkardı (istemci sağlayıcıya bağlı · `migrate diff` elle DDL'i görmez · 63 bayt ad kısaltması · sırasız `take` · testin tek bağlantı varsayımı) — `docs/POSTGRES_READINESS.md` §0 |
 | **P7 · dağıtım** | `deploy/` **yok** · `docs/KURULUM.md` **yok** · sağlık ucu **yok** (10 API ucu var, hepsi `route.api.ts`); S3 · Redis · kuyruk · Vault kayıtlı ama bağlı değil | statik demo derlemesi var ve CI'da koşuyor |
 | **R3 · yedek + kanıt** | `arac/yedek.mjs` 170 satır, **yalnız veritabanı** (`VACUUM INTO`); kanıt dosyaları artık **yazılıyor** (`eylemler2/kanit.ts` → `depoAnahtari` + `dosyaHash`) ama yedeğe girmiyor; hem araç hem `docs/URUN_YEDEKLEME.md` (satır 26 · 29 · 30 · 144) hâlâ "dosya yok" diyor | depo `lib/uyum/kanitDeposu.ts` 145 satır, içerik adresli, MIME izin listeli |
 | **P6 · kimlik (SSO/MFA)** | yerel hesap + oturum + oran sınırı var; **OIDC ve TOTP yok** | `Connector.kimlikTipi` OAuth2 tanıyor, ürün girişi tanımıyor |

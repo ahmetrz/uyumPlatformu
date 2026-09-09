@@ -1,7 +1,7 @@
 {
-  "imza": "3783ceaee280a563fff42f9fd63edcae",
+  "imza": "de524b1e7ca3fb628e6d36a6cf90cc95",
   "dosya": 192,
-  "vaka": 3500,
+  "vaka": 3504,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -337,7 +337,7 @@
       "atlanan": 0
     },
     "tests/kapi-farki.test.ts": {
-      "vaka": 12,
+      "vaka": 14,
       "atlanan": 0
     },
     "tests/kapsam-ekranlari.test.ts": {
@@ -513,7 +513,7 @@
       "atlanan": 0
     },
     "tests/paket-icerik.test.ts": {
-      "vaka": 16,
+      "vaka": 17,
       "atlanan": 0
     },
     "tests/paket-iskeletler.test.ts": {
@@ -553,7 +553,7 @@
       "atlanan": 0
     },
     "tests/pg-gocu.test.ts": {
-      "vaka": 9,
+      "vaka": 10,
       "atlanan": 0
     },
     "tests/proje-bagimliligi.test.ts": {

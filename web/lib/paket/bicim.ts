@@ -94,6 +94,17 @@ export const MADDE_SUTUNLARI = [
     zorunlu kontrolün hedefi ürünün en alt üç kademesine çekiliyor ve kişiye bağlı
     ad-hoc uygulama "hedefte" (yeşil) görünüyordu. */
 export const GEREKSINIM_TIPI_SINIRI = 60;
+/** Kademenin GRUPLAMA ANAHTARI — ham dize kaynağa sadık kalır, bu değişmez.
+    Kaynak aynı kademeyi iki yazımla taşıyor (ölçüldü: yedi ekte "Ek Kontrol"
+    211, "Ek kontrol" 142; Ek-6 ikisini aynı dosyada taşıyor). Sessiz düzeltme
+    aktarımı kaynaktan uzaklaştırırdı; ama `gereksinimTipi`ye göre gruplayan
+    ilk sorgu tek kademeyi İKİ sınıf gösterirdi (bağımsız inceleme, P2).
+    Çözüm: dize sadık, ANAHTAR tek. */
+export function kademeAnahtari(deger: string | null | undefined): string | null {
+  const d = (deger ?? '').trim().replace(/\s+/g, ' ');
+  if (d === '') return null;
+  return d.toLocaleLowerCase('tr');
+}
 
 /* ── ALAN EŞLEME BEYANI (§1/10) ────────────────────────────────────────
    Kaynak belgenin bir alanı ürünün YANLIŞ alanına yazılabilir; iki taraf da

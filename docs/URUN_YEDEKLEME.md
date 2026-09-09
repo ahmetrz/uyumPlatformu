@@ -21,7 +21,7 @@ kalite kapılarında koşar.
 
 | Ne | Nerede | Bugünkü durum |
 | --- | --- | --- |
-| Bütün ürün verisi | `web/prisma/dev.db` | tek SQLite dosyası · **157 model · 51 göç** (9 Eyl 2026 ölçümü; belge kurulduğunda 99 tablo · 19 göçtü) |
+| Bütün ürün verisi | `web/prisma/dev.db` | tek SQLite dosyası · **157 model · 52 göç** (9 Eyl 2026 ölçümü, ikinci tur; belge kurulduğunda 99 tablo · 19 göçtü) |
 | Yapılandırma ve sırlar | `web/.env` | `.gitignore`'da · **yedeğe DAHİL DEĞİL** |
 | Kanıt dosyaları | `KANIT_DEPO_KOKU` altındaki içerik adresli depo | **VAR ve yazılıyor** — ama bu araç onları ALMIYOR (aşağıya bakın) |
 | Tesis görselleri | `web/public/tesisler/` | depoda sürümlü, ayrıca yedek istemez |

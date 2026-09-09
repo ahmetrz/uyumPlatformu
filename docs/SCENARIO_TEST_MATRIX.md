@@ -588,6 +588,7 @@
 | `URN-PKT-019` | Ürünleştirme | DOMAIN · SERVER | `paket-icerik.test.ts` | metinsiz madde köken istemez — "metin girilmedi" hâli boş bırakılır, uydurulmaz | evet | geçti |
 | `URN-PKT-019` | Ürünleştirme | DOMAIN · SERVER | `paket-icerik.test.ts` | metinli her maddede kaynak adresi ve erişim tarihi var; metinsiz madde uydurma köken taşımaz | evet | geçti |
 | `URN-PKT-019` | Ürünleştirme | DOMAIN · SERVER | `paket-icerik.test.ts` | yedi ekin ölçümü: aile · kontrol · metni olan — hiçbiri tahmin değil | evet | geçti |
+| `URN-PKT-019` | Ürünleştirme | DOMAIN · SERVER | `paket-icerik.test.ts` | kademe DÖRT kanonik sınıftır: ham dize sadık, gruplama anahtarı tek | evet | geçti |
 | `URN-PKT-019` | Ürünleştirme | DOMAIN · SERVER | `paket-icerik.test.ts` | Ek-3: 565 kontrol, 57 "Ek Kontrol" seviyesiz ve OPTIONAL — seviyesizlik sıfır değil | evet | geçti |
 | `URN-PKT-019` | Ürünleştirme | DOMAIN · SERVER | `paket-icerik.test.ts` | lisans: kamuya açık, metin dâhil, FSEK md. 31 dayanağı kimliklerde yazılı | evet | geçti |
 | `URN-PKT-019` | Ürünleştirme | DOMAIN · SERVER | `paket-iskeletler.test.ts` | TR-ENERJI artık içerikli: iki çerçeve de metin taşır ve her metinli madde KÖKEN taşır | evet | geçti |
@@ -618,6 +619,7 @@
 | `URN-KUR-009` | Kurulum | DOMAIN | `arama-kosulu.test.ts` | TEST_PG_URL ürünü yönetemez: yalnız test koşumunda okunur | evet | geçti |
 | `URN-KUR-009` | Kurulum | DOMAIN | `arama-kosulu.test.ts` | arama büyük/küçük harf duyarsızdır — iki sağlayıcıda da | evet | geçti |
 | `URN-KUR-009` | Kurulum | DOMAIN | `pg-gocu.test.ts` | taban göçü ELLE YAZILAN DDL\'i taşır: dokuz tetikleyici ve üç indeks | evet | geçti |
+| `URN-KUR-009` | Kurulum | DOMAIN | `pg-gocu.test.ts` | canlı kapı ÜÇ değişmez tabloyu da sınar — DDL\'i olup sınanmayan tablo kalmaz | evet | geçti |
 | `URN-KUR-009` | Kurulum | DOMAIN | `pg-gocu.test.ts` | SQLite zincirindeki elle yazılan DDL, PostgreSQL tarafında KARŞILIKSIZ kalmaz | evet | geçti |
 | `URN-KUR-009` | Kurulum | DOMAIN | `pg-gocu.test.ts` | PostgreSQL ad kısaltması YALANCI kırmızı üretmez | evet | geçti |
 | `URN-PKT-022` | Ürünleştirme | DOMAIN | `paket-alan-eslemesi.test.ts` | tam beyan temizdir; kaynakta karşılığı olmayan alan null ile beyan edilir | evet | geçti |

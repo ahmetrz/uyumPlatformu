@@ -4,8 +4,8 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 304 |
-| Testi olan senaryo | 304 |
+| Senaryo | 305 |
+| Testi olan senaryo | 305 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
@@ -20,12 +20,12 @@
 | CONCURRENCY | 7 | 7 | 0 |
 | DOMAIN | 166 | 166 | 0 |
 | ENGINE | 33 | 33 | 0 |
-| INTEGRATION | 33 | 33 | 0 |
+| INTEGRATION | 34 | 34 | 0 |
 | MIGRATION | 5 | 5 | 0 |
 | RBAC | 32 | 32 | 0 |
 | RESPONSIVE | 8 | 8 | 0 |
 | SCOPE | 30 | 30 | 0 |
-| SERVER | 111 | 111 | 0 |
+| SERVER | 112 | 112 | 0 |
 | UI | 84 | 84 | 0 |
 | VISUAL | 4 | 4 | 0 |
 | WORKFLOW | 32 | 32 | 0 |
@@ -468,11 +468,16 @@
 | `URN-PKT-001` | Ürünleştirme | DOMAIN | `paket-dogrula.test.ts` | CSV başlığında zorunlu sütun eksikse ya da bilinmeyen sütun varsa BIÇIM | evet | geçti |
 | `URN-PKT-001` | Ürünleştirme | DOMAIN | `paket-dogrula.test.ts` | sözlükte boş hâl SÖZLÜK; bilinmeyen rol, metinde birim ve iki kapasite ÖZNİTELİK; tür kodu büyük harfse KAPSAM TÜRÜ | evet | geçti |
 | `URN-PKT-001` | Ürünleştirme | DOMAIN | `paket-dogrula.test.ts` | dizin adı manifest koduyla uyuşmalı — kopyalanmış dizin BAŞKA paketi kuramaz: KİMLİK | evet | geçti |
+| `URN-PKT-001` | Ürünleştirme | DOMAIN | `paket-dogrula.test.ts` | sektörsüz paket (uluslararasi, sektor=null) sözlük ve öznitelik beyan edemez — kurucu sessizce düşürmesin | evet | geçti |
+| `URN-PKT-001` | Ürünleştirme | DOMAIN | `paket-dogrula.test.ts` | seviye 0–5 dışındaysa BIÇIM (ürünün olgunluk ölçeği); 5 geçer | evet | geçti |
+| `URN-PKT-001` | Ürünleştirme | DOMAIN | `paket-dogrula.test.ts` | takvimde olmayan tarih (2025-02-30, 2025-13-01) BIÇIM — biçim yetmez, gidiş-dönüş eşitliği ister | evet | geçti |
+| `URN-PKT-001` | Ürünleştirme | DOMAIN | `paket-dogrula.test.ts` | kapanmamış tırnak BIÇIM — dosyanın kalanı tek hücreye yutulmaz, satır numarası söylenir | evet | geçti |
 | `URN-PKT-001` | Ürünleştirme | DOMAIN | `paket-dogrula.test.ts` | hata satırı biçimi: dosya:konum — SINIF: mesaj → düzeltme | evet | geçti |
 | `URN-PKT-001` | Ürünleştirme | DOMAIN | `paket-dogrula.test.ts` | paket dizini yoksa BIÇIM, çökme yok | evet | geçti |
 | `URN-PKT-002` | Ürünleştirme | DOMAIN · SERVER | `paket-dogrula.test.ts` | CSV: tekrar eden başlık ve başlığı aşan dolu hücre BIÇIM — telifli metin ikinci "metin" sütunundan ya da satır sonundan kaçamaz | evet | geçti |
 | `URN-PKT-002` | Ürünleştirme | DOMAIN · SERVER | `paket-dogrula.test.ts` | telifli çerçeve metin taşıyorsa LİSANS: "lisans sınırı: <kod> telifli, metin girilemez" | evet | geçti |
 | `URN-PKT-002` | Ürünleştirme | DOMAIN · SERVER | `paket-dogrula.test.ts` | telifli çerçevede başlık 120 karakteri aşamaz; metinsiz yapı GEÇER | evet | geçti |
+| `URN-PKT-002` | Ürünleştirme | DOMAIN · SERVER | `paket-dogrula.test.ts` | telifli çerçevede kanit_beklentisi serbest metindir → LİSANS; dis_kontrol_id 60 karakteri aşamaz; kısa kimlik geçer | evet | geçti |
 | `URN-PKT-002` | Ürünleştirme | DOMAIN · SERVER | `paket-dogrula.test.ts` | telifli + metinDahil=true çelişkisi hem manifestte hem çerçevede LİSANS | evet | geçti |
 | `URN-PKT-002` | Ürünleştirme | DOMAIN · SERVER | `paket-dogrula.test.ts` | kamuya açık ama metinDahil=false (iskelet) → metin taşıyan satır LİSANS; metinsiz geçer | evet | geçti |
 | `URN-PKT-003` | Ürünleştirme | SERVER · INTEGRATION | `paket-eylem.test.ts` | okuyucu rolü paket kuramaz | evet | geçti |
@@ -501,6 +506,8 @@
 | `URN-PKT-007` | Ürünleştirme | SERVER · INTEGRATION | `paket-kur.test.ts` | ayniIslemde (iz) patlarsa kurulum da geri alınır — durum ve iz aynı transaction\'da | evet | geçti |
 | `URN-PKT-007` | Ürünleştirme | SERVER · INTEGRATION | `paket-kur.test.ts` | kaldırmada "aktif sürüm var mı" kararı arşiv yazımıyla AYNI transaction\'da — kök istemciye dokunan kaldırma kırmızı | evet | geçti |
 | `URN-PKT-007` | Ürünleştirme | SERVER · INTEGRATION | `paket-kur.test.ts` | ayniIslemde (iz) patlarsa arşiv de geri alınır | evet | geçti |
+| `URN-PKT-007` | Ürünleştirme | SERVER · INTEGRATION | `paket-kur.test.ts` | bağımlılık kararı transaction İÇİNDE — transaction öncesi kök istemciye dokunan kurulum kırmızı | evet | geçti |
+| `URN-PKT-008` | Ürünleştirme | SERVER · INTEGRATION | `paket-kur.test.ts` | aynı sürüm numarasıyla İÇERİĞİ DEĞİŞMİŞ paket reddedilir (SÜRÜM); sürüm kaydı ve içerik değişmez; aynı içerik idempotent; yeni numara geçer | evet | geçti |
 
 ## Gerekçesiyle kütüksüz kalan dosyalar
 

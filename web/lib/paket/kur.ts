@@ -83,20 +83,14 @@ export async function paketiKur(
   const icerik = dogrulama.icerik;
   const { istemci, kuranId } = secenekler;
 
-  // bağımlılıklar: kurulu ve arşivlenmemiş olmalı
-  const hatalar: DogrulamaHatasi[] = [];
-  for (const b of icerik.manifest.bagimliliklar) {
-    const kurulu = await istemci.icerikPaketi.findUnique({ where: { kod: b }, select: { durum: true } });
-    if (!kurulu || kurulu.durum !== 'kurulu') {
-      hatalar.push({ sinif: 'KİMLİK', dosya: 'manifest.json', konum: 'bagimliliklar', mesaj: `bağımlılık kurulu değil: ${b}`,
-        duzeltme: `önce ${b} paketini kurun` });
-    }
-  }
-  // aynı sürüm zaten kuruluysa: yeniden kurulum idempotenttir; aktif çerçeve etiket çakışması ayrıca ölçülür
-  if (hatalar.length) return { ok: false, hatalar };
-
+  /* Veritabanına dokunan HER karar transaction'ın içindedir — bağımlılık
+     kontrolü dâhil: dışarıda verilen "bağımlılık kurulu" kararı ile
+     kurulum arasına bağımlılığın arşivlenmesi girebiliyordu (inceleme
+     bulgusu, PR #41). Ölçülür: transaction öncesi kök istemciye dokunan
+     kurulum `tests/paket-kur.test.ts`te kırmızı. */
   try {
     const rapor = await istemci.$transaction(async (tx) => {
+      await bagimliliklariDogrula(tx, icerik.manifest);
       const r = await yaz(tx, icerik, kuranId, secenekler.simdi ?? new Date());
       if (secenekler.ayniIslemde) await secenekler.ayniIslemde(tx, r);
       return r;
@@ -112,6 +106,25 @@ class KurulumHatasi extends Error {
   constructor(public hatalar: DogrulamaHatasi[]) { super(hatalar.map((h) => h.mesaj).join(' · ')); }
 }
 
+/** Bağımlılıklar kurulu ve arşivlenmemiş olmalı — transaction içinde okunur. */
+async function bagimliliklariDogrula(tx: Tx, m: Manifest): Promise<void> {
+  const hatalar: DogrulamaHatasi[] = [];
+  for (const b of m.bagimliliklar) {
+    const kurulu = await tx.icerikPaketi.findUnique({ where: { kod: b }, select: { durum: true } });
+    if (!kurulu || kurulu.durum !== 'kurulu') {
+      hatalar.push({ sinif: 'KİMLİK', dosya: 'manifest.json', konum: 'bagimliliklar', mesaj: `bağımlılık kurulu değil: ${b}`,
+        duzeltme: `önce ${b} paketini kurun` });
+    }
+  }
+  if (hatalar.length) throw new KurulumHatasi(hatalar);
+}
+
+/** İki özet kümesi aynı dosya → aynı sha256 eşlemesi mi (anahtar sırası önemsiz). */
+function ozetlerEsit(a: Record<string, string>, b: Record<string, string>): boolean {
+  const ka = Object.keys(a).sort(); const kb = Object.keys(b).sort();
+  return ka.length === kb.length && ka.every((k, i) => k === kb[i] && a[k] === b[k]);
+}
+
 async function yaz(tx: Tx, icerik: PaketIcerigi, kuranId: string | null, simdi: Date): Promise<KurulumRaporu> {
   const m = icerik.manifest;
   const celiskiler: Celiski[] = [];
@@ -122,6 +135,17 @@ async function yaz(tx: Tx, icerik: PaketIcerigi, kuranId: string | null, simdi: 
     update: { ad: m.ad, tur: m.tur, ulke: m.ulke, sektorKod: m.sektor?.kod ?? null, dil: m.dil, yayinci: m.yayinci, durum: 'kurulu' },
     create: { kod: m.kod, ad: m.ad, tur: m.tur, ulke: m.ulke, sektorKod: m.sektor?.kod ?? null, dil: m.dil, yayinci: m.yayinci },
   });
+  /* KURULU SÜRÜM DEĞİŞMEZ. Aynı `surum` numarasıyla içeriği değişmiş bir
+     paket (özetler yeniden yazılmış) sürüm kaydını ve altındaki içeriği
+     sessizce ezer, "o SemVer sürümünde ne vardı" izini yok ederdi (inceleme
+     bulgusu, PR #41). Özetler birebir aynıysa yeniden kurulum idempotenttir;
+     farklıysa paket yeni bir sürüm numarası vermek ZORUNDADIR. */
+  const surumOnceki = await tx.icerikPaketiSurumu.findUnique({ where: { paketId_surum: { paketId: paket.id, surum: m.surum } }, select: { ozetJson: true, durum: true } });
+  if (surumOnceki && !ozetlerEsit(JSON.parse(surumOnceki.ozetJson) as Record<string, string>, m.icerikOzetleri)) {
+    throw new KurulumHatasi([{ sinif: 'SÜRÜM', dosya: 'manifest.json', konum: 'surum',
+      mesaj: `${m.kod} ${m.surum} sürümü zaten kayıtlı (${surumOnceki.durum}) ve içeriği farklı — kurulu sürüm değişmez`,
+      duzeltme: 'manifest.surum\'u yükseltin: yama = metin/çeviri, minör = ekleme, majör = kaldırma/kod değişimi' }]);
+  }
   await tx.icerikPaketiSurumu.updateMany({ where: { paketId: paket.id, durum: 'kurulu', NOT: { surum: m.surum } }, data: { durum: 'onceki' } });
   const surumKaydi = await tx.icerikPaketiSurumu.upsert({
     where: { paketId_surum: { paketId: paket.id, surum: m.surum } },
@@ -254,7 +278,8 @@ async function yaz(tx: Tx, icerik: PaketIcerigi, kuranId: string | null, simdi: 
         regulasyonId, surumId, kod: `${k.kod}-${md.kod}`, baslik: md.baslik, metin,
         ustMaddeId: md.ustKod ? (idler.get(md.ustKod) ?? null) : null, sira: md.sira,
         olgunlukSeviyesi: md.seviye, zorunlulukTipi: md.zorunlulukTipi ?? k.zorunlulukTipi,
-        kanitBeklentisi: md.kanitBeklentisi, disKontrolId: md.disKontrolId,
+        // telifli çerçevede serbest metin alanı yazılmaz — doğrulayıcı reddeder, kurucu da yazmaz (iki kilit)
+        kanitBeklentisi: k.lisans.tur === 'telifli' ? null : md.kanitBeklentisi, disKontrolId: md.disKontrolId,
       } });
       idler.set(md.kod, kayit.id);
       maddeSayisi++;

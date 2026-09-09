@@ -345,9 +345,22 @@ export const URUNLESTIRME_SENARYOLARI: Senaryo[] = [
     veriHali: 'aykiri',
     eylem: 'İz yazımı patlatılır (sentetik) ve paket kurulur / kaldırılır; kök istemciye dokunmayı kaydeden sahte istemciyle kaldırma çağrılır',
     beklenenSonuc: 'İz yazılamazsa kurulum da arşiv de GERİ ALINIR: paket kaydı yok / paket kurulu kalır, iz satırı yok; '
-      + 'kaldırma aktif sürüm sayımını transaction İÇİNDE yapar — kök istemciye dokunan kaldırma kırmızı',
+      + 'kaldırma aktif sürüm sayımını ve kurulum bağımlılık kararını transaction İÇİNDE yapar — kök istemciye dokunan kaldırma/kurulum kırmızı',
     beklenenEkran: 'Ekran yok',
     beklenenIz: 'iz ya durumla birlikte var ya ikisi de yok', beklenenBildirim: 'yok',
+    katmanlar: ['SERVER', 'INTEGRATION'],
+  },
+  {
+    id: 'URN-PKT-008', alan: 'Ürünleştirme', rota: '—', eksen: 'veri',
+    amac: 'Kurulu paket sürümünün değişmezliği: aynı SemVer numarasıyla içeriği değişmiş paket kurulu sürümü ezemez',
+    rol: 'tanımlar yazma yetkili', kapsam: 'kurulum (yeniden kurulum)',
+    onkosul: 'Sürüm kaydı kurulumdaki içerik özetlerini (`ozetJson`) taşır; paket özetleri yeniden yazılmış ama `surum` aynı',
+    veriHali: 'aykiri',
+    eylem: 'Aynı numarayla değişmiş içerik kurulur; aynı numarayla aynı içerik kurulur; yeni numarayla değişmiş içerik kurulur',
+    beklenenSonuc: 'Değişmiş içerik SÜRÜM hatasıyla reddedilir ("kurulu sürüm değişmez"), sürüm kaydı ve içerik olduğu gibi kalır; '
+      + 'aynı içerik idempotent; yeni numara kurulur',
+    beklenenEkran: 'Ekran yok',
+    beklenenIz: 'yazma yok (red)', beklenenBildirim: 'yok',
     katmanlar: ['SERVER', 'INTEGRATION'],
   },
 ];

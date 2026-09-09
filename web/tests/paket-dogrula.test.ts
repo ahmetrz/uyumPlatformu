@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { MADDE_SUTUNLARI, takvimTarihi } from '@/lib/paket/bicim';
 import { hataSatiri, paketiDogrula } from '@/lib/paket/dogrula';
 import { CSV_BASLIK, SOZLUK_SATIRI, cerceve, paketYaz } from './yardim/paket';
 
@@ -118,6 +119,44 @@ describe('paket doğrulayıcı — biçim ve manifest [URN-PKT-001]', () => {
     expect(bos.ok, bos.hatalar.map(hataSatiri).join('\n')).toBe(true);
   });
 
+  it('sektörsüz paket (uluslararasi, sektor=null) sözlük ve öznitelik beyan edemez — kurucu sessizce düşürmesin [URN-PKT-001]', () => {
+    /* Ölçüldü: ölçüt yalnız tur=yatay idi; sektörsüz uluslararasi paket geçiyor,
+       kurucu sektorId boş diye döngüyü kırıp içeriği düşürüyordu (inceleme bulgusu). */
+    const s = paketiDogrula(paketYaz(TEMIZ, { tur: 'uluslararasi', ulke: null, sektor: null }));
+    expect(s.ok).toBe(false);
+    expect(s.hatalar.map((h) => h.sinif)).toEqual(expect.arrayContaining(['ÖZNİTELİK', 'SÖZLÜK']));
+    expect(s.hatalar.find((h) => h.sinif === 'SÖZLÜK')?.mesaj).toMatch(/sektörsüz paket \(tur=uluslararasi\)/);
+  });
+
+  it('seviye 0–5 dışındaysa BIÇIM (ürünün olgunluk ölçeği); 5 geçer [URN-PKT-001]', () => {
+    for (const s of ['6', '-1', '99']) {
+      const r = paketiDogrula(paketYaz({ ...TEMIZ, 'cerceve/TEST-REG.csv': `${CSV_BASLIK}\n1;;Amaç;m;0;${s};\n` }));
+      expect(r.hatalar.some((h) => h.sinif === 'BIÇIM' && h.konum === '2' && /seviye 0–5 aralığında/.test(h.mesaj)), `seviye ${s}`).toBe(true);
+    }
+    const bes = paketiDogrula(paketYaz({ ...TEMIZ, 'cerceve/TEST-REG.csv': `${CSV_BASLIK}\n1;;Amaç;m;0;5;\n` }));
+    expect(bes.ok, bes.hatalar.map(hataSatiri).join('\n')).toBe(true);
+  });
+
+  it('takvimde olmayan tarih (2025-02-30, 2025-13-01) BIÇIM — biçim yetmez, gidiş-dönüş eşitliği ister [URN-PKT-001]', () => {
+    expect(takvimTarihi('2025-02-30')).toBe(false);
+    expect(takvimTarihi('2025-13-01')).toBe(false);
+    expect(takvimTarihi('2025-02-29')).toBe(false);
+    expect(takvimTarihi('2024-02-29')).toBe(true);
+    expect(takvimTarihi('2024-1-5')).toBe(false);
+    const s = paketiDogrula(paketYaz({ ...TEMIZ,
+      'cerceve/TEST-REG.json': cerceve('TEST-REG', { tur: 'kamuya_acik', metinDahil: true }, { yayimTarihi: '2025-02-30', yururlukTarih: '2025-13-01' }) }));
+    expect(s.ok).toBe(false);
+    expect(s.hatalar.filter((h) => h.sinif === 'BIÇIM').map((h) => h.konum)).toEqual(['yayimTarihi', 'yururlukTarih']);
+  });
+
+  it('kapanmamış tırnak BIÇIM — dosyanın kalanı tek hücreye yutulmaz, satır numarası söylenir [URN-PKT-001]', () => {
+    const s = paketiDogrula(paketYaz({ ...TEMIZ, 'cerceve/TEST-REG.csv': `${CSV_BASLIK}\n1;;Amaç;"açık kaldı;0;;\n2;;Kapsam;m;1;;\n` }));
+    expect(s.ok).toBe(false);
+    const h = s.hatalar.find((x) => x.sinif === 'BIÇIM' && x.dosya === 'cerceve/TEST-REG.csv');
+    expect(h?.mesaj).toMatch(/kapanmamış tırnak: 2\. satırda/);
+    expect(s.sayilar.maddeler).toBe(0);
+  });
+
   it('hata satırı biçimi: dosya:konum — SINIF: mesaj → düzeltme [URN-PKT-001]', () => {
     const s = paketiDogrula(paketYaz(TEMIZ, { surum: 'x' }));
     expect(hataSatiri(s.hatalar[0])).toMatch(/^manifest\.json:surum — SÜRÜM: .+ → .+$/);
@@ -146,6 +185,20 @@ describe('lisans sınırı — alanda, yorumda değil [URN-PKT-002]', () => {
     expect(s.hatalar.map((h) => h.sinif)).toEqual(['LİSANS']);
     const temiz = paketiDogrula(paketYaz({ ...telifli, 'cerceve/TEST-REG.csv': `${CSV_BASLIK}\nA.5;;Organizasyonel kontroller;;0;;\nA.5.1;A.5;Bilgi güvenliği politikaları;;1;;\n` }));
     expect(temiz.ok, temiz.hatalar.map(hataSatiri).join('\n')).toBe(true);
+  });
+
+  it('telifli çerçevede kanit_beklentisi serbest metindir → LİSANS; dis_kontrol_id 60 karakteri aşamaz; kısa kimlik geçer [URN-PKT-002]', () => {
+    /* Ölçüldü: tekrar başlık ve fazla hücre kapandıktan sonra tam metin,
+       tanınan ama sınırsız `kanit_beklentisi` sütununa konabiliyordu (inceleme bulgusu). */
+    const baslik = MADDE_SUTUNLARI.join(';');
+    const kacak = paketiDogrula(paketYaz({ ...telifli, 'cerceve/TEST-REG.csv': `${baslik}\n1;;Amaç;;0;;;Gizli madde metni buraya kaçırıldı;\n` }));
+    expect(kacak.hatalar.map((h) => h.sinif)).toEqual(['LİSANS']);
+    expect(kacak.hatalar[0].mesaj).toMatch(/kanit_beklentisi serbest metindir/);
+    const uzunKimlik = paketiDogrula(paketYaz({ ...telifli, 'cerceve/TEST-REG.csv': `${baslik}\n1;;Amaç;;0;;;;${'K'.repeat(61)}\n` }));
+    expect(uzunKimlik.hatalar.map((h) => h.sinif)).toEqual(['LİSANS']);
+    const temiz = paketiDogrula(paketYaz({ ...telifli, 'cerceve/TEST-REG.csv': `${baslik}\n1;;Amaç;;0;;;;A.5.1\n` }));
+    expect(temiz.ok, temiz.hatalar.map(hataSatiri).join('\n')).toBe(true);
+    expect(temiz.icerik?.cerceveler[0].maddeler[0]).toMatchObject({ disKontrolId: 'A.5.1', kanitBeklentisi: null });
   });
 
   it('telifli + metinDahil=true çelişkisi hem manifestte hem çerçevede LİSANS [URN-PKT-002]', () => {

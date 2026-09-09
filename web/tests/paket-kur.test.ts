@@ -348,3 +348,49 @@ describe('yükseltme uzlaştırması — bırakılan içerik pasif/arşiv, silme
     expect((await db.kapsamOgesiTuru.findUniqueOrThrow({ where: { kod: 'yuk_tur_b' } })).aktif).toBe(false);
   });
 });
+
+describe('kurulu sürüm değişmez · bağımlılık kararı transaction içinde [URN-PKT-008]', () => {
+  const SABIT = (tekil: string): PaketDosyalari => ({
+    'sozluk.json': [SOZLUK_SATIRI('tesis', tekil)],
+    'cerceve/SABIT-REG.json': cerceve('SABIT-REG', { tur: 'kamuya_acik', metinDahil: false }),
+    'cerceve/SABIT-REG.csv': `${CSV_BASLIK}\n1;;Amaç;;0;;\n`,
+  });
+  const manifest = { kod: 'SABIT-PAKET', sektor: { kod: 'SABIT-SEKTOR', ad: 'Sabit' }, surum: '1.0.0' };
+
+  it('aynı sürüm numarasıyla İÇERİĞİ DEĞİŞMİŞ paket reddedilir (SÜRÜM); sürüm kaydı ve içerik değişmez; aynı içerik idempotent; yeni numara geçer [URN-PKT-008]', async () => {
+    /* Ölçüldü: özetleri yeniden yazılmış paket aynı `surum` ile kurulunca sürüm
+       kaydı ve altındaki içerik eziliyor, "o sürümde ne vardı" izi yok oluyordu. */
+    const a = await kur(SABIT('sabit'), manifest);
+    expect(a.ok, JSON.stringify(a)).toBe(true);
+    const sektor = await db.sektor.findUniqueOrThrow({ where: { kod: 'SABIT-SEKTOR' } });
+    const surumKaydi = await db.icerikPaketiSurumu.findFirstOrThrow({ where: { paket: { kod: 'SABIT-PAKET' }, surum: '1.0.0' } });
+    const b = await kur(SABIT('değişti'), manifest);
+    expect(b.ok).toBe(false);
+    if (!b.ok) expect(b.hatalar[0]).toMatchObject({ sinif: 'SÜRÜM', konum: 'surum', mesaj: expect.stringContaining('içeriği farklı') });
+    const tesis = await db.sektorSozlugu.findUniqueOrThrow({ where: { sektorId_anahtar_dil: { sektorId: sektor.id, anahtar: 'tesis', dil: 'tr' } } });
+    expect(tesis.tekil).toBe('sabit');
+    const sonra = await db.icerikPaketiSurumu.findUniqueOrThrow({ where: { id: surumKaydi.id } });
+    expect(sonra.ozetJson).toBe(surumKaydi.ozetJson);
+    expect(sonra.manifestJson).toBe(surumKaydi.manifestJson);
+    const c = await kur(SABIT('sabit'), manifest);
+    expect(c.ok, JSON.stringify(c)).toBe(true);
+    const d = await kur(SABIT('değişti'), { ...manifest, surum: '1.0.1' });
+    expect(d.ok, JSON.stringify(d)).toBe(true);
+    expect((await db.sektorSozlugu.findUniqueOrThrow({ where: { id: tesis.id } })).tekil).toBe('değişti');
+  });
+
+  it('bağımlılık kararı transaction İÇİNDE — transaction öncesi kök istemciye dokunan kurulum kırmızı [URN-PKT-007]', async () => {
+    /* Sahte istemci: `$transaction` sınırda patlar; ondan önce kök düzeyde
+       HER model erişimi kaydedilir. Doğrulayıcı dosyadan geçer, veritabanına
+       ilk dokunuş transaction olmalı. */
+    const kokte: string[] = [];
+    const sahte = new Proxy({}, { get(_, ozellik) {
+      if (ozellik === '$transaction') return async () => { throw new Error('TRANSACTION-SINIRI'); };
+      kokte.push(String(ozellik));
+      return undefined;
+    } }) as unknown as PrismaClient;
+    const dizin = paketYaz(SABIT('sabit'), { ...manifest, kod: 'BAGIMLI-PAKET', bagimliliklar: ['SABIT-PAKET'] });
+    await expect(paketiKur(dizin, { kuranId, istemci: sahte })).rejects.toThrow('TRANSACTION-SINIRI');
+    expect(kokte).toEqual([]);
+  });
+});

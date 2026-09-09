@@ -19,7 +19,7 @@ aktif yapmaz, hiçbir madde durumu yazmaz.
 | `kapsam-turleri.json` | JSON dizi | `kod` (küçük harf) · `ad` · `etiketAnahtari?` · `tesiseBagli` · `sira` |
 | `oznitelikler.json` | JSON dizi | `anahtar · tip (sayi · metin · mantik · tarih) · birim? · etiketAnahtari · rol? (kapasite · kritiklik) · grup? · secenekler? · kuraldaKullanilir · sira` |
 | `cerceve/<KOD>.json` | JSON | çerçeve kimliği: `kod · ad · surumEtiketi · yayimTarihi? · yururlukTarih? · kaynakUrl? · lisans · maddeDosyasi · zorunlulukTipi` |
-| `cerceve/<KOD>.csv` | CSV (`;`, UTF-8, başlık satırı) | madde ağacı: `kod;ust_kod;baslik;metin;sira;seviye;zorunluluk_tipi;kanit_beklentisi;dis_kontrol_id` — üst madde satırı alt maddeden ÖNCE gelir; her başlık **bir kez**, satırda başlığı aşan **dolu** hücre olamaz (okunmayan hücre içerik taşırdı — telifli metin kaçağı) |
+| `cerceve/<KOD>.csv` | CSV (`;`, UTF-8, başlık satırı) | madde ağacı: `kod;ust_kod;baslik;metin;sira;seviye;zorunluluk_tipi;kanit_beklentisi;dis_kontrol_id` — üst madde satırı alt maddeden ÖNCE gelir; her başlık **bir kez**, satırda başlığı aşan **dolu** hücre olamaz (okunmayan hücre içerik taşırdı — telifli metin kaçağı); tırnak kapanır (`""` kaçış); `seviye` 0–5 (ürünün olgunluk ölçeği); telifli çerçevede `kanit_beklentisi` boş, `dis_kontrol_id` ≤ 60 karakter |
 
 Paket dizininin adı `manifest.kod` ile **aynı** olmalıdır
 (`paketler/TR-ENERJI` ↔ `"kod": "TR-ENERJI"`); uyuşmazsa doğrulayıcı
@@ -49,6 +49,14 @@ Kurucunun yazdığı her satır `koken = paket` ve `paketSurumId` taşır. Paket
 güncellemesi yalnız kendi (`paket`) satırlarını değiştirir; aynı anahtarda
 `kiraci` satırı varsa DOKUNULMAZ ve kurulum raporuna "çelişki" düşer.
 Kaldırma = arşiv: hiçbir satır silinmez.
+
+**Kurulu sürüm değişmez.** Aynı `surum` numarasıyla içeriği değişmiş bir
+paket (özetler yeniden yazılmış) reddedilir: "o sürümde ne vardı" izi
+kalıcıdır. İçerik değiştiyse `manifest.surum` yükseltilir (yama = metin /
+çeviri, minör = ekleme, majör = kaldırma / kod değişimi). Aynı içerikle
+yeniden kurulum idempotenttir. Tarihler takvimde var olmalıdır
+(`2025-02-30` reddedilir). Sektörsüz paket (`sektor: null`) sözlük ve
+öznitelik beyan edemez.
 
 **Yükseltme uzlaştırması.** Yeni sürümün artık beyan etmediği paket
 kökenli tür ve yükümlülük `aktif=false` olur, paketin kendi taslak çerçeve

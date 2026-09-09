@@ -785,6 +785,11 @@ kurulum/arşivle AYNI transaction'da ve kaldırmada aktif sürüm kararı arşiv
 yazımıyla atomik (URN-PKT-007), taslak yenileme bağ listesi şemadan
 bekçiyle (`MaddeAlan` dâhil), dizin adı = manifest kodu, CSV'de tekrar
 başlık ve başlığı aşan dolu hücre red, sürüm yürürlük tarihi kalıcı.
+İkinci tur: kurulu sürüm değişmez (aynı numarayla farklı içerik SÜRÜM
+ile red — URN-PKT-008), bağımlılık kararı transaction içinde, telifli
+CSV'de `kanit_beklentisi` de red ve `dis_kontrol_id` sınırlı, sektörsüz
+paket sözlük/öznitelik beyan edemez, `seviye` 0–5, tarihler takvimde var
+olmalı, kapanmamış tırnak BİÇİM.
 Kalan: form ve rapor şablonu, rol kataloğu, demo yükleyici, eşleme CSV,
 `/paketler` ekranı, OSCAL okuyucu (SCF için — hukuki görüş bekleniyor),
 sözlük ve öznitelik şemasında `aktif` alanı (uzlaştırmada pasifleştirme —

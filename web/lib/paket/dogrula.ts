@@ -14,8 +14,9 @@
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
 import type { ZodError } from 'zod';
+import { OLGUNLUK_ASGARI, OLGUNLUK_AZAMI } from '../uyum/olgunluk';
 import {
-  BASLIK_SINIRI, CerceveKimligiSemasi, DOSYALAR, KapsamTuruSatiriSemasi, MADDE_SUTUNLARI,
+  BASLIK_SINIRI, CerceveKimligiSemasi, DIS_KIMLIK_SINIRI, DOSYALAR, KapsamTuruSatiriSemasi, MADDE_SUTUNLARI,
   MADDE_ZORUNLU_SUTUNLAR, ManifestSemasi, OLCU_ALANI, OZET_DISI, OZNITELIK_ROLLERI, OznitelikSatiriSemasi, SozlukSatiriSemasi,
   YukumlulukSatiriSemasi, ZORUNLULUK_TIPLERI, csvAyristir, sha256,
   type CerceveKimligi, type KapsamTuruSatiri, type MaddeSatiri, type Manifest, type OznitelikSatiri,
@@ -228,13 +229,17 @@ export function paketiDogrula(dizin: string): DogrulamaSonucu {
     if (o.secenekler && o.tip !== 'metin') hatalar.push({ sinif: 'ÖZNİTELİK', dosya: DOSYALAR.oznitelikler, konum, mesaj: `seçenek listesi yalnız metin tipinde olur (tip=${o.tip})`, duzeltme: 'seçenekleri kaldırın ya da tipi metin yapın' });
     if (o.rol === OZNITELIK_ROLLERI[0] && o.tip !== 'sayi') hatalar.push({ sinif: 'ÖZNİTELİK', dosya: DOSYALAR.oznitelikler, konum, mesaj: `rol=${o.rol} sayi tipinde olmalı (kimlik kartında ${olcu} ile yazılır)`, duzeltme: `tipi sayi yapın ve ${olcu} verin` });
   });
-  if (manifest.tur === 'yatay' && oznitelikler.length > 0) {
-    hatalar.push({ sinif: 'ÖZNİTELİK', dosya: DOSYALAR.oznitelikler, mesaj: 'yatay paket sektör özniteliği beyan edemez (şema sektöre bağlı)',
-      duzeltme: 'öznitelikleri sektör paketine taşıyın' });
+  /* Ölçüt paket türü değil SEKTÖRÜN YOKLUĞUDUR: sektörsüz bir
+     `uluslararasi` paket sözlük/öznitelik beyan edip geçiyor, kurucu
+     `sektorId` boş diye döngüyü kırıp içeriği SESSİZCE düşürüyordu
+     (inceleme bulgusu, PR #41). */
+  if (!manifest.sektor && oznitelikler.length > 0) {
+    hatalar.push({ sinif: 'ÖZNİTELİK', dosya: DOSYALAR.oznitelikler, mesaj: `sektörsüz paket (tur=${manifest.tur}) sektör özniteliği beyan edemez (şema sektöre bağlı)`,
+      duzeltme: 'öznitelikleri sektör paketine taşıyın ya da manifestte sektör beyan edin' });
   }
-  if (manifest.tur === 'yatay' && sozluk.length > 0) {
-    hatalar.push({ sinif: 'SÖZLÜK', dosya: DOSYALAR.sozluk, mesaj: 'yatay paket sektör sözlüğü beyan edemez (sözlük sektöre bağlı)',
-      duzeltme: 'sözlüğü sektör paketine taşıyın' });
+  if (!manifest.sektor && sozluk.length > 0) {
+    hatalar.push({ sinif: 'SÖZLÜK', dosya: DOSYALAR.sozluk, mesaj: `sektörsüz paket (tur=${manifest.tur}) sektör sözlüğü beyan edemez (sözlük sektöre bağlı)`,
+      duzeltme: 'sözlüğü sektör paketine taşıyın ya da manifestte sektör beyan edin' });
   }
   const rolSayisi = new Map<string, number>();
   for (const o of oznitelikler) if (o.rol) rolSayisi.set(o.rol, (rolSayisi.get(o.rol) ?? 0) + 1);
@@ -266,7 +271,11 @@ export function paketiDogrula(dizin: string): DogrulamaSonucu {
         hatalar.push({ sinif: 'BIÇIM', dosya, konum: 'maddeDosyasi', mesaj: `madde dosyası yok: ${kimlik.maddeDosyasi}`, duzeltme: 'CSV dosyasını cerceve/ altına koyun' });
         continue;
       }
-      const { basliklar, satirlar } = csvAyristir(readFileSync(maddeYolu, 'utf8'));
+      const { basliklar, satirlar, hata: csvHatasi } = csvAyristir(readFileSync(maddeYolu, 'utf8'));
+      if (csvHatasi) {
+        hatalar.push({ sinif: 'BIÇIM', dosya: maddeDosya, konum: '1', mesaj: csvHatasi, duzeltme: 'tırnağı kapatın; hücre içindeki tırnak `""` ile yazılır' });
+        continue;
+      }
       const eksik = MADDE_ZORUNLU_SUTUNLAR.filter((s) => !basliklar.includes(s));
       if (eksik.length) {
         hatalar.push({ sinif: 'BIÇIM', dosya: maddeDosya, konum: '1', mesaj: `başlık satırında zorunlu sütun eksik: ${eksik.join(', ')}`, duzeltme: `ilk satır: ${MADDE_SUTUNLARI.join(';')}` });
@@ -308,9 +317,17 @@ export function paketiDogrula(dizin: string): DogrulamaSonucu {
         }
         if (!baslik) { hatalar.push({ sinif: 'BIÇIM', dosya: maddeDosya, konum: no, mesaj: `başlık boş (${kod})`, duzeltme: 'başlık yazın; telifli çerçevede en fazla 120 karakter' }); return; }
         const metin = sutun(satir, 'metin') || null;
+        const kanitBeklentisi = sutun(satir, 'kanit_beklentisi') || null;
+        const disKontrolId = sutun(satir, 'dis_kontrol_id') || null;
         if (kimlik.lisans.tur === 'telifli') {
+          /* Telifli çerçeve yalnız YAPI taşır: kod · kısa başlık · hiyerarşi ·
+             seviye · kısa dış kimlik. Metin dışındaki serbest metin alanı
+             (`kanit_beklentisi`) da madde metnini taşıyabilirdi (inceleme
+             bulgusu, PR #41) — o da reddedilir; dış kimlik sınırlıdır. */
           if (metin) hatalar.push({ sinif: 'LİSANS', dosya: maddeDosya, konum: no, mesaj: `lisans sınırı: ${kimlik.kod} telifli, metin girilemez (${kod})`, duzeltme: 'metin sütununu boş bırakın; kurulumda "lisans nedeniyle girilmedi" yazılır' });
           if (baslik.length > BASLIK_SINIRI) hatalar.push({ sinif: 'LİSANS', dosya: maddeDosya, konum: no, mesaj: `telifli çerçevede başlık ${baslik.length} karakter > ${BASLIK_SINIRI} (${kod})`, duzeltme: 'başlığı kısaltın' });
+          if (kanitBeklentisi) hatalar.push({ sinif: 'LİSANS', dosya: maddeDosya, konum: no, mesaj: `lisans sınırı: ${kimlik.kod} telifli, kanit_beklentisi serbest metindir, girilemez (${kod})`, duzeltme: 'kanit_beklentisi sütununu boş bırakın; telifli çerçeve yalnız yapı taşır' });
+          if (disKontrolId && disKontrolId.length > DIS_KIMLIK_SINIRI) hatalar.push({ sinif: 'LİSANS', dosya: maddeDosya, konum: no, mesaj: `telifli çerçevede dis_kontrol_id ${disKontrolId.length} karakter > ${DIS_KIMLIK_SINIRI} (${kod}) — kimlik, metin değil`, duzeltme: 'dış kimliği kısa yazın' });
         } else if (!kimlik.lisans.metinDahil && metin) {
           hatalar.push({ sinif: 'LİSANS', dosya: maddeDosya, konum: no, mesaj: `metinDahil=false ama ${kod} metin taşıyor`, duzeltme: 'ya kimlikte metinDahil=true yapın ya metni kaldırın' });
         }
@@ -319,9 +336,11 @@ export function paketiDogrula(dizin: string): DogrulamaSonucu {
         if (!Number.isInteger(sira)) { hatalar.push({ sinif: 'BIÇIM', dosya: maddeDosya, konum: no, mesaj: `sira tam sayı değil: ${siraHam}`, duzeltme: 'tam sayı yazın ya da boş bırakın' }); return; }
         const seviye = seviyeHam ? Number(seviyeHam) : null;
         if (seviye !== null && !Number.isInteger(seviye)) { hatalar.push({ sinif: 'BIÇIM', dosya: maddeDosya, konum: no, mesaj: `seviye tam sayı değil: ${seviyeHam}`, duzeltme: 'tam sayı yazın ya da boş bırakın' }); return; }
+        /* Ürünün olgunluk ölçeği 0–5'tir (`lib/uyum/olgunluk.ts`); dışındaki
+           tam sayı ekranda tanımsız etiket ve dağılımda kayıp üretirdi. */
+        if (seviye !== null && (seviye < OLGUNLUK_ASGARI || seviye > OLGUNLUK_AZAMI)) { hatalar.push({ sinif: 'BIÇIM', dosya: maddeDosya, konum: no, mesaj: `seviye ${OLGUNLUK_ASGARI}–${OLGUNLUK_AZAMI} aralığında olmalı: ${seviyeHam} (${kod})`, duzeltme: `olgunluk seviyesini ${OLGUNLUK_ASGARI}–${OLGUNLUK_AZAMI} arası yazın ya da boş bırakın` }); return; }
         if (zt && !(ZORUNLULUK_TIPLERI as readonly string[]).includes(zt)) { hatalar.push({ sinif: 'BIÇIM', dosya: maddeDosya, konum: no, mesaj: `zorunluluk_tipi bilinmiyor: ${zt}`, duzeltme: `şunlardan biri: ${ZORUNLULUK_TIPLERI.join(', ')}` }); return; }
-        maddeler.push({ kod, ustKod, baslik, metin, sira, seviye, zorunlulukTipi: zt,
-          kanitBeklentisi: sutun(satir, 'kanit_beklentisi') || null, disKontrolId: sutun(satir, 'dis_kontrol_id') || null });
+        maddeler.push({ kod, ustKod, baslik, metin, sira, seviye, zorunlulukTipi: zt, kanitBeklentisi, disKontrolId });
       });
       cerceveler.push({ dosya, kimlik, maddeler });
     }

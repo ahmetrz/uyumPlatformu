@@ -35,6 +35,8 @@ export const TELIFLI_METIN = 'lisans nedeniyle girilmedi';
 export const METIN_GELMEDI = 'metin paketle gelmedi';
 /** Telifli çerçevede başlık en fazla bu kadar karakter (§2). */
 export const BASLIK_SINIRI = 120;
+/** Telifli çerçevede `dis_kontrol_id` en fazla bu kadar karakter — kimliktir, metin değil. */
+export const DIS_KIMLIK_SINIRI = 60;
 
 export const SEMVER = /^\d+\.\d+\.\d+$/;
 export const PAKET_KODU = /^[A-Z][A-Z0-9]*(?:-[A-Z0-9]+)*$/;
@@ -105,7 +107,17 @@ export const OznitelikSatiriSemasi = z.object({
 }).strict();
 export type OznitelikSatiri = z.infer<typeof OznitelikSatiriSemasi>;
 
-const tarihAlani = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'tarih YYYY-AA-GG').nullable().optional();
+/** Takvimde VAR OLAN tarih: biçim yetmez — `2025-02-30` biçime uyar,
+    `new Date` onu 2 Mart'a yuvarlar ve yanlış yayım/yürürlük tarihi
+    kalıcılaşırdı; `2025-13-01` ise kurulumda Prisma'da patlardı (inceleme
+    bulgusu, PR #41). Gidiş-dönüş eşitliği ikisini de yakalar. */
+export function takvimTarihi(s: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return false;
+  const d = new Date(`${s}T00:00:00Z`);
+  return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === s;
+}
+const tarihAlani = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'tarih YYYY-AA-GG')
+  .refine(takvimTarihi, 'takvimde olmayan tarih (ör. 2025-02-30, 2025-13-01)').nullable().optional();
 export const CerceveKimligiSemasi = z.object({
   kod: z.string().regex(CERCEVE_KODU, 'çerçeve kodu BÜYÜK harf: EPDK-SGYM'),
   ad: z.string().min(3).max(200),
@@ -160,23 +172,29 @@ export function sha256(icerik: Buffer | string): string {
   return createHash('sha256').update(icerik).digest('hex');
 }
 
-/* ── CSV (`;` ayraç, `"` tırnak, `""` kaçış, UTF-8 BOM toleranslı) ──── */
-export function csvAyristir(metin: string): { basliklar: string[]; satirlar: string[][] } {
+/* ── CSV (`;` ayraç, `"` tırnak, `""` kaçış, UTF-8 BOM toleranslı) ────
+   Kapanmamış tırnak BİÇİM HATASIDIR, satır değil: açılıp kapanmayan bir
+   `"` dosyanın kalanını tek hücreye yutuyor ve doğrulayıcı "ilk madde
+   geçerli" diyordu (inceleme bulgusu, PR #41). `hata` doluysa satırlar
+   BOŞTUR — yarım ayrıştırma dönmez. */
+export function csvAyristir(metin: string): { basliklar: string[]; satirlar: string[][]; hata: string | null } {
   const ham = metin.replace(/^﻿/, '');
   const satirlar: string[][] = [];
   let alan = ''; let satir: string[] = []; let tirnakta = false;
+  let satirNo = 1; let tirnakSatiri = 0;
   for (let i = 0; i < ham.length; i++) {
     const c = ham[i];
     if (tirnakta) {
       if (c === '"') {
         if (ham[i + 1] === '"') { alan += '"'; i++; } else tirnakta = false;
-      } else alan += c;
+      } else { if (c === '\n') satirNo++; alan += c; }
       continue;
     }
-    if (c === '"') { tirnakta = true; continue; }
+    if (c === '"') { tirnakta = true; tirnakSatiri = satirNo; continue; }
     if (c === ';') { satir.push(alan); alan = ''; continue; }
     if (c === '\n' || c === '\r') {
       if (c === '\r' && ham[i + 1] === '\n') i++;
+      satirNo++;
       satir.push(alan); alan = '';
       if (satir.some((x) => x.trim() !== '')) satirlar.push(satir);
       satir = [];
@@ -184,10 +202,13 @@ export function csvAyristir(metin: string): { basliklar: string[]; satirlar: str
     }
     alan += c;
   }
+  if (tirnakta) {
+    return { basliklar: [], satirlar: [], hata: `kapanmamış tırnak: ${tirnakSatiri}. satırda açılan " dosya sonuna kadar kapanmadı` };
+  }
   satir.push(alan);
   if (satir.some((x) => x.trim() !== '')) satirlar.push(satir);
   const [basliklar = [], ...gövde] = satirlar;
-  return { basliklar: basliklar.map((b) => b.trim()), satirlar: gövde };
+  return { basliklar: basliklar.map((b) => b.trim()), satirlar: gövde, hata: null };
 }
 
 export function csvYaz(basliklar: readonly string[], satirlar: readonly (readonly (string | number | null)[])[]): string {

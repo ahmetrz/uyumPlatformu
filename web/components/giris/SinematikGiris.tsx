@@ -113,11 +113,15 @@ function Giris({ children, sektorler }: {
       else { sonP = -1; planla(); }
     }
     function statigeDon() {
-      const referans = hareketli && sonP > 0 ? ui : stage;
+      if (!hareketli) {
+        statik();
+        stage.scrollIntoView({ behavior: 'instant', block: 'start' });
+        return;
+      }
+      const referans = sonP > 0 ? ui : stage;
       const referansUst = referans.getBoundingClientRect().top;
-      const eskiUst = hareketli ? referansUst : Math.max(0, referansUst);
       statik();
-      window.scrollBy({ top: referans.getBoundingClientRect().top - eskiUst, behavior: 'instant' });
+      window.scrollBy({ top: referans.getBoundingClientRect().top - referansUst, behavior: 'instant' });
     }
     function hareketTercihi() {
       if (motion.matches) statigeDon();

@@ -114,8 +114,9 @@ function Giris({ children, sektorler }: {
     }
     function statigeDon() {
       if (!hareketli) {
+        const girisUst = window.scrollY + el.getBoundingClientRect().top;
         statik();
-        stage.scrollIntoView({ behavior: 'instant', block: 'start' });
+        window.scrollTo({ top: Math.max(0, girisUst), behavior: 'instant' });
         return;
       }
       const referans = sonP > 0 ? ui : stage;

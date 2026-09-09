@@ -71,23 +71,27 @@ const { baslar: sunucuBaslar, durur: sunucuDurur, adimlar: tumAdimlar } =
 const yasamDongusu = new Set([sunucuBaslar, sunucuDurur].filter((i) => i >= 0));
 
 /* ── KÜME SEÇİMİ ──────────────────────────────────────────────────────
-   İş akışı ikiye bölündü: `kapi` (hızlı · her push) ve `kapi-yavas`
-   (tarayıcılı · taslak olmayan PR + gecelik). Kapanış VARSAYILAN olarak
-   İKİSİNİ birden koşar — "parti kapanış kümesi = PR kapı kümesi" kuralı
+   İş akışı dörde bölündü: `kapi` (hızlı · her push), `kapi-yavas`
+   (tarayıcılı), `kapi-postgres` (ikinci sağlayıcı) ve `kapi-compose`
+   (kurulumun kendisi). Kapanış VARSAYILAN olarak HEPSİNİ koşar — "parti kapanış kümesi = PR kapı kümesi" kuralı
    bölünmeyle gevşemez; bölünme neyin ne zaman koştuğunu değiştirir,
    kapanışın neyi kanıtladığını değil.
 
    Küme adı rapora YAZILIR. Yazılmasaydı `--hizli` ile koşan bir kapanış
    da "tamamı yeşil" derdi ve tarayıcılı kapılar hiç ölçülmemiş olurdu —
    koşulmayan kapı "geçti" diye yazılmaz. */
-const ISLER = { hizli: 'kapi', yavas: 'kapi-yavas', postgres: 'kapi-postgres' };
-const KUME_ADLARI = { hizli: 'HIZLI', yavas: 'YAVAŞ', postgres: 'POSTGRESQL' };
-const secilen = process.argv.includes('--hizli') ? ['hizli']
-  : process.argv.includes('--yavas') ? ['yavas']
-    : process.argv.includes('--postgres') ? ['postgres'] : ['hizli', 'yavas', 'postgres'];
+const ISLER = {
+  hizli: 'kapi', yavas: 'kapi-yavas', postgres: 'kapi-postgres', compose: 'kapi-compose',
+};
+const KUME_ADLARI = {
+  hizli: 'HIZLI', yavas: 'YAVAŞ', postgres: 'POSTGRESQL', compose: 'COMPOSE',
+};
+const TEK_KUME = ['hizli', 'yavas', 'postgres', 'compose']
+  .find((k) => process.argv.includes(`--${k}`));
+const secilen = TEK_KUME ? [TEK_KUME] : Object.keys(ISLER);
 const secilenIsler = new Set(secilen.map((s) => ISLER[s]));
 const KUME_ADI = secilen.length === Object.keys(ISLER).length
-  ? 'TAM (hızlı + yavaş + postgresql)'
+  ? `TAM (${Object.keys(ISLER).map((k) => KUME_ADLARI[k].toLocaleLowerCase('tr')).join(' + ')})`
   : `YALNIZ ${secilen.map((s) => KUME_ADLARI[s]).join(' + ')}`;
 
 /* Aynı kapı iki işte de duruyorsa (kurulum ve `npm run build` böyle)

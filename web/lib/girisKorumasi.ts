@@ -1,4 +1,5 @@
 import 'server-only';
+import { gunluk } from './gunluk';
 import { db } from './db';
 import { oranKovasiniUnut, oranSinirla } from './api/oranSinir';
 import { adresBilinmiyor, adresEtiketi, istemciAdresi } from './istemciAdresi';
@@ -173,7 +174,7 @@ export async function basarisizGirisiYaz(v: {
       },
     });
   } catch (e) {
-    console.error('[giris] başarısız giriş denetim izine yazılamadı:', e);
+    gunluk.hata('giris.iz_yazilamadi', { hata: e });
   }
 }
 

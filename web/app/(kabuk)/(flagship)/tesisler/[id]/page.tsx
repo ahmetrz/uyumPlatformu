@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { STATIK_DEMO } from '@/lib/statikDerleme';
 import { notFound } from 'next/navigation';
 import { girisZorunlu } from '@/lib/erisim';
 import { Yetkisiz } from '@/components/kabuk/temel';
@@ -29,6 +30,10 @@ Promise<Metadata> {
 }
 
 export async function generateStaticParams() {
+  /* Sunucu derlemesinde liste BOŞTUR: parametreleri üretmek derleyen
+     makinede veritabanı sorgulamak olurdu (`lib/statikDerleme.ts`).
+     Sayfa istek anında render edilir. */
+  if (!STATIK_DEMO) return [];
   const tesisler = await db.tesis.findMany({ select: { id: true } });
   return tesisler.map((t) => ({ id: t.id }));
 }

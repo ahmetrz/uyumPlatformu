@@ -29,3 +29,6 @@
 *.log
 *.tmp
 .env*
+
+# Kurulum sırları — DEPOYA GİRMEZ
+deploy/compose/.env

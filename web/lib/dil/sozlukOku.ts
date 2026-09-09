@@ -1,4 +1,5 @@
 import 'server-only';
+import { gunluk } from '../gunluk';
 import { cache } from 'react';
 import { db } from '@/lib/db';
 import { eksikSozlukMesaji, kapsamKarari, sozlukKarari } from './sozlukDurumu';
@@ -69,7 +70,7 @@ export const sektorSozlugu = cache(async (sektorId: string, dil = 'tr'): Promise
      "sözlük BOŞ"tur ve kusurdur; çağıran yine `null` alır (ekran çalışır,
      çekirdek sözcük kullanır) ama durum artık kütüğe geçer. */
   if (sozlukKarari(sektorId, satirlar.length) === 'eksik') {
-    console.error(eksikSozlukMesaji(sektorId));
+    gunluk.hata('sozluk.eksik', { sektorId, mesaj: eksikSozlukMesaji(sektorId) });
     return null;
   }
   return sozlukKur(satirlar);

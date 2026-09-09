@@ -1,4 +1,5 @@
 import 'server-only';
+import { connection } from 'next/server';
 import { ayar } from '@/lib/yapilandirma/oku';
 import { db } from '@/lib/db';
 import { aktifKullanici } from '@/lib/auth';
@@ -6,6 +7,7 @@ import { izinVar, izinliTesisIdleri } from '@/lib/erisim';
 import { birlesikKapsam } from '@/app/kapsam';
 import { durumAyagiVerisi } from '@/components/kabuk/durumAyagiVerisi';
 import { DEMO } from '@/lib/demo';
+import { TEST_KOSUMU } from '@/lib/veritabani';
 import { MARKA_AD } from '@/lib/marka';
 import { kapsamAnahtari, kapsamSektorleri, kapsamSozlugu } from '@/lib/dil/sozlukOku';
 import paket from '../../package.json';
@@ -23,6 +25,33 @@ import type { KabukVerisi } from './Kabuk';
    kabuk "—" yazar. Prototipte damga hep doluydu (harita §7 kusur 8). */
 
 export async function kabukVerisi(): Promise<KabukVerisi> {
+  /* KABUK VERİSİ İSTEK ANINDA OKUNUR — derleme anında DEĞİL (P7).
+
+     `connection()` bu noktayı isteğe bağlar: Next rotayı ön-render
+     etmekten vazgeçer. İki kusuru birden kapatır:
+
+     1. DERLEYEN MAKİNEDE veritabanı sorgulanır. Kurulum imajı derlenirken
+        veritabanı YOKTUR ve olmamalıdır; ölçüldü — imaj derlemesi
+        `PrismaClientInitializationError` ile düştü (üretilmiş istemci
+        `postgres`, derlemede bağlantı yok, sürücü SQLite seçiliyor).
+     2. Ön-render edilen kabuk, DERLEME ANINDAKİ kurulumun kiracı adını,
+        sektör listesini ve menüsünü statik HTML'e gömer. Aynı imajı kuran
+        ikinci müşteri birincinin kabuğunu görürdü — çok kiracılı bir
+        üründe sessiz ve ağır bir kusur.
+
+     STATİK DEMO'da çağrılmaz: `output: 'export'` sunucusuzdur ve her şey
+     ön-render edilmek ZORUNDADIR; demo zaten depodaki kurgusal veriyi
+     yayımlamak için vardır. `DEMO` derleme anında sabittir.
+
+     TEST KOŞUMUNDA da çağrılmaz — ve bu bir kaçamak değil, tanım gereği:
+     `connection()` ÖN-RENDER'DAN VAZGEÇME çağrısıdır ve ön-render yalnız
+     Next'in render bağlamında vardır. Birim testi bu işlevi doğrudan
+     çağırır; orada vazgeçilecek bir ön-render yoktur ve Next `connection
+     was called outside a request scope` diye HATA verir. Hatayı yutmak
+     (`catch`) yanlış olurdu: o zaman gerçek bir bağlam kusuru da
+     sessizce yutulurdu. */
+  if (!DEMO && !TEST_KOSUMU) await connection();
+
   const k = await aktifKullanici().catch(() => null);
 
   /* ── KAPSAM ÇUBUĞU DA BİR EKRANDIR ────────────────────────────────

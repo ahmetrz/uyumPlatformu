@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { STATIK_DEMO } from '@/lib/statikDerleme';
 import { notFound } from 'next/navigation';
 import { girisZorunlu, izinliTesisIdleri } from '@/lib/erisim';
 import { aktifKullanici } from '@/lib/auth';
@@ -17,6 +18,10 @@ import { denetimDetayVerisi, denetimGorunur } from './veri';
    aynı kural). Kapsam dışı denetim `notFound()` ile kapanır. */
 
 export async function generateStaticParams() {
+  /* Sunucu derlemesinde liste BOŞTUR: parametreleri üretmek derleyen
+     makinede veritabanı sorgulamak olurdu (`lib/statikDerleme.ts`).
+     Sayfa istek anında render edilir. */
+  if (!STATIK_DEMO) return [];
   const denetimler = await db.denetim.findMany({
     where: { silindi: null }, select: { id: true },
   });

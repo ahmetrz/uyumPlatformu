@@ -4,12 +4,12 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 321 |
-| Testi olan senaryo | 321 |
+| Senaryo | 323 |
+| Testi olan senaryo | 323 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
-| Taranan test dosyası | 192 |
+| Taranan test dosyası | 193 |
 
 ## Katman başına kapsam
 
@@ -18,7 +18,7 @@
 | ACCESSIBILITY | 8 | 8 | 0 |
 | API | 12 | 12 | 0 |
 | CONCURRENCY | 7 | 7 | 0 |
-| DOMAIN | 180 | 180 | 0 |
+| DOMAIN | 182 | 182 | 0 |
 | ENGINE | 33 | 33 | 0 |
 | INTEGRATION | 40 | 40 | 0 |
 | MIGRATION | 5 | 5 | 0 |
@@ -622,6 +622,28 @@
 | `URN-KUR-009` | Kurulum | DOMAIN | `pg-gocu.test.ts` | canlı kapı ÜÇ değişmez tabloyu da sınar — DDL\'i olup sınanmayan tablo kalmaz | evet | geçti |
 | `URN-KUR-009` | Kurulum | DOMAIN | `pg-gocu.test.ts` | SQLite zincirindeki elle yazılan DDL, PostgreSQL tarafında KARŞILIKSIZ kalmaz | evet | geçti |
 | `URN-KUR-009` | Kurulum | DOMAIN | `pg-gocu.test.ts` | PostgreSQL ad kısaltması YALANCI kırmızı üretmez | evet | geçti |
+| `URN-KUR-010` | Kurulum | DOMAIN | `bekci/gunluk-sir.test.ts` | sunucu kodunda çıplak console.* çağrısı yok | evet | geçti |
+| `URN-KUR-010` | Kurulum | DOMAIN | `bekci/gunluk-sir.test.ts` | sır kokan anahtarın DEĞERİ yazılmaz, adı yazılır | evet | geçti |
+| `URN-KUR-010` | Kurulum | DOMAIN | `bekci/gunluk-sir.test.ts` | anahtar tanıma büyük/küçük harf ve ayraç duyarsızdır | evet | geçti |
+| `URN-KUR-010` | Kurulum | DOMAIN | `bekci/gunluk-sir.test.ts` | hata nesnesi yığın izi olmadan yazılır — iz iç yol sızdırır | evet | geçti |
+| `URN-KUR-010` | Kurulum | DOMAIN | `bekci/gunluk-sir.test.ts` | derin nesne sonsuza inmez | evet | geçti |
+| `URN-KUR-011` | Kurulum | DOMAIN | `yedek-araci.test.ts` | yedek alır, doğrular ve göç durumunu raporlar | evet | geçti |
+| `URN-KUR-011` | Kurulum | DOMAIN | `yedek-araci.test.ts` | var olan yedeğin ÜSTÜNE YAZMAZ | evet | geçti |
+| `URN-KUR-011` | Kurulum | DOMAIN | `yedek-araci.test.ts` | MANTIKSAL karşılaştırma bayt karşılaştırması değildir | evet | geçti |
+| `URN-KUR-011` | Kurulum | DOMAIN | `yedek-araci.test.ts` | içerik özeti VERİ DEĞİŞİNCE değişir — yoksa hiçbir şey ölçmezdi | evet | geçti |
+| `URN-KUR-011` | Kurulum | DOMAIN | `yedek-araci.test.ts` | BOZUK yedek sessizce kabul edilmez | evet | geçti |
+| `URN-KUR-011` | Kurulum | DOMAIN | `yedek-araci.test.ts` | olmayan yedek ve manifestsiz dizin açıkça reddedilir | evet | geçti |
+| `URN-KUR-011` | Kurulum | DOMAIN | `yedek-araci.test.ts` | sağlayıcı bağlantıdan çözülür; tanınmayan şema HATADIR | evet | geçti |
+| `URN-KUR-011` | Kurulum | DOMAIN | `yedek-araci.test.ts` | kanıt dosyalarını ALIR ve manifeste anahtar · boyut · özet yazar | evet | geçti |
+| `URN-KUR-011` | Kurulum | DOMAIN | `yedek-araci.test.ts` | BOŞ depoda "dosya: 0" ölçülür — "kanıt dosyası yok" denmez | evet | geçti |
+| `URN-KUR-011` | Kurulum | DOMAIN | `yedek-araci.test.ts` | yedekten SİLİNEN kanıt dosyası doğrulamada ADIYLA çıkar | evet | geçti |
+| `URN-KUR-011` | Kurulum | DOMAIN | `yedek-araci.test.ts` | yedekte DEĞİŞTİRİLEN kanıt dosyası ÇÜRÜK diye çıkar | evet | geçti |
+| `URN-KUR-011` | Kurulum | DOMAIN | `yedek-araci.test.ts` | veritabanının BEKLEDİĞİ ama yedekte olmayan dosya EKSİK diye çıkar | evet | geçti |
+| `URN-KUR-011` | Kurulum | DOMAIN | `yedek-araci.test.ts` | `dosyaHash` ile TUTMAYAN dosya ÇÜRÜK diye çıkar | evet | geçti |
+| `URN-KUR-011` | Kurulum | DOMAIN | `yedek-araci.test.ts` | kanıt SÜRÜMLERİNİN dosyaları da beklenenler arasındadır | evet | geçti |
+| `URN-KUR-011` | Kurulum | DOMAIN | `yedek-araci.test.ts` | BOŞ ortama geri yükler: veritabanı ve kanıt dosyaları geri gelir | evet | geçti |
+| `URN-KUR-011` | Kurulum | DOMAIN | `yedek-araci.test.ts` | DOLU ortama üstüne yazmaz — geri yükleme veri kaybettirir | evet | geçti |
+| `URN-KUR-011` | Kurulum | DOMAIN | `yedek-araci.test.ts` | SAĞLAYICILAR ARASI geri yükleme reddedilir | evet | geçti |
 | `URN-PKT-022` | Ürünleştirme | DOMAIN | `paket-alan-eslemesi.test.ts` | tam beyan temizdir; kaynakta karşılığı olmayan alan null ile beyan edilir | evet | geçti |
 | `URN-PKT-022` | Ürünleştirme | DOMAIN | `paket-alan-eslemesi.test.ts` | beyanı hiç olmayan çerçeve kırmızıdır ve dolu sütunları sayar | evet | geçti |
 | `URN-PKT-022` | Ürünleştirme | DOMAIN | `paket-alan-eslemesi.test.ts` | dolu ama BEYANSIZ sütun kırmızıdır — kusurun ölçülmüş hâli | evet | geçti |

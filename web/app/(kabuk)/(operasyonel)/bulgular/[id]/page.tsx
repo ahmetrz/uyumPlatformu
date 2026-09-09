@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { STATIK_DEMO } from '@/lib/statikDerleme';
 import { notFound } from 'next/navigation';
 import { girisZorunlu } from '@/lib/erisim';
 import { Yetkisiz } from '@/components/kabuk/temel';
@@ -11,6 +12,10 @@ import { kanitEsikleri } from '@/lib/yapilandirma/kanitEsik';
 export const metadata: Metadata = { title: 'Bulgu kaydı' };
 
 export async function generateStaticParams() {
+  /* Sunucu derlemesinde liste BOŞTUR: parametreleri üretmek derleyen
+     makinede veritabanı sorgulamak olurdu (`lib/statikDerleme.ts`).
+     Sayfa istek anında render edilir. */
+  if (!STATIK_DEMO) return [];
   const bulgular = await db.bulgu.findMany({ select: { id: true } });
   return bulgular.map((b) => ({ id: b.id }));
 }

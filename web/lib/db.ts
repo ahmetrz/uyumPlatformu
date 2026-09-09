@@ -26,6 +26,39 @@ function istemciKur(): PrismaClient {
   return new PrismaClient({ adapter: new PrismaBetterSqlite3({ url: `file:${mutlak}` }) });
 }
 
-export const db = globalForPrisma.prisma ?? istemciKur();
+/* İSTEMCİ TEMBEL KURULUR — modül yüklenirken DEĞİL.
 
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = db;
+   Ölçüldü (P7, imaj derlemesi): `next build`, rota modüllerini yapılandırma
+   toplamak için içe aktarır. İstemci modül gövdesinde kurulduğu için derleme
+   makinesinde — veritabanı OLMAYAN ve olmaması gereken bir yerde — bir
+   veritabanı istemcisi kuruluyordu. PostgreSQL istemcisiyle derlerken bu
+   `Failed to collect page data` diye düştü: üretilmiş istemci `postgres`,
+   `DATABASE_URL` derleme sırasında yok, sürücü SQLite seçiliyor, adaptör
+   uyuşmuyor. SQLite'ta aynı kusur yıllarca sessiz kaldı çünkü iki taraf da
+   tesadüfen SQLite'tı.
+
+   Derleyen makine kurulum ortamı değildir: derleme bir bağlantı dizesi
+   uydurarak değil, İSTEMCİYİ KURMAYARAK doğru olur. İlk gerçek sorguda
+   kurulur; sağlayıcı uyuşmazlığı orada Prisma'nın kendi ADLI hatasıyla
+   çıkar. */
+let ornek: PrismaClient | undefined;
+
+function istemci(): PrismaClient {
+  ornek ??= globalForPrisma.prisma ?? istemciKur();
+  /* Geliştirmede sıcak yeniden yükleme her seferinde yeni istemci kurar ve
+     bağlantılar birikir; genel değişken bunu engeller. Üretimde süreç tek
+     kez yüklendiği için gerekmez. */
+  if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = ornek;
+  return ornek;
+}
+
+export const db: PrismaClient = new Proxy({} as PrismaClient, {
+  get(_hedef, ad) {
+    const i = istemci() as unknown as Record<string | symbol, unknown>;
+    const d = i[ad];
+    /* Yöntem BAĞLANARAK döner: `db.$transaction` çağrısı `this`siz
+       çağrılırsa Prisma içeride patlar. */
+    return typeof d === 'function' ? d.bind(i) : d;
+  },
+  has(_hedef, ad) { return ad in (istemci() as unknown as object); },
+});

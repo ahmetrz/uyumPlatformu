@@ -1,4 +1,5 @@
 import { Suspense } from 'react';
+import { STATIK_DEMO } from '@/lib/statikDerleme';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { girisZorunlu, izinVar, izinliTesisIdleri } from '@/lib/erisim';
@@ -11,6 +12,10 @@ import CerceveIstemci from './CerceveIstemci';
    paylaşılabilir olsun ve O1'den gelen sıçrama kod üzerinden kurulsun. */
 
 export async function generateStaticParams() {
+  /* Sunucu derlemesinde liste BOŞTUR: parametreleri üretmek derleyen
+     makinede veritabanı sorgulamak olurdu (`lib/statikDerleme.ts`).
+     Sayfa istek anında render edilir. */
+  if (!STATIK_DEMO) return [];
   const kodlar = await cerceveKodlari();
   return kodlar.map((cerceve) => ({ cerceve }));
 }

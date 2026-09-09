@@ -1,0 +1,97 @@
+# ═══════════════════════════════════════════════════════════════════════
+# ON-PREM TEK KURULUM (P7 · 2.2)
+#
+# İki servis: PostgreSQL + uygulama. Üçüncü bir "nesne deposu" servisi
+# BİLEREK YOK: ürünün bugünkü kanıt deposu sağlayıcısı `yerel_dosya`dır
+# (`web/lib/uyum/kanitDeposu.ts` · `SAGLAYICI_ADI`), S3 sağlayıcısı YAZILMADI.
+# Compose'a MinIO koymak, kodun tutmadığı bir söz vermek olurdu; kanıtlar
+# KALICI BİR BİRİMDE (`kanit` volume) durur ve yedekleme onu arşivler
+# (`docs/URUN_YEDEKLEME.md`). S3 sağlayıcısı yazıldığı gün buraya servis
+# eklenir — o güne kadar burada "bağlı değil" yazar.
+#
+# SIR DEPOYA GİRMEZ. Parolalar `deploy/compose/.env` dosyasından okunur;
+# o dosya `.gitignore`dadır ve `ornek.env` kopyalanarak kurulur.
+#
+# Kullanım (ayrıntı: docs/KURULUM.md):
+#   cp ornek.env .env && $EDITOR .env
+#   docker compose --env-file .env up -d
+#   curl -fsS http://localhost:3000/api/v1/health
+# ═══════════════════════════════════════════════════════════════════════
+name: uyum-platformu
+
+services:
+  veritabani:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${PG_VERITABANI:?PG_VERITABANI gerekli}
+      POSTGRES_USER: ${PG_KULLANICI:?PG_KULLANICI gerekli}
+      POSTGRES_PASSWORD: ${PG_PAROLA:?PG_PAROLA gerekli — ornek.env kopyalayıp doldurun}
+      # Türkçe sıralama ve büyük/küçük harf katlaması için: C.UTF-8 tabanı,
+      # dil duyarlı karşılaştırma uygulama katmanındadır (lib/aramaKosulu.ts).
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C.UTF-8"
+    volumes:
+      - veritabani:/var/lib/postgresql/data
+    healthcheck:
+      # Kapsayıcı "ayakta" demek "hazır" demek değildir: uygulama ancak
+      # veritabanı BAĞLANTI KABUL EDİNCE başlamalı.
+      test: ["CMD-SHELL", "pg_isready -U ${PG_KULLANICI} -d ${PG_VERITABANI}"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    # Uygulama rolü TABLO SAHİBİ OLMAMALIDIR (docs/POSTGRES_READINESS.md
+    # §a.2/3): sahip `ALTER TABLE … DISABLE TRIGGER` diyebilir ve denetim
+    # izinin değişmezliği o an yalan olur. Rol ayrımı kurulumda yapılır
+    # (docs/KURULUM.md § "uygulama rolü"), compose burada tek rol açar.
+
+  uygulama:
+    build:
+      context: ../..
+      dockerfile: deploy/compose/Dockerfile
+      # Kesici (TLS sonlandıran) kurumsal vekil arkasında derliyorsanız
+      # `CA_DEMETI`ye CA dosyasının yolunu verin; vekil yoksa DOKUNMAYIN.
+      # Sır katmana yazılmaz, imajda kalmaz (Dockerfile'daki gerekçe).
+      secrets:
+        - ca_demeti
+    restart: unless-stopped
+    depends_on:
+      veritabani:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${PG_KULLANICI}:${PG_PAROLA}@veritabani:5432/${PG_VERITABANI}
+      KANIT_DEPO_KOKU: /veri/kanit
+      NEXT_PUBLIC_KIRACI_AD: ${KIRACI_AD:?KIRACI_AD gerekli}
+      NEXT_PUBLIC_MARKA_AD: ${MARKA_AD:-}
+      NODE_ENV: production
+      PORT: "3000"
+      # Oran sınırları: değer VERİLİRSE doğrulanır, verilmezse şemadaki
+      # yazılı varsayılan uygulanır (web/lib/yapilandirma/ortam.ts).
+      API_ORAN_SINIRI: ${API_ORAN_SINIRI:-}
+      GIRIS_ORAN_SINIRI: ${GIRIS_ORAN_SINIRI:-}
+      TRUST_PROXY: ${TRUST_PROXY:-}
+    ports:
+      - "${UYGULAMA_PORTU:-3000}:3000"
+    volumes:
+      - kanit:/veri/kanit
+    healthcheck:
+      # READINESS ucu: veritabanı ya da kanıt deposu erişilemezken 503 döner
+      # ve SEBEBİ yazar. `?kip=canli` liveness'tır ve bağımlılığa BAKMAZ —
+      # buraya onu koymak, veritabanı düştüğünde kapsayıcıyı sağlıklı
+      # göstermek olurdu.
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/api/v1/health >/dev/null || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+
+volumes:
+  veritabani:
+  kanit:
+
+secrets:
+  # Varsayılan `/dev/null`: sır TANIMLIDIR ama BOŞTUR ve Dockerfile'daki
+  # `[ -s … ]` kontrolü onu yok sayar. Böylece tek bir compose dosyası hem
+  # kesici vekilli hem vekilsiz kurulumda çalışır; "vekil yoksa şu satırı
+  # silin" diyen bir kurulum belgesi, silinmeyen satırla kırılır.
+  ca_demeti:
+    file: ${CA_DEMETI:-/dev/null}

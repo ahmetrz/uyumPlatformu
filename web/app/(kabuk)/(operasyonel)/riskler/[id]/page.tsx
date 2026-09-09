@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation';
+import { STATIK_DEMO } from '@/lib/statikDerleme';
 import { girisZorunlu } from '@/lib/erisim';
 import { db } from '@/lib/db';
 import { Yetkisiz } from '@/components/kabuk/temel';
@@ -17,6 +18,10 @@ import { riskDetayVerisi } from './veri';
    olurdu. */
 
 export async function generateStaticParams() {
+  /* Sunucu derlemesinde liste BOŞTUR: parametreleri üretmek derleyen
+     makinede veritabanı sorgulamak olurdu (`lib/statikDerleme.ts`).
+     Sayfa istek anında render edilir. */
+  if (!STATIK_DEMO) return [];
   const riskler = await db.risk.findMany({ where: { silindi: null }, select: { id: true } });
   return riskler.map((r) => ({ id: r.id }));
 }

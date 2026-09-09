@@ -1,7 +1,7 @@
 {
-  "imza": "de524b1e7ca3fb628e6d36a6cf90cc95",
-  "dosya": 192,
-  "vaka": 3504,
+  "imza": "a8d489009a6792e452c927564eeb333b",
+  "dosya": 193,
+  "vaka": 3519,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -50,6 +50,10 @@
     },
     "tests/bekci/ek-eklemesi.test.ts": {
       "vaka": 4,
+      "atlanan": 0
+    },
+    "tests/bekci/gunluk-sir.test.ts": {
+      "vaka": 5,
       "atlanan": 0
     },
     "tests/bekci/kapsam-omurga.test.ts": {
@@ -745,7 +749,7 @@
       "atlanan": 0
     },
     "tests/yedek-araci.test.ts": {
-      "vaka": 7,
+      "vaka": 17,
       "atlanan": 0
     },
     "tests/yeniTesis.test.ts": {

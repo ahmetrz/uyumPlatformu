@@ -442,3 +442,49 @@ jobs:
       - name: Birim ve entegrasyon testleri (PostgreSQL)
         working-directory: web
         run: npm run test:pg
+
+  # ── COMPOSE KURULUMU · duman kapısı (P7 · 2.5) ───────────────────────
+  #
+  # Ürünün MÜŞTERİ ORTAMINDA çalıştığının tek kanıtı. `next dev` ile koşan
+  # kapılar geliştirme kabuğunu ölçer: orada kaynak ağacı, geliştirme
+  # veritabanı ve derlenmemiş sayfa vardır — kurulumda hiçbiri yoktur.
+  #
+  # İş AYRI: imaj derlemesi dakikalar sürer ve öbür kapıları bekletmemeli.
+  # Playwright tarayıcısı gerekir (duman testi gerçek tarayıcıyla gezer).
+  kapi-compose:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Depoyu al
+        uses: actions/checkout@v7
+
+      - name: Node kur
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Bağımlılıklar
+        working-directory: web
+        run: npm ci
+
+      - name: Tarayıcı kur
+        working-directory: web
+        run: npx playwright install --with-deps chromium
+
+      # Yığını kaldırır, READINESS bekler, kurulumu tohumlar, dinamik rota
+      # değerlerini KURULUMUN veritabanından okur, duman testini yayımlanan
+      # porta karşı koşar, indirir ve İNDİĞİNİ DOĞRULAR.
+      - name: Compose kurulumunda rota duman testi
+        working-directory: web
+        run: npm run kapi:compose
+
+      # Yığın kapının kendi temizliğiyle iner; iş düşerse (zaman aşımı,
+      # iptal) burada da indirilir. `if: always()` olmadan ayakta kalan
+      # bir yığın, runner'la birlikte gitse de yerel koşumda kalırdı.
+      - name: Yığını indir (her koşulda)
+        if: always()
+        working-directory: deploy/compose
+        run: docker compose --env-file .env down -v --remove-orphans || true

@@ -550,6 +550,35 @@ export const URUNLESTIRME_SENARYOLARI: Senaryo[] = [
     katmanlar: ['DOMAIN'],
   },
   {
+    id: 'URN-KUR-010', alan: 'Kurulum', rota: '—', eksen: 'veri',
+    amac: 'Kurulumda günlüğü bir insan değil TOPLAYICI okur: olay aranabilir olsun ve sır günlüğe düşmesin',
+    rol: 'kurulumu işleten operatör · olay müdahale ekibi', kapsam: 'lib/gunluk.ts · lib/ ve app/ altındaki sunucu kodu',
+    onkosul: 'Ürün kodu serbest metin konsol satırları yazıyordu; bir hata nesnesini olduğu gibi basmak bağlantı dizesini ve jetonu diske yazar',
+    veriHali: 'aykiri',
+    eylem: 'Günlük satırı üretilir (sır kokan alanlar, hata nesnesi, derin nesne) ve ürün kodunda çıplak `console.*` çağrısı taranır',
+    beklenenSonuc: 'Satır tek satır JSON\'dur ve sabit alanlar taşır (zaman · duzey · olay); adı sır kokan alanın DEĞERİ `[gizlendi]` olur ama ANAHTAR kalır (hangi alanın gizlendiği görünmezse operatör neyin eksik olduğunu bilemez); '
+      + 'tanıma AD tabanlıdır, değer sezgisi değil; hata nesnesi yığın izi olmadan yazılır (iz iç yol sızdırır); derin nesne `[derin]`de durur; '
+      + 'sunucu kodunda çıplak `console.*` KIRMIZIDIR (istemci bileşenleri hariç — tarayıcıda tek yol odur)',
+    beklenenEkran: 'yok (kurulum kapısı)',
+    beklenenIz: 'yazma yok (günlük)', beklenenBildirim: 'yok',
+    katmanlar: ['DOMAIN'],
+  },
+  {
+    id: 'URN-KUR-011', alan: 'Kurulum', rota: '—', eksen: 'veri',
+    amac: 'Ürünün KENDİ yedeği, müşteriye dayattığı kuralı tutsun: geri yüklenebildiği kanıtlanmamış yedek, yedek değildir — ve kanıt DOSYALARINI da taşısın',
+    rol: 'kurulumu işleten operatör · ürünü sürdüren geliştirici', kapsam: 'arac/yedek.mjs · kanıt deposu · docs/URUN_YEDEKLEME.md',
+    onkosul: 'Yedek tek bir `.db` dosyasıydı ve kanıt dosyalarını ALMIYORDU: geri yükleme ekranı doldurur, denetçiye gösterilecek dosyayı getirmezdi',
+    veriHali: 'aykiri',
+    eylem: 'Yedek alınır (veritabanı + kanıt deposu + manifest), yedekten dosya silinir/değiştirilir, veritabanına yedekte olmayan bir kanıt eklenir, boş ortama geri yüklenir',
+    beklenenSonuc: 'Yedek bir DİZİNDİR ve manifest her kanıt dosyasının anahtar · boyut · özetini taşır (özet KOPYADAN ölçülür, kaynaktan değil); '
+      + 'yedekten silinen ya da değiştirilen dosya doğrulamada ADIYLA çıkar; veritabanının beklediği ama yedekte olmayan dosya EKSİK, `dosyaHash` ile tutmayan ÇÜRÜK diye ADIYLA listelenir ve araç sıfır dışı döner; '
+      + '`KanitSurumu` dosyaları da beklenenler arasındadır (eski sürüm gelmezse kanıtın geçmişi gelmez); BOŞ depoda "dosya: 0" ÖLÇÜLÜR — "kanıt dosyası yok" denmez, depo dizininin hiç olmaması ayrı raporlanır; '
+      + 'sahipsiz dosya kusur değildir (içerik adresli depoda paylaşım normaldir), sayı olarak raporlanır; geri yükleme DOLU ortama yazmaz ve sağlayıcılar arası yapılmaz; geri yüklenen her dosya okunarak doğrulanır',
+    beklenenEkran: 'yok (kurulum aracı)',
+    beklenenIz: 'yazma yok (yedek)', beklenenBildirim: 'yok',
+    katmanlar: ['DOMAIN'],
+  },
+  {
     id: 'URN-PKT-022', alan: 'Ürünleştirme', rota: '—', eksen: 'veri',
     amac: 'Kaynak belgenin bir alanı ürünün YANLIŞ alanına yazıldığında biçim doğru kalır ve hiçbir kapı göremez; savunma paketin ALAN EŞLEME BEYANIDIR',
     rol: 'paket yazarı · bağımsız inceleyici', kapsam: 'manifest.json `alanEslemesi` · lib/paket/dogrula.ts',

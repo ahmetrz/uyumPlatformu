@@ -27,7 +27,7 @@ import { spawnSync } from 'node:child_process';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { isOrtami, sunucuYasamDongusu } from './kapi-farki.mjs';
+import { isOrtami, isler, kapiAdimlari, kapiliIsler, sunucuYasamDongusu } from './kapi-farki.mjs';
 
 const WEB = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DEPO = path.resolve(WEB, '..');
@@ -44,11 +44,8 @@ mkdirSync(OZET_DIZIN, { recursive: true });
 const metin = readFileSync(PR_KAPISI, 'utf8')
   .split('\n').filter((s) => !s.trimStart().startsWith('#')).join('\n');
 
-/* KAPI MI, KURULUM MU? Kapı, ölçen ve hüküm veren adımdır. Kurulum
-   adımları (bağımlılık, veritabanı, tarayıcı indirme, sunucu başlatma /
-   durdurma) ölçmez; koşulmamaları bir kapının eksikliği değildir. */
-const KAPI_KALIBI = /(npm run [\w:-]+|npm test\b|npx tsc\b|node arac\/)/;
-const KURULUM_KALIBI = /(npm ci|prisma |playwright-core\/cli|git fetch|fuser -k|next start)/;
+/* Kapı/kurulum ayrımı ve tekilleştirme `kapi-farki.mjs` içindedir
+   (`kapiAdimlari`) — tek nüsha. İki nüsha ayrı ayrı bayatlayabilirdi. */
 
 /* Başlatan/durduran adımların tespiti `kapi-farki.mjs`tedir — bekçi
    testi de oradan okur. Burada ikinci bir arama yapılsaydı, biri
@@ -67,56 +64,68 @@ const { baslar: sunucuBaslar, durur: sunucuDurur, adimlar: tumAdimlar } =
 
    Çözüm CI'nın kendi sırasıdır: sunucuyu BAŞLATAN ve DURDURAN adımlar da
    iş akışından türetilir ve aynı yerde koşulur. Bunlar kapı değildir
-   (ölçmezler, hüküm vermezler) ama koşulmaları gerekir. */
-const yasamDongusu = new Set([sunucuBaslar, sunucuDurur].filter((i) => i >= 0));
+   (ölçmezler, hüküm vermezler) ama koşulmaları gerekir; kapı listesinden
+   de bu yüzden `kapiAdimlari()` içinde düşürülürler. */
 
 /* ── KÜME SEÇİMİ ──────────────────────────────────────────────────────
-   İş akışı dörde bölündü: `kapi` (hızlı · her push), `kapi-yavas`
-   (tarayıcılı), `kapi-postgres` (ikinci sağlayıcı) ve `kapi-compose`
-   (kurulumun kendisi). Kapanış VARSAYILAN olarak HEPSİNİ koşar — "parti kapanış kümesi = PR kapı kümesi" kuralı
-   bölünmeyle gevşemez; bölünme neyin ne zaman koştuğunu değiştirir,
-   kapanışın neyi kanıtladığını değil.
+   İŞ ADLARI SABİT YAZILMAZ, TÜRETİLİR. Burada bir zamanlar dört ad
+   duruyordu (`kapi` · `kapi-yavas` · `kapi-postgres` · `kapi-compose`)
+   ve bu, kapı kümesini iş akışından türetmenin bütün gerekçesini İŞ
+   katmanında delen bir kaçış kapısıydı: CI'ya beşinci bir iş eklendiği
+   gün yerel kapanış onu hiç koşmaz, üstelik "tamamı koştu" derdi.
+   Bugün ad listesi yoktur (`isler()`); kapanış VARSAYILAN olarak iş
+   akışındaki HER işi koşar.
 
-   Küme adı rapora YAZILIR. Yazılmasaydı `--hizli` ile koşan bir kapanış
-   da "tamamı yeşil" derdi ve tarayıcılı kapılar hiç ölçülmemiş olurdu —
-   koşulmayan kapı "geçti" diye yazılmaz. */
-const ISLER = {
-  hizli: 'kapi', yavas: 'kapi-yavas', postgres: 'kapi-postgres', compose: 'kapi-compose',
-};
-const KUME_ADLARI = {
-  hizli: 'HIZLI', yavas: 'YAVAŞ', postgres: 'POSTGRESQL', compose: 'COMPOSE',
-};
-const TEK_KUME = ['hizli', 'yavas', 'postgres', 'compose']
-  .find((k) => process.argv.includes(`--${k}`));
-const secilen = TEK_KUME ? [TEK_KUME] : Object.keys(ISLER);
-const secilenIsler = new Set(secilen.map((s) => ISLER[s]));
-const KUME_ADI = secilen.length === Object.keys(ISLER).length
-  ? `TAM (${Object.keys(ISLER).map((k) => KUME_ADLARI[k].toLocaleLowerCase('tr')).join(' + ')})`
-  : `YALNIZ ${secilen.map((s) => KUME_ADLARI[s]).join(' + ')}`;
+   Küme adı rapora YAZILIR. Yazılmasaydı tek işe daraltılmış bir kapanış
+   da "tamamı yeşil" derdi ve koşulmayan kapılar ölçülmüş sayılırdı. */
+const TUM_ISLER = isler(metin);
+if (TUM_ISLER.length === 0) {
+  console.error('İş akışında hiç iş bulunamadı — kapı kümesi türetilemedi.');
+  process.exit(1);
+}
+/* Daralt: `--is=kapi-axe` (yinelenebilir). Kısa takma ad bir HARİTA
+   ister; harita da iş akışından ayrı yaşayan ikinci bir gerçektir. */
+const secilenIsler = new Set(
+  process.argv.filter((a) => a.startsWith('--is=')).map((a) => a.slice(5)).filter(Boolean),
+);
+const taninmayan = [...secilenIsler].filter((i) => !TUM_ISLER.includes(i));
+if (taninmayan.length > 0) {
+  console.error(`İş akışında olmayan iş istendi: ${taninmayan.join(', ')}`);
+  console.error(`  iş akışındaki işler: ${TUM_ISLER.join(' · ')}`);
+  process.exit(1);
+}
+const kapsananIsler = secilenIsler.size > 0 ? secilenIsler : new Set(TUM_ISLER);
+const KUME_ADI = secilenIsler.size > 0
+  ? `YALNIZ ${[...secilenIsler].join(' + ')}`
+  : `TAM (${TUM_ISLER.join(' + ')})`;
 
 /* Aynı kapı iki işte de duruyorsa (kurulum ve `npm run build` böyle)
    BİR KEZ koşar: aynı komutu aynı ortamda ikinci kez koşmak yeni bir
    şey ölçmez, yalnız süre yazar. Tekilleştirme komut+ortam üstünden
    yapılır, ADA GÖRE değil — iki işte aynı adla farklı komut durabilir. */
-const gorulen = new Set();
-const kapilar = tumAdimlar
-  .map((a, i) => ({ ...a, sira: i }))
-  .filter((a) => !yasamDongusu.has(a.sira)
-    && KAPI_KALIBI.test(a.komut) && !KURULUM_KALIBI.test(a.komut))
-  .filter((a) => secilenIsler.has(a.is))
-  .filter((a) => {
-    const anahtar = `${a.komut}\u0000${JSON.stringify(a.cevre)}`;
-    if (gorulen.has(anahtar)) return false;
-    gorulen.add(anahtar); return true;
-  })
-  .map((a) => ({
-    ...a,
-    /* Sunucu isteyen kapı SIRADAN anlaşılır: sunucuyu başlatan adımla
-       durduran adımın ARASINDA duruyorsa canlı sunucu ister. Ad listesi
-       tutmuyoruz — iş akışı yeniden sıralanırsa liste yalan söylerdi. */
-    sunucuIster: sunucuBaslar >= 0 && a.sira > sunucuBaslar
-      && (sunucuDurur < 0 || a.sira < sunucuDurur),
-  }));
+const kapilar = kapiAdimlari(metin, kapsananIsler);
+
+/* ── KAPSAM DİŞİ ──────────────────────────────────────────────────────
+   Kapı TAŞIYAN bir iş yerel kümenin dışında kalıyorsa KIRMIZI. Bu diş,
+   `isler()` ile `adimlar()`ın AYNI iş akışını aynı işlere böldüğünü
+   ölçer: biri bir işi görüp öbürü görmüyorsa o işin kapıları sessizce
+   düşer ve kapanış yine "tamamı koştu" der — kapatmak istediğimiz kusur
+   tam olarak budur.
+
+   Yalnız TAM koşumda ölçülür: `--is=` ile bilerek daraltılmış bir
+   kapanış zaten "YALNIZ ..." diye rapor edilir ve kimse onu tam küme
+   sanmaz. */
+const kapiTasiyan = kapiliIsler(metin);
+if (secilenIsler.size === 0) {
+  const kapsanmayan = [...kapiTasiyan].filter((i) => !kapsananIsler.has(i));
+  if (kapsanmayan.length > 0) {
+    console.error('KAPSAM DİŞİ KIRMIZI — iş akışında kapı taşıyan ama yerel'
+      + ` kümenin kapsamadığı iş var: ${kapsanmayan.join(', ')}`);
+    console.error(`  türetilen işler : ${TUM_ISLER.join(' · ')}`);
+    console.error(`  kapı taşıyanlar : ${[...kapiTasiyan].join(' · ')}`);
+    process.exit(1);
+  }
+}
 
 /* ── ÇÖZÜLEMEYEN İFADELER ─────────────────────────────────────────────
    İş akışı `${{ github... }}` ifadeleri taşır; bunlar yalnız GitHub'da

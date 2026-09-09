@@ -313,21 +313,47 @@ yapılır.
 
 ## Kalite kapıları
 
-CI'da (`.github/workflows/pr-kapisi.yml`) DÖRT iş koşar: `kapi` (hızlı) ·
-`kapi-yavas` (tarayıcılı) · **`kapi-postgres`** (postgres:16 servisi —
-PostgreSQL istemcisi üretilir, `kapi:pg-goc` ve TAM test kümesi orada da
-koşar; ölçüldü 9 Eyl 2026, P7/R3 turu: iki sağlayıcıda da 194 dosya ·
-3 529 vaka, atlanan 1) · **`kapi-compose`** (`deploy/compose/` ile ayağa
-kalkan kurulumda `rota:duman` — ürünün müşteri ortamında çalıştığının tek
-kanıtı; ölçüldü: 60/60 rota, kusur 0). Hızlı işte: lint → tsc → vitest →
-test envanteri → ters kapsam → dil kapısı → tasarım kapısı → **kapı
-farkı** → **PostgreSQL taban tazeliği** → derleme → **rota duman** → **gezinme (yedi bant)** → **yatay
-taşma** → **erişilebilirlik (axe · üç bant)** → statik demo derlemesi ve
-doğrulaması → marka kapısı. Dört tarayıcılı kapı CI'da üretim
-sunucusuyla koşar ve BLOKLAYICIDIR; taşma ve axe kapılarının açık
-bulguları `web/arac/kalite-borcu.json` izin listesindedir ve liste
-**yalnız küçülebilir** (dört dişli cırcır — tavan · alt küme · taban dal
-`origin/main` · okunamazsa kırmızı).
+CI'da (`.github/workflows/pr-kapisi.yml`) **on iş** koşar:
+
+| İş | Ne koşar |
+| --- | --- |
+| `kapi` | lint · tsc · vitest · test envanteri · ters kapsam · dil · tasarım · sözlük kipi · şema sapması · göç zinciri · PostgreSQL taban tazeliği · gerekçe taraması (bilgi) · **kapı farkı** · **derleme ortamı beyanı** |
+| `derleme` | üretim derlemesi **BİR KEZ** + ortam damgası; `.next` (cache hariç · ölçüldü 74 MB) artefakt olur |
+| `kapi-rota` · `kapi-gezinme` · `kapi-tasma` · `kapi-axe` | dört tarayıcılı kapı **paralel**; dördü de AYNI artefaktı indirir ve ortam beyanını doğrular |
+| `kapi-demo` | statik demo derlemesi + marka kapısı — ortamı FARKLI (`NEXT_PUBLIC_DEMO=1`), bu yüzden kendi derlemesini yapar |
+| `kapi-yavas` | **toplayıcı**: kapı koşmaz, beş işin sonucunu toplar. Adı korunuyor çünkü dal korumasındaki zorunlu check adıdır ve o ayar koddan görünmez |
+| `kapi-postgres` | postgres:16 servisi — `kapi:pg-goc` ve TAM test kümesi (iki sağlayıcıda da aynı sayı) |
+| `kapi-compose` | `deploy/compose/` ile ayağa kalkan kurulumda `rota:duman` — ürünün müşteri ortamında çalıştığının tek kanıtı |
+
+Bölünmenin gerekçesi ölçüldü (9 Eyl 2026, `80ce71c`): seri `kapi-yavas`
+**12 dk 54 sn**, koşunun duvar saati **14 dk 00 sn**; bu sırada `main`
+iki kez ilerledi ve dal iki kez yeniden ölçüldü. Kapıların KENDİ süreleri
+(rota 36sn · gezinme 44sn · taşma 186sn · axe 190sn) toplamın yarısı
+kadar — kalanı beklemeydi. Bölünmüş duvar saati **ölçülmedi**; bu turun
+CI koşumunda ölçülüp buraya yazılacak.
+
+**Hiçbir kapı çıkarılmadı.** Seri kümenin 23 kapısının 23'ü duruyor ve
+bu bir testle sabit (`web/tests/kapi-is-kapsami.test.ts`); bölünmeyle
+ÜÇ kapı eklendi (derleme ortamı beyanı · damga · doğrulama) ve üçü de
+o testte adıyla beyanlı.
+
+**Paylaşılan derlemeyi tüketen her iş ORTAM BEYAN EDER**
+(`DERLEME_ORTAMI`). Beyansız tüketim kırmızıdır; beyanı üreticiden
+farklı olan iş artefaktı tüketemez, kendi derlemesini yapar. Gerekçe
+ölçüldü: `NEXT_PUBLIC_*` istemci paketine DERLEME ANINDA gömülür —
+indiren işin verdiği değer hiçbir şey yapmaz ve ekran derleyenin
+değerini gösterir (`web/arac/derleme-artefakti.mjs`).
+
+**İş adları da türetilir.** `kapi:parti` yerel kümeyi iş akışından
+çıkarır (`isler()`); sabit ad listesi yoktur. Kapı TAŞIYAN bir iş
+kümenin dışında kalırsa kapanış KIRMIZI olur — ölçüldü: dört ad sabit
+yazılıyken eklenen beşinci iş yerel kümeye hiç girmiyor, kapanış yine
+"tamamı koştu" diyordu.
+
+Dört tarayıcılı kapı CI'da üretim sunucusuyla koşar ve BLOKLAYICIDIR;
+taşma ve axe kapılarının açık bulguları `web/arac/kalite-borcu.json`
+izin listesindedir ve liste **yalnız küçülebilir** (dört dişli cırcır —
+tavan · alt küme · taban dal `origin/main` · okunamazsa kırmızı).
 
 Taşma kapısı **üç kusur türü** ölçer: sayfa yana kayıyor mu · kırpılan
 içerik var mı · akış içi iki taşıyıcı üst üste biniyor mu. Taşma ve axe

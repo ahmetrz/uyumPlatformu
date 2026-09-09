@@ -18,6 +18,7 @@
     "ters:kapsam": "node arac/ters-kapsam.mjs",
     "gerekce:tarama": "node arac/gerekce-tarama.mjs",
     "kapi:farki": "node arac/kapi-farki.mjs",
+    "kapi:derleme-artefakti": "node arac/derleme-artefakti.mjs --kapi",
     "gezinme:test": "node arac/gezinme-testi.mjs",
     "rota:duman": "node arac/rota-duman.mjs",
     "konsol:olcum": "node arac/konsol-olcum.mjs",

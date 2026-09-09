@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import { adimlar, fark } from '../arac/kapi-farki.mjs';
+import { adimlar, fark, isler, kapiliIsler } from '../arac/kapi-farki.mjs';
 
 /* ═══════════════════════════════════════════════════════════════════════
    KAPI FARKI — "yerelde koşan ama CI'da koşmayan" ölçüsünün kuralları
@@ -158,14 +158,21 @@ describe('kapı farkı · gerçek depo', () => {
    ═══════════════════════════════════════════════════════════════════════ */
 describe('parti kümesi iş akışındaki HER işi kapsar [URN-KUR-009]', () => {
   const isAkisi = readFileSync(new URL('../../.github/workflows/pr-kapisi.yml', import.meta.url), 'utf8');
-  const parti = readFileSync(new URL('../arac/parti-kapanisi.mjs', import.meta.url), 'utf8');
 
-  it('iş akışının komut taşıyan her işi ISLER tablosunda var', () => {
-    const temiz = isAkisi.split('\n').filter((x) => !x.trimStart().startsWith('#')).join('\n');
-    const isler = [...new Set(adimlar(temiz).map((a: { is: string }) => a.is))].filter(Boolean);
-    expect(isler.length, 'iş akışında komut taşıyan iş bulunamadı — tarama boş bakıyor').toBeGreaterThanOrEqual(3);
-    for (const is of isler) {
-      expect(parti, `parti kümesi "${is}" işini tanımıyor — o işin kapıları kapanışta HİÇ koşmaz`).toContain(`'${is}'`);
+  it('iş akışının kapı taşıyan her işi TÜRETİLEN listede var', () => {
+    /* ESKİDEN bu vaka `parti-kapanisi.mjs` KAYNAĞINDA iş adını arardı:
+       orada sabit bir `ISLER` tablosu vardı ve bekçi o tablonun güncel
+       kalmasını ölçüyordu. Tablo kaldırıldı — adlar `isler()` ile iş
+       akışından türetiliyor, yani güncel tutulacak bir tablo yok. Bekçi
+       de metin aramasından ÖLÇÜME döndü. Metin araması bugün "kapsanmıyor"
+       derdi; kusur ortadan kalkmışken kırmızı yanan bekçi, bekçi değildir. */
+    const tumIsler = new Set(isler(isAkisi));
+    const kapili = [...kapiliIsler(isAkisi)];
+    expect(kapili.length, 'iş akışında kapı taşıyan iş bulunamadı — tarama boş bakıyor')
+      .toBeGreaterThanOrEqual(3);
+    for (const is of kapili) {
+      expect(tumIsler.has(is),
+        `"${is}" işi türetmeye girmiyor — o işin kapıları kapanışta HİÇ koşmaz`).toBe(true);
     }
   });
 

@@ -41,7 +41,7 @@
 .root[data-mod='statik'] .runway { height: var(--ekran); }
 .root[data-mod='statik'] .stage { visibility: visible; }
 @media (max-width: 699px) {
-  .root { --ekran: max(100svh, 660px); }
+  .root { --ekran: 100svh; }
   .header { padding: 20px 6%; gap: 16px; }
   .brand { font-size: 12px; max-width: 58%; }
   .skip { font-size: 12px; padding: 10px 0; }
@@ -54,6 +54,19 @@
   .scroll { display: none; }
   .current { grid-column: 1 / -1; font-size: 11px; }
   .tempo { grid-column: 1 / -1; justify-content: space-between; }
+}
+@media (max-width: 699px) and (max-height: 600px) {
+  .header { padding-block: 10px; }
+  .editorial { bottom: 94px; gap: 6px; }
+  .editorial h1 { font-size: clamp(42px, 13vw, 58px); }
+  .eyebrow, .sektor > span { display: none; }
+  .cta { min-height: 38px; padding-inline: 16px; }
+  .sektor button { min-height: 34px; padding-block: 5px; }
+  .footer { bottom: 8px; grid-template-columns: minmax(0, 1fr) auto; align-items: end; }
+  .current { grid-column: 1; align-self: center; }
+  .tempo { grid-column: 2; }
+  .tempo > label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .tempo select { min-height: 38px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .root .runway { height: var(--ekran); }

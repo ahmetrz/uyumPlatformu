@@ -7,6 +7,17 @@ import { KOK, tarayiciYolu } from './kosu-ortak.mjs';
 const browser = await chromium.launch({ executablePath: tarayiciYolu(), headless: true, args: ['--no-sandbox'] });
 try {
   mkdirSync('/tmp/giris-inceleme', { recursive: true });
+  {
+    const context = await browser.newContext({ viewport: { width: 375, height: 480 }, reducedMotion: 'no-preference' });
+    const page = await context.newPage();
+    await page.goto(`${KOK}/giris`);
+    await page.locator('[data-mod="hareketli"]').waitFor();
+    const tempo = page.getByLabel('Yolculuk temposu');
+    const kutu = await tempo.boundingBox();
+    assert.ok(kutu && kutu.y >= 0 && kutu.y + kutu.height <= 480, `kısa ekranda tempo görünmüyor: ${JSON.stringify(kutu)}`);
+    await tempo.selectOption('.72');
+    await context.close();
+  }
   for (const width of [375, 1440]) {
     const context = await browser.newContext({ viewport: { width, height: 936 }, reducedMotion: 'no-preference' });
     const page = await context.newPage();

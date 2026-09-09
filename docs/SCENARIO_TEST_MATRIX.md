@@ -4,12 +4,12 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 296 |
-| Testi olan senaryo | 296 |
+| Senaryo | 297 |
+| Testi olan senaryo | 297 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
-| Taranan test dosyası | 169 |
+| Taranan test dosyası | 170 |
 
 ## Katman başına kapsam
 
@@ -18,9 +18,9 @@
 | ACCESSIBILITY | 8 | 8 | 0 |
 | API | 12 | 12 | 0 |
 | CONCURRENCY | 7 | 7 | 0 |
-| DOMAIN | 162 | 162 | 0 |
+| DOMAIN | 163 | 163 | 0 |
 | ENGINE | 33 | 33 | 0 |
-| INTEGRATION | 27 | 27 | 0 |
+| INTEGRATION | 28 | 28 | 0 |
 | MIGRATION | 5 | 5 | 0 |
 | RBAC | 32 | 32 | 0 |
 | RESPONSIVE | 8 | 8 | 0 |
@@ -443,6 +443,22 @@
 | `URN-KAP-003` | Ürünleştirme | MIGRATION · DOMAIN | `kapsam-ogesi-gocu.test.ts` | türetilmiş alan kuraldan çıkar: göçün REPLACE hedefi tohumun bileşik koşuluyla birebir | evet | geçti |
 | `URN-KAP-003` | Ürünleştirme | MIGRATION · DOMAIN | `kapsam-ogesi-gocu.test.ts` | ortak sayısal anahtarların hepsi eşit; ölçüm dosyaları boş değil | evet | geçti |
 | `URN-KAP-003` | Ürünleştirme | MIGRATION · DOMAIN | `kapsam-ogesi-gocu.test.ts` | her tesis bir öğe aldı; tür dağılımı öğe sayısına toplanır | evet | geçti |
+| `URN-VER-001` | Ürünleştirme | DOMAIN · INTEGRATION | `bekci/null-olumsuzlama.test.ts` | ölçüm tabanı: tarama gerçekten dosya, çağrı ve bulgu görüyor | evet | geçti |
+| `URN-VER-001` | Ürünleştirme | DOMAIN · INTEGRATION | `bekci/null-olumsuzlama.test.ts` | beyan isteyen her olumsuzlama izin listesinde — olmayan adıyla kırmızı | evet | geçti |
+| `URN-VER-001` | Ürünleştirme | DOMAIN · INTEGRATION | `bekci/null-olumsuzlama.test.ts` | ölü satır yok — bulgusu kalmayan satır listeden düşmeli | evet | geçti |
+| `URN-VER-001` | Ürünleştirme | DOMAIN · INTEGRATION | `bekci/null-olumsuzlama.test.ts` | her satır sınıflı ve gerekçeli; beyan edilen model şemaya karşı doğru | evet | geçti |
+| `URN-VER-001` | Ürünleştirme | DOMAIN · INTEGRATION | `bekci/null-olumsuzlama.test.ts` | tavan satır sayısına EŞİT — gevşeklik yok | evet | geçti |
+| `URN-VER-001` | Ürünleştirme | DOMAIN · INTEGRATION | `bekci/null-olumsuzlama.test.ts` | liste taban dalın ALT KÜMESİDİR — cırcır yalnız küçülür | evet | geçti |
+| `URN-VER-001` | Ürünleştirme | DOMAIN · INTEGRATION | `bekci/null-olumsuzlama.test.ts` | kalıcı vaka: kusurun kendisi — nullable rol üzerinde NOT, NULL ele alınmamış → beyan | evet | geçti |
+| `URN-VER-001` | Ürünleştirme | DOMAIN · INTEGRATION | `bekci/null-olumsuzlama.test.ts` | kalıcı vaka: düzeltme — NULL OR dalıyla dâhil → güvenli | evet | geçti |
+| `URN-VER-001` | Ürünleştirme | DOMAIN · INTEGRATION | `bekci/null-olumsuzlama.test.ts` | kalıcı vaka: NULL\'un kendisini olumsuzlamak IS NOT NULL\'dır → güvenli | evet | geçti |
+| `URN-VER-001` | Ürünleştirme | DOMAIN · INTEGRATION | `bekci/null-olumsuzlama.test.ts` | kalıcı vaka: NOT NULL kolon → güvenli; ilişki zinciri hedef modelde çözülür | evet | geçti |
+| `URN-VER-001` | Ürünleştirme | DOMAIN · INTEGRATION | `bekci/null-olumsuzlama.test.ts` | kalıcı vaka: NULL açıkça DIŞLANMIŞSA (NOT null + notIn) → güvenli | evet | geçti |
+| `URN-VER-001` | Ürünleştirme | DOMAIN · INTEGRATION | `bekci/null-olumsuzlama.test.ts` | kalıcı vaka: dinamik NOT (çağrı/yayma) ve isNot → beyan | evet | geçti |
+| `URN-VER-001` | Ürünleştirme | DOMAIN · INTEGRATION | `bekci/null-olumsuzlama.test.ts` | kalıcı vaka: çağrı dışı süzgeç parçası beyan ister; tohum verisindeki Türkçe "not" istemez | evet | geçti |
+| `URN-VER-001` | Ürünleştirme | DOMAIN · INTEGRATION | `bekci/null-olumsuzlama.test.ts` | kalıcı vaka: yorum, dize ve veri nesnesi bulgu değildir | evet | geçti |
+| `URN-VER-001` | Ürünleştirme | DOMAIN · INTEGRATION | `bekci/null-olumsuzlama.test.ts` | kalıcı vaka: ham SQL NOT IN / != beyan ister; tırnak içindeki != göç JSON sabitidir | evet | geçti |
+| `URN-VER-001` | Ürünleştirme | DOMAIN · INTEGRATION | `bekci/null-olumsuzlama.test.ts` | kalıcı vaka: gevşek tavan kırmızı — tavan satır sayısından büyük olamaz | evet | geçti |
 
 ## Gerekçesiyle kütüksüz kalan dosyalar
 

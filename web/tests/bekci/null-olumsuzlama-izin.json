@@ -1,0 +1,49 @@
+{
+  "//": [
+    "NULL-OLUMSUZLAMA İZİN LİSTESİ — URN-VER-001 · cırcır (ratchet)",
+    "",
+    "Nullable kolon üzerinde olumsuz yüklem (`NOT: {…}` · `{ not: v }` ·",
+    "`{ notIn: [...] }` · ham SQL `NOT IN`/`<>`/`!=`) SQL'in üç değerli",
+    "mantığında NULL satırı sessizce düşürür. Ölçüldü (8 Eyl 2026): enerji",
+    "Tesis 360'ta rolü NULL yedi öznitelik `NOT: { rol: 'kapasite' }` ile",
+    "kayboldu; 3 292 yeşil test görmedi. Bekçi (`null-olumsuzlama.test.ts`)",
+    "her olumsuzlamayı şemaya karşı okur: NULL'un kendisini olumsuzlayan,",
+    "NOT NULL kolondaki ya da NULL'u aynı where içinde açıkça ele alan",
+    "olumsuzlama GÜVENLİDİR; kalanı bu listede BEYAN ister.",
+    "",
+    "KURAL — LİSTEYE SATIR EKLENMEZ, YALNIZ ÇIKARILIR (taban dal origin/main",
+    "listesinin alt kümesi). `tavan` satır sayısına EŞİTTİR; artamaz.",
+    "Her satır: dosya · tur · alan (bulgu anahtarı) · sinif (kalici |",
+    "ertelenmis) · gerekce (kusurun neden kusur OLMADIĞINI anlatır) ·",
+    "model (çağrı dışı parça için insan beyanı; bekçi şemaya karşı doğrular:",
+    "alan nullable ise gerekçe NULL'un akıbetini söylemek zorundadır) ·",
+    "kapanis (yalnız ertelenmiş)."
+  ],
+  "tavan": 3,
+  "satirlar": [
+    {
+      "dosya": "app/(kabuk)/(operasyonel)/kanitlar/veri.ts",
+      "tur": "NOT",
+      "alan": null,
+      "model": "Kanit",
+      "sinif": "kalici",
+      "gerekce": "Dinamik olumsuzlama: `NOT: kanitKapsamKosulu(izinli)` kapsam koşulunun tersidir ve sayacın TANIMI budur — kapsam bağı hiç olmayan kanıt da, yalnız başka tesise bağlı olan da 'görmediğin kayıt' sayılır (kaynaktaki yorum). Yokluk (NULL/bağsız) düşmez, sayıya dâhil edilir; kolon değil ilişki olumsuzlanır."
+    },
+    {
+      "dosya": "app/(kabuk)/(operasyonel)/omur/veri.ts",
+      "tur": "not",
+      "alan": "durum",
+      "model": "Proje",
+      "sinif": "kalici",
+      "gerekce": "Çağrı dışı ortak parça (`bitmemisProje`, tek tanım üç ilişki süzgecinde): `Proje.durum` şemada NOT NULL, varsayılanlı — NULL satır olamaz, düşecek satır yoktur. Parça bilerek çağrının dışında: ölçüt tek yerde tanımlanır."
+    },
+    {
+      "dosya": "app/(kabuk)/(operasyonel)/riskler/veri.ts",
+      "tur": "not",
+      "alan": "durum",
+      "model": "Risk",
+      "sinif": "kalici",
+      "gerekce": "Çağrı dışı ortak parça (`aktifKutuk`, satırlar/toplam/metrikler aynı koşuldan): `Risk.durum` şemada NOT NULL, varsayılanlı — NULL satır olamaz. Parça bilerek çağrının dışında: kapsam TEK yerde kurulur."
+    }
+  ]
+}

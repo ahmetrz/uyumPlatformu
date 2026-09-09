@@ -2087,7 +2087,7 @@ alınan kararlar.
 | K18 | Paket imzası | SHA-256 zorunlu, Ed25519 isteğe bağlı | — |
 | K19 | Dağıtım önceliği | On-prem (Compose) önce | SaaS önce |
 | K20 | Kiracı adaptörü | Yalnız imzalı ürün adaptörleri; kiracı verisi CSV/API/webhook | Sandbox (ayrı karar) |
-| K21 | İlk enerji dışı sektör · ilk TR dışı ülke paketi | Su/atıksu · EU-NIS2 | Kullanıcı seçer |
+| K21 | İlk enerji dışı sektör · ilk TR dışı ülke paketi | **Güncellendi (9 Eyl 2026):** ilk enerji dışı SATILABİLİR sektör bankacılık (`TR-BANKACILIK`; `docs/TR_SEKTOR_PAKETLERI.md`). Su/atıksu yalnız **demo sektörü** — sektörel düzenleyici bulunamadı, satılmaz, ürün vaadinde geçmez. İlk TR dışı ülke paketi (EU-NIS2) **ertelendi** (v1 TR, §2) | Kullanıcı seçer |
 | K22 | Tema | Koyu tek tema kalır | Kiracı teması |
 | K23 | **`v1` ne zaman donar?** | Yayımlanmış bir belge değil, **erişilebilir dağıtım + dağıtılmış kimlik**. `v1` şu iki olaydan **ilki** gerçekleştiğinde donar: (a) API'yi servis eden bir dağıtım dışarıdan erişilebilir hâle gelir, (b) ilk **dış** `ApiAnahtari` düzenlenir. O ana kadar sözleşme **taslaktır** ve `v2` açılmadan değiştirilebilir. Gerekçe: kıran değişikliğin maliyeti kırılan tüketici sayısıdır ve o sayı bugün sıfırdır | İlk olay gerçekleşince K23 kapanır; sonraki kıran değişiklik `v2` ister |
 | K24 | Taslak sözleşme **görünür** olmalı | `/api-sozlesmesi` ekranı, açık adreste duran tarifin örtük bir taahhüt sayılmaması için başında tek satır uyarı taşır: "`v1` taslaktır; ilk dış tüketiciye kadar haber verilmeden değişebilir." Statik demo bu ekranı yayımladığı için uyarı da yayımlanır | K23 kapanınca uyarı kalkar |

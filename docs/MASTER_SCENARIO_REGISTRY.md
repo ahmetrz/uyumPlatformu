@@ -13,7 +13,7 @@ it('kapsam dışı varlığa yazılamaz [ENV-YAZ-003]', …)
 Ayrı bir eşleme tablosu tutulsaydı, tablo ilk yeniden adlandırmada
 testten ayrışır ve kimse görmezdi.
 
-Senaryo: **296** · testli: **296** · GAP: **0**
+Senaryo: **297** · testli: **297** · GAP: **0**
 
 ## Aktivite · 2 senaryo
 
@@ -452,7 +452,7 @@ Senaryo: **296** · testli: **296** · GAP: **0**
 | `UYU-CRC-004` | /uyum/[cerceve] | uyum uzmanı · kendi tesisi | Çerçevenin bazı maddeleri hiç değerlendirilmemiş · kısmi | Madde satırını genişletir | Değerlendirilmemiş madde "uyumlu" ya da "uyumsuz" SAYILMAZ | Genişleyen satırda "ölçülmedi" ayrı okunur | yazma yok | yok | `ters-kapsam-ekran.test.ts` |
 | `UYU-ANL-001` | — | sistem (motor) · kurum geneli | Aynı gün zaten anlık alınmış · yinelenen | Motor aynı gün ikinci kez koşar | İkinci anlık YAZILMAZ — günde bir | — | yazma yok | yok | `ters-kapsam-eylem.test.ts` |
 
-## Ürünleştirme · 16 senaryo
+## Ürünleştirme · 17 senaryo
 
 | ID | Rota | Rol · kapsam | Ön koşul · veri | Eylem | Beklenen sonuç | Ekran | Denetim izi | Görev/bildirim | Test |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -472,6 +472,7 @@ Senaryo: **296** · testli: **296** · GAP: **0**
 | `URN-KAP-001` | — | ürünü sürdüren geliştirici · depo geneli | B1: dokuz omurga tablosu (süreç kapsamı · madde durumu · uygulanabilirlik kararı · istisna · kanıt bağı · denetçi kapsamı · aktarım · anlık · yetki) kapsam öğesine bağlı; tesis yalnız `KapsamOgesi.tesisId` köprüsü · aykiri | Bekçi şemayı okur: `kapsamOgesiId` taşıyan her modelde doğrudan `tesisId` arar; izin listesi taban dalın alt kümesi olmak zorundadır | Omurga tablosuna eklenen tek bir `tesisId` kolonu adıyla kırmızı; ölü izin satırı da kırmızı; liste yalnız küçülür. Kalıcı vaka kirli parçayı kırmızı, temizini yeşil görür | Ekran yok — kapı | yazma yok | yok | `bekci/kapsam-omurga.test.ts` · `bekci/kapsam-omurga.test.ts` · `bekci/kapsam-omurga.test.ts` · `bekci/kapsam-omurga.test.ts` · `bekci/kapsam-omurga.test.ts` · `bekci/kapsam-omurga.test.ts` |
 | `URN-KAP-002` | — | ürünü sürdüren geliştirici · depo geneli | B2: `TesisProfili`nin sekiz enerji kolonu paketin öznitelik şemasına taşındı; kurulu paketlerin anahtarları tohum kaynağından okunur · aykiri | Bekçi şema model/alan adlarını paket anahtarlarına ve sektör terimi kalıplarına karşı tarar | `blackStart` gibi bir paket anahtarı ya da adında sektör sözcüğü taşıyan bir kolon adıyla kırmızı; tavan sıfır, borç kütüğü yok | Ekran yok — kapı | yazma yok | yok | `bekci/sema-sektorsuz.test.ts` · `bekci/sema-sektorsuz.test.ts` · `bekci/sema-sektorsuz.test.ts` · `bekci/sema-sektorsuz.test.ts` |
 | `URN-KAP-003` | — | ürünü sürdüren geliştirici · depo geneli | Tür kataloğu, öğe kimlik kuralı, kurum eşlemesi, öznitelik şeması, etiketler, profil→öznitelik taşıması ve kural bileşimi iki kaynakta (SQL · TypeScript) yaşar · normal | Göç SQL'i ayrıştırılıp tohum sabitleriyle alan alan karşılaştırılır; göç öncesi/sonrası sayım dosyaları ortak anahtarlarda eşitlik için okunur | İki kaynaktan biri değişip öbürü değişmezse kırmızı; K3 sayımlarında ortak anahtarların hepsi eşit, her tesis bir öğe almış | Ekran yok — kapı | yazma yok | yok | `kapsam-ogesi-gocu.test.ts` · `kapsam-ogesi-gocu.test.ts` · `kapsam-ogesi-gocu.test.ts` · `kapsam-ogesi-gocu.test.ts` · `kapsam-ogesi-gocu.test.ts` · `kapsam-ogesi-gocu.test.ts` · `kapsam-ogesi-gocu.test.ts` · `kapsam-ogesi-gocu.test.ts` · `kapsam-ogesi-gocu.test.ts` · `kapsam-ogesi-gocu.test.ts` · `kapsam-ogesi-gocu.test.ts` · `kapsam-ogesi-gocu.test.ts` |
+| `URN-VER-001` | — | ürünü sürdüren geliştirici · depo geneli | Prisma `NOT:` · `not:` · `notIn:` · `isNot:` ve ham SQL `NOT IN` · `<>` · `!=` yüklemleri şemadaki null'lukla birlikte okunur; ölçüldü: `NOT: { rol: 'kapasite' }` rolü NULL yedi özniteliği düşürdü ve 3 292 yeşil test görmedi · aykiri | Bekçi her üretim dosyasındaki olumsuz yüklemi kapsayan Prisma çağrısından modele, ilişki zincirinden alana çözer ve NULL'un ele alınıp alınmadığına bakar | NULL'un kendisini olumsuzlayan, NOT NULL kolondaki ya da NULL'u aynı where içinde açıkça ele alan olumsuzlama güvenli; kalanı gerekçeli izin listesinde yoksa kırmızı; liste yalnız küçülür, tavan satır sayısına eşit; ölçüm tabanı (dosya · çağrı · bulgu) sıfır olamaz | Ekran yok — kapı | yazma yok | yok | `bekci/null-olumsuzlama.test.ts` · `bekci/null-olumsuzlama.test.ts` · `bekci/null-olumsuzlama.test.ts` · `bekci/null-olumsuzlama.test.ts` · `bekci/null-olumsuzlama.test.ts` · `bekci/null-olumsuzlama.test.ts` · `bekci/null-olumsuzlama.test.ts` · `bekci/null-olumsuzlama.test.ts` · `bekci/null-olumsuzlama.test.ts` · `bekci/null-olumsuzlama.test.ts` · `bekci/null-olumsuzlama.test.ts` · `bekci/null-olumsuzlama.test.ts` · `bekci/null-olumsuzlama.test.ts` · `bekci/null-olumsuzlama.test.ts` · `bekci/null-olumsuzlama.test.ts` · `bekci/null-olumsuzlama.test.ts` |
 
 ## Varlık aktarımı · 3 senaryo
 

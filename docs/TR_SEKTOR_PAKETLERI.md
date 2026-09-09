@@ -37,7 +37,7 @@ Sütunlar: paket kodu · sektör (kimler) · düzenleyici · başlıca düzenlem
 
 | Paket | Sektör | Düzenleyici | Başlıca düzenleme | Madde (ölçülen) | Kaynak sınıfı · erişim |
 | --- | --- | --- | --- | --- | --- |
-| **TR-ENERJI** | Elektrik üretim · iletim · dağıtım, doğal gaz iletim · dağıtım · depolama, rafineri, ham petrol iletim lisans sahipleri (EKS işletenler) | EPDK | **Enerji Sektöründe Siber Güvenlik Yetkinlik Modeli Yönetmeliği** — RG 06.06.2023/32213; değişiklik 28.01.2024/32443 ve 08.09.2024/32656; son hâli RG 25.11.2025/33088. Ekler: Ek-1 Elektrik Dağıtım · Ek-2 Doğal Gaz Dağıtım · Ek-3 Elektrik Üretim · Ek-4 Rafineri · Ek-5 Doğal Gaz Depolama · Ek-6 Doğal Gaz ve Ham Petrol İletim · Ek-7 Elektrik İletim; referans topolojiler Ek-1a, Ek-2a, Ek-3a (HES · RES · GES · Termik DCS) | Yönetmelik **18 madde + 1 geçici** (PDF'te 18 ayrı "MADDE n"); ekler **3 780 kontrol satırı** (7 ek; ek başına 476–591; §4) | **BİRİNCİL** — epdk.gov.tr'den yönetmelik PDF'i ve 7 ek XLSX indirildi ve ayrıştırıldı; RG sayfası 503. Madde 5/c TS ISO/IEC 27001, 5/ç TS EN ISO/IEC 27019 atfı (Lexpera özeti) |
+| **TR-ENERJI** | Elektrik üretim · iletim · dağıtım, doğal gaz iletim · dağıtım · depolama, rafineri, ham petrol iletim lisans sahipleri (EKS işletenler) | EPDK | **Enerji Sektöründe Siber Güvenlik Yetkinlik Modeli Yönetmeliği** — RG 06.06.2023/32213; değişiklik 28.01.2024/32443 ve 08.09.2024/32656; son hâli RG 25.11.2025/33088. Ekler: Ek-1 Elektrik Dağıtım · Ek-2 Doğal Gaz Dağıtım · Ek-3 Elektrik Üretim · Ek-4 Rafineri · Ek-5 Doğal Gaz Depolama · Ek-6 Doğal Gaz ve Ham Petrol İletim · Ek-7 Elektrik İletim; referans topolojiler Ek-1a, Ek-2a, Ek-3a (HES · RES · GES · Termik DCS) | Yönetmelik **18 madde + 1 geçici** (PDF'te 18 ayrı "MADDE n"); ekler **3 691 kontrol** (7 ek; ek başına 464–578; kimlik sütunuyla sayıldı, §4) | **BİRİNCİL** — epdk.gov.tr'den yönetmelik PDF'i ve 7 ek XLSX indirildi ve ayrıştırıldı; RG sayfası 503. Madde 5/c TS ISO/IEC 27001, 5/ç TS EN ISO/IEC 27019 atfı (Lexpera özeti) |
 | **TR-BANKACILIK** | Bankalar (5411 s. Kanun md. 93 dayanak) | BDDK | **Bankaların Bilgi Sistemleri ve Elektronik Bankacılık Hizmetleri Hakkında Yönetmelik** — RG 15.03.2020/31069; yürürlük 01.07.2020 (bazı maddeler 01.01.2021) | **47 madde**, 4 kısım; II. kısım ("BS'ye ilişkin risk yönetimi ve kontrollerin tesisi") 7 bölüm: BS yönetişimi · BS risklerinin yönetilmesi · bilgi güvenliği yönetimi · sistem geliştirme ve değişiklik · süreklilik ve erişilebilirlik · dış hizmet alımı · iç kontrol ve iç denetim; III. kısım elektronik bankacılık | **İKİNCİL** — Lexpera konsolide metin (madde sayısı, kısımlar, madde numaraları); bölüm adları TBB/hukuk bürosu notları. **Birincil erişilemedi:** mevzuat.gov.tr (No 34211 · 34360 · GeneratePdf) 503 · RG 20200315-11 503 · bddk.org.tr DokumanGetir/1171 503 · tbb.org.tr PDF bağı gezinme sayfası döndü |
 | **TR-ODEME** | Ödeme kuruluşları, elektronik para kuruluşları, ödeme hizmeti sağlayıcıları (veri paylaşım servisleri) | TCMB | **Ödeme ve Elektronik Para Kuruluşlarının Bilgi Sistemleri ile Ödeme Hizmeti Sağlayıcılarının Ödeme Hizmetleri Alanındaki Veri Paylaşım Servislerine İlişkin Tebliğ** — RG 01.12.2021/31676 | **34 madde**, 5 bölüm (PDF ölçümü) | **BİRİNCİL** — tcmb.gov.tr PDF indirildi; RG 503 |
 | **TR-SERMAYE** | Borsa İstanbul, borsalar ve piyasa işleticileri, aracı kurumlar (sermaye piyasası kurumları), portföy saklayıcıları, Takasbank, MKK, emeklilik yatırım fonları, halka açık ortaklıklar, TSPB, TDUB, kripto varlık hizmet sağlayıcıları (Lexpera md. 2 listesi) | SPK | **Bilgi Sistemleri Yönetimine İlişkin Usul ve Esaslar Tebliği (VII-128.10)** — RG 13.03.2025/32840; yürürlük 30.06.2025; VII-128.9 (RG 05.01.2018/30292) yürürlükten kalktı | **34 madde + 1 geçici + Ek** | **İKİNCİL** — Lexpera konsolide; RG erişilmedi. **Not:** depodaki `SPK-BS` (3 madde) hangi tebliğe ait, ölçülmedi — sürüm kontrolü ister |
@@ -46,7 +46,18 @@ Sütunlar: paket kodu · sektör (kimler) · düzenleyici · başlıca düzenlem
 | **TR-SAGLIK** | Hastaneler, sağlık bilgi sistemleri (kamu + özel) | Sağlık Bakanlığı (SBSGM) | **Bilgi Güvenliği Politikaları Yönergesi** ve **Kılavuzu** (v2.0 03.09.2018 · v2.1 16.07.2019) — yönerge/kılavuz, yönetmelik değil | ölçülmedi | **İKİNCİL** — arama özeti; saglik.gov.tr sayfaları bu oturumda çekilmedi |
 | **TR-KAMU-KRITIK** (yatay) | Kamu kurum ve kuruluşları + kritik altyapı hizmeti veren işletmeler; 7545 kapsamı "siber uzayda … kamu kurum ve kuruluşları, … gerçek ve tüzel kişiler" | Siber Güvenlik Başkanlığı (7545) · CBDDÖ (BİG Rehberi) | **7545 sayılı Siber Güvenlik Kanunu** — RG 19.03.2025/32846, yayımı tarihinde yürürlük (md. 20). **2019/12 sayılı Cumhurbaşkanlığı Genelgesi** — RG 06.07.2019/30823 → **Bilgi ve İletişim Güvenliği Rehberi** (cbddo.gov.tr) | 7545: **21 madde + 1 geçici**; md. 7 sorumluluklar (veri/bilgi sağlama, tedbir, zafiyet ve olay bildirimi, yetkili ürün/hizmet, onay, Başkanlık düzenlemelerine uyum); md. 9(4)(ç) kritik altyapı sektörlerini Siber Güvenlik Kurulu belirler; md. 16(10) idari para cezası "bir milyon Türk lirasından on milyon Türk lirasına kadar" ve "on milyon Türk lirasından yüz milyon Türk lirasına kadar". Rehber: ölçülmedi | 7545 **İKİNCİL** (Lexpera orijinal metin; RG 20250319-1 erişilmedi). Genelge **İKİNCİL** (arama özeti; RG 503; cbddo.gov.tr çekilmedi) |
 | **TR-KVKK** (yatay) | Kişisel veri işleyen gerçek ve tüzel kişiler (md. 2/1 alıntısı §7) | KVKK Kurumu | **6698 sayılı Kişisel Verilerin Korunması Kanunu** — RG 07.04.2016/29677; son değişiklik 7499 s. Kanun (12.03.2024), yürürlük 01.06.2024 | **33 madde + 3 geçici**; md. 12/1 veri güvenliği yükümlülükleri, md. 12/5 ihlal bildirimi "en kısa sürede" | **İKİNCİL** — Lexpera konsolide; kvkk.gov.tr sayfası kanun metnini vermedi |
-| **TR-SU** | Su ve atıksu idareleri (belediye) — demo ikinci sektörü (K21) | **Sektörel düzenleyici bulunamadı** | Sektöre özgü bilgi sistemi/siber düzenlemesi **bulunamadı** (arama). Çatı: 7545 (kritik altyapı sektörünü Kurul belirler — md. 9(4)(ç)); "su ve atık yönetimi"nin kritik altyapı sayıldığı yalnız **ikincil** kaynakta (tedarikçi blogu) geçiyor; Ulusal Siber Güvenlik Stratejisi 2024-2028 PDF'i **404** | — | İçerik yatay paketlerden gelir (TR-KAMU-KRITIK + TR-KVKK) + ISO/IEC 27001 kimlik+başlık; sektörel çerçeve **yok** |
+
+### Demo sektörü — satılabilir paket DEĞİL
+
+Su/atıksu için sektörel düzenleyici ve sektöre özgü bilgi sistemi/siber
+düzenlemesi **bulunamadı**; bu yüzden su bir **DEMO SEKTÖRÜDÜR** (K21:
+çekirdeğin sektör bağımsızlığını ikinci bir sözlükle göstermek için),
+satılabilir paket listesinde **yer almaz** ve ürün vaadinde geçmez
+(`docs/URUN_VIZYONU.md` §9). Demo içeriği yatay paketlerden gelir.
+
+| Demo | Kimler | Düzenleyici | Çatı | Kaynak |
+| --- | --- | --- | --- | --- |
+| **DEMO-SU** (paket kodu `TR-SU` **değil**) | Su ve atıksu idareleri (belediye) — kurgusal demo kiracısı | **bulunamadı** | 7545 (kritik altyapı sektörünü Siber Güvenlik Kurulu belirler — md. 9(4)(ç)); "su ve atık yönetimi"nin kritik altyapı sayıldığı yalnız **ikincil** kaynakta (tedarikçi blogu) geçiyor; Ulusal Siber Güvenlik Stratejisi 2024-2028 PDF'i **404** | İçerik: TR-KAMU-KRITIK + TR-KVKK + ISO/IEC 27001 kimlik+başlık; sektörel çerçeve **yok** |
 
 **Araştırılmayan adaylar** (bu oturumda ölçülmedi, listeye alınmadı):
 ulaştırma (UAB), savunma sanayii, kamu e-hizmetleri.
@@ -90,27 +101,31 @@ Kalemler `docs/SEKTOR_PAKETI_SOZLESMESI.md` §1 tablosunun dokuz satırıdır.
 
 ## 4 · Efor ölçümü — madde/yükümlülük sayısı, içe aktarım yolu, iş türü
 
-**Ölçüm yöntemi (EPDK ekleri):** her ek XLSX'te aile sayfaları (`01-…`
-… `13-…`) sayıldı; sayfa başına değer taşıyan satır − 1 başlık. Kontrol
-kimliği sütunu ayrıştırılmadı; alt başlık ve not satırları sayıma
-girmiş olabilir — sayı **üst sınırdır**. Önceki oturumda farklı yöntemle
-3 694 ölçülmüştü; iki ölçüm de aynı büyüklük sırasındadır.
+**Ölçüm yöntemi (EPDK ekleri) — iki sayı, tek gerçek.** Her ek
+XLSX'te aile sayfaları (`01-…` … `13-…`) ayrıştırıldı; başlık satırı
+`No · Ana Kontrol · Kontrol · Alt Kontrol · Seviye`, kimlik sütunu `No`
+(`EAG-1` gibi kod). **Kimlikli satır = 3 691 — gerçek kontrol sayısı.**
+Önceki iki sayının sebebi ölçüldü: **3 780** = 3 691 + 89, her aile
+sayfasının başlık üstündeki sayfa adı satırı da sayılmıştı (89 = yedi
+ekteki toplam aile sayfası) → üst sınır, artık kullanılmaz; **3 694**
+önceki oturumun kayıt dışı yöntemi → kullanılmaz. Bu belgede geçen tek
+sayı 3 691'dir.
 
-| Ek | Sektör | Aile sayfası | Kontrol satırı |
+| Ek | Sektör | Aile sayfası | Kontrol (kimlikli satır) |
 | --- | --- | --- | --- |
-| Ek-1 | Elektrik Dağıtım | 12 | 488 |
-| Ek-2 | Doğal Gaz Dağıtım | 13 | 518 |
-| Ek-3 | Elektrik Üretim | 13 | 578 |
-| Ek-4 | Rafineri | 13 | 565 |
-| Ek-5 | Doğal Gaz Depolama | 13 | 564 |
-| Ek-6 | Doğal Gaz ve Ham Petrol İletim | 13 | 591 |
-| Ek-7 | Elektrik İletim | 12 | 476 |
-| **Toplam** | | | **3 780** |
+| Ek-1 | Elektrik Dağıtım | 12 | 476 |
+| Ek-2 | Doğal Gaz Dağıtım | 13 | 505 |
+| Ek-3 | Elektrik Üretim | 13 | 565 |
+| Ek-4 | Rafineri | 13 | 552 |
+| Ek-5 | Doğal Gaz Depolama | 13 | 551 |
+| Ek-6 | Doğal Gaz ve Ham Petrol İletim | 13 | 578 |
+| Ek-7 | Elektrik İletim | 12 | 464 |
+| **Toplam** | | **89** | **3 691** |
 
 | Paket | Madde / kontrol (ölçülen) | Metin | İçe aktarım yolu — bugün | İş türü |
 | --- | --- | --- | --- | --- |
 | TR-ENERJI yönetmelik | 18 (+1 geçici) | resmî metin, serbest | `/ice-aktarim` XLSX → `Madde` (R2: şablon üretici **yok**) | **içerik** |
-| TR-ENERJI ekleri | 3 780 satır, 7 ek | resmî metin, serbest | XLSX doğrudan; sütun → alan eşlemesi (`xlsx` vendored 0.20.3, R12); seviye → `olgunlukSeviyesi` | **içerik + küçük kod** (sütun eşleyici) |
+| TR-ENERJI ekleri | 3 691 kontrol, 7 ek | resmî metin, serbest | XLSX doğrudan; sütun → alan eşlemesi (`xlsx` vendored 0.20.3, R12); seviye → `olgunlukSeviyesi` | **içerik + küçük kod** (sütun eşleyici) |
 | TR-BANKACILIK | 47 | resmî metin — birincil erişim gerekli | XLSX/`/ice-aktarim` | **içerik** (kaynak erişimi ön koşul) |
 | TR-ODEME | 34 | resmî metin (PDF elde) | aynı | **içerik** |
 | TR-SERMAYE | 34 (+1 geçici + Ek) | resmî metin | aynı | **içerik** |
@@ -118,10 +133,10 @@ girmiş olabilir — sayı **üst sınırdır**. Önceki oturumda farklı yönte
 | TR-KAMU-KRITIK | 7545: 21 (+1 geçici); Rehber: ölçülmedi | resmî metin | aynı | **içerik** |
 | TR-KVKK | 33 (+3 geçici) | resmî metin | aynı | **içerik** |
 | ISO/IEC 27001 · 27019 | ölçülmedi (kimlik+başlık, K3) | **telifli — girmez** | mevcut ISO-27001 4 madde kalıbı | içerik (kimlik listesi) |
-| **Toplam madde** | **230** madde (+ geçiciler) + **3 780** kontrol satırı | | | |
+| **Toplam madde** | **230** madde (+ geçiciler) + **3 691** kontrol | | | |
 
 **Kod işi mi, içerik işi mi?** Sayıların tamamı içerik işidir: 230 madde
-ve 3 780 kontrol satırı yazılmaz, **resmî metinden aktarılır**. Kod işi
+ve 3 691 kontrol yazılmaz, **resmî metinden aktarılır**. Kod işi
 P4'ün sözleşmede "YOK/KISMEN" duran dört kalemidir: paket okuyucu +
 manifest doğrulayıcı (`lib/paket/`), `DenetimFormuSablonu` + XLSX hücre
 eşlemesi, `RaporSablonu`, rol kataloğu; artı kapsam türlerinin ve
@@ -141,8 +156,9 @@ yazılmaz (§1 kuralı).
 3. **TR-ODEME · TR-HABERLESME** — birincil PDF elde; içerik.
 4. **TR-BANKACILIK · TR-SERMAYE** — kaynak ikincil; birincil erişim
    (mevzuat.gov.tr) sağlanınca.
-5. **TR-SU** — sektörel çerçeve yok; yatay paketlerle demo.
-6. **TR-SIGORTA · TR-SAGLIK** — kaynak zayıf; ölçüm tamamlanınca.
+5. **TR-SIGORTA · TR-SAGLIK** — kaynak zayıf; ölçüm tamamlanınca.
+
+Su bu sırada **yok**: demo sektörüdür, satılmaz (§2).
 
 ---
 
@@ -151,7 +167,7 @@ yazılmaz (§1 kuralı).
 - mevzuat.gov.tr, resmigazete.gov.tr, bddk.org.tr, cbddo.gov.tr, uab.gov.tr
   bu oturumda erişilemedi; ikincil kaynakla yazılan satırlar birincil
   metinle **doğrulanmalıdır** (özellikle BDDK madde numaraları).
-- EPDK ek sayımı üst sınırdır (yöntem §4).
+- EPDK ek sayımı kimlik sütunuyla yapıldı (3 691); kontrol metinleri ayrıştırılmadı, seviye dağılımı ölçülmedi.
 - SEDDK ve Sağlık satırları paket adayı olarak zayıftır; içerik
   ölçülmedi.
 - Madde metni bu belgeye **kopyalanmadı**; yalnız sayı, yapı ve kısa

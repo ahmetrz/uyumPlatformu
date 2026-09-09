@@ -215,6 +215,17 @@ Yedincisi bir merge hatasından doğdu:
 bulgu (ikisi P1) bildirdi, merge 07:00'de yalnız CI'ya bakılarak yapıldı
 ve beşi de `main`e girdi. Düzeltmeleri #32 kapattı.
 
+Dokuzuncusu sekizincinin devamı (9 Eylül 2026):
+**NULL-olumsuzlama bir SINIFTIR, tek kusur değil.** Depoda ölçüldü: 637
+dosya · 1 393 Prisma çağrısı · 37 olumsuz yüklem bulgusu (`not:` 21 ·
+`NOT:` 7 · `notIn:` 9 · `isNot:` 0 · ham SQL 0); 34'ü şemaya karşı
+güvenli (NULL'un kendisi 14 · NOT NULL kolon 18 · NULL açıkça ele alınmış
+2), 3'ü beyanlı (dinamik ilişki olumsuzlaması 1 · çağrı dışı ortak parça
+2 — ikisi de NOT NULL kolon). Kusur sayısı: 1 (Faz B'de düzeltilen). Kural motoru `!=` işleci NULL'da
+`bilinmiyor` döner (`kosulSagla`), kusur yok. Bekçi
+`tests/bekci/null-olumsuzlama.test.ts` (URN-VER-001); izin listesi
+yalnız küçülür.
+
 Sekizincisi Faz B'de (B1/B2) ölçüldü:
 **Parite EKRANDAN ölçülür, yeşil testten değil.** 3 289 vaka yeşilken
 K4 ekran koşusu enerji Tesis 360'ta 20 yerine **13** alan gösterdi:
@@ -262,6 +273,7 @@ dedektörü kapatmamak, borcu **görünmez** yapar — bu turda iki kez oldu.
 | K3 göç eşitliği | `web/arac/goc-sayimi.mjs` → `arac/goc-sayimlari/*.json` + `tests/kapsam-ogesi-gocu.test.ts` | Göç öncesi/sonrası sayısal eşitlik dosyadan okunur (74 ortak anahtar, 25 tesis → 25 öğe: kurum 2 · tesis 23); tohum ile göç aynı kimlikleri/satırları yazıyor mu (`ko-` kuralı dört yerde, öznitelik şeması UNION bloğundan ayrıştırılır, kapasite rolü UPDATE'i) |
 | K4 parite koşusu | `web/arac/k4-enerji-su.mjs` → `docs/kanit/faz-b-k4/OZET.md` | Sekiz demo ekranı iki mercekte; HTTP · gövde uzunluğu · hata metni (bileşenin kendi metni) · mercek sözcüğü · Tesis 360 profil alanı sayısı **ekranın metninden** (`textContent`). Canlı sunucu ister, kapı değildir; sonuç JPEG + OZET.md |
 | `sektorProfiliOku` veri yolu | `web/tests/tesis360-sektor-profili.test.ts` | Beklenti şema TABLOSUNDAN ölçülür: kapasite dışı her satır alan olmalı, rolü NULL olanlar dahil (SQL `NOT rol = x` tuzağı). Yalnız kapasite beyan eden paket boş profil verir |
+| NULL-olumsuzlama bekçisi | `web/tests/bekci/nullOlumsuzlama.ts` + `null-olumsuzlama.test.ts` + `null-olumsuzlama-izin.json` | SINIF kapısı (URN-VER-001): her `NOT:` · `not:` · `notIn:` · `isNot:` ve ham SQL `NOT IN`/`<>`/`!=` yüklemi, kapsayan Prisma çağrısından modele ve ilişki zincirinden alana çözülüp şemadaki null'lukla okunur. NULL'un kendisini olumsuzlayan, NOT NULL kolondaki ya da NULL'u aynı where içinde açıkça ele alan yüklem güvenli; kalanı gerekçeli listede yoksa kırmızı. Çağrı dışı süzgeç parçası (`const kutuk = { durum: { not } }`) `model` beyanı ister ve beyan şemaya karşı doğrulanır; tohum verisindeki Türkçe `not:` ve yorum/dize bulgu değildir (maskeleme). Ölçüm tabanı: dosya · çağrı · bulgu sıfır olamaz. Sabotaj: `NOT: { rol: 'kapasite' }` geri konunca kırmızı |
 
 ---
 

@@ -159,6 +159,16 @@ kapanış taşıyamaz. KALICI cırcırın kaçış kapısı olduğu için kendi 
 küme dişini taşır: taban dalda ertelenmiş olan bir satır bu dalda
 kalıcıya sessizce terfi edemez.
 
+**Nullable kolonda olumsuz yüklem NULL'u AÇIKÇA ele alır.** `NOT: { x: v }`,
+`{ not: v }`, `{ notIn: [...] }`, ham SQL `NOT IN`/`<>`/`!=` üç değerli
+mantıkta NULL satırı sessizce düşürür. Ölçüldü (8 Eylül 2026):
+`NOT: { rol: 'kapasite' }` enerji Tesis 360'ta rolü boş yedi özniteliği
+yok etti ve 3 292 yeşil test görmedi. Bugün: NULL ya `OR` dalıyla dâhil
+edilir (`OR: [{ x: null }, { x: { not: v } }]`) ya `NOT: { x: null }` ile
+bilerek dışlanır; ikisi de yoksa bekçi kırmızıdır
+(`web/tests/bekci/null-olumsuzlama.test.ts`, URN-VER-001); meşru istisna
+gerekçeli izin listesinde durur ve liste yalnız küçülür.
+
 **Dosyayı değiştirmeden önce güncel hâlini oku.**
 
 ### Değişen kurallar

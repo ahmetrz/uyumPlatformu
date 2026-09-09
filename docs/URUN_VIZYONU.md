@@ -156,7 +156,7 @@ koddan · dosyayı değiştirmeden önce oku.
 | Karar | Seçenekler | Etkisi |
 |---|---|---|
 | **Ürün adı** | ~~Karar bekliyor~~ → görünen ad geçici ve tanımlayıcı, `MARKA_AD`'dan gelir (6 Eylül 2026). `Regula` iç çalışma adı, arayüzde geçmez | P0 marka yapılandırması **uygulandı** (`web/lib/marka.ts`). Kalıcı ad §10 uyarısı ve seçim ölçütü nedeniyle sonra verilecek |
-| **İlk enerji dışı sektör** | su/atıksu · imalat · ulaştırma · sağlık | P8 ikinci demo kiracısı ve sözlük |
+| **İlk enerji dışı sektör (satılabilir)** | bankacılık · ödeme · haberleşme · sermaye piyasası (`docs/TR_SEKTOR_PAKETLERI.md` §2, ölçülmüş düzenleyici ve düzenlemeyle). **Su/atıksu yalnız DEMO sektörüdür** — sektörel düzenleyici bulunamadı; ürün vaadinde geçmez, satılabilir paket değildir | P8 ikinci demo kiracısı ve sözlük (su, demo olarak kalır) |
 | **İlk Türkiye dışı ülke paketi** | EU-NIS2 (genel) · DE-KRITIS · US-NERC-CIP | P4 ikinci kaynak kataloğu ve çerçeve |
 | **Dağıtım önceliği** | on-prem önce · SaaS önce · ikisi birden | P7 sırası |
 | **İkinci dil** | İngilizce (varsayılan) · Almanca | P3 |

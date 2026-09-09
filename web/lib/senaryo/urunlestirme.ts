@@ -241,4 +241,21 @@ export const URUNLESTIRME_SENARYOLARI: Senaryo[] = [
     beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
     katmanlar: ['MIGRATION', 'DOMAIN'],
   },
+  {
+    id: 'URN-VER-001', alan: 'Ürünleştirme', rota: '—', eksen: 'veri',
+    amac: 'Nullable kolon üzerindeki olumsuz yüklemin NULL satırı sessizce düşürmemesi (veri doğruluğu sınıfı)',
+    rol: 'ürünü sürdüren geliştirici', kapsam: 'depo geneli',
+    onkosul: 'Prisma `NOT:` · `not:` · `notIn:` · `isNot:` ve ham SQL `NOT IN` · `<>` · `!=` '
+      + 'yüklemleri şemadaki null\'lukla birlikte okunur; ölçüldü: `NOT: { rol: \'kapasite\' }` '
+      + 'rolü NULL yedi özniteliği düşürdü ve 3 292 yeşil test görmedi',
+    veriHali: 'aykiri',
+    eylem: 'Bekçi her üretim dosyasındaki olumsuz yüklemi kapsayan Prisma çağrısından modele, '
+      + 'ilişki zincirinden alana çözer ve NULL\'un ele alınıp alınmadığına bakar',
+    beklenenSonuc: 'NULL\'un kendisini olumsuzlayan, NOT NULL kolondaki ya da NULL\'u aynı where içinde '
+      + 'açıkça ele alan olumsuzlama güvenli; kalanı gerekçeli izin listesinde yoksa kırmızı; liste '
+      + 'yalnız küçülür, tavan satır sayısına eşit; ölçüm tabanı (dosya · çağrı · bulgu) sıfır olamaz',
+    beklenenEkran: 'Ekran yok — kapı',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['DOMAIN', 'INTEGRATION'],
+  },
 ];

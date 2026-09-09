@@ -38,7 +38,7 @@
      çerçevede `Madde.metin` = TELIFLI_METIN, kamuya açık iskelette
      METIN_GELMEDI. Metin uydurulmaz. */
 import type { Prisma, PrismaClient } from '../prisma-client/client';
-import { METIN_GELMEDI, TELIFLI_METIN, type CerceveKimligi, type MaddeSatiri, type Manifest } from './bicim';
+import { DOSYALAR, METIN_GELMEDI, TELIFLI_METIN, type CerceveKimligi, type MaddeSatiri, type Manifest } from './bicim';
 import { paketiDogrula, type DogrulamaHatasi, type PaketIcerigi } from './dogrula';
 
 type Tx = Prisma.TransactionClient;
@@ -54,11 +54,11 @@ const IN_PARCASI = 500;
 export type Celiski = { tablo: string; anahtar: string; sebep: string };
 export type KurulumRaporu = {
   paketId: string; surumId: string; kod: string; surum: string;
-  sayilar: { sozluk: number; kapsamTurleri: number; oznitelikler: number; cerceveler: number; maddeler: number; yukumlulukler: number };
+  sayilar: { sozluk: number; kapsamTurleri: number; oznitelikler: number; cerceveler: number; maddeler: number; yukumlulukler: number; formlar: number; raporlar: number };
   celiskiler: Celiski[];
   taslakSurumler: { regulasyonKod: string; surumEtiketi: string; surumId: string }[];
   /** Yükseltme uzlaştırması: bu sürümün artık beyan etmediği paket kökenli satırlar (pasif / arşiv; silme yok). */
-  pasiflestirilen: { kapsamTurleri: number; yukumlulukler: number; cerceveSurumleri: number; sozluk: number; oznitelikler: number };
+  pasiflestirilen: { kapsamTurleri: number; yukumlulukler: number; cerceveSurumleri: number; sozluk: number; oznitelikler: number; formlar: number; raporlar: number };
   /** Pasifleşen sözlük (`anahtar@dil`) ve öznitelik (`anahtar`) satırları — satır yerinde, okuyucular görmez. */
   pasifAnahtarlar: { sozluk: string[]; oznitelikler: string[] };
 };
@@ -391,6 +391,42 @@ async function yaz(tx: Tx, icerik: PaketIcerigi, kuranId: string | null, simdi: 
     yukumlulukSayisi++;
   }
 
+  /* form ve rapor şablonları (2.2) — katalog; tanım JSON'da, köken ve aktif
+     öbür paket tablolarıyla aynı. Madde referansı ya paketin kendi
+     çerçevesinde ya kurulu bir maddede olmalı: kopuk referans KİMLİK. */
+  const paketMaddeKodlari = new Set(icerik.cerceveler.flatMap((c) => c.maddeler.map((md) => `${c.kimlik.kod}-${md.kod}`)));
+  const maddeVarMi = async (kod: string) => paketMaddeKodlari.has(kod) || (await tx.madde.count({ where: { kod } })) > 0;
+  let formSayisi = 0;
+  for (const f of icerik.formlar) {
+    for (const b of f.bolumler) for (const a of b.alanlar) {
+      if (a.maddeKod && !(await maddeVarMi(a.maddeKod))) {
+        throw new KurulumHatasi([{ sinif: 'KİMLİK', dosya: `${DOSYALAR.formDizini}/${f.kod}.json`, konum: `${b.kod}.${a.anahtar}.maddeKod`,
+          mesaj: `madde referansı bulunamadı: ${a.maddeKod} (ne pakette ne kurulu)`, duzeltme: 'çerçeveyi pakete ekleyin ya da referansı düzeltin' }]);
+      }
+    }
+    const mevcut = await tx.formSablonu.findUnique({ where: { kod: f.kod } });
+    if (mevcut && !paketKokenli(mevcut.paketSurumId)) {
+      celiskiler.push({ tablo: 'FormSablonu', anahtar: f.kod, sebep: 'kiracı form şablonu var — paket şablonu yazılmadı' });
+      continue;
+    }
+    const veri = { ad: f.ad, tur: f.tur, sektorId, dosyaAdi: f.dosya ?? null, tanimJson: JSON.stringify(f), aktif: true, ...koken };
+    if (mevcut) await tx.formSablonu.update({ where: { id: mevcut.id }, data: veri });
+    else await tx.formSablonu.create({ data: { kod: f.kod, ...veri } });
+    formSayisi++;
+  }
+  let raporSayisi = 0;
+  for (const r of icerik.raporlar) {
+    const mevcut = await tx.raporSablonu.findUnique({ where: { kod: r.kod } });
+    if (mevcut && !paketKokenli(mevcut.paketSurumId)) {
+      celiskiler.push({ tablo: 'RaporSablonu', anahtar: r.kod, sebep: 'kiracı rapor şablonu var — paket şablonu yazılmadı' });
+      continue;
+    }
+    const veri = { ad: r.ad, sektorId, tanimJson: JSON.stringify(r), aktif: true, ...koken };
+    if (mevcut) await tx.raporSablonu.update({ where: { id: mevcut.id }, data: veri });
+    else await tx.raporSablonu.create({ data: { kod: r.kod, ...veri } });
+    raporSayisi++;
+  }
+
   /* ── YÜKSELTME UZLAŞTIRMASI ───────────────────────────────────────────
      Bu sürümün artık beyan etmediği ama bu paketin bir sürümünden kalan
      paket kökenli satırlar. Ölçüldü: kaldırılan yükümlülük `aktif=true`
@@ -408,6 +444,12 @@ async function yaz(tx: Tx, icerik: PaketIcerigi, kuranId: string | null, simdi: 
   const arsivSurum = await tx.frameworkSurumu.updateMany({
     where: { paketSurumId: { in: paketinSurumleri }, durum: 'taslak', id: { notIn: taslakSurumler.map((t) => t.surumId) } },
     data: { durum: 'arsiv' } });
+  const pasifForm = await tx.formSablonu.updateMany({
+    where: { paketSurumId: { in: paketinSurumleri }, aktif: true, kod: { notIn: icerik.formlar.map((f) => f.kod) } },
+    data: { aktif: false } });
+  const pasifRapor = await tx.raporSablonu.updateMany({
+    where: { paketSurumId: { in: paketinSurumleri }, aktif: true, kod: { notIn: icerik.raporlar.map((r) => r.kod) } },
+    data: { aktif: false } });
   /* Sözlük ve öznitelik şeması da PASİFLEŞİR (2.1): silinmez — öznitelik
      satırının altında kiracının değerleri olabilir (R-C) — ama okuyucular
      artık görmez. Anahtar (anahtar@dil · anahtar) rapora düşer. */
@@ -427,11 +469,13 @@ async function yaz(tx: Tx, icerik: PaketIcerigi, kuranId: string | null, simdi: 
 
   const rapor: KurulumRaporu = {
     paketId: paket.id, surumId: surumKaydi.id, kod: m.kod, surum: m.surum,
-    sayilar: { sozluk: sozlukSayisi, kapsamTurleri: turSayisi, oznitelikler: oznitelikSayisi, cerceveler: icerik.cerceveler.length, maddeler: maddeSayisi, yukumlulukler: yukumlulukSayisi },
+    sayilar: { sozluk: sozlukSayisi, kapsamTurleri: turSayisi, oznitelikler: oznitelikSayisi, cerceveler: icerik.cerceveler.length, maddeler: maddeSayisi, yukumlulukler: yukumlulukSayisi,
+      formlar: formSayisi, raporlar: raporSayisi },
     celiskiler, taslakSurumler,
     pasiflestirilen: {
       kapsamTurleri: pasifTur.count, yukumlulukler: pasifYukumluluk.count, cerceveSurumleri: arsivSurum.count,
       sozluk: pasifAnahtarlar.sozluk.length, oznitelikler: pasifAnahtarlar.oznitelikler.length,
+      formlar: pasifForm.count, raporlar: pasifRapor.count,
     },
     pasifAnahtarlar,
   };
@@ -439,7 +483,8 @@ async function yaz(tx: Tx, icerik: PaketIcerigi, kuranId: string | null, simdi: 
   return rapor;
 }
 
-export type KaldirmaRaporu = { paketId: string; arsivlenen: { surumler: number; cerceveSurumleri: number; turler: number; yukumlulukler: number; sozluk: number; oznitelikler: number } };
+export type KaldirmaRaporu = { paketId: string; arsivlenen: {
+  surumler: number; cerceveSurumleri: number; turler: number; yukumlulukler: number; sozluk: number; oznitelikler: number; formlar: number; raporlar: number } };
 export type KaldirmaSonucu = ({ ok: true } & KaldirmaRaporu) | { ok: false; hata: string };
 
 /** Kaldırma = arşiv. Hiçbir satır silinmez; aktif çerçeve sürümü taşıyan
@@ -479,7 +524,10 @@ export async function paketiKaldir(
     const y = await tx.bildirimYukumlulugu.updateMany({ where: { paketSurumId: { in: surumIdleri } }, data: { aktif: false } });
     const sz = await tx.sektorSozlugu.updateMany({ where: { paketSurumId: { in: surumIdleri } }, data: { aktif: false } });
     const oz = await tx.sektorOznitelikSemasi.updateMany({ where: { paketSurumId: { in: surumIdleri } }, data: { aktif: false } });
-    const rapor: KaldirmaRaporu = { paketId: paket.id, arsivlenen: { surumler: s.count, cerceveSurumleri: c.count, turler: t.count, yukumlulukler: y.count, sozluk: sz.count, oznitelikler: oz.count } };
+    const fr = await tx.formSablonu.updateMany({ where: { paketSurumId: { in: surumIdleri } }, data: { aktif: false } });
+    const rp = await tx.raporSablonu.updateMany({ where: { paketSurumId: { in: surumIdleri } }, data: { aktif: false } });
+    const rapor: KaldirmaRaporu = { paketId: paket.id, arsivlenen: {
+      surumler: s.count, cerceveSurumleri: c.count, turler: t.count, yukumlulukler: y.count, sozluk: sz.count, oznitelikler: oz.count, formlar: fr.count, raporlar: rp.count } };
     if (secenekler.ayniIslemde) await secenekler.ayniIslemde(tx, rapor);
     return { ok: true, ...rapor };
   }, TX_SECENEK);

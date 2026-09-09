@@ -31,6 +31,8 @@ Paket dizininin adı `manifest.kod` ile **aynı** olmalıdır
 `KİMLİK` ile reddeder — kopyalanmış bir dizin başka paketin kimliğiyle
 kurulamaz.
 | `yukumlulukler.json` | JSON dizi | `kod · ad · regulasyonKod? · asgariSiddet · sureSaat · dayanak · merci` |
+| `form/<KOD>.json` | JSON | denetim formu şablonu: `kod · ad · tur (denetim · oz_degerlendirme · saha) · bolumler[{kod, baslik, alanlar[{anahtar, etiket ≤ 120, tip (metin · sayi · mantik · tarih · secim), secenekler?, maddeKod?, zorunlu, hucre?}]}]`; isteğe bağlı `dosya` (aynı dizinde XLSX) + `sayfa`: doğrulayıcı sayfayı ve her alanın hücresini DOSYAYA karşı okur. **Telifli pakette XLSX yasak** (hücre metni denetlenemez). Dosya adı = kod |
+| `rapor/<KOD>.json` | JSON | rapor şablonu: `kod · ad · alanlar[{anahtar, etiket, kaynak (nokta yolu: madde.durum)}] · siralama (alanların permütasyonu) · kunye {baslik, altbilgi?} · sayfa {boyut A4/Letter, yon dikey/yatay}`. Dosya adı = kod |
 
 ## Lisans sınırı — alanda, yorumda değil
 

@@ -389,6 +389,19 @@ export const URUNLESTIRME_SENARYOLARI: Senaryo[] = [
     katmanlar: ['DOMAIN', 'SERVER', 'INTEGRATION'],
   },
   {
+    id: 'URN-PKT-012', alan: 'Ürünleştirme', rota: '—', eksen: 'veri',
+    amac: 'Form ve rapor şablonu türlerinin paketle gelmesi: yapı doğrulanır, XLSX hücreleri dosyaya karşı okunur, telifli pakette XLSX yasak, katalogda köken ve aktif',
+    rol: 'paket yazarı · tanımlar yazma yetkili', kapsam: '`form/<KOD>.json` (+XLSX) · `rapor/<KOD>.json` · FormSablonu · RaporSablonu',
+    onkosul: 'Form: bölümler ve alanlar (anahtar, etiket ≤ 120, tip, seçenek, madde referansı, hücre); rapor: alanlar, sıralama (permütasyon), künye, sayfa',
+    veriHali: 'aykiri',
+    eylem: 'Eksik sayfa, aralık dışı hücre, hücresiz XLSX alanı, telifli pakette XLSX, permütasyon olmayan sıralama, kopuk madde referansı doğrulanır/kurulur; yükseltme bir şablonu bırakır; paket kaldırılır',
+    beklenenSonuc: 'Her kusur adıyla BIÇIM/KİMLİK/LİSANS; kopuk madde referansı kurulumda KİMLİK ve hiçbir satır yazılmaz; kurulan şablon koken=paket, tanım JSON, '
+      + 'kiracı şablonu ezilmez (çelişki); bırakılan şablon pasif (silme yok); kaldırma pasifler',
+    beklenenEkran: 'Ekran yok — katalog; ekran P4 sonraki dilimi',
+    beklenenIz: 'kurulum izi sayılarla', beklenenBildirim: 'yok',
+    katmanlar: ['DOMAIN', 'SERVER', 'INTEGRATION'],
+  },
+  {
     id: 'URN-PKT-010', alan: 'Ürünleştirme', rota: '—', eksen: 'veri',
     amac: 'Paket işlemlerinin müşteri verisini SİLEMEMESİ (R-C): bekçi tavanı sıfır, gerekçeli istisna yok',
     rol: 'ürünü sürdüren geliştirici', kapsam: '`lib/paket/` · paket eylemleri · şema',

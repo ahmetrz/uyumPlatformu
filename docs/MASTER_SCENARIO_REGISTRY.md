@@ -13,7 +13,7 @@ it('kapsam dışı varlığa yazılamaz [ENV-YAZ-003]', …)
 Ayrı bir eşleme tablosu tutulsaydı, tablo ilk yeniden adlandırmada
 testten ayrışır ve kimse görmezdi.
 
-Senaryo: **308** · testli: **308** · GAP: **0**
+Senaryo: **309** · testli: **309** · GAP: **0**
 
 ## Aktivite · 2 senaryo
 
@@ -452,7 +452,7 @@ Senaryo: **308** · testli: **308** · GAP: **0**
 | `UYU-CRC-004` | /uyum/[cerceve] | uyum uzmanı · kendi tesisi | Çerçevenin bazı maddeleri hiç değerlendirilmemiş · kısmi | Madde satırını genişletir | Değerlendirilmemiş madde "uyumlu" ya da "uyumsuz" SAYILMAZ | Genişleyen satırda "ölçülmedi" ayrı okunur | yazma yok | yok | `ters-kapsam-ekran.test.ts` |
 | `UYU-ANL-001` | — | sistem (motor) · kurum geneli | Aynı gün zaten anlık alınmış · yinelenen | Motor aynı gün ikinci kez koşar | İkinci anlık YAZILMAZ — günde bir | — | yazma yok | yok | `ters-kapsam-eylem.test.ts` |
 
-## Ürünleştirme · 28 senaryo
+## Ürünleştirme · 29 senaryo
 
 | ID | Rota | Rol · kapsam | Ön koşul · veri | Eylem | Beklenen sonuç | Ekran | Denetim izi | Görev/bildirim | Test |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -483,6 +483,7 @@ Senaryo: **308** · testli: **308** · GAP: **0**
 | `URN-PKT-008` | — | tanımlar yazma yetkili · kurulum (yeniden kurulum) | Sürüm kaydı kurulumdaki içerik özetlerini (`ozetJson`) taşır; paket özetleri yeniden yazılmış ama `surum` aynı · aykiri | Aynı numarayla değişmiş içerik kurulur; aynı numarayla aynı içerik kurulur; yeni numarayla değişmiş içerik kurulur | Değişmiş içerik ya da değişmez üstveri (sektör · lisans · bağımlılık) SÜRÜM hatasıyla reddedilir ("kurulu sürüm değişmez"), sürüm kaydı ve içerik olduğu gibi kalır; aynı içerik idempotent ve madde ağacına dokunmaz (kimlikler korunur); yeni numara kurulur | Ekran yok | yazma yok (red) | yok | `paket-kur.test.ts` · `paket-kur.test.ts` |
 | `URN-PKT-009` | — | tanımlar yazma yetkili · kaldırma · geri kurulum | Kurulu B paketi manifestinde A'ya bağımlı; A kaldırılınca taslak çerçeve sürümleri arşive çekilir · aykiri | A kaldırılmak istenir; B kaldırılıp A kaldırılır; A aynı içerikle geri kurulur | B kuruluyken A kaldırılamaz (bağımlı paket adıyla); B gidince A arşivlenir; geri kurulumda paketin kendi arşiv taslağı taslağa döner, madde kimlikleri korunur, paket kurulu — yeni etiket istenmez | Ekran yok | IcerikPaketi arşiv izi | yok | `paket-kur.test.ts` · `paket-kur.test.ts` |
 | `URN-PKT-011` | /tesisler/[id] | uyum uzmanı · tanımlar yazma yetkili · sözlük okuyucu · rol anahtarı · Tesis 360 profili · profil kaydı · portföy | `SektorSozlugu.aktif` ve `SektorOznitelikSemasi.aktif` (2.1, elle eklemeli göç); paket yükseltmesi ve kaldırma pasifleştirir, geri kurulum aktifleştirir · aykiri | v2 bir sözlük anahtarını ve bir özniteliği bırakır; paket kaldırılır; aynı içerikle geri kurulur; pasif alana değer yazılmak istenir | Pasif satır yerinde kalır (silme yok) ama sözlük okuyucu, rol anahtarı, Tesis 360 profili ve portföy onu görmez; pasif özniteliğe profil kaydı "bilinmeyen öznitelik" der; kaldırma tüm paket satırlarını pasifler, geri kurulum aktifler; her okuyucu sorgusu `aktif: true` süzer (bekçi) | Tesis 360 profil bloğunda pasif alan çizilmez; sözlük pasif sözcüğü söylemez | kurulum izi pasifleşen anahtarlarla | yok | `bekci/aktif-suzgec.test.ts` · `paket-aktif-bayragi.test.ts` · `paket-aktif-bayragi.test.ts` · `paket-aktif-bayragi.test.ts` · `paket-aktif-bayragi.test.ts` |
+| `URN-PKT-012` | — | paket yazarı · tanımlar yazma yetkili · `form/<KOD>.json` (+XLSX) · `rapor/<KOD>.json` · FormSablonu · RaporSablonu | Form: bölümler ve alanlar (anahtar, etiket ≤ 120, tip, seçenek, madde referansı, hücre); rapor: alanlar, sıralama (permütasyon), künye, sayfa · aykiri | Eksik sayfa, aralık dışı hücre, hücresiz XLSX alanı, telifli pakette XLSX, permütasyon olmayan sıralama, kopuk madde referansı doğrulanır/kurulur; yükseltme bir şablonu bırakır; paket kaldırılır | Her kusur adıyla BIÇIM/KİMLİK/LİSANS; kopuk madde referansı kurulumda KİMLİK ve hiçbir satır yazılmaz; kurulan şablon koken=paket, tanım JSON, kiracı şablonu ezilmez (çelişki); bırakılan şablon pasif (silme yok); kaldırma pasifler | Ekran yok — katalog; ekran P4 sonraki dilimi | kurulum izi sayılarla | yok | `paket-sablon.test.ts` · `paket-sablon.test.ts` · `paket-sablon.test.ts` · `paket-sablon.test.ts` · `paket-sablon.test.ts` · `paket-sablon.test.ts` |
 | `URN-PKT-010` | — | ürünü sürdüren geliştirici · `lib/paket/` · paket eylemleri · şema | "Kaldırma = arşiv, silme yok" kuralı yazılıydı; kod kiracının kapsam alanı eşlemesini kaskatla sildi (PR #41 inceleme bulgusu) — kural yetmedi, kapı gerekti · aykiri | Bekçi paket modülündeki delete/deleteMany çağrılarını ve Madde'nin şemadaki liste ilişkilerini okur | madde dışında hiçbir modelde silme yok; madde silmesi yalnız paketin kendi taslağını (`surumId`) hedefler ve bağ kontrolünden sonra gelir; Madde'den başka modele giden her liste ilişkisi bağ kontrolünde; kurucu gerekçeli istisna listesi ihraç etmez | Ekran yok — kapı | yazma yok | yok | `bekci/paket-silme.test.ts` · `bekci/paket-silme.test.ts` · `bekci/paket-silme.test.ts` · `bekci/paket-silme.test.ts` |
 
 ## Varlık aktarımı · 3 senaryo

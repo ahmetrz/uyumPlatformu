@@ -14,13 +14,14 @@
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
 import type { ZodError } from 'zod';
+import * as XLSX from 'xlsx';
 import { OLGUNLUK_ASGARI, OLGUNLUK_AZAMI } from '../uyum/olgunluk';
 import {
-  BASLIK_SINIRI, CerceveKimligiSemasi, DIS_KIMLIK_SINIRI, DOSYALAR, KapsamTuruSatiriSemasi, MADDE_SUTUNLARI,
-  MADDE_ZORUNLU_SUTUNLAR, ManifestSemasi, OLCU_ALANI, OZET_DISI, OZNITELIK_ROLLERI, OznitelikSatiriSemasi, SozlukSatiriSemasi,
-  YukumlulukSatiriSemasi, ZORUNLULUK_TIPLERI, csvAyristir, sha256,
-  type CerceveKimligi, type KapsamTuruSatiri, type MaddeSatiri, type Manifest, type OznitelikSatiri,
-  type SozlukSatiri, type YukumlulukSatiri,
+  BASLIK_SINIRI, CerceveKimligiSemasi, DIS_KIMLIK_SINIRI, DOSYALAR, FormSablonuSemasi, KapsamTuruSatiriSemasi, MADDE_SUTUNLARI,
+  MADDE_ZORUNLU_SUTUNLAR, ManifestSemasi, OLCU_ALANI, OZET_DISI, OZNITELIK_ROLLERI, OznitelikSatiriSemasi, RaporSablonuSemasi,
+  SozlukSatiriSemasi, YukumlulukSatiriSemasi, ZORUNLULUK_TIPLERI, csvAyristir, sha256,
+  type CerceveKimligi, type FormSablonu, type KapsamTuruSatiri, type MaddeSatiri, type Manifest, type OznitelikSatiri,
+  type RaporSablonu, type SozlukSatiri, type YukumlulukSatiri,
 } from './bicim';
 
 export type HataSinifi = 'BIÇIM' | 'KİMLİK' | 'SÖZLÜK' | 'ÖZNİTELİK' | 'LİSANS' | 'SÜRÜM' | 'KAPSAM TÜRÜ';
@@ -37,9 +38,12 @@ export type PaketIcerigi = {
   oznitelikler: OznitelikSatiri[];
   cerceveler: Cerceve[];
   yukumlulukler: YukumlulukSatiri[];
+  formlar: FormSablonu[];
+  raporlar: RaporSablonu[];
 };
 export type Sayilar = {
   sozluk: number; kapsamTurleri: number; oznitelikler: number; cerceveler: number; maddeler: number; yukumlulukler: number;
+  formlar: number; raporlar: number;
 };
 export type DogrulamaSonucu = {
   ok: boolean;
@@ -93,7 +97,7 @@ export function ozetleriHesapla(dizin: string): Record<string, string> {
   return ozetler;
 }
 
-const bos: Sayilar = { sozluk: 0, kapsamTurleri: 0, oznitelikler: 0, cerceveler: 0, maddeler: 0, yukumlulukler: 0 };
+const bos: Sayilar = { sozluk: 0, kapsamTurleri: 0, oznitelikler: 0, cerceveler: 0, maddeler: 0, yukumlulukler: 0, formlar: 0, raporlar: 0 };
 
 export function paketiDogrula(dizin: string): DogrulamaSonucu {
   const hatalar: DogrulamaHatasi[] = [];
@@ -352,6 +356,112 @@ export function paketiDogrula(dizin: string): DogrulamaSonucu {
   }
   tekil(DOSYALAR.cerceveDizini, 'KİMLİK', cerceveler.map((c) => c.kimlik.kod), 'çerçeve kodu');
 
+  /* ── form şablonları (2.2) ─────────────────────────────────────────
+     `form/<KOD>.json`; isteğe bağlı XLSX aynı dizinde: sayfa ve her alanın
+     hücresi DOSYAYA KARŞI okunur (var mı, aralığın içinde mi). Telifli
+     pakette XLSX yasak — hücre metni denetlenemez, tam metin kaçağı olur. */
+  const formlar: FormSablonu[] = [];
+  const formDizini = path.join(dizin, DOSYALAR.formDizini);
+  const formJsonlari = existsSync(formDizini) ? readdirSync(formDizini).filter((d) => d.endsWith('.json')).sort() : [];
+  const formDosyalari = new Set<string>();
+  let formOkunamadi = false;
+  for (const dosyaAdi of formJsonlari) {
+    const dosya = `${DOSYALAR.formDizini}/${dosyaAdi}`;
+    formDosyalari.add(dosya);
+    const j = jsonOku(path.join(formDizini, dosyaAdi));
+    if ('hata' in j) { formOkunamadi = true; hatalar.push({ sinif: 'BIÇIM', dosya, mesaj: `JSON okunamadı: ${j.hata}`, duzeltme: 'JSON sözdizimini düzeltin' }); continue; }
+    const p = FormSablonuSemasi.safeParse(j.deger);
+    if (!p.success) {
+      formOkunamadi = true;
+      for (const h of zodHatalari(p.error, dosya, 'BIÇIM', 'form şablonu: kod · ad · tur · bolumler[{kod, baslik, alanlar[{anahtar, etiket, tip}]}]')) hatalar.push(h);
+      continue;
+    }
+    const f = p.data;
+    if (`${f.kod}.json` !== dosyaAdi) {
+      hatalar.push({ sinif: 'KİMLİK', dosya, konum: 'kod', mesaj: `form kodu "${f.kod}" dosya adıyla uyuşmuyor`, duzeltme: `dosyayı ${f.kod}.json diye adlandırın` });
+    }
+    const gorulenAnahtar = new Set<string>();
+    for (const b of f.bolumler) for (const a of b.alanlar) {
+      const konum = `${b.kod}.${a.anahtar}`;
+      if (gorulenAnahtar.has(a.anahtar)) hatalar.push({ sinif: 'KİMLİK', dosya, konum, mesaj: `alan anahtarı tekrar ediyor: ${a.anahtar}`, duzeltme: 'anahtar form içinde tekil olmalı' });
+      gorulenAnahtar.add(a.anahtar);
+      if (a.tip === 'secim' && !(a.secenekler && a.secenekler.length)) hatalar.push({ sinif: 'BIÇIM', dosya, konum, mesaj: 'secim tipi seçenek listesi ister', duzeltme: '`secenekler: [{deger, ad}]` yazın' });
+      if (a.secenekler && a.tip !== 'secim') hatalar.push({ sinif: 'BIÇIM', dosya, konum, mesaj: `seçenek listesi yalnız secim tipinde olur (tip=${a.tip})`, duzeltme: 'seçenekleri kaldırın ya da tipi secim yapın' });
+      if (a.hucre && !f.dosya) hatalar.push({ sinif: 'BIÇIM', dosya, konum, mesaj: 'hücre var ama form XLSX dosyası beyan etmiyor', duzeltme: '`dosya` yazın ya da hücreyi kaldırın' });
+    }
+    if (f.dosya) {
+      if (manifest.lisans.tur === 'telifli') {
+        hatalar.push({ sinif: 'LİSANS', dosya, konum: 'dosya', mesaj: `lisans sınırı: telifli paket XLSX form taşıyamaz (${f.dosya}) — hücre metni denetlenemez`, duzeltme: 'formu JSON yapı olarak verin (dosya alanını kaldırın)' });
+      } else {
+        const xlsxGoreli = `${DOSYALAR.formDizini}/${f.dosya}`;
+        formDosyalari.add(xlsxGoreli);
+        const xlsxYolu = path.join(formDizini, f.dosya);
+        if (!existsSync(xlsxYolu)) {
+          hatalar.push({ sinif: 'BIÇIM', dosya, konum: 'dosya', mesaj: `XLSX dosyası yok: ${f.dosya}`, duzeltme: 'dosyayı form/ altına koyun' });
+        } else if (!f.sayfa) {
+          hatalar.push({ sinif: 'BIÇIM', dosya, konum: 'sayfa', mesaj: 'XLSX varsa sayfa adı zorunlu', duzeltme: '`sayfa: "Form"` gibi sayfa adını yazın' });
+        } else {
+          let sayfaAdlari: string[] = [];
+          let sayfa: XLSX.WorkSheet | undefined;
+          try {
+            const wb = XLSX.read(readFileSync(xlsxYolu), { type: 'buffer' });
+            sayfaAdlari = wb.SheetNames;
+            sayfa = wb.Sheets[f.sayfa];
+          } catch (e) {
+            hatalar.push({ sinif: 'BIÇIM', dosya: xlsxGoreli, mesaj: `XLSX okunamadı: ${e instanceof Error ? e.message : String(e)}`, duzeltme: 'dosyayı yeniden kaydedin (.xlsx)' });
+          }
+          if (sayfaAdlari.length && !sayfa) {
+            hatalar.push({ sinif: 'BIÇIM', dosya, konum: 'sayfa', mesaj: `sayfa yok: ${f.sayfa} (dosyadaki sayfalar: ${sayfaAdlari.join(', ')})`, duzeltme: 'sayfa adını dosyadaki gibi yazın' });
+          } else if (sayfa) {
+            const aralik = sayfa['!ref'] ? XLSX.utils.decode_range(sayfa['!ref']) : null;
+            for (const b of f.bolumler) for (const a of b.alanlar) {
+              const konum = `${b.kod}.${a.anahtar}.hucre`;
+              if (!a.hucre) { hatalar.push({ sinif: 'BIÇIM', dosya, konum, mesaj: 'XLSX form alanının hücresi yok', duzeltme: 'her alana `hucre` (B4 gibi) yazın' }); continue; }
+              const h = XLSX.utils.decode_cell(a.hucre);
+              if (!aralik || h.r > aralik.e.r || h.c > aralik.e.c) {
+                hatalar.push({ sinif: 'BIÇIM', dosya, konum, mesaj: `hücre ${a.hucre} "${f.sayfa}" sayfasının aralığı dışında (${sayfa['!ref'] ?? 'boş sayfa'})`, duzeltme: 'hücreyi dosyadaki bir hücreye işaret ettirin' });
+              }
+            }
+          }
+        }
+      }
+    }
+    formlar.push(f);
+  }
+  tekil(DOSYALAR.formDizini, 'KİMLİK', formlar.map((f) => f.kod), 'form kodu');
+
+  /* ── rapor şablonları (2.2) — `rapor/<KOD>.json` ───────────────────── */
+  const raporlar: RaporSablonu[] = [];
+  const raporDizini = path.join(dizin, DOSYALAR.raporDizini);
+  const raporJsonlari = existsSync(raporDizini) ? readdirSync(raporDizini).filter((d) => d.endsWith('.json')).sort() : [];
+  const raporDosyalari = new Set<string>(raporJsonlari.map((d) => `${DOSYALAR.raporDizini}/${d}`));
+  for (const dosyaAdi of raporJsonlari) {
+    const dosya = `${DOSYALAR.raporDizini}/${dosyaAdi}`;
+    const j = jsonOku(path.join(raporDizini, dosyaAdi));
+    if ('hata' in j) { hatalar.push({ sinif: 'BIÇIM', dosya, mesaj: `JSON okunamadı: ${j.hata}`, duzeltme: 'JSON sözdizimini düzeltin' }); continue; }
+    const p = RaporSablonuSemasi.safeParse(j.deger);
+    if (!p.success) {
+      for (const h of zodHatalari(p.error, dosya, 'BIÇIM', 'rapor şablonu: kod · ad · alanlar[{anahtar, etiket, kaynak}] · siralama · kunye · sayfa')) hatalar.push(h);
+      continue;
+    }
+    const r = p.data;
+    if (`${r.kod}.json` !== dosyaAdi) {
+      hatalar.push({ sinif: 'KİMLİK', dosya, konum: 'kod', mesaj: `rapor kodu "${r.kod}" dosya adıyla uyuşmuyor`, duzeltme: `dosyayı ${r.kod}.json diye adlandırın` });
+    }
+    const alanAnahtarlari = r.alanlar.map((a) => a.anahtar);
+    const tekrar = alanAnahtarlari.filter((a, i) => alanAnahtarlari.indexOf(a) !== i);
+    if (tekrar.length) hatalar.push({ sinif: 'KİMLİK', dosya, konum: 'alanlar', mesaj: `alan anahtarı tekrar ediyor: ${[...new Set(tekrar)].join(', ')}`, duzeltme: 'anahtar rapor içinde tekil olmalı' });
+    const siralamaKumesi = new Set(r.siralama);
+    const bilinmeyen = r.siralama.filter((s) => !alanAnahtarlari.includes(s));
+    const eksik = alanAnahtarlari.filter((a) => !siralamaKumesi.has(a));
+    if (bilinmeyen.length || eksik.length || siralamaKumesi.size !== r.siralama.length) {
+      hatalar.push({ sinif: 'BIÇIM', dosya, konum: 'siralama', mesaj: `sıralama alanların bir permütasyonu olmalı — bilinmeyen: ${bilinmeyen.join(', ') || '-'}; eksik: ${eksik.join(', ') || '-'}`,
+        duzeltme: 'her alan anahtarını sıralamada bir kez yazın' });
+    }
+    raporlar.push(r);
+  }
+  tekil(DOSYALAR.raporDizini, 'KİMLİK', raporlar.map((r) => r.kod), 'rapor kodu');
+
   /* ── paket yapısında yeri olmayan dosya ─────────────────────────────
      Özeti doğru olan ama hiçbir tanımlayıcının okumadığı dosya (örn.
      `cerceve/tam-metin.csv`) lisans kontrolünden geçmeden pakette
@@ -366,8 +476,11 @@ export function paketiDogrula(dizin: string): DogrulamaSonucu {
       DOSYALAR.sozluk, DOSYALAR.kapsamTurleri, DOSYALAR.oznitelikler, DOSYALAR.yukumlulukler,
       ...cerceveJsonlari.map((d) => `${DOSYALAR.cerceveDizini}/${d}`),
       ...cerceveler.map((c) => `${DOSYALAR.cerceveDizini}/${c.kimlik.maddeDosyasi}`),
+      ...formDosyalari, ...raporDosyalari,
     ]);
     for (const d of mevcut) {
+      // form JSON'u okunamadıysa XLSX'i referanssız kalır; paket zaten kırmızı, ayrıca suçlanmaz
+      if (formOkunamadi && d.startsWith(`${DOSYALAR.formDizini}/`)) continue;
       if (!taninan.has(d)) {
         hatalar.push({ sinif: 'BIÇIM', dosya: d, mesaj: 'paket yapısında yeri olmayan dosya — hiçbir tanımlayıcı okumuyor, ama pakette taşınır',
           duzeltme: 'dosyayı paketten çıkarın; çerçeve CSV\'si kimlik JSON\'unun maddeDosyasi alanından referanslanmalı' });
@@ -381,7 +494,8 @@ export function paketiDogrula(dizin: string): DogrulamaSonucu {
   const sayilar: Sayilar = {
     sozluk: sozluk.length, kapsamTurleri: kapsamTurleri.length, oznitelikler: oznitelikler.length,
     cerceveler: cerceveler.length, maddeler: cerceveler.reduce((a, c) => a + c.maddeler.length, 0), yukumlulukler: yukumlulukler.length,
+    formlar: formlar.length, raporlar: raporlar.length,
   };
-  const icerik: PaketIcerigi = { dizin, manifest, sozluk, kapsamTurleri, oznitelikler, cerceveler, yukumlulukler };
+  const icerik: PaketIcerigi = { dizin, manifest, sozluk, kapsamTurleri, oznitelikler, cerceveler, yukumlulukler, formlar, raporlar };
   return { ok: hatalar.length === 0, hatalar, icerik: hatalar.length === 0 ? icerik : null, sayilar };
 }

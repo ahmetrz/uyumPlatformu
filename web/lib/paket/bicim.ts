@@ -156,6 +156,68 @@ export const YukumlulukSatiriSemasi = z.object({
 }).strict();
 export type YukumlulukSatiri = z.infer<typeof YukumlulukSatiriSemasi>;
 
+/* ── 2.2 · Form ve rapor şablonu türleri (§1/6–7) ─────────────────────
+   Form: `form/<KOD>.json` — bölümler · alanlar (anahtar, etiket, tip,
+   seçenekler, madde referansı, XLSX hücresi) ve isteğe bağlı `dosya`
+   (aynı dizinde XLSX; doğrulayıcı sayfayı ve hücreleri dosyaya karşı
+   okur). Telifli pakette XLSX YASAK: hücre metni denetlenemez, tam metin
+   kaçağı olurdu; JSON yapıda etiket ≤ ETIKET_SINIRI.
+   Rapor: `rapor/<KOD>.json` — alanlar (anahtar, etiket, kaynak nokta yolu),
+   sıralama, künye, sayfa. */
+export const FORM_TURLERI = ['denetim', 'oz_degerlendirme', 'saha'] as const;
+export const ALAN_TIPLERI = ['metin', 'sayi', 'mantik', 'tarih', 'secim'] as const;
+export const SAYFA_BOYUTLARI = ['A4', 'Letter'] as const;
+export const SAYFA_YONLERI = ['dikey', 'yatay'] as const;
+export const ETIKET_SINIRI = 120;
+export const HUCRE_ADRESI = /^[A-Z]{1,3}[1-9][0-9]{0,6}$/;
+/** Madde referansı `Madde.kod` biçimindedir: `<ÇERÇEVE>-<madde kodu>` (EPDK-SGYM-3, BDDK-BS-12). */
+export const MADDE_REFERANSI = /^[A-Z][A-Z0-9]*(?:-[A-Z0-9]+)*-[^\s;]+$/;
+/** Rapor alanı kaynağı — nokta yolu (`madde.durum`, `kapsamOgesi.ad`). */
+export const KAYNAK_YOLU = /^[a-z][A-Za-z0-9]*(?:\.[a-z][A-Za-z0-9]*)*$/;
+
+const etiket = z.string().trim().min(1, 'etiket boş').max(ETIKET_SINIRI, `etiket en fazla ${ETIKET_SINIRI} karakter`);
+export const FormAlaniSemasi = z.object({
+  anahtar: z.string().regex(ANAHTAR, 'anahtar camelCase: politikaVar'),
+  etiket,
+  tip: z.enum(ALAN_TIPLERI),
+  secenekler: z.array(z.object({ deger: z.string().min(1), ad: etiket }).strict()).nullable().optional(),
+  maddeKod: z.string().regex(MADDE_REFERANSI, 'madde referansı: <ÇERÇEVE>-<kod> (EPDK-SGYM-3)').nullable().optional(),
+  zorunlu: z.boolean().default(false),
+  /** XLSX'te bu alanın hücresi — `dosya` varsa zorunlu */
+  hucre: z.string().regex(HUCRE_ADRESI, 'hücre adresi A1 biçiminde: B4').nullable().optional(),
+}).strict();
+export const FormSablonuSemasi = z.object({
+  kod: z.string().regex(CERCEVE_KODU, 'form kodu BÜYÜK harf: BDDK-BS-OZDEGERLENDIRME'),
+  ad: z.string().min(3).max(200),
+  tur: z.enum(FORM_TURLERI).default('denetim'),
+  aciklama: z.string().max(500).optional(),
+  dosya: z.string().regex(/^[A-Za-z0-9._-]+\.xlsx$/, 'XLSX dosya adı').nullable().optional(),
+  /** XLSX'te formun sayfası — `dosya` varsa zorunlu */
+  sayfa: z.string().min(1).max(60).nullable().optional(),
+  bolumler: z.array(z.object({
+    kod: z.string().regex(TUR_KODU, 'bölüm kodu küçük harf ve alt çizgi: genel_bilgi'),
+    baslik: etiket,
+    alanlar: z.array(FormAlaniSemasi).min(1, 'bölümde en az bir alan'),
+  }).strict()).min(1, 'en az bir bölüm'),
+}).strict();
+export type FormSablonu = z.infer<typeof FormSablonuSemasi>;
+
+export const RaporSablonuSemasi = z.object({
+  kod: z.string().regex(CERCEVE_KODU, 'rapor kodu BÜYÜK harf: EPDK-SGYM-KARNE'),
+  ad: z.string().min(3).max(200),
+  aciklama: z.string().max(500).optional(),
+  alanlar: z.array(z.object({
+    anahtar: z.string().regex(ANAHTAR), etiket,
+    kaynak: z.string().regex(KAYNAK_YOLU, 'kaynak nokta yolu: madde.durum'),
+  }).strict()).min(1, 'en az bir alan'),
+  /** alan anahtarlarının gösterim sırası — her anahtar alanlarda olmalı */
+  siralama: z.array(z.string().regex(ANAHTAR)).min(1),
+  kunye: z.object({ baslik: etiket, altbilgi: z.string().max(ETIKET_SINIRI).optional() }).strict(),
+  sayfa: z.object({ boyut: z.enum(SAYFA_BOYUTLARI).default('A4'), yon: z.enum(SAYFA_YONLERI).default('dikey') }).strict()
+    .default({ boyut: 'A4', yon: 'dikey' }),
+}).strict();
+export type RaporSablonu = z.infer<typeof RaporSablonuSemasi>;
+
 export const DOSYALAR = {
   manifest: 'manifest.json',
   sozluk: 'sozluk.json',
@@ -163,6 +225,8 @@ export const DOSYALAR = {
   oznitelikler: 'oznitelikler.json',
   yukumlulukler: 'yukumlulukler.json',
   cerceveDizini: 'cerceve',
+  formDizini: 'form',
+  raporDizini: 'rapor',
 } as const;
 
 /** Özetlere GİRMEYEN dosyalar: manifestin kendisi ve belge. */

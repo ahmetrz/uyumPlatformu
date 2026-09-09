@@ -31,6 +31,8 @@ model Sektor {
   oznitelikSemasi SektorOznitelikSemasi[]
   sozluk          SektorSozlugu[]
   kapsamTurleri   KapsamOgesiTuru[]
+  formSablonlari  FormSablonu[]
+  raporSablonlari RaporSablonu[]
 }
 
 /// KAPSAM ÖĞESİ TÜRÜ — KATALOG, enum değil (B1 · K1).
@@ -4237,4 +4239,48 @@ model IcerikPaketiSurumu {
   kuran Kullanici?   @relation("PaketKuran", fields: [kuranId], references: [id])
 
   @@unique([paketId, surum])
+}
+
+/// P4 · 2.2 — DENETİM FORMU ŞABLONU KATALOĞU (docs/SEKTOR_PAKETI_SOZLESMESI.md §1/6).
+/// Form bugüne kadar KODDU (`denetimler/Formlar.tsx`); paket şablonu YAPI
+/// olarak getirir: bölümler · alanlar (anahtar, etiket, tip, seçenekler, madde
+/// referansı) ve isteğe bağlı XLSX dosyası + hücre eşlemesi. Tanım JSON'da
+/// durur (`tanimJson`), ekran onu P4'ün sonraki diliminde okur. Köken ve
+/// aktif bayrağı öbür paket tablolarıyla aynı sözleşmeyi taşır: paket
+/// güncellemesi yalnız `paket` kökenli satırı değiştirir, bırakılan satır
+/// pasifleşir (silinmez, R-C).
+model FormSablonu {
+  id           String   @id @default(cuid())
+  kod          String   @unique // BDDK-BS-OZDEGERLENDIRME
+  ad           String
+  tur          String   @default("denetim") // denetim | oz_degerlendirme | saha
+  sektorId     String?
+  /// paketteki XLSX dosyasının adı (yalnız kamuya açık pakette); null = JSON yapı
+  dosyaAdi     String?
+  tanimJson    String
+  aktif        Boolean  @default(true)
+  koken        String   @default("kiraci")
+  paketSurumId String?
+  olusturuldu  DateTime @default(now())
+  guncellendi  DateTime @updatedAt
+
+  sektor Sektor? @relation(fields: [sektorId], references: [id])
+}
+
+/// P4 · 2.2 — RAPOR ŞABLONU KATALOĞU (§1/7). Rapor bugüne kadar KODDU
+/// (`raporlar/karne`, `raporlar/kanit-paketi`); paket şablonu alan kümesini,
+/// sıralamayı, künye metnini ve sayfa boyutunu getirir. Tanım JSON'da durur.
+model RaporSablonu {
+  id           String   @id @default(cuid())
+  kod          String   @unique // EPDK-SGYM-KARNE
+  ad           String
+  sektorId     String?
+  tanimJson    String
+  aktif        Boolean  @default(true)
+  koken        String   @default("kiraci")
+  paketSurumId String?
+  olusturuldu  DateTime @default(now())
+  guncellendi  DateTime @updatedAt
+
+  sektor Sektor? @relation(fields: [sektorId], references: [id])
 }

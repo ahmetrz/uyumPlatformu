@@ -1,0 +1,15 @@
+{
+  "kod": "EPDK-SGYM-KARNE",
+  "ad": "Siber güvenlik yetkinlik karnesi (iskelet)",
+  "aciklama": "Kapsam öğesi başına EPDK-SGYM madde durumu ve kanıt sayısı; alan kümesi paketten, sözcük ve ölçü sözlükten gelir.",
+  "alanlar": [
+    { "anahtar": "kapsamOgesi", "etiket": "Kapsam öğesi", "kaynak": "kapsamOgesi.ad" },
+    { "anahtar": "madde", "etiket": "Madde", "kaynak": "madde.kod" },
+    { "anahtar": "durum", "etiket": "Durum", "kaynak": "madde.durum" },
+    { "anahtar": "olgunluk", "etiket": "Olgunluk", "kaynak": "madde.olgunlukSeviyesi" },
+    { "anahtar": "kanitSayisi", "etiket": "Kanıt", "kaynak": "kanit.sayi" }
+  ],
+  "siralama": ["kapsamOgesi", "madde", "durum", "olgunluk", "kanitSayisi"],
+  "kunye": { "baslik": "Siber güvenlik yetkinlik karnesi", "altbilgi": "EPDK-SGYM · iskelet şablon" },
+  "sayfa": { "boyut": "A4", "yon": "yatay" }
+}

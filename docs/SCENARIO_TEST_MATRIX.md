@@ -4,12 +4,12 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 308 |
-| Testi olan senaryo | 308 |
+| Senaryo | 309 |
+| Testi olan senaryo | 309 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
-| Taranan test dosyası | 177 |
+| Taranan test dosyası | 178 |
 
 ## Katman başına kapsam
 
@@ -18,14 +18,14 @@
 | ACCESSIBILITY | 8 | 8 | 0 |
 | API | 12 | 12 | 0 |
 | CONCURRENCY | 7 | 7 | 0 |
-| DOMAIN | 168 | 168 | 0 |
+| DOMAIN | 169 | 169 | 0 |
 | ENGINE | 33 | 33 | 0 |
-| INTEGRATION | 36 | 36 | 0 |
+| INTEGRATION | 37 | 37 | 0 |
 | MIGRATION | 5 | 5 | 0 |
 | RBAC | 32 | 32 | 0 |
 | RESPONSIVE | 8 | 8 | 0 |
 | SCOPE | 30 | 30 | 0 |
-| SERVER | 114 | 114 | 0 |
+| SERVER | 115 | 115 | 0 |
 | UI | 84 | 84 | 0 |
 | VISUAL | 4 | 4 | 0 |
 | WORKFLOW | 32 | 32 | 0 |
@@ -521,6 +521,12 @@
 | `URN-PKT-011` | Ürünleştirme | DOMAIN · SERVER · INTEGRATION | `paket-aktif-bayragi.test.ts` | kaldırma paketin sözlük ve özniteliklerini pasifler; aynı içerikle geri kurulum aktifler (bırakılan yine pasif) | evet | geçti |
 | `URN-PKT-011` | Ürünleştirme | DOMAIN · SERVER · INTEGRATION | `paket-aktif-bayragi.test.ts` | pasif öznitelik Tesis 360 profilinde çizilmez ve profil kaydı onu "bilinmeyen öznitelik" sayar; aktifleşince geri gelir | evet | geçti |
 | `URN-PKT-011` | Ürünleştirme | DOMAIN · SERVER · INTEGRATION | `paket-aktif-bayragi.test.ts` | portföy ölçüyü rolü kapasite olan AKTİF satırdan okur — enerji satırlarında güç dolu; kapasite satırı pasifse ölçülmedi | evet | geçti |
+| `URN-PKT-012` | Ürünleştirme | DOMAIN · SERVER · INTEGRATION | `paket-sablon.test.ts` | JSON form ve rapor geçer, sayılır; dosya adı koddan farklıysa KİMLİK | evet | geçti |
+| `URN-PKT-012` | Ürünleştirme | DOMAIN · SERVER · INTEGRATION | `paket-sablon.test.ts` | XLSX: sayfa ve hücreler dosyaya karşı okunur — yok sayfa, aralık dışı hücre, hücresiz alan BIÇIM; doğru olan geçer | evet | geçti |
+| `URN-PKT-012` | Ürünleştirme | DOMAIN · SERVER · INTEGRATION | `paket-sablon.test.ts` | telifli pakette XLSX form LİSANS; JSON yapı geçer; hücre var dosya yoksa BIÇIM | evet | geçti |
+| `URN-PKT-012` | Ürünleştirme | DOMAIN · SERVER · INTEGRATION | `paket-sablon.test.ts` | rapor: sıralama alanların permütasyonu olmalı; secim tipi seçenek ister | evet | geçti |
+| `URN-PKT-012` | Ürünleştirme | DOMAIN · SERVER · INTEGRATION | `paket-sablon.test.ts` | kopuk madde referansı KİMLİK ve hiçbir satır yazılmaz; çözülen referansla şablonlar koken=paket yazılır | evet | geçti |
+| `URN-PKT-012` | Ürünleştirme | DOMAIN · SERVER · INTEGRATION | `paket-sablon.test.ts` | kiracı şablonu ezilmez (çelişki); yükseltmede bırakılan şablon pasif; kaldırma pasifler | evet | geçti |
 | `URN-PKT-010` | Ürünleştirme | DOMAIN | `bekci/paket-silme.test.ts` | madde dışında HİÇBİR modelde delete/deleteMany yok — tavan sıfır, istisna listesi yok | evet | geçti |
 | `URN-PKT-010` | Ürünleştirme | DOMAIN | `bekci/paket-silme.test.ts` | madde silmesi yalnız paketin kendi taslağını (`surumId` süzgeci) hedefler ve bağ kontrolünden sonra gelir | evet | geçti |
 | `URN-PKT-010` | Ürünleştirme | DOMAIN | `bekci/paket-silme.test.ts` | şemada Madde\'den başka modele giden HER liste ilişkisi bağ kontrolünde; listede şemada olmayan ilişki yok | evet | geçti |

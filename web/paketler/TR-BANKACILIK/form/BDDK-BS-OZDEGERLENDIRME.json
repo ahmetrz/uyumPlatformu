@@ -1,0 +1,37 @@
+{
+  "kod": "BDDK-BS-OZDEGERLENDIRME",
+  "ad": "Bilgi sistemleri öz-değerlendirme formu (iskelet)",
+  "tur": "oz_degerlendirme",
+  "aciklama": "Yapı iskeleti: alanlar BDDK-BS bölüm başlıklarına referans verir; madde metni yoktur. Kurum kendi sorularını ekler.",
+  "bolumler": [
+    {
+      "kod": "genel_bilgi",
+      "baslik": "Genel bilgi",
+      "alanlar": [
+        { "anahtar": "degerlendirmeDonemi", "etiket": "Değerlendirme dönemi", "tip": "metin", "zorunlu": true },
+        { "anahtar": "degerlendirmeTarihi", "etiket": "Değerlendirme tarihi", "tip": "tarih", "zorunlu": true },
+        { "anahtar": "kapsamTuru", "etiket": "Değerlendirme kapsamı", "tip": "secim", "secenekler": [
+          { "deger": "tum", "ad": "Tüm bilgi sistemleri" },
+          { "deger": "kritik", "ad": "Yalnız kritik sistemler" }
+        ] }
+      ]
+    },
+    {
+      "kod": "yonetisim",
+      "baslik": "Bilgi sistemleri yönetişimi",
+      "alanlar": [
+        { "anahtar": "komiteVar", "etiket": "Bilgi sistemleri komitesi kurulu mu", "tip": "mantik", "maddeKod": "BDDK-BS-KISIM-2-B1" },
+        { "anahtar": "riskDegerlendirmeYili", "etiket": "Son risk değerlendirme yılı", "tip": "sayi", "maddeKod": "BDDK-BS-KISIM-2-B2" },
+        { "anahtar": "guvenlikPolitikasiVar", "etiket": "Bilgi güvenliği politikası onaylı mı", "tip": "mantik", "maddeKod": "BDDK-BS-KISIM-2-B3" }
+      ]
+    },
+    {
+      "kod": "sureklilik",
+      "baslik": "Süreklilik ve dış hizmet",
+      "alanlar": [
+        { "anahtar": "sureklilikTestiTarihi", "etiket": "Son süreklilik testi tarihi", "tip": "tarih", "maddeKod": "BDDK-BS-KISIM-2-B5" },
+        { "anahtar": "disHizmetEnvanteriVar", "etiket": "Dış hizmet envanteri güncel mi", "tip": "mantik", "maddeKod": "BDDK-BS-KISIM-2-B6" }
+      ]
+    }
+  ]
+}

@@ -800,8 +800,13 @@ mantık dalını (OR kardeşi) ve izin listesinde dosya içi sırayı sayar.
 `SektorOznitelikSemasi.aktif` (elle eklemeli göç); uzlaştırma ve kaldırma
 pasifler, geri kurulum aktifler; her okuyucu `aktif: true` süzer ve bekçi
 bunu kaynakta ölçer (`tests/bekci/aktif-suzgec.test.ts`, URN-PKT-011).
-Kalan: form ve rapor şablonu, rol kataloğu, demo yükleyici, eşleme CSV,
-`/paketler` ekranı, OSCAL okuyucu (SCF için — hukuki görüş bekleniyor).
+**2.2 uygulandı:** form (`form/<KOD>.json` + isteğe bağlı XLSX, hücreler
+dosyaya karşı okunur, telifli pakette XLSX yasak) ve rapor
+(`rapor/<KOD>.json`) şablonu türleri; `FormSablonu · RaporSablonu`
+katalogları (köken · aktif · uzlaştırma); ekranlar şablonu henüz okumaz
+(URN-PKT-012). Kalan: rol kataloğu, demo yükleyici, eşleme CSV,
+`/paketler` ekranı, OSCAL okuyucu (SCF için — hukuki görüş bekleniyor),
+form/rapor ekranlarının şablonu okuması.
 
 **Hedef.** Çerçeveler, eşlemeler, yükümlülükler, denetim form şablonları,
 mevzuat kaynak katalogları, sektör sözlükleri ve demo verisi **paket**

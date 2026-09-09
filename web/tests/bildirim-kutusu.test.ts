@@ -3,6 +3,7 @@ import { copyFileSync, mkdtempSync } from 'node:fs';
 import { createHash, randomBytes } from 'node:crypto';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import { ogeIdAl } from './yardim/kapsam';
 
 /* ═══════════════════════════════════════════════════════════════════════
    O25 · BİLDİRİM KUTUSU — sahiplik ve "bilinmeyen ≠ sıfır" regresyonu
@@ -59,7 +60,8 @@ async function kullaniciAc(
     data: { eposta, adSoyad: eposta, aktif: true } });
   await db.yetki.create({ data: {
     kullaniciId: kisi.id, rol: yetki.rol,
-    modul: yetki.modul ?? null, tesisId: yetki.tesisId ?? null } });
+    modul: yetki.modul ?? null,
+    kapsamOgesiId: yetki.tesisId ? await ogeIdAl(yetki.tesisId) : null } });
   const token = randomBytes(32).toString('base64url');
   await db.oturum.create({ data: {
     kullaniciId: kisi.id,

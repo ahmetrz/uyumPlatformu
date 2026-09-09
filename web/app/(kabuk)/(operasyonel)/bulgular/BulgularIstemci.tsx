@@ -33,7 +33,8 @@ export type Bulgu = {
   kapanisDogrulama: string | null; kapanisDogrulayan: string | null;
   sorumlu: string | null;
   maddeKod: string; maddeBaslik: string;
-  tesisId: string; tesisKod: string; tesisAd: string;
+  /** kapsam öğesi görünümü; `tesisId` tesis köprüsü (köprüsüz öğede null) */
+  tesisId: string | null; tesisKod: string; tesisAd: string;
   surecId: string; surecKod: string; regKod: string;
   aksiyonlar: AksiyonOzeti[];
   iz: IzKaydi[];
@@ -632,7 +633,9 @@ function BulguCekmecesi({ veri, kapat }: { veri: Secim; kapat: () => void }) {
       <CekmeceBagli kayitlar={[
         { id: 'surec', kod: b.surecKod, alt: `${b.regKod} · ${b.maddeKod}`,
           yol: `/surecler/${b.surecId}`, suren: true },
-        { id: 'tesis', kod: b.tesisKod, alt: b.tesisAd, yol: `/tesisler/${b.tesisId}` },
+        ...(b.tesisId
+          ? [{ id: 'tesis', kod: b.tesisKod, alt: b.tesisAd, yol: `/tesisler/${b.tesisId}` }]
+          : []),
       ]} />
 
       <CekmeceEylemler

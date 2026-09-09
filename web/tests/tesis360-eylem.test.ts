@@ -2,6 +2,8 @@ import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { copyFileSync, mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import { ogeKimligi } from './yardim/kapsam';
+import { ogeIdAl } from './yardim/kapsam';
 
 /* ═══════════════════════════════════════════════════════════════════════
    Santral 360 eylemleri — profil · kapsam · override
@@ -29,11 +31,11 @@ copyFileSync('prisma/dev.db', testDb);
 process.env.TEST_DB = testDb;
 
 type Yetki = {
-  rol: string; surecId: string | null; tesisId: string | null;
+  rol: string; surecId: string | null; kapsamOgesiId: string | null; tesisId: string | null;
   tuzelKisiId: string | null; regulasyonId: string | null; modul: string | null;
 };
 const yetki = (rol: string, tesisId: string | null = null): Yetki => ({
-  rol, surecId: null, tesisId, tuzelKisiId: null, regulasyonId: null, modul: null,
+  rol, surecId: null, kapsamOgesiId: ogeKimligi(tesisId), tesisId, tuzelKisiId: null, regulasyonId: null, modul: null,
 });
 
 const oturum = {
@@ -51,6 +53,9 @@ const { profilKaydet, kapsamYenidenHesapla, uygulanabilirlikOverride } =
   await import('@/lib/eylemler2/tesis360');
 
 type Sonuc = { ok: true } | { ok: false; hata: string };
+/** Tesisin öznitelik satırı — yoksa null (ölçülmedi). */
+const oznitelik = (tesisId: string, anahtar: string) =>
+  db.tesisOzellik.findUnique({ where: { tesisId_anahtar: { tesisId, anahtar } } });
 const hataMetni = (s: Sonuc) => (s.ok ? '' : s.hata);
 
 async function kimlikle<T>(yetkiler: Yetki[], is: () => Promise<T>): Promise<T> {
@@ -81,32 +86,36 @@ beforeAll(async () => {
 
 describe('profilKaydet — üç durumlu alanlar', () => {
   it('boş metin NULL olur — "" ile "bilinmiyor" aynı şey değildir [TES-PRF-001]', async () => {
+    /* B2: lisans alanları enerji PAKETİNİN öznitelikleridir; boş değer
+       satır AÇMAZ (ölçülmedi = satırsızlık), dolu değer metin satırıdır. */
     expect(hataMetni(await profilKaydet({
-      tesisId: tesisA, lisansTipi: '   ', lisansNo: 'LIS-1',
+      tesisId: tesisA, dcsSaglayici: '   ', oznitelikler: { lisansTipi: '   ', lisansNo: 'LIS-1' },
     }))).toBe('');
     const p = await db.tesisProfili.findUniqueOrThrow({ where: { tesisId: tesisA } });
-    expect(p.lisansTipi).toBeNull();
-    expect(p.lisansNo).toBe('LIS-1');
+    expect(p.dcsSaglayici).toBeNull();
+    expect(await oznitelik(tesisA, 'lisansTipi')).toBeNull();
+    expect((await oznitelik(tesisA, 'lisansNo'))?.metinDeger).toBe('LIS-1');
   });
 
   it('boolean ÜÇ DURUMLUDUR: false ile null ayrı saklanır', async () => {
     /* Kritik ayrım: `blackStart: false` "black start yeteneği YOK" der,
        `null` "ölçülmedi" der. Motor ikisine ayrı davranır. */
     expect(hataMetni(await profilKaydet({
-      tesisId: tesisA, blackStart: false, teiasScadaEms: null, iotVar: true,
+      tesisId: tesisA, iotVar: true, oznitelikler: { blackStart: false, teiasScadaEms: null },
     }))).toBe('');
     const p = await db.tesisProfili.findUniqueOrThrow({ where: { tesisId: tesisA } });
-    expect(p.blackStart).toBe(false);
-    expect(p.teiasScadaEms).toBeNull();
+    /* Mantık özniteliği 0/1 sayısal satırdır: false → 0 satırı VAR, null → satır YOK. */
+    expect((await oznitelik(tesisA, 'blackStart'))?.sayisalDeger).toBe(0);
+    expect(await oznitelik(tesisA, 'teiasScadaEms')).toBeNull();
     expect(p.iotVar).toBe(true);
   });
 
   it('upsert: ikinci kayıt günceller, kopya açmaz ve iz tipi değişir', async () => {
-    await profilKaydet({ tesisId: tesisB, kritiklikSinifi: 'orta' });
-    await profilKaydet({ tesisId: tesisB, kritiklikSinifi: 'kritik' });
+    await profilKaydet({ tesisId: tesisB, oznitelikler: { kritiklikSinifi: 'orta' } });
+    await profilKaydet({ tesisId: tesisB, oznitelikler: { kritiklikSinifi: 'kritik' } });
     expect(await db.tesisProfili.count({ where: { tesisId: tesisB } })).toBe(1);
-    const p = await db.tesisProfili.findUniqueOrThrow({ where: { tesisId: tesisB } });
-    expect(p.kritiklikSinifi).toBe('kritik');
+    expect(await db.tesisOzellik.count({ where: { tesisId: tesisB, anahtar: 'kritiklikSinifi' } })).toBe(1);
+    expect((await oznitelik(tesisB, 'kritiklikSinifi'))?.metinDeger).toBe('kritik');
 
     const izler = await db.aktiviteKaydi.findMany({
       where: { varlikTipi: 'TesisProfili', varlikId: tesisB, alan: 'profil' },
@@ -122,21 +131,32 @@ describe('profilKaydet — üç durumlu alanlar', () => {
     }))).not.toBe('');
   });
 
+  it('şemanın seçenek listesi dışındaki öznitelik değeri reddedilir; beyansız anahtar da [TES-PRF-004]', async () => {
+    /* Kritiklik sınıfı olay etki motorunun okuduğu değerdir: "kuantum"
+       sessizce girseydi motor onu "bilinmiyor" sayar, kimse fark etmezdi. */
+    expect(hataMetni(await profilKaydet({
+      tesisId: tesisA, oznitelikler: { kritiklikSinifi: 'kuantum' },
+    }))).toMatch(/geçersiz seçim/i);
+    expect(hataMetni(await profilKaydet({
+      tesisId: tesisA, oznitelikler: { uydurmaAnahtar: 'x' },
+    }))).toMatch(/beyan edilmemiş/i);
+    expect(await db.tesisOzellik.count({ where: { tesisId: tesisA, anahtar: 'uydurmaAnahtar' } })).toBe(0);
+  });
+
   it('tesise kısıtlı rol BAŞKA santralin profilini yazamaz', async () => {
     const kisitli = [yetki('yonetici', tesisA)];
     expect(hataMetni(await kimlikle(kisitli,
-      () => profilKaydet({ tesisId: tesisA, lisansNo: 'KENDI' })))).toBe('');
+      () => profilKaydet({ tesisId: tesisA, oznitelikler: { lisansNo: 'KENDI' } })))).toBe('');
     expect(hataMetni(await kimlikle(kisitli,
-      () => profilKaydet({ tesisId: tesisB, lisansNo: 'YABANCI' })))).toMatch(/yetki/i);
-    const b = await db.tesisProfili.findUniqueOrThrow({ where: { tesisId: tesisB } });
-    expect(b.lisansNo).not.toBe('YABANCI');
+      () => profilKaydet({ tesisId: tesisB, oznitelikler: { lisansNo: 'YABANCI' } })))).toMatch(/yetki/i);
+    expect((await oznitelik(tesisB, 'lisansNo'))?.metinDeger).not.toBe('YABANCI');
   });
 });
 
 describe('kapsamYenidenHesapla', () => {
   it('motoru koşturur ve karar satırı bırakır', async () => {
     expect(hataMetni(await kapsamYenidenHesapla({ tesisId: tesisA }))).toBe('');
-    expect(await db.uygulanabilirlikKarari.count({ where: { tesisId: tesisA } }))
+    expect(await db.uygulanabilirlikKarari.count({ where: { kapsamOgesi: { tesisId: tesisA } } }))
       .toBeGreaterThan(0);
   });
 
@@ -159,7 +179,7 @@ describe('uygulanabilirlikOverride', () => {
       tesisId: tesisA, regulasyonId, uygulanabilir: false, gerekce,
     }))).toBe('');
     const karar = await db.uygulanabilirlikKarari.findUniqueOrThrow({
-      where: { tesisId_regulasyonId: { tesisId: tesisA, regulasyonId } },
+      where: { kapsamOgesiId_regulasyonId: { kapsamOgesiId: await ogeIdAl(tesisA), regulasyonId } },
     });
     expect(karar.uygulanabilir).toBe(false);
     expect(karar.elIleDegistirildi).toBe(true);
@@ -173,7 +193,7 @@ describe('uygulanabilirlikOverride', () => {
        koşudan sonra yeniden vermek zorunda kalır ve bir gün fark etmez. */
     expect(hataMetni(await kapsamYenidenHesapla({ tesisId: tesisA }))).toBe('');
     const karar = await db.uygulanabilirlikKarari.findUniqueOrThrow({
-      where: { tesisId_regulasyonId: { tesisId: tesisA, regulasyonId } },
+      where: { kapsamOgesiId_regulasyonId: { kapsamOgesiId: await ogeIdAl(tesisA), regulasyonId } },
     });
     expect(karar.elIleDegistirildi).toBe(true);
     expect(karar.uygulanabilir).toBe(false);

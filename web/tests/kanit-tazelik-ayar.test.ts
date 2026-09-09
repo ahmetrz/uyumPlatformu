@@ -25,11 +25,11 @@ copyFileSync('prisma/dev.db', testDb);
 process.env.TEST_DB = testDb;
 
 type Yetki = {
-  rol: string; surecId: string | null; tesisId: string | null;
+  rol: string; surecId: string | null; kapsamOgesiId: string | null; tesisId: string | null;
   tuzelKisiId: string | null; regulasyonId: string | null; modul: string | null;
 };
 const yetki = (rol: string): Yetki => ({
-  rol, surecId: null, tesisId: null, tuzelKisiId: null, regulasyonId: null, modul: null,
+  rol, surecId: null, kapsamOgesiId: null, tesisId: null, tuzelKisiId: null, regulasyonId: null, modul: null,
 });
 const oturum = {
   id: '', adSoyad: 'Test Yöneticisi', eposta: 'yonetim@test', unvan: null,

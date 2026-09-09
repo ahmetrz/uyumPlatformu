@@ -5,7 +5,7 @@ import { tipAdi, tipRengi } from '@/components/kabuk/tip';
 import { etiketle } from '@/lib/sabitler';
 import { t, tBas, type Sozluk } from '@/lib/dil/terimler';
 import OtProfili from './OtProfili';
-import type { OtProfili as OtProfilKaydi } from './mantik';
+import type { OtProfili as OtProfilKaydi, SektorProfili } from './mantik';
 import { olculenYazi } from '@/lib/alan/oznitelik';
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -79,6 +79,8 @@ export type Tesis360Veri = {
   kritiklik: string | null; birimSayisi: number | null;
   /** OT mimari profili — null: kayıt hiç açılmamış (her alan tanımsız) */
   profil: OtProfilKaydi | null;
+  /** Sektör paketinin beyan ettiği profil öznitelikleri (B2); şeması boş sektörde boş */
+  sektorProfili: SektorProfili;
   profilDuzenlenebilir: boolean;
   uyumYuzde: number | null; bilinmeyenOran: number | null; cerceveKodu: string | null;
   enYuksekRisk: { kod: string; baslik: string; skor: number | null } | null;
@@ -303,7 +305,7 @@ export default function Tesis360({ veri, tesisler, sozluk }: {
       </section>
 
       {/* ═══ OT mimari profili ═════════════════════════════════════════ */}
-      <OtProfili tesisId={veri.id} profil={veri.profil}
+      <OtProfili tesisId={veri.id} profil={veri.profil} sektor={veri.sektorProfili}
         duzenlenebilir={veri.profilDuzenlenebilir} />
 
       {/* ═══ Birimler + açık bulgular ══════════════════════════════════ */}

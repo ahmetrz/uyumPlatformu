@@ -3,6 +3,8 @@ import { copyFileSync, mkdtempSync } from 'node:fs';
 import { rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import { ogeKimligi } from './yardim/kapsam';
+import { ogeIdAl } from './yardim/kapsam';
 
 /* ═══════════════════════════════════════════════════════════════════════
    Uyum yönetişimi eylemleri — yetki · kapsam · doğrulama · iz
@@ -24,11 +26,11 @@ copyFileSync('prisma/dev.db', testDb);
 process.env.TEST_DB = testDb;
 
 type Yetki = {
-  rol: string; surecId: string | null; tesisId: string | null;
+  rol: string; surecId: string | null; kapsamOgesiId: string | null; tesisId: string | null;
   tuzelKisiId: string | null; regulasyonId: string | null; modul: string | null;
 };
 const yetki = (rol: string, tesisId: string | null = null): Yetki => ({
-  rol, surecId: null, tesisId, tuzelKisiId: null, regulasyonId: null, modul: null,
+  rol, surecId: null, kapsamOgesiId: ogeKimligi(tesisId), tesisId, tuzelKisiId: null, regulasyonId: null, modul: null,
 });
 
 /* Kapsam testleri santrale kısıtlı `yonetici` ile yapılır: yetkiyi
@@ -76,6 +78,7 @@ async function kimlikle<T>(yetkiler: Yetki[], is: () => Promise<T>): Promise<T> 
 }
 
 let tesisA = ''; let tesisB = '';
+let ogeA = '';
 let durumA = ''; let durumB = '';
 let regulasyonA = '';
 
@@ -105,18 +108,20 @@ async function bulguAc(o: {
 }
 
 beforeAll(async () => {
-  const kayitli = await db.maddeDurumu.findMany({
-    distinct: ['tesisId'], select: { tesisId: true }, orderBy: { tesisId: 'asc' },
-    take: 2,
+  /* Uyum zinciri KAPSAM ÖĞESİNE bağlı (B1): kaydı olan iki öğenin tesisi. */
+  const kayitli = await db.kapsamOgesi.findMany({
+    where: { tesisId: { not: null }, maddeDurumlari: { some: {} } },
+    select: { tesisId: true }, orderBy: { tesisId: 'asc' }, take: 2,
   });
-  tesisA = kayitli[0].tesisId; tesisB = kayitli[1].tesisId;
+  tesisA = kayitli[0].tesisId!; tesisB = kayitli[1].tesisId!;
+  ogeA = await ogeIdAl(tesisA);
 
   const kullanicilar = await db.kullanici.findMany({ where: { aktif: true }, take: 1 });
   oturum.id = kullanicilar[0].id;
 
   const durumBul = async (tesisId: string) => {
     const d = await db.maddeDurumu.findFirst({
-      where: { tesisId }, select: { id: true, madde: { select: { regulasyonId: true } } },
+      where: { kapsamOgesi: { tesisId } }, select: { id: true, madde: { select: { regulasyonId: true } } },
     });
     return d!;
   };
@@ -310,7 +315,7 @@ describe('UY-28 · tekrar bağı', () => {
        bağ ile motorun kuracağı bağın AYNI fonksiyondan gelmesidir; bu
        yüzden gürültüsüz bir kontrolde koşar. */
     const temiz = await db.maddeDurumu.findFirst({
-      where: { tesisId: tesisA, bulgular: { none: {} } }, select: { id: true },
+      where: { kapsamOgesi: { tesisId: tesisA }, bulgular: { none: {} } }, select: { id: true },
     });
     if (!temiz) return;
     const simdi = Date.now();
@@ -653,7 +658,7 @@ describe('UY-41 · mevzuat kaynağı kütüğü', () => {
 describe('UY-43 · kuru koşu ve uygulama', () => {
   async function kodlariAl(n: number): Promise<{ kod: string; durum: string }[]> {
     const kayitlar = await db.maddeDurumu.findMany({
-      where: { tesisId: tesisA, madde: { regulasyonId: regulasyonA, silindi: null } },
+      where: { kapsamOgesi: { tesisId: tesisA }, madde: { regulasyonId: regulasyonA, silindi: null } },
       select: { durum: true, madde: { select: { kod: true } } },
       take: n,
     });
@@ -663,7 +668,7 @@ describe('UY-43 · kuru koşu ve uygulama', () => {
   it('okuyucu kuru koşu yapamaz', async () => {
     const kodlar = await kodlariAl(1);
     const s = await kimlikle([yetki('okuyucu')], () => degerlendirmeKuruKosu({
-      regulasyonId: regulasyonA, tesisId: tesisA, kaynakAdi: 'Test',
+      regulasyonId: regulasyonA, kapsamOgesiId: ogeA, kaynakAdi: 'Test',
       satirlar: [{ satirNo: 1, maddeKodu: kodlar[0].kod, durum: 'uyumlu' }],
     }));
     expect(s.ok).toBe(false);
@@ -673,7 +678,7 @@ describe('UY-43 · kuru koşu ve uygulama', () => {
   it('BAŞKA santrale aktarım yapılamaz', async () => {
     const kodlar = await kodlariAl(1);
     const s = await kimlikle(kisitliYonetici(tesisB), () => degerlendirmeKuruKosu({
-      regulasyonId: regulasyonA, tesisId: tesisA, kaynakAdi: 'Test',
+      regulasyonId: regulasyonA, kapsamOgesiId: ogeA, kaynakAdi: 'Test',
       satirlar: [{ satirNo: 1, maddeKodu: kodlar[0].kod, durum: 'uyumlu' }],
     }));
     expect(s.ok).toBe(false);
@@ -683,12 +688,12 @@ describe('UY-43 · kuru koşu ve uygulama', () => {
   it('kuru koşu HİÇBİR değerlendirmeye dokunmaz', async () => {
     const kodlar = await kodlariAl(3);
     const oncekiDurumlar = await db.maddeDurumu.findMany({
-      where: { tesisId: tesisA, madde: { kod: { in: kodlar.map((x) => x.kod) } } },
+      where: { kapsamOgesi: { tesisId: tesisA }, madde: { kod: { in: kodlar.map((x) => x.kod) } } },
       select: { id: true, durum: true }, orderBy: { id: 'asc' },
     });
 
     const s = await degerlendirmeKuruKosu({
-      regulasyonId: regulasyonA, tesisId: tesisA, kaynakAdi: benzersiz('Kuru'),
+      regulasyonId: regulasyonA, kapsamOgesiId: ogeA, kaynakAdi: benzersiz('Kuru'),
       satirlar: kodlar.map((x, i) => ({
         satirNo: i + 1, maddeKodu: x.kod, durum: 'kismi',
       })),
@@ -696,7 +701,7 @@ describe('UY-43 · kuru koşu ve uygulama', () => {
     expect(s.ok).toBe(true);
 
     const sonraki = await db.maddeDurumu.findMany({
-      where: { tesisId: tesisA, madde: { kod: { in: kodlar.map((x) => x.kod) } } },
+      where: { kapsamOgesi: { tesisId: tesisA }, madde: { kod: { in: kodlar.map((x) => x.kod) } } },
       select: { id: true, durum: true }, orderBy: { id: 'asc' },
     });
     expect(sonraki).toEqual(oncekiDurumlar);
@@ -705,7 +710,7 @@ describe('UY-43 · kuru koşu ve uygulama', () => {
   it('kuru koşu kaydı KURU_KOSU durumunda açılır ve ize düşer', async () => {
     const kodlar = await kodlariAl(2);
     const s = await degerlendirmeKuruKosu({
-      regulasyonId: regulasyonA, tesisId: tesisA, kaynakAdi: benzersiz('Kuru'),
+      regulasyonId: regulasyonA, kapsamOgesiId: ogeA, kaynakAdi: benzersiz('Kuru'),
       satirlar: kodlar.map((x, i) => ({
         satirNo: i + 1, maddeKodu: x.kod, durum: 'kismi',
       })),
@@ -723,7 +728,7 @@ describe('UY-43 · kuru koşu ve uygulama', () => {
 
   it('BOŞ satır listesi reddedilir', async () => {
     const s = await degerlendirmeKuruKosu({
-      regulasyonId: regulasyonA, tesisId: tesisA, kaynakAdi: 'Boş', satirlar: [],
+      regulasyonId: regulasyonA, kapsamOgesiId: ogeA, kaynakAdi: 'Boş', satirlar: [],
     });
     expect(s.ok).toBe(false);
   });
@@ -731,7 +736,7 @@ describe('UY-43 · kuru koşu ve uygulama', () => {
   it('uygulama ONAY yetkisi ister', async () => {
     const kodlar = await kodlariAl(2);
     const kuru = await degerlendirmeKuruKosu({
-      regulasyonId: regulasyonA, tesisId: tesisA, kaynakAdi: benzersiz('Kuru'),
+      regulasyonId: regulasyonA, kapsamOgesiId: ogeA, kaynakAdi: benzersiz('Kuru'),
       satirlar: kodlar.map((x, i) => ({
         satirNo: i + 1, maddeKodu: x.kod, durum: 'incelemede',
       })),
@@ -750,7 +755,7 @@ describe('UY-43 · kuru koşu ve uygulama', () => {
   it('kısa gerekçe reddedilir', async () => {
     const kodlar = await kodlariAl(1);
     const kuru = await degerlendirmeKuruKosu({
-      regulasyonId: regulasyonA, tesisId: tesisA, kaynakAdi: benzersiz('Kuru'),
+      regulasyonId: regulasyonA, kapsamOgesiId: ogeA, kaynakAdi: benzersiz('Kuru'),
       satirlar: [{ satirNo: 1, maddeKodu: kodlar[0].kod, durum: 'incelemede' }],
     });
     if (!kuru.ok) return;
@@ -763,7 +768,7 @@ describe('UY-43 · kuru koşu ve uygulama', () => {
   it('uygulama KÖKENLE bağlanır ve her satır kendi izini bırakır', async () => {
     const kayitlar = await db.maddeDurumu.findMany({
       where: {
-        tesisId: tesisA, madde: { regulasyonId: regulasyonA, silindi: null },
+        kapsamOgesi: { tesisId: tesisA }, madde: { regulasyonId: regulasyonA, silindi: null },
         durum: { not: 'incelemede' },
       },
       select: { id: true, durum: true, madde: { select: { kod: true } } },
@@ -772,7 +777,7 @@ describe('UY-43 · kuru koşu ve uygulama', () => {
     if (kayitlar.length === 0) return;
 
     const kuru = await degerlendirmeKuruKosu({
-      regulasyonId: regulasyonA, tesisId: tesisA, kaynakAdi: benzersiz('Uygulanacak'),
+      regulasyonId: regulasyonA, kapsamOgesiId: ogeA, kaynakAdi: benzersiz('Uygulanacak'),
       satirlar: kayitlar.map((m, i) => ({
         satirNo: i + 1, maddeKodu: m.madde.kod, durum: 'incelemede',
       })),
@@ -814,7 +819,7 @@ describe('UY-43 · kuru koşu ve uygulama', () => {
   it('AYNI kuru koşu İKİ KEZ uygulanamaz', async () => {
     const kodlar = await kodlariAl(1);
     const kuru = await degerlendirmeKuruKosu({
-      regulasyonId: regulasyonA, tesisId: tesisA, kaynakAdi: benzersiz('Kuru'),
+      regulasyonId: regulasyonA, kapsamOgesiId: ogeA, kaynakAdi: benzersiz('Kuru'),
       satirlar: [{ satirNo: 1, maddeKodu: kodlar[0].kod, durum: 'kismi' }],
     });
     if (!kuru.ok) return;
@@ -847,7 +852,7 @@ describe('UY-43 · kuru koşu ve uygulama', () => {
   it('reddetme kaydı SİLMEZ, durumu değiştirir ve ize düşer', async () => {
     const kodlar = await kodlariAl(1);
     const kuru = await degerlendirmeKuruKosu({
-      regulasyonId: regulasyonA, tesisId: tesisA, kaynakAdi: benzersiz('Reddedilecek'),
+      regulasyonId: regulasyonA, kapsamOgesiId: ogeA, kaynakAdi: benzersiz('Reddedilecek'),
       satirlar: [{ satirNo: 1, maddeKodu: kodlar[0].kod, durum: 'uyumlu' }],
     });
     if (!kuru.ok) return;

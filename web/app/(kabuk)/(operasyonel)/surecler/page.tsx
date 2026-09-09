@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
-import { girisZorunlu, izinVar, izinliTesisIdleri } from '@/lib/erisim';
+import { girisZorunlu, izinVar } from '@/lib/erisim';
+import { OGE_GORUNUMU, ogeKapsami, ogeKosulu } from '@/app/kapsam';
 import { Yetkisiz } from '@/components/kabuk/temel';
 import { db } from '@/lib/db';
 import SureclerIstemci from './SureclerIstemci';
@@ -20,7 +21,7 @@ export default async function Sayfa() {
   const kullanici = await girisZorunlu();
   if (!izinVar(kullanici, 'uyum', 'okuma')) return <Yetkisiz rol="uyum okuma" />;
 
-  const izinli = izinliTesisIdleri(kullanici, 'uyum');
+  const izinli = ogeKapsami(kullanici, 'uyum');
   /* Tesise kısıtlı rol kapsamsız (global) yazma yapamaz ama KENDİ
      tesisinde yazabilir — kapsam düğmesi bu yüzden `modulYazabilir` ile
      sorulur ("yazabildiğin tesis var mı"), `izinVar` ile değil.
@@ -33,27 +34,27 @@ export default async function Sayfa() {
   // `Date.now()` istek başına bir kez okunur; metrik, çizelge ve tablo
   // aynı "bugün"ü paylaşsın.
   const simdi = new Date().getTime();
-  const tesisSuzgeci = izinli === null ? {} : { tesisId: { in: izinli } };
+  const kapsamSuzgeci = ogeKosulu(izinli);
 
   const [ham, gruplar, acikBulgular, regulasyonlar, tesisler] = await Promise.all([
     db.uyumSureci.findMany({
       include: {
         regulasyon: { select: { id: true, kod: true, ad: true } },
-        kapsam: { include: { tesis: { select: { id: true, kod: true, ad: true } } } },
+        kapsam: { include: { kapsamOgesi: OGE_GORUNUMU } },
         denetimler: { where: { silindi: null }, select: { id: true, kod: true, durum: true } },
       },
       orderBy: [{ bitis: 'asc' }, { kod: 'asc' }],
     }),
     db.maddeDurumu.groupBy({
       by: ['surecId', 'durum'],
-      where: tesisSuzgeci,
+      where: kapsamSuzgeci,
       _count: { _all: true },
     }),
     db.bulgu.findMany({
       where: {
         silindi: null,
         durum: { in: ['acik', 'aksiyonda'] },
-        maddeDurumu: tesisSuzgeci,
+        maddeDurumu: kapsamSuzgeci,
       },
       select: { maddeDurumu: { select: { surecId: true } } },
     }),
@@ -63,7 +64,7 @@ export default async function Sayfa() {
       orderBy: { kod: 'asc' },
     }),
     db.tesis.findMany({
-      where: { durum: 'aktif', ...(izinli === null ? {} : { id: { in: izinli } }) },
+      where: { durum: 'aktif', ...(izinli === null ? {} : { kapsamOgesi: { id: { in: izinli } } }) },
       select: { id: true, kod: true, ad: true },
       orderBy: { kod: 'asc' },
     }),
@@ -89,7 +90,7 @@ export default async function Sayfa() {
     aciklama: s.aciklama,
     regulasyon: s.regulasyon,
     tesisler: s.kapsam
-      .map((k) => k.tesis)
+      .map((k) => k.kapsamOgesi)
       .filter((t) => izinli === null || izinli.includes(t.id)),
     sayim: sayimla(hamSayilar.get(s.id) ?? {}),
     acikBulgu: bulguSayisi.get(s.id) ?? 0,

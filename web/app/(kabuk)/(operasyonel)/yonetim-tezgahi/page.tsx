@@ -128,7 +128,8 @@ export default async function Sayfa({ searchParams }: { searchParams: Promise<{ 
       orderBy: { sira: 'asc' } }),
     db.tesis.findMany({ include: { tip: true,
       ozellikler: { select: { anahtar: true, sayisalDeger: true, birim: true } },
-      _count: { select: { surecKapsamlari: true } } },
+      /* Kullanım sayısı KAPSAM ÖĞESİNDEN (B1): süreç kapsamı öğeye bağlıdır. */
+      kapsamOgesi: { select: { _count: { select: { surecKapsamlari: true } } } } },
       orderBy: { kod: 'asc' } }),
     db.regulasyon.findMany({ include: { _count: { select: { maddeler: true, surecler: true } } },
       orderBy: { kod: 'asc' } }),
@@ -161,7 +162,7 @@ export default async function Sayfa({ searchParams }: { searchParams: Promise<{ 
         ...bos,
         id: `tesis-${t.id}`, kayitId: t.id, katalog: 'tesis',
         kod: t.kod, ad: t.ad,
-        kullanim: t._count.surecKapsamlari, ikincilKullanim: null,
+        kullanim: t.kapsamOgesi?._count.surecKapsamlari ?? 0, ikincilKullanim: null,
         devreDisi: t.durum === 'kapali',
         // Kırılımı olmayan AKTİF tesiste uygulanabilirlik motoru karar
         // üretemez — zinciri kıran tek eksik budur. Kapalı tesiste aranmaz.

@@ -26,7 +26,7 @@ const V = await import('@/components/kabuk/durumAyagiVerisi');
 const K = await import('../arac/rota-kurallari.mjs');
 
 type Yetki = {
-  rol: string; surecId: null; tesisId: string | null;
+  rol: string; surecId: null; kapsamOgesiId: string | null; tesisId: string | null;
   tuzelKisiId: null; regulasyonId: null; modul: string | null;
 };
 type Kisi = Parameters<typeof V.durumAyagiVerisi>[0];
@@ -37,7 +37,7 @@ const kullanici = (yetkiler: Yetki[]): Kisi => ({
 } as unknown as Kisi);
 
 const tam = (rol: string): Yetki => ({
-  rol, surecId: null, tesisId: null, tuzelKisiId: null, regulasyonId: null, modul: null,
+  rol, surecId: null, kapsamOgesiId: null, tesisId: null, tuzelKisiId: null, regulasyonId: null, modul: null,
 });
 
 const ONEK = 'KBK';

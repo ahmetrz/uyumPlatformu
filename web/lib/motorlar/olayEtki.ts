@@ -1,12 +1,15 @@
 import 'server-only';
 import { db } from '../db';
+import { ROL_OZNITELIK_SECIMI, rolDegeri } from '../kapsam/rol';
 
 /* Olay → etki zinciri motoru (P1-4).
 
    Zincir: Olay → Varlik → SistemServis → IsSureci → Tesis → üretim etkisi.
    Veri yolları: Varlik.sistemId, IsSureciSistemi(surecId, sistemId),
    IsSureci.uretimEtkisi, IsSureci.tesisId, Varlik.uretimEtkisi,
-   Varlik.emniyetEtkisi, Varlik.kritiklik, TesisProfili.kritiklikSinifi.
+   Varlik.emniyetEtkisi, Varlik.kritiklik, tesisin `kritiklik` ROLÜNDEKİ
+   sektör özniteliği (B2: `TesisProfili.kritiklikSinifi` çekirdekten çıktı;
+   sektör şeması rolü beyan etmezse sınıf `null`dür — uydurulmaz).
 
    ─ SÖZLEŞME ─────────────────────────────────────────────────────────────
    1. Motor ÖNERİR, karar vermez. Çıktı YALNIZ `Olay.etkiOnerisiJson`a
@@ -147,7 +150,8 @@ const sistemSecimi = {
           tesis: {
             select: {
               id: true, kod: true, ad: true,
-              profil: { select: { kritiklikSinifi: true, kritikAltyapiStatusu: true } },
+              profil: { select: { kritikAltyapiStatusu: true } },
+              ...ROL_OZNITELIK_SECIMI,
             },
           },
         },
@@ -156,23 +160,38 @@ const sistemSecimi = {
   },
 } as const;
 
+/** Zincirin ucundaki tesis satırı: profil (çekirdek) + rol öznitelikleri (sektör). */
+type TesisKaydi = {
+  id: string; kod: string; ad: string;
+  profil: { kritikAltyapiStatusu: boolean | null } | null;
+  tip: { sektorId: string | null } | null;
+  ozellikler: { anahtar: string; metinDeger: string | null; sayisalDeger: number | null }[];
+};
+
+/** Tesis satırından zincir tesisi: kritiklik sınıfı rol özniteliğinden okunur. */
+async function zincirTesisi(t: TesisKaydi): Promise<ZincirTesisi> {
+  return {
+    id: t.id, kod: t.kod, ad: t.ad,
+    profilVar: t.profil !== null,
+    kritiklikSinifi: await rolDegeri(t, 'kritiklik'),
+    kritikAltyapi: t.profil?.kritikAltyapiStatusu ?? null,
+  };
+}
+
 type SistemKaydi = {
   id: string; kod: string; ad: string; kritiklik: string;
   surecler: {
     surec: {
       id: string; kod: string; ad: string; uretimEtkisi: string;
-      tesis: {
-        id: string; kod: string; ad: string;
-        profil: { kritiklikSinifi: string | null; kritikAltyapiStatusu: boolean | null } | null;
-      } | null;
+      tesis: TesisKaydi | null;
     };
   }[];
 };
 
 /** Sistemden süreçlere, süreçlerden tesise: halkanın kuyruğu. */
-function kuyrugu(sistem: SistemKaydi | null): {
+async function kuyrugu(sistem: SistemKaydi | null): Promise<{
   surecler: ZincirSureci[]; tesisler: ZincirTesisi[]; kopukluk: Kopukluk;
-} {
+}> {
   if (!sistem) return { surecler: [], tesisler: [], kopukluk: 'sistem_yok' };
 
   const surecler: ZincirSureci[] = sistem.surecler.map((s) => ({
@@ -185,12 +204,7 @@ function kuyrugu(sistem: SistemKaydi | null): {
   for (const s of sistem.surecler) {
     const t = s.surec.tesis;
     if (!t || tesisHarita.has(t.id)) continue;
-    tesisHarita.set(t.id, {
-      id: t.id, kod: t.kod, ad: t.ad,
-      profilVar: t.profil !== null,
-      kritiklikSinifi: t.profil?.kritiklikSinifi ?? null,
-      kritikAltyapi: t.profil?.kritikAltyapiStatusu ?? null,
-    });
+    tesisHarita.set(t.id, await zincirTesisi(t));
   }
   const tesisler = [...tesisHarita.values()];
   return { surecler, tesisler, kopukluk: tesisler.length === 0 ? 'tesis_yok' : null };
@@ -423,7 +437,8 @@ export async function etkiOnerisiUret(
       tesis: {
         select: {
           id: true, kod: true, ad: true,
-          profil: { select: { kritiklikSinifi: true, kritikAltyapiStatusu: true } },
+          profil: { select: { kritikAltyapiStatusu: true } },
+          ...ROL_OZNITELIK_SECIMI,
         },
       },
       varliklar: {
@@ -448,7 +463,7 @@ export async function etkiOnerisiUret(
 
   for (const bag of olay.varliklar) {
     const v = bag.varlik;
-    const kuyruk = kuyrugu(v.sistem);
+    const kuyruk = await kuyrugu(v.sistem);
     zincir.push({
       giris: 'varlik',
       varlik: {
@@ -471,7 +486,7 @@ export async function etkiOnerisiUret(
   );
   for (const bag of olay.sistemler) {
     if (varliktanGelenSistemler.has(bag.sistem.id)) continue;
-    const kuyruk = kuyrugu(bag.sistem);
+    const kuyruk = await kuyrugu(bag.sistem);
     zincir.push({
       giris: 'sistem',
       varlik: null,
@@ -485,14 +500,7 @@ export async function etkiOnerisiUret(
     });
   }
 
-  const olayTesisi: ZincirTesisi | null = olay.tesis
-    ? {
-      id: olay.tesis.id, kod: olay.tesis.kod, ad: olay.tesis.ad,
-      profilVar: olay.tesis.profil !== null,
-      kritiklikSinifi: olay.tesis.profil?.kritiklikSinifi ?? null,
-      kritikAltyapi: olay.tesis.profil?.kritikAltyapiStatusu ?? null,
-    }
-    : null;
+  const olayTesisi: ZincirTesisi | null = olay.tesis ? await zincirTesisi(olay.tesis) : null;
 
   const kararlar: Record<EtkiAlani, Karar> = {
     uretimEtkisi: uretimKarari(zincir),

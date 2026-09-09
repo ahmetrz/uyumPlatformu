@@ -1,8 +1,8 @@
 import 'server-only';
 import { db } from '@/lib/db';
-import { izinliTesisIdleri, izinVar } from '@/lib/erisim';
+import { izinVar } from '@/lib/erisim';
 import type { AktifKullanici } from '@/lib/auth';
-import { kapsamda, modulKapisi } from '@/app/kapsam';
+import { modulKapisi, ogeKapsamda, ogeKapsami } from '@/app/kapsam';
 import { tekrarZinciri } from '@/lib/uyum/tekrarBulgu';
 import type { Veri } from './BulguDetayIstemci';
 
@@ -28,7 +28,7 @@ export async function bulguDetayVerisi(
   id: string,
 ): Promise<Veri | null> {
   modulKapisi(k, 'uyum');
-  const izinli = izinliTesisIdleri(k, 'uyum');
+  const izinli = ogeKapsami(k, 'uyum');
 
   const bulgu = await db.bulgu.findUnique({
     where: { id },
@@ -45,7 +45,7 @@ export async function bulguDetayVerisi(
       maddeDurumu: {
         include: {
           madde: true,
-          tesis: { include: { tip: true } },
+          kapsamOgesi: { include: { tesis: { include: { tip: true } } } },
           surec: { include: { regulasyon: true } },
           kanitBaglantilari: { include: { kanit: true } },
         },
@@ -53,9 +53,9 @@ export async function bulguDetayVerisi(
     },
   });
   if (!bulgu) return null;
-  // Kural `lib/api/yetki.ts → tesisKapsamda` ile aynı (app/kapsam.ts onu
-  // aynen çağırır) — ekran ile API sınırı aynı yerde durur.
-  if (!kapsamda(izinli, bulgu.maddeDurumu.tesisId)) return null;
+  // Kural `lib/api/yetki.ts → tesisKapsamda` ile aynı, öğe ekseninde
+  // (app/kapsam.ts → ogeKapsamda) — ekran ile API sınırı aynı yerde durur.
+  if (!ogeKapsamda(izinli, bulgu.maddeDurumu.kapsamOgesiId)) return null;
 
   const [aktiviteler, kullanicilar] = await Promise.all([
     db.aktiviteKaydi.findMany({
@@ -109,7 +109,7 @@ export async function bulguDetayVerisi(
      eyleminin içindedir (`aksiyonDogrula` yeniden denetler). Görev
      ayrılığı satır bazlıdır (sorumlu ≠ doğrulayan), o yüzden aktif
      kullanıcının kimliği ve her aksiyonun sorumlusu da taşınır. */
-  const kapsam = { tesisId: bulgu.maddeDurumu.tesisId, surecId: bulgu.maddeDurumu.surecId };
+  const kapsam = { kapsamOgesiId: bulgu.maddeDurumu.kapsamOgesiId, surecId: bulgu.maddeDurumu.surecId };
   const yazabilir = izinVar(k, 'uyum', 'yazma', kapsam);
   const dogrulayabilir = izinVar(k, 'uyum', 'onay', kapsam);
 
@@ -149,11 +149,13 @@ export async function bulguDetayVerisi(
       baslik: bulgu.maddeDurumu.madde.baslik,
       metin: bulgu.maddeDurumu.madde.metin,
     },
+    /* Kapsam hücresi bir KAPSAM ÖĞESİDİR (B1); `id` tesis KÖPRÜSÜDÜR —
+       öğe tesise köprülü değilse null ve tesis sayfasına bağlantı yoktur. */
     tesis: {
-      id: bulgu.maddeDurumu.tesisId,
-      kod: bulgu.maddeDurumu.tesis.kod,
-      ad: bulgu.maddeDurumu.tesis.ad,
-      tip: bulgu.maddeDurumu.tesis.tip?.kod ?? null,
+      id: bulgu.maddeDurumu.kapsamOgesi.tesisId,
+      kod: bulgu.maddeDurumu.kapsamOgesi.kod,
+      ad: bulgu.maddeDurumu.kapsamOgesi.ad,
+      tip: bulgu.maddeDurumu.kapsamOgesi.tesis?.tip?.kod ?? null,
     },
     surec: {
       id: bulgu.maddeDurumu.surecId,

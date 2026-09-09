@@ -36,7 +36,10 @@ describe('P1 · sözlük geri dolgusu', () => {
     .map((d) => path.join(KOK, GOC_DIZINI, d, 'migration.sql'))
     .filter((y) => existsSync(y))
     .map((y) => readFileSync(y, 'utf8'))
-    .filter((s) => s.includes('INSERT INTO "SektorSozlugu"'));
+    /* Yalnız P1 geri dolgusu: B2 göçü de `SektorSozlugu`ya yazar (öznitelik
+       etiketleri) ama o satırlar `ENERJI_OZNITELIK_ETIKETLERI`nindir ve
+       kendi paritesi `tests/kapsam-ogesi-gocu.test.ts`tedir. */
+    .filter((s) => s.includes('INSERT INTO "SektorSozlugu"') && s.includes('SÖZLÜK GERİ DOLGUSU'));
   const sql = gocler.join('\n');
 
   it('göç dosyası var ve SektorSozlugu\'na satır YAZIYOR', () => {
@@ -143,13 +146,18 @@ describe('P1 · öznitelik profili EZEMEZ', () => {
     expect(s.gerekce).toContain('profil alanı');
   });
 
-  it('TÜRETİLMİŞ alan da ezilemez', () => {
-    const kural = JSON.stringify({
-      hepsi: [{ alan: 'teiasScadaEmsSeriOlmayan', islec: '=', deger: false }] });
-    const s = kuralDegerlendir(kural, [oz('teiasScadaEmsSeriOlmayan', 1)],
-      { teiasScadaEms: true, seriHaberlesme: true });
-    expect(s.uygulanabilir, 'türetilmiş alan öznitelikle ezildi').toBe(true);
-    expect(s.gerekce).toContain('türetilmiş alan');
+  it('TÜRETİLMİŞ alan YOKTUR — bileşik kural iki özniteliği okur, eski türetilmiş anahtar onu ezemez', () => {
+    /* B2: `teiasScadaEmsSeriOlmayan` çekirdekten türetilen bir alandı;
+       artık kural iç içe `hepsi` ile iki özniteliği okur. Eski adla gelen
+       bir öznitelik satırı bileşimi DEĞİŞTİREMEZ: kural onu hiç anmaz. */
+    const kural = JSON.stringify({ hepsi: [{ hepsi: [
+      { alan: 'teiasScadaEms', islec: '=', deger: true },
+      { alan: 'seriHaberlesme', islec: '!=', deger: true },
+    ] }] });
+    const s = kuralDegerlendir(kural,
+      [oz('teiasScadaEms', 1), oz('seriHaberlesme', 1), oz('teiasScadaEmsSeriOlmayan', 1)], null);
+    expect(s.uygulanabilir, 'eski türetilmiş anahtar bileşik kuralı ezdi').toBe(false);
+    expect(s.gerekce).not.toContain('teiasScadaEmsSeriOlmayan');
   });
 
   it('çakışmayan öznitelik bağlama GİRER — kapı fazla katı değil', () => {

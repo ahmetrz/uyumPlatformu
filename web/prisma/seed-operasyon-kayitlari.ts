@@ -352,11 +352,14 @@ export async function operasyonKayitlari(db: PrismaClient) {
     const madde = maddeler.find((m) => m.kod === maddeKod);
     const tesisId = tesisler[tesisKod];
     if (!madde || !tesisId) continue;
-    const varOlan = await db.istisna.findFirst({ where: { maddeId: madde.id, tesisId } });
+    /* İstisna KAPSAM ÖĞESİNE verilir (B1); tesis kodu öğenin koduyla aynı. */
+    const oge = await db.kapsamOgesi.findUnique({ where: { tesisId } });
+    if (!oge) continue;
+    const varOlan = await db.istisna.findFirst({ where: { maddeId: madde.id, kapsamOgesiId: oge.id } });
     if (varOlan) continue;
     const kayit = await db.istisna.create({
       data: {
-        maddeId: madde.id, tesisId, gerekce,
+        maddeId: madde.id, kapsamOgesiId: oge.id, gerekce,
         bitis: gun(sure), durum,
         onaylayanId: durum === 'aktif' ? K['kullanici.a'] ?? null : null,
       },

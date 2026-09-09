@@ -29,6 +29,32 @@ export const tesisSozlugu = cache(async (tesisId: string, dil = 'tr'): Promise<S
   return sektorSozlugu(sektorId, dil);
 });
 
+/** Kapsam ÖĞESİNİN sözlüğü (B1): öğe tesise köprülüyse tesisin
+    sektörü; köprüsüz öğe (ileride sistem, iş fonksiyonu) sektörsüzdür ve
+    çekirdek sözcüğe düşer — null. Uyum eylemleri özneyi öğeyle
+    bildiği için `tesisSozlugu`nun öğe kapısıdır. */
+export const ogeSozlugu = cache(async (kapsamOgesiId: string, dil = 'tr'): Promise<Sozluk | null> => {
+  const oge = await db.kapsamOgesi.findUnique({
+    where: { id: kapsamOgesiId },
+    select: { tesis: { select: { tip: { select: { sektorId: true } } } } },
+  });
+  const sektorId = oge?.tesis?.tip?.sektorId ?? null;
+  if (!sektorId) return null;
+  return sektorSozlugu(sektorId, dil);
+});
+
+/** Öznitelik ETİKETLERİ — sektör sözlüğünün çekirdek terim listesi
+    DIŞINDAKİ anahtarları. `sozlukKur` çekirdeğin tanımadığı anahtarı
+    atar (ekran onu terim olarak çözemez); paketin öznitelik şeması ise
+    `etiketAnahtari`yi buradan çözer. Anahtar → tekil biçim. Satırı
+    olmayan anahtar sözlükte YOKTUR: çağıran anahtarın kendisini yazar,
+    sözcük uydurmaz. */
+export const oznitelikEtiketleri = cache(async (sektorId: string, dil = 'tr'): Promise<Record<string, string>> => {
+  const satirlar = await db.sektorSozlugu.findMany({
+    where: { sektorId, dil }, select: { anahtar: true, tekil: true } });
+  return Object.fromEntries(satirlar.filter((s) => s.tekil).map((s) => [s.anahtar, s.tekil]));
+});
+
 export const sektorSozlugu = cache(async (sektorId: string, dil = 'tr'): Promise<Sozluk | null> => {
   const satirlar = await db.sektorSozlugu.findMany({
     where: { sektorId, dil },

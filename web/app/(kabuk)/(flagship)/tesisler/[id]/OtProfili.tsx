@@ -5,8 +5,8 @@ import { useEylem } from '@/components/useEylem';
 import { profilKaydet } from '@/lib/eylemler2/tesis360';
 import { tarihTR } from '@/lib/sabitler';
 import {
-  PROFIL_GRUPLARI, formVarsayilani, formdanGirdi, profilSatirlari, tanimsizSayisi,
-  type OtProfili as OtProfilKaydi, type ProfilAlani, type ProfilFormu,
+  formVarsayilani, formdanGirdi, profilGruplari, profilSatirlari, tanimsizSayisi,
+  type GorunumAlani, type OtProfili as OtProfilKaydi, type ProfilFormu, type SektorProfili,
 } from './mantik';
 
 /* F3 · Tesis 360 — OT MİMARİ PROFİLİ bloğu (B6/B9).
@@ -15,6 +15,11 @@ import {
    "tesis profili eksik — karar Tesis 360'tan tamamlanır" diyordu ama
    Tesis 360'ta form YOKTU ve yalnız kritiklik sınıfı okunuyordu. Bu blok
    profilin tamamını satır satır gösterir, yetkisi olana düzenletir.
+
+   Alan listesi İKİ kaynaktan birleşir (mantik.ts): çekirdek OT alanları
+   ve sektör paketinin şemayla beyan ettiği öznitelikler (B2). Bu bileşen
+   hiçbir sektör anahtarını adıyla bilmez; su paketi şema beyan etmediyse
+   yalnız çekirdek alanlar çizilir.
 
    Sözleşme:
      · boş alan BOŞ BIRAKILMAZ, "tanımsız" sözcüğüyle ve unk işaretiyle
@@ -26,15 +31,17 @@ import {
        `kapsamYenidenHesapla` ile insan tetikler (bu blokta düğme yok:
        hangi tesiste motorun koşacağına o karar süreci karar verir). */
 
-export default function OtProfili({ tesisId, profil, duzenlenebilir }: {
+export default function OtProfili({ tesisId, profil, sektor, duzenlenebilir }: {
   tesisId: string;
   /** null = profil kaydı hiç açılmamış — tüm alanlar tanımsız */
   profil: OtProfilKaydi | null;
+  /** sektör paketinin öznitelikleri ve tesisin değerleri */
+  sektor: SektorProfili;
   duzenlenebilir: boolean;
 }) {
   const [acik, setAcik] = useState(false);
-  const gruplar = profilSatirlari(profil);
-  const sayim = tanimsizSayisi(profil);
+  const gruplar = profilSatirlari(profil, sektor);
+  const sayim = tanimsizSayisi(profil, sektor);
 
   return (
     <section className="ab-otprofil-blok" aria-labelledby="otprofil-baslik">
@@ -52,7 +59,7 @@ export default function OtProfili({ tesisId, profil, duzenlenebilir }: {
       </header>
 
       {acik && duzenlenebilir ? (
-        <ProfilFormu tesisId={tesisId} profil={profil} kapat={() => setAcik(false)} />
+        <ProfilFormu tesisId={tesisId} profil={profil} sektor={sektor} kapat={() => setAcik(false)} />
       ) : (
         <>
           {/* Grup adı <dl>'nin DIŞINDA: dl yalnız dt/dd grupları içerir
@@ -95,27 +102,27 @@ export default function OtProfili({ tesisId, profil, duzenlenebilir }: {
 
 /* ═══ Form ═══════════════════════════════════════════════════════════ */
 
-function ProfilFormu({ tesisId, profil, kapat }: {
-  tesisId: string; profil: OtProfilKaydi | null; kapat: () => void;
+function ProfilFormu({ tesisId, profil, sektor, kapat }: {
+  tesisId: string; profil: OtProfilKaydi | null; sektor: SektorProfili; kapat: () => void;
 }) {
   const { bekliyor, hata, calistir } = useEylem();
-  const [form, setForm] = useState<ProfilFormu>(() => formVarsayilani(profil));
-  const yaz = (anahtar: ProfilAlani['anahtar'], deger: string) =>
-    setForm((f) => ({ ...f, [anahtar]: deger }));
+  const [form, setForm] = useState<ProfilFormu>(() => formVarsayilani(profil, sektor));
+  const yaz = (formAnahtari: string, deger: string) =>
+    setForm((f) => ({ ...f, [formAnahtari]: deger }));
 
   return (
     <form className="ab-otprofil-form"
       onSubmit={(e) => {
         e.preventDefault();
-        calistir(() => profilKaydet(formdanGirdi(tesisId, form)), kapat);
+        calistir(() => profilKaydet(formdanGirdi(tesisId, form, sektor)), kapat);
       }}>
       <div className="ab-otprofil-gruplar">
-        {PROFIL_GRUPLARI.map((g) => (
+        {profilGruplari(sektor).map((g) => (
           <fieldset key={g.ad} className="ab-otprofil-grup">
             <legend className="mono grupad">{g.ad}</legend>
             {g.alanlar.map((a) => (
-              <Alan key={a.anahtar} etiket={a.etiket}>
-                <Girdi alan={a} deger={form[a.anahtar]} yaz={(v) => yaz(a.anahtar, v)} />
+              <Alan key={a.formAnahtari} etiket={a.birim ? `${a.etiket} (${a.birim})` : a.etiket}>
+                <Girdi alan={a} deger={form[a.formAnahtari] ?? ''} yaz={(v) => yaz(a.formAnahtari, v)} />
               </Alan>
             ))}
           </fieldset>
@@ -139,9 +146,14 @@ function ProfilFormu({ tesisId, profil, kapat }: {
 
 /** Alan türüne göre giriş. Üç durumlu alan ÜÇ seçenektir — iki değil. */
 function Girdi({ alan, deger, yaz }: {
-  alan: ProfilAlani; deger: string; yaz: (v: string) => void;
+  alan: GorunumAlani; deger: string; yaz: (v: string) => void;
 }) {
   switch (alan.tur) {
+    case 'sayi':
+      return (
+        <input className="ab-gr" type="number" step="any" inputMode="decimal" value={deger}
+          onChange={(e) => yaz(e.target.value)} />
+      );
     case 'ucDurum':
       return (
         <select className="ab-gr" value={deger} onChange={(e) => yaz(e.target.value)}>

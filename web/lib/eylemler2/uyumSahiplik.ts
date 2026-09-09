@@ -49,13 +49,13 @@ export async function degerlendirmeDogrula(girdi: {
     const kayit = await db.maddeDurumu.findUnique({
       where: { id: v.maddeDurumuId },
       select: {
-        id: true, tesisId: true, surecId: true, durum: true,
+        id: true, kapsamOgesiId: true, surecId: true, durum: true,
         sonDegerlendirme: true, dogrulayanId: true,
       },
     });
     if (!kayit) return hata(new Error('Madde durumu bulunamadı'));
-    kapsamZorunlu(k, 'uyum', 'onay', { tesisId: kayit.tesisId, surecId: kayit.surecId },
-      `Bu ${await kapsamTerimi(k, 'uyum', kayit.tesisId)}/süreç `
+    kapsamZorunlu(k, 'uyum', 'onay', { kapsamOgesiId: kayit.kapsamOgesiId, surecId: kayit.surecId },
+      `Bu ${await kapsamTerimi(k, 'uyum', kayit.kapsamOgesiId)}/süreç `
       + 'kapsamında doğrulama yetkiniz yok');
 
     if (!v.onay) {
@@ -124,11 +124,11 @@ export async function kontrolEkibiAta(girdi: {
 
     const kayit = await db.maddeDurumu.findUnique({
       where: { id: v.maddeDurumuId },
-      select: { id: true, tesisId: true, surecId: true, ekipId: true },
+      select: { id: true, kapsamOgesiId: true, surecId: true, ekipId: true },
     });
     if (!kayit) return hata(new Error('Madde durumu bulunamadı'));
-    kapsamZorunlu(k, 'uyum', 'yazma', { tesisId: kayit.tesisId, surecId: kayit.surecId },
-      `Bu ${await kapsamTerimi(k, 'uyum', kayit.tesisId)}/süreç `
+    kapsamZorunlu(k, 'uyum', 'yazma', { kapsamOgesiId: kayit.kapsamOgesiId, surecId: kayit.surecId },
+      `Bu ${await kapsamTerimi(k, 'uyum', kayit.kapsamOgesiId)}/süreç `
       + 'kapsamında sorumluluk atama yetkiniz yok');
 
     if (v.ekipId) {

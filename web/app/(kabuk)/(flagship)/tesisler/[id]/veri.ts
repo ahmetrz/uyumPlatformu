@@ -5,12 +5,14 @@ import type { AktifKullanici } from '@/lib/auth';
 import { kapsamda, modulKapisi } from '@/app/kapsam';
 import { uyumOzeti, gecikmisMi, gecenGun } from '@/lib/sabitler';
 import type { Tesis360Veri, TesisOzeti } from './Tesis360';
-import type { OtProfili } from './mantik';
+import { sektorAlaniKur, sektorDegerleri, type OtProfili, type SektorProfili } from './mantik';
+import { rolDegeri } from '@/lib/kapsam/rol';
 import {
   KURULU_GUC, birimliOzellik, olculenYazi,
 } from '@/lib/alan/oznitelik';
 import { tBas, type Sozluk } from '@/lib/dil/terimler';
-import { sektorSozlugu } from '@/lib/dil/sozlukOku';
+import { oznitelikEtiketleri, sektorSozlugu } from '@/lib/dil/sozlukOku';
+import { basHarf } from '@/lib/dil/terimler';
 
 /* F3 · Tesis 360 — SUNUCU VERİSİ.
 
@@ -50,14 +52,11 @@ export type EkranVerisi = {
   sozluk: Sozluk | null;
 };
 
-/* OT mimari profili (B6/B9). `profil: true` include'u zaten vardı ama
-   yalnız kritiklik sınıfı okunuyordu; alanların tamamı serileştirilir.
+/* OT mimari profili (B6/B9). ÇEKİRDEK kolonlar serileştirilir; sektöre
+   özgü alanlar (B2) `sektorProfiliOku` ile paketin şemasından gelir.
    Kayıt hiç açılmamışsa null döner — ekran her alanı "tanımsız" yazar,
    sıfır ya da "yok" uydurmaz. */
 function profilSerisi(p: {
-  lisansTipi: string | null; lisansNo: string | null; kabulDurumu: string | null;
-  kabulTarihi: Date | null; blackStart: boolean | null; teiasScadaEms: boolean | null;
-  seriHaberlesme: boolean | null; kritiklikSinifi: string | null;
   kritikAltyapiStatusu: boolean | null; internetMaruziyeti: string | null;
   uzaktanErisim: boolean | null; otMimariTipi: string | null; dcsSaglayici: string | null;
   scadaSaglayici: string | null; plcAileleri: string | null; iotVar: boolean | null;
@@ -66,10 +65,7 @@ function profilSerisi(p: {
 } | null): OtProfili | null {
   if (!p) return null;
   return {
-    lisansTipi: p.lisansTipi, lisansNo: p.lisansNo, kabulDurumu: p.kabulDurumu,
-    kabulTarihi: p.kabulTarihi?.toISOString() ?? null,
-    blackStart: p.blackStart, teiasScadaEms: p.teiasScadaEms, seriHaberlesme: p.seriHaberlesme,
-    kritiklikSinifi: p.kritiklikSinifi, kritikAltyapiStatusu: p.kritikAltyapiStatusu,
+    kritikAltyapiStatusu: p.kritikAltyapiStatusu,
     internetMaruziyeti: p.internetMaruziyeti, uzaktanErisim: p.uzaktanErisim,
     otMimariTipi: p.otMimariTipi, dcsSaglayici: p.dcsSaglayici, scadaSaglayici: p.scadaSaglayici,
     plcAileleri: p.plcAileleri, iotVar: p.iotVar, akilliSayacVar: p.akilliSayacVar,
@@ -77,6 +73,36 @@ function profilSerisi(p: {
     grupOrtakServisler: p.grupOrtakServisler,
     guncellendi: p.guncellendi.toISOString(),
   };
+}
+
+/** Sektör paketinin beyan ettiği profil öznitelikleri (B2): şema satırı
+    → alan (tip, seçenek, grup; etiket sözlükten, yoksa anahtarın
+    kendisi), tesisin `TesisOzellik` satırları → değer. `kapasite`
+    rolündeki öznitelik burada ÇİZİLMEZ: onun yeri kimlik kartıdır
+    (`guc`/`gucBirim`) ve yönetim tezgâhı düzenler. Sektörü olmayan
+    tesis ya da şeması boş sektör → boş profil; ekran yalnız çekirdek
+    alanları gösterir. */
+async function sektorProfiliOku(
+  sektorId: string | null,
+  ozellikler: { anahtar: string; sayisalDeger: number | null; metinDeger: string | null }[],
+): Promise<SektorProfili> {
+  if (!sektorId) return { alanlar: [], degerler: {} };
+  const [sema, etiketler] = await Promise.all([
+    db.sektorOznitelikSemasi.findMany({
+      /* `NOT: { rol: 'kapasite' }` SQL'de `NOT (rol = 'kapasite')` olur ve
+         rolü NULL olan satırı da düşürür (üç değerli mantık) — K4 ölçtü:
+         enerjide 20 yerine 13 alan çizildi. Rolsüz satır açıkça alınır. */
+      where: { sektorId, OR: [{ rol: null }, { rol: { not: 'kapasite' } }] },
+      select: { anahtar: true, tip: true, etiketAnahtari: true, secenekler: true, grup: true, birim: true },
+      orderBy: [{ sira: 'asc' }, { anahtar: 'asc' }],
+    }),
+    oznitelikEtiketleri(sektorId),
+  ]);
+  const alanlar = sema.map((o) => sektorAlaniKur({
+    anahtar: o.anahtar, tip: o.tip, secenekler: o.secenekler, grup: o.grup, birim: o.birim,
+    etiket: etiketler[o.etiketAnahtari] ? basHarf(etiketler[o.etiketAnahtari]) : o.etiketAnahtari,
+  }));
+  return { alanlar, degerler: sektorDegerleri(alanlar, ozellikler) };
 }
 
 /** Açık bulgu listesinde gösterilen en fazla kayıt (prototipte 6). */
@@ -97,7 +123,7 @@ export async function tesis360Verisi(
     where: { id },
     include: {
       tip: true, tuzelKisi: true, profil: true,
-      ozellikler: { select: { anahtar: true, sayisalDeger: true, birim: true } },
+      ozellikler: { select: { anahtar: true, sayisalDeger: true, metinDeger: true, birim: true } },
     },
   });
   if (!tesis) return null;
@@ -111,9 +137,10 @@ export async function tesis360Verisi(
   const [durumlar, bulgular, riskler, varliklar, denetimler, surecler, bolgeler, birimListesi,
     tumTesisler, katmanKayitlari, sistemler, bulguSayimi] =
     await Promise.all([
-      db.maddeDurumu.groupBy({ by: ['durum'], where: { tesisId: id }, _count: { _all: true } }),
+      /* Uyum zinciri KAPSAM ÖĞESİNE bağlıdır (B1); tesisin öğesi köprüden bulunur. */
+      db.maddeDurumu.groupBy({ by: ['durum'], where: { kapsamOgesi: { tesisId: id } }, _count: { _all: true } }),
       db.bulgu.findMany({
-        where: { maddeDurumu: { tesisId: id }, durum: { in: ['acik', 'aksiyonda'] }, silindi: null },
+        where: { maddeDurumu: { kapsamOgesi: { tesisId: id } }, durum: { in: ['acik', 'aksiyonda'] }, silindi: null },
         include: { sorumlu: { select: { adSoyad: true } },
           maddeDurumu: { include: { madde: { select: { kod: true, baslik: true } } } },
           aksiyonlar: { select: { durum: true } } },
@@ -133,7 +160,7 @@ export async function tesis360Verisi(
         include: { denetim: { select: { kod: true, ad: true, durum: true, planBitis: true } } },
       }),
       db.surecKapsami.findMany({
-        where: { tesisId: id },
+        where: { kapsamOgesi: { tesisId: id } },
         include: { surec: { include: { regulasyon: { select: { kod: true } } } } },
       }),
       db.agBolgesi.count({ where: { tesisId: id } }),
@@ -160,7 +187,7 @@ export async function tesis360Verisi(
          (domain) çoğu maddede boş — onunla katman kurmak ekranın yarısını
          "tanımsız" yapardı; aile hiyerarşisi /uyum ile aynı ve doludur. */
       db.maddeDurumu.findMany({
-        where: { tesisId: id },
+        where: { kapsamOgesi: { tesisId: id } },
         select: {
           durum: true,
           madde: {
@@ -182,7 +209,7 @@ export async function tesis360Verisi(
         },
       }),
       db.bulgu.groupBy({
-        by: ['durum'], where: { maddeDurumu: { tesisId: id }, silindi: null },
+        by: ['durum'], where: { maddeDurumu: { kapsamOgesi: { tesisId: id } }, silindi: null },
         _count: { _all: true },
       }),
     ]);
@@ -249,8 +276,11 @@ export async function tesis360Verisi(
       ...((o) => ({ guc: o.deger, gucBirim: o.birim }))(
         birimliOzellik(tesis.ozellikler, KURULU_GUC)),
       gorselAnahtari: tesis.gorselAnahtari,
-      kritiklik: tesis.profil?.kritiklikSinifi ?? null,
+      /* Kritiklik sınıfı çekirdek kolon DEĞİL, sektörün `kritiklik` rolündeki
+         özniteliğidir (B2); rolü beyan etmeyen sektörde null. */
+      kritiklik: await rolDegeri(tesis, 'kritiklik'),
       profil: profilSerisi(tesis.profil),
+      sektorProfili: await sektorProfiliOku(tesis.tip?.sektorId ?? null, tesis.ozellikler),
       /* Düzenleme kapısı sunucu eylemiyle AYNI soru: tanimlar/yazma, bu
          tesis kapsamında (lib/eylemler2/tesis360.ts → profilKaydet). */
       profilDuzenlenebilir: izinVar(k, 'tanimlar', 'yazma', { tesisId: id }),

@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { izinVar, izinliTesisIdleri } from '@/lib/erisim';
 import type { AktifKullanici } from '@/lib/auth';
+import { ogeKimligi } from './yardim/kapsam';
 
 /* Dosyanın ilk bloğu SAF mantıktır (RBAC kararları, veritabanı yok).
 
@@ -32,7 +33,7 @@ const kisi = (yetkiler: AktifKullanici['yetkiler']): AktifKullanici => ({
   id: 'k1', adSoyad: 'Test', eposta: 't@t', unvan: null, yetkiler,
 });
 const yetki = (p: Partial<AktifKullanici['yetkiler'][number]>) => ({
-  rol: 'katkici', surecId: null, tesisId: null, tuzelKisiId: null,
+  rol: 'katkici', surecId: null, kapsamOgesiId: ogeKimligi(p.tesisId), tesisId: null, tuzelKisiId: null,
   regulasyonId: null, modul: null, ...p,
 });
 

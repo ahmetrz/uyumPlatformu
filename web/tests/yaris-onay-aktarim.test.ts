@@ -3,6 +3,7 @@ import { copyFileSync, mkdtempSync } from 'node:fs';
 import { createHash, randomBytes } from 'node:crypto';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import { ogeAc } from './yardim/kapsam';
 
 /* Kontrol-sonra-yaz yarışları: onay kararı, içe aktarım onayı, keşif kararı.
 
@@ -34,7 +35,7 @@ const { onayKarar } = await import('@/lib/eylemler2/gorev');
 const { kesifKararUygula } = await import('@/lib/entegrasyon/kesif');
 
 const ONEK = `YARIS-${Date.now()}`;
-const kimlik = { onaylayan: '', talepEden: '', tesisId: '', turId: '' };
+const kimlik = { onaylayan: '', talepEden: '', tesisId: '', kapsamOgesiId: '', turId: '' };
 
 /** Gerçek bir oturum açar ve çerezi ayarlar — sahte AktifKullanici
     enjekte etmiyoruz, üretimdeki yetki modeli aynen koşsun. */
@@ -67,6 +68,7 @@ beforeAll(async () => {
     data: { kod: `${ONEK}-TUR`, ad: 'Yarış türü', sinif: 'BT' },
   });
   kimlik.tesisId = tesis.id;
+  kimlik.kapsamOgesiId = (await ogeAc(tesis)).id;
   kimlik.turId = tur.id;
 
   await oturumAc(onaylayan.id);
@@ -198,11 +200,11 @@ describe('İstisna onayının yan etkisi çiftlenmez ve yarım kalmaz', () => {
         kod: `${ONEK}-${etiket}-S${i}`, ad: `Yarış süreci ${i}`,
         regulasyonId: reg.id, durum: 'aktif' } });
       const d = await db.maddeDurumu.create({ data: {
-        surecId: surec.id, maddeId: madde.id, tesisId: kimlik.tesisId, durum: 'uyumlu' } });
+        surecId: surec.id, maddeId: madde.id, kapsamOgesiId: kimlik.kapsamOgesiId, durum: 'uyumlu' } });
       durumIdler.push(d.id);
     }
     const istisna = await db.istisna.create({ data: {
-      maddeId: madde.id, tesisId: kimlik.tesisId, durum: 'onay_bekliyor',
+      maddeId: madde.id, kapsamOgesiId: kimlik.kapsamOgesiId, durum: 'onay_bekliyor',
       gerekce: 'Yarış testi için geçici muafiyet.',
       bitis: new Date(Date.now() + 30 * 86_400_000) } });
     const talep = await db.onayTalebi.create({ data: {

@@ -387,7 +387,7 @@ export async function riskVeBulgu(db: PrismaClient) {
     const madde = M[b.maddeKod]; const tesis = T[b.tesisKod];
     if (!madde || !tesis || !surec) continue;
     const durumKaydi = await db.maddeDurumu.findFirst({
-      where: { surecId: surec.id, maddeId: madde.id, tesisId: tesis.id },
+      where: { surecId: surec.id, maddeId: madde.id, kapsamOgesi: { tesisId: tesis.id } },
     });
     if (!durumKaydi) continue;
 

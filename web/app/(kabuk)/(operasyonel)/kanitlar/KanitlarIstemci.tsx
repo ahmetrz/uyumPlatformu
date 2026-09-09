@@ -453,7 +453,7 @@ function KanitCekmecesi({ kanit, simdi, esik, kapat }: {
     })),
     ...kanit.tesisler.map((ts) => ({
       id: `tesis-${ts.id}`, kod: ts.kod, alt: `${tBas('tesis')} · ${ts.ad}`,
-      yol: `/tesisler/${ts.id}`,
+      yol: ts.tesisId ? `/tesisler/${ts.tesisId}` : '/kanitlar',
     })),
   ];
 

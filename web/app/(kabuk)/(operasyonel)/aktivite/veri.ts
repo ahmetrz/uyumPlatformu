@@ -97,23 +97,23 @@ async function tesisleriCoz(
       if (!idler.length) return;
       for (const b of await db.bulgu.findMany({
         where: { id: { in: idler } },
-        select: { id: true, maddeDurumu: { select: { tesisId: true } } },
-      })) yaz('Bulgu', b.id, [b.maddeDurumu.tesisId]);
+        select: { id: true, maddeDurumu: { select: { kapsamOgesi: { select: { tesisId: true } } } } },
+      })) yaz('Bulgu', b.id, [b.maddeDurumu.kapsamOgesi.tesisId]);
     })(),
     (async () => {
       const idler = id('Aksiyon');
       if (!idler.length) return;
       for (const a of await db.aksiyon.findMany({
         where: { id: { in: idler } },
-        select: { id: true, bulgu: { select: { maddeDurumu: { select: { tesisId: true } } } } },
-      })) yaz('Aksiyon', a.id, [a.bulgu.maddeDurumu.tesisId]);
+        select: { id: true, bulgu: { select: { maddeDurumu: { select: { kapsamOgesi: { select: { tesisId: true } } } } } } },
+      })) yaz('Aksiyon', a.id, [a.bulgu.maddeDurumu.kapsamOgesi.tesisId]);
     })(),
     (async () => {
       const idler = id('MaddeDurumu');
       if (!idler.length) return;
       for (const m of await db.maddeDurumu.findMany({
-        where: { id: { in: idler } }, select: { id: true, tesisId: true },
-      })) yaz('MaddeDurumu', m.id, [m.tesisId]);
+        where: { id: { in: idler } }, select: { id: true, kapsamOgesi: { select: { tesisId: true } } },
+      })) yaz('MaddeDurumu', m.id, [m.kapsamOgesi.tesisId]);
     })(),
     (async () => {
       const idler = id('Varlik');

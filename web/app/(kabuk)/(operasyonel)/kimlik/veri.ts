@@ -2,9 +2,7 @@ import 'server-only';
 import { db } from '@/lib/db';
 import { izinliTesisIdleri } from '@/lib/erisim';
 import type { AktifKullanici } from '@/lib/auth';
-import {
-  kapsamDaraltildi, kapsamKosulu, kapsamda, modulKapisi, modulYazabilir,
-} from '@/app/kapsam';
+import { kapsamda, kapsamDaraltildi, kapsamKosulu, kopruKosulu, modulKapisi, modulYazabilir, OGE_GORUNUMU } from '@/app/kapsam';
 import { ilkiniEsle } from '@/lib/sorguParcala';
 import type { Bag, Hesap } from './mantik';
 
@@ -86,9 +84,9 @@ export async function kimlikEkranVerisi(k: AktifKullanici): Promise<EkranVerisi>
       where: {
         silindi: null,
         durum: { in: ['acik', 'aksiyonda'] },
-        maddeDurumu: kapsamKosulu(izinli),
+        maddeDurumu: kopruKosulu(izinli),
       },
-      include: { maddeDurumu: { include: { madde: true, tesis: true } } },
+      include: { maddeDurumu: { include: { madde: true, kapsamOgesi: OGE_GORUNUMU } } },
       orderBy: { onemDerecesi: 'asc' },
     }),
     /* Atama başına SON inceleme ayrı sorguyla okunur.
@@ -140,7 +138,7 @@ export async function kimlikEkranVerisi(k: AktifKullanici): Promise<EkranVerisi>
 
     const tesisBulgusu: Bag[] = h.tesisId
       ? bulgular
-        .filter((b) => b.maddeDurumu.tesisId === h.tesisId)
+        .filter((b) => b.maddeDurumu.kapsamOgesi.tesisId === h.tesisId)
         .slice(0, 2)
         .map((b) => ({
           id: `b-${b.id}`, kod: b.baslik,

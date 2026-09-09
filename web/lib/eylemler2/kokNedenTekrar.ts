@@ -31,15 +31,15 @@ async function bulguKapsamiDayat(
 ) {
   const b = await db.bulgu.findUnique({
     where: { id: bulguId },
-    select: { maddeDurumu: { select: { tesisId: true, surecId: true } } },
+    select: { maddeDurumu: { select: { kapsamOgesiId: true, surecId: true } } },
   });
   if (!b) throw new Error('Bulgu bulunamadı');
   /* Mesaj İŞLEV olarak alınır: tesisi bu yardımcı okuyor, doğru çekim
      hâlini ise cümleyi kuran çağıran biliyor. Çağırana terimin bütün
      hâlleri geçirilir; ek birleştirme YOK. */
   kapsamZorunlu(k, 'uyum', islem,
-    { tesisId: b.maddeDurumu.tesisId, surecId: b.maddeDurumu.surecId },
-    mesaj(await eylemTerimi(k, 'uyum', b.maddeDurumu.tesisId)));
+    { kapsamOgesiId: b.maddeDurumu.kapsamOgesiId, surecId: b.maddeDurumu.surecId },
+    mesaj(await eylemTerimi(k, 'uyum', b.maddeDurumu.kapsamOgesiId)));
 }
 
 /**

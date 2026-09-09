@@ -4,6 +4,7 @@ import { createHash, randomBytes } from 'node:crypto';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import type { KanitPaketi } from '@/lib/disaAktarim/paket';
+import { ogeIdAl } from './yardim/kapsam';
 
 /* Denetim kanıt paketi (§19) — izole DB kopyası üstünde.
 
@@ -50,7 +51,8 @@ async function oturumAc(rol: string, tesisId: string | null) {
   const kisi = await db.kullanici.create({ data: {
     eposta: `paket.${randomBytes(4).toString('hex')}@ornek.local`,
     adSoyad: 'Paket Testi', aktif: true } });
-  await db.yetki.create({ data: { kullaniciId: kisi.id, rol, tesisId } });
+  await db.yetki.create({ data: { kullaniciId: kisi.id, rol,
+    kapsamOgesiId: tesisId ? await ogeIdAl(tesisId) : null } });
   const token = randomBytes(32).toString('base64url');
   await db.oturum.create({ data: {
     kullaniciId: kisi.id,
@@ -241,7 +243,7 @@ describe('RBAC — yetki dışındaki tesis pakete girmez', () => {
 describe('Köken — kökeni olmayan kayıt gizlenmez', () => {
   it('kökensiz satır pakette kalır ve "kökeni yok" diye işaretlenir', async () => {
     const kapsamdaki = await db.maddeDurumu.count({
-      where: { tesisId: izinliTesisId, surec: { regulasyonId } } });
+      where: { kapsamOgesi: { tesisId: izinliTesisId }, surec: { regulasyonId } } });
     const paket = await paketUret();
 
     // Kökensiz satırlar elenmiş olsaydı sayı düşerdi.
@@ -256,7 +258,7 @@ describe('Köken — kökeni olmayan kayıt gizlenmez', () => {
 
   it('kökeni olan satır kaynak sistem · koşu · alınma · güven taşır', async () => {
     const madde = await db.maddeDurumu.findFirstOrThrow({
-      where: { tesisId: izinliTesisId, surec: { regulasyonId } } });
+      where: { kapsamOgesi: { tesisId: izinliTesisId }, surec: { regulasyonId } } });
     const kosu = await db.entegrasyonKosusu.create({
       data: { kaynak: 'kanit-testi', durum: 'basarili' } });
     await kokenYaz({

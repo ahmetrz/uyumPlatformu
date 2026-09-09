@@ -18,7 +18,7 @@ describe('İstisna / waiver yaşam döngüsü (§50)', () => {
 
     // onay yan etkisinin veri kuralları (gorev.ts onayYanEtkisi ile birebir)
     const istisna = await db.istisna.create({ data: {
-      maddeId: durum.maddeId, tesisId: durum.tesisId,
+      maddeId: durum.maddeId, kapsamOgesiId: durum.kapsamOgesiId,
       gerekce: 'Donanım değişimi bekleniyor; geçici muafiyet.',
       bitis: new Date(Date.now() - 3_600_000), // test için: süresi zaten geçmiş
       durum: 'aktif' } });
@@ -66,6 +66,7 @@ describe('İstisna / waiver yaşam döngüsü (§50)', () => {
 
 import { beforeAll } from 'vitest';
 import { createHash, randomBytes } from 'node:crypto';
+import { ogeAc } from './yardim/kapsam';
 
 const { oturumCereziAyarla } = await import('./sahte/next-headers');
 const { onayKarar } = await import('@/lib/eylemler2/gorev');
@@ -108,16 +109,17 @@ async function istisnaKur(etiket: string, surecSayisi: number) {
     baslik: 'Test maddesi', metin: 'Test metni' } });
   const tesis = await db.tesis.create({
     data: { kod: `${ONEK}-${etiket}-T`, ad: 'İstisna tesisi' } });
+  const oge = await ogeAc(tesis);
   const durumIdler: string[] = [];
   for (let i = 0; i < surecSayisi; i += 1) {
     const surec = await db.uyumSureci.create({ data: {
       kod: `${ONEK}-${etiket}-S${i}`, ad: `Süreç ${i}`, regulasyonId: reg.id, durum: 'aktif' } });
     const d = await db.maddeDurumu.create({ data: {
-      surecId: surec.id, maddeId: madde.id, tesisId: tesis.id, durum: 'uyumlu' } });
+      surecId: surec.id, maddeId: madde.id, kapsamOgesiId: oge.id, durum: 'uyumlu' } });
     durumIdler.push(d.id);
   }
   const istisna = await db.istisna.create({ data: {
-    maddeId: madde.id, tesisId: tesis.id, durum: 'onay_bekliyor',
+    maddeId: madde.id, kapsamOgesiId: oge.id, durum: 'onay_bekliyor',
     gerekce: 'Donanım değişimi bekleniyor; geçici muafiyet.',
     bitis: new Date(Date.now() + 30 * 86_400_000) } });
   const talep = await db.onayTalebi.create({ data: {

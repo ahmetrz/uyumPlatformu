@@ -14,15 +14,15 @@ export async function anlikGoruntuAl(): Promise<{ islenen: number; uretilen: num
   for (const surec of surecler) {
     islenen++;
     const bugunku = await db.uyumAnlik.findFirst({
-      where: { surecId: surec.id, tesisId: null, tarih: { gte: gunBasi } } });
+      where: { surecId: surec.id, kapsamOgesiId: null, tarih: { gte: gunBasi } } });
     if (bugunku) continue; // günde bir
 
     const gruplar = await db.maddeDurumu.groupBy({
-      by: ['tesisId', 'durum', 'guven'], where: { surecId: surec.id },
+      by: ['kapsamOgesiId', 'durum', 'guven'], where: { surecId: surec.id },
       _count: { _all: true } });
 
     const ozet = (tesisId: string | null) => {
-      const ilgili = gruplar.filter((g) => tesisId === null || g.tesisId === tesisId);
+      const ilgili = gruplar.filter((g) => tesisId === null || g.kapsamOgesiId === tesisId);
       const durumlar: Record<string, number> = {};
       const guvenler: Record<string, number> = {};
       for (const g of ilgili) {
@@ -33,12 +33,12 @@ export async function anlikGoruntuAl(): Promise<{ islenen: number; uretilen: num
     };
 
     await db.uyumAnlik.create({ data: {
-      surecId: surec.id, tesisId: null, ozetJson: JSON.stringify(ozet(null)) } });
+      surecId: surec.id, kapsamOgesiId: null, ozetJson: JSON.stringify(ozet(null)) } });
     uretilen++;
     for (const kapsamKaydi of surec.kapsam) {
       await db.uyumAnlik.create({ data: {
-        surecId: surec.id, tesisId: kapsamKaydi.tesisId,
-        ozetJson: JSON.stringify(ozet(kapsamKaydi.tesisId)) } });
+        surecId: surec.id, kapsamOgesiId: kapsamKaydi.kapsamOgesiId,
+        ozetJson: JSON.stringify(ozet(kapsamKaydi.kapsamOgesiId)) } });
       uretilen++;
     }
   }

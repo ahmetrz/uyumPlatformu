@@ -2,9 +2,7 @@ import 'server-only';
 import { db } from '@/lib/db';
 import { izinliTesisIdleri } from '@/lib/erisim';
 import type { AktifKullanici } from '@/lib/auth';
-import {
-  kapsamDaraltildi, kapsamKosulu, modulKapisi, modulYazabilir, type TesisKapsami,
-} from '@/app/kapsam';
+import { kapsamDaraltildi, kopruKosulu, modulKapisi, modulYazabilir, OGE_GORUNUMU, type TesisKapsami } from '@/app/kapsam';
 import type { KanitSatiri } from './mantik';
 
 /* C21 · Kanıt kütüphanesi — SUNUCU VERİSİ (kapsam kuralı JSX'ten ayrı).
@@ -66,8 +64,8 @@ function kanitKapsamKosulu(izinli: TesisKapsami) {
   if (izinli === null) return {};
   return {
     OR: [
-      { baglantilar: { some: { maddeDurumu: { tesisId: { in: izinli } } } } },
-      { tesisBaglantilari: { some: { tesisId: { in: izinli } } } },
+      { baglantilar: { some: { maddeDurumu: { kapsamOgesi: { tesisId: { in: izinli } } } } } },
+      { kapsamBaglantilari: { some: { kapsamOgesi: { tesisId: { in: izinli } } } } },
       { varlikBaglantilari: { some: { varlik: { tesisId: { in: izinli } } } } },
     ],
   };
@@ -81,10 +79,10 @@ function kanitKapsamKosulu(izinli: TesisKapsami) {
  * hayır. Bağı olmayan (öksüz) kanıt daraltılmış kullanıcıya kapalıdır —
  * kapsamı bilinmeyen kayıt "her kapsamda" demek değildir.
  */
-function yazabilirMi(tesisIdleri: string[], izinli: TesisKapsami): boolean {
+function yazabilirMi(tesisIdleri: (string | null)[], izinli: TesisKapsami): boolean {
   if (izinli === null) return true;
   if (tesisIdleri.length === 0) return false;
-  return tesisIdleri.every((t) => izinli.includes(t));
+  return tesisIdleri.every((t) => t !== null && izinli.includes(t));
 }
 
 async function kanitSatirlari(izinli: TesisKapsami): Promise<KanitSatiri[]> {
@@ -97,21 +95,22 @@ async function kanitSatirlari(izinli: TesisKapsami): Promise<KanitSatiri[]> {
       sahip: true,
       baglantilar: {
         /* Kapsam dışı bağ satıra yazılmaz — daraltma include'a da uygulanır. */
-        where: { maddeDurumu: kapsamKosulu(izinli) },
+        where: { maddeDurumu: kopruKosulu(izinli) },
         include: {
           maddeDurumu: {
             include: {
               madde: true,
-              tesis: true,
+              kapsamOgesi: OGE_GORUNUMU,
               surec: { include: { regulasyon: true } },
               bulgular: { where: { silindi: null }, select: { id: true, baslik: true, durum: true } },
             },
           },
         },
       },
-      tesisBaglantilari: {
-        where: kapsamKosulu(izinli),
-        include: { tesis: true },
+      /* Kanıtın doğrudan kapsam bağı ÖĞEYEDİR (B1: `KanitKapsami`). */
+      kapsamBaglantilari: {
+        where: kopruKosulu(izinli),
+        include: { kapsamOgesi: OGE_GORUNUMU },
       },
       /* UY-12 · Sürüm geçmişi DEĞİŞMEZDİR ve bu ekranda tam görünür:
          "geçen sene de böyle miydi" sorusunun cevabı burada durur. */
@@ -156,7 +155,7 @@ async function kanitSatirlari(izinli: TesisKapsami): Promise<KanitSatiri[]> {
        bir kanıt A'dan değiştirilir ve B'nin uyum kaydı sessizce
        etkilenirdi. Bağı olmayan kanıt yalnız kapsamsız yetkiyle
        düzenlenir. */
-    duzenlenebilir: yazabilirMi(k.baglantilar.map((b) => b.maddeDurumu.tesisId), izinli),
+    duzenlenebilir: yazabilirMi(k.baglantilar.map((b) => b.maddeDurumu.kapsamOgesi.tesisId), izinli),
     maddeler: k.baglantilar.map((b) => ({
       maddeDurumuId: b.maddeDurumuId,
       maddeKod: b.maddeDurumu.madde.kod,
@@ -164,14 +163,16 @@ async function kanitSatirlari(izinli: TesisKapsami): Promise<KanitSatiri[]> {
       surecId: b.maddeDurumu.surecId,
       surecKod: b.maddeDurumu.surec.kod,
       regKod: b.maddeDurumu.surec.regulasyon.kod,
-      tesisId: b.maddeDurumu.tesisId,
-      tesisKod: b.maddeDurumu.tesis.kod,
-      tesisAd: b.maddeDurumu.tesis.ad,
+      tesisId: b.maddeDurumu.kapsamOgesi.tesisId,
+      tesisKod: b.maddeDurumu.kapsamOgesi.kod,
+      tesisAd: b.maddeDurumu.kapsamOgesi.ad,
     })),
     bulgular: k.baglantilar.flatMap((b) => b.maddeDurumu.bulgular.map((bu) => ({
-      id: bu.id, baslik: bu.baslik, durum: bu.durum, tesisKod: b.maddeDurumu.tesis.kod,
+      id: bu.id, baslik: bu.baslik, durum: bu.durum, tesisKod: b.maddeDurumu.kapsamOgesi.kod,
     }))),
-    tesisler: k.tesisBaglantilari.map((t) => ({ id: t.tesis.id, kod: t.tesis.kod, ad: t.tesis.ad })),
+    tesisler: k.kapsamBaglantilari.map((t) => ({
+      id: t.kapsamOgesi.id, tesisId: t.kapsamOgesi.tesisId, kod: t.kapsamOgesi.kod, ad: t.kapsamOgesi.ad,
+    })),
     varlikSayisi: k._count.varlikBaglantilari,
   }));
 }
@@ -179,14 +180,14 @@ async function kanitSatirlari(izinli: TesisKapsami): Promise<KanitSatiri[]> {
 /** Ekleme formu: kapsam içi madde durumları (madde kodu · tesis · süreç). */
 async function maddeDurumuSecenekleri(izinli: TesisKapsami): Promise<MaddeDurumuSecenegi[]> {
   const durumlar = await db.maddeDurumu.findMany({
-    where: kapsamKosulu(izinli),
+    where: kopruKosulu(izinli),
     take: SECENEK_TAVANI,
-    include: { madde: true, tesis: true, surec: true },
-    orderBy: [{ tesis: { kod: 'asc' } }, { madde: { kod: 'asc' } }],
+    include: { madde: true, kapsamOgesi: OGE_GORUNUMU, surec: true },
+    orderBy: [{ kapsamOgesi: { kod: 'asc' } }, { madde: { kod: 'asc' } }],
   });
   return durumlar.map((d) => ({
     id: d.id, maddeKod: d.madde.kod, maddeBaslik: d.madde.baslik,
-    tesisKod: d.tesis.kod, surecKod: d.surec.kod,
+    tesisKod: d.kapsamOgesi.kod, surecKod: d.surec.kod,
   }));
 }
 

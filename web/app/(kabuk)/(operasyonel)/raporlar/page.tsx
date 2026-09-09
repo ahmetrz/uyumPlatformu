@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { girisZorunlu, izinVar, izinliTesisIdleri } from '@/lib/erisim';
+import { OGE_GORUNUMU, ogeKapsami } from '@/app/kapsam';
 import { db } from '@/lib/db';
 import { kapsamAnahtari, kapsamSozlugu } from '@/lib/dil/sozlukOku';
 import { tBas } from '@/lib/dil/terimler';
@@ -30,27 +31,28 @@ export default async function Sayfa() {
   const k = await girisZorunlu();
   if (!izinVar(k, 'uyum', 'okuma')) return <Yetkisiz rol="uyum okuma" />;
 
-  const izinli = izinliTesisIdleri(k, 'uyum');
+  /* Matrisin satırı bir KAPSAM ÖĞESİDİR (B1): kapsam öğe kümesiyle daraltılır. */
+  const izinli = ogeKapsami(k, 'uyum');
 
   const [surecler, gruplar, bulgular, kanitlar] = await Promise.all([
     db.uyumSureci.findMany({
       where: { durum: { in: ['aktif', 'planlandi'] } },
-      include: { regulasyon: true, kapsam: { include: { tesis: true } } },
+      include: { regulasyon: true, kapsam: { include: { kapsamOgesi: OGE_GORUNUMU } } },
       orderBy: { kod: 'asc' },
     }),
-    db.maddeDurumu.groupBy({ by: ['surecId', 'tesisId', 'durum'], _count: { _all: true } }),
+    db.maddeDurumu.groupBy({ by: ['surecId', 'kapsamOgesiId', 'durum'], _count: { _all: true } }),
     db.bulgu.findMany({
-      include: { maddeDurumu: { include: { tesis: true, surec: { include: { regulasyon: true } } } } },
+      include: { maddeDurumu: { include: { kapsamOgesi: OGE_GORUNUMU, surec: { include: { regulasyon: true } } } } },
     }),
     db.kanit.findMany({ include: { _count: { select: { baglantilar: true } } } }),
   ]);
 
-  const gorulebilir = (tesisId: string) => izinli === null || izinli.includes(tesisId);
+  const gorulebilir = (kapsamOgesiId: string) => izinli === null || izinli.includes(kapsamOgesiId);
 
   // (süreç, tesis) → durum sayıları
   const hucreler: Record<string, Sayilar> = {};
   for (const g of gruplar) {
-    const anahtar = `${g.surecId}|${g.tesisId}`;
+    const anahtar = `${g.surecId}|${g.kapsamOgesiId}`;
     hucreler[anahtar] = hucreler[anahtar] ?? {};
     hucreler[anahtar][g.durum] = (hucreler[anahtar][g.durum] ?? 0) + g._count._all;
   }
@@ -61,18 +63,21 @@ export default async function Sayfa() {
 
   /* Satırlar süreçlerin kapsamındaki tesislerin BİRLEŞİMİ; bir tesis
      yalnız bazı süreçlerde olabilir, kalan hücreleri kapsam dışı kalır. */
-  const tesisHavuzu = new Map<string, { id: string; kod: string; ad: string }>();
+  const tesisHavuzu = new Map<string, { id: string; tesisId: string | null; kod: string; ad: string }>();
   for (const s of surecler) {
     for (const kap of s.kapsam) {
-      if (!gorulebilir(kap.tesisId)) continue;
-      tesisHavuzu.set(kap.tesisId, { id: kap.tesisId, kod: kap.tesis.kod, ad: kap.tesis.ad });
+      if (!gorulebilir(kap.kapsamOgesiId)) continue;
+      tesisHavuzu.set(kap.kapsamOgesiId, {
+        id: kap.kapsamOgesiId, tesisId: kap.kapsamOgesi.tesisId, kod: kap.kapsamOgesi.kod, ad: kap.kapsamOgesi.ad,
+      });
     }
   }
   const kapsamKumesi = new Set(
-    surecler.flatMap((s) => s.kapsam.map((kap) => `${s.id}|${kap.tesisId}`)));
+    surecler.flatMap((s) => s.kapsam.map((kap) => `${s.id}|${kap.kapsamOgesiId}`)));
 
   const tesisler: Tesis[] = [...tesisHavuzu.values()].map((t) => ({
     id: t.id,
+    tesisId: t.tesisId,
     kod: t.kod,
     ad: t.ad,
     hucreler: surecListesi.map((s) => (kapsamKumesi.has(`${s.id}|${t.id}`)
@@ -81,13 +86,13 @@ export default async function Sayfa() {
   }));
 
   const bulguVeri: Bulgu[] = bulgular
-    .filter((b) => gorulebilir(b.maddeDurumu.tesisId))
+    .filter((b) => gorulebilir(b.maddeDurumu.kapsamOgesiId))
     .map((b) => ({
       id: b.id,
       baslik: b.baslik,
       durum: b.durum,
       onem: b.onemDerecesi,
-      tesisKod: b.maddeDurumu.tesis.kod,
+      tesisKod: b.maddeDurumu.kapsamOgesi.kod,
       regKod: b.maddeDurumu.surec.regulasyon.kod,
       yasGun: gecenGun(b.tespitTarihi),
       acik: b.durum !== 'kapali' && b.durum !== 'kabul_edildi',

@@ -1,5 +1,6 @@
 import 'server-only';
 import { db } from '../db';
+import { ROL_OZNITELIK_SECIMI, rolDegeri } from '../kapsam/rol';
 import { ayarlar } from '../yapilandirma/oku';
 import { zamanTR } from '../sabitler';
 import { OTURUM_VARLIK_TIPI, oturumKaynagiBagliMi, type UcDegerAlan }
@@ -436,19 +437,21 @@ async function girdileriTopla(simdi: Date, kosuBasina: number = KOSU_BASINA_OTUR
         ad: true,
         sozlesmeler: { where: { silindi: null }, select: { bitis: true } },
       } },
+      /* Kritiklik sınıfı ÇEKİRDEK KOLONU DEĞİL (B2): "kritiklik" rolündeki
+         öznitelik; enerji paketi anahtarını beyan eder, motor rolü okur. */
       tesis: { select: { kod: true,
-        profil: { select: { kritikAltyapiStatusu: true, kritiklikSinifi: true } } } },
+        profil: { select: { kritikAltyapiStatusu: true } }, ...ROL_OZNITELIK_SECIMI } },
       varlik: { select: { kritiklik: true } },
       sistem: { select: { kritiklik: true } },
     },
   });
 
-  return satirlar.map((s) => {
+  return Promise.all(satirlar.map(async (s) => {
     const k = kritikligiCoz({
       varlikKritikligi: s.varlik?.kritiklik ?? null,
       sistemKritikligi: s.sistem?.kritiklik ?? null,
       tesisKritikAltyapi: s.tesis?.profil?.kritikAltyapiStatusu ?? null,
-      tesisKritiklikSinifi: s.tesis?.profil?.kritiklikSinifi ?? null,
+      tesisKritiklikSinifi: s.tesis ? await rolDegeri(s.tesis, 'kritiklik') : null,
     });
     return {
       id: s.id,
@@ -473,7 +476,7 @@ async function girdileriTopla(simdi: Date, kosuBasina: number = KOSU_BASINA_OTUR
         s.durum === 'suruyor' ? simdi : s.baslangic,
       ),
     };
-  });
+  }));
 }
 
 /* ═══ 5 · Motor ═══════════════════════════════════════════════════════ */

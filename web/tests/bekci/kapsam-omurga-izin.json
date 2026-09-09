@@ -1,0 +1,23 @@
+{
+  "//": [
+    "KAPSAM OMURGASI İZİN LİSTESİ — B1 · URN-KAP-001 · cırcır (ratchet)",
+    "",
+    "Uyum zincirinin omurgası (`kapsamOgesiId` taşıyan her model: süreç",
+    "kapsamı · madde durumu · uygulanabilirlik kararı · istisna · kanıt bağı ·",
+    "denetçi kapsamı · aktarım · anlık görüntü · yetki) TESİSE değil KAPSAM",
+    "ÖĞESİNE bağlıdır; tesis yalnız `KapsamOgesi.tesisId` köprüsüdür. Bir",
+    "omurga tablosuna doğrudan `tesisId` kolonu koymak öğe soyutlamasını",
+    "deler: bankacılık paketinin kurum/sistem öğesi o tabloya giremez olur.",
+    "",
+    "KURAL — LİSTEYE MODEL EKLENMEZ, YALNIZ ÇIKARILIR. Liste taban daldaki",
+    "(origin/main) listenin ALT KÜMESİ olmak zorundadır. Bugün BOŞTUR: dokuz",
+    "omurga tablosu B1 göçüyle öğeye bağlandı. Boşluk bir sözdür — eklenen",
+    "ilk kolon adıyla kırmızı olur.",
+    "",
+    "Satır biçimi (yalnız bir gün gerçekten gerekirse): { \"model\": \"…\",",
+    "\"tur\": \"kalici|ertelenmis\", \"sebep\": \"kusuru anlatır, maliyeti değil\",",
+    "\"kapanis\": \"ertelenmişse hangi aşamada\" }. Kalıcı satır kapanış",
+    "taşıyamaz; ertelenmiş satır taşımak zorundadır (süresiz beyan yoktur)."
+  ],
+  "satirlar": []
+}

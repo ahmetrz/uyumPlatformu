@@ -37,7 +37,7 @@ export default async function Sayfa() {
         kullanici: { select: { adSoyad: true, eposta: true } },
         davetEden: { select: { adSoyad: true } },
         denetim: { select: { ad: true } },
-        kapsamlar: { include: { tesis: { select: { kod: true } } } },
+        kapsamlar: { include: { kapsamOgesi: { select: { kod: true } } } },
       },
       orderBy: [{ durum: 'asc' }, { bitis: 'asc' }],
     }),
@@ -73,7 +73,7 @@ export default async function Sayfa() {
       bitis: e.bitis.toISOString(),
       durum,
       kayitDurumu: e.durum,
-      kapsam: e.kapsamlar.map((x) => x.tesis.kod),
+      kapsam: e.kapsamlar.map((x) => x.kapsamOgesi.kod),
       sonErisim: e.sonErisim?.toISOString() ?? null,
       iptalGerekcesi: e.iptalGerekcesi,
     };

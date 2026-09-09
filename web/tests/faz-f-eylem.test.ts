@@ -3,6 +3,7 @@ import { copyFileSync, mkdtempSync } from 'node:fs';
 import { rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import { ogeKimligi } from './yardim/kapsam';
 
 /* ═══════════════════════════════════════════════════════════════════════
    FAZ F eylemleri — UY-52 · UY-56 · UY-57
@@ -25,11 +26,11 @@ copyFileSync('prisma/dev.db', testDb);
 process.env.TEST_DB = testDb;
 
 type Yetki = {
-  rol: string; surecId: string | null; tesisId: string | null;
+  rol: string; surecId: string | null; kapsamOgesiId: string | null; tesisId: string | null;
   tuzelKisiId: string | null; regulasyonId: string | null; modul: string | null;
 };
 const yetki = (rol: string, tesisId: string | null = null): Yetki => ({
-  rol, surecId: null, tesisId, tuzelKisiId: null, regulasyonId: null, modul: null,
+  rol, surecId: null, kapsamOgesiId: ogeKimligi(tesisId), tesisId, tuzelKisiId: null, regulasyonId: null, modul: null,
 });
 
 const oturum = {
@@ -489,8 +490,10 @@ describe('UY-57 · Davet GERÇEK yetki satırı yazar', () => {
        uygulayan şey yetki satırlarıdır. */
     const yetkiler = await db.yetki.findMany({
       where: { kullaniciId: denetciId, rol: 'dis_denetci' },
+      include: { kapsamOgesi: { select: { tesisId: true } } },
     });
-    expect(yetkiler.map((y) => y.tesisId).sort())
+    /* Yetki KAPSAM ÖĞESİNE yazılır (B1); tesis köprüden okunur. */
+    expect(yetkiler.map((y) => y.kapsamOgesi?.tesisId ?? null).sort())
       .toEqual([tesisler[0].id, tesisler[1].id].sort());
   });
 

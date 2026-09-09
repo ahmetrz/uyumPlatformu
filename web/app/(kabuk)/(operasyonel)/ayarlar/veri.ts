@@ -2,6 +2,7 @@ import 'server-only';
 import { cookies } from 'next/headers';
 import { createHash } from 'node:crypto';
 import { db } from '@/lib/db';
+import { OGE_GORUNUMU } from '@/app/kapsam';
 import { DEMO } from '@/lib/demo';
 import type { AktifKullanici } from '@/lib/auth';
 import { izinVar } from '@/lib/erisim';
@@ -73,7 +74,7 @@ export async function ayarlarVerisi(k: AktifKullanici, simdi: number): Promise<A
     }),
     db.yetki.findMany({
       where: { kullaniciId: k.id },
-      include: { surec: { include: { regulasyon: true } }, tesis: true },
+      include: { surec: { include: { regulasyon: true } }, kapsamOgesi: OGE_GORUNUMU },
       orderBy: { rol: 'asc' },
     }),
     ozet
@@ -126,7 +127,8 @@ export async function ayarlarVerisi(k: AktifKullanici, simdi: number): Promise<A
       surec: y.surec
         ? { id: y.surec.id, kod: y.surec.kod, regKod: y.surec.regulasyon.kod }
         : null,
-      tesis: y.tesis ? { id: y.tesis.id, kod: y.tesis.kod, ad: y.tesis.ad } : null,
+      /* Yetkinin kapsamı bir KAPSAM ÖĞESİDİR (B1); kod/ad öğeden, kimlik öğenin. */
+      tesis: y.kapsamOgesi ? { id: y.kapsamOgesi.id, kod: y.kapsamOgesi.kod, ad: y.kapsamOgesi.ad } : null,
     })),
   };
 

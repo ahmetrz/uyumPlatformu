@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { AktifKullanici } from '@/lib/auth';
+import { ogeKimligi } from './yardim/kapsam';
 
 /* ═══════════════════════════════════════════════════════════════════════
    YETKİ KAPISININ KENDİSİ
@@ -31,7 +32,7 @@ const kisi = (
   id, adSoyad: 'Test', eposta: 't@t', unvan: null, yetkiler,
 });
 const yetki = (p: Partial<AktifKullanici['yetkiler'][number]>) => ({
-  rol: 'katkici', surecId: null, tesisId: null, tuzelKisiId: null,
+  rol: 'katkici', surecId: null, kapsamOgesiId: ogeKimligi(p.tesisId), tesisId: null, tuzelKisiId: null,
   regulasyonId: null, modul: null, ...p,
 });
 

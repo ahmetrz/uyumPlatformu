@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
-import { girisZorunlu, izinliTesisIdleri } from '@/lib/erisim';
+import { girisZorunlu } from '@/lib/erisim';
 import { Yetkisiz } from '@/components/kabuk/temel';
-import { kapsamKosulu, modulOkuyabilir, modulYazabilir } from '@/app/kapsam';
+import { modulOkuyabilir, modulYazabilir, ogeKapsami, ogeKosulu } from '@/app/kapsam';
 import { db } from '@/lib/db';
 import DegerlendirmeAktarimIstemci from './DegerlendirmeAktarimIstemci';
 import type { AktarimSatiri } from './mantik';
@@ -36,7 +36,7 @@ export default async function Sayfa() {
   const k = await girisZorunlu();
   if (!modulOkuyabilir(k, 'uyum')) return <Yetkisiz rol="uyum okuma" />;
 
-  const izinli = izinliTesisIdleri(k, 'uyum');
+  const izinli = ogeKapsami(k, 'uyum');
   /* Kuru koşu `uyum/yazma`, uygulama `uyum/onay` ister. İki ayrı yetki,
      iki ayrı düğme — sunucu da aynı ayrımı uygular. */
   const kosabilir = modulYazabilir(k, 'uyum', 'yazma');
@@ -44,10 +44,10 @@ export default async function Sayfa() {
 
   const [kayitlar, regulasyonlar, tesisler] = await Promise.all([
     db.degerlendirmeAktarimi.findMany({
-      where: kapsamKosulu(izinli),
+      where: ogeKosulu(izinli),
       include: {
         regulasyon: { select: { kod: true } },
-        tesis: { select: { kod: true } },
+        kapsamOgesi: { select: { kod: true } },
         surec: { select: { kod: true } },
         yukleyen: { select: { adSoyad: true } },
         _count: { select: { uygulamalar: true } },
@@ -59,8 +59,9 @@ export default async function Sayfa() {
       where: { aktif: true }, select: { id: true, kod: true, ad: true },
       orderBy: { kod: 'asc' },
     }),
-    db.tesis.findMany({
-      where: izinli === null ? {} : { id: { in: izinli } },
+    /* Aktarımın hedefi bir KAPSAM ÖĞESİDİR (B1): seçenek listesi öğelerdir. */
+    db.kapsamOgesi.findMany({
+      where: { durum: 'aktif', ...(izinli === null ? {} : { id: { in: izinli } }) },
       select: { id: true, kod: true, ad: true },
       orderBy: { kod: 'asc' },
     }),
@@ -71,7 +72,7 @@ export default async function Sayfa() {
     durum: a.durum as AktarimDurumu,
     kaynakAdi: a.kaynakAdi,
     regulasyonKod: a.regulasyon.kod,
-    tesisKod: a.tesis.kod,
+    tesisKod: a.kapsamOgesi.kod,
     surecKod: a.surec?.kod ?? null,
     okunan: a.okunan,
     eslesen: a.eslesen,

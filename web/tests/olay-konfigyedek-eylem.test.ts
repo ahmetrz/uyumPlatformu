@@ -2,6 +2,7 @@ import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { copyFileSync, mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import { ogeKimligi } from './yardim/kapsam';
 
 /* ═══════════════════════════════════════════════════════════════════════
    Olay kapısı + konfigürasyon yedeği — borç kütüğünün SON üç yerleşimi
@@ -32,11 +33,11 @@ copyFileSync('prisma/dev.db', testDb);
 process.env.TEST_DB = testDb;
 
 type Yetki = {
-  rol: string; surecId: string | null; tesisId: string | null;
+  rol: string; surecId: string | null; kapsamOgesiId: string | null; tesisId: string | null;
   tuzelKisiId: string | null; regulasyonId: string | null; modul: string | null;
 };
 const yetki = (rol: string, tesisId: string | null = null): Yetki => ({
-  rol, surecId: null, tesisId, tuzelKisiId: null, regulasyonId: null, modul: null,
+  rol, surecId: null, kapsamOgesiId: ogeKimligi(tesisId), tesisId, tuzelKisiId: null, regulasyonId: null, modul: null,
 });
 
 const kimlik = {

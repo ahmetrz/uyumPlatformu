@@ -158,7 +158,8 @@ function KuruKosuFormu({ regulasyonlar, tesisler, kapat }: {
   const [bekliyor, basla] = useTransition();
   const [hata, setHata] = useState<string | null>(null);
   const [regulasyonId, setRegulasyonId] = useState(regulasyonlar[0]?.id ?? '');
-  const [tesisId, setTesisId] = useState(tesisler[0]?.id ?? '');
+  /* Hedef bir KAPSAM ÖĞESİDİR (B1); liste öğe kimliği taşır. */
+  const [kapsamOgesiId, setKapsamOgesiId] = useState(tesisler[0]?.id ?? '');
   const [kaynakAdi, setKaynakAdi] = useState('');
   const [metin, setMetin] = useState('');
   /* Kuru koşunun SONUCU ekranda kalır: "hesapladım" demek yetmez,
@@ -171,7 +172,7 @@ function KuruKosuFormu({ regulasyonlar, tesisler, kapat }: {
     setHata(null);
     basla(async () => {
       const c = await degerlendirmeKuruKosu({
-        regulasyonId, tesisId, kaynakAdi, satirlar: ayristirma.satirlar,
+        regulasyonId, kapsamOgesiId, kaynakAdi, satirlar: ayristirma.satirlar,
       });
       if (!c.ok) { setHata(c.hata); return; }
       setSonuc(c.satirlar ?? []);
@@ -198,8 +199,8 @@ function KuruKosuFormu({ regulasyonlar, tesisler, kapat }: {
           </select>
         </Alan>
         <Alan etiket={tBas('tesis')} zorunlu>
-          <select className="ab-gr" value={tesisId} disabled={bekliyor}
-            onChange={(e) => setTesisId(e.target.value)}>
+          <select className="ab-gr" value={kapsamOgesiId} disabled={bekliyor}
+            onChange={(e) => setKapsamOgesiId(e.target.value)}>
             {tesisler.map((t) => (
               <option key={t.id} value={t.id}>{t.kod} — {t.ad}</option>
             ))}

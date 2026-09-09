@@ -1501,10 +1501,15 @@
   display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
   padding: 6px 0; border-bottom: 1px solid var(--hr);
 }
-.ab-otprofil-grup .satir dt { font-size: var(--t-cell); color: var(--i2); }
+/* Daralmayı ETİKET emer, değer sözcüğü bölünmez. `overflow-wrap: anywhere`
+   min-content'i tek harfe indiriyordu: K4 görüntüsünde (2026-09-08) uzun
+   etiketli satırda "tanımsız" iki satıra "tanımsı / z" diye kırıldı.
+   `break-word` min-content'e dokunmaz; `max-width` tek uzun jetonu kolon
+   içinde tutar (flex otomatik asgari genişlik max-width ile kırpılır). */
+.ab-otprofil-grup .satir dt { flex: 1 1 auto; min-width: 0; font-size: var(--t-cell); color: var(--i2); }
 .ab-otprofil-grup .satir dd {
-  margin: 0; display: inline-flex; align-items: center; gap: 6px;
-  font-size: var(--t-code-lg); text-align: right; overflow-wrap: anywhere;
+  margin: 0; display: inline-flex; align-items: center; gap: 6px; flex: 0 1 auto; max-width: 100%;
+  font-size: var(--t-code-lg); text-align: right; overflow-wrap: break-word;
   font-variant-numeric: tabular-nums;
 }
 /* Tanımsız satır: sözcük + unk glifi; yalnız renk DEĞİL. */

@@ -30,6 +30,7 @@ const { GET: tesisleriGetir } = await import('@/app/api/v1/facilities/route.api'
 
 import type { AktifKullanici } from '@/lib/auth';
 import type { Adaptor, AdaptorBaglami, CekmeSonucu, Gozlem } from '@/lib/entegrasyon/sozlesme';
+import { ogeIdAl } from './yardim/kapsam';
 
 /* ═══════════════════════════════════════════════════════════════════════
    §15 · RBAC / KAPSAM İSTİSMARI — NEGATİF TESTLER
@@ -94,11 +95,12 @@ async function anahtarUret(kullaniciId: string, ek: Record<string, unknown> = {}
     izin modeli üretimdekiyle aynı satırlardan beslensin. */
 async function aktifKullaniciYukle(id: string): Promise<AktifKullanici> {
   const k = await db.kullanici.findUniqueOrThrow({
-    where: { id }, include: { yetkiler: true } });
+    where: { id }, include: { yetkiler: { include: { kapsamOgesi: { select: { tesisId: true } } } } } });
   return {
     id: k.id, adSoyad: k.adSoyad, eposta: k.eposta, unvan: k.unvan,
     yetkiler: k.yetkiler.map((y) => ({
-      rol: y.rol, surecId: y.surecId, tesisId: y.tesisId,
+      rol: y.rol, surecId: y.surecId, kapsamOgesiId: y.kapsamOgesiId,
+      tesisId: y.kapsamOgesi?.tesisId ?? null,
       tuzelKisiId: y.tuzelKisiId, regulasyonId: y.regulasyonId, modul: y.modul })),
   };
 }
@@ -122,10 +124,10 @@ beforeAll(async () => {
 
   const kA = await db.kullanici.create({ data: {
     eposta: `${ONEK}-a@test.local`, adSoyad: 'A Santral Yöneticisi',
-    yetkiler: { create: [{ rol: 'bt_yoneticisi', tesisId: tesisA.id }] } } });
+    yetkiler: { create: [{ rol: 'bt_yoneticisi', kapsamOgesiId: await ogeIdAl(tesisA.id) }] } } });
   const kB = await db.kullanici.create({ data: {
     eposta: `${ONEK}-b@test.local`, adSoyad: 'B Santral Yöneticisi',
-    yetkiler: { create: [{ rol: 'bt_yoneticisi', tesisId: tesisB.id }] } } });
+    yetkiler: { create: [{ rol: 'bt_yoneticisi', kapsamOgesiId: await ogeIdAl(tesisB.id) }] } } });
   const kGlobal = await db.kullanici.create({ data: {
     eposta: `${ONEK}-global@test.local`, adSoyad: 'Kurum Yöneticisi',
     yetkiler: { create: [{ rol: 'yonetici' }] } } });
@@ -134,7 +136,7 @@ beforeAll(async () => {
   const kKarma = await db.kullanici.create({ data: {
     eposta: `${ONEK}-karma@test.local`, adSoyad: 'Karma Yetkili',
     yetkiler: { create: [
-      { rol: 'bt_yoneticisi', tesisId: tesisA.id },
+      { rol: 'bt_yoneticisi', kapsamOgesiId: await ogeIdAl(tesisA.id) },
       { rol: 'yonetici' },
     ] } } });
   kimlik.kullaniciA = kA.id;

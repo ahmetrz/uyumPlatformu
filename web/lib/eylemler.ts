@@ -8,6 +8,7 @@ import { revalidatePath } from 'next/cache';
 import { db } from './db';
 import { parcala } from './sorguParcala';
 import { yetkiZorunlu, izinVar, kapsamZorunlu, KAPSAM_SONRA } from './erisim';
+import { tesiseOgeAc, tesisinOgesi } from './kapsam/db';
 import { tumOturumlariKapat } from './auth';
 import { kapsamMesaji, kapsamTerimi } from './eylemler2/kapsamMesaji';
 import { kapanisKapisi } from './uyum/kokNeden';
@@ -108,6 +109,9 @@ export async function tesisKaydet(girdi: {
       await sayisalOzellikYaz({ tip: 'tesis', id: v.id }, KURULU_GUC, guc, { birim: gucBirimi });
     } else {
       const yeni = await db.tesis.create({ data: veri });
+      /* B1: uyum zinciri KAPSAM ÖĞESİNE bağlı; öğesiz tesis kapsama giremez.
+         Öğe tesisle birlikte açılır (kimlik `ko-<tesisId>`, tür tipin varsayılanı). */
+      await tesiseOgeAc(yeni);
       await sayisalOzellikYaz({ tip: 'tesis', id: yeni.id }, KURULU_GUC, guc,
         { birim: gucBirimi });
       await iz({ aktorId: k.id, varlikTipi: 'Tesis', varlikId: yeni.id, eylem: 'olusturma' });
@@ -270,17 +274,22 @@ export async function surecKapsamEkle(girdi: { surecId: string; tesisId: string 
     const k = await yetkiZorunlu('uyum', 'yazma', { tesisId: girdi.tesisId, surecId: girdi.surecId });
     const surec = await db.uyumSureci.findUniqueOrThrow({
       where: { id: girdi.surecId }, include: { regulasyon: true } });
-    await db.surecKapsami.create({ data: { surecId: girdi.surecId, tesisId: girdi.tesisId } });
+    /* Kapsam KAPSAM ÖĞESİDİR (B1); ekran tesis kimliğiyle gelir, öğe
+       köprüden çözülür. Öğesi olmayan tesis kapsama giremez — bilinmeyen
+       bir özneye durum kaydı açılmaz. */
+    const oge = await tesisinOgesi(girdi.tesisId);
+    if (!oge) throw new Error('Bu kaydın kapsam öğesi yok — kapsama eklenemez');
+    await db.surecKapsami.create({ data: { surecId: girdi.surecId, kapsamOgesiId: oge.id } });
     const yapraklar = await db.madde.findMany({
       where: { regulasyonId: surec.regulasyonId, altMaddeler: { none: {} } },
       select: { id: true },
     });
     for (const m of yapraklar)
       await db.maddeDurumu.upsert({
-        where: { surecId_maddeId_tesisId: {
-          surecId: girdi.surecId, maddeId: m.id, tesisId: girdi.tesisId } },
+        where: { surecId_maddeId_kapsamOgesiId: {
+          surecId: girdi.surecId, maddeId: m.id, kapsamOgesiId: oge.id } },
         update: {},
-        create: { surecId: girdi.surecId, maddeId: m.id, tesisId: girdi.tesisId },
+        create: { surecId: girdi.surecId, maddeId: m.id, kapsamOgesiId: oge.id },
       });
     await iz({ aktorId: k.id, varlikTipi: 'UyumSureci', varlikId: girdi.surecId, eylem: 'kapsam_degisimi',
       /* İZ SATIRI ÇEKİRDEK SÖZCÜK TAŞIR (R0-9): `AktiviteKaydi.sonra`
@@ -301,8 +310,10 @@ export async function surecKapsamCikar(girdi: { surecId: string; tesisId: string
        şey sorunun kapsamlı sorulması. Ölçüldü 2026-09-03. */
     const k = await yetkiZorunlu('uyum', 'onay',
       { tesisId: girdi.tesisId, surecId: girdi.surecId });
-    await db.surecKapsami.delete({ where: { surecId_tesisId: {
-      surecId: girdi.surecId, tesisId: girdi.tesisId } } });
+    const oge = await tesisinOgesi(girdi.tesisId);
+    if (!oge) throw new Error('Bu kaydın kapsam öğesi yok');
+    await db.surecKapsami.delete({ where: { surecId_kapsamOgesiId: {
+      surecId: girdi.surecId, kapsamOgesiId: oge.id } } });
     await iz({ aktorId: k.id, varlikTipi: 'UyumSureci', varlikId: girdi.surecId, eylem: 'kapsam_degisimi',
       alan: 'kapsam', sonra: 'tesis çıkarıldı (durum kayıtları tarihçede)' });
     revalidatePath('/surecler');
@@ -330,9 +341,9 @@ export async function maddeDurumGuncelle(girdi: {
       include: { kanitBaglantilari: { include: { kanit: true } } },
     });
     // Kapsam: tesise kısıtlı kullanıcı başka tesisin kaydına yazamaz
-    if (!izinVar(k, 'uyum', 'yazma', { tesisId: eski.tesisId, surecId: eski.surecId }))
+    if (!izinVar(k, 'uyum', 'yazma', { kapsamOgesiId: eski.kapsamOgesiId, surecId: eski.surecId }))
       return { ok: false,
-        hata: `Bu ${await kapsamTerimi(k, 'uyum', eski.tesisId)}/süreç `
+        hata: `Bu ${await kapsamTerimi(k, 'uyum', eski.kapsamOgesiId)}/süreç `
           + 'kapsamında yazma yetkiniz yok' };
 
     // Kanıt güveni: kanıtsız "uyumlu" kör güvenle gösterilmez (kabul testi 2)
@@ -407,9 +418,9 @@ export async function bulguOlustur(girdi: {
       onemDerecesi: OnemSemasi, hedefTarih: tarih, sorumluId: z.string().nullable().optional(),
     }).parse(girdi);
     const hedefDurum = await db.maddeDurumu.findUniqueOrThrow({ where: { id: v.maddeDurumuId } });
-    if (!izinVar(k, 'uyum', 'yazma', { tesisId: hedefDurum.tesisId, surecId: hedefDurum.surecId }))
+    if (!izinVar(k, 'uyum', 'yazma', { kapsamOgesiId: hedefDurum.kapsamOgesiId, surecId: hedefDurum.surecId }))
       return { ok: false,
-        hata: await kapsamMesaji(k, 'uyum', 'bulgu açma yetkiniz yok', hedefDurum.tesisId) };
+        hata: await kapsamMesaji(k, 'uyum', 'bulgu açma yetkiniz yok', hedefDurum.kapsamOgesiId) };
     const yeni = await db.bulgu.create({ data: {
       maddeDurumuId: v.maddeDurumuId, baslik: v.baslik, aciklama: v.aciklama,
       onemDerecesi: v.onemDerecesi, hedefTarih: v.hedefTarih ?? null,
@@ -440,14 +451,14 @@ export async function bulguGuncelle(girdi: {
       where: { id: v.id },
       include: { maddeDurumu: true, aksiyonlar: true },
     });
-    if (!izinVar(k, 'uyum', 'yazma', { tesisId: eski.maddeDurumu.tesisId, surecId: eski.maddeDurumu.surecId })) {
+    if (!izinVar(k, 'uyum', 'yazma', { kapsamOgesiId: eski.maddeDurumu.kapsamOgesiId, surecId: eski.maddeDurumu.surecId })) {
       return { ok: false,
-        hata: await kapsamMesaji(k, 'uyum', 'yazma yetkiniz yok', eski.maddeDurumu.tesisId) };
+        hata: await kapsamMesaji(k, 'uyum', 'yazma yetkiniz yok', eski.maddeDurumu.kapsamOgesiId) };
     }
     // Bulgu yalnız durum değiştirilerek KAPATILAMAZ (§14): doğrulama gerekir
     let kapanisAlanlari: { kapanisDogrulayanId?: string; kapanisDogrulama?: Date } = {};
     if (v.durum === 'kapali' && eski.durum !== 'kapali') {
-      if (!izinVar(k, 'uyum', 'onay', { tesisId: eski.maddeDurumu.tesisId, surecId: eski.maddeDurumu.surecId }))
+      if (!izinVar(k, 'uyum', 'onay', { kapsamOgesiId: eski.maddeDurumu.kapsamOgesiId, surecId: eski.maddeDurumu.surecId }))
         return { ok: false, hata: 'Bulgu kapatma doğrulama yetkisi gerektirir (denetim sorumlusu/yönetici)' };
       /* UY-26 · ÖLÇÜLMÜŞ KUSUR: kapanış kapısı KÖK NEDEN SORMUYORDU.
          Bir bulgu, kök nedeni hiç yazılmadan "kapalı" yapılabiliyordu ve
@@ -522,10 +533,10 @@ export async function aksiyonEkle(girdi: {
     const bulgu = await db.bulgu.findUniqueOrThrow({
       where: { id: v.bulguId }, include: { maddeDurumu: true },
     });
-    if (!izinVar(k, 'uyum', 'yazma', { tesisId: bulgu.maddeDurumu.tesisId, surecId: bulgu.maddeDurumu.surecId }))
+    if (!izinVar(k, 'uyum', 'yazma', { kapsamOgesiId: bulgu.maddeDurumu.kapsamOgesiId, surecId: bulgu.maddeDurumu.surecId }))
       return { ok: false,
         hata: await kapsamMesaji(k, 'uyum', 'aksiyon açma yetkiniz yok',
-          bulgu.maddeDurumu.tesisId) };
+          bulgu.maddeDurumu.kapsamOgesiId) };
     const yeni = await db.aksiyon.create({ data: {
       bulguId: v.bulguId, baslik: v.baslik, sorumluId: v.sorumluId ?? null,
       baslangic: new Date(), hedef: v.hedef ?? null,
@@ -558,8 +569,8 @@ export async function aksiyonDurumDegistir(girdi: {
       where: { id: v.id }, include: { bulgu: { include: { maddeDurumu: true } } },
     });
     const md = eski.bulgu.maddeDurumu;
-    if (!izinVar(k, 'uyum', 'yazma', { tesisId: md.tesisId, surecId: md.surecId }))
-      return { ok: false, hata: await kapsamMesaji(k, 'uyum', 'yazma yetkiniz yok', md.tesisId) };
+    if (!izinVar(k, 'uyum', 'yazma', { kapsamOgesiId: md.kapsamOgesiId, surecId: md.surecId }))
+      return { ok: false, hata: await kapsamMesaji(k, 'uyum', 'yazma yetkiniz yok', md.kapsamOgesiId) };
     const tamamlaniyor = v.durum === 'tamamlandi' && eski.durum !== 'tamamlandi';
     if (tamamlaniyor && !v.not)
       return { ok: false, hata: 'Tamamlama notu boş olamaz: ne yapıldığı kısaca yazılmalı' };
@@ -603,9 +614,9 @@ export async function aksiyonDogrula(girdi: {
       where: { id: v.id }, include: { bulgu: { include: { maddeDurumu: true } } },
     });
     const md = eski.bulgu.maddeDurumu;
-    if (!izinVar(k, 'uyum', 'onay', { tesisId: md.tesisId, surecId: md.surecId }))
+    if (!izinVar(k, 'uyum', 'onay', { kapsamOgesiId: md.kapsamOgesiId, surecId: md.surecId }))
       return { ok: false,
-        hata: await kapsamMesaji(k, 'uyum', 'doğrulama yetkiniz yok', md.tesisId) };
+        hata: await kapsamMesaji(k, 'uyum', 'doğrulama yetkiniz yok', md.kapsamOgesiId) };
     if (eski.durum !== 'tamamlandi')
       return { ok: false, hata: 'Yalnız tamamlanmış aksiyon doğrulanabilir' };
     if (eski.sorumluId === k.id)
@@ -649,11 +660,11 @@ export async function kanitEkle(girdi: {
        artık yabancı anahtar hatasıyla değil, insanın okuyabileceği bir
        cümleyle reddedilir. */
     const md = await db.maddeDurumu.findUnique({
-      where: { id: v.maddeDurumuId }, select: { tesisId: true },
+      where: { id: v.maddeDurumuId }, select: { kapsamOgesiId: true },
     });
     if (!md) throw new Error('Madde durumu bulunamadı');
-    kapsamZorunlu(k, 'uyum', 'yazma', { tesisId: md.tesisId },
-      await kapsamMesaji(k, 'uyum', 'kanıt ekleme yetkiniz yok', md.tesisId));
+    kapsamZorunlu(k, 'uyum', 'yazma', { kapsamOgesiId: md.kapsamOgesiId },
+      await kapsamMesaji(k, 'uyum', 'kanıt ekleme yetkiniz yok', md.kapsamOgesiId));
     const kanit = await db.kanit.create({ data: { ad: v.ad, tip: v.tip } });
     await db.kanitBaglantisi.create({ data: {
       kanitId: kanit.id, maddeDurumuId: v.maddeDurumuId } });
@@ -779,9 +790,13 @@ export async function yetkiVer(girdi: {
       surecId: z.string().nullable().optional(), tesisId: z.string().nullable().optional(),
       rol: RolSemasi,
     }).parse(girdi);
+    /* Yetki KAPSAM ÖĞESİNE verilir (B1); ekran tesis seçtiyse öğesi
+       köprüden çözülür. Öğesi olmayan tesise yetki verilemez. */
+    const oge = v.tesisId ? await tesisinOgesi(v.tesisId) : null;
+    if (v.tesisId && !oge) throw new Error('Seçilen kaydın kapsam öğesi yok');
     const yeni = await db.yetki.create({ data: {
       kullaniciId: v.kullaniciId, surecId: v.surecId ?? null,
-      tesisId: v.tesisId ?? null, rol: v.rol } });
+      kapsamOgesiId: oge?.id ?? null, rol: v.rol } });
     await iz({ aktorId: k.id, varlikTipi: 'Yetki', varlikId: yeni.id, eylem: 'olusturma',
       alan: 'rol', sonra: v.rol });
     revalidatePath('/yetkiler');

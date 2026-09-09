@@ -35,8 +35,8 @@ export async function ara(sorgu: string): Promise<AramaSonucu[]> {
         take: 6, include: { regulasyon: true } }),
       db.bulgu.findMany({ where: {
         baslik: aramaKosulu(q), silindi: null,
-        maddeDurumu: tesisKapsami === null ? {} : { tesisId: { in: tesisKapsami } } },
-        take: 5, include: { maddeDurumu: { include: { tesis: true } } } }),
+        maddeDurumu: tesisKapsami === null ? {} : { kapsamOgesi: { tesisId: { in: tesisKapsami } } } },
+        take: 5, include: { maddeDurumu: { include: { kapsamOgesi: { select: { id: true, kod: true, ad: true, tesisId: true } } } } } }),
       db.risk.findMany({ where: {
         OR: aramaOr(['kod', 'baslik'], q),
         silindi: null, ...tesisFiltre }, take: 5 }),
@@ -59,7 +59,7 @@ export async function ara(sorgu: string): Promise<AramaSonucu[]> {
     ...maddeler.map((m) => ({ tip: 'Madde', id: m.id, baslik: m.baslik,
       altBilgi: `${m.kod} · ${m.regulasyon.kod}`, yol: '/regulasyonlar' })),
     ...bulgular.map((b) => ({ tip: 'Bulgu', id: b.id, baslik: b.baslik,
-      altBilgi: b.maddeDurumu.tesis.kod, yol: `/bulgular/${b.id}` })),
+      altBilgi: b.maddeDurumu.kapsamOgesi.kod, yol: `/bulgular/${b.id}` })),
     ...riskler.map((r) => ({ tip: 'Risk', id: r.id, baslik: r.baslik,
       altBilgi: r.kod, yol: '/riskler' })),
     ...varliklar.map((v) => ({ tip: 'Varlık', id: v.id, baslik: v.ad,

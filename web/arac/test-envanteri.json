@@ -1,7 +1,7 @@
 {
-  "imza": "40c44060f165de9efa8cdef4e8d808c2",
-  "dosya": 165,
-  "vaka": 3261,
+  "imza": "c150a3e2896f1ff228b2f7e0ac935b97",
+  "dosya": 169,
+  "vaka": 3292,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -48,6 +48,10 @@
       "vaka": 4,
       "atlanan": 0
     },
+    "tests/bekci/kapsam-omurga.test.ts": {
+      "vaka": 6,
+      "atlanan": 0
+    },
     "tests/bekci/katlama-korlugu.test.ts": {
       "vaka": 19,
       "atlanan": 0
@@ -62,6 +66,10 @@
     },
     "tests/bekci/sektor-terimi.test.ts": {
       "vaka": 12,
+      "atlanan": 0
+    },
+    "tests/bekci/sema-sektorsuz.test.ts": {
+      "vaka": 4,
       "atlanan": 0
     },
     "tests/bekci/terim-dogrulama.test.ts": {
@@ -324,6 +332,10 @@
       "vaka": 4,
       "atlanan": 0
     },
+    "tests/kapsam-ogesi-gocu.test.ts": {
+      "vaka": 12,
+      "atlanan": 0
+    },
     "tests/karne.test.ts": {
       "vaka": 10,
       "atlanan": 0
@@ -549,11 +561,15 @@
       "atlanan": 0
     },
     "tests/tesis360-eylem.test.ts": {
-      "vaka": 12,
+      "vaka": 13,
       "atlanan": 0
     },
     "tests/tesis360-profil.test.ts": {
-      "vaka": 12,
+      "vaka": 18,
+      "atlanan": 0
+    },
+    "tests/tesis360-sektor-profili.test.ts": {
+      "vaka": 2,
       "atlanan": 0
     },
     "tests/topoloji-sapma.test.ts": {

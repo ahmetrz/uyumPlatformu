@@ -215,6 +215,19 @@ Yedincisi bir merge hatasından doğdu:
 bulgu (ikisi P1) bildirdi, merge 07:00'de yalnız CI'ya bakılarak yapıldı
 ve beşi de `main`e girdi. Düzeltmeleri #32 kapattı.
 
+Sekizincisi Faz B'de (B1/B2) ölçüldü:
+**Parite EKRANDAN ölçülür, yeşil testten değil.** 3 289 vaka yeşilken
+K4 ekran koşusu enerji Tesis 360'ta 20 yerine **13** alan gösterdi:
+`NOT: { rol: 'kapasite' }` SQL üç değerli mantıkta rolü NULL yedi satırı
+düşürüyordu; saf fonksiyon testleri şemayı hazır aldığı için göremedi.
+Bugün veri yolu DB'ye karşı sınanır (`tests/tesis360-sektor-profili.test.ts`,
+TES-PRF-006, sabotajla kanıtlı) ve K4 aracı sayıyı ekranın kendi
+metninden okur (`web/arac/k4-enerji-su.mjs` → `docs/kanit/faz-b-k4/`).
+Aynı koşu aracın kendi iki yanlış alarmını da ölçtü: risk adındaki
+"yetkisiz" sözcüğü hata sayılıyordu; CSS `text-transform` yüzünden
+"TANIMSIZ" (ı → I) düzenli ifadeye uymuyordu — hata bileşeninin kendi
+metni (`403 · Yetkisiz`) ve `textContent` ile düzeltildi.
+
 **KAPANDI · depo ayarı (8 Eylül 2026).** Kural artık YAPISAL: `main`
 ruleset'inde PR zorunlu (0 onay) · **Require conversation resolution
 before merging** · status check `kapi` + **Require branches to be up to
@@ -245,6 +258,10 @@ dedektörü kapatmamak, borcu **görünmez** yapar — bu turda iki kez oldu.
 | `sozlukDurumu` | `web/lib/dil/sozlukDurumu.ts` | "Sözlük yok" ile "sözlük BOŞ"u ayırır: SEKTÖRSÜZ (doğru cevap) · EKSİK (kusur) · VAR. `kapsamKarari` da burada — bilinmeyen sektör "tek sektör" sayılmaz |
 | `kurgusal-adlar` bekçisi | `web/prisma/kurgusal-adlar.ts` + `tests/bekci/kurgusal-adlar.test.ts` | Depoya gerçek bir KURULUŞ ya da ÜRÜN adı girmesini engeller. **Kara liste değil**: ad kaynağı tektir ve bekçi VERİTABANINA bakar (kaynak metnine değil — kusur "tohumda dize var" değil, "ekranda gerçek firma görünüyor"du). Meşru gerçek ad (entegrasyon hedefi · yayımlanmış CVE) `GERCEK_AD_BEYANLARI` içinde kaynağı ve gerekçesiyle **beyan edilir**; beyansız gerçek ad kırmızıdır. İstisnanın kendi dişleri: kullanılmayan beyan · kaynaksız beyan · kurgusal+gerçek adın aynı kayıtta karışması · kaynak referansı olmayan zafiyet · beyansız **adaptör hedefi** (`Adaptor.hedefUrunler`, abstract — yayımlanmış çıktı taranınca bulundu: bekçi veritabanına bakıyordu, adaptör metinleri veritabanından geçmez) |
 | İnceleme #30 vakaları | `web/tests/inceleme-30.test.ts` | Bir inceleme turunun beş bulgusunun düzeltme kanıtı; hepsi sabotajla doğrulandı |
+| `semaBekcisi` · `omurgaIhlalleri` · `sektorKolonlari` | `web/tests/bekci/semaBekcisi.ts` + `kapsam-omurga.test.ts` · `sema-sektorsuz.test.ts` | Şemayı OKUR, anlatılana bakmaz: omurga modelinde doğrudan `tesisId` (URN-KAP-001, izin listesi `kapsam-omurga-izin.json` yalnız küçülür, taban dal alt küme dişi) · paket anahtarı çekirdek modelde kolon (URN-KAP-002: enerji şemasının anahtarları + `KURULU_GUC` + `GUNLUK_DEBI`, model ve alan adlarında `terimleriBul`). Altı sabotaj vakası (S1–S6) kırmızı-yeşil kanıtlı |
+| K3 göç eşitliği | `web/arac/goc-sayimi.mjs` → `arac/goc-sayimlari/*.json` + `tests/kapsam-ogesi-gocu.test.ts` | Göç öncesi/sonrası sayısal eşitlik dosyadan okunur (74 ortak anahtar, 25 tesis → 25 öğe: kurum 2 · tesis 23); tohum ile göç aynı kimlikleri/satırları yazıyor mu (`ko-` kuralı dört yerde, öznitelik şeması UNION bloğundan ayrıştırılır, kapasite rolü UPDATE'i) |
+| K4 parite koşusu | `web/arac/k4-enerji-su.mjs` → `docs/kanit/faz-b-k4/OZET.md` | Sekiz demo ekranı iki mercekte; HTTP · gövde uzunluğu · hata metni (bileşenin kendi metni) · mercek sözcüğü · Tesis 360 profil alanı sayısı **ekranın metninden** (`textContent`). Canlı sunucu ister, kapı değildir; sonuç JPEG + OZET.md |
+| `sektorProfiliOku` veri yolu | `web/tests/tesis360-sektor-profili.test.ts` | Beklenti şema TABLOSUNDAN ölçülür: kapasite dışı her satır alan olmalı, rolü NULL olanlar dahil (SQL `NOT rol = x` tuzağı). Yalnız kapasite beyan eden paket boş profil verir |
 
 ---
 
@@ -280,6 +297,7 @@ değil.
 | Önceki ölçüm | `640c837` (#32 · inceleme düzeltmeleri) — sayılar AYNI çıktı; #31 terim borcuna dokunmadı |
 | Kapı kümesi | `npm run kapi:parti` → **geçti 18 · KIRMIZI 0 · ÖLÇÜLMEDİ 0** |
 | Test keşfi | 162 dosya · 3215 vaka geçti · 1 atlandı |
+| **Sonraki ölçüm — Faz B dalı** (`claude/uyumplatformu05-kod-l8y12k`, PR açık) | `kapi:parti` **19 · KIRMIZI 0 · ÖLÇÜLMEDİ 0** · 169 dosya · 3 292 vaka · 1 atlandı · senaryo 296 / GAP 0 · terim 85/85 (`tavan` 11) · çekirdek sözcük 0 · K3 sayımlar eşit · K4 14 ölçüm / kırmızı 0 (enerji Tesis 360 20 alan, su 12). Yedi sabotaj (S1–S7) kırmızı→yeşil |
 
 ### Sayılar
 

@@ -106,7 +106,12 @@ paketi** (çerçeve, yükümlülük, kaynak kataloğu, form, sözlük — P4),
 P2) ve **sektör öznitelik şeması** (P1). Bir özelliğin çekirdeğe sektör
 terimi sokması gerekiyorsa tasarım yanlıştır; terim sözlük anahtarına,
 nitelik öznitelik şemasına gider. Bekçi testler bunu ölçer
-(`tests/bekci/`). Demo Enerji **referans kiracı**dır; adı ve verisi
+(`tests/bekci/`). **Kalıcı kural (B2, 8 Eylül 2026):** sektöre özgü hiçbir
+alan çekirdek KOLONU olmaz; paketin beyan ettiği ÖZNİTELİKTİR
+(`SektorOznitelikSemasi`: tip · rol · grup · seçenek) — bekçi
+`tests/bekci/sema-sektorsuz.test.ts`. Uyum zincirinin öznesi `Tesis` değil
+`KapsamOgesi`dir (B1); omurga tablosu doğrudan `tesisId` taşımaz — bekçi
+`tests/bekci/kapsam-omurga.test.ts`. Demo Enerji **referans kiracı**dır; adı ve verisi
 yalnız kendi kurulumunda bulunur, depoda yalnız kurgusal demo kiracısı
 vardır (P8).
 
@@ -149,9 +154,34 @@ ile kararlaştırılır.
 Amaç: ürünü tek kurumdan çok kiracılı, tek sektörden sözlük/paket
 tabanlı, tek dilden çok dilli hâle getirmek. Bu dalga bitmeden Dalga
 1–3'teki hiçbir özellik "ürün özelliği" değildir — kurum içi özelliktir.
-Sıra: **P0 → (R5 + P2) → P1 → P4 → P8 → P3 → P6 → P7 → P9**. R5
-(PostgreSQL) bu dalgada P2 ile birlikte çalışır çünkü kiracı izolasyonunun
-ikinci savunması satır düzeyi güvenliktir (RLS).
+
+**v1 kararı (8 Eylül 2026): kapsam TÜRKİYE + ÇOK SEKTÖR.** Ülke boyutu
+paket formatında kalır (`manifest.ulke`), ama v1'de yalnız TR paketleri
+yazılır; konumlandırma "GRC platformu" değil, mevzuatın adıyladır
+(`docs/URUN_VIZYONU.md` §5, `docs/TR_SEKTOR_PAKETLERI.md`).
+
+**KALAN (v1 yolu), sırayla:** P0 ✓ → P1 ✓ → **B1/B2** (kapsam öğesi
+soyutlaması + sektörsüz çekirdek; PR açık) → **P4 — tek ülke, çok
+sektör** (paket okuyucu; kapsam türleri ve öznitelikler paketten; form ve
+rapor şablonu; rol kataloğu) → **TR paketleri** (`TR-ENERJI` önce, sonra
+yatay `TR-KAMU-KRITIK` + `TR-KVKK`, ardından `TR-ODEME` · `TR-HABERLESME`
+· `TR-BANKACILIK` · `TR-SERMAYE` — sıra ve ölçüm
+`docs/TR_SEKTOR_PAKETLERI.md` §5) → **R1** (TR kaynak kataloğu ile mevzuat
+radarı). P8 (demo verisi) TR paketleriyle birlikte; R5 · P6 · P7 (PG,
+kimlik, on-prem dağıtım) kiracı ihtiyacına göre v1 yanında; P9 sonra.
+
+**ERTELENEN (v1 dışı) — tek satır gerekçeyle:**
+
+| Kalem | Gerekçe |
+| --- | --- |
+| **P3 · Çoklu dil** | v1 yalnız Türkiye; ikinci dili isteyen kiracı yok ve mesaj kataloğu 263+ dosyaya dokunur — ihtiyaç doğmadan ödenmez. Yeni metin sözlük anahtarıyla yazılmaya devam eder (kural değişmedi). |
+| **EU/US içerik paketleri** (EU-NIS2, DORA, US eyalet yasaları…) | Paket formatı ülke boyutunu KORUR; içerik yazılmaz — konumlandırma TR mevzuatının adıyladır ve kaynak erişimi/doğrulama TR için kuruldu. K21'deki "ilk TR dışı ülke paketi = EU-NIS2" varsayılanı bu satırla askıya alındı. |
+| **P2'nin SaaS tarafı** (hub yayın kanalı, çok kiracılı bulut, RLS'nin bulut tarafı) | v1 dağıtımı on-prem/tek kiracı (K19 zaten on-prem önce); `Kiraci` modeli ve izolasyon P2'de kalır ama hub/SaaS parçası ilk SaaS müşterisi olmadan yazılmaz. |
+
+Eski sıra (kayıt için): P0 → (R5 + P2) → P1 → P4 → P8 → P3 → P6 → P7 →
+P9. R5 (PostgreSQL) P2 ile birlikte çalışır çünkü kiracı izolasyonunun
+ikinci savunması satır düzeyi güvenliktir (RLS) — bu bağ değişmedi,
+yalnız v1'in kritik yolundan çıktı.
 
 Demo Enerji bu dalga boyunca **referans kiracı**dır: gerçek kurulumu
 ayrı; depoda yalnız kurgusal demo kiracısı kalır.
@@ -2006,10 +2036,15 @@ birlikte ele alınır:
 ## 7. Bağımlılık ve önerilen sıra
 
 ```
-Dalga 0:  P0 ──► (R5 + P2) ──► P1 ──► P4 ──► P8 ──► P3 ──► P6 ──► P7 ──► P9
-          kurgu    PG+kiracı    model  paket  demo   dil    kimlik dağıtım SDK
+v1 (TR + çok sektör, 8 Eyl 2026):
+          P0 ✓ ──► P1 ✓ ──► B1/B2 ──► P4 (tek ülke · çok sektör) ──► TR paketleri ──► R1
+          kurgu    model    kapsam öğesi  paket okuyucu · şablonlar     TR-ENERJI → yatay → diğerleri   TR radarı
+          yanında: P8 (TR paketleriyle) · R5 · P6 · P7 (kiracı ihtiyacına göre) · P9 (sonra)
+ERTELENEN (v1 dışı): P3 · EU/US içerik paketleri · P2'nin SaaS tarafı — gerekçeler §2
 
-Dalga 1:  R4 ──► R1 ──► R3 ──► R2          (P2, P4 üzerinde; R1 kataloğu P4 paketi)
+Dalga 0 (eski sıra, kayıt): P0 ──► (R5 + P2) ──► P1 ──► P4 ──► P8 ──► P3 ──► P6 ──► P7 ──► P9
+
+Dalga 1:  R4 ──► R1 ──► R3 ──► R2          (P2, P4 üzerinde; R1 kataloğu P4 paketi; R2 içeriği TR paketlerinin içinde)
 Dalga 2:  R12 · R10 · R11 · R6 · R7 · R8 · R9   (R2/P4 içeriğiyle)
 Dalga 3:  R13 · R14 · R15 · R16              (R17 kapandı → Dalga 0)
 R0:       açık kalemler — P8 ile birlikte (koordinat, bayat belgeler)
@@ -2056,6 +2091,8 @@ alınan kararlar.
 | K22 | Tema | Koyu tek tema kalır | Kiracı teması |
 | K23 | **`v1` ne zaman donar?** | Yayımlanmış bir belge değil, **erişilebilir dağıtım + dağıtılmış kimlik**. `v1` şu iki olaydan **ilki** gerçekleştiğinde donar: (a) API'yi servis eden bir dağıtım dışarıdan erişilebilir hâle gelir, (b) ilk **dış** `ApiAnahtari` düzenlenir. O ana kadar sözleşme **taslaktır** ve `v2` açılmadan değiştirilebilir. Gerekçe: kıran değişikliğin maliyeti kırılan tüketici sayısıdır ve o sayı bugün sıfırdır | İlk olay gerçekleşince K23 kapanır; sonraki kıran değişiklik `v2` ister |
 | K24 | Taslak sözleşme **görünür** olmalı | `/api-sozlesmesi` ekranı, açık adreste duran tarifin örtük bir taahhüt sayılmaması için başında tek satır uyarı taşır: "`v1` taslaktır; ilk dış tüketiciye kadar haber verilmeden değişebilir." Statik demo bu ekranı yayımladığı için uyarı da yayımlanır | K23 kapanınca uyarı kalkar |
+| K25 | **Ürün sektör-ülke PAKETLERİYLE satılır** (8 Eyl 2026) | Çekirdek sektör bilmez; paket çerçeve, yükümlülük, kapsam türü, öznitelik şeması, form ve sözlük getirir (`docs/SEKTOR_PAKETI_SOZLESMESI.md`). **Kalıcı:** sektöre özgü alan çekirdek kolonu OLMAZ, paketin beyan ettiği özniteliktir; bekçi `tests/bekci/sema-sektorsuz.test.ts` (URN-KAP-002) | — (kalıcı) |
+| K26 | Uyum zincirinin öznesi (B1) | `KapsamOgesi`; tür katalog (`KapsamOgesiTuru`: çekirdek `tesis` · `kurum`, paket ekler). Dokuz omurga tablosu `kapsamOgesiId`; tesis `tesisId` köprüsüyle bağlı. Yetki ekseni de öğe. Bekçi `tests/bekci/kapsam-omurga.test.ts` (URN-KAP-001), istisna listesi yalnız küçülür | — (kalıcı) |
 
 ---
 

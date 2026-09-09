@@ -53,7 +53,10 @@ function tasimaCumleleri(tablo: 'TesisOzellik' | 'BirimOzellik'): string[] {
     const sade = icerik.split('\n').filter((s) => !s.trimStart().startsWith('--')).join('\n');
     for (const ham of sade.split(';')) {
       const c = ham.trim();
-      if (/^INSERT(\s+OR\s+IGNORE)?\s+INTO\s+"/i.test(c) && c.includes(`"${tablo}"`)) {
+      /* Yalnız KURULU GÜÇ taşıması: B2 göçü de `TesisOzellik`e yazar ama
+         kaynağı `TesisProfili`dir ve bu sentetik şemada o tablo yoktur. */
+      if (/^INSERT(\s+OR\s+IGNORE)?\s+INTO\s+"/i.test(c) && c.includes(`"${tablo}"`)
+        && c.includes('kuruluGucMw')) {
         cumleler.push(`${c};`);
       }
     }
@@ -150,19 +153,19 @@ describe('P1 · öznitelik göçü', () => {
        Elle değiştirilmiş karara motor DOKUNMAZ; o yüzden yeniden hesaplama
        sonrası da kümede kalmalı. */
     const oncekiler = await db.uygulanabilirlikKarari.findMany({
-      include: { tesis: { select: { kod: true } } },
+      include: { kapsamOgesi: { select: { kod: true } } },
     });
     const oncekiEvet = oncekiler.filter((k) => k.uygulanabilir === true)
-      .map((k) => k.tesis.kod).sort();
+      .map((k) => k.kapsamOgesi.kod).sort();
 
     const tesisler = await db.tesis.findMany({ select: { id: true } });
     for (const t of tesisler) await tesisKapsaminiHesapla(t.id, null);
 
     const sonrakiler = await db.uygulanabilirlikKarari.findMany({
-      include: { tesis: { select: { kod: true } } },
+      include: { kapsamOgesi: { select: { kod: true } } },
     });
     const sonrakiEvet = sonrakiler.filter((k) => k.uygulanabilir === true)
-      .map((k) => k.tesis.kod).sort();
+      .map((k) => k.kapsamOgesi.kod).sort();
 
     expect(sonrakiEvet, 'öznitelik göçü kapsam kümesini değiştirdi').toEqual(oncekiEvet);
     expect(sonrakiEvet.length, 'kapsamda tesis kalmamış — test bir şey ölçmüyor')
@@ -173,7 +176,7 @@ describe('P1 · öznitelik göçü', () => {
     expect(elle.length, 'elle değiştirilmiş karar kalmamış').toBeGreaterThan(0);
     for (const k of elle) {
       const onceki = oncekiler.find((o) => o.id === k.id);
-      expect(k.uygulanabilir, `${k.tesis.kod} override'ı ezildi`).toBe(onceki?.uygulanabilir);
+      expect(k.uygulanabilir, `${k.kapsamOgesi.kod} override'ı ezildi`).toBe(onceki?.uygulanabilir);
     }
   });
 });

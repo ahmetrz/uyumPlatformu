@@ -25,24 +25,25 @@ import { yetkiZorunlu } from '../erisim';
 import { AZAMI_SURE_GUN, davetKapisi } from '../uyum/denetciErisimi';
 import { type Sonuc, tamam, hata, iz, bosluksuz } from './ortak';
 import { eylemTerimi, kapsamTerimi } from './kapsamMesaji';
+import { tesisIdleriIcinOgeIdleri } from '../kapsam/db';
 
 /** Kapsamdaki tesisler için `dis_denetci` yetki satırlarını yazar. */
-async function yetkileriAc(kullaniciId: string, tesisIdler: string[]): Promise<void> {
-  for (const tesisId of tesisIdler) {
+async function yetkileriAc(kullaniciId: string, kapsamOgesiIdleri: string[]): Promise<void> {
+  for (const kapsamOgesiId of kapsamOgesiIdleri) {
     /* `createMany` + skipDuplicates yerine tek tek upsert: bileşik
        benzersizlik anahtarı null alanlar içeriyor ve SQLite'ta null'lu
        benzersizlik çakışma ÜRETMEZ — skipDuplicates burada sessizce
        çift satır bırakırdı. */
     const mevcut = await db.yetki.findFirst({
       where: {
-        kullaniciId, tesisId, rol: 'dis_denetci',
+        kullaniciId, kapsamOgesiId, rol: 'dis_denetci',
         surecId: null, tuzelKisiId: null, regulasyonId: null, modul: null,
       },
       select: { id: true },
     });
     if (mevcut) continue;
     await db.yetki.create({
-      data: { kullaniciId, tesisId, rol: 'dis_denetci' },
+      data: { kullaniciId, kapsamOgesiId, rol: 'dis_denetci' },
     });
   }
 }
@@ -110,6 +111,10 @@ export async function denetciDavetEt(girdi: {
           + 'arasında bulunamayan var.' };
     }
 
+    const ogeIdleri = (await tesisIdleriIcinOgeIdleri(tesisler.map((t) => t.id))) ?? [];
+    if (ogeIdleri.length !== tesisler.length) {
+      return { ok: false, hata: 'Seçilenler arasında kapsam öğesi olmayan kayıt var.' };
+    }
     const erisim = await db.denetciErisimi.create({
       data: {
         kullaniciId: kisi.id,
@@ -117,10 +122,12 @@ export async function denetciDavetEt(girdi: {
         firma: v.firma,
         bitis,
         davetEdenId: k.id,
-        kapsamlar: { create: tesisler.map((t) => ({ tesisId: t.id })) },
+        /* Denetçi kapsamı KAPSAM ÖĞESİDİR (B1); ekran tesis seçtiyse öğeleri
+           köprüden çözülür. Öğesiz tesis kapsama giremez. */
+        kapsamlar: { create: ogeIdleri.map((id) => ({ kapsamOgesiId: id })) },
       },
     });
-    await yetkileriAc(kisi.id, tesisler.map((t) => t.id));
+    await yetkileriAc(kisi.id, ogeIdleri);
 
     await iz({
       aktorId: k.id, varlikTipi: 'DenetciErisimi', varlikId: erisim.id,

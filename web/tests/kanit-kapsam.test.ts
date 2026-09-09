@@ -2,6 +2,7 @@ import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { copyFileSync, mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import { ogeKimligi } from './yardim/kapsam';
 
 /* ═══════════════════════════════════════════════════════════════════════
    Kanıt ekleme — kapsam kapısı
@@ -28,11 +29,11 @@ copyFileSync('prisma/dev.db', testDb);
 process.env.TEST_DB = testDb;
 
 type Yetki = {
-  rol: string; surecId: string | null; tesisId: string | null;
+  rol: string; surecId: string | null; kapsamOgesiId: string | null; tesisId: string | null;
   tuzelKisiId: string | null; regulasyonId: string | null; modul: string | null;
 };
 const yetki = (rol: string, tesisId: string | null = null): Yetki => ({
-  rol, surecId: null, tesisId, tuzelKisiId: null, regulasyonId: null, modul: null,
+  rol, surecId: null, kapsamOgesiId: ogeKimligi(tesisId), tesisId, tuzelKisiId: null, regulasyonId: null, modul: null,
 });
 
 const oturum = {
@@ -75,14 +76,14 @@ beforeAll(async () => {
   /* İKİ AYRI santralin madde durumu gerekiyor; seed'de ikisi de var.
      Sabit id yazılmaz — seed değişince test sessizce yanlış şeyi ölçer. */
   const a = await db.maddeDurumu.findFirstOrThrow({
-    select: { id: true, tesisId: true },
+    select: { id: true, kapsamOgesi: { select: { tesisId: true } } },
   });
   const b = await db.maddeDurumu.findFirstOrThrow({
-    where: { tesisId: { not: a.tesisId } },
-    select: { id: true, tesisId: true },
+    where: { kapsamOgesi: { tesisId: { not: a.kapsamOgesi.tesisId } } },
+    select: { id: true, kapsamOgesi: { select: { tesisId: true } } },
   });
-  mdA = a.id; tesisA = a.tesisId;
-  mdB = b.id; tesisB = b.tesisId;
+  mdA = a.id; tesisA = a.kapsamOgesi.tesisId!;
+  mdB = b.id; tesisB = b.kapsamOgesi.tesisId!;
 });
 
 describe('kanitEkle — santral kapsamı', () => {

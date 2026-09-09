@@ -19,7 +19,12 @@ aktif yapmaz, hiçbir madde durumu yazmaz.
 | `kapsam-turleri.json` | JSON dizi | `kod` (küçük harf) · `ad` · `etiketAnahtari?` · `tesiseBagli` · `sira` |
 | `oznitelikler.json` | JSON dizi | `anahtar · tip (sayi · metin · mantik · tarih) · birim? · etiketAnahtari · rol? (kapasite · kritiklik) · grup? · secenekler? · kuraldaKullanilir · sira` |
 | `cerceve/<KOD>.json` | JSON | çerçeve kimliği: `kod · ad · surumEtiketi · yayimTarihi? · yururlukTarih? · kaynakUrl? · lisans · maddeDosyasi · zorunlulukTipi` |
-| `cerceve/<KOD>.csv` | CSV (`;`, UTF-8, başlık satırı) | madde ağacı: `kod;ust_kod;baslik;metin;sira;seviye;zorunluluk_tipi;kanit_beklentisi;dis_kontrol_id` — üst madde satırı alt maddeden ÖNCE gelir |
+| `cerceve/<KOD>.csv` | CSV (`;`, UTF-8, başlık satırı) | madde ağacı: `kod;ust_kod;baslik;metin;sira;seviye;zorunluluk_tipi;kanit_beklentisi;dis_kontrol_id` — üst madde satırı alt maddeden ÖNCE gelir; her başlık **bir kez**, satırda başlığı aşan **dolu** hücre olamaz (okunmayan hücre içerik taşırdı — telifli metin kaçağı) |
+
+Paket dizininin adı `manifest.kod` ile **aynı** olmalıdır
+(`paketler/TR-ENERJI` ↔ `"kod": "TR-ENERJI"`); uyuşmazsa doğrulayıcı
+`KİMLİK` ile reddeder — kopyalanmış bir dizin başka paketin kimliğiyle
+kurulamaz.
 | `yukumlulukler.json` | JSON dizi | `kod · ad · regulasyonKod? · asgariSiddet · sureSaat · dayanak · merci` |
 
 ## Lisans sınırı — alanda, yorumda değil
@@ -44,6 +49,13 @@ Kurucunun yazdığı her satır `koken = paket` ve `paketSurumId` taşır. Paket
 güncellemesi yalnız kendi (`paket`) satırlarını değiştirir; aynı anahtarda
 `kiraci` satırı varsa DOKUNULMAZ ve kurulum raporuna "çelişki" düşer.
 Kaldırma = arşiv: hiçbir satır silinmez.
+
+**Yükseltme uzlaştırması.** Yeni sürümün artık beyan etmediği paket
+kökenli tür ve yükümlülük `aktif=false` olur, paketin kendi taslak çerçeve
+sürümü `arsiv`e çekilir — silinmez. Sözlük ve öznitelik şemasında aktif
+bayrağı yok: satır yerinde kalır, kurulum raporunda `artik` altında
+listelenir; kaldırma insan kararıdır. Kurulum/arşiv ile iz kaydı aynı
+transaction'dadır: iz yazılamazsa işlem de geri alınır.
 
 ## Buradaki paketler
 

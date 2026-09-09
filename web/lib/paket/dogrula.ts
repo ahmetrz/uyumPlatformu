@@ -129,6 +129,18 @@ export function paketiDogrula(dizin: string): DogrulamaSonucu {
   }
   const manifest = mp.data;
 
+  /* Dizin adı = paket kodu. Kopyalanmış ya da yanlış adlı bir dizin
+     (`paketler/TR-YENI` içinde `manifest.kod = TR-ESKI`) istenen kod
+     yerine BAŞKA bir paketi kurar ve onun satırlarını ezerdi; kimlik
+     manifestten okunur ama dizin adıyla uyuşmak ZORUNDADIR (inceleme
+     bulgusu, PR #41). */
+  const dizinAdi = path.basename(path.resolve(dizin));
+  if (manifest.kod !== dizinAdi) {
+    hatalar.push({ sinif: 'KİMLİK', dosya: DOSYALAR.manifest, konum: 'kod',
+      mesaj: `manifest kodu "${manifest.kod}" dizin adıyla uyuşmuyor: "${dizinAdi}"`,
+      duzeltme: `paket dizininin adı manifest.kod ile aynı olmalı (paketler/${manifest.kod})` });
+  }
+
   // çapraz alan kuralları
   if ((manifest.tur === 'sektor' || manifest.tur === 'demo') && !manifest.sektor) {
     hatalar.push({ sinif: 'BIÇIM', dosya: DOSYALAR.manifest, konum: 'sektor',
@@ -265,11 +277,27 @@ export function paketiDogrula(dizin: string): DogrulamaSonucu {
         hatalar.push({ sinif: 'BIÇIM', dosya: maddeDosya, konum: '1', mesaj: `bilinmeyen sütun: ${bilinmeyen.join(', ')}`, duzeltme: `yalnız şu sütunlar: ${MADDE_SUTUNLARI.join(';')}` });
         continue;
       }
+      /* Tekrar eden başlık ve başlığı aşan dolu hücre: okunmaz ama pakette
+         TAŞINIRDI — telifli çerçevede ilk `metin` boş bırakılıp tam metin
+         ikinci `metin` sütununa ya da satır sonuna konabiliyordu (inceleme
+         bulgusu, PR #41). Lisans kontrolünden ÖNCE reddedilir. */
+      const tekrarBaslik = [...new Set(basliklar.filter((b, i) => basliklar.indexOf(b) !== i))];
+      if (tekrarBaslik.length) {
+        hatalar.push({ sinif: 'BIÇIM', dosya: maddeDosya, konum: '1', mesaj: `sütun başlığı tekrar ediyor: ${tekrarBaslik.join(', ')} — ikinci kopya okunmaz ama içerik taşır`,
+          duzeltme: 'her sütun başlığı bir kez yazılır; fazla kopyayı silin' });
+        continue;
+      }
       const sutun = (satir: string[], ad: string) => { const i = basliklar.indexOf(ad); return i === -1 ? '' : (satir[i] ?? '').trim(); };
       const gorulen = new Set<string>();
       const maddeler: MaddeSatiri[] = [];
       satirlar.forEach((satir, i) => {
         const no = String(i + 2);
+        const fazla = satir.slice(basliklar.length).filter((h) => h.trim() !== '');
+        if (fazla.length) {
+          hatalar.push({ sinif: 'BIÇIM', dosya: maddeDosya, konum: no, mesaj: `satırda başlığı aşan ${fazla.length} dolu hücre var (${basliklar.length} sütun) — fazla hücre okunmaz ama içerik taşır`,
+            duzeltme: 'fazla hücreyi silin; her satır en fazla başlık kadar hücre taşır' });
+          return;
+        }
         const kod = sutun(satir, 'kod'); const ustKod = sutun(satir, 'ust_kod') || null; const baslik = sutun(satir, 'baslik');
         if (!kod) { hatalar.push({ sinif: 'KİMLİK', dosya: maddeDosya, konum: no, mesaj: 'kod boş', duzeltme: 'her satır tekil bir kod taşır' }); return; }
         if (gorulen.has(kod)) { hatalar.push({ sinif: 'KİMLİK', dosya: maddeDosya, konum: no, mesaj: `kod tekrar ediyor: ${kod}`, duzeltme: 'kodu değiştirin ya da satırı silin' }); return; }

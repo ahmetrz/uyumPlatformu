@@ -323,4 +323,31 @@ export const URUNLESTIRME_SENARYOLARI: Senaryo[] = [
     beklenenIz: 'yazma yok (test veritabanı)', beklenenBildirim: 'yok',
     katmanlar: ['DOMAIN', 'INTEGRATION'],
   },
+  {
+    id: 'URN-PKT-006', alan: 'Ürünleştirme', rota: '—', eksen: 'veri',
+    amac: 'Paket yükseltmesinin bıraktığı içeriği uzlaştırması: kaldırılan tür ve yükümlülük pasif, taslak sürüm arşiv, silme yok',
+    rol: 'tanımlar yazma yetkili', kapsam: 'kurulum (yükseltme)',
+    onkosul: 'Önceki sürümün yazdığı paket kökenli tür, yükümlülük, çerçeve taslağı, sözlük ve öznitelik satırları var; yeni sürüm bir kısmını beyan etmiyor',
+    veriHali: 'aykiri',
+    eylem: 'Yeni sürüm kurulur; aynı sürüm ikinci kez kurulur; kiracının kendi türü aynı sektörde durur',
+    beklenenSonuc: 'Beyan edilmeyen paket türü ve yükümlülüğü aktif=false, paketin kendi taslak çerçeve sürümü arşiv; hiçbir satır silinmez; '
+      + 'aktif bayrağı olmayan sözlük ve öznitelik satırı yerinde kalır ve raporda "artık" olarak listelenir; kiracı satırına dokunulmaz; '
+      + 'ikinci kurulumda uzlaştırma sıfır',
+    beklenenEkran: 'Ekran yok',
+    beklenenIz: 'IcerikPaketi kurulum izi uzlaştırma sayılarıyla', beklenenBildirim: 'yok',
+    katmanlar: ['SERVER', 'INTEGRATION'],
+  },
+  {
+    id: 'URN-PKT-007', alan: 'Ürünleştirme', rota: '—', eksen: 'akis',
+    amac: 'Paket durum değişimi ile iz kaydının aynı transaction\'da olması; kaldırmada aktif sürüm kararının arşiv yazımıyla atomik verilmesi',
+    rol: 'tanımlar yazma yetkili', kapsam: 'kurulum · kaldırma',
+    onkosul: 'İz yazıcı transaction istemcisi kabul eder (ortak.ts › iz); kaldırma okuma-karar-yazma tek transaction',
+    veriHali: 'aykiri',
+    eylem: 'İz yazımı patlatılır (sentetik) ve paket kurulur / kaldırılır; kök istemciye dokunmayı kaydeden sahte istemciyle kaldırma çağrılır',
+    beklenenSonuc: 'İz yazılamazsa kurulum da arşiv de GERİ ALINIR: paket kaydı yok / paket kurulu kalır, iz satırı yok; '
+      + 'kaldırma aktif sürüm sayımını transaction İÇİNDE yapar — kök istemciye dokunan kaldırma kırmızı',
+    beklenenEkran: 'Ekran yok',
+    beklenenIz: 'iz ya durumla birlikte var ya ikisi de yok', beklenenBildirim: 'yok',
+    katmanlar: ['SERVER', 'INTEGRATION'],
+  },
 ];

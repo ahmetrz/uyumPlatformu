@@ -777,9 +777,19 @@ aktifleştirme insan onayıyla; sözlük · tür · öznitelik · çerçeve ·
 yükümlülük), köken (`koken · paketSurumId` yedi tabloda; kiracı satırı
 ezilmez), kaldırma = arşiv, katalog (`IcerikPaketi · IcerikPaketiSurumu`),
 iskelet paketler `paketler/TR-ENERJI` · `paketler/TR-BANKACILIK`, tohum
-taşınabilirlik ölçümü `docs/P4_TOHUM_TASIMA_OLCUMU.md`. Kalan: form ve
-rapor şablonu, rol kataloğu, demo yükleyici, eşleme CSV, `/paketler`
-ekranı, OSCAL okuyucu (SCF için — hukuki görüş bekleniyor).
+taşınabilirlik ölçümü `docs/P4_TOHUM_TASIMA_OLCUMU.md`. **PR #41
+incelemesiyle sertleşti (9 Eylül 2026):** yükseltme uzlaştırması (yeni
+sürümün bırakmadığı paket türü/yükümlülüğü pasif, kendi taslak sürümü
+arşiv; sözlük/öznitelik "artık" raporlanır — URN-PKT-006), iz kaydı
+kurulum/arşivle AYNI transaction'da ve kaldırmada aktif sürüm kararı arşiv
+yazımıyla atomik (URN-PKT-007), taslak yenileme bağ listesi şemadan
+bekçiyle (`MaddeAlan` dâhil), dizin adı = manifest kodu, CSV'de tekrar
+başlık ve başlığı aşan dolu hücre red, sürüm yürürlük tarihi kalıcı.
+Kalan: form ve rapor şablonu, rol kataloğu, demo yükleyici, eşleme CSV,
+`/paketler` ekranı, OSCAL okuyucu (SCF için — hukuki görüş bekleniyor),
+sözlük ve öznitelik şemasında `aktif` alanı (uzlaştırmada pasifleştirme —
+bugün yalnız raporlanır; öznitelik satırının altında kiracı değeri
+olabileceği için silme değil, şema kararı).
 
 **Hedef.** Çerçeveler, eşlemeler, yükümlülükler, denetim form şablonları,
 mevzuat kaynak katalogları, sektör sözlükleri ve demo verisi **paket**

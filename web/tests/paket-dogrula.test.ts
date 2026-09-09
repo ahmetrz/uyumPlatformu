@@ -92,6 +92,32 @@ describe('paket doğrulayıcı — biçim ve manifest [URN-PKT-001]', () => {
     expect(s.hatalar.some((h) => h.mesaj.includes('rol=kapasite 2 öznitelikte'))).toBe(true);
   });
 
+  it('dizin adı manifest koduyla uyuşmalı — kopyalanmış dizin BAŞKA paketi kuramaz: KİMLİK [URN-PKT-001]', () => {
+    /* Ölçüldü: `paketler/TR-YENI` içinde `manifest.kod = TR-ESKI` istenen
+       kodu değil TR-ESKI'yi kuruyor, onun satırlarını eziyordu (inceleme bulgusu). */
+    const s = paketiDogrula(paketYaz(TEMIZ, { kod: 'TR-ESKI' }, { dizinAdi: 'TR-YENI' }));
+    expect(s.ok).toBe(false);
+    const k = s.hatalar.find((h) => h.sinif === 'KİMLİK' && h.konum === 'kod');
+    expect(k?.mesaj).toBe('manifest kodu "TR-ESKI" dizin adıyla uyuşmuyor: "TR-YENI"');
+    expect(k?.duzeltme).toMatch(/paketler\/TR-ESKI/);
+    expect(paketiDogrula(paketYaz(TEMIZ, { kod: 'TR-ESKI' })).ok).toBe(true);
+  });
+
+  it('CSV: tekrar eden başlık ve başlığı aşan dolu hücre BIÇIM — telifli metin ikinci "metin" sütunundan ya da satır sonundan kaçamaz [URN-PKT-002]', () => {
+    const telifli = { ...TEMIZ, 'cerceve/TEST-REG.json': cerceve('TEST-REG', { tur: 'telifli', metinDahil: false }) };
+    // ilk `metin` boş, kaçak tam metin ikinci `metin` sütununda — eskiden GEÇİYORDU
+    const tekrar = paketiDogrula(paketYaz({ ...telifli, 'cerceve/TEST-REG.csv': `${CSV_BASLIK};metin\n1;;Amaç;;0;;;Gizli tam metin\n` }));
+    expect(tekrar.ok).toBe(false);
+    expect(tekrar.hatalar.some((h) => h.sinif === 'BIÇIM' && h.konum === '1' && /tekrar ediyor: metin/.test(h.mesaj))).toBe(true);
+    // başlıktan fazla DOLU hücre
+    const tasan = paketiDogrula(paketYaz({ ...telifli, 'cerceve/TEST-REG.csv': `${CSV_BASLIK}\n1;;Amaç;;0;;;Gizli tam metin\n` }));
+    expect(tasan.ok).toBe(false);
+    expect(tasan.hatalar.some((h) => h.sinif === 'BIÇIM' && h.konum === '2' && /başlığı aşan 1 dolu hücre/.test(h.mesaj))).toBe(true);
+    // sondaki boş `;` (elle yazılmış CSV) içerik taşımaz — geçer
+    const bos = paketiDogrula(paketYaz({ ...telifli, 'cerceve/TEST-REG.csv': `${CSV_BASLIK}\n1;;Amaç;;0;;;\n` }));
+    expect(bos.ok, bos.hatalar.map(hataSatiri).join('\n')).toBe(true);
+  });
+
   it('hata satırı biçimi: dosya:konum — SINIF: mesaj → düzeltme [URN-PKT-001]', () => {
     const s = paketiDogrula(paketYaz(TEMIZ, { surum: 'x' }));
     expect(hataSatiri(s.hatalar[0])).toMatch(/^manifest\.json:surum — SÜRÜM: .+ → .+$/);

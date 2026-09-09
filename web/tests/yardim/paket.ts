@@ -20,9 +20,13 @@ const MANIFEST_VARSAYILAN = {
 export function paketYaz(
   dosyalar: PaketDosyalari,
   manifest: Record<string, unknown> = {},
-  secenekler: { ozetBoz?: string; ozetsiz?: string[] } = {},
+  secenekler: { ozetBoz?: string; ozetsiz?: string[]; dizinAdi?: string } = {},
 ): string {
-  const dizin = mkdtempSync(path.join(tmpdir(), 'uyum-paket-'));
+  /* Dizin adı = paket kodu (doğrulayıcı kuralı); `dizinAdi` yalnız o kuralı
+     ölçen test için farklı verilir. */
+  const kod = typeof manifest.kod === 'string' ? manifest.kod : MANIFEST_VARSAYILAN.kod;
+  const dizin = path.join(mkdtempSync(path.join(tmpdir(), 'uyum-paket-')), secenekler.dizinAdi ?? kod);
+  mkdirSync(dizin, { recursive: true });
   const ozetler: Record<string, string> = {};
   for (const [ad, icerik] of Object.entries(dosyalar)) {
     const metin = typeof icerik === 'string' ? icerik : JSON.stringify(icerik, null, 2) + '\n';

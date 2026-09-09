@@ -176,6 +176,28 @@ describe('Bekçi · NULL-olumsuzlama sınıfı [URN-VER-001]', () => {
     expect(beyan(kod)).toEqual([]);
   });
 
+  it('kalıcı vaka: NULL yalnız BAŞKA ilişki yolunda ele alınmışsa olumsuzlama temizlenmez; aynı yolda ele alınmışsa temizlenir [URN-VER-001]', () => {
+    /* Ölçüldü: tüm where'e bakan kalıp, `tekrarBulgu: { tekrarBulguId: null }`
+       görünce kökteki `tekrarBulguId: { not: 'x' }` yüklemini güvenli sayıyordu —
+       ikisi başka satırın kolonu, kökün NULL satırı yine düşüyordu (inceleme bulgusu). */
+    const baskaYol = `db.bulgu.findMany({ where: { tekrarBulguId: { not: 'x' }, tekrarBulgu: { tekrarBulguId: null } } });`;
+    const b1 = tara(baskaYol);
+    expect(b1).toHaveLength(1);
+    expect(b1[0]).toMatchObject({ model: 'Bulgu', alan: 'tekrarBulguId', karar: 'beyan' });
+    const tersi = `db.bulgu.findMany({ where: { tekrarBulguId: null, tekrarBulgu: { tekrarBulguId: { not: 'x' } } } });`;
+    expect(tara(tersi)[0]).toMatchObject({ model: 'Bulgu', alan: 'tekrarBulguId', karar: 'beyan' });
+    const ayniYol = `db.bulgu.findMany({ where: { tekrarBulgu: { OR: [{ tekrarBulguId: null }, { tekrarBulguId: { not: 'x' } }] } } });`;
+    const b3 = tara(ayniYol);
+    expect(b3).toHaveLength(1);
+    expect(b3[0]).toMatchObject({ model: 'Bulgu', alan: 'tekrarBulguId', karar: 'guvenli' });
+    // niceleyici yolu değiştirmez: some içindeki NULL, some içindeki olumsuzlamayı temizler
+    const niceleyici = `db.regulasyon.count({ where: { surumler: { some: { NOT: { paketSurumId: null }, paketSurumId: { notIn: idler } } } } });`;
+    expect(beyan(niceleyici)).toEqual([]);
+    const notIn = tara(niceleyici).find((b) => b.tur === 'notIn');
+    expect(notIn).toMatchObject({ model: 'FrameworkSurumu', alan: 'paketSurumId', karar: 'guvenli' });
+    expect(notIn?.sebep).toMatch(/aynı where içinde açıkça ele alınmış/);
+  });
+
   it('kalıcı vaka: dinamik NOT (çağrı/yayma) ve isNot → beyan [URN-VER-001]', () => {
     expect(beyan(`db.kanit.count({ where: { silindi: null, NOT: kapsamKosulu(izinli) } });`)).toHaveLength(1);
     expect(beyan(`db.kesifKaydi.findMany({ where: { eslesenVarlik: { isNot: { silindi: null } } } });`)).toHaveLength(1);

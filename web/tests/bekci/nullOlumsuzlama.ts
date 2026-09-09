@@ -198,10 +198,22 @@ function satirNo(metin: string, konum: number): number {
   return s;
 }
 
-/** Aynı `where` içinde NULL'un açıkça ele alınıp alınmadığı. */
-export function nullAcikcaEleAlinmis(whereMetni: string, alan: string): boolean {
-  return new RegExp(`\\b${alan}\\s*:\\s*null\\b`).test(whereMetni)
-    || new RegExp(`\\b${alan}\\s*:\\s*\\{\\s*not\\s*:\\s*null\\b`).test(whereMetni);
+/** Aynı `where` içinde ve AYNI ilişki yolunda NULL'un açıkça ele alınıp
+    alınmadığı: `alan: null` (dâhil etme) ya da `alan: { not: null }` /
+    `NOT: { alan: null }` (bilerek dışlama). Yol ölçütü şarttır — kökteki
+    `durum: { not: 'x' }` yüklemini `bulgu: { durum: null }` temizlemez;
+    ikisi başka tablonun kolonudur (ölçüldü: inceleme bulgusu, PR #41).
+    Mantık dalı (AND/OR/NOT) ve niceleyici (some/every/none) yolu
+    değiştirmez: hangi dalda olduğu değil, hangi kolon olduğu sayılır. */
+export function nullAcikcaEleAlinmis(kod: string, whereAc: number, yol: readonly string[], alan: string): boolean {
+  const metin = kod.slice(whereAc, esKapanis(kod, whereAc) + 1);
+  const kalip = new RegExp(`\\b${alan}\\s*:\\s*(?:null\\b|\\{\\s*not\\s*:\\s*null\\b)`, 'g');
+  for (const m of metin.matchAll(kalip)) {
+    const { zincir } = anahtarZinciri(kod, whereAc + m.index!, whereAc);
+    const adayYol = zincir.filter((k) => !SAYDAM.has(k));
+    if (adayYol.length === yol.length && adayYol.every((k, i) => k === yol[i])) return true;
+  }
+  return false;
 }
 
 const NULL_DEGER = /^\s*null\b/;
@@ -258,8 +270,9 @@ export function dosyayiTara(dosya: string, ham: string, sema: Map<string, SemaMo
         sebep: `${cozum.model}.${cozum.alan.ad} NOT NULL` };
     }
     const whereAc = acilislar[0];
-    const whereMetni = kod.slice(whereAc, esKapanis(kod, whereAc) + 1);
-    if (nullAcikcaEleAlinmis(whereMetni, cozum.alan.ad)) {
+    // yüklemin ilişki yolu: `where` ve alanın kendisi hariç, mantık/niceleyici anahtarları atılmış
+    const yol = zincirTamami.slice(1, -1).filter((k) => !SAYDAM.has(k));
+    if (nullAcikcaEleAlinmis(kod, whereAc, yol, cozum.alan.ad)) {
       return { dosya, satir, tur, model: cozum.model, alan: cozum.alan.ad, karar: 'guvenli',
         sebep: `${cozum.model}.${cozum.alan.ad} nullable; NULL aynı where içinde açıkça ele alınmış` };
     }

@@ -33,6 +33,19 @@ vi.mock('@/lib/auth', async (asil) => {
 });
 vi.mock('next/cache', () => ({ revalidatePath: () => undefined }));
 
+/* İz yazıcı yalnız `bayrak.izPatlat` açıkken patlar — gerçek `iz` kalır.
+   Durum değişimi ile iz AYNI transaction'da olmalı: iz yazılamazsa kurulum
+   da arşiv de geri alınır (URN-PKT-007). */
+const bayrak = vi.hoisted(() => ({ izPatlat: false }));
+vi.mock('@/lib/eylemler2/ortak', async (asil) => {
+  const gercek = await asil<typeof import('@/lib/eylemler2/ortak')>();
+  const iz: typeof gercek.iz = async (...args) => {
+    if (bayrak.izPatlat) throw new Error('iz yazılamadı (sentetik)');
+    return gercek.iz(...args);
+  };
+  return { ...gercek, iz };
+});
+
 const { db } = await import('@/lib/db');
 const { paketKur, paketKaldir } = await import('@/lib/eylemler2/paket');
 const { paketDizini } = await import('@/lib/paket/dizin');
@@ -71,6 +84,19 @@ describe('paketKur — yetki kapısı, dizin sınırı, iz [URN-PKT-003]', () =>
     expect(await db.icerikPaketi.count()).toBe(once);
   });
 
+  it('iz yazılamazsa kurulum da GERİ ALINIR — durum ve iz aynı transaction\'da [URN-PKT-007]', async () => {
+    bayrak.izPatlat = true;
+    try {
+      const s = await paketKur({ kod: 'TR-BANKACILIK' });
+      expect(s.ok).toBe(false);
+      if (!s.ok) expect(s.hata).toMatch(/iz yazılamadı/);
+    } finally { bayrak.izPatlat = false; }
+    expect(await db.icerikPaketi.findUnique({ where: { kod: 'TR-BANKACILIK' } })).toBeNull();
+    expect(await db.sektor.findUnique({ where: { kod: 'BANKACILIK' } })).toBeNull();
+    expect(await db.regulasyon.findUnique({ where: { kod: 'BDDK-BS' } })).toBeNull();
+    expect(await db.aktiviteKaydi.count({ where: { varlikTipi: 'IcerikPaketi', eylem: 'kurulum' } })).toBe(0);
+  });
+
   it('yetkili kullanıcı iskelet paketi kurar: rapor döner, çerçeve taslak, iz sayılarla düşer [URN-PKT-003]', async () => {
     const s = await paketKur({ kod: 'TR-BANKACILIK' });
     expect(s.ok, JSON.stringify(s)).toBe(true);
@@ -89,6 +115,17 @@ describe('paketKaldir — gerekçeli arşiv [URN-PKT-004]', () => {
     const s = await paketKaldir({ kod: 'TR-BANKACILIK', gerekce: 'kısa' });
     expect(s.ok).toBe(false);
     expect((await db.icerikPaketi.findUniqueOrThrow({ where: { kod: 'TR-BANKACILIK' } })).durum).toBe('kurulu');
+  });
+
+  it('iz yazılamazsa arşiv de GERİ ALINIR — paket kurulu kalır, iz yok [URN-PKT-007]', async () => {
+    bayrak.izPatlat = true;
+    try {
+      const s = await paketKaldir({ kod: 'TR-BANKACILIK', gerekce: 'Paket artık kullanılmayacak' });
+      expect(s.ok).toBe(false);
+    } finally { bayrak.izPatlat = false; }
+    expect((await db.icerikPaketi.findUniqueOrThrow({ where: { kod: 'TR-BANKACILIK' } })).durum).toBe('kurulu');
+    expect(await db.frameworkSurumu.count({ where: { regulasyon: { kod: 'BDDK-BS' }, durum: 'taslak' } })).toBe(1);
+    expect(await db.aktiviteKaydi.count({ where: { varlikTipi: 'IcerikPaketi', eylem: 'arsiv' } })).toBe(0);
   });
 
   it('okuyucu kaldıramaz; yetkili gerekçeyle kaldırır → arşiv + iz, satır silinmez [URN-PKT-004]', async () => {

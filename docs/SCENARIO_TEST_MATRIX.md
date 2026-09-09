@@ -4,12 +4,12 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 315 |
-| Testi olan senaryo | 315 |
+| Senaryo | 316 |
+| Testi olan senaryo | 316 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
-| Taranan test dosyası | 185 |
+| Taranan test dosyası | 186 |
 
 ## Katman başına kapsam
 
@@ -18,7 +18,7 @@
 | ACCESSIBILITY | 8 | 8 | 0 |
 | API | 12 | 12 | 0 |
 | CONCURRENCY | 7 | 7 | 0 |
-| DOMAIN | 175 | 175 | 0 |
+| DOMAIN | 176 | 176 | 0 |
 | ENGINE | 33 | 33 | 0 |
 | INTEGRATION | 40 | 40 | 0 |
 | MIGRATION | 5 | 5 | 0 |
@@ -353,6 +353,9 @@
 | `URN-KUR-007` | Ürünleştirme | DOMAIN | `bekci/kurgusal-adlar.test.ts` | ADAPTÖR hedef ürünleri beyanlıdır | evet | geçti |
 | `URN-KUR-007` | Ürünleştirme | DOMAIN | `bekci/kurgusal-adlar.test.ts` | her ZAFİYET kamuya açık bir kaynağa atıf yapar | evet | geçti |
 | `URN-KUR-007` | Ürünleştirme | DOMAIN | `bekci/kurgusal-adlar.test.ts` | KURGUSAL ad ile GERÇEK ad aynı kayıtta karışmaz | evet | geçti |
+| `URN-KUR-008` | Ürünleştirme | DOMAIN | `goc-zinciri.test.ts` | boş veritabanında bütün göçler uygulanır ve schema.prisma ile fark sıfırdır | evet | geçti |
+| `URN-KUR-008` | Ürünleştirme | DOMAIN | `goc-zinciri.test.ts` | sabotaj: ADD COLUMN silinmiş zincir kopyası kırmızı yanar — zincir sessizce uygulanır, şema farkı yakalar | evet | geçti |
+| `URN-KUR-008` | Ürünleştirme | DOMAIN | `goc-zinciri.test.ts` | sabotaj: göçsüz şema kolonu kırmızı yanar | evet | geçti |
 | `URN-ALN-001` | Ürünleştirme | MIGRATION · DOMAIN | `p1-oznitelik-gocu.test.ts` | göç betiği kurulu gücü kayıpsız taşır; ölçülmemiş satır almaz | evet | geçti |
 | `URN-ALN-001` | Ürünleştirme | MIGRATION · DOMAIN | `p1-oznitelik-gocu.test.ts` | uygulama veritabanında ölçülmemiş nitelik SATIRSIZ durur | evet | geçti |
 | `URN-ALN-002` | Ürünleştirme | DOMAIN · UI | `p1-oznitelik-gocu.test.ts` | kural öznitelik üzerinden AYNI kararları üretir | evet | geçti |

@@ -110,6 +110,21 @@ export const URUNLESTIRME_SENARYOLARI: Senaryo[] = [
     beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
     katmanlar: ['DOMAIN'],
   },
+  {
+    id: 'URN-KUR-008', alan: 'Ürünleştirme', rota: '—', eksen: 'veri',
+    amac: 'Göç zincirinin yeni kurulumda şemayla birebir olması — elle düzeltilmiş bir göç diskte doğru, zincirde yanlış olabilir',
+    rol: 'ürünü sürdüren geliştirici · müşteri kurulumunu yapan', kapsam: 'prisma/migrations · prisma/schema.prisma · arac/goc-zinciri.mjs',
+    onkosul: 'Bir göç `migrate diff` çıktısından farklı yazılmıştır (P4 · 2.4: RedefineTables yerine elle ADD COLUMN) ve yerel dev.db '
+      + 'sağlaması elle güncellenmiştir; `kapi:sema-sapmasi` MEVCUT dev.db\'yi ölçtüğü için zinciri görmez',
+    veriHali: 'aykiri',
+    eylem: 'BOŞ bir SQLite dosyasına bütün göçler sırayla uygulanır (`prisma migrate deploy`), uygulanan göç listesi veritabanından okunur ve '
+      + 'sonuç `schema.prisma` ile karşılaştırılır (`migrate diff --exit-code`)',
+    beklenenSonuc: 'Uygulanan göç listesi dizinle birebir ve şema farkı SIFIR; eksik göç, deploy hatası, ölçülemeyen fark ya da herhangi bir '
+      + 'SQL farkı kırmızıdır. Sabotaj kalıcıdır: ADD COLUMN silinmiş zincir kopyası ve göçsüz şema kolonu kırmızı yanar',
+    beklenenEkran: 'ekran yok — depo kapısı (CI · bloklayıcı)',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['DOMAIN'],
+  },
   /* ── P1 · URN-ALN ────────────────────────────────────────────────────
      Kütüğe yalnız TESTİ OLAN senaryo girer: kayıtlı ama testsiz senaryo
      `senaryo-belge` aracında GAP olur ve kütük "kapsanıyor" diye yalan

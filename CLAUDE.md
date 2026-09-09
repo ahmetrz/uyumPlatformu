@@ -325,12 +325,21 @@ CI'da (`.github/workflows/pr-kapisi.yml`) **on iş** koşar:
 | `kapi-postgres` | postgres:16 servisi — `kapi:pg-goc` ve TAM test kümesi (iki sağlayıcıda da aynı sayı) |
 | `kapi-compose` | `deploy/compose/` ile ayağa kalkan kurulumda `rota:duman` — ürünün müşteri ortamında çalıştığının tek kanıtı |
 
-Bölünmenin gerekçesi ölçüldü (9 Eyl 2026, `80ce71c`): seri `kapi-yavas`
-**12 dk 54 sn**, koşunun duvar saati **14 dk 00 sn**; bu sırada `main`
-iki kez ilerledi ve dal iki kez yeniden ölçüldü. Kapıların KENDİ süreleri
-(rota 36sn · gezinme 44sn · taşma 186sn · axe 190sn) toplamın yarısı
-kadar — kalanı beklemeydi. Bölünmüş duvar saati **ölçülmedi**; bu turun
-CI koşumunda ölçülüp buraya yazılacak.
+Bölünmenin gerekçesi ve sonucu ÖLÇÜLDÜ (9 Eyl 2026):
+
+| | Seri (`80ce71c`) | Paralel (`1951110`) |
+| --- | --- | --- |
+| **Koşunun duvar saati** | **14 dk 00 sn** | **6 dk 19 sn** |
+| `kapi-yavas` | 12 dk 54 sn (altı kapı seri) | 3 sn (toplayıcı) |
+| `kapi` | 5 dk 21 sn | 4 dk 18 sn (derleme çıktı) |
+| `derleme` | — (derleme iki işte tekrarlıyordu) | 1 dk 40 sn |
+| En uzun tarayıcılı iş | — | `kapi-axe` 4 dk 30 sn |
+
+Kritik yol artık `derleme` → `kapi-axe` → toplayıcı. Kazanç 7 dk 41 sn
+(%55): seri kümede sürenin yarısı ölçüm değil BEKLEMEYDİ ve bu bekleme
+bir turda iki kez faturalandı — `main` iki kez ilerledi, dal iki kez
+yeniden ölçüldü. Artefakt taşımanın maliyeti ölçüldü ve küçük çıktı:
+yükleme 7 sn, indirme 3–4 sn (74 MB).
 
 **Hiçbir kapı çıkarılmadı.** Seri kümenin 23 kapısının 23'ü duruyor ve
 bu bir testle sabit (`web/tests/kapi-is-kapsami.test.ts`); bölünmeyle

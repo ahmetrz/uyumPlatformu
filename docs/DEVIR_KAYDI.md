@@ -310,6 +310,7 @@ değil.
 | Kapı kümesi | `npm run kapi:parti` → **geçti 18 · KIRMIZI 0 · ÖLÇÜLMEDİ 0** |
 | Test keşfi | 162 dosya · 3215 vaka geçti · 1 atlandı |
 | **Sonraki ölçüm — Faz B dalı** (`claude/uyumplatformu05-kod-l8y12k`, PR açık) | `kapi:parti` **19 · KIRMIZI 0 · ÖLÇÜLMEDİ 0** · 169 dosya · 3 292 vaka · 1 atlandı · senaryo 296 / GAP 0 · terim 85/85 (`tavan` 11) · çekirdek sözcük 0 · K3 sayımlar eşit · K4 14 ölçüm / kırmızı 0 (enerji Tesis 360 20 alan, su 12). Yedi sabotaj (S1–S7) kırmızı→yeşil |
+| **Sonraki ölçüm — NULL sınıfı + P4 dalı** (`claude/uyumplatformu05-kod-l8y12k`, `origin/main`'den yeniden kuruldu, PR açık; `98b50c6`) | `kapi:parti` **19 · KIRMIZI 0 · ÖLÇÜLMEDİ 0** · 174 dosya · 3 344 vaka · 1 atlandı · senaryo 302 / GAP 0 · ters kapsam 390 davranış / senaryosuz 0 · terim 85/85 · çekirdek sözcük 0 · şema sapması 0 · NULL-olumsuzlama 37 bulgu / beyan 3 / kusur 0 · iskelet paketler doğrulayıcı 0 hata (TR-ENERJI 601 madde · TR-BANKACILIK 58). Sabotaj S8 (NOT rol geri) · S9 (izin satırı + tavan) · S10 (iskelet dosyasında tek sözcük) kırmızı→yeşil |
 
 ### Sayılar
 

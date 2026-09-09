@@ -30,6 +30,10 @@ try {
       await page.waitForFunction(() => document.querySelector('#platform-arayuzu')?.inert);
       await page.mouse.wheel(0, 300);
       await page.waitForFunction(() => window.scrollY > 8);
+      const ilerleme = () => page.locator('[data-mod]').evaluate(el => -el.getBoundingClientRect().top / parseFloat(el.style.getPropertyValue('--mesafe')));
+      const once = await ilerleme();
+      await page.getByLabel('Yolculuk temposu').selectOption('0.72');
+      assert.ok(Math.abs(await ilerleme() - once) < .001, 'yüklemede tempo ilerlemeyi sıçrattı');
     } finally { serbest(); }
     await page.waitForFunction(() => Number(document.querySelector('[data-mod]')?.getAttribute('data-ilerleme')) > 0);
     assert.equal(await page.locator('[data-mod]').getAttribute('data-mod'), 'hareketli', 'erken kaydırma sahneyi iptal etti');
@@ -113,6 +117,14 @@ try {
     await page.evaluate(() => window.scrollBy(0, -400));
     await page.waitForTimeout(120);
     assert.equal(await page.locator('#platform-arayuzu').evaluate(el => el.inert), true, 'geri kaydırmada arayüz inert olmadı');
+    await page.evaluate(() => {
+      const el = document.querySelector('[data-mod]');
+      window.scrollTo(0, el.getBoundingClientRect().top + window.scrollY + parseFloat(el.style.getPropertyValue('--mesafe')));
+    });
+    await page.locator('[data-tamam="true"]').waitFor();
+    await page.reload();
+    await page.locator('[data-mod="hareketli"][data-ilerleme]').waitFor();
+    assert.ok(Number(await page.locator('[data-mod]').getAttribute('data-ilerleme')) < .01, 'yenileme eski scroll konumunu geri getirdi');
     await context.close();
   }
   console.log('Giriş: iki genişlikte yol boyunca taşma yok, ≤2 kare, scroll durunca sahne durur; doğal scroll sonrası gerçek form tıklanabilir.');

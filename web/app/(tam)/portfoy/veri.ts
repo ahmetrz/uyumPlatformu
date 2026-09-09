@@ -102,7 +102,12 @@ export async function portfoyEkranVerisi(k: AktifKullanici): Promise<EkranVerisi
      Bu, §0.5'in çekirdekten silmek istediği son sektör bilgisiydi
      (R0-11). Anahtarın kendisi hâlâ bir KAYIT anahtarıdır ve göç ister;
      ama ekran artık onu bilmiyor. */
+  /* Ölçü, ROLÜ `kapasite` olan AKTİF satırdır. Ölçüldü (9 Eyl 2026): süzgeçsiz
+     okuma sektörün SON şema satırını alıyordu — enerjide `kritiklikSinifi`
+     (metin!), kapasite değil; portföy ölçüyü yanlış anahtardan okuyordu.
+     Pasif (paket yükseltmesinin bıraktığı) satır da ölçü olamaz (2.1). */
   const semaSatirlari = await db.sektorOznitelikSemasi.findMany({
+    where: { rol: 'kapasite', aktif: true },
     select: { sektorId: true, anahtar: true },
   });
   const sektorAnahtari = new Map(semaSatirlari.map((s) => [s.sektorId, s.anahtar]));

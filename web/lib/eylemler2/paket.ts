@@ -24,13 +24,12 @@ export type PaketKurSonucu = Sonuc | { ok: true; rapor: KurulumRaporu };
 
 function kurulumGerekcesi(r: KurulumRaporu): string {
   const p = r.pasiflestirilen;
-  const pasif = p.kapsamTurleri + p.yukumlulukler + p.cerceveSurumleri;
-  const artik = r.artik.sozluk.length + r.artik.oznitelikler.length;
+  const pasif = p.kapsamTurleri + p.yukumlulukler + p.cerceveSurumleri + p.sozluk + p.oznitelikler;
   return `sözlük ${r.sayilar.sozluk} · tür ${r.sayilar.kapsamTurleri} · öznitelik ${r.sayilar.oznitelikler} · `
     + `çerçeve ${r.sayilar.cerceveler} (${r.sayilar.maddeler} madde, TASLAK) · yükümlülük ${r.sayilar.yukumlulukler}`
     + (r.celiskiler.length ? ` · çelişki ${r.celiskiler.length} (kiracı satırı korundu)` : '')
-    + (pasif ? ` · uzlaştırma: tür ${p.kapsamTurleri} ve yükümlülük ${p.yukumlulukler} pasif, taslak sürüm ${p.cerceveSurumleri} arşiv` : '')
-    + (artik ? ` · artık (yerinde, karar bekler): ${[...r.artik.sozluk, ...r.artik.oznitelikler].join(', ')}` : '');
+    + (pasif ? ` · uzlaştırma: tür ${p.kapsamTurleri}, yükümlülük ${p.yukumlulukler}, sözlük ${p.sozluk}, öznitelik ${p.oznitelikler} pasif; taslak sürüm ${p.cerceveSurumleri} arşiv`
+      + ((p.sozluk + p.oznitelikler) ? ` (${[...r.pasifAnahtarlar.sozluk, ...r.pasifAnahtarlar.oznitelikler].join(', ')})` : '') : '');
 }
 
 export async function paketKur(girdi: { kod: string }): Promise<PaketKurSonucu> {

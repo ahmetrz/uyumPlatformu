@@ -57,10 +57,10 @@ export type KurulumRaporu = {
   sayilar: { sozluk: number; kapsamTurleri: number; oznitelikler: number; cerceveler: number; maddeler: number; yukumlulukler: number };
   celiskiler: Celiski[];
   taslakSurumler: { regulasyonKod: string; surumEtiketi: string; surumId: string }[];
-  /** Yükseltme uzlaştırması: bu sürümün artık beyan etmediği paket kökenli satırlar (pasif / arşiv). */
-  pasiflestirilen: { kapsamTurleri: number; yukumlulukler: number; cerceveSurumleri: number };
-  /** Aktif bayrağı olmayan tablolarda kaldırılan anahtarlar — satır yerinde kalır, RAPORLANIR (insan karar verir). */
-  artik: { sozluk: string[]; oznitelikler: string[] };
+  /** Yükseltme uzlaştırması: bu sürümün artık beyan etmediği paket kökenli satırlar (pasif / arşiv; silme yok). */
+  pasiflestirilen: { kapsamTurleri: number; yukumlulukler: number; cerceveSurumleri: number; sozluk: number; oznitelikler: number };
+  /** Pasifleşen sözlük (`anahtar@dil`) ve öznitelik (`anahtar`) satırları — satır yerinde, okuyucular görmez. */
+  pasifAnahtarlar: { sozluk: string[]; oznitelikler: string[] };
 };
 export type KurulumSonucu =
   | { ok: true; rapor: KurulumRaporu }
@@ -257,8 +257,8 @@ async function yaz(tx: Tx, icerik: PaketIcerigi, kuranId: string | null, simdi: 
       celiskiler.push({ tablo: 'SektorSozlugu', anahtar: `${r.anahtar}@${r.dil}`, sebep: 'kiracı satırı var — paket satırı yazılmadı, kiracınınki korundu' });
       continue;
     }
-    if (mevcut) await tx.sektorSozlugu.update({ where: { id: mevcut.id }, data: { ...veri, ...koken } });
-    else await tx.sektorSozlugu.create({ data: { sektorId, anahtar: r.anahtar, dil: r.dil, ...veri, ...koken } });
+    if (mevcut) await tx.sektorSozlugu.update({ where: { id: mevcut.id }, data: { ...veri, ...koken, aktif: true } });
+    else await tx.sektorSozlugu.create({ data: { sektorId, anahtar: r.anahtar, dil: r.dil, ...veri, ...koken, aktif: true } });
     sozlukSayisi++;
   }
 
@@ -286,7 +286,7 @@ async function yaz(tx: Tx, icerik: PaketIcerigi, kuranId: string | null, simdi: 
       continue;
     }
     const veri = { etiketAnahtari: o.etiketAnahtari, tip: o.tip, birim: o.birim ?? null, rol: o.rol ?? null, grup: o.grup ?? null,
-      secenekler: o.secenekler ? JSON.stringify(o.secenekler) : null, kuraldaKullanilir: o.kuraldaKullanilir, sira: o.sira, ...koken };
+      secenekler: o.secenekler ? JSON.stringify(o.secenekler) : null, kuraldaKullanilir: o.kuraldaKullanilir, sira: o.sira, aktif: true, ...koken };
     if (mevcut) await tx.sektorOznitelikSemasi.update({ where: { id: mevcut.id }, data: veri });
     else await tx.sektorOznitelikSemasi.create({ data: { sektorId, anahtar: o.anahtar, ...veri } });
     oznitelikSayisi++;
@@ -408,31 +408,38 @@ async function yaz(tx: Tx, icerik: PaketIcerigi, kuranId: string | null, simdi: 
   const arsivSurum = await tx.frameworkSurumu.updateMany({
     where: { paketSurumId: { in: paketinSurumleri }, durum: 'taslak', id: { notIn: taslakSurumler.map((t) => t.surumId) } },
     data: { durum: 'arsiv' } });
-  /* Sözlük ve öznitelik şemasında aktif bayrağı yok; öznitelik satırının
-     altında kiracının değerleri olabilir. Satır yerinde kalır, anahtarı
-     rapora düşer — pasifleştirme P4'ün sonraki diliminde (şema alanı). */
-  const artik: KurulumRaporu['artik'] = { sozluk: [], oznitelikler: [] };
+  /* Sözlük ve öznitelik şeması da PASİFLEŞİR (2.1): silinmez — öznitelik
+     satırının altında kiracının değerleri olabilir (R-C) — ama okuyucular
+     artık görmez. Anahtar (anahtar@dil · anahtar) rapora düşer. */
+  const pasifAnahtarlar: KurulumRaporu['pasifAnahtarlar'] = { sozluk: [], oznitelikler: [] };
   if (sektorId) {
     const beyanSozluk = new Set(icerik.sozluk.map((r) => `${r.anahtar}@${r.dil}`));
-    const eskiSozluk = await tx.sektorSozlugu.findMany({ where: { sektorId, paketSurumId: { in: paketinSurumleri } }, select: { anahtar: true, dil: true } });
-    artik.sozluk = eskiSozluk.map((r) => `${r.anahtar}@${r.dil}`).filter((a) => !beyanSozluk.has(a)).sort();
+    const eskiSozluk = await tx.sektorSozlugu.findMany({ where: { sektorId, aktif: true, paketSurumId: { in: paketinSurumleri } }, select: { id: true, anahtar: true, dil: true } });
+    const dusenSozluk = eskiSozluk.filter((r) => !beyanSozluk.has(`${r.anahtar}@${r.dil}`));
+    if (dusenSozluk.length) await tx.sektorSozlugu.updateMany({ where: { id: { in: dusenSozluk.map((r) => r.id) } }, data: { aktif: false } });
+    pasifAnahtarlar.sozluk = dusenSozluk.map((r) => `${r.anahtar}@${r.dil}`).sort();
     const beyanOznitelik = new Set(icerik.oznitelikler.map((o) => o.anahtar));
-    const eskiOznitelik = await tx.sektorOznitelikSemasi.findMany({ where: { sektorId, paketSurumId: { in: paketinSurumleri } }, select: { anahtar: true } });
-    artik.oznitelikler = eskiOznitelik.map((r) => r.anahtar).filter((a) => !beyanOznitelik.has(a)).sort();
+    const eskiOznitelik = await tx.sektorOznitelikSemasi.findMany({ where: { sektorId, aktif: true, paketSurumId: { in: paketinSurumleri } }, select: { id: true, anahtar: true } });
+    const dusenOznitelik = eskiOznitelik.filter((r) => !beyanOznitelik.has(r.anahtar));
+    if (dusenOznitelik.length) await tx.sektorOznitelikSemasi.updateMany({ where: { id: { in: dusenOznitelik.map((r) => r.id) } }, data: { aktif: false } });
+    pasifAnahtarlar.oznitelikler = dusenOznitelik.map((r) => r.anahtar).sort();
   }
 
   const rapor: KurulumRaporu = {
     paketId: paket.id, surumId: surumKaydi.id, kod: m.kod, surum: m.surum,
     sayilar: { sozluk: sozlukSayisi, kapsamTurleri: turSayisi, oznitelikler: oznitelikSayisi, cerceveler: icerik.cerceveler.length, maddeler: maddeSayisi, yukumlulukler: yukumlulukSayisi },
     celiskiler, taslakSurumler,
-    pasiflestirilen: { kapsamTurleri: pasifTur.count, yukumlulukler: pasifYukumluluk.count, cerceveSurumleri: arsivSurum.count },
-    artik,
+    pasiflestirilen: {
+      kapsamTurleri: pasifTur.count, yukumlulukler: pasifYukumluluk.count, cerceveSurumleri: arsivSurum.count,
+      sozluk: pasifAnahtarlar.sozluk.length, oznitelikler: pasifAnahtarlar.oznitelikler.length,
+    },
+    pasifAnahtarlar,
   };
   await tx.icerikPaketiSurumu.update({ where: { id: surumKaydi.id }, data: { raporJson: JSON.stringify(rapor) } });
   return rapor;
 }
 
-export type KaldirmaRaporu = { paketId: string; arsivlenen: { surumler: number; cerceveSurumleri: number; turler: number; yukumlulukler: number } };
+export type KaldirmaRaporu = { paketId: string; arsivlenen: { surumler: number; cerceveSurumleri: number; turler: number; yukumlulukler: number; sozluk: number; oznitelikler: number } };
 export type KaldirmaSonucu = ({ ok: true } & KaldirmaRaporu) | { ok: false; hata: string };
 
 /** Kaldırma = arşiv. Hiçbir satır silinmez; aktif çerçeve sürümü taşıyan
@@ -470,7 +477,9 @@ export async function paketiKaldir(
     const c = await tx.frameworkSurumu.updateMany({ where: { paketSurumId: { in: surumIdleri }, durum: 'taslak' }, data: { durum: 'arsiv' } });
     const t = await tx.kapsamOgesiTuru.updateMany({ where: { paketSurumId: { in: surumIdleri } }, data: { aktif: false } });
     const y = await tx.bildirimYukumlulugu.updateMany({ where: { paketSurumId: { in: surumIdleri } }, data: { aktif: false } });
-    const rapor: KaldirmaRaporu = { paketId: paket.id, arsivlenen: { surumler: s.count, cerceveSurumleri: c.count, turler: t.count, yukumlulukler: y.count } };
+    const sz = await tx.sektorSozlugu.updateMany({ where: { paketSurumId: { in: surumIdleri } }, data: { aktif: false } });
+    const oz = await tx.sektorOznitelikSemasi.updateMany({ where: { paketSurumId: { in: surumIdleri } }, data: { aktif: false } });
+    const rapor: KaldirmaRaporu = { paketId: paket.id, arsivlenen: { surumler: s.count, cerceveSurumleri: c.count, turler: t.count, yukumlulukler: y.count, sozluk: sz.count, oznitelikler: oz.count } };
     if (secenekler.ayniIslemde) await secenekler.ayniIslemde(tx, rapor);
     return { ok: true, ...rapor };
   }, TX_SECENEK);

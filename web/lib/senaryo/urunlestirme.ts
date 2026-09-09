@@ -330,9 +330,8 @@ export const URUNLESTIRME_SENARYOLARI: Senaryo[] = [
     onkosul: 'Önceki sürümün yazdığı paket kökenli tür, yükümlülük, çerçeve taslağı, sözlük ve öznitelik satırları var; yeni sürüm bir kısmını beyan etmiyor',
     veriHali: 'aykiri',
     eylem: 'Yeni sürüm kurulur; aynı sürüm ikinci kez kurulur; kiracının kendi türü aynı sektörde durur',
-    beklenenSonuc: 'Beyan edilmeyen paket türü ve yükümlülüğü aktif=false, paketin kendi taslak çerçeve sürümü arşiv; hiçbir satır silinmez; '
-      + 'aktif bayrağı olmayan sözlük ve öznitelik satırı yerinde kalır ve raporda "artık" olarak listelenir; kiracı satırına dokunulmaz; '
-      + 'ikinci kurulumda uzlaştırma sıfır',
+    beklenenSonuc: 'Beyan edilmeyen paket türü, yükümlülüğü, sözlük ve öznitelik satırı aktif=false, paketin kendi taslak çerçeve sürümü arşiv; '
+      + 'hiçbir satır silinmez; pasifleşen anahtarlar raporda listelenir; kiracı satırına dokunulmaz; ikinci kurulumda uzlaştırma sıfır',
     beklenenEkran: 'Ekran yok',
     beklenenIz: 'IcerikPaketi kurulum izi uzlaştırma sayılarıyla', beklenenBildirim: 'yok',
     katmanlar: ['SERVER', 'INTEGRATION'],
@@ -375,6 +374,19 @@ export const URUNLESTIRME_SENARYOLARI: Senaryo[] = [
     beklenenEkran: 'Ekran yok',
     beklenenIz: 'IcerikPaketi arşiv izi', beklenenBildirim: 'yok',
     katmanlar: ['SERVER', 'INTEGRATION'],
+  },
+  {
+    id: 'URN-PKT-011', alan: 'Ürünleştirme', rota: '/tesisler/[id]', eksen: 'veri',
+    amac: 'Pasif sözlük ve öznitelik satırının ekrana inmemesi: paket yükseltmesinin bıraktığı sözcük ve alan görünmez, silinmez',
+    rol: 'uyum uzmanı · tanımlar yazma yetkili', kapsam: 'sözlük okuyucu · rol anahtarı · Tesis 360 profili · profil kaydı · portföy',
+    onkosul: '`SektorSozlugu.aktif` ve `SektorOznitelikSemasi.aktif` (2.1, elle eklemeli göç); paket yükseltmesi ve kaldırma pasifleştirir, geri kurulum aktifleştirir',
+    veriHali: 'aykiri',
+    eylem: 'v2 bir sözlük anahtarını ve bir özniteliği bırakır; paket kaldırılır; aynı içerikle geri kurulur; pasif alana değer yazılmak istenir',
+    beklenenSonuc: 'Pasif satır yerinde kalır (silme yok) ama sözlük okuyucu, rol anahtarı, Tesis 360 profili ve portföy onu görmez; pasif özniteliğe '
+      + 'profil kaydı "bilinmeyen öznitelik" der; kaldırma tüm paket satırlarını pasifler, geri kurulum aktifler; her okuyucu sorgusu `aktif: true` süzer (bekçi)',
+    beklenenEkran: 'Tesis 360 profil bloğunda pasif alan çizilmez; sözlük pasif sözcüğü söylemez',
+    beklenenIz: 'kurulum izi pasifleşen anahtarlarla', beklenenBildirim: 'yok',
+    katmanlar: ['DOMAIN', 'SERVER', 'INTEGRATION'],
   },
   {
     id: 'URN-PKT-010', alan: 'Ürünleştirme', rota: '—', eksen: 'veri',

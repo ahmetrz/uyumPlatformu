@@ -78,11 +78,13 @@ içerikle geri kurulunca arşivdeki kendi taslağı taslağa döner; yeni etiket
 istenmez.
 
 **Yükseltme uzlaştırması.** Yeni sürümün artık beyan etmediği paket
-kökenli tür ve yükümlülük `aktif=false` olur, paketin kendi taslak çerçeve
-sürümü `arsiv`e çekilir — silinmez. Sözlük ve öznitelik şemasında aktif
-bayrağı yok: satır yerinde kalır, kurulum raporunda `artik` altında
-listelenir; kaldırma insan kararıdır. Kurulum/arşiv ile iz kaydı aynı
-transaction'dadır: iz yazılamazsa işlem de geri alınır.
+kökenli tür, yükümlülük, sözlük satırı ve öznitelik `aktif=false` olur,
+paketin kendi taslak çerçeve sürümü `arsiv`e çekilir — hiçbiri silinmez
+(R-C). Pasifleşen sözlük/öznitelik anahtarları kurulum raporunda
+`pasifAnahtarlar` altında listelenir; ekran pasif sözcüğü söylemez, pasif
+özniteliği çizmez, pasif özniteliğe değer yazılamaz. Kaldırma paketin tüm
+satırlarını pasifler; aynı içerikle geri kurulum aktifler. Kurulum/arşiv
+ile iz kaydı aynı transaction'dadır: iz yazılamazsa işlem de geri alınır.
 
 ## Buradaki paketler
 

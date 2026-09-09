@@ -796,11 +796,12 @@ düzenlemesi (denetim izi) de bağ sayılır, bağımlı kurulu paket varken
 kaldırma yok ve geri kurulum arşiv taslağı taslağa döndürür (URN-PKT-009),
 madde ağacı partilerle + 120 sn bütçeyle yazılır; bekçi NULL eşleşmesinde
 mantık dalını (OR kardeşi) ve izin listesinde dosya içi sırayı sayar.
+**2.1 uygulandı (9 Eylül 2026):** `SektorSozlugu.aktif` ·
+`SektorOznitelikSemasi.aktif` (elle eklemeli göç); uzlaştırma ve kaldırma
+pasifler, geri kurulum aktifler; her okuyucu `aktif: true` süzer ve bekçi
+bunu kaynakta ölçer (`tests/bekci/aktif-suzgec.test.ts`, URN-PKT-011).
 Kalan: form ve rapor şablonu, rol kataloğu, demo yükleyici, eşleme CSV,
-`/paketler` ekranı, OSCAL okuyucu (SCF için — hukuki görüş bekleniyor),
-sözlük ve öznitelik şemasında `aktif` alanı (uzlaştırmada pasifleştirme —
-bugün yalnız raporlanır; öznitelik satırının altında kiracı değeri
-olabileceği için silme değil, şema kararı).
+`/paketler` ekranı, OSCAL okuyucu (SCF için — hukuki görüş bekleniyor).
 
 **Hedef.** Çerçeveler, eşlemeler, yükümlülükler, denetim form şablonları,
 mevzuat kaynak katalogları, sektör sözlükleri ve demo verisi **paket**

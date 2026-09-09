@@ -174,6 +174,10 @@ model SektorOznitelikSemasi {
   /// satırına DOKUNULMAZ (docs/SEKTOR_PAKETI_SOZLESMESI.md §4).
   koken             String  @default("kiraci")
   paketSurumId      String?
+  /// P4 · 2.1: paket yükseltmesi artık beyan etmediği satırı PASİF yapar,
+  /// silmez (R-C — altında kiracının değerleri olabilir). Okuyucular yalnız
+  /// aktif satırı görür; kaldırmada pasif, geri kurulumda aktif.
+  aktif             Boolean @default(true)
 
   sektor Sektor @relation(fields: [sektorId], references: [id], onDelete: Cascade)
 
@@ -207,6 +211,9 @@ model SektorSozlugu {
   /// satırına DOKUNULMAZ (docs/SEKTOR_PAKETI_SOZLESMESI.md §4).
   koken        String  @default("kiraci")
   paketSurumId String?
+  /// P4 · 2.1: paket yükseltmesi artık beyan etmediği satırı PASİF yapar,
+  /// silmez (R-C). Okuyucular yalnız aktif satırı görür.
+  aktif        Boolean @default(true)
 
   sektor Sektor @relation(fields: [sektorId], references: [id], onDelete: Cascade)
 

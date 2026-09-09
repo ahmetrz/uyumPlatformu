@@ -56,8 +56,9 @@ async function oznitelikleriYaz(tesisId: string, girdi: Record<string, string | 
   const tesis = await db.tesis.findUniqueOrThrow({
     where: { id: tesisId }, select: { tip: { select: { sektorId: true } } } });
   const sektorId = tesis.tip?.sektorId ?? null;
+  // yalnız AKTİF şema satırı: pasif özniteliğe değer yazılamaz — "bilinmeyen öznitelik" (2.1)
   const sema = sektorId
-    ? await db.sektorOznitelikSemasi.findMany({ where: { sektorId } }) : [];
+    ? await db.sektorOznitelikSemasi.findMany({ where: { sektorId, aktif: true } }) : [];
   const satirlar = new Map(sema.map((o) => [o.anahtar, o]));
   for (const [anahtar, deger] of Object.entries(girdi)) {
     const o = satirlar.get(anahtar);

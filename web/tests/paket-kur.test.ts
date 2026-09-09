@@ -63,8 +63,8 @@ describe('kurucu — tek transaction, taslak sürüm, köken [URN-PKT-003]', () 
     if (!s.ok) return;
     expect(s.rapor.sayilar).toEqual({ sozluk: 2, kapsamTurleri: 1, oznitelikler: 2, cerceveler: 2, maddeler: 5, yukumlulukler: 1 });
     expect(s.rapor.celiskiler).toEqual([]);
-    expect(s.rapor.pasiflestirilen).toEqual({ kapsamTurleri: 0, yukumlulukler: 0, cerceveSurumleri: 0 });
-    expect(s.rapor.artik).toEqual({ sozluk: [], oznitelikler: [] });
+    expect(s.rapor.pasiflestirilen).toEqual({ kapsamTurleri: 0, yukumlulukler: 0, cerceveSurumleri: 0, sozluk: 0, oznitelikler: 0 });
+    expect(s.rapor.pasifAnahtarlar).toEqual({ sozluk: [], oznitelikler: [] });
 
     const sektor = await db.sektor.findUniqueOrThrow({ where: { kod: 'TEST-SEKTOR' } });
     const sozluk = await db.sektorSozlugu.findMany({ where: { sektorId: sektor.id } });
@@ -309,8 +309,8 @@ describe('yükseltme uzlaştırması — bırakılan içerik pasif/arşiv, silme
     const b = await kur(v2, { ...manifest, surum: '0.2.0' });
     expect(b.ok, JSON.stringify(b)).toBe(true);
     if (!b.ok) return;
-    expect(b.rapor.pasiflestirilen).toEqual({ kapsamTurleri: 1, yukumlulukler: 1, cerceveSurumleri: 1 });
-    expect(b.rapor.artik).toEqual({ sozluk: ['birim@tr'], oznitelikler: ['yukOzB'] });
+    expect(b.rapor.pasiflestirilen).toEqual({ kapsamTurleri: 1, yukumlulukler: 1, cerceveSurumleri: 1, sozluk: 1, oznitelikler: 1 });
+    expect(b.rapor.pasifAnahtarlar).toEqual({ sozluk: ['birim@tr'], oznitelikler: ['yukOzB'] });
     expect(await sayim()).toEqual(once);
     expect(await db.kapsamOgesiTuru.findUniqueOrThrow({ where: { kod: 'yuk_tur_b' } })).toMatchObject({ aktif: false, koken: 'paket' });
     expect(await db.kapsamOgesiTuru.findUniqueOrThrow({ where: { kod: 'yuk_tur_a' } })).toMatchObject({ aktif: true, paketSurumId: b.rapor.surumId });
@@ -318,10 +318,12 @@ describe('yükseltme uzlaştırması — bırakılan içerik pasif/arşiv, silme
     expect(await db.bildirimYukumlulugu.findUniqueOrThrow({ where: { kod: 'YUK-BIL-A' } })).toMatchObject({ aktif: true, paketSurumId: b.rapor.surumId });
     expect((await db.frameworkSurumu.findFirstOrThrow({ where: { regulasyon: { kod: 'YUK-B' } } })).durum).toBe('arsiv');
     expect(await db.frameworkSurumu.findFirstOrThrow({ where: { regulasyon: { kod: 'YUK-A' } } })).toMatchObject({ durum: 'taslak', paketSurumId: b.rapor.surumId });
-    // sözlük ve öznitelik satırı YERİNDE: aktif bayrağı yok, rapor söyler, insan karar verir
+    // sözlük ve öznitelik satırı YERİNDE ama PASİF (2.1): silinmez, okuyucular görmez; kalanlar aktif
     const sektor = await db.sektor.findUniqueOrThrow({ where: { kod: 'YUKSELT-SEKTOR' } });
-    expect(await db.sektorSozlugu.findUnique({ where: { sektorId_anahtar_dil: { sektorId: sektor.id, anahtar: 'birim', dil: 'tr' } } })).toMatchObject({ koken: 'paket' });
-    expect(await db.sektorOznitelikSemasi.findUnique({ where: { sektorId_anahtar: { sektorId: sektor.id, anahtar: 'yukOzB' } } })).toMatchObject({ koken: 'paket' });
+    expect(await db.sektorSozlugu.findUnique({ where: { sektorId_anahtar_dil: { sektorId: sektor.id, anahtar: 'birim', dil: 'tr' } } })).toMatchObject({ koken: 'paket', aktif: false });
+    expect(await db.sektorSozlugu.findUnique({ where: { sektorId_anahtar_dil: { sektorId: sektor.id, anahtar: 'tesis', dil: 'tr' } } })).toMatchObject({ aktif: true, paketSurumId: b.rapor.surumId });
+    expect(await db.sektorOznitelikSemasi.findUnique({ where: { sektorId_anahtar: { sektorId: sektor.id, anahtar: 'yukOzB' } } })).toMatchObject({ koken: 'paket', aktif: false });
+    expect(await db.sektorOznitelikSemasi.findUnique({ where: { sektorId_anahtar: { sektorId: sektor.id, anahtar: 'yukOzA' } } })).toMatchObject({ aktif: true });
   });
 
   it('uzlaştırma kiracı satırına dokunmaz: kiracı türü pasifleşmez; tekrar kurulumda uzlaştırma sıfır [URN-PKT-006]', async () => {
@@ -329,7 +331,7 @@ describe('yükseltme uzlaştırması — bırakılan içerik pasif/arşiv, silme
     await db.kapsamOgesiTuru.create({ data: { kod: 'yuk_kiraci_turu', ad: 'Kiracı türü', koken: 'kiraci', sektorId: sektor.id } });
     const c = await kur(v2, { ...manifest, surum: '0.2.1' });
     expect(c.ok, JSON.stringify(c)).toBe(true);
-    if (c.ok) expect(c.rapor.pasiflestirilen).toEqual({ kapsamTurleri: 0, yukumlulukler: 0, cerceveSurumleri: 0 });
+    if (c.ok) expect(c.rapor.pasiflestirilen).toEqual({ kapsamTurleri: 0, yukumlulukler: 0, cerceveSurumleri: 0, sozluk: 0, oznitelikler: 0 });
     expect((await db.kapsamOgesiTuru.findUniqueOrThrow({ where: { kod: 'yuk_kiraci_turu' } })).aktif).toBe(true);
     expect((await db.kapsamOgesiTuru.findUniqueOrThrow({ where: { kod: 'yuk_tur_b' } })).aktif).toBe(false);
   });

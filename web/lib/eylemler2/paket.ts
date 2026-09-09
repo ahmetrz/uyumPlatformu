@@ -20,7 +20,8 @@ import { hataSatiri } from '../paket/dogrula';
 import { paketiKaldir, paketiKur, type KurulumRaporu } from '../paket/kur';
 import { type Sonuc, hata, iz, bosluksuz } from './ortak';
 
-export type PaketKurSonucu = Sonuc | { ok: true; rapor: KurulumRaporu };
+/** Başarı daima raporla döner: ekran kurulum özetini (sayılar, çelişki) bundan yazar. */
+export type PaketKurSonucu = { ok: false; hata: string } | { ok: true; rapor: KurulumRaporu };
 
 /* İz gerekçesi raporun HER kalemini sayar — form/rapor (2.2) ve rol (2.3)
    dâhil; sayılmayan kalem izde görünmez ve uzlaştırma sessiz kalırdı. */
@@ -46,12 +47,16 @@ export async function paketKur(girdi: { kod: string }): Promise<PaketKurSonucu> 
       }, tx),
     });
     if (!sonuc.ok) {
-      return hata(new Error(`Paket reddedildi (${sonuc.hatalar.length} hata):\n${sonuc.hatalar.map(hataSatiri).join('\n')}`));
+      return { ok: false, hata: `Paket reddedildi (${sonuc.hatalar.length} hata):\n${sonuc.hatalar.map(hataSatiri).join('\n')}` };
     }
     revalidatePath('/uyum');
     revalidatePath('/yonetim-tezgahi');
+    revalidatePath('/paketler');
     return { ok: true, rapor: sonuc.rapor };
-  } catch (e) { return hata(e); }
+  } catch (e) {
+    const s = hata(e);
+    return s.ok ? { ok: false, hata: 'İşlem başarısız' } : s;
+  }
 }
 
 export async function paketKaldir(girdi: { kod: string; gerekce: string }): Promise<Sonuc> {
@@ -66,6 +71,7 @@ export async function paketKaldir(girdi: { kod: string; gerekce: string }): Prom
     });
     if (!sonuc.ok) return hata(new Error(sonuc.hata));
     revalidatePath('/uyum');
+    revalidatePath('/paketler');
     return { ok: true };
   } catch (e) { return hata(e); }
 }

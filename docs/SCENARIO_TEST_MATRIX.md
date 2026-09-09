@@ -4,12 +4,12 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 312 |
-| Testi olan senaryo | 312 |
+| Senaryo | 314 |
+| Testi olan senaryo | 314 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
-| Taranan test dosyası | 182 |
+| Taranan test dosyası | 184 |
 
 ## Katman başına kapsam
 
@@ -18,15 +18,15 @@
 | ACCESSIBILITY | 8 | 8 | 0 |
 | API | 12 | 12 | 0 |
 | CONCURRENCY | 7 | 7 | 0 |
-| DOMAIN | 172 | 172 | 0 |
+| DOMAIN | 174 | 174 | 0 |
 | ENGINE | 33 | 33 | 0 |
 | INTEGRATION | 40 | 40 | 0 |
 | MIGRATION | 5 | 5 | 0 |
 | RBAC | 32 | 32 | 0 |
 | RESPONSIVE | 8 | 8 | 0 |
 | SCOPE | 30 | 30 | 0 |
-| SERVER | 117 | 117 | 0 |
-| UI | 84 | 84 | 0 |
+| SERVER | 119 | 119 | 0 |
+| UI | 86 | 86 | 0 |
 | VISUAL | 4 | 4 | 0 |
 | WORKFLOW | 32 | 32 | 0 |
 
@@ -554,6 +554,15 @@
 | `URN-PKT-015` | Ürünleştirme | DOMAIN · INTEGRATION | `paket-demo.test.ts` | tohumun kiracı katmanı (madde → BT/OT alanı) paketlerin 38 maddesini kapsar — fazlası, eksiği yok | evet | geçti |
 | `URN-PKT-015` | Ürünleştirme | DOMAIN · INTEGRATION | `paket-demo.test.ts` | üç paket kurulu; sözlük 18 · öznitelik 10 · regülasyon 4 · eşleme 8 paket kökenli ve aktif; 4 çerçeve sürümü aktif, taslak yok; her madde sürümlü; ISO maddesi TELIFLI_METIN; kanıt tipi ve BT/OT bağı yerinde | evet | geçti |
 | `URN-PKT-015` | Ürünleştirme | DOMAIN · INTEGRATION | `paket-demo.test.ts` | kanit_tipi sütunu: kod olmayan değer BIÇIM; kurulumda Madde.kanitTipi, Regulasyon.surum ve yururlukTarih paket kimliğinden yazılır | evet | geçti |
+| `URN-PKT-016` | Ürünleştirme | DOMAIN · SERVER · UI | `paketler-mantik.test.ts` | hâl: disk × veritabanı birleşik karar — bilinmeyen kaynak başarı gibi görünmez | evet | geçti |
+| `URN-PKT-016` | Ürünleştirme | DOMAIN · SERVER · UI | `paketler-mantik.test.ts` | eylemler: düğme yetkisize gösterilir ve nedeni yazılır; bağımlı ve aktif çerçeve kaldırmayı engeller; diskte yok kurmayı engeller, kaldırmayı değil | evet | geçti |
+| `URN-PKT-016` | Ürünleştirme | DOMAIN · SERVER · UI | `paketler-mantik.test.ts` | ekran kaynağı: "aktifleştirme insan kararı" cümlesi kalıcı; hiçbir aktifleştirme eylemi çağrılmaz; kaldırma gerekçe ister | evet | geçti |
+| `URN-PKT-016` | Ürünleştirme | DOMAIN · SERVER · UI | `paketler-mantik.test.ts` | rota gezinmede ve envanterde: Uyum alanının ikincil sırasında Regülasyonlar\'ın yanında, rotalar.json\'da, rota haritasında | evet | geçti |
+| `URN-PKT-016` | Ürünleştirme | DOMAIN · SERVER · UI | `paketler-veri.test.ts` | tohumlanmış veritabanı + depo paketleri: üç demo paketi güncel, iskeletler kurulu değil; bağımlılar ve çerçeve sayıları | evet | geçti |
+| `URN-PKT-016` | Ürünleştirme | DOMAIN · SERVER · UI | `paketler-veri.test.ts` | geçici kök: yeni sürüm → güncelleme var; bozuk manifest → doğrulanamadı (hatalar listelenir); dizin yok → diskte yok; paket kökü yok → kökHatasi | evet | geçti |
+| `URN-PKT-016` | Ürünleştirme | DOMAIN · SERVER · UI | `paketler-veri.test.ts` | kaldırma (arşiv) → hâl arşiv, diskte varsa geri kurulabilir; kaldırılan paket bağımlılar listesinden düşer | evet | geçti |
+| `URN-PKT-018` | Ürünleştirme | DOMAIN · SERVER · UI | `paketler-mantik.test.ts` | eylemler: düğme yetkisize gösterilir ve nedeni yazılır; bağımlı ve aktif çerçeve kaldırmayı engeller; diskte yok kurmayı engeller, kaldırmayı değil | evet | geçti |
+| `URN-PKT-018` | Ürünleştirme | DOMAIN · SERVER · UI | `paketler-veri.test.ts` | geçici kök: yeni sürüm → güncelleme var; bozuk manifest → doğrulanamadı (hatalar listelenir); dizin yok → diskte yok; paket kökü yok → kökHatasi | evet | geçti |
 | `URN-PKT-010` | Ürünleştirme | DOMAIN | `bekci/paket-silme.test.ts` | madde dışında HİÇBİR modelde delete/deleteMany yok — tavan sıfır, istisna listesi yok | evet | geçti |
 | `URN-PKT-010` | Ürünleştirme | DOMAIN | `bekci/paket-silme.test.ts` | madde silmesi yalnız paketin kendi taslağını (`surumId` süzgeci) hedefler ve bağ kontrolünden sonra gelir | evet | geçti |
 | `URN-PKT-010` | Ürünleştirme | DOMAIN | `bekci/paket-silme.test.ts` | şemada Madde\'den başka modele giden HER liste ilişkisi bağ kontrolünde; listede şemada olmayan ilişki yok | evet | geçti |

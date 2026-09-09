@@ -443,6 +443,32 @@ export const URUNLESTIRME_SENARYOLARI: Senaryo[] = [
     katmanlar: ['DOMAIN', 'INTEGRATION'],
   },
   {
+    id: 'URN-PKT-016', alan: 'Ürünleştirme', rota: '/paketler', eksen: 'arayuz',
+    amac: 'İçerik paketleri ekranı: kurulu paketler, sürüm, "güncelleme var", kur/güncelle/kaldır (arşiv); ekran hiçbir çerçeveyi aktifleştirmez ve bunu açıkça söyler',
+    rol: 'tanımlar okuma / yazma yetkili', kapsam: '`/paketler` · disk `paketler/<KOD>` × `IcerikPaketi`',
+    onkosul: 'Tohumda üç demo paketi kurulu; diskte iskeletler; diskteki kopya yeni sürüm / bozuk / yok olabilir',
+    veriHali: 'aykiri',
+    eylem: 'Ekran verisi disk ve veritabanından birleştirilir; sürüm karşılaştırılır; bir satır seçilip kur/güncelle/kaldır (gerekçeli) denenir; yetkisiz kullanıcı bakar',
+    beklenenSonuc: 'Hâl yedi değerden biri (güncel · güncelleme var · diskteki kopya eski · diskte yok · doğrulanamadı · kurulu değil · arşiv) ve bilinmeyen kaynak başarı gibi görünmez; '
+      + 'düğme yetkisize de gösterilir, engel nedeni yanına yazılır (bağımlı paket, aktif çerçeve, doğrulanamadı); kaldırma gerekçe ister ve arşivler; kurulum raporu ve doğrulayıcı hataları seçili satırın panelinde',
+    beklenenEkran: 'Lede altında kalıcı cümle: aktifleştirme insan kararıdır, ekran hiçbir çerçeveyi aktifleştirmez (Regülasyonlar bağı); taslak çerçeve sayısı ölçütte',
+    beklenenIz: 'kurulum / arşiv izi eylemden', beklenenBildirim: 'yok',
+    katmanlar: ['DOMAIN', 'SERVER', 'UI'],
+  },
+  {
+    id: 'URN-PKT-018', alan: 'Ürünleştirme', rota: '/paketler', eksen: 'arayuz',
+    amac: 'Paket dizini diskte YOK ya da paket kökü okunamıyor: ekran "diskte yok"u güncel gibi göstermez, kökün okunamadığını "paket yok"la karıştırmaz; seçili satırın paneli engel nedenini yazar',
+    rol: 'tanımlar okuma / yazma yetkili', kapsam: '`/paketler` · satır seçimi paneli (çekmece) · boş hâl',
+    onkosul: 'Veritabanında kurulu paket var ama `paketler/<KOD>` dizini silinmiş; ya da paket kökü hiç yok; ya da ne kurulu ne diskte paket var',
+    veriHali: 'yok',
+    eylem: 'Ekran açılır, kurulu ama dizini olmayan paket seçilir; paket kökü olmayan kurulumda ekran açılır; hiç paket yokken ekran açılır',
+    beklenenSonuc: 'Hâl "Diskte yok" (`unk` işaretçisi — bilinmeyen ≠ güncel); panelde Kur/Güncelle engeli "paket dizini diskte yok", Kaldır serbest; kök okunamazsa ayrı hata bloğu ("ölçülmedi") ve yalnız kurulu satırlar; '
+      + 'hiç paket yokken boş hâl bir sonraki işi söyler (regülasyonu elle içe aktarma bağı)',
+    beklenenEkran: 'Sıralamada diskte olmayan paket dikkat grubunda (güncelleme ve doğrulanamadı ile birlikte, güncelden önce)',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['DOMAIN', 'SERVER', 'UI'],
+  },
+  {
     id: 'URN-PKT-010', alan: 'Ürünleştirme', rota: '—', eksen: 'veri',
     amac: 'Paket işlemlerinin müşteri verisini SİLEMEMESİ (R-C): bekçi tavanı sıfır, gerekçeli istisna yok',
     rol: 'ürünü sürdüren geliştirici', kapsam: '`lib/paket/` · paket eylemleri · şema',

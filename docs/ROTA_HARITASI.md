@@ -61,6 +61,7 @@ veri katmanında kapsam daralttığı modül(ler)dir (`izinliTesisIdleri`,
 | `/uyum` | zorunlu | uyum · denetim · tanımlar | Uyum kontrol odası — nerede uyumsuzuz: devrik matris (satır = kontrol, sütun = santral), satır içi gerekçe |
 | `/uyum/[cerceve]` | zorunlu | uyum | Çerçeve detayı — bu regülasyon bizde nerede duruyor; parametre regülasyon kodudur |
 | `/regulasyonlar` | zorunlu | tanımlar | Regülasyon kütüphanesi — çerçeve, sürüm ve madde kataloğu (tanım, değerlendirme değil) |
+| `/paketler` | zorunlu | tanımlar | İçerik paketleri — hangi paket kurulu, hangisi güncel: disk × veritabanı birleşik hâl, kur / güncelle / kaldır (arşiv, gerekçeli); hiçbir çerçeveyi aktifleştirmez (P4 · 2.6) |
 | `/riskler` | zorunlu | risk | Risk kütüğü — skor iki kanal (rakam + tik şeridi), süreli/onaylı kabul |
 | `/riskler/[id]` | zorunlu | risk | Risk detayı — kapanma zinciri ve skor eğilimi gerçek veriden; olmayan halka uydurulmaz |
 | `/denetimler` | zorunlu | denetim | Denetim programı — hangi denetim takvimini tutmuyor |

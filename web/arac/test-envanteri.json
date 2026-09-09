@@ -1,7 +1,7 @@
 {
-  "imza": "db43454251203b551bd2c5aaed63b479",
-  "dosya": 182,
-  "vaka": 3415,
+  "imza": "4e696a16bd2fc3867cbbf997635d33f6",
+  "dosya": 184,
+  "vaka": 3423,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -518,6 +518,14 @@
     },
     "tests/paket-sablon.test.ts": {
       "vaka": 6,
+      "atlanan": 0
+    },
+    "tests/paketler-mantik.test.ts": {
+      "vaka": 5,
+      "atlanan": 0
+    },
+    "tests/paketler-veri.test.ts": {
+      "vaka": 3,
       "atlanan": 0
     },
     "tests/pasif-kesif.test.ts": {

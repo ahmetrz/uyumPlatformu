@@ -825,8 +825,13 @@ kendi eşlemesi taslak yenilemesinde bağ sayılmaz, kiracınınki sayılır
 ile kurar ve ilk sürümleri aktif yapar; CSV'ye `kanit_tipi` sütunu (kayıp
 olmasın diye); ölçülen kayıp yalnız ISO 27001'in 4 kısa açıklama metni
 (`docs/P4_TOHUM_TASIMA_OLCUMU.md` §4); kiracı katmanı (BT/OT eşlemesi,
-aile adı, tesisler, tipler, süreçler) tohumda (URN-PKT-015). Kalan:
-`/paketler` ekranı, OSCAL okuyucu (SCF için — hukuki görüş bekleniyor),
+aile adı, tesisler, tipler, süreçler) tohumda (URN-PKT-015). **2.6
+uygulandı:** `/paketler` ekranı (Uyum alanı, Regülasyonlar'ın yanı): disk ×
+veritabanı birleşik hâl (güncel · güncelleme var · diskteki kopya eski ·
+diskte yok · doğrulanamadı · kurulu değil · arşiv), kur / güncelle /
+kaldır (arşiv, gerekçeli), engel nedeni düğmenin yanında; ekran hiçbir
+çerçeveyi aktifleştirmez ve lede altında bunu kalıcı cümleyle söyler
+(URN-PKT-016). Kalan: OSCAL okuyucu (SCF için — hukuki görüş bekleniyor),
 form/rapor ekranlarının şablonu okuması, rol önerisinin koda bağlanması,
 R6 ilişki türü/güç, demo verisinin (tesis · süreç · bulgu) JSON'dan
 yüklenmesi (P8).

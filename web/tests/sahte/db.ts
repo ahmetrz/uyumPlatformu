@@ -1,5 +1,7 @@
 import { PrismaClient } from '@/lib/prisma-client/client';
 import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
+import { PrismaPg } from '@prisma/adapter-pg';
+import { execFileSync } from 'node:child_process';
 
 /* Test veritabanı ikizi.
 
@@ -44,12 +46,55 @@ function istemciAl(): PrismaClient {
   return gercekIstemci;
 }
 
+/* ── PostgreSQL izolasyonu (R5) ────────────────────────────────────────
+   SQLite tarafında izolasyon DOSYA KOPYASIDIR; PostgreSQL'de dosya yoktur.
+   İki seçenek ölçüldü:
+
+   · Transaction geri alma — ÇALIŞMAZ. Testlerin kendisi `$transaction`
+     kullanıyor (`paketiKur` tek işlemde yazar) ve Prisma etkileşimli
+     transaction içinde iç içe transaction'ı desteklemez: dış transaction
+     kurulunca kurulum testleri hata verir.
+   · Şablondan KLON — çalışır ve seçilen budur. `CREATE DATABASE x
+     TEMPLATE <şablon>` sunucu tarafında kopyalar; PostgreSQL'de "şemayı
+     klonla" diye bir ilkel işlem YOKTUR, en yakın izolasyon birimi
+     veritabanıdır. Her test dosyası kendi veritabanını alır, paralel
+     koşucular birbirini görmez.
+
+   Şablon `arac/pg-test-sablonu.mjs` ile kurulur (taban göçü + tohum).
+   `TEST_PG_URL` yoksa bu yol hiç açılmaz — SQLite davranışı aynen kalır. */
+export const PG_TEST = process.env.TEST_PG_URL ?? null;
+const PG_SABLON = process.env.TEST_PG_SABLON ?? 'uyum_test_sablonu';
+let pgAdi: string | null = null;
+
+function psql(url: string, sql: string): string {
+  return execFileSync('psql', [url, '-v', 'ON_ERROR_STOP=1', '-tAc', sql], { encoding: 'utf8' }).trim();
+}
+function pgUrl(url: string, db: string): string { return url.replace(/\/[^/?]*(\?|$)/, `/${db}$1`); }
+
+function pgIstemciAl(): PrismaClient {
+  if (gercekIstemci) return gercekIstemci;
+  const yonetim = PG_TEST!;
+  pgAdi = `uyum_test_${process.pid}_${Math.floor(Math.random() * 1e9)}`;
+  psql(yonetim, `CREATE DATABASE "${pgAdi}" TEMPLATE "${PG_SABLON}"`);
+  gercekIstemci = new PrismaClient({ adapter: new PrismaPg({ connectionString: pgUrl(yonetim, pgAdi) }) });
+  const birak = () => {
+    if (!pgAdi) return;
+    const ad = pgAdi; pgAdi = null;
+    try { psql(yonetim, `DROP DATABASE IF EXISTS "${ad}" WITH (FORCE)`); } catch { /* süreç kapanışında sessiz */ }
+  };
+  process.once('exit', birak);
+  process.once('beforeExit', birak);
+  return gercekIstemci;
+}
+
 /* Proxy: modülü içe aktarmak bedava, ilk erişim koruma kapısından geçer. */
+const secilenIstemci = () => (PG_TEST ? pgIstemciAl() : istemciAl());
+
 export const db = new Proxy({} as PrismaClient, {
   get(_hedef, ozellik, alici) {
-    return Reflect.get(istemciAl() as object, ozellik, alici);
+    return Reflect.get(secilenIstemci() as object, ozellik, alici);
   },
   has(_hedef, ozellik) {
-    return Reflect.has(istemciAl() as object, ozellik);
+    return Reflect.has(secilenIstemci() as object, ozellik);
   },
 }) as PrismaClient;

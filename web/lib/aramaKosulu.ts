@@ -1,4 +1,5 @@
 import type { Prisma } from './prisma-client/client';
+import { DUYARSIZ_KIP_DESTEKLI as SAGLAYICI_DUYARSIZ } from './veritabani';
 
 /* ═══════════════════════════════════════════════════════════════════════
    METİN ARAMA KOŞULU — TEK YER
@@ -16,10 +17,13 @@ import type { Prisma } from './prisma-client/client';
    Koşul on bir ayrı yerde tekrarlanıyordu. Artık tek yerde: göç günü
    değişecek satır burasıdır, on bir yer değil.
 
-   ── PostgreSQL'e geçince ne değişecek ──────────────────────────────────
-   Tek satır: `mode: 'insensitive'` eklenecek. Bugün EKLENEMEZ — Prisma o
-   alanı SQLite sağlayıcısında kabul etmez ve sorgu çalışma zamanında
-   patlar. Bu yüzden burada bir bayrak var, ölü kod değil bir kaldıraç.
+   ── Bugün (R5, 9 Eylül 2026) ───────────────────────────────────────────
+   Kip artık SAĞLAYICIDAN gelir (`lib/veritabani.ts`): PostgreSQL'de
+   `mode: 'insensitive'` eklenir, SQLite'ta EKLENMEZ (Prisma o alanı
+   SQLite sağlayıcısında kabul etmez, sorgu çalışma zamanında patlar).
+   Arama İKİ SAĞLAYICIDA DA büyük/küçük harf duyarsızdır; "göç günü
+   değişecek satır" artık yoktur, çünkü satır kendini sağlayıcıdan
+   okuyor.
 
    ── Türkçe uyarısı ─────────────────────────────────────────────────────
    Ne SQLite'ın `LIKE`'ı ne de PostgreSQL'in `ILIKE`'ı Türkçe İ/ı
@@ -30,9 +34,10 @@ import type { Prisma } from './prisma-client/client';
    — yanlış katlama, hiç katlamamaktan daha zor teşhis edilir.
    ═══════════════════════════════════════════════════════════════════════ */
 
-/** Sağlayıcı büyük/küçük harf duyarsız `contains` destekliyor mu.
-    SQLite: hayır (ama `LIKE`'ı zaten duyarsız). PostgreSQL: evet. */
-export const DUYARSIZ_KIP_DESTEKLI = false;
+/** Sağlayıcı büyük/küçük harf duyarsız `contains` KİPİ destekliyor mu.
+    SQLite: hayır (ama `LIKE`'ı zaten duyarsız). PostgreSQL: evet.
+    Tek kaynak `lib/veritabani.ts` — burada yeniden karar VERİLMEZ. */
+export const DUYARSIZ_KIP_DESTEKLI = SAGLAYICI_DUYARSIZ;
 
 /**
  * Bir metin alanı için arama koşulu üretir.
@@ -40,9 +45,9 @@ export const DUYARSIZ_KIP_DESTEKLI = false;
  * Çağıranlar `{ ad: { contains: q } }` yazmak yerine
  * `{ ad: aramaKosulu(q) }` yazar; göç günü bu fonksiyon değişir.
  */
-export function aramaKosulu(terim: string): Prisma.StringFilter {
+export function aramaKosulu(terim: string, duyarsizKip = DUYARSIZ_KIP_DESTEKLI): Prisma.StringFilter {
   const q = terim.trim();
-  return DUYARSIZ_KIP_DESTEKLI
+  return duyarsizKip
     ? ({ contains: q, mode: 'insensitive' } as Prisma.StringFilter)
     : { contains: q };
 }
@@ -52,7 +57,7 @@ export function aramaKosulu(terim: string): Prisma.StringFilter {
  * ki hangi alanların arandığı okunabilsin.
  */
 export function aramaOr<A extends string>(
-  alanlar: readonly A[], terim: string,
+  alanlar: readonly A[], terim: string, duyarsizKip = DUYARSIZ_KIP_DESTEKLI,
 ): { [K in A]?: Prisma.StringFilter }[] {
-  return alanlar.map((alan) => ({ [alan]: aramaKosulu(terim) }) as { [K in A]?: Prisma.StringFilter });
+  return alanlar.map((alan) => ({ [alan]: aramaKosulu(terim, duyarsizKip) }) as { [K in A]?: Prisma.StringFilter });
 }

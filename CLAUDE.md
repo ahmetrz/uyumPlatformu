@@ -313,9 +313,13 @@ yapılır.
 
 ## Kalite kapıları
 
-CI'da (`.github/workflows/pr-kapisi.yml`): lint → tsc → vitest →
+CI'da (`.github/workflows/pr-kapisi.yml`) ÜÇ iş koşar: `kapi` (hızlı) ·
+`kapi-yavas` (tarayıcılı) · **`kapi-postgres`** (postgres:16 servisi —
+PostgreSQL istemcisi üretilir, `kapi:pg-goc` ve TAM test kümesi orada da
+koşar; ölçüldü 9 Eyl 2026: iki sağlayıcıda da 191/191 dosya · 3 489 vaka,
+atlanan 1). Hızlı işte: lint → tsc → vitest →
 test envanteri → ters kapsam → dil kapısı → tasarım kapısı → **kapı
-farkı** → derleme → **rota duman** → **gezinme (yedi bant)** → **yatay
+farkı** → **PostgreSQL taban tazeliği** → derleme → **rota duman** → **gezinme (yedi bant)** → **yatay
 taşma** → **erişilebilirlik (axe · üç bant)** → statik demo derlemesi ve
 doğrulaması → marka kapısı. Dört tarayıcılı kapı CI'da üretim
 sunucusuyla koşar ve BLOKLAYICIDIR; taşma ve axe kapılarının açık

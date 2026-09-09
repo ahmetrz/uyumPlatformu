@@ -689,10 +689,13 @@ zorunlu**, SQLite (geliştirme/demo) yalnız uygulama kapısı.
 **Alan kodu:** `ALT-PG` · **Etki:** ön koşul · **Çaba:** orta-yüksek ·
 **Dalga:** 0 (P2 ile birlikte — kiracı izolasyonunun RLS ayağı)
 
-**Bugün.** `docs/POSTGRES_READINESS.md` 11 SQLite bağımlılığı sayar;
-ikisi (6 değişmezlik tetikleyicisi, `LIKE` duyarlılığı) Postgres'te
-**sessizce yanlış** davranır. Yarış koşulları P1–P7 kapatılmış. Test
-izolasyonu dosya kopyasına dayanır. Yük testi yapılmamış.
+**Bugün (9 Eylül 2026 · UYGULANDI, yük ölçümü hariç).** Ürün iki
+sağlayıcıda da koşuyor; tam test kümesi ikisinde de yeşil (191/191 dosya ·
+3 489 vaka · 1 atlandı, atlanan artmadı). Tek taban göçü şemadan üretilir
+ve bayatlarsa kırmızıdır; dokuz tetikleyici ve üç elle indeks yerinde;
+kapı iki sağlayıcının NESNE ENVANTERİNİ karşılaştırır. Test izolasyonu
+PostgreSQL'de şablondan klon veritabanıdır (dosya kopyası SQLite'ta
+kalır). **Yük testi hâlâ YAPILMADI** — ölçülmedi, sıfır değil.
 
 **Hedef.** Ürün PostgreSQL üzerinde aynı testlerle yeşil; 10⁵ varlık ve
 20 eşzamanlı kullanıcı ölçümü belgelenmiş.
@@ -2181,7 +2184,7 @@ Excel'inden daha az şey bilir.
 
 | Kalem | Ölçülmüş büyüklük | Bugün nerede |
 | --- | --- | --- |
-| **R5 · PostgreSQL** | **11 SQLite bağımlılığı** (`docs/POSTGRES_READINESS.md`), **ikisi sessizce yanlış**; 6 ham SQL tetikleyici; 189 test dosyasının izolasyonu dosya kopyasına dayanır | `datasource` SQLite; göç zinciri kapısı hazır (iki sağlayıcıda da koşar) |
+| **R5 · PostgreSQL** | **BİTTİ (9 Eyl 2026)** — tek taban göçü (4 149 satır, şemadan üretilir), 9 tetikleyici + 3 elle indeks, sağlayıcı tek kaynağı (`lib/veritabani.ts`), sürücü ve arama kipi sağlayıcıdan, test izolasyonu PostgreSQL'de ŞABLONDAN klon veritabanı | Kapılar `kapi:pg-taban` · `kapi:pg-goc`; CI'da `kapi-postgres` işi (postgres:16). **Tam küme iki sağlayıcıda da yeşil: 191/191 dosya · 3 489 vaka · 1 atlandı.** Ölçüm beş sürpriz çıkardı (istemci sağlayıcıya bağlı · `migrate diff` elle DDL'i görmez · 63 bayt ad kısaltması · sırasız `take` · testin tek bağlantı varsayımı) — `docs/POSTGRES_READINESS.md` §0 |
 | **P7 · dağıtım** | `deploy/` **yok** · `docs/KURULUM.md` **yok** · sağlık ucu **yok** (10 API ucu var, hepsi `route.api.ts`); S3 · Redis · kuyruk · Vault kayıtlı ama bağlı değil | statik demo derlemesi var ve CI'da koşuyor |
 | **R3 · yedek + kanıt** | `arac/yedek.mjs` 170 satır, **yalnız veritabanı** (`VACUUM INTO`); kanıt dosyaları artık **yazılıyor** (`eylemler2/kanit.ts` → `depoAnahtari` + `dosyaHash`) ama yedeğe girmiyor; hem araç hem `docs/URUN_YEDEKLEME.md` (satır 26 · 29 · 30 · 144) hâlâ "dosya yok" diyor | depo `lib/uyum/kanitDeposu.ts` 145 satır, içerik adresli, MIME izin listeli |
 | **P6 · kimlik (SSO/MFA)** | yerel hesap + oturum + oran sınırı var; **OIDC ve TOTP yok** | `Connector.kimlikTipi` OAuth2 tanıyor, ürün girişi tanımıyor |

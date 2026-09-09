@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { arizaKaldir, arizaKur } from './yardim/ariza';
 import { copyFileSync, mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -74,14 +75,8 @@ const { onayKarar } = await import('@/lib/eylemler2/gorev');
 const ONEK = `IST-${Date.now().toString(36).toUpperCase()}`;
 const kimlik = { onaylayan: '', talepEden: '' };
 
-async function arizaKur(ad: string, tablo: string, kosul: string): Promise<void> {
-  await db.$executeRawUnsafe(
-    `CREATE TRIGGER ${ad} BEFORE INSERT ON "${tablo}" WHEN ${kosul} `
-    + `BEGIN SELECT RAISE(ABORT, 'disk doldu'); END;`);
-}
-async function arizaKaldir(ad: string): Promise<void> {
-  await db.$executeRawUnsafe(`DROP TRIGGER IF EXISTS ${ad};`);
-}
+const ariza = (ad: string, tablo: string, kosul: string) => arizaKur(db, ad, tablo, kosul);
+const arizaSil = (ad: string, tablo: string) => arizaKaldir(db, ad, tablo);
 
 beforeAll(async () => {
   const onaylayan = await db.kullanici.create({ data: {
@@ -151,11 +146,10 @@ describe('Onay yan etkisi tek transaction (#16)', () => {
       kapsamdisi: 0, tarihce: 0, durumIzi: 0, talepIzi: 0 });
 
     // tarihçe yazımında patlat: istisna 'aktif' yazıldıktan SONRAKİ adım
-    await arizaKur('test_tarihce_patlat', 'DegerlendirmeTarihcesi',
-      "NEW.yeniDurum = 'kapsamdisi'");
+    await ariza('test_tarihce_patlat', 'DegerlendirmeTarihcesi', 'NEW."yeniDurum" = \'kapsamdisi\'');
     let sonuc;
     try { sonuc = await onayKarar({ id: talep.id, karar: 'onaylandi', gerekce: 'onay' }); }
-    finally { await arizaKaldir('test_tarihce_patlat'); }
+    finally { await arizaSil('test_tarihce_patlat', 'DegerlendirmeTarihcesi'); }
 
     expect(sonuc.ok).toBe(false);
     /* ÖNCE/SONRA birebir aynı. Eski kodda burada istisna 'aktif',

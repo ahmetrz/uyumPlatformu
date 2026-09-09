@@ -2,8 +2,10 @@
    regülasyon, süreç) panelden yönetilebilir; burası yalnızca ilk kurulum setidir. */
 import { PrismaClient } from '../lib/prisma-client/client';
 import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
+import { PrismaPg } from '@prisma/adapter-pg';
 import path from 'node:path';
 import { randomBytes, scryptSync } from 'node:crypto';
+import { SAGLAYICI } from '../lib/veritabani';
 import { operasyonVerisi } from './seed-operasyon';
 import { uyumKatalogu } from './seed-uyum';
 import { denetimVeProje } from './seed-denetim-proje';
@@ -27,9 +29,14 @@ const parolaUret = (parola: string) => {
 };
 const GELISTIRME_PAROLASI = 'Enerji!2026';
 
-const db = new PrismaClient({
-  adapter: new PrismaBetterSqlite3({ url: `file:${path.join(__dirname, 'dev.db')}` }),
-});
+/* Tohum SAĞLAYICIYI kendi başına seçmez: `lib/veritabani.ts` seçer (R5).
+   Önce doğrudan SQLite kuruyordu ve `DATABASE_URL` PostgreSQL'i gösterdiğinde
+   sessizce geliştirme dosyasını okuyordu — PostgreSQL kurulumu tohumsuz
+   kalır, sebebi "veritabanı dolu" diye görünürdü (ölçüldü). */
+const VERITABANI = SAGLAYICI === 'postgresql'
+  ? { ad: process.env.DATABASE_URL!.replace(/:[^:@/]*@/, ':***@'), istemci: () => new PrismaClient({ adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL! }) }) }
+  : { ad: path.join(__dirname, 'dev.db'), istemci: () => new PrismaClient({ adapter: new PrismaBetterSqlite3({ url: `file:${path.join(__dirname, 'dev.db')}` }) }) };
+const db = VERITABANI.istemci();
 
 const G = 86_400_000;
 const gun = (n: number) => new Date(Date.now() + n * G);
@@ -37,7 +44,7 @@ const gun = (n: number) => new Date(Date.now() + n * G);
 async function main() {
   // Denetim izi değişmezdir: dolu veritabanına seed atılmaz.
   if (await db.aktiviteKaydi.count() > 0) {
-    console.error('Veritabanı dolu. Yeniden seed için önce prisma/dev.db dosyasını silin.');
+    console.error(`Veritabanı dolu (${VERITABANI.ad}). Yeniden seed için önce bu veritabanını boşaltın.`);
     process.exit(1);
   }
   await db.kanitBaglantisi.deleteMany();

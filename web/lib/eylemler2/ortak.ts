@@ -27,10 +27,22 @@ function ihlalAlanlari(m: unknown): string[] {
   if (typeof hedef === 'string') return [hedef];
 
   const surucu = (meta.driverAdapterError as { cause?: { constraint?: unknown } } | undefined)?.cause;
-  const kisit = surucu?.constraint as { fields?: unknown } | undefined;
-  return Array.isArray(kisit?.fields)
-    ? kisit.fields.filter((x): x is string => typeof x === 'string')
-    : [];
+  const kisit = surucu?.constraint as { fields?: unknown; index?: unknown } | undefined;
+  if (Array.isArray(kisit?.fields)) return kisit.fields.filter((x): x is string => typeof x === 'string');
+  /* PostgreSQL sürücüsü alan LİSTESİ değil KISIT ADI verir (`{ index: 'Dokuman_kod_key' }`);
+     `@prisma/adapter-pg` 23505'te `error.constraint` doluysa her zaman bu dalı seçer. Ad
+     okunmazsa alan-özel cümleler PostgreSQL'de HİÇ kurulmaz ve her kopya kayıt genel cümleye
+     düşer — ölçüldü (R5): "aynı kod iki kez açılamaz" vakası PostgreSQL'de kırmızıydı.
+     Prisma kısıt adı `<Model>_<alan>…_key` biçimindedir: sonek atılır, İLK parça model adıdır.
+     Sınır: 63 baytı aşan adlarda son alan kırpılabilir — o zaman liste eksik kalır ve genel
+     cümleye düşülür; yanlış alan adı ÜRETİLMEZ. */
+  if (typeof kisit?.index === 'string') {
+    const sonek = ['_key', '_pkey', '_idx'].find((x) => kisit.index!.toString().endsWith(x));
+    const govde = sonek ? kisit.index.slice(0, -sonek.length) : kisit.index;
+    const parcalar = govde.split('_');
+    if (parcalar.length > 1) return parcalar.slice(1);
+  }
+  return [];
 }
 
 /* ── Veritabanı kısıtı → okunabilir cümle ─────────────────────────────

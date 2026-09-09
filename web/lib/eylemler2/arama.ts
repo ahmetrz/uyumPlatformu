@@ -14,6 +14,12 @@ export type AramaSonucu = {
   tip: string; id: string; baslik: string; altBilgi: string; yol: string;
 };
 
+/* SIRALAMA ZORUNLUDUR (R5, ölçüldü): `take` var, `orderBy` yoksa dönen satırlar
+   SEÇİLMİŞ değil RASTGELEDİR. SQLite pratikte rowid sırası verdiği için bu
+   görünmüyordu; PostgreSQL'de aynı sorgu her çağrıda başka beş satır döndürebilir
+   ve kullanıcı "aradığım kayıt bazen çıkıyor bazen çıkmıyor" der. Ölçüldü:
+   PostgreSQL koşusunda `ara(tesis.kod)` aranan tesisi bulamadı — arama bozuk
+   değildi, ilk beş satır başkalarıydı. */
 export async function ara(sorgu: string): Promise<AramaSonucu[]> {
   const k = await aktifKullanici();
   if (!k || sorgu.trim().length < 2) return [];
@@ -25,28 +31,29 @@ export async function ara(sorgu: string): Promise<AramaSonucu[]> {
     await Promise.all([
       db.tesis.findMany({ where: {
         OR: aramaOr(['kod', 'ad'], q),
-        ...(tesisKapsami === null ? {} : { id: { in: tesisKapsami } }) }, take: 5 }),
+        ...(tesisKapsami === null ? {} : { id: { in: tesisKapsami } }) }, orderBy: { kod: 'asc' }, take: 5 }),
       db.madde.findMany({ where: {
         silindi: null,
         AND: [
           { OR: aramaOr(['kod', 'baslik'], q) },
           { OR: [{ surum: { durum: 'aktif' } }, { surumId: null }] },
         ] },
-        take: 6, include: { regulasyon: true } }),
+        orderBy: [{ kod: 'asc' }, { id: 'asc' }], take: 6, include: { regulasyon: true } }),
       db.bulgu.findMany({ where: {
         baslik: aramaKosulu(q), silindi: null,
         maddeDurumu: tesisKapsami === null ? {} : { kapsamOgesi: { tesisId: { in: tesisKapsami } } } },
-        take: 5, include: { maddeDurumu: { include: { kapsamOgesi: { select: { id: true, kod: true, ad: true, tesisId: true } } } } } }),
+        orderBy: [{ baslik: 'asc' }, { id: 'asc' }], take: 5,
+        include: { maddeDurumu: { include: { kapsamOgesi: { select: { id: true, kod: true, ad: true, tesisId: true } } } } } }),
       db.risk.findMany({ where: {
         OR: aramaOr(['kod', 'baslik'], q),
-        silindi: null, ...tesisFiltre }, take: 5 }),
+        silindi: null, ...tesisFiltre }, orderBy: { kod: 'asc' }, take: 5 }),
       db.varlik.findMany({ where: {
         OR: aramaOr(['etiket', 'ad'], q),
-        silindi: null, ...tesisFiltre }, take: 5 }),
+        silindi: null, ...tesisFiltre }, orderBy: [{ etiket: 'asc' }, { id: 'asc' }], take: 5 }),
       db.proje.findMany({ where: {
-        OR: aramaOr(['kod', 'ad'], q), silindi: null }, take: 4 }),
+        OR: aramaOr(['kod', 'ad'], q), silindi: null }, orderBy: { kod: 'asc' }, take: 4 }),
       db.denetim.findMany({ where: {
-        OR: aramaOr(['kod', 'ad'], q), silindi: null }, take: 4 }),
+        OR: aramaOr(['kod', 'ad'], q), silindi: null }, orderBy: { kod: 'asc' }, take: 4 }),
     ]);
 
   /* Sonuç TÜRÜ ekranda rozet olarak görünür (`KomutPaleti` · `.tur`),

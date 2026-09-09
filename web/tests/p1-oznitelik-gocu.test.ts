@@ -11,8 +11,12 @@ copyFileSync('prisma/dev.db', testDb);
 process.env.TEST_DB = testDb;
 
 const { db } = await import('@/lib/db');
-const { PrismaClient } = await import('@/lib/prisma-client/client');
-const { PrismaBetterSqlite3 } = await import('@prisma/adapter-better-sqlite3');
+/* Sentetik SQLite dosyası HAM sürücüyle açılır, Prisma istemcisiyle değil:
+   üretilen istemci SAĞLAYICIYA BAĞLIDIR (R5) ve PostgreSQL istemcisiyle
+   koşulduğunda bu test "adaptör uyumsuz" diye düşüyordu — yani SQLite göç
+   zincirini ölçen bir test, ölçtüğü şeyle ilgisiz bir sebeple kırmızıydı.
+   Ham sürücü iki sağlayıcıda da aynı ölçümü yapar. */
+const { default: Sqlite } = await import('better-sqlite3');
 const { tesisKapsaminiHesapla } = await import('@/lib/motorlar/uygulanabilirlik');
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -70,7 +74,12 @@ describe('P1 · öznitelik göçü', () => {
        yalnız ham SQL taşıyıcısı olarak kullanılıyor — sorgular tabloları
        şemadan değil, buradaki DDL'den tanıyor. */
     const gocDb = path.join(dizin, 'goc.db');
-    const ham = new PrismaClient({ adapter: new PrismaBetterSqlite3({ url: `file:${gocDb}` }) });
+    const sqlite = new Sqlite(gocDb);
+    const ham = {
+      $executeRawUnsafe: async (c: string) => { sqlite.exec(c); },
+      $queryRawUnsafe: async <T>(c: string): Promise<T> => sqlite.prepare(c).all() as T,
+      $disconnect: async () => { sqlite.close(); },
+    };
     const kur = [
       'CREATE TABLE "Tesis" ("id" TEXT PRIMARY KEY, "kod" TEXT NOT NULL, "kuruluGucMw" REAL)',
       'CREATE TABLE "UretimUnitesi" ("id" TEXT PRIMARY KEY, "kod" TEXT NOT NULL, "kuruluGucMw" REAL)',

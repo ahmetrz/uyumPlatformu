@@ -1,7 +1,62 @@
 # PostgreSQL geçiş hazırlığı
 
-**Durum: RAPOR. Bu belge hiçbir şeyi uygulamaz.** `datasource` SQLite'tır,
-migration yazılmamıştır, `prisma/schema.prisma` değiştirilmemiştir.
+**Durum: UYGULANDI (R5 · 9 Eylül 2026).** Aşağıdaki rapor bölümleri
+ölçümün KAYNAĞIDIR ve olduğu gibi durur; bugünkü durum §0'dadır.
+
+---
+
+## 0 · Bugünkü durum — ölçüldü, koştu
+
+| Ne | Nerede | Ölçüm |
+| --- | --- | --- |
+| Tek taban göçü | `web/prisma/postgres/migrations/00000000000000_pg_taban/` | 4 149 satır; şemadan ÜRETİLİR (`npm run kapi:pg-taban` bayatlarsa kırmızı) |
+| Elle yazılan DDL | `web/prisma/postgres/elle-yazilan.sql` | 9 tetikleyici + 3 indeks (aşağıda) |
+| Göç ve değişmezlik kapısı | `web/arac/pg-goc.mjs` · `npm run kapi:pg-goc` | boş veritabanı → göç 1/1 · şema farkı 0 · değişmezlik 6/6 · eksik nesne 0 · temizlik doğrulandı |
+| Sağlayıcı tek kaynağı | `web/lib/veritabani.ts` | `DATABASE_URL`/`TEST_PG_URL` → `sqlite` \| `postgresql`; tanınmayan şema HATA |
+| Sürücü | `web/lib/db.ts` | `@prisma/adapter-pg` ya da `better-sqlite3`, sağlayıcıdan |
+| Arama duyarlılığı | `web/lib/aramaKosulu.ts` | kip sağlayıcıdan; PostgreSQL'de `mode: 'insensitive'` |
+| Test izolasyonu | `web/tests/sahte/db.ts` · `arac/pg-test-sablonu.mjs` | PostgreSQL'de test dosyası başına ŞABLONDAN klon veritabanı |
+| CI | `.github/workflows/pr-kapisi.yml` → `kapi-postgres` | postgres:16 servisi; PG istemcisi üretilir, kapı ve TAM test kümesi koşar |
+| **Tam test kümesi (PostgreSQL)** | ölçüldü 9 Eyl 2026 | **191/191 dosya · 3 489 vaka geçti · 1 atlandı** (SQLite ile AYNI; atlanan artmadı) |
+
+### 0.1 · Raporun SAYMADIĞI, ölçümde çıkan beş şey
+
+1. **Üretilen Prisma istemcisi SAĞLAYICIYA BAĞLIDIR.** `@prisma/adapter-pg`,
+   SQLite şemasından üretilmiş istemciyle çalışmaz (`not compatible with the
+   provider sqlite`). "Yalnız datasource değişir" cümlesi bu yüzden de
+   yanlıştır: kurulum `npm run pg:istemci` ile istemciyi yeniden üretir.
+2. **`prisma migrate diff` elle yazılan DDL'i GÖRMEZ.** Taban göçü şemadan
+   üretildiğinde iki tetikleyici (`kanit_surumu_*`) ve üç indeks (kısmi ve
+   ifade) EKSİKTİ; kapı yine "şema farkı 0" diyordu. Dört değişmezlik
+   iddiası PostgreSQL'de sessizce ölçülmüyordu. Bugün kapı iki sağlayıcının
+   NESNE ENVANTERİNİ karşılaştırıyor.
+3. **PostgreSQL tanımlayıcısı 63 BAYTTIR.** Uzun `@@unique` adları ORTADAN
+   kırpılır (sonek korunur). Düz kırpma varsayan ilk kapı sürümü iki indeksi
+   "PostgreSQL'de yok" sayıp yalancı kırmızı yaktı.
+4. **`take` var, `orderBy` yoksa sonuç RASTGELEDİR.** SQLite pratikte rowid
+   sırası verdiği için görünmüyordu; `lib/eylemler2/arama.ts` yedi sorgusunda
+   da sıralama yoktu ve PostgreSQL'de aranan kayıt ilk beşe girmeyebiliyordu.
+   Kullanıcı bunu "arama bazen çalışıyor" diye görürdü.
+5. **Testlerin bir kısmı SQLite'ın TEK BAĞLANTISINI ürün kuralı sanıyordu.**
+   `saglik-reddedilen` "araya giren yazma da geri alınır" bekliyordu; bu bir
+   ürün garantisi değil, tek bağlantının yan etkisidir. PostgreSQL'de başka
+   birinin yazdığı commit'lenir ve geri ALINMAZ — doğru olan budur.
+
+### 0.2 · Kapanmayan kalem: nullable kolonda tekillik
+
+§a.5'teki `NULLS NOT DISTINCT` adayları KAPANMADI ve bilerek kapanmadı: iki
+sağlayıcıda AYNI kural dursun diye `ErisimAtamasi` ifade indeksiyle çözüldü
+(`COALESCE(..., chr(31))`). Kalan üç aday (`Yetki`, `ProjeBaglantisi`,
+`YazilimUrunu`) bugün iki sağlayıcıda da AYNI biçimde korumasızdır — yani
+PostgreSQL'e geçiş bir şey KAYBETTİRMEZ, var olan boşluk aynen durur.
+Kapanış aşaması: P2 (kiracı boyutu şemayı zaten değiştirecek).
+
+---
+
+## Rapor (9 Eylül 2026 öncesi ölçüm) — kaynak metin
+
+`datasource` o gün SQLite'tı, migration yazılmamıştı, `prisma/schema.prisma`
+değiştirilmemişti.
 
 `prisma/schema.prisma:9` şöyle der:
 

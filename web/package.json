@@ -48,14 +48,20 @@
     "kapi:iki-sozluk": "tsx arac/iki-sozluk.mjs",
     "kapi:sema-sapmasi": "prisma migrate diff --from-config-datasource prisma.config.ts --to-schema prisma/schema.prisma --exit-code",
     "kapi:goc-zinciri": "node arac/goc-zinciri.mjs",
+    "kapi:pg-taban": "node arac/pg-taban.mjs",
+    "kapi:pg-goc": "node arac/pg-goc.mjs",
     "kapi:parti": "node arac/parti-kapanisi.mjs",
-    "paket:dogrula": "tsx arac/paket-dogrula.ts"
+    "paket:dogrula": "tsx arac/paket-dogrula.ts",
+    "pg:istemci": "node arac/pg-istemci.mjs",
+    "pg:test-sablonu": "node arac/pg-test-sablonu.mjs"
   },
   "dependencies": {
     "@prisma/adapter-better-sqlite3": "^7.10.0",
+    "@prisma/adapter-pg": "^7.10.0",
     "@prisma/client": "^7.10.0",
     "better-sqlite3": "^13.0.3",
     "next": "16.3.4",
+    "pg": "^8.23.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "server-only": "^0.0.1",
@@ -63,7 +69,9 @@
     "zod": "^4.5.4"
   },
   "devDependencies": {
+    "@types/better-sqlite3": "^9.6.0",
     "@types/node": "^22",
+    "@types/pg": "^8.23.1",
     "@types/react": "^19",
     "@types/react-dom": "^19.2.7",
     "@vitest/coverage-v8": "^4.1.11",

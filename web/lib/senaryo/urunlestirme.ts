@@ -536,6 +536,20 @@ export const URUNLESTIRME_SENARYOLARI: Senaryo[] = [
     katmanlar: ['SERVER', 'UI'],
   },
   {
+    id: 'URN-KUR-009', alan: 'Kurulum', rota: '—', eksen: 'veri',
+    amac: 'Ürün İKİ sağlayıcıda da aynı garantileri versin: PostgreSQL kurulumu SQLite\'ta duran korumaların hiçbirini kaybetmesin',
+    rol: 'kurulumu yapan · ürünü sürdüren geliştirici', kapsam: 'prisma/postgres/ · lib/veritabani.ts · lib/db.ts · lib/aramaKosulu.ts · arac/pg-taban.mjs · arac/pg-goc.mjs',
+    onkosul: 'SQLite göç zinciri elle yazılmış DDL taşıyor (tetikleyici, kısmi indeks, ifade indeksi); `prisma migrate diff` bunların hiçbirini görmez',
+    veriHali: 'aykiri',
+    eylem: 'Boş bir PostgreSQL veritabanına taban göçü uygulanır; şema farkı, nesne envanteri ve değişmezlik ölçülür; arama kipi sağlayıcıdan seçilir',
+    beklenenSonuc: 'Taban göçü şemadan üretilir ve bayatlarsa KIRMIZI; boş veritabanında şema farkı 0; SQLite\'ta olup PostgreSQL\'de olmayan tetikleyici/indeks KIRMIZI (ad kısaltması yalancı kırmızı üretmez); '
+      + 'denetim izi UPDATE/DELETE/TRUNCATE reddedilir ve mesaj SQLite ile aynıdır; hiçbir satıra dokunmayan UPDATE GEÇER (FOR EACH ROW kanıtı); '
+      + 'arama kipi sağlayıcıdan gelir ve tanınmayan bağlantı şeması sessizce SQLite olmaz; geçici veritabanı silinir ve silindiği doğrulanır',
+    beklenenEkran: 'yok (kurulum kapısı)',
+    beklenenIz: 'yazma yok (ölçüm)', beklenenBildirim: 'yok',
+    katmanlar: ['DOMAIN'],
+  },
+  {
     id: 'URN-PKT-022', alan: 'Ürünleştirme', rota: '—', eksen: 'veri',
     amac: 'Kaynak belgenin bir alanı ürünün YANLIŞ alanına yazıldığında biçim doğru kalır ve hiçbir kapı göremez; savunma paketin ALAN EŞLEME BEYANIDIR',
     rol: 'paket yazarı · bağımsız inceleyici', kapsam: 'manifest.json `alanEslemesi` · lib/paket/dogrula.ts',

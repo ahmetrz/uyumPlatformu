@@ -137,6 +137,13 @@ jobs:
         working-directory: web
         run: npm run kapi:goc-zinciri
 
+      # PostgreSQL taban göçü TAZELİK kapısı (R5): veritabanı İSTEMEZ, yalnız
+      # şemadan yeniden üretip depodakiyle karşılaştırır. Şema değişip taban
+      # güncellenmezse yeni PostgreSQL kurulumu şemadan ayrışır.
+      - name: PostgreSQL taban göçü tazeliği
+        working-directory: web
+        run: npm run kapi:pg-taban
+
       # Gerekçe taraması bir KAPI DEĞİL: sezgisel kalıp, çıktısı elle
       # sınıflandırılır. CI'da koşması yine de değerli — maliyeti anlatan
       # yeni bir gerekçe girdiğinde kayıtta görünür, kimseyi bloklamaz.
@@ -382,3 +389,61 @@ jobs:
       - name: Marka kapısı
         working-directory: web
         run: npm run marka:kapi
+
+  # ── PostgreSQL koşusu (R5) ──────────────────────────────────────────────
+  # SQLite geliştirme ve demo için KALIR; müşteri kurulumu PostgreSQL'dir ve
+  # "iki sağlayıcıda da aynı garantiler" iddiası ancak İKİSİNİ DE koşarak
+  # ölçülür. Ölçüldü (9 Eylül 2026): yalnız SQLite koşulurken PostgreSQL'de
+  # iki tetikleyici ve üç indeks eksikti, dört değişmezlik iddiası hiç
+  # ölçülmüyordu ve arama sonuçları sırasızdı — hiçbiri SQLite'ta görünmedi.
+  kapi-postgres:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: kapi
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 10
+    env:
+      PG_URL: postgresql://postgres:kapi@127.0.0.1:5432/postgres
+      TEST_PG_URL: postgresql://postgres:kapi@127.0.0.1:5432/postgres
+      TEST_PG_SABLON: uyum_test_sablonu
+    steps:
+      - name: Depoyu al
+        uses: actions/checkout@v7
+
+      - name: Node kur
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Bağımlılıklar
+        working-directory: web
+        run: npm ci
+
+      # Prisma istemcisi SAĞLAYICIYA BAĞLIDIR: SQLite şemasından üretilmiş
+      # istemci `@prisma/adapter-pg` ile ÇALIŞMAZ (ölçüldü, R5).
+      - name: PostgreSQL istemcisi üret
+        working-directory: web
+        run: npm run pg:istemci
+
+      # Göç + değişmezlik + NESNE ENVANTERİ kapısı: SQLite'ta olup
+      # PostgreSQL'de olmayan tetikleyici/indeks KIRMIZIDIR.
+      - name: PostgreSQL göç ve değişmezlik kapısı
+        working-directory: web
+        run: npm run kapi:pg-goc
+
+      - name: PostgreSQL test şablonu (taban göçü + tohum)
+        working-directory: web
+        run: npm run pg:test-sablonu
+
+      - name: Birim ve entegrasyon testleri (PostgreSQL)
+        working-directory: web
+        run: npx vitest run

@@ -4,12 +4,12 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 320 |
-| Testi olan senaryo | 320 |
+| Senaryo | 321 |
+| Testi olan senaryo | 321 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
-| Taranan test dosyası | 191 |
+| Taranan test dosyası | 192 |
 
 ## Katman başına kapsam
 
@@ -18,7 +18,7 @@
 | ACCESSIBILITY | 8 | 8 | 0 |
 | API | 12 | 12 | 0 |
 | CONCURRENCY | 7 | 7 | 0 |
-| DOMAIN | 179 | 179 | 0 |
+| DOMAIN | 180 | 180 | 0 |
 | ENGINE | 33 | 33 | 0 |
 | INTEGRATION | 40 | 40 | 0 |
 | MIGRATION | 5 | 5 | 0 |
@@ -613,6 +613,12 @@
 | `URN-PKT-021` | Ürünleştirme | SERVER · UI | `paketler-mantik.test.ts` | seçilen TASLAK çerçeve gösterilir — satırı olan çerçeveye kaymaz | evet | geçti |
 | `URN-PKT-021` | Ürünleştirme | SERVER · UI | `uyum-taslak-serit.test.ts` | şerit taslak dalını tanır ve dört ölçütü de bilinmeyene çevirir | evet | geçti |
 | `URN-PKT-021` | Ürünleştirme | SERVER · UI | `uyum-taslak-serit.test.ts` | taslak dalı sayısal ölçüt taşımaz — "0 Uygunsuz" iyi haber gibi okunur | evet | geçti |
+| `URN-KUR-009` | Kurulum | DOMAIN | `arama-kosulu.test.ts` | kip SAĞLAYICIDAN gelir: PostgreSQL duyarsız kip gönderir, SQLite göndermez | evet | geçti |
+| `URN-KUR-009` | Kurulum | DOMAIN | `arama-kosulu.test.ts` | sağlayıcı bağlantı dizesinden çözülür; tanınmayan şema SESSİZCE SQLite olmaz | evet | geçti |
+| `URN-KUR-009` | Kurulum | DOMAIN | `arama-kosulu.test.ts` | arama büyük/küçük harf duyarsızdır — iki sağlayıcıda da | evet | geçti |
+| `URN-KUR-009` | Kurulum | DOMAIN | `pg-gocu.test.ts` | taban göçü ELLE YAZILAN DDL\'i taşır: dokuz tetikleyici ve üç indeks | evet | geçti |
+| `URN-KUR-009` | Kurulum | DOMAIN | `pg-gocu.test.ts` | SQLite zincirindeki elle yazılan DDL, PostgreSQL tarafında KARŞILIKSIZ kalmaz | evet | geçti |
+| `URN-KUR-009` | Kurulum | DOMAIN | `pg-gocu.test.ts` | PostgreSQL ad kısaltması YALANCI kırmızı üretmez | evet | geçti |
 | `URN-PKT-022` | Ürünleştirme | DOMAIN | `paket-alan-eslemesi.test.ts` | tam beyan temizdir; kaynakta karşılığı olmayan alan null ile beyan edilir | evet | geçti |
 | `URN-PKT-022` | Ürünleştirme | DOMAIN | `paket-alan-eslemesi.test.ts` | beyanı hiç olmayan çerçeve kırmızıdır ve dolu sütunları sayar | evet | geçti |
 | `URN-PKT-022` | Ürünleştirme | DOMAIN | `paket-alan-eslemesi.test.ts` | dolu ama BEYANSIZ sütun kırmızıdır — kusurun ölçülmüş hâli | evet | geçti |

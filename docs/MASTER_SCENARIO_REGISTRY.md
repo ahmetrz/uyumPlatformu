@@ -13,7 +13,7 @@ it('kapsam dışı varlığa yazılamaz [ENV-YAZ-003]', …)
 Ayrı bir eşleme tablosu tutulsaydı, tablo ilk yeniden adlandırmada
 testten ayrışır ve kimse görmezdi.
 
-Senaryo: **320** · testli: **320** · GAP: **0**
+Senaryo: **321** · testli: **321** · GAP: **0**
 
 ## Aktivite · 2 senaryo
 
@@ -213,6 +213,12 @@ Senaryo: **320** · testli: **320** · GAP: **0**
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | `TAB-KNF-001` | /tabanlar | OT mühendisi · kendi tesisi | Hiç yedek kaydı yok · yok | Sapma durumuna bakar | Sonuç "bilinmiyor" — "yok" DEĞİL | Kaynak bağlı değilken motor temiz kapanır | Koşu kaydı | yok | `konfig-yedek.test.ts` |
 | `TAB-DRF-001` | /tabanlar | sistem (motor) · kurum geneli | Yedeğin içerik özeti yok · bilinmiyor | Motor koşar | Karar verilemeyen durum sapma AÇMAZ — özet hesaplayamayan bir kaynak bütün filoyu kırmızıya boyamaz | "Ölçülmedi" yazılır | yazma yok | yok | `ters-kapsam-eylem.test.ts` |
+
+## Kurulum · 1 senaryo
+
+| ID | Rota | Rol · kapsam | Ön koşul · veri | Eylem | Beklenen sonuç | Ekran | Denetim izi | Görev/bildirim | Test |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `URN-KUR-009` | — | kurulumu yapan · ürünü sürdüren geliştirici · prisma/postgres/ · lib/veritabani.ts · lib/db.ts · lib/aramaKosulu.ts · arac/pg-taban.mjs · arac/pg-goc.mjs | SQLite göç zinciri elle yazılmış DDL taşıyor (tetikleyici, kısmi indeks, ifade indeksi); `prisma migrate diff` bunların hiçbirini görmez · aykiri | Boş bir PostgreSQL veritabanına taban göçü uygulanır; şema farkı, nesne envanteri ve değişmezlik ölçülür; arama kipi sağlayıcıdan seçilir | Taban göçü şemadan üretilir ve bayatlarsa KIRMIZI; boş veritabanında şema farkı 0; SQLite'ta olup PostgreSQL'de olmayan tetikleyici/indeks KIRMIZI (ad kısaltması yalancı kırmızı üretmez); denetim izi UPDATE/DELETE/TRUNCATE reddedilir ve mesaj SQLite ile aynıdır; hiçbir satıra dokunmayan UPDATE GEÇER (FOR EACH ROW kanıtı); arama kipi sağlayıcıdan gelir ve tanınmayan bağlantı şeması sessizce SQLite olmaz; geçici veritabanı silinir ve silindiği doğrulanır | yok (kurulum kapısı) | yazma yok (ölçüm) | yok | `arama-kosulu.test.ts` · `arama-kosulu.test.ts` · `arama-kosulu.test.ts` · `pg-gocu.test.ts` · `pg-gocu.test.ts` · `pg-gocu.test.ts` |
 
 ## Mevzuat · 1 senaryo
 

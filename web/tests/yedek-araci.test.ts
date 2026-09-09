@@ -2,9 +2,10 @@ import { describe, expect, it } from 'vitest';
 import { copyFileSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-// @ts-expect-error — `better-sqlite3` tip bildirimi taşımıyor; ürün kodu
-// ona Prisma adaptörü üzerinden dokunuyor, doğrudan yalnız bu test için
-// gerekiyor (yedeğin veri değişince değiştiğini göstermek üzere).
+/* `better-sqlite3`e doğrudan dokunan testler tip bildirimi kullanır
+   (`@types/better-sqlite3`, R5 ile eklendi): ürün kodu ona Prisma adaptörü
+   üzerinden dokunur, testler ham sürücüyle — SQLite göçlerini ölçen bir
+   testin üretilen (sağlayıcıya bağlı) istemciye ihtiyacı yoktur. */
 import Database from 'better-sqlite3';
 import { al, denetle, karsilastir, ozet } from '../arac/yedek.mjs';
 

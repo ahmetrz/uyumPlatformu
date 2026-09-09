@@ -9,7 +9,6 @@ import { KARELER, SAHNELER, ekranYerlestir, kaydirmaKatsayisi, kaydirmaTamam, si
 import { sahneKur, type Sahne } from './sahne';
 import styles from './giris.module.css';
 
-const HATIRLA = 'uyum-sahne-goruldu-v5';
 const DOSYALAR = ['sahne-01-uzak', 'sahne-02-yaklasma', 'sahne-03-bina', 'sahne-04-ekran'] as const;
 
 export default function SinematikGiris({ children, sadeceAnaSayfa = false, sektorler = [] }: {
@@ -37,7 +36,6 @@ function Giris({ children, sektorler }: {
     const etiket = el.querySelector<HTMLElement>(`.${styles.current}`)!;
     let sahne: Sahne | undefined, kapandi = false, raf = 0, mesafe = 0;
     let hareketli = false, sonP = -1, sonTamam = false, tempo = 1;
-    const hatirla = () => { try { sessionStorage.setItem(HATIRLA, '1'); } catch { /* Depolama isteğe bağlı. */ } };
     const temizle = () => { sahne?.temizle(); sahne = undefined; };
     function statik(atlandi = false) {
       hareketli = false; cancelAnimationFrame(raf); raf = 0;
@@ -48,12 +46,9 @@ function Giris({ children, sektorler }: {
       el.dataset.tamam = 'false'; el.dataset.metinsiz = 'false'; el.dataset.asama = '0'; el.dataset.arayuz = '0'; ui.style.cssText = '';
       temizle();
     }
-    let goruldu = false;
-    try { goruldu = sessionStorage.getItem(HATIRLA) === '1'; } catch { /* Kalıcılık yok. */ }
-    const dogrudan = goruldu || !!location.hash || new URLSearchParams(location.search).has('next');
+    const dogrudan = !!location.hash || new URLSearchParams(location.search).has('next');
     statik(dogrudan);
     atla.current = () => {
-      hatirla();
       statik(true);
       ui.scrollIntoView({ behavior: 'instant', block: 'start' });
       ui.focus({ preventScroll: true });
@@ -99,7 +94,6 @@ function Giris({ children, sektorler }: {
       ui.style.clipPath = tamam ? 'none' : `inset(${ekran.ust}px ${ekran.sag}px ${Math.max(0, ui.offsetHeight - ekran.boy)}px ${ekran.sol}px)`;
       ui.style.opacity = String(s.arayuz);
       ui.style.visibility = s.arayuz > 0 || tamam ? 'visible' : 'hidden';
-      if (tamam && !sonTamam) hatirla();
       if (!tamam && sonTamam && ui.contains(document.activeElement)) {
         el.querySelector<HTMLAnchorElement>(`.${styles.skip}`)?.focus({ preventScroll: true });
       }
@@ -118,11 +112,15 @@ function Giris({ children, sektorler }: {
       }
     }
     if (!dogrudan && !motion.matches) {
+      // Görseller çözülmeden kaydırma alanını ayır; erken scroll yolculuğu iptal etmez.
+      el.dataset.mod = 'hareketli';
+      ui.inert = true; ui.setAttribute('aria-hidden', 'true');
+      boyutla();
       async function baslat() {
-        if (kapandi || motion.matches || el.dataset.mod === 'dogrudan' || window.scrollY > 8) return;
+        if (kapandi || motion.matches || el.dataset.mod === 'dogrudan') return;
         try {
           const yeni = await sahneKur(el);
-          if (kapandi || motion.matches || el.dataset.mod === 'dogrudan' || window.scrollY > 8) {
+          if (kapandi || motion.matches || el.dataset.mod === 'dogrudan') {
             yeni.temizle(); return;
           }
           sahne = yeni;

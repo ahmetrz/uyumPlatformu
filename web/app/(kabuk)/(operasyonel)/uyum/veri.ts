@@ -158,6 +158,7 @@ export async function cerceveleriYukle(
         },
       }),
       db.maddeEslestirmesi.findMany({
+        where: { aktif: true },
         include: {
           kaynak: { select: { regulasyonId: true } },
           hedef: { select: { regulasyonId: true } },

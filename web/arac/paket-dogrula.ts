@@ -31,7 +31,7 @@ if (ozetYaz) {
 
 const s = paketiDogrula(dizin);
 const oz = s.sayilar;
-console.log(`${dizin}: sözlük ${oz.sozluk} · tür ${oz.kapsamTurleri} · öznitelik ${oz.oznitelikler} · çerçeve ${oz.cerceveler} · madde ${oz.maddeler} · yükümlülük ${oz.yukumlulukler} · form ${oz.formlar} · rapor ${oz.raporlar} · rol ${oz.roller}`);
+console.log(`${dizin}: sözlük ${oz.sozluk} · tür ${oz.kapsamTurleri} · öznitelik ${oz.oznitelikler} · çerçeve ${oz.cerceveler} · madde ${oz.maddeler} · eşleme ${oz.eslemeler} · yükümlülük ${oz.yukumlulukler} · form ${oz.formlar} · rapor ${oz.raporlar} · rol ${oz.roller}`);
 if (s.ok) {
   console.log('GEÇERLİ — paket kurulabilir (çerçeveler TASLAK gelir; aktifleştirme insan kararıdır)');
   process.exit(0);

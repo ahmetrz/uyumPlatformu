@@ -810,10 +810,17 @@ işlem izinleri, kapsam ekseni; `RolKatalogu`, göç
 tanımlanamaz, izin merdiveni (onay → yazma → okuma) doğrulanır; çalışma
 zamanı yetkisi kataloğu OKUMAZ (paket önerir, kiracı karar verir; koda
 bağlanması P2/P6) — paket biçiminin modül · işlem · çekirdek rol sabitleri
-`lib/erisim.ts`e karşı derlemede ve bekçiyle ölçülür (URN-PKT-013). Kalan:
-demo yükleyici, eşleme CSV, `/paketler` ekranı, OSCAL okuyucu (SCF için —
-hukuki görüş bekleniyor), form/rapor ekranlarının şablonu okuması, rol
-önerisinin koda bağlanması.
+`lib/erisim.ts`e karşı derlemede ve bekçiyle ölçülür (URN-PKT-013).
+**2.4 uygulandı:** eşleme CSV türü (`esleme/<KOD>.json` kimlik: kaynak/hedef
+çerçeve + sürüm etiketi, paket içi ya da kurulu; CSV
+`kaynak_kod;hedef_kod;denklik;aciklama`); yapı kusuru LİSANS'tan ÖNCE,
+açıklama sınırlı ve yalnız metin izinliyken; `MaddeEslestirmesi.aktif`
+(göç `20260909150000_p4_esleme_aktif`): bırakılan eşleme pasif, okuyucular
+ve `madde.eslestirme*` içermeleri aktif süzer (bekçi genişledi); paketin
+kendi eşlemesi taslak yenilemesinde bağ sayılmaz, kiracınınki sayılır
+(URN-PKT-014). Kalan: demo yükleyici, `/paketler` ekranı, OSCAL okuyucu
+(SCF için — hukuki görüş bekleniyor), form/rapor ekranlarının şablonu
+okuması, rol önerisinin koda bağlanması, R6 ilişki türü/güç.
 
 **Hedef.** Çerçeveler, eşlemeler, yükümlülükler, denetim form şablonları,
 mevzuat kaynak katalogları, sektör sözlükleri ve demo verisi **paket**

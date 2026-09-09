@@ -138,7 +138,7 @@ describe('iskeletler taze veritabanına kurulur — taslak çerçeve, madde = CS
     const s = await paketiKur(BANKA, { kuranId, istemci: db });
     expect(s.ok, JSON.stringify(s)).toBe(true);
     if (!s.ok) return;
-    expect(s.rapor.sayilar).toEqual({ sozluk: 15, kapsamTurleri: 4, oznitelikler: 7, cerceveler: 1, maddeler: 58, yukumlulukler: 0, formlar: 1, raporlar: 0, roller: 3 });
+    expect(s.rapor.sayilar).toEqual({ sozluk: 15, kapsamTurleri: 4, oznitelikler: 7, cerceveler: 1, maddeler: 58, yukumlulukler: 0, formlar: 1, raporlar: 0, roller: 3, eslemeler: 0 });
     // 2.2: iskelet form şablonu katalogda, köken paket, madde referansları çözülmüş
     const form = await db.formSablonu.findUniqueOrThrow({ where: { kod: 'BDDK-BS-OZDEGERLENDIRME' } });
     expect(form).toMatchObject({ koken: 'paket', aktif: true, dosyaAdi: null, paketSurumId: s.rapor.surumId });

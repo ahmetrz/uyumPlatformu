@@ -416,6 +416,20 @@ export const URUNLESTIRME_SENARYOLARI: Senaryo[] = [
     katmanlar: ['DOMAIN', 'SERVER', 'INTEGRATION'],
   },
   {
+    id: 'URN-PKT-014', alan: 'Ürünleştirme', rota: '/eslestirme', eksen: 'veri',
+    amac: 'Çerçeveler arası madde eşlemesinin paketle gelmesi: CSV yapı kusuru lisanstan ÖNCE reddedilir, açıklama metni lisansla sınırlı, kiracı eşlemesi ezilmez, bırakılan eşleme pasif',
+    rol: 'paket yazarı · tanımlar yazma yetkili', kapsam: '`esleme/<KOD>.json` + CSV · MaddeEslestirmesi (koken · aktif) · eşleme okuyucuları',
+    onkosul: 'Kimlik: kaynak/hedef çerçeve + sürüm etiketi (paket içi ya da kurulu), lisans; CSV: kaynak_kod;hedef_kod;denklik;aciklama',
+    veriHali: 'aykiri',
+    eylem: 'Tekrar başlık, başlığı aşan dolu hücre, eksik/bilinmeyen sütun, boş kod, tekrar çift, bilinmeyen denklik, paket içi olmayan madde, telifli pakette/eşlemede/çerçevede açıklama doğrulanır; '
+      + 'kurulu çerçeveye eşleme kurulur (yanlış etiket, olmayan madde, telifli kurulu çerçeve + açıklama); kiracı eşlemesi varken kurulur; kendi eşlemesini taşıyan paket aynı etiketle yenilenir; kiracı eşlemesi bağlıyken yenileme; bir eşleme bırakılır; paket kaldırılır',
+    beklenenSonuc: 'Yapı kusuru BIÇIM ve o satırda LİSANS üretilmez (yapı önce); açıklama LİSANS yalnız metin yasağında, > 200 karakter BIÇIM; kurulan eşleme koken=paket, aktif; kiracı eşlemesi çelişki ve dokunulmaz; '
+      + 'paketin kendi eşlemesi bağ sayılmaz ama kiracının eşlemesi taslak yenilemesini SÜRÜM ile durdurur; bırakılan eşleme pasif (silme yok), yeniden beyan aktifler, kaldırma pasifler; her eşleme okuyucusu ve içermesi aktif süzer (bekçi)',
+    beklenenEkran: '/eslestirme ve süreç ekranı pasif eşlemeyi göstermez',
+    beklenenIz: 'kurulum izi eşleme sayısıyla', beklenenBildirim: 'yok',
+    katmanlar: ['DOMAIN', 'SERVER', 'INTEGRATION'],
+  },
+  {
     id: 'URN-PKT-010', alan: 'Ürünleştirme', rota: '—', eksen: 'veri',
     amac: 'Paket işlemlerinin müşteri verisini SİLEMEMESİ (R-C): bekçi tavanı sıfır, gerekçeli istisna yok',
     rol: 'ürünü sürdüren geliştirici', kapsam: '`lib/paket/` · paket eylemleri · şema',

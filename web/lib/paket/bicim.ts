@@ -13,6 +13,7 @@
 import { createHash } from 'node:crypto';
 import { z } from 'zod';
 import type { Islem, Modul } from '../erisim';
+import { DENKLIKLER } from '../sabitler';
 
 export const PAKET_TURLERI = ['sektor', 'yatay', 'demo', 'uluslararasi'] as const;
 export const LISANS_TURLERI = ['kamuya_acik', 'telifli'] as const;
@@ -256,6 +257,41 @@ export const RolSatiriSemasi = z.object({
 }).strict();
 export type RolSatiri = z.infer<typeof RolSatiriSemasi>;
 
+/* ── 2.4 · Eşleme CSV türü (§1/4 · §4 "müşterinin eşlemeleri ezilmez") ──
+   `esleme/<KOD>.json` kimlik + `esleme/<KOD>.csv` satırlar. Eşleme
+   çerçeveler ARASIDIR: kaynak ve hedef çerçeve + sürüm etiketi kimlikte
+   durur; satır yalnız madde KODU taşır (`kaynak_kod;hedef_kod;denklik;
+   aciklama`). Metin taşıyabilen tek sütun `aciklama`dır: sınırlıdır ve
+   yalnız `lisans.metinDahil=true` iken, telifli olmayan pakette ve telifli
+   olmayan çerçevelere karşı dolabilir (aksi LİSANS). Yapı kusurları (tekrar
+   başlık, başlığı aşan dolu hücre) lisans kontrolünden ÖNCE reddedilir —
+   okunmayan hücre içerik taşır (PR #41 birinci turda düzeltilen kalıp).
+   R6 (`iliskiTuru · guc · kaynakBelge`) bu biçimi genişletir, değiştirmez. */
+export const ESLEME_ZORUNLU_SUTUNLAR = ['kaynak_kod', 'hedef_kod', 'denklik'] as const;
+export const ESLEME_SUTUNLARI = [...ESLEME_ZORUNLU_SUTUNLAR, 'aciklama'] as const;
+/** Eşleme açıklaması NOT olabilir, metin olamaz. */
+export const ACIKLAMA_SINIRI = 200;
+export { DENKLIKLER };
+const CerceveReferansiSemasi = z.object({
+  cerceve: z.string().regex(CERCEVE_KODU, 'çerçeve kodu BÜYÜK harf: EPDK-SGYM'),
+  surumEtiketi: z.string().min(1).max(40),
+}).strict();
+export const EslemeKimligiSemasi = z.object({
+  kod: z.string().regex(CERCEVE_KODU, 'eşleme kodu BÜYÜK harf: EPDK-SGYM-ISO27019'),
+  ad: z.string().min(3).max(200),
+  /** paketin kendi çerçevesi (etiketi onunla aynı) ya da KURULU bir çerçeve sürümü */
+  kaynak: CerceveReferansiSemasi,
+  hedef: CerceveReferansiSemasi,
+  lisans: LisansSemasi,
+  /** eşleme satırları CSV'si — bu JSON'la aynı dizinde */
+  eslemeDosyasi: z.string().regex(/^[A-Za-z0-9._-]+\.csv$/),
+  /** eşlemenin dayandığı belge ya da karar — kısa künye, metin değil */
+  kaynakBelge: z.string().max(ACIKLAMA_SINIRI).nullable().optional(),
+  not: z.string().max(500).optional(),
+}).strict();
+export type EslemeKimligi = z.infer<typeof EslemeKimligiSemasi>;
+export type EslemeSatiri = { kaynakKod: string; hedefKod: string; denklik: string; aciklama: string | null };
+
 export const DOSYALAR = {
   manifest: 'manifest.json',
   sozluk: 'sozluk.json',
@@ -264,6 +300,7 @@ export const DOSYALAR = {
   yukumlulukler: 'yukumlulukler.json',
   roller: 'roller.json',
   cerceveDizini: 'cerceve',
+  eslemeDizini: 'esleme',
   formDizini: 'form',
   raporDizini: 'rapor',
 } as const;

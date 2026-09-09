@@ -4,12 +4,12 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 310 |
-| Testi olan senaryo | 310 |
+| Senaryo | 311 |
+| Testi olan senaryo | 311 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
-| Taranan test dosyası | 180 |
+| Taranan test dosyası | 181 |
 
 ## Katman başına kapsam
 
@@ -18,14 +18,14 @@
 | ACCESSIBILITY | 8 | 8 | 0 |
 | API | 12 | 12 | 0 |
 | CONCURRENCY | 7 | 7 | 0 |
-| DOMAIN | 170 | 170 | 0 |
+| DOMAIN | 171 | 171 | 0 |
 | ENGINE | 33 | 33 | 0 |
-| INTEGRATION | 38 | 38 | 0 |
+| INTEGRATION | 39 | 39 | 0 |
 | MIGRATION | 5 | 5 | 0 |
 | RBAC | 32 | 32 | 0 |
 | RESPONSIVE | 8 | 8 | 0 |
 | SCOPE | 30 | 30 | 0 |
-| SERVER | 116 | 116 | 0 |
+| SERVER | 117 | 117 | 0 |
 | UI | 84 | 84 | 0 |
 | VISUAL | 4 | 4 | 0 |
 | WORKFLOW | 32 | 32 | 0 |
@@ -516,7 +516,7 @@
 | `URN-PKT-008` | Ürünleştirme | SERVER · INTEGRATION | `paket-kur.test.ts` | değişmez alan (sektör · lisans) aynı sürümde değişemez; betimleyici alan (ad) değişebilir ve madde kimlikleri korunur | evet | geçti |
 | `URN-PKT-009` | Ürünleştirme | SERVER · INTEGRATION | `paket-kur.test.ts` | kurulu bir paket bağımlıysa kaldırma reddedilir; bağımlı kaldırılınca kaldırılır | evet | geçti |
 | `URN-PKT-009` | Ürünleştirme | SERVER · INTEGRATION | `paket-kur.test.ts` | kaldırılan paket aynı içerikle geri kurulur: arşiv taslak taslağa döner, madde kimlikleri korunur, paket kurulu | evet | geçti |
-| `URN-PKT-011` | Ürünleştirme | DOMAIN · SERVER · INTEGRATION | `bekci/aktif-suzgec.test.ts` | her okuma sorgusu `aktif: true` süzer — pasif satır ekrana inmez | evet | geçti |
+| `URN-PKT-011` | Ürünleştirme | DOMAIN · SERVER · INTEGRATION | `bekci/aktif-suzgec.test.ts` | her okuma sorgusu ve eşleme içermesi `aktif: true` süzer — pasif satır ekrana inmez | evet | geçti |
 | `URN-PKT-011` | Ürünleştirme | DOMAIN · SERVER · INTEGRATION | `paket-aktif-bayragi.test.ts` | v2 bir sözlük satırını ve bir özniteliği bırakır: satır aktif=false, sözlük okuyucu ve rol anahtarı görmez | evet | geçti |
 | `URN-PKT-011` | Ürünleştirme | DOMAIN · SERVER · INTEGRATION | `paket-aktif-bayragi.test.ts` | kaldırma paketin sözlük ve özniteliklerini pasifler; aynı içerikle geri kurulum aktifler (bırakılan yine pasif) | evet | geçti |
 | `URN-PKT-011` | Ürünleştirme | DOMAIN · SERVER · INTEGRATION | `paket-aktif-bayragi.test.ts` | pasif öznitelik Tesis 360 profilinde çizilmez ve profil kaydı onu "bilinmeyen öznitelik" sayar; aktifleşince geri gelir | evet | geçti |
@@ -537,6 +537,16 @@
 | `URN-PKT-013` | Ürünleştirme | DOMAIN · SERVER · INTEGRATION | `paket-rol.test.ts` | izin merdiveni: onay yazma ister, yazma okuma ister | evet | geçti |
 | `URN-PKT-013` | Ürünleştirme | DOMAIN · SERVER · INTEGRATION | `paket-rol.test.ts` | roller koken=paket yazılır (izinler JSON, eksen, sıra); paket rol kodu çalışma zamanında izin VERMEZ — katalog öneri, kod karar | evet | geçti |
 | `URN-PKT-013` | Ürünleştirme | DOMAIN · SERVER · INTEGRATION | `paket-rol.test.ts` | kiracı rolü ezilmez (çelişki); bırakılan rol pasif, silinmez; yeniden beyan aktifler; kaldırma paket rollerini pasifler | evet | geçti |
+| `URN-PKT-014` | Ürünleştirme | DOMAIN · SERVER · INTEGRATION | `bekci/aktif-suzgec.test.ts` | her okuma sorgusu ve eşleme içermesi `aktif: true` süzer — pasif satır ekrana inmez | evet | geçti |
+| `URN-PKT-014` | Ürünleştirme | DOMAIN · SERVER · INTEGRATION | `paket-esleme.test.ts` | geçerli eşleme satır sayısıyla sayılır; kimlik ve satırlar okunur; metinDahil=true ile açıklama geçer | evet | geçti |
+| `URN-PKT-014` | Ürünleştirme | DOMAIN · SERVER · INTEGRATION | `paket-esleme.test.ts` | dosya adı ≠ kod KİMLİK; kaynak = hedef çerçeve BIÇIM; paket içi çerçeveye yanlış etiket KİMLİK; CSV yok BIÇIM | evet | geçti |
+| `URN-PKT-014` | Ürünleştirme | DOMAIN · SERVER · INTEGRATION | `paket-esleme.test.ts` | YAPI KUSURU LİSANS\'TAN ÖNCE: tekrar başlık ve başlığı aşan dolu hücre BIÇIM, o satırda LİSANS üretilmez; eksik/bilinmeyen sütun BIÇIM | evet | geçti |
+| `URN-PKT-014` | Ürünleştirme | DOMAIN · SERVER · INTEGRATION | `paket-esleme.test.ts` | satır: boş kod KİMLİK, tekrar çift KİMLİK, denklik bilinmiyor BIÇIM, paket içi çerçevede olmayan madde KİMLİK | evet | geçti |
+| `URN-PKT-014` | Ürünleştirme | DOMAIN · SERVER · INTEGRATION | `paket-esleme.test.ts` | açıklama: telifli pakette, metinDahil=false eşlemede, telifli çerçeveye karşı LİSANS (sebep adıyla); > 200 karakter BIÇIM | evet | geçti |
+| `URN-PKT-014` | Ürünleştirme | DOMAIN · SERVER · INTEGRATION | `paket-esleme.test.ts` | eşlemeler koken=paket, aktif, denklik ve açıklamayla yazılır; sayılır | evet | geçti |
+| `URN-PKT-014` | Ürünleştirme | DOMAIN · SERVER · INTEGRATION | `paket-esleme.test.ts` | paketin KENDİ eşlemesi bağ değildir: aynı etiketle yenilenen taslak eşlemeleri yeniden yazar; kiracının eşlemesi bağdır: yenileme SÜRÜM | evet | geçti |
+| `URN-PKT-014` | Ürünleştirme | DOMAIN · SERVER · INTEGRATION | `paket-esleme.test.ts` | kurulu çerçeveye eşleme: yalnız eşleme taşıyan yatay paket; başka kökenli eşleme çelişki; bırakılan pasif, yeniden beyan aktif; kaldırma pasifler | evet | geçti |
+| `URN-PKT-014` | Ürünleştirme | DOMAIN · SERVER · INTEGRATION | `paket-esleme.test.ts` | kurulu çerçeve çözümü: yanlış sürüm etiketi KİMLİK, olmayan madde KİMLİK, telifli kurulu çerçeveye açıklama LİSANS — hiçbir satır yazılmaz | evet | geçti |
 | `URN-PKT-010` | Ürünleştirme | DOMAIN | `bekci/paket-silme.test.ts` | madde dışında HİÇBİR modelde delete/deleteMany yok — tavan sıfır, istisna listesi yok | evet | geçti |
 | `URN-PKT-010` | Ürünleştirme | DOMAIN | `bekci/paket-silme.test.ts` | madde silmesi yalnız paketin kendi taslağını (`surumId` süzgeci) hedefler ve bağ kontrolünden sonra gelir | evet | geçti |
 | `URN-PKT-010` | Ürünleştirme | DOMAIN | `bekci/paket-silme.test.ts` | şemada Madde\'den başka modele giden HER liste ilişkisi bağ kontrolünde; listede şemada olmayan ilişki yok | evet | geçti |

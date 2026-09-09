@@ -26,11 +26,11 @@ export type PaketKurSonucu = Sonuc | { ok: true; rapor: KurulumRaporu };
    dâhil; sayılmayan kalem izde görünmez ve uzlaştırma sessiz kalırdı. */
 function kurulumGerekcesi(r: KurulumRaporu): string {
   const p = r.pasiflestirilen; const s = r.sayilar;
-  const pasif = p.kapsamTurleri + p.yukumlulukler + p.cerceveSurumleri + p.sozluk + p.oznitelikler + p.formlar + p.raporlar + p.roller;
+  const pasif = p.kapsamTurleri + p.yukumlulukler + p.cerceveSurumleri + p.sozluk + p.oznitelikler + p.formlar + p.raporlar + p.roller + p.eslemeler;
   return `sözlük ${s.sozluk} · tür ${s.kapsamTurleri} · öznitelik ${s.oznitelikler} · `
-    + `çerçeve ${s.cerceveler} (${s.maddeler} madde, TASLAK) · yükümlülük ${s.yukumlulukler} · form ${s.formlar} · rapor ${s.raporlar} · rol ${s.roller}`
+    + `çerçeve ${s.cerceveler} (${s.maddeler} madde, TASLAK) · yükümlülük ${s.yukumlulukler} · eşleme ${s.eslemeler} · form ${s.formlar} · rapor ${s.raporlar} · rol ${s.roller}`
     + (r.celiskiler.length ? ` · çelişki ${r.celiskiler.length} (kiracı satırı korundu)` : '')
-    + (pasif ? ` · uzlaştırma: tür ${p.kapsamTurleri}, yükümlülük ${p.yukumlulukler}, sözlük ${p.sozluk}, öznitelik ${p.oznitelikler}, form ${p.formlar}, rapor ${p.raporlar}, rol ${p.roller} pasif; taslak sürüm ${p.cerceveSurumleri} arşiv`
+    + (pasif ? ` · uzlaştırma: tür ${p.kapsamTurleri}, yükümlülük ${p.yukumlulukler}, sözlük ${p.sozluk}, öznitelik ${p.oznitelikler}, eşleme ${p.eslemeler}, form ${p.formlar}, rapor ${p.raporlar}, rol ${p.roller} pasif; taslak sürüm ${p.cerceveSurumleri} arşiv`
       + ((p.sozluk + p.oznitelikler) ? ` (${[...r.pasifAnahtarlar.sozluk, ...r.pasifAnahtarlar.oznitelikler].join(', ')})` : '') : '');
 }
 

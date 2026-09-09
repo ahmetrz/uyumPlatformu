@@ -740,6 +740,10 @@ model MaddeEslestirmesi {
   /// satırına DOKUNULMAZ (docs/SEKTOR_PAKETI_SOZLESMESI.md §4).
   koken        String  @default("kiraci")
   paketSurumId String?
+  /// P4 · 2.4: paket yükseltmesinin bıraktığı / kaldırmanın pasiflediği
+  /// eşleme SİLİNMEZ (R-C), `aktif=false` olur; okuyucular yalnız aktif
+  /// satırı görür (bekçi `tests/bekci/aktif-suzgec.test.ts`).
+  aktif        Boolean @default(true)
 
   kaynak Madde @relation("EslestirmeKaynak", fields: [kaynakId], references: [id], onDelete: Cascade)
   hedef  Madde @relation("EslestirmeHedef", fields: [hedefId], references: [id], onDelete: Cascade)

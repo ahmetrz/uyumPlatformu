@@ -35,6 +35,8 @@ kurulamaz.
 | `yukumlulukler.json` | JSON dizi | `kod · ad · regulasyonKod? · asgariSiddet · sureSaat · dayanak · merci` |
 | `form/<KOD>.json` | JSON | denetim formu şablonu: `kod · ad · tur (denetim · oz_degerlendirme · saha) · bolumler[{kod, baslik, alanlar[{anahtar, etiket ≤ 120, tip (metin · sayi · mantik · tarih · secim), secenekler?, maddeKod?, zorunlu, hucre?}]}]`; isteğe bağlı `dosya` (aynı dizinde XLSX) + `sayfa`: doğrulayıcı sayfayı ve her alanın hücresini DOSYAYA karşı okur. **Telifli pakette XLSX yasak** (hücre metni denetlenemez). Dosya adı = kod |
 | `rapor/<KOD>.json` | JSON | rapor şablonu: `kod · ad · alanlar[{anahtar, etiket, kaynak (nokta yolu: madde.durum)}] · siralama (alanların permütasyonu) · kunye {baslik, altbilgi?} · sayfa {boyut A4/Letter, yon dikey/yatay}`. Dosya adı = kod |
+| `esleme/<KOD>.json` | JSON | eşleme kimliği: `kod · ad · kaynak {cerceve, surumEtiketi} · hedef {cerceve, surumEtiketi} · lisans · eslemeDosyasi · kaynakBelge?` — çerçeveler ARASI; paket içi çerçeveye referans onun kendi sürüm etiketiyle, kurulu çerçeveye kurulu sürümün etiketiyle (yoksa kurulum KİMLİK). Dosya adı = kod |
+| `esleme/<KOD>.csv` | CSV (`;`, UTF-8, başlık satırı) | `kaynak_kod;hedef_kod;denklik;aciklama` — madde kodu çerçeve önekinden sonraki kısım (`EPDK-SGYM-3` → `3`); `denklik` `tam · kismi · ilgili`; her çift bir kez; tekrar başlık ve başlığı aşan dolu hücre lisans kontrolünden ÖNCE reddedilir; `aciklama` ≤ 200 karakter ve yalnız `lisans.metinDahil=true` iken, telifli olmayan pakette ve telifli olmayan çerçevelere karşı dolabilir. Yalnız eşleme taşıyan paket `yatay` olabilir |
 | `roller.json` | JSON dizi | rol önerisi: `kod (küçük harf) · ad · aciklama? · izinler {modül: [okuma · yazma · onay]} · kapsamEkseni (global · kapsamOgesi) · sira` — modül adları `uyum · envanter · risk · denetim · proje · tanimlar · yonetim`; çekirdek rol kodu (`yonetici`, `denetim_sorumlusu`, `tesis_yoneticisi`, `bt_yoneticisi`, `ot_yoneticisi`, `risk_sahibi`, `katkici`, `dis_denetci`, `okuyucu`) yeniden tanımlanamaz; `onay` `yazma` ister, `yazma` `okuma` ister. **Çalışma zamanı yetkisi kataloğu okumaz**: paket önerir, kiracı karar verir |
 
 ## Lisans sınırı — alanda, yorumda değil
@@ -76,6 +78,8 @@ etiketini yenilerken taslağın maddesine kiracı bir şey bağlamışsa (kapsam
 alanı, durum, eşleme, istisna, proje, risk, denetim kapsamı, belge, eğitim)
 **ya da maddeyi düzenlemişse** (denetim izinde `Madde` kaydı — hedef
 olgunluk gibi) yenileme reddedilir; paket yeni bir `surumEtiketi` verir.
+Paketin KENDİ eşlemesi bağ sayılmaz (yeniden yazılır); kiracının ve başka
+paketin eşlemesi sayılır.
 
 **Kaldırma ve geri kurulum.** Kurulu başka bir paket bu pakete bağımlıysa
 kaldırma reddedilir (önce bağımlı kaldırılır). Kaldırılan paket aynı
@@ -83,8 +87,8 @@ içerikle geri kurulunca arşivdeki kendi taslağı taslağa döner; yeni etiket
 istenmez.
 
 **Yükseltme uzlaştırması.** Yeni sürümün artık beyan etmediği paket
-kökenli tür, yükümlülük, sözlük satırı, öznitelik, form/rapor şablonu ve
-rol önerisi `aktif=false` olur,
+kökenli tür, yükümlülük, sözlük satırı, öznitelik, form/rapor şablonu,
+rol önerisi ve eşleme `aktif=false` olur,
 paketin kendi taslak çerçeve sürümü `arsiv`e çekilir — hiçbiri silinmez
 (R-C). Pasifleşen sözlük/öznitelik anahtarları kurulum raporunda
 `pasifAnahtarlar` altında listelenir; ekran pasif sözcüğü söylemez, pasif
@@ -98,6 +102,10 @@ ile iz kaydı aynı transaction'dadır: iz yazılamazsa işlem de geri alınır.
 | --- | --- | --- |
 | `TR-ENERJI` | **iskelet** (0.1.0) | sözlük (tohumla birebir), `kontrol_sistemi` türü, 12 öznitelik, `EPDK-SGYM` yönetmelik yapısı (4 bölüm, 18 + 1 geçici madde başlığı), `EPDK-SGYM-EK3` (13 aile, 565 kontrol kimliği ve seviyesi), `EPDK-SGYM-KARNE` rapor şablonu, 2 rol önerisi — **madde metni yok** |
 | `TR-BANKACILIK` | **iskelet** (0.1.0) | 4 kapsam öğesi türü, 7 öznitelik, `BDDK-BS` yapısı (4 kısım, 7 bölüm, 47 madde numarası), `BDDK-BS-OZDEGERLENDIRME` form şablonu (JSON yapı), 3 rol önerisi — başlıklar birincil metin erişilince; **madde metni yok** |
+
+İskeletlerde eşleme dosyası **yok**: iki çerçeve arasında denklik iddiası
+madde metni gibi içerik işidir, uydurulmaz (biçim `tests/paket-esleme.test.ts`
+ile sentetik paketlerde ölçülür).
 
 Madde metni aktarımı **içerik işidir** (`docs/TR_SEKTOR_PAKETLERI.md` §4);
 telifli çerçeve metni depoya girmez; Türkçe SCF dağıtımına bağlı hiçbir

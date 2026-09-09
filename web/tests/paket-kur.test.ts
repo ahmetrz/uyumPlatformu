@@ -61,9 +61,9 @@ describe('kurucu — tek transaction, taslak sürüm, köken [URN-PKT-003]', () 
     const s = await kur();
     expect(s.ok, JSON.stringify(s)).toBe(true);
     if (!s.ok) return;
-    expect(s.rapor.sayilar).toEqual({ sozluk: 2, kapsamTurleri: 1, oznitelikler: 2, cerceveler: 2, maddeler: 5, yukumlulukler: 1, formlar: 0, raporlar: 0, roller: 0 });
+    expect(s.rapor.sayilar).toEqual({ sozluk: 2, kapsamTurleri: 1, oznitelikler: 2, cerceveler: 2, maddeler: 5, yukumlulukler: 1, formlar: 0, raporlar: 0, roller: 0, eslemeler: 0 });
     expect(s.rapor.celiskiler).toEqual([]);
-    expect(s.rapor.pasiflestirilen).toEqual({ kapsamTurleri: 0, yukumlulukler: 0, cerceveSurumleri: 0, sozluk: 0, oznitelikler: 0, formlar: 0, raporlar: 0, roller: 0 });
+    expect(s.rapor.pasiflestirilen).toEqual({ kapsamTurleri: 0, yukumlulukler: 0, cerceveSurumleri: 0, sozluk: 0, oznitelikler: 0, formlar: 0, raporlar: 0, roller: 0, eslemeler: 0 });
     expect(s.rapor.pasifAnahtarlar).toEqual({ sozluk: [], oznitelikler: [] });
 
     const sektor = await db.sektor.findUniqueOrThrow({ where: { kod: 'TEST-SEKTOR' } });
@@ -309,7 +309,7 @@ describe('yükseltme uzlaştırması — bırakılan içerik pasif/arşiv, silme
     const b = await kur(v2, { ...manifest, surum: '0.2.0' });
     expect(b.ok, JSON.stringify(b)).toBe(true);
     if (!b.ok) return;
-    expect(b.rapor.pasiflestirilen).toEqual({ kapsamTurleri: 1, yukumlulukler: 1, cerceveSurumleri: 1, sozluk: 1, oznitelikler: 1, formlar: 0, raporlar: 0, roller: 0 });
+    expect(b.rapor.pasiflestirilen).toEqual({ kapsamTurleri: 1, yukumlulukler: 1, cerceveSurumleri: 1, sozluk: 1, oznitelikler: 1, formlar: 0, raporlar: 0, roller: 0, eslemeler: 0 });
     expect(b.rapor.pasifAnahtarlar).toEqual({ sozluk: ['birim@tr'], oznitelikler: ['yukOzB'] });
     expect(await sayim()).toEqual(once);
     expect(await db.kapsamOgesiTuru.findUniqueOrThrow({ where: { kod: 'yuk_tur_b' } })).toMatchObject({ aktif: false, koken: 'paket' });
@@ -331,7 +331,7 @@ describe('yükseltme uzlaştırması — bırakılan içerik pasif/arşiv, silme
     await db.kapsamOgesiTuru.create({ data: { kod: 'yuk_kiraci_turu', ad: 'Kiracı türü', koken: 'kiraci', sektorId: sektor.id } });
     const c = await kur(v2, { ...manifest, surum: '0.2.1' });
     expect(c.ok, JSON.stringify(c)).toBe(true);
-    if (c.ok) expect(c.rapor.pasiflestirilen).toEqual({ kapsamTurleri: 0, yukumlulukler: 0, cerceveSurumleri: 0, sozluk: 0, oznitelikler: 0, formlar: 0, raporlar: 0, roller: 0 });
+    if (c.ok) expect(c.rapor.pasiflestirilen).toEqual({ kapsamTurleri: 0, yukumlulukler: 0, cerceveSurumleri: 0, sozluk: 0, oznitelikler: 0, formlar: 0, raporlar: 0, roller: 0, eslemeler: 0 });
     expect((await db.kapsamOgesiTuru.findUniqueOrThrow({ where: { kod: 'yuk_kiraci_turu' } })).aktif).toBe(true);
     expect((await db.kapsamOgesiTuru.findUniqueOrThrow({ where: { kod: 'yuk_tur_b' } })).aktif).toBe(false);
   });

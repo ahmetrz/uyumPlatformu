@@ -6,19 +6,43 @@ import { taranacakKaynaklar } from './nullOlumsuzlama';
 /* ═══════════════════════════════════════════════════════════════════════
    BEKÇİ · PASİF SÖZLÜK / ÖZNİTELİK SATIRI EKRANA İNMEZ (2.1 · URN-PKT-011)
 
-   `SektorSozlugu.aktif` ve `SektorOznitelikSemasi.aktif` paket
-   yükseltmesinde ve kaldırmada false olur; satır SİLİNMEZ (R-C). Bayrağın
-   anlamı okuyucuda kurulur: her okuma sorgusu `aktif: true` süzmelidir —
-   yoksa pasif sözcük ekranda konuşmaya, pasif öznitelik çizilmeye devam
-   eder ve bayrak süs olur. Kurucu (`lib/paket/`) ve sözlük takas aracı
-   (geliştirme aracı, tabloyu bütün olarak yazar) kapsam dışıdır.
+   `SektorSozlugu.aktif`, `SektorOznitelikSemasi.aktif` ve (2.4)
+   `MaddeEslestirmesi.aktif` paket yükseltmesinde ve kaldırmada false olur;
+   satır SİLİNMEZ (R-C). Bayrağın anlamı okuyucuda kurulur: her okuma
+   sorgusu `aktif: true` süzmelidir — yoksa pasif sözcük ekranda konuşmaya,
+   pasif öznitelik çizilmeye, pasif eşleme türetilmiş durum üretmeye devam
+   eder ve bayrak süs olur. Eşleme için ilişki İÇERMELERİ de okumadır
+   (`madde.eslestirmeKaynak`): `include`/`select` içinde `where: { aktif:
+   true }` olmayan içerme kırmızıdır; `true` kısayolu her zaman kırmızıdır.
+   Kurucu (`lib/paket/`) ve sözlük takas aracı (geliştirme aracı, tabloyu
+   bütün olarak yazar) kapsam dışıdır.
    ═══════════════════════════════════════════════════════════════════════ */
 
 const KOK = process.cwd();
 const KAPSAM_DISI = [/^lib\/paket\//, /^arac\//, /^prisma\//];
-const OKUMA = /\b(?:db|tx|istemci)\.(sektorSozlugu|sektorOznitelikSemasi)\.(findMany|findFirst|findUnique|count)\s*\(/g;
+const OKUMA = /\b(?:db|tx|istemci)\.(sektorSozlugu|sektorOznitelikSemasi|maddeEslestirmesi)\.(findMany|findFirst|findUnique|count)\s*\(/g;
+/** Madde üzerinden eşleme içermesi: `eslestirmeKaynak: { ... }` ya da `eslestirmeKaynak: true`. */
+const ICERME = /\b(eslestirmeKaynak|eslestirmeHedef)\s*:\s*(\{|true)/g;
 
 type Sorgu = { dosya: string; satir: number; model: string; islem: string; govde: string };
+
+/** `{` ile başlayan nesnenin dengeli kapanışına kadar olan metin. */
+function kendiNesnesi(metin: string, acilis: number): string {
+  let derinlik = 0;
+  for (let i = acilis; i < metin.length; i++) {
+    if (metin[i] === '{') derinlik++;
+    else if (metin[i] === '}' && --derinlik === 0) return metin.slice(acilis, i + 1);
+  }
+  return metin.slice(acilis);
+}
+
+/** Süzgeç içermenin KENDİ `where`inde olmalı: ilk `aktif: true` ilk `include:`/`select:`ten önce gelir. */
+function kendiSuzgeci(govde: string): boolean {
+  const aktif = govde.search(/aktif:\s*true/);
+  if (aktif === -1) return false;
+  const ic = govde.search(/\b(?:include|select)\s*:/);
+  return ic === -1 || aktif < ic;
+}
 
 function sorgular(): Sorgu[] {
   const sonuc: Sorgu[] = [];
@@ -31,19 +55,30 @@ function sorgular(): Sorgu[] {
       sonuc.push({ dosya: goreli, satir: metin.slice(0, m.index).split('\n').length, model: m[1], islem: m[2],
         govde: metin.slice(m.index! + m[0].length, m.index! + m[0].length + 400) });
     }
+    for (const m of metin.matchAll(ICERME)) {
+      /* Gövde İÇERMENİN KENDİ nesnesidir (dengeli parantez): sabit pencere
+         komşu içermenin `aktif: true`suna taşıyordu ve süzgeçsiz
+         `eslestirmeKaynak` yeşil kalıyordu (sabotaj S61 yakaladı). `true`
+         kısayolunda süzgeç yazılamaz: gövde boş kalır ve kırmızı yanar. */
+      const acilis = m.index! + m[0].length - 1;
+      sonuc.push({ dosya: goreli, satir: metin.slice(0, m.index).split('\n').length, model: m[1], islem: 'include',
+        govde: m[2] === 'true' ? '' : kendiNesnesi(metin, acilis) });
+    }
   }
   return sonuc;
 }
 
-describe('Bekçi · sözlük ve öznitelik okuyucuları yalnız aktif satırı görür [URN-PKT-011]', () => {
+describe('Bekçi · sözlük, öznitelik ve eşleme okuyucuları yalnız aktif satırı görür [URN-PKT-011]', () => {
   const tum = sorgular();
 
   it('ölçüm tabanı: okuyucu sorguları gerçekten bulunuyor', () => {
-    expect(tum.length, 'sözlük/öznitelik okuma sorgusu sıfır olamaz — tarama boş bakıyor').toBeGreaterThanOrEqual(5);
+    expect(tum.filter((s) => s.model !== 'maddeEslestirmesi' && s.islem !== 'include').length, 'sözlük/öznitelik okuma sorgusu sıfır olamaz — tarama boş bakıyor').toBeGreaterThanOrEqual(5);
+    expect(tum.filter((s) => s.model === 'maddeEslestirmesi').length, 'eşleme okuma sorgusu sıfır olamaz').toBeGreaterThanOrEqual(3);
+    expect(tum.filter((s) => s.islem === 'include').length, 'eşleme içermesi sıfır olamaz').toBeGreaterThanOrEqual(2);
   });
 
-  it('her okuma sorgusu `aktif: true` süzer — pasif satır ekrana inmez [URN-PKT-011]', () => {
-    const suzgecsiz = tum.filter((s) => !/aktif:\s*true/.test(s.govde));
+  it('her okuma sorgusu ve eşleme içermesi `aktif: true` süzer — pasif satır ekrana inmez [URN-PKT-011] [URN-PKT-014]', () => {
+    const suzgecsiz = tum.filter((s) => (s.islem === 'include' ? !kendiSuzgeci(s.govde) : !/aktif:\s*true/.test(s.govde)));
     expect(suzgecsiz.map((s) => `${s.dosya}:${s.satir} ${s.model}.${s.islem}`), 'aktif süzgeci olmayan okuyucu').toEqual([]);
   });
 });

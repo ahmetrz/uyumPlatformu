@@ -29,7 +29,7 @@ describe('paket doğrulayıcı — biçim ve manifest [URN-PKT-001]', () => {
     const s = paketiDogrula(paketYaz(TEMIZ));
     expect(s.hatalar.map(hataSatiri)).toEqual([]);
     expect(s.ok).toBe(true);
-    expect(s.sayilar).toEqual({ sozluk: 1, kapsamTurleri: 1, oznitelikler: 1, cerceveler: 1, maddeler: 3, yukumlulukler: 1, formlar: 0, raporlar: 0, roller: 0 });
+    expect(s.sayilar).toEqual({ sozluk: 1, kapsamTurleri: 1, oznitelikler: 1, cerceveler: 1, maddeler: 3, yukumlulukler: 1, formlar: 0, raporlar: 0, roller: 0, eslemeler: 0 });
     expect(s.icerik?.cerceveler[0].maddeler[1]).toMatchObject({ kod: '1', ustKod: 'B1', baslik: 'Amaç', sira: 1, seviye: null });
     expect(s.icerik?.cerceveler[0].maddeler[2]).toMatchObject({ kod: '2', seviye: 2, zorunlulukTipi: 'LAW' });
   });

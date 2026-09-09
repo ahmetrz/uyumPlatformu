@@ -11,18 +11,40 @@ try {
     const context = await browser.newContext({ viewport: { width: 375, height: 480 }, reducedMotion: 'no-preference' });
     const page = await context.newPage();
     await page.goto(`${KOK}/giris`);
-    await page.locator('[data-mod="hareketli"]').waitFor();
+    await page.locator('[data-mod="hareketli"][data-ilerleme]').waitFor();
     const tempo = page.getByLabel('Yolculuk temposu');
     const kutu = await tempo.boundingBox();
     assert.ok(kutu && kutu.y >= 0 && kutu.y + kutu.height <= 480, `kısa ekranda tempo görünmüyor: ${JSON.stringify(kutu)}`);
     await tempo.selectOption('0.72');
     await context.close();
   }
+
+  {
+    const context = await browser.newContext({ viewport: { width: 1440, height: 936 }, reducedMotion: 'no-preference' });
+    const page = await context.newPage();
+    let serbest;
+    const bekle = new Promise(resolve => { serbest = resolve; });
+    await page.route('**/sahne-04-ekran.webp', async route => { await bekle; await route.continue(); });
+    await page.goto(`${KOK}/giris`, { waitUntil: 'domcontentloaded' });
+    try {
+      await page.waitForFunction(() => document.querySelector('#platform-arayuzu')?.inert);
+      await page.mouse.wheel(0, 300);
+      await page.waitForFunction(() => window.scrollY > 8);
+    } finally { serbest(); }
+    await page.waitForFunction(() => Number(document.querySelector('[data-mod]')?.getAttribute('data-ilerleme')) > 0);
+    assert.equal(await page.locator('[data-mod]').getAttribute('data-mod'), 'hareketli', 'erken kaydırma sahneyi iptal etti');
+    await page.getByRole('link', { name: 'Girişi atla' }).click();
+    await page.reload();
+    await page.waitForFunction(() => document.querySelector('[data-mod]')?.getAttribute('data-ilerleme') !== null);
+    assert.equal(await page.locator('[data-mod]').getAttribute('data-mod'), 'hareketli', 'yenilemede giriş kendiliğinden atlandı');
+    await context.close();
+  }
+
   for (const width of [375, 1440]) {
     const context = await browser.newContext({ viewport: { width, height: 936 }, reducedMotion: 'no-preference' });
     const page = await context.newPage();
     await page.goto(`${KOK}/giris`);
-    await page.locator('[data-mod="hareketli"]').waitFor();
+    await page.locator('[data-mod="hareketli"][data-ilerleme]').waitFor();
     await page.screenshot({ path: `/tmp/giris-inceleme/${width}-baslangic.png` });
     const mesafe = await page.evaluate(() => parseFloat(document.querySelector('[data-mod="hareketli"]').style.getPropertyValue('--mesafe')));
     assert.ok(mesafe > 936 * 7, `kaydırma mesafesi kısa: ${mesafe}px`);

@@ -417,6 +417,15 @@ jobs:
       - name: Depoyu al
         uses: actions/checkout@v7
 
+      # Bu iş TAM KÜMEYİ koşar ve kümede cırcır dişleri var: kalite borcu,
+      # sektör terimi, NULL-olumsuzlama ve kapsam omurgası listeleri TABAN
+      # DALLA karşılaştırılır. Diş "CI'da ATLANMAZ" der ve doğru davranır —
+      # eksik olan bu adımdı (ölçüldü: `kapi-postgres` üç bekçide "taban dal
+      # okunamadı" diye kırmızı yandı; kusur kodda değil iş akışındaydı).
+      - name: Taban dalı al (bekçi cırcırı)
+        continue-on-error: true
+        run: git fetch --depth=1 origin main:refs/remotes/origin/main
+
       - name: Node kur
         uses: actions/setup-node@v7
         with:

@@ -1,0 +1,132 @@
+[
+  {
+    "anahtar": "tesis",
+    "dil": "tr",
+    "tekil": "santral",
+    "cogul": "santraller",
+    "iyelik": "santralin",
+    "belirtme": "santrali",
+    "bulunma": "santralde",
+    "yonelme": "santrale"
+  },
+  {
+    "anahtar": "birim",
+    "dil": "tr",
+    "tekil": "üretim ünitesi",
+    "cogul": "üretim üniteleri",
+    "iyelik": "üretim ünitesinin",
+    "belirtme": "üretim ünitesini",
+    "bulunma": "üretim ünitesinde",
+    "yonelme": "üretim ünitesine"
+  },
+  {
+    "anahtar": "portfoy",
+    "dil": "tr",
+    "tekil": "enerji portföyü",
+    "cogul": "enerji portföyleri",
+    "iyelik": "enerji portföyünün",
+    "belirtme": "enerji portföyünü",
+    "bulunma": "enerji portföyünde",
+    "yonelme": "enerji portföyüne"
+  },
+  {
+    "anahtar": "tesis360",
+    "dil": "tr",
+    "tekil": "Santral 360",
+    "cogul": "Santral 360",
+    "iyelik": "Santral 360",
+    "belirtme": "Santral 360",
+    "bulunma": "Santral 360",
+    "yonelme": "Santral 360"
+  },
+  {
+    "anahtar": "kapasite",
+    "dil": "tr",
+    "tekil": "kurulu güç",
+    "cogul": "kurulu güçler",
+    "iyelik": "kurulu gücün",
+    "belirtme": "kurulu gücü",
+    "bulunma": "kurulu güçte",
+    "yonelme": "kurulu güce"
+  },
+  {
+    "anahtar": "lisansTipi",
+    "dil": "tr",
+    "tekil": "lisans tipi",
+    "cogul": "lisans tipleri",
+    "iyelik": "lisans tipinin",
+    "belirtme": "lisans tipini",
+    "bulunma": "lisans tipinde",
+    "yonelme": "lisans tipine"
+  },
+  {
+    "anahtar": "lisansNo",
+    "dil": "tr",
+    "tekil": "lisans numarası",
+    "cogul": "lisans numaraları",
+    "iyelik": "lisans numarasının",
+    "belirtme": "lisans numarasını",
+    "bulunma": "lisans numarasında",
+    "yonelme": "lisans numarasına"
+  },
+  {
+    "anahtar": "kabulDurumu",
+    "dil": "tr",
+    "tekil": "kabul durumu",
+    "cogul": "kabul durumları",
+    "iyelik": "kabul durumunun",
+    "belirtme": "kabul durumunu",
+    "bulunma": "kabul durumunda",
+    "yonelme": "kabul durumuna"
+  },
+  {
+    "anahtar": "kabulTarihi",
+    "dil": "tr",
+    "tekil": "kabul tarihi",
+    "cogul": "kabul tarihleri",
+    "iyelik": "kabul tarihinin",
+    "belirtme": "kabul tarihini",
+    "bulunma": "kabul tarihinde",
+    "yonelme": "kabul tarihine"
+  },
+  {
+    "anahtar": "blackStart",
+    "dil": "tr",
+    "tekil": "black start",
+    "cogul": "black startlar",
+    "iyelik": "black start'ın",
+    "belirtme": "black start'ı",
+    "bulunma": "black start'ta",
+    "yonelme": "black start'a"
+  },
+  {
+    "anahtar": "teiasScadaEms",
+    "dil": "tr",
+    "tekil": "TEİAŞ SCADA/EMS haberleşmesi",
+    "cogul": "TEİAŞ SCADA/EMS haberleşmeleri",
+    "iyelik": "TEİAŞ SCADA/EMS haberleşmesinin",
+    "belirtme": "TEİAŞ SCADA/EMS haberleşmesini",
+    "bulunma": "TEİAŞ SCADA/EMS haberleşmesinde",
+    "yonelme": "TEİAŞ SCADA/EMS haberleşmesine"
+  },
+  {
+    "anahtar": "seriHaberlesme",
+    "dil": "tr",
+    "tekil": "seri haberleşme",
+    "cogul": "seri haberleşmeler",
+    "iyelik": "seri haberleşmenin",
+    "belirtme": "seri haberleşmeyi",
+    "bulunma": "seri haberleşmede",
+    "yonelme": "seri haberleşmeye"
+  },
+  {
+    "anahtar": "kritiklikSinifi",
+    "dil": "tr",
+    "tekil": "kritiklik sınıfı",
+    "cogul": "kritiklik sınıfları",
+    "iyelik": "kritiklik sınıfının",
+    "belirtme": "kritiklik sınıfını",
+    "bulunma": "kritiklik sınıfında",
+    "yonelme": "kritiklik sınıfına"
+  }
+]

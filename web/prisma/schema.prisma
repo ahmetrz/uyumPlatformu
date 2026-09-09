@@ -31,6 +31,8 @@ model Sektor {
   oznitelikSemasi SektorOznitelikSemasi[]
   sozluk          SektorSozlugu[]
   kapsamTurleri   KapsamOgesiTuru[]
+  formSablonlari  FormSablonu[]
+  raporSablonlari RaporSablonu[]
 }
 
 /// KAPSAM ÖĞESİ TÜRÜ — KATALOG, enum değil (B1 · K1).
@@ -174,6 +176,10 @@ model SektorOznitelikSemasi {
   /// satırına DOKUNULMAZ (docs/SEKTOR_PAKETI_SOZLESMESI.md §4).
   koken             String  @default("kiraci")
   paketSurumId      String?
+  /// P4 · 2.1: paket yükseltmesi artık beyan etmediği satırı PASİF yapar,
+  /// silmez (R-C — altında kiracının değerleri olabilir). Okuyucular yalnız
+  /// aktif satırı görür; kaldırmada pasif, geri kurulumda aktif.
+  aktif             Boolean @default(true)
 
   sektor Sektor @relation(fields: [sektorId], references: [id], onDelete: Cascade)
 
@@ -207,6 +213,9 @@ model SektorSozlugu {
   /// satırına DOKUNULMAZ (docs/SEKTOR_PAKETI_SOZLESMESI.md §4).
   koken        String  @default("kiraci")
   paketSurumId String?
+  /// P4 · 2.1: paket yükseltmesi artık beyan etmediği satırı PASİF yapar,
+  /// silmez (R-C). Okuyucular yalnız aktif satırı görür.
+  aktif        Boolean @default(true)
 
   sektor Sektor @relation(fields: [sektorId], references: [id], onDelete: Cascade)
 
@@ -412,6 +421,9 @@ model Madde {
   gereksinimTipi         String?
   kaynakSayfa            String?
   maddeKaynakUrl         String?
+  /// Kaynağa ERİŞİM tarihi (paket CSV `erisim_tarihi`): metin resmî kaynaktan hangi gün alındı —
+  /// köken bilgisi maddenin yanında durur, ekran metnin altında gösterir. NULL = beyan edilmedi.
+  kaynakErisimTarihi     DateTime?
   gecerliBaslangic       DateTime?
   gecerliBitis           DateTime?
   yeriniAlanId           String? // superseded_by
@@ -731,6 +743,10 @@ model MaddeEslestirmesi {
   /// satırına DOKUNULMAZ (docs/SEKTOR_PAKETI_SOZLESMESI.md §4).
   koken        String  @default("kiraci")
   paketSurumId String?
+  /// P4 · 2.4: paket yükseltmesinin bıraktığı / kaldırmanın pasiflediği
+  /// eşleme SİLİNMEZ (R-C), `aktif=false` olur; okuyucular yalnız aktif
+  /// satırı görür (bekçi `tests/bekci/aktif-suzgec.test.ts`).
+  aktif        Boolean @default(true)
 
   kaynak Madde @relation("EslestirmeKaynak", fields: [kaynakId], references: [id], onDelete: Cascade)
   hedef  Madde @relation("EslestirmeHedef", fields: [hedefId], references: [id], onDelete: Cascade)
@@ -1104,6 +1120,10 @@ model FrameworkSurumu {
   yururlukTarih DateTime?
   kaynakUrl     String?
   durum         String    @default("taslak") // taslak | aktif | arsiv
+  /// Paketin çerçeve kimliğindeki `not` alanı — kurulumda saklanır (ör. "metin TEMSİLÎDİR").
+  paketNotu     String?
+  /// Metin TEMSİLÎ mi: bir belgeye benzetilerek yazıldı, o belgeden alınmadı (demo içeriği).
+  temsili       Boolean   @default(false)
   olusturuldu   DateTime  @default(now())
   /// P4 · KÖKEN: `paket` satırını paket güncellemesi değiştirir; `kiraci`
   /// satırına DOKUNULMAZ (docs/SEKTOR_PAKETI_SOZLESMESI.md §4).
@@ -1472,6 +1492,11 @@ model UygulanabilirlikKurali {
   aktif        Boolean  @default(true)
   aciklama     String?
   olusturuldu  DateTime @default(now())
+  /// Köken: `kiraci` (elle yazılan kural) ya da `paket` (çerçevenin `uygulanabilirlik` beyanı;
+  /// kurulumda yazılır, yükseltmede yenilenir, kaldırmada PASİFLEŞİR — silinmez, R-C).
+  /// Aynı regülasyonda kiracı kuralı paket kuralını ezer (motor önce paketi, sonra kiracıyı koşar).
+  koken        String   @default("kiraci")
+  paketSurumId String?
 
   regulasyon Regulasyon               @relation(fields: [regulasyonId], references: [id])
   kararlar   UygulanabilirlikKarari[]
@@ -4230,4 +4255,73 @@ model IcerikPaketiSurumu {
   kuran Kullanici?   @relation("PaketKuran", fields: [kuranId], references: [id])
 
   @@unique([paketId, surum])
+}
+
+/// P4 · 2.2 — DENETİM FORMU ŞABLONU KATALOĞU (docs/SEKTOR_PAKETI_SOZLESMESI.md §1/6).
+/// Form bugüne kadar KODDU (`denetimler/Formlar.tsx`); paket şablonu YAPI
+/// olarak getirir: bölümler · alanlar (anahtar, etiket, tip, seçenekler, madde
+/// referansı) ve isteğe bağlı XLSX dosyası + hücre eşlemesi. Tanım JSON'da
+/// durur (`tanimJson`), ekran onu P4'ün sonraki diliminde okur. Köken ve
+/// aktif bayrağı öbür paket tablolarıyla aynı sözleşmeyi taşır: paket
+/// güncellemesi yalnız `paket` kökenli satırı değiştirir, bırakılan satır
+/// pasifleşir (silinmez, R-C).
+model FormSablonu {
+  id           String   @id @default(cuid())
+  kod          String   @unique // BDDK-BS-OZDEGERLENDIRME
+  ad           String
+  tur          String   @default("denetim") // denetim | oz_degerlendirme | saha
+  sektorId     String?
+  /// paketteki XLSX dosyasının adı (yalnız kamuya açık pakette); null = JSON yapı
+  dosyaAdi     String?
+  tanimJson    String
+  aktif        Boolean  @default(true)
+  koken        String   @default("kiraci")
+  paketSurumId String?
+  olusturuldu  DateTime @default(now())
+  guncellendi  DateTime @updatedAt
+
+  sektor Sektor? @relation(fields: [sektorId], references: [id])
+}
+
+/// P4 · 2.2 — RAPOR ŞABLONU KATALOĞU (§1/7). Rapor bugüne kadar KODDU
+/// (`raporlar/karne`, `raporlar/kanit-paketi`); paket şablonu alan kümesini,
+/// sıralamayı, künye metnini ve sayfa boyutunu getirir. Tanım JSON'da durur.
+model RaporSablonu {
+  id           String   @id @default(cuid())
+  kod          String   @unique // EPDK-SGYM-KARNE
+  ad           String
+  sektorId     String?
+  tanimJson    String
+  aktif        Boolean  @default(true)
+  koken        String   @default("kiraci")
+  paketSurumId String?
+  olusturuldu  DateTime @default(now())
+  guncellendi  DateTime @updatedAt
+
+  sektor Sektor? @relation(fields: [sektorId], references: [id])
+}
+
+/// P4 · 2.3 — ROL KATALOĞU (§1/8). Roller bugüne kadar KODDU
+/// (`lib/erisim.ts` ROL_IZINLERI · `lib/sabitler.ts` ROLLER); sektör paketi
+/// rol ÖNERİR: kod, ad, modül × işlem izinleri (JSON), kapsam ekseni.
+/// ÇALIŞMA ZAMANI YETKİSİ BU TABLOYU OKUMAZ — `izinVar` kod sabitinden
+/// karar verir; katalog öneri ve ekran (`/paketler`) içindir, kiracı ezer;
+/// koda bağlanması P2/P6 kararıdır. Çekirdek rol kodu paketle yeniden
+/// tanımlanamaz (doğrulayıcı KİMLİK). Köken · aktif · paketSurumId öbür
+/// paket tablolarıyla aynı sözleşme: kiracı satırı ezilmez, bırakılan
+/// satır pasif, silme yok (R-C).
+model RolKatalogu {
+  id           String   @id @default(cuid())
+  kod          String   @unique // ic_kontrol_gorevlisi
+  ad           String
+  aciklama     String?
+  /// { "denetim": ["okuma","yazma","onay"] } — modül ve işlem adları lib/erisim.ts ile aynı
+  izinlerJson  String
+  kapsamEkseni String   @default("global") // global | kapsamOgesi
+  sira         Int      @default(0)
+  aktif        Boolean  @default(true)
+  koken        String   @default("kiraci")
+  paketSurumId String?
+  olusturuldu  DateTime @default(now())
+  guncellendi  DateTime @updatedAt
 }

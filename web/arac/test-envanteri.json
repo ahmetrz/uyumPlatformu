@@ -1,7 +1,7 @@
 {
-  "imza": "3e67fd7403f3c425bce9732de750f49e",
-  "dosya": 174,
-  "vaka": 3372,
+  "imza": "3c366a9b6cac99644c4f630913f1d23c",
+  "dosya": 190,
+  "vaka": 3475,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -36,6 +36,10 @@
       "vaka": 5,
       "atlanan": 0
     },
+    "tests/bekci/aktif-suzgec.test.ts": {
+      "vaka": 2,
+      "atlanan": 0
+    },
     "tests/bekci/cekirdek-taban.test.ts": {
       "vaka": 4,
       "atlanan": 0
@@ -66,6 +70,14 @@
     },
     "tests/bekci/null-olumsuzlama.test.ts": {
       "vaka": 19,
+      "atlanan": 0
+    },
+    "tests/bekci/paket-silme.test.ts": {
+      "vaka": 5,
+      "atlanan": 0
+    },
+    "tests/bekci/rol-sabitleri.test.ts": {
+      "vaka": 5,
       "atlanan": 0
     },
     "tests/bekci/sektor-terimi.test.ts": {
@@ -246,6 +258,10 @@
     },
     "tests/giris-zaman.test.ts": {
       "vaka": 7,
+      "atlanan": 0
+    },
+    "tests/goc-zinciri.test.ts": {
+      "vaka": 3,
       "atlanan": 0
     },
     "tests/gorev-eylem.test.ts": {
@@ -472,20 +488,60 @@
       "vaka": 2,
       "atlanan": 0
     },
+    "tests/paket-aktif-bayragi.test.ts": {
+      "vaka": 4,
+      "atlanan": 0
+    },
+    "tests/paket-demo.test.ts": {
+      "vaka": 7,
+      "atlanan": 0
+    },
     "tests/paket-dogrula.test.ts": {
       "vaka": 23,
+      "atlanan": 0
+    },
+    "tests/paket-esleme.test.ts": {
+      "vaka": 11,
       "atlanan": 0
     },
     "tests/paket-eylem.test.ts": {
       "vaka": 8,
       "atlanan": 0
     },
+    "tests/paket-icerik.test.ts": {
+      "vaka": 15,
+      "atlanan": 0
+    },
     "tests/paket-iskeletler.test.ts": {
-      "vaka": 7,
+      "vaka": 8,
       "atlanan": 0
     },
     "tests/paket-kur.test.ts": {
       "vaka": 23,
+      "atlanan": 0
+    },
+    "tests/paket-oscal.test.ts": {
+      "vaka": 12,
+      "atlanan": 0
+    },
+    "tests/paket-rol.test.ts": {
+      "vaka": 6,
+      "atlanan": 0
+    },
+    "tests/paket-sablon.test.ts": {
+      "vaka": 7,
+      "atlanan": 0
+    },
+    "tests/paket-uygulanabilirlik.test.ts": {
+      "vaka": 8,
+      "atlanan": 0
+    },
+    "tests/paketler-mantik.test.ts": {
+      "vaka": 8,
+      "atlanan": 0
+    },
+    "tests/paketler-veri.test.ts": {
+      "vaka": 3,
       "atlanan": 0
     },
     "tests/pasif-kesif.test.ts": {
@@ -613,7 +669,7 @@
       "atlanan": 0
     },
     "tests/uygulanabilirlik.test.ts": {
-      "vaka": 7,
+      "vaka": 9,
       "atlanan": 0
     },
     "tests/uyum-belge-bagi.test.ts": {
@@ -622,6 +678,14 @@
     },
     "tests/uyum-grubu-mantik.test.ts": {
       "vaka": 47,
+      "atlanan": 0
+    },
+    "tests/uyum-metin-durumu.test.ts": {
+      "vaka": 2,
+      "atlanan": 0
+    },
+    "tests/uyum-taslak-serit.test.ts": {
+      "vaka": 2,
       "atlanan": 0
     },
     "tests/uyum-trend.test.ts": {

@@ -57,7 +57,7 @@ const ALAN_ROTALARI: Record<string, string[]> = {
   '/': ['/', '/tesisler'],
   '/portfoy': ['/portfoy', '/harita'],
   '/uyum': [
-    '/uyum', '/regulasyonlar', '/surecler', '/eslestirme', '/denetimler',
+    '/uyum', '/regulasyonlar', '/paketler', '/surecler', '/eslestirme', '/denetimler',
     '/bulgular', '/projeler', '/raporlar', '/dokumanlar', '/kanitlar', '/aktivite',
     '/degerlendirme-aktarim', '/denetci-erisimi', '/saklama',
     '/gozden-gecirme', '/egitimler',
@@ -100,6 +100,9 @@ export const IKINCIL: Record<string, { baslik?: string; ogeler: Oge[] }[]> = {
     { ogeler: [
       { ad: 'Matris', yol: '/uyum' },
       { ad: 'Regülasyonlar', yol: '/regulasyonlar' },
+      /* P4 · 2.6 · İçerik paketleri Regülasyonlar'ın YANINDA: paket
+         regülasyonu getirir (taslak), aktifleştirme oradadır. */
+      { ad: 'İçerik paketleri', yol: '/paketler' },
       { ad: 'Süreçler', yol: '/surecler' },
       { ad: 'Çapraz eşleme', yol: '/eslestirme' },
       /* UY-43 · Değerlendirme aktarımı MATRİSİN yanında durur çünkü

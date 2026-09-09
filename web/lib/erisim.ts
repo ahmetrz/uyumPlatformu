@@ -10,7 +10,12 @@ import { DEMO } from './demo';
 export type Modul = 'uyum' | 'envanter' | 'risk' | 'denetim' | 'proje' | 'tanimlar' | 'yonetim';
 export type Islem = 'okuma' | 'yazma' | 'onay';
 
-const ROL_IZINLERI: Record<string, Partial<Record<Modul, Islem[]>>> = {
+/* Çekirdek rollerin izinleri KODDADIR ve tek kaynaktır. Paketin rol
+   ÖNERİSİ (`RolKatalogu`, P4 · 2.3) buraya girmez: katalog öneri ve ekran
+   içindir, çalışma zamanı yetkisi onu okumaz (koda bağlanması P2/P6
+   kararı). Dışa açıldı: bekçi (`tests/bekci/rol-sabitleri.test.ts`) paket
+   biçiminin modül · işlem · çekirdek rol sabitlerini buna karşı ölçer. */
+export const ROL_IZINLERI: Record<string, Partial<Record<Modul, Islem[]>>> = {
   yonetici: { uyum: ['okuma', 'yazma', 'onay'], envanter: ['okuma', 'yazma', 'onay'],
     risk: ['okuma', 'yazma', 'onay'], denetim: ['okuma', 'yazma', 'onay'],
     proje: ['okuma', 'yazma', 'onay'], tanimlar: ['okuma', 'yazma', 'onay'],

@@ -8,7 +8,7 @@ import { EkranBasligi } from '@/components/kabuk/ekran';
 import { kanitTalebiEkle } from '@/lib/eylemler2/denetim';
 import { DURUM_ETIKET, etiketle, uyumOzeti } from '@/lib/sabitler';
 import {
-  TREND_BOY, TREND_EN, acikMi, kisaTarih, trendFarki, trendGeometrisi,
+  TREND_BOY, TREND_EN, acikMi, kisaTarih, odaklananCerceve, trendFarki, trendGeometrisi,
   type CerceveVerisi, type Kontrol, type TesisSatiri, type TrendNoktasi,
 } from './mantik';
 /* C22/C23 ters bağı — belge kuralı kütükte yaşar, burada YENİDEN YAZILMAZ. */
@@ -191,10 +191,7 @@ export default function UyumIstemci({
      karşılaşmamalı. Adres çubuğundaki `?cerceve=` seçimi yine önceliklidir
      ama satırsızsa o da devredilir — paylaşılan bir bağın boş açılması
      bağın kendisini şüpheli yapar. */
-  const odakli = mercekliCerceveler.find((c) => c.kod === odak.cerceve);
-  const cerceve = (odakli && odakli.satirlar.length > 0 ? odakli : null)
-    ?? mercekliCerceveler.find((c) => c.satirlar.length > 0)
-    ?? odakli ?? mercekliCerceveler[0];
+  const cerceve = odaklananCerceve(mercekliCerceveler, odak.cerceve);
   const satirlar = useMemo(() => (cerceve ? devir(cerceve) : []), [cerceve]);
   const gorunur = useMemo(
     () => (aile ? satirlar.filter((s) => s.aileId === aile) : satirlar),
@@ -258,7 +255,9 @@ export default function UyumIstemci({
               onClick={() => { setOdak({ cerceve: c.kod, madde: null }); setAile(null); setAcik(null); kapsamiYaz(c.kod); }}
             >
               <span>{c.ad}</span>
-              <span className="sayi">{c.aileler.reduce((t, a) => t + a.yapraklar.length, 0)}</span>
+              {/* Aktif sürümü olmayan çerçevede yaprak sayısı 0'dır ve bu SIFIR
+                  DEĞİL, ölçülmemiştir: taslağın madde sayısı "taslak" damgasıyla yazılır. */}
+              <span className="sayi">{c.taslak ? `${c.taslak.maddeSayisi} taslak` : c.aileler.reduce((t, a) => t + a.yapraklar.length, 0)}</span>
             </button>
           ))}
         </div>
@@ -309,7 +308,16 @@ export default function UyumIstemci({
         <EkranBasligi
           eyebrow={`Uyum · ${cerceve.ad}`}
           baslik="Nerede uygunsuz, ve neden?"
-          metrikler={[
+          /* TASLAK çerçevede ölçüt şeridi de BİLİNMEYEN: aktif sürüm yokken satır
+             yoktur ve "0 Uygunsuz" (iyi haber) basmak, iki satır aşağıdaki
+             "ölçülmedi — sıfır değil" cümlesiyle çelişiyordu; okunan ilk sayı
+             yanlış olandı (bağımsız inceleme, PR #43 tur 2). */
+          metrikler={cerceve.taslak ? [
+            { deger: '—', yazi: 'Uygun', durum: 'unk' as const },
+            { deger: '—', yazi: 'Kısmi', durum: 'unk' as const },
+            { deger: '—', yazi: 'Uygunsuz', durum: 'unk' as const },
+            { deger: '—', yazi: 'Endeks', durum: 'unk' as const },
+          ] : [
             { deger: m.uygun, yazi: 'Uygun', durum: 'ok' },
             { deger: m.kismi, yazi: 'Kısmi', durum: m.kismi > 0 ? 'md' : undefined },
             { deger: m.uygunsuz, yazi: 'Uygunsuz', durum: m.uygunsuz > 0 ? 'bd' : undefined },
@@ -325,7 +333,16 @@ export default function UyumIstemci({
           <EgilimSeridi noktalar={egilim} surecVar={surecId !== null} bugun={m.endeks} />
         </div>
 
-        {gorunur.length === 0 ? (
+        {cerceve.taslak ? (
+          <div className="ab-panel-blok" style={{ marginTop: 'var(--s16)' }}>
+            <p style={{ margin: 0, fontSize: 'var(--t-cell)', lineHeight: 1.7 }}>
+              Bu çerçevenin <b>aktif sürümü yok</b>: {cerceve.taslak.surumEtiketi} sürümü{' '}
+              <b>TASLAK</b> ({cerceve.taslak.maddeSayisi} madde). Kontroller ölçülmedi — sıfır değil.{' '}
+              <b>Aktifleştirme insan kararıdır</b>: sürümü karşılaştırıp aktifleştirmek{' '}
+              <Link href="/regulasyonlar">Regülasyonlar</Link> ekranındadır.
+            </p>
+          </div>
+        ) : gorunur.length === 0 ? (
           <p style={{ color: 'var(--i3)', fontSize: 13 }}>
             Bu çerçevede uygulanabilir kontrol bulunmuyor.
           </p>

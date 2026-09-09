@@ -14,21 +14,25 @@
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
 import type { ZodError } from 'zod';
+import * as XLSX from 'xlsx';
 import { OLGUNLUK_ASGARI, OLGUNLUK_AZAMI } from '../uyum/olgunluk';
+import { oscalOku, oscalYabanciMetinler } from './oscal';
 import {
-  BASLIK_SINIRI, CerceveKimligiSemasi, DIS_KIMLIK_SINIRI, DOSYALAR, KapsamTuruSatiriSemasi, MADDE_SUTUNLARI,
-  MADDE_ZORUNLU_SUTUNLAR, ManifestSemasi, OLCU_ALANI, OZET_DISI, OZNITELIK_ROLLERI, OznitelikSatiriSemasi, SozlukSatiriSemasi,
-  YukumlulukSatiriSemasi, ZORUNLULUK_TIPLERI, csvAyristir, sha256,
-  type CerceveKimligi, type KapsamTuruSatiri, type MaddeSatiri, type Manifest, type OznitelikSatiri,
-  type SozlukSatiri, type YukumlulukSatiri,
+  ACIKLAMA_SINIRI, BASLIK_SINIRI, CEKIRDEK_KAPSAM_TURLERI, CEKIRDEK_ROLLER, GEREKSINIM_TIPI_SINIRI, KAPSAM_TURU_ALANI, KAYNAK_YERI_SINIRI, takvimTarihi, type KosulBeyani, CerceveKimligiSemasi, DENKLIKLER, DIS_KIMLIK_SINIRI, DOSYALAR, ESLEME_SUTUNLARI,
+  ESLEME_ZORUNLU_SUTUNLAR, EslemeKimligiSemasi, FormSablonuSemasi, ISLEM_ONKOSULU, KANIT_TIPI_KODU, KapsamTuruSatiriSemasi, MADDE_SUTUNLARI,
+  MADDE_ZORUNLU_SUTUNLAR, ManifestSemasi, OLCU_ALANI, OZET_DISI, OZNITELIK_ROLLERI, OznitelikSatiriSemasi, RaporSablonuSemasi,
+  RolSatiriSemasi, SozlukSatiriSemasi, YukumlulukSatiriSemasi, ZORUNLULUK_TIPLERI, csvAyristir, sha256,
+  type CerceveKimligi, type EslemeKimligi, type EslemeSatiri, type FormSablonu, type KapsamTuruSatiri, type MaddeSatiri,
+  type Manifest, type OznitelikSatiri, type RaporSablonu, type RolSatiri, type SozlukSatiri, type YukumlulukSatiri,
 } from './bicim';
 
-export type HataSinifi = 'BIÇIM' | 'KİMLİK' | 'SÖZLÜK' | 'ÖZNİTELİK' | 'LİSANS' | 'SÜRÜM' | 'KAPSAM TÜRÜ';
+export type HataSinifi = 'BIÇIM' | 'KİMLİK' | 'SÖZLÜK' | 'ÖZNİTELİK' | 'LİSANS' | 'SÜRÜM' | 'KAPSAM TÜRÜ' | 'KAYNAK';
 export type DogrulamaHatasi = {
   sinif: HataSinifi; dosya: string; konum?: string; mesaj: string; duzeltme: string;
 };
 
 export type Cerceve = { dosya: string; kimlik: CerceveKimligi; maddeler: MaddeSatiri[] };
+export type Esleme = { dosya: string; kimlik: EslemeKimligi; satirlar: EslemeSatiri[] };
 export type PaketIcerigi = {
   dizin: string;
   manifest: Manifest;
@@ -36,10 +40,17 @@ export type PaketIcerigi = {
   kapsamTurleri: KapsamTuruSatiri[];
   oznitelikler: OznitelikSatiri[];
   cerceveler: Cerceve[];
+  eslemeler: Esleme[];
   yukumlulukler: YukumlulukSatiri[];
+  formlar: FormSablonu[];
+  raporlar: RaporSablonu[];
+  roller: RolSatiri[];
 };
 export type Sayilar = {
   sozluk: number; kapsamTurleri: number; oznitelikler: number; cerceveler: number; maddeler: number; yukumlulukler: number;
+  formlar: number; raporlar: number; roller: number; eslemeler: number;
+  /** uygulanabilirlik beyanı taşıyan çerçeve sayısı */
+  kurallar: number;
 };
 export type DogrulamaSonucu = {
   ok: boolean;
@@ -93,7 +104,11 @@ export function ozetleriHesapla(dizin: string): Record<string, string> {
   return ozetler;
 }
 
-const bos: Sayilar = { sozluk: 0, kapsamTurleri: 0, oznitelikler: 0, cerceveler: 0, maddeler: 0, yukumlulukler: 0 };
+const bos: Sayilar = { sozluk: 0, kapsamTurleri: 0, oznitelikler: 0, cerceveler: 0, maddeler: 0, yukumlulukler: 0, formlar: 0, raporlar: 0, roller: 0, eslemeler: 0, kurallar: 0 };
+
+function gecerliUrl(s: string): boolean {
+  try { const u = new URL(s); return u.protocol === 'https:' || u.protocol === 'http:'; } catch { return false; }
+}
 
 export function paketiDogrula(dizin: string): DogrulamaSonucu {
   const hatalar: DogrulamaHatasi[] = [];
@@ -249,7 +264,8 @@ export function paketiDogrula(dizin: string): DogrulamaSonucu {
   const cerceveler: Cerceve[] = [];
   const cerceveDizini = path.join(dizin, DOSYALAR.cerceveDizini);
   if (existsSync(cerceveDizini)) {
-    for (const dosyaAdi of readdirSync(cerceveDizini).filter((d) => d.endsWith('.json')).sort()) {
+    /* `<KOD>.oscal.json` kimlik değil madde dosyasıdır (2.7); kimlik listesine girmez. */
+    for (const dosyaAdi of readdirSync(cerceveDizini).filter((d) => d.endsWith('.json') && !d.endsWith('.oscal.json')).sort()) {
       const dosya = `${DOSYALAR.cerceveDizini}/${dosyaAdi}`;
       const j = jsonOku(path.join(cerceveDizini, dosyaAdi));
       if ('hata' in j) { hatalar.push({ sinif: 'BIÇIM', dosya, mesaj: `JSON okunamadı: ${j.hata}`, duzeltme: 'JSON sözdizimini düzeltin' }); continue; }
@@ -271,10 +287,51 @@ export function paketiDogrula(dizin: string): DogrulamaSonucu {
         hatalar.push({ sinif: 'BIÇIM', dosya, konum: 'maddeDosyasi', mesaj: `madde dosyası yok: ${kimlik.maddeDosyasi}`, duzeltme: 'CSV dosyasını cerceve/ altına koyun' });
         continue;
       }
-      const { basliklar, satirlar, hata: csvHatasi } = csvAyristir(readFileSync(maddeYolu, 'utf8'));
-      if (csvHatasi) {
-        hatalar.push({ sinif: 'BIÇIM', dosya: maddeDosya, konum: '1', mesaj: csvHatasi, duzeltme: 'tırnağı kapatın; hücre içindeki tırnak `""` ile yazılır' });
-        continue;
+      /* OSCAL (2.7): katalog CSV ile AYNI sütun düzenine indirilir ve aynı
+         kurallardan geçer — OSCAL'a ayrı kapı yok, telifli metin `prose`
+         içinden de sızamaz. Satır konumu OSCAL'da gezinti sırasıdır. */
+      let basliklar: string[]; let satirlar: string[][];
+      if (kimlik.maddeDosyasi.endsWith('.oscal.json')) {
+        const j = jsonOku(maddeYolu);
+        if ('hata' in j) { hatalar.push({ sinif: 'BIÇIM', dosya: maddeDosya, mesaj: `JSON okunamadı: ${j.hata}`, duzeltme: 'OSCAL katalog JSON sözdizimini düzeltin' }); continue; }
+        const o = oscalOku(j.deger);
+        if (!o.ok) { hatalar.push({ sinif: 'BIÇIM', dosya: maddeDosya, konum: o.konum, mesaj: o.hata, duzeltme: 'OSCAL 1.1 katalog: catalog.metadata{title, version, oscal-version} + controls[] ya da groups[]' }); continue; }
+        for (const u of o.uyarilar) {
+          hatalar.push({ sinif: 'BIÇIM', dosya: maddeDosya, konum: 'catalog.groups', mesaj: `OSCAL yapısı okunamadı: ${u}`, duzeltme: 'grup ağacını sığlaştırın; okunmayan grup sessizce düşmez' });
+        }
+        if (o.uyarilar.length) continue;
+        if (o.kod && o.kod !== kimlik.kod) {
+          hatalar.push({ sinif: 'KİMLİK', dosya: maddeDosya, konum: 'catalog.metadata', mesaj: `katalog kodu "${o.kod}" kimlikle uyuşmuyor: "${kimlik.kod}"`, duzeltme: 'kimlik JSON ile katalog aynı çerçeveyi anmalı' });
+          continue;
+        }
+        /* Sürüm etiketi de kimliktir: `version: "2019"` taşıyan katalog
+           `surumEtiketi: "2024"` ile sessizce kurulabiliyordu (inceleme, PR #43). */
+        if (o.surumEtiketi && o.surumEtiketi !== kimlik.surumEtiketi) {
+          hatalar.push({ sinif: 'KİMLİK', dosya: maddeDosya, konum: 'catalog.metadata.version', mesaj: `katalog sürümü "${o.surumEtiketi}" kimlikle uyuşmuyor: "${kimlik.surumEtiketi}"`, duzeltme: 'katalog metadata.version ile kimliğin surumEtiketi aynı olmalı' });
+          continue;
+        }
+        /* LİSANS: telifli çerçevenin OSCAL dosyasında OKUNMAYAN metin alanı
+           (yabancı `prose`, yabancı prop) madde metnini taşıyabilir — okunmaz
+           ama depoya girer. CSV'deki "başlığı aşan dolu hücre" kuralının
+           karşılığı (inceleme bulgusu, PR #43). */
+        if (kimlik.lisans.tur === 'telifli') {
+          const yabanci = oscalYabanciMetinler(j.deger);
+          for (const y of yabanci.slice(0, 5)) {
+            hatalar.push({ sinif: 'LİSANS', dosya: maddeDosya, konum: y.split(' — ')[0], mesaj: `lisans sınırı: ${kimlik.kod} telifli, okunmayan metin alanı dolu — ${y}`, duzeltme: 'telifli çerçevede yalnız yapı ve kimlik taşınır: bu alanı boşaltın' });
+          }
+          /* Kırpılan bulgunun SAYISI söylenir: "5 tanesini düzelt, sonra tekrar bak" demek,
+             kaç tane kaldığını gizlemek olurdu (inceleme, PR #43 tur 2). */
+          if (yabanci.length > 5) hatalar.push({ sinif: 'LİSANS', dosya: maddeDosya, mesaj: `… ve ${yabanci.length - 5} okunmayan metin alanı daha (toplam ${yabanci.length})`, duzeltme: 'hepsini boşaltın; liste ilk beşten sonra kırpıldı' });
+          if (yabanci.length) continue;
+        }
+        basliklar = o.basliklar; satirlar = o.satirlar;
+      } else {
+        const csv = csvAyristir(readFileSync(maddeYolu, 'utf8'));
+        if (csv.hata) {
+          hatalar.push({ sinif: 'BIÇIM', dosya: maddeDosya, konum: '1', mesaj: csv.hata, duzeltme: 'tırnağı kapatın; hücre içindeki tırnak `""` ile yazılır' });
+          continue;
+        }
+        basliklar = csv.basliklar; satirlar = csv.satirlar;
       }
       const eksik = MADDE_ZORUNLU_SUTUNLAR.filter((s) => !basliklar.includes(s));
       if (eksik.length) {
@@ -345,12 +402,294 @@ export function paketiDogrula(dizin: string): DogrulamaSonucu {
            tam sayı ekranda tanımsız etiket ve dağılımda kayıp üretirdi. */
         if (seviye !== null && (seviye < OLGUNLUK_ASGARI || seviye > OLGUNLUK_AZAMI)) { hatalar.push({ sinif: 'BIÇIM', dosya: maddeDosya, konum: no, mesaj: `seviye ${OLGUNLUK_ASGARI}–${OLGUNLUK_AZAMI} aralığında olmalı: ${seviyeHam} (${kod})`, duzeltme: `olgunluk seviyesini ${OLGUNLUK_ASGARI}–${OLGUNLUK_AZAMI} arası yazın ya da boş bırakın` }); return; }
         if (zt && !(ZORUNLULUK_TIPLERI as readonly string[]).includes(zt)) { hatalar.push({ sinif: 'BIÇIM', dosya: maddeDosya, konum: no, mesaj: `zorunluluk_tipi bilinmiyor: ${zt}`, duzeltme: `şunlardan biri: ${ZORUNLULUK_TIPLERI.join(', ')}` }); return; }
-        maddeler.push({ kod, ustKod, baslik, metin, sira, seviye, zorunlulukTipi: zt, kanitBeklentisi, disKontrolId });
+        const kanitTipi = sutun(satir, 'kanit_tipi') || null;
+        if (kanitTipi && !KANIT_TIPI_KODU.test(kanitTipi)) { hatalar.push({ sinif: 'BIÇIM', dosya: maddeDosya, konum: no, mesaj: `kanit_tipi kod olmalı (küçük harf, alt çizgi, ≤ 40): ${kanitTipi.slice(0, 50)}`, duzeltme: 'kanıt türünün kodunu yazın (kayit, konfigurasyon…); açıklama kanit_beklentisi sütununa' }); return; }
+        /* ── köken sütunları (içerik) ─────────────────────────────────── */
+        const kaynakUrl = sutun(satir, 'kaynak_url') || null;
+        const kaynakYeri = sutun(satir, 'kaynak_yeri') || null;
+        const erisimTarihi = sutun(satir, 'erisim_tarihi') || null;
+        const yururlukTarihi = sutun(satir, 'yururluk_tarihi') || null;
+        if (kaynakUrl && !gecerliUrl(kaynakUrl)) { hatalar.push({ sinif: 'KAYNAK', dosya: maddeDosya, konum: no, mesaj: `kaynak_url geçerli bir http(s) adresi değil: ${kaynakUrl.slice(0, 80)} (${kod})`, duzeltme: 'resmî belgenin tam adresini https:// ile yazın' }); return; }
+        if (kaynakYeri && kaynakYeri.length > KAYNAK_YERI_SINIRI) { hatalar.push({ sinif: 'BIÇIM', dosya: maddeDosya, konum: no, mesaj: `kaynak_yeri ${kaynakYeri.length} karakter > ${KAYNAK_YERI_SINIRI} (${kod}) — konumdur, metin değil`, duzeltme: 'belge içi konumu kısa yazın (bölüm · sayfa · satır)' }); return; }
+        for (const [ad, deger] of [['erisim_tarihi', erisimTarihi], ['yururluk_tarihi', yururlukTarihi]] as const) {
+          if (deger && !takvimTarihi(deger)) { hatalar.push({ sinif: 'BIÇIM', dosya: maddeDosya, konum: no, mesaj: `${ad} takvim tarihi değil (YYYY-AA-GG): ${deger} (${kod})`, duzeltme: 'YYYY-AA-GG yazın ya da boş bırakın' }); return; }
+        }
+        /* KÖKEN KURALI: metin girilmişse nereden ve ne zaman alındığı maddenin
+           yanında durur — resmî metin serbesttir (FSEK md. 31) ama kaynağı
+           yazılır. Demo paketi kurgusaldır, kaynağı yoktur: muaf. Telifli
+           çerçevede metin zaten yasaktır. */
+        /* Kapsam: KAYNAĞI OLDUĞUNU SÖYLEYEN çerçeve (kimlikte `kaynakUrl` var).
+           Kiracının kendi iç politikası (kaynaksız çerçeve) ve kurgusal demo
+           paketi muaftır — onlara resmî adres uydurmak kuralın kendisini bozardı. */
+        if (metin && kimlik.kaynakUrl && kimlik.lisans.tur !== 'telifli' && manifest.tur !== 'demo' && (!kaynakUrl || !erisimTarihi)) {
+          hatalar.push({ sinif: 'KAYNAK', dosya: maddeDosya, konum: no, mesaj: `metin girilmiş ama ${!kaynakUrl ? 'kaynak_url' : 'erisim_tarihi'} boş (${kod}) — metnin nereden ve ne zaman alındığı her maddede yazılır`,
+            duzeltme: 'kaynak_url (resmî belge adresi) ve erisim_tarihi (YYYY-AA-GG) sütunlarını doldurun; metni giremiyorsanız sütunu boş bırakın, kurulumda "metin girilmedi" yazılır' });
+          return;
+        }
+        /* Çerçevenin kendi kademesi — ürünün hedef olgunluğu (`seviye`) DEĞİL. */
+        const gereksinimTipi = sutun(satir, 'gereksinim_tipi') || null;
+        if (gereksinimTipi && gereksinimTipi.length > GEREKSINIM_TIPI_SINIRI) { hatalar.push({ sinif: 'BIÇIM', dosya: maddeDosya, konum: no, mesaj: `gereksinim_tipi ${gereksinimTipi.length} karakter > ${GEREKSINIM_TIPI_SINIRI} (${kod}) — sınıf adıdır, açıklama değil`, duzeltme: 'kısa bir sınıf adı yazın ("Seviye 2", "Ek Kontrol")' }); return; }
+        maddeler.push({ kod, ustKod, baslik, metin, sira, seviye, zorunlulukTipi: zt, kanitBeklentisi, disKontrolId, kanitTipi, kaynakUrl, kaynakYeri, erisimTarihi, yururlukTarihi, gereksinimTipi });
       });
+      /* KAYNAK · kaçış kapısı kapalı (bağımsız inceleme, PR #43 tur 2): kural yalnız
+         `kaynakUrl` beyan eden çerçeveyi bağlıyordu — kimlikten adresi SİLEN paket
+         zorunluluktan kurtuluyordu. Bugün: metin taşıyan kamuya açık çerçeve ya
+         kaynağını beyan eder ya `temsili: true` der (kurgusal içerik). İkisi birden
+         olamaz: kaynağı olduğunu söyleyen çerçeve temsilî değildir. */
+      if (kimlik.temsili && kimlik.kaynakUrl) {
+        hatalar.push({ sinif: 'KAYNAK', dosya, konum: 'temsili', mesaj: `${kimlik.kod} hem temsilî hem kaynak adresi beyan ediyor — metin ya o belgeden alındı ya alınmadı`,
+          duzeltme: 'temsilî içerikte `kaynakUrl` alanını kaldırın; metin gerçekten o belgedense `temsili` alanını kaldırın' });
+      }
+      if (!kimlik.kaynakUrl && !kimlik.temsili && manifest.tur !== 'demo' && kimlik.lisans.tur !== 'telifli' && maddeler.some((md) => md.metin)) {
+        hatalar.push({ sinif: 'KAYNAK', dosya, konum: 'kaynakUrl', mesaj: `${kimlik.kod} metin taşıyor ama kaynak adresi beyan etmiyor — metnin nereden geldiği söylenmeli`,
+          duzeltme: 'kimliğe `kaynakUrl` yazın (ve her metinli maddeye kaynak_url + erisim_tarihi), ya da içerik kurgusalsa `temsili: true` deyin' });
+      }
       cerceveler.push({ dosya, kimlik, maddeler });
     }
   }
   tekil(DOSYALAR.cerceveDizini, 'KİMLİK', cerceveler.map((c) => c.kimlik.kod), 'çerçeve kodu');
+
+  /* ── uygulanabilirlik beyanı (§1/9) ──────────────────────────────────
+     Tür kodu paketin kendi türlerinden ya da çekirdek türlerden; koşul
+     alanı paketin KURALDA KULLANILIR dediği özniteliklerinden ya da
+     `kapsamTuru`; işleç–değer uyumu motorun beklediği gibi. Beyan koda
+     gömülmez: motor bağlamı bu alanlardan kurar. */
+  const turKodlari = new Set<string>([...CEKIRDEK_KAPSAM_TURLERI, ...kapsamTurleri.map((t) => t.kod)]);
+  const kuralAnahtarlari = new Map(oznitelikler.map((o) => [o.anahtar, o.kuraldaKullanilir]));
+  for (const c of cerceveler) {
+    const b = c.kimlik.uygulanabilirlik;
+    if (!b) continue;
+    const dosya = `${DOSYALAR.cerceveDizini}/${c.kimlik.kod}.json`;
+    for (const t of b.kapsamTurleri) {
+      if (!turKodlari.has(t)) hatalar.push({ sinif: 'KAPSAM TÜRÜ', dosya, konum: 'uygulanabilirlik.kapsamTurleri', mesaj: `tanınmayan kapsam öğesi türü: ${t}`, duzeltme: `çekirdek türlerden (${CEKIRDEK_KAPSAM_TURLERI.join(', ')}) ya da paketin kapsam-turleri.json kodlarından birini yazın` });
+    }
+    const kosulDenetle = (k: KosulBeyani, yol: string): void => {
+      if (!('alan' in k)) { (k.herhangi ?? k.hepsi ?? []).forEach((alt, i) => kosulDenetle(alt, `${yol}.${k.herhangi ? 'herhangi' : 'hepsi'}[${i}]`)); return; }
+      if (k.alan === KAPSAM_TURU_ALANI) {
+        const degerler = Array.isArray(k.deger) ? k.deger : [String(k.deger)];
+        if (k.islec !== 'icinde' && k.islec !== '=') hatalar.push({ sinif: 'BIÇIM', dosya, konum: yol, mesaj: `${KAPSAM_TURU_ALANI} yalnız icinde ya da = ile karşılaştırılır (${k.islec})`, duzeltme: 'kapsamTurleri listesini kullanın; koşula tür yazacaksanız icinde/= kullanın' });
+        for (const d of degerler) if (!turKodlari.has(d)) hatalar.push({ sinif: 'KAPSAM TÜRÜ', dosya, konum: yol, mesaj: `tanınmayan kapsam öğesi türü: ${d}`, duzeltme: 'çekirdek ya da paket tür kodu yazın' });
+        return;
+      }
+      const kullanilir = kuralAnahtarlari.get(k.alan);
+      if (kullanilir === undefined) { hatalar.push({ sinif: 'ÖZNİTELİK', dosya, konum: yol, mesaj: `koşul alanı paketin özniteliği değil: ${k.alan}`, duzeltme: `oznitelikler.json anahtarlarından birini ya da ${KAPSAM_TURU_ALANI} yazın` }); return; }
+      if (!kullanilir) hatalar.push({ sinif: 'ÖZNİTELİK', dosya, konum: yol, mesaj: `${k.alan} kuralda kullanılamaz (kuraldaKullanilir=false)`, duzeltme: 'öznitelikte kuraldaKullanilir=true yapın ya da koşulu kaldırın' });
+      if (k.islec === 'icinde' && !Array.isArray(k.deger)) hatalar.push({ sinif: 'BIÇIM', dosya, konum: yol, mesaj: `icinde işleci liste ister (${k.alan})`, duzeltme: 'deger: ["a", "b"] yazın' });
+      if (['>=', '<=', '>', '<'].includes(k.islec) && typeof k.deger !== 'number') hatalar.push({ sinif: 'BIÇIM', dosya, konum: yol, mesaj: `${k.islec} işleci sayı ister (${k.alan})`, duzeltme: 'deger sayı olmalı' });
+      if ((k.islec === '=' || k.islec === '!=') && Array.isArray(k.deger)) hatalar.push({ sinif: 'BIÇIM', dosya, konum: yol, mesaj: `${k.islec} işleci tek değer ister (${k.alan})`, duzeltme: 'liste için icinde kullanın' });
+    };
+    if (b.kosul) kosulDenetle(b.kosul, 'uygulanabilirlik.kosul');
+  }
+
+  /* ── eşlemeler (2.4) — `esleme/<KOD>.json` kimlik + CSV ───────────────
+     Çerçeveler ARASI madde eşlemesi. Paket içi çerçeveye referans onun
+     kendi sürüm etiketiyle yapılır ve madde kodu o çerçevenin CSV'sinde
+     aranır; kurulu çerçeveye referans kurulumda çözülür (kurucu). Yapı
+     kusurları LİSANS'tan ÖNCE: tekrar başlık ve başlığı aşan dolu hücre
+     okunmaz ama pakette taşınır — telifli metin oradan kaçardı. Metin
+     taşıyabilen tek sütun `aciklama`: sınırlı ve yalnız metin izinliyken. */
+  const eslemeler: Esleme[] = [];
+  const eslemeDizini = path.join(dizin, DOSYALAR.eslemeDizini);
+  const eslemeJsonlari = existsSync(eslemeDizini) ? readdirSync(eslemeDizini).filter((d) => d.endsWith('.json')).sort() : [];
+  const eslemeDosyalari = new Set<string>(eslemeJsonlari.map((d) => `${DOSYALAR.eslemeDizini}/${d}`));
+  const paketCerceveleri = new Map(cerceveler.map((c) => [c.kimlik.kod, { kimlik: c.kimlik, kodlar: new Set(c.maddeler.map((md) => md.kod)) }]));
+  for (const dosyaAdi of eslemeJsonlari) {
+    const dosya = `${DOSYALAR.eslemeDizini}/${dosyaAdi}`;
+    const j = jsonOku(path.join(eslemeDizini, dosyaAdi));
+    if ('hata' in j) { hatalar.push({ sinif: 'BIÇIM', dosya, mesaj: `JSON okunamadı: ${j.hata}`, duzeltme: 'JSON sözdizimini düzeltin' }); continue; }
+    const p = EslemeKimligiSemasi.safeParse(j.deger);
+    if (!p.success) {
+      for (const h of zodHatalari(p.error, dosya, 'BIÇIM', 'eşleme kimliği: kod · ad · kaynak {cerceve, surumEtiketi} · hedef {cerceve, surumEtiketi} · lisans · eslemeDosyasi')) {
+        if (h.konum?.startsWith('lisans')) h.sinif = 'LİSANS';
+        hatalar.push(h);
+      }
+      continue;
+    }
+    const kimlik = p.data;
+    if (`${kimlik.kod}.json` !== dosyaAdi) {
+      hatalar.push({ sinif: 'KİMLİK', dosya, konum: 'kod', mesaj: `eşleme kodu "${kimlik.kod}" dosya adıyla uyuşmuyor`, duzeltme: `dosyayı ${kimlik.kod}.json diye adlandırın` });
+    }
+    if (kimlik.kaynak.cerceve === kimlik.hedef.cerceve) {
+      hatalar.push({ sinif: 'BIÇIM', dosya, konum: 'hedef.cerceve', mesaj: `eşleme çerçeveler arasıdır — kaynak ve hedef aynı çerçeve olamaz (${kimlik.kaynak.cerceve})`,
+        duzeltme: 'aynı çerçevenin sürümleri arası geçiş eşleme değil yerine geçmedir (SurumFarki)' });
+    }
+    if (kimlik.lisans.tur === 'telifli' && kimlik.lisans.metinDahil) {
+      hatalar.push({ sinif: 'LİSANS', dosya, konum: 'lisans.metinDahil', mesaj: `lisans sınırı: ${kimlik.kod} telifli, açıklama metni girilemez`, duzeltme: '`metinDahil: false` yapın' });
+    }
+    let telifliCerceve: string | null = null;
+    for (const [yon, ref] of [['kaynak', kimlik.kaynak], ['hedef', kimlik.hedef]] as const) {
+      const c = paketCerceveleri.get(ref.cerceve);
+      if (!c) continue;
+      if (c.kimlik.surumEtiketi !== ref.surumEtiketi) {
+        hatalar.push({ sinif: 'KİMLİK', dosya, konum: `${yon}.surumEtiketi`, mesaj: `${ref.cerceve} paketin çerçevesi ama sürüm etiketi farklı: eşleme "${ref.surumEtiketi}", çerçeve "${c.kimlik.surumEtiketi}"`,
+          duzeltme: 'paket içi çerçeveye eşleme onun kendi sürüm etiketiyle yapılır' });
+      }
+      if (c.kimlik.lisans.tur === 'telifli') telifliCerceve = ref.cerceve;
+    }
+    const eslemeDosya = `${DOSYALAR.eslemeDizini}/${kimlik.eslemeDosyasi}`;
+    eslemeDosyalari.add(eslemeDosya);
+    const csvYolu = path.join(eslemeDizini, kimlik.eslemeDosyasi);
+    if (!existsSync(csvYolu)) {
+      hatalar.push({ sinif: 'BIÇIM', dosya, konum: 'eslemeDosyasi', mesaj: `eşleme dosyası yok: ${kimlik.eslemeDosyasi}`, duzeltme: 'CSV dosyasını esleme/ altına koyun' });
+      continue;
+    }
+    const { basliklar, satirlar, hata: csvHatasi } = csvAyristir(readFileSync(csvYolu, 'utf8'));
+    if (csvHatasi) { hatalar.push({ sinif: 'BIÇIM', dosya: eslemeDosya, konum: '1', mesaj: csvHatasi, duzeltme: 'tırnağı kapatın; hücre içindeki tırnak `""` ile yazılır' }); continue; }
+    const eksik = ESLEME_ZORUNLU_SUTUNLAR.filter((s) => !basliklar.includes(s));
+    if (eksik.length) { hatalar.push({ sinif: 'BIÇIM', dosya: eslemeDosya, konum: '1', mesaj: `başlık satırında zorunlu sütun eksik: ${eksik.join(', ')}`, duzeltme: `ilk satır: ${ESLEME_SUTUNLARI.join(';')}` }); continue; }
+    const bilinmeyen = basliklar.filter((b) => !(ESLEME_SUTUNLARI as readonly string[]).includes(b));
+    if (bilinmeyen.length) { hatalar.push({ sinif: 'BIÇIM', dosya: eslemeDosya, konum: '1', mesaj: `bilinmeyen sütun: ${bilinmeyen.join(', ')}`, duzeltme: `yalnız şu sütunlar: ${ESLEME_SUTUNLARI.join(';')}` }); continue; }
+    const tekrarBaslik = [...new Set(basliklar.filter((b, i) => basliklar.indexOf(b) !== i))];
+    if (tekrarBaslik.length) {
+      hatalar.push({ sinif: 'BIÇIM', dosya: eslemeDosya, konum: '1', mesaj: `sütun başlığı tekrar ediyor: ${tekrarBaslik.join(', ')} — ikinci kopya okunmaz ama içerik taşır`, duzeltme: 'her sütun başlığı bir kez yazılır; fazla kopyayı silin' });
+      continue;
+    }
+    /* Açıklama ne zaman dolabilir: eşleme metin dâhil diyorsa, paket telifli
+       değilse ve iki uç da telifli değilse. Sebep mesaja yazılır. */
+    const metinYasagi = manifest.lisans.tur === 'telifli' ? 'paket telifli'
+      : !kimlik.lisans.metinDahil ? `eşleme metinDahil=false`
+      : telifliCerceve ? `${telifliCerceve} çerçevesi telifli` : null;
+    const sutun = (satir: string[], ad: string) => { const i = basliklar.indexOf(ad); return i === -1 ? '' : (satir[i] ?? '').trim(); };
+    const gorulen = new Set<string>();
+    const okunan: EslemeSatiri[] = [];
+    satirlar.forEach((satir, i) => {
+      const no = String(i + 2);
+      const fazla = satir.slice(basliklar.length).filter((h) => h.trim() !== '');
+      if (fazla.length) {
+        hatalar.push({ sinif: 'BIÇIM', dosya: eslemeDosya, konum: no, mesaj: `satırda başlığı aşan ${fazla.length} dolu hücre var (${basliklar.length} sütun) — fazla hücre okunmaz ama içerik taşır`,
+          duzeltme: 'fazla hücreyi silin; her satır en fazla başlık kadar hücre taşır' });
+        return;
+      }
+      const kaynakKod = sutun(satir, 'kaynak_kod'); const hedefKod = sutun(satir, 'hedef_kod'); const denklik = sutun(satir, 'denklik');
+      const aciklama = sutun(satir, 'aciklama') || null;
+      if (!kaynakKod || !hedefKod) { hatalar.push({ sinif: 'KİMLİK', dosya: eslemeDosya, konum: no, mesaj: 'kaynak_kod ve hedef_kod boş olamaz', duzeltme: 'her satır iki madde kodu taşır (çerçeve önekinden sonraki kısım)' }); return; }
+      const cift = `${kaynakKod}→${hedefKod}`;
+      if (gorulen.has(cift)) { hatalar.push({ sinif: 'KİMLİK', dosya: eslemeDosya, konum: no, mesaj: `eşleme tekrar ediyor: ${cift}`, duzeltme: 'satırlardan birini silin' }); return; }
+      gorulen.add(cift);
+      if (!(DENKLIKLER as readonly string[]).includes(denklik)) { hatalar.push({ sinif: 'BIÇIM', dosya: eslemeDosya, konum: no, mesaj: `denklik bilinmiyor: ${denklik || '(boş)'}`, duzeltme: `şunlardan biri: ${DENKLIKLER.join(', ')}` }); return; }
+      const kc = paketCerceveleri.get(kimlik.kaynak.cerceve); const hc = paketCerceveleri.get(kimlik.hedef.cerceve);
+      if (kc && !kc.kodlar.has(kaynakKod)) { hatalar.push({ sinif: 'KİMLİK', dosya: eslemeDosya, konum: no, mesaj: `kaynak_kod paketin ${kimlik.kaynak.cerceve} çerçevesinde yok: ${kaynakKod}`, duzeltme: 'madde kodunu çerçeve CSV\'sindeki gibi yazın' }); return; }
+      if (hc && !hc.kodlar.has(hedefKod)) { hatalar.push({ sinif: 'KİMLİK', dosya: eslemeDosya, konum: no, mesaj: `hedef_kod paketin ${kimlik.hedef.cerceve} çerçevesinde yok: ${hedefKod}`, duzeltme: 'madde kodunu çerçeve CSV\'sindeki gibi yazın' }); return; }
+      if (aciklama) {
+        if (aciklama.length > ACIKLAMA_SINIRI) { hatalar.push({ sinif: 'BIÇIM', dosya: eslemeDosya, konum: no, mesaj: `açıklama ${aciklama.length} karakter > ${ACIKLAMA_SINIRI} — not, metin değil (${cift})`, duzeltme: 'açıklamayı kısaltın' }); return; }
+        if (metinYasagi) { hatalar.push({ sinif: 'LİSANS', dosya: eslemeDosya, konum: no, mesaj: `lisans sınırı: açıklama girilemez — ${metinYasagi} (${cift})`, duzeltme: 'aciklama sütununu boş bırakın' }); return; }
+      }
+      okunan.push({ kaynakKod, hedefKod, denklik, aciklama });
+    });
+    eslemeler.push({ dosya, kimlik, satirlar: okunan });
+  }
+  tekil(DOSYALAR.eslemeDizini, 'KİMLİK', eslemeler.map((e) => e.kimlik.kod), 'eşleme kodu');
+
+  /* ── form şablonları (2.2) ─────────────────────────────────────────
+     `form/<KOD>.json`; isteğe bağlı XLSX aynı dizinde: sayfa ve her alanın
+     hücresi DOSYAYA KARŞI okunur (var mı, aralığın içinde mi). Telifli
+     pakette XLSX yasak — hücre metni denetlenemez, tam metin kaçağı olur. */
+  const formlar: FormSablonu[] = [];
+  const formDizini = path.join(dizin, DOSYALAR.formDizini);
+  const formJsonlari = existsSync(formDizini) ? readdirSync(formDizini).filter((d) => d.endsWith('.json')).sort() : [];
+  const formDosyalari = new Set<string>();
+  let formOkunamadi = false;
+  for (const dosyaAdi of formJsonlari) {
+    const dosya = `${DOSYALAR.formDizini}/${dosyaAdi}`;
+    formDosyalari.add(dosya);
+    const j = jsonOku(path.join(formDizini, dosyaAdi));
+    if ('hata' in j) { formOkunamadi = true; hatalar.push({ sinif: 'BIÇIM', dosya, mesaj: `JSON okunamadı: ${j.hata}`, duzeltme: 'JSON sözdizimini düzeltin' }); continue; }
+    const p = FormSablonuSemasi.safeParse(j.deger);
+    if (!p.success) {
+      formOkunamadi = true;
+      for (const h of zodHatalari(p.error, dosya, 'BIÇIM', 'form şablonu: kod · ad · tur · bolumler[{kod, baslik, alanlar[{anahtar, etiket, tip}]}]')) hatalar.push(h);
+      continue;
+    }
+    const f = p.data;
+    if (`${f.kod}.json` !== dosyaAdi) {
+      hatalar.push({ sinif: 'KİMLİK', dosya, konum: 'kod', mesaj: `form kodu "${f.kod}" dosya adıyla uyuşmuyor`, duzeltme: `dosyayı ${f.kod}.json diye adlandırın` });
+    }
+    const gorulenAnahtar = new Set<string>();
+    for (const b of f.bolumler) for (const a of b.alanlar) {
+      const konum = `${b.kod}.${a.anahtar}`;
+      if (gorulenAnahtar.has(a.anahtar)) hatalar.push({ sinif: 'KİMLİK', dosya, konum, mesaj: `alan anahtarı tekrar ediyor: ${a.anahtar}`, duzeltme: 'anahtar form içinde tekil olmalı' });
+      gorulenAnahtar.add(a.anahtar);
+      if (a.tip === 'secim' && !(a.secenekler && a.secenekler.length)) hatalar.push({ sinif: 'BIÇIM', dosya, konum, mesaj: 'secim tipi seçenek listesi ister', duzeltme: '`secenekler: [{deger, ad}]` yazın' });
+      if (a.secenekler && a.tip !== 'secim') hatalar.push({ sinif: 'BIÇIM', dosya, konum, mesaj: `seçenek listesi yalnız secim tipinde olur (tip=${a.tip})`, duzeltme: 'seçenekleri kaldırın ya da tipi secim yapın' });
+      if (a.hucre && !f.dosya) hatalar.push({ sinif: 'BIÇIM', dosya, konum, mesaj: 'hücre var ama form XLSX dosyası beyan etmiyor', duzeltme: '`dosya` yazın ya da hücreyi kaldırın' });
+    }
+    if (f.dosya) {
+      /* Yasak ÇERÇEVE düzeyini de görür: manifesti kamuya açık ama içinde
+         telifli çerçeve taşıyan paket XLSX ile tam metin kaçırabilirdi
+         (inceleme bulgusu, PR #43). */
+      const telifliCerceve = cerceveler.find((c) => c.kimlik.lisans.tur === 'telifli');
+      if (manifest.lisans.tur === 'telifli' || telifliCerceve) {
+        const sebep = manifest.lisans.tur === 'telifli' ? 'telifli paket' : `telifli çerçeve taşıyan paket (${telifliCerceve?.kimlik.kod})`;
+        hatalar.push({ sinif: 'LİSANS', dosya, konum: 'dosya', mesaj: `lisans sınırı: ${sebep} XLSX form taşıyamaz (${f.dosya}) — hücre metni denetlenemez`, duzeltme: 'formu JSON yapı olarak verin (dosya alanını kaldırın)' });
+      } else {
+        const xlsxGoreli = `${DOSYALAR.formDizini}/${f.dosya}`;
+        formDosyalari.add(xlsxGoreli);
+        const xlsxYolu = path.join(formDizini, f.dosya);
+        if (!existsSync(xlsxYolu)) {
+          hatalar.push({ sinif: 'BIÇIM', dosya, konum: 'dosya', mesaj: `XLSX dosyası yok: ${f.dosya}`, duzeltme: 'dosyayı form/ altına koyun' });
+        } else if (!f.sayfa) {
+          hatalar.push({ sinif: 'BIÇIM', dosya, konum: 'sayfa', mesaj: 'XLSX varsa sayfa adı zorunlu', duzeltme: '`sayfa: "Form"` gibi sayfa adını yazın' });
+        } else {
+          let sayfaAdlari: string[] = [];
+          let sayfa: XLSX.WorkSheet | undefined;
+          try {
+            const wb = XLSX.read(readFileSync(xlsxYolu), { type: 'buffer' });
+            sayfaAdlari = wb.SheetNames;
+            sayfa = wb.Sheets[f.sayfa];
+          } catch (e) {
+            hatalar.push({ sinif: 'BIÇIM', dosya: xlsxGoreli, mesaj: `XLSX okunamadı: ${e instanceof Error ? e.message : String(e)}`, duzeltme: 'dosyayı yeniden kaydedin (.xlsx)' });
+          }
+          if (sayfaAdlari.length && !sayfa) {
+            hatalar.push({ sinif: 'BIÇIM', dosya, konum: 'sayfa', mesaj: `sayfa yok: ${f.sayfa} (dosyadaki sayfalar: ${sayfaAdlari.join(', ')})`, duzeltme: 'sayfa adını dosyadaki gibi yazın' });
+          } else if (sayfa) {
+            const aralik = sayfa['!ref'] ? XLSX.utils.decode_range(sayfa['!ref']) : null;
+            for (const b of f.bolumler) for (const a of b.alanlar) {
+              const konum = `${b.kod}.${a.anahtar}.hucre`;
+              if (!a.hucre) { hatalar.push({ sinif: 'BIÇIM', dosya, konum, mesaj: 'XLSX form alanının hücresi yok', duzeltme: 'her alana `hucre` (B4 gibi) yazın' }); continue; }
+              const h = XLSX.utils.decode_cell(a.hucre);
+              if (!aralik || h.r > aralik.e.r || h.c > aralik.e.c) {
+                hatalar.push({ sinif: 'BIÇIM', dosya, konum, mesaj: `hücre ${a.hucre} "${f.sayfa}" sayfasının aralığı dışında (${sayfa['!ref'] ?? 'boş sayfa'})`, duzeltme: 'hücreyi dosyadaki bir hücreye işaret ettirin' });
+              }
+            }
+          }
+        }
+      }
+    }
+    formlar.push(f);
+  }
+  tekil(DOSYALAR.formDizini, 'KİMLİK', formlar.map((f) => f.kod), 'form kodu');
+
+  /* ── rapor şablonları (2.2) — `rapor/<KOD>.json` ───────────────────── */
+  const raporlar: RaporSablonu[] = [];
+  const raporDizini = path.join(dizin, DOSYALAR.raporDizini);
+  const raporJsonlari = existsSync(raporDizini) ? readdirSync(raporDizini).filter((d) => d.endsWith('.json')).sort() : [];
+  const raporDosyalari = new Set<string>(raporJsonlari.map((d) => `${DOSYALAR.raporDizini}/${d}`));
+  for (const dosyaAdi of raporJsonlari) {
+    const dosya = `${DOSYALAR.raporDizini}/${dosyaAdi}`;
+    const j = jsonOku(path.join(raporDizini, dosyaAdi));
+    if ('hata' in j) { hatalar.push({ sinif: 'BIÇIM', dosya, mesaj: `JSON okunamadı: ${j.hata}`, duzeltme: 'JSON sözdizimini düzeltin' }); continue; }
+    const p = RaporSablonuSemasi.safeParse(j.deger);
+    if (!p.success) {
+      for (const h of zodHatalari(p.error, dosya, 'BIÇIM', 'rapor şablonu: kod · ad · alanlar[{anahtar, etiket, kaynak}] · siralama · kunye · sayfa')) hatalar.push(h);
+      continue;
+    }
+    const r = p.data;
+    if (`${r.kod}.json` !== dosyaAdi) {
+      hatalar.push({ sinif: 'KİMLİK', dosya, konum: 'kod', mesaj: `rapor kodu "${r.kod}" dosya adıyla uyuşmuyor`, duzeltme: `dosyayı ${r.kod}.json diye adlandırın` });
+    }
+    const alanAnahtarlari = r.alanlar.map((a) => a.anahtar);
+    const tekrar = alanAnahtarlari.filter((a, i) => alanAnahtarlari.indexOf(a) !== i);
+    if (tekrar.length) hatalar.push({ sinif: 'KİMLİK', dosya, konum: 'alanlar', mesaj: `alan anahtarı tekrar ediyor: ${[...new Set(tekrar)].join(', ')}`, duzeltme: 'anahtar rapor içinde tekil olmalı' });
+    const siralamaKumesi = new Set(r.siralama);
+    const bilinmeyen = r.siralama.filter((s) => !alanAnahtarlari.includes(s));
+    const eksik = alanAnahtarlari.filter((a) => !siralamaKumesi.has(a));
+    if (bilinmeyen.length || eksik.length || siralamaKumesi.size !== r.siralama.length) {
+      hatalar.push({ sinif: 'BIÇIM', dosya, konum: 'siralama', mesaj: `sıralama alanların bir permütasyonu olmalı — bilinmeyen: ${bilinmeyen.join(', ') || '-'}; eksik: ${eksik.join(', ') || '-'}`,
+        duzeltme: 'her alan anahtarını sıralamada bir kez yazın' });
+    }
+    raporlar.push(r);
+  }
+  tekil(DOSYALAR.raporDizini, 'KİMLİK', raporlar.map((r) => r.kod), 'rapor kodu');
 
   /* ── paket yapısında yeri olmayan dosya ─────────────────────────────
      Özeti doğru olan ama hiçbir tanımlayıcının okumadığı dosya (örn.
@@ -359,18 +698,21 @@ export function paketiDogrula(dizin: string): DogrulamaSonucu {
      dosyaları, `cerceve/*.json` kimlikleri ve onların `maddeDosyasi`.
      Bir kimlik JSON'u okunamadıysa paket zaten kırmızıdır; CSV'si
      ayrıca "tanınmıyor" diye suçlanmaz. */
-  const cerceveJsonlari = existsSync(cerceveDizini) ? readdirSync(cerceveDizini).filter((d) => d.endsWith('.json')) : [];
-  const kimlikOkunamadi = cerceveJsonlari.length !== cerceveler.length;
+  const cerceveJsonlari = existsSync(cerceveDizini) ? readdirSync(cerceveDizini).filter((d) => d.endsWith('.json') && !d.endsWith('.oscal.json')) : [];
+  const kimlikOkunamadi = cerceveJsonlari.length !== cerceveler.length || eslemeJsonlari.length !== eslemeler.length;
   if (!kimlikOkunamadi) {
     const taninan = new Set<string>([
-      DOSYALAR.sozluk, DOSYALAR.kapsamTurleri, DOSYALAR.oznitelikler, DOSYALAR.yukumlulukler,
+      DOSYALAR.sozluk, DOSYALAR.kapsamTurleri, DOSYALAR.oznitelikler, DOSYALAR.yukumlulukler, DOSYALAR.roller,
       ...cerceveJsonlari.map((d) => `${DOSYALAR.cerceveDizini}/${d}`),
       ...cerceveler.map((c) => `${DOSYALAR.cerceveDizini}/${c.kimlik.maddeDosyasi}`),
+      ...eslemeDosyalari, ...formDosyalari, ...raporDosyalari,
     ]);
     for (const d of mevcut) {
+      // form JSON'u okunamadıysa XLSX'i referanssız kalır; paket zaten kırmızı, ayrıca suçlanmaz
+      if (formOkunamadi && d.startsWith(`${DOSYALAR.formDizini}/`)) continue;
       if (!taninan.has(d)) {
         hatalar.push({ sinif: 'BIÇIM', dosya: d, mesaj: 'paket yapısında yeri olmayan dosya — hiçbir tanımlayıcı okumuyor, ama pakette taşınır',
-          duzeltme: 'dosyayı paketten çıkarın; çerçeve CSV\'si kimlik JSON\'unun maddeDosyasi alanından referanslanmalı' });
+          duzeltme: 'dosyayı paketten çıkarın; çerçeve/eşleme CSV\'si kimlik JSON\'unun maddeDosyasi/eslemeDosyasi alanından referanslanmalı' });
       }
     }
   }
@@ -378,10 +720,45 @@ export function paketiDogrula(dizin: string): DogrulamaSonucu {
   const yukumlulukler = liste<YukumlulukSatiri>(DOSYALAR.yukumlulukler, YukumlulukSatiriSemasi, 'BIÇIM', 'yükümlülük satırı: kod · ad · regulasyonKod? · asgariSiddet · sureSaat · dayanak · merci');
   tekil(DOSYALAR.yukumlulukler, 'KİMLİK', yukumlulukler.map((y) => y.kod), 'yükümlülük kodu');
 
+  /* ── rol önerileri (2.3) — `roller.json` ──────────────────────────────
+     Paket rol ÖNERİR; çalışma zamanı yetkisi koddan okunur (bicim.ts).
+     Çekirdek rol kodu paketle yeniden tanımlanamaz: katalog "denetim
+     sorumlusu şunu yapar" derken kod başka şey yapardı — KİMLİK. İzin
+     merdiveni (onay → yazma → okuma) BIÇIM. Sektörsüz (yatay) paket de rol
+     önerebilir: rol sektöre bağlı değildir. */
+  const roller = liste<RolSatiri>(DOSYALAR.roller, RolSatiriSemasi, 'BIÇIM', 'rol satırı: kod (küçük harf) · ad · izinler {modül: [okuma|yazma|onay]} · kapsamEkseni (global|kapsamOgesi)');
+  tekil(DOSYALAR.roller, 'KİMLİK', roller.map((r) => r.kod), 'rol kodu');
+  roller.forEach((r, i) => {
+    const konum = `[${i}] ${r.kod}`;
+    if ((CEKIRDEK_ROLLER as readonly string[]).includes(r.kod)) {
+      hatalar.push({ sinif: 'KİMLİK', dosya: DOSYALAR.roller, konum, mesaj: `çekirdek rol kodu paketle yeniden tanımlanamaz: ${r.kod}`,
+        duzeltme: 'paket yeni bir rol önerir; çekirdek rolün izinleri koddadır (lib/erisim.ts)' });
+    }
+    const girdiler = Object.entries(r.izinler) as [string, readonly string[]][];
+    if (girdiler.length === 0) {
+      hatalar.push({ sinif: 'BIÇIM', dosya: DOSYALAR.roller, konum: `${konum}.izinler`, mesaj: 'izin yok — rol en az bir modülde bir işlem tanımlar',
+        duzeltme: '`izinler: { uyum: ["okuma"] }` gibi en az bir modül yazın' });
+    }
+    for (const [modul, islemler] of girdiler) {
+      const k = `${konum}.izinler.${modul}`;
+      const tekrar = [...new Set(islemler.filter((x, j) => islemler.indexOf(x) !== j))];
+      if (tekrar.length) hatalar.push({ sinif: 'BIÇIM', dosya: DOSYALAR.roller, konum: k, mesaj: `işlem tekrar ediyor: ${tekrar.join(', ')}`, duzeltme: 'her işlemi bir kez yazın' });
+      for (const [islem, onkosul] of Object.entries(ISLEM_ONKOSULU)) {
+        if (onkosul && islemler.includes(islem) && !islemler.includes(onkosul)) {
+          hatalar.push({ sinif: 'BIÇIM', dosya: DOSYALAR.roller, konum: k, mesaj: `${islem} ${onkosul} ister (izin merdiveni: okuma → yazma → onay)`,
+            duzeltme: `"${onkosul}" ekleyin ya da "${islem}" işlemini kaldırın` });
+        }
+      }
+    }
+  });
+
   const sayilar: Sayilar = {
     sozluk: sozluk.length, kapsamTurleri: kapsamTurleri.length, oznitelikler: oznitelikler.length,
     cerceveler: cerceveler.length, maddeler: cerceveler.reduce((a, c) => a + c.maddeler.length, 0), yukumlulukler: yukumlulukler.length,
+    formlar: formlar.length, raporlar: raporlar.length, roller: roller.length,
+    eslemeler: eslemeler.reduce((a, e) => a + e.satirlar.length, 0),
+    kurallar: cerceveler.filter((c) => c.kimlik.uygulanabilirlik).length,
   };
-  const icerik: PaketIcerigi = { dizin, manifest, sozluk, kapsamTurleri, oznitelikler, cerceveler, yukumlulukler };
+  const icerik: PaketIcerigi = { dizin, manifest, sozluk, kapsamTurleri, oznitelikler, cerceveler, eslemeler, yukumlulukler, formlar, raporlar, roller };
   return { ok: hatalar.length === 0, hatalar, icerik: hatalar.length === 0 ? icerik : null, sayilar };
 }

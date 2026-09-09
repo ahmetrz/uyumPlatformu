@@ -7,11 +7,45 @@
   "kaynakUrl": "https://www.epdk.gov.tr/Detay/Icerik/3-33068/enerji-sektorunde-siber-guvenlik-yetkinlik-modeli-",
   "lisans": {
     "tur": "kamuya_acik",
-    "metinDahil": false,
-    "kaynak": "https://www.epdk.gov.tr/Detay/Icerik/3-33068/enerji-sektorunde-siber-guvenlik-yetkinlik-modeli-",
-    "not": "Resmî metin; iskelet — madde metni aktarılmadı"
+    "metinDahil": true,
+    "kaynak": "https://www.epdk.gov.tr/Detay/DownloadDocument?id=zb5%2B5RagUfE%3D",
+    "not": "Resmî metin — 5846 s. FSEK md. 31 (yayımlanmış yönetmelikten faydalanma serbesttir). Kaynak: EPDK sitesindeki yürürlükteki metin (RG 06.06.2023/32213; son değişiklik RG 25.11.2025/33088), erişim 2026-09-09."
   },
   "maddeDosyasi": "EPDK-SGYM.csv",
   "zorunlulukTipi": "REGULATION",
-  "not": "Bölüm ve madde başlıkları EPDK sitesinden indirilen yönetmelik dosyasından (birincil) okundu; metin sütunu bilerek boş."
+  "not": "Yönetmelik gövdesi: 4 bölüm + 18 madde + 1 geçici madde. Metin EPDK resmî sitesindeki yürürlükteki dosyadan (birincil kaynak) alındı; değişiklik ibareleri (Değişik:RG-…) metinde korundu ve maddenin yürürlük tarihi `yururluk_tarihi` sütununa yazıldı.",
+  "uygulanabilirlik": {
+    "kapsamTurleri": [
+      "tesis"
+    ],
+    "kosul": {
+      "herhangi": [
+        {
+          "alan": "kuruluGuc",
+          "islec": ">=",
+          "deger": 100
+        },
+        {
+          "alan": "blackStart",
+          "islec": "=",
+          "deger": true
+        },
+        {
+          "hepsi": [
+            {
+              "alan": "teiasScadaEms",
+              "islec": "=",
+              "deger": true
+            },
+            {
+              "alan": "seriHaberlesme",
+              "islec": "!=",
+              "deger": true
+            }
+          ]
+        }
+      ]
+    },
+    "aciklama": "MADDE 2 (1)–(3): kurulu gücü 100 MWe ve üzeri lisanslı elektrik üretim tesisi; Black-Start özelliğine sahip tesis; TEİAŞ SCADA/EMS ile seri tabanlı olmayan yöntemlerle haberleşen tesis. Kararı motor ÖNERİR; ölçülmemiş öznitelikte karar üretilmez."
+  }
 }

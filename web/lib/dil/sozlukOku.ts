@@ -50,14 +50,15 @@ export const ogeSozlugu = cache(async (kapsamOgesiId: string, dil = 'tr'): Promi
     olmayan anahtar sözlükte YOKTUR: çağıran anahtarın kendisini yazar,
     sözcük uydurmaz. */
 export const oznitelikEtiketleri = cache(async (sektorId: string, dil = 'tr'): Promise<Record<string, string>> => {
+  // yalnız AKTİF satır: paket yükseltmesinin bıraktığı sözcük ekrana inmez (2.1)
   const satirlar = await db.sektorSozlugu.findMany({
-    where: { sektorId, dil }, select: { anahtar: true, tekil: true } });
+    where: { sektorId, dil, aktif: true }, select: { anahtar: true, tekil: true } });
   return Object.fromEntries(satirlar.filter((s) => s.tekil).map((s) => [s.anahtar, s.tekil]));
 });
 
 export const sektorSozlugu = cache(async (sektorId: string, dil = 'tr'): Promise<Sozluk | null> => {
   const satirlar = await db.sektorSozlugu.findMany({
-    where: { sektorId, dil },
+    where: { sektorId, dil, aktif: true },
     select: {
       anahtar: true, tekil: true, cogul: true, iyelik: true, belirtme: true,
       bulunma: true, yonelme: true,

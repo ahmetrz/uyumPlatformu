@@ -20,17 +20,19 @@ import { hataSatiri } from '../paket/dogrula';
 import { paketiKaldir, paketiKur, type KurulumRaporu } from '../paket/kur';
 import { type Sonuc, hata, iz, bosluksuz } from './ortak';
 
-export type PaketKurSonucu = Sonuc | { ok: true; rapor: KurulumRaporu };
+/** Başarı daima raporla döner: ekran kurulum özetini (sayılar, çelişki) bundan yazar. */
+export type PaketKurSonucu = { ok: false; hata: string } | { ok: true; rapor: KurulumRaporu };
 
+/* İz gerekçesi raporun HER kalemini sayar — form/rapor (2.2) ve rol (2.3)
+   dâhil; sayılmayan kalem izde görünmez ve uzlaştırma sessiz kalırdı. */
 function kurulumGerekcesi(r: KurulumRaporu): string {
-  const p = r.pasiflestirilen;
-  const pasif = p.kapsamTurleri + p.yukumlulukler + p.cerceveSurumleri;
-  const artik = r.artik.sozluk.length + r.artik.oznitelikler.length;
-  return `sözlük ${r.sayilar.sozluk} · tür ${r.sayilar.kapsamTurleri} · öznitelik ${r.sayilar.oznitelikler} · `
-    + `çerçeve ${r.sayilar.cerceveler} (${r.sayilar.maddeler} madde, TASLAK) · yükümlülük ${r.sayilar.yukumlulukler}`
+  const p = r.pasiflestirilen; const s = r.sayilar;
+  const pasif = p.kapsamTurleri + p.yukumlulukler + p.cerceveSurumleri + p.sozluk + p.oznitelikler + p.formlar + p.raporlar + p.roller + p.eslemeler;
+  return `sözlük ${s.sozluk} · tür ${s.kapsamTurleri} · öznitelik ${s.oznitelikler} · `
+    + `çerçeve ${s.cerceveler} (${s.maddeler} madde, TASLAK) · yükümlülük ${s.yukumlulukler} · eşleme ${s.eslemeler} · form ${s.formlar} · rapor ${s.raporlar} · rol ${s.roller}`
     + (r.celiskiler.length ? ` · çelişki ${r.celiskiler.length} (kiracı satırı korundu)` : '')
-    + (pasif ? ` · uzlaştırma: tür ${p.kapsamTurleri} ve yükümlülük ${p.yukumlulukler} pasif, taslak sürüm ${p.cerceveSurumleri} arşiv` : '')
-    + (artik ? ` · artık (yerinde, karar bekler): ${[...r.artik.sozluk, ...r.artik.oznitelikler].join(', ')}` : '');
+    + (pasif ? ` · uzlaştırma: tür ${p.kapsamTurleri}, yükümlülük ${p.yukumlulukler}, sözlük ${p.sozluk}, öznitelik ${p.oznitelikler}, eşleme ${p.eslemeler}, form ${p.formlar}, rapor ${p.raporlar}, rol ${p.roller} pasif; taslak sürüm ${p.cerceveSurumleri} arşiv`
+      + ((p.sozluk + p.oznitelikler) ? ` (${[...r.pasifAnahtarlar.sozluk, ...r.pasifAnahtarlar.oznitelikler].join(', ')})` : '') : '');
 }
 
 export async function paketKur(girdi: { kod: string }): Promise<PaketKurSonucu> {
@@ -45,12 +47,16 @@ export async function paketKur(girdi: { kod: string }): Promise<PaketKurSonucu> 
       }, tx),
     });
     if (!sonuc.ok) {
-      return hata(new Error(`Paket reddedildi (${sonuc.hatalar.length} hata):\n${sonuc.hatalar.map(hataSatiri).join('\n')}`));
+      return { ok: false, hata: `Paket reddedildi (${sonuc.hatalar.length} hata):\n${sonuc.hatalar.map(hataSatiri).join('\n')}` };
     }
     revalidatePath('/uyum');
     revalidatePath('/yonetim-tezgahi');
+    revalidatePath('/paketler');
     return { ok: true, rapor: sonuc.rapor };
-  } catch (e) { return hata(e); }
+  } catch (e) {
+    const s = hata(e);
+    return s.ok ? { ok: false, hata: 'İşlem başarısız' } : s;
+  }
 }
 
 export async function paketKaldir(girdi: { kod: string; gerekce: string }): Promise<Sonuc> {
@@ -65,6 +71,7 @@ export async function paketKaldir(girdi: { kod: string; gerekce: string }): Prom
     });
     if (!sonuc.ok) return hata(new Error(sonuc.hata));
     revalidatePath('/uyum');
+    revalidatePath('/paketler');
     return { ok: true };
   } catch (e) { return hata(e); }
 }

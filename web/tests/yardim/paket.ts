@@ -42,9 +42,13 @@ export function paketYaz(
 
 export const CSV_BASLIK = 'kod;ust_kod;baslik;metin;sira;seviye;zorunluluk_tipi';
 
+/** Test fikstürü: içerik KURGUSALDIR ve kaynağı yoktur — `temsili: true` bunu
+    beyan eder (metin taşıyan kamuya açık çerçeve ya kaynağını ya temsilîliğini
+    söylemek zorundadır; KAYNAK kuralı, PR #43 tur 2). Gerçek kaynak sınayan
+    testler `ek` ile `temsili: false` + `kaynakUrl` verir. */
 export function cerceve(kod: string, lisans: { tur: string; metinDahil: boolean }, ek: Record<string, unknown> = {}) {
   return { kod, ad: `${kod} çerçevesi`, surumEtiketi: 'test-1', yayimTarihi: null, yururlukTarih: null, kaynakUrl: null,
-    lisans, maddeDosyasi: `${kod}.csv`, zorunlulukTipi: 'REGULATION', ...ek };
+    temsili: true, lisans, maddeDosyasi: `${kod}.csv`, zorunlulukTipi: 'REGULATION', ...ek };
 }
 
 export const SOZLUK_SATIRI = (anahtar: string, tekil: string) => ({

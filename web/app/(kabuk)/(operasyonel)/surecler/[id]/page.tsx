@@ -60,8 +60,8 @@ export default async function Sayfa({ params }: { params: Promise<{ id: string }
         madde: {
           include: {
             alanlar: { include: { alan: { select: { kod: true } } } },
-            eslestirmeKaynak: { include: { hedef: { select: { kod: true } } } },
-            eslestirmeHedef: { include: { kaynak: { select: { kod: true } } } },
+            eslestirmeKaynak: { where: { aktif: true }, include: { hedef: { select: { kod: true } } } },
+            eslestirmeHedef: { where: { aktif: true }, include: { kaynak: { select: { kod: true } } } },
           },
         },
         kapsamOgesi: OGE_GORUNUMU,

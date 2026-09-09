@@ -129,6 +129,14 @@ jobs:
         working-directory: web
         run: npm run kapi:sema-sapmasi
 
+      # Göç zinciri kapısı: BOŞ veritabanında `migrate deploy` → schema.prisma
+      # ile fark sıfır. Şema sapması kapısı MEVCUT dev.db'yi ölçer; elle
+      # düzeltilmiş bir göç (P4 · 2.4: RedefineTables → ADD COLUMN) diskte
+      # doğru, zincirde yanlış olabilir. Müşteri kurulumu yalnız zinciri görür.
+      - name: Göç zinciri kapısı (boş veritabanı)
+        working-directory: web
+        run: npm run kapi:goc-zinciri
+
       # Gerekçe taraması bir KAPI DEĞİL: sezgisel kalıp, çıktısı elle
       # sınıflandırılır. CI'da koşması yine de değerli — maliyeti anlatan
       # yeni bir gerekçe girdiğinde kayıtta görünür, kimseyi bloklamaz.

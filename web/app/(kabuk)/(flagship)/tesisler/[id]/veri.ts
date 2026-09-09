@@ -92,7 +92,7 @@ async function sektorProfiliOku(
       /* `NOT: { rol: 'kapasite' }` SQL'de `NOT (rol = 'kapasite')` olur ve
          rolü NULL olan satırı da düşürür (üç değerli mantık) — K4 ölçtü:
          enerjide 20 yerine 13 alan çizildi. Rolsüz satır açıkça alınır. */
-      where: { sektorId, OR: [{ rol: null }, { rol: { not: 'kapasite' } }] },
+      where: { sektorId, aktif: true, OR: [{ rol: null }, { rol: { not: 'kapasite' } }] },
       select: { anahtar: true, tip: true, etiketAnahtari: true, secenekler: true, grup: true, birim: true },
       orderBy: [{ sira: 'asc' }, { anahtar: 'asc' }],
     }),

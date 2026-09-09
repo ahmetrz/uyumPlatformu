@@ -41,6 +41,7 @@ export default async function Sayfa() {
       orderBy: { kod: 'asc' },
     }),
     db.maddeEslestirmesi.findMany({
+      where: { aktif: true },
       include: {
         kaynak: { select: { id: true, kod: true, baslik: true, regulasyonId: true,
           regulasyon: { select: { kod: true } } } },

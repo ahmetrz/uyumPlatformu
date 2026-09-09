@@ -84,8 +84,12 @@ describe('B2 · enerji profil öznitelikleri — tohum ↔ göç [URN-KAP-003]',
 
   it('kapasite ROLÜ: göç rolsüz kapasite satırını işaretler, tohum rolle yazar [URN-KAP-003]', () => {
     expect(GOC).toContain(`UPDATE "SektorOznitelikSemasi" SET "rol" = 'kapasite'\nWHERE "etiketAnahtari" = 'kapasite' AND "rol" IS NULL;`);
-    const tohum = oku('prisma/seed.ts');
-    expect(tohum.match(/etiketAnahtari: 'kapasite',\s*(?:\/\*[^*]*\*\/\s*)?rol: 'kapasite'/g)?.length, 'tohumda kapasite satırı rolsüz').toBe(2);
+    /* 2.5: tohumun kapasite satırları DEMO paketlerinin öznitelik şemasındadır
+       (enerji `kuruluGuc` · su `gunlukDebi`); tohum onları paketten kurar. */
+    const paketSatirlari = ['DEMO-TR-ENERJI', 'DEMO-TR-SU']
+      .flatMap((kod) => JSON.parse(oku(`paketler/${kod}/oznitelikler.json`)) as { etiketAnahtari: string; rol: string | null }[])
+      .filter((o) => o.etiketAnahtari === 'kapasite');
+    expect(paketSatirlari.map((o) => o.rol), 'demo paketinde kapasite satırı rolsüz').toEqual(['kapasite', 'kapasite']);
   });
 
   it('kritiklik ROLÜ tek anahtarda ve iki kaynakta aynı [URN-KAP-003]', () => {

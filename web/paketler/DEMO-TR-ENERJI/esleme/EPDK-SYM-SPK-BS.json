@@ -1,0 +1,19 @@
+{
+  "kod": "EPDK-SYM-SPK-BS",
+  "ad": "EPDK SYM (demo) → SPK BS denklikleri",
+  "kaynak": {
+    "cerceve": "EPDK-SYM",
+    "surumEtiketi": "2024"
+  },
+  "hedef": {
+    "cerceve": "SPK-BS",
+    "surumEtiketi": "VII-128.9"
+  },
+  "lisans": {
+    "tur": "kamuya_acik",
+    "metinDahil": false,
+    "not": "Demo tohumunun elle yazılmış denklikleri; açıklama yok"
+  },
+  "eslemeDosyasi": "EPDK-SYM-SPK-BS.csv",
+  "kaynakBelge": "Demo tohumu (prisma/seed.ts, 2.5 öncesi)"
+}

@@ -1,6 +1,6 @@
 {
   "kod": "TR-ENERJI",
-  "ad": "Türkiye · Enerji (EPDK) sektör paketi — iskelet",
+  "ad": "Türkiye · Enerji (EPDK) sektör paketi",
   "tur": "sektor",
   "ulke": "TR",
   "sektor": {
@@ -8,25 +8,27 @@
     "ad": "Elektrik Üretimi"
   },
   "dil": "tr",
-  "surum": "0.1.0",
-  "yayinci": "Uyum ve Yönetişim Platformu (iskelet)",
+  "surum": "0.2.0",
+  "yayinci": "Uyum ve Yönetişim Platformu",
   "lisans": {
     "tur": "kamuya_acik",
-    "metinDahil": false,
+    "metinDahil": true,
     "kaynak": "https://www.epdk.gov.tr/Detay/Icerik/3-33068/enerji-sektorunde-siber-guvenlik-yetkinlik-modeli-",
-    "not": "Resmî metin (RG 06.06.2023/32213; son hâli RG 25.11.2025/33088) — iskelet: yapı ve kimlikler, madde metni aktarılmadı"
+    "not": "Resmî metin — 5846 s. FSEK md. 31: yayımlanmış kanun, yönetmelik, tebliğ ve kazai kararlardan faydalanma serbesttir. Kaynak: EPDK resmî sitesi, erişim 2026-09-09."
   },
   "bagimliliklar": [],
   "icerikOzetleri": {
-    "cerceve/EPDK-SGYM-EK3.csv": "db440572c5077b57858faec823636c927882b3bf332da579fa67c2549c1b6b27",
-    "cerceve/EPDK-SGYM-EK3.json": "8309070d955f6c08ac3577a904893172b4a646fbac8d04e9a9499675d5d1dec7",
-    "cerceve/EPDK-SGYM.csv": "aff9adc1dbd447006041ca47192e1b5ed39593e57056b9eb407e3907c3ad7849",
-    "cerceve/EPDK-SGYM.json": "0135dab3284aae45be55c1ca62eedb6a8d4741cc28946fd9171d7d75806ead71",
+    "cerceve/EPDK-SGYM-EK3.csv": "010e66ac7fec070522ec02becc3274cb6ad7412a3343381044c830bb88335137",
+    "cerceve/EPDK-SGYM-EK3.json": "2d3a970a4b346e324d2c25ce02793f5f583a23479b5a330b03083eeac1d79850",
+    "cerceve/EPDK-SGYM.csv": "99b9c7cc9588fb768ae5a9ce83c249c93665b3f4a9315798a1db6b6b33f9de8e",
+    "cerceve/EPDK-SGYM.json": "545b5c4ba033bb4da0758b84df81212ffe06b2dfadc8e5a820fcd072942e76ab",
     "kapsam-turleri.json": "006a98d3444770115fb9303d51211e643ca853d44234596db8c3ead98e4e8e63",
     "oznitelikler.json": "6a261eda13deb28c8c2522039b40bb2101588128b41c535cbfaa05708ff2e063",
+    "rapor/EPDK-SGYM-KARNE.json": "cd968751845193cc7f121175021ae11e32d8a40372a9822a34910a2598e49fa7",
+    "roller.json": "5b5fac069b4c82c8b52b58a2d4edf6a4b22f977448aff19c497f1acd3cdb18e4",
     "sozluk.json": "a09bb80a9ea6498d1e9c69192ef6f5d47ab9992f426016bfa60f894835a36a3c",
     "yukumlulukler.json": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
   },
   "imza": null,
-  "aciklama": "İSKELET (P4 · 4.5): sözlük, kapsam öğesi türü, öznitelik şeması ve iki çerçevenin yapısı. Madde metni bilerek yok; tam metin aktarımı içerik işidir (docs/TR_SEKTOR_PAKETLERI.md §4). Sözlük ve öznitelikler tohumla birebir aynı — tests/paket-tohum-esitligi.test.ts ölçer."
+  "aciklama": "EPDK Enerji Sektöründe Siber Güvenlik Yetkinlik Modeli Yönetmeliği (RG 06.06.2023/32213, son hâli RG 25.11.2025/33088) ve Ek-3 Elektrik Üretim Sektörü Teknik Kontrol Maddeleri. Madde METNİ birincil kaynaktan (EPDK resmî sitesi) aktarıldı; her maddede kaynak adresi, belge içi konum ve erişim tarihi durur. Çerçeveler uygulanabilirlik BEYANI taşır (hangi kapsam öğesi türüne, hangi koşulla) — kurulumda kural olarak yazılır, karar motorun ÖNERİSİDİR. Sürümler TASLAK gelir; aktifleştirme insan kararıdır."
 }

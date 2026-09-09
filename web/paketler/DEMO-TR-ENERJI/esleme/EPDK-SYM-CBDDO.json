@@ -1,0 +1,19 @@
+{
+  "kod": "EPDK-SYM-CBDDO",
+  "ad": "EPDK SYM (demo) → CBDDÖ denklikleri",
+  "kaynak": {
+    "cerceve": "EPDK-SYM",
+    "surumEtiketi": "2024"
+  },
+  "hedef": {
+    "cerceve": "CBDDO",
+    "surumEtiketi": "2.0"
+  },
+  "lisans": {
+    "tur": "kamuya_acik",
+    "metinDahil": false,
+    "not": "Demo tohumunun elle yazılmış denklikleri; açıklama yok"
+  },
+  "eslemeDosyasi": "EPDK-SYM-CBDDO.csv",
+  "kaynakBelge": "Demo tohumu (prisma/seed.ts, 2.5 öncesi)"
+}

@@ -1,0 +1,19 @@
+{
+  "kod": "EPDK-SYM-ISO-27001",
+  "ad": "EPDK SYM (demo) → ISO 27001 denklikleri",
+  "kaynak": {
+    "cerceve": "EPDK-SYM",
+    "surumEtiketi": "2024"
+  },
+  "hedef": {
+    "cerceve": "ISO-27001",
+    "surumEtiketi": "2022"
+  },
+  "lisans": {
+    "tur": "kamuya_acik",
+    "metinDahil": false,
+    "not": "Demo tohumunun elle yazılmış denklikleri; açıklama yok"
+  },
+  "eslemeDosyasi": "EPDK-SYM-ISO-27001.csv",
+  "kaynakBelge": "Demo tohumu (prisma/seed.ts, 2.5 öncesi)"
+}

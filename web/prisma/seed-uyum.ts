@@ -17,33 +17,13 @@ import type { PrismaClient } from '../lib/prisma-client/client';
 const G = 86_400_000;
 const gun = (n: number) => new Date(Date.now() + n * G);
 
-/* Yeni maddeler: [kod, başlık, üst kod | null, metin, kanıt tipi] */
-const YENI_MADDELER: [string, string, string | null, string, string | null][] = [
-  ['EPDK-SYM-6', 'Ağ ve Sistem Güvenliği', null,
-    'Elektrik üretim tesislerinde kurumsal ağ ile endüstriyel kontrol ağı arasındaki geçişler tanımlı, onaylı ve denetlenebilir olmalıdır.', null],
-  ['EPDK-SYM-6.1', 'Sınır Güvenliği', 'EPDK-SYM-6',
-    'Bölgeler arası her geçit (conduit) için izin verilen protokoller ve yönler belgelenir.', null],
-  ['EPDK-SYM-6.1.1', 'Geçit kuralları', 'EPDK-SYM-6.1',
-    'Kurumsal ağdan süreç kontrol ağına doğrudan bağlantı bulunmaz; tüm trafik OT DMZ üzerinden ve tanımlı protokollerle geçer. Geçit kuralları en az yılda bir doğrulanır.', 'konfigurasyon'],
-  ['EPDK-SYM-6.1.2', 'Uzak bakım oturumları', 'EPDK-SYM-6.1',
-    'Tedarikçi uzaktan erişimi yalnızca talep üzerine açılır, oturum kaydı alınır ve kayıtlar en az bir yıl saklanır.', 'kayit'],
-  ['EPDK-SYM-6.2', 'Sistem Sıkılaştırma', 'EPDK-SYM-6',
-    'İşletim sistemi ve uygulama sıkılaştırma temelleri tanımlanır ve sapmalar izlenir.', null],
-  ['EPDK-SYM-6.2.1', 'Yama yönetimi', 'EPDK-SYM-6.2',
-    'Kritik güvenlik yamaları, üretim penceresi kısıtları gözetilerek tanımlı süre içinde uygulanır; uygulanamayanlar için telafi edici kontrol kaydedilir.', 'kayit'],
-
-  ['EPDK-SYM-8', 'Süreklilik ve Yedekleme', null,
-    'Üretim ve kontrol sistemlerinin kesinti sonrası geri dönüşü planlanmış, test edilmiş ve kanıtlanmış olmalıdır.', null],
-  ['EPDK-SYM-8.1', 'Yedekleme', 'EPDK-SYM-8',
-    'Kontrol sistemi konfigürasyonları ve süreç verisi düzenli olarak yedeklenir.', null],
-  ['EPDK-SYM-8.1.1', 'Yedek kapsamı', 'EPDK-SYM-8.1',
-    'SCADA/DCS konfigürasyonu, historian verisi ve mühendislik projeleri yedekleme kapsamındadır; kapsam dışı bırakılan sistemler gerekçesiyle kaydedilir.', 'konfigurasyon'],
-  ['EPDK-SYM-8.1.2', 'Geri yükleme testi', 'EPDK-SYM-8.1',
-    'Yedeklerin geri yüklenebildiği en az altı ayda bir izole ortamda test edilir ve sonucu kayıt altına alınır. Test yapılmamış yedek, yedek sayılmaz.', 'test_kaydi'],
-  ['EPDK-SYM-8.2', 'İş Sürekliliği', 'EPDK-SYM-8',
-    'Kurtarma hedefleri üretim etkisine göre belirlenir ve tatbik edilir.', null],
-  ['EPDK-SYM-8.2.1', 'Kurtarma hedefleri', 'EPDK-SYM-8.2',
-    'Her kritik sistem için RPO ve RTO tanımlıdır, sahiplendirilmiştir ve yıllık tatbikatla doğrulanır.', 'plan'],
+/* Yeni ailelerin (6 · 8) maddeleri 2.5'ten beri DEMO-TR-ENERJI PAKETİNDEN
+   gelir (`paketler/DEMO-TR-ENERJI/cerceve/EPDK-SYM.csv`: başlık, metin,
+   kanıt tipi, kanıt beklentisi, sıra). Burada yalnız kodlar ve kiracı
+   katmanı (matris aile adı) kalır. */
+const YENI_KODLAR = [
+  'EPDK-SYM-6', 'EPDK-SYM-6.1', 'EPDK-SYM-6.1.1', 'EPDK-SYM-6.1.2', 'EPDK-SYM-6.2', 'EPDK-SYM-6.2.1',
+  'EPDK-SYM-8', 'EPDK-SYM-8.1', 'EPDK-SYM-8.1.1', 'EPDK-SYM-8.1.2', 'EPDK-SYM-8.2', 'EPDK-SYM-8.2.1',
 ];
 
 /* Kapsamdaki santral × yeni yaprak madde durum matrisi.
@@ -89,9 +69,6 @@ export async function uyumKatalogu(db: PrismaClient) {
   const surec = await db.uyumSureci.findUnique({ where: { kod: 'EPDK-SYM-2026' } });
   if (!surec) throw new Error('EPDK-SYM-2026 süreci yok.');
 
-  const alanlar = Object.fromEntries(
-    (await db.kapsamAlani.findMany()).map((a) => [a.kod, a]),
-  );
   const kullanicilar = await db.kullanici.findMany();
   const K = Object.fromEntries(kullanicilar.map((x) => [x.eposta.split('@')[0], x]));
 
@@ -101,40 +78,16 @@ export async function uyumKatalogu(db: PrismaClient) {
   });
 
   const idx: Record<string, { id: string }> = {};
-  /* Sıra kodun kendisinden türetilir (4 → 4000, 6.1.2 → 6102) ki yeni aileler
-     listeye eklenme sırasına göre değil numarasına göre otursun. */
-  const siraHesapla = (kod: string) => {
-    const n = kod.replace('EPDK-SYM-', '').split('.').map(Number);
-    return n[0] * 1000 + (n[1] ?? 0) * 100 + (n[2] ?? 0);
-  };
-  for (const [kod, baslik, ustKod, metin, kanitTipi] of YENI_MADDELER) {
-    const varOlan = await db.madde.findFirst({ where: { regulasyonId: reg.id, kod } });
-    if (varOlan) { idx[kod] = varOlan; continue; }
-    const m = await db.madde.create({
-      data: {
-        regulasyonId: reg.id, kod, baslik, metin, kanitTipi,
-        ustMaddeId: ustKod ? idx[ustKod]?.id ?? null : null,
-        sira: siraHesapla(kod),
-        alanAdi: kod.startsWith('EPDK-SYM-6') ? 'Ağ ve Sistem Güvenliği' : 'Süreklilik',
-        zorunlulukTipi: 'REGULATION',
-        kanitBeklentisi: kanitTipi
-          ? 'Yürürlükteki konfigürasyon veya test kaydı; en fazla 180 gün eski.'
-          : null,
-        varsayilanIncelemeGunu: 180,
-      },
-    });
-    idx[kod] = m;
-    // Kapsam alanı: ağ ailesi hem BT hem OT, süreklilik ailesi ikisi de.
-    for (const a of ['BT', 'OT']) {
-      if (alanlar[a]) {
-        await db.maddeAlan.create({ data: { maddeId: m.id, alanId: alanlar[a].id } })
-          .catch(() => undefined);
-      }
-    }
+  for (const kod of YENI_KODLAR) {
+    const madde = await db.madde.findFirst({ where: { regulasyonId: reg.id, kod } });
+    if (!madde) throw new Error(`${kod} paketten gelmedi — DEMO-TR-ENERJI kurulmalı.`);
+    /* Aile adı kiracı katmanıdır (uyum matrisinin sütunu); paket kalemi değil. */
+    await db.madde.update({ where: { id: madde.id }, data: { alanAdi: kod.startsWith('EPDK-SYM-6') ? 'Ağ ve Sistem Güvenliği' : 'Süreklilik' } });
+    idx[kod] = madde;
   }
 
   // Yaprak maddeler için durum kaydı — yalnız kapsamdaki santrallere.
-  const yapraklar = YENI_MADDELER.filter(([kod]) => kod.split('.').length === 3).map(([kod]) => kod);
+  const yapraklar = YENI_KODLAR.filter((kod) => kod.split('.').length === 3);
   let eklenen = 0;
   for (const k of kapsam) {
     const satir = DURUM[k.kapsamOgesi.kod];
@@ -172,5 +125,5 @@ export async function uyumKatalogu(db: PrismaClient) {
     }
   }
 
-  console.log(`Uyum kataloğu: ${YENI_MADDELER.length} madde, ${eklenen} madde durumu eklendi.`);
+  console.log(`Uyum kataloğu: ${YENI_KODLAR.length} madde (paketten), ${eklenen} madde durumu eklendi.`);
 }

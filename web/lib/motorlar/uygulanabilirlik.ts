@@ -1,9 +1,11 @@
 import 'server-only';
 import { db } from '../db';
+import { KAPSAM_TURU_ALANI } from '../paket/bicim';
 
 /* Uygulanabilirlik motoru (§5): tesis profilinden kural bazlı kapsam kararı.
    Kural JSON'u: { herhangi?: Kosul[], hepsi?: Kosul[] }
-   Kosul: { alan, islec: '='|'!='|'>='|'<='|'>'|'<', deger } */
+   Kosul: { alan, islec: '='|'!='|'>='|'<='|'>'|'<'|'icinde', deger }
+   `icinde`: değer listede mi — paket beyanı kapsam öğesi TÜRÜNÜ böyle söyler. */
 
 /* Koşul YA bir alan karşılaştırmasıdır YA da iç içe bir bileşimdir
    (B2): "TEİAŞ SCADA/EMS var VE seri değil" gibi bir sektör türetimi
@@ -89,6 +91,7 @@ function kosulSagla(baglam: Record<string, unknown>, k: Kosul): boolean | null {
     case '<=': return typeof deger === 'number' && deger <= (k.deger as number);
     case '>': return typeof deger === 'number' && deger > (k.deger as number);
     case '<': return typeof deger === 'number' && deger < (k.deger as number);
+    case 'icinde': return Array.isArray(k.deger) && (k.deger as unknown[]).includes(deger);
     default: return null;
   }
 }
@@ -142,8 +145,12 @@ export function kuralDegerlendir(kuralJson: string, ozellikler: readonly Oznitel
   }
   if (kural.hepsi) {
     const sonuclar = kural.hepsi.map((k) => ({ k, s: kosulSagla(baglam, k) }));
+    /* Sağlanan koşullar da YAZILIR: "Tüm koşullar sağlandı" hangi kuralın
+       hangi alanla karar verdiğini söylemez; kapsam kararının gerekçesi
+       denetimde okunur ve okuyanın önünde durmalıdır (paket beyanında tür
+       bağı da bir koşuldur). */
     if (sonuclar.every((x) => x.s === true))
-      return { uygulanabilir: true, gerekce: `Tüm koşullar sağlandı${cakismaNotu}` };
+      return { uygulanabilir: true, gerekce: `Tüm koşullar sağlandı: ${sonuclar.map((x) => acikla(x.k, x.s)).join('; ')}${cakismaNotu}` };
     if (sonuclar.some((x) => x.s === null))
       return { uygulanabilir: null,
         gerekce: `Profil eksik: ${sonuclar.map((x) => acikla(x.k, x.s)).join('; ')}${cakismaNotu}` };
@@ -158,7 +165,7 @@ export function kuralDegerlendir(kuralJson: string, ozellikler: readonly Oznitel
 export async function tesisKapsaminiHesapla(tesisId: string, aktorId?: string | null):
   Promise<{ hesaplanan: number; atlanianOverride: number }> {
   const tesis = await db.tesis.findUniqueOrThrow({
-    where: { id: tesisId }, include: { profil: true, ozellikler: true, kapsamOgesi: true } });
+    where: { id: tesisId }, include: { profil: true, ozellikler: true, kapsamOgesi: { include: { tur: true } } } });
   /* Karar KAPSAM ÖĞESİNE yazılır (B1). Tesisin öğesi yoksa karar
      yazılamaz — bilinmeyen bir özneye karar uydurulmaz (K2); veri
      kalitesi bulgusu düşer ve motor çıkar. */
@@ -173,14 +180,22 @@ export async function tesisKapsaminiHesapla(tesisId: string, aktorId?: string | 
     }
     return { hesaplanan: 0, atlanianOverride: 0 };
   }
-  const kurallar = await db.uygulanabilirlikKurali.findMany({ where: { aktif: true } });
+  /* Paket kuralı ÖNCE, kiracı kuralı SONRA: aynı regülasyonda ikisi de aktifse
+     upsert sırası gereği son yazan kalır ve o kiracıdır (paket önerir, kiracı ezer). */
+  const kurallar = (await db.uygulanabilirlikKurali.findMany({ where: { aktif: true } }))
+    .sort((a, b) => Number(a.koken !== 'paket') - Number(b.koken !== 'paket'));
   let hesaplanan = 0, atlanianOverride = 0;
   for (const kural of kurallar) {
     const mevcut = await db.uygulanabilirlikKarari.findUnique({
       where: { kapsamOgesiId_regulasyonId: { kapsamOgesiId: oge.id, regulasyonId: kural.regulasyonId } } });
     if (mevcut?.elIleDegistirildi) { atlanianOverride++; continue; }
-    const profilKaydi = tesis.profil
-      ? JSON.parse(JSON.stringify(tesis.profil)) as Record<string, unknown> : null;
+    /* Kapsam öğesinin TÜRÜ bağlamın PROFİL (otoriter) tarafındadır: paket beyanı
+       (`kapsamTuru icinde [...]`) buradan okunur ve dışarıdan gelen bir öznitelik
+       anahtarı onu ezemez (`baglamKur` profili üstte tutar). */
+    const profilKaydi: Record<string, unknown> = {
+      ...(tesis.profil ? JSON.parse(JSON.stringify(tesis.profil)) as Record<string, unknown> : {}),
+      [KAPSAM_TURU_ALANI]: oge.tur.kod,
+    };
     const sonuc = kuralDegerlendir(kural.kosulJson, tesis.ozellikler, profilKaydi);
     if (sonuc.uygulanabilir === null && !mevcut) {
       /* Karar verilemiyor: uygulanabilirlik kaydı AÇILMAZ (bilinmeyen bir

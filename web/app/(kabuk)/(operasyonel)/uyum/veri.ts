@@ -4,6 +4,7 @@ import 'server-only';
 import { db } from '@/lib/db';
 import { uyumOzeti } from '@/lib/sabitler';
 import { kuralDegerlendir } from '@/lib/motorlar/uygulanabilirlik';
+import { maddeMetniDurumu } from '@/lib/paket/bicim';
 import type { Durum } from '@/components/kabuk/temel';
 import {
   DURUM_IM, anlikSayimi, cerceveAdi, guc, kisaAile, kisaKod, kisaTarih, tekCumle,
@@ -39,7 +40,8 @@ const ZINCIR_PROJE = 2;
 
 /* ── kural özeti ────────────────────────────────────────────────────── */
 
-type Kosul = { alan: string; islec: string; deger: unknown };
+type AlanKosulu = { alan: string; islec: string; deger: unknown };
+type Kosul = AlanKosulu | KuralJson;
 type KuralJson = { herhangi?: Kosul[]; hepsi?: Kosul[] };
 
 const ALAN_ADI: Record<string, string> = {
@@ -49,10 +51,18 @@ const ALAN_ADI: Record<string, string> = {
   teiasScadaEms: 'TEİAŞ SCADA/EMS',
   kritikAltyapiStatusu: 'kritik altyapı',
   seriHaberlesme: 'seri haberleşme',
+  kapsamTuru: 'kapsam öğesi türü',
 };
 
+/* Paket beyanı iç içe kural yazar (`hepsi: [tür icinde …, …]`); düz liste varsayımı
+   `undefined undefined undefined` basardı. İç içe koşul parantezle, `icinde` küme ile. */
 function kosulYazisi(k: Kosul): string {
+  if (!('alan' in k)) {
+    const liste = k.herhangi ?? k.hepsi ?? [];
+    return `(${liste.map(kosulYazisi).join(k.herhangi ? ' VEYA ' : ' VE ')})`;
+  }
   const ad = ALAN_ADI[k.alan] ?? k.alan;
+  if (k.islec === 'icinde' && Array.isArray(k.deger)) return `${ad} ∈ {${k.deger.join(', ')}}`;
   if (typeof k.deger === 'boolean') return k.deger ? ad : `${ad} yok`;
   return `${ad} ${k.islec} ${k.deger}`;
 }
@@ -134,7 +144,12 @@ export async function cerceveleriYukle(
           surecler: { include: { kapsam: { include: { kapsamOgesi: { select: { tesisId: true } } } } } },
           kararlar: { include: { kapsamOgesi: { select: { tesisId: true } } } },
           kurallar: { where: { aktif: true }, orderBy: { surum: 'desc' } },
-          surumler: { where: { durum: 'aktif' }, take: 1 },
+          /* Aktif VE taslak sürümler: aktif sürümü olmayan bir çerçevenin
+             maddeleri (yukarıdaki süzgeç gereği) hiç gelmez ve ekran onu
+             "0 kontrol" diye gösteriyordu — paketin TASLAK kurduğu çerçeve
+             boş bir çerçeveden ayırt edilemiyordu (bilinmeyen ≠ sıfır).
+             Taslağın madde sayısı ayrıca sayılır; matrise girmez. */
+          surumler: { where: { durum: { in: ['aktif', 'taslak'] } }, orderBy: { olusturuldu: 'desc' }, include: { _count: { select: { maddeler: true } } } },
         },
       }),
       db.tesis.findMany({
@@ -158,6 +173,7 @@ export async function cerceveleriYukle(
         },
       }),
       db.maddeEslestirmesi.findMany({
+        where: { aktif: true },
         include: {
           kaynak: { select: { regulasyonId: true } },
           hedef: { select: { regulasyonId: true } },
@@ -438,7 +454,9 @@ export async function cerceveleriYukle(
           /* tek cümle gerekçe */
           const gerekce = d?.not?.trim()
             || acikBulgu?.baslik
-            || (madde?.metin ? tekCumle(madde.metin) : 'Bu kontrol için değerlendirme kaydı yok.');
+            /* "metin girilmedi" / "lisans nedeniyle girilmedi" GEREKÇE DEĞİLDİR:
+               sabit, değerlendirme cümlesi gibi basılıyordu (ölçüldü). */
+            || (madde && maddeMetniDurumu(madde.metin) === 'var' ? tekCumle(madde.metin) : 'Bu kontrol için değerlendirme kaydı yok.');
 
           /* belge örtüsü: "bu kontrolü hangi belge karşılıyor" (C22/C23).
              Bağlı olmak karşılamak DEĞİLDİR; hangi durumun karşıladığına
@@ -586,7 +604,12 @@ export async function cerceveleriYukle(
       surum: reg.surum,
       // Sürüm gösterimi: önce regülasyonun kendi sürümü (2024, VII-128.9),
       // sonra aktif FrameworkSurumu etiketi. "mevcut" gibi yer tutucular sona düşer.
-      surumEtiketi: reg.surum ?? reg.surumler[0]?.surumEtiketi ?? null,
+      surumEtiketi: reg.surum ?? reg.surumler.find((s) => s.durum === 'aktif')?.surumEtiketi ?? null,
+      /* Aktif sürüm yoksa taslağın kimliği: ekran "aktifleştirme bekliyor" der,
+         madde sayısını taslaktan ölçer ve hiçbir sürümü aktifleştirmez. */
+      taslak: reg.surumler.some((s) => s.durum === 'aktif') ? null
+        : (() => { const t = reg.surumler.find((s) => s.durum === 'taslak');
+          return t ? { surumEtiketi: t.surumEtiketi, maddeSayisi: t._count.maddeler } : null; })(),
       yururluk: reg.yururlukTarih?.toISOString() ?? null,
       aileler,
       satirlar,

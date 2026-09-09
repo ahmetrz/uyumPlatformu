@@ -19,6 +19,7 @@ kabul kriteridir (P0 · URN-KUR-003); ölü atıf eklemeyin.
 | --- | --- |
 | Ürün ne, ne değil · hangi kural değişti | `docs/URUN_VIZYONU.md` |
 | İş listesi · paketler · kararlar defteri | `docs/GELISTIRME_PAKETLERI.md` |
+| İlk müşteri asgari kümesi (ölçülmüş) | `docs/ILK_MUSTERI_ASGARI_KUME.md` |
 | TR sektör paketleri · v1 kapsamı · efor ölçümü | `docs/TR_SEKTOR_PAKETLERI.md` |
 | Paketlerin koda karşı durumu · çelişki kütüğü | `docs/GELISTIRME_PAKETLERI_DURUM.md` |
 | Ürün / kod kuralları | `web/CLAUDE.md` → `web/AGENTS.md` (Next.js sürüm uyarısı) |
@@ -169,6 +170,37 @@ edilir (`OR: [{ x: null }, { x: { not: v } }]`) ya `NOT: { x: null }` ile
 bilerek dışlanır; ikisi de yoksa bekçi kırmızıdır
 (`web/tests/bekci/null-olumsuzlama.test.ts`, URN-VER-001); meşru istisna
 gerekçeli izin listesinde durur ve liste yalnız küçülür.
+
+**İnceleme turu İKİ ile sınırlıdır (R-A).** Tur 1 → düzelt → tur 2 →
+düzelt → merge. Üçüncü turda çıkan bulgular YENİ PR olur. Gerekçe
+(ölçüldü, 9 Eylül 2026, #41): dal inmezse `main` ayrışır; birleştirme
+maliyeti aynı günde iki kez ödendi (#37 ile birleştirme + üç inceleme
+turu). Bağımsız inceleme değerlidir — iki turda 15 gerçek bulgu, sıfır
+yanlış alarm; kapıların göremediği sınıflar (transaction sınırı, kaskat
+silme, telifli metin kaçağı) ancak orada çıktı — ama sınırsız tur, dalı
+hiç indirmez.
+
+**Şema/göç, kiracı verisi ve lisans sınırına dokunan PR'larda BAĞIMSIZ
+İNCELEME ZORUNLUDUR (R-B).** Bu sınıfta "inceleme koşmadı" beyanı
+gerekçe değil, bekleme sebebidir: PR bekler ya da ikinci bir model
+inceler (Codex kota sınırına takıldığında ölçüldü). Diğer PR'larda
+mevcut üç durumlu kural aynen geçerlidir: inceleme koştu ve temiz ·
+koştu ve bulgu var (bulgular kapanmadan merge yok) · koşmadı ve PR
+gövdesinde beyanlı. Merge ön koşulu (CI yeşil VE açık inceleme yorumu
+yok) her sınıfta değişmez.
+
+**Paket işlemleri müşteri verisini SİLEMEZ, yalnız arşivler (R-C).**
+Bekçi tavanı SIFIRDIR; gerekçeli istisna kabul edilmez. Ölçüldü:
+"kaldırma = arşiv, silme yok" yazılıydı ve kod `madde.deleteMany` ile
+kiracının kapsam alanı eşlemesini kaskatla siliyordu (#41 inceleme
+bulgusu) — kural yetmedi, kapı gerekti. Bugün
+`web/tests/bekci/paket-silme.test.ts` (URN-PKT-010): `lib/paket/` ve
+paket eylemlerinde `madde` dışında hiçbir modelde `delete`/`deleteMany`
+yok; madde silmesi yalnız paketin kendi taslağını (`surumId`) hedefler ve
+bağ kontrolünden sonra gelir; şemada `Madde`den başka modele giden HER
+liste ilişkisi bağ kontrolündedir (`MADDE_BAG_ILISKILERI`); kurucu
+istisna listesi ihraç etmez. Bir uyum ürününde paket işleminin müşteri
+verisini silmesi, ürünün en temel vaadini (değişmez iz) bozar.
 
 **Dosyayı değiştirmeden önce güncel hâlini oku.**
 

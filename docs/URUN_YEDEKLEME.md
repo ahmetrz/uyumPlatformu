@@ -21,15 +21,24 @@ kalite kapılarında koşar.
 
 | Ne | Nerede | Bugünkü durum |
 | --- | --- | --- |
-| Bütün ürün verisi | `web/prisma/dev.db` | tek SQLite dosyası · 99 tablo · 19 uygulanmış göç |
+| Bütün ürün verisi | `web/prisma/dev.db` | tek SQLite dosyası · **157 model · 51 göç** (9 Eyl 2026 ölçümü; belge kurulduğunda 99 tablo · 19 göçtü) |
 | Yapılandırma ve sırlar | `web/.env` | `.gitignore`'da · **yedeğe DAHİL DEĞİL** |
-| Kanıt dosyaları | — | **bugün yok** (aşağıya bakın) |
+| Kanıt dosyaları | `KANIT_DEPO_KOKU` altındaki içerik adresli depo | **VAR ve yazılıyor** — ama bu araç onları ALMIYOR (aşağıya bakın) |
 | Tesis görselleri | `web/public/tesisler/` | depoda sürümlü, ayrıca yedek istemez |
 
-**Kanıt dosyaları bugün yoktur ve bu bilinçli olarak yazılmıştır.**
-`Kanit.dosyaYolu` kolonu şemada duruyor ama hiçbir kod ona yazmıyor; API
-ucu bilerek döndürmüyor bile. Dosya yükleme geldiği gün bu prosedür ve
-`arac/yedek.mjs` **eksik kalır** ve araç bunu kendiliğinden söyleyemez.
+**Kanıt dosyaları ARTIK VAR — bu belgenin eski cümlesi bayattı (ölçüldü,
+9 Eylül 2026).** UY-13 ile kanıt dosyası deposu geldi
+(`lib/uyum/kanitDeposu.ts`: içerik adresli yerel depo, SHA-256 anahtar,
+MIME izin listesi) ve `lib/eylemler2/kanit.ts` yüklemede `depoAnahtari`
+ile `dosyaHash` yazıyor. Eski cümlenin harfi hâlâ doğru — `Kanit.dosyaYolu`
+kolonuna kimse yazmıyor — ama SONUCU yanlıştı: dosyalar diskte.
+
+**Bugünkü gerçek boşluk:** `arac/yedek.mjs` yalnız veritabanını alır
+(`VACUUM INTO`); kanıt deposu yedeğe **girmez**. Yani bir geri yükleme
+tatbikatı bugün veritabanını geri getirir, kanıt dosyalarını getirmez ve
+araç bunu kendiliğinden söylemez. Kapanışı R3'tedir
+(`docs/GELISTIRME_PAKETLERI.md` §7 · B kümesi;
+`docs/ILK_MUSTERI_ASGARI_KUME.md` §4).
 Bugün olmayan bir dizini yedekliyormuş gibi yazmak, olmayan bir güvence
 satmak olurdu.
 
@@ -141,7 +150,7 @@ yeniden yazılır ve sayı **buradan** değil, o gereklilikten gelir.
 
 | Sınır | Sonuç |
 | --- | --- |
-| Kanıt dosyaları yedeklenmiyor | Bugün dosya yok; yükleme geldiğinde bu araç **eksik kalır** |
+| Kanıt dosyaları yedeklenmiyor | **AÇIK KUSUR** (9 Eyl 2026): dosyalar depoda var, yedek onları almıyor — R3 kapatır |
 | `.env` yedeğe dâhil değil | Bilinçli; ayrı saklanmalı, aksi hâlde tek yerde toplanır |
 | Otomatik zamanlama yok | Yedek elle ya da kurumun zamanlayıcısıyla alınır |
 | Şifreleme yok | Yedek düz dosyadır; şifreleme saklama katmanının işidir |

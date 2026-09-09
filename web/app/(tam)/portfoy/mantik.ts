@@ -40,12 +40,29 @@ export type PortfoyEndeksi = {
 
 export type SiralamaAnahtari = 'guc' | 'bulgu' | 'risk' | 'uyum';
 
-export const SIRALAMALAR: { anahtar: SiralamaAnahtari; ad: string }[] = [
-  { anahtar: 'guc', ad: 'Kurulu güç' },
+/* `guc` sıralamasının ETİKETİ sözlükten gelir: elektrik "kurulu güç",
+   su "günlük debi", çekirdek "kapasite". ÖLÇÜLDÜ (8 Eyl 2026, yayında):
+   su merceğinde de "Kurulu güç" yazıyordu — birincil ölçü sektöre göre
+   çözülüyor ama adı çekirdeğe gömülüydü. Bu modül saftır, sözlüğe
+   ulaşamaz; anahtarı verir, ekran çözer. */
+export const SIRALAMALAR: { anahtar: SiralamaAnahtari; ad: string; sozlukten?: true }[] = [
+  /* `ad` boş: bu modül çekirdek sözcüğü bile yazamaz (çekirdek sözcük
+     cırcırı, taban 0). Ekran `sozlukten` görünce birincil ölçünün
+     sözlük etiketini koyar. */
+  { anahtar: 'guc', ad: '', sozlukten: true },
   { anahtar: 'bulgu', ad: 'Açık bulgu' },
   { anahtar: 'risk', ad: 'Açık risk' },
   { anahtar: 'uyum', ad: 'Uyum oranı' },
 ];
+
+/** Sıralama seçeneğinin ekrandaki etiketi. Sözlükten gelen satır için
+    `kapasiteSozcugu` (ekranın `tBas('kapasite')` sonucu) kullanılır;
+    ötekiler kendi adını taşır. Saf: sözlüğü çağıran ekrandır. */
+export function siralamaEtiketi(
+  s: { ad: string; sozlukten?: true }, kapasiteSozcugu: string,
+): string {
+  return s.sozlukten ? kapasiteSozcugu : s.ad;
+}
 
 /** Süzgeçlerde "hepsi" değeri — üretim tipi ve tüzel kişi aynı sözcüğü kullanır. */
 export const HEPSI = 'hepsi';

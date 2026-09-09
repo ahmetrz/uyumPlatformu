@@ -296,6 +296,27 @@ export abstract class BaglanmamisAdaptor implements Adaptor {
    */
   abstract readonly yetenekler: readonly Yetenek[];
 
+  /**
+   * Bu adaptörün BAĞLANMAYI HEDEFLEDİĞİ gerçek ürünler.
+   *
+   * Bir entegrasyon adaptörü, hangi gerçek ürünle konuşacağını söylemek
+   * ZORUNDADIR: "salt okunur API anahtarı alın" cümlesi hangi üründen
+   * bahsettiğini söylemezse kurulum talimatı olmaktan çıkar. Bu yüzden
+   * ürün adları burada gerçektir — ve tam bu yüzden BEYAN EDİLİR.
+   *
+   * ÖLÇÜLDÜ (8 Eyl 2026): kurgusal ad bekçisi veritabanını okuyordu ve
+   * adaptör metinlerini GÖRMÜYORDU; yayımlanmış çıktıda `Splunk`,
+   * `Qualys`, `Rapid7`, `Palo Alto`, `Fortinet` beyansız duruyordu.
+   * Kusur adların gerçek olması değildi — meşrular; kusur SESSİZ
+   * geçmeleriydi. `tests/bekci/kurgusal-adlar.test.ts` artık buradaki
+   * her adı `prisma/kurgusal-adlar.ts` beyan tablosunda arar.
+   *
+   * `abstract`: varsayılan boş liste verilseydi yeni bir adaptör onu
+   * doldurmayı unutur ve bekçi "hiçbir gerçek ürün anılmıyor" diye
+   * susardı — bu dosyadaki öbür `abstract` alanların gerekçesiyle aynı.
+   */
+  abstract readonly hedefUrunler: readonly string[];
+
   async testConnection(): Promise<BaglantiSonucu> {
     return { ok: false, kimlikEksik: true, hata: `Bağlı değil — gereken: ${this.gereken}` };
   }

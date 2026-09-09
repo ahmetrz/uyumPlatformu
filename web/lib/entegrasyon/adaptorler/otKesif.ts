@@ -82,6 +82,13 @@ export class OtKesifAdaptoru extends BaglanmamisAdaptor {
      cihazlarda anlamsız olabilir ve boş gelir. */
   readonly yetenekler: Yetenek[] = ['asset_inventory', 'asset_state', 'topology', 'passive_asset_discovery'];
 
+  /* Bağlanılacak gerçek ürünler — beyanları
+     `prisma/kurgusal-adlar.ts` içinde kaynağı ve gerekçesiyle durur.
+     Beyansız bir ad bekçiyi kırmızı yakar. */
+  readonly hedefUrunler = [
+    'Claroty CTD', 'Nozomi Guardian', 'Dragos', 'Tenable.ot', 'Forescout eyeInspect',
+  ] as const;
+
   readonly gerekenSirlar = ['env:OT_KESIF_TOKEN'];
   readonly gereken =
     'Sahada kurulu pasif OT keşif ürünü (Claroty CTD / Nozomi Guardian / ' +

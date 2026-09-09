@@ -76,6 +76,13 @@ export class AdEntraAdaptoru extends BaglanmamisAdaptor {
      yanlış kurar. */
   readonly yetenekler: Yetenek[] = ['asset_inventory', 'access_observation', 'passive_asset_discovery'];
 
+  /* Bağlanılacak gerçek ürünler — beyanları
+     `prisma/kurgusal-adlar.ts` içinde kaynağı ve gerekçesiyle durur.
+     Beyansız bir ad bekçiyi kırmızı yakar. */
+  readonly hedefUrunler = [
+    'Active Directory', 'Microsoft Entra ID', 'Microsoft Graph',
+  ] as const;
+
   readonly gerekenSirlar = ['env:ENTRA_ISTEMCI_SIRRI'];
   readonly gereken =
     'Entra ID uygulama kaydı (tenant id + client id) · Directory.Read.All ve ' +

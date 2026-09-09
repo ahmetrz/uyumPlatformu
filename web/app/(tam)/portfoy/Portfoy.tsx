@@ -7,7 +7,7 @@ import { tipAdi, tipRengi } from '@/components/kabuk/tip';
 import { etiketle } from '@/lib/sabitler';
 import { birimliToplam, olculenYazi } from '@/lib/alan/oznitelik';
 import {
-  HEPSI, SIRALAMALAR, enZayif, olcuYazisi, sirala, suz, tuzelKisiler,
+  HEPSI, SIRALAMALAR, enZayif, olcuYazisi, sirala, siralamaEtiketi, suz, tuzelKisiler,
   type PortfoyEndeksi, type PortfoySatiri, type SiralamaAnahtari,
 } from './mantik';
 
@@ -117,7 +117,12 @@ export default function Portfoy({
   const toplamGucYazi = yaz(toplamGuc);
   const gorunenGucYazi = yaz(gorunenToplam);
   const suzgecli = tip !== HEPSI || tuzel !== HEPSI;
-  const siralamaAdi = SIRALAMALAR.find((s) => s.anahtar === anahtar)?.ad ?? '';
+  /* Etiket sözlükten: `sozlukten` işaretli sıralama sektörün sözcüğünü
+     alır ("kurulu güç" · "günlük debi" · "kapasite"). ÖLÇÜLDÜ (8 Eyl
+     2026, yayında): su merceğinde de "Kurulu güç" yazıyordu. */
+  const kapasiteSozcugu = tBas('kapasite');
+  const etiket = (s: { ad: string; sozlukten?: true }) => siralamaEtiketi(s, kapasiteSozcugu);
+  const siralamaAdi = etiket(SIRALAMALAR.find((s) => s.anahtar === anahtar) ?? { ad: '' });
 
   return (
     <main className="ab-b-portfoy">
@@ -166,7 +171,7 @@ export default function Portfoy({
           <select value={anahtar}
             onChange={(e) => setAnahtar(e.target.value as SiralamaAnahtari)}>
             {SIRALAMALAR.map((s) => (
-              <option key={s.anahtar} value={s.anahtar}>{s.ad}</option>
+              <option key={s.anahtar} value={s.anahtar}>{etiket(s)}</option>
             ))}
           </select>
         </label>
@@ -186,7 +191,7 @@ export default function Portfoy({
           {zayif
             ? <>En zayıf · {siralamaAdi.toLocaleLowerCase('tr-TR')}: <b>{gorunen.find((s) => s.id === zayif.id)?.ad}</b> · {zayif.neden}</>
             : anahtar === 'guc'
-              ? 'Kurulu güç bir zayıflık ölçüsü değil — en zayıf işareti bu sıralamada yok.'
+              ? `${tBas('kapasite')} bir zayıflık ölçüsü değil — en zayıf işareti bu sıralamada yok.`
               : anahtar === 'uyum'
                 ? `Hiçbir görünen ${terim('tesis')} değerlendirilmemiş — en zayıf seçilemiyor.`
                 /* Çoğulun BULUNMA hâli sözlükte yok ("-de" ünlü uyumuna
@@ -212,7 +217,7 @@ export default function Portfoy({
                   .filter(Boolean).join(' · ')}
               </p>
               <dl className="olgular">
-                <Olgu ad="Kurulu güç"
+                <Olgu ad={tBas('kapasite')}
                   deger={olculenYazi({ deger: secili.guc, birim: secili.gucBirim }) ?? '—'} />
                 <Olgu ad="Uyum endeksi"
                   deger={secili.uyumYuzde === null ? '—' : `%${secili.uyumYuzde}`}

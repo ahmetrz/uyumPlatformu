@@ -4,8 +4,8 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 289 |
-| Testi olan senaryo | 289 |
+| Senaryo | 290 |
+| Testi olan senaryo | 290 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
@@ -18,7 +18,7 @@
 | ACCESSIBILITY | 8 | 8 | 0 |
 | API | 12 | 12 | 0 |
 | CONCURRENCY | 7 | 7 | 0 |
-| DOMAIN | 156 | 156 | 0 |
+| DOMAIN | 157 | 157 | 0 |
 | ENGINE | 33 | 33 | 0 |
 | INTEGRATION | 26 | 26 | 0 |
 | MIGRATION | 3 | 3 | 0 |
@@ -26,7 +26,7 @@
 | RESPONSIVE | 8 | 8 | 0 |
 | SCOPE | 30 | 30 | 0 |
 | SERVER | 104 | 104 | 0 |
-| UI | 82 | 82 | 0 |
+| UI | 83 | 83 | 0 |
 | VISUAL | 4 | 4 | 0 |
 | WORKFLOW | 32 | 32 | 0 |
 
@@ -214,6 +214,8 @@
 | `SIS-DIL-001` | Sistem | UI | `senaryo-platform.test.ts` | kullanıcıya dönük hiçbir metinde jargon geçmez | evet | geçti |
 | `PRT-OZT-001` | Portföy | DOMAIN · UI | `senaryo-platform.test.ts` | ölçülmemiş uyum yüzdesi SIFIRA çekilmez | evet | geçti |
 | `PRT-OZT-002` | Portföy | DOMAIN · UI | `tesis360-profil.test.ts` | profil kaydı yokken her alan tanımsızdır; gruplar tüm alanları kapsar | evet | geçti |
+| `PRT-OZT-003` | Portföy | DOMAIN · UI | `ekran-mantik-72.test.ts` | sözlükten işaretli satır sektörün sözcüğünü alır, ötekiler kendi adını | evet | geçti |
+| `PRT-OZT-003` | Portföy | DOMAIN · UI | `ekran-mantik-72.test.ts` | hiçbir sıralama satırı sektör sözcüğünü SABİT taşımaz | evet | geçti |
 | `HRT-KNM-001` | Harita | DOMAIN · UI | `harita-mantik.test.ts` | koordinatı olan yerleşir, ili olan YAKLAŞIK, ikisi de yoksa haritada YOK | evet | geçti |
 | `YRD-SOR-001` | Yardım | DOMAIN · UI | `yardim.test.ts` | listedeki genel kısayolların her biri kaynakta bağlıdır | evet | geçti |
 | `OTR-HSP-001` | Oturum | SERVER · DOMAIN | `hesap.test.ts` | alt sınır 12 karakter; kısa parola kusur cümlesi üretir, boş alan susar | evet | geçti |
@@ -345,6 +347,7 @@
 | `URN-KUR-006` | Ürünleştirme | DOMAIN | `bekci/kurgusal-adlar.test.ts` | SERTİFİKAYI VEREN beyanlıdır | evet | geçti |
 | `URN-KUR-007` | Ürünleştirme | DOMAIN | `bekci/kurgusal-adlar.test.ts` | her beyan KAYNAK ve GEREKÇE taşır | evet | geçti |
 | `URN-KUR-007` | Ürünleştirme | DOMAIN | `bekci/kurgusal-adlar.test.ts` | KULLANILMAYAN beyan bırakılmaz | evet | geçti |
+| `URN-KUR-007` | Ürünleştirme | DOMAIN | `bekci/kurgusal-adlar.test.ts` | ADAPTÖR hedef ürünleri beyanlıdır | evet | geçti |
 | `URN-KUR-007` | Ürünleştirme | DOMAIN | `bekci/kurgusal-adlar.test.ts` | her ZAFİYET kamuya açık bir kaynağa atıf yapar | evet | geçti |
 | `URN-KUR-007` | Ürünleştirme | DOMAIN | `bekci/kurgusal-adlar.test.ts` | KURGUSAL ad ile GERÇEK ad aynı kayıtta karışmaz | evet | geçti |
 | `URN-ALN-001` | Ürünleştirme | MIGRATION · DOMAIN | `p1-oznitelik-gocu.test.ts` | göç betiği kurulu gücü kayıpsız taşır; ölçülmemiş satır almaz | evet | geçti |

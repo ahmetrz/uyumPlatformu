@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { STATIK_DEMO } from '@/lib/statikDerleme';
 import { notFound } from 'next/navigation';
 import { girisZorunlu, izinliTesisIdleri } from '@/lib/erisim';
 import { aktifKullanici } from '@/lib/auth';
@@ -16,12 +17,31 @@ import { denetimDetayVerisi, denetimGorunur } from './veri';
    Tesis kapsamı `veri.ts`te uygulanır (modül: `denetim`, liste ekranıyla
    aynı kural). Kapsam dışı denetim `notFound()` ile kapanır. */
 
-export async function generateStaticParams() {
+/* PARAMETRE LİSTESİ SUNUCU DERLEMESİNDE HİÇ DIŞA AKTARILMAZ (P7 · ölçüldü).
+
+   `generateStaticParams` VARSA Next rotayı SSG sayar. Sunucu derlemesinde
+   liste boş döndürmek YETMEZ: Next rotayı hiç render etmeden "statik"
+   kabul eder ve istek geldiğinde on-demand statik üretim dener; orada
+   `cookies()` yasaktır ve sayfa 500 döner. Ölçüldü (compose duman kapısı):
+   oturumsuz `/tesisler/x` 307 yerine 500 veriyordu — KİMLİK KAPISI bir
+   sunucu hatasına dönüşmüştü.
+
+   `force-dynamic` bunu çözer ama statik demoyu BOZAR: `output: 'export'`
+   sunucusuzdur ve o kipi reddeder (ölçüldü, CI · `demo:build`). Rota
+   kesiti ayarları literal olmak zorunda olduğu için koşullu da yazılamaz.
+
+   Çözüm işlevin KENDİSİNİ koşullu dışa aktarmaktır: `generateStaticParams`
+   bir yapılandırma literali değil, derlenmiş modülden okunan bir İŞLEVDİR;
+   yoksa rota dinamiktir. Sunucu derlemesinde `undefined`, statik demoda
+   gerçek işlev. Ölçüldü: sunucu derlemesinde rota `ƒ`, demo dışa
+   aktarımında parametreler üretiliyor. */
+async function parametreler() {
   const denetimler = await db.denetim.findMany({
     where: { silindi: null }, select: { id: true },
   });
   return denetimler.map((d) => ({ id: d.id }));
 }
+export const generateStaticParams = STATIK_DEMO ? parametreler : undefined;
 
 /* Sekme başlığı da bir sızıntı yüzeyidir: kapsam dışı denetimin kodu ve
    adı, sayfa `notFound()` dönse bile <title>'a yazılıyordu. Başlık aynı

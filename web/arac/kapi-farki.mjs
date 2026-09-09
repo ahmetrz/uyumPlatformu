@@ -61,6 +61,8 @@ const BEYAN = {
   'harita:sinir': { kapi: false, sebep: 'üretici: Natural Earth\'ten silüet çizer, ağ ister; çıktısı depoda' },
   'sayimlar:yenile': { kapi: false, sebep: 'üretici: envanteri YAZAR; CI okuyanı (`sayimlar:denetle`) koşmalı' },
   'konsol:olcum': { kapi: false, sebep: 'ölçüm sondası: konsol gürültüsünü RAPORLAR, eşiği yok' },
+  'pg:istemci': { kapi: false, sebep: 'sağlayıcı yaşam döngüsünün ADIMI, kapı değil: istemciyi PostgreSQL/SQLite için yeniden üretir. `test:pg` onu kendi içinde koşar ve sonunda SQLite\'a GERİ ALIR — iş akışına ayrı adım olarak yazılsaydı `kapi:parti` onu kapı sanar ve dizini PostgreSQL istemcisiyle bırakırdı' },
+  'pg:test-sablonu': { kapi: false, sebep: 'kurulum adımı: PostgreSQL test şablonunu (taban göçü + tohum) kurar; ölçmez, hüküm vermez. `test:pg` içinde koşar' },
   'paket:dogrula': { kapi: false, sebep: 'yazar aracı: bir paket dizinini doğrular; iskelet paketlerin doğrulayıcıdan geçtiğini CI `npm test` içindeki `tests/paket-iskeletler.test.ts` ölçer' },
 
   'test:kapsam': { kapi: true, sebep: 'CI `npm test` koşuyor; kapsam raporu eşiksiz ve süreyi ikiye katlıyor — eşik konduğu gün bağlanır' },
@@ -148,6 +150,8 @@ export function adimlar(isAkisiMetni) {
   let blok = null;                       /* `run: |` gövdesinin girintisi */
   let cevre = null;                      /* `env:` bloğunun girintisi */
   let adimGirinti = null;                /* adım anahtarlarının girintisi */
+  let isCevresi = {};                    /* İŞ düzeyi `env:` */
+  let isCevreGirinti = null;
   /* Aracın GERÇEKTEN uyguladığı adım anahtarları. Bu kümenin dışındaki
      her anahtar `bilinmeyen`e düşer ve raporda ORTAM FARKI olarak
      görünür — sessizce atlanmaz. `env:` körlüğü tam olarak buradan
@@ -172,7 +176,22 @@ export function adimlar(isAkisiMetni) {
     }
     /* `jobs:` altındaki iki boşluklu anahtar = bir İŞ adı. */
     const isAdi = ham.match(/^ {2}([a-z][\w-]*):\s*$/);
-    if (isAdi) { is = isAdi[1]; }
+    /* Yeni iş: adım bağlamı da sıfırlanır. Sıfırlanmasaydı önceki işin son
+       adımının girintisi taşınır ve İŞ DÜZEYİ `env:` hiç okunmazdı (ölçüldü). */
+    if (isAdi) { is = isAdi[1]; isCevresi = {}; isCevreGirinti = null; adimGirinti = null; }
+    /* İŞ DÜZEYİ `env:` — adım düzeyindekiyle aynı gerekçe: okunmazsa kapı
+       yanlış ortamda koşar ve rapor "koştu" der. PostgreSQL işi bağlantı
+       dizesini iş düzeyinde verir; adım düzeyinde hiç görünmez. Adımın
+       kendi `env:`i İŞİNKİNİ EZER (GitHub da böyle yapar). */
+    if (adimGirinti === null) {
+      const isEnv = ham.match(/^ {4}env:\s*$/);
+      if (isEnv) { isCevreGirinti = 6; continue; }
+      if (isCevreGirinti !== null) {
+        const g = ham.match(/^(\s*)([A-Z_][A-Z0-9_]*):\s*(.*?)\s*$/);
+        if (g && g[1].length >= isCevreGirinti) { isCevresi[g[2]] = g[3].replace(/^['"]|['"]$/g, ''); continue; }
+        isCevreGirinti = null;
+      }
+    }
     const ad = ham.match(/^(\s*)-\s+name:\s*(.+?)\s*$/);
     if (ad) {
       if (simdiki?.komut) cikti.push(simdiki);
@@ -180,7 +199,8 @@ export function adimlar(isAkisiMetni) {
       simdiki = {
         ad: ad[2].replace(/^['"]|['"]$/g, ''),
         is,
-        komut: '', dizin: '.', cevre: {}, bilinmeyen: {}, bloklamaz: false,
+        /* İŞ düzeyi ortam KOPYALANIR; adımın kendi `env:`i üstüne yazar. */
+        komut: '', dizin: '.', cevre: { ...isCevresi }, bilinmeyen: {}, bloklamaz: false,
       };
       continue;
     }

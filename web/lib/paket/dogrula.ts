@@ -26,12 +26,14 @@ import {
   type Manifest, type OznitelikSatiri, type RaporSablonu, type RolSatiri, type SozlukSatiri, type YukumlulukSatiri,
 } from './bicim';
 
-export type HataSinifi = 'BIÇIM' | 'KİMLİK' | 'SÖZLÜK' | 'ÖZNİTELİK' | 'LİSANS' | 'SÜRÜM' | 'KAPSAM TÜRÜ' | 'KAYNAK';
+export type HataSinifi = 'BIÇIM' | 'KİMLİK' | 'SÖZLÜK' | 'ÖZNİTELİK' | 'LİSANS' | 'SÜRÜM' | 'KAPSAM TÜRÜ' | 'KAYNAK' | 'ALAN EŞLEME';
 export type DogrulamaHatasi = {
   sinif: HataSinifi; dosya: string; konum?: string; mesaj: string; duzeltme: string;
 };
 
-export type Cerceve = { dosya: string; kimlik: CerceveKimligi; maddeler: MaddeSatiri[] };
+/** `doluSutunlar`: madde dosyasında EN AZ BİR satırda değer taşıyan sütunlar — alan eşleme
+    beyanı bunlara karşı ölçülür (boş sütun beyan istemez, beyansız dolu sütun kırmızıdır). */
+export type Cerceve = { dosya: string; kimlik: CerceveKimligi; maddeler: MaddeSatiri[]; doluSutunlar: string[] };
 export type Esleme = { dosya: string; kimlik: EslemeKimligi; satirlar: EslemeSatiri[] };
 export type PaketIcerigi = {
   dizin: string;
@@ -353,6 +355,10 @@ export function paketiDogrula(dizin: string): DogrulamaSonucu {
           duzeltme: 'her sütun başlığı bir kez yazılır; fazla kopyayı silin' });
         continue;
       }
+      /* Dolu sütun = dosyada en az bir satırda değer taşıyan sütun. Ayrıştırılmış
+         satırdan DEĞİL ham hücreden ölçülür: `sira` sütunu yokken bile nesnede
+         satır sırası dolar; ham hücre yalancı doluluk üretmez. */
+      const doluSutunlar = basliklar.filter((_, i) => satirlar.some((r) => (r[i] ?? '').trim() !== ''));
       const sutun = (satir: string[], ad: string) => { const i = basliklar.indexOf(ad); return i === -1 ? '' : (satir[i] ?? '').trim(); };
       const gorulen = new Set<string>();
       const maddeler: MaddeSatiri[] = [];
@@ -444,10 +450,77 @@ export function paketiDogrula(dizin: string): DogrulamaSonucu {
         hatalar.push({ sinif: 'KAYNAK', dosya, konum: 'kaynakUrl', mesaj: `${kimlik.kod} metin taşıyor ama kaynak adresi beyan etmiyor — metnin nereden geldiği söylenmeli`,
           duzeltme: 'kimliğe `kaynakUrl` yazın (ve her metinli maddeye kaynak_url + erisim_tarihi), ya da içerik kurgusalsa `temsili: true` deyin' });
       }
-      cerceveler.push({ dosya, kimlik, maddeler });
+      cerceveler.push({ dosya, kimlik, maddeler, doluSutunlar });
     }
   }
   tekil(DOSYALAR.cerceveDizini, 'KİMLİK', cerceveler.map((c) => c.kimlik.kod), 'çerçeve kodu');
+
+  /* ── ALAN EŞLEME BEYANI (§1/10) ──────────────────────────────────────
+     Ölçüldü (bağımsız inceleme, PR #43 tur 2): EPDK Ek-3'ün "Seviye"
+     kademesi ürünün HEDEF OLGUNLUK alanına yazılmıştı — biçim doğru, iki
+     taraf da geçerli veri, hiçbir kapı göremedi; 508 zorunlu kontrolün
+     hedefi bozuldu. Kapı ANLAM ölçemez; beyanın VARLIĞINI ölçer:
+     · temsilî olmayan her çerçeve alan eşlemesi beyan eder,
+     · dosyada DOLU her sütun beyanda geçer (beyansız eşleme kırmızı),
+     · beyanda geçip dosyada boş kalan sütun ÖLÜ beyandır (kırmızı),
+     · bir ürün alanı iki kez beyan edilemez (iki kaynak tek alana
+       yazılıyorsa bunu SÖYLEYEN tek satır yazılır),
+     · temsilî çerçeve (kaynak belgesi YOK) eşleme beyan edemez,
+     · pakette olmayan çerçeveye beyan yazılamaz (ölü atıf).
+     Gerekçenin DOĞRU olduğunu kapı söyleyemez — bu kabul edilmiş sınır
+     `docs/SEKTOR_PAKETI_SOZLESMESI.md` §1/10'da yazılıdır. */
+  const esleme = manifest.alanEslemesi ?? {};
+  const cerceveKodlari = new Set(cerceveler.map((c) => c.kimlik.kod));
+  for (const kod of Object.keys(esleme)) {
+    if (!cerceveKodlari.has(kod)) {
+      hatalar.push({ sinif: 'ALAN EŞLEME', dosya: DOSYALAR.manifest, konum: `alanEslemesi.${kod}`,
+        mesaj: `alan eşlemesi pakette olmayan bir çerçeveye yazılmış: ${kod}`,
+        duzeltme: `çerçeve kodunu düzeltin ya da beyanı silin; paketin çerçeveleri: ${[...cerceveKodlari].join(', ') || '(yok)'}` });
+    }
+  }
+  for (const c of cerceveler) {
+    const kod = c.kimlik.kod;
+    const konum = `alanEslemesi.${kod}`;
+    const satirlar = esleme[kod];
+    if (c.kimlik.temsili) {
+      if (satirlar) {
+        hatalar.push({ sinif: 'ALAN EŞLEME', dosya: DOSYALAR.manifest, konum,
+          mesaj: `${kod} temsilî — kaynak belgesi yok, eşlenecek kaynak alanı da yok`,
+          duzeltme: 'temsilî çerçevenin alan eşlemesini silin; içerik gerçekten bir belgeden geliyorsa `temsili` alanını kaldırın' });
+      }
+      continue;
+    }
+    if (!satirlar) {
+      hatalar.push({ sinif: 'ALAN EŞLEME', dosya: DOSYALAR.manifest, konum,
+        mesaj: `${kod} için alan eşleme beyanı yok — dolu sütunlar: ${c.doluSutunlar.join(', ')}`,
+        duzeltme: 'manifeste `alanEslemesi` altında her dolu sütun için { kaynakAlan, urunAlani, gerekce } yazın; gerekçe ürün alanının ANLAMINI anlatsın' });
+      continue;
+    }
+    const beyanEdilen = new Map<string, number>();
+    for (const r of satirlar) beyanEdilen.set(r.urunAlani, (beyanEdilen.get(r.urunAlani) ?? 0) + 1);
+    for (const [alan, n] of beyanEdilen) {
+      if (n > 1) {
+        hatalar.push({ sinif: 'ALAN EŞLEME', dosya: DOSYALAR.manifest, konum: `${konum}.${alan}`,
+          mesaj: `${kod}: "${alan}" ürün alanı ${n} kez beyan edilmiş — hangi kaynağın oraya yazıldığı belirsiz`,
+          duzeltme: 'tek satır yazın; iki kaynak alanı gerçekten birleşiyorsa bunu kaynakAlan ve gerekçede SÖYLEYİN' });
+      }
+    }
+    for (const sutunAdi of c.doluSutunlar) {
+      if (!beyanEdilen.has(sutunAdi)) {
+        hatalar.push({ sinif: 'ALAN EŞLEME', dosya: DOSYALAR.manifest, konum: `${konum}.${sutunAdi}`,
+          mesaj: `${kod}: "${sutunAdi}" sütunu dolu ama beyansız — kaynağın hangi alanından geldiği yazılmamış`,
+          duzeltme: `alanEslemesi.${kod} listesine { kaynakAlan, urunAlani: "${sutunAdi}", gerekce } ekleyin; değer kaynakta yoksa kaynakAlan null olur` });
+      }
+    }
+    for (const alan of beyanEdilen.keys()) {
+      if (!c.doluSutunlar.includes(alan)) {
+        hatalar.push({ sinif: 'ALAN EŞLEME', dosya: DOSYALAR.manifest, konum: `${konum}.${alan}`,
+          mesaj: `${kod}: "${alan}" beyan edilmiş ama madde dosyasında hiçbir satırda dolu değil — ölü beyan`,
+          duzeltme: 'beyanı silin ya da sütunu doldurun; okunan beyan dosyanın bugünkü hâlini anlatmalı' });
+      }
+    }
+  }
+
 
   /* ── uygulanabilirlik beyanı (§1/9) ──────────────────────────────────
      Tür kodu paketin kendi türlerinden ya da çekirdek türlerden; koşul

@@ -1,4 +1,5 @@
 import { beforeAll, describe, expect, it, vi } from 'vitest';
+import { SAGLAYICI } from '@/lib/veritabani';
 import { copyFileSync, mkdtempSync } from 'node:fs';
 import { createHash, randomBytes } from 'node:crypto';
 import { tmpdir } from 'node:os';
@@ -251,13 +252,24 @@ describe('Toplu inceleme yarım kalmaz', () => {
 
     expect(y.ok).toBe(false);
     if (!y.ok) expect(y.hata).toMatch(/başkası tarafından değiştirildi/);
-    // Kendi yazdığımız hiçbir şey kalmadı; araya giren yazma da aynı
-    // bağlantıda olduğu için onunla birlikte geri alındı.
-    for (const id of [a.id, b.id]) {
-      const r = await db.reddedilenKayit.findUniqueOrThrow({ where: { id } });
-      expect(r.durum).toBe('acik');
-    }
+    /* ÜRÜNÜN GARANTİSİ: KENDİ yazdığımız hiçbir şey kalmaz. Bu, kaydın
+       kendisinde ve denetim izinde ölçülür. */
+    expect((await db.reddedilenKayit.findUniqueOrThrow({ where: { id: a.id } })).durum).toBe('acik');
     expect(await db.aktiviteKaydi.count({
       where: { varlikTipi: 'ReddedilenKayit', varlikId: { in: [a.id, b.id] } } })).toBe(0);
+
+    /* ARAYA GİREN YAZMANIN kaderi SAĞLAYICIYA bağlıdır ve bu bir ürün kuralı
+       DEĞİLDİR — bağlantı modelinin sonucudur (ölçüldü, R5):
+       · SQLite: tek bağlantı. Araya giren yazma AYNI transaction'ın içine
+         düşer ve bizim geri almamızla birlikte geri alınır → 'acik'.
+       · PostgreSQL: havuz. "Başkası" gerçekten başka bir bağlantıdır, kendi
+         işlemi bağımsız commit olur ve bizim geri almamız onu ETKİLEMEZ →
+         'incelendi'. Doğru olan budur: başka birinin yazdığını geri almak
+         bir uyum ürününde kabul edilemez.
+       Eski hâli SQLite'ın tek bağlantısını ürün kuralı sanıyordu ve iki
+       kaydı da 'acik' bekliyordu; PostgreSQL'de kırmızıydı. */
+    const bSonrasi = (await db.reddedilenKayit.findUniqueOrThrow({ where: { id: b.id } })).durum;
+    expect(bSonrasi, 'araya giren yazmanın kaderi sağlayıcı modeline göre okunmalı')
+      .toBe(SAGLAYICI === 'postgresql' ? 'incelendi' : 'acik');
   });
 });

@@ -12,13 +12,22 @@
    `docs/GELISTIRME_PAKETLERI.md` P0 · URN-KUR-004 ile ölçülür: bu dosya
    dışında hiçbir kod dosyasında ürün adı düz metin geçmez.
 
-   ── NEDEN `NEXT_PUBLIC_` ─────────────────────────────────────────────
-   Ad hem sunucuda (sayfa `metadata`'sı, API sözleşmesi) hem istemcide
-   (kabuk sözcük markası, `global-error`) görünür. `NEXT_PUBLIC_` öneki
-   olmadan istemci paketinde değer `undefined` iner ve iki taraf farklı
-   ad gösterir — hidrasyon uyuşmazlığı ve daha kötüsü, yalan bir başlık.
-   Değer derleme zamanında gömülür; statik demo derlemesi de aynı yolu
-   kullanır.
+   ── `NEXT_PUBLIC_` DERLEME ANIDIR — KURULUM ANI DEĞİL (P7 · ölçüldü) ──
+   `NEXT_PUBLIC_` öneki değeri İSTEMCİ PAKETİNE DERLEME ANINDA gömer.
+   Sunucuda ise `process.env` çalışma anında okunur. İkisi aynı olduğu
+   sürece (geliştirme, statik demo) sorun görünmez.
+
+   Kurulumda görünür: tek imaj çok müşteriye kurulur ve ad compose ile
+   ÇALIŞMA ANINDA verilir. Ölçüldü (compose duman kapısı): sunucu
+   kurulumun adını, istemci derleme anındaki varsayılanı çizdi — 58
+   sayfada hidrasyon uyuşmazlığı (React #418) ve hidrasyondan sonra
+   ekranda YANLIŞ kiracı adı.
+
+   Bu yüzden KURULUMU YANSITMASI GEREKEN yüzeyler adı SUNUCUDAN VERİ
+   olarak alır (`kabukVerisi()` → `KabukVerisi.kiraciAd/markaAd`). Buradaki
+   `NEXT_PUBLIC_` okumaları kiracısı çözülemeyen yüzeyler (giriş öncesi,
+   `global-error`) ve sunucu tarafı için kalır: oralarda gösterilen ad
+   kurulumun değil, ÜRÜNÜN adıdır ve derleme sabiti olması doğrudur.
 
    ── KİRACI ADI AYRI ──────────────────────────────────────────────────
    `KIRACI_AD` kurulumun kendi adıdır, ürünün adı değildir; kabuk sözcük

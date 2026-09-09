@@ -71,21 +71,28 @@ const { baslar: sunucuBaslar, durur: sunucuDurur, adimlar: tumAdimlar } =
 const yasamDongusu = new Set([sunucuBaslar, sunucuDurur].filter((i) => i >= 0));
 
 /* ── KÜME SEÇİMİ ──────────────────────────────────────────────────────
-   İş akışı ikiye bölündü: `kapi` (hızlı · her push) ve `kapi-yavas`
-   (tarayıcılı · taslak olmayan PR + gecelik). Kapanış VARSAYILAN olarak
-   İKİSİNİ birden koşar — "parti kapanış kümesi = PR kapı kümesi" kuralı
+   İş akışı dörde bölündü: `kapi` (hızlı · her push), `kapi-yavas`
+   (tarayıcılı), `kapi-postgres` (ikinci sağlayıcı) ve `kapi-compose`
+   (kurulumun kendisi). Kapanış VARSAYILAN olarak HEPSİNİ koşar — "parti kapanış kümesi = PR kapı kümesi" kuralı
    bölünmeyle gevşemez; bölünme neyin ne zaman koştuğunu değiştirir,
    kapanışın neyi kanıtladığını değil.
 
    Küme adı rapora YAZILIR. Yazılmasaydı `--hizli` ile koşan bir kapanış
    da "tamamı yeşil" derdi ve tarayıcılı kapılar hiç ölçülmemiş olurdu —
    koşulmayan kapı "geçti" diye yazılmaz. */
-const ISLER = { hizli: 'kapi', yavas: 'kapi-yavas' };
-const secilen = process.argv.includes('--hizli') ? ['hizli']
-  : process.argv.includes('--yavas') ? ['yavas'] : ['hizli', 'yavas'];
+const ISLER = {
+  hizli: 'kapi', yavas: 'kapi-yavas', postgres: 'kapi-postgres', compose: 'kapi-compose',
+};
+const KUME_ADLARI = {
+  hizli: 'HIZLI', yavas: 'YAVAŞ', postgres: 'POSTGRESQL', compose: 'COMPOSE',
+};
+const TEK_KUME = ['hizli', 'yavas', 'postgres', 'compose']
+  .find((k) => process.argv.includes(`--${k}`));
+const secilen = TEK_KUME ? [TEK_KUME] : Object.keys(ISLER);
 const secilenIsler = new Set(secilen.map((s) => ISLER[s]));
-const KUME_ADI = secilen.length === 2 ? 'TAM (hızlı + yavaş)'
-  : secilen[0] === 'hizli' ? 'YALNIZ HIZLI' : 'YALNIZ YAVAŞ';
+const KUME_ADI = secilen.length === Object.keys(ISLER).length
+  ? `TAM (${Object.keys(ISLER).map((k) => KUME_ADLARI[k].toLocaleLowerCase('tr')).join(' + ')})`
+  : `YALNIZ ${secilen.map((s) => KUME_ADLARI[s]).join(' + ')}`;
 
 /* Aynı kapı iki işte de duruyorsa (kurulum ve `npm run build` böyle)
    BİR KEZ koşar: aynı komutu aynı ortamda ikinci kez koşmak yeni bir
@@ -126,13 +133,38 @@ const IFADE = /\$\{\{/;
 const YEREL_KARSILIK = { '${{ github.event.pull_request.base.sha }}': 'origin/main' };
 const dusenler = [];
 
+/* GERÇEK ortam, iş akışının BEYAN ETTİĞİ ortamı EZER. Sebep ölçüldü:
+   `kapi-postgres` işi bağlantı dizesini `127.0.0.1:5432` diye beyan eder
+   (CI servisinin adresi); yerelde PostgreSQL başka portta olabilir.
+   İş akışının değeri kabuktakini ezseydi kapı olmayan bir sunucuya bağlanır
+   ve "PostgreSQL'e bağlanılamadı" derdi — kusur kodda değil, araçta olurdu. */
+const KABUK_EZER = new Set(['PG_URL', 'TEST_PG_URL', 'TEST_PG_SABLON']);
+
+/* BEYAN EDİLMEYEN DEĞİŞKEN ADIMA SIZMAZ (ölçüldü, 9 Eylül 2026).
+
+   Alt süreç varsayılan olarak bütün `process.env`i devralır. Kabukta
+   duran bir `TEST_PG_URL`, onu BEYAN ETMEYEN adıma da geçiyordu: SQLite
+   birim testleri PostgreSQL sürücüsünü seçti ve "adaptör uyumsuz" diye
+   KIRMIZI yandı — kusur kodda değil, ölçüm ortamındaydı. Bu tam olarak
+   deponun "bayat ölçüm ortamı" tuzağının bir başka yüzü.
+
+   Bugün: `KABUK_EZER` değişkeni bir adımın ortamına ANCAK o adımın işi
+   onu beyan ediyorsa girer. Beyan etmeyen adımda SİLİNİR ve silinme
+   raporda ADIYLA yazılır — sessizce silmek, sessizce sızdırmak kadar
+   kötü olurdu: koşan kişi hangi ortamda ölçtüğünü bilmelidir. */
 function cevreCoz(cevre = {}, adAd = '') {
   const cikti = {};
   for (const [k, v] of Object.entries(cevre)) {
+    if (KABUK_EZER.has(k) && process.env[k]) { cikti[k] = process.env[k]; continue; }
     if (!IFADE.test(v)) { cikti[k] = v; continue; }
     const karsilik = YEREL_KARSILIK[v.trim()];
     if (karsilik) { cikti[k] = karsilik; dusenler.push(`${adAd} · ${k} → ${karsilik} (yerel karşılık)`); }
     else dusenler.push(`${adAd} · ${k} DÜŞÜRÜLDÜ (yerelde çözülemez: ${v})`);
+  }
+  for (const k of KABUK_EZER) {
+    if (k in cevre || !process.env[k]) continue;
+    cikti[k] = undefined;   // spawn: `undefined` değer değişkeni SİLER
+    dusenler.push(`${adAd} · ${k} KABUKTAN SİLİNDİ (bu adımın işi onu beyan etmiyor)`);
   }
   return cikti;
 }

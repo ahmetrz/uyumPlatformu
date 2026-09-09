@@ -1,7 +1,7 @@
 {
-  "imza": "3c366a9b6cac99644c4f630913f1d23c",
-  "dosya": 190,
-  "vaka": 3475,
+  "imza": "f2029491da09be9ed94a2b524baf74d5",
+  "dosya": 194,
+  "vaka": 3529,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -29,7 +29,7 @@
       "atlanan": 0
     },
     "tests/arama-kosulu.test.ts": {
-      "vaka": 6,
+      "vaka": 8,
       "atlanan": 0
     },
     "tests/bagimlilik-guvenligi.test.ts": {
@@ -52,6 +52,10 @@
       "vaka": 4,
       "atlanan": 0
     },
+    "tests/bekci/gunluk-sir.test.ts": {
+      "vaka": 5,
+      "atlanan": 0
+    },
     "tests/bekci/kapsam-omurga.test.ts": {
       "vaka": 6,
       "atlanan": 0
@@ -70,6 +74,10 @@
     },
     "tests/bekci/null-olumsuzlama.test.ts": {
       "vaka": 19,
+      "atlanan": 0
+    },
+    "tests/bekci/ortam-semasi.test.ts": {
+      "vaka": 8,
       "atlanan": 0
     },
     "tests/bekci/paket-silme.test.ts": {
@@ -337,7 +345,7 @@
       "atlanan": 0
     },
     "tests/kapi-farki.test.ts": {
-      "vaka": 12,
+      "vaka": 14,
       "atlanan": 0
     },
     "tests/kapsam-ekranlari.test.ts": {
@@ -492,6 +500,10 @@
       "vaka": 4,
       "atlanan": 0
     },
+    "tests/paket-alan-eslemesi.test.ts": {
+      "vaka": 12,
+      "atlanan": 0
+    },
     "tests/paket-demo.test.ts": {
       "vaka": 7,
       "atlanan": 0
@@ -509,7 +521,7 @@
       "atlanan": 0
     },
     "tests/paket-icerik.test.ts": {
-      "vaka": 15,
+      "vaka": 17,
       "atlanan": 0
     },
     "tests/paket-iskeletler.test.ts": {
@@ -533,7 +545,7 @@
       "atlanan": 0
     },
     "tests/paket-uygulanabilirlik.test.ts": {
-      "vaka": 8,
+      "vaka": 9,
       "atlanan": 0
     },
     "tests/paketler-mantik.test.ts": {
@@ -546,6 +558,10 @@
     },
     "tests/pasif-kesif.test.ts": {
       "vaka": 31,
+      "atlanan": 0
+    },
+    "tests/pg-gocu.test.ts": {
+      "vaka": 10,
       "atlanan": 0
     },
     "tests/proje-bagimliligi.test.ts": {
@@ -737,7 +753,7 @@
       "atlanan": 0
     },
     "tests/yedek-araci.test.ts": {
-      "vaka": 7,
+      "vaka": 19,
       "atlanan": 0
     },
     "tests/yeniTesis.test.ts": {

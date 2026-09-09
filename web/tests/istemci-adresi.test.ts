@@ -97,11 +97,25 @@ describe('1 · TRUST_PROXY çözümlemesi', () => {
   });
 });
 
+/** Yapısal günlüğü YAKALAR. Ürün kodu artık `console.error` yazmıyor
+    (`lib/gunluk.ts`): satır stderr'e tek satır JSON olarak gider. Testin
+    `console.error`e bakması, susturulmuş bir uyarıyı "yazıldı" sanmak
+    olurdu — bekçi `tests/bekci/gunluk-sir.test.ts` çıplak `console.*`
+    çağrısını zaten kırmızı yakıyor. */
+function gunlukYakala() {
+  const satirlar: Record<string, unknown>[] = [];
+  vi.spyOn(process.stderr, 'write').mockImplementation(((metin: string) => {
+    satirlar.push(JSON.parse(String(metin)));
+    return true;
+  }) as typeof process.stderr.write);
+  return { satirlar };
+}
+
 /* ═══ 2 · tanınmayan değer ════════════════════════════════════════════ */
 
 describe('2 · Tanınmayan TRUST_PROXY sessizce güvenmeye DÖNÜŞMEZ', () => {
   it('anlaşılmayan değer: güvenme + AÇIK günlük (bir kez)', () => {
-    const gunluk = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const gunluk = gunlukYakala();
     politika('belki-bazen');
 
     const p = vekilPolitikasi();
@@ -109,18 +123,21 @@ describe('2 · Tanınmayan TRUST_PROXY sessizce güvenmeye DÖNÜŞMEZ', () => {
     expect(p.mod === 'guvenme' && p.hatali).toBeTruthy();
 
     // Sessiz DEĞİL: yanlış yapılandırma operatöre söylenir…
-    expect(gunluk).toHaveBeenCalledTimes(1);
-    expect(String(gunluk.mock.calls[0][0])).toMatch(/TRUST_PROXY/);
-    expect(String(gunluk.mock.calls[0][0])).toMatch(/GÜVENİLMİYOR/);
+    expect(gunluk.satirlar).toHaveLength(1);
+    /* Yapısal satır ARANABİLİR olmalı: olay adı ve alanlar ayrı ayrı
+       okunur, serbest metinden düzenli ifadeyle kazınmaz. */
+    expect(gunluk.satirlar[0].olay).toBe('istemciAdresi.trust_proxy_anlasilmadi');
+    expect(gunluk.satirlar[0].duzey).toBe('hata');
+    expect(String(gunluk.satirlar[0].sonuc)).toMatch(/GÜVENİLMİYOR/);
 
     // …ama her istekte bağırmaz (gürültü, uyarıyı öldürür).
     vekilPolitikasi();
     adresCoz(oku({ 'x-forwarded-for': '198.51.100.5' }));
-    expect(gunluk).toHaveBeenCalledTimes(1);
+    expect(gunluk.satirlar).toHaveLength(1);
   });
 
   it('hatalı yapılandırma GÜVENME tarafına düşer — başlık yine yok sayılır', () => {
-    vi.spyOn(console, 'error').mockImplementation(() => {});
+    gunlukYakala();
     politika('2.5');   // ne tam sayı ne IP
     expect(adresCoz(oku({ 'x-forwarded-for': '198.51.100.5' }))).toBeNull();
     expect(adresCoz(oku({ 'x-real-ip': '198.51.100.5' }))).toBeNull();
@@ -308,11 +325,12 @@ describe('7 · Liste modu: başlığı YAZANIN kim olduğu doğrulanır', () => 
   it('uzak eş BİLİNMİYORSA koşul değerlendirilemez → güvenme + uyarı', () => {
     /* Dürüst sınır: Next.js `headers()` soket eşini vermez. "Uzak eşi bir
        başlıktan oku" demek, kapatılan deliği geri açmak olurdu. */
-    const gunluk = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const gunluk = gunlukYakala();
     politika('10.0.0.0/8');
     expect(adresCoz(oku({ 'x-forwarded-for': '1.2.3.4, 10.0.0.9' }))).toBeNull();
-    expect(gunluk).toHaveBeenCalledTimes(1);
-    expect(String(gunluk.mock.calls[0][0])).toMatch(/uzak eş/);
+    expect(gunluk.satirlar).toHaveLength(1);
+    expect(gunluk.satirlar[0].olay).toBe('istemciAdresi.trust_proxy_anlasilmadi');
+    expect(String(gunluk.satirlar[0].sebep)).toMatch(/uzak eş/);
   });
 
   it('zincirin tamamı güvenilen bloklardaysa en dıştaki halka istemcidir', () => {

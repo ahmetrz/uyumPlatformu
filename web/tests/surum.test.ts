@@ -114,6 +114,7 @@ describe('Kabul testi 6 — regülasyon yeni sürüm', () => {
 import { beforeAll } from 'vitest';
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import { ogeAc } from './yardim/kapsam';
+import { arizaKaldir, arizaKur } from './yardim/ariza';
 
 const { oturumCereziAyarla } = await import('./sahte/next-headers');
 const { surumOlustur, surumAktiflestir } = await import('@/lib/eylemler2/surum');
@@ -130,15 +131,11 @@ async function oturumAc(kullaniciId: string): Promise<void> {
   oturumCereziAyarla(jeton);
 }
 
-/** Geçici arıza tetikleyicisi: `kosul` sağlanan INSERT'i ABORT eder. */
-async function arizaKur(ad: string, tablo: string, kosul: string): Promise<void> {
-  await db.$executeRawUnsafe(
-    `CREATE TRIGGER ${ad} BEFORE INSERT ON "${tablo}" WHEN ${kosul} `
-    + `BEGIN SELECT RAISE(ABORT, 'disk doldu'); END;`);
-}
-async function arizaKaldir(ad: string): Promise<void> {
-  await db.$executeRawUnsafe(`DROP TRIGGER IF EXISTS ${ad};`);
-}
+/* Arıza enjeksiyonu tetikleyici sözdizimi SAĞLAYICIYA ÖZGÜDÜR; ortak
+   yardımcıya taşındı (tests/yardim/ariza.ts) — SQLite'a gömülü hâli
+   PostgreSQL'de sözdizimi hatası veriyordu ve iddia HİÇ ölçülmüyordu. */
+const ariza = (ad: string, tablo: string, kosul: string) => arizaKur(db, ad, tablo, kosul);
+const arizaSil = (ad: string, tablo: string) => arizaKaldir(db, ad, tablo);
 
 /** Değişmezlerin ÖNCE/SONRA karşılaştırılabilmesi için sayım kümesi. */
 async function sayimlar(regulasyonId: string) {
@@ -218,12 +215,12 @@ describe('surumOlustur — atomiklik ve toplu kopyalama (#14)', () => {
     await db.madde.update({ where: { id: hedef.id }, data: { baslik: 'PATLAT-BASLIK' } });
 
     const once = await sayimlar(reg.id);
-    await arizaKur('test_madde_patlat', 'Madde', "NEW.baslik = 'PATLAT-BASLIK'");
+    await ariza('test_madde_patlat', 'Madde', 'NEW."baslik" = \'PATLAT-BASLIK\'');
     let sonuc;
     try {
       sonuc = await surumOlustur({ regulasyonId: reg.id, etiket: 'TASLAK-YARIM' });
     } finally {
-      await arizaKaldir('test_madde_patlat');
+      await arizaSil('test_madde_patlat', 'Madde');
     }
     const sonra = await sayimlar(reg.id);
 
@@ -280,10 +277,10 @@ describe('surumAktiflestir — diff ve değerlendirme açma aynı transaction (#
     const once = await sayimlar(reg.id);
     expect(once.fark).toBe(0);
 
-    await arizaKur('test_durum_patlat', 'MaddeDurumu', "NEW.durum = 'degerlendirilmedi'");
+    await ariza('test_durum_patlat', 'MaddeDurumu', 'NEW."durum" = \'degerlendirilmedi\'');
     let sonuc;
     try { sonuc = await surumAktiflestir({ surumId: taslak.id }); }
-    finally { await arizaKaldir('test_durum_patlat'); }
+    finally { await arizaSil('test_durum_patlat', 'MaddeDurumu'); }
     const sonra = await sayimlar(reg.id);
 
     expect(sonuc.ok).toBe(false);

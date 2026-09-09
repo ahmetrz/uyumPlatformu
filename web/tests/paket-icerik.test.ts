@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import path from 'node:path';
 import { hataSatiri, paketiDogrula } from '@/lib/paket/dogrula';
-import { SOZLUK_SATIRI, cerceve, paketYaz, type PaketDosyalari } from './yardim/paket';
+import { kademeAnahtari, maddeMetniDurumu } from '@/lib/paket/bicim';
+import { SOZLUK_SATIRI, cerceve, fiksturEslemesi, paketYaz, type PaketDosyalari } from './yardim/paket';
 
 /* ═══════════════════════════════════════════════════════════════════════
    P4 · İÇERİK — köken sütunları ve uygulanabilirlik beyanı
@@ -39,7 +40,13 @@ const dosyalar = (kimlik: Record<string, unknown>, csv: string, ek: PaketDosyala
   ...ek,
 });
 const dogrula = (kimlik: Record<string, unknown>, csv: string, manifest: Record<string, unknown> = {}) =>
-  paketiDogrula(paketYaz(dosyalar(kimlik, csv), { kod: 'KYN-PAKET', sektor: { kod: 'KYN-SEKTOR', ad: 'Kaynak' }, ...manifest }));
+  paketiDogrula(paketYaz(dosyalar(kimlik, csv), {
+    kod: 'KYN-PAKET', sektor: { kod: 'KYN-SEKTOR', ad: 'Kaynak' },
+    /* Temsilî olmayan çerçeve alan eşlemesi beyan etmek zorundadır (URN-PKT-022);
+       bu fikstürün konusu KÖKEN, beyanı üreteç sağlar. */
+    ...(kimlik.temsili === false ? { alanEslemesi: fiksturEslemesi('KYN-REG', csv) } : {}),
+    ...manifest,
+  }));
 const hatalari = (s: ReturnType<typeof paketiDogrula>) => s.hatalar.map(hataSatiri);
 
 describe('köken sütunları: metnin nereden ve ne zaman alındığı [URN-PKT-019]', () => {
@@ -129,18 +136,67 @@ describe('TR-ENERJI içeriği: resmî metin, köken, uygulanabilirlik [URN-PKT-0
   const s = paketiDogrula(path.join(KOK, 'paketler', 'TR-ENERJI'));
   const cerceveleri = () => s.icerik!.cerceveler;
 
-  it('ölçüm tabanı: paket geçerli, iki çerçeve, 601 madde', () => {
+  it('ölçüm tabanı: paket geçerli, sekiz çerçeve, 3 803 madde', () => {
     expect(s.hatalar.map(hataSatiri)).toEqual([]);
-    expect(s.sayilar).toMatchObject({ cerceveler: 2, maddeler: 601, kurallar: 2 });
+    /* 23 yönetmelik satırı + yedi ek (aile satırları dâhil): Ek-1 488 · Ek-2 518 · Ek-3 578 ·
+       Ek-4 565 · Ek-5 564 · Ek-6 591 · Ek-7 476. Her ek bir çerçeve, her çerçeve bir kural. */
+    expect(s.sayilar).toMatchObject({ cerceveler: 8, maddeler: 3803, kurallar: 8 });
   });
 
   it('metinli her maddede kaynak adresi ve erişim tarihi var; metinsiz madde uydurma köken taşımaz [URN-PKT-019]', () => {
     const maddeler = cerceveleri().flatMap((c) => c.maddeler);
     const metinli = maddeler.filter((m) => m.metin);
-    expect(metinli.length).toBe(584); // 19 yönetmelik maddesi + 565 Ek-3 kontrolü
+    expect(metinli.length).toBe(3710); // 19 yönetmelik maddesi + 3 691 ek kontrolü (aile satırları metinsiz)
     expect(metinli.filter((m) => !m.kaynakUrl || !m.erisimTarihi)).toEqual([]);
     expect(new Set(metinli.map((m) => m.erisimTarihi))).toEqual(new Set(['2026-09-09']));
     expect(maddeler.filter((m) => !m.metin && (m.kaynakUrl === null))).toEqual([]); // başlık satırı da kaynağını söyler
+  });
+
+  it('yedi ekin ölçümü: aile · kontrol · metni olan — hiçbiri tahmin değil [URN-PKT-019]', () => {
+    /* Ölçüm ekin kendi XLSX dosyasından yapıldı ve `docs/TR_SEKTOR_PAKETLERI.md` §4
+       tablosuyla birebir aynıdır. Metni alınamayan kontrol "metin girilmedi" derdi;
+       yedi ekte de yoktur — sayı sıfırdır, ölçülmemiş değil. */
+    const BEKLENEN: Record<string, { aile: number; kontrol: number }> = {
+      'EPDK-SGYM-EK1': { aile: 12, kontrol: 476 }, 'EPDK-SGYM-EK2': { aile: 13, kontrol: 505 },
+      'EPDK-SGYM-EK3': { aile: 13, kontrol: 565 }, 'EPDK-SGYM-EK4': { aile: 13, kontrol: 552 },
+      'EPDK-SGYM-EK5': { aile: 13, kontrol: 551 }, 'EPDK-SGYM-EK6': { aile: 13, kontrol: 578 },
+      'EPDK-SGYM-EK7': { aile: 12, kontrol: 464 },
+    };
+    const s = paketiDogrula(path.join(KOK, 'paketler', 'TR-ENERJI'));
+    let toplamKontrol = 0;
+    for (const [kod, b] of Object.entries(BEKLENEN)) {
+      const c = s.icerik!.cerceveler.find((x) => x.kimlik.kod === kod)!;
+      expect(c, `${kod} pakette yok`).toBeTruthy();
+      const aile = c.maddeler.filter((mm) => mm.ustKod === null);
+      const kontrol = c.maddeler.filter((mm) => mm.ustKod !== null);
+      expect([aile.length, kontrol.length], kod).toEqual([b.aile, b.kontrol]);
+      expect(kontrol.filter((mm) => maddeMetniDurumu(mm.metin) !== 'var'), `${kod}: metni olmayan kontrol`).toEqual([]);
+      expect(aile.filter((mm) => mm.metin !== null), `${kod}: aile satırı metin taşıyor`).toEqual([]);
+      /* Kaynağın kademe sözcüğü OLDUĞU GİBİ taşınır — kaynakta "Ek kontrol" ve
+         "Ek Kontrol" birlikte geçer; sessiz düzeltme aktarımı kaynaktan uzaklaştırır. */
+      expect(kontrol.filter((mm) => mm.gereksinimTipi === null), `${kod}: kademesiz kontrol`).toEqual([]);
+      expect(kontrol.filter((mm) => (mm.gereksinimTipi ?? '').toLowerCase() === 'ek kontrol' && mm.zorunlulukTipi !== 'OPTIONAL'),
+        `${kod}: "Ek kontrol" zorunlu sayıldı`).toEqual([]);
+      toplamKontrol += kontrol.length;
+    }
+    expect(toplamKontrol, 'yedi ekin toplam kontrolü').toBe(3691);
+  });
+
+  it('kademe DÖRT kanonik sınıftır: ham dize sadık, gruplama anahtarı tek [URN-PKT-019]', () => {
+    /* Kaynak aynı kademeyi iki yazımla taşıyor ("Ek Kontrol" / "Ek kontrol").
+       Ham dize korunur (kaynağa sadakat); anahtar tekleştirilir, yoksa
+       gruplayan ilk ekran tek kademeyi iki sınıf gösterir. */
+    const s = paketiDogrula(path.join(KOK, 'paketler', 'TR-ENERJI'));
+    const kontroller = s.icerik!.cerceveler
+      .filter((c) => /^EPDK-SGYM-EK\d$/.test(c.kimlik.kod))
+      .flatMap((c) => c.maddeler.filter((m) => m.ustKod !== null));
+    const hamYazimlar = new Set(kontroller.map((m) => m.gereksinimTipi));
+    const anahtarlar = new Set(kontroller.map((m) => kademeAnahtari(m.gereksinimTipi)));
+    expect(hamYazimlar.size, 'kaynakta iki yazım bekleniyordu').toBeGreaterThan(anahtarlar.size);
+    expect([...anahtarlar].sort()).toEqual(['ek kontrol', 'seviye 1', 'seviye 2', 'seviye 3']);
+    expect(kademeAnahtari('  Ek   Kontrol ')).toBe('ek kontrol');
+    expect(kademeAnahtari('')).toBeNull();
+    expect(kademeAnahtari(null)).toBeNull();
   });
 
   it('Ek-3: 565 kontrol, 57 "Ek Kontrol" seviyesiz ve OPTIONAL — seviyesizlik sıfır değil [URN-PKT-019]', () => {

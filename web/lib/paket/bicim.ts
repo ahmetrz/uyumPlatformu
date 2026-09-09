@@ -81,6 +81,63 @@ export const LisansSemasi = z.object({
 }).strict();
 export type Lisans = z.infer<typeof LisansSemasi>;
 
+/** Madde CSV sütunları — ilk üçü zorunlu, kalanı isteğe bağlı. */
+export const MADDE_ZORUNLU_SUTUNLAR = ['kod', 'ust_kod', 'baslik'] as const;
+export const MADDE_SUTUNLARI = [
+  ...MADDE_ZORUNLU_SUTUNLAR, 'metin', 'sira', 'seviye', 'zorunluluk_tipi', 'kanit_beklentisi', 'dis_kontrol_id', 'kanit_tipi',
+  'kaynak_url', 'kaynak_yeri', 'erisim_tarihi', 'yururluk_tarihi', 'gereksinim_tipi',
+] as const;
+/** `seviye` = ürünün HEDEF OLGUNLUĞU (0–5 merdiveni, `lib/uyum/olgunluk.ts`) — ekran
+    "hedef: Başlangıç" diye okur ve ölçülenle karşılaştırır. Çerçevenin KENDİ kademesi
+    (EPDK "Seviye 1/2/3", ISO ek sınıfı) bu değil: `gereksinim_tipi` sütunundadır.
+    Ölçüldü (bağımsız inceleme, PR #43 tur 2): EPDK kademesi `seviye`ye yazılınca 508
+    zorunlu kontrolün hedefi ürünün en alt üç kademesine çekiliyor ve kişiye bağlı
+    ad-hoc uygulama "hedefte" (yeşil) görünüyordu. */
+export const GEREKSINIM_TIPI_SINIRI = 60;
+/** Kademenin GRUPLAMA ANAHTARI — ham dize kaynağa sadık kalır, bu değişmez.
+    Kaynak aynı kademeyi iki yazımla taşıyor (ölçüldü: yedi ekte "Ek Kontrol"
+    211, "Ek kontrol" 142; Ek-6 ikisini aynı dosyada taşıyor). Sessiz düzeltme
+    aktarımı kaynaktan uzaklaştırırdı; ama `gereksinimTipi`ye göre gruplayan
+    ilk sorgu tek kademeyi İKİ sınıf gösterirdi (bağımsız inceleme, P2).
+    Çözüm: dize sadık, ANAHTAR tek. */
+export function kademeAnahtari(deger: string | null | undefined): string | null {
+  const d = (deger ?? '').trim().replace(/\s+/g, ' ');
+  if (d === '') return null;
+  return d.toLocaleLowerCase('tr');
+}
+
+/* ── ALAN EŞLEME BEYANI (§1/10) ────────────────────────────────────────
+   Kaynak belgenin bir alanı ürünün YANLIŞ alanına yazılabilir; iki taraf da
+   geçerli veridir, biçim doğrudur, hiçbir kapı bunu göremez. Ölçüldü
+   (bağımsız inceleme, PR #43 tur 2): EPDK Ek-3'ün "Seviye" kademesi ürünün
+   HEDEF OLGUNLUK alanına (`seviye`) yazılmıştı — 508 zorunlu kontrolün
+   hedefi ürünün en alt kademelerine çekilmiş, kişiye bağlı ad-hoc uygulama
+   "hedefte" (yeşil) görünüyordu. Savunma kapı değil BEYANDIR: paket dolu
+   HER ürün alanı için kaynağın hangi alanından geldiğini ve o ürün alanının
+   NE DEMEK olduğunu yazar; kapı beyanın VARLIĞINI ölçer, doğruluğunu değil
+   (kabul edilmiş sınır — `docs/SEKTOR_PAKETI_SOZLESMESI.md` §1/10).
+   `kaynakAlan: null` = kaynak belgede karşılığı yok, değeri paket yazarı
+   atadı; uydurma değil, beyanlı atama. */
+export const GEREKCE_ASGARI = 40;
+export const AlanEslemeSatiriSemasi = z.object({
+  /** kaynak belgedeki alanın ADI ("Seviye", "Kontrol No"); kaynakta yoksa null */
+  kaynakAlan: z.string().min(1).max(120).nullable(),
+  /** ürünün madde sütunu — sütun listesinin dışına yazılamaz (yazım hatası sessizce yutulmaz) */
+  urunAlani: z.enum(MADDE_SUTUNLARI),
+  /** ürün alanının ANLAMI ve bu kaynağın oraya neden ait olduğu; dönüşümün kolaylığı gerekçe değildir */
+  /* Tavan 1200: ölçülmüş bir kusuru anlatan gerekçe (EPDK "Seviye" satırı, 862 karakter) iki
+     alanın anlamını AYRI AYRI söylemek zorundadır — 600'e sığmadı ve kısaltmak gerekçeyi
+     "kolaydı" cümlesine indirirdi. Tavan yine de vardır: gerekçe alan açıklamasıdır, belge değil. */
+  gerekce: z.string().min(GEREKCE_ASGARI, `gerekçe en az ${GEREKCE_ASGARI} karakter: ürün alanının ANLAMINI anlatır`).max(1200),
+}).strict();
+export type AlanEslemeSatiri = z.infer<typeof AlanEslemeSatiriSemasi>;
+/** Çerçeve KODU → o çerçevenin alan eşlemesi. */
+export const AlanEslemesiSemasi = z.record(
+  z.string().regex(CERCEVE_KODU, 'anahtar çerçeve kodudur: EPDK-SGYM'),
+  z.array(AlanEslemeSatiriSemasi).min(1, 'boş eşleme listesi beyan değildir'),
+);
+export type AlanEslemesi = z.infer<typeof AlanEslemesiSemasi>;
+
 export const ManifestSemasi = z.object({
   kod: z.string().regex(PAKET_KODU, 'paket kodu BÜYÜK harf, rakam ve tire: TR-ENERJI'),
   ad: z.string().min(3).max(120),
@@ -99,6 +156,8 @@ export const ManifestSemasi = z.object({
   icerikOzetleri: z.record(z.string(), z.string().regex(SHA256_HEX, 'sha256 onaltılık, 64 karakter')),
   imza: z.string().nullable().optional(),
   aciklama: z.string().max(1000).optional(),
+  /** çerçeve kodu → alan eşleme beyanı; temsilî olmayan her çerçeve için ZORUNLU (`dogrula.ts`) */
+  alanEslemesi: AlanEslemesiSemasi.optional(),
 }).strict();
 export type Manifest = z.infer<typeof ManifestSemasi>;
 
@@ -196,19 +255,6 @@ export const CerceveKimligiSemasi = z.object({
 }).strict();
 export type CerceveKimligi = z.infer<typeof CerceveKimligiSemasi>;
 
-/** Madde CSV sütunları — ilk üçü zorunlu, kalanı isteğe bağlı. */
-export const MADDE_ZORUNLU_SUTUNLAR = ['kod', 'ust_kod', 'baslik'] as const;
-export const MADDE_SUTUNLARI = [
-  ...MADDE_ZORUNLU_SUTUNLAR, 'metin', 'sira', 'seviye', 'zorunluluk_tipi', 'kanit_beklentisi', 'dis_kontrol_id', 'kanit_tipi',
-  'kaynak_url', 'kaynak_yeri', 'erisim_tarihi', 'yururluk_tarihi', 'gereksinim_tipi',
-] as const;
-/** `seviye` = ürünün HEDEF OLGUNLUĞU (0–5 merdiveni, `lib/uyum/olgunluk.ts`) — ekran
-    "hedef: Başlangıç" diye okur ve ölçülenle karşılaştırır. Çerçevenin KENDİ kademesi
-    (EPDK "Seviye 1/2/3", ISO ek sınıfı) bu değil: `gereksinim_tipi` sütunundadır.
-    Ölçüldü (bağımsız inceleme, PR #43 tur 2): EPDK kademesi `seviye`ye yazılınca 508
-    zorunlu kontrolün hedefi ürünün en alt üç kademesine çekiliyor ve kişiye bağlı
-    ad-hoc uygulama "hedefte" (yeşil) görünüyordu. */
-export const GEREKSINIM_TIPI_SINIRI = 60;
 /** Köken sütunları (içerik): `kaynak_url` resmî belge adresi · `kaynak_yeri` belge içi konum ·
     `erisim_tarihi` kaynağa erişim günü · `yururluk_tarihi` maddenin kendi yürürlüğü (değişiklik
     tarihi; boşsa çerçevenin yürürlüğü). Metin girilmiş kamuya açık maddede `kaynak_url` ve

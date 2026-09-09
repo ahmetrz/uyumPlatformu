@@ -8,7 +8,7 @@
     "ad": "Elektrik Üretimi"
   },
   "dil": "tr",
-  "surum": "0.2.0",
+  "surum": "0.3.0",
   "yayinci": "Uyum ve Yönetişim Platformu",
   "lisans": {
     "tur": "kamuya_acik",
@@ -18,8 +18,20 @@
   },
   "bagimliliklar": [],
   "icerikOzetleri": {
+    "cerceve/EPDK-SGYM-EK1.csv": "9cfd489545cf5e6116aebe51d5322f338fa8e753e398a4a8547a17529803766e",
+    "cerceve/EPDK-SGYM-EK1.json": "a7468ee1d98ffe1add39cbeb716ce6e9c060ef313f308f0604956708e5997fb8",
+    "cerceve/EPDK-SGYM-EK2.csv": "574e600d7ae342d949de16a68c4707fefa1a5e878cf9281bc2ce01ef1fb15768",
+    "cerceve/EPDK-SGYM-EK2.json": "130ccd4d1ed2d11a65a5fb3fda709ff8a6c7f6de62f78a2de3f7827f09e734f4",
     "cerceve/EPDK-SGYM-EK3.csv": "010e66ac7fec070522ec02becc3274cb6ad7412a3343381044c830bb88335137",
-    "cerceve/EPDK-SGYM-EK3.json": "2d3a970a4b346e324d2c25ce02793f5f583a23479b5a330b03083eeac1d79850",
+    "cerceve/EPDK-SGYM-EK3.json": "85005c4252bb6db23fdd5edbbea5531d97936e0b0fdf516e7e1dc27adee2e0b1",
+    "cerceve/EPDK-SGYM-EK4.csv": "81d9c7b030fd28304812aed7034a9a72de842098af9224faeb485971c98f10ba",
+    "cerceve/EPDK-SGYM-EK4.json": "c2e1b0732f874d421873797c5fbd63b81440ad7c8b8cee53ca83bca2bbbb9705",
+    "cerceve/EPDK-SGYM-EK5.csv": "4e66f1365de1bc4a6ec2038662d5eeef19518b5f740c7ec253a3bc5a56e64d7c",
+    "cerceve/EPDK-SGYM-EK5.json": "461ea7e0dc03868d1c55aa7299ca875cc8940db7cc5f72811d8e0b73329d10c3",
+    "cerceve/EPDK-SGYM-EK6.csv": "98a87af5d1cd3c9397ad2a458e9e45e1c568e530756405f22e68c98d1f8faa69",
+    "cerceve/EPDK-SGYM-EK6.json": "d580b3ed9761eeebb647c178f5070081fe5dac3c39b2e8b4dfa172c5be06d704",
+    "cerceve/EPDK-SGYM-EK7.csv": "ed17f614285ad79f57c32bb3ed558da480146cc5f0dbb3e3174552bcae8de305",
+    "cerceve/EPDK-SGYM-EK7.json": "c3f0859cbcd3dd5ade1c74b4ca0e8b8ec22deb518f07c9ffad7ce8b6b3e9c12f",
     "cerceve/EPDK-SGYM.csv": "99b9c7cc9588fb768ae5a9ce83c249c93665b3f4a9315798a1db6b6b33f9de8e",
     "cerceve/EPDK-SGYM.json": "545b5c4ba033bb4da0758b84df81212ffe06b2dfadc8e5a820fcd072942e76ab",
     "kapsam-turleri.json": "006a98d3444770115fb9303d51211e643ca853d44234596db8c3ead98e4e8e63",
@@ -30,5 +42,458 @@
     "yukumlulukler.json": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
   },
   "imza": null,
-  "aciklama": "EPDK Enerji Sektöründe Siber Güvenlik Yetkinlik Modeli Yönetmeliği (RG 06.06.2023/32213, son hâli RG 25.11.2025/33088) ve Ek-3 Elektrik Üretim Sektörü Teknik Kontrol Maddeleri. Madde METNİ birincil kaynaktan (EPDK resmî sitesi) aktarıldı; her maddede kaynak adresi, belge içi konum ve erişim tarihi durur. Çerçeveler uygulanabilirlik BEYANI taşır (hangi kapsam öğesi türüne, hangi koşulla) — kurulumda kural olarak yazılır, karar motorun ÖNERİSİDİR. Sürümler TASLAK gelir; aktifleştirme insan kararıdır."
+  "aciklama": "EPDK Enerji Sektöründe Siber Güvenlik Yetkinlik Modeli Yönetmeliği (RG 06.06.2023/32213, son hâli RG 25.11.2025/33088) ve YEDİ sektör eki (Ek-1…Ek-7, 3 691 teknik kontrol). Madde METNİ birincil kaynaktan (EPDK resmî sitesi) aktarıldı; her maddede kaynak adresi, belge içi konum ve erişim tarihi durur. Her çerçeve uygulanabilirlik BEYANI (hangi kapsam öğesi türüne, hangi koşulla) ve manifest her çerçeve için ALAN EŞLEME BEYANI taşır. Sürümler TASLAK gelir; aktifleştirme insan kararıdır.",
+  "alanEslemesi": {
+    "EPDK-SGYM": [
+      {
+        "kaynakAlan": "Madde numarası (Madde 1, Madde 5) · bölüm numarası",
+        "urunAlani": "kod",
+        "gerekce": "Ürünün `kod` alanı maddenin çerçeve içindeki TEKİL kimliğidir: ekran, eşleme ve kanıt bu kodla maddeye atıf yapar, bu yüzden belge yeniden düzenlense bile aynı maddeyi göstermelidir. Kaynağın madde/kontrol numarası da aynı işi görür — belge içinde tekildir ve değişiklik metinleri maddeye bu numarayla atıf yapar."
+      },
+      {
+        "kaynakAlan": "Maddenin bulunduğu bölüm",
+        "urunAlani": "ust_kod",
+        "gerekce": "Ürünün `ust_kod` alanı madde AĞACINDAKİ üst düğümdür — kapsama (bütün–parça) ilişkisi kurar, öncelik ya da ağırlık ilişkisi değil; ekran alt maddeyi üstünün altında gösterir ve kapsam sayımı üstten aşağı yürür. Yönetmelikte madde bir bölümün altında durur; bölüm–madde ilişkisi budur."
+      },
+      {
+        "kaynakAlan": "Madde kenar başlığı (Amaç, Kapsam, Tanımlar)",
+        "urunAlani": "baslik",
+        "gerekce": "Ürünün `baslik` alanı maddenin KISA ADIDIR: listede, uyum matrisinde ve kanıt ekranında maddeyi bu ad temsil eder, bu yüzden metnin özeti değil kendi adı olmalıdır. Yönetmeliğin kenar başlığı tam olarak maddenin adıdır."
+      },
+      {
+        "kaynakAlan": "Madde metni (fıkralar, birleştirilmiş)",
+        "urunAlani": "metin",
+        "gerekce": "Ürünün `metin` alanı maddenin TAM METNİDİR — özet, yorum ya da uygulama notu değildir; ekran bu alanı \"maddenin kendisi\" diye okur ve uyum gerekçesi ona dayanır. Bu yüzden yalnız birincil kaynağın kendi cümleleri girer (FSEK md. 31: yayımlanmış yönetmelikten faydalanma serbesttir); metin alınamadığında alan boş bırakılmaz, \"metin girilmedi\" yazılır."
+      },
+      {
+        "kaynakAlan": null,
+        "urunAlani": "sira",
+        "gerekce": "Ürünün `sira` alanı maddenin listede GÖRÜNTÜLENME sırasıdır; önem, öncelik ya da risk sırası değildir ve hiçbir hesaba girmez. Kaynak belgede böyle bir alan yoktur: belgedeki okuma sırası korunsun diye değeri aktarımı yapan verir."
+      },
+      {
+        "kaynakAlan": null,
+        "urunAlani": "zorunluluk_tipi",
+        "gerekce": "Ürünün `zorunluluk_tipi` alanı yükümlülüğün HUKUKİ DAYANAK TÜRÜDÜR (kanun · yönetmelik · sözleşme · en iyi uygulama); yaptırımın ağırlığı ya da maddenin önceliği değildir. Kaynakta ayrı bir alan olarak yoktur; değeri belgenin kendi türünden çıkar ve aktarımı yapan yazar. EPDK Siber Güvenlik Yetkinlik Modeli bir YÖNETMELİKTİR; bütün satırlar REGULATION."
+      },
+      {
+        "kaynakAlan": "EPDK resmî sitesindeki belge indirme adresi",
+        "urunAlani": "kaynak_url",
+        "gerekce": "Ürünün `kaynak_url` alanı madde metninin ALINDIĞI belgenin adresidir — doğrulayan kişi aynı metne buradan gider. Kurumun ana sayfası ya da mevzuat portalının arama sayfası bu alana yazılmaz: adres metnin kendisini vermelidir."
+      },
+      {
+        "kaynakAlan": "Belge içi konum (bölüm · madde)",
+        "urunAlani": "kaynak_yeri",
+        "gerekce": "Ürünün `kaynak_yeri` alanı metnin BELGE İÇİNDEKİ yeridir (bölüm · ek · aile · madde); adresin tekrarı değil, adrese gidildikten sonra nereye bakılacağıdır. Konumdur, metin değildir."
+      },
+      {
+        "kaynakAlan": null,
+        "urunAlani": "erisim_tarihi",
+        "gerekce": "Ürünün `erisim_tarihi` alanı kaynağa BAKILAN gündür; maddenin yürürlüğü ya da belgenin yayımı değildir. Kaynak belgede yazmaz, aktarımı yapan verir: mevzuat sonradan değişirse aktarımın belgenin hangi hâlini gördüğü ancak bu tarihten bilinir."
+      },
+      {
+        "kaynakAlan": "Maddeyi getiren ya da değiştiren Resmî Gazete tarihi",
+        "urunAlani": "yururluk_tarihi",
+        "gerekce": "Ürünün `yururluk_tarihi` alanı MADDENİN KENDİ yürürlüğüdür: sonradan değiştirilen madde çerçevenin ilk yürürlüğünden farklı bir günde yürürlüğe girer ve denetim o günü sorar. Çerçevenin yürürlüğü (kimlikteki `yururlukTarih`) ile karışmasın diye madde satırında ayrı durur."
+      }
+    ],
+    "EPDK-SGYM-EK1": [
+      {
+        "kaynakAlan": "No (kontrol numarası) · çalışma sayfası adı (aile satırında)",
+        "urunAlani": "kod",
+        "gerekce": "Ürünün `kod` alanı maddenin çerçeve içindeki TEKİL kimliğidir: ekran, eşleme ve kanıt bu kodla maddeye atıf yapar, bu yüzden belge yeniden düzenlense bile aynı maddeyi göstermelidir. Ekin \"No\" sütunu (EAG-1, PLC-7) da aynı işi görür — belge içinde tekildir ve denetim kontrole bu numarayla atıf yapar."
+      },
+      {
+        "kaynakAlan": "Kontrolün bulunduğu çalışma sayfası (kontrol ailesi)",
+        "urunAlani": "ust_kod",
+        "gerekce": "Ürünün `ust_kod` alanı madde AĞACINDAKİ üst düğümdür — kapsama (bütün–parça) ilişkisi kurar, öncelik ya da ağırlık ilişkisi değil. Ekte her kontrol bir kontrol ailesinin (çalışma sayfası) altında durur."
+      },
+      {
+        "kaynakAlan": "Alt Kontrol · çalışma sayfasının aile başlığı",
+        "urunAlani": "baslik",
+        "gerekce": "Ürünün `baslik` alanı maddenin KISA ADIDIR: listede ve uyum matrisinde kontrolü bu ad temsil eder, bu yüzden metnin özeti değil kendi adı olmalıdır. Ekin \"Alt Kontrol\" sütunu kontrolün ait olduğu kontrol grubunun adıdır ve kontrolün kısa adı olarak taşınır; kontrolün TAM metni `metin` alanında bozulmadan durur. Aile satırında başlık, çalışma sayfasının kendi başlık satırındaki aile adıdır."
+      },
+      {
+        "kaynakAlan": "Kontrol (kontrol maddesi metni)",
+        "urunAlani": "metin",
+        "gerekce": "Ürünün `metin` alanı kontrolün TAM METNİDİR — özet, yorum ya da uygulama notu değildir; ekran bu alanı \"maddenin kendisi\" diye okur ve uyum gerekçesi ona dayanır. Yalnız birincil kaynağın kendi cümleleri girer (FSEK md. 31); metin alınamadığında alan boş bırakılmaz, \"metin girilmedi\" yazılır."
+      },
+      {
+        "kaynakAlan": null,
+        "urunAlani": "sira",
+        "gerekce": "Ürünün `sira` alanı maddenin listede GÖRÜNTÜLENME sırasıdır; önem, öncelik ya da risk sırası değildir ve hiçbir hesaba girmez. Kaynakta böyle bir alan yoktur: belgedeki okuma sırası (sayfa sırası, sonra satır sırası) korunsun diye değeri aktarımı yapan verir."
+      },
+      {
+        "kaynakAlan": "Seviye (Seviye 1/2/3 · Ek Kontrol)",
+        "urunAlani": "zorunluluk_tipi",
+        "gerekce": "Ürünün `zorunluluk_tipi` alanı yükümlülüğün HUKUKİ DAYANAK TÜRÜDÜR (kanun · yönetmelik · sözleşme · en iyi uygulama); yaptırımın ağırlığı ya da maddenin önceliği değildir. Kaynakta bu adla bir alan yoktur ama değer UYDURULMAZ: kaynağın \"Seviye\" sütunundan TÜRETİLİR — \"Ek kontrol\" kademesi OPTIONAL, kalan kademeler REGULATION olur (yönetmelik ek kontrolleri zorunlu saymaz, ek yönetmeliğin ekidir). Aynı kaynak sütunu İKİ ürün alanını besler ve ikisi AYRI şeydir: `gereksinim_tipi` kademenin kendisidir, bu alan o kademenin hukuki karşılığıdır."
+      },
+      {
+        "kaynakAlan": "EPDK sitesindeki Ek-1 dosyasının indirme adresi",
+        "urunAlani": "kaynak_url",
+        "gerekce": "Ürünün `kaynak_url` alanı madde metninin ALINDIĞI belgenin adresidir — doğrulayan kişi aynı metne buradan gider. Kurumun ana sayfası ya da yönetmelik sayfası bu alana yazılmaz: adres ekin kendi dosyasını vermelidir."
+      },
+      {
+        "kaynakAlan": "Belge içi konum (ek · çalışma sayfası · kontrol no)",
+        "urunAlani": "kaynak_yeri",
+        "gerekce": "Ürünün `kaynak_yeri` alanı metnin BELGE İÇİNDEKİ yeridir (ek · çalışma sayfası · kontrol no); adresin tekrarı değil, adrese gidildikten sonra nereye bakılacağıdır. Konumdur, metin değildir."
+      },
+      {
+        "kaynakAlan": null,
+        "urunAlani": "erisim_tarihi",
+        "gerekce": "Ürünün `erisim_tarihi` alanı kaynağa BAKILAN gündür; maddenin yürürlüğü ya da belgenin yayımı değildir. Kaynak belgede yazmaz, aktarımı yapan verir: mevzuat sonradan değişirse aktarımın belgenin hangi hâlini gördüğü ancak bu tarihten bilinir."
+      },
+      {
+        "kaynakAlan": "Ek-1'i yürürlüğe koyan Resmî Gazete tarihi",
+        "urunAlani": "yururluk_tarihi",
+        "gerekce": "Ürünün `yururluk_tarihi` alanı MADDENİN KENDİ yürürlüğüdür; denetim kontrolün hangi günden beri arandığını sorar. Bu eklerde SATIR BAZINDA tarihlenmiş bir kaynak yoktur: her kontrol ekin kendi Resmî Gazete tarihini taşır ve bu tarih ana yönetmeliğinkinden farklıdır. 25/11/2025 konsolide değişikliğinin tek tek kontrollere etkisi ÖLÇÜLMEDİ — ölçülmedi, \"değişmedi\" değil."
+      },
+      {
+        "kaynakAlan": "Seviye (Seviye 1 · Seviye 2 · Seviye 3 · Ek Kontrol)",
+        "urunAlani": "gereksinim_tipi",
+        "gerekce": "Kaynağın \"Seviye\" sütunu KONTROLÜN KENDİ kademesidir: EPDK modelinin hangi yetkinlik kademesinde o kontrolün ARANDIĞINI söyler — kuruluşun bugünkü ya da hedeflenen olgunluğunu değil. Ürünün `gereksinim_tipi` alanı tam olarak budur: çerçevenin kendi gereksinim sınıfı; kurulumda `Madde.gereksinimTipi` alanında durur ve hiçbir hesaba girmez. Ekran rozeti HENÜZ YOK — alan kuruluyor, gösterilmiyor. Ürünün `seviye` alanı ise BAŞKA bir şeydir — kuruluş için HEDEFLENEN olgunluktur (0–5 merdiveni, `lib/uyum/olgunluk.ts`) ve ekran onu ölçülen olgunlukla karşılaştırıp \"hedefte / hedefin altında\" der. İkisi de geçerli veridir, biçimleri uyumludur, hiçbir kapı ayırt edemez: \"Seviye\" `seviye` alanına yazılınca 508 zorunlu kontrolün hedefi ürünün en alt üç kademesine çekilmiş, kişiye bağlı ad-hoc uygulama \"hedefte\" (yeşil) görünmüştü (ölçüldü: bağımsız inceleme, PR #43 tur 2). Bu satır o kusurun beyanla kapatılmış hâlidir."
+      }
+    ],
+    "EPDK-SGYM-EK2": [
+      {
+        "kaynakAlan": "No (kontrol numarası) · çalışma sayfası adı (aile satırında)",
+        "urunAlani": "kod",
+        "gerekce": "Ürünün `kod` alanı maddenin çerçeve içindeki TEKİL kimliğidir: ekran, eşleme ve kanıt bu kodla maddeye atıf yapar, bu yüzden belge yeniden düzenlense bile aynı maddeyi göstermelidir. Ekin \"No\" sütunu (EAG-1, PLC-7) da aynı işi görür — belge içinde tekildir ve denetim kontrole bu numarayla atıf yapar."
+      },
+      {
+        "kaynakAlan": "Kontrolün bulunduğu çalışma sayfası (kontrol ailesi)",
+        "urunAlani": "ust_kod",
+        "gerekce": "Ürünün `ust_kod` alanı madde AĞACINDAKİ üst düğümdür — kapsama (bütün–parça) ilişkisi kurar, öncelik ya da ağırlık ilişkisi değil. Ekte her kontrol bir kontrol ailesinin (çalışma sayfası) altında durur."
+      },
+      {
+        "kaynakAlan": "Alt Kontrol · çalışma sayfasının aile başlığı",
+        "urunAlani": "baslik",
+        "gerekce": "Ürünün `baslik` alanı maddenin KISA ADIDIR: listede ve uyum matrisinde kontrolü bu ad temsil eder, bu yüzden metnin özeti değil kendi adı olmalıdır. Ekin \"Alt Kontrol\" sütunu kontrolün ait olduğu kontrol grubunun adıdır ve kontrolün kısa adı olarak taşınır; kontrolün TAM metni `metin` alanında bozulmadan durur. Aile satırında başlık, çalışma sayfasının kendi başlık satırındaki aile adıdır."
+      },
+      {
+        "kaynakAlan": "Kontrol (kontrol maddesi metni)",
+        "urunAlani": "metin",
+        "gerekce": "Ürünün `metin` alanı kontrolün TAM METNİDİR — özet, yorum ya da uygulama notu değildir; ekran bu alanı \"maddenin kendisi\" diye okur ve uyum gerekçesi ona dayanır. Yalnız birincil kaynağın kendi cümleleri girer (FSEK md. 31); metin alınamadığında alan boş bırakılmaz, \"metin girilmedi\" yazılır."
+      },
+      {
+        "kaynakAlan": null,
+        "urunAlani": "sira",
+        "gerekce": "Ürünün `sira` alanı maddenin listede GÖRÜNTÜLENME sırasıdır; önem, öncelik ya da risk sırası değildir ve hiçbir hesaba girmez. Kaynakta böyle bir alan yoktur: belgedeki okuma sırası (sayfa sırası, sonra satır sırası) korunsun diye değeri aktarımı yapan verir."
+      },
+      {
+        "kaynakAlan": "Seviye (Seviye 1/2/3 · Ek Kontrol)",
+        "urunAlani": "zorunluluk_tipi",
+        "gerekce": "Ürünün `zorunluluk_tipi` alanı yükümlülüğün HUKUKİ DAYANAK TÜRÜDÜR (kanun · yönetmelik · sözleşme · en iyi uygulama); yaptırımın ağırlığı ya da maddenin önceliği değildir. Kaynakta bu adla bir alan yoktur ama değer UYDURULMAZ: kaynağın \"Seviye\" sütunundan TÜRETİLİR — \"Ek kontrol\" kademesi OPTIONAL, kalan kademeler REGULATION olur (yönetmelik ek kontrolleri zorunlu saymaz, ek yönetmeliğin ekidir). Aynı kaynak sütunu İKİ ürün alanını besler ve ikisi AYRI şeydir: `gereksinim_tipi` kademenin kendisidir, bu alan o kademenin hukuki karşılığıdır."
+      },
+      {
+        "kaynakAlan": "EPDK sitesindeki Ek-2 dosyasının indirme adresi",
+        "urunAlani": "kaynak_url",
+        "gerekce": "Ürünün `kaynak_url` alanı madde metninin ALINDIĞI belgenin adresidir — doğrulayan kişi aynı metne buradan gider. Kurumun ana sayfası ya da yönetmelik sayfası bu alana yazılmaz: adres ekin kendi dosyasını vermelidir."
+      },
+      {
+        "kaynakAlan": "Belge içi konum (ek · çalışma sayfası · kontrol no)",
+        "urunAlani": "kaynak_yeri",
+        "gerekce": "Ürünün `kaynak_yeri` alanı metnin BELGE İÇİNDEKİ yeridir (ek · çalışma sayfası · kontrol no); adresin tekrarı değil, adrese gidildikten sonra nereye bakılacağıdır. Konumdur, metin değildir."
+      },
+      {
+        "kaynakAlan": null,
+        "urunAlani": "erisim_tarihi",
+        "gerekce": "Ürünün `erisim_tarihi` alanı kaynağa BAKILAN gündür; maddenin yürürlüğü ya da belgenin yayımı değildir. Kaynak belgede yazmaz, aktarımı yapan verir: mevzuat sonradan değişirse aktarımın belgenin hangi hâlini gördüğü ancak bu tarihten bilinir."
+      },
+      {
+        "kaynakAlan": "Ek-2'i yürürlüğe koyan Resmî Gazete tarihi",
+        "urunAlani": "yururluk_tarihi",
+        "gerekce": "Ürünün `yururluk_tarihi` alanı MADDENİN KENDİ yürürlüğüdür; denetim kontrolün hangi günden beri arandığını sorar. Bu eklerde SATIR BAZINDA tarihlenmiş bir kaynak yoktur: her kontrol ekin kendi Resmî Gazete tarihini taşır ve bu tarih ana yönetmeliğinkinden farklıdır. 25/11/2025 konsolide değişikliğinin tek tek kontrollere etkisi ÖLÇÜLMEDİ — ölçülmedi, \"değişmedi\" değil."
+      },
+      {
+        "kaynakAlan": "Seviye (Seviye 1 · Seviye 2 · Seviye 3 · Ek Kontrol)",
+        "urunAlani": "gereksinim_tipi",
+        "gerekce": "Kaynağın \"Seviye\" sütunu KONTROLÜN KENDİ kademesidir: EPDK modelinin hangi yetkinlik kademesinde o kontrolün ARANDIĞINI söyler — kuruluşun bugünkü ya da hedeflenen olgunluğunu değil. Ürünün `gereksinim_tipi` alanı tam olarak budur: çerçevenin kendi gereksinim sınıfı; kurulumda `Madde.gereksinimTipi` alanında durur ve hiçbir hesaba girmez. Ekran rozeti HENÜZ YOK — alan kuruluyor, gösterilmiyor. Ürünün `seviye` alanı ise BAŞKA bir şeydir — kuruluş için HEDEFLENEN olgunluktur (0–5 merdiveni, `lib/uyum/olgunluk.ts`) ve ekran onu ölçülen olgunlukla karşılaştırıp \"hedefte / hedefin altında\" der. İkisi de geçerli veridir, biçimleri uyumludur, hiçbir kapı ayırt edemez: \"Seviye\" `seviye` alanına yazılınca 508 zorunlu kontrolün hedefi ürünün en alt üç kademesine çekilmiş, kişiye bağlı ad-hoc uygulama \"hedefte\" (yeşil) görünmüştü (ölçüldü: bağımsız inceleme, PR #43 tur 2). Bu satır o kusurun beyanla kapatılmış hâlidir."
+      }
+    ],
+    "EPDK-SGYM-EK3": [
+      {
+        "kaynakAlan": "Kontrol No (EAG-1, SGY-12) · kontrol ailesi numarası",
+        "urunAlani": "kod",
+        "gerekce": "Ürünün `kod` alanı maddenin çerçeve içindeki TEKİL kimliğidir: ekran, eşleme ve kanıt bu kodla maddeye atıf yapar, bu yüzden belge yeniden düzenlense bile aynı maddeyi göstermelidir. Kaynağın madde/kontrol numarası da aynı işi görür — belge içinde tekildir ve değişiklik metinleri maddeye bu numarayla atıf yapar."
+      },
+      {
+        "kaynakAlan": "Kontrolün bağlı olduğu kontrol ailesi",
+        "urunAlani": "ust_kod",
+        "gerekce": "Ürünün `ust_kod` alanı madde AĞACINDAKİ üst düğümdür — kapsama (bütün–parça) ilişkisi kurar, öncelik ya da ağırlık ilişkisi değil; ekran alt maddeyi üstünün altında gösterir ve kapsam sayımı üstten aşağı yürür. Ek-3'te her kontrol bir kontrol ailesinin altında durur."
+      },
+      {
+        "kaynakAlan": "Alt Kontrol · çalışma sayfasının aile başlığı",
+        "urunAlani": "baslik",
+        "gerekce": "Ürünün `baslik` alanı maddenin KISA ADIDIR: listede ve uyum matrisinde kontrolü bu ad temsil eder, bu yüzden metnin özeti değil kendi adı olmalıdır. Ekin \"Alt Kontrol\" sütunu kontrolün ait olduğu kontrol grubunun adıdır ve kontrolün kısa adı olarak taşınır; kontrolün TAM metni `metin` alanında bozulmadan durur. Aile satırında başlık, çalışma sayfasının kendi başlık satırındaki aile adıdır."
+      },
+      {
+        "kaynakAlan": "Kontrol maddesi metni",
+        "urunAlani": "metin",
+        "gerekce": "Ürünün `metin` alanı kontrolün TAM METNİDİR — özet ya da yorum değildir; uyum gerekçesi buna dayanır. Yalnız birincil kaynağın kendi cümleleri girer (FSEK md. 31); metin alınamadığında boş bırakılmaz, \"metin girilmedi\" yazılır."
+      },
+      {
+        "kaynakAlan": null,
+        "urunAlani": "sira",
+        "gerekce": "Ürünün `sira` alanı maddenin listede GÖRÜNTÜLENME sırasıdır; önem, öncelik ya da risk sırası değildir ve hiçbir hesaba girmez. Kaynak belgede böyle bir alan yoktur: belgedeki okuma sırası korunsun diye değeri aktarımı yapan verir."
+      },
+      {
+        "kaynakAlan": "Seviye (Seviye 1/2/3 · Ek Kontrol)",
+        "urunAlani": "zorunluluk_tipi",
+        "gerekce": "Ürünün `zorunluluk_tipi` alanı yükümlülüğün HUKUKİ DAYANAK TÜRÜDÜR (kanun · yönetmelik · sözleşme · en iyi uygulama); yaptırımın ağırlığı ya da maddenin önceliği değildir. Kaynakta bu adla bir alan yoktur ama değer UYDURULMAZ: kaynağın \"Seviye\" sütunundan TÜRETİLİR — \"Ek kontrol\" kademesi OPTIONAL, kalan kademeler REGULATION olur (yönetmelik ek kontrolleri zorunlu saymaz, ek yönetmeliğin ekidir). Aynı kaynak sütunu İKİ ürün alanını besler ve ikisi AYRI şeydir: `gereksinim_tipi` kademenin kendisidir, bu alan o kademenin hukuki karşılığıdır."
+      },
+      {
+        "kaynakAlan": "EPDK resmî sitesindeki belge indirme adresi",
+        "urunAlani": "kaynak_url",
+        "gerekce": "Ürünün `kaynak_url` alanı madde metninin ALINDIĞI belgenin adresidir — doğrulayan kişi aynı metne buradan gider. Kurumun ana sayfası ya da mevzuat portalının arama sayfası bu alana yazılmaz: adres metnin kendisini vermelidir."
+      },
+      {
+        "kaynakAlan": "Belge içi konum (Ek-3 · kontrol ailesi · kontrol no)",
+        "urunAlani": "kaynak_yeri",
+        "gerekce": "Ürünün `kaynak_yeri` alanı metnin BELGE İÇİNDEKİ yeridir (bölüm · ek · aile · madde); adresin tekrarı değil, adrese gidildikten sonra nereye bakılacağıdır. Konumdur, metin değildir."
+      },
+      {
+        "kaynakAlan": null,
+        "urunAlani": "erisim_tarihi",
+        "gerekce": "Ürünün `erisim_tarihi` alanı kaynağa BAKILAN gündür; maddenin yürürlüğü ya da belgenin yayımı değildir. Kaynak belgede yazmaz, aktarımı yapan verir: mevzuat sonradan değişirse aktarımın belgenin hangi hâlini gördüğü ancak bu tarihten bilinir."
+      },
+      {
+        "kaynakAlan": "Ek-3'ü yürürlüğe koyan Resmî Gazete tarihi",
+        "urunAlani": "yururluk_tarihi",
+        "gerekce": "Ürünün `yururluk_tarihi` alanı MADDENİN KENDİ yürürlüğüdür; denetim kontrolün hangi günden beri arandığını sorar. Bu eklerde SATIR BAZINDA tarihlenmiş bir kaynak yoktur: her kontrol ekin kendi Resmî Gazete tarihini taşır ve bu tarih ana yönetmeliğinkinden farklıdır. 25/11/2025 konsolide değişikliğinin tek tek kontrollere etkisi ÖLÇÜLMEDİ — ölçülmedi, \"değişmedi\" değil."
+      },
+      {
+        "kaynakAlan": "Seviye (Seviye 1 · Seviye 2 · Seviye 3 · Ek Kontrol)",
+        "urunAlani": "gereksinim_tipi",
+        "gerekce": "Kaynağın \"Seviye\" sütunu KONTROLÜN KENDİ kademesidir: EPDK modelinin hangi yetkinlik kademesinde o kontrolün ARANDIĞINI söyler — kuruluşun bugünkü ya da hedeflenen olgunluğunu değil. Ürünün `gereksinim_tipi` alanı tam olarak budur: çerçevenin kendi gereksinim sınıfı; kurulumda `Madde.gereksinimTipi` alanında durur ve hiçbir hesaba girmez. Ekran rozeti HENÜZ YOK — alan kuruluyor, gösterilmiyor. Ürünün `seviye` alanı ise BAŞKA bir şeydir — kuruluş için HEDEFLENEN olgunluktur (0–5 merdiveni, `lib/uyum/olgunluk.ts`) ve ekran onu ölçülen olgunlukla karşılaştırıp \"hedefte / hedefin altında\" der. İkisi de geçerli veridir, biçimleri uyumludur, hiçbir kapı ayırt edemez: \"Seviye\" `seviye` alanına yazılınca 508 zorunlu kontrolün hedefi ürünün en alt üç kademesine çekilmiş, kişiye bağlı ad-hoc uygulama \"hedefte\" (yeşil) görünmüştü (ölçüldü: bağımsız inceleme, PR #43 tur 2). Bu satır o kusurun beyanla kapatılmış hâlidir."
+      }
+    ],
+    "EPDK-SGYM-EK4": [
+      {
+        "kaynakAlan": "No (kontrol numarası) · çalışma sayfası adı (aile satırında)",
+        "urunAlani": "kod",
+        "gerekce": "Ürünün `kod` alanı maddenin çerçeve içindeki TEKİL kimliğidir: ekran, eşleme ve kanıt bu kodla maddeye atıf yapar, bu yüzden belge yeniden düzenlense bile aynı maddeyi göstermelidir. Ekin \"No\" sütunu (EAG-1, PLC-7) da aynı işi görür — belge içinde tekildir ve denetim kontrole bu numarayla atıf yapar."
+      },
+      {
+        "kaynakAlan": "Kontrolün bulunduğu çalışma sayfası (kontrol ailesi)",
+        "urunAlani": "ust_kod",
+        "gerekce": "Ürünün `ust_kod` alanı madde AĞACINDAKİ üst düğümdür — kapsama (bütün–parça) ilişkisi kurar, öncelik ya da ağırlık ilişkisi değil. Ekte her kontrol bir kontrol ailesinin (çalışma sayfası) altında durur."
+      },
+      {
+        "kaynakAlan": "Alt Kontrol · çalışma sayfasının aile başlığı",
+        "urunAlani": "baslik",
+        "gerekce": "Ürünün `baslik` alanı maddenin KISA ADIDIR: listede ve uyum matrisinde kontrolü bu ad temsil eder, bu yüzden metnin özeti değil kendi adı olmalıdır. Ekin \"Alt Kontrol\" sütunu kontrolün ait olduğu kontrol grubunun adıdır ve kontrolün kısa adı olarak taşınır; kontrolün TAM metni `metin` alanında bozulmadan durur. Aile satırında başlık, çalışma sayfasının kendi başlık satırındaki aile adıdır."
+      },
+      {
+        "kaynakAlan": "Kontrol (kontrol maddesi metni)",
+        "urunAlani": "metin",
+        "gerekce": "Ürünün `metin` alanı kontrolün TAM METNİDİR — özet, yorum ya da uygulama notu değildir; ekran bu alanı \"maddenin kendisi\" diye okur ve uyum gerekçesi ona dayanır. Yalnız birincil kaynağın kendi cümleleri girer (FSEK md. 31); metin alınamadığında alan boş bırakılmaz, \"metin girilmedi\" yazılır."
+      },
+      {
+        "kaynakAlan": null,
+        "urunAlani": "sira",
+        "gerekce": "Ürünün `sira` alanı maddenin listede GÖRÜNTÜLENME sırasıdır; önem, öncelik ya da risk sırası değildir ve hiçbir hesaba girmez. Kaynakta böyle bir alan yoktur: belgedeki okuma sırası (sayfa sırası, sonra satır sırası) korunsun diye değeri aktarımı yapan verir."
+      },
+      {
+        "kaynakAlan": "Seviye (Seviye 1/2/3 · Ek Kontrol)",
+        "urunAlani": "zorunluluk_tipi",
+        "gerekce": "Ürünün `zorunluluk_tipi` alanı yükümlülüğün HUKUKİ DAYANAK TÜRÜDÜR (kanun · yönetmelik · sözleşme · en iyi uygulama); yaptırımın ağırlığı ya da maddenin önceliği değildir. Kaynakta bu adla bir alan yoktur ama değer UYDURULMAZ: kaynağın \"Seviye\" sütunundan TÜRETİLİR — \"Ek kontrol\" kademesi OPTIONAL, kalan kademeler REGULATION olur (yönetmelik ek kontrolleri zorunlu saymaz, ek yönetmeliğin ekidir). Aynı kaynak sütunu İKİ ürün alanını besler ve ikisi AYRI şeydir: `gereksinim_tipi` kademenin kendisidir, bu alan o kademenin hukuki karşılığıdır."
+      },
+      {
+        "kaynakAlan": "EPDK sitesindeki Ek-4 dosyasının indirme adresi",
+        "urunAlani": "kaynak_url",
+        "gerekce": "Ürünün `kaynak_url` alanı madde metninin ALINDIĞI belgenin adresidir — doğrulayan kişi aynı metne buradan gider. Kurumun ana sayfası ya da yönetmelik sayfası bu alana yazılmaz: adres ekin kendi dosyasını vermelidir."
+      },
+      {
+        "kaynakAlan": "Belge içi konum (ek · çalışma sayfası · kontrol no)",
+        "urunAlani": "kaynak_yeri",
+        "gerekce": "Ürünün `kaynak_yeri` alanı metnin BELGE İÇİNDEKİ yeridir (ek · çalışma sayfası · kontrol no); adresin tekrarı değil, adrese gidildikten sonra nereye bakılacağıdır. Konumdur, metin değildir."
+      },
+      {
+        "kaynakAlan": null,
+        "urunAlani": "erisim_tarihi",
+        "gerekce": "Ürünün `erisim_tarihi` alanı kaynağa BAKILAN gündür; maddenin yürürlüğü ya da belgenin yayımı değildir. Kaynak belgede yazmaz, aktarımı yapan verir: mevzuat sonradan değişirse aktarımın belgenin hangi hâlini gördüğü ancak bu tarihten bilinir."
+      },
+      {
+        "kaynakAlan": "Ek-4'i yürürlüğe koyan Resmî Gazete tarihi",
+        "urunAlani": "yururluk_tarihi",
+        "gerekce": "Ürünün `yururluk_tarihi` alanı MADDENİN KENDİ yürürlüğüdür; denetim kontrolün hangi günden beri arandığını sorar. Bu eklerde SATIR BAZINDA tarihlenmiş bir kaynak yoktur: her kontrol ekin kendi Resmî Gazete tarihini taşır ve bu tarih ana yönetmeliğinkinden farklıdır. 25/11/2025 konsolide değişikliğinin tek tek kontrollere etkisi ÖLÇÜLMEDİ — ölçülmedi, \"değişmedi\" değil."
+      },
+      {
+        "kaynakAlan": "Seviye (Seviye 1 · Seviye 2 · Seviye 3 · Ek Kontrol)",
+        "urunAlani": "gereksinim_tipi",
+        "gerekce": "Kaynağın \"Seviye\" sütunu KONTROLÜN KENDİ kademesidir: EPDK modelinin hangi yetkinlik kademesinde o kontrolün ARANDIĞINI söyler — kuruluşun bugünkü ya da hedeflenen olgunluğunu değil. Ürünün `gereksinim_tipi` alanı tam olarak budur: çerçevenin kendi gereksinim sınıfı; kurulumda `Madde.gereksinimTipi` alanında durur ve hiçbir hesaba girmez. Ekran rozeti HENÜZ YOK — alan kuruluyor, gösterilmiyor. Ürünün `seviye` alanı ise BAŞKA bir şeydir — kuruluş için HEDEFLENEN olgunluktur (0–5 merdiveni, `lib/uyum/olgunluk.ts`) ve ekran onu ölçülen olgunlukla karşılaştırıp \"hedefte / hedefin altında\" der. İkisi de geçerli veridir, biçimleri uyumludur, hiçbir kapı ayırt edemez: \"Seviye\" `seviye` alanına yazılınca 508 zorunlu kontrolün hedefi ürünün en alt üç kademesine çekilmiş, kişiye bağlı ad-hoc uygulama \"hedefte\" (yeşil) görünmüştü (ölçüldü: bağımsız inceleme, PR #43 tur 2). Bu satır o kusurun beyanla kapatılmış hâlidir."
+      }
+    ],
+    "EPDK-SGYM-EK5": [
+      {
+        "kaynakAlan": "No (kontrol numarası) · çalışma sayfası adı (aile satırında)",
+        "urunAlani": "kod",
+        "gerekce": "Ürünün `kod` alanı maddenin çerçeve içindeki TEKİL kimliğidir: ekran, eşleme ve kanıt bu kodla maddeye atıf yapar, bu yüzden belge yeniden düzenlense bile aynı maddeyi göstermelidir. Ekin \"No\" sütunu (EAG-1, PLC-7) da aynı işi görür — belge içinde tekildir ve denetim kontrole bu numarayla atıf yapar."
+      },
+      {
+        "kaynakAlan": "Kontrolün bulunduğu çalışma sayfası (kontrol ailesi)",
+        "urunAlani": "ust_kod",
+        "gerekce": "Ürünün `ust_kod` alanı madde AĞACINDAKİ üst düğümdür — kapsama (bütün–parça) ilişkisi kurar, öncelik ya da ağırlık ilişkisi değil. Ekte her kontrol bir kontrol ailesinin (çalışma sayfası) altında durur."
+      },
+      {
+        "kaynakAlan": "Alt Kontrol · çalışma sayfasının aile başlığı",
+        "urunAlani": "baslik",
+        "gerekce": "Ürünün `baslik` alanı maddenin KISA ADIDIR: listede ve uyum matrisinde kontrolü bu ad temsil eder, bu yüzden metnin özeti değil kendi adı olmalıdır. Ekin \"Alt Kontrol\" sütunu kontrolün ait olduğu kontrol grubunun adıdır ve kontrolün kısa adı olarak taşınır; kontrolün TAM metni `metin` alanında bozulmadan durur. Aile satırında başlık, çalışma sayfasının kendi başlık satırındaki aile adıdır."
+      },
+      {
+        "kaynakAlan": "Kontrol (kontrol maddesi metni)",
+        "urunAlani": "metin",
+        "gerekce": "Ürünün `metin` alanı kontrolün TAM METNİDİR — özet, yorum ya da uygulama notu değildir; ekran bu alanı \"maddenin kendisi\" diye okur ve uyum gerekçesi ona dayanır. Yalnız birincil kaynağın kendi cümleleri girer (FSEK md. 31); metin alınamadığında alan boş bırakılmaz, \"metin girilmedi\" yazılır."
+      },
+      {
+        "kaynakAlan": null,
+        "urunAlani": "sira",
+        "gerekce": "Ürünün `sira` alanı maddenin listede GÖRÜNTÜLENME sırasıdır; önem, öncelik ya da risk sırası değildir ve hiçbir hesaba girmez. Kaynakta böyle bir alan yoktur: belgedeki okuma sırası (sayfa sırası, sonra satır sırası) korunsun diye değeri aktarımı yapan verir."
+      },
+      {
+        "kaynakAlan": "Seviye (Seviye 1/2/3 · Ek Kontrol)",
+        "urunAlani": "zorunluluk_tipi",
+        "gerekce": "Ürünün `zorunluluk_tipi` alanı yükümlülüğün HUKUKİ DAYANAK TÜRÜDÜR (kanun · yönetmelik · sözleşme · en iyi uygulama); yaptırımın ağırlığı ya da maddenin önceliği değildir. Kaynakta bu adla bir alan yoktur ama değer UYDURULMAZ: kaynağın \"Seviye\" sütunundan TÜRETİLİR — \"Ek kontrol\" kademesi OPTIONAL, kalan kademeler REGULATION olur (yönetmelik ek kontrolleri zorunlu saymaz, ek yönetmeliğin ekidir). Aynı kaynak sütunu İKİ ürün alanını besler ve ikisi AYRI şeydir: `gereksinim_tipi` kademenin kendisidir, bu alan o kademenin hukuki karşılığıdır."
+      },
+      {
+        "kaynakAlan": "EPDK sitesindeki Ek-5 dosyasının indirme adresi",
+        "urunAlani": "kaynak_url",
+        "gerekce": "Ürünün `kaynak_url` alanı madde metninin ALINDIĞI belgenin adresidir — doğrulayan kişi aynı metne buradan gider. Kurumun ana sayfası ya da yönetmelik sayfası bu alana yazılmaz: adres ekin kendi dosyasını vermelidir."
+      },
+      {
+        "kaynakAlan": "Belge içi konum (ek · çalışma sayfası · kontrol no)",
+        "urunAlani": "kaynak_yeri",
+        "gerekce": "Ürünün `kaynak_yeri` alanı metnin BELGE İÇİNDEKİ yeridir (ek · çalışma sayfası · kontrol no); adresin tekrarı değil, adrese gidildikten sonra nereye bakılacağıdır. Konumdur, metin değildir."
+      },
+      {
+        "kaynakAlan": null,
+        "urunAlani": "erisim_tarihi",
+        "gerekce": "Ürünün `erisim_tarihi` alanı kaynağa BAKILAN gündür; maddenin yürürlüğü ya da belgenin yayımı değildir. Kaynak belgede yazmaz, aktarımı yapan verir: mevzuat sonradan değişirse aktarımın belgenin hangi hâlini gördüğü ancak bu tarihten bilinir."
+      },
+      {
+        "kaynakAlan": "Ek-5'i yürürlüğe koyan Resmî Gazete tarihi",
+        "urunAlani": "yururluk_tarihi",
+        "gerekce": "Ürünün `yururluk_tarihi` alanı MADDENİN KENDİ yürürlüğüdür; denetim kontrolün hangi günden beri arandığını sorar. Bu eklerde SATIR BAZINDA tarihlenmiş bir kaynak yoktur: her kontrol ekin kendi Resmî Gazete tarihini taşır ve bu tarih ana yönetmeliğinkinden farklıdır. 25/11/2025 konsolide değişikliğinin tek tek kontrollere etkisi ÖLÇÜLMEDİ — ölçülmedi, \"değişmedi\" değil."
+      },
+      {
+        "kaynakAlan": "Seviye (Seviye 1 · Seviye 2 · Seviye 3 · Ek Kontrol)",
+        "urunAlani": "gereksinim_tipi",
+        "gerekce": "Kaynağın \"Seviye\" sütunu KONTROLÜN KENDİ kademesidir: EPDK modelinin hangi yetkinlik kademesinde o kontrolün ARANDIĞINI söyler — kuruluşun bugünkü ya da hedeflenen olgunluğunu değil. Ürünün `gereksinim_tipi` alanı tam olarak budur: çerçevenin kendi gereksinim sınıfı; kurulumda `Madde.gereksinimTipi` alanında durur ve hiçbir hesaba girmez. Ekran rozeti HENÜZ YOK — alan kuruluyor, gösterilmiyor. Ürünün `seviye` alanı ise BAŞKA bir şeydir — kuruluş için HEDEFLENEN olgunluktur (0–5 merdiveni, `lib/uyum/olgunluk.ts`) ve ekran onu ölçülen olgunlukla karşılaştırıp \"hedefte / hedefin altında\" der. İkisi de geçerli veridir, biçimleri uyumludur, hiçbir kapı ayırt edemez: \"Seviye\" `seviye` alanına yazılınca 508 zorunlu kontrolün hedefi ürünün en alt üç kademesine çekilmiş, kişiye bağlı ad-hoc uygulama \"hedefte\" (yeşil) görünmüştü (ölçüldü: bağımsız inceleme, PR #43 tur 2). Bu satır o kusurun beyanla kapatılmış hâlidir."
+      }
+    ],
+    "EPDK-SGYM-EK6": [
+      {
+        "kaynakAlan": "No (kontrol numarası) · çalışma sayfası adı (aile satırında)",
+        "urunAlani": "kod",
+        "gerekce": "Ürünün `kod` alanı maddenin çerçeve içindeki TEKİL kimliğidir: ekran, eşleme ve kanıt bu kodla maddeye atıf yapar, bu yüzden belge yeniden düzenlense bile aynı maddeyi göstermelidir. Ekin \"No\" sütunu (EAG-1, PLC-7) da aynı işi görür — belge içinde tekildir ve denetim kontrole bu numarayla atıf yapar."
+      },
+      {
+        "kaynakAlan": "Kontrolün bulunduğu çalışma sayfası (kontrol ailesi)",
+        "urunAlani": "ust_kod",
+        "gerekce": "Ürünün `ust_kod` alanı madde AĞACINDAKİ üst düğümdür — kapsama (bütün–parça) ilişkisi kurar, öncelik ya da ağırlık ilişkisi değil. Ekte her kontrol bir kontrol ailesinin (çalışma sayfası) altında durur."
+      },
+      {
+        "kaynakAlan": "Alt Kontrol · çalışma sayfasının aile başlığı",
+        "urunAlani": "baslik",
+        "gerekce": "Ürünün `baslik` alanı maddenin KISA ADIDIR: listede ve uyum matrisinde kontrolü bu ad temsil eder, bu yüzden metnin özeti değil kendi adı olmalıdır. Ekin \"Alt Kontrol\" sütunu kontrolün ait olduğu kontrol grubunun adıdır ve kontrolün kısa adı olarak taşınır; kontrolün TAM metni `metin` alanında bozulmadan durur. Aile satırında başlık, çalışma sayfasının kendi başlık satırındaki aile adıdır."
+      },
+      {
+        "kaynakAlan": "Kontrol (kontrol maddesi metni)",
+        "urunAlani": "metin",
+        "gerekce": "Ürünün `metin` alanı kontrolün TAM METNİDİR — özet, yorum ya da uygulama notu değildir; ekran bu alanı \"maddenin kendisi\" diye okur ve uyum gerekçesi ona dayanır. Yalnız birincil kaynağın kendi cümleleri girer (FSEK md. 31); metin alınamadığında alan boş bırakılmaz, \"metin girilmedi\" yazılır."
+      },
+      {
+        "kaynakAlan": null,
+        "urunAlani": "sira",
+        "gerekce": "Ürünün `sira` alanı maddenin listede GÖRÜNTÜLENME sırasıdır; önem, öncelik ya da risk sırası değildir ve hiçbir hesaba girmez. Kaynakta böyle bir alan yoktur: belgedeki okuma sırası (sayfa sırası, sonra satır sırası) korunsun diye değeri aktarımı yapan verir."
+      },
+      {
+        "kaynakAlan": "Seviye (Seviye 1/2/3 · Ek Kontrol)",
+        "urunAlani": "zorunluluk_tipi",
+        "gerekce": "Ürünün `zorunluluk_tipi` alanı yükümlülüğün HUKUKİ DAYANAK TÜRÜDÜR (kanun · yönetmelik · sözleşme · en iyi uygulama); yaptırımın ağırlığı ya da maddenin önceliği değildir. Kaynakta bu adla bir alan yoktur ama değer UYDURULMAZ: kaynağın \"Seviye\" sütunundan TÜRETİLİR — \"Ek kontrol\" kademesi OPTIONAL, kalan kademeler REGULATION olur (yönetmelik ek kontrolleri zorunlu saymaz, ek yönetmeliğin ekidir). Aynı kaynak sütunu İKİ ürün alanını besler ve ikisi AYRI şeydir: `gereksinim_tipi` kademenin kendisidir, bu alan o kademenin hukuki karşılığıdır."
+      },
+      {
+        "kaynakAlan": "EPDK sitesindeki Ek-6 dosyasının indirme adresi",
+        "urunAlani": "kaynak_url",
+        "gerekce": "Ürünün `kaynak_url` alanı madde metninin ALINDIĞI belgenin adresidir — doğrulayan kişi aynı metne buradan gider. Kurumun ana sayfası ya da yönetmelik sayfası bu alana yazılmaz: adres ekin kendi dosyasını vermelidir."
+      },
+      {
+        "kaynakAlan": "Belge içi konum (ek · çalışma sayfası · kontrol no)",
+        "urunAlani": "kaynak_yeri",
+        "gerekce": "Ürünün `kaynak_yeri` alanı metnin BELGE İÇİNDEKİ yeridir (ek · çalışma sayfası · kontrol no); adresin tekrarı değil, adrese gidildikten sonra nereye bakılacağıdır. Konumdur, metin değildir."
+      },
+      {
+        "kaynakAlan": null,
+        "urunAlani": "erisim_tarihi",
+        "gerekce": "Ürünün `erisim_tarihi` alanı kaynağa BAKILAN gündür; maddenin yürürlüğü ya da belgenin yayımı değildir. Kaynak belgede yazmaz, aktarımı yapan verir: mevzuat sonradan değişirse aktarımın belgenin hangi hâlini gördüğü ancak bu tarihten bilinir."
+      },
+      {
+        "kaynakAlan": "Ek-6'i yürürlüğe koyan Resmî Gazete tarihi",
+        "urunAlani": "yururluk_tarihi",
+        "gerekce": "Ürünün `yururluk_tarihi` alanı MADDENİN KENDİ yürürlüğüdür; denetim kontrolün hangi günden beri arandığını sorar. Bu eklerde SATIR BAZINDA tarihlenmiş bir kaynak yoktur: her kontrol ekin kendi Resmî Gazete tarihini taşır ve bu tarih ana yönetmeliğinkinden farklıdır. 25/11/2025 konsolide değişikliğinin tek tek kontrollere etkisi ÖLÇÜLMEDİ — ölçülmedi, \"değişmedi\" değil."
+      },
+      {
+        "kaynakAlan": "Seviye (Seviye 1 · Seviye 2 · Seviye 3 · Ek Kontrol)",
+        "urunAlani": "gereksinim_tipi",
+        "gerekce": "Kaynağın \"Seviye\" sütunu KONTROLÜN KENDİ kademesidir: EPDK modelinin hangi yetkinlik kademesinde o kontrolün ARANDIĞINI söyler — kuruluşun bugünkü ya da hedeflenen olgunluğunu değil. Ürünün `gereksinim_tipi` alanı tam olarak budur: çerçevenin kendi gereksinim sınıfı; kurulumda `Madde.gereksinimTipi` alanında durur ve hiçbir hesaba girmez. Ekran rozeti HENÜZ YOK — alan kuruluyor, gösterilmiyor. Ürünün `seviye` alanı ise BAŞKA bir şeydir — kuruluş için HEDEFLENEN olgunluktur (0–5 merdiveni, `lib/uyum/olgunluk.ts`) ve ekran onu ölçülen olgunlukla karşılaştırıp \"hedefte / hedefin altında\" der. İkisi de geçerli veridir, biçimleri uyumludur, hiçbir kapı ayırt edemez: \"Seviye\" `seviye` alanına yazılınca 508 zorunlu kontrolün hedefi ürünün en alt üç kademesine çekilmiş, kişiye bağlı ad-hoc uygulama \"hedefte\" (yeşil) görünmüştü (ölçüldü: bağımsız inceleme, PR #43 tur 2). Bu satır o kusurun beyanla kapatılmış hâlidir."
+      }
+    ],
+    "EPDK-SGYM-EK7": [
+      {
+        "kaynakAlan": "No (kontrol numarası) · çalışma sayfası adı (aile satırında)",
+        "urunAlani": "kod",
+        "gerekce": "Ürünün `kod` alanı maddenin çerçeve içindeki TEKİL kimliğidir: ekran, eşleme ve kanıt bu kodla maddeye atıf yapar, bu yüzden belge yeniden düzenlense bile aynı maddeyi göstermelidir. Ekin \"No\" sütunu (EAG-1, PLC-7) da aynı işi görür — belge içinde tekildir ve denetim kontrole bu numarayla atıf yapar."
+      },
+      {
+        "kaynakAlan": "Kontrolün bulunduğu çalışma sayfası (kontrol ailesi)",
+        "urunAlani": "ust_kod",
+        "gerekce": "Ürünün `ust_kod` alanı madde AĞACINDAKİ üst düğümdür — kapsama (bütün–parça) ilişkisi kurar, öncelik ya da ağırlık ilişkisi değil. Ekte her kontrol bir kontrol ailesinin (çalışma sayfası) altında durur."
+      },
+      {
+        "kaynakAlan": "Alt Kontrol · çalışma sayfasının aile başlığı",
+        "urunAlani": "baslik",
+        "gerekce": "Ürünün `baslik` alanı maddenin KISA ADIDIR: listede ve uyum matrisinde kontrolü bu ad temsil eder, bu yüzden metnin özeti değil kendi adı olmalıdır. Ekin \"Alt Kontrol\" sütunu kontrolün ait olduğu kontrol grubunun adıdır ve kontrolün kısa adı olarak taşınır; kontrolün TAM metni `metin` alanında bozulmadan durur. Aile satırında başlık, çalışma sayfasının kendi başlık satırındaki aile adıdır."
+      },
+      {
+        "kaynakAlan": "Kontrol (kontrol maddesi metni)",
+        "urunAlani": "metin",
+        "gerekce": "Ürünün `metin` alanı kontrolün TAM METNİDİR — özet, yorum ya da uygulama notu değildir; ekran bu alanı \"maddenin kendisi\" diye okur ve uyum gerekçesi ona dayanır. Yalnız birincil kaynağın kendi cümleleri girer (FSEK md. 31); metin alınamadığında alan boş bırakılmaz, \"metin girilmedi\" yazılır."
+      },
+      {
+        "kaynakAlan": null,
+        "urunAlani": "sira",
+        "gerekce": "Ürünün `sira` alanı maddenin listede GÖRÜNTÜLENME sırasıdır; önem, öncelik ya da risk sırası değildir ve hiçbir hesaba girmez. Kaynakta böyle bir alan yoktur: belgedeki okuma sırası (sayfa sırası, sonra satır sırası) korunsun diye değeri aktarımı yapan verir."
+      },
+      {
+        "kaynakAlan": "Seviye (Seviye 1/2/3 · Ek Kontrol)",
+        "urunAlani": "zorunluluk_tipi",
+        "gerekce": "Ürünün `zorunluluk_tipi` alanı yükümlülüğün HUKUKİ DAYANAK TÜRÜDÜR (kanun · yönetmelik · sözleşme · en iyi uygulama); yaptırımın ağırlığı ya da maddenin önceliği değildir. Kaynakta bu adla bir alan yoktur ama değer UYDURULMAZ: kaynağın \"Seviye\" sütunundan TÜRETİLİR — \"Ek kontrol\" kademesi OPTIONAL, kalan kademeler REGULATION olur (yönetmelik ek kontrolleri zorunlu saymaz, ek yönetmeliğin ekidir). Aynı kaynak sütunu İKİ ürün alanını besler ve ikisi AYRI şeydir: `gereksinim_tipi` kademenin kendisidir, bu alan o kademenin hukuki karşılığıdır."
+      },
+      {
+        "kaynakAlan": "EPDK sitesindeki Ek-7 dosyasının indirme adresi",
+        "urunAlani": "kaynak_url",
+        "gerekce": "Ürünün `kaynak_url` alanı madde metninin ALINDIĞI belgenin adresidir — doğrulayan kişi aynı metne buradan gider. Kurumun ana sayfası ya da yönetmelik sayfası bu alana yazılmaz: adres ekin kendi dosyasını vermelidir."
+      },
+      {
+        "kaynakAlan": "Belge içi konum (ek · çalışma sayfası · kontrol no)",
+        "urunAlani": "kaynak_yeri",
+        "gerekce": "Ürünün `kaynak_yeri` alanı metnin BELGE İÇİNDEKİ yeridir (ek · çalışma sayfası · kontrol no); adresin tekrarı değil, adrese gidildikten sonra nereye bakılacağıdır. Konumdur, metin değildir."
+      },
+      {
+        "kaynakAlan": null,
+        "urunAlani": "erisim_tarihi",
+        "gerekce": "Ürünün `erisim_tarihi` alanı kaynağa BAKILAN gündür; maddenin yürürlüğü ya da belgenin yayımı değildir. Kaynak belgede yazmaz, aktarımı yapan verir: mevzuat sonradan değişirse aktarımın belgenin hangi hâlini gördüğü ancak bu tarihten bilinir."
+      },
+      {
+        "kaynakAlan": "Ek-7'i yürürlüğe koyan Resmî Gazete tarihi",
+        "urunAlani": "yururluk_tarihi",
+        "gerekce": "Ürünün `yururluk_tarihi` alanı MADDENİN KENDİ yürürlüğüdür; denetim kontrolün hangi günden beri arandığını sorar. Bu eklerde SATIR BAZINDA tarihlenmiş bir kaynak yoktur: her kontrol ekin kendi Resmî Gazete tarihini taşır ve bu tarih ana yönetmeliğinkinden farklıdır. 25/11/2025 konsolide değişikliğinin tek tek kontrollere etkisi ÖLÇÜLMEDİ — ölçülmedi, \"değişmedi\" değil."
+      },
+      {
+        "kaynakAlan": "Seviye (Seviye 1 · Seviye 2 · Seviye 3 · Ek Kontrol)",
+        "urunAlani": "gereksinim_tipi",
+        "gerekce": "Kaynağın \"Seviye\" sütunu KONTROLÜN KENDİ kademesidir: EPDK modelinin hangi yetkinlik kademesinde o kontrolün ARANDIĞINI söyler — kuruluşun bugünkü ya da hedeflenen olgunluğunu değil. Ürünün `gereksinim_tipi` alanı tam olarak budur: çerçevenin kendi gereksinim sınıfı; kurulumda `Madde.gereksinimTipi` alanında durur ve hiçbir hesaba girmez. Ekran rozeti HENÜZ YOK — alan kuruluyor, gösterilmiyor. Ürünün `seviye` alanı ise BAŞKA bir şeydir — kuruluş için HEDEFLENEN olgunluktur (0–5 merdiveni, `lib/uyum/olgunluk.ts`) ve ekran onu ölçülen olgunlukla karşılaştırıp \"hedefte / hedefin altında\" der. İkisi de geçerli veridir, biçimleri uyumludur, hiçbir kapı ayırt edemez: \"Seviye\" `seviye` alanına yazılınca 508 zorunlu kontrolün hedefi ürünün en alt üç kademesine çekilmiş, kişiye bağlı ad-hoc uygulama \"hedefte\" (yeşil) görünmüştü (ölçüldü: bağımsız inceleme, PR #43 tur 2). Bu satır o kusurun beyanla kapatılmış hâlidir."
+      }
+    ]
+  }
 }

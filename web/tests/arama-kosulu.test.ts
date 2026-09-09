@@ -58,19 +58,56 @@ describe('Metin arama koşulu tek yerde', () => {
     ).toEqual([]);
   });
 
-  it('yardımcı, bugünkü sağlayıcının desteklemediği kipi GÖNDERMEZ', async () => {
-    /* `mode: 'insensitive'` Prisma'nın SQLite sağlayıcısında kabul
-       edilmez ve sorgu ÇALIŞMA ZAMANINDA patlar. Bayrak bugün kapalı
-       olmalı; açık unutulursa arama tamamen çöker. */
-    const { aramaKosulu, DUYARSIZ_KIP_DESTEKLI } = await import('@/lib/aramaKosulu');
-    expect(DUYARSIZ_KIP_DESTEKLI).toBe(false);
-    expect(aramaKosulu('  saha-ı  ')).toEqual({ contains: 'saha-ı' });
-    expect('mode' in aramaKosulu('x')).toBe(false);
+  it('kip SAĞLAYICIDAN gelir: PostgreSQL duyarsız kip gönderir, SQLite göndermez [URN-KUR-009]', async () => {
+    /* `mode: 'insensitive'` Prisma'nın SQLite sağlayıcısında KABUL EDİLMEZ
+       ve sorgu ÇALIŞMA ZAMANINDA patlar; PostgreSQL'de ise ZORUNLUDUR —
+       onsuz `contains` duyarlıdır ve arama sessizce boş döner. İki dalın
+       ikisi de burada ölçülür: ortam değişkeni oynatmadan, saf fonksiyona
+       sağlayıcı verilerek. */
+    const { aramaKosulu, aramaOr, DUYARSIZ_KIP_DESTEKLI } = await import('@/lib/aramaKosulu');
+    const { DUYARSIZ_KIP_DESTEKLI: TEK_KAYNAK, SAGLAYICI } = await import('@/lib/veritabani');
+    expect(DUYARSIZ_KIP_DESTEKLI, 'bayrak tek kaynaktan okunmuyor').toBe(TEK_KAYNAK);
+    expect(TEK_KAYNAK).toBe(SAGLAYICI === 'postgresql');
+
+    expect(aramaKosulu('  saha-ı  ', false)).toEqual({ contains: 'saha-ı' });
+    expect('mode' in aramaKosulu('x', false)).toBe(false);
+    expect(aramaKosulu('  saha-ı  ', true)).toEqual({ contains: 'saha-ı', mode: 'insensitive' });
+    expect(aramaOr(['kod', 'ad'], 'JES', true)).toEqual([
+      { kod: { contains: 'JES', mode: 'insensitive' } },
+      { ad: { contains: 'JES', mode: 'insensitive' } },
+    ]);
+  });
+
+  it('sağlayıcı bağlantı dizesinden çözülür; tanınmayan şema SESSİZCE SQLite olmaz [URN-KUR-009]', async () => {
+    const { saglayiciCoz } = await import('@/lib/veritabani');
+    expect(saglayiciCoz(undefined)).toBe('sqlite');
+    expect(saglayiciCoz('')).toBe('sqlite');
+    expect(saglayiciCoz('file:./dev.db')).toBe('sqlite');
+    expect(saglayiciCoz('/veri/uyum.db')).toBe('sqlite');
+    expect(saglayiciCoz('postgres://u@h:5432/d')).toBe('postgresql');
+    expect(saglayiciCoz('postgresql://u@h:5432/d')).toBe('postgresql');
+    /* Sessiz düşüş = yanlış sağlayıcıyla çalışan kurulum; bunu müşteri fark eder. */
+    expect(() => saglayiciCoz('mysql://u@h/d')).toThrow(/tanınmayan bir sağlayıcı/);
+  });
+
+  it('TEST_PG_URL ürünü yönetemez: yalnız test koşumunda okunur [URN-KUR-009]', async () => {
+    /* Ölçüldü (R5, parti kapanışı): kabukta kalmış bir `TEST_PG_URL`, marka
+       kapısının ÜRETİM DERLEMESİNE sızdı; uygulama PostgreSQL sürücüsünü
+       seçti, şema SQLite'tı ve derleme "adaptör uyumsuz" diye düştü. Test
+       değişkeni ürünü yönetemez — üretimde tek söz sahibi `DATABASE_URL`. */
+    const { TEST_KOSUMU } = await import('@/lib/veritabani');
+    expect(TEST_KOSUMU, 'test koşumu tanınmıyor').toBe(true);
+    const kaynak = await import('node:fs').then((f) => f.readFileSync('lib/veritabani.ts', 'utf8'));
+    expect(kaynak, 'TEST_PG_URL test kapısı olmadan okunuyor')
+      .toMatch(/TEST_KOSUMU \? process\.env\.TEST_PG_URL : undefined/);
   });
 
   it('çok alanlı OR bloğu alan adlarını korur', async () => {
+    /* Sağlayıcı AÇIKÇA verilir: kip sağlayıcıya bağlı olduğu için varsayılana
+       bırakılan bir beklenti PostgreSQL koşusunda kırmızı yanardı ve kırmızının
+       sebebi "alan adları bozuldu" gibi okunurdu. */
     const { aramaOr } = await import('@/lib/aramaKosulu');
-    expect(aramaOr(['kod', 'ad'], 'JES')).toEqual([
+    expect(aramaOr(['kod', 'ad'], 'JES', false)).toEqual([
       { kod: { contains: 'JES' } },
       { ad: { contains: 'JES' } },
     ]);
@@ -103,10 +140,15 @@ describe('Arama gerçekten çalışıyor', () => {
   });
 
   it('santral kodunu bulur — koşul yardımcıya taşındıktan sonra da', async () => {
+    /* Arama sonucu SINIRLIDIR (`take: 5`). Sorgu ÖNEK olursa (`SAHA-`) on beş
+       tesis eşleşir ve aranan kayıt ilk beşe girmeyebilir — testin kırmızısı
+       "arama bozuk" demez, "sorgu ayırt edici değil" der. Ölçüldü (R5):
+       PostgreSQL'de tam olarak bu oldu. Bu yüzden sorgu TAM koddur ve tesis
+       sıralı seçilir (sırasız `findFirstOrThrow` PostgreSQL'de rastgeledir). */
     const { ara } = await import('@/lib/eylemler2/arama');
-    const tesis = await db.tesis.findFirstOrThrow();
-    const sonuc = await ara(tesis.kod.slice(0, 5));
-    expect(sonuc.some((s) => s.id === tesis.id)).toBe(true);
+    const tesis = await db.tesis.findFirstOrThrow({ orderBy: { kod: 'asc' } });
+    const sonuc = await ara(tesis.kod);
+    expect(sonuc.some((s) => s.id === tesis.id), `aranan: ${tesis.kod}`).toBe(true);
   });
 
   it('iki karakterden kısa sorgu sonuç döndürmez', async () => {
@@ -114,18 +156,22 @@ describe('Arama gerçekten çalışıyor', () => {
     expect(await ara('a')).toEqual([]);
   });
 
-  /* Bugünkü davranışı KAYIT ALTINA alır, doğru olduğunu iddia etmez:
-     SQLite'ın LIKE'ı ASCII için duyarsız olduğu için küçük harfle yazılan
-     bir kod da bulunur. PostgreSQL'de bu test kırmızıya döner — ve
-     dönmesi GEREKİR, çünkü tam olarak o gün arama sessizce bozulacaktır.
-     Kırmızı bir test, sessiz bir regresyondan iyidir. */
-  it('bugün büyük/küçük harf duyarsız (SQLite) — göç günü bu test uyarır', async () => {
+  /* DOĞRU DAVRANIŞ: arama büyük/küçük harf duyarsızdır — sağlayıcı ne
+     olursa olsun. SQLite'ta bunu `LIKE`ın ASCII duyarsızlığı sağlar,
+     PostgreSQL'de `mode: 'insensitive'` (R5, `lib/veritabani.ts`).
+     Önceki hâli "bugünkü davranışı kayıt altına alır, doğru olduğunu
+     iddia etmez" diyordu ve PostgreSQL'de kırmızıya dönecek şekilde
+     yazılmıştı; kip sağlayıcıdan geldiği için artık İKİ SAĞLAYICIDA DA
+     yeşildir — test devre dışı bırakılmadı, doğru davranışa göre
+     yeniden yazıldı. Türkçe İ/ı katlaması hâlâ kapsam dışıdır
+     (`lib/aramaKosulu.ts` § Türkçe uyarısı). */
+  it('arama büyük/küçük harf duyarsızdır — iki sağlayıcıda da [URN-KUR-009]', async () => {
     const { ara } = await import('@/lib/eylemler2/arama');
-    const tesis = await db.tesis.findFirstOrThrow();
-    const kucuk = tesis.kod.slice(0, 5).toLowerCase();
-    const buyuk = tesis.kod.slice(0, 5).toUpperCase();
-    if (kucuk === buyuk) return; // kodda harf yok, vaka uygulanamaz
-    expect((await ara(kucuk)).some((s) => s.id === tesis.id)).toBe(true);
-    expect((await ara(buyuk)).some((s) => s.id === tesis.id)).toBe(true);
+    const tesis = await db.tesis.findFirstOrThrow({ orderBy: { kod: 'asc' } });
+    const kucuk = tesis.kod.toLowerCase();
+    const buyuk = tesis.kod.toUpperCase();
+    expect(kucuk, 'kodda harf yok — duyarsızlık ölçülemez').not.toBe(buyuk);
+    expect((await ara(kucuk)).some((s) => s.id === tesis.id), `küçük: ${kucuk}`).toBe(true);
+    expect((await ara(buyuk)).some((s) => s.id === tesis.id), `büyük: ${buyuk}`).toBe(true);
   });
 });

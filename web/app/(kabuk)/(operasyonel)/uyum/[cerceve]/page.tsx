@@ -1,4 +1,5 @@
 import { Suspense } from 'react';
+import { STATIK_DEMO } from '@/lib/statikDerleme';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { girisZorunlu, izinVar, izinliTesisIdleri } from '@/lib/erisim';
@@ -10,10 +11,29 @@ import CerceveIstemci from './CerceveIstemci';
    Rota parametresi regülasyon KODUDUR (EPDK-SYM), id değil: bağlantı
    paylaşılabilir olsun ve O1'den gelen sıçrama kod üzerinden kurulsun. */
 
-export async function generateStaticParams() {
+/* PARAMETRE LİSTESİ SUNUCU DERLEMESİNDE HİÇ DIŞA AKTARILMAZ (P7 · ölçüldü).
+
+   `generateStaticParams` VARSA Next rotayı SSG sayar. Sunucu derlemesinde
+   liste boş döndürmek YETMEZ: Next rotayı hiç render etmeden "statik"
+   kabul eder ve istek geldiğinde on-demand statik üretim dener; orada
+   `cookies()` yasaktır ve sayfa 500 döner. Ölçüldü (compose duman kapısı):
+   oturumsuz `/tesisler/x` 307 yerine 500 veriyordu — KİMLİK KAPISI bir
+   sunucu hatasına dönüşmüştü.
+
+   `force-dynamic` bunu çözer ama statik demoyu BOZAR: `output: 'export'`
+   sunucusuzdur ve o kipi reddeder (ölçüldü, CI · `demo:build`). Rota
+   kesiti ayarları literal olmak zorunda olduğu için koşullu da yazılamaz.
+
+   Çözüm işlevin KENDİSİNİ koşullu dışa aktarmaktır: `generateStaticParams`
+   bir yapılandırma literali değil, derlenmiş modülden okunan bir İŞLEVDİR;
+   yoksa rota dinamiktir. Sunucu derlemesinde `undefined`, statik demoda
+   gerçek işlev. Ölçüldü: sunucu derlemesinde rota `ƒ`, demo dışa
+   aktarımında parametreler üretiliyor. */
+async function parametreler() {
   const kodlar = await cerceveKodlari();
   return kodlar.map((cerceve) => ({ cerceve }));
 }
+export const generateStaticParams = STATIK_DEMO ? parametreler : undefined;
 
 export async function generateMetadata(
   { params }: { params: Promise<{ cerceve: string }> },

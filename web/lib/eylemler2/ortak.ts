@@ -1,5 +1,8 @@
 import { db } from '../db';
 import type { Prisma } from '../prisma-client/client';
+/* Alan adları ÇALIŞMA ZAMANINDA gerekir (üretilen `<Model>ScalarFieldEnum`
+   sabitleri): `import type` yalnız tipleri getirir, değeri getirmez. */
+import { Prisma as PrismaCalisma } from '../prisma-client/client';
 import { z } from 'zod';
 
 /* eylemler2 modülleri için ortak yardımcılar — lib/eylemler.ts ile aynı kalıp. */
@@ -27,10 +30,48 @@ function ihlalAlanlari(m: unknown): string[] {
   if (typeof hedef === 'string') return [hedef];
 
   const surucu = (meta.driverAdapterError as { cause?: { constraint?: unknown } } | undefined)?.cause;
-  const kisit = surucu?.constraint as { fields?: unknown } | undefined;
-  return Array.isArray(kisit?.fields)
-    ? kisit.fields.filter((x): x is string => typeof x === 'string')
-    : [];
+  const kisit = surucu?.constraint as { fields?: unknown; index?: unknown } | undefined;
+  if (Array.isArray(kisit?.fields)) return kisit.fields.filter((x): x is string => typeof x === 'string');
+  /* PostgreSQL sürücüsü alan LİSTESİ değil KISIT ADI verir (`{ index: 'Dokuman_kod_key' }`);
+     `@prisma/adapter-pg` 23505'te `error.constraint` doluysa her zaman bu dalı seçer. Ad
+     okunmazsa alan-özel cümleler PostgreSQL'de HİÇ kurulmaz ve her kopya kayıt genel cümleye
+     düşer — ölçüldü (R5): "aynı kod iki kez açılamaz" vakası PostgreSQL'de kırmızıydı.
+
+     AD ÇÖZÜMLENİR AMA UYDURULMAZ. İlk sürüm adı `_` ile bölüp ilk parçadan sonrasını alan
+     sayıyordu ve OLMAYAN alan adları üretiyordu (bağımsız inceleme, P1): kırpılmış
+     `Yetki_..._regulas_key` → "regulas"; elle yazılan `ErisimAtamasi_tekil_coalesce_key` →
+     "tekil, coalesce"; bunlar doğrudan kullanıcı cümlesine giriyordu. Bugün her parça
+     MODELİN GERÇEK alanlarına karşı doğrulanır (`Prisma.dmmf`); bir parça tanınmıyorsa liste
+     BOŞ döner ve genel cümleye düşülür. Eksik cümle, yanlış cümleden iyidir. */
+  if (typeof kisit?.index === 'string') return kisitAdindanAlanlar(kisit.index);
+  return [];
+}
+
+/** Model adı → alan adları (küçük harf anahtarlı). Üreteç her model için
+    `<Model>ScalarFieldEnum` sabitini yazar; kaynak ŞEMANIN KENDİSİDİR, elle
+    tutulan bir liste değil — şema değişince bu harita da değişir. */
+let modelAlanlari: Map<string, Set<string>> | null = null;
+function modelHaritasi(): Map<string, Set<string>> {
+  if (modelAlanlari) return modelAlanlari;
+  modelAlanlari = new Map();
+  const SONEK = 'ScalarFieldEnum';
+  for (const [ad, deger] of Object.entries(PrismaCalisma as unknown as Record<string, unknown>)) {
+    if (!ad.endsWith(SONEK) || typeof deger !== 'object' || deger === null) continue;
+    modelAlanlari.set(ad.slice(0, -SONEK.length).toLowerCase(), new Set(Object.keys(deger)));
+  }
+  return modelAlanlari;
+}
+
+/** `<Model>_<alan>…_key` → alan adları. Tanınmayan tek parça bile listeyi BOŞALTIR. */
+export function kisitAdindanAlanlar(ad: string): string[] {
+  const sonek = ['_pkey', '_fkey', '_key', '_idx'].find((x) => ad.endsWith(x));
+  if (!sonek) return [];                       // elle yazılan indeks: adı alan listesi değildir
+  const parcalar = ad.slice(0, -sonek.length).split('_');
+  if (parcalar.length < 2) return [];
+  const alanlar = modelHaritasi().get(parcalar[0].toLowerCase());
+  if (!alanlar) return [];                     // model tanınmadı — uydurma yok
+  const kalan = parcalar.slice(1);
+  return kalan.every((p) => alanlar.has(p)) ? kalan : [];
 }
 
 /* ── Veritabanı kısıtı → okunabilir cümle ─────────────────────────────

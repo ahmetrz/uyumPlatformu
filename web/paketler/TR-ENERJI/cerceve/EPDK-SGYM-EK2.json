@@ -1,0 +1,33 @@
+{
+  "kod": "EPDK-SGYM-EK2",
+  "ad": "Ek-2 · Doğal Gaz Dağıtım Sektörü Siber Güvenlik Yetkinlik Modeli Teknik Kontrol Maddeleri",
+  "surumEtiketi": "RG-2025-11-25-33088",
+  "yayimTarihi": "2023-06-06",
+  "yururlukTarih": "2023-06-06",
+  "kaynakUrl": "https://www.epdk.gov.tr/Detay/Icerik/3-33068/enerji-sektorunde-siber-guvenlik-yetkinlik-modeli-",
+  "lisans": {
+    "tur": "kamuya_acik",
+    "metinDahil": true,
+    "kaynak": "https://www.epdk.gov.tr/Detay/DownloadDocument?id=q8R0iFMHTNQ%3D",
+    "not": "Resmî metin — 5846 s. FSEK md. 31 (yayımlanmış yönetmelik ve ekinden faydalanma serbesttir). Kaynak: EPDK sitesindeki Ek-2 teknik kontrol maddeleri dosyası (XLSX), erişim 2026-09-09."
+  },
+  "maddeDosyasi": "EPDK-SGYM-EK2.csv",
+  "zorunlulukTipi": "REGULATION",
+  "not": "13 kontrol ailesi + 505 kontrol. Kimlik (No), kontrol grubu (Alt Kontrol) ve kontrol METNİ Ek-2 dosyasından okundu. Kaynağın kademe sözcüğü OLDUĞU GİBİ taşınır (Ek Kontrol: 8 · Ek kontrol: 35 · Seviye 1: 276 · Seviye 2: 182 · Seviye 3: 4) — büyük/küçük harf farkı kaynağın kendisindedir, düzeltilmedi. \"Ek kontrol\" kademesi OPTIONAL (yönetmelik: zorunlu değildir), diğerleri REGULATION. Ek yönetmeliğe RG-6/6/2023-32213 (ilk hâl) ile geldi; yayım ve yürürlük tarihi ekin kendi tarihidir.",
+  "uygulanabilirlik": {
+    "kapsamTurleri": [
+      "tesis",
+      "kontrol_sistemi"
+    ],
+    "kosul": {
+      "hepsi": [
+        {
+          "alan": "epdkEki",
+          "islec": "=",
+          "deger": "ek2"
+        }
+      ]
+    },
+    "aciklama": "MADDE 9 (5) b: Doğal Gaz Dağıtım Sektörü Teknik Kontrol Maddeleri (Ek-2). Yönetmelik MADDE 2 (1): kapsam sevkiyat kontrol merkezi kurmakla yükümlü doğal gaz dağıtım lisansı sahibi tüzel kişiler. Kuruluşun hangi ekle yükümlü olduğu `epdkEki` özniteliğindedir; MADDE 2'deki nitelemeler (lisans türü, kurulu güç, sevkiyat kontrol merkezi yükümlülüğü) ürün özniteliğine indirgenmemiştir — karar motorun ÖNERİSİDİR."
+  }
+}

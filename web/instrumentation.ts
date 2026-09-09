@@ -16,8 +16,24 @@
    kaçırırdı. Tik yalnız ÇÖZÜNÜRLÜKTÜR: vadesi gelmemiş hiçbir şey
    koşmaz, tik ucuzdur (birkaç indeksli sorgu). */
 
+import { gunluk } from '@/lib/gunluk';
+
 export async function register() {
   if (process.env.NEXT_RUNTIME !== 'nodejs') return;
+
+  /* ORTAM AÇILIŞTA DOĞRULANIR (P7 · 2.1). Eksik ya da HATALI yazılmış bir
+     değer sessizce varsayılana düşmez: süreç ADIYLA hata vererek durur.
+     Sebep: `API_ORAN_SINIRI=onikibin` yazan bir kurulum eskiden 120 ile
+     açılıyordu ve operatör istediği sınırın uygulandığını sanıyordu —
+     "sessizce başka bir değerle çalışmak" bir uyum ürününde en pahalı
+     kusur sınıfıdır. Derleme sırasında (`next build`) doğrulama YAPILMAZ:
+     derleyen makine kurulum ortamı değildir. */
+  if (process.env.NEXT_PHASE !== 'phase-production-build') {
+    const { ortamiCoz, ortamHataCumlesi } = await import('./lib/yapilandirma/ortam');
+    const o = ortamiCoz();
+    if (!o.ok) throw new Error(ortamHataCumlesi(o.hatalar));
+  }
+
   if (process.env.NEXT_PUBLIC_DEMO === '1') return;
   if (process.env.ISLER_OTOMATIK === '0') return; // kapatma anahtarı
 
@@ -32,7 +48,7 @@ export async function register() {
          ölmesi, kaçırılan bir tikten çok daha kötüdür. Tikin kendi
          hatasının kaydı yok (henüz koşu satırı açılmamıştır), bu yüzden
          tek yer stderr'dir. */
-      console.error('[zamanlayıcı] tik başarısız:', e instanceof Error ? e.message : e);
+      gunluk.hata('zamanlayici.tik_basarisiz', { hata: e });
     }
   };
 

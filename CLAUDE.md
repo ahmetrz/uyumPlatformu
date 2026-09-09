@@ -171,6 +171,22 @@ bilerek dışlanır; ikisi de yoksa bekçi kırmızıdır
 (`web/tests/bekci/null-olumsuzlama.test.ts`, URN-VER-001); meşru istisna
 gerekçeli izin listesinde durur ve liste yalnız küçülür.
 
+**Kaynak alanı ürün alanına BEYANLA girer (R-D).** Bir kaynak
+belgenin alanı ürünün yanlış alanına yazıldığında biçim doğru, değer
+aralıkta ve iki taraf da geçerli veridir — hiçbir kapı göremez. Ölçüldü
+(bağımsız inceleme, PR #43 tur 2): EPDK Ek-3'ün "Seviye" kademesi ürünün
+HEDEF OLGUNLUK alanına yazılmış, 508 zorunlu kontrolün hedefi en alt üç
+kademeye çekilmiş, ad-hoc uygulama "hedefte" (yeşil) görünüyordu; kusuru
+metni okuyan insan yakaladı. Bugün paket manifesti dolu HER ürün alanı
+için "hangi kaynak alanından · hangi ürün alanına · hangi gerekçeyle"
+beyan eder (`alanEslemesi`); gerekçe alanın ANLAMINI anlatır, dönüşümün
+kolaylığını değil. Beyansız dolu sütun, ölü beyan, çifte beyan, temsilî
+çerçeveye beyan ve olmayan çerçeveye beyan KIRMIZIDIR
+(`web/tests/paket-alan-eslemesi.test.ts`, URN-PKT-022). **Kapı beyanın
+VARLIĞINI ölçer, DOĞRULUĞUNU değil** — kabul edilmiş sınırdır ve
+`docs/SEKTOR_PAKETI_SOZLESMESI.md` §1.10'da yazılıdır: doğruluk bağımsız
+incelemenin işidir, "kapı yeşil" onu doğrulanmış saymaz.
+
 **İnceleme turu İKİ ile sınırlıdır (R-A).** Tur 1 → düzelt → tur 2 →
 düzelt → merge. Üçüncü turda çıkan bulgular YENİ PR olur. Gerekçe
 (ölçüldü, 9 Eylül 2026, #41): dal inmezse `main` ayrışır; birleştirme
@@ -297,9 +313,15 @@ yapılır.
 
 ## Kalite kapıları
 
-CI'da (`.github/workflows/pr-kapisi.yml`): lint → tsc → vitest →
+CI'da (`.github/workflows/pr-kapisi.yml`) DÖRT iş koşar: `kapi` (hızlı) ·
+`kapi-yavas` (tarayıcılı) · **`kapi-postgres`** (postgres:16 servisi —
+PostgreSQL istemcisi üretilir, `kapi:pg-goc` ve TAM test kümesi orada da
+koşar; ölçüldü 9 Eyl 2026, P7/R3 turu: iki sağlayıcıda da 194 dosya ·
+3 529 vaka, atlanan 1) · **`kapi-compose`** (`deploy/compose/` ile ayağa
+kalkan kurulumda `rota:duman` — ürünün müşteri ortamında çalıştığının tek
+kanıtı; ölçüldü: 60/60 rota, kusur 0). Hızlı işte: lint → tsc → vitest →
 test envanteri → ters kapsam → dil kapısı → tasarım kapısı → **kapı
-farkı** → derleme → **rota duman** → **gezinme (yedi bant)** → **yatay
+farkı** → **PostgreSQL taban tazeliği** → derleme → **rota duman** → **gezinme (yedi bant)** → **yatay
 taşma** → **erişilebilirlik (axe · üç bant)** → statik demo derlemesi ve
 doğrulaması → marka kapısı. Dört tarayıcılı kapı CI'da üretim
 sunucusuyla koşar ve BLOKLAYICIDIR; taşma ve axe kapılarının açık

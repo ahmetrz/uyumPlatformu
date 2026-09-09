@@ -13,7 +13,7 @@
   },
   "maddeDosyasi": "EPDK-SGYM-EK3.csv",
   "zorunlulukTipi": "REGULATION",
-  "not": "13 kontrol ailesi + 565 kontrol. Kimlik (No), kontrol grubu (Alt Kontrol) ve kontrol METNİ Ek-3 dosyasından okundu; seviye 1–3 `seviye` sütununda, 57 \"Ek Kontrol\" seviyesiz ve OPTIONAL (yönetmelik: \"zorunlu değildir\") — seviyesizlik sıfır değil, zorunluluk tipinde söylenir. Ek-3 yönetmeliğe 28/1/2024 değişikliğiyle EKLENDİ (MADDE 8, \"Ek satır:RG-28/1/2024-32443\"); yayım ve yürürlük tarihi ekin kendi tarihidir, ana yönetmeliğinki (6/6/2023) değil.",
+  "not": "13 kontrol ailesi + 565 kontrol. Kimlik (No), kontrol grubu (Alt Kontrol) ve kontrol METNİ Ek-3 dosyasından okundu. Kademe `gereksinim_tipi` sütununda taşınır (Ek Kontrol 57 · Seviye 1 264 · Seviye 2 213 · Seviye 3 31); ürünün HEDEF OLGUNLUK alanı `seviye` BOŞTUR. \"Ek Kontrol\" OPTIONAL, diğerleri REGULATION. Ek yönetmeliğe 28/1/2024 değişikliğiyle EKLENDİ; yayım ve yürürlük tarihi ekin kendi tarihidir, ana yönetmeliğinki değil.",
   "uygulanabilirlik": {
     "kapsamTurleri": [
       "tesis",

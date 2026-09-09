@@ -1,7 +1,8 @@
 'use client';
 import { useEffect } from 'react';
 import Link from 'next/link';
-import { KIRACI_AD, MARKA_AD } from '@/lib/marka';
+/* Kiracı adı BASILMAZ — gerekçe `components/kabuk/SistemSayfasi.tsx`. */
+import { MARKA_AD } from '@/lib/marka';
 import './globals.css';
 import './kabuk.css';
 
@@ -17,8 +18,9 @@ export default function KokHata({ error, reset }: {
         <div className="ab" data-yogunluk="operasyonel">
           <div className="ab-sistem-sayfa">
             <header>
-              <Link href="/" className="marka">{KIRACI_AD.toLocaleUpperCase('tr-TR')}</Link>
-              <span className="etiket">{MARKA_AD}</span>
+              <Link href="/" className="marka">{MARKA_AD.toLocaleUpperCase('tr-TR')}</Link>
+              {/* Gerekçe `components/kabuk/SistemSayfasi.tsx`. */}
+              <span className="etiket">Sistem</span>
             </header>
             <main>
               <p className="kod">500 · Uygulama hatası</p>

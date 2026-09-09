@@ -137,6 +137,13 @@ jobs:
         working-directory: web
         run: npm run kapi:goc-zinciri
 
+      # PostgreSQL taban göçü TAZELİK kapısı (R5): veritabanı İSTEMEZ, yalnız
+      # şemadan yeniden üretip depodakiyle karşılaştırır. Şema değişip taban
+      # güncellenmezse yeni PostgreSQL kurulumu şemadan ayrışır.
+      - name: PostgreSQL taban göçü tazeliği
+        working-directory: web
+        run: npm run kapi:pg-taban
+
       # Gerekçe taraması bir KAPI DEĞİL: sezgisel kalıp, çıktısı elle
       # sınıflandırılır. CI'da koşması yine de değerli — maliyeti anlatan
       # yeni bir gerekçe girdiğinde kayıtta görünür, kimseyi bloklamaz.
@@ -368,3 +375,124 @@ jobs:
       - name: Marka kapısı
         working-directory: web
         run: npm run marka:kapi
+
+  # ── PostgreSQL koşusu (R5) ──────────────────────────────────────────────
+  # SQLite geliştirme ve demo için KALIR; müşteri kurulumu PostgreSQL'dir ve
+  # "iki sağlayıcıda da aynı garantiler" iddiası ancak İKİSİNİ DE koşarak
+  # ölçülür. Ölçüldü (9 Eylül 2026): yalnız SQLite koşulurken PostgreSQL'de
+  # iki tetikleyici ve üç indeks eksikti, dört değişmezlik iddiası hiç
+  # ölçülmüyordu ve arama sonuçları sırasızdı — hiçbiri SQLite'ta görünmedi.
+  kapi-postgres:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: kapi
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 10
+    env:
+      PG_URL: postgresql://postgres:kapi@127.0.0.1:5432/postgres
+      TEST_PG_URL: postgresql://postgres:kapi@127.0.0.1:5432/postgres
+      TEST_PG_SABLON: uyum_test_sablonu
+    steps:
+      - name: Depoyu al
+        uses: actions/checkout@v7
+
+      # Bu iş TAM KÜMEYİ koşar ve kümede cırcır dişleri var: kalite borcu,
+      # sektör terimi, NULL-olumsuzlama ve kapsam omurgası listeleri TABAN
+      # DALLA karşılaştırılır. Diş "CI'da ATLANMAZ" der ve doğru davranır —
+      # eksik olan bu adımdı (ölçüldü: `kapi-postgres` üç bekçide "taban dal
+      # okunamadı" diye kırmızı yandı; kusur kodda değil iş akışındaydı).
+      # Refspec ZORLAMALIDIR (`+`): ileri-sarım olmayan bir güncellemede
+      # zorlamasız fetch reddedilir, `continue-on-error` bunu yutar ve
+      # cırcır dişleri PR ile ilgisi olmayan bir sebeple kırmızı yanar.
+      # Öbür iki iş zaten `+` kullanıyor (bağımsız inceleme, tur 2).
+      - name: Taban dalı al (bekçi cırcırı)
+        continue-on-error: true
+        run: git fetch --depth=1 origin +refs/heads/main:refs/remotes/origin/main
+
+      - name: Node kur
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Bağımlılıklar
+        working-directory: web
+        run: npm ci
+
+      # Göç + değişmezlik + NESNE ENVANTERİ kapısı: SQLite'ta olup
+      # PostgreSQL'de olmayan tetikleyici/indeks KIRMIZIDIR. Üretilen
+      # istemciye ihtiyaç duymaz (prisma CLI + psql).
+      - name: PostgreSQL göç ve değişmezlik kapısı
+        working-directory: web
+        run: npm run kapi:pg-goc
+
+      # Sağlayıcı yaşam döngüsü ARACIN KENDİSİNDE: istemciyi PostgreSQL için
+      # üretir, şablonu kurar, testleri koşar, istemciyi SQLite'a GERİ ALIR ve
+      # geri aldığını ÖLÇER. Üç ayrı adım olsaydı `kapi:parti` onları kapı
+      # sanar ve dizini PostgreSQL istemcisiyle bırakırdı.
+      - name: Birim ve entegrasyon testleri (PostgreSQL)
+        working-directory: web
+        run: npm run test:pg
+
+  # ── COMPOSE KURULUMU · duman kapısı (P7 · 2.5) ───────────────────────
+  #
+  # Ürünün MÜŞTERİ ORTAMINDA çalıştığının tek kanıtı. `next dev` ile koşan
+  # kapılar geliştirme kabuğunu ölçer: orada kaynak ağacı, geliştirme
+  # veritabanı ve derlenmemiş sayfa vardır — kurulumda hiçbiri yoktur.
+  #
+  # İş AYRI: imaj derlemesi dakikalar sürer ve öbür kapıları bekletmemeli.
+  # Playwright tarayıcısı gerekir (duman testi gerçek tarayıcıyla gezer).
+  kapi-compose:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Depoyu al
+        uses: actions/checkout@v7
+
+      - name: Node kur
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Bağımlılıklar
+        working-directory: web
+        run: npm ci
+
+      - name: Tarayıcı kur
+        working-directory: web
+        run: npx playwright install --with-deps chromium
+
+      # Yığını kaldırır, READINESS bekler, kurulumu tohumlar, dinamik rota
+      # değerlerini KURULUMUN veritabanından okur, duman testini yayımlanan
+      # porta karşı koşar, indirir ve İNDİĞİNİ DOĞRULAR.
+      - name: Compose kurulumunda rota duman testi
+        working-directory: web
+        run: npm run kapi:compose
+
+      # Yığın kapının kendi temizliğiyle iner; iş düşerse (zaman aşımı,
+      # iptal) burada da indirilir. Adım SONUCUNU DOĞRULAR: `|| true` ile
+      # susturulan bir temizlik, başarısız OLAMAYAN bir adımdır ve adım
+      # değildir. Kapının env dosyası mutlu yolda silinmiş olabilir; o
+      # yüzden `down` env dosyası olmadan, proje adıyla çağrılır.
+      - name: Yığını indir ve indiğini DOĞRULA (her koşulda)
+        if: always()
+        working-directory: deploy/compose
+        run: |
+          docker compose -p uyum-kapi-duman down -v --remove-orphans
+          kalan=$(docker compose -p uyum-kapi-duman ps -q | wc -l)
+          if [ "$kalan" != "0" ]; then echo "$kalan kapsayıcı ayakta kaldı"; exit 1; fi
+          if curl -s -o /dev/null --max-time 2 http://127.0.0.1:3200/; then
+            echo "port 3200 hâlâ cevap veriyor"; exit 1
+          fi
+          echo "temiz · kapsayıcı 0 · port 3200 kapalı"

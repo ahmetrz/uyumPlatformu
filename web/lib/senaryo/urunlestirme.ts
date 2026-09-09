@@ -536,6 +536,77 @@ export const URUNLESTIRME_SENARYOLARI: Senaryo[] = [
     katmanlar: ['SERVER', 'UI'],
   },
   {
+    id: 'URN-KUR-009', alan: 'Kurulum', rota: '—', eksen: 'veri',
+    amac: 'Ürün İKİ sağlayıcıda da aynı garantileri versin: PostgreSQL kurulumu SQLite\'ta duran korumaların hiçbirini kaybetmesin',
+    rol: 'kurulumu yapan · ürünü sürdüren geliştirici', kapsam: 'prisma/postgres/ · lib/veritabani.ts · lib/db.ts · lib/aramaKosulu.ts · arac/pg-taban.mjs · arac/pg-goc.mjs',
+    onkosul: 'SQLite göç zinciri elle yazılmış DDL taşıyor (tetikleyici, kısmi indeks, ifade indeksi); `prisma migrate diff` bunların hiçbirini görmez',
+    veriHali: 'aykiri',
+    eylem: 'Boş bir PostgreSQL veritabanına taban göçü uygulanır; şema farkı, nesne envanteri ve değişmezlik ölçülür; arama kipi sağlayıcıdan seçilir',
+    beklenenSonuc: 'Taban göçü şemadan üretilir ve bayatlarsa KIRMIZI; boş veritabanında şema farkı 0; SQLite\'ta olup PostgreSQL\'de olmayan tetikleyici/indeks KIRMIZI (ad kısaltması yalancı kırmızı üretmez); '
+      + 'denetim izi UPDATE/DELETE/TRUNCATE reddedilir ve mesaj SQLite ile aynıdır; hiçbir satıra dokunmayan UPDATE GEÇER (FOR EACH ROW kanıtı); '
+      + 'arama kipi sağlayıcıdan gelir ve tanınmayan bağlantı şeması sessizce SQLite olmaz; geçici veritabanı silinir ve silindiği doğrulanır',
+    beklenenEkran: 'yok (kurulum kapısı)',
+    beklenenIz: 'yazma yok (ölçüm)', beklenenBildirim: 'yok',
+    katmanlar: ['DOMAIN'],
+  },
+  {
+    id: 'URN-KUR-010', alan: 'Kurulum', rota: '—', eksen: 'veri',
+    amac: 'Kurulumda günlüğü bir insan değil TOPLAYICI okur: olay aranabilir olsun ve sır günlüğe düşmesin',
+    rol: 'kurulumu işleten operatör · olay müdahale ekibi', kapsam: 'lib/gunluk.ts · lib/ ve app/ altındaki sunucu kodu',
+    onkosul: 'Ürün kodu serbest metin konsol satırları yazıyordu; bir hata nesnesini olduğu gibi basmak bağlantı dizesini ve jetonu diske yazar',
+    veriHali: 'aykiri',
+    eylem: 'Günlük satırı üretilir (sır kokan alanlar, hata nesnesi, derin nesne) ve ürün kodunda çıplak `console.*` çağrısı taranır',
+    beklenenSonuc: 'Satır tek satır JSON\'dur ve sabit alanlar taşır (zaman · duzey · olay); adı sır kokan alanın DEĞERİ `[gizlendi]` olur ama ANAHTAR kalır (hangi alanın gizlendiği görünmezse operatör neyin eksik olduğunu bilemez); '
+      + 'tanıma AD tabanlıdır, değer sezgisi değil; hata nesnesi yığın izi olmadan yazılır (iz iç yol sızdırır); derin nesne `[derin]`de durur; '
+      + 'sunucu kodunda çıplak `console.*` KIRMIZIDIR (istemci bileşenleri hariç — tarayıcıda tek yol odur)',
+    beklenenEkran: 'yok (kurulum kapısı)',
+    beklenenIz: 'yazma yok (günlük)', beklenenBildirim: 'yok',
+    katmanlar: ['DOMAIN'],
+  },
+  {
+    id: 'URN-KUR-011', alan: 'Kurulum', rota: '—', eksen: 'veri',
+    amac: 'Ürünün KENDİ yedeği, müşteriye dayattığı kuralı tutsun: geri yüklenebildiği kanıtlanmamış yedek, yedek değildir — ve kanıt DOSYALARINI da taşısın',
+    rol: 'kurulumu işleten operatör · ürünü sürdüren geliştirici', kapsam: 'arac/yedek.mjs · kanıt deposu · docs/URUN_YEDEKLEME.md',
+    onkosul: 'Yedek tek bir `.db` dosyasıydı ve kanıt dosyalarını ALMIYORDU: geri yükleme ekranı doldurur, denetçiye gösterilecek dosyayı getirmezdi',
+    veriHali: 'aykiri',
+    eylem: 'Yedek alınır (veritabanı + kanıt deposu + manifest), yedekten dosya silinir/değiştirilir, veritabanına yedekte olmayan bir kanıt eklenir, boş ortama geri yüklenir',
+    beklenenSonuc: 'Yedek bir DİZİNDİR ve manifest her kanıt dosyasının anahtar · boyut · özetini taşır (özet KOPYADAN ölçülür, kaynaktan değil); '
+      + 'yedekten silinen ya da değiştirilen dosya doğrulamada ADIYLA çıkar; veritabanının beklediği ama yedekte olmayan dosya EKSİK, `dosyaHash` ile tutmayan ÇÜRÜK diye ADIYLA listelenir ve araç sıfır dışı döner; '
+      + '`KanitSurumu` dosyaları da beklenenler arasındadır (eski sürüm gelmezse kanıtın geçmişi gelmez); BOŞ depoda "dosya: 0" ÖLÇÜLÜR — "kanıt dosyası yok" denmez, depo dizininin hiç olmaması ayrı raporlanır; '
+      + 'sahipsiz dosya kusur değildir (içerik adresli depoda paylaşım normaldir), sayı olarak raporlanır; geri yükleme DOLU ortama yazmaz ve sağlayıcılar arası yapılmaz; geri yüklenen her dosya okunarak doğrulanır',
+    beklenenEkran: 'yok (kurulum aracı)',
+    beklenenIz: 'yazma yok (yedek)', beklenenBildirim: 'yok',
+    katmanlar: ['DOMAIN'],
+  },
+  {
+    id: 'URN-KUR-012', alan: 'Kurulum', rota: '—', eksen: 'veri',
+    amac: 'Eksik ya da bozuk bir yapılandırma değeri AÇILIŞTA adıyla düşsün; sessiz varsayılana düşen bir kurulum yanlış çalışır ve bunu ancak müşteri fark eder',
+    rol: 'kurulumu yapan operatör', kapsam: 'lib/yapilandirma/ortam.ts · instrumentation.ts · /api/v1/health',
+    onkosul: 'Yapılandırma okuması koda dağılmıştı; "belirtilmedi" ile "yanlış yazıldı" aynı sonuca düşüyordu',
+    veriHali: 'aykiri',
+    eylem: 'Bozuk sayı, tanınmayan sağlayıcı ve AYRIŞTIRILAMAYAN PostgreSQL bağlantı dizesi verilir',
+    beklenenSonuc: 'Her hatalı değer ANAHTAR ADIYLA reddedilir ve sebebi okunabilirdir; bozuk sayı sessizce varsayılana DÜŞMEZ; tanınmayan sağlayıcı SQLite olmaz; '
+      + 'ayrıştırılamayan PostgreSQL dizesi (parolada URL kodlanmamış `/`: URI otoritesini böler; `+` ve `=` bölmez) açılışta yakalanır — hem `new URL`in fırlattığı hâl hem de sessizce YANLIŞ hosta ayrışan hâl — PostgreSQL parolayı kabul ettiği için kusur aksi hâlde OPAKTIR; '
+      + 'URL kodlanmış parola kabul edilir (kural dizeye bakar, parolaya değil); bilerek serbest bırakılan alan (TRUST_PROXY) reddedilmez ve bu ayrım YAZILIDIR',
+    beklenenEkran: 'yok (açılış ve sağlık ucu)',
+    beklenenIz: 'yazma yok (doğrulama)', beklenenBildirim: 'yok',
+    katmanlar: ['DOMAIN'],
+  },
+  {
+    id: 'URN-PKT-022', alan: 'Ürünleştirme', rota: '—', eksen: 'veri',
+    amac: 'Kaynak belgenin bir alanı ürünün YANLIŞ alanına yazıldığında biçim doğru kalır ve hiçbir kapı göremez; savunma paketin ALAN EŞLEME BEYANIDIR',
+    rol: 'paket yazarı · bağımsız inceleyici', kapsam: 'manifest.json `alanEslemesi` · lib/paket/dogrula.ts',
+    onkosul: 'EPDK Ek-3\'ün "Seviye" kademesi ürünün HEDEF OLGUNLUK alanına yazılmıştı; 508 zorunlu kontrolün hedefi bozuldu (bağımsız inceleme, PR #43 tur 2)',
+    veriHali: 'aykiri',
+    eylem: 'Paket doğrulanır: beyansız çerçeve, beyansız dolu sütun, ölü beyan, çifte beyan, temsilî çerçeveye beyan ve olmayan çerçeveye beyan denenir',
+    beklenenSonuc: 'Temsilî olmayan her çerçeve beyan eder; dosyada DOLU her sütun beyanda geçer (beyansız sütun ALAN EŞLEME hatası); beyanda geçip dosyada boş kalan sütun ÖLÜ beyandır; '
+      + 'bir ürün alanı iki kez beyan edilemez; temsilî çerçeve (kaynak belgesi yok) beyan edemez; pakette olmayan çerçeveye beyan yazılamaz; '
+      + 'gerekçe en az 40 karakterdir ve ürün alanı sütun listesinin dışına yazılamaz — kapı beyanın VARLIĞINI ölçer, DOĞRULUĞUNU değil (kabul edilmiş sınır)',
+    beklenenEkran: 'yok (paket doğrulama)',
+    beklenenIz: 'yazma yok (doğrulama)', beklenenBildirim: 'yok',
+    katmanlar: ['DOMAIN'],
+  },
+  {
     id: 'URN-PKT-010', alan: 'Ürünleştirme', rota: '—', eksen: 'veri',
     amac: 'Paket işlemlerinin müşteri verisini SİLEMEMESİ (R-C): bekçi tavanı sıfır, gerekçeli istisna yok',
     rol: 'ürünü sürdüren geliştirici', kapsam: '`lib/paket/` · paket eylemleri · şema',

@@ -37,7 +37,7 @@ describe('/paketler · veri katmanı [URN-PKT-016]', () => {
     expect(ortak.disk!.sayilar).toMatchObject({ cerceveler: 3, maddeler: 11 });
     const enerji = v.satirlar.find((s) => s.kod === 'TR-ENERJI')!;
     expect(enerji.kurulu).toBeNull();
-    expect(enerji.disk).toMatchObject({ surum: '0.2.0', hatalar: [], sektor: 'ELEKTRIK-URETIM' });
+    expect(enerji.disk).toMatchObject({ surum: '0.3.0', hatalar: [], sektor: 'ELEKTRIK-URETIM' });
     expect(v.ozet).toEqual({ kurulu: 3, guncellemeVar: 0, dogrulanamadi: 0, taslakCerceve: 0 });
     // karar sırası: kurulu-güncel önce, kurulabilir sonra
     expect(v.satirlar.map((s) => s.hal)).toEqual(['guncel', 'guncel', 'guncel', 'kurulu_degil', 'kurulu_degil']);

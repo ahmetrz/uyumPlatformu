@@ -1,4 +1,5 @@
 import { beforeAll, describe, expect, it } from 'vitest';
+import { arizaKaldir, arizaKur } from './yardim/ariza';
 import { copyFileSync, mkdtempSync } from 'node:fs';
 import { createHash, randomBytes } from 'node:crypto';
 import { tmpdir } from 'node:os';
@@ -235,12 +236,10 @@ describe('İstisna onayının yan etkisi çiftlenmez ve yarım kalmaz', () => {
        yan etkiden ÖNCE yazılır; aynı transaction'da olmasaydı ortada
        "onaylandı" izi kalır, karşılığı olan durum değişimi olmazdı. */
     const { istisna, talep, durumIdler } = await istisnaTalebiAc('Y2', 2);
-    await db.$executeRawUnsafe(
-      'CREATE TRIGGER yaris_tarihce_patlat BEFORE INSERT ON "DegerlendirmeTarihcesi" '
-      + "WHEN NEW.yeniDurum = 'kapsamdisi' BEGIN SELECT RAISE(ABORT, 'disk doldu'); END;");
+    await arizaKur(db, 'yaris_tarihce_patlat', 'DegerlendirmeTarihcesi', 'NEW."yeniDurum" = \'kapsamdisi\'');
     let sonuc;
     try { sonuc = await onayKarar({ id: talep.id, karar: 'onaylandi', gerekce: 'onay' }); }
-    finally { await db.$executeRawUnsafe('DROP TRIGGER IF EXISTS yaris_tarihce_patlat;'); }
+    finally { await arizaKaldir(db, 'yaris_tarihce_patlat', 'DegerlendirmeTarihcesi'); }
 
     expect(sonuc.ok).toBe(false);
     expect((await db.onayTalebi.findUniqueOrThrow({ where: { id: talep.id } })).durum).toBe('bekliyor');

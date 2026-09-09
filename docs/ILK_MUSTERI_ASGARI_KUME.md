@@ -36,15 +36,17 @@ yapılamaz; R12 olmadan yapılır ama müşteri ürünü denetimde kullanamaz.
 
 ## 1 · TR-ENERJI içeriği — en yakın kalem
 
-**Bugün.** Yönetmelik gövdesi (4 bölüm + 18 madde + 1 geçici) ve **Ek-3**
-(13 aile + 565 kontrol) tam metinle pakette; her metinli maddede kaynak
-adresi, belge içi konum ve erişim tarihi var. Çerçeveler uygulanabilirlik
-beyan ediyor. Kurulum sonrası sürümler TASLAK gelir.
+**Bugün (9 Eylül 2026 · 0.3.0 · BİTTİ).** Yönetmelik gövdesi (4 bölüm +
+18 madde + 1 geçici) ve **yedi ekin tamamı** tam metinle pakette: 88
+kontrol ailesi + **3 691 kontrol**, metni girilmemiş kontrol **0**. Her
+metinli maddede kaynak adresi, belge içi konum ve erişim tarihi var; her
+çerçeve uygulanabilirlik, manifest her çerçeve için alan eşleme beyan
+ediyor. Kurulum sonrası sekiz sürümün hepsi TASLAK gelir.
 
-**Kalan (ölçülmüş).** EPDK yedi ek yayımlar; pakette **bir tanesi** var.
-Kalan altı ekin kontrol sayısı `docs/TR_SEKTOR_PAKETLERI.md` §4'te
-ölçülü: toplam 3 691 kontrol, Ek-3 dışındakiler **3 126**. Aynı yolla
-aktarılırlar — dosya biçimi aynı (XLSX), okuma betiği aynı.
+**Kalan.** Bu kalemde içerik kalmadı. Yönetmeliğin Ek-1a/2a/3a referans
+TOPOLOJİ dosyaları (çizim) aktarılmadı: madde ağacı değildir, kontrol
+maddesi taşımaz — kapsam öğesi mimarisi görselidir ve ürün bugün görsel
+eki taşımaz.
 
 | İş | Dosya / göç | Ölçü |
 | --- | --- | --- |
@@ -65,9 +67,13 @@ aktarılırlar — dosya biçimi aynı (XLSX), okuma betiği aynı.
 yapılmaz: eşzamanlı yazma, yedek/geri yükleme ve satır düzeyi güvenlik
 (P2/RLS) buna dayanır.
 
-**Bugün.** `docs/POSTGRES_READINESS.md` **on bir** SQLite bağımlılığı
-sayar; **ikisi sessizce yanlış** davranır (tetikleyiciler ve `LIKE`
-büyük/küçük harf duyarlılığı). Ölçülen dokunulacak yerler:
+**Bugün (9 Eylül 2026 · R5 · UYGULANDI).** Ürün İKİ sağlayıcıda da
+koşuyor ve tam test kümesi ikisinde de yeşil: **192/192 dosya · 3 503
+vaka · 1 atlandı** (atlanan sayısı artmadı). Tek taban göçü, dokuz
+tetikleyici ve üç elle indeks yerinde; kapılar `kapi:pg-taban` ve
+`kapi:pg-goc`, CI'da `kapi-postgres` işi postgres:16 servisiyle koşuyor.
+Ayrıntı ve ölçümün yakaladığı beş sürpriz: `docs/POSTGRES_READINESS.md`
+§0. Aşağıdaki tablo o günün planıydı; sütun sonuna ölçülen hâl eklendi:
 
 | İş | Dosya / göç | Ölçü |
 | --- | --- | --- |
@@ -79,9 +85,16 @@ büyük/küçük harf duyarlılığı). Ölçülen dokunulacak yerler:
 | CI | `.github/workflows/pr-kapisi.yml` | PostgreSQL servisi + ikinci koşum |
 | Yük ölçümü | `web/arac/yuk.mjs` | 10⁵ varlık · 20 oturum; sonuç `docs/PERFORMANS_TABANI.md` |
 
-**Kapı.** Yeni bir şey icat edilmez: `kapi:goc-zinciri` PostgreSQL'de de
-koşar (boş veritabanı → şema farkı 0). Bu, göç zincirinin iki sağlayıcıda
-da doğru olduğunu ölçen tek kapıdır.
+**Kapı (kuruldu).** `kapi:pg-goc` boş bir PostgreSQL veritabanına tabanı
+uygular ve ÜÇ şeyi ölçer: şema farkı 0 · nesne envanteri (SQLite'ta olup
+PostgreSQL'de olmayan tetikleyici/indeks KIRMIZI) · değişmezlik (altı
+yasak eylem reddedilir, satırsız UPDATE geçer). Şema farkı TEK BAŞINA
+yetmiyordu: `migrate diff` elle yazılan DDL'i görmez ve iki tetikleyici
+eksikken kapı "fark 0" diyordu.
+
+**Kalan.** Bu kalemde kod işi kalmadı; kurulum yolu P7'nin işidir
+(`npm run pg:istemci` + taban göçü + tohum). Yük ölçümü (`arac/yuk.mjs`,
+10⁵ varlık) PostgreSQL'de KOŞULMADI — ölçülmedi, sıfır değil.
 
 ---
 
@@ -169,8 +182,8 @@ bitirmez.
 ## 7 · Sıra
 
 ```
-TR-ENERJI içeriği (kalan 6 ek)  ─┐
-R5 · PostgreSQL ────────────────┼─► P7 · dağıtım ──► ilk kurulum
+TR-ENERJI içeriği ✔ (bitti)     ─┐
+R5 · PostgreSQL ✔ (bitti) ──────┼─► P7 · dağıtım ──► ilk kurulum
 R3 · yedek + kanıt ─────────────┘        │
 R12 · denetim formları ──────────────────┘  (kurulumdan sonra, ilk denetimden önce)
 ```

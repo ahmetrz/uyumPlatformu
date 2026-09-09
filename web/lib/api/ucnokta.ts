@@ -1,4 +1,5 @@
 import 'server-only';
+import { gunluk } from '../gunluk';
 import { z } from 'zod';
 import { db } from '../db';
 import { DEMO } from '../demo';
@@ -273,7 +274,7 @@ export function apiUcu(
         sureMs: Date.now() - basla,
       }).catch(() => { /* denetim yazımı isteği düşürmez; hata yanıtı yine döner */ });
 
-      if (durum >= 500) console.error(`[api] ${yontem} ${yol} → ${h.kod}: ${h.icNot ?? h.message}`);
+      if (durum >= 500) gunluk.hata('api.sunucu_hatasi', { yontem, yol, kod: h.kod, not: h.icNot ?? h.message });
       return yanit(govde, durum, { ...oranBasliklari, ...(h.basliklar ?? {}) });
     }
   };

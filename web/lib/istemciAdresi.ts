@@ -1,4 +1,5 @@
 import 'server-only';
+import { gunluk } from './gunluk';
 import { headers } from 'next/headers';
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -37,8 +38,8 @@ import { headers } from 'next/headers';
                                  güvenilmeyen giriş istemcidir.
    ─────────────────────────────────────────────────────────────────────
    TANINMAYAN değer SESSİZCE GÜVENMEYE DÖNÜŞMEZ: politika `hatali` işaretiyle
-   GÜVENMEME moduna düşer ve süreç ömründe BİR KEZ `console.error` ile
-   günlüğe yazılır. Yanlış yazılmış bir ortam değişkeni, sessizce açılmış bir
+   GÜVENMEME moduna düşer ve süreç ömründe BİR KEZ yapısal günlüğe yazılır
+   (`lib/gunluk.ts` · olay `istemciAdresi.trust_proxy_anlasilmadi`). Yanlış yazılmış bir ortam değişkeni, sessizce açılmış bir
    spoof kapısından iyidir; ama fark edilmeden de kalmamalıdır.
 
    ── "ATLAMA" NEDEN ZİNCİRİN SONUNDAN SAYILIR ───────────────────────────
@@ -273,11 +274,11 @@ let uyarildi = false;
 function hataliyiBirKezBildir(sebep: string): void {
   if (uyarildi) return;
   uyarildi = true;
-  console.error(
-    `[istemciAdresi] TRUST_PROXY değeri anlaşılmadı (${sebep}); `
-    + 'iletilen adres başlıklarına GÜVENİLMİYOR. Geçerli değerler: '
-    + "0/off (varsayılan), 1/on, 0-32 arası tam sayı, ya da IP/CIDR listesi.",
-  );
+  gunluk.hata('istemciAdresi.trust_proxy_anlasilmadi', {
+    sebep,
+    sonuc: 'iletilen adres başlıklarına GÜVENİLMİYOR',
+    gecerliDegerler: '0/off (varsayılan) · 1/on · 0-32 arası tam sayı · IP/CIDR listesi',
+  });
 }
 
 /** Etkin politika (ilk çağrıda ortamdan okunur, sonra önbellekten). */

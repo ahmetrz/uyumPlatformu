@@ -106,10 +106,47 @@ const DB_YOL = process.env.DB_YOL || path.join(WEB, 'prisma', 'dev.db');
    ile artırılabilir. */
 const ORNEK_SAYISI = Math.max(1, Number(process.env.TOHUM_ORNEK) || 3);
 
+/* TOHUM DEĞERLERİ BAŞKA BİR KURULUMDAN GELEBİLİR (P7 · compose duman kapısı).
+
+   Kimlikler `@default(cuid())` ile üretilir: ana makinenin `dev.db`sindeki
+   `id`ler, compose ile ayağa kalkan PostgreSQL kurulumunda YOKTUR. O
+   id'lerle URL kurmak her dinamik rotayı 404 yapardı ve kapı, ürün
+   sağlamken kırmızı yanardı.
+
+   `TOHUM_JSON` verildiğinde değerler o dosyadan okunur; dosyayı ölçen
+   taraf KURULUMUN KENDİ veritabanını sorgular (`arac/compose-duman.mjs`).
+   Dosya yoksa ya da rota orada yoksa bu bir HATADIR — sessizce yerel
+   `dev.db`ye düşmek, "kurulumu ölçtüm" derken ana makineyi ölçmek olurdu. */
+const TOHUM_JSON = process.env.TOHUM_JSON?.trim() || null;
+
+let tohumJsonOnbellek;
+function tohumJsonOku() {
+  if (tohumJsonOnbellek === undefined) {
+    try {
+      tohumJsonOnbellek = JSON.parse(readFileSync(TOHUM_JSON, 'utf8'));
+    } catch (e) {
+      tohumJsonOnbellek = { _hata: `TOHUM_JSON okunamadı (${TOHUM_JSON}): ${e.message}` };
+    }
+  }
+  return tohumJsonOnbellek;
+}
+
 /** Tek bir dinamik rotanın tohumdaki gerçek değeri. */
 export function tohumDegeri(rota) {
   const kaynak = TOHUM_KAYNAGI[rota];
   if (!kaynak) return { hata: 'tohum kaynağı tanımsız (kosu-ortak.mjs · TOHUM_KAYNAGI)' };
+  if (TOHUM_JSON !== null) {
+    const j = tohumJsonOku();
+    if (j._hata) return { hata: j._hata };
+    const d = j[rota];
+    if (!d || !Array.isArray(d.degerler) || d.degerler.length === 0) {
+      return { hata: `TOHUM_JSON içinde ${rota} için kayıt yok` };
+    }
+    return {
+      degerler: d.degerler.slice(0, ORNEK_SAYISI).map(String),
+      kaynak: d.kaynak ?? `${kaynak.tablo}.${kaynak.kolon} (TOHUM_JSON)`,
+    };
+  }
   let db;
   try { db = new Database(DB_YOL, { readonly: true }); } catch (e) {
     return { hata: `tohum veritabanı açılamadı: ${e.message}` };

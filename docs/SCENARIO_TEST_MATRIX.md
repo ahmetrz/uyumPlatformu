@@ -4,12 +4,12 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 319 |
-| Testi olan senaryo | 319 |
+| Senaryo | 324 |
+| Testi olan senaryo | 324 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
-| Taranan test dosyası | 190 |
+| Taranan test dosyası | 194 |
 
 ## Katman başına kapsam
 
@@ -18,7 +18,7 @@
 | ACCESSIBILITY | 8 | 8 | 0 |
 | API | 12 | 12 | 0 |
 | CONCURRENCY | 7 | 7 | 0 |
-| DOMAIN | 178 | 178 | 0 |
+| DOMAIN | 183 | 183 | 0 |
 | ENGINE | 33 | 33 | 0 |
 | INTEGRATION | 40 | 40 | 0 |
 | MIGRATION | 5 | 5 | 0 |
@@ -587,6 +587,8 @@
 | `URN-PKT-019` | Ürünleştirme | DOMAIN · SERVER | `paket-icerik.test.ts` | kaynak_url adres olmalı, tarihler takvimde olmalı, kaynak_yeri konumdur | evet | geçti |
 | `URN-PKT-019` | Ürünleştirme | DOMAIN · SERVER | `paket-icerik.test.ts` | metinsiz madde köken istemez — "metin girilmedi" hâli boş bırakılır, uydurulmaz | evet | geçti |
 | `URN-PKT-019` | Ürünleştirme | DOMAIN · SERVER | `paket-icerik.test.ts` | metinli her maddede kaynak adresi ve erişim tarihi var; metinsiz madde uydurma köken taşımaz | evet | geçti |
+| `URN-PKT-019` | Ürünleştirme | DOMAIN · SERVER | `paket-icerik.test.ts` | yedi ekin ölçümü: aile · kontrol · metni olan — hiçbiri tahmin değil | evet | geçti |
+| `URN-PKT-019` | Ürünleştirme | DOMAIN · SERVER | `paket-icerik.test.ts` | kademe DÖRT kanonik sınıftır: ham dize sadık, gruplama anahtarı tek | evet | geçti |
 | `URN-PKT-019` | Ürünleştirme | DOMAIN · SERVER | `paket-icerik.test.ts` | Ek-3: 565 kontrol, 57 "Ek Kontrol" seviyesiz ve OPTIONAL — seviyesizlik sıfır değil | evet | geçti |
 | `URN-PKT-019` | Ürünleştirme | DOMAIN · SERVER | `paket-icerik.test.ts` | lisans: kamuya açık, metin dâhil, FSEK md. 31 dayanağı kimliklerde yazılı | evet | geçti |
 | `URN-PKT-019` | Ürünleştirme | DOMAIN · SERVER | `paket-iskeletler.test.ts` | TR-ENERJI artık içerikli: iki çerçeve de metin taşır ve her metinli madde KÖKEN taşır | evet | geçti |
@@ -606,11 +608,64 @@
 | `URN-PKT-020` | Ürünleştirme | DOMAIN · SERVER | `paket-uygulanabilirlik.test.ts` | türü listede olan öğe kapsamda, olmayan kapsam dışı; gerekçe türü yazar | evet | geçti |
 | `URN-PKT-020` | Ürünleştirme | DOMAIN · SERVER | `uygulanabilirlik.test.ts` | `icinde` işleci: kapsam öğesi TÜRÜ paket beyanından okunur | evet | geçti |
 | `URN-PKT-020` | Ürünleştirme | DOMAIN · SERVER | `uygulanabilirlik.test.ts` | paket beyanının türü, aynı adlı bir ÖZNİTELİKLE ezilemez | evet | geçti |
-| `URN-PKT-021` | Ürünleştirme | SERVER · UI | `paket-uygulanabilirlik.test.ts` | paket kurulur: iki çerçeve TASLAK, 601 madde, hiçbir sürüm aktif değil | evet | geçti |
+| `URN-PKT-021` | Ürünleştirme | SERVER · UI | `paket-uygulanabilirlik.test.ts` | paket kurulur: sekiz çerçeve TASLAK, 3 803 madde, hiçbir sürüm aktif değil | evet | geçti |
 | `URN-PKT-021` | Ürünleştirme | SERVER · UI | `paket-uygulanabilirlik.test.ts` | /uyum: çerçeve görünür ve "aktif sürüm yok · N madde taslak" der — 0 kontrol demez | evet | geçti |
+| `URN-PKT-021` | Ürünleştirme | SERVER · UI | `paket-uygulanabilirlik.test.ts` | /uyum: yedi ekin madde sayısı ÖLÇÜLEN sayıyla aynı, hiçbiri kendiliğinden aktif değil | evet | geçti |
 | `URN-PKT-021` | Ürünleştirme | SERVER · UI | `paketler-mantik.test.ts` | seçilen TASLAK çerçeve gösterilir — satırı olan çerçeveye kaymaz | evet | geçti |
 | `URN-PKT-021` | Ürünleştirme | SERVER · UI | `uyum-taslak-serit.test.ts` | şerit taslak dalını tanır ve dört ölçütü de bilinmeyene çevirir | evet | geçti |
 | `URN-PKT-021` | Ürünleştirme | SERVER · UI | `uyum-taslak-serit.test.ts` | taslak dalı sayısal ölçüt taşımaz — "0 Uygunsuz" iyi haber gibi okunur | evet | geçti |
+| `URN-KUR-009` | Kurulum | DOMAIN | `arama-kosulu.test.ts` | kip SAĞLAYICIDAN gelir: PostgreSQL duyarsız kip gönderir, SQLite göndermez | evet | geçti |
+| `URN-KUR-009` | Kurulum | DOMAIN | `arama-kosulu.test.ts` | sağlayıcı bağlantı dizesinden çözülür; tanınmayan şema SESSİZCE SQLite olmaz | evet | geçti |
+| `URN-KUR-009` | Kurulum | DOMAIN | `arama-kosulu.test.ts` | TEST_PG_URL ürünü yönetemez: yalnız test koşumunda okunur | evet | geçti |
+| `URN-KUR-009` | Kurulum | DOMAIN | `arama-kosulu.test.ts` | arama büyük/küçük harf duyarsızdır — iki sağlayıcıda da | evet | geçti |
+| `URN-KUR-009` | Kurulum | DOMAIN | `pg-gocu.test.ts` | taban göçü ELLE YAZILAN DDL\'i taşır: dokuz tetikleyici ve üç indeks | evet | geçti |
+| `URN-KUR-009` | Kurulum | DOMAIN | `pg-gocu.test.ts` | canlı kapı ÜÇ değişmez tabloyu da sınar — DDL\'i olup sınanmayan tablo kalmaz | evet | geçti |
+| `URN-KUR-009` | Kurulum | DOMAIN | `pg-gocu.test.ts` | SQLite zincirindeki elle yazılan DDL, PostgreSQL tarafında KARŞILIKSIZ kalmaz | evet | geçti |
+| `URN-KUR-009` | Kurulum | DOMAIN | `pg-gocu.test.ts` | PostgreSQL ad kısaltması YALANCI kırmızı üretmez | evet | geçti |
+| `URN-KUR-010` | Kurulum | DOMAIN | `bekci/gunluk-sir.test.ts` | sunucu kodunda çıplak console.* çağrısı yok | evet | geçti |
+| `URN-KUR-010` | Kurulum | DOMAIN | `bekci/gunluk-sir.test.ts` | sır kokan anahtarın DEĞERİ yazılmaz, adı yazılır | evet | geçti |
+| `URN-KUR-010` | Kurulum | DOMAIN | `bekci/gunluk-sir.test.ts` | anahtar tanıma büyük/küçük harf ve ayraç duyarsızdır | evet | geçti |
+| `URN-KUR-010` | Kurulum | DOMAIN | `bekci/gunluk-sir.test.ts` | hata nesnesi yığın izi olmadan yazılır — iz iç yol sızdırır | evet | geçti |
+| `URN-KUR-010` | Kurulum | DOMAIN | `bekci/gunluk-sir.test.ts` | derin nesne sonsuza inmez | evet | geçti |
+| `URN-KUR-011` | Kurulum | DOMAIN | `yedek-araci.test.ts` | yedek alır, doğrular ve göç durumunu raporlar | evet | geçti |
+| `URN-KUR-011` | Kurulum | DOMAIN | `yedek-araci.test.ts` | var olan yedeğin ÜSTÜNE YAZMAZ | evet | geçti |
+| `URN-KUR-011` | Kurulum | DOMAIN | `yedek-araci.test.ts` | MANTIKSAL karşılaştırma bayt karşılaştırması değildir | evet | geçti |
+| `URN-KUR-011` | Kurulum | DOMAIN | `yedek-araci.test.ts` | içerik özeti VERİ DEĞİŞİNCE değişir — yoksa hiçbir şey ölçmezdi | evet | geçti |
+| `URN-KUR-011` | Kurulum | DOMAIN | `yedek-araci.test.ts` | BOZUK yedek sessizce kabul edilmez | evet | geçti |
+| `URN-KUR-011` | Kurulum | DOMAIN | `yedek-araci.test.ts` | olmayan yedek ve manifestsiz dizin açıkça reddedilir | evet | geçti |
+| `URN-KUR-011` | Kurulum | DOMAIN | `yedek-araci.test.ts` | sağlayıcı bağlantıdan çözülür; tanınmayan şema HATADIR | evet | geçti |
+| `URN-KUR-011` | Kurulum | DOMAIN | `yedek-araci.test.ts` | kanıt dosyalarını ALIR ve manifeste anahtar · boyut · özet yazar | evet | geçti |
+| `URN-KUR-011` | Kurulum | DOMAIN | `yedek-araci.test.ts` | BOŞ depoda "dosya: 0" ölçülür — "kanıt dosyası yok" denmez | evet | geçti |
+| `URN-KUR-011` | Kurulum | DOMAIN | `yedek-araci.test.ts` | DEPOSU ÖLÇÜLEMEYEN yedek DOĞRULANMIŞ sayılmaz | evet | geçti |
+| `URN-KUR-011` | Kurulum | DOMAIN | `yedek-araci.test.ts` | BOŞ DİZE `dosyaHash` iki sağlayıcıda da "özet yok" sayılır | evet | geçti |
+| `URN-KUR-011` | Kurulum | DOMAIN | `yedek-araci.test.ts` | yedekten SİLİNEN kanıt dosyası doğrulamada ADIYLA çıkar | evet | geçti |
+| `URN-KUR-011` | Kurulum | DOMAIN | `yedek-araci.test.ts` | yedekte DEĞİŞTİRİLEN kanıt dosyası ÇÜRÜK diye çıkar | evet | geçti |
+| `URN-KUR-011` | Kurulum | DOMAIN | `yedek-araci.test.ts` | veritabanının BEKLEDİĞİ ama yedekte olmayan dosya EKSİK diye çıkar | evet | geçti |
+| `URN-KUR-011` | Kurulum | DOMAIN | `yedek-araci.test.ts` | `dosyaHash` ile TUTMAYAN dosya ÇÜRÜK diye çıkar | evet | geçti |
+| `URN-KUR-011` | Kurulum | DOMAIN | `yedek-araci.test.ts` | kanıt SÜRÜMLERİNİN dosyaları da beklenenler arasındadır | evet | geçti |
+| `URN-KUR-011` | Kurulum | DOMAIN | `yedek-araci.test.ts` | BOŞ ortama geri yükler: veritabanı ve kanıt dosyaları geri gelir | evet | geçti |
+| `URN-KUR-011` | Kurulum | DOMAIN | `yedek-araci.test.ts` | DOLU ortama üstüne yazmaz — geri yükleme veri kaybettirir | evet | geçti |
+| `URN-KUR-011` | Kurulum | DOMAIN | `yedek-araci.test.ts` | SAĞLAYICILAR ARASI geri yükleme reddedilir | evet | geçti |
+| `URN-KUR-012` | Kurulum | DOMAIN | `bekci/ortam-semasi.test.ts` | geçerli ortam çözülür ve hata listesi BOŞTUR | evet | geçti |
+| `URN-KUR-012` | Kurulum | DOMAIN | `bekci/ortam-semasi.test.ts` | AYRIŞTIRILAMAYAN PostgreSQL dizesi ADIYLA reddedilir | evet | geçti |
+| `URN-KUR-012` | Kurulum | DOMAIN | `bekci/ortam-semasi.test.ts` | SESSİZCE YANLIŞ HOSTA ayrışan dize de reddedilir | evet | geçti |
+| `URN-KUR-012` | Kurulum | DOMAIN | `bekci/ortam-semasi.test.ts` | UNIX SOKET ve IPv6 biçimleri REDDEDİLMEZ | evet | geçti |
+| `URN-KUR-012` | Kurulum | DOMAIN | `bekci/ortam-semasi.test.ts` | URL kodlanmış parola KABUL edilir — kural dizeye, parolaya değil | evet | geçti |
+| `URN-KUR-012` | Kurulum | DOMAIN | `bekci/ortam-semasi.test.ts` | TANINMAYAN sağlayıcı sessizce SQLite olmaz | evet | geçti |
+| `URN-KUR-012` | Kurulum | DOMAIN | `bekci/ortam-semasi.test.ts` | BOZUK sayı ve mantık değeri varsayılana DÜŞMEZ, hata verir | evet | geçti |
+| `URN-KUR-012` | Kurulum | DOMAIN | `bekci/ortam-semasi.test.ts` | kurulumda verilmesi gereken anahtarlar ADIYLA sayılıdır | evet | geçti |
+| `URN-PKT-022` | Ürünleştirme | DOMAIN | `paket-alan-eslemesi.test.ts` | tam beyan temizdir; kaynakta karşılığı olmayan alan null ile beyan edilir | evet | geçti |
+| `URN-PKT-022` | Ürünleştirme | DOMAIN | `paket-alan-eslemesi.test.ts` | beyanı hiç olmayan çerçeve kırmızıdır ve dolu sütunları sayar | evet | geçti |
+| `URN-PKT-022` | Ürünleştirme | DOMAIN | `paket-alan-eslemesi.test.ts` | dolu ama BEYANSIZ sütun kırmızıdır — kusurun ölçülmüş hâli | evet | geçti |
+| `URN-PKT-022` | Ürünleştirme | DOMAIN | `paket-alan-eslemesi.test.ts` | dosyada boş kalan sütunun beyanı ÖLÜ beyandır | evet | geçti |
+| `URN-PKT-022` | Ürünleştirme | DOMAIN | `paket-alan-eslemesi.test.ts` | bir ürün alanı iki kez beyan edilemez — hangi kaynağın yazıldığı belirsiz kalır | evet | geçti |
+| `URN-PKT-022` | Ürünleştirme | DOMAIN | `paket-alan-eslemesi.test.ts` | temsilî çerçeve beyan EDEMEZ (kaynak belgesi yok), beyansızlığı da kırmızı değildir | evet | geçti |
+| `URN-PKT-022` | Ürünleştirme | DOMAIN | `paket-alan-eslemesi.test.ts` | pakette olmayan çerçeveye beyan ölü atıftır | evet | geçti |
+| `URN-PKT-022` | Ürünleştirme | DOMAIN | `paket-alan-eslemesi.test.ts` | ürün alanı sütun listesinin dışına yazılamaz; gerekçe kısaltılamaz | evet | geçti |
+| `URN-PKT-022` | Ürünleştirme | DOMAIN | `paket-alan-eslemesi.test.ts` | boş beyan listesi beyan değildir | evet | geçti |
+| `URN-PKT-022` | Ürünleştirme | DOMAIN | `paket-alan-eslemesi.test.ts` | paketler/ altındaki HER paket doğrulayıcıdan temiz geçer | evet | geçti |
+| `URN-PKT-022` | Ürünleştirme | DOMAIN | `paket-alan-eslemesi.test.ts` | EPDK "Seviye" kademesi gereksinim_tipi olarak beyanlıdır, seviye sütunu BOŞTUR | evet | geçti |
+| `URN-PKT-022` | Ürünleştirme | DOMAIN | `paket-alan-eslemesi.test.ts` | beyan yazan her paketin manifesti şemayı geçer ve gerekçeleri maliyet cümlesi değildir | evet | geçti |
 | `URN-PKT-010` | Ürünleştirme | DOMAIN | `bekci/paket-silme.test.ts` | madde dışında HİÇBİR modelde delete/deleteMany yok — tavan sıfır, istisna listesi yok | evet | geçti |
 | `URN-PKT-010` | Ürünleştirme | DOMAIN | `bekci/paket-silme.test.ts` | madde silmesi yalnız paketin kendi taslağını (`surumId` süzgeci) hedefler ve bağ kontrolünden sonra gelir | evet | geçti |
 | `URN-PKT-010` | Ürünleştirme | DOMAIN | `bekci/paket-silme.test.ts` | şemada Madde\'den başka modele giden HER liste ilişkisi bağ kontrolünde; listede şemada olmayan ilişki yok | evet | geçti |

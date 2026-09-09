@@ -163,10 +163,10 @@ paket başlıklarındaki "Bugün" paragrafları ayrıntıyı taşır.
 | **P4 · İçerik paketi mimarisi** | **bitti** | `web/lib/paket/` (biçim · doğrulayıcı · kurucu · OSCAL), `/paketler` ekranı, `IcerikPaketi*` katalogları, beş paket dizini | `98b50c6` → `c31ee45` · PR #41 · #43 |
 | **P8 · Demo verisi** | **bitti (kurgusal ad kısmı)** | tohum paketlerden kurulur (`DEMO-TR-ORTAK · DEMO-TR-ENERJI · DEMO-TR-SU`); kurgusal ad bekçisi `prisma/kurgusal-adlar.ts` | `a100df8` (kurgusal ad) · `16d20fd` (paket biçimi) |
 | **Kapı altyapısı** | **bitti ve büyüyor** | 20 kapı (PR kapısından türetilir, `npm run kapi:parti`), 60 araç betiği, göç zinciri kapısı (`kapi:goc-zinciri`) | `5928944` · PR #43 |
-| **TR-ENERJI içeriği** | **kısmen** — yönetmelik + Ek-3 tam metin (601 madde), kalan 6 ek yok | `web/paketler/TR-ENERJI` | `9535808` · PR #43 |
+| **TR-ENERJI içeriği** | **bitti (0.3.0)** — yönetmelik + YEDİ ekin tamamı tam metin: 8 çerçeve · 3 803 madde (89 aile + 3 691 kontrol + 23 yönetmelik satırı) · metni girilmemiş kontrol 0 | `web/paketler/TR-ENERJI` | `9535808` · PR #43 · ek aktarımı bu dal |
 
 Ölçüm tabanı (aynı gün): **3 467 test vakası · 189 dosya · 319 senaryo ·
-GAP 0 · 51 göç · şema farkı 0 · 157 model · 20 kapı**.
+GAP 0 · 52 göç (SQLite zinciri) + 1 taban göçü (PostgreSQL) · şema farkı 0 · 157 model · 23 kapı**.
 
 **Kardeş belgelerdeki bayat sayılar (9 Eyl 2026'da ölçüldü, düzeltilecek):**
 `docs/GELISTIRME_PAKETLERI_DURUM.md` 139 dosya · 2 903 vaka · 273 senaryo
@@ -689,10 +689,13 @@ zorunlu**, SQLite (geliştirme/demo) yalnız uygulama kapısı.
 **Alan kodu:** `ALT-PG` · **Etki:** ön koşul · **Çaba:** orta-yüksek ·
 **Dalga:** 0 (P2 ile birlikte — kiracı izolasyonunun RLS ayağı)
 
-**Bugün.** `docs/POSTGRES_READINESS.md` 11 SQLite bağımlılığı sayar;
-ikisi (6 değişmezlik tetikleyicisi, `LIKE` duyarlılığı) Postgres'te
-**sessizce yanlış** davranır. Yarış koşulları P1–P7 kapatılmış. Test
-izolasyonu dosya kopyasına dayanır. Yük testi yapılmamış.
+**Bugün (9 Eylül 2026 · UYGULANDI, yük ölçümü hariç).** Ürün iki
+sağlayıcıda da koşuyor; tam test kümesi ikisinde de yeşil (192/192 dosya ·
+3 503 vaka · 1 atlandı, atlanan artmadı). Tek taban göçü şemadan üretilir
+ve bayatlarsa kırmızıdır; dokuz tetikleyici ve üç elle indeks yerinde;
+kapı iki sağlayıcının NESNE ENVANTERİNİ karşılaştırır. Test izolasyonu
+PostgreSQL'de şablondan klon veritabanıdır (dosya kopyası SQLite'ta
+kalır). **Yük testi hâlâ YAPILMADI** — ölçülmedi, sıfır değil.
 
 **Hedef.** Ürün PostgreSQL üzerinde aynı testlerle yeşil; 10⁵ varlık ve
 20 eşzamanlı kullanıcı ölçümü belgelenmiş.
@@ -868,10 +871,11 @@ metin `prose` içinden sızamaz), OSCAL dışı alanlar `props` ad alanında,
 Türkçe kod prop'ta korunur; gidiş-dönüş üç iskelet çerçevesinde (659
 madde) birebir; yazar aracı `--oscal <dizin>` (URN-PKT-017). SCF içe
 alımı hukuki görüşe bağlı kalır — okuyucu hazır, içerik yok.
-**İÇERİK uygulandı (9 Eylül 2026):** `TR-ENERJI` 0.2.0 artık iskelet değil —
+**İÇERİK uygulandı (9 Eylül 2026):** `TR-ENERJI` 0.3.0 artık iskelet değil —
 EPDK Yetkinlik Modeli Yönetmeliği (4 bölüm + 18 madde + 1 geçici madde) ve
-Ek-3 Elektrik Üretim teknik kontrol maddeleri (13 aile + 565 kontrol) TAM
-METİNLE pakette; metin EPDK resmî sitesinden (birincil kaynak) indirildi,
+YEDİ sektör ekinin tamamı (Ek-1 476 · Ek-2 505 · Ek-3 565 · Ek-4 552 · Ek-5 551 ·
+Ek-6 578 · Ek-7 464 = 3 691 kontrol, 89 kontrol ailesi) TAM
+METİNLE pakette; metni girilmemiş kontrol SIFIR; metin EPDK resmî sitesinden (birincil kaynak) indirildi,
 `mevzuat.gov.tr` ve `resmigazete.gov.tr` yine erişilemedi (HTTP 000; ikincil
 kaynak içeriğe girmedi). Madde CSV'sine köken sütunları eklendi (`kaynak_url ·
 kaynak_yeri · erisim_tarihi · yururluk_tarihi` → `Madde.maddeKaynakUrl ·
@@ -2139,7 +2143,7 @@ birlikte ele alınır:
 | R0-1 | Santral kesin koordinatları (17/17 yok) | Koordinatları kurum verir, depoda aday liste yok; Claude Code **yalnız** içe aktarım yolu ve "kesin/yaklaşık" işaretçisini ekler | Koordinat uydurulmaz |
 | R0-2 | Haritada ülke sınırı | **Kapandı** — sınır üretilmiş (`web/lib/cografya/turkiyeSiniri.ts`: `TURKIYE_SINIRI`, `SINIR_CERCEVESI`) ve haritada çiziliyor (`app/(tam)/harita/HaritaIstemci.tsx:101-102`, `SINIR_YOLLARI`). Not: bu sabit çekirdekte duran bir ÜLKE verisidir; §0.5 gereği P1'de içerik paketine taşınmalı | Kapandı (doğrulama: 6 Eyl 2026) |
 | R0-3 | `?next=` üreticisi | Giriş sonrası dönüş adresi üretilir; kapı zaten güvenli | Küçük |
-| R0-4 | Bayat belgeler | `URUN_YEDEKLEME` | R3 ile |
+| R0-4 | Bayat belgeler | **Kapandı** (9 Eyl 2026 · R3): `docs/URUN_YEDEKLEME.md` ölçümle yeniden yazıldı — kanıt dosyaları artık yedeğe giriyor, iki sağlayıcı yazılı, tatbikat koşturuldu (yedek al → ortamı boşalt → geri yükle → tam küme yeşil) ve çıktılar belgeye ölçüldüğü gibi işlendi | Kapandı |
 | R0-5 | `.abacus.donotdelete` | 5 Eylül 2026 temizliğinde silindi; ürün deposuna geri alınmayacak. Arşivde duruyor (`ahmetrz/uyumPlatformu-arsiv`, `830c174` ile eklenmiş, 22 520 baytlık Fernet şifreli blob); içeriği anahtarsız okunamaz ve ne olduğu tek satırdan fazla belgelenmemiş (arşivdeki `docs/HAZIRLIK_DURUMU.md` §13: "şifreli blob, dokunulmadı"). İçeriği bilinmediği için arşiv deposu **private kalmalı**. | Kapandı |
 | R0-6 | Uygulanmamış tasarım teslimi | Eylül 2026'da ayrı bir depoda alternatif bir tasarım sistemi üretildi (`tokens.css`, `TASARIM_TOKENLARI.md`, `TASARIM_PLANI.md`, `mockups.html`); ürünün canlı jetonlarıyla yalnız 1 jetonu ortaktı. Değerlendirildi ve **terk edildi**: ürün `web/app/kabuk.css` dilinde devam eder. Kayıt: `ahmetrz/uyumPlatformu-arsiv` deposu, `arsiv/tasarim-denemesi-2026-09` dalı (public depodan kaldırıldı: mockup verisi gerçek filodan türetilmiş tesis adları ve kişi adları taşıyordu). | Kapandı |
 | R0-7 | Belge–kod bağı koptu | `web/arac/sayimlar.mjs` ve `web/tests/belge-sayimlari.test.ts` duruyor ama Eylül 2026 temizliğinde içleri boşaltıldı: araç 6 046 → 2 633 bayt (`--yaz`, `--tablo`, `blok()`, `BASLA`/`BITIS` işaretleri düştü), test 199 → 63 satır (belgelere bakan yarısı ile `KANONIK`/`TARIHSEL` listeleri düştü). Sonuç: belgeler yeniden elle yazılmış sayaç taşımaya açık — bu belgede bir günde iki örneği çıktı. Bu belgedeki `node arac/sayimlar.mjs --yaz` şartı da bu yüzden karşılıksız. Geri kurulacaksa kaynak: `ahmetrz/uyumPlatformu-arsiv` deposu. **6 Eyl 2026 doğrulaması:** araç gerçekten 2 633 bayt ve `--yaz` bayrağı yok; test 63 satır ve hiçbir belgeye bakmıyor. P0 bunu **kapsamına almadı** — ürün adı ve belge kurgusu ile aynı PR'a sığmıyor; ayrı kalem olarak açık kalır ve o gelene kadar bu belgedeki `arac/sayimlar.mjs --yaz` şartı geçersizdir (araç yalnız JSON basar). | açık — ayrı kalem |
@@ -2150,6 +2154,7 @@ birlikte ele alınır:
 | R0-12 | Bloklayıcı erişilebilirlik kapısı 1366×768'i hiç taramıyor | `erisim-axe` ÜÇ bant tarar: 1440×900 · 768×1024 · 375×780. Dizüstünün en yaygın bandı olan **1366×768 yalnız düzen kapısının** (`tasarim:dizustu`) bandıdır ve o kapı CI'da koşmuyor (beyanı `kapi-farki.mjs` içinde). Boşluk kuramsal değil, ÖLÇÜLDÜ: `/` saha ekranının katman paneli 1366×768'de sözlüğe göre kayıyor (`enerji` 427/427 → kaymıyor · `su` 437 → 10px · `stres` 471 → 44px), axe'ın taradığı üç bantta ise kaymıyor (1440×900'de 535/535, dar bantta `overflow-y: visible`). Kaydırılabilir ama odaklanamayan bölge klavye kullanıcısı için erişilemezdir (axe · serious · `scrollable-region-focusable`) — bu bulgu kapıdan değil ELLE ölçümden çıktı, düzeltmesi (`tabindex=0`) bu pakette yapıldı ama **kapı hâlâ o bandı görmüyor**: aynı sınıftan bir sonraki kusur yine sessiz geçer. Bant sayısını artırmak axe süresini üçte bir uzatır ve yeni borç açabilir; bu yüzden ölçülüp yazıldı, kapıya tek başına eklenmedi. **Sahip:** kalite kapıları dilimi (`arac/erisim-axe.mjs`). **Kapanış:** `tasarim:dizustu` CI'ya bağlandığı gün — dördüncü bant borç listesine girip cırcıra alındığında; o gün axe bandı da aynı listeyle 1366×768'e açılır. | açık — ölçüldü, kapı genişletilmedi |
 
 | R0-13 | Üst çubuk dokunmatik bantlarda taşıyordu | **Kapandı** (8 Eyl 2026). Ölçüldü: viewport 768 iken `.ab-ust` 999px, 375 iken 938px — çubuk 1024 altında kendi içinde kırpılıyordu. Yerleşim önceliğe göre yeniden kuruldu (marka → mercek → gezinme → hesap): 1024 altında çubuk SARAR, gezinme kendi satırına iner ve yatay kaydırılır, marka ile hesap daralır; hiçbir öğe gizlenmez ve **mercek her bantta erişilebilir**. Mercek `.sag` kümesinden çıkarılıp üst çubuğun doğrudan çocuğu yapıldı — içindeyken `order` o kümenin içine hapsoluyordu. Saran gezinme ilk denemede ikincil sıranın üstüne bindi ve taşma kapısı 768px'te **168 yeni örtüşme** saydı; kabuk ızgarasının ilk satırı da dar bantta `auto` yapıldı. Ölçüm: 1440/1024/768/375'te taşma 0, mercek dört bantta da görünür; gezinme kapısı 7 bant 0 kusur, taşma kapısı yeni 0. | Kapandı |
+| R0-15 | Kurulum imajı geliştirme bağımlılıklarının TAMAMINI taşıyor | Ölçüldü (9 Eyl 2026, bağımsız inceleme): `deploy/compose/Dockerfile` `npm ci` sonucunu (`--omit=dev` yok) koşum aşamasına devrediyor; vitest · playwright-core · eslint · lighthouse üretim imajında duruyor (imaj 2,37 GB). Dockerfile'ın kendi gerekçesi "üretim imajında derleyici bulundurmak saldırı yüzeyini gereksiz büyütür" derken bu araçlar orada. Bu turda YAPILMADI çünkü koşum gerçekten `prisma` · `tsx` · `next` · `better-sqlite3` istiyor (göç, tohum, yedek) ve bunları `--omit=dev` ile ayırmak `package.json` bağımlılık sınıflarını yeniden bölmek demek — kapı yeşilken yapılacak ayrı bir dilim. Ayrıca `next.config.ts` imaja kopyalanmıyor: bugün zararsız (güvenlik başlıkları `routes-manifest.json`dan servis ediliyor, doğrulandı) ama çalışma anında okunan bir yapılandırma eklendiği gün SESSİZCE varsayılana düşer. **Sahip:** P7 · dağıtım dilimi. **Kapanış:** ilk müşteri kurulumundan ÖNCE — imaj müşteriye gitmeden. | açık — ölçüldü, ertelendi |
 | R0-14 | Zafiyet ↔ varlık eşleşmesi RASTGELE — gerçek CVE kurgusal varlığa tutarsız bağlanıyor | Ölçüldü (8 Eyl 2026): `seed-operasyon.ts` varlıkların ~%7'sine `zafiyetler[Math.floor(rnd() * zafiyetler.length)]` ile kura çekiyor. On CVE'nin dokuzu yayımlanmış gerçek kayıtlardır ve ürünleri beyanlıdır (`kurgusal-adlar.ts`), ama bağlandıkları varlık türüyle ilgisi yok: bir ağ anahtarı Rockwell ControlLogix CVE'si taşıyabiliyor. Bu bir GERÇEKLİK kusuru değil (kayıt kurgusal, rozeti ekranda) ama bir İNANDIRICILIK kusurudur ve demonun tek ölçütü inandırıcılıktır — güvenlikten anlayan bir izleyici bunu ilk bakışta görür. Düzeltmesi kura yerine eşleştirme ister: CVE'nin ürünü ↔ varlığın `uretici`/`isletimSistemi` alanı. Bu turda YAPILMADI çünkü kapsam kurgusallaştırma ve bekçiydi; kurayı eşleştirmeye çevirmek tohumun zafiyet bloğunu yeniden yazmak demek. **Sahip:** demo verisi dilimi. **Kapanış:** demo yolunun zafiyet ekranı gösterime girdiğinde — bugün sekiz ekranlık yolda değil; yola girdiği gün eşleştirme ondan önce yazılır. | açık — ölçüldü, düzeltilmedi |
 
 ---
@@ -2180,7 +2185,7 @@ Excel'inden daha az şey bilir.
 
 | Kalem | Ölçülmüş büyüklük | Bugün nerede |
 | --- | --- | --- |
-| **R5 · PostgreSQL** | **11 SQLite bağımlılığı** (`docs/POSTGRES_READINESS.md`), **ikisi sessizce yanlış**; 6 ham SQL tetikleyici; 189 test dosyasının izolasyonu dosya kopyasına dayanır | `datasource` SQLite; göç zinciri kapısı hazır (iki sağlayıcıda da koşar) |
+| **R5 · PostgreSQL** | **BİTTİ (9 Eyl 2026)** — tek taban göçü (4 149 satır, şemadan üretilir), 9 tetikleyici + 3 elle indeks, sağlayıcı tek kaynağı (`lib/veritabani.ts`), sürücü ve arama kipi sağlayıcıdan, test izolasyonu PostgreSQL'de ŞABLONDAN klon veritabanı | Kapılar `kapi:pg-taban` · `kapi:pg-goc`; CI'da `kapi-postgres` işi (postgres:16). **Tam küme iki sağlayıcıda da yeşil: 192/192 dosya · 3 503 vaka · 1 atlandı.** Ölçüm beş sürpriz çıkardı (istemci sağlayıcıya bağlı · `migrate diff` elle DDL'i görmez · 63 bayt ad kısaltması · sırasız `take` · testin tek bağlantı varsayımı) — `docs/POSTGRES_READINESS.md` §0 |
 | **P7 · dağıtım** | `deploy/` **yok** · `docs/KURULUM.md` **yok** · sağlık ucu **yok** (10 API ucu var, hepsi `route.api.ts`); S3 · Redis · kuyruk · Vault kayıtlı ama bağlı değil | statik demo derlemesi var ve CI'da koşuyor |
 | **R3 · yedek + kanıt** | `arac/yedek.mjs` 170 satır, **yalnız veritabanı** (`VACUUM INTO`); kanıt dosyaları artık **yazılıyor** (`eylemler2/kanit.ts` → `depoAnahtari` + `dosyaHash`) ama yedeğe girmiyor; hem araç hem `docs/URUN_YEDEKLEME.md` (satır 26 · 29 · 30 · 144) hâlâ "dosya yok" diyor | depo `lib/uyum/kanitDeposu.ts` 145 satır, içerik adresli, MIME izin listeli |
 | **P6 · kimlik (SSO/MFA)** | yerel hesap + oturum + oran sınırı var; **OIDC ve TOTP yok** | `Connector.kimlikTipi` OAuth2 tanıyor, ürün girişi tanımıyor |

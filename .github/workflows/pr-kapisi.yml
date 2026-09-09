@@ -317,6 +317,17 @@ jobs:
         working-directory: web
         run: npm run rota:duman
 
+      # R12 · denetim formları ekranının İKİ MERCEKTE kanıtı. Aynı sunucuyu
+      # kullanır, bu yüzden ayrı bir işe değmez. Ekran iddialarını ölçmenin
+      # yanında FORMU GERÇEKTEN ÜRETİR: düğmeye basar, "Boş hücre 0"
+      # cümlesinin ekranda çıktığını görür ve iki dosyanın (CSV + XLSX)
+      # indiğini doğrular. Ölçüldü — bu adım olmasaydı yakalanmayacak bir
+      # kusur vardı: `'use server'` dosyası nesne ihraç ediyordu, tsc ve
+      # lint temizdi, ekran derlendi ve düğme tarayıcıda 500 döndü.
+      - name: Denetim formları kanıtı · iki bant
+        working-directory: web
+        run: npm run kanit:denetim-formu
+
       # SÜREÇ ADIYLA ÖLDÜRME — ÖLÇÜLDÜ VE İŞLEMEDİ. Bu adım bir zamanlar
       # `pkill -f 'next start' || true` idi ve HİÇBİR ŞEYİ öldürmüyordu:
       # `next start` açılıştan sonra süreç adını `next-server (vX.Y.Z)`

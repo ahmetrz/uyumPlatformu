@@ -100,6 +100,10 @@ const EKLENEN_KAPILAR = [
   'node arac/derleme-artefakti.mjs --damgala',
   'node arac/derleme-artefakti.mjs --dogrula',
   'npm run kapi:derleme-artefakti',
+  /* R12 · denetim formları ekranının iki bantta kanıtı. Formu GERÇEKTEN
+     üretir (düğmeye basar, iki dosyanın indiğini doğrular); tsc ve lintin
+     göremediği bir sınıfı yakaladığı için CI'da durur. */
+  'npm run kanit:denetim-formu',
 ];
 
 describe('kapı kümesi bölünmeyle değişmez', () => {
@@ -125,12 +129,17 @@ describe('kapı kümesi bölünmeyle değişmez', () => {
       .toBeGreaterThanOrEqual(TABAN_KAPILAR.length);
   });
 
-  it('tarayıcılı kapılar AYRI işlere bölündü, dördü de sunucu ister', () => {
+  it('tarayıcılı kapılar AYRI işlere bölündü ve HEPSİ sunucu ister', () => {
     /* Yaşam döngüsü İŞ BAŞINA ölçülmezse yalnız birinci işin kapısı
-       "sunucu ister" diye işaretlenir; kalan üçü yerel kapanışta
-       sunucusuz koşar ve kırmızı yanar — kusur kodda değil araçta. */
+       "sunucu ister" diye işaretlenir; kalanlar yerel kapanışta sunucusuz
+       koşar ve kırmızı yanar — kusur kodda değil araçta.
+
+       Sayı 4 DEĞİL: `kapi-rota` işi aynı sunucuyla iki kapı koşuyor (rota
+       duman + denetim formları kanıtı). Bölünmenin ölçüsü kapı sayısı
+       değil, kapıların KENDİ İŞİNDEKİ yaşam döngüsüne göre doğru
+       sınıflanması. */
     const tarayicili = kapiAdimlari(AKIS).filter((a) => a.sunucuIster);
-    expect(tarayicili).toHaveLength(4);
+    expect(tarayicili).toHaveLength(5);
     expect(new Set(tarayicili.map((a) => a.is)).size).toBe(4);
   });
 

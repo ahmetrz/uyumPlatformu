@@ -13,7 +13,7 @@ it('kapsam dışı varlığa yazılamaz [ENV-YAZ-003]', …)
 Ayrı bir eşleme tablosu tutulsaydı, tablo ilk yeniden adlandırmada
 testten ayrışır ve kimse görmezdi.
 
-Senaryo: **324** · testli: **324** · GAP: **0**
+Senaryo: **327** · testli: **327** · GAP: **0**
 
 ## Aktivite · 2 senaryo
 
@@ -80,13 +80,16 @@ Senaryo: **324** · testli: **324** · GAP: **0**
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | `DGA-AKT-001` | /degerlendirme-aktarim | uyum uzmanı · kendi tesisi | İki kullanıcı aynı anda aktarıyor · yinelenen | Eşzamanlı iki aktarım denemesi yapılır | Tam biri yazar; kaybeden ize HİÇBİR ŞEY yazmaz | Karara bağlanmış kayıt yeniden karara açılmaz | Tek karar satırı | yok | `yaris-onay-aktarim.test.ts` |
 
-## Denetim · 5 senaryo
+## Denetim · 8 senaryo
 
 | ID | Rota | Rol · kapsam | Ön koşul · veri | Eylem | Beklenen sonuç | Ekran | Denetim izi | Görev/bildirim | Test |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | `DEN-LST-001` | /denetimler | uyum yöneticisi · kendi tesisi | Denetimler tanımlı · normal | Denetimler ekranını açar | Aşamasıyla birlikte listelenir | Aşama şeridi | yazma yok | yok | `denetim-asama-kanit.test.ts` |
 | `DEN-ASM-001` | /denetimler/[id] | uyum yöneticisi · kendi tesisi | Aşamanın zorunlu kanıtı eksik · kısmi | Aşamayı ilerletmeyi dener | Zorunlu kanıt olmadan ilerlemez | Eksik kanıt listelenir | yazma yok | yok | `denetim-asama-kanit.test.ts` |
 | `DEN-ASM-002` | /denetimler/[id] | uyum uzmanı · tek tesis | Denetim başka tesise ait · normal | Aşama değiştirmeyi dener | Reddedilir | Denetim listede yok | yazma yok | yok | `denetim-kapsam.test.ts` |
+| `DNT-FRM-001` | /raporlar/denetim-formlari | denetim okuma yetkili · kendi kapsamı | Kapsamda kontrol kaydı var · normal | Satır seçilir, form türü seçilir, "Formu üret ve indir"e basılır (`denetimFormu.denetimFormuUretEylem`) | CSV ve XLSX birlikte iner; boş hücre sayısı SIFIRDIR ve ölçülmemiş her hücre "Değerlendirilmedi" der (bilinmeyen ≠ sıfır); formül enjeksiyonu kalkanı iki biçimde de uygulanır | Üretimin ölçümü çekmecede kalır: satır · hücre · boş hücre 0 · ölçülmedi sayısı · inen dosya adları | DenetimFormu kaydı (satır · hücre · boş · ölçülmedi sayılarıyla) | yok | `denetim-formu-eylem.test.ts` · `denetim-formu-eylem.test.ts` |
+| `DNT-FRM-002` | /raporlar/denetim-formlari | denetim okuma yetkili · `/raporlar/denetim-formlari` · satır seçimi paneli (çekmece) · boş hâl | Bir kontrol kapsam dışı bırakılmış ama sebebi yazılmamış · kısmi | Ekran açılır; kusurlu satır seçilir; kapsamda hiç kayıt yokken de açılır | Kusurlu satır listenin ÜSTÜNDE ve `bd` kenarlı; hücre "Kapsam dışı · GEREKÇE YOK" der ve uydurulmuş bir sebep cümlesi taşımaz; boş hâl bir sonraki işi söyler (uyum süreçleri bağı) | Başlıkta kaç kapsamda gerekçesiz kapsam dışı olduğu yazılı; dipnot bu sayının ANLAMINI söyler | yazma yok | yok | `denetim-formu.test.ts` · `denetim-formu.test.ts` |
+| `DNT-FRM-003` | /raporlar/denetim-formlari | dış denetçi · DenetciErisimi kapsamı | Denetçi erişimi açık ve kapsamı iki kapsam öğesini içeriyor · normal | Kapsam dışı bir kapsam öğesi için form istenir | İstek REDDEDİLİR (sessizce daraltılmaz); kaç öğenin dışarıda kaldığı söylenir, hangisi olduğu söylenmez | Listeye kapsam dışı öğe hiç girmez — ekranda gösterip eylemde reddetmek olmayan bir düğme göstermek olurdu | DenetimFormu red kaydı | yok | `denetim-formu-eylem.test.ts` · `denetim-formu-eylem.test.ts` |
 | `DEN-GRV-001` | /yonetim-tezgahi | görev sorumlusu · kendi tesisi | Görev başkasına ait · normal | Başkasının görevini kapatmayı dener | Yazma yetkisi TEK BAŞINA yetmez | Sorumlusu kendi görevini kapatabilir | yazma yok | yok | `gorev-eylem.test.ts` |
 | `DEN-LST-002` | /denetimler | uyum yöneticisi · kurum geneli | Kapsamda hiç denetim planlanmamış · yok | Denetimler ekranını açar | Boş liste "denetlendi ve temiz" ile KARIŞTIRILMAZ | Boş ilk-durum; süzgeç boşluğundan ayrı | yazma yok | yok | `ters-kapsam-ekran.test.ts` |
 

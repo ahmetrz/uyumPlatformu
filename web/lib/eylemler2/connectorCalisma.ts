@@ -28,8 +28,11 @@ import { tamam, hata, iz, bosluksuz, type Sonuc } from './ortak';
 
 /** Şemadaki `Connector.ortam` yorumuyla BİREBİR. Buraya uydurma bir ortam
     eklenmez; şema sahibi listeyi genişletmeden yeni değer kabul edilmez. */
-export const ORTAMLAR = ['gelistirme', 'test', 'uretim'] as const;
-export const SENKRON_KIPLERI = ['tam', 'delta'] as const;
+/* İHRAÇ EDİLMEZ: `'use server'` dosyası yalnız async fonksiyon ihraç
+   edebilir; bir dizi ihraç etmek çalışma zamanında 500 verir ve hata
+   yalnız sunucu günlüğünde görünür. Bekçi: URN-KUR-010. */
+const ORTAMLAR = ['gelistirme', 'test', 'uretim'] as const;
+const SENKRON_KIPLERI = ['tam', 'delta'] as const;
 
 const Sema = z.object({
   /** Kayıt KOD ile bulunur: `connectorKaydet` yeni kaydın kimliğini

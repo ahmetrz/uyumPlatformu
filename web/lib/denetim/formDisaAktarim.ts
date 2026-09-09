@@ -12,12 +12,20 @@
    hücrenin künyeye taşınmış hâli olurdu; künye alanı da ölçülmemişse
    "Değerlendirilmedi" der.
 
-   ── BOŞ HÜCRE KAPISI ÖNCE KOŞAR ───────────────────────────────────────
-   Serileştirmeden ÖNCE `bosHucreKapisi` çağrılır. Sonra çağırmak,
-   denetçiye giden dosyayı üretip ardından "aslında kusurluydu" demek
-   olurdu. */
+   ── İKİ KAPI SERİLEŞTİRMEDEN ÖNCE KOŞAR ───────────────────────────────
+   `bosHucreKapisi` ve SIR SÜZGECİ. Sonra çağırmak, denetçiye giden
+   dosyayı üretip ardından "aslında kusurluydu" demek olurdu.
+
+   Sır süzgeci kanıt paketiyle AYNI süzgeçtir (`paketiDenetle`) ve bu
+   bilinçli: form serbest metin taşır — kapsam gerekçesi, sorumlu adı,
+   `not` alanı. Bir operatör oraya bir bağlantı dizesi ya da bir
+   `Authorization` başlığı yapıştırırsa, o metin denetçiye giden dosyada
+   çıkar. İkinci bir süzgeç yazmak, birinde düzeltilen kuralı öbüründe
+   bayatlatırdı; ölçüldü ve kanıt paketinde tek nüsha olması iki hattı
+   birden kapatmayı sağladı. */
 
 import { csvMetni, type Hucre } from '@/lib/disaAktarim/csv';
+import { paketiDenetle } from '@/lib/disaAktarim/paket';
 import { xlsxKitabi, type XlsxSayfasi } from '@/lib/disaAktarim/xlsx';
 import {
   DEGERLENDIRILMEDI, bosHucreKapisi, formOlcumu,
@@ -55,6 +63,18 @@ function bolumSatirlari(b: FormBolumu): Hucre[][] {
   ];
 }
 
+/** İKİ KAPI: boş hücre ve sır süzgeci. Sırayla, serileştirmeden ÖNCE. */
+function kapilar(bolumler: readonly FormBolumu[]): void {
+  bosHucreKapisi(formlarinOlcumu(bolumler));
+  /* Süzgeç JSON üstünde çalışır; form satırlarının gövdesi ona verilir.
+     Sızıntı varsa FIRLATIR — maskeleyip geçmek, bir dahaki sütun
+     eklendiğinde sessiz sızıntı demektir. */
+  paketiDenetle(JSON.stringify(bolumler.map((b) => ({
+    ad: b.ad,
+    satirlar: b.satirlar.map((s) => s.hucreler.map((h) => h.deger)),
+  }))));
+}
+
 /** Bütün bölümlerin toplam ölçümü — kapı ve rapor için. */
 export function formlarinOlcumu(bolumler: readonly FormBolumu[]): FormOlcumu {
   return formOlcumu(bolumler.flatMap((b) => b.satirlar.map(
@@ -69,7 +89,7 @@ export function formlarinOlcumu(bolumler: readonly FormBolumu[]): FormOlcumu {
  * dosyayı Excel'de açıp süzmesini bozmadan yapılabilecek en dürüst şey.
  */
 export function formCsv(kunye: Kunye, bolumler: readonly FormBolumu[]): string {
-  bosHucreKapisi(formlarinOlcumu(bolumler));
+  kapilar(bolumler);
   const satirlar: Hucre[][] = [...kunyeSatirlari(kunye)];
   for (const b of bolumler) {
     satirlar.push([b.ad]);
@@ -86,7 +106,7 @@ export function formCsv(kunye: Kunye, bolumler: readonly FormBolumu[]): string {
  * okunamaz yapardı; denetçinin çalışma kitabı istemesinin sebebi de bu.
  */
 export function formXlsx(kunye: Kunye, bolumler: readonly FormBolumu[]): Buffer {
-  bosHucreKapisi(formlarinOlcumu(bolumler));
+  kapilar(bolumler);
   const sayfalar: XlsxSayfasi[] = [
     { ad: 'Künye', satirlar: kunyeSatirlari(kunye) },
     ...bolumler.map((b) => ({ ad: b.ad, satirlar: bolumSatirlari(b) })),

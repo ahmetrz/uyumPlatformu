@@ -4,12 +4,12 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 324 |
-| Testi olan senaryo | 324 |
+| Senaryo | 327 |
+| Testi olan senaryo | 327 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
-| Taranan test dosyası | 194 |
+| Taranan test dosyası | 200 |
 
 ## Katman başına kapsam
 
@@ -18,15 +18,15 @@
 | ACCESSIBILITY | 8 | 8 | 0 |
 | API | 12 | 12 | 0 |
 | CONCURRENCY | 7 | 7 | 0 |
-| DOMAIN | 183 | 183 | 0 |
+| DOMAIN | 186 | 186 | 0 |
 | ENGINE | 33 | 33 | 0 |
 | INTEGRATION | 40 | 40 | 0 |
 | MIGRATION | 5 | 5 | 0 |
 | RBAC | 32 | 32 | 0 |
 | RESPONSIVE | 8 | 8 | 0 |
 | SCOPE | 30 | 30 | 0 |
-| SERVER | 122 | 122 | 0 |
-| UI | 87 | 87 | 0 |
+| SERVER | 124 | 124 | 0 |
+| UI | 89 | 89 | 0 |
 | VISUAL | 4 | 4 | 0 |
 | WORKFLOW | 32 | 32 | 0 |
 
@@ -128,6 +128,12 @@
 | `KNT-SHP-001` | Kanıt | ENGINE · DOMAIN | `senaryo-uyum.test.ts` | sahibi de yükleyeni de olmayan kanıt SORUMSUZDUR | evet | geçti |
 | `KNT-PKT-001` | Kanıt | SERVER · DOMAIN | `disa-aktarim-paketi.test.ts` | yetkili kapsam üretilir ve denetim izine yazılır | evet | geçti |
 | `KNT-PKT-002` | Kanıt | DOMAIN · INTEGRATION | `senaryo-uyum.test.ts` | imza altyapısı bağlı değilken paket İMZALI görünmez | evet | geçti |
+| `DNT-FRM-001` | Denetim | SERVER · DOMAIN · UI | `denetim-formu-eylem.test.ts` | öz denetim formu üretilir; BOŞ HÜCRE SIFIR | evet | geçti |
+| `DNT-FRM-001` | Denetim | SERVER · DOMAIN · UI | `denetim-formu-eylem.test.ts` | SoA da aynı kapıdan geçer ve yedi sütun taşır | evet | geçti |
+| `DNT-FRM-002` | Denetim | UI · DOMAIN | `denetim-formu.test.ts` | GEREKÇESİZ kapsam dışı İŞARETLENİR — gerekçe uydurulmaz | evet | geçti |
+| `DNT-FRM-002` | Denetim | UI · DOMAIN | `denetim-formu.test.ts` | kapsam dışı ama `not` BOŞSA gerekçe üretilmez — kusur işaretlenir | evet | geçti |
+| `DNT-FRM-003` | Denetim | SERVER · DOMAIN | `denetim-formu-eylem.test.ts` | KAPSAM DIŞI istek REDDEDİLİR — sessizce daraltılmaz | evet | geçti |
+| `DNT-FRM-003` | Denetim | SERVER · DOMAIN | `denetim-formu-eylem.test.ts` | DENETİM MODÜLÜNDE yetkisi olmayan form üretemez | evet | geçti |
 | `PRJ-LST-001` | Proje | DOMAIN · UI | `proje-bagimliligi.test.ts` | gecikmiş engel AYRI sayılır ve engellerin alt kümesidir | evet | geçti |
 | `PRJ-BAG-001` | Proje | SERVER · DOMAIN | `proje-bagimliligi.test.ts` | İPTAL edilmiş önkoşul da engeldir — dayanılan iş artık yapılmayacak | evet | geçti |
 | `GZD-DON-001` | Gözden geçirme | DOMAIN · ENGINE | `senaryo-uyum.test.ts` | kararı olmayan toplantı "yapıldı" işaretlenemez | evet | geçti |
@@ -706,5 +712,11 @@
 | `kapi-farki.test.ts` | Kapı farkı ölçüsünün saf kuralları — hangi betik CI'da koşuyor |
 | `kirpan-ata.test.ts` | Düzen kapısının kırpan-ata yürüyüşü — kaydırılabilen içerik kayıp sayılmaz |
 | `inceleme-30.test.ts` | Bir inceleme turunun beş bulgusunun düzeltme kanıtı — birlikte okunmaları gerekir |
+| `bekci/sunucu-eylem-ihraci.test.ts` | `'use server'` dosyasının ihraç kuralı — nesne ihracı çalışma zamanında 500 verir, tsc ve lint göremez |
+| `denetim-formu-eylem.test.ts` | Denetim formu eyleminin kapsam denetimi ve iz kaydı — kapsam dışı istek reddedilir, sessizce daraltılmaz |
+| `denetim-formu.test.ts` | Denetim formunun saf kuralları — hiçbir hücre boş kalmaz, gerekçe uydurulmaz, hedef ile mevcut olgunluk karışmaz |
+| `derleme-artefakti.test.ts` | Paylaşılan derleme artefaktının ortam beyanı — beyansız tüketim ve gizli yol tuzağı |
+| `disa-aktarim-xlsx.test.ts` | XLSX üretiminin saf kuralları — formül hücresi üretilmez, kalkan CSV ile aynı |
+| `kapi-is-kapsami.test.ts` | Kapı kümesinin İŞ katmanı — iş adları türetilir, bölünmeyle hiçbir kapı düşmez |
 | `sunucu-durdurma.test.ts` | Başarısız OLAMAYAN temizlik adımı sınıfı — süreç adıyla öldürme, sonucu yutan `|| true` ve son koşulunu doğrulamayan adım |
 

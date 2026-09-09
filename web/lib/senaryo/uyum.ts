@@ -308,6 +308,59 @@ export const UYUM_SENARYOLARI: Senaryo[] = [
     katmanlar: ['DOMAIN', 'INTEGRATION'],
   },
 
+  /* ── R12 · Denetim formları ─────────────────────────────────────── */
+  {
+    id: 'DNT-FRM-001', alan: 'Denetim', rota: '/raporlar/denetim-formlari',
+    eksen: 'akis',
+    amac: 'Denetçiye verilecek öz denetim formunu üretmek — hiçbir hücresi boş olmadan',
+    rol: 'denetim okuma yetkili', kapsam: 'kendi kapsamı',
+    onkosul: 'Kapsamda kontrol kaydı var', veriHali: 'normal',
+    eylem: 'Satır seçilir, form türü seçilir, "Formu üret ve indir"e basılır'
+      + ' (`denetimFormu.denetimFormuUretEylem`)',
+    beklenenSonuc: 'CSV ve XLSX birlikte iner; boş hücre sayısı SIFIRDIR ve'
+      + ' ölçülmemiş her hücre "Değerlendirilmedi" der (bilinmeyen ≠ sıfır);'
+      + ' formül enjeksiyonu kalkanı iki biçimde de uygulanır',
+    beklenenEkran: 'Üretimin ölçümü çekmecede kalır: satır · hücre · boş hücre 0'
+      + ' · ölçülmedi sayısı · inen dosya adları',
+    beklenenIz: 'DenetimFormu kaydı (satır · hücre · boş · ölçülmedi sayılarıyla)',
+    beklenenBildirim: 'yok',
+    katmanlar: ['SERVER', 'DOMAIN', 'UI'],
+  },
+  {
+    id: 'DNT-FRM-002', alan: 'Denetim', rota: '/raporlar/denetim-formlari',
+    eksen: 'arayuz',
+    amac: 'Gerekçesiz kapsam-dışı kararı denetçiye GİTMEDEN ÖNCE görünür olsun;'
+      + ' gerekçe uydurulmasın',
+    rol: 'denetim okuma yetkili',
+    kapsam: '`/raporlar/denetim-formlari` · satır seçimi paneli (çekmece) · boş hâl',
+    onkosul: 'Bir kontrol kapsam dışı bırakılmış ama sebebi yazılmamış',
+    veriHali: 'kısmi',
+    eylem: 'Ekran açılır; kusurlu satır seçilir; kapsamda hiç kayıt yokken de açılır',
+    beklenenSonuc: 'Kusurlu satır listenin ÜSTÜNDE ve `bd` kenarlı; hücre'
+      + ' "Kapsam dışı · GEREKÇE YOK" der ve uydurulmuş bir sebep cümlesi taşımaz;'
+      + ' boş hâl bir sonraki işi söyler (uyum süreçleri bağı)',
+    beklenenEkran: 'Başlıkta kaç kapsamda gerekçesiz kapsam dışı olduğu yazılı;'
+      + ' dipnot bu sayının ANLAMINI söyler',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['UI', 'DOMAIN'],
+  },
+  {
+    id: 'DNT-FRM-003', alan: 'Denetim', rota: '/raporlar/denetim-formlari',
+    eksen: 'yetki',
+    amac: 'Dış denetçi yalnız KENDİ kapsamının formunu indirebilsin;'
+      + ' kapsam dışı istek sessizce daraltılmasın',
+    rol: 'dış denetçi', kapsam: 'DenetciErisimi kapsamı',
+    onkosul: 'Denetçi erişimi açık ve kapsamı iki kapsam öğesini içeriyor',
+    veriHali: 'normal',
+    eylem: 'Kapsam dışı bir kapsam öğesi için form istenir',
+    beklenenSonuc: 'İstek REDDEDİLİR (sessizce daraltılmaz); kaç öğenin dışarıda'
+      + ' kaldığı söylenir, hangisi olduğu söylenmez',
+    beklenenEkran: 'Listeye kapsam dışı öğe hiç girmez — ekranda gösterip eylemde'
+      + ' reddetmek olmayan bir düğme göstermek olurdu',
+    beklenenIz: 'DenetimFormu red kaydı', beklenenBildirim: 'yok',
+    katmanlar: ['SERVER', 'DOMAIN'],
+  },
+
   /* ── Proje / CAPA ───────────────────────────────────────────────── */
   {
     id: 'PRJ-LST-001', alan: 'Proje', rota: '/projeler', eksen: 'veri',

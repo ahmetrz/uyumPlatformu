@@ -183,7 +183,11 @@ export default function RaporlarIstemci({
               {/* Ekran dökümü ile KANIT PAKETİ ayrı şeylerdir: buradaki
                   Excel/PDF ekrandaki satırları taşır, kanıt paketi kökeni,
                   denetim izini ve bütünlük damgasını taşır. */}
-              <Link href="/raporlar/kanit-paketi">denetim kanıt paketi</Link>
+              <Link href="/raporlar/kanit-paketi">denetim kanıt paketi</Link>{' · '}
+              {/* Denetim FORMU üçüncü bir şeydir: kanıt paketi kökeni ve
+                  bütünlük damgasını taşır, form ise denetçinin doldurmayı
+                  beklediği kontrol tablosunu — kapsam kararı ve gerekçesiyle. */}
+              <Link href="/raporlar/denetim-formlari">denetim formları</Link>
             </p>
             <DisaAktar surecler={surecler} tesisler={tesisler} sozluk={sozluk}
               bulgular={bulgular} kanitlar={kanitlar} />

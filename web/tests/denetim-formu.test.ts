@@ -73,7 +73,7 @@ describe('öz denetim formu · kapsam kararı', () => {
     expect(h.isaret).toBeNull();
   });
 
-  it('GEREKÇESİZ kapsam dışı İŞARETLENİR — gerekçe uydurulmaz', () => {
+  it('GEREKÇESİZ kapsam dışı İŞARETLENİR — gerekçe uydurulmaz [DNT-FRM-002]', () => {
     const h = kapsamHucresi({ kapsamDisi: true, kapsamDisiGerekcesi: null });
     expect(h.deger).toBe(GEREKCESIZ_KAPSAM_DISI);
     expect(h.isaret).toBe('gerekcesiz_kapsam_disi');
@@ -296,7 +296,7 @@ describe('veri eşlemesi · hedef ile mevcut KARIŞMAZ [R-D]', () => {
     expect(g.kapsamDisiGerekcesi).toBe('Kablosuz ağ yok');
   });
 
-  it('kapsam dışı ama `not` BOŞSA gerekçe üretilmez — kusur işaretlenir', () => {
+  it('kapsam dışı ama `not` BOŞSA gerekçe üretilmez — kusur işaretlenir [DNT-FRM-002]', () => {
     const s = formSatiri(maddeGirdisi({ ...SATIR, durum: 'kapsamdisi', not: null }));
     expect(s.isaretler).toContain('gerekcesiz_kapsam_disi');
   });
@@ -332,5 +332,35 @@ describe('veri eşlemesi · SoA', () => {
     const s = soaSatiri(soaGirdisi({ ...SATIR, kanitSayisi: null }));
     expect(s.hucreler.find((h) => h.anahtar === 'kanitReferansi')?.deger)
       .toBe(DEGERLENDIRILMEDI);
+  });
+});
+
+/* ── SIR SÜZGECİ · kanıt paketiyle AYNI süzgeç ───────────────────────── */
+
+describe('form dışa aktarımı · sır süzgeci', () => {
+  const kunye = { baslik: 'Öz denetim formu', alanlar: [{ etiket: 'Çerçeve', deger: 'X' }] };
+  const bolum = (deger: string) => ({
+    ad: 'Bölüm',
+    sutunlar: FORM_SUTUNLARI,
+    satirlar: [{ hucreler: [{ anahtar: 'sorumlu', deger, isaret: null }] as FormHucresi[] }],
+  });
+
+  it('PEM özel anahtarı taşıyan hücre DOSYA ÜRETTİRMEZ', () => {
+    /* Form serbest metin taşır: kapsam gerekçesi, `not`, sorumlu adı. Bir
+       operatörün oraya yapıştırdığı anahtar denetçiye gidemez. */
+    const b = bolum('-----BEGIN RSA PRIVATE KEY-----\nMIIE');
+    expect(() => formCsv(kunye, [b])).toThrow();
+    expect(() => formXlsx(kunye, [b])).toThrow();
+  });
+
+  it('Authorization başlığı taşıyan hücre de DOSYA ÜRETTİRMEZ', () => {
+    const b = bolum('hata: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9');
+    expect(() => formCsv(kunye, [b])).toThrow();
+  });
+
+  it('sıradan metin süzgeçten geçer — süzgeç her şeyi yakalamıyor', () => {
+    /* Kapının yanlış pozitifi de ölçülür: her metni reddeden bir süzgeç
+       formu hiç üretmezdi. */
+    expect(() => formCsv(kunye, [bolum('Bilgi Güvenliği Sorumlusu')])).not.toThrow();
   });
 });

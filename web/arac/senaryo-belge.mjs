@@ -60,6 +60,9 @@ export const KUTUKSUZ_DOSYALAR = {
   'kapi-farki.test.ts': 'Kapı farkı ölçüsünün saf kuralları — hangi betik CI\'da koşuyor',
   'kirpan-ata.test.ts': 'Düzen kapısının kırpan-ata yürüyüşü — kaydırılabilen içerik kayıp sayılmaz',
   'inceleme-30.test.ts': 'Bir inceleme turunun beş bulgusunun düzeltme kanıtı — birlikte okunmaları gerekir',
+  'bekci/sunucu-eylem-ihraci.test.ts': "`'use server'` dosyasının ihraç kuralı —"
+    + ' nesne ihracı çalışma zamanında 500 verir, tsc ve lint göremez',
+  'denetim-formu-eylem.test.ts': 'Denetim formu eyleminin kapsam denetimi ve iz kaydı — kapsam dışı istek reddedilir, sessizce daraltılmaz',
   'denetim-formu.test.ts': 'Denetim formunun saf kuralları — hiçbir hücre boş kalmaz, gerekçe uydurulmaz, hedef ile mevcut olgunluk karışmaz',
   'derleme-artefakti.test.ts': 'Paylaşılan derleme artefaktının ortam beyanı — beyansız tüketim ve gizli yol tuzağı',
   'disa-aktarim-xlsx.test.ts': 'XLSX üretiminin saf kuralları — formül hücresi üretilmez, kalkan CSV ile aynı',

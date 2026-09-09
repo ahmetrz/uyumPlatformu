@@ -1,7 +1,7 @@
 {
-  "imza": "3c0b3a0717e5e8a2de0f3a76a6954c31",
+  "imza": "d45b4368259a4a7427af8c8d10eaa8da",
   "dosya": 189,
-  "vaka": 3467,
+  "vaka": 3468,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -513,7 +513,7 @@
       "atlanan": 0
     },
     "tests/paket-iskeletler.test.ts": {
-      "vaka": 7,
+      "vaka": 8,
       "atlanan": 0
     },
     "tests/paket-kur.test.ts": {

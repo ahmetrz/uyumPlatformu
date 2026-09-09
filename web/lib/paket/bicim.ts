@@ -166,7 +166,7 @@ export const UygulanabilirlikBeyaniSemasi = z.object({
   kapsamTurleri: z.array(z.string().regex(TUR_KODU, 'tür kodu küçük harf ve alt çizgi')).min(1, 'en az bir kapsam öğesi türü'),
   /** öznitelik koşulu (ör. `kuruluGuc >= 100`); yoksa yalnız tür bağı */
   kosul: KuralSemasi.nullable().optional(),
-  /** dayanak — hangi madde bunu söylüyor ("MADDE 2 (1): kurulu gücü 100 MWe ve üzeri…") */
+  /** dayanak — beyanı hangi madde söylüyor (paketin kendi dilinde bir alıntı) */
   aciklama: z.string().max(500).optional(),
 }).strict();
 export type UygulanabilirlikBeyani = z.infer<typeof UygulanabilirlikBeyaniSemasi>;

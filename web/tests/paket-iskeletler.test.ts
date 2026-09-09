@@ -34,7 +34,7 @@ describe('iskelet paketler doğrulayıcıdan geçer [URN-PKT-005]', () => {
   it('TR-ENERJI: 0 hata; sayılar; özetler dosyalarla eşit', () => {
     const s = paketiDogrula(ENERJI);
     expect(s.hatalar.map(hataSatiri)).toEqual([]);
-    expect(s.sayilar).toMatchObject({ sozluk: 17, kapsamTurleri: 1, oznitelikler: 12, cerceveler: 2, yukumlulukler: 0, roller: 2 });
+    expect(s.sayilar).toMatchObject({ sozluk: 17, kapsamTurleri: 1, oznitelikler: 12, cerceveler: 2, maddeler: 601, yukumlulukler: 0, roller: 2, kurallar: 2 });
     expect(s.icerik!.manifest.icerikOzetleri).toEqual(ozetleriHesapla(ENERJI));
   });
 
@@ -45,13 +45,25 @@ describe('iskelet paketler doğrulayıcıdan geçer [URN-PKT-005]', () => {
     expect(s.icerik!.manifest.icerikOzetleri).toEqual(ozetleriHesapla(BANKA));
   });
 
-  it('hiçbir maddede METİN yok; her çerçeve kamuya açık ama metinDahil=false (iskelet) [URN-PKT-005]', () => {
-    for (const dizin of [ENERJI, BANKA]) {
-      const s = paketiDogrula(dizin);
-      for (const c of s.icerik!.cerceveler) {
-        expect(c.kimlik.lisans).toMatchObject({ tur: 'kamuya_acik', metinDahil: false });
-        expect(c.maddeler.filter((m) => m.metin !== null), `${c.kimlik.kod}: metin taşıyan madde`).toEqual([]);
-      }
+  it('TR-BANKACILIK hâlâ İSKELET: hiçbir maddede metin yok, metinDahil=false [URN-PKT-005]', () => {
+    /* TR-ENERJI 9 Eyl 2026'da içerik aldı (0.2.0) ve artık bu kuralın dışında:
+       iskelet ölçüsü BANKACILIK'ta durur; enerji tarafı köken kuralıyla ölçülür
+       (aşağıdaki vaka ve `tests/paket-icerik.test.ts`). */
+    const s = paketiDogrula(BANKA);
+    for (const c of s.icerik!.cerceveler) {
+      expect(c.kimlik.lisans).toMatchObject({ tur: 'kamuya_acik', metinDahil: false });
+      expect(c.maddeler.filter((m) => m.metin !== null), `${c.kimlik.kod}: metin taşıyan madde`).toEqual([]);
+    }
+  });
+
+  it('TR-ENERJI artık içerikli: iki çerçeve de metin taşır ve her metinli madde KÖKEN taşır [URN-PKT-019]', () => {
+    const s = paketiDogrula(ENERJI);
+    for (const c of s.icerik!.cerceveler) {
+      expect(c.kimlik.lisans, c.kimlik.kod).toMatchObject({ tur: 'kamuya_acik', metinDahil: true });
+      expect(c.kimlik.kaynakUrl, `${c.kimlik.kod}: kaynak adresi yok`).toMatch(/^https:\/\//);
+      const metinli = c.maddeler.filter((m) => m.metin !== null);
+      expect(metinli.length, `${c.kimlik.kod}: metin taşıyan madde yok`).toBeGreaterThan(0);
+      expect(metinli.filter((m) => !m.kaynakUrl || !m.erisimTarihi), `${c.kimlik.kod}: kökensiz metin`).toEqual([]);
     }
   });
 
@@ -134,7 +146,7 @@ describe('iskeletler taze veritabanına kurulur — taslak çerçeve, madde = CS
     const ek3 = await db.regulasyon.findUniqueOrThrow({ where: { kod: 'EPDK-SGYM-EK3' } });
     expect(await db.madde.count({ where: { regulasyonId: ek3.id } })).toBe(578);
     expect(await db.madde.count({ where: { regulasyonId: ek3.id, ustMaddeId: null } })).toBe(13);
-    expect(ek3).toMatchObject({ lisansTuru: 'kamuya_acik', metinDahil: false, koken: 'paket' });
+    expect(ek3).toMatchObject({ lisansTuru: 'kamuya_acik', metinDahil: true, koken: 'paket' });
   });
 
   it('TR-BANKACILIK: yeni sektör, 4 tür, 7 öznitelik, BDDK-BS taslak 58 madde', async () => {

@@ -40,6 +40,26 @@ try {
     await context.close();
   }
 
+
+  {
+    const context = await browser.newContext({ viewport: { width: 1440, height: 936 }, reducedMotion: 'no-preference' });
+    const page = await context.newPage();
+    let boz;
+    const bekle = new Promise(resolve => { boz = resolve; });
+    await page.route('**/sahne-04-ekran.webp', async route => { await bekle; await route.abort(); });
+    await page.goto(`${KOK}/giris`, { waitUntil: 'domcontentloaded' });
+    try {
+      await page.waitForFunction(() => document.querySelector('#platform-arayuzu')?.inert);
+      await page.mouse.wheel(0, 2000);
+      await page.waitForFunction(() => window.scrollY > 1000);
+    } finally { boz(); }
+    await page.locator('[data-mod="statik"]').waitFor();
+    const kutu = await page.getByRole('region', { name: 'Platforma giriş' }).boundingBox();
+    assert.ok(kutu && Math.abs(kutu.y) < 2, 'yükleme hatası kullanıcıyı girişten aşağı düşürdü');
+    await page.getByRole('link', { name: 'Girişi atla' }).click();
+    assert.equal(await page.locator('#platform-arayuzu').evaluate(el => el.inert), false);
+    await context.close();
+  }
   for (const width of [375, 1440]) {
     const context = await browser.newContext({ viewport: { width, height: 936 }, reducedMotion: 'no-preference' });
     const page = await context.newPage();

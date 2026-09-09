@@ -310,6 +310,29 @@ PORT=3210 node arac/gorsel-regresyon.mjs --rota=/uyum --bant=375
 Sunucu saatine bağlı metinler (veri kesiti damgası) %0,5'i aşarsa eşiği
 büyütmeyin; damgayı taşıyan öğeyi maskeleyin.
 
+### `k4-enerji-su.mjs` — enerji ve su BİREBİR aynı davranır (Faz B · K4)
+
+Sekiz demo ekranını (`docs/DEMO_YOLU.md`; mercek adımı hariç yedi rota +
+Tesis 360) iki sektör merceğinde açar ve her ekran için HTTP durumu,
+gövde uzunluğu, hata metni, merceğin kendi sözcüğü ve Tesis 360 profil
+bloğunun alan sayısını ölçer. Sayı **uydurulmaz**, ekranın kendi
+"N/M alan tanımsız" metninden okunur — `textContent` ile, çünkü
+`innerText` CSS `text-transform`ı uygular ve "TANIMSIZ" (ı → I) düzenli
+ifadeye uymaz (ölçüldü). Hata metni hata BİLEŞENİNİN metnidir
+(`403 · Yetkisiz`); küçük harf "yetkisiz" aranmaz — su demosunun bir risk
+adı o sözcüğü taşır ve ilk koşuda iki sağlam ekranı kırmızı boyadı.
+
+```sh
+npm run build && PORT=3210 npm start &      # canlı üretim sunucusu ister
+PORT=3210 node arac/k4-enerji-su.mjs --dizin=../docs/kanit/faz-b-k4
+```
+
+Çıktı: `<mercek>-<rota>.jpg` (tam sayfa, JPEG %45) + `OZET.md`; kırmızı
+varsa çıkış 1. **Kapı değildir** (canlı sunucu ve iki mercek ister),
+parite kanıtıdır: ilk koşu 3 289 yeşil vakanın görmediği bir kusuru
+yakaladı (enerji Tesis 360'ta 20 yerine 13 alan; `NOT rol = x` SQL'de
+NULL satırı düşürür). Kanıt `docs/kanit/faz-b-k4/OZET.md`.
+
 ### `xlsx-fikstur.mjs`
 
 İçe aktarım hattının `.xlsx` ayrıştırıcısını sınayan DONMUŞ fikstürü

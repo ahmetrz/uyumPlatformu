@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { girisZorunlu, izinVar, izinliTesisIdleri } from '@/lib/erisim';
-import { kapsamdaYetkili, modulYazabilir } from '@/app/kapsam';
+import { girisZorunlu, izinVar } from '@/lib/erisim';
+import { modulYazabilir, OGE_GORUNUMU, ogeKapsami, ogeKosulu, ogeYetkili } from '@/app/kapsam';
 import { Yetkisiz } from '@/components/kabuk/temel';
 import { db } from '@/lib/db';
 import SurecDetayIstemci, { type DetayVerisi } from './SurecDetayIstemci';
@@ -27,7 +27,7 @@ export default async function Sayfa({ params }: { params: Promise<{ id: string }
   if (!izinVar(kullanici, 'uyum', 'okuma')) return <Yetkisiz rol="uyum okuma" />;
   const { id } = await params;
 
-  const izinli = izinliTesisIdleri(kullanici, 'uyum');
+  const izinli = ogeKapsami(kullanici, 'uyum');
   /* Tesise kısıtlı rol kapsamsız (global) yazma yapamaz ama KENDİ
      tesisinde yazabilir — düğmeler bu yüzden `modulYazabilir` ile
      sorulur ("yazabildiğin tesis var mı"), `izinVar` ile değil.
@@ -41,13 +41,13 @@ export default async function Sayfa({ params }: { params: Promise<{ id: string }
   const onaylayabilir = modulYazabilir(kullanici, 'uyum', 'onay');
 
   const simdi = new Date().getTime();
-  const tesisSuzgeci = izinli === null ? {} : { tesisId: { in: izinli } };
+  const kapsamSuzgeci = ogeKosulu(izinli);
 
   const surec = await db.uyumSureci.findUnique({
     where: { id },
     include: {
       regulasyon: { select: { id: true, kod: true, ad: true } },
-      kapsam: { include: { tesis: { select: { id: true, kod: true, ad: true } } } },
+      kapsam: { include: { kapsamOgesi: OGE_GORUNUMU } },
       denetimler: { where: { silindi: null }, select: { id: true, kod: true, durum: true } },
     },
   });
@@ -55,7 +55,7 @@ export default async function Sayfa({ params }: { params: Promise<{ id: string }
 
   const [durumlar, agac, kullanicilar, alanlar, ekipler] = await Promise.all([
     db.maddeDurumu.findMany({
-      where: { surecId: id, ...tesisSuzgeci },
+      where: { surecId: id, ...kapsamSuzgeci },
       include: {
         madde: {
           include: {
@@ -64,7 +64,7 @@ export default async function Sayfa({ params }: { params: Promise<{ id: string }
             eslestirmeHedef: { include: { kaynak: { select: { kod: true } } } },
           },
         },
-        tesis: { select: { id: true, kod: true, ad: true } },
+        kapsamOgesi: OGE_GORUNUMU,
         sorumlu: { select: { id: true, adSoyad: true, aktif: true } },
         /* UY-07 · ekip ve doğrulayan. Ekibin AKTİF ÜYE sayısı da okunur:
            aktif üyesi olmayan bir ekip "sorumlusu var" göstermemeli. */
@@ -158,7 +158,7 @@ export default async function Sayfa({ params }: { params: Promise<{ id: string }
           ...d.madde.eslestirmeHedef.map((e) => ({ kod: e.kaynak.kod, denklik: e.denklik })),
         ],
       },
-      tesis: d.tesis,
+      tesis: d.kapsamOgesi,
       durum: d.durum,
       guven: d.guven,
       kanitBayat: d.kanitBayat,
@@ -194,7 +194,7 @@ export default async function Sayfa({ params }: { params: Promise<{ id: string }
          `degerlendirmeDogrula` aynı kuralı yeniden uygular — ekran
          sunucudan gevşek olamaz. */
       dogrulayabilir: onaylayabilir
-        && kapsamdaYetkili(kullanici, 'uyum', 'onay', d.tesisId)
+        && ogeYetkili(kullanici, 'uyum', 'onay', d.kapsamOgesiId)
         && d.sonDegerlendirme !== null
         && d.tarihce[0]?.aktorId != null
         && d.tarihce[0].aktorId !== kullanici.id,
@@ -227,7 +227,7 @@ export default async function Sayfa({ params }: { params: Promise<{ id: string }
     aciklama: surec.aciklama,
     regulasyon: surec.regulasyon,
     tesisler: surec.kapsam
-      .map((k) => k.tesis)
+      .map((k) => k.kapsamOgesi)
       .filter((t) => izinli === null || izinli.includes(t.id)),
     sayim: sayimla(hamSayim),
     acikBulgu: kayitlar.reduce((a, k) => a + k.acikBulgu, 0),

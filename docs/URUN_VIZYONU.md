@@ -89,6 +89,20 @@ Ve iki dağıtım ilkesi: **veri kiracıda kalır** (kurum içi ya da kiracını
 seçtiği bölgede bulut) ve **motor önerir, insan karar verir** (yapay zekâ
 dâhil).
 
+**v1 konumlandırması (8 Eylül 2026): mevzuatın adıyla.** Ürün v1'de
+"GRC platformu" olarak değil, Türkiye'de düzenlemeye tabi kuruluşların
+kendi mevzuatının adıyla konumlanır: EPDK Enerji Sektöründe Siber
+Güvenlik Yetkinlik Modeli Yönetmeliği'ne uyum, BDDK Bankaların Bilgi
+Sistemleri Yönetmeliği'ne uyum, SPK VII-128.10 Tebliği, TCMB ödeme
+kuruluşları tebliği, BTK Şebeke ve Bilgi Güvenliği Yönetmeliği, 7545
+sayılı Siber Güvenlik Kanunu ve KVKK yükümlülükleri — her biri bir
+sektör paketidir ve müşteri ürünü kendi denetçisinin sorduğu soruyla
+tanır. Ülke boyutu paket formatında durur; v1'de yalnız TR paketleri
+yazılır, EU/US içeriği ve ikinci dil ertelenir. Bu bir daralma değil
+sıralamadır: çekirdek sektör ve ülke bilmez, TR paketleri onun ilk
+içeriğidir (`docs/TR_SEKTOR_PAKETLERI.md`, `docs/GELISTIRME_PAKETLERI.md`
+§2).
+
 ## 6. Neyin değiştiği, neyin değişmediği
 
 **Değişmeyen kurallar** (CLAUDE.md'den taşınır): uydurma veri yok ·

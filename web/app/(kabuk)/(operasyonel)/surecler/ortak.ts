@@ -18,6 +18,12 @@ import { DURUM_ETIKET, SUREC_DURUM_ETIKET, uyumYuzdesi, type SurecDurum } from '
 export const GUN = 86_400_000;
 
 export type Kodlu = { id: string; kod: string; ad: string };
+/** Uyum zincirinin kapsam hücresi: B1'den beri bir KAPSAM ÖĞESİDİR — `id`
+    öğenin kimliği, `kod`/`ad` öğenin; `tesisId` tesis köprüsü (öğe bir
+    tesise köprülüyse tesis sayfasına bağlantı, değilse null). Alan adı
+    `tesis` kaldı: bugün her öğe tesise köprülü ve sütun sözlükten
+    "tesis" terimiyle etiketleniyor; tür etiketi P2'de öğeden gelir. */
+export type KapsamHucresi = Kodlu & { tesisId: string | null };
 export type Kisi = { id: string; ad: string };
 
 /* ── Durum sayımı ───────────────────────────────────────────────────────
@@ -83,7 +89,7 @@ export type S = {
   bitis: string | null;
   aciklama: string | null;
   regulasyon: Kodlu;
-  tesisler: Kodlu[];
+  tesisler: KapsamHucresi[];
   sayim: Sayim;
   acikBulgu: number;
   denetimler: { id: string; kod: string; durum: string }[];
@@ -330,7 +336,7 @@ export type BulguOzeti = { id: string; baslik: string; durum: string; onem: stri
 export type Degerlendirme = {
   id: string;
   madde: MaddeOzeti;
-  tesis: Kodlu;
+  tesis: KapsamHucresi;
   /** ham `MaddeDurumu.durum` — canvasta YAZILMAZ, yalnız işaretçiye çevrilir */
   durum: string;
   guven: string;

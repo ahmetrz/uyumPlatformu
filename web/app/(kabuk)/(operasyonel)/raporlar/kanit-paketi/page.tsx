@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import { girisZorunlu, izinliTesisIdleri } from '@/lib/erisim';
 import { db } from '@/lib/db';
+import { kopruKosulu } from '@/app/kapsam';
+import { ogeTesisKoprusu } from '@/lib/kapsam/db';
 import { Yetkisiz } from '@/components/kabuk/temel';
 import { tarihTR } from '@/lib/sabitler';
 import { hucreOzeti } from '../mantik';
@@ -24,7 +26,9 @@ export default async function Sayfa() {
   const izinli = izinliTesisIdleri(k, 'denetim');
   if (izinli !== null && izinli.length === 0) return <Yetkisiz rol="denetim okuma" />;
 
-  const tesisSuzgeci = izinli === null ? {} : { tesisId: { in: izinli } };
+  /* Paket TESİS başına üretilir; uyum zinciri KAPSAM ÖĞESİNE bağlı (B1) —
+     öğe köprüden tesise bağlanır, köprüsüz öğe pakete girmez. */
+  const tesisSuzgeci = kopruKosulu(izinli);
 
   const [surecler, gruplar, maddeDurumlari, bulgular] = await Promise.all([
     db.uyumSureci.findMany({
@@ -32,21 +36,23 @@ export default async function Sayfa() {
       orderBy: { kod: 'asc' },
     }),
     db.maddeDurumu.groupBy({
-      by: ['surecId', 'tesisId', 'durum'],
+      by: ['surecId', 'kapsamOgesiId', 'durum'],
       where: tesisSuzgeci,
       _count: { _all: true },
     }),
     db.maddeDurumu.findMany({
       where: tesisSuzgeci,
-      select: { id: true, surecId: true, tesisId: true, sonDegerlendirme: true },
+      select: { id: true, surecId: true, kapsamOgesi: { select: { tesisId: true } }, sonDegerlendirme: true },
     }),
     db.bulgu.findMany({
       where: { silindi: null, maddeDurumu: tesisSuzgeci },
-      select: { durum: true, maddeDurumu: { select: { surecId: true, tesisId: true } } },
+      select: { durum: true, maddeDurumu: { select: { surecId: true, kapsamOgesi: { select: { tesisId: true } } } } },
     }),
   ]);
 
-  const tesisIdleri = [...new Set(maddeDurumlari.map((m) => m.tesisId))];
+  const kopru = await ogeTesisKoprusu(gruplar.map((g) => g.kapsamOgesiId));
+  const tesisIdleri = [...new Set(maddeDurumlari.map((m) => m.kapsamOgesi.tesisId)
+    .filter((t): t is string => t !== null))];
   const [tesisler, kokenSatirlari] = await Promise.all([
     db.tesis.findMany({
       where: { id: { in: tesisIdleri } },
@@ -68,7 +74,9 @@ export default async function Sayfa() {
   /* (süreç, tesis) → durum sayıları — raporlar ekranıyla aynı kova. */
   const sayilar = new Map<string, Record<string, number>>();
   for (const g of gruplar) {
-    const anahtar = `${g.surecId}|${g.tesisId}`;
+    const tesisId = kopru.get(g.kapsamOgesiId) ?? null;
+    if (!tesisId) continue;
+    const anahtar = `${g.surecId}|${tesisId}`;
     const kova = sayilar.get(anahtar) ?? {};
     kova[g.durum] = (kova[g.durum] ?? 0) + g._count._all;
     sayilar.set(anahtar, kova);
@@ -77,14 +85,16 @@ export default async function Sayfa() {
   const acikBulgu = new Map<string, number>();
   for (const b of bulgular) {
     if (b.durum === 'kapali' || b.durum === 'kabul_edildi') continue;
-    const anahtar = `${b.maddeDurumu.surecId}|${b.maddeDurumu.tesisId}`;
+    if (!b.maddeDurumu.kapsamOgesi.tesisId) continue;
+    const anahtar = `${b.maddeDurumu.surecId}|${b.maddeDurumu.kapsamOgesi.tesisId}`;
     acikBulgu.set(anahtar, (acikBulgu.get(anahtar) ?? 0) + 1);
   }
 
   const kokensiz = new Map<string, number>();
   const sonDegerlendirme = new Map<string, Date>();
   for (const m of maddeDurumlari) {
-    const anahtar = `${m.surecId}|${m.tesisId}`;
+    if (!m.kapsamOgesi.tesisId) continue;
+    const anahtar = `${m.surecId}|${m.kapsamOgesi.tesisId}`;
     if (!kokenliler.has(m.id)) kokensiz.set(anahtar, (kokensiz.get(anahtar) ?? 0) + 1);
     if (m.sonDegerlendirme) {
       const mevcut = sonDegerlendirme.get(anahtar);

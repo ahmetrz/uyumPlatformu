@@ -1,8 +1,7 @@
 import 'server-only';
 import { db } from '@/lib/db';
-import { izinliTesisIdleri } from '@/lib/erisim';
 import type { AktifKullanici } from '@/lib/auth';
-import { kapsamDaraltildi, kapsamKosulu, modulKapisi, modulYazabilir } from '@/app/kapsam';
+import { kapsamDaraltildi, modulKapisi, modulYazabilir, OGE_GORUNUMU, ogeKapsami, ogeKosulu } from '@/app/kapsam';
 import { acikMi, bulguImi, dogrulamaBekliyorMu, gecikmeGunu } from './mantik';
 
 /* O7 · Bulgu & CAPA — SUNUCU VERİSİ (kapsam kuralı JSX'ten ayrı test edilsin).
@@ -37,11 +36,14 @@ import { acikMi, bulguImi, dogrulamaBekliyorMu, gecikmeGunu } from './mantik';
    `denetim` seçmek yanlış olurdu — bulgu denetim dışında da (olaydan,
    iç incelemeden) doğar.
 
-   ── TESİSİ BİLİNMEYEN KAYIT ──────────────────────────────────────────
-   `MaddeDurumu.tesisId` şemada ZORUNLUDUR (String, null değil): bu ekranda
-   tesisi bilinmeyen bulgu YOKTUR. Kural yine de tek yerden gelir
-   (`app/kapsam.ts → kapsamKosulu`), çünkü şema değişirse davranışın
-   `lib/api/yetki.ts → tesisKapsamda` ile aynı kalması gerekir. */
+   ── KAPSAMI BİLİNMEYEN KAYIT ─────────────────────────────────────────
+   `MaddeDurumu.kapsamOgesiId` şemada ZORUNLUDUR (String, null değil): bu
+   ekranda kapsam öğesi bilinmeyen bulgu YOKTUR. Kural yine de tek yerden
+   gelir (`app/kapsam.ts → ogeKosulu`), çünkü şema değişirse davranışın
+   `lib/api/yetki.ts → tesisKapsamda` ile aynı kalması gerekir. Satırın
+   `tesisId`si öğenin TESİS KÖPRÜSÜDÜR: mercek süzgeci ve tesis sayfası
+   bağlantısı onu okur; köprüsüz öğede null (mercek gizlemez, bağlantı
+   yok). */
 
 /** Çekmecede gösterilen denetim izi derinliği (satır başına). */
 const IZ_BUTCESI = 8;
@@ -87,7 +89,7 @@ export type EkranVerisi = {
 
 async function bulguSatirlari(izinli: string[] | null) {
   const bulgular = await db.bulgu.findMany({
-    where: { silindi: null, maddeDurumu: kapsamKosulu(izinli) },
+    where: { silindi: null, maddeDurumu: ogeKosulu(izinli) },
     /* Kesme olursa elde kalan AÇIK bulgular olsun: `durum asc` kapalıyı
        sona atar. Sıralama `take` ile birlikte bir karardır, süs değil. */
     take: SATIR_TAVANI,
@@ -99,7 +101,7 @@ async function bulguSatirlari(izinli: string[] | null) {
         orderBy: [{ durum: 'asc' }, { hedef: 'asc' }],
       },
       maddeDurumu: {
-        include: { madde: true, tesis: true, surec: { include: { regulasyon: true } } },
+        include: { madde: true, kapsamOgesi: OGE_GORUNUMU, surec: { include: { regulasyon: true } } },
       },
     },
     orderBy: [{ durum: 'asc' }, { onemDerecesi: 'asc' }],
@@ -154,9 +156,9 @@ async function bulguSatirlari(izinli: string[] | null) {
     sorumlu: b.sorumlu?.adSoyad ?? null,
     maddeKod: b.maddeDurumu.madde.kod,
     maddeBaslik: b.maddeDurumu.madde.baslik,
-    tesisId: b.maddeDurumu.tesisId,
-    tesisKod: b.maddeDurumu.tesis.kod,
-    tesisAd: b.maddeDurumu.tesis.ad,
+    tesisId: b.maddeDurumu.kapsamOgesi.tesisId,
+    tesisKod: b.maddeDurumu.kapsamOgesi.kod,
+    tesisAd: b.maddeDurumu.kapsamOgesi.ad,
     surecId: b.maddeDurumu.surecId,
     surecKod: b.maddeDurumu.surec.kod,
     regKod: b.maddeDurumu.surec.regulasyon.kod,
@@ -183,7 +185,7 @@ async function bulguSatirlari(izinli: string[] | null) {
  */
 async function sayimGecisi(izinli: string[] | null): Promise<BulguMetrikleri> {
   const satirlar = await db.bulgu.findMany({
-    where: { silindi: null, maddeDurumu: kapsamKosulu(izinli) },
+    where: { silindi: null, maddeDurumu: ogeKosulu(izinli) },
     select: {
       durum: true, hedefTarih: true, retestGerekli: true, retestSonucu: true,
       kapanisDogrulama: true, kapanisDogrulayan: { select: { adSoyad: true } },
@@ -230,10 +232,10 @@ async function sayimGecisi(izinli: string[] | null): Promise<BulguMetrikleri> {
 
 export async function bulguEkranVerisi(k: AktifKullanici): Promise<EkranVerisi> {
   modulKapisi(k, 'uyum');
-  const izinli = izinliTesisIdleri(k, 'uyum');
+  const izinli = ogeKapsami(k, 'uyum');
   const [bulgular, toplam, metrikler] = await Promise.all([
     bulguSatirlari(izinli),
-    db.bulgu.count({ where: { silindi: null, maddeDurumu: kapsamKosulu(izinli) } }),
+    db.bulgu.count({ where: { silindi: null, maddeDurumu: ogeKosulu(izinli) } }),
     sayimGecisi(izinli),
   ]);
   return {

@@ -473,14 +473,14 @@ export async function kanitPaketiUret(girdi: {
 
   const maddeDurumlari = await db.maddeDurumu.findMany({
     where: {
-      tesisId: { in: tesisler.map((t) => t.id) },
+      kapsamOgesi: { tesisId: { in: tesisler.map((t) => t.id) } },
       surec: { regulasyonId: regulasyon.id },
     },
-    orderBy: [{ tesisId: 'asc' }, { maddeId: 'asc' }],
+    orderBy: [{ kapsamOgesiId: 'asc' }, { maddeId: 'asc' }],
     select: {
       id: true, durum: true, guven: true, kanitBayat: true, sonDegerlendirme: true,
       madde: { select: { kod: true, baslik: true } },
-      tesis: { select: { kod: true } },
+      kapsamOgesi: { select: { kod: true } },
       surec: { select: { kod: true } },
     },
   });
@@ -491,7 +491,7 @@ export async function kanitPaketiUret(girdi: {
     select: {
       id: true, baslik: true, onemDerecesi: true, durum: true, tespitTarihi: true,
       hedefTarih: true, kapanmaTarihi: true,
-      maddeDurumu: { select: { madde: { select: { kod: true } }, tesis: { select: { kod: true } } } },
+      maddeDurumu: { select: { madde: { select: { kod: true } }, kapsamOgesi: { select: { kod: true } } } },
     },
   });
 
@@ -584,7 +584,7 @@ export async function kanitPaketiUret(girdi: {
     maddeDurumuId: m.id,
     maddeKodu: m.madde.kod,
     maddeBasligi: m.madde.baslik,
-    tesisKodu: m.tesis.kod,
+    tesisKodu: m.kapsamOgesi.kod,
     surecKodu: m.surec.kod,
     durum: m.durum,
     kanitGuveni: m.guven,
@@ -603,7 +603,7 @@ export async function kanitPaketiUret(girdi: {
     hedefTarih: iso(b.hedefTarih),
     kapanmaTarihi: iso(b.kapanmaTarihi),
     maddeKodu: b.maddeDurumu.madde.kod,
-    tesisKodu: b.maddeDurumu.tesis.kod,
+    tesisKodu: b.maddeDurumu.kapsamOgesi.kod,
     koken: kokenAl('Bulgu', b.id),
   }));
 

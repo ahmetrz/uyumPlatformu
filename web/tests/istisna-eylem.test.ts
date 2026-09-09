@@ -2,6 +2,7 @@ import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { copyFileSync, mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import { ogeKimligi } from './yardim/kapsam';
 
 /* ═══════════════════════════════════════════════════════════════════════
    §50 · İstisna (waiver) talebi — GERÇEK veritabanı, GERÇEK yetki kapısı
@@ -29,11 +30,11 @@ copyFileSync('prisma/dev.db', testDb);
 process.env.TEST_DB = testDb;
 
 type Yetki = {
-  rol: string; surecId: string | null; tesisId: string | null;
+  rol: string; surecId: string | null; kapsamOgesiId: string | null; tesisId: string | null;
   tuzelKisiId: string | null; regulasyonId: string | null; modul: string | null;
 };
 const yetki = (rol: string, tesisId: string | null = null): Yetki => ({
-  rol, surecId: null, tesisId, tuzelKisiId: null, regulasyonId: null, modul: null,
+  rol, surecId: null, kapsamOgesiId: ogeKimligi(tesisId), tesisId, tuzelKisiId: null, regulasyonId: null, modul: null,
 });
 
 const oturum = {
@@ -62,7 +63,7 @@ const YARIN = () => new Date(Date.now() + 30 * 86_400_000).toISOString();
 const GEREKCE = 'Telafi kontrolü devrede, yatırım 2027 bütçesinde';
 
 /** Henüz istisnası olmayan bir madde durumu verir; her test kendi satırını alır. */
-let havuz: { id: string; tesisId: string; maddeId: string }[] = [];
+let havuz: { id: string; kapsamOgesiId: string; kapsamOgesi: { tesisId: string | null }; maddeId: string }[] = [];
 const sirada = () => {
   const kayit = havuz.shift();
   if (!kayit) throw new Error('Test havuzu tükendi — seed yeterli madde durumu taşımıyor');
@@ -77,17 +78,18 @@ beforeAll(async () => {
   oturum.id = kisi.id;
 
   const durumlar = await db.maddeDurumu.findMany({
-    select: { id: true, tesisId: true, maddeId: true }, orderBy: { id: 'asc' },
+    select: { id: true, maddeId: true, kapsamOgesiId: true, kapsamOgesi: { select: { tesisId: true } } },
+    orderBy: { id: 'asc' },
   });
   const acikIstisnalar = new Set((await db.istisna.findMany({
     where: { durum: { in: ['onay_bekliyor', 'aktif'] } },
-    select: { maddeId: true, tesisId: true },
-  })).map((i) => `${i.maddeId}|${i.tesisId}`));
+    select: { maddeId: true, kapsamOgesiId: true },
+  })).map((i) => `${i.maddeId}|${i.kapsamOgesiId}`));
 
-  havuz = durumlar.filter((d) => !acikIstisnalar.has(`${d.maddeId}|${d.tesisId}`));
+  havuz = durumlar.filter((d) => !acikIstisnalar.has(`${d.maddeId}|${d.kapsamOgesiId}`));
   expect(havuz.length).toBeGreaterThan(8);
 
-  const tesisler = [...new Set(durumlar.map((d) => d.tesisId))];
+  const tesisler = [...new Set(durumlar.map((d) => d.kapsamOgesi.tesisId).filter((t): t is string => !!t))];
   [tesisA, tesisB] = tesisler;
 });
 
@@ -104,7 +106,7 @@ describe('Süre — süresiz istisna yoktur', () => {
     const dun = new Date(Date.now() - 86_400_000).toISOString();
     expect(hataMetni(await istisnaTalep({ maddeDurumuId: d.id, bitis: dun, gerekce: GEREKCE })))
       .toMatch(/gelecekte/i);
-    expect(await db.istisna.count({ where: { maddeId: d.maddeId, tesisId: d.tesisId } })).toBe(0);
+    expect(await db.istisna.count({ where: { maddeId: d.maddeId, kapsamOgesiId: d.kapsamOgesiId } })).toBe(0);
   });
 
   it('boş bitiş tarihi reddedilir', async () => {
@@ -145,7 +147,7 @@ describe('Onay — talep tek başına hiçbir şeyi değiştirmez', () => {
     const d = sirada();
     await istisnaTalep({ maddeDurumuId: d.id, bitis: YARIN(), gerekce: GEREKCE });
     const istisna = await db.istisna.findFirstOrThrow({
-      where: { maddeId: d.maddeId, tesisId: d.tesisId } });
+      where: { maddeId: d.maddeId, kapsamOgesiId: d.kapsamOgesiId } });
     expect(istisna.durum).toBe('onay_bekliyor');
 
     const talep = await db.onayTalebi.findFirstOrThrow({
@@ -166,14 +168,14 @@ describe('Onay — talep tek başına hiçbir şeyi değiştirmez', () => {
       maddeDurumuId: d.id, bitis: YARIN(), gerekce: GEREKCE,
     }))).toMatch(/zaten var/i);
     expect(await db.istisna.count({
-      where: { maddeId: d.maddeId, tesisId: d.tesisId } })).toBe(1);
+      where: { maddeId: d.maddeId, kapsamOgesiId: d.kapsamOgesiId } })).toBe(1);
   });
 
   it('talep denetim izine gerekçesiyle düşer', async () => {
     const d = sirada();
     await istisnaTalep({ maddeDurumuId: d.id, bitis: YARIN(), gerekce: GEREKCE });
     const istisna = await db.istisna.findFirstOrThrow({
-      where: { maddeId: d.maddeId, tesisId: d.tesisId } });
+      where: { maddeId: d.maddeId, kapsamOgesiId: d.kapsamOgesiId } });
     const iz = await db.aktiviteKaydi.findFirstOrThrow({
       where: { varlikTipi: 'Istisna', varlikId: istisna.id } });
     expect(iz.eylem).toBe('olusturma');
@@ -186,7 +188,7 @@ describe('Kapsam kapısı', () => {
     /* İKİ AŞAMALI KAPI. Ön kapı kapsamsız çağrılırsa tesise kısıtlı rol
        daha ilk adımda reddedilir; ekran "talep et" düğmesini gösterirken
        sunucu "yetkiniz yok" der. */
-    const d = havuz.find((x) => x.tesisId === tesisA);
+    const d = havuz.find((x) => x.kapsamOgesi.tesisId === tesisA);
     expect(d, 'seed tesisA için madde durumu taşımıyor').toBeTruthy();
     havuz = havuz.filter((x) => x.id !== d!.id);
     const sonuc = await kimlikle([yetki('tesis_yoneticisi', tesisA)], () => istisnaTalep({
@@ -196,7 +198,7 @@ describe('Kapsam kapısı', () => {
   });
 
   it('tesise kısıtlı rol BAŞKA tesis için istisna talep edemez', async () => {
-    const d = havuz.find((x) => x.tesisId === tesisB);
+    const d = havuz.find((x) => x.kapsamOgesi.tesisId === tesisB);
     expect(d, 'seed tesisB için madde durumu taşımıyor').toBeTruthy();
     havuz = havuz.filter((x) => x.id !== d!.id);
     const sonuc = await kimlikle([yetki('tesis_yoneticisi', tesisA)], () => istisnaTalep({
@@ -204,7 +206,7 @@ describe('Kapsam kapısı', () => {
     }));
     expect(hataMetni(sonuc)).toMatch(/yetki/i);
     expect(await db.istisna.count({
-      where: { maddeId: d!.maddeId, tesisId: d!.tesisId } })).toBe(0);
+      where: { maddeId: d!.maddeId, kapsamOgesiId: d!.kapsamOgesiId } })).toBe(0);
   });
 
   it('okuyucu rolü istisna talep edemez', async () => {

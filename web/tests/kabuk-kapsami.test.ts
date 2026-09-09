@@ -3,6 +3,7 @@ import { copyFileSync, mkdtempSync } from 'node:fs';
 import { createHash, randomBytes } from 'node:crypto';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import { ogeIdAl } from './yardim/kapsam';
 
 /* KABUK DA BİR EKRANDIR.
 
@@ -41,7 +42,8 @@ async function oturumAc(rol: string, tesisId: string | null) {
   const kisi = await db.kullanici.create({ data: {
     eposta: `kabuk.${randomBytes(4).toString('hex')}@ornek.local`,
     adSoyad: 'Kabuk Testi', aktif: true } });
-  await db.yetki.create({ data: { kullaniciId: kisi.id, rol, tesisId } });
+  await db.yetki.create({ data: { kullaniciId: kisi.id, rol,
+    kapsamOgesiId: tesisId ? await ogeIdAl(tesisId) : null } });
   const token = randomBytes(32).toString('base64url');
   await db.oturum.create({ data: {
     kullaniciId: kisi.id,

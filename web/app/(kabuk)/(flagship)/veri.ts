@@ -5,7 +5,8 @@ import { olculmemisNormalle, type OlculmemisGosterimi } from '@/lib/yonetim/olcu
 import { db } from '@/lib/db';
 import { izinliTesisIdleri } from '@/lib/erisim';
 import type { AktifKullanici } from '@/lib/auth';
-import { kapsamDaraltildi, kapsamKosulu, modulKapisi } from '@/app/kapsam';
+import { kapsamDaraltildi, kapsamKosulu, kopruKosulu, modulKapisi, OGE_GORUNUMU } from '@/app/kapsam';
+import { ogeTesisKoprusu } from '@/lib/kapsam/db';
 import { uyumOzeti, gecikmisMi, gecenGun } from '@/lib/sabitler';
 import { maxEtki } from '@/app/(kabuk)/(operasyonel)/riskler/ortak';
 import { anlikSayimi } from '@/app/(kabuk)/(operasyonel)/uyum/mantik';
@@ -153,19 +154,19 @@ export async function genelEkranVerisi(k: AktifKullanici): Promise<EkranVerisi> 
   const [durumSayimlari, bulgular, riskler, aksiyonlar, denetimler, tesisSayisi, gucToplami] =
     await Promise.all([
       db.maddeDurumu.groupBy({
-        by: ['durum'], _count: { _all: true }, where: kapsamKosulu(uyumKapsami),
+        by: ['durum'], _count: { _all: true }, where: kopruKosulu(uyumKapsami),
       }),
       db.bulgu.findMany({
         where: {
           durum: { in: ['acik', 'aksiyonda'] }, silindi: null,
-          maddeDurumu: kapsamKosulu(uyumKapsami),
+          maddeDurumu: kopruKosulu(uyumKapsami),
         },
         include: {
           sorumlu: { select: { adSoyad: true } },
           maddeDurumu: {
             include: {
               madde: { select: { kod: true, baslik: true } },
-              tesis: { select: { id: true, ad: true, kod: true } },
+              kapsamOgesi: OGE_GORUNUMU,
               surec: { include: { regulasyon: { select: { kod: true } } } },
             },
           },
@@ -183,7 +184,7 @@ export async function genelEkranVerisi(k: AktifKullanici): Promise<EkranVerisi> 
       db.aksiyon.count({
         where: {
           durum: { in: ['planlandi', 'devam'] }, hedef: { lt: simdi },
-          bulgu: { maddeDurumu: kapsamKosulu(uyumKapsami) },
+          bulgu: { maddeDurumu: kopruKosulu(uyumKapsami) },
         },
       }),
       db.denetim.findMany({
@@ -239,9 +240,11 @@ export async function genelEkranVerisi(k: AktifKullanici): Promise<EkranVerisi> 
          sona koyar — ölçülmemiş tesis listenin başına çıkmaz. */
       orderBy: { ad: 'asc' },
     }),
+    /* Uyum zinciri KAPSAM ÖĞESİNE bağlı (B1): öğe başına sayılır, tesise
+       köprüden bağlanır. */
     db.maddeDurumu.groupBy({
-      by: ['tesisId', 'durum'], _count: { _all: true },
-      where: kapsamKosulu(uyumKapsami),
+      by: ['kapsamOgesiId', 'durum'], _count: { _all: true },
+      where: kopruKosulu(uyumKapsami),
     }),
     db.risk.findMany({
       where: {
@@ -273,7 +276,7 @@ export async function genelEkranVerisi(k: AktifKullanici): Promise<EkranVerisi> 
         ...(uyumKapsami === null ? {} : {
           OR: [
             { kapsam: { none: {} } },
-            { kapsam: { some: { tesisId: { in: uyumKapsami } } } },
+            { kapsam: { some: { kapsamOgesi: { tesisId: { in: uyumKapsami } } } } },
           ],
         }),
       },
@@ -286,7 +289,7 @@ export async function genelEkranVerisi(k: AktifKullanici): Promise<EkranVerisi> 
     db.bulgu.findMany({
       where: {
         silindi: null,
-        maddeDurumu: kapsamKosulu(uyumKapsami),
+        maddeDurumu: kopruKosulu(uyumKapsami),
         OR: [
           { tespitTarihi: { gte: akisBaslangic } },
           { kapanmaTarihi: { gte: akisBaslangic } },
@@ -298,7 +301,7 @@ export async function genelEkranVerisi(k: AktifKullanici): Promise<EkranVerisi> 
        geriye doğru rastgele bir seri üretmek "iyileşiyoruz" yalanıdır. */
     db.uyumAnlik.findMany({
       where: uyumKapsami === null ? {} : {
-        OR: [{ tesisId: null }, { tesisId: { in: uyumKapsami } }],
+        OR: [{ kapsamOgesiId: null }, { kapsamOgesi: { tesisId: { in: uyumKapsami } } }],
       },
       select: { tarih: true, ozetJson: true },
       orderBy: { tarih: 'desc' }, take: 400,
@@ -309,13 +312,16 @@ export async function genelEkranVerisi(k: AktifKullanici): Promise<EkranVerisi> 
      Ölçülmemiş güç sona iner — kolon devrindeki `DESC` davranışı. */
   const tesisler = ozelligeGoreSirala(tesisSirasiz, KURULU_GUC);
 
-  /* Tesis × durum sayımı — tek groupBy'dan haritaya. */
+  /* Tesis × durum sayımı — tek groupBy'dan haritaya; öğe → tesis köprüsü
+     ayrı sorgudur, köprüsüz öğe hiçbir karta yazılmaz. */
+  const kopru = await ogeTesisKoprusu(tesisDurumlari.map((d) => d.kapsamOgesiId));
   const tesisSayimi = new Map<string, Record<string, number>>();
   for (const d of tesisDurumlari) {
-    if (!d.tesisId) continue;
-    const kayitlar = tesisSayimi.get(d.tesisId) ?? {};
+    const tesisId = kopru.get(d.kapsamOgesiId) ?? null;
+    if (!tesisId) continue;
+    const kayitlar = tesisSayimi.get(tesisId) ?? {};
     kayitlar[d.durum] = (kayitlar[d.durum] ?? 0) + d._count._all;
-    tesisSayimi.set(d.tesisId, kayitlar);
+    tesisSayimi.set(tesisId, kayitlar);
   }
 
   /* Ham satırlar `tesisler`, ekran kartları `tesisKartlari`: ikisi ayrı
@@ -448,8 +454,8 @@ export async function genelEkranVerisi(k: AktifKullanici): Promise<EkranVerisi> 
     id: b.id,
     baslik: b.baslik,
     aciklama: (b.aciklama ?? '').split(/(?<=\.)\s/)[0] || null,
-    tesisAd: b.maddeDurumu.tesis.ad,
-    tesisId: b.maddeDurumu.tesis.id,
+    tesisAd: b.maddeDurumu.kapsamOgesi.ad,
+    tesisId: b.maddeDurumu.kapsamOgesi.tesisId,
     kontrolKodu: b.maddeDurumu.madde.kod,
     cerceve: b.maddeDurumu.surec.regulasyon.kod,
     onem: b.onemDerecesi,

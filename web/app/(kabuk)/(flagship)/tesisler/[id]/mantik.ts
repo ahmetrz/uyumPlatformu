@@ -1,8 +1,18 @@
 /* F3 · Tesis 360 — OT mimari profili, SAF katman.
 
-   `TesisProfili` uygulanabilirlik motorunun girdisidir (lib/motorlar/
-   uygulanabilirlik.ts) ve /uyum ekranı "profil Tesis 360'tan tamamlanır"
-   der. Bu dosya profilin iki yönünü tek tanımdan türetir:
+   Profil İKİ kaynaktan gelir ve ekran ikisini TEK listede çizer:
+     · ÇEKİRDEK — `TesisProfili` kolonları: sektörsüz OT alanları
+       (mimari tipi, sağlayıcılar, maruziyet, yerel altyapı). Bu dosya
+       onları adıyla bilir; hepsi her sektörde anlamlıdır.
+     · SEKTÖR — paketin `SektorOznitelikSemasi` ile beyan ettiği
+       öznitelikler (B2: lisans, kabul, black start, TEİAŞ, seri
+       haberleşme, kritiklik sınıfı enerji PAKETİNİNDİR, çekirdek
+       kolonu değil). Çekirdek bunların adını BİLMEZ: şemadan gelen
+       tip, etiket, seçenek ve grupla çizer. Şeması boş sektörde bu
+       kaynak boştur ve ekran yalnız çekirdek alanları gösterir —
+       enerji ile su aynı kodla, kendi alanlarıyla çalışır (K4).
+
+   Her iki kaynak için tek sözleşme:
      · GÖSTERİM — her alan bir satır, boş alan "tanımsız" SÖZCÜĞÜYLE
        (boş bırakılmaz: bilinmeyen ≠ yok);
      · FORM — aynı alan listesi giriş alanına döner, boş giriş null'a
@@ -11,18 +21,9 @@
    Veritabanı, React ve `server-only` bağımlılığı YOKTUR; test doğrudan
    çağırır (tests/tesis360-profil.test.ts). */
 
-/* ═══ Profil kaydı (serileştirilmiş) ═════════════════════════════════ */
+/* ═══ Çekirdek profil kaydı (serileştirilmiş) ═════════════════════════ */
 
 export type OtProfili = {
-  lisansTipi: string | null;
-  lisansNo: string | null;
-  kabulDurumu: string | null;
-  /** ISO — sunucu Date'i serileştirir */
-  kabulTarihi: string | null;
-  blackStart: boolean | null;
-  teiasScadaEms: boolean | null;
-  seriHaberlesme: boolean | null;
-  kritiklikSinifi: string | null;
   kritikAltyapiStatusu: boolean | null;
   internetMaruziyeti: string | null;
   uzaktanErisim: boolean | null;
@@ -41,9 +42,7 @@ export type OtProfili = {
 };
 
 export const BOS_PROFIL: OtProfili = {
-  lisansTipi: null, lisansNo: null, kabulDurumu: null, kabulTarihi: null,
-  blackStart: null, teiasScadaEms: null, seriHaberlesme: null,
-  kritiklikSinifi: null, kritikAltyapiStatusu: null, internetMaruziyeti: null,
+  kritikAltyapiStatusu: null, internetMaruziyeti: null,
   uzaktanErisim: null, otMimariTipi: null, dcsSaglayici: null, scadaSaglayici: null,
   plcAileleri: null, iotVar: null, akilliSayacVar: null, yerelAdVar: null,
   yerelVeriMerkeziVar: null, grupOrtakServisler: null, guncellendi: null,
@@ -51,13 +50,15 @@ export const BOS_PROFIL: OtProfili = {
 
 /* ═══ Alan tanımı — gösterim ve form aynı listeden ═══════════════════ */
 
-export type AlanTuru = 'metin' | 'liste' | 'ucDurum' | 'secim' | 'tarih';
+export type AlanTuru = 'metin' | 'liste' | 'ucDurum' | 'secim' | 'tarih' | 'sayi';
+
+export type Secenek = { deger: string; ad: string };
 
 export type ProfilAlani = {
   anahtar: Exclude<keyof OtProfili, 'guncellendi'>;
   etiket: string;
   tur: AlanTuru;
-  secenekler?: { deger: string; ad: string }[];
+  secenekler?: Secenek[];
 };
 
 export type ProfilGrubu = { ad: string; alanlar: ProfilAlani[] };
@@ -69,28 +70,16 @@ export const OT_MIMARI_SECENEKLERI = [
   { deger: 'hibrit', ad: 'Hibrit' },
 ];
 
-export const KABUL_SECENEKLERI = [
-  { deger: 'lisans_oncesi', ad: 'Lisans öncesi' },
-  { deger: 'insaat', ad: 'İnşaat' },
-  { deger: 'gecici_kabul', ad: 'Geçici kabul' },
-  { deger: 'kesin_kabul', ad: 'Kesin kabul' },
-];
-
-export const KRITIKLIK_SECENEKLERI = [
-  { deger: 'dusuk', ad: 'Düşük' },
-  { deger: 'orta', ad: 'Orta' },
-  { deger: 'yuksek', ad: 'Yüksek' },
-  { deger: 'kritik', ad: 'Kritik' },
-];
-
 export const MARUZIYET_SECENEKLERI = [
   { deger: 'yok', ad: 'Yok' },
   { deger: 'sinirli', ad: 'Sınırlı' },
   { deger: 'var', ad: 'Var' },
 ];
 
-/** Grup sırası ekranın okunma sırasıdır: önce OT mimarisi (bu bloğun
-    adı), sonra lisans, şebeke, maruziyet, yerel altyapı. */
+/** Çekirdek gruplar. Sektör grupları İLK grubun ardına girer; çekirdek
+    grupla aynı adı taşıyan sektör grubu o grubun sonuna eklenir
+    (`profilGruplari`). Böylece enerji paketi "Kritiklik ve maruziyet"
+    grubuna kendi kritiklik sınıfını koyabilir. */
 export const PROFIL_GRUPLARI: ProfilGrubu[] = [
   { ad: 'OT mimarisi', alanlar: [
     { anahtar: 'otMimariTipi', etiket: 'OT mimari tipi', tur: 'secim', secenekler: OT_MIMARI_SECENEKLERI },
@@ -98,19 +87,7 @@ export const PROFIL_GRUPLARI: ProfilGrubu[] = [
     { anahtar: 'scadaSaglayici', etiket: 'SCADA sağlayıcı', tur: 'metin' },
     { anahtar: 'plcAileleri', etiket: 'PLC aileleri', tur: 'liste' },
   ] },
-  { ad: 'Lisans ve kabul', alanlar: [
-    { anahtar: 'lisansTipi', etiket: 'Lisans tipi', tur: 'metin' },
-    { anahtar: 'lisansNo', etiket: 'Lisans no', tur: 'metin' },
-    { anahtar: 'kabulDurumu', etiket: 'Kabul durumu', tur: 'secim', secenekler: KABUL_SECENEKLERI },
-    { anahtar: 'kabulTarihi', etiket: 'Kabul tarihi', tur: 'tarih' },
-  ] },
-  { ad: 'Şebeke ve haberleşme', alanlar: [
-    { anahtar: 'blackStart', etiket: 'Black start', tur: 'ucDurum' },
-    { anahtar: 'teiasScadaEms', etiket: 'TEİAŞ SCADA/EMS haberleşmesi', tur: 'ucDurum' },
-    { anahtar: 'seriHaberlesme', etiket: 'Seri haberleşme', tur: 'ucDurum' },
-  ] },
   { ad: 'Kritiklik ve maruziyet', alanlar: [
-    { anahtar: 'kritiklikSinifi', etiket: 'Kritiklik sınıfı', tur: 'secim', secenekler: KRITIKLIK_SECENEKLERI },
     { anahtar: 'kritikAltyapiStatusu', etiket: 'Kritik altyapı statüsü', tur: 'ucDurum' },
     { anahtar: 'internetMaruziyeti', etiket: 'İnternet maruziyeti', tur: 'secim', secenekler: MARUZIYET_SECENEKLERI },
     { anahtar: 'uzaktanErisim', etiket: 'Uzaktan erişim', tur: 'ucDurum' },
@@ -125,6 +102,141 @@ export const PROFIL_GRUPLARI: ProfilGrubu[] = [
 ];
 
 export const PROFIL_ALANLARI: ProfilAlani[] = PROFIL_GRUPLARI.flatMap((g) => g.alanlar);
+
+/* ═══ Sektör öznitelikleri (paketin beyanı) ══════════════════════════ */
+
+/** Şema satırından türetilen alan. `etiket` sözlükten çözülmüş metindir
+    (sunucu çözer; çözülemezse anahtarın kendisi — uydurulmaz). */
+export type SektorAlani = {
+  anahtar: string;
+  etiket: string;
+  tur: AlanTuru;
+  secenekler?: Secenek[];
+  /** Ekran grubu — paket verir; null → "Sektör öznitelikleri". */
+  grup: string | null;
+  birim: string | null;
+};
+
+/** Serileştirilmiş öznitelik değeri: mantık → boolean, sayı → number,
+    metin/tarih → string; satır yoksa null (ÖLÇÜLMEDİ). */
+export type SektorDegeri = string | number | boolean | null;
+
+export type SektorProfili = {
+  alanlar: SektorAlani[];
+  degerler: Record<string, SektorDegeri>;
+};
+
+export const BOS_SEKTOR_PROFILI: SektorProfili = { alanlar: [], degerler: {} };
+
+export const SEKTOR_GRUBU_VARSAYILAN = 'Sektör öznitelikleri';
+
+/** Şema `tip`i → alan türü. Seçenekli metin seçimdir. */
+export function sektorAlaniKur(sema: {
+  anahtar: string; tip: string; etiket: string; secenekler: string | null;
+  grup: string | null; birim: string | null;
+}): SektorAlani {
+  const secenekler = seceneklerOku(sema.secenekler);
+  const tur: AlanTuru = sema.tip === 'mantik' ? 'ucDurum'
+    : sema.tip === 'tarih' ? 'tarih'
+      : sema.tip === 'sayi' ? 'sayi'
+        : secenekler ? 'secim' : 'metin';
+  return {
+    anahtar: sema.anahtar, etiket: sema.etiket, tur,
+    ...(secenekler ? { secenekler } : {}),
+    grup: sema.grup, birim: sema.birim,
+  };
+}
+
+/** `secenekler` JSON'u: `[{deger, ad}]`. Bozuk ya da boş → seçeneksiz
+    (alan metin olur; sessizce "geçerli" sayılmaz, form kısıtı düşer). */
+export function seceneklerOku(json: string | null | undefined): Secenek[] | null {
+  if (!json) return null;
+  try {
+    const ham: unknown = JSON.parse(json);
+    if (!Array.isArray(ham)) return null;
+    const liste = ham.filter((x): x is Secenek =>
+      typeof x === 'object' && x !== null
+      && typeof (x as Secenek).deger === 'string' && typeof (x as Secenek).ad === 'string');
+    return liste.length ? liste : null;
+  } catch { return null; }
+}
+
+/** `TesisOzellik` satırlarından alan başına değer. Satır yoksa null. */
+export function sektorDegerleri(
+  alanlar: readonly SektorAlani[],
+  ozellikler: readonly { anahtar: string; sayisalDeger: number | null; metinDeger?: string | null }[],
+): Record<string, SektorDegeri> {
+  const d: Record<string, SektorDegeri> = {};
+  for (const a of alanlar) {
+    const o = ozellikler.find((x) => x.anahtar === a.anahtar);
+    if (!o) { d[a.anahtar] = null; continue; }
+    switch (a.tur) {
+      case 'ucDurum': d[a.anahtar] = o.sayisalDeger === null ? null : o.sayisalDeger === 1; break;
+      case 'sayi': d[a.anahtar] = o.sayisalDeger; break;
+      default: d[a.anahtar] = o.metinDeger ?? null;
+    }
+  }
+  return d;
+}
+
+/* ═══ Birleşik alan görünümü — gösterim ve form ═════════════════════ */
+
+/** Ekranın çizdiği alan: kaynağı çekirdek ya da sektör. Form durumu
+    `formAnahtari` ile anahtarlanır — sektör anahtarı `oz:` önekiyle,
+    paketin bir çekirdek adını (ör. `iotVar`) kullanması çakışmasın. */
+export type GorunumAlani = {
+  kaynak: 'cekirdek' | 'sektor';
+  anahtar: string;
+  formAnahtari: string;
+  etiket: string;
+  tur: AlanTuru;
+  secenekler?: Secenek[];
+  birim: string | null;
+};
+
+export type GorunumGrubu = { ad: string; alanlar: GorunumAlani[] };
+
+const cekirdekAlani = (a: ProfilAlani): GorunumAlani => ({
+  kaynak: 'cekirdek', anahtar: a.anahtar, formAnahtari: a.anahtar,
+  etiket: a.etiket, tur: a.tur, ...(a.secenekler ? { secenekler: a.secenekler } : {}), birim: null,
+});
+
+const sektorAlani = (a: SektorAlani): GorunumAlani => ({
+  kaynak: 'sektor', anahtar: a.anahtar, formAnahtari: `oz:${a.anahtar}`,
+  etiket: a.etiket, tur: a.tur, ...(a.secenekler ? { secenekler: a.secenekler } : {}), birim: a.birim,
+});
+
+/**
+ * Çekirdek + sektör gruplarının birleşimi. Sektör alanları şema sırasıyla
+ * gruplanır; adı bir çekirdek grupla aynı olan sektör grubu o grubun
+ * SONUNA eklenir, diğerleri ilk çekirdek grubun ardına girer.
+ */
+export function profilGruplari(sektor: SektorProfili = BOS_SEKTOR_PROFILI): GorunumGrubu[] {
+  const gruplar: GorunumGrubu[] = PROFIL_GRUPLARI.map((g) => ({
+    ad: g.ad, alanlar: g.alanlar.map(cekirdekAlani),
+  }));
+  const sektorGruplari: GorunumGrubu[] = [];
+  for (const a of sektor.alanlar) {
+    const ad = a.grup ?? SEKTOR_GRUBU_VARSAYILAN;
+    const cekirdek = gruplar.find((g) => g.ad === ad);
+    if (cekirdek) { cekirdek.alanlar.push(sektorAlani(a)); continue; }
+    let g = sektorGruplari.find((x) => x.ad === ad);
+    if (!g) { g = { ad, alanlar: [] }; sektorGruplari.push(g); }
+    g.alanlar.push(sektorAlani(a));
+  }
+  return [gruplar[0], ...sektorGruplari, ...gruplar.slice(1)];
+}
+
+export function profilAlanlari(sektor: SektorProfili = BOS_SEKTOR_PROFILI): GorunumAlani[] {
+  return profilGruplari(sektor).flatMap((g) => g.alanlar);
+}
+
+function hamDeger(
+  alan: GorunumAlani, profil: OtProfili, sektor: SektorProfili,
+): string | number | boolean | null {
+  if (alan.kaynak === 'cekirdek') return profil[alan.anahtar as ProfilAlani['anahtar']];
+  return sektor.degerler[alan.anahtar] ?? null;
+}
 
 /* ═══ Liste alanları ═════════════════════════════════════════════════ */
 
@@ -160,7 +272,7 @@ export const TANIMSIZ = 'tanımsız';
 const TARIH = new Intl.DateTimeFormat('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
 export type ProfilSatiri = {
-  anahtar: ProfilAlani['anahtar'];
+  anahtar: string;
   etiket: string;
   deger: string;
   /** alan boş — ekranda "tanımsız" sözcüğü ve unk işareti */
@@ -168,81 +280,89 @@ export type ProfilSatiri = {
 };
 
 /**
- * Tek alanın insan sözü. Null her türde "tanımsız"dır — üç durumlu
+ * Tek değerin insan sözü. Null her türde "tanımsız"dır — üç durumlu
  * boolean için null "hayır" DEĞİLDİR, bilinmeyendir.
  */
-export function alanDegeri(profil: OtProfili, alan: ProfilAlani): ProfilSatiri {
-  const ham = profil[alan.anahtar];
+export function degerYazisi(
+  ham: string | number | boolean | null | undefined,
+  alan: Pick<GorunumAlani, 'tur' | 'secenekler' | 'birim'>,
+): string {
   const bos = ham === null || ham === undefined || ham === '';
-  let deger = TANIMSIZ;
-  if (!bos) {
-    switch (alan.tur) {
-      case 'ucDurum': deger = ham === true ? 'var' : 'yok'; break;
-      case 'secim':
-        deger = alan.secenekler?.find((s) => s.deger === ham)?.ad ?? String(ham);
-        break;
-      case 'liste': deger = listeyiAyristir(String(ham)).join(', ') || TANIMSIZ; break;
-      case 'tarih': {
-        const d = new Date(String(ham));
-        deger = Number.isNaN(d.getTime()) ? 'geçersiz tarih' : TARIH.format(d);
-        break;
-      }
-      default: deger = String(ham);
+  if (bos) return TANIMSIZ;
+  switch (alan.tur) {
+    case 'ucDurum': return ham === true ? 'var' : 'yok';
+    case 'secim': return alan.secenekler?.find((s) => s.deger === ham)?.ad ?? String(ham);
+    case 'liste': return listeyiAyristir(String(ham)).join(', ') || TANIMSIZ;
+    case 'tarih': {
+      const d = new Date(String(ham));
+      return Number.isNaN(d.getTime()) ? 'geçersiz tarih' : TARIH.format(d);
     }
+    case 'sayi': return alan.birim ? `${String(ham)} ${alan.birim}` : String(ham);
+    default: return String(ham);
   }
+}
+
+/** Çekirdek alanın satırı (testler ve eski çağıranlar için). */
+export function alanDegeri(profil: OtProfili, alan: ProfilAlani): ProfilSatiri {
+  const deger = degerYazisi(profil[alan.anahtar], { tur: alan.tur, secenekler: alan.secenekler, birim: null });
   return { anahtar: alan.anahtar, etiket: alan.etiket, deger, tanimsiz: deger === TANIMSIZ };
 }
 
-export function profilSatirlari(profil: OtProfili | null): { ad: string; satirlar: ProfilSatiri[] }[] {
+export function profilSatirlari(
+  profil: OtProfili | null, sektor: SektorProfili = BOS_SEKTOR_PROFILI,
+): { ad: string; satirlar: ProfilSatiri[] }[] {
   const p = profil ?? BOS_PROFIL;
-  return PROFIL_GRUPLARI.map((g) => ({
-    ad: g.ad, satirlar: g.alanlar.map((a) => alanDegeri(p, a)),
+  return profilGruplari(sektor).map((g) => ({
+    ad: g.ad,
+    satirlar: g.alanlar.map((a) => {
+      const deger = degerYazisi(hamDeger(a, p, sektor), a);
+      return { anahtar: a.formAnahtari, etiket: a.etiket, deger, tanimsiz: deger === TANIMSIZ };
+    }),
   }));
 }
 
-/** Kaç alan tanımsız — başlıkta "N/21 alan tanımsız" diye yazılır. */
-export function tanimsizSayisi(profil: OtProfili | null): { tanimsiz: number; toplam: number } {
-  const p = profil ?? BOS_PROFIL;
-  const tanimsiz = PROFIL_ALANLARI.filter((a) => alanDegeri(p, a).tanimsiz).length;
-  return { tanimsiz, toplam: PROFIL_ALANLARI.length };
+/** Kaç alan tanımsız — başlıkta "N/M alan tanımsız" diye yazılır. M
+    sektöre göre değişir: çekirdek 13 + paketin beyan ettiği kadar. */
+export function tanimsizSayisi(
+  profil: OtProfili | null, sektor: SektorProfili = BOS_SEKTOR_PROFILI,
+): { tanimsiz: number; toplam: number } {
+  const satirlar = profilSatirlari(profil, sektor).flatMap((g) => g.satirlar);
+  return { tanimsiz: satirlar.filter((s) => s.tanimsiz).length, toplam: satirlar.length };
 }
 
 /* ═══ Form ═══════════════════════════════════════════════════════════ */
 
-/** Form durumu: her alan bir metin. Üç durumlu alan 'evet' | 'hayir' | ''. */
-export type ProfilFormu = Record<ProfilAlani['anahtar'], string>;
+/** Form durumu: her alan bir metin (`formAnahtari` ile). Üç durumlu alan
+    'evet' | 'hayir' | ''. */
+export type ProfilFormu = Record<string, string>;
 
-export function formVarsayilani(profil: OtProfili | null): ProfilFormu {
-  const p = profil ?? BOS_PROFIL;
-  const f = {} as ProfilFormu;
-  for (const a of PROFIL_ALANLARI) {
-    const ham = p[a.anahtar];
-    if (ham === null || ham === undefined) { f[a.anahtar] = ''; continue; }
-    switch (a.tur) {
-      case 'ucDurum': f[a.anahtar] = ham === true ? 'evet' : 'hayir'; break;
-      case 'liste': f[a.anahtar] = listeyiAyristir(String(ham)).join(', '); break;
-      case 'tarih': {
-        const d = new Date(String(ham));
-        f[a.anahtar] = Number.isNaN(d.getTime()) ? '' : d.toISOString().slice(0, 10);
-        break;
-      }
-      default: f[a.anahtar] = String(ham);
+function formDegeri(ham: string | number | boolean | null | undefined, tur: AlanTuru): string {
+  if (ham === null || ham === undefined) return '';
+  switch (tur) {
+    case 'ucDurum': return ham === true ? 'evet' : 'hayir';
+    case 'liste': return listeyiAyristir(String(ham)).join(', ');
+    case 'tarih': {
+      const d = new Date(String(ham));
+      return Number.isNaN(d.getTime()) ? '' : d.toISOString().slice(0, 10);
     }
+    default: return String(ham);
   }
+}
+
+export function formVarsayilani(
+  profil: OtProfili | null, sektor: SektorProfili = BOS_SEKTOR_PROFILI,
+): ProfilFormu {
+  const p = profil ?? BOS_PROFIL;
+  const f: ProfilFormu = {};
+  for (const a of profilAlanlari(sektor)) f[a.formAnahtari] = formDegeri(hamDeger(a, p, sektor), a.tur);
   return f;
 }
 
-/** `profilKaydet` girdisi — sunucu şemasıyla yapısal olarak aynı. */
+/** `profilKaydet` girdisi — sunucu şemasıyla yapısal olarak aynı.
+    `oznitelikler` paketin BÜTÜN anahtarlarını taşır; boş bırakılanın
+    değeri null'dur ve sunucu satırı siler (ölçülmedi = satırsızlık). */
 export type ProfilGirdisi = {
   tesisId: string;
-  lisansTipi: string | null;
-  lisansNo: string | null;
-  kabulDurumu: 'gecici_kabul' | 'kesin_kabul' | 'insaat' | 'lisans_oncesi' | null;
-  kabulTarihi: string | null;
-  blackStart: boolean | null;
-  teiasScadaEms: boolean | null;
-  seriHaberlesme: boolean | null;
-  kritiklikSinifi: 'dusuk' | 'orta' | 'yuksek' | 'kritik' | null;
   kritikAltyapiStatusu: boolean | null;
   internetMaruziyeti: 'yok' | 'sinirli' | 'var' | null;
   uzaktanErisim: boolean | null;
@@ -255,6 +375,7 @@ export type ProfilGirdisi = {
   yerelAdVar: boolean | null;
   yerelVeriMerkeziVar: boolean | null;
   grupOrtakServisler: string | null;
+  oznitelikler: Record<string, SektorDegeri>;
 };
 
 const ucDurumdan = (v: string): boolean | null =>
@@ -265,33 +386,51 @@ const metinden = (v: string): string | null => (v.trim() ? v.trim() : null);
 const secimden = <T extends string>(v: string, secenekler: { deger: string }[]): T | null =>
   (secenekler.some((s) => s.deger === v) ? (v as T) : null);
 
+const tarihten = (v: string): string | null => (/^\d{4}-\d{2}-\d{2}$/.test(v) ? v : null);
+
+const sayidan = (v: string): number | null => {
+  if (!v.trim()) return null;
+  const n = Number(v.replace(',', '.'));
+  return Number.isFinite(n) ? n : null;
+};
+
+/** Sektör alanının form değerinden saklanacak değere. Boş ve geçersiz
+    → null (bilinmiyor); sessizce başka bir şey kaydedilmez. */
+export function sektorDegeriCoz(alan: Pick<GorunumAlani, 'tur' | 'secenekler'>, v: string): SektorDegeri {
+  switch (alan.tur) {
+    case 'ucDurum': return ucDurumdan(v);
+    case 'secim': return secimden(v, alan.secenekler ?? []);
+    case 'tarih': return tarihten(v);
+    case 'sayi': return sayidan(v);
+    case 'liste': return listeyiSakla(v);
+    default: return metinden(v);
+  }
+}
+
 /**
  * Formdan sunucu girdisine. Boş her şey null olur — "bilinmiyor" olarak
  * saklanır; ekran bunu sıfır ya da "yok" saymaz. Geçersiz seçim değeri
  * (ör. elle bozulmuş option) sessizce kaydedilmez, null'a düşer.
  */
-export function formdanGirdi(tesisId: string, f: ProfilFormu): ProfilGirdisi {
+export function formdanGirdi(
+  tesisId: string, f: ProfilFormu, sektor: SektorProfili = BOS_SEKTOR_PROFILI,
+): ProfilGirdisi {
+  const oznitelikler: Record<string, SektorDegeri> = {};
+  for (const a of sektor.alanlar) oznitelikler[a.anahtar] = sektorDegeriCoz(a, f[`oz:${a.anahtar}`] ?? '');
   return {
     tesisId,
-    lisansTipi: metinden(f.lisansTipi),
-    lisansNo: metinden(f.lisansNo),
-    kabulDurumu: secimden(f.kabulDurumu, KABUL_SECENEKLERI),
-    kabulTarihi: /^\d{4}-\d{2}-\d{2}$/.test(f.kabulTarihi) ? f.kabulTarihi : null,
-    blackStart: ucDurumdan(f.blackStart),
-    teiasScadaEms: ucDurumdan(f.teiasScadaEms),
-    seriHaberlesme: ucDurumdan(f.seriHaberlesme),
-    kritiklikSinifi: secimden(f.kritiklikSinifi, KRITIKLIK_SECENEKLERI),
-    kritikAltyapiStatusu: ucDurumdan(f.kritikAltyapiStatusu),
-    internetMaruziyeti: secimden(f.internetMaruziyeti, MARUZIYET_SECENEKLERI),
-    uzaktanErisim: ucDurumdan(f.uzaktanErisim),
-    otMimariTipi: secimden(f.otMimariTipi, OT_MIMARI_SECENEKLERI),
-    dcsSaglayici: metinden(f.dcsSaglayici),
-    scadaSaglayici: metinden(f.scadaSaglayici),
+    kritikAltyapiStatusu: ucDurumdan(f.kritikAltyapiStatusu ?? ''),
+    internetMaruziyeti: secimden(f.internetMaruziyeti ?? '', MARUZIYET_SECENEKLERI),
+    uzaktanErisim: ucDurumdan(f.uzaktanErisim ?? ''),
+    otMimariTipi: secimden(f.otMimariTipi ?? '', OT_MIMARI_SECENEKLERI),
+    dcsSaglayici: metinden(f.dcsSaglayici ?? ''),
+    scadaSaglayici: metinden(f.scadaSaglayici ?? ''),
     plcAileleri: listeyiSakla(f.plcAileleri),
-    iotVar: ucDurumdan(f.iotVar),
-    akilliSayacVar: ucDurumdan(f.akilliSayacVar),
-    yerelAdVar: ucDurumdan(f.yerelAdVar),
-    yerelVeriMerkeziVar: ucDurumdan(f.yerelVeriMerkeziVar),
+    iotVar: ucDurumdan(f.iotVar ?? ''),
+    akilliSayacVar: ucDurumdan(f.akilliSayacVar ?? ''),
+    yerelAdVar: ucDurumdan(f.yerelAdVar ?? ''),
+    yerelVeriMerkeziVar: ucDurumdan(f.yerelVeriMerkeziVar ?? ''),
     grupOrtakServisler: listeyiSakla(f.grupOrtakServisler),
+    oznitelikler,
   };
 }

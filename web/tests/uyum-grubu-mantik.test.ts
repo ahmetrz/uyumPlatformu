@@ -35,7 +35,8 @@ const gunSonra = (n: number) => new Date(SIMDI + n * GUN).toISOString();
 
 /* ═══ Süreç kütüğü ═══════════════════════════════════════════════════ */
 
-const TESIS = { id: 'tesis-1', kod: 'SAHA-A3', ad: 'Saha A-3 JES' };
+/* Kapsam hücresi bir KAPSAM ÖĞESİDİR (B1): `id` öğenin, `tesisId` köprü. */
+const TESIS = { id: 'ko-tesis-1', tesisId: 'tesis-1', kod: 'SAHA-A3', ad: 'Saha A-3 JES' };
 
 function surec(ek: Partial<S> = {}): S {
   return {

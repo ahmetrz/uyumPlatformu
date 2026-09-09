@@ -61,7 +61,8 @@ export type KuruKosuSonucu = Sonuc & {
  */
 export async function degerlendirmeKuruKosu(girdi: {
   regulasyonId: string;
-  tesisId: string;
+  /** Hedef KAPSAM ÖĞESİ (B1): tesis, kurum… */
+  kapsamOgesiId: string;
   surecId?: string | null;
   kaynakAdi: string;
   satirlar: HamSatir[];
@@ -74,7 +75,7 @@ export async function degerlendirmeKuruKosu(girdi: {
     const sozluk = await eylemSozlugu(k, 'uyum');
     const v = z.object({
       regulasyonId: bosluksuz('Regülasyon'),
-      tesisId: bosluksuz(tBas(sozluk, 'tesis')),
+      kapsamOgesiId: bosluksuz(tBas(sozluk, 'tesis')),
       surecId: z.string().trim().transform((s) => s || null).nullable().optional(),
       kaynakAdi: bosluksuz('Kaynak adı'),
       satirlar: z.array(SatirSemasi)
@@ -85,12 +86,12 @@ export async function degerlendirmeKuruKosu(girdi: {
     /* Kapsam kapısı HEDEF tesise sorulur: aktarım o tesisin
        değerlendirmelerini değiştirecek. */
     kapsamZorunlu(k, 'uyum', 'yazma',
-      { tesisId: v.tesisId, surecId: v.surecId ?? null },
+      { kapsamOgesiId: v.kapsamOgesiId, surecId: v.surecId ?? null },
       `Bu ${t(sozluk, 'tesis', 'bulunma')} değerlendirme aktarma yetkiniz yok`);
 
     const mevcutKayitlar = await db.maddeDurumu.findMany({
       where: {
-        tesisId: v.tesisId,
+        kapsamOgesiId: v.kapsamOgesiId,
         madde: { regulasyonId: v.regulasyonId, silindi: null },
         ...(v.surecId ? { surecId: v.surecId } : {}),
       },
@@ -105,7 +106,7 @@ export async function degerlendirmeKuruKosu(girdi: {
        aktarımın o kararı sessizce ezmesi, onaylı bir istisnayı bir
        elektronik tablo satırıyla geçersiz kılmak olurdu. */
     const istisnalar = await db.istisna.findMany({
-      where: { tesisId: v.tesisId, durum: 'aktif' },
+      where: { kapsamOgesiId: v.kapsamOgesiId, durum: 'aktif' },
       select: { maddeId: true },
     });
     const disMaddeler = new Set(istisnalar.map((d) => d.maddeId));
@@ -123,7 +124,7 @@ export async function degerlendirmeKuruKosu(girdi: {
 
     const kayit = await db.degerlendirmeAktarimi.create({
       data: {
-        regulasyonId: v.regulasyonId, tesisId: v.tesisId, surecId: v.surecId ?? null,
+        regulasyonId: v.regulasyonId, kapsamOgesiId: v.kapsamOgesiId, surecId: v.surecId ?? null,
         kaynakAdi: v.kaynakAdi, durum: 'kuru_kosu',
         okunan: sayimlar.okunan, eslesen: sayimlar.eslesen,
         elenen: sayimlar.elenen, degisen: sayimlar.degisen,
@@ -169,7 +170,7 @@ export async function degerlendirmeAktarimiUygula(girdi: {
     const kuru = await db.degerlendirmeAktarimi.findUnique({
       where: { id: v.kuruKosuId },
       select: {
-        id: true, durum: true, regulasyonId: true, tesisId: true, surecId: true,
+        id: true, durum: true, regulasyonId: true, kapsamOgesiId: true, surecId: true,
         kaynakAdi: true, raporJson: true,
       },
     });
@@ -180,8 +181,8 @@ export async function degerlendirmeAktarimiUygula(girdi: {
       ));
     }
     kapsamZorunlu(k, 'uyum', 'onay',
-      { tesisId: kuru.tesisId, surecId: kuru.surecId },
-      `Bu ${await kapsamTerimi(k, 'uyum', kuru.tesisId, 'bulunma')} `
+      { kapsamOgesiId: kuru.kapsamOgesiId, surecId: kuru.surecId },
+      `Bu ${await kapsamTerimi(k, 'uyum', kuru.kapsamOgesiId, 'bulunma')} `
       + 'değerlendirme aktarımı uygulama yetkiniz yok');
 
     const rapor = JSON.parse(kuru.raporJson ?? '{"satirlar":[]}') as {
@@ -197,14 +198,14 @@ export async function degerlendirmeAktarimiUygula(girdi: {
     /* Bugünkü durumlar YENİDEN okunur ve kuru koşu YENİDEN hesaplanır. */
     const mevcutKayitlar = await db.maddeDurumu.findMany({
       where: {
-        tesisId: kuru.tesisId,
+        kapsamOgesiId: kuru.kapsamOgesiId,
         madde: { regulasyonId: kuru.regulasyonId, silindi: null },
         ...(kuru.surecId ? { surecId: kuru.surecId } : {}),
       },
       select: { id: true, durum: true, maddeId: true, madde: { select: { kod: true } } },
     });
     const istisnalar = await db.istisna.findMany({
-      where: { tesisId: kuru.tesisId, durum: 'aktif' },
+      where: { kapsamOgesiId: kuru.kapsamOgesiId, durum: 'aktif' },
       select: { maddeId: true },
     });
     const disMaddeler = new Set(istisnalar.map((d) => d.maddeId));
@@ -220,7 +221,7 @@ export async function degerlendirmeAktarimiUygula(girdi: {
 
     const kapi = uygulamaKapisi({
       sayimlar, kuruKosuVar: true,
-      tesis: await eylemTerimi(k, 'uyum', kuru.tesisId),
+      tesis: await eylemTerimi(k, 'uyum', kuru.kapsamOgesiId),
     });
     if (!kapi.ok) return hata(new Error(kapi.sebep));
 
@@ -230,7 +231,7 @@ export async function degerlendirmeAktarimiUygula(girdi: {
 
     const uygulama = await db.degerlendirmeAktarimi.create({
       data: {
-        regulasyonId: kuru.regulasyonId, tesisId: kuru.tesisId, surecId: kuru.surecId,
+        regulasyonId: kuru.regulasyonId, kapsamOgesiId: kuru.kapsamOgesiId, surecId: kuru.surecId,
         kaynakAdi: kuru.kaynakAdi, durum: 'uygulandi',
         okunan: sayimlar.okunan, eslesen: sayimlar.eslesen,
         elenen: sayimlar.elenen, degisen: uygulanacak.length,
@@ -288,15 +289,15 @@ export async function degerlendirmeAktarimiReddet(girdi: {
 
     const kuru = await db.degerlendirmeAktarimi.findUnique({
       where: { id: v.kuruKosuId },
-      select: { id: true, durum: true, tesisId: true, surecId: true },
+      select: { id: true, durum: true, kapsamOgesiId: true, surecId: true },
     });
     if (!kuru) return hata(new Error('Kuru koşu bulunamadı'));
     if (kuru.durum !== 'kuru_kosu') {
       return hata(new Error(`Bu kayıt bir kuru koşu değil (durum: ${kuru.durum}).`));
     }
     kapsamZorunlu(k, 'uyum', 'yazma',
-      { tesisId: kuru.tesisId, surecId: kuru.surecId },
-      `Bu ${await kapsamTerimi(k, 'uyum', kuru.tesisId, 'bulunma')} aktarım reddetme yetkiniz yok`);
+      { kapsamOgesiId: kuru.kapsamOgesiId, surecId: kuru.surecId },
+      `Bu ${await kapsamTerimi(k, 'uyum', kuru.kapsamOgesiId, 'bulunma')} aktarım reddetme yetkiniz yok`);
 
     await db.degerlendirmeAktarimi.update({
       where: { id: v.kuruKosuId }, data: { durum: 'reddedildi' },

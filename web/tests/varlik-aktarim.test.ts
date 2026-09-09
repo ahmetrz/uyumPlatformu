@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { createHash, randomBytes } from 'node:crypto';
 import { CEKIRDEK_TERIMLER } from '../lib/dil/terimler';
+import { ogeKimligi } from './yardim/kapsam';
 
 // ENV, db'ye dokunan HER importtan önce ayarlanmalı (izolasyon kalıbı)
 const dizin = mkdtempSync(path.join(tmpdir(), 'uyum-varlik-aktarim-'));
@@ -76,7 +77,7 @@ beforeAll(async () => {
 });
 
 const yetki = (p: Partial<AktifKullanici['yetkiler'][number]>) => ({
-  rol: 'yonetici', surecId: null, tesisId: null, tuzelKisiId: null,
+  rol: 'yonetici', surecId: null, kapsamOgesiId: ogeKimligi(p.tesisId), tesisId: null, tuzelKisiId: null,
   regulasyonId: null, modul: null, ...p,
 });
 const kisi = (id: string, yetkiler: AktifKullanici['yetkiler']): AktifKullanici => ({

@@ -1099,7 +1099,7 @@ async function kanitKapsami(
   r: ReturnType<typeof uretec>,
   o: { varliklar: { id: string; tesisId: string | null; tur: { kod: string } | null }[] },
 ) {
-  const tesisBagiVar = await db.kanitTesis.count() > 0;
+  const tesisBagiVar = await db.kanitKapsami.count() > 0;
   const varlikBagiVar = await db.kanitVarlik.count() > 0;
   if (tesisBagiVar && varlikBagiVar) return;
 
@@ -1107,7 +1107,7 @@ async function kanitKapsami(
     where: { silindi: null },
     select: {
       id: true, tip: true,
-      baglantilar: { select: { maddeDurumu: { select: { tesisId: true } } } },
+      baglantilar: { select: { maddeDurumu: { select: { kapsamOgesiId: true } } } },
     },
     orderBy: { olusturuldu: 'asc' },
   });
@@ -1119,14 +1119,14 @@ async function kanitKapsami(
 
   for (const k of kanitlar) {
     const tesisIdleri = [...new Set(
-      k.baglantilar.map((b) => b.maddeDurumu?.tesisId).filter((x): x is string => !!x))];
+      k.baglantilar.map((b) => b.maddeDurumu?.kapsamOgesiId).filter((x): x is string => !!x))];
 
     /* Doğrudan santral bağı: kanıtın hangi sahanın kanıtı olduğunu madde
        bağından TÜRETMEK zorunda kalmamak için. Türetme kırılgandır —
        madde bağı kaldırılınca kanıt sahipsiz kalırdı. */
     if (!tesisBagiVar) {
       for (const t of tesisIdleri) {
-        await db.kanitTesis.create({ data: { kanitId: k.id, tesisId: t } });
+        await db.kanitKapsami.create({ data: { kanitId: k.id, kapsamOgesiId: t } });
       }
     }
 

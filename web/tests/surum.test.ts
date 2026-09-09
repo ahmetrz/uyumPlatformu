@@ -66,8 +66,8 @@ describe('Kabul testi 6 — regülasyon yeni sürüm', () => {
     for (const maddeId of degisen)
       for (const kk of surec.kapsam)
         await db.maddeDurumu.upsert({
-          where: { surecId_maddeId_tesisId: { surecId: surec.id, maddeId, tesisId: kk.tesisId } },
-          update: {}, create: { surecId: surec.id, maddeId, tesisId: kk.tesisId } });
+          where: { surecId_maddeId_kapsamOgesiId: { surecId: surec.id, maddeId, kapsamOgesiId: kk.kapsamOgesiId } },
+          update: {}, create: { surecId: surec.id, maddeId, kapsamOgesiId: kk.kapsamOgesiId } });
 
     // --- DOĞRULAMALAR
     // 1) eski değerlendirmeler aynen duruyor
@@ -110,6 +110,7 @@ describe('Kabul testi 6 — regülasyon yeni sürüm', () => {
 
 import { beforeAll } from 'vitest';
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
+import { ogeAc } from './yardim/kapsam';
 
 const { oturumCereziAyarla } = await import('./sahte/next-headers');
 const { surumOlustur, surumAktiflestir } = await import('@/lib/eylemler2/surum');
@@ -260,7 +261,9 @@ describe('surumAktiflestir — diff ve değerlendirme açma aynı transaction (#
     for (let t = 0; t < tesisSayisi; t += 1) {
       const tesis = await db.tesis.create({
         data: { kod: `${ONEK}-${etiket}-T${t}`, ad: `Test tesisi ${t}` } });
-      await db.surecKapsami.create({ data: { surecId: surec.id, tesisId: tesis.id } });
+      /* Kapsam KAPSAM ÖĞESİDİR (B1): test tesisine öğe açılır. */
+      const oge = await ogeAc(tesis);
+      await db.surecKapsami.create({ data: { surecId: surec.id, kapsamOgesiId: oge.id } });
     }
     return { reg, eski, taslak, surec };
   }
@@ -320,11 +323,11 @@ describe('surumAktiflestir — diff ve değerlendirme açma aynı transaction (#
       where: { surumId: taslak.id, sira: 1 } });
     // yaprak maddelerden biri için değerlendirme ZATEN var ve 'uyumlu'
     await db.maddeDurumu.create({ data: {
-      surecId: surec.id, maddeId: yaprak.id, tesisId: tesis.tesisId, durum: 'uyumlu' } });
+      surecId: surec.id, maddeId: yaprak.id, kapsamOgesiId: tesis.kapsamOgesiId, durum: 'uyumlu' } });
 
     expect((await surumAktiflestir({ surumId: taslak.id })).ok).toBe(true);
     const durumlar = await db.maddeDurumu.findMany({
-      where: { maddeId: yaprak.id, tesisId: tesis.tesisId } });
+      where: { maddeId: yaprak.id, kapsamOgesiId: tesis.kapsamOgesiId } });
     expect(durumlar).toHaveLength(1);            // kopya açılmadı
     expect(durumlar[0].durum).toBe('uyumlu');    // mevcut değerlendirme EZİLMEDİ
   });

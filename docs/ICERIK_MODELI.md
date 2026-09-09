@@ -17,17 +17,27 @@ Kararlar kullanıcıyla yapılan netleştirmelere dayanır.
 ## 2. Varlıklar
 
 ### Tanımlar (panelden yönetilir)
-- **Sektor** → **TesisTipi** → **Tesis**: iş kolu > kırılım > santral hiyerarşisi.
+- **Sektor** → **TesisTipi** → **Tesis**: iş kolu > kırılım > tesis hiyerarşisi.
   Tesis yaşam döngüsü: `durum` (`aktif`/`kapali`) + `kapanisTarihi` + `kapanisNedeni`.
+- **KapsamOgesiTuru** → **KapsamOgesi** (B1): uyum zincirinin ÖZNESİ. Tür bir KATALOGDUR
+  (çekirdek `tesis` ve `kurum`; paket ekler), enum değil. Tesise bağlı öğe `tesisId` köprüsü
+  taşır (`ko-<tesisId>`, tesis açılınca kendiliğinden); kurum düzeyi öğe köprüsüzdür. Omurga
+  tabloları (`SurecKapsami · MaddeDurumu · UygulanabilirlikKarari · Istisna · KanitKapsami ·
+  DenetciKapsami · DegerlendirmeAktarimi · UyumAnlik · Yetki`) doğrudan `tesisId` taşımaz.
+- **SektorOznitelikSemasi** + **TesisOzellik** (P1/B2): paketin beyan ettiği öznitelik — anahtar,
+  tip (`sayi · metin · mantik · tarih`), `rol` (`kapasite · kritiklik`; çekirdeğin bildiği tek
+  şey), `grup`, `secenekler`. Sektöre özgü alan çekirdek kolonu OLMAZ; enerjinin sekiz profil
+  alanı (lisans, kabul, black start, TEİAŞ, seri haberleşme, kritiklik sınıfı) buradadır.
 - **Regulasyon**: kod, ad, sürüm, resmî kaynak URL (otomatik çekim adaptörünün adresi), aktiflik.
 - **KapsamAlani**: BT, OT… Maddelerle **MaddeAlan** üzerinden çoktan-çoğa eşleştirilir.
 
 ### Uyum izleme
 - **UyumSureci** (denetim dönemi): regülasyonun belirli tesis kapsamında yürütülen çalışması.
-  `durum`: planlandi | aktif | pasif | tamamlandi. Kapsamı **SurecKapsami** taşır; kapsama tesis
-  eklenince o tesise tüm yaprak maddeler için durum kaydı açılır.
+  `durum`: planlandi | aktif | pasif | tamamlandi. Kapsamı **SurecKapsami** taşır; kapsama bir
+  kapsam öğesi eklenince o öğeye tüm yaprak maddeler için durum kaydı açılır.
 - **Madde**: regülasyona bağlı, kendine referanslı hiyerarşi (bölüm > madde > alt madde).
-- **MaddeDurumu**: `(surec × madde × tesis)` — sistemin en sık okunan tablosu.
+- **MaddeDurumu**: `(surec × madde × kapsam öğesi)` — sistemin en sık okunan tablosu. Tesis
+  ekranları köprüden sorar (`kapsamOgesi: { tesisId }`).
   `durum`: uyumlu | kismi | uyumsuz | incelemede | kapsamdisi.
 - **Bulgu** → **Aksiyon**: önem (kritik/yüksek/orta/düşük), bulgu durumu, hedef/kapanma tarihleri.
 - **Kanit** + **KanitBaglantisi**: çoktan-çoğa — tek kanıt birden çok regülasyonun maddesini
@@ -36,7 +46,9 @@ Kararlar kullanıcıyla yapılan netleştirmelere dayanır.
 - **Proje** + **ProjeBaglantisi**: uyum projeleri ↔ madde/bulgu.
 
 ### Yetki ve iz
-- **Kullanici** + **Yetki**: kapsam `(kullanici × surec × tesis)`; boş alan "tümü" demektir.
+- **Kullanici** + **Yetki**: kapsam `(kullanici × surec × kapsam öğesi)`; boş alan "tümü" demektir.
+  Tesise kısıtlı rol, tesisin öğesine kısıtlıdır (`izinliKapsamOgesiIdleri` / köprü
+  `izinliTesisIdleri`).
   Rol: okuyucu | katkici | denetim_sorumlusu | yonetici.
 - **AktiviteKaydi**: değişmez denetim izi (aktör, varlık, eylem, önce→sonra, dosya, zaman).
   Bulgu zaman çizelgesi ve global aktivite ekranı doğrudan bu tablodur.

@@ -3,6 +3,7 @@ import { copyFileSync, mkdtempSync } from 'node:fs';
 import { rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import { ogeKimligi } from './yardim/kapsam';
 
 /* ═══════════════════════════════════════════════════════════════════════
    Uyum kanıt eylemleri — yetki · kapsam · doğrulama · iz
@@ -26,11 +27,11 @@ const depoKoku = mkdtempSync(path.join(tmpdir(), 'uyum-kanit-depo-'));
 process.env.KANIT_DEPO_KOKU = depoKoku;
 
 type Yetki = {
-  rol: string; surecId: string | null; tesisId: string | null;
+  rol: string; surecId: string | null; kapsamOgesiId: string | null; tesisId: string | null;
   tuzelKisiId: string | null; regulasyonId: string | null; modul: string | null;
 };
 const yetki = (rol: string, tesisId: string | null = null): Yetki => ({
-  rol, surecId: null, tesisId, tuzelKisiId: null, regulasyonId: null, modul: null,
+  rol, surecId: null, kapsamOgesiId: ogeKimligi(tesisId), tesisId, tuzelKisiId: null, regulasyonId: null, modul: null,
 });
 
 /* Kapsam testleri santrale kısıtlı `yonetici` ile yapılır: yetkiyi
@@ -103,18 +104,19 @@ beforeAll(async () => {
   /* Santraller MaddeDurumu TAŞIYANLAR arasından seçilir: alfabetik ilk
      iki santralin uyum kaydı olmayabilir ve o zaman test kapsam kuralını
      hiç sınamaz — kural kaldırılsa bile yeşil kalırdı. */
-    const kayitli = await db.maddeDurumu.findMany({
-      distinct: ['tesisId'], select: { tesisId: true }, orderBy: { tesisId: 'asc' },
-      take: 2,
+    /* Uyum zinciri KAPSAM ÖĞESİNE bağlı (B1): kaydı olan iki öğenin tesisi. */
+    const kayitli = await db.kapsamOgesi.findMany({
+      where: { tesisId: { not: null }, maddeDurumlari: { some: {} } },
+      select: { tesisId: true }, orderBy: { tesisId: 'asc' }, take: 2,
     });
-  tesisA = kayitli[0].tesisId; tesisB = kayitli[1].tesisId;
+  tesisA = kayitli[0].tesisId!; tesisB = kayitli[1].tesisId!;
 
   const kullanicilar = await db.kullanici.findMany({ where: { aktif: true }, take: 2 });
   oturum.id = kullanicilar[0].id;
   ikinciKullanici = kullanicilar[1].id;
 
   const durumBul = async (tesisId: string) => {
-    const d = await db.maddeDurumu.findFirst({ where: { tesisId }, select: { id: true } });
+    const d = await db.maddeDurumu.findFirst({ where: { kapsamOgesi: { tesisId } }, select: { id: true } });
     return d!.id;
   };
   durumA = await durumBul(tesisA);
@@ -287,7 +289,7 @@ describe('UY-12 · kanıt bağlantısı iki yönlü kapsam ister', () => {
   it('yetkili kullanıcı bağlantı ekleyebilir', async () => {
     const kanitId = await kanitAc(durumA);
     const hedef = await db.maddeDurumu.findFirst({
-      where: { tesisId: tesisA, id: { not: durumA } }, select: { id: true },
+      where: { kapsamOgesi: { tesisId: tesisA }, id: { not: durumA } }, select: { id: true },
     });
     if (!hedef) return;
     const s = await kanitBaglantisiEkle({ kanitId, maddeDurumuId: hedef.id });
@@ -321,7 +323,7 @@ describe('UY-07 · değerlendirme doğrulama', () => {
        yeniden yazsaydı tarihçenin son satırı tohumdan kalır ve test
        dört göz kuralını hiç sınamazdı. */
     const md = (await db.maddeDurumu.findFirst({
-      where: { tesisId: tesisA, durum: { not: 'uyumlu' } },
+      where: { kapsamOgesi: { tesisId: tesisA }, durum: { not: 'uyumlu' } },
       select: { id: true }, orderBy: { id: 'asc' },
     }))!;
     await maddeDurumGuncelle({
@@ -337,7 +339,7 @@ describe('UY-07 · değerlendirme doğrulama', () => {
 
   it('BAŞKASI doğrulayabilir ve damga ize düşer', async () => {
     const md = (await db.maddeDurumu.findFirst({
-      where: { tesisId: tesisA, durum: { not: 'uyumlu' } },
+      where: { kapsamOgesi: { tesisId: tesisA }, durum: { not: 'uyumlu' } },
       select: { id: true }, orderBy: { id: 'desc' },
     }))!;
     await maddeDurumGuncelle({
@@ -359,7 +361,7 @@ describe('UY-07 · değerlendirme doğrulama', () => {
 
   it('doğrulanmamış kaydın damgası geri alınamaz — sessiz silme yok', async () => {
     const md = (await db.maddeDurumu.findFirst({
-      where: { tesisId: tesisA, dogrulayanId: null }, select: { id: true },
+      where: { kapsamOgesi: { tesisId: tesisA }, dogrulayanId: null }, select: { id: true },
     }))!;
     const s = await degerlendirmeDogrula({
       maddeDurumuId: md.id, onay: false, gerekce: 'Doğrulamayı geri alıyorum',
@@ -389,7 +391,7 @@ describe('UY-07 · sorumluluk zinciri ize düşer', () => {
 
   it('ekip ataması ize düşer', async () => {
     const md = (await db.maddeDurumu.findFirst({
-      where: { tesisId: tesisA }, select: { id: true }, orderBy: { id: 'asc' },
+      where: { kapsamOgesi: { tesisId: tesisA } }, select: { id: true }, orderBy: { id: 'asc' },
     }))!;
     const s = await kontrolEkibiAta({ maddeDurumuId: md.id, ekipId: ekipA });
     expect(s.ok).toBe(true);
@@ -401,7 +403,7 @@ describe('UY-07 · sorumluluk zinciri ize düşer', () => {
        değişince yazıyordu; sorumlu sessizce el değiştirebiliyordu ve
        "bu kontrolün sorumlusu ne zaman değişti" sorusu cevapsızdı. */
     const md = (await db.maddeDurumu.findFirst({
-      where: { tesisId: tesisA, sorumluId: { not: ikinciKullanici } },
+      where: { kapsamOgesi: { tesisId: tesisA }, sorumluId: { not: ikinciKullanici } },
       select: { id: true, durum: true },
     }))!;
     /* Durum BİLEREK değiştirilmez: iz satırının sorumlu değişikliğinden

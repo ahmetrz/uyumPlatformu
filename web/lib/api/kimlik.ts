@@ -56,7 +56,7 @@ export async function istekKimligi(istek: Request): Promise<ApiKimlik> {
   }
   const anahtar = await db.apiAnahtari.findUnique({
     where: { tokenHash: apiTokenOzeti(token) },
-    include: { kullanici: { include: { yetkiler: true } } },
+    include: { kullanici: { include: { yetkiler: { include: { kapsamOgesi: { select: { tesisId: true } } } } } } },
   });
   if (!anahtar) throw new ApiHata('yetkisiz', 'Geçersiz API anahtarı');
   if (anahtar.iptalZamani) throw new ApiHata('yetkisiz', 'API anahtarı iptal edilmiş');
@@ -76,7 +76,8 @@ export async function istekKimligi(istek: Request): Promise<ApiKimlik> {
     eposta: k.eposta,
     unvan: k.unvan,
     yetkiler: k.yetkiler.map((y) => ({
-      rol: y.rol, surecId: y.surecId, tesisId: y.tesisId,
+      rol: y.rol, surecId: y.surecId, kapsamOgesiId: y.kapsamOgesiId,
+      tesisId: y.kapsamOgesi?.tesisId ?? null,
       tuzelKisiId: y.tuzelKisiId, regulasyonId: y.regulasyonId, modul: y.modul,
     })),
   };

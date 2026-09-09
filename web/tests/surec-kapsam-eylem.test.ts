@@ -2,6 +2,7 @@ import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { copyFileSync, mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import { ogeKimligi } from './yardim/kapsam';
 
 /* ═══════════════════════════════════════════════════════════════════════
    Süreç kapsamı — ekleme ile ÇIKARMA aynı kapıdan geçer
@@ -24,11 +25,11 @@ copyFileSync('prisma/dev.db', testDb);
 process.env.TEST_DB = testDb;
 
 type Yetki = {
-  rol: string; surecId: string | null; tesisId: string | null;
+  rol: string; surecId: string | null; kapsamOgesiId: string | null; tesisId: string | null;
   tuzelKisiId: string | null; regulasyonId: string | null; modul: string | null;
 };
 const yetki = (rol: string, tesisId: string | null = null): Yetki => ({
-  rol, surecId: null, tesisId, tuzelKisiId: null, regulasyonId: null, modul: null,
+  rol, surecId: null, kapsamOgesiId: ogeKimligi(tesisId), tesisId, tuzelKisiId: null, regulasyonId: null, modul: null,
 });
 
 const oturum = {
@@ -60,10 +61,10 @@ let tesisB = '';
 
 /** Kapsamda olmadığından emin olur (test kendi zeminini kurar). */
 async function kapsamdanKaldir(tesisId: string) {
-  await db.surecKapsami.deleteMany({ where: { surecId, tesisId } });
+  await db.surecKapsami.deleteMany({ where: { surecId, kapsamOgesi: { tesisId } } });
 }
 const kapsamdaMi = async (tesisId: string) =>
-  (await db.surecKapsami.count({ where: { surecId, tesisId } })) > 0;
+  (await db.surecKapsami.count({ where: { surecId, kapsamOgesi: { tesisId } } })) > 0;
 
 beforeAll(async () => {
   const kisi = await db.kullanici.findFirstOrThrow({ where: { aktif: true } });

@@ -76,14 +76,14 @@ export default async function Sayfa() {
     idler('Bulgu').length
       ? db.bulgu.findMany({
         where: { id: { in: idler('Bulgu') } },
-        select: { id: true, maddeDurumu: { select: { tesisId: true } } },
+        select: { id: true, maddeDurumu: { select: { kapsamOgesi: { select: { tesisId: true } } } } },
       })
       : Promise.resolve([]),
     idler('Aksiyon').length
       ? db.aksiyon.findMany({
         where: { id: { in: idler('Aksiyon') } },
         select: { id: true, bulguId: true,
-          bulgu: { select: { maddeDurumu: { select: { tesisId: true } } } } },
+          bulgu: { select: { maddeDurumu: { select: { kapsamOgesi: { select: { tesisId: true } } } } } } },
       })
       : Promise.resolve([]),
     idler('Risk').length
@@ -101,12 +101,12 @@ export default async function Sayfa() {
 
   const cozumler = new Map<string, Cozum>();
   for (const b of bulgular) {
-    cozumler.set(`Bulgu:${b.id}`, { tesisId: b.maddeDurumu.tesisId, yol: `/bulgular/${b.id}` });
+    cozumler.set(`Bulgu:${b.id}`, { tesisId: b.maddeDurumu.kapsamOgesi.tesisId, yol: `/bulgular/${b.id}` });
   }
   for (const a of aksiyonlar) {
     // Aksiyonun kendi ekranı yok; bağlı bulgusunun kaydına götürülür.
     cozumler.set(`Aksiyon:${a.id}`, {
-      tesisId: a.bulgu.maddeDurumu.tesisId, yol: `/bulgular/${a.bulguId}`,
+      tesisId: a.bulgu.maddeDurumu.kapsamOgesi.tesisId, yol: `/bulgular/${a.bulguId}`,
     });
   }
   for (const r of riskler) {

@@ -131,8 +131,8 @@ export async function cerceveleriYukle(
             where: { silindi: null, OR: [{ surum: { durum: 'aktif' } }, { surumId: null }] },
             orderBy: [{ sira: 'asc' }, { kod: 'asc' }],
           },
-          surecler: { include: { kapsam: true } },
-          kararlar: true,
+          surecler: { include: { kapsam: { include: { kapsamOgesi: { select: { tesisId: true } } } } } },
+          kararlar: { include: { kapsamOgesi: { select: { tesisId: true } } } },
           kurallar: { where: { aktif: true }, orderBy: { surum: 'desc' } },
           surumler: { where: { durum: 'aktif' }, take: 1 },
         },
@@ -204,6 +204,7 @@ export async function cerceveleriYukle(
   const durumlar = surecIdleri.length === 0 ? [] : await db.maddeDurumu.findMany({
     where: { surecId: { in: surecIdleri } },
     include: {
+      kapsamOgesi: { select: { tesisId: true } },
       sorumlu: { select: { adSoyad: true } },
       kanitBaglantilari: {
         include: {
@@ -220,7 +221,7 @@ export async function cerceveleriYukle(
   });
 
   const durumHaritasi = new Map<string, (typeof durumlar)[number]>();
-  for (const d of durumlar) durumHaritasi.set(`${d.tesisId}::${d.maddeId}`, d);
+  for (const d of durumlar) durumHaritasi.set(`${d.kapsamOgesi.tesisId}::${d.maddeId}`, d);
 
   /* Zincir indeksleri */
   const riskMaddeye = new Map<string, typeof riskler>();
@@ -303,8 +304,10 @@ export async function cerceveleriYukle(
 
     /* ── kapsam: motor kararı + süreç kapsamı ────────────────────── */
     const surec = secilenSurecler.get(reg.id) ?? null;
-    const kararHaritasi = new Map(reg.kararlar.map((k) => [k.tesisId, k]));
-    const surecKapsami = new Set((surec?.kapsam ?? []).map((k) => k.tesisId));
+    /* Karar ve kapsam KAPSAM ÖĞESİNE bağlı (B1); matris tesis başına,
+       köprüden okunur. */
+    const kararHaritasi = new Map(reg.kararlar.map((k) => [k.kapsamOgesi.tesisId, k]));
+    const surecKapsami = new Set((surec?.kapsam ?? []).map((k) => k.kapsamOgesi.tesisId));
 
     const kapsam: KapsamKaydi[] = [];
     const kapsamdakiTesisler: typeof tesisler = [];
@@ -667,7 +670,7 @@ export async function uyumTrendiYukle(
      TREND_ADET gün × (1 genel + izinli tesis) kayıttır; aynı gün yinelenen
      koşular için iki kat pay bırakılır. */
   const kapsam = izinliTesisler === null ? {} : {
-    OR: [{ tesisId: null }, { tesisId: { in: izinliTesisler } }],
+    OR: [{ kapsamOgesiId: null }, { kapsamOgesi: { tesisId: { in: izinliTesisler } } }],
   };
   const [surecler, tesisSayisi] = await Promise.all([
     db.uyumSureci.findMany({ select: { id: true } }),
@@ -676,7 +679,7 @@ export async function uyumTrendiYukle(
   const pencere = TREND_ADET * (1 + tesisSayisi) * 2;
   const kayitlar = (await Promise.all(surecler.map((s) => db.uyumAnlik.findMany({
     where: { surecId: s.id, ...kapsam },
-    select: { surecId: true, tesisId: true, tarih: true, ozetJson: true },
+    select: { surecId: true, kapsamOgesiId: true, tarih: true, ozetJson: true },
     orderBy: { tarih: 'desc' },
     take: pencere,
   })))).flat();
@@ -689,7 +692,7 @@ export async function uyumTrendiYukle(
     if (!sayim) continue;
     const gun = k.tarih.toISOString().slice(0, 10);
     const anahtar = `${k.surecId}|${gun}`;
-    const genel = k.tesisId === null;
+    const genel = k.kapsamOgesiId === null;
     const onceki = gunler.get(anahtar);
     if (!onceki) { gunler.set(anahtar, { surecId: k.surecId, zaman: k.tarih.getTime(), genel, sayim: { ...sayim } }); continue; }
     if (onceki.genel && !genel) continue;

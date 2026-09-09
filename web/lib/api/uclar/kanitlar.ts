@@ -17,7 +17,7 @@ import { tesisKapsamZorunlu } from '../yetki';
 
    ═══ BULGU #13 · KAPSAM NEDEN DEĞİŞTİ ══════════════════════════════════
 
-   Kapsam eskiden `KanitTesis` (`tesisBaglantilari`) üzerinden uygulanıyordu.
+   Kapsam eskiden `KanitKapsami` (`tesisBaglantilari`) üzerinden uygulanıyordu.
    O tabloya ÜRETİMDE HİÇBİR YER YAZMIYOR — kanıtı açan üç yolun üçü de
    (`lib/eylemler.ts → kanitEkle`, `lib/eylemler2/denetim.ts →
    kanitTalebiDurum`, `prisma/seed-kanit.ts`) bağ kurmuyor; tabloya yalnızca
@@ -33,16 +33,16 @@ import { tesisKapsamZorunlu } from '../yetki';
 
    Bu bağ, ürünün ana kanıt ekleme yolunun (`kanitEkle`) yazdığı bağdır;
    geliştirme veritabanında 58 kanıta karşılık 60 `KanitBaglantisi` satırı,
-   0 `KanitTesis` satırı var. Yani bu, kanıtın hangi tesisin maddesini
+   0 `KanitKapsami` satırı var. Yani bu, kanıtın hangi tesisin maddesini
    karşıladığının ÖLÇÜLMÜŞ kaydıdır, varsayım değil.
 
-   Birinci seçenek (kanıt eklerken `KanitTesis` yazan bir yol açmak)
+   Birinci seçenek (kanıt eklerken `KanitKapsami` yazan bir yol açmak)
    seçilmedi: kanıtı açan üç yol da başka ajanların dosyalarında ve bağı
    yazacak yer orası. Kapsamı burada var olmayan bir yazıcıya bağlı
    bırakmak, düzeltmeyi başka bir dosyanın gelecekteki değişikliğine
    emanet etmek olurdu.
 
-   `KanitTesis` OKUMA YOLUNDAN ÇIKARILDI (şemadan silinmedi: şema ve
+   `KanitKapsami` OKUMA YOLUNDAN ÇIKARILDI (şemadan silinmedi: şema ve
    migration başka bir ajanın alanı). Yazıcısı olmayan bir tabloyu kapsam
    koşuluna ortak etmek, kapsam kararını yarısı hiç dolmayan iki kaynağa
    bölerdi — düzeltmeye çalıştığımız sessiz fallback'in ta kendisi. Bir gün
@@ -69,8 +69,10 @@ const TIPLER = [
 const tesisKosulu = (tesisIdleri: string[] | string) => ({
   baglantilar: {
     some: {
+      /* Madde durumu KAPSAM ÖĞESİNE bağlı (B1); API tesis konuşur, öğe
+         köprüden çözülür. Köprüsüz öğenin kanıtı tesis kapsamına girmez. */
       maddeDurumu: {
-        tesisId: Array.isArray(tesisIdleri) ? { in: tesisIdleri } : tesisIdleri,
+        kapsamOgesi: { tesisId: Array.isArray(tesisIdleri) ? { in: tesisIdleri } : tesisIdleri },
       },
     },
   },
@@ -102,9 +104,9 @@ export const GET = apiUcu(
       orderBy: { id: 'asc' },
       take: limit + 1,
       // Tesis bağı kanıtın madde durumlarından türer; ayrıca bir
-      // `KanitTesis` sorgusu YOK (yukarıdaki gerekçe).
+      // `KanitKapsami` sorgusu YOK (yukarıdaki gerekçe).
       include: {
-        baglantilar: { select: { maddeDurumu: { select: { tesisId: true } } } },
+        baglantilar: { select: { maddeDurumu: { select: { kapsamOgesi: { select: { tesisId: true } } } } } },
       },
     }),
     /* Yalnızca kapsamı sınırlı anahtar için: hiçbir tesise bağlanmamış
@@ -115,7 +117,11 @@ export const GET = apiUcu(
   ]);
 
   const sayfa = sayfaYaniti(satirlar, limit, (k) => {
-    const tesisler = [...new Set(k.baglantilar.map((b) => b.maddeDurumu.tesisId))].sort();
+    /* `facilityIds` API sözleşmesinde TESİS kimliğidir; öğenin köprüsü
+       okunur, köprüsüz öğe (kurum, sistem…) bu listeye girmez. */
+    const tesisler = [...new Set(k.baglantilar
+      .map((b) => b.maddeDurumu.kapsamOgesi.tesisId)
+      .filter((t): t is string => t !== null))].sort();
     return {
       id: k.id,
       name: k.ad,

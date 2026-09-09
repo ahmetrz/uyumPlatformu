@@ -108,8 +108,11 @@ export function oturumGecerli(
 
 export type AktifKullanici = {
   id: string; adSoyad: string; eposta: string; unvan: string | null;
-  yetkiler: { rol: string; surecId: string | null; tesisId: string | null;
-    tuzelKisiId: string | null; regulasyonId: string | null; modul: string | null }[];
+  /** `kapsamOgesiId` yetkinin ekseni; `tesisId` öğenin tesis KÖPRÜSÜ
+      (öğe tesise bağlı değilse null) — `lib/erisim.ts` başlığı. */
+  yetkiler: { rol: string; surecId: string | null; kapsamOgesiId: string | null;
+    tesisId: string | null; tuzelKisiId: string | null; regulasyonId: string | null;
+    modul: string | null }[];
 };
 
 /** İstek başına bir kez çözülür (React cache). Demo yayında sanal salt-okur
@@ -120,14 +123,15 @@ export const aktifKullanici = cache(async (): Promise<AktifKullanici | null> => 
     // demo hiçbir koşulda yazma yetkisi taşımaz.
     return { id: 'demo', adSoyad: 'Kullanıcı A', eposta: 'kullanici.a@demo.local',
       unvan: 'BT Direktörü · demo (salt okunur)',
-      yetkiler: [{ rol: 'okuyucu', surecId: null, tesisId: null,
+      yetkiler: [{ rol: 'okuyucu', surecId: null, kapsamOgesiId: null, tesisId: null,
         tuzelKisiId: null, regulasyonId: null, modul: null }] };
   }
   const token = (await cookies()).get(CEREZ_ADI)?.value;
   if (!token) return null;
   const oturum = await db.oturum.findUnique({
     where: { tokenHash: tokenOzeti(token) },
-    include: { kullanici: { include: { yetkiler: true } } },
+    include: { kullanici: { include: { yetkiler: {
+      include: { kapsamOgesi: { select: { tesisId: true } } } } } } },
   });
   if (!oturum) return null;
 
@@ -152,7 +156,8 @@ export const aktifKullanici = cache(async (): Promise<AktifKullanici | null> => 
   const k = oturum.kullanici;
   return {
     id: k.id, adSoyad: k.adSoyad, eposta: k.eposta, unvan: k.unvan,
-    yetkiler: k.yetkiler.map((y) => ({ rol: y.rol, surecId: y.surecId, tesisId: y.tesisId,
+    yetkiler: k.yetkiler.map((y) => ({ rol: y.rol, surecId: y.surecId,
+      kapsamOgesiId: y.kapsamOgesiId, tesisId: y.kapsamOgesi?.tesisId ?? null,
       tuzelKisiId: y.tuzelKisiId, regulasyonId: y.regulasyonId, modul: y.modul })),
   };
 });

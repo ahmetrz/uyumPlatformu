@@ -84,7 +84,10 @@ function onKapiKapsamli(govde: string): boolean | null {
 
 /** Gövdenin KENDİSİ kapsam denetliyor mu? */
 function kapsamDenetler(govde: string): boolean {
-  return /izinVar\([^)]*\{\s*tesisId/.test(govde) || /kapsamZorunlu\(/.test(govde);
+  /* Kapsam ekseni B1'den beri KAPSAM ÖĞESİDİR; tesis köprüdür. İkisi de
+     kaydın kapsamını sorar — biri eksik olsa nöbetçi çalışan kapıyı
+     kusurlu ilan ederdi (ölçüldü: yedi eylem yanlış alarm). */
+  return /izinVar\([^)]*\{\s*(?:tesisId|kapsamOgesiId)/.test(govde) || /kapsamZorunlu\(/.test(govde);
 }
 
 /** Dosyadaki YARDIMCILARDAN hangileri kapsam denetliyor?

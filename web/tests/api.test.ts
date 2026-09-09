@@ -2,6 +2,7 @@ import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { copyFileSync, mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import { ogeIdAl } from './yardim/kapsam';
 
 // TEST_DB'yi importlardan ÖNCE ayarla (db modülü ilk erişimde okur).
 const dizin = mkdtempSync(path.join(tmpdir(), 'uyum-api-'));
@@ -98,7 +99,7 @@ beforeAll(async () => {
 
   const kullaniciA = await db.kullanici.create({ data: {
     eposta: `${ONEK}-a@test.local`, adSoyad: 'A Tesis BT Yöneticisi',
-    yetkiler: { create: [{ rol: 'bt_yoneticisi', tesisId: tesisA.id }] } } });
+    yetkiler: { create: [{ rol: 'bt_yoneticisi', kapsamOgesiId: await ogeIdAl(tesisA.id) }] } } });
   const kullaniciGenel = await db.kullanici.create({ data: {
     eposta: `${ONEK}-genel@test.local`, adSoyad: 'Kurum Yöneticisi',
     yetkiler: { create: [{ rol: 'yonetici' }] } } });
@@ -729,8 +730,8 @@ describe('Yedek, erişim ve kanıt uçları', () => {
     const surec = await db.uyumSureci.findFirstOrThrow();
     const madde = await db.madde.findFirstOrThrow();
     const durum = async (tesisId: string) => (await db.maddeDurumu.upsert({
-      where: { surecId_maddeId_tesisId: { surecId: surec.id, maddeId: madde.id, tesisId } },
-      update: {}, create: { surecId: surec.id, maddeId: madde.id, tesisId },
+      where: { surecId_maddeId_kapsamOgesiId: { surecId: surec.id, maddeId: madde.id, kapsamOgesiId: await ogeIdAl(tesisId) } },
+      update: {}, create: { surecId: surec.id, maddeId: madde.id, kapsamOgesiId: await ogeIdAl(tesisId) },
     })).id;
     const kanitA = await db.kanit.create({ data: {
       ad: `${ONEK} kanıt A`, tip: 'rapor', dosyaYolu: '/gizli/depo/a.pdf',

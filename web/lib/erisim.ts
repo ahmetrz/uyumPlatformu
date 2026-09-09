@@ -31,11 +31,30 @@ const ROL_IZINLERI: Record<string, Partial<Record<Modul, Islem[]>>> = {
     denetim: ['okuma'], proje: ['okuma'], tanimlar: ['okuma'], yonetim: ['okuma'] },
 };
 
-export type Kapsam = { tesisId?: string | null; surecId?: string | null; regulasyonId?: string | null };
+/* ── KAPSAM EKSENİ KAPSAM ÖĞESİDİR (B1) ──────────────────────────────
+   Yetki bir kapsam öğesine verilir (tesis, kurum, ileride sistem…).
+   `kapsamOgesiId` birincil eksendir; `tesisId` KÖPRÜDÜR: tesis tabanlı
+   tablolar (varlık, risk, olay) tesis kimliğiyle sorar ve yetkinin
+   öğesi o tesise köprülüyse uyar. Köprü, yetkinin kendisi değildir —
+   kurum öğesine yetkili biri, kurumun tesis kaydına da yetkilidir çünkü
+   öğe ona köprülüdür; başka bir tesise değil. */
+export type Kapsam = {
+  kapsamOgesiId?: string | null; tesisId?: string | null;
+  surecId?: string | null; regulasyonId?: string | null;
+};
 
 function kapsamUyar(y: AktifKullanici['yetkiler'][number], kapsam: Kapsam): boolean {
-  if (y.tesisId && kapsam.tesisId && y.tesisId !== kapsam.tesisId) return false;
-  if (y.tesisId && kapsam.tesisId === undefined) return false; // tesise kısıtlı rol, kapsamsız (global) işlem yapamaz
+  /* Öğesi YA DA köprüsü olan yetki kısıtlıdır: köprü tek başına gelmişse
+     (bellek içi nesne) yetki yine tesise kısıtlıdır — "öğe yok" demek
+     "sınırsız" demek değildir. */
+  if (y.kapsamOgesiId || y.tesisId) {
+    const ogeSoruldu = kapsam.kapsamOgesiId !== undefined;
+    const tesisSoruldu = kapsam.tesisId !== undefined;
+    // öğeye kısıtlı rol, kapsamsız (global) işlem yapamaz
+    if (!ogeSoruldu && !tesisSoruldu) return false;
+    if (ogeSoruldu && kapsam.kapsamOgesiId && y.kapsamOgesiId !== kapsam.kapsamOgesiId) return false;
+    if (tesisSoruldu && kapsam.tesisId && y.tesisId !== kapsam.tesisId) return false;
+  }
   if (y.surecId && kapsam.surecId && y.surecId !== kapsam.surecId) return false;
   if (y.regulasyonId && kapsam.regulasyonId && y.regulasyonId !== kapsam.regulasyonId) return false;
   return true;
@@ -63,9 +82,9 @@ export async function girisZorunlu(): Promise<AktifKullanici> {
     kısıtlı rolü peşinen reddetmez (kapsamsız `{}` çağrı `kapsamUyar`
     gereği reddederdi — ekran "yazabilirsin" derken sunucu "yetkin yok"
     diyordu). Çağıran, kaydı okuduktan sonra GERÇEK kapsamla
-    `izinVar(k, modul, islem, { tesisId, surecId })` denetimini yapmak
-    ZORUNDADIR; bu sabit tek başına bir yetki kapısı değildir. */
-export const KAPSAM_SONRA: Kapsam = { tesisId: null, surecId: null };
+    `izinVar(k, modul, islem, { kapsamOgesiId, surecId })` denetimini
+    yapmak ZORUNDADIR; bu sabit tek başına bir yetki kapısı değildir. */
+export const KAPSAM_SONRA: Kapsam = { kapsamOgesiId: null, tesisId: null, surecId: null };
 
 /**
  * İKİ AŞAMALI KAPININ İKİNCİ AŞAMASI. `KAPSAM_SONRA` ile açılan ön kapıyı
@@ -86,6 +105,7 @@ export function kapsamZorunlu(
   kapsam: Kapsam, mesaj: string,
 ): void {
   const soru: Kapsam = {};
+  if (kapsam.kapsamOgesiId) soru.kapsamOgesiId = kapsam.kapsamOgesiId;
   if (kapsam.tesisId) soru.tesisId = kapsam.tesisId;
   if (kapsam.surecId) soru.surecId = kapsam.surecId;
   if (kapsam.regulasyonId) soru.regulasyonId = kapsam.regulasyonId;
@@ -102,12 +122,32 @@ export async function yetkiZorunlu(modul: Modul, islem: Islem, kapsam: Kapsam = 
   return k;
 }
 
-/** Veri daraltma: kullanıcının modül için görebildiği tesis kümesi.
-    null = tüm tesisler; [] = hiçbiri. */
-export function izinliTesisIdleri(k: AktifKullanici, modul: Modul): string[] | null {
-  const ilgili = k.yetkiler.filter((y) =>
+function okumaYetkileri(k: AktifKullanici, modul: Modul) {
+  return k.yetkiler.filter((y) =>
     (!y.modul || y.modul === modul) && ROL_IZINLERI[y.rol]?.[modul]?.includes('okuma'));
+}
+
+/** Veri daraltma: kullanıcının modül için görebildiği KAPSAM ÖĞESİ kümesi.
+    null = tümü; [] = hiçbiri. Omurga sorguları (madde durumu, kapsam,
+    istisna, kanıt bağı) bununla süzülür. */
+export function izinliKapsamOgesiIdleri(k: AktifKullanici, modul: Modul): string[] | null {
+  const ilgili = okumaYetkileri(k, modul);
   if (ilgili.length === 0) return [];
-  if (ilgili.some((y) => !y.tesisId)) return null;
-  return [...new Set(ilgili.map((y) => y.tesisId!))];
+  if (ilgili.some(kisitsiz)) return null;
+  return [...new Set(ilgili.map((y) => y.kapsamOgesiId).filter((x): x is string => !!x))];
+}
+
+/** Ne öğesi ne köprüsü olan yetki sınırsızdır. */
+const kisitsiz = (y: AktifKullanici['yetkiler'][number]) => !y.kapsamOgesiId && !y.tesisId;
+
+/** Veri daraltma — TESİS köprüsü: öğeye kısıtlı yetkinin köprülü tesisi.
+    Tesis tabanlı tablolar (varlık, risk, olay, ağ bölgesi) bununla
+    süzülür. Öğesi tesise köprülü OLMAYAN bir yetki (ileride: sistem,
+    iş fonksiyonu) hiçbir tesisi görmez — [] döner, null değil; "tesis
+    görmüyor" ile "hepsini görüyor" aynı şey değildir. */
+export function izinliTesisIdleri(k: AktifKullanici, modul: Modul): string[] | null {
+  const ilgili = okumaYetkileri(k, modul);
+  if (ilgili.length === 0) return [];
+  if (ilgili.some(kisitsiz)) return null;
+  return [...new Set(ilgili.map((y) => y.tesisId).filter((x): x is string => !!x))];
 }

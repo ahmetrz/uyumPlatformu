@@ -28,12 +28,19 @@ const gun = (n: number) => new Date(Date.UTC(2031, 0, 1 + n, 12, 0, 0)); // gele
 let surecId = '';
 let baskaSurecId = '';
 let tesisler: string[] = [];
+/** Tesislerin kapsam öğeleri — anlık görüntü satırı öğeye yazılır (B1). */
+let ogeler: string[] = [];
 
 beforeAll(async () => {
   const s = await db.uyumSureci.findMany({ select: { id: true }, take: 2 });
   expect(s.length).toBeGreaterThanOrEqual(2);
   [surecId, baskaSurecId] = [s[0].id, s[1].id];
-  tesisler = (await db.tesis.findMany({ select: { id: true }, take: 2 })).map((t) => t.id);
+  /* Anlık görüntü KAPSAM ÖĞESİNE bağlı (B1): satır öğeye yazılır, kapsam
+     tesisle sorulur (köprü). İki tesis köprülü öğe. */
+  const ikili = await db.kapsamOgesi.findMany({
+    where: { tesisId: { not: null } }, select: { id: true, tesisId: true }, take: 2 });
+  tesisler = ikili.map((o) => o.tesisId!);
+  ogeler = ikili.map((o) => o.id);
   expect(tesisler.length).toBe(2);
   // Temiz zemin: iki sürecin test dönemindeki kayıtları
   await db.uyumAnlik.deleteMany({ where: { surecId: { in: [surecId, baskaSurecId] }, tarih: { gte: gun(0) } } });
@@ -46,11 +53,11 @@ describe('uyumTrendiYukle — birleştirme', () => {
   it('aynı gün süreç geneli varsa santral kayıtları SAYILMAZ; yoksa toplanır [UYU-TRN-001]', async () => {
     // gün 0: genel (10/0 → %100) + santral (0/10) → yalnız genel
     await db.uyumAnlik.createMany({ data: [
-      { surecId, tesisId: null, tarih: gun(0), ozetJson: ozet(10, 0) },
-      { surecId, tesisId: tesisler[0], tarih: new Date(gun(0).getTime() + 60_000), ozetJson: ozet(0, 10) },
+      { surecId, kapsamOgesiId: null, tarih: gun(0), ozetJson: ozet(10, 0) },
+      { surecId, kapsamOgesiId: ogeler[0], tarih: new Date(gun(0).getTime() + 60_000), ozetJson: ozet(0, 10) },
       // gün 1: yalnız santraller → toplanır: 5/5 → %50
-      { surecId, tesisId: tesisler[0], tarih: gun(1), ozetJson: ozet(5, 0) },
-      { surecId, tesisId: tesisler[1], tarih: gun(1), ozetJson: ozet(0, 5) },
+      { surecId, kapsamOgesiId: ogeler[0], tarih: gun(1), ozetJson: ozet(5, 0) },
+      { surecId, kapsamOgesiId: ogeler[1], tarih: gun(1), ozetJson: ozet(0, 5) },
     ] });
     const n = await noktalar(surecId);
     expect(n.map((x) => x.yuzde)).toEqual([100, 50]);
@@ -60,11 +67,11 @@ describe('uyumTrendiYukle — birleştirme', () => {
 
   it('13 gün → en yeni 12 nokta, eskiden yeniye; öteki sürecin yoğun yazımı pencereyi daraltmaz', async () => {
     await db.uyumAnlik.createMany({ data: Array.from({ length: 13 }, (_, i) => ({
-      surecId, tesisId: null, tarih: gun(i), ozetJson: ozet(i, 13 - i),
+      surecId, kapsamOgesiId: null, tarih: gun(i), ozetJson: ozet(i, 13 - i),
     })) });
     // Başka süreç aynı günlerde santral başına 20 satır yazsın (eski tek `take` bunu ezerdi).
     await db.uyumAnlik.createMany({ data: Array.from({ length: 13 * 20 }, (_, i) => ({
-      surecId: baskaSurecId, tesisId: tesisler[i % 2], tarih: new Date(gun(i % 13).getTime() + i),
+      surecId: baskaSurecId, kapsamOgesiId: ogeler[i % 2], tarih: new Date(gun(i % 13).getTime() + i),
       ozetJson: ozet(1, 1),
     })) });
     const n = await noktalar(surecId);
@@ -77,9 +84,9 @@ describe('uyumTrendiYukle — birleştirme', () => {
   it('kapsam daraltılmış kullanıcı: süreç geneli nokta kalır, başka santralin satırı girmez', async () => {
     await db.uyumAnlik.deleteMany({ where: { surecId, tarih: { gte: gun(0) } } });
     await db.uyumAnlik.createMany({ data: [
-      { surecId, tesisId: tesisler[0], tarih: gun(2), ozetJson: ozet(4, 0) },   // izinli
-      { surecId, tesisId: tesisler[1], tarih: gun(2), ozetJson: ozet(0, 4) },   // izinsiz
-      { surecId, tesisId: null, tarih: gun(3), ozetJson: ozet(1, 1) },          // genel
+      { surecId, kapsamOgesiId: ogeler[0], tarih: gun(2), ozetJson: ozet(4, 0) },   // izinli
+      { surecId, kapsamOgesiId: ogeler[1], tarih: gun(2), ozetJson: ozet(0, 4) },   // izinsiz
+      { surecId, kapsamOgesiId: null, tarih: gun(3), ozetJson: ozet(1, 1) },          // genel
     ] });
     const n = await noktalar(surecId, [tesisler[0]]);
     expect(n.map((x) => x.yuzde)).toEqual([100, 50]);

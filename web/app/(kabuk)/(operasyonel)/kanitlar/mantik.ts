@@ -27,14 +27,17 @@ import { an } from '@/lib/an';
 export type KanitMaddesi = {
   maddeDurumuId: string; maddeKod: string; maddeBaslik: string;
   surecId: string; surecKod: string; regKod: string;
-  tesisId: string; tesisKod: string; tesisAd: string;
+  /** kapsam öğesinin tesis köprüsü — köprüsüz öğede null (B1) */
+  tesisId: string | null; tesisKod: string; tesisAd: string;
 };
 
 export type KanitBulgusu = {
   id: string; baslik: string; durum: string; tesisKod: string;
 };
 
-export type KanitTesisi = { id: string; kod: string; ad: string };
+/** Kanıtın doğrudan kapsam bağı: KAPSAM ÖĞESİ (B1). `id` öğenin, `tesisId`
+    tesis köprüsü (bağlantı için; köprüsüz öğede null). */
+export type KanitTesisi = { id: string; tesisId: string | null; kod: string; ad: string };
 
 /** UY-12 · Değişmez sürüm satırı — veritabanı tetikleyicisiyle korunur. */
 export type KanitSurumSatiri = {

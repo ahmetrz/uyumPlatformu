@@ -3,6 +3,7 @@ import { copyFileSync, mkdtempSync } from 'node:fs';
 import { createHash, randomBytes } from 'node:crypto';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import { ogeIdAl } from './yardim/kapsam';
 
 /* ═══════════════════════════════════════════════════════════════════════
    O26 · EŞLEME PROFİLİ TEZGÂHI — erişim ve değişmezlik regresyonu
@@ -60,7 +61,8 @@ async function kullaniciAc(
   const kisi = await db.kullanici.create({
     data: { eposta, adSoyad: eposta, aktif: true } });
   await db.yetki.create({ data: {
-    kullaniciId: kisi.id, rol: yetki.rol, tesisId: yetki.tesisId ?? null } });
+    kullaniciId: kisi.id, rol: yetki.rol,
+    kapsamOgesiId: yetki.tesisId ? await ogeIdAl(yetki.tesisId) : null } });
   const token = randomBytes(32).toString('base64url');
   await db.oturum.create({ data: {
     kullaniciId: kisi.id,

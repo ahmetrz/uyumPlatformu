@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { girisZorunlu, izinliTesisIdleri } from '@/lib/erisim';
-import { kapsamdaYetkili, modulYazabilir } from '@/app/kapsam';
+import { kapsamdaYetkili, kopruKosulu, modulYazabilir } from '@/app/kapsam';
 import { db } from '@/lib/db';
 import {
   anliklariListele, karsilastirmaIzi, sapmalariListele, temelDurumlari, topolojiOzeti,
@@ -76,9 +76,9 @@ export default async function Sayfa() {
     topolojiOzeti(gorulebilir),
     uyumYazabilir
       ? db.maddeDurumu.findMany({
-        where: gorulebilir ? { tesisId: { in: gorulebilir } } : {},
+        where: kopruKosulu(gorulebilir),
         take: MADDE_TAVANI,
-        select: { id: true, tesisId: true, madde: { select: { kod: true, baslik: true } } },
+        select: { id: true, kapsamOgesi: { select: { tesisId: true } }, madde: { select: { kod: true, baslik: true } } },
         orderBy: { guncellendi: 'desc' },
       })
       : Promise.resolve([]),
@@ -318,7 +318,7 @@ export default async function Sayfa() {
       gecitler={gecitler}
       segmentYazabilir={tanimOnaylayabilir}
       maddeDurumlari={maddeDurumlari.map((m) => ({
-        id: m.id, tesisId: m.tesisId,
+        id: m.id, tesisId: m.kapsamOgesi.tesisId,
         etiket: `${m.madde.kod} · ${m.madde.baslik}`,
       }))}
       yazabilir={yazabilir}

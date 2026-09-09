@@ -2,7 +2,7 @@ import 'server-only';
 import { db } from '@/lib/db';
 import { izinliTesisIdleri } from '@/lib/erisim';
 import type { AktifKullanici } from '@/lib/auth';
-import { kapsamDaraltildi, kapsamKosulu, kapsamda, modulKapisi } from '@/app/kapsam';
+import { kapsamda, kapsamDaraltildi, kapsamKosulu, kopruKosulu, modulKapisi } from '@/app/kapsam';
 import {
   RISK_ICERIK, riskeCevir,
   type BulguSecenegi, type Kisi, type Kodlu, type R,
@@ -148,7 +148,7 @@ export async function riskEkranVerisi(k: AktifKullanici): Promise<EkranVerisi> {
       where: {
         silindi: null,
         durum: { in: ['acik', 'aksiyonda'] },
-        maddeDurumu: kapsamKosulu(izinli),
+        maddeDurumu: kopruKosulu(izinli),
       },
       // Seçenek listesi de sınırsız değildir; en yeni tespitler önce gelir.
       take: SATIR_TAVANI,

@@ -3,6 +3,7 @@ import { copyFileSync, mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import type { AktifKullanici } from '@/lib/auth';
+import { ogeKimligi } from './yardim/kapsam';
 
 // TEST_DB'yi importlardan ÖNCE ayarla (db modülü ilk erişimde okur)
 const dizin = mkdtempSync(path.join(tmpdir(), 'uyum-entegrasyon-'));
@@ -268,7 +269,7 @@ const kisi = (yetkiler: AktifKullanici['yetkiler']): AktifKullanici => ({
   id: 'k1', adSoyad: 'Test', eposta: 't@t', unvan: null, yetkiler,
 });
 const yetki = (p: Partial<AktifKullanici['yetkiler'][number]>) => ({
-  rol: 'yonetici', surecId: null, tesisId: null, tuzelKisiId: null,
+  rol: 'yonetici', surecId: null, kapsamOgesiId: ogeKimligi(p.tesisId), tesisId: null, tuzelKisiId: null,
   regulasyonId: null, modul: null, ...p,
 });
 

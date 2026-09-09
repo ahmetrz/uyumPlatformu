@@ -93,7 +93,7 @@ describe('bağlantı', () => {
   it('madde · bulgu · santral · varlık bağlarından biri yeterlidir', () => {
     expect(bagliMi(kanit({ maddeler: [madde] }))).toBe(true);
     expect(bagliMi(kanit({ bulgular: [{ id: 'b1', baslik: 'X', durum: 'acik', tesisKod: 'DGS' }] }))).toBe(true);
-    expect(bagliMi(kanit({ tesisler: [{ id: 't1', kod: 'DGS', ad: 'Santral' }] }))).toBe(true);
+    expect(bagliMi(kanit({ tesisler: [{ id: 't1', tesisId: 't1', kod: 'DGS', ad: 'Santral' }] }))).toBe(true);
     expect(bagliMi(kanit({ varlikSayisi: 2 }))).toBe(true);
   });
 

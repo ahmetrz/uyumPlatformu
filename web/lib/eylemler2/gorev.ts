@@ -232,7 +232,7 @@ async function onayYanEtkisi(
   await tx.istisna.update({ where: { id: istisna.id },
     data: { durum: 'aktif', onaylayanId: aktorId } });
   const durumlar = await tx.maddeDurumu.findMany({ where: {
-    maddeId: istisna.maddeId, tesisId: istisna.tesisId } });
+    maddeId: istisna.maddeId, kapsamOgesiId: istisna.kapsamOgesiId } });
   const etkilenen = durumlar.filter((d) => d.durum !== 'kapsamdisi');
   if (etkilenen.length === 0) return;
 

@@ -26,6 +26,7 @@
 
 import type { PrismaClient } from '../lib/prisma-client/client';
 import { SU_SOZLUGU } from './sozlukler';
+import { tesislerdenOgeler } from './kapsam-ogesi';
 
 const G = 86_400_000;
 const gun = (n: number) => new Date(Date.now() + n * G);
@@ -61,9 +62,13 @@ export async function suSektoru(db: PrismaClient) {
     data: { kod: 'SU-ARITMA', ad: 'Su ve Atıksu' },
   });
 
+  /* Kapsam öğesi türleri ana tohumda kuruldu (çekirdek); su tipleri de
+     tür beyan eder: "Merkez BT" kurumun kendisidir → `kurum`. */
+  const turler = Object.fromEntries((await db.kapsamOgesiTuru.findMany()).map((x) => [x.kod, x]));
   const tip = Object.fromEntries(await Promise.all(
     SU_TIPLERI.map(async ([kod, ad, sira]) => [kod, await db.tesisTipi.create({
-      data: { kod, ad, sira, sektorId: su.id },
+      data: { kod, ad, sira, sektorId: su.id,
+        varsayilanKapsamTuruId: kod === 'SU-MERKEZ' ? turler.kurum.id : turler.tesis.id },
     })]),
   )) as Record<string, { id: string }>;
 
@@ -71,7 +76,7 @@ export async function suSektoru(db: PrismaClient) {
     data: SU_SOZLUGU.map((r) => ({ ...r, sektorId: su.id })),
   });
 
-  await Promise.all(SU_TESISLERI.map(([kod, ad, tipKod, debi, konum, durum, giris]) =>
+  const tesisler = await Promise.all(SU_TESISLERI.map(([kod, ad, tipKod, debi, konum, durum, giris]) =>
     db.tesis.create({
       data: {
         kod, ad, tipId: tip[tipKod].id, konum, durum,
@@ -86,6 +91,8 @@ export async function suSektoru(db: PrismaClient) {
         gorselAnahtari: null,
       },
     })));
+  /* Her su tesisi için bir kapsam öğesi (B1) — enerjiyle birebir aynı yol. */
+  await tesislerdenOgeler(db, Object.fromEntries(tesisler.map((t) => [t.kod, t])));
 
   return { sektorId: su.id, tesisSayisi: SU_TESISLERI.length };
 }
@@ -162,6 +169,8 @@ const SU_BULGULARI = [
 
 export async function suUyumu(db: PrismaClient) {
   const T = Object.fromEntries((await db.tesis.findMany()).map((x) => [x.kod, x]));
+  /* Uyum zinciri KAPSAM ÖĞESİNE bağlanır (B1); öğe kodu tesis koduyla aynı. */
+  const ko = Object.fromEntries((await db.kapsamOgesi.findMany()).map((x) => [x.kod, x]));
   const K = Object.fromEntries(
     (await db.kullanici.findMany()).map((x) => [x.eposta.split('@')[0], x]),
   );
@@ -189,12 +198,13 @@ export async function suUyumu(db: PrismaClient) {
     for (const tk of SU_KAPSAMI) {
       const tesis = T[tk];
       if (!tesis) continue;
-      await db.surecKapsami.create({ data: { surecId: surec.id, tesisId: tesis.id } });
+      const oge = ko[tk];
+      await db.surecKapsami.create({ data: { surecId: surec.id, kapsamOgesiId: oge.id } });
       for (const [mk, durum] of Object.entries(matris[tk] ?? {})) {
         const madde = M[`${cerceve}-${mk}`];
         if (!madde) continue;
         await db.maddeDurumu.create({ data: {
-          surecId: surec.id, maddeId: madde.id, tesisId: tesis.id, durum,
+          surecId: surec.id, maddeId: madde.id, kapsamOgesiId: oge.id, durum,
           sorumluId: K['kullanici.c']?.id ?? null,
           sonDegerlendirme: gun(-((mk.length * 3) % 40) - 2),
         } });
@@ -209,7 +219,7 @@ export async function suUyumu(db: PrismaClient) {
     const surec = surecler[b.cerceve as keyof typeof surecler];
     if (!madde || !tesis || !surec) continue;
     const durumKaydi = await db.maddeDurumu.findFirst({
-      where: { surecId: surec.id, maddeId: madde.id, tesisId: tesis.id },
+      where: { surecId: surec.id, maddeId: madde.id, kapsamOgesiId: ko[b.tesis].id },
     });
     /* Kapsam dışı bir madde için bulgu YAZILMAZ: kapsam kararını ekranda
        delmemek için (ana tohumla aynı kural). */

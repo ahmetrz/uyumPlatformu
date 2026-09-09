@@ -70,7 +70,7 @@ export async function bildirimSurelerini(): Promise<BildirimSuresiKosusu> {
        yalnız o regülasyon tesisin kapsamındaysa uyar. */
     const regulasyonIdleri = o.tesisId
       ? (await db.uygulanabilirlikKarari.findMany({
-        where: { tesisId: o.tesisId, uygulanabilir: true },
+        where: { kapsamOgesi: { tesisId: o.tesisId }, uygulanabilir: true },
         select: { regulasyonId: true },
       })).map((x) => x.regulasyonId)
       : [];

@@ -2,7 +2,7 @@ import 'server-only';
 import { db } from '@/lib/db';
 import { izinliTesisIdleri } from '@/lib/erisim';
 import type { AktifKullanici } from '@/lib/auth';
-import { kapsamKosulu, kapsamda, modulKapisi } from '@/app/kapsam';
+import { kapsamda, kopruKosulu, modulKapisi } from '@/app/kapsam';
 import { kucukGorsel } from '@/lib/gorsel';
 import { RISK_ICERIK, riskeCevir } from '../ortak';
 import type { DetayVerisi } from './RiskDetayIstemci';
@@ -71,7 +71,8 @@ export async function riskDetayVerisi(
       ? db.maddeDurumu.findMany({
           where: {
             maddeId: { in: maddeIdleri },
-            ...(risk.tesis ? { tesisId: risk.tesis.id } : kapsamKosulu(izinli)),
+            /* Madde durumu KAPSAM ÖĞESİNE bağlı (B1); tesis köprüden sorulur. */
+            ...(risk.tesis ? { kapsamOgesi: { tesisId: risk.tesis.id } } : kopruKosulu(izinli)),
           },
           select: { maddeId: true, durum: true, sonDegerlendirme: true },
         })
@@ -95,7 +96,7 @@ export async function riskDetayVerisi(
       where: {
         silindi: null,
         durum: { in: ['acik', 'aksiyonda'] },
-        maddeDurumu: kapsamKosulu(izinli),
+        maddeDurumu: kopruKosulu(izinli),
       },
       orderBy: { tespitTarihi: 'desc' },
     }),

@@ -18,13 +18,14 @@ const { t } = await import('@/lib/dil/terimler');
     kapsam kapısını test etmeyen bir test üretirdi. */
 async function aktifKullanici() {
   const k = await db.kullanici.findFirstOrThrow({
-    where: { aktif: true, yetkiler: { some: { rol: 'yonetici', tesisId: null } } },
-    include: { yetkiler: true },
+    where: { aktif: true, yetkiler: { some: { rol: 'yonetici', kapsamOgesiId: null } } },
+    include: { yetkiler: { include: { kapsamOgesi: { select: { tesisId: true } } } } },
   });
   return {
     id: k.id, adSoyad: k.adSoyad, eposta: k.eposta, unvan: k.unvan,
     yetkiler: k.yetkiler.map((y) => ({
-      rol: y.rol, surecId: y.surecId, tesisId: y.tesisId,
+      rol: y.rol, surecId: y.surecId, kapsamOgesiId: y.kapsamOgesiId,
+      tesisId: y.kapsamOgesi?.tesisId ?? null,
       tuzelKisiId: y.tuzelKisiId, regulasyonId: y.regulasyonId, modul: y.modul,
     })),
   };

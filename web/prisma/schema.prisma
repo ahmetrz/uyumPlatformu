@@ -30,18 +30,92 @@ model Sektor {
   tipler          TesisTipi[]
   oznitelikSemasi SektorOznitelikSemasi[]
   sozluk          SektorSozlugu[]
+  kapsamTurleri   KapsamOgesiTuru[]
+}
+
+/// KAPSAM ÖĞESİ TÜRÜ — KATALOG, enum değil (B1 · K1).
+///
+/// Uyum zincirinin öznesi bir "tesis" değil bir KAPSAM ÖĞESİDİR; öğenin
+/// türü sektör paketinden gelir. Çekirdek iki türü kutudan çıkarır
+/// (`tesis`, `kurum`); paket ekler (`sistem`, `is_fonksiyonu`,
+/// `dis_hizmet`, `birim`, `veri_kapsami`). Sabit enum yazılmadı: P1'de
+/// sözcük için çözülen problem ("çekirdek sektörü bilmez") burada tür
+/// için aynı şekilde çözülür — çekirdek türün KODUNU değil ROLÜNÜ bilir.
+///
+/// `tesiseBagli`: bu türdeki öğe fiziksel bir `Tesis` kaydına köprülenir
+/// (tesis, kurum → genel müdürlük binası); sistem/fonksiyon türleri
+/// köprülenmez. Pasif tür (`aktif=false`) öğeyi KAPSAM DIŞI yapmaz —
+/// öğe BİLİNMİYOR olur (K2 · `lib/kapsam/ogeDurumu.ts`).
+model KapsamOgesiTuru {
+  id             String  @id @default(cuid())
+  kod            String  @unique // tesis | kurum | sistem | is_fonksiyonu | dis_hizmet | birim | veri_kapsami
+  ad             String
+  /// Sözlük anahtarı — ekran adı buradan çözülür (tesis → "santral").
+  etiketAnahtari String?
+  /// null = çekirdek türü (sektörsüz); dolu = paket türü.
+  sektorId       String?
+  tesiseBagli    Boolean @default(false)
+  sira           Int     @default(0)
+  aktif          Boolean @default(true)
+
+  sektor       Sektor?       @relation(fields: [sektorId], references: [id])
+  ogeler       KapsamOgesi[]
+  tesisTipleri TesisTipi[]
+}
+
+/// KAPSAM ÖĞESİ — uyum zincirinin ÖZNESİ (B1).
+///
+/// `SurecKapsami · MaddeDurumu · UygulanabilirlikKarari · Istisna ·
+/// KanitKapsami · DenetciKapsami · DegerlendirmeAktarimi · UyumAnlik`
+/// artık tesise değil buraya asılır. Bir tesis olan öğe `tesisId` ile
+/// köprülenir (1:1); kurum, sistem ya da iş fonksiyonu olan öğe
+/// köprüsüzdür. Ölçüldü (#39): bankacılık yükümlülüğü kurum, sistem, iş
+/// fonksiyonu ve dış hizmete asılır ve enerji/su seed'i bile kurumu
+/// (`MERKEZ-BT`) bir "tesis" olarak taşıyordu.
+model KapsamOgesi {
+  id          String   @id @default(cuid())
+  kod         String   @unique
+  ad          String
+  turId       String
+  /// Tür `tesiseBagli` ise fiziksel tesis; tek öğe tek tesis.
+  tesisId     String?  @unique
+  ustId       String?
+  durum       String   @default("aktif") // aktif | pasif
+  olusturuldu DateTime @default(now())
+
+  tur    KapsamOgesiTuru @relation(fields: [turId], references: [id])
+  tesis  Tesis?          @relation(fields: [tesisId], references: [id])
+  ust    KapsamOgesi?    @relation("KapsamHiyerarsi", fields: [ustId], references: [id])
+  altlar KapsamOgesi[]   @relation("KapsamHiyerarsi")
+
+  surecKapsamlari           SurecKapsami[]
+  maddeDurumlari            MaddeDurumu[]
+  uygulanabilirlikKararlari UygulanabilirlikKarari[]
+  istisnalar                Istisna[]
+  kanitBaglantilari         KanitKapsami[]
+  denetciKapsamlari         DenetciKapsami[]
+  degerlendirmeAktarimlari  DegerlendirmeAktarimi[]
+  anlikler                  UyumAnlik[]
+  yetkiler                  Yetki[]
+
+  @@index([turId])
 }
 
 model TesisTipi {
-  id       String  @id @default(cuid())
-  kod      String  @unique // DGKC | JEO | HES | RES | GES | TERMIK | MERKEZ ...
-  ad       String
-  sektorId String?
-  sira     Int     @default(0)
-  aktif    Boolean @default(true)
+  id                     String  @id @default(cuid())
+  kod                    String  @unique // DGKC | JEO | HES | RES | GES | TERMIK | MERKEZ ...
+  ad                     String
+  sektorId               String?
+  sira                   Int     @default(0)
+  aktif                  Boolean @default(true)
+  /// Bu tipteki tesis hangi KAPSAM ÖĞESİ TÜRÜNÜ üretir — tip paket
+  /// verisidir, tür de öyle; eşleme koda değil satıra yazılır. null =
+  /// `tesis` türü (çekirdek varsayılanı). "Merkez BT" tipi `kurum` der.
+  varsayilanKapsamTuruId String?
 
-  sektor   Sektor? @relation(fields: [sektorId], references: [id])
-  tesisler Tesis[]
+  sektor               Sektor?          @relation(fields: [sektorId], references: [id])
+  varsayilanKapsamTuru KapsamOgesiTuru? @relation(fields: [varsayilanKapsamTuruId], references: [id])
+  tesisler             Tesis[]
 }
 
 /// ═══════════════════════════════════════════════════════════════════════
@@ -69,13 +143,29 @@ model SektorOznitelikSemasi {
   anahtar           String
   /// Etiketin sözlük anahtarı; ekran metni buradan çözülür.
   etiketAnahtari    String
-  /// `sayi` | `metin` | `mantik`
+  /// `sayi` | `metin` | `mantik` | `tarih` — `tarih` B2 ile geldi:
+  /// enerji profilinin `kabulTarihi` kolonu öznitelik oldu.
   tip               String  @default("sayi")
+  /// Çekirdeğin ADIYLA DEĞİL ROLÜYLE bildiği öznitelik: `kapasite`
+  /// (birincil ölçü — portföy, karne) · `kritiklik` (olay etki motoru).
+  /// Paket hangi anahtarın hangi rolü taşıdığını söyler; çekirdek
+  /// `teiasScadaEms`i tanımaz, "kritiklik rolündeki özniteliği" okur.
+  /// null = rolsüz (yalnız kural ve ekran).
+  rol               String?
   /// Gösterim birimi — `MW`, `m³/gün`. Metin özniteliklerde null.
   birim             String?
   /// Kapsam/uygulanabilirlik kuralında kullanılabilir mi.
   kuraldaKullanilir Boolean @default(false)
   sira              Int     @default(0)
+  /// Tesis 360 profil bloğundaki grup başlığı — paket verir (paketin
+  /// dilinde). null → "Sektör öznitelikleri". Çekirdek grupla aynı adı
+  /// taşıyan sektör grubu o grubun sonuna eklenir.
+  grup              String?
+  /// Seçenek listesi JSON — `[{"deger":"kesin_kabul","ad":"Kesin kabul"}]`.
+  /// Doluysa alan seçimdir ve `profilKaydet` listeye uymayan değeri
+  /// reddeder; boşsa serbest metin. Paket içeriğidir, çekirdek seçenek
+  /// bilmez.
+  secenekler        String?
 
   sektor Sektor @relation(fields: [sektorId], references: [id], onDelete: Cascade)
 
@@ -152,11 +242,11 @@ model BirimOzellik {
 
 /// Tesis / lokasyon. Yaşam döngüsü: aktif → kapali (devir, kapanış).
 model Tesis {
-  id          String  @id @default(cuid())
-  kod         String  @unique
-  ad          String
-  tipId       String?
-  konum       String?
+  id    String  @id @default(cuid())
+  kod   String  @unique
+  ad    String
+  tipId String?
+  konum String?
 
   /// Coğrafi konum (WGS84). NULL = GİRİLMEDİ; harita bu tesisi bölgesinin
   /// merkezine YAKLAŞIK olarak koyar ve bunu ekranda söyler. Uydurma
@@ -208,37 +298,33 @@ model Tesis {
   tuzelKisi       TuzelKisi? @relation(fields: [tuzelKisiId], references: [id])
   konumDogrulayan Kullanici? @relation("TesisKonumDogrulayan", fields: [konumDogrulayanId], references: [id])
 
-  surecKapsamlari SurecKapsami[]
-  maddeDurumlari  MaddeDurumu[]
-  yetkiler        Yetki[]
+  /// Uyum zincirinin öznesi artık KAPSAM ÖĞESİDİR (B1): süreç kapsamı,
+  /// madde durumu, uygulanabilirlik, istisna, kanıt bağı, denetçi
+  /// kapsamı, aktarım ve anlık görüntü `KapsamOgesi` üstünden gelir;
+  /// tesis olan öğe buraya köprülenir.
+  kapsamOgesi KapsamOgesi?
 
   // hedef mimari genişlemesi
-  profil                    TesisProfili?
-  birimler                  OperasyonelBirim[]
-  sistemler                 SistemServis[]
-  isSurecleri               IsSureci[]
-  uygulanabilirlikKararlari UygulanabilirlikKarari[]
-  istisnalar                Istisna[]
-  anlikler                  UyumAnlik[]
-  riskler                   Risk[]
-  denetimKapsamlari         DenetimKapsami[]
-  varliklar                 Varlik[]
-  agBolgeleri               AgBolgesi[]
-  ekipler                   Ekip[]
-  kimlikHesaplari           KimlikHesabi[]
-  degerlendirmeAktarimlari  DegerlendirmeAktarimi[]
-  legalHoldlar              LegalHold[]
-  denetciKapsamlari         DenetciKapsami[]
-  degisiklikler             Degisiklik[]
-  olaylar                   Olay[]
-  projeAdaylari             ProjeAdayi[]
-  kanitBaglantilari         KanitTesis[]
-  gorevler                  Gorev[]
-  projeBaglantilari         ProjeBaglantisi[]
-  topolojiAnliklari         TopolojiAnlik[]
-  erisimOturumlari          TedarikciErisimOturumu[]
-  kesifKayitlari            KesifKaydi[]
-  belgeBaglantilari         DokumanTesis[]
+  profil            TesisProfili?
+  birimler          OperasyonelBirim[]
+  sistemler         SistemServis[]
+  isSurecleri       IsSureci[]
+  riskler           Risk[]
+  denetimKapsamlari DenetimKapsami[]
+  varliklar         Varlik[]
+  agBolgeleri       AgBolgesi[]
+  ekipler           Ekip[]
+  kimlikHesaplari   KimlikHesabi[]
+  legalHoldlar      LegalHold[]
+  degisiklikler     Degisiklik[]
+  olaylar           Olay[]
+  projeAdaylari     ProjeAdayi[]
+  gorevler          Gorev[]
+  projeBaglantilari ProjeBaglantisi[]
+  topolojiAnliklari TopolojiAnlik[]
+  erisimOturumlari  TedarikciErisimOturumu[]
+  kesifKayitlari    KesifKaydi[]
+  belgeBaglantilari DokumanTesis[]
 
   // FAZ G ters bağları
   envanterSayimlari EnvanterSayimi[]
@@ -374,15 +460,15 @@ model UyumSureci {
 /// Süreç ↔ tesis kapsamı. Tesis kapsamdan çıkarılabilir (kayıt silinir),
 /// geçmiş MaddeDurumu kayıtları tarihçe olarak kalır.
 model SurecKapsami {
-  id      String   @id @default(cuid())
-  surecId String
-  tesisId String
-  eklendi DateTime @default(now())
+  id            String   @id @default(cuid())
+  surecId       String
+  kapsamOgesiId String
+  eklendi       DateTime @default(now())
 
-  surec UyumSureci @relation(fields: [surecId], references: [id], onDelete: Cascade)
-  tesis Tesis      @relation(fields: [tesisId], references: [id], onDelete: Cascade)
+  surec       UyumSureci  @relation(fields: [surecId], references: [id], onDelete: Cascade)
+  kapsamOgesi KapsamOgesi @relation(fields: [kapsamOgesiId], references: [id], onDelete: Cascade)
 
-  @@unique([surecId, tesisId])
+  @@unique([surecId, kapsamOgesiId])
 }
 
 /// (Süreç × madde × tesis) kesişimi — sistemin en sık okunan tablosu.
@@ -390,7 +476,9 @@ model MaddeDurumu {
   id               String    @id @default(cuid())
   surecId          String
   maddeId          String
-  tesisId          String
+  /// Özne KAPSAM ÖĞESİDİR (B1): tesis, kurum, sistem… — kolon adı
+  /// "tesis" demez çünkü artık her özne bir tesis değildir.
+  kapsamOgesiId    String
   durum            String    @default("degerlendirilmedi") // uyumlu | kismi | uyumsuz | degerlendirilmedi | incelemede | kapsamdisi
   guven            String    @default("kanit_yok") // otomatik_kanit | denetci_dogrulamis | oz_degerlendirme | bayat_kanit | kanit_yok
   kanitBayat       Boolean   @default(false)
@@ -415,12 +503,12 @@ model MaddeDurumu {
   sonDegerlendirme DateTime?
   guncellendi      DateTime  @updatedAt
 
-  surec      UyumSureci @relation(fields: [surecId], references: [id], onDelete: Cascade)
-  madde      Madde      @relation(fields: [maddeId], references: [id], onDelete: Cascade)
-  tesis      Tesis      @relation(fields: [tesisId], references: [id], onDelete: Cascade)
-  sorumlu    Kullanici? @relation("DurumSorumlusu", fields: [sorumluId], references: [id])
-  ekip       Ekip?      @relation("MaddeDurumuEkibi", fields: [ekipId], references: [id])
-  dogrulayan Kullanici? @relation("DurumDogrulayan", fields: [dogrulayanId], references: [id])
+  surec       UyumSureci  @relation(fields: [surecId], references: [id], onDelete: Cascade)
+  madde       Madde       @relation(fields: [maddeId], references: [id], onDelete: Cascade)
+  kapsamOgesi KapsamOgesi @relation(fields: [kapsamOgesiId], references: [id], onDelete: Cascade)
+  sorumlu     Kullanici?  @relation("DurumSorumlusu", fields: [sorumluId], references: [id])
+  ekip        Ekip?       @relation("MaddeDurumuEkibi", fields: [ekipId], references: [id])
+  dogrulayan  Kullanici?  @relation("DurumDogrulayan", fields: [dogrulayanId], references: [id])
 
   bulgular          Bulgu[]
   kanitBaglantilari KanitBaglantisi[]
@@ -429,8 +517,8 @@ model MaddeDurumu {
   // FAZ G ters bağları
   kontrolTestleri KontrolTesti[]
 
-  @@unique([surecId, maddeId, tesisId])
-  @@index([surecId, tesisId, durum])
+  @@unique([surecId, maddeId, kapsamOgesiId])
+  @@index([surecId, kapsamOgesiId, durum])
 }
 
 // ------------------------------------------------------------ bulgu/aksiyon
@@ -557,7 +645,7 @@ model Kanit {
   sahip              Kullanici?        @relation("KanitSahibi", fields: [sahipId], references: [id])
   baglantilar        KanitBaglantisi[]
   varlikBaglantilari KanitVarlik[]
-  tesisBaglantilari  KanitTesis[]
+  kapsamBaglantilari KanitKapsami[]
   talepler           KanitTalebi[]
   surumler           KanitSurumu[]
 
@@ -769,21 +857,25 @@ model Kullanici {
 /// Yetki kapsamı (kullanıcı × uyum süreci × tesis). Alan null ise "tümü".
 /// "Denetim bazında yetkilendirme": süreç, denetimin kendisidir.
 model Yetki {
-  id           String  @id @default(cuid())
-  kullaniciId  String
-  surecId      String?
-  tesisId      String?
-  tuzelKisiId  String?
-  regulasyonId String? // framework kapsamı
-  modul        String? // compliance | envanter | risk | denetim | proje | yonetim — null = tüm modüller
-  rol          String // okuyucu | katkici | denetim_sorumlusu | tesis_yoneticisi | ot_yoneticisi | bt_yoneticisi | risk_sahibi | dis_denetci | yonetici
+  id            String  @id @default(cuid())
+  kullaniciId   String
+  surecId       String?
+  /// RBAC kapsam ekseni KAPSAM ÖĞESİDİR (B1): tesis yöneticisi bir
+  /// tesis öğesine, kurum uyum sorumlusu kurum öğesine yetkilidir.
+  /// Tesis tabanlı tablolar (varlık, risk, olay) öğenin `tesisId`
+  /// köprüsüyle süzülür — `lib/erisim.ts` → `izinliTesisIdleri`.
+  kapsamOgesiId String?
+  tuzelKisiId   String?
+  regulasyonId  String? // framework kapsamı
+  modul         String? // compliance | envanter | risk | denetim | proje | yonetim — null = tüm modüller
+  rol           String // okuyucu | katkici | denetim_sorumlusu | tesis_yoneticisi | ot_yoneticisi | bt_yoneticisi | risk_sahibi | dis_denetci | yonetici
 
-  kullanici Kullanici   @relation(fields: [kullaniciId], references: [id], onDelete: Cascade)
-  surec     UyumSureci? @relation(fields: [surecId], references: [id], onDelete: Cascade)
-  tesis     Tesis?      @relation(fields: [tesisId], references: [id], onDelete: Cascade)
-  tuzelKisi TuzelKisi?  @relation(fields: [tuzelKisiId], references: [id])
+  kullanici   Kullanici    @relation(fields: [kullaniciId], references: [id], onDelete: Cascade)
+  surec       UyumSureci?  @relation(fields: [surecId], references: [id], onDelete: Cascade)
+  kapsamOgesi KapsamOgesi? @relation(fields: [kapsamOgesiId], references: [id], onDelete: Cascade)
+  tuzelKisi   TuzelKisi?   @relation(fields: [tuzelKisiId], references: [id])
 
-  @@unique([kullaniciId, surecId, tesisId, tuzelKisiId, regulasyonId, modul])
+  @@unique([kullaniciId, surecId, kapsamOgesiId, tuzelKisiId, regulasyonId, modul])
 }
 
 /// Değişmez iz kaydı — bulgu zaman çizelgesinin kaynağı. Güncellenmez, yalnızca eklenir.
@@ -944,17 +1036,18 @@ model IsSureciSistemi {
 }
 
 /// Tesis profili (§5.1) — uygulanabilirlik motorunun girdisi. Tesis 1:1.
+/// OT MİMARİ PROFİLİ — yalnız SEKTÖRSÜZ alanlar (B2).
+///
+/// Enerjiye özgü sekiz kolon (`lisansTipi · lisansNo · kabulDurumu ·
+/// kabulTarihi · blackStart · teiasScadaEms · seriHaberlesme ·
+/// kritiklikSinifi`) buradan çıktı ve `TesisOzellik` satırı oldu;
+/// anahtarlarını enerji paketi (`SektorOznitelikSemasi`) beyan eder.
+/// Kalıcı kural: sektöre özgü hiçbir alan çekirdek kolonu olmaz —
+/// bekçi `tests/bekci/sema-sektorsuz.test.ts`. Kalanlar OT genelidir
+/// (mimari tipi, internet maruziyeti, uzaktan erişim, IoT…).
 model TesisProfili {
-  id                   String    @id @default(cuid())
-  tesisId              String    @unique
-  lisansTipi           String?
-  lisansNo             String?
-  kabulDurumu          String? // gecici_kabul | kesin_kabul | insaat | lisans_oncesi
-  kabulTarihi          DateTime?
-  blackStart           Boolean? // null = bilinmiyor
-  teiasScadaEms        Boolean? // TEİAŞ SCADA/EMS haberleşmesi
-  seriHaberlesme       Boolean? // seri tabanlı haberleşme
-  kritiklikSinifi      String? // EPDK kritiklik sınıfı
+  id                   String   @id @default(cuid())
+  tesisId              String   @unique
   kritikAltyapiStatusu Boolean?
   veriIslemeProfili    String?
   internetMaruziyeti   String? // yok | sinirli | var | bilinmiyor
@@ -968,7 +1061,7 @@ model TesisProfili {
   yerelAdVar           Boolean?
   yerelVeriMerkeziVar  Boolean?
   grupOrtakServisler   String? // noktalı virgülle liste (merkezi AD, SOC, EDR...)
-  guncellendi          DateTime  @updatedAt
+  guncellendi          DateTime @updatedAt
 
   tesis Tesis @relation(fields: [tesisId], references: [id], onDelete: Cascade)
 }
@@ -1132,39 +1225,39 @@ model RegulasyonKaynagi {
 /// değiştirebilir; önizlemesiz uygulamak, denetim kararlarını körlemesine
 /// toptan yazmak olurdu.
 model DegerlendirmeAktarimi {
-  id           String    @id @default(cuid())
-  regulasyonId String
-  /// Hangi tesise aktarılıyor. Kapsam kapısı bu alandan sorulur.
-  tesisId      String
-  surecId      String?
-  kaynakAdi    String
+  id            String    @id @default(cuid())
+  regulasyonId  String
+  /// Hangi kapsam öğesine aktarılıyor. Kapsam kapısı bu alandan sorulur.
+  kapsamOgesiId String
+  surecId       String?
+  kaynakAdi     String
   /// `kuru_kosu` | `uygulandi` | `reddedildi`. `uygulandi` yalnız bir
   /// kuru koşudan SONRA yazılabilir.
-  durum        String    @default("kuru_kosu")
-  okunan       Int       @default(0)
-  eslesen      Int       @default(0)
+  durum         String    @default("kuru_kosu")
+  okunan        Int       @default(0)
+  eslesen       Int       @default(0)
   /// Kod eşleşmedi ya da doğrulama düştü — UYGULANMAZ ve sayılır.
-  elenen       Int       @default(0)
+  elenen        Int       @default(0)
   /// Uygulandığında gerçekten DEĞİŞEN satır sayısı. Eşleşen değişen
   /// demek değildir: aynı durumu yeniden yazmak bir değişiklik değildir.
-  degisen      Int       @default(0)
+  degisen       Int       @default(0)
   /// Satır satır önizleme ve eleme sebepleri.
-  raporJson    String?
+  raporJson     String?
   /// KÖKEN: bu uygulamanın hangi kuru koşudan geldiği. Uygulama kaydı
   /// kendi kuru koşusuna bağlıdır ve bağsız uygulama YAZILAMAZ.
-  kuruKosuId   String?
-  yukleyenId   String?
-  uygulandi    DateTime?
-  olusturuldu  DateTime  @default(now())
+  kuruKosuId    String?
+  yukleyenId    String?
+  uygulandi     DateTime?
+  olusturuldu   DateTime  @default(now())
 
   regulasyon  Regulasyon              @relation(fields: [regulasyonId], references: [id], onDelete: Cascade)
-  tesis       Tesis                   @relation(fields: [tesisId], references: [id], onDelete: Cascade)
+  kapsamOgesi KapsamOgesi             @relation(fields: [kapsamOgesiId], references: [id], onDelete: Cascade)
   surec       UyumSureci?             @relation(fields: [surecId], references: [id])
   kuruKosu    DegerlendirmeAktarimi?  @relation("AktarimKokeni", fields: [kuruKosuId], references: [id])
   uygulamalar DegerlendirmeAktarimi[] @relation("AktarimKokeni")
   yukleyen    Kullanici?              @relation("AktarimYukleyen", fields: [yukleyenId], references: [id])
 
-  @@index([regulasyonId, tesisId, durum])
+  @@index([regulasyonId, kapsamOgesiId, durum])
 }
 
 // ---------------------------------------- UY-56 · saklama ve legal hold
@@ -1322,14 +1415,14 @@ model DenetciErisimi {
 /// hiçbir tesisi kapsamaz — "boş kapsam = her şey" varsayımı, bir
 /// dış denetçiye kiracının tamamını açmak olurdu.
 model DenetciKapsami {
-  id       String @id @default(cuid())
-  erisimId String
-  tesisId  String
+  id            String @id @default(cuid())
+  erisimId      String
+  kapsamOgesiId String
 
-  erisim DenetciErisimi @relation(fields: [erisimId], references: [id], onDelete: Cascade)
-  tesis  Tesis          @relation(fields: [tesisId], references: [id], onDelete: Cascade)
+  erisim      DenetciErisimi @relation(fields: [erisimId], references: [id], onDelete: Cascade)
+  kapsamOgesi KapsamOgesi    @relation(fields: [kapsamOgesiId], references: [id], onDelete: Cascade)
 
-  @@unique([erisimId, tesisId])
+  @@unique([erisimId, kapsamOgesiId])
 }
 
 // ---------------------------------------------------- uygulanabilirlik
@@ -1358,7 +1451,7 @@ model UygulanabilirlikKurali {
 /// kapsam kararı — gerekçesi ve kural sürümüyle. Override onaylıdır.
 model UygulanabilirlikKarari {
   id                  String   @id @default(cuid())
-  tesisId             String
+  kapsamOgesiId       String
   regulasyonId        String
   uygulanabilir       Boolean
   gerekce             String
@@ -1369,28 +1462,28 @@ model UygulanabilirlikKarari {
   degistirmeGerekcesi String?
   onaylayanId         String?
 
-  tesis      Tesis                   @relation(fields: [tesisId], references: [id])
-  regulasyon Regulasyon              @relation(fields: [regulasyonId], references: [id])
-  kural      UygulanabilirlikKurali? @relation(fields: [kuralId], references: [id])
-  onaylayan  Kullanici?              @relation("KararOnaylayan", fields: [onaylayanId], references: [id])
+  kapsamOgesi KapsamOgesi             @relation(fields: [kapsamOgesiId], references: [id])
+  regulasyon  Regulasyon              @relation(fields: [regulasyonId], references: [id])
+  kural       UygulanabilirlikKurali? @relation(fields: [kuralId], references: [id])
+  onaylayan   Kullanici?              @relation("KararOnaylayan", fields: [onaylayanId], references: [id])
 
-  @@unique([tesisId, regulasyonId])
+  @@unique([kapsamOgesiId, regulasyonId])
 }
 
 /// İstisna / waiver (§50): süreli, onaylı, gerekçeli.
 model Istisna {
-  id          String   @id @default(cuid())
-  maddeId     String
-  tesisId     String
-  gerekce     String
-  baslangic   DateTime @default(now())
-  bitis       DateTime
-  onaylayanId String?
-  durum       String   @default("onay_bekliyor") // onay_bekliyor | aktif | suresi_doldu | reddedildi
+  id            String   @id @default(cuid())
+  maddeId       String
+  kapsamOgesiId String
+  gerekce       String
+  baslangic     DateTime @default(now())
+  bitis         DateTime
+  onaylayanId   String?
+  durum         String   @default("onay_bekliyor") // onay_bekliyor | aktif | suresi_doldu | reddedildi
 
-  madde     Madde      @relation(fields: [maddeId], references: [id])
-  tesis     Tesis      @relation(fields: [tesisId], references: [id])
-  onaylayan Kullanici? @relation("IstisnaOnaylayan", fields: [onaylayanId], references: [id])
+  madde       Madde       @relation(fields: [maddeId], references: [id])
+  kapsamOgesi KapsamOgesi @relation(fields: [kapsamOgesiId], references: [id])
+  onaylayan   Kullanici?  @relation("IstisnaOnaylayan", fields: [onaylayanId], references: [id])
 }
 
 // -------------------------------------- assessment tarihçesi ve snapshot
@@ -1416,14 +1509,15 @@ model DegerlendirmeTarihcesi {
 
 /// Uyum anlık görüntüsü (§44): dönemsel karşılaştırma için.
 model UyumAnlik {
-  id       String   @id @default(cuid())
-  surecId  String
-  tesisId  String?
-  tarih    DateTime @default(now())
-  ozetJson String // durum sayıları, skorlar, güven dağılımı
+  id            String   @id @default(cuid())
+  surecId       String
+  /// null = süreç geneli anlık görüntü; dolu = kapsam öğesi başına.
+  kapsamOgesiId String?
+  tarih         DateTime @default(now())
+  ozetJson      String // durum sayıları, skorlar, güven dağılımı
 
-  surec UyumSureci @relation(fields: [surecId], references: [id])
-  tesis Tesis?     @relation(fields: [tesisId], references: [id])
+  surec       UyumSureci   @relation(fields: [surecId], references: [id])
+  kapsamOgesi KapsamOgesi? @relation(fields: [kapsamOgesiId], references: [id])
 
   @@index([surecId, tarih])
 }
@@ -2247,15 +2341,17 @@ model KanitVarlik {
   @@unique([kanitId, varlikId])
 }
 
-model KanitTesis {
-  id      String @id @default(cuid())
-  kanitId String
-  tesisId String
+/// Kanıt ↔ kapsam öğesi bağı. Adı `KanitTesis` idi; özne tesis olmaktan
+/// çıkınca ad yalan söylerdi (B1).
+model KanitKapsami {
+  id            String @id @default(cuid())
+  kanitId       String
+  kapsamOgesiId String
 
-  kanit Kanit @relation(fields: [kanitId], references: [id], onDelete: Cascade)
-  tesis Tesis @relation(fields: [tesisId], references: [id], onDelete: Cascade)
+  kanit       Kanit       @relation(fields: [kanitId], references: [id], onDelete: Cascade)
+  kapsamOgesi KapsamOgesi @relation(fields: [kapsamOgesiId], references: [id], onDelete: Cascade)
 
-  @@unique([kanitId, tesisId])
+  @@unique([kanitId, kapsamOgesiId])
 }
 
 // --------------------------------------- oturum / görev / bildirim / onay

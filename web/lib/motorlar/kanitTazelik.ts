@@ -12,7 +12,7 @@ export async function kanitTazeligiIsle(): Promise<{ islenen: number; uretilen: 
   const bayatKanitlar = await db.kanit.findMany({
     where: { silindi: null, gecerliBitis: { lt: simdi } },
     include: { baglantilar: {
-      include: { maddeDurumu: { select: { id: true, tesisId: true } } },
+      include: { maddeDurumu: { select: { id: true, kapsamOgesi: { select: { tesisId: true } } } } },
       orderBy: { eklendi: 'asc' },
     } },
   });
@@ -39,7 +39,7 @@ export async function kanitTazeligiIsle(): Promise<{ islenen: number; uretilen: 
         baslik: `Kanıt yenileme: ${kanit.ad}`,
         tip: 'kanit_yenileme', kaynakTipi: 'Kanit', kaynakId: kanit.id,
         sorumluId: kanit.sahipId ?? kanit.yukleyenId ?? null, // sorumlu: kanıt sahibi
-        tesisId: kanit.baglantilar[0]?.maddeDurumu.tesisId ?? null, // bağlı ilk durumun tesisi
+        tesisId: kanit.baglantilar[0]?.maddeDurumu.kapsamOgesi.tesisId ?? null, // bağlı ilk durumun tesisi (köprü)
         sonTarih: kanit.gecerliBitis,
         otomatikUretildi: true,
       } });

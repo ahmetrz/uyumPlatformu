@@ -66,7 +66,8 @@ export type Veri = {
   /* C20 · sunucuda hesaplanan yetki bayrakları (bkz. veri.ts) */
   aktifKullaniciId: string; yazabilir: boolean; dogrulayabilir: boolean;
   madde: { kod: string; baslik: string; metin: string };
-  tesis: { id: string; kod: string; ad: string; tip: string | null };
+  /** kapsam öğesi görünümü; `id` tesis köprüsü (köprüsüz öğede null → bağlantı yok) */
+  tesis: { id: string | null; kod: string; ad: string; tip: string | null };
   surec: { id: string; kod: string; regKod: string };
   aksiyonlar: AksiyonKaydi[];
   projeler: { id: string; kod: string; ad: string }[];
@@ -192,7 +193,7 @@ export default function BulguDetayIstemci({ veri, esik = KANIT_ESIK_VARSAYILAN }
         <BaglamCubugu
           kirintiler={[
             { ad: 'Bulgu & CAPA', yol: '/bulgular' },
-            { ad: veri.tesis.kod, yol: `/tesisler/${veri.tesis.id}` },
+            { ad: veri.tesis.kod, ...(veri.tesis.id ? { yol: `/tesisler/${veri.tesis.id}` } : {}) },
             { ad: veri.madde.kod },
           ]}
           sag={

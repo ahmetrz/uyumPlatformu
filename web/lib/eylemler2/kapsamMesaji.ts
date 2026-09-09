@@ -1,7 +1,7 @@
 import 'server-only';
 import type { AktifKullanici } from '../auth';
 import { izinliTesisIdleri, type Modul } from '../erisim';
-import { kapsamAnahtari, kapsamSozlugu, tesisSozlugu } from '../dil/sozlukOku';
+import { kapsamAnahtari, kapsamSozlugu, ogeSozlugu } from '../dil/sozlukOku';
 import { t, tBas, terim, type Bicim, type Sozluk, type Terim } from '../dil/terimler';
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -56,15 +56,16 @@ import { t, tBas, terim, type Bicim, type Sozluk, type Terim } from '../dil/teri
 /**
  * "Bu <tesis> kapsamında <sonek>" — sonek çağıranın işidir.
  *
- * @param tesisId Kaydın tesisi; `null`/`undefined` ise kullanıcının kapsamı.
+ * @param kapsamOgesiId Kaydın kapsam öğesi (B1); `null`/`undefined` ise
+ *                      kullanıcının kapsamı.
  * @param sonek   "risk yazma yetkiniz yok" gibi; cümlenin geri kalanı.
  * @param bicim   Terimin çekim hâli; SÖZLÜKTEN okunur, ek üretilmez.
  */
 export async function kapsamMesaji(
-  k: AktifKullanici, modul: Modul, sonek: string, tesisId?: string | null,
+  k: AktifKullanici, modul: Modul, sonek: string, kapsamOgesiId?: string | null,
   bicim: Bicim = 'tekil',
 ): Promise<string> {
-  return `Bu ${t(await eylemSozlugu(k, modul, tesisId), 'tesis', bicim)} kapsamında ${sonek}`;
+  return `Bu ${t(await eylemSozlugu(k, modul, kapsamOgesiId), 'tesis', bicim)} kapsamında ${sonek}`;
 }
 
 /** Kapsama (ya da kaydın tesisine) göre tesis sözcüğü — serbest cümleler.
@@ -75,19 +76,19 @@ export async function kapsamMesaji(
     kapsamınızda değil". Bunlar için çerçeve BAŞINA yardımcı yazmak
     yardımcı enflasyonu olurdu; doğru kapı terimin kendisidir. */
 export async function kapsamTerimi(
-  k: AktifKullanici, modul: Modul, tesisId?: string | null,
+  k: AktifKullanici, modul: Modul, kapsamOgesiId?: string | null,
   bicim: Bicim = 'tekil',
 ): Promise<string> {
-  return t(await eylemSozlugu(k, modul, tesisId), 'tesis', bicim);
+  return t(await eylemSozlugu(k, modul, kapsamOgesiId), 'tesis', bicim);
 }
 
 /** Cümle başındaki hâli. Türkçe büyütme sözlüğün işi (`tBas`): düz
     `toUpperCase` "işletme"yi "ISLETME" yapardı. */
 export async function kapsamTerimiBas(
-  k: AktifKullanici, modul: Modul = 'yonetim', tesisId?: string | null,
+  k: AktifKullanici, modul: Modul = 'yonetim', kapsamOgesiId?: string | null,
   bicim: Bicim = 'tekil',
 ): Promise<string> {
-  return tBas(await eylemSozlugu(k, modul, tesisId), 'tesis', bicim);
+  return tBas(await eylemSozlugu(k, modul, kapsamOgesiId), 'tesis', bicim);
 }
 
 /** Tesis teriminin BÜTÜN hâlleri — çerçevesi standart olmayan cümleler.
@@ -98,9 +99,9 @@ export async function kapsamTerimiBas(
     olarak verilir ve terim ona geçirilir; çağıranın ayrıca veritabanı
     okuması gerekmez. */
 export async function eylemTerimi(
-  k: AktifKullanici, modul: Modul, tesisId?: string | null,
+  k: AktifKullanici, modul: Modul, kapsamOgesiId?: string | null,
 ): Promise<Terim> {
-  return terim(await eylemSozlugu(k, modul, tesisId), 'tesis');
+  return terim(await eylemSozlugu(k, modul, kapsamOgesiId), 'tesis');
 }
 
 /** Sunucu eyleminin okuyacağı sözlük — kayıt tesisi biliniyorsa onunki.
@@ -109,9 +110,9 @@ export async function eylemTerimi(
     sözlük bir kez okunur ve `t`/`tBas` ile kullanılır; her mesaj için
     ayrı veritabanı okuması yapılmaz. */
 export async function eylemSozlugu(
-  k: AktifKullanici, modul: Modul, tesisId?: string | null,
+  k: AktifKullanici, modul: Modul, kapsamOgesiId?: string | null,
 ): Promise<Sozluk | null> {
-  return tesisId
-    ? tesisSozlugu(tesisId)
+  return kapsamOgesiId
+    ? ogeSozlugu(kapsamOgesiId)
     : kapsamSozlugu(kapsamAnahtari(izinliTesisIdleri(k, modul)));
 }

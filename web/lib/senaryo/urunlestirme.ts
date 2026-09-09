@@ -194,4 +194,51 @@ export const URUNLESTIRME_SENARYOLARI: Senaryo[] = [
     beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
     katmanlar: ['DOMAIN', 'UI'],
   },
+  {
+    id: 'URN-KAP-001', alan: 'Ürünleştirme', rota: '—', eksen: 'veri',
+    amac: 'Uyum omurgasının tesise geri çakılmaması',
+    rol: 'ürünü sürdüren geliştirici', kapsam: 'depo geneli',
+    onkosul: 'B1: dokuz omurga tablosu (süreç kapsamı · madde durumu · uygulanabilirlik '
+      + 'kararı · istisna · kanıt bağı · denetçi kapsamı · aktarım · anlık · yetki) '
+      + 'kapsam öğesine bağlı; tesis yalnız `KapsamOgesi.tesisId` köprüsü',
+    veriHali: 'aykiri',
+    eylem: 'Bekçi şemayı okur: `kapsamOgesiId` taşıyan her modelde doğrudan `tesisId` '
+      + 'arar; izin listesi taban dalın alt kümesi olmak zorundadır',
+    beklenenSonuc: 'Omurga tablosuna eklenen tek bir `tesisId` kolonu adıyla kırmızı; ölü '
+      + 'izin satırı da kırmızı; liste yalnız küçülür. Kalıcı vaka kirli parçayı kırmızı, '
+      + 'temizini yeşil görür',
+    beklenenEkran: 'Ekran yok — kapı',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['DOMAIN', 'MIGRATION'],
+  },
+  {
+    id: 'URN-KAP-002', alan: 'Ürünleştirme', rota: '—', eksen: 'veri',
+    amac: 'Sektöre özgü alanın çekirdek kolonu olamaması (kalıcı kural)',
+    rol: 'ürünü sürdüren geliştirici', kapsam: 'depo geneli',
+    onkosul: 'B2: `TesisProfili`nin sekiz enerji kolonu paketin öznitelik şemasına taşındı; '
+      + 'kurulu paketlerin anahtarları tohum kaynağından okunur',
+    veriHali: 'aykiri',
+    eylem: 'Bekçi şema model/alan adlarını paket anahtarlarına ve sektör terimi '
+      + 'kalıplarına karşı tarar',
+    beklenenSonuc: '`blackStart` gibi bir paket anahtarı ya da adında sektör sözcüğü taşıyan '
+      + 'bir kolon adıyla kırmızı; tavan sıfır, borç kütüğü yok',
+    beklenenEkran: 'Ekran yok — kapı',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['DOMAIN'],
+  },
+  {
+    id: 'URN-KAP-003', alan: 'Ürünleştirme', rota: '—', eksen: 'veri',
+    amac: 'Taze kurulum (tohum) ile yükseltmenin (göç) aynı veriyi yazması ve göçün veri kaybettirmemesi',
+    rol: 'ürünü sürdüren geliştirici', kapsam: 'depo geneli',
+    onkosul: 'Tür kataloğu, öğe kimlik kuralı, kurum eşlemesi, öznitelik şeması, etiketler, '
+      + 'profil→öznitelik taşıması ve kural bileşimi iki kaynakta (SQL · TypeScript) yaşar',
+    veriHali: 'normal',
+    eylem: 'Göç SQL\'i ayrıştırılıp tohum sabitleriyle alan alan karşılaştırılır; göç '
+      + 'öncesi/sonrası sayım dosyaları ortak anahtarlarda eşitlik için okunur',
+    beklenenSonuc: 'İki kaynaktan biri değişip öbürü değişmezse kırmızı; K3 sayımlarında '
+      + 'ortak anahtarların hepsi eşit, her tesis bir öğe almış',
+    beklenenEkran: 'Ekran yok — kapı',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['MIGRATION', 'DOMAIN'],
+  },
 ];

@@ -350,7 +350,15 @@ describe('Göçler', () => {
         const yenidenKuruldu = new RegExp(
           `CREATE\\s+TABLE\\s+"${tablo}"`, 'i').test(sql);
         const gerekceli = /--[^\n]*(0 satır|boştur|veri almadı|henüz veri)/i.test(sql);
-        if (!(tasindi && yenidenAdlandirildi) && !(yenidenKuruldu && gerekceli)) {
+        /* Üçüncü meşru yol: satırlar BAŞKA bir tabloya taşınır (B1:
+           `KanitTesis` → `KanitKapsami`) ve taşıma DROP'tan ÖNCE gelir.
+           `new_X` kalıbı değildir; veri yine korunur. Taşıma cümlesi
+           silinirse bu yol kapanır ve tablo korumasız sayılır. */
+        const dropKonumu = m.index ?? 0;
+        const baskaTabloyaTasindi = [...sql.matchAll(new RegExp(
+          `INSERT\\s+INTO\\s+"(?!new_)([A-Za-z_]+)"[\\s\\S]*?FROM\\s+"${tablo}"`, 'gi'))]
+          .some((t) => t[1] !== tablo && (t.index ?? Infinity) < dropKonumu);
+        if (!(tasindi && yenidenAdlandirildi) && !(yenidenKuruldu && gerekceli) && !baskaTabloyaTasindi) {
           korumasiz.push(`${g}: ${tablo}`);
         }
       }

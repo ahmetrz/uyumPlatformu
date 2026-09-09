@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { girisZorunlu, izinVar, izinliTesisIdleri } from '@/lib/erisim';
-import { modulYazabilir } from '@/app/kapsam';
+import { modulYazabilir, OGE_GORUNUMU } from '@/app/kapsam';
 import { Yetkisiz } from '@/components/kabuk/temel';
 import { db } from '@/lib/db';
 import YetkilerIstemci from './YetkilerIstemci';
@@ -50,7 +50,7 @@ export default async function Sayfa() {
     db.kullanici.findMany({
       include: {
         yetkiler: {
-          include: { surec: { include: { regulasyon: true } }, tesis: true },
+          include: { surec: { include: { regulasyon: true } }, kapsamOgesi: OGE_GORUNUMU },
         },
       },
       orderBy: { adSoyad: 'asc' },
@@ -133,7 +133,8 @@ export default async function Sayfa() {
       surec: y.surec
         ? { id: y.surec.id, kod: y.surec.kod, regKod: y.surec.regulasyon.kod }
         : null,
-      tesis: y.tesis ? { id: y.tesis.id, kod: y.tesis.kod, ad: y.tesis.ad } : null,
+      /* Yetkinin kapsamı bir KAPSAM ÖĞESİDİR (B1); kod/ad öğeden, kimlik öğenin. */
+      tesis: y.kapsamOgesi ? { id: y.kapsamOgesi.id, kod: y.kapsamOgesi.kod, ad: y.kapsamOgesi.ad } : null,
     })),
     sahiplik: {
       toplam: sahipVarliklari.get(u.id)?.length ?? 0,

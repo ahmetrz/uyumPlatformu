@@ -28,5 +28,29 @@
     "yukumlulukler.json": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
   },
   "imza": null,
-  "aciklama": "İSKELET (P4 · 4.5): kapsam öğesi türleri (sistem · dış hizmet · iş fonksiyonu · komite), öznitelikler ve BDDK yönetmeliğinin kısım/bölüm yapısı + 47 madde numarası. Madde başlıkları ve madde–bölüm eşlemesi birincil metin erişilince doldurulur; uydurulmadı (docs/TR_SEKTOR_PAKETLERI.md §3.2)."
+  "aciklama": "İSKELET (P4 · 4.5): kapsam öğesi türleri (sistem · dış hizmet · iş fonksiyonu · komite), öznitelikler ve BDDK yönetmeliğinin kısım/bölüm yapısı + 47 madde numarası. Madde başlıkları ve madde–bölüm eşlemesi birincil metin erişilince doldurulur; uydurulmadı (docs/TR_SEKTOR_PAKETLERI.md §3.2).",
+  "alanEslemesi": {
+    "BDDK-BS": [
+      {
+        "kaynakAlan": "Kısım/bölüm numarası · madde numarası",
+        "urunAlani": "kod",
+        "gerekce": "Ürünün `kod` alanı maddenin çerçeve içindeki TEKİL kimliğidir: ekran, eşleme ve kanıt bu kodla maddeye atıf yapar, bu yüzden belge yeniden düzenlense bile aynı maddeyi göstermelidir. Kaynağın madde/kontrol numarası da aynı işi görür — belge içinde tekildir ve değişiklik metinleri maddeye bu numarayla atıf yapar. İskelette madde METNİ yoktur; kimlik taşınır, içerik birincil metne erişilince gelir."
+      },
+      {
+        "kaynakAlan": "Maddenin bulunduğu kısım/bölüm",
+        "urunAlani": "ust_kod",
+        "gerekce": "Ürünün `ust_kod` alanı madde AĞACINDAKİ üst düğümdür — kapsama (bütün–parça) ilişkisi kurar, öncelik ya da ağırlık ilişkisi değil; ekran alt maddeyi üstünün altında gösterir ve kapsam sayımı üstten aşağı yürür. Yönetmelik kısım → bölüm → madde diye kurulmuştur."
+      },
+      {
+        "kaynakAlan": "Kısım ve bölüm başlıkları",
+        "urunAlani": "baslik",
+        "gerekce": "Ürünün `baslik` alanı maddenin KISA ADIDIR. Bu iskelette YALNIZ kısım ve bölüm başlıkları gerçektir (ikincil konsolide metinden); madde satırlarının başlığı \"Madde N\" biçiminde numaranın kendisidir — madde kenar başlıkları birincil metne erişilemediği için (503) UYDURULMADI, birincil metin gelince doldurulacaktır."
+      },
+      {
+        "kaynakAlan": null,
+        "urunAlani": "sira",
+        "gerekce": "Ürünün `sira` alanı maddenin listede GÖRÜNTÜLENME sırasıdır; önem, öncelik ya da risk sırası değildir ve hiçbir hesaba girmez. Kaynak belgede böyle bir alan yoktur: belgedeki okuma sırası korunsun diye değeri aktarımı yapan verir."
+      }
+    ]
+  }
 }

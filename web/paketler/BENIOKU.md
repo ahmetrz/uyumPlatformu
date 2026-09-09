@@ -16,7 +16,8 @@ hiçbir sürümü aktif yapmaz, hiçbir madde durumu yazmaz.
 
 | Dosya | Biçim | Ne |
 | --- | --- | --- |
-| `manifest.json` | JSON | kimlik: `kod` · `ad` · `tur` (sektor · yatay · demo · uluslararasi) · `ulke` (ISO 3166-1, TR) · `sektor {kod, ad}` · `dil` · `surum` (SemVer) · `yayinci` · `lisans` · `bagimliliklar[]` · `icerikOzetleri {dosya: sha256}` · `imza?` |
+| `manifest.json` | JSON | kimlik: `kod` · `ad` · `tur` (sektor · yatay · demo · uluslararasi) · `ulke` (ISO 3166-1, TR) · `sektor {kod, ad}` · `dil` · `surum` (SemVer) · `yayinci` · `lisans` · `bagimliliklar[]` · `icerikOzetleri {dosya: sha256}` · `imza?` · **`alanEslemesi?`** (aşağıda) |
+| `manifest.alanEslemesi` | JSON nesne | **alan eşleme beyanı** (9 Eyl 2026, URN-PKT-022): `{ "<ÇERÇEVE KODU>": [{ kaynakAlan, urunAlani, gerekce }] }`. Madde dosyasında DOLU her sütun için bir satır: `kaynakAlan` kaynak belgedeki alanın adı (kaynakta karşılığı yoksa `null` — değeri paket yazarı atadı), `urunAlani` madde sütunlarından biri, `gerekce` (≥ 40 karakter) ürün alanının ANLAMINI anlatır — dönüşümün kolaylığını değil. Beyansız dolu sütun, ölü beyan (dosyada boş sütuna beyan), aynı ürün alanına iki beyan, temsilî çerçeveye beyan ve pakette olmayan çerçeveye beyan `ALAN EŞLEME` hatasıdır. **Kapı beyanın VARLIĞINI ölçer, doğruluğunu değil** (`docs/SEKTOR_PAKETI_SOZLESMESI.md` §1.10) |
 | `sozluk.json` | JSON dizi | `anahtar · dil · tekil · cogul · iyelik · belirtme · bulunma · yonelme` — **altı hâl de zorunlu** |
 | `kapsam-turleri.json` | JSON dizi | `kod` (küçük harf) · `ad` · `etiketAnahtari?` · `tesiseBagli` · `sira` |
 | `oznitelikler.json` | JSON dizi | `anahtar · tip (sayi · metin · mantik · tarih) · birim? · etiketAnahtari · rol? (kapasite · kritiklik) · grup? · secenekler? · kuraldaKullanilir · sira` |

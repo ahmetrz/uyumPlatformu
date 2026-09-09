@@ -536,6 +536,20 @@ export const URUNLESTIRME_SENARYOLARI: Senaryo[] = [
     katmanlar: ['SERVER', 'UI'],
   },
   {
+    id: 'URN-PKT-022', alan: 'Ürünleştirme', rota: '—', eksen: 'veri',
+    amac: 'Kaynak belgenin bir alanı ürünün YANLIŞ alanına yazıldığında biçim doğru kalır ve hiçbir kapı göremez; savunma paketin ALAN EŞLEME BEYANIDIR',
+    rol: 'paket yazarı · bağımsız inceleyici', kapsam: 'manifest.json `alanEslemesi` · lib/paket/dogrula.ts',
+    onkosul: 'EPDK Ek-3\'ün "Seviye" kademesi ürünün HEDEF OLGUNLUK alanına yazılmıştı; 508 zorunlu kontrolün hedefi bozuldu (bağımsız inceleme, PR #43 tur 2)',
+    veriHali: 'aykiri',
+    eylem: 'Paket doğrulanır: beyansız çerçeve, beyansız dolu sütun, ölü beyan, çifte beyan, temsilî çerçeveye beyan ve olmayan çerçeveye beyan denenir',
+    beklenenSonuc: 'Temsilî olmayan her çerçeve beyan eder; dosyada DOLU her sütun beyanda geçer (beyansız sütun ALAN EŞLEME hatası); beyanda geçip dosyada boş kalan sütun ÖLÜ beyandır; '
+      + 'bir ürün alanı iki kez beyan edilemez; temsilî çerçeve (kaynak belgesi yok) beyan edemez; pakette olmayan çerçeveye beyan yazılamaz; '
+      + 'gerekçe en az 40 karakterdir ve ürün alanı sütun listesinin dışına yazılamaz — kapı beyanın VARLIĞINI ölçer, DOĞRULUĞUNU değil (kabul edilmiş sınır)',
+    beklenenEkran: 'yok (paket doğrulama)',
+    beklenenIz: 'yazma yok (doğrulama)', beklenenBildirim: 'yok',
+    katmanlar: ['DOMAIN'],
+  },
+  {
     id: 'URN-PKT-010', alan: 'Ürünleştirme', rota: '—', eksen: 'veri',
     amac: 'Paket işlemlerinin müşteri verisini SİLEMEMESİ (R-C): bekçi tavanı sıfır, gerekçeli istisna yok',
     rol: 'ürünü sürdüren geliştirici', kapsam: '`lib/paket/` · paket eylemleri · şema',

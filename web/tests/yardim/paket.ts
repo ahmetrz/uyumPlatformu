@@ -4,7 +4,7 @@
 import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { sha256 } from '@/lib/paket/bicim';
+import { csvAyristir, sha256, type MaddeSatiri } from '@/lib/paket/bicim';
 
 export type PaketDosyalari = Record<string, string | object>;
 
@@ -54,3 +54,39 @@ export function cerceve(kod: string, lisans: { tur: string; metinDahil: boolean 
 export const SOZLUK_SATIRI = (anahtar: string, tekil: string) => ({
   anahtar, dil: 'tr', tekil, cogul: `${tekil}ler`, iyelik: `${tekil}in`, belirtme: `${tekil}i`, bulunma: `${tekil}de`, yonelme: `${tekil}e`,
 });
+
+/* ── fikstür alan eşleme beyanı ───────────────────────────────────────
+   Temsilî OLMAYAN çerçeve, madde dosyasındaki dolu her sütun için beyan
+   vermek zorundadır (URN-PKT-022). Gerçek paket bu beyanı ELLE yazar —
+   her alanın kendi anlamı vardır. Fikstürün konusu başkadır (köken,
+   OSCAL gidiş-dönüşü…) ve ölçülen kural beyanın VARLIĞIDIR: bu üreteç
+   yalnız o varlığı sağlar, gerçek paketlerde kullanılmaz. */
+const SUTUN_ALANI: Record<string, keyof MaddeSatiri> = {
+  kod: 'kod', ust_kod: 'ustKod', baslik: 'baslik', metin: 'metin', sira: 'sira', seviye: 'seviye',
+  zorunluluk_tipi: 'zorunlulukTipi', kanit_beklentisi: 'kanitBeklentisi', dis_kontrol_id: 'disKontrolId',
+  kanit_tipi: 'kanitTipi', kaynak_url: 'kaynakUrl', kaynak_yeri: 'kaynakYeri', erisim_tarihi: 'erisimTarihi',
+  yururluk_tarihi: 'yururlukTarihi', gereksinim_tipi: 'gereksinimTipi',
+};
+
+/** Dolu sütunlar: CSV metninden ya da ayrıştırılmış madde satırlarından. */
+export function doluSutunlar(kaynak: string | MaddeSatiri[]): string[] {
+  if (typeof kaynak === 'string') {
+    const { basliklar, satirlar } = csvAyristir(kaynak);
+    return basliklar.filter((_, i) => satirlar.some((r) => (r[i] ?? '').trim() !== ''));
+  }
+  return Object.keys(SUTUN_ALANI).filter((s) => kaynak.some((m) => {
+    const d = m[SUTUN_ALANI[s]];
+    return d !== null && d !== undefined && String(d).trim() !== '';
+  }));
+}
+
+/** `{ <KOD>: [{kaynakAlan, urunAlani, gerekce}] }` — dolu her sütun için bir satır. */
+export function fiksturEslemesi(kod: string, kaynak: string | MaddeSatiri[]) {
+  return {
+    [kod]: doluSutunlar(kaynak).map((sutun) => ({
+      kaynakAlan: `kaynak belgenin ${sutun} karşılığı`,
+      urunAlani: sutun,
+      gerekce: `Fikstür beyanı: ürünün "${sutun}" alanının anlamı gerçek paketlerde alanın kendi tanımıyla yazılır; burada ölçülen beyanın varlığıdır.`,
+    })),
+  };
+}

@@ -26,5 +26,29 @@
     "esleme/ISO-27001-CBDDO.json": "5d04c334e35814158da4646d26ecb4382e1aca20196cf94ca47316486d686409"
   },
   "imza": null,
-  "aciklama": "DEMO (P4 · 2.5): tohumun sektör üstü çerçeveleri ve iki çerçeve arası denklik. Madde seçkisi temsilîdir, hiçbir gerçek kuruma ait değildir; kurgusal kiracılar (enerji, su) bu paketi paylaşır."
+  "aciklama": "DEMO (P4 · 2.5): tohumun sektör üstü çerçeveleri ve iki çerçeve arası denklik. Madde seçkisi temsilîdir, hiçbir gerçek kuruma ait değildir; kurgusal kiracılar (enerji, su) bu paketi paylaşır.",
+  "alanEslemesi": {
+    "ISO-27001": [
+      {
+        "kaynakAlan": "Annex A kontrol numarası (A.5.9, A.8.9)",
+        "urunAlani": "kod",
+        "gerekce": "Ürünün `kod` alanı maddenin çerçeve içindeki TEKİL kimliğidir: ekran, eşleme ve kanıt bu kodla maddeye atıf yapar, bu yüzden belge yeniden düzenlense bile aynı maddeyi göstermelidir. Kaynağın madde/kontrol numarası da aynı işi görür — belge içinde tekildir ve değişiklik metinleri maddeye bu numarayla atıf yapar. Telifli çerçevede taşınan tek şey kimliktir: numara ve kısa ad."
+      },
+      {
+        "kaynakAlan": "Annex A kontrol adı",
+        "urunAlani": "baslik",
+        "gerekce": "Ürünün `baslik` alanı maddenin KISA ADIDIR — listede kontrolü bu ad temsil eder. ISO telifi nedeniyle kontrol METNİ girilmez (`metinDahil: false`); ad kimlik olarak taşınır, metnin yerine geçmez."
+      },
+      {
+        "kaynakAlan": null,
+        "urunAlani": "sira",
+        "gerekce": "Ürünün `sira` alanı maddenin listede GÖRÜNTÜLENME sırasıdır; önem, öncelik ya da risk sırası değildir ve hiçbir hesaba girmez. Kaynak belgede böyle bir alan yoktur: belgedeki okuma sırası korunsun diye değeri aktarımı yapan verir."
+      },
+      {
+        "kaynakAlan": null,
+        "urunAlani": "kanit_tipi",
+        "gerekce": "Ürünün `kanit_tipi` alanı maddenin BEKLEDİĞİ KANIT TÜRÜDÜR (kayıt · konfigürasyon · test kaydı); kanıtın kendisi ya da yeterliliği değildir — ekran kanıt yüklerken bu türü önerir. Kaynak belgede böyle bir alan yoktur: değeri demo içeriğini kuran paket yazarı atar."
+      }
+    ]
+  }
 }

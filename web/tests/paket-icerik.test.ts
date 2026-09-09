@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import path from 'node:path';
 import { hataSatiri, paketiDogrula } from '@/lib/paket/dogrula';
-import { SOZLUK_SATIRI, cerceve, paketYaz, type PaketDosyalari } from './yardim/paket';
+import { SOZLUK_SATIRI, cerceve, fiksturEslemesi, paketYaz, type PaketDosyalari } from './yardim/paket';
 
 /* ═══════════════════════════════════════════════════════════════════════
    P4 · İÇERİK — köken sütunları ve uygulanabilirlik beyanı
@@ -39,7 +39,13 @@ const dosyalar = (kimlik: Record<string, unknown>, csv: string, ek: PaketDosyala
   ...ek,
 });
 const dogrula = (kimlik: Record<string, unknown>, csv: string, manifest: Record<string, unknown> = {}) =>
-  paketiDogrula(paketYaz(dosyalar(kimlik, csv), { kod: 'KYN-PAKET', sektor: { kod: 'KYN-SEKTOR', ad: 'Kaynak' }, ...manifest }));
+  paketiDogrula(paketYaz(dosyalar(kimlik, csv), {
+    kod: 'KYN-PAKET', sektor: { kod: 'KYN-SEKTOR', ad: 'Kaynak' },
+    /* Temsilî olmayan çerçeve alan eşlemesi beyan etmek zorundadır (URN-PKT-022);
+       bu fikstürün konusu KÖKEN, beyanı üreteç sağlar. */
+    ...(kimlik.temsili === false ? { alanEslemesi: fiksturEslemesi('KYN-REG', csv) } : {}),
+    ...manifest,
+  }));
 const hatalari = (s: ReturnType<typeof paketiDogrula>) => s.hatalar.map(hataSatiri);
 
 describe('köken sütunları: metnin nereden ve ne zaman alındığı [URN-PKT-019]', () => {

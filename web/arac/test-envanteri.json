@@ -1,7 +1,7 @@
 {
-  "imza": "3c366a9b6cac99644c4f630913f1d23c",
-  "dosya": 190,
-  "vaka": 3475,
+  "imza": "af1d9b198026543afaeba0bf72688c22",
+  "dosya": 191,
+  "vaka": 3487,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -490,6 +490,10 @@
     },
     "tests/paket-aktif-bayragi.test.ts": {
       "vaka": 4,
+      "atlanan": 0
+    },
+    "tests/paket-alan-eslemesi.test.ts": {
+      "vaka": 12,
       "atlanan": 0
     },
     "tests/paket-demo.test.ts": {

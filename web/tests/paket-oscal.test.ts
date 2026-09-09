@@ -6,7 +6,7 @@ import path from 'node:path';
 import { GRUP_DERINLIGI, OSCAL_NS, OSCAL_SURUMU, oscalOku, oscalYabanciMetinler, oscalYaz, sabitUuid, type OscalControl, type OscalGroup, type OscalKatalog } from '@/lib/paket/oscal';
 import type { MaddeSatiri } from '@/lib/paket/bicim';
 import { hataSatiri, paketiDogrula } from '@/lib/paket/dogrula';
-import { SOZLUK_SATIRI, cerceve, paketYaz, type PaketDosyalari } from './yardim/paket';
+import { SOZLUK_SATIRI, cerceve, fiksturEslemesi, paketYaz, type PaketDosyalari } from './yardim/paket';
 
 /* ═══════════════════════════════════════════════════════════════════════
    P4 · 2.7 — OSCAL KATALOG OKUYUCU · GİDİŞ-DÖNÜŞ (URN-PKT-017)
@@ -29,13 +29,16 @@ const iskelet = (kod: string) => {
 };
 const manifest = { kod: 'OSCAL-PAKET', sektor: { kod: 'OSCAL-SEKTOR', ad: 'OSCAL' } };
 /** Kimliği OSCAL dosyasına bağlayan geçici paket; satırlar doğrulayıcının kendi yolundan okunur. */
-function oscalPaketi(kimlik: Record<string, unknown> & { kod: string }, katalog: unknown, m: Record<string, unknown> = manifest) {
+function oscalPaketi(kimlik: Record<string, unknown> & { kod: string }, katalog: unknown, m: Record<string, unknown> = manifest, maddeler?: MaddeSatiri[]) {
   const dosyalar: PaketDosyalari = {
     'sozluk.json': [SOZLUK_SATIRI('tesis', 'şube')],
     [`cerceve/${kimlik.kod}.json`]: { ...kimlik, maddeDosyasi: `${kimlik.kod}.oscal.json` },
     [`cerceve/${kimlik.kod}.oscal.json`]: katalog as object,
   };
-  return paketiDogrula(paketYaz(dosyalar, m));
+  /* Temsilî olmayan çerçeve alan eşlemesi beyan eder (URN-PKT-022); bu testin
+     konusu OSCAL gidiş-dönüşü, beyanı üreteç sağlar. */
+  const esleme = kimlik.temsili === true || !maddeler ? {} : { alanEslemesi: fiksturEslemesi(kimlik.kod, maddeler) };
+  return paketiDogrula(paketYaz(dosyalar, { ...m, ...esleme }));
 }
 const tumKontroller = (k: OscalKatalog): OscalControl[] => {
   const sonuc: OscalControl[] = [];
@@ -69,7 +72,7 @@ describe('OSCAL gidiş-dönüş · iskelet çerçeveleri [URN-PKT-017]', () => {
          AĞACINI ölçer; uygulanabilirlik beyanı ayrı testte (paket-uygulanabilirlik). */
       const kimlikSade: Record<string, unknown> & { kod: string } = { ...c.kimlik };
       delete kimlikSade.uygulanabilirlik;
-      const geri = oscalPaketi(kimlikSade, katalog);
+      const geri = oscalPaketi(kimlikSade, katalog, manifest, c.maddeler);
       expect(geri.hatalar.map(hataSatiri), c.kimlik.kod).toEqual([]);
       expect(sirala(geri.icerik!.cerceveler[0].maddeler)).toEqual(sirala(c.maddeler));
       // ikinci yazım birincisiyle aynı (kanonik gidiş-dönüş)

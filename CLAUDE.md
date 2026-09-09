@@ -171,6 +171,22 @@ bilerek dışlanır; ikisi de yoksa bekçi kırmızıdır
 (`web/tests/bekci/null-olumsuzlama.test.ts`, URN-VER-001); meşru istisna
 gerekçeli izin listesinde durur ve liste yalnız küçülür.
 
+**Kaynak alanı ürün alanına BEYANLA girer (R-D).** Bir kaynak
+belgenin alanı ürünün yanlış alanına yazıldığında biçim doğru, değer
+aralıkta ve iki taraf da geçerli veridir — hiçbir kapı göremez. Ölçüldü
+(bağımsız inceleme, PR #43 tur 2): EPDK Ek-3'ün "Seviye" kademesi ürünün
+HEDEF OLGUNLUK alanına yazılmış, 508 zorunlu kontrolün hedefi en alt üç
+kademeye çekilmiş, ad-hoc uygulama "hedefte" (yeşil) görünüyordu; kusuru
+metni okuyan insan yakaladı. Bugün paket manifesti dolu HER ürün alanı
+için "hangi kaynak alanından · hangi ürün alanına · hangi gerekçeyle"
+beyan eder (`alanEslemesi`); gerekçe alanın ANLAMINI anlatır, dönüşümün
+kolaylığını değil. Beyansız dolu sütun, ölü beyan, çifte beyan, temsilî
+çerçeveye beyan ve olmayan çerçeveye beyan KIRMIZIDIR
+(`web/tests/paket-alan-eslemesi.test.ts`, URN-PKT-022). **Kapı beyanın
+VARLIĞINI ölçer, DOĞRULUĞUNU değil** — kabul edilmiş sınırdır ve
+`docs/SEKTOR_PAKETI_SOZLESMESI.md` §1.10'da yazılıdır: doğruluk bağımsız
+incelemenin işidir, "kapı yeşil" onu doğrulanmış saymaz.
+
 **İnceleme turu İKİ ile sınırlıdır (R-A).** Tur 1 → düzelt → tur 2 →
 düzelt → merge. Üçüncü turda çıkan bulgular YENİ PR olur. Gerekçe
 (ölçüldü, 9 Eylül 2026, #41): dal inmezse `main` ayrışır; birleştirme

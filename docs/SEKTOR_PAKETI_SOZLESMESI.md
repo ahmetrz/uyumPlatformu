@@ -30,11 +30,42 @@ Her kalemde "bugün" sütunu **ölçülmüştür** (`origin/main` @ `f898de1`,
 | 8 | **Rol önerileri** | `roller.json` — kod, ad, açıklama, modül × işlem izinleri (`{modül: [okuma · yazma · onay]}`), kapsam ekseni (`global · kapsamOgesi`), sıra | **VAR (2.3, 9 Eyl 2026)** · `RolKatalogu(kod, ad, aciklama, izinlerJson, kapsamEkseni, sira, aktif, koken, paketSurumId)`; doğrulayıcı çekirdek rol kodunu (`lib/erisim.ts` ROL_IZINLERI anahtarları — dokuz rol) KİMLİK, bilinmeyen modül/işlem, boş izin ve merdiven ihlalini (onay yazma ister, yazma okuma ister) BIÇIM ile reddeder; paket biçiminin modül · işlem · çekirdek rol sabitleri çekirdeğe karşı derlemede (`Record<Modul, true>`) ve bekçiyle (`tests/bekci/rol-sabitleri.test.ts`) ölçülür. **Çalışma zamanı yetkisi kataloğu okumaz** — `izinVar` kod sabitinden karar verir; paket rol koduyla verilen yetki izin vermez (ölçüldü, `tests/paket-rol.test.ts`) | Kataloğun koda bağlanması (P2/P6): kiracı paketin önerisini kendi rolü olarak kabul eder ya da ezer; `/paketler` ekranı önerileri gösterir (2.6) |
 | 9 | **Örnek süreçler ve demo verisi** | `demo/*.json` — kurgusal kiracı, kapsam öğeleri, süreçler, bulgular | **KISMEN (2.5, 9 Eyl 2026)** · tohumun sözlük, öznitelik şeması, çerçeve ve denklikleri **`DEMO-TR-ORTAK · DEMO-TR-ENERJI · DEMO-TR-SU` paketlerinden** kurulur (`prisma/seed.ts` → `paketiKur`; ilk sürümler tohumu kuran yöneticinin kararıyla aktif); ISO 27001 metinleri telifli kuralıyla düştü (ölçülen kayıp, `docs/P4_TOHUM_TASIMA_OLCUMU.md` §4); kiracı katmanı (BT/OT alan eşlemesi, aile adı, tesisler, tipler, süreçler, durumlar, bulgular) seed'de; kurgusal ad bekçisi (`prisma/kurgusal-adlar.ts`) | Tesis/kapsam öğesi, süreç ve bulgu verisinin `demo/*.json`dan yüklenmesi (P8); tesis tipleri için kalem (uygulanabilirlik kuralı 9 Eyl 2026'da çerçeve beyanı oldu — §1/4) |
 
+| 10 | **Alan eşleme beyanı** | `manifest.json` → `alanEslemesi: { "<ÇERÇEVE KODU>": [{ kaynakAlan, urunAlani, gerekce }] }` | **VAR (9 Eyl 2026, URN-PKT-022)** · doğrulayıcı `ALAN EŞLEME` sınıfı: temsilî olmayan her çerçeve beyan eder; madde dosyasında DOLU her sütun beyanda geçer; beyanda geçip dosyada boş kalan sütun ölü beyandır; bir ürün alanı iki kez beyan edilemez; temsilî çerçeve (kaynak belgesi yok) beyan edemez; pakette olmayan çerçeveye beyan yazılamaz; `urunAlani` madde sütunlarının dışına çıkamaz; gerekçe en az 40 karakter | Beyanın DOĞRU olduğunu kapı söyleyemez (§1.10 — kabul edilmiş sınır); ekranda gösterilmesi ve inceleme akışına bağlanması sonraki dilim |
+
 **Paket manifesti** (`manifest.json`): `kod · ad · tur · ulke (ISO 3166-1) ·
 sektor · dil (BCP 47) · surum (SemVer) · yayinci · lisans (§2) ·
-bagimliliklar[] · icerikOzetleri{dosya: sha256} · imza?`. P4 tanımıyla
+bagimliliklar[] · icerikOzetleri{dosya: sha256} · imza? · alanEslemesi? (§1.10)`. P4 tanımıyla
 aynı; `lisans` alanı bu belgeyle **yapılandırılmış** oldu (önce
 `lisansNotu` serbest metindi).
+
+
+### 1.10 · Alan eşleme beyanı — kapının ölçemediği şey
+
+Bir paket kaynak belgenin alanını ürünün YANLIŞ alanına yazabilir. Biçim
+doğrudur, değer aralıktadır, iki taraf da geçerli veridir: **hiçbir kapı
+bunu göremez.** Ölçüldü (bağımsız inceleme, PR #43 tur 2): EPDK Ek-3'ün
+"Seviye" kademesi ürünün HEDEF OLGUNLUK alanına (`seviye`) yazılmıştı.
+Kaynakta "Seviye 1", üründe "hedef olgunluk 1" — ikisi de anlamlıdır ve
+biri öbürü değildir. Sonuç: 508 zorunlu kontrolün hedefi ürünün en alt üç
+kademesine çekildi, kişiye bağlı ad-hoc uygulama "hedefte" (yeşil)
+göründü. Kusuru bir kapı değil, metni okuyan bir insan yakaladı.
+
+Savunma kapı değil **beyandır**. Paket dolu her ürün alanı için üç şey
+yazar: kaynağın hangi alanından geldiği (`kaynakAlan`; kaynakta karşılığı
+yoksa `null` — "değeri paket yazarı atadı"), hangi ürün alanına yazıldığı
+(`urunAlani`) ve **gerekçe**. Gerekçe ürün alanının ANLAMINI anlatır:
+dönüşümün kolaylığı, alanın boş oluşu ya da "zaten oraya uyuyordu"
+gerekçe değildir — bu, deponun genel gerekçe kuralının (kusuru anlatır,
+maliyeti değil) bu alandaki karşılığıdır.
+
+**KABUL EDİLMİŞ SINIR:** kapı beyanın **varlığını** ölçer, **doğruluğunu**
+ölçmez. `gereksinim_tipi` yerine `seviye` yazan ve buna bir gerekçe
+uyduran paket kapıdan geçer. Kapının kazandırdığı şudur: bugün o satır
+manifestte **yazılıdır**, incelemede okunur ve sahibi bellidir; dün hiçbir
+yerde yazmıyordu ve kusur yalnız 578 satırlık CSV'yi elle okuyan birine
+görünüyordu. Beyanın doğruluğu bağımsız incelemenin işidir (R-B);
+otomatik ölçüme bugün açık değildir ve "kapı yeşil" bunu doğrulanmış
+saymaz.
 
 ---
 
@@ -84,7 +115,7 @@ telifli ÇERÇEVE taşıyan paket XLSX form taşıyamaz. Ekran rozeti henüz yok
 | **Dosya biçimleri** | Yalnız üç: **JSON** (manifest, sözlük, türler, öznitelikler, yükümlülükler, roller, rapor şablonu, demo), **CSV** (madde ağacı ve eşlemeler — Excel'de açılır; UTF-8, `;` ayraç, başlık satırı zorunlu), **XLSX** (denetim formu şablonu). OSCAL JSON **kabul edilir** ama zorunlu değildir: CSV → OSCAL dönüşümünü doğrulayıcı yapar |
 | **Şablon paket** | `paketler/ORNEK-SEKTOR/` — her dosyanın doldurulmuş örneği ve `BENIOKU.md`; yeni paket bunun kopyasıyla başlar |
 | **Doğrulayıcı** | `npm run paket:dogrula <dizin>` — tarayıcısız, 10 saniyenin altında; çıktı **Türkçe**, dosya + satır/anahtar + ne yanlış + nasıl düzeltilir. Örnek: `cerceve/BDDK-BS.csv:47 — "ust_kod" değeri "3.2" bulunamadı; üst madde satırı bu satırdan ÖNCE gelmeli.` |
-| **Hata sınıfları** | `BIÇIM` (dosya okunamadı / başlık eksik) · `KİMLİK` (tekil kod çakışması, dangling referans) · `SÖZLÜK` (anahtar altı hâlden birini boş bırakmış) · `ÖZNİTELİK` (tip/birim uyumsuz, rol bilinmiyor) · `LİSANS` (§2) · `SÜRÜM` (§4) · `KAPSAM TÜRÜ` (tür kodu türler dosyasında yok) |
+| **Hata sınıfları** | `BIÇIM` (dosya okunamadı / başlık eksik) · `KİMLİK` (tekil kod çakışması, dangling referans) · `SÖZLÜK` (anahtar altı hâlden birini boş bırakmış) · `ÖZNİTELİK` (tip/birim uyumsuz, rol bilinmiyor) · `LİSANS` (§2) · `SÜRÜM` (§4) · `KAPSAM TÜRÜ` (tür kodu türler dosyasında yok) · `KAYNAK` (metin var, kökeni yok) · `ALAN EŞLEME` (§1.10) |
 | **Her hata bir satır, her satır düzeltme cümlesi taşır** | Doğrulayıcı "hata var" demez; nerede, ne, nasıl der. Kural, kapıların kendi kuralıdır: gerekçe kusuru anlatır |
 | **Kabul ölçütü** | Kodu olmayan bir kişi `ORNEK-SEKTOR` kopyasını Excel + metin düzenleyiciyle 1 günde geçerli pakete çevirebilir; ölçüm P4 kabulünde yapılır (kim, kaç saat, kaç doğrulayıcı turu) |
 

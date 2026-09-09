@@ -38,11 +38,25 @@ export function saglayiciCoz(url: string | undefined | null): Saglayici {
   );
 }
 
-/** Bu süreçteki sağlayıcı. Testler `TEST_PG_URL` ile PostgreSQL'e bağlanır ve
-    `DATABASE_URL` ayarlamaz; sağlayıcı orada da DOĞRU okunmalıdır — yoksa arama
-    kipi SQLite'a göre seçilir ve PostgreSQL'de arama sessizce boş döner
-    (ölçüldü: R5 ilk PostgreSQL koşusunda `arama-kosulu` iki vaka kırmızı). */
-export const SAGLAYICI: Saglayici = saglayiciCoz(process.env.TEST_PG_URL ?? process.env.DATABASE_URL);
+/** Test koşumu mu — `TEST_PG_URL` YALNIZ burada okunur. */
+export const TEST_KOSUMU = process.env.VITEST === 'true' || process.env.NODE_ENV === 'test';
+
+/** Bu süreçteki sağlayıcı.
+
+    Testler `TEST_PG_URL` ile PostgreSQL'e bağlanır ve `DATABASE_URL`
+    ayarlamaz; sağlayıcı orada da DOĞRU okunmalıdır — yoksa arama kipi
+    SQLite'a göre seçilir ve PostgreSQL'de arama sessizce boş döner
+    (ölçüldü: R5 ilk PostgreSQL koşusunda `arama-kosulu` iki vaka kırmızı).
+
+    AMA `TEST_PG_URL` bir TEST değişkenidir ve ÜRÜNÜ YÖNETEMEZ: kabukta
+    kalmış bir değer üretim derlemesine sızarsa uygulama PostgreSQL sürücüsünü
+    seçer, şema SQLite'tır ve derleme "adaptör uyumsuz" diye düşer. Ölçüldü
+    (R5, parti kapanışı): marka kapısının derlemesi tam olarak bu yüzden
+    kırmızı yandı. Bu yüzden test değişkeni YALNIZ test koşumunda okunur;
+    üretimde tek söz sahibi `DATABASE_URL`dir. */
+export const SAGLAYICI: Saglayici = saglayiciCoz(
+  (TEST_KOSUMU ? process.env.TEST_PG_URL : undefined) ?? process.env.DATABASE_URL,
+);
 
 /** PostgreSQL'de `contains` DUYARLIDIR ve `mode: 'insensitive'` gerekir;
     SQLite'ta `LIKE` zaten ASCII için duyarsızdır ve o kip KABUL EDİLMEZ

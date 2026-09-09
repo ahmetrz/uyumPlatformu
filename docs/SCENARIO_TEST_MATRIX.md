@@ -615,6 +615,7 @@
 | `URN-PKT-021` | Ürünleştirme | SERVER · UI | `uyum-taslak-serit.test.ts` | taslak dalı sayısal ölçüt taşımaz — "0 Uygunsuz" iyi haber gibi okunur | evet | geçti |
 | `URN-KUR-009` | Kurulum | DOMAIN | `arama-kosulu.test.ts` | kip SAĞLAYICIDAN gelir: PostgreSQL duyarsız kip gönderir, SQLite göndermez | evet | geçti |
 | `URN-KUR-009` | Kurulum | DOMAIN | `arama-kosulu.test.ts` | sağlayıcı bağlantı dizesinden çözülür; tanınmayan şema SESSİZCE SQLite olmaz | evet | geçti |
+| `URN-KUR-009` | Kurulum | DOMAIN | `arama-kosulu.test.ts` | TEST_PG_URL ürünü yönetemez: yalnız test koşumunda okunur | evet | geçti |
 | `URN-KUR-009` | Kurulum | DOMAIN | `arama-kosulu.test.ts` | arama büyük/küçük harf duyarsızdır — iki sağlayıcıda da | evet | geçti |
 | `URN-KUR-009` | Kurulum | DOMAIN | `pg-gocu.test.ts` | taban göçü ELLE YAZILAN DDL\'i taşır: dokuz tetikleyici ve üç indeks | evet | geçti |
 | `URN-KUR-009` | Kurulum | DOMAIN | `pg-gocu.test.ts` | SQLite zincirindeki elle yazılan DDL, PostgreSQL tarafında KARŞILIKSIZ kalmaz | evet | geçti |

@@ -90,6 +90,18 @@ describe('Metin arama koşulu tek yerde', () => {
     expect(() => saglayiciCoz('mysql://u@h/d')).toThrow(/tanınmayan bir sağlayıcı/);
   });
 
+  it('TEST_PG_URL ürünü yönetemez: yalnız test koşumunda okunur [URN-KUR-009]', async () => {
+    /* Ölçüldü (R5, parti kapanışı): kabukta kalmış bir `TEST_PG_URL`, marka
+       kapısının ÜRETİM DERLEMESİNE sızdı; uygulama PostgreSQL sürücüsünü
+       seçti, şema SQLite'tı ve derleme "adaptör uyumsuz" diye düştü. Test
+       değişkeni ürünü yönetemez — üretimde tek söz sahibi `DATABASE_URL`. */
+    const { TEST_KOSUMU } = await import('@/lib/veritabani');
+    expect(TEST_KOSUMU, 'test koşumu tanınmıyor').toBe(true);
+    const kaynak = await import('node:fs').then((f) => f.readFileSync('lib/veritabani.ts', 'utf8'));
+    expect(kaynak, 'TEST_PG_URL test kapısı olmadan okunuyor')
+      .toMatch(/TEST_KOSUMU \? process\.env\.TEST_PG_URL : undefined/);
+  });
+
   it('çok alanlı OR bloğu alan adlarını korur', async () => {
     /* Sağlayıcı AÇIKÇA verilir: kip sağlayıcıya bağlı olduğu için varsayılana
        bırakılan bir beklenti PostgreSQL koşusunda kırmızı yanardı ve kırmızının

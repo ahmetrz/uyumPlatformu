@@ -95,6 +95,12 @@ COPY --from=derleme /kaynak/web/package.json ./package.json
 COPY --from=derleme /kaynak/web/node_modules ./node_modules
 COPY --from=derleme /kaynak/web/.next ./.next
 COPY --from=derleme /kaynak/web/public ./public
+# `/sistem` ekranı token değerlerini İDDİA ETMEZ, `app/kabuk.css`i OKUR —
+# yani o dosya kurulumda VERİDİR, kaynak değil (ekranın var oluş gerekçesi:
+# elle yazılmış bir token tablosu, token değişince sessizce yalan söyler).
+# Ölçüldü: dosya imajda olmadığı için ekran 500 veriyordu. Kaynak ağacının
+# tamamı DEĞİL, okunan tek dosya taşınır.
+COPY --from=derleme /kaynak/web/app/kabuk.css ./app/kabuk.css
 COPY --from=derleme /kaynak/web/prisma ./prisma
 COPY --from=derleme /kaynak/web/arac ./arac
 COPY --from=derleme /kaynak/web/lib/prisma-client ./lib/prisma-client

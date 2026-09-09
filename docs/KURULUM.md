@@ -223,13 +223,35 @@ geri alınamaz: önce yedek alın.
 
 ## Ölçüm kaydı
 
+Aşağıdaki her satır **koşturuldu**; koşturulmayan iki adım açıkça
+ÖLÇÜLMEDİ diye işaretlidir.
+
 | Adım | Durum |
 | --- | --- |
-| İmaj derlemesi (`docker build`) | ölçüldü |
-| `docker compose up -d` | ölçüldü |
-| Göç uygulanması (PostgreSQL taban göçü) | ölçüldü |
-| Sağlık ucu — sağlıklı (200) | ölçüldü |
-| Sağlık ucu — bağımlılık düştü (503 + sebep) | ölçüldü |
-| `rota:duman` compose kurulumuna karşı | ölçüldü |
+| İmaj derlemesi (`docker compose build`) | ölçüldü · imaj 2,37 GB |
+| `docker compose up -d --build` | ölçüldü |
+| Göç uygulanması (PostgreSQL taban göçü) | ölçüldü · 158 tablo |
+| Sağlık ucu — sağlıklı (200) | ölçüldü · readiness **2,8 sn** · `saglayici: postgresql` · üç bağımlılık da sağlıklı |
+| Sağlık ucu — bağımlılık düştü (503 + sebep) | ölçüldü · `kanit_deposu: depo kökü yok` |
+| **`rota:duman` compose kurulumuna karşı** | ölçüldü · **60/60 rota · kusur 0 · sayfa hatası 0** |
+| Yığının indiği ve portun kapandığı | ölçüldü · kapsayıcı 0 · port kapalı (iki ayrı tanık) |
+| PostgreSQL yedeği (`--al` · `--karsilastir` · `--geri-yukle`) | ölçüldü · boş veritabanına geri yükleme sonrası içerik özeti aynı |
 | Uygulama rolünün sahipten ayrılması (§4) | **ÖLÇÜLMEDİ** |
 | Kapalı ağda `docker save`/`load` (§0) | **ÖLÇÜLMEDİ** |
+
+### Kapının kurulumda bulduğu kusurlar
+
+Bu kapı `next dev`'in göremediği **beş** kusuru yakaladı; hepsi düzeltildi
+ve kapı her düzeltmeden sonra yeniden koştu (sabotaj yerine geçen doğal
+kırmızı→yeşil zinciri):
+
+| # | Kusur | Neden yalnız kurulumda göründü |
+| --- | --- | --- |
+| 1 | `next build` DERLEYEN MAKİNEDE veritabanı sorguluyordu | Depoda `prisma/dev.db` var; imajda yok |
+| 2 | Kabuk `.catch(() => null)` ile Next'in ön-render'dan vazgeçme sinyalini YUTUYORDU | Sinyal yutulunca rota "statik" sanılıyordu; aynı yutma bir `redirect()`i de iptal ederdi |
+| 3 | Oturumsuz `/tesisler/x` **307 yerine 500** dönüyordu | Boş `generateStaticParams` rotayı SSG yapıyor; on-demand üretimde `cookies()` yasak |
+| 4 | `/sistem` 500 — `app/kabuk.css` imajda yoktu | Ekran token değerlerini iddia etmez, dosyayı OKUR |
+| 5 | Kiracı adı sunucuda doğru, istemcide YANLIŞ (58 sayfada hidrasyon uyuşmazlığı) | `NEXT_PUBLIC_*` istemci paketine DERLEME anında gömülür; kurulum onu ÇALIŞMA anında verir |
+
+Beşincisi tek imajla çok kurulumun temel kuralıdır: **kurulumu yansıtması
+gereken her değer sunucudan veri olarak inmelidir.**

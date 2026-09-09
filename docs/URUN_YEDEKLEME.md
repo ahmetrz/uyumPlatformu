@@ -222,7 +222,7 @@ npm run test                                           # 5. tam küme yeşil mi
 | Ortam boşaltıldı | `prisma/dev.db` taşındı, `veri/kanit` silindi |
 | `--geri-yukle` | çıkış 0 · `veritabani.db` · kanıt dosyası 0 |
 | `--karsilastir` | çıkış 0 · **SONUÇ: SAĞLAM** · içerik özeti aynı, göç farkı 0, iz farkı 0 |
-| `npm run test` | ÖLÇÜM_KUME |
+| `npm run test` | **193 dosya · 3 518 vaka geçti · 1 atlandı · çıkış 0** — küme, GERİ YÜKLENEN veritabanına karşı koştu |
 
 Kanıt dosyalı gidiş-dönüş (dosya yaz → yedekle → boş ortama geri yükle →
 özet tut) `tests/yedek-araci.test.ts` içinde ölçülür: geliştirme

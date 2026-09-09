@@ -17,6 +17,21 @@ import { denetimDetayVerisi, denetimGorunur } from './veri';
    Tesis kapsamı `veri.ts`te uygulanır (modül: `denetim`, liste ekranıyla
    aynı kural). Kapsam dışı denetim `notFound()` ile kapanır. */
 
+/* ROTA İSTEK ANINDA RENDER EDİLİR (P7 · ölçüldü).
+
+   `generateStaticParams` bir rotayı SSG yapar. Sunucu derlemesinde liste
+   BOŞTUR (`lib/statikDerleme.ts`) ve Next o rotayı hiç render etmeden
+   "statik" sayar; istek geldiğinde ON-DEMAND statik üretim dener, orada
+   `cookies()` yasaktır ve sayfa 500 döner. Ölçüldü (compose duman kapısı):
+   oturumsuz `/tesisler/x` 307 yerine 500 veriyordu — yani KİMLİK KAPISI
+   bir sunucu hatasına dönüşmüştü.
+
+   `force-dynamic` bunu kapatır ve statik demoyu BOZMAZ: `output: 'export'`
+   altında Next `generateStaticParams` listesini kullanmaya devam eder
+   (ölçüldü: demo dışa aktarımı 27 tesis detay sayfası üretti, çıkış 0).
+   Bu yüzden kip koşullu yazılmak zorunda değil — literal kalabilir. */
+export const dynamic = 'force-dynamic';
+
 export async function generateStaticParams() {
   /* Sunucu derlemesinde liste BOŞTUR: parametreleri üretmek derleyen
      makinede veritabanı sorgulamak olurdu (`lib/statikDerleme.ts`).

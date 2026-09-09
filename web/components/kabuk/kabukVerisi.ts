@@ -1,5 +1,5 @@
 import 'server-only';
-import { connection } from 'next/server';
+import { unstable_rethrow } from 'next/navigation';
 import { ayar } from '@/lib/yapilandirma/oku';
 import { db } from '@/lib/db';
 import { aktifKullanici } from '@/lib/auth';
@@ -7,8 +7,7 @@ import { izinVar, izinliTesisIdleri } from '@/lib/erisim';
 import { birlesikKapsam } from '@/app/kapsam';
 import { durumAyagiVerisi } from '@/components/kabuk/durumAyagiVerisi';
 import { DEMO } from '@/lib/demo';
-import { TEST_KOSUMU } from '@/lib/veritabani';
-import { MARKA_AD } from '@/lib/marka';
+import { KIRACI_AD, MARKA_AD } from '@/lib/marka';
 import { kapsamAnahtari, kapsamSektorleri, kapsamSozlugu } from '@/lib/dil/sozlukOku';
 import paket from '../../package.json';
 import type { KabukVerisi } from './Kabuk';
@@ -24,35 +23,30 @@ import type { KabukVerisi } from './Kabuk';
    Veri kesiti damgası UYDURULMAZ: gerçek bir koşu yoksa `null` döner ve
    kabuk "—" yazar. Prototipte damga hep doluydu (harita §7 kusur 8). */
 
+/* ÇERÇEVE SİNYALİ YUTULMAZ (P7 · ölçüldü).
+
+   `.catch(() => null)` yalnız "veri gelmedi, boş göster" demek için
+   yazılmıştı. Ama Next'in KONTROL AKIŞI da istisna ile taşınır:
+   `cookies()` ön-render sırasında `DynamicServerError` fırlatır ve Next
+   bunu yakalayıp rotayı DİNAMİK işaretler; `redirect()` ve `notFound()`
+   da aynı yolu kullanır. Geniş bir `catch` bu sinyalleri yutar.
+
+   Sonucu ölçüldü: kabuk ön-render'dan vazgeçemedi ve `next build`
+   DERLEYEN MAKİNEDE veritabanı sorguladı — imaj derlemesi orada düştü.
+   Aynı yutma, bir `redirect()`i de sessizce iptal ederdi: yetkisiz
+   kullanıcı `/giris`e gitmek yerine boş bir ekran görürdü.
+
+   `unstable_rethrow` çerçeve istisnasını GERİ FIRLATIR, gerisini yutar.
+   Adı `unstable_` ama karşılığı yok: elle kalıp eşleştirmek (hata
+   nesnesinin `digest` alanına bakmak) Next sürümüne bağlı ve daha
+   kırılgan olurdu. */
+function yut<T>(varsayilan: T) {
+  return (e: unknown): T => { unstable_rethrow(e); return varsayilan; };
+}
+
 export async function kabukVerisi(): Promise<KabukVerisi> {
-  /* KABUK VERİSİ İSTEK ANINDA OKUNUR — derleme anında DEĞİL (P7).
 
-     `connection()` bu noktayı isteğe bağlar: Next rotayı ön-render
-     etmekten vazgeçer. İki kusuru birden kapatır:
-
-     1. DERLEYEN MAKİNEDE veritabanı sorgulanır. Kurulum imajı derlenirken
-        veritabanı YOKTUR ve olmamalıdır; ölçüldü — imaj derlemesi
-        `PrismaClientInitializationError` ile düştü (üretilmiş istemci
-        `postgres`, derlemede bağlantı yok, sürücü SQLite seçiliyor).
-     2. Ön-render edilen kabuk, DERLEME ANINDAKİ kurulumun kiracı adını,
-        sektör listesini ve menüsünü statik HTML'e gömer. Aynı imajı kuran
-        ikinci müşteri birincinin kabuğunu görürdü — çok kiracılı bir
-        üründe sessiz ve ağır bir kusur.
-
-     STATİK DEMO'da çağrılmaz: `output: 'export'` sunucusuzdur ve her şey
-     ön-render edilmek ZORUNDADIR; demo zaten depodaki kurgusal veriyi
-     yayımlamak için vardır. `DEMO` derleme anında sabittir.
-
-     TEST KOŞUMUNDA da çağrılmaz — ve bu bir kaçamak değil, tanım gereği:
-     `connection()` ÖN-RENDER'DAN VAZGEÇME çağrısıdır ve ön-render yalnız
-     Next'in render bağlamında vardır. Birim testi bu işlevi doğrudan
-     çağırır; orada vazgeçilecek bir ön-render yoktur ve Next `connection
-     was called outside a request scope` diye HATA verir. Hatayı yutmak
-     (`catch`) yanlış olurdu: o zaman gerçek bir bağlam kusuru da
-     sessizce yutulurdu. */
-  if (!DEMO && !TEST_KOSUMU) await connection();
-
-  const k = await aktifKullanici().catch(() => null);
+  const k = await aktifKullanici().catch(yut(null));
 
   /* ── KAPSAM ÇUBUĞU DA BİR EKRANDIR ────────────────────────────────
      Sayılar kapsamsız okunuyordu: tek tesise kısıtlı kullanıcı her
@@ -78,8 +72,8 @@ export async function kabukVerisi(): Promise<KabukVerisi> {
      çekirdek sözcük yazılır — birini seçmek öbür yarısı için yalan
      olurdu (`lib/dil/sozlukOku.ts`). */
   const [ayak, grup, tesisler, okunmamis, sozluk, sektorler] = await Promise.all([
-    durumAyagiVerisi(k).catch(() => null),
-    db.grup.findFirst({ select: { ad: true } }).catch(() => null),
+    durumAyagiVerisi(k).catch(yut(null)),
+    db.grup.findFirst({ select: { ad: true } }).catch(yut(null)),
     db.tesis.findMany({
       where: { durum: 'aktif', ...(kapsam === null ? {} : { id: { in: kapsam } }) },
       /* `id` ve sektör de iniyor: sektör merceği kayıt listelerini
@@ -87,7 +81,7 @@ export async function kabukVerisi(): Promise<KabukVerisi> {
          her ekranın ayrı ayrı sorgulaması aynı veriyi beş kez okumak
          olurdu. */
       select: { id: true, tuzelKisiId: true, tip: { select: { sektorId: true } } },
-    }).catch(() => []),
+    }).catch(yut([])),
     /* ── OKUNMAMIŞ BİLDİRİM SAYACI (D30) ─────────────────────────────
        Kutu sahipliği sınırı burada da aynen geçerlidir: sayı YALNIZ
        aktif kullanıcının kendi bildirimlerinden türer (`kullaniciId`),
@@ -95,13 +89,13 @@ export async function kabukVerisi(): Promise<KabukVerisi> {
        bildirimler/mantik.ts `okunmamisMi` ile aynı yüklem. Oturum yoksa
        sorgu bile yapılmaz: 0, "kutu boş" değil "kutu yok" demektir ve
        kabuk 0'da rozet çizmediği için ikisi aynı görünür — bilerek. */
-    k ? db.bildirim.count({ where: { kullaniciId: k.id, okundu: null } }).catch(() => 0)
+    k ? db.bildirim.count({ where: { kullaniciId: k.id, okundu: null } }).catch(yut(0))
       : Promise.resolve(0),
-    kapsamSozlugu(kapsamAnahtari(kapsam)).catch(() => null),
+    kapsamSozlugu(kapsamAnahtari(kapsam)).catch(yut(null)),
     /* Kapsamda geçen sektörler — merceğin seçenekleri. Sunucunun
        `sozluk` kararını EZMEZ, yanına konur: mercek seçilmemişken
        davranış aynen eskisi gibidir. */
-    kapsamSektorleri(kapsamAnahtari(kapsam)).catch(() => []),
+    kapsamSektorleri(kapsamAnahtari(kapsam)).catch(yut([])),
   ]);
   const tesisSayisi = tesisler.length;
   /* Tüzel kişi de aynı kapsamdan türer: kapsamdaki tesislerin bağlı
@@ -143,7 +137,12 @@ export async function kabukVerisi(): Promise<KabukVerisi> {
       tesisler.flatMap((t) => (t.tip?.sektorId ? [[t.id, t.tip.sektorId]] : [])),
     ) as Record<string, string>,
     surum: paket.version,
-    kunye: await ayar<string>('kabuk.kunye').catch(() => MARKA_AD),
+    kunye: await ayar<string>('kabuk.kunye').catch(yut(MARKA_AD)),
+    /* Adlar SUNUCUDA okunur ve veri olarak iner: `lib/marka.ts` sunucuda
+       `process.env`i ÇALIŞMA ANINDA görür, istemci paketinde ise değer
+       derleme anında gömülüdür (gerekçe `Kabuk.tsx` · KabukVerisi). */
+    kiraciAd: KIRACI_AD,
+    markaAd: MARKA_AD,
     ortam: DEMO ? 'demo' : process.env.NODE_ENV === 'production' ? 'uretim' : 'gelistirme',
   };
 }

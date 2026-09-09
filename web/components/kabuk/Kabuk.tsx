@@ -1,6 +1,5 @@
 'use client';
 import Link from 'next/link';
-import { KIRACI_AD, MARKA_AD } from '@/lib/marka';
 import { SozlukSaglayici, type SektorSecenegi } from '@/lib/dil/SozlukSaglayici';
 import SektorMercegi from './SektorMercegi';
 import { t, type Sozluk } from '@/lib/dil/terimler';
@@ -60,6 +59,14 @@ export type KabukVerisi = {
   ortam: 'demo' | 'gelistirme' | 'uretim';
   /** Ayak künye metni — yönetim konsolundan (A sınıfı) ayarlanır; kod varsayılanı platform adı. */
   kunye: string;
+  /** KURULUMUN ve ÜRÜNÜN görünen adları — SUNUCUDAN iner, istemci paketinden
+      okunmaz. Ölçüldü (P7 · compose duman kapısı): `NEXT_PUBLIC_*` değeri
+      İSTEMCİ paketine DERLEME ANINDA gömülür; kurulum onu çalışma anında
+      verdiğinde sunucu kurulumun adını, istemci derleme anındaki varsayılanı
+      çizdi — 58 sayfada hidrasyon uyuşmazlığı (React #418) ve hidrasyondan
+      sonra YANLIŞ kiracı adı. Tek imajla çok kurulum ancak böyle olur. */
+  kiraciAd: string;
+  markaAd: string;
   /** Kapsamın terim sözlüğü; `null` = sektör tek değil ya da yok →
       çekirdek sözcük. Kabuğun altındaki her istemci bileşen buna
       `useTerim()` ile erişir (`lib/dil/SozlukSaglayici.tsx`). */
@@ -102,8 +109,8 @@ export default function Kabuk({ veri, children }: { veri: KabukVerisi; children:
           bir main açmaz). */}
       <a href="#icerik" className="ab-atla">İçeriğe atla</a>
       <header className="ab-ust">
-        <Link href="/" className="marka" aria-label={`${MARKA_AD} — ana ekran`}>
-          {KIRACI_AD.toLocaleUpperCase('tr-TR')}<span className="ikinci">{MARKA_AD}</span>
+        <Link href="/" className="marka" aria-label={`${veri.markaAd} — ana ekran`}>
+          {veri.kiraciAd.toLocaleUpperCase('tr-TR')}<span className="ikinci">{veri.markaAd}</span>
         </Link>
         {/* ── ÖRNEK VERİ İŞARETİ ────────────────────────────────────────
             Depodaki bütün kayıtlar KURGUSALDIR: hiçbir gerçek kurum,

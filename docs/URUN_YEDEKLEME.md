@@ -227,6 +227,7 @@ dönebildiği gösterilir:
 
 ```bash
 cd web
+ls -d veri/kanit                                       # 0. depo kökü VAR MI
 node arac/yedek.mjs --al /tmp/tatbikat                 # 1. al
 mv prisma/dev.db /tmp/onceki.db && rm -rf veri/kanit   # 2. ortamı BOŞALT
 node arac/yedek.mjs --geri-yukle /tmp/tatbikat         # 3. geri yükle
@@ -236,13 +237,26 @@ npm run test                                           # 5. tam küme yeşil mi
 
 ### Ölçülen tatbikat — 9 Eylül 2026
 
+Prosedür, bağımsız incelemenin ikinci turundan SONRAKİ ağaçta yeniden
+koşuldu (birleştirme `353c1e7`); aşağıdaki sayılar o koşunun çıktısıdır.
+Önceki ölçüm 193 dosya · 3 518 vakaydı — küme tur-2 düzeltmeleriyle büyüdü,
+sayı bu yüzden değişti.
+
 | Adım | Sonuç |
 | --- | --- |
-| `--al` | çıkış 0 · 158 tablo · 52 göç · içerik özeti `2c0e42dd6da68991` |
+| `--al` | çıkış 0 · 158 tablo · 52 göç · içerik özeti `2c0e42dd6da68991` · kanıt dosyası 0 |
 | Ortam boşaltıldı | `prisma/dev.db` taşındı, `veri/kanit` silindi |
-| `--geri-yukle` | çıkış 0 · `veritabani.db` · kanıt dosyası 0 |
-| `--karsilastir` | çıkış 0 · **SONUÇ: SAĞLAM** · içerik özeti aynı, göç farkı 0, iz farkı 0 |
-| `npm run test` | **193 dosya · 3 518 vaka geçti · 1 atlandı · çıkış 0** — küme, GERİ YÜKLENEN veritabanına karşı koştu |
+| `--geri-yukle` | çıkış 0 · `veritabani.db` · kanıt dosyası 0 · depo kökü yeniden kuruldu |
+| `--karsilastir` | çıkış 0 · **SONUÇ: SAĞLAM** · içerik özeti aynı, göç farkı 0, iz farkı 0, sahipsiz dosya 0 |
+| `npm run test` | **194 dosya · 3 528 vaka geçti · 1 atlandı · çıkış 0** — küme, GERİ YÜKLENEN veritabanına karşı koştu |
+
+**Depo kökü YOKKEN alınan yedek aynı ağaçta ölçüldü** ve kural canlıda
+çalıştı: `--al` çıkış **1** verdi, `YEDEK ALINDI ama KUSURLU` yazdı, kanıt
+satırı `kanıt dosyası: 0 · 0.0 KB · depo kökü: … (depo dizini YOKTU — ölçüm
+yapılamadı)` çıktı. "Sıfır dosya" ile "ölçülemedi" aynı cümleye yazılmaz;
+deposu ölçülemeyen yedek doğrulanmış sayılmaz. Tatbikat bu yüzden depo kökü
+VAR OLAN bir kurulumda koşulur — compose kurulumunda dizini imajın kendisi
+açar (`deploy/compose/Dockerfile`), geliştirme ortamında ilk kanıt yazımı.
 
 Kanıt dosyalı gidiş-dönüş (dosya yaz → yedekle → boş ortama geri yükle →
 özet tut) `tests/yedek-araci.test.ts` içinde ölçülür: geliştirme

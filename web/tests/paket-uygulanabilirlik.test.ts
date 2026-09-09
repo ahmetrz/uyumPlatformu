@@ -136,13 +136,14 @@ describe('motor beyanı KAPSAM ÖĞESİ TÜRÜYLE koşar [URN-PKT-020]', () => {
 });
 
 describe('TR-ENERJI kurulumu · /uyum kanıtı [URN-PKT-021]', () => {
-  it('paket kurulur: iki çerçeve TASLAK, 601 madde, hiçbir sürüm aktif değil [URN-PKT-021]', async () => {
+  it('paket kurulur: sekiz çerçeve TASLAK, 3 803 madde, hiçbir sürüm aktif değil [URN-PKT-021]', async () => {
     const s = await paketiKur(path.join(KOK, 'paketler', 'TR-ENERJI'), { kuranId, istemci: db });
     expect(s.ok, JSON.stringify(s)).toBe(true);
     if (!s.ok) return;
-    expect(s.rapor.sayilar).toMatchObject({ cerceveler: 2, maddeler: 601, kurallar: 2 });
+    expect(s.rapor.sayilar).toMatchObject({ cerceveler: 8, maddeler: 3803, kurallar: 8 });
     const surumler = await db.frameworkSurumu.findMany({ where: { paketSurumId: s.rapor.surumId }, orderBy: { surumEtiketi: 'asc' } });
-    expect(surumler.map((x) => x.durum)).toEqual(['taslak', 'taslak']);
+    expect(surumler.map((x) => x.durum)).toEqual(Array(8).fill('taslak'));
+    expect(surumler).toHaveLength(8); // yönetmelik + yedi sektör eki
     /* Paketin beyanı SÜRÜME iner: kurulumda buharlaşınca veritabanında kurgusal metin
        gerçek mevzuattan ayırt edilemiyordu (inceleme, PR #43 tur 2). */
     expect(surumler.every((x) => (x.paketNotu ?? '').length > 0), 'paket notu kurulumda düştü').toBe(true);
@@ -187,5 +188,25 @@ describe('TR-ENERJI kurulumu · /uyum kanıtı [URN-PKT-021]', () => {
     // aktif sürümü olan çerçevede taslak alanı boştur (kıyas kaydı)
     const aktifli = cerceveler.find((c) => c.taslak === null && c.metrikler.maddeSayisi > 0);
     expect(aktifli, 'aktif sürümlü çerçeve yok — kıyas ölçülemedi').toBeTruthy();
+  });
+
+  it('/uyum: yedi ekin madde sayısı ÖLÇÜLEN sayıyla aynı, hiçbiri kendiliğinden aktif değil [URN-PKT-021]', async () => {
+    /* Ölçüm ekin kendi XLSX'inden gelir (aile satırları + kontroller); ekran sayıyı
+       BÜYÜTEMEZ ve küçültemez. Kaynak: docs/TR_SEKTOR_PAKETLERI.md §4 tablosu. */
+    const BEKLENEN: Record<string, number> = {
+      'EPDK-SGYM': 23,
+      'EPDK-SGYM-EK1': 488, 'EPDK-SGYM-EK2': 518, 'EPDK-SGYM-EK3': 578, 'EPDK-SGYM-EK4': 565,
+      'EPDK-SGYM-EK5': 564, 'EPDK-SGYM-EK6': 591, 'EPDK-SGYM-EK7': 476,
+    };
+    const cerceveler = await cerceveleriYukle(null);
+    for (const [kod, sayi] of Object.entries(BEKLENEN)) {
+      const c = cerceveler.find((x) => x.kod === kod);
+      expect(c, `${kod} /uyum listesinde yok`).toBeTruthy();
+      expect(c!.taslak, `${kod} taslak değil`).toEqual({ surumEtiketi: 'RG-2025-11-25-33088', maddeSayisi: sayi });
+      expect(c!.metrikler.maddeSayisi, `${kod} taslak maddeleri matrise girdi`).toBe(0);
+    }
+    expect(Object.values(BEKLENEN).reduce((a, b) => a + b, 0)).toBe(3803);
+    const paketinkiler = await db.frameworkSurumu.findMany({ where: { regulasyon: { kod: { startsWith: 'EPDK-SGYM' } } } });
+    expect(paketinkiler.filter((x) => x.durum !== 'taslak'), 'bir sürüm kendiliğinden aktifleşti').toEqual([]);
   });
 });

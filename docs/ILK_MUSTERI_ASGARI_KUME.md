@@ -36,15 +36,17 @@ yapılamaz; R12 olmadan yapılır ama müşteri ürünü denetimde kullanamaz.
 
 ## 1 · TR-ENERJI içeriği — en yakın kalem
 
-**Bugün.** Yönetmelik gövdesi (4 bölüm + 18 madde + 1 geçici) ve **Ek-3**
-(13 aile + 565 kontrol) tam metinle pakette; her metinli maddede kaynak
-adresi, belge içi konum ve erişim tarihi var. Çerçeveler uygulanabilirlik
-beyan ediyor. Kurulum sonrası sürümler TASLAK gelir.
+**Bugün (9 Eylül 2026 · 0.3.0 · BİTTİ).** Yönetmelik gövdesi (4 bölüm +
+18 madde + 1 geçici) ve **yedi ekin tamamı** tam metinle pakette: 88
+kontrol ailesi + **3 691 kontrol**, metni girilmemiş kontrol **0**. Her
+metinli maddede kaynak adresi, belge içi konum ve erişim tarihi var; her
+çerçeve uygulanabilirlik, manifest her çerçeve için alan eşleme beyan
+ediyor. Kurulum sonrası sekiz sürümün hepsi TASLAK gelir.
 
-**Kalan (ölçülmüş).** EPDK yedi ek yayımlar; pakette **bir tanesi** var.
-Kalan altı ekin kontrol sayısı `docs/TR_SEKTOR_PAKETLERI.md` §4'te
-ölçülü: toplam 3 691 kontrol, Ek-3 dışındakiler **3 126**. Aynı yolla
-aktarılırlar — dosya biçimi aynı (XLSX), okuma betiği aynı.
+**Kalan.** Bu kalemde içerik kalmadı. Yönetmeliğin Ek-1a/2a/3a referans
+TOPOLOJİ dosyaları (çizim) aktarılmadı: madde ağacı değildir, kontrol
+maddesi taşımaz — kapsam öğesi mimarisi görselidir ve ürün bugün görsel
+eki taşımaz.
 
 | İş | Dosya / göç | Ölçü |
 | --- | --- | --- |
@@ -169,7 +171,7 @@ bitirmez.
 ## 7 · Sıra
 
 ```
-TR-ENERJI içeriği (kalan 6 ek)  ─┐
+TR-ENERJI içeriği ✔ (bitti)     ─┐
 R5 · PostgreSQL ────────────────┼─► P7 · dağıtım ──► ilk kurulum
 R3 · yedek + kanıt ─────────────┘        │
 R12 · denetim formları ──────────────────┘  (kurulumdan sonra, ilk denetimden önce)

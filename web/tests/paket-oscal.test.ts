@@ -50,8 +50,13 @@ const tumKontroller = (k: OscalKatalog): OscalControl[] => {
 describe('OSCAL gidiş-dönüş · iskelet çerçeveleri [URN-PKT-017]', () => {
   const cerceveler = [...iskelet('TR-BANKACILIK').cerceveler, ...iskelet('TR-ENERJI').cerceveler];
 
-  it('ölçüm tabanı: üç çerçeve, 659 madde', () => {
-    expect(cerceveler.map((c) => [c.kimlik.kod, c.maddeler.length])).toEqual([['BDDK-BS', 58], ['EPDK-SGYM-EK3', 578], ['EPDK-SGYM', 23]]);
+  it('ölçüm tabanı: dokuz çerçeve, 3 861 madde', () => {
+    expect(cerceveler.map((c) => [c.kimlik.kod, c.maddeler.length])).toEqual([
+      ['BDDK-BS', 58],
+      ['EPDK-SGYM-EK1', 488], ['EPDK-SGYM-EK2', 518], ['EPDK-SGYM-EK3', 578], ['EPDK-SGYM-EK4', 565],
+      ['EPDK-SGYM-EK5', 564], ['EPDK-SGYM-EK6', 591], ['EPDK-SGYM-EK7', 476], ['EPDK-SGYM', 23],
+    ]);
+    expect(cerceveler.reduce((t, c) => t + c.maddeler.length, 0)).toBe(3861);
   });
 
   it('satırlar → OSCAL → satırlar birebir; belirteçler ASCII, Türkçe kod prop\'ta korunur; uuid deterministik [URN-PKT-017]', () => {

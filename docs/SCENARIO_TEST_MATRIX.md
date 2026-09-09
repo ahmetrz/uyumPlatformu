@@ -587,6 +587,7 @@
 | `URN-PKT-019` | Ürünleştirme | DOMAIN · SERVER | `paket-icerik.test.ts` | kaynak_url adres olmalı, tarihler takvimde olmalı, kaynak_yeri konumdur | evet | geçti |
 | `URN-PKT-019` | Ürünleştirme | DOMAIN · SERVER | `paket-icerik.test.ts` | metinsiz madde köken istemez — "metin girilmedi" hâli boş bırakılır, uydurulmaz | evet | geçti |
 | `URN-PKT-019` | Ürünleştirme | DOMAIN · SERVER | `paket-icerik.test.ts` | metinli her maddede kaynak adresi ve erişim tarihi var; metinsiz madde uydurma köken taşımaz | evet | geçti |
+| `URN-PKT-019` | Ürünleştirme | DOMAIN · SERVER | `paket-icerik.test.ts` | yedi ekin ölçümü: aile · kontrol · metni olan — hiçbiri tahmin değil | evet | geçti |
 | `URN-PKT-019` | Ürünleştirme | DOMAIN · SERVER | `paket-icerik.test.ts` | Ek-3: 565 kontrol, 57 "Ek Kontrol" seviyesiz ve OPTIONAL — seviyesizlik sıfır değil | evet | geçti |
 | `URN-PKT-019` | Ürünleştirme | DOMAIN · SERVER | `paket-icerik.test.ts` | lisans: kamuya açık, metin dâhil, FSEK md. 31 dayanağı kimliklerde yazılı | evet | geçti |
 | `URN-PKT-019` | Ürünleştirme | DOMAIN · SERVER | `paket-iskeletler.test.ts` | TR-ENERJI artık içerikli: iki çerçeve de metin taşır ve her metinli madde KÖKEN taşır | evet | geçti |
@@ -606,8 +607,9 @@
 | `URN-PKT-020` | Ürünleştirme | DOMAIN · SERVER | `paket-uygulanabilirlik.test.ts` | türü listede olan öğe kapsamda, olmayan kapsam dışı; gerekçe türü yazar | evet | geçti |
 | `URN-PKT-020` | Ürünleştirme | DOMAIN · SERVER | `uygulanabilirlik.test.ts` | `icinde` işleci: kapsam öğesi TÜRÜ paket beyanından okunur | evet | geçti |
 | `URN-PKT-020` | Ürünleştirme | DOMAIN · SERVER | `uygulanabilirlik.test.ts` | paket beyanının türü, aynı adlı bir ÖZNİTELİKLE ezilemez | evet | geçti |
-| `URN-PKT-021` | Ürünleştirme | SERVER · UI | `paket-uygulanabilirlik.test.ts` | paket kurulur: iki çerçeve TASLAK, 601 madde, hiçbir sürüm aktif değil | evet | geçti |
+| `URN-PKT-021` | Ürünleştirme | SERVER · UI | `paket-uygulanabilirlik.test.ts` | paket kurulur: sekiz çerçeve TASLAK, 3 803 madde, hiçbir sürüm aktif değil | evet | geçti |
 | `URN-PKT-021` | Ürünleştirme | SERVER · UI | `paket-uygulanabilirlik.test.ts` | /uyum: çerçeve görünür ve "aktif sürüm yok · N madde taslak" der — 0 kontrol demez | evet | geçti |
+| `URN-PKT-021` | Ürünleştirme | SERVER · UI | `paket-uygulanabilirlik.test.ts` | /uyum: yedi ekin madde sayısı ÖLÇÜLEN sayıyla aynı, hiçbiri kendiliğinden aktif değil | evet | geçti |
 | `URN-PKT-021` | Ürünleştirme | SERVER · UI | `paketler-mantik.test.ts` | seçilen TASLAK çerçeve gösterilir — satırı olan çerçeveye kaymaz | evet | geçti |
 | `URN-PKT-021` | Ürünleştirme | SERVER · UI | `uyum-taslak-serit.test.ts` | şerit taslak dalını tanır ve dört ölçütü de bilinmeyene çevirir | evet | geçti |
 | `URN-PKT-021` | Ürünleştirme | SERVER · UI | `uyum-taslak-serit.test.ts` | taslak dalı sayısal ölçüt taşımaz — "0 Uygunsuz" iyi haber gibi okunur | evet | geçti |

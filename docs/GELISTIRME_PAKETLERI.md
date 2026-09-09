@@ -163,7 +163,7 @@ paket başlıklarındaki "Bugün" paragrafları ayrıntıyı taşır.
 | **P4 · İçerik paketi mimarisi** | **bitti** | `web/lib/paket/` (biçim · doğrulayıcı · kurucu · OSCAL), `/paketler` ekranı, `IcerikPaketi*` katalogları, beş paket dizini | `98b50c6` → `c31ee45` · PR #41 · #43 |
 | **P8 · Demo verisi** | **bitti (kurgusal ad kısmı)** | tohum paketlerden kurulur (`DEMO-TR-ORTAK · DEMO-TR-ENERJI · DEMO-TR-SU`); kurgusal ad bekçisi `prisma/kurgusal-adlar.ts` | `a100df8` (kurgusal ad) · `16d20fd` (paket biçimi) |
 | **Kapı altyapısı** | **bitti ve büyüyor** | 20 kapı (PR kapısından türetilir, `npm run kapi:parti`), 60 araç betiği, göç zinciri kapısı (`kapi:goc-zinciri`) | `5928944` · PR #43 |
-| **TR-ENERJI içeriği** | **kısmen** — yönetmelik + Ek-3 tam metin (601 madde), kalan 6 ek yok | `web/paketler/TR-ENERJI` | `9535808` · PR #43 |
+| **TR-ENERJI içeriği** | **bitti (0.3.0)** — yönetmelik + YEDİ ekin tamamı tam metin: 8 çerçeve · 3 803 madde (88 aile + 3 691 kontrol + 23 yönetmelik satırı) · metni girilmemiş kontrol 0 | `web/paketler/TR-ENERJI` | `9535808` · PR #43 · ek aktarımı bu dal |
 
 Ölçüm tabanı (aynı gün): **3 467 test vakası · 189 dosya · 319 senaryo ·
 GAP 0 · 51 göç · şema farkı 0 · 157 model · 20 kapı**.
@@ -868,10 +868,11 @@ metin `prose` içinden sızamaz), OSCAL dışı alanlar `props` ad alanında,
 Türkçe kod prop'ta korunur; gidiş-dönüş üç iskelet çerçevesinde (659
 madde) birebir; yazar aracı `--oscal <dizin>` (URN-PKT-017). SCF içe
 alımı hukuki görüşe bağlı kalır — okuyucu hazır, içerik yok.
-**İÇERİK uygulandı (9 Eylül 2026):** `TR-ENERJI` 0.2.0 artık iskelet değil —
+**İÇERİK uygulandı (9 Eylül 2026):** `TR-ENERJI` 0.3.0 artık iskelet değil —
 EPDK Yetkinlik Modeli Yönetmeliği (4 bölüm + 18 madde + 1 geçici madde) ve
-Ek-3 Elektrik Üretim teknik kontrol maddeleri (13 aile + 565 kontrol) TAM
-METİNLE pakette; metin EPDK resmî sitesinden (birincil kaynak) indirildi,
+YEDİ sektör ekinin tamamı (Ek-1 476 · Ek-2 505 · Ek-3 565 · Ek-4 552 · Ek-5 551 ·
+Ek-6 578 · Ek-7 464 = 3 691 kontrol, 88 kontrol ailesi) TAM
+METİNLE pakette; metni girilmemiş kontrol SIFIR; metin EPDK resmî sitesinden (birincil kaynak) indirildi,
 `mevzuat.gov.tr` ve `resmigazete.gov.tr` yine erişilemedi (HTTP 000; ikincil
 kaynak içeriğe girmedi). Madde CSV'sine köken sütunları eklendi (`kaynak_url ·
 kaynak_yeri · erisim_tarihi · yururluk_tarihi` → `Madde.maddeKaynakUrl ·

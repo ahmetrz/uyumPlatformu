@@ -831,7 +831,13 @@ veritabanı birleşik hâl (güncel · güncelleme var · diskteki kopya eski ·
 diskte yok · doğrulanamadı · kurulu değil · arşiv), kur / güncelle /
 kaldır (arşiv, gerekçeli), engel nedeni düğmenin yanında; ekran hiçbir
 çerçeveyi aktifleştirmez ve lede altında bunu kalıcı cümleyle söyler
-(URN-PKT-016). Kalan: OSCAL okuyucu (SCF için — hukuki görüş bekleniyor),
+(URN-PKT-016). **2.7 uygulandı:** OSCAL 1.1 katalog okuyucu/yazıcı
+(`lib/paket/oscal.ts`): `cerceve/<KOD>.oscal.json` CSV'nin alternatifi,
+doğrulayıcı OSCAL'ı satıra indirip CSV ile aynı kuralları uygular (telifli
+metin `prose` içinden sızamaz), OSCAL dışı alanlar `props` ad alanında,
+Türkçe kod prop'ta korunur; gidiş-dönüş üç iskelet çerçevesinde (659
+madde) birebir; yazar aracı `--oscal <dizin>` (URN-PKT-017). SCF içe
+alımı hukuki görüşe bağlı kalır — okuyucu hazır, içerik yok. Kalan:
 form/rapor ekranlarının şablonu okuması, rol önerisinin koda bağlanması,
 R6 ilişki türü/güç, demo verisinin (tesis · süreç · bulgu) JSON'dan
 yüklenmesi (P8).

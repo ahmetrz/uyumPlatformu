@@ -4,12 +4,12 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 314 |
-| Testi olan senaryo | 314 |
+| Senaryo | 315 |
+| Testi olan senaryo | 315 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
-| Taranan test dosyası | 184 |
+| Taranan test dosyası | 185 |
 
 ## Katman başına kapsam
 
@@ -18,7 +18,7 @@
 | ACCESSIBILITY | 8 | 8 | 0 |
 | API | 12 | 12 | 0 |
 | CONCURRENCY | 7 | 7 | 0 |
-| DOMAIN | 174 | 174 | 0 |
+| DOMAIN | 175 | 175 | 0 |
 | ENGINE | 33 | 33 | 0 |
 | INTEGRATION | 40 | 40 | 0 |
 | MIGRATION | 5 | 5 | 0 |
@@ -561,6 +561,11 @@
 | `URN-PKT-016` | Ürünleştirme | DOMAIN · SERVER · UI | `paketler-veri.test.ts` | tohumlanmış veritabanı + depo paketleri: üç demo paketi güncel, iskeletler kurulu değil; bağımlılar ve çerçeve sayıları | evet | geçti |
 | `URN-PKT-016` | Ürünleştirme | DOMAIN · SERVER · UI | `paketler-veri.test.ts` | geçici kök: yeni sürüm → güncelleme var; bozuk manifest → doğrulanamadı (hatalar listelenir); dizin yok → diskte yok; paket kökü yok → kökHatasi | evet | geçti |
 | `URN-PKT-016` | Ürünleştirme | DOMAIN · SERVER · UI | `paketler-veri.test.ts` | kaldırma (arşiv) → hâl arşiv, diskte varsa geri kurulabilir; kaldırılan paket bağımlılar listesinden düşer | evet | geçti |
+| `URN-PKT-017` | Ürünleştirme | DOMAIN | `paket-oscal.test.ts` | satırlar → OSCAL → satırlar birebir; belirteçler ASCII, Türkçe kod prop\'ta korunur; uuid deterministik | evet | geçti |
+| `URN-PKT-017` | Ürünleştirme | DOMAIN | `paket-oscal.test.ts` | bilinmeyen değer prop olarak yazılmaz; tarih bilinmiyorsa last-modified uydurulmaz | evet | geçti |
+| `URN-PKT-017` | Ürünleştirme | DOMAIN | `paket-oscal.test.ts` | telifli çerçevede statement/guidance prose LİSANS, uzun başlık LİSANS; kamuya açık metinsiz kimlikte prose LİSANS; temiz katalog geçer ve sayılır | evet | geçti |
+| `URN-PKT-017` | Ürünleştirme | DOMAIN | `paket-oscal.test.ts` | tekrar kod KİMLİK, katalog kodu kimlikle uyuşmazsa KİMLİK, bozuk katalog BIÇIM, seviye aralık dışı BIÇIM | evet | geçti |
+| `URN-PKT-017` | Ürünleştirme | DOMAIN | `paket-oscal.test.ts` | yabancı katalog: kod prop\'u yok, gruplu — grup üst madde, id kod, sıra gezinti sırası | evet | geçti |
 | `URN-PKT-018` | Ürünleştirme | DOMAIN · SERVER · UI | `paketler-mantik.test.ts` | eylemler: düğme yetkisize gösterilir ve nedeni yazılır; bağımlı ve aktif çerçeve kaldırmayı engeller; diskte yok kurmayı engeller, kaldırmayı değil | evet | geçti |
 | `URN-PKT-018` | Ürünleştirme | DOMAIN · SERVER · UI | `paketler-veri.test.ts` | geçici kök: yeni sürüm → güncelleme var; bozuk manifest → doğrulanamadı (hatalar listelenir); dizin yok → diskte yok; paket kökü yok → kökHatasi | evet | geçti |
 | `URN-PKT-010` | Ürünleştirme | DOMAIN | `bekci/paket-silme.test.ts` | madde dışında HİÇBİR modelde delete/deleteMany yok — tavan sıfır, istisna listesi yok | evet | geçti |

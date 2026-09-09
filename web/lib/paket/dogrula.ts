@@ -16,6 +16,7 @@ import path from 'node:path';
 import type { ZodError } from 'zod';
 import * as XLSX from 'xlsx';
 import { OLGUNLUK_ASGARI, OLGUNLUK_AZAMI } from '../uyum/olgunluk';
+import { oscalOku } from './oscal';
 import {
   ACIKLAMA_SINIRI, BASLIK_SINIRI, CEKIRDEK_ROLLER, CerceveKimligiSemasi, DENKLIKLER, DIS_KIMLIK_SINIRI, DOSYALAR, ESLEME_SUTUNLARI,
   ESLEME_ZORUNLU_SUTUNLAR, EslemeKimligiSemasi, FormSablonuSemasi, ISLEM_ONKOSULU, KANIT_TIPI_KODU, KapsamTuruSatiriSemasi, MADDE_SUTUNLARI,
@@ -257,7 +258,8 @@ export function paketiDogrula(dizin: string): DogrulamaSonucu {
   const cerceveler: Cerceve[] = [];
   const cerceveDizini = path.join(dizin, DOSYALAR.cerceveDizini);
   if (existsSync(cerceveDizini)) {
-    for (const dosyaAdi of readdirSync(cerceveDizini).filter((d) => d.endsWith('.json')).sort()) {
+    /* `<KOD>.oscal.json` kimlik değil madde dosyasıdır (2.7); kimlik listesine girmez. */
+    for (const dosyaAdi of readdirSync(cerceveDizini).filter((d) => d.endsWith('.json') && !d.endsWith('.oscal.json')).sort()) {
       const dosya = `${DOSYALAR.cerceveDizini}/${dosyaAdi}`;
       const j = jsonOku(path.join(cerceveDizini, dosyaAdi));
       if ('hata' in j) { hatalar.push({ sinif: 'BIÇIM', dosya, mesaj: `JSON okunamadı: ${j.hata}`, duzeltme: 'JSON sözdizimini düzeltin' }); continue; }
@@ -279,10 +281,27 @@ export function paketiDogrula(dizin: string): DogrulamaSonucu {
         hatalar.push({ sinif: 'BIÇIM', dosya, konum: 'maddeDosyasi', mesaj: `madde dosyası yok: ${kimlik.maddeDosyasi}`, duzeltme: 'CSV dosyasını cerceve/ altına koyun' });
         continue;
       }
-      const { basliklar, satirlar, hata: csvHatasi } = csvAyristir(readFileSync(maddeYolu, 'utf8'));
-      if (csvHatasi) {
-        hatalar.push({ sinif: 'BIÇIM', dosya: maddeDosya, konum: '1', mesaj: csvHatasi, duzeltme: 'tırnağı kapatın; hücre içindeki tırnak `""` ile yazılır' });
-        continue;
+      /* OSCAL (2.7): katalog CSV ile AYNI sütun düzenine indirilir ve aynı
+         kurallardan geçer — OSCAL'a ayrı kapı yok, telifli metin `prose`
+         içinden de sızamaz. Satır konumu OSCAL'da gezinti sırasıdır. */
+      let basliklar: string[]; let satirlar: string[][];
+      if (kimlik.maddeDosyasi.endsWith('.oscal.json')) {
+        const j = jsonOku(maddeYolu);
+        if ('hata' in j) { hatalar.push({ sinif: 'BIÇIM', dosya: maddeDosya, mesaj: `JSON okunamadı: ${j.hata}`, duzeltme: 'OSCAL katalog JSON sözdizimini düzeltin' }); continue; }
+        const o = oscalOku(j.deger);
+        if (!o.ok) { hatalar.push({ sinif: 'BIÇIM', dosya: maddeDosya, konum: o.konum, mesaj: o.hata, duzeltme: 'OSCAL 1.1 katalog: catalog.metadata{title, version, oscal-version} + controls[] ya da groups[]' }); continue; }
+        if (o.kod && o.kod !== kimlik.kod) {
+          hatalar.push({ sinif: 'KİMLİK', dosya: maddeDosya, konum: 'catalog.metadata', mesaj: `katalog kodu "${o.kod}" kimlikle uyuşmuyor: "${kimlik.kod}"`, duzeltme: 'kimlik JSON ile katalog aynı çerçeveyi anmalı' });
+          continue;
+        }
+        basliklar = o.basliklar; satirlar = o.satirlar;
+      } else {
+        const csv = csvAyristir(readFileSync(maddeYolu, 'utf8'));
+        if (csv.hata) {
+          hatalar.push({ sinif: 'BIÇIM', dosya: maddeDosya, konum: '1', mesaj: csv.hata, duzeltme: 'tırnağı kapatın; hücre içindeki tırnak `""` ile yazılır' });
+          continue;
+        }
+        basliklar = csv.basliklar; satirlar = csv.satirlar;
       }
       const eksik = MADDE_ZORUNLU_SUTUNLAR.filter((s) => !basliklar.includes(s));
       if (eksik.length) {
@@ -574,7 +593,7 @@ export function paketiDogrula(dizin: string): DogrulamaSonucu {
      dosyaları, `cerceve/*.json` kimlikleri ve onların `maddeDosyasi`.
      Bir kimlik JSON'u okunamadıysa paket zaten kırmızıdır; CSV'si
      ayrıca "tanınmıyor" diye suçlanmaz. */
-  const cerceveJsonlari = existsSync(cerceveDizini) ? readdirSync(cerceveDizini).filter((d) => d.endsWith('.json')) : [];
+  const cerceveJsonlari = existsSync(cerceveDizini) ? readdirSync(cerceveDizini).filter((d) => d.endsWith('.json') && !d.endsWith('.oscal.json')) : [];
   const kimlikOkunamadi = cerceveJsonlari.length !== cerceveler.length || eslemeJsonlari.length !== eslemeler.length;
   if (!kimlikOkunamadi) {
     const taninan = new Set<string>([

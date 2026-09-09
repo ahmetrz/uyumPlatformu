@@ -128,8 +128,8 @@ export const CerceveKimligiSemasi = z.object({
   yururlukTarih: tarihAlani,
   kaynakUrl: z.string().url().nullable().optional(),
   lisans: LisansSemasi,
-  /** madde ağacı CSV'si — bu JSON'la aynı dizinde */
-  maddeDosyasi: z.string().regex(/^[A-Za-z0-9._-]+\.csv$/),
+  /** madde ağacı — bu JSON'la aynı dizinde: CSV (yazar biçimi) ya da OSCAL 1.1 katalog JSON'u (`.oscal.json`, 2.7) */
+  maddeDosyasi: z.string().regex(/^[A-Za-z0-9._-]+\.(?:csv|oscal\.json)$/, 'madde dosyası .csv ya da .oscal.json'),
   zorunlulukTipi: z.enum(ZORUNLULUK_TIPLERI).default('REGULATION'),
   not: z.string().max(500).optional(),
 }).strict();

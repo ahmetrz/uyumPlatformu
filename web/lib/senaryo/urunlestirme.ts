@@ -456,6 +456,18 @@ export const URUNLESTIRME_SENARYOLARI: Senaryo[] = [
     katmanlar: ['DOMAIN', 'SERVER', 'UI'],
   },
   {
+    id: 'URN-PKT-017', alan: 'Ürünleştirme', rota: '—', eksen: 'veri',
+    amac: 'OSCAL 1.1 katalog okuyucu/yazıcı: çerçeve madde ağacı OSCAL olarak taşınır, CSV ile aynı kurallardan geçer, gidiş-dönüş birebir',
+    rol: 'paket yazarı · dış katalog yayıncısı', kapsam: '`cerceve/<KOD>.oscal.json` · `lib/paket/oscal.ts` · `paket:dogrula --oscal`',
+    onkosul: 'İskelet çerçeveleri CSV (BDDK-BS 58 · EPDK-SGYM 23 · EK3 578, Türkçe kodlar); telifli çerçeve kuralı',
+    veriHali: 'tipik',
+    eylem: 'Satırlar OSCAL\'a yazılır ve doğrulayıcı yolundan geri okunur; telifli çerçevede prose, uzun başlık, tekrar kod, kimlik uyuşmazlığı, bozuk katalog, aralık dışı seviye denenir; yabancı gruplu katalog okunur; araç --oscal ile yazar',
+    beklenenSonuc: 'Satırlar birebir döner, ikinci yazım birincisiyle aynı, belirteçler ASCII ve tekil, Türkçe kod prop\'ta, uuid deterministik, bilinmeyen değer prop olmaz, tarih uydurulmaz; '
+      + 'OSCAL paketi LİSANS/KİMLİK/BIÇIM sınıflarını CSV ile aynı mesajlarla alır; yabancı katalogda grup üst madde, id kod, sıra gezinti sırası; araç her çerçeveyi <dizin>/<KOD>.oscal.json yazar',
+    beklenenEkran: 'Ekran yok — biçim', beklenenIz: 'yok', beklenenBildirim: 'yok',
+    katmanlar: ['DOMAIN'],
+  },
+  {
     id: 'URN-PKT-018', alan: 'Ürünleştirme', rota: '/paketler', eksen: 'arayuz',
     amac: 'Paket dizini diskte YOK ya da paket kökü okunamıyor: ekran "diskte yok"u güncel gibi göstermez, kökün okunamadığını "paket yok"la karıştırmaz; seçili satırın paneli engel nedenini yazar',
     rol: 'tanımlar okuma / yazma yetkili', kapsam: '`/paketler` · satır seçimi paneli (çekmece) · boş hâl',

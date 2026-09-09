@@ -34,9 +34,9 @@ function Giris({ children, sektorler }: {
     const stage = el.querySelector<HTMLElement>(`.${styles.stage}`)!;
     const motion = matchMedia('(prefers-reduced-motion: reduce)');
     const etiket = el.querySelector<HTMLElement>(`.${styles.current}`)!;
-    let sahne: Sahne | undefined, kapandi = false, raf = 0, mesafe = 0;
+    let sahne: Sahne | undefined, kapandi = false, raf = 0, mesafe = 0, yuklemeSaati = 0;
     let hareketli = false, sonP = -1, sonTamam = false, tempo = 1;
-    const temizle = () => { sahne?.temizle(); sahne = undefined; };
+    const temizle = () => { clearTimeout(yuklemeSaati); sahne?.temizle(); sahne = undefined; };
     function statik(atlandi = false) {
       hareketli = false; cancelAnimationFrame(raf); raf = 0;
       ui.inert = false; ui.removeAttribute('aria-hidden');
@@ -104,36 +104,35 @@ function Giris({ children, sektorler }: {
       if (document.hidden) { cancelAnimationFrame(raf); raf = 0; }
       else { sonP = -1; planla(); }
     }
+    function statigeDon() {
+      const referans = hareketli && sonP > 0 ? ui : stage;
+      const eskiUst = referans.getBoundingClientRect().top;
+      statik();
+      window.scrollBy({ top: referans.getBoundingClientRect().top - eskiUst, behavior: 'instant' });
+    }
     function hareketTercihi() {
-      if (motion.matches) {
-        const eskiY = ui.getBoundingClientRect().top;
-        statik();
-        if (sonP > 0) window.scrollBy({ top: ui.getBoundingClientRect().top - eskiY, behavior: 'instant' });
-      }
+      if (motion.matches) statigeDon();
     }
     if (!dogrudan && !motion.matches) {
       // Görseller çözülmeden kaydırma alanını ayır; erken scroll yolculuğu iptal etmez.
       el.dataset.mod = 'hareketli';
       ui.inert = true; ui.setAttribute('aria-hidden', 'true');
       boyutla();
+      yuklemeSaati = window.setTimeout(statigeDon, 12000);
       async function baslat() {
-        if (kapandi || motion.matches || el.dataset.mod === 'dogrudan') return;
+        if (kapandi || motion.matches || el.dataset.mod !== 'hareketli') return;
         try {
           const yeni = await sahneKur(el);
-          if (kapandi || motion.matches || el.dataset.mod === 'dogrudan') {
+          if (kapandi || motion.matches || el.dataset.mod !== 'hareketli') {
             yeni.temizle(); return;
           }
+          clearTimeout(yuklemeSaati);
           sahne = yeni;
           hareketli = true; el.dataset.mod = 'hareketli';
           boyutla();
         } catch (error) {
           if (process.env.NODE_ENV !== 'production') console.warn('Giriş sahnesi statik moda geçti:', error);
-          if (!kapandi && el.dataset.mod !== 'dogrudan') {
-            const eskiUst = stage.getBoundingClientRect().top;
-            statik();
-            // Kaydırma alanı daralırken görünür giriş karesi aynı yerde kalır.
-            window.scrollBy({ top: stage.getBoundingClientRect().top - eskiUst, behavior: 'instant' });
-          }
+          if (!kapandi && el.dataset.mod === 'hareketli') statigeDon();
         }
       }
       void baslat();

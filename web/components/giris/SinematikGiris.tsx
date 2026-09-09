@@ -32,6 +32,7 @@ function Giris({ children, sektorler }: {
   useLayoutEffect(() => {
     const el = root.current!, ui = hedef.current!;
     const stage = el.querySelector<HTMLElement>(`.${styles.stage}`)!;
+    const eskiScrollRestoration = history.scrollRestoration;
     const motion = matchMedia('(prefers-reduced-motion: reduce)');
     const etiket = el.querySelector<HTMLElement>(`.${styles.current}`)!;
     let sahne: Sahne | undefined, kapandi = false, raf = 0, mesafe = 0, yuklemeSaati = 0;
@@ -60,9 +61,9 @@ function Giris({ children, sektorler }: {
     }
     tempoDegistir.current = carpan => {
       tempo = carpan;
-      if (!hareketli || sonTamam) return;
+      if (el.dataset.mod !== 'hareketli' || sonTamam) return;
       // Hız seçimi kamerayı başka konuma atmaz; mevcut ilerleme korunur.
-      const p = Math.max(0, sonP), ust = el.getBoundingClientRect().top + window.scrollY;
+      const p = sinirla(-el.getBoundingClientRect().top / mesafe), ust = el.getBoundingClientRect().top + window.scrollY;
       mesafe = stage.clientHeight * kaydirmaKatsayisi(window.innerWidth) * tempo;
       el.style.setProperty('--mesafe', `${mesafe}px`);
       window.scrollTo({ top: ust + p * mesafe, behavior: 'instant' });
@@ -114,6 +115,8 @@ function Giris({ children, sektorler }: {
       if (motion.matches) statigeDon();
     }
     if (!dogrudan && !motion.matches) {
+      history.scrollRestoration = 'manual';
+      window.scrollTo({ top: 0, behavior: 'instant' });
       // Görseller çözülmeden kaydırma alanını ayır; erken scroll yolculuğu iptal etmez.
       el.dataset.mod = 'hareketli';
       ui.inert = true; ui.setAttribute('aria-hidden', 'true');
@@ -143,6 +146,7 @@ function Giris({ children, sektorler }: {
     motion.addEventListener('change', hareketTercihi);
     return () => {
       kapandi = true; cancelAnimationFrame(raf);
+      history.scrollRestoration = eskiScrollRestoration;
       window.removeEventListener('scroll', planla); window.removeEventListener('resize', boyutla);
       document.removeEventListener('visibilitychange', gorunurluk);
       motion.removeEventListener('change', hareketTercihi);

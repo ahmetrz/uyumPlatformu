@@ -1,7 +1,8 @@
 /* ═══ P4 · PAKET KURUCU ve KALDIRICI ═════════════════════════════════════
    `docs/SEKTOR_PAKETI_SOZLESMESI.md` §1 (dokuz kalemden dördü: sözlük ·
    kapsam öğesi türleri · öznitelik şeması · çerçeve; beşincisi
-   yükümlülükler) ve §4 (köken, ezmeme, arşiv).
+   yükümlülükler; 2.2–2.3 ile form · rapor şablonu · rol önerisi) ve §4
+   (köken, ezmeme, arşiv).
 
    SÖZLEŞME
    · Doğrulayıcıdan geçmeyen paket YAZILMAZ; tek hata reddeder.
@@ -54,11 +55,11 @@ const IN_PARCASI = 500;
 export type Celiski = { tablo: string; anahtar: string; sebep: string };
 export type KurulumRaporu = {
   paketId: string; surumId: string; kod: string; surum: string;
-  sayilar: { sozluk: number; kapsamTurleri: number; oznitelikler: number; cerceveler: number; maddeler: number; yukumlulukler: number; formlar: number; raporlar: number };
+  sayilar: { sozluk: number; kapsamTurleri: number; oznitelikler: number; cerceveler: number; maddeler: number; yukumlulukler: number; formlar: number; raporlar: number; roller: number };
   celiskiler: Celiski[];
   taslakSurumler: { regulasyonKod: string; surumEtiketi: string; surumId: string }[];
   /** Yükseltme uzlaştırması: bu sürümün artık beyan etmediği paket kökenli satırlar (pasif / arşiv; silme yok). */
-  pasiflestirilen: { kapsamTurleri: number; yukumlulukler: number; cerceveSurumleri: number; sozluk: number; oznitelikler: number; formlar: number; raporlar: number };
+  pasiflestirilen: { kapsamTurleri: number; yukumlulukler: number; cerceveSurumleri: number; sozluk: number; oznitelikler: number; formlar: number; raporlar: number; roller: number };
   /** Pasifleşen sözlük (`anahtar@dil`) ve öznitelik (`anahtar`) satırları — satır yerinde, okuyucular görmez. */
   pasifAnahtarlar: { sozluk: string[]; oznitelikler: string[] };
 };
@@ -427,6 +428,22 @@ async function yaz(tx: Tx, icerik: PaketIcerigi, kuranId: string | null, simdi: 
     raporSayisi++;
   }
 
+  /* rol önerileri (2.3) — katalog. Çalışma zamanı yetkisi (`lib/erisim.ts`)
+     kataloğu OKUMAZ: paket önerir, kiracı ezer, koda bağlanması P2/P6.
+     Çekirdek rol kodu doğrulayıcıda reddedilir; burada yalnız köken kuralı. */
+  let rolSayisi = 0;
+  for (const r of icerik.roller) {
+    const mevcut = await tx.rolKatalogu.findUnique({ where: { kod: r.kod } });
+    if (mevcut && !paketKokenli(mevcut.paketSurumId)) {
+      celiskiler.push({ tablo: 'RolKatalogu', anahtar: r.kod, sebep: 'kiracı rolü var — paket önerisi yazılmadı' });
+      continue;
+    }
+    const veri = { ad: r.ad, aciklama: r.aciklama ?? null, izinlerJson: JSON.stringify(r.izinler), kapsamEkseni: r.kapsamEkseni, sira: r.sira, aktif: true, ...koken };
+    if (mevcut) await tx.rolKatalogu.update({ where: { id: mevcut.id }, data: veri });
+    else await tx.rolKatalogu.create({ data: { kod: r.kod, ...veri } });
+    rolSayisi++;
+  }
+
   /* ── YÜKSELTME UZLAŞTIRMASI ───────────────────────────────────────────
      Bu sürümün artık beyan etmediği ama bu paketin bir sürümünden kalan
      paket kökenli satırlar. Ölçüldü: kaldırılan yükümlülük `aktif=true`
@@ -450,6 +467,9 @@ async function yaz(tx: Tx, icerik: PaketIcerigi, kuranId: string | null, simdi: 
   const pasifRapor = await tx.raporSablonu.updateMany({
     where: { paketSurumId: { in: paketinSurumleri }, aktif: true, kod: { notIn: icerik.raporlar.map((r) => r.kod) } },
     data: { aktif: false } });
+  const pasifRol = await tx.rolKatalogu.updateMany({
+    where: { paketSurumId: { in: paketinSurumleri }, aktif: true, kod: { notIn: icerik.roller.map((r) => r.kod) } },
+    data: { aktif: false } });
   /* Sözlük ve öznitelik şeması da PASİFLEŞİR (2.1): silinmez — öznitelik
      satırının altında kiracının değerleri olabilir (R-C) — ama okuyucular
      artık görmez. Anahtar (anahtar@dil · anahtar) rapora düşer. */
@@ -470,12 +490,12 @@ async function yaz(tx: Tx, icerik: PaketIcerigi, kuranId: string | null, simdi: 
   const rapor: KurulumRaporu = {
     paketId: paket.id, surumId: surumKaydi.id, kod: m.kod, surum: m.surum,
     sayilar: { sozluk: sozlukSayisi, kapsamTurleri: turSayisi, oznitelikler: oznitelikSayisi, cerceveler: icerik.cerceveler.length, maddeler: maddeSayisi, yukumlulukler: yukumlulukSayisi,
-      formlar: formSayisi, raporlar: raporSayisi },
+      formlar: formSayisi, raporlar: raporSayisi, roller: rolSayisi },
     celiskiler, taslakSurumler,
     pasiflestirilen: {
       kapsamTurleri: pasifTur.count, yukumlulukler: pasifYukumluluk.count, cerceveSurumleri: arsivSurum.count,
       sozluk: pasifAnahtarlar.sozluk.length, oznitelikler: pasifAnahtarlar.oznitelikler.length,
-      formlar: pasifForm.count, raporlar: pasifRapor.count,
+      formlar: pasifForm.count, raporlar: pasifRapor.count, roller: pasifRol.count,
     },
     pasifAnahtarlar,
   };
@@ -484,7 +504,7 @@ async function yaz(tx: Tx, icerik: PaketIcerigi, kuranId: string | null, simdi: 
 }
 
 export type KaldirmaRaporu = { paketId: string; arsivlenen: {
-  surumler: number; cerceveSurumleri: number; turler: number; yukumlulukler: number; sozluk: number; oznitelikler: number; formlar: number; raporlar: number } };
+  surumler: number; cerceveSurumleri: number; turler: number; yukumlulukler: number; sozluk: number; oznitelikler: number; formlar: number; raporlar: number; roller: number } };
 export type KaldirmaSonucu = ({ ok: true } & KaldirmaRaporu) | { ok: false; hata: string };
 
 /** Kaldırma = arşiv. Hiçbir satır silinmez; aktif çerçeve sürümü taşıyan
@@ -526,8 +546,9 @@ export async function paketiKaldir(
     const oz = await tx.sektorOznitelikSemasi.updateMany({ where: { paketSurumId: { in: surumIdleri } }, data: { aktif: false } });
     const fr = await tx.formSablonu.updateMany({ where: { paketSurumId: { in: surumIdleri } }, data: { aktif: false } });
     const rp = await tx.raporSablonu.updateMany({ where: { paketSurumId: { in: surumIdleri } }, data: { aktif: false } });
+    const rl = await tx.rolKatalogu.updateMany({ where: { paketSurumId: { in: surumIdleri } }, data: { aktif: false } });
     const rapor: KaldirmaRaporu = { paketId: paket.id, arsivlenen: {
-      surumler: s.count, cerceveSurumleri: c.count, turler: t.count, yukumlulukler: y.count, sozluk: sz.count, oznitelikler: oz.count, formlar: fr.count, raporlar: rp.count } };
+      surumler: s.count, cerceveSurumleri: c.count, turler: t.count, yukumlulukler: y.count, sozluk: sz.count, oznitelikler: oz.count, formlar: fr.count, raporlar: rp.count, roller: rl.count } };
     if (secenekler.ayniIslemde) await secenekler.ayniIslemde(tx, rapor);
     return { ok: true, ...rapor };
   }, TX_SECENEK);

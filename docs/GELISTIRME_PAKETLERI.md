@@ -804,9 +804,16 @@ bunu kaynakta ölçer (`tests/bekci/aktif-suzgec.test.ts`, URN-PKT-011).
 dosyaya karşı okunur, telifli pakette XLSX yasak) ve rapor
 (`rapor/<KOD>.json`) şablonu türleri; `FormSablonu · RaporSablonu`
 katalogları (köken · aktif · uzlaştırma); ekranlar şablonu henüz okumaz
-(URN-PKT-012). Kalan: rol kataloğu, demo yükleyici, eşleme CSV,
-`/paketler` ekranı, OSCAL okuyucu (SCF için — hukuki görüş bekleniyor),
-form/rapor ekranlarının şablonu okuması.
+(URN-PKT-012). **2.3 uygulandı:** rol kataloğu (`roller.json`: modül ×
+işlem izinleri, kapsam ekseni; `RolKatalogu`, göç
+`20260909140000_p4_rol_katalogu`); çekirdek rol kodu paketle yeniden
+tanımlanamaz, izin merdiveni (onay → yazma → okuma) doğrulanır; çalışma
+zamanı yetkisi kataloğu OKUMAZ (paket önerir, kiracı karar verir; koda
+bağlanması P2/P6) — paket biçiminin modül · işlem · çekirdek rol sabitleri
+`lib/erisim.ts`e karşı derlemede ve bekçiyle ölçülür (URN-PKT-013). Kalan:
+demo yükleyici, eşleme CSV, `/paketler` ekranı, OSCAL okuyucu (SCF için —
+hukuki görüş bekleniyor), form/rapor ekranlarının şablonu okuması, rol
+önerisinin koda bağlanması.
 
 **Hedef.** Çerçeveler, eşlemeler, yükümlülükler, denetim form şablonları,
 mevzuat kaynak katalogları, sektör sözlükleri ve demo verisi **paket**

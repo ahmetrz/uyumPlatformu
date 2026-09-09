@@ -22,13 +22,15 @@ import { type Sonuc, hata, iz, bosluksuz } from './ortak';
 
 export type PaketKurSonucu = Sonuc | { ok: true; rapor: KurulumRaporu };
 
+/* İz gerekçesi raporun HER kalemini sayar — form/rapor (2.2) ve rol (2.3)
+   dâhil; sayılmayan kalem izde görünmez ve uzlaştırma sessiz kalırdı. */
 function kurulumGerekcesi(r: KurulumRaporu): string {
-  const p = r.pasiflestirilen;
-  const pasif = p.kapsamTurleri + p.yukumlulukler + p.cerceveSurumleri + p.sozluk + p.oznitelikler;
-  return `sözlük ${r.sayilar.sozluk} · tür ${r.sayilar.kapsamTurleri} · öznitelik ${r.sayilar.oznitelikler} · `
-    + `çerçeve ${r.sayilar.cerceveler} (${r.sayilar.maddeler} madde, TASLAK) · yükümlülük ${r.sayilar.yukumlulukler}`
+  const p = r.pasiflestirilen; const s = r.sayilar;
+  const pasif = p.kapsamTurleri + p.yukumlulukler + p.cerceveSurumleri + p.sozluk + p.oznitelikler + p.formlar + p.raporlar + p.roller;
+  return `sözlük ${s.sozluk} · tür ${s.kapsamTurleri} · öznitelik ${s.oznitelikler} · `
+    + `çerçeve ${s.cerceveler} (${s.maddeler} madde, TASLAK) · yükümlülük ${s.yukumlulukler} · form ${s.formlar} · rapor ${s.raporlar} · rol ${s.roller}`
     + (r.celiskiler.length ? ` · çelişki ${r.celiskiler.length} (kiracı satırı korundu)` : '')
-    + (pasif ? ` · uzlaştırma: tür ${p.kapsamTurleri}, yükümlülük ${p.yukumlulukler}, sözlük ${p.sozluk}, öznitelik ${p.oznitelikler} pasif; taslak sürüm ${p.cerceveSurumleri} arşiv`
+    + (pasif ? ` · uzlaştırma: tür ${p.kapsamTurleri}, yükümlülük ${p.yukumlulukler}, sözlük ${p.sozluk}, öznitelik ${p.oznitelikler}, form ${p.formlar}, rapor ${p.raporlar}, rol ${p.roller} pasif; taslak sürüm ${p.cerceveSurumleri} arşiv`
       + ((p.sozluk + p.oznitelikler) ? ` (${[...r.pasifAnahtarlar.sozluk, ...r.pasifAnahtarlar.oznitelikler].join(', ')})` : '') : '');
 }
 

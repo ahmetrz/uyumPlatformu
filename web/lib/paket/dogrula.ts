@@ -17,11 +17,12 @@ import type { ZodError } from 'zod';
 import * as XLSX from 'xlsx';
 import { OLGUNLUK_ASGARI, OLGUNLUK_AZAMI } from '../uyum/olgunluk';
 import {
-  BASLIK_SINIRI, CerceveKimligiSemasi, DIS_KIMLIK_SINIRI, DOSYALAR, FormSablonuSemasi, KapsamTuruSatiriSemasi, MADDE_SUTUNLARI,
-  MADDE_ZORUNLU_SUTUNLAR, ManifestSemasi, OLCU_ALANI, OZET_DISI, OZNITELIK_ROLLERI, OznitelikSatiriSemasi, RaporSablonuSemasi,
-  SozlukSatiriSemasi, YukumlulukSatiriSemasi, ZORUNLULUK_TIPLERI, csvAyristir, sha256,
+  BASLIK_SINIRI, CEKIRDEK_ROLLER, CerceveKimligiSemasi, DIS_KIMLIK_SINIRI, DOSYALAR, FormSablonuSemasi, ISLEM_ONKOSULU,
+  KapsamTuruSatiriSemasi, MADDE_SUTUNLARI, MADDE_ZORUNLU_SUTUNLAR, ManifestSemasi, OLCU_ALANI, OZET_DISI, OZNITELIK_ROLLERI,
+  OznitelikSatiriSemasi, RaporSablonuSemasi, RolSatiriSemasi, SozlukSatiriSemasi, YukumlulukSatiriSemasi, ZORUNLULUK_TIPLERI,
+  csvAyristir, sha256,
   type CerceveKimligi, type FormSablonu, type KapsamTuruSatiri, type MaddeSatiri, type Manifest, type OznitelikSatiri,
-  type RaporSablonu, type SozlukSatiri, type YukumlulukSatiri,
+  type RaporSablonu, type RolSatiri, type SozlukSatiri, type YukumlulukSatiri,
 } from './bicim';
 
 export type HataSinifi = 'BIÇIM' | 'KİMLİK' | 'SÖZLÜK' | 'ÖZNİTELİK' | 'LİSANS' | 'SÜRÜM' | 'KAPSAM TÜRÜ';
@@ -40,10 +41,11 @@ export type PaketIcerigi = {
   yukumlulukler: YukumlulukSatiri[];
   formlar: FormSablonu[];
   raporlar: RaporSablonu[];
+  roller: RolSatiri[];
 };
 export type Sayilar = {
   sozluk: number; kapsamTurleri: number; oznitelikler: number; cerceveler: number; maddeler: number; yukumlulukler: number;
-  formlar: number; raporlar: number;
+  formlar: number; raporlar: number; roller: number;
 };
 export type DogrulamaSonucu = {
   ok: boolean;
@@ -97,7 +99,7 @@ export function ozetleriHesapla(dizin: string): Record<string, string> {
   return ozetler;
 }
 
-const bos: Sayilar = { sozluk: 0, kapsamTurleri: 0, oznitelikler: 0, cerceveler: 0, maddeler: 0, yukumlulukler: 0, formlar: 0, raporlar: 0 };
+const bos: Sayilar = { sozluk: 0, kapsamTurleri: 0, oznitelikler: 0, cerceveler: 0, maddeler: 0, yukumlulukler: 0, formlar: 0, raporlar: 0, roller: 0 };
 
 export function paketiDogrula(dizin: string): DogrulamaSonucu {
   const hatalar: DogrulamaHatasi[] = [];
@@ -473,7 +475,7 @@ export function paketiDogrula(dizin: string): DogrulamaSonucu {
   const kimlikOkunamadi = cerceveJsonlari.length !== cerceveler.length;
   if (!kimlikOkunamadi) {
     const taninan = new Set<string>([
-      DOSYALAR.sozluk, DOSYALAR.kapsamTurleri, DOSYALAR.oznitelikler, DOSYALAR.yukumlulukler,
+      DOSYALAR.sozluk, DOSYALAR.kapsamTurleri, DOSYALAR.oznitelikler, DOSYALAR.yukumlulukler, DOSYALAR.roller,
       ...cerceveJsonlari.map((d) => `${DOSYALAR.cerceveDizini}/${d}`),
       ...cerceveler.map((c) => `${DOSYALAR.cerceveDizini}/${c.kimlik.maddeDosyasi}`),
       ...formDosyalari, ...raporDosyalari,
@@ -491,11 +493,43 @@ export function paketiDogrula(dizin: string): DogrulamaSonucu {
   const yukumlulukler = liste<YukumlulukSatiri>(DOSYALAR.yukumlulukler, YukumlulukSatiriSemasi, 'BIÇIM', 'yükümlülük satırı: kod · ad · regulasyonKod? · asgariSiddet · sureSaat · dayanak · merci');
   tekil(DOSYALAR.yukumlulukler, 'KİMLİK', yukumlulukler.map((y) => y.kod), 'yükümlülük kodu');
 
+  /* ── rol önerileri (2.3) — `roller.json` ──────────────────────────────
+     Paket rol ÖNERİR; çalışma zamanı yetkisi koddan okunur (bicim.ts).
+     Çekirdek rol kodu paketle yeniden tanımlanamaz: katalog "denetim
+     sorumlusu şunu yapar" derken kod başka şey yapardı — KİMLİK. İzin
+     merdiveni (onay → yazma → okuma) BIÇIM. Sektörsüz (yatay) paket de rol
+     önerebilir: rol sektöre bağlı değildir. */
+  const roller = liste<RolSatiri>(DOSYALAR.roller, RolSatiriSemasi, 'BIÇIM', 'rol satırı: kod (küçük harf) · ad · izinler {modül: [okuma|yazma|onay]} · kapsamEkseni (global|kapsamOgesi)');
+  tekil(DOSYALAR.roller, 'KİMLİK', roller.map((r) => r.kod), 'rol kodu');
+  roller.forEach((r, i) => {
+    const konum = `[${i}] ${r.kod}`;
+    if ((CEKIRDEK_ROLLER as readonly string[]).includes(r.kod)) {
+      hatalar.push({ sinif: 'KİMLİK', dosya: DOSYALAR.roller, konum, mesaj: `çekirdek rol kodu paketle yeniden tanımlanamaz: ${r.kod}`,
+        duzeltme: 'paket yeni bir rol önerir; çekirdek rolün izinleri koddadır (lib/erisim.ts)' });
+    }
+    const girdiler = Object.entries(r.izinler) as [string, readonly string[]][];
+    if (girdiler.length === 0) {
+      hatalar.push({ sinif: 'BIÇIM', dosya: DOSYALAR.roller, konum: `${konum}.izinler`, mesaj: 'izin yok — rol en az bir modülde bir işlem tanımlar',
+        duzeltme: '`izinler: { uyum: ["okuma"] }` gibi en az bir modül yazın' });
+    }
+    for (const [modul, islemler] of girdiler) {
+      const k = `${konum}.izinler.${modul}`;
+      const tekrar = [...new Set(islemler.filter((x, j) => islemler.indexOf(x) !== j))];
+      if (tekrar.length) hatalar.push({ sinif: 'BIÇIM', dosya: DOSYALAR.roller, konum: k, mesaj: `işlem tekrar ediyor: ${tekrar.join(', ')}`, duzeltme: 'her işlemi bir kez yazın' });
+      for (const [islem, onkosul] of Object.entries(ISLEM_ONKOSULU)) {
+        if (onkosul && islemler.includes(islem) && !islemler.includes(onkosul)) {
+          hatalar.push({ sinif: 'BIÇIM', dosya: DOSYALAR.roller, konum: k, mesaj: `${islem} ${onkosul} ister (izin merdiveni: okuma → yazma → onay)`,
+            duzeltme: `"${onkosul}" ekleyin ya da "${islem}" işlemini kaldırın` });
+        }
+      }
+    }
+  });
+
   const sayilar: Sayilar = {
     sozluk: sozluk.length, kapsamTurleri: kapsamTurleri.length, oznitelikler: oznitelikler.length,
     cerceveler: cerceveler.length, maddeler: cerceveler.reduce((a, c) => a + c.maddeler.length, 0), yukumlulukler: yukumlulukler.length,
-    formlar: formlar.length, raporlar: raporlar.length,
+    formlar: formlar.length, raporlar: raporlar.length, roller: roller.length,
   };
-  const icerik: PaketIcerigi = { dizin, manifest, sozluk, kapsamTurleri, oznitelikler, cerceveler, yukumlulukler, formlar, raporlar };
+  const icerik: PaketIcerigi = { dizin, manifest, sozluk, kapsamTurleri, oznitelikler, cerceveler, yukumlulukler, formlar, raporlar, roller };
   return { ok: hatalar.length === 0, hatalar, icerik: hatalar.length === 0 ? icerik : null, sayilar };
 }

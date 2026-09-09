@@ -6,9 +6,11 @@ buradan doğrular (`npm run paket:dogrula -- paketler/<KOD>`). Sözleşme
 
 Paket **veri** getirir, kod getirmez. Çekirdeğe giren tek şey satırdır:
 `SektorSozlugu` · `KapsamOgesiTuru` · `SektorOznitelikSemasi` · `Regulasyon` +
-`FrameworkSurumu` (**taslak**) + `Madde` · `BildirimYukumlulugu`. Çerçeveyi
-aktifleştirmek insan kararıdır (`surumAktiflestir`); kurucu hiçbir sürümü
-aktif yapmaz, hiçbir madde durumu yazmaz.
+`FrameworkSurumu` (**taslak**) + `Madde` · `BildirimYukumlulugu` ·
+`FormSablonu` · `RaporSablonu` · `RolKatalogu` (2.2–2.3; ekranlar şablonu,
+çalışma zamanı yetkisi rol kataloğunu henüz okumaz — katalog öneridir).
+Çerçeveyi aktifleştirmek insan kararıdır (`surumAktiflestir`); kurucu
+hiçbir sürümü aktif yapmaz, hiçbir madde durumu yazmaz.
 
 ## Dosyalar
 
@@ -33,6 +35,7 @@ kurulamaz.
 | `yukumlulukler.json` | JSON dizi | `kod · ad · regulasyonKod? · asgariSiddet · sureSaat · dayanak · merci` |
 | `form/<KOD>.json` | JSON | denetim formu şablonu: `kod · ad · tur (denetim · oz_degerlendirme · saha) · bolumler[{kod, baslik, alanlar[{anahtar, etiket ≤ 120, tip (metin · sayi · mantik · tarih · secim), secenekler?, maddeKod?, zorunlu, hucre?}]}]`; isteğe bağlı `dosya` (aynı dizinde XLSX) + `sayfa`: doğrulayıcı sayfayı ve her alanın hücresini DOSYAYA karşı okur. **Telifli pakette XLSX yasak** (hücre metni denetlenemez). Dosya adı = kod |
 | `rapor/<KOD>.json` | JSON | rapor şablonu: `kod · ad · alanlar[{anahtar, etiket, kaynak (nokta yolu: madde.durum)}] · siralama (alanların permütasyonu) · kunye {baslik, altbilgi?} · sayfa {boyut A4/Letter, yon dikey/yatay}`. Dosya adı = kod |
+| `roller.json` | JSON dizi | rol önerisi: `kod (küçük harf) · ad · aciklama? · izinler {modül: [okuma · yazma · onay]} · kapsamEkseni (global · kapsamOgesi) · sira` — modül adları `uyum · envanter · risk · denetim · proje · tanimlar · yonetim`; çekirdek rol kodu (`yonetici`, `denetim_sorumlusu`, `tesis_yoneticisi`, `bt_yoneticisi`, `ot_yoneticisi`, `risk_sahibi`, `katkici`, `dis_denetci`, `okuyucu`) yeniden tanımlanamaz; `onay` `yazma` ister, `yazma` `okuma` ister. **Çalışma zamanı yetkisi kataloğu okumaz**: paket önerir, kiracı karar verir |
 
 ## Lisans sınırı — alanda, yorumda değil
 
@@ -80,7 +83,8 @@ içerikle geri kurulunca arşivdeki kendi taslağı taslağa döner; yeni etiket
 istenmez.
 
 **Yükseltme uzlaştırması.** Yeni sürümün artık beyan etmediği paket
-kökenli tür, yükümlülük, sözlük satırı ve öznitelik `aktif=false` olur,
+kökenli tür, yükümlülük, sözlük satırı, öznitelik, form/rapor şablonu ve
+rol önerisi `aktif=false` olur,
 paketin kendi taslak çerçeve sürümü `arsiv`e çekilir — hiçbiri silinmez
 (R-C). Pasifleşen sözlük/öznitelik anahtarları kurulum raporunda
 `pasifAnahtarlar` altında listelenir; ekran pasif sözcüğü söylemez, pasif
@@ -92,8 +96,8 @@ ile iz kaydı aynı transaction'dadır: iz yazılamazsa işlem de geri alınır.
 
 | Paket | Durum | İçerik |
 | --- | --- | --- |
-| `TR-ENERJI` | **iskelet** (0.1.0) | sözlük (tohumla birebir), `kontrol_sistemi` türü, 12 öznitelik, `EPDK-SGYM` yönetmelik yapısı (4 bölüm, 18 + 1 geçici madde başlığı), `EPDK-SGYM-EK3` (13 aile, 565 kontrol kimliği ve seviyesi) — **madde metni yok** |
-| `TR-BANKACILIK` | **iskelet** (0.1.0) | 4 kapsam öğesi türü, 7 öznitelik, `BDDK-BS` yapısı (4 kısım, 7 bölüm, 47 madde numarası) — başlıklar birincil metin erişilince; **madde metni yok** |
+| `TR-ENERJI` | **iskelet** (0.1.0) | sözlük (tohumla birebir), `kontrol_sistemi` türü, 12 öznitelik, `EPDK-SGYM` yönetmelik yapısı (4 bölüm, 18 + 1 geçici madde başlığı), `EPDK-SGYM-EK3` (13 aile, 565 kontrol kimliği ve seviyesi), `EPDK-SGYM-KARNE` rapor şablonu, 2 rol önerisi — **madde metni yok** |
+| `TR-BANKACILIK` | **iskelet** (0.1.0) | 4 kapsam öğesi türü, 7 öznitelik, `BDDK-BS` yapısı (4 kısım, 7 bölüm, 47 madde numarası), `BDDK-BS-OZDEGERLENDIRME` form şablonu (JSON yapı), 3 rol önerisi — başlıklar birincil metin erişilince; **madde metni yok** |
 
 Madde metni aktarımı **içerik işidir** (`docs/TR_SEKTOR_PAKETLERI.md` §4);
 telifli çerçeve metni depoya girmez; Türkçe SCF dağıtımına bağlı hiçbir

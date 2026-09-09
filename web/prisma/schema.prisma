@@ -4284,3 +4284,28 @@ model RaporSablonu {
 
   sektor Sektor? @relation(fields: [sektorId], references: [id])
 }
+
+/// P4 · 2.3 — ROL KATALOĞU (§1/8). Roller bugüne kadar KODDU
+/// (`lib/erisim.ts` ROL_IZINLERI · `lib/sabitler.ts` ROLLER); sektör paketi
+/// rol ÖNERİR: kod, ad, modül × işlem izinleri (JSON), kapsam ekseni.
+/// ÇALIŞMA ZAMANI YETKİSİ BU TABLOYU OKUMAZ — `izinVar` kod sabitinden
+/// karar verir; katalog öneri ve ekran (`/paketler`) içindir, kiracı ezer;
+/// koda bağlanması P2/P6 kararıdır. Çekirdek rol kodu paketle yeniden
+/// tanımlanamaz (doğrulayıcı KİMLİK). Köken · aktif · paketSurumId öbür
+/// paket tablolarıyla aynı sözleşme: kiracı satırı ezilmez, bırakılan
+/// satır pasif, silme yok (R-C).
+model RolKatalogu {
+  id           String   @id @default(cuid())
+  kod          String   @unique // ic_kontrol_gorevlisi
+  ad           String
+  aciklama     String?
+  /// { "denetim": ["okuma","yazma","onay"] } — modül ve işlem adları lib/erisim.ts ile aynı
+  izinlerJson  String
+  kapsamEkseni String   @default("global") // global | kapsamOgesi
+  sira         Int      @default(0)
+  aktif        Boolean  @default(true)
+  koken        String   @default("kiraci")
+  paketSurumId String?
+  olusturuldu  DateTime @default(now())
+  guncellendi  DateTime @updatedAt
+}

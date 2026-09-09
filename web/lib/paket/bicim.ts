@@ -2,9 +2,9 @@
    `docs/SEKTOR_PAKETI_SOZLESMESI.md` §1–§4'ün koddaki karşılığı. Paket bir
    DİZİNDİR: `manifest.json` + içerik dosyaları. Kod bilmeyen biri
    yazabilsin diye biçim üçtür — JSON (manifest, sözlük, türler,
-   öznitelikler, yükümlülükler), CSV (madde ağacı; Excel'de açılır, UTF-8,
-   `;` ayraç, başlık satırı zorunlu), XLSX (form şablonu — P4'ün sonraki
-   dilimi).
+   öznitelikler, yükümlülükler, roller, form ve rapor şablonu), CSV (madde
+   ağacı; Excel'de açılır, UTF-8, `;` ayraç, başlık satırı zorunlu), XLSX
+   (form şablonu, 2.2).
 
    Bu modül SAFTIR: dosya sistemi ve veritabanı bilmez; şemalar ve
    ayrıştırıcılar `dogrula.ts` (okur/doğrular) ile `kur.ts` (yazar)
@@ -12,6 +12,7 @@
    hatası (`tesiseBagli` yerine `tesisebagli`) sessizce yutulmaz. */
 import { createHash } from 'node:crypto';
 import { z } from 'zod';
+import type { Islem, Modul } from '../erisim';
 
 export const PAKET_TURLERI = ['sektor', 'yatay', 'demo', 'uluslararasi'] as const;
 export const LISANS_TURLERI = ['kamuya_acik', 'telifli'] as const;
@@ -218,12 +219,50 @@ export const RaporSablonuSemasi = z.object({
 }).strict();
 export type RaporSablonu = z.infer<typeof RaporSablonuSemasi>;
 
+/* ── 2.3 · Rol kataloğu (§1/8) ─────────────────────────────────────────
+   `roller.json` — paket rol ÖNERİR: kod, ad, modül × işlem izinleri,
+   kapsam ekseni. Çalışma zamanı yetkisi (`lib/erisim.ts` → ROL_IZINLERI)
+   bu kataloğu OKUMAZ: katalog öneri ve ekran içindir, kiracı ezer; koda
+   bağlanması P2/P6 kararıdır. Çekirdek rol kodu paketle yeniden
+   tanımlanamaz (katalog bir şey, kod başka şey derdi). İzin merdiveni:
+   onay yazma ister, yazma okuma ister — çekirdek roller de buna uyar.
+
+   Modül ve işlem listeleri çekirdeğin tipine karşı DERLEMEDE doğrulanır
+   (`Record<Modul, true>`: eksik ya da fazla üye tsc'de kırmızı) ve
+   çalışma zamanında bekçiyle (`tests/bekci/rol-sabitleri.test.ts`,
+   ROL_IZINLERI'ne karşı). `erisim.ts` server-only'dir; yazar aracı (tsx)
+   onu yükleyemez — `import type` derlemede silinir. */
+const MODUL_KUMESI: Record<Modul, true> = { uyum: true, envanter: true, risk: true, denetim: true, proje: true, tanimlar: true, yonetim: true };
+const ISLEM_KUMESI: Record<Islem, true> = { okuma: true, yazma: true, onay: true };
+export const MODULLER = Object.keys(MODUL_KUMESI) as readonly Modul[];
+export const ISLEMLER = Object.keys(ISLEM_KUMESI) as readonly Islem[];
+/** İzin merdiveni: işlem → ön koşulu (onay yazma ister, yazma okuma ister). */
+export const ISLEM_ONKOSULU: Record<Islem, Islem | null> = { okuma: null, yazma: 'okuma', onay: 'yazma' };
+/** Çekirdek rol kodları — `ROL_IZINLERI` anahtarlarıyla birebir (bekçi). Paket bunları yeniden tanımlayamaz. */
+export const CEKIRDEK_ROLLER = [
+  'yonetici', 'denetim_sorumlusu', 'tesis_yoneticisi', 'bt_yoneticisi', 'ot_yoneticisi', 'risk_sahibi', 'katkici', 'dis_denetci', 'okuyucu',
+] as const;
+/** global: yetki kapsamsız verilir · kapsamOgesi: yetki bir kapsam öğesine verilir (`Yetki.kapsamOgesiId`). */
+export const KAPSAM_EKSENLERI = ['global', 'kapsamOgesi'] as const;
+
+export const RolSatiriSemasi = z.object({
+  kod: z.string().regex(TUR_KODU, 'rol kodu küçük harf ve alt çizgi: ic_kontrol_gorevlisi'),
+  ad: z.string().min(2).max(80),
+  aciklama: z.string().max(300).optional(),
+  /** modül → işlem listesi; bilinmeyen modül ya da işlem BIÇIM */
+  izinler: z.partialRecord(z.enum(MODULLER), z.array(z.enum(ISLEMLER)).min(1, 'modülde en az bir işlem')),
+  kapsamEkseni: z.enum(KAPSAM_EKSENLERI).default('global'),
+  sira: z.number().int().min(0).default(0),
+}).strict();
+export type RolSatiri = z.infer<typeof RolSatiriSemasi>;
+
 export const DOSYALAR = {
   manifest: 'manifest.json',
   sozluk: 'sozluk.json',
   kapsamTurleri: 'kapsam-turleri.json',
   oznitelikler: 'oznitelikler.json',
   yukumlulukler: 'yukumlulukler.json',
+  roller: 'roller.json',
   cerceveDizini: 'cerceve',
   formDizini: 'form',
   raporDizini: 'rapor',

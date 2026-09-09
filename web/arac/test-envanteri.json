@@ -1,7 +1,7 @@
 {
-  "imza": "51dd43129b45c827a78af7f21787262a",
-  "dosya": 178,
-  "vaka": 3388,
+  "imza": "ad06afe323f9de7f9edb7ee6b3adf13d",
+  "dosya": 180,
+  "vaka": 3399,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -73,6 +73,10 @@
       "atlanan": 0
     },
     "tests/bekci/paket-silme.test.ts": {
+      "vaka": 5,
+      "atlanan": 0
+    },
+    "tests/bekci/rol-sabitleri.test.ts": {
       "vaka": 5,
       "atlanan": 0
     },
@@ -498,6 +502,10 @@
     },
     "tests/paket-kur.test.ts": {
       "vaka": 22,
+      "atlanan": 0
+    },
+    "tests/paket-rol.test.ts": {
+      "vaka": 6,
       "atlanan": 0
     },
     "tests/paket-sablon.test.ts": {

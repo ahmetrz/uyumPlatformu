@@ -402,6 +402,20 @@ export const URUNLESTIRME_SENARYOLARI: Senaryo[] = [
     katmanlar: ['DOMAIN', 'SERVER', 'INTEGRATION'],
   },
   {
+    id: 'URN-PKT-013', alan: 'Ürünleştirme', rota: '—', eksen: 'veri',
+    amac: 'Rol önerilerinin paketle gelmesi: modül × işlem izinleri ve kapsam ekseni doğrulanır, katalogda köken ve aktif; çalışma zamanı yetkisi kataloğu okumaz',
+    rol: 'paket yazarı · tanımlar yazma yetkili', kapsam: '`roller.json` · RolKatalogu · lib/erisim.ts sabitleri',
+    onkosul: 'Rol satırı: kod (küçük harf), ad, izinler {modül: [okuma|yazma|onay]}, kapsamEkseni (global|kapsamOgesi); çekirdek rollerin izinleri koddadır',
+    veriHali: 'aykiri',
+    eylem: 'Tekrar kod, çekirdek rol kodu, bilinmeyen modül/işlem, boş izin, işlem tekrarı, merdiven ihlali (onay yazmasız, yazma okumasız), bilinmeyen eksen doğrulanır; '
+      + 'paket kurulur, kiracı rolü varken güncellenir, bir rolü bırakır, kaldırılır; paket rol koduyla yetki sorulur',
+    beklenenSonuc: 'Her kusur adıyla BIÇIM/KİMLİK; kurulan rol koken=paket, izinler JSON, eksen; kiracı rolü ezilmez (çelişki); bırakılan rol pasif (silme yok); kaldırma pasifler; '
+      + 'paket rol kodu taşıyan yetki çalışma zamanında izin VERMEZ (katalog öneri, kod karar); paket biçiminin modül · işlem · çekirdek rol sabitleri erisim.ts ile birebir ve çekirdek roller merdivene uyar (bekçi)',
+    beklenenEkran: 'Ekran yok — katalog; /paketler ekranı 2.6',
+    beklenenIz: 'kurulum izi sayılarla (rol dâhil)', beklenenBildirim: 'yok',
+    katmanlar: ['DOMAIN', 'SERVER', 'INTEGRATION'],
+  },
+  {
     id: 'URN-PKT-010', alan: 'Ürünleştirme', rota: '—', eksen: 'veri',
     amac: 'Paket işlemlerinin müşteri verisini SİLEMEMESİ (R-C): bekçi tavanı sıfır, gerekçeli istisna yok',
     rol: 'ürünü sürdüren geliştirici', kapsam: '`lib/paket/` · paket eylemleri · şema',

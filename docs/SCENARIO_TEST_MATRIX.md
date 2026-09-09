@@ -4,12 +4,12 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 309 |
-| Testi olan senaryo | 309 |
+| Senaryo | 310 |
+| Testi olan senaryo | 310 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
-| Taranan test dosyası | 178 |
+| Taranan test dosyası | 180 |
 
 ## Katman başına kapsam
 
@@ -18,14 +18,14 @@
 | ACCESSIBILITY | 8 | 8 | 0 |
 | API | 12 | 12 | 0 |
 | CONCURRENCY | 7 | 7 | 0 |
-| DOMAIN | 169 | 169 | 0 |
+| DOMAIN | 170 | 170 | 0 |
 | ENGINE | 33 | 33 | 0 |
-| INTEGRATION | 37 | 37 | 0 |
+| INTEGRATION | 38 | 38 | 0 |
 | MIGRATION | 5 | 5 | 0 |
 | RBAC | 32 | 32 | 0 |
 | RESPONSIVE | 8 | 8 | 0 |
 | SCOPE | 30 | 30 | 0 |
-| SERVER | 115 | 115 | 0 |
+| SERVER | 116 | 116 | 0 |
 | UI | 84 | 84 | 0 |
 | VISUAL | 4 | 4 | 0 |
 | WORKFLOW | 32 | 32 | 0 |
@@ -527,6 +527,16 @@
 | `URN-PKT-012` | Ürünleştirme | DOMAIN · SERVER · INTEGRATION | `paket-sablon.test.ts` | rapor: sıralama alanların permütasyonu olmalı; secim tipi seçenek ister | evet | geçti |
 | `URN-PKT-012` | Ürünleştirme | DOMAIN · SERVER · INTEGRATION | `paket-sablon.test.ts` | kopuk madde referansı KİMLİK ve hiçbir satır yazılmaz; çözülen referansla şablonlar koken=paket yazılır | evet | geçti |
 | `URN-PKT-012` | Ürünleştirme | DOMAIN · SERVER · INTEGRATION | `paket-sablon.test.ts` | kiracı şablonu ezilmez (çelişki); yükseltmede bırakılan şablon pasif; kaldırma pasifler | evet | geçti |
+| `URN-PKT-013` | Ürünleştirme | DOMAIN · SERVER · INTEGRATION | `bekci/rol-sabitleri.test.ts` | CEKIRDEK_ROLLER = ROL_IZINLERI anahtarları | evet | geçti |
+| `URN-PKT-013` | Ürünleştirme | DOMAIN · SERVER · INTEGRATION | `bekci/rol-sabitleri.test.ts` | MODULLER ve ISLEMLER çekirdeğin kullandığı kümeyle birebir — eksik de fazla da kırmızı | evet | geçti |
+| `URN-PKT-013` | Ürünleştirme | DOMAIN · SERVER · INTEGRATION | `bekci/rol-sabitleri.test.ts` | çekirdek roller izin merdivenine uyar: onay yazma ister, yazma okuma ister | evet | geçti |
+| `URN-PKT-013` | Ürünleştirme | DOMAIN · SERVER · INTEGRATION | `bekci/rol-sabitleri.test.ts` | ekranın seçtirdiği roller (sabitler.ROLLER) çekirdek rol kümesinin alt kümesi | evet | geçti |
+| `URN-PKT-013` | Ürünleştirme | DOMAIN · SERVER · INTEGRATION | `paket-rol.test.ts` | geçerli roller sayılır; kapsam ekseni ve sıra varsayılanı; sektörsüz (yatay) paket rol önerebilir | evet | geçti |
+| `URN-PKT-013` | Ürünleştirme | DOMAIN · SERVER · INTEGRATION | `paket-rol.test.ts` | tekrar eden kod ve ÇEKİRDEK rol kodu KİMLİK — paket yönetici/denetim sorumlusunu yeniden tanımlayamaz | evet | geçti |
+| `URN-PKT-013` | Ürünleştirme | DOMAIN · SERVER · INTEGRATION | `paket-rol.test.ts` | bilinmeyen modül, bilinmeyen işlem, boş izin, işlem tekrarı, bilinmeyen eksen BIÇIM | evet | geçti |
+| `URN-PKT-013` | Ürünleştirme | DOMAIN · SERVER · INTEGRATION | `paket-rol.test.ts` | izin merdiveni: onay yazma ister, yazma okuma ister | evet | geçti |
+| `URN-PKT-013` | Ürünleştirme | DOMAIN · SERVER · INTEGRATION | `paket-rol.test.ts` | roller koken=paket yazılır (izinler JSON, eksen, sıra); paket rol kodu çalışma zamanında izin VERMEZ — katalog öneri, kod karar | evet | geçti |
+| `URN-PKT-013` | Ürünleştirme | DOMAIN · SERVER · INTEGRATION | `paket-rol.test.ts` | kiracı rolü ezilmez (çelişki); bırakılan rol pasif, silinmez; yeniden beyan aktifler; kaldırma paket rollerini pasifler | evet | geçti |
 | `URN-PKT-010` | Ürünleştirme | DOMAIN | `bekci/paket-silme.test.ts` | madde dışında HİÇBİR modelde delete/deleteMany yok — tavan sıfır, istisna listesi yok | evet | geçti |
 | `URN-PKT-010` | Ürünleştirme | DOMAIN | `bekci/paket-silme.test.ts` | madde silmesi yalnız paketin kendi taslağını (`surumId` süzgeci) hedefler ve bağ kontrolünden sonra gelir | evet | geçti |
 | `URN-PKT-010` | Ürünleştirme | DOMAIN | `bekci/paket-silme.test.ts` | şemada Madde\'den başka modele giden HER liste ilişkisi bağ kontrolünde; listede şemada olmayan ilişki yok | evet | geçti |

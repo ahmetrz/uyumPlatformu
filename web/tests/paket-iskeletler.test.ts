@@ -34,14 +34,14 @@ describe('iskelet paketler doğrulayıcıdan geçer [URN-PKT-005]', () => {
   it('TR-ENERJI: 0 hata; sayılar; özetler dosyalarla eşit', () => {
     const s = paketiDogrula(ENERJI);
     expect(s.hatalar.map(hataSatiri)).toEqual([]);
-    expect(s.sayilar).toMatchObject({ sozluk: 17, kapsamTurleri: 1, oznitelikler: 12, cerceveler: 2, yukumlulukler: 0 });
+    expect(s.sayilar).toMatchObject({ sozluk: 17, kapsamTurleri: 1, oznitelikler: 12, cerceveler: 2, yukumlulukler: 0, roller: 2 });
     expect(s.icerik!.manifest.icerikOzetleri).toEqual(ozetleriHesapla(ENERJI));
   });
 
   it('TR-BANKACILIK: 0 hata; sayılar; özetler dosyalarla eşit', () => {
     const s = paketiDogrula(BANKA);
     expect(s.hatalar.map(hataSatiri)).toEqual([]);
-    expect(s.sayilar).toMatchObject({ sozluk: 15, kapsamTurleri: 4, oznitelikler: 7, cerceveler: 1, maddeler: 58, yukumlulukler: 0 });
+    expect(s.sayilar).toMatchObject({ sozluk: 15, kapsamTurleri: 4, oznitelikler: 7, cerceveler: 1, maddeler: 58, yukumlulukler: 0, roller: 3 });
     expect(s.icerik!.manifest.icerikOzetleri).toEqual(ozetleriHesapla(BANKA));
   });
 
@@ -120,7 +120,7 @@ describe('iskeletler taze veritabanına kurulur — taslak çerçeve, madde = CS
     // paketin tohumda olmayan satırları eklendi
     expect(s.rapor.sayilar.sozluk).toBe(17 - tohumSozluk);
     expect(s.rapor.sayilar.oznitelikler).toBe(12 - tohumOznitelik);
-    expect(s.rapor.sayilar).toMatchObject({ kapsamTurleri: 1, cerceveler: 2, maddeler: 601, formlar: 0, raporlar: 1 });
+    expect(s.rapor.sayilar).toMatchObject({ kapsamTurleri: 1, cerceveler: 2, maddeler: 601, formlar: 0, raporlar: 1, roller: 2 });
     expect(await db.raporSablonu.findUniqueOrThrow({ where: { kod: 'EPDK-SGYM-KARNE' } })).toMatchObject({ koken: 'paket', aktif: true });
     for (const t of s.rapor.taslakSurumler) {
       expect((await db.frameworkSurumu.findUniqueOrThrow({ where: { id: t.surumId } })).durum).toBe('taslak');
@@ -138,7 +138,7 @@ describe('iskeletler taze veritabanına kurulur — taslak çerçeve, madde = CS
     const s = await paketiKur(BANKA, { kuranId, istemci: db });
     expect(s.ok, JSON.stringify(s)).toBe(true);
     if (!s.ok) return;
-    expect(s.rapor.sayilar).toEqual({ sozluk: 15, kapsamTurleri: 4, oznitelikler: 7, cerceveler: 1, maddeler: 58, yukumlulukler: 0, formlar: 1, raporlar: 0 });
+    expect(s.rapor.sayilar).toEqual({ sozluk: 15, kapsamTurleri: 4, oznitelikler: 7, cerceveler: 1, maddeler: 58, yukumlulukler: 0, formlar: 1, raporlar: 0, roller: 3 });
     // 2.2: iskelet form şablonu katalogda, köken paket, madde referansları çözülmüş
     const form = await db.formSablonu.findUniqueOrThrow({ where: { kod: 'BDDK-BS-OZDEGERLENDIRME' } });
     expect(form).toMatchObject({ koken: 'paket', aktif: true, dosyaAdi: null, paketSurumId: s.rapor.surumId });

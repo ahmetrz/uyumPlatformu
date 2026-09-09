@@ -69,7 +69,7 @@ girebilir.** Şu şartlarla:
    otomasyonu, kimlik taklidi, oran sınırı zorlaması **yapılmaz**.
 4. Kaynak başına günde en fazla **1** istek; `User-Agent` ürün adını ve
    iletişim adresi yer tutucusunu (`<<KURULUMDA-DOLDURULACAK>>`) taşır.
-5. Testler ağa **çıkmaz**; her kaynak için fikstür (`tests/fikstur/`)
+5. Testler ağa **çıkmaz**; her kaynak için fikstür (`tests/fixture/`)
    kullanılır. Ağ çağrısı yapan test kırmızıdır.
 6. Alınan içerik saklanır (özet + metin parçası); ürün asla "değişiklik
    yok" **yargısı** yazmaz — "son tarama: <tarih>, fark bulunmadı" yazar.
@@ -149,6 +149,39 @@ ile kararlaştırılır.
 
 ---
 
+## 1.1 Bugünkü durum — ölçüldü (9 Eylül 2026)
+
+Aşağıdaki satırlar **koddan** ölçülmüştür; her biri hangi commit ya da
+PR ile kapandığını söyler. Bu tablo yol haritasının tek "biten" beyanıdır:
+paket başlıklarındaki "Bugün" paragrafları ayrıntıyı taşır.
+
+| Paket | Durum | Kanıt (kod) | Kapanış |
+| --- | --- | --- | --- |
+| **P0 · Kurgu ve ad** | **bitti** | ürün adı tek kaynak `web/lib/marka.ts`; marka kapısı `web/arac/marka-kapisi.mjs` CI'da bloklayıcı | `14f27fc` → `a640c0f` |
+| **P1 · Sektörsüz alan modeli ve terim sözlüğü** | **bitti** | `web/lib/dil/` (terim katmanı, `SozlukSaglayici`), `SektorSozlugu`, öznitelik satırı (`TesisOzellik`); sektör terimi bekçisi cırcırlı | `a640c0f` · PR #40 (`bdbd808` NULL sınıfı) |
+| **B1+B2 · Kapsam öğesi ve öznitelik şeması** | **bitti** | `KapsamOgesi` + `KapsamOgesiTuru`, `SektorOznitelikSemasi`; bekçiler `sema-sektorsuz` · `kapsam-omurga`; enerji–su parite kanıtı `docs/kanit/faz-b-k4/` | `141bf99` · PR #38 · #39 |
+| **P4 · İçerik paketi mimarisi** | **bitti** | `web/lib/paket/` (biçim · doğrulayıcı · kurucu · OSCAL), `/paketler` ekranı, `IcerikPaketi*` katalogları, beş paket dizini | `98b50c6` → `c31ee45` · PR #41 · #43 |
+| **P8 · Demo verisi** | **bitti (kurgusal ad kısmı)** | tohum paketlerden kurulur (`DEMO-TR-ORTAK · DEMO-TR-ENERJI · DEMO-TR-SU`); kurgusal ad bekçisi `prisma/kurgusal-adlar.ts` | `a100df8` (kurgusal ad) · `16d20fd` (paket biçimi) |
+| **Kapı altyapısı** | **bitti ve büyüyor** | 20 kapı (PR kapısından türetilir, `npm run kapi:parti`), 60 araç betiği, göç zinciri kapısı (`kapi:goc-zinciri`) | `5928944` · PR #43 |
+| **TR-ENERJI içeriği** | **kısmen** — yönetmelik + Ek-3 tam metin (601 madde), kalan 6 ek yok | `web/paketler/TR-ENERJI` | `9535808` · PR #43 |
+
+Ölçüm tabanı (aynı gün): **3 467 test vakası · 189 dosya · 319 senaryo ·
+GAP 0 · 51 göç · şema farkı 0 · 157 model · 20 kapı**.
+
+**Kardeş belgelerdeki bayat sayılar (9 Eyl 2026'da ölçüldü, düzeltilecek):**
+`docs/GELISTIRME_PAKETLERI_DURUM.md` 139 dosya · 2 903 vaka · 273 senaryo
+der (bugün 189 · 3 467 · 319) ve "33 göç" der (bugün 51);
+`docs/POSTGRES_READINESS.md` "dört tetikleyici" der (bugün 6) ve altı
+nullable tekillik sayar (bugün 8), `schema.prisma` satır atıflarının
+**altısı da** kaymış (B1 sonrası `Yetki` kısıtı `tesisId` değil
+`kapsamOgesiId`). Bu iki belge kendi paketlerinde (R5 · kalite) tazelenir;
+yol haritası onların sayısını **tekrar etmez**.
+
+**Bitmemiş olanın adı burada geçmez.** Kalan iş §7'de üç kümede durur:
+İÇERİK · TESLİM · SATIŞ.
+
+---
+
 ## 2. Dalga 0 — Ürünleştirme temeli (sektör ve ülke bağımsızlık)
 
 Amaç: ürünü tek kurumdan çok kiracılı, tek sektörden sözlük/paket
@@ -160,15 +193,12 @@ paket formatında kalır (`manifest.ulke`), ama v1'de yalnız TR paketleri
 yazılır; konumlandırma "GRC platformu" değil, mevzuatın adıyladır
 (`docs/URUN_VIZYONU.md` §5, `docs/TR_SEKTOR_PAKETLERI.md`).
 
-**KALAN (v1 yolu), sırayla:** P0 ✓ → P1 ✓ → **B1/B2** (kapsam öğesi
-soyutlaması + sektörsüz çekirdek; PR açık) → **P4 — tek ülke, çok
-sektör** (paket okuyucu; kapsam türleri ve öznitelikler paketten; form ve
-rapor şablonu; rol kataloğu) → **TR paketleri** (`TR-ENERJI` önce, sonra
-yatay `TR-KAMU-KRITIK` + `TR-KVKK`, ardından `TR-ODEME` · `TR-HABERLESME`
-· `TR-BANKACILIK` · `TR-SERMAYE` — sıra ve ölçüm
-`docs/TR_SEKTOR_PAKETLERI.md` §5) → **R1** (TR kaynak kataloğu ile mevzuat
-radarı). P8 (demo verisi) TR paketleriyle birlikte; R5 · P6 · P7 (PG,
-kimlik, on-prem dağıtım) kiracı ihtiyacına göre v1 yanında; P9 sonra.
+**KALAN (v1 yolu) — 9 Eylül 2026'da yeniden kümelendi.** P0 · P1 ·
+B1/B2 · P4 · P8 **bitti** (ölçüm ve commit'ler §1.1). Kalan iş artık
+dalga sırasıyla değil, ilk müşteriye göre üç kümede durur — **A İÇERİK ·
+B TESLİM · C SATIŞ** (§7); asgari kesişim
+`docs/ILK_MUSTERI_ASGARI_KUME.md`. Bu paragrafın eski sırası (§7 sonunda
+kayıt için duruyor) bitmiş işleri taşıdığı için yanıltıcıydı.
 
 **ERTELENEN (v1 dışı) — tek satır gerekçeyle:**
 
@@ -1065,7 +1095,9 @@ kayıtları mevcut kurgusal içerikten taşınır. `DEMO-TR-SU` (ya da
 kullanıcının seçtiği sektör): 3 tesis, 20 varlık, 1 çerçeve, sözlük
 farkı görünür. Statik demo iki kiracı arasında salt okunur geçiş.
 Bekçi test: seed/paket dosyalarında "Demo", "Saha A", gerçek
-santral adları geçmez (liste `tests/bekci/gercek-ad.json`).
+santral adları geçmez. **Uygulandı (P8 · 8 Eyl 2026):** liste dosya
+değil, kod sabiti — `prisma/kurgusal-adlar.ts` (bekçi
+`tests/bekci/kurgusal-adlar.test.ts`).
 
 **Kapsam dışı.** Demo'nun gerçek kurulumu için veri (o kurulumda, bu
 depoda değil).
@@ -2122,30 +2154,86 @@ birlikte ele alınır:
 
 ---
 
-## 7. Bağımlılık ve önerilen sıra
+## 7. Kalan iş — üç küme (yeniden yazıldı, 9 Eylül 2026)
+
+Yol haritası "dalga" diliyle yazılmıştı; dalga sırası kod ilerledikçe
+gerçeği anlatmaz oldu. Kalan iş bugün **ilk müşteriye göre** üç kümededir.
+Her kalemin büyüklüğü ÖLÇÜLMÜŞTÜR (dosya sayısı ya da içerik hacmi);
+tahmin yazılmamıştır. Kümelerin ilk müşteri için asgari olanı
+`docs/ILK_MUSTERI_ASGARI_KUME.md`'de tek sayfada durur.
+
+### A · İÇERİK — ürünü "kutudan çıktığı gibi hazır" yapan
+
+| Kalem | Ölçülmüş büyüklük | Bugün nerede |
+| --- | --- | --- |
+| **TR-ENERJI · kalan 6 EPDK eki** | **3 126 kontrol** (Ek-1 476 · Ek-2 505 · Ek-4 552 · Ek-5 551 · Ek-6 578 · Ek-7 464; §4 tablosu) | Ek-3 (565) aktarıldı; aynı XLSX yolu, şema göçü gerekmez |
+| **TR-ENERJI · yükümlülükler** | `yukumlulukler.json` bugün `[]` — 7545 sayılı Kanun + EPDK SOME süreleri | R10'un girdisi |
+| **TR-BANKACILIK içeriği** | **58 madde iskelet, metin YOK**; BDDK hedefi §4'te "47 madde, birincil erişim ön koşul" | kaynak erişimi ölçülmedi (mevzuat.gov.tr HTTP 000) |
+| **KVKK (yatay paket)** | depoda KVKK içeriği YOK; R15 modülü ayrı | 6698 metni kamuya açık; paket biçimi hazır |
+| **R1 · mevzuat radarı** | kaynak kataloğu paket biçiminde (`RegulasyonKaynagi` var), motor ve ekran yok | değişikliği yakalayan tek şey bugün insandır |
+
+**Neden bu küme önce:** paket mimarisi bitti (P4); ürünün eksiği artık
+**mimari değil içerik**. İçeriksiz bir uyum ürünü, müşterinin kendi
+Excel'inden daha az şey bilir.
+
+### B · TESLİM — ürünü müşteri sunucusunda çalıştıran
+
+| Kalem | Ölçülmüş büyüklük | Bugün nerede |
+| --- | --- | --- |
+| **R5 · PostgreSQL** | **11 SQLite bağımlılığı** (`docs/POSTGRES_READINESS.md`), **ikisi sessizce yanlış**; 6 ham SQL tetikleyici; 189 test dosyasının izolasyonu dosya kopyasına dayanır | `datasource` SQLite; göç zinciri kapısı hazır (iki sağlayıcıda da koşar) |
+| **P7 · dağıtım** | `deploy/` **yok** · `docs/KURULUM.md` **yok** · sağlık ucu **yok** (10 API ucu var, hepsi `route.api.ts`); S3 · Redis · kuyruk · Vault kayıtlı ama bağlı değil | statik demo derlemesi var ve CI'da koşuyor |
+| **R3 · yedek + kanıt** | `arac/yedek.mjs` 170 satır, **yalnız veritabanı** (`VACUUM INTO`); kanıt dosyaları artık **yazılıyor** (`eylemler2/kanit.ts` → `depoAnahtari` + `dosyaHash`) ama yedeğe girmiyor; hem araç hem `docs/URUN_YEDEKLEME.md` (satır 26 · 29 · 30 · 144) hâlâ "dosya yok" diyor | depo `lib/uyum/kanitDeposu.ts` 145 satır, içerik adresli, MIME izin listeli |
+| **P6 · kimlik (SSO/MFA)** | yerel hesap + oturum + oran sınırı var; **OIDC ve TOTP yok** | `Connector.kimlikTipi` OAuth2 tanıyor, ürün girişi tanımıyor |
+| **P2 · çok kiracılılık (yalnız SaaS tarafı)** | şemada **`kiraciId` taşıyan model 0 / 157**; `Kiraci` modeli yok | tek kurulum tek kiracı; RLS P2 ile gelir |
+
+**Neden bu küme:** ilk müşteri kurulumu bu kümenin ilk üçü olmadan
+yapılamaz. P6 ve P2 müşterinin şartına bağlıdır (aşağıda koşul).
+
+### C · SATIŞ — ürünü denetimde ve olayda kullanılır kılan
+
+| Kalem | Ölçülmüş büyüklük | Bugün nerede |
+| --- | --- | --- |
+| **R12 · denetim formları** | dışa aktarım **CSV** (`disaAktarim/csv.ts` 148 satır) + **JSON kanıt paketi** (`paket.ts` 668 satır); **PDF üreten kod yok**, **XLSX yalnız okunuyor**; `FormSablonu` · `RaporSablonu` katalogları var ama `app/` altında **sıfır atıf** — şablon tabloda durur, yüzeye çıkmaz | P4'ün bıraktığı tek boşluk + paket tarafı form dosyası |
+| **R10 · bildirim yükümlülüğü** | model · motor (`lib/uyum/bildirimSuresi.ts` 241 satır saf karar + `lib/motorlar/` DB katmanı) · **ekran zinciri TAM** (`/olaylar` üçlüsü çağırıyor); eksik olan **`BildirimKaydi` modeli** ve **içerik**: `yukumlulukler.json` iki sektör paketinde de `[]` | süre motoru "bildirildi" yazmaz — insan kararı korunur |
+
+### SONRAYA — koşulu yazılı erteleme
+
+Her satır "sonra bakılır" değil, **hangi koşul oluşunca gerekeceğini**
+söyler. Koşul oluşmadan açılan paket, ürünü değil yol haritasını büyütür.
+
+| Kalem | Hangi koşul oluşunca gerekir |
+| --- | --- |
+| **P3 · çok dil** | Arayüzü ikinci dilde isteyen bir kiracı sözleşmeye girdiğinde. Mesaj kataloğu 263+ dosyaya dokunur; ihtiyaç doğmadan ödenmez. |
+| **EU/US içerik paketleri** | Yurt dışında yükümlülüğü olan bir kiracı geldiğinde. Paket biçimi ülke boyutunu (`manifest.ulke`) zaten taşıyor; yalnız içerik yazılır. |
+| **R6 · SCF/STRM** | Telifli çerçeve içeriğinin hukuki durumu netleştiğinde. OSCAL okuyucu hazır (2.7), içerik yok — bu bir hukuk kararı, mühendislik kararı değil. |
+| **R7 · güvenlik duvarı kural analizi** | Müşteri firewall konfigürasyonunu vermeye razı olduğunda ve OT ağ topolojisi ürüne girdiğinde. |
+| **R8 · konfigürasyondan envanter** | Envanterin elle girilmesi müşteride darboğaz olduğunda (ilk kurulumda envanter zaten içe aktarımla gelir). |
+| **R9 · IEC 62443 SL-T/SL-A** | Müşteri 62443 sertifikasyonuna girdiğinde; bugün EPDK modeli seviyeyi kendi ölçeğiyle veriyor. |
+| **R11 · zafiyet/duyuru akışı** | Kurulum canlıya çıkıp bir bakım penceresi tanımlandığında; kaynaklar (USOM · CISA · NVD) kamuya açık ve `etkin=false` gelir. |
+| **R13 · parasal risk** | Müşteri üretim kaybı fiyatını (gizli veri) paylaşmayı kabul ettiğinde. |
+| **R14 · yapay zekâ yardımcısı** | Ürün canlıda çalışıp yeterli kanıt/karar verisi biriktiğinde; "motor önerir, insan karar verir" kuralı burada da geçerli. |
+| **R15 · KVKK modülü** | KVKK yükümlülüğü sözleşmede yer aldığında (yatay paket içeriği bu kümede A'ya girer, modül C'ye). |
+| **R16 · BIA / RTO-RPO** | Müşteri iş sürekliliği tatbikatını ürün üzerinden yürütmek istediğinde. |
+
+### Sıra ve bağımlılık
 
 ```
-v1 (TR + çok sektör, 8 Eyl 2026):
-          P0 ✓ ──► P1 ✓ ──► B1/B2 ──► P4 (tek ülke · çok sektör) ──► TR paketleri ──► R1
-          kurgu    model    kapsam öğesi  paket okuyucu · şablonlar     TR-ENERJI → yatay → diğerleri   TR radarı
-          yanında: P8 (TR paketleriyle) · R5 · P6 · P7 (kiracı ihtiyacına göre) · P9 (sonra)
-ERTELENEN (v1 dışı): P3 · EU/US içerik paketleri · P2'nin SaaS tarafı — gerekçeler §2
-
-Dalga 0 (eski sıra, kayıt): P0 ──► (R5 + P2) ──► P1 ──► P4 ──► P8 ──► P3 ──► P6 ──► P7 ──► P9
-
-Dalga 1:  R4 ──► R1 ──► R3 ──► R2          (P2, P4 üzerinde; R1 kataloğu P4 paketi; R2 içeriği TR paketlerinin içinde)
-Dalga 2:  R12 · R10 · R11 · R6 · R7 · R8 · R9   (R2/P4 içeriğiyle)
-Dalga 3:  R13 · R14 · R15 · R16              (R17 kapandı → Dalga 0)
-R0:       açık kalemler — P8 ile birlikte (koordinat, bayat belgeler)
+A · İÇERİK   TR-ENERJI kalan ekler ──► yükümlülükler ──► TR-BANKACILIK · KVKK ──► R1
+B · TESLİM   R5 (PostgreSQL) ──► P7 (dağıtım) ──► [P6 · P2 — müşteri şartına göre]
+             R3 (yedek + kanıt) ── bağımsız, paralel
+C · SATIŞ    R12 ──► R10        (A'nın içeriği üzerine oturur)
 ```
 
-**Erken değer için izinli kesişme:** P0 ve P2 bittiğinde R4 ve R1
-başlayabilir (kiracı bağlamıyla); R1'in kaynak kataloğu P4 tamamlanana
-kadar yerel `paket/` dizininden okunur. P1 (yeniden adlandırma) mümkün
-olduğunca **erken** yapılmalıdır — sonraki her paket "tesis/birim"
-diliyle yazılır.
+İlk müşteri için asgari kesişim: **A'nın TR-ENERJI kalemi + B'nin ilk
+üçü + C'nin R12'si** (`docs/ILK_MUSTERI_ASGARI_KUME.md`).
 
-Her paket **ayrı dal ve PR**: `paket/p2-kiracilik`, `paket/r1-mevzuat-radari`.
+**Eski dalga sırası (kayıt için):** Dalga 0 P0 → (R5 + P2) → P1 → P4 →
+P8 → P3 → P6 → P7 → P9; Dalga 1 R4 → R1 → R3 → R2; Dalga 2 R12 · R10 ·
+R11 · R6 · R7 · R8 · R9; Dalga 3 R13 · R14 · R15 · R16. Bu sıra
+**yanlış** değildi, **bitmiş işleri** taşıyordu: P0 · P1 · B1/B2 · P4 ·
+P8 kapandığı için kalan iş yeniden kümelendi (§1.1).
+
+Her paket **ayrı dal ve PR**: `paket/r5-postgres`, `paket/p7-dagitim`.
 Aynı anda en fazla bir paket açık. PR açıklaması: kabul kriterlerinin her
 biri için test adı; koşulan kapıların çıktısı; güncellenen belgeler;
 alınan kararlar.

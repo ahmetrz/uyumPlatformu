@@ -1,15 +1,29 @@
 /* Doğal kaydırma sonunda hit-testing serbest kalmalı (kesirli svh dâhil);
    yol boyunca sayfa yana kaymamalı ve aynı anda en fazla iki kare görünmeli. */
 import assert from 'node:assert/strict';
+import { mkdirSync } from 'node:fs';
 import { chromium } from 'playwright-core';
 import { KOK, tarayiciYolu } from './kosu-ortak.mjs';
 const browser = await chromium.launch({ executablePath: tarayiciYolu(), headless: true, args: ['--no-sandbox'] });
 try {
+  mkdirSync('/tmp/giris-inceleme', { recursive: true });
+  {
+    const context = await browser.newContext({ viewport: { width: 375, height: 480 }, reducedMotion: 'no-preference' });
+    const page = await context.newPage();
+    await page.goto(`${KOK}/giris`);
+    await page.locator('[data-mod="hareketli"]').waitFor();
+    const tempo = page.getByLabel('Yolculuk temposu');
+    const kutu = await tempo.boundingBox();
+    assert.ok(kutu && kutu.y >= 0 && kutu.y + kutu.height <= 480, `kısa ekranda tempo görünmüyor: ${JSON.stringify(kutu)}`);
+    await tempo.selectOption('0.72');
+    await context.close();
+  }
   for (const width of [375, 1440]) {
     const context = await browser.newContext({ viewport: { width, height: 936 }, reducedMotion: 'no-preference' });
     const page = await context.newPage();
     await page.goto(`${KOK}/giris`);
     await page.locator('[data-mod="hareketli"]').waitFor();
+    await page.screenshot({ path: `/tmp/giris-inceleme/${width}-baslangic.png` });
     const mesafe = await page.evaluate(() => parseFloat(document.querySelector('[data-mod="hareketli"]').style.getPropertyValue('--mesafe')));
     assert.ok(mesafe > 936 * 7, `kaydırma mesafesi kısa: ${mesafe}px`);
     /* Yol boyunca örnekle: yatay taşma yok, en fazla iki kare görünür, arayüz
@@ -24,15 +38,23 @@ try {
         const kareler = [...document.querySelectorAll('[data-kare]')].filter(k => getComputedStyle(k).visibility === 'visible' && parseFloat(getComputedStyle(k).opacity) > 0);
         const ui = document.querySelector('#platform-arayuzu');
         return { tasma: document.documentElement.scrollWidth - document.documentElement.clientWidth, gorunen: kareler.length,
+          altOpaklik: Number(kareler[0]?.style.opacity),
           inert: ui.inert, ilerleme: document.querySelector('[data-mod]').dataset.ilerleme, transform: kareler[0]?.style.transform };
       });
       assert.equal(durum.tasma, 0, `yatay taşma @${oran}: ${durum.tasma}px`);
       assert.ok(durum.gorunen >= 1 && durum.gorunen <= 2, `görünen kare @${oran}: ${durum.gorunen}`);
+      assert.equal(durum.altOpaklik, 1, `alt kare karardı @${oran}`);
       assert.equal(durum.inert, true, `arayüz erken serbest @${oran}`);
       await page.waitForTimeout(120);
       const sonra = await page.evaluate(() => document.querySelector('[data-kare="uzak"]').parentElement.querySelector('[data-kare][style*="visible"]')?.style.transform);
       assert.equal(sonra, durum.transform, `scroll dururken kare hareket etti @${oran}`);
+      if ([.27, .45, .7].includes(oran)) await page.screenshot({ path: `/tmp/giris-inceleme/${width}-${oran}.png` });
     }
+    const onceTempo = await page.locator('[data-mod="hareketli"]').getAttribute('data-ilerleme');
+    await page.getByLabel('Yolculuk temposu').selectOption('1.35');
+    await page.waitForTimeout(80);
+    const sonraTempo = await page.locator('[data-mod="hareketli"]').getAttribute('data-ilerleme');
+    assert.ok(Math.abs(Number(onceTempo) - Number(sonraTempo)) < .001, 'tempo kamera konumunu sıçrattı');
     await page.evaluate(() => {
       const root = document.querySelector('[data-mod="hareketli"]');
       window.scrollTo(0, root.getBoundingClientRect().top + window.scrollY + parseFloat(root.style.getPropertyValue('--mesafe')));

@@ -310,8 +310,13 @@ export function paketiDogrula(dizin: string): DogrulamaSonucu {
         const kod = sutun(satir, 'kod'); const ustKod = sutun(satir, 'ust_kod') || null; const baslik = sutun(satir, 'baslik');
         if (!kod) { hatalar.push({ sinif: 'KİMLİK', dosya: maddeDosya, konum: no, mesaj: 'kod boş', duzeltme: 'her satır tekil bir kod taşır' }); return; }
         if (gorulen.has(kod)) { hatalar.push({ sinif: 'KİMLİK', dosya: maddeDosya, konum: no, mesaj: `kod tekrar ediyor: ${kod}`, duzeltme: 'kodu değiştirin ya da satırı silin' }); return; }
-        gorulen.add(kod); // hatalı satırın kodu da görülmüş sayılır: sonraki tekrar yine yakalanır
-        if (ustKod && !gorulen.has(ustKod)) {
+        /* Üst madde, bu satırdan ÖNCEKİ satırlar arasında aranır — kendisi
+           dâhil değil: `ust_kod = kod` öz-referansı kabul edilip kurulumda
+           sessizce köke düşüyordu (inceleme bulgusu, PR #41). Hatalı satırın
+           kodu da görülmüş sayılır: sonraki tekrar yine yakalanır. */
+        const ustGecerli = !ustKod || (ustKod !== kod && gorulen.has(ustKod));
+        gorulen.add(kod);
+        if (!ustGecerli) {
           hatalar.push({ sinif: 'KİMLİK', dosya: maddeDosya, konum: no, mesaj: `"ust_kod" değeri "${ustKod}" bulunamadı`, duzeltme: 'üst madde satırı bu satırdan ÖNCE gelmeli' });
           return;
         }
@@ -346,6 +351,29 @@ export function paketiDogrula(dizin: string): DogrulamaSonucu {
     }
   }
   tekil(DOSYALAR.cerceveDizini, 'KİMLİK', cerceveler.map((c) => c.kimlik.kod), 'çerçeve kodu');
+
+  /* ── paket yapısında yeri olmayan dosya ─────────────────────────────
+     Özeti doğru olan ama hiçbir tanımlayıcının okumadığı dosya (örn.
+     `cerceve/tam-metin.csv`) lisans kontrolünden geçmeden pakette
+     TAŞINIRDI (inceleme bulgusu, PR #41). Tanınan yapı: sabit JSON
+     dosyaları, `cerceve/*.json` kimlikleri ve onların `maddeDosyasi`.
+     Bir kimlik JSON'u okunamadıysa paket zaten kırmızıdır; CSV'si
+     ayrıca "tanınmıyor" diye suçlanmaz. */
+  const cerceveJsonlari = existsSync(cerceveDizini) ? readdirSync(cerceveDizini).filter((d) => d.endsWith('.json')) : [];
+  const kimlikOkunamadi = cerceveJsonlari.length !== cerceveler.length;
+  if (!kimlikOkunamadi) {
+    const taninan = new Set<string>([
+      DOSYALAR.sozluk, DOSYALAR.kapsamTurleri, DOSYALAR.oznitelikler, DOSYALAR.yukumlulukler,
+      ...cerceveJsonlari.map((d) => `${DOSYALAR.cerceveDizini}/${d}`),
+      ...cerceveler.map((c) => `${DOSYALAR.cerceveDizini}/${c.kimlik.maddeDosyasi}`),
+    ]);
+    for (const d of mevcut) {
+      if (!taninan.has(d)) {
+        hatalar.push({ sinif: 'BIÇIM', dosya: d, mesaj: 'paket yapısında yeri olmayan dosya — hiçbir tanımlayıcı okumuyor, ama pakette taşınır',
+          duzeltme: 'dosyayı paketten çıkarın; çerçeve CSV\'si kimlik JSON\'unun maddeDosyasi alanından referanslanmalı' });
+      }
+    }
+  }
 
   const yukumlulukler = liste<YukumlulukSatiri>(DOSYALAR.yukumlulukler, YukumlulukSatiriSemasi, 'BIÇIM', 'yükümlülük satırı: kod · ad · regulasyonKod? · asgariSiddet · sureSaat · dayanak · merci');
   tekil(DOSYALAR.yukumlulukler, 'KİMLİK', yukumlulukler.map((y) => y.kod), 'yükümlülük kodu');

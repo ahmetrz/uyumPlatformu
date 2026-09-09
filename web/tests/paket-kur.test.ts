@@ -349,13 +349,17 @@ describe('yükseltme uzlaştırması — bırakılan içerik pasif/arşiv, silme
   });
 });
 
+const SABIT = (tekil: string): PaketDosyalari => ({
+  'sozluk.json': [SOZLUK_SATIRI('tesis', tekil)],
+  'cerceve/SABIT-REG.json': cerceve('SABIT-REG', { tur: 'kamuya_acik', metinDahil: false }),
+  'cerceve/SABIT-REG.csv': `${CSV_BASLIK}\n1;;Amaç;;0;;\n`,
+});
+const MANIFEST_SABIT = { kod: 'SABIT-PAKET', sektor: { kod: 'SABIT-SEKTOR', ad: 'Sabit' }, surum: '1.0.0' };
+const maddeIdleri = async (regKod: string) =>
+  (await db.madde.findMany({ where: { regulasyon: { kod: regKod } }, select: { id: true } })).map((x) => x.id).sort();
+
 describe('kurulu sürüm değişmez · bağımlılık kararı transaction içinde [URN-PKT-008]', () => {
-  const SABIT = (tekil: string): PaketDosyalari => ({
-    'sozluk.json': [SOZLUK_SATIRI('tesis', tekil)],
-    'cerceve/SABIT-REG.json': cerceve('SABIT-REG', { tur: 'kamuya_acik', metinDahil: false }),
-    'cerceve/SABIT-REG.csv': `${CSV_BASLIK}\n1;;Amaç;;0;;\n`,
-  });
-  const manifest = { kod: 'SABIT-PAKET', sektor: { kod: 'SABIT-SEKTOR', ad: 'Sabit' }, surum: '1.0.0' };
+  const manifest = MANIFEST_SABIT;
 
   it('aynı sürüm numarasıyla İÇERİĞİ DEĞİŞMİŞ paket reddedilir (SÜRÜM); sürüm kaydı ve içerik değişmez; aynı içerik idempotent; yeni numara geçer [URN-PKT-008]', async () => {
     /* Ölçüldü: özetleri yeniden yazılmış paket aynı `surum` ile kurulunca sürüm
@@ -366,7 +370,7 @@ describe('kurulu sürüm değişmez · bağımlılık kararı transaction içind
     const surumKaydi = await db.icerikPaketiSurumu.findFirstOrThrow({ where: { paket: { kod: 'SABIT-PAKET' }, surum: '1.0.0' } });
     const b = await kur(SABIT('değişti'), manifest);
     expect(b.ok).toBe(false);
-    if (!b.ok) expect(b.hatalar[0]).toMatchObject({ sinif: 'SÜRÜM', konum: 'surum', mesaj: expect.stringContaining('içeriği farklı') });
+    if (!b.ok) expect(b.hatalar[0]).toMatchObject({ sinif: 'SÜRÜM', konum: 'surum', mesaj: expect.stringContaining('değişmez alanları farklı: icerikOzetleri') });
     const tesis = await db.sektorSozlugu.findUniqueOrThrow({ where: { sektorId_anahtar_dil: { sektorId: sektor.id, anahtar: 'tesis', dil: 'tr' } } });
     expect(tesis.tekil).toBe('sabit');
     const sonra = await db.icerikPaketiSurumu.findUniqueOrThrow({ where: { id: surumKaydi.id } });
@@ -377,6 +381,24 @@ describe('kurulu sürüm değişmez · bağımlılık kararı transaction içind
     const d = await kur(SABIT('değişti'), { ...manifest, surum: '1.0.1' });
     expect(d.ok, JSON.stringify(d)).toBe(true);
     expect((await db.sektorSozlugu.findUniqueOrThrow({ where: { id: tesis.id } })).tekil).toBe('değişti');
+  });
+
+  it('değişmez alan (sektör · lisans) aynı sürümde değişemez; betimleyici alan (ad) değişebilir ve madde kimlikleri korunur [URN-PKT-008]', async () => {
+    /* Ölçüldü: yalnız özetler karşılaştırılınca aynı sürümde `sektor` değiştirilip
+       sözlük başka sektöre yazılabiliyordu (inceleme bulgusu). */
+    const once = await maddeIdleri('SABIT-REG');
+    const sektor = await kur(SABIT('değişti'), { ...manifest, surum: '1.0.1', sektor: { kod: 'SABIT-SEKTOR-2', ad: 'Sabit 2' } });
+    expect(sektor.ok).toBe(false);
+    if (!sektor.ok) expect(sektor.hatalar[0].mesaj).toMatch(/değişmez alanları farklı: sektor/);
+    expect(await db.sektor.findUnique({ where: { kod: 'SABIT-SEKTOR-2' } })).toBeNull();
+    const lisans = await kur(SABIT('değişti'), { ...manifest, surum: '1.0.1', lisans: { tur: 'telifli', metinDahil: false } });
+    expect(lisans.ok).toBe(false);
+    if (!lisans.ok) expect(lisans.hatalar[0].mesaj).toMatch(/değişmez alanları farklı: lisans/);
+    const ad = await kur(SABIT('değişti'), { ...manifest, surum: '1.0.1', ad: 'Sabit paket, yeni ad' });
+    expect(ad.ok, JSON.stringify(ad)).toBe(true);
+    expect((await db.icerikPaketi.findUniqueOrThrow({ where: { kod: 'SABIT-PAKET' } })).ad).toBe('Sabit paket, yeni ad');
+    // aynı içerik: madde ağacına dokunulmadı, kimlikler aynı
+    expect(await maddeIdleri('SABIT-REG')).toEqual(once);
   });
 
   it('bağımlılık kararı transaction İÇİNDE — transaction öncesi kök istemciye dokunan kurulum kırmızı [URN-PKT-007]', async () => {
@@ -392,5 +414,94 @@ describe('kurulu sürüm değişmez · bağımlılık kararı transaction içind
     const dizin = paketYaz(SABIT('sabit'), { ...manifest, kod: 'BAGIMLI-PAKET', bagimliliklar: ['SABIT-PAKET'] });
     await expect(paketiKur(dizin, { kuranId, istemci: sahte })).rejects.toThrow('TRANSACTION-SINIRI');
     expect(kokte).toEqual([]);
+  });
+});
+
+describe('kaldırma bağımlıları korur · geri kurulum arşiv taslağını taslağa döndürür [URN-PKT-009]', () => {
+  const BAG: PaketDosyalari = {
+    'cerceve/BAG-REG.json': cerceve('BAG-REG', { tur: 'kamuya_acik', metinDahil: false }),
+    'cerceve/BAG-REG.csv': `${CSV_BASLIK}\n1;;Amaç;;0;;\n`,
+  };
+
+  it('kurulu bir paket bağımlıysa kaldırma reddedilir; bağımlı kaldırılınca kaldırılır [URN-PKT-009]', async () => {
+    /* Ölçüldü: yalnız paketin kendi aktif sürümüne bakılıyordu; A kaldırılınca
+       A'ya bağımlı B "kurulu" kalıyordu (inceleme bulgusu). */
+    const b = await kur(BAG, { kod: 'BAGIMLI-PAKET', sektor: { kod: 'BAGIMLI-SEKTOR', ad: 'Bağımlı' }, bagimliliklar: ['SABIT-PAKET'] });
+    expect(b.ok, JSON.stringify(b)).toBe(true);
+    const red = await paketiKaldir('SABIT-PAKET', db);
+    expect(red.ok).toBe(false);
+    if (!red.ok) expect(red.hata).toMatch(/bağımlı kurulu paket var: BAGIMLI-PAKET/);
+    expect((await db.icerikPaketi.findUniqueOrThrow({ where: { kod: 'SABIT-PAKET' } })).durum).toBe('kurulu');
+    expect((await paketiKaldir('BAGIMLI-PAKET', db)).ok).toBe(true);
+    const k = await paketiKaldir('SABIT-PAKET', db);
+    expect(k.ok, JSON.stringify(k)).toBe(true);
+  });
+
+  it('kaldırılan paket aynı içerikle geri kurulur: arşiv taslak taslağa döner, madde kimlikleri korunur, paket kurulu [URN-PKT-009]', async () => {
+    /* Ölçüldü: kaldırma taslağı arşive çekiyor, geri kurulum "taslak değil" diye
+       reddediyordu — aynı içerikle geri dönüş yeni etiket istiyordu (inceleme bulgusu). */
+    const once = await maddeIdleri('SABIT-REG');
+    expect((await db.frameworkSurumu.findFirstOrThrow({ where: { regulasyon: { kod: 'SABIT-REG' } } })).durum).toBe('arsiv');
+    const g = await kur(SABIT('değişti'), { ...MANIFEST_SABIT, surum: '1.0.1', ad: 'Sabit paket, yeni ad' });
+    expect(g.ok, JSON.stringify(g)).toBe(true);
+    expect((await db.icerikPaketi.findUniqueOrThrow({ where: { kod: 'SABIT-PAKET' } })).durum).toBe('kurulu');
+    expect((await db.frameworkSurumu.findFirstOrThrow({ where: { regulasyon: { kod: 'SABIT-REG' } } })).durum).toBe('taslak');
+    expect(await maddeIdleri('SABIT-REG')).toEqual(once);
+  });
+});
+
+describe('kiracının madde DÜZENLEMESİ (skaler, iz bırakır) taslak yenilemesinde ezilmez [URN-PKT-004]', () => {
+  const DUZ = (baslik: string, etiket = 'test-1'): PaketDosyalari => ({
+    'cerceve/DUZ-REG.json': cerceve('DUZ-REG', { tur: 'kamuya_acik', metinDahil: false }, { surumEtiketi: etiket }),
+    'cerceve/DUZ-REG.csv': `${CSV_BASLIK}\n1;;${baslik};;0;;\n`,
+  });
+  const manifest = { kod: 'DUZENLE-PAKET', sektor: { kod: 'DUZENLE-SEKTOR', ad: 'Düzenle' } };
+
+  it('hedef olgunluk gibi skaler düzenleme izi olan madde: yeni sürüm aynı etiketi yenileyemez (SÜRÜM); yeni etiket kurulur [URN-PKT-004]', async () => {
+    /* Ölçüldü: bağ kontrolü yalnız ilişkilere bakıyordu; `hedefOlgunlukKaydet`
+       ilişki değil skaler yazar, `deleteMany` düzenlemeyi ve iz hedefini yok
+       ediyordu (inceleme bulgusu). Karar kaynağı değişmez denetim izidir. */
+    const a = await kur(DUZ('Amaç'), { ...manifest, surum: '0.1.0' });
+    expect(a.ok, JSON.stringify(a)).toBe(true);
+    const madde = await db.madde.findFirstOrThrow({ where: { regulasyon: { kod: 'DUZ-REG' } } });
+    // kiracı hedef olgunluk kaydetti — ürün yolu `hedefOlgunlukKaydet`: madde.update + iz (test ikisini doğrudan yazar)
+    await db.madde.update({ where: { id: madde.id }, data: { olgunlukSeviyesi: 3 } });
+    await db.aktiviteKaydi.create({ data: { aktorId: kuranId, varlikTipi: 'Madde', varlikId: madde.id, eylem: 'guncelleme', alan: 'hedefOlgunluk', oncekiDeger: 'tanımsız', yeniDeger: '3' } });
+    const b = await kur(DUZ('Amaç (yeni başlık)'), { ...manifest, surum: '0.2.0' });
+    expect(b.ok).toBe(false);
+    if (!b.ok) expect(b.hatalar[0]).toMatchObject({ sinif: 'SÜRÜM', mesaj: expect.stringContaining('1 düzenleme izi') });
+    expect(await db.madde.findUniqueOrThrow({ where: { id: madde.id } })).toMatchObject({ olgunlukSeviyesi: 3, baslik: 'Amaç' });
+    expect(await db.icerikPaketiSurumu.findFirst({ where: { paket: { kod: 'DUZENLE-PAKET' }, surum: '0.2.0' } })).toBeNull();
+    const c = await kur(DUZ('Amaç (yeni başlık)', 'test-2'), { ...manifest, surum: '0.2.0' });
+    expect(c.ok, JSON.stringify(c)).toBe(true);
+    expect(await db.frameworkSurumu.count({ where: { regulasyon: { kod: 'DUZ-REG' } } })).toBe(2);
+    expect(await db.madde.findUniqueOrThrow({ where: { id: madde.id } })).toMatchObject({ olgunlukSeviyesi: 3 });
+  });
+});
+
+describe('madde ağacı partilerle yazılır — üst madde aynı partideyse önce yazılır [URN-PKT-003]', () => {
+  it('211 satır (kök + 150 kardeş + 60 halkalık zincir) doğru üst bağlarıyla yazılır [URN-PKT-003]', async () => {
+    /* Ölçüldü: 600 madde tek tek `create` ile ve bütçesiz transaction'da yazılıyordu
+       (inceleme bulgusu). Parti büyüklüğü 200: kardeşler partiyi doldurur, zincir
+       her adımda partiyi boşaltmaya zorlar. */
+    const satirlar: string[] = ['R;;Kök;;0;;'];
+    for (let i = 1; i <= 150; i++) satirlar.push(`C${i};R;Çocuk ${i};;${i};;`);
+    let ust = 'C1';
+    for (let i = 1; i <= 60; i++) { satirlar.push(`Z${i};${ust};Zincir ${i};;${200 + i};;`); ust = `Z${i}`; }
+    const s = await kur({
+      'cerceve/PARTI-REG.json': cerceve('PARTI-REG', { tur: 'kamuya_acik', metinDahil: false }),
+      'cerceve/PARTI-REG.csv': `${CSV_BASLIK}\n${satirlar.join('\n')}\n`,
+    }, { kod: 'PARTI-PAKET', sektor: { kod: 'PARTI-SEKTOR', ad: 'Parti' } });
+    expect(s.ok, JSON.stringify(s)).toBe(true);
+    if (!s.ok) return;
+    expect(s.rapor.sayilar.maddeler).toBe(211);
+    const maddeler = await db.madde.findMany({ where: { regulasyon: { kod: 'PARTI-REG' } }, select: { id: true, kod: true, ustMaddeId: true } });
+    expect(maddeler).toHaveLength(211);
+    const idler = new Map(maddeler.map((m) => [m.kod, m.id]));
+    const ustu = new Map(maddeler.map((m) => [m.kod, m.ustMaddeId]));
+    expect(ustu.get('PARTI-REG-R')).toBeNull();
+    for (let i = 1; i <= 150; i++) expect(ustu.get(`PARTI-REG-C${i}`), `C${i}`).toBe(idler.get('PARTI-REG-R'));
+    expect(ustu.get('PARTI-REG-Z1')).toBe(idler.get('PARTI-REG-C1'));
+    for (let i = 2; i <= 60; i++) expect(ustu.get(`PARTI-REG-Z${i}`), `Z${i}`).toBe(idler.get(`PARTI-REG-Z${i - 1}`));
   });
 });

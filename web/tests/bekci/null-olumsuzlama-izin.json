@@ -13,7 +13,8 @@
     "",
     "KURAL — LİSTEYE SATIR EKLENMEZ, YALNIZ ÇIKARILIR (taban dal origin/main",
     "listesinin alt kümesi). `tavan` satır sayısına EŞİTTİR; artamaz.",
-    "Her satır: dosya · tur · alan (bulgu anahtarı) · sinif (kalici |",
+    "Her satır: dosya · tur · alan · sira (dosya içi kaçıncı; bulgu anahtarı",
+    "tekildir — sonradan eklenen aynı alanlı ikinci yüklem eski satırla örtülemez) · sinif (kalici |",
     "ertelenmis) · gerekce (kusurun neden kusur OLMADIĞINI anlatır) ·",
     "model (çağrı dışı parça için insan beyanı; bekçi şemaya karşı doğrular:",
     "alan nullable ise gerekçe NULL'un akıbetini söylemek zorundadır) ·",
@@ -25,6 +26,7 @@
       "dosya": "app/(kabuk)/(operasyonel)/kanitlar/veri.ts",
       "tur": "NOT",
       "alan": null,
+      "sira": 1,
       "model": "Kanit",
       "sinif": "kalici",
       "gerekce": "Dinamik olumsuzlama: `NOT: kanitKapsamKosulu(izinli)` kapsam koşulunun tersidir ve sayacın TANIMI budur — kapsam bağı hiç olmayan kanıt da, yalnız başka tesise bağlı olan da 'görmediğin kayıt' sayılır (kaynaktaki yorum). Yokluk (NULL/bağsız) düşmez, sayıya dâhil edilir; kolon değil ilişki olumsuzlanır."
@@ -33,6 +35,7 @@
       "dosya": "app/(kabuk)/(operasyonel)/omur/veri.ts",
       "tur": "not",
       "alan": "durum",
+      "sira": 1,
       "model": "Proje",
       "sinif": "kalici",
       "gerekce": "Çağrı dışı ortak parça (`bitmemisProje`, tek tanım üç ilişki süzgecinde): `Proje.durum` şemada NOT NULL, varsayılanlı — NULL satır olamaz, düşecek satır yoktur. Parça bilerek çağrının dışında: ölçüt tek yerde tanımlanır."
@@ -41,6 +44,7 @@
       "dosya": "app/(kabuk)/(operasyonel)/riskler/veri.ts",
       "tur": "not",
       "alan": "durum",
+      "sira": 1,
       "model": "Risk",
       "sinif": "kalici",
       "gerekce": "Çağrı dışı ortak parça (`aktifKutuk`, satırlar/toplam/metrikler aynı koşuldan): `Risk.durum` şemada NOT NULL, varsayılanlı — NULL satır olamaz. Parça bilerek çağrının dışında: kapsam TEK yerde kurulur."

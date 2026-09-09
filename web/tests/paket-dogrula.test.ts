@@ -119,6 +119,11 @@ describe('paket doğrulayıcı — biçim ve manifest [URN-PKT-001]', () => {
     expect(bos.ok, bos.hatalar.map(hataSatiri).join('\n')).toBe(true);
   });
 
+  it('ust_kod kendisine eşit satır KİMLİK — öz-referans üst madde değildir, kurulumda köke düşmez [URN-PKT-001]', () => {
+    const s = paketiDogrula(paketYaz({ ...TEMIZ, 'cerceve/TEST-REG.csv': `${CSV_BASLIK}\n1;1;Kendine bağlı;m;0;;\n` }));
+    expect(s.hatalar.map((h) => [h.sinif, h.konum, h.mesaj])).toEqual([['KİMLİK', '2', '"ust_kod" değeri "1" bulunamadı']]);
+  });
+
   it('sektörsüz paket (uluslararasi, sektor=null) sözlük ve öznitelik beyan edemez — kurucu sessizce düşürmesin [URN-PKT-001]', () => {
     /* Ölçüldü: ölçüt yalnız tur=yatay idi; sektörsüz uluslararasi paket geçiyor,
        kurucu sektorId boş diye döngüyü kırıp içeriği düşürüyordu (inceleme bulgusu). */
@@ -184,6 +189,17 @@ describe('lisans sınırı — alanda, yorumda değil [URN-PKT-002]', () => {
     const s = paketiDogrula(paketYaz({ ...telifli, 'cerceve/TEST-REG.csv': `${CSV_BASLIK}\n1;;${uzun};;0;;\n` }));
     expect(s.hatalar.map((h) => h.sinif)).toEqual(['LİSANS']);
     const temiz = paketiDogrula(paketYaz({ ...telifli, 'cerceve/TEST-REG.csv': `${CSV_BASLIK}\nA.5;;Organizasyonel kontroller;;0;;\nA.5.1;A.5;Bilgi güvenliği politikaları;;1;;\n` }));
+    expect(temiz.ok, temiz.hatalar.map(hataSatiri).join('\n')).toBe(true);
+  });
+
+  it('paket yapısında yeri olmayan dosya BIÇIM — özeti doğru olsa da hiçbir tanımlayıcı okumaz, lisans kontrolü göremezdi [URN-PKT-002]', () => {
+    /* Ölçüldü: `cerceve/tam-metin.csv` doğru özetle listelenince geçiyor,
+       hiçbir kimlik onu okumuyor ama pakette taşınıyordu (inceleme bulgusu). */
+    const s = paketiDogrula(paketYaz({ ...telifli, 'cerceve/tam-metin.csv': `${CSV_BASLIK}\n1;;Amaç;Gizli tam metin;0;;\n`, 'notlar.txt': 'başka bir metin' }));
+    expect(s.ok).toBe(false);
+    const yersiz = s.hatalar.filter((h) => h.sinif === 'BIÇIM' && /yeri olmayan dosya/.test(h.mesaj)).map((h) => h.dosya).sort();
+    expect(yersiz).toEqual(['cerceve/tam-metin.csv', 'notlar.txt']);
+    const temiz = paketiDogrula(paketYaz({ ...telifli, 'cerceve/TEST-REG.csv': `${CSV_BASLIK}\n1;;Amaç;;0;;\n` }));
     expect(temiz.ok, temiz.hatalar.map(hataSatiri).join('\n')).toBe(true);
   });
 

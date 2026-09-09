@@ -190,7 +190,23 @@ export type Bulgu = {
   alan: string | null;
   karar: Karar;
   sebep: string;
+  /** Aynı dosyada aynı (tur, alan) için kaçıncı bulgu (1'den) — izin listesi
+      anahtarını TEKİL yapar: eski bir satır, dosyaya sonradan eklenen aynı
+      alanlı ikinci yüklemi örtemez (inceleme bulgusu, PR #41). */
+  sira?: number;
 };
+
+/** Dosya içi sıra numaraları: aynı (tur, alan) için 1, 2, 3… */
+function siralandir(bulgular: Bulgu[]): Bulgu[] {
+  const sayac = new Map<string, number>();
+  for (const b of bulgular) {
+    const k = `${b.tur}|${b.alan ?? '-'}`;
+    const n = (sayac.get(k) ?? 0) + 1;
+    sayac.set(k, n);
+    b.sira = n;
+  }
+  return bulgular;
+}
 
 function satirNo(metin: string, konum: number): number {
   let s = 1;
@@ -205,13 +221,28 @@ function satirNo(metin: string, konum: number): number {
     ikisi başka tablonun kolonudur (ölçüldü: inceleme bulgusu, PR #41).
     Mantık dalı (AND/OR/NOT) ve niceleyici (some/every/none) yolu
     değiştirmez: hangi dalda olduğu değil, hangi kolon olduğu sayılır. */
-export function nullAcikcaEleAlinmis(kod: string, whereAc: number, yol: readonly string[], alan: string): boolean {
+export function nullAcikcaEleAlinmis(kod: string, bulguAcilislar: readonly number[], yol: readonly string[], alan: string): boolean {
+  const whereAc = bulguAcilislar[0];
   const metin = kod.slice(whereAc, esKapanis(kod, whereAc) + 1);
   const kalip = new RegExp(`\\b${alan}\\s*:\\s*(?:null\\b|\\{\\s*not\\s*:\\s*null\\b)`, 'g');
+  const bulguIc = bulguAcilislar.slice(1); // where'in içindeki açılışlar (yüklemin yolu)
   for (const m of metin.matchAll(kalip)) {
-    const { zincir } = anahtarZinciri(kod, whereAc + m.index!, whereAc);
+    const { zincir, acilislar } = anahtarZinciri(kod, whereAc + m.index!, whereAc);
     const adayYol = zincir.filter((k) => !SAYDAM.has(k));
-    if (adayYol.length === yol.length && adayYol.every((k, i) => k === yol[i])) return true;
+    if (!(adayYol.length === yol.length && adayYol.every((k, i) => k === yol[i]))) continue;
+    /* BİLEREK DIŞLAMA (`x: { not: null }` · `NOT: { x: null }`): NULL satırın
+       düşmesi kararın kendisidir — aynı yolda nerede olursa olsun güvenli. */
+    const dislama = /\{\s*not\s*:\s*null/.test(m[0]) || zincir[zincir.length - 1] === 'NOT';
+    if (dislama) return true;
+    /* DÂHİL ETME (`x: null`): NULL satır ancak yüklemin OR KARDEŞİ olarak
+       geri gelir. `AND: [{ x: { not: v } }, { OR: [{ x: null }, …] }]`
+       yazımında ilk bağlaç NULL'u yine düşürür — aynı yol ama farklı mantık
+       dalı (inceleme bulgusu, PR #41). Ölçüt: iki konumun EN YAKIN ORTAK
+       ATASI bir `OR` dizisi olmalı. */
+    let k = 0;
+    while (k < acilislar.length && k < bulguIc.length && acilislar[k] === bulguIc[k]) k++;
+    const ortakAtaAnahtari = k === 0 ? 'where' : zincir[k - 1];
+    if (ortakAtaAnahtari === 'OR') return true;
   }
   return false;
 }
@@ -230,7 +261,7 @@ export function dosyayiTara(dosya: string, ham: string, sema: Map<string, SemaMo
           sebep: 'ham SQL olumsuz yüklem — kolonun NULL hâli sütun adıyla beyan ister' });
       }
     });
-    return bulgular;
+    return siralandir(bulgular);
   }
 
   const kod = kodMaskele(ham);
@@ -269,10 +300,9 @@ export function dosyayiTara(dosya: string, ham: string, sema: Map<string, SemaMo
       return { dosya, satir, tur, model: cozum.model, alan: cozum.alan.ad, karar: 'guvenli',
         sebep: `${cozum.model}.${cozum.alan.ad} NOT NULL` };
     }
-    const whereAc = acilislar[0];
     // yüklemin ilişki yolu: `where` ve alanın kendisi hariç, mantık/niceleyici anahtarları atılmış
     const yol = zincirTamami.slice(1, -1).filter((k) => !SAYDAM.has(k));
-    if (nullAcikcaEleAlinmis(kod, whereAc, yol, cozum.alan.ad)) {
+    if (nullAcikcaEleAlinmis(kod, acilislar, yol, cozum.alan.ad)) {
       return { dosya, satir, tur, model: cozum.model, alan: cozum.alan.ad, karar: 'guvenli',
         sebep: `${cozum.model}.${cozum.alan.ad} nullable; NULL aynı where içinde açıkça ele alınmış` };
     }
@@ -368,7 +398,7 @@ export function dosyayiTara(dosya: string, ham: string, sema: Map<string, SemaMo
         sebep: 'ham SQL olumsuz yüklem — kolonun NULL hâli beyan ister' });
     }
   }
-  return bulgular;
+  return siralandir(bulgular);
 }
 
 function satinNoGuvenli(ham: string, konum: number): number { return satirNo(ham, konum); }
@@ -429,9 +459,15 @@ export function depoyuTara(sema: Map<string, SemaModel>): { dosyalar: number; ca
 /** Beyan satırı — izin listesi biçimi. */
 export type IzinSatiri = {
   dosya: string; tur: Tur; alan: string | null;
+  /** dosya içi sıra (aynı tur+alan için kaçıncı) — yazılmazsa 1 */
+  sira?: number;
   /** çağrı dışı parça için insan beyanı: hangi modelin alanı */
   model?: string;
   sinif: 'kalici' | 'ertelenmis'; gerekce: string; kapanis?: string;
 };
 
-export const bulguAnahtari = (b: { dosya: string; tur: Tur; alan: string | null }) => `${b.dosya}|${b.tur}|${b.alan ?? '-'}`;
+/** İzin listesi anahtarı: dosya · tür · alan · dosya içi sıra. Sıra olmadan
+    aynı dosyaya eklenen ikinci `durum: { not }` eski satırın gölgesinde
+    kalırdı (inceleme bulgusu, PR #41). */
+export const bulguAnahtari = (b: { dosya: string; tur: Tur; alan: string | null; sira?: number }) =>
+  `${b.dosya}|${b.tur}|${b.alan ?? '-'}|${b.sira ?? 1}`;

@@ -21,6 +21,11 @@ aktif yapmaz, hiçbir madde durumu yazmaz.
 | `cerceve/<KOD>.json` | JSON | çerçeve kimliği: `kod · ad · surumEtiketi · yayimTarihi? · yururlukTarih? · kaynakUrl? · lisans · maddeDosyasi · zorunlulukTipi` |
 | `cerceve/<KOD>.csv` | CSV (`;`, UTF-8, başlık satırı) | madde ağacı: `kod;ust_kod;baslik;metin;sira;seviye;zorunluluk_tipi;kanit_beklentisi;dis_kontrol_id` — üst madde satırı alt maddeden ÖNCE gelir; her başlık **bir kez**, satırda başlığı aşan **dolu** hücre olamaz (okunmayan hücre içerik taşırdı — telifli metin kaçağı); tırnak kapanır (`""` kaçış); `seviye` 0–5 (ürünün olgunluk ölçeği); telifli çerçevede `kanit_beklentisi` boş, `dis_kontrol_id` ≤ 60 karakter |
 
+Paket yapısında yeri olmayan dosya (hiçbir tanımlayıcının okumadığı
+`cerceve/başka.csv`, `notlar.txt`…) özeti doğru olsa da **reddedilir**:
+okunmayan dosya lisans kontrolünden geçmeden pakette taşınırdı. `ust_kod`
+satırın kendisi olamaz.
+
 Paket dizininin adı `manifest.kod` ile **aynı** olmalıdır
 (`paketler/TR-ENERJI` ↔ `"kod": "TR-ENERJI"`); uyuşmazsa doğrulayıcı
 `KİMLİK` ile reddeder — kopyalanmış bir dizin başka paketin kimliğiyle
@@ -50,13 +55,27 @@ güncellemesi yalnız kendi (`paket`) satırlarını değiştirir; aynı anahtar
 `kiraci` satırı varsa DOKUNULMAZ ve kurulum raporuna "çelişki" düşer.
 Kaldırma = arşiv: hiçbir satır silinmez.
 
-**Kurulu sürüm değişmez.** Aynı `surum` numarasıyla içeriği değişmiş bir
-paket (özetler yeniden yazılmış) reddedilir: "o sürümde ne vardı" izi
-kalıcıdır. İçerik değiştiyse `manifest.surum` yükseltilir (yama = metin /
-çeviri, minör = ekleme, majör = kaldırma / kod değişimi). Aynı içerikle
-yeniden kurulum idempotenttir. Tarihler takvimde var olmalıdır
+**Kurulu sürüm değişmez.** Aynı `surum` numarasıyla içeriği ya da
+değişmez üstverisi (`kod · tur · ulke · sektor · dil · yayinci · lisans ·
+bagimliliklar · icerikOzetleri`) değişmiş bir paket reddedilir: "o sürümde
+ne vardı" izi kalıcıdır; `ad` ve `aciklama` aynı sürümde değişebilir.
+İçerik değiştiyse `manifest.surum` yükseltilir (yama = metin / çeviri,
+minör = ekleme, majör = kaldırma / kod değişimi). Aynı içerikle yeniden
+kurulum idempotenttir ve madde ağacına dokunmaz (kimlikler, kiracının
+hedef olgunluk gibi düzenlemeleri korunur). Tarihler takvimde var olmalıdır
 (`2025-02-30` reddedilir). Sektörsüz paket (`sektor: null`) sözlük ve
 öznitelik beyan edemez.
+
+**Kiracı dokunduysa yenileme yok.** Yeni paket sürümü aynı çerçeve
+etiketini yenilerken taslağın maddesine kiracı bir şey bağlamışsa (kapsam
+alanı, durum, eşleme, istisna, proje, risk, denetim kapsamı, belge, eğitim)
+**ya da maddeyi düzenlemişse** (denetim izinde `Madde` kaydı — hedef
+olgunluk gibi) yenileme reddedilir; paket yeni bir `surumEtiketi` verir.
+
+**Kaldırma ve geri kurulum.** Kurulu başka bir paket bu pakete bağımlıysa
+kaldırma reddedilir (önce bağımlı kaldırılır). Kaldırılan paket aynı
+içerikle geri kurulunca arşivdeki kendi taslağı taslağa döner; yeni etiket
+istenmez.
 
 **Yükseltme uzlaştırması.** Yeni sürümün artık beyan etmediği paket
 kökenli tür ve yükümlülük `aktif=false` olur, paketin kendi taslak çerçeve

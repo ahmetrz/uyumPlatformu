@@ -1,7 +1,7 @@
 {
-  "imza": "148f39494221458c993806aa474e9846",
+  "imza": "3e67fd7403f3c425bce9732de750f49e",
   "dosya": 174,
-  "vaka": 3363,
+  "vaka": 3372,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -65,7 +65,7 @@
       "atlanan": 0
     },
     "tests/bekci/null-olumsuzlama.test.ts": {
-      "vaka": 17,
+      "vaka": 19,
       "atlanan": 0
     },
     "tests/bekci/sektor-terimi.test.ts": {
@@ -473,7 +473,7 @@
       "atlanan": 0
     },
     "tests/paket-dogrula.test.ts": {
-      "vaka": 21,
+      "vaka": 23,
       "atlanan": 0
     },
     "tests/paket-eylem.test.ts": {
@@ -485,7 +485,7 @@
       "atlanan": 0
     },
     "tests/paket-kur.test.ts": {
-      "vaka": 18,
+      "vaka": 23,
       "atlanan": 0
     },
     "tests/pasif-kesif.test.ts": {

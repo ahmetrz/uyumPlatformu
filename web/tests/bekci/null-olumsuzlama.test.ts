@@ -43,7 +43,7 @@ const izin = JSON.parse(readFileSync(path.join(KOK, IZIN_DOSYASI), 'utf8')) as I
 const SEMA = semaAyristir(readFileSync(path.join(KOK, 'prisma/schema.prisma'), 'utf8'));
 const tarama = depoyuTara(SEMA);
 const beyanlar = tarama.bulgular.filter((b) => b.karar === 'beyan');
-const satirAnahtari = (s: IzinSatiri) => bulguAnahtari({ dosya: s.dosya, tur: s.tur, alan: s.alan });
+const satirAnahtari = (s: IzinSatiri) => bulguAnahtari({ dosya: s.dosya, tur: s.tur, alan: s.alan, sira: s.sira });
 
 type TabanYok = { yok: string };
 type IlkKurulum = { ilk: true };
@@ -196,6 +196,32 @@ describe('Bekçi · NULL-olumsuzlama sınıfı [URN-VER-001]', () => {
     const notIn = tara(niceleyici).find((b) => b.tur === 'notIn');
     expect(notIn).toMatchObject({ model: 'FrameworkSurumu', alan: 'paketSurumId', karar: 'guvenli' });
     expect(notIn?.sebep).toMatch(/aynı where içinde açıkça ele alınmış/);
+  });
+
+  it('kalıcı vaka: NULL dâhil etme yalnız OR KARDEŞİ olarak sayılır — başka bağlaçtaki `x: null` temizlemez; bilerek dışlama her yerde sayılır [URN-VER-001]', () => {
+    /* Ölçüldü: yol eşleşmesi mantık dalını atıyordu; `AND: [{ x: { not } }, { OR: [{ x: null }, …] }]`
+       ilk bağlaçla NULL'u yine düşürürken güvenli sayılıyordu (inceleme bulgusu, PR #41). */
+    const ayriBaglac = `db.sektorOznitelikSemasi.findMany({ where: { AND: [{ rol: { not: 'kapasite' } }, { OR: [{ rol: null }, { grup: 'a' }] }] } });`;
+    const b1 = tara(ayriBaglac);
+    expect(b1).toHaveLength(1);
+    expect(b1[0]).toMatchObject({ model: 'SektorOznitelikSemasi', alan: 'rol', karar: 'beyan' });
+    const ayniNesne = `db.sektorOznitelikSemasi.findMany({ where: { rol: null, grup: 'a', NOT: { rol: 'kapasite' } } });`;
+    expect(tara(ayniNesne)[0]).toMatchObject({ alan: 'rol', karar: 'beyan' });
+    const orKardesi = `db.sektorOznitelikSemasi.findMany({ where: { sektorId, OR: [{ rol: null }, { AND: [{ rol: { not: 'kapasite' } }, { grup: 'a' }] }] } });`;
+    expect(tara(orKardesi)[0]).toMatchObject({ alan: 'rol', karar: 'guvenli' });
+    const dislama = `db.sektorOznitelikSemasi.findMany({ where: { AND: [{ rol: { notIn: ['x'] } }, { NOT: { rol: null } }] } });`;
+    expect(beyan(dislama)).toEqual([]);
+  });
+
+  it('kalıcı vaka: aynı dosyada aynı alanın ikinci yüklemi AYRI anahtar taşır — eski izin satırı örtemez [URN-VER-001]', () => {
+    const iki = `await db.risk.count({ where: { kapanisTarihi: { not: null } } });\nconst a = { silindi: null, durum: { not: 'kapali' } };\nawait db.risk.count({ where: a });\nconst b = { durum: { not: 'acik' } };\nawait db.risk.count({ where: b });`;
+    const bulgular = tara(iki, 'ornek/veri.ts');
+    const durumlar = bulgular.filter((x) => x.alan === 'durum');
+    expect(durumlar.map((x) => x.sira)).toEqual([1, 2]);
+    const anahtarlar = durumlar.map(bulguAnahtari);
+    expect(new Set(anahtarlar).size).toBe(2);
+    expect(anahtarlar[0]).toBe('ornek/veri.ts|not|durum|1');
+    for (const s of izin.satirlar) expect(s.sira, `${s.dosya}: sira yazılmalı`).toBeGreaterThanOrEqual(1);
   });
 
   it('kalıcı vaka: dinamik NOT (çağrı/yayma) ve isNot → beyan [URN-VER-001]', () => {

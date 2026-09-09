@@ -357,10 +357,23 @@ export const URUNLESTIRME_SENARYOLARI: Senaryo[] = [
     onkosul: 'Sürüm kaydı kurulumdaki içerik özetlerini (`ozetJson`) taşır; paket özetleri yeniden yazılmış ama `surum` aynı',
     veriHali: 'aykiri',
     eylem: 'Aynı numarayla değişmiş içerik kurulur; aynı numarayla aynı içerik kurulur; yeni numarayla değişmiş içerik kurulur',
-    beklenenSonuc: 'Değişmiş içerik SÜRÜM hatasıyla reddedilir ("kurulu sürüm değişmez"), sürüm kaydı ve içerik olduğu gibi kalır; '
-      + 'aynı içerik idempotent; yeni numara kurulur',
+    beklenenSonuc: 'Değişmiş içerik ya da değişmez üstveri (sektör · lisans · bağımlılık) SÜRÜM hatasıyla reddedilir ("kurulu sürüm değişmez"), '
+      + 'sürüm kaydı ve içerik olduğu gibi kalır; aynı içerik idempotent ve madde ağacına dokunmaz (kimlikler korunur); yeni numara kurulur',
     beklenenEkran: 'Ekran yok',
     beklenenIz: 'yazma yok (red)', beklenenBildirim: 'yok',
+    katmanlar: ['SERVER', 'INTEGRATION'],
+  },
+  {
+    id: 'URN-PKT-009', alan: 'Ürünleştirme', rota: '—', eksen: 'veri',
+    amac: 'Kaldırmanın bağımlı paketleri koruması ve kaldırılan paketin aynı içerikle geri kurulabilmesi',
+    rol: 'tanımlar yazma yetkili', kapsam: 'kaldırma · geri kurulum',
+    onkosul: 'Kurulu B paketi manifestinde A\'ya bağımlı; A kaldırılınca taslak çerçeve sürümleri arşive çekilir',
+    veriHali: 'aykiri',
+    eylem: 'A kaldırılmak istenir; B kaldırılıp A kaldırılır; A aynı içerikle geri kurulur',
+    beklenenSonuc: 'B kuruluyken A kaldırılamaz (bağımlı paket adıyla); B gidince A arşivlenir; geri kurulumda paketin kendi arşiv taslağı '
+      + 'taslağa döner, madde kimlikleri korunur, paket kurulu — yeni etiket istenmez',
+    beklenenEkran: 'Ekran yok',
+    beklenenIz: 'IcerikPaketi arşiv izi', beklenenBildirim: 'yok',
     katmanlar: ['SERVER', 'INTEGRATION'],
   },
 ];

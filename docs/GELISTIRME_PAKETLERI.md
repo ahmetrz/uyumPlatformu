@@ -789,7 +789,13 @@ başlık ve başlığı aşan dolu hücre red, sürüm yürürlük tarihi kalıc
 ile red — URN-PKT-008), bağımlılık kararı transaction içinde, telifli
 CSV'de `kanit_beklentisi` de red ve `dis_kontrol_id` sınırlı, sektörsüz
 paket sözlük/öznitelik beyan edemez, `seviye` 0–5, tarihler takvimde var
-olmalı, kapanmamış tırnak BİÇİM.
+olmalı, kapanmamış tırnak BİÇİM. Üçüncü tur: yapıda yeri olmayan dosya
+red, `ust_kod` öz-referansı red, sürüm değişmezliği manifest üstverisini
+de kapsar ve aynı içerik madde ağacına dokunmaz, kiracının madde
+düzenlemesi (denetim izi) de bağ sayılır, bağımlı kurulu paket varken
+kaldırma yok ve geri kurulum arşiv taslağı taslağa döndürür (URN-PKT-009),
+madde ağacı partilerle + 120 sn bütçeyle yazılır; bekçi NULL eşleşmesinde
+mantık dalını (OR kardeşi) ve izin listesinde dosya içi sırayı sayar.
 Kalan: form ve rapor şablonu, rol kataloğu, demo yükleyici, eşleme CSV,
 `/paketler` ekranı, OSCAL okuyucu (SCF için — hukuki görüş bekleniyor),
 sözlük ve öznitelik şemasında `aktif` alanı (uzlaştırmada pasifleştirme —

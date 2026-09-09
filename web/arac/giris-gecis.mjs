@@ -48,7 +48,7 @@ try {
   }
 
 
-  for (const durum of ['hata', 'zaman-asimi', 'azaltilmis-hareket']) {
+  for (const durum of ['hata', 'hata-sona-atla', 'zaman-asimi', 'azaltilmis-hareket']) {
     const context = await browser.newContext({ viewport: { width: 1440, height: 936 }, reducedMotion: 'no-preference' });
     const page = await context.newPage();
     let boz;
@@ -59,8 +59,13 @@ try {
       await page.waitForFunction(() => document.querySelector('#platform-arayuzu')?.inert);
       await page.mouse.wheel(0, 2000);
       await page.waitForFunction(() => window.scrollY > 1000);
+      if (durum === 'hata-sona-atla') {
+        await page.locator('#platform-arayuzu').evaluate(el => { el.style.minHeight = '3000px'; });
+        await page.keyboard.press('End');
+        await page.waitForFunction(() => document.querySelector('section[aria-label="Platforma giriş"]').getBoundingClientRect().top < -100);
+      }
       if (durum === 'azaltilmis-hareket') await page.emulateMedia({ reducedMotion: 'reduce' });
-      if (durum !== 'hata') await page.locator('[data-mod="statik"]').waitFor({ timeout: 20000 });
+      if (!durum.startsWith('hata')) await page.locator('[data-mod="statik"]').waitFor({ timeout: 20000 });
     } finally { boz(); }
     await page.locator('[data-mod="statik"]').waitFor();
     const kutu = await page.getByRole('region', { name: 'Platforma giriş' }).boundingBox();

@@ -219,6 +219,14 @@ jobs:
 
       # `.next/cache` HARİÇ: 243 MB'ın 169 MB'ı derleme önbelleğidir ve
       # `next start` onu okumaz. Ölçüldü — taşınan 74 MB.
+      #
+      # `include-hidden-files` ZORUNLU: `.next` NOKTAYLA başlar ve
+      # `upload-artifact@v4` nokta ile başlayan yolları varsayılan olarak
+      # DIŞLAR. Ölçüldü (CI, `eb2cdeb`): bayraksız koşuda adım
+      # "No files were found with the provided path: web/.next" diyerek
+      # düştü. Sessiz kalmadı çünkü `if-no-files-found: error` yazılıydı —
+      # varsayılan `warn` olsaydı iş YEŞİL biter, tüketiciler boş bir
+      # artefakt indirir ve kusur ancak sunucu açılmayınca görünürdü.
       - name: Derlemeyi yükle
         uses: actions/upload-artifact@v4
         with:
@@ -226,6 +234,7 @@ jobs:
           path: |
             web/.next
             !web/.next/cache
+          include-hidden-files: true
           retention-days: 1
           if-no-files-found: error
 
@@ -648,12 +657,13 @@ jobs:
   # koşmuyordu). Kabul edilen tek şey budur — `failure` ve `cancelled`
   # kırmızıdır.
   kapi-yavas:
-    needs: [kapi-rota, kapi-gezinme, kapi-tasma, kapi-axe, kapi-demo]
+    needs: [derleme, kapi-rota, kapi-gezinme, kapi-tasma, kapi-axe, kapi-demo]
     if: always()
     runs-on: ubuntu-latest
     steps:
       - name: Tarayıcılı kümenin sonucunu TOPLA
         env:
+          DERLEME: ${{ needs.derleme.result }}
           SONUCLAR: >-
             kapi-rota=${{ needs.kapi-rota.result }}
             kapi-gezinme=${{ needs.kapi-gezinme.result }}
@@ -661,19 +671,42 @@ jobs:
             kapi-axe=${{ needs.kapi-axe.result }}
             kapi-demo=${{ needs.kapi-demo.result }}
         run: |
-          kirmizi=0
+          echo "  derleme=$DERLEME"
+          # `derleme` DE `needs`tedir. Olmasaydı: derleme düşer, dört
+          # tarayıcılı iş `skipped` olur, toplayıcı "atlandı" görüp YEŞİL
+          # yanardı — tam da hiçbir kapının ölçülmediği anda. Ölçüldü:
+          # `eb2cdeb` koşumunda derleme artefakt yüklemede düştü ve dördü
+          # de atlandı. Derlemenin `if:` koşulu yoktur, yani atlanamaz;
+          # `success` dışındaki her sonucu kırmızıdır.
+          if [ "$DERLEME" != "success" ]; then
+            echo "KIRMIZI: derleme=$DERLEME — tarayıcılı kapılar artefaktsız kaldı;"
+            echo "atlanmaları 'geçti' değildir."
+            exit 1
+          fi
+          gecen=0; atlanan=0; kirmizi=0
           for s in $SONUCLAR; do
             durum=${s#*=}
             case "$durum" in
-              success) echo "  geçti      $s" ;;
-              skipped) echo "  atlandı    $s" ;;
+              success) echo "  geçti      $s"; gecen=$((gecen + 1)) ;;
+              skipped) echo "  atlandı    $s"; atlanan=$((atlanan + 1)) ;;
               *) echo "  KIRMIZI    $s"; kirmizi=1 ;;
             esac
           done
           if [ "$kirmizi" != 0 ]; then
             echo "tarayıcılı kümede kırmızı var — toplayıcı da kırmızıdır"; exit 1
           fi
-          echo "tarayıcılı küme: beşi de geçti ya da taslakta atlandı"
+          # KARIŞIK DURUM DA KIRMIZIDIR: taslak PR'da BEŞİ birden atlanır.
+          # Bir kısmı koşup bir kısmı atlandıysa atlanma sebebi taslak
+          # değildir ve o kapılar ÖLÇÜLMEMİŞTİR.
+          if [ "$gecen" != 0 ] && [ "$atlanan" != 0 ]; then
+            echo "KARIŞIK DURUM: $gecen geçti, $atlanan atlandı — atlanma sebebi taslak DEĞİL"
+            exit 1
+          fi
+          if [ "$atlanan" != 0 ]; then
+            echo "tarayıcılı küme: taslak PR — beşi de atlandı (ölçülmedi)"
+          else
+            echo "tarayıcılı küme: beşi de geçti"
+          fi
 
   # ── PostgreSQL koşusu (R5) ──────────────────────────────────────────────
   # SQLite geliştirme ve demo için KALIR; müşteri kurulumu PostgreSQL'dir ve

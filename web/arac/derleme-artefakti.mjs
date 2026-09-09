@@ -49,7 +49,10 @@ const PR_KAPISI = path.join(DEPO, '.github/workflows/pr-kapisi.yml');
 export const DAMGA_DOSYASI = path.join(WEB, '.next', 'DERLEME-ORTAMI.json');
 
 /** Derlemeye GÖMÜLEN değişkenler. `NEXT_PUBLIC_` öneki Next.js'in kendi
-    sözleşmesidir: bu önekli her değer istemci paketine yazılır. */
+    sözleşmesidir: bu önekli her değer istemci paketine yazılır.
+
+    @param {Record<string, string | undefined>} [cevre]
+    @returns {Record<string, string>} */
 export function gomulenler(cevre = process.env) {
   return Object.fromEntries(
     Object.entries(cevre)
@@ -142,6 +145,31 @@ export function artefaktKapisi(isAkisiMetni) {
       }
     }
   }
+  /* GİZLİ YOL TUZAĞI. `upload-artifact@v4` NOKTAYLA başlayan yolları
+     varsayılan olarak DIŞLAR ve `.next` tam olarak öyle bir yoldur.
+     Ölçüldü (CI, `eb2cdeb`): bayraksız koşuda adım "No files were found
+     with the provided path: web/.next" diyerek düştü. Yüksek sesle
+     düşmesinin sebebi `if-no-files-found: error` idi; varsayılan `warn`
+     olsaydı iş YEŞİL biter, tüketiciler boş bir artefakt indirir ve kusur
+     ancak sunucu açılmayınca görünürdü. Kapı ikisini birden ister.
+
+     Kontrol İŞ düzeyindedir: bir işte birden çok yükleme adımı varsa
+     hangi adımın hangi bayrağı taşıdığını ayırmaz — bugün her işte en
+     çok bir yükleme var ve bu sınır burada yazılı. */
+  for (const [is, { metin }] of bloklar) {
+    if (!/uses:\s*actions\/upload-artifact/.test(metin)) continue;
+    const gizliYol = /^\s*(?:-\s*)?[\w./-]*\/\.[\w-]+\s*$/m.test(metin)
+      || /path:\s*\S*\/\.[\w-]/.test(metin);
+    if (gizliYol && !/include-hidden-files:\s*true/.test(metin)) {
+      kusurlar.push(`\`${is}\` NOKTAYLA başlayan bir yol yüklüyor ama`
+        + ' `include-hidden-files: true` yok — v4 o yolu sessizce dışlar.');
+    }
+    if (!/if-no-files-found:\s*error/.test(metin)) {
+      kusurlar.push(`\`${is}\` yüklemesinde \`if-no-files-found: error\` yok —`
+        + ' dosya bulunamazsa iş YEŞİL biter ve tüketici boş artefakt indirir.');
+    }
+  }
+
   for (const { is, beyan } of [...ureten, ...tuketen]) {
     if (!beyan) {
       kusurlar.push(`\`${is}\` derleme artefaktına dokunuyor ama`

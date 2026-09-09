@@ -63,6 +63,13 @@ const TUT = process.argv.includes('--tut');
 const PORT = Number(process.env.COMPOSE_PORT || 3200);
 
 const yaz = (m) => console.log(m);
+/* Üretilen env dosyası (rastgele parola taşır) HER çıkışta silinir.
+   İlk sürümde silme yalnız mutlu yolun sonundaydı; altı erken çıkışın
+   her biri dosyayı diskte bırakıyordu — ve kapının düştüğü an, insanın
+   o dizine baktığı andır (bağımsız inceleme, tur 2). */
+let envTemizle = () => {};
+process.on('exit', () => envTemizle());
+
 function kirmizi(m) { console.error(`\nKIRMIZI · ${m}`); process.exit(1); }
 
 /* ── 0 · araçlar ──────────────────────────────────────────────────── */
@@ -103,6 +110,7 @@ writeFileSync(ENV_DOSYA, ornek
   .replace('PG_VERITABANI=uyum', 'PG_VERITABANI=uyum_kapi')
   .replace('PG_KULLANICI=uyum', 'PG_KULLANICI=uyum_kapi')
   .replace('UYGULAMA_PORTU=3000', `UYGULAMA_PORTU=${PORT}`));
+envTemizle = () => { if (!TUT) rmSync(ENV_DOSYA, { force: true }); };
 yaz(`· kapı yığını: proje ${PROJE} · port ${PORT} · env ${path.basename(ENV_DOSYA)} (üretildi, depoya girmez)`);
 
 const CA = process.env.CA_DEMETI?.trim();
@@ -253,8 +261,15 @@ const duman = spawnSync(process.execPath, [path.join(WEB, 'arac', 'rota-duman.mj
 
 let temizlikKusuru = null;
 if (TUT) {
-  yaz(`\n6 · --tut verildi: yığın AYAKTA bırakıldı (port ${PORT}). `
-    + `İndirmek için: cd deploy/compose && docker compose --env-file .env down -v`);
+  /* Komut KAPININ projesini ve KAPININ env dosyasını söyler. İlk sürüm
+     `--env-file .env down -v` diyordu: `-p` olmadığı için compose
+     `compose.yaml`daki `uyum-platformu` projesini hedefler ve `-v`
+     OPERATÖRÜN veritabanını, kanıt deposunu ve yedeklerini silerdi —
+     kapının kendi çıktısı, kapının kendi gerekçesini (R-C) bozuyordu
+     (bağımsız inceleme, tur 2). */
+  yaz(`\n6 · --tut verildi: yığın AYAKTA bırakıldı (port ${PORT}). İndirmek için:`);
+  yaz(`     cd deploy/compose && docker compose -p ${PROJE} `
+    + `--env-file ${path.basename(ENV_DOSYA)} down -v --remove-orphans`);
 } else {
   yaz('\n6 · yığın indiriliyor ve indiği DOĞRULANIYOR…');
   indir();
@@ -269,10 +284,15 @@ if (TUT) {
   else yaz(`   temiz · kapsayıcı 0 · port ${PORT} kapalı`);
 }
 
-/* Kapının ürettiği tohum imajı bırakılmaz: yerel koşumda birikir ve
-   diski doldurur (ölçüldü: bu oturumda disk iki kez doldu). */
+/* Kapının ürettiği tohum imajı bırakılmaz ve SİLİNDİĞİ ÖLÇÜLÜR: çıkış
+   kodunu okumayan bir silme, başarısız olamayan bir adımdır. Etiketi
+   silmek BuildKit önbelleğini bırakır — o bilerek bırakılır, bir sonraki
+   koşumun derlemesini dakikalarca kısaltır; biriken şey ETİKETLİ imajdır
+   ve disk bu oturumda iki kez onunla doldu. */
 if (!TUT) {
   komut('docker', ['image', 'rm', '-f', tohumImaji], { env: ortam });
+  const kalanImaj = (komut('docker', ['images', '-q', tohumImaji], { env: ortam }).stdout || '').trim();
+  if (kalanImaj !== '') temizlikKusuru = temizlikKusuru ?? `tohum imajı silinemedi: ${tohumImaji}`;
   rmSync(ENV_DOSYA, { force: true });
   if (existsSync(ENV_DOSYA)) temizlikKusuru = temizlikKusuru ?? `${ENV_DOSYA} silinemedi`;
 }

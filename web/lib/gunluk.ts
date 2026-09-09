@@ -66,11 +66,22 @@ export function satir(duzey: Duzey, olay: string, ek: Record<string, unknown> = 
 }
 
 /* Çıktı akışı: hata ve uyarı stderr'e, bilgi stdout'a. Kapsayıcı
-   toplayıcıları ikisini ayrı sınıflar. */
+   toplayıcıları ikisini ayrı sınıflar.
+
+   EDGE ÇALIŞMA ZAMANINDA `process.stdout/stderr` YOKTUR. Ölçüldü (imaj
+   derlemesi): Next "A Node.js API is used (process.stderr) which is not
+   supported in the Edge Runtime" diye UYARI veriyordu — bugün uyarı,
+   çünkü ürünün hiçbir yüzeyi Edge'de koşmuyor; Edge'e ilk taşınan şeyde
+   HATA olurdu ve o gün günlük satırı sessizce kaybolurdu. Akış yoksa
+   `console`a düşülür: bu modül zaten çıplak `console.*` yasağının TEK
+   muafıdır (`tests/bekci/gunluk-sir.test.ts`), yani kural delinmiyor —
+   yazan tek yer hâlâ burası. */
 export function yaz(duzey: Duzey, olay: string, ek: Record<string, unknown> = {}): void {
   const s = JSON.stringify(satir(duzey, olay, ek));
-  if (duzey === 'bilgi') process.stdout.write(`${s}\n`);
-  else process.stderr.write(`${s}\n`);
+  const akis = duzey === 'bilgi' ? globalThis.process?.stdout : globalThis.process?.stderr;
+  if (akis && typeof akis.write === 'function') akis.write(`${s}\n`);
+  else if (duzey === 'bilgi') console.log(s);
+  else console.error(s);
 }
 
 export const gunluk = {

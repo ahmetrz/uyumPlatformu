@@ -422,9 +422,13 @@ jobs:
       # DALLA karşılaştırılır. Diş "CI'da ATLANMAZ" der ve doğru davranır —
       # eksik olan bu adımdı (ölçüldü: `kapi-postgres` üç bekçide "taban dal
       # okunamadı" diye kırmızı yandı; kusur kodda değil iş akışındaydı).
+      # Refspec ZORLAMALIDIR (`+`): ileri-sarım olmayan bir güncellemede
+      # zorlamasız fetch reddedilir, `continue-on-error` bunu yutar ve
+      # cırcır dişleri PR ile ilgisi olmayan bir sebeple kırmızı yanar.
+      # Öbür iki iş zaten `+` kullanıyor (bağımsız inceleme, tur 2).
       - name: Taban dalı al (bekçi cırcırı)
         continue-on-error: true
-        run: git fetch --depth=1 origin main:refs/remotes/origin/main
+        run: git fetch --depth=1 origin +refs/heads/main:refs/remotes/origin/main
 
       - name: Node kur
         uses: actions/setup-node@v7

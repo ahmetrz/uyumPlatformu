@@ -97,24 +97,44 @@ Araç yedeği alır **ve aynı komutta doğrular**; ayrı bir "doğrula" adımı
 unutulabilir olurdu. Hedef dizin varsa ve boş değilse **yazmaz**: var olan
 bir yedeğin üstüne yazmak, bir yedeği sessizce yok etmektir.
 
-Ölçülen çıktı (9 Eylül 2026, geliştirme ortamı):
+Ölçülen çıktı (9 Eylül 2026, geliştirme ortamı — kanıt deposu VAR ve boş):
 
 ```
 YEDEK ALINDI ve DOĞRULANDI
 
   sağlayıcı    : sqlite
-  veritabanı   : veritabani.db · 3.44 MB · 2872340cb9fa82b2…
+  veritabanı   : veritabani.db · 3.15 MB · 61195245b56cea86…
+  bütünlük     : ok
+  yabancı anahtar kusuru: 0
   tablo        : 158
   göç          : 52 (son: 20260909180000_surum_paket_notu_temsili)
-  içerik özeti : 2c0e42dd6da68991
-  kullanıcı    : 5 · iz kaydı: 38
-  kanıt dosyası: 0 · 0.0 KB · depo kökü: …/web/veri/kanit
+  içerik özeti : 02c621e37683bbea
+  kullanıcı    : 5 · iz kaydı: 12
+  kanıt dosyası: 0 · 0.0 KB · depo kökü: …/veri/kanit
 ```
+
+PostgreSQL'de aynı komut (ölçüldü, aynı gün):
+
+```
+  sağlayıcı    : postgresql
+  veritabanı   : veritabani.dump · 0.38 MB · 631ea97ba807a76d…
+  bütünlük     : ölçülmedi (PostgreSQL)
+  yabancı anahtar kusuru: ölçülmedi (PostgreSQL)
+  tablo        : 158
+```
+
+**`ölçülmedi` yazan iki satır beyan değil, ölçüm yokluğudur.** PostgreSQL'de
+SQLite'ın `integrity_check` / `foreign_key_check` karşılığı tek bir komut
+yoktur; oraya `ok` ve `0` yazmak, aylar sonra manifesti okuyan denetçiye
+yapılmamış bir ölçümü yapılmış gibi gösterirdi.
 
 **`kanıt dosyası: 0` bir ÖLÇÜMDÜR, "kanıt dosyası yok" değil.** İkincisi
 bir iddiadır ve depo okunamadığında da aynı cümleyi kurar. Deponun
-dizininin hiç olmaması ayrı bir olgudur ve ayrı yazılır (`depo dizini
-YOKTU — ölçüm yapılamadı`).
+dizininin hiç olmaması AYRI bir olgudur, ayrı yazılır (`depo dizini YOKTU
+— ölçüm yapılamadı`) ve yedeği **KUSURLU** yapar (çıkış 1): deposu
+ölçülemeyen bir yedek doğrulanmış değildir — kanıt dosyası bekleyen bir
+veritabanının yanında sıfır dosyalı bir yedek, "doğrulandı" damgasıyla
+arşive girerdi.
 
 ---
 

@@ -55,20 +55,33 @@ const baglanti = z.string().min(1)
     (u) => /^file:/i.test(u) || /^postgres(ql)?:\/\//i.test(u) || u.startsWith('/') || u.startsWith('.'),
     { message: 'desteklenen: file: (SQLite) · postgres:// · postgresql://' },
   )
-  /* PostgreSQL dizesi AYRICA AYRIŞTIRILABİLİR olmalıdır. Ölçüldü (bağımsız
-     inceleme): `openssl rand -base64 32` ile üretilen parola `/` içerdiğinde
-     URI otoritesi bölünür ve sürücü "Invalid URL" der. Kusur opaktır —
-     PostgreSQL parolayı KABUL eder, yalnız uygulama bağlanamaz — ve
-     operatör "uygulama bozuk" görür. Açılışta ADIYLA yakalanır. */
+  /* PostgreSQL dizesi AYRICA AYRIŞTIRILABİLİR olmalıdır.
+
+     Ölçüldü: `openssl rand -base64 32` çıktısında `/` geçtiğinde URI
+     otoritesi bölünür. Kusur OPAKTIR — PostgreSQL parolayı kabul eder,
+     yalnız uygulama bağlanamaz — ve operatör "uygulama bozuk" görür.
+
+     İKİ ayrı hâl ölçüldü (bağımsız inceleme, tur 2) ve ikisi de yakalanır:
+
+       postgresql://u:a/b@h:5432/d       → `new URL` FIRLATIR
+       postgresql://u:123/abc@h:5432/d   → ayrışır AMA host `u`, yol
+                                           `/abc@h:5432/d` olur — yani
+                                           sessizce YANLIŞ bir sunucuya
+                                           bağlanmayı dener
+
+     İkincisinin izi yoldaki `@`dır: otorite bölünmemiş bir URI'de yolda
+     `@` bulunmaz. `hostname` BOŞLUĞU ölçüt DEĞİLDİR: `postgresql:///d?host=
+     /var/run/postgresql` geçerli bir libpq unix-soket URI'sidir ve hostname'i
+     boştur — onu reddetmek geçerli bir kurulumu açılışta kırardı. */
   .refine(
     (u) => {
       if (!/^postgres(ql)?:\/\//i.test(u)) return true;
-      try { return new URL(u).hostname.length > 0; } catch { return false; }
+      try { return !new URL(u).pathname.includes('@'); } catch { return false; }
     },
     {
-      message: 'PostgreSQL bağlantı dizesi ayrıştırılamıyor — parola URL-güvenli '
-        + 'olmayabilir (`+ / =` URI\'yi böler). Parolayı `openssl rand -hex 32` ile '
-        + 'üretin ya da URL kodlayın.',
+      message: 'PostgreSQL bağlantı dizesi ayrıştırılamıyor — parolada URL '
+        + 'kodlanmamış bir `/` (ya da `@ ? #`) olabilir ve URI\'yi böler. '
+        + 'Parolayı `openssl rand -hex 32` ile üretin ya da URL kodlayın.',
     },
   );
 

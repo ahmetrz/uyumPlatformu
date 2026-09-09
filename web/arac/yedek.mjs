@@ -119,11 +119,27 @@ function pgAraci(ad) {
    kalanı ayrı argümanlara bölünür. */
 function pgBaglanti(url) {
   const u = new URL(url);
-  const args = ['-h', u.hostname, '-p', u.port || '5432',
-    '-U', decodeURIComponent(u.username), '-d', decodeURIComponent(u.pathname.slice(1))];
+  const parola = u.password === '' ? null : decodeURIComponent(u.password);
+  /* Bağlantı dizesi PARÇALANMAZ, yalnız parolası ÇIKARILIR. İlk sürüm
+     host/port/user/db'ye bölüyordu ve geri kalan her şeyi sessizce
+     atıyordu (bağımsız inceleme, tur 2): `?sslmode=require`,
+     `?sslrootcert=…`, `?connect_timeout=…`, `?host=/var/run/postgresql`
+     (unix soket) ve Prisma'nın `?schema=…` değeri. IPv6 de bozuluyordu —
+     `new URL(...).hostname` köşeli parantezi KORUR (`[::1]`) ve libpq onu
+     host olarak kabul etmez. URI'yi olduğu gibi vermek üçünü birden
+     çözer; sır yine argümana girmez. */
+  u.password = '';
   const cevre = { ...process.env };
-  if (u.password) cevre.PGPASSWORD = decodeURIComponent(u.password);
-  return { args, cevre };
+  if (parola !== null) cevre.PGPASSWORD = parola;
+  return { args: ['-d', u.toString()], cevre };
+}
+
+/** Bağlantının hedeflediği şema — `?schema=` yoksa `public`. Doluluk
+    kontrolü sabit `public`e bakarsa, `?schema=uyum` ile kurulmuş bir
+    kurulumda 0 tablo okur ve DOLU veritabanına geri yüklemeye izin verir
+    (bağımsız inceleme, tur 2). */
+function pgSemasi(url) {
+  return new URL(url).searchParams.get('schema') || 'public';
 }
 
 /** Alan ayracı: birim ayracı (U+001F). Metin alanlarında (kanıt adı) virgül,
@@ -132,16 +148,33 @@ const AYRAC = String.fromCharCode(31);
 /** Satır ayracı: kayıt ayracı (U+001E). Kanıt adında satır sonu geçebilir
     ve `\n`e göre bölmek o kaydı ikiye bölerdi — bölünen kaydın gerçek
     depo anahtarı başka bir sütuna kayar ve o kanıt HİÇ denetlenmezdi
-    (bağımsız inceleme bulgusu). */
+    (bağımsız inceleme, tur 1). */
 const SATIR_AYRACI = String.fromCharCode(30);
 
+/* `-R` SON KAYDI AYRAÇLA BİTİRMEZ — bir NEWLINE ekler. PostgreSQL'in kendi
+   davranışıdır (`print_unaligned_text`: "The last record is terminated by a
+   newline, independent of the set record separator") ve ÖLÇÜLDÜ (bağımsız
+   inceleme, tur 2):
+
+     psql -At -F <US> -R <RS> -c "select 'a' union all select 'b'"
+       → 'a' <RS> 'b' \n            → ayrıştırma: [['a'], ['b\n']]
+
+   Bu tek `\n` sessiz değil, GÜRÜLTÜLÜ bir kusurdu: son tablo adı
+   `"Zafiyet\n"` olarak sonraki sorguya giriyor ve `pgRaporu` "relation does
+   not exist" ile düşüyordu — yani yedek aracı KURULUMUN SAĞLAYICISINDA hiç
+   koşmuyordu. İkinci etkisi sessizdi: son kaydın `dosyaHash`i `\n` aldığı
+   için `ozetNormal` `null` döner ve o kanıtın özet çapraz kontrolü atlanır.
+
+   Bu yüzden yalnız SONDAKİ tek newline atılır — kaydın İÇİNDEKİ satır sonu
+   korunur, ayracın var oluş sebebi odur. */
 function pgSorgu(url, sql) {
   pgAraci('psql');
   const { args, cevre } = pgBaglanti(url);
   const r = spawnSync('psql', [...args, '-At', '-F', AYRAC, '-R', SATIR_AYRACI, '-c', sql],
     { encoding: 'utf8', env: cevre });
   if (r.status !== 0) throw new Error(`psql başarısız: ${(r.stderr || '').trim()}`);
-  return r.stdout.split(SATIR_AYRACI).filter((x) => x.length > 0).map((x) => x.split(AYRAC));
+  return r.stdout.replace(/\n$/, '').split(SATIR_AYRACI)
+    .filter((x) => x.length > 0).map((x) => x.split(AYRAC));
 }
 
 /* ── canlı veritabanından KANIT KAYITLARI ────────────────────────────── */
@@ -164,12 +197,24 @@ const KANIT_SQL_PG = `
   select 'KanitSurumu', id, coalesce("dosyaAdi", id), "depoAnahtari", coalesce("dosyaHash", '')
     from "KanitSurumu" where "depoAnahtari" is not null`;
 
-/* Özet NORMALLENİR: boş dize ile NULL aynı şeydir (özet yok) ve iki
-   sağlayıcı aynı veriden AYNI kararı vermelidir. Ölçüldü (bağımsız
-   inceleme): PostgreSQL dalı `coalesce(...,'')` sonucunu null'a çeviriyor,
-   SQLite dalı boş dizeyi taşıyordu — aynı kayıt SQLite'ta "ÇÜRÜK",
-   PostgreSQL'de "sağlam" görünüyordu. */
-const ozetNormal = (h) => (typeof h === 'string' && /^[0-9a-f]{64}$/.test(h) ? h : null);
+/* Özet ÜÇ HÂLDE olur; ikiye indirmek kusuru gizler (bağımsız inceleme, tur 2).
+
+     · geçerli  — 64 karakterlik küçük harf hex
+     · YOK      — boş dize ya da NULL. Bu bir OLGUDUR (dosya sürümlemesinden
+                  önceki kayıt) ve doğrulama anahtarın kendisinden yapılır.
+     · BİÇİMSİZ — dolu ama özet değil (büyük harf, 63 karakter, `sha256:`
+                  öneki, başka algoritma). Bunu "yok" saymak, bozuk bir
+                  özeti temiz göstermek olurdu: doğrulama içerik adresli
+                  anahtara düşer ve o HER ZAMAN tutar.
+
+   İki sağlayıcı aynı veriden AYNI kararı vermelidir: PostgreSQL dalı
+   `coalesce(...,'')` döndürüyor, SQLite dalı NULL taşıyor. */
+const OZET_BICIMI = /^[0-9a-f]{64}$/;
+const ozetNormal = (h) => {
+  if (h === null || h === undefined || h === '') return null;
+  const m = String(h);
+  return OZET_BICIMI.test(m) ? m : { bicimsiz: m };
+};
 
 /** Veritabanının BEKLEDİĞİ kanıt dosyaları. Yedeğin tamlığı bu listeye göre
     ölçülür — diskteki dosyaları saymak, eksik dosyayı göstermez. */
@@ -249,9 +294,10 @@ function pgRaporu(url) {
   /* Satır sayıları GERÇEK sayımdır, `pg_stat` tahmini değil: tahminî sayı
      "aynı içerik" sorusunu yanlış cevaplayabilir ve bir yedeği yanlışlıkla
      güncel gösterir. */
+  const sema = pgSemasi(url);
   const tablolar = pgSorgu(url,
-    "select tablename from pg_tables where schemaname='public' order by tablename")
-    .map((r) => r[0]);
+    `select tablename from pg_tables where schemaname = '${sema.replace(/'/g, "''")}' `
+    + 'order by tablename').map((r) => r[0]);
   const sayim = tablolar.length === 0 ? [] : pgSorgu(url, tablolar
     .map((t) => `select '${t}' t, count(*) c from "${t}"`).join(' union all '))
     .sort((a, b) => a[0].localeCompare(b[0]));
@@ -417,6 +463,7 @@ export function karsilastir(dizin, url = process.env.DATABASE_URL) {
   const eksik = [];
   const curuk = [];
   const bicimsiz = [];
+  const bicimsizOzet = [];
   const beklenen = new Set();
   for (const k of kanitKayitlari(url)) {
     beklenen.add(k.anahtar);
@@ -427,6 +474,12 @@ export function karsilastir(dizin, url = process.env.DATABASE_URL) {
        zaman ANAHTARIN KENDİSİ özet taşır — içerik adresli depo bunu
        garanti eder — ve doğrulama ondan yapılır. Karşılaştıracak bir şey
        olmadığında "geçti" demek, hiçbir şeye bakmadan temiz raporlamaktır. */
+    if (k.hash !== null && typeof k.hash === 'object') {
+      /* Dolu ama özet olmayan bir `dosyaHash`: "yok" saymak bozuk bir özeti
+         temiz göstermek olurdu (doğrulama anahtara düşer ve o hep tutar). */
+      bicimsizOzet.push({ ...k, deger: k.hash.bicimsiz });
+      continue;
+    }
     const beklenenOzet = k.hash ?? k.anahtar.split('/')[2];
     if (f.ozet !== beklenenOzet) curuk.push({ ...k, yedekteki: f.ozet, beklenen: beklenenOzet });
   }
@@ -448,8 +501,10 @@ export function karsilastir(dizin, url = process.env.DATABASE_URL) {
     kanitEksik: eksik,
     kanitCuruk: curuk,
     kanitBicimsiz: bicimsiz,
+    kanitBicimsizOzet: bicimsizOzet,
     kanitSahipsiz: sahipsiz,
-    saglam: y.saglam && eksik.length === 0 && curuk.length === 0 && bicimsiz.length === 0,
+    saglam: y.saglam && eksik.length === 0 && curuk.length === 0
+      && bicimsiz.length === 0 && bicimsizOzet.length === 0,
   };
 }
 
@@ -483,8 +538,9 @@ export function geriYukle(dizin, o = {}) {
        tutulmuyordu. Kontrolsüz `pg_restore` dolu bir veritabanına COPY
        bölümlerini işler: A kurulumunun satırları B'nin canlı tablolarına
        KARIŞIR ve araç ancak sonunda "başarısız" der. */
+    const sema = pgSemasi(url);
     const [[tabloSayisi]] = pgSorgu(url,
-      "select count(*) from pg_tables where schemaname='public'");
+      `select count(*) from pg_tables where schemaname = '${sema.replace(/'/g, "''")}'`);
     if (Number(tabloSayisi) > 0 && !o.ustuneYaz) {
       throw new Error(`Hedef veritabanı dolu: ${Number(tabloSayisi)} tablo var. `
         + 'Geri yükleme veri kaybettirir; üstüne yazmak İNSAN kararıdır (--ustune-yaz).');
@@ -545,7 +601,19 @@ if (bu === path.resolve(new URL(import.meta.url).pathname)) {
      operatör, konumsal okumada `--ustune-yaz`ı dizin sanan bir araca
      çarpardı (bağımsız inceleme bulgusu). */
   const argumanlar = process.argv.slice(2);
-  const kip = argumanlar.find((a) => a.startsWith('--'));
+  /* Kip BİLİNEN kümeden seçilir. İlk `--` belirtecini körlemesine kip
+     saymak, `--ustune-yaz --geri-yukle /yol` yazan operatöre kullanım
+     metni basıp SIFIRLA çıkmak olurdu — geri yükleme koşmadığı hâlde
+     koştu sanılırdı (bağımsız inceleme, tur 2). */
+  const KIPLER = ['--al', '--dogrula', '--karsilastir', '--geri-yukle'];
+  const EK_BAYRAKLAR = ['--ustune-yaz'];
+  const kip = argumanlar.find((a) => KIPLER.includes(a));
+  const taninmayan = argumanlar.filter(
+    (a) => a.startsWith('--') && !KIPLER.includes(a) && !EK_BAYRAKLAR.includes(a));
+  if (taninmayan.length > 0) {
+    console.error(`Tanınmayan bayrak: ${taninmayan.join(' ')}`);
+    process.exit(1);
+  }
   const arg = argumanlar.find((a) => !a.startsWith('--'));
   try {
     if (kip === '--al') {
@@ -585,6 +653,9 @@ if (bu === path.resolve(new URL(import.meta.url).pathname)) {
       for (const c of k.kanitCuruk) {
         console.log(`  ÇÜRÜK · ${c.kaynak} ${c.id} · "${c.ad}" · anahtar ${c.anahtar} · `
           + `yedekteki ${c.yedekteki.slice(0, 16)}… ≠ beklenen ${c.beklenen.slice(0, 16)}…`);
+      }
+      for (const b3 of k.kanitBicimsizOzet) {
+        console.log(`  BİÇİMSİZ ÖZET · ${b3.kaynak} ${b3.id} · "${b3.ad}" · dosyaHash "${b3.deger}"`);
       }
       for (const b2 of k.kanitBicimsiz) {
         console.log(`  BİÇİMSİZ ANAHTAR · ${b2.kaynak} ${b2.id} · "${b2.ad}" · ${b2.anahtar}`);

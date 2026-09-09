@@ -19,7 +19,8 @@ export default function KokHata({ error, reset }: {
           <div className="ab-sistem-sayfa">
             <header>
               <Link href="/" className="marka">{MARKA_AD.toLocaleUpperCase('tr-TR')}</Link>
-              <span className="etiket">{MARKA_AD}</span>
+              {/* Gerekçe `components/kabuk/SistemSayfasi.tsx`. */}
+              <span className="etiket">Sistem</span>
             </header>
             <main>
               <p className="kod">500 · Uygulama hatası</p>

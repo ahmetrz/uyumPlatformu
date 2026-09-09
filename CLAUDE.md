@@ -316,8 +316,8 @@ yapılır.
 CI'da (`.github/workflows/pr-kapisi.yml`) ÜÇ iş koşar: `kapi` (hızlı) ·
 `kapi-yavas` (tarayıcılı) · **`kapi-postgres`** (postgres:16 servisi —
 PostgreSQL istemcisi üretilir, `kapi:pg-goc` ve TAM test kümesi orada da
-koşar; ölçüldü 9 Eyl 2026, ikinci tur: iki sağlayıcıda da 192/192 dosya ·
-3 503 vaka, atlanan 1). Hızlı işte: lint → tsc → vitest →
+koşar; ölçüldü 9 Eyl 2026, P7/R3 turu: iki sağlayıcıda da 194 dosya ·
+3 527 vaka, atlanan 1). Hızlı işte: lint → tsc → vitest →
 test envanteri → ters kapsam → dil kapısı → tasarım kapısı → **kapı
 farkı** → **PostgreSQL taban tazeliği** → derleme → **rota duman** → **gezinme (yedi bant)** → **yatay
 taşma** → **erişilebilirlik (axe · üç bant)** → statik demo derlemesi ve

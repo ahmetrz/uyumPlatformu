@@ -648,6 +648,8 @@
 | `URN-KUR-011` | Kurulum | DOMAIN | `yedek-araci.test.ts` | SAĞLAYICILAR ARASI geri yükleme reddedilir | evet | geçti |
 | `URN-KUR-012` | Kurulum | DOMAIN | `bekci/ortam-semasi.test.ts` | geçerli ortam çözülür ve hata listesi BOŞTUR | evet | geçti |
 | `URN-KUR-012` | Kurulum | DOMAIN | `bekci/ortam-semasi.test.ts` | AYRIŞTIRILAMAYAN PostgreSQL dizesi ADIYLA reddedilir | evet | geçti |
+| `URN-KUR-012` | Kurulum | DOMAIN | `bekci/ortam-semasi.test.ts` | SESSİZCE YANLIŞ HOSTA ayrışan dize de reddedilir | evet | geçti |
+| `URN-KUR-012` | Kurulum | DOMAIN | `bekci/ortam-semasi.test.ts` | UNIX SOKET ve IPv6 biçimleri REDDEDİLMEZ | evet | geçti |
 | `URN-KUR-012` | Kurulum | DOMAIN | `bekci/ortam-semasi.test.ts` | URL kodlanmış parola KABUL edilir — kural dizeye, parolaya değil | evet | geçti |
 | `URN-KUR-012` | Kurulum | DOMAIN | `bekci/ortam-semasi.test.ts` | TANINMAYAN sağlayıcı sessizce SQLite olmaz | evet | geçti |
 | `URN-KUR-012` | Kurulum | DOMAIN | `bekci/ortam-semasi.test.ts` | BOZUK sayı ve mantık değeri varsayılana DÜŞMEZ, hata verir | evet | geçti |

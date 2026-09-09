@@ -39,10 +39,12 @@ openssl rand -hex 32
 ```
 
 **`-base64` kullanmayın.** Parola bağlantı dizesine (`postgresql://kullanici:PAROLA@…`)
-kaçışsız gömülür; base64 çıktısındaki `/` URI'yi böler ve uygulama
-bağlanamaz. Kusur opaktır: PostgreSQL parolayı kabul eder, yalnız uygulama
-bağlanamaz ve operatör "uygulama bozuk" görür. Kurulum bunu artık
-açılışta yakalar ve **adıyla** söyler.
+kaçışsız gömülür ve base64 çıktısında geçebilen **`/`** URI otoritesini
+böler. (`+` ve `=` bölmez — ölçüldü; kusuru üreten karakter yalnız `/`.)
+43 karakterlik çıktıda en az bir `/` görme olasılığı **~%49**. Kusur
+opaktır: PostgreSQL parolayı kabul eder, yalnız uygulama bağlanamaz ve
+operatör "uygulama bozuk" görür. Kurulum bunu artık açılışta yakalar ve
+**adıyla** söyler.
 
 | Anahtar | Zorunlu | Ne |
 | --- | --- | --- |

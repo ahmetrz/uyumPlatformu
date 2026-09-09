@@ -89,7 +89,14 @@ RUN --mount=type=secret,id=ca_demeti,target=/tmp/ca-demeti.crt \
   && apt-get purge -y gnupg && apt-get autoremove -y \
   && rm -rf /var/lib/apt/lists/* \
   && useradd --system --uid 10001 --home /uygulama uyum \
-  && mkdir -p /veri/kanit && chown -R uyum:uyum /veri
+  # BOŞ BİR ADLANDIRILMIŞ BİRİM, imajda OLMAYAN bir yola bağlandığında
+  # `root:root` olur; imajda VAR olan bir yola bağlandığında o yolun
+  # sahipliğini devralır. `/veri/kanit` bu yüzden burada yaratılıyordu;
+  # `/veri/yedek` eklendiğinde aynı satıra girmedi ve belgelenen tek
+  # kurulum-içi yedek komutu `EACCES` verirdi (bağımsız inceleme, tur 2).
+  # İkisi de burada yaratılır — biri unutulursa kusur ancak müşteri
+  # yedek almaya çalıştığında görünür.
+  && mkdir -p /veri/kanit /veri/yedek && chown -R uyum:uyum /veri
 
 COPY --from=derleme /kaynak/web/package.json ./package.json
 COPY --from=derleme /kaynak/web/node_modules ./node_modules

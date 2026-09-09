@@ -586,7 +586,7 @@ export const URUNLESTIRME_SENARYOLARI: Senaryo[] = [
     veriHali: 'aykiri',
     eylem: 'Bozuk sayı, tanınmayan sağlayıcı ve AYRIŞTIRILAMAYAN PostgreSQL bağlantı dizesi verilir',
     beklenenSonuc: 'Her hatalı değer ANAHTAR ADIYLA reddedilir ve sebebi okunabilirdir; bozuk sayı sessizce varsayılana DÜŞMEZ; tanınmayan sağlayıcı SQLite olmaz; '
-      + 'ayrıştırılamayan PostgreSQL dizesi (URL-güvenli olmayan parola: `+ / =` URI\'yi böler) açılışta yakalanır — PostgreSQL parolayı kabul ettiği için kusur aksi hâlde OPAKTIR; '
+      + 'ayrıştırılamayan PostgreSQL dizesi (parolada URL kodlanmamış `/`: URI otoritesini böler; `+` ve `=` bölmez) açılışta yakalanır — hem `new URL`in fırlattığı hâl hem de sessizce YANLIŞ hosta ayrışan hâl — PostgreSQL parolayı kabul ettiği için kusur aksi hâlde OPAKTIR; '
       + 'URL kodlanmış parola kabul edilir (kural dizeye bakar, parolaya değil); bilerek serbest bırakılan alan (TRUST_PROXY) reddedilmez ve bu ayrım YAZILIDIR',
     beklenenEkran: 'yok (açılış ve sağlık ucu)',
     beklenenIz: 'yazma yok (doğrulama)', beklenenBildirim: 'yok',

@@ -42,6 +42,32 @@ describe('ortam şeması [URN-KUR-012]', () => {
       .toMatch(/URL-güvenli|ayrıştırılamıyor/i);
   });
 
+  it('SESSİZCE YANLIŞ HOSTA ayrışan dize de reddedilir [URN-KUR-012]', () => {
+    /* Ölçüldü (bağımsız inceleme, tur 2): `postgresql://uyum:123/abc@h:5432/d`
+       FIRLATMAZ — `new URL` host'u `uyum`, yolu `/abc@h:5432/d` yapar. Yani
+       kurulum sessizce YANLIŞ bir sunucuya bağlanmayı dener. İzi yoldaki
+       `@`dır; otoritesi bölünmemiş bir URI'de yolda `@` bulunmaz. */
+    const o = ortamiCoz(ortam({ DATABASE_URL: 'postgresql://uyum:123/abc@veritabani:5432/uyum' }));
+    expect(o.ok).toBe(false);
+    if (o.ok) return;
+    expect(o.hatalar.map((h) => h.anahtar)).toContain('DATABASE_URL');
+  });
+
+  it('UNIX SOKET ve IPv6 biçimleri REDDEDİLMEZ [URN-KUR-012]', () => {
+    /* `hostname` boşluğunu ölçüt yapmak, geçerli bir libpq unix-soket
+       URI'sini açılışta kırardı (ölçüldü). Kural dizenin BÖLÜNMÜŞ olup
+       olmadığına bakar, biçimin egzotikliğine değil. */
+    for (const u of [
+      'postgresql:///uyum?host=/var/run/postgresql',
+      'postgresql://uyum:parola@[::1]:5432/uyum',
+      'postgresql://uyum:parola@veritabani:5432/uyum?sslmode=require&schema=uyum',
+    ]) {
+      const o = ortamiCoz(ortam({ DATABASE_URL: u }));
+      expect(o.ok ? [] : o.hatalar.map((h) => h.anahtar), `reddedildi: ${u}`)
+        .not.toContain('DATABASE_URL');
+    }
+  });
+
   it('URL kodlanmış parola KABUL edilir — kural dizeye, parolaya değil [URN-KUR-012]', () => {
     const o = ortamiCoz(ortam({ DATABASE_URL: 'postgresql://uyum:s%2FIv%2Bg%3D@veritabani:5432/uyum' }));
     expect(o.ok ? [] : o.hatalar.map((h) => h.anahtar)).not.toContain('DATABASE_URL');

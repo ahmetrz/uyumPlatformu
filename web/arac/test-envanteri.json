@@ -1,7 +1,7 @@
 {
-  "imza": "0b7f201ac352500fc41a0cd2d2e121e1",
+  "imza": "f2029491da09be9ed94a2b524baf74d5",
   "dosya": 194,
-  "vaka": 3527,
+  "vaka": 3529,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -77,7 +77,7 @@
       "atlanan": 0
     },
     "tests/bekci/ortam-semasi.test.ts": {
-      "vaka": 6,
+      "vaka": 8,
       "atlanan": 0
     },
     "tests/bekci/paket-silme.test.ts": {

@@ -38,7 +38,13 @@ export default function SistemSayfasi({ kod, baslik, cumle, eylemler, teknik, di
           <Link href="/" className="marka" aria-label={`${MARKA_AD} — ana ekran`}>
             {MARKA_AD.toLocaleUpperCase('tr-TR')}
           </Link>
-          <span className="etiket">{MARKA_AD}</span>
+          {/* İkinci satır KURULUMUN adıydı (`KIRACI_AD`) ve kaldırıldı: bu
+              yüzey istemci sınırından da çizilir, orada değer derleme
+              sabitidir ve başka bir kiracının adını gösterirdi. Kalan
+              boşluğa ürün adını İKİNCİ KEZ basmak sözcük markasını
+              "ürün / ürün" yapardı — bu yüzden ikinci satır ekranın ne
+              olduğunu söyler (bağımsız inceleme, tur 2). */}
+          <span className="etiket">Sistem</span>
         </header>
         <main>
           <p className="kod">{kod}</p>

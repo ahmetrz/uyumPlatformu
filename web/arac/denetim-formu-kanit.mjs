@@ -135,6 +135,19 @@ try {
   }
 } finally { await browser.close(); }
 
+/* ÖLÇÜM TABANI. Kusur sayısı sıfır olabilir; ÖLÇÜM sayısı olamaz.
+   Liste boş kalırsa (fikstür bu ekranı beslemiyorsa) betik yalnız boş-hâl
+   iddiasını sayar ve "geçti" der — hiçbir şeye bakmadan temiz raporlamak
+   tam olarak budur. Ölçüldü: CI'da tam koşum 34 iddia üretiyor; taban
+   onun altına düşmeye izin vermez ve düşerse SEBEBİNİ yazar. */
+const ASGARI_IDDIA = 30;
+if (iddialar.length < ASGARI_IDDIA) {
+  console.error(`\nÖLÇÜM YETERSİZ: ${iddialar.length} iddia ölçüldü, taban ${ASGARI_IDDIA}.`);
+  console.error('  Liste boş kaldıysa bu bir EKRAN kusuru değil, fikstürün bu ekranı'
+    + ' beslememesidir — ama ölçülmemiş bir kapı "geçti" diye yazılmaz.');
+  process.exit(1);
+}
+
 const kirmizi = iddialar.filter((i) => !i.ok);
 console.log(`\nDenetim formları kanıtı: ${iddialar.length - kirmizi.length}/${iddialar.length}`
   + ` iddia geçti · bant ${BANTLAR.length}`);

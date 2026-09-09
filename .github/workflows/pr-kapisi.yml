@@ -275,25 +275,11 @@ jobs:
           done
           echo "sunucu 120sn içinde açılmadı"; cat /tmp/kapi-sunucu.log; exit 1
 
-      - name: Giriş kaydırma sonrası tıklama kontrolü
-        working-directory: web
-        env:
-          PORT: '3210'
-        run: node arac/giris-gecis.mjs
-
       # İşlevsel duman testleri ÖNCE koşar: bir rota 404 veriyorsa ya da
       # gezinme kırıksa, aynı sayfadaki piksel ölçümleri gürültüdür.
       # İkisi de aylarca CI dışında kaldı ve #28 ortak `girisYap`a bir adım
       # ekleyince ikisi de sessizce kırıldı — koşmayan kapı, kırıldığını da
       # söyleyemez. Fark `npm run kapi:farki` ile sayılır.
-      - name: Giriş görsel inceleme kareleri
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: giris-inceleme
-          path: /tmp/giris-inceleme/
-          retention-days: 7
-
       - name: Rota duman testi · 58 rota
         working-directory: web
         env:

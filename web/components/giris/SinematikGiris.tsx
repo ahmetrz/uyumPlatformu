@@ -9,7 +9,6 @@ import { KARELER, SAHNELER, ekranYerlestir, kaydirmaKatsayisi, kaydirmaTamam, si
 import { sahneKur, type Sahne } from './sahne';
 import styles from './giris.module.css';
 
-const HATIRLA = 'uyum-sahne-goruldu-v5';
 const DOSYALAR = ['sahne-01-uzak', 'sahne-02-yaklasma', 'sahne-03-bina', 'sahne-04-ekran'] as const;
 
 export default function SinematikGiris({ children, sadeceAnaSayfa = false, sektorler = [] }: {
@@ -33,12 +32,12 @@ function Giris({ children, sektorler }: {
   useLayoutEffect(() => {
     const el = root.current!, ui = hedef.current!;
     const stage = el.querySelector<HTMLElement>(`.${styles.stage}`)!;
+    const eskiScrollRestoration = history.scrollRestoration;
     const motion = matchMedia('(prefers-reduced-motion: reduce)');
     const etiket = el.querySelector<HTMLElement>(`.${styles.current}`)!;
-    let sahne: Sahne | undefined, kapandi = false, raf = 0, mesafe = 0;
+    let sahne: Sahne | undefined, kapandi = false, raf = 0, mesafe = 0, yuklemeSaati = 0;
     let hareketli = false, sonP = -1, sonTamam = false, tempo = 1;
-    const hatirla = () => { try { sessionStorage.setItem(HATIRLA, '1'); } catch { /* Depolama isteğe bağlı. */ } };
-    const temizle = () => { sahne?.temizle(); sahne = undefined; };
+    const temizle = () => { clearTimeout(yuklemeSaati); sahne?.temizle(); sahne = undefined; };
     function statik(atlandi = false) {
       hareketli = false; cancelAnimationFrame(raf); raf = 0;
       ui.inert = false; ui.removeAttribute('aria-hidden');
@@ -48,26 +47,30 @@ function Giris({ children, sektorler }: {
       el.dataset.tamam = 'false'; el.dataset.metinsiz = 'false'; el.dataset.asama = '0'; el.dataset.arayuz = '0'; ui.style.cssText = '';
       temizle();
     }
-    let goruldu = false;
-    try { goruldu = sessionStorage.getItem(HATIRLA) === '1'; } catch { /* Kalıcılık yok. */ }
-    const dogrudan = goruldu || !!location.hash || new URLSearchParams(location.search).has('next');
+    const dogrudan = !!location.hash || new URLSearchParams(location.search).has('next');
     statik(dogrudan);
     atla.current = () => {
-      hatirla();
       statik(true);
       ui.scrollIntoView({ behavior: 'instant', block: 'start' });
       ui.focus({ preventScroll: true });
     };
     function boyutla() {
+      const offset = -el.getBoundingClientRect().top, eskiMesafe = mesafe;
+      const p = eskiMesafe > 0 ? sinirla(offset / eskiMesafe) : 0;
+      const ust = window.scrollY - offset, fazlalik = Math.max(0, offset - eskiMesafe);
       mesafe = stage.clientHeight * kaydirmaKatsayisi(window.innerWidth) * tempo;
       el.style.setProperty('--mesafe', `${mesafe}px`);
-      sahne?.boyutla(); sonP = -1; guncelle();
+      sahne?.boyutla();
+      if (eskiMesafe > 0 && el.dataset.mod === 'hareketli') {
+        window.scrollTo({ top: ust + p * mesafe + fazlalik, behavior: 'instant' });
+      }
+      sonP = -1; guncelle();
     }
     tempoDegistir.current = carpan => {
       tempo = carpan;
-      if (!hareketli || sonTamam) return;
+      if (el.dataset.mod !== 'hareketli' || sonTamam) return;
       // Hız seçimi kamerayı başka konuma atmaz; mevcut ilerleme korunur.
-      const p = Math.max(0, sonP), ust = el.getBoundingClientRect().top + window.scrollY;
+      const p = sinirla(-el.getBoundingClientRect().top / mesafe), ust = el.getBoundingClientRect().top + window.scrollY;
       mesafe = stage.clientHeight * kaydirmaKatsayisi(window.innerWidth) * tempo;
       el.style.setProperty('--mesafe', `${mesafe}px`);
       window.scrollTo({ top: ust + p * mesafe, behavior: 'instant' });
@@ -99,7 +102,6 @@ function Giris({ children, sektorler }: {
       ui.style.clipPath = tamam ? 'none' : `inset(${ekran.ust}px ${ekran.sag}px ${Math.max(0, ui.offsetHeight - ekran.boy)}px ${ekran.sol}px)`;
       ui.style.opacity = String(s.arayuz);
       ui.style.visibility = s.arayuz > 0 || tamam ? 'visible' : 'hidden';
-      if (tamam && !sonTamam) hatirla();
       if (!tamam && sonTamam && ui.contains(document.activeElement)) {
         el.querySelector<HTMLAnchorElement>(`.${styles.skip}`)?.focus({ preventScroll: true });
       }
@@ -110,27 +112,52 @@ function Giris({ children, sektorler }: {
       if (document.hidden) { cancelAnimationFrame(raf); raf = 0; }
       else { sonP = -1; planla(); }
     }
-    function hareketTercihi() {
-      if (motion.matches) {
-        const eskiY = ui.getBoundingClientRect().top;
+    function statigeDon() {
+      if (!hareketli) {
+        const girisUst = window.scrollY + el.getBoundingClientRect().top;
+        const eskiAnchor = el.style.overflowAnchor;
+        // Runway çökerken tarayıcının scroll anchoring ile kullanıcıyı yeniden
+        // aşağı itmesini engelle; pending fallback her zaman girişte biter.
+        el.style.overflowAnchor = 'none';
         statik();
-        if (sonP > 0) window.scrollBy({ top: ui.getBoundingClientRect().top - eskiY, behavior: 'instant' });
+        const giriseDon = () => window.scrollTo({ top: Math.max(0, girisUst), behavior: 'instant' });
+        giriseDon();
+        requestAnimationFrame(() => {
+          giriseDon();
+          el.style.overflowAnchor = eskiAnchor;
+        });
+        return;
       }
+      const referans = sonP > 0 ? ui : stage;
+      const referansUst = referans.getBoundingClientRect().top;
+      statik();
+      window.scrollBy({ top: referans.getBoundingClientRect().top - referansUst, behavior: 'instant' });
+    }
+    function hareketTercihi() {
+      if (motion.matches) statigeDon();
     }
     if (!dogrudan && !motion.matches) {
+      history.scrollRestoration = 'manual';
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      // Görseller çözülmeden kaydırma alanını ayır; erken scroll yolculuğu iptal etmez.
+      el.dataset.mod = 'hareketli';
+      ui.inert = true; ui.setAttribute('aria-hidden', 'true');
+      boyutla();
+      yuklemeSaati = window.setTimeout(statigeDon, 12000);
       async function baslat() {
-        if (kapandi || motion.matches || el.dataset.mod === 'dogrudan' || window.scrollY > 8) return;
+        if (kapandi || motion.matches || el.dataset.mod !== 'hareketli') return;
         try {
           const yeni = await sahneKur(el);
-          if (kapandi || motion.matches || el.dataset.mod === 'dogrudan' || window.scrollY > 8) {
+          if (kapandi || motion.matches || el.dataset.mod !== 'hareketli') {
             yeni.temizle(); return;
           }
+          clearTimeout(yuklemeSaati);
           sahne = yeni;
           hareketli = true; el.dataset.mod = 'hareketli';
           boyutla();
         } catch (error) {
           if (process.env.NODE_ENV !== 'production') console.warn('Giriş sahnesi statik moda geçti:', error);
-          if (!kapandi && el.dataset.mod !== 'dogrudan') statik();
+          if (!kapandi && el.dataset.mod === 'hareketli') statigeDon();
         }
       }
       void baslat();
@@ -141,6 +168,7 @@ function Giris({ children, sektorler }: {
     motion.addEventListener('change', hareketTercihi);
     return () => {
       kapandi = true; cancelAnimationFrame(raf);
+      history.scrollRestoration = eskiScrollRestoration;
       window.removeEventListener('scroll', planla); window.removeEventListener('resize', boyutla);
       document.removeEventListener('visibilitychange', gorunurluk);
       motion.removeEventListener('change', hareketTercihi);

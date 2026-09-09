@@ -46,3 +46,62 @@ okundu; test kanıtı `web/tests/paket-iskeletler.test.ts` ("4.6 ölçümü").
 
 **Taşıma yapılmadı**; kararı ürün sahibi verir (tohum → `DEMO-TR-ENERJI` +
 `TR-ENERJI` ayrımı, P8 ile birlikte).
+
+---
+
+## 4 · Taşıma yapıldı (P4 · 2.5, 9 Eylül 2026) — ölçülen kayıp
+
+**Ölçüm:** 2.5 öncesi `dev.db` (tohum `npm run seed`, `c97320a`) ile 2.5
+sonrası taze tohum (`rm prisma/dev.db · prisma migrate deploy · npm run
+seed`, 9 sn) tablo tablo karşılaştırıldı (SQL; betik oturum çalışma
+alanında, sonuçlar aşağıda). Test kanıtı `web/tests/paket-demo.test.ts`
+(URN-PKT-015).
+
+**Ne taşındı.** Tohumun sözlük, öznitelik şeması, çerçeve ve denklikleri
+üç pakete çıktı ve `prisma/seed.ts` onları `paketiKur` ile kurar:
+
+| Paket | Tür | İçerik | Bağımlılık |
+| --- | --- | --- | --- |
+| `DEMO-TR-ORTAK` | `yatay` | `CBDDO` (4 madde, metinli) · `ISO-27001` (**telifli**, 4 madde, metinsiz) · `SPK-BS` (3) · 2 denklik | — |
+| `DEMO-TR-ENERJI` | `demo` | sözlük 13 · öznitelik 9 · `EPDK-SYM` demo çerçevesi (5 aile, 27 madde) · 6 denklik | `DEMO-TR-ORTAK` |
+| `DEMO-TR-SU` | `demo` | sözlük 5 · öznitelik 1 (`gunlukDebi`, m³/gün) | `DEMO-TR-ORTAK` |
+
+İlk kurulumun taslak sürümlerini tohum aktif yapar (tohumu kuran yönetici
+= insan kararı; 2.5 öncesi de doğrudan aktif yazılıyordu). CSV'ye
+`kanit_tipi` sütunu eklendi ki `Madde.kanitTipi` (15 EPDK + 11 ortak madde)
+kayıpsız taşınsın.
+
+**Köken sayımı (önce → sonra).**
+
+| Tablo | 2.5 öncesi | 2.5 sonrası |
+| --- | --- | --- |
+| `SektorSozlugu` | 18 `kiraci` | 18 `paket` (içerik birebir eşit) |
+| `SektorOznitelikSemasi` | 10 `kiraci` | 10 `paket` (içerik birebir eşit) |
+| `Regulasyon` | 4 `kiraci` | 4 `paket` (`surum` ve `yururlukTarih` paket kimliğinden) |
+| `FrameworkSurumu` | 4 `kiraci` aktif (`mevcut` · `2024`) | 4 `paket` aktif (`2.0` · `2024` · `2022` · `VII-128.9`), taslak yok |
+| `MaddeEslestirmesi` | 8 `kiraci` | 8 `paket` (aynı 8 çift, aynı denklik) |
+| `Madde` | 38 | 38 (aynı kodlar) |
+| `TesisTipi` · `Tesis` · `MaddeDurumu` | 11 · 25 · 110 | 11 · 25 · 110 (tohumda kaldı) |
+
+**Ölçülen kayıp ve farklar.**
+
+| # | Fark | Ölçülen | Sınıf |
+| --- | --- | --- | --- |
+| 1 | `ISO-27001` 4 maddenin `metin`i | 47–54 karakterlik dört açıklama cümlesi → `"lisans nedeniyle girilmedi"` | **Kayıp, beklenen** — §2 telifli kuralı; başlık ve kanıt tipi korundu |
+| 2 | `EPDK-SYM` ağaç maddelerinin `sira`sı (15) | kardeş indeksi (0, 1, 2) → koddan türetilen sıra (4000, 4100, 4101…) | Kayıp değil — göreli sıra aynı; 6 ve 8 aileleri zaten koddan türetiyordu, artık tek kural |
+| 3 | 6 ve 8 ailelerinin 12 maddesi `surumId` | **NULL** → aktif sürüme bağlı | **Kazanç** — tohum bu 12 maddeyi sürüm geri doldurmasından SONRA yazıyordu; "sürümsüz madde" bir geçiş kaydıydı, artık yok |
+| 4 | `Regulasyon.yururlukTarih` | göreli `bugün − 720 gün` → sabit `2024-09-19` | Kayıp değil — paket kimliği takvim tarihi ister; ekranda aynı alan dolu |
+| 5 | Eski `dev.db`de test artığı `SABIT-REG` (1 regülasyon, 1 taslak, 1 sözlük satırı) | taze tohumda yok | Temizlik — 2.5 öncesi bir test kök veritabanına yazmıştı |
+
+**Tohumda kalan (paket kalemi olmayan) kiracı katmanı:** madde → BT/OT
+kapsam alanı eşlemesi (`prisma/seed-madde-alanlari.ts`, 38 madde), 6 ve 8
+ailelerinin matris `alanAdi`, tesis tipleri (11), uygulanabilirlik kuralı
+(1), tesisler (25), süreçler, madde durumları, bulgular, kanıtlar. Bunlar
+§2'deki boşluklardır; `demo/*.json` yükleyicisi P8'dedir.
+
+**Sonuç.** Sözlük, öznitelik ve denklik **kayıpsız**; çerçeve yapısı ve
+kanıt tipi **kayıpsız**; tek içerik kaybı telifli `ISO-27001`'in dört kısa
+açıklama cümlesi — beklenen ve kabul edilen. Tohum artık ikinci bir
+doğruluk kaynağı değildir: sabitler (`prisma/sozlukler.ts`,
+`prisma/kapsam-ogesi.ts`) yalnız kiracı katmanı ve göç eşitliği testi
+içindir ve paketle birebir olmaları testle ölçülür.

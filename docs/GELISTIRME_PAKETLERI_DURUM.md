@@ -12,6 +12,13 @@ Belge ile kod çeliştiğinde **kod** gerçek kabul edildi. Her sayının
 yanında onu üreten komut ya da dosya:satır kaynağı vardır. Ölçülemeyen
 hiçbir şey "geçti" diye yazılmadı.
 
+> **Bu belge 6 Eylül 2026 ANLIK GÖRÜNTÜSÜDÜR (`fc66712`) ve sayıları o
+> güne aittir; tazelenmemiştir.** 9 Eylül 2026'da ölçülen güncel değerler:
+> test **189 dosya · 3 467 vaka** (burada 139 · 2 903), senaryo **319**
+> (burada 273), göç **51** (burada 33), kapı **20**. Bugünkü durum için
+> `docs/GELISTIRME_PAKETLERI.md` §1.1 tablosuna bakın; buradaki sayılar
+> o günün kanıtı olarak korunur, güncel ölçüm yerine kullanılmaz.
+
 ---
 
 ## 1. Sonuç — önce yapılacaklar

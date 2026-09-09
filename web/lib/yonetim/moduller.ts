@@ -181,6 +181,8 @@ const MODUL_TANIMLARI: ModulTanimi[] = [
     aciklama: 'Kontrollerin gruplandığı aileler; madde–alan ataması Regülasyonlar ekranında.' },
   { kod: 'esdegerlik', grup: 'uyum', ad: 'Çapraz eşleme (eşdeğerlik)', sinif: 'A', yer: 'mevcut_ekran', rota: '/eslestirme',
     aciklama: 'Framework\'ler arası kontrol eşdeğerlikleri.' },
+  { kod: 'icerikPaketi', grup: 'uyum', ad: 'İçerik paketi', sinif: 'A', yer: 'mevcut_ekran', rota: '/paketler',
+    aciklama: 'Sektör / demo paketi kurulumu, güncellemesi ve kaldırması (arşiv, gerekçeli); çerçeve taslak gelir, aktifleştirme Regülasyonlar ekranında.' },
   { kod: 'uygulanabilirlikKurali', grup: 'uyum', ad: 'Uygulanabilirlik kuralı', sinif: 'B', yer: 'konsol', hedefTipi: 'uygulanabilirlikKurali',
     aciklama: (x) => `Regülasyonun hangi ${x.tesis.yonelme} uygulanacağını profil `
       + 'alanlarından karara bağlayan kural. Değişiklik kapsam kararlarını '

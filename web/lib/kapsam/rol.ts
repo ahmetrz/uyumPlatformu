@@ -22,7 +22,7 @@ export type OznitelikRolu = 'kapasite' | 'kritiklik';
 export const rolAnahtari = cache(async (sektorId: string | null, rol: OznitelikRolu): Promise<string | null> => {
   if (!sektorId) return null;
   const satir = await db.sektorOznitelikSemasi.findFirst({
-    where: { sektorId, rol }, select: { anahtar: true } });
+    where: { sektorId, rol, aktif: true }, select: { anahtar: true } });
   return satir?.anahtar ?? null;
 });
 

@@ -1,0 +1,234 @@
+/* ═══ P4 · 2.7 · OSCAL KATALOG OKUYUCU / YAZICI ═══════════════════════════
+   `docs/SEKTOR_PAKETI_SOZLESMESI.md` §3: "OSCAL JSON kabul edilir ama
+   zorunlu değildir". Bir çerçevenin madde ağacı iki biçimde taşınabilir:
+   CSV (`cerceve/<KOD>.csv`, yazar biçimi) ya da OSCAL 1.1 katalog JSON'u
+   (`cerceve/<KOD>.oscal.json`, makine biçimi — SCF, NIST ve öbür
+   yayıncıların dağıttığı biçim). İkisi AYNI tabloya iner
+   (`MaddeSatiri`): doğrulayıcı OSCAL'ı satırlara çevirir ve CSV ile
+   birebir aynı kuralları (tekrar kod, üst madde, lisans sınırı, seviye
+   aralığı) uygular — OSCAL'a ayrı bir kapı yoktur, telifli metin OSCAL
+   `prose` içinden de sızamaz.
+
+   ── EŞLEME ────────────────────────────────────────────────────────────
+   OSCAL `control` = madde. `id` OSCAL belirtecidir (küçük harf, ASCII);
+   maddenin asıl kodu `props[kod]` içinde taşınır — Türkçe karakterli
+   kod (`İSG-1`) belirteç olamaz, kaybolmaz. Hiyerarşi iç içe
+   `controls`; `title` başlık; `parts[statement].prose` metin;
+   `parts[guidance].prose` kanıt beklentisi. OSCAL dışı alanlar
+   (`sira · seviye · zorunluluk_tipi · dis_kontrol_id · kanit_tipi`)
+   `props` ile ve ürünün ad alanında (`urn:…`, P4 kararı). Bilinmeyen
+   değer prop olarak YAZILMAZ (boş ≠ sıfır); tarih bilinmiyorsa
+   `last-modified` uydurulmaz.
+
+   ── GİDİŞ-DÖNÜŞ ───────────────────────────────────────────────────────
+   satırlar → OSCAL → satırlar birebir (kod · üst · başlık · metin · sıra
+   · seviye · zorunluluk · kanıt beklentisi · dış kimlik · kanıt tipi);
+   ölçülür: `tests/paket-oscal.test.ts` (URN-PKT-017). Bu modül dosya
+   sistemi ve veritabanı bilmez. */
+import { createHash } from 'node:crypto';
+import { z } from 'zod';
+import { MADDE_SUTUNLARI, type CerceveKimligi, type MaddeSatiri } from './bicim';
+
+export const OSCAL_SURUMU = '1.1.2';
+/** Grup ağacında azami derinlik — daha derini okunmaz ve okunmadığı SÖYLENİR (sessiz kayıp yok). */
+export const GRUP_DERINLIGI = 8;
+/** OSCAL dışı alanların ad alanı — P4 kararı `urn:<urun>:…`; ürün adı değil, kimliktir. */
+export const OSCAL_NS = 'urn:uyum-platformu:paket';
+
+type Prop = { name: string; value: string; ns?: string };
+type Part = { name: string; prose?: string };
+export type OscalControl = { id: string; title: string; props?: Prop[]; parts?: Part[]; controls?: OscalControl[] };
+export type OscalGroup = { id?: string; title: string; props?: Prop[]; parts?: Part[]; controls?: OscalControl[]; groups?: OscalGroup[] };
+export type OscalKatalog = {
+  catalog: {
+    uuid: string;
+    metadata: { title: string; version: string; 'oscal-version': string; 'last-modified'?: string; links?: { href: string; rel: string }[]; props?: Prop[] };
+    controls?: OscalControl[];
+  };
+};
+
+/* Okuma şeması: yalnız kullandığımız alt küme, kalanı serbest (OSCAL
+   geniştir; SCF kataloğu bilmediğimiz alanlar taşır). */
+const PropSemasi = z.object({ name: z.string(), value: z.string(), ns: z.string().optional() }).passthrough();
+const PartSemasi = z.object({ name: z.string(), prose: z.string().optional() }).passthrough();
+const ControlSemasi: z.ZodType<OscalControl> = z.lazy(() => z.object({
+  id: z.string().min(1), title: z.string(),
+  props: z.array(PropSemasi).optional(), parts: z.array(PartSemasi).optional(), controls: z.array(ControlSemasi).optional(),
+}).passthrough()) as z.ZodType<OscalControl>;
+const GrupSemasi: z.ZodType<OscalGroup> = z.lazy(() => z.object({
+  id: z.string().optional(), title: z.string(),
+  props: z.array(PropSemasi).optional(), parts: z.array(PartSemasi).optional(),
+  controls: z.array(ControlSemasi).optional(), groups: z.array(GrupSemasi).optional(),
+}).passthrough()) as z.ZodType<OscalGroup>;
+const KatalogSemasi = z.object({
+  catalog: z.object({
+    uuid: z.string(),
+    metadata: z.object({ title: z.string(), version: z.string(), 'oscal-version': z.string(), 'last-modified': z.string().optional(),
+      links: z.array(z.object({ href: z.string(), rel: z.string() }).passthrough()).optional(), props: z.array(PropSemasi).optional() }).passthrough(),
+    /* OSCAL katalog kökünde `groups` de olabilir (SCF: grup → aile). Grup
+       başlık taşıyan bir üst madde gibi okunur (R6 kararı: grup → üst madde).
+       Grup İÇİNDE GRUP olabilir ve şema onu tanımazsa `passthrough` sessizce
+       yutardı: alt aile ve altındaki bütün maddeler kaybolur, tek hata satırı
+       çıkmaz, paket "GEÇERLİ" derdi (bağımsız inceleme bulgusu, PR #43).
+       Bugün: iç içe grup şemada tanınır ve okuyucu özyineler. */
+    groups: z.array(GrupSemasi).optional(),
+    controls: z.array(ControlSemasi).optional(),
+  }).passthrough(),
+}).passthrough();
+
+/** Deterministik UUID (sürüm 4 biçimi, sha256'dan): aynı çerçeve + etiket aynı uuid. */
+export function sabitUuid(anahtar: string): string {
+  const h = createHash('sha256').update(anahtar).digest('hex');
+  return `${h.slice(0, 8)}-${h.slice(8, 12)}-4${h.slice(13, 16)}-a${h.slice(17, 20)}-${h.slice(20, 32)}`;
+}
+
+/** OSCAL belirteci: `^[_A-Za-z][-._A-Za-z0-9]*$`; Türkçe ve öbür karakterler `_` olur, tekillik ekle sağlanır. */
+function belirtec(cerceveKod: string, kod: string, kullanilan: Set<string>): string {
+  let id = `${cerceveKod}-${kod}`.toLowerCase().replace(/[^-._a-z0-9]/g, '_');
+  if (!/^[_a-z]/.test(id)) id = `_${id}`;
+  let aday = id; let n = 2;
+  while (kullanilan.has(aday)) aday = `${id}-${n++}`;
+  kullanilan.add(aday);
+  return aday;
+}
+
+const prop = (name: string, value: string): Prop => ({ name, value, ns: OSCAL_NS });
+
+/** Satırlar → OSCAL katalog. Üst madde alt maddeden önce gelmelidir (doğrulayıcı garanti eder). */
+export function oscalYaz(kimlik: CerceveKimligi, satirlar: MaddeSatiri[]): OscalKatalog {
+  const cocuklar = new Map<string | null, MaddeSatiri[]>();
+  for (const s of satirlar) cocuklar.set(s.ustKod, [...(cocuklar.get(s.ustKod) ?? []), s]);
+  const kullanilan = new Set<string>();
+  const kontrol = (s: MaddeSatiri): OscalControl => {
+    const props: Prop[] = [prop('kod', s.kod), prop('sira', String(s.sira))];
+    if (s.seviye !== null) props.push(prop('seviye', String(s.seviye)));
+    if (s.zorunlulukTipi) props.push(prop('zorunluluk_tipi', s.zorunlulukTipi));
+    if (s.disKontrolId) props.push(prop('dis_kontrol_id', s.disKontrolId));
+    if (s.kanitTipi) props.push(prop('kanit_tipi', s.kanitTipi));
+    if (s.gereksinimTipi) props.push(prop('gereksinim_tipi', s.gereksinimTipi));
+    /* köken sütunları prop olarak taşınır — gidiş-dönüş kayıpsız kalsın (CSV ile aynı düzen) */
+    if (s.kaynakUrl) props.push(prop('kaynak_url', s.kaynakUrl));
+    if (s.kaynakYeri) props.push(prop('kaynak_yeri', s.kaynakYeri));
+    if (s.erisimTarihi) props.push(prop('erisim_tarihi', s.erisimTarihi));
+    if (s.yururlukTarihi) props.push(prop('yururluk_tarihi', s.yururlukTarihi));
+    const parts: Part[] = [];
+    if (s.metin) parts.push({ name: 'statement', prose: s.metin });
+    if (s.kanitBeklentisi) parts.push({ name: 'guidance', prose: s.kanitBeklentisi });
+    const alt = (cocuklar.get(s.kod) ?? []).map(kontrol);
+    return { id: belirtec(kimlik.kod, s.kod, kullanilan), title: s.baslik, props, ...(parts.length ? { parts } : {}), ...(alt.length ? { controls: alt } : {}) };
+  };
+  const metaProps: Prop[] = [prop('kod', kimlik.kod), prop('lisans_tur', kimlik.lisans.tur), prop('metin_dahil', String(kimlik.lisans.metinDahil)), prop('zorunluluk_tipi', kimlik.zorunlulukTipi)];
+  if (kimlik.yururlukTarih) metaProps.push(prop('yururluk_tarihi', kimlik.yururlukTarih));
+  const metadata: OscalKatalog['catalog']['metadata'] = { title: kimlik.ad, version: kimlik.surumEtiketi, 'oscal-version': OSCAL_SURUMU, props: metaProps };
+  if (kimlik.yayimTarihi) metadata['last-modified'] = `${kimlik.yayimTarihi}T00:00:00Z`;
+  if (kimlik.kaynakUrl) metadata.links = [{ href: kimlik.kaynakUrl, rel: 'canonical' }];
+  return { catalog: { uuid: sabitUuid(`${kimlik.kod}@${kimlik.surumEtiketi}`), metadata, controls: (cocuklar.get(null) ?? []).map(kontrol) } };
+}
+
+export type OscalOkuma =
+  /** `uyarilar`: okunamayan yapı (derinlik sınırını aşan grup) — boş olmalı; doğrulayıcı BIÇIM yakar. */
+  | { ok: true; basliklar: string[]; satirlar: string[][]; baslik: string; surumEtiketi: string; kod: string | null; uyarilar: string[] }
+  | { ok: false; hata: string; konum?: string };
+
+/** Okunan alanlar DIŞINDA metin taşıyan yerler: telifli çerçevede madde metni
+    `prose`/`props` içine saklanabilir — okunmaz ama pakete (ve public depoya)
+    girer; CSV'de "başlığı aşan dolu hücre" kuralının OSCAL karşılığı budur
+    (bağımsız inceleme bulgusu, PR #43). Dönen liste: `konum — metnin başı`. */
+export function oscalYabanciMetinler(ham: unknown): string[] {
+  /* Muafiyet ADA değil YOLA bağlıdır: okunan tek yer bir `control`ün DOĞRUDAN
+     `parts` çocuğundaki `statement`/`guidance`. Ada bakan ilk hâl iki kaçak
+     bırakıyordu (bağımsız inceleme, PR #43 tur 2): grubun kendi
+     `parts[statement]`i ve `parts[item].parts[statement]` iç içe parçası —
+     ikisi de okunmaz ama pakete girerdi. */
+  const OKUNAN_PART = new Set(['statement', 'guidance']);
+  const OKUNAN_PROP = new Set(['kod', 'sira', 'seviye', 'zorunluluk_tipi', 'dis_kontrol_id', 'kanit_tipi',
+    'kaynak_url', 'kaynak_yeri', 'erisim_tarihi', 'yururluk_tarihi', 'gereksinim_tipi', 'lisans_tur', 'metin_dahil']);
+  const bulunan: string[] = [];
+  /** Düğümün YERİ: `control` mü, `group` mu, `control.parts` çocuğu mu. Yer
+      kaptan gelir — biçimden DEĞİL: grup da `id`+`title` taşır, şekle bakan
+      ilk hâl grubun `parts[statement]`ini okunmuş sanıyordu. */
+  type Yer = 'katalog' | 'control' | 'group' | 'control-parts' | 'diger';
+  const gez = (d: unknown, yol: string, yer: Yer) => {
+    if (Array.isArray(d)) { d.forEach((x, i) => gez(x, `${yol}[${i}]`, yer)); return; }
+    if (!d || typeof d !== 'object') return;
+    const n = d as Record<string, unknown>;
+    const okunanPart = yer === 'control-parts' && typeof n.name === 'string' && OKUNAN_PART.has(n.name);
+    if (typeof n.prose === 'string' && n.prose.trim() && !okunanPart) {
+      bulunan.push(`${yol}.prose (name=${String(n.name ?? '—')}) — ${n.prose.slice(0, 60)}`);
+    }
+    if (typeof n.name === 'string' && typeof n.value === 'string' && n.value.trim()
+      && !(OKUNAN_PROP.has(n.name) && n.ns === OSCAL_NS)) {
+      bulunan.push(`${yol} props[${n.name}] — ${n.value.slice(0, 60)}`);
+    }
+    for (const [k, v] of Object.entries(n)) {
+      if (!v || typeof v !== 'object') continue;
+      /* Yalnız bir CONTROL'ün doğrudan `parts` çocuğu okunan kaptır: grubun
+         `parts`ı ve part'ın kendi `parts`ı okunmaz, dolayısıyla muaf değildir. */
+      const altYer: Yer = k === 'controls' ? 'control'
+        : k === 'groups' ? 'group'
+        : k === 'parts' && yer === 'control' ? 'control-parts'
+        : 'diger';
+      gez(v, `${yol}.${k}`, altYer);
+    }
+  };
+  gez((ham as { catalog?: unknown })?.catalog ?? ham, 'catalog', 'katalog');
+  return bulunan;
+}
+
+/** OSCAL katalog → CSV ile aynı sütun düzeninde satırlar (`MADDE_SUTUNLARI`).
+    Doğrulayıcı bu satırları CSV satırıyla AYNI yoldan geçirir: kural iki
+    biçime de tek yerden uygulanır. `props[kod]` yoksa `id` kod olur (yabancı
+    katalog); `sira` yoksa gezinti sırası. */
+export function oscalOku(ham: unknown): OscalOkuma {
+  const p = KatalogSemasi.safeParse(ham);
+  if (!p.success) {
+    const i = p.error.issues[0];
+    return { ok: false, hata: `OSCAL katalog yapısı: ${i.path.join('.') || 'kök'} — ${i.message}`, konum: i.path.join('.') || undefined };
+  }
+  const { catalog } = p.data;
+  /* Bizim propumuz AD ALANIYLA tanınır. `ns === undefined` de kabul edilince
+     yabancı katalogdaki (NIST/SCF; props çoğu kez ns'siz) `kod`/`sira` adlı bir
+     prop bizimmiş gibi okunuyordu: madde kodu ve sırası yabancı değerle
+     doluyordu (bağımsız inceleme bulgusu, PR #43). Bugün yalnız kendi ad
+     alanımız; yabancı katalogda kod `id`den, sıra gezinti sırasından gelir. */
+  const bizim = (props: Prop[] | undefined, ad: string): string | null => props?.find((x) => x.name === ad && x.ns === OSCAL_NS)?.value ?? null;
+  const satirlar: string[][] = [];
+  let sira = 0;
+  const uyarilar: string[] = [];
+  const gez = (c: OscalControl, ustKod: string | null) => {
+    const kod = bizim(c.props, 'kod') ?? c.id;
+    const s = bizim(c.props, 'sira');
+    satirlar.push([
+      kod, ustKod ?? '', c.title,
+      c.parts?.find((x) => x.name === 'statement')?.prose ?? '',
+      s ?? String(sira++),
+      bizim(c.props, 'seviye') ?? '',
+      bizim(c.props, 'zorunluluk_tipi') ?? '',
+      c.parts?.find((x) => x.name === 'guidance')?.prose ?? '',
+      bizim(c.props, 'dis_kontrol_id') ?? '',
+      bizim(c.props, 'kanit_tipi') ?? '',
+      bizim(c.props, 'kaynak_url') ?? '', bizim(c.props, 'kaynak_yeri') ?? '', bizim(c.props, 'erisim_tarihi') ?? '', bizim(c.props, 'yururluk_tarihi') ?? '',
+      bizim(c.props, 'gereksinim_tipi') ?? '',
+    ]);
+    for (const alt of c.controls ?? []) gez(alt, kod);
+  };
+  /* Grup ağacı ÖZYİNELİ gezilir: alt grup, üst grubun altına düşer. */
+  const grupGez = (g: OscalGroup, ustKod: string | null, derinlik: number) => {
+    const gKod = bizim(g.props, 'kod') ?? g.id ?? `grup-${sira}`;
+    satirlar.push([gKod, ustKod ?? '', g.title, '', String(sira++), '', '', '', '', '', '', '', '', '', '']);
+    /* Grubun KENDİ kontrolleri her hâlükârda okunur: derinlik sınırı ilk hâlde
+       `return` ile onları da düşürüyordu (bağımsız inceleme, PR #43 tur 2). */
+    for (const c of g.controls ?? []) gez(c, gKod);
+    for (const alt of g.groups ?? []) {
+      if (derinlik >= GRUP_DERINLIGI) {
+        /* Kayıp SESSİZ olmaz: okunmayan grup sayılır ve doğrulayıcı kırmızı yakar. */
+        uyarilar.push(`${gKod} altındaki grup derinlik sınırını (${GRUP_DERINLIGI}) aşıyor — okunmadı`);
+        continue;
+      }
+      grupGez(alt, gKod, derinlik + 1);
+    }
+  };
+  for (const g of catalog.groups ?? []) grupGez(g, null, 1);
+  for (const c of catalog.controls ?? []) gez(c, null);
+  return { ok: true, basliklar: [...MADDE_SUTUNLARI], satirlar, baslik: catalog.metadata.title, surumEtiketi: catalog.metadata.version, kod: bizim(catalog.metadata.props, 'kod'), uyarilar };
+}

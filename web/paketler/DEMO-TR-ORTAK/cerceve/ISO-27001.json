@@ -1,0 +1,17 @@
+{
+  "kod": "ISO-27001",
+  "ad": "ISO/IEC 27001 Bilgi Güvenliği YS",
+  "surumEtiketi": "2022",
+  "yayimTarihi": null,
+  "yururlukTarih": "2024-09-19",
+  "kaynakUrl": "https://www.iso.org",
+  "lisans": {
+    "tur": "telifli",
+    "metinDahil": false,
+    "kaynak": "https://www.iso.org",
+    "not": "ISO telif — yalnız kimlik ve başlık. Tohumdaki 4 kısa açıklama cümlesi telifli kuralıyla bilinçli olarak düşürüldü (docs/P4_TOHUM_TASIMA_OLCUMU.md §4)"
+  },
+  "maddeDosyasi": "ISO-27001.csv",
+  "zorunlulukTipi": "REGULATION",
+  "not": "Demo tohumundan taşındı (2.5); metin yok"
+}

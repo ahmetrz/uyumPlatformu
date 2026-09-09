@@ -78,17 +78,10 @@ export const TEIAS_SERI_OLMAYAN_KOSULU = { hepsi: [
   { alan: 'seriHaberlesme', islec: '!=', deger: true },
 ] } as const;
 
-export async function enerjiOznitelikSemasiniKur(db: PrismaClient, sektorId: string) {
-  for (const o of ENERJI_PROFIL_OZNITELIKLERI) {
-    await db.sektorOznitelikSemasi.upsert({
-      where: { sektorId_anahtar: { sektorId, anahtar: o.anahtar } },
-      update: {},
-      create: { id: `sos-${sektorId}-${o.anahtar}`, sektorId, anahtar: o.anahtar,
-        etiketAnahtari: o.anahtar, tip: o.tip, kuraldaKullanilir: o.kuraldaKullanilir,
-        sira: o.sira, rol: o.rol, grup: o.grup, secenekler: o.secenekler },
-    });
-  }
-}
+/* Şemayı veritabanına yazan tek el DEMO-TR-ENERJI paketidir (2.5,
+   `paketler/DEMO-TR-ENERJI/oznitelikler.json`); yukarıdaki sabitler tohumun
+   kiracı katmanı (`profiliAyir`) ve göç eşitliği testi içindir. Paket ile
+   sabitlerin birebir olduğu `tests/paket-demo.test.ts` ile ölçülür. */
 
 const ENERJI_ANAHTARLARI = new Set<string>(ENERJI_PROFIL_OZNITELIKLERI.map((o) => o.anahtar));
 const TIP: Record<string, string> = Object.fromEntries(ENERJI_PROFIL_OZNITELIKLERI.map((o) => [o.anahtar, o.tip]));

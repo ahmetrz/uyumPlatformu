@@ -160,7 +160,7 @@ export async function surumEtkisiOnizle(girdi: {
         for (const b of belgeler) izler.get(b.maddeId)!.belge += 1;
 
         const esdeger = await db.maddeEslestirmesi.findMany({
-          where: { OR: [{ kaynakId: { in: p } }, { hedefId: { in: p } }] },
+          where: { aktif: true, OR: [{ kaynakId: { in: p } }, { hedefId: { in: p } }] },
           select: { kaynakId: true, hedefId: true },
         });
         for (const e of esdeger) {

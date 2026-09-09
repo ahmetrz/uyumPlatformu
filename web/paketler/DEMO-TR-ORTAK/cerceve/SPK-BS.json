@@ -1,0 +1,16 @@
+{
+  "kod": "SPK-BS",
+  "ad": "SPK Bilgi Sistemleri Yönetimi Tebliği",
+  "surumEtiketi": "VII-128.9",
+  "yayimTarihi": null,
+  "yururlukTarih": "2024-09-19",
+  "lisans": {
+    "tur": "kamuya_acik",
+    "metinDahil": true,
+    "not": "Demo tohumu: temsilî 3 madde, kısa özet cümleleri — tebliğin metni değil"
+  },
+  "maddeDosyasi": "SPK-BS.csv",
+  "zorunlulukTipi": "REGULATION",
+  "not": "DEMO: madde metni TEMSİLÎDİR — SPK VII-128.9 tebliği örnek alınarak yazılmıştır, o belgeden alınmamıştır. Bu yüzden çerçeve kaynak adresi BEYAN ETMEZ (kaynağı olduğunu söyleyen çerçevede her metinli madde kaynak adresi ve erişim tarihi taşımak zorundadır). Resmî metin ayrı pakette gelir.",
+  "temsili": true
+}

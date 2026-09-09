@@ -1,0 +1,30 @@
+{
+  "kod": "DEMO-TR-ORTAK",
+  "ad": "Demo · sektör üstü çerçeveler (CBDDÖ · ISO 27001 · SPK BS) — temsilî",
+  "tur": "yatay",
+  "ulke": "TR",
+  "sektor": null,
+  "dil": "tr",
+  "surum": "0.1.0",
+  "yayinci": "Uyum ve Yönetişim Platformu (demo tohumu)",
+  "lisans": {
+    "tur": "kamuya_acik",
+    "metinDahil": true,
+    "not": "Demo tohumu; çerçeve düzeyi lisans her kimlikte (ISO 27001 telifli, metinsiz)"
+  },
+  "bagimliliklar": [],
+  "icerikOzetleri": {
+    "cerceve/CBDDO.csv": "9d378c86295867a49ca80e12c46eaedace4641701fb2add5c6e989e4d24adc86",
+    "cerceve/CBDDO.json": "b852383aaff3d25af87d5e3893d32199b053fe132309516b94d81ac4bf16d345",
+    "cerceve/ISO-27001.csv": "be41cd432829dd214776db6a20a33d1136fcd5c7d00f9118c9e62bd7997245a2",
+    "cerceve/ISO-27001.json": "f9fa04f5f0323e40a61df7d23b198bab7812c7aa96d7c644ce19b30452065d68",
+    "cerceve/SPK-BS.csv": "836fa5b8c4e375d5563e308b26af2b36924b6ce29b1e29515ccfe3e4a6c12275",
+    "cerceve/SPK-BS.json": "d3be807a253561f146be513a7d37b7868e9a886bd7534bf1f74301729267a1cc",
+    "esleme/CBDDO-SPK-BS.csv": "eaf935f27b4f0b1bd42ea4a7b9a1101d176b4feacf0f2b816db8d7b5ad533575",
+    "esleme/CBDDO-SPK-BS.json": "d9017f36a4f21c4368abf44110cc5e3aca81b8501e6faaba8dec974591ed9da5",
+    "esleme/ISO-27001-CBDDO.csv": "5b48c09ffcac11571af5cbf3db09065415b8dd6f6ac2c7b2cf63cd1f549ccc0b",
+    "esleme/ISO-27001-CBDDO.json": "5d04c334e35814158da4646d26ecb4382e1aca20196cf94ca47316486d686409"
+  },
+  "imza": null,
+  "aciklama": "DEMO (P4 · 2.5): tohumun sektör üstü çerçeveleri ve iki çerçeve arası denklik. Madde seçkisi temsilîdir, hiçbir gerçek kuruma ait değildir; kurgusal kiracılar (enerji, su) bu paketi paylaşır."
+}

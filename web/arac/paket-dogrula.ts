@@ -4,20 +4,27 @@
      npm run paket:dogrula -- paketler/TR-ENERJI            → hata satırları; temizse çıkış 0
      npm run paket:dogrula -- paketler/TR-ENERJI --ozet-yaz → manifest.icerikOzetleri'ni dosyalardan
                                                               yeniden hesaplayıp YAZAR, sonra doğrular
+     npm run paket:dogrula -- paketler/TR-ENERJI --oscal <dizin>
+                                                           → geçerli paketin her çerçevesini OSCAL 1.1
+                                                              katalog JSON'u olarak <dizin>/<KOD>.oscal.json'a yazar
+                                                              (CSV → OSCAL dönüşümü; §3 — paketin içine yazmaz)
 
    Tarayıcısız, saniyeler içinde. Her hata bir satır: dosya:konum — SINIF:
    ne yanlış → nasıl düzeltilir. Kapı DEĞİLDİR (yazar aracıdır); iskelet
    paketlerin doğrulayıcıdan geçtiğini CI `tests/paket-iskeletler.test.ts`
    ile ölçer. */
-import { readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { hataSatiri, ozetleriHesapla, paketiDogrula } from '../lib/paket/dogrula';
+import { oscalYaz } from '../lib/paket/oscal';
 
 const argv = process.argv.slice(2);
 const dizin = argv.find((a) => !a.startsWith('--'));
 const ozetYaz = argv.includes('--ozet-yaz');
-if (!dizin) {
-  console.error('kullanım: npm run paket:dogrula -- <paket dizini> [--ozet-yaz]');
+const oscalIndeksi = argv.indexOf('--oscal');
+const oscalDizini = oscalIndeksi === -1 ? null : argv[oscalIndeksi + 1];
+if (!dizin || (oscalIndeksi !== -1 && !oscalDizini)) {
+  console.error('kullanım: npm run paket:dogrula -- <paket dizini> [--ozet-yaz] [--oscal <çıktı dizini>]');
   process.exit(2);
 }
 
@@ -31,9 +38,16 @@ if (ozetYaz) {
 
 const s = paketiDogrula(dizin);
 const oz = s.sayilar;
-console.log(`${dizin}: sözlük ${oz.sozluk} · tür ${oz.kapsamTurleri} · öznitelik ${oz.oznitelikler} · çerçeve ${oz.cerceveler} · madde ${oz.maddeler} · yükümlülük ${oz.yukumlulukler}`);
+console.log(`${dizin}: sözlük ${oz.sozluk} · tür ${oz.kapsamTurleri} · öznitelik ${oz.oznitelikler} · çerçeve ${oz.cerceveler} · madde ${oz.maddeler} · eşleme ${oz.eslemeler} · yükümlülük ${oz.yukumlulukler} · form ${oz.formlar} · rapor ${oz.raporlar} · rol ${oz.roller}`);
 if (s.ok) {
   console.log('GEÇERLİ — paket kurulabilir (çerçeveler TASLAK gelir; aktifleştirme insan kararıdır)');
+  if (oscalDizini && s.icerik) {
+    mkdirSync(oscalDizini, { recursive: true });
+    for (const c of s.icerik.cerceveler) {
+      writeFileSync(path.join(oscalDizini, `${c.kimlik.kod}.oscal.json`), JSON.stringify(oscalYaz(c.kimlik, c.maddeler), null, 2) + '\n');
+    }
+    console.log(`OSCAL yazıldı: ${s.icerik.cerceveler.length} çerçeve → ${oscalDizini}`);
+  }
   process.exit(0);
 }
 console.log(`${s.hatalar.length} hata:`);

@@ -160,6 +160,7 @@ biri gerekçesiyle beyan edilmiştir.
 | `iki-sozluk.mjs` | `kapi:iki-sozluk` | üç düzen kapısını (tasma · dizüstü · axe) ÜÇ sözlükle koşar (enerji · su · stres); kusurun hangi sözlükte çıktığını söyler | herhangi bir sözlükte kusur |
 | `kolon-hizasi.mjs` | `tasarim:kolon` | statik çıktıda başlık/hücre sayısı, sol kenar hizası (±1px), kaydırma kabını aşma — 1440 · 1366 · 1280. **İki sözlükle ölçülmedi** (istisna, aşağıda) | hiza kusuru |
 | — (prisma) | `kapi:sema-sapmasi` | göç sonrası: veritabanı `schema.prisma` ile birebir mi | sapma varsa çıkış 2 |
+| `goc-zinciri.mjs` **(CI · bloklayıcı)** | `kapi:goc-zinciri` | BOŞ veritabanında bütün göçler sırayla (`migrate deploy`) → `schema.prisma` ile fark sıfır mı; uygulanan göç listesi dizinle birebir mi (veritabanından okunur) | fark, eksik göç, deploy hatası ya da ölçülemeyen fark |
 | `sozluk-farki.mjs` | (iki-sozluk içinde) | **pozitif ölçü**: sözlük ekrana ulaşıyor mu — aynı rotanın metni iki sözlükle alınır, fark çıkarılır | çevrilmiş rotada fark yoksa çıkış 1 |
 | `sozluk-metni.mjs` | — (yardımcı) | render edilen `main` metnini JSON'a yazar; sözlüğü bilmez | — |
 | `rota-dizini.mjs` | — (kütüphane) | rota → kaynak dizini, `app/` ağacından türetilir | — |
@@ -1143,6 +1144,33 @@ npm run kapi:sema-sapmasi     # "No difference detected." · çıkış 0
 
 Şema dokunan her dilimde koşulur. `--exit-code` sapmada 2 döner, yani
 komut kapı olarak kullanılabilir.
+
+### `goc-zinciri.mjs` — göç ZİNCİRİ şemayla birebir mi (boş veritabanı)
+
+`kapi:sema-sapmasi` MEVCUT dev.db'yi ölçer; o dosya elle düzeltilmiş bir
+göçün ürünü olabilir (ölçüldü, P4 · 2.4: `migrate diff` RedefineTables
+üretti ve uygulandı; göç dosyası ADD COLUMN olarak yeniden yazıldı, dev.db
+sağlaması elle güncellendi — disk doğru, zincir doğrulanmamıştı). Müşteri
+kurulumu yalnız zinciri görür: zincir şemadan ayrışırsa YENİ kurulum ile
+MEVCUT kurulum ayrışır ve bu ancak müşteride çıkar.
+
+Kapı `web/.parti/` altında boş bir SQLite ve geçici bir `prisma.config.ts`
+açar, `prisma migrate deploy` koşar (kurulumun yaptığı şeyin aynısı),
+uygulanan göçleri STDOUT'tan değil `_prisma_migrations` tablosundan okur
+ve dizindeki listeyle karşılaştırır (sıfır ya da eksik uygulama kırmızı —
+ölçüm sayısı sıfır olamaz), sonra `migrate diff --from-config-datasource
+--to-schema --exit-code` ile farkı ölçer: 0 fark yok · 2 fark var (SQL
+basılır) · başka = araç hatası, kırmızı. Geçici dizin sonda silinir ve
+silindiği ölçülür.
+
+```
+npm run kapi:goc-zinciri            # "50 göç dizinde · 50 göç ... uygulandı · şema farkı 0" · çıkış 0
+node arac/goc-zinciri.mjs --json    # ölçüm nesnesi; karar vermez
+```
+
+Sabotaj kalıcıdır: `tests/goc-zinciri.test.ts` bir göçten ADD COLUMN
+silinmiş zincir kopyasını ve göçsüz bir şema kolonunu kırmızı yakar
+(URN-KUR-008).
 
 ### `sozluk-farki.mjs` — sözlük ekrana ULAŞIYOR mu (pozitif ölçü)
 

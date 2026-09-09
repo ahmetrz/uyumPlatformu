@@ -1,7 +1,8 @@
 /* ═══ P4 · PAKET KURUCU ve KALDIRICI ═════════════════════════════════════
    `docs/SEKTOR_PAKETI_SOZLESMESI.md` §1 (dokuz kalemden dördü: sözlük ·
    kapsam öğesi türleri · öznitelik şeması · çerçeve; beşincisi
-   yükümlülükler) ve §4 (köken, ezmeme, arşiv).
+   yükümlülükler; 2.2–2.3 ile form · rapor şablonu · rol önerisi) ve §4
+   (köken, ezmeme, arşiv).
 
    SÖZLEŞME
    · Doğrulayıcıdan geçmeyen paket YAZILMAZ; tek hata reddeder.
@@ -29,7 +30,7 @@
      olmayan sözlük ve öznitelik şeması satırı yerinde kalır ve rapora
      `artik` düşer: sessiz değil, silme değil; insan karar verir.
    · Kaldırma = ARŞİV: paket ve sürüm kaydı `arsiv`, taslak çerçeve
-     sürümü `arsiv`, tür ve yükümlülük `aktif=false`. Hiçbir satır
+     sürümü `arsiv`, tür · yükümlülük · şablon · rol · eşleme `aktif=false`. Hiçbir satır
      silinmez. Aktif çerçeve sürümü taşıyan ya da kurulu başka paketin
      bağımlı olduğu paket kaldırılamaz; bu kararlar arşiv yazımıyla AYNI
      transaction'da verilir. Kaldırılan paket aynı içerikle geri kurulunca
@@ -38,7 +39,7 @@
      çerçevede `Madde.metin` = TELIFLI_METIN, kamuya açık iskelette
      METIN_GELMEDI. Metin uydurulmaz. */
 import type { Prisma, PrismaClient } from '../prisma-client/client';
-import { METIN_GELMEDI, TELIFLI_METIN, type CerceveKimligi, type MaddeSatiri, type Manifest } from './bicim';
+import { DOSYALAR, METIN_GELMEDI, TELIFLI_METIN, beyandanKural, type CerceveKimligi, type MaddeSatiri, type Manifest } from './bicim';
 import { paketiDogrula, type DogrulamaHatasi, type PaketIcerigi } from './dogrula';
 
 type Tx = Prisma.TransactionClient;
@@ -54,32 +55,34 @@ const IN_PARCASI = 500;
 export type Celiski = { tablo: string; anahtar: string; sebep: string };
 export type KurulumRaporu = {
   paketId: string; surumId: string; kod: string; surum: string;
-  sayilar: { sozluk: number; kapsamTurleri: number; oznitelikler: number; cerceveler: number; maddeler: number; yukumlulukler: number };
+  sayilar: { sozluk: number; kapsamTurleri: number; oznitelikler: number; cerceveler: number; maddeler: number; yukumlulukler: number; formlar: number; raporlar: number; roller: number; eslemeler: number; kurallar: number };
   celiskiler: Celiski[];
   taslakSurumler: { regulasyonKod: string; surumEtiketi: string; surumId: string }[];
-  /** Yükseltme uzlaştırması: bu sürümün artık beyan etmediği paket kökenli satırlar (pasif / arşiv). */
-  pasiflestirilen: { kapsamTurleri: number; yukumlulukler: number; cerceveSurumleri: number };
-  /** Aktif bayrağı olmayan tablolarda kaldırılan anahtarlar — satır yerinde kalır, RAPORLANIR (insan karar verir). */
-  artik: { sozluk: string[]; oznitelikler: string[] };
+  /** Yükseltme uzlaştırması: bu sürümün artık beyan etmediği paket kökenli satırlar (pasif / arşiv; silme yok). */
+  pasiflestirilen: { kapsamTurleri: number; yukumlulukler: number; cerceveSurumleri: number; sozluk: number; oznitelikler: number; formlar: number; raporlar: number; roller: number; eslemeler: number; kurallar: number };
+  /** Pasifleşen sözlük (`anahtar@dil`) ve öznitelik (`anahtar`) satırları — satır yerinde, okuyucular görmez. */
+  pasifAnahtarlar: { sozluk: string[]; oznitelikler: string[] };
 };
 export type KurulumSonucu =
   | { ok: true; rapor: KurulumRaporu }
   | { ok: false; hatalar: DogrulamaHatasi[] };
 
 /** Taslak yenilenirken "kiracı bu maddeye bir şey bağlamış mı" diye bakılan
-    Madde ilişkileri. Şemadaki HER liste ilişkisi ya buradadır ya da
-    `MADDE_BAG_DISI`nda gerekçesiyle — bekçi (`tests/paket-kur.test.ts`)
-    şemayı okur ve ikisinin birleşimini Madde modeliyle karşılaştırır: yeni
-    bir ilişki eklenip burada unutulursa kırmızı. Ölçüldü: `alanlar`
-    (MaddeAlan) listede yoktu ve `madde.deleteMany` kiracının kapsam alanı
-    eşlemelerini kaskatla siliyordu (inceleme bulgusu, PR #41). */
+    Madde ilişkileri. KURAL (R-C, tavan sıfır, istisna listesi YOK): şemada
+    Madde'den BAŞKA bir modele giden her liste ilişkisi burada olmak
+    zorundadır — bekçi (`tests/bekci/paket-silme.test.ts`) şemayı okur ve
+    karşılaştırır; yeni bir ilişki eklenip burada unutulursa kırmızı.
+    Madde→Madde öz-ilişkiler (`altMaddeler`: aynı taslağın alt maddeleri,
+    sürümle birlikte yenilenir) yapı gereği kiracı bağı değildir; bu bir
+    gerekçeli istisna değil, tipten okunan kuraldır. `yerineGecenler` de
+    öz-ilişkidir ama başka sürümün maddesinden gelir, listede tutulur.
+    Ölçüldü: `alanlar` (MaddeAlan) listede yoktu ve `madde.deleteMany`
+    kiracının kapsam alanı eşlemelerini kaskatla siliyordu (inceleme
+    bulgusu, PR #41). */
 export const MADDE_BAG_ILISKILERI = [
   'alanlar', 'durumlar', 'eslestirmeKaynak', 'eslestirmeHedef', 'istisnalar', 'projeBaglantilari',
   'riskKontrolleri', 'denetimKapsamlari', 'belgeBaglantilari', 'egitimBaglari', 'yerineGecenler',
 ] as const;
-export const MADDE_BAG_DISI: Readonly<Record<string, string>> = {
-  altMaddeler: 'aynı taslağın alt maddeleri — sürümle birlikte yenilenir, kiracı bağı değil',
-};
 
 /** Manifestin sürüm numarasıyla birlikte DEĞİŞMEZ olan alanları: kimlik,
     sektör, dil, lisans, bağımlılık ve içerik özetleri. `ad` · `aciklama` ·
@@ -185,6 +188,12 @@ async function maddeleriYaz(tx: Tx, regulasyonId: string, surumId: string, k: Ce
         olgunlukSeviyesi: md.seviye, zorunlulukTipi: md.zorunlulukTipi ?? k.zorunlulukTipi,
         // telifli çerçevede serbest metin alanı yazılmaz — doğrulayıcı reddeder, kurucu da yazmaz (iki kilit)
         kanitBeklentisi: k.lisans.tur === 'telifli' ? null : md.kanitBeklentisi, disKontrolId: md.disKontrolId,
+        kanitTipi: md.kanitTipi,
+        /* Çerçevenin kendi kademesi ürünün hedef olgunluğuna YAZILMAZ (inceleme, PR #43 tur 2):
+           `seviye` → `olgunlukSeviyesi` (0–5 hedef merdiveni), `gereksinim_tipi` → `gereksinimTipi`. */
+        gereksinimTipi: md.gereksinimTipi,
+        /* köken: metnin nereden ve ne zaman alındığı maddenin YANINDA durur (içerik kuralı) */
+        maddeKaynakUrl: md.kaynakUrl, kaynakSayfa: md.kaynakYeri, kaynakErisimTarihi: tarih(md.erisimTarihi), gecerliBaslangic: tarih(md.yururlukTarihi),
       })),
       select: { id: true, kod: true },
     });
@@ -198,6 +207,19 @@ async function maddeleriYaz(tx: Tx, regulasyonId: string, surumId: string, k: Ce
   }
   await bosalt();
   return maddeler.length;
+}
+
+/** Bağ sorgusu: hangi ilişki "kiracı bir şey bağlamış" sayılır. Köken
+    taşıyan ilişkide (eşleme, 2.4) paketin KENDİ satırı bağ değildir — kendi
+    eşlemesini taşıyan paket aynı etiketle asla yenilenemezdi; başka paketin
+    ya da kiracının (köken `kiraci`, `paketSurumId` NULL) satırı bağdır. NULL
+    açıkça dâhil (URN-VER-001). Köken taşımayan ilişkide her satır bağdır. */
+const KOKENLI_BAGLAR: readonly string[] = ['eslestirmeKaynak', 'eslestirmeHedef'];
+function kiraciBagi(iliski: (typeof MADDE_BAG_ILISKILERI)[number], paketinSurumleri: string[]): Prisma.MaddeWhereInput {
+  if (KOKENLI_BAGLAR.includes(iliski)) {
+    return { [iliski]: { some: { OR: [{ paketSurumId: null }, { paketSurumId: { notIn: paketinSurumleri } }] } } } as Prisma.MaddeWhereInput;
+  }
+  return { [iliski]: { some: {} } } as Prisma.MaddeWhereInput;
 }
 
 async function yaz(tx: Tx, icerik: PaketIcerigi, kuranId: string | null, simdi: Date): Promise<KurulumRaporu> {
@@ -237,6 +259,10 @@ async function yaz(tx: Tx, icerik: PaketIcerigi, kuranId: string | null, simdi: 
      bu sürüm günceller. Kimlik: paketSurumId bu paketin herhangi bir sürümü. */
   const paketinSurumleri = (await tx.icerikPaketiSurumu.findMany({ where: { paketId: paket.id }, select: { id: true } })).map((s) => s.id);
   const paketKokenli = (paketSurumId: string | null) => paketSurumId !== null && paketinSurumleri.includes(paketSurumId);
+  /* Çelişkinin SAHİBİ: `paketSurumId` doluysa satır BAŞKA BİR PAKETİN, boşsa
+     kiracının. İkisine de "kiracı satırı var" demek denetim izine yanlış sebep
+     yazıyordu (bağımsız inceleme bulgusu, PR #43). */
+  const sahip = (paketSurumId: string | null) => (paketSurumId === null ? 'kiracı' : 'başka paketin');
 
   /* sektör */
   let sektorId: string | null = null;
@@ -252,11 +278,11 @@ async function yaz(tx: Tx, icerik: PaketIcerigi, kuranId: string | null, simdi: 
     const veri = { tekil: r.tekil, cogul: r.cogul, iyelik: r.iyelik, belirtme: r.belirtme, bulunma: r.bulunma, yonelme: r.yonelme };
     const mevcut = await tx.sektorSozlugu.findUnique({ where: { sektorId_anahtar_dil: { sektorId, anahtar: r.anahtar, dil: r.dil } } });
     if (mevcut && !paketKokenli(mevcut.paketSurumId)) {
-      celiskiler.push({ tablo: 'SektorSozlugu', anahtar: `${r.anahtar}@${r.dil}`, sebep: 'kiracı satırı var — paket satırı yazılmadı, kiracınınki korundu' });
+      celiskiler.push({ tablo: 'SektorSozlugu', anahtar: `${r.anahtar}@${r.dil}`, sebep: `${sahip(mevcut.paketSurumId)} satırı var — paket satırı yazılmadı, kiracınınki korundu` });
       continue;
     }
-    if (mevcut) await tx.sektorSozlugu.update({ where: { id: mevcut.id }, data: { ...veri, ...koken } });
-    else await tx.sektorSozlugu.create({ data: { sektorId, anahtar: r.anahtar, dil: r.dil, ...veri, ...koken } });
+    if (mevcut) await tx.sektorSozlugu.update({ where: { id: mevcut.id }, data: { ...veri, ...koken, aktif: true } });
+    else await tx.sektorSozlugu.create({ data: { sektorId, anahtar: r.anahtar, dil: r.dil, ...veri, ...koken, aktif: true } });
     sozlukSayisi++;
   }
 
@@ -280,11 +306,11 @@ async function yaz(tx: Tx, icerik: PaketIcerigi, kuranId: string | null, simdi: 
     if (!sektorId) break;
     const mevcut = await tx.sektorOznitelikSemasi.findUnique({ where: { sektorId_anahtar: { sektorId, anahtar: o.anahtar } } });
     if (mevcut && !paketKokenli(mevcut.paketSurumId)) {
-      celiskiler.push({ tablo: 'SektorOznitelikSemasi', anahtar: o.anahtar, sebep: 'kiracı özniteliği var — paket satırı yazılmadı' });
+      celiskiler.push({ tablo: 'SektorOznitelikSemasi', anahtar: o.anahtar, sebep: `${sahip(mevcut.paketSurumId)} özniteliği var — paket satırı yazılmadı` });
       continue;
     }
     const veri = { etiketAnahtari: o.etiketAnahtari, tip: o.tip, birim: o.birim ?? null, rol: o.rol ?? null, grup: o.grup ?? null,
-      secenekler: o.secenekler ? JSON.stringify(o.secenekler) : null, kuraldaKullanilir: o.kuraldaKullanilir, sira: o.sira, ...koken };
+      secenekler: o.secenekler ? JSON.stringify(o.secenekler) : null, kuraldaKullanilir: o.kuraldaKullanilir, sira: o.sira, aktif: true, ...koken };
     if (mevcut) await tx.sektorOznitelikSemasi.update({ where: { id: mevcut.id }, data: veri });
     else await tx.sektorOznitelikSemasi.create({ data: { sektorId, anahtar: o.anahtar, ...veri } });
     oznitelikSayisi++;
@@ -293,6 +319,10 @@ async function yaz(tx: Tx, icerik: PaketIcerigi, kuranId: string | null, simdi: 
   /* çerçeveler → Regulasyon + TASLAK FrameworkSurumu + Madde */
   const taslakSurumler: KurulumRaporu['taslakSurumler'] = [];
   let maddeSayisi = 0;
+  let kuralSayisi = 0;
+  const yazilanKurallar = new Set<string>();
+  /** Taslak yenilemesinde kaskatla düşen paket kökenli eşlemeler (id → `kaynak→hedef`). */
+  const kaskatEslemeler = new Map<string, string>();
   for (const c of icerik.cerceveler) {
     const k = c.kimlik;
     const regMevcut = await tx.regulasyon.findUnique({ where: { kod: k.kod } });
@@ -301,12 +331,23 @@ async function yaz(tx: Tx, icerik: PaketIcerigi, kuranId: string | null, simdi: 
       /* Kiracının (ya da tohumun) regülasyonu: kimliğe DOKUNULMAZ; paket
          yalnız yeni bir taslak sürüm ekler, lisans alanı boşsa doldurur. */
       regulasyonId = regMevcut.id;
+      /* Kurulu regülasyon TELİFLİ ilan edilmişse paket ona metin getiremez:
+         doğrulayıcı paketin kendi kimliğini bilir, kuruluyu KURUCU bilir
+         (eşlemede bu kilit vardı, çerçeve metninde yoktu — inceleme, PR #43). */
+      if (regMevcut.lisansTuru === 'telifli' && k.lisans.tur !== 'telifli') {
+        throw new KurulumHatasi([{ sinif: 'LİSANS', dosya: c.dosya, konum: 'lisans.tur',
+          mesaj: `lisans sınırı: ${k.kod} kurulu çerçevesi telifli — paket bu çerçeveye metin getiremez (paket lisansı: ${k.lisans.tur})`,
+          duzeltme: 'çerçeveyi telifli olarak beyan edin (metin sütunu boş) ya da başka bir çerçeve kodu kullanın' }]);
+      }
       celiskiler.push({ tablo: 'Regulasyon', anahtar: k.kod, sebep: 'regülasyon kaydı kiracıya ait — ad/kaynak değiştirilmedi, yalnız taslak sürüm eklendi' });
       if (regMevcut.lisansTuru === null) {
         await tx.regulasyon.update({ where: { id: regulasyonId }, data: { lisansTuru: k.lisans.tur, metinDahil: k.lisans.metinDahil } });
       }
     } else {
-      const veri = { ad: k.ad, kaynakUrl: k.kaynakUrl ?? null, lisansTuru: k.lisans.tur, metinDahil: k.lisans.metinDahil, ...koken };
+      /* `Regulasyon.surum` ve `yururlukTarih` ekranın gösterdiği kısa sürüm etiketi ve
+         yürürlük tarihidir (mevzuat listesi, uyum verisi — ölçüldü: paketle gelen
+         regülasyon "yürürlük yok" gösteriyordu); paket kimliğinden yazılır. */
+      const veri = { ad: k.ad, surum: k.surumEtiketi, yururlukTarih: tarih(k.yururlukTarih), kaynakUrl: k.kaynakUrl ?? null, lisansTuru: k.lisans.tur, metinDahil: k.lisans.metinDahil, ...koken };
       const reg = regMevcut
         ? await tx.regulasyon.update({ where: { id: regMevcut.id }, data: veri })
         : await tx.regulasyon.create({ data: { kod: k.kod, ...veri } });
@@ -329,7 +370,10 @@ async function yaz(tx: Tx, icerik: PaketIcerigi, kuranId: string | null, simdi: 
        ve mevzuat kütüphanesi "yürürlük yok" diyordu (inceleme bulgusu).
        Paketin kendi ARŞİV taslağı (kaldırma sonrası geri kurulum) taslağa
        döner — yeni etiket istemez (inceleme bulgusu). */
-    const surumVerisi = { kaynakUrl: k.kaynakUrl ?? null, yayimTarihi: tarih(k.yayimTarihi), yururlukTarih: tarih(k.yururlukTarih), durum: 'taslak', ...koken };
+    /* Paketin beyanı SÜRÜME iner: `not` (ör. "metin TEMSİLÎDİR") ve `temsili` bayrağı
+       kurulumda buharlaşıyordu — veritabanında kurgusal metin gerçek mevzuattan ayırt
+       edilemiyordu (bağımsız inceleme, PR #43 tur 2). Rozet henüz yok; veri artık var. */
+    const surumVerisi = { kaynakUrl: k.kaynakUrl ?? null, yayimTarihi: tarih(k.yayimTarihi), yururlukTarih: tarih(k.yururlukTarih), durum: 'taslak', paketNotu: k.not ?? null, temsili: k.temsili ?? false, ...koken };
     let surumId: string;
     if (surumMevcut && ayniIcerik) {
       /* Aynı sürüm, aynı içerik: madde ağacına DOKUNULMAZ — kimlikler,
@@ -347,13 +391,22 @@ async function yaz(tx: Tx, icerik: PaketIcerigi, kuranId: string | null, simdi: 
          şemadan bekçiyle doğrulanır. */
       const maddeIdler = (await tx.madde.findMany({ where: { surumId: surumMevcut.id }, select: { id: true } })).map((x) => x.id);
       const bagli = await tx.madde.count({ where: { surumId: surumMevcut.id,
-        OR: MADDE_BAG_ILISKILERI.map((iliski) => ({ [iliski]: { some: {} } }) as Prisma.MaddeWhereInput) } });
+        OR: MADDE_BAG_ILISKILERI.map((iliski) => kiraciBagi(iliski, paketinSurumleri)) } });
       const dokunulan = await maddeIziSayisi(tx, maddeIdler);
       if (bagli > 0 || dokunulan > 0) {
         throw new KurulumHatasi([{ sinif: 'SÜRÜM', dosya: c.dosya, konum: 'surumEtiketi',
           mesaj: `${k.kod} ${k.surumEtiketi} taslağının maddelerine kiracı kaydı bağlı (${bagli} bağ, ${dokunulan} düzenleme izi) — üzerine yazılamaz`,
           duzeltme: 'paket yeni bir surumEtiketi vermeli; kiracının bağladığı kayıt ve düzenlemesi korunur' }]);
       }
+      /* Taslak yenilenirken bu taslağın maddelerine bağlı PAKET KÖKENLİ eşlemeler
+         kaskatla gider (`MaddeEslestirmesi` onDelete: Cascade). Sayı SİLMEDEN ÖNCE
+         ölçülür: uzlaştırma listesi silmeden sonra okunduğu için rapor "0 eşleme
+         bırakıldı" diyordu (inceleme bulgusu, PR #43). Yeniden beyan edilenler
+         eşleme bloğunda yeniden yazılır; yazılmayanlar rapora düşer. */
+      for (const e of await tx.maddeEslestirmesi.findMany({
+        where: { paketSurumId: { in: paketinSurumleri }, OR: [{ kaynak: { surumId: surumMevcut.id } }, { hedef: { surumId: surumMevcut.id } }] },
+        select: { id: true, kaynak: { select: { kod: true } }, hedef: { select: { kod: true } } },
+      })) kaskatEslemeler.set(e.id, `${e.kaynak.kod}→${e.hedef.kod}`);
       await tx.madde.deleteMany({ where: { surumId: surumMevcut.id } });
       await tx.frameworkSurumu.update({ where: { id: surumMevcut.id }, data: surumVerisi });
       surumId = surumMevcut.id;
@@ -364,6 +417,91 @@ async function yaz(tx: Tx, icerik: PaketIcerigi, kuranId: string | null, simdi: 
       maddeSayisi += await maddeleriYaz(tx, regulasyonId, surumId, k, c.maddeler);
     }
     taslakSurumler.push({ regulasyonKod: k.kod, surumEtiketi: k.surumEtiketi, surumId });
+
+    /* Uygulanabilirlik BEYANI (§1/9) → `UygulanabilirlikKurali`, köken paket.
+       Paketin bu regülasyon için önceki kuralı yenilenir; koşul değiştiyse kural
+       SÜRÜMÜ artar (kararlar `kuralSurumu` taşır, eski karar hangi kuralla
+       verildiği belli kalır). Kiracının kuralı (`paketSurumId` NULL) süzgeçte
+       hiç yok: ezilmez. Motor kararı ÖNERİR; hiçbir sürüm aktifleşmez. */
+    const beyan = k.uygulanabilirlik ?? null;
+    const eskiKural = await tx.uygulanabilirlikKurali.findFirst({ where: { regulasyonId, paketSurumId: { in: paketinSurumleri } }, orderBy: { olusturuldu: 'desc' } });
+    /* BAŞKA bir paketin aynı regülasyon için aktif kuralı varsa iki paket kuralı
+       yan yana durur ve motorda sıra belirsizleşir: çelişki RAPORLANIR (inceleme,
+       PR #43 tur 2). Kiracının kuralı bu sayıma girmez — o zaten üstündür. */
+    if (beyan) {
+      const baskaPaket = await tx.uygulanabilirlikKurali.count({ where: { regulasyonId, aktif: true, koken: 'paket', NOT: { paketSurumId: { in: paketinSurumleri } }, paketSurumId: { not: null } } });
+      if (baskaPaket > 0) celiskiler.push({ tablo: 'UygulanabilirlikKurali', anahtar: k.kod, sebep: `başka paketin ${baskaPaket} aktif kuralı var — iki paket kuralı yan yana, kararın hangisiyle verildiği belirsizleşebilir` });
+    }
+    if (beyan) {
+      const kosulJson = JSON.stringify(beyandanKural(beyan));
+      const veri = { ad: `Paket beyanı · ${k.kod}`, kosulJson, aciklama: beyan.aciklama ?? null, aktif: true, ...koken };
+      const kayit = eskiKural
+        ? await tx.uygulanabilirlikKurali.update({ where: { id: eskiKural.id }, data: { ...veri, ...(eskiKural.kosulJson === kosulJson ? {} : { surum: { increment: 1 } }) }, select: { id: true } })
+        : await tx.uygulanabilirlikKurali.create({ data: { regulasyonId, ...veri }, select: { id: true } });
+      yazilanKurallar.add(kayit.id);
+      kuralSayisi++;
+    }
+  }
+
+  /* eşlemeler (2.4) — çerçeveler arası madde eşlemesi, `MaddeEslestirmesi`
+     koken=paket. Uç: paketin kendi taslağı ya da KURULU bir çerçeve sürümü
+     (kod + etiket; yoksa KİMLİK). Kurulu çerçeve telifliyse açıklama
+     yazılmaz (LİSANS) — doğrulayıcı paket içini bilir, kurucu kuruluyu.
+     Aynı kaynak→hedef çiftinde kiracı eşlemesi varsa DOKUNULMAZ (çelişki). */
+  const yazilanEslemeler = new Set<string>();
+  /** Bu kurulumda yazılan eşleme ÇİFTLERİ (`<kaynak madde kodu>→<hedef madde kodu>`).
+      Taslak yenilemesinde satır kaskatla silinip YENİ kimlikle yeniden yazılır:
+      kimlik karşılaştırması "bırakıldı" derdi, çift karşılaştırması doğruyu söyler. */
+  const yazilanCiftler = new Set<string>();
+  let eslemeSayisi = 0;
+  for (const e of icerik.eslemeler) {
+    const cozumle = async (ref: { cerceve: string; surumEtiketi: string }, yon: 'kaynak' | 'hedef') => {
+      const taslak = taslakSurumler.find((t) => t.regulasyonKod === ref.cerceve);
+      if (taslak) return { surumId: taslak.surumId, telifli: icerik.cerceveler.some((c) => c.kimlik.kod === ref.cerceve && c.kimlik.lisans.tur === 'telifli') };
+      const reg = await tx.regulasyon.findUnique({ where: { kod: ref.cerceve }, select: { id: true, lisansTuru: true } });
+      const surum = reg ? await tx.frameworkSurumu.findUnique({ where: { regulasyonId_surumEtiketi: { regulasyonId: reg.id, surumEtiketi: ref.surumEtiketi } }, select: { id: true } }) : null;
+      if (!reg || !surum) {
+        throw new KurulumHatasi([{ sinif: 'KİMLİK', dosya: e.dosya, konum: `${yon}.cerceve`, mesaj: `${ref.cerceve} ${ref.surumEtiketi} sürümü bulunamadı (ne pakette ne kurulu)`,
+          duzeltme: 'çerçeveyi pakete ekleyin ya da önce kurun; sürüm etiketi kurulu sürümünkiyle aynı olmalı' }]);
+      }
+      return { surumId: surum.id, telifli: reg.lisansTuru === 'telifli' };
+    };
+    const kaynak = await cozumle(e.kimlik.kaynak, 'kaynak');
+    const hedef = await cozumle(e.kimlik.hedef, 'hedef');
+    if ((kaynak.telifli || hedef.telifli) && e.satirlar.some((s) => s.aciklama)) {
+      throw new KurulumHatasi([{ sinif: 'LİSANS', dosya: e.dosya, mesaj: `lisans sınırı: ${kaynak.telifli ? e.kimlik.kaynak.cerceve : e.kimlik.hedef.cerceve} kurulu çerçevesi telifli — eşleme açıklaması girilemez`,
+        duzeltme: 'aciklama sütununu boş bırakın' }]);
+    }
+    const kimlikler = async (surumId: string, cerceveKod: string, kodlar: string[]) => {
+      const m = new Map<string, string>();
+      for (let i = 0; i < kodlar.length; i += IN_PARCASI) {
+        const parca = kodlar.slice(i, i + IN_PARCASI).map((k) => `${cerceveKod}-${k}`);
+        for (const md of await tx.madde.findMany({ where: { surumId, kod: { in: parca } }, select: { id: true, kod: true } })) m.set(md.kod.slice(cerceveKod.length + 1), md.id);
+      }
+      return m;
+    };
+    const kaynakIdler = await kimlikler(kaynak.surumId, e.kimlik.kaynak.cerceve, [...new Set(e.satirlar.map((s) => s.kaynakKod))]);
+    const hedefIdler = await kimlikler(hedef.surumId, e.kimlik.hedef.cerceve, [...new Set(e.satirlar.map((s) => s.hedefKod))]);
+    for (const s of e.satirlar) {
+      const kaynakId = kaynakIdler.get(s.kaynakKod); const hedefId = hedefIdler.get(s.hedefKod);
+      if (!kaynakId || !hedefId) {
+        const [ref, kod] = !kaynakId ? [e.kimlik.kaynak, s.kaynakKod] : [e.kimlik.hedef, s.hedefKod];
+        throw new KurulumHatasi([{ sinif: 'KİMLİK', dosya: e.dosya, konum: `${s.kaynakKod}→${s.hedefKod}`, mesaj: `madde bulunamadı: ${ref.cerceve} ${ref.surumEtiketi} sürümünde ${kod} yok`,
+          duzeltme: 'madde kodunu kurulu çerçevedeki gibi yazın (çerçeve önekinden sonraki kısım)' }]);
+      }
+      const mevcut = await tx.maddeEslestirmesi.findUnique({ where: { kaynakId_hedefId: { kaynakId, hedefId } } });
+      if (mevcut && !paketKokenli(mevcut.paketSurumId)) {
+        celiskiler.push({ tablo: 'MaddeEslestirmesi', anahtar: `${e.kimlik.kod}:${s.kaynakKod}→${s.hedefKod}`, sebep: 'kiracı ya da başka paketin eşlemesi var — paket eşlemesi yazılmadı, mevcut korundu' });
+        continue;
+      }
+      const veri = { denklik: s.denklik, aciklama: s.aciklama, aktif: true, ...koken };
+      const kayit = mevcut
+        ? await tx.maddeEslestirmesi.update({ where: { id: mevcut.id }, data: veri, select: { id: true } })
+        : await tx.maddeEslestirmesi.create({ data: { kaynakId, hedefId, ...veri }, select: { id: true } });
+      yazilanEslemeler.add(kayit.id);
+      yazilanCiftler.add(`${e.kimlik.kaynak.cerceve}-${s.kaynakKod}→${e.kimlik.hedef.cerceve}-${s.hedefKod}`);
+      eslemeSayisi++;
+    }
   }
 
   /* yükümlülükler */
@@ -380,13 +518,65 @@ async function yaz(tx: Tx, icerik: PaketIcerigi, kuranId: string | null, simdi: 
     }
     const mevcut = await tx.bildirimYukumlulugu.findUnique({ where: { kod: y.kod } });
     if (mevcut && !paketKokenli(mevcut.paketSurumId)) {
-      celiskiler.push({ tablo: 'BildirimYukumlulugu', anahtar: y.kod, sebep: 'kiracı yükümlülüğü var — paket satırı yazılmadı' });
+      celiskiler.push({ tablo: 'BildirimYukumlulugu', anahtar: y.kod, sebep: `${sahip(mevcut.paketSurumId)} yükümlülüğü var — paket satırı yazılmadı` });
       continue;
     }
     const veri = { ad: y.ad, regulasyonId, asgariSiddet: y.asgariSiddet, sureSaat: y.sureSaat, dayanak: y.dayanak, merci: y.merci, aktif: true, ...koken };
     if (mevcut) await tx.bildirimYukumlulugu.update({ where: { id: mevcut.id }, data: veri });
     else await tx.bildirimYukumlulugu.create({ data: { kod: y.kod, ...veri } });
     yukumlulukSayisi++;
+  }
+
+  /* form ve rapor şablonları (2.2) — katalog; tanım JSON'da, köken ve aktif
+     öbür paket tablolarıyla aynı. Madde referansı ya paketin kendi
+     çerçevesinde ya kurulu bir maddede olmalı: kopuk referans KİMLİK. */
+  const paketMaddeKodlari = new Set(icerik.cerceveler.flatMap((c) => c.maddeler.map((md) => `${c.kimlik.kod}-${md.kod}`)));
+  const maddeVarMi = async (kod: string) => paketMaddeKodlari.has(kod) || (await tx.madde.count({ where: { kod } })) > 0;
+  let formSayisi = 0;
+  for (const f of icerik.formlar) {
+    for (const b of f.bolumler) for (const a of b.alanlar) {
+      if (a.maddeKod && !(await maddeVarMi(a.maddeKod))) {
+        throw new KurulumHatasi([{ sinif: 'KİMLİK', dosya: `${DOSYALAR.formDizini}/${f.kod}.json`, konum: `${b.kod}.${a.anahtar}.maddeKod`,
+          mesaj: `madde referansı bulunamadı: ${a.maddeKod} (ne pakette ne kurulu)`, duzeltme: 'çerçeveyi pakete ekleyin ya da referansı düzeltin' }]);
+      }
+    }
+    const mevcut = await tx.formSablonu.findUnique({ where: { kod: f.kod } });
+    if (mevcut && !paketKokenli(mevcut.paketSurumId)) {
+      celiskiler.push({ tablo: 'FormSablonu', anahtar: f.kod, sebep: `${sahip(mevcut.paketSurumId)} form şablonu var — paket şablonu yazılmadı` });
+      continue;
+    }
+    const veri = { ad: f.ad, tur: f.tur, sektorId, dosyaAdi: f.dosya ?? null, tanimJson: JSON.stringify(f), aktif: true, ...koken };
+    if (mevcut) await tx.formSablonu.update({ where: { id: mevcut.id }, data: veri });
+    else await tx.formSablonu.create({ data: { kod: f.kod, ...veri } });
+    formSayisi++;
+  }
+  let raporSayisi = 0;
+  for (const r of icerik.raporlar) {
+    const mevcut = await tx.raporSablonu.findUnique({ where: { kod: r.kod } });
+    if (mevcut && !paketKokenli(mevcut.paketSurumId)) {
+      celiskiler.push({ tablo: 'RaporSablonu', anahtar: r.kod, sebep: `${sahip(mevcut.paketSurumId)} rapor şablonu var — paket şablonu yazılmadı` });
+      continue;
+    }
+    const veri = { ad: r.ad, sektorId, tanimJson: JSON.stringify(r), aktif: true, ...koken };
+    if (mevcut) await tx.raporSablonu.update({ where: { id: mevcut.id }, data: veri });
+    else await tx.raporSablonu.create({ data: { kod: r.kod, ...veri } });
+    raporSayisi++;
+  }
+
+  /* rol önerileri (2.3) — katalog. Çalışma zamanı yetkisi (`lib/erisim.ts`)
+     kataloğu OKUMAZ: paket önerir, kiracı ezer, koda bağlanması P2/P6.
+     Çekirdek rol kodu doğrulayıcıda reddedilir; burada yalnız köken kuralı. */
+  let rolSayisi = 0;
+  for (const r of icerik.roller) {
+    const mevcut = await tx.rolKatalogu.findUnique({ where: { kod: r.kod } });
+    if (mevcut && !paketKokenli(mevcut.paketSurumId)) {
+      celiskiler.push({ tablo: 'RolKatalogu', anahtar: r.kod, sebep: `${sahip(mevcut.paketSurumId)} rolü var — paket önerisi yazılmadı` });
+      continue;
+    }
+    const veri = { ad: r.ad, aciklama: r.aciklama ?? null, izinlerJson: JSON.stringify(r.izinler), kapsamEkseni: r.kapsamEkseni, sira: r.sira, aktif: true, ...koken };
+    if (mevcut) await tx.rolKatalogu.update({ where: { id: mevcut.id }, data: veri });
+    else await tx.rolKatalogu.create({ data: { kod: r.kod, ...veri } });
+    rolSayisi++;
   }
 
   /* ── YÜKSELTME UZLAŞTIRMASI ───────────────────────────────────────────
@@ -406,31 +596,69 @@ async function yaz(tx: Tx, icerik: PaketIcerigi, kuranId: string | null, simdi: 
   const arsivSurum = await tx.frameworkSurumu.updateMany({
     where: { paketSurumId: { in: paketinSurumleri }, durum: 'taslak', id: { notIn: taslakSurumler.map((t) => t.surumId) } },
     data: { durum: 'arsiv' } });
-  /* Sözlük ve öznitelik şemasında aktif bayrağı yok; öznitelik satırının
-     altında kiracının değerleri olabilir. Satır yerinde kalır, anahtarı
-     rapora düşer — pasifleştirme P4'ün sonraki diliminde (şema alanı). */
-  const artik: KurulumRaporu['artik'] = { sozluk: [], oznitelikler: [] };
+  const pasifForm = await tx.formSablonu.updateMany({
+    where: { paketSurumId: { in: paketinSurumleri }, aktif: true, kod: { notIn: icerik.formlar.map((f) => f.kod) } },
+    data: { aktif: false } });
+  const pasifRapor = await tx.raporSablonu.updateMany({
+    where: { paketSurumId: { in: paketinSurumleri }, aktif: true, kod: { notIn: icerik.raporlar.map((r) => r.kod) } },
+    data: { aktif: false } });
+  const pasifRol = await tx.rolKatalogu.updateMany({
+    where: { paketSurumId: { in: paketinSurumleri }, aktif: true, kod: { notIn: icerik.roller.map((r) => r.kod) } },
+    data: { aktif: false } });
+  /* Bu sürümün beyan etmediği paket kökenli uygulanabilirlik kuralı PASİF: motor
+     koşmaz, satır durur (R-C). Kiracının kuralı süzgecin dışında — `paketSurumId`
+     NULL, `in` listesi NULL'u zaten eşlemez (URN-VER-001: olumsuz yüklem yok). */
+  const pasifKural = await tx.uygulanabilirlikKurali.updateMany({
+    where: { paketSurumId: { in: paketinSurumleri }, aktif: true, id: { notIn: [...yazilanKurallar] } },
+    data: { aktif: false } });
+  /* Eşleme (2.4): bu sürümün yazmadığı paket kökenli eşleme pasif — kimlik
+     listesi parçalarla (IN sınırı). Paketin kendi taslağı yenilenirken
+     kaskatla giden kendi eşlemeleri zaten yeniden yazıldı. */
+  const eskiEslemeler = await tx.maddeEslestirmesi.findMany({ where: { paketSurumId: { in: paketinSurumleri }, aktif: true }, select: { id: true } });
+  const dusenEslemeler = eskiEslemeler.map((r) => r.id).filter((id) => !yazilanEslemeler.has(id));
+  /* Kaskatla giden ve yeniden yazılmayan eşlemeler de "bırakıldı": satır artık
+     yok, rapor bunu SAYAR (susmak, izde "0 eşleme" yalanı üretiyordu). */
+  const kaskatDusen = [...kaskatEslemeler.values()].filter((cift) => !yazilanCiftler.has(cift));
+  for (let i = 0; i < dusenEslemeler.length; i += IN_PARCASI) {
+    await tx.maddeEslestirmesi.updateMany({ where: { id: { in: dusenEslemeler.slice(i, i + IN_PARCASI) } }, data: { aktif: false } });
+  }
+  /* Sözlük ve öznitelik şeması da PASİFLEŞİR (2.1): silinmez — öznitelik
+     satırının altında kiracının değerleri olabilir (R-C) — ama okuyucular
+     artık görmez. Anahtar (anahtar@dil · anahtar) rapora düşer. */
+  const pasifAnahtarlar: KurulumRaporu['pasifAnahtarlar'] = { sozluk: [], oznitelikler: [] };
   if (sektorId) {
     const beyanSozluk = new Set(icerik.sozluk.map((r) => `${r.anahtar}@${r.dil}`));
-    const eskiSozluk = await tx.sektorSozlugu.findMany({ where: { sektorId, paketSurumId: { in: paketinSurumleri } }, select: { anahtar: true, dil: true } });
-    artik.sozluk = eskiSozluk.map((r) => `${r.anahtar}@${r.dil}`).filter((a) => !beyanSozluk.has(a)).sort();
+    const eskiSozluk = await tx.sektorSozlugu.findMany({ where: { sektorId, aktif: true, paketSurumId: { in: paketinSurumleri } }, select: { id: true, anahtar: true, dil: true } });
+    const dusenSozluk = eskiSozluk.filter((r) => !beyanSozluk.has(`${r.anahtar}@${r.dil}`));
+    if (dusenSozluk.length) await tx.sektorSozlugu.updateMany({ where: { id: { in: dusenSozluk.map((r) => r.id) } }, data: { aktif: false } });
+    pasifAnahtarlar.sozluk = dusenSozluk.map((r) => `${r.anahtar}@${r.dil}`).sort();
     const beyanOznitelik = new Set(icerik.oznitelikler.map((o) => o.anahtar));
-    const eskiOznitelik = await tx.sektorOznitelikSemasi.findMany({ where: { sektorId, paketSurumId: { in: paketinSurumleri } }, select: { anahtar: true } });
-    artik.oznitelikler = eskiOznitelik.map((r) => r.anahtar).filter((a) => !beyanOznitelik.has(a)).sort();
+    const eskiOznitelik = await tx.sektorOznitelikSemasi.findMany({ where: { sektorId, aktif: true, paketSurumId: { in: paketinSurumleri } }, select: { id: true, anahtar: true } });
+    const dusenOznitelik = eskiOznitelik.filter((r) => !beyanOznitelik.has(r.anahtar));
+    if (dusenOznitelik.length) await tx.sektorOznitelikSemasi.updateMany({ where: { id: { in: dusenOznitelik.map((r) => r.id) } }, data: { aktif: false } });
+    pasifAnahtarlar.oznitelikler = dusenOznitelik.map((r) => r.anahtar).sort();
   }
 
   const rapor: KurulumRaporu = {
     paketId: paket.id, surumId: surumKaydi.id, kod: m.kod, surum: m.surum,
-    sayilar: { sozluk: sozlukSayisi, kapsamTurleri: turSayisi, oznitelikler: oznitelikSayisi, cerceveler: icerik.cerceveler.length, maddeler: maddeSayisi, yukumlulukler: yukumlulukSayisi },
+    sayilar: { sozluk: sozlukSayisi, kapsamTurleri: turSayisi, oznitelikler: oznitelikSayisi, cerceveler: icerik.cerceveler.length, maddeler: maddeSayisi, yukumlulukler: yukumlulukSayisi,
+      formlar: formSayisi, raporlar: raporSayisi, roller: rolSayisi, eslemeler: eslemeSayisi, kurallar: kuralSayisi },
     celiskiler, taslakSurumler,
-    pasiflestirilen: { kapsamTurleri: pasifTur.count, yukumlulukler: pasifYukumluluk.count, cerceveSurumleri: arsivSurum.count },
-    artik,
+    pasiflestirilen: {
+      kapsamTurleri: pasifTur.count, yukumlulukler: pasifYukumluluk.count, cerceveSurumleri: arsivSurum.count,
+      sozluk: pasifAnahtarlar.sozluk.length, oznitelikler: pasifAnahtarlar.oznitelikler.length,
+      formlar: pasifForm.count, raporlar: pasifRapor.count, roller: pasifRol.count, eslemeler: dusenEslemeler.length + kaskatDusen.length, kurallar: pasifKural.count,
+    },
+    pasifAnahtarlar,
   };
   await tx.icerikPaketiSurumu.update({ where: { id: surumKaydi.id }, data: { raporJson: JSON.stringify(rapor) } });
   return rapor;
 }
 
-export type KaldirmaRaporu = { paketId: string; arsivlenen: { surumler: number; cerceveSurumleri: number; turler: number; yukumlulukler: number } };
+export type KaldirmaRaporu = { paketId: string; arsivlenen: {
+  surumler: number; cerceveSurumleri: number; turler: number; yukumlulukler: number; sozluk: number; oznitelikler: number; formlar: number; raporlar: number; roller: number; eslemeler: number; kurallar: number };
+  /** Pasifleşen paket kurallarıyla verilmiş kapsam kararı sayısı — kayıtlar SİLİNMEZ, sayılır. */
+  etkilenenKarar: number };
 export type KaldirmaSonucu = ({ ok: true } & KaldirmaRaporu) | { ok: false; hata: string };
 
 /** Kaldırma = arşiv. Hiçbir satır silinmez; aktif çerçeve sürümü taşıyan
@@ -468,7 +696,20 @@ export async function paketiKaldir(
     const c = await tx.frameworkSurumu.updateMany({ where: { paketSurumId: { in: surumIdleri }, durum: 'taslak' }, data: { durum: 'arsiv' } });
     const t = await tx.kapsamOgesiTuru.updateMany({ where: { paketSurumId: { in: surumIdleri } }, data: { aktif: false } });
     const y = await tx.bildirimYukumlulugu.updateMany({ where: { paketSurumId: { in: surumIdleri } }, data: { aktif: false } });
-    const rapor: KaldirmaRaporu = { paketId: paket.id, arsivlenen: { surumler: s.count, cerceveSurumleri: c.count, turler: t.count, yukumlulukler: y.count } };
+    const sz = await tx.sektorSozlugu.updateMany({ where: { paketSurumId: { in: surumIdleri } }, data: { aktif: false } });
+    const oz = await tx.sektorOznitelikSemasi.updateMany({ where: { paketSurumId: { in: surumIdleri } }, data: { aktif: false } });
+    const fr = await tx.formSablonu.updateMany({ where: { paketSurumId: { in: surumIdleri } }, data: { aktif: false } });
+    const rp = await tx.raporSablonu.updateMany({ where: { paketSurumId: { in: surumIdleri } }, data: { aktif: false } });
+    const rl = await tx.rolKatalogu.updateMany({ where: { paketSurumId: { in: surumIdleri } }, data: { aktif: false } });
+    const es = await tx.maddeEslestirmesi.updateMany({ where: { paketSurumId: { in: surumIdleri } }, data: { aktif: false } });
+    /* Kural pasifleşir ama onunla verilmiş KARARLAR yerinde kalır (R-C: silme yok).
+       Sayısı raporlanır: "geri çekilmiş bir kuralla verilmiş karar" sessiz kalmasın
+       (bağımsız inceleme, PR #43 tur 2). */
+    const kuralIdleri = (await tx.uygulanabilirlikKurali.findMany({ where: { paketSurumId: { in: surumIdleri } }, select: { id: true } })).map((x) => x.id);
+    const kr = await tx.uygulanabilirlikKurali.updateMany({ where: { paketSurumId: { in: surumIdleri } }, data: { aktif: false } });
+    const etkilenenKarar = kuralIdleri.length ? await tx.uygulanabilirlikKarari.count({ where: { kuralId: { in: kuralIdleri } } }) : 0;
+    const rapor: KaldirmaRaporu = { paketId: paket.id, arsivlenen: {
+      surumler: s.count, cerceveSurumleri: c.count, turler: t.count, yukumlulukler: y.count, sozluk: sz.count, oznitelikler: oz.count, formlar: fr.count, raporlar: rp.count, roller: rl.count, eslemeler: es.count, kurallar: kr.count }, etkilenenKarar };
     if (secenekler.ayniIslemde) await secenekler.ayniIslemde(tx, rapor);
     return { ok: true, ...rapor };
   }, TX_SECENEK);

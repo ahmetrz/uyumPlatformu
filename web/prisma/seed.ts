@@ -1,7 +1,6 @@
 /* Başlangıç verisi — Demo Enerji portföyü. Tüm sözlükler (sektör, tip, alan,
    regülasyon, süreç) panelden yönetilebilir; burası yalnızca ilk kurulum setidir. */
 import { PrismaClient } from '../lib/prisma-client/client';
-import { ENERJI_OZNITELIK_ETIKETLERI, ENERJI_SOZLUGU } from './sozlukler';
 import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
 import path from 'node:path';
 import { randomBytes, scryptSync } from 'node:crypto';
@@ -14,10 +13,13 @@ import { dokumanKutugu } from './seed-dokuman';
 import { entegrasyonVerisi } from './seed-entegrasyon';
 import { operasyonKayitlari } from './seed-operasyon-kayitlari';
 import { dolulukKatmani } from './seed-doluluk';
-import { GUNLUK_DEBI, suSektoru, suUyumu } from './seed-su';
+import { suSektoru, suUyumu } from './seed-su';
 import { suVeriSeti } from './seed-su-veri';
-import { enerjiOznitelikSemasiniKur, kapsamTurleriniKur, profiliAyir, TEIAS_SERI_OLMAYAN_KOSULU, tesislerdenOgeler } from './kapsam-ogesi';
+import { kapsamTurleriniKur, profiliAyir, TEIAS_SERI_OLMAYAN_KOSULU, tesislerdenOgeler } from './kapsam-ogesi';
 import { KURULU_GUC } from '../lib/alan/oznitelik';
+import { hataSatiri } from '../lib/paket/dogrula';
+import { paketiKur } from '../lib/paket/kur';
+import { MADDE_ALANLARI } from './seed-madde-alanlari';
 
 const parolaUret = (parola: string) => {
   const tuz = randomBytes(16).toString('hex');
@@ -73,29 +75,14 @@ async function main() {
         varsayilanKapsamTuruId: kod === 'MERKEZ' ? kapsamTuru.kurum.id : kapsamTuru.tesis.id } })]),
   )) as Record<string, { id: string }>;
 
-  /* ---- enerji sektörü terim sözlüğü (P1 · URN-ALN-004)
+  /* ---- enerji sözlüğü ve öznitelik şeması (P1 · URN-ALN-004 · B2)
 
-     Çekirdek "tesis" der; bu satırlar enerji kiracısının ekranda ne
-     göreceğini söyler. Sözlük SİLİNİRSE ekran bozulmaz, çekirdek
-     sözcüğe döner — kurulu sektör paketi olmayan bir kiracının hâli
-     budur ve test tam olarak bunu ölçer. */
-  await db.sektorSozlugu.createMany({
-    data: [...ENERJI_SOZLUGU, ...ENERJI_OZNITELIK_ETIKETLERI].map((r) => ({ ...r, sektorId: elektrik.id })) });
-
-  /* ---- öznitelik şeması: sektörün BİRİNCİL ÖLÇÜSÜ
-
-     Ekran artık `kuruluGuc` diye bir anahtarı adıyla BİLMEZ; sektörün
-     şemasına sorar ve etiketi sözlükten çözer. İki sektörde aynı
-     çekirdek anahtar (`kapasite`) bambaşka bir büyüklüğe bağlanır:
-     enerjide güç (MW), suda debi (m³/gün). §0.5'in istediği şey buydu. */
-  await db.sektorOznitelikSemasi.create({
-    data: {
-      sektorId: elektrik.id, anahtar: KURULU_GUC, etiketAnahtari: 'kapasite',
-      /* B2: çekirdek anahtarı değil ROLÜ bilir — kapasite rolü (portföy, karne, Tesis 360 kimlik kartı). */
-      rol: 'kapasite',
-      tip: 'sayi', birim: 'MW', kuraldaKullanilir: true,
-    },
-  });
+     2.5'ten beri DEMO-TR-ENERJI PAKETİNDEN gelir (aşağıda `demoPaketiKur`):
+     çekirdek "tesis" der, paket sözlüğü "santral" der; sektörün birincil
+     ölçüsü (`kuruluGuc`, MW, rol=kapasite) ve enerji profil öznitelikleri
+     paketin `oznitelikler.json`undadır. Sözlük SİLİNİRSE ekran bozulmaz,
+     çekirdek sözcüğe döner — kurulu sektör paketi olmayan bir kiracının
+     hâli budur ve test tam olarak bunu ölçer. */
 
   // ---- tesisler: Demo Enerji üretim portföyü (biri kapalı: devir örneği)
   const t = Object.fromEntries(await Promise.all(([
@@ -152,105 +139,43 @@ async function main() {
     data: { eposta: `${e}@demo.local`, adSoyad: ad, unvan,
       parolaHash: parolaUret(GELISTIRME_PAROLASI) } })]))) as Record<string, { id: string }>;
 
-  // ---- regülasyonlar (başlangıç seti; panelden eklenir)
-  const reg = Object.fromEntries(await Promise.all(([
-    ['EPDK-SYM', 'EPDK Siber Yetkinlik Modeli', '2024', 'https://www.epdk.gov.tr'],
-    ['CBDDO', 'CBDDÖ Bilgi ve İletişim Güvenliği Rehberi', '2.0', 'https://cbddo.gov.tr'],
-    ['ISO-27001', 'ISO/IEC 27001 Bilgi Güvenliği YS', '2022', 'https://www.iso.org'],
-    ['SPK-BS', 'SPK Bilgi Sistemleri Yönetimi Tebliği', 'VII-128.9', 'https://spk.gov.tr'],
-  ] as const).map(async ([kod, ad, surum, url]) => [kod, await db.regulasyon.create({
-    data: { kod, ad, surum, kaynakUrl: url, yururlukTarih: gun(-720) } })]))) as Record<string, { id: string }>;
+  /* ---- P4 · 2.5 · UYUM İÇERİĞİ DEMO PAKETLERİNDEN GELİR
 
-  // ---- maddeler: EPDK-SYM ayrıntılı, diğerleri temsilî
-  type M = { kod: string; baslik: string; metin: string; alan: ('BT' | 'OT')[]; kanit?: string; alt?: M[] };
-  const epdkAgac: M[] = [
-    { kod: '4', baslik: 'Varlık Yönetimi', metin: 'Kritik enerji altyapısına ait BT ve OT varlıklarının envanteri ve sınıflandırması.', alan: ['BT', 'OT'], alt: [
-      { kod: '4.1', baslik: 'Varlık Envanteri', metin: 'Tüm BT/OT varlıkları güncel bir envanterde izlenmelidir.', alan: ['BT', 'OT'], kanit: 'kayit', alt: [
-        { kod: '4.1.1', baslik: 'Envanter güncelliği', metin: 'Envanter en geç 6 ayda bir gözden geçirilir; değişiklikler 30 gün içinde işlenir.', alan: ['BT', 'OT'], kanit: 'kayit' },
-        { kod: '4.1.2', baslik: 'Kritiklik sınıflandırması', metin: 'Varlıklar üretim sürekliliğine etkisine göre sınıflandırılır.', alan: ['OT'], kanit: 'politika' },
-      ] },
-      { kod: '4.2', baslik: 'Ağ Mimarisi ve Ayrıştırma', metin: 'Kurumsal BT ağı ile endüstriyel kontrol ağı ayrıştırılmalıdır.', alan: ['OT'], alt: [
-        { kod: '4.2.1', baslik: 'SCADA segmentasyonu', metin: 'SCADA/EKS ağları, kurumsal ağdan güvenlik bölgeleriyle (zone/conduit) ayrılır; bölgeler arası trafik denetlenir.', alan: ['OT'], kanit: 'konfigurasyon' },
-        { kod: '4.2.2', baslik: 'Uzaktan erişim', metin: 'OT ortamına uzaktan erişim çok faktörlü kimlik doğrulama ve kayıt altına alma ile yapılır.', alan: ['BT', 'OT'], kanit: 'konfigurasyon' },
-      ] },
-    ] },
-    { kod: '5', baslik: 'Kimlik ve Erişim Yönetimi', metin: 'Erişim hakları görev ayrılığı ve en az ayrıcalık ilkesine göre yönetilir.', alan: ['BT'], alt: [
-      { kod: '5.1', baslik: 'Hesap Yönetimi', metin: 'Hesap açma/kapama süreçleri tanımlı ve izlenebilir olmalıdır.', alan: ['BT'], alt: [
-        { kod: '5.1.1', baslik: 'Servis hesapları', metin: 'Servis hesapları envanterde izlenir, parolaları kasada tutulur ve düzenli rotasyona tabidir.', alan: ['BT'], kanit: 'kayit' },
-        { kod: '5.1.2', baslik: 'Ayrıcalıklı erişim', metin: 'Ayrıcalıklı oturumlar kaydedilir ve düzenli gözden geçirilir.', alan: ['BT'], kanit: 'kayit' },
-      ] },
-    ] },
-    { kod: '7', baslik: 'Olay Yönetimi ve İzleme', metin: 'Siber olayların tespiti, müdahalesi ve raporlanması.', alan: ['BT', 'OT'], alt: [
-      { kod: '7.1', baslik: 'Kayıt Yönetimi', metin: 'Güvenlik olay kayıtları merkezî olarak toplanır.', alan: ['BT', 'OT'], alt: [
-        { kod: '7.1.4', baslik: 'OT log toplama', metin: 'Endüstriyel protokol trafiği ve OT sistem kayıtları pasif yöntemlerle merkezî SIEM\'e aktarılır.', alan: ['OT'], kanit: 'konfigurasyon' },
-      ] },
-      { kod: '7.2', baslik: 'Olay Müdahale Planı', metin: 'EPDK bildirim yükümlülüklerini içeren olay müdahale planı bulunur ve yılda bir tatbikat yapılır.', alan: ['BT', 'OT'], kanit: 'politika' },
-    ] },
-  ];
-  const digerMaddeler: Record<string, M[]> = {
-    CBDDO: [
-      { kod: '3.1', baslik: 'Ağ Güvenliği', metin: 'Ağ topolojisi belgelenir; kritik bölümler ayrıştırılır.', alan: ['BT', 'OT'], kanit: 'konfigurasyon' },
-      { kod: '3.2', baslik: 'Sıkılaştırma', metin: 'Sunucu ve istemciler kurumsal sıkılaştırma standardına göre yapılandırılır.', alan: ['BT'], kanit: 'konfigurasyon' },
-      { kod: '4.1', baslik: 'Yetkilendirme', metin: 'Erişim talepleri onay akışıyla yönetilir.', alan: ['BT'], kanit: 'kayit' },
-      { kod: '4.2', baslik: 'Denetim İzleri', metin: 'Kritik sistemlerde denetim izleri en az 2 yıl saklanır.', alan: ['BT'], kanit: 'kayit' },
-    ],
-    'ISO-27001': [
-      { kod: 'A.5.9', baslik: 'Bilgi varlıkları envanteri', metin: 'Bilgi ve diğer ilişkili varlıkların envanteri tutulur.', alan: ['BT'], kanit: 'kayit' },
-      { kod: 'A.8.9', baslik: 'Konfigürasyon yönetimi', metin: 'Donanım, yazılım ve ağ konfigürasyonları yönetilir.', alan: ['BT', 'OT'], kanit: 'konfigurasyon' },
-      { kod: 'A.8.16', baslik: 'İzleme faaliyetleri', metin: 'Ağlar ve sistemler anormal davranış için izlenir.', alan: ['BT', 'OT'], kanit: 'kayit' },
-      { kod: 'A.5.24', baslik: 'Olay yönetimi planlaması', metin: 'Bilgi güvenliği olay yönetimi süreci planlanır.', alan: ['BT'], kanit: 'politika' },
-    ],
-    'SPK-BS': [
-      { kod: '11', baslik: 'Erişim kontrolü', metin: 'Bilgi sistemlerine erişim yetkilendirme esaslarına bağlanır.', alan: ['BT'], kanit: 'politika' },
-      { kod: '14', baslik: 'Denetim izi', metin: 'İşlem kayıtları değiştirilemez şekilde saklanır.', alan: ['BT'], kanit: 'kayit' },
-      { kod: '19', baslik: 'Süreklilik planı', metin: 'İş sürekliliği ve felaket kurtarma planları test edilir.', alan: ['BT'], kanit: 'rapor' },
-    ],
-  };
-
-  const maddeIdx: Record<string, { id: string }> = {};
-  async function maddeEkle(regKod: string, m: M, ustId: string | null, sira: number) {
-    const kayit = await db.madde.create({ data: {
-      regulasyonId: reg[regKod].id, ustMaddeId: ustId,
-      kod: `${regKod}-${m.kod}`, baslik: m.baslik, metin: m.metin,
-      kanitTipi: m.kanit ?? null, sira,
-    } });
-    maddeIdx[`${regKod}-${m.kod}`] = kayit;
-    for (const a of m.alan) {
-      await db.maddeAlan.create({ data: {
-        maddeId: kayit.id, alanId: a === 'BT' ? alanBT.id : alanOT.id } });
+     Sözlük, öznitelik şeması, çerçeveler (EPDK-SYM demo · CBDDÖ · ISO 27001
+     · SPK BS) ve denklikler `paketler/DEMO-TR-*` dizinlerinden `paketiKur`
+     ile kurulur; tohum artık ikinci bir doğruluk kaynağı değildir
+     (docs/P4_TOHUM_TASIMA_OLCUMU.md §4). Çerçeve TASLAK gelir ve
+     aktifleştirme insan kararıdır — burada o insan tohumu kuran
+     yöneticidir (`kullanici.a`): ilk kurulumun sürümleri doğrudan aktif
+     yazılır (2.5 öncesi de doğrudan aktif yazılıyordu; SurumFarki ve iz
+     yok). ISO 27001 maddelerinin kısa açıklama metinleri telifli kuralıyla
+     DÜŞER — kayıp beklenen ve ölçülen. Kiracı katmanı (BT/OT kapsam alanı
+     eşlemesi, aile adı) tohumda kalır: paket kalemi değildir. */
+  const paketDizini = (kod: string) => path.join(__dirname, '..', 'paketler', kod);
+  async function demoPaketiKur(kod: string) {
+    const sonuc = await paketiKur(paketDizini(kod), { kuranId: k['kullanici.a'].id, istemci: db });
+    if (!sonuc.ok) throw new Error(`${kod} kurulamadı:\n${sonuc.hatalar.map(hataSatiri).join('\n')}`);
+    for (const t of sonuc.rapor.taslakSurumler) {
+      await db.frameworkSurumu.update({ where: { id: t.surumId }, data: { durum: 'aktif' } });
     }
-    for (const [i, alt] of (m.alt ?? []).entries()) await maddeEkle(regKod, alt, kayit.id, i);
+    const s = sonuc.rapor.sayilar;
+    console.log(`Paket ${kod} ${sonuc.rapor.surum}: sözlük ${s.sozluk} · öznitelik ${s.oznitelikler} · çerçeve ${s.cerceveler} (${s.maddeler} madde, aktif) · eşleme ${s.eslemeler}`
+      + (sonuc.rapor.celiskiler.length ? ` · çelişki ${sonuc.rapor.celiskiler.length}` : ''));
+    return sonuc.rapor;
   }
-  for (const [i, m] of epdkAgac.entries()) await maddeEkle('EPDK-SYM', m, null, i);
-  for (const [regKod, liste] of Object.entries(digerMaddeler))
-    for (const [i, m] of liste.entries()) await maddeEkle(regKod, m, null, i);
-
-  /* ---- regülasyonlar arası denklikler
-
-     Denklik YAPRAK madde ile kurulur. Bölüm başlığı (çocuğu olan madde)
-     bir kontrole denk sayılamaz: alt maddeleri farklı şeyler ister ve
-     "bölümün tamamı şu kontrole denktir" demek denetimde savunulamaz.
-     Çapraz eşleme matrisi de yaprak olmayan satırı çizemez, yani böyle
-     bir kayıt ekranda sessizce düşerdi.
-
-     Düzeltilen kayıt: EPDK-SYM-4.1 "Varlık Envanteri" bir bölümdür
-     (4.1.1 envanter güncelliği + 4.1.2 kritiklik sınıflandırması) ve
-     ISO-27001 A.5.9'a 'tam' denk yazılmıştı. A.5.9 envanter tutmayı
-     ister; karşılığı 4.1.1'dir ve denklik 'kismi'dir — A.5.9 ayrıca
-     SAHİPLİK ister, onun EPDK karşılığı bu ağaçta yok. */
-  const denklikler: [string, string, string][] = [
-    ['EPDK-SYM-4.1.1', 'ISO-27001-A.5.9', 'kismi'],
-    ['EPDK-SYM-4.2.1', 'CBDDO-3.1', 'kismi'],
-    ['EPDK-SYM-5.1.2', 'CBDDO-4.2', 'kismi'],
-    ['EPDK-SYM-5.1.2', 'SPK-BS-14', 'ilgili'],
-    ['EPDK-SYM-7.1.4', 'ISO-27001-A.8.16', 'kismi'],
-    ['EPDK-SYM-7.2', 'ISO-27001-A.5.24', 'tam'],
-    ['CBDDO-4.1', 'SPK-BS-11', 'ilgili'],
-    ['ISO-27001-A.8.9', 'CBDDO-3.2', 'kismi'],
-  ];
-  for (const [a, b, d] of denklikler)
-    await db.maddeEslestirmesi.create({ data: {
-      kaynakId: maddeIdx[a].id, hedefId: maddeIdx[b].id, denklik: d } });
+  await demoPaketiKur('DEMO-TR-ORTAK');
+  await demoPaketiKur('DEMO-TR-ENERJI');
+  const reg = Object.fromEntries((await db.regulasyon.findMany({ select: { id: true, kod: true } })).map((r) => [r.kod, r])) as Record<string, { id: string }>;
+  const maddeIdx = Object.fromEntries((await db.madde.findMany({ select: { id: true, kod: true } })).map((m) => [m.kod, m])) as Record<string, { id: string }>;
+  /* Kapsam alanı (BT/OT) eşlemesi kiracı katmanıdır: paketten gelmez, tohum
+     her maddeyi alanına bağlar (`seed-madde-alanlari.ts`, 38 madde). */
+  for (const [kod, alanlar] of Object.entries(MADDE_ALANLARI)) {
+    const madde = maddeIdx[kod];
+    if (!madde) throw new Error(`kapsam alanı eşlemesi: madde paketten gelmedi — ${kod}`);
+    for (const a of alanlar) await db.maddeAlan.create({ data: { maddeId: madde.id, alanId: a === 'BT' ? alanBT.id : alanOT.id } });
+  }
+  const CBDDO_KODLARI = ['3.1', '3.2', '4.1', '4.2'];
+  const ISO_KODLARI = ['A.5.9', 'A.8.9', 'A.8.16', 'A.5.24'];
 
   // ---- uyum süreçleri (denetimler) — biri pasif örnek
   const surecEpdk = await db.uyumSureci.create({ data: {
@@ -311,18 +236,18 @@ async function main() {
   }
   // CBDDÖ + ISO süreçleri: temsilî durumlar
   for (const tk of ['MERKEZ-BT', 'SAHA-A3']) {
-    for (const m of digerMaddeler['CBDDO']) {
+    for (const kod of CBDDO_KODLARI) {
       await db.maddeDurumu.create({ data: {
-        surecId: surecCbddo.id, maddeId: maddeIdx[`CBDDO-${m.kod}`].id, kapsamOgesiId: ko[tk].id,
-        durum: tk === 'MERKEZ-BT' ? 'uyumlu' : m.kod.startsWith('3') ? 'kismi' : 'incelemede',
+        surecId: surecCbddo.id, maddeId: maddeIdx[`CBDDO-${kod}`].id, kapsamOgesiId: ko[tk].id,
+        durum: tk === 'MERKEZ-BT' ? 'uyumlu' : kod.startsWith('3') ? 'kismi' : 'incelemede',
         sorumluId: k['kullanici.d'].id, sonDegerlendirme: gun(-12),
       } });
     }
   }
   for (const tk of ['MERKEZ-BT', 'SAHA-A3']) {
-    for (const m of digerMaddeler['ISO-27001']) {
+    for (const kod of ISO_KODLARI) {
       await db.maddeDurumu.create({ data: {
-        surecId: surecIso.id, maddeId: maddeIdx[`ISO-27001-${m.kod}`].id, kapsamOgesiId: ko[tk].id,
+        surecId: surecIso.id, maddeId: maddeIdx[`ISO-27001-${kod}`].id, kapsamOgesiId: ko[tk].id,
         durum: tk === 'MERKEZ-BT' ? 'uyumlu' : 'incelemede',
         sorumluId: k['kullanici.a'].id, sonDegerlendirme: gun(-5),
       } });
@@ -542,7 +467,8 @@ async function main() {
      haberleşme, EPDK kritiklik sınıfı) ÇEKİRDEK KOLONU DEĞİL, enerji
      paketinin beyan ettiği ÖZNİTELİKTİR: şema satırı + tesis başına
      `TesisOzellik`. Kalanlar OT genel profil kolonu olarak kalır. */
-  await enerjiOznitelikSemasiniKur(db, elektrik.id);
+  /* Öznitelik şeması DEMO-TR-ENERJI paketinden geldi; burada yalnız tesis
+     başına DEĞERLER yazılır (demo verisi — kalem 9). */
   for (const [kod, profil] of profiller) {
     const { ozellikler, kalan } = profiliAyir(profil as Record<string, unknown>);
     await db.tesisProfili.create({ data: { tesisId: t[kod].id, ...kalan } });
@@ -551,13 +477,8 @@ async function main() {
     }
   }
 
-  // Framework sürümleri: mevcut maddeler aktif sürüme bağlanır (backfill)
-  for (const [kod, r] of Object.entries(reg)) {
-    const surum = await db.frameworkSurumu.create({ data: {
-      regulasyonId: r.id, surumEtiketi: kod === 'EPDK-SYM' ? '2024' : 'mevcut',
-      durum: 'aktif', yururlukTarih: gun(-720) } });
-    await db.madde.updateMany({ where: { regulasyonId: r.id }, data: { surumId: surum.id } });
-  }
+  /* Çerçeve sürümleri paketle geldi ve `demoPaketiKur` içinde aktif yapıldı;
+     maddeler sürümüne kurulumda bağlandı (backfill yok). */
 
   // Uygulanabilirlik kuralı (§5.2) + kararlar
   const epdkKural = await db.uygulanabilirlikKurali.create({ data: {
@@ -818,14 +739,10 @@ async function main() {
      (m³/gün) ve kendi tesisleri var. Biri bilerek ölçümsüz — "bilinmeyen
      ≠ sıfır" ekranda görünsün diye. */
   const su = await suSektoru(db);
-  await db.sektorOznitelikSemasi.create({
-    data: {
-      sektorId: su.sektorId, anahtar: GUNLUK_DEBI, etiketAnahtari: 'kapasite',
-      rol: 'kapasite',
-      tip: 'sayi', birim: 'm³/gün', kuraldaKullanilir: true,
-    },
-  });
-  console.log(`Su sektörü: ${su.tesisSayisi} tesis · sözlük ve öznitelik şeması kuruldu`);
+  /* Su sözlüğü ve öznitelik şeması (günlük debi, m³/gün) DEMO-TR-SU
+     paketinden (2.5); çerçeveler DEMO-TR-ORTAK'tan paylaşılır. */
+  await demoPaketiKur('DEMO-TR-SU');
+  console.log(`Su sektörü: ${su.tesisSayisi} tesis · sözlük ve öznitelik şeması paketten kuruldu`);
 
   /* Su kiracısının uyum katmanı — maddeler ve regülasyonlar kurulduktan
      SONRA koşar (CBDDÖ ve ISO 27001 satırlarını arar). Su için ayrı bir

@@ -124,8 +124,8 @@ sayı 3 691'dir.
 
 | Paket | Madde / kontrol (ölçülen) | Metin | İçe aktarım yolu — bugün | İş türü |
 | --- | --- | --- | --- | --- |
-| TR-ENERJI yönetmelik | 18 (+1 geçici) | resmî metin, serbest | `/ice-aktarim` XLSX → `Madde` (R2: şablon üretici **yok**) | **içerik** |
-| TR-ENERJI ekleri | 3 691 kontrol, 7 ek | resmî metin, serbest | XLSX doğrudan; sütun → alan eşlemesi (`xlsx` vendored 0.20.3, R12); seviye → `olgunlukSeviyesi` | **içerik + küçük kod** (sütun eşleyici) |
+| TR-ENERJI yönetmelik | 18 (+1 geçici) · **aktarıldı (9 Eyl 2026)** | resmî metin, serbest | paket `cerceve/EPDK-SGYM.csv` (4 bölüm + 19 madde, tam metin, köken sütunlu) | **içerik** |
+| TR-ENERJI ekleri | 3 691 kontrol, 7 ek · **Ek-3 aktarıldı: 565 kontrol** | resmî metin, serbest | paket `cerceve/EPDK-SGYM-EK3.csv` (13 aile + 565 kontrol, tam metin); kalan 6 ek aynı yolla (`xlsx` vendored 0.20.3, R12); seviye → `olgunlukSeviyesi` | **içerik + küçük kod** (sütun eşleyici) |
 | TR-BANKACILIK | 47 | resmî metin — birincil erişim gerekli | XLSX/`/ice-aktarim` | **içerik** (kaynak erişimi ön koşul) |
 | TR-ODEME | 34 | resmî metin (PDF elde) | aynı | **içerik** |
 | TR-SERMAYE | 34 (+1 geçici + Ek) | resmî metin | aynı | **içerik** |
@@ -175,7 +175,15 @@ Su bu sırada **yok**: demo sektörüdür, satılmaz (§2).
 
 ---
 
-## 7 · Kaynaklar ve erişim durumu (8 Eylül 2026)
+## 7 · Kaynaklar ve erişim durumu (8 Eylül 2026 · 9 Eylül eki)
+
+**9 Eylül 2026 · yeniden denendi (TR-ENERJI içerik aktarımı):** `mevzuat.gov.tr`
+ve `resmigazete.gov.tr` **hâlâ erişilemiyor** (bağlantı kurulamıyor, HTTP 000 —
+503 değil); `epdk.gov.tr` **erişildi** (HTTP 200). Yönetmeliğin yürürlükteki tam
+metni ve Ek-3 teknik kontrol maddeleri EPDK'nın kendi sitesinden indirildi
+(`Detay/DownloadDocument`; .doc ve .xlsx) ve `paketler/TR-ENERJI` içine
+aktarıldı — her maddede kaynak adresi, belge içi konum ve erişim tarihi durur.
+İkincil kaynak (Lexpera) İÇERİĞE GİRMEDİ: metin birincil kaynaktan alındı.
 
 | Kaynak | Durum |
 | --- | --- |

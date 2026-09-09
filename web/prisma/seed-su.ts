@@ -25,7 +25,6 @@
    ═══════════════════════════════════════════════════════════════════════ */
 
 import type { PrismaClient } from '../lib/prisma-client/client';
-import { SU_SOZLUGU } from './sozlukler';
 import { tesislerdenOgeler } from './kapsam-ogesi';
 
 const G = 86_400_000;
@@ -72,9 +71,8 @@ export async function suSektoru(db: PrismaClient) {
     })]),
   )) as Record<string, { id: string }>;
 
-  await db.sektorSozlugu.createMany({
-    data: SU_SOZLUGU.map((r) => ({ ...r, sektorId: su.id })),
-  });
+  /* Su sözlüğü ve öznitelik şeması DEMO-TR-SU paketinden kurulur (seed.ts,
+     2.5); burada yalnız sektör, tipler ve tesisler. */
 
   const tesisler = await Promise.all(SU_TESISLERI.map(([kod, ad, tipKod, debi, konum, durum, giris]) =>
     db.tesis.create({

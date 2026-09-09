@@ -4,12 +4,12 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 306 |
-| Testi olan senaryo | 306 |
+| Senaryo | 307 |
+| Testi olan senaryo | 307 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
-| Taranan test dosyası | 174 |
+| Taranan test dosyası | 175 |
 
 ## Katman başına kapsam
 
@@ -18,7 +18,7 @@
 | ACCESSIBILITY | 8 | 8 | 0 |
 | API | 12 | 12 | 0 |
 | CONCURRENCY | 7 | 7 | 0 |
-| DOMAIN | 166 | 166 | 0 |
+| DOMAIN | 167 | 167 | 0 |
 | ENGINE | 33 | 33 | 0 |
 | INTEGRATION | 35 | 35 | 0 |
 | MIGRATION | 5 | 5 | 0 |
@@ -498,7 +498,6 @@
 | `URN-PKT-004` | Ürünleştirme | SERVER · INTEGRATION | `paket-eylem.test.ts` | okuyucu kaldıramaz; yetkili gerekçeyle kaldırır → arşiv + iz, satır silinmez | evet | geçti |
 | `URN-PKT-004` | Ürünleştirme | SERVER · INTEGRATION | `paket-kur.test.ts` | aynı anahtarda kiracı satırı varsa dokunulmaz ve raporda çelişki olur; paket satırı güncellenir; yenilenen taslağın tarihi de yazılır | evet | geçti |
 | `URN-PKT-004` | Ürünleştirme | SERVER · INTEGRATION | `paket-kur.test.ts` | kiracının KAPSAM ALANI eşlemesi (MaddeAlan) bağlı taslak üzerine yazılamaz — deleteMany kaskatla silmez | evet | geçti |
-| `URN-PKT-004` | Ürünleştirme | SERVER · INTEGRATION | `paket-kur.test.ts` | bekçi: Madde\'nin şemadaki her liste ilişkisi ya bağ kontrolünde ya gerekçeli dışında — yeni ilişki sessizce atlanamaz | evet | geçti |
 | `URN-PKT-004` | Ürünleştirme | SERVER · INTEGRATION | `paket-kur.test.ts` | kiracı kaydı bağlı taslak üzerine yazılamaz — SÜRÜM hatası, hiçbir şey değişmez | evet | geçti |
 | `URN-PKT-004` | Ürünleştirme | SERVER · INTEGRATION | `paket-kur.test.ts` | kaldırma = arşiv: paket/sürüm arşiv, taslak çerçeve arşiv, tür ve yükümlülük pasif; HİÇBİR satır silinmez | evet | geçti |
 | `URN-PKT-004` | Ürünleştirme | SERVER · INTEGRATION | `paket-kur.test.ts` | aktif çerçeve sürümü taşıyan paket kaldırılamaz | evet | geçti |
@@ -517,6 +516,10 @@
 | `URN-PKT-008` | Ürünleştirme | SERVER · INTEGRATION | `paket-kur.test.ts` | değişmez alan (sektör · lisans) aynı sürümde değişemez; betimleyici alan (ad) değişebilir ve madde kimlikleri korunur | evet | geçti |
 | `URN-PKT-009` | Ürünleştirme | SERVER · INTEGRATION | `paket-kur.test.ts` | kurulu bir paket bağımlıysa kaldırma reddedilir; bağımlı kaldırılınca kaldırılır | evet | geçti |
 | `URN-PKT-009` | Ürünleştirme | SERVER · INTEGRATION | `paket-kur.test.ts` | kaldırılan paket aynı içerikle geri kurulur: arşiv taslak taslağa döner, madde kimlikleri korunur, paket kurulu | evet | geçti |
+| `URN-PKT-010` | Ürünleştirme | DOMAIN | `bekci/paket-silme.test.ts` | madde dışında HİÇBİR modelde delete/deleteMany yok — tavan sıfır, istisna listesi yok | evet | geçti |
+| `URN-PKT-010` | Ürünleştirme | DOMAIN | `bekci/paket-silme.test.ts` | madde silmesi yalnız paketin kendi taslağını (`surumId` süzgeci) hedefler ve bağ kontrolünden sonra gelir | evet | geçti |
+| `URN-PKT-010` | Ürünleştirme | DOMAIN | `bekci/paket-silme.test.ts` | şemada Madde\'den başka modele giden HER liste ilişkisi bağ kontrolünde; listede şemada olmayan ilişki yok | evet | geçti |
+| `URN-PKT-010` | Ürünleştirme | DOMAIN | `bekci/paket-silme.test.ts` | istisna listesi yok: kurucu modülü gerekçeli dışlama ihraç etmez | evet | geçti |
 
 ## Gerekçesiyle kütüksüz kalan dosyalar
 

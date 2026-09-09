@@ -376,4 +376,17 @@ export const URUNLESTIRME_SENARYOLARI: Senaryo[] = [
     beklenenIz: 'IcerikPaketi arşiv izi', beklenenBildirim: 'yok',
     katmanlar: ['SERVER', 'INTEGRATION'],
   },
+  {
+    id: 'URN-PKT-010', alan: 'Ürünleştirme', rota: '—', eksen: 'veri',
+    amac: 'Paket işlemlerinin müşteri verisini SİLEMEMESİ (R-C): bekçi tavanı sıfır, gerekçeli istisna yok',
+    rol: 'ürünü sürdüren geliştirici', kapsam: '`lib/paket/` · paket eylemleri · şema',
+    onkosul: '"Kaldırma = arşiv, silme yok" kuralı yazılıydı; kod kiracının kapsam alanı eşlemesini kaskatla sildi (PR #41 inceleme bulgusu) — kural yetmedi, kapı gerekti',
+    veriHali: 'aykiri',
+    eylem: 'Bekçi paket modülündeki delete/deleteMany çağrılarını ve Madde\'nin şemadaki liste ilişkilerini okur',
+    beklenenSonuc: 'madde dışında hiçbir modelde silme yok; madde silmesi yalnız paketin kendi taslağını (`surumId`) hedefler ve bağ kontrolünden sonra gelir; '
+      + 'Madde\'den başka modele giden her liste ilişkisi bağ kontrolünde; kurucu gerekçeli istisna listesi ihraç etmez',
+    beklenenEkran: 'Ekran yok — kapı',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['DOMAIN'],
+  },
 ];

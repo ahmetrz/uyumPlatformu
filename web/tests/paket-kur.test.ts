@@ -1,5 +1,5 @@
 import { beforeAll, describe, expect, it } from 'vitest';
-import { copyFileSync, mkdtempSync, readFileSync } from 'node:fs';
+import { copyFileSync, mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import type { PrismaClient } from '@/lib/prisma-client/client';
@@ -30,7 +30,7 @@ copyFileSync('prisma/dev.db', testDb);
 process.env.TEST_DB = testDb;
 
 const { db } = await import('@/lib/db');
-const { MADDE_BAG_DISI, MADDE_BAG_ILISKILERI, paketiKaldir, paketiKur } = await import('@/lib/paket/kur');
+const { paketiKaldir, paketiKur } = await import('@/lib/paket/kur');
 const { METIN_GELMEDI, TELIFLI_METIN } = await import('@/lib/paket/bicim');
 
 const TARIHLER = { yayimTarihi: '2024-01-15', yururlukTarih: '2024-07-01' };
@@ -188,20 +188,6 @@ describe('güncelleme ve kaldırma — kiracı ezilmez, silme yok [URN-PKT-004]'
     expect(await db.maddeAlan.count({ where: { maddeId: madde.id } })).toBe(1);
     expect(await db.madde.findUnique({ where: { id: madde.id } })).not.toBeNull();
     expect(await db.icerikPaketiSurumu.findFirst({ where: { surum: '0.2.5' } })).toBeNull();
-  });
-
-  it('bekçi: Madde\'nin şemadaki her liste ilişkisi ya bağ kontrolünde ya gerekçeli dışında — yeni ilişki sessizce atlanamaz [URN-PKT-004]', () => {
-    const sema = readFileSync('prisma/schema.prisma', 'utf8');
-    const model = /\nmodel Madde \{([\s\S]*?)\n\}/.exec(sema)?.[1] ?? '';
-    const listeler = [...model.matchAll(/^\s+(\w+)\s+\w+\[\]/gm)].map((m) => m[1]);
-    expect(listeler.length, 'ölçüm tabanı: Madde liste ilişkileri okunamadı').toBeGreaterThanOrEqual(10);
-    const kontrol = MADDE_BAG_ILISKILERI as readonly string[];
-    for (const l of listeler) {
-      expect(kontrol.includes(l) || l in MADDE_BAG_DISI, `Madde.${l} ne bağ kontrolünde ne gerekçeli dışında`).toBe(true);
-    }
-    for (const l of [...kontrol, ...Object.keys(MADDE_BAG_DISI)]) expect(listeler, `${l} şemada yok — ölü giriş`).toContain(l);
-    expect(kontrol).toContain('alanlar');
-    for (const gerekce of Object.values(MADDE_BAG_DISI)) expect(gerekce.length).toBeGreaterThan(20);
   });
 
   it('kiracı kaydı bağlı taslak üzerine yazılamaz — SÜRÜM hatası, hiçbir şey değişmez [URN-PKT-004]', async () => {

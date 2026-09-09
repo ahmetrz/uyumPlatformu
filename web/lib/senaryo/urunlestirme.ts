@@ -496,6 +496,46 @@ export const URUNLESTIRME_SENARYOLARI: Senaryo[] = [
     katmanlar: ['DOMAIN', 'SERVER', 'UI'],
   },
   {
+    id: 'URN-PKT-019', alan: 'Ürünleştirme', rota: '—', eksen: 'veri',
+    amac: 'Metnin NEREDEN ve NE ZAMAN alındığı maddenin yanında dursun: kaynağı olduğunu söyleyen çerçevede köken zorunlu, uydurulmaz',
+    rol: 'paket yazarı · denetçi', kapsam: 'paket CSV/OSCAL köken sütunları · Madde.maddeKaynakUrl · kaynakSayfa · kaynakErisimTarihi · gecerliBaslangic',
+    onkosul: 'Çerçeve kimliği `kaynakUrl` beyan ediyor (resmî kaynağı olduğunu söylüyor) ve madde metin taşıyor',
+    veriHali: 'kısmi',
+    eylem: 'Paket doğrulanır ve kurulur; metinli maddede kaynak_url · kaynak_yeri · erisim_tarihi · yururluk_tarihi okunur',
+    beklenenSonuc: 'Metinli maddede kaynak adresi ve erişim tarihi YOKSA KAYNAK hatası; adres http(s) değilse, tarih takvimde yoksa, konum 200 karakteri aşarsa kırmızı; '
+      + 'metinsiz madde köken istemez ve metni "metin girilmedi" olur (uydurulmaz, boş bırakılmaz, sıfır sayılmaz); kaynaksız çerçeve (kiracı iç politikası) ve kurgusal demo paketi muaftır',
+    beklenenEkran: 'Süreç değerlendirme çekmecesinde madde metni ve altında kaynak künyesi',
+    beklenenIz: 'yazma yok (doğrulama) · kurulumda paket izi', beklenenBildirim: 'yok',
+    katmanlar: ['DOMAIN', 'SERVER'],
+  },
+  {
+    id: 'URN-PKT-020', alan: 'Ürünleştirme', rota: '—', eksen: 'veri',
+    amac: 'Çerçevenin hangi kapsam öğesi TÜRÜNE hangi koşulla asıldığını PAKET beyan etsin; koda gömülmesin ve motor yalnız ÖNERSİN',
+    rol: 'paket yazarı · uyum yöneticisi', kapsam: 'cerceve/<KOD>.json `uygulanabilirlik` · UygulanabilirlikKurali (köken paket) · lib/motorlar/uygulanabilirlik.ts',
+    onkosul: 'Paket kapsam türü ve öznitelik beyan ediyor; kiracının kendi kuralı da olabilir',
+    veriHali: 'çelişen',
+    eylem: 'Beyanlı paket doğrulanır ve kurulur; sürüm yükseltilir, beyan bırakılır, paket kaldırılır; motor kuralı koşar',
+    beklenenSonuc: 'Beyandaki tanınmayan tür KAPSAM TÜRÜ, paketin olmayan ya da kuralda kullanılmayan alanı ÖZNİTELİK, işleç–değer uyumsuzluğu BIÇIM hatasıdır; '
+      + 'kurulum kuralı köken paket yazar ve KARAR YAZMAZ; koşul değişince kural sürümü artar; bırakılan ve kaldırılan kural PASİF olur (silinmez); '
+      + 'kiracının kuralı hiç okunmaz ve ezilmez; motorda tür bilinmiyorsa karar üretilmez ve aynı adlı bir öznitelik türü ezemez',
+    beklenenEkran: 'Uyum defterinde çerçevenin kural cümlesi (iç içe koşul parantezli, `icinde` küme olarak)',
+    beklenenIz: 'kurulum izi (kural sayısı gerekçede)', beklenenBildirim: 'yok',
+    katmanlar: ['DOMAIN', 'SERVER'],
+  },
+  {
+    id: 'URN-PKT-021', alan: 'Ürünleştirme', rota: '/uyum', eksen: 'arayuz',
+    amac: 'Paketin TASLAK kurduğu çerçeve, uyum defterinde "0 kontrol" gibi görünmesin: aktif sürüm yokluğu ölçülmemişliktir, sıfır değil',
+    rol: 'uyum okuma yetkili', kapsam: '/uyum · dizin sütunu · defter gövdesi',
+    onkosul: 'Paket kuruldu, çerçeve sürümleri TASLAK; insan henüz aktifleştirmedi',
+    veriHali: 'bilinmiyor',
+    eylem: 'Uyum defteri açılır; taslak çerçeve dizinde ve seçildiğinde gövdede okunur',
+    beklenenSonuc: 'Dizinde yaprak sayısı yerine "N taslak" yazar; gövde "aktif sürüm yok · sürüm etiketi · N madde TASLAK · kontroller ölçülmedi" der ve '
+      + 'aktifleştirmenin insan kararı olduğunu, Regülasyonlar ekranında yapıldığını söyler; ekran hiçbir sürümü aktifleştirmez ve taslak madde matrise girmez',
+    beklenenEkran: 'Taslak çerçeve seçilince matris yerine açıklama bloğu; aktif sürümlü çerçeve etkilenmez',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['SERVER', 'UI'],
+  },
+  {
     id: 'URN-PKT-010', alan: 'Ürünleştirme', rota: '—', eksen: 'veri',
     amac: 'Paket işlemlerinin müşteri verisini SİLEMEMESİ (R-C): bekçi tavanı sıfır, gerekçeli istisna yok',
     rol: 'ürünü sürdüren geliştirici', kapsam: '`lib/paket/` · paket eylemleri · şema',

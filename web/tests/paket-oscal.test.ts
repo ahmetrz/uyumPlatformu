@@ -64,7 +64,12 @@ describe('OSCAL gidiş-dönüş · iskelet çerçeveleri [URN-PKT-017]', () => {
         expect(k.id, `${c.kimlik.kod} ${k.id}`).toMatch(/^[_a-z][-._a-z0-9]*$/);
         expect(k.props?.find((p) => p.name === 'kod')?.ns).toBe(OSCAL_NS);
       }
-      const geri = oscalPaketi({ ...c.kimlik }, katalog);
+      /* Yapay paket sözlükten ibarettir: beyandaki öznitelik ve tür kodları
+         orada YOK, doğrulayıcı haklı olarak reddederdi. Gidiş-dönüş MADDE
+         AĞACINI ölçer; uygulanabilirlik beyanı ayrı testte (paket-uygulanabilirlik). */
+      const kimlikSade: Record<string, unknown> & { kod: string } = { ...c.kimlik };
+      delete kimlikSade.uygulanabilirlik;
+      const geri = oscalPaketi(kimlikSade, katalog);
       expect(geri.hatalar.map(hataSatiri), c.kimlik.kod).toEqual([]);
       expect(sirala(geri.icerik!.cerceveler[0].maddeler)).toEqual(sirala(c.maddeler));
       // ikinci yazım birincisiyle aynı (kanonik gidiş-dönüş)
@@ -78,7 +83,8 @@ describe('OSCAL gidiş-dönüş · iskelet çerçeveleri [URN-PKT-017]', () => {
 
   it('bilinmeyen değer prop olarak yazılmaz; tarih bilinmiyorsa last-modified uydurulmaz [URN-PKT-017]', () => {
     const k = oscalYaz(cerceve('X-REG', { tur: 'kamuya_acik', metinDahil: false }) as never, [
-      { kod: '1', ustKod: null, baslik: 'Amaç', metin: null, sira: 0, seviye: null, zorunlulukTipi: null, kanitBeklentisi: null, disKontrolId: null, kanitTipi: null },
+      { kod: '1', ustKod: null, baslik: 'Amaç', metin: null, sira: 0, seviye: null, zorunlulukTipi: null, kanitBeklentisi: null, disKontrolId: null, kanitTipi: null,
+        kaynakUrl: null, kaynakYeri: null, erisimTarihi: null, yururlukTarihi: null },
     ]);
     expect(k.catalog.metadata['last-modified']).toBeUndefined();
     expect(k.catalog.controls![0].props!.map((p) => p.name)).toEqual(['kod', 'sira']);
@@ -125,6 +131,43 @@ describe('OSCAL paketi doğrulayıcıdan CSV ile aynı kurallardan geçer [URN-P
     expect(siniflar(oscalPaketi(k, katalog([kontrol('1', { props: [{ name: 'kod', value: '1', ns: OSCAL_NS }, { name: 'seviye', value: '9', ns: OSCAL_NS }] })])))).toEqual(['BIÇIM|2|seviye 0–5 aralığında olmalı: 9 (1)']);
   });
 
+  it('İÇ İÇE grup okunur: alt aile ve maddeleri sessizce düşmez [URN-PKT-017]', () => {
+    /* Bağımsız inceleme bulgusu (PR #43): şema iç içe `groups` tanımıyordu,
+       `passthrough` onu yutuyordu — alt aile ve altındaki bütün maddeler
+       kaybolur, tek hata satırı çıkmaz, paket "GEÇERLİ" derdi. */
+    const o = oscalOku({ catalog: { uuid: 'u', metadata: { title: 'Y', version: '1', 'oscal-version': '1.1.2' },
+      groups: [{ id: 'ac', title: 'Aile', groups: [{ id: 'ac-alt', title: 'Alt aile', controls: [{ id: 'gizli-1', title: 'Gizli' }] }], controls: [{ id: 'ac-1', title: 'Görünür' }] }] } });
+    expect(o.ok).toBe(true);
+    if (!o.ok) return;
+    expect(o.satirlar.map((s) => [s[0], s[1]])).toEqual([['ac', ''], ['ac-alt', 'ac'], ['gizli-1', 'ac-alt'], ['ac-1', 'ac']]);
+  });
+
+  it('telifli çerçevede OKUNMAYAN metin alanı (yabancı prose/prop) LİSANS ile reddedilir [URN-PKT-017] [URN-PKT-002]', () => {
+    /* Metin veritabanına inmiyor ama PAKETE (ve public depoya) giriyordu:
+       CSV'deki "başlığı aşan dolu hücre" kuralının OSCAL karşılığı yoktu. */
+    const katalog = { catalog: { uuid: 'u', metadata: { title: 'T', version: 'test-1', 'oscal-version': '1.1.2', props: [{ name: 'kod', value: 'OSC-REG', ns: OSCAL_NS }] },
+      controls: [{ id: 'a', title: 'Başlık', props: [{ name: 'kod', value: '1', ns: OSCAL_NS }, { name: 'tam_metin', value: 'TELİFLİ TAM METİN' }],
+        parts: [{ name: 'objective', prose: 'TELİFLİ TAM METİN' }] }] } };
+    const t = oscalPaketi({ ...kimlik({ tur: 'telifli', metinDahil: false }) }, katalog);
+    const lisans = t.hatalar.filter((h) => h.sinif === 'LİSANS');
+    expect(lisans.length, hataSatiri(t.hatalar[0] ?? { sinif: 'BIÇIM', dosya: '-', mesaj: 'hata yok', duzeltme: '-' })).toBeGreaterThanOrEqual(2);
+    expect(lisans.map((h) => h.mesaj).join('\n')).toMatch(/okunmayan metin alanı dolu/);
+    // kamuya açık çerçevede aynı katalog geçer: kural LİSANS kuralıdır, biçim kuralı değil
+    expect(oscalPaketi({ ...kimlik({ tur: 'kamuya_acik', metinDahil: true }) }, katalog).hatalar.filter((h) => h.sinif === 'LİSANS')).toEqual([]);
+  });
+
+  it('katalog SÜRÜMÜ kimlikle uyuşmalı; ns\'siz yabancı prop bizim sanılmaz [URN-PKT-017]', () => {
+    const katalog = (version: string, props: unknown[]) => ({ catalog: { uuid: 'u', metadata: { title: 'T', version, 'oscal-version': '1.1.2' },
+      controls: [{ id: 'yabanci-1', title: 'Başlık', props }] } });
+    const s = oscalPaketi({ ...kimlik({ tur: 'kamuya_acik', metinDahil: false }) }, katalog('2019', []));
+    expect(s.hatalar.map((h) => `${h.sinif}: ${h.mesaj}`).join('\n')).toMatch(/KİMLİK: katalog sürümü "2019" kimlikle uyuşmuyor/);
+    const yabanci = oscalOku(katalog('test-1', [{ name: 'kod', value: 'YABANCI' }, { name: 'sira', value: '99' }]));
+    expect(yabanci.ok).toBe(true);
+    if (!yabanci.ok) return;
+    expect(yabanci.satirlar[0][0], 'ns\'siz yabancı prop kod diye okundu').toBe('yabanci-1');
+    expect(yabanci.satirlar[0][4], 'ns\'siz yabancı prop sıra diye okundu').toBe('0');
+  });
+
   it('yabancı katalog: kod prop\'u yok, gruplu — grup üst madde, id kod, sıra gezinti sırası [URN-PKT-017]', () => {
     const o = oscalOku({ catalog: { uuid: 'u', metadata: { title: 'Yabancı', version: '1', 'oscal-version': '1.1.2' },
       groups: [{ id: 'ac', title: 'Access Control', controls: [{ id: 'ac-1', title: 'Policy', parts: [{ name: 'statement', prose: 'x' }], controls: [{ id: 'ac-1.1', title: 'Review' }] }] }] } });
@@ -132,9 +175,9 @@ describe('OSCAL paketi doğrulayıcıdan CSV ile aynı kurallardan geçer [URN-P
     if (!o.ok) return;
     expect(o.kod).toBeNull();
     expect(o.satirlar).toEqual([
-      ['ac', '', 'Access Control', '', '0', '', '', '', '', ''],
-      ['ac-1', 'ac', 'Policy', 'x', '1', '', '', '', '', ''],
-      ['ac-1.1', 'ac-1', 'Review', '', '2', '', '', '', '', ''],
+      ['ac', '', 'Access Control', '', '0', '', '', '', '', '', '', '', '', ''],
+      ['ac-1', 'ac', 'Policy', 'x', '1', '', '', '', '', '', '', '', '', ''],
+      ['ac-1.1', 'ac-1', 'Review', '', '2', '', '', '', '', '', '', '', '', ''],
     ]);
   });
 });

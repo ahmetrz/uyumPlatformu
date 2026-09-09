@@ -3,15 +3,59 @@
   "ad": "Ek-3 · Elektrik Üretim Sektörü Siber Güvenlik Yetkinlik Modeli Teknik Kontrol Maddeleri",
   "surumEtiketi": "RG-2025-11-25-33088",
   "yayimTarihi": "2023-06-06",
-  "yururlukTarih": null,
+  "yururlukTarih": "2024-01-28",
   "kaynakUrl": "https://www.epdk.gov.tr/Detay/Icerik/3-33068/enerji-sektorunde-siber-guvenlik-yetkinlik-modeli-",
   "lisans": {
     "tur": "kamuya_acik",
-    "metinDahil": false,
-    "kaynak": "https://www.epdk.gov.tr/Detay/Icerik/3-33068/enerji-sektorunde-siber-guvenlik-yetkinlik-modeli-",
-    "not": "Resmî metin; iskelet — kontrol metni (Alt Kontrol sütunu) aktarılmadı"
+    "metinDahil": true,
+    "kaynak": "https://www.epdk.gov.tr/Detay/DownloadDocument?id=VO7HlBB%2FSSQ%3D",
+    "not": "Resmî metin — 5846 s. FSEK md. 31 (yayımlanmış yönetmelik ve ekinden faydalanma serbesttir). Kaynak: EPDK sitesindeki Ek-3 teknik kontrol maddeleri dosyası (XLSX), erişim 2026-09-09."
   },
   "maddeDosyasi": "EPDK-SGYM-EK3.csv",
   "zorunlulukTipi": "REGULATION",
-  "not": "13 kontrol ailesi + 565 kontrol: kimlik (No), kontrol grubu başlığı (Alt Kontrol sütunu) ve seviye (1–3) XLSX'ten okundu; 57 kontrol 'Ek Kontrol' (seviyesiz, seviye boş — sıfır değil). Kontrol sütunundaki madde METNİ bilerek alınmadı."
+  "not": "13 kontrol ailesi + 565 kontrol. Kimlik (No), kontrol grubu (Alt Kontrol) ve kontrol METNİ Ek-3 dosyasından okundu; seviye 1–3 `seviye` sütununda, 57 \"Ek Kontrol\" seviyesiz ve OPTIONAL (yönetmelik: \"zorunlu değildir\") — seviyesizlik sıfır değil, zorunluluk tipinde söylenir.",
+  "uygulanabilirlik": {
+    "kapsamTurleri": [
+      "tesis",
+      "kontrol_sistemi"
+    ],
+    "kosul": {
+      "hepsi": [
+        {
+          "alan": "epdkEki",
+          "islec": "=",
+          "deger": "ek3"
+        },
+        {
+          "herhangi": [
+            {
+              "alan": "kuruluGuc",
+              "islec": ">=",
+              "deger": 100
+            },
+            {
+              "alan": "blackStart",
+              "islec": "=",
+              "deger": true
+            },
+            {
+              "hepsi": [
+                {
+                  "alan": "teiasScadaEms",
+                  "islec": "=",
+                  "deger": true
+                },
+                {
+                  "alan": "seriHaberlesme",
+                  "islec": "!=",
+                  "deger": true
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "aciklama": "MADDE 9 (2) c: Elektrik Üretim Sektörü Teknik Kontrol Maddeleri (Ek-3), yönetmelik kapsamındaki elektrik üretim tesisleri ve bunların endüstriyel kontrol sistemleri için uygulanır."
+  }
 }

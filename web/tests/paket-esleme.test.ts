@@ -122,7 +122,7 @@ describe('kurucu · eşleme yazımı, kendi eşlemesi bağ değil, kiracı eşle
     expect(s.ok, JSON.stringify(s)).toBe(true);
     if (!s.ok) return;
     expect(s.rapor.sayilar).toMatchObject({ eslemeler: 2, maddeler: 5 });
-    expect(s.rapor.pasiflestirilen).toMatchObject({ eslemeler: 0 });
+    expect(s.rapor.pasiflestirilen).toMatchObject({ eslemeler: 0, kurallar: 0 });
     expect((await paketEslemeleri(s.rapor.surumId)).map((e) => `${e.kaynak.kod}→${e.hedef.kod}`)).toEqual(['ESL-A-1→ESL-B-B1', 'ESL-A-2→ESL-B-B2']);
     // kiracı kendi eşlemesini bağlar → taslak artık yenilenemez
     await db.maddeEslestirmesi.create({ data: { kaynakId: (await madde('ESL-A-1')).id, hedefId: (await madde('ESL-B-B2')).id, denklik: 'ilgili', koken: 'kiraci' } });
@@ -152,7 +152,7 @@ describe('kurucu · eşleme yazımı, kendi eşlemesi bağ değil, kiracı eşle
     if (!b.ok) return;
     expect(b.rapor.celiskiler).toEqual([{ tablo: 'MaddeEslestirmesi', anahtar: 'ESL-KURULU:1→B2', sebep: expect.stringContaining('eşlemesi var') }]);
     expect(await db.maddeEslestirmesi.count({ where: { koken: 'kiraci', denklik: 'ilgili', aktif: true, kaynak: { kod: 'ESL-A-1' }, hedef: { kod: 'ESL-B-B2' } } })).toBe(1);
-    expect(b.rapor.pasiflestirilen).toMatchObject({ eslemeler: 1 });
+    expect(b.rapor.pasiflestirilen).toMatchObject({ eslemeler: 1, kurallar: 0 });
     const birakilan = await db.maddeEslestirmesi.findFirstOrThrow({ where: { paketSurumId: a.rapor.surumId } });
     expect(birakilan).toMatchObject({ aktif: false, koken: 'paket' });
     // 0.3.0 yeniden beyan → aktif ve yeni sürüme geçer
@@ -164,7 +164,7 @@ describe('kurucu · eşleme yazımı, kendi eşlemesi bağ değil, kiracı eşle
     const once = await db.maddeEslestirmesi.count();
     const k = await paketiKaldir('ESLEME-KURULU', db);
     expect(k.ok, JSON.stringify(k)).toBe(true);
-    if (k.ok) expect(k.arsivlenen).toMatchObject({ eslemeler: 1 });
+    if (k.ok) expect(k.arsivlenen).toMatchObject({ eslemeler: 1, kurallar: 0 });
     expect((await db.maddeEslestirmesi.findUniqueOrThrow({ where: { id: birakilan.id } })).aktif).toBe(false);
     expect(await db.maddeEslestirmesi.count({ where: { aktif: true } })).toBe(once - 1);
     expect(await db.maddeEslestirmesi.count()).toBe(once);
@@ -188,5 +188,50 @@ describe('kurucu · eşleme yazımı, kendi eşlemesi bağ değil, kiracı eşle
     await db.regulasyon.update({ where: { kod: 'ESL-B' }, data: { lisansTuru: 'kamuya_acik' } });
     expect(await db.maddeEslestirmesi.count()).toBe(once);
     expect(await db.icerikPaketi.findUnique({ where: { kod: 'ESLEME-HATA' } })).toBeNull();
+  });
+});
+
+describe('taslak yenilemesinde bırakılan KENDİ eşlemesi RAPORA yazılır [URN-PKT-014]', () => {
+  /* Bağımsız inceleme bulgusu (PR #43): taslak yenilenirken `madde.deleteMany`
+     paketin kendi eşlemelerini kaskatla siliyor; uzlaştırma listesi SİLMEDEN
+     SONRA okunduğu için rapor "0 eşleme bırakıldı" diyordu ve denetim izine o
+     sayı giriyordu. Yeniden yazılan satır YENİ kimlik alır: karşılaştırma
+     kimlikle değil ÇİFTLE yapılır, yoksa yenileme "hepsi bırakıldı" derdi. */
+  let kuranId = '';
+  beforeAll(async () => { kuranId = (await db.kullanici.findFirstOrThrow({ where: { aktif: true } })).id; });
+  const KSK: PaketDosyalari = {
+    'sozluk.json': [SOZLUK_SATIRI('tesis', 'şube')],
+    'cerceve/KSK-A.json': cerceve('KSK-A', { tur: 'kamuya_acik', metinDahil: false }),
+    'cerceve/KSK-A.csv': `${CSV_BASLIK}\n1;;Amaç;;0;;\n2;;Kapsam;;1;;\n`,
+    'cerceve/KSK-B.json': cerceve('KSK-B', { tur: 'kamuya_acik', metinDahil: false }),
+    'cerceve/KSK-B.csv': `${CSV_BASLIK}\nB1;;Birinci;;0;;\nB2;;İkinci;;1;;\n`,
+  };
+  const kskPaket = (csv: string, dosyalar: PaketDosyalari, surum: string) => paketYaz({
+    ...dosyalar,
+    'esleme/KSK-A-B.json': { kod: 'KSK-A-B', ad: 'KSK eşlemesi', kaynak: { cerceve: 'KSK-A', surumEtiketi: 'test-1' }, hedef: { cerceve: 'KSK-B', surumEtiketi: 'test-1' }, lisans: { tur: 'kamuya_acik', metinDahil: true }, eslemeDosyasi: 'KSK-A-B.csv' },
+    'esleme/KSK-A-B.csv': csv,
+  }, { kod: 'KASKAT-PAKET', sektor: { kod: 'KASKAT-SEKTOR', ad: 'Kaskat' }, surum });
+
+  it('iki eşlemeden birine düşen sürüm: kalan yeniden yazılır, düşen RAPORA girer [URN-PKT-014]', async () => {
+    const ilk = await paketiKur(kskPaket(`${ESLEME_BASLIK}\n1;B1;tam;Aynı amaç\n2;B2;kismi;\n`, KSK, '0.1.0'), { kuranId, istemci: db });
+    expect(ilk.ok, JSON.stringify(ilk)).toBe(true);
+    if (!ilk.ok) return;
+    expect(ilk.rapor.sayilar.eslemeler).toBe(2);
+    /* Madde ağacı değişir → taslak YENİLENİR (kaskat yolu); CSV tek eşleme taşır. */
+    const v2 = { ...KSK, 'cerceve/KSK-A.csv': `${CSV_BASLIK}\n1;;Amaç;;0;;\n2;;Kapsam;;1;;\n3;;Üçüncü;;2;;\n` };
+    const s2 = await paketiKur(kskPaket(`${ESLEME_BASLIK}\n1;B1;tam;Aynı amaç\n`, v2, '0.2.0'), { kuranId, istemci: db });
+    expect(s2.ok, JSON.stringify(s2)).toBe(true);
+    if (!s2.ok) return;
+    expect(s2.rapor.sayilar.eslemeler).toBe(1);
+    expect(s2.rapor.pasiflestirilen.eslemeler, 'bırakılan eşleme raporda görünmedi').toBe(1);
+    const kalan = await db.maddeEslestirmesi.findMany({ where: { paketSurumId: s2.rapor.surumId }, include: { kaynak: { select: { kod: true } }, hedef: { select: { kod: true } } } });
+    expect(kalan.map((e) => `${e.kaynak.kod}→${e.hedef.kod}`)).toEqual(['KSK-A-1→KSK-B-B1']);
+  });
+
+  it('hiçbir eşleme düşmeyen yenilemede rapor 0 der — yeniden yazım "bırakıldı" sayılmaz [URN-PKT-014]', async () => {
+    const v3 = { ...KSK, 'cerceve/KSK-B.csv': `${CSV_BASLIK}\nB1;;Birinci;;0;;\nB2;;İkinci;;1;;\nB3;;Üçüncü;;2;;\n` };
+    const s3 = await paketiKur(kskPaket(`${ESLEME_BASLIK}\n1;B1;tam;Aynı amaç\n`, v3, '0.3.0'), { kuranId, istemci: db });
+    expect(s3.ok, JSON.stringify(s3)).toBe(true);
+    if (s3.ok) expect(s3.rapor.pasiflestirilen.eslemeler).toBe(0);
   });
 });

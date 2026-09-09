@@ -87,6 +87,19 @@ describe('doğrulayıcı · form ve rapor şablonu [URN-PKT-012]', () => {
     expect(d[0].mesaj).toMatch(/Z99 "Form" sayfasının aralığı dışında/);
   });
 
+  it('manifesti kamuya açık ama TELİFLİ ÇERÇEVE taşıyan pakette de XLSX yasak [URN-PKT-012] [URN-PKT-002]', () => {
+    /* Bağımsız inceleme bulgusu (PR #43): yasak yalnız manifest lisansına
+       bakıyordu; telifli çerçeve taşıyan bir paket XLSX hücresinde tam metin
+       kaçırabilirdi (hücre metni denetlenmiyor). */
+    const t = paketYaz({ ...TEMEL,
+      'cerceve/SAB-ISO.json': cerceve('SAB-ISO', { tur: 'telifli', metinDahil: false }),
+      'cerceve/SAB-ISO.csv': `${CSV_BASLIK}\nA.5;;Organizasyonel kontroller;;0;;\n`,
+      'form/SAB-FORM.json': FORM({ dosya: 'SAB-FORM.xlsx', sayfa: 'Form' }, { hucre: 'B2' }) }, manifest);
+    writeFileSync(path.join(t, 'form', 'SAB-FORM.xlsx'), xlsx());
+    const h = paketiDogrula(t).hatalar.filter((x) => x.sinif === 'LİSANS');
+    expect(h.map((x) => x.mesaj).join('\n')).toMatch(/telifli çerçeve taşıyan paket \(SAB-ISO\) XLSX form taşıyamaz/);
+  });
+
   it('telifli pakette XLSX form LİSANS; JSON yapı geçer; hücre var dosya yoksa BIÇIM [URN-PKT-012]', () => {
     const telifli = { ...manifest, lisans: { tur: 'telifli', metinDahil: false } };
     const t = paketYaz({ ...TEMEL, 'form/SAB-FORM.json': FORM({ dosya: 'SAB-FORM.xlsx', sayfa: 'Form' }, { hucre: 'B2' }) }, telifli);

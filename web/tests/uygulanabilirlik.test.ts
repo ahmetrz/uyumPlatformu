@@ -65,6 +65,29 @@ describe('Uygulanabilirlik motoru (§5)', () => {
     expect(s.gerekce).toContain('bilinmiyor');
   });
 
+  it('`icinde` işleci: kapsam öğesi TÜRÜ paket beyanından okunur [URN-PKT-020]', () => {
+    /* Paket beyanı `kapsamTuru icinde [...]` yazar; tür bağlamda profil
+       tarafındadır (`tesisKapsaminiHesapla` koyar). Liste dışı tür kapsam
+       dışıdır, listede olan kapsamdadır; tür BİLİNMİYORSA karar verilmez. */
+    const KURAL = JSON.stringify({ hepsi: [
+      { alan: 'kapsamTuru', islec: 'icinde', deger: ['tesis', 'kontrol_sistemi'] },
+      { alan: 'kuruluGuc', islec: '>=', deger: 100 },
+    ] });
+    expect(kuralDegerlendir(KURAL, guc(790), { kapsamTuru: 'tesis' }).uygulanabilir).toBe(true);
+    expect(kuralDegerlendir(KURAL, guc(790), { kapsamTuru: 'dis_hizmet' }).uygulanabilir).toBe(false);
+    expect(kuralDegerlendir(KURAL, guc(790), null).uygulanabilir, 'tür bilinmiyorken karar üretildi').toBeNull();
+  });
+
+  it('paket beyanının türü, aynı adlı bir ÖZNİTELİKLE ezilemez [URN-PKT-020]', () => {
+    /* Öznitelik anahtarı serbest bir dizedir; `kapsamTuru` adlı bir öznitelik
+       satırı kapsam kararını sessizce çevirebilirdi. Profil otoriterdir ve
+       düşürülen öznitelik gerekçeye yazılır. */
+    const KURAL = JSON.stringify({ hepsi: [{ alan: 'kapsamTuru', islec: 'icinde', deger: ['tesis'] }] });
+    const s = kuralDegerlendir(KURAL, [{ anahtar: 'kapsamTuru', sayisalDeger: null, metinDeger: 'dis_hizmet' }], { kapsamTuru: 'tesis' });
+    expect(s.uygulanabilir).toBe(true);
+    expect(s.gerekce).toContain('öznitelik yok sayıldı');
+  });
+
   it('ölçülmemiş öznitelik, sağlanan başka bir koşulu ENGELLEMEZ [URN-ALN-002]', () => {
     /* Bilinmiyor bir yutucu değil: `herhangi` kuralında sağlanan tek bir
        koşul yeter. Ölçülmemiş güç, black-start ile gelen kapsamı

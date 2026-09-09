@@ -16,9 +16,9 @@ import path from 'node:path';
 import type { ZodError } from 'zod';
 import * as XLSX from 'xlsx';
 import { OLGUNLUK_ASGARI, OLGUNLUK_AZAMI } from '../uyum/olgunluk';
-import { oscalOku } from './oscal';
+import { oscalOku, oscalYabanciMetinler } from './oscal';
 import {
-  ACIKLAMA_SINIRI, BASLIK_SINIRI, CEKIRDEK_ROLLER, CerceveKimligiSemasi, DENKLIKLER, DIS_KIMLIK_SINIRI, DOSYALAR, ESLEME_SUTUNLARI,
+  ACIKLAMA_SINIRI, BASLIK_SINIRI, CEKIRDEK_KAPSAM_TURLERI, CEKIRDEK_ROLLER, KAPSAM_TURU_ALANI, KAYNAK_YERI_SINIRI, takvimTarihi, type KosulBeyani, CerceveKimligiSemasi, DENKLIKLER, DIS_KIMLIK_SINIRI, DOSYALAR, ESLEME_SUTUNLARI,
   ESLEME_ZORUNLU_SUTUNLAR, EslemeKimligiSemasi, FormSablonuSemasi, ISLEM_ONKOSULU, KANIT_TIPI_KODU, KapsamTuruSatiriSemasi, MADDE_SUTUNLARI,
   MADDE_ZORUNLU_SUTUNLAR, ManifestSemasi, OLCU_ALANI, OZET_DISI, OZNITELIK_ROLLERI, OznitelikSatiriSemasi, RaporSablonuSemasi,
   RolSatiriSemasi, SozlukSatiriSemasi, YukumlulukSatiriSemasi, ZORUNLULUK_TIPLERI, csvAyristir, sha256,
@@ -26,7 +26,7 @@ import {
   type Manifest, type OznitelikSatiri, type RaporSablonu, type RolSatiri, type SozlukSatiri, type YukumlulukSatiri,
 } from './bicim';
 
-export type HataSinifi = 'BIÇIM' | 'KİMLİK' | 'SÖZLÜK' | 'ÖZNİTELİK' | 'LİSANS' | 'SÜRÜM' | 'KAPSAM TÜRÜ';
+export type HataSinifi = 'BIÇIM' | 'KİMLİK' | 'SÖZLÜK' | 'ÖZNİTELİK' | 'LİSANS' | 'SÜRÜM' | 'KAPSAM TÜRÜ' | 'KAYNAK';
 export type DogrulamaHatasi = {
   sinif: HataSinifi; dosya: string; konum?: string; mesaj: string; duzeltme: string;
 };
@@ -49,6 +49,8 @@ export type PaketIcerigi = {
 export type Sayilar = {
   sozluk: number; kapsamTurleri: number; oznitelikler: number; cerceveler: number; maddeler: number; yukumlulukler: number;
   formlar: number; raporlar: number; roller: number; eslemeler: number;
+  /** uygulanabilirlik beyanı taşıyan çerçeve sayısı */
+  kurallar: number;
 };
 export type DogrulamaSonucu = {
   ok: boolean;
@@ -102,7 +104,11 @@ export function ozetleriHesapla(dizin: string): Record<string, string> {
   return ozetler;
 }
 
-const bos: Sayilar = { sozluk: 0, kapsamTurleri: 0, oznitelikler: 0, cerceveler: 0, maddeler: 0, yukumlulukler: 0, formlar: 0, raporlar: 0, roller: 0, eslemeler: 0 };
+const bos: Sayilar = { sozluk: 0, kapsamTurleri: 0, oznitelikler: 0, cerceveler: 0, maddeler: 0, yukumlulukler: 0, formlar: 0, raporlar: 0, roller: 0, eslemeler: 0, kurallar: 0 };
+
+function gecerliUrl(s: string): boolean {
+  try { const u = new URL(s); return u.protocol === 'https:' || u.protocol === 'http:'; } catch { return false; }
+}
 
 export function paketiDogrula(dizin: string): DogrulamaSonucu {
   const hatalar: DogrulamaHatasi[] = [];
@@ -294,6 +300,23 @@ export function paketiDogrula(dizin: string): DogrulamaSonucu {
           hatalar.push({ sinif: 'KİMLİK', dosya: maddeDosya, konum: 'catalog.metadata', mesaj: `katalog kodu "${o.kod}" kimlikle uyuşmuyor: "${kimlik.kod}"`, duzeltme: 'kimlik JSON ile katalog aynı çerçeveyi anmalı' });
           continue;
         }
+        /* Sürüm etiketi de kimliktir: `version: "2019"` taşıyan katalog
+           `surumEtiketi: "2024"` ile sessizce kurulabiliyordu (inceleme, PR #43). */
+        if (o.surumEtiketi && o.surumEtiketi !== kimlik.surumEtiketi) {
+          hatalar.push({ sinif: 'KİMLİK', dosya: maddeDosya, konum: 'catalog.metadata.version', mesaj: `katalog sürümü "${o.surumEtiketi}" kimlikle uyuşmuyor: "${kimlik.surumEtiketi}"`, duzeltme: 'katalog metadata.version ile kimliğin surumEtiketi aynı olmalı' });
+          continue;
+        }
+        /* LİSANS: telifli çerçevenin OSCAL dosyasında OKUNMAYAN metin alanı
+           (yabancı `prose`, yabancı prop) madde metnini taşıyabilir — okunmaz
+           ama depoya girer. CSV'deki "başlığı aşan dolu hücre" kuralının
+           karşılığı (inceleme bulgusu, PR #43). */
+        if (kimlik.lisans.tur === 'telifli') {
+          const yabanci = oscalYabanciMetinler(j.deger);
+          for (const y of yabanci.slice(0, 5)) {
+            hatalar.push({ sinif: 'LİSANS', dosya: maddeDosya, konum: y.split(' — ')[0], mesaj: `lisans sınırı: ${kimlik.kod} telifli, okunmayan metin alanı dolu — ${y}`, duzeltme: 'telifli çerçevede yalnız yapı ve kimlik taşınır: bu alanı boşaltın' });
+          }
+          if (yabanci.length) continue;
+        }
         basliklar = o.basliklar; satirlar = o.satirlar;
       } else {
         const csv = csvAyristir(readFileSync(maddeYolu, 'utf8'));
@@ -374,12 +397,66 @@ export function paketiDogrula(dizin: string): DogrulamaSonucu {
         if (zt && !(ZORUNLULUK_TIPLERI as readonly string[]).includes(zt)) { hatalar.push({ sinif: 'BIÇIM', dosya: maddeDosya, konum: no, mesaj: `zorunluluk_tipi bilinmiyor: ${zt}`, duzeltme: `şunlardan biri: ${ZORUNLULUK_TIPLERI.join(', ')}` }); return; }
         const kanitTipi = sutun(satir, 'kanit_tipi') || null;
         if (kanitTipi && !KANIT_TIPI_KODU.test(kanitTipi)) { hatalar.push({ sinif: 'BIÇIM', dosya: maddeDosya, konum: no, mesaj: `kanit_tipi kod olmalı (küçük harf, alt çizgi, ≤ 40): ${kanitTipi.slice(0, 50)}`, duzeltme: 'kanıt türünün kodunu yazın (kayit, konfigurasyon…); açıklama kanit_beklentisi sütununa' }); return; }
-        maddeler.push({ kod, ustKod, baslik, metin, sira, seviye, zorunlulukTipi: zt, kanitBeklentisi, disKontrolId, kanitTipi });
+        /* ── köken sütunları (içerik) ─────────────────────────────────── */
+        const kaynakUrl = sutun(satir, 'kaynak_url') || null;
+        const kaynakYeri = sutun(satir, 'kaynak_yeri') || null;
+        const erisimTarihi = sutun(satir, 'erisim_tarihi') || null;
+        const yururlukTarihi = sutun(satir, 'yururluk_tarihi') || null;
+        if (kaynakUrl && !gecerliUrl(kaynakUrl)) { hatalar.push({ sinif: 'KAYNAK', dosya: maddeDosya, konum: no, mesaj: `kaynak_url geçerli bir http(s) adresi değil: ${kaynakUrl.slice(0, 80)} (${kod})`, duzeltme: 'resmî belgenin tam adresini https:// ile yazın' }); return; }
+        if (kaynakYeri && kaynakYeri.length > KAYNAK_YERI_SINIRI) { hatalar.push({ sinif: 'BIÇIM', dosya: maddeDosya, konum: no, mesaj: `kaynak_yeri ${kaynakYeri.length} karakter > ${KAYNAK_YERI_SINIRI} (${kod}) — konumdur, metin değil`, duzeltme: 'belge içi konumu kısa yazın (bölüm · sayfa · satır)' }); return; }
+        for (const [ad, deger] of [['erisim_tarihi', erisimTarihi], ['yururluk_tarihi', yururlukTarihi]] as const) {
+          if (deger && !takvimTarihi(deger)) { hatalar.push({ sinif: 'BIÇIM', dosya: maddeDosya, konum: no, mesaj: `${ad} takvim tarihi değil (YYYY-AA-GG): ${deger} (${kod})`, duzeltme: 'YYYY-AA-GG yazın ya da boş bırakın' }); return; }
+        }
+        /* KÖKEN KURALI: metin girilmişse nereden ve ne zaman alındığı maddenin
+           yanında durur — resmî metin serbesttir (FSEK md. 31) ama kaynağı
+           yazılır. Demo paketi kurgusaldır, kaynağı yoktur: muaf. Telifli
+           çerçevede metin zaten yasaktır. */
+        /* Kapsam: KAYNAĞI OLDUĞUNU SÖYLEYEN çerçeve (kimlikte `kaynakUrl` var).
+           Kiracının kendi iç politikası (kaynaksız çerçeve) ve kurgusal demo
+           paketi muaftır — onlara resmî adres uydurmak kuralın kendisini bozardı. */
+        if (metin && kimlik.kaynakUrl && kimlik.lisans.tur !== 'telifli' && manifest.tur !== 'demo' && (!kaynakUrl || !erisimTarihi)) {
+          hatalar.push({ sinif: 'KAYNAK', dosya: maddeDosya, konum: no, mesaj: `metin girilmiş ama ${!kaynakUrl ? 'kaynak_url' : 'erisim_tarihi'} boş (${kod}) — metnin nereden ve ne zaman alındığı her maddede yazılır`,
+            duzeltme: 'kaynak_url (resmî belge adresi) ve erisim_tarihi (YYYY-AA-GG) sütunlarını doldurun; metni giremiyorsanız sütunu boş bırakın, kurulumda "metin girilmedi" yazılır' });
+          return;
+        }
+        maddeler.push({ kod, ustKod, baslik, metin, sira, seviye, zorunlulukTipi: zt, kanitBeklentisi, disKontrolId, kanitTipi, kaynakUrl, kaynakYeri, erisimTarihi, yururlukTarihi });
       });
       cerceveler.push({ dosya, kimlik, maddeler });
     }
   }
   tekil(DOSYALAR.cerceveDizini, 'KİMLİK', cerceveler.map((c) => c.kimlik.kod), 'çerçeve kodu');
+
+  /* ── uygulanabilirlik beyanı (§1/9) ──────────────────────────────────
+     Tür kodu paketin kendi türlerinden ya da çekirdek türlerden; koşul
+     alanı paketin KURALDA KULLANILIR dediği özniteliklerinden ya da
+     `kapsamTuru`; işleç–değer uyumu motorun beklediği gibi. Beyan koda
+     gömülmez: motor bağlamı bu alanlardan kurar. */
+  const turKodlari = new Set<string>([...CEKIRDEK_KAPSAM_TURLERI, ...kapsamTurleri.map((t) => t.kod)]);
+  const kuralAnahtarlari = new Map(oznitelikler.map((o) => [o.anahtar, o.kuraldaKullanilir]));
+  for (const c of cerceveler) {
+    const b = c.kimlik.uygulanabilirlik;
+    if (!b) continue;
+    const dosya = `${DOSYALAR.cerceveDizini}/${c.kimlik.kod}.json`;
+    for (const t of b.kapsamTurleri) {
+      if (!turKodlari.has(t)) hatalar.push({ sinif: 'KAPSAM TÜRÜ', dosya, konum: 'uygulanabilirlik.kapsamTurleri', mesaj: `tanınmayan kapsam öğesi türü: ${t}`, duzeltme: `çekirdek türlerden (${CEKIRDEK_KAPSAM_TURLERI.join(', ')}) ya da paketin kapsam-turleri.json kodlarından birini yazın` });
+    }
+    const kosulDenetle = (k: KosulBeyani, yol: string): void => {
+      if (!('alan' in k)) { (k.herhangi ?? k.hepsi ?? []).forEach((alt, i) => kosulDenetle(alt, `${yol}.${k.herhangi ? 'herhangi' : 'hepsi'}[${i}]`)); return; }
+      if (k.alan === KAPSAM_TURU_ALANI) {
+        const degerler = Array.isArray(k.deger) ? k.deger : [String(k.deger)];
+        if (k.islec !== 'icinde' && k.islec !== '=') hatalar.push({ sinif: 'BIÇIM', dosya, konum: yol, mesaj: `${KAPSAM_TURU_ALANI} yalnız icinde ya da = ile karşılaştırılır (${k.islec})`, duzeltme: 'kapsamTurleri listesini kullanın; koşula tür yazacaksanız icinde/= kullanın' });
+        for (const d of degerler) if (!turKodlari.has(d)) hatalar.push({ sinif: 'KAPSAM TÜRÜ', dosya, konum: yol, mesaj: `tanınmayan kapsam öğesi türü: ${d}`, duzeltme: 'çekirdek ya da paket tür kodu yazın' });
+        return;
+      }
+      const kullanilir = kuralAnahtarlari.get(k.alan);
+      if (kullanilir === undefined) { hatalar.push({ sinif: 'ÖZNİTELİK', dosya, konum: yol, mesaj: `koşul alanı paketin özniteliği değil: ${k.alan}`, duzeltme: `oznitelikler.json anahtarlarından birini ya da ${KAPSAM_TURU_ALANI} yazın` }); return; }
+      if (!kullanilir) hatalar.push({ sinif: 'ÖZNİTELİK', dosya, konum: yol, mesaj: `${k.alan} kuralda kullanılamaz (kuraldaKullanilir=false)`, duzeltme: 'öznitelikte kuraldaKullanilir=true yapın ya da koşulu kaldırın' });
+      if (k.islec === 'icinde' && !Array.isArray(k.deger)) hatalar.push({ sinif: 'BIÇIM', dosya, konum: yol, mesaj: `icinde işleci liste ister (${k.alan})`, duzeltme: 'deger: ["a", "b"] yazın' });
+      if (['>=', '<=', '>', '<'].includes(k.islec) && typeof k.deger !== 'number') hatalar.push({ sinif: 'BIÇIM', dosya, konum: yol, mesaj: `${k.islec} işleci sayı ister (${k.alan})`, duzeltme: 'deger sayı olmalı' });
+      if ((k.islec === '=' || k.islec === '!=') && Array.isArray(k.deger)) hatalar.push({ sinif: 'BIÇIM', dosya, konum: yol, mesaj: `${k.islec} işleci tek değer ister (${k.alan})`, duzeltme: 'liste için icinde kullanın' });
+    };
+    if (b.kosul) kosulDenetle(b.kosul, 'uygulanabilirlik.kosul');
+  }
 
   /* ── eşlemeler (2.4) — `esleme/<KOD>.json` kimlik + CSV ───────────────
      Çerçeveler ARASI madde eşlemesi. Paket içi çerçeveye referans onun
@@ -514,8 +591,13 @@ export function paketiDogrula(dizin: string): DogrulamaSonucu {
       if (a.hucre && !f.dosya) hatalar.push({ sinif: 'BIÇIM', dosya, konum, mesaj: 'hücre var ama form XLSX dosyası beyan etmiyor', duzeltme: '`dosya` yazın ya da hücreyi kaldırın' });
     }
     if (f.dosya) {
-      if (manifest.lisans.tur === 'telifli') {
-        hatalar.push({ sinif: 'LİSANS', dosya, konum: 'dosya', mesaj: `lisans sınırı: telifli paket XLSX form taşıyamaz (${f.dosya}) — hücre metni denetlenemez`, duzeltme: 'formu JSON yapı olarak verin (dosya alanını kaldırın)' });
+      /* Yasak ÇERÇEVE düzeyini de görür: manifesti kamuya açık ama içinde
+         telifli çerçeve taşıyan paket XLSX ile tam metin kaçırabilirdi
+         (inceleme bulgusu, PR #43). */
+      const telifliCerceve = cerceveler.find((c) => c.kimlik.lisans.tur === 'telifli');
+      if (manifest.lisans.tur === 'telifli' || telifliCerceve) {
+        const sebep = manifest.lisans.tur === 'telifli' ? 'telifli paket' : `telifli çerçeve taşıyan paket (${telifliCerceve?.kimlik.kod})`;
+        hatalar.push({ sinif: 'LİSANS', dosya, konum: 'dosya', mesaj: `lisans sınırı: ${sebep} XLSX form taşıyamaz (${f.dosya}) — hücre metni denetlenemez`, duzeltme: 'formu JSON yapı olarak verin (dosya alanını kaldırın)' });
       } else {
         const xlsxGoreli = `${DOSYALAR.formDizini}/${f.dosya}`;
         formDosyalari.add(xlsxGoreli);
@@ -652,6 +734,7 @@ export function paketiDogrula(dizin: string): DogrulamaSonucu {
     cerceveler: cerceveler.length, maddeler: cerceveler.reduce((a, c) => a + c.maddeler.length, 0), yukumlulukler: yukumlulukler.length,
     formlar: formlar.length, raporlar: raporlar.length, roller: roller.length,
     eslemeler: eslemeler.reduce((a, e) => a + e.satirlar.length, 0),
+    kurallar: cerceveler.filter((c) => c.kimlik.uygulanabilirlik).length,
   };
   const icerik: PaketIcerigi = { dizin, manifest, sozluk, kapsamTurleri, oznitelikler, cerceveler, eslemeler, yukumlulukler, formlar, raporlar, roller };
   return { ok: hatalar.length === 0, hatalar, icerik: hatalar.length === 0 ? icerik : null, sayilar };

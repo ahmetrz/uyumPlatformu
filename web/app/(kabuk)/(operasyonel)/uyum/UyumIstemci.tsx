@@ -258,7 +258,9 @@ export default function UyumIstemci({
               onClick={() => { setOdak({ cerceve: c.kod, madde: null }); setAile(null); setAcik(null); kapsamiYaz(c.kod); }}
             >
               <span>{c.ad}</span>
-              <span className="sayi">{c.aileler.reduce((t, a) => t + a.yapraklar.length, 0)}</span>
+              {/* Aktif sürümü olmayan çerçevede yaprak sayısı 0'dır ve bu SIFIR
+                  DEĞİL, ölçülmemiştir: taslağın madde sayısı "taslak" damgasıyla yazılır. */}
+              <span className="sayi">{c.taslak ? `${c.taslak.maddeSayisi} taslak` : c.aileler.reduce((t, a) => t + a.yapraklar.length, 0)}</span>
             </button>
           ))}
         </div>
@@ -325,7 +327,16 @@ export default function UyumIstemci({
           <EgilimSeridi noktalar={egilim} surecVar={surecId !== null} bugun={m.endeks} />
         </div>
 
-        {gorunur.length === 0 ? (
+        {cerceve.taslak ? (
+          <div className="ab-panel-blok" style={{ marginTop: 'var(--s16)' }}>
+            <p style={{ margin: 0, fontSize: 'var(--t-cell)', lineHeight: 1.7 }}>
+              Bu çerçevenin <b>aktif sürümü yok</b>: {cerceve.taslak.surumEtiketi} sürümü{' '}
+              <b>TASLAK</b> ({cerceve.taslak.maddeSayisi} madde). Kontroller ölçülmedi — sıfır değil.{' '}
+              <b>Aktifleştirme insan kararıdır</b>: sürümü karşılaştırıp aktifleştirmek{' '}
+              <Link href="/regulasyonlar">Regülasyonlar</Link> ekranındadır.
+            </p>
+          </div>
+        ) : gorunur.length === 0 ? (
           <p style={{ color: 'var(--i3)', fontSize: 13 }}>
             Bu çerçevede uygulanabilir kontrol bulunmuyor.
           </p>

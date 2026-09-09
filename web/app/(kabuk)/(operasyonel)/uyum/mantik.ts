@@ -212,6 +212,9 @@ export type CerceveVerisi = {
   ad: string;
   surum: string | null;
   surumEtiketi: string | null;
+  /** Aktif sürümü YOK, taslağı var: paket kurdu, insan henüz aktifleştirmedi.
+      Madde sayısı taslaktan ölçülür — matrise girmez, ekranda "0 kontrol" diye görünmez. */
+  taslak: { surumEtiketi: string; maddeSayisi: number } | null;
   yururluk: string | null;
   aileler: Aile[];
   satirlar: TesisSatiri[];

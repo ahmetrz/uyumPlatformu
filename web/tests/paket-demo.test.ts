@@ -34,9 +34,9 @@ describe('demo paketleri doğrulayıcıdan geçer ve tohum sabitleriyle birebir 
       expect(s.hatalar.map(hataSatiri), kod).toEqual([]);
       expect(s.icerik!.manifest.icerikOzetleri, kod).toEqual(ozetleriHesapla(P(kod)));
     }
-    expect(ORTAK.sayilar).toMatchObject({ sozluk: 0, oznitelikler: 0, cerceveler: 3, maddeler: 11, eslemeler: 2 });
-    expect(ENERJI.sayilar).toMatchObject({ sozluk: 13, oznitelikler: 9, cerceveler: 1, maddeler: 27, eslemeler: 6 });
-    expect(SU.sayilar).toMatchObject({ sozluk: 5, oznitelikler: 1, cerceveler: 0, eslemeler: 0 });
+    expect(ORTAK.sayilar).toMatchObject({ sozluk: 0, oznitelikler: 0, cerceveler: 3, maddeler: 11, eslemeler: 2, kurallar: 0 });
+    expect(ENERJI.sayilar).toMatchObject({ sozluk: 13, oznitelikler: 9, cerceveler: 1, maddeler: 27, eslemeler: 6, kurallar: 0 });
+    expect(SU.sayilar).toMatchObject({ sozluk: 5, oznitelikler: 1, cerceveler: 0, eslemeler: 0, kurallar: 0 });
     expect(ORTAK.icerik!.manifest).toMatchObject({ tur: 'yatay', sektor: null, bagimliliklar: [] });
     expect(ENERJI.icerik!.manifest).toMatchObject({ tur: 'demo', sektor: { kod: 'ELEKTRIK-URETIM' }, bagimliliklar: ['DEMO-TR-ORTAK'] });
     expect(SU.icerik!.manifest).toMatchObject({ tur: 'demo', sektor: { kod: 'SU-ARITMA' }, bagimliliklar: ['DEMO-TR-ORTAK'] });

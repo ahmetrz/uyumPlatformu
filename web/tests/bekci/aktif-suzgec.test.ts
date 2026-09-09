@@ -20,7 +20,11 @@ import { taranacakKaynaklar } from './nullOlumsuzlama';
 
 const KOK = process.cwd();
 const KAPSAM_DISI = [/^lib\/paket\//, /^arac\//, /^prisma\//];
-const OKUMA = /\b(?:db|tx|istemci)\.(sektorSozlugu|sektorOznitelikSemasi|maddeEslestirmesi)\.(findMany|findFirst|findUnique|count)\s*\(/g;
+/* Okuma biçimleri: `findFirstOrThrow` · `findUniqueOrThrow` · `groupBy` ·
+   `aggregate` de okumadır; ilk tarama dördünü de görmüyordu (bağımsız
+   inceleme bulgusu, PR #43). Bugün bu dörtle sıfır kullanım var — kapı
+   yarın açılacak deliği bekliyor. */
+const OKUMA = /\b(?:db|tx|istemci)\.(sektorSozlugu|sektorOznitelikSemasi|maddeEslestirmesi)\.(findMany|findFirstOrThrow|findUniqueOrThrow|findFirst|findUnique|count|groupBy|aggregate)\s*\(/g;
 /** Madde üzerinden eşleme içermesi: `eslestirmeKaynak: { ... }` ya da `eslestirmeKaynak: true`. */
 const ICERME = /\b(eslestirmeKaynak|eslestirmeHedef)\s*:\s*(\{|true)/g;
 
@@ -78,7 +82,10 @@ describe('Bekçi · sözlük, öznitelik ve eşleme okuyucuları yalnız aktif s
   });
 
   it('her okuma sorgusu ve eşleme içermesi `aktif: true` süzer — pasif satır ekrana inmez [URN-PKT-011] [URN-PKT-014]', () => {
-    const suzgecsiz = tum.filter((s) => (s.islem === 'include' ? !kendiSuzgeci(s.govde) : !/aktif:\s*true/.test(s.govde)));
+    /* Süzgeç araması iki yolda da KENDİ nesnesine bakar: düz pencere iç içe bir
+       `include: { where: { aktif: true } }` süzgecini ödünç alabiliyordu — S61'in
+       `include` tarafı kapatılmış, `findMany` tarafı açık kalmıştı (inceleme, PR #43). */
+    const suzgecsiz = tum.filter((s) => !kendiSuzgeci(s.govde));
     expect(suzgecsiz.map((s) => `${s.dosya}:${s.satir} ${s.model}.${s.islem}`), 'aktif süzgeci olmayan okuyucu').toEqual([]);
   });
 });

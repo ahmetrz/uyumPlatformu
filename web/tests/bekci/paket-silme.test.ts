@@ -33,8 +33,19 @@ type SilmeCagrisi = { dosya: string; satir: number; model: string; where: string
 function silmeCagrilari(dosya: string): SilmeCagrisi[] {
   const metin = readFileSync(path.join(KOK, dosya), 'utf8');
   const sonuc: SilmeCagrisi[] = [];
+  const satirNo = (i: number) => metin.slice(0, i).split('\n').length;
   for (const m of metin.matchAll(/\b(?:tx|db|istemci)\.(\w+)\.(?:delete|deleteMany)\s*\(([\s\S]{0,160})/g)) {
-    sonuc.push({ dosya, satir: metin.slice(0, m.index).split('\n').length, model: m[1], where: m[2] });
+    sonuc.push({ dosya, satir: satirNo(m.index), model: m[1], where: m[2] });
+  }
+  /* İÇ İÇE YAZMA (`update({ data: { maddeler: { deleteMany: {} } } })`) ilişkili
+     satırı GERÇEKTEN siler ve PR #41'in kapattığı kaskat kusurunun eşdeğerini
+     üretir; ilk tarama yalnız `tx.model.delete(` biçimini görüyordu (bağımsız
+     inceleme bulgusu, PR #43). Ham SQL de aynı kapıdan geçer. */
+  for (const m of metin.matchAll(/(\w+)\s*:\s*\{\s*(?:delete|deleteMany)\s*:/g)) {
+    sonuc.push({ dosya, satir: satirNo(m.index), model: m[1], where: 'iç içe yazma (nested delete)' });
+  }
+  for (const m of metin.matchAll(/\$(?:executeRaw|queryRaw)(?:Unsafe)?[\s\S]{0,200}?DELETE\s+FROM\s+"?(\w+)/gi)) {
+    sonuc.push({ dosya, satir: satirNo(m.index), model: m[1], where: 'ham SQL DELETE' });
   }
   return sonuc;
 }

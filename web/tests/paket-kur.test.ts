@@ -61,9 +61,9 @@ describe('kurucu — tek transaction, taslak sürüm, köken [URN-PKT-003]', () 
     const s = await kur();
     expect(s.ok, JSON.stringify(s)).toBe(true);
     if (!s.ok) return;
-    expect(s.rapor.sayilar).toEqual({ sozluk: 2, kapsamTurleri: 1, oznitelikler: 2, cerceveler: 2, maddeler: 5, yukumlulukler: 1, formlar: 0, raporlar: 0, roller: 0, eslemeler: 0 });
+    expect(s.rapor.sayilar).toEqual({ sozluk: 2, kapsamTurleri: 1, oznitelikler: 2, cerceveler: 2, maddeler: 5, yukumlulukler: 1, formlar: 0, raporlar: 0, roller: 0, eslemeler: 0, kurallar: 0 });
     expect(s.rapor.celiskiler).toEqual([]);
-    expect(s.rapor.pasiflestirilen).toEqual({ kapsamTurleri: 0, yukumlulukler: 0, cerceveSurumleri: 0, sozluk: 0, oznitelikler: 0, formlar: 0, raporlar: 0, roller: 0, eslemeler: 0 });
+    expect(s.rapor.pasiflestirilen).toEqual({ kapsamTurleri: 0, yukumlulukler: 0, cerceveSurumleri: 0, sozluk: 0, oznitelikler: 0, formlar: 0, raporlar: 0, roller: 0, eslemeler: 0, kurallar: 0 });
     expect(s.rapor.pasifAnahtarlar).toEqual({ sozluk: [], oznitelikler: [] });
 
     const sektor = await db.sektor.findUniqueOrThrow({ where: { kod: 'TEST-SEKTOR' } });
@@ -309,7 +309,7 @@ describe('yükseltme uzlaştırması — bırakılan içerik pasif/arşiv, silme
     const b = await kur(v2, { ...manifest, surum: '0.2.0' });
     expect(b.ok, JSON.stringify(b)).toBe(true);
     if (!b.ok) return;
-    expect(b.rapor.pasiflestirilen).toEqual({ kapsamTurleri: 1, yukumlulukler: 1, cerceveSurumleri: 1, sozluk: 1, oznitelikler: 1, formlar: 0, raporlar: 0, roller: 0, eslemeler: 0 });
+    expect(b.rapor.pasiflestirilen).toEqual({ kapsamTurleri: 1, yukumlulukler: 1, cerceveSurumleri: 1, sozluk: 1, oznitelikler: 1, formlar: 0, raporlar: 0, roller: 0, eslemeler: 0, kurallar: 0 });
     expect(b.rapor.pasifAnahtarlar).toEqual({ sozluk: ['birim@tr'], oznitelikler: ['yukOzB'] });
     expect(await sayim()).toEqual(once);
     expect(await db.kapsamOgesiTuru.findUniqueOrThrow({ where: { kod: 'yuk_tur_b' } })).toMatchObject({ aktif: false, koken: 'paket' });
@@ -331,7 +331,7 @@ describe('yükseltme uzlaştırması — bırakılan içerik pasif/arşiv, silme
     await db.kapsamOgesiTuru.create({ data: { kod: 'yuk_kiraci_turu', ad: 'Kiracı türü', koken: 'kiraci', sektorId: sektor.id } });
     const c = await kur(v2, { ...manifest, surum: '0.2.1' });
     expect(c.ok, JSON.stringify(c)).toBe(true);
-    if (c.ok) expect(c.rapor.pasiflestirilen).toEqual({ kapsamTurleri: 0, yukumlulukler: 0, cerceveSurumleri: 0, sozluk: 0, oznitelikler: 0, formlar: 0, raporlar: 0, roller: 0, eslemeler: 0 });
+    if (c.ok) expect(c.rapor.pasiflestirilen).toEqual({ kapsamTurleri: 0, yukumlulukler: 0, cerceveSurumleri: 0, sozluk: 0, oznitelikler: 0, formlar: 0, raporlar: 0, roller: 0, eslemeler: 0, kurallar: 0 });
     expect((await db.kapsamOgesiTuru.findUniqueOrThrow({ where: { kod: 'yuk_kiraci_turu' } })).aktif).toBe(true);
     expect((await db.kapsamOgesiTuru.findUniqueOrThrow({ where: { kod: 'yuk_tur_b' } })).aktif).toBe(false);
   });
@@ -464,6 +464,36 @@ describe('kiracının madde DÜZENLEMESİ (skaler, iz bırakır) taslak yenileme
     expect(c.ok, JSON.stringify(c)).toBe(true);
     expect(await db.frameworkSurumu.count({ where: { regulasyon: { kod: 'DUZ-REG' } } })).toBe(2);
     expect(await db.madde.findUniqueOrThrow({ where: { id: madde.id } })).toMatchObject({ olgunlukSeviyesi: 3 });
+  });
+});
+
+describe('kurulu TELİFLİ çerçeveye paket metin getiremez [URN-PKT-002]', () => {
+  /* Bağımsız inceleme bulgusu (PR #43): doğrulayıcı paketin KENDİ kimliğini
+     bilir, kurucu KURULUYU. Kurulu `Regulasyon.lisansTuru='telifli'` iken
+     ikinci bir paket aynı kodu "kamuya_acik, metinDahil" diye beyan edip tam
+     metin yazabiliyordu; eşlemede bu kilit vardı, çerçeve metninde yoktu. */
+  it('kurulu regülasyon telifliyse kamuya açık beyanlı paket LİSANS ile reddedilir [URN-PKT-002]', async () => {
+    const sektor = { kod: 'TELIF-SEKTOR', ad: 'Telif' };
+    const telifli = paketYaz({
+      'sozluk.json': [SOZLUK_SATIRI('tesis', 'şube')],
+      'cerceve/TLF-REG.json': cerceve('TLF-REG', { tur: 'telifli', metinDahil: false }),
+      'cerceve/TLF-REG.csv': `${CSV_BASLIK}\nA.5;;Organizasyonel kontroller;;0;;\n`,
+    }, { kod: 'TELIF-A', sektor, surum: '0.1.0' });
+    const a = await paketiKur(telifli, { kuranId, istemci: db });
+    expect(a.ok, JSON.stringify(a)).toBe(true);
+    expect((await db.regulasyon.findUniqueOrThrow({ where: { kod: 'TLF-REG' } })).lisansTuru).toBe('telifli');
+
+    const acik = paketYaz({
+      'sozluk.json': [SOZLUK_SATIRI('tesis', 'şube')],
+      'cerceve/TLF-REG.json': { ...cerceve('TLF-REG', { tur: 'kamuya_acik', metinDahil: true }), surumEtiketi: 'test-2' },
+      'cerceve/TLF-REG.csv': `${CSV_BASLIK}\nA.5;;Organizasyonel kontroller;Standardın tam metni buraya yazılamaz;0;;\n`,
+    }, { kod: 'TELIF-B', sektor, surum: '0.1.0' });
+    const b = await paketiKur(acik, { kuranId, istemci: db });
+    expect(b.ok).toBe(false);
+    if (!b.ok) expect(b.hatalar[0]).toMatchObject({ sinif: 'LİSANS', mesaj: expect.stringContaining('kurulu çerçevesi telifli') });
+    // hiçbir satır yazılmadı: ikinci paket kurulmadı, metin girmedi
+    expect(await db.icerikPaketi.count({ where: { kod: 'TELIF-B' } })).toBe(0);
+    expect(await db.madde.count({ where: { kod: 'TLF-REG-A.5', metin: { contains: 'tam metni' } } })).toBe(0);
   });
 });
 

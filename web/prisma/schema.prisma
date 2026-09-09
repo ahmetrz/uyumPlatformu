@@ -421,6 +421,9 @@ model Madde {
   gereksinimTipi         String?
   kaynakSayfa            String?
   maddeKaynakUrl         String?
+  /// Kaynağa ERİŞİM tarihi (paket CSV `erisim_tarihi`): metin resmî kaynaktan hangi gün alındı —
+  /// köken bilgisi maddenin yanında durur, ekran metnin altında gösterir. NULL = beyan edilmedi.
+  kaynakErisimTarihi     DateTime?
   gecerliBaslangic       DateTime?
   gecerliBitis           DateTime?
   yeriniAlanId           String? // superseded_by
@@ -1485,6 +1488,11 @@ model UygulanabilirlikKurali {
   aktif        Boolean  @default(true)
   aciklama     String?
   olusturuldu  DateTime @default(now())
+  /// Köken: `kiraci` (elle yazılan kural) ya da `paket` (çerçevenin `uygulanabilirlik` beyanı;
+  /// kurulumda yazılır, yükseltmede yenilenir, kaldırmada PASİFLEŞİR — silinmez, R-C).
+  /// Aynı regülasyonda kiracı kuralı paket kuralını ezer (motor önce paketi, sonra kiracıyı koşar).
+  koken        String   @default("kiraci")
+  paketSurumId String?
 
   regulasyon Regulasyon               @relation(fields: [regulasyonId], references: [id])
   kararlar   UygulanabilirlikKarari[]

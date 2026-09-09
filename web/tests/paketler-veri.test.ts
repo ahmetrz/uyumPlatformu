@@ -33,7 +33,7 @@ describe('/paketler · veri katmanı [URN-PKT-016]', () => {
     expect(ortak.bagimlilar).toEqual(['DEMO-TR-ENERJI', 'DEMO-TR-SU']);
     expect(ortak.cerceve).toEqual({ aktif: 3, taslak: 0, arsiv: 0 });
     expect(ortak.kurulu).toMatchObject({ surum: '0.1.0', durum: 'kurulu', kuran: 'Kullanıcı A' });
-    expect(ortak.kurulu!.rapor!.sayilar).toMatchObject({ cerceveler: 3, maddeler: 11, eslemeler: 2 });
+    expect(ortak.kurulu!.rapor!.sayilar).toMatchObject({ cerceveler: 3, maddeler: 11, eslemeler: 2, kurallar: 0 });
     expect(ortak.disk!.sayilar).toMatchObject({ cerceveler: 3, maddeler: 11 });
     const enerji = v.satirlar.find((s) => s.kod === 'TR-ENERJI')!;
     expect(enerji.kurulu).toBeNull();

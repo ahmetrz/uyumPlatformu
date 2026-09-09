@@ -837,10 +837,28 @@ doğrulayıcı OSCAL'ı satıra indirip CSV ile aynı kuralları uygular (telifl
 metin `prose` içinden sızamaz), OSCAL dışı alanlar `props` ad alanında,
 Türkçe kod prop'ta korunur; gidiş-dönüş üç iskelet çerçevesinde (659
 madde) birebir; yazar aracı `--oscal <dizin>` (URN-PKT-017). SCF içe
-alımı hukuki görüşe bağlı kalır — okuyucu hazır, içerik yok. Kalan:
+alımı hukuki görüşe bağlı kalır — okuyucu hazır, içerik yok.
+**İÇERİK uygulandı (9 Eylül 2026):** `TR-ENERJI` 0.2.0 artık iskelet değil —
+EPDK Yetkinlik Modeli Yönetmeliği (4 bölüm + 18 madde + 1 geçici madde) ve
+Ek-3 Elektrik Üretim teknik kontrol maddeleri (13 aile + 565 kontrol) TAM
+METİNLE pakette; metin EPDK resmî sitesinden (birincil kaynak) indirildi,
+`mevzuat.gov.tr` ve `resmigazete.gov.tr` yine erişilemedi (HTTP 000; ikincil
+kaynak içeriğe girmedi). Madde CSV'sine köken sütunları eklendi (`kaynak_url ·
+kaynak_yeri · erisim_tarihi · yururluk_tarihi` → `Madde.maddeKaynakUrl ·
+kaynakSayfa · kaynakErisimTarihi · gecerliBaslangic`): kaynağı olduğunu SÖYLEYEN
+çerçevede metinli madde köken taşımak zorundadır (KAYNAK sınıfı), kaynaksız
+çerçeve ve demo paketi muaftır; metni girilmemiş madde "metin girilmedi" der ve
+bu sabiti ekran TANIR (`maddeMetniDurumu`) — uydurulmaz, boş bırakılmaz, sıfır
+sayılmaz (URN-PKT-019). Çerçeve `uygulanabilirlik` BEYAN eder (hangi kapsam
+öğesi türüne, hangi öznitelik koşuluyla, hangi maddeye dayanarak); kurucu bunu
+`UygulanabilirlikKurali` (köken paket) yazar, motor `icinde` işlecini tanır ve
+kapsam öğesi türünü bağlamın profil tarafından okur — karar hâlâ ÖNERİDİR,
+kiracının kuralı ezilmez, bırakılan ve kaldırılan kural pasifler (URN-PKT-020).
+`/uyum` aktif sürümü olmayan çerçeveyi "N madde TASLAK · aktifleştirme bekliyor"
+diye gösterir — "0 kontrol" diye değil (URN-PKT-021). Kalan:
 form/rapor ekranlarının şablonu okuması, rol önerisinin koda bağlanması,
 R6 ilişki türü/güç, demo verisinin (tesis · süreç · bulgu) JSON'dan
-yüklenmesi (P8).
+yüklenmesi (P8), TR-ENERJI'nin kalan 6 EPDK eki.
 
 **Hedef.** Çerçeveler, eşlemeler, yükümlülükler, denetim form şablonları,
 mevzuat kaynak katalogları, sektör sözlükleri ve demo verisi **paket**

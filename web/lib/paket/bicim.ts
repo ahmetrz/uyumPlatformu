@@ -33,12 +33,36 @@ export const OLCU_ALANI = 'birim' as const;
 
 /** Telifli çerçevede `Madde.metin` bu sabittir — metin girilmez (§2). */
 export const TELIFLI_METIN = 'lisans nedeniyle girilmedi';
-/** Kamuya açık ama iskelet (metin henüz aktarılmamış) çerçevede `Madde.metin`. */
-export const METIN_GELMEDI = 'metin paketle gelmedi';
+/** Kamuya açık ama metni aktarılmamış maddede `Madde.metin` — "metin girilmedi":
+    uydurulmaz, boş bırakılmaz, sıfır sayılmaz; ekran bu hâli TANIR (`maddeMetniDurumu`). */
+export const METIN_GELMEDI = 'metin girilmedi';
+/** Önceki sabit — kurulu veride kalmış olabilir; okuyucu ikisini de tanır. */
+const ESKI_METIN_GELMEDI = 'metin paketle gelmedi';
 /** Telifli çerçevede başlık en fazla bu kadar karakter (§2). */
 export const BASLIK_SINIRI = 120;
 /** Telifli çerçevede `dis_kontrol_id` en fazla bu kadar karakter — kimliktir, metin değil. */
 export const DIS_KIMLIK_SINIRI = 60;
+/** `kaynak_yeri` (belge içi konum: "Ek-3 · 01-Endüstriyel Ağ Güvenliği · EAG-1") en fazla bu kadar karakter. */
+export const KAYNAK_YERI_SINIRI = 200;
+
+/** Ekranın "metin var mı" sorusunun TEK cevabı. `Madde.metin` şemada boş olamaz; yokluk iki
+    sabitle taşınır ve sabiti tanımayan ekran onu madde metni gibi basıyordu (ölçüldü:
+    süreç çekmecesi "lisans nedeniyle girilmedi"yi metin diye gösteriyor, uyum gerekçesi
+    onu tek cümle gerekçe sayıyordu). */
+export function maddeMetniDurumu(metin: string | null | undefined): 'var' | 'girilmedi' | 'lisans' {
+  const m = (metin ?? '').trim();
+  if (m === '' || m === METIN_GELMEDI || m === ESKI_METIN_GELMEDI) return 'girilmedi';
+  if (m === TELIFLI_METIN) return 'lisans';
+  return 'var';
+}
+
+/** Çekirdek kapsam öğesi türleri (şema yorumu `KapsamOgesiTuru.kod`); paket bunlara ek tür
+    beyan eder, uygulanabilirlik beyanı ikisine de atıf yapabilir. */
+export const CEKIRDEK_KAPSAM_TURLERI = ['tesis', 'kurum', 'sistem', 'is_fonksiyonu', 'dis_hizmet', 'birim', 'veri_kapsami'] as const;
+/** Uygulanabilirlik kuralı işleçleri — motorun (`lib/motorlar/uygulanabilirlik.ts`) tanıdığı küme. */
+export const KURAL_ISLECLERI = ['=', '!=', '>=', '<=', '>', '<', 'icinde'] as const;
+/** Motorun bağlama koyduğu kapsam öğesi TÜRÜ alanı — paket beyanı bu alana `icinde` yazar. */
+export const KAPSAM_TURU_ALANI = 'kapsamTuru';
 
 export const SEMVER = /^\d+\.\d+\.\d+$/;
 export const PAKET_KODU = /^[A-Z][A-Z0-9]*(?:-[A-Z0-9]+)*$/;
@@ -120,6 +144,37 @@ export function takvimTarihi(s: string): boolean {
 }
 const tarihAlani = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'tarih YYYY-AA-GG')
   .refine(takvimTarihi, 'takvimde olmayan tarih (ör. 2025-02-30, 2025-13-01)').nullable().optional();
+/* ── uygulanabilirlik beyanı (§1/9) ────────────────────────────────────
+   Çerçeve hangi kapsam öğesi TÜRLERİNE asılır, hangi öznitelik koşuluyla.
+   Paket beyan eder, kurucu `UygulanabilirlikKurali` (köken paket) yazar,
+   motor karar ÖNERİR; hiçbiri koda gömülmez. Koşul dili motorunkiyle
+   aynıdır (herhangi/hepsi · alan · işleç · değer, iç içe). */
+export type AlanKosulu = { alan: string; islec: (typeof KURAL_ISLECLERI)[number]; deger: string | number | boolean | string[] };
+export type KuralBeyani = { herhangi?: KosulBeyani[]; hepsi?: KosulBeyani[] };
+export type KosulBeyani = AlanKosulu | KuralBeyani;
+const AlanKosuluSemasi = z.object({
+  alan: z.string().regex(ANAHTAR, 'alan camelCase: paketin öznitelik anahtarı ya da kapsamTuru'),
+  islec: z.enum(KURAL_ISLECLERI),
+  deger: z.union([z.string(), z.number(), z.boolean(), z.array(z.string().min(1)).min(1)]),
+}).strict();
+export const KuralSemasi: z.ZodType<KuralBeyani> = z.lazy(() => z.object({
+  herhangi: z.array(z.union([AlanKosuluSemasi, KuralSemasi])).min(1).optional(),
+  hepsi: z.array(z.union([AlanKosuluSemasi, KuralSemasi])).min(1).optional(),
+}).strict().refine((k) => (k.herhangi ? 1 : 0) + (k.hepsi ? 1 : 0) === 1, 'kural ya `herhangi` ya `hepsi` taşır, ikisini değil'));
+export const UygulanabilirlikBeyaniSemasi = z.object({
+  /** çekirdek tür kodu ya da paketin kapsam-turleri.json kodu — doğrulayıcı ikisine de bakar */
+  kapsamTurleri: z.array(z.string().regex(TUR_KODU, 'tür kodu küçük harf ve alt çizgi')).min(1, 'en az bir kapsam öğesi türü'),
+  /** öznitelik koşulu (ör. `kuruluGuc >= 100`); yoksa yalnız tür bağı */
+  kosul: KuralSemasi.nullable().optional(),
+  /** dayanak — hangi madde bunu söylüyor ("MADDE 2 (1): kurulu gücü 100 MWe ve üzeri…") */
+  aciklama: z.string().max(500).optional(),
+}).strict();
+export type UygulanabilirlikBeyani = z.infer<typeof UygulanabilirlikBeyaniSemasi>;
+/** Beyandan motor kuralı: kapsam türü `icinde` koşulu VE (varsa) paketin öznitelik koşulu. */
+export function beyandanKural(b: UygulanabilirlikBeyani): KuralBeyani {
+  return { hepsi: [{ alan: KAPSAM_TURU_ALANI, islec: 'icinde', deger: [...b.kapsamTurleri] }, ...(b.kosul ? [b.kosul] : [])] };
+}
+
 export const CerceveKimligiSemasi = z.object({
   kod: z.string().regex(CERCEVE_KODU, 'çerçeve kodu BÜYÜK harf: EPDK-SGYM'),
   ad: z.string().min(3).max(200),
@@ -131,6 +186,8 @@ export const CerceveKimligiSemasi = z.object({
   /** madde ağacı — bu JSON'la aynı dizinde: CSV (yazar biçimi) ya da OSCAL 1.1 katalog JSON'u (`.oscal.json`, 2.7) */
   maddeDosyasi: z.string().regex(/^[A-Za-z0-9._-]+\.(?:csv|oscal\.json)$/, 'madde dosyası .csv ya da .oscal.json'),
   zorunlulukTipi: z.enum(ZORUNLULUK_TIPLERI).default('REGULATION'),
+  /** uygulanabilirlik beyanı (§1/9); yoksa çerçeve tür bağı beyan etmez — kiracı kuralı yazar */
+  uygulanabilirlik: UygulanabilirlikBeyaniSemasi.nullable().optional(),
   not: z.string().max(500).optional(),
 }).strict();
 export type CerceveKimligi = z.infer<typeof CerceveKimligiSemasi>;
@@ -139,7 +196,13 @@ export type CerceveKimligi = z.infer<typeof CerceveKimligiSemasi>;
 export const MADDE_ZORUNLU_SUTUNLAR = ['kod', 'ust_kod', 'baslik'] as const;
 export const MADDE_SUTUNLARI = [
   ...MADDE_ZORUNLU_SUTUNLAR, 'metin', 'sira', 'seviye', 'zorunluluk_tipi', 'kanit_beklentisi', 'dis_kontrol_id', 'kanit_tipi',
+  'kaynak_url', 'kaynak_yeri', 'erisim_tarihi', 'yururluk_tarihi',
 ] as const;
+/** Köken sütunları (içerik): `kaynak_url` resmî belge adresi · `kaynak_yeri` belge içi konum ·
+    `erisim_tarihi` kaynağa erişim günü · `yururluk_tarihi` maddenin kendi yürürlüğü (değişiklik
+    tarihi; boşsa çerçevenin yürürlüğü). Metin girilmiş kamuya açık maddede `kaynak_url` ve
+    `erisim_tarihi` ZORUNLUDUR (demo paketi kurgusaldır, muaf). */
+export const KAYNAK_SUTUNLARI = ['kaynak_url', 'kaynak_yeri', 'erisim_tarihi', 'yururluk_tarihi'] as const;
 /** `kanit_tipi` (2.5): maddenin beklediği kanıt TÜRÜNÜN kodu (`kayit`, `konfigurasyon`,
     `test_kaydi`…) — `/ice-aktarim` ile aynı serbest kod; metin değil, ≤ 40 karakter.
     Tohumun `Madde.kanitTipi` değeri paket biçimine kayıpsız taşınsın diye eklendi. */
@@ -148,6 +211,7 @@ export type MaddeSatiri = {
   kod: string; ustKod: string | null; baslik: string; metin: string | null; sira: number;
   seviye: number | null; zorunlulukTipi: string | null; kanitBeklentisi: string | null; disKontrolId: string | null;
   kanitTipi: string | null;
+  kaynakUrl: string | null; kaynakYeri: string | null; erisimTarihi: string | null; yururlukTarihi: string | null;
 };
 
 export const YukumlulukSatiriSemasi = z.object({

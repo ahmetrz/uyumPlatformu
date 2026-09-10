@@ -35,9 +35,9 @@ const { isKos } = await import('@/lib/motorlar/isKosucu');
 const { MOTORLAR, MOTOR_ADLARI } = await import('@/lib/motorlar/kayit');
 
 describe('Motor defteri — uçtan uca koşu', () => {
-  it('defterdeki on sekiz motorun her biri seed verisinde HATASIZ koşar [YON-MOT-003]', async () => {
+  it('defterdeki on dokuz motorun her biri seed verisinde HATASIZ koşar [YON-MOT-003]', async () => {
     // Defterin dolu olduğunu da ölç: boş bir defter bu testi yanlışlıkla geçerdi.
-    expect(MOTOR_ADLARI).toHaveLength(18);
+    expect(MOTOR_ADLARI).toHaveLength(19);
     expect(MOTOR_ADLARI).toContain('erisim_degerlendirme');
     expect(MOTOR_ADLARI).toContain('zimmet_suresi');
     /* Duruş üçlüsü ADIYLA aranır: sayıyı 12'ye çıkarıp üçünden birini

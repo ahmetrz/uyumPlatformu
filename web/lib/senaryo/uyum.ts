@@ -462,6 +462,44 @@ export const UYUM_SENARYOLARI: Senaryo[] = [
     katmanlar: ['SERVER', 'DOMAIN', 'WORKFLOW'],
   },
 
+  /* ── R1 · Mevzuat radarı ────────────────────────────────────────── */
+  {
+    id: 'MEV-RAD-001', alan: 'Uyum', rota: '/mevzuat-radari', eksen: 'akis',
+    amac: '"Güncel kalır" sözünün karşılığını kurmak — ve NEREYE BAKILAMADIĞINI söylemek',
+    rol: 'uyum yöneticisi', kapsam: 'kurum geneli',
+    onkosul: 'Kurulu pakette kaynak kataloğu var; kaynaklar VARSAYILAN OLARAK KAPALI',
+    veriHali: 'kısmi',
+    eylem: 'Radar motoru koşar (`mevzuatRadari.mevzuatRadariniIsle`); insan adayları inceler',
+    beklenenSonuc: 'Motor yalnız ADAY ve tarama kaydı üretir; çerçeve sürümüne,'
+      + ' regülasyona ve kaynağın `etkin` alanına DOKUNMAZ. robots.txt kaynağın'
+      + ' KENDİSİNDEN ÖNCE sorulur; robots kapatıyorsa ya da anti-bot yanıtı'
+      + ' (401 · 403 · 418 · 429) geldiyse kaynak ENGELLİ işaretlenir ve engel'
+      + ' ATLATILMAZ. Kaynak başına günde BİR istek. Biçim tanınmazsa sonuç'
+      + ' "fark yok" değil KARŞILAŞTIRILAMADI (`farkVar` NULL) olur',
+    beklenenEkran: 'ENGELLİ ve KARŞILAŞTIRILAMADI iki AYRI metriktir; hiç taranmamış'
+      + ' kaynak da ayrı sayılır ve "değişiklik yok" demez',
+    beklenenIz: 'MevzuatDegisiklikAdayi · guncelleme (insan kararında) ·'
+      + ' MevzuatKaynagi · guncelleme (tarama açılıp kapandığında)',
+    beklenenBildirim: 'yok',
+    katmanlar: ['SERVER', 'DOMAIN', 'WORKFLOW', 'UI'],
+  },
+  {
+    id: 'MEV-RAD-002', alan: 'Uyum', rota: '/mevzuat-radari', eksen: 'yetki',
+    amac: 'Gerekçesiz kapatılan bir değişiklik adayını engellemek',
+    rol: 'uyum yöneticisi', kapsam: 'kurum geneli',
+    onkosul: 'Karar bekleyen bir aday var', veriHali: 'kısmi',
+    eylem: 'İnsan adayı "ilgisiz" işaretler ama gerekçeyi boş bırakır',
+    beklenenSonuc: 'İstek REDDEDİLİR ve aday DEĞİŞMEZ. "İlgisiz" DE bir karardır:'
+      + ' gerekçesiz kapatılan bir aday, üç ay sonra neden kapatıldığı bilinmeyen'
+      + ' bir boşluktur. Kapsam KAPSAMSIZ sorulur — bir tebliğ değişikliği'
+      + ' KURUMUN meselesidir, tesise kısıtlı rol geçmez. Taramayı açıp kapatmak'
+      + ' AYRI bir yetkidir (yonetim/onay) ve ENGELLİ kaynakta tarama AÇILAMAZ',
+    beklenenEkran: 'Hata satırı alanın altında; aday hâlâ "yeni"',
+    beklenenIz: 'red: yazma yok · kabul: MevzuatDegisiklikAdayi · guncelleme (gerekçeli)',
+    beklenenBildirim: 'yok',
+    katmanlar: ['SERVER', 'RBAC', 'DOMAIN', 'UI'],
+  },
+
   /* ── R12 · Denetim formları ─────────────────────────────────────── */
   {
     id: 'DNT-FRM-001', alan: 'Denetim', rota: '/raporlar/denetim-formlari',

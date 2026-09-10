@@ -4612,3 +4612,118 @@ model OturumPolitikasi {
   guncellendi   DateTime @updatedAt
   guncelleyenId String?
 }
+
+/// ═══ R1 · MEVZUAT RADARI ═════════════════════════════════════════════
+///
+/// "Güncel kalır" sözünün karşılığı. Üç tablo bir zincir kurar:
+/// KAYNAK (nereye bakılır) → TARAMA (bakıldı mı, sonuç ne) → ADAY
+/// (insanın önüne konan değişiklik önerisi).
+///
+/// ── MOTOR ÖNERİR, İNSAN KARAR VERİR ──────────────────────────────────
+/// Motor yalnız ADAY ve BİLDİRİM üretir. Çerçeve sürümünü, regülasyon
+/// kaydını ya da kaynağın kendisini DEĞİŞTİRMEZ. Bir uyum ürününde
+/// mevzuatın ne zaman değiştiğine karar vermek bir tarayıcının işi
+/// değildir; ürünün işi o kararı ZAMANINDA insanın önüne koymaktır.
+///
+/// ── KAYNAK KATALOĞU PAKETTEN GELİR ───────────────────────────────────
+/// Hangi resmî kanalın izleneceği ülkeye ve sektöre bağlıdır; çekirdeğe
+/// gömülmez (`kaynak-katalogu.json`, P4). `paketKodu` kaydın hangi
+/// paketten geldiğini söyler; elle eklenen kaynakta null'dur.
+model MevzuatKaynagi {
+  id          String  @id @default(cuid())
+  kod         String  @unique
+  ad          String
+  /// İzlenecek liste ya da besleme adresi. Kamuya AÇIK resmî kanaldır.
+  yayinKanali String
+  /// rss | liste — ayrıştırıcı seçimi.
+  tur         String  @default("liste")
+  dil         String  @default("tr")
+  /// Hangi paketten geldi; elle eklenen kaynakta null.
+  paketKodu   String?
+  /// Mercinin adı — adayın hangi düzenleyiciden geldiğini ekran söyler.
+  merci       String?
+
+  /// TARAMA VARSAYILAN OLARAK KAPALIDIR. Bir kaynağa istek göndermek
+  /// kurulumun kendi kararıdır; ürün kurulur kurulmaz dışarı çıkmaz.
+  etkin Boolean @default(false)
+
+  /// hazir | engelli | hata
+  ///
+  /// `engelli`: kaynak robots.txt ile izin vermiyor ya da anti-bot
+  /// yanıtı (403 · 418) döndü. BU DURUM ATLATILMAZ — ürün kaynağı
+  /// engelli işaretler ve ELLE İZLEME yolunu açık tutar. Bir uyum
+  /// ürününün bir kamu kurumunun erişim kuralını delmesi, ürünün
+  /// savunduğu şeyin tam tersidir.
+  durum     String  @default("hazir")
+  durumNotu String?
+
+  /// Son tarama anı — kaynak başına GÜNDE BİR istek kuralının dayanağı.
+  sonTarama DateTime?
+
+  olusturuldu DateTime @default(now())
+  guncellendi DateTime @updatedAt
+
+  taramalar MevzuatTaramasi[]
+  adaylar   MevzuatDegisiklikAdayi[]
+
+  @@index([etkin, durum])
+}
+
+/// Bir tarama KOŞUMU.
+///
+/// `farkVar` ÜÇ DEĞERLİDİR ve bu bilinçlidir:
+///   true  → değişiklik bulundu
+///   false → bakıldı, değişiklik yok
+///   null  → KARŞILAŞTIRILAMADI (kaynak engelli · ağ yok · biçim
+///           tanınmadı). "Bilinmeyen ≠ sıfır": null'u false saymak,
+///           bakılamamış bir kaynağı "temiz" göstermek olurdu.
+model MevzuatTaramasi {
+  id       String   @id @default(cuid())
+  kaynakId String
+  zaman    DateTime @default(now())
+
+  farkVar    Boolean?
+  /// `farkVar` null ise NEDEN karşılaştırılamadığı — boş bırakılamaz.
+  sebep      String?
+  /// Alınan HTTP kodu; ağa hiç çıkılamadıysa null.
+  httpKodu   Int?
+  /// Bu koşuda AÇILAN aday sayısı (var olan aday yeniden açılmaz).
+  adaySayisi Int      @default(0)
+
+  kaynak MevzuatKaynagi @relation(fields: [kaynakId], references: [id], onDelete: Cascade)
+
+  @@index([kaynakId, zaman])
+}
+
+/// Motorun insanın önüne koyduğu DEĞİŞİKLİK ADAYI.
+///
+/// Aday hiçbir şeyi değiştirmez: ne regülasyonu, ne çerçeve sürümünü,
+/// ne kaynağı. İnsan onu "sürüm taslağı aç" ile mevcut akışa bağlar;
+/// aktif sürüm o akışta da değişmez, aktifleştirme ayrı bir karardır.
+model MevzuatDegisiklikAdayi {
+  id       String @id @default(cuid())
+  kaynakId String
+  /// Kaynaktaki kaydın adresi — aynı kayıt iki kez aday olmasın.
+  url      String
+  baslik   String
+
+  yayinTarihi DateTime?
+  /// Kaynağın kendi özeti; TELİFLİ TAM METİN GİRMEZ.
+  ozet        String?
+
+  bulundu DateTime @default(now())
+
+  /// yeni | incelendi | ilgisiz | surum_taslagi_acildi
+  durum        String    @default("yeni")
+  kararVerenId String?
+  kararZamani  DateTime?
+  /// Karar gerekçesi — "ilgisiz" demek de bir karardır ve yazılır.
+  gerekce      String?
+  /// Taslak açıldıysa hangi çerçeve sürümüne bağlandı.
+  surumId      String?
+
+  kaynak MevzuatKaynagi @relation(fields: [kaynakId], references: [id], onDelete: Cascade)
+
+  @@unique([kaynakId, url])
+  @@index([durum, bulundu])
+}

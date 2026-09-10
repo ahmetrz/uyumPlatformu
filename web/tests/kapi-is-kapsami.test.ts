@@ -121,6 +121,12 @@ const EKLENEN_KAPILAR = [
      hiçbir ekranda görünmediğini ve bağlı olmayan sağlayıcının giriş
      ekranında çıkmadığını tarayıcıda ölçer. */
   'npm run kanit:kimlik',
+  /* R1 · mevzuat radarı ekranının iki bantta kanıtı. En pahalı iddia:
+     ENGELLİ ile KARŞILAŞTIRILAMADI ekranda AYRI görünüyor. İkisi ayrı
+     metriktir çünkü biri kaynağın kararıdır (ürün aşmaz), öbürü bizim
+     bilgi eksiğimizdir — tek sayıya toplamak, bakılamamış bir kaynağı
+     "temiz" göstermeye bir adım kalırdı. */
+  'npm run kanit:mevzuat-radari',
 ];
 
 describe('kapı kümesi bölünmeyle değişmez', () => {
@@ -156,7 +162,7 @@ describe('kapı kümesi bölünmeyle değişmez', () => {
        kimlik kanıtı). Bölünmenin ölçüsü kapı sayısı değil, kapıların
        KENDİ İŞİNDEKİ yaşam döngüsüne göre doğru sınıflanması. */
     const tarayicili = kapiAdimlari(AKIS).filter((a) => a.sunucuIster);
-    expect(tarayicili).toHaveLength(8);
+    expect(tarayicili).toHaveLength(9);
     expect(new Set(tarayicili.map((a) => a.is)).size).toBe(4);
   });
 

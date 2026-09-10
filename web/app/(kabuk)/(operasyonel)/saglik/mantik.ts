@@ -107,6 +107,12 @@ const IS_KATALOGU: IsKatalogSatiri[] = [
     aciklama: 'Süresi geçen, sahibi pasifleşen ya da sahipliği başka yoldan '
       + 'değişen zimmet taleplerini düşürür — kimse ADINA KABUL ETMEZ, '
       + 'varlığın sahibini değiştirmez ve yeni talep açmaz' },
+  /* Mevzuat radarı (R1). Açıklaması NE YAPMADIĞINI da söyler: motor
+     kaynağa bakar, kararı insana bırakır ve engeli AŞMAZ. */
+  { ad: 'mevzuat_radari', etiket: 'Mevzuat radarı', elleCalisir: true,
+    aciklama: 'Taraması AÇIK kaynakları günde bir kez okur ve değişiklik ADAYI '
+      + 'açar — çerçeve sürümüne, regülasyona ve taramanın açık olmasına '
+      + 'DOKUNMAZ; robots.txt ve anti-bot engelini ATLATMAZ' },
   { ad: 'bakim_temizlik', etiket: 'Bakım temizliği', elleCalisir: false,
     aciklama: 'Süresi dolmuş oturum ve iş kilidi satırlarını siler (saatlik, zamanlayıcıdan) '
       + '— bulgu üretmez, veri yorumlamaz' },

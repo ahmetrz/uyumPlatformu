@@ -2663,6 +2663,57 @@ CREATE TABLE "OturumPolitikasi" (
     CONSTRAINT "OturumPolitikasi_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "MevzuatKaynagi" (
+    "id" TEXT NOT NULL,
+    "kod" TEXT NOT NULL,
+    "ad" TEXT NOT NULL,
+    "yayinKanali" TEXT NOT NULL,
+    "tur" TEXT NOT NULL DEFAULT 'liste',
+    "dil" TEXT NOT NULL DEFAULT 'tr',
+    "paketKodu" TEXT,
+    "merci" TEXT,
+    "etkin" BOOLEAN NOT NULL DEFAULT false,
+    "durum" TEXT NOT NULL DEFAULT 'hazir',
+    "durumNotu" TEXT,
+    "sonTarama" TIMESTAMP(3),
+    "olusturuldu" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "guncellendi" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "MevzuatKaynagi_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "MevzuatTaramasi" (
+    "id" TEXT NOT NULL,
+    "kaynakId" TEXT NOT NULL,
+    "zaman" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "farkVar" BOOLEAN,
+    "sebep" TEXT,
+    "httpKodu" INTEGER,
+    "adaySayisi" INTEGER NOT NULL DEFAULT 0,
+
+    CONSTRAINT "MevzuatTaramasi_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "MevzuatDegisiklikAdayi" (
+    "id" TEXT NOT NULL,
+    "kaynakId" TEXT NOT NULL,
+    "url" TEXT NOT NULL,
+    "baslik" TEXT NOT NULL,
+    "yayinTarihi" TIMESTAMP(3),
+    "ozet" TEXT,
+    "bulundu" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "durum" TEXT NOT NULL DEFAULT 'yeni',
+    "kararVerenId" TEXT,
+    "kararZamani" TIMESTAMP(3),
+    "gerekce" TEXT,
+    "surumId" TEXT,
+
+    CONSTRAINT "MevzuatDegisiklikAdayi_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "Sektor_kod_key" ON "Sektor"("kod");
 
@@ -3301,6 +3352,21 @@ CREATE INDEX "MfaKurtarmaKodu_kayitId_idx" ON "MfaKurtarmaKodu"("kayitId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "OturumPolitikasi_kiraci_key" ON "OturumPolitikasi"("kiraci");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "MevzuatKaynagi_kod_key" ON "MevzuatKaynagi"("kod");
+
+-- CreateIndex
+CREATE INDEX "MevzuatKaynagi_etkin_durum_idx" ON "MevzuatKaynagi"("etkin", "durum");
+
+-- CreateIndex
+CREATE INDEX "MevzuatTaramasi_kaynakId_zaman_idx" ON "MevzuatTaramasi"("kaynakId", "zaman");
+
+-- CreateIndex
+CREATE INDEX "MevzuatDegisiklikAdayi_durum_bulundu_idx" ON "MevzuatDegisiklikAdayi"("durum", "bulundu");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "MevzuatDegisiklikAdayi_kaynakId_url_key" ON "MevzuatDegisiklikAdayi"("kaynakId", "url");
 
 -- AddForeignKey
 ALTER TABLE "KapsamOgesiTuru" ADD CONSTRAINT "KapsamOgesiTuru_sektorId_fkey" FOREIGN KEY ("sektorId") REFERENCES "Sektor"("id") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -4228,6 +4294,12 @@ ALTER TABLE "MfaKaydi" ADD CONSTRAINT "MfaKaydi_kullaniciId_fkey" FOREIGN KEY ("
 
 -- AddForeignKey
 ALTER TABLE "MfaKurtarmaKodu" ADD CONSTRAINT "MfaKurtarmaKodu_kayitId_fkey" FOREIGN KEY ("kayitId") REFERENCES "MfaKaydi"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "MevzuatTaramasi" ADD CONSTRAINT "MevzuatTaramasi_kaynakId_fkey" FOREIGN KEY ("kaynakId") REFERENCES "MevzuatKaynagi"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "MevzuatDegisiklikAdayi" ADD CONSTRAINT "MevzuatDegisiklikAdayi_kaynakId_fkey" FOREIGN KEY ("kaynakId") REFERENCES "MevzuatKaynagi"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- ═══════════════════════════════════════════════════════════════════════
 -- ELLE YAZILAN DDL · PostgreSQL karşılıkları (R5)

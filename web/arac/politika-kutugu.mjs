@@ -77,9 +77,19 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   if (yaz) {
     const eski = (() => { try { return kutuguOku(); } catch { return { satirlar: [] }; } })();
     const eskiler = new Map(eski.satirlar.map((s) => [s.cumle, s]));
-    const satirlar = bulunan.map((b, i) => eskiler.get(b.cumle) ?? {
-      kod: `POL-${String(i + 1).padStart(3, '0')}`,
-      cumle: b.cumle, yer: b.yer, sinif: 'SINIFLANDIRILMADI',
+    /* YENİ SATIRA BOŞ KOD VERİLİR. İndise göre kod üretmek, listeye bir
+       cümle eklendiği gün var olan kodlarla ÇAKIŞIYORDU (ölçüldü: dört
+       çift kod). Kod bir kez verilir ve cümle kalktığında geri gelmez. */
+    let sonraki = eski.satirlar.reduce(
+      (a, s) => Math.max(a, Number((s.kod ?? '').replace('POL-', '')) || 0), 0);
+    const satirlar = bulunan.map((b) => {
+      const varolan = eskiler.get(b.cumle);
+      if (varolan) return varolan;
+      sonraki += 1;
+      return {
+        kod: `POL-${String(sonraki).padStart(3, '0')}`,
+        cumle: b.cumle, yer: b.yer, sinif: 'SINIFLANDIRILMADI',
+      };
     });
     writeFileSync(KUTUK, `${JSON.stringify({ ...eski, satirlar }, null, 2)}\n`);
     console.log(`kütük yazıldı: ${satirlar.length} satır`);

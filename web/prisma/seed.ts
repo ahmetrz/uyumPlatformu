@@ -792,6 +792,85 @@ async function main() {
     + ` · ${bildirim.suresiz} kayıtta süre mevzuatta belirlenmedi`
     + '.');
 
+  /* ── R1 · MEVZUAT RADARI · DEMO HÂLLERİ ─────────────────────────────
+     Kaynaklar DEMO-TR-ORTAK kataloğundan geldi ve KAPALI doğdu; tohum
+     onları AÇMAZ (taramayı açmak insan kararıdır). Tohumun yazdığı tek
+     şey, ekranın üç ayrı hâli gösterebilmesi için gereken TARAMA
+     GEÇMİŞİDİR — üçü de kurgusal:
+
+       fark yok            → bakıldı, değişiklik yok
+       KARŞILAŞTIRILAMADI  → bakıldı, sonuç çıkarılamadı (farkVar NULL)
+       ENGELLİ             → kaynağın kendi kararı, ürün aşmaz
+
+     İkisi arasındaki farkın ekranda AYRI göründüğü tarayıcı kanıtıyla
+     ölçülür (`npm run kanit:mevzuat-radari`). */
+  const radarKaynaklari = await db.mevzuatKaynagi.findMany({
+    where: { paketKodu: 'DEMO-TR-ORTAK' }, orderBy: { kod: 'asc' },
+  });
+  for (const kaynak of radarKaynaklari) {
+    if (kaynak.kod === 'DEMO-KAYNAK-ENGELLI') {
+      await db.mevzuatKaynagi.update({
+        where: { id: kaynak.id },
+        data: {
+          durum: 'engelli', sonTarama: new Date(Date.now() - 3 * 24 * 3_600_000),
+          durumNotu: 'Kaynak otomatik erişime kapalı (kurgusal). ELLE izlenir;'
+            + ' ürün bu engeli aşmaz.',
+        },
+      });
+      await db.mevzuatTaramasi.create({
+        data: {
+          kaynakId: kaynak.id, farkVar: null,
+          sebep: 'robots.txt bu yolu kapatıyor (/)',
+          zaman: new Date(Date.now() - 3 * 24 * 3_600_000),
+        },
+      });
+      continue;
+    }
+    if (kaynak.kod === 'DEMO-KAYNAK-BILINMEYEN') {
+      await db.mevzuatKaynagi.update({
+        where: { id: kaynak.id },
+        data: { durum: 'hata', durumNotu: 'RSS kökü var ama hiçbir öğe okunamadı',
+          sonTarama: new Date(Date.now() - 2 * 3_600_000) },
+      });
+      await db.mevzuatTaramasi.create({
+        data: {
+          kaynakId: kaynak.id, farkVar: null, httpKodu: 200,
+          sebep: 'biçim okunamadı: RSS kökü var ama hiçbir öğe okunamadı',
+          zaman: new Date(Date.now() - 2 * 3_600_000),
+        },
+      });
+      continue;
+    }
+    /* Sağlam kaynak: bir koşu fark buldu, iki aday karar bekliyor. */
+    await db.mevzuatKaynagi.update({
+      where: { id: kaynak.id },
+      data: { durum: 'hazir', sonTarama: new Date(Date.now() - 6 * 3_600_000) },
+    });
+    await db.mevzuatTaramasi.create({
+      data: { kaynakId: kaynak.id, farkVar: true, httpKodu: 200, adaySayisi: 2,
+        zaman: new Date(Date.now() - 6 * 3_600_000) },
+    });
+    for (const [i, baslik] of [
+      'Kurgusal tebliğ değişikliği — bildirim süreleri',
+      'Kurgusal kurul kararı — kapsam güncellemesi',
+    ].entries()) {
+      await db.mevzuatDegisiklikAdayi.upsert({
+        where: { kaynakId_url: { kaynakId: kaynak.id, url: `${kaynak.yayinKanali}/${i + 1}` } },
+        create: {
+          kaynakId: kaynak.id, url: `${kaynak.yayinKanali}/${i + 1}`, baslik,
+          ozet: 'Kurgusal özet — gerçek bir mevzuat metni değildir.',
+          yayinTarihi: new Date(Date.now() - (i + 1) * 24 * 3_600_000),
+          bulundu: new Date(Date.now() - 6 * 3_600_000),
+        },
+        update: {},
+      });
+    }
+  }
+  const radarOzet = await db.mevzuatKaynagi.count();
+  console.log(`Mevzuat radarı: ${radarOzet} kaynak kurulu`
+    + ` · ${await db.mevzuatKaynagi.count({ where: { etkin: true } })} taraması açık`
+    + ` · ${await db.mevzuatDegisiklikAdayi.count({ where: { durum: 'yeni' } })} aday karar bekliyor.`);
+
   console.log('Seed tamam. Geliştirme girişi: kullanici.a@demo.local / ' + GELISTIRME_PAROLASI);
 }
 

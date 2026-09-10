@@ -61,7 +61,8 @@
     "paket:dogrula": "tsx arac/paket-dogrula.ts",
     "pg:istemci": "node arac/pg-istemci.mjs",
     "pg:test-sablonu": "node arac/pg-test-sablonu.mjs",
-    "kapi:compose": "node arac/compose-duman.mjs"
+    "kapi:compose": "node arac/compose-duman.mjs",
+    "kanit:mevzuat-radari": "node arac/mevzuat-radari-kanit.mjs"
   },
   "dependencies": {
     "@prisma/adapter-better-sqlite3": "^7.10.0",

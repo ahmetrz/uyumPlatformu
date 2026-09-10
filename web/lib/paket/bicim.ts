@@ -459,6 +459,31 @@ export const RolSatiriSemasi = z.object({
 }).strict();
 export type RolSatiri = z.infer<typeof RolSatiriSemasi>;
 
+/* ── 2.8 · Kaynak kataloğu (R1 · mevzuat radarı) ───────────────────────
+   `kaynak-katalogu.json` — hangi RESMÎ YAYIN KANALININ izleneceği ülkeye
+   ve sektöre bağlıdır; çekirdeğe gömülemez (sektör-ülke bağımsızlık).
+   Paket kanalı ÖNERİR; taramayı açmak KURULUMUN kararıdır ve kurucu
+   `etkin` alanına HİÇ dokunmaz — kurulan kaynak KAPALI doğar.
+
+   Adres kamuya açık ve `https` olmak zorundadır: bir uyum ürünü izlediği
+   kaynağı şifresiz taşıyamaz ve müşterinin kendi iç sistemine bakamaz
+   (bu kural `docs/GELISTIRME_PAKETLERI.md` §0.2'de yazılı). */
+export const KAYNAK_TURLERI = ['rss', 'liste'] as const;
+
+export const KaynakSatiriSemasi = z.object({
+  kod: z.string().regex(CERCEVE_KODU, 'kaynak kodu BÜYÜK harf ve tire: TR-RG-MEVZUAT'),
+  ad: z.string().min(3).max(120),
+  /** Kamuya AÇIK resmî kanal. `https` zorunlu. */
+  yayinKanali: z.string().url().refine((u) => u.startsWith('https://'),
+    'yayın kanalı https olmalı'),
+  tur: z.enum(KAYNAK_TURLERI).default('liste'),
+  dil: z.string().min(2).max(8).default('tr'),
+  /** Düzenleyici mercinin adı — aday hangi merciden geldi. */
+  merci: z.string().max(120).optional(),
+  not: z.string().max(300).optional(),
+}).strict();
+export type KaynakSatiri = z.infer<typeof KaynakSatiriSemasi>;
+
 /* ── 2.4 · Eşleme CSV türü (§1/4 · §4 "müşterinin eşlemeleri ezilmez") ──
    `esleme/<KOD>.json` kimlik + `esleme/<KOD>.csv` satırlar. Eşleme
    çerçeveler ARASIDIR: kaynak ve hedef çerçeve + sürüm etiketi kimlikte
@@ -501,6 +526,7 @@ export const DOSYALAR = {
   oznitelikler: 'oznitelikler.json',
   yukumlulukler: 'yukumlulukler.json',
   roller: 'roller.json',
+  kaynakKatalogu: 'kaynak-katalogu.json',
   cerceveDizini: 'cerceve',
   eslemeDizini: 'esleme',
   formDizini: 'form',

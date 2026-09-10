@@ -169,6 +169,16 @@
       }
     },
     {
+      "kod": "POL-073",
+      "cumle": "Bu aday karara bağlandı. Kayıt SİLİNMEZ; denetim izinde",
+      "yer": "app/(kabuk)/(operasyonel)/mevzuat-radari/RadarIstemci.tsx",
+      "sinif": "POLITIKA",
+      "olcum": {
+        "dosya": "tests/mevzuat-radari-eylem.test.ts",
+        "vaka": "KARARA BAĞLANMIŞ aday ikinci kez karara bağlanmaz"
+      }
+    },
+    {
       "kod": "POL-019",
       "cumle": "bu aktarım hiçbir kayıt yazmaz.",
       "yer": "app/(kabuk)/(operasyonel)/varlik-aktarim/VarlikAktarimIstemci.tsx",
@@ -316,6 +326,16 @@
       "olculmedi": {
         "sahip": "KODLAYAN",
         "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
+      }
+    },
+    {
+      "kod": "POL-074",
+      "cumle": "Engelli kaynakta tarama AÇILAMAZ. Kaynak otomatik erişime",
+      "yer": "app/(kabuk)/(operasyonel)/mevzuat-radari/RadarIstemci.tsx",
+      "sinif": "POLITIKA",
+      "olcum": {
+        "dosya": "tests/mevzuat-radari-eylem.test.ts",
+        "vaka": "ENGELLİ kaynakta tarama AÇILAMAZ"
       }
     },
     {
@@ -486,6 +506,16 @@
       }
     },
     {
+      "kod": "POL-075",
+      "cumle": "kapsam gerektirir. Aday okunabilir, kapatılamaz.",
+      "yer": "app/(kabuk)/(operasyonel)/mevzuat-radari/RadarIstemci.tsx",
+      "sinif": "POLITIKA",
+      "olcum": {
+        "dosya": "tests/mevzuat-radari-eylem.test.ts",
+        "vaka": "tesise KISITLI rol karar veremez"
+      }
+    },
+    {
       "kod": "POL-051",
       "cumle": "Kapsamın onaylı temeli yok — karşılaştırma yapılamaz, sapma HESAPLANMAZ.",
       "yer": "app/(kabuk)/(operasyonel)/topoloji/Karar.tsx",
@@ -580,6 +610,16 @@
       "olcum": {
         "dosya": "tests/senaryo-platform.test.ts",
         "vaka": "denetim izini koruyan tetikleyiciler göçlerde tanımlıdır"
+      }
+    },
+    {
+      "kod": "POL-076",
+      "cumle": "Motor yalnız ADAY açar: çerçeve sürümünü, regülasyonu ve",
+      "yer": "app/(kabuk)/(operasyonel)/mevzuat-radari/RadarIstemci.tsx",
+      "sinif": "POLITIKA",
+      "olcum": {
+        "dosya": "tests/mevzuat-radari.test.ts",
+        "vaka": "MOTOR `etkin` alanına DOKUNMAZ"
       }
     },
     {

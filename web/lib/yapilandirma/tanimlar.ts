@@ -285,6 +285,10 @@ export const MOTOR_ADLARI_SOZLUK = [
   'bildirim_suresi',
   /* OT-09b · Zimmet süresi — aynı kural. */
   'zimmet_suresi',
+  /* R1 · Mevzuat radarı — aynı kural. Kapatmak taramayı topyekûn
+     durdurur; kaynak bazında açma/kapama `MevzuatKaynagi.etkin`
+     alanındadır ve o da insan kararıdır. */
+  'mevzuat_radari',
 ] as const;
 
 for (const ad of MOTOR_ADLARI_SOZLUK) {

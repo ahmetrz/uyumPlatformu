@@ -38,7 +38,7 @@ if (ozetYaz) {
 
 const s = paketiDogrula(dizin);
 const oz = s.sayilar;
-console.log(`${dizin}: sözlük ${oz.sozluk} · tür ${oz.kapsamTurleri} · öznitelik ${oz.oznitelikler} · çerçeve ${oz.cerceveler} · madde ${oz.maddeler} · eşleme ${oz.eslemeler} · yükümlülük ${oz.yukumlulukler} · form ${oz.formlar} · rapor ${oz.raporlar} · rol ${oz.roller}`);
+console.log(`${dizin}: sözlük ${oz.sozluk} · tür ${oz.kapsamTurleri} · öznitelik ${oz.oznitelikler} · çerçeve ${oz.cerceveler} · madde ${oz.maddeler} · eşleme ${oz.eslemeler} · yükümlülük ${oz.yukumlulukler} · form ${oz.formlar} · rapor ${oz.raporlar} · rol ${oz.roller} · kaynak ${oz.kaynaklar}`);
 /* MUAFİYET ADIYLA GÖRÜNÜR. Alan eşleme beyanının tek kaçış kapısı
    `temsili: true`dir (kaynak belgesi yok → beyan istenmez) ve bayrağı
    paketin KENDİ yazarı koyar. Hiçbir yerde okunmuyorsa kaçış kapısı

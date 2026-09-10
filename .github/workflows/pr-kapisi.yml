@@ -378,6 +378,16 @@ jobs:
         working-directory: web
         run: npm run kanit:kimlik
 
+      # R1 · mevzuat radarı. Aynı sunucuyu kullanır. Ölçtüğü en pahalı
+      # iddia: ENGELLİ ile KARŞILAŞTIRILAMADI ekranda AYRI görünüyor —
+      # biri kaynağın kararı (ürün aşmaz), öbürü bizim bilgi eksiğimiz.
+      # İkisini tek sayıya toplamak, bakılamamış bir kaynağı "temiz"
+      # göstermeye bir adım kalırdı. Fikstürü DEĞİŞTİRMEZ: denenen tek
+      # yazma GEREKÇESİZ karardır ve reddedilir.
+      - name: Mevzuat radarı kanıtı · iki bant
+        working-directory: web
+        run: npm run kanit:mevzuat-radari
+
       # SÜREÇ ADIYLA ÖLDÜRME — ÖLÇÜLDÜ VE İŞLEMEDİ. Bu adım bir zamanlar
       # `pkill -f 'next start' || true` idi ve HİÇBİR ŞEYİ öldürmüyordu:
       # `next start` açılıştan sonra süreç adını `next-server (vX.Y.Z)`

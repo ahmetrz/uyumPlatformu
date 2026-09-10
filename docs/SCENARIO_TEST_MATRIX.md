@@ -4,12 +4,12 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 345 |
-| Testi olan senaryo | 345 |
+| Senaryo | 348 |
+| Testi olan senaryo | 348 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
-| Taranan test dosyası | 220 |
+| Taranan test dosyası | 223 |
 
 ## Katman başına kapsam
 
@@ -18,17 +18,17 @@
 | ACCESSIBILITY | 8 | 8 | 0 |
 | API | 12 | 12 | 0 |
 | CONCURRENCY | 7 | 7 | 0 |
-| DOMAIN | 200 | 200 | 0 |
+| DOMAIN | 203 | 203 | 0 |
 | ENGINE | 33 | 33 | 0 |
 | INTEGRATION | 40 | 40 | 0 |
 | MIGRATION | 5 | 5 | 0 |
-| RBAC | 36 | 36 | 0 |
+| RBAC | 37 | 37 | 0 |
 | RESPONSIVE | 8 | 8 | 0 |
 | SCOPE | 30 | 30 | 0 |
-| SERVER | 141 | 141 | 0 |
-| UI | 98 | 98 | 0 |
+| SERVER | 143 | 143 | 0 |
+| UI | 100 | 100 | 0 |
 | VISUAL | 4 | 4 | 0 |
-| WORKFLOW | 36 | 36 | 0 |
+| WORKFLOW | 37 | 37 | 0 |
 
 ## Satır satır
 
@@ -178,6 +178,37 @@
 | `OLY-BIL-009` | Olay | SERVER · DOMAIN · WORKFLOW | `bildirim-tetikleyici-ayrimi.test.ts` | açık olaya YALNIZ olay tetikli kural için kayıt açılır | evet | geçti |
 | `OLY-BIL-009` | Olay | SERVER · DOMAIN · WORKFLOW | `bildirim-tetikleyici-ayrimi.test.ts` | TAKVİM yükümlülüğünün HİÇBİR olay kaydı yok | evet | geçti |
 | `OLY-BIL-009` | Olay | SERVER · DOMAIN · WORKFLOW | `bildirim-tetikleyici-ayrimi.test.ts` | ikinci koşu da açmıyor — tekrar da sızdırmaz | evet | geçti |
+| `MEV-RAD-001` | Uyum | SERVER · DOMAIN · WORKFLOW · UI | `mevzuat-radari.test.ts` | kapalı yol REDDEDİLİR, açık yol geçer | evet | geçti |
+| `MEV-RAD-001` | Uyum | SERVER · DOMAIN · WORKFLOW · UI | `mevzuat-radari.test.ts` | EN UZUN kural kazanır — Allow, kapsayan Disallow\'u yener | evet | geçti |
+| `MEV-RAD-001` | Uyum | SERVER · DOMAIN · WORKFLOW · UI | `mevzuat-radari.test.ts` | BİZE ÖZEL grup varsa yıldız grubu uygulanmaz | evet | geçti |
+| `MEV-RAD-001` | Uyum | SERVER · DOMAIN · WORKFLOW · UI | `mevzuat-radari.test.ts` | BOŞ robots.txt izin verir — kural yoksa yasak da yok | evet | geçti |
+| `MEV-RAD-001` | Uyum | SERVER · DOMAIN · WORKFLOW · UI | `mevzuat-radari.test.ts` | kaynak başına GÜNDE BİR istek | evet | geçti |
+| `MEV-RAD-001` | Uyum | SERVER · DOMAIN · WORKFLOW · UI | `mevzuat-radari.test.ts` | ANTI-BOT yanıtı ENGELLİ yazar, atlatmaz | evet | geçti |
+| `MEV-RAD-001` | Uyum | SERVER · DOMAIN · WORKFLOW · UI | `mevzuat-radari.test.ts` | BİLİNMEYEN "fark yok" DEĞİLDİR — cümlesi ayrıdır | evet | geçti |
+| `MEV-RAD-001` | Uyum | SERVER · DOMAIN · WORKFLOW · UI | `mevzuat-radari.test.ts` | aynı URL ikinci kez aday OLMAZ | evet | geçti |
+| `MEV-RAD-001` | Uyum | SERVER · DOMAIN · WORKFLOW · UI | `mevzuat-radari.test.ts` | RSS okunur; özet KISALTILIR | evet | geçti |
+| `MEV-RAD-001` | Uyum | SERVER · DOMAIN · WORKFLOW · UI | `mevzuat-radari.test.ts` | TANINMAYAN biçim "boş" değil BİLİNMİYOR döner | evet | geçti |
+| `MEV-RAD-001` | Uyum | SERVER · DOMAIN · WORKFLOW · UI | `mevzuat-radari.test.ts` | liste bağları GÖRECELİ adresle de çözülür | evet | geçti |
+| `MEV-RAD-001` | Uyum | SERVER · DOMAIN · WORKFLOW · UI | `mevzuat-radari.test.ts` | AÇIK kaynak taranır ve adaylar AÇILIR | evet | geçti |
+| `MEV-RAD-001` | Uyum | SERVER · DOMAIN · WORKFLOW · UI | `mevzuat-radari.test.ts` | ROBOTS.TXT kaynağın KENDİSİNDEN ÖNCE istenir | evet | geçti |
+| `MEV-RAD-001` | Uyum | SERVER · DOMAIN · WORKFLOW · UI | `mevzuat-radari.test.ts` | ikinci koşu AYNI adayları yeniden AÇMAZ | evet | geçti |
+| `MEV-RAD-001` | Uyum | SERVER · DOMAIN · WORKFLOW · UI | `mevzuat-radari.test.ts` | ENGELLİ kaynağa HİÇ İSTEK gönderilmez | evet | geçti |
+| `MEV-RAD-001` | Uyum | SERVER · DOMAIN · WORKFLOW · UI | `mevzuat-radari.test.ts` | ETKİN OLMAYAN kaynağa da HİÇ İSTEK gönderilmez | evet | geçti |
+| `MEV-RAD-001` | Uyum | SERVER · DOMAIN · WORKFLOW · UI | `mevzuat-radari.test.ts` | KOTA dolduysa aynı gün İKİNCİ istek gitmez | evet | geçti |
+| `MEV-RAD-001` | Uyum | SERVER · DOMAIN · WORKFLOW · UI | `mevzuat-radari.test.ts` | robots.txt KAPATIRSA kaynak ENGELLİ olur ve sayfaya gidilmez | evet | geçti |
+| `MEV-RAD-001` | Uyum | SERVER · DOMAIN · WORKFLOW · UI | `mevzuat-radari.test.ts` | MOTOR `etkin` alanına DOKUNMAZ | evet | geçti |
+| `MEV-RAD-001` | Uyum | SERVER · DOMAIN · WORKFLOW · UI | `mevzuat-radari.test.ts` | BİÇİM tanınmazsa farkVar NULL ve sebep YAZILI | evet | geçti |
+| `MEV-RAD-001` | Uyum | SERVER · DOMAIN · WORKFLOW · UI | `mevzuat-radari.test.ts` | MOTOR aday DURUMUNU yazmaz — hepsi "yeni" kalır | evet | geçti |
+| `MEV-RAD-002` | Uyum | SERVER · RBAC · DOMAIN · UI | `mevzuat-radari-eylem.test.ts` | GEREKÇESİZ karar REDDEDİLİR ve aday DEĞİŞMEZ | evet | geçti |
+| `MEV-RAD-002` | Uyum | SERVER · RBAC · DOMAIN · UI | `mevzuat-radari-eylem.test.ts` | BOŞLUKLA doldurulan gerekçe de geçmez | evet | geçti |
+| `MEV-RAD-002` | Uyum | SERVER · RBAC · DOMAIN · UI | `mevzuat-radari-eylem.test.ts` | GEREKÇELİ karar geçer ve İZ bırakır | evet | geçti |
+| `MEV-RAD-002` | Uyum | SERVER · RBAC · DOMAIN · UI | `mevzuat-radari-eylem.test.ts` | KARARA BAĞLANMIŞ aday ikinci kez karara bağlanmaz | evet | geçti |
+| `MEV-RAD-002` | Uyum | SERVER · RBAC · DOMAIN · UI | `mevzuat-radari-eylem.test.ts` | "İLGİSİZ" de bir karardır ve gerekçesiyle yazılır | evet | geçti |
+| `MEV-RAD-002` | Uyum | SERVER · RBAC · DOMAIN · UI | `mevzuat-radari-eylem.test.ts` | ENGELLİ kaynakta tarama AÇILAMAZ | evet | geçti |
+| `MEV-RAD-002` | Uyum | SERVER · RBAC · DOMAIN · UI | `mevzuat-radari-eylem.test.ts` | GEREKÇESİZ açma REDDEDİLİR | evet | geçti |
+| `MEV-RAD-002` | Uyum | SERVER · RBAC · DOMAIN · UI | `mevzuat-radari-eylem.test.ts` | GEREKÇELİ açma geçer ve İZ bırakır | evet | geçti |
+| `MEV-RAD-002` | Uyum | SERVER · RBAC · DOMAIN · UI | `mevzuat-radari-eylem.test.ts` | ZATEN AÇIK kaynağı yeniden açmak REDDEDİLİR | evet | geçti |
+| `MEV-RAD-002` | Uyum | SERVER · RBAC · DOMAIN · UI | `mevzuat-radari-eylem.test.ts` | tesise KISITLI rol karar veremez | evet | geçti |
 | `DNT-FRM-001` | Denetim | SERVER · DOMAIN · UI | `denetim-formu-eylem.test.ts` | öz denetim formu üretilir; BOŞ HÜCRE SIFIR | evet | geçti |
 | `DNT-FRM-001` | Denetim | SERVER · DOMAIN · UI | `denetim-formu-eylem.test.ts` | SoA da aynı kapıdan geçer ve yedi sütun taşır | evet | geçti |
 | `DNT-FRM-002` | Denetim | UI · DOMAIN | `denetim-formu.test.ts` | GEREKÇESİZ kapsam dışı İŞARETLENİR — gerekçe uydurulmaz | evet | geçti |
@@ -304,7 +335,7 @@
 | `SIS-GVN-001` | Sistem | API · SCOPE · RBAC | `guvenlik-negatif.test.ts` | B santralini açıkça isteyen sorgu 403 döner ve gövde kayıt taşımaz | evet | geçti |
 | `SIS-SIR-001` | Sistem | SERVER · INTEGRATION | `sir-katmani.test.ts` | tanınmayan sağlayıcı biçimsel olarak geçerli ama DENETİMDEN geçmez | evet | geçti |
 | `SIS-ALT-001` | Sistem | DOMAIN · INTEGRATION | `ot48-49-altyapi.test.ts` | ölçülemeyen zorunlu kontrol varken HAZIR cümlesi kurulmaz | evet | geçti |
-| `YON-MOT-003` | Yönetim konsolu | ENGINE · DOMAIN | `motor-defteri.test.ts` | defterdeki on sekiz motorun her biri seed verisinde HATASIZ koşar | evet | geçti |
+| `YON-MOT-003` | Yönetim konsolu | ENGINE · DOMAIN | `motor-defteri.test.ts` | defterdeki on dokuz motorun her biri seed verisinde HATASIZ koşar | evet | geçti |
 | `YON-MOT-004` | Yönetim konsolu | ENGINE · WORKFLOW | `motorlar.test.ts` | gap-to-action: uyumsuz+kritik → proje adayı üretir; İNSAN ONAYSIZ projeye dönmez; mükerrer üretmez | evet | geçti |
 | `SAG-VKL-001` | Sağlık | ENGINE | `veri-kalitesi-aktarim.test.ts` | entegrasyon tabloları boşken HİÇBİR aktarım kuralı bulgu üretmez | evet | geçti |
 | `SAG-VKL-002` | Sağlık | ENGINE · DOMAIN | `veri-kalitesi-aktarim.test.ts` | aynı varlığı iki kaynak görse bile TEK bulgu açılır | evet | geçti |
@@ -822,6 +853,13 @@
 | `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | SİSTEM iddiası yakalanır | evet | geçti |
 | `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | YORUMDAKİ cümle kütüğe girmez | evet | geçti |
 | `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | JSX parçası cümle sayılmaz | evet | geçti |
+| `URN-MEV-001` | Ürünleştirme | DOMAIN | `bekci/radar-agsiz.test.ts` | dosya listesi TÜRETİLİYOR ve boş değil | evet | geçti |
+| `URN-MEV-001` | Ürünleştirme | DOMAIN | `bekci/radar-agsiz.test.ts` | hiçbir karar dosyasında ağ çağrısı YOK | evet | geçti |
+| `URN-MEV-001` | Ürünleştirme | DOMAIN | `bekci/radar-agsiz.test.ts` | koşum getirmeyi DIŞARIDAN alır | evet | geçti |
+| `URN-MEV-001` | Ürünleştirme | DOMAIN | `bekci/radar-agsiz.test.ts` | SABOTAJ: kalıp gerçekten `fetch(` arıyor | evet | geçti |
+| `URN-MEV-001` | Ürünleştirme | DOMAIN | `bekci/radar-agsiz.test.ts` | radar testi VAR — liste boş değil | evet | geçti |
+| `URN-MEV-001` | Ürünleştirme | DOMAIN | `bekci/radar-agsiz.test.ts` | hiçbir radar testinde ağ çağrısı YOK | evet | geçti |
+| `URN-MEV-001` | Ürünleştirme | DOMAIN | `bekci/radar-agsiz.test.ts` | fikstür adresleri KURGUSAL alanda | evet | geçti |
 | `URN-KUR-011` | Kurulum | DOMAIN | `yedek-araci.test.ts` | yedek alır, doğrular ve göç durumunu raporlar | evet | geçti |
 | `URN-KUR-011` | Kurulum | DOMAIN | `yedek-araci.test.ts` | var olan yedeğin ÜSTÜNE YAZMAZ | evet | geçti |
 | `URN-KUR-011` | Kurulum | DOMAIN | `yedek-araci.test.ts` | MANTIKSAL karşılaştırma bayt karşılaştırması değildir | evet | geçti |

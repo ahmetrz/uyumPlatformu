@@ -404,7 +404,7 @@ CI'da (`.github/workflows/pr-kapisi.yml`) **on iş** koşar:
 | --- | --- |
 | `kapi` | lint · tsc · vitest · test envanteri · ters kapsam · dil · tasarım · sözlük kipi · şema sapması · göç zinciri · PostgreSQL taban tazeliği · gerekçe taraması (bilgi) · **kapı farkı** · **derleme ortamı beyanı** |
 | `derleme` | üretim derlemesi **BİR KEZ** + ortam damgası; `.next` (cache hariç · ölçüldü 74 MB) artefakt olur |
-| `kapi-rota` · `kapi-gezinme` · `kapi-tasma` · `kapi-axe` | dört tarayıcılı kapı **paralel**; dördü de AYNI artefaktı indirir ve ortam beyanını doğrular. `kapi-rota` tek sunucuyla BEŞ kapı koşar: rota duman · denetim formu kanıtı (R12) · bildirim kaydı kanıtı (R10) · bildirim dönemi kanıtı (R10+) · kimlik ve SSO kanıtı (P6) |
+| `kapi-rota` · `kapi-gezinme` · `kapi-tasma` · `kapi-axe` | dört tarayıcılı kapı **paralel**; dördü de AYNI artefaktı indirir ve ortam beyanını doğrular. `kapi-rota` tek sunucuyla ALTI kapı koşar: rota duman · denetim formu kanıtı (R12) · bildirim kaydı kanıtı (R10) · bildirim dönemi kanıtı (R10+) · kimlik ve SSO kanıtı (P6) · mevzuat radarı kanıtı (R1) |
 | `kapi-demo` | statik demo derlemesi + marka kapısı — ortamı FARKLI (`NEXT_PUBLIC_DEMO=1`), bu yüzden kendi derlemesini yapar |
 | `kapi-yavas` | **toplayıcı**: kapı koşmaz, beş işin sonucunu toplar. Adı korunuyor çünkü dal korumasındaki zorunlu check adıdır ve o ayar koddan görünmez |
 | `kapi-postgres` | postgres:16 servisi — `kapi:pg-goc` ve TAM test kümesi (iki sağlayıcıda da aynı sayı) |
@@ -430,10 +430,10 @@ yükleme 7 sn, indirme 3–4 sn (74 MB).
 bu bir testle sabit (`web/tests/kapi-is-kapsami.test.ts`); üstüne ALTI
 kapı eklendi ve altısı da o testte adıyla beyanlı — bölünmenin kendisi
 üçünü getirdi (derleme ortamı damgası · doğrulaması · `kapi:derleme-artefakti`),
-kalan beşi sonraki işlerde eklendi (`kanit:denetim-formu` ·
+kalan altısı sonraki işlerde eklendi (`kanit:denetim-formu` ·
 `kapi:ithal-zinciri` · `kanit:bildirim-kaydi` · `kanit:bildirim-donemi` ·
-`kanit:kimlik`). Ölçüm (10 Eyl 2026): 23 + 8 = **31 benzersiz komut, 32
-adım** (bir komut iki ayrı ortamda koşuyor ve bu iki ayrı kapıdır). Sayı
+`kanit:kimlik` · `kanit:mevzuat-radari`). Ölçüm (10 Eyl 2026): 23 + 9 =
+**32 benzersiz komut, 33 adım** (bir komut iki ayrı ortamda koşuyor ve bu iki ayrı kapıdır). Sayı
 elle sayılmaz, testte iki yönlü eşitlikle tutulur: kapı düşerse de,
 BEYANSIZ kapı eklenirse de kırmızı.
 

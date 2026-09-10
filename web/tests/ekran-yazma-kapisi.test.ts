@@ -157,6 +157,11 @@ const KURUMSAL_KAYITLAR = new Map<string, string>([
     + ' yükümlülüğü kurumundur, tek bir tesisin değil. Sunucu eylemi de'
     + ' kapsamsız (lib/eylemler2/bildirimDonemi.ts → yetkiZorunlu). Ekran ile'
     + ' sunucu BİREBİR aynı soruyu soruyor'],
+  ['app/(kabuk)/(operasyonel)/mevzuat-radari/page.tsx · uyum/onay',
+    'MevzuatDegisiklikAdayi tesisId TAŞIMAZ: bir tebliğ değişikliği'
+    + ' KURUMUN meselesidir, tek bir tesisin değil. Sunucu eylemi de kapsamsız'
+    + ' (lib/eylemler2/mevzuatRadari.ts → yetkiZorunlu). Ekran ile sunucu'
+    + ' BİREBİR aynı soruyu soruyor'],
 ]);
 
 function tsDosyalari(kok: string): string[] {

@@ -16,6 +16,7 @@ import { tekrarlariIsle } from './tekrarBulgu';
 import { eskalasyonlariIsle } from './eskalasyon';
 import { bildirimSurelerini } from './bildirimSuresi';
 import { zimmetSurelerini } from './zimmetSuresi';
+import { mevzuatRadariniIsle } from './mevzuatRadari';
 
 /* Motor kayıt defteri — TEK doğruluk kaynağı.
 
@@ -74,6 +75,13 @@ export const MOTORLAR = {
      talebin kendi durumudur — süresi dolan, sahibi pasifleşen ya da
      sahipliği başka yoldan değişen talepler düşer. */
   zimmet_suresi: zimmetSurelerini,
+  /* R1 · Mevzuat radarı. Kaynak kataloğu PAKETTEN gelir ve her kaynak
+     VARSAYILAN OLARAK KAPALIDIR: ürün kurulur kurulmaz dışarı çıkmaz.
+     Motor yalnız ADAY ve tarama kaydı üretir; çerçeve sürümüne,
+     regülasyona ve kaynağın `etkin` alanına DOKUNMAZ. robots.txt
+     kaynağın kendisinden ÖNCE sorulur ve anti-bot yanıtı ATLATILMAZ —
+     engelli kaynak adıyla durur, elle izleme yolu açık kalır. */
+  mevzuat_radari: mevzuatRadariniIsle,
 } as const satisfies Record<string, () => Promise<{ islenen: number; uretilen: number }>>;
 
 export type MotorAdi = keyof typeof MOTORLAR;

@@ -247,7 +247,7 @@ export default function BulguDetayIstemci({ veri, esik = KANIT_ESIK_VARSAYILAN }
           <p className="etiket" style={{ margin: '0 0 var(--s12)' }}>Aksiyonlar</p>
           {veri.aksiyonlar.length === 0 ? (
             <BosIlk
-              cumle="Bu bulgu için aksiyon planlanmadı."
+              cumle="Bu bulgu için aksiyon planlanmadı. Aksiyonsuz bir bulgu kapanamaz: kapanış yapılan işin kaydına dayanır, beyana değil."
               eylem={<Dugme tur="birincil"
                 onClick={() => { setPanel(true); setKip('kayit'); setSeciliAksiyon(null); setAksiyonFormu(true); }}>
                 Aksiyon planla

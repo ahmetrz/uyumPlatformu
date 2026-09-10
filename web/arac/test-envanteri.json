@@ -1,7 +1,7 @@
 {
-  "imza": "14e303513c92464a1b556e85586fd3f6",
-  "dosya": 234,
-  "vaka": 4206,
+  "imza": "49c2670dc62fae95126dd94a44894632",
+  "dosya": 236,
+  "vaka": 4225,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -42,6 +42,10 @@
     },
     "tests/bekci/bildirim-motoru.test.ts": {
       "vaka": 11,
+      "atlanan": 0
+    },
+    "tests/bekci/bos-durum.test.ts": {
+      "vaka": 14,
       "atlanan": 0
     },
     "tests/bekci/cekirdek-taban.test.ts": {
@@ -686,6 +690,10 @@
     },
     "tests/pg-gocu.test.ts": {
       "vaka": 10,
+      "atlanan": 0
+    },
+    "tests/politika-bos-durum-iddialari.test.ts": {
+      "vaka": 5,
       "atlanan": 0
     },
     "tests/politika-demo-salt-okunur.test.ts": {

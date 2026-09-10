@@ -260,6 +260,30 @@ yazarak en sıkı daldan kaçılamaz. Kural saf bir fonksiyondadır
 (`yeniSatirKusurlari`) ve sentetik kütüklerle sınanır — sabotaj kuralı
 sabote eder, ölçüm ortamını değil.
 
+**Boş durum SEBEBİNİ söyler ve ÇÖZÜME işaret eder (R-G).** Ekranın boş
+hâli, sistemin elindeki bilgiyi kullanmak zorundadır. Ölçüldü (kurulum
+provası, 10 Eylül 2026): TR-ENERJI kurulduktan sonra `/regulasyonlar`
+sekiz çerçevenin sekizi için de "kataloğu henüz yüklenmedi" diyordu ve
+veritabanında **3 803 madde taslakta bekliyordu**; önerdiği eylem de
+kullanıcıyı zaten yüklü kataloğu ikinci kez yazmaya götürüyordu. Ürün
+kendi talimatını kendi yalanlıyor, müşteri yolu orada çıkmaza giriyordu.
+
+Her boş durum İKİ ölçüte vurulur ve ikisi de KODDAN türetilir
+(`web/arac/bos-durum-kutugu.mjs`): **(a) NEDEN** — cümle "X yok" demekle
+kalmaz, en az iki yan tümceyle sebebini ya da sonucunu söyler;
+**(b) NE YAPMALIYIM** — `eylem` verilmiştir. (b)'nin tek istisnası İYİ
+HABER boş durumudur ("elenen satır yok — hepsi geçti"): işaret edeceği
+bir çözüm yoktur ve olmayan bir eylem uydurmak kullanıcıyı gereksiz bir
+yola sokar; bayrak bileşenin kendi API'sinden gelir, kütükten değil.
+
+Eylemsiz boş durumun tavanı SIFIRDIR. Nedensiz olanlar cırcırdadır ve
+liste yalnız küçülür; türeticinin okuyamadığı hesaplanan cümle
+(fonksiyondan dönen metin) ancak **ölçümünü adıyla beyan ederek**
+istisna listesinde durur, ölü referans kabul edilmez
+(`web/tests/bekci/bos-durum.test.ts`, SIS-BSD-001). Kapı cümlenin bir şey
+SÖYLEDİĞİNİ ölçer, söylediğinin DOĞRU olduğunu değil — R-D ve R-F'te
+kabul edilmiş aynı sınır.
+
 **İnceleme turu İKİ ile sınırlıdır (R-A).** Tur 1 → düzelt → tur 2 →
 düzelt → merge. Üçüncü turda çıkan bulgular YENİ PR olur. Gerekçe
 (ölçüldü, 9 Eylül 2026, #41): dal inmezse `main` ayrışır; birleştirme

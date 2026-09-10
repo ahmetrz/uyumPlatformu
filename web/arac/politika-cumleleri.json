@@ -491,6 +491,17 @@
       }
     },
     {
+      "kod": "POL-143",
+      "cumle": "Değişiklik kütüğünde kayıt yok. Bu, “hiç değişiklik olmadı” demek DEĞİLDİR: yalnız kütüğe yazılan değişiklikler burada görünür.",
+      "yer": "app/(kabuk)/(operasyonel)/operasyon/OperasyonIstemci.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S3",
+      "olcum": {
+        "dosya": "tests/politika-bos-durum-iddialari.test.ts",
+        "vaka": "DEĞİŞİKLİK ekranı YALNIZ kütüğü okur"
+      }
+    },
+    {
       "kod": "POL-026",
       "cumle": "Demo oturumu salt okunurdur: demo hesabı hiçbir koşulda yazma yetkisi taşımaz, kayıt oluşturan/değiştiren eylemler kapalıdır. Gerçek bir hesapla girdiğinizde eylemler yetkinize göre açılır.",
       "yer": "app/(kabuk)/(operasyonel)/yardim/page.tsx",
@@ -700,6 +711,17 @@
       }
     },
     {
+      "kod": "POL-144",
+      "cumle": "Denetim programında kayıt yok. Program, kanıt taleplerinin ve bulguların bağlandığı çerçevedir; denetim açılmadan ikisi de kayda geçmez.",
+      "yer": "app/(kabuk)/(operasyonel)/denetimler/DenetimlerIstemci.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S3",
+      "olcum": {
+        "dosya": "tests/politika-bos-durum-iddialari.test.ts",
+        "vaka": "DENETİM açılmadan kanıt talebi kayda GEÇMEZ"
+      }
+    },
+    {
       "kod": "POL-028",
       "cumle": "Doğrulamayı geçen satır yok — bu dosyadan hiçbir madde yazılamaz.",
       "yer": "app/(kabuk)/(operasyonel)/ice-aktarim/IceAktarimIstemci.tsx",
@@ -880,6 +902,28 @@
       "olcum": {
         "dosya": "tests/politika-s2-eylem.test.ts",
         "vaka": "HESAP KAYDI OKUNAMAZKEN profil yazılmaz"
+      }
+    },
+    {
+      "kod": "POL-145",
+      "cumle": "Hiç imha kararı açılmadı. İmha bir insan kararıdır ve ürün onu kendiliğinden vermez; süresi dolan kayıt karar açılana kadar durur.",
+      "yer": "app/(kabuk)/(operasyonel)/saklama/SaklamaIstemci.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S3",
+      "olcum": {
+        "dosya": "tests/politika-bos-durum-iddialari.test.ts",
+        "vaka": "İMHA bir İNSAN kararıdır — öneren ZORUNLU"
+      }
+    },
+    {
+      "kod": "POL-146",
+      "cumle": "Hiç yönetim gözden geçirmesi kaydı yok. Gözden geçirme, alınan kararların ve kapanan kalemlerin tek kütüğüdür; kayıt olmadan “yönetim gördü” denemez.",
+      "yer": "app/(kabuk)/(operasyonel)/gozden-gecirme/GozdenGecirmeIstemci.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S3",
+      "olcum": {
+        "dosya": "tests/politika-bos-durum-iddialari.test.ts",
+        "vaka": "YÖNETİM GÖZDEN GEÇİRMESİ motorla doğmaz"
       }
     },
     {
@@ -1264,6 +1308,17 @@
       "olcum": {
         "dosya": "tests/regulasyon-katalog-boslugu.test.ts",
         "vaka": "TASLAKTA MADDE VARSA \"yüklenmedi\" DENMEZ"
+      }
+    },
+    {
+      "kod": "POL-147",
+      "cumle": "Tanımlı dış denetçi erişimi yok. Dış denetçi erişimi süreli ve kapsamlıdır; tanımlanmadan hiçbir dış hesap kayıt göremez.",
+      "yer": "app/(kabuk)/(operasyonel)/denetci-erisimi/DenetciErisimiIstemci.tsx",
+      "sinif": "POLITIKA",
+      "sonucSinifi": "S1",
+      "olcum": {
+        "dosya": "tests/politika-bos-durum-iddialari.test.ts",
+        "vaka": "DIŞ DENETÇİ erişimi TANIMSIZ olamaz"
       }
     },
     {

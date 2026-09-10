@@ -440,7 +440,7 @@ export default function Galeri() {
               </div>
             </div>
             <div style={{ display: 'flex', gap: 'var(--s24)', flexWrap: 'wrap' }}>
-              <BosIlk cumle="Bu çerçeve için henüz değerlendirme başlatılmadı."
+              <BosIlk cumle="Bu çerçeve için henüz değerlendirme başlatılmadı. Değerlendirme açılmadan maddelerin durumu “bilinmiyor”dur — “uyumlu” değil."
                 eylem={<Dugme tur="birincil">Kapsamı çalıştır</Dugme>} />
               <Hata cumle="Uyum özeti alınamadı; tablo son bilinen veriyle çalışıyor."
                 teknik="ETIMEDOUT · uyumOzeti · 8.4s" yenidenDene={() => {}} />

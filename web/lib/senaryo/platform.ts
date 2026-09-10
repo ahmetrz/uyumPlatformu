@@ -1418,6 +1418,35 @@ export const PLATFORM_SENARYOLARI_6: Senaryo[] = [
     katmanlar: ['ACCESSIBILITY'],
   },
   {
+    id: 'SIS-BSD-002', alan: 'Sistem', rota: '—', eksen: 'veri',
+    amac: 'Boş durum cümlelerinin taşıdığı politika iddialarının GERÇEKTEN tutulması',
+    rol: 'uyum sorumlusu', kapsam: 'kurum geneli',
+    onkosul: 'Sebebini söyleyen boş durum cümleleri; R-F türeticisi beşini politika saydı',
+    veriHali: 'yok',
+    eylem: 'İddiayı tutan katman sürülür: şema kolonu, motor defteri, ekran sorgusu',
+    beklenenSonuc: 'Kanıt talebi denetimsiz yazılamaz · imha önerensiz açılamaz · '
+      + 'gözden geçirmeye motor yazmaz · dış erişim süresiz olamaz · değişiklik '
+      + 'listesi tek kaynaktan gelir',
+    beklenenEkran: 'Boş durumun söylediği ile kodun yaptığı aynıdır',
+    beklenenIz: 'yazma yok — ölçüm şemayı ve sorguyu okur',
+    beklenenBildirim: 'yok',
+    katmanlar: ['DOMAIN', 'MIGRATION'],
+  },
+  {
+    id: 'SIS-BSD-001', alan: 'Sistem', rota: '—', eksen: 'arayuz',
+    amac: 'Boş durumun SEBEBİNİ söylemesi ve ÇÖZÜM EYLEMİNE işaret etmesi',
+    rol: 'ilk kurulumdaki kullanıcı', kapsam: 'kurum geneli',
+    onkosul: 'Ekranın listesi boş — kayıt yok, süzgeç eledi ya da karar bekliyor',
+    veriHali: 'yok',
+    eylem: 'Ekran açılır',
+    beklenenSonuc: 'Cümle "X yok" demekle kalmaz; sebebini ya da sonucunu söyler '
+      + 've bir eylem verir. İYİ HABER boş durumu eylem istemez.',
+    beklenenEkran: 'Kullanıcı ekranda kalmaz: ne olduğu ve ne yapacağı yazılıdır',
+    beklenenIz: 'yazma yok',
+    beklenenBildirim: 'yok',
+    katmanlar: ['UI', 'DOMAIN'],
+  },
+  {
     id: 'SIS-BOS-001', alan: 'Sistem', rota: '—', eksen: 'akis',
     amac: 'Müşterinin BİRİNCİ GÜNÜ: sıfır satırdan satılabilir duruma kadar yazma yolu',
     rol: 'kurulum operatörü ve ilk yönetici', kapsam: 'yeni kurulum',

@@ -111,7 +111,7 @@ export default function YedekParcaIstemci({
 
       {tablo.length === 0
         ? (
-          <BosIlk cumle="Kayıtlı yedek parça yok."
+          <BosIlk cumle="Kayıtlı yedek parça yok. Yedek parça kaydı, ömrü dolan varlığın değişim süresini gösteren tek veridir; kayıtsız kalan varlık için süre bilinmez."
             eylem={yazabilir
               ? <Dugme tur="birincil" onClick={() => setFormAcik(true)}>Parça ekle</Dugme>
               : undefined} />

@@ -113,7 +113,7 @@ export default function TasinabilirMedyaIstemci({
 
       {tablo.length === 0
         ? (
-          <BosIlk cumle="Kayıtlı taşınabilir medya yok."
+          <BosIlk cumle="Kayıtlı taşınabilir medya yok. Bu, “sahada taşınabilir medya kullanılmıyor” demek DEĞİLDİR: yalnız kayda geçmiş olanlar izlenebilir."
             eylem={yazabilir
               ? <Dugme tur="birincil" onClick={() => setForm('medya')}>Medya kaydet</Dugme>
               : undefined} />

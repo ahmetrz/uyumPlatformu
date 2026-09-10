@@ -167,7 +167,7 @@ export default function OperasyonIstemci({
           ) : (
             <div style={{ marginTop: 'var(--s26)' }}>
               <BosIlk
-                cumle="Değişiklik kütüğünde kayıt yok."
+                cumle="Değişiklik kütüğünde kayıt yok. Bu, “hiç değişiklik olmadı” demek DEĞİLDİR: yalnız kütüğe yazılan değişiklikler burada görünür."
                 eylem={yazabilir
                   ? <Dugme tur="birincil" onClick={() => setYeniAcik(true)}>
                     Değişiklik talebi aç

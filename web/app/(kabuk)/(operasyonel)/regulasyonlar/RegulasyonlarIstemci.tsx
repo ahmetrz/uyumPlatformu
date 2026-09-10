@@ -83,7 +83,7 @@ export default function RegulasyonlarIstemci({
         <EkranBasligi eyebrow="Regülasyon kütüphanesi" baslik="Çerçeve tanımlı değil" />
         <section className="ab-ekran-govde" style={{ paddingTop: 'var(--s26)' }}>
           <BosIlk
-            cumle="Sistemde regülasyon kaydı yok."
+            cumle="Sistemde regülasyon kaydı yok. Çerçeve bir içerik paketiyle gelir ya da elle içe aktarılır; çerçevesiz bir kurulumda uyum matrisi hiç doğmaz."
             eylem={<Link className="ab-dugme birincil" href="/ice-aktarim">Katalog içe aktar</Link>}
           />
         </section>

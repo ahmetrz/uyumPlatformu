@@ -4,12 +4,12 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 363 |
-| Testi olan senaryo | 363 |
+| Senaryo | 365 |
+| Testi olan senaryo | 365 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
-| Taranan test dosyası | 234 |
+| Taranan test dosyası | 236 |
 
 ## Katman başına kapsam
 
@@ -18,15 +18,15 @@
 | ACCESSIBILITY | 8 | 8 | 0 |
 | API | 12 | 12 | 0 |
 | CONCURRENCY | 8 | 8 | 0 |
-| DOMAIN | 214 | 214 | 0 |
+| DOMAIN | 216 | 216 | 0 |
 | ENGINE | 37 | 37 | 0 |
 | INTEGRATION | 42 | 42 | 0 |
-| MIGRATION | 9 | 9 | 0 |
+| MIGRATION | 10 | 10 | 0 |
 | RBAC | 41 | 41 | 0 |
 | RESPONSIVE | 9 | 9 | 0 |
 | SCOPE | 33 | 33 | 0 |
 | SERVER | 153 | 153 | 0 |
-| UI | 103 | 103 | 0 |
+| UI | 104 | 104 | 0 |
 | VISUAL | 4 | 4 | 0 |
 | WORKFLOW | 39 | 39 | 0 |
 
@@ -541,6 +541,25 @@
 | `SIS-BSL-002` | Sistem | UI | `ekran-basligi.test.ts` | künyede ister kodu geçmiyor | evet | geçti |
 | `SIS-ERS-002` | Sistem | ACCESSIBILITY · UI | `senaryo-platform.test.ts` | seçilemeyen tablo grid demez, işaretçi imleci taşımaz | evet | geçti |
 | `SIS-ERS-003` | Sistem | ACCESSIBILITY | `senaryo-platform.test.ts` | sekme rolü yalnız gerçek sekmelerde kullanılır | evet | geçti |
+| `SIS-BSD-002` | Sistem | DOMAIN · MIGRATION | `politika-bos-durum-iddialari.test.ts` | DENETİM açılmadan kanıt talebi kayda GEÇMEZ — şema düzeyinde | evet | geçti |
+| `SIS-BSD-002` | Sistem | DOMAIN · MIGRATION | `politika-bos-durum-iddialari.test.ts` | İMHA bir İNSAN kararıdır — öneren ZORUNLU | evet | geçti |
+| `SIS-BSD-002` | Sistem | DOMAIN · MIGRATION | `politika-bos-durum-iddialari.test.ts` | YÖNETİM GÖZDEN GEÇİRMESİ motorla doğmaz — kayıt insan işidir | evet | geçti |
+| `SIS-BSD-002` | Sistem | DOMAIN · MIGRATION | `politika-bos-durum-iddialari.test.ts` | DIŞ DENETÇİ erişimi TANIMSIZ olamaz — süre ve davet eden ZORUNLU | evet | geçti |
+| `SIS-BSD-002` | Sistem | DOMAIN · MIGRATION | `politika-bos-durum-iddialari.test.ts` | DEĞİŞİKLİK ekranı YALNIZ kütüğü okur — başka kaynak karıştırmaz | evet | geçti |
+| `SIS-BSD-001` | Sistem | UI · DOMAIN | `bekci/bos-durum.test.ts` | TÜRETME boş değil — kalıp bozulursa bekçi her şeyi geçirirdi | evet | geçti |
+| `SIS-BSD-001` | Sistem | UI · DOMAIN | `bekci/bos-durum.test.ts` | KODDAKİ her boş durum kütükte VAR | evet | geçti |
+| `SIS-BSD-001` | Sistem | UI · DOMAIN | `bekci/bos-durum.test.ts` | KÜTÜKTEKİ her satır kodda VAR — ölü satır kalmaz | evet | geçti |
+| `SIS-BSD-001` | Sistem | UI · DOMAIN | `bekci/bos-durum.test.ts` | KÜTÜK ÖLÇÜMÜ elle yazılmaz — türetilenle BİREBİR | evet | geçti |
+| `SIS-BSD-001` | Sistem | UI · DOMAIN | `bekci/bos-durum.test.ts` | EYLEMSİZ boş durum SIFIRDIR — iyi haber dışında istisna yok | evet | geçti |
+| `SIS-BSD-001` | Sistem | UI · DOMAIN | `bekci/bos-durum.test.ts` | NEDENSİZ SAYISI TAVANI AŞMAZ — cırcır yalnız küçülür | evet | geçti |
+| `SIS-BSD-001` | Sistem | UI · DOMAIN | `bekci/bos-durum.test.ts` | TAVAN ölçülenin ÜSTÜNDE tutulmaz — gevşeklik dişi | evet | geçti |
+| `SIS-BSD-001` | Sistem | UI · DOMAIN | `bekci/bos-durum.test.ts` | KALAN NEDENSİZ satır BEYANLIDIR ve ölçümü GERÇEKTİR | evet | geçti |
+| `SIS-BSD-001` | Sistem | UI · DOMAIN | `bekci/bos-durum.test.ts` | TABAN DAL CIRCIRI: nedensiz sayısı tabana göre BÜYÜYEMEZ | evet | geçti |
+| `SIS-BSD-001` | Sistem | UI · DOMAIN | `bekci/bos-durum.test.ts` | TEK TÜMCE sebebi söylemez — provanın kusuru | evet | geçti |
+| `SIS-BSD-001` | Sistem | UI · DOMAIN | `bekci/bos-durum.test.ts` | İKİ TÜMCE sebebi söyler | evet | geçti |
+| `SIS-BSD-001` | Sistem | UI · DOMAIN | `bekci/bos-durum.test.ts` | KISALTMA tümce ayırmaz — yanlış pozitif üretmez | evet | geçti |
+| `SIS-BSD-001` | Sistem | UI · DOMAIN | `bekci/bos-durum.test.ts` | ŞABLON YERİ tümce ayırmaz | evet | geçti |
+| `SIS-BSD-001` | Sistem | UI · DOMAIN | `bekci/bos-durum.test.ts` | ÖZNİTELİK okuyucu DENGELİ okur — iç içe süslü parantez kesmez | evet | geçti |
 | `SIS-BOS-001` | Sistem | MIGRATION · SERVER · WORKFLOW · DOMAIN | `bos-kurulum-duman.test.ts` | 1 · GÖÇ ZİNCİRİ boş veritabanına uygulandı ve kurulum GERÇEKTEN boş | evet | geçti |
 | `SIS-BOS-001` | Sistem | MIGRATION · SERVER · WORKFLOW · DOMAIN | `bos-kurulum-duman.test.ts` | 2 · KURUCU HESAP açıldı — kurulum artık girilebilir | evet | geçti |
 | `SIS-BOS-001` | Sistem | MIGRATION · SERVER · WORKFLOW · DOMAIN | `bos-kurulum-duman.test.ts` | 3 · GİRİŞ yapıldı — oturum gerçekten açıldı | evet | geçti |

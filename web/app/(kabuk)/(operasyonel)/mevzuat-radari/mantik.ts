@@ -84,26 +84,68 @@ export function kaynakSatirlari(kayitlar: readonly KaynakKaydi[]): KaynakSatiri[
   }));
 }
 
+/* ── BİR KAYNAK, BİR HÂL ───────────────────────────────────────────────
+   Ölçüldü (bağımsız inceleme, PR #50 tur 1): sayaçlar birbirinden
+   BAĞIMSIZ süzgeçlerle hesaplanıyordu ve engelli bir kaynak İKİSİNE
+   birden giriyordu — engelli bir kaynağın son taraması her zaman
+   `farkVar: null` yazar. Ekran "Engelli kaynak: 1 · Karşılaştırılamadı:
+   1" diyordu; okuyan kişi iki ayrı sorunlu kaynak sanıyordu, oysa bir
+   tane vardı. Kodun kendi yorumu ("iki ayrı hâl, iki ayrı sayaç")
+   doğruydu, kod onu uygulamıyordu.
+
+   Bugün hâl TEK bir sınıflandırıcıdan çıkar ve sıra bağlayıcıdır: bir
+   kaynak tam olarak BİR hâle düşer, iki sayaca birden giremez. Ayrı
+   süzgeçler yerine tek sınıflandırıcı seçildi çünkü ayrık olma
+   ("disjoint") bir sözleşme değil, YAPISAL bir sonuç olmalı: bir
+   sözleşme unutulur, yapı unutulmaz.
+
+   Sıra: engelli → hiç taranmadı → karşılaştırılamadı → okundu.
+   Engelli kaynak hiç taranmamış da olabilir; sebebi ENGELDİR ve ekran
+   önce onu söyler. */
+export type KaynakHali = 'engelli' | 'hic_taranmadi' | 'karsilastirilamadi' | 'okundu';
+
+export function kaynakHali(s: KaynakSatiri): KaynakHali {
+  if (s.durum === 'engelli') return 'engelli';
+  if (s.sonTarama === null) return 'hic_taranmadi';
+  /* NULL'u false'tan ayıran tek yer: bakıldı ama SONUÇ çıkarılamadı. */
+  if (s.sonTaramaFarkVar === null) return 'karsilastirilamadi';
+  return 'okundu';
+}
+
 export function radarOzeti(
   satirlar: readonly KaynakSatiri[], bekleyenAday: number,
 ): RadarOzeti {
+  const sayim: Record<KaynakHali, number> = {
+    engelli: 0, hic_taranmadi: 0, karsilastirilamadi: 0, okundu: 0,
+  };
+  for (const s of satirlar) sayim[kaynakHali(s)] += 1;
   return {
     bekleyenAday,
+    /* `etkin` AYRI EKSENDİR: taramanın açık olup olmadığını söyler,
+       kaynağın hâlini değil. Bu yüzden hâl sayımına karışmaz. */
     etkinKaynak: satirlar.filter((s) => s.etkin).length,
-    engelliKaynak: satirlar.filter((s) => s.durum === 'engelli').length,
-    /* NULL'u false'tan ayıran tek yer: `sonTaramaFarkVar === null` VE
-       tarama koşmuş olmalı. Hiç koşmamış kaynak ayrı sayılır. */
-    karsilastirilamayan: satirlar.filter((s) => s.sonTarama !== null && s.sonTaramaFarkVar === null).length,
-    hicTaranmayan: satirlar.filter((s) => s.hicTaranmadi).length,
+    engelliKaynak: sayim.engelli,
+    karsilastirilamayan: sayim.karsilastirilamadi,
+    hicTaranmayan: sayim.hic_taranmadi,
   };
 }
 
-/** Başlık cümlesi — sıfır aday "her şey yolunda" DEMEZ. */
+/** Başlık cümlesi — sıfır aday "her şey yolunda" DEMEZ.
+ *
+ * ── ENGELLİ KAYNAK DA BİR KÖRLÜKTÜR ───────────────────────────────────
+ * Bu koşul `engelliKaynak`a BAKMIYORDU ve kusur MASKELİYDİ: sayaçlar
+ * ayrık olmadığı için engelli kaynak `karsilastirilamayan`a da giriyor,
+ * koşul kazara tutuyordu (bkz. `radarOzeti`). Sayaçlar ayrılınca ortaya
+ * çıktı — yalnız engelli kaynağı olan bir kurulumda ekran "BEKLEYEN
+ * DEĞİŞİKLİK YOK" diyordu; oysa ürün o kaynağa hiç bakamamıştı.
+ *
+ * İki kusurun üst üste binip birbirini gizlemesi, bir düzeltmenin
+ * öbürünü GÖRÜNÜR yapmasıyla bitti: yapısal düzeltmenin serbest
+ * süzgeçlere üstünlüğü de burada ölçüldü. */
 export function baslikCumlesi(o: RadarOzeti): string {
   if (o.etkinKaynak === 0) return 'HİÇBİR KAYNAK TARANMIYOR';
-  if (o.bekleyenAday === 0 && o.karsilastirilamayan === 0 && o.hicTaranmayan === 0) {
-    return 'BEKLEYEN DEĞİŞİKLİK YOK';
-  }
+  const bakilamayan = o.karsilastirilamayan + o.hicTaranmayan + o.engelliKaynak;
+  if (o.bekleyenAday === 0 && bakilamayan === 0) return 'BEKLEYEN DEĞİŞİKLİK YOK';
   return `${o.bekleyenAday} BEKLEYEN DEĞİŞİKLİK ADAYI`;
 }
 

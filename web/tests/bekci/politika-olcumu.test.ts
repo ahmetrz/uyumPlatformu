@@ -36,6 +36,7 @@ const KUTUK = path.join(process.cwd(), 'arac', 'politika-cumleleri.json');
 const kutuk = JSON.parse(readFileSync(KUTUK, 'utf8')) as {
   not?: string;
   tavanlar: { olculmeyen: number; sinif: Record<string, number> };
+  tavanGerekceleri?: { alan: string; eski: number; yeni: number; gerekce: string }[];
   satirlar: {
     kod: string; cumle: string; yer: string; sinif: string; gerekce?: string;
     sonucSinifi?: string;
@@ -175,6 +176,44 @@ describe('SONUÇ SINIFI ve CIRCIR [URN-POL-001]', () => {
     const bugun: Record<string, number> = { S1: 0, S2: 0, S3: 0 };
     for (const s of politikalar) if (s.olculmedi) bugun[s.sonucSinifi ?? 'S3'] += 1;
     expect(kutuk.tavanlar.sinif).toEqual(bugun);
+  });
+
+  it('TAVAN YÜKSELMESİ DOSYADA GEREKÇE İSTER — beşinci diş [URN-POL-001]', () => {
+    /* CIRCIRIN BEŞİNCİ DİŞİ.
+       Tavan bugünkü sayıya eşit olmak zorunda (üçüncü diş) — ama sayı
+       ARTARSA tavan da onunla artar ve cırcır sessizce gevşer. Bu depoda
+       aynı kusur ölçüldü: `terimTavani` 85'ten 500'e çekildiğinde on bir
+       vaka da yeşil kalıyordu.
+
+       Bugün her yükselme dosyanın KENDİ İÇİNDE `tavanGerekceleri`
+       altında `eski → yeni` olarak anlatılır. Commit mesajı yetmez:
+       commit mesajı dosyayı okuyanın önünde durmaz.
+
+       Gerekçe KUSURU anlatır, maliyeti değil: "bu turda yazmaya vaktimiz
+       olmadı" bir gerekçe değildir; "ölçüm alanı şu sebeple genişledi"
+       gerekçedir. */
+    const gecmis = kutuk.tavanGerekceleri ?? [];
+    const bugunku: Record<string, number> = {
+      olculmeyen: kutuk.tavanlar.olculmeyen,
+      'sinif.S1': kutuk.tavanlar.sinif.S1,
+      'sinif.S2': kutuk.tavanlar.sinif.S2,
+      'sinif.S3': kutuk.tavanlar.sinif.S3,
+    };
+    const kusur: string[] = [];
+    for (const [alan, deger] of Object.entries(bugunku)) {
+      const kayitlar = gecmis.filter((g) => g.alan === alan);
+      if (kayitlar.length === 0) continue; /* hiç yükselmemiş */
+      const son = kayitlar[kayitlar.length - 1];
+      if (son.yeni !== deger) {
+        kusur.push(`${alan}: tavan ${deger} ama son gerekçe ${son.eski} → ${son.yeni}`
+          + ' diyor — yükselme gerekçesiz kalmış');
+      }
+      if (son.yeni <= son.eski) kusur.push(`${alan}: gerekçe bir YÜKSELME anlatmıyor`);
+      if ((son.gerekce ?? '').trim().length < 40) {
+        kusur.push(`${alan}: gerekçe çok kısa — kusuru anlatmıyor`);
+      }
+    }
+    expect(kusur, kusur.join('\n')).toEqual([]);
   });
 
   it('TABAN DAL CIRCIRI: liste tabana göre BÜYÜYEMEZ [URN-POL-001]', () => {

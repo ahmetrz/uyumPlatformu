@@ -4299,7 +4299,7 @@ ALTER TABLE "MfaKurtarmaKodu" ADD CONSTRAINT "MfaKurtarmaKodu_kayitId_fkey" FORE
 ALTER TABLE "MevzuatTaramasi" ADD CONSTRAINT "MevzuatTaramasi_kaynakId_fkey" FOREIGN KEY ("kaynakId") REFERENCES "MevzuatKaynagi"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "MevzuatDegisiklikAdayi" ADD CONSTRAINT "MevzuatDegisiklikAdayi_kaynakId_fkey" FOREIGN KEY ("kaynakId") REFERENCES "MevzuatKaynagi"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "MevzuatDegisiklikAdayi" ADD CONSTRAINT "MevzuatDegisiklikAdayi_kaynakId_fkey" FOREIGN KEY ("kaynakId") REFERENCES "MevzuatKaynagi"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- ═══════════════════════════════════════════════════════════════════════
 -- ELLE YAZILAN DDL · PostgreSQL karşılıkları (R5)

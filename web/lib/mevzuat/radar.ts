@@ -61,13 +61,29 @@ export function robotsAyristir(metin: string, ajan = AJAN): Kural[] {
   return gruplar.get(ajan.toLowerCase()) ?? gruplar.get('*') ?? [];
 }
 
-/** Kural yolu adrese uyuyor mu — `*` ve `$` desteklenir. */
+/** Kural yolu adrese uyuyor mu — `*` ve `$` desteklenir.
+ *
+ * ── KAÇIRMA BİR KEZ YAPILIR ───────────────────────────────────────────
+ * İlk yazımda `$`-çıpalı dal kaçırmayı İKİ KEZ uyguluyordu: önce tüm
+ * dizgeye, sonra `*`'a göre bölünen her parçaya yeniden. İkinci tur, ilk
+ * turun ürettiği `\.` kaçışını `\\.` (ters eğik çizgi + nokta HARFİYEN)
+ * hâline getiriyor ve üretilen desen hiçbir gerçek adrese uymuyordu.
+ *
+ * Sonucu ÖLÇÜLDÜ (bağımsız inceleme, PR #50 tur 1): `Disallow: /*.pdf$`
+ * kuralı `/a.pdf` adresine UYMUYORDU — kural yok sayılıyor, başka kural
+ * da yoksa `robotsIzni` "izin var" diyor ve ürün, robots.txt'in AÇIKÇA
+ * kapattığı bir adrese istek gönderiyordu. `.pdf$` · `.doc$` kalıbı
+ * resmî yayın sitelerinde yaygındır; kusur kâğıt üstünde değil, ürünün
+ * en sert vaadinin (engeli aşmayız) tam ortasındaydı.
+ *
+ * Bugün gövde bir kez ayrılır, parçalar bir kez kaçırılır, çıpa desenin
+ * SONUNA eklenir — kaçırma ile çıpa artık aynı ifadede kesişmiyor. */
 function yolUyuyorMu(kuralYolu: string, yol: string): boolean {
   if (kuralYolu === '') return false;
   const kacir = (s: string) => s.replace(/[.+?^${}()|[\]\\]/g, '\\$&');
-  const desen = kuralYolu.endsWith('$')
-    ? `^${kacir(kuralYolu.slice(0, -1)).split('*').map(kacir).join('.*')}$`
-    : `^${kuralYolu.split('*').map(kacir).join('.*')}`;
+  const cipali = kuralYolu.endsWith('$');
+  const govde = cipali ? kuralYolu.slice(0, -1) : kuralYolu;
+  const desen = `^${govde.split('*').map(kacir).join('.*')}${cipali ? '$' : ''}`;
   return new RegExp(desen).test(yol);
 }
 

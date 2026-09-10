@@ -170,6 +170,32 @@ describe('SAF · robots.txt [MEV-RAD-001]', () => {
   it('BOŞ robots.txt izin verir — kural yoksa yasak da yok [MEV-RAD-001]', () => {
     expect(robotsIzni('', '/duyuru').izin).toBe(true);
   });
+
+  /* ── ÇIPALI KURAL · BAĞIMSIZ İNCELEME BULGUSU (PR #50 tur 1) ────────
+     `$` ile biten kural, kaçırmanın İKİ KEZ uygulanması yüzünden hiçbir
+     adrese uymuyordu ve ürün robots.txt'in kapattığı adrese istek
+     gönderiyordu. Vakalar kusurun ESKİ hâlini sürer: `.pdf$` kalıbı,
+     nokta taşıyan sade bir yol ve parantez taşıyan bir yol — üçü de
+     eski kodda "izin var" diyordu. */
+  it('$ ÇIPALI Disallow gerçekten kapatır — nokta ve yıldız birlikte [MEV-RAD-001]', () => {
+    const metin = 'User-agent: *\nDisallow: /*.pdf$';
+    expect(robotsIzni(metin, '/duyuru/rapor.pdf').izin).toBe(false);
+    /* Çıpa SONU bağlar: aynı uzantı ortada geçiyorsa kural uymaz. */
+    expect(robotsIzni(metin, '/duyuru/rapor.pdf.html').izin).toBe(true);
+  });
+
+  it('$ ÇIPALI kural REGEX ÖZEL KARAKTERİ taşıyabilir [MEV-RAD-001]', () => {
+    expect(robotsIzni('User-agent: *\nDisallow: /indir.php$', '/indir.php').izin).toBe(false);
+    expect(robotsIzni('User-agent: *\nDisallow: /rapor(2026)$', '/rapor(2026)').izin).toBe(false);
+    /* Nokta HARFİYEN eşleşir, joker gibi davranmaz. */
+    expect(robotsIzni('User-agent: *\nDisallow: /indir.php$', '/indirXphp').izin).toBe(true);
+  });
+
+  it('$ ÇIPALI Allow, kapsayan Disallow\'u yener [MEV-RAD-001]', () => {
+    const metin = 'User-agent: *\nDisallow: /\nAllow: /duyuru/besleme.xml$';
+    expect(robotsIzni(metin, '/duyuru/besleme.xml').izin).toBe(true);
+    expect(robotsIzni(metin, '/duyuru/besleme.xml?x=1').izin).toBe(false);
+  });
 });
 
 describe('SAF · kota ve üç değerli sonuç [MEV-RAD-001]', () => {
@@ -349,5 +375,87 @@ describe('ZİNCİR · motor önerir, değiştirmez [MEV-RAD-001]', () => {
       where: { kaynakId: acikId }, select: { durum: true, kararVerenId: true },
     });
     expect(durumlar.every((d) => d.durum === 'yeni' && d.kararVerenId === null)).toBe(true);
+  });
+});
+
+/* ═══════════════════════════════════════════════════════════════════════
+   MOTORUN YAZDIĞI DA İZ BIRAKIR — bağımsız inceleme bulgusu (#50 tur 1)
+
+   Döngü kaynağın durumunu değiştiriyor ve aday açıyordu ama denetim
+   izine HİÇBİR satır yazmıyordu; bu dosyanın hiçbir vakası
+   `aktiviteKaydi` tablosuna bakmıyordu. Bir uyum ürününde motorun
+   sessizce durum değiştirmesi, ürünün en temel vaadini (değişmez iz)
+   deler.
+   ═══════════════════════════════════════════════════════════════════════ */
+describe('İZ · motorun yazdığı denetim izine düşer [MEV-RAD-001]', () => {
+  /* İz kaydı SİLİNMEZ — tablo başka kayıtlarca da bağlanıyor ve zaten
+     değişmez olması gereken bir tablodur. Vakalar bu yüzden DELTA ölçer:
+     koşumdan önce ve sonra o varlığın izlerine bakılır. */
+  const izler = (varlikTipi: string, varlikId: string) =>
+    db.aktiviteKaydi.findMany({
+      where: { varlikTipi, varlikId }, orderBy: { zaman: 'asc' },
+    });
+
+  it('DURUM DEĞİŞİKLİĞİ iz bırakır — aktör YOK, gerekçe motoru söyler [MEV-RAD-001]', async () => {
+    await db.mevzuatKaynagi.update({
+      where: { id: acikId }, data: { sonTarama: null, durum: 'hazir' },
+    });
+    const once = (await izler('MevzuatKaynagi', acikId)).length;
+    const s = sahteKaynak({
+      'https://kurgusal-merci.ornek/robots.txt': { ok: true, httpKodu: 200, govde: ROBOTS_KAPALI },
+    });
+    await mevzuatRadariniKos(db, { getir: s.getir, simdiMs: SIMDI + 20 });
+
+    const sonra = await izler('MevzuatKaynagi', acikId);
+    expect(sonra.length - once, 'hazır → engelli geçişi izlenmedi').toBe(1);
+    const yeni = sonra[sonra.length - 1];
+    expect(yeni.aktorId, 'kararı insan vermedi; aktör yazılmamalı').toBeNull();
+    expect(yeni.alan).toBe('durum');
+    expect(yeni.oncekiDeger).toContain('Taranabilir');
+    expect(yeni.yeniDeger).toContain('ENGELLİ');
+    expect(yeni.gerekce).toContain('motor');
+  });
+
+  it('DURUM DEĞİŞMEDİYSE iz DÜŞMEZ — günlük tarama izi doldurmaz [MEV-RAD-001]', async () => {
+    /* İz DEĞİŞİKLİĞİN kaydıdır. Her koşuma bir satır yazmak, kaynak
+       başına yılda 365 satırla denetim izini okunmaz yapardı; koşumun
+       kendi kaydı zaten `MevzuatTaramasi` satırıdır ve o tablo yalnız
+       eklenir. */
+    await db.mevzuatKaynagi.update({
+      where: { id: acikId }, data: { sonTarama: null, durum: 'hazir' },
+    });
+    const once = (await izler('MevzuatKaynagi', acikId)).length;
+    const taramaOnce = await db.mevzuatTaramasi.count({ where: { kaynakId: acikId } });
+    const s = sahteKaynak({
+      'https://kurgusal-merci.ornek/robots.txt': { ok: true, httpKodu: 200, govde: ROBOTS_ACIK },
+      [KANAL]: { ok: true, httpKodu: 200, govde: RSS },
+    });
+    await mevzuatRadariniKos(db, { getir: s.getir, simdiMs: SIMDI + 21 });
+
+    /* `hazir` → `hazir`: hâl değişmedi, iz yok; tarama kaydı VAR. */
+    expect((await izler('MevzuatKaynagi', acikId)).length - once).toBe(0);
+    expect(await db.mevzuatTaramasi.count({ where: { kaynakId: acikId } }))
+      .toBe(taramaOnce + 1);
+  });
+
+  it('AÇILAN ADAY iz bırakır — öneri de kayda geçer [MEV-RAD-001]', async () => {
+    await db.mevzuatDegisiklikAdayi.deleteMany({ where: { kaynakId: acikId } });
+    await db.mevzuatKaynagi.update({
+      where: { id: acikId }, data: { sonTarama: null, durum: 'hazir' },
+    });
+    const s = sahteKaynak({
+      'https://kurgusal-merci.ornek/robots.txt': { ok: true, httpKodu: 200, govde: ROBOTS_ACIK },
+      [KANAL]: { ok: true, httpKodu: 200, govde: RSS },
+    });
+    const kosu = await mevzuatRadariniKos(db, { getir: s.getir, simdiMs: SIMDI + 22 });
+    expect(kosu.acilanAday).toBe(2);
+    const adaylar = await db.mevzuatDegisiklikAdayi.findMany({ where: { kaynakId: acikId } });
+    expect(adaylar.length).toBe(2);
+    for (const a of adaylar) {
+      const kayit = await izler('MevzuatDegisiklikAdayi', a.id);
+      expect(kayit.length, `aday ${a.url} izsiz açıldı`).toBe(1);
+      expect(kayit[0].aktorId).toBeNull();
+      expect(kayit[0].gerekce).toContain(a.url);
+    }
   });
 });

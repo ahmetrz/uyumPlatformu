@@ -37,6 +37,14 @@ const { db } = await import('@/lib/db');
 const { DEMO } = await import('@/lib/demo');
 const { riskKaydet } = await import('@/lib/eylemler2/risk');
 const { yetkiZorunlu } = await import('@/lib/erisim');
+/* DEMO İKİZLERİ DOĞRUDAN İÇE AKTARILIR. Statik demo derlemesinde bu
+   modüller `next.config.ts` takma adıyla gerçeğin YERİNE geçer
+   (`demoEslemesi`); yani burada çağrılan kod, demo sürümünde GERÇEKTEN
+   koşan koddur. Kapının kendisini değil, kapıyı kullanan eylemi ölçmek
+   R-F'in şartıdır. */
+const demoDenetimFormu = await import('@/lib/eylemler2/denetimFormu.demo');
+const demoKimlikSaglayici = await import('@/lib/eylemler2/kimlikSaglayici.demo');
+const demoMevzuatRadari = await import('@/lib/eylemler2/mevzuatRadari.demo');
 
 const damga = Date.now();
 const KOD = `RSK-DEMO-${damga}`;
@@ -94,5 +102,55 @@ describe('demo oturumunda YAZMA kapalı [SIS-DEM-001]', () => {
     /* İddia "kayıt oluşturan/DEĞİŞTİREN eylemler" der: onay da bir
        değiştirmedir ve kapı `islem !== 'okuma'` diye sorar. */
     await expect(yetkiZorunlu('risk', 'onay')).rejects.toThrow(/Demo/);
+  });
+});
+
+/* ═══════════════════════════════════════════════════════════════════════
+   DEMO İKİZLERİNİN KENDİ POLİTİKA CÜMLELERİ [SIS-DEM-002]
+
+   Demo ikizleri ekranda kendi cümlelerini yazar ("Demo sürümü: X
+   üretilmez — …") ve bunlar R-F'in ölçtüğü politika iddialarıdır: üçü de
+   S1'dir çünkü sözü verilen şey bir DENETİM İZİ ya da bir SIR
+   REFERANSIDIR. Türetici demo dosyalarını dışlarken bu üç iddia hiç
+   ölçülmüyordu; dışlama kaldırıldı (bağımsız inceleme, #50 tur 1).
+
+   Ölçülen: eylem AÇIK RET döner (sessiz düşüş yok) VE gerekçesini söyler.
+   ═══════════════════════════════════════════════════════════════════════ */
+describe('DEMO İKİZLERİ açık ret döner, sessizce düşmez [SIS-DEM-002]', () => {
+  it('denetim formu üretilmez — sebep GEREKÇE ile söylenir [SIS-DEM-002]', async () => {
+    const s = await demoDenetimFormu.denetimFormuUretEylem();
+    expect(s.ok).toBe(false);
+    if (!s.ok) {
+      expect(s.hata).toContain('denetim formu üretilmez');
+      /* Gerekçe KUSURU anlatır: neden üretilemeyeceğini söyler,
+         maliyetini değil. */
+      expect(s.hata).toContain('denetim izi');
+    }
+  });
+
+  it('kimlik sağlayıcı yapılandırılmaz — SIR REFERANSI gerekçesiyle [SIS-DEM-002]', async () => {
+    for (const eylem of [
+      demoKimlikSaglayici.kimlikSaglayiciKaydet,
+      demoKimlikSaglayici.kimlikSaglayiciBagla,
+      demoKimlikSaglayici.kimlikSaglayiciAktiflik,
+      demoKimlikSaglayici.oturumPolitikasiKaydet,
+    ]) {
+      const s = await eylem();
+      expect(s.ok).toBe(false);
+      if (!s.ok) expect(s.hata).toContain('sır referansı');
+    }
+  });
+
+  it('mevzuat adayı karara BAĞLANMAZ ve tarama AÇILMAZ [SIS-DEM-002]', async () => {
+    for (const eylem of [demoMevzuatRadari.adayIncelendi, demoMevzuatRadari.adayIlgisiz]) {
+      const s = await eylem();
+      expect(s.ok).toBe(false);
+      if (!s.ok) expect(s.hata).toContain('karara bağlanmaz');
+    }
+    /* İKİNCİ SEBEP AYRICA ÖLÇÜLÜR: statik bir sayfadan bir kamu
+       kaynağına istek gönderen bir düğme olmamalıdır. */
+    const t = await demoMevzuatRadari.taramayiAyarla();
+    expect(t.ok).toBe(false);
+    if (!t.ok) expect(t.hata).toContain('tarama açılmaz');
   });
 });

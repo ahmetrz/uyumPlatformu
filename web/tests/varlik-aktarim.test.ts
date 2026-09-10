@@ -388,6 +388,27 @@ describe('Santral kapsamı — yetkisiz tesise yazılamaz', () => {
     expect(sebepler).toContain('KAPSAM-GLOBAL');
   });
 
+  it('HEPSİ kapsam dışıysa aktarım HİÇBİR KAYIT yazmaz [SIS-YTK-011]', async () => {
+    /* Ekranın cümlesi (R-F · POL-114): "dosyadaki satırlar kapsamınız
+       dışında kalıyor. Yetkiniz genişlemeden bu aktarım hiçbir kayıt
+       yazmaz." Bir üstteki vaka KARIŞIK dosyayı ölçüyor (bir satır
+       yazılıyor); bu cümle ise TAMAMI kapsam dışı hâli anlatıyor ve
+       "hiçbir kayıt" iddiası ancak o hâlde sınanır. */
+    const oncekiToplam = await db.varlik.count();
+    const a = await aktarimKur(
+      'hepsi-disarida.csv', ['tag', 'tur', 'tesis'],
+      [
+        ['TAMAMEN-DISI-1', turKod, tesisB.kod],
+        ['TAMAMEN-DISI-2', turKod, tesisB.kod],
+      ],
+      { tag: 'etiket', tur: 'turKodu', tesis: 'tesisKodu' },
+    );
+    const sonuc = await aktarimiUygula({ aktarimId: a.id, onaylayan: tesisliA });
+    expect(sonuc).toEqual({ eklenen: 0, guncellenen: 0 });
+    expect(await db.varlik.count(), 'kapsam dışı dosyadan kayıt yazıldı')
+      .toBe(oncekiToplam);
+  });
+
   it('kapsam dışı MEVCUT varlığın güncellenmesi de reddedilir', async () => {
     // B santralinde global yetkiyle bir varlık açılır…
     const kur = await aktarimKur(

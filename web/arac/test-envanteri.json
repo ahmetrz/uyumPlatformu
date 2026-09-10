@@ -1,7 +1,7 @@
 {
-  "imza": "9ae425aa8249c65bb64318f792a4cc5a",
-  "dosya": 225,
-  "vaka": 4055,
+  "imza": "56c03d669ac3a57acf522137ad2bb65e",
+  "dosya": 227,
+  "vaka": 4090,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -93,11 +93,11 @@
       "atlanan": 0
     },
     "tests/bekci/paket-silme.test.ts": {
-      "vaka": 5,
+      "vaka": 6,
       "atlanan": 0
     },
     "tests/bekci/politika-olcumu.test.ts": {
-      "vaka": 20,
+      "vaka": 21,
       "atlanan": 0
     },
     "tests/bekci/radar-agsiz.test.ts": {
@@ -520,8 +520,12 @@
       "vaka": 10,
       "atlanan": 0
     },
+    "tests/mevzuat-radari-mantik.test.ts": {
+      "vaka": 8,
+      "atlanan": 0
+    },
     "tests/mevzuat-radari.test.ts": {
-      "vaka": 23,
+      "vaka": 29,
       "atlanan": 0
     },
     "tests/motor-defteri.test.ts": {
@@ -673,7 +677,11 @@
       "atlanan": 0
     },
     "tests/politika-demo-salt-okunur.test.ts": {
-      "vaka": 5,
+      "vaka": 8,
+      "atlanan": 0
+    },
+    "tests/politika-eylem-kapsami.test.ts": {
+      "vaka": 15,
       "atlanan": 0
     },
     "tests/politika-pasif-once.test.ts": {
@@ -833,7 +841,7 @@
       "atlanan": 0
     },
     "tests/varlik-aktarim.test.ts": {
-      "vaka": 32,
+      "vaka": 33,
       "atlanan": 0
     },
     "tests/varlik-durus.test.ts": {

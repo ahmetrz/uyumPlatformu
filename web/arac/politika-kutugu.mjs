@@ -28,18 +28,82 @@ import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
 const KOK = process.cwd();
-const TARANAN = ['app'];
+/* ── NE TARANIR, NE TARANMAZ · BEYANLI SINIR ──────────────────────────
+   R-F'in öznesi EKRANIN iddiasıdır. Ekrana çıkan metin iki yerde yaşar:
+   `app/**` (ekranların kendisi) ve `lib/eylemler2/**` (sunucu eyleminin
+   fırlattığı ve arayüzün `hata()` ile gösterdiği mesajlar). İkisi de
+   taranır.
+
+   `lib/`in geri kalanı taranMAZ ve bu bir eksiklik değil, ÖLÇÜLMÜŞ bir
+   sınırdır: tamamı tarandığında aday 293'e çıkıyor ve fark, ekrana hiç
+   çıkmayan motor gerekçeleri, iz kaydı metinleri ve günlük satırlarıdır.
+   Onları kütüğe almak, ölçülmeyen sayısını ekranın iddialarıyla ilgisi
+   olmayan satırlarla şişirir ve cırcırı anlamsız yapardı — cırcır neyi
+   koruduğunu bilmediği gün bir sayı bekçisine döner.
+
+   Sınır BURADA yazılıdır ki bir gün genişletilmek istendiğinde
+   tartışılacak şey açık olsun. Ölçüm (10 Eyl 2026): app 85 ·
+   app+lib/eylemler2 119 · app+lib 293. */
+const TARANAN = ['app', 'lib/eylemler2'];
 const KUTUK = path.join(KOK, 'arac', 'politika-cumleleri.json');
 
 /** İddiayı SİSTEME bağlayan sözcük. */
 export const OZNE = /\b(bu ekran|bu kutu|bu liste|bu kurulum\w*|bu ortam\w*|bu sayfa|bu aktarım|sunucu|motor|kütük|ürün|sistem|platform|kayıt|kayıtlar|kapsam|yetki\w*|hiçbir|otomatik|denetim izi|iz)\b/iu;
 
-/** Sistemin ne yapacağı/yapmayacağı. */
-export const YUKLEM = /(\b\w+m[ae]z\b|\b\w+[ae]m[ae]z(siniz)?\b|\bzorunlu\b|\byalnız(ca)?\b|\bsadece\b|\breddedil\w*|\bizin verilm\w*|\bkapalı\b|\bdeğişmez\b)/iu;
+/** Sistemin ne yapacağı/yapmayacağı.
+ *
+ * ── TÜRKÇE HARF `\w` DEĞİLDİR ─────────────────────────────────────────
+ * İlk yazımda yüklem `\b\w+m[ae]z\b` idi ve JavaScript'te `\w`
+ * `[A-Za-z0-9_]`dir — `u` bayrağı bunu değiştirmez. Sonuç ÖLÇÜLDÜ
+ * (bağımsız inceleme, PR #50 tur 1): `aşmaz` · `bağlanmaz` · `açılamaz`
+ * gibi Türkçe harf taşıyan yüklemler HİÇ eşleşmiyordu ve mevzuat
+ * radarının en çok tekrarlanan iddiası ("ürün bu engeli AŞMAZ") kütüğe
+ * hiç girmemişti. Türkçe yazan bir üründe Türkçe harfi görmeyen bir
+ * ölçüm aracı, ölçtüğünü sandığı şeyin yarısını görmez.
+ *
+ * Bugün harf sınıfı `\p{L}` ile kurulur ve sözcük sınırı `\b` yerine
+ * harf-olmayan bakışlarla (`(?<![\p{L}])`) verilir: `\b` de ASCII'dir. */
+const HARF = '\\p{L}';
+const SOZCUK_BASI = `(?<![${HARF}])`;
+const SOZCUK_SONU = `(?![${HARF}])`;
+export const YUKLEM = new RegExp(
+  `(${SOZCUK_BASI}[${HARF}]+m[ae]z${SOZCUK_SONU}`
+  + `|${SOZCUK_BASI}[${HARF}]+[ae]m[ae]z(siniz)?${SOZCUK_SONU}`
+  + '|\\bzorunlu\\b|\\byalnız(ca)?\\b|\\bsadece\\b'
+  + `|\\breddedil[${HARF}]*|\\bizin verilm[${HARF}]*`
+  + '|\\bkapalı\\b|\\bdeğişmez\\b)', 'iu');
 
 export const yorumsuz = (m) => m
   .replace(/\/\*[\s\S]*?\*\//g, '')
   .split('\n').map((s) => s.replace(/\/\/.*$/, '')).join('\n');
+
+/**
+ * `'...' + '...'` ile bölünmüş dizeleri TEK dizeye indirir.
+ *
+ * ── NEDEN GEREKLİ ─────────────────────────────────────────────────────
+ * Bu depoda uzun ekran cümleleri satır sınırına sığsın diye ikiye
+ * bölünür ve bu EGEMEN stildir. Türetici her tırnaklı parçayı ayrı
+ * eşleştirdiği için, öznesi ilk parçada yüklemi ikinci parçada olan bir
+ * cümle İKİSİNDE DE eşleşmiyordu — birleşik hâli politika olsa bile.
+ * Ölçüldü (bağımsız inceleme, PR #50 tur 1): birleştirmeyle `app`
+ * altındaki aday 76'dan 85'e çıkıyor; dokuz cümle yalnız bölündüğü için
+ * görünmezdi.
+ *
+ * Birleştirme SABİT NOKTAYA kadar yinelenir: üçe bölünmüş bir cümle tek
+ * turda ikiye iner, ikinci turda bire.
+ */
+export function bitisikleriBirlestir(kod) {
+  let onceki;
+  let simdi = kod;
+  do {
+    onceki = simdi;
+    simdi = simdi.replace(
+      /(['"])([^'"\\\n]*)\1\s*\+\s*(['"])([^'"\\\n]*)\3/g,
+      (_t, _a, sol, _b, sag) => `'${(sol + sag).replace(/'/g, '')}'`,
+    );
+  } while (simdi !== onceki);
+  return simdi;
+}
 
 /** Bir metin sabiti politika cümlesi mi? */
 export function politikaMi(s) {
@@ -78,9 +142,14 @@ export function turet() {
   const cikan = [];
   for (const kok of TARANAN) {
     for (const f of readdirSync(path.join(KOK, kok), { recursive: true }).map(String)) {
-      if (!/\.(tsx|ts)$/.test(f) || /\.(test|demo)\.tsx?$/.test(f)) continue;
+      /* DEMO DOSYALARI DA TARANIR. Önce dışlanıyorlardı; oysa demo
+         sürümünün "bu kurulumda karara bağlanmaz" cümlesi ekranda
+         GÖRÜNEN bir politika iddiasıdır ve `kapi-demo` ile yayımlanan
+         gerçek bir yüzeydir. Dışlamak, ürünün en çok gösterilen
+         sürümünü R-F'in dışında bırakıyordu. */
+      if (!/\.(tsx|ts)$/.test(f) || /\.test\.tsx?$/.test(f)) continue;
       const rel = `${kok}/${f}`;
-      const kod = yorumsuz(readFileSync(path.join(KOK, rel), 'utf8'));
+      const kod = bitisikleriBirlestir(yorumsuz(readFileSync(path.join(KOK, rel), 'utf8')));
       for (const m of kod.matchAll(/'([^'\\\n]{25,300})'|"([^"\\\n]{25,300})"|`([^`\\]{25,300})`/g)) {
         const cumle = (m[1] ?? m[2] ?? m[3]).trim();
         if (!politikaMi(cumle)) continue;

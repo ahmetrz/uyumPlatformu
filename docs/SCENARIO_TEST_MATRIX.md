@@ -4,12 +4,12 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 350 |
-| Testi olan senaryo | 350 |
+| Senaryo | 352 |
+| Testi olan senaryo | 352 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
-| Taranan test dosyası | 225 |
+| Taranan test dosyası | 227 |
 
 ## Katman başına kapsam
 
@@ -18,14 +18,14 @@
 | ACCESSIBILITY | 8 | 8 | 0 |
 | API | 12 | 12 | 0 |
 | CONCURRENCY | 7 | 7 | 0 |
-| DOMAIN | 203 | 203 | 0 |
+| DOMAIN | 205 | 205 | 0 |
 | ENGINE | 34 | 34 | 0 |
 | INTEGRATION | 41 | 41 | 0 |
 | MIGRATION | 5 | 5 | 0 |
-| RBAC | 38 | 38 | 0 |
+| RBAC | 39 | 39 | 0 |
 | RESPONSIVE | 8 | 8 | 0 |
-| SCOPE | 31 | 31 | 0 |
-| SERVER | 145 | 145 | 0 |
+| SCOPE | 32 | 32 | 0 |
+| SERVER | 147 | 147 | 0 |
 | UI | 100 | 100 | 0 |
 | VISUAL | 4 | 4 | 0 |
 | WORKFLOW | 37 | 37 | 0 |
@@ -184,6 +184,9 @@
 | `MEV-RAD-001` | Uyum | SERVER · DOMAIN · WORKFLOW · UI | `mevzuat-radari.test.ts` | EN UZUN kural kazanır — Allow, kapsayan Disallow\'u yener | evet | geçti |
 | `MEV-RAD-001` | Uyum | SERVER · DOMAIN · WORKFLOW · UI | `mevzuat-radari.test.ts` | BİZE ÖZEL grup varsa yıldız grubu uygulanmaz | evet | geçti |
 | `MEV-RAD-001` | Uyum | SERVER · DOMAIN · WORKFLOW · UI | `mevzuat-radari.test.ts` | BOŞ robots.txt izin verir — kural yoksa yasak da yok | evet | geçti |
+| `MEV-RAD-001` | Uyum | SERVER · DOMAIN · WORKFLOW · UI | `mevzuat-radari.test.ts` | $ ÇIPALI Disallow gerçekten kapatır — nokta ve yıldız birlikte | evet | geçti |
+| `MEV-RAD-001` | Uyum | SERVER · DOMAIN · WORKFLOW · UI | `mevzuat-radari.test.ts` | $ ÇIPALI kural REGEX ÖZEL KARAKTERİ taşıyabilir | evet | geçti |
+| `MEV-RAD-001` | Uyum | SERVER · DOMAIN · WORKFLOW · UI | `mevzuat-radari.test.ts` | $ ÇIPALI Allow, kapsayan Disallow\'u yener | evet | geçti |
 | `MEV-RAD-001` | Uyum | SERVER · DOMAIN · WORKFLOW · UI | `mevzuat-radari.test.ts` | kaynak başına GÜNDE BİR istek | evet | geçti |
 | `MEV-RAD-001` | Uyum | SERVER · DOMAIN · WORKFLOW · UI | `mevzuat-radari.test.ts` | ANTI-BOT yanıtı ENGELLİ yazar, atlatmaz | evet | geçti |
 | `MEV-RAD-001` | Uyum | SERVER · DOMAIN · WORKFLOW · UI | `mevzuat-radari.test.ts` | BİLİNMEYEN "fark yok" DEĞİLDİR — cümlesi ayrıdır | evet | geçti |
@@ -201,6 +204,9 @@
 | `MEV-RAD-001` | Uyum | SERVER · DOMAIN · WORKFLOW · UI | `mevzuat-radari.test.ts` | MOTOR `etkin` alanına DOKUNMAZ | evet | geçti |
 | `MEV-RAD-001` | Uyum | SERVER · DOMAIN · WORKFLOW · UI | `mevzuat-radari.test.ts` | BİÇİM tanınmazsa farkVar NULL ve sebep YAZILI | evet | geçti |
 | `MEV-RAD-001` | Uyum | SERVER · DOMAIN · WORKFLOW · UI | `mevzuat-radari.test.ts` | MOTOR aday DURUMUNU yazmaz — hepsi "yeni" kalır | evet | geçti |
+| `MEV-RAD-001` | Uyum | SERVER · DOMAIN · WORKFLOW · UI | `mevzuat-radari.test.ts` | DURUM DEĞİŞİKLİĞİ iz bırakır — aktör YOK, gerekçe motoru söyler | evet | geçti |
+| `MEV-RAD-001` | Uyum | SERVER · DOMAIN · WORKFLOW · UI | `mevzuat-radari.test.ts` | DURUM DEĞİŞMEDİYSE iz DÜŞMEZ — günlük tarama izi doldurmaz | evet | geçti |
+| `MEV-RAD-001` | Uyum | SERVER · DOMAIN · WORKFLOW · UI | `mevzuat-radari.test.ts` | AÇILAN ADAY iz bırakır — öneri de kayda geçer | evet | geçti |
 | `MEV-RAD-002` | Uyum | SERVER · RBAC · DOMAIN · UI | `mevzuat-radari-eylem.test.ts` | GEREKÇESİZ karar REDDEDİLİR ve aday DEĞİŞMEZ | evet | geçti |
 | `MEV-RAD-002` | Uyum | SERVER · RBAC · DOMAIN · UI | `mevzuat-radari-eylem.test.ts` | BOŞLUKLA doldurulan gerekçe de geçmez | evet | geçti |
 | `MEV-RAD-002` | Uyum | SERVER · RBAC · DOMAIN · UI | `mevzuat-radari-eylem.test.ts` | GEREKÇELİ karar geçer ve İZ bırakır | evet | geçti |
@@ -211,6 +217,14 @@
 | `MEV-RAD-002` | Uyum | SERVER · RBAC · DOMAIN · UI | `mevzuat-radari-eylem.test.ts` | GEREKÇELİ açma geçer ve İZ bırakır | evet | geçti |
 | `MEV-RAD-002` | Uyum | SERVER · RBAC · DOMAIN · UI | `mevzuat-radari-eylem.test.ts` | ZATEN AÇIK kaynağı yeniden açmak REDDEDİLİR | evet | geçti |
 | `MEV-RAD-002` | Uyum | SERVER · RBAC · DOMAIN · UI | `mevzuat-radari-eylem.test.ts` | tesise KISITLI rol karar veremez | evet | geçti |
+| `MEV-RAD-002` | Uyum | SERVER · RBAC · DOMAIN · UI | `mevzuat-radari-mantik.test.ts` | ENGELLİ kaynak "karşılaştırılamadı" sayılMAZ | evet | geçti |
+| `MEV-RAD-002` | Uyum | SERVER · RBAC · DOMAIN · UI | `mevzuat-radari-mantik.test.ts` | HÂL SAYIMI kaynak sayısını AŞMAZ — dört hâlin toplamı | evet | geçti |
+| `MEV-RAD-002` | Uyum | SERVER · RBAC · DOMAIN · UI | `mevzuat-radari-mantik.test.ts` | HER kaynak TAM OLARAK bir hâle düşer | evet | geçti |
+| `MEV-RAD-002` | Uyum | SERVER · RBAC · DOMAIN · UI | `mevzuat-radari-mantik.test.ts` | hiç taranmamış kaynak "değişiklik yok" DEMEZ | evet | geçti |
+| `MEV-RAD-002` | Uyum | SERVER · RBAC · DOMAIN · UI | `mevzuat-radari-mantik.test.ts` | farkVar NULL "karşılaştırılamadı" der, FALSE "değişiklik yok" der | evet | geçti |
+| `MEV-RAD-002` | Uyum | SERVER · RBAC · DOMAIN · UI | `mevzuat-radari-mantik.test.ts` | hiçbir kaynak taranmıyorsa başlık BUNU söyler | evet | geçti |
+| `MEV-RAD-002` | Uyum | SERVER · RBAC · DOMAIN · UI | `mevzuat-radari-mantik.test.ts` | bakılamamış kaynak varken "bekleyen değişiklik yok" DENMEZ | evet | geçti |
+| `MEV-RAD-002` | Uyum | SERVER · RBAC · DOMAIN · UI | `mevzuat-radari-mantik.test.ts` | kapsam cümlesi ENGELLİ ile KARŞILAŞTIRILAMADI\'yı AYRI söyler | evet | geçti |
 | `DNT-FRM-001` | Denetim | SERVER · DOMAIN · UI | `denetim-formu-eylem.test.ts` | öz denetim formu üretilir; BOŞ HÜCRE SIFIR | evet | geçti |
 | `DNT-FRM-001` | Denetim | SERVER · DOMAIN · UI | `denetim-formu-eylem.test.ts` | SoA da aynı kapıdan geçer ve yedi sütun taşır | evet | geçti |
 | `DNT-FRM-002` | Denetim | UI · DOMAIN | `denetim-formu.test.ts` | GEREKÇESİZ kapsam dışı İŞARETLENİR — gerekçe uydurulmaz | evet | geçti |
@@ -477,6 +491,25 @@
 | `SIS-BSL-002` | Sistem | UI | `ekran-basligi.test.ts` | künyede ister kodu geçmiyor | evet | geçti |
 | `SIS-ERS-002` | Sistem | ACCESSIBILITY · UI | `senaryo-platform.test.ts` | seçilemeyen tablo grid demez, işaretçi imleci taşımaz | evet | geçti |
 | `SIS-ERS-003` | Sistem | ACCESSIBILITY | `senaryo-platform.test.ts` | sekme rolü yalnız gerçek sekmelerde kullanılır | evet | geçti |
+| `SIS-YTK-011` | Sistem | RBAC · SCOPE · SERVER · DOMAIN | `politika-eylem-kapsami.test.ts` | iptalli anahtarda kapsam güncellemesi REDDEDİLİR, kapsam AYNI kalır | evet | geçti |
+| `SIS-YTK-011` | Sistem | RBAC · SCOPE · SERVER · DOMAIN | `politika-eylem-kapsami.test.ts` | BAŞKASININ görevini onaysız rol kapatamaz ve durum DEĞİŞMEZ | evet | geçti |
+| `SIS-YTK-011` | Sistem | RBAC · SCOPE · SERVER · DOMAIN | `politika-eylem-kapsami.test.ts` | UYUM ONAY yetkisi olan rol kapatabilir — kapı sıkı ama kilitli değil | evet | geçti |
+| `SIS-YTK-011` | Sistem | RBAC · SCOPE · SERVER · DOMAIN | `politika-eylem-kapsami.test.ts` | maddeye bağlı OLMAYAN kanıtı dar kapsamlı rol DÜZENLEYEMEZ | evet | geçti |
+| `SIS-YTK-011` | Sistem | RBAC · SCOPE · SERVER · DOMAIN | `politika-eylem-kapsami.test.ts` | kapanış aşamasındaki denetimden kapsam ÇIKARILAMAZ | evet | geçti |
+| `SIS-YTK-011` | Sistem | RBAC · SCOPE · SERVER · DOMAIN | `politika-eylem-kapsami.test.ts` | silinmiş connectorda kapsam kaydı REDDEDİLİR, kapsam AYNI kalır | evet | geçti |
+| `SIS-YTK-011` | Sistem | RBAC · SCOPE · SERVER · DOMAIN | `politika-eylem-kapsami.test.ts` | yapılandırmaya gömülen kapsam REDDEDİLİR — iki kaynak, iki gerçek | evet | geçti |
+| `SIS-YTK-011` | Sistem | RBAC · SCOPE · SERVER · DOMAIN | `politika-eylem-kapsami.test.ts` | öğesiz kayıtta uygulanabilirlik kararı REDDEDİLİR | evet | geçti |
+| `SIS-YTK-011` | Sistem | RBAC · SCOPE · SERVER · DOMAIN | `politika-eylem-kapsami.test.ts` | denetim modülünde okuması OLMAYAN rol paket üretemez | evet | geçti |
+| `SIS-YTK-011` | Sistem | RBAC · SCOPE · SERVER · DOMAIN | `politika-eylem-kapsami.test.ts` | iz satırı GÜNCELLENEMEZ — tetikleyici reddeder | evet | geçti |
+| `SIS-YTK-011` | Sistem | RBAC · SCOPE · SERVER · DOMAIN | `politika-eylem-kapsami.test.ts` | iz satırı SİLİNEMEZ — tetikleyici reddeder | evet | geçti |
+| `SIS-YTK-011` | Sistem | RBAC · SCOPE · SERVER · DOMAIN | `politika-eylem-kapsami.test.ts` | EKLEME açıktır — kütük yalnız büyür | evet | geçti |
+| `SIS-YTK-011` | Sistem | RBAC · SCOPE · SERVER · DOMAIN | `politika-eylem-kapsami.test.ts` | yönetim yazması OLMAYAN rol connector kaydedemez, satır AÇILMAZ | evet | geçti |
+| `SIS-YTK-011` | Sistem | RBAC · SCOPE · SERVER · DOMAIN | `politika-eylem-kapsami.test.ts` | yönetim YAZMASI olan rol kaydedebilir — kapı kilitli değil | evet | geçti |
+| `SIS-YTK-011` | Sistem | RBAC · SCOPE · SERVER · DOMAIN | `politika-eylem-kapsami.test.ts` | reddedilen kaydın ham gövdesi DEĞİŞMEDEN durur | evet | geçti |
+| `SIS-YTK-011` | Sistem | RBAC · SCOPE · SERVER · DOMAIN | `varlik-aktarim.test.ts` | HEPSİ kapsam dışıysa aktarım HİÇBİR KAYIT yazmaz | evet | geçti |
+| `SIS-DEM-002` | Sistem | SERVER · DOMAIN | `politika-demo-salt-okunur.test.ts` | denetim formu üretilmez — sebep GEREKÇE ile söylenir | evet | geçti |
+| `SIS-DEM-002` | Sistem | SERVER · DOMAIN | `politika-demo-salt-okunur.test.ts` | kimlik sağlayıcı yapılandırılmaz — SIR REFERANSI gerekçesiyle | evet | geçti |
+| `SIS-DEM-002` | Sistem | SERVER · DOMAIN | `politika-demo-salt-okunur.test.ts` | mevzuat adayı karara BAĞLANMAZ ve tarama AÇILMAZ | evet | geçti |
 | `SIS-PAS-001` | Sistem | ENGINE · SERVER · INTEGRATION | `politika-pasif-once.test.ts` | sahte ağ GERÇEKTEN kapalı — ölçüm boşa koşmuyor | evet | geçti |
 | `SIS-PAS-001` | Sistem | ENGINE · SERVER · INTEGRATION | `politika-pasif-once.test.ts` | anlık görüntü motoru ağa HİÇ paket göndermez | evet | geçti |
 | `SIS-PAS-001` | Sistem | ENGINE · SERVER · INTEGRATION | `politika-pasif-once.test.ts` | topoloji sapma motoru da ağa çıkmaz | evet | geçti |
@@ -867,6 +900,7 @@
 | `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | SINIF ELLE VERİLMEZ — kütüktekiyle TÜRETİLEN aynı | evet | geçti |
 | `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | S1 · YETKİ VE GÜVENLİK: ÖLÇÜLMEYEN SIFIRDIR — istisna YOK | evet | geçti |
 | `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | SINIF TAVANLARI ölçülenle BİREBİR — gevşeklik dişi | evet | geçti |
+| `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | TAVAN YÜKSELMESİ DOSYADA GEREKÇE İSTER — beşinci diş | evet | geçti |
 | `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | TABAN DAL CIRCIRI: liste tabana göre BÜYÜYEMEZ | evet | geçti |
 | `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | ÖZNE koşulu alan doğrulamasını dışarıda tutar | evet | geçti |
 | `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | SİSTEM iddiası yakalanır | evet | geçti |
@@ -921,6 +955,7 @@
 | `URN-PKT-010` | Ürünleştirme | DOMAIN | `bekci/paket-silme.test.ts` | madde dışında HİÇBİR modelde delete/deleteMany yok — tavan sıfır, istisna listesi yok | evet | geçti |
 | `URN-PKT-010` | Ürünleştirme | DOMAIN | `bekci/paket-silme.test.ts` | madde silmesi yalnız paketin kendi taslağını (`surumId` süzgeci) hedefler ve bağ kontrolünden sonra gelir | evet | geçti |
 | `URN-PKT-010` | Ürünleştirme | DOMAIN | `bekci/paket-silme.test.ts` | şemada Madde\'den başka modele giden HER liste ilişkisi bağ kontrolünde; listede şemada olmayan ilişki yok | evet | geçti |
+| `URN-PKT-010` | Ürünleştirme | DOMAIN | `bekci/paket-silme.test.ts` | PAKETİN KURDUĞU model, İNSAN KARARI taşıyan modele KASKAT AKMAZ | evet | geçti |
 | `URN-PKT-010` | Ürünleştirme | DOMAIN | `bekci/paket-silme.test.ts` | istisna listesi yok: kurucu modülü gerekçeli dışlama ihraç etmez | evet | geçti |
 
 ## Gerekçesiyle kütüksüz kalan dosyalar

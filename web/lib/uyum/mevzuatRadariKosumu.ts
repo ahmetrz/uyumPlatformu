@@ -20,12 +20,38 @@
    `CerceveSurumu` ve `MevzuatKaynagi.etkin` bu dosyadan HİÇ
    değişmez — bir uyum ürününde mevzuatın değiştiğine karar vermek bir
    tarayıcının işi değildir.
+
+   ── MOTORUN YAZDIĞI DA İZ BIRAKIR ─────────────────────────────────────
+   Ölçüldü (bağımsız inceleme, PR #50 tur 1): bu döngü kaynağın durumunu
+   değiştiriyor ve aday açıyordu ama HİÇBİR `iz()` yazmıyordu — bir
+   kaynağın `hazir → engelli` geçişi denetim izinde hiç görünmüyordu.
+   Aynı depoda `bildirimDonemiAcma.ts` motor kaynaklı her geçişi
+   `$transaction` içinde izliyordu; bu dosya "aynı gerekçe" diye ona
+   atıf yapıp yapmıyordu. Bugün:
+
+     · Kaynağın DURUMU değiştiğinde iz düşer (aktör YOK — kararı insan
+       vermedi ve iz bunu saklamaz, adıyla söyler).
+     · Açılan HER aday iz bırakır: aday insanın önüne konan bir öneridir.
+     · Durum DEĞİŞMEDİYSE iz düşmez; koşumun kendi kaydı zaten
+       `MevzuatTaramasi` satırıdır ve o tablo yalnız eklenir. Her günlük
+       taramaya bir iz satırı yazmak, kaynak başına yılda 365 satırla
+       denetim izini okunmaz yapardı — iz DEĞİŞİKLİĞİN kaydıdır.
+
+   ── BİR KAYNAK, BİR İŞLEM ─────────────────────────────────────────────
+   Adaylar, tarama kaydı ve kaynağın yeni hâli TEK `$transaction` içinde
+   yazılır. Ayrı yazılsalardı bir çökme, adayları yazılmış ama taraması
+   ve `sonTarama`sı kaydedilmemiş bir kaynak bırakırdı: ertesi koşu
+   kotayı dolmamış sayıp aynı kaynağa yeniden istek gönderirdi. AĞ
+   çağrıları işlemin DIŞINDADIR — bir işlemi ağ beklerken açık tutmak,
+   veritabanını uzak bir sunucunun hızına bağlamaktır.
    ═══════════════════════════════════════════════════════════════════════ */
 
 import type { db as Db } from '../db';
+import { iz } from '../eylemler2/ortak';
 import { ayristir } from '../mevzuat/ayristir';
 import {
-  type Getirme, getirmeKarari, kotaVar, robotsIzni, yeniGirisler,
+  DURUM_SOZU, type Getirme, type Giris, getirmeKarari, kotaVar, robotsIzni,
+  yeniGirisler,
 } from '../mevzuat/radar';
 
 export type RadarKosusu = {
@@ -80,7 +106,7 @@ export async function mevzuatRadariniKos(
        istek göndermiş olur ve kural kâğıt üstünde kalır. */
     const rAdres = robotsAdresi(kaynak.yayinKanali);
     if (rAdres === null) {
-      await taramaYaz(istemci, kaynak.id, {
+      await taramaYaz(istemci, kaynak, {
         farkVar: null, sebep: 'yayın kanalı geçerli bir adres değil',
         httpKodu: null, durum: 'hata', durumNotu: 'adres çözülemedi',
       }, simdiMs);
@@ -93,7 +119,7 @@ export async function mevzuatRadariniKos(
          BEKLERİZ: anlayamadığımız bir kuralı yok saymak yerine. */
       const yok = robots.httpKodu === 404 || robots.httpKodu === 410;
       if (!yok) {
-        await taramaYaz(istemci, kaynak.id, {
+        await taramaYaz(istemci, kaynak, {
           farkVar: null,
           sebep: `robots.txt okunamadı (HTTP ${robots.httpKodu ?? '—'}) — beklendi`,
           httpKodu: robots.httpKodu, durum: 'hata',
@@ -106,7 +132,7 @@ export async function mevzuatRadariniKos(
       const yol = new URL(kaynak.yayinKanali).pathname;
       const izin = robotsIzni(robots.govde, yol);
       if (!izin.izin) {
-        await taramaYaz(istemci, kaynak.id, {
+        await taramaYaz(istemci, kaynak, {
           farkVar: null, sebep: izin.sebep, httpKodu: null,
           durum: 'engelli',
           durumNotu: 'robots.txt otomatik erişime kapatıyor. ELLE izlenir;'
@@ -122,7 +148,7 @@ export async function mevzuatRadariniKos(
     sonuc.taranan += 1;
     const kotu = getirmeKarari(yanit);
     if (kotu) {
-      await taramaYaz(istemci, kaynak.id, kotu, simdiMs);
+      await taramaYaz(istemci, kaynak, kotu, simdiMs);
       sonuc.bilinmeyen += 1;
       if (kotu.durum === 'engelli') sonuc.engelli += 1;
       continue;
@@ -133,7 +159,7 @@ export async function mevzuatRadariniKos(
     const a = ayristir(kaynak.tur, yanit.govde, kaynak.yayinKanali);
     if (!a.tanindi) {
       /* BİÇİM TANINMADIYSA "fark yok" DEĞİL "bilinmiyor". */
-      await taramaYaz(istemci, kaynak.id, {
+      await taramaYaz(istemci, kaynak, {
         farkVar: null, sebep: `biçim okunamadı: ${a.sebep}`,
         httpKodu: yanit.httpKodu, durum: 'hata',
         durumNotu: a.sebep,
@@ -147,40 +173,79 @@ export async function mevzuatRadariniKos(
       where: { kaynakId: kaynak.id }, select: { url: true },
     });
     const yeniler = yeniGirisler(a.girisler, bilinen.map((b) => b.url));
-    for (const g of yeniler) {
-      await istemci.mevzuatDegisiklikAdayi.create({
-        data: {
-          kaynakId: kaynak.id, url: g.url, baslik: g.baslik,
-          yayinTarihi: g.yayinTarihi, ozet: g.ozet,
-        },
-      });
-    }
     sonuc.acilanAday += yeniler.length;
 
-    await taramaYaz(istemci, kaynak.id, {
+    /* Adaylar da tarama da AYNI işlemde yazılır — yarısı yazılmış bir
+       koşum, kotayı dolmamış gösterip aynı kaynağa ikinci kez istek
+       gönderirdi. */
+    await taramaYaz(istemci, kaynak, {
       farkVar: yeniler.length > 0, sebep: null, httpKodu: yanit.httpKodu,
       durum: 'hazir', durumNotu: null,
-    }, simdiMs, yeniler.length);
+    }, simdiMs, yeniler);
   }
 
   return sonuc;
 }
 
+/** Tarama sonucu — kaynağın yeni hâli. */
+type TaramaSonucu = {
+  farkVar: boolean | null; sebep: string | null; httpKodu: number | null;
+  durum: string; durumNotu: string | null;
+};
+
+/** İz kaydına yazılacak kaynak — ÖNCEKİ durumu da taşır. */
+type IzlenenKaynak = { id: string; kod: string; durum: string };
+
+/**
+ * Bir kaynağın koşum sonucunu TEK İŞLEMDE yazar: adaylar → tarama →
+ * kaynağın yeni hâli → iz kayıtları.
+ *
+ * Ağ çağrıları buraya GELMEDEN yapılmıştır; işlem yalnız yazma sürer.
+ */
 async function taramaYaz(
-  istemci: typeof Db, kaynakId: string,
-  s: { farkVar: boolean | null; sebep: string | null; httpKodu: number | null;
-    durum: string; durumNotu: string | null },
-  simdiMs: number, adaySayisi = 0,
+  istemci: typeof Db, kaynak: IzlenenKaynak, s: TaramaSonucu,
+  simdiMs: number, adaylar: readonly Giris[] = [],
 ): Promise<void> {
-  await istemci.mevzuatTaramasi.create({
-    data: {
-      kaynakId, zaman: new Date(simdiMs), farkVar: s.farkVar,
-      sebep: s.sebep, httpKodu: s.httpKodu, adaySayisi,
-    },
-  });
-  /* Kaynağın kendi hâli güncellenir — `etkin` ASLA. */
-  await istemci.mevzuatKaynagi.update({
-    where: { id: kaynakId },
-    data: { durum: s.durum, durumNotu: s.durumNotu, sonTarama: new Date(simdiMs) },
+  const durumDegisti = kaynak.durum !== s.durum;
+  await istemci.$transaction(async (tx) => {
+    for (const g of adaylar) {
+      const aday = await tx.mevzuatDegisiklikAdayi.create({
+        data: {
+          kaynakId: kaynak.id, url: g.url, baslik: g.baslik,
+          yayinTarihi: g.yayinTarihi, ozet: g.ozet,
+        },
+      });
+      /* Aday bir ÖNERİDİR ve önerinin de kaydı olur: insan bir gün
+         "bu satır önüme nereden geldi" diye sorduğunda cevap burada. */
+      await iz({
+        aktorId: null, varlikTipi: 'MevzuatDegisiklikAdayi', varlikId: aday.id,
+        eylem: 'olusturma', alan: 'durum', once: null,
+        sonra: 'Yeni — inceleme bekliyor',
+        gerekce: `motor · ${kaynak.kod} · ${g.url}`,
+      }, tx);
+    }
+
+    await tx.mevzuatTaramasi.create({
+      data: {
+        kaynakId: kaynak.id, zaman: new Date(simdiMs), farkVar: s.farkVar,
+        sebep: s.sebep, httpKodu: s.httpKodu, adaySayisi: adaylar.length,
+      },
+    });
+
+    /* Kaynağın kendi hâli güncellenir — `etkin` ASLA. */
+    await tx.mevzuatKaynagi.update({
+      where: { id: kaynak.id },
+      data: { durum: s.durum, durumNotu: s.durumNotu, sonTarama: new Date(simdiMs) },
+    });
+
+    if (durumDegisti) {
+      await iz({
+        aktorId: null, varlikTipi: 'MevzuatKaynagi', varlikId: kaynak.id,
+        eylem: 'guncelleme', alan: 'durum',
+        once: DURUM_SOZU[kaynak.durum] ?? kaynak.durum,
+        sonra: DURUM_SOZU[s.durum] ?? s.durum,
+        gerekce: `motor · ${kaynak.kod} · ${s.durumNotu ?? s.sebep ?? 'tarama sonucu'}`,
+      }, tx);
+    }
   });
 }

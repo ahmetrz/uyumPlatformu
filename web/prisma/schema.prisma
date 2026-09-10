@@ -4722,7 +4722,17 @@ model MevzuatDegisiklikAdayi {
   /// Taslak açıldıysa hangi çerçeve sürümüne bağlandı.
   surumId      String?
 
-  kaynak MevzuatKaynagi @relation(fields: [kaynakId], references: [id], onDelete: Cascade)
+  /// R-C · KASKAT SİLME YOK: aday bir İNSAN KARARI taşır (`durum`,
+  /// `kararVerenId`, `gerekce`) ve kaynağın silinmesiyle birlikte
+  /// gidemez. `Restrict` ile veritabanı, adayı olan bir kaynağın
+  /// silinmesini REDDEDER — "kaldırma bir durum değişikliğidir, silme
+  /// yok" sözü böylece kural değil KAPI olur.
+  ///
+  /// Ölçüldü (bağımsız inceleme, PR #50 tur 1): FK `Cascade` kurulmuştu
+  /// ve migration'ın kendi yorumu "SİLME YOK" diyordu; bugün kaynak
+  /// silen bir eylem olmadığı için sömürülemezdi ama korumasız bir
+  /// mayındı — #41'de `madde.deleteMany` ile aynı sınıf.
+  kaynak MevzuatKaynagi @relation(fields: [kaynakId], references: [id], onDelete: Restrict)
 
   @@unique([kaynakId, url])
   @@index([durum, bulundu])

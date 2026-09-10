@@ -4,12 +4,12 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 361 |
-| Testi olan senaryo | 361 |
+| Senaryo | 362 |
+| Testi olan senaryo | 362 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
-| Taranan test dosyası | 232 |
+| Taranan test dosyası | 233 |
 
 ## Katman başına kapsam
 
@@ -17,11 +17,11 @@
 | --- | --- | --- | --- |
 | ACCESSIBILITY | 8 | 8 | 0 |
 | API | 12 | 12 | 0 |
-| CONCURRENCY | 7 | 7 | 0 |
+| CONCURRENCY | 8 | 8 | 0 |
 | DOMAIN | 213 | 213 | 0 |
 | ENGINE | 37 | 37 | 0 |
 | INTEGRATION | 42 | 42 | 0 |
-| MIGRATION | 7 | 7 | 0 |
+| MIGRATION | 8 | 8 | 0 |
 | RBAC | 41 | 41 | 0 |
 | RESPONSIVE | 9 | 9 | 0 |
 | SCOPE | 33 | 33 | 0 |
@@ -541,11 +541,12 @@
 | `SIS-BSL-002` | Sistem | UI | `ekran-basligi.test.ts` | künyede ister kodu geçmiyor | evet | geçti |
 | `SIS-ERS-002` | Sistem | ACCESSIBILITY · UI | `senaryo-platform.test.ts` | seçilemeyen tablo grid demez, işaretçi imleci taşımaz | evet | geçti |
 | `SIS-ERS-003` | Sistem | ACCESSIBILITY | `senaryo-platform.test.ts` | sekme rolü yalnız gerçek sekmelerde kullanılır | evet | geçti |
-| `SIS-KUR-001` | Sistem | DOMAIN · SERVER · RBAC · MIGRATION | `kurucu-hesap.test.ts` | göç zinciri uygulandı ve kurulum GERÇEKTEN boş | evet | geçti |
-| `SIS-KUR-001` | Sistem | DOMAIN · SERVER · RBAC · MIGRATION | `kurucu-hesap.test.ts` | GEÇERSİZ girdi reddedilir ve HİÇBİR ŞEY yazılmaz | evet | geçti |
+| `SIS-IZO-001` | Sistem | MIGRATION · CONCURRENCY | `pg-artik.test.ts` | SAHİP YAŞIYOR MU: ESRCH ölü, EPERM CANLI | evet | geçti |
 | `SIS-KUR-001` | Sistem | DOMAIN · SERVER · RBAC · MIGRATION | `kurucu-hesap.test.ts` | PAROLA ALT SINIRI ürünün sınırıyla AYNI — bağ | evet | geçti |
 | `SIS-KUR-001` | Sistem | DOMAIN · SERVER · RBAC · MIGRATION | `kurucu-hesap.test.ts` | ROL gerçek yetki kataloğunda VAR — bağ | evet | geçti |
 | `SIS-KUR-001` | Sistem | DOMAIN · SERVER · RBAC · MIGRATION | `kurucu-hesap.test.ts` | PAROLA ÖZETİ girişin doğrulayıcısıyla UYUŞUR — bağ | evet | geçti |
+| `SIS-KUR-001` | Sistem | DOMAIN · SERVER · RBAC · MIGRATION | `kurucu-hesap.test.ts` | göç zinciri uygulandı ve kurulum GERÇEKTEN boş | evet | geçti |
+| `SIS-KUR-001` | Sistem | DOMAIN · SERVER · RBAC · MIGRATION | `kurucu-hesap.test.ts` | GEÇERSİZ girdi reddedilir ve HİÇBİR ŞEY yazılmaz | evet | geçti |
 | `SIS-KUR-001` | Sistem | DOMAIN · SERVER · RBAC · MIGRATION | `kurucu-hesap.test.ts` | kurucu hesap AÇILIR: kullanıcı + KÜRESEL yetki + denetim izi | evet | geçti |
 | `SIS-KUR-001` | Sistem | DOMAIN · SERVER · RBAC · MIGRATION | `kurucu-hesap.test.ts` | PAROLA denetim izine GİRMEZ — ne kendisi, ne özeti, ne uzunluğu | evet | geçti |
 | `SIS-KUR-001` | Sistem | DOMAIN · SERVER · RBAC · MIGRATION | `kurucu-hesap.test.ts` | ikinci koşu REDDEDİLİR ve üç tabloda da satır değişmez | evet | geçti |

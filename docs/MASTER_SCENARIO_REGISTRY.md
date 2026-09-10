@@ -13,7 +13,7 @@ it('kapsam dışı varlığa yazılamaz [ENV-YAZ-003]', …)
 Ayrı bir eşleme tablosu tutulsaydı, tablo ilk yeniden adlandırmada
 testten ayrışır ve kimse görmezdi.
 
-Senaryo: **361** · testli: **361** · GAP: **0**
+Senaryo: **362** · testli: **362** · GAP: **0**
 
 ## Aktivite · 2 senaryo
 
@@ -380,7 +380,7 @@ Senaryo: **361** · testli: **361** · GAP: **0**
 | `SAY-KMP-001` | /sayim | BT yöneticisi · kendi tesisi | Kapsamda hiç varlık yok · yok | Sayım açmayı dener | Açılmaz — sıfır paydalı kampanya olamaz | Neden açılmadığı yazılır | yazma yok | yok | `faz-g-varlik.test.ts` |
 | `SAY-KMP-002` | /sayim | BT yöneticisi · kendi tesisi | Satır "bulunamadı" işaretlendi · kısmi | Sonucu kaydeder | Varlık SİLİNMEZ — envanterden düşürme ayrı bir karardır | "Sayılmadı" ile "bulunamadı" ayrı durumlardır | Sayım satırı · guncelleme | yok | `faz-g-eylem.test.ts` |
 
-## Sistem · 50 senaryo
+## Sistem · 51 senaryo
 
 | ID | Rota | Rol · kapsam | Ön koşul · veri | Eylem | Beklenen sonuç | Ekran | Denetim izi | Görev/bildirim | Test |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -423,6 +423,7 @@ Senaryo: **361** · testli: **361** · GAP: **0**
 | `SIS-BSL-002` | — | herhangi bir kullanıcı · kendi kapsamı | Ekran bir isterden doğmuş · normal | Ekran künyesi okunur | Künyede UY-/OT- kodu geçmez | Kod ürün belgesinde kalır | yazma yok | yok | `ekran-basligi.test.ts` |
 | `SIS-ERS-002` | — | klavye kullanıcısı · kendi kapsamı | Tablo seçilebilir değil · normal | Satırın imlecine ve rolüne bakılır | Seçilemeyen satır işaretçi imleci taşımaz | Sahte tıklama çağrısı yok | yazma yok | yok | `senaryo-platform.test.ts` |
 | `SIS-ERS-003` | — | klavye kullanıcısı · kendi kapsamı | Ekranda grid ya da sekme listesi var · normal | Widget içinde odaklanabilir bir durak aranır | Rol varsa gezinen odak da vardır | Tab ile girilir, ok tuşlarıyla gezilir | yazma yok | yok | `senaryo-platform.test.ts` |
+| `SIS-IZO-001` | — | koşum sahibi · test sunucusu | Şablondan klonlanmış koşum veritabanları; bazılarının sahibi ölmüş · kısmi | Koşum öncesi yetimler süpürülür, sonrasında bu koşumun bıraktığı ölçülür | Yetim düşer; eşzamanlı koşumun CANLI veritabanı ve ŞABLON dokunulmaz; koşum artık bırakırsa KIRMIZI | Sızıntı adıyla raporlanır — sessiz geçmez | düşürme SON KOŞULUNU ölçer; silinmeyen satır kalan listesine girer | yok | `pg-artik.test.ts` |
 | `SIS-KUR-001` | — | kurulum operatörü · kurulum | Göç uygulanmış, Kullanici tablosu BOŞ · yok | arac/kurucu-hesap.ts stdin ile parola alarak koşturulur | Kullanıcı + KÜRESEL yetki + denetim izi TEK transaction; kurulum doluyken hiçbir şey yazmaz ve sıfır dışı çıkar | Parola hiçbir yere yazılmadı; yalnız scrypt özeti saklandı | aktorId NULL, kaynak kurulum; parola/uzunluğu/özeti ize GİRMEZ | yok | `kurucu-hesap.test.ts` · `kurucu-hesap.test.ts` · `kurucu-hesap.test.ts` · `kurucu-hesap.test.ts` · `kurucu-hesap.test.ts` · `kurucu-hesap.test.ts` · `kurucu-hesap.test.ts` · `kurucu-hesap.test.ts` · `kurucu-hesap.test.ts` |
 | `SIS-DGM-001` | — | uyum sorumlusu · kurum geneli | Kapanmış bildirim, açık dead-letter kaydı, el ile değiştirilmiş uygulanabilirlik kararı ve kapalı bulgu kurulu · normal | Motorlar GERÇEKTEN koşturulur ve sunucu eylemleri GERÇEKTEN çağrılır | Dokunmadığı iddia edilen kayıt DEĞİŞMEZ; silmez dediğini SİLMEZ; uydurmaz dediği sayıyı UYDURMAZ | Ekranın yazdığı değişmez, sunucunun davranışıyla aynıdır | reddedilen denemede yan etki YOK — delta ile ölçülür | yok | `politika-s2-eylem.test.ts` |
 | `SIS-YTK-011` | — | güvenlik denetçisi · kurum geneli | İptalli anahtar, kapanmış denetim, silinmiş connector ve öksüz kanıt kurulu · normal | Her durumda GERÇEK sunucu eylemi çağrılır | Eylem REDDEDER ve kayıt DEĞİŞMEZ; yetkili rol geçer | Ekranın yazdığı cümle sunucunun verdiği cevapla aynıdır | reddedilen denemede yazma yok; iz kütüğü yalnız eklenir | yok | `politika-eylem-kapsami.test.ts` · `politika-eylem-kapsami.test.ts` · `politika-eylem-kapsami.test.ts` · `politika-eylem-kapsami.test.ts` · `politika-eylem-kapsami.test.ts` · `politika-eylem-kapsami.test.ts` · `politika-eylem-kapsami.test.ts` · `politika-eylem-kapsami.test.ts` · `politika-eylem-kapsami.test.ts` · `politika-eylem-kapsami.test.ts` · `politika-eylem-kapsami.test.ts` · `politika-eylem-kapsami.test.ts` · `politika-eylem-kapsami.test.ts` · `politika-eylem-kapsami.test.ts` · `politika-eylem-kapsami.test.ts` · `varlik-aktarim.test.ts` |

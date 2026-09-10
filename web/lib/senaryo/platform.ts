@@ -1418,6 +1418,20 @@ export const PLATFORM_SENARYOLARI_6: Senaryo[] = [
     katmanlar: ['ACCESSIBILITY'],
   },
   {
+    id: 'SIS-IZO-001', alan: 'Sistem', rota: '—', eksen: 'veri',
+    amac: 'Test izolasyonunun kendi veritabanını GERÇEKTEN düşürmesi',
+    rol: 'koşum sahibi', kapsam: 'test sunucusu',
+    onkosul: 'Şablondan klonlanmış koşum veritabanları; bazılarının sahibi ölmüş',
+    veriHali: 'kısmi',
+    eylem: 'Koşum öncesi yetimler süpürülür, sonrasında bu koşumun bıraktığı ölçülür',
+    beklenenSonuc: 'Yetim düşer; eşzamanlı koşumun CANLI veritabanı ve ŞABLON '
+      + 'dokunulmaz; koşum artık bırakırsa KIRMIZI',
+    beklenenEkran: 'Sızıntı adıyla raporlanır — sessiz geçmez',
+    beklenenIz: 'düşürme SON KOŞULUNU ölçer; silinmeyen satır kalan listesine girer',
+    beklenenBildirim: 'yok',
+    katmanlar: ['MIGRATION', 'CONCURRENCY'],
+  },
+  {
     id: 'SIS-KUR-001', alan: 'Sistem', rota: '—', eksen: 'yetki',
     amac: 'Boş kurulumun ilk kullanıcısının açılması ve aracın arka kapıya dönmemesi',
     rol: 'kurulum operatörü', kapsam: 'kurulum',

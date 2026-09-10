@@ -28,6 +28,7 @@ import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { aktifSaglayici } from './pg-istemci.mjs';
+import { artikAdlari, dusur, yetimleriSec, yetimleriSupur } from './pg-artik.mjs';
 
 const WEB = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const url = process.env.TEST_PG_URL || process.env.PG_URL;
@@ -84,6 +85,31 @@ function sqliteDosyasiVar() {
   return 0;
 }
 
+/* ── ARTIK SÜPÜRMESİ KOŞUCUNUNDUR ──────────────────────────────────────
+   `tests/sahte/db.ts` her işçi için bir veritabanı klonlar ve süreç
+   kancalarıyla düşürür. Kanca kusursuz değil, EKSİKTİR: `SIGKILL`i,
+   OOM öldürmesini ve disk dolunca gelen ölümü hiçbir kanca yakalayamaz.
+   Kusur ÜRETİLDİ (10 Eyl 2026): iki dosyalık bir koşum `kill -9` ile
+   öldürüldü, iki veritabanından biri arkada kaldı. Provada bulunan 228
+   sızmış veritabanı da (~4,1 GB) bu sınıftandır.
+
+   Bu yüzden garanti koşum sahibinin: ÖNCE yetimler süpürülür (geçmişin
+   borcu), SONRA bu koşumda doğan ve hâlâ duran veritabanı KALMAZ —
+   kalırsa süpürülür ve koşum KIRMIZI biter. Ayrıntı `arac/pg-artik.mjs`. */
+let oncekiler = [];
+try {
+  const on = yetimleriSupur(url);
+  oncekiler = artikAdlari(url);
+  if (on.yetim.length > 0) {
+    console.log(`artık süpürmesi: ${on.yetim.length - on.kalan.length} yetim veritabanı düşürüldü`);
+  }
+  if (on.kalan.length > 0) {
+    console.error(`TEMİZLİK KIRIK: düşürülemeyen yetim: ${on.kalan.join(', ')}`);
+  }
+} catch (e) {
+  console.error(`artık süpürmesi yapılamadı: ${e.message.split('\n')[0]}`);
+}
+
 let cikis = 0;
 try {
   cikis = sqliteDosyasiVar();
@@ -91,6 +117,26 @@ try {
   if (cikis === 0) cikis = kos('node', ['arac/pg-test-sablonu.mjs', '--ad', sablon], cevre);
   if (cikis === 0) cikis = kos(path.join(WEB, 'node_modules', '.bin', 'vitest'), ['run', ...process.argv.slice(2)], cevre);
 } finally {
+  /* KOŞUM SONRASI ARTIK SIFIRDIR.
+     Sayılan şey "sunucuda kaç test veritabanı var" DEĞİL: eşzamanlı bir
+     koşumun canlı veritabanı ne süpürülür ne de kırmızı yakar. Sayılan
+     şey BU KOŞUMDA DOĞAN ve sahibi ÖLMÜŞ olanlardır — yani sızıntının
+     kendisi. */
+  try {
+    const sonrakiler = artikAdlari(url);
+    const oncekiKume = new Set(oncekiler);
+    const sizanlar = yetimleriSec(sonrakiler.filter((a) => !oncekiKume.has(a)));
+    if (sizanlar.length > 0) {
+      const kalan = dusur(url, sizanlar);
+      console.error(`\nSIZINTI: koşum ${sizanlar.length} test veritabanı bıraktı `
+        + `(${sizanlar.join(', ')}). Süpürüldü: ${sizanlar.length - kalan.length}.`
+        + ' Test izolasyonu kendi veritabanını düşürmüyor — koşum KIRMIZI.');
+      cikis = cikis || 1;
+    }
+  } catch (e) {
+    console.error(`artık ölçümü yapılamadı: ${e.message.split('\n')[0]}`);
+    cikis = cikis || 1;
+  }
   if (!sqliteyeDon()) cikis = cikis || 1;
 }
 process.exit(cikis);

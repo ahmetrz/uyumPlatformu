@@ -1,7 +1,7 @@
 {
-  "imza": "7fd5664e24f90f597722c9770843dbf2",
-  "dosya": 232,
-  "vaka": 4187,
+  "imza": "39e0e42eb3642ab1bbaa52eaee1c1f52",
+  "dosya": 233,
+  "vaka": 4196,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -674,6 +674,10 @@
     },
     "tests/pasif-kesif.test.ts": {
       "vaka": 31,
+      "atlanan": 0
+    },
+    "tests/pg-artik.test.ts": {
+      "vaka": 9,
       "atlanan": 0
     },
     "tests/pg-gocu.test.ts": {

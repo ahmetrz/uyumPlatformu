@@ -156,3 +156,53 @@ export function izinliTesisIdleri(k: AktifKullanici, modul: Modul): string[] | n
   if (ilgili.some(kisitsiz)) return null;
   return [...new Set(ilgili.map((y) => y.tesisId).filter((x): x is string => !!x))];
 }
+
+/* ═══ DIŞA AKTARIM KAPSAMI = EKRAN KAPSAMI ════════════════════════════
+
+   Ölçüldü (bağımsız inceleme, #48 turu 2): tek tesise yetkili bir DIŞ
+   DENETÇİ, `/olaylar` ekranında GÖREMEDİĞİ kurumsal bir KVKK ihlalini
+   kanıt paketinde gördü. Ekran ile dışa aktarım aynı soruyu iki ayrı
+   yerde cevaplıyordu ve biri öbüründen genişti.
+
+   Kusur sınıfı şudur: bir dışa aktarım yüzeyi kapsam kararını KENDİ
+   verirse, ekranın kuralı bir gün değiştiğinde yüzeyler ayrışır ve
+   ayrışma SESSİZDİR — dosya üretilir, iner, kimse bir şey görmez.
+   Bir uyum ürününde bu, yetkisiz kişiye kurum verisi vermektir.
+
+   Bugün karar TEK YERDE: aşağıdaki fonksiyon. Ekran da, kanıt paketi
+   de, denetim formu da bunu okur; ikinci nüsha yoktur ve bekçi
+   (`web/tests/bekci/disa-aktarim-kapsami.test.ts`) bir yüzeyin kendi
+   başına karar vermesini KIRMIZI yakar.
+
+   ── KURUMSAL KAYIT NEDEN AYRI BİR SORU ────────────────────────────────
+   Tesisi olmayan kayıt kurumsaldır: hiçbir tesise ait değildir, kurumun
+   tamamına aittir. Kapsamı daraltılmış bir yetki onu göremez — "hangi
+   tesiste olduğu yazılmamış" bir kaydı dar kapsamlı birine açmak, kapsam
+   sınırını sessizce delmektir. Kapsamı DARALTILMAMIŞ yetki görür. */
+
+export type DisaAktarimKapsami = {
+  /** `null` = kapsam daraltılmamış (kurum geneli). */
+  tesisIdleri: string[] | null;
+  /** Tesisi olmayan (kurumsal) kayıt bu kapsama girer mi. */
+  kurumsalDahil: boolean;
+  /** Hiç okuma yetkisi yok — çağıran isteği REDDETMELİDİR. */
+  bos: boolean;
+};
+
+/**
+ * Bir kullanıcının bir moduldeki kapsamı — ekran ve dışa aktarım için
+ * TEK karar.
+ *
+ * Prisma koşuluna çevirmek ÇAĞIRANIN işidir; bu
+ * fonksiyon KARARI verir, sorguyu değil.
+ */
+export function disaAktarimKapsami(k: AktifKullanici, modul: Modul): DisaAktarimKapsami {
+  const izinli = izinliTesisIdleri(k, modul);
+  return {
+    tesisIdleri: izinli,
+    /* Ekranın kuralı birebir: `izinli === null` ise koşul boştur ve
+       tesisId'si NULL olan satırlar da gelir. Daraltılmışsa gelmez. */
+    kurumsalDahil: izinli === null,
+    bos: izinli !== null && izinli.length === 0,
+  };
+}

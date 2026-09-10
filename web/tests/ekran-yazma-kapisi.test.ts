@@ -152,6 +152,11 @@ const KURUMSAL_KAYITLAR = new Map<string, string>([
     'surecDurumDegistir kapsamsız'],
   ['app/(kabuk)/(operasyonel)/surecler/[id]/page.tsx · uyum/yazma',
     'Surec tesisId taşımaz; surecKaydet kapsamsız'],
+  ['app/(kabuk)/(operasyonel)/raporlar/takvim/page.tsx · uyum/onay',
+    'BildirimYukumlulugu tesisId TAŞIMAZ: takvim tetikli raporlama'
+    + ' yükümlülüğü kurumundur, tek bir tesisin değil. Sunucu eylemi de'
+    + ' kapsamsız (lib/eylemler2/bildirimDonemi.ts → yetkiZorunlu). Ekran ile'
+    + ' sunucu BİREBİR aynı soruyu soruyor'],
 ]);
 
 function tsDosyalari(kok: string): string[] {

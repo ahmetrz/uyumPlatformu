@@ -137,11 +137,46 @@ yeni dosyaya geri oynatabilir ve tohum "Veritabanı dolu" diyerek durur —
 ÖLÇÜLDÜ. Sunucu bu silmeden ÖNCE durdurulur, yoksa silinmiş inode'u
 tutmaya devam eder (yukarıdaki birinci tuzağın aynısı).
 
-**Kum havuzunda `kapi-compose` ÖLÇÜLEMEZ.** Docker derlemesinin ağı yok
-(`proxyconnect tcp: dial tcp 127.0.0.1:43743: connect: connection
-refused`; ölçüldü 10 Eyl 2026 — imaj katmanı önbellekteyken geçiyor,
-önbellek boşaltılınca `apt`/`wget` adımı düşüyor). Bu kapı yerelde
-"geçti" ya da "kırmızı" değil **ölçülmedi**dir; gerçek ölçümü CI yapar.
+### BEŞİNCİ TUZAK: GÖRÜNMEYEN İÇERİK (ölçüldü 10 Eyl 2026)
+
+`innerText` GÖRÜNEN metni döndürür; gizli bir düğümde BOŞ döner.
+`locator(...).count()` ise aynı düğümü DOM'da bulur. İkisini aynı sayfada
+kullanan bir betik "bağ var" derken "metin yok" diye kırmızı yakar ve
+kusur EKRANDA değil BETİKTEDİR.
+
+Ölçüldü: `kimlik-kanit.mjs` ilk turda `/giris` üzerinde BEŞ kırmızı
+verdi. Sebep: giriş ekranı sinematik bir açılışın içinde yaşıyor ve
+içerik animasyon bitene kadar görünmüyor. `a[href*="/kimlik/basla"]`
+iddiası GEÇİYOR, aynı bağın metnini arayan iddia KIRMIZI yanıyordu —
+çelişkinin kendisi tuzağın imzasıdır.
+
+**Kural:** animasyonlu ya da geç görünen yüzeylerde `textContent`
+okunur (stil uygulanmadan, ham metin). `text-transform: uppercase`
+sorunu da orada kendiliğinden düşer — Türkçe `İ` tuzağı `innerText`e
+özgüdür.
+
+**Kum havuzunda `kapi-compose` ÖLÇÜLEMEZ — ama SEBEBİ ağ değil.**
+
+Bu satır bir kez YANLIŞ yazıldı ve düzeltilmesi ölçümle oldu. Önceki hâli
+"docker derlemesinin ağı yok" diyordu ve kanıtı bir `proxyconnect` hata
+metniydi. Yeniden ölçüldü (10 Eyl 2026, ikinci tur): `docker run` da
+`docker build` de ağa ÇIKIYOR (üç koşuda da `apt-get update` geçti).
+Gerçek engel iki tanedir ve ikisi de ürünün dışındadır:
+
+1. **TLS kesme.** Kum havuzu araya giren bir vekil kullanıyor; `wget`
+   `postgresql.org` sertifikasını doğrulayamayıp **çıkış kodu 5** ile
+   düşüyordu. Bu kurulumun kendi kancası var ve çalışıyor:
+   `CA_DEMETI=/root/.ccr/ca-bundle.crt npm run kapi:compose` — compose
+   dosyası bunu `ca_demeti` sırrı olarak geçirir, Dockerfile `[ -s … ]`
+   ile görür. Kancayla birlikte uygulama imajı DERLENDİ ve yığın KALKTI.
+2. **Disk tavanı.** Kum havuzunun yazılabilir alanı sabittir; ikinci imaj
+   (tohum hedefi) katmanları dışa aktarırken `no space left on device`
+   ile düştü. `docker system prune -af --volumes` 7 GB açtı, o da yetmedi.
+
+Yani kapı yerelde "geçti" ya da "kırmızı" değil **ölçülmedi**dir ve
+gerekçesi DİSKTİR, ağ değil. Gerçek ölçümü CI yapar (runner diski daha
+büyük). Yanlış teşhis bir sonraki kişiyi ağ ayarlarında saatlerce
+dolaştırırdı; bu yüzden satır düzeltildi, silinmedi.
 
 ## Kalite kapıları (KK-1…KK-8)
 
@@ -213,6 +248,8 @@ biri gerekçesiyle beyan edilmiştir.
 | `derleme-ortami.mjs` | — (kütüphane) | derlemeye dayanan kapıların önkoşulu: boş alan (derlemeden önce) + statik çıktının TAM olduğu (ölçmeden önce) | çağıran kapı düşer |
 | `turkce-arama.mjs` | — (kütüphane) | Türkçe metin araması: çift küçültme + Unicode sözcük sınırı. **Sondalarda düz `/…/i` KULLANMAYIN** | — |
 | `marka-kapisi.mjs` | `marka:kapi` | ürün adı tek kaynaktan mı geliyor: nöbetçi adla statik demo derlemesi koşar, üretilen çıktıya bakar (tarayıcı istemez) | varsayılan ad işlenmiş yüzeyde geçiyor **ya da** nöbetçi görünmesi gereken yüzeyde yok |
+| `bildirim-donemi-kanit.mjs` **(CI · bloklayıcı)** | `kanit:bildirim-donemi` | Takvim tetikli yükümlülük ekranı iki bantta: dönem açıldı mı · geri sayım doğru mu · SÜRESİZ dönemde sayaç YOK mu · referanssız teslim REDDEDİLİYOR mu. Fikstürü DEĞİŞTİRMEZ (red hiçbir dönemi kapatmaz) | sayaç gösterilen süresiz dönem · kabul edilen referanssız teslim · ölçüm tabanının altına düşen iddia sayısı |
+| `kimlik-kanit.mjs` **(CI · bloklayıcı)** | `kanit:kimlik` | P6 kimlik ekranları iki bantta: yapıştırılan SIR DEĞERİ reddediliyor mu · sır ekranda GÖRÜNÜYOR mu · sağlayıcı bağlı değilken giriş ekranında çıkıyor mu. Fikstüre sağlayıcı EKLER ve sonda aktiflikten çıkarıp düğmenin DÜŞTÜĞÜNÜ doğrular | ekranda görünen sır değeri · bağlanmadan aktif olan sağlayıcı · reddedilmesi gereken kaydın geçmesi |
 | `kapi-farki.mjs` **(CI · bloklayıcı)** | `kapi:farki` | `package.json` betikleri ile PR kapısında koşanların farkı — tarayıcı istemez | beyansız betik (ne koşuyor ne gerekçeli) ya da bayat beyan |
 | `turkiye-siniri.mjs` | `harita:sinir` | üretir (kapı değil): Natural Earth'ten Türkiye silüeti | kaynak/öznitelik bulunamadı |
 | — | `test:kapsam` | vitest V8 kapsamı (`lib/**`, ekran `mantik.ts`/`ortak.ts`, `components/**`) | test kırığı |

@@ -60,6 +60,11 @@ export default async function Sayfa() {
       select: {
         id: true, kod: true, ad: true, regulasyonId: true,
         asgariSiddet: true, sureSaat: true, merci: true, aktif: true,
+        /* EKRAN DA AYNI KARARI OKUR. Bu alan olmadan `/olaylar` takvim
+           tetikli yükümlülükleri olayın sayacına sokuyordu — sunucu
+           motorlarıyla aynı kusur, üçüncü yüzeyde (bağımsız inceleme
+           #49 tur 2, tip değişikliği bunu ortaya çıkardı). */
+        tetikleyici: true,
       },
     }),
     db.uygulanabilirlikKarari.findMany({

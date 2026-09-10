@@ -329,7 +329,7 @@ jobs:
       # İşlevsel duman testi: bir rota 404 veriyorsa aynı sayfadaki
       # piksel ölçümleri gürültüdür. Bu yüzden en kısa iş olarak ayrı
       # durur — kırmızısı en erken görünen odur.
-      - name: Rota duman testi · 58 rota
+      - name: Rota duman testi · envanterdeki tüm rotalar
         working-directory: web
         run: npm run rota:duman
 
@@ -355,6 +355,28 @@ jobs:
       - name: Bildirim kaydı kanıtı · iki bant
         working-directory: web
         run: npm run kanit:bildirim-kaydi
+
+      # R10+ · takvim tetikli yükümlülük. Aynı sunucuyu kullanır. Ölçtüğü
+      # dört iddia brifin 2.5 maddesidir: bir dönem AÇILIYOR · geri sayım
+      # DOĞRU (ekranın kendi son tarihinden türeyen gün sayısıyla) ·
+      # SÜRESİZ dönemde sayaç YOK · motor hiçbir dönemi "yapıldı"
+      # yazamıyor. En pahalısı sonuncusu: referanssız teslim tarayıcıda
+      # REDDEDİLİYOR mu. Fikstürü DEĞİŞTİRMEZ (red, hiçbir dönemi
+      # kapatmaz) — bu yüzden bildirim kaydı kanıtından sonra koşabilir.
+      - name: Bildirim dönemi kanıtı · iki bant
+        working-directory: web
+        run: npm run kanit:bildirim-donemi
+
+      # P6 · kimlik ve SSO. Aynı sunucuyu kullanır ve EN SONA konur:
+      # fikstüre bir kimlik sağlayıcı EKLER (giriş ekranında düğme çıkar)
+      # ve sonda aktiflikten çıkarıp düğmenin DÜŞTÜĞÜNÜ doğrular —
+      # temizlik adımı son koşulunu ölçer. Ölçtüğü en pahalı iddia:
+      # SIR DEĞERİ HİÇBİR EKRANDA GÖRÜNMÜYOR. Kimlik jetonu doğrulaması
+      # burada DEĞİL sahte bir sağlayıcıyla testte ölçülür; bu depo
+      # hiçbir gerçek kimlik sağlayıcıya bağlanmaz.
+      - name: Kimlik ve SSO kanıtı · iki bant
+        working-directory: web
+        run: npm run kanit:kimlik
 
       # SÜREÇ ADIYLA ÖLDÜRME — ÖLÇÜLDÜ VE İŞLEMEDİ. Bu adım bir zamanlar
       # `pkill -f 'next start' || true` idi ve HİÇBİR ŞEYİ öldürmüyordu:

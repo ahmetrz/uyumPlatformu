@@ -34,7 +34,7 @@ describe('iskelet paketler doğrulayıcıdan geçer [URN-PKT-005]', () => {
   it('TR-ENERJI: 0 hata; sayılar; özetler dosyalarla eşit', () => {
     const s = paketiDogrula(ENERJI);
     expect(s.hatalar.map(hataSatiri)).toEqual([]);
-    expect(s.sayilar).toMatchObject({ sozluk: 17, kapsamTurleri: 1, oznitelikler: 12, cerceveler: 8, maddeler: 3803, yukumlulukler: 2, roller: 2, kurallar: 8 });
+    expect(s.sayilar).toMatchObject({ sozluk: 17, kapsamTurleri: 1, oznitelikler: 12, cerceveler: 8, maddeler: 3803, yukumlulukler: 5, roller: 2, kurallar: 8 });
     expect(s.icerik!.manifest.icerikOzetleri).toEqual(ozetleriHesapla(ENERJI));
   });
 
@@ -141,7 +141,7 @@ describe('iskeletler taze veritabanına kurulur — taslak çerçeve, madde = CS
     // paketin tohumda olmayan satırları eklendi
     expect(s.rapor.sayilar.sozluk).toBe(17 - tohumSozluk);
     expect(s.rapor.sayilar.oznitelikler).toBe(12 - tohumOznitelik);
-    expect(s.rapor.sayilar).toMatchObject({ kapsamTurleri: 1, cerceveler: 8, maddeler: 3803, yukumlulukler: 2, formlar: 1, raporlar: 1, roller: 2 });
+    expect(s.rapor.sayilar).toMatchObject({ kapsamTurleri: 1, cerceveler: 8, maddeler: 3803, yukumlulukler: 5, formlar: 1, raporlar: 1, roller: 2 });
     expect(await db.raporSablonu.findUniqueOrThrow({ where: { kod: 'EPDK-SGYM-KARNE' } })).toMatchObject({ koken: 'paket', aktif: true });
     for (const t of s.rapor.taslakSurumler) {
       expect((await db.frameworkSurumu.findUniqueOrThrow({ where: { id: t.surumId } })).durum).toBe('taslak');

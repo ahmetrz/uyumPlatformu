@@ -286,15 +286,32 @@ sayaç göstermez, "Süre mevzuatta belirlenmedi" der. Aynı sebeple
 bir eşik uydurması, mevzuatın söylemediğini söylemek olurdu — taslak her
 olayda açılır, "bu kapsamda değil" kararını insan verir.
 
-**EPBS raporlama yükümlülükleri BİLEREK eklenmedi.** Yönetmelik md. 10/2,
-10/3 ve 10/4 üç ayrı raporlama süresi veriyor (öz denetim raporu: bir ay ·
-ilerleme raporu: bir ay · sektörel denetim raporu: on iki ay + bir ay) ve
-üçü de **Enerji Piyasası Bildirim Sistemi** üzerinden. Bunlar **olaydan
-doğmaz, takvimden doğar**; `BildirimYukumlulugu` ise olayı şiddet eşiğiyle
-eşleştirir. Takvim yükümlülüğünü olay yükümlülüğü alanına yazmak, R-D'nin
-tarif ettiği anlam eşleme hatasının ta kendisi olurdu: biçim doğru, değer
-aralıkta, hiçbir kapı görmez. Bu üç yükümlülük **periyodik yükümlülük
-modeli** geldiğinde eklenir (R0 · sahibi KODLAYAN).
+**EPBS raporlama yükümlülükleri EKLENDİ (10 Eylül 2026).** Yönetmelik
+md. 10/2, 10/3 ve 10/4 üç ayrı raporlama süresi veriyor (öz denetim
+raporu: bir ay · ilerleme raporu: bir ay · sektörel denetim raporu: on
+iki ay + bir ay) ve üçü de **Enerji Piyasası Bildirim Sistemi**
+üzerinden. Bunlar **olaydan doğmaz, takvimden doğar**;
+`BildirimYukumlulugu` ise yalnız olayı şiddet eşiğiyle eşleştiriyordu.
+
+Üçü bir tur önce BİLEREK eklenmemişti ve gerekçesi buradaydı: takvim
+yükümlülüğünü olay yükümlülüğü alanına yazmak R-D'nin tarif ettiği anlam
+eşleme hatasının ta kendisi olurdu (biçim doğru, değer aralıkta, hiçbir
+kapı görmez). Erteleme R0 kütüğünde SAHİBİYLE duruyordu ve kapanış
+şartı **periyodik yükümlülük modeliydi**; model geldi
+(`tetikleyici` · `donem` · `donemBaslangici` · `teslimGun` +
+`BildirimDonemi`), üçü de `tetikleyici: "takvim"` olarak pakete girdi:
+
+| Kod | Dayanak | Periyot | Teslim | Merci · kanal |
+| --- | --- | --- | --- | --- |
+| `EPDK-EPBS-OZDENETIM` | md. 10/2 | yıllık | 30 gün | EPDK · EPBS |
+| `EPDK-EPBS-ILERLEME` | md. 10/3 | yıllık | 30 gün | EPDK · EPBS |
+| `EPDK-EPBS-SEKTOREL-DENETIM` | md. 10/4 | yıllık | 30 gün | EPDK · EPBS |
+
+**Dönem başlangıcı UYDURULMADI.** Yönetmelik periyodu veriyor, dönemin
+hangi tarihte açıldığını vermiyor; `donemBaslangici` boş bırakıldı ve
+ürün takvim yılını VARSAYAR — varsayım ekranda beyanlıdır
+(`donemBaslangiciVarsayildi`). Kiracı kendi takvimini girdiğinde varsayım
+düşer.
 
 ### İSTENEN BELGELER — Ahmet indirip verecek
 

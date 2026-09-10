@@ -6,6 +6,7 @@ import { Alan, Dugme, EntegrasyonYok } from '@/components/kabuk/temel';
 import { EkranBasligi } from '@/components/kabuk/ekran';
 import { CekmeceAlanlar } from '@/components/kabuk/panel';
 import { useEylem } from '@/components/useEylem';
+import MfaKarti from './MfaKarti';
 import { digerOturumlariKapat, parolaDegistir, profilGuncelle } from '@/lib/eylemler2/hesap';
 import { tarihTR, zamanTR } from '@/lib/sabitler';
 import {
@@ -28,7 +29,7 @@ import type { AyarlarVerisi } from './veri';
    diğerini kilitlemesin — parola formunun hatası profil formunda görünmez. */
 
 export default function AyarlarIstemci({ veri, simdi }: { veri: AyarlarVerisi; simdi: number }) {
-  const { profil, oturum, hesap, yonetimOkuyabilir } = veri;
+  const { profil, oturum, hesap, yonetimOkuyabilir, mfa } = veri;
 
   return (
     <main data-yuzey="tezgah" style={{ minWidth: 0 }}>
@@ -52,6 +53,10 @@ export default function AyarlarIstemci({ veri, simdi }: { veri: AyarlarVerisi; s
           <div>
             <Profil profil={profil} />
             <Parola parolaVar={profil.parolaVar} />
+            {/* P6 · ikinci faktör parolanın HEMEN ALTINDA: ikisi de aynı
+                soruyu cevaplar — "bu hesaba kim girebilir". */}
+            <MfaKarti kurulu={mfa.kurulu} anahtarVar={mfa.anahtarVar}
+              anahtarNotu={mfa.anahtarNotu} zorunlu={mfa.zorunlu} />
             <Oturum oturum={oturum} simdi={simdi} />
           </div>
           <div>

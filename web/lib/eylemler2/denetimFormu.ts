@@ -27,7 +27,7 @@ import { kopruKosulu } from '@/app/kapsam';
 import { aktifKullanici } from '../auth';
 import { db } from '../db';
 import { DEMO } from '../demo';
-import { izinVar, izinliTesisIdleri } from '../erisim';
+import { izinVar, disaAktarimKapsami } from '../erisim';
 import { MARKA_AD } from '../marka';
 import { DURUMLAR } from '../sabitler';
 import { damgaliAd } from '../disaAktarim/csv';
@@ -94,8 +94,11 @@ export async function denetimFormuUretEylem(girdi: {
     if (!k) throw new Error('Oturum gerekli');
     kullaniciId = k.id;
 
-    const izinli = izinliTesisIdleri(k, 'denetim');
-    if (izinli !== null && izinli.length === 0) {
+    /* KAPSAM KARARI TEK KAYNAKTAN — `erisim.ts` → `disaAktarimKapsami`.
+       Her yüzeyin kendi başına karar vermesi, dışa aktarımın ekrandan
+       geniş kalmasına yol açar ve ayrışma SESSİZDİR (ölçüldü: #48). */
+    const kapsam = disaAktarimKapsami(k, 'denetim');
+    if (kapsam.bos) {
       throw new Error('Denetim modülünde okuma yetkiniz yok — form üretilemedi');
     }
     /* Her kapsam TEK TEK denetlenir; ilkinin geçmesi kalanını geçirmez.

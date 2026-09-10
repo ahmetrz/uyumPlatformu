@@ -6,6 +6,8 @@ import { OGE_GORUNUMU } from '@/app/kapsam';
 import { DEMO } from '@/lib/demo';
 import type { AktifKullanici } from '@/lib/auth';
 import { izinVar } from '@/lib/erisim';
+import { mfaAnahtari } from '@/lib/kimlik/sifreleme';
+import { sirMaskesi } from '@/lib/entegrasyon/sir';
 import type { Hesap } from '../yetkiler/mantik';
 
 /* D31 · Ayarlar — SUNUCU verisi (proje kalıbı: page.tsx → veri.ts).
@@ -29,6 +31,17 @@ export type AyarlarVerisi = {
     parolaVar: boolean;
     /** kullanıcı satırı okunabildi mi (demo/yetim oturumda false) */
     kayitVar: boolean;
+  };
+  /** P6 · kullanıcının kendi ikinci faktörü. */
+  mfa: {
+    /** DOĞRULANMIŞ kayıt var mı — açılmış ama doğrulanmamış kayıt "kurulu" DEĞİLDİR. */
+    kurulu: boolean;
+    /** Kurulumda şifreleme anahtarı tanımlı mı; yoksa MFA "bağlı değil". */
+    anahtarVar: boolean;
+    /** Anahtar yoksa NEDEN yok — sessiz düşüş olmasın. */
+    anahtarNotu: string;
+    /** Kiracı politikası MFA'yı zorunlu kılıyor mu. */
+    zorunlu: boolean;
   };
   oturum: {
     /** çerezdeki oturumun kendisi; bulunamazsa null (bilinmiyor) */
@@ -132,7 +145,26 @@ export async function ayarlarVerisi(k: AktifKullanici, simdi: number): Promise<A
     })),
   };
 
+  /* P6 · MFA. Üç ayrı soru, üçü de ayrı cevap: kaydı var mı · kurulum
+     MFA'yı destekliyor mu (anahtar) · politika zorunlu kılıyor mu.
+     Anahtarın DEĞERİ kullanılmaz, yalnız çözülüp çözülmediği. */
+  const [mfaKaydi, mfaAnahtar, politikaKaydi] = await Promise.all([
+    db.mfaKaydi.findUnique({ where: { kullaniciId: k.id }, select: { dogrulandi: true } }),
+    mfaAnahtari(),
+    db.oturumPolitikasi.findUnique({
+      where: { kiraci: 'varsayilan' }, select: { mfaZorunlu: true },
+    }),
+  ]);
+
   return {
+    mfa: {
+      kurulu: mfaKaydi?.dogrulandi === true,
+      anahtarVar: mfaAnahtar.ok,
+      anahtarNotu: mfaAnahtar.ok
+        ? `anahtar referansı: ${sirMaskesi(mfaAnahtar.referans)}`
+        : mfaAnahtar.hata,
+      zorunlu: politikaKaydi?.mfaZorunlu === true,
+    },
     profil: {
       adSoyad: hesap.ad,
       eposta: hesap.eposta,

@@ -16,5 +16,44 @@
     "dayanak": "EPDK Siber Güvenlik Yetkinlik Modeli Yönetmeliği ekleri · \"Siber Güvenlik Olaylarını Analiz Etme ve Bildirme\" kontrolü; kodu eke göre DEĞİŞİR: Ek-1/2 OYS-50, Ek-3/4/5 OYS-47, Ek-6 OYS-56, Ek-7 OYS-59. Hangi olayların USOM'a bildirileceğine dair kriteri kuruluş tanımlar; metin SÜRE VERMEZ.",
     "merci": "Ulusal Siber Olaylara Müdahale Merkezi (USOM)",
     "kanalNotu": "Kurumsal SOME üzerinden"
+  },
+  {
+    "tetikleyici": "takvim",
+    "asgariSiddet": "dusuk",
+    "sureSaat": null,
+    "merci": "Enerji Piyasası Düzenleme Kurumu (EPDK)",
+    "kanalNotu": "Enerji Piyasası Bildirim Sistemi (EPBS) üzerinden",
+    "kod": "EPDK-EPBS-OZDENETIM",
+    "ad": "Öz denetim / fark analizi raporunun Kuruma iletilmesi",
+    "donem": "yillik",
+    "donemBaslangici": null,
+    "teslimGun": 30,
+    "dayanak": "EPDK Enerji Sektöründe Siber Güvenlik Yetkinlik Modeli Yönetmeliği md. 10/2: öz denetim/fark analizi tamamlandıktan sonra en geç BİR AY içinde raporlar Kuruma Enerji Piyasası Bildirim Sistemi ile iletilir."
+  },
+  {
+    "tetikleyici": "takvim",
+    "asgariSiddet": "dusuk",
+    "sureSaat": null,
+    "merci": "Enerji Piyasası Düzenleme Kurumu (EPDK)",
+    "kanalNotu": "Enerji Piyasası Bildirim Sistemi (EPBS) üzerinden",
+    "kod": "EPDK-EPBS-ILERLEME",
+    "ad": "Yetkinlik seviyesi ilerleme raporunun Kuruma iletilmesi",
+    "donem": "yillik",
+    "donemBaslangici": null,
+    "teslimGun": 30,
+    "dayanak": "EPDK Enerji Sektöründe Siber Güvenlik Yetkinlik Modeli Yönetmeliği md. 10/3 (Ek ibare: RG-28/1/2024-32443): uygulama süreleri sonunda en geç BİR AY içinde ilerleme raporları EPBS ile iletilir."
+  },
+  {
+    "tetikleyici": "takvim",
+    "asgariSiddet": "dusuk",
+    "sureSaat": null,
+    "merci": "Enerji Piyasası Düzenleme Kurumu (EPDK)",
+    "kanalNotu": "Enerji Piyasası Bildirim Sistemi (EPBS) üzerinden",
+    "kod": "EPDK-EPBS-SEKTOREL-DENETIM",
+    "ad": "Sektörel denetim raporunun Kuruma iletilmesi",
+    "donem": "yillik",
+    "donemBaslangici": null,
+    "teslimGun": 30,
+    "dayanak": "EPDK Enerji Sektöründe Siber Güvenlik Yetkinlik Modeli Yönetmeliği md. 10/4 (Değişik: RG-8/9/2024-32656): sektörel denetim seviye süreçlerinin tamamlanmasından itibaren on iki ay içinde yaptırılır, rapor en geç BİR AY içinde EPBS ile Kuruma iletilir."
   }
 ]

@@ -29,7 +29,7 @@ const simdi = Date.UTC(2026, 8, 10, 12, 0, 0);
 const yuk = (ek: Partial<SureliYukumluluk> = {}): SureliYukumluluk => ({
   id: 'y1', kod: 'KVKK-72', ad: 'Kişisel veri ihlali bildirimi',
   regulasyonId: null, asgariSiddet: 'yuksek', sureSaat: 72,
-  merci: 'Kişisel Verileri Koruma Kurulu', aktif: true, ...ek,
+  merci: 'Kişisel Verileri Koruma Kurulu', aktif: true, tetikleyici: 'olay', ...ek,
 });
 
 describe('MOTOR GÖNDERMEZ [OLY-BIL-003]', () => {

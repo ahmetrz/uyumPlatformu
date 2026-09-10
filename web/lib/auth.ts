@@ -4,6 +4,9 @@ import { createHash, randomBytes, scryptSync, timingSafeEqual } from 'node:crypt
 import { cache } from 'react';
 import { db } from './db';
 import { DEMO } from './demo';
+import {
+  VARSAYILAN_POLITIKA, politikaCoz, type OturumPolitikasiVerisi,
+} from './kimlik/politika';
 
 /* Oturum modeli: rastgele 32B token çerezde taşınır; DB'de yalnız SHA-256
    özeti durur. Parola: scrypt (N=2^15) + kayıt başına tuz.
@@ -30,12 +33,36 @@ import { DEMO } from './demo';
    Yazma sıklığı atıl eşiğinden çok küçük olduğu sürece davranış aynıdır. */
 
 const CEREZ_ADI = 'oturum';
-/** Oturumun mutlak ömrü. Etkinlikle UZAMAZ. */
-const OTURUM_SURESI_SAAT = 12;
-/** Bu kadar süre hiç kullanılmayan oturum düşer. */
-const ATIL_SURE_MS = 2 * 3_600_000;
 /** `sonKullanim` en fazla bu sıklıkta yazılır (yazma gürültüsünü keser). */
 const KULLANIM_YAZMA_ARALIGI_MS = 5 * 60_000;
+
+/* ── P6 · SÜRELER ARTIK KİRACININ ──────────────────────────────────────
+   12/2 sayıları KALDI ama artık burada değil `lib/kimlik/politika.ts`te
+   ve oradan bir POLİTİKA olarak geliyor. Kayıt yoksa aynı varsayılan
+   uygulanır: "politika yok" ile "politika sıfır" ayrı şeylerdir ve
+   politika kaydı olmayan bir kurulumun oturumu sıfır saniye yaşamaz.
+
+   Politika istek başına BİR KEZ okunur — `aktifKullanici` React cache
+   altında ve orada zaten bir sorgu var; ikinci sorgu aynı isteği ikinci
+   kez ödemez. */
+async function politikaOku(): Promise<OturumPolitikasiVerisi> {
+  try {
+    const kayit = await db.oturumPolitikasi.findUnique({
+      where: { kiraci: 'varsayilan' },
+      select: { mutlakSaat: true, atilDakika: true, mfaZorunlu: true },
+    });
+    return politikaCoz(kayit && {
+      mutlakSaat: kayit.mutlakSaat,
+      atilSaat: kayit.atilDakika / 60,
+      mfaZorunlu: kayit.mfaZorunlu,
+    });
+  } catch {
+    /* Tablo henüz yoksa (göç uygulanmamış bir kurulum) oturum kapanmaz:
+       VARSAYILAN uygulanır. Politikayı okuyamamak bir yapılandırma
+       eksiğidir, kullanıcıyı dışarı atma sebebi değil. */
+    return { ...VARSAYILAN_POLITIKA };
+  }
+}
 
 export function parolaOzetle(parola: string): string {
   const tuz = randomBytes(16).toString('hex');
@@ -56,7 +83,8 @@ const tokenOzeti = (token: string) => createHash('sha256').update(token).digest(
 
 export async function oturumAc(kullaniciId: string): Promise<void> {
   const token = randomBytes(32).toString('base64url');
-  const bitis = new Date(Date.now() + OTURUM_SURESI_SAAT * 3_600_000);
+  const politika = await politikaOku();
+  const bitis = new Date(Date.now() + politika.mutlakSaat * 3_600_000);
   await db.oturum.create({ data: { kullaniciId, tokenHash: tokenOzeti(token), bitis } });
   (await cookies()).set(CEREZ_ADI, token, {
     httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production',
@@ -98,9 +126,10 @@ export async function dolmusOturumlariTemizle(simdi: Date = new Date()): Promise
 export function oturumGecerli(
   oturum: { bitis: Date; sonKullanim: Date },
   simdi: Date = new Date(),
+  atilSaat: number = VARSAYILAN_POLITIKA.atilSaat,
 ): { gecerli: true } | { gecerli: false; sebep: 'mutlak_sure_doldu' | 'atil_kaldi' } {
   if (oturum.bitis < simdi) return { gecerli: false, sebep: 'mutlak_sure_doldu' };
-  if (simdi.getTime() - oturum.sonKullanim.getTime() > ATIL_SURE_MS) {
+  if (simdi.getTime() - oturum.sonKullanim.getTime() > atilSaat * 3_600_000) {
     return { gecerli: false, sebep: 'atil_kaldi' };
   }
   return { gecerli: true };
@@ -136,7 +165,8 @@ export const aktifKullanici = cache(async (): Promise<AktifKullanici | null> => 
   if (!oturum) return null;
 
   const simdi = new Date();
-  const gecerlilik = oturumGecerli(oturum, simdi);
+  const politika = await politikaOku();
+  const gecerlilik = oturumGecerli(oturum, simdi, politika.atilSaat);
   if (!gecerlilik.gecerli) {
     /* Düşen oturum satırı BIRAKILMAZ: aksi hâlde atıl kalmış bir oturum
        satırı, mutlak süresi dolana kadar tabloda "canlı" görünürdü ve

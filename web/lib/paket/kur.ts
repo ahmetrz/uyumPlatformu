@@ -521,7 +521,10 @@ async function yaz(tx: Tx, icerik: PaketIcerigi, kuranId: string | null, simdi: 
       celiskiler.push({ tablo: 'BildirimYukumlulugu', anahtar: y.kod, sebep: `${sahip(mevcut.paketSurumId)} yükümlülüğü var — paket satırı yazılmadı` });
       continue;
     }
-    const veri = { ad: y.ad, regulasyonId, asgariSiddet: y.asgariSiddet, sureSaat: y.sureSaat, dayanak: y.dayanak, merci: y.merci, kanalNotu: y.kanalNotu ?? null, aktif: true, ...koken };
+    /* Tetikleyici türü ve dönem alanları da PAKETTEN gelir; koda
+       gömülmez. Doğrulayıcı türle alanların tutarlılığını zaten
+       ölçtü (olay tetiklide dönem, takvim tetiklide sureSaat yasak). */
+    const veri = { ad: y.ad, regulasyonId, asgariSiddet: y.asgariSiddet, sureSaat: y.sureSaat, dayanak: y.dayanak, merci: y.merci, kanalNotu: y.kanalNotu ?? null, tetikleyici: y.tetikleyici, donem: y.donem ?? null, donemBaslangici: y.donemBaslangici ?? null, teslimGun: y.teslimGun ?? null, aktif: true, ...koken };
     if (mevcut) await tx.bildirimYukumlulugu.update({ where: { id: mevcut.id }, data: veri });
     else await tx.bildirimYukumlulugu.create({ data: { kod: y.kod, ...veri } });
     yukumlulukSayisi++;

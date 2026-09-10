@@ -7,6 +7,7 @@ import styles from '@/components/giris/giris.module.css';
 import { DEMO, TEMEL } from '@/lib/demo';
 import { MARKA_AD } from '@/lib/marka';
 import { guvenliHedef, VARSAYILAN_HEDEF } from './mantik';
+import { girisSaglayicilari, kimlikRetCumlesi } from './kurumGirisi';
 
 export const metadata: Metadata = { title: 'Giriş' };
 
@@ -44,8 +45,15 @@ export default async function Giris({ searchParams }: {
      Demoda kaybedilen bir davranış yok: `aktifKullanici()` demo kimliğini
      hep döndürür, yani bu ekran zaten koşulsuz `redirect` eder ve
      yazma yolları kapalıdır. Üründe okuma aynen sürer. */
-  const hedef = DEMO ? VARSAYILAN_HEDEF : guvenliHedef((await searchParams).next);
+  const p = DEMO ? {} : await searchParams;
+  const hedef = DEMO ? VARSAYILAN_HEDEF : guvenliHedef(p.next);
   if (await aktifKullanici()) redirect(hedef);
+
+  /* P6 · kurum hesabı bölümü. Liste BOŞSA bölüm hiç çizilmez: olmayan bir
+     yolu düğme olarak göstermek, kullanıcıya çalışmayan bir kapı açmaktır. */
+  const saglayicilar = await girisSaglayicilari();
+  const kimlikReddi = kimlikRetCumlesi(
+    typeof p.kimlik === 'string' ? p.kimlik : null);
 
   return (
     <SinematikGiris>
@@ -98,7 +106,36 @@ export default async function Giris({ searchParams }: {
         padding: 'var(--s40) var(--s34)' }}>
         <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>Kurum hesabı</p>
         <h2 className="ab-bolum-basligi" style={{ margin: '0 0 var(--s26)' }}>Oturum aç</h2>
+        {kimlikReddi && (
+          <p className="ab-gr-hata" role="alert" style={{ margin: '0 0 var(--s16)' }}>
+            {kimlikReddi}
+          </p>
+        )}
         <GirisFormu next={hedef === VARSAYILAN_HEDEF ? null : hedef} />
+
+        {saglayicilar.length > 0 && (
+          <div style={{ marginTop: 'var(--s26)', paddingTop: 'var(--s20)',
+            borderTop: 'var(--bw-hair) solid var(--hr2)' }}>
+            <p className="etiket" style={{ margin: '0 0 var(--s10)' }}>
+              Kurum kimlik sağlayıcısı
+            </p>
+            {saglayicilar.map((s) => (
+              /* Bağ, düğme DEĞİL: akış bir GET gezinmesidir ve JavaScript
+                 gerektirmemeli — kimlik doğrulamanın betik çalışmayan bir
+                 tarayıcıda da yürümesi gerekir. */
+              <a key={s.id} className="ab-dugme tam"
+                style={{ display: 'block', textAlign: 'center', marginBottom: 'var(--s8)' }}
+                href={`/kimlik/basla?saglayici=${encodeURIComponent(s.id)}`
+                  + (hedef === VARSAYILAN_HEDEF ? '' : `&next=${encodeURIComponent(hedef)}`)}>
+                {s.ad} ile giriş yap
+              </a>
+            ))}
+            <p className="ab-panel-dip" style={{ margin: 'var(--s10) 0 0' }}>
+              Kurum hesabıyla giriş, bu kurulumda hesabınız TANIMLIYSA çalışır;
+              kimlik sağlayıcıda hesabınızın olması tek başına yetmez.
+            </p>
+          </div>
+        )}
       </main>
     </div>
     </SinematikGiris>

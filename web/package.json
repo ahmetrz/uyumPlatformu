@@ -22,6 +22,8 @@
     "kapi:ithal-zinciri": "node arac/ithal-zinciri.mjs",
     "kanit:denetim-formu": "node arac/denetim-formu-kanit.mjs",
     "kanit:bildirim-kaydi": "node arac/bildirim-kaydi-kanit.mjs",
+    "kanit:bildirim-donemi": "node arac/bildirim-donemi-kanit.mjs",
+    "kanit:kimlik": "node arac/kimlik-kanit.mjs",
     "gezinme:test": "node arac/gezinme-testi.mjs",
     "rota:duman": "node arac/rota-duman.mjs",
     "konsol:olcum": "node arac/konsol-olcum.mjs",

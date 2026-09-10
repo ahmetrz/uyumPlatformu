@@ -2321,8 +2321,33 @@ CREATE TABLE "BildirimYukumlulugu" (
     "paketSurumId" TEXT,
     "alanSablonuJson" TEXT,
     "kanalNotu" TEXT,
+    "tetikleyici" TEXT NOT NULL DEFAULT 'olay',
+    "donem" TEXT,
+    "donemBaslangici" TEXT,
+    "teslimGun" INTEGER,
 
     CONSTRAINT "BildirimYukumlulugu_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "BildirimDonemi" (
+    "id" TEXT NOT NULL,
+    "yukumlulukId" TEXT NOT NULL,
+    "donemEtiketi" TEXT NOT NULL,
+    "baslangic" TIMESTAMP(3) NOT NULL,
+    "bitis" TIMESTAMP(3) NOT NULL,
+    "sonTarih" TIMESTAMP(3),
+    "durum" TEXT NOT NULL DEFAULT 'acik',
+    "referansNo" TEXT,
+    "verenId" TEXT,
+    "verilmeZamani" TIMESTAMP(3),
+    "teyitZamani" TIMESTAMP(3),
+    "kanitId" TEXT,
+    "uygulanmazGerekcesi" TEXT,
+    "acildi" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "guncellendi" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "BildirimDonemi_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -2563,6 +2588,79 @@ CREATE TABLE "RolKatalogu" (
     "guncellendi" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "RolKatalogu_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "KimlikSaglayici" (
+    "id" TEXT NOT NULL,
+    "kiraci" TEXT NOT NULL DEFAULT 'varsayilan',
+    "ad" TEXT NOT NULL,
+    "tur" TEXT NOT NULL DEFAULT 'oidc',
+    "issuer" TEXT,
+    "clientId" TEXT,
+    "istemciSirriReferansi" TEXT,
+    "yetkilendirmeUcu" TEXT,
+    "jetonUcu" TEXT,
+    "jwksUcu" TEXT,
+    "yonlendirmeUri" TEXT,
+    "rolIddiasi" TEXT,
+    "rolEslemesiJson" TEXT,
+    "jitAcik" BOOLEAN NOT NULL DEFAULT false,
+    "bagli" BOOLEAN NOT NULL DEFAULT false,
+    "aktif" BOOLEAN NOT NULL DEFAULT false,
+    "olusturuldu" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "guncellendi" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "KimlikSaglayici_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "KimlikBagi" (
+    "id" TEXT NOT NULL,
+    "saglayiciId" TEXT NOT NULL,
+    "kullaniciId" TEXT NOT NULL,
+    "konu" TEXT NOT NULL,
+    "olusturuldu" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "sonGiris" TIMESTAMP(3),
+
+    CONSTRAINT "KimlikBagi_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "MfaKaydi" (
+    "id" TEXT NOT NULL,
+    "kullaniciId" TEXT NOT NULL,
+    "tur" TEXT NOT NULL DEFAULT 'totp',
+    "sirZarfi" TEXT NOT NULL,
+    "dogrulandi" BOOLEAN NOT NULL DEFAULT false,
+    "sonAdim" INTEGER,
+    "olusturuldu" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "sonKullanim" TIMESTAMP(3),
+
+    CONSTRAINT "MfaKaydi_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "MfaKurtarmaKodu" (
+    "id" TEXT NOT NULL,
+    "kayitId" TEXT NOT NULL,
+    "kodHash" TEXT NOT NULL,
+    "kullanildi" TIMESTAMP(3),
+
+    CONSTRAINT "MfaKurtarmaKodu_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "OturumPolitikasi" (
+    "id" TEXT NOT NULL,
+    "kiraci" TEXT NOT NULL DEFAULT 'varsayilan',
+    "mutlakSaat" INTEGER NOT NULL DEFAULT 12,
+    "atilDakika" INTEGER NOT NULL DEFAULT 120,
+    "mfaZorunlu" BOOLEAN NOT NULL DEFAULT false,
+    "guncellendi" TIMESTAMP(3) NOT NULL,
+    "guncelleyenId" TEXT,
+
+    CONSTRAINT "OturumPolitikasi_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
@@ -3112,6 +3210,15 @@ CREATE INDEX "MedyaKullanimi_varlikId_baslangic_idx" ON "MedyaKullanimi"("varlik
 CREATE UNIQUE INDEX "BildirimYukumlulugu_kod_key" ON "BildirimYukumlulugu"("kod");
 
 -- CreateIndex
+CREATE INDEX "BildirimDonemi_durum_idx" ON "BildirimDonemi"("durum");
+
+-- CreateIndex
+CREATE INDEX "BildirimDonemi_sonTarih_idx" ON "BildirimDonemi"("sonTarih");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "BildirimDonemi_yukumlulukId_donemEtiketi_key" ON "BildirimDonemi"("yukumlulukId", "donemEtiketi");
+
+-- CreateIndex
 CREATE INDEX "BildirimKaydi_durum_idx" ON "BildirimKaydi"("durum");
 
 -- CreateIndex
@@ -3173,6 +3280,27 @@ CREATE UNIQUE INDEX "RaporSablonu_kod_key" ON "RaporSablonu"("kod");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "RolKatalogu_kod_key" ON "RolKatalogu"("kod");
+
+-- CreateIndex
+CREATE INDEX "KimlikSaglayici_aktif_idx" ON "KimlikSaglayici"("aktif");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "KimlikSaglayici_kiraci_ad_key" ON "KimlikSaglayici"("kiraci", "ad");
+
+-- CreateIndex
+CREATE INDEX "KimlikBagi_kullaniciId_idx" ON "KimlikBagi"("kullaniciId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "KimlikBagi_saglayiciId_konu_key" ON "KimlikBagi"("saglayiciId", "konu");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "MfaKaydi_kullaniciId_key" ON "MfaKaydi"("kullaniciId");
+
+-- CreateIndex
+CREATE INDEX "MfaKurtarmaKodu_kayitId_idx" ON "MfaKurtarmaKodu"("kayitId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "OturumPolitikasi_kiraci_key" ON "OturumPolitikasi"("kiraci");
 
 -- AddForeignKey
 ALTER TABLE "KapsamOgesiTuru" ADD CONSTRAINT "KapsamOgesiTuru_sektorId_fkey" FOREIGN KEY ("sektorId") REFERENCES "Sektor"("id") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -4000,6 +4128,15 @@ ALTER TABLE "BildirimYukumlulugu" ADD CONSTRAINT "BildirimYukumlulugu_regulasyon
 ALTER TABLE "BildirimYukumlulugu" ADD CONSTRAINT "BildirimYukumlulugu_guncelleyenId_fkey" FOREIGN KEY ("guncelleyenId") REFERENCES "Kullanici"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "BildirimDonemi" ADD CONSTRAINT "BildirimDonemi_yukumlulukId_fkey" FOREIGN KEY ("yukumlulukId") REFERENCES "BildirimYukumlulugu"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "BildirimDonemi" ADD CONSTRAINT "BildirimDonemi_verenId_fkey" FOREIGN KEY ("verenId") REFERENCES "Kullanici"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "BildirimDonemi" ADD CONSTRAINT "BildirimDonemi_kanitId_fkey" FOREIGN KEY ("kanitId") REFERENCES "Kanit"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "BildirimKaydi" ADD CONSTRAINT "BildirimKaydi_olayId_fkey" FOREIGN KEY ("olayId") REFERENCES "Olay"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -4079,6 +4216,18 @@ ALTER TABLE "FormSablonu" ADD CONSTRAINT "FormSablonu_sektorId_fkey" FOREIGN KEY
 
 -- AddForeignKey
 ALTER TABLE "RaporSablonu" ADD CONSTRAINT "RaporSablonu_sektorId_fkey" FOREIGN KEY ("sektorId") REFERENCES "Sektor"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "KimlikBagi" ADD CONSTRAINT "KimlikBagi_saglayiciId_fkey" FOREIGN KEY ("saglayiciId") REFERENCES "KimlikSaglayici"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "KimlikBagi" ADD CONSTRAINT "KimlikBagi_kullaniciId_fkey" FOREIGN KEY ("kullaniciId") REFERENCES "Kullanici"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "MfaKaydi" ADD CONSTRAINT "MfaKaydi_kullaniciId_fkey" FOREIGN KEY ("kullaniciId") REFERENCES "Kullanici"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "MfaKurtarmaKodu" ADD CONSTRAINT "MfaKurtarmaKodu_kayitId_fkey" FOREIGN KEY ("kayitId") REFERENCES "MfaKaydi"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- ═══════════════════════════════════════════════════════════════════════
 -- ELLE YAZILAN DDL · PostgreSQL karşılıkları (R5)

@@ -230,3 +230,93 @@ describe('lisans sınırı — alanda, yorumda değil [URN-PKT-002]', () => {
     expect(temiz.ok).toBe(true);
   });
 });
+
+
+/* ═══ YÜKÜMLÜLÜK TETİKLEYİCİSİ · TÜR İLE ALANLAR TUTARLI OLMALI ═══════
+
+   Ölçüldü (#49, R-E): bu kural yazıldı ve HİÇBİR TEST onu sınamadı —
+   sabotaj turunda kaldırıldığında bütün küme yeşil kaldı. Kırmızı
+   yakmayan sabotaj bir bulgudur; kural değil, testi eksikti.
+
+   Kusur sınıfı R-D'nin ta kendisi: bir takvim yükümlülüğüne `sureSaat`
+   yazmak ya da bir olay yükümlülüğüne `donem` yazmak, biçimi geçerli ve
+   değeri aralıkta bir satır üretir. `asgariSiddet` takvim tetiklide
+   anlamsızdır, `donem` olay tetiklide anlamsızdır; ikisi de sessizce
+   yanlış davranır. */
+
+const YUK = {
+  kod: 'Y-1', ad: 'Test yükümlülüğü', asgariSiddet: 'yuksek',
+  dayanak: 'Kurgusal', merci: 'Kurgusal Merci',
+};
+
+/** Doğrulama sonucunu tek satıra çevirir; temizse boş dize. */
+const hatalar = (satir: Record<string, unknown>): string => {
+  const r = paketiDogrula(paketYaz({ 'yukumlulukler.json': [satir] }));
+  return r.hatalar.map(hataSatiri).join(' | ');
+};
+
+describe('yükümlülük tetikleyicisi: tür ile alanlar tutarlı [URN-PKT-001]', () => {
+  it('OLAY tetikli · süre ile geçerli', () => {
+    const h = hatalar({ ...YUK, sureSaat: 72 });
+    expect(h, h).toBe('');
+  });
+
+  it('OLAY tetikli · süresi BOŞ da geçerli — mevzuat süre vermemiş olabilir', () => {
+    const h = hatalar({ ...YUK, sureSaat: null });
+    expect(h, h).toBe('');
+  });
+
+  it('OLAY tetikliye DÖNEM yazılamaz', () => {
+    const h = hatalar({ ...YUK, sureSaat: 72, donem: 'yillik' });
+    expect(h).toMatch(/donem.*KULLANILMAZ|KULLANILMAZ.*donem/);
+  });
+
+  it('OLAY tetikliye TESLİM GÜNÜ yazılamaz', () => {
+    const h = hatalar({ ...YUK, sureSaat: 72, teslimGun: 30 });
+    expect(h).toMatch(/teslimGun/);
+  });
+
+  it('TAKVİM tetikli · dönem ve teslim günüyle geçerli', () => {
+    const h = hatalar({
+      ...YUK, tetikleyici: 'takvim', sureSaat: null,
+      donem: 'yillik', donemBaslangici: '01-01', teslimGun: 30,
+    });
+    expect(h, h).toBe('');
+  });
+
+  it('TAKVİM tetikliye SÜRE SAAT yazılamaz — süre olaydan değil dönemden sayılır', () => {
+    const h = hatalar({ ...YUK, tetikleyici: 'takvim', sureSaat: 72, donem: 'yillik' });
+    expect(h).toMatch(/sureSaat/);
+  });
+
+  it('TAKVİM tetikli · dönemi BOŞ da geçerli — mevzuat periyot vermemiş olabilir', () => {
+    /* Dönem açılmaz ve ekran bunu söyler; paket geçersiz DEĞİLDİR.
+       Bilinmeyen ≠ sıfır: eksik bilgiyi reddetmek, kiracıyı bir sayı
+       uydurmaya zorlardı. */
+    const h = hatalar({ ...YUK, tetikleyici: 'takvim', sureSaat: null, donem: null });
+    expect(h, h).toBe('');
+  });
+
+  it('teslim günü SIFIR olamaz — dönem biter bitmez geçmiş bir sayaçtır', () => {
+    const h = hatalar({
+      ...YUK, tetikleyici: 'takvim', sureSaat: null, donem: 'yillik', teslimGun: 0,
+    });
+    expect(h).toMatch(/teslimGun/);
+  });
+
+  it('dönem başlangıcı BİÇİMLİDİR — "MM-DD", 29–31 kabul edilmez', () => {
+    /* 29–31 her ayda yoktur; kabul edilseydi şubatta dönem kayardı. */
+    for (const kotu of ['1-1', '2026-01-01', '13-01', '01-31', 'ocak']) {
+      const h = hatalar({
+        ...YUK, tetikleyici: 'takvim', sureSaat: null,
+        donem: 'aylik', donemBaslangici: kotu,
+      });
+      expect(h, `"${kotu}" kabul edildi`).toMatch(/donemBaslangici/);
+    }
+  });
+
+  it('bilinmeyen TETİKLEYİCİ reddedilir', () => {
+    const h = hatalar({ ...YUK, sureSaat: 72, tetikleyici: 'ayin_hali' });
+    expect(h).toMatch(/tetikleyici/);
+  });
+});

@@ -1,7 +1,7 @@
 {
-  "imza": "a9fbe67bd3d4b4f34cd47588ad5bd1e6",
-  "dosya": 205,
-  "vaka": 3776,
+  "imza": "39ad014ff51e352846aa9f935b8fe0b0",
+  "dosya": 218,
+  "vaka": 3978,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -52,6 +52,10 @@
       "vaka": 12,
       "atlanan": 0
     },
+    "tests/bekci/disa-aktarim-kapsami.test.ts": {
+      "vaka": 10,
+      "atlanan": 0
+    },
     "tests/bekci/ek-eklemesi.test.ts": {
       "vaka": 4,
       "atlanan": 0
@@ -66,6 +70,10 @@
     },
     "tests/bekci/katlama-korlugu.test.ts": {
       "vaka": 19,
+      "atlanan": 0
+    },
+    "tests/bekci/kimlik-sir.test.ts": {
+      "vaka": 15,
       "atlanan": 0
     },
     "tests/bekci/kurgusal-adlar.test.ts": {
@@ -112,6 +120,18 @@
       "vaka": 5,
       "atlanan": 0
     },
+    "tests/bildirim-donemi-eylem.test.ts": {
+      "vaka": 11,
+      "atlanan": 0
+    },
+    "tests/bildirim-donemi-zincir.test.ts": {
+      "vaka": 8,
+      "atlanan": 0
+    },
+    "tests/bildirim-donemi.test.ts": {
+      "vaka": 24,
+      "atlanan": 0
+    },
     "tests/bildirim-kaydi-eylem.test.ts": {
       "vaka": 29,
       "atlanan": 0
@@ -122,6 +142,10 @@
     },
     "tests/bildirim-kutusu.test.ts": {
       "vaka": 17,
+      "atlanan": 0
+    },
+    "tests/bildirim-tetikleyici-ayrimi.test.ts": {
+      "vaka": 6,
       "atlanan": 0
     },
     "tests/canli-durus.test.ts": {
@@ -424,12 +448,36 @@
       "vaka": 31,
       "atlanan": 0
     },
+    "tests/kimlik-akis.test.ts": {
+      "vaka": 13,
+      "atlanan": 0
+    },
     "tests/kimlik-envanteri.test.ts": {
       "vaka": 12,
       "atlanan": 0
     },
     "tests/kimlik-eylem.test.ts": {
       "vaka": 14,
+      "atlanan": 0
+    },
+    "tests/kimlik-giris-mfa.test.ts": {
+      "vaka": 9,
+      "atlanan": 0
+    },
+    "tests/kimlik-mfa-zincir.test.ts": {
+      "vaka": 12,
+      "atlanan": 0
+    },
+    "tests/kimlik-oidc.test.ts": {
+      "vaka": 31,
+      "atlanan": 0
+    },
+    "tests/kimlik-saglayici-eylem.test.ts": {
+      "vaka": 12,
+      "atlanan": 0
+    },
+    "tests/kimlik-totp.test.ts": {
+      "vaka": 27,
       "atlanan": 0
     },
     "tests/kirpan-ata.test.ts": {
@@ -553,7 +601,7 @@
       "atlanan": 0
     },
     "tests/paket-dogrula.test.ts": {
-      "vaka": 23,
+      "vaka": 33,
       "atlanan": 0
     },
     "tests/paket-esleme.test.ts": {
@@ -670,6 +718,10 @@
     },
     "tests/surum.test.ts": {
       "vaka": 7,
+      "atlanan": 0
+    },
+    "tests/takvim-ekrani.test.ts": {
+      "vaka": 14,
       "atlanan": 0
     },
     "tests/tasarim-belgesi.test.ts": {

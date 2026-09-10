@@ -12,6 +12,12 @@ import { girisYap } from '@/lib/girisEylemleri';
 
 export default function GirisFormu({ next = null }: { next?: string | null }) {
   const [v, setV] = useState({ eposta: '', parola: '' });
+  const [kod, setKod] = useState('');
+  /* İKİNCİ ADIM. Parola doğru ama ikinci faktör bekleniyorsa sunucu
+     `mfaGerekli` döner ve form kod alanını açar. Alan BAŞTAN çizilmez:
+     MFA kurmamış kullanıcıya doldurulamayan bir kutu göstermek, ekranda
+     olmayan bir kontrolü varmış gibi sunmak olurdu. */
+  const [mfaGerekli, setMfaGerekli] = useState(false);
   const [hata, setHata] = useState<string | null>(null);
   const [bekliyor, baslat] = useTransition();
 
@@ -21,8 +27,11 @@ export default function GirisFormu({ next = null }: { next?: string | null }) {
       onSubmit={(e) => {
         e.preventDefault();
         baslat(async () => {
-          const sonuc = await girisYap({ ...v, next });
-          if (sonuc && !sonuc.ok) setHata(sonuc.hata);
+          const sonuc = await girisYap({ ...v, kod: mfaGerekli ? kod : null, next });
+          if (sonuc && !sonuc.ok) {
+            setHata(sonuc.hata);
+            if ('mfaGerekli' in sonuc && sonuc.mfaGerekli) { setMfaGerekli(true); setKod(''); }
+          }
         });
       }}
     >
@@ -36,10 +45,18 @@ export default function GirisFormu({ next = null }: { next?: string | null }) {
           value={v.parola} onChange={(e) => setV({ ...v, parola: e.target.value })} />
       </Alan>
 
+      {mfaGerekli && (
+        <Alan etiket="Doğrulayıcı kodu" zorunlu>
+          <input className="ab-gr" inputMode="numeric" autoComplete="one-time-code" required
+            autoFocus style={{ fontFamily: 'var(--veri)' }}
+            value={kod} onChange={(e) => setKod(e.target.value)} />
+        </Alan>
+      )}
+
       {hata && <p className="ab-gr-hata" role="alert" style={{ margin: 0 }}>{hata}</p>}
 
       <Dugme tur="tam" type="submit" disabled={bekliyor}>
-        {bekliyor ? 'Giriş yapılıyor…' : 'Giriş yap'}
+        {bekliyor ? 'Giriş yapılıyor…' : (mfaGerekli ? 'Kodu doğrula ve gir' : 'Giriş yap')}
       </Dugme>
 
       <p className="ab-panel-dip" style={{ margin: 0 }}>

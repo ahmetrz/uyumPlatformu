@@ -995,8 +995,20 @@ iskelet olarak paketlenir. Anahtar kelimeler paket dilinde. Aynı motor.
 **Alan kodu:** `URN-KIM` · **Etki:** yüksek (ürün) · **Çaba:** orta ·
 **Bağımlılık:** P2
 
-**Bugün.** Yerel hesap (scrypt), oturum 12s/2s, oran sınırı, başarısız
-giriş izi; `Connector.kimlikTipi` OAuth2 destekler; **gerçek SSO/MFA yok**.
+**Bugün (10 Eylül 2026 · KİMLİK DİLİMİ KURULDU).** Yerel hesap (scrypt),
+oturum politikası kiracıdan (12s/2s VARSAYILANI korundu), oran sınırı,
+başarısız giriş izi. **Kurulan:** `KimlikSaglayici` (sır yalnız
+REFERANS — bekçi URN-KML-001), `KimlikBagi` (`sub` ile; e-postayla
+DEĞİL), OIDC Authorization Code + PKCE, `iss`/`aud`/`nonce`/`exp`
+doğrulaması ve `alg` karıştırma reddi, JIT **varsayılan KAPALI**, TOTP
+MFA (`MfaKaydi` · AES-256-GCM zarf · scrypt özetli kurtarma kodu),
+`OturumPolitikasi`, `/ayarlar/kimlik` ve girişte "kurum hesabıyla gir".
+
+**KALAN (bu dilimde YAPILMADI ve beyanlıdır):** `KullanimOlcumu` ve
+`/hub/kullanim` — lisanslama girdisi P2 (kiracı modeli) olmadan
+anlamsızdır ve kabul kriteri 5 bu yüzden AÇIKTIR. Gerçek bir IdP'ye
+BAĞLANILMADI: doğrulama sahte bir sağlayıcıyla ölçüldü ve bu deponun
+kuralı gereği böyle kalır.
 
 **Hedef.** Kiracı kendi IdP'sine OIDC ile bağlanır; yerel hesap yedek;
 yerel hesaplarda TOTP MFA; kullanım ölçümü lisanslama girdisi olur.
@@ -1018,15 +1030,15 @@ yerel hesaplarda TOTP MFA; kullanım ölçümü lisanslama girdisi olur.
 
 **Kapsam dışı.** SAML (ileride), SCIM, parola politikası ötesi.
 
-**Kabul kriterleri.**
-1. IdP bağlı değilken yerel giriş çalışır; bağlıyken ikisi de. [URN-KIM-001]
-2. Sahte OIDC ile yanlış `iss`/`aud`/`nonce` reddedilir ve ize yazılır.
-   [URN-KIM-002]
-3. JIT kapalıyken tanınmayan `sub` giriş yapamaz; kullanıcı **oluşturulmaz**.
-   [URN-KIM-003]
-4. MFA zorunlu kiracıda TOTP'siz yerel hesap giriş **yapamaz**. [URN-KIM-004]
-5. Kullanım ölçümü değerleri koddan sayılır; `hub` ekranında kaynak
-   komutu yazılıdır. [URN-KIM-005]
+**Kabul kriterleri.** (Durum: 10 Eylül 2026)
+
+| # | Kriter | Durum | Ölçüm |
+| --- | --- | --- | --- |
+| 1 | IdP bağlı değilken yerel giriş çalışır; bağlıyken ikisi de | **karşılandı** | `arac/kimlik-kanit.mjs` — bağlı olmayan sağlayıcı giriş ekranında GÖRÜNMEZ, aktif edilince düğme çıkar, aktiflik kalkınca DÜŞER (iki bant, 32/32 iddia) |
+| 2 | Sahte OIDC ile yanlış `iss`/`aud`/`nonce` reddedilir ve ize yazılır | **karşılandı** | `tests/kimlik-oidc.test.ts` (31 vaka) + `lib/kimlik/girisIzi.ts`; `alg: none` ve HMAC de reddedilir |
+| 3 | JIT kapalıyken tanınmayan `sub` giriş yapamaz; kullanıcı **oluşturulmaz** | **karşılandı** | `tests/kimlik-akis.test.ts` — kullanıcı SAYISI değişmiyor; ize `sub` ÖZETİ yazılır, hamı değil |
+| 4 | MFA zorunlu kiracıda TOTP'siz yerel hesap giriş **yapamaz** | **karşılandı** | `lib/kimlik/politika.ts → mfaGirisKapisi` + `tests/kimlik-totp.test.ts`; kurum hesabında ikinci faktör IdP'nindir ve bu sınır ekranda YAZILI |
+| 5 | Kullanım ölçümü değerleri koddan sayılır; `hub` ekranında kaynak komutu yazılıdır | **AÇIK** | `KullanimOlcumu` ve `/hub/kullanim` YAPILMADI — P2 (kiracı modeli) olmadan anlamsız. Ölçülmedi, "geçti" yazılmadı |
 
 ---
 
@@ -2222,6 +2234,7 @@ birlikte ele alınır:
 | R0-13 | Üst çubuk dokunmatik bantlarda taşıyordu | **Kapandı** (8 Eyl 2026). Ölçüldü: viewport 768 iken `.ab-ust` 999px, 375 iken 938px — çubuk 1024 altında kendi içinde kırpılıyordu. Yerleşim önceliğe göre yeniden kuruldu (marka → mercek → gezinme → hesap): 1024 altında çubuk SARAR, gezinme kendi satırına iner ve yatay kaydırılır, marka ile hesap daralır; hiçbir öğe gizlenmez ve **mercek her bantta erişilebilir**. Mercek `.sag` kümesinden çıkarılıp üst çubuğun doğrudan çocuğu yapıldı — içindeyken `order` o kümenin içine hapsoluyordu. Saran gezinme ilk denemede ikincil sıranın üstüne bindi ve taşma kapısı 768px'te **168 yeni örtüşme** saydı; kabuk ızgarasının ilk satırı da dar bantta `auto` yapıldı. Ölçüm: 1440/1024/768/375'te taşma 0, mercek dört bantta da görünür; gezinme kapısı 7 bant 0 kusur, taşma kapısı yeni 0. | Kapandı |
 | R0-15 | Kurulum imajı geliştirme bağımlılıklarının TAMAMINI taşıyor | Ölçüldü (9 Eyl 2026, bağımsız inceleme): `deploy/compose/Dockerfile` `npm ci` sonucunu (`--omit=dev` yok) koşum aşamasına devrediyor; vitest · playwright-core · eslint · lighthouse üretim imajında duruyor (imaj 2,37 GB). Dockerfile'ın kendi gerekçesi "üretim imajında derleyici bulundurmak saldırı yüzeyini gereksiz büyütür" derken bu araçlar orada. Bu turda YAPILMADI çünkü koşum gerçekten `prisma` · `tsx` · `next` · `better-sqlite3` istiyor (göç, tohum, yedek) ve bunları `--omit=dev` ile ayırmak `package.json` bağımlılık sınıflarını yeniden bölmek demek — kapı yeşilken yapılacak ayrı bir dilim. Ayrıca `next.config.ts` imaja kopyalanmıyor: bugün zararsız (güvenlik başlıkları `routes-manifest.json`dan servis ediliyor, doğrulandı) ama çalışma anında okunan bir yapılandırma eklendiği gün SESSİZCE varsayılana düşer. **Sahip:** P7 · dağıtım dilimi. **Kapanış:** ilk müşteri kurulumundan ÖNCE — imaj müşteriye gitmeden. | açık — ölçüldü, ertelendi |
 | R0-14 | Zafiyet ↔ varlık eşleşmesi RASTGELE — gerçek CVE kurgusal varlığa tutarsız bağlanıyor | Ölçüldü (8 Eyl 2026): `seed-operasyon.ts` varlıkların ~%7'sine `zafiyetler[Math.floor(rnd() * zafiyetler.length)]` ile kura çekiyor. On CVE'nin dokuzu yayımlanmış gerçek kayıtlardır ve ürünleri beyanlıdır (`kurgusal-adlar.ts`), ama bağlandıkları varlık türüyle ilgisi yok: bir ağ anahtarı Rockwell ControlLogix CVE'si taşıyabiliyor. Bu bir GERÇEKLİK kusuru değil (kayıt kurgusal, rozeti ekranda) ama bir İNANDIRICILIK kusurudur ve demonun tek ölçütü inandırıcılıktır — güvenlikten anlayan bir izleyici bunu ilk bakışta görür. Düzeltmesi kura yerine eşleştirme ister: CVE'nin ürünü ↔ varlığın `uretici`/`isletimSistemi` alanı. Bu turda YAPILMADI çünkü kapsam kurgusallaştırma ve bekçiydi; kurayı eşleştirmeye çevirmek tohumun zafiyet bloğunu yeniden yazmak demek. **Sahip:** demo verisi dilimi. **Kapanış:** demo yolunun zafiyet ekranı gösterime girdiğinde — bugün sekiz ekranlık yolda değil; yola girdiği gün eşleştirme ondan önce yazılır. | açık — ölçüldü, düzeltilmedi |
+| R0-16 | EPBS raporlama yükümlülükleri modelde yoktu | **Kapandı** (10 Eyl 2026). Ertelenmişti ve kapanış şartı yazılıydı: EPDK Yönetmeliği md. 10/2, 10/3 ve 10/4'ün üç raporlama yükümlülüğü TAKVİMDEN doğuyor, `BildirimYukumlulugu` ise yalnız olayı şiddet eşiğiyle eşleştiriyordu; olay alanına yazmak R-D anlam eşleme hatası olurdu. Kapanış şartı **periyodik yükümlülük modeliydi** ve model geldi: `tetikleyici` (`olay` · `takvim`) · `donem` · `donemBaslangici` · `teslimGun` alanları + `BildirimDonemi` tablosu + `acikDonemleriKur` motoru + `/raporlar/takvim` ekranı. Üç yükümlülük TR-ENERJI paketine `takvim` tetikleyiciyle girdi. **Dönem başlangıcı UYDURULMADI** — mevzuat vermiyor, ürün takvim yılını varsayar ve varsayımı beyan eder. | Kapandı · sahibi KODLAYAN |
 
 ---
 
@@ -2254,7 +2267,7 @@ Excel'inden daha az şey bilir.
 | **R5 · PostgreSQL** | **BİTTİ (9 Eyl 2026)** — tek taban göçü (4 149 satır, şemadan üretilir), 9 tetikleyici + 3 elle indeks, sağlayıcı tek kaynağı (`lib/veritabani.ts`), sürücü ve arama kipi sağlayıcıdan, test izolasyonu PostgreSQL'de ŞABLONDAN klon veritabanı | Kapılar `kapi:pg-taban` · `kapi:pg-goc`; CI'da `kapi-postgres` işi (postgres:16). **Tam küme iki sağlayıcıda da yeşil: 192/192 dosya · 3 503 vaka · 1 atlandı.** Ölçüm beş sürpriz çıkardı (istemci sağlayıcıya bağlı · `migrate diff` elle DDL'i görmez · 63 bayt ad kısaltması · sırasız `take` · testin tek bağlantı varsayımı) — `docs/POSTGRES_READINESS.md` §0 |
 | **P7 · dağıtım** | `deploy/` **yok** · `docs/KURULUM.md` **yok** · sağlık ucu **yok** (10 API ucu var, hepsi `route.api.ts`); S3 · Redis · kuyruk · Vault kayıtlı ama bağlı değil | statik demo derlemesi var ve CI'da koşuyor |
 | **R3 · yedek + kanıt** | `arac/yedek.mjs` 170 satır, **yalnız veritabanı** (`VACUUM INTO`); kanıt dosyaları artık **yazılıyor** (`eylemler2/kanit.ts` → `depoAnahtari` + `dosyaHash`) ama yedeğe girmiyor; hem araç hem `docs/URUN_YEDEKLEME.md` (satır 26 · 29 · 30 · 144) hâlâ "dosya yok" diyor | depo `lib/uyum/kanitDeposu.ts` 145 satır, içerik adresli, MIME izin listeli |
-| **P6 · kimlik (SSO/MFA)** | yerel hesap + oturum + oran sınırı var; **OIDC ve TOTP yok** | `Connector.kimlikTipi` OAuth2 tanıyor, ürün girişi tanımıyor |
+| **P6 · kimlik (SSO/MFA)** | **KURULDU** (10 Eyl 2026): OIDC Authorization Code + PKCE (`lib/kimlik/oidc.ts`), `iss`/`aud`/`nonce`/`exp` doğrulaması ve `alg` karıştırma reddi; `KimlikSaglayici` (sır yalnız REFERANS), `KimlikBagi` (`sub` ile — e-postayla DEĞİL), JIT **varsayılan KAPALI** (tanınmayan `sub` reddedilir, kullanıcı açılmaz); TOTP MFA (`MfaKaydi` · zarflı sır · özetlenmiş kurtarma kodu), kiracı oturum politikası (12/2 varsayılanı KORUNDU). Ekranlar: `/ayarlar/kimlik` ve girişte "kurum hesabıyla gir". **SAML kapsam dışı.** | Gerçek IdP'ye BAĞLANILMADI: doğrulama sahte bir sağlayıcıyla ölçüldü (`tests/kimlik-oidc.test.ts`) |
 | **P2 · çok kiracılılık (yalnız SaaS tarafı)** | şemada **`kiraciId` taşıyan model 0 / 157**; `Kiraci` modeli yok | tek kurulum tek kiracı; RLS P2 ile gelir |
 
 **Neden bu küme:** ilk müşteri kurulumu bu kümenin ilk üçü olmadan

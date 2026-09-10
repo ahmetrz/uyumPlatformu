@@ -8,7 +8,7 @@
     "ad": "Elektrik Üretimi"
   },
   "dil": "tr",
-  "surum": "0.3.0",
+  "surum": "0.4.0",
   "yayinci": "Uyum ve Yönetişim Platformu (demo tohumu)",
   "lisans": {
     "tur": "kamuya_acik",
@@ -30,7 +30,7 @@
     "form/DEMO-SYM-OZDEGERLENDIRME.json": "6ceaac108b132f845417abb553b59bdd7802e09c288d2711d8e796bd6e168229",
     "oznitelikler.json": "94481c769214894c69706c0032e69363e63bb5d0a448cfbde52fff31b9886f00",
     "sozluk.json": "7fc219741fb5e9b0a59ee32511b52ac274cf88282011920b053479b65b02108c",
-    "yukumlulukler.json": "bb1d85ce721db93199c2fff293a9a081c0a344bc9d6d288b8fcae009df6c370e"
+    "yukumlulukler.json": "a67ac0ec42ddc16508afab649e1821c94747df2c540cc13c6a3cd5f73094678e"
   },
   "imza": null,
   "aciklama": "DEMO (P4 · 2.5): tohumun enerji sözlüğü (13), öznitelik şeması (9), EPDK-SYM demo çerçevesi (27 madde) ve EPDK → ortak çerçeve denklikleri (6). Tesisler, tipler, süreçler ve bulgular tohumda (P8).",

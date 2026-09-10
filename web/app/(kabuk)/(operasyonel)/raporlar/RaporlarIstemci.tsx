@@ -187,7 +187,12 @@ export default function RaporlarIstemci({
               {/* Denetim FORMU üçüncü bir şeydir: kanıt paketi kökeni ve
                   bütünlük damgasını taşır, form ise denetçinin doldurmayı
                   beklediği kontrol tablosunu — kapsam kararı ve gerekçesiyle. */}
-              <Link href="/raporlar/denetim-formlari">denetim formları</Link>
+              <Link href="/raporlar/denetim-formlari">denetim formları</Link>{' · '}
+              {/* Dördüncüsü zamanda ayrışır: matris "bugün nerede
+                  duruyoruz" der, takvim "ne zamana kadar ne vermemiz
+                  gerek". Takvim tetikli yükümlülüğün olay listesinde
+                  yeri yoktur ve bu bağ onun tek girişidir. */}
+              <Link href="/raporlar/takvim">raporlama takvimi</Link>
             </p>
             <DisaAktar surecler={surecler} tesisler={tesisler} sozluk={sozluk}
               bulgular={bulgular} kanitlar={kanitlar} />

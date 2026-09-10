@@ -29,6 +29,7 @@ import {
   FARK_ETIKET, FARK_IM, gercekFarklar, maddeImi, silinebilir, surumCumlesi,
   surumImi, surumOzeti, surumSozu, surumsuzSayisi, taslakSurumler, yapraklar,
   type Alan, type Madde, type Reg, type Surum,
+  katalogBoslugu, katalogBoslukCumlesi,
 } from './mantik';
 
 /* Regülasyon kütüphanesi — "hangi çerçeve hangi sürümde, kataloğu tam mı?"
@@ -92,6 +93,7 @@ export default function RegulasyonlarIstemci({
 
   const alansiz = alansizSayisi(reg, agac);
   const surumsuz = surumsuzSayisi(reg);
+  const bosluk = katalogBoslugu(reg);
   const madde = maddeId ? reg.maddeler.find((m) => m.id === maddeId) ?? null : null;
   const surum = surumId ? reg.surumler.find((s) => s.id === surumId) ?? null : null;
 
@@ -153,11 +155,23 @@ export default function RegulasyonlarIstemci({
             }
           />
 
-          {reg.maddeler.length === 0 ? (
+          {bosluk ? (
             <div style={{ marginTop: 'var(--s26)' }}>
+              {/* BOŞLUĞUN SEBEBİ SÖYLENİR, "boş" denip geçilmez.
+                  Ölçüldü (kurulum provası): paket kurulduktan sonra burada
+                  "henüz yüklenmedi" yazıyordu ve 3 803 madde taslakta
+                  bekliyordu; eylem de kullanıcıyı ZATEN YÜKLÜ kataloğu
+                  ikinci kez içe aktarmaya yolluyordu. */}
               <BosIlk
-                cumle={`${reg.kod} kataloğu henüz yüklenmedi.`}
-                eylem={<Link className="ab-dugme birincil" href="/ice-aktarim">Katalog içe aktar</Link>}
+                cumle={katalogBoslukCumlesi(reg, bosluk)}
+                eylem={bosluk.hal === 'taslakta_bekliyor'
+                  ? (
+                    <button type="button" className="ab-dugme birincil"
+                      onClick={() => { setSurumId(bosluk.surumId); setKip('aktiflestir'); }}>
+                      Yürürlüğe alma kararını aç ▸
+                    </button>
+                  )
+                  : <Link className="ab-dugme birincil" href="/ice-aktarim">Katalog içe aktar</Link>}
               />
             </div>
           ) : kokler.length === 0 ? (

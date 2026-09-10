@@ -173,6 +173,70 @@ export function taslakSurumler(reg: Reg): Surum[] {
 }
 
 /** Sürüm işaretçisi: yürürlükte olan var mı, taslak bekliyor mu? */
+/* ── KATALOG BOŞLUĞUNUN ÜÇ AYRI HÂLİ ──────────────────────────────────
+   ÖLÇÜLEN KUSUR (kurulum provası, 10 Eylül 2026): TR-ENERJI paketi
+   kurulduktan hemen sonra bu ekran sekiz çerçevenin sekizi için de
+   "KATALOG BOŞ · İLK KURULUM · <kod> kataloğu HENÜZ YÜKLENMEDİ" diyor ve
+   kullanıcıyı "Katalog içe aktar"a yolluyordu. Veritabanında o anda
+   3 803 madde VARDI: sekiz TASLAK sürüme bağlıydılar ve tek bekledikleri
+   şey insan kararıydı — üstelik bir önceki ekran (`/paketler`) tam da
+   bunu söylüyordu: "Çerçeve sürümleri TASLAK: aktifleştirme
+   Regülasyonlar ekranında."
+
+   Yani ürün kendi talimatını kendi yalanlıyordu ve müşteri yolu burada
+   çıkmaza giriyordu: içe aktarma ekranına gidilirse zaten yüklü olan
+   katalog İKİNCİ KEZ yazılırdı.
+
+   Maddeleri yalnız AKTİF sürümden saymak DOĞRUDUR ve değişmedi (arşiv ve
+   taslak maddeler kataloğu kirletmemeli). Kusur sayımda değil, sayı
+   sıfır çıkınca söylenen CÜMLEDEYDİ: "yüklenmedi" ile "yüklendi,
+   kararınızı bekliyor" aynı şey değildir — birincisi bir eksik, ikincisi
+   bir GÖREV.
+
+   "Bilinmeyen ≠ sıfır" kuralının ters yüzü: BİLİNEN de sıfır gibi
+   gösterilmez. */
+export type KatalogBoslugu =
+  /** Hiç sürüm yok: katalog gerçekten yüklenmemiş. */
+  | { hal: 'katalog_yok' }
+  /** Taslak sürüm(ler)de madde var; tek eksik İNSAN KARARI. */
+  | { hal: 'taslakta_bekliyor'; madde: number; surumId: string; etiket: string }
+  /** Sürüm var ama maddesi yok — açılmış boş bir taslak. */
+  | { hal: 'surum_bos' };
+
+/**
+ * Aktif katalog boşken bunun NEDEN boş olduğunu söyler.
+ * Katalog boş DEĞİLSE `null` döner — ayrım çağıranda değil burada.
+ */
+export function katalogBoslugu(reg: Reg): KatalogBoslugu | null {
+  if (reg.maddeler.length > 0) return null;
+  const dolu = taslakSurumler(reg).filter((s) => s.maddeSayisi > 0);
+  if (dolu.length > 0) {
+    /* En çok madde taşıyan taslak hedeflenir: karar ekranı tek sürüm
+       açar ve kullanıcıyı boş bir taslağa göndermek yolu uzatırdı. */
+    const hedef = [...dolu].sort((a, b) => b.maddeSayisi - a.maddeSayisi)[0];
+    return {
+      hal: 'taslakta_bekliyor',
+      madde: dolu.reduce((a, s) => a + s.maddeSayisi, 0),
+      surumId: hedef.id,
+      etiket: hedef.etiket,
+    };
+  }
+  return reg.surumler.length > 0 ? { hal: 'surum_bos' } : { hal: 'katalog_yok' };
+}
+
+/** Boşluğun ekranda görünen cümlesi. */
+export function katalogBoslukCumlesi(reg: Reg, b: KatalogBoslugu): string {
+  if (b.hal === 'taslakta_bekliyor') {
+    return `${reg.kod} kataloğu YÜKLÜ: ${b.madde} madde ${b.etiket} taslak `
+      + 'sürümünde ve aktifleştirme bekliyor. Aktifleştirme insan kararıdır; '
+      + 'bu ekran hiçbir sürümü kendiliğinden yürürlüğe almaz.';
+  }
+  if (b.hal === 'surum_bos') {
+    return `${reg.kod} için sürüm açılmış ama içinde madde yok.`;
+  }
+  return `${reg.kod} kataloğu henüz yüklenmedi.`;
+}
+
 export function surumImi(reg: Reg): Durum {
   if (aktifSurum(reg)) return taslakSurumler(reg).length > 0 ? 'pl' : 'ok';
   // Sürümsüz katalog "boş" değil: geçiş dönemi kaydıdır, bilinmeyendir.

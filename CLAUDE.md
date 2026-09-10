@@ -32,6 +32,8 @@ kabul kriteridir (P0 · URN-KUR-003); ölü atıf eklemeyin.
 | Ekran envanteri | `docs/ROTA_HARITASI.md` · `web/arac/rotalar.json` |
 | PostgreSQL geçiş hazırlığı | `docs/POSTGRES_READINESS.md` |
 | Bağlantı günü sırası | `INTEGRATION_DAY_RUNBOOK.md` |
+| Kurulum · müşteri mühendisinin yolu | `docs/KURULUM.md` |
+| Kurulum provası · ölçüm ve bulunan kusurlar | `docs/KURULUM_PROVASI.md` |
 | Ürünün kendi yedeği | `docs/URUN_YEDEKLEME.md` · `web/arac/yedek.mjs` |
 | Senaryo kütüğü · test eşlemesi | `docs/MASTER_SCENARIO_REGISTRY.md` · `docs/SCENARIO_TEST_MATRIX.md` (`web/lib/senaryo/` üretir) |
 | Kalite araçları ve kapılar | `web/arac/BENIOKU.md` |
@@ -239,6 +241,24 @@ söyler ("süresiz beyan yoktur"). Kütükte olmayan cümle de, kodda
 olmayan kütük satırı da KIRMIZIDIR
 (`web/tests/bekci/politika-olcumu.test.ts`, URN-POL-001); ölçülmeyen
 sayısı bir TAVANDIR ve yalnız küçülür.
+
+**YENİ bir politika cümlesinin varsayılanı ÖLÇÜLÜ olmaktır (R-F eki).**
+Cırcır BORCU ölçer, borcun BİLEŞİMİNİ değil — ve beş dişi de yeşilken
+şu geçiyordu (ölçüldü, sentetik vaka): iki eski cümle ölçülür, ölçüsüz
+YENİ bir cümle eklenir, toplam 65'ten 64'e iner. Liste "küçüldü", ama
+depoya ölçülmemiş yeni bir iddia girdi. Bugün yeni satır AYRI
+yargılanır: taban dalda (`origin/main`) olmayan her `POLITIKA` satırı
+ölçümünü taşımak zorundadır.
+
+Gerekçeli istisna mümkündür, iki koşulla: gerekçe KUSURU anlatır
+(maliyeti değil) ve HANGİ AŞAMADA kapanacağını yazar. **Aşamasız
+gerekçe kabul edilmez** — "süresiz beyan yoktur" kuralının bu kütükteki
+karşılığıdır. **S1'de istisna HİÇ yoktur**: ihlali veri sızdıran bir
+cümle, gerekçesi ne olursa olsun ölçülmeden depoya giremez (R-C ile
+aynı sertlik). Sınıf kütükten değil CÜMLEDEN türetilir; elle "S3"
+yazarak en sıkı daldan kaçılamaz. Kural saf bir fonksiyondadır
+(`yeniSatirKusurlari`) ve sentetik kütüklerle sınanır — sabotaj kuralı
+sabote eder, ölçüm ortamını değil.
 
 **İnceleme turu İKİ ile sınırlıdır (R-A).** Tur 1 → düzelt → tur 2 →
 düzelt → merge. Üçüncü turda çıkan bulgular YENİ PR olur. Gerekçe

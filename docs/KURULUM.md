@@ -16,6 +16,7 @@ kurulum. Kurulum PostgreSQL kullanır; SQLite geliştirme ve demo içindir.
 | Docker Compose | v2+ | ölçülen: v5.1.1 |
 | Disk | ≥ 10 GB | imaj + veritabanı + kanıt deposu |
 | Bellek | ≥ 2 GB | derleme sırasında npm ve Next |
+| `curl` · `jq` | — | §3'teki sağlık ölçümü bunları kullanır |
 
 Kurulum **dışarıya paket çekmez** (imaj derlenirken çeker). Kapalı ağda
 imaj bir kere derlenip taşınır: `docker save` / `docker load`.
@@ -167,7 +168,45 @@ kümesindedir.
 
 ---
 
-## 4 · Uygulama rolü tablo sahibi OLMAMALIDIR
+## 4 · İlk kullanıcı — kurucu hesap
+
+Kurulum **boş** gelir: `Kullanici` tablosunda sıfır satır vardır ve
+`/` sizi `/giris`e atar. Giriş ekranı e-posta ve parola ister; **bu
+adım atlanırsa kurulum ayakta ve İÇİNE GİRİLEMEZ hâlde kalır**
+(ölçüldü: `docs/KURULUM_PROVASI.md`, kusur 1).
+
+Parola **stdin ile** verilir. Argümandan verilmez ve araç `--parola`
+görürse koşmadan reddeder: komut satırı `ps` çıktısında ve kabuk
+geçmişinde görünür.
+
+```sh
+# parolayı ÜRETİN ve dosyaya yazın (en az 12 karakter)
+openssl rand -hex 24 > /tmp/kurucu-parola
+docker compose --env-file .env exec -T uygulama \
+  node_modules/.bin/tsx arac/kurucu-hesap.ts \
+  --eposta=ad.soyad@kurum.ornek --ad="Ad Soyad" < /tmp/kurucu-parola
+shred -u /tmp/kurucu-parola   # ya da: rm -f
+```
+
+Beklenen çıktı:
+
+```
+kurucu hesap açıldı: ad.soyad@kurum.ornek · rol yonetici · id c…
+Parola hiçbir yere yazılmadı; yalnız scrypt özeti saklandı.
+```
+
+Araç **yalnız BOŞ kurulumda çalışır.** Kurulumda bir tane bile
+kullanıcı varsa hiçbir şey yazmaz ve sıfır dışı çıkar — aksi hâlde
+kalıcı bir arka kapı olurdu: kapsayıcı kabuğuna erişen herkes
+istediği an kendine küresel yönetici üretirdi. İkinci kullanıcı,
+giriş yapmış bir yöneticinin **`/yetkiler`** ekranından açılır.
+
+Hesap açılışı denetim izine düşer (`AktiviteKaydi`, `kaynak =
+kurulum`); parola, uzunluğu ya da özeti **ize girmez**.
+
+---
+
+## 4b · Uygulama rolü tablo sahibi OLMAMALIDIR
 
 Denetim izinin değişmezliği tetikleyicilerle korunur. **Tablo sahibi
 `ALTER TABLE … DISABLE TRIGGER` diyebilir** — yani uygulama rolü sahip
@@ -198,7 +237,9 @@ aşaması: ilk müşteri kurulumu.
 ## 5 · İçerik paketi kur
 
 Kurulum boş gelir: hiçbir çerçeve aktif değildir. Paket kurmak insan
-kararıdır ve `/paketler` ekranından yapılır. Kurulan çerçeve **TASLAK**
+kararıdır ve `/paketler` ekranından yapılır: **paket satırına tıklayın**,
+sağda açılan çekmecedeki **KUR** düğmesi kurulumu başlatır (kurma eylemi
+tabloda değil çekmecededir). Kurulan çerçeve **TASLAK**
 gelir; aktifleştirme ayrı bir insan kararıdır (Regülasyonlar ekranı).
 
 TR-ENERJI paketi EPDK Yetkinlik Modeli yönetmeliğini ve yedi sektör ekini
@@ -247,15 +288,17 @@ Aşağıdaki her satır **koşturuldu**; koşturulmayan iki adım açıkça
 
 | Adım | Durum |
 | --- | --- |
-| İmaj derlemesi (`docker compose build`) | ölçüldü · imaj 2,37 GB |
-| `docker compose up -d --build` | ölçüldü |
-| Göç uygulanması (PostgreSQL taban göçü) | ölçüldü · 158 tablo |
-| Sağlık ucu — sağlıklı (200) | ölçüldü · readiness **2,8 sn** · `saglayici: postgresql` · üç bağımlılık da sağlıklı |
+| İmaj derlemesi (`docker compose build`) | ölçüldü · imaj **2,47 GB** (10 Eyl 2026) |
+| `docker compose up -d --build` (temiz önbellek) | ölçüldü · **4 dk 11 sn**; iki kapsayıcı da `healthy` |
+| Göç uygulanması (PostgreSQL taban göçü) | ölçüldü · **174 tablo** (10 Eyl 2026) |
+| Sağlık ucu — sağlıklı (200) | ölçüldü · readiness **2,8 sn** · yanıt **61 ms** · `saglayici: postgresql` · üç bağımlılık da sağlıklı |
 | Sağlık ucu — bağımlılık düştü (503 + sebep) | ölçüldü · `kanit_deposu: depo kökü yok` |
 | **`rota:duman` compose kurulumuna karşı** | ölçüldü · **60/60 rota · kusur 0 · sayfa hatası 0** |
 | Yığının indiği ve portun kapandığı | ölçüldü · kapsayıcı 0 · port kapalı (iki ayrı tanık) |
 | PostgreSQL yedeği (`--al` · `--karsilastir` · `--geri-yukle`) | ölçüldü · boş veritabanına geri yükleme sonrası içerik özeti aynı |
-| Uygulama rolünün sahipten ayrılması (§4) | **ÖLÇÜLMEDİ** |
+| Kurucu hesap (§4) | ölçüldü · **2 sn**; ikinci koşu reddedildi ve hiçbir şey yazmadı |
+| Uçtan uca müşteri yolu (giriş → paket → çerçeve → kapsam → /uyum → form → yedek) | ölçüldü · `docs/KURULUM_PROVASI.md` |
+| Uygulama rolünün sahipten ayrılması (§4b) | **ÖLÇÜLMEDİ** |
 | Kapalı ağda `docker save`/`load` (§0) | **ÖLÇÜLMEDİ** |
 
 ### Kapının kurulumda bulduğu kusurlar

@@ -4,12 +4,12 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 342 |
-| Testi olan senaryo | 342 |
+| Senaryo | 343 |
+| Testi olan senaryo | 343 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
-| Taranan test dosyası | 217 |
+| Taranan test dosyası | 218 |
 
 ## Katman başına kapsam
 
@@ -18,17 +18,17 @@
 | ACCESSIBILITY | 8 | 8 | 0 |
 | API | 12 | 12 | 0 |
 | CONCURRENCY | 7 | 7 | 0 |
-| DOMAIN | 198 | 198 | 0 |
+| DOMAIN | 199 | 199 | 0 |
 | ENGINE | 33 | 33 | 0 |
 | INTEGRATION | 40 | 40 | 0 |
 | MIGRATION | 5 | 5 | 0 |
 | RBAC | 35 | 35 | 0 |
 | RESPONSIVE | 8 | 8 | 0 |
 | SCOPE | 30 | 30 | 0 |
-| SERVER | 139 | 139 | 0 |
+| SERVER | 140 | 140 | 0 |
 | UI | 98 | 98 | 0 |
 | VISUAL | 4 | 4 | 0 |
-| WORKFLOW | 35 | 35 | 0 |
+| WORKFLOW | 36 | 36 | 0 |
 
 ## Satır satır
 
@@ -172,6 +172,12 @@
 | `OLY-BIL-008` | Olay | SERVER · DOMAIN · UI | `bildirim-donemi-eylem.test.ts` | KAPANMIŞ dönem yeniden kapatılamaz | evet | geçti |
 | `OLY-BIL-008` | Olay | SERVER · DOMAIN · UI | `bildirim-donemi-eylem.test.ts` | TESİSE KISITLI rol kurumsal takvim yükümlülüğüne DOKUNAMAZ | evet | geçti |
 | `OLY-BIL-008` | Olay | SERVER · DOMAIN · UI | `bildirim-donemi-eylem.test.ts` | EŞZAMANLI iki karar: biri geçer, öbürü SESSİZCE EZİLMEZ | evet | geçti |
+| `OLY-BIL-009` | Olay | SERVER · DOMAIN · WORKFLOW | `bildirim-tetikleyici-ayrimi.test.ts` | TAKVİM tetikli kural olaya UYMAZ | evet | geçti |
+| `OLY-BIL-009` | Olay | SERVER · DOMAIN · WORKFLOW | `bildirim-tetikleyici-ayrimi.test.ts` | TEKİL seçici de takvim kuralını almaz | evet | geçti |
+| `OLY-BIL-009` | Olay | SERVER · DOMAIN · WORKFLOW | `bildirim-tetikleyici-ayrimi.test.ts` | TANIMADIĞI tetikleyici de UYMAZ — yüklem olumlu | evet | geçti |
+| `OLY-BIL-009` | Olay | SERVER · DOMAIN · WORKFLOW | `bildirim-tetikleyici-ayrimi.test.ts` | açık olaya YALNIZ olay tetikli kural için kayıt açılır | evet | geçti |
+| `OLY-BIL-009` | Olay | SERVER · DOMAIN · WORKFLOW | `bildirim-tetikleyici-ayrimi.test.ts` | TAKVİM yükümlülüğünün HİÇBİR olay kaydı yok | evet | geçti |
+| `OLY-BIL-009` | Olay | SERVER · DOMAIN · WORKFLOW | `bildirim-tetikleyici-ayrimi.test.ts` | ikinci koşu da açmıyor — tekrar da sızdırmaz | evet | geçti |
 | `DNT-FRM-001` | Denetim | SERVER · DOMAIN · UI | `denetim-formu-eylem.test.ts` | öz denetim formu üretilir; BOŞ HÜCRE SIFIR | evet | geçti |
 | `DNT-FRM-001` | Denetim | SERVER · DOMAIN · UI | `denetim-formu-eylem.test.ts` | SoA da aynı kapıdan geçer ve yedi sütun taşır | evet | geçti |
 | `DNT-FRM-002` | Denetim | UI · DOMAIN | `denetim-formu.test.ts` | GEREKÇESİZ kapsam dışı İŞARETLENİR — gerekçe uydurulmaz | evet | geçti |

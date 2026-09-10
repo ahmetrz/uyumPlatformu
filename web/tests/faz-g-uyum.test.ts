@@ -120,7 +120,7 @@ describe('UY-59 · Özet — ORTALAMA alınmaz', () => {
 describe('UY-63 · Bildirim — süre ÜRÜNLE GELMEZ', () => {
   const kural = (ek: Partial<Yukumluluk> = {}): Yukumluluk => ({
     id: 'k1', kod: 'K1', ad: 'Kural', regulasyonId: null,
-    asgariSiddet: 'yuksek', sureSaat: 24, merci: 'Merci', aktif: true, ...ek,
+    asgariSiddet: 'yuksek', sureSaat: 24, merci: 'Merci', aktif: true, tetikleyici: 'olay', ...ek,
   });
   const simdi = Date.UTC(2026, 8, 4, 12);
 

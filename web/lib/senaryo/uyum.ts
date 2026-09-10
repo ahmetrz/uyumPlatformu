@@ -443,6 +443,25 @@ export const UYUM_SENARYOLARI: Senaryo[] = [
     katmanlar: ['SERVER', 'DOMAIN', 'UI'],
   },
 
+  {
+    id: 'OLY-BIL-009', alan: 'Olay', rota: '/olaylar', eksen: 'veri',
+    amac: 'Takvim tetikli bir yükümlülüğün OLAYA bağlanmasını engellemek',
+    rol: 'uyum yöneticisi', kapsam: 'kurum geneli',
+    onkosul: 'Kurulu pakette HEM olay HEM takvim tetikli yükümlülük var ve'
+      + ' açık bir olay bulunuyor',
+    veriHali: 'dolu',
+    eylem: 'Bildirim kaydı motoru koşar (`acikOlaylarinKayitlarini`)',
+    beklenenSonuc: 'Yalnız OLAY tetikli yükümlülük için kayıt açılır. Takvim'
+      + ' tetikli yükümlülük olayla uyanmaz — kendi dönem motoru vardır.'
+      + ' Yüklem OLUMLUDUR (`tetikleyici === "olay"`): tanınmayan bir üçüncü'
+      + ' tür de olay motoruna giremez',
+    beklenenEkran: 'Olayın sayacında yalnız olay tetikli yükümlülük görünür;'
+      + ' yıllık rapor gibi takvim yükümlülükleri olayın altına DÜŞMEZ',
+    beklenenIz: 'BildirimKaydi · olusturma (yalnız olay tetikli için)',
+    beklenenBildirim: 'yok',
+    katmanlar: ['SERVER', 'DOMAIN', 'WORKFLOW'],
+  },
+
   /* ── R12 · Denetim formları ─────────────────────────────────────── */
   {
     id: 'DNT-FRM-001', alan: 'Denetim', rota: '/raporlar/denetim-formlari',

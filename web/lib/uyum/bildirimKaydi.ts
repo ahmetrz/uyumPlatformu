@@ -29,7 +29,7 @@
 
    Bu dosya veritabanı, React ve tarayıcı bilmez. */
 
-import { SIDDET_SIRASI, siddetYeterli, type Siddet } from './bildirimSuresi';
+import { SIDDET_SIRASI, olaylaUyanir, siddetYeterli, type Siddet } from './bildirimSuresi';
 
 /* ── Durum kümesi ────────────────────────────────────────────────────── */
 
@@ -88,6 +88,8 @@ export type SureliYukumluluk = {
   sureSaat: number | null;
   merci: string;
   aktif: boolean;
+  /** `olay` | `takvim` — R10+; `olaylaUyanir` bunu okur. */
+  tetikleyici: string;
 };
 
 /**
@@ -107,6 +109,11 @@ export function uyanYukumlulukler(o: {
   return o.kurallar
     .filter((k) => {
       if (!k.aktif) return false;
+      /* TAKVİM tetikli yükümlülük OLAYA BAĞLANMAZ — ölçüldü (bağımsız
+         inceleme, #49 tur 2): üç takvim satırı `asgariSiddet: 'dusuk'`
+         ve `regulasyonId: null` olduğu için HER açık olaya uyuyor ve
+         seed'de altı sahte `BildirimKaydi` açılmıştı. */
+      if (!olaylaUyanir(k.tetikleyici)) return false;
       if (!siddetYeterli(o.siddet, k.asgariSiddet)) return false;
       if (k.regulasyonId === null) return true;
       return o.regulasyonIdleri.includes(k.regulasyonId);
@@ -335,4 +342,4 @@ export function kayitCumlesi(o: BildirimKaydiOzeti): string {
   return `${o.toplam} bildirim yükümlülüğü kayıtlı.`;
 }
 
-export { SIDDET_SIRASI, siddetYeterli, type Siddet };
+export { SIDDET_SIRASI, olaylaUyanir, siddetYeterli, type Siddet };

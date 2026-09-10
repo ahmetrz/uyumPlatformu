@@ -41,7 +41,21 @@ export type Yukumluluk = {
   sureSaat: number | null;
   merci: string;
   aktif: boolean;
+  /** `olay` | `takvim` — R10+. Tip bunu TAŞIMAK ZORUNDA: taşımadığı sürece
+      süzgeci yazan kişi alanın varlığından habersiz kalıyordu. */
+  tetikleyici: string;
 };
+
+/**
+ * Bu yükümlülük bir OLAYLA uyanır mı?
+ *
+ * ── NEDEN OLUMLU YÜKLEM ───────────────────────────────────────────────
+ * `!== 'takvim'` yazmak bugün aynı sonucu verirdi ama yarın YENİ bir
+ * tetikleyici türü eklendiğinde (örn. `denetim`) o tür olay motoruna
+ * SESSİZCE girerdi. Olumlu yüklem, tanımadığı her türü dışarıda tutar —
+ * "bilinmeyen ≠ sıfır" kuralının tetikleyici alanındaki karşılığı.
+ */
+export const olaylaUyanir = (tetikleyici: string): boolean => tetikleyici === 'olay';
 
 /** Şiddet eşiği karşılanıyor mu? Tanınmayan şiddet eşiği KARŞILAMAZ. */
 export function siddetYeterli(olay: string, asgari: string): boolean {
@@ -74,6 +88,8 @@ export function uyanYukumluluk(o: {
 }): Yukumluluk | null {
   const uyanlar = o.kurallar.filter((k) => {
     if (!k.aktif) return false;
+    /* TAKVİM tetikli yükümlülüğün OLAYLA İLİŞKİSİ YOKTUR. */
+    if (!olaylaUyanir(k.tetikleyici)) return false;
     if (!siddetYeterli(o.siddet, k.asgariSiddet)) return false;
     if (k.regulasyonId === null) return true;
     return o.regulasyonIdleri.includes(k.regulasyonId);

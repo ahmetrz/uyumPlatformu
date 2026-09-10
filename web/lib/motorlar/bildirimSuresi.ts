@@ -66,6 +66,10 @@ export async function bildirimSurelerini(): Promise<BildirimSuresiKosusu> {
     select: {
       id: true, kod: true, ad: true, regulasyonId: true,
       asgariSiddet: true, sureSaat: true, merci: true, aktif: true,
+      /* SÜZGEÇ DEĞİL SEÇİM: kararı `olaylaUyanir` verir. Aynı kuralı
+         hem sorguya hem saf katmana yazmak iki gerçek üretirdi ve
+         birini sabote eden tur kırmızı YAKMAZDI (R-E). */
+      tetikleyici: true,
     },
   });
 

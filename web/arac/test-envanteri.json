@@ -1,7 +1,7 @@
 {
-  "imza": "aa8b29e7241a8e2ee4be66265467dbf4",
-  "dosya": 217,
-  "vaka": 3972,
+  "imza": "39ad014ff51e352846aa9f935b8fe0b0",
+  "dosya": 218,
+  "vaka": 3978,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -142,6 +142,10 @@
     },
     "tests/bildirim-kutusu.test.ts": {
       "vaka": 17,
+      "atlanan": 0
+    },
+    "tests/bildirim-tetikleyici-ayrimi.test.ts": {
+      "vaka": 6,
       "atlanan": 0
     },
     "tests/canli-durus.test.ts": {

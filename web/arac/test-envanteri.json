@@ -1,7 +1,7 @@
 {
-  "imza": "39ad014ff51e352846aa9f935b8fe0b0",
-  "dosya": 218,
-  "vaka": 3978,
+  "imza": "e6932f98aad104bd2b8265e52a2dfcda",
+  "dosya": 220,
+  "vaka": 3998,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -94,6 +94,10 @@
     },
     "tests/bekci/paket-silme.test.ts": {
       "vaka": 5,
+      "atlanan": 0
+    },
+    "tests/bekci/politika-olcumu.test.ts": {
+      "vaka": 15,
       "atlanan": 0
     },
     "tests/bekci/rol-sabitleri.test.ts": {
@@ -654,6 +658,10 @@
     },
     "tests/pg-gocu.test.ts": {
       "vaka": 10,
+      "atlanan": 0
+    },
+    "tests/politika-demo-salt-okunur.test.ts": {
+      "vaka": 5,
       "atlanan": 0
     },
     "tests/proje-bagimliligi.test.ts": {

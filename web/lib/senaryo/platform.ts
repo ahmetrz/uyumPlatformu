@@ -1113,6 +1113,21 @@ export const PLATFORM_SENARYOLARI_4: Senaryo[] = [
     katmanlar: ['SERVER', 'DOMAIN', 'UI'],
   },
   {
+    id: 'SIS-DEM-001', alan: 'Sistem', rota: '/yardim', eksen: 'yetki',
+    amac: 'Demo kurulumunda hiçbir yazma eyleminin geçmemesini güvence altına almak',
+    rol: 'demo izleyicisi', kapsam: 'kurum geneli',
+    onkosul: 'Kurulum DEMO modunda (`NEXT_PUBLIC_DEMO=1`) ve oturum TAM YETKİLİ',
+    veriHali: 'dolu',
+    eylem: 'Gerçek bir sunucu eylemi (risk kaydet) çağrılır',
+    beklenenSonuc: 'Eylem REDDEDİLİR ve veritabanına HİÇBİR SATIR yazılmaz. Okuma aynı'
+      + ' oturumda AÇIK kalır — kapı yazmayı kapatır, ekranı değil. Onay gibi'
+      + ' DEĞİŞTİREN işlemler de kapalıdır: kapı `islem !== okuma` diye sorar.'
+      + ' Yetki taklidi TAM YETKİLİDİR: aksi hâlde ölçüm yetkisizliği ölçerdi',
+    beklenenEkran: '/yardim ekranı bu politikayı yazar; ölçüm yazının karşılığını sürer',
+    beklenenIz: 'yazma yok — eylem hiç yürümedi', beklenenBildirim: 'yok',
+    katmanlar: ['SERVER', 'RBAC'],
+  },
+  {
     id: 'SIS-KML-005', alan: 'Sistem', rota: '/ayarlar/kimlik', eksen: 'yetki',
     amac: 'Kiracının oturum politikasını sıkılaştırabilmesi',
     rol: 'yönetici', kapsam: 'kurum geneli',

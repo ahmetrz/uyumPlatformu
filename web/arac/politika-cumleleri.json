@@ -1,0 +1,704 @@
+{
+  "satirlar": [
+    {
+      "kod": "POL-001",
+      "cumle": "— kayıt okunabilir, değiştirilemez.",
+      "yer": "app/(kabuk)/(operasyonel)/olaylar/OlaylarIstemci.tsx",
+      "sinif": "POLITIKA",
+      "olculmedi": {
+        "sahip": "KODLAYAN",
+        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
+      }
+    },
+    {
+      "kod": "POL-002",
+      "cumle": "· ${veri.kural.elIleSayisi} karar el ile değiştirildi, motor bunlara dokunmaz",
+      "yer": "app/(kabuk)/(operasyonel)/uyum/[cerceve]/CerceveIstemci.tsx",
+      "sinif": "POLITIKA",
+      "olculmedi": {
+        "sahip": "KODLAYAN",
+        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
+      }
+    },
+    {
+      "kod": "POL-003",
+      "cumle": "\"bildirildi\" YAZMAZ, olaya dokunmaz; kural tanımlı değilse hiçbir şey yapmaz",
+      "yer": "app/(kabuk)/(operasyonel)/saglik/mantik.ts",
+      "sinif": "POLITIKA",
+      "olculmedi": {
+        "sahip": "KODLAYAN",
+        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
+      }
+    },
+    {
+      "kod": "POL-004",
+      "cumle": "${adet} reddedilen kayıt inceleme bekliyor →",
+      "yer": "app/(kabuk)/(operasyonel)/saglik/SaglikIstemci.tsx",
+      "sinif": "IDDIA_DEGIL",
+      "gerekce": "sayı etiketi — kaç kayıt beklediğini söyler, kural söylemez"
+    },
+    {
+      "kod": "POL-005",
+      "cumle": "${bekleme} gündür karar bekliyor; karar kaynak kaydı otomatik değiştirmez.",
+      "yer": "app/(kabuk)/(operasyonel)/yonetim-tezgahi/TezgahIstemci.tsx",
+      "sinif": "POLITIKA",
+      "olculmedi": {
+        "sahip": "KODLAYAN",
+        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
+      }
+    },
+    {
+      "kod": "POL-006",
+      "cumle": "${eksik.length} kapı eksik: ${eksik.join(', ')}. Kayıt saklanır ama planlanamaz.",
+      "yer": "app/(kabuk)/(operasyonel)/operasyon/Formlar.tsx",
+      "sinif": "POLITIKA",
+      "olculmedi": {
+        "sahip": "KODLAYAN",
+        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
+      }
+    },
+    {
+      "kod": "POL-007",
+      "cumle": "${hucre.kapsam} madde tanımlı, hiçbiri değerlendirilmedi — yüzde hesaplanmaz.",
+      "yer": "app/(kabuk)/(operasyonel)/raporlar/RaporlarIstemci.tsx",
+      "sinif": "POLITIKA",
+      "olcum": {
+        "dosya": "tests/ters-kapsam-ekran.test.ts",
+        "vaka": "hiçbir madde değerlendirilmemişse yüzde null kalır"
+      }
+    },
+    {
+      "kod": "POL-008",
+      "cumle": "${s.olusacak} yeni kayıt · ${s.guncellenecek} tazeleme · ${s.reddedilecek} red",
+      "yer": "app/(kabuk)/(operasyonel)/saglik/mantik.ts",
+      "sinif": "IDDIA_DEGIL",
+      "gerekce": "sayı etiketi — kuru koşunun sonucunu sayar"
+    },
+    {
+      "kod": "POL-009",
+      "cumle": "${s.reddedildi} kayıt incelenip reddedilmiş.",
+      "yer": "app/(kabuk)/(operasyonel)/saglik/mantik.ts",
+      "sinif": "IDDIA_DEGIL",
+      "gerekce": "sayı etiketi — kaç kaydın reddedildiğini sayar"
+    },
+    {
+      "kod": "POL-010",
+      "cumle": "${t(sozluk, 'tesis', 'cogul')}, kısıtlı yetki yalnız o kümeyi gösterir;",
+      "yer": "app/(kabuk)/(operasyonel)/yardim/page.tsx",
+      "sinif": "POLITIKA",
+      "olculmedi": {
+        "sahip": "KODLAYAN",
+        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
+      }
+    },
+    {
+      "kod": "POL-011",
+      "cumle": "A sınıfı: doğrudan yazılır, iz düşer. Görünürlük sunum katmanıdır; yetki ya da veri erişimi değiştirmez.",
+      "yer": "app/(kabuk)/(operasyonel)/yonetim-tezgahi/KonsolFormlar.tsx",
+      "sinif": "POLITIKA",
+      "olcum": {
+        "dosya": "tests/yonetim-konsolu-eylem.test.ts",
+        "vaka": "A sınıfı ayar doğrudan yazılır, okuyucu görür, iz düşer"
+      }
+    },
+    {
+      "kod": "POL-012",
+      "cumle": "A sınıfı: doğrudan yazılır, iz düşer. Sunum katmanıdır; yetki ya da veri erişimi değiştirmez.",
+      "yer": "app/(kabuk)/(operasyonel)/yonetim-tezgahi/KonsolFormlar.tsx",
+      "sinif": "POLITIKA",
+      "olcum": {
+        "dosya": "tests/yonetim-konsolu-eylem.test.ts",
+        "vaka": "A sınıfı ayar doğrudan yazılır, okuyucu görür, iz düşer"
+      }
+    },
+    {
+      "kod": "POL-013",
+      "cumle": "Anlık almak ya da temeli taşımak ağa hiçbir paket göndermez.",
+      "yer": "app/(kabuk)/(operasyonel)/topoloji/Karar.tsx",
+      "sinif": "POLITIKA",
+      "olculmedi": {
+        "sahip": "KODLAYAN",
+        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
+      }
+    },
+    {
+      "kod": "POL-014",
+      "cumle": "B sınıfı eşik: motor davranışını değiştirir; dört göz kuralı uygulanır (öneren onaylayamaz).",
+      "yer": "app/(kabuk)/(operasyonel)/yonetim-tezgahi/KonsolFormlar.tsx",
+      "sinif": "POLITIKA",
+      "olcum": {
+        "dosya": "tests/yonetim-konsolu-eylem.test.ts",
+        "vaka": "dört göz: öneren onaylayamaz"
+      }
+    },
+    {
+      "kod": "POL-015",
+      "cumle": "B sınıfı: kayıt doğrudan yazılmaz. Talep, sizden başka bir onay yetkilisi onaylayıp uyguladığında geçerli olur.",
+      "yer": "app/(kabuk)/(operasyonel)/yonetim-tezgahi/KonsolFormlar.tsx",
+      "sinif": "POLITIKA",
+      "olculmedi": {
+        "sahip": "KODLAYAN",
+        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
+      }
+    },
+    {
+      "kod": "POL-016",
+      "cumle": "bağlı olmayan (grup geneli) kayıtlar yalnız sınırsız kapsamda görünür.",
+      "yer": "app/(kabuk)/(operasyonel)/yardim/page.tsx",
+      "sinif": "POLITIKA",
+      "olculmedi": {
+        "sahip": "KODLAYAN",
+        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
+      }
+    },
+    {
+      "kod": "POL-017",
+      "cumle": "Bekleyen reddedilen kayıt yok",
+      "yer": "app/(kabuk)/(operasyonel)/saglik/reddedilenler/ReddedilenlerIstemci.tsx",
+      "sinif": "IDDIA_DEGIL",
+      "gerekce": "boş hâl cümlesi — kuyruk boş; kural iddiası yok"
+    },
+    {
+      "kod": "POL-018",
+      "cumle": "Belge bağı hiç kurulmamış olabilir; kütük bunu bilmez.",
+      "yer": "app/(kabuk)/(operasyonel)/uyum/UyumIstemci.tsx",
+      "sinif": "POLITIKA",
+      "olculmedi": {
+        "sahip": "KODLAYAN",
+        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
+      }
+    },
+    {
+      "kod": "POL-019",
+      "cumle": "bu aktarım hiçbir kayıt yazmaz.",
+      "yer": "app/(kabuk)/(operasyonel)/varlik-aktarim/VarlikAktarimIstemci.tsx",
+      "sinif": "POLITIKA",
+      "olculmedi": {
+        "sahip": "KODLAYAN",
+        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
+      }
+    },
+    {
+      "kod": "POL-020",
+      "cumle": "Bu bir durum rozeti değildir: kaydın DOĞRULUĞUNU değil KÖKENİNİ söyler. Zemin, kenarlık, yarıçap yok. Kökeni olmayan kayıt sessizce kaybolmaz, 'Elle girildi' der; güven ölçülmemişse '%0' değil 'ölçülmedi' yazar.",
+      "yer": "app/(kabuk)/(operasyonel)/sistem/bilesenler/Galeri.tsx",
+      "sinif": "POLITIKA",
+      "olculmedi": {
+        "sahip": "KODLAYAN",
+        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
+      }
+    },
+    {
+      "kod": "POL-021",
+      "cumle": "Bu dönem kapandı. Kayıt SİLİNMEZ; denetim izinde kimin,",
+      "yer": "app/(kabuk)/(operasyonel)/raporlar/takvim/TakvimIstemci.tsx",
+      "sinif": "POLITIKA",
+      "olculmedi": {
+        "sahip": "KODLAYAN",
+        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
+      }
+    },
+    {
+      "kod": "POL-022",
+      "cumle": "Bu kurulumda MFA zorunlu — kaydınızı kaldıramazsınız.",
+      "yer": "app/(kabuk)/(operasyonel)/ayarlar/MfaKarti.tsx",
+      "sinif": "POLITIKA",
+      "olcum": {
+        "dosya": "tests/kimlik-giris-mfa.test.ts",
+        "vaka": "politika ZORUNLU ise parola doğru olsa da GİREMEZ"
+      }
+    },
+    {
+      "kod": "POL-023",
+      "cumle": "Bu kutu yalnız SİZE yazılan bildirimleri gösterir.",
+      "yer": "app/(kabuk)/(operasyonel)/bildirimler/BildirimlerIstemci.tsx",
+      "sinif": "POLITIKA",
+      "olculmedi": {
+        "sahip": "KODLAYAN",
+        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
+      }
+    },
+    {
+      "kod": "POL-024",
+      "cumle": "Bu tipin kayıt evreni bilinmiyor — kökeni olmayan kayıt sayısı çıkarılamaz.",
+      "yer": "app/(kabuk)/(operasyonel)/saglik/mantik.ts",
+      "sinif": "POLITIKA",
+      "olculmedi": {
+        "sahip": "KODLAYAN",
+        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
+      }
+    },
+    {
+      "kod": "POL-025",
+      "cumle": "Değilse kapsam dışı; alanı bilinmeyen ${terim(sozluk, 'tesis', 'bulunma')} karar üretilmez.",
+      "yer": "app/(kabuk)/(operasyonel)/uyum/veri.ts",
+      "sinif": "POLITIKA",
+      "olculmedi": {
+        "sahip": "KODLAYAN",
+        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
+      }
+    },
+    {
+      "kod": "POL-026",
+      "cumle": "Demo oturumu salt okunurdur: demo hesabı hiçbir koşulda yazma yetkisi taşımaz, kayıt oluşturan/değiştiren eylemler kapalıdır. Gerçek bir hesapla girdiğinizde eylemler yetkinize göre açılır.",
+      "yer": "app/(kabuk)/(operasyonel)/yardim/page.tsx",
+      "sinif": "POLITIKA",
+      "olcum": {
+        "dosya": "tests/politika-demo-salt-okunur.test.ts",
+        "vaka": "GERÇEK eylem (riskKaydet) REDDEDER"
+      }
+    },
+    {
+      "kod": "POL-027",
+      "cumle": "Denetim izi değiştirilemez; bu kayıt yalnız okunur.",
+      "yer": "app/(kabuk)/(operasyonel)/yonetim-tezgahi/KonsolIstemci.tsx",
+      "sinif": "POLITIKA",
+      "olcum": {
+        "dosya": "tests/faz-d-eylem.test.ts",
+        "vaka": "sürüm geçmişi DEĞİŞTİRİLEMEZ ve SİLİNEMEZ"
+      }
+    },
+    {
+      "kod": "POL-028",
+      "cumle": "Doğrulamayı geçen satır yok — bu dosyadan hiçbir madde yazılamaz.",
+      "yer": "app/(kabuk)/(operasyonel)/ice-aktarim/IceAktarimIstemci.tsx",
+      "sinif": "POLITIKA",
+      "olculmedi": {
+        "sahip": "KODLAYAN",
+        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
+      }
+    },
+    {
+      "kod": "POL-029",
+      "cumle": "Doğrulamayı geçen satır yok — bu dosyadan hiçbir varlık yazılamaz.",
+      "yer": "app/(kabuk)/(operasyonel)/varlik-aktarim/VarlikAktarimIstemci.tsx",
+      "sinif": "POLITIKA",
+      "olculmedi": {
+        "sahip": "KODLAYAN",
+        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
+      }
+    },
+    {
+      "kod": "POL-030",
+      "cumle": "dosya ile kayıt böyle eşleşir. Kökeni olmayan kayıt gizlenmez,",
+      "yer": "app/(kabuk)/(operasyonel)/raporlar/kanit-paketi/KanitPaketiIstemci.tsx",
+      "sinif": "POLITIKA",
+      "olculmedi": {
+        "sahip": "KODLAYAN",
+        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
+      }
+    },
+    {
+      "kod": "POL-031",
+      "cumle": "Dosya reddedildi; hiçbir madde yazılmadı.",
+      "yer": "app/(kabuk)/(operasyonel)/ice-aktarim/mantik.ts",
+      "sinif": "POLITIKA",
+      "olculmedi": {
+        "sahip": "KODLAYAN",
+        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
+      }
+    },
+    {
+      "kod": "POL-032",
+      "cumle": "Dönemsel anlık görüntü kaydı yok — eğilim çizilemiyor; sistem saatinden türetilmez",
+      "yer": "app/(kabuk)/(flagship)/Genel.tsx",
+      "sinif": "POLITIKA",
+      "olculmedi": {
+        "sahip": "KODLAYAN",
+        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
+      }
+    },
+    {
+      "kod": "POL-033",
+      "cumle": "El ile değiştirilmiş — motor dokunmaz",
+      "yer": "app/(kabuk)/(operasyonel)/uyum/[cerceve]/CerceveIstemci.tsx",
+      "sinif": "POLITIKA",
+      "olculmedi": {
+        "sahip": "KODLAYAN",
+        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
+      }
+    },
+    {
+      "kod": "POL-034",
+      "cumle": "Erişimin sahada kesilmesi için görev açılır; platform kesmez.",
+      "yer": "app/(kabuk)/(operasyonel)/tedarikciler/Eylemler.tsx",
+      "sinif": "POLITIKA",
+      "olculmedi": {
+        "sahip": "KODLAYAN",
+        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
+      }
+    },
+    {
+      "kod": "POL-035",
+      "cumle": "Eşleşen varlık yok — yeni varlık açılabilir ya da kayıt reddedilebilir",
+      "yer": "app/(kabuk)/(operasyonel)/kesif/Karar.tsx",
+      "sinif": "IDDIA_DEGIL",
+      "gerekce": "eylem listesi — hangi düğmelerin açık olduğunu söyler"
+    },
+    {
+      "kod": "POL-036",
+      "cumle": "geneli kapsam gerektirir. Dönem okunabilir, kapatılamaz.",
+      "yer": "app/(kabuk)/(operasyonel)/raporlar/takvim/TakvimIstemci.tsx",
+      "sinif": "POLITIKA",
+      "olculmedi": {
+        "sahip": "KODLAYAN",
+        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
+      }
+    },
+    {
+      "kod": "POL-037",
+      "cumle": "Gerekçe kaydın kendisinde kalır; kayıt SİLİNMEZ.",
+      "yer": "app/(kabuk)/(operasyonel)/olaylar/Eylemler.tsx",
+      "sinif": "POLITIKA",
+      "olculmedi": {
+        "sahip": "KODLAYAN",
+        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
+      }
+    },
+    {
+      "kod": "POL-038",
+      "cumle": "Gerekçe zorunludur ve denetim izine yazılır. İşlem geri alınamaz; kayıt gerekirse yeniden oluşturulur.",
+      "yer": "app/(kabuk)/(operasyonel)/yonetim-tezgahi/KonsolFormlar.tsx",
+      "sinif": "POLITIKA",
+      "olculmedi": {
+        "sahip": "KODLAYAN",
+        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
+      }
+    },
+    {
+      "kod": "POL-039",
+      "cumle": "gizlenmez ve hiçbir koşulda “doğrulanmış” görünmez.",
+      "yer": "app/(kabuk)/(operasyonel)/saglik/SaglikIstemci.tsx",
+      "sinif": "POLITIKA",
+      "olculmedi": {
+        "sahip": "KODLAYAN",
+        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
+      }
+    },
+    {
+      "kod": "POL-040",
+      "cumle": "güncelleme ve silmeyi reddeder, kayıt yalnız eklenir.",
+      "yer": "app/(kabuk)/(operasyonel)/aktivite/AktiviteIstemci.tsx",
+      "sinif": "POLITIKA",
+      "olculmedi": {
+        "sahip": "KODLAYAN",
+        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
+      }
+    },
+    {
+      "kod": "POL-041",
+      "cumle": "Hayır. Platform bilinmeyeni sıfırdan ayırır: ölçülmemiş, bağlanmamış ya da kaydedilmemiş bir değer boş çizilir, 0 yazılmaz. Örneğin hiçbir bağlayıcı koşmadıysa veri kesiti damgası \"—\"dır; sistem saati damga diye gösterilmez.",
+      "yer": "app/(kabuk)/(operasyonel)/yardim/page.tsx",
+      "sinif": "POLITIKA",
+      "olculmedi": {
+        "sahip": "KODLAYAN",
+        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
+      }
+    },
+    {
+      "kod": "POL-042",
+      "cumle": "Hesabınızda tanımlı yetki yok: giriş yaparsınız, hiçbir ekran açılmaz.",
+      "yer": "app/(kabuk)/(operasyonel)/ayarlar/AyarlarIstemci.tsx",
+      "sinif": "POLITIKA",
+      "olculmedi": {
+        "sahip": "KODLAYAN",
+        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
+      }
+    },
+    {
+      "kod": "POL-043",
+      "cumle": "Hesap açık ama hiçbir yetkisi yok: giriş yapar, hiçbir ekranı açamaz.",
+      "yer": "app/(kabuk)/(operasyonel)/yetkiler/mantik.ts",
+      "sinif": "POLITIKA",
+      "olculmedi": {
+        "sahip": "KODLAYAN",
+        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
+      }
+    },
+    {
+      "kod": "POL-044",
+      "cumle": "Hesap kaydı okunamadı; bu ortamda profil yazılmaz.",
+      "yer": "app/(kabuk)/(operasyonel)/ayarlar/AyarlarIstemci.tsx",
+      "sinif": "POLITIKA",
+      "olculmedi": {
+        "sahip": "KODLAYAN",
+        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
+      }
+    },
+    {
+      "kod": "POL-045",
+      "cumle": "Hiçbir ${tesis.tekil} seçili değil: bu, \"hiçbirine yazamaz\"",
+      "yer": "app/(kabuk)/(operasyonel)/saglik/mantik.ts",
+      "sinif": "POLITIKA",
+      "olculmedi": {
+        "sahip": "KODLAYAN",
+        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
+      }
+    },
+    {
+      "kod": "POL-046",
+      "cumle": "hiçbir cihazın firmware kararı verilemez; ekran bunu \"uyumlu\"",
+      "yer": "app/(kabuk)/(operasyonel)/tabanlar/TabanlarIstemci.tsx",
+      "sinif": "POLITIKA",
+      "olculmedi": {
+        "sahip": "KODLAYAN",
+        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
+      }
+    },
+    {
+      "kod": "POL-047",
+      "cumle": "hiçbir koşulda \"doğrulanmış\" görünmez.",
+      "yer": "app/(kabuk)/(operasyonel)/saglik/mantik.ts",
+      "sinif": "POLITIKA",
+      "olculmedi": {
+        "sahip": "KODLAYAN",
+        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
+      }
+    },
+    {
+      "kod": "POL-048",
+      "cumle": "Hover ve odakla açılır. Sözleşme: kritik hiçbir bilgi yalnız burada yaşayamaz.",
+      "yer": "app/(kabuk)/(operasyonel)/sistem/bilesenler/Galeri.tsx",
+      "sinif": "POLITIKA",
+      "olculmedi": {
+        "sahip": "KODLAYAN",
+        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
+      }
+    },
+    {
+      "kod": "POL-049",
+      "cumle": "İstemci sırrının DEĞERİ hiçbir ekranda görünmez —",
+      "yer": "app/(kabuk)/(operasyonel)/ayarlar/kimlik/KimlikAyarlariIstemci.tsx",
+      "sinif": "POLITIKA",
+      "olcum": {
+        "dosya": "arac/kimlik-kanit.mjs",
+        "vaka": "SIR DEĞERİ sayfada YOK"
+      }
+    },
+    {
+      "kod": "POL-050",
+      "cumle": "İz kayıtları değiştirilemez ve silinemez.",
+      "yer": "app/(kabuk)/(operasyonel)/yonetim-tezgahi/KonsolFormlar.tsx",
+      "sinif": "POLITIKA",
+      "olcum": {
+        "dosya": "tests/faz-d-eylem.test.ts",
+        "vaka": "sürüm geçmişi DEĞİŞTİRİLEMEZ ve SİLİNEMEZ"
+      }
+    },
+    {
+      "kod": "POL-051",
+      "cumle": "Kapsamın onaylı temeli yok — karşılaştırma yapılamaz, sapma HESAPLANMAZ.",
+      "yer": "app/(kabuk)/(operasyonel)/topoloji/Karar.tsx",
+      "sinif": "POLITIKA",
+      "olcum": {
+        "dosya": "tests/topoloji-sapma.test.ts",
+        "vaka": "temel yokken sapma HESAPLANMAZ"
+      }
+    },
+    {
+      "kod": "POL-052",
+      "cumle": "Kapsamınızdaki ${t('tesis', 'cogul')} için reddedilen kayıt yok.",
+      "yer": "app/(kabuk)/(operasyonel)/saglik/reddedilenler/ReddedilenlerIstemci.tsx",
+      "sinif": "IDDIA_DEGIL",
+      "gerekce": "boş hâl cümlesi — kapsamda kayıt yok"
+    },
+    {
+      "kod": "POL-053",
+      "cumle": "Karar geri alınamaz; bulgu yeniden doğarsa motor onu yeni bir kayıt olarak açar.",
+      "yer": "app/(kabuk)/(operasyonel)/saglik/Eylemler.tsx",
+      "sinif": "POLITIKA",
+      "olculmedi": {
+        "sahip": "KODLAYAN",
+        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
+      }
+    },
+    {
+      "kod": "POL-054",
+      "cumle": "Kayıt CMDB'ye kendiliğinden yazılmaz; eşleştirme öneri üretir, kararı insan verir",
+      "yer": "app/(kabuk)/(operasyonel)/kesif/KesifIstemci.tsx",
+      "sinif": "POLITIKA",
+      "olculmedi": {
+        "sahip": "KODLAYAN",
+        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
+      }
+    },
+    {
+      "kod": "POL-055",
+      "cumle": "kayıt için görev açar ama bildirim üretmez.",
+      "yer": "app/(kabuk)/(operasyonel)/bildirimler/BildirimlerIstemci.tsx",
+      "sinif": "POLITIKA",
+      "olculmedi": {
+        "sahip": "KODLAYAN",
+        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
+      }
+    },
+    {
+      "kod": "POL-056",
+      "cumle": "Kayıt normalize edilmemiş; karar verilemez.",
+      "yer": "app/(kabuk)/(operasyonel)/kesif/page.tsx",
+      "sinif": "POLITIKA",
+      "olculmedi": {
+        "sahip": "KODLAYAN",
+        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
+      }
+    },
+    {
+      "kod": "POL-057",
+      "cumle": "Kayıt pasif; yeni değerlendirmelerde kullanılmaz.",
+      "yer": "app/(kabuk)/(operasyonel)/yonetim-tezgahi/TezgahIstemci.tsx",
+      "sinif": "POLITIKA",
+      "olculmedi": {
+        "sahip": "KODLAYAN",
+        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
+      }
+    },
+    {
+      "kod": "POL-058",
+      "cumle": "Kayıt silinmez. “Yok sayıldı” da bir karardır ve",
+      "yer": "app/(kabuk)/(operasyonel)/saglik/reddedilenler/ReddedilenlerIstemci.tsx",
+      "sinif": "POLITIKA",
+      "olculmedi": {
+        "sahip": "KODLAYAN",
+        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
+      }
+    },
+    {
+      "kod": "POL-059",
+      "cumle": "KÖKENSİZ — sunucu bunu yazmaz",
+      "yer": "app/(kabuk)/(operasyonel)/degerlendirme-aktarim/DegerlendirmeAktarimIstemci.tsx",
+      "sinif": "POLITIKA",
+      "olculmedi": {
+        "sahip": "KODLAYAN",
+        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
+      }
+    },
+    {
+      "kod": "POL-060",
+      "cumle": "kütük değişmez: kayıt güncellenmez, silinmez",
+      "yer": "app/(kabuk)/(operasyonel)/aktivite/AktiviteIstemci.tsx",
+      "sinif": "POLITIKA",
+      "olcum": {
+        "dosya": "tests/senaryo-platform.test.ts",
+        "vaka": "denetim izini koruyan tetikleyiciler göçlerde tanımlıdır"
+      }
+    },
+    {
+      "kod": "POL-061",
+      "cumle": "Onay ve ret denetim izine düşer. Onay tek transaction içinde yürür; bir satır patlarsa hiçbir satır yazılmaz.",
+      "yer": "app/(kabuk)/(operasyonel)/varlik-aktarim/VarlikAktarimIstemci.tsx",
+      "sinif": "POLITIKA",
+      "olculmedi": {
+        "sahip": "KODLAYAN",
+        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
+      }
+    },
+    {
+      "kod": "POL-062",
+      "cumle": "Platform sağlığı · reddedilen kayıtlar",
+      "yer": "app/(kabuk)/(operasyonel)/saglik/reddedilenler/ReddedilenlerIstemci.tsx",
+      "sinif": "IDDIA_DEGIL",
+      "gerekce": "ekran başlığı — hangi listede olduğunu söyler, kural iddia etmez"
+    },
+    {
+      "kod": "POL-063",
+      "cumle": "Reddedilen kaydı kapatmak yönetim yazma yetkisi ister.",
+      "yer": "app/(kabuk)/(operasyonel)/saglik/reddedilenler/ReddedilenlerIstemci.tsx",
+      "sinif": "POLITIKA",
+      "olculmedi": {
+        "sahip": "KODLAYAN",
+        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
+      }
+    },
+    {
+      "kod": "POL-064",
+      "cumle": "Reddedilen kayıt kuyruğu →",
+      "yer": "app/(kabuk)/(operasyonel)/saglik/SaglikIstemci.tsx",
+      "sinif": "IDDIA_DEGIL",
+      "gerekce": "bağlantı etiketi — kuyruğa götürür, davranış iddia etmez"
+    },
+    {
+      "kod": "POL-065",
+      "cumle": "Reddedilen kayıt yok. Bir connector koşusunda düşen her",
+      "yer": "app/(kabuk)/(operasyonel)/saglik/reddedilenler/ReddedilenlerIstemci.tsx",
+      "sinif": "POLITIKA",
+      "olculmedi": {
+        "sahip": "KODLAYAN",
+        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
+      }
+    },
+    {
+      "kod": "POL-066",
+      "cumle": "Sözleşmeyi bozan yerleşim KAYDEDİLMEZ; sunucu da aynı kuralı uygular.",
+      "yer": "app/(kabuk)/(operasyonel)/yonetim-tezgahi/KonsolFormlar.tsx",
+      "sinif": "POLITIKA",
+      "olculmedi": {
+        "sahip": "KODLAYAN",
+        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
+      }
+    },
+    {
+      "kod": "POL-067",
+      "cumle": "Sunucu bunu yazmaz — kayıtlar dışarıdan değiştirilmiş olabilir.",
+      "yer": "app/(kabuk)/(operasyonel)/degerlendirme-aktarim/mantik.ts",
+      "sinif": "POLITIKA",
+      "olculmedi": {
+        "sahip": "KODLAYAN",
+        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
+      }
+    },
+    {
+      "kod": "POL-068",
+      "cumle": "Topoloji anlıklarını onaylı temelle karşılaştırır — kayıt değiştirmez",
+      "yer": "app/(kabuk)/(operasyonel)/saglik/mantik.ts",
+      "sinif": "POLITIKA",
+      "olculmedi": {
+        "sahip": "KODLAYAN",
+        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
+      }
+    },
+    {
+      "kod": "POL-069",
+      "cumle": "var olan sürüm hiçbir koşulda güncellenmez.",
+      "yer": "app/(kabuk)/(operasyonel)/esleme/Duzenleyici.tsx",
+      "sinif": "POLITIKA",
+      "olcum": {
+        "dosya": "tests/paket-kur.test.ts",
+        "vaka": "aynı sürüm numarasıyla İÇERİĞİ DEĞİŞMİŞ paket reddedilir"
+      }
+    },
+    {
+      "kod": "POL-070",
+      "cumle": "varlık aktarımı (CMDB kaydı) ile gelir; bu ekran ağı taramaz.",
+      "yer": "app/(kabuk)/(operasyonel)/topoloji/TopolojiIstemci.tsx",
+      "sinif": "POLITIKA",
+      "olculmedi": {
+        "sahip": "KODLAYAN",
+        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
+      }
+    },
+    {
+      "kod": "POL-071",
+      "cumle": "Yönetim yazma yetkiniz yok; kayıt yalnız okunur.",
+      "yer": "app/(kabuk)/(operasyonel)/yonetim-tezgahi/KonsolFormlar.tsx",
+      "sinif": "POLITIKA",
+      "olcum": {
+        "dosya": "tests/yonetim-konsolu-eylem.test.ts",
+        "vaka": "katalogKaydet reddedilir ve hiçbir satır yazılmaz"
+      }
+    },
+    {
+      "kod": "POL-072",
+      "cumle": "Yürürlüğe alma uyum onay yetkisi ister; her geçiş ve gözden geçirme denetim izine yazılır. Belgenin dosyası bu platformda saklanmaz.",
+      "yer": "app/(kabuk)/(operasyonel)/dokumanlar/DokumanlarIstemci.tsx",
+      "sinif": "POLITIKA",
+      "olculmedi": {
+        "sahip": "KODLAYAN",
+        "kapanisAsamasi": "R0-17 · R-F ölçüm dalgası"
+      }
+    }
+  ],
+  "tavanlar": {
+    "olculmeyen": 51
+  },
+  "not": "R-F · politika cümlesi kütüğü. Satırlar arac/politika-kutugu.mjs ile TÜRETİLİR, elle yazılmaz."
+}

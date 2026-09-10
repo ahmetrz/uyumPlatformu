@@ -4,12 +4,12 @@
 
 | Ölçü | Değer |
 | --- | --- |
-| Senaryo | 343 |
-| Testi olan senaryo | 343 |
+| Senaryo | 345 |
+| Testi olan senaryo | 345 |
 | **GAP** | **0** |
 | Hayalet işaret (kütükte olmayan kimlik) | 0 |
 | Kütüksüz test dosyası | 0 |
-| Taranan test dosyası | 218 |
+| Taranan test dosyası | 220 |
 
 ## Katman başına kapsam
 
@@ -18,14 +18,14 @@
 | ACCESSIBILITY | 8 | 8 | 0 |
 | API | 12 | 12 | 0 |
 | CONCURRENCY | 7 | 7 | 0 |
-| DOMAIN | 199 | 199 | 0 |
+| DOMAIN | 200 | 200 | 0 |
 | ENGINE | 33 | 33 | 0 |
 | INTEGRATION | 40 | 40 | 0 |
 | MIGRATION | 5 | 5 | 0 |
-| RBAC | 35 | 35 | 0 |
+| RBAC | 36 | 36 | 0 |
 | RESPONSIVE | 8 | 8 | 0 |
 | SCOPE | 30 | 30 | 0 |
-| SERVER | 140 | 140 | 0 |
+| SERVER | 141 | 141 | 0 |
 | UI | 98 | 98 | 0 |
 | VISUAL | 4 | 4 | 0 |
 | WORKFLOW | 36 | 36 | 0 |
@@ -384,6 +384,11 @@
 | `SIS-KML-004` | Sistem | SERVER · DOMAIN · UI | `kimlik-totp.test.ts` | otpauth URI standart alanları taşır | evet | geçti |
 | `SIS-KML-004` | Sistem | SERVER · DOMAIN · UI | `kimlik-totp.test.ts` | kurtarma kodları sayıca ve uzunlukça sabit, hepsi FARKLI | evet | geçti |
 | `SIS-KML-004` | Sistem | SERVER · DOMAIN · UI | `kimlik-totp.test.ts` | normalize boşluk ve tireyi yok sayar | evet | geçti |
+| `SIS-DEM-001` | Sistem | SERVER · RBAC | `politika-demo-salt-okunur.test.ts` | ortam gerçekten DEMO — ölçüm boşa koşmuyor | evet | geçti |
+| `SIS-DEM-001` | Sistem | SERVER · RBAC | `politika-demo-salt-okunur.test.ts` | GERÇEK eylem (riskKaydet) REDDEDER | evet | geçti |
+| `SIS-DEM-001` | Sistem | SERVER · RBAC | `politika-demo-salt-okunur.test.ts` | ve HİÇBİR SATIR yazılmadı | evet | geçti |
+| `SIS-DEM-001` | Sistem | SERVER · RBAC | `politika-demo-salt-okunur.test.ts` | OKUMA aynı oturumda AÇIK — kapı yazmayı kapatır, ekranı değil | evet | geçti |
+| `SIS-DEM-001` | Sistem | SERVER · RBAC | `politika-demo-salt-okunur.test.ts` | YAZMA dışındaki değiştiren işlemler de kapalı | evet | geçti |
 | `SIS-KML-005` | Sistem | SERVER · RBAC · DOMAIN | `kimlik-giris-mfa.test.ts` | politika kapalıysa parola tek başına yeter | evet | geçti |
 | `SIS-KML-005` | Sistem | SERVER · RBAC · DOMAIN | `kimlik-giris-mfa.test.ts` | politika ZORUNLU ise parola doğru olsa da GİREMEZ | evet | geçti |
 | `SIS-KML-005` | Sistem | SERVER · RBAC · DOMAIN | `kimlik-giris-mfa.test.ts` | reddedilen giriş denetim izine SEBEBİYLE yazılır | evet | geçti |
@@ -802,6 +807,21 @@
 | `URN-KML-001` | Kurulum | DOMAIN · SERVER | `bekci/kimlik-sir.test.ts` | başarılı TOTP girişi İZ bırakır | evet | geçti |
 | `URN-KML-001` | Kurulum | DOMAIN · SERVER | `bekci/kimlik-sir.test.ts` | `sirZarfi` alanına yazan her yol `sifrele()`den geçer | evet | geçti |
 | `URN-KML-001` | Kurulum | DOMAIN · SERVER | `bekci/kimlik-sir.test.ts` | şifreleme anahtarı REFERANSTAN çözülür, koda gömülmez | evet | geçti |
+| `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | TÜRETME boş değil — kalıp bozulursa bekçi her şeyi geçirirdi | evet | geçti |
+| `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | KODDAKİ her cümle kütükte VAR | evet | geçti |
+| `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | KÜTÜKTEKİ her satır kodda VAR — ölü satır kalmaz | evet | geçti |
+| `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | sınıf ya POLITIKA ya IDDIA_DEGIL — sınıflanmamış satır KIRMIZI | evet | geçti |
+| `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | IDDIA_DEGIL satırı NEDEN iddia olmadığını söyler | evet | geçti |
+| `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | POLİTİKA satırı ya ÖLÇÜMÜNÜ ya ÖLÇÜLMEDİĞİNİ söyler — ikisi de yoksa KIRMIZI | evet | geçti |
+| `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | İKİSİ BİRDEN olamaz — ölçülen satır "ölçülmedi" taşıyamaz | evet | geçti |
+| `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | ÖLÇÜM referansı GERÇEK: dosya var ve vaka o dosyada | evet | geçti |
+| `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | ÖLÇÜLMEDİ satırı SAHİBİNİ ve KAPANIŞ AŞAMASINI taşır | evet | geçti |
+| `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | ÖLÇÜLMEYEN SAYISI TAVANI AŞMAZ — cırcır yalnız küçülür | evet | geçti |
+| `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | TAVAN ölçülenin ÜSTÜNDE tutulmaz — gevşeklik dişi | evet | geçti |
+| `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | ÖZNE koşulu alan doğrulamasını dışarıda tutar | evet | geçti |
+| `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | SİSTEM iddiası yakalanır | evet | geçti |
+| `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | YORUMDAKİ cümle kütüğe girmez | evet | geçti |
+| `URN-POL-001` | Ürünleştirme | DOMAIN | `bekci/politika-olcumu.test.ts` | JSX parçası cümle sayılmaz | evet | geçti |
 | `URN-KUR-011` | Kurulum | DOMAIN | `yedek-araci.test.ts` | yedek alır, doğrular ve göç durumunu raporlar | evet | geçti |
 | `URN-KUR-011` | Kurulum | DOMAIN | `yedek-araci.test.ts` | var olan yedeğin ÜSTÜNE YAZMAZ | evet | geçti |
 | `URN-KUR-011` | Kurulum | DOMAIN | `yedek-araci.test.ts` | MANTIKSAL karşılaştırma bayt karşılaştırması değildir | evet | geçti |

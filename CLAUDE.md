@@ -213,6 +213,33 @@ değildir — SABOTAJIN kendisi de zayıf olabilir. Ayrım şudur: sabotaj
 kusurun ESKİ hâlini geri getiriyor mu? Getiriyorsa ve kırmızı yanmıyorsa
 bulgu testtedir; getirmiyorsa sabotaj yeniden yazılır.
 
+**Ekranın POLİTİKA cümlesi gerçek yolla ölçülür (R-F).** Ekranda yazan
+her politika iddiası — "MFA zorunlu" · "yalnız okunur" · "kapsam dışı" ·
+"bu ekran aktifleştirmez" · "ağa hiçbir paket göndermez" — o iddiayı
+uygulayan kodun GERÇEK YOLUNU süren bir vaka ile ölçülür ve sabotajla
+kanıtlanır. İddia ile onu uygulayan kodun ayrı ayrı doğru olması, ikisi
+arasındaki BAĞI kurmuş SAYILMAZ.
+
+Gerekçe ölçüldü (10 Eylül 2026, #49): MFA ekranda zorunluydu, `girisYap`
+parola doğrulandıktan sonra oturumu açıyordu. MFA katmanının her parçası
+tek tek doğruydu ve tek tek test ediliyordu — kayıt, doğrulama, kurtarma
+kodu, kiracı politikası, ekran cümlesi; hiçbiri girişe bağlı değildi ve
+hiçbir kapı bunu görmedi. Aynı sınıf aynı PR'ın ikinci inceleme turunda
+bir kez daha çıktı: takvim tetikli yükümlülükler için AYRI bir motor
+yazıldı, eski olay motoru simetrik daralmayı almadı ve tohum
+veritabanında altı sahte bildirim kaydı doğdu.
+
+Politika cümlesi ELLE LİSTELENMEZ, koddan TÜRETİLİR
+(`web/arac/politika-kutugu.mjs`): cümleyi alan doğrulamasından
+("Negatif olamaz") ayıran şey ÖZNEDİR — politika iddiası sisteme
+bağlanır. Türetilen her cümle `web/arac/politika-cumleleri.json`
+kütüğünde sınıflanır ve `POLITIKA` sınıfındaki her satır ya ölçümünü
+(dosya + vaka) taşır ya da ölçülmediğini SAHİBİ ve KAPANIŞ AŞAMASIYLA
+söyler ("süresiz beyan yoktur"). Kütükte olmayan cümle de, kodda
+olmayan kütük satırı da KIRMIZIDIR
+(`web/tests/bekci/politika-olcumu.test.ts`, URN-POL-001); ölçülmeyen
+sayısı bir TAVANDIR ve yalnız küçülür.
+
 **İnceleme turu İKİ ile sınırlıdır (R-A).** Tur 1 → düzelt → tur 2 →
 düzelt → merge. Üçüncü turda çıkan bulgular YENİ PR olur. Gerekçe
 (ölçüldü, 9 Eylül 2026, #41): dal inmezse `main` ayrışır; birleştirme

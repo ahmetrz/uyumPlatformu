@@ -2131,6 +2131,44 @@ herhangi bir kaydı yazması.
 
 ### R15 · KVKK modülü
 
+**KURULDU** (10 Eyl 2026). Çekirdekteki adı **kişisel veri koruma**,
+rotası **`/kisisel-veri`** — `/kvkk` DEĞİL. Bu belge `/kvkk` diyordu ve
+aynı paragrafta "modül adı çekirdekte Kişisel veri koruma'dır" da
+diyordu; iki cümle çelişiyordu ve çelişkiyi CLAUDE.md'nin bağlayıcı
+kuralı çözdü: çekirdeğe mevzuat adı girmez. Bir Alman kiracının adres
+çubuğunda bir Türkiye kanununun kısaltmasının görünmesi, ürünün
+sektör-ülke bağımsızlık vaadini ilk günden bozar. Aynı gerekçeyle
+`VerbisKaydi` değil **`SicilKaydi`** (sicilin ADI paketten gelir),
+`KvkkSuresi` değil **`VeriKorumaSuresi`**.
+
+| Kabul kriteri | Durum | Ölçüm |
+| --- | --- | --- |
+| KVK-ENV-001 · bildirim tarihi boşsa sayaç çalışmaz | **Kapandı** | `tests/veri-koruma.test.ts` · altı vaka; iş günü sayımı hafta sonunu atlar ve VARSAYIMI ekranda beyan eder (resmî tatil takvimi pakette yok, uydurulmadı) |
+| KVK-ENV-002 · 30 gün geçince görev açılır, motor cevabı yazmaz | **Kapandı** | Gerçek koşum: `suresi_gecti` + görev + motor izi (aktör YOK); `yanitMetni` BOŞ kaldı; ikinci koşu idempotent |
+| KVK-ENV-003 · ihlal olayı KVKK yükümlülüğünü tetikler | **Kapandı** | `BildirimYukumlulugu.kapsamKosulu` (paketten) + üç değerli olay bayrağı; zincir testi hem açılmayı hem AÇILMAMAYI ölçüyor |
+| KVK-ENV-004 · envanter satırı sürece bağlı olmadan kaydedilemez | **Kapandı** | Kapı İKİ yerde: sunucu eylemi ve NOT NULL kolon; ikisi de ayrı vakayla ölçüldü |
+
+**Ölçülen kusur (KVK-ENV-003).** `KVKK-IHLAL-72` yükümlülüğü
+`asgariSiddet: 'orta'` ile HER orta olaya uyuyordu: kişisel veri hiç
+işlenmemiş bir kesinti için de Kurula bildirim taslağı açılıyordu.
+Açılan her yanlış taslak, gerçek olanı görünmez yapan bir satırdır.
+Koşul PAKETTE beyan edilir ve POZİTİF yüklemdir — tanınmayan bir kod
+yükümlülüğü uyandırmaz. `null` (değerlendirilmedi) HAYIR sayılmaz:
+taslak ihtiyaten açılır ve ekran neden açıldığını söyler.
+
+**İçerik yarım — bilerek.** `basvuru_yanit` süresi 30 gün girdi (6698 s.
+md. 13/2, takvim günü). `aktarim_bildirim_standart_sozlesme` satırı
+KURULMADI: standart sözleşmenin mercie bildirim süresini veren metin bu
+turda açılamadı ve ürün bir gün sayısı UYDURMAZ. Satır yokken ekran "bu
+dayanak için bildirim süresi tanımlı değil" der ve sayaç hiç çalışmaz —
+mekanizma ölçülebilir, içerik boş.
+
+**Kapsam dışı kaldı, bilerek: aydınlatma metni ÜRETİLMEZ.** Metin
+kurumun HUKUKİ BEYANIDIR; şablon doldurmak da bir beyandır. Ekranda
+böyle bir düğme yoktur ve bunun YOKLUĞU tarayıcı kanıtında ölçülür.
+
+---
+
 **Ürünleştirme notu.** Modül adı çekirdekte "Kişisel veri koruma"dır;
 KVKK terimleri (VERBİS, 72 saat, 5 iş günü) `TR-ENERJI`/`TR-GENEL`
 yükümlülük paketinden, GDPR karşılıkları (72 saat, DPIA, kayıt yükümlülüğü)
@@ -2235,7 +2273,7 @@ birlikte ele alınır:
 | R0-15 | Kurulum imajı geliştirme bağımlılıklarının TAMAMINI taşıyor | Ölçüldü (9 Eyl 2026, bağımsız inceleme): `deploy/compose/Dockerfile` `npm ci` sonucunu (`--omit=dev` yok) koşum aşamasına devrediyor; vitest · playwright-core · eslint · lighthouse üretim imajında duruyor (imaj 2,37 GB). Dockerfile'ın kendi gerekçesi "üretim imajında derleyici bulundurmak saldırı yüzeyini gereksiz büyütür" derken bu araçlar orada. Bu turda YAPILMADI çünkü koşum gerçekten `prisma` · `tsx` · `next` · `better-sqlite3` istiyor (göç, tohum, yedek) ve bunları `--omit=dev` ile ayırmak `package.json` bağımlılık sınıflarını yeniden bölmek demek — kapı yeşilken yapılacak ayrı bir dilim. Ayrıca `next.config.ts` imaja kopyalanmıyor: bugün zararsız (güvenlik başlıkları `routes-manifest.json`dan servis ediliyor, doğrulandı) ama çalışma anında okunan bir yapılandırma eklendiği gün SESSİZCE varsayılana düşer. **Sahip:** P7 · dağıtım dilimi. **Kapanış:** ilk müşteri kurulumundan ÖNCE — imaj müşteriye gitmeden. | açık — ölçüldü, ertelendi |
 | R0-14 | Zafiyet ↔ varlık eşleşmesi RASTGELE — gerçek CVE kurgusal varlığa tutarsız bağlanıyor | Ölçüldü (8 Eyl 2026): `seed-operasyon.ts` varlıkların ~%7'sine `zafiyetler[Math.floor(rnd() * zafiyetler.length)]` ile kura çekiyor. On CVE'nin dokuzu yayımlanmış gerçek kayıtlardır ve ürünleri beyanlıdır (`kurgusal-adlar.ts`), ama bağlandıkları varlık türüyle ilgisi yok: bir ağ anahtarı Rockwell ControlLogix CVE'si taşıyabiliyor. Bu bir GERÇEKLİK kusuru değil (kayıt kurgusal, rozeti ekranda) ama bir İNANDIRICILIK kusurudur ve demonun tek ölçütü inandırıcılıktır — güvenlikten anlayan bir izleyici bunu ilk bakışta görür. Düzeltmesi kura yerine eşleştirme ister: CVE'nin ürünü ↔ varlığın `uretici`/`isletimSistemi` alanı. Bu turda YAPILMADI çünkü kapsam kurgusallaştırma ve bekçiydi; kurayı eşleştirmeye çevirmek tohumun zafiyet bloğunu yeniden yazmak demek. **Sahip:** demo verisi dilimi. **Kapanış:** demo yolunun zafiyet ekranı gösterime girdiğinde — bugün sekiz ekranlık yolda değil; yola girdiği gün eşleştirme ondan önce yazılır. | açık — ölçüldü, düzeltilmedi |
 | R0-16 | EPBS raporlama yükümlülükleri modelde yoktu | **Kapandı** (10 Eyl 2026). Ertelenmişti ve kapanış şartı yazılıydı: EPDK Yönetmeliği md. 10/2, 10/3 ve 10/4'ün üç raporlama yükümlülüğü TAKVİMDEN doğuyor, `BildirimYukumlulugu` ise yalnız olayı şiddet eşiğiyle eşleştiriyordu; olay alanına yazmak R-D anlam eşleme hatası olurdu. Kapanış şartı **periyodik yükümlülük modeliydi** ve model geldi: `tetikleyici` (`olay` · `takvim`) · `donem` · `donemBaslangici` · `teslimGun` alanları + `BildirimDonemi` tablosu + `acikDonemleriKur` motoru + `/raporlar/takvim` ekranı. Üç yükümlülük TR-ENERJI paketine `takvim` tetikleyiciyle girdi. **Dönem başlangıcı UYDURULMADI** — mevzuat vermiyor, ürün takvim yılını varsayar ve varsayımı beyan eder. | Kapandı · sahibi KODLAYAN |
-| R0-17 | Ekranda yazan 51 politika cümlesinin gerçek yol ölçümü YOK | R-F ilk ölçümü (10 Eyl 2026): `app/**` taramasında **72** politika cümlesi türetildi; 8'i iddia değil, **64'ü politika iddiası**; **13'ü** ölçüme bağlıydı, **51'i bağlanmadı**. **51 sınıflandırıldı** (ölçerek, elle değil — `sonucSinifi()` cümleden türetir ve bekçi yeniden türetip kütüktekiyle karşılaştırır): **S1 · yetki ve güvenlik 12** (ihlali veri sızdırır ya da OT ağına paket yollar) · **S2 · ürün değişmezi 23** (ihlali güveni bozar) · **S3 · bilgilendirme 16** (yanıltır, zarar sınırlı). **S1'in TAMAMI bu turda eritildi: 12 → 0** ve sınıf tavanı SIFIRDIR — gerekçeli istisna kabul edilmiyor (`web/tests/bekci/politika-olcumu.test.ts`, URN-POL-001). Eriten iki dosya gerçek yolu sürer: `web/tests/politika-pasif-once.test.ts` ağ ilkellerini FIRLATAN sahteyle değiştirip anlık · sapma · kayıttan anlık · temel onaylama yollarını koşturur (SIS-PAS-001), `web/tests/politika-yetki-kapilari.test.ts` yetkisiz · okuyucu · katkıcı · tesise kısıtlı rollerle GERÇEK sunucu eylemlerini çağırır ve kaydın değişmediğini ölçer (SIS-YTK-010). Sabotajla kanıtlandı: bir S1 satırı `olculmedi`ye çevrilince (S32), sınıf elle S1→S3 indirilince (S33), sınıf tavanı gevşetilince (S34), `yetkiZorunlu` yazmadan okumaya düşürülünce (S35) ve pasif yola bir `fetch` konunca (S36) kapı KIRMIZI yandı. **Kalan 39** (S2 23 · S3 16) cırcırdadır: tavan bugünkü sayıdır, liste yalnız küçülür, ölçüsüz eklenen yeni politika cümlesi kırmızıdır. **Sahip:** KODLAYAN. **Kapanış:** her partide en az beş S2/S3 satırı ölçüme bağlanır; S1 kalıcı olarak sıfırda tutulur. | açık — S1 kapandı, S2/S3 cırcırda |
+| R0-17 | Ekranda yazan 51 politika cümlesinin gerçek yol ölçümü YOK | R-F ilk ölçümü (10 Eyl 2026): `app/**` taramasında **72** politika cümlesi türetildi; 8'i iddia değil, **64'ü politika iddiası**; **13'ü** ölçüme bağlıydı, **51'i bağlanmadı**. **51 sınıflandırıldı** (ölçerek, elle değil — `sonucSinifi()` cümleden türetir ve bekçi yeniden türetip kütüktekiyle karşılaştırır): **S1 · yetki ve güvenlik 12** (ihlali veri sızdırır ya da OT ağına paket yollar) · **S2 · ürün değişmezi 23** (ihlali güveni bozar) · **S3 · bilgilendirme 16** (yanıltır, zarar sınırlı). **S1'in TAMAMI bu turda eritildi: 12 → 0** ve sınıf tavanı SIFIRDIR — gerekçeli istisna kabul edilmiyor (`web/tests/bekci/politika-olcumu.test.ts`, URN-POL-001). Eriten iki dosya gerçek yolu sürer: `web/tests/politika-pasif-once.test.ts` ağ ilkellerini FIRLATAN sahteyle değiştirip anlık · sapma · kayıttan anlık · temel onaylama yollarını koşturur (SIS-PAS-001), `web/tests/politika-yetki-kapilari.test.ts` yetkisiz · okuyucu · katkıcı · tesise kısıtlı rollerle GERÇEK sunucu eylemlerini çağırır ve kaydın değişmediğini ölçer (SIS-YTK-010). Sabotajla kanıtlandı: bir S1 satırı `olculmedi`ye çevrilince (S32), sınıf elle S1→S3 indirilince (S33), sınıf tavanı gevşetilince (S34), `yetkiZorunlu` yazmadan okumaya düşürülünce (S35) ve pasif yola bir `fetch` konunca (S36) kapı KIRMIZI yandı. **AYNI PARTİDE TÜRETİCİNİN KÖRLÜĞÜ ÖLÇÜLDÜ** (bağımsız inceleme, #50 tur 1): türetici yalnız `app/` tarıyor, `\w` Türkçe harfi tanımıyor, `+` ile bölünmüş cümleleri parça parça ölçüyor ve `.demo.ts` dosyalarını dışlıyordu. Dördü de düzeltildi; aday **76 → 125**'e çıktı. **Kör bir tavanın düşük olması iyi haber değildir**: ortaya çıkan 23 yeni S1 satırının HEPSİ aynı partide eritildi (`tests/politika-eylem-kapsami.test.ts` · 15 vaka · SIS-YTK-011, demo ikizleri · SIS-DEM-002, `veri-koruma` · KVK-ENV-005) ve **S1 tavanı SIFIRDA kaldı: 44/44 ölçülü**. Cırcıra BEŞİNCİ DİŞ eklendi: tavan yükselmesi `tavanGerekceleri` altında `eski → yeni` olarak anlatılmadan geçmez (sabotaj S43 · S44 kırmızı yaktı). **Kalan 65** (S2 26 · S3 39) cırcırdadır: liste yalnız küçülür, ölçüsüz eklenen yeni politika cümlesi kırmızıdır. **Sahip:** KODLAYAN. **Kapanış:** her partide en az beş S2/S3 satırı ölçüme bağlanır; S1 kalıcı olarak sıfırda tutulur. | açık — S1 kapandı (44/44), S2/S3 cırcırda |
 
 ---
 
@@ -2297,7 +2335,6 @@ söyler. Koşul oluşmadan açılan paket, ürünü değil yol haritasını büy
 | **R11 · zafiyet/duyuru akışı** | Kurulum canlıya çıkıp bir bakım penceresi tanımlandığında; kaynaklar (USOM · CISA · NVD) kamuya açık ve `etkin=false` gelir. |
 | **R13 · parasal risk** | Müşteri üretim kaybı fiyatını (gizli veri) paylaşmayı kabul ettiğinde. |
 | **R14 · yapay zekâ yardımcısı** | Ürün canlıda çalışıp yeterli kanıt/karar verisi biriktiğinde; "motor önerir, insan karar verir" kuralı burada da geçerli. |
-| **R15 · KVKK modülü** | KVKK yükümlülüğü sözleşmede yer aldığında (yatay paket içeriği bu kümede A'ya girer, modül C'ye). |
 | **R16 · BIA / RTO-RPO** | Müşteri iş sürekliliği tatbikatını ürün üzerinden yürütmek istediğinde. |
 
 ### Sıra ve bağımlılık

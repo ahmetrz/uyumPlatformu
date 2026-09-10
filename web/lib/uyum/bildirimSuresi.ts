@@ -57,6 +57,65 @@ export type Yukumluluk = {
  */
 export const olaylaUyanir = (tetikleyici: string): boolean => tetikleyici === 'olay';
 
+/* ── EK KAPSAM KOŞULU (R15) ────────────────────────────────────────────
+   Şiddet ve regülasyon bir yükümlülüğü uyandırmaya her zaman yetmez.
+   Ölçüldü: KVKK 72 saat yükümlülüğü `asgariSiddet: 'orta'` ile HER orta
+   olaya uyuyordu — kişisel veri hiç işlenmemiş bir kesinti için de
+   Kurula bildirim taslağı açılıyordu. Bir uyum ürününde açılan her
+   yanlış taslak, gerçek olanı görünmez yapan bir satırdır.
+
+   Koşul kümesi POZİTİF yüklemdir: tanınmayan bir koşul kodu
+   yükümlülüğü UYANDIRMAZ. Olumsuz yazılsaydı (`!== 'kisisel_veri'`)
+   yarın eklenen üçüncü bir koşul sessizce herkese açılırdı. */
+export const KAPSAM_KOSULLARI = ['kisisel_veri_ihlali'] as const;
+export type KapsamKosulu = (typeof KAPSAM_KOSULLARI)[number];
+
+/** Olayın bu koşula göre hâli — ÜÇ DEĞERLİ. */
+export type OlayKapsami = {
+  /** `null` = DEĞERLENDİRİLMEDİ; "hayır" ile aynı şey DEĞİLDİR. */
+  kisiselVeriIhlali: boolean | null;
+};
+
+export type KosulSonucu =
+  | { uyar: true; degerlendirildi: boolean; soz: string }
+  | { uyar: false; soz: string };
+
+/**
+ * Yükümlülüğün ek kapsam koşulu bu olayda sağlanıyor mu?
+ *
+ * ── BİLİNMEYEN ≠ HAYIR ────────────────────────────────────────────────
+ * `kisiselVeriIhlali === null` "kişisel veri yok" demek DEĞİLDİR:
+ * kimse bakmamış demektir. Böyle bir olayda taslağı hiç açmamak,
+ * değerlendirilmemiş bir olayı temiz saymak olurdu — üstelik saati
+ * işleyen bir yükümlülükte. Taslak İHTİYATEN açılır ve ekran neden
+ * açıldığını SÖYLER; kapatmak insanın kararıdır (`uygulanmaz`,
+ * gerekçeli).
+ *
+ * `false` ise insan BAKMIŞ ve "bu kapsamda değil" demiştir: uyanmaz.
+ */
+export function kapsamKosuluSaglaniyor(
+  kosul: string | null, olay: OlayKapsami,
+): KosulSonucu {
+  if (kosul === null) return { uyar: true, degerlendirildi: true, soz: 'Ek kapsam koşulu yok' };
+  if (kosul === 'kisisel_veri_ihlali') {
+    if (olay.kisiselVeriIhlali === true) {
+      return { uyar: true, degerlendirildi: true, soz: 'Kişisel veri ihlali işaretlendi' };
+    }
+    if (olay.kisiselVeriIhlali === false) {
+      return { uyar: false, soz: 'Kişisel veri ihlali DEĞİL — insan değerlendirdi' };
+    }
+    return {
+      uyar: true, degerlendirildi: false,
+      soz: 'Kişisel veri ihlali olup olmadığı DEĞERLENDİRİLMEDİ —'
+        + ' taslak ihtiyaten açıldı; kapatmak insanın kararıdır.',
+    };
+  }
+  /* TANINMAYAN KOŞUL UYANDIRMAZ. Bir paket bilmediğimiz bir koşul
+     koyduysa yükümlülüğü sessizce herkese açmak yerine hiç açmayız;
+     ekran kaynağı "tanınmayan koşul" diye gösterir. */
+  return { uyar: false, soz: `Tanınmayan kapsam koşulu: ${kosul}` };
+}
+
 /** Şiddet eşiği karşılanıyor mu? Tanınmayan şiddet eşiği KARŞILAMAZ. */
 export function siddetYeterli(olay: string, asgari: string): boolean {
   const a = SIDDET_SIRASI.indexOf(olay as Siddet);

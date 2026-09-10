@@ -643,6 +643,21 @@
 .ab-ikincil a:hover { color: var(--murekkep); }
 .ab-ikincil a[aria-current='true'] { color: var(--murekkep); border-bottom-color: var(--aksan); }
 .ab-ikincil .grup { flex: none; }
+/* ── TEK GRUP EKRANDAN GENİŞ OLABİLİR ────────────────────────────────
+   Sıra grup ARASINDA sarıyordu ama grubun KENDİSİ sarmıyordu: `flex: none`
+   grubu max-content eninde çakılı tutuyor ve grup ekrandan genişse sayfa
+   yana kayıyordu. Ölçüldü (R15, kapı `tasma`): Uyum alanının birinci
+   grubuna sekizinci bağ (Kişisel veri koruma) eklenince grup 768px'te
+   906px oldu ve `/uyum` alanının YİRMİ SEKİZ ekranı birden kaydı —
+   kusur ekranlarda değil, KABUKTA.
+
+   Bugün grup da sarar ve daralabilir. Dokunmatik bant (≤700px) kendi
+   kuralında kalır: orada sıra parmakla YATAY kayar ve bu meşrudur —
+   tek bir bağ bile 375px'ten geniş olabilir ve sarmak sırayı okunmaz
+   bir yığına çevirirdi. */
+@media (min-width: 701px) {
+  .ab-ikincil .grup { flex: 0 1 auto; min-width: 0; flex-wrap: wrap; }
+}
 /* Kapsam künyesi DARALAN taraftır: bağlar kırpılmaz, künye üç noktaya
    iner (ölçüldü: Varlık alanının 14 bağı 1366px'te künyeyle çakışıyor,
    "Olay & Değişiklik" ekran dışında kalıyordu). Sıra sardığında künye

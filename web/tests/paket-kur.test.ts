@@ -61,7 +61,7 @@ describe('kurucu — tek transaction, taslak sürüm, köken [URN-PKT-003]', () 
     const s = await kur();
     expect(s.ok, JSON.stringify(s)).toBe(true);
     if (!s.ok) return;
-    expect(s.rapor.sayilar).toEqual({ sozluk: 2, kapsamTurleri: 1, oznitelikler: 2, cerceveler: 2, maddeler: 5, yukumlulukler: 1, formlar: 0, raporlar: 0, roller: 0, eslemeler: 0, kurallar: 0 });
+    expect(s.rapor.sayilar).toEqual({ sozluk: 2, kapsamTurleri: 1, oznitelikler: 2, cerceveler: 2, maddeler: 5, yukumlulukler: 1, formlar: 0, raporlar: 0, roller: 0, eslemeler: 0, kaynaklar: 0, kurallar: 0 });
     expect(s.rapor.celiskiler).toEqual([]);
     expect(s.rapor.pasiflestirilen).toEqual({ kapsamTurleri: 0, yukumlulukler: 0, cerceveSurumleri: 0, sozluk: 0, oznitelikler: 0, formlar: 0, raporlar: 0, roller: 0, eslemeler: 0, kurallar: 0 });
     expect(s.rapor.pasifAnahtarlar).toEqual({ sozluk: [], oznitelikler: [] });

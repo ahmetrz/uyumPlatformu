@@ -57,7 +57,8 @@ const ALAN_ROTALARI: Record<string, string[]> = {
   '/': ['/', '/tesisler'],
   '/portfoy': ['/portfoy', '/harita'],
   '/uyum': [
-    '/uyum', '/regulasyonlar', '/paketler', '/surecler', '/eslestirme', '/denetimler',
+    '/uyum', '/regulasyonlar', '/paketler', '/mevzuat-radari', '/kisisel-veri',
+    '/surecler', '/eslestirme', '/denetimler',
     '/bulgular', '/projeler', '/raporlar', '/dokumanlar', '/kanitlar', '/aktivite',
     '/degerlendirme-aktarim', '/denetci-erisimi', '/saklama',
     '/gozden-gecirme', '/egitimler',
@@ -103,6 +104,17 @@ export const IKINCIL: Record<string, { baslik?: string; ogeler: Oge[] }[]> = {
       /* P4 · 2.6 · İçerik paketleri Regülasyonlar'ın YANINDA: paket
          regülasyonu getirir (taslak), aktifleştirme oradadır. */
       { ad: 'İçerik paketleri', yol: '/paketler' },
+      /* R1 · Mevzuat radarı Regülasyonlar'ın YANINDA: radar bir
+         regülasyonun DEĞİŞTİĞİNİ önerir, kararı oradaki akış verir.
+         Ayrı bir üst başlığa koymak, "mevzuat değişti" ile "mevzuatımız
+         ne" sorularını iki ayrı yere bölerdi. */
+      { ad: 'Mevzuat radarı', yol: '/mevzuat-radari' },
+      /* R15 · Kişisel veri koruma SÜREÇLERİN yanında: işleme envanterinin
+         her satırı bir İŞ SÜRECİNE bağlıdır ve bağsız kaydedilemez.
+         Ayrı bir üst başlığa koymak, "hangi süreç" ile "o süreçte hangi
+         kişisel veri" sorularını iki ayrı yere bölerdi. Ad çekirdekte
+         mevzuat adı taşımaz; TR kiracısında paket terimi "KVKK" der. */
+      { ad: 'Kişisel veri koruma', yol: '/kisisel-veri' },
       { ad: 'Süreçler', yol: '/surecler' },
       { ad: 'Çapraz eşleme', yol: '/eslestirme' },
       /* UY-43 · Değerlendirme aktarımı MATRİSİN yanında durur çünkü

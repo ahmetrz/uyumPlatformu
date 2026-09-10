@@ -18,6 +18,16 @@
     "kanalNotu": "Kurgusal bildirim kanalı"
   },
   {
+    "kod": "DEMO-KISISEL-VERI",
+    "ad": "Kurgusal Kurul'a kişisel veri ihlali bildirimi",
+    "asgariSiddet": "orta",
+    "sureSaat": 72,
+    "dayanak": "KURGUSAL. Demo kiracısının ekranını beslemek için yazıldı; hiçbir mevzuata karşılık gelmez. EK KAPSAM KOŞULU yolunu görünür kılar: bu yükümlülük yalnız KİŞİSEL VERİ ihlallerinde doğar, kişisel veri işlenmemiş bir kesintide taslak AÇILMAZ.",
+    "merci": "Kurgusal Veri Koruma Kurulu",
+    "kanalNotu": "Kurgusal ihlal bildirim formu üzerinden",
+    "kapsamKosulu": "kisisel_veri_ihlali"
+  },
+  {
     "tetikleyici": "takvim",
     "asgariSiddet": "dusuk",
     "sureSaat": null,

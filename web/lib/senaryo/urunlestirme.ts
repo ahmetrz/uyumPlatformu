@@ -585,6 +585,44 @@ export const URUNLESTIRME_SENARYOLARI: Senaryo[] = [
     katmanlar: ['DOMAIN', 'SERVER'],
   },
   {
+    id: 'URN-POL-001', alan: 'Ürünleştirme', rota: '—', eksen: 'veri',
+    amac: 'Ekranda yazan bir politikanın kodda karşılığı olmadan kalmasını engellemek',
+    rol: 'ürünü sürdüren geliştirici · bağımsız inceleyen',
+    kapsam: 'app/** metin sabitleri · arac/politika-cumleleri.json',
+    onkosul: '#49 aynı sınıfı iki inceleme turunda iki kez üretti: ekran "MFA zorunlu"'
+      + ' diyordu ve giriş akışı MFA sormuyordu; takvim yükümlülükleri için ayrı motor'
+      + ' yazıldı ve eski motor simetrik daralmayı almadı',
+    veriHali: 'aykiri',
+    eylem: 'Ekran metinleri politika cümlesi kalıbıyla TARANIR ve kütükle karşılaştırılır',
+    beklenenSonuc: 'Kütükte olmayan cümle KIRMIZI; kodda olmayan kütük satırı KIRMIZI.'
+      + ' Her POLITIKA satırı ya ölçümünü (dosya + vaka) ya da ölçülmediğini SAHİBİ ve'
+      + ' KAPANIŞ AŞAMASIYLA söyler; ölçülmeyen sayısı bir TAVANDIR ve yalnız küçülür.'
+      + ' Kapı beyanın VARLIĞINI ölçer, ölçümün iddiayı sınadığını DEĞİL — sınır R-D ile'
+      + ' aynıdır ve kabul edilmiştir',
+    beklenenEkran: 'yok — bekçi',
+    beklenenIz: 'yazma yok (bekçi)', beklenenBildirim: 'yok',
+    katmanlar: ['DOMAIN'],
+  },
+  {
+    id: 'URN-MEV-001', alan: 'Ürünleştirme', rota: '—', eksen: 'veri',
+    amac: 'Radarın karar katmanının ve testlerinin ağa çıkmasını engellemek',
+    rol: 'ürünü sürdüren geliştirici · bağımsız inceleyen',
+    kapsam: 'lib/mevzuat/ · lib/uyum/mevzuatRadariKosumu.ts · radar testleri',
+    onkosul: 'R1 ile ürün ilk kez dış bir kaynağa istek gönderiyor',
+    veriHali: 'aykiri',
+    eylem: 'Karar katmanı ve radar testleri ağ çağrısı için taranır',
+    beklenenSonuc: 'Karar katmanında `fetch` YOKTUR: getirme koşuma DIŞARIDAN'
+      + ' enjekte edilir. Gerekçe iki tanedir — ağa çıkan test bu depoda'
+      + ' KIRMIZIDIR ve kaynağa istek göndermek KURULUMUN kararıdır; gömülü bir'
+      + ' `fetch` o kararı kütüphane seviyesine indirirdi. Ağ yalnız'
+      + ' `lib/motorlar/mevzuatRadari.ts` içindedir ve tek sarmalayıcıdır'
+      + ' (`mevzuatRadari.getirmeyiYap`). Fikstür adresleri RFC 2606'
+      + " kurgusal alanındadır (`.ornek`)",
+    beklenenEkran: 'yok — bekçi',
+    beklenenIz: 'yazma yok (bekçi)', beklenenBildirim: 'yok',
+    katmanlar: ['DOMAIN'],
+  },
+  {
     id: 'URN-KUR-011', alan: 'Kurulum', rota: '—', eksen: 'veri',
     amac: 'Ürünün KENDİ yedeği, müşteriye dayattığı kuralı tutsun: geri yüklenebildiği kanıtlanmamış yedek, yedek değildir — ve kanıt DOSYALARINI da taşısın',
     rol: 'kurulumu işleten operatör · ürünü sürdüren geliştirici', kapsam: 'arac/yedek.mjs · kanıt deposu · docs/URUN_YEDEKLEME.md',

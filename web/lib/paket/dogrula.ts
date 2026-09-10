@@ -21,9 +21,10 @@ import {
   ACIKLAMA_SINIRI, BASLIK_SINIRI, CEKIRDEK_KAPSAM_TURLERI, CEKIRDEK_ROLLER, GEREKSINIM_TIPI_SINIRI, KAPSAM_TURU_ALANI, KAYNAK_YERI_SINIRI, takvimTarihi, type KosulBeyani, CerceveKimligiSemasi, DENKLIKLER, DIS_KIMLIK_SINIRI, DOSYALAR, ESLEME_SUTUNLARI,
   ESLEME_ZORUNLU_SUTUNLAR, EslemeKimligiSemasi, FormSablonuSemasi, ISLEM_ONKOSULU, KANIT_TIPI_KODU, KapsamTuruSatiriSemasi, MADDE_SUTUNLARI,
   MADDE_ZORUNLU_SUTUNLAR, ManifestSemasi, OLCU_ALANI, OZET_DISI, OZNITELIK_ROLLERI, OznitelikSatiriSemasi, RaporSablonuSemasi,
+  KaynakSatiriSemasi,
   RolSatiriSemasi, SozlukSatiriSemasi, YukumlulukSatiriSemasi, ZORUNLULUK_TIPLERI, csvAyristir, sha256,
   type CerceveKimligi, type EslemeKimligi, type EslemeSatiri, type FormSablonu, type KapsamTuruSatiri, type MaddeSatiri,
-  type Manifest, type OznitelikSatiri, type RaporSablonu, type RolSatiri, type SozlukSatiri, type YukumlulukSatiri,
+  type KaynakSatiri, type Manifest, type OznitelikSatiri, type RaporSablonu, type RolSatiri, type SozlukSatiri, type YukumlulukSatiri,
 } from './bicim';
 
 export type HataSinifi = 'BIÇIM' | 'KİMLİK' | 'SÖZLÜK' | 'ÖZNİTELİK' | 'LİSANS' | 'SÜRÜM' | 'KAPSAM TÜRÜ' | 'KAYNAK' | 'ALAN EŞLEME';
@@ -47,10 +48,11 @@ export type PaketIcerigi = {
   formlar: FormSablonu[];
   raporlar: RaporSablonu[];
   roller: RolSatiri[];
+  kaynaklar: KaynakSatiri[];
 };
 export type Sayilar = {
   sozluk: number; kapsamTurleri: number; oznitelikler: number; cerceveler: number; maddeler: number; yukumlulukler: number;
-  formlar: number; raporlar: number; roller: number; eslemeler: number;
+  formlar: number; raporlar: number; roller: number; eslemeler: number; kaynaklar: number;
   /** uygulanabilirlik beyanı taşıyan çerçeve sayısı */
   kurallar: number;
 };
@@ -106,7 +108,7 @@ export function ozetleriHesapla(dizin: string): Record<string, string> {
   return ozetler;
 }
 
-const bos: Sayilar = { sozluk: 0, kapsamTurleri: 0, oznitelikler: 0, cerceveler: 0, maddeler: 0, yukumlulukler: 0, formlar: 0, raporlar: 0, roller: 0, eslemeler: 0, kurallar: 0 };
+const bos: Sayilar = { sozluk: 0, kapsamTurleri: 0, oznitelikler: 0, cerceveler: 0, maddeler: 0, yukumlulukler: 0, formlar: 0, raporlar: 0, roller: 0, eslemeler: 0, kaynaklar: 0, kurallar: 0 };
 
 function gecerliUrl(s: string): boolean {
   try { const u = new URL(s); return u.protocol === 'https:' || u.protocol === 'http:'; } catch { return false; }
@@ -816,6 +818,7 @@ export function paketiDogrula(dizin: string): DogrulamaSonucu {
   if (!kimlikOkunamadi) {
     const taninan = new Set<string>([
       DOSYALAR.sozluk, DOSYALAR.kapsamTurleri, DOSYALAR.oznitelikler, DOSYALAR.yukumlulukler, DOSYALAR.roller,
+      DOSYALAR.kaynakKatalogu,
       ...cerceveJsonlari.map((d) => `${DOSYALAR.cerceveDizini}/${d}`),
       ...cerceveler.map((c) => `${DOSYALAR.cerceveDizini}/${c.kimlik.maddeDosyasi}`),
       ...eslemeDosyalari, ...formDosyalari, ...raporDosyalari,
@@ -865,13 +868,24 @@ export function paketiDogrula(dizin: string): DogrulamaSonucu {
     }
   });
 
+  /* ── kaynak kataloğu (2.8 · R1) — `kaynak-katalogu.json` ─────────────
+     Paket hangi resmî kanalın izleneceğini ÖNERİR. Taramayı açmak
+     kurulumun kararıdır: kurucu `etkin` alanına dokunmaz ve kaynak
+     KAPALI doğar. Adres `https` ve kamuya açık olmalıdır — bir uyum
+     ürünü müşterinin kendi iç sistemine bakmaz. */
+  const kaynaklar = liste<KaynakSatiri>(DOSYALAR.kaynakKatalogu, KaynakSatiriSemasi, 'BIÇIM',
+    'kaynak satırı: kod (BÜYÜK harf) · ad · yayinKanali (https) · tur (rss|liste)');
+  tekil(DOSYALAR.kaynakKatalogu, 'KİMLİK', kaynaklar.map((k) => k.kod), 'kaynak kodu');
+  tekil(DOSYALAR.kaynakKatalogu, 'KİMLİK', kaynaklar.map((k) => k.yayinKanali), 'yayın kanalı');
+
   const sayilar: Sayilar = {
     sozluk: sozluk.length, kapsamTurleri: kapsamTurleri.length, oznitelikler: oznitelikler.length,
     cerceveler: cerceveler.length, maddeler: cerceveler.reduce((a, c) => a + c.maddeler.length, 0), yukumlulukler: yukumlulukler.length,
     formlar: formlar.length, raporlar: raporlar.length, roller: roller.length,
+    kaynaklar: kaynaklar.length,
     eslemeler: eslemeler.reduce((a, e) => a + e.satirlar.length, 0),
     kurallar: cerceveler.filter((c) => c.kimlik.uygulanabilirlik).length,
   };
-  const icerik: PaketIcerigi = { dizin, manifest, sozluk, kapsamTurleri, oznitelikler, cerceveler, eslemeler, yukumlulukler, formlar, raporlar, roller };
+  const icerik: PaketIcerigi = { dizin, manifest, sozluk, kapsamTurleri, oznitelikler, cerceveler, eslemeler, yukumlulukler, formlar, raporlar, roller, kaynaklar };
   return { ok: hatalar.length === 0, hatalar, icerik: hatalar.length === 0 ? icerik : null, sayilar };
 }

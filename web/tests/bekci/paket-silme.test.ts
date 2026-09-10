@@ -87,6 +87,54 @@ describe('Bekçi · paket işlemleri müşteri verisini silemez [URN-PKT-010]', 
     expect(kontrol).toContain('alanlar');
   });
 
+  it('PAKETİN KURDUĞU model, İNSAN KARARI taşıyan modele KASKAT AKMAZ [URN-PKT-010]', () => {
+    /* ── SINIFI KAPAT, ÖRNEĞİ DEĞİL ────────────────────────────────────
+       Bu bekçi yalnız `model Madde`nin liste ilişkilerini tarıyordu ve
+       bağımsız inceleme (PR #50 tur 1) kökün başka olabileceğini
+       gösterdi: `MevzuatKaynagi` de PAKETİN KURDUĞU bir modeldir ve
+       `MevzuatDegisiklikAdayi`ye `Cascade` ile bağlıydı — karara
+       bağlanmış adaylar (durum · kararVeren · gerekçe) kaynakla birlikte
+       silinebilirdi.
+
+       Kural artık TÜRETİLİR, iki listeden:
+         PAKETİN KURDUĞU MODEL  — köken sütunu taşır (`paketSurumId`
+                                  ya da `paketKodu`)
+         İNSAN KARARI TAŞIYAN   — karar/gerekçe sütunu taşır
+       Bu ikisi arasında `onDelete: Cascade` KIRMIZIDIR. Elle liste
+       tutulsaydı, on ikinci model eklendiği gün bekçi ona hiç bakmazdı.
+
+       Tavan SIFIR, gerekçeli istisna YOK — R-C'nin kendi şartı. */
+    const sema = readFileSync(path.join(KOK, 'prisma/schema.prisma'), 'utf8');
+    const modeller = [...sema.matchAll(/\nmodel (\w+) \{([\s\S]*?)\n\}/g)]
+      .map((m) => ({ ad: m[1], govde: m[2] }));
+    expect(modeller.length, 'ölçüm tabanı: şema modelleri okunamadı')
+      .toBeGreaterThan(50);
+
+    const KOKEN = /^\s+(paketSurumId|paketKodu)\s+String\??/m;
+    const KARAR = /^\s+(kararVerenId|kararZamani|onaylayanId|gerekce|uygulanmazGerekcesi|redGerekcesi|muafiyetGerekcesi)\s+/m;
+    const paketli = modeller.filter((m) => KOKEN.test(m.govde)).map((m) => m.ad);
+    const kararli = modeller.filter((m) => KARAR.test(m.govde)).map((m) => m.ad);
+    expect(paketli.length, 'ölçüm tabanı: paket kökenli model bulunamadı')
+      .toBeGreaterThanOrEqual(10);
+    expect(kararli.length, 'ölçüm tabanı: karar taşıyan model bulunamadı')
+      .toBeGreaterThanOrEqual(10);
+    expect(paketli).toContain('Regulasyon');
+    expect(kararli).toContain('MevzuatDegisiklikAdayi');
+
+    const kusur: string[] = [];
+    for (const m of modeller) {
+      if (!kararli.includes(m.ad)) continue;
+      for (const r of m.govde.matchAll(
+        /^\s+(\w+)\s+(\w+)\??\s+@relation\(([^)]*onDelete:\s*Cascade[^)]*)\)/gm)) {
+        if (paketli.includes(r[2])) kusur.push(`${m.ad}.${r[1]} → ${r[2]}`);
+      }
+    }
+    expect(kusur, ['paket kökenli bir kaydın silinmesi İNSAN KARARINI kaskatla siler:',
+      kusur.join(' · '),
+      'R-C: paket işlemi müşteri verisini silemez; ilişki `Restrict` olmalı.',
+    ].join('\n')).toEqual([]);
+  });
+
   it('istisna listesi yok: kurucu modülü gerekçeli dışlama ihraç etmez [URN-PKT-010]', async () => {
     const kur = (await import('@/lib/paket/kur')) as Record<string, unknown>;
     expect(kur.MADDE_BAG_DISI, 'R-C: gerekçeli istisna kabul edilmez').toBeUndefined();

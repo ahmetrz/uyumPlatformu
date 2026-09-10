@@ -29,7 +29,10 @@
 
    Bu dosya veritabanı, React ve tarayıcı bilmez. */
 
-import { SIDDET_SIRASI, olaylaUyanir, siddetYeterli, type Siddet } from './bildirimSuresi';
+import {
+  kapsamKosuluSaglaniyor, type OlayKapsami, SIDDET_SIRASI, olaylaUyanir,
+  siddetYeterli, type Siddet,
+} from './bildirimSuresi';
 
 /* ── Durum kümesi ────────────────────────────────────────────────────── */
 
@@ -90,6 +93,8 @@ export type SureliYukumluluk = {
   aktif: boolean;
   /** `olay` | `takvim` — R10+; `olaylaUyanir` bunu okur. */
   tetikleyici: string;
+  /** R15 · Ek kapsam koşulu; `null` = koşul yok (bugünkü davranış). */
+  kapsamKosulu?: string | null;
 };
 
 /**
@@ -105,7 +110,10 @@ export function uyanYukumlulukler(o: {
   siddet: string;
   regulasyonIdleri: readonly string[];
   kurallar: readonly SureliYukumluluk[];
+  /** R15 · Olayın ek kapsam bilgisi; verilmezse "değerlendirilmedi". */
+  kapsam?: OlayKapsami;
 }): SureliYukumluluk[] {
+  const kapsam: OlayKapsami = o.kapsam ?? { kisiselVeriIhlali: null };
   return o.kurallar
     .filter((k) => {
       if (!k.aktif) return false;
@@ -115,6 +123,10 @@ export function uyanYukumlulukler(o: {
          seed'de altı sahte `BildirimKaydi` açılmıştı. */
       if (!olaylaUyanir(k.tetikleyici)) return false;
       if (!siddetYeterli(o.siddet, k.asgariSiddet)) return false;
+      /* R15 · EK KAPSAM KOŞULU. Şiddet ve regülasyon her zaman yetmez:
+         KVKK 72 saat, kişisel veri işlenmemiş bir kesintiye uymaz.
+         Bilinmeyen HAYIR sayılmaz — koşul katmanı üç değerlidir. */
+      if (!kapsamKosuluSaglaniyor(k.kapsamKosulu ?? null, kapsam).uyar) return false;
       if (k.regulasyonId === null) return true;
       return o.regulasyonIdleri.includes(k.regulasyonId);
     })

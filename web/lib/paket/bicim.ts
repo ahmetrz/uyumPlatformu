@@ -324,6 +324,17 @@ export const YukumlulukSatiriSemasi = z.object({
       sayaç işlemez. Sıfır yasak: sıfır gün, dönem biter bitmez geçmiş
       bir sayaçtır. */
   teslimGun: z.number().int().positive().nullable().optional(),
+  /** R15 · EK KAPSAM KOŞULU — şiddet ve regülasyon yetmediğinde.
+   *
+   * Ölçüldü: KVKK 72 saat yükümlülüğü `asgariSiddet: 'orta'` ile HER
+   * orta olaya uyuyordu ve kişisel veri hiç işlenmemiş bir kesinti için
+   * de Kurula bildirim taslağı açılıyordu. Açılan her yanlış taslak,
+   * gerçek olanı görünmez yapan bir satırdır.
+   *
+   * Koşul kümesi POZİTİFTİR ve çekirdek onu tanımaz zorunda: tanınmayan
+   * bir kod yükümlülüğü UYANDIRMAZ (sessizce herkese açmaz). Takvim
+   * tetiklide KULLANILMAZ — takvim yükümlülüğü olaya bakmaz. */
+  kapsamKosulu: z.enum(['kisisel_veri_ihlali']).nullable().optional(),
 }).strict()
   .superRefine((y, ctx) => {
     /* TÜR ile ALANLAR TUTARLI OLMALI. Bir olay yükümlülüğüne dönem
@@ -336,6 +347,13 @@ export const YukumlulukSatiriSemasi = z.object({
           code: 'custom',
           message: 'Takvim tetikli yükümlülükte `sureSaat` KULLANILMAZ: '
             + 'süre olaydan değil dönemden sayılır (`teslimGun`).',
+        });
+      }
+      if (y.kapsamKosulu !== undefined && y.kapsamKosulu !== null) {
+        ctx.addIssue({
+          code: 'custom',
+          message: 'Takvim tetikli yükümlülükte `kapsamKosulu` KULLANILMAZ: '
+            + 'koşul olayın niteliğini sorar, takvim yükümlülüğü olaya bakmaz.',
         });
       }
     } else {
@@ -459,6 +477,31 @@ export const RolSatiriSemasi = z.object({
 }).strict();
 export type RolSatiri = z.infer<typeof RolSatiriSemasi>;
 
+/* ── 2.8 · Kaynak kataloğu (R1 · mevzuat radarı) ───────────────────────
+   `kaynak-katalogu.json` — hangi RESMÎ YAYIN KANALININ izleneceği ülkeye
+   ve sektöre bağlıdır; çekirdeğe gömülemez (sektör-ülke bağımsızlık).
+   Paket kanalı ÖNERİR; taramayı açmak KURULUMUN kararıdır ve kurucu
+   `etkin` alanına HİÇ dokunmaz — kurulan kaynak KAPALI doğar.
+
+   Adres kamuya açık ve `https` olmak zorundadır: bir uyum ürünü izlediği
+   kaynağı şifresiz taşıyamaz ve müşterinin kendi iç sistemine bakamaz
+   (bu kural `docs/GELISTIRME_PAKETLERI.md` §0.2'de yazılı). */
+export const KAYNAK_TURLERI = ['rss', 'liste'] as const;
+
+export const KaynakSatiriSemasi = z.object({
+  kod: z.string().regex(CERCEVE_KODU, 'kaynak kodu BÜYÜK harf ve tire: TR-RG-MEVZUAT'),
+  ad: z.string().min(3).max(120),
+  /** Kamuya AÇIK resmî kanal. `https` zorunlu. */
+  yayinKanali: z.string().url().refine((u) => u.startsWith('https://'),
+    'yayın kanalı https olmalı'),
+  tur: z.enum(KAYNAK_TURLERI).default('liste'),
+  dil: z.string().min(2).max(8).default('tr'),
+  /** Düzenleyici mercinin adı — aday hangi merciden geldi. */
+  merci: z.string().max(120).optional(),
+  not: z.string().max(300).optional(),
+}).strict();
+export type KaynakSatiri = z.infer<typeof KaynakSatiriSemasi>;
+
 /* ── 2.4 · Eşleme CSV türü (§1/4 · §4 "müşterinin eşlemeleri ezilmez") ──
    `esleme/<KOD>.json` kimlik + `esleme/<KOD>.csv` satırlar. Eşleme
    çerçeveler ARASIDIR: kaynak ve hedef çerçeve + sürüm etiketi kimlikte
@@ -501,6 +544,7 @@ export const DOSYALAR = {
   oznitelikler: 'oznitelikler.json',
   yukumlulukler: 'yukumlulukler.json',
   roller: 'roller.json',
+  kaynakKatalogu: 'kaynak-katalogu.json',
   cerceveDizini: 'cerceve',
   eslemeDizini: 'esleme',
   formDizini: 'form',

@@ -462,6 +462,44 @@ export const UYUM_SENARYOLARI: Senaryo[] = [
     katmanlar: ['SERVER', 'DOMAIN', 'WORKFLOW'],
   },
 
+  /* ── R1 · Mevzuat radarı ────────────────────────────────────────── */
+  {
+    id: 'MEV-RAD-001', alan: 'Uyum', rota: '/mevzuat-radari', eksen: 'akis',
+    amac: '"Güncel kalır" sözünün karşılığını kurmak — ve NEREYE BAKILAMADIĞINI söylemek',
+    rol: 'uyum yöneticisi', kapsam: 'kurum geneli',
+    onkosul: 'Kurulu pakette kaynak kataloğu var; kaynaklar VARSAYILAN OLARAK KAPALI',
+    veriHali: 'kısmi',
+    eylem: 'Radar motoru koşar (`mevzuatRadari.mevzuatRadariniIsle`); insan adayları inceler',
+    beklenenSonuc: 'Motor yalnız ADAY ve tarama kaydı üretir; çerçeve sürümüne,'
+      + ' regülasyona ve kaynağın `etkin` alanına DOKUNMAZ. robots.txt kaynağın'
+      + ' KENDİSİNDEN ÖNCE sorulur; robots kapatıyorsa ya da anti-bot yanıtı'
+      + ' (401 · 403 · 418 · 429) geldiyse kaynak ENGELLİ işaretlenir ve engel'
+      + ' ATLATILMAZ. Kaynak başına günde BİR istek. Biçim tanınmazsa sonuç'
+      + ' "fark yok" değil KARŞILAŞTIRILAMADI (`farkVar` NULL) olur',
+    beklenenEkran: 'ENGELLİ ve KARŞILAŞTIRILAMADI iki AYRI metriktir; hiç taranmamış'
+      + ' kaynak da ayrı sayılır ve "değişiklik yok" demez',
+    beklenenIz: 'MevzuatDegisiklikAdayi · guncelleme (insan kararında) ·'
+      + ' MevzuatKaynagi · guncelleme (tarama açılıp kapandığında)',
+    beklenenBildirim: 'yok',
+    katmanlar: ['SERVER', 'DOMAIN', 'WORKFLOW', 'UI'],
+  },
+  {
+    id: 'MEV-RAD-002', alan: 'Uyum', rota: '/mevzuat-radari', eksen: 'yetki',
+    amac: 'Gerekçesiz kapatılan bir değişiklik adayını engellemek',
+    rol: 'uyum yöneticisi', kapsam: 'kurum geneli',
+    onkosul: 'Karar bekleyen bir aday var', veriHali: 'kısmi',
+    eylem: 'İnsan adayı "ilgisiz" işaretler ama gerekçeyi boş bırakır',
+    beklenenSonuc: 'İstek REDDEDİLİR ve aday DEĞİŞMEZ. "İlgisiz" DE bir karardır:'
+      + ' gerekçesiz kapatılan bir aday, üç ay sonra neden kapatıldığı bilinmeyen'
+      + ' bir boşluktur. Kapsam KAPSAMSIZ sorulur — bir tebliğ değişikliği'
+      + ' KURUMUN meselesidir, tesise kısıtlı rol geçmez. Taramayı açıp kapatmak'
+      + ' AYRI bir yetkidir (yonetim/onay) ve ENGELLİ kaynakta tarama AÇILAMAZ',
+    beklenenEkran: 'Hata satırı alanın altında; aday hâlâ "yeni"',
+    beklenenIz: 'red: yazma yok · kabul: MevzuatDegisiklikAdayi · guncelleme (gerekçeli)',
+    beklenenBildirim: 'yok',
+    katmanlar: ['SERVER', 'RBAC', 'DOMAIN', 'UI'],
+  },
+
   /* ── R12 · Denetim formları ─────────────────────────────────────── */
   {
     id: 'DNT-FRM-001', alan: 'Denetim', rota: '/raporlar/denetim-formlari',
@@ -864,4 +902,78 @@ export const UYUM_SENARYOLARI_3: Senaryo[] = [
     beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
     katmanlar: ['DOMAIN', 'UI'],
   },
+  {
+    id: 'KVK-ENV-001', alan: 'Uyum', rota: '/kisisel-veri', eksen: 'veri',
+    amac: 'Yurt dışına aktarımda bildirim süresinin doğru işlemesi',
+    rol: 'uyum sorumlusu', kapsam: 'kurum geneli',
+    onkosul: 'Standart sözleşme dayanaklı aktarım kayıtlı',
+    /* Veri hâli BOZUKTUR ve öyle adlandırılır: bildirim tarihi YOK. */
+    veriHali: 'yok',
+    eylem: 'Aktarımın bildirim hâline bakar',
+    beklenenSonuc: 'Sayaç ÇALIŞMAZ; "bildirim tarihi girilmedi" der',
+    beklenenEkran: 'Geri sayım gösterilmez, gecikme uydurulmaz',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['DOMAIN', 'UI'],
+  },
+  {
+    id: 'KVK-ENV-002', alan: 'Uyum', rota: '/kisisel-veri', eksen: 'akis',
+    amac: 'Veri sahibi başvurusunun süresinde yanıtlanması',
+    rol: 'uyum sorumlusu', kapsam: 'kurum geneli',
+    onkosul: 'Yanıt süresi kuralı pakette tanımlı', veriHali: 'süresi geçmiş başvuru',
+    eylem: 'Süre motoru koşar',
+    beklenenSonuc: '`suresi_gecti` işaretlenir ve GÖREV açılır; motor CEVABI YAZMAZ',
+    beklenenEkran: 'Süre geçti rozetiyle görünür',
+    beklenenIz: 'motor izi düşer, aktör YOK', beklenenBildirim: 'görev açılır',
+    katmanlar: ['ENGINE', 'DOMAIN', 'SERVER'],
+  },
+  {
+    id: 'KVK-ENV-003', alan: 'Uyum', rota: '/olaylar', eksen: 'akis',
+    amac: 'Kişisel veri ihlalinin doğru yükümlülüğü tetiklemesi',
+    rol: 'uyum sorumlusu', kapsam: 'kurum geneli',
+    onkosul: 'Pakette ek kapsam koşullu yükümlülük kurulu',
+    veriHali: 'ihlal · ihlal değil · değerlendirilmedi',
+    eylem: 'Olay için bildirim kayıtları açılır',
+    beklenenSonuc: 'Kişisel veri ihlalinde AÇILIR; ihlal DEĞİL denmişse AÇILMAZ;'
+      + ' değerlendirilmemişse ihtiyaten AÇILIR',
+    beklenenEkran: 'Taslağın neden açıldığı yazılı',
+    beklenenIz: 'motor izi düşer', beklenenBildirim: 'bildirim kaydı açılır',
+    katmanlar: ['ENGINE', 'DOMAIN', 'INTEGRATION'],
+  },
+  {
+    id: 'KVK-ENV-004', alan: 'Uyum', rota: '/kisisel-veri', eksen: 'veri',
+    amac: 'İşleme envanterinin iş sürecine bağlı kalması',
+    rol: 'uyum sorumlusu', kapsam: 'kurum geneli',
+    onkosul: '—', veriHali: 'süreçsiz kayıt denemesi',
+    eylem: 'Sürece bağlanmamış envanter satırı kaydedilmeye çalışılır',
+    beklenenSonuc: 'REDDEDİLİR; sunucu ve ŞEMA ikisi de tutar',
+    beklenenEkran: 'Satır açılmaz',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['SERVER', 'MIGRATION', 'DOMAIN'],
+  },
+  {
+    id: 'KVK-ENV-005', alan: 'Uyum', rota: '/kisisel-veri', eksen: 'yetki',
+    amac: 'Ekranın yetki cümlelerinin gerçek eylemle ölçülmesi',
+    rol: 'güvenlik denetçisi', kapsam: 'kurum geneli',
+    onkosul: 'Katkıcı, okuyucu ve tesise kısıtlı roller kurulu', veriHali: 'normal',
+    eylem: 'Her rol gerçek sunucu eylemini çağırır',
+    beklenenSonuc: 'Uyum onayı olmayan REDDEDİLİR ve kayıt DEĞİŞMEZ',
+    beklenenEkran: 'Yetkisiz kullanıcıda karar düğmesi yok',
+    beklenenIz: 'reddedilen denemede yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['RBAC', 'SCOPE', 'SERVER'],
+  },
+  {
+    id: 'KVK-ENV-006', alan: 'Uyum', rota: '/kisisel-veri', eksen: 'arayuz',
+    amac: 'Üç ayrı "bilinmiyor" hâlinin ekranda ayrı durması',
+    rol: 'uyum sorumlusu', kapsam: 'kurum geneli',
+    onkosul: 'Envanter, aktarım ve başvuru kayıtlı',
+    /* Ekranın konusu tam olarak BİLİNMEYEN hâldir: değerlendirilmemiş
+       faaliyet, tarihi girilmemiş aktarım, süre kuralı olmayan başvuru. */
+    veriHali: 'bilinmiyor',
+    eylem: 'Ekranın metrik ve kapsam cümlesine bakar',
+    beklenenSonuc: 'Üç hâl AYRI sayılır ve AYRI cümlede söylenir',
+    beklenenEkran: 'Aydınlatma metni üreten düğme YOK',
+    beklenenIz: 'yazma yok', beklenenBildirim: 'yok',
+    katmanlar: ['UI', 'DOMAIN', 'RESPONSIVE'],
+  },
+
 ];

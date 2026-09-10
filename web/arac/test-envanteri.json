@@ -1,7 +1,7 @@
 {
-  "imza": "39ad014ff51e352846aa9f935b8fe0b0",
-  "dosya": 218,
-  "vaka": 3978,
+  "imza": "a791aa237a292168efc13e42f581ed7e",
+  "dosya": 229,
+  "vaka": 4133,
   "atlanan": 1,
   "dosyalar": {
     "tests/adaptor-yetenekleri.test.ts": {
@@ -93,7 +93,15 @@
       "atlanan": 0
     },
     "tests/bekci/paket-silme.test.ts": {
-      "vaka": 5,
+      "vaka": 6,
+      "atlanan": 0
+    },
+    "tests/bekci/politika-olcumu.test.ts": {
+      "vaka": 21,
+      "atlanan": 0
+    },
+    "tests/bekci/radar-agsiz.test.ts": {
+      "vaka": 7,
       "atlanan": 0
     },
     "tests/bekci/rol-sabitleri.test.ts": {
@@ -508,6 +516,18 @@
       "vaka": 4,
       "atlanan": 0
     },
+    "tests/mevzuat-radari-eylem.test.ts": {
+      "vaka": 10,
+      "atlanan": 0
+    },
+    "tests/mevzuat-radari-mantik.test.ts": {
+      "vaka": 10,
+      "atlanan": 0
+    },
+    "tests/mevzuat-radari.test.ts": {
+      "vaka": 29,
+      "atlanan": 0
+    },
     "tests/motor-defteri.test.ts": {
       "vaka": 3,
       "atlanan": 0
@@ -654,6 +674,22 @@
     },
     "tests/pg-gocu.test.ts": {
       "vaka": 10,
+      "atlanan": 0
+    },
+    "tests/politika-demo-salt-okunur.test.ts": {
+      "vaka": 8,
+      "atlanan": 0
+    },
+    "tests/politika-eylem-kapsami.test.ts": {
+      "vaka": 15,
+      "atlanan": 0
+    },
+    "tests/politika-pasif-once.test.ts": {
+      "vaka": 5,
+      "atlanan": 0
+    },
+    "tests/politika-yetki-kapilari.test.ts": {
+      "vaka": 7,
       "atlanan": 0
     },
     "tests/proje-bagimliligi.test.ts": {
@@ -805,7 +841,7 @@
       "atlanan": 0
     },
     "tests/varlik-aktarim.test.ts": {
-      "vaka": 32,
+      "vaka": 33,
       "atlanan": 0
     },
     "tests/varlik-durus.test.ts": {
@@ -826,6 +862,14 @@
     },
     "tests/veri-kalitesi-aktarim.test.ts": {
       "vaka": 21,
+      "atlanan": 0
+    },
+    "tests/veri-koruma-mantik.test.ts": {
+      "vaka": 10,
+      "atlanan": 0
+    },
+    "tests/veri-koruma.test.ts": {
+      "vaka": 31,
       "atlanan": 0
     },
     "tests/xlsx-ayristirma.test.ts": {

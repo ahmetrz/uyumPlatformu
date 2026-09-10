@@ -23,7 +23,8 @@
     "esleme/CBDDO-SPK-BS.csv": "eaf935f27b4f0b1bd42ea4a7b9a1101d176b4feacf0f2b816db8d7b5ad533575",
     "esleme/CBDDO-SPK-BS.json": "d9017f36a4f21c4368abf44110cc5e3aca81b8501e6faaba8dec974591ed9da5",
     "esleme/ISO-27001-CBDDO.csv": "5b48c09ffcac11571af5cbf3db09065415b8dd6f6ac2c7b2cf63cd1f549ccc0b",
-    "esleme/ISO-27001-CBDDO.json": "5d04c334e35814158da4646d26ecb4382e1aca20196cf94ca47316486d686409"
+    "esleme/ISO-27001-CBDDO.json": "5d04c334e35814158da4646d26ecb4382e1aca20196cf94ca47316486d686409",
+    "kaynak-katalogu.json": "90405a18f3f812e7899cf45d19ebb25521677810887eb0e92a27671f3ed32df9"
   },
   "imza": null,
   "aciklama": "DEMO (P4 · 2.5): tohumun sektör üstü çerçeveleri ve iki çerçeve arası denklik. Madde seçkisi temsilîdir, hiçbir gerçek kuruma ait değildir; kurgusal kiracılar (enerji, su) bu paketi paylaşır.",

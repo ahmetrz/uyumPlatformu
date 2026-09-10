@@ -213,6 +213,33 @@ değildir — SABOTAJIN kendisi de zayıf olabilir. Ayrım şudur: sabotaj
 kusurun ESKİ hâlini geri getiriyor mu? Getiriyorsa ve kırmızı yanmıyorsa
 bulgu testtedir; getirmiyorsa sabotaj yeniden yazılır.
 
+**Ekranın POLİTİKA cümlesi gerçek yolla ölçülür (R-F).** Ekranda yazan
+her politika iddiası — "MFA zorunlu" · "yalnız okunur" · "kapsam dışı" ·
+"bu ekran aktifleştirmez" · "ağa hiçbir paket göndermez" — o iddiayı
+uygulayan kodun GERÇEK YOLUNU süren bir vaka ile ölçülür ve sabotajla
+kanıtlanır. İddia ile onu uygulayan kodun ayrı ayrı doğru olması, ikisi
+arasındaki BAĞI kurmuş SAYILMAZ.
+
+Gerekçe ölçüldü (10 Eylül 2026, #49): MFA ekranda zorunluydu, `girisYap`
+parola doğrulandıktan sonra oturumu açıyordu. MFA katmanının her parçası
+tek tek doğruydu ve tek tek test ediliyordu — kayıt, doğrulama, kurtarma
+kodu, kiracı politikası, ekran cümlesi; hiçbiri girişe bağlı değildi ve
+hiçbir kapı bunu görmedi. Aynı sınıf aynı PR'ın ikinci inceleme turunda
+bir kez daha çıktı: takvim tetikli yükümlülükler için AYRI bir motor
+yazıldı, eski olay motoru simetrik daralmayı almadı ve tohum
+veritabanında altı sahte bildirim kaydı doğdu.
+
+Politika cümlesi ELLE LİSTELENMEZ, koddan TÜRETİLİR
+(`web/arac/politika-kutugu.mjs`): cümleyi alan doğrulamasından
+("Negatif olamaz") ayıran şey ÖZNEDİR — politika iddiası sisteme
+bağlanır. Türetilen her cümle `web/arac/politika-cumleleri.json`
+kütüğünde sınıflanır ve `POLITIKA` sınıfındaki her satır ya ölçümünü
+(dosya + vaka) taşır ya da ölçülmediğini SAHİBİ ve KAPANIŞ AŞAMASIYLA
+söyler ("süresiz beyan yoktur"). Kütükte olmayan cümle de, kodda
+olmayan kütük satırı da KIRMIZIDIR
+(`web/tests/bekci/politika-olcumu.test.ts`, URN-POL-001); ölçülmeyen
+sayısı bir TAVANDIR ve yalnız küçülür.
+
 **İnceleme turu İKİ ile sınırlıdır (R-A).** Tur 1 → düzelt → tur 2 →
 düzelt → merge. Üçüncü turda çıkan bulgular YENİ PR olur. Gerekçe
 (ölçüldü, 9 Eylül 2026, #41): dal inmezse `main` ayrışır; birleştirme
@@ -377,7 +404,7 @@ CI'da (`.github/workflows/pr-kapisi.yml`) **on iş** koşar:
 | --- | --- |
 | `kapi` | lint · tsc · vitest · test envanteri · ters kapsam · dil · tasarım · sözlük kipi · şema sapması · göç zinciri · PostgreSQL taban tazeliği · gerekçe taraması (bilgi) · **kapı farkı** · **derleme ortamı beyanı** |
 | `derleme` | üretim derlemesi **BİR KEZ** + ortam damgası; `.next` (cache hariç · ölçüldü 74 MB) artefakt olur |
-| `kapi-rota` · `kapi-gezinme` · `kapi-tasma` · `kapi-axe` | dört tarayıcılı kapı **paralel**; dördü de AYNI artefaktı indirir ve ortam beyanını doğrular. `kapi-rota` tek sunucuyla BEŞ kapı koşar: rota duman · denetim formu kanıtı (R12) · bildirim kaydı kanıtı (R10) · bildirim dönemi kanıtı (R10+) · kimlik ve SSO kanıtı (P6) |
+| `kapi-rota` · `kapi-gezinme` · `kapi-tasma` · `kapi-axe` | dört tarayıcılı kapı **paralel**; dördü de AYNI artefaktı indirir ve ortam beyanını doğrular. `kapi-rota` tek sunucuyla ALTI kapı koşar: rota duman · denetim formu kanıtı (R12) · bildirim kaydı kanıtı (R10) · bildirim dönemi kanıtı (R10+) · kimlik ve SSO kanıtı (P6) · mevzuat radarı kanıtı (R1) |
 | `kapi-demo` | statik demo derlemesi + marka kapısı — ortamı FARKLI (`NEXT_PUBLIC_DEMO=1`), bu yüzden kendi derlemesini yapar |
 | `kapi-yavas` | **toplayıcı**: kapı koşmaz, beş işin sonucunu toplar. Adı korunuyor çünkü dal korumasındaki zorunlu check adıdır ve o ayar koddan görünmez |
 | `kapi-postgres` | postgres:16 servisi — `kapi:pg-goc` ve TAM test kümesi (iki sağlayıcıda da aynı sayı) |
@@ -403,10 +430,10 @@ yükleme 7 sn, indirme 3–4 sn (74 MB).
 bu bir testle sabit (`web/tests/kapi-is-kapsami.test.ts`); üstüne ALTI
 kapı eklendi ve altısı da o testte adıyla beyanlı — bölünmenin kendisi
 üçünü getirdi (derleme ortamı damgası · doğrulaması · `kapi:derleme-artefakti`),
-kalan beşi sonraki işlerde eklendi (`kanit:denetim-formu` ·
+kalan altısı sonraki işlerde eklendi (`kanit:denetim-formu` ·
 `kapi:ithal-zinciri` · `kanit:bildirim-kaydi` · `kanit:bildirim-donemi` ·
-`kanit:kimlik`). Ölçüm (10 Eyl 2026): 23 + 8 = **31 benzersiz komut, 32
-adım** (bir komut iki ayrı ortamda koşuyor ve bu iki ayrı kapıdır). Sayı
+`kanit:kimlik` · `kanit:mevzuat-radari`). Ölçüm (10 Eyl 2026): 23 + 9 =
+**32 benzersiz komut, 33 adım** (bir komut iki ayrı ortamda koşuyor ve bu iki ayrı kapıdır). Sayı
 elle sayılmaz, testte iki yönlü eşitlikle tutulur: kapı düşerse de,
 BEYANSIZ kapı eklenirse de kırmızı.
 

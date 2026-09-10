@@ -55,7 +55,7 @@ const IN_PARCASI = 500;
 export type Celiski = { tablo: string; anahtar: string; sebep: string };
 export type KurulumRaporu = {
   paketId: string; surumId: string; kod: string; surum: string;
-  sayilar: { sozluk: number; kapsamTurleri: number; oznitelikler: number; cerceveler: number; maddeler: number; yukumlulukler: number; formlar: number; raporlar: number; roller: number; eslemeler: number; kurallar: number };
+  sayilar: { sozluk: number; kapsamTurleri: number; oznitelikler: number; cerceveler: number; maddeler: number; yukumlulukler: number; formlar: number; raporlar: number; roller: number; eslemeler: number; kaynaklar: number; kurallar: number };
   celiskiler: Celiski[];
   taslakSurumler: { regulasyonKod: string; surumEtiketi: string; surumId: string }[];
   /** Yükseltme uzlaştırması: bu sürümün artık beyan etmediği paket kökenli satırlar (pasif / arşiv; silme yok). */
@@ -82,6 +82,9 @@ export type KurulumSonucu =
 export const MADDE_BAG_ILISKILERI = [
   'alanlar', 'durumlar', 'eslestirmeKaynak', 'eslestirmeHedef', 'istisnalar', 'projeBaglantilari',
   'riskKontrolleri', 'denetimKapsamlari', 'belgeBaglantilari', 'egitimBaglari', 'yerineGecenler',
+  /* R15 · İşleme envanteri bir maddeyi teknik/idari tedbir olarak
+     gösterebilir; o madde paket güncellemesiyle silinemez. */
+  'veriFaaliyetleri',
 ] as const;
 
 /** Manifestin sürüm numarasıyla birlikte DEĞİŞMEZ olan alanları: kimlik,
@@ -524,7 +527,7 @@ async function yaz(tx: Tx, icerik: PaketIcerigi, kuranId: string | null, simdi: 
     /* Tetikleyici türü ve dönem alanları da PAKETTEN gelir; koda
        gömülmez. Doğrulayıcı türle alanların tutarlılığını zaten
        ölçtü (olay tetiklide dönem, takvim tetiklide sureSaat yasak). */
-    const veri = { ad: y.ad, regulasyonId, asgariSiddet: y.asgariSiddet, sureSaat: y.sureSaat, dayanak: y.dayanak, merci: y.merci, kanalNotu: y.kanalNotu ?? null, tetikleyici: y.tetikleyici, donem: y.donem ?? null, donemBaslangici: y.donemBaslangici ?? null, teslimGun: y.teslimGun ?? null, aktif: true, ...koken };
+    const veri = { ad: y.ad, regulasyonId, asgariSiddet: y.asgariSiddet, sureSaat: y.sureSaat, dayanak: y.dayanak, merci: y.merci, kanalNotu: y.kanalNotu ?? null, tetikleyici: y.tetikleyici, donem: y.donem ?? null, donemBaslangici: y.donemBaslangici ?? null, teslimGun: y.teslimGun ?? null, kapsamKosulu: y.kapsamKosulu ?? null, aktif: true, ...koken };
     if (mevcut) await tx.bildirimYukumlulugu.update({ where: { id: mevcut.id }, data: veri });
     else await tx.bildirimYukumlulugu.create({ data: { kod: y.kod, ...veri } });
     yukumlulukSayisi++;
@@ -580,6 +583,37 @@ async function yaz(tx: Tx, icerik: PaketIcerigi, kuranId: string | null, simdi: 
     if (mevcut) await tx.rolKatalogu.update({ where: { id: mevcut.id }, data: veri });
     else await tx.rolKatalogu.create({ data: { kod: r.kod, ...veri } });
     rolSayisi++;
+  }
+
+  /* kaynak kataloğu (2.8 · R1) — mevzuat radarının izleyeceği resmî
+     kanallar. İKİ KURAL BURADA UYGULANIR:
+
+     1. `etkin` alanına HİÇ DOKUNULMAZ. Kurulan kaynak KAPALI doğar
+        (şema varsayılanı false) ve yükseltme kurulumun açtığı bir
+        kaynağı kapatmaz: taramayı açmak insan kararıdır.
+     2. Kataloğdan DÜŞEN kaynak SİLİNMEZ ve pasifleştirilmez. Kaynağın
+        `etkin` alanı ve tarama geçmişi MÜŞTERİ VERİSİDİR (R-C ile aynı
+        ilke); paket bir kanalı önermekten vazgeçtiğinde kurulumun onu
+        izlemeye devam etme hakkı kalır. Ekran kaynağın hangi paketten
+        geldiğini söyler, gerisi kurulumun kararıdır. */
+  let kaynakSayisi = 0;
+  for (const k of icerik.kaynaklar) {
+    const mevcut = await tx.mevzuatKaynagi.findUnique({ where: { kod: k.kod } });
+    if (mevcut && mevcut.paketKodu !== null && mevcut.paketKodu !== icerik.manifest.kod) {
+      celiskiler.push({ tablo: 'MevzuatKaynagi', anahtar: k.kod, sebep: `${mevcut.paketKodu} paketinin kaynağı var — bu paketin önerisi yazılmadı` });
+      continue;
+    }
+    if (mevcut && mevcut.paketKodu === null) {
+      celiskiler.push({ tablo: 'MevzuatKaynagi', anahtar: k.kod, sebep: 'kurulumun kendi eklediği kaynak var — paket önerisi yazılmadı' });
+      continue;
+    }
+    const veri = {
+      ad: k.ad, yayinKanali: k.yayinKanali, tur: k.tur, dil: k.dil,
+      merci: k.merci ?? null, paketKodu: icerik.manifest.kod,
+    };
+    if (mevcut) await tx.mevzuatKaynagi.update({ where: { id: mevcut.id }, data: veri });
+    else await tx.mevzuatKaynagi.create({ data: { kod: k.kod, ...veri } });
+    kaynakSayisi++;
   }
 
   /* ── YÜKSELTME UZLAŞTIRMASI ───────────────────────────────────────────
@@ -645,7 +679,7 @@ async function yaz(tx: Tx, icerik: PaketIcerigi, kuranId: string | null, simdi: 
   const rapor: KurulumRaporu = {
     paketId: paket.id, surumId: surumKaydi.id, kod: m.kod, surum: m.surum,
     sayilar: { sozluk: sozlukSayisi, kapsamTurleri: turSayisi, oznitelikler: oznitelikSayisi, cerceveler: icerik.cerceveler.length, maddeler: maddeSayisi, yukumlulukler: yukumlulukSayisi,
-      formlar: formSayisi, raporlar: raporSayisi, roller: rolSayisi, eslemeler: eslemeSayisi, kurallar: kuralSayisi },
+      formlar: formSayisi, raporlar: raporSayisi, roller: rolSayisi, eslemeler: eslemeSayisi, kaynaklar: kaynakSayisi, kurallar: kuralSayisi },
     celiskiler, taslakSurumler,
     pasiflestirilen: {
       kapsamTurleri: pasifTur.count, yukumlulukler: pasifYukumluluk.count, cerceveSurumleri: arsivSurum.count,

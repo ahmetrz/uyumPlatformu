@@ -197,13 +197,45 @@ silme, telifli metin kaçağı) ancak orada çıktı — ama sınırsız tur, da
 hiç indirmez.
 
 **Şema/göç, kiracı verisi ve lisans sınırına dokunan PR'larda BAĞIMSIZ
-İNCELEME ZORUNLUDUR (R-B).** Bu sınıfta "inceleme koşmadı" beyanı
-gerekçe değil, bekleme sebebidir: PR bekler ya da ikinci bir model
-inceler (Codex kota sınırına takıldığında ölçüldü). Diğer PR'larda
-mevcut üç durumlu kural aynen geçerlidir: inceleme koştu ve temiz ·
-koştu ve bulgu var (bulgular kapanmadan merge yok) · koşmadı ve PR
-gövdesinde beyanlı. Merge ön koşulu (CI yeşil VE açık inceleme yorumu
-yok) her sınıfta değişmez.
+İNCELEME ZORUNLUDUR (R-B).** Kural ZAYIFLATILMADI: bağımsız inceleme bu
+depoda 40'tan fazla gerçek kusur buldu ve kapıların göremediği sınıfları
+(transaction sınırı, kaskat silme, telifli metin kaçağı, anlam eşleme
+hatası) yalnız o yakaladı. Diğer PR'larda mevcut kural aynen geçerlidir:
+inceleme koştu ve temiz · koştu ve bulgu var (bulgular kapanmadan merge
+yok) · koşmadı ve PR gövdesinde beyanlı. Merge ön koşulu (CI yeşil VE
+açık inceleme yorumu yok) her sınıfta değişmez.
+
+R-B kapsamındaki bir PR'da inceleme **hiç alınamıyorsa** (kota, erişim,
+kaynak yok) bu SÜRESİZ BEKLEME DEĞİLDİR — üçüncü durum işler ve sırası
+bağlayıcıdır:
+
+1. **Bir kez daha dene.** #43'te işe yarayan yol: ayrı worktree, YAZMA
+   YETKİSİZ okuma, ikinci model. Kotanın dolması kalıcı değildir.
+2. Yine alınamıyorsa **YAPILANDIRILMIŞ ÖZ-İNCELEME** koşulur. Serbest
+   okuma değildir: bu depoda bağımsız incelemenin GERÇEKTEN yakaladığı
+   sınıflara karşı, sınıf sınıf yürünür ve her sınıf için "bakıldı mı ·
+   bulgu var mı · kanıt ne" yazılır.
+
+   | # | Sınıf |
+   | --- | --- |
+   | 1 | Transaction sınırı — iz kaydı işlemin DIŞINDA mı |
+   | 2 | Kaskat silme · müşteri verisi kaybı (R-C) |
+   | 3 | Telifli metin kaçağı (grup · iç içe parça · CSV · XLSX) |
+   | 4 | Anlam eşleme hatası — kaynak alanı yanlış ürün alanına (R-D) |
+   | 5 | Üç değerli mantık — NULL, olumsuz yüklem, "bilinmeyen" |
+   | 6 | Hiçbir şey ölçmeden yeşil yanan kapı · atlanan iş |
+   | 7 | Tek tek doğru, BİRLİKTE tutarsız ekran cümleleri |
+   | 8 | Sağlayıcı/ortam farkı — env, artefakt, iki zincir |
+
+3. Sonuç PR gövdesinde **AÇIKÇA** beyan edilir: "bağımsız inceleme
+   alınamadı; yapılandırılmış öz-inceleme koşuldu" + sınıf tablosu.
+4. **R0 kütüğüne kayıt düşer**: hangi PR · hangi tarih · neden
+   alınamadı (`docs/GELISTIRME_PAKETLERI.md` §6).
+5. Ancak bundan sonra merge edilebilir.
+
+**Öz-inceleme bağımsız incelemenin YERİNE GEÇMEZ.** Kaynağı olmayan
+durumda tanımlı ve ölçülmüş bir ASGARİDİR; "inceleme yapıldı" diye
+yazılmaz, "alınamadı, yerine şu koşuldu" diye yazılır.
 
 **Paket işlemleri müşteri verisini SİLEMEZ, yalnız arşivler (R-C).**
 Bekçi tavanı SIFIRDIR; gerekçeli istisna kabul edilmez. Ölçüldü:
